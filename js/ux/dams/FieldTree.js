@@ -181,7 +181,7 @@ Ext.define('Ext.ux.dams.FieldTree',{
 			this.mytree.getView().removeCls( this.invalidCls ) ;
 		}
 		// this.callParent(arguments) ;
-	},
+	}
 	
 
     // and here overriding valueToRaw and so on

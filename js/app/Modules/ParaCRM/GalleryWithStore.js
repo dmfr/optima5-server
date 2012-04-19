@@ -8,7 +8,6 @@ Ext.define('Optima5.Modules.ParaCRM.GalleryWithStore',{
 		
 		Ext.apply( me, {
 			autoScroll:true,
-			frame: true,
 			items: [{
 				xtype: 'dataview',
 				store: me.store,

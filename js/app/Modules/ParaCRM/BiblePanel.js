@@ -192,7 +192,6 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePanel' ,{
 			var columnObject = new Object();
 			Ext.apply(columnObject,{
             text: v.tree_field_lib,
-            flex: 1,
             sortable: false,
             dataIndex: v.tree_field_code,
 				menuDisabled: true,
@@ -342,6 +341,8 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePanel' ,{
 			//root: treeroot,
 			//clearOnLoad: false,
 			autoLoad: true,
+			remoteSort: true,
+			remoteFilter: true,
 			proxy: {
 				type: 'ajax',
 				url: 'server/backend.php',
@@ -353,6 +354,11 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePanel' ,{
 				},
 				actionMethods: {
 					read:'POST'
+				},
+				reader: {
+					type: 'json',
+					root: 'data',
+					totalProperty: 'total'
 				}
 			}
 		});
@@ -379,10 +385,9 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePanel' ,{
 			var columnObject = new Object();
 			Ext.apply(columnObject,{
             text: v.entry_field_lib,
-            flex: 1,
-            sortable: false,
-            dataIndex: v.entry_field_code,
+            sortable: true,
 				menuDisabled: true,
+            dataIndex: v.entry_field_code,
 				xtype:'gridcolumn'
 			}) ;
 			if( v.entry_field_type == 'link' ) {
@@ -392,9 +397,9 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePanel' ,{
 							return '' ;
 						}
 						if( Ext.Array.contains( Ext.JSON.decode(value), '&' ) ) {
-							return '<img src="images/op5img/ico_dataadd_16.gif"/>' + '&nbsp;(<b>' + v.entry_field_linkbible + '</b>)' ;
+							return '(<b>' + v.entry_field_linkbible + '</b>)' ;
 						}
-						return '<img src="images/op5img/ico_dataadd_16.gif"/>' + '&nbsp;' + Ext.JSON.decode(value).join(' / ') ;
+						return Ext.JSON.decode(value).join(' / ') ;
 					}
 				});
 			}
@@ -406,7 +411,13 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePanel' ,{
 		
 		var gridpanel = Ext.create('Ext.grid.Panel',{
 			store: gridstore,
-			columns: gridColumns
+			columns: gridColumns,
+			dockedItems: [{
+				xtype: 'pagingtoolbar',
+				store: gridstore,   // same store GridPanel is using
+				dock: 'bottom',
+				displayInfo: true
+			}]
 		}) ;
 		
 		
@@ -501,7 +512,12 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePanel' ,{
 			})]
 		});
 		if( this.gridstore ) {
-			this.gridstore.load(parameters) ;
+			this.gridstore.clearFilter(true) ;
+			this.gridstore.filter( [new Ext.util.Filter({
+				property: 'treenode_key',
+				value   : treenodeKey
+			})] ) ;
+			this.gridstore.loadPage(1); ;
 		}
 	},
 			  

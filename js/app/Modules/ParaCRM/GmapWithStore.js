@@ -45,7 +45,7 @@ Ext.define('Optima5.Modules.ParaCRM.GmapWithStore' ,{
 						scope: me
 					}
 				}
-			},
+			}
 					  
 		});
 		

@@ -10,7 +10,10 @@ Ext.define('Optima5.Modules.ParaCRM.FilePanel' ,{
 		'Ext.tree.*',
 		'Optima5.Modules.ParaCRM.DataFormPanel',
 		'Optima5.Modules.ParaCRM.FilePanelGmap',
-		'Optima5.Modules.ParaCRM.FilePanelGallery'
+		'Optima5.Modules.ParaCRM.FilePanelGallery',
+		'Ext.ux.grid.FiltersFeature',
+		'Optima5.Modules.ParaCRM.BibleFilter',
+		'Optima5.Modules.ParaCRM.DummyFilter'
 	],
 			  
 	fileId: '' ,
@@ -121,7 +124,13 @@ Ext.define('Optima5.Modules.ParaCRM.FilePanel' ,{
 				xtype:'op5paracrmfilegallery',
 				panelType: 'gallery',
 				store:this.gridstore,
-				fileId: this.fileId
+				fileId: this.fileId,
+				dockedItems: [{
+					xtype: 'pagingtoolbar',
+					store: this.gridstore,   // same store GridPanel is using
+					dock: 'bottom',
+					displayInfo: true
+				}]
 			}]
 				
 		});
@@ -165,6 +174,11 @@ Ext.define('Optima5.Modules.ParaCRM.FilePanel' ,{
 				name: v.field,
 				type: fieldType
 			}) ;
+			if( v.type == 'date' ) {
+				Ext.apply(fieldObject,{
+					dateFormat: 'Y-m-d H:i:s'
+				}) ;
+			}
 			modelFields.push( fieldObject ) ;
 		},this) ;
 		Ext.define(gridModelName, {
@@ -177,6 +191,7 @@ Ext.define('Optima5.Modules.ParaCRM.FilePanel' ,{
 			//folderSort: true,
 			//root: treeroot,
 			//clearOnLoad: false,
+			remoteSort: true,
 			autoLoad: true,
 			proxy: {
 				type: 'ajax',
@@ -189,6 +204,11 @@ Ext.define('Optima5.Modules.ParaCRM.FilePanel' ,{
 				},
 				actionMethods: {
 					read:'POST'
+				},
+				reader: {
+					type: 'json',
+					root: 'data',
+					totalProperty: 'total'
 				}
 			}
 		});
@@ -198,6 +218,8 @@ Ext.define('Optima5.Modules.ParaCRM.FilePanel' ,{
 	
 	reconfigureDataBuildGrid: function( ajaxData, gridstore ) {
 		var gridModelName = 'FileGrid'+'-'+this.fileId ;
+		
+		var daterenderer = Ext.util.Format.dateRenderer('d/m/Y h:i');
 		
 		// Création du modèle GRID
 		var modelFields = new Array() ;
@@ -229,9 +251,53 @@ Ext.define('Optima5.Modules.ParaCRM.FilePanel' ,{
             text: v.text,
             sortable: false,
             dataIndex: v.field,
-				menuDisabled: true,
-				xtype:'gridcolumn'
+				hidden: !(v.is_display),
+				sortable: true,
+				menuDisabled: false,
+				xtype:'gridcolumn',
 			}) ;
+			if( v.type == 'date' ) {
+				Ext.apply(columnObject,{
+					renderer: daterenderer
+				}) ;
+			}
+			if( v.file_code == this.fileId && (!v.link_bible || v.link_bible_is_key) ) {
+				Ext.apply(columnObject,{
+					text: '<b>'+columnObject.text+'</b>'
+				}) ;
+			}
+			if( v.link_bible && v.link_bible_is_key ) {
+				Ext.apply(columnObject,{
+					text: '<u>'+columnObject.text+'</u>'
+				}) ;
+			}
+			
+			if( v.link_bible && v.link_bible_is_key ) {
+				if( v.link_bible_type == 'tree' ) {
+						Ext.apply(columnObject,{
+							filter: {
+								type: 'op5paracrmbible',
+								bibleId: v.link_bible
+							}
+						}) ;
+				}
+				
+				if( v.link_bible_type == 'entry' ) {
+						Ext.apply(columnObject,{
+							filter: {
+								type: 'op5paracrmbible',
+								bibleId: v.link_bible
+							}
+						}) ;
+				}
+			}
+			else {
+				Ext.apply(columnObject,{
+					filterable: true
+				}) ;
+			}
+			
+			
 			if( v.entry_field_type == 'link' ) {
 				Ext.apply(columnObject,{
 					renderer : function( value ) {
@@ -242,21 +308,46 @@ Ext.define('Optima5.Modules.ParaCRM.FilePanel' ,{
 							return '<img src="images/op5img/ico_dataadd_16.gif"/>' + '&nbsp;(<b>' + v.link + '</b>)' ;
 						}
 						return '<img src="images/op5img/ico_dataadd_16.gif"/>' + '&nbsp;' + Ext.JSON.decode(value).join(' / ') ;
-					}
+					},
+					
 				});
 			}
 			gridColumns.push( columnObject ) ;
 		},this) ;
 		
 		
+		var filtersParams = {
+			ftype: 'filters',
+			encode: true
+			// encode and local configuration options defined previously for easier reuse
+			/*
+			encode: encode, // json encode the filter query
+			local: local   // defaults to false (remote filtering)
+			*/
+
+			// Filters are most naturally placed in the column definition, but can also be
+			// added here.
+			/*
+			filters: [
+					{
+						type: 'boolean',
+						dataIndex: 'visible'
+					}
+			]*/
+		};
 		
 		
 		var gridpanel = Ext.create('Ext.grid.Panel',{
 			store: gridstore,
-			columns: gridColumns
+			columns: gridColumns,
+			features: [ filtersParams ],
+			dockedItems: [{
+				xtype: 'pagingtoolbar',
+				store: gridstore,   // same store GridPanel is using
+				dock: 'bottom',
+				displayInfo: true
+			}]
 		}) ;
-		
-		
 		
 		
 		var me = this ;
@@ -277,7 +368,6 @@ Ext.define('Optima5.Modules.ParaCRM.FilePanel' ,{
 						iconCls: 'icon-bible-edit',
 						text: 'Edit record',
 						handler : function() {
-							//console.log( keyfield + ' is ' + record.get(keyfield) ) ;
 							me.editRecordUpdate( record.get(keyfield) ) ;
 						},
 						scope : me
@@ -288,7 +378,18 @@ Ext.define('Optima5.Modules.ParaCRM.FilePanel' ,{
 						iconCls: 'icon-bible-delete',
 						text: 'Delete record',
 						handler : function() {
-							me.editRecordDelete( record.get(keyfield) ) ;
+							Ext.Msg.show({
+								title:'Delete file record',
+								msg: 'Delete record '+record.get(keyfield)+' ?' ,
+								buttons: Ext.Msg.YESNO,
+								fn:function(buttonId){
+									if( buttonId == 'yes' ) {
+										me.editRecordDelete( record.get(keyfield) ) ;
+									}
+								},
+								scope:me
+							});
+							
 						},
 						scope : me
 					});

@@ -66,7 +66,7 @@ Ext.define('Optima5.Modules.ParaCRM.DataFormPanel' ,{
 		var ajaxParams = {} ;
 		Ext.apply( ajaxParams, this.ajaxBaseParams );
 		Ext.apply( ajaxParams, {
-			_subaction : 'get_layout',
+			_subaction : 'get_layout'
 		}) ;
 		
 		
@@ -267,10 +267,10 @@ Ext.define('Optima5.Modules.ParaCRM.DataFormPanel' ,{
 			url : 'server/backend.php',
 			baseParams: ajaxBaseParams,
 			loadParams: {
-				_subaction: 'subfileData_get',
+				_subaction: 'subfileData_get'
 			},
 			saveParams: {
-				_subaction: 'subfileData_set',
+				_subaction: 'subfileData_set'
 			},
 			columns : columns
 		}) ;
@@ -291,13 +291,13 @@ Ext.define('Optima5.Modules.ParaCRM.DataFormPanel' ,{
 			url : 'server/backend.php',
 			baseParams: ajaxBaseParams,
 			loadParams: {
-				_subaction: 'subfileGallery_get',
+				_subaction: 'subfileGallery_get'
 			},
 			uploadParams: {
-				_subaction: 'subfileGallery_upload',
+				_subaction: 'subfileGallery_upload'
 			},
 			deleteParams: {
-				_subaction: 'subfileGallery_delete',
+				_subaction: 'subfileGallery_delete'
 			}
 		}) ;
 		return objCfg ;
@@ -340,6 +340,20 @@ Ext.define('Optima5.Modules.ParaCRM.DataFormPanel' ,{
 		//console.dir( this.query('form')[0].getForm().owner.query('[isFormField]') );
 		var me = this ;
 		
+		me.query('form')[0].submit({
+			params:{ _subaction:'form_setValues' },
+			success : me.saveAll,
+			failure: function(form,action){
+				if( action.result && action.result.msg )
+					Ext.Msg.alert('Failed', action.result.msg);
+			},
+			scope: me
+		}) ;
+	},
+	saveAll: function() {
+		var me = this ;
+		me.nbComponentsSaved = 0 ;
+		
 		me.addEvents('allsaved') ;
 		me.on('allsaved',function(nbSaved){
 			// console.log('allsabed '+nbSaved) ;
@@ -365,7 +379,7 @@ Ext.define('Optima5.Modules.ParaCRM.DataFormPanel' ,{
 	},
 	saveAndApply: function() {
 		var ajaxParams = Ext.apply( this.ajaxBaseParams, {
-			_subaction : 'save_and_apply',
+			_subaction : 'save_and_apply'
 		}) ;
 		
 		Optima5.CoreDesktop.Ajax.request({

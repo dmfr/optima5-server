@@ -59,21 +59,25 @@ Ext.define('Ext.ux.form.field.DateTime', {
 	   
 
     setValue: function(value){
-	if( typeof value === 'string' ) {
-	  value = new Date(value) ;
-	}
-        this.dateField.setValue(value) ;
-        this.timeField.setValue(value) ;
-    },
+		var dvalue ;
+		if( typeof value === 'string' ) {
+			dvalue = Ext.Date.parse(value, "Y-m-d H:i:s");
+		}
+		else {
+			dvalue = value ;
+		}
+		this.dateField.setValue(dvalue) ;
+		this.timeField.setValue(dvalue) ;
+	},
 
-    getSubmitData: function(){
-        var value = this.getValue() ;
-        var format = this.getFormat() ;
-        var strvalue = value ? Ext.Date.format(value, format) : null;
-	var data = {} ;
-	data[this.getName()] = strvalue ;
-	return data ;
-    },
+	getSubmitData: function(){
+		var value = this.getValue() ;
+		var format = this.getFormat() ;
+		var strvalue = value ? Ext.Date.format(value, format) : null;
+		var data = {} ;
+		data[this.getName()] = strvalue ;
+		return data ;
+	},
 
     getFormat: function(){
         return (this.dateField.submitFormat || this.dateField.format) + " " + (this.timeField.submitFormat || this.timeField.format) ;

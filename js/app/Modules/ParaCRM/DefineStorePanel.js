@@ -211,7 +211,7 @@ Ext.define('Optima5.Modules.ParaCRM.DefineStorePanel' ,{
 					maxWidth: 200,
 					readOnly : (this.defineIsNew == false)
 				},{
-					xtype: 'splitter',
+					xtype: 'splitter'
 				},{
 					xtype:'combobox', 
 					name: 'store_type',

@@ -143,7 +143,15 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePicker',{
 				},
 				actionMethods: {
 					read:'POST'
-				}
+				},
+				reader: {
+					type: 'json',
+					root: 'data',
+					totalProperty: 'total'
+				},
+				startParam: undefined,
+				limitParam: undefined,
+				pageParam: undefined
 			},
 			listeners: {
 				load: {
@@ -289,9 +297,15 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePicker',{
 	applyPrettyValue: function(record) {
 		var me = this ;
 		
-		//me.markInvalid('POUET POUET POUET') ;
+		if( !this.rendered ) {
+			me.on('render',function(){
+				me.setRawValue(me.getRawValue());
+			},me,{
+				single:true
+			}) ;
+			return ;
+		}
 		
-		//console.log(typeof record) ;
 		if( typeof record === "object" ) {
 			me.divicon.removeCls('biblepicker-iconimg-nok') ;
 			me.divicon.addCls('biblepicker-iconimg-ok') ;

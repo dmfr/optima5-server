@@ -43,5 +43,5 @@ Ext.define('Optima5.Modules.ParaCRM.DataFormPanelGrid',{
 			},
 			scope: this
 		});
-	},
+	}
 });
