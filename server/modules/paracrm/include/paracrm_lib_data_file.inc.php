@@ -27,6 +27,7 @@ function paracrm_lib_file_access( $file_code )
 	$return = array() ;
 	$return['sql_query_base'] = $sql_query ;
 	$return['select_map'] = $TAB['grid_map'] ;
+	$return['sql_selectfields'] = $TAB['sql_selectfields'] ;
 	return $return ;
 }
 

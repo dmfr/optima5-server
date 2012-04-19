@@ -110,8 +110,10 @@ function paracrm_data_getBibleCfg( $post_data )
 
 
 
-
-
+function paracrm_data_getBibleTreeOne( $post_data )
+{
+	return( array('success'=>true,'dataRoot'=>paracrm_lib_dataTool_getBibleTreeRoot( $post_data['bible_code'], NULL )) ) ;
+}
 
 function paracrm_data_getBibleTree( $post_data )
 {
@@ -246,9 +248,35 @@ function paracrm_data_getBibleGrid( $post_data )
 						$query.= " AND 0" ;
 					}
 				}
+				elseif( $filter['value'] != '' )
+				{
+					$query.= " AND entry_key='{$filter['value']}'" ;
+				}
 				break ;
 				
-			
+				
+				case 'str_search' :
+				if( $filter['value'] )
+				{
+					// dans quels champs chercher ?
+					$fields = array() ;
+					$fields[] = 'treenode_key' ;
+					$query_def = "SELECT entry_field_code FROM define_bible_entry WHERE bible_code='$bible_code' ORDER BY entry_field_index" ;
+					$result_def = $_opDB->query($query_def) ;
+					while( ($arr = $_opDB->fetch_row($result_def)) != FALSE )
+					{
+						$fields[] = 'field_'.$arr[0] ;
+					}
+					
+					$ttmp = array() ;
+					foreach( $fields as $field )
+					{
+						$ttmp[] = "{$field} LIKE '%{$filter['value']}%'" ;
+					}
+					
+					$query.= " AND ( ".implode(' OR ',$ttmp).' )' ;
+				}
+				break ;
 			
 			
 				case 'treenode_key' :
@@ -356,6 +384,166 @@ function paracrm_data_getFileGrid_data( $post_data )
 	$query = $TAB['sql_query_base'] ;
 	
 	// filters.....
+	if( $post_data['filter'] )
+	{
+	// table de mapping
+	$mapping = array() ;
+	foreach( $TAB['sql_selectfields'] as $ttmp )
+	{
+		$sql_field = $ttmp[0] ;
+		$display_field = $ttmp[1] ;
+		$mapping[$display_field] = $sql_field ;
+	}
+	
+	foreach( json_decode($post_data['filter'],TRUE) as $filter )
+	{
+		$sql_field = $mapping[$filter['field']] ;
+		if( !$sql_field )
+			continue ;
+		switch( $filter['type'] )
+		{
+			case 'list' :
+			if( is_array($filter['value']) && $filter['value'] )
+			{
+				$query.= " AND {$sql_field} IN ".$_opDB->makeSQLlist($filter['value']) ;
+			}
+			elseif( is_array($filter['value']) )
+			{
+				$query.= " AND 0" ;
+			}
+			break ;
+			
+			case 'date' :
+			$sign = '' ;
+			switch( $filter['comparison'] )
+			{
+				case 'eq' : $sign = '=' ; break ;
+				case 'lt' : $sign = '<=' ; break ;
+				case 'gt' : $sign = '>=' ; break ;
+			}
+			if( $sign )
+			{
+				$query.= " AND DATE({$sql_field}) {$sign} '{$filter['value']}'" ;
+			}
+			break ;
+			
+			
+			case 'numeric' :
+			$sign = '' ;
+			switch( $filter['comparison'] )
+			{
+				case 'eq' : $sign = '=' ; break ;
+				case 'lt' : $sign = '<' ; break ;
+				case 'gt' : $sign = '>' ; break ;
+			}
+			if( $sign )
+			{
+				$query.= " AND {$sql_field} {$sign} '{$filter['value']}'" ;
+			}
+			break ;
+			
+			
+			case 'string' :
+			$query.= " AND {$sql_field} LIKE '%{$filter['value']}%'" ;
+			break ;
+		}
+	}
+	}
+	
+	if( $post_data['sort'] )
+	{
+		$sorter = current(json_decode($post_data['sort'],TRUE)) ;
+		$query.= " ORDER BY {$sorter['property']} {$sorter['direction']}" ;
+	}
+	else
+	{
+		$query.= " ORDER BY filerecord_id DESC" ;
+	}
+	
+	
+	if( isset($post_data['start']) && isset($post_data['limit']) )
+		$query.= " LIMIT {$post_data['start']},{$post_data['limit']}" ;
+	$result = $_opDB->query($query);
+	
+	
+	$query = "SELECT FOUND_ROWS()" ;
+	$nb_rows = $_opDB->query_uniqueValue($query);
+	
+	
+	
+	$TAB_json = array() ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
+	{
+		$TAB_json[] = $arr ;
+	}
+	return array('success'=>true,'data'=>$TAB_json,'total'=>$nb_rows) ;
+}
+function paracrm_data_getFileGrid_raw( $post_data )
+{
+	global $_opDB ;
+	
+	// echo "pouet" ;
+	
+	$view_name = "view_file_".$post_data['file_code'] ;
+	$query = "SELECT * FROM $view_name WHERE 1" ;
+	
+	// filters.....
+	if( $post_data['filter'] )
+	{
+	
+	foreach( json_decode($post_data['filter'],TRUE) as $filter )
+	{
+		$sql_field = $filter['field'] ;
+
+		switch( $filter['type'] )
+		{
+			case 'list' :
+			if( is_array($filter['value']) && $filter['value'] )
+			{
+				$query.= " AND {$sql_field} IN ".$_opDB->makeSQLlist($filter['value']) ;
+			}
+			elseif( is_array($filter['value']) )
+			{
+				$query.= " AND 0" ;
+			}
+			break ;
+			
+			case 'date' :
+			$sign = '' ;
+			switch( $filter['comparison'] )
+			{
+				case 'eq' : $sign = '=' ; break ;
+				case 'lt' : $sign = '<=' ; break ;
+				case 'gt' : $sign = '>=' ; break ;
+			}
+			if( $sign )
+			{
+				$query.= " AND DATE({$sql_field}) {$sign} '{$filter['value']}'" ;
+			}
+			break ;
+			
+			
+			case 'numeric' :
+			$sign = '' ;
+			switch( $filter['comparison'] )
+			{
+				case 'eq' : $sign = '=' ; break ;
+				case 'lt' : $sign = '<' ; break ;
+				case 'gt' : $sign = '>' ; break ;
+			}
+			if( $sign )
+			{
+				$query.= " AND {$sql_field} {$sign} '{$filter['value']}'" ;
+			}
+			break ;
+			
+			
+			case 'string' :
+			$query.= " AND {$sql_field} LIKE '%{$filter['value']}%'" ;
+			break ;
+		}
+	}
+	}
 	
 	if( $post_data['sort'] )
 	{

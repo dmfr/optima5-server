@@ -12,6 +12,9 @@ function paracrm_android_getDbImage()
 	$tables[] = 'define_bible_tree' ;
 	$tables[] = 'define_file' ;
 	$tables[] = 'define_file_entry' ;
+	$tables[] = 'input_scen' ;
+	$tables[] = 'input_scen_page' ;
+	$tables[] = 'input_scen_page_field' ;
 	$tables[] = 'store_bible_entry' ;
 	$tables[] = 'store_bible_entry_field' ;
 	$tables[] = 'store_bible_tree' ;
@@ -34,6 +37,105 @@ function paracrm_android_getDbImage()
 
 
 	return array('success'=>true,'data'=>$TAB) ;
+}
+function paracrm_android_getDbImageTimestamp()
+{
+	return array('success'=>true,'timestamp'=>strtotime(date('Y-m-d'))) ;
+}
+function paracrm_android_getDbImageStream()
+{
+	global $_opDB ;
+	
+	$tables = array() ;
+	$tables[] = 'define_bible' ;
+	$tables[] = 'define_bible_entry' ;
+	$tables[] = 'define_bible_tree' ;
+	$tables[] = 'define_file' ;
+	$tables[] = 'define_file_entry' ;
+	$tables[] = 'input_scen' ;
+	$tables[] = 'input_scen_page' ;
+	$tables[] = 'input_scen_page_field' ;
+	$tables[] = 'store_bible_entry' ;
+	$tables[] = 'store_bible_entry_field' ;
+	$tables[] = 'store_bible_tree' ;
+	$tables[] = 'store_bible_tree_field' ;
+	
+	$first = paracrm_android_getDbImageTimestamp() ;
+	$first['nb_tables'] = 0 ;
+	$first['nb_rows'] = 0 ;
+	foreach( $tables as $table )
+	{
+		$query = "SELECT count(*) FROM $table" ;
+		$first['nb_tables']++;
+		$first['nb_rows'] += $_opDB->query_uniqueValue($query) ;
+	}
+	echo json_encode($first) ;
+	echo "\r\n" ;
+	
+	foreach( $tables as $table )
+	{
+		$query = "SELECT * FROM $table" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
+		{
+			echo json_encode(array('table_name'=>$table,'data'=>$arr)) ;
+			echo "\r\n" ;
+		}
+	}
+	
+	die() ;
+}
+function paracrm_android_getDbImageTab()
+{
+	global $_opDB ;
+	
+	$tables = array() ;
+	$tables[] = 'define_bible' ;
+	$tables[] = 'define_bible_entry' ;
+	$tables[] = 'define_bible_tree' ;
+	$tables[] = 'define_file' ;
+	$tables[] = 'define_file_entry' ;
+	$tables[] = 'input_scen' ;
+	$tables[] = 'input_scen_page' ;
+	$tables[] = 'input_scen_page_field' ;
+	$tables[] = 'store_bible_entry' ;
+	$tables[] = 'store_bible_entry_field' ;
+	$tables[] = 'store_bible_tree' ;
+	$tables[] = 'store_bible_tree_field' ;
+	
+	$first = paracrm_android_getDbImageTimestamp() ;
+	$first['nb_tables'] = 0 ;
+	$first['nb_rows'] = 0 ;
+	foreach( $tables as $table )
+	{
+		$query = "SELECT count(*) FROM $table" ;
+		$first['nb_tables']++;
+		$first['nb_rows'] += $_opDB->query_uniqueValue($query) ;
+	}
+	echo json_encode($first) ;
+	echo "\r\n" ;
+	
+	foreach( $tables as $table )
+	{
+		echo json_encode(array($table)) ;
+		echo "\r\n" ;
+	
+		echo json_encode($_opDB->table_fields($table)) ;
+		echo "\r\n" ;
+	
+		$query = "SELECT * FROM $table" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE )
+		{
+			echo json_encode($arr) ;
+			echo "\r\n" ;
+		}
+		
+		echo json_encode(array()) ;
+		echo "\r\n" ;
+	}
+	
+	die() ;
 }
 
 
@@ -129,6 +231,13 @@ function paracrm_android_postBinary( $post_data )
    media_contextClose() ;
    
    return array('success'=>true) ;
+}
+
+
+
+function paracrm_android_getFileGrid_data( $post_data )
+{	
+	return paracrm_data_getFileGrid_raw( $post_data ) ;
 }
 
 ?>

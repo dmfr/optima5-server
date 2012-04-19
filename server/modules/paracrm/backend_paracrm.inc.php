@@ -17,6 +17,8 @@ switch( $post_data['_action'] )
 	
 	case 'data_getBibleTree' :
 	return paracrm_data_getBibleTree( $post_data );
+	case 'data_getBibleTreeOne' :
+	return paracrm_data_getBibleTreeOne( $post_data );
 	case 'data_getBibleGrid' :
 	//session_write_close() ;
 	return paracrm_data_getBibleGrid( $post_data );
@@ -41,12 +43,21 @@ switch( $post_data['_action'] )
 	
 	case 'android_getDbImage' :
 	return paracrm_android_getDbImage( $post_data );
+	case 'android_getDbImageStream' :
+	return paracrm_android_getDbImageStream( $post_data );
+	case 'android_getDbImageTab' :
+	return paracrm_android_getDbImageTab( $post_data );
+	case 'android_getDbImageTimestamp' :
+	return paracrm_android_getDbImageTimestamp( $post_data );
 	
 	case 'android_postDbData' :
 	return paracrm_android_postDbData( $post_data );
 	
 	case 'android_postBinary' :
 	return paracrm_android_postBinary( $post_data );
+	
+	case 'android_getFileGrid_data' :
+	return paracrm_android_getFileGrid_data( $post_data );
 	
 	
 	

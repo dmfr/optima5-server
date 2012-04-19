@@ -41,8 +41,12 @@ while( !feof($handle) )
 {
 	$arr_csv = fgetcsv($handle) ;
 	
-	if( !in_array($arr_csv[5],array('PFF03','PFF06')) )
+	if( !in_array($arr_csv[5],array('PFF03','PFF06','PFF01','PFF02','PFF04','PFF12','PFF14')) )
 		continue ;
+	/*
+	if( stripos($arr_csv[5],'vac') )
+		continue ;
+	*/
 	
 	$code_mag = $arr_csv[3] ;
 	if( strlen($code_mag) != 11 )
@@ -64,6 +68,7 @@ while( !feof($handle) )
 	$arr_mag['field_STORETEL'] = '+33 '.str_replace(' ',' ',$arr_csv[13]) ;
 	$arr_mag['field_STOREFAX'] = '+33 '.str_replace(' ',' ',$arr_csv[14]) ;
 	$arr_mag['field_STORESIRET'] = str_replace(' ','',$arr_csv[15]).str_replace(' ','',$arr_csv[16]) ;
+	/*
 	$res = FALSE ;
 	$GMap = new GMaps($google_key);
 	$res = $GMap->getInfoLocation($arr_csv[10].' , '.$arr_csv[9].' '.$arr_csv[8]) ;
@@ -78,6 +83,7 @@ while( !feof($handle) )
 		$arr_mag['gmap_formattedAddress'] = $GMap->getAddress() ;
 		print_r($arr_mag) ;
 	}
+	*/
 	$tab_entries[$code_mag] = $arr_mag ;
 	
 	
@@ -85,13 +91,15 @@ while( !feof($handle) )
 	$arr_etb['treenode_parent_key'] = $code_ens ;
 	$arr_etb['field_STOREGROUPCODE'] = $code_etb ;
 	$arr_etb['field_STOREGROUPNAME'] = $arr_csv[7] ;
-	$tab_tree[$code_etb] = $arr_etb ;
+	if( !$tab_tree[$code_etb] )
+		$tab_tree[$code_etb] = $arr_etb ;
 	
 	$arr_ens['treenode_key'] = $code_ens ;
 	$arr_ens['treenode_parent_key'] = '' ;
 	$arr_ens['field_STOREGROUPCODE'] = $code_ens ;
 	$arr_ens['field_STOREGROUPNAME'] = $arr_csv[6] ;
-	$tab_tree[$code_ens] = $arr_ens ;
+	if( !$tab_tree[$code_ens] )
+		$tab_tree[$code_ens] = $arr_ens ;
 	
 }
 fclose($handle) ;
@@ -104,6 +112,7 @@ foreach($tab_tree as $arr_tree )
 	$arr_ins['treenode_key'] = $arr_tree['treenode_key'] ;
 	$arr_ins['treenode_parent_key'] = $arr_tree['treenode_parent_key'] ;
 	$_opDB->insert('store_bible_tree',$arr_ins) ;
+	$treenode_racx = $_opDB->insert_id() ;
 	
 	foreach( $arr_tree as $mkey=>$mvalue )
 	{
@@ -114,6 +123,7 @@ foreach($tab_tree as $arr_tree )
 			
 		$arr_ins = array() ;
 		$arr_ins['bible_code'] = $bible_code ;
+		$arr_ins['treenode_racx'] = $treenode_racx ;
 		$arr_ins['treenode_key'] = $arr_tree['treenode_key'] ;
 		$arr_ins['treenode_field_code'] = $field_code ;
 		if( $mkey == 'field_STORELINK' )
@@ -133,6 +143,7 @@ foreach($tab_entries as $arr_entry )
 	$arr_ins['treenode_key'] = $arr_entry['treenode_key'] ;
 	$arr_ins['entry_key'] = $arr_entry['entry_key'] ;
 	$_opDB->insert('store_bible_entry',$arr_ins) ;
+	$entry_racx = $_opDB->insert_id() ;
 	
 	foreach( $arr_entry as $mkey=>$mvalue )
 	{
@@ -143,6 +154,7 @@ foreach($tab_entries as $arr_entry )
 			
 		$arr_ins = array() ;
 		$arr_ins['bible_code'] = $bible_code ;
+		$arr_ins['entry_racx'] = $entry_racx ;
 		$arr_ins['entry_key'] = $arr_entry['entry_key'] ;
 		$arr_ins['entry_field_code'] = $field_code ;
 		if( $mkey == 'field_STORELINK' )
@@ -160,6 +172,7 @@ foreach($tab_entries as $arr_entry )
 			
 		$arr_ins = array() ;
 		$arr_ins['bible_code'] = $bible_code ;
+		$arr_ins['entry_racx'] = $entry_racx ;
 		$arr_ins['entry_key'] = $arr_entry['entry_key'] ;
 		$arr_ins['entry_field_code'] = $field_code ;
 		$arr_ins['entry_field_value_link'] = $mvalue ;
