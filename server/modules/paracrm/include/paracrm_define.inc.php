@@ -503,7 +503,7 @@ function paracrm_define_manageTransaction_applyFile($arr_saisie, $apply)
 	$arr_ins['file_lib'] = $arr_saisie['arr_ent']['store_lib'] ;
 	$arr_ins['file_parent_code'] = $arr_saisie['arr_ent']['store_parent_code'] ;
 	$arr_ins['file_type'] = $arr_saisie['arr_ent']['store_type'] ;
-	$arr_ins['file_iconfile'] = 'ico_showref_listall.gif' ;
+	$arr_ins['file_iconfile'] = ($arr_saisie['arr_ent']['store_parent_code']) ? 'ico_filechild_16.gif':'ico_showref_listall.gif' ;
 	$arr_ins['gmap_is_on'] = ($arr_saisie['arr_ent']['gmap_is_on']==TRUE)?'O':'N' ;
 	$_opDB->insert('define_file',$arr_ins) ;
 	

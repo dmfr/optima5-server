@@ -37,6 +37,19 @@ switch( $post_data['_action'] )
 	
 	
 	
+	
+	
+	case 'android_getDbImage' :
+	return paracrm_android_getDbImage( $post_data );
+	
+	case 'android_postDbData' :
+	return paracrm_android_postDbData( $post_data );
+	
+	case 'android_postBinary' :
+	return paracrm_android_postBinary( $post_data );
+	
+	
+	
 	default :
 	return NULL ;
 }
