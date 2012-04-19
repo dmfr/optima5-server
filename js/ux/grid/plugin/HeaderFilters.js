@@ -10,7 +10,7 @@
  * 
  * The plugins also enables the stateful feature for header filters so filter values are stored with grid status if grid is stateful.<br>
  * 
- * <h2>Enable filters on grid columns</h2>
+ * # Enable filters on grid columns
  * The plugin checks the <code>filter</code> attribute that can be included into each column configuration.
  * The value of this attribute can be a <code>Ext.form.field.Field</code> configuration or an array of field configurations to enable more
  * than one filter on a single column.<br>
@@ -26,7 +26,7 @@
  * On the grid configuration the {@link #headerFilters} attribute is supported. The value must be an object with name-values pairs for filters to initialize. 
  * It can be used to initialize header filters in grid configuration.
  * 
- * <h2>Plugin configuration</h2>
+ * # Plugin configuration
  * The plugin supports also some configuration attributes that can be specified when the plugin is created (with <code>Ext.create</code>).
  * These parameters are:
  * <ul>
@@ -36,7 +36,7 @@
  * <li>{@link #enableTooltip}: Enable active filters description tootip on grid header</li>
  * </ul>
  * 
- * <h2>Enabled grid methods</h2>
+ * # Enabled grid methods
  * <ul>
  *     <li><code>setHeaderFilter(name, value, reset)</code>: Set a single filter value</li>
  *     <li><code>setHeaderFilters(filters, reset)</code>: Set header filters</li>
@@ -47,7 +47,7 @@
  *     <li><code>applyHeaderFilters()</code>: Applies filters values to Grid Store. The store will be also refreshed or reloaded if {@link #reloadOnChange} is true</li>
  * </ul>
  * 
- * <h2>Enabled grid events</h2>
+ * # Enabled grid events
  * <ul>
  *     <li>{@link #headerfilterchange} : fired by Grid when some header filter changes value</li>
  *     <li>{@link #headerfiltersrender} : fired by Grid when header filters are rendered</li>
@@ -56,13 +56,13 @@
  * </ul>
  * 
  * @author Damiano Zucconi - http://www.isipc.it
- * @version 0.1.0
+ * @version 0.2.0
  */
-Ext.define('Ext.ux.grid.GridHeaderFilters',{
+Ext.define('Ext.ux.grid.plugin.HeaderFilters',{
     
     ptype: 'gridheaderfilters',
     
-    alternateClassName: ['Ext.ux.grid.plugin.HeaderFilters', 'Ext.ux.grid.header.Filters'],
+    alternateClassName: ['Ext.ux.grid.HeaderFilters', 'Ext.ux.grid.header.Filters'],
     
     requires: [
         'Ext.container.Container',
@@ -86,23 +86,23 @@ Ext.define('Ext.ux.grid.GridHeaderFilters',{
     
     filterRoot: 'data',
     
-    tooltipTpl: '{[values.filters.length == 0 ? this.text.noFilter : "<b>"+this.text.activeFilters+"</b>"]}<br><tpl for="filters"><tpl if="value != \'\'">{[values.label ? values.label : values.property]} = {value}<br></tpl></tpl>',
+    tooltipTpl: '{[Ext.isEmpty(values.filters) ? this.text.noFilter : "<b>"+this.text.activeFilters+"</b>"]}<br><tpl for="filters"><tpl if="value != \'\'">{[values.label ? values.label : values.property]} = {value}<br></tpl></tpl>',
     
     lastApplyFilters: null,
     
-    text: {
+    bundle: {
         activeFilters: 'Active filters',
         noFilter: 'No filter'
     },
     
-    /**
-    * @cfg {Boolean} stateful
-    * Specifies if headerFilters values are saved into grid status when filters changes.
-    * This configuration can be overridden from grid configuration parameter <code>statefulHeaderFilters</code> (if defined).
-    * Used only if grid <b>is stateful</b>. Default = true.
-    * 
-    */
-    stateful: true,
+	/**
+	* @cfg {Boolean} stateful
+	* Specifies if headerFilters values are saved into grid status when filters changes.
+	* This configuration can be overridden from grid configuration parameter <code>statefulHeaderFilters</code> (if defined).
+	* Used only if grid <b>is stateful</b>. Default = true.
+	* 
+	*/
+	stateful: true,
     
    /**
    * @cfg {Boolean} reloadOnChange
@@ -113,30 +113,34 @@ Ext.define('Ext.ux.grid.GridHeaderFilters',{
    */
    reloadOnChange: true,
         
-    /**
+	/**
    * @cfg {Boolean} ensureFilteredVisible
    * If the column on wich the filter is set is hidden and can be made visible, the
    * plugin makes the column visible.
    */
-    ensureFilteredVisible: true,
+	ensureFilteredVisible: true,
         
-    /**
-    * @cfg {Boolean} enableTooltip
-    * If a tooltip with active filters description must be enabled on the grid header
-    */
-    enableTooltip: true,
+	/**
+	* @cfg {Boolean} enableTooltip
+	* If a tooltip with active filters description must be enabled on the grid header
+	*/
+	enableTooltip: true,
+	
+	statusProperty: 'headerFilters',
+	
+	rendered: false,
     
    constructor: function(cfg) 
    {
        if(cfg)
        {
-           Ext.apply(this,cfg);
+       	Ext.apply(this,cfg);
        }
    },
     
    init: function(grid)
    {
-       this.grid = grid;
+	   this.grid = grid;
         
         /*var storeProxy = this.grid.getStore().getProxy();
         if(storeProxy && storeProxy.getReader())
@@ -152,16 +156,16 @@ Ext.define('Ext.ux.grid.GridHeaderFilters',{
          * If this plugin has {@link #stateful} enabled, the saved filters have priority and override these filters.
          * Use {@link #ignoreSavedHeaderFilters} to ignore current status and apply these filters directly.
          */
-       if(!grid.headerFilters)
-           grid.headerFilters = {};
+	   if(!grid.headerFilters)
+		   grid.headerFilters = {};
         
         
-       if(Ext.isBoolean(grid.statefulHeaderFilters))
+	   if(Ext.isBoolean(grid.statefulHeaderFilters))
        {
-           this.setStateful(grid.statefulHeaderFilters);
+		   this.setStateful(grid.statefulHeaderFilters);
        }
         
-        this.grid.addEvents(
+		this.grid.addEvents(
       /**
         * @event headerfilterchange
         * <b>Event enabled on the Grid</b>: fired when at least one filter is updated after apply.
@@ -179,8 +183,8 @@ Ext.define('Ext.ux.grid.GridHeaderFilters',{
          * @param {Object} fields The filter fields rendered. The object has for keys the filters names and for value Ext.form.field.Field objects.
          * @param {Object} filters Current header filters. The object has for keys the filters names and for value the filters values.
         */
-            'headerfiltersrender',
-            /**
+			'headerfiltersrender',
+        	/**
          * @event beforeheaderfiltersapply
          * <b>Event enabled on the Grid</b>: fired before filters are confirmed. If the handler returns false no filter apply occurs.
          * @param {Ext.grid.Panel} grid The grid
@@ -200,12 +204,16 @@ Ext.define('Ext.ux.grid.GridHeaderFilters',{
         );
         
         this.grid.on({
-            scope: this,
-            afterrender: this.renderFilters,
+        	scope: this,
             columnresize: this.resizeFilterContainer,
             beforedestroy: this.onDestroy,
             beforestatesave: this.saveFilters,
             afterlayout: this.adjustFilterWidth
+        });
+        
+        this.grid.headerCt.on({
+            scope: this,
+            afterrender: this.renderFilters
         });
         
         this.grid.getStore().on({
@@ -293,25 +301,25 @@ Ext.define('Ext.ux.grid.GridHeaderFilters',{
     
    
     
-    saveFilters: function(grid, status)
-    {
-        status.savedHeaderFilters = this.stateful ? this.parseFilters() : grid.savedHeaderFilters;
-    },
+	saveFilters: function(grid, status)
+	{
+		status[this.statusProperty] = (this.stateful && this.rendered) ? this.parseFilters() : grid[this.statusProperty];
+	},
     
     setFieldValue: function(field, value)
     {
-        var column = field.column;
+    	var column = field.column;
         if(!Ext.isEmpty(value))
         {
             field.setValue(value);
             if(!Ext.isEmpty(value) && column.hideable && !column.isVisible() && !field.isDisabled() && this.ensureFilteredVisible)
             {
-                column.setVisible(true);
+            	column.setVisible(true);
             }
         }
         else
         {
-            field.setValue('');
+        	field.setValue('');
         }
     },
     
@@ -334,9 +342,9 @@ Ext.define('Ext.ux.grid.GridHeaderFilters',{
          * This can be useful to use {@link #headerFilters} configuration directly and ignore status.
          * The state will still be saved if {@link #stateful} is enabled.
          */
-        if(this.stateful && this.grid.savedHeaderFilters && !this.grid.ignoreSavedHeaderFilters)
+        if(this.stateful && this.grid[this.statusProperty] && !this.grid.ignoreSavedHeaderFilters)
         {
-            Ext.apply(filters, this.grid.savedHeaderFilters);
+            Ext.apply(filters, this.grid[this.statusProperty]);
         }
         
         var storeFilters = this.parseStoreFilters();
@@ -349,7 +357,7 @@ Ext.define('Ext.ux.grid.GridHeaderFilters',{
             if(column.filter)
             {
                 var filterContainerConfig = {
-                    id: column.id + '-filtersContainer',
+                    itemId: column.id + '-filtersContainer',
                     cls: this.filterContainerCls,
                     layout: 'anchor',
                     bodyStyle: {'background-color': 'transparent'},
@@ -415,11 +423,12 @@ Ext.define('Ext.ux.grid.GridHeaderFilters',{
         
         if(this.enableTooltip)
         {
-            this.tooltipTpl = new Ext.XTemplate(this.tooltipTpl,{text: this.text});
+            this.tooltipTpl = new Ext.XTemplate(this.tooltipTpl,{text: this.bundle});
             this.tooltip = Ext.create('Ext.tip.ToolTip',{
                 target: this.grid.headerCt.el,
                 //delegate: '.'+this.filterContainerCls,
-                renderTo: Ext.getBody()
+                renderTo: Ext.getBody(),
+                html: this.tooltipTpl.apply({filters: []})
             });        
             this.grid.on('headerfilterchange',function(grid, filters)
             {
@@ -431,6 +440,7 @@ Ext.define('Ext.ux.grid.GridHeaderFilters',{
         }
         
         this.applyFilters();
+        this.rendered = true;
         this.grid.fireEvent('headerfiltersrender',this.grid,this.fields,this.parseFilters());
     },
     
@@ -457,19 +467,20 @@ Ext.define('Ext.ux.grid.GridHeaderFilters',{
     
     destroyFilters: function()
     {
-        if(this.fields)
-        {
-            for(var f in this.fields)
-                Ext.destroy(this.fields[f]);
-            delete this.fields;
-        }
-    
-        if(this.containers)
-        {
-            for(var c in this.containers)
-                Ext.destroy(this.containers[c]);
-            delete this.containers;
-        }
+    	this.rendered = false;
+	     if(this.fields)
+	     {
+	         for(var f in this.fields)
+	             Ext.destroy(this.fields[f]);
+	         delete this.fields;
+	     }
+	 
+	     if(this.containers)
+	     {
+	         for(var c in this.containers)
+	             Ext.destroy(this.containers[c]);
+	         delete this.containers;
+	     }
     },
     
     onDestroy: function()
@@ -478,18 +489,19 @@ Ext.define('Ext.ux.grid.GridHeaderFilters',{
         Ext.destroy(this.tooltip, this.tooltipTpl);
     },
     
-     adjustFilterWidth: function() 
-    {        
-        var columns = this.grid.headerCt.getGridColumns(true);        
-        for(var c=0; c < columns.length; c++) 
-        {           
-            var column = columns[c];            
-            if (column.filter && column.flex) 
-            {               
-                this.containers[column.id].setWidth(column.getWidth()-1);            
-            }
-          }
-     },
+	 adjustFilterWidth: function() 
+    {
+    	if(!this.containers) return;
+		var columns = this.grid.headerCt.getGridColumns(true);        
+		for(var c=0; c < columns.length; c++) 
+		{           
+			var column = columns[c];            
+			if (column.filter && column.flex) 
+			{               
+				this.containers[column.id].setWidth(column.getWidth()-1);            
+			}
+	  	}
+	 },
    
     resetFilters: function()
     {
@@ -571,8 +583,8 @@ Ext.define('Ext.ux.grid.GridHeaderFilters',{
         for(var fn in this.fields)
         {
             var field = this.fields[fn];
-            if(!field.isDisabled())
-                filters[field.filterName] = field.getValue();
+            if(!field.isDisabled() && field.isValid())
+                filters[field.filterName] = field.getSubmitValue();
         }
         return filters;
     },
@@ -680,49 +692,49 @@ Ext.define('Ext.ux.grid.GridHeaderFilters',{
         }
     },
     
-    reloadStore: function()
-    {
-        var gs = this.grid.getStore();
-        if(this.grid.getStore().remoteFilter)
-        {
-            if(this.storeLoaded)
-            {
-                gs.currentPage = 1;
-                gs.load();
-            }
-        }
-        else
+	reloadStore: function()
+	{
+		var gs = this.grid.getStore();
+		if(this.grid.getStore().remoteFilter)
+		{
+			if(this.storeLoaded)
+			{
+				gs.currentPage = 1;
+				gs.load();
+			}
+		}
+		else
       {
-            if(gs.filters.getCount()) 
+			if(gs.filters.getCount()) 
          {
-                if(!gs.snapshot)
-                    gs.snapshot = gs.data.clone();
-                else
-                {
-                    gs.currentPage = 1;
-                }
+				if(!gs.snapshot)
+					gs.snapshot = gs.data.clone();
+				else
+				{
+					gs.currentPage = 1;
+				}
             gs.data = gs.snapshot.filter(gs.filters.getRange());
             var doLocalSort = gs.sortOnFilter && !gs.remoteSort;
-            if(doLocalSort) 
-                {
-                    gs.sort();
-                }
+            if(doLocalSort)
+				{
+					gs.sort();
+				}
             // fire datachanged event if it hasn't already been fired by doSort
             if (!doLocalSort || gs.sorters.length < 1) 
             {
-                gs.fireEvent('datachanged', gs);
-                }
-            }
-           else
-           {
-                if(gs.snapshot)
-                {
-                    gs.currentPage = 1;
-                    gs.data = gs.snapshot.clone();
-                 delete gs.snapshot;
-                 gs.fireEvent('datachanged', gs);
-                }
-            }
-        }
-    }
+            	gs.fireEvent('datachanged', gs);
+				}
+			}
+		   else
+		   {
+				if(gs.snapshot)
+				{
+					gs.currentPage = 1;
+					gs.data = gs.snapshot.clone();
+		         delete gs.snapshot;
+		         gs.fireEvent('datachanged', gs);
+				}
+			}
+		}
+	}
 });
