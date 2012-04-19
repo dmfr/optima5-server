@@ -4,9 +4,45 @@ Ext.define('Optima5.Modules.ParaCRM.FilePanelGmap' ,{
 	alias : 'widget.op5paracrmfilegmap',
 			  
 	initComponent: function() {
+		var me = this ;
+			
 		//console.log('init') ;
 		this.callParent() ;
+		
+		this.on('beforeactivate',me.onBeforeActivate,me) ;
+		this.on('activate',me.onActivate,me) ;
+		this.on('beforedeactivate',me.onBeforeDeactivate,me) ;
+		
+		this.addEvents('openfile') ;
 	},
+			  
+	onBeforeActivate: function() {
+		var me=this ;
+		
+		if( typeof this.storePageSize === 'undefined' ) {
+			me.storePageSize = me.store.pageSize ;
+		}
+		
+		me.store.pageSize = 200 ;
+		
+		me.store.removeAll() ;
+	},
+	onActivate:function() {
+		var me=this ;
+		me.store.loadPage(1) ;
+	},
+	onBeforeDeactivate: function(){
+		var me=this ;
+		if( !me.isVisible() )
+			return ;
+		
+		me.store.pageSize = me.storePageSize ;
+		me.storePageSize = undefined ;
+		
+		me.store.removeAll() ;
+		me.store.loadPage(1) ;
+	},
+			  
 			  
 	syncWithStore: function() {
 		var me=this ;

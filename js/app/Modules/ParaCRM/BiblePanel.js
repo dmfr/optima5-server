@@ -417,7 +417,15 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePanel' ,{
 				store: gridstore,   // same store GridPanel is using
 				dock: 'bottom',
 				displayInfo: true
-			}]
+			}],
+			listeners: {
+				scrollershow: function(scroller) {
+					if (scroller && scroller.scrollEl) {
+						scroller.clearManagedListeners(); 
+						scroller.mon(scroller.scrollEl, 'scroll', scroller.onElScroll, scroller); 
+					}
+				}
+			}		
 		}) ;
 		
 		
@@ -512,12 +520,12 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePanel' ,{
 			})]
 		});
 		if( this.gridstore ) {
-			this.gridstore.clearFilter(true) ;
-			this.gridstore.filter( [new Ext.util.Filter({
+			this.gridstore.filters.clear() ;
+			this.gridstore.filters.addAll([new Ext.util.Filter({
 				property: 'treenode_key',
 				value   : treenodeKey
-			})] ) ;
-			this.gridstore.loadPage(1); ;
+			})]) ;
+			this.gridstore.loadPage(1);
 		}
 	},
 			  

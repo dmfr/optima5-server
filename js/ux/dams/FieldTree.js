@@ -133,7 +133,9 @@ Ext.define('Ext.ux.dams.FieldTree',{
 				}
 			},this) ;
 		}
-		return Ext.JSON.encode(checkedKeys) ;
+		if( checkedKeys.length > 0 )
+			return Ext.JSON.encode(checkedKeys) ;
+		return '' ;
 	},
 	
 	setRawValue: function( strChecked ) {

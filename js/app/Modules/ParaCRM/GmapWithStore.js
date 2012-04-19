@@ -65,6 +65,5 @@ Ext.define('Optima5.Modules.ParaCRM.GmapWithStore' ,{
 			  
 	syncWithStore: function() {
 		var me=this ;
-		console.log('syncing') ;
 	}
 });

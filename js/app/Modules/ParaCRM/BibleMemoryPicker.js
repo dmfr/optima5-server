@@ -1,6 +1,6 @@
-Ext.define('Optima5.Modules.ParaCRM.BiblePicker',{
+Ext.define('Optima5.Modules.ParaCRM.BibleMemoryPicker',{
 	extend:'Ext.form.field.Picker',
-	alias: 'widget.op5paracrmbiblepicker',
+	alias: 'widget.op5paracrmbiblememorypicker',
 	requires: ['Ext.XTemplate','Ext.grid.Panel'], 
 
 	fieldSubTpl: [
@@ -128,6 +128,10 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePicker',{
 		
 		this.myStore = Ext.create('Ext.data.Store', {
 			model: this.myModelname,
+			//folderSort: true,
+			//root: treeroot,
+			//clearOnLoad: false,
+			autoLoad: true,
 			proxy: {
 				type: 'ajax',
 				url: 'server/backend.php',
@@ -144,12 +148,33 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePicker',{
 					type: 'json',
 					root: 'data',
 					totalProperty: 'total'
+				},
+				startParam: undefined,
+				limitParam: undefined,
+				pageParam: undefined
+			},
+			listeners: {
+				load: {
+					fn: function() {
+						me.isReady = true ;
+						me.fireEvent('iamready') ;
+						// me.applyPrettyValue( this.myStore.getRange()[0] ) ;
+					},
+					options: {
+						single: true,
+						scope: me
+					}
 				}
 			}
 		});
 		
-		me.fireEvent('iamready') ;
-		me.isReady = true ;
+		
+		me.myStore.on('load',function(){
+		},me,{
+			single:true
+		}) ;
+		
+		// console.log('finished') ;
 		
 		this.on('destroy',function(){
 			var model = Ext.ModelManager.getModel(this.myModelname);
@@ -170,20 +195,9 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePicker',{
 		}
 		
 		
-		
-		
+		me.myStore.clearFilter() ;
 		if( me.getRawValue() != '' ) {
-			var parameters = new Object() ;
-			Ext.apply(parameters,{
-				filters: [ new Ext.util.Filter({
-					property: 'entry_key',
-					value   : [me.getRawValue()]
-				})]
-			});
-			me.myStore.load(parameters) ;
-		}
-		else {
-			me.myStore.load() ;
+			me.myStore.filter('entry_key',me.getRawValue()) ;
 		}
 		
 		me.clearInvalid() ;
@@ -198,7 +212,8 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePicker',{
 		me.isValid() ;
 		var textfield = me.getPicker().getDockedItems('toolbar')[0].query('textfield')[0] ;
 		textfield.setRawValue('') ;
-		me.myStore.removeAll() ;
+		me.myStore.clearFilter() ;
+		// me.myStore.removeAll() ;
 	},
 	onItemClick: function( picker, record ) {
 		var me = this ;
@@ -215,15 +230,12 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePicker',{
 		if( !me.isReady ) {
 			return null ;
 		}
-		
+
 		return Ext.create('Ext.grid.Panel', {
-			viewConfig: {
-				loadMask: false
-			},
 			// title: 'Simpsons',
 			store: me.myStore,
 			columns: me.myColumns,
-			height: 200,
+			height: 150,
 			renderTo: Ext.getBody(),
 			floating: true,
 			hidden: true,
@@ -246,7 +258,7 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePicker',{
 				iconCls : 'icon-cancel' ,
 				handler : function(button,event) {
 					me.setRawValue('') ;
-					me.myStore.load() ;
+					me.myStore.clearFilter() ;
 				},
 				scope : me
 			}],
@@ -259,22 +271,6 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePicker',{
 		});
 
 	},
-	alignPicker: function() {
-		var me = this,
-				picker;
-
-		if (me.isExpanded) {
-				picker = me.getPicker();
-				if (me.matchFieldWidth) {
-					// Auto the height (it will be constrained by min and max width) unless there are no records to display.
-					picker.setSize(me.bodyEl.getWidth());
-				}
-				if (picker.isFloating()) {
-					me.doAlign();
-				}
-		}
-	},
-
 			  
 	onTypeAhead: function() {
 		var me = this ;
@@ -285,21 +281,17 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePicker',{
 		
 		
 		
-		if( mvalue.length == 0 ) {
-			me.myStore.load() ;
-			return ;
-		}
-		if( mvalue.length < 3 ) {
-			me.myStore.removeAll() ;
-			return ;
-		}
-		
-		me.myStore.load({
-			filters : [new Ext.util.Filter({
-				property: 'str_search',
-				value   : mvalue
-			})]
-		});
+		me.myStore.filterBy( function(record) {
+			if( mvalue.length < 3 )
+				return false ;
+			var found = false ;
+			Ext.each( me.myColumns , function(col) {
+				if( record.get( col.dataIndex ).toLowerCase().indexOf(mvalue.toLowerCase()) != -1 ) {
+					found = true ;
+				}
+			}, me);
+			return found ;
+		},me ) ;
 	},
 			  
 	applyPrettyValue: function(record) {
@@ -307,7 +299,7 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePicker',{
 		
 		if( !this.rendered ) {
 			me.on('render',function(){
-				me.applyPrettyValue(record);
+				me.setRawValue(me.getRawValue());
 			},me,{
 				single:true
 			}) ;
@@ -374,45 +366,11 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePicker',{
 			return ;
 		}
 		
-		
-		// ****** create temporary store to load record *******
-		var tmpStore = Ext.create('Ext.data.Store', {
-			model: me.myModelname,
-			proxy: {
-				type: 'ajax',
-				url: 'server/backend.php',
-				extraParams : {
-					_sessionName: op5session.get('session_id'),
-					_moduleName: 'paracrm' ,
-					_action: 'data_getBibleGrid' ,
-					bible_code: me.bibleId
-				},
-				actionMethods: {
-					read:'POST'
-				},
-				reader: {
-					type: 'json',
-					root: 'data',
-					totalProperty: 'total'
-				}
-			},
-			listeners:{
-				scope:me,
-				load: function(tstore) {
-					//console.log('LOADEDD!!') ;
-					if( tstore.getCount() == 1 ) {
-						//console.dir(tstore.getRange()) ;
-						me.applyPrettyValue(tstore.getRange()[0]) ;
-					}
-				}
-			}
-		});
-		tmpStore.load({
-			filters: [ new Ext.util.Filter({
-				property: 'entry_key',
-				value   : [me.getRawValue()]
-			})]
-		});
+		var localResult = me.myStore.findRecord('entry_key',mvalue) ;
+		if( localResult != null ) {
+			me.applyPrettyValue( localResult ) ;
+			return ;
+		}
 	},
 	getRawValue: function() {
 		var me = this ;

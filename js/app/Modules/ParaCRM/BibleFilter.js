@@ -37,7 +37,7 @@ Ext.define('Optima5.Modules.ParaCRM.BibleFilter', {
             }
         });
 
-        this.updateTask = Ext.create('Ext.util.DelayedTask', this.fireUpdate, this);
+        this.updateTask = Ext.create('Ext.util.DelayedTask', this.onTypeAhead, this);
 		  
 		  
 		Optima5.CoreDesktop.Ajax.request({
@@ -148,10 +148,7 @@ Ext.define('Optima5.Modules.ParaCRM.BibleFilter', {
 					type: 'json',
 					root: 'data',
 					totalProperty: 'total'
-				},
-				startParam: undefined,
-				limitParam: undefined,
-				pageParam: undefined
+				}
 			}
 		});
 		
@@ -179,6 +176,14 @@ Ext.define('Optima5.Modules.ParaCRM.BibleFilter', {
 			columns: me.myColumns,
 			height: 250,
 			width:400,
+			listeners: {
+				scrollershow: function(scroller) {
+					if (scroller && scroller.scrollEl) {
+						scroller.clearManagedListeners(); 
+						scroller.mon(scroller.scrollEl, 'scroll', scroller.onElScroll, scroller); 
+					}
+				}
+			},
 			selModel: Ext.create('Ext.selection.CheckboxModel',{
 				mode: 'MULTI',
 				checkOnly: true,
@@ -192,12 +197,14 @@ Ext.define('Optima5.Modules.ParaCRM.BibleFilter', {
 			tbar : [{
 				xtype:'textfield',
 				flex:1,
-				listeners : {
-					change: {
-						fn: function(){
-							me.onTypeAhead() ;
-						},
-						scope : me
+				enableKeyEvents: true,
+				listeners: {
+					scope: this,
+					keyup: this.onInputKeyUp,
+					el: {
+						click: function(e) {
+								e.stopPropagation();
+						}
 					}
 				}
 			},{
@@ -218,7 +225,32 @@ Ext.define('Optima5.Modules.ParaCRM.BibleFilter', {
 		},me) ;
 	},
 			  
+	onInputKeyUp : function (field, e) {
+		// restart the timer
+		this.updateTask.delay(this.updateBuffer);
+	},
 	onTypeAhead: function() {
+		var me = this ;
+		
+		var textfield = me.menu.query('gridpanel')[0].getDockedItems('toolbar')[0].query('textfield')[0] ;
+		var mvalue = textfield.getRawValue() ;
+		if( mvalue.length == 0 ) {
+			me.myStore.load() ;
+			return ;
+		}
+		if( mvalue.length < 3 ) {
+			me.myStore.removeAll() ;
+			return ;
+		}
+		
+		me.myStore.load({
+			filters : [new Ext.util.Filter({
+				property: 'str_search',
+				value   : mvalue
+			})]
+		}); ;
+	},
+	onTypeAheadLocal: function() {
 		var me = this ;
 		
 		var textfield = me.menu.query('gridpanel')[0].getDockedItems('toolbar')[0].query('textfield')[0] ;
@@ -236,7 +268,7 @@ Ext.define('Optima5.Modules.ParaCRM.BibleFilter', {
 			return found ;
 		},me ) ;
 	},
-			  
+	
 	onSelectionChange: function(selmodel, selrecords){
 		var me = this ;
 		
@@ -244,7 +276,7 @@ Ext.define('Optima5.Modules.ParaCRM.BibleFilter', {
 			return ;
 		}
 		
-		console.log('selection changed') ;
+		// console.log('selection changed') ;
 
 		var mTab = new Array() ;
 		Ext.Object.each( selrecords, function(k,o){
@@ -310,6 +342,8 @@ Ext.define('Optima5.Modules.ParaCRM.BibleFilter', {
 			me.silentSelection = false ;
 			
 			me.myStore.removeAll() ;
+			
+			me.menu.query('gridpanel')[0].getDockedItems('toolbar')[0].query('textfield')[0].setRawValue('') ;
 		}
 		else {
 			// rien

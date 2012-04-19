@@ -13,7 +13,7 @@ Ext.define('Optima5.Modules.ParaCRM.FilePanel' ,{
 		'Optima5.Modules.ParaCRM.FilePanelGallery',
 		'Ext.ux.grid.FiltersFeature',
 		'Optima5.Modules.ParaCRM.BibleFilter',
-		'Optima5.Modules.ParaCRM.DummyFilter'
+		'Optima5.Modules.ParaCRM.BibleTreeFilter'
 	],
 			  
 	fileId: '' ,
@@ -219,7 +219,7 @@ Ext.define('Optima5.Modules.ParaCRM.FilePanel' ,{
 	reconfigureDataBuildGrid: function( ajaxData, gridstore ) {
 		var gridModelName = 'FileGrid'+'-'+this.fileId ;
 		
-		var daterenderer = Ext.util.Format.dateRenderer('d/m/Y h:i');
+		var daterenderer = Ext.util.Format.dateRenderer('d/m/Y H:i');
 		
 		// Création du modèle GRID
 		var modelFields = new Array() ;
@@ -254,7 +254,7 @@ Ext.define('Optima5.Modules.ParaCRM.FilePanel' ,{
 				hidden: !(v.is_display),
 				sortable: true,
 				menuDisabled: false,
-				xtype:'gridcolumn',
+				xtype:'gridcolumn'
 			}) ;
 			if( v.type == 'date' ) {
 				Ext.apply(columnObject,{
@@ -274,27 +274,37 @@ Ext.define('Optima5.Modules.ParaCRM.FilePanel' ,{
 			
 			if( v.link_bible && v.link_bible_is_key ) {
 				if( v.link_bible_type == 'tree' ) {
-						Ext.apply(columnObject,{
-							filter: {
-								type: 'op5paracrmbible',
-								bibleId: v.link_bible
-							}
-						}) ;
+					Ext.apply(columnObject,{
+						filter: {
+							type: 'op5paracrmbibletree',
+							bibleId: v.link_bible
+						}
+					}) ;
 				}
 				
 				if( v.link_bible_type == 'entry' ) {
-						Ext.apply(columnObject,{
-							filter: {
-								type: 'op5paracrmbible',
-								bibleId: v.link_bible
-							}
-						}) ;
+					Ext.apply(columnObject,{
+						filter: {
+							type: 'op5paracrmbible',
+							bibleId: v.link_bible
+						}
+					}) ;
 				}
 			}
 			else {
-				Ext.apply(columnObject,{
-					filterable: true
-				}) ;
+				if( v.type == 'date' ) {
+					Ext.apply(columnObject,{
+						filter: {
+							type: 'date',
+							dateFormat: 'Y-m-d'
+						}
+					}) ;
+				}
+				else {
+					Ext.apply(columnObject,{
+						filterable: true
+					}) ;
+				}
 			}
 			
 			
@@ -308,8 +318,7 @@ Ext.define('Optima5.Modules.ParaCRM.FilePanel' ,{
 							return '<img src="images/op5img/ico_dataadd_16.gif"/>' + '&nbsp;(<b>' + v.link + '</b>)' ;
 						}
 						return '<img src="images/op5img/ico_dataadd_16.gif"/>' + '&nbsp;' + Ext.JSON.decode(value).join(' / ') ;
-					},
-					
+					}
 				});
 			}
 			gridColumns.push( columnObject ) ;
@@ -346,7 +355,15 @@ Ext.define('Optima5.Modules.ParaCRM.FilePanel' ,{
 				store: gridstore,   // same store GridPanel is using
 				dock: 'bottom',
 				displayInfo: true
-			}]
+			}],
+			listeners: {
+				scrollershow: function(scroller) {
+					if (scroller && scroller.scrollEl) {
+						scroller.clearManagedListeners(); 
+						scroller.mon(scroller.scrollEl, 'scroll', scroller.onElScroll, scroller); 
+					}
+				}
+			}
 		}) ;
 		
 		

@@ -104,11 +104,13 @@ Ext.define('Optima5.Modules.ParaCRM.DataFormPanelGmap' ,{
 			gmappanel.setZoom( 15 );
 			var point = new google.maps.LatLng(this.gPlaceLatLng.lat,this.gPlaceLatLng.lng) ;
 			var mkr = gmappanel.addMarker(point, {}, true, true, {});
-			var infowin = gmappanel.createInfoWindow({
-				content: '<b>Location&nbsp;:</b><br>' + this.gFormattedAddress.split(',').join('<br>')
-			},point,mkr) ;
-			infowin.open(gmappanel.getMap());
-			this.getDockedItems('toolbar')[0].query('textfield')[0].setRawValue(this.gFormattedAddress) ;
+			if( this.gFormattedAddress ) {
+				var infowin = gmappanel.createInfoWindow({
+					content: '<b>Location&nbsp;:</b><br>' + this.gFormattedAddress.split(',').join('<br>')
+				},point,mkr) ;
+				infowin.open(gmappanel.getMap());
+				this.getDockedItems('toolbar')[0].query('textfield')[0].setRawValue(this.gFormattedAddress) ;
+			}
 		}
 		else {
 			gmappanel.clearMarkers() ;
