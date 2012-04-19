@@ -205,6 +205,7 @@ function paracrm_define_manageTransaction( $post_data )
 			while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
 			{
 				$links_tree[] = array('dataType'=>'link_'.$arr['bible_code'],'dataTypeLib'=>'<b>Link</b>: '.$arr['bible_lib']) ;
+				$links_entry[] = array('dataType'=>'link_'.$arr['bible_code'],'dataTypeLib'=>'<b>Link</b>: '.$arr['bible_lib']) ;
 			}
 		}
 		if( $arr_transaction['arr_saisie']['data_type'] == 'file' )
@@ -588,8 +589,7 @@ function paracrm_define_buildViewBible( $bible_code )
 	foreach( $arr_field_type as $field_code => $field_type )
 	{
 		$query.= " LEFT OUTER JOIN store_bible_tree_field t_{$field_code} 
-						ON t_{$field_code}.bible_code='$bible_code' 
-							AND t_{$field_code}.treenode_key = mstr.treenode_key 
+						ON t_{$field_code}.treenode_racx = mstr.treenode_racx 
 							AND t_{$field_code}.treenode_field_code='$field_code'" ;
 	}
 	$query.= " WHERE mstr.bible_code='$bible_code'" ;
@@ -642,7 +642,7 @@ function paracrm_define_buildViewBible( $bible_code )
 			$query.='entry_field_value_date' ;
 			break ;
 			
-			case 'tree' :
+			case 'link' :
 			$query.='entry_field_value_link' ;
 			break ;
 		}
@@ -652,16 +652,14 @@ function paracrm_define_buildViewBible( $bible_code )
 	foreach( $arr_field_type as $field_code => $field_type )
 	{
 		$query.= " LEFT OUTER JOIN store_bible_entry_field t_{$field_code} 
-						ON t_{$field_code}.bible_code='$bible_code' 
-							AND t_{$field_code}.entry_key = mstr.entry_key 
+						ON t_{$field_code}.entry_racx=mstr.entry_racx 
 							AND t_{$field_code}.entry_field_code='$field_code'" ;
 	}
 	foreach( $arr_gmap_define as $gmap_field )
 	{
 		$gmap_field = 'gmap_'.$gmap_field ;
 		$query.= " LEFT OUTER JOIN store_bible_entry_field t_{$gmap_field} 
-						ON t_{$gmap_field}.bible_code='$bible_code' 
-							AND t_{$gmap_field}.entry_key = mstr.entry_key 
+						ON t_{$gmap_field}.entry_racx=mstr.entry_racx 
 							AND t_{$gmap_field}.entry_field_code='$gmap_field'" ;
 	}
 	$query.= " WHERE mstr.bible_code='$bible_code'" ;

@@ -116,6 +116,7 @@ function paracrm_lib_data_insertRecord_bibleTreenode( $bible_code, $treenode_key
 	$arr_ins['treenode_key'] = $treenode_key ;
 	$arr_ins['treenode_parent_key'] = ($treenode_parent_key=='&')?'':$treenode_parent_key ;
 	$_opDB->insert('store_bible_tree',$arr_ins) ;
+	$treenode_racx = $_opDB->insert_id() ;
 	foreach( $fields as $field_code => $field_type )
 	{
 		$query = "DELETE FROM store_bible_tree_field WHERE bible_code='$bible_code' AND treenode_key='$treenode_key' AND treenode_field_code='$field_code'" ;
@@ -126,6 +127,7 @@ function paracrm_lib_data_insertRecord_bibleTreenode( $bible_code, $treenode_key
 		{
 			$arr_ins = array() ;
 			$arr_ins['bible_code'] = $bible_code ;
+			$arr_ins['treenode_racx'] = $treenode_racx ;
 			$arr_ins['treenode_key'] = $treenode_key ;
 			$arr_ins['treenode_field_code'] = $field_code ;
 			$arr_ins['treenode_field_value_string'] = '' ;
@@ -154,8 +156,12 @@ function paracrm_lib_data_updateRecord_bibleTreenode( $bible_code, $treenode_key
 {
 	global $_opDB ;
 	
-	if( !paracrm_lib_data_getRecord_bibleTreenode( $bible_code, $treenode_key ) )
+	if( !($rec = paracrm_lib_data_getRecord_bibleTreenode( $bible_code, $treenode_key )) )
 		return -1 ;
+	$query = "SELECT treenode_racx FROM store_bible_tree WHERE bible_code='$bible_code' AND treenode_key='$treenode_key'" ;
+	if( !($treenode_racx = $_opDB->query_uniqueValue($query)) )
+		return -1 ;
+	
 	
 	// definition
 	$key_field = NULL ;
@@ -194,11 +200,12 @@ function paracrm_lib_data_updateRecord_bibleTreenode( $bible_code, $treenode_key
 		$datafield = 'field_'.$field_code ;
 		if( isset($data[$datafield]) )
 		{
-			$query = "DELETE FROM store_bible_tree_field WHERE bible_code='$bible_code' AND treenode_key='$treenode_key_old' AND treenode_field_code='$field_code'" ;
+			$query = "DELETE FROM store_bible_tree_field WHERE treenode_racx='$treenode_racx' AND treenode_field_code='$field_code'" ;
 			$_opDB->query($query) ;
 		
 			$arr_ins = array() ;
 			$arr_ins['bible_code'] = $bible_code ;
+			$arr_ins['treenode_racx'] = $treenode_racx ;
 			$arr_ins['treenode_key'] = $treenode_key_new ;
 			$arr_ins['treenode_field_code'] = $field_code ;
 			$arr_ins['treenode_field_value_string'] = '' ;
@@ -292,6 +299,7 @@ function paracrm_lib_data_insertRecord_bibleEntry( $bible_code, $entry_key, $tre
 	$arr_ins['entry_key'] = $entry_key ;
 	$arr_ins['treenode_key'] = ($treenode_key=='&')?'':$treenode_key ;
 	$_opDB->insert('store_bible_entry',$arr_ins) ;
+	$entry_racx = $_opDB->insert_id() ;
 	foreach( $fields as $field_code => $field_type )
 	{
 		$query = "DELETE FROM store_bible_entry_field WHERE bible_code='$bible_code' AND entry_key='$entry_key' AND entry_field_code='$field_code'" ;
@@ -302,6 +310,7 @@ function paracrm_lib_data_insertRecord_bibleEntry( $bible_code, $entry_key, $tre
 		{
 			$arr_ins = array() ;
 			$arr_ins['bible_code'] = $bible_code ;
+			$arr_ins['entry_racx'] = $entry_racx ;
 			$arr_ins['entry_key'] = $entry_key ;
 			$arr_ins['entry_field_code'] = $field_code ;
 			$arr_ins['entry_field_value_string'] = '' ;
@@ -333,6 +342,7 @@ function paracrm_lib_data_insertRecord_bibleEntry( $bible_code, $entry_key, $tre
 			
 			$arr_ins = array() ;
 			$arr_ins['bible_code'] = $bible_code ;
+			$arr_ins['entry_racx'] = $entry_racx ;
 			$arr_ins['entry_key'] = $entry_key ;
 			$arr_ins['entry_field_code'] = $tfield ;
 			$arr_ins['entry_field_value_link'] = $data[$tfield] ;
@@ -345,7 +355,10 @@ function paracrm_lib_data_updateRecord_bibleEntry( $bible_code, $entry_key, $dat
 {
 	global $_opDB ;
 	
-	if( !paracrm_lib_data_getRecord_bibleEntry( $bible_code, $entry_key ) )
+	if( !($rec=paracrm_lib_data_getRecord_bibleEntry( $bible_code, $entry_key )) )
+		return -1 ;
+	$query = "SELECT entry_racx FROM store_bible_entry WHERE bible_code='$bible_code' AND entry_key='$entry_key'" ;
+	if( !($entry_racx = $_opDB->query_uniqueValue($query)) )
 		return -1 ;
 	
 	// definition
@@ -398,6 +411,7 @@ function paracrm_lib_data_updateRecord_bibleEntry( $bible_code, $entry_key, $dat
 		
 			$arr_ins = array() ;
 			$arr_ins['bible_code'] = $bible_code ;
+			$arr_ins['entry_racx'] = $entry_racx ;
 			$arr_ins['entry_key'] = $entry_key_new ;
 			$arr_ins['entry_field_code'] = $field_code ;
 			$arr_ins['entry_field_value_string'] = '' ;
@@ -429,6 +443,7 @@ function paracrm_lib_data_updateRecord_bibleEntry( $bible_code, $entry_key, $dat
 			
 			$arr_ins = array() ;
 			$arr_ins['bible_code'] = $bible_code ;
+			$arr_ins['entry_racx'] = $entry_racx ;
 			$arr_ins['entry_key'] = $entry_key ;
 			$arr_ins['entry_field_code'] = $tfield ;
 			$arr_ins['entry_field_value_link'] = $data[$tfield] ;

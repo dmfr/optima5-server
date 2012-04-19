@@ -37,13 +37,25 @@ function paracrm_android_getDbImage()
 }
 
 
+function paracrm_android_postDbData_prepareJson( $input )
+{
+	//This will convert ASCII/ISO-8859-1 to UTF-8.
+	//Be careful with the third parameter (encoding detect list), because
+	//if set wrong, some input encodings will get garbled (including UTF-8!)
+	$input = mb_convert_encoding($input, 'UTF-8', 'ASCII,UTF-8,ISO-8859-1');
 
+	//Remove UTF-8 BOM if present, json_decode() does not like it.
+	if(substr($input, 0, 3) == pack("CCC", 0xEF, 0xBB, 0xBF)) $input = substr($input, 3);
+
+	return $input;
+}
 
 function paracrm_android_postDbData( $post_data )
 {
 	global $_opDB ;
 
 	$arr_tmpid_fileid = array() ;
+	$arr_upload_slots  = array() ;
 	
 	$tab_definefile = array() ;
 	$query = "SELECT * FROM define_file" ;
@@ -53,7 +65,7 @@ function paracrm_android_postDbData( $post_data )
 		$tab_definefile[$arr['file_code']] = $arr ;
 	}
 	
-	$data = json_decode($post_data['data'],TRUE) ;
+	$data = json_decode(paracrm_android_postDbData_prepareJson($post_data['data']),TRUE) ;
 	foreach( $data['store_file'] as $file_entry )
 	{
 		if( $file_entry['filerecord_parent_id'] != 0 )

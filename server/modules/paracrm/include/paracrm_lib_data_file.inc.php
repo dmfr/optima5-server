@@ -7,7 +7,7 @@ function paracrm_lib_file_access( $file_code )
 	$TAB = paracrm_lib_file_mapFile( $file_code ) ;
 	
 	$sql_query = '' ;
-	$sql_query.= "SELECT".' '.implode(',',array_map(create_function('$a','return implode(" AS ",$a);'),$TAB['sql_selectfields'])) ;
+	$sql_query.= "SELECT SQL_CALC_FOUND_ROWS ".' '.implode(',',array_map(create_function('$a','return implode(" AS ",$a);'),$TAB['sql_selectfields'])) ;
 	$sql_query.= " FROM ".implode(',',array_map(create_function('$a','return implode(" ",$a);'),$TAB['sql_from'])) ;
 	foreach( $TAB['sql_join'] as $join_array )
 	{

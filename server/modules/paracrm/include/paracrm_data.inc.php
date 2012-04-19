@@ -179,6 +179,43 @@ function paracrm_data_getBibleTree_call( $tab_parentkey_nodes, $treenode_parent_
 	return $TAB_json ;
 }
 
+function paracrm_data_getBibleTreeBranch( $bible_code, $treenode_key )
+{
+	global $_opDB ;
+	
+	$view_name = 'view_bible_'.$bible_code.'_tree' ;
+
+	$tab_parentkey_nodes = array() ;
+	$query = "SELECT * FROM $view_name" ;
+	$result = $_opDB->query($query);
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
+	{
+		if( !$tab_parentkey_nodes[$arr['treenode_parent_key']] )
+			$tab_parentkey_nodes[$arr['treenode_parent_key']] = array() ;
+	
+		$tab_parentkey_nodes[$arr['treenode_parent_key']][] = $arr['treenode_key'] ;
+	}
+	
+	return paracrm_data_getBibleTreeBranch_call( $tab_parentkey_nodes, $treenode_key ) ;
+}
+function paracrm_data_getBibleTreeBranch_call( $tab_parentkey_nodes, $treenode_key )
+{
+	$arr_treenodes = array() ;
+	
+	$arr_treenodes[] = $treenode_key ;
+	if( $tab_parentkey_nodes[$treenode_key] )
+	{
+	foreach( $tab_parentkey_nodes[$treenode_key] as $treenode_child_key )
+	{
+		if( $arr_treenodes_child = paracrm_data_getBibleTreeBranch_call( $tab_parentkey_nodes, $treenode_child_key ) )
+		{
+			$arr_treenodes = array_merge($arr_treenodes,$arr_treenodes_child) ;
+		}
+	}
+	}
+	return $arr_treenodes ;
+}
+
 
 
 function paracrm_data_getBibleGrid( $post_data )
@@ -190,56 +227,76 @@ function paracrm_data_getBibleGrid( $post_data )
 	$bible_code = $post_data['bible_code'] ;
 	$view_name = 'view_bible_'.$bible_code.'_entry' ;
 	
-	$arr_filters = array() ;
+	$query = "SELECT SQL_CALC_FOUND_ROWS * FROM $view_name WHERE 1" ;
 	if( $post_data['filter'] )
 	{
-	foreach( json_decode($post_data['filter'],TRUE) as $filter )
-	{
-		switch( $filter['property'] )
+		foreach( json_decode($post_data['filter'],TRUE) as $filter )
 		{
-			case 'treenode_key' ;
-			if( $filter['value'] && $filter['value'] != '&' )
-				$arr_filters['treenode_key'] = $filter['value'] ;
-			break ;
-		
+			switch( $filter['property'] )
+			{
+				case 'entry_key' :
+				if( is_array($filter['value']) )
+				{
+					if( $filter['value'] )
+					{
+						$query.= " AND entry_key IN ".$_opDB->makeSQLlist($filter['value']) ;
+					}
+					else
+					{
+						$query.= " AND 0" ;
+					}
+				}
+				break ;
+				
+			
+			
+			
+				case 'treenode_key' :
+				if( $filter['value'] == '&' )
+					break ;
+				// recherche de tous les treenodeskeys child of treenode_key
+				if( $arr_treenodes = paracrm_data_getBibleTreeBranch( $bible_code, $filter['value'] ) )
+				{
+					$query.= " AND treenode_key IN ".$_opDB->makeSQLlist($arr_treenodes) ;
+				}
+				else
+				{
+					$query.= " AND 0" ;
+				}
+				break ;
+			
+			}
 		}
 	}
+	
+	if( $post_data['sort'] )
+	{
+		$sorter = current(json_decode($post_data['sort'],TRUE)) ;
+		$query.= " ORDER BY {$sorter['property']} {$sorter['direction']}" ;
+	}
+	else
+	{
+		$query.= " ORDER BY entry_key ASC" ;
 	}
 	
-	$TAB_json = array() ;
-	$query = "SELECT * FROM $view_name" ;
+	
+	if( isset($post_data['start']) && isset($post_data['limit']) )
+		$query.= " LIMIT {$post_data['start']},{$post_data['limit']}" ;
+	
+	
+	
 	$result = $_opDB->query($query);
+	$TAB_json = array() ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
 	{
 		$TAB_json[] = $arr ;
 	}
 	
+	$queryf = "SELECT FOUND_ROWS()" ;
+	$nb_rows = $_opDB->query_uniqueValue($queryf);
 	
-	if( $arr_filters['treenode_key'] )
-	{
-		$TAB_parentNode_arrEntries = array() ;
-		foreach( $TAB_json as $arrRecord )
-		{
-			$entry_key = $arrRecord['entry_key'] ;
-			$treenode_key = $arrRecord['treenode_key'] ;
-			if( !is_array( $TAB_parentNode_arrEntries[$treenode_key] ) )
-				$TAB_parentNode_arrEntries[$treenode_key] = array() ;
-			$TAB_parentNode_arrEntries[$treenode_key][] = $arrRecord ;
-		}
-		
-		$view_tree = 'view_bible_'.$bible_code.'_tree' ;
-		$query = "SELECT treenode_key, treenode_parent_key FROM $view_tree" ;
-		$result = $_opDB->query($query) ;
-		$TAB_parentNode_arrNodeCode = array() ;
-		while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
-		{
-			$TAB_parentNode_arrNodeCode[$arr['treenode_parent_key']][] = $arr['treenode_key'] ;
-		}
-		
-		$TAB_json = paracrm_data_getBibleGrid_filterNode( $arr_filters['treenode_key'], $TAB_parentNode_arrEntries, $TAB_parentNode_arrNodeCode ) ;
-	}
 	
-	return $TAB_json ;
+	return array('success'=>true,'data'=>$TAB_json,'total'=>$nb_rows,'query'=>$query) ;
 }
 function paracrm_data_getBibleGrid_filterNode( $treenode_key, $TAB_parentNode_arrEntries, $TAB_parentNode_arrNodeCode )
 {
@@ -300,15 +357,33 @@ function paracrm_data_getFileGrid_data( $post_data )
 	
 	// filters.....
 	
-	$query.= " ORDER BY filerecord_id DESC" ;
+	if( $post_data['sort'] )
+	{
+		$sorter = current(json_decode($post_data['sort'],TRUE)) ;
+		$query.= " ORDER BY {$sorter['property']} {$sorter['direction']}" ;
+	}
+	else
+	{
+		$query.= " ORDER BY filerecord_id DESC" ;
+	}
+	
+	
+	if( isset($post_data['start']) && isset($post_data['limit']) )
+		$query.= " LIMIT {$post_data['start']},{$post_data['limit']}" ;
 	$result = $_opDB->query($query);
+	
+	
+	$query = "SELECT FOUND_ROWS()" ;
+	$nb_rows = $_opDB->query_uniqueValue($query);
+	
+	
 	
 	$TAB_json = array() ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
 	{
 		$TAB_json[] = $arr ;
 	}
-	return $TAB_json ;
+	return array('success'=>true,'data'=>$TAB_json,'total'=>$nb_rows) ;
 }
 
 
