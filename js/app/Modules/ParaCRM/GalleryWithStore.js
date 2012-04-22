@@ -1,7 +1,7 @@
 Ext.define('Optima5.Modules.ParaCRM.GalleryWithStore',{
 	extend : 'Ext.panel.Panel',
 
-	requires : ['Ext.Img'],
+	requires : ['Ext.Img','Ext.ux.dams.FileDownloader'],
 
 	initComponent: function() {
 		var me = this ;
@@ -155,21 +155,12 @@ Ext.define('Optima5.Modules.ParaCRM.GalleryWithStore',{
 			download:'true'
 		});
 		
-		
-		try {
-			Ext.destroy(Ext.get('testIframe'));
-		}
-		catch(e) {}
-
-		Ext.DomHelper.append(document.body, {
-			tag: 'iframe',
-			id:'testIframe',
-			css: 'display:none;visibility:hidden;height:0px;',
-			src: 'server/backend_media.php?' + Ext.Object.toQueryString(getParams),
-			frameBorder: 0,
-			width: 0,
-			height: 0
-		});
+		Ext.create('Ext.ux.dams.FileDownloader',{
+			renderTo: Ext.getBody(),
+			requestParams: getParams,
+			requestAction: 'server/backend_media.php',
+			requestMethod: 'GET'
+		}) ;
 	}
 	
 });
