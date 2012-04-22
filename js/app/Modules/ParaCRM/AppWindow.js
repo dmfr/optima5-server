@@ -106,6 +106,18 @@ Ext.define('Optima5.Modules.ParaCRM.AppWindow', {
 					break ;
 			}
 		},this) ;
+		this.maintoolbar.on('exportexcel',function(storetype){
+			switch( storetype ){
+				case 'bible' :
+					//this.biblepanel.exportExcel() ;
+					break ;
+				case 'file' :
+					this.filepanel.exportExcel() ;
+					break ;
+				default :
+					break ;
+			}
+		},this) ;
 		
 		this.maintoolbar.on('testcss',function(){
 			console.log( Ext.util.CSS.getRule('.parapouet') ) ;

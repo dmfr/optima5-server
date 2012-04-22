@@ -168,6 +168,19 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 		if( menuItems.length > 0 ) {
 			menuItems.push('-') ;
 		}
+		if( true ) {
+			menuItems.push({
+				text: 'Excel export',
+				icon: 'images/op5img/ico_save_16.gif',
+				handler : function() {
+					this.exportToExcel();
+				},
+				scope: me
+			});
+		}
+		if( menuItems.length > 0 ) {
+			menuItems.push('-') ;
+		}
 		if( true ){
 			menuItems.push({
 				text: 'Store Cfg',
@@ -189,6 +202,18 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 			case 'bible' :
 			case 'file' :
 				this.fireEvent('switchtopanelview',this.activeDataType,viewmode) ;
+				break ;
+				
+			default :
+				console.log('nothing') ;
+				break ;
+		}
+	},
+	exportToExcel: function() {
+		switch( this.activeDataType ) {
+			case 'bible' :
+			case 'file' :
+				this.fireEvent('exportexcel',this.activeDataType) ;
 				break ;
 				
 			default :

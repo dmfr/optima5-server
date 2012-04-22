@@ -451,6 +451,15 @@ Ext.define('Optima5.Modules.ParaCRM.FilePanel' ,{
 					gridContextMenu.showAt(event.getXY());
 				}
 			},me) ;
+			
+			/*
+			gridpanel.on('filterupdate',function(){
+				console.log('Filters :') ;
+				console.dir(gridpanel.filters.getFilterData()) ;
+				console.log('Query :') ;
+				console.dir(gridpanel.filters.buildQuery(gridpanel.filters.getFilterData())) ;
+			},me);
+			*/
 		}
 		
 		return gridpanel ;
@@ -620,6 +629,20 @@ Ext.define('Optima5.Modules.ParaCRM.FilePanel' ,{
 		if(activePanelIdx !== newPanelIdx) {
 				var newPanel = this.mainview.items.getAt(newPanelIdx) ;
 				layout.setActiveItem(newPanelIdx);
+		}
+	},
+	
+	exportExcel: function() {
+		var me = this ;
+		if( !me.gridpanel ) {
+			return ;
+		}
+		if( me.gridpanel.filters && me.gridpanel.filters.getFilterData().length > 0 ) {
+			console.log('Export Excel :') ;
+			console.dir(me.gridpanel.filters.buildQuery(me.gridpanel.filters.getFilterData())) ;
+		}
+		else {
+			console.log('Export Excel without filters') ;
 		}
 	}
 	
