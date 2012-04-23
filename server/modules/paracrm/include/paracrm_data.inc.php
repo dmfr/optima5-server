@@ -594,14 +594,14 @@ function paracrm_data_getFileGrid_exportXLS( $post_data )
 
 	$objPHPExcel->setActiveSheetIndex(0);
 	$obj_sheet = $objPHPExcel->getActiveSheet() ;
-	$obj_sheet->setTitle($TAB_cfg['data']['define_file']['file_lib']) ;
+	$obj_sheet->setTitle($TAB_cfg['data']['define_file']['file_code']) ;
 	
 	$row = 1 ;
 	$cell = 'A' ;
 	foreach( $TAB_cfg['data']['grid_fields'] as $cfg_field ) {
 	
 		$str = $cfg_field['text'] ;
-		if( $str || $str == '_' ) {
+		if( !$str || $str == '_' ) {
 			$str = $cfg_field['field'] ;
 		}
 	
