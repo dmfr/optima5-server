@@ -54,8 +54,8 @@ Ext.define('Ext.ux.dams.FileDownloader',{
 			Ext.DomHelper.append(this.dlform.dom, {
 				tag: 'input' ,
 				type: 'hidden',
-				name: k,
-				value : v
+				name: Ext.String.htmlEncode(k),
+				value : Ext.String.htmlEncode(v)
 			}) ;
 		},me);
 		

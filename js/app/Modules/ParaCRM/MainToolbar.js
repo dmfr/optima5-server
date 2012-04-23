@@ -98,7 +98,7 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 		item.menu.removeAll() ;
 		// item.setText('') ;
 		
-		var is_grid , is_gmap , is_gallery ;
+		var is_grid , is_gmap , is_gallery , show_export ;
 		var newTxt = '' ;
 		switch( this.activeDataType ) {
 			case 'bible' :
@@ -128,6 +128,8 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 							is_gmap = true ;
 						if( item.viewmode_gallery )
 							is_gallery = true ;
+						
+						show_export = true ;
 					}
 				},this);
 				break ;
@@ -168,7 +170,7 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 		if( menuItems.length > 0 ) {
 			menuItems.push('-') ;
 		}
-		if( true ) {
+		if( show_export == true ) {
 			menuItems.push({
 				text: 'Excel export',
 				icon: 'images/op5img/ico_save_16.gif',
@@ -177,8 +179,6 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 				},
 				scope: me
 			});
-		}
-		if( menuItems.length > 0 ) {
 			menuItems.push('-') ;
 		}
 		if( true ){

@@ -637,13 +637,34 @@ Ext.define('Optima5.Modules.ParaCRM.FilePanel' ,{
 		if( !me.gridpanel ) {
 			return ;
 		}
+		
+		var exportParams = {} ;
+		Ext.apply(exportParams,{
+			_sessionName: op5session.get('session_id'),
+			_moduleName: 'paracrm' ,
+			_action: 'data_getFileGrid_exportXLS' ,
+			file_code: this.fileId
+		}) ;
+		
 		if( me.gridpanel.filters && me.gridpanel.filters.getFilterData().length > 0 ) {
-			console.log('Export Excel :') ;
-			console.dir(me.gridpanel.filters.buildQuery(me.gridpanel.filters.getFilterData())) ;
+			//console.log('Export Excel :') ;
+			//console.dir(me.gridpanel.filters.buildQuery(me.gridpanel.filters.getFilterData())) ;
+			
+			delete exportParams[me.gridpanel.filters.paramPrefix];
+			Ext.apply(exportParams,
+				me.gridpanel.filters.buildQuery(me.gridpanel.filters.getFilterData())
+			) ;
 		}
 		else {
-			console.log('Export Excel without filters') ;
+			//console.log('Export Excel without filters') ;
 		}
+		
+		Ext.create('Ext.ux.dams.FileDownloader',{
+			renderTo: Ext.getBody(),
+			requestParams: exportParams,
+			requestAction: 'server/backend.php',
+			requestMethod: 'POST'
+		}) ;
 	}
 	
 });
