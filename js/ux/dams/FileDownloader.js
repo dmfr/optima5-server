@@ -63,5 +63,6 @@ Ext.define('Ext.ux.dams.FileDownloader',{
 		// **********************************
 		
 		//me.destroy() ;
+		Ext.Function.defer(me.destroy, 2000, me);
 	}
 }) ;
