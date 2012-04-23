@@ -577,6 +577,87 @@ function paracrm_data_getFileGrid_raw( $post_data )
 
 
 
+function paracrm_data_getFileGrid_exportXLS( $post_data )
+{
+	if( !class_exists('PHPExcel') )
+		return NULL ;
+		
+	$TAB_cfg = paracrm_data_getFileGrid_config( array('file_code'=>$post_data['file_code']) ) ;
+	$TAB_data = paracrm_data_getFileGrid_data( $post_data ) ;
+
+	if( !$TAB_cfg['data']['grid_fields'] )
+		return ;
+
+	$objPHPExcel = new PHPExcel();
+	$objPHPExcel->getDefaultStyle()->getFont()->setName('Arial');
+	$objPHPExcel->getDefaultStyle()->getFont()->setSize( 10 );
+
+	$objPHPExcel->setActiveSheetIndex(0);
+	$obj_sheet = $objPHPExcel->getActiveSheet() ;
+	$obj_sheet->setTitle($TAB_cfg['data']['define_file']['file_lib']) ;
+	
+	$row = 1 ;
+	$cell = 'A' ;
+	foreach( $TAB_cfg['data']['grid_fields'] as $cfg_field ) {
+	
+		$str = $cfg_field['text'] ;
+		if( $str || $str == '_' ) {
+			$str = $cfg_field['field'] ;
+		}
+	
+		$obj_sheet->SetCellValue("{$cell}{$row}", $str);
+		$obj_sheet->getColumnDimension($cell)->setWidth(20);
+		$obj_sheet->getStyle("{$cell}{$row}")->getFont()->setBold(TRUE);
+		
+		$cell++ ;
+	}
+	
+	foreach( $TAB_data['data'] as $record ) {
+		$row++ ;
+		$cell = 'A' ;
+		foreach( $TAB_cfg['data']['grid_fields'] as $cfg_field ) {
+			$field_code = $cfg_field['field'] ;
+		
+			switch( $cfg_field['type'] ) {
+			
+				case 'string' :
+				$obj_sheet->getCell($cell.$row)->setValueExplicit($record[$field_code],PHPExcel_Cell_DataType::TYPE_STRING);
+				break ;
+				
+				default :
+				$obj_sheet->SetCellValue("{$cell}{$row}", $record[$field_code] );
+				break ;
+			}
+			
+		
+			$cell++ ;
+		}
+	}
+	
+	$tmpfilename = tempnam( sys_get_temp_dir(), "FOO");
+	
+	$objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+	$objWriter->save($tmpfilename);
+	$objPHPExcel->disconnectWorksheets();
+	unset($objPHPExcel) ;
+	
+	
+	
+	
+	
+	
+	
+	
+	
+
+	$filename = 'OP5report_CRM_.'.$post_data['file_code'].'_'.time().'.xlsx' ;
+	header("Content-Type: application/force-download; name=\"$filename\""); 
+	header("Content-Disposition: attachment; filename=\"$filename\""); 
+	readfile($tmpfilename) ;
+	unlink($tmpfilename) ;
+	die() ;
+}
+
 
 
 ?>

@@ -36,6 +36,8 @@ switch( $post_data['_action'] )
 	return paracrm_data_getFileGrid_config( $post_data );
 	case 'data_getFileGrid_data' :
 	return paracrm_data_getFileGrid_data( $post_data );
+	case 'data_getFileGrid_exportXLS' :
+	return paracrm_data_getFileGrid_exportXLS( $post_data );
 	
 	
 	
