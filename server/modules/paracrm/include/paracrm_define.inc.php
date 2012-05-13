@@ -561,7 +561,7 @@ function paracrm_define_buildViewBible( $bible_code )
 	$query = "DROP VIEW IF EXISTS $view_name" ;
 	$_opDB->query($query) ;
 	
-	$query = "CREATE VIEW $view_name AS SELECT mstr.treenode_key, mstr.treenode_parent_key" ;
+	$query = "CREATE ALGORITHM=MERGE VIEW $view_name AS SELECT mstr.treenode_racx, mstr.treenode_key, mstr.treenode_parent_key" ;
 	foreach( $arr_field_type as $field_code => $field_type )
 	{
 		$query.=','.'t_'.$field_code.'.' ;
@@ -619,7 +619,7 @@ function paracrm_define_buildViewBible( $bible_code )
 	$query = "DROP VIEW IF EXISTS $view_name" ;
 	$_opDB->query($query) ;
 	
-	$query = "CREATE VIEW $view_name AS SELECT mstr.entry_key, mstr.treenode_key" ;
+	$query = "CREATE ALGORITHM=MERGE VIEW $view_name AS SELECT mstr.entry_racx, mstr.entry_key, mstr.treenode_key" ;
 	foreach( $arr_gmap_define as $gmap_field )
 	{
 		$gmap_field = 'gmap_'.$gmap_field ;
@@ -722,26 +722,32 @@ function paracrm_define_buildViewFile( $file_code )
 	}
 	foreach( $arr_field_type as $field_code => $field_type )
 	{
-		$query.=','.'t_'.$field_code.'.' ;
 		switch( $field_type )
 		{
 			case 'string' :
-			$query.='filerecord_field_value_string' ;
+			$query.=','.'t_'.$field_code.'.' ;
+			$query.='filerecord_field_value_string'." AS field_".$field_code ;
 			break ;
 			
 			case 'number' :
-			$query.='filerecord_field_value_number' ;
+			$query.=','.'t_'.$field_code.'.' ;
+			$query.='filerecord_field_value_number'." AS field_".$field_code ;
 			break ;
 			
 			case 'date' :
-			$query.='filerecord_field_value_date' ;
+			$query.=','.'t_'.$field_code.'.' ;
+			$query.='filerecord_field_value_date'." AS field_".$field_code ;
 			break ;
 			
 			case 'link' :
-			$query.='filerecord_field_value_link' ;
+			$query.=','.'t_'.$field_code.'.' ;
+			$query.='filerecord_field_value_link'." AS field_".$field_code ;
+			$query.=','.'t_'.$field_code.'.' ;
+			$query.='filerecord_field_value_link_treenode_racx'." AS field_".$field_code.'_trx' ;
+			$query.=','.'t_'.$field_code.'.' ;
+			$query.='filerecord_field_value_link_entry_racx'." AS field_".$field_code.'_erx' ;
 			break ;
 		}
-		$query.= " AS field_".$field_code ;
 	}
 	$query.= " FROM store_file mstr" ;
 	foreach( $arr_field_type as $field_code => $field_type )

@@ -289,7 +289,7 @@ function paracrm_data_editTransaction_bibleEntry_apply($arr_saisie, $apply=FALSE
 		return $response ;
 		
 	//print_r($arr_saisie['arr_gmap']) ;
-	
+	paracrm_lib_data_beginTransaction() ;
 	$arr_ent_ins = array_merge( $arr_saisie['arr_ent'] , ($arr_saisie['arr_gmap'])?$arr_saisie['arr_gmap']:array() ) ;
 	if( $arr_saisie['is_new'] )
 	{
@@ -304,6 +304,7 @@ function paracrm_data_editTransaction_bibleEntry_apply($arr_saisie, $apply=FALSE
 																	$entry_key = $arr_saisie['entry_key'],
 																	$arr_ent_ins ) ;
 	}
+	paracrm_lib_data_endTransaction(TRUE) ;
 	
 	if( $ret == 0 )
 		return array('success'=>true) ;

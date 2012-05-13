@@ -168,6 +168,7 @@ function paracrm_android_postDbData( $post_data )
 	}
 	
 	$data = json_decode(paracrm_android_postDbData_prepareJson($post_data['data']),TRUE) ;
+	paracrm_lib_data_beginTransaction() ;
 	foreach( $data['store_file'] as $file_entry )
 	{
 		if( $file_entry['filerecord_parent_id'] != 0 )
@@ -195,9 +196,6 @@ function paracrm_android_postDbData( $post_data )
 		if( strpos($tab_definefile[$file_entry['file_code']]['file_type'],'media_') === 0 )
 			$arr_upload_slots[] = $arr_tmpid_fileid[$file_entry['filerecord_id']] ;
 	}
-	
-	
-	
 	foreach( $data['store_file_field'] as $field_entry )
 	{
 		if( !$arr_tmpid_fileid[$file_entry['filerecord_id']])
@@ -207,6 +205,7 @@ function paracrm_android_postDbData( $post_data )
 		$arr_ins['filerecord_id'] = $arr_tmpid_fileid[$field_entry['filerecord_id']] ;
 		$_opDB->insert('store_file_field',$arr_ins) ;
 	}
+	paracrm_lib_data_endTransaction(FALSE) ;
 	
 	
 	

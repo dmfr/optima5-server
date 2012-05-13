@@ -426,6 +426,7 @@ function paracrm_data_editTransaction_fileRecord_apply( $arr_saisie, $apply=FALS
 	if( !$apply || !$response['success'] )
 		return $response ;
 		
+	paracrm_lib_data_beginTransaction() ;
 	//print_r($arr_saisie['arr_gmap']) ;
 	$arr_ent_ins = array() ;
 	foreach( $arr_saisie['file_form'] as $field )
@@ -448,7 +449,9 @@ function paracrm_data_editTransaction_fileRecord_apply( $arr_saisie, $apply=FALS
 	}
 	
 	if( $ret <= 0 )
+	{
 		return array('success'=>false,'msg'=>'Unknown error on DB') ;
+	}
 		
 	$arr_saisie['filerecord_id'] = $ret ;
 		
@@ -512,6 +515,7 @@ function paracrm_data_editTransaction_fileRecord_apply( $arr_saisie, $apply=FALS
 		
 		
 	}
+	paracrm_lib_data_endTransaction(FALSE) ;
 	
 	
 	return array('success'=>true) ;

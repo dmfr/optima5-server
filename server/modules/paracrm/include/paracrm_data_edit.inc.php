@@ -73,15 +73,21 @@ function paracrm_data_deleteRecord( $post_data )
 	switch( $post_data['data_type'] )
 	{
 		case 'bible_treenode' :
+		paracrm_lib_data_beginTransaction() ;
 		$ret = paracrm_lib_data_deleteRecord_bibleTreenode( $post_data['bible_code'], $post_data['treenode_key'] ) ;
+		paracrm_lib_data_endTransaction(TRUE) ;
 		break ;
 	
 		case 'bible_entry' :
+		paracrm_lib_data_beginTransaction() ;
 		$ret = paracrm_lib_data_deleteRecord_bibleEntry( $post_data['bible_code'], $post_data['entry_key'] ) ;
+		paracrm_lib_data_endTransaction(TRUE) ;
 		break ;
 	
 		case 'file_record' :
+		paracrm_lib_data_beginTransaction() ;
 		$ret = paracrm_lib_data_deleteRecord_file( $post_data['file_code'], $post_data['filerecord_id'] ) ;
+		paracrm_lib_data_endTransaction(FALSE) ;
 		break ;
 	
 		default :

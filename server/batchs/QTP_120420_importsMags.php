@@ -18,6 +18,7 @@ $_opDB = new mysql_DB( );
 $_opDB->connect_mysql( $mysql_host, $mysql_db, $mysql_user, $mysql_pass );
 $_opDB->query("SET NAMES UTF8") ;
 
+include("$server_root/modules/paracrm/backend_paracrm.inc.php");
 
 include("$server_root/include/GMaps.php" ) ;
 
@@ -112,6 +113,8 @@ while( !feof($handle) )
 fclose($handle) ;
 
 
+$_opDB->query("BEGIN") ;
+
 foreach($tab_tree as $arr_tree )
 {
 	$arr_ins = array() ;
@@ -187,6 +190,10 @@ foreach($tab_entries as $arr_entry )
 	}
 }
 
+
+paracrm_lib_buildCacheLinks( TRUE,FALSE ) ;
+
+$_opDB->query("COMMIT") ;
 
 
 

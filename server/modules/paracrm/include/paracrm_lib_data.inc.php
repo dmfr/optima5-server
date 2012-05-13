@@ -81,7 +81,184 @@ function paracrm_lib_data_getFileChildRecords( $file_code, $filerecord_parent_id
 	return $tab ;
 }
 
+function paracrm_lib_dataTool_getBibleTreeRoot( $bible_code, $treenode_key=NULL )
+{
+	global $_opDB ;
 
+	$view_name = 'view_bible_'.$bible_code.'_tree' ;
+	
+	// nom de la bible
+	$query = "SELECT bible_lib FROM define_bible WHERE bible_code='$bible_code'" ;
+	$bible_lib = $_opDB->query_uniqueValue($query);
+	
+	// definition
+	$key_field = NULL ;
+	$header_fields = array() ;
+	$query = "SELECT * FROM define_bible_tree WHERE bible_code='$bible_code' ORDER BY tree_field_index" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
+	{
+		if( $arr['tree_field_is_header'] == 'O' )
+			$header_fields[] = $arr['tree_field_code'] ;
+		if( $arr['tree_field_is_key'] == 'O' )
+			$key_field = $arr['tree_field_code'] ;
+	}
+	if( !$header_fields )
+		$header_fields[] = $key_field ;
+
+	if( $treenode_key )
+	{
+		$arr_nodes = array() ;
+		while( $treenode_key != '' )
+		{
+			if( $treenode_key == '&' )
+			{
+				$node = array() ;
+				$node['nodeKey'] = '&' ;
+				$node['nodeText'] = '<b>Bible</b>: '.$bible_lib ;
+				$arr_nodes[] = $node ;
+				break ;
+			}
+			
+			$query = "SELECT *,treenode_parent_key FROM $view_name WHERE treenode_key='$treenode_key'" ;
+			$result = $_opDB->query($query) ;
+			$arr = $_opDB->fetch_assoc($result) ;
+			if( $arr == FALSE )
+				break ;
+		
+			$node = array() ;
+			$node['nodeKey'] = $arr['treenode_key'] ;
+			$txt = '' ;
+			foreach( $header_fields as $field )
+			{
+				$tfield = 'field_'.$field ;
+				if( $txt )
+					$txt.= ' - ' ;
+				if( $field == $key_field )
+					$txt.= '<b>'.$arr[$tfield].'</b>' ;
+				else
+					$txt.= ''.$arr[$tfield].'' ;
+			}
+			$node['nodeText'] = $txt ;
+			$arr_nodes[] = $node ;
+			
+			if( $arr['treenode_parent_key'] == '' )
+				$treenode_key = '&' ;
+			else
+				$treenode_key = $arr['treenode_parent_key'] ;
+		}
+		$c=0 ;
+		foreach( $arr_nodes as $node )
+		{
+			if( $c==0 )
+			{
+				$node['leaf'] = true ;
+				$node['checked'] = true ;
+			}
+			else
+			{
+				$node['expanded'] = true ;
+			}
+			if( $json )
+				$node['children'] = $json ;
+			$json = $node ;
+			$c++ ;
+		}
+		return $json_root = $json ;
+	}
+	else
+	{
+		$tab_parentkey_nodes = array() ;
+		$query = "SELECT * FROM $view_name" ;
+		$result = $_opDB->query($query);
+		while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
+		{
+			$txt = '' ;
+			foreach( $header_fields as $field )
+			{
+				$tfield = 'field_'.$field ;
+				if( $txt )
+					$txt.= ' - ' ;
+				if( $field == $key_field )
+					$txt.= ''.$arr[$tfield].'' ;
+				else
+					$txt.= ''.$arr[$tfield].'' ;
+			}
+		
+			$tab_parentkey_nodes[$arr['treenode_parent_key']][$arr['treenode_key']] = $txt ;
+		}
+		
+		
+		// print_r($tab_parentkey_nodes) ;
+		
+		
+		$json_root_node = array() ;
+		$json_root_node['nodeKey'] = '&' ;
+		$json_root_node['nodeText'] = '<b>Bible</b>: '.$bible_lib ;
+		$json_root_node['checked'] = false ;
+		if( $TAB_json = paracrm_lib_dataTool_getBibleTreeRoot_call( $tab_parentkey_nodes, '' ) )
+		{
+			$json_root_node['children'] = $TAB_json ;
+			$json_root_node['expanded'] = true ;
+		}
+		else
+		{
+			$json_root_node['leaf'] = true ;
+		}
+		return $json_root_node ;
+	}
+
+}
+function paracrm_lib_dataTool_getBibleTreeRoot_call( $tab_parentkey_nodes, $treenode_parent_key )
+{
+	global $_opDB ;
+	
+	$TAB_json = array() ;
+	if( !$tab_parentkey_nodes[$treenode_parent_key] )
+		return array() ;
+	foreach( $tab_parentkey_nodes[$treenode_parent_key] as $treenode_key => $treenode_text )
+	{
+		$record = array() ;
+		$record['nodeKey'] = $treenode_key ;
+		$record['nodeText'] = $treenode_text ;
+		$record['checked'] = false ;
+		if( $child_tab = paracrm_lib_dataTool_getBibleTreeRoot_call( $tab_parentkey_nodes, $treenode_key ) )
+		{
+			$record['expanded'] = true ;
+			$record['children'] = $child_tab ;
+		}
+		else
+		{
+			$record['leaf'] = true ;
+		}
+		$TAB_json[] = $record ;
+	}
+	return $TAB_json ;
+}
+
+
+
+
+
+
+
+
+function paracrm_lib_data_beginTransaction()
+{
+	global $_opDB ;
+	
+	$query = "BEGIN" ;
+	$_opDB->query($query) ;
+}
+function paracrm_lib_data_endTransaction($reset_orphans=FALSE)
+{
+	global $_opDB ;
+	
+	paracrm_lib_buildCacheLinks($reset_orphans) ;
+	
+	$query = "COMMIT" ;
+	$_opDB->query($query) ;
+}
 
 function paracrm_lib_data_insertRecord_bibleTreenode( $bible_code, $treenode_key, $treenode_parent_key, $data )
 {
@@ -465,160 +642,6 @@ function paracrm_lib_data_deleteRecord_bibleEntry( $bible_code, $entry_key )
 
 
 
-function paracrm_lib_dataTool_getBibleTreeRoot( $bible_code, $treenode_key=NULL )
-{
-	global $_opDB ;
-
-	$view_name = 'view_bible_'.$bible_code.'_tree' ;
-	
-	// nom de la bible
-	$query = "SELECT bible_lib FROM define_bible WHERE bible_code='$bible_code'" ;
-	$bible_lib = $_opDB->query_uniqueValue($query);
-	
-	// definition
-	$key_field = NULL ;
-	$header_fields = array() ;
-	$query = "SELECT * FROM define_bible_tree WHERE bible_code='$bible_code' ORDER BY tree_field_index" ;
-	$result = $_opDB->query($query) ;
-	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
-	{
-		if( $arr['tree_field_is_header'] == 'O' )
-			$header_fields[] = $arr['tree_field_code'] ;
-		if( $arr['tree_field_is_key'] == 'O' )
-			$key_field = $arr['tree_field_code'] ;
-	}
-	if( !$header_fields )
-		$header_fields[] = $key_field ;
-
-	if( $treenode_key )
-	{
-		$arr_nodes = array() ;
-		while( $treenode_key != '' )
-		{
-			if( $treenode_key == '&' )
-			{
-				$node = array() ;
-				$node['nodeKey'] = '&' ;
-				$node['nodeText'] = '<b>Bible</b>: '.$bible_lib ;
-				$arr_nodes[] = $node ;
-				break ;
-			}
-			
-			$query = "SELECT *,treenode_parent_key FROM $view_name WHERE treenode_key='$treenode_key'" ;
-			$result = $_opDB->query($query) ;
-			$arr = $_opDB->fetch_assoc($result) ;
-			if( $arr == FALSE )
-				break ;
-		
-			$node = array() ;
-			$node['nodeKey'] = $arr['treenode_key'] ;
-			$txt = '' ;
-			foreach( $header_fields as $field )
-			{
-				$tfield = 'field_'.$field ;
-				if( $txt )
-					$txt.= ' - ' ;
-				if( $field == $key_field )
-					$txt.= '<b>'.$arr[$tfield].'</b>' ;
-				else
-					$txt.= ''.$arr[$tfield].'' ;
-			}
-			$node['nodeText'] = $txt ;
-			$arr_nodes[] = $node ;
-			
-			if( $arr['treenode_parent_key'] == '' )
-				$treenode_key = '&' ;
-			else
-				$treenode_key = $arr['treenode_parent_key'] ;
-		}
-		$c=0 ;
-		foreach( $arr_nodes as $node )
-		{
-			if( $c==0 )
-			{
-				$node['leaf'] = true ;
-				$node['checked'] = true ;
-			}
-			else
-			{
-				$node['expanded'] = true ;
-			}
-			if( $json )
-				$node['children'] = $json ;
-			$json = $node ;
-			$c++ ;
-		}
-		return $json_root = $json ;
-	}
-	else
-	{
-		$tab_parentkey_nodes = array() ;
-		$query = "SELECT * FROM $view_name" ;
-		$result = $_opDB->query($query);
-		while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
-		{
-			$txt = '' ;
-			foreach( $header_fields as $field )
-			{
-				$tfield = 'field_'.$field ;
-				if( $txt )
-					$txt.= ' - ' ;
-				if( $field == $key_field )
-					$txt.= ''.$arr[$tfield].'' ;
-				else
-					$txt.= ''.$arr[$tfield].'' ;
-			}
-		
-			$tab_parentkey_nodes[$arr['treenode_parent_key']][$arr['treenode_key']] = $txt ;
-		}
-		
-		
-		// print_r($tab_parentkey_nodes) ;
-		
-		
-		$json_root_node = array() ;
-		$json_root_node['nodeKey'] = '&' ;
-		$json_root_node['nodeText'] = '<b>Bible</b>: '.$bible_lib ;
-		$json_root_node['checked'] = false ;
-		if( $TAB_json = paracrm_lib_dataTool_getBibleTreeRoot_call( $tab_parentkey_nodes, '' ) )
-		{
-			$json_root_node['children'] = $TAB_json ;
-			$json_root_node['expanded'] = true ;
-		}
-		else
-		{
-			$json_root_node['leaf'] = true ;
-		}
-		return $json_root_node ;
-	}
-
-}
-function paracrm_lib_dataTool_getBibleTreeRoot_call( $tab_parentkey_nodes, $treenode_parent_key )
-{
-	global $_opDB ;
-	
-	$TAB_json = array() ;
-	if( !$tab_parentkey_nodes[$treenode_parent_key] )
-		return array() ;
-	foreach( $tab_parentkey_nodes[$treenode_parent_key] as $treenode_key => $treenode_text )
-	{
-		$record = array() ;
-		$record['nodeKey'] = $treenode_key ;
-		$record['nodeText'] = $treenode_text ;
-		$record['checked'] = false ;
-		if( $child_tab = paracrm_lib_dataTool_getBibleTreeRoot_call( $tab_parentkey_nodes, $treenode_key ) )
-		{
-			$record['expanded'] = true ;
-			$record['children'] = $child_tab ;
-		}
-		else
-		{
-			$record['leaf'] = true ;
-		}
-		$TAB_json[] = $record ;
-	}
-	return $TAB_json ;
-}
 
 
 

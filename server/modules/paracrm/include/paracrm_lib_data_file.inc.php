@@ -1,5 +1,71 @@
 <?php
 
+function paracrm_lib_buildCacheLinks( $reset_orphans=FALSE, $reset_all=FALSE )
+{
+	global $_opDB ;
+
+	if( $reset_all )
+	{
+		$query = "UPDATE store_file_field 
+					SET filerecord_field_value_link_treenode_racx='0',filerecord_field_value_link_entry_racx='0'" ;
+		$_opDB->query($query) ;
+	}
+	elseif( $reset_orphans )
+	{
+		$query = "UPDATE store_file_field 
+					SET filerecord_field_value_link_treenode_racx='0'
+					WHERE filerecord_field_value_link_treenode_racx NOT IN (select treenode_racx FROM store_bible_tree)" ;
+		$_opDB->query($query) ;
+		
+		$query = "UPDATE store_file_field 
+					SET filerecord_field_value_link_entry_racx='0'
+					WHERE filerecord_field_value_link_entry_racx NOT IN (select entry_racx FROM store_bible_entry)" ;
+		$_opDB->query($query) ;
+	}
+	
+	$cache_entrykey_racxs = array() ;
+	
+	
+	$query = "SELECT sf.filerecord_id , sf.filerecord_field_code , d.entry_field_linkbible , sf.filerecord_field_value_link
+				FROM define_file_entry d , store_file s , store_file_field sf
+				WHERE d.file_code=s.file_code AND d.entry_field_code=sf.filerecord_field_code
+				AND s.filerecord_id = sf.filerecord_id
+				AND d.entry_field_type='link'
+				AND sf.filerecord_field_value_link <> '' AND (sf.filerecord_field_value_link_treenode_racx='0' OR filerecord_field_value_link_entry_racx='0')" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
+	{
+		$filerecord_id = $arr['filerecord_id'] ;
+		$filerecord_field_code = $arr['filerecord_field_code'] ;
+	
+		$bible_code = $arr['entry_field_linkbible'] ;
+		$entry_key = $arr['filerecord_field_value_link'] ;
+		if( !isset($cache_entrykey_racxs[$entry_key]) )
+		{
+			$query = "SELECT e.entry_racx, t.treenode_racx
+						FROM store_bible_entry e
+						LEFT OUTER JOIN store_bible_tree t ON ( e.bible_code=t.bible_code AND t.treenode_key = e.treenode_key )
+						WHERE e.bible_code='$bible_code' AND e.entry_key='$entry_key'" ;
+			$res = $_opDB->query($query) ;
+			$arr_racx = $_opDB->fetch_assoc($res) ;
+			
+			$cache_entrykey_racxs[$entry_key] = array() ;
+			$cache_entrykey_racxs[$entry_key]['treenode_racx'] = $arr_racx['treenode_racx'] ;
+			$cache_entrykey_racxs[$entry_key]['entry_racx'] = $arr_racx['entry_racx'] ;
+		}
+		$treenode_racx = $cache_entrykey_racxs[$entry_key]['treenode_racx'] ;
+		$entry_racx = $cache_entrykey_racxs[$entry_key]['entry_racx'] ;
+	
+		$query = "UPDATE store_file_field
+				SET filerecord_field_value_link_treenode_racx='$treenode_racx' , filerecord_field_value_link_entry_racx='$entry_racx'
+				WHERE filerecord_id='$filerecord_id' AND filerecord_field_code='$filerecord_field_code'" ;
+		$_opDB->query($query) ;
+	}
+}
+
+
+
+
 function paracrm_lib_file_access( $file_code )
 {
 	global $_opDB ;
@@ -11,7 +77,7 @@ function paracrm_lib_file_access( $file_code )
 	$sql_query.= " FROM ".implode(',',array_map(create_function('$a','return implode(" ",$a);'),$TAB['sql_from'])) ;
 	foreach( $TAB['sql_join'] as $join_array )
 	{
-		$sql_query.= " JOIN {$join_array[0]} {$join_array[1]} ON {$join_array[2]} = {$join_array[3]}" ;
+		$sql_query.= " LEFT JOIN {$join_array[0]} {$join_array[1]} ON {$join_array[2]} = {$join_array[3]}" ;
 	}
 	foreach( $TAB['sql_leftjoin'] as $join_array )
 	{
@@ -230,6 +296,8 @@ function paracrm_lib_file_mapBible( $bible_code, $remote_table, $remote_field )
 		$grid_map[] = $grid_cell ;
 	}
 	
+	/*
+	// ****** OLD METHOD (no racx indexes) ********
 	$sql_leftjoin[] = array($mytable_entry ,
 								$myalias_entry ,
 								$myalias_entry.'.'.'entry_key' ,
@@ -238,6 +306,16 @@ function paracrm_lib_file_mapBible( $bible_code, $remote_table, $remote_field )
 								$myalias_tree ,
 								$myalias_tree.'.'.'treenode_key' ,
 								$myalias_entry.'.'.'treenode_key' ) ;
+	// ********************************************
+	*/
+	$sql_leftjoin[] = array($mytable_entry ,
+								$myalias_entry ,
+								$myalias_entry.'.'.'entry_racx' ,
+								$remote_table.'.'.$remote_field.'_erx' ) ;
+	$sql_leftjoin[] = array($mytable_tree ,
+								$myalias_tree ,
+								$myalias_tree.'.'.'treenode_racx' ,
+								$remote_table.'.'.$remote_field.'_trx' ) ;
 
 	return array('sql_selectfields'=>$sql_selectfields,
 					'sql_from'=>array(),
