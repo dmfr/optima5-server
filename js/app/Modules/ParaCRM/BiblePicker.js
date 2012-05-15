@@ -356,18 +356,27 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePicker',{
 			return ;
 		}
 		
+		if( me.myValue == mvalue ) {
+			return ;
+		}
+		
 		var oldValue = me.myValue ;
 		me.myValue = mvalue ;
 		this.fireEvent('change',me,me.myValue,oldValue) ;
 		
 		if( !me.isReady ) {
-			me.on('iamready',function(){
-				me.setRawValue(me.getRawValue());
-			},me,{
-				single:true
-			}) ;
+			me.on('iamready',me.setRawValueApplyPretty,me) ;
 			return ;
 		}
+		else {
+			me.setRawValueApplyPretty() ;
+		}
+	},
+		
+	setRawValueApplyPretty: function() {
+		var me = this ;
+		
+		var mvalue = me.getRawValue() ;
 		
 		if( !mvalue || mvalue === '' ) {
 			me.applyPrettyValue() ;
