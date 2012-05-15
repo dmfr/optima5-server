@@ -360,6 +360,12 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePicker',{
 			return ;
 		}
 		
+		if( me.rendered ) {
+			me.divicon.removeCls('biblepicker-iconimg-nok') ;
+			me.divicon.removeCls('biblepicker-iconimg-ok') ;
+			me.divtext.dom.innerHTML = '' ;
+		}
+		
 		var oldValue = me.myValue ;
 		me.myValue = mvalue ;
 		this.fireEvent('change',me,me.myValue,oldValue) ;
