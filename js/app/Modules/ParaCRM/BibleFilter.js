@@ -195,6 +195,9 @@ Ext.define('Optima5.Modules.ParaCRM.BibleFilter', {
 				}
 			}),
 			tbar : [{
+				xtype:'label',
+				text: 'Search :'
+			},{
 				xtype:'textfield',
 				flex:1,
 				enableKeyEvents: true,

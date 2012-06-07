@@ -18,18 +18,18 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 		
 		Ext.apply( this , {
 				items : [ {
-					id: 'biblemenu',
 					text: 'Bible',
 					icon: 'images/op5img/ico_dataadd_16.gif',
 					menu: this.createBibleMenu()
-					//handler: this.switchToBible
-			},'-', {
-					id: 'filesmenu',
+			},'-',{
 					text: 'Files',
 					icon: 'images/op5img/ico_showref_listall.gif',
 					menu: this.createFilesMenu()
-					//handler: this.switchToBible
-			},'-', {
+			},'-',{
+					text: 'Queries',
+					icon: 'images/op5img/ico_blocs_small.gif',
+					menu: this.createQueriesMenu()
+			},'-',{
 					id: 'usermanager',
 					icon: 'images/op5img/ico_kuser_small.gif',
 					text: 'Manage Users/Scenarios',
@@ -46,13 +46,24 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 									}
 						}
 					}
-			},'-', {
-					text:'Queries',
+			},'-',{
+					text:'Notepad',
 					handler: this.switchToNotepad,
 					scope : this ,
-					icon: 'images/op5img/ico_blocs_small.gif'
-			},'->', {
+					iconCls: 'notepad'
+			},'->',{
 				helperId: 'store',
+				hidden: true,
+				text: '',
+				icon: 'images/op5img/ico_storeview_16.png',
+				viewConfig: {forceFit: true},
+				menu: {
+					xtype: 'menu',
+					plain: true,
+					items: []
+				}
+			},'-',{
+				helperId: 'queries',
 				hidden: true,
 				text: '',
 				icon: 'images/op5img/ico_storeview_16.png',
@@ -65,7 +76,12 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 			} ]
 		} );
 		// console.dir(this.bibleMenu.items) ;
-		this.addEvents('switchToBible','switchToFile','switchToNotepad','testcss','openDefineBibleEdit','switchtopanelview');
+		this.addEvents('switchToBible',
+							'switchToFile',
+							'switchToQuery',
+							'switchToNotepad',
+							'switchtopanelview',
+							'queryAction');
 		this.callParent() ;
 	},
 	createBibleMenu : function() {
@@ -73,11 +89,15 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 		this.loadBibleMenu() ;
 		return this.bibleMenu ;
 	},
-	
 	createFilesMenu : function() {
 		this.filesMenu = Ext.create('Ext.menu.Menu') ;
 		this.loadFilesMenu() ;
 		return this.filesMenu ;
+	},
+	createQueriesMenu : function() {
+		this.queriesMenu = Ext.create('Ext.menu.Menu') ;
+		this.loadQueriesMenu() ;
+		return this.queriesMenu ;
 	},
 			  
 	showHelper: function( helpername ) {
@@ -86,6 +106,9 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 				switch( item.helperId ) {
 					case 'store' :
 						this.showHelperCfgStore( item ) ;
+						break ;
+					case 'queries' :
+						this.showHelperCfgQueries( item ) ;
 						break ;
 					default :
 						break ;
@@ -192,8 +215,89 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 		item.menu.add(menuItems) ;
 		item.setText(newTxt) ;
 	},
-	showTestCss : function() {
-		this.fireEvent('testcss') ;
+	
+	showHelperCfgQueries: function( item ) {
+		item.menu.removeAll() ;
+		// item.setText('') ;
+		var newTxt = '' ,
+			isNew = false ;
+		if( this.activeQueryId == 0 ) {
+			newTxt = '(Query) <b>New</b>' ;
+			isNew = true ;
+		}
+		else {
+			this.queriesMenu.items.each( function( item ) {
+				if( typeof item.queryId !== 'undefined' && item.queryId == this.activeQueryId ) {
+					newTxt = '(Query) <b>'+item.text+'</b>' ;
+					
+					return false ;
+				}
+				
+			},this) ;
+			
+		}
+		
+		
+		var me = this ;
+		menuItems = new Array() ;
+		if( true ) {
+			menuItems.push({
+				text: 'Run Query',
+				icon: 'images/op5img/ico_process_16.gif',
+				handler : function() {
+					me.queryRun() ;
+				},
+				scope: me
+			});
+		}
+		if( menuItems.length > 0 ) {
+			menuItems.push('-') ;
+		}
+		if( !isNew ) {
+			menuItems.push({
+				text: 'Save',
+				icon: 'images/op5img/ico_save_16.gif',
+				handler : function() {
+					me.querySave() ;
+				},
+				scope: me
+			});
+		}
+		if( true ) {
+			menuItems.push({
+				text: 'Save as',
+				icon: 'images/op5img/ico_saveas_16.gif',
+				menu: {
+					xtype:'menu' ,
+					title: 'User options',
+					items:[{
+						xtype:'textfield' ,
+						width:150
+					},{
+						xtype:'button',
+						text:'Save Query',
+						handler: function(){
+							var textfield = this.up().query('textfield')[0] ;
+							me.querySaveas( textfield.getValue() ) ;
+							Ext.menu.Manager.hideAll();
+						}
+					}]
+				},
+				scope: me
+			});
+		}
+		if( !isNew ) {
+			menuItems.push({
+				text: 'Delete',
+				icon: 'images/op5img/ico_delete_16.gif',
+				handler : function() {
+					me.queryDelete() ;
+				},
+				scope: me
+			});
+		}
+		item.menu.add(menuItems) ;
+		item.setText(newTxt) ;
 	},
 			  
 	setPanelViewMode: function( viewmode ) {
@@ -238,6 +342,34 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 	},
 	switchToNotepad : function() {
 		this.fireEvent('switchToNotepad');
+	},
+			  
+			  
+	switchToQueryNew: function(targetFileId) {
+		this.activeDataType = '' ;
+		this.activeQueryId = 0 ;
+		this.showHelper('queries') ;
+		this.fireEvent('switchToQuery',0,targetFileId);
+	},
+	switchToQueryOpen: function(queryId) {
+		this.activeDataType = '' ;
+		this.activeQueryId = queryId ;
+		this.showHelper('queries') ;
+		this.fireEvent('switchToQuery',queryId);
+	},
+			  
+			  
+	queryRun: function() {
+		this.fireEvent('queryAction','run');
+	},
+	querySave: function() {
+		this.fireEvent('queryAction','save');
+	},
+	querySaveas: function(queryName) {
+		this.fireEvent('queryAction','saveas',queryName) ;
+	},
+	queryDelete: function(queryName) {
+		this.fireEvent('queryAction','delete') ;
 	},
 			  
 	openDefineBibleWindow : function(isNew,newDataType) {
@@ -370,6 +502,69 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 				},
 				scope: this
 			});
+	},
+	loadQueriesMenu: function() {
+		var me = this ;
+		
+		Optima5.CoreDesktop.Ajax.request({
+			url: 'server/backend.php',
+			params: {
+				//_sessionName: op5session.get('session_id'),
+				_moduleName: 'paracrm',
+				_action : 'queries_getToolbarData',
+			},
+			succCallback: function(response) {
+				// RaZ du menu
+				me.queriesMenu.removeAll() ;
+				
+				var respObj = Ext.decode(response.responseText) ;
+				
+				var menuItems = [] ;
+				
+				// ajout du "new"
+				if( respObj.data_filetargets && respObj.data_filetargets.length > 0 ) {
+					var subMenuFiles = Ext.Array.clone( respObj.data_filetargets ) ;
+					Ext.Array.each( subMenuFiles, function(o) {
+						Ext.apply(o,{
+							handler: function() {
+								
+								me.switchToQueryNew( o.fileId ) ;
+							}
+						}) ;
+					}) ;
+					menuItems.push({
+						icon: 'images/op5img/ico_new_16.gif' ,
+						text: 'Create Query on ' ,
+						menu: subMenuFiles
+					}) ;
+				}
+				
+				if( respObj.data_filetargets && respObj.data_filetargets.length > 0
+						&& respObj.data_queries && respObj.data_queries.length > 0 ) {
+					
+					menuItems.push('-') ;
+				}
+				
+				
+				if( respObj.data_queries && respObj.data_queries.length > 0 ) {
+					var subMenuQueries = Ext.Array.clone( respObj.data_queries ) ;
+					Ext.Array.each( subMenuQueries, function(o) {
+						Ext.apply(o,{
+							handler: function() {
+								me.switchToQueryOpen( o.queryId ) ;
+							}
+						}) ;
+						menuItems.push(o) ;
+					}) ;
+				}
+				
+				me.queriesMenu.add(menuItems) ;
+				
+				
+				me.fireEvent('toolbarloaded','queries') ;
+			},
+			scope: me
+		});
 	}
 	
 });

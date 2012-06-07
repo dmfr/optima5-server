@@ -8,6 +8,7 @@ Ext.define('Optima5.Modules.ParaCRM.AppWindow', {
         'Ext.form.field.HtmlEditor' ,
         'Optima5.Modules.ParaCRM.BiblePanel',
         'Optima5.Modules.ParaCRM.FilePanel',
+        'Optima5.Modules.ParaCRM.QueryPanel',
         'Optima5.Modules.ParaCRM.MainToolbar'
         //'Ext.form.field.TextArea'
     ],
@@ -44,8 +45,11 @@ Ext.define('Optima5.Modules.ParaCRM.AppWindow', {
 					type: 'card',
 					align: 'stretch'
 				},
-				activeItem : -1,
+				activeItem : 0,
 				items: [{
+					xtype:'panel',
+					frame:true
+				},{
 					xtype: 'htmleditor',
 					//xtype: 'textarea',
 					mid: 'notepad-editor',
@@ -57,6 +61,8 @@ Ext.define('Optima5.Modules.ParaCRM.AppWindow', {
 					this.createBiblePanel()
 				,
 					this.createFilePanel()
+				,
+					this.createQueryPanel()
 				],
 				tbar : this.createMainToolbar()
 			});
@@ -90,6 +96,20 @@ Ext.define('Optima5.Modules.ParaCRM.AppWindow', {
 			this.switchToPanel('filepanel') ;
 		},this) ;
 		
+		this.maintoolbar.on('switchToQuery',function( queryId, targetFileId ){
+			this.switchToPanel('querypanel') ;
+			if( queryId == 0 && typeof targetFileId !== 'undefined' ) {
+				this.querypanel.queryNew( targetFileId ) ;
+				return ;
+			}
+			else {
+				this.querypanel.queryOpen( queryId ) ;
+				return ;
+			}
+		},this) ;
+		
+		
+		
 		this.maintoolbar.on('switchToNotepad',function(){
 			this.switchToPanel('notepad-editor') ;
 		},this) ;
@@ -118,6 +138,49 @@ Ext.define('Optima5.Modules.ParaCRM.AppWindow', {
 					break ;
 			}
 		},this) ;
+		this.maintoolbar.on('queryAction',function(action,str){
+			switch( action ){
+				case 'run' :
+					this.querypanel.remoteAction('run') ;
+					break ;
+				case 'save' :
+					this.querypanel.remoteAction('save') ;
+					break ;
+				case 'saveas' :
+					this.querypanel.on('querysaved',function(success,queryId){
+						if( success == true ) {
+							this.maintoolbar.on('toolbarloaded',function(){
+								this.maintoolbar.switchToQueryOpen( queryId ) ;
+							},this,{
+								single:true
+							});
+							this.maintoolbar.loadQueriesMenu() ;
+						}
+					},this,{
+						single: true
+					});
+					
+					this.querypanel.remoteAction('saveas',str) ;
+					break ;
+					
+				case 'delete' :
+					this.querypanel.on('querysaved',function(success,queryId){
+						if( success == true ) {
+							this.mainwindow.getLayout().setActiveItem(0) ;
+							this.maintoolbar.loadQueriesMenu() ;
+							this.maintoolbar.showHelper(null) ;
+						}
+					},this,{
+						single: true
+					});
+					this.querypanel.remoteAction('delete') ;
+					break ;
+					
+				default :
+					break ;
+			}
+		},this) ;
+		
 		
 		this.maintoolbar.on('testcss',function(){
 			console.log( Ext.util.CSS.getRule('.parapouet') ) ;
@@ -140,6 +203,14 @@ Ext.define('Optima5.Modules.ParaCRM.AppWindow', {
 			mid: 'filepanel'
 		});
 		return this.filepanel;
+	},
+	
+	createQueryPanel : function(){
+		this.querypanel = Ext.create('Optima5.Modules.ParaCRM.QueryPanel');
+		Ext.apply( this.querypanel, {
+			mid: 'querypanel'
+		});
+		return this.querypanel;
 	},
 	
 	createMainToolbar : function(){
