@@ -100,6 +100,27 @@ Ext.onReady(function () {
 	Ext.getBody().on('contextmenu', Ext.emptyFn, null, {preventDefault: true});
 	
 	
+	/*
+	Load record for multi-select COMBO
+	http://www.sencha.com/forum/archive/index.php/t-202456.html?s=ef437a00595a4b216c80d979879ef5fc
+	http://stackoverflow.com/questions/6299164/using-ext-form-basic-loadrecord-to-load-data-into-combo-box-fields-with-remote-s
+	*/
+	Ext.form.field.ComboBox.override( {
+		setValue: function(v) {
+			if( Ext.JSON.decode(v,true) != null ) {
+				arguments[0] = Ext.JSON.decode(v) ;
+			}
+			this.callOverridden(arguments);
+		}
+	});
+	
+	Ext.form.FieldSet.override( {
+		beforeDestroy: function() {
+			this.callParent() ;
+		}
+	});
+	
+	
 	
 	op5desktop = new Optima5.CoreDesktop.OptimaDesktop ;
 	op5session = new Ext.util.MixedCollection();

@@ -4,6 +4,9 @@ Ext.define('Optima5.CoreDesktop.Ajax',{
 	autoAbort : false,
 			  
 	request : function () {
+		var me = this ;
+		
+		arguments[0].url = Ext.urlAppend(arguments[0].url, (arguments[0].disableCachingParam || me.disableCachingParam) + '=' + (new Date().getTime()));
 
 		arguments[0].params = Ext.apply(arguments[0].params,{
 			_sessionName: op5session.get('session_id')
