@@ -185,6 +185,7 @@ function paracrm_lib_file_mapFile( $file_code, $is_called=FALSE )
 			$grid_cell['type'] = 'string' ;
 			$grid_cell['text'] = $myprefix.$tfield ;
 			$grid_cell['file_code'] = $file_code ;
+			$grid_cell['file_field'] = $tfield ;
 			$grid_cell['is_display'] = true ;
 			$grid_map[] = $grid_cell ;
 		}

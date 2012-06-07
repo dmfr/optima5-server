@@ -40,6 +40,11 @@ switch( $post_data['_action'] )
 	return paracrm_data_getFileGrid_exportXLS( $post_data );
 	
 	
+	case 'queries_getToolbarData' :
+	return paracrm_queries_getToolbarData( $post_data ) ;
+	case 'queries_builderTransaction' :
+	return paracrm_queries_builderTransaction( $post_data ) ;
+	
 	
 	
 	
