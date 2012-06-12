@@ -250,7 +250,7 @@ function paracrm_data_editTransaction_bibleTree_apply($arr_saisie, $apply=FALSE)
 																	$treenode_key = $arr_saisie['treenode_key'],
 																	$arr_saisie['arr_ent'] ) ;
 	}
-	paracrm_lib_data_endTransaction(TRUE) ;
+	paracrm_lib_data_endTransaction(FALSE) ;
 	
 	if( $ret == 0 )
 		return array('success'=>true) ;

@@ -3,49 +3,73 @@
 function paracrm_lib_buildCacheLinks( $reset_orphans=FALSE, $reset_all=FALSE )
 {
 	global $_opDB ;
+	
+	$query = "SELECT bible_code FROM define_bible" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE )
+	{
+		$bible_code = $arr[0] ;
+		paracrm_lib_buildCacheLinks_forBible( $bible_code, $reset_orphans, $reset_all ) ;
+	}
+}
+
+function paracrm_lib_buildCacheLinks_forBible( $bible_code, $reset_orphans=FALSE, $reset_all=FALSE )
+{
+	global $_opDB ;
+	
+	$query = "select * from define_file_entry where entry_field_type='link' AND entry_field_linkbible='$bible_code'" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
+	{
+		paracrm_lib_buildCacheLinks_forBibleTarget( $bible_code, $arr['file_code'], $arr['entry_field_code'],$reset_orphans,$reset_all  ) ;
+	}
+}
+function paracrm_lib_buildCacheLinks_forBibleTarget( $src_bibleCode, $target_fileCode, $target_filerecordField, $reset_orphans=FALSE, $reset_all=FALSE )
+{
+	global $_opDB ;
+	
+	$view_bible_tree = 'view_bible_'.$src_bibleCode.'_tree' ;
+	$view_bible_entry = 'view_bible_'.$src_bibleCode.'_entry' ;
+
+	$view_file = 'view_file_'.$target_fileCode ;
+	$view_file_field = 'field_'.$target_filerecordField ;
+	$view_file_field_trx = $view_file_field.'_trx' ;
+	$view_file_field_erx = $view_file_field.'_erx' ;
 
 	if( $reset_all )
 	{
-		$query = "UPDATE store_file_field 
-					SET filerecord_field_value_link_treenode_racx='0',filerecord_field_value_link_entry_racx='0'" ;
+		$query = "UPDATE {$view_file} SET {$view_file_field_trx}='0' , {$view_file_field_erx}='0'" ;
 		$_opDB->query($query) ;
 	}
 	elseif( $reset_orphans )
 	{
-		$query = "UPDATE store_file_field 
-					SET filerecord_field_value_link_treenode_racx='0'
-					WHERE filerecord_field_value_link_treenode_racx NOT IN (select treenode_racx FROM store_bible_tree)" ;
+		$query = "UPDATE {$view_file} file
+					LEFT OUTER JOIN {$view_bible_tree} bible ON bible.treenode_racx=file.{$view_file_field_trx}
+					SET {$view_file_field_trx}='0'
+					WHERE bible.treenode_racx IS NULL" ;
 		$_opDB->query($query) ;
 		
-		$query = "UPDATE store_file_field 
-					SET filerecord_field_value_link_entry_racx='0'
-					WHERE filerecord_field_value_link_entry_racx NOT IN (select entry_racx FROM store_bible_entry)" ;
+		$query = "UPDATE {$view_file} file
+					LEFT OUTER JOIN {$view_bible_entry} bible ON bible.entry_racx=file.{$view_file_field_erx}
+					SET {$view_file_field_erx}='0'
+					WHERE bible.entry_racx IS NULL" ;
 		$_opDB->query($query) ;
 	}
-	
-	$cache_entrykey_racxs = array() ;
-	
-	
-	$query = "SELECT sf.filerecord_id , sf.filerecord_field_code , d.entry_field_linkbible , sf.filerecord_field_value_link
-				FROM define_file_entry d , store_file s , store_file_field sf
-				WHERE d.file_code=s.file_code AND d.entry_field_code=sf.filerecord_field_code
-				AND s.filerecord_id = sf.filerecord_id
-				AND d.entry_field_type='link'
-				AND sf.filerecord_field_value_link <> '' AND (sf.filerecord_field_value_link_treenode_racx='0' OR filerecord_field_value_link_entry_racx='0')" ;
+
+	$query = "SELECT filerecord_id , {$view_file_field} FROM {$view_file}
+				WHERE {$view_file_field_trx}='0' OR {$view_file_field_erx}='0'" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
 	{
 		$filerecord_id = $arr['filerecord_id'] ;
-		$filerecord_field_code = $arr['filerecord_field_code'] ;
 	
-		$bible_code = $arr['entry_field_linkbible'] ;
-		$entry_key = $arr['filerecord_field_value_link'] ;
+		$entry_key = $arr[$view_file_field] ;
 		if( !isset($cache_entrykey_racxs[$entry_key]) )
 		{
 			$query = "SELECT e.entry_racx, t.treenode_racx
-						FROM store_bible_entry e
-						LEFT OUTER JOIN store_bible_tree t ON ( e.bible_code=t.bible_code AND t.treenode_key = e.treenode_key )
-						WHERE e.bible_code='$bible_code' AND e.entry_key='$entry_key'" ;
+						FROM $view_bible_entry e
+						LEFT OUTER JOIN $view_bible_tree t ON t.treenode_key = e.treenode_key
+						WHERE e.entry_key='$entry_key'" ;
 			$res = $_opDB->query($query) ;
 			$arr_racx = $_opDB->fetch_assoc($res) ;
 			
@@ -56,14 +80,12 @@ function paracrm_lib_buildCacheLinks( $reset_orphans=FALSE, $reset_all=FALSE )
 		$treenode_racx = $cache_entrykey_racxs[$entry_key]['treenode_racx'] ;
 		$entry_racx = $cache_entrykey_racxs[$entry_key]['entry_racx'] ;
 	
-		$query = "UPDATE store_file_field
-				SET filerecord_field_value_link_treenode_racx='$treenode_racx' , filerecord_field_value_link_entry_racx='$entry_racx'
-				WHERE filerecord_id='$filerecord_id' AND filerecord_field_code='$filerecord_field_code'" ;
+		$query = "UPDATE {$view_file}
+				SET {$view_file_field_trx}='$treenode_racx' , {$view_file_field_erx}='$entry_racx'
+				WHERE filerecord_id='$filerecord_id'" ;
 		$_opDB->query($query) ;
 	}
 }
-
-
 
 
 function paracrm_lib_file_access( $file_code )

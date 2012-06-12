@@ -304,7 +304,7 @@ function paracrm_data_editTransaction_bibleEntry_apply($arr_saisie, $apply=FALSE
 																	$entry_key = $arr_saisie['entry_key'],
 																	$arr_ent_ins ) ;
 	}
-	paracrm_lib_data_endTransaction(TRUE) ;
+	paracrm_lib_data_endTransaction(FALSE) ;
 	
 	if( $ret == 0 )
 		return array('success'=>true) ;
