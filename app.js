@@ -120,7 +120,49 @@ Ext.onReady(function () {
 		}
 	});
 	
-	
+	Ext.view.DropZone.override( {
+		onNodeDrop: function(node, dragZone, e, data) {
+			var me = this,
+					dropHandled = false,
+
+					// Create a closure to perform the operation which the event handler may use.
+					// Users may now set the wait parameter in the beforedrop handler, and perform any kind
+					// of asynchronous processing such as an Ext.Msg.confirm, or an Ajax request,
+					// and complete the drop gesture at some point in the future by calling either the
+					// processDrop or cancelDrop methods.
+					dropHandlers = {
+						wait: false,
+						processDrop: function () {
+							me.invalidateDrop();
+							me.handleNodeDrop(data, me.overRecord, me.currentPosition);
+							dropHandled = true;
+							me.fireViewEvent('drop', node, data, me.overRecord, me.currentPosition);
+						},
+
+						cancelDrop: function() {
+							me.invalidateDrop();
+							dropHandled = true;
+						}
+					},
+					performOperation = false;
+
+			if (me.valid) {
+					performOperation = me.fireViewEvent('beforedrop', node, data, me.overRecord, me.currentPosition, dropHandlers);
+					if (dropHandlers.wait) {
+						return;
+					}
+
+					if (performOperation !== false) {
+						// If either of the drop handlers were called in the event handler, do not do it again.
+						if (!dropHandled) {
+							dropHandlers.processDrop();
+						}
+					}
+			}
+			return performOperation;
+		}
+	});
+ 	
 	
 	op5desktop = new Optima5.CoreDesktop.OptimaDesktop ;
 	op5session = new Ext.util.MixedCollection();
