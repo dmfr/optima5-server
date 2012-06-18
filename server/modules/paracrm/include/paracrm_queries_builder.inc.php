@@ -12,6 +12,7 @@ function paracrm_queries_builderTransaction( $post_data )
 		$arr_saisie = array() ;
 		$arr_saisie['target_file_code'] = $post_data['target_file_code'] ;
 		$_SESSION['transactions'][$transaction_id]['arr_saisie'] = $arr_saisie ;
+		$_SESSION['transactions'][$transaction_id]['arr_RES'] = array() ;
 		
 		$post_data['_transaction_id'] = $transaction_id ;
 	}
@@ -32,6 +33,10 @@ function paracrm_queries_builderTransaction( $post_data )
 		{
 			$json =  paracrm_queries_builderTransaction_init( $post_data , $arr_saisie ) ;
 		}
+		if( $post_data['_subaction'] == 'run' )
+		{
+			$json =  paracrm_queries_builderTransaction_runQuery( $post_data , $arr_saisie ) ;
+		}
 		if( $post_data['_subaction'] == 'submit' )
 		{
 			$json =  paracrm_queries_builderTransaction_submit( $post_data , $arr_saisie ) ;
@@ -40,6 +45,16 @@ function paracrm_queries_builderTransaction( $post_data )
 		{
 			$json =  paracrm_queries_builderTransaction_save( $post_data , $arr_saisie ) ;
 		}
+		
+		
+		
+		if( $post_data['_subaction'] == 'res_get' )
+		{
+			$json =  paracrm_queries_builderTransaction_resGet( $post_data ) ;
+		}
+		
+		
+		
 
 		if( is_array($arr_saisie) )
 		{
@@ -85,6 +100,7 @@ function paracrm_queries_builderTransaction_init( $post_data , &$arr_saisie )
 			return array('success'=>false) ;
 		}
 		$arr_saisie['query_id'] = $arr['query_id'] ;
+		$arr_saisie['query_name'] = $arr['query_name'] ;
 		$arr_saisie['target_file_code'] = $arr['target_file_code'] ;
 		paracrm_queries_builderTransaction_loadFields( $arr_saisie , $arr_saisie['query_id'] ) ;
 	}
@@ -110,6 +126,8 @@ function paracrm_queries_builderTransaction_init( $post_data , &$arr_saisie )
 
 	return array('success'=>true,
 					'_mirror'=>$post_data,
+					'query_id'=>$arr_saisie['query_id'],
+					'query_name'=>$arr_saisie['query_name'],
 					'transaction_id'=>$post_data['_transaction_id'],
 					'treefields_root' => $arr_saisie['treefields_root'],
 					'data_wherefields' => $arr_saisie['fields_where'],
@@ -178,6 +196,45 @@ function paracrm_queries_builderTransaction_save( $post_data , &$arr_saisie )
 }
 
 
+function paracrm_queries_builderTransaction_runQuery( $post_data, &$arr_saisie )
+{
+	usleep(500000) ;
+	
+	
+	$RES = paracrm_queries_process_query($arr_saisie) ;
+	if( !$RES )
+		return array('success'=>true,'query_status'=>'NOK') ;
+		
+	$transaction_id = $post_data['_transaction_id'] ;
+	if( !is_array($_SESSION['transactions'][$transaction_id]['arr_RES']) )
+		return array('success'=>true,'query_status'=>'NO_RES') ;
+	
+	$new_RES_key = count($_SESSION['transactions'][$transaction_id]['arr_RES']) + 1 ;
+	$_SESSION['transactions'][$transaction_id]['arr_RES'][$new_RES_key] = $RES ;
+	
+	
+	return array('success'=>true,'query_status'=>'OK','RES_id'=>$new_RES_key,'debug'=>$RES) ;
+}
+
+
+function paracrm_queries_builderTransaction_resGet( $post_data )
+{
+	$transaction_id = $post_data['_transaction_id'] ;
+	$RES = $_SESSION['transactions'][$transaction_id]['arr_RES'][$post_data['RES_id']] ;
+	
+	$tabs = array() ;
+	foreach( $RES['RES_labels'] as $tab_id => $dummy )
+	{
+		$tab = array() ;
+		$tab['tab_title'] = $dummy['tab_title'] ;
+		$tabs[$tab_id] = $tab + paracrm_queries_paginate_getGrid( $RES, $tab_id ) ;
+	}
+	
+	return array('success'=>true,'tabs'=>$tabs) ;
+}
+
+
+
 
 function paracrm_queries_builderTransaction_getTreeFields( &$arr_saisie )
 {
@@ -221,6 +278,7 @@ function paracrm_queries_builderTransaction_getTreeFields( &$arr_saisie )
 		$json_file['field_text_full'] = $json_file['field_text'] ;
 		$json_file['field_type'] = 'file' ;
 		$json_file['field_type_text'] = 'File '.$file_code ;
+		$json_file['file_code'] = $file_code ;
 		$json_file['expanded'] = true ;
 		$json_file['children'] = array() ;
 		foreach( $arr1 as $field_code => $mvalue )
@@ -242,6 +300,9 @@ function paracrm_queries_builderTransaction_getTreeFields( &$arr_saisie )
 				$json_field_bible['field_type'] = 'link' ;
 				$json_field_bible['field_type_text'] = 'Link '.$linkbible ;
 				$json_field_bible['field_linkbible'] = $linkbible ;
+				$json_field_bible['file_code'] = $file_code ;
+				$json_field_bible['file_field_code'] = $field_code ;
+				$json_field_bible['bible_code'] = $linkbible ;
 				$json_field_bible['leaf'] = false ;
 				$json_field_bible['expanded'] = true ;
 				$json_field_bible['children'] = array() ;
@@ -257,6 +318,10 @@ function paracrm_queries_builderTransaction_getTreeFields( &$arr_saisie )
 					$field['field_type'] = $selectmap['type'] ;
 					$field['field_type_text'] = $selectmap['type'] ;
 					$field['field_linkbible_type'] = $selectmap['link_bible_type'] ;
+					$field['file_code'] = $file_code ;
+					$field['file_field_code'] = $field_code ;
+					$field['bible_code'] = $linkbible ;
+					$field['bible_field_code'] = $selectmap['link_bible_field'] ;
 					$json_field_bible['children'][] = $field ;
 				}
 				
@@ -273,6 +338,8 @@ function paracrm_queries_builderTransaction_getTreeFields( &$arr_saisie )
 				$field['field_text_full'] = $selectmap['text'] ;
 				$field['field_type'] = $selectmap['type'] ;
 				$field['field_type_text'] = $selectmap['type'] ;
+				$field['file_code'] = $file_code ;
+				$field['file_field_code'] = $field_code ;
 				$json_file['children'][] = $field ;
 			}
 		}
@@ -391,6 +458,7 @@ function paracrm_queries_builderTransaction_saveFields( &$arr_saisie , $query_id
 	$group[] = 'group_bible_tree_depth' ;
 	$group[] = 'group_bible_display_treenode' ;
 	$group[] = 'group_bible_display_entry' ;
+	$group[] = 'group_date_type' ;
 	foreach( $arr_saisie['fields_group'] as $field_group )
 	{
 		$cnt++ ;
