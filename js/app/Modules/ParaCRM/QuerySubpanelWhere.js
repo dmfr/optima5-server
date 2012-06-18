@@ -5,8 +5,8 @@ Ext.define('QueryWhereModel', {
 		{name: 'field_type',   type: 'string'},
 		{name: 'field_linkbible',   type: 'string'},
 		{name: 'condition_string',   type: 'string'},
-		{name: 'condition_date_lt',   type: 'date'},
-		{name: 'condition_date_gt',   type: 'date'},
+		{name: 'condition_date_lt',   type: 'string'},
+		{name: 'condition_date_gt',   type: 'string'},
 		{name: 'condition_num_lt',   type: 'numeric'},
 		{name: 'condition_num_gt',   type: 'numeric'},
 		{name: 'condition_num_eq',   type: 'numeric'},
@@ -98,6 +98,23 @@ Ext.define('Optima5.Modules.ParaCRM.QuerySubpanelWhere' ,{
 									return '<b>not set</b>' ;
 							}
 							break ;
+							
+						case 'date' :
+							if( record.get('condition_date_lt') == '' && record.get('condition_date_gt') == '' ) {
+								return '<b>not set</b>' ;
+							}
+							
+							var str = '' ;
+							if( record.get('condition_date_gt') != '' )
+							{
+								str = str + record.get('condition_date_gt') + ' < ' ;
+							}
+							str = str + '<b>X</b>' ;
+							if( record.get('condition_date_lt') != '' )
+							{
+								str = str + ' < ' + record.get('condition_date_lt') ;
+							}
+							return str ;
 						
 						default :
 							return value ;

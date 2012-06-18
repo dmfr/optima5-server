@@ -8,7 +8,8 @@ Ext.define('QueryGroupModel', {
 		{name: 'group_bible_type',   type: 'string'},
 		{name: 'group_bible_tree_depth',   type: 'int'},
 		{name: 'group_bible_display_treenode',   type: 'string'},
-		{name: 'group_bible_display_entry',   type: 'string'}
+		{name: 'group_bible_display_entry',   type: 'string'},
+		{name: 'group_date_type',   type: 'string'}
 	]
 });
 
@@ -20,6 +21,7 @@ Ext.define('Optima5.Modules.ParaCRM.QuerySubpanelGroup' ,{
 			  
 	requires: [
 		'Optima5.Modules.ParaCRM.QuerySubpanel',
+		'Optima5.Modules.ParaCRM.QueryGroupFormDate',
 		'Optima5.Modules.ParaCRM.QueryGroupFormBible'
 	] ,
 	
@@ -169,7 +171,7 @@ Ext.define('Optima5.Modules.ParaCRM.QuerySubpanelGroup' ,{
 					
 					switch( selectedRecord.get('field_type') ) {
 						case 'link' :
-						case 'string' :
+						case 'date' :
 							break ;
 						
 						default :
@@ -225,6 +227,12 @@ Ext.define('Optima5.Modules.ParaCRM.QuerySubpanelGroup' ,{
 				}) ;
 				break ;
 				
+			case 'date' :
+				mform = Ext.create('Optima5.Modules.ParaCRM.QueryGroupFormDate',{
+					frame:true
+				}) ;
+				break ;
+				
 			default :
 				mform = Ext.create('Optima5.Modules.ParaCRM.QueryGroupForm',{
 					frame:true
@@ -245,6 +253,10 @@ Ext.define('Optima5.Modules.ParaCRM.QuerySubpanelGroup' ,{
 					case 'group_bible_display_treenode' :
 					case 'group_bible_display_entry' :
 						record.set(k,Ext.JSON.encode(v)) ;
+						break ;
+						
+					case 'group_date_type' :
+						record.set(k,v) ;
 						break ;
 						
 					default :
