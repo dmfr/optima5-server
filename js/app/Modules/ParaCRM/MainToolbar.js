@@ -467,7 +467,9 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 					
 					// ajout de l'handler pour zapper sur la bible
 					Ext.each( this.bibleMenu.items.items , function(i,j) {
-						i.setHandler(this.switchToBible,this) ;
+						i.setHandler(function() {
+							this.switchToBible({bibleId: i.bibleId , forceReconfigure:true}) ;
+						},this) ;
 					},this) ;
 					
 					// ajout de la page de config
@@ -495,7 +497,9 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 					
 					// ajout de l'handler pour zapper sur la bible
 					Ext.each( this.filesMenu.items.items , function(i,j) {
-						i.setHandler(this.switchToFile,this) ;
+						i.setHandler(function() {
+							this.switchToFile({fileId: i.fileId , forceReconfigure:true}) ;
+						},this) ;
 					},this) ;
 					
 					// ajout de la page de config

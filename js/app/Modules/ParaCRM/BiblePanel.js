@@ -150,6 +150,7 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePanel' ,{
 		},this) ;
 		Ext.define(treeModelName, {
 			extend: 'Ext.data.Model',
+			// idProperty: 'treenode_key',
 			fields: modelFields
 		});
 		
@@ -157,6 +158,7 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePanel' ,{
 		treeroot[keyfield] = '<b>Bible</b>: '+ajaxData.bible_lib ;
 		var treestore = Ext.create('Ext.data.TreeStore', {
 			model: treeModelName,
+			// nodeParam: 'treenode_key',
 			folderSort: true,
 			root: treeroot,
 			//clearOnLoad: false,
