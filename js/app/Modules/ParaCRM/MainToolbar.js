@@ -30,7 +30,7 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 					icon: 'images/op5img/ico_blocs_small.gif',
 					menu: this.createQueriesMenu()
 			},'-',{
-					id: 'usermanager',
+					// id: 'usermanager',
 					icon: 'images/op5img/ico_kuser_small.gif',
 					text: 'Manage Users/Scenarios',
 					menu: {
@@ -511,7 +511,7 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 			params: {
 				//_sessionName: op5session.get('session_id'),
 				_moduleName: 'paracrm',
-				_action : 'queries_getToolbarData',
+				_action : 'queries_getToolbarData'
 			},
 			succCallback: function(response) {
 				// RaZ du menu

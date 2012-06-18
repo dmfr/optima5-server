@@ -2,6 +2,7 @@ Ext.define('Optima5.CoreDesktop.Ajax',{
 	extend: 'Ext.data.Connection',
 	singleton: true,
 	autoAbort : false,
+	timeout: 60000,
 			  
 	request : function () {
 		var me = this ;

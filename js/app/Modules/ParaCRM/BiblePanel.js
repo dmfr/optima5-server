@@ -153,7 +153,7 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePanel' ,{
 			fields: modelFields
 		});
 		
-		var treeroot = {iconCls:'task-folder',expanded:true,treenode_key:'&'} ;
+		var treeroot = {iconCls:'task-folder',expanded:true,treenode_key:'&',allowDrop:false} ;
 		treeroot[keyfield] = '<b>Bible</b>: '+ajaxData.bible_lib ;
 		var treestore = Ext.create('Ext.data.TreeStore', {
 			model: treeModelName,
@@ -227,7 +227,49 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePanel' ,{
 			multiSelect: false,
 			singleExpand: false,
 			// viewConfig:{toggleOnDblClick: false},
-			columns: treeColumns
+			columns: treeColumns,
+			listeners: {
+				scrollershow: function(scroller) {
+					if (scroller && scroller.scrollEl) {
+						scroller.clearManagedListeners(); 
+						scroller.mon(scroller.scrollEl, 'scroll', scroller.onElScroll, scroller); 
+					}
+				}
+			},
+			viewConfig: {
+				plugins: {
+					ptype: 'treeviewdragdrop',
+					ddGroup:'setTreenode',
+					enableDrag:false,
+					appendOnly:true,
+					allowParentInsert:false
+				},
+				listeners:{
+					beforedrop:function(node, data, dropRecord, dropPosition, dropHandlers){
+						dropHandlers.wait = true ;
+						
+						if( data.records.length > 0 && dropRecord ) {
+							var entryKey = data.records[0].get('entry_key') ;
+							var targetTreenode = dropRecord.get('treenode_key') ;
+						
+							Ext.Msg.show({
+								title:'Assign treenode',
+								msg: 'Assign <b>'+entryKey+'</b> to treenode <b>'+targetTreenode+'</b> ?' ,
+								buttons: Ext.Msg.YESNO,
+								fn:function(buttonId){
+									if( buttonId == 'yes' ) {
+										me.editEntryAssignTreenode(entryKey,targetTreenode) ;
+									}
+								},
+								scope:me
+							});
+						}
+						
+						return true ;
+					},
+					scope:me
+				}
+			}
 		});
 		
 		var me = this ;
@@ -241,7 +283,7 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePanel' ,{
 		treegrid.on('itemcontextmenu', function(view, record, item, index, event) {
 			
 			treeContextMenuItems = new Array() ;
-			if( !(record.get('nb_entries') > 0) ) {
+			if( true ) {
 				var mytext = 'New root node' ;
 				if( record.get('treenode_key') != '&' )
 					mytext = 'New subnode for <b>'+record.get('treenode_key')+'</b>' ;
@@ -275,7 +317,7 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePanel' ,{
 					scope : me
 				});
 			}
-			if( !(record.get('nb_children') > 0) && record.get('treenode_key') != '&' ) {
+			if( record.get('treenode_key') != '&' ) {
 				treeContextMenuItems.push('-') ;
 				treeContextMenuItems.push({
 					iconCls: 'icon-bible-newfile',
@@ -425,7 +467,10 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePanel' ,{
 						scroller.mon(scroller.scrollEl, 'scroll', scroller.onElScroll, scroller); 
 					}
 				}
-			}		
+			},
+			viewConfig: {
+				plugins: { ptype: 'gridviewdragdrop', ddGroup:'setTreenode', enableDrop:false }
+			}
 		}) ;
 		
 		
@@ -529,6 +574,19 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePanel' ,{
 		}
 	},
 			  
+	editMaskSet: function( trueOfFalse ) {
+		var me = this ;
+		if( !me.saveMask ) {
+			me.saveMask = Ext.create('Ext.LoadMask',me,{msg:'Wait...'}) ;
+		}
+		if( trueOfFalse === true ) {
+			me.saveMask.show() ;
+		}
+		if( trueOfFalse === false ) {
+			me.saveMask.hide() ;
+		}
+	},
+			  
 	editNodeNew: function( parentTreenodeKey ) {
 		var ajaxParams = new Object() ;
 		Ext.apply( ajaxParams, {
@@ -592,10 +650,12 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePanel' ,{
 			treenode_key: treenodeKey
 		});
 		var me = this ;
+		me.editMaskSet(true) ;
 		Optima5.CoreDesktop.Ajax.request({
 			url: 'server/backend.php',
 			params: ajaxParams ,
 			succCallback: function(response) {
+				me.editMaskSet(false) ;
 				if( Ext.decode(response.responseText).success == false ) {
 					Ext.Msg.alert('Failed', 'Failed');
 				}
@@ -673,10 +733,44 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePanel' ,{
 			entry_key: entryKey
 		});
 		var me = this ;
+		me.editMaskSet(true) ;
 		Optima5.CoreDesktop.Ajax.request({
 			url: 'server/backend.php',
 			params: ajaxParams ,
 			succCallback: function(response) {
+				me.editMaskSet(false) ;
+				if( Ext.decode(response.responseText).success == false ) {
+					Ext.Msg.alert('Failed', 'Failed');
+				}
+				else {
+					Ext.each( Ext.ComponentQuery.query('window > panel'), function(obj) {
+						if( Ext.getClassName(obj) == 'Optima5.Modules.ParaCRM.BiblePanel' ) {
+							obj.fireEvent('reloadifbible',me.bibleId) ;
+						}
+					},me) ;
+				}
+			},
+			scope: me
+		});
+	},
+			  
+	editEntryAssignTreenode: function( entryKey, targetTreenodeKey ) {
+		var ajaxParams = new Object() ;
+		Ext.apply( ajaxParams, {
+			_sessionName: op5session.get('session_id'),
+			_moduleName: 'paracrm' ,
+			_action: 'data_bibleAssignTreenode',
+			bible_code: this.bibleId,
+			entry_key: entryKey,
+			target_treenode_key: targetTreenodeKey
+		});
+		var me = this ;
+		me.editMaskSet(true) ;
+		Optima5.CoreDesktop.Ajax.request({
+			url: 'server/backend.php',
+			params: ajaxParams ,
+			succCallback: function(response) {
+				me.editMaskSet(false) ;
 				if( Ext.decode(response.responseText).success == false ) {
 					Ext.Msg.alert('Failed', 'Failed');
 				}

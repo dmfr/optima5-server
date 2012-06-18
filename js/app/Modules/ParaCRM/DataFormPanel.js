@@ -340,10 +340,19 @@ Ext.define('Optima5.Modules.ParaCRM.DataFormPanel' ,{
 		//console.dir( this.query('form')[0].getForm().owner.query('[isFormField]') );
 		var me = this ;
 		
+		if( !me.saveMask ) {
+			me.saveMask = Ext.create('Ext.LoadMask',me,{msg:'Saving...'}) ;
+		}
+		me.query('>toolbar')[0].setDisabled(true) ;
+		me.saveMask.show() ;
+		
 		me.query('form')[0].submit({
 			params:{ _subaction:'form_setValues' },
 			success : me.saveAll,
 			failure: function(form,action){
+				me.query('>toolbar')[0].setDisabled(false) ;
+				if( me.saveMask )
+					me.saveMask.hide() ;
 				if( action.result && action.result.msg )
 					Ext.Msg.alert('Failed', action.result.msg);
 			},
@@ -364,6 +373,9 @@ Ext.define('Optima5.Modules.ParaCRM.DataFormPanel' ,{
 			params:{ _subaction:'form_setValues' },
 			success : me.onSaveComponentCallback,
 			failure: function(form,action){
+				me.query('>toolbar')[0].setDisabled(false) ;
+				if( me.saveMask )
+					me.saveMask.hide() ;
 				if( action.result && action.result.msg )
 					Ext.Msg.alert('Failed', action.result.msg);
 			},
@@ -387,6 +399,9 @@ Ext.define('Optima5.Modules.ParaCRM.DataFormPanel' ,{
 			params: ajaxParams ,
 			succCallback: function(response) {
 				if( Ext.decode(response.responseText).success == false ) {
+					me.query('>toolbar')[0].setDisabled(false) ;
+					if( me.saveMask )
+						me.saveMask.hide() ;
 					Ext.Msg.alert('Failed', 'Save failed. Unknown error');
 				}
 				else {
