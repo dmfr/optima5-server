@@ -29,7 +29,8 @@ switch( $post_data['_action'] )
 	case 'data_deleteRecord' :
 	return paracrm_data_deleteRecord( $post_data ) ;
 	
-	
+	case 'data_bibleAssignTreenode' :
+	return paracrm_data_bibleAssignTreenode( $post_data ) ;
 	
 	
 	case 'data_getFileGrid_config' :

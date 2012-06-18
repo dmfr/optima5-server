@@ -86,6 +86,36 @@ function paracrm_lib_buildCacheLinks_forBibleTarget( $src_bibleCode, $target_fil
 		$_opDB->query($query) ;
 	}
 }
+function paracrm_lib_buildCacheLinks_reassignBibleTree( $bible_code, $entry_key=NULL )
+{
+	global $_opDB ;
+	
+	$query = "select * from define_file_entry where entry_field_type='link' AND entry_field_linkbible='$bible_code'" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
+	{
+		// paracrm_lib_buildCacheLinks_forBibleTarget( $bible_code, $arr['file_code'], $arr['entry_field_code'],$reset_orphans,$reset_all  ) ;
+		$target_fileCode = $arr['file_code'] ;
+		$target_fileFieldCode = $arr['entry_field_code'] ;
+		
+		$view_file = 'view_file_'.$target_fileCode ;
+		$view_file_field = 'field_'.$target_fileFieldCode ;
+		$view_file_field_trx = $view_file_field.'_trx' ;
+		$view_file_field_erx = $view_file_field.'_erx' ;
+		$query = "UPDATE $view_file SET {$view_file_field_trx}='0'" ;
+		if( $entry_key ) {
+			$query.= " WHERE {$view_file_field}='$entry_key'" ;
+		}
+		$_opDB->query($query) ;
+		
+		
+		// paracrm_lib_buildCacheLinks_forBibleTarget( $bible_code, $target_fileCode, $target_fileFieldCode, FALSE, FALSE ) ;
+	}
+}
+
+
+
+
 
 
 function paracrm_lib_file_access( $file_code )

@@ -647,6 +647,33 @@ function paracrm_lib_data_deleteRecord_bibleEntry( $bible_code, $entry_key )
 
 
 
+function paracrm_lib_data_bibleAssignTreenode( $bible_code, $entry_key, $new_treenode_key )
+{
+	global $_opDB ;
+	if( !paracrm_lib_data_getRecord_bibleEntry( $bible_code, $entry_key ) )
+		return -1 ;
+	if( $new_treenode_key && $new_treenode_key != '&' )
+	{
+		if( !paracrm_lib_data_getRecord_bibleTreenode( $bible_code, $new_treenode_key ) )
+			return -1 ;
+	}
+	
+	
+	$arr_update['treenode_key'] = ($new_treenode_key=='&')?'':$new_treenode_key ;
+	
+	$query = "UPDATE store_bible_entry SET treenode_key='{$arr_update['treenode_key']}' WHERE bible_code='$bible_code' AND entry_key='$entry_key'" ;
+	$_opDB->query($query) ;
+	
+		
+		
+	return 0 ;
+}
+
+
+
+
+
+
 
 
 function paracrm_lib_data_insertRecord_file( $file_code , $filerecord_parent_id , $data )

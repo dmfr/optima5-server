@@ -143,11 +143,21 @@ function paracrm_data_getBibleTree( $post_data )
 	
 		$tab_parentkey_nodes[$arr['treenode_parent_key']][$arr['treenode_key']] = $record ;
 	}
+	
+	$arr_treenode_nbEntries = array() ;
+	$query = "select treenode_key, count(*) from store_bible_entry where bible_code='$bible_code' group by treenode_key" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE )
+	{
+		$arr_treenode_nbEntries[$arr[0]] = $arr[1] ;
+	}
+	
 	foreach( $tab_parentkey_nodes as $treenode_parent_key => $arr1 )
 	{
 		foreach( $arr1 as $treenode_key => $record )
 		{
 			$record['nb_children'] = count($tab_parentkey_nodes[$treenode_key]) ;
+			$record['nb_entries'] = $arr_treenode_nbEntries[$treenode_key] ;
 			$tab_parentkey_nodes[$treenode_parent_key][$treenode_key] = $record ;
 		}
 	}
@@ -174,7 +184,8 @@ function paracrm_data_getBibleTree_call( $tab_parentkey_nodes, $treenode_parent_
 		}
 		else
 		{
-			$record['leaf'] = true ;
+			//$record['leaf'] = true ;
+			$record['children'] = array() ;
 		}
 		$TAB_json[] = $record ;
 	}

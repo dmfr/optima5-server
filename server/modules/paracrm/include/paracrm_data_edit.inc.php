@@ -101,4 +101,24 @@ function paracrm_data_deleteRecord( $post_data )
 }
 
 
+
+
+function paracrm_data_bibleAssignTreenode( $post_data )
+{
+	$bible_code = $post_data['bible_code'] ;
+	$entry_key = $post_data['entry_key'] ;
+	$target_treenode_key = $post_data['target_treenode_key'] ;
+
+	paracrm_lib_data_beginTransaction() ;
+	$ret = paracrm_lib_data_bibleAssignTreenode( $bible_code, $entry_key, $target_treenode_key ) ;
+	paracrm_lib_buildCacheLinks_reassignBibleTree( $bible_code, $entry_key ) ;
+	paracrm_lib_data_endTransaction(FALSE) ;
+	
+	if( $ret == 0 )
+		return array('success'=>true) ;
+	else
+		return array('success'=>false) ;
+}
+
+
 ?>
