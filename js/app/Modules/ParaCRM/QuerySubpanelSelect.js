@@ -6,6 +6,7 @@ Ext.define('QuerySelectFormulasymbolModel', {
 		{name: 'math_operation',   type: 'string'},
 		{name: 'math_parenthese_in',   type: 'boolean'},
 		{name: 'math_fieldoperand',   type: 'string'},
+		{name: 'math_staticvalue',   type: 'numeric'},
 		{name: 'math_parenthese_out',   type: 'boolean'}
 	]
 });
@@ -204,6 +205,11 @@ Ext.define('Optima5.Modules.ParaCRM.QuerySubpanelSelect' ,{
 				dataIndex: 'math_fieldoperand',
 				flex:1 ,
 				renderer: function( value, metaData, record ) {
+					if( record.get('math_staticvalue') > 0 ) {
+						return 'STATIC(<u>'+record.get('math_staticvalue')+'</u>)' ;
+					}
+					
+					
 					var treeRecord ;
 					if( treeRecord = me.getQueryPanel().getTreeStore().getNodeById(value) ) {
 						switch( treeRecord.get('field_type') ) {
@@ -263,6 +269,34 @@ Ext.define('Optima5.Modules.ParaCRM.QuerySubpanelSelect' ,{
 						scope:me
 					}
 				},'->',{
+					itemId: 'addStatic',
+					iconCls: 'icon-add',
+					menu: {
+						xtype:'menu' ,
+						title: 'User options',
+						items:[{
+							xtype:'textfield' ,
+							allowBlank: false,
+							regex: /^\s*\d+\s*$/ ,
+							width:50
+						},{
+							xtype:'button',
+							text:'Add value',
+							handler: function(button){
+								var textfield = button.up().query('textfield')[0] ;
+								if( textfield.isValid() ) {
+									var newRecord = Ext.create('QuerySelectFormulasymbolModel',{
+										math_staticvalue:textfield.getValue(),
+									}) ;
+									formulaGrid.getStore().insert( formulaGrid.getStore().count(), newRecord );
+									
+									Ext.menu.Manager.hideAll();
+								}
+							},
+							scope:me
+						}]
+					}
+				},{
 					itemId: 'delete',
 					iconCls: 'icon-delete',
 					disabled: true,
