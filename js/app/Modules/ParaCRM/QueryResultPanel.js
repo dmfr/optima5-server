@@ -17,7 +17,9 @@ Ext.define('Optima5.Modules.ParaCRM.QueryResultPanel' ,{
 				items: ['->',{
 					xtype:'button',
 					text: 'Export Excel',
-					icon: 'images/op5img/ico_save_16.gif'
+					icon: 'images/op5img/ico_save_16.gif',
+					handler: me.exportExcel,
+					scope:me
 				}]
 			}]
 		}) ;
@@ -102,5 +104,25 @@ Ext.define('Optima5.Modules.ParaCRM.QueryResultPanel' ,{
 				},
 				items: tabitems
 			}) ;
+	},
+	exportExcel: function(){
+		var me = this ;
+		
+		var ajaxParams = {} ;
+		Ext.apply(ajaxParams,me.ajaxBaseParams) ;
+		Ext.apply(ajaxParams,{
+			_sessionName: op5session.get('session_id'),
+			_moduleName: 'paracrm' ,
+			_subaction:'exportXLS',
+			RES_id:me.RES_id
+		});
+		
+		
+		Ext.create('Ext.ux.dams.FileDownloader',{
+			renderTo: Ext.getBody(),
+			requestParams: ajaxParams,
+			requestAction: 'server/backend.php',
+			requestMethod: 'POST'
+		}) ;		
 	}
 }) ;
