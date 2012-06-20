@@ -1,13 +1,5 @@
 <?php
 
-
-
-function calculator1($str){
-    eval("\$str = $str;");
-    return $str;
-}
-
-
 function paracrm_queries_process_buildTrees() {
 	
 	global $_opDB ;
@@ -130,8 +122,8 @@ function paracrm_queries_process_query($arr_saisie)
 	
 	// préprocess => select_map
 	$arr_indexed_treefields = paracrm_queries_process_linearTreefields($arr_saisie['treefields_root']) ;
-	
-	
+	$arr_saisie['define_treefields'] = $arr_indexed_treefields ;
+	// print_r($arr_indexed_treefields) ;
 	
 	
 	$target_file_code = $arr_saisie['target_file_code'] ;
@@ -311,7 +303,7 @@ function paracrm_queries_process_query($arr_saisie)
 	if( $is_counts )
 		$RES_groupKey_value = paracrm_queries_process_query_iteration( $arr_saisie ) ;
 	
-	if( !$RES_groupKey_value )
+	if( $RES_groupKey_value === NULL )
 		return NULL ;
 		
 	$RES_groupKey_groupDesc = $_groups_hashes ;
@@ -472,8 +464,27 @@ function paracrm_queries_process_query_doCount( $arr_saisie, $target_fileCode, $
 		
 		if( $symbol['sql_bible_code'] )
 		{
+			// quels sont les conditions étrangères (autre bible) déjà présentes
+			$bible_foreignConstraints = array() ;
+			foreach( $arr_saisie['define_treefields'] as $define_field )
+			{
+				if( $define_field['field_type'] != 'link' ) {
+					continue ;
+				}
+				
+				$file_code = $define_field['file_code'] ;
+				$file_field_code = 'field_'.$define_field['file_field_code'] ;
+				
+				if( !isset($base_row[$file_code][$file_field_code]) ) {
+					continue ;
+				}
+				
+				// print_r($define_field) ;
+				$bible_foreignConstraints[$define_field['bible_code']] = $base_row[$file_code][$file_field_code] ;
+			}
+		
 			// iteration sur la bible !!!!!
-			foreach( $arr_bible_entries[$symbol['sql_bible_code']] as $bible_record )
+			foreach( paracrm_lib_bible_queryBible( $symbol['sql_bible_code'], $bible_foreignConstraints ) as $bible_record )
 			{
 				$row_pivot = $base_row ;
 				$mkey = $symbol['sql_file_field_code'] ;
@@ -551,9 +562,16 @@ function paracrm_queries_process_query_doCount( $arr_saisie, $target_fileCode, $
 				$eval_string.= ')' ;
 		}
 		
+		$evalmath = new EvalMath ;
+		$evalmath->suppress_errors = TRUE ;
+		if( ($val = $evalmath->evaluate($eval_string)) === FALSE )
+		{
+			continue ;
+		}
+		
 		// *** Pour chaque groupe on ne retourne qu'une seule valeur => principe du comptage sur une itération
 		$subRes_group_arrValues[$group_key_id] = array() ;
-		$subRes_group_arrValues[$group_key_id][] = calculator1($eval_string);
+		$subRes_group_arrValues[$group_key_id][] = $val ;
 	}
 	
 	
@@ -779,6 +797,7 @@ function paracrm_queries_process_linearTreefields( $arr_node )
 	{
 		$row = array() ;
 		$row['text'] = $arr_node['field_text'] ;
+		$row['field_type'] = $arr_node['field_type'] ;
 		foreach( array('file_code','file_field_code','bible_code','bible_field_code') as $mkey )
 			$row[$mkey] = $arr_node[$mkey] ;
 		$tab[$arr_node['field_code']] = $row ;
