@@ -36,7 +36,7 @@ function paracrm_queries_paginate_getGridColumns( $RES, $RES_labels_tab )
 			$col['text'] = $x_string ;
 			$col['text_bold'] = true ;
 			$col['dataIndex'] = 'valueCol_'.$x_code ;
-			$col['dataType'] = 'number' ;
+			$col['dataType'] = 'string' ;
 			$tab[] = $col ;
 		}
 	}
@@ -46,7 +46,7 @@ function paracrm_queries_paginate_getGridColumns( $RES, $RES_labels_tab )
 		$col['text'] = $RES_labels_tab['select_lib'] ;
 		$col['text_italic'] = true ;
 		$col['dataIndex'] = 'valueCol' ;
-		$col['dataType'] = 'number' ;
+		$col['dataType'] = 'string' ;
 		$tab[] = $col ;
 	}
 	
