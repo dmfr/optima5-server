@@ -86,14 +86,14 @@ if( !defined('INC_CONFIG_INC') )
 
 	// include($app_root.'/library/Base/Base_Constants.inc');
 
-	/*
+	
 	function optima__autoload($classname) {
 		
 		$dir = dirname(str_replace('_', '/', $classname));
 		if (strpos($dir, '/') !== false) {
 			$dir = dirname($dir)."/".str_replace('/','_',$dir);
 		}
-		$path = $GLOBALS['app_root'].'/library/'.$dir.'/'.$classname.".inc";
+		$path = $GLOBALS['server_root'].'/library/'.$dir.'/'.$classname.".class.php";
 
 		// print "Autoload : $classname ($path)\n";
 		
@@ -105,7 +105,6 @@ if( !defined('INC_CONFIG_INC') )
 	}
 	spl_autoload_register("optima__autoload");
 	//echo "AUTO" ;
-	*/
 
 	define( 'INC_CONFIG_INC', TRUE ) ;
 }
