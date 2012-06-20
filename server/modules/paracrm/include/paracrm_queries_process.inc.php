@@ -268,6 +268,10 @@ function paracrm_queries_process_query($arr_saisie)
 	$is_values = $is_counts = FALSE ;
 	foreach( $field_select['math_expression'] as $symbol_id => &$symbol )
 	{
+		if( $symbol['math_staticvalue'] != 0 )
+			continue ;
+		
+	
 		// catalogue du field
 		$math_operand = $symbol['math_fieldoperand'] ;
 		$symbol['sql_file_code'] = $arr_indexed_treefields[$math_operand]['file_code'] ;
@@ -360,25 +364,27 @@ function paracrm_queries_process_query_iteration( $arr_saisie )
 		switch( $arr_saisie['fields_select'][0]['math_func_group'] )
 		{
 			case 'AVG' :
-			$RES_group_value[$group_key_id] = array_sum($arr_values) / count($arr_values) ;
+			$val = array_sum($arr_values) / count($arr_values) ;
 			break ;
 			
 			case 'SUM' :
-			$RES_group_value[$group_key_id] = array_sum($arr_values) ;
+			$val = array_sum($arr_values) ;
 			break ;
 			
 			case 'MIN':
-			$RES_group_value[$group_key_id] = min($arr_values) ;
+			$val = min($arr_values) ;
 			break ;
 			
 			case 'MAX' :
-			$RES_group_value[$group_key_id] = min($arr_values) ;
+			$val = min($arr_values) ;
 			break ;
 			
 			default :
-			$RES_group_value[$group_key_id] = '' ;
+			$val = '' ;
 			break ;
 		}
+		
+		$RES_group_value[$group_key_id] = round($val,3) ;
 	}
 	return $RES_group_value ;
 }
@@ -428,59 +434,6 @@ function paracrm_queries_process_query_iterationDo( $arr_saisie, $iteration_chai
 
 
 
-function paracrm_queries_process_query_CountFromParent( $arr_saisie )
-{
-	global $_opDB ;
-	global $arr_bible_trees , $arr_bible_entries , $arr_bible_racx_entry , $arr_bible_racx_treenode ;
-	
-	//paracrm_lib_bible_buildRelationships() ;
-	
-	// paracrm_lib_bible_queryBible( 'STORE', array('SALES'=>'PFF06') ) ;
-	
-	// paracrm_lib_bible_queryBible( 'PRODCOM', array('STORE'=>'33020101004') ) ;
-	
-	
-	$RES_group_arrValues = array() ;
-	
-	
-	$target_file_code = $arr_saisie['target_file_code'] ;
-	$parent_target_file_code = $_opDB->query_uniqueValue( "SELECT file_parent_code FROM define_file WHERE file_code='$target_file_code'" ) ;
-
-	
-
-	// iteration sur le fichier PARENT
-		
-	$view_filecode = 'view_file_'.$parent_target_file_code ;
-	$query = "SELECT * FROM $view_filecode ORDER BY filerecord_id DESC" ;
-	$result = $_opDB->query($query);
-	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
-	{
-		$row = array() ;
-		$row[$parent_target_file_code] = $arr ;
-		// application des conditions
-		if( !paracrm_queries_process_queryHelp_where( $row, $arr_saisie['fields_where'] ) )
-			continue ;
-		
-		$subRes_group_arrValues = paracrm_queries_process_query_doCount($arr_saisie,$target_file_code,$row,$parent_target_file_code,$arr['filerecord_id']) ;
-		foreach( $subRes_group_arrValues as $group_key_id => $arrValues )
-		{
-			if( !is_array($RES_group_arrValues[$group_key_id]) )
-				$RES_group_arrValues[$group_key_id] = array() ;
-			foreach( $arrValues as $value )
-				$RES_group_arrValues[$group_key_id][] = $value ;
-		}
-		// print_r($row) ;
-		$c++ ;
-	}
-	
-	$RES_group_value = array() ;
-	foreach( $RES_group_arrValues as $group_key_id => $arr_values )
-	{
-		$RES_group_value[$group_key_id] = array_sum($arr_values) / count($arr_values) ;
-	}
-	
-	return $RES_group_value ;
-}
 function paracrm_queries_process_query_Value( $arr_saisie )
 {
 
@@ -498,6 +451,11 @@ function paracrm_queries_process_query_doCount( $arr_saisie, $target_fileCode, $
 	$field_select = current($arr_saisie['fields_select']) ;
 	foreach( $field_select['math_expression'] as $symbol_id => $symbol )
 	{
+		if( $symbol['math_staticvalue'] != 0 )
+			continue ;
+			
+			
+			
 		if( $symbol['sql_file_code'] == $parent_fileCode )
 		{
 			$group_key_id = paracrm_queries_process_queryHelp_group( $base_row, $arr_saisie['fields_group'] ) ;
@@ -581,7 +539,9 @@ function paracrm_queries_process_query_doCount( $arr_saisie, $target_fileCode, $
 			if( $symbol['math_parenthese_in'] )
 				$eval_string.= '(' ;
 				
-			if( isset($subSubRES_symbol_value[$symbol_id]) )
+			if( $symbol['math_staticvalue'] != 0 )
+				$value = (float)($symbol['math_staticvalue']) ;
+			elseif( isset($subSubRES_symbol_value[$symbol_id]) )
 				$value = $subSubRES_symbol_value[$symbol_id] ;
 			else
 				$value = 0 ;

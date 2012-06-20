@@ -52,6 +52,10 @@ function paracrm_queries_builderTransaction( $post_data )
 		{
 			$json =  paracrm_queries_builderTransaction_resGet( $post_data ) ;
 		}
+		if( $post_data['_subaction'] == 'exportXLS' )
+		{
+			$json =  paracrm_queries_builderTransaction_exportXLS( $post_data ) ;
+		}
 		
 		
 		
@@ -232,6 +236,99 @@ function paracrm_queries_builderTransaction_resGet( $post_data )
 	
 	return array('success'=>true,'tabs'=>$tabs) ;
 }
+
+
+
+
+function paracrm_queries_builderTransaction_exportXLS( $post_data )
+{
+	$transaction_id = $post_data['_transaction_id'] ;
+	$RES = $_SESSION['transactions'][$transaction_id]['arr_RES'][$post_data['RES_id']] ;
+	
+	$tabs = array() ;
+	foreach( $RES['RES_labels'] as $tab_id => $dummy )
+	{
+		$tab = array() ;
+		$tab['tab_title'] = $dummy['tab_title'] ;
+		$tabs[$tab_id] = $tab + paracrm_queries_paginate_getGrid( $RES, $tab_id ) ;
+	}
+	
+	if( !class_exists('PHPExcel') )
+		return NULL ;
+		
+
+	$objPHPExcel = new PHPExcel();
+	$objPHPExcel->getDefaultStyle()->getFont()->setName('Arial');
+	$objPHPExcel->getDefaultStyle()->getFont()->setSize( 10 );
+
+	$nul = 0 ;
+	foreach( $tabs as $tab )
+	{
+		if( $nul > 0 )
+			$objPHPExcel->createSheet($nul) ;
+		$objPHPExcel->setActiveSheetIndex($nul);
+		$obj_sheet = $objPHPExcel->getActiveSheet() ;
+		$obj_sheet->setTitle($tab['tab_title']) ;
+		
+		$row = 1 ;
+		$cell = 'A' ;
+		foreach( $tab['columns'] as $col ) {
+		
+			$str = $cfg_field['text'] ;
+			if( !$str || $str == '_' ) {
+				$str = $cfg_field['field'] ;
+			}
+		
+			$obj_sheet->SetCellValue("{$cell}{$row}", $col['text']);
+			$obj_sheet->getColumnDimension($cell)->setWidth(20);
+			if( $col['text_bold'] )
+				$obj_sheet->getStyle("{$cell}{$row}")->getFont()->setBold(TRUE);
+			if( $col['text_italic'] )
+				$obj_sheet->getStyle("{$cell}{$row}")->getFont()->setItalic(TRUE);
+			
+			$cell++ ;
+		}
+		
+		foreach( $tab['data'] as $record ) {
+			$row++ ;
+			$cell = 'A' ;
+			foreach( $tab['columns'] as $col ) {
+				$value = $record[$col['dataIndex']] ;
+				$obj_sheet->SetCellValue("{$cell}{$row}", $value );
+				if( $col['is_bold'] )
+					$obj_sheet->getStyle("{$cell}{$row}")->getFont()->setBold(TRUE);
+				$cell++ ;
+			}
+		}
+		
+		$nul++ ;
+	}
+	//$objPHPExcel->setActiveSheetIndex(0);
+	
+	$tmpfilename = tempnam( sys_get_temp_dir(), "FOO");
+	
+	$objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+	$objWriter->save($tmpfilename);
+	$objPHPExcel->disconnectWorksheets();
+	unset($objPHPExcel) ;
+	
+	
+	
+	
+	
+	
+	
+	
+	
+
+	$filename = 'OP5report_CRM_.'.$post_data['file_code'].'_'.time().'.xlsx' ;
+	header("Content-Type: application/force-download; name=\"$filename\""); 
+	header("Content-Disposition: attachment; filename=\"$filename\""); 
+	readfile($tmpfilename) ;
+	unlink($tmpfilename) ;
+	die() ;
+}
+
 
 
 
@@ -497,6 +594,7 @@ function paracrm_queries_builderTransaction_saveFields( &$arr_saisie , $query_id
 		$symbol[] = 'math_operation' ;
 		$symbol[] = 'math_parenthese_in' ;
 		$symbol[] = 'math_fieldoperand' ;
+		$symbol[] = 'math_staticvalue' ;
 		$symbol[] = 'math_parenthese_out' ;
 		foreach( $field_select['math_expression'] as $field_sequence )
 		{
