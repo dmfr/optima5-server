@@ -294,14 +294,29 @@ function paracrm_queries_process_query($arr_saisie)
 			}
 		}
 		
+		$is_values = TRUE ;
+		continue ;
+		
+		return NULL ;
+	}
+	
+	
+	
+	if( $is_counts && !$is_values )
+		$field_select['iteration_mode'] = 'count' ;
+	elseif( $is_values && !$is_counts )
+	{
+		$field_select['iteration_mode'] = 'value' ;
+	}
+	else
+	{
 		return NULL ;
 	}
 	$arr_saisie['fields_select'][0] = $field_select ;
 	
 	// 
 	$RES_groupKey_value = array() ;
-	if( $is_counts )
-		$RES_groupKey_value = paracrm_queries_process_query_iteration( $arr_saisie ) ;
+	$RES_groupKey_value = paracrm_queries_process_query_iteration( $arr_saisie ) ;
 	
 	if( $RES_groupKey_value === NULL )
 		return NULL ;
@@ -376,7 +391,10 @@ function paracrm_queries_process_query_iteration( $arr_saisie )
 			break ;
 		}
 		
-		$RES_group_value[$group_key_id] = round($val,3) ;
+		if( is_numeric($val) )
+			$RES_group_value[$group_key_id] = round($val,3) ;
+		else
+			$RES_group_value[$group_key_id] = $val ;
 	}
 	return $RES_group_value ;
 }
@@ -387,7 +405,15 @@ function paracrm_queries_process_query_iterationDo( $arr_saisie, $iteration_chai
 	if( $iteration_chain_offset >= count($iteration_chain) - 1 )
 	{
 		$target_fileCode = $iteration_chain[$iteration_chain_offset] ;
-		return $RES_group_arrValues = paracrm_queries_process_query_doCount( $arr_saisie, $target_fileCode, $base_row, $parent_fileCode, $parent_filerecordId ) ;
+		
+		switch( $arr_saisie['fields_select'][0]['iteration_mode'] )
+		{
+			case 'count' :
+			return $RES_group_arrValues = paracrm_queries_process_query_doCount( $arr_saisie, $target_fileCode, $base_row, $parent_fileCode, $parent_filerecordId ) ;
+			
+			case 'value' :
+			return $RES_group_arrValues = paracrm_queries_process_query_doValue( $arr_saisie, $target_fileCode, $base_row, $parent_fileCode, $parent_filerecordId ) ;
+		}
 	}
 	
 	
@@ -426,9 +452,100 @@ function paracrm_queries_process_query_iterationDo( $arr_saisie, $iteration_chai
 
 
 
-function paracrm_queries_process_query_Value( $arr_saisie )
+function paracrm_queries_process_query_doValue( $arr_saisie, $target_fileCode, $base_row, $parent_fileCode, $parent_filerecordId )
 {
+	global $_opDB ;
+	global $arr_bible_trees , $arr_bible_entries , $arr_bible_racx_entry , $arr_bible_racx_treenode ;
+	
+	$subRes_group_arrValues = array() ;
+	
+	$field_select = current($arr_saisie['fields_select']) ;
+	
+	// iteration principale
+	$view_filecode = 'view_file_'.$target_fileCode ;
+	$query2 = "SELECT * FROM $view_filecode WHERE filerecord_parent_id='{$parent_filerecordId}'" ;
+	$result2 = $_opDB->query($query2);
+	while( ($arr2 = $_opDB->fetch_assoc($result2)) != FALSE )
+	{
+		$row_child = array() ;
+		$row_child[$target_fileCode] = $arr2 ;
+		// application des conditions
+		if( !paracrm_queries_process_queryHelp_where( $row_child, $arr_saisie['fields_where'] ) )
+			continue ;
+	
+		$row_group = array() ;
+		$row_group = $base_row ;
+		$row_group[$target_fileCode] = $arr2 ;
+		$group_key_id = paracrm_queries_process_queryHelp_group( $row_group, $arr_saisie['fields_group'] ) ;
+		
+	
+		$subRES_group_symbol_value = array() ;
+		// iteration sur les symboles
+		foreach( $field_select['math_expression'] as $symbol_id => $symbol )
+		{
+			if( $symbol['sql_file_code'] != $target_fileCode )
+				return array() ;
+			if( $symbol['sql_file_code'] == $target_fileCode && !$symbol['sql_file_field_code'] )
+				return array() ;
+				
+			if( $symbol['math_staticvalue'] != 0 )
+				continue ;
+				
+			
+			$file_code = $symbol['sql_file_code'] ;
+			$file_field_code = $symbol['sql_file_field_code'] ;
+			
+		
+			$subRES_group_symbol_value[$group_key_id][$symbol_id] = $row_group[$file_code][$file_field_code] ;
+		}
+		
+		
+		foreach( $subRES_group_symbol_value as $group_key_id => $subSubRES_symbol_value )
+		{
+			if( count($field_select['math_expression']) > 1 )
+			{
+				$eval_string = '' ;
+				foreach( $field_select['math_expression'] as $symbol_id => $symbol )
+				{
+					$eval_string.= $symbol['math_operation'] ;
+					
+					if( $symbol['math_parenthese_in'] )
+						$eval_string.= '(' ;
+						
+					if( $symbol['math_staticvalue'] != 0 )
+						$value = (float)($symbol['math_staticvalue']) ;
+					elseif( isset($subSubRES_symbol_value[$symbol_id]) )
+						$value = $subSubRES_symbol_value[$symbol_id] ;
+					else
+						$value = 0 ;
+					$eval_string.= $value ;
+					
+					if( $symbol['math_parenthese_out'] )
+						$eval_string.= ')' ;
+				}
+				
+				$evalmath = new EvalMath ;
+				$evalmath->suppress_errors = TRUE ;
+				if( ($val = $evalmath->evaluate($eval_string)) === FALSE )
+				{
+					continue ;
+				}
+			}
+			else
+			{
+				$val = current($subSubRES_symbol_value) ;
+			}
+			
+			// *** Pour chaque groupe on ne retourne qu'une seule valeur => principe du comptage sur une itération
+			if( !isset($subRes_group_arrValues[$group_key_id]) )
+				$subRes_group_arrValues[$group_key_id] = array() ;
+			$subRes_group_arrValues[$group_key_id][] = $val ;
+		}
+	}
 
+	// print_r($subRes_group_arrValues) ;
+
+	return $subRes_group_arrValues ;
 }
 
 function paracrm_queries_process_query_doCount( $arr_saisie, $target_fileCode, $base_row, $parent_fileCode, $parent_filerecordId )
@@ -502,7 +619,7 @@ function paracrm_queries_process_query_doCount( $arr_saisie, $target_fileCode, $
 			continue ;
 		}
 		
-		if( $symbol['sql_file_code'] == $target_fileCode )
+		if( $symbol['sql_file_code'] == $target_fileCode && !$symbol['sql_file_field_code'] )
 		{
 			// iteration principale
 			$view_filecode = 'view_file_'.$target_fileCode ;
@@ -842,7 +959,20 @@ function paracrm_queries_process_labels_withTabs( $arr_saisie, $groupId_forTab )
 	$select_lib = $field_select['select_lib'] ;
 		
 	$RES_tab_labels = array() ;
-	foreach( paracrm_queries_process_labelEnum( $group_id, $field_group_tab ) as $bible_key => $display )
+		$tabBibleConditions = array() ;
+		foreach( $arr_saisie['fields_where'] as $field_where )
+		{
+			if( $field_where['field_type'] == 'link'
+				&& $field_where['field_code'] == $field_group_tab['field_code']
+				&& $field_where['condition_bible_mode'] == 'SELECT' && $field_where['condition_bible_treenodes'] )
+			{
+				$tarr = array() ;
+				foreach( json_decode($field_where['condition_bible_treenodes'],true) as $treenode_key )
+					$tarr[] = $treenode_key ;
+				$tabBibleConditions[] = $tarr ;
+			}
+		}
+	foreach( paracrm_queries_process_labelEnum( $group_id, $field_group_tab, $tabBibleConditions ) as $bible_key => $display )
 	{
 		$subRES_tab = array() ;
 		$subRES_tab['select_lib'] = $select_lib ;
@@ -865,7 +995,9 @@ function paracrm_queries_process_labels_withTabs( $arr_saisie, $groupId_forTab )
 				&& $field_groupTab['field_code'] == $field_group['field_code']
 				&& $field_groupTab['group_bible_type'] == 'TREE' )
 			{
-				$bibleConditions[] = $bible_key ;
+				$tarr = array() ;
+				$tarr[] = $bible_key ;
+				$bibleConditions[] = $tarr ;
 			
 			}
 			foreach( $arr_saisie['fields_where'] as $field_where )
@@ -874,11 +1006,14 @@ function paracrm_queries_process_labels_withTabs( $arr_saisie, $groupId_forTab )
 					&& $field_where['field_code'] == $field_group['field_code']
 					&& $field_where['condition_bible_mode'] == 'SELECT' && $field_where['condition_bible_treenodes'] )
 				{
+					$tarr = array() ;
 					foreach( json_decode($field_where['condition_bible_treenodes'],true) as $treenode_key )
-						$bibleConditions[] = $treenode_key ;
+						$tarr[] = $treenode_key ;
+					$bibleConditions[] = $tarr ;
 				}
 			}
-	
+			
+			
 			$subsub = paracrm_queries_process_labelEnum( $group_id, $field_group, $bibleConditions ) ;
 			switch( $field_group['display_geometry'] )
 			{
@@ -926,8 +1061,10 @@ function paracrm_queries_process_labels_noTab( $arr_saisie )
 					&& $field_where['field_code'] == $field_group['field_code']
 					&& $field_where['condition_bible_mode'] == 'SELECT' && $field_where['condition_bible_treenodes'] )
 				{
+					$tarr = array() ;
 					foreach( json_decode($field_where['condition_bible_treenodes'],true) as $treenode_key )
-						$bibleConditions[] = $treenode_key ;
+						$tarr[] = $treenode_key ;
+					$bibleConditions[] = $tarr ;
 				}
 			}
 
@@ -1024,22 +1161,32 @@ function paracrm_queries_process_labelEnumBibleTree( $bible_code, $root_treenode
 	
 	if( $bibleConditions && count($bibleConditions)>0 )
 	{
-		$all_treenodes = array() ;
-		foreach( $bibleConditions as $condition_treenode )
+		$arr_treenodes = array() ;
+		foreach( $bibleConditions as $bibleCondition )
 		{
-			if( $root_tree->getTree($condition_treenode) )
-				$all_treenodes = $root_tree->getTree($condition_treenode)->getAllMembers() ;
+			$treenodes = array() ;
+			foreach( $bibleCondition as $condition_treenode )
+			{
+				if( $root_tree->getTree($condition_treenode) )
+					$treenodes = array_merge($treenodes,$root_tree->getTree($condition_treenode)->getAllMembers()) ;
+			}
+				
+			$arr_treenodes[] = $treenodes ;
 		}
 	}
-	
-	
 	
 	$tab = array() ;
 	$view_name = 'view_bible_'.$bible_code.'_tree' ;
 	foreach( $root_tree->getAllMembersForDepth( $depth ) as $treenode_key )
 	{
-		if( is_array($all_treenodes) && !in_array($treenode_key,$all_treenodes) )
-			continue ;
+		if( is_array($arr_treenodes) )
+		{
+		foreach( $arr_treenodes as $treenodes )
+		{
+			if( !in_array($treenode_key,$treenodes) )
+				continue 2 ;
+		}
+		}
 	
 		$query = "SELECT * FROM $view_name WHERE treenode_key='$treenode_key'" ;
 		$res = $_opDB->query($query) ;
@@ -1056,6 +1203,7 @@ function paracrm_queries_process_labelEnumBibleEntries( $bible_code, $root_treen
 
 	if( $bibleConditions && count($bibleConditions)>0 )
 	{
+		$query_treenode = '' ;
 		if( !$arr_bible_trees[$bible_code] )
 		{
 			return NULL ;
@@ -1066,13 +1214,17 @@ function paracrm_queries_process_labelEnumBibleEntries( $bible_code, $root_treen
 			return NULL ;
 		}
 		
-		$all_treenodes = array() ;
-		foreach( $bibleConditions as $condition_treenode )
+		foreach( $bibleConditions as $bibleCondition )
 		{
-			if( $root_tree->getTree($condition_treenode) )
-				$all_treenodes = $root_tree->getTree($condition_treenode)->getAllMembers() ;
+			$treenodes = array() ;
+			foreach( $bibleCondition as $condition_treenode )
+			{
+				if( $root_tree->getTree($condition_treenode) )
+					$treenodes = array_merge($treenodes,$root_tree->getTree($condition_treenode)->getAllMembers()) ;
+			}
+				
+			$query_treenode.= " AND treenode_key IN ".$_opDB->makeSQLlist($treenodes) ;
 		}
-		$query_treenode = " AND treenode_key IN ".$_opDB->makeSQLlist($all_treenodes) ;
 	}
 
 	$tab = array() ;
