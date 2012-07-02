@@ -21,7 +21,7 @@ Ext.define('Optima5.Modules.ParaCRM.QueryWhereForm' ,{
 		Ext.apply(me,{
 			defaults: {
 				anchor: '100%'
-			},
+			}
 		});
 		
 		this.callParent() ;

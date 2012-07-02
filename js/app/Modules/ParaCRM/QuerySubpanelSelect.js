@@ -286,7 +286,7 @@ Ext.define('Optima5.Modules.ParaCRM.QuerySubpanelSelect' ,{
 								var textfield = button.up().query('textfield')[0] ;
 								if( textfield.isValid() ) {
 									var newRecord = Ext.create('QuerySelectFormulasymbolModel',{
-										math_staticvalue:textfield.getValue(),
+										math_staticvalue:textfield.getValue()
 									}) ;
 									formulaGrid.getStore().insert( formulaGrid.getStore().count(), newRecord );
 									
@@ -359,7 +359,7 @@ Ext.define('Optima5.Modules.ParaCRM.QuerySubpanelSelect' ,{
 					}
 					
 					var newRecord = Ext.create('QuerySelectFormulasymbolModel',{
-						math_fieldoperand:selectedRecord.get('field_code'),
+						math_fieldoperand:selectedRecord.get('field_code')
 					}) ;
 					
 					

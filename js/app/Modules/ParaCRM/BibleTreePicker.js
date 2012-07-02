@@ -122,7 +122,7 @@ Ext.define('Optima5.Modules.ParaCRM.BibleTreePicker',{
 			hidden: true,
 			focusOnShow: true,
 			ownerCt: me.ownerCt,
-			pickerField: me,
+			pickerField: me
 		}) ;
 		
 		treepanel.getRootNode().cascadeBy(function(rec){

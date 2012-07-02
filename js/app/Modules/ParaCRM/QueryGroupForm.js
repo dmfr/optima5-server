@@ -21,7 +21,7 @@ Ext.define('Optima5.Modules.ParaCRM.QueryGroupForm' ,{
 		Ext.apply(me,{
 			defaults: {
 				anchor: '100%'
-			},
+			}
 		});
 		
 		this.callParent() ;
@@ -38,6 +38,6 @@ Ext.define('Optima5.Modules.ParaCRM.QueryGroupForm' ,{
 			  
 	calcLayout: function() {
 		
-	},
+	}
 			  
 });

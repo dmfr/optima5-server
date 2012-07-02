@@ -37,7 +37,7 @@ Ext.define('Optima5.Modules.ParaCRM.QueryWhereFormDate' ,{
 					format: 'Y-m-d',
 					width: 100 ,
 					fieldLabel: 'Before',
-					name: 'condition_date_lt',
+					name: 'condition_date_lt'
 				}]
 			}]
 		});

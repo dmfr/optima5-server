@@ -40,7 +40,7 @@ Ext.define('Optima5.Modules.ParaCRM.QueryWhereFormBible' ,{
 					},
 					queryMode: 'local',
 					displayField: 'lib',
-					valueField: 'mode',
+					valueField: 'mode'
 				}]
 			},{
 				xtype: 'fieldset',

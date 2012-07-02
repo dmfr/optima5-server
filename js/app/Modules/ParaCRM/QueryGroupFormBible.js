@@ -107,7 +107,7 @@ Ext.define('Optima5.Modules.ParaCRM.QueryGroupFormBible' ,{
 					queryMode: 'local',
 					displayField: 'field_text',
 					valueField: 'field_code',
-					valueField: 'field_code',
+					valueField: 'field_code'
 				}]
 			}, {
 				xtype: 'fieldset',
