@@ -383,7 +383,7 @@ function paracrm_queries_process_query_iteration( $arr_saisie )
 			break ;
 			
 			case 'MAX' :
-			$val = min($arr_values) ;
+			$val = max($arr_values) ;
 			break ;
 			
 			default :
