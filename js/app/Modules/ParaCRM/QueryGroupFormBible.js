@@ -31,6 +31,7 @@ Ext.define('Optima5.Modules.ParaCRM.QueryGroupFormBible' ,{
 				switch( node.get('field_linkbible_type') ) {
 					case 'tree' :
 						treeFields.push(occur) ;
+						entryFields.push(occur) ;
 						break ;
 				
 					case 'entry' :
