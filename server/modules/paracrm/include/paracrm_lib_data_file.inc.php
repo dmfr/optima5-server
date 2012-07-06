@@ -328,10 +328,10 @@ function paracrm_lib_file_mapBible( $bible_code, $remote_table, $remote_field )
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
 	{
+		/*
 		if( $arr['entry_field_type'] == 'link' )
-			continue ;
-	
-	
+			continue ;*/
+			
 		$sql_selectfields[] = array($myalias_entry.'.field_'.$arr['entry_field_code']
 										,$remote_table.'_'.$remote_field.'_entry_'.$arr['entry_field_code']) ;
 		
@@ -345,7 +345,7 @@ function paracrm_lib_file_mapBible( $bible_code, $remote_table, $remote_field )
 		$grid_cell['link_bible_type'] = 'entry' ;
 		$grid_cell['link_bible_field'] = $arr['entry_field_code'] ;
 		$grid_cell['link_bible_is_key'] = ($arr['entry_field_is_key']=='O')?true:false ;
-		$grid_cell['is_display'] = ($arr['entry_field_is_header']=='O')?true:false ;
+		$grid_cell['is_display'] = ($arr['entry_field_type'] != 'link' && $arr['entry_field_is_header']=='O')?true:false ;
 		$grid_map[] = $grid_cell ;
 	}
 	
