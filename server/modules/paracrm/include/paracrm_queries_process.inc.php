@@ -233,14 +233,14 @@ function paracrm_queries_process_query($arr_saisie)
 				case 'ENTRY' :
 				foreach( json_decode($field_group['group_bible_display_entry'],true) as $field )
 				{
-					$field_group['group_bible_display_arrFields'][] = 'field_'.$arr_indexed_treefields[$field]['bible_field_code'] ;
+					$field_group['group_bible_display_arrFields'][$field] = $arr_indexed_treefields[$field]['bible_type'].'_'.$arr_indexed_treefields[$field]['bible_field_code'] ;
 				}
 				break ;
 				
 				case 'TREE' :
 				foreach( json_decode($field_group['group_bible_display_treenode'],true) as $field )
 				{
-					$field_group['group_bible_display_arrFields'][] = 'field_'.$arr_indexed_treefields[$field]['bible_field_code'] ;
+					$field_group['group_bible_display_arrFields'][$field] = $arr_indexed_treefields[$field]['bible_type'].'_'.$arr_indexed_treefields[$field]['bible_field_code'] ;
 				}
 				break ;
 			
@@ -329,7 +329,13 @@ function paracrm_queries_process_query($arr_saisie)
 	$RES_titles['fields_group'] = array() ;
 	foreach( $arr_saisie['fields_group'] as $field_id => &$field_group )
 	{
-		$RES_titles['fields_group'][$field_id] = $arr_indexed_treefields[$field_group['field_code']]['text'] ;
+		$RES_titles['group_title'][$field_id] = $arr_indexed_treefields[$field_group['field_code']]['text'] ;
+		
+		$RES_titles['group_fields'][$field_id] = array() ;
+		foreach( $field_group['group_bible_display_arrFields'] as $display_field_code => $display_field_ref )
+		{
+			$RES_titles['group_fields'][$field_id][$display_field_ref] = $arr_indexed_treefields[$display_field_code]['text'] ;
+		}
 	}
 	$RES_titles['fields_select'] = array() ;
 	$RES_titles['fields_select'][0] = $field_select['select_lib'] ;
@@ -917,6 +923,7 @@ function paracrm_queries_process_linearTreefields( $arr_node )
 		$row['field_type'] = $arr_node['field_type'] ;
 		foreach( array('file_code','file_field_code','bible_code','bible_field_code') as $mkey )
 			$row[$mkey] = $arr_node[$mkey] ;
+		$row['bible_type'] = $arr_node['field_linkbible_type'] ;
 		$tab[$arr_node['field_code']] = $row ;
 	}
 	
@@ -972,13 +979,13 @@ function paracrm_queries_process_labels_withTabs( $arr_saisie, $groupId_forTab )
 				$tabBibleConditions[] = $tarr ;
 			}
 		}
-	foreach( paracrm_queries_process_labelEnum( $group_id, $field_group_tab, $tabBibleConditions ) as $bible_key => $display )
+	foreach( paracrm_queries_process_labelEnum( $group_id, $field_group_tab, $tabBibleConditions ) as $bible_key => $cells_display )
 	{
 		$subRES_tab = array() ;
 		$subRES_tab['select_lib'] = $select_lib ;
 		$subRES_tab['group_id'] = $groupId_forTab ;
 		$subRES_tab['group_key'] = $bible_key ;
-		$subRES_tab['tab_title'] = $display ;
+		$subRES_tab['tab_title'] = implode(' - ',$cells_display) ;
 	
 		$subRES_tab['arr_grid-x'] = array() ;
 		$subRES_tab['arr_grid-y'] = array() ;
@@ -1101,14 +1108,14 @@ function paracrm_queries_process_labelEnum( $group_id, $field_group, $bibleCondi
 			foreach( paracrm_queries_process_labelEnumBibleTree( $field_group['sql_bible_code'], '&', $field_group['group_bible_tree_depth'], $bibleConditions ) as $record )
 			{
 				$ttmp = array() ;
-				foreach( $field_group['group_bible_display_arrFields'] as $field )
+				foreach( $field_group['group_bible_display_arrFields'] as $display_field_ref )
 				{
-					$ttmp[] = $record[$field] ;
+					$ttmp[$display_field_ref] = $record[$display_field_ref] ;
 				}
 				
 				$treenode_key = $record['treenode_key'] ;
 				
-				$arr[$treenode_key] = implode(' - ',$ttmp) ;
+				$arr[$treenode_key] = $ttmp ;
 			}
 			break ;
 			
@@ -1117,14 +1124,14 @@ function paracrm_queries_process_labelEnum( $group_id, $field_group, $bibleCondi
 			foreach( paracrm_queries_process_labelEnumBibleEntries( $field_group['sql_bible_code'], '&', $bibleConditions ) as $record )
 			{
 				$ttmp = array() ;
-				foreach( $field_group['group_bible_display_arrFields'] as $field )
+				foreach( $field_group['group_bible_display_arrFields'] as $display_field_ref )
 				{
-					$ttmp[] = $record[$field] ;
+					$ttmp[$display_field_ref] = $record[$display_field_ref] ;
 				}
 				
 				$entry_key = $record['entry_key'] ;
 				
-				$arr[$entry_key] = implode(' - ',$ttmp) ;
+				$arr[$entry_key] = $ttmp ;
 			}
 			break ;
 		}
@@ -1133,7 +1140,7 @@ function paracrm_queries_process_labelEnum( $group_id, $field_group, $bibleCondi
 		case 'date' :
 		foreach( paracrm_queries_process_labelEnumDate( $group_id, $field_group['group_date_type'] ) as $group_key )
 		{
-			$arr[$group_key] = $group_key ;
+			$arr[$group_key] = array($group_key) ;
 		}
 		break ;
 	}
@@ -1175,6 +1182,28 @@ function paracrm_queries_process_labelEnumBibleTree( $bible_code, $root_treenode
 		}
 	}
 	
+	
+	$arr_describe_tree = array() ;
+	foreach( $_opDB->table_fields('view_bible_'.$bible_code.'_tree') as $db_field )
+	{
+		if( strpos($db_field,'field_') === 0 )
+			$arr_describe_tree[$db_field] = 'tree_'.substr($db_field,6,strlen($db_field)-6) ;
+	}
+	$arr_describe_entry = array() ;
+	foreach( $_opDB->table_fields('view_bible_'.$bible_code.'_entry') as $db_field )
+	{
+		if( strpos($db_field,'field_') === 0 )
+			$arr_describe_entry[$db_field] = 'entry_'.substr($db_field,6,strlen($db_field)-6) ;
+	}
+	
+	$select_clause_arr = array() ;
+	foreach( $arr_describe_tree as $db_field=>$target )
+	{
+		$select_clause_arr[] = 't.'.$db_field.' AS '.$target ;
+	}
+	
+	
+	
 	$tab = array() ;
 	$view_name = 'view_bible_'.$bible_code.'_tree' ;
 	foreach( $root_tree->getAllMembersForDepth( $depth ) as $treenode_key )
@@ -1188,7 +1217,7 @@ function paracrm_queries_process_labelEnumBibleTree( $bible_code, $root_treenode
 		}
 		}
 	
-		$query = "SELECT * FROM $view_name WHERE treenode_key='$treenode_key'" ;
+		$query = "SELECT t.treenode_key as treenode_key,".implode(',',$select_clause_arr)." FROM $view_name t WHERE t.treenode_key='$treenode_key'" ;
 		$res = $_opDB->query($query) ;
 		$tab[] = $_opDB->fetch_assoc($res) ;
 	}
@@ -1223,17 +1252,45 @@ function paracrm_queries_process_labelEnumBibleEntries( $bible_code, $root_treen
 					$treenodes = array_merge($treenodes,$root_tree->getTree($condition_treenode)->getAllMembers()) ;
 			}
 				
-			$query_treenode.= " AND treenode_key IN ".$_opDB->makeSQLlist($treenodes) ;
+			$query_treenode.= " AND t.treenode_key IN ".$_opDB->makeSQLlist($treenodes) ;
 		}
 	}
+	
+	
+	
+	$arr_describe_tree = array() ;
+	foreach( $_opDB->table_fields('view_bible_'.$bible_code.'_tree') as $db_field )
+	{
+		if( strpos($db_field,'field_') === 0 )
+			$arr_describe_tree[$db_field] = 'tree_'.substr($db_field,6,strlen($db_field)-6) ;
+	}
+	$arr_describe_entry = array() ;
+	foreach( $_opDB->table_fields('view_bible_'.$bible_code.'_entry') as $db_field )
+	{
+		if( strpos($db_field,'field_') === 0 )
+			$arr_describe_entry[$db_field] = 'entry_'.substr($db_field,6,strlen($db_field)-6) ;
+	}
+	
+	$select_clause_arr = array() ;
+	foreach( $arr_describe_tree as $db_field=>$target )
+	{
+		$select_clause_arr[] = 't.'.$db_field.' AS '.$target ;
+	}
+	foreach( $arr_describe_entry as $db_field=>$target )
+	{
+		$select_clause_arr[] = 'e.'.$db_field.' AS '.$target ;
+	}
+	
+	
 
 	$tab = array() ;
 	// ***** foreignLinks ****
 	// - conditions sur autre bible => pour la requete
 	$view_name = 'view_bible_'.$bible_code.'_entry' ;
-	$query = "SELECT * FROM $view_name WHERE 1" ;
+	$view_name_tree = 'view_bible_'.$bible_code.'_tree' ;
+	$query = "SELECT e.entry_key as entry_key,".implode(',',$select_clause_arr)." FROM $view_name e JOIN $view_name_tree t ON t.treenode_key=e.treenode_key WHERE 1" ;
 	$query.= $query_treenode ;
-	$query.= " ORDER BY treenode_key, entry_key" ;
+	$query.= " ORDER BY e.treenode_key, e.entry_key" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
 	{

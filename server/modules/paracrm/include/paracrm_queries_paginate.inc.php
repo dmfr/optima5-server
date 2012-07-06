@@ -17,23 +17,44 @@ function paracrm_queries_paginate_getGridColumns( $RES, $RES_labels_tab )
 
 	$tab = array() ;
 
-	foreach( $RES_labels_tab['arr_grid-y'] as $group_id => $dummy )
+	if( !$x_grid && count($RES_labels_tab['arr_grid-y']) == 1 )
 	{
-		$col = array() ;
-		$col['text'] = $RES['RES_titles']['fields_group'][$group_id] ;
-		$col['text_italic'] = true ;
-		$col['dataIndex'] = 'groupCol_'.$group_id ;
-		$col['dataType'] = 'string' ;
-		$col['is_bold'] = true ;
-		$tab[] = $col ;
+		// Si pas de groupe pour les colonnes (résultat simple) + critère Y unique
+		// => on développe en colonnes le critère Y
+		$group_id = key($RES_labels_tab['arr_grid-y']) ;
+		
+		foreach( $RES['RES_titles']['group_fields'][$group_id] as $group_display_ref=>$group_display_text )
+		{
+			$col = array() ;
+			$col['text'] = $RES['RES_titles']['group_title'][$group_id].' - '.$group_display_text ;
+			$col['text_italic'] = true ;
+			$col['dataIndex'] = 'groupCol_'.$group_id.'_'.$group_display_ref ;
+			$col['dataType'] = 'string' ;
+			$col['is_bold'] = true ;
+			$tab[] = $col ;
+		}
+	}
+	else
+	{
+		// Sinon => 1 colonne par groupe Y
+		foreach( $RES_labels_tab['arr_grid-y'] as $group_id => $dummy )
+		{
+			$col = array() ;
+			$col['text'] = $RES['RES_titles']['group_title'][$group_id] ;
+			$col['text_italic'] = true ;
+			$col['dataIndex'] = 'groupCol_'.$group_id ;
+			$col['dataType'] = 'string' ;
+			$col['is_bold'] = true ;
+			$tab[] = $col ;
+		}
 	}
 	
 	if( $x_grid )
 	{
-		foreach( $x_grid as $x_code => $x_string )
+		foreach( $x_grid as $x_code => $x_arr_strings )
 		{
 			$col = array() ;
-			$col['text'] = $x_string ;
+			$col['text'] = implode(' - ',$x_arr_strings) ;
 			$col['text_bold'] = true ;
 			$col['dataIndex'] = 'valueCol_'.$x_code ;
 			$col['dataType'] = 'string' ;
@@ -108,11 +129,28 @@ function paracrm_queries_paginate_getGridRow( $RES, $arr_static, $arr_grid_x, $a
 	
 	$row = array() ;
 	
-	foreach( $arr_y_group_id_key as $group_id => $group_key )
+	if( !$x_grid && count($arr_y_group_id_key) == 1 )
 	{
-		$dataIndex = 'groupCol_'.$group_id ;
-		$row[$dataIndex] = $arr_grid_y[$group_id][$group_key] ;
-	}	
+		// Si pas de groupe pour les colonnes (résultat simple) + critère Y unique
+		// => on développe en colonnes le critère Y
+		$group_id = key($arr_y_group_id_key) ;
+		$group_key = current($arr_y_group_id_key) ;
+		
+		foreach( $RES['RES_titles']['group_fields'][$group_id] as $group_display_ref=>$group_display_text )
+		{
+			$dataIndex = 'groupCol_'.$group_id.'_'.$group_display_ref ;
+			$row[$dataIndex] = $arr_grid_y[$group_id][$group_key][$group_display_ref] ;
+		}
+	}
+	else
+	{
+		// Sinon => 1 colonne par groupe Y
+		foreach( $arr_y_group_id_key as $group_id => $group_key )
+		{
+			$dataIndex = 'groupCol_'.$group_id ;
+			$row[$dataIndex] = implode(' - ',$arr_grid_y[$group_id][$group_key]) ;
+		}
+	}
 	
 	if( $x_grid )
 	{
