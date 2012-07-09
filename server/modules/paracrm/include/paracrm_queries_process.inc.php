@@ -332,9 +332,11 @@ function paracrm_queries_process_query($arr_saisie)
 		$RES_titles['group_title'][$field_id] = $arr_indexed_treefields[$field_group['field_code']]['text'] ;
 		
 		$RES_titles['group_fields'][$field_id] = array() ;
+		if( $field_group['group_bible_display_arrFields'] ) {
 		foreach( $field_group['group_bible_display_arrFields'] as $display_field_code => $display_field_ref )
 		{
 			$RES_titles['group_fields'][$field_id][$display_field_ref] = $arr_indexed_treefields[$display_field_code]['text'] ;
+		}
 		}
 	}
 	$RES_titles['fields_select'] = array() ;
