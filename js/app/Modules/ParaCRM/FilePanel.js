@@ -665,6 +665,51 @@ Ext.define('Optima5.Modules.ParaCRM.FilePanel' ,{
 			requestAction: 'server/backend.php',
 			requestMethod: 'POST'
 		}) ;
+	},
+	exportGallery: function() {
+		var me = this ;
+		if( !me.gridpanel ) {
+			return ;
+		}
+		
+		var exportParams = {} ;
+		Ext.apply(exportParams,{
+			_sessionName: op5session.get('session_id'),
+			_moduleName: 'paracrm' ,
+			_action: 'data_getFileGrid_exportGallery' ,
+			file_code: this.fileId
+		}) ;
+		
+		if( me.gridpanel.filters && me.gridpanel.filters.getFilterData().length > 0 ) {
+			//console.log('Export Excel :') ;
+			//console.dir(me.gridpanel.filters.buildQuery(me.gridpanel.filters.getFilterData())) ;
+			
+			delete exportParams[me.gridpanel.filters.paramPrefix];
+			Ext.apply(exportParams,
+				me.gridpanel.filters.buildQuery(me.gridpanel.filters.getFilterData())
+			) ;
+		}
+		else {
+			//console.log('Export Excel without filters') ;
+		}
+		
+		var arrShownColumns = [] ;
+		Ext.Array.each( me.gridpanel.columns, function(col) {
+			if( !col.isHidden() ) {
+				arrShownColumns.push(col.dataIndex) ;
+			}
+		},me) ;
+		Ext.apply(exportParams, {
+			columns: Ext.JSON.encode(arrShownColumns)
+		}) ;
+		
+		
+		Ext.create('Ext.ux.dams.FileDownloader',{
+			renderTo: Ext.getBody(),
+			requestParams: exportParams,
+			requestAction: 'server/backend.php',
+			requestMethod: 'POST'
+		}) ;
 	}
 	
 });

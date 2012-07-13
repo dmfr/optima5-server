@@ -138,6 +138,18 @@ Ext.define('Optima5.Modules.ParaCRM.AppWindow', {
 					break ;
 			}
 		},this) ;
+		this.maintoolbar.on('exportgallery',function(storetype){
+			switch( storetype ){
+				case 'bible' :
+					//this.filepanel.exportGallery() ;
+					break ;
+				case 'file' :
+					this.filepanel.exportGallery() ;
+					break ;
+				default :
+					break ;
+			}
+		},this) ;
 		this.maintoolbar.on('queryAction',function(action,str){
 			switch( action ){
 				case 'run' :

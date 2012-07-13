@@ -202,6 +202,18 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 				},
 				scope: me
 			});
+		}
+		if( show_export == true && is_gallery ) {
+			menuItems.push({
+				text: 'DL gallery as zip',
+				icon: 'images/op5img/ico_saveas_16.gif',
+				handler : function() {
+					this.exportGallery();
+				},
+				scope: me
+			});
+		}
+		if( menuItems.length > 0 ) {
 			menuItems.push('-') ;
 		}
 		if( true ){
@@ -318,6 +330,17 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 			case 'bible' :
 			case 'file' :
 				this.fireEvent('exportexcel',this.activeDataType) ;
+				break ;
+				
+			default :
+				console.log('nothing') ;
+				break ;
+		}
+	},
+	exportGallery: function() {
+		switch( this.activeDataType ) {
+			case 'file' :
+				this.fireEvent('exportgallery',this.activeDataType) ;
 				break ;
 				
 			default :
