@@ -668,7 +668,84 @@ function paracrm_data_getFileGrid_exportXLS( $post_data )
 	unlink($tmpfilename) ;
 	die() ;
 }
+function paracrm_data_getFileGrid_exportGallery( $post_data )
+{
+	if( !class_exists('PHPExcel') )
+		return NULL ;
+		
+	$shown_columns = json_decode($post_data['columns']) ;
+		
+	$TAB_cfg = paracrm_data_getFileGrid_config( array('file_code'=>$post_data['file_code']) ) ;
+	$TAB_data = paracrm_data_getFileGrid_data( $post_data ) ;
 
+	if( !$TAB_cfg['data']['grid_fields'] )
+		return ;
+		
+		
+	$map_filerecordId_dstFilename = array() ;
+	foreach( $TAB_data['data'] as $record ) {
+	
+		$arr_filename = array() ;
+	
+		// essayer de trouver un nom au fichier
+		foreach( $TAB_cfg['data']['grid_fields'] as $cfg_field ) {
+			$field_code = $cfg_field['field'] ;
+			
+			if( in_array($field_code,$shown_columns) ) {
+				$arr_filename[] = str_replace(' ','_',preg_replace("/[^a-zA-Z0-9\s]/", "", $record[$field_code])) ;
+			}
+		}
+		$base_filename = implode('_',$arr_filename) ;
+		if( strlen($base_filename) > 196 )
+			$base_filename = 'OP5jpg_CRM_.'.$record['filerecord_id'] ;
+		$dst_filename = $base_filename.'.jpg' ;
+	
+		
+		$filerecord_id = $record['filerecord_id'] ;
+		
+		$map_filerecordId_dstFilename[$filerecord_id] = $dst_filename ;
+	}
+	
+	media_contextOpen( 'paracrm', '' ) ;
+	
+	// ******** Test de la taille totale *******
+	$tmp_totalBytes = 0 ;
+	foreach( $map_filerecordId_dstFilename as $filerecord_id => $dummy )
+	{
+		if( !($src_filepath = media_img_getPath( $filerecord_id )) )
+			continue ;
+			
+		$stat_file = stat($src_filepath) ;
+		$tmp_totalBytes += $stat_file['size'] ;
+	}
+	if( $tmp_totalBytes <= 0 || $tmp_totalBytes > (20*1024*1024) )
+		die() ;
+	
+	// ******** Création du ZIP ********** 
+	$filepath_zip = tempnam(sys_get_temp_dir(),'op5').'.zip' ;
+	$obj_zip = new ZipArchive() ;
+   $obj_zip->open( $filepath_zip , ZIPARCHIVE::CREATE ) ;
+	foreach( $map_filerecordId_dstFilename as $filerecord_id => $dst_filename ) {
+	
+		$src_filepath = media_img_getPath( $filerecord_id ) ;
+		if( !$src_filepath )
+			continue ;
+		
+		$obj_zip->addFile( $src_filepath , $dst_filename ) ;
+	}
+	$obj_zip->close() ;
+
+
+	media_contextClose() ;
+
+
+	$filename_zip = 'OP5gallery_CRM_.'.$post_data['file_code'].'_'.time().'.zip' ;
+	header("Content-Type: application/force-download; name=\"$filename_zip\""); 
+	header("Content-Disposition: attachment; filename=\"$filename_zip\""); 
+	readfile($filepath_zip) ;
+	unlink($filepath_zip) ;
+	die() ;
+}
 
 
 ?>

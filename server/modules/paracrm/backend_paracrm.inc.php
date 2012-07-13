@@ -38,7 +38,11 @@ switch( $post_data['_action'] )
 	case 'data_getFileGrid_data' :
 	return paracrm_data_getFileGrid_data( $post_data );
 	case 'data_getFileGrid_exportXLS' :
+	session_write_close() ;
 	return paracrm_data_getFileGrid_exportXLS( $post_data );
+	case 'data_getFileGrid_exportGallery' :
+	session_write_close() ;
+	return paracrm_data_getFileGrid_exportGallery( $post_data );
 	
 	
 	case 'queries_getToolbarData' :

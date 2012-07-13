@@ -146,6 +146,29 @@ function media_img_delete( $src_id )
 		unlink( $src_path.'.thumb.jpg' ) ;
 	
 }
+function media_img_getPath( $src_id )
+{
+	if( !$GLOBALS['_media_context'] )
+		return FALSE ;
+	$media_path = media_contextGetDirPath() ;
+	if( !$media_path )
+	{
+		return FALSE ;
+	}
+
+	if( strpos($src_id,'tmp_') === 0 )
+	{
+		$ttmp = substr($src_id,4,strlen($src_id)-4) ;
+		$src_path = $media_path.'/tmp/'.$ttmp ;
+	}
+	else
+	{
+		$src_path = $media_path.'/'.$src_id ;
+	}
+	
+	if( is_file($src_path.'.jpg') )
+		return $src_path.'.jpg' ;
+}
 
 
 ?>
