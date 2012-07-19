@@ -4,12 +4,15 @@ Ext.define('Optima5.Modules.ParaCRM.DefineStorePanel' ,{
 	requires : [
 		'Optima5.CoreDesktop.Ajax',
 		'Ext.ux.dams.RestfulGrid',
+		'Optima5.Modules.ParaCRM.DefineStoreCalendarForm',
 		'Ext.container.ButtonGroup',
 		'Ext.layout.container.Table',
 		'Ext.tab.Panel'
 	],
 	
 	initComponent: function() {
+		var me = this ;
+		
 		// Creation du layout : form + tabpanel(restful grid X 2) 
 		// Envoi AJAX pour ouvrir la session => success on redirige vers initLoadEverything
 		
@@ -40,6 +43,33 @@ Ext.define('Optima5.Modules.ParaCRM.DefineStorePanel' ,{
 		
 		
 		var tabitems = new Array() ;
+		var calendartab = Ext.create( 'Optima5.Modules.ParaCRM.DefineStoreCalendarForm', {
+			title:'Calendar Cfg',
+			itemId:'calendartab',
+			frame: true,
+			hidden: true ,
+			bodyPadding: 5,
+			listeners: {
+				beforeshow:function(){
+					var fieldsTab = [] ;
+					Ext.Array.each( this.query('> tabpanel')[0].child('#elementtab').linkstore.getRange(), function(rec){
+						fieldsTab.push({
+							field_code: rec.get('entry_field_code'),
+							field_desc: rec.get('entry_field_code')+': '+rec.get('entry_field_lib'),
+							field_type: rec.get('entry_field_type')
+						});
+					});
+					this.query('> tabpanel')[0].child('#calendartab').loadCurrentlyDefinedFields(fieldsTab) ;
+				},
+				scope: me
+			},
+			url : 'server/backend.php',
+			baseParams: {
+				_sessionName: op5session.get('session_id'),
+				_moduleName: 'paracrm' ,
+				_action: 'define_manageTransaction' 
+			}
+		}) ;
 		var treetab = new Object() ;
 		Ext.apply( treetab, {
 			title:'TreeStructure',
@@ -176,6 +206,7 @@ Ext.define('Optima5.Modules.ParaCRM.DefineStorePanel' ,{
 			
 			case 'file' :
 				tabitems.push( elementtab ) ;
+				tabitems.push( calendartab ) ;
 				break;
 		}
 		
@@ -225,6 +256,7 @@ Ext.define('Optima5.Modules.ParaCRM.DefineStorePanel' ,{
 						fields: ['storeType', 'storeTypeLib'],
 						data: [
 							{"storeType":"","storeTypeLib":"Std / Fieldset"},
+							{"storeType":"calendar","storeTypeLib":"Calendar"},
 							{"storeType":"media_img","storeTypeLib":"Media : pictures"}
 						]
 					},
@@ -380,6 +412,17 @@ Ext.define('Optima5.Modules.ParaCRM.DefineStorePanel' ,{
 						},this) ;
 					},this) ;
 					
+					
+					var calendarTab = this.query('> tabpanel')[0].child('#calendartab')
+					if( calendarTab != null ) {
+						Ext.apply( calendarTab.baseParams, {
+							_transaction_id: this.transactionID
+						}) ;
+						
+						calendarTab.load() ;
+					}
+					
+					
 					this.populateFieldTypesStores(this.transactionID) ;
 					//this.updateLayout() ;
 				}
@@ -416,9 +459,27 @@ Ext.define('Optima5.Modules.ParaCRM.DefineStorePanel' ,{
 	updateLayout: function() {
 		var hideFieldsets=false , hideGmap=false ;
 		this.query('form')[0].getForm().getFields().each( function(formitem,idx) {
-			if( formitem.name==='store_type' && formitem.getValue() !== '' ) {
-				hideFieldsets = true ;
-				hideGmap = true ;
+			if( formitem.name==='store_type' ) {
+				switch( formitem.getValue() ) {
+					case 'media_img' :
+						hideFieldsets = true ;
+						hideGmap = true ;
+						showCalendarTab = false ;
+						break ;
+					
+					case 'calendar' :
+						hideFieldsets = false ;
+						hideGmap = true ;
+						showCalendarTab = true ;
+						break ;
+						
+					case '' :
+					default :
+						hideFieldsets = false ;
+						hideGmap = false ;
+						showCalendarTab = false ;
+						break ;
+				}
 			}
 		},this) ;
 		
@@ -428,6 +489,20 @@ Ext.define('Optima5.Modules.ParaCRM.DefineStorePanel' ,{
 		else {
 			this.query('> tabpanel')[0].show() ;
 		}
+		
+		var calendarTab = this.query('> tabpanel')[0].child('#calendartab') ;
+		if( calendarTab ) {
+			if( showCalendarTab ) {
+				calendarTab.tab.show();
+			}
+			else {
+				calendarTab.tab.hide();
+				this.query('> tabpanel')[0].setActiveTab(0) ;
+			}
+		}
+		
+		
+		
 	},
 			  
 			  
@@ -438,11 +513,10 @@ Ext.define('Optima5.Modules.ParaCRM.DefineStorePanel' ,{
 		this.destroy() ;
 	},
 	onSave: function() {
+		var me = this ;
 		this.query('form')[0].submit({
 			params:{ _subaction:'ent_set' },
-			success : function(form,action) {
-				return this.saveAndApply() ;
-			},
+			success : me.saveAll,
 			failure: function(form,action){
 				if( action.result.msg )
 					Ext.Msg.alert('Failed', action.result.msg);
@@ -450,6 +524,47 @@ Ext.define('Optima5.Modules.ParaCRM.DefineStorePanel' ,{
 			scope: this
 		}) ;
 		
+	},
+	saveAll: function() {
+		var me = this ;
+		me.nbComponentsSaved = 0 ;
+		
+		me.addEvents('allsaved') ;
+		me.on('allsaved',function(nbSaved){
+			me.saveAndApply() ;
+		},me) ;
+		
+		me.query('form')[0].submit({
+			params:{ _subaction:'ent_set' },
+			success : me.onSaveComponentCallback,
+			failure: function(form,action){
+				if( action.result && action.result.msg )
+					Ext.Msg.alert('Failed', action.result.msg);
+			},
+			scope: me
+		}) ;
+		
+		if( this.query('> tabpanel')[0].child('#calendartab') != null ) {
+			this.query('> tabpanel')[0].child('#calendartab').save(me.onSaveComponentCallback,me) ;
+		}
+	},
+	onSaveComponentCallback: function() {
+		var me = this ;
+		
+		if( !me.nbComponentsSaved )
+			me.nbComponentsSaved = 0 ;
+		
+		var nbToSave = 1 ;
+		if( this.query('> tabpanel')[0].child('#calendartab') != null ) {
+			nbToSave++ ;
+		}
+
+		if( me.nbComponentsSaved >= nbToSave )
+			return ;
+		me.nbComponentsSaved = me.nbComponentsSaved + 1 ;
+		if( me.nbComponentsSaved === nbToSave ) {
+			me.fireEvent('allsaved',me.nbComponentsSaved) ;
+		}
 	},
 	saveAndApply: function() {
 		var msgbox = Ext.Msg.wait('Updating. Please Wait.');
