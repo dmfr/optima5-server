@@ -213,7 +213,7 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 				scope: me
 			});
 		}
-		if( menuItems.length > 0 ) {
+		if( show_export ) {
 			menuItems.push('-') ;
 		}
 		if( true ){
