@@ -98,6 +98,16 @@ function paracrm_define_manageTransaction( $post_data )
 		$arr_saisie['arr_ent'] = $_opDB->fetch_assoc($result) ;
 		$arr_saisie['arr_ent']['gmap_is_on'] = ($arr_saisie['arr_ent']['gmap_is_on']=='O')? true:false ;
 		
+		$arr_saisie['cfg_calendar'] = NULL ;
+		if( $arr_saisie['data_type'] == 'file' && $arr_saisie['arr_ent']['store_type'] == 'calendar' )
+		{
+			$query = "SELECT * FROM define_file_cfg_calendar WHERE file_code='{$arr_saisie['file_code']}'" ;
+			$result = $_opDB->query($query) ;
+			$arr_saisie['cfg_calendar'] = $_opDB->fetch_assoc($result) ;
+			$arr_saisie['cfg_calendar']['account_is_on'] = ($arr_saisie['cfg_calendar']['account_is_on']=='O')? true:false ;
+			$arr_saisie['cfg_calendar']['duration_is_fixed'] = ($arr_saisie['cfg_calendar']['duration_is_fixed']=='O')? true:false ;
+		}
+		
 		$arr_saisie['tab_treeFields'] = NULL ;
 		if( $arr_saisie['data_type'] == 'bible' )
 		{
@@ -264,6 +274,32 @@ function paracrm_define_manageTransaction( $post_data )
 		}
 		
 		return paracrm_define_manageTransaction_apply($arr_saisie, $apply=FALSE) ;
+	}
+	
+	
+	
+	
+	if( $arr_transaction && $post_data['_subaction'] == 'calendarCfg_get' )
+	{
+		$data = $arr_transaction['arr_saisie']['cfg_calendar'] ;
+		return array('success'=>true,'data'=>$data) ;
+	}
+	if( $arr_transaction && $post_data['_subaction'] == 'calendarCfg_set' )
+	{
+		$arr_saisie = $arr_transaction['arr_saisie'] ;
+		
+		$cfg_calendar = array() ;
+		$cfg_calendar['eventstart_filefield'] = $post_data['eventstart_filefield'] ;
+		$cfg_calendar['eventend_filefield'] = $post_data['eventend_filefield'] ;
+		$cfg_calendar['account_is_on'] = ($post_data['account_is_on']=='on')? true:false ;
+		$cfg_calendar['account_filefield'] = $post_data['account_filefield'] ;
+		$cfg_calendar['duration_is_fixed'] = ($post_data['duration_is_fixed']=='on')? true:false ;
+		$cfg_calendar['duration_src_filefield'] = $post_data['duration_src_filefield'] ;
+		$cfg_calendar['duration_src_biblefield'] = $post_data['duration_src_biblefield'] ;		
+		$arr_saisie['cfg_calendar'] = $cfg_calendar ;
+		$_SESSION['transactions'][$transaction_id]['arr_saisie'] = $arr_saisie ;
+		
+		return array('success'=>true) ;
 	}
 	
 	
@@ -496,6 +532,8 @@ function paracrm_define_manageTransaction_applyFile($arr_saisie, $apply)
 	
 	$query = "DELETE FROM define_file WHERE file_code='$file_code'" ;
 	$_opDB->query($query) ;
+	$query = "DELETE FROM define_file_cfg_calendar WHERE file_code='$file_code'" ;
+	$_opDB->query($query) ;
 	$query = "DELETE FROM define_file_entry WHERE file_code='$file_code'" ;
 	$_opDB->query($query) ;
 	
@@ -507,6 +545,23 @@ function paracrm_define_manageTransaction_applyFile($arr_saisie, $apply)
 	$arr_ins['file_iconfile'] = ($arr_saisie['arr_ent']['store_parent_code']) ? 'ico_filechild_16.gif':'ico_showref_listall.gif' ;
 	$arr_ins['gmap_is_on'] = ($arr_saisie['arr_ent']['gmap_is_on']==TRUE)?'O':'N' ;
 	$_opDB->insert('define_file',$arr_ins) ;
+	
+	
+	if( $arr_saisie['arr_ent']['store_type'] == 'calendar' && is_array($arr_saisie['cfg_calendar']) )
+	{
+		$arr_ins = array() ;
+		$arr_ins['file_code'] = $file_code ;
+		$arr_ins['eventstart_filefield'] = $arr_saisie['cfg_calendar']['eventstart_filefield'] ;
+		$arr_ins['eventend_filefield'] = $arr_saisie['cfg_calendar']['eventend_filefield'] ;
+		$arr_ins['account_is_on'] = ($arr_saisie['cfg_calendar']['account_is_on']==TRUE)?'O':'N' ;
+		$arr_ins['account_filefield'] = $arr_saisie['cfg_calendar']['account_filefield'] ;
+		$arr_ins['duration_is_fixed'] = ($arr_saisie['cfg_calendar']['duration_is_fixed']==TRUE)?'O':'N' ;
+		$arr_ins['duration_src_filefield'] = $arr_saisie['cfg_calendar']['duration_src_filefield'] ;
+		$arr_ins['duration_src_biblefield'] = $arr_saisie['cfg_calendar']['duration_src_biblefield'] ;
+		$_opDB->insert('define_file_cfg_calendar',$arr_ins) ;
+	}
+	
+	
 	
 	$idx = 1 ;
 	foreach( $arr_saisie['tab_entryFields'] as $mfield )
