@@ -229,7 +229,7 @@ Ext.define('Optima5.Modules.ParaCRM.DefineStoreCalendarForm' ,{
 		} ;
 		
 		me.callParent(arguments);
-	},
+	}
 	
 	
 });
