@@ -171,6 +171,81 @@ function paracrm_android_postDbData_prepareJson( $input )
 	return $input;
 }
 
+function paracrm_android_syncPush( $post_data )
+{
+	global $_opDB ;
+
+	$arr_tmpid_fileid = array() ;
+	$arr_upload_slots  = array() ;
+	
+	$tab_definefile = array() ;
+	$query = "SELECT * FROM define_file" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
+	{
+		$tab_definefile[$arr['file_code']] = $arr ;
+	}
+	
+	$data = json_decode(paracrm_android_postDbData_prepareJson($post_data['data']),TRUE) ;
+	paracrm_lib_data_beginTransaction() ;
+	foreach( $data['store_file'] as $file_entry )
+	{
+		$sync_vuid = $file_entry['sync_vuid'] ;
+		if( !$sync_vuid )
+		{
+			continue ;
+		}
+		$query = "DELETE FROM store_file WHERE sync_vuid='$sync_vuid'" ;
+		$_opDB->query($query) ;
+	}
+	foreach( $data['store_file'] as $file_entry )
+	{
+		if( $file_entry['filerecord_parent_id'] != 0 )
+			continue ;
+		$arr_ins = $file_entry ;
+		unset($arr_ins['sync_is_synced']) ;
+		$arr_ins['filerecord_id'] = 0 ;
+		$_opDB->insert('store_file',$arr_ins) ;
+		
+		
+		$arr_tmpid_fileid[$file_entry['filerecord_id']] = $_opDB->insert_id() ;
+		if( strpos($tab_definefile[$file_entry['file_code']]['file_type'],'media_') === 0 )
+			$arr_upload_slots[] = $arr_tmpid_fileid[$file_entry['filerecord_id']] ;
+	}
+	foreach( $data['store_file'] as $file_entry )
+	{
+		if( $file_entry['filerecord_parent_id'] == 0 || !$arr_tmpid_fileid[$file_entry['filerecord_parent_id']])
+			continue ;
+			
+		$arr_ins = $file_entry ;
+		unset($arr_ins['sync_is_synced']) ;
+		$arr_ins['filerecord_id'] = 0 ;
+		$arr_ins['filerecord_parent_id'] = $arr_tmpid_fileid[$file_entry['filerecord_parent_id']] ;
+		$_opDB->insert('store_file',$arr_ins) ;
+		
+		$arr_tmpid_fileid[$file_entry['filerecord_id']] = $_opDB->insert_id() ;
+		if( strpos($tab_definefile[$file_entry['file_code']]['file_type'],'media_') === 0 )
+			$arr_upload_slots[] = $arr_tmpid_fileid[$file_entry['filerecord_id']] ;
+	}
+	foreach( $data['store_file_field'] as $field_entry )
+	{
+		if( !$arr_tmpid_fileid[$file_entry['filerecord_id']])
+			continue ;
+		
+		$arr_ins = $field_entry ;
+		$arr_ins['filerecord_id'] = $arr_tmpid_fileid[$field_entry['filerecord_id']] ;
+		$_opDB->insert('store_file_field',$arr_ins) ;
+	}
+	paracrm_lib_data_endTransaction(FALSE) ;
+	
+	
+	
+
+
+	return array('success'=>true,'map_tmpid_fileid'=>$arr_tmpid_fileid,'upload_slots'=>$arr_upload_slots) ;
+}
+
+
 function paracrm_android_postDbData( $post_data )
 {
 	global $_opDB ;
@@ -232,6 +307,8 @@ function paracrm_android_postDbData( $post_data )
 
 	return array('success'=>true,'map_tmpid_fileid'=>$arr_tmpid_fileid,'upload_slots'=>$arr_upload_slots) ;
 }
+
+
 
 function paracrm_android_postBinary( $post_data )
 {
