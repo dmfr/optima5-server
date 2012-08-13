@@ -67,6 +67,8 @@ switch( $post_data['_action'] )
 	
 	case 'android_syncPush' :
 	return paracrm_android_syncPush( $post_data );
+	case 'android_syncPull' :
+	return paracrm_android_syncPull( $post_data );
 	
 	case 'android_postBinary' :
 	return paracrm_android_postBinary( $post_data );

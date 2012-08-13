@@ -171,9 +171,49 @@ function paracrm_android_postDbData_prepareJson( $input )
 	return $input;
 }
 
+function paracrm_android_syncPull( $post_data )
+{
+	global $_opDB ;
+	
+	$file_code = $post_data['file_code'] ;
+	$sync_timestamp = $post_data['sync_timestamp'] ;
+	
+	$arr_table_query = array() ;
+	$arr_table_query['store_file'] = "SELECT * FROM store_file WHERE file_code='$file_code' AND sync_timestamp>'$sync_timestamp'" ;
+	$arr_table_query['store_file_field'] = "SELECT filefield.* FROM store_file file , store_file_field filefield 
+															WHERE file.filerecord_id = filefield.filerecord_id 
+															AND file.file_code='$file_code' AND file.sync_timestamp>'$sync_timestamp'" ;
+															
+	$first = array('success'=>true,'timestamp'=>time()) ;
+	echo json_encode($first) ;
+	echo "\r\n" ;
+	
+	foreach( $arr_table_query as $table => $query )
+	{
+		echo json_encode(array($table)) ;
+		echo "\r\n" ;
+	
+		echo json_encode($_opDB->table_fields($table)) ;
+		echo "\r\n" ;
+	
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE )
+		{
+			echo json_encode($arr) ;
+			echo "\r\n" ;
+		}
+		
+		echo json_encode(array()) ;
+		echo "\r\n" ;
+	}
+	
+	die() ;
+}
 function paracrm_android_syncPush( $post_data )
 {
 	global $_opDB ;
+	
+	$timestamp = time() ;
 
 	$arr_tmpid_fileid = array() ;
 	$arr_upload_slots  = array() ;
@@ -187,6 +227,9 @@ function paracrm_android_syncPush( $post_data )
 	}
 	
 	$data = json_decode(paracrm_android_postDbData_prepareJson($post_data['data']),TRUE) ;
+	if( !$data['store_file'] ) {
+		return array('success'=>true) ;
+	}
 	paracrm_lib_data_beginTransaction() ;
 	foreach( $data['store_file'] as $file_entry )
 	{
@@ -205,6 +248,7 @@ function paracrm_android_syncPush( $post_data )
 		$arr_ins = $file_entry ;
 		unset($arr_ins['sync_is_synced']) ;
 		$arr_ins['filerecord_id'] = 0 ;
+		$arr_ins['sync_timestamp'] = $timestamp ;
 		$_opDB->insert('store_file',$arr_ins) ;
 		
 		
@@ -221,6 +265,7 @@ function paracrm_android_syncPush( $post_data )
 		unset($arr_ins['sync_is_synced']) ;
 		$arr_ins['filerecord_id'] = 0 ;
 		$arr_ins['filerecord_parent_id'] = $arr_tmpid_fileid[$file_entry['filerecord_parent_id']] ;
+		$arr_ins['sync_timestamp'] = $timestamp ;
 		$_opDB->insert('store_file',$arr_ins) ;
 		
 		$arr_tmpid_fileid[$file_entry['filerecord_id']] = $_opDB->insert_id() ;
