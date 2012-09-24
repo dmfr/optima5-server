@@ -116,6 +116,17 @@ Ext.define('Optima5.Modules.ParaCRM.QuerySubpanelWhere' ,{
 							}
 							return str ;
 						
+						case 'number' :
+							if( record.get('condition_num_lt') == 0 && record.get('condition_num_gt') == 0 ) {
+								return '<b>not set</b>' ;
+							}
+							
+							var str = '' ;
+							str = str + record.get('condition_num_gt') + ' < ' ;
+							str = str + '<b>X</b>' ;
+							str = str + ' < ' + record.get('condition_num_lt') ;
+							return str ;
+						
 						default :
 							return value ;
 					}
@@ -259,6 +270,12 @@ Ext.define('Optima5.Modules.ParaCRM.QuerySubpanelWhere' ,{
 				}) ;
 				break ;
 				
+			case 'number' :
+				mform = Ext.create('Optima5.Modules.ParaCRM.QueryWhereFormNumber',{
+					frame:true
+				}) ;
+				break ;
+				
 			default :
 				mform = Ext.create('Optima5.Modules.ParaCRM.QueryWhereForm',{
 					frame:true
@@ -276,6 +293,9 @@ Ext.define('Optima5.Modules.ParaCRM.QuerySubpanelWhere' ,{
 						
 					case 'condition_date_gt' :
 					case 'condition_date_lt' :
+						
+					case 'condition_num_gt' :
+					case 'condition_num_lt' :
 						
 						break ;
 						
