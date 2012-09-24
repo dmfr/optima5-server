@@ -205,7 +205,7 @@ function paracrm_queries_builderTransaction_runQuery( $post_data, &$arr_saisie )
 	usleep(500000) ;
 	
 	
-	$RES = paracrm_queries_process_query($arr_saisie) ;
+	$RES = paracrm_queries_process_query($arr_saisie , (isset($post_data['_debug'])&&$post_data['_debug']==TRUE)?true:false ) ;
 	if( !$RES )
 		return array('success'=>true,'query_status'=>'NOK') ;
 		

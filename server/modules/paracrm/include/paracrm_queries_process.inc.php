@@ -112,17 +112,31 @@ function paracrm_queries_process_buildTrees() {
 	return ;
 }
 
-function paracrm_queries_process_query($arr_saisie) 
+function paracrm_queries_process_query($arr_saisie, $debug=FALSE) 
 {
 	global $_opDB, $_groups_hashes ;
 	
 	global $arr_bible_trees , $arr_bible_entries , $arr_bible_racx_entry , $arr_bible_racx_treenode ;
 	
-	paracrm_queries_process_buildTrees() ;
 	
-	// préprocess => select_map
+	// préprocess => BibleTrees sous forme d'arbres en mode objet
+	if( $debug ) {
+		echo "Debug 1: build bible trees..." ;
+	}
+	paracrm_queries_process_buildTrees() ;
+	if( $debug ) {
+		echo "OK\n" ;
+	}
+	
+	// préprocess => treefields_root : on linearise les descriptions des champs (files,(sub)bibles) pour accès immédiat dans les traitements
+	if( $debug ) {
+		echo "Debug 2: linear treefields..." ;
+	}
 	$arr_indexed_treefields = paracrm_queries_process_linearTreefields($arr_saisie['treefields_root']) ;
 	$arr_saisie['define_treefields'] = $arr_indexed_treefields ;
+	if( $debug ) {
+		echo "OK\n" ;
+	}
 	// print_r($arr_indexed_treefields) ;
 	
 	
@@ -142,15 +156,27 @@ function paracrm_queries_process_query($arr_saisie)
 	if( count($arr_saisie['fields_select']) != 1 )
 		return NULL ;
 		
+	
+	// On initialise les variables "globales" dans le cadre de la requête
+	//  - tableau des ensembles "unique / last occurence" déjà rencontrés
 	$GLOBALS['cache_queryWhereUnique'] = NULL ;
+	// - group hashes ( ie. case du tableau de résultat )
 	$_groups_hashes = array() ;
+	$_groups_hashes_indexed = array() ;
+	$_groups_hashes_newkey = 0 ;
 		
-		
+	
+	
+	if( $debug ) {
+		echo "Debug 3a: preprocess WHERE..." ;
+	}
 	$fields_where = $arr_saisie['fields_where'] ;
 	// PREMACHAGE DU WHERE
 	//  - ficher FILE
 	//  - field field_XXXXXX
-	//  pour les bibles => field_XXXXXX_trx ou field_XXXXXX_erx
+	//  pour les bibles => field_XXXXXX_trx ou field_XXXXXX_erx , on explicite les racx qu'on doit chercher
+	//      - pour les entries : simple ( entry_key=>entry_racx )
+	//      - pour les treenodes : utilisation de l'arbre objet et pour chaque subnode ( treenode_key => treenode_racx )
 	foreach( $fields_where as &$field_where )
 	{
 		//print_r($field_where) ;
@@ -191,13 +217,19 @@ function paracrm_queries_process_query($arr_saisie)
 		}
 	}
 	$arr_saisie['fields_where'] = $fields_where ;
+	if( $debug ) {
+		echo "OK\n" ;
+	}
 	// print_r($fields_where) ;
 	
 	
 	
 	
+	if( $debug ) {
+		echo "Debug 3b: preprocess GROUP..." ;
+	}
 	$fields_group = $arr_saisie['fields_group'] ;
-	// PREMACHAGE DU WHERE
+	// PREMACHAGE DU GROUP
 	//  - ficher FILE
 	//  - field field_XXXXXX
 	//  pour les bibles => field_XXXXXX_trx ou field_XXXXXX_erx
@@ -249,14 +281,23 @@ function paracrm_queries_process_query($arr_saisie)
 		}
 	}
 	$arr_saisie['fields_group'] = $fields_group ;
+	if( $debug ) {
+		echo "OK\n" ;
+	}
 	
 		
 		
 		
+	if( $debug ) {
+		echo "Debug 3c: preprocess SELECT..." ;
+	}
 	$field_select = current($arr_saisie['fields_select']) ;
-	// analyse !!!
-	// COUNT => une opération à la fois
-	// VALUES => tout en même temps
+	// analyse !!! Mode de requête ? Count / Value
+	// --- Si dans les operands on a un titre de fichier ou de bible => mode COUNT
+	// --- Sinon mode VALUE
+	// Réalisation de la requête :
+	//  COUNT => une opération à la fois
+	//  VALUES => tout en même temps
 	$is_values = $is_counts = FALSE ;
 	foreach( $field_select['math_expression'] as $symbol_id => &$symbol )
 	{
@@ -299,11 +340,9 @@ function paracrm_queries_process_query($arr_saisie)
 		
 		return NULL ;
 	}
-	
-	
-	
-	if( $is_counts && !$is_values )
+	if( $is_counts && !$is_values ) {
 		$field_select['iteration_mode'] = 'count' ;
+	}
 	elseif( $is_values && !$is_counts )
 	{
 		$field_select['iteration_mode'] = 'value' ;
@@ -313,8 +352,19 @@ function paracrm_queries_process_query($arr_saisie)
 		return NULL ;
 	}
 	$arr_saisie['fields_select'][0] = $field_select ;
+	if( $debug ) {
+		echo "OK\n" ;
+	}
 	
-	// 
+	
+	
+	// EXECUTION DE LA REQUETE
+	// Résultats :
+	//   $RES_groupKey_groupDesc(=$_groups_hashes) : annuaire des coordonnées de cellule ( $group_hash => $valeur resultat )
+	//   $RES_groupKey_value : tab.assoc ( $group_hash => tableau ( $group_id => $valeur etiquette ) )
+	if( $debug ) {
+		echo "Debug 4: execution query " ;
+	}
 	$RES_groupKey_value = array() ;
 	$RES_groupKey_value = paracrm_queries_process_query_iteration( $arr_saisie ) ;
 	
@@ -322,7 +372,14 @@ function paracrm_queries_process_query($arr_saisie)
 		return NULL ;
 		
 	$RES_groupKey_groupDesc = $_groups_hashes ;
+	if( $debug ) {
+		echo "OK\n" ;
+	}
 	
+	
+	if( $debug ) {
+		echo "Debug 5: labels + titles" ;
+	}
 	$RES_labels = paracrm_queries_process_labels( $arr_saisie , $RES_groupKey_groupDesc ) ;
 	
 	$RES_titles = array() ;
@@ -341,6 +398,9 @@ function paracrm_queries_process_query($arr_saisie)
 	}
 	$RES_titles['fields_select'] = array() ;
 	$RES_titles['fields_select'][0] = $field_select['select_lib'] ;
+	if( $debug ) {
+		echo "OK\n" ;
+	}
 	
 	return array('RES_groupKey_groupDesc'=>$RES_groupKey_groupDesc,
 					'RES_groupKey_value'=>$RES_groupKey_value,
@@ -442,7 +502,6 @@ function paracrm_queries_process_query_iterationDo( $arr_saisie, $iteration_chai
 		$row = $base_row ;
 		$row[$target_fileCode] = $arr ;
 			
-		
 		$subRes_group_arrValues = paracrm_queries_process_query_iterationDo($arr_saisie,$iteration_chain, $iteration_chain_offset+1,$row,$target_fileCode,$arr['filerecord_id']) ;
 		foreach( $subRes_group_arrValues as $group_key_id => $arrValues )
 		{
@@ -779,18 +838,27 @@ function paracrm_queries_process_queryHelp_where( $record_file, $fields_where ) 
 function paracrm_queries_process_queryHelp_getIdGroup( $group_hash )
 {
 	global $_groups_hashes ;
+	global $_groups_hashes_indexed ;
 	
-	if( $key_id = array_search($group_hash, $_groups_hashes ) )
+	global $_groups_hashes_newkey ;
+	
+	$string_hash = implode('@',$group_hash) ;
+	if( $key_id = $_groups_hashes_indexed[$string_hash] )
 	{
-		// echo "same : ".$key_id."\n" ;
+		// echo "already found:$key_id\n" ;
+		// echo "double verif : ".array_search($group_hash, $_groups_hashes )."\n" ;
 		return $key_id ;
 	}
+	else
+	{
+		// echo "creating\n" ;
+	}
 	
-	$new_key_id = count($_groups_hashes)+1 ;
-	$_groups_hashes[$new_key_id] = $group_hash ;
+	$_groups_hashes_newkey++ ;
+	$_groups_hashes[$_groups_hashes_newkey] = $group_hash ;
+	$_groups_hashes_indexed[$string_hash] = $_groups_hashes_newkey ;
 	
-	
-	return $new_key_id ;
+	return $_groups_hashes_newkey ;
 }
 function paracrm_queries_process_queryHelp_getGroupHash( $record_glob, $fields_group )
 {
@@ -815,11 +883,17 @@ function paracrm_queries_process_queryHelp_getGroupHash( $record_glob, $fields_g
 				
 				$src_value = $record_glob[$src_code][$src_field] ;
 				if( !$src_value )
+				{
+					$tab[$fieldgroup_id] = NULL ;
 					continue ;
+				}
 					
 				// echo count($arr_bible_racx_entry) ;
 				if( !($group_value = $arr_bible_racx_entry[$field_group['sql_bible_code']][$src_value]) )
+				{
+					$tab[$fieldgroup_id] = NULL ;
 					continue ;
+				}
 				
 				$tab[$fieldgroup_id] = $group_value ;
 			}
@@ -831,11 +905,17 @@ function paracrm_queries_process_queryHelp_getGroupHash( $record_glob, $fields_g
 				
 				$src_value = $record_glob[$src_code][$src_field] ;
 				if( !$src_value )
+				{
+					$tab[$fieldgroup_id] = NULL ;
 					continue ;
+				}
 					
 				// echo count($arr_bible_racx_entry) ;
 				if( !($group_value_tree = $arr_bible_racx_treenode[$field_group['sql_bible_code']][$src_value]) )
+				{
+					$tab[$fieldgroup_id] = NULL ;
 					continue ;
+				}
 					
 				$obj_tree = $arr_bible_trees[$field_group['sql_bible_code']] ;
 				$obj_tree = $obj_tree->getTree($group_value_tree) ;
@@ -855,6 +935,8 @@ function paracrm_queries_process_queryHelp_getGroupHash( $record_glob, $fields_g
 				
 				if( $group_value )
 					$tab[$fieldgroup_id] = $group_value ;
+				else
+					$tab[$fieldgroup_id] = NULL ;
 			}
 		}
 		if( $field_group['field_type'] == 'date' )
@@ -887,6 +969,8 @@ function paracrm_queries_process_queryHelp_getGroupHash( $record_glob, $fields_g
 			
 			if( $group_value )
 				$tab[$fieldgroup_id] = $group_value ;
+			else
+				$tab[$fieldgroup_id] = NULL ;
 		}
 	}
 	
@@ -899,17 +983,7 @@ function paracrm_queries_process_queryHelp_getGroupHash( $record_glob, $fields_g
 function paracrm_queries_process_queryHelp_group( $record_glob, $fields_group )
 {
 	$group_hash = paracrm_queries_process_queryHelp_getGroupHash( $record_glob, $fields_group ) ;
-	// print_r($group_hash) ;
-	
-	
-	
 	$group_key_id = paracrm_queries_process_queryHelp_getIdGroup($group_hash) ;
-	
-	/*
-	print_r($group_hash) ;
-	echo $group_key_id."\n\n\n" ;
-	*/
-	
 	return $group_key_id ;
 }
 
