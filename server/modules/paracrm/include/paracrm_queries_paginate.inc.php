@@ -1,17 +1,33 @@
 <?php
-function paracrm_queries_paginate_getGrid( $RES, $tab_id )
+function paracrm_queries_paginate_getGrid( &$RES, $tab_id )
 {
 	if( !$RES['RES_labels'][$tab_id] )
 		return NULL ;
 
 	$RES_labels_tab = $RES['RES_labels'][$tab_id] ;
+	
+	
+	// mise en cache de la table de l'annuaire $RES_groupKey_groupDesc
+	if( !isset($RES['RES_groupHash_groupKey']) ) {
+		//echo "begin...";
+		$RES_groupHash_groupKey = array() ;
+		foreach( $RES['RES_groupKey_groupDesc'] as $key_id => $group_desc )
+		{
+			ksort($group_desc) ;
+			$group_hash = implode('@@',$group_desc) ;
+			$RES_groupHash_groupKey[$group_hash] = $key_id ;
+		}
+		//echo "end  ".count($RES_groupHash_groupKey)." \n" ;
+		$RES['RES_groupHash_groupKey'] = $RES_groupHash_groupKey ;
+	}
+	
 
 	$ret = array() ;
 	$ret['columns'] = paracrm_queries_paginate_getGridColumns( $RES, $RES_labels_tab ) ;
 	$ret['data'] = paracrm_queries_paginate_getGridRows( $RES, $RES_labels_tab ) ;
 	return $ret ;
 }
-function paracrm_queries_paginate_getGridColumns( $RES, $RES_labels_tab )
+function paracrm_queries_paginate_getGridColumns( &$RES, $RES_labels_tab )
 {
 	$x_grid = current($RES_labels_tab['arr_grid-x']) ;
 
@@ -73,7 +89,7 @@ function paracrm_queries_paginate_getGridColumns( $RES, $RES_labels_tab )
 	
 	return $tab ;
 }
-function paracrm_queries_paginate_getGridRows( $RES, $RES_labels_tab )
+function paracrm_queries_paginate_getGridRows( &$RES, $RES_labels_tab )
 {
 	$arr_static = array() ;
 	if( isset($RES_labels_tab['group_id']) )
@@ -121,7 +137,7 @@ function paracrm_queries_paginate_getGridRows_iterate( $arr_grid_y, $pos )
 	}
 	return $tab ;
 }
-function paracrm_queries_paginate_getGridRow( $RES, $arr_static, $arr_grid_x, $arr_grid_y, $arr_y_group_id_key )
+function paracrm_queries_paginate_getGridRow( &$RES, $arr_static, $arr_grid_x, $arr_grid_y, $arr_y_group_id_key )
 {
 	reset($arr_grid_x) ;
 	$x_group_id = key($arr_grid_x) ;
@@ -160,7 +176,8 @@ function paracrm_queries_paginate_getGridRow( $RES, $arr_static, $arr_grid_x, $a
 			
 			$hash = $arr_static + $arr_y_group_id_key + array($x_group_id=>$x_key) ;
 			
-			$group_key = array_search($hash,$RES['RES_groupKey_groupDesc']) ;
+			// $group_key = array_search($hash,$RES['RES_groupKey_groupDesc']) ;
+			$group_key = paracrm_queries_paginate_getGroupKey( $RES, $hash ) ;
 			if( $group_key === FALSE )
 			{
 				$row[$dataIndex] = '' ;
@@ -177,7 +194,8 @@ function paracrm_queries_paginate_getGridRow( $RES, $arr_static, $arr_grid_x, $a
 			
 			$hash = $arr_static + $arr_y_group_id_key  ;
 			
-			$group_key = array_search($hash,$RES['RES_groupKey_groupDesc']) ;
+			// $group_key = array_search($hash,$RES['RES_groupKey_groupDesc']) ;
+			$group_key = paracrm_queries_paginate_getGroupKey( $RES, $hash ) ;
 			if( $group_key === FALSE )
 			{
 				$row[$dataIndex] = '' ;
@@ -189,6 +207,17 @@ function paracrm_queries_paginate_getGridRow( $RES, $arr_static, $arr_grid_x, $a
 	}
 	return $row ;
 }
-
+function paracrm_queries_paginate_getGroupKey( &$RES, $group_desc )
+{
+	ksort($group_desc) ;
+	if( !isset($RES['RES_groupHash_groupKey']) ) {
+		//echo "WARN" ;
+	}
+	$group_hash = implode('@@',$group_desc) ;
+	if( !$key_id = $RES['RES_groupHash_groupKey'][$group_hash] ) {
+		return FALSE ;
+	}
+	return $key_id ;
+}
 
 ?>
