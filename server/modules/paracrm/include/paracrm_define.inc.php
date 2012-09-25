@@ -291,6 +291,7 @@ function paracrm_define_manageTransaction( $post_data )
 		$cfg_calendar = array() ;
 		$cfg_calendar['eventstart_filefield'] = $post_data['eventstart_filefield'] ;
 		$cfg_calendar['eventend_filefield'] = $post_data['eventend_filefield'] ;
+		$cfg_calendar['eventstatus_filefield'] = $post_data['eventstatus_filefield'] ;
 		$cfg_calendar['account_is_on'] = ($post_data['account_is_on']=='on')? true:false ;
 		$cfg_calendar['account_filefield'] = $post_data['account_filefield'] ;
 		$cfg_calendar['duration_is_fixed'] = ($post_data['duration_is_fixed']=='on')? true:false ;
@@ -553,6 +554,7 @@ function paracrm_define_manageTransaction_applyFile($arr_saisie, $apply)
 		$arr_ins['file_code'] = $file_code ;
 		$arr_ins['eventstart_filefield'] = $arr_saisie['cfg_calendar']['eventstart_filefield'] ;
 		$arr_ins['eventend_filefield'] = $arr_saisie['cfg_calendar']['eventend_filefield'] ;
+		$arr_ins['eventstatus_filefield'] = $arr_saisie['cfg_calendar']['eventstatus_filefield'] ;
 		$arr_ins['account_is_on'] = ($arr_saisie['cfg_calendar']['account_is_on']==TRUE)?'O':'N' ;
 		$arr_ins['account_filefield'] = $arr_saisie['cfg_calendar']['account_filefield'] ;
 		$arr_ins['duration_is_fixed'] = ($arr_saisie['cfg_calendar']['duration_is_fixed']==TRUE)?'O':'N' ;
