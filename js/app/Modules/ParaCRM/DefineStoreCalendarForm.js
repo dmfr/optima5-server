@@ -77,6 +77,17 @@ Ext.define('Optima5.Modules.ParaCRM.DefineStoreCalendarForm' ,{
 				displayField: 'field_desc',
 				valueField: 'field_code'
 			},{
+				xtype: 'comboboxcached',
+				maxWidth:300,
+				fieldLabel: 'Event status',
+				name: 'eventstatus_filefield',
+				forceSelection: true,
+				editable: false,
+				store: me.fieldsStore,
+				queryMode: 'local',
+				displayField: 'field_desc',
+				valueField: 'field_code'
+			},{
 				xtype: 'checkboxfield',
 				name: 'duration_is_fixed',
 				itemId: 'duration_is_fixed',
