@@ -757,6 +757,12 @@ function paracrm_lib_data_insertRecord_file( $file_code , $filerecord_parent_id 
 				$mkey = 'filerecord_field_value_'.$field_type ;
 				$arr_ins[$mkey] = $data[$datafield] ;
 				break ;
+				
+				case 'bool' :
+				$mkey = 'filerecord_field_value_number' ;
+				$arr_ins[$mkey] = $data[$datafield] ;
+				break ;
+				
 				default :
 				break ;
 			}
@@ -872,6 +878,12 @@ function paracrm_lib_data_updateRecord_file( $file_code , $data, $filerecord_id 
 				$mkey = 'filerecord_field_value_'.$field_type ;
 				$arr_ins[$mkey] = $data[$datafield] ;
 				break ;
+				
+				case 'bool' :
+				$mkey = 'filerecord_field_value_number' ;
+				$arr_ins[$mkey] = $data[$datafield] ;
+				break ;
+				
 				default :
 				break ;
 			}

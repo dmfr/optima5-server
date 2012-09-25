@@ -785,6 +785,7 @@ function paracrm_define_buildViewFile( $file_code )
 			break ;
 			
 			case 'number' :
+			case 'bool' :
 			$query.=','.'t_'.$field_code.'.' ;
 			$query.='filerecord_field_value_number'." AS field_".$field_code ;
 			break ;

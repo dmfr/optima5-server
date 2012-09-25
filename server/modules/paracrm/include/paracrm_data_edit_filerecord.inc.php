@@ -246,6 +246,11 @@ function paracrm_data_editTransaction_fileRecord_init( $post_data , &$arr_saisie
 			$field['xtype'] = 'textfield' ;
 			break ;
 			
+			case 'bool' :
+			$field['xtype'] = 'checkboxfield' ;
+			$field['inputValue'] = 1 ;
+			break ;
+			
 			case 'date' :
 			$field['xtype'] = 'datetimefield' ;
 			break ;
