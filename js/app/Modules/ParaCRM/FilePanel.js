@@ -220,6 +220,14 @@ Ext.define('Optima5.Modules.ParaCRM.FilePanel' ,{
 		var gridModelName = 'FileGrid'+'-'+this.fileId ;
 		
 		var daterenderer = Ext.util.Format.dateRenderer('d/m/Y H:i');
+		var boolrenderer = function(value) {
+			if( value==1 ) {
+				return '<b>X</b>' ;
+			}
+			else {
+				return '' ;
+			}
+		}
 		
 		// Création du modèle GRID
 		var modelFields = new Array() ;
@@ -259,6 +267,11 @@ Ext.define('Optima5.Modules.ParaCRM.FilePanel' ,{
 			if( v.type == 'date' ) {
 				Ext.apply(columnObject,{
 					renderer: daterenderer
+				}) ;
+			}
+			if( v.type == 'bool' ) {
+				Ext.apply(columnObject,{
+					renderer: boolrenderer
 				}) ;
 			}
 			if( v.file_code == this.fileId && (!v.link_bible || v.link_bible_is_key) ) {
