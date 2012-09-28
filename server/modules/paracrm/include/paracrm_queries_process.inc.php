@@ -1185,10 +1185,31 @@ function paracrm_queries_process_labels_noTab( $arr_saisie )
 
 function paracrm_queries_process_labelEnum( $group_id, $field_group, $bibleConditions=NULL )
 {
+	global $_opDB ;
+
+	// ***** Cette fonction crée les "labels" pour chaque groupe, à partir de la liste de champs à afficher $field_group['group_bible_display_arrFields']
+	// ** PREPROCESS : repère dans le define des champs 'link' à dé-JSONer
+
+
 	$arr = array() ;
 	switch( $field_group['field_type'] )
 	{
 		case 'link' :
+		
+		// PREPROCESS : quels sont les champs de type "link" pour cette $field_group['sql_bible_code']
+		$link_field_refs = array() ;
+		$query = "SELECT tree_field_code FROM define_bible_tree WHERE bible_code='{$field_group['sql_bible_code']}' AND tree_field_type='link'" ;
+		$res = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($res)) != FALSE ) {
+			$link_field_refs[] = 'tree_'.$arr[0] ;
+		}
+		$query = "SELECT entry_field_code FROM define_bible_entry WHERE bible_code='{$field_group['sql_bible_code']}' AND entry_field_type='link'" ;
+		$res = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($res)) != FALSE ) {
+			$link_field_refs[] = 'entry_'.$arr[0] ;
+		}
+		
+		
 		switch( $field_group['group_bible_type'] )
 		{
 			case 'TREE' :
@@ -1197,7 +1218,13 @@ function paracrm_queries_process_labelEnum( $group_id, $field_group, $bibleCondi
 				$ttmp = array() ;
 				foreach( $field_group['group_bible_display_arrFields'] as $display_field_ref )
 				{
-					$ttmp[$display_field_ref] = $record[$display_field_ref] ;
+					if( in_array($display_field_ref,$link_field_refs) ) {
+						// décodage JSON
+						$ttmp[$display_field_ref] = implode(' ',json_decode($record[$display_field_ref])) ;
+					}
+					else {
+						$ttmp[$display_field_ref] = $record[$display_field_ref] ;
+					}
 				}
 				
 				$treenode_key = $record['treenode_key'] ;
@@ -1213,7 +1240,13 @@ function paracrm_queries_process_labelEnum( $group_id, $field_group, $bibleCondi
 				$ttmp = array() ;
 				foreach( $field_group['group_bible_display_arrFields'] as $display_field_ref )
 				{
-					$ttmp[$display_field_ref] = $record[$display_field_ref] ;
+					if( in_array($display_field_ref,$link_field_refs) ) {
+						// décodage JSON
+						$ttmp[$display_field_ref] = implode(' ',json_decode($record[$display_field_ref])) ;
+					}
+					else {
+						$ttmp[$display_field_ref] = $record[$display_field_ref] ;
+					}
 				}
 				
 				$entry_key = $record['entry_key'] ;
