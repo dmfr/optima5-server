@@ -460,3 +460,26 @@
 	margin: 5px;
 	float: left;
 }
+
+
+
+.ux-color-combo-wrap {
+    position: relative;
+}
+.ux-color-combo-wrap .x-form-field {
+    padding-left: 25px;
+}
+.ux-color-combo-icon {
+    position: absolute;
+    top: 4px;
+    left: 5px;    
+    background-repeat: no-repeat;
+    background-position: 0 50%;
+    width: 18px;
+    height: 14px;
+}
+.ux-color-combo-item {
+    padding-left: 24px;
+    background-repeat: no-repeat;
+    background-position: 3px 50%;    
+}

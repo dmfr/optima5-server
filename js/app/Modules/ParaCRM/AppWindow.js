@@ -9,6 +9,7 @@ Ext.define('Optima5.Modules.ParaCRM.AppWindow', {
         'Optima5.Modules.ParaCRM.BiblePanel',
         'Optima5.Modules.ParaCRM.FilePanel',
         'Optima5.Modules.ParaCRM.QueryPanel',
+        'Optima5.Modules.ParaCRM.QueryTemplatePanel',
         'Optima5.Modules.ParaCRM.MainToolbar'
         //'Ext.form.field.TextArea'
     ],
@@ -63,6 +64,8 @@ Ext.define('Optima5.Modules.ParaCRM.AppWindow', {
 					this.createFilePanel()
 				,
 					this.createQueryPanel()
+				,
+					this.createQueryTemplatePanel()
 				],
 				tbar : this.createMainToolbar()
 			});
@@ -106,6 +109,10 @@ Ext.define('Optima5.Modules.ParaCRM.AppWindow', {
 				this.querypanel.queryOpen( queryId ) ;
 				return ;
 			}
+		},this) ;
+		this.maintoolbar.on('switchToQueryTemplate',function( queryId, targetFileId ){
+			this.switchToPanel('querytemplatepanel') ;
+			this.querytemplatepanel.loadSettings() ;
 		},this) ;
 		
 		
@@ -223,6 +230,14 @@ Ext.define('Optima5.Modules.ParaCRM.AppWindow', {
 			mid: 'querypanel'
 		});
 		return this.querypanel;
+	},
+	
+	createQueryTemplatePanel : function(){
+		this.querytemplatepanel = Ext.create('Optima5.Modules.ParaCRM.QueryTemplatePanel');
+		Ext.apply( this.querytemplatepanel, {
+			mid: 'querytemplatepanel'
+		});
+		return this.querytemplatepanel;
 	},
 	
 	createMainToolbar : function(){

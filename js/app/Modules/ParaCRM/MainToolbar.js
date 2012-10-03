@@ -79,6 +79,7 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 		this.addEvents('switchToBible',
 							'switchToFile',
 							'switchToQuery',
+							'switchToQueryTemplate',
 							'switchToNotepad',
 							'switchtopanelview',
 							'queryAction');
@@ -381,6 +382,13 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 		this.fireEvent('switchToQuery',queryId);
 	},
 			  
+	switchToQueryTemplate: function() {
+		this.activeDataType = '' ;
+		this.activeQueryId = 0 ;
+		this.showHelper('') ;
+		this.fireEvent('switchToQueryTemplate');
+	},
+			  
 			  
 	queryRun: function() {
 		this.fireEvent('queryAction','run');
@@ -584,6 +592,20 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 						menuItems.push(o) ;
 					}) ;
 				}
+				
+				if( true ) {
+					menuItems.push('-') ;
+					menuItems.push({
+						icon: 'images/op5img/ico_config_small.gif' ,
+						text: 'Cfg templates' ,
+						handler: function() {
+							me.switchToQueryTemplate() ;
+						},
+						scope:me
+					}) ;
+				}
+				
+				
 				
 				me.queriesMenu.add(menuItems) ;
 				
