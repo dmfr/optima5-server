@@ -162,6 +162,20 @@ Ext.onReady(function () {
 			return performOperation;
 		}
 	});
+	
+	
+	/*
+	DATE FIELD : treat 0000-00-00 as null
+	*/
+	Ext.form.field.Date.override( {
+		setValue: function() {
+			if( arguments[0] == '0000-00-00' ) {
+				arguments[0] = null ;
+			}
+			this.callOverridden(arguments);
+		}
+	});
+	
  	
 	
 	op5desktop = new Optima5.CoreDesktop.OptimaDesktop ;
