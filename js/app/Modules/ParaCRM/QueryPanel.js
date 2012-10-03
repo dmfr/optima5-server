@@ -21,6 +21,7 @@ Ext.define('Optima5.Modules.ParaCRM.QueryPanel' ,{
 		'Optima5.Modules.ParaCRM.QuerySubpanelWhere',
 		'Optima5.Modules.ParaCRM.QuerySubpanelGroup',
 		'Optima5.Modules.ParaCRM.QuerySubpanelSelect',
+		'Optima5.Modules.ParaCRM.QuerySubpanelProgress',
 		
 		'Optima5.Modules.ParaCRM.QueryResultPanel'
 	] ,
@@ -186,15 +187,35 @@ Ext.define('Optima5.Modules.ParaCRM.QueryPanel' ,{
 				type: 'vbox',
 				align: 'stretch'
 			},
-			items:[ Ext.apply( Ext.create('Optima5.Modules.ParaCRM.QuerySubpanelWhere',{whereFields: ajaxParams.data_wherefields}) , {
+			items:[ Ext.create('Optima5.Modules.ParaCRM.QuerySubpanelWhere', {
+				whereFields: ajaxParams.data_wherefields,
 				flex:1 ,
 				border:false
-			}),Ext.apply( Ext.create('Optima5.Modules.ParaCRM.QuerySubpanelGroup',{groupFields: ajaxParams.data_groupfields}) , {
+			}),Ext.create('Optima5.Modules.ParaCRM.QuerySubpanelGroup', {
+				groupFields: ajaxParams.data_groupfields,
 				flex:1 ,
 				border:false
-			}),Ext.apply( Ext.create('Optima5.Modules.ParaCRM.QuerySubpanelSelect',{selectFields: ajaxParams.data_selectfields}) , {
+			}),Ext.create('Optima5.Modules.ParaCRM.QuerySubpanelSelect', {
+				selectFields: ajaxParams.data_selectfields ,
 				flex:1 ,
 				border:false
+			}),Ext.create('Optima5.Modules.ParaCRM.QuerySubpanelProgress',{
+				flex:1,
+				height:1,
+				progressFields: ajaxParams.data_progressfields,
+				listeners: {
+					expand: function(progresspanel) {
+						//me.doLayout() ;
+					},
+					collapse : function( progresspanel ) {
+						progresspanel.setFormpanelRecord(null);
+						progresspanel.store.removeAll() ;
+					},
+					scope: me
+				},
+				border:false,
+				collapsible: true,
+				collapsed: (ajaxParams.data_progressfields.length == 0)? true:false
 			})],
 			autoDestroy: true
 		}) ;
@@ -246,7 +267,8 @@ Ext.define('Optima5.Modules.ParaCRM.QueryPanel' ,{
 					  
 			data_wherefields: Ext.JSON.encode(me.query('op5paracrmquerywhere')[0].saveGetArray() ) ,
 			data_groupfields: Ext.JSON.encode(me.query('op5paracrmquerygroup')[0].saveGetArray() ) ,
-			data_selectfields: Ext.JSON.encode(me.query('op5paracrmqueryselect')[0].saveGetArray() )
+			data_selectfields: Ext.JSON.encode(me.query('op5paracrmqueryselect')[0].saveGetArray() ),
+			data_progressfields: Ext.JSON.encode(me.query('op5paracrmqueryprogress')[0].saveGetArray() )
 		});
 		
 		Optima5.CoreDesktop.Ajax.request({
