@@ -91,6 +91,7 @@ function paracrm_queries_builderTransaction_init( $post_data , &$arr_saisie )
 		$arr_saisie['fields_where'] = array() ;
 		$arr_saisie['fields_group'] = array() ;
 		$arr_saisie['fields_select'] = array() ;
+		$arr_saisie['fields_progress'] = array() ;
 	}
 	elseif( $post_data['query_id'] > 0 )
 	{
@@ -136,7 +137,8 @@ function paracrm_queries_builderTransaction_init( $post_data , &$arr_saisie )
 					'treefields_root' => $arr_saisie['treefields_root'],
 					'data_wherefields' => $arr_saisie['fields_where'],
 					'data_groupfields' => $arr_saisie['fields_group'],
-					'data_selectfields' => $arr_saisie['fields_select']
+					'data_selectfields' => $arr_saisie['fields_select'],
+					'data_progressfields' => $arr_saisie['fields_progress']
 					) ;
 }
 function paracrm_queries_builderTransaction_submit( $post_data , &$arr_saisie )
@@ -146,8 +148,9 @@ function paracrm_queries_builderTransaction_submit( $post_data , &$arr_saisie )
 	$arr_saisie['fields_where'] = json_decode($post_data['data_wherefields'],TRUE) ;
 	$arr_saisie['fields_group'] = json_decode($post_data['data_groupfields'],TRUE) ;
 	$arr_saisie['fields_select'] = json_decode($post_data['data_selectfields'],TRUE) ;
+	$arr_saisie['fields_progress'] = json_decode($post_data['data_progressfields'],TRUE) ;
 
-	return array('success'=>true,'test'=>json_decode($post_data['data_selectfields'],TRUE)) ;
+	return array('success'=>true) ;
 }
 function paracrm_queries_builderTransaction_save( $post_data , &$arr_saisie )
 {
@@ -185,6 +188,7 @@ function paracrm_queries_builderTransaction_save( $post_data , &$arr_saisie )
 		$tables[] = 'query_field_select_symbol' ;
 		$tables[] = 'query_field_group' ;
 		$tables[] = 'query_field_where' ;
+		$tables[] = 'query_field_progress' ;
 		foreach( $tables as $dbtab )
 		{
 			$query = "DELETE FROM $dbtab WHERE query_id='{$arr_saisie['query_id']}'" ;
@@ -460,6 +464,11 @@ function paracrm_queries_builderTransaction_loadFields( &$arr_saisie , $query_id
 	{
 		unset($arr['query_id']) ;
 		unset($arr['query_fieldwhere_ssid']) ;
+		foreach( array('condition_date_lt','condition_date_gt') as $mkey ) {
+			if( $arr[$mkey] == '0000-00-00' ) {
+				$arr[$mkey]='' ;
+			}
+		}
 		$arr_saisie['fields_where'][] = $arr ;
 	}
 	
@@ -496,6 +505,21 @@ function paracrm_queries_builderTransaction_loadFields( &$arr_saisie , $query_id
 		unset($arr['query_fieldselect_ssid']) ;
 		$arr_saisie['fields_select'][] = $arr ;
 	}
+	
+	$arr_saisie['fields_progress'] = array() ;
+	$query = "SELECT * FROM query_field_progress WHERE query_id='$query_id' ORDER BY query_fieldprogress_ssid" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
+	{
+		unset($arr['query_id']) ;
+		unset($arr['query_fieldprogress_ssid']) ;
+		foreach( array('condition_date_lt','condition_date_gt') as $mkey ) {
+			if( $arr[$mkey] == '0000-00-00' ) {
+				$arr[$mkey]='' ;
+			}
+		}
+		$arr_saisie['fields_progress'][] = $arr ;
+	}
 
 	return ;
 }
@@ -509,6 +533,7 @@ function paracrm_queries_builderTransaction_saveFields( &$arr_saisie , $query_id
 	$tables[] = 'query_field_select_symbol' ;
 	$tables[] = 'query_field_group' ;
 	$tables[] = 'query_field_where' ;
+	$tables[] = 'query_field_progress' ;
 	foreach( $tables as $dbtab )
 	{
 		$query = "DELETE FROM $dbtab WHERE query_id='$query_id'" ;
@@ -612,6 +637,33 @@ function paracrm_queries_builderTransaction_saveFields( &$arr_saisie , $query_id
 		}
 	}
 
+	$cnt = 0 ;
+	$progress = array() ;
+	$progress[] = 'field_code' ;
+	$progress[] = 'field_type' ;
+	$progress[] = 'field_linkbible' ;
+	$progress[] = 'condition_string' ;
+	$progress[] = 'condition_date_lt' ;
+	$progress[] = 'condition_date_gt' ;
+	$progress[] = 'condition_num_lt' ;
+	$progress[] = 'condition_num_gt' ;
+	$progress[] = 'condition_num_eq' ;
+	$progress[] = 'condition_bible_mode' ;
+	$progress[] = 'condition_bible_treenodes' ;
+	$progress[] = 'condition_bible_entries' ;
+	foreach( $arr_saisie['fields_progress'] as $field_progress )
+	{
+		$cnt++ ;
+		
+		$arr_ins = array() ;
+		$arr_ins['query_id'] = $query_id ;
+		$arr_ins['query_fieldprogress_ssid'] = $cnt ;
+		foreach( $progress as $w )
+		{
+			$arr_ins[$w] = $field_progress[$w] ;
+		}
+		$_opDB->insert('query_field_progress',$arr_ins) ;
+	}
 	
 
 
