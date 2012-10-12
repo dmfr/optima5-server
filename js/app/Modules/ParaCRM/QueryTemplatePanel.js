@@ -1,27 +1,3 @@
-Ext.define('QueryTemplateSettings', {
-	extend: 'Ext.data.Model',
-	fields: [
-		{name: 'template_is_on',  type: 'boolean'},
-		{name: 'color_key',  type: 'string'},
-		{name: 'colorhex_columns',   type: 'string'},
-		{name: 'colorhex_row',   type: 'string'},
-		{name: 'colorhex_row_alt',   type: 'string'},
-		{name: 'data_align',   type: 'string'},
-		{name: 'data_select_is_bold',   type: 'boolean'},
-		{name: 'data_progress_is_bold',   type: 'boolean'}
-	]
-});
-Ext.define('QueryTemplateColorModel', {
-	extend: 'Ext.data.Model',
-	fields: [
-		{name: 'color_key',  type: 'string'},
-		{name: 'color_lib',  type: 'string'},
-		{name: 'colorhex_columns',   type: 'string'},
-		{name: 'colorhex_row',   type: 'string'},
-		{name: 'colorhex_row_alt',   type: 'string'}
-	],
-	idProperty:'color_key'
-});
 Ext.define('QueryTemplateDemoModel', {
 	extend: 'Ext.data.Model',
 	fields: [
@@ -39,7 +15,10 @@ Ext.define('Optima5.Modules.ParaCRM.QueryTemplatePanel' ,{
 			  
 	alias: 'widget.op5paracrmquerytemplate',
 			  
-	requires: ['Ext.ux.dams.ColorCombo'],
+	requires: [
+		'Ext.ux.dams.ColorCombo',
+		'Optima5.Modules.ParaCRM.QueryTemplateManager'
+	],
 			  
 	settingsRecord: null ,
 			  
@@ -50,6 +29,12 @@ Ext.define('Optima5.Modules.ParaCRM.QueryTemplatePanel' ,{
 		colorhex_columns:'#ff9c00',
 		colorhex_row:'#ffeccf' ,
 		colorhex_row_alt:'#ffe4ba'
+	},{
+		color_key:'blue',
+		color_lib:'Blue',
+		colorhex_columns:'#5377ff',
+		colorhex_row:'#9bb0ff' ,
+		colorhex_row_alt:'#b1c2ff'
 	}],
 			  
 	initComponent: function() {
@@ -359,7 +344,7 @@ Ext.define('Optima5.Modules.ParaCRM.QueryTemplatePanel' ,{
 					Ext.Msg.alert('Failed', 'Failed');
 				}
 				else {
-					Ext.Msg.alert('Saved','Template settings committed') ;
+					Optima5.Modules.ParaCRM.QueryTemplateManager.applySettingsRecord(me.settingsRecord) ;
 				}
 			},
 			scope: me

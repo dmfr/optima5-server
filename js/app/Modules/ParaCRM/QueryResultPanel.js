@@ -1,6 +1,8 @@
 Ext.define('Optima5.Modules.ParaCRM.QueryResultPanel' ,{
 	extend: 'Ext.panel.Panel',
 			  
+	requires: ['Optima5.Modules.ParaCRM.QueryTemplateManager'],
+			  
 	ajaxBaseParams:{},
 	RES_id: '',
 			  
@@ -23,8 +25,9 @@ Ext.define('Optima5.Modules.ParaCRM.QueryResultPanel' ,{
 				}]
 			}]
 		}) ;
-
 		this.callParent() ;
+		
+		Optima5.Modules.ParaCRM.QueryTemplateManager.loadStyle();
 		
 		var ajaxParams = {} ;
 		Ext.apply(ajaxParams,me.ajaxBaseParams) ;
@@ -77,6 +80,14 @@ Ext.define('Optima5.Modules.ParaCRM.QueryResultPanel' ,{
 						}
 					}) ;
 				}
+				else {
+					Ext.apply(columnDef,{
+						tdCls: 'op5paracrm-datacolumn'
+					}) ;
+				}
+				Ext.apply(columnDef,{
+					align:'',
+				});
 				columns.push(columnDef);
 				
 				fields.push({
@@ -100,6 +111,7 @@ Ext.define('Optima5.Modules.ParaCRM.QueryResultPanel' ,{
 			});
 			var tabgrid = Ext.create('Ext.grid.Panel',{
 				xtype:'grid',
+				cls:'op5paracrm-querygrid',
 				title:tabData.tab_title,
 				columns:columns,
 				store:tabstore,
