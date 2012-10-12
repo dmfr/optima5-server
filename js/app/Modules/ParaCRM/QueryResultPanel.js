@@ -57,7 +57,10 @@ Ext.define('Optima5.Modules.ParaCRM.QueryResultPanel' ,{
 		var tabitems = new Array() ;
 		var columns = null ;
 		var fields = null ;
+		var tabCount = -1 ;
 		Ext.Array.each( ajaxData.tabs , function(tabData) {
+			tabCount++ ;
+			
 			columns = [] ;
 			fields = [] ;
 			Ext.Array.each(tabData.columns, function(columnDef) {
@@ -80,17 +83,46 @@ Ext.define('Optima5.Modules.ParaCRM.QueryResultPanel' ,{
 					name:columnDef.dataIndex,
 					type:columnDef.dataType
 				});
-			},me); 
+			},me);
 			
-			tabitems.push({
+			
+			var tmpModelName = 'QueryResultModel-' + me.ajaxBaseParams._transaction_id + '-' + me.RES_id + '-' + tabCount ;
+			//console.log('Defining a model '+tmpModelName) ;
+			Ext.define(tmpModelName, {
+				extend: 'Ext.data.Model',
+				fields: fields
+			});
+			var tabstore = Ext.create('Ext.data.Store',{
+				model:tmpModelName,
+				pageSize: 50,
+				buffered: true,
+				purgePageCount: 0
+			});
+			var tabgrid = Ext.create('Ext.grid.Panel',{
 				xtype:'grid',
 				title:tabData.tab_title,
 				columns:columns,
-				store:{
-					fields:fields,
-					data:tabData.data
-				}
+				store:tabstore,
+				verticalScroller: {
+						xtype: 'paginggridscroller',
+						activePrefetch: false
+				},
+				invalidateScrollerOnRefresh: false
 			});
+			tabgrid.on('destroy',function(){
+				// console.log('Unregistering model '+tmpModelName) ;
+				Ext.ModelManager.unregister( tmpModelName ) ;
+			},me);
+			var ln = tabData.data.length,
+				records = [],
+				i = 0;
+			for (; i < ln; i++) {
+				records.push(Ext.create(tmpModelName, tabData.data[i]));
+			}
+			tabstore.cacheRecords(records);
+			tabstore.guaranteeRange(0, 49);
+			
+			tabitems.push(tabgrid);
 			
 		},me) ;
 		
