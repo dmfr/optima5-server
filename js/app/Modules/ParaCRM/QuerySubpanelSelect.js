@@ -14,7 +14,8 @@ Ext.define('QuerySelectModel', {
 	extend: 'Ext.data.Model',
 	fields: [
 		{name: 'select_lib',  type: 'string'},
-		{name: 'math_func_group', type: 'string'}
+		{name: 'math_func_group', type: 'string'},
+		{name: 'math_round', type: 'numeric'}
 	],
 	validations: [
 		{type: 'length',    field: 'select_lib',     min: 1},
@@ -243,20 +244,21 @@ Ext.define('Optima5.Modules.ParaCRM.QuerySubpanelSelect' ,{
 				dock: 'top',
 				items: [{
 					xtype:'label',
-					text: 'Calc : '
+					text: 'Calc: '
 				},{
 					xtype: 'combobox',
 					name: 'math_func_group',
+					width: 50,
 					value: editedrecord.get('math_func_group'),
 					forceSelection: true,
 					editable: false,
 					store: {
 						fields: ['math_func_group','lib'],
 						data : [
-							{math_func_group:'AVG', lib:'AVG (Average)'},
-							{math_func_group:'SUM', lib:'SUM (Sum)'},
-							{math_func_group:'MIN', lib:'MIN (Minimum)'},
-							{math_func_group:'MAX', lib:'MAX (Maximum)'}
+							{math_func_group:'AVG', lib:'AVG'},
+							{math_func_group:'SUM', lib:'SUM'},
+							{math_func_group:'MIN', lib:'MIN'},
+							{math_func_group:'MAX', lib:'MAX'}
 						]
 					},
 					queryMode: 'local',
@@ -265,6 +267,24 @@ Ext.define('Optima5.Modules.ParaCRM.QuerySubpanelSelect' ,{
 					listeners: {
 						change: function( mcombo, newValue ) {
 							editedrecord.set('math_func_group',newValue) ;
+						},
+						scope:me
+					}
+				},{
+					xtype:'label',
+					width:10
+				},{
+					xtype:'label',
+					text: 'Round: '
+				},{
+					xtype: 'numberfield',
+					name: 'math_round',
+					width:45,
+					value: editedrecord.get('math_round'),
+					valueField: 'math_round',
+					listeners: {
+						change: function( mcombo, newValue ) {
+							editedrecord.set('math_round',newValue) ;
 						},
 						scope:me
 					}
