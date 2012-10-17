@@ -600,6 +600,7 @@ function paracrm_queries_builderTransaction_saveFields( &$arr_saisie , $query_id
 	$select = array() ;
 	$select[] = 'select_lib' ;
 	$select[] = 'math_func_group' ;
+	$select[] = 'math_round' ;
 	foreach( $arr_saisie['fields_select'] as $field_select )
 	{
 		$cnt++ ;

@@ -460,9 +460,15 @@ function paracrm_queries_process_query_iteration( $arr_saisie )
 		}
 		
 		if( is_numeric($val) )
-			$RES_group_value[$group_key_id] = round($val,3) ;
-		else
+		{
+			if( ($round_nbdecimals=$arr_saisie['fields_select'][0]['math_round']) > 0 )
+				$RES_group_value[$group_key_id] = round($val,$round_nbdecimals) ;
+			else
+				$RES_group_value[$group_key_id] = round($val) ;
+		}
+		else {
 			$RES_group_value[$group_key_id] = $val ;
+		}
 	}
 	return $RES_group_value ;
 }
