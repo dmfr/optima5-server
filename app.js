@@ -176,6 +176,18 @@ Ext.onReady(function () {
 		}
 	});
 	
+	/*
+	PAGING SCROLLER doesn't always sync when set to 0
+	*/
+	Ext.grid.PagingScroller.override( {
+		onElScroll: function(e,t) {
+			this.callOverridden(arguments);
+			if( t.scrollTop == 0 && !this.syncScroll ) {
+				this.syncTo() ;
+			}
+		}
+	});
+	
  	
 	
 	op5desktop = new Optima5.CoreDesktop.OptimaDesktop ;
