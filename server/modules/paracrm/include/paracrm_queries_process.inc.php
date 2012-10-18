@@ -308,7 +308,13 @@ function paracrm_queries_process_query($arr_saisie, $debug=FALSE)
 		// catalogue du field
 		$math_operand = $symbol['math_fieldoperand'] ;
 		$symbol['sql_file_code'] = $arr_indexed_treefields[$math_operand]['file_code'] ;
-		if( $arr_indexed_treefields[$math_operand]['bible_code'] )
+		if( $arr_indexed_treefields[$math_operand]['bible_code'] && $arr_indexed_treefields[$math_operand]['bible_field_code'] )
+		{
+			$symbol['sql_file_field_code'] = 'field_'.$arr_indexed_treefields[$math_operand]['file_field_code'] ;
+			$symbol['sql_bible_code'] = $arr_indexed_treefields[$math_operand]['bible_code'] ;
+			$symbol['sql_bible_field_code'] = 'field_'.$arr_indexed_treefields[$math_operand]['bible_field_code'] ;
+		}
+		elseif( $arr_indexed_treefields[$math_operand]['bible_code'] )
 		{
 			$symbol['sql_file_field_code'] = 'field_'.$arr_indexed_treefields[$math_operand]['file_field_code'] ;
 			$symbol['sql_bible_code'] = $arr_indexed_treefields[$math_operand]['bible_code'] ;
@@ -429,46 +435,195 @@ function paracrm_queries_process_query_iteration( $arr_saisie )
 	}
 	$arr_chain = array_reverse($arr_chain) ;
 	
-	$RES_group_arrValues = paracrm_queries_process_query_iterationDo( $arr_saisie, $arr_chain, 0, array(), NULL, NULL ) ;
+	$field_select = $arr_saisie['fields_select'][0] ;
 	
-	
+	$RES_group_arr_arrSymbolValue = paracrm_queries_process_query_iterationDo( $arr_saisie, $arr_chain, 0, array(), NULL, NULL ) ;
 	
 	$RES_group_value = array() ;
-	foreach( $RES_group_arrValues as $group_key_id => $arr_values )
-	{
-		switch( $arr_saisie['fields_select'][0]['math_func_group'] )
-		{
-			case 'AVG' :
-			$val = array_sum($arr_values) / count($arr_values) ;
-			break ;
+	switch( $field_select['math_func_mode'] ) {
+	
+		case 'IN' :
+			$RES_group_arrSymbolValue = array() ;
 			
-			case 'SUM' :
-			$val = array_sum($arr_values) ;
-			break ;
-			
-			case 'MIN':
-			$val = min($arr_values) ;
-			break ;
-			
-			case 'MAX' :
-			$val = max($arr_values) ;
-			break ;
-			
-			default :
-			$val = '' ;
-			break ;
-		}
+			// Application intra symboles de l'operation SUM/MAX/AVG....
+			foreach( $RES_group_arr_arrSymbolValue as $group_key_id => $arr_arrSymbolValue )
+			{
+				$subGroup_symbol_arrValues = array() ;
+				foreach( $arr_arrSymbolValue as $arr_symbolId_value )
+				{
+					foreach( $arr_symbolId_value as $symbol_id => $value )
+					{
+						if( !is_array($subGroup_symbol_arrValues[$symbol_id]) )
+							$subGroup_symbol_arrValues[$symbol_id] = array() ;
+						$subGroup_symbol_arrValues[$symbol_id][] = $value ;
+					}
+				}
+				
+				// pour chaque symbole/operand => execution de la fonction operatoire en intra
+				foreach( $subGroup_symbol_arrValues as $symbol_id => $arrValues )
+				{
+					switch( $field_select['math_func_group'] )
+					{
+						case 'AVG' :
+						$val = array_sum($arrValues) / count($arrValues) ;
+						break ;
+						
+						case 'SUM' :
+						$val = array_sum($arrValues) ;
+						break ;
+						
+						case 'MIN':
+						$val = min($arrValues) ;
+						break ;
+						
+						case 'MAX' :
+						$val = max($arrValues) ;
+						break ;
+						
+						default :
+						$val = '' ;
+						break ;
+					}
+					$RES_group_arrSymbolValue[$group_key_id][$symbol_id] = $val ;
+				}
+			}
 		
-		if( is_numeric($val) )
-		{
-			if( ($round_nbdecimals=$arr_saisie['fields_select'][0]['math_round']) > 0 )
-				$RES_group_value[$group_key_id] = round($val,$round_nbdecimals) ;
-			else
-				$RES_group_value[$group_key_id] = round($val) ;
-		}
-		else {
-			$RES_group_value[$group_key_id] = $val ;
-		}
+			// Puis, résolution de l'expression de calcul une seule fois (par groupe)
+			foreach( $RES_group_arrSymbolValue as $group_key_id => $arr_symbolId_value )
+			{
+				if( count($field_select['math_expression']) > 1 )
+				{
+					$eval_string = '' ;
+					foreach( $field_select['math_expression'] as $symbol_id => $symbol )
+					{
+						$eval_string.= $symbol['math_operation'] ;
+						
+						if( $symbol['math_parenthese_in'] )
+							$eval_string.= '(' ;
+							
+						if( $symbol['math_staticvalue'] != 0 )
+							$value = (float)($symbol['math_staticvalue']) ;
+						elseif( isset($arr_symbolId_value[$symbol_id]) )
+							$value = $arr_symbolId_value[$symbol_id] ;
+						else
+							$value = 0 ;
+						$eval_string.= $value ;
+						
+						if( $symbol['math_parenthese_out'] )
+							$eval_string.= ')' ;
+					}
+					
+					$evalmath = new EvalMath ;
+					$evalmath->suppress_errors = TRUE ;
+					if( ($val = $evalmath->evaluate($eval_string)) === FALSE )
+					{
+						continue ;
+					}
+				}
+				else
+				{
+					$val = current($arr_symbolId_value) ;
+				}
+				
+				if( is_numeric($val) )
+				{
+					if( ($round_nbdecimals=$field_select['math_round']) > 0 )
+						$RES_group_value[$group_key_id] = round($val,$round_nbdecimals) ;
+					else
+						$RES_group_value[$group_key_id] = round($val) ;
+				}
+				else {
+					$RES_group_value[$group_key_id] = $val ;
+				}
+			}
+			break ;
+		
+		
+		
+		case 'OUT' :
+		default :
+			$RES_group_arrValues = array() ;
+			// *** Resolution des expressions opératoires en premier  ****
+			foreach( $RES_group_arr_arrSymbolValue as $group_key_id => $arr_arrSymbolValue )
+			{
+				foreach( $arr_arrSymbolValue as $arr_symbolId_value )
+				{
+					if( count($field_select['math_expression']) > 1 )
+					{
+						$eval_string = '' ;
+						foreach( $field_select['math_expression'] as $symbol_id => $symbol )
+						{
+							$eval_string.= $symbol['math_operation'] ;
+							
+							if( $symbol['math_parenthese_in'] )
+								$eval_string.= '(' ;
+								
+							if( $symbol['math_staticvalue'] != 0 )
+								$value = (float)($symbol['math_staticvalue']) ;
+							elseif( isset($arr_symbolId_value[$symbol_id]) )
+								$value = $arr_symbolId_value[$symbol_id] ;
+							else
+								$value = 0 ;
+							$eval_string.= $value ;
+							
+							if( $symbol['math_parenthese_out'] )
+								$eval_string.= ')' ;
+						}
+						
+						$evalmath = new EvalMath ;
+						$evalmath->suppress_errors = TRUE ;
+						if( ($val = $evalmath->evaluate($eval_string)) === FALSE )
+						{
+							continue ;
+						}
+					}
+					else
+					{
+						$val = current($arr_symbolId_value) ;
+					}
+					if( !is_array($RES_group_arrValues[$group_key_id]) )
+						$RES_group_arrValues[$group_key_id] = array() ;
+					$RES_group_arrValues[$group_key_id][] = $val ;
+				}
+			}
+			
+			foreach( $RES_group_arrValues as $group_key_id => $arr_values )
+			{
+				switch( $field_select['math_func_group'] )
+				{
+					case 'AVG' :
+					$val = array_sum($arr_values) / count($arr_values) ;
+					break ;
+					
+					case 'SUM' :
+					$val = array_sum($arr_values) ;
+					break ;
+					
+					case 'MIN':
+					$val = min($arr_values) ;
+					break ;
+					
+					case 'MAX' :
+					$val = max($arr_values) ;
+					break ;
+					
+					default :
+					$val = '' ;
+					break ;
+				}
+				
+				if( is_numeric($val) )
+				{
+					if( ($round_nbdecimals=$field_select['math_round']) > 0 )
+						$RES_group_value[$group_key_id] = round($val,$round_nbdecimals) ;
+					else
+						$RES_group_value[$group_key_id] = round($val) ;
+				}
+				else {
+					$RES_group_value[$group_key_id] = $val ;
+				}
+			}
+			break ;
 	}
 	return $RES_group_value ;
 }
@@ -483,15 +638,15 @@ function paracrm_queries_process_query_iterationDo( $arr_saisie, $iteration_chai
 		switch( $arr_saisie['fields_select'][0]['iteration_mode'] )
 		{
 			case 'count' :
-			return $RES_group_arrValues = paracrm_queries_process_query_doCount( $arr_saisie, $target_fileCode, $base_row, $parent_fileCode, $parent_filerecordId ) ;
+			return $RES_group_arr_arrSymbolValue = paracrm_queries_process_query_doCount( $arr_saisie, $target_fileCode, $base_row, $parent_fileCode, $parent_filerecordId ) ;
 			
 			case 'value' :
-			return $RES_group_arrValues = paracrm_queries_process_query_doValue( $arr_saisie, $target_fileCode, $base_row, $parent_fileCode, $parent_filerecordId ) ;
+			return $RES_group_arr_arrSymbolValue = paracrm_queries_process_query_doValue( $arr_saisie, $target_fileCode, $base_row, $parent_fileCode, $parent_filerecordId ) ;
 		}
 	}
 	
 	
-	$RES_group_arrValues = array() ;
+	$RES_group_arr_arrSymbolValue = array() ;
 	
 	$target_fileCode = $iteration_chain[$iteration_chain_offset] ;
 	$view_filecode = 'view_file_'.$target_fileCode ;
@@ -508,18 +663,19 @@ function paracrm_queries_process_query_iterationDo( $arr_saisie, $iteration_chai
 		$row = $base_row ;
 		$row[$target_fileCode] = $arr ;
 			
-		$subRes_group_arrValues = paracrm_queries_process_query_iterationDo($arr_saisie,$iteration_chain, $iteration_chain_offset+1,$row,$target_fileCode,$arr['filerecord_id']) ;
-		foreach( $subRes_group_arrValues as $group_key_id => $arrValues )
+
+		$subRes_group_arrSymbolValue = paracrm_queries_process_query_iterationDo($arr_saisie,$iteration_chain, $iteration_chain_offset+1,$row,$target_fileCode,$arr['filerecord_id']) ;
+		foreach( $subRes_group_arrSymbolValue as $group_key_id => $arr_arrSymbolValue )
 		{
-			if( !is_array($RES_group_arrValues[$group_key_id]) )
-				$RES_group_arrValues[$group_key_id] = array() ;
-			foreach( $arrValues as $value )
-				$RES_group_arrValues[$group_key_id][] = $value ;
+			if( !is_array($RES_group_arr_arrSymbolValue[$group_key_id]) )
+				$RES_group_arr_arrSymbolValue[$group_key_id] = array() ;
+			
+			$RES_group_arr_arrSymbolValue[$group_key_id] = array_merge( $RES_group_arr_arrSymbolValue[$group_key_id], $arr_arrSymbolValue ) ;
 		}
 		// print_r($row) ;
 		$c++ ;
 	}
-	return $RES_group_arrValues ;
+	return $RES_group_arr_arrSymbolValue ;
 }
 
 
@@ -530,7 +686,7 @@ function paracrm_queries_process_query_doValue( $arr_saisie, $target_fileCode, $
 	global $_opDB ;
 	global $arr_bible_trees , $arr_bible_entries , $arr_bible_racx_entry , $arr_bible_racx_treenode ;
 	
-	$subRes_group_arrValues = array() ;
+	$subRes_group_arr_arrSymbolValue = array() ;
 	
 	$field_select = current($arr_saisie['fields_select']) ;
 	
@@ -575,50 +731,19 @@ function paracrm_queries_process_query_doValue( $arr_saisie, $target_fileCode, $
 		
 		foreach( $subRES_group_symbol_value as $group_key_id => $subSubRES_symbol_value )
 		{
-			if( count($field_select['math_expression']) > 1 )
-			{
-				$eval_string = '' ;
-				foreach( $field_select['math_expression'] as $symbol_id => $symbol )
-				{
-					$eval_string.= $symbol['math_operation'] ;
-					
-					if( $symbol['math_parenthese_in'] )
-						$eval_string.= '(' ;
-						
-					if( $symbol['math_staticvalue'] != 0 )
-						$value = (float)($symbol['math_staticvalue']) ;
-					elseif( isset($subSubRES_symbol_value[$symbol_id]) )
-						$value = $subSubRES_symbol_value[$symbol_id] ;
-					else
-						$value = 0 ;
-					$eval_string.= $value ;
-					
-					if( $symbol['math_parenthese_out'] )
-						$eval_string.= ')' ;
-				}
-				
-				$evalmath = new EvalMath ;
-				$evalmath->suppress_errors = TRUE ;
-				if( ($val = $evalmath->evaluate($eval_string)) === FALSE )
-				{
-					continue ;
-				}
-			}
-			else
-			{
-				$val = current($subSubRES_symbol_value) ;
-			}
-			
-			// *** Pour chaque groupe on ne retourne qu'une seule valeur => principe du comptage sur une itération
-			if( !isset($subRes_group_arrValues[$group_key_id]) )
-				$subRes_group_arrValues[$group_key_id] = array() ;
-			$subRes_group_arrValues[$group_key_id][] = $val ;
+			/* En mode VALUE :
+				Pour chaque groupe on retourne plusieurs valeurs (principe de l'empilage valeurs)
+				l'opération est effectuée une seule fois par groupe à la fin
+			*/
+			if( !isset($subRes_group_arr_arrSymbolValue[$group_key_id]) )
+				$subRes_group_arr_arrSymbolValue[$group_key_id] = array() ;
+			$subRes_group_arr_arrSymbolValue[$group_key_id][] = $subSubRES_symbol_value ;
 		}
 	}
 
 	// print_r($subRes_group_arrValues) ;
 
-	return $subRes_group_arrValues ;
+	return $subRes_group_arr_arrSymbolValue ;
 }
 
 function paracrm_queries_process_query_doCount( $arr_saisie, $target_fileCode, $base_row, $parent_fileCode, $parent_filerecordId )
@@ -728,46 +853,19 @@ function paracrm_queries_process_query_doCount( $arr_saisie, $target_fileCode, $
 	
 	
 	
-	// execution de l'operation MATH_EXPRESSION pour chaque groupe
-	$subRes_group_arrValues = array() ;
+	$subRes_group_arr_arrSymbolValue = array() ;
 	foreach( $subRES_group_symbol_value as $group_key_id => $subSubRES_symbol_value )
 	{
-		$eval_string = '' ;
-		foreach( $field_select['math_expression'] as $symbol_id => $symbol )
-		{
-			$eval_string.= $symbol['math_operation'] ;
-			
-			if( $symbol['math_parenthese_in'] )
-				$eval_string.= '(' ;
-				
-			if( $symbol['math_staticvalue'] != 0 )
-				$value = (float)($symbol['math_staticvalue']) ;
-			elseif( isset($subSubRES_symbol_value[$symbol_id]) )
-				$value = $subSubRES_symbol_value[$symbol_id] ;
-			else
-				$value = 0 ;
-			$eval_string.= $value ;
-			
-			if( $symbol['math_parenthese_out'] )
-				$eval_string.= ')' ;
-		}
-		
-		$evalmath = new EvalMath ;
-		$evalmath->suppress_errors = TRUE ;
-		if( ($val = $evalmath->evaluate($eval_string)) === FALSE )
-		{
-			continue ;
-		}
-		
-		// *** Pour chaque groupe on ne retourne qu'une seule valeur => principe du comptage sur une itération
-		$subRes_group_arrValues[$group_key_id] = array() ;
-		$subRes_group_arrValues[$group_key_id][] = $val ;
+		// *** Mode COUNT ****
+		// *** Pour chaque groupe on ne retourne qu'un seul map symbole>valeur => principe du comptage sur une itération
+		$subRes_group_arr_arrSymbolValue[$group_key_id] = array() ;
+		$subRes_group_arr_arrSymbolValue[$group_key_id][] = $subSubRES_symbol_value ;
 	}
 	
 	
 	// print_r($subRes_group_arrValues) ;
 	
-	return $subRes_group_arrValues ;
+	return $subRes_group_arr_arrSymbolValue ;
 }
 
 function paracrm_queries_process_queryHelp_where( $record_file, $fields_where ) // ** les fields where doivent etre prémachés pour les bibles !!!
