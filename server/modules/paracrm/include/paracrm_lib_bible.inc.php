@@ -79,12 +79,12 @@ function paracrm_lib_bible_buildCaches()
 				$treenode_parent_key = $record['treenode_parent_key'] ;
 				$treenode_key = $record['treenode_key'] ;
 				
-				unset($raw_records[$mid]) ;
-				
 				if( $tree->getTree( $treenode_parent_key ) != NULL )
 				{
 					$parent_node = $tree->getTree( $treenode_parent_key ) ;
 					$parent_node->addLeaf( $treenode_key ) ;
+					unset($raw_records[$mid]) ;
+					
 					$nb_pushed_this_pass++ ;
 					$nb_pushed++ ;
 				}
