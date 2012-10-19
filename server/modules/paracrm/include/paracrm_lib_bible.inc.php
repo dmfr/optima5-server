@@ -54,7 +54,7 @@ function paracrm_lib_bible_buildCaches()
 	
 	
 	
-	
+		// ************** Création des arbres de nomenclature TREE pour la bible ****************
 		$view_tree = 'view_bible_'.$bible_code.'_tree' ;
 		$query = "SELECT treenode_key, treenode_parent_key FROM $view_tree" ;
 		$result = $_opDB->query($query) ;
