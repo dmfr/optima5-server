@@ -178,8 +178,27 @@ function paracrm_android_syncPull( $post_data )
 	$file_code = $post_data['file_code'] ;
 	$sync_timestamp = $post_data['sync_timestamp'] ;
 	
+	$query_test = "select count(*) from store_file where file_code='$file_code' AND ( sync_vuid='' OR sync_timestamp='0' )" ;
+	if( $_opDB->query_uniqueValue($query_test) > 0 ) {
+		// ***** PREPARATION DES DONNEES ******
+		$query = "LOCK TABLES store_file WRITE, store_file_field WRITE" ;
+		$_opDB->query($query) ;
+		
+		$sync_prefix = "PHPSERVER" ;
+		$query = "UPDATE store_file SET sync_vuid=CONCAT('$sync_prefix','-',filerecord_id) WHERE file_code='$file_code' AND sync_vuid=''" ;
+		$_opDB->query($query) ;
+		
+		$now_timestamp = time() ;
+		$query = "UPDATE store_file SET sync_timestamp='$now_timestamp' WHERE file_code='$file_code' AND sync_timestamp='0'" ;
+		$_opDB->query($query) ;
+		
+		$query = "UNLOCK TABLES" ;
+		$_opDB->query($query) ;
+		// *************************************
+	}
+	
 	$arr_table_query = array() ;
-	$arr_table_query['store_file'] = "SELECT * FROM store_file WHERE file_code='$file_code' AND sync_timestamp>'$sync_timestamp'" ;
+	$arr_table_query['store_file'] = "SELECT * FROM store_file WHERE file_code='$file_code' AND sync_timestamp>'$sync_timestamp' AND sync_vuid<>''" ;
 	$arr_table_query['store_file_field'] = "SELECT filefield.* FROM store_file file , store_file_field filefield 
 															WHERE file.filerecord_id = filefield.filerecord_id 
 															AND file.file_code='$file_code' AND file.sync_timestamp>'$sync_timestamp'" ;

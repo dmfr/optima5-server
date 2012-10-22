@@ -828,7 +828,7 @@ function paracrm_define_buildViewFile( $file_code )
 						ON t_{$media_field}.filerecord_id = mstr.filerecord_id 
 							AND t_{$media_field}.filerecord_field_code='$media_field'" ;
 	}
-	$query.= " WHERE mstr.file_code='$file_code'" ;
+	$query.= " WHERE mstr.file_code='$file_code' AND mstr.sync_is_deleted<>'O'" ;
 	$_opDB->query($query) ;
 	
 	sleep(1) ;
