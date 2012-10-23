@@ -712,20 +712,31 @@ function paracrm_queries_process_query_doValue( $arr_saisie, $target_fileCode, $
 		// iteration sur les symboles
 		foreach( $field_select['math_expression'] as $symbol_id => $symbol )
 		{
-			if( $symbol['sql_file_code'] != $target_fileCode )
-				return array() ;
-			if( $symbol['sql_file_code'] == $target_fileCode && !$symbol['sql_file_field_code'] )
-				return array() ;
-				
 			if( $symbol['math_staticvalue'] != 0 )
 				continue ;
+		
+			if( $symbol['sql_file_code'] != $target_fileCode )
+				return array() ;
+			if( !$symbol['sql_file_field_code'] )
+				return array() ;
+			if( $symbol['sql_bible_code'] && !$symbol['sql_bible_field_code'] )
+				return array() ;
 				
-			
 			$file_code = $symbol['sql_file_code'] ;
 			$file_field_code = $symbol['sql_file_field_code'] ;
 			
-		
-			$subRES_group_symbol_value[$group_key_id][$symbol_id] = $row_group[$file_code][$file_field_code] ;
+			if( $symbol['sql_bible_code'] && $symbol['sql_bible_field_code'] ) {
+			
+				// field of bible record
+				$bible_field_code = $symbol['sql_bible_field_code'] ;
+				$bible_record = paracrm_lib_data_getRecord_bibleEntry($symbol['sql_bible_code'], $row_group[$file_code][$file_field_code]) ;
+				$subRES_group_symbol_value[$group_key_id][$symbol_id] = $bible_record[$bible_field_code] ;
+			}
+			else {
+			
+				// field of cursor file record : standard
+				$subRES_group_symbol_value[$group_key_id][$symbol_id] = $row_group[$file_code][$file_field_code] ;
+			}
 		}
 		
 		
