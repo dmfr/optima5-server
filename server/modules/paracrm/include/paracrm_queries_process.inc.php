@@ -291,7 +291,7 @@ function paracrm_queries_process_query($arr_saisie, $debug=FALSE)
 	if( $debug ) {
 		echo "Debug 3c: preprocess SELECT..." ;
 	}
-	$field_select = current($arr_saisie['fields_select']) ;
+	$field_select = $arr_saisie['fields_select'][0] ;
 	// analyse !!! Mode de requête ? Count / Value
 	// --- Si dans les operands on a un titre de fichier ou de bible => mode COUNT
 	// --- Sinon mode VALUE
@@ -364,10 +364,82 @@ function paracrm_queries_process_query($arr_saisie, $debug=FALSE)
 	
 	
 	
+	// CALCUL (pour chaque select_field) de la NULL value
+	if( $debug ) {
+		echo "Debug 4pre: calcul null value " ;
+	}
+	$field_select = $arr_saisie['fields_select'][0] ;
+	while(TRUE) {
+		
+		// Mode VALUE + operand non numérique => valeur NULL
+		if( $field_select['iteration_mode'] == 'value' )
+		{
+			foreach( $field_select['math_expression'] as $symbol_id => &$symbol )
+			{
+				if( $symbol['math_staticvalue'] != 0 )
+					continue ;
+				$math_operand = $symbol['math_fieldoperand'] ;
+				if( $arr_indexed_treefields[$math_operand]['field_type'] != 'number' )
+				{
+					$field_select['null_value'] = NULL ;
+					break 2 ;
+				}
+			}
+		}
+		
+		// Quelle est la fonction opératoire ? AVG / MIN / MAX => valeur NULL
+		switch( $field_select['math_func_group'] )
+		{
+			case 'AVG' :
+			case 'MIN':
+			case 'MAX' :
+			$field_select['null_value'] = NULL ;
+			break 2 ;
+			
+			case 'SUM' :
+			default :
+			break ;
+		}
+		
+		// Sinon : simu de l'operation avec valeurs nulles
+		foreach( $field_select['math_expression'] as $symbol_id => &$symbol )
+		{
+			$eval_string.= $symbol['math_operation'] ;
+			
+			if( $symbol['math_parenthese_in'] )
+				$eval_string.= '(' ;
+				
+			if( $symbol['math_staticvalue'] != 0 )
+				$value = (float)($symbol['math_staticvalue']) ;
+			else
+				$value = 0 ;
+			$eval_string.= $value ;
+			
+			if( $symbol['math_parenthese_out'] )
+				$eval_string.= ')' ;
+		}
+		
+		
+		$evalmath = new EvalMath ;
+		$evalmath->suppress_errors = TRUE ;
+		if( ($val = $evalmath->evaluate($eval_string)) === FALSE )
+		{
+			$field_select['null_value'] = NULL ;
+			break ; ;
+		}
+		$field_select['null_value'] = $val ;
+		break ;
+	}
+	$arr_saisie['fields_select'][0] = $field_select ;
+	if( $debug ) {
+		echo " is [{$field_select['null_value']}] , OK\n" ;
+	}
+	
+	
 	// EXECUTION DE LA REQUETE
 	// Résultats :
-	//   $RES_groupKey_groupDesc(=$_groups_hashes) : annuaire des coordonnées de cellule ( $group_hash => $valeur resultat )
-	//   $RES_groupKey_value : tab.assoc ( $group_hash => tableau ( $group_id => $valeur etiquette ) )
+	//   $RES_groupKey_groupDesc(=$_groups_hashes) : annuaire des coordonnées de cellule ( $group_hash => tableau ( $group_id => $valeur etiquette ) )
+	//   $RES_groupKey_value : tab.assoc ( $group_hash => $valeur resultat )
 	if( $debug ) {
 		echo "Debug 4: execution query " ;
 	}
@@ -411,7 +483,8 @@ function paracrm_queries_process_query($arr_saisie, $debug=FALSE)
 	return array('RES_groupKey_groupDesc'=>$RES_groupKey_groupDesc,
 					'RES_groupKey_value'=>$RES_groupKey_value,
 					'RES_labels'=>$RES_labels,
-					'RES_titles'=>$RES_titles) ;
+					'RES_titles'=>$RES_titles,
+					'RES_nullValue'=>$field_select['null_value']) ;
 }
 function paracrm_queries_process_query_iteration( $arr_saisie )
 {

@@ -180,7 +180,7 @@ function paracrm_queries_paginate_getGridRow( &$RES, $arr_static, $arr_grid_x, $
 			$group_key = paracrm_queries_paginate_getGroupKey( $RES, $hash ) ;
 			if( $group_key === FALSE )
 			{
-				$row[$dataIndex] = '' ;
+				$row[$dataIndex] = $RES['RES_nullValue'] ;
 			}
 			else
 			{
@@ -198,7 +198,7 @@ function paracrm_queries_paginate_getGridRow( &$RES, $arr_static, $arr_grid_x, $
 			$group_key = paracrm_queries_paginate_getGroupKey( $RES, $hash ) ;
 			if( $group_key === FALSE )
 			{
-				$row[$dataIndex] = '' ;
+				$row[$dataIndex] = $RES['RES_nullValue'] ;
 			}
 			else
 			{
