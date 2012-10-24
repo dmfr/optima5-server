@@ -114,7 +114,9 @@ function paracrm_queries_process_buildTrees() {
 
 function paracrm_queries_process_query($arr_saisie, $debug=FALSE) 
 {
-	global $_opDB, $_groups_hashes ;
+	global $_opDB ;
+	
+	global $_groups_hashes, $_groups_hashes_indexed, $_groups_hashes_newkey ;
 	
 	global $arr_bible_trees , $arr_bible_entries , $arr_bible_racx_entry , $arr_bible_racx_treenode ;
 	
@@ -217,6 +219,50 @@ function paracrm_queries_process_query($arr_saisie, $debug=FALSE)
 		}
 	}
 	$arr_saisie['fields_where'] = $fields_where ;
+
+	$fields_progress = $arr_saisie['fields_progress'] ;
+	if( $fields_progress ) {
+	foreach( $fields_progress as &$field_progress )
+	{
+		//print_r($field_where) ;
+	
+		$tfield = $field_progress['field_code'] ;
+		$field_progress['sql_file_code'] = $arr_indexed_treefields[$tfield]['file_code'] ;
+		$field_progress['sql_file_field_code'] = 'field_'.$arr_indexed_treefields[$tfield]['file_field_code'] ;
+		switch( $field_progress['field_type'] )
+		{
+			case 'link' :
+			if( $field_progress['condition_bible_mode'] != 'SELECT' )
+				break ;
+			if( $field_progress['condition_bible_entries'] )
+			{
+				$field_progress['sql_file_field_code'] = $field_progress['sql_file_field_code'].'_erx' ;
+				$field_progress['sql_arr_select'] = array() ;
+				foreach( paracrm_lib_bible_lookupEntryRacx( $arr_indexed_treefields[$tfield]['bible_code'], $field_progress['condition_bible_entries'] ) as $erx )
+					$field_progress['sql_arr_select'][] = $erx ;
+			}
+			elseif( $field_progress['condition_bible_treenodes'] )
+			{
+				$field_progress['sql_file_field_code'] = $field_progress['sql_file_field_code'].'_trx' ;
+				$field_progress['sql_arr_select'] = array() ;
+				if( !$arr_bible_trees[$arr_indexed_treefields[$tfield]['bible_code']] )
+					continue ;
+				$tmp_tree = $arr_bible_trees[$arr_indexed_treefields[$tfield]['bible_code']] ;
+				foreach( json_decode($field_progress['condition_bible_treenodes'],true) as $trootnode )
+				{
+					foreach( $tmp_tree->getTree($trootnode)->getAllMembers() as $tnode )
+					{
+						foreach( paracrm_lib_bible_lookupTreenodeRacx( $arr_indexed_treefields[$tfield]['bible_code'], $tnode ) as $trx )
+							$field_progress['sql_arr_select'][] = $trx ;
+					}
+				}
+			}
+			break ;
+		
+		}
+	}
+	}
+	$arr_saisie['fields_progress'] = $fields_progress ;
 	if( $debug ) {
 		echo "OK\n" ;
 	}
@@ -446,6 +492,20 @@ function paracrm_queries_process_query($arr_saisie, $debug=FALSE)
 	$RES_groupKey_value = array() ;
 	$RES_groupKey_value = paracrm_queries_process_query_iteration( $arr_saisie ) ;
 	
+	$RES_progress = array() ;
+	if( $arr_saisie['fields_progress'] ) {
+		foreach( $arr_saisie['fields_progress'] as &$field_progress ) {
+			$arr_saisie_copy = $arr_saisie ;
+			if( !is_array($arr_saisie_copy['fields_where']) )
+				$arr_saisie_copy['fields_where'] = array() ;
+			$arr_saisie_copy['fields_where'][] = $field_progress ;
+			
+			// execution d'une requete alternative
+			$RES_alt_progress = paracrm_queries_process_query_iteration( $arr_saisie_copy ) ;
+			$RES_progress[] = $RES_alt_progress ;
+		}
+	}
+	
 	if( $RES_groupKey_value === NULL )
 		return NULL ;
 		
@@ -458,7 +518,7 @@ function paracrm_queries_process_query($arr_saisie, $debug=FALSE)
 	if( $debug ) {
 		echo "Debug 5: labels + titles" ;
 	}
-	$RES_labels = paracrm_queries_process_labels( $arr_saisie , $RES_groupKey_groupDesc ) ;
+	$RES_labels = paracrm_queries_process_labels( $arr_saisie ) ;
 	
 	$RES_titles = array() ;
 	$RES_titles['fields_group'] = array() ;
@@ -484,11 +544,16 @@ function paracrm_queries_process_query($arr_saisie, $debug=FALSE)
 					'RES_groupKey_value'=>$RES_groupKey_value,
 					'RES_labels'=>$RES_labels,
 					'RES_titles'=>$RES_titles,
-					'RES_nullValue'=>$field_select['null_value']) ;
+					'RES_nullValue'=>$field_select['null_value'],
+					'RES_progress'=>$RES_progress) ;
 }
 function paracrm_queries_process_query_iteration( $arr_saisie )
 {
 	global $_opDB ;
+	
+	// **** IMPORTANT ! *****
+	// => remise à zéro du cache WHERE
+	$GLOBALS['cache_queryWhereUnique'] = array() ;
 
 	// trouver la chaine d'iteration
 	$arr_chain = array() ;

@@ -75,6 +75,13 @@ function paracrm_queries_paginate_getGridColumns( &$RES, $RES_labels_tab )
 			$col['dataIndex'] = 'valueCol_'.$x_code ;
 			$col['dataType'] = 'string' ;
 			$tab[] = $col ;
+			for( $i=0 ; $i<count($RES['RES_progress']) ; $i++ ) {
+				$col = array() ;
+				$col['dataIndex'] = 'valueCol_'.$x_code.'_prog_'.$i ;
+				$col['dataType'] = 'string' ;
+				$col['progressColumn'] = true ;
+				$tab[] = $col ;
+			}
 		}
 	}
 	else
@@ -85,6 +92,13 @@ function paracrm_queries_paginate_getGridColumns( &$RES, $RES_labels_tab )
 		$col['dataIndex'] = 'valueCol' ;
 		$col['dataType'] = 'string' ;
 		$tab[] = $col ;
+		for( $i=0 ; $i<count($RES['RES_progress']) ; $i++ ) {
+			$col = array() ;
+			$col['dataIndex'] = 'valueCol'.'_prog_'.$i ;
+			$col['dataType'] = 'string' ;
+			$col['progressColumn'] = true ;
+			$tab[] = $col ;
+		}
 	}
 	
 	return $tab ;
@@ -182,9 +196,25 @@ function paracrm_queries_paginate_getGridRow( &$RES, $arr_static, $arr_grid_x, $
 			{
 				$row[$dataIndex] = $RES['RES_nullValue'] ;
 			}
+			elseif( !isset($RES['RES_groupKey_value'][$group_key]) )
+			{
+				$row[$dataIndex] = $RES['RES_nullValue'] ;
+			}
 			else
 			{
 				$row[$dataIndex] = $RES['RES_groupKey_value'][$group_key] ;
+				foreach( $RES['RES_progress'] as $id => $subRES_progress ) {
+					$ref_value = $row[$dataIndex] ;
+					$dataIndex_alt = $dataIndex.'_prog_'.$id ;
+					if( !isset($subRES_progress[$group_key]) )
+						$row[$dataIndex_alt] = NULL ;
+					else
+					{
+						$alt_value = $subRES_progress[$group_key] ;
+						$delta = $ref_value - $alt_value ;
+						$row[$dataIndex_alt] = $delta ;
+					}
+				}
 			}
 		}
 	}
@@ -197,6 +227,10 @@ function paracrm_queries_paginate_getGridRow( &$RES, $arr_static, $arr_grid_x, $
 			// $group_key = array_search($hash,$RES['RES_groupKey_groupDesc']) ;
 			$group_key = paracrm_queries_paginate_getGroupKey( $RES, $hash ) ;
 			if( $group_key === FALSE )
+			{
+				$row[$dataIndex] = $RES['RES_nullValue'] ;
+			}
+			elseif( !isset($RES['RES_groupKey_value'][$group_key]) )
 			{
 				$row[$dataIndex] = $RES['RES_nullValue'] ;
 			}
