@@ -80,6 +80,24 @@ Ext.define('Optima5.Modules.ParaCRM.QueryResultPanel' ,{
 						}
 					}) ;
 				}
+				else if( columnDef.progressColumn == true ) {
+					Ext.apply(columnDef,{
+						tdCls: 'op5paracrm-progresscolumn',
+						renderer: function(value,meta) {
+							if( value > 0 ) {
+								meta.tdCls = 'op5paracrm-progresscell-pos' ;
+								return '+ '+Math.abs(value) ;
+							} else if( value < 0 ) {
+								meta.tdCls = 'op5paracrm-progresscell-neg' ;
+								return '- '+Math.abs(value) ;
+							} else if( value==='' ) {
+								return '' ;
+							} else {
+								return '=' ;
+							}
+						}
+					}) ;
+				}
 				else {
 					Ext.apply(columnDef,{
 						tdCls: 'op5paracrm-datacolumn'

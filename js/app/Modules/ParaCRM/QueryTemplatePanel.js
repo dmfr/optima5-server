@@ -223,13 +223,17 @@ Ext.define('Optima5.Modules.ParaCRM.QueryTemplatePanel' ,{
 					dataIndex:'col3',
 					tdCls: 'op5paracrm-progresscolumn',
 					align: '',
-					renderer: function(value) {
+					renderer: function(value,meta) {
 						if( value > 0 ) {
+							meta.tdCls = 'op5paracrm-progresscell-pos' ;
 							return '+ '+Math.abs(value) ;
 						} else if( value < 0 ) {
+							meta.tdCls = 'op5paracrm-progresscell-neg' ;
 							return '- '+Math.abs(value) ;
-						} else {
+						} else if( value==='' ) {
 							return '' ;
+						} else {
+							return '=' ;
 						}
 					}
 				}],
@@ -288,7 +292,11 @@ Ext.define('Optima5.Modules.ParaCRM.QueryTemplatePanel' ,{
 		cssBlob += ".op5paracrm-querygrid-demo .op5paracrm-progresscolumn { font-weight:"+ (progressBold?'bold':'normal') +"; }\r\n" ;
 		
 		textAlign = me.settingsRecord.get('data_align') ;
-		cssBlob += ".op5paracrm-querygrid-demo .x-grid-cell-inner { text-align:"+ textAlign +"; }\r\n" ;
+		cssBlob += ".op5paracrm-querygrid-demo .op5paracrm-datacolumn .x-grid-cell-inner { text-align:"+ textAlign +"; }\r\n" ;
+		cssBlob += ".op5paracrm-querygrid-demo .op5paracrm-progresscolumn .x-grid-cell-inner { text-align:left; }\r\n" ;
+		
+		cssBlob += ".op5paracrm-querygrid-demo .op5paracrm-progresscell-pos .x-grid-cell-inner { color: green; }\r\n" ;
+		cssBlob += ".op5paracrm-querygrid-demo .op5paracrm-progresscell-neg .x-grid-cell-inner { color: red; }\r\n" ;
 		
 		Ext.util.CSS.createStyleSheet(cssBlob, 'op5paracrmQuerygridDemo');
 	},

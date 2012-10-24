@@ -72,7 +72,10 @@ Ext.define('Optima5.Modules.ParaCRM.QueryTemplateManager' ,{
 		
 		textAlign = settingsRecord.get('data_align') ;
 		cssBlob += ".op5paracrm-querygrid .op5paracrm-datacolumn .x-grid-cell-inner { text-align:"+ textAlign +"; }\r\n" ;
-		cssBlob += ".op5paracrm-querygrid .op5paracrm-progresscolumn .x-grid-cell-inner { text-align:"+ textAlign +"; }\r\n" ;
+		cssBlob += ".op5paracrm-querygrid .op5paracrm-progresscolumn .x-grid-cell-inner { text-align:left; }\r\n" ;
+		
+		cssBlob += ".op5paracrm-querygrid .op5paracrm-progresscell-pos .x-grid-cell-inner { color: green; }\r\n" ;
+		cssBlob += ".op5paracrm-querygrid .op5paracrm-progresscell-neg .x-grid-cell-inner { color: red; }\r\n" ;
 		
 		Ext.util.CSS.createStyleSheet(cssBlob, 'op5paracrmQuerygrid');
 	}
