@@ -545,6 +545,7 @@ function paracrm_queries_process_query($arr_saisie, $debug=FALSE)
 					'RES_labels'=>$RES_labels,
 					'RES_titles'=>$RES_titles,
 					'RES_nullValue'=>$field_select['null_value'],
+					'RES_round'=>$field_select['math_round'],
 					'RES_progress'=>$RES_progress) ;
 }
 function paracrm_queries_process_query_iteration( $arr_saisie )
@@ -663,16 +664,7 @@ function paracrm_queries_process_query_iteration( $arr_saisie )
 					$val = current($arr_symbolId_value) ;
 				}
 				
-				if( is_numeric($val) )
-				{
-					if( ($round_nbdecimals=$field_select['math_round']) > 0 )
-						$RES_group_value[$group_key_id] = round($val,$round_nbdecimals) ;
-					else
-						$RES_group_value[$group_key_id] = round($val) ;
-				}
-				else {
-					$RES_group_value[$group_key_id] = $val ;
-				}
+				$RES_group_value[$group_key_id] = $val ;
 			}
 			break ;
 		
@@ -750,16 +742,7 @@ function paracrm_queries_process_query_iteration( $arr_saisie )
 					break ;
 				}
 				
-				if( is_numeric($val) )
-				{
-					if( ($round_nbdecimals=$field_select['math_round']) > 0 )
-						$RES_group_value[$group_key_id] = round($val,$round_nbdecimals) ;
-					else
-						$RES_group_value[$group_key_id] = round($val) ;
-				}
-				else {
-					$RES_group_value[$group_key_id] = $val ;
-				}
+				$RES_group_value[$group_key_id] = $val ;
 			}
 			break ;
 	}

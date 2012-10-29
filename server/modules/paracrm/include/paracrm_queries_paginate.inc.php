@@ -202,9 +202,18 @@ function paracrm_queries_paginate_getGridRow( &$RES, $arr_static, $arr_grid_x, $
 			}
 			else
 			{
-				$row[$dataIndex] = $RES['RES_groupKey_value'][$group_key] ;
+				$ref_value = $RES['RES_groupKey_value'][$group_key] ;
+				if( is_numeric($ref_value) ) {
+					if( $RES['RES_round'] > 0 ) {
+						$row[$dataIndex] = round($ref_value,$RES['RES_round']) ;
+					} else {
+						$row[$dataIndex] = round($ref_value) ;
+					}
+				} else {
+					$row[$dataIndex] = $ref_value ;
+				}
 				foreach( $RES['RES_progress'] as $id => $subRES_progress ) {
-					$ref_value = $row[$dataIndex] ;
+					$ref_value ;
 					$dataIndex_alt = $dataIndex.'_prog_'.$id ;
 					if( !isset($subRES_progress[$group_key]) )
 						$row[$dataIndex_alt] = NULL ;
@@ -212,6 +221,11 @@ function paracrm_queries_paginate_getGridRow( &$RES, $arr_static, $arr_grid_x, $
 					{
 						$alt_value = $subRES_progress[$group_key] ;
 						$delta = $ref_value - $alt_value ;
+						if( $RES['RES_round'] > 0 ) {
+							$delta = round($delta,$RES['RES_round']) ;
+						} else {
+							$delta = round($delta) ;
+						}
 						$row[$dataIndex_alt] = $delta ;
 					}
 				}
@@ -236,7 +250,33 @@ function paracrm_queries_paginate_getGridRow( &$RES, $arr_static, $arr_grid_x, $
 			}
 			else
 			{
-				$row[$dataIndex] = $RES['RES_groupKey_value'][$group_key] ;
+				$ref_value = $RES['RES_groupKey_value'][$group_key] ;
+				if( is_numeric($ref_value) ) {
+					if( $RES['RES_round'] > 0 ) {
+						$row[$dataIndex] = round($ref_value,$RES['RES_round']) ;
+					} else {
+						$row[$dataIndex] = round($ref_value) ;
+					}
+				} else {
+					$row[$dataIndex] = $ref_value ;
+				}
+				foreach( $RES['RES_progress'] as $id => $subRES_progress ) {
+					$ref_value ;
+					$dataIndex_alt = $dataIndex.'_prog_'.$id ;
+					if( !isset($subRES_progress[$group_key]) )
+						$row[$dataIndex_alt] = NULL ;
+					else
+					{
+						$alt_value = $subRES_progress[$group_key] ;
+						$delta = $ref_value - $alt_value ;
+						if( $RES['RES_round'] > 0 ) {
+							$delta = round($delta,$RES['RES_round']) ;
+						} else {
+							$delta = round($delta) ;
+						}
+						$row[$dataIndex_alt] = $delta ;
+					}
+				}
 			}
 	}
 	return $row ;
