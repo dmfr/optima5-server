@@ -1294,7 +1294,8 @@ function paracrm_queries_process_labels_withTabs( $arr_saisie, $groupId_forTab )
 		{
 			if( $field_where['field_type'] == 'link'
 				&& $field_where['field_code'] == $field_group_tab['field_code']
-				&& $field_where['condition_bible_mode'] == 'SELECT' && $field_where['condition_bible_treenodes'] )
+				&& $field_where['condition_bible_mode'] == 'SELECT' && $field_where['condition_bible_treenodes']
+				&& json_decode($field_where['condition_bible_treenodes'],true) )
 			{
 				$tarr = array() ;
 				foreach( json_decode($field_where['condition_bible_treenodes'],true) as $treenode_key )
@@ -1334,7 +1335,8 @@ function paracrm_queries_process_labels_withTabs( $arr_saisie, $groupId_forTab )
 			{
 				if( $field_where['field_type'] == 'link'
 					&& $field_where['field_code'] == $field_group['field_code']
-					&& $field_where['condition_bible_mode'] == 'SELECT' && $field_where['condition_bible_treenodes'] )
+					&& $field_where['condition_bible_mode'] == 'SELECT' && $field_where['condition_bible_treenodes']
+					&& json_decode($field_where['condition_bible_treenodes'],true) )
 				{
 					$tarr = array() ;
 					foreach( json_decode($field_where['condition_bible_treenodes'],true) as $treenode_key )
@@ -1389,7 +1391,8 @@ function paracrm_queries_process_labels_noTab( $arr_saisie )
 			{
 				if( $field_where['field_type'] == 'link'
 					&& $field_where['field_code'] == $field_group['field_code']
-					&& $field_where['condition_bible_mode'] == 'SELECT' && $field_where['condition_bible_treenodes'] )
+					&& $field_where['condition_bible_mode'] == 'SELECT' && $field_where['condition_bible_treenodes']
+					&& json_decode($field_where['condition_bible_treenodes'],true) )
 				{
 					$tarr = array() ;
 					foreach( json_decode($field_where['condition_bible_treenodes'],true) as $treenode_key )
