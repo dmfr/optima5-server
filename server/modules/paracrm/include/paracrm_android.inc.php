@@ -184,8 +184,9 @@ function paracrm_android_syncPull( $post_data )
 		$query = "LOCK TABLES store_file WRITE, store_file_field WRITE" ;
 		$_opDB->query($query) ;
 		
-		$sync_prefix = "PHPSERVER" ;
-		$query = "UPDATE store_file SET sync_vuid=CONCAT('$sync_prefix','-',filerecord_id) WHERE file_code='$file_code' AND sync_vuid=''" ;
+		$ref_prefix = "PHPSERVER" ;
+		$ref_timestamp = time() ;
+		$query = "UPDATE store_file SET sync_vuid=CONCAT('$ref_prefix','-','$ref_timestamp','-',filerecord_id) WHERE file_code='$file_code' AND sync_vuid=''" ;
 		$_opDB->query($query) ;
 		
 		$now_timestamp = time() ;
