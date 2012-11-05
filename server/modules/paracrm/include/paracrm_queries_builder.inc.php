@@ -246,6 +246,39 @@ function paracrm_queries_builderTransaction_resGet( $post_data )
 
 function paracrm_queries_builderTransaction_exportXLS( $post_data )
 {
+	if( !class_exists('PHPExcel') )
+		return NULL ;
+	
+	
+	// ******* Load du template ********
+	$ttmp = paracrm_queries_gridTemplate( array('_subaction'=>'load') ) ;
+	$template_cfg = $ttmp['data_templatecfg'] ;
+	if( !$template_cfg || !$template_cfg['template_is_on'] )
+		unset($template_cfg) ;
+	if( $template_cfg ) {
+		$style_header = array(                  
+			'fill' => array(
+				'type' => PHPExcel_Style_Fill::FILL_SOLID,
+				'color' => array('rgb'=>substr($template_cfg['colorhex_columns'],1,6)),
+			)
+		);
+		$style_row = array(                  
+			'fill' => array(
+				'type' => PHPExcel_Style_Fill::FILL_SOLID,
+				'color' => array('rgb'=>substr($template_cfg['colorhex_row'],1,6)),
+			)
+		);
+		$style_rowalt = array(                  
+			'fill' => array(
+				'type' => PHPExcel_Style_Fill::FILL_SOLID,
+				'color' => array('rgb'=>substr($template_cfg['colorhex_row_alt'],1,6)),
+			)
+		);
+
+	}
+	// ***********************************
+
+
 	$transaction_id = $post_data['_transaction_id'] ;
 	$RES = $_SESSION['transactions'][$transaction_id]['arr_RES'][$post_data['RES_id']] ;
 	
@@ -274,8 +307,20 @@ function paracrm_queries_builderTransaction_exportXLS( $post_data )
 		$obj_sheet = $objPHPExcel->getActiveSheet() ;
 		$obj_sheet->setTitle($tab['tab_title']) ;
 		
+		// on détermine cell_min / cell_max 
+		$cell_min = $cell = 'A' ;
+		for( $i=1 ; $i<count($tab['columns']) ; $i++ ) {
+			$cell++ ;
+		}
+		$cell_max = $cell ;
+		
+		$row_data_min = 2 ;
+		$row_data_max = count($tab['data']) + 1 ;
+		
+		
 		$row = 1 ;
 		$cell = 'A' ;
+		
 		foreach( $tab['columns'] as $col ) {
 		
 			$str = $cfg_field['text'] ;
@@ -289,9 +334,54 @@ function paracrm_queries_builderTransaction_exportXLS( $post_data )
 				$obj_sheet->getStyle("{$cell}{$row}")->getFont()->setBold(TRUE);
 			if( $col['text_italic'] )
 				$obj_sheet->getStyle("{$cell}{$row}")->getFont()->setItalic(TRUE);
+				
+			if( $template_cfg && $col['progressColumn'] ) {
+				$number_format = '' ;
+				$number_format.= "+0" ;
+				if( $RES['RES_round'] > 0 ) {
+					$number_format.= ".";
+					for( $i=0 ; $i<$RES['RES_round'] ; $i++ )
+						$number_format.= "0" ;
+				}
+				$number_format.= ";" ;
+				$number_format.= "-0" ;
+				if( $RES['RES_round'] > 0 ) {
+					$number_format.= ".";
+					for( $i=0 ; $i<$RES['RES_round'] ; $i++ )
+						$number_format.= "0" ;
+				}
+				$obj_sheet->getStyle("{$cell}{$row_data_min}:{$cell}{$row_data_max}")->getNumberFormat()->setFormatCode($number_format);
+			}
+			if( $template_cfg && $template_cfg['data_select_is_bold'] && !$col['progressColumn'] ) {
+				$obj_sheet->getStyle("{$cell}{$row_data_min}:{$cell}{$row_data_max}")->getFont()->setBold(TRUE);
+			}
+			if( $template_cfg && $template_cfg['data_progress_is_bold'] && $col['progressColumn'] ) {
+				$obj_sheet->getStyle("{$cell}{$row_data_min}:{$cell}{$row_data_max}")->getFont()->setBold(TRUE);
+			}
+			if( $template_cfg && $col['progressColumn'] ) {
+				$obj_sheet->getStyle("{$cell}{$row_data_min}:{$cell}{$row_data_max}")->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_LEFT);
+			}
+			if( $template_cfg && !$col['progressColumn'] ) {
+				$phpexcelalign = "" ;
+				switch( $template_cfg['data_align'] ) {
+					case 'left' : $phpexcelalign=PHPExcel_Style_Alignment::HORIZONTAL_LEFT ; break ;
+					case 'center' : $phpexcelalign=PHPExcel_Style_Alignment::HORIZONTAL_CENTER ; break ;
+					case 'right' : $phpexcelalign=PHPExcel_Style_Alignment::HORIZONTAL_RIGHT ; break ;
+				}
+				$obj_sheet->getStyle("{$cell}1:{$cell}{$row_data_max}")->getAlignment()->setHorizontal($phpexcelalign);
+			}
 			
 			$cell++ ;
 		}
+		if( $style_header ) {
+			$obj_sheet->getStyle("{$cell_min}{$row}:{$cell_max}{$row}")->applyFromArray( $style_header );
+		}
+		
+		$FontColor_Red = new PHPExcel_Style_Color();
+		$FontColor_Red->setRGB("FF0000");
+		$FontColor_Green = new PHPExcel_Style_Color();
+		$FontColor_Green->setRGB("008000");
+		
 		
 		foreach( $tab['data'] as $record ) {
 			$row++ ;
@@ -301,7 +391,23 @@ function paracrm_queries_builderTransaction_exportXLS( $post_data )
 				$obj_sheet->SetCellValue("{$cell}{$row}", $value );
 				if( $col['is_bold'] )
 					$obj_sheet->getStyle("{$cell}{$row}")->getFont()->setBold(TRUE);
+					
+				if( $template_cfg && $col['progressColumn'] ) {
+					$style_toapply = NULL ;
+					if( $value > 0 ) {
+						$obj_sheet->getStyle("{$cell}{$row}")->getFont()->setColor($FontColor_Green);
+					}
+					if( $value < 0 ) {
+						$obj_sheet->getStyle("{$cell}{$row}")->getFont()->setColor($FontColor_Red);
+					}
+				}
+				
 				$cell++ ;
+			}
+			
+			if( $style_row && $style_rowalt ) {
+				$style_toapply = ($row%2 == 0 )?$style_row:$style_rowalt ;
+				$obj_sheet->getStyle("{$cell_min}{$row}:{$cell_max}{$row}")->applyFromArray( $style_toapply );
 			}
 		}
 		
