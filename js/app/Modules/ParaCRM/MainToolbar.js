@@ -381,6 +381,18 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 		this.showHelper('queries') ;
 		this.fireEvent('switchToQuery',queryId);
 	},
+	switchToQmergeNew: function() {
+		this.activeDataType = '' ;
+		this.activeQueryId = 0 ;
+		this.showHelper('queries') ;
+		this.fireEvent('switchToQmerge',0);
+	},
+	switchToQmergeOpen: function(queryId) {
+		this.activeDataType = '' ;
+		this.activeQueryId = queryId ;
+		this.showHelper('queries') ;
+		this.fireEvent('switchToQmerge',qmergeId);
+	},
 			  
 	switchToQueryTemplate: function() {
 		this.activeDataType = '' ;
@@ -571,6 +583,17 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 						icon: 'images/op5img/ico_new_16.gif' ,
 						text: 'Create Query on ' ,
 						menu: subMenuFiles
+					}) ;
+				}
+				// ajout du "new" Qmerge
+				if( respObj.data_queries && respObj.data_queries.length > 0 ) {
+					menuItems.push({
+						icon: 'images/op5img/ico_casier_small.gif' ,
+						text: 'Create Qmerge on queries' ,
+						handler : function() {
+							me.switchToQmergeNew() ;
+						},
+						scope : me
 					}) ;
 				}
 				

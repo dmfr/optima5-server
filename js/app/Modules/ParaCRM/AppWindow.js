@@ -9,6 +9,7 @@ Ext.define('Optima5.Modules.ParaCRM.AppWindow', {
         'Optima5.Modules.ParaCRM.BiblePanel',
         'Optima5.Modules.ParaCRM.FilePanel',
         'Optima5.Modules.ParaCRM.QueryPanel',
+        'Optima5.Modules.ParaCRM.QmergePanel',
         'Optima5.Modules.ParaCRM.QueryTemplatePanel',
         'Optima5.Modules.ParaCRM.MainToolbar'
         //'Ext.form.field.TextArea'
@@ -65,6 +66,8 @@ Ext.define('Optima5.Modules.ParaCRM.AppWindow', {
 				,
 					this.createQueryPanel()
 				,
+					this.createQmergePanel()
+				,
 					this.createQueryTemplatePanel()
 				],
 				tbar : this.createMainToolbar()
@@ -107,6 +110,17 @@ Ext.define('Optima5.Modules.ParaCRM.AppWindow', {
 			}
 			else {
 				this.querypanel.queryOpen( queryId ) ;
+				return ;
+			}
+		},this) ;
+		this.maintoolbar.on('switchToQmerge',function( qmergeId ){
+			this.switchToPanel('qmergepanel') ;
+			if( qmergeId == 0 ) {
+				this.qmergepanel.qmergeNew() ;
+				return ;
+			}
+			else {
+				this.qmergepanel.qmergeOpen( qmergeId ) ;
 				return ;
 			}
 		},this) ;
@@ -230,6 +244,14 @@ Ext.define('Optima5.Modules.ParaCRM.AppWindow', {
 			mid: 'querypanel'
 		});
 		return this.querypanel;
+	},
+	
+	createQmergePanel : function(){
+		this.qmergepanel = Ext.create('Optima5.Modules.ParaCRM.QmergePanel');
+		Ext.apply( this.qmergepanel, {
+			mid: 'qmergepanel'
+		});
+		return this.qmergepanel;
 	},
 	
 	createQueryTemplatePanel : function(){
