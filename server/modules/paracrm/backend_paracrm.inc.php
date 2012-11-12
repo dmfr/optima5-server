@@ -49,6 +49,8 @@ switch( $post_data['_action'] )
 	return paracrm_queries_getToolbarData( $post_data ) ;
 	case 'queries_builderTransaction' :
 	return paracrm_queries_builderTransaction( $post_data ) ;
+	case 'queries_mergerTransaction' :
+	return paracrm_queries_mergerTransaction( $post_data ) ;
 	case 'queries_gridTemplate' :
 	return paracrm_queries_gridTemplate( $post_data );
 	
