@@ -1,40 +1,12 @@
-Ext.define('QmergeMwhereFieldModel', {
-	extend: 'Ext.data.Model',
-	fields: [
-		{name: 'query_id',   type: 'int'},
-		{name: 'query_wherefield_ssid',   type: 'int'}
-	]
-});
-Ext.define('QmergeMwhereModel', {
-	extend: 'Ext.data.Model',
-	fields: [
-		{name: 'mfield_type',   type: 'string'},
-		{name: 'condition_string',   type: 'string'},
-		{name: 'condition_date_lt',   type: 'string'},
-		{name: 'condition_date_gt',   type: 'string'},
-		{name: 'condition_num_lt',   type: 'numeric'},
-		{name: 'condition_num_gt',   type: 'numeric'},
-		{name: 'condition_num_eq',   type: 'numeric'},
-		{name: 'condition_bible_mode',   type: 'string'},
-		{name: 'condition_bible_treenodes',   type: 'string'},
-		{name: 'condition_bible_entries',   type: 'string'}
-	],
-	hasMany: [{ 
-		model: 'QmergeMwhereFieldModel',
-		name: 'query_fields',
-		associationKey: 'query_fields'
-	}]
-});
-
 Ext.define('QmergeMwhereTreeModel', {
 	extend: 'Ext.data.Model',
 	fields: [
 		{name: 'id',  type: 'int'},
 		{name: 'text', type:'string'},
-		{name: 'mfield_id',  type: 'int'},
+		{name: 'mfield_idx',  type: 'int'},
 		{name: 'mfield_type',  type: 'string'},
 		{name: 'query_id',  type: 'int'},
-		{name: 'query_wherefield_ssid',  type: 'int'}
+		{name: 'query_wherefield_idx',  type: 'int'}
 	]
 });
 
@@ -48,21 +20,12 @@ Ext.define('Optima5.Modules.ParaCRM.QmergeSubpanelMwhere' ,{
 		'Optima5.Modules.ParaCRM.QmergeSubpanel'
 	] ,
 			  
-	mwhereFields : [] ,
+	mwhereStore : null ,
 			  
 	initComponent: function() {
 		var me = this ;
 		
-		me.store = Ext.create('Ext.data.Store',{
-			autoLoad: true,
-			sortOnLoad: false,
-			sortOnFilter: false,
-			model: 'QmergeMwhereModel',
-			data : me.mwhereFields ,
-			proxy: {
-				type: 'memory'
-			}
-		}) ;
+		me.mwhereStore ;
 		
 		Ext.apply( me, {
 			title: 'Merge Conditions / Where?' ,
@@ -85,6 +48,7 @@ Ext.define('Optima5.Modules.ParaCRM.QmergeSubpanelMwhere' ,{
 	initComponentCreateTree: function() {
 		var me = this ;
 		
+		/*
 		var tree = Ext.create('Ext.tree.Panel',{
 			itemId: 'mqueryMwhereTree',
 			store: me.store ,
@@ -158,6 +122,31 @@ Ext.define('Optima5.Modules.ParaCRM.QmergeSubpanelMwhere' ,{
 				scope: me
 			}
 		}) ;
+		*/
+		
+		var tree = Ext.create('Ext.tree.Panel',{
+			itemId: 'mqueryMwhereTree',
+			flex: 1,
+			useArrows: true,
+			rootVisible: false,
+			store: {
+				model: 'QmergeItemsTreeModel',
+				nodeParam: 'id',
+				root: {
+					root:true,
+					id:1,
+					text:'Where',
+					children:[]
+				}
+			},
+			listeners: {
+				render: me.initComponentCreateTreeOnRender,
+				scope: me
+			}
+		}) ;
+		
+		
+		
 		tree.on('itemclick', function( view, record, item, index, event ) {
 			var selRecord = record ;
 			
@@ -186,47 +175,33 @@ Ext.define('Optima5.Modules.ParaCRM.QmergeSubpanelMwhere' ,{
 		
 		return tree ;
 	},
-	initComponentCreateTreeOnRender: function(grid) {
+	initComponentCreateTreeOnRender: function(tree) {
 		var me = this ;
 		
-		var gridPanelDropTargetEl =  grid.body.dom;
+		var gridPanelDropTargetEl =  tree.body.dom;
 
 		var gridPanelDropTarget = Ext.create('Ext.dd.DropTarget', gridPanelDropTargetEl, {
-			ddGroup: 'TreeToGrids',
+			ddGroup: 'MqueriesToMwhere',
 			notifyEnter: function(ddSource, e, data) {
 					//Add some flare to invite drop.
-					grid.body.stopAnimation();
-					grid.body.highlight();
+					tree.body.stopAnimation();
+					tree.body.highlight();
 			},
 			notifyDrop: function(ddSource, e, data){
-					// Reference the record (single selection) for readability
-					var selectedRecord = ddSource.dragData.records[0];
-					
-					switch( selectedRecord.get('field_type') ) {
-						case 'link' :
-						case 'date' :
-						case 'number' :
-							break ;
-						
-						default :
-							return false ;
-					}
-					
-					var newRecord = Ext.create('QueryWhereModel',{
-						field_code:selectedRecord.get('field_code'),
-						field_type:selectedRecord.get('field_type'),
-						field_linkbible:selectedRecord.get('field_linkbible')
-					}) ;
-					
-					me.store.insert( 0, newRecord );
-
-					/*
-					// Load the record into the form
-					formPanel.getForm().loadRecord(selectedRecord);
-					// Delete record from the source store.  not really required.
-					ddSource.view.store.remove(selectedRecord);
-					*/
-					return true;
+				// Reference the record (single selection) for readability
+				var selectedRecord = ddSource.dragData.records[0];
+				
+				if( Ext.getClassName(selectedRecord) != 'QmergeItemsTreeModel' ) {
+					return false ;
+				}
+				if( selectedRecord.get('query_field_type') != 'where' || selectedRecord.parentNode == null ) {
+					return false ;
+				}
+				
+				var queryId = selectedRecord.parentNode.get('query_id') ;
+				var queryWherefieldIdx = selectedRecord.get('query_field_idx') ;
+				me.wherefieldAdd( queryId , queryWherefieldIdx ) ;
+				return true ;
 			}
 		});
 	},
@@ -255,11 +230,15 @@ Ext.define('Optima5.Modules.ParaCRM.QmergeSubpanelMwhere' ,{
 		
 	},
 			  
-	wherefieldAdd: function( queryId, queryWherefieldSsid ) {
+	wherefieldAdd: function( queryId, queryWherefieldIdx ) {
+		var me = this ;
 		
+		me.syncTree() ;
 	},
-	wherefieldDel: function( queryId, queryWherefieldSsid ) {
+	wherefieldDel: function( queryId, queryWherefieldIdx ) {
+		var me = this ;
 		
+		me.syncTree() ;
 	},
 			  
 			  

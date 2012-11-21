@@ -5,7 +5,7 @@ Ext.define('Optima5.Modules.ParaCRM.QmergeSubpanel' ,{
 		this.callParent() ;
 	},
 			  
-	getQueryPanel: function() {
+	getQmergePanel: function() {
 		var objPanel = this.up('op5paracrmqmerge') ;
 		if( typeof objPanel !== 'undefined' ) {
 			return objPanel ;

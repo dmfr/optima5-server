@@ -33,11 +33,38 @@ Ext.define('QmergeItemsTreeModel', {
 		{name: 'query_id',  type: 'int'},
 		{name: 'query_name',  type: 'string'},
 		{name: 'query_field_type',   type: 'string'},
-		{name: 'query_field_ssid',   type: 'string'},
+		{name: 'query_field_idx',   type: 'string'},
 		{name: 'query_field_text',   type: 'string'}
 	]
 });
 
+Ext.define('QmergeMwhereFieldModel', {
+	extend: 'Ext.data.Model',
+	fields: [
+		{name: 'query_id',   type: 'int'},
+		{name: 'query_wherefield_idx',   type: 'int'}
+	]
+});
+Ext.define('QmergeMwhereModel', {
+	extend: 'Ext.data.Model',
+	fields: [
+		{name: 'mfield_type',   type: 'string'},
+		{name: 'condition_string',   type: 'string'},
+		{name: 'condition_date_lt',   type: 'string'},
+		{name: 'condition_date_gt',   type: 'string'},
+		{name: 'condition_num_lt',   type: 'numeric'},
+		{name: 'condition_num_gt',   type: 'numeric'},
+		{name: 'condition_num_eq',   type: 'numeric'},
+		{name: 'condition_bible_mode',   type: 'string'},
+		{name: 'condition_bible_treenodes',   type: 'string'},
+		{name: 'condition_bible_entries',   type: 'string'}
+	],
+	hasMany: [{ 
+		model: 'QmergeMwhereFieldModel',
+		name: 'query_fields',
+		associationKey: 'query_fields'
+	}]
+});
 
 
 Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
@@ -58,7 +85,7 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 	bibleFilesTreefields: null,
 	qmergeQueriesIds: [],
 	qmergeGroupsStore: null,
-			  
+	mwhereStore : null ,  
 			  
 			  
 	initComponent: function() {
@@ -218,6 +245,19 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 		},me) ;
 		
 		
+		me.mwhereStore = Ext.create('Ext.data.Store',{
+			autoLoad: true,
+			sortOnLoad: false,
+			sortOnFilter: false,
+			model: 'QmergeMwhereModel',
+			data : [] ,
+			proxy: {
+				type: 'memory'
+			}
+		}) ;
+		
+		
+		
 		var queriesTreeCfg = {} ;
 		Ext.apply( queriesTreeCfg, {
 			xtype: 'treepanel',
@@ -228,6 +268,7 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 			collapsible:true ,
 			collapseDirection:'left',
 			collapseMode:'header',
+			collapsed: (me.qmergeQueriesIds.length>0) ? true:false ,
 			headerPosition:'left',
 			useArrows: true,
 			rootVisible: true,
@@ -311,6 +352,14 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 				},
 				render: me.addComponentsOnMqueryTreeRender,
 				scope: me
+			},
+			viewConfig: {
+				plugins: {
+					ptype: 'treeviewdragdrop',
+					enableDrag: true,
+					enableDrop: false,
+					ddGroup: 'MqueriesToMwhere'
+				}
 			}
 		}) ;
 		me.add(mqueryTreeCfg) ;
@@ -319,7 +368,7 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 			xtype:'panel',
 			itemId: 'mqueryCfg',
 			flex: 3 ,
-			frame:true,
+			frame:false,
 			layout: {
 				type: 'vbox',
 				align: 'stretch'
@@ -417,7 +466,7 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 					id:nodeId,
 					text:queryWhereRecord.get('field_code'),
 					query_field_type:'where',
-					query_field_ssid:idx,
+					query_field_idx:idx,
 					icon: 'images/bogus.png',
 					leaf:true
 				}) ;
@@ -428,7 +477,7 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 					id:nodeId,
 					text:querySelectRecord.get('select_lib'),
 					query_field_type:'select',
-					query_field_ssid:idx,
+					query_field_idx:idx,
 					icon: 'images/add.png',
 					leaf:true
 				}) ;
@@ -455,6 +504,11 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 			children:mqueryTreeChildren,
 			expanded:true
 		});
+		
+		// *** Recouverture du tree ? *** 
+		if( me.qmergeQueriesIds.length <= 1 && me.getComponent('queriesTree').collapsed == true ) {
+			// me.getComponent('queriesTree').expand() ;
+		}
 		
 		
 		/*
@@ -618,8 +672,10 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 		}
 		
 		
+		/*
 		console.log( 'This is it' ) ;
 		console.dir( probeGeoGrouptagArrQueries ) ;
+		*/
 		// *** store pour groupSubpanel "CFG detach"
 		
 		
@@ -657,5 +713,15 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 			return ;
 		}
 
+		panel.add([
+			Ext.create('Optima5.Modules.ParaCRM.QmergeSubpanelMwhere',{
+				flex:1,
+				border:false
+			}),{
+				xtype:'panel',
+				flex:2,
+				border:false
+			}
+		]) ;
 	}
 });
