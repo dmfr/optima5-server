@@ -45,7 +45,9 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 			  
 	alias: 'widget.op5paracrmqmerge',
 			  
-	requires: [] ,
+	requires: [
+		'Optima5.Modules.ParaCRM.QmergeSubpanelMwhere'
+	] ,
 			  
 	
 	transaction_id : 0 ,
@@ -54,7 +56,7 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 	
 	bibleQueriesStore: null,
 	bibleFilesTreefields: null,
-	qmergeQueriesIds: [24],
+	qmergeQueriesIds: [],
 	qmergeGroupsStore: null,
 			  
 			  
@@ -582,6 +584,7 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 			},me) ;
 		},me) ;
 		
+		
 		// *** Compatibilité :
 		//    - tab : 1 seul critère de groupage et toutes requêtes dedans
 		//    - grid_x : 1 seul critère de groupage
@@ -617,12 +620,14 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 		
 		console.log( 'This is it' ) ;
 		console.dir( probeGeoGrouptagArrQueries ) ;
+		// *** store pour groupSubpanel "CFG detach"
 		
+		
+		
+		me.mainpanelEnable( isValid ) ;
 		if( !isValid ) {
 			Ext.Msg.alert('QMerge error', 'Current selected queries are not compatible');
 		}
-		
-		me.mainpanelEnable( isValid ) ;
 	},
 	
 	onQueryInclude: function( queryId ) {
