@@ -69,6 +69,7 @@ function paracrm_queries_mergerTransaction( $post_data )
 			unset($_SESSION['transactions'][$transaction_id]) ;
 		}
 		
+		sleep(2); 
 		return $json ;
 	}
 }
@@ -101,7 +102,7 @@ function paracrm_queries_mergerTransaction_init( $post_data , &$arr_saisie )
 	
 	
 	$arr_saisie['bible_queries'] = array() ;
-	$query = "SELECT * FROM query ORDER BY query_id" ;
+	$query = "SELECT * FROM query ORDER BY query_name" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$query_id = $arr['query_id'] ;
@@ -111,10 +112,18 @@ function paracrm_queries_mergerTransaction_init( $post_data , &$arr_saisie )
 		}
 		paracrm_queries_builderTransaction_loadFields( $arr_query , $query_id ) ;
 		
-		$arr_saisie['bible_queries'][$query_id] = $arr_query ;
+		$arr_saisie['bible_queries'][] = $arr_query ;
 	}
 	
+	$arr_saisie['bible_files_treefields'] = array() ;
+	$query = "SELECT file_code FROM define_file ORDER BY file_code" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$file_code = $arr[0] ;
 	
+		$ttmp = paracrm_lib_file_access( $file_code ) ;
+		$arr_saisie['bible_files_treefields'][$file_code] = paracrm_queries_builderTransaction_getTreeFields( $ttmp ) ;
+	}
 	
 	
 	
@@ -123,7 +132,8 @@ function paracrm_queries_mergerTransaction_init( $post_data , &$arr_saisie )
 	return array('success'=>true,
 					'_mirror'=>$post_data,
 					'transaction_id' => $post_data['_transaction_id'],
-					'bible_queries' => $arr_saisie['bible_queries']
+					'bible_queries' => $arr_saisie['bible_queries'],
+					'bible_files_treefields' => $arr_saisie['bible_files_treefields']
 					) ;
 }
 
