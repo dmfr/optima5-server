@@ -49,6 +49,7 @@ Ext.define('QmergeMwhereModel', {
 	extend: 'Ext.data.Model',
 	fields: [
 		{name: 'mfield_type',   type: 'string'},
+		{name: 'mfield_linkbible',   type: 'string'},
 		{name: 'condition_string',   type: 'string'},
 		{name: 'condition_date_lt',   type: 'string'},
 		{name: 'condition_date_gt',   type: 'string'},
@@ -467,6 +468,11 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 				var whereFieldcode = queryWhereRecord.get('field_code') ;
 				var fieldtext = me.bibleFilesTreefields[queryTargetFilecode].getNodeById(whereFieldcode).get('field_text') ;
 				
+				// Fix : exclusion des conditions BIble / SINGLE
+				if( queryWhereRecord.get('field_type') == 'link' && queryWhereRecord.get('condition_bible_mode') == 'SINGLE' ) {
+					return ;
+				}
+				
 				nodeId++ ;
 				mqueryParamsDetails.push({
 					id:nodeId,
@@ -733,6 +739,7 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 
 		panel.add([
 			Ext.create('Optima5.Modules.ParaCRM.QmergeSubpanelMwhere',{
+				parentQmergePanel: me,
 				mwhereStore: me.mwhereStore,
 				flex:1,
 				border:false
