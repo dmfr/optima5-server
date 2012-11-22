@@ -48,94 +48,18 @@ Ext.define('Optima5.Modules.ParaCRM.QmergeSubpanelMwhere' ,{
 	initComponentCreateTree: function() {
 		var me = this ;
 		
-		/*
-		var tree = Ext.create('Ext.tree.Panel',{
-			itemId: 'mqueryMwhereTree',
-			store: me.store ,
-			sortableColumns: false ,
-			columns: [{
-				header: 'Field Code',
-				menuDisabled: true ,
-				flex:1,
-				dataIndex: 'field_code',
-				renderer: function( value, metaData, record ) {
-					return me.getQueryPanel().getTreeStore().getNodeById(record.get('field_code')).get('field_text_full') ;
-				}
-			},{
-				header: 'Clause',
-				menuDisabled: true ,
-				flex:1 ,
-				renderer: function( value, metaData, record ) {
-					switch( record.get('field_type') ) {
-						case 'link' :
-							switch( record.get('condition_bible_mode') ) {
-								case 'SINGLE' :
-									return '<i>Unique / Last occurence</i>' ;
-								
-								case 'SELECT' :
-									if( record.get('condition_bible_entries') ) {
-										return record.get('condition_bible_entries') ;
-									}
-									if( record.get('condition_bible_treenodes') ) {
-										return Ext.JSON.decode( record.get('condition_bible_treenodes') ).join(' ') ;
-									}
-								default :
-									return '<b>not set</b>' ;
-							}
-							break ;
-							
-						case 'date' :
-							if( record.get('condition_date_lt') == '' && record.get('condition_date_gt') == '' ) {
-								return '<b>not set</b>' ;
-							}
-							
-							var str = '' ;
-							if( record.get('condition_date_gt') != '' )
-							{
-								str = str + record.get('condition_date_gt') + ' < ' ;
-							}
-							str = str + '<b>X</b>' ;
-							if( record.get('condition_date_lt') != '' )
-							{
-								str = str + ' < ' + record.get('condition_date_lt') ;
-							}
-							return str ;
-						
-						case 'number' :
-							if( record.get('condition_num_lt') == 0 && record.get('condition_num_gt') == 0 ) {
-								return '<b>not set</b>' ;
-							}
-							
-							var str = '' ;
-							str = str + record.get('condition_num_gt') + ' < ' ;
-							str = str + '<b>X</b>' ;
-							str = str + ' < ' + record.get('condition_num_lt') ;
-							return str ;
-						
-						default :
-							return value ;
-					}
-				}
-			}],
-			listeners: {
-				render: me.initComponentCreateTreeOnRender,
-				scope: me
-			}
-		}) ;
-		*/
-		
 		var tree = Ext.create('Ext.tree.Panel',{
 			itemId: 'mqueryMwhereTree',
 			flex: 1,
 			useArrows: true,
-			rootVisible: false,
+			rootVisible: true,
 			store: {
 				model: 'QmergeItemsTreeModel',
 				nodeParam: 'id',
 				root: {
 					root:true,
 					id:1,
-					text:'Where',
+					text:'Query Parameters',
 					children:[]
 				}
 			},
@@ -144,9 +68,6 @@ Ext.define('Optima5.Modules.ParaCRM.QmergeSubpanelMwhere' ,{
 				scope: me
 			}
 		}) ;
-		
-		
-		
 		tree.on('itemclick', function( view, record, item, index, event ) {
 			var selRecord = record ;
 			

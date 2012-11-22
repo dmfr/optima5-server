@@ -207,6 +207,8 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 		- store $this->bibleFilesmapStore : tous "arbres" de description des champs pour chaque CRMfile $this->bibleQueriesStore->"target_file_code"
 		Note : utilisation pour récup des libellés de champ
 		
+		- store $this->mwhereStore : paramètres WHERE fusionnés pour les subQueries
+		
 		- tree itemId=queriesTree : toutes queries simple CRM
 		- tree itemId=mqueryTree : queries liées à ce Qmerge, champs where+select développés dans D&D
 		Note : tree actifs mais vides !
@@ -461,10 +463,14 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 			
 			mqueryParamsDetails = [] ;
 			Ext.Array.each( queryRecord.fields_where().getRange() , function(queryWhereRecord,idx) {
+				var queryTargetFilecode = queryRecord.get('target_file_code') ;
+				var whereFieldcode = queryWhereRecord.get('field_code') ;
+				var fieldtext = me.bibleFilesTreefields[queryTargetFilecode].getNodeById(whereFieldcode).get('field_text') ;
+				
 				nodeId++ ;
 				mqueryParamsDetails.push({
 					id:nodeId,
-					text:queryWhereRecord.get('field_code'),
+					text:fieldtext,
 					query_field_type:'where',
 					query_field_idx:idx,
 					icon: 'images/bogus.png',
@@ -679,8 +685,12 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 		// *** store pour groupSubpanel "CFG detach"
 		
 		
-		
-		me.mainpanelEnable( isValid ) ;
+		if( me.qmergeQueriesIds.length >= 1 ) {
+			me.mainpanelEnable( isValid ) ;
+		}
+		else {
+			me.mainpanelDisable() ;
+		}
 		if( !isValid ) {
 			Ext.Msg.alert('QMerge error', 'Current selected queries are not compatible');
 		}
@@ -702,19 +712,28 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 	mainpanelDisable: function() {
 		var me = this ;
 		me.getComponent('mqueryCfg').removeAll() ;
+		me.getComponent('mqueryCfg').add({
+			xtype:'panel',
+			frame: true ,
+			flex: 1
+		});
 	},
 	mainpanelEnable: function( isValid ) {
 		var me = this ;
 		var panel = me.getComponent('mqueryCfg') ;
 		panel.removeAll() ;
 		if( !isValid ) {
-			
-			
+			panel.add({
+				xtype:'panel',
+				frame: true ,
+				flex: 1
+			});
 			return ;
 		}
 
 		panel.add([
 			Ext.create('Optima5.Modules.ParaCRM.QmergeSubpanelMwhere',{
+				mwhereStore: me.mwhereStore,
 				flex:1,
 				border:false
 			}),{
