@@ -67,6 +67,37 @@ Ext.define('QmergeMwhereModel', {
 	}]
 });
 
+Ext.define('QmergeMselectFormulasymbolModel', {
+	extend: 'Ext.data.Model',
+	fields: [
+		{name: 'sequence',  type: 'int'},
+		{name: 'math_operation',   type: 'string'},
+		{name: 'math_parenthese_in',   type: 'boolean'},
+		{name: 'math_fieldoperand',   type: 'string'},
+		{name: 'math_staticvalue',   type: 'numeric'},
+		{name: 'math_parenthese_out',   type: 'boolean'}
+	]
+});
+Ext.define('QmergeMselectModel', {
+	extend: 'Ext.data.Model',
+	fields: [
+		{name: 'select_lib',  type: 'string'},
+		{name: 'math_func_mode', type: 'string'},
+		{name: 'math_func_group', type: 'string'},
+		{name: 'math_round', type: 'numeric'}
+	],
+	validations: [
+		{type: 'length',    field: 'select_lib',     min: 1},
+	],
+	hasMany: { 
+		model: 'QmergeMselectFormulasymbolModel',
+		name: 'math_expression',
+		associationKey: 'math_expression'
+	}
+});
+
+
+
 
 Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 	extend: 'Ext.panel.Panel',
@@ -209,6 +240,7 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 		Note : utilisation pour récup des libellés de champ
 		
 		- store $this->mwhereStore : paramètres WHERE fusionnés pour les subQueries
+		- store $this->mselectStore : paramètres SELECT de la mQuery
 		
 		- tree itemId=queriesTree : toutes queries simple CRM
 		- tree itemId=mqueryTree : queries liées à ce Qmerge, champs where+select développés dans D&D
@@ -253,9 +285,26 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 			sortOnLoad: false,
 			sortOnFilter: false,
 			model: 'QmergeMwhereModel',
-			data : [] ,
+			data : [] , //me.mwhereFields
 			proxy: {
 				type: 'memory'
+			}
+		}) ;
+		
+		me.mselectStore = Ext.create('Ext.data.Store',{
+			autoLoad: true,
+			autoSync: true,
+			model: 'QmergeMselectModel',
+			data : [] , //me.mselectFields
+			proxy: {
+				type: 'memory' ,
+				reader: {
+						type: 'json'
+				},
+				writer: {
+					type:'json',
+					writeAllFields: true
+				}
 			}
 		}) ;
 		
@@ -743,11 +792,13 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 				mwhereStore: me.mwhereStore,
 				flex:1,
 				border:false
-			}),{
-				xtype:'panel',
+			}),
+			Ext.create('Optima5.Modules.ParaCRM.QmergeSubpanelMselect',{
+				parentQmergePanel: me,
+				mselectStore: me.mselectStore,
 				flex:2,
 				border:false
-			}
+			})
 		]) ;
 	}
 });
