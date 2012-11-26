@@ -91,7 +91,18 @@ function paracrm_queries_mergerTransaction_init( $post_data , &$arr_saisie )
 	}
 	elseif( $post_data['qmerge_id'] > 0 )
 	{
-
+		$query = "SELECT * FROM qmerge WHERE qmerge_id='{$post_data['qmerge_id']}'" ;
+		$result = $_opDB->query($query) ;
+		$arr = $_opDB->fetch_assoc($result) ;
+		if( !$arr )
+		{
+			$transaction_id = $post_data['_transaction_id'] ;
+			unset($_SESSION['transactions'][$transaction_id]) ;
+			return array('success'=>false) ;
+		}
+		$arr_saisie['qmerge_id'] = $arr['qmerge_id'] ;
+		$arr_saisie['qmerge_name'] = $arr['qmerge_name'] ;
+		paracrm_queries_mergerTransaction_loadFields( $arr_saisie , $arr_saisie['qmerge_id'] ) ;
 	}
 	else
 	{
@@ -143,9 +154,293 @@ function paracrm_queries_mergerTransaction_init( $post_data , &$arr_saisie )
 
 function paracrm_queries_mergerTransaction_submit( $post_data , &$arr_saisie )
 {
+	global $_opDB ;
+	
+	$arr_saisie['arr_query_id'] = json_decode($post_data['qmerge_queries'],TRUE) ;
+	$arr_saisie['fields_mwhere'] = json_decode($post_data['qmerge_mwherefields'],TRUE) ;
+	$arr_saisie['fields_mselect'] = json_decode($post_data['qmerge_mselectfields'],TRUE) ;
 
+	return array('success'=>true) ;
 }
 
+function paracrm_queries_mergerTransaction_runQuery( $post_data, &$arr_saisie )
+{
+	usleep(500000) ;
+	return array('success'=>true,'query_status'=>'NOK') ; // @DAMS : Temp / ToDo
+}
+
+function paracrm_queries_mergerTransaction_save( $post_data , &$arr_saisie )
+{
+	global $_opDB ;
+	
+	if( $post_data['_subaction'] == 'save' )
+	{
+		if( !$arr_saisie['qmerge_id'] )
+			return array('success'=>false) ;
+		
+		return paracrm_queries_mergerTransaction_saveFields( $arr_saisie, $arr_saisie['qmerge_id'] ) ;
+	}
+
+	if( $post_data['_subaction'] == 'saveas' )
+	{
+		$arr_ins = array() ;
+		$arr_ins['qmerge_name'] = $post_data['qmerge_name'] ;
+		$_opDB->insert('qmerge',$arr_ins) ;
+		
+		$arr_saisie['qmerge_id'] = $_opDB->insert_id() ;
+		
+		return paracrm_queries_mergerTransaction_saveFields( $arr_saisie, $arr_saisie['qmerge_id'] ) ;
+	}
+	
+	
+	if( $post_data['_subaction'] == 'delete' )
+	{
+		if( !$arr_saisie['qmerge_id'] )
+			return array('success'=>false) ;
+		
+		$tables = array() ;
+		$tables[] = 'qmerge' ;
+		$tables[] = 'qmerge_query' ;
+		$tables[] = 'qmerge_field_mwhere' ;
+		$tables[] = 'qmerge_field_mwhere_link' ;
+		$tables[] = 'qmerge_field_mselect' ;
+		$tables[] = 'qmerge_field_mselect_axisdetach' ;
+		$tables[] = 'qmerge_field_mselect_symbol' ;
+		foreach( $tables as $dbtab )
+		{
+			$query = "DELETE FROM $dbtab WHERE qmerge_id='{$arr_saisie['qmerge_id']}'" ;
+			$_opDB->query($query) ;
+		}
+		
+		$transaction_id = $post_data['_transaction_id'] ;
+		unset($_SESSION['transactions'][$transaction_id]) ;
+		
+		return array('success'=>true) ;
+	}
+}
+
+
+
+
+
+function paracrm_queries_mergerTransaction_loadFields( &$arr_saisie , $qmerge_id )
+{
+	global $_opDB ;
+	
+	$arr_saisie['arr_query_id'] = array() ;
+	$query = "SELECT * FROM qmerge_query WHERE qmerge_id='$qmerge_id' ORDER BY qmerge_query_ssid" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
+	{
+		$arr_saisie['arr_query_id'][] = $arr['link_query_id'] ;
+	}
+
+	$arr_saisie['fields_mwhere'] = array() ;
+	$query = "SELECT * FROM qmerge_field_mwhere WHERE qmerge_id='$qmerge_id' ORDER BY qmerge_fieldmwhere_ssid" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
+	{
+		$arr['query_fields'] = array() ;
+		$query = "SELECT * FROM qmerge_field_mwhere_link
+					WHERE qmerge_id='$qmerge_id' AND qmerge_fieldmwhere_ssid='{$arr['qmerge_fieldmwhere_ssid']}'" ;
+		$result2 = $_opDB->query($query) ;
+		while( ($arr_link = $_opDB->fetch_assoc($result2)) != FALSE )
+		{
+			unset($arr_link['qmerge_id']) ;
+			unset($arr_link['qmerge_fieldmwhere_ssid']) ;
+			$arr['query_fields'][] = $arr_link ;
+		}
+	
+		unset($arr['qmerge_id']) ;
+		unset($arr['qmerge_fieldmwhere_ssid']) ;
+		foreach( array('condition_date_lt','condition_date_gt') as $mkey ) {
+			if( $arr[$mkey] == '0000-00-00' ) {
+				$arr[$mkey]='' ;
+			}
+		}
+		$arr_saisie['fields_mwhere'][] = $arr ;
+	}
+	
+	$arr_saisie['fields_mselect'] = array() ;
+	$query = "SELECT * FROM qmerge_field_mselect WHERE qmerge_id='$qmerge_id' ORDER BY qmerge_fieldmselect_ssid" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
+	{
+		$arr['axis_detach'] = array() ;
+		$query = "SELECT * FROM qmerge_field_mselect_axisdetach 
+					WHERE qmerge_id='$qmerge_id' AND qmerge_fieldmselect_ssid='{$arr['qmerge_fieldmselect_ssid']}'" ;
+		$result2 = $_opDB->query($query) ;
+		while( ($arr_axisdetach = $_opDB->fetch_assoc($result2)) != FALSE )
+		{
+			unset($arr_axisdetach['qmerge_id']) ;
+			unset($arr_axisdetach['qmerge_fieldmselect_ssid']) ;
+			$arr['axis_detach'][] = $arr_axisdetach ;
+		}
+	
+		$arr['math_expression'] = array() ;
+		$query = "SELECT * FROM qmerge_field_mselect_symbol 
+					WHERE qmerge_id='$qmerge_id' AND qmerge_fieldmselect_ssid='{$arr['qmerge_fieldmselect_ssid']}'
+					ORDER BY qmerge_fieldmselect_symbol_index" ;
+		$result2 = $_opDB->query($query) ;
+		while( ($arr_symbol = $_opDB->fetch_assoc($result2)) != FALSE )
+		{
+			unset($arr_symbol['qmerge_id']) ;
+			unset($arr_symbol['qmerge_fieldmselect_ssid']) ;
+			unset($arr_symbol['qmerge_fieldmselect_symbol_index']) ;
+			$arr['math_expression'][] = $arr_symbol ;
+		}
+	
+		unset($arr['qmerge_id']) ;
+		unset($arr['qmerge_fieldmselect_ssid']) ;
+		$arr_saisie['fields_mselect'][] = $arr ;
+	}
+	
+	return ;
+}
+function paracrm_queries_mergerTransaction_saveFields( &$arr_saisie , $qmerge_id )
+{
+	global $_opDB ;
+	
+	
+	$tables = array() ;
+	$tables[] = 'qmerge_query' ;
+	$tables[] = 'qmerge_field_mwhere' ;
+	$tables[] = 'qmerge_field_mwhere_link' ;
+	$tables[] = 'qmerge_field_mselect' ;
+	$tables[] = 'qmerge_field_mselect_axisdetach' ;
+	$tables[] = 'qmerge_field_mselect_symbol' ;
+	foreach( $tables as $dbtab )
+	{
+		$query = "DELETE FROM $dbtab WHERE qmerge_id='$qmerge_id'" ;
+		$_opDB->query($query) ;
+	}
+	
+	
+	$cnt = 0 ;
+	foreach( $arr_saisie['arr_query_id'] as $link_query_id ) {
+		$cnt++ ;
+	
+		$arr_ins = array() ;
+		$arr_ins['qmerge_id'] = $qmerge_id ;
+		$arr_ins['qmerge_query_ssid'] = $cnt ;
+		$arr_ins['link_query_id'] = $link_query_id ;
+		$_opDB->insert('qmerge_query',$arr_ins) ;
+	}
+	
+	
+	$cnt = 0 ;
+	$mwhere = array() ;
+	$mwhere[] = 'mfield_type' ;
+	$mwhere[] = 'mfield_linkbible' ;
+	$mwhere[] = 'condition_string' ;
+	$mwhere[] = 'condition_date_lt' ;
+	$mwhere[] = 'condition_date_gt' ;
+	$mwhere[] = 'condition_num_lt' ;
+	$mwhere[] = 'condition_num_gt' ;
+	$mwhere[] = 'condition_num_eq' ;
+	$mwhere[] = 'condition_bible_mode' ;
+	$mwhere[] = 'condition_bible_treenodes' ;
+	$mwhere[] = 'condition_bible_entries' ;
+	foreach( $arr_saisie['fields_mwhere'] as $field_mwhere )
+	{
+		$cnt++ ;
+	
+		$arr_ins = array() ;
+		$arr_ins['qmerge_id'] = $qmerge_id ;
+		$arr_ins['qmerge_fieldmwhere_ssid'] = $cnt ;
+		foreach( $mwhere as $w )
+		{
+			$arr_ins[$w] = $field_mwhere[$w] ;
+		}
+		$_opDB->insert('qmerge_field_mwhere',$arr_ins) ;
+		
+		
+		$scnt = 0 ;
+		$link = array() ;
+		$link[] = 'query_id' ;
+		$link[] = 'query_wherefield_idx' ;
+		foreach( $field_mwhere['query_fields'] as $field_link )
+		{
+			$scnt++ ;
+		
+			$arr_ins = array() ;
+			$arr_ins['qmerge_id'] = $qmerge_id ;
+			$arr_ins['qmerge_fieldmwhere_ssid'] = $cnt ;
+			foreach( $link as $s )
+			{
+				$arr_ins[$s] = $field_link[$s] ;
+			}
+			$_opDB->insert('qmerge_field_mwhere_link',$arr_ins) ;
+		}
+	}
+
+
+	$cnt = 0 ;
+	$select = array() ;
+	$select[] = 'select_lib' ;
+	$select[] = 'math_func_mode' ;
+	$select[] = 'math_func_group' ;
+	$select[] = 'math_round' ;
+	foreach( $arr_saisie['fields_mselect'] as $field_mselect )
+	{
+		$cnt++ ;
+	
+		$arr_ins = array() ;
+		$arr_ins['qmerge_id'] = $qmerge_id ;
+		$arr_ins['qmerge_fieldmselect_ssid'] = $cnt ;
+		foreach( $select as $w )
+		{
+			$arr_ins[$w] = $field_mselect[$w] ;
+		}
+		$_opDB->insert('qmerge_field_mselect',$arr_ins) ;
+		
+		
+		$scnt = 0 ;
+		$axis = array() ;
+		$axis[] = 'display_geometry' ;
+		$axis[] = 'axis_is_detach' ;
+		foreach( $field_mselect['axis_detach'] as $field_axis )
+		{
+			$scnt++ ;
+		
+			$arr_ins = array() ;
+			$arr_ins['qmerge_id'] = $qmerge_id ;
+			$arr_ins['qmerge_fieldmselect_ssid'] = $cnt ;
+			foreach( $axis as $s )
+			{
+				$arr_ins[$s] = $field_axis[$s] ;
+			}
+			$_opDB->insert('qmerge_field_mselect_axisdetach',$arr_ins) ;
+		}
+		
+		
+		$scnt = 0 ;
+		$symbol = array() ;
+		$symbol[] = 'math_operation' ;
+		$symbol[] = 'math_parenthese_in' ;
+		$symbol[] = 'math_operand_query_id' ;
+		$symbol[] = 'math_operand_selectfield_idx' ;
+		$symbol[] = 'math_staticvalue' ;
+		$symbol[] = 'math_parenthese_out' ;
+		foreach( $field_mselect['math_expression'] as $field_sequence )
+		{
+			$scnt++ ;
+		
+			$arr_ins = array() ;
+			$arr_ins['qmerge_id'] = $qmerge_id ;
+			$arr_ins['qmerge_fieldmselect_ssid'] = $cnt ;
+			$arr_ins['qmerge_fieldmselect_symbol_index'] = $scnt ;
+			foreach( $symbol as $s )
+			{
+				$arr_ins[$s] = $field_sequence[$s] ;
+			}
+			$_opDB->insert('qmerge_field_mselect_symbol',$arr_ins) ;
+		}
+	}
+
+
+	return array('success'=>true,'qmerge_id'=>$qmerge_id) ;
+}
 
 
 ?>
