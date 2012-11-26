@@ -172,15 +172,17 @@ Ext.define('Optima5.Modules.ParaCRM.AppWindow', {
 			}
 		},this) ;
 		this.maintoolbar.on('queryAction',function(action,str){
+			var qPanel = this.mainwindow.getLayout().activeItem ;
+			
 			switch( action ){
 				case 'run' :
-					this.querypanel.remoteAction('run') ;
+					qPanel.remoteAction('run') ;
 					break ;
 				case 'save' :
-					this.querypanel.remoteAction('save') ;
+					qPanel.remoteAction('save') ;
 					break ;
 				case 'saveas' :
-					this.querypanel.on('querysaved',function(success,queryId){
+					qPanel.on('querysaved',function(success,queryId){
 						if( success == true ) {
 							this.maintoolbar.on('toolbarloaded',function(){
 								this.maintoolbar.switchToQueryOpen( queryId ) ;
@@ -193,11 +195,11 @@ Ext.define('Optima5.Modules.ParaCRM.AppWindow', {
 						single: true
 					});
 					
-					this.querypanel.remoteAction('saveas',str) ;
+					qPanel.remoteAction('saveas',str) ;
 					break ;
 					
 				case 'delete' :
-					this.querypanel.on('querysaved',function(success,queryId){
+					qPanel.on('querysaved',function(success,queryId){
 						if( success == true ) {
 							this.mainwindow.getLayout().setActiveItem(0) ;
 							this.maintoolbar.loadQueriesMenu() ;
@@ -206,7 +208,7 @@ Ext.define('Optima5.Modules.ParaCRM.AppWindow', {
 					},this,{
 						single: true
 					});
-					this.querypanel.remoteAction('delete') ;
+					qPanel.remoteAction('delete') ;
 					break ;
 					
 				default :

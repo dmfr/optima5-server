@@ -117,7 +117,7 @@ Ext.define('Optima5.Modules.ParaCRM.QmergeSubpanelMwhere' ,{
 		var gridPanelDropTargetEl =  tree.body.dom;
 
 		var gridPanelDropTarget = Ext.create('Ext.dd.DropTarget', gridPanelDropTargetEl, {
-			ddGroup: 'MqueriesToMwhere',
+			ddGroup: 'MqueriesToMpanels',
 			notifyEnter: function(ddSource, e, data) {
 					//Add some flare to invite drop.
 					tree.body.stopAnimation();

@@ -73,9 +73,17 @@ Ext.define('QmergeMselectFormulasymbolModel', {
 		{name: 'sequence',  type: 'int'},
 		{name: 'math_operation',   type: 'string'},
 		{name: 'math_parenthese_in',   type: 'boolean'},
-		{name: 'math_fieldoperand',   type: 'string'},
+		{name: 'math_operand_query_id',   type: 'int'},
+		{name: 'math_operand_selectfield_idx',   type: 'int'},
 		{name: 'math_staticvalue',   type: 'numeric'},
 		{name: 'math_parenthese_out',   type: 'boolean'}
+	]
+});
+Ext.define('QmergeMselectAxisdetachModel', {
+	extend: 'Ext.data.Model',
+	fields: [
+		{name: 'display_geometry',   type: 'string'},
+		{name: 'axis_is_detach',   type: 'boolean'}
 	]
 });
 Ext.define('QmergeMselectModel', {
@@ -89,11 +97,15 @@ Ext.define('QmergeMselectModel', {
 	validations: [
 		{type: 'length',    field: 'select_lib',     min: 1},
 	],
-	hasMany: { 
+	hasMany: [{ 
 		model: 'QmergeMselectFormulasymbolModel',
 		name: 'math_expression',
 		associationKey: 'math_expression'
-	}
+	},{
+		model: 'QmergeMselectAxisdetachModel',
+		name: 'axis_detach',
+		associationKey: 'axis_detach'
+	}]
 });
 
 
@@ -105,7 +117,8 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 	alias: 'widget.op5paracrmqmerge',
 			  
 	requires: [
-		'Optima5.Modules.ParaCRM.QmergeSubpanelMwhere'
+		'Optima5.Modules.ParaCRM.QmergeSubpanelMwhere',
+		'Optima5.Modules.ParaCRM.QmergeSubpanelMselect'
 	] ,
 			  
 	
@@ -116,9 +129,9 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 	bibleQueriesStore: null,
 	bibleFilesTreefields: null,
 	qmergeQueriesIds: [],
-	qmergeGroupsStore: null,
+	qmergeGrouptagObj: null,
 	mwhereStore : null ,  
-			  
+	mselectStore: null ,
 			  
 	initComponent: function() {
 		var me = this ;
@@ -280,12 +293,14 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 		},me) ;
 		
 		
+		me.qmergeQueriesIds = ajaxResponse.qmerge_queries ;
+		
 		me.mwhereStore = Ext.create('Ext.data.Store',{
 			autoLoad: true,
 			sortOnLoad: false,
 			sortOnFilter: false,
 			model: 'QmergeMwhereModel',
-			data : [] , //me.mwhereFields
+			data : ajaxResponse.qmerge_mwherefields , //me.mwhereFields
 			proxy: {
 				type: 'memory'
 			}
@@ -295,7 +310,7 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 			autoLoad: true,
 			autoSync: true,
 			model: 'QmergeMselectModel',
-			data : [] , //me.mselectFields
+			data : ajaxResponse.qmerge_mselectfields , //me.mselectFields
 			proxy: {
 				type: 'memory' ,
 				reader: {
@@ -410,7 +425,7 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 					ptype: 'treeviewdragdrop',
 					enableDrag: true,
 					enableDrop: false,
-					ddGroup: 'MqueriesToMwhere'
+					ddGroup: 'MqueriesToMpanels'
 				}
 			}
 		}) ;
@@ -669,7 +684,7 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 						break ;
 				}
 				
-				// hashstring du groupage :
+				// tag du groupage :
 				//    "BIBLE" % bible_code % t(tree)e(entry) [% treelevel]
 				//    "DATE" % datetype
 				var grouptag = '' ;
@@ -737,7 +752,8 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 		console.log( 'This is it' ) ;
 		console.dir( probeGeoGrouptagArrQueries ) ;
 		*/
-		// *** store pour groupSubpanel "CFG detach"
+		// *** store pour groupSubpanel "CFG detach" tree
+		me.qmergeGrouptagObj = probeGeoGrouptagArrQueries ;
 		
 		
 		if( me.qmergeQueriesIds.length >= 1 ) {
@@ -795,10 +811,175 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 			}),
 			Ext.create('Optima5.Modules.ParaCRM.QmergeSubpanelMselect',{
 				parentQmergePanel: me,
+				qmergeGrouptagObj: me.qmergeGrouptagObj,
 				mselectStore: me.mselectStore,
 				flex:2,
 				border:false
 			})
 		]) ;
+	},
+
+
+
+	remoteAction: function( actionCode, newQueryName ) {
+		var me = this ;
+		switch( actionCode ) {
+			case 'submit' :
+				me.remoteActionSubmit( Ext.emptyFn, me ) ;
+				break ;
+			case 'save' :
+				me.remoteActionSubmit( me.remoteActionSave, me ) ;
+				break ;
+			case 'saveas' :
+				me.remoteActionSubmit( me.remoteActionSaveAs, me, [newQueryName] ) ;
+				break ;
+			case 'delete' :
+				me.remoteActionSubmit( me.remoteActionDelete, me ) ;
+				break ;
+				
+			case 'run' :
+				me.remoteActionSubmit( me.remoteActionRun, me ) ;
+				break ;
+				
+			default :
+				break ;
+		}
+	},
+	remoteActionSubmit: function( callback, callbackScope, callbackArguments ) {
+		var me = this ;
+		
+		if( !callback ) {
+			callback = Ext.emptyFn ;
+		}
+		
+		var mwhereStoreData = [] ;
+		var mwhereStoreRecords = me.mwhereStore.getRange();
+		for (var i = 0; i < mwhereStoreRecords.length; i++) {
+			saveObj = {} ;
+			Ext.apply( saveObj, mwhereStoreRecords[i].data ) ;
+			Ext.apply( saveObj, mwhereStoreRecords[i].getAssociatedData() ) ;
+			mwhereStoreData.push(saveObj);
+		}
+		var mselectStoreData = [] ;
+		var mselectStoreRecords = me.mselectStore.getRange();
+		for (var i = 0; i < mselectStoreRecords.length; i++) {
+			saveObj = {} ;
+			Ext.apply( saveObj, mselectStoreRecords[i].data ) ;
+			Ext.apply( saveObj, mselectStoreRecords[i].getAssociatedData() ) ;
+			mselectStoreData.push(saveObj);
+		}
+		
+		
+		var ajaxParams = {} ;
+		Ext.apply( ajaxParams, {
+			_sessionName: op5session.get('session_id'),
+			_moduleName: 'paracrm' ,
+			_action: 'queries_mergerTransaction',
+			_transaction_id: me.transaction_id ,
+			_subaction: 'submit',
+					  
+			qmerge_queries: Ext.JSON.encode(me.qmergeQueriesIds) ,
+			qmerge_mwherefields: Ext.JSON.encode(mwhereStoreData) ,
+			qmerge_mselectfields: Ext.JSON.encode(mselectStoreData)
+		});
+		
+		Optima5.CoreDesktop.Ajax.request({
+			url: 'server/backend.php',
+			params: ajaxParams ,
+			succCallback: function(response) {
+				if( Ext.decode(response.responseText).success == false ) {
+					Ext.Msg.alert('Failed', 'Failed');
+				}
+				else {
+					callback.call( me, callbackArguments ) ;
+				}
+			},
+			scope: me
+		});
+	},
+	remoteActionSave: function() {
+		var me = this ;
+		
+		var ajaxParams = {} ;
+		Ext.apply( ajaxParams, {
+			_sessionName: op5session.get('session_id'),
+			_moduleName: 'paracrm' ,
+			_action: 'queries_mergerTransaction',
+			_transaction_id: me.transaction_id ,
+			_subaction: 'save'
+		});
+		
+		Optima5.CoreDesktop.Ajax.request({
+			url: 'server/backend.php',
+			params: ajaxParams ,
+			succCallback: function(response) {
+				if( Ext.decode(response.responseText).success == false ) {
+					Ext.Msg.alert('Failed', 'Failed');
+					me.fireEvent('querysaved',false) ;
+				}
+				else {
+					me.fireEvent('querysaved',true,Ext.decode(response.responseText).qmerge_id) ;
+				}
+			},
+			scope: me
+		});
+	},
+	remoteActionSaveAs: function( newQueryName ) {
+		var me = this ;
+		
+		var ajaxParams = {} ;
+		Ext.apply( ajaxParams, {
+			_sessionName: op5session.get('session_id'),
+			_moduleName: 'paracrm' ,
+			_action: 'queries_mergerTransaction',
+			_transaction_id: me.transaction_id ,
+			_subaction: 'saveas',
+			qmerge_name: newQueryName
+		});
+		
+		Optima5.CoreDesktop.Ajax.request({
+			url: 'server/backend.php',
+			params: ajaxParams ,
+			succCallback: function(response) {
+				if( Ext.decode(response.responseText).success == false ) {
+					Ext.Msg.alert('Failed', 'Failed');
+					me.fireEvent('querysaved',false) ;
+				}
+				else {
+					me.fireEvent('querysaved',true,Ext.decode(response.responseText).qmerge_id) ;
+				}
+			},
+			scope: me
+		});
+	},
+	remoteActionDelete: function() {
+		var me = this ;
+		
+		var ajaxParams = {} ;
+		Ext.apply( ajaxParams, {
+			_sessionName: op5session.get('session_id'),
+			_moduleName: 'paracrm' ,
+			_action: 'queries_mergerTransaction',
+			_transaction_id: me.transaction_id ,
+			_subaction: 'delete'
+		});
+		
+		Optima5.CoreDesktop.Ajax.request({
+			url: 'server/backend.php',
+			params: ajaxParams ,
+			succCallback: function(response) {
+				if( Ext.decode(response.responseText).success == false ) {
+					Ext.Msg.alert('Failed', 'Failed');
+					me.fireEvent('querysaved',false) ;
+				}
+				else {
+					me.fireEvent('querysaved',true,Ext.decode(response.responseText).qmerge_id) ;
+					me.destroyPanel() ;
+				}
+			},
+			scope: me
+		});
+	},
+	remoteActionRun: function() {
 	}
 });
