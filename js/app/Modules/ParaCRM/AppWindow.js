@@ -182,10 +182,15 @@ Ext.define('Optima5.Modules.ParaCRM.AppWindow', {
 					qPanel.remoteAction('save') ;
 					break ;
 				case 'saveas' :
-					qPanel.on('querysaved',function(success,queryId){
+					qPanel.on('querysaved',function(success,qId){
 						if( success == true ) {
 							this.maintoolbar.on('toolbarloaded',function(){
-								this.maintoolbar.switchToQueryOpen( queryId ) ;
+								if( qPanel.mid == 'querypanel' ) {
+									this.maintoolbar.switchToQueryOpen( qId ) ;
+								}
+								if( qPanel.mid == 'qmergepanel' ) {
+									this.maintoolbar.switchToQmergeOpen( qId ) ;
+								}
 							},this,{
 								single:true
 							});

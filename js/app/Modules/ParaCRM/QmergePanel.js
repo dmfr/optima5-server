@@ -244,6 +244,7 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 		});
 	},
 	addComponents: function( ajaxResponse ) {
+
 		/*
 		***** Initialisation de la page *****
 		
@@ -292,8 +293,11 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 			me.bibleFilesTreefields[k] = treestore ;
 		},me) ;
 		
-		
-		me.qmergeQueriesIds = ajaxResponse.qmerge_queries ;
+		me.qmergeQueriesIds = [] ;
+		Ext.Array.each( ajaxResponse.qmerge_queries, function(v) {
+			var val = parseInt(v) ;
+			me.qmergeQueriesIds.push(val) ;
+		},me);
 		
 		me.mwhereStore = Ext.create('Ext.data.Store',{
 			autoLoad: true,
@@ -981,5 +985,69 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 		});
 	},
 	remoteActionRun: function() {
+		var me = this ;
+		var msgbox = Ext.Msg.wait('Running query. Please Wait.');
+		
+		var ajaxParams = {} ;
+		Ext.apply( ajaxParams, {
+			_sessionName: op5session.get('session_id'),
+			_moduleName: 'paracrm' ,
+			_action: 'queries_mergerTransaction',
+			_transaction_id: me.transaction_id ,
+			_subaction: 'run'
+		});
+		
+		Optima5.CoreDesktop.Ajax.request({
+			url: 'server/backend.php',
+			params: ajaxParams ,
+			succCallback: function(response) {
+				msgbox.close() ;
+				if( Ext.decode(response.responseText).success == false || Ext.decode(response.responseText).query_status != 'OK' ) {
+					Ext.Msg.alert('Failed', 'Failed');
+				}
+				else {
+					// do something to open window
+					me.openQueryResultPanel( Ext.decode(response.responseText).RES_id ) ;
+				}
+			},
+			scope: me
+		});
+	},
+	openQueryResultPanel: function( resultId ) {
+		var me = this ;
+		
+		var baseAjaxParams = new Object() ;
+		Ext.apply( baseAjaxParams, {
+			_sessionName: op5session.get('session_id'),
+			_moduleName: 'paracrm' ,
+			_action: 'queries_mergerTransaction',
+			_transaction_id : me.transaction_id
+		});
+		
+		var queryResultPanel = Ext.create('Optima5.Modules.ParaCRM.QueryResultPanel',{
+			ajaxBaseParams: baseAjaxParams,
+			RES_id: resultId
+		}) ;
+		var queryResultPanelWindow = op5desktop.getDesktop().createWindow({
+			title:'(Query) '+me.query_name ,
+			width:800,
+			height:600,
+			iconCls: 'parapouet',
+			animCollapse:false,
+			border: false,
+
+			layout: {
+				type: 'card',
+				align: 'stretch'
+			},
+			items: [ queryResultPanel ]
+		}) ;
+		queryResultPanelWindow.show() ;
+		
+		queryResultPanel.on('beforedestroy',function(destroyedpanel){
+			if( destroyedpanel.up('window') ) {
+				destroyedpanel.up('window').close() ;
+			}
+		});
 	}
 });

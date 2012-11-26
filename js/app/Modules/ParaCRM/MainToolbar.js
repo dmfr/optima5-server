@@ -372,24 +372,28 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 	switchToQueryNew: function(targetFileId) {
 		this.activeDataType = '' ;
 		this.activeQueryId = 0 ;
+		this.activeQmergeId = 0 ;
 		this.showHelper('queries') ;
 		this.fireEvent('switchToQuery',0,targetFileId);
 	},
 	switchToQueryOpen: function(queryId) {
 		this.activeDataType = '' ;
 		this.activeQueryId = queryId ;
+		this.activeQmergeId = 0 ;
 		this.showHelper('queries') ;
 		this.fireEvent('switchToQuery',queryId);
 	},
 	switchToQmergeNew: function() {
 		this.activeDataType = '' ;
 		this.activeQueryId = 0 ;
+		this.activeQmergeId = 0 ;
 		this.showHelper('queries') ;
 		this.fireEvent('switchToQmerge',0);
 	},
-	switchToQmergeOpen: function(queryId) {
+	switchToQmergeOpen: function(qmergeId) {
 		this.activeDataType = '' ;
-		this.activeQueryId = queryId ;
+		this.activeQueryId = 0 ;
+		this.activeQmergeId = qmergeId ;
 		this.showHelper('queries') ;
 		this.fireEvent('switchToQmerge',qmergeId);
 	},
