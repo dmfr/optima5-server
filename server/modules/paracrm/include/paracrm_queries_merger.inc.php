@@ -69,7 +69,6 @@ function paracrm_queries_mergerTransaction( $post_data )
 			unset($_SESSION['transactions'][$transaction_id]) ;
 		}
 		
-		sleep(2); 
 		return $json ;
 	}
 }
@@ -86,7 +85,9 @@ function paracrm_queries_mergerTransaction_init( $post_data , &$arr_saisie )
 	*/
 	if( $post_data['is_new'] == 'true' )
 	{
-
+		$arr_saisie['arr_query_id'] = array() ;
+		$arr_saisie['fields_mwhere'] = array() ;
+		$arr_saisie['fields_mselect'] = array() ;
 	}
 	elseif( $post_data['qmerge_id'] > 0 )
 	{
@@ -133,9 +134,18 @@ function paracrm_queries_mergerTransaction_init( $post_data , &$arr_saisie )
 					'_mirror'=>$post_data,
 					'transaction_id' => $post_data['_transaction_id'],
 					'bible_queries' => $arr_saisie['bible_queries'],
-					'bible_files_treefields' => $arr_saisie['bible_files_treefields']
+					'bible_files_treefields' => $arr_saisie['bible_files_treefields'],
+					'qmerge_queries' => $arr_saisie['arr_query_id'],
+					'qmerge_mwherefields' => $arr_saisie['fields_mwhere'],
+					'qmerge_mselectfields' => $arr_saisie['fields_mselect']
 					) ;
 }
+
+function paracrm_queries_mergerTransaction_submit( $post_data , &$arr_saisie )
+{
+
+}
+
 
 
 ?>
