@@ -25,14 +25,41 @@ function paracrm_queries_getToolbarData( $post_data )
 	$TAB_queries = array() ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
 	{
-		$arr['icon'] = 'images/op5img/'.'ico_process_16.gif' ;
+		//$arr['icon'] = 'images/op5img/'.'ico_process_16.gif' ;
 		$TAB_queries[] = $arr ;
+	}
+	
+	$_cache_qmergeId_arrQueryId = array() ;
+	$query = "SELECT * FROM qmerge_query" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ){
+		
+		$qmerge_id = $arr['qmerge_id'] ;
+		$link_query_id = $arr['link_query_id'] ;
+		
+		if( !is_array($_cache_qmergeId_arrQueryId[$qmerge_id]) ) {
+			$_cache_qmergeId_arrQueryId[$qmerge_id] = array() ;
+		}
+		$_cache_qmergeId_arrQueryId[$qmerge_id][] = $link_query_id ;
+	}
+	$query = "SELECT qmerge_id as qmergeId, qmerge_name as text
+				FROM qmerge" ;
+	$result = $_opDB->query($query) ;
+	$TAB_qmerges = array() ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$qmerge_id = $arr['qmergeId'] ;
+		if( isset($_cache_qmergeId_arrQueryId[$qmerge_id]) )
+			$arr['qmerge_queries'] = $_cache_qmergeId_arrQueryId[$qmerge_id] ;
+		else
+			$arr['qmerge_queries'] = array() ;
+	
+		$TAB_qmerges[] = $arr ;
 	}
 	
 	
 
 
-	return array('success'=>true,'data_filetargets'=>$TAB_filetargets,'data_queries'=>$TAB_queries) ;
+	return array('success'=>true,'data_filetargets'=>$TAB_filetargets,'data_queries'=>$TAB_queries,'data_qmerges'=>$TAB_qmerges) ;
 }
 
 
