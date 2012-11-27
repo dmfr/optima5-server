@@ -234,22 +234,50 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 		// item.setText('') ;
 		var newTxt = '' ,
 			isNew = false ;
-		if( this.activeQueryId == 0 ) {
-			newTxt = '(Query) <b>New</b>' ;
-			isNew = true ;
-		}
-		else {
-			this.queriesMenu.items.each( function( item ) {
-				if( typeof item.queryId !== 'undefined' && item.queryId == this.activeQueryId ) {
-					newTxt = '(Query) <b>'+item.text+'</b>' ;
-					
-					return false ;
-				}
-				
-			},this) ;
+			disableSave = false ;
 			
+		if( this.activeQueryId != null ) {
+			if( this.activeQueryId == 0 ) {
+				newTxt = '(Query) <b>New</b>' ;
+				isNew = true ;
+			}
+			else {
+				this.queriesMenu.items.each( function( item ) {
+					if( typeof item.qmergeId !== 'undefined' && typeof item.menu !== 'undefined' ) {
+						item.menu.items.each( function( subItem ) {
+							if( typeof subItem.queryId !== 'undefined' && subItem.queryId == this.activeQueryId ) {
+								newTxt = '(Query) <b>'+subItem.text+'</b>' ;
+								disableSave = true ;
+								return false ;
+							}
+						},this) ;
+					}
+					if( typeof item.queryId !== 'undefined' && item.queryId == this.activeQueryId ) {
+						newTxt = '(Query) <b>'+item.text+'</b>' ;
+						
+						return false ;
+					}
+					
+				},this) ;
+				
+			}
 		}
-		
+		if( this.activeQmergeId != null ) {
+			if( this.activeQmergeId == 0 ) {
+				newTxt = '(Qmerge) <b>New</b>' ;
+				isNew = true ;
+			}
+			else {
+				this.queriesMenu.items.each( function( item ) {
+					if( typeof item.qmergeId !== 'undefined' && item.qmergeId == this.activeQmergeId ) {
+						newTxt = '(Qmerge) <b>'+item.text+'</b>' ;
+						
+						return false ;
+					}
+					
+				},this) ;
+			}
+		}
 		
 		var me = this ;
 		menuItems = new Array() ;
@@ -267,14 +295,22 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 			menuItems.push('-') ;
 		}
 		if( !isNew ) {
-			menuItems.push({
-				text: 'Save',
-				icon: 'images/op5img/ico_save_16.gif',
-				handler : function() {
-					me.querySave() ;
-				},
-				scope: me
-			});
+			if( disableSave ) {
+				menuItems.push({
+					text: 'Save',
+					icon: 'images/op5img/ico_save_16.gif',
+					disabled:true
+				});
+			} else {
+				menuItems.push({
+					text: 'Save',
+					icon: 'images/op5img/ico_save_16.gif',
+					handler : function() {
+						me.querySave() ;
+					},
+					scope: me
+				});
+			}
 		}
 		if( true ) {
 			menuItems.push({
@@ -372,27 +408,27 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 	switchToQueryNew: function(targetFileId) {
 		this.activeDataType = '' ;
 		this.activeQueryId = 0 ;
-		this.activeQmergeId = 0 ;
+		this.activeQmergeId = null ;
 		this.showHelper('queries') ;
 		this.fireEvent('switchToQuery',0,targetFileId);
 	},
 	switchToQueryOpen: function(queryId) {
 		this.activeDataType = '' ;
 		this.activeQueryId = queryId ;
-		this.activeQmergeId = 0 ;
+		this.activeQmergeId = null ;
 		this.showHelper('queries') ;
 		this.fireEvent('switchToQuery',queryId);
 	},
 	switchToQmergeNew: function() {
 		this.activeDataType = '' ;
-		this.activeQueryId = 0 ;
+		this.activeQueryId = null ;
 		this.activeQmergeId = 0 ;
 		this.showHelper('queries') ;
 		this.fireEvent('switchToQmerge',0);
 	},
 	switchToQmergeOpen: function(qmergeId) {
 		this.activeDataType = '' ;
-		this.activeQueryId = 0 ;
+		this.activeQueryId = null ;
 		this.activeQmergeId = qmergeId ;
 		this.showHelper('queries') ;
 		this.fireEvent('switchToQmerge',qmergeId);
@@ -570,6 +606,82 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 				
 				var respObj = Ext.decode(response.responseText) ;
 				
+				/* ********* Liste des queries / qmerges *********
+				- AssocArray(Obj) QueryId => QueryName
+				- Array de toutes les queries déja incluses dans 1 qmerge
+				- Constitution des menu items
+				************************************************* */
+				var qObjIdName = {} ;
+				Ext.Array.each( respObj.data_queries , function(v) {
+					var queryId = parseInt(v.queryId) ;
+					var queryName = v.text ;
+					
+					qObjIdName[queryId] = queryName ;
+				},me) ;
+				var qmergeQueryIds = [] ;
+				Ext.Array.each( respObj.data_qmerges , function(v) {
+					Ext.Array.each( v.qmerge_queries , function(v2) {
+						var queryId = parseInt(v2) ;
+						if( !Ext.Array.contains(qmergeQueryIds,queryId) ) {
+							qmergeQueryIds.push(queryId) ;
+						}
+					},me) ;
+				},me) ;
+				
+				var qMenuItems = [] ;
+				Ext.Array.each( respObj.data_qmerges , function(v) {
+					var qMenuSubItems = [] ;
+					Ext.Array.each( v.qmerge_queries , function(v2) {
+						var queryId = parseInt(v2) ;
+						if( typeof qObjIdName[queryId] === 'undefined' ) {
+							return ;
+						}
+						qMenuSubItems.push({
+							queryId : queryId,
+							text: qObjIdName[queryId],
+							icon: 'images/op5img/ico_process_16.gif' ,
+							handler: function(){
+								me.switchToQueryOpen( queryId ) ;
+							}
+						}) ;
+					},me) ;
+					
+					qMenuItems.push({
+						qmergeId: v.qmergeId,
+						text: v.text,
+						icon: 'images/op5img/ico_filechild_16.gif' ,
+						handler: function(){
+							me.switchToQmergeOpen( parseInt(v.qmergeId) ) ;
+						},
+						menu:qMenuSubItems
+					});
+				},me) ;
+				Ext.Array.each( respObj.data_queries , function(v) {
+					var queryId = parseInt(v.queryId) ;
+					if( Ext.Array.contains(qmergeQueryIds,queryId) ) {
+						return ;
+					}
+					
+					qMenuItems.push({
+						queryId: queryId,
+						text: v.text,
+						icon: 'images/op5img/ico_process_16.gif' ,
+						handler: function(){
+							me.switchToQueryOpen( queryId ) ;
+						}
+					});
+				},me) ;
+				Ext.Array.sort( qMenuItems, function(o1,o2) {
+					if( o1.text < o2.text ) {
+						return -1 ;
+					} else if(  o1.text > o2.text ) {
+						return 1 ;
+					} else {
+						return 0 ;
+					}
+				}) ;
+				
+				
 				var menuItems = [] ;
 				
 				// ajout du "new"
@@ -602,23 +714,12 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 				}
 				
 				if( respObj.data_filetargets && respObj.data_filetargets.length > 0
-						&& respObj.data_queries && respObj.data_queries.length > 0 ) {
+						&& qMenuItems.length > 0 ) {
 					
 					menuItems.push('-') ;
 				}
 				
-				
-				if( respObj.data_queries && respObj.data_queries.length > 0 ) {
-					var subMenuQueries = Ext.Array.clone( respObj.data_queries ) ;
-					Ext.Array.each( subMenuQueries, function(o) {
-						Ext.apply(o,{
-							handler: function() {
-								me.switchToQueryOpen( o.queryId ) ;
-							}
-						}) ;
-						menuItems.push(o) ;
-					}) ;
-				}
+				menuItems = Ext.Array.union(menuItems,qMenuItems) ;
 				
 				if( true ) {
 					menuItems.push('-') ;

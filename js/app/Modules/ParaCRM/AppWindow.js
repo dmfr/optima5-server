@@ -178,9 +178,19 @@ Ext.define('Optima5.Modules.ParaCRM.AppWindow', {
 				case 'run' :
 					qPanel.remoteAction('run') ;
 					break ;
+					
 				case 'save' :
+					qPanel.on('querysaved',function(success,qId){
+						if( success == true ) {
+							this.maintoolbar.loadQueriesMenu() ;
+						}
+					},this,{
+						single: true
+					});
+					
 					qPanel.remoteAction('save') ;
 					break ;
+					
 				case 'saveas' :
 					qPanel.on('querysaved',function(success,qId){
 						if( success == true ) {
