@@ -643,8 +643,10 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 						switch( queryGroupRecord.get('group_bible_type') ) {
 							case 'ENTRY' :
 								grouphash += '%'+'ENTRY' ;
+								break ;
 							case 'TREE' :
 								grouphash += '%'+'TREE'+'%'+queryGroupRecord.get('group_bible_tree_depth') ;
+								break ;
 						}
 						break ;
 						
