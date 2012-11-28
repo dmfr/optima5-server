@@ -112,6 +112,571 @@ function paracrm_queries_process_buildTrees() {
 	return ;
 }
 
+
+
+
+function paracrm_queries_process_qmerge($arr_saisie, $debug=FALSE)
+{
+	global $_opDB ;
+
+	/* ****************** EXEC d'1 qmerge ******************
+	
+	- Chargement de toutes les queries
+	
+	- Evaluation de la compatibilité des groupes
+	$TAB[geometry][grouphash] = array( query_id+query_group_idx )
+
+	- Exec de toutes les requetes
+	
+	- 2 + 3 : constitution des labels du Qmerge
+	
+	- Pour chaque calcul du Qmerge,
+	
+	******************************************************** */
+	
+	if( $debug ) {
+		echo "Qmerge 1: loading queries..." ;
+	}
+	$arr_queryId_arrSaisieQuery = array() ;
+	foreach( $arr_saisie['arr_query_id'] as $query_id ) {
+		
+		$arrSaisieQuery = array() ;
+		foreach( $arr_saisie['bible_queries'] as $arrSaisieQuery_test ) {
+			if( $arrSaisieQuery_test['query_id'] == $query_id ) {
+				$arrSaisieQuery = $arrSaisieQuery_test ;
+			}
+		}
+		
+		$target_file_code = $arrSaisieQuery['target_file_code'] ;
+		$arrSaisieQuery['treefields_root'] = $arr_saisie['bible_files_treefields'][$target_file_code] ;
+		
+		$arr_queryId_arrSaisieQuery[$query_id] = $arrSaisieQuery ;
+	}
+	//print_r($arr_queryId_arrSaisieQuery) ;
+	if( $debug ) {
+		echo "OK\n" ;
+	}
+	
+	
+	if( $debug ) {
+		echo "Qmerge 1b: merging wheres..." ;
+	}
+	foreach( $arr_saisie['fields_mwhere'] as $field_mwhere ) {
+		foreach( $field_mwhere['query_fields'] as $query_field )
+		{
+			$target_query_id = $query_field['query_id'] ;
+			$target_query_wherefield_idx = $query_field['query_wherefield_idx'] ;
+			
+		
+			foreach( $field_mwhere as $mkey => $mvalue ) {
+				if( strpos($mkey,'condition_') === 0 ) {
+					$arr_queryId_arrSaisieQuery[$target_query_id]['fields_where'][$target_query_wherefield_idx][$mkey] = $mvalue ;
+				}
+			}
+		}
+	}
+	if( $debug ) {
+		echo "OK\n" ;
+	}
+	
+	
+	
+	
+	if( $debug ) {
+		echo "Qmerge 2: evaluating groups..." ;
+	}
+	$probeGeoGrouphashArrQueries = array(
+		'tab' => array(),
+		'grid-x'=>array(),
+		'grid-y'=>array()
+	) ;
+	foreach( $arr_saisie['arr_query_id'] as $query_id ) {
+	
+		$arrSaisieQuery = $arr_queryId_arrSaisieQuery[$query_id] ;
+		foreach( $arrSaisieQuery['fields_group'] as $idx => $field_group ) {
+			switch( $field_group['display_geometry'] ) {
+				case 'tab' :
+				case 'grid-x' :
+				case 'grid-y' :
+				$geometry = $field_group['display_geometry'] ;
+				break ;
+				
+				default :
+				$geometry = 'undefined' ;
+				break ;
+			}
+			
+			$grouphash = '' ;
+			switch( $field_group['field_type'] ) {
+				case 'link' :
+				$grouphash.= 'BIBLE'.'%'.$field_group['field_linkbible'] ;
+				switch( $field_group['group_bible_type'] ) {
+					case 'ENTRY' :
+						$grouphash .= '%'.'ENTRY' ;
+						break ;
+					case 'TREE' :
+						$grouphash .= '%'.'TREE'.'%'.$field_group['group_bible_tree_depth'] ;
+				}
+				break ;
+				
+				case 'date' :
+				$grouphash.= 'DATE'.'%'.$field_group['group_date_type'] ;
+				break ;
+				
+				default :
+				$grouphash.= 'UNKNOWN' ;
+				break ;
+			}
+			
+			if( !is_array($probeGeoGrouphashArrQueries[$geometry][$grouphash]) )
+				$probeGeoGrouphashArrQueries[$geometry][$grouphash] = array() ;
+				
+			$probeGeoGrouphashArrQueries[$geometry][$grouphash][] = array('query_id'=>$query_id,'query_fieldgroup_idx'=>$idx) ;
+		}
+	}
+	
+	$map_grouphash_queryGroupId = array() ;
+	foreach( $probeGeoGrouphashArrQueries as $geometry => $t1 )
+	{
+		foreach( $t1 as $grouphash => $t2 )
+		{
+			foreach( $t2 as $target_infos )
+			{
+				$query_id = $target_infos['query_id'] ;
+				$idx = $target_infos['query_fieldgroup_idx'] ;
+			
+				$map_grouphash_queryGroupId[$query_id][$grouphash] = $idx ;
+			}
+		}
+	}
+	
+	if( $debug ) {
+		echo "OK\n" ;
+	}
+	
+	
+	
+	
+	if( $debug ) {
+		echo "Qmerge 3: executing queries..." ;
+	}
+	$RESqueries = array() ;
+	foreach( $arr_queryId_arrSaisieQuery as $query_id => $arrSaisieQuery ) {
+		$RESquery = paracrm_queries_process_query($arrSaisieQuery , FALSE ) ;
+		$RESquery_groupHash_groupKey = array() ;
+		foreach( $RESquery['RES_groupKey_groupDesc'] as $key_id => $group_desc )
+		{
+			ksort($group_desc) ;
+			$group_hash = implode('@@',$group_desc) ;
+			$RESquery_groupHash_groupKey[$group_hash] = $key_id ;
+		}
+		//echo "end  ".count($RES_groupHash_groupKey)." \n" ;
+		$RESquery['RES_groupHash_groupKey'] = $RESquery_groupHash_groupKey ;
+		
+		$RESqueries[$query_id] = $RESquery ;
+	}
+	// print_r($RESqueries) ;
+	if( $debug ) {
+		echo "OK\n" ;
+	}
+	
+	
+	
+	
+	
+	
+	
+	if( $debug ) {
+		echo "Qmerge 4: building labels (for each tab)..." ;
+	}
+	$arr_nbTabs = array() ;
+	foreach( $RESqueries as $RESquery ) {
+		if( !in_array(count($RESquery['RES_labels']),$arr_nbTabs) )
+			$arr_nbTabs[] = count($RESquery['RES_labels']) ;
+	}
+	if( count($arr_nbTabs) != 1 ) {
+		return NULL ;
+	}
+	$nbTabs = current($arr_nbTabs) ;
+	$RES_labels = array() ;
+	for( $tabidx=0 ; $tabidx<$nbTabs ; $tabidx++ )
+	{
+		$group_key = NULL ;
+		foreach( $RESqueries as $RESquery ) {
+			if( !isset($RESquery['RES_labels'][$tabidx]['group_key']) ) 
+				continue ;
+			if( $group_key === NULL ) {
+				$group_key = $RESquery['RES_labels'][$tabidx]['group_key'] ;
+			}
+			elseif( $RESquery['RES_labels'][$tabidx]['group_key'] !== $group_key ) {
+				return NULL ;
+			}
+		}
+		if( $group_key != NULL ) {
+			$RES_labels[$tabidx]['group_id'] = key($probeGeoGrouphashArrQueries['tab']) ;
+			$RES_labels[$tabidx]['group_key'] = $group_key ;
+		}
+	
+	
+		foreach( $probeGeoGrouphashArrQueries['grid-x'] as $grouphash => $arr_group_targets ) {
+			$grid = array() ;
+			foreach( $arr_group_targets as $group_target ) {
+				$target_queryId = $group_target['query_id'] ;
+				$target_query_fieldgroup_idx = $group_target['query_fieldgroup_idx'] ;
+				
+				
+				$grid_candidate = $RESqueries[$target_queryId]['RES_labels'][$tabidx]['arr_grid-x'][$target_query_fieldgroup_idx] ;
+				if( count($grid_candidate) > count($grid) ) {
+					$grid = $grid_candidate ;
+				}
+			}
+			$RES_labels[$tabidx]['arr_grid-x'][$grouphash] = $grid ;
+		}
+		foreach( $probeGeoGrouphashArrQueries['grid-y'] as $grouphash => $arr_group_targets ) {
+			$grid = array() ;
+			foreach( $arr_group_targets as $group_target ) {
+				$target_queryId = $group_target['query_id'] ;
+				$target_query_fieldgroup_idx = $group_target['query_fieldgroup_idx'] ;
+				
+				
+				$grid_candidate = $RESqueries[$target_queryId]['RES_labels'][$tabidx]['arr_grid-y'][$target_query_fieldgroup_idx] ;
+				if( count($grid_candidate) > count($grid) ) {
+					$grid = $grid_candidate ;
+				}
+			}
+			$RES_labels[$tabidx]['arr_grid-y'][$grouphash] = $grid ;
+		}
+	}
+	if( $debug ) {
+		echo "OK\n" ;
+	}
+	
+	
+	
+	
+	
+
+	
+	if( $debug ) {
+		echo 'Qmerge 5: building $_mgroups_hashes...' ;
+	}
+	// Constitution des $_mgroups_hashes => toutes les possibilités en prenant la possibilité d'un détachement pour chaque group (%%%)
+	$groupTargets = array() ;
+	$defaultTarget = array() ;
+	foreach( $RES_labels as $tabidx => $RES_labels_tab ) {
+		$tab_groupTargets = array( array() ) ;
+		if( $RES_labels_tab['group_id'] ) {
+			$tab_groupTargets = paracrm_queries_process_toolArrayMultiply($tab_groupTargets,$RES_labels_tab['group_id'],array($RES_labels_tab['group_key'])) ;
+			$defaultTarget[$RES_labels_tab['group_id']] = '%%%' ;
+		}
+	
+		foreach( $RES_labels_tab['arr_grid-x'] as $group_id => $t1 )
+		{
+			$defaultStr = '%%%' ;
+		
+			$group_keys = array_keys($t1) ;
+			$group_keys[] = $defaultStr ;
+			$tab_groupTargets = paracrm_queries_process_toolArrayMultiply($tab_groupTargets,$group_id,$group_keys) ;
+			$defaultTarget[$group_id] = $defaultStr ;
+		}
+		foreach( $RES_labels_tab['arr_grid-y'] as $group_id => $t1 )
+		{
+			$defaultStr = '%%%' ;
+		
+			$group_keys = array_keys($t1) ;
+			$group_keys[] = $defaultStr ;
+			$tab_groupTargets = paracrm_queries_process_toolArrayMultiply($tab_groupTargets,$group_id,$group_keys) ;
+			$defaultTarget[$group_id] = $defaultStr ;
+		}
+		
+		$groupTargets = array_merge($groupTargets,$tab_groupTargets) ;
+	}
+
+	$indexed_groupTargets = array() ;
+	foreach( $groupTargets as $group_id => $group_desc )
+	{
+		ksort($group_desc) ;
+		$group_hash = implode('@@',$group_desc) ;
+		$indexed_groupTargets[$group_hash] = $group_id ;
+	}
+	
+	$RES_groupKey_groupDesc = $groupTargets ;
+	
+	if( $debug ) {
+		echo "OK\n" ;
+	}
+	
+	
+	
+	
+	
+	
+	
+	if( $debug ) {
+		echo 'Qmerge 6: entering calc' ;
+	}
+	$RES_selectId_groupKey_value = array() ;
+	$RES_selectId_round = array() ;
+	foreach( $arr_saisie['fields_mselect'] as $mselect_field_idx => $mselect_field ) {
+
+		$x_detached = $y_detached = FALSE ;
+		foreach( $mselect_field['axis_detach'] as $axisdetach ) {
+			if( $axisdetach['axis_is_detach'] != TRUE ) {
+				continue ;
+			}
+			
+			switch( $axisdetach['display_geometry'] ){
+				case 'grid-x' :
+				$x_detached = TRUE ;
+				break ;
+				
+				case 'grid-y' :
+				$y_detached = TRUE ;
+				break ;
+			}
+		}
+	
+	
+		
+		// tous les groupTargets de l'opération QMerge
+		$attached_groupTargets = array() ;
+		$detached_groupTargets = array() ;
+		foreach( $RES_labels as $tabidx => $RES_labels_tab ) {
+		
+			// Pour chaque tab, constitution des sousGroupTargets par multiplication (groupKey)
+			$tab_attached_groupTargets = array( array() ) ;
+			$tab_detached_groupTargets = array( array() ) ;
+			if( $RES_labels_tab['group_id'] )
+				$tab_attached_groupTargets = paracrm_queries_process_toolArrayMultiply($tab_attached_groupTargets,$RES_labels_tab['group_id'],array($RES_labels_tab['group_key'])) ;
+			foreach( $RES_labels_tab['arr_grid-x'] as $group_id => $t1 )
+			{
+				$group_keys = array_keys($t1) ;
+				if( $x_detached )
+					$tab_detached_groupTargets = paracrm_queries_process_toolArrayMultiply($tab_detached_groupTargets,$group_id,$group_keys) ;
+				else
+					$tab_attached_groupTargets = paracrm_queries_process_toolArrayMultiply($tab_attached_groupTargets,$group_id,$group_keys) ;
+			}
+			foreach( $RES_labels_tab['arr_grid-y'] as $group_id => $t1 )
+			{
+				$group_keys = array_keys($t1) ;
+				if( $y_detached )
+					$tab_detached_groupTargets = paracrm_queries_process_toolArrayMultiply($tab_detached_groupTargets,$group_id,$group_keys) ;
+				else
+					$tab_attached_groupTargets = paracrm_queries_process_toolArrayMultiply($tab_attached_groupTargets,$group_id,$group_keys) ;
+			}
+			$attached_groupTargets = array_merge($attached_groupTargets,$tab_attached_groupTargets) ;
+			$detached_groupTargets = array_merge($detached_groupTargets,$tab_detached_groupTargets) ;
+		}
+		
+		
+		/*
+		echo "\n****************RESULT*************\n\n\n" ;
+		echo "\n****************ATTACHED*************\n\n\n" ;
+		print_r($attached_groupTargets) ;
+		echo "\n****************DETACHED*************\n\n\n" ;
+		print_r($detached_groupTargets) ;
+		echo "\n**********************\n\n" ;
+		*/
+		
+		// ***** Identification des queries déja detachées ******
+		
+		
+		
+		
+		$RES_selectId_groupKey_value[$mselect_field_idx] = array() ;
+		$RES_selectId_round[$mselect_field_idx] = $mselect_field['math_round'] ;
+		foreach( $attached_groupTargets as $attachGroupTarget )
+		{
+			// ******** On est dans une cellule ********
+			// --- determiner le qgroup_id => lookup dans $groupTargets
+			$searchGroupTarget = $attachGroupTarget + $defaultTarget ;
+			ksort($searchGroupTarget) ;
+			$searchHash = implode('@@',$searchGroupTarget) ;
+			if( !isset($indexed_groupTargets[$searchHash]) ) {
+				echo "CRITICAL" ;
+				print_r($searchGroupTarget) ;
+			}
+			$qgroup_id = $indexed_groupTargets[$searchHash] ;
+		
+		
+		
+		
+			$cellValues = array() ;
+			foreach( $mselect_field['math_expression'] as $symbol_id => $symbol )
+			{
+				if( $symbol['math_operand_query_id'] ) {} else continue ;
+				
+				$query_id = $symbol['math_operand_query_id'] ;
+				$selectfield_idx = $symbol['math_operand_selectfield_idx'] ;
+				
+				// Pour cette query, tous les champs sont-ils attachés ?
+				// -- Valeur unique
+				if( count($map_grouphash_queryGroupId[$query_id]) == count($attachGroupTarget) )
+				{
+					$queryGroupDesc = array() ;
+					foreach( $attachGroupTarget as $grouphash => $group_key )
+					{
+						if( isset($map_grouphash_queryGroupId[$query_id][$grouphash]) ) {
+							$query_group_id = $map_grouphash_queryGroupId[$query_id][$grouphash] ;
+							$queryGroupDesc[$query_group_id] = $group_key ;
+						}
+					}
+				
+					$cellValues[$symbol_id] = paracrm_queries_process_lookupValue($RESqueries[$query_id],$queryGroupDesc) ; 
+					
+					continue ;
+				}
+				
+				$cellValues[$symbol_id] = array() ;
+				// ******** Appel des valeurs *********
+				foreach( $detached_groupTargets as $detachGroupTarget ) {
+					$groupTarget = $attachGroupTarget + $detachGroupTarget ;
+					
+					// *** Appel de la valeur => recherche dans $RESqueries[$query_id]['RES_groupKey_groupDesc'] ****
+					// -- on constitue un groupDesc relatif a cette query
+					$queryGroupDesc = array() ;
+					foreach( $groupTarget as $grouphash => $group_key )
+					{
+						if( isset($map_grouphash_queryGroupId[$query_id][$grouphash]) ) {
+							$query_group_id = $map_grouphash_queryGroupId[$query_id][$grouphash] ;
+							$queryGroupDesc[$query_group_id] = $group_key ;
+						}
+					}
+					
+					$cellValues[$symbol_id][] = paracrm_queries_process_lookupValue($RESqueries[$query_id],$queryGroupDesc) ;  ;
+				}
+			}
+			
+			
+			// *** Calcul de la valeur ****
+			$val = NULL ;
+			switch( $mselect_field['math_func_mode'] ) {
+			
+				case 'IN' :
+				default :
+					// pour chaque symbole/operand => execution de la fonction operatoire en intra
+					foreach( $cellValues as $symbol_id => $arrValues )
+					{
+						if( !is_array($arrValues) )
+							continue ;
+					
+						switch( $mselect_field['math_func_group'] )
+						{
+							case 'AVG' :
+							$val = array_sum($arrValues) / count($arrValues) ;
+							break ;
+							
+							case 'SUM' :
+							$val = array_sum($arrValues) ;
+							break ;
+							
+							case 'MIN':
+							$val = min($arrValues) ;
+							break ;
+							
+							case 'MAX' :
+							$val = max($arrValues) ;
+							break ;
+							
+							default :
+							$val = '' ;
+							break ;
+						}
+						$cellValues[$symbol_id] = $val ;
+					}
+				
+					if( count($mselect_field['math_expression']) > 1 )
+					{
+						$eval_string = '' ;
+						foreach( $mselect_field['math_expression'] as $symbol_id => $symbol )
+						{
+							$eval_string.= $symbol['math_operation'] ;
+							
+							if( $symbol['math_parenthese_in'] )
+								$eval_string.= '(' ;
+								
+							if( $symbol['math_staticvalue'] != 0 )
+								$value = (float)($symbol['math_staticvalue']) ;
+							elseif( isset($cellValues[$symbol_id]) )
+								$value = $cellValues[$symbol_id] ;
+							else
+								$value = 0 ;
+							$eval_string.= $value ;
+							
+							if( $symbol['math_parenthese_out'] )
+								$eval_string.= ')' ;
+						}
+						
+						$evalmath = new EvalMath ;
+						$evalmath->suppress_errors = TRUE ;
+						if( ($val = $evalmath->evaluate($eval_string)) === FALSE )
+						{
+							continue ;
+						}
+					}
+					else
+					{
+						reset($cellValues) ;
+						$val = current($cellValues) ;
+					}
+					break ;
+			}
+			
+			
+			$RES_selectId_groupKey_value[$mselect_field_idx][$qgroup_id] = $val ;
+		}
+	}
+	if( $debug ) {
+		echo "OK\n" ;
+	}
+
+
+	return array('RES_groupKey_groupDesc'=>$RES_groupKey_groupDesc,
+					'RES_selectId_groupKey_value'=>$RES_selectId_groupKey_value,
+					'RES_labels'=>$RES_labels,
+					'RES_selectId_round'=>$RES_selectId_round) ;
+}
+
+function paracrm_queries_process_lookupValue( &$RES, $group_desc ) {
+	ksort($group_desc) ;
+	if( !isset($RES['RES_groupHash_groupKey']) ) {
+		echo "WARN" ;
+	}
+	$group_hash = implode('@@',$group_desc) ;
+	if( !$key_id = $RES['RES_groupHash_groupKey'][$group_hash] ) {
+		$key_id = FALSE ;
+	}
+	
+	if( $key_id === FALSE )
+	{
+		return $RES['RES_nullValue'] ;
+	}
+	elseif( !isset($RES['RES_groupKey_value'][$key_id]) )
+	{
+		return $RES['RES_nullValue'] ;
+	}
+	else
+	{
+		return $RES['RES_groupKey_value'][$key_id] ;
+	}
+}
+
+function paracrm_queries_process_toolArrayMultiply( $tab, $mkey, $arr_mvalues ) {
+	$result = array() ;
+	foreach( $tab as $entry ) {
+		foreach( $arr_mvalues as $mvalue ) {
+			$entry[$mkey] = $mvalue ;
+			$result[] = $entry ;
+		}
+	}
+	return $result ;
+}
+
+
+
+
+
+
 function paracrm_queries_process_query($arr_saisie, $debug=FALSE) 
 {
 	global $_opDB ;
