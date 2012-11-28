@@ -178,8 +178,25 @@ function paracrm_queries_mergerTransaction_runQuery( $post_data, &$arr_saisie )
 	$_SESSION['transactions'][$transaction_id]['arr_RES'][$new_RES_key] = $RES ;
 	
 	
-	return array('success'=>true,'query_status'=>'NOK','RES_id'=>$new_RES_key,'debug'=>$RES) ;
+	return array('success'=>true,'query_status'=>'OK','RES_id'=>$new_RES_key,'debug'=>$RES) ;
 }
+
+function paracrm_queries_mergerTransaction_resGet( $post_data )
+{
+	$transaction_id = $post_data['_transaction_id'] ;
+	$RES = $_SESSION['transactions'][$transaction_id]['arr_RES'][$post_data['RES_id']] ;
+	
+	$tabs = array() ;
+	foreach( $RES['RES_labels'] as $tab_id => $dummy )
+	{
+		$tab = array() ;
+		$tab['tab_title'] = $dummy['tab_title'] ;
+		$tabs[$tab_id] = $tab + paracrm_queries_mpaginate_getGrid( $RES, $tab_id ) ;
+	}
+	
+	return array('success'=>true,'tabs'=>$tabs) ;
+}
+
 
 function paracrm_queries_mergerTransaction_save( $post_data , &$arr_saisie )
 {

@@ -299,6 +299,7 @@ function paracrm_queries_process_qmerge($arr_saisie, $debug=FALSE)
 	}
 	$nbTabs = current($arr_nbTabs) ;
 	$RES_labels = array() ;
+	$RES_titles = array() ;
 	for( $tabidx=0 ; $tabidx<$nbTabs ; $tabidx++ )
 	{
 		$group_key = NULL ;
@@ -307,6 +308,7 @@ function paracrm_queries_process_qmerge($arr_saisie, $debug=FALSE)
 				continue ;
 			if( $group_key === NULL ) {
 				$group_key = $RESquery['RES_labels'][$tabidx]['group_key'] ;
+				$tab_title = $RESquery['RES_labels'][$tabidx]['tab_title'] ;
 			}
 			elseif( $RESquery['RES_labels'][$tabidx]['group_key'] !== $group_key ) {
 				return NULL ;
@@ -315,6 +317,10 @@ function paracrm_queries_process_qmerge($arr_saisie, $debug=FALSE)
 		if( $group_key != NULL ) {
 			$RES_labels[$tabidx]['group_id'] = key($probeGeoGrouphashArrQueries['tab']) ;
 			$RES_labels[$tabidx]['group_key'] = $group_key ;
+			$RES_labels[$tabidx]['tab_title'] = $tab_title ;
+		}
+		else {
+			$RES_labels[$tabidx]['tab_title'] = 'Qmerge' ;
 		}
 	
 	
@@ -331,6 +337,8 @@ function paracrm_queries_process_qmerge($arr_saisie, $debug=FALSE)
 				}
 			}
 			$RES_labels[$tabidx]['arr_grid-x'][$grouphash] = $grid ;
+			$RES_titles['group_fields'][$grouphash] = $RESqueries[$target_queryId]['RES_titles']['group_fields'][$target_query_fieldgroup_idx] ;
+			$RES_titles['group_title'][$grouphash] = $RESqueries[$target_queryId]['RES_titles']['group_title'][$target_query_fieldgroup_idx] ;
 		}
 		foreach( $probeGeoGrouphashArrQueries['grid-y'] as $grouphash => $arr_group_targets ) {
 			$grid = array() ;
@@ -345,8 +353,11 @@ function paracrm_queries_process_qmerge($arr_saisie, $debug=FALSE)
 				}
 			}
 			$RES_labels[$tabidx]['arr_grid-y'][$grouphash] = $grid ;
+			$RES_titles['group_fields'][$grouphash] = $RESqueries[$target_queryId]['RES_titles']['group_fields'][$target_query_fieldgroup_idx] ;
+			$RES_titles['group_title'][$grouphash] = $RESqueries[$target_queryId]['RES_titles']['group_title'][$target_query_fieldgroup_idx] ;
 		}
 	}
+	
 	if( $debug ) {
 		echo "OK\n" ;
 	}
@@ -362,6 +373,7 @@ function paracrm_queries_process_qmerge($arr_saisie, $debug=FALSE)
 	}
 	// Constitution des $_mgroups_hashes => toutes les possibilités en prenant la possibilité d'un détachement pour chaque group (%%%)
 	$groupTargets = array() ;
+	$groupTargets[] = array() ;
 	$defaultTarget = array() ;
 	foreach( $RES_labels as $tabidx => $RES_labels_tab ) {
 		$tab_groupTargets = array( array() ) ;
@@ -416,7 +428,7 @@ function paracrm_queries_process_qmerge($arr_saisie, $debug=FALSE)
 		echo 'Qmerge 6: entering calc' ;
 	}
 	$RES_selectId_groupKey_value = array() ;
-	$RES_selectId_round = array() ;
+	$RES_selectId_infos = array() ;
 	foreach( $arr_saisie['fields_mselect'] as $mselect_field_idx => $mselect_field ) {
 
 		$x_detached = $y_detached = FALSE ;
@@ -435,7 +447,12 @@ function paracrm_queries_process_qmerge($arr_saisie, $debug=FALSE)
 				break ;
 			}
 		}
-	
+		
+		$RES_selectId_infos[$mselect_field_idx] = array() ;
+		$RES_selectId_infos[$mselect_field_idx]['axis_x_detached'] = $x_detached ;
+		$RES_selectId_infos[$mselect_field_idx]['axis_y_detached'] = $y_detached ;
+		$RES_selectId_infos[$mselect_field_idx]['math_round'] = $mselect_field['math_round'] ;
+		$RES_selectId_infos[$mselect_field_idx]['select_lib'] = $mselect_field['select_lib'] ;
 	
 		
 		// tous les groupTargets de l'opération QMerge
@@ -484,7 +501,6 @@ function paracrm_queries_process_qmerge($arr_saisie, $debug=FALSE)
 		
 		
 		$RES_selectId_groupKey_value[$mselect_field_idx] = array() ;
-		$RES_selectId_round[$mselect_field_idx] = $mselect_field['math_round'] ;
 		foreach( $attached_groupTargets as $attachGroupTarget )
 		{
 			// ******** On est dans une cellule ********
@@ -634,7 +650,8 @@ function paracrm_queries_process_qmerge($arr_saisie, $debug=FALSE)
 	return array('RES_groupKey_groupDesc'=>$RES_groupKey_groupDesc,
 					'RES_selectId_groupKey_value'=>$RES_selectId_groupKey_value,
 					'RES_labels'=>$RES_labels,
-					'RES_selectId_round'=>$RES_selectId_round) ;
+					'RES_titles'=>$RES_titles,
+					'RES_selectId_infos'=>$RES_selectId_infos) ;
 }
 
 function paracrm_queries_process_lookupValue( &$RES, $group_desc ) {
