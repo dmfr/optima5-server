@@ -80,6 +80,11 @@ Ext.define('Optima5.Modules.ParaCRM.QueryResultPanel' ,{
 						}
 					}) ;
 				}
+				else if( columnDef.detachedColumn == true ) {
+					Ext.apply(columnDef,{
+						tdCls: 'op5paracrm-detachedcolumn'
+					}) ;
+				}
 				else if( columnDef.progressColumn == true ) {
 					Ext.apply(columnDef,{
 						tdCls: 'op5paracrm-progresscolumn',

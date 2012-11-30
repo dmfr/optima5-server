@@ -68,10 +68,12 @@ Ext.define('Optima5.Modules.ParaCRM.QueryTemplateManager' ,{
 		dataBold = settingsRecord.get('data_select_is_bold') ;
 		cssBlob += ".op5paracrm-querygrid .op5paracrm-datacolumn { font-weight:"+ (dataBold?'bold':'normal') +"; }\r\n" ;
 		progressBold = settingsRecord.get('data_progress_is_bold') ;
+		cssBlob += ".op5paracrm-querygrid .op5paracrm-detachedcolumn { font-weight:"+ (progressBold?'bold':'normal') +"; }\r\n" ;
 		cssBlob += ".op5paracrm-querygrid .op5paracrm-progresscolumn { font-weight:"+ (progressBold?'bold':'normal') +"; }\r\n" ;
 		
 		textAlign = settingsRecord.get('data_align') ;
 		cssBlob += ".op5paracrm-querygrid .op5paracrm-datacolumn .x-grid-cell-inner { text-align:"+ textAlign +"; }\r\n" ;
+		cssBlob += ".op5paracrm-querygrid .op5paracrm-detachedcolumn .x-grid-cell-inner { text-align:"+ textAlign +"; }\r\n" ;
 		cssBlob += ".op5paracrm-querygrid .op5paracrm-progresscolumn .x-grid-cell-inner { text-align:left; }\r\n" ;
 		
 		cssBlob += ".op5paracrm-querygrid .op5paracrm-progresscell-pos .x-grid-cell-inner { color: green; }\r\n" ;
