@@ -26,13 +26,22 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 					icon: 'images/op5img/ico_showref_listall.gif',
 					menu: this.createFilesMenu()
 			},'-',{
+					text: 'Scenarios',
+					icon: 'images/op5img/ico_engins_16.gif',
+					//menu: this.createScenariosMenu()
+					menu: {
+						xtype:'menu',
+						plain:true,
+						items:[]
+					}
+			},'-',{
 					text: 'Queries',
 					icon: 'images/op5img/ico_blocs_small.gif',
 					menu: this.createQueriesMenu()
 			},'-',{
 					// id: 'usermanager',
 					icon: 'images/op5img/ico_kuser_small.gif',
-					text: 'Manage Users/Scenarios',
+					text: 'Manage Users',
 					menu: {
 						xtype: 'menu',
 						plain: true,
@@ -46,11 +55,6 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 									}
 						}
 					}
-			},'-',{
-					text:'Notepad',
-					handler: this.switchToNotepad,
-					scope : this ,
-					iconCls: 'notepad'
 			},'->',{
 				helperId: 'store',
 				hidden: true,
