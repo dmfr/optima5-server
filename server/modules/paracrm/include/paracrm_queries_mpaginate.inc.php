@@ -65,47 +65,67 @@ function paracrm_queries_mpaginate_getGridColumns( &$RES, $RES_labels_tab )
 		}
 	}
 	
-	if( $x_grid )
-	{
-		foreach( $x_grid as $x_code => $x_arr_strings )
-		{
-			foreach( $RES['RES_selectId_infos'] as $select_id => $infos ) {
-				if( $infos['axis_x_detached'] ) {
-					continue ;
-				}
-				$col = array() ;
-				$col['text'] = implode(' - ',$x_arr_strings) ;
-				$col['text_bold'] = true ;
-				$col['dataIndex'] = 'valueCol_'.$select_id.'_'.$x_code ;
-				$col['dataType'] = 'string' ;
-				$tab[] = $col ;
+	
+	$passed_xGroups = array() ;
+	$passed_selectIds = array() ;
+	$count_RES_selectId = count($RES['RES_selectId_infos']) ;
+	for( $select_id=0 ; $select_id<count($RES['RES_selectId_infos']) ; $select_id++ ) {
+	
+		if( in_array($select_id,$passed_selectIds) )
+			continue ;
+	
+		$RES_infos = $RES['RES_selectId_infos'][$select_id] ;
+		
+		if( $RES_infos['axis_x_detached'] ) {
+			$col = array() ;
+			$col['text'] = $RES_infos['select_lib'] ;
+			$col['text_italic'] = true ;
+			$col['dataIndex'] = 'valueCol_'.$select_id ;
+			$col['dataType'] = 'string' ;
+			if( $RES_infos['axis_x_setDetached'] ) {
+				$col['detachedColumn'] = true ;
 			}
+			$tab[] = $col ;
+			
+			$passed_selectIds[] = $select_id ;
+			
+			continue ;
 		}
-	}
-	else
-	{
-		foreach( $RES['RES_selectId_infos'] as $select_id => $infos ) {
-			if( $infos['axis_x_detached'] ) {
+	
+		// on cherche quel groupe-X est concerné
+		foreach( $RES_labels_tab['arr_grid-x'] as $x_groupId => $x_grid ) {
+			if( in_array($x_groupId,$passed_xGroups) || !in_array($x_groupId,$RES_infos['axis_groups']) ) {
 				continue ;
 			}
-			$col = array() ;
-			$col['text'] = $RES_labels_tab['select_lib'] ;
-			$col['text_italic'] = true ;
-			$col['dataIndex'] = 'valueCol_'.$select_id ;
-			$col['dataType'] = 'string' ;
-			$tab[] = $col ;
+			$passed_xGroups[] = $x_groupId ;
+			
+			// du coup=> toutes les queries concernées par ce X groupe
+			$inner_selectIds = array() ;
+			for( $inner_select_id=0 ; $inner_select_id<count($RES['RES_selectId_infos']) ; $inner_select_id++ ) {
+				$inner_RES_infos = $RES['RES_selectId_infos'][$inner_select_id] ;
+			
+				if( !in_array($x_groupId,$inner_RES_infos['axis_groups']) )
+					continue ;
+			
+				$inner_selectIds[] = $inner_select_id;
+			}
+			
+			foreach( $x_grid as $x_code => $x_arr_strings ) {
+				
+				foreach( $inner_selectIds as $inner_select_id ) {
+					$col = array() ;
+					$col['text'] = implode(' - ',$x_arr_strings) ;
+					$col['text_bold'] = true ;
+					$col['dataIndex'] = 'valueCol_'.$inner_select_id.'_'.$x_code ;
+					$col['dataType'] = 'string' ;
+					$tab[] = $col ;
+				}
+			}
 		}
-	}
 	
-	foreach( $RES['RES_selectId_infos'] as $select_id => $infos ) {
-		if( $infos['axis_x_detached'] ) {
-			$col = array() ;
-			$col['text'] = $infos['select_lib'] ;
-			$col['text_italic'] = true ;
-			$col['dataIndex'] = 'valueCol_'.$select_id ;
-			$col['dataType'] = 'string' ;
-			$tab[] = $col ;
-		}
+	
+	
+	
 	}
 	
 	
@@ -118,9 +138,15 @@ function paracrm_queries_mpaginate_getGridRows( &$RES, $RES_labels_tab )
 		$arr_static[$RES_labels_tab['group_id']] = $RES_labels_tab['group_key'] ;
 		
 	foreach( $RES_labels_tab['arr_grid-y'] as $group_id => $dummy ) {
+		if( !$group_id ) {
+			continue ;
+		}
 		$arr_static[$group_id] = '%%%' ;
 	}
 	foreach( $RES_labels_tab['arr_grid-x'] as $group_id => $dummy ) {
+		if( !$group_id ) {
+			continue ;
+		}
 		$arr_static[$group_id] = '%%%' ;
 	}
 	
@@ -197,98 +223,45 @@ function paracrm_queries_mpaginate_getGridRow( &$RES, $arr_static, $arr_grid_x, 
 		}
 	}
 	
-	if( $x_grid )
-	{
-		foreach( $x_grid as $x_key => $x_string )
-		{
-			foreach( $RES['RES_selectId_infos'] as $select_id => $infos ) {
-				if( $infos['axis_x_detached'] ) {
-					continue ;
-				}
-				$dataIndex = 'valueCol_'.$select_id.'_'.$x_key ;
-				
-				$hash = $arr_y_group_id_key + array($x_group_id=>$x_key) + $arr_static ;
-				
-				// $group_key = array_search($hash,$RES['RES_groupKey_groupDesc']) ;
-				$group_key = paracrm_queries_mpaginate_getGroupKey( $RES, $hash ) ;
-				if( $group_key === FALSE )
-				{
-					$row[$dataIndex] = $RES['RES_nullValue'] ;
-				}
-				elseif( !isset($RES['RES_selectId_groupKey_value'][$select_id][$group_key]) )
-				{
-					$row[$dataIndex] = $RES['RES_nullValue'] ;
-				}
-				else
-				{
-					$ref_value = $RES['RES_selectId_groupKey_value'][$select_id][$group_key] ;
-					if( is_numeric($ref_value) ) {
-						if( $infos['math_round'] > 0 ) {
-							$row[$dataIndex] = round($ref_value,$infos['math_round']) ;
-						} else {
-							$row[$dataIndex] = round($ref_value) ;
-						}
-					} else {
-						$row[$dataIndex] = $ref_value ;
-					}
-				}
-			}
-		}
-	}
-	else
-	{
+	
+	$count_RES_selectId = count($RES['RES_selectId_infos']) ;
+	for( $select_id=0 ; $select_id<count($RES['RES_selectId_infos']) ; $select_id++ ) {
+	
+		$RES_infos = $RES['RES_selectId_infos'][$select_id] ;
+		
+		if( $RES_infos['axis_x_detached'] ) {
 			$dataIndex = 'valueCol_'.$select_id ;
 			
 			$hash = $arr_y_group_id_key + $arr_static  ;
 			
 			// $group_key = array_search($hash,$RES['RES_groupKey_groupDesc']) ;
 			$group_key = paracrm_queries_mpaginate_getGroupKey( $RES, $hash ) ;
-			if( $group_key === FALSE )
-			{
-				$row[$dataIndex] = $RES['RES_nullValue'] ;
-			}
-			elseif( !isset($RES['RES_selectId_groupKey_value'][$select_id][$group_key]) )
-			{
-				$row[$dataIndex] = $RES['RES_nullValue'] ;
-			}
-			else
-			{
-				$ref_value = $RES['RES_selectId_groupKey_value'][$select_id][$group_key] ;
-				if( is_numeric($ref_value) ) {
-					if( $infos['math_round'] > 0 ) {
-						$row[$dataIndex] = round($ref_value,$infos['math_round']) ;
-					} else {
-						$row[$dataIndex] = round($ref_value) ;
-					}
+			$ref_value = $RES['RES_selectId_groupKey_value'][$select_id][$group_key] ;
+			if( is_numeric($ref_value) ) {
+				if( $RES_infos['math_round'] > 0 ) {
+					$row[$dataIndex] = round($ref_value,$RES_infos['math_round']) ;
 				} else {
-					$row[$dataIndex] = $ref_value ;
+					$row[$dataIndex] = round($ref_value) ;
 				}
+			} else {
+				$row[$dataIndex] = $ref_value ;
 			}
-	}
-	
-	
-	foreach( $RES['RES_selectId_infos'] as $select_id => $infos ) {
-		if( $infos['axis_x_detached'] ) {
-			$dataIndex = 'valueCol_'.$select_id ;
 			
-			$hash = $arr_y_group_id_key + $arr_static ;
-			
-			// $group_key = array_search($hash,$RES['RES_groupKey_groupDesc']) ;
-			$group_key = paracrm_queries_mpaginate_getGroupKey( $RES, $hash ) ;
-			if( $group_key === FALSE )
-			{
-				$row[$dataIndex] = $RES['RES_nullValue'] ;
-			}
-			elseif( !isset($RES['RES_selectId_groupKey_value'][$select_id][$group_key]) )
-			{
-				$row[$dataIndex] = $RES['RES_nullValue'] ;
-			}
-			else
-			{
+			continue ;
+		}
+		
+		foreach( $arr_grid_x as $x_groupId => $x_grid ) {
+			foreach( $x_grid as $x_key => $x_arr_strings ) {
+				$dataIndex = 'valueCol_'.$select_id.'_'.$x_key ;
+				
+				$hash = $arr_y_group_id_key + array($x_groupId=>$x_key) + $arr_static ;
+				
+				// $group_key = array_search($hash,$RES['RES_groupKey_groupDesc']) ;
+				$group_key = paracrm_queries_mpaginate_getGroupKey( $RES, $hash ) ;
 				$ref_value = $RES['RES_selectId_groupKey_value'][$select_id][$group_key] ;
 				if( is_numeric($ref_value) ) {
-					if( $infos['math_round'] > 0 ) {
-						$row[$dataIndex] = round($ref_value,$infos['math_round']) ;
+					if( $RES_infos['math_round'] > 0 ) {
+						$row[$dataIndex] = round($ref_value,$RES_infos['math_round']) ;
 					} else {
 						$row[$dataIndex] = round($ref_value) ;
 					}
@@ -298,6 +271,8 @@ function paracrm_queries_mpaginate_getGridRow( &$RES, $arr_static, $arr_grid_x, 
 			}
 		}
 	}
+	
+	
 	
 	
 	return $row ;

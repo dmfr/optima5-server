@@ -320,10 +320,12 @@ function paracrm_queries_process_qmerge($arr_saisie, $debug=FALSE)
 			$RES_labels[$tabidx]['tab_title'] = $tab_title ;
 		}
 		else {
-			$RES_labels[$tabidx]['tab_title'] = 'Qmerge' ;
+			$RES_labels[$tabidx]['tab_title'] = preg_replace("/[^a-zA-Z0-9\s]/", "", $arr_saisie['qmerge_name']) ;
 		}
-	
-	
+		
+		
+		$RES_labels[$tabidx]['arr_grid-x'] = array() ;
+		$RES_labels[$tabidx]['arr_grid-y'] = array() ;
 		foreach( $probeGeoGrouphashArrQueries['grid-x'] as $grouphash => $arr_group_targets ) {
 			$grid = array() ;
 			foreach( $arr_group_targets as $group_target ) {
@@ -356,6 +358,16 @@ function paracrm_queries_process_qmerge($arr_saisie, $debug=FALSE)
 			$RES_titles['group_fields'][$grouphash] = $RESqueries[$target_queryId]['RES_titles']['group_fields'][$target_query_fieldgroup_idx] ;
 			$RES_titles['group_title'][$grouphash] = $RESqueries[$target_queryId]['RES_titles']['group_title'][$target_query_fieldgroup_idx] ;
 		}
+		
+		// ** Création d'un axe fantome dans le cas d'une requete 1D (pour le fonctionnement du reste)
+		// -> cet axe sera ignoré pour la pagination et la constitution des attach/detach groups
+		if( !$RES_labels[$tabidx]['arr_grid-x'] ) {
+			$RES_labels[$tabidx]['arr_grid-x'][''] = array() ;
+		}
+		if( !$RES_labels[$tabidx]['arr_grid-y'] ) {
+			$RES_labels[$tabidx]['arr_grid-y'][''] = array() ;
+		}
+		
 	}
 	
 	if( $debug ) {
@@ -372,16 +384,62 @@ function paracrm_queries_process_qmerge($arr_saisie, $debug=FALSE)
 		echo 'Qmerge 5: building $_mgroups_hashes...' ;
 	}
 	// Constitution des $_mgroups_hashes => toutes les possibilités en prenant la possibilité d'un détachement pour chaque group (%%%)
-	$groupTargets = array() ;
-	$groupTargets[] = array() ;
-	$defaultTarget = array() ;
+	$groupTargets = array() ;     // mgroup_hashes
+	$groupTargets[] = array() ;   // enregistrement "blanc" pour éviter l'index 0
+	$defaultTarget = array() ;    // defaultTarget : tous les groupes à %%%
 	foreach( $RES_labels as $tabidx => $RES_labels_tab ) {
-		$tab_groupTargets = array( array() ) ;
+		$tab_groupTargets_base = array( array() ) ;
+		
 		if( $RES_labels_tab['group_id'] ) {
-			$tab_groupTargets = paracrm_queries_process_toolArrayMultiply($tab_groupTargets,$RES_labels_tab['group_id'],array($RES_labels_tab['group_key'])) ;
+			$tab_groupTargets_base = paracrm_queries_process_toolArrayMultiply($tab_groupTargets_base,$RES_labels_tab['group_id'],array($RES_labels_tab['group_key'])) ;
 			$defaultTarget[$RES_labels_tab['group_id']] = '%%%' ;
 		}
 	
+		foreach( $RES_labels_tab['arr_grid-x'] as $group_id => $t1 )
+		{
+			if( !$group_id )
+				continue ;
+			
+			$tab_groupTargets_base = paracrm_queries_process_toolArrayMultiply($tab_groupTargets_base,$group_id,array('%%%')) ;
+			$defaultTarget[$group_id] = '%%%' ;
+		}
+		foreach( $RES_labels_tab['arr_grid-y'] as $group_id => $t1 )
+		{
+			if( !$group_id )
+				continue ;
+			
+			$tab_groupTargets_base = paracrm_queries_process_toolArrayMultiply($tab_groupTargets_base,$group_id,array('%%%')) ;
+			$defaultTarget[$group_id] = '%%%' ;
+		}
+		
+		//// ON NE FONCTIONNE PAS EN COMBINATOIRE RECURSIF POUR LES QMERGES
+		//    => toutes combinaisons linéaires simple entre 1 SEUL X ET 1 SEUL Y
+		foreach( $RES_labels_tab['arr_grid-x'] as $group_x_id => $tx )
+		{
+			foreach( $RES_labels_tab['arr_grid-y'] as $group_y_id => $ty )
+			{
+				$tab_groupTargets = $tab_groupTargets_base ;
+				
+				$defaultStr = '%%%' ;
+			
+				if( $group_x_id ) {
+					$group_keys = array_keys($tx) ;
+					$group_keys[] = $defaultStr ;
+					$tab_groupTargets = paracrm_queries_process_toolArrayMultiply($tab_groupTargets,$group_x_id,$group_keys) ;
+				}
+			
+				if( $group_y_id ) {
+					$group_keys = array_keys($ty) ;
+					$group_keys[] = $defaultStr ;
+					$tab_groupTargets = paracrm_queries_process_toolArrayMultiply($tab_groupTargets,$group_y_id,$group_keys) ;
+				}
+				
+				$groupTargets = array_merge($groupTargets,$tab_groupTargets) ;
+			}
+		}
+		
+		/*
+		
 		foreach( $RES_labels_tab['arr_grid-x'] as $group_id => $t1 )
 		{
 			$defaultStr = '%%%' ;
@@ -400,8 +458,12 @@ function paracrm_queries_process_qmerge($arr_saisie, $debug=FALSE)
 			$tab_groupTargets = paracrm_queries_process_toolArrayMultiply($tab_groupTargets,$group_id,$group_keys) ;
 			$defaultTarget[$group_id] = $defaultStr ;
 		}
-		
 		$groupTargets = array_merge($groupTargets,$tab_groupTargets) ;
+		*/
+		
+		
+		
+		
 	}
 
 	$indexed_groupTargets = array() ;
@@ -449,6 +511,8 @@ function paracrm_queries_process_qmerge($arr_saisie, $debug=FALSE)
 		}
 		
 		$RES_selectId_infos[$mselect_field_idx] = array() ;
+		$RES_selectId_infos[$mselect_field_idx]['axis_x_setDetached'] = $x_detached ;
+		$RES_selectId_infos[$mselect_field_idx]['axis_y_setDetached'] = $y_detached ;
 		$RES_selectId_infos[$mselect_field_idx]['axis_x_detached'] = $x_detached ;
 		$RES_selectId_infos[$mselect_field_idx]['axis_y_detached'] = $y_detached ;
 		$RES_selectId_infos[$mselect_field_idx]['math_round'] = $mselect_field['math_round'] ;
@@ -461,28 +525,39 @@ function paracrm_queries_process_qmerge($arr_saisie, $debug=FALSE)
 		foreach( $RES_labels as $tabidx => $RES_labels_tab ) {
 		
 			// Pour chaque tab, constitution des sousGroupTargets par multiplication (groupKey)
-			$tab_attached_groupTargets = array( array() ) ;
-			$tab_detached_groupTargets = array( array() ) ;
+			$tab_attached_groupTargets_base = array( array() ) ;
+			$tab_detached_groupTargets_base = array( array() ) ;
 			if( $RES_labels_tab['group_id'] )
-				$tab_attached_groupTargets = paracrm_queries_process_toolArrayMultiply($tab_attached_groupTargets,$RES_labels_tab['group_id'],array($RES_labels_tab['group_key'])) ;
-			foreach( $RES_labels_tab['arr_grid-x'] as $group_id => $t1 )
+				$tab_attached_groupTargets_base = paracrm_queries_process_toolArrayMultiply($tab_attached_groupTargets_base,$RES_labels_tab['group_id'],array($RES_labels_tab['group_key'])) ;
+			
+			
+			
+			foreach( $RES_labels_tab['arr_grid-x'] as $group_x_id => $tx )
 			{
-				$group_keys = array_keys($t1) ;
-				if( $x_detached )
-					$tab_detached_groupTargets = paracrm_queries_process_toolArrayMultiply($tab_detached_groupTargets,$group_id,$group_keys) ;
-				else
-					$tab_attached_groupTargets = paracrm_queries_process_toolArrayMultiply($tab_attached_groupTargets,$group_id,$group_keys) ;
+				foreach( $RES_labels_tab['arr_grid-y'] as $group_y_id => $ty )
+				{
+					$tab_detached_groupTargets = $tab_detached_groupTargets_base ;
+					$tab_attached_groupTargets = $tab_attached_groupTargets_base ;
+					
+					if( $group_x_id ) {
+						$group_keys = array_keys($tx) ;
+						if( $x_detached )
+							$tab_detached_groupTargets = paracrm_queries_process_toolArrayMultiply($tab_detached_groupTargets,$group_x_id,$group_keys) ;
+						else
+							$tab_attached_groupTargets = paracrm_queries_process_toolArrayMultiply($tab_attached_groupTargets,$group_x_id,$group_keys) ;
+					}
+					if( $group_y_id ) {
+						$group_keys = array_keys($ty) ;
+						if( $y_detached )
+							$tab_detached_groupTargets = paracrm_queries_process_toolArrayMultiply($tab_detached_groupTargets,$group_y_id,$group_keys) ;
+						else
+							$tab_attached_groupTargets = paracrm_queries_process_toolArrayMultiply($tab_attached_groupTargets,$group_y_id,$group_keys) ;
+					}
+						
+					$attached_groupTargets = array_merge($attached_groupTargets,$tab_attached_groupTargets) ;
+					$detached_groupTargets = array_merge($detached_groupTargets,$tab_detached_groupTargets) ;
+				}
 			}
-			foreach( $RES_labels_tab['arr_grid-y'] as $group_id => $t1 )
-			{
-				$group_keys = array_keys($t1) ;
-				if( $y_detached )
-					$tab_detached_groupTargets = paracrm_queries_process_toolArrayMultiply($tab_detached_groupTargets,$group_id,$group_keys) ;
-				else
-					$tab_attached_groupTargets = paracrm_queries_process_toolArrayMultiply($tab_attached_groupTargets,$group_id,$group_keys) ;
-			}
-			$attached_groupTargets = array_merge($attached_groupTargets,$tab_attached_groupTargets) ;
-			$detached_groupTargets = array_merge($detached_groupTargets,$tab_detached_groupTargets) ;
 		}
 		
 		
@@ -498,7 +573,9 @@ function paracrm_queries_process_qmerge($arr_saisie, $debug=FALSE)
 		// ***** Identification des queries déja detachées ******
 		
 		
-		
+		// Tableau confirmedGroups
+		// - examen de $attachGroupTarget pour trouver les groupes X / Y concernés par ce résultat => pour pagination
+		$confirmed_groups = array() ;
 		
 		$RES_selectId_groupKey_value[$mselect_field_idx] = array() ;
 		foreach( $attached_groupTargets as $attachGroupTarget )
@@ -520,10 +597,14 @@ function paracrm_queries_process_qmerge($arr_saisie, $debug=FALSE)
 			$cellValues = array() ;
 			foreach( $mselect_field['math_expression'] as $symbol_id => $symbol )
 			{
+				//initialement, toutes les valeurs recherchées sont inexistantes
+				$cellValues[$symbol_id] = FALSE ;
+			
 				if( $symbol['math_operand_query_id'] ) {} else continue ;
 				
 				$query_id = $symbol['math_operand_query_id'] ;
 				$selectfield_idx = $symbol['math_operand_selectfield_idx'] ;
+				
 				
 				// Pour cette query, tous les champs sont-ils attachés ?
 				// -- Valeur unique
@@ -535,6 +616,10 @@ function paracrm_queries_process_qmerge($arr_saisie, $debug=FALSE)
 						if( isset($map_grouphash_queryGroupId[$query_id][$grouphash]) ) {
 							$query_group_id = $map_grouphash_queryGroupId[$query_id][$grouphash] ;
 							$queryGroupDesc[$query_group_id] = $group_key ;
+						}
+						else {
+							// echo "impossible" ; => on a essayé de taper une combinaison groupTarget attached+detached qui n'est pas cohérente avec la query
+							continue 2 ;
 						}
 					}
 				
@@ -557,9 +642,20 @@ function paracrm_queries_process_qmerge($arr_saisie, $debug=FALSE)
 							$query_group_id = $map_grouphash_queryGroupId[$query_id][$grouphash] ;
 							$queryGroupDesc[$query_group_id] = $group_key ;
 						}
+						else {
+							// echo "impossible" ; => on a essayé de taper une combinaison groupTarget attached+detached qui n'est pas cohérente avec la query
+							continue 3 ;
+						}
 					}
 					
 					$cellValues[$symbol_id][] = paracrm_queries_process_lookupValue($RESqueries[$query_id],$queryGroupDesc) ;  ;
+				}
+			}
+			
+			// **** Verif de la possibilité de calculer *****
+			foreach( $cellValues as $val ) {
+				if( $val === FALSE ) {
+					continue 2 ; // impossible de calculer pour cette cellule, on passe à la suivante ( next $attachGroupTarget )
 				}
 			}
 			
@@ -637,15 +733,28 @@ function paracrm_queries_process_qmerge($arr_saisie, $debug=FALSE)
 					}
 					break ;
 			}
-			
-			
 			$RES_selectId_groupKey_value[$mselect_field_idx][$qgroup_id] = $val ;
+			
+			// 
+			// - examen de $attachGroupTarget pour trouver les groupes X / Y concernés par ce résultat => pour pagination
+			foreach( array_keys($attachGroupTarget) as $confirmedGroup ){
+				$confirmed_groups[$confirmedGroup] = TRUE ;
+			}
 		}
+		// stockage des groupes confirmés par le résultat
+		$RES_selectId_infos[$mselect_field_idx]['axis_groups'] = array_keys($confirmed_groups) ;
+		
+		// auto-detach si aucun groupe pour un axe (pagination)
+		if( !array_intersect(array_keys($confirmed_groups),array_keys($RES_labels_tab['arr_grid-x'])) )
+			$RES_selectId_infos[$mselect_field_idx]['axis_x_detached'] = true ;
+		if( !array_intersect(array_keys($confirmed_groups),array_keys($RES_labels_tab['arr_grid-y'])) )
+			$RES_selectId_infos[$mselect_field_idx]['axis_y_detached'] = true ;
 	}
 	if( $debug ) {
 		echo "OK\n" ;
 	}
 
+	// return array('RES_groupKey_groupDesc',$RES_groupKey_groupDesc) ;
 
 	return array('RES_groupKey_groupDesc'=>$RES_groupKey_groupDesc,
 					'RES_selectId_groupKey_value'=>$RES_selectId_groupKey_value,
