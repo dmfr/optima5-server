@@ -737,11 +737,13 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 			isValid = false ;
 		}
 		
+		/*
 		if( Ext.Object.getSize( probeGeoGrouphashArrQueries.grid_x ) <= 1 ) {
 			
 		} else {
 			isValid = false ;
 		}
+		*/
 		
 		if( Ext.Object.getSize( probeGeoGrouphashArrQueries.grid_y ) > 0 ) {
 			var allQueryIds = Ext.clone( me.qmergeQueriesIds ) ;

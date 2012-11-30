@@ -212,6 +212,9 @@ Ext.define('Optima5.Modules.ParaCRM.QmergeSubpanelMselect' ,{
 				if( rec.get('checked') === null ) {
 					return true ;
 				}
+				if( rec.get('display_geometry') == 'tab' ) {
+					rec.set('checked',true) ;
+				}
 				mselectAxisdetachStoreRecId++ ;
 				mselectAxisdetachStore.insert(mselectAxisdetachStoreRecId,Ext.create('QmergeMselectAxisdetachModel',{
 					display_geometry:rec.get('display_geometry'),
