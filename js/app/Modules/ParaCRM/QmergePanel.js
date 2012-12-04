@@ -1033,7 +1033,7 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 			RES_id: resultId
 		}) ;
 		var queryResultPanelWindow = op5desktop.getDesktop().createWindow({
-			title:'(Query) '+me.query_name ,
+			title:'(Qmerge) '+me.qmerge_name ,
 			width:800,
 			height:600,
 			iconCls: 'parapouet',
