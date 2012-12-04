@@ -144,6 +144,8 @@ function paracrm_queries_mergerTransaction_init( $post_data , &$arr_saisie )
 	return array('success'=>true,
 					'_mirror'=>$post_data,
 					'transaction_id' => $post_data['_transaction_id'],
+					'qmerge_id' => $arr_saisie['qmerge_id'],
+					'qmerge_name' => $arr_saisie['qmerge_name'],
 					'bible_queries' => $arr_saisie['bible_queries'],
 					'bible_files_treefields' => $arr_saisie['bible_files_treefields'],
 					'qmerge_queries' => $arr_saisie['arr_query_id'],
