@@ -89,38 +89,24 @@ function paracrm_android_getDbImageTab($post_data)
 {
 	global $_opDB ;
 	
-	if( !isset($post_data['__DBversionCode']) ) {
-		$tables = array() ;
-		$tables[] = 'define_bible' ;
-		$tables[] = 'define_bible_entry' ;
-		$tables[] = 'define_bible_tree' ;
-		$tables[] = 'define_file' ;
-		$tables[] = 'define_file_entry' ;
-		$tables[] = 'input_scen' ;
-		$tables[] = 'input_scen_page' ;
-		$tables[] = 'input_scen_page_field' ;
-		$tables[] = 'store_bible_entry' ;
-		$tables[] = 'store_bible_entry_field' ;
-		$tables[] = 'store_bible_tree' ;
-		$tables[] = 'store_bible_tree_field' ;
-	}
-	else {
-		$tables = array() ;
-		$tables[] = 'define_bible' ;
-		$tables[] = 'define_bible_entry' ;
-		$tables[] = 'define_bible_tree' ;
-		$tables[] = 'define_file' ;
-		$tables[] = 'define_file_cfg_calendar' ;
-		$tables[] = 'define_file_entry' ;
-		$tables[] = 'input_calendar' ;
-		$tables[] = 'input_scen' ;
-		$tables[] = 'input_scen_page' ;
-		$tables[] = 'input_scen_page_field' ;
-		$tables[] = 'store_bible_entry' ;
-		$tables[] = 'store_bible_entry_field' ;
-		$tables[] = 'store_bible_tree' ;
-		$tables[] = 'store_bible_tree_field' ;
-	}
+	$tables = array() ;
+	$tables[] = 'define_bible' ;
+	$tables[] = 'define_bible_entry' ;
+	$tables[] = 'define_bible_tree' ;
+	$tables[] = 'define_file' ;
+	$tables[] = 'define_file_cfg_calendar' ;
+	$tables[] = 'define_file_entry' ;
+	$tables[] = 'input_calendar' ;
+	$tables[] = 'input_scen' ;
+	$tables[] = 'input_scen_page' ;
+	$tables[] = 'input_scen_pagepivot' ;
+	$tables[] = 'input_scen_pagepivot_copymap' ;
+	$tables[] = 'input_scen_page_field' ;
+	$tables[] = 'store_bible_entry' ;
+	$tables[] = 'store_bible_entry_field' ;
+	$tables[] = 'store_bible_tree' ;
+	$tables[] = 'store_bible_tree_field' ;
+	
 	
 	$first = paracrm_android_getDbImageTimestamp() ;
 	$first['nb_tables'] = 0 ;
