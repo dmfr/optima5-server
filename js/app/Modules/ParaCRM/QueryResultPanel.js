@@ -75,8 +75,12 @@ Ext.define('Optima5.Modules.ParaCRM.QueryResultPanel' ,{
 				}
 				if( columnDef.is_bold == true ) {
 					Ext.apply(columnDef,{
-						renderer: function(value) {
-							return '<b>'+value+'</b>' ;
+						renderer: function(value,metaData,record) {
+							if( record.get('detachedRow') ) {
+								return '<i>'+value+'</i>' ;
+							} else {
+								return '<b>'+value+'</b>' ;
+							}
 						}
 					}) ;
 				}
@@ -111,7 +115,9 @@ Ext.define('Optima5.Modules.ParaCRM.QueryResultPanel' ,{
 				Ext.apply(columnDef,{
 					align:'',
 				});
-				columns.push(columnDef);
+				if( !columnDef.invisible ) {
+					columns.push(columnDef);
+				}
 				
 				fields.push({
 					name:columnDef.dataIndex,
@@ -142,7 +148,13 @@ Ext.define('Optima5.Modules.ParaCRM.QueryResultPanel' ,{
 						xtype: 'paginggridscroller',
 						activePrefetch: false
 				},
-				invalidateScrollerOnRefresh: false
+				invalidateScrollerOnRefresh: false,
+				viewConfig: { 
+					//stripeRows: false, 
+					getRowClass: function(record) { 
+						return record.get('detachedRow') ? 'op5paracrm-detachedrow' : ''; 
+					}
+				} 											 
 			});
 			tabgrid.on('destroy',function(){
 				// console.log('Unregistering model '+tmpModelName) ;
