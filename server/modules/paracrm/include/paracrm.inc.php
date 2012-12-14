@@ -14,6 +14,7 @@ include("$server_root/modules/paracrm/include/paracrm_queries_process.inc.php") 
 include("$server_root/modules/paracrm/include/paracrm_queries_paginate.inc.php") ;
 include("$server_root/modules/paracrm/include/paracrm_queries_merger.inc.php") ;
 include("$server_root/modules/paracrm/include/paracrm_queries_mpaginate.inc.php") ;
+include("$server_root/modules/paracrm/include/paracrm_queries_xls.inc.php") ;
 
 include("$server_root/modules/paracrm/include/paracrm_lib_data.inc.php") ;
 include("$server_root/modules/paracrm/include/paracrm_lib_data_file.inc.php") ;

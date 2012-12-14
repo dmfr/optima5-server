@@ -54,7 +54,7 @@ function paracrm_queries_mergerTransaction( $post_data )
 		}
 		if( $post_data['_subaction'] == 'exportXLS' )
 		{
-			$json =  paracrm_queries_mergerTransaction_exportXLS( $post_data ) ;
+			$json =  paracrm_queries_mergerTransaction_exportXLS( $post_data , $arr_saisie ) ;
 		}
 		
 		
@@ -471,6 +471,47 @@ function paracrm_queries_mergerTransaction_saveFields( &$arr_saisie , $qmerge_id
 
 
 	return array('success'=>true,'qmerge_id'=>$qmerge_id) ;
+}
+
+function paracrm_queries_mergerTransaction_exportXLS( $post_data, &$arr_saisie )
+{
+	if( !class_exists('PHPExcel') )
+		return NULL ;
+	
+	$transaction_id = $post_data['_transaction_id'] ;
+	$RES = $_SESSION['transactions'][$transaction_id]['arr_RES'][$post_data['RES_id']] ;
+	
+	$workbook_tab_grid = array() ;
+	foreach( $RES['RES_labels'] as $tab_id => $dummy )
+	{
+		$tab = array() ;
+		$tab['tab_title'] = $dummy['tab_title'] ;
+		$workbook_tab_grid[$tab_id] = $tab + paracrm_queries_mpaginate_getGrid( $RES, $tab_id ) ;
+	}
+	
+	$objPHPExcel = paracrm_queries_xls_build( $workbook_tab_grid ) ;
+	if( !$objPHPExcel ) {
+		die() ;
+	}
+	
+	$tmpfilename = tempnam( sys_get_temp_dir(), "FOO");
+	$objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+	$objWriter->save($tmpfilename);
+	$objPHPExcel->disconnectWorksheets();
+	unset($objPHPExcel) ;
+	
+	$qmerge_name = "unnamed" ;
+	if( $arr_saisie['qmerge_name'] ) {
+		$qmerge_name = $arr_saisie['qmerge_name'] ;
+	}
+	$qmerge_name=str_replace(' ','_',preg_replace("/[^a-zA-Z0-9\s]/", "", $qmerge_name)) ;
+	
+	$filename = 'OP5report_Qmerge_'.$qmerge_name.'_'.time().'.xlsx' ;
+	header("Content-Type: application/force-download; name=\"$filename\""); 
+	header("Content-Disposition: attachment; filename=\"$filename\""); 
+	readfile($tmpfilename) ;
+	unlink($tmpfilename) ;
+	die() ;
 }
 
 
