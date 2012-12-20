@@ -935,12 +935,12 @@ function paracrm_lib_data_deleteRecord_file( $file_code, $filerecord_id )
 					USING store_file mstr , store_file_field det
 					WHERE mstr.filerecord_id = det.filerecord_id AND mstr.filerecord_parent_id='$filerecord_id'" ;
 	$_opDB->query($query) ;
-	$query = "UPDATE store_file SET sync_is_deleted='O' WHERE filerecord_parent_id='$filerecord_id'" ;
+	$query = "UPDATE store_file SET sync_is_deleted='O' , sync_timestamp='0' WHERE filerecord_parent_id='$filerecord_id'" ;
 	$_opDB->query($query) ;
 	
 	$query = "DELETE FROM store_file_field WHERE filerecord_id='$entry_key'" ;
 	$_opDB->query($query) ;
-	$query = "UPDATE store_file SET sync_is_deleted='O' WHERE filerecord_id='$filerecord_id'" ;
+	$query = "UPDATE store_file SET sync_is_deleted='O' , sync_timestamp='0' WHERE filerecord_id='$filerecord_id'" ;
 	$_opDB->query($query) ;
 	
 	return 0 ;
