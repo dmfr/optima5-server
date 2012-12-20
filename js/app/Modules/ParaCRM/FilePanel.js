@@ -228,6 +228,9 @@ Ext.define('Optima5.Modules.ParaCRM.FilePanel' ,{
 				return '' ;
 			}
 		}
+		var colorrenderer = function( value, metaData ) {
+			metaData.style = 'background-color: #' + value + '; background-image: none;'
+		}
 		
 		// Création du modèle GRID
 		var modelFields = new Array() ;
@@ -264,6 +267,11 @@ Ext.define('Optima5.Modules.ParaCRM.FilePanel' ,{
 				menuDisabled: false,
 				xtype:'gridcolumn'
 			}) ;
+			if( v.type == 'color' ) {
+				Ext.apply(columnObject,{
+					renderer: colorrenderer
+				}) ;
+			}
 			if( v.type == 'date' ) {
 				Ext.apply(columnObject,{
 					renderer: daterenderer

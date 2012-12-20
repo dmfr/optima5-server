@@ -5,6 +5,7 @@ Ext.define('Optima5.Modules.ParaCRM.DataFormPanel' ,{
 		'Optima5.CoreDesktop.Ajax',
 		'Optima5.Modules.ParaCRM.DataFormPanelGmap',
 		'Optima5.Modules.ParaCRM.BiblePicker' ,
+		'Ext.ux.form.field.ColorPickerCombo' ,
 		'Ext.ux.form.field.DateTime' ,
 		'Optima5.Modules.ParaCRM.DataFormPanelGrid',
 		'Optima5.Modules.ParaCRM.DataFormPanelGallery',

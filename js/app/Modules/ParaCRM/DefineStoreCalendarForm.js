@@ -77,16 +77,35 @@ Ext.define('Optima5.Modules.ParaCRM.DefineStoreCalendarForm' ,{
 				displayField: 'field_desc',
 				valueField: 'field_code'
 			},{
-				xtype: 'comboboxcached',
-				maxWidth:300,
-				fieldLabel: 'Event status',
-				name: 'eventstatus_filefield',
-				forceSelection: true,
-				editable: false,
-				store: me.fieldsStore,
-				queryMode: 'local',
-				displayField: 'field_desc',
-				valueField: 'field_code'
+				xtype: 'checkboxfield',
+				itemId: 'status_is_on',
+				boxLabel: 'Use boolean status',
+				listeners:{
+					change: function( t , newValue ) {
+						if( newValue === false ) {
+							me.child('#status_row').child('#eventstatus_filefield').setValue(null) ;
+						}
+					},
+					scope:me 
+				}
+			},{
+				xtype: 'fieldset',
+				hidden: true,
+				title: 'Boolean status target',
+				itemId: 'status_row',
+				defaults: {anchor: '100%'},
+				items : [{
+					xtype: 'comboboxcached',
+					maxWidth:225,
+					itemId: 'eventstatus_filefield',
+					name: 'eventstatus_filefield',
+					forceSelection: true,
+					editable: false,
+					store: me.fieldsStore,
+					queryMode: 'local',
+					displayField: 'field_desc',
+					valueField: 'field_code'
+				}]
 			},{
 				xtype: 'checkboxfield',
 				name: 'duration_is_fixed',
@@ -135,6 +154,29 @@ Ext.define('Optima5.Modules.ParaCRM.DefineStoreCalendarForm' ,{
 						data: []
 					}
 				}]
+			},{
+				xtype: 'checkboxfield',
+				name: 'color_is_fixed',
+				itemId: 'color_is_fixed',
+				boxLabel: 'Static event color'
+			},{
+				xtype: 'fieldset',
+				hidden: true,
+				title: 'Target color for event',
+				itemId: 'color_row',
+				defaults: {anchor: '100%'},
+				items : [{
+					xtype: 'comboboxcached',
+					maxWidth:225,
+					itemId: 'color_filefield',
+					name: 'color_filefield',
+					forceSelection: true,
+					editable: false,
+					store: me.fieldsStore,
+					queryMode: 'local',
+					displayField: 'field_desc',
+					valueField: 'field_code'
+				}]
 			}]
 		});
 		
@@ -153,8 +195,10 @@ Ext.define('Optima5.Modules.ParaCRM.DefineStoreCalendarForm' ,{
 	calcLayout: function(){
 		var me = this ;
 		
+		me.child('#status_row').setVisible( me.child('#status_is_on').getValue() ) ;
 		me.child('#account_row').setVisible( me.child('#account_is_on').getValue() ) ;
 		me.child('#duration_row').setVisible( me.child('#duration_is_fixed').getValue() ) ;
+		me.child('#color_row').setVisible( me.child('#color_is_fixed').getValue() ) ;
 	},
 	
 	loadCurrentlyDefinedFields:function(data){
@@ -232,6 +276,8 @@ Ext.define('Optima5.Modules.ParaCRM.DefineStoreCalendarForm' ,{
 		arguments[0] = {
 			params:{ _subaction:'calendarCfg_get' },
 			success: function() {
+				me.child('#status_is_on').setValue( me.child('#status_row').child('#eventstatus_filefield').getValue() != '' ) ;
+				
 				// chargement du formulaire => update layout + chargement de ttes les données auxiliaires
 				 // me.calcLayout() ; // Change Event is already fired on "load"
 				me.syncDurationFields() ;
