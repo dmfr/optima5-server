@@ -106,6 +106,7 @@ function paracrm_define_manageTransaction( $post_data )
 			$arr_saisie['cfg_calendar'] = $_opDB->fetch_assoc($result) ;
 			$arr_saisie['cfg_calendar']['account_is_on'] = ($arr_saisie['cfg_calendar']['account_is_on']=='O')? true:false ;
 			$arr_saisie['cfg_calendar']['duration_is_fixed'] = ($arr_saisie['cfg_calendar']['duration_is_fixed']=='O')? true:false ;
+			$arr_saisie['cfg_calendar']['color_is_fixed'] = ($arr_saisie['cfg_calendar']['color_is_fixed']=='O')? true:false ;
 		}
 		
 		$arr_saisie['tab_treeFields'] = NULL ;
@@ -297,6 +298,8 @@ function paracrm_define_manageTransaction( $post_data )
 		$cfg_calendar['duration_is_fixed'] = ($post_data['duration_is_fixed']=='on')? true:false ;
 		$cfg_calendar['duration_src_filefield'] = $post_data['duration_src_filefield'] ;
 		$cfg_calendar['duration_src_biblefield'] = $post_data['duration_src_biblefield'] ;		
+		$cfg_calendar['color_is_fixed'] = ($post_data['color_is_fixed']=='on')? true:false ;
+		$cfg_calendar['color_filefield'] = $post_data['color_filefield'] ;
 		$arr_saisie['cfg_calendar'] = $cfg_calendar ;
 		$_SESSION['transactions'][$transaction_id]['arr_saisie'] = $arr_saisie ;
 		
@@ -560,6 +563,8 @@ function paracrm_define_manageTransaction_applyFile($arr_saisie, $apply)
 		$arr_ins['duration_is_fixed'] = ($arr_saisie['cfg_calendar']['duration_is_fixed']==TRUE)?'O':'N' ;
 		$arr_ins['duration_src_filefield'] = $arr_saisie['cfg_calendar']['duration_src_filefield'] ;
 		$arr_ins['duration_src_biblefield'] = $arr_saisie['cfg_calendar']['duration_src_biblefield'] ;
+		$arr_ins['color_is_fixed'] = ($arr_saisie['cfg_calendar']['color_is_fixed']==TRUE)? 'O':'N' ;
+		$arr_ins['color_filefield'] = $arr_saisie['cfg_calendar']['color_filefield'] ;
 		$_opDB->insert('define_file_cfg_calendar',$arr_ins) ;
 	}
 	

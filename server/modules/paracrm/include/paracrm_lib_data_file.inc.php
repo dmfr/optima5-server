@@ -245,6 +245,9 @@ function paracrm_lib_file_mapFile( $file_code, $is_called=FALSE )
 	
 	
 		default :
+		$query = "SELECT cfgcal.color_filefield FROM define_file f , define_file_cfg_calendar cfgcal
+					WHERE f.file_code='$file_code' AND f.file_code=cfgcal.file_code AND cfgcal.color_is_fixed='O'" ;
+		$color_field = $_opDB->query_uniqueValue($query) ;
 		$query = "SELECT * FROM define_file_entry WHERE file_code='$file_code' ORDER BY entry_field_index" ;
 		$result = $_opDB->query($query) ;
 		while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
@@ -264,7 +267,7 @@ function paracrm_lib_file_mapFile( $file_code, $is_called=FALSE )
 			$sql_selectfields[] = array($file_code.'.'.'field_'.$arr['entry_field_code'],$myprefix.'field_'.$arr['entry_field_code']) ;
 			$grid_cell = array() ;
 			$grid_cell['field'] = $myprefix.'field_'.$arr['entry_field_code'] ;
-			$grid_cell['type'] = $arr['entry_field_type'] ;
+			$grid_cell['type'] = ( $color_field && ($color_field == $arr['entry_field_code']) ) ? 'color' : $arr['entry_field_type'] ;
 			$grid_cell['text'] = $arr['entry_field_lib'] ;
 			$grid_cell['file_code'] = $file_code ;
 			$grid_cell['file_field'] = $arr['entry_field_code'] ;

@@ -232,6 +232,9 @@ function paracrm_data_editTransaction_fileRecord_init( $post_data , &$arr_saisie
 	}
 	
 	$ent_file = array() ;
+	$query = "SELECT cfgcal.color_filefield FROM define_file f , define_file_cfg_calendar cfgcal
+				WHERE f.file_code='$file_code' AND f.file_code=cfgcal.file_code AND cfgcal.color_is_fixed='O'" ;
+	$color_field = $_opDB->query_uniqueValue($query) ;
 	$query = "SELECT * FROM define_file_entry WHERE file_code='$file_code' ORDER BY entry_field_index" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
@@ -243,6 +246,10 @@ function paracrm_data_editTransaction_fileRecord_init( $post_data , &$arr_saisie
 		{
 			case 'string' :
 			case 'number' :
+			if( $color_field == $arr['entry_field_code'] ) {
+				$field['xtype'] = 'colorpickercombo' ;
+				break ;
+			}
 			$field['xtype'] = 'textfield' ;
 			break ;
 			
