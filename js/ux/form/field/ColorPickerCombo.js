@@ -1,5 +1,6 @@
 Ext.define('Ext.ux.form.field.ColorPickerCombo', {
 	extend: 'Ext.form.field.Trigger',
+	requires : ['Ext.menu.ColorPicker'],
 	alias: 'widget.colorpickercombo',
 	value: '',
 	width: 150,
@@ -40,8 +41,16 @@ Ext.define('Ext.ux.form.field.ColorPickerCombo', {
 		this.callParent(arguments);
 
 		me.on('triggerclick', function (event) {
+			var colorTest = Ext.create('Ext.picker.Color') ;
+			var initialColor ;
+			if( Ext.Array.contains( colorTest.colors, me.value) ) {
+				initialColor = me.value ;
+			} else {
+				initialColor = null ;
+			}
+			
 			var colourMenu = Ext.create('Ext.menu.ColorPicker', {
-					value: me.value,
+					value: initialColor,
 					listeners: {
 						select: function (picker, color) {
 							me.setValue(color);
