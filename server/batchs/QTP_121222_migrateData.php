@@ -88,9 +88,13 @@ while( ($arr = $_opDB->fetch_row($result)) != FALSE )
 				$field_code = 'field_'.$field_code ;
 			}
 		
-		
-			if( $src = $copy_columns[$field_code] ) {
-				$arr_ins[$field_code] = $arr[$src] ;
+			$dbkey = $ttmp[3][$field_code] ;
+			if( !$dbkey ) {
+				continue ;
+			}
+					
+			if( $src = $copy_columns[$dbkey] ) {
+				$arr_ins[$dbkey] = $arr[$src] ;
 			}
 		}
 		
@@ -165,10 +169,14 @@ while( ($arr = $_opDB->fetch_row($result)) != FALSE )
 			if( strpos($field_code,'gmap_') === FALSE && strpos($field_code,'media_') === FALSE ) {
 				$field_code = 'field_'.$field_code ;
 			}
-		
-		
-			if( $src = $copy_columns[$field_code] ) {
-				$arr_ins[$field_code] = $arr[$src] ;
+			
+			$dbkey = $ttmp[3][$field_code] ;
+			if( !$dbkey ) {
+				continue ;
+			}
+			
+			if( $src = $copy_columns[$dbkey] ) {
+				$arr_ins[$dbkey] = $arr[$src] ;
 			}
 		}
 		
@@ -242,14 +250,21 @@ while( ($arr = $_opDB->fetch_row($result)) != FALSE )
 				$field_code = 'field_'.$field_code ;
 			}
 		
+			$dbkey = $ttmp[3][$field_code] ;
+			if( !$dbkey ) {
+				continue ;
+			}
 		
-			if( $src = $copy_columns[$field_code] ) {
-				$arr_ins[$field_code] = $arr[$src] ;
+			if( $src = $copy_columns[$dbkey] ) {
+				$arr_ins[$dbkey] = $arr[$src] ;
 			}
 		}
 		
 		$_opDB->insert($db_table,$arr_ins) ;
 	}
+	
+	$query = "DELETE FROM $db_table WHERE filerecord_id NOT IN (SELECT filerecord_id FROM store_file WHERE file_code='$file_code' AND sync_is_deleted<>'O')" ;
+	$_opDB->query($query) ;
 }
 $query = "DROP TABLE store_file_field" ;
 $_opDB->query($query) ;

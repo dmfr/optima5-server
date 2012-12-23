@@ -494,7 +494,8 @@ function paracrm_define_manageTransaction_applyBible($arr_saisie, $apply)
 		$_opDB->insert('define_bible_entry',$arr_ins) ;
 	}
 	
-	paracrm_define_buildBible( $bible_code ) ;
+	paracrm_define_buildBibleTree( $bible_code ) ;
+	paracrm_define_buildBibleEntry( $bible_code ) ;
 	
 	return array('success'=>true) ;
 }
@@ -618,48 +619,69 @@ function paracrm_define_buildBibleTree( $bible_code ) {
 	}
 	
 	$db_table = 'store_bible_'.$bible_code.'_tree' ;
-	$arrAssoc_field_fieldType = array('treenode_key'=>'varchar(100)','treenode_parent_key'=>'varchar(100)') ;
+	$arrAssoc_dbField_fieldType = array('treenode_key'=>'varchar(100)','treenode_parent_key'=>'varchar(100)') ;
 	$arr_model_keys = array() ;
 	$arr_model_keys['PRIMARY'] = array('arr_columns'=>array('treenode_key')) ;
 	$arr_model_keys['treenode_parent_key'] = array('non_unique'=>'1','arr_columns'=>array('treenode_parent_key')) ;
+	$arrAssoc_crmField_dbField = array() ;
 	foreach( $arr_field_type as $field_code => $field_type )
 	{
 		$field_name = 'field_'.$field_code ;
 		switch( $field_type )
 		{
 			case 'string' :
-			$arrAssoc_field_fieldType[$field_name] = 'varchar(200)' ;
+			$field_name.= '_str' ;
+			$arrAssoc_dbField_fieldType[$field_name] = 'varchar(200)' ;
 			break ;
 			
 			case 'number' :
-			$arrAssoc_field_fieldType[$field_name] = 'decimal(10,2)' ;
+			$field_name.= '_dec' ;
+			$arrAssoc_dbField_fieldType[$field_name] = 'decimal(10,2)' ;
 			break ;
 			
 			case 'bool' :
-			$arrAssoc_field_fieldType[$field_name] = 'int(11)' ;
+			$field_name.= '_int' ;
+			$arrAssoc_dbField_fieldType[$field_name] = 'int(11)' ;
 			break ;
 			
 			case 'date' :
-			$arrAssoc_field_fieldType[$field_name] = 'datetime' ;
+			$field_name.= '_dtm' ;
+			$arrAssoc_dbField_fieldType[$field_name] = 'datetime' ;
 			break ;
 			
 			case 'link' :
-			$arrAssoc_field_fieldType[$field_name] = 'varchar(500)' ;
+			$field_name.= '_str' ;
+			$arrAssoc_dbField_fieldType[$field_name] = 'varchar(500)' ;
 			break ;
+			
+			default :
+			continue 2 ;
 		}
+		$field_crm = 'field_'.$field_code ;
+		$arrAssoc_crmField_dbField[$field_crm] = $field_name ;
 	}
 	
-	paracrm_define_tool_syncTableStructure( $db_table , $arrAssoc_field_fieldType , $arr_model_keys ) ;
+	paracrm_define_tool_syncTableStructure( $db_table , $arrAssoc_dbField_fieldType , $arr_model_keys ) ;
 	
 	$view_name = 'view_bible_'.$bible_code.'_tree' ;
 	$query = "DROP VIEW IF EXISTS $view_name" ;
 	$_opDB->query($query) ;
 	
-	$query = "CREATE ALGORITHM=MERGE VIEW $view_name AS SELECT mstr.*" ;
+	$query = "CREATE ALGORITHM=MERGE VIEW $view_name AS SELECT mstr.treenode_key, mstr.treenode_parent_key" ;
+	foreach( $arrAssoc_crmField_dbField as $field_crm => $field_name ) {
+		if( $field_name == 'treenode_key' ) {
+			continue ;
+		}
+		if( $field_name == 'treenode_parent_key' ) {
+			continue ;
+		}
+	
+		$query.= ", mstr.{$field_name} AS {$field_crm}" ;
+	}
 	$query.= " FROM $db_table mstr" ;
 	$_opDB->query($query) ;
 
-	return array($db_table , $arrAssoc_field_fieldType , $arr_model_keys) ;
+	return array($db_table , $arrAssoc_dbField_fieldType , $arr_model_keys, $arrAssoc_crmField_dbField) ;
 }
 function paracrm_define_buildBibleEntry( $bible_code ) {
 	global $_opDB ;
@@ -682,13 +704,15 @@ function paracrm_define_buildBibleEntry( $bible_code ) {
 	
 	
 	$db_table = 'store_bible_'.$bible_code.'_entry' ;
-	$arrAssoc_field_fieldType = array('entry_key'=>'varchar(100)','treenode_key'=>'varchar(100)') ;
+	$arrAssoc_dbField_fieldType = array('entry_key'=>'varchar(100)','treenode_key'=>'varchar(100)') ;
 	$arr_model_keys = array() ;
 	$arr_model_keys['PRIMARY'] = array('arr_columns'=>array('entry_key')) ;
 	$arr_model_keys['treenode_key'] = array('non_unique'=>'1','arr_columns'=>array('treenode_key')) ;
+	$arrAssoc_crmField_dbField = array() ;
 	foreach( $arr_gmap_define as $gmap_field ) {
 		$gmap_field = 'gmap_'.$gmap_field ;
-		$arrAssoc_field_fieldType[$gmap_field] = 'varchar(500)' ;
+		$arrAssoc_dbField_fieldType[$gmap_field] = 'varchar(500)' ;
+		$arrAssoc_crmField_dbField[$gmap_field] = $gmap_field ;
 	}
 	foreach( $arr_field_type as $field_code => $field_type )
 	{
@@ -696,39 +720,58 @@ function paracrm_define_buildBibleEntry( $bible_code ) {
 		switch( $field_type )
 		{
 			case 'string' :
-			$arrAssoc_field_fieldType[$field_name] = 'varchar(200)' ;
+			$field_name.= '_str' ;
+			$arrAssoc_dbField_fieldType[$field_name] = 'varchar(200)' ;
 			break ;
 			
 			case 'number' :
-			$arrAssoc_field_fieldType[$field_name] = 'decimal(10,2)' ;
+			$field_name.= '_dec' ;
+			$arrAssoc_dbField_fieldType[$field_name] = 'decimal(10,2)' ;
 			break ;
 			
 			case 'bool' :
-			$arrAssoc_field_fieldType[$field_name] = 'int(11)' ;
+			$field_name.= '_int' ;
+			$arrAssoc_dbField_fieldType[$field_name] = 'int(11)' ;
 			break ;
 			
 			case 'date' :
-			$arrAssoc_field_fieldType[$field_name] = 'datetime' ;
+			$field_name.= '_dtm' ;
+			$arrAssoc_dbField_fieldType[$field_name] = 'datetime' ;
 			break ;
 			
 			case 'link' :
-			$arrAssoc_field_fieldType[$field_name] = 'varchar(500)' ;
-			$arr_model_keys[$field_name] = array('non_unique'=>'1','arr_columns'=>array($field_name)) ;
+			$field_name.= '_str' ;
+			$arrAssoc_dbField_fieldType[$field_name] = 'varchar(500)' ;
 			break ;
+			
+			default :
+			continue 2 ;
 		}
+		$field_crm = 'field_'.$field_code ;
+		$arrAssoc_crmField_dbField[$field_crm] = $field_name ;
 	}
 	
-	paracrm_define_tool_syncTableStructure( $db_table , $arrAssoc_field_fieldType , $arr_model_keys ) ;
+	paracrm_define_tool_syncTableStructure( $db_table , $arrAssoc_dbField_fieldType , $arr_model_keys ) ;
 
 	$view_name = 'view_bible_'.$bible_code.'_entry' ;
 	$query = "DROP VIEW IF EXISTS $view_name" ;
 	$_opDB->query($query) ;
 	
-	$query = "CREATE ALGORITHM=MERGE VIEW $view_name AS SELECT mstr.*" ;
+	$query = "CREATE ALGORITHM=MERGE VIEW $view_name AS SELECT mstr.entry_key, mstr.treenode_key" ;
+	foreach( $arrAssoc_crmField_dbField as $field_crm => $field_name ) {
+		if( $field_name == 'entry_key' ) {
+			continue ;
+		}
+		if( $field_name == 'treenode_key' ) {
+			continue ;
+		}
+	
+		$query.= ", mstr.{$field_name} AS {$field_crm}" ;
+	}
 	$query.= " FROM $db_table mstr" ;
 	$_opDB->query($query) ;
 
-	return array($db_table , $arrAssoc_field_fieldType , $arr_model_keys) ;
+	return array($db_table , $arrAssoc_dbField_fieldType , $arr_model_keys, $arrAssoc_crmField_dbField) ;
 }
 
 function paracrm_define_buildFile( $file_code ) {
@@ -767,15 +810,18 @@ function paracrm_define_buildFile( $file_code ) {
 	
 	
 	$db_table = 'store_file_'.$file_code ;
-	$arrAssoc_field_fieldType = array('filerecord_id'=>'int(11)') ;
+	$arrAssoc_dbField_fieldType = array('filerecord_id'=>'int(11)') ;
 	$arr_model_keys = array('PRIMARY'=>array('arr_columns'=>array('filerecord_id'))) ;
+	$arrAssoc_crmField_dbField = array() ;
 	foreach( $arr_gmap_define as $gmap_field ) {
 		$gmap_field = 'gmap_'.$gmap_field ;
-		$arrAssoc_field_fieldType[$gmap_field] = 'varchar(500)' ;
+		$arrAssoc_dbField_fieldType[$gmap_field] = 'varchar(500)' ;
+		$arrAssoc_crmField_dbField[$gmap_field] = $gmap_field ;
 	}
 	foreach( $arr_media_define as $media_field ) {
 		$media_field = 'media_'.$media_field ;
-		$arrAssoc_field_fieldType[$media_field] = 'varchar(100)' ;
+		$arrAssoc_dbField_fieldType[$media_field] = 'varchar(100)' ;
+		$arrAssoc_crmField_dbField[$media_field] = $media_field ;
 	}
 	foreach( $arr_field_type as $field_code => $field_type )
 	{
@@ -783,41 +829,51 @@ function paracrm_define_buildFile( $file_code ) {
 		switch( $field_type )
 		{
 			case 'string' :
-			$arrAssoc_field_fieldType[$field_name] = 'varchar(200)' ;
+			$field_name.= '_str' ;
+			$arrAssoc_dbField_fieldType[$field_name] = 'varchar(200)' ;
 			break ;
 			
 			case 'number' :
-			$arrAssoc_field_fieldType[$field_name] = 'decimal(10,2)' ;
+			$field_name.= '_dec' ;
+			$arrAssoc_dbField_fieldType[$field_name] = 'decimal(10,2)' ;
 			break ;
 			
 			case 'bool' :
-			$arrAssoc_field_fieldType[$field_name] = 'int(11)' ;
+			$field_name.= '_int' ;
+			$arrAssoc_dbField_fieldType[$field_name] = 'int(11)' ;
 			break ;
 			
 			case 'date' :
-			$arrAssoc_field_fieldType[$field_name] = 'datetime' ;
+			$field_name.= '_dtm' ;
+			$arrAssoc_dbField_fieldType[$field_name] = 'datetime' ;
 			break ;
 			
 			case 'link' :
-			$arrAssoc_field_fieldType[$field_name] = 'varchar(500)' ;
+			$field_name.= '_str' ;
+			$arrAssoc_dbField_fieldType[$field_name] = 'varchar(500)' ;
 			$arr_model_keys[$field_name] = array('non_unique'=>'1','arr_columns'=>array($field_name)) ;
 			break ;
+			
+			default :
+			continue 2 ;
 		}
+		$field_crm = 'field_'.$field_code ;
+		$arrAssoc_crmField_dbField[$field_crm] = $field_name ;
 	}
 	
-	paracrm_define_tool_syncTableStructure( $db_table , $arrAssoc_field_fieldType , $arr_model_keys ) ;
+	paracrm_define_tool_syncTableStructure( $db_table , $arrAssoc_dbField_fieldType , $arr_model_keys ) ;
 	
 	$view_name = 'view_file_'.$file_code ;
 	$query = "DROP VIEW IF EXISTS $view_name" ;
 	$_opDB->query($query) ;
 	
 	$query = "CREATE ALGORITHM=MERGE VIEW $view_name AS SELECT mstr.filerecord_id, mstr.filerecord_parent_id" ;
-	foreach( $arrAssoc_field_fieldType as $field_name => $dummy ) {
+	foreach( $arrAssoc_crmField_dbField as $field_crm => $field_name ) {
 		if( $field_name == 'filerecord_id' ) {
 			continue ;
 		}
 	
-		$query.= ",data.{$field_name}" ;
+		$query.= ",data.{$field_name} AS {$field_crm}" ;
 	}
 	$query.= " FROM store_file mstr" ;
 	$query.= " LEFT JOIN {$db_table} data ON data.filerecord_id = mstr.filerecord_id" ;
@@ -825,13 +881,13 @@ function paracrm_define_buildFile( $file_code ) {
 	$_opDB->query($query) ;
 	
 	
-	return array($db_table , $arrAssoc_field_fieldType , $arr_model_keys) ;
+	return array($db_table , $arrAssoc_dbField_fieldType , $arr_model_keys, $arrAssoc_crmField_dbField) ;
 }
 
 
 
 
-function paracrm_define_tool_syncTableStructure( $db_table , $arrAssoc_field_fieldType , $arr_model_keys, $drop_allowed=TRUE ) {
+function paracrm_define_tool_syncTableStructure( $db_table , $arrAssoc_field_fieldType , $arr_model_keys, $drop_allowed=FALSE ) {
 	
 	global $_opDB ;
 	
@@ -902,6 +958,9 @@ function paracrm_define_tool_syncTableStructure( $db_table , $arrAssoc_field_fie
 			{
 				if( $existing_field == $desc_field_model[0] )
 					continue 2 ;
+			}
+			if( !$drop_allowed ) {
+				continue ;
 			}
 			
 			$query = "ALTER TABLE {$mysql_db}.{$db_table} DROP `$existing_field`" ;

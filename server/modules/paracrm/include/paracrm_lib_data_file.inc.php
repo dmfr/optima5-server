@@ -304,7 +304,7 @@ function paracrm_lib_file_mapBible( $bible_code, $remote_table, $remote_field )
 	$sql_leftjoin = array() ;
 	$grid_map = array() ;
 
-	$mytable_tree = 'store_bible_'.$bible_code.'_tree' ;
+	$mytable_tree = 'view_bible_'.$bible_code.'_tree' ;
 	$myalias_tree = $remote_table.'_'.$remote_field.'_tree' ;
 	$query = "SELECT * FROM define_bible_tree WHERE bible_code='$bible_code' ORDER BY tree_field_index" ;
 	$result = $_opDB->query($query) ;
@@ -329,7 +329,7 @@ function paracrm_lib_file_mapBible( $bible_code, $remote_table, $remote_field )
 		$grid_cell['is_display'] = ($arr['tree_field_is_header']=='O')?true:false ;
 		$grid_map[] = $grid_cell ;
 	}
-	$mytable_entry = 'store_bible_'.$bible_code.'_entry' ;
+	$mytable_entry = 'view_bible_'.$bible_code.'_entry' ;
 	$myalias_entry = $remote_table.'_'.$remote_field.'_entry' ;
 	$query = "SELECT * FROM define_bible_entry WHERE bible_code='$bible_code' ORDER BY entry_field_index" ;
 	$result = $_opDB->query($query) ;
