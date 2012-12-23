@@ -254,6 +254,8 @@ while( ($arr = $_opDB->fetch_row($result)) != FALSE )
 $query = "DROP TABLE store_file_field" ;
 $_opDB->query($query) ;
 }
+$query = "ALTER TABLE store_file ENGINE=MyISAM" ;
+$_opDB->query($query) ;
 
 
 ?>
