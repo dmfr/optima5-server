@@ -111,7 +111,6 @@ function paracrm_data_bibleAssignTreenode( $post_data )
 
 	paracrm_lib_data_beginTransaction() ;
 	$ret = paracrm_lib_data_bibleAssignTreenode( $bible_code, $entry_key, $target_treenode_key ) ;
-	paracrm_lib_buildCacheLinks_reassignBibleTree( $bible_code, $entry_key ) ;
 	paracrm_lib_data_endTransaction(FALSE) ;
 	
 	if( $ret == 0 )
