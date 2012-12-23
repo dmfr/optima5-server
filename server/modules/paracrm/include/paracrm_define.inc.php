@@ -494,7 +494,7 @@ function paracrm_define_manageTransaction_applyBible($arr_saisie, $apply)
 		$_opDB->insert('define_bible_entry',$arr_ins) ;
 	}
 	
-	paracrm_define_buildViewBible( $bible_code ) ;
+	paracrm_define_buildBible( $bible_code ) ;
 	
 	return array('success'=>true) ;
 }
@@ -595,7 +595,7 @@ function paracrm_define_manageTransaction_applyFile($arr_saisie, $apply)
 		$_opDB->insert('define_file_entry',$arr_ins) ;
 	}
 	
-	paracrm_define_buildViewFile( $file_code ) ;
+	paracrm_define_buildFile( $file_code ) ;
 	
 	return array('success'=>true) ;
 }
@@ -604,8 +604,7 @@ function paracrm_define_manageTransaction_applyFile($arr_saisie, $apply)
 
 
 
-function paracrm_define_buildViewBible( $bible_code )
-{
+function paracrm_define_buildBibleTree( $bible_code ) {
 	global $_opDB ;
 	
 	
@@ -617,49 +616,53 @@ function paracrm_define_buildViewBible( $bible_code )
 	{
 		$arr_field_type[$arr['tree_field_code']] = $arr['tree_field_type'] ;
 	}
-
-
+	
+	$db_table = 'store_bible_'.$bible_code.'_tree' ;
+	$arrAssoc_field_fieldType = array('treenode_key'=>'varchar(100)','treenode_parent_key'=>'varchar(100)') ;
+	$arr_model_keys = array() ;
+	$arr_model_keys['PRIMARY'] = array('arr_columns'=>array('treenode_key')) ;
+	$arr_model_keys['treenode_parent_key'] = array('non_unique'=>'1','arr_columns'=>array('treenode_parent_key')) ;
+	foreach( $arr_field_type as $field_code => $field_type )
+	{
+		$field_name = 'field_'.$field_code ;
+		switch( $field_type )
+		{
+			case 'string' :
+			$arrAssoc_field_fieldType[$field_name] = 'varchar(200)' ;
+			break ;
+			
+			case 'number' :
+			$arrAssoc_field_fieldType[$field_name] = 'decimal(10,2)' ;
+			break ;
+			
+			case 'bool' :
+			$arrAssoc_field_fieldType[$field_name] = 'int(11)' ;
+			break ;
+			
+			case 'date' :
+			$arrAssoc_field_fieldType[$field_name] = 'datetime' ;
+			break ;
+			
+			case 'link' :
+			$arrAssoc_field_fieldType[$field_name] = 'varchar(500)' ;
+			break ;
+		}
+	}
+	
+	paracrm_define_tool_syncTableStructure( $db_table , $arrAssoc_field_fieldType , $arr_model_keys ) ;
+	
 	$view_name = 'view_bible_'.$bible_code.'_tree' ;
 	$query = "DROP VIEW IF EXISTS $view_name" ;
 	$_opDB->query($query) ;
 	
-	$query = "CREATE ALGORITHM=MERGE VIEW $view_name AS SELECT mstr.treenode_racx, mstr.treenode_key, mstr.treenode_parent_key" ;
-	foreach( $arr_field_type as $field_code => $field_type )
-	{
-		$query.=','.'t_'.$field_code.'.' ;
-		switch( $field_type )
-		{
-			case 'string' :
-			$query.='treenode_field_value_string' ;
-			break ;
-			
-			case 'number' :
-			$query.='treenode_field_value_number' ;
-			break ;
-			
-			case 'date' :
-			$query.='treenode_field_value_date' ;
-			break ;
-			
-			case 'link' :
-			$query.='treenode_field_value_link' ;
-			break ;
-		}
-		$query.= " AS field_".$field_code ;
-	}
-	$query.= " FROM store_bible_tree mstr" ;
-	foreach( $arr_field_type as $field_code => $field_type )
-	{
-		$query.= " LEFT OUTER JOIN store_bible_tree_field t_{$field_code} 
-						ON t_{$field_code}.treenode_racx = mstr.treenode_racx 
-							AND t_{$field_code}.treenode_field_code='$field_code'" ;
-	}
-	$query.= " WHERE mstr.bible_code='$bible_code'" ;
+	$query = "CREATE ALGORITHM=MERGE VIEW $view_name AS SELECT mstr.*" ;
+	$query.= " FROM $db_table mstr" ;
 	$_opDB->query($query) ;
-	
-	
-	
-	
+
+	return array($db_table , $arrAssoc_field_fieldType , $arr_model_keys) ;
+}
+function paracrm_define_buildBibleEntry( $bible_code ) {
+	global $_opDB ;
 	
 	// chargement gmap
 	$arr_gmap_define = array() ;
@@ -677,64 +680,58 @@ function paracrm_define_buildViewBible( $bible_code )
 		$arr_field_type[$arr['entry_field_code']] = $arr['entry_field_type'] ;
 	}
 	
+	
+	$db_table = 'store_bible_'.$bible_code.'_entry' ;
+	$arrAssoc_field_fieldType = array('entry_key'=>'varchar(100)','treenode_key'=>'varchar(100)') ;
+	$arr_model_keys = array() ;
+	$arr_model_keys['PRIMARY'] = array('arr_columns'=>array('entry_key')) ;
+	$arr_model_keys['treenode_key'] = array('non_unique'=>'1','arr_columns'=>array('treenode_key')) ;
+	foreach( $arr_gmap_define as $gmap_field ) {
+		$gmap_field = 'gmap_'.$gmap_field ;
+		$arrAssoc_field_fieldType[$gmap_field] = 'varchar(500)' ;
+	}
+	foreach( $arr_field_type as $field_code => $field_type )
+	{
+		$field_name = 'field_'.$field_code ;
+		switch( $field_type )
+		{
+			case 'string' :
+			$arrAssoc_field_fieldType[$field_name] = 'varchar(200)' ;
+			break ;
+			
+			case 'number' :
+			$arrAssoc_field_fieldType[$field_name] = 'decimal(10,2)' ;
+			break ;
+			
+			case 'bool' :
+			$arrAssoc_field_fieldType[$field_name] = 'int(11)' ;
+			break ;
+			
+			case 'date' :
+			$arrAssoc_field_fieldType[$field_name] = 'datetime' ;
+			break ;
+			
+			case 'link' :
+			$arrAssoc_field_fieldType[$field_name] = 'varchar(500)' ;
+			$arr_model_keys[$field_name] = array('non_unique'=>'1','arr_columns'=>array($field_name)) ;
+			break ;
+		}
+	}
+	
+	paracrm_define_tool_syncTableStructure( $db_table , $arrAssoc_field_fieldType , $arr_model_keys ) ;
+
 	$view_name = 'view_bible_'.$bible_code.'_entry' ;
 	$query = "DROP VIEW IF EXISTS $view_name" ;
 	$_opDB->query($query) ;
 	
-	$query = "CREATE ALGORITHM=MERGE VIEW $view_name AS SELECT mstr.entry_racx, mstr.entry_key, mstr.treenode_key" ;
-	foreach( $arr_gmap_define as $gmap_field )
-	{
-		$gmap_field = 'gmap_'.$gmap_field ;
-		$query.=','.'t_'.$gmap_field.'.'.'entry_field_value_link'." AS ".$gmap_field ;
-	}
-	foreach( $arr_field_type as $field_code => $field_type )
-	{
-		$query.=','.'t_'.$field_code.'.' ;
-		switch( $field_type )
-		{
-			case 'string' :
-			$query.='entry_field_value_string' ;
-			break ;
-			
-			case 'number' :
-			$query.='entry_field_value_number' ;
-			break ;
-			
-			case 'date' :
-			$query.='entry_field_value_date' ;
-			break ;
-			
-			case 'link' :
-			$query.='entry_field_value_link' ;
-			break ;
-		}
-		$query.= " AS field_".$field_code ;
-	}
-	$query.= " FROM store_bible_entry mstr" ;
-	foreach( $arr_field_type as $field_code => $field_type )
-	{
-		$query.= " LEFT OUTER JOIN store_bible_entry_field t_{$field_code} 
-						ON t_{$field_code}.entry_racx=mstr.entry_racx 
-							AND t_{$field_code}.entry_field_code='$field_code'" ;
-	}
-	foreach( $arr_gmap_define as $gmap_field )
-	{
-		$gmap_field = 'gmap_'.$gmap_field ;
-		$query.= " LEFT OUTER JOIN store_bible_entry_field t_{$gmap_field} 
-						ON t_{$gmap_field}.entry_racx=mstr.entry_racx 
-							AND t_{$gmap_field}.entry_field_code='$gmap_field'" ;
-	}
-	$query.= " WHERE mstr.bible_code='$bible_code'" ;
+	$query = "CREATE ALGORITHM=MERGE VIEW $view_name AS SELECT mstr.*" ;
+	$query.= " FROM $db_table mstr" ;
 	$_opDB->query($query) ;
-	
-	
-	
-	
 
-	sleep(1) ;
+	return array($db_table , $arrAssoc_field_fieldType , $arr_model_keys) ;
 }
-function paracrm_define_buildViewFile( $file_code )
-{
+
+function paracrm_define_buildFile( $file_code ) {
 	global $_opDB ;
 	
 	
@@ -767,76 +764,299 @@ function paracrm_define_buildViewFile( $file_code )
 		break ;
 	}
 	
+	
+	
+	$db_table = 'store_file_'.$file_code ;
+	$arrAssoc_field_fieldType = array('filerecord_id'=>'int(11)') ;
+	$arr_model_keys = array('PRIMARY'=>array('arr_columns'=>array('filerecord_id'))) ;
+	foreach( $arr_gmap_define as $gmap_field ) {
+		$gmap_field = 'gmap_'.$gmap_field ;
+		$arrAssoc_field_fieldType[$gmap_field] = 'varchar(500)' ;
+	}
+	foreach( $arr_media_define as $media_field ) {
+		$media_field = 'media_'.$media_field ;
+		$arrAssoc_field_fieldType[$media_field] = 'varchar(100)' ;
+	}
+	foreach( $arr_field_type as $field_code => $field_type )
+	{
+		$field_name = 'field_'.$field_code ;
+		switch( $field_type )
+		{
+			case 'string' :
+			$arrAssoc_field_fieldType[$field_name] = 'varchar(200)' ;
+			break ;
+			
+			case 'number' :
+			$arrAssoc_field_fieldType[$field_name] = 'decimal(10,2)' ;
+			break ;
+			
+			case 'bool' :
+			$arrAssoc_field_fieldType[$field_name] = 'int(11)' ;
+			break ;
+			
+			case 'date' :
+			$arrAssoc_field_fieldType[$field_name] = 'datetime' ;
+			break ;
+			
+			case 'link' :
+			$arrAssoc_field_fieldType[$field_name] = 'varchar(500)' ;
+			$arr_model_keys[$field_name] = array('non_unique'=>'1','arr_columns'=>array($field_name)) ;
+			break ;
+		}
+	}
+	
+	paracrm_define_tool_syncTableStructure( $db_table , $arrAssoc_field_fieldType , $arr_model_keys ) ;
+	
 	$view_name = 'view_file_'.$file_code ;
 	$query = "DROP VIEW IF EXISTS $view_name" ;
 	$_opDB->query($query) ;
 	
-	$query = "CREATE VIEW $view_name AS SELECT mstr.filerecord_id, mstr.filerecord_parent_id" ;
-	foreach( $arr_gmap_define as $gmap_field )
-	{
-		$gmap_field = 'gmap_'.$gmap_field ;
-		$query.=','.'t_'.$gmap_field.'.'.'filerecord_field_value_link'." AS ".$gmap_field ;
-	}
-	foreach( $arr_media_define as $media_field )
-	{
-		$media_field = 'media_'.$media_field ;
-		$query.=','.'t_'.$media_field.'.'.'filerecord_field_value_string'." AS ".$media_field ;
-	}
-	foreach( $arr_field_type as $field_code => $field_type )
-	{
-		switch( $field_type )
-		{
-			case 'string' :
-			$query.=','.'t_'.$field_code.'.' ;
-			$query.='filerecord_field_value_string'." AS field_".$field_code ;
-			break ;
-			
-			case 'number' :
-			case 'bool' :
-			$query.=','.'t_'.$field_code.'.' ;
-			$query.='filerecord_field_value_number'." AS field_".$field_code ;
-			break ;
-			
-			case 'date' :
-			$query.=','.'t_'.$field_code.'.' ;
-			$query.='filerecord_field_value_date'." AS field_".$field_code ;
-			break ;
-			
-			case 'link' :
-			$query.=','.'t_'.$field_code.'.' ;
-			$query.='filerecord_field_value_link'." AS field_".$field_code ;
-			$query.=','.'t_'.$field_code.'.' ;
-			$query.='filerecord_field_value_link_treenode_racx'." AS field_".$field_code.'_trx' ;
-			$query.=','.'t_'.$field_code.'.' ;
-			$query.='filerecord_field_value_link_entry_racx'." AS field_".$field_code.'_erx' ;
-			break ;
+	$query = "CREATE ALGORITHM=MERGE VIEW $view_name AS SELECT mstr.filerecord_id, mstr.filerecord_parent_id" ;
+	foreach( $arrAssoc_field_fieldType as $field_name => $dummy ) {
+		if( $field_name == 'filerecord_id' ) {
+			continue ;
 		}
+	
+		$query.= ",data.{$field_name}" ;
 	}
 	$query.= " FROM store_file mstr" ;
-	foreach( $arr_field_type as $field_code => $field_type )
-	{
-		$query.= " LEFT OUTER JOIN store_file_field t_{$field_code} 
-						ON t_{$field_code}.filerecord_id = mstr.filerecord_id
-						AND t_{$field_code}.filerecord_field_code='$field_code'" ;
-	}
-	foreach( $arr_gmap_define as $gmap_field )
-	{
-		$gmap_field = 'gmap_'.$gmap_field ;
-		$query.= " LEFT OUTER JOIN store_file_field t_{$gmap_field} 
-						ON t_{$gmap_field}.filerecord_id = mstr.filerecord_id 
-							AND t_{$gmap_field}.filerecord_field_code='$gmap_field'" ;
-	}
-	foreach( $arr_media_define as $media_field )
-	{
-		$media_field = 'media_'.$media_field ;
-		$query.= " LEFT OUTER JOIN store_file_field t_{$media_field} 
-						ON t_{$media_field}.filerecord_id = mstr.filerecord_id 
-							AND t_{$media_field}.filerecord_field_code='$media_field'" ;
-	}
-	$query.= " WHERE mstr.file_code='$file_code' AND mstr.sync_is_deleted<>'O'" ;
+	$query.= " LEFT JOIN {$db_table} data ON data.filerecord_id = mstr.filerecord_id" ;
+	$query.= " WHERE mstr.file_code='{$file_code}' AND mstr.sync_is_deleted<>'O'" ;
 	$_opDB->query($query) ;
 	
-	sleep(1) ;
+	
+	return array($db_table , $arrAssoc_field_fieldType , $arr_model_keys) ;
 }
+
+
+
+
+function paracrm_define_tool_syncTableStructure( $db_table , $arrAssoc_field_fieldType , $arr_model_keys, $drop_allowed=TRUE ) {
+	
+	global $_opDB ;
+	
+	$mysql_db = $_opDB->query_uniqueValue("SELECT DATABASE()") ;
+
+	$arr_existing_tables = array() ;
+	$query = "SHOW TABLES FROM $mysql_db" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE )
+		$arr_existing_tables[] = $arr[0] ;
+
+	if( !in_array($db_table,$arr_existing_tables) )
+	{
+		$is_first = TRUE ;
+		$query = "CREATE TABLE {$mysql_db}.{$db_table} (" ;
+		foreach( $arrAssoc_field_fieldType as $field_name => $field_type ) {
+			if( $is_first )
+				$is_first = FALSE ;
+			else
+				$query.= ',' ;
+				
+			$query.= "`{$field_name}` {$field_type} NOT NULL" ;
+		}
+		foreach( $arr_model_keys as $key_name => $key_desc ) {
+			if( $is_first )
+				$is_first = FALSE ;
+			else
+				$query.= ',' ;
+			
+			if( $key_name == 'PRIMARY' ) {
+				$query.= "PRIMARY KEY " ;
+			} elseif( $key_desc['non_unique'] == 'O' ) {
+				$query.= "INDEX " ;
+			} else {
+				$query.= "INDEX " ;
+			}
+			$query.= "(" ;
+			$is_first_k=TRUE ;
+			foreach( $key_desc['arr_columns'] as $column )
+			{
+				if( !$is_first_k )
+					$query.= ',' ;
+				$query.= '`'.$column.'`' ;
+				$is_first_k = FALSE ;
+			}
+			$query.= ")" ;
+		}
+		$query.= ")" ;
+		$_opDB->query($query) ;
+	}
+	else
+	{
+		$arr_model_fields = array() ;
+		foreach( $arrAssoc_field_fieldType as $field_name => $field_type ) {
+			$arr_model_fields[] = array($field_name,$field_type,'NO') ;
+		}
+	
+		$arr_existing_fields = array() ;
+		$query = "SHOW COLUMNS FROM {$mysql_db}.{$db_table} " ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$arr_existing_fields[] = $arr ;
+		}
+		foreach( $arr_existing_fields as $desc_field_existing )
+		{
+			$existing_field = $desc_field_existing[0] ;
+			foreach( $arr_model_fields as $desc_field_model )
+			{
+				if( $existing_field == $desc_field_model[0] )
+					continue 2 ;
+			}
+			
+			$query = "ALTER TABLE {$mysql_db}.{$db_table} DROP `$existing_field`" ;
+			$_opDB->query($query) ;
+		}
+		foreach( $arr_model_fields as $field_id => $desc_field_model )
+		{
+			$desc_field_existing = NULL ;
+			foreach( $arr_existing_fields as $cur_field )
+			{
+				if( $cur_field[0] == $desc_field_model[0] )
+				{
+					$desc_field_existing = $cur_field ;
+					break ;
+				}
+			}
+			if( !$desc_field_existing )
+			{
+				//after WHAT ?
+				$after_field = '' ;
+				if( $field_id >= 1 )
+				{
+					$f = $field_id - 1 ;
+					$tmpdesc = $arr_model_fields[$f] ;
+					$after_field = $tmpdesc[0] ;
+				}
+				// ajout du champs
+				$query = "ALTER TABLE {$mysql_db}.{$db_table} ADD `{$desc_field_model[0]}` $desc_field_model[1]" ;
+				if( strtoupper($desc_field_model[2]) == 'NO' )
+				{
+					$query.= " NOT NULL" ;
+				}
+				if( $after_field )
+				{
+					$query.= " AFTER `$after_field`" ;
+				}
+				else
+				{
+					$query.= " FIRST" ;
+				}
+				$_opDB->query($query) ;
+				
+				//continue 
+				continue ;
+			}
+			if( $desc_field_existing[1] != $desc_field_model[1] || $desc_field_existing[2] != $desc_field_model[2] || $desc_field_existing[5] != $desc_field_model[5] )
+			{
+				$query = "ALTER TABLE {$mysql_db}.{$db_table} CHANGE `{$desc_field_existing[0]}` `{$desc_field_model[0]}` $desc_field_model[1]" ;
+				if( strtoupper($desc_field_model[2]) == 'NO' )
+				{
+					$query.= " NOT NULL" ;
+				}
+				else
+				{
+					$query.= " NULL" ;
+				}
+				
+				$_opDB->query($query) ;
+				
+				//continue 
+				continue ;
+			}
+		
+		}
+	
+	
+	
+	
+	
+	
+		$arr_existing_keys = array() ;
+		$query = "SHOW KEYS FROM {$mysql_db}.{$db_table} " ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE )
+		{
+			$key_name = $arr[2] ;
+			$non_unique = $arr[1] ;
+			$column_name = $arr[4] ;
+			$arr_existing_keys[$key_name]['non_unique'] = $non_unique ;
+			$arr_existing_keys[$key_name]['arr_columns'][] = $column_name ;
+		}
+		foreach($arr_existing_keys as $existing_key_name => $existing_key )
+		{
+			
+			if( !$arr_model_keys[$existing_key_name] )
+			{
+				$query = "ALTER TABLE {$mysql_db}.{$db_table} " ;
+				$query.= " DROP" ;
+				if( $existing_key_name == 'PRIMARY' )
+					$query.= " PRIMARY KEY" ;
+				elseif( $existing_key['non_unique'] == '0' )
+					$query.= " INDEX `$existing_key_name`" ;
+				else
+					$query.= " INDEX `$existing_key_name`" ;
+						
+				$_opDB->query($query) ;
+			}
+		}
+	
+		foreach($arr_model_keys as $model_key_name => $model_key )
+		{
+			$_create = $_drop = FALSE ;
+			if( !$arr_existing_keys[$model_key_name] )
+			{
+				// create
+				$_create = TRUE ;
+			}
+			else
+			{
+			$existing_key = $arr_existing_keys[$model_key_name] ;
+			if( $model_key != $existing_key )
+			{
+				$_create = TRUE ;
+				$_drop = TRUE ;
+			}
+			}
+			
+			if( $_create )
+			{
+				$query = "ALTER TABLE {$mysql_db}.{$db_table} " ;
+				if( $_drop )
+				{
+					$query.= " DROP" ;
+					if( $model_key_name == 'PRIMARY' )
+						$query.= " PRIMARY KEY" ;
+					elseif( $existing_key['non_unique'] == '0' )
+						$query.= " INDEX `$model_key_name`" ;
+					else
+						$query.= " INDEX `$model_key_name`" ;
+					$query.= "," ;
+				}
+				$query.= " ADD" ;
+				if( $model_key_name == 'PRIMARY' )
+					$query.= " PRIMARY KEY" ;
+				elseif( $model_key['non_unique'] == '0' )
+					$query.= " INDEX `$model_key_name`" ;
+				else
+					$query.= " INDEX `$model_key_name`" ;
+				$query.= "(" ;
+				$is_first=TRUE ;
+				foreach( $model_key['arr_columns'] as $column )
+				{
+					if( !$is_first )
+						$query.= ',' ;
+					$query.= '`'.$column.'`' ;
+					$is_first = FALSE ;
+				}
+				$query.= ")" ;
+				
+				$_opDB->query($query) ;
+			}
+		}
+	}
+}
+
+
 
 ?>
