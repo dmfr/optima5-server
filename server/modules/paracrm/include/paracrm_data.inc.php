@@ -144,8 +144,9 @@ function paracrm_data_getBibleTree( $post_data )
 		$tab_parentkey_nodes[$arr['treenode_parent_key']][$arr['treenode_key']] = $record ;
 	}
 	
+	$view_name_entry = 'view_bible_'.$bible_code.'_entry' ;
 	$arr_treenode_nbEntries = array() ;
-	$query = "select treenode_key, count(*) from store_bible_entry where bible_code='$bible_code' group by treenode_key" ;
+	$query = "select treenode_key, count(*) from $view_name_entry group by treenode_key" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE )
 	{
@@ -387,8 +388,8 @@ function paracrm_data_getFileGrid_data( $post_data )
 {
 	global $_opDB ;
 	
-	// echo "pouet" ;
-	$TAB = paracrm_lib_file_access( $file_code = $post_data['file_code'] ) ;
+	$sql_calc_found_rows = ( isset($post_data['filter']) && count(json_decode($post_data['filter'],TRUE)) > 0 ) ; // **** Tweak to speedup count ****
+	$TAB = paracrm_lib_file_access( $file_code = $post_data['file_code'] , $sql_calc_found_rows ) ;
 	if( !$TAB['sql_query_base'] )
 		return array('success'=>false) ;
 	
@@ -474,12 +475,20 @@ function paracrm_data_getFileGrid_data( $post_data )
 	
 	if( isset($post_data['start']) && isset($post_data['limit']) )
 		$query.= " LIMIT {$post_data['start']},{$post_data['limit']}" ;
+	// echo $query ;
 	$result = $_opDB->query($query);
 	
 	
-	$query = "SELECT FOUND_ROWS()" ;
-	$nb_rows = $_opDB->query_uniqueValue($query);
-	
+	if( $sql_calc_found_rows ) {
+		$query = "SELECT FOUND_ROWS()" ;
+		$nb_rows = $_opDB->query_uniqueValue($query);
+	} else {
+		// **** Tweak to speedup count ****
+		$view_name = 'store_file_'.$file_code ;
+		$query = "SELECT count(*) FROM $view_name" ;
+		$nb_rows = $_opDB->query_uniqueValue($query);
+		// *********************************
+	}
 	
 	
 	$TAB_json = array() ;

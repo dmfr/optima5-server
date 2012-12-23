@@ -118,14 +118,18 @@ function paracrm_lib_buildCacheLinks_reassignBibleTree( $bible_code, $entry_key=
 
 
 
-function paracrm_lib_file_access( $file_code )
+function paracrm_lib_file_access( $file_code, $sql_calc_found_rows=FALSE )
 {
 	global $_opDB ;
 
 	$TAB = paracrm_lib_file_mapFile( $file_code ) ;
 	
 	$sql_query = '' ;
-	$sql_query.= "SELECT SQL_CALC_FOUND_ROWS ".' '.implode(',',array_map(create_function('$a','return implode(" AS ",$a);'),$TAB['sql_selectfields'])) ;
+	$sql_query.= 'SELECT ' ;
+	if( $sql_calc_found_rows ) {
+		$sql_query.= "SQL_CALC_FOUND_ROWS " ;
+	}
+	$sql_query.= ' '.implode(',',array_map(create_function('$a','return implode(" AS ",$a);'),$TAB['sql_selectfields'])) ;
 	$sql_query.= " FROM ".implode(',',array_map(create_function('$a','return implode(" ",$a);'),$TAB['sql_from'])) ;
 	foreach( $TAB['sql_join'] as $join_array )
 	{
@@ -300,7 +304,7 @@ function paracrm_lib_file_mapBible( $bible_code, $remote_table, $remote_field )
 	$sql_leftjoin = array() ;
 	$grid_map = array() ;
 
-	$mytable_tree = 'view_bible_'.$bible_code.'_tree' ;
+	$mytable_tree = 'store_bible_'.$bible_code.'_tree' ;
 	$myalias_tree = $remote_table.'_'.$remote_field.'_tree' ;
 	$query = "SELECT * FROM define_bible_tree WHERE bible_code='$bible_code' ORDER BY tree_field_index" ;
 	$result = $_opDB->query($query) ;
@@ -325,7 +329,7 @@ function paracrm_lib_file_mapBible( $bible_code, $remote_table, $remote_field )
 		$grid_cell['is_display'] = ($arr['tree_field_is_header']=='O')?true:false ;
 		$grid_map[] = $grid_cell ;
 	}
-	$mytable_entry = 'view_bible_'.$bible_code.'_entry' ;
+	$mytable_entry = 'store_bible_'.$bible_code.'_entry' ;
 	$myalias_entry = $remote_table.'_'.$remote_field.'_entry' ;
 	$query = "SELECT * FROM define_bible_entry WHERE bible_code='$bible_code' ORDER BY entry_field_index" ;
 	$result = $_opDB->query($query) ;
@@ -352,7 +356,7 @@ function paracrm_lib_file_mapBible( $bible_code, $remote_table, $remote_field )
 		$grid_map[] = $grid_cell ;
 	}
 	
-	/*
+	
 	// ****** OLD METHOD (no racx indexes) ********
 	$sql_leftjoin[] = array($mytable_entry ,
 								$myalias_entry ,
@@ -363,7 +367,8 @@ function paracrm_lib_file_mapBible( $bible_code, $remote_table, $remote_field )
 								$myalias_tree.'.'.'treenode_key' ,
 								$myalias_entry.'.'.'treenode_key' ) ;
 	// ********************************************
-	*/
+	/*
+	// ****** 2012-05 METHOD (racx indexes) ********
 	$sql_leftjoin[] = array($mytable_entry ,
 								$myalias_entry ,
 								$myalias_entry.'.'.'entry_racx' ,
@@ -372,6 +377,8 @@ function paracrm_lib_file_mapBible( $bible_code, $remote_table, $remote_field )
 								$myalias_tree ,
 								$myalias_tree.'.'.'treenode_racx' ,
 								$remote_table.'.'.$remote_field.'_trx' ) ;
+	// ********************************************
+	*/
 
 	return array('sql_selectfields'=>$sql_selectfields,
 					'sql_from'=>array(),
