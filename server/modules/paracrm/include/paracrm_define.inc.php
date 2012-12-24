@@ -886,7 +886,25 @@ function paracrm_define_buildFile( $file_code ) {
 
 
 
-
+function paracrm_define_tool_getEqFieldType( $crm_field_type ) {
+	switch( $crm_field_type ) {
+		case 'link' :
+		case 'string' :
+		return 'str' ;
+		
+		case 'number' :
+		return 'dec' ;
+		
+		case 'bool' :
+		return 'int' ;
+		
+		case 'date' ;
+		return 'dtm' ;
+		
+		default :
+		return NULL ;
+	}
+}
 function paracrm_define_tool_syncTableStructure( $db_table , $arrAssoc_field_fieldType , $arr_model_keys, $drop_allowed=FALSE ) {
 	
 	global $_opDB ;
