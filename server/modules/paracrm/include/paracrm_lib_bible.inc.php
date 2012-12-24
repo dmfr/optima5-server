@@ -284,44 +284,6 @@ function paracrm_lib_bible_buildRelationships_walkEntries( $bible_code )
 
 
 
-function paracrm_lib_bible_lookupTreenodeRacx( $bible_code, $treenode_key )
-{
-	global $_opDB ;
-	
-	$ret = array() ;
-
-	$view = 'view_bible_'.$bible_code.'_tree' ;
-	$query = "SELECT treenode_racx FROM $view WHERE treenode_key='$treenode_key'" ;
-	$result = $_opDB->query($query) ;
-	while( ($arr = $_opDB->fetch_row($result)) != FALSE )
-	{
-		$ret[] = $arr[0] ;
-	}
-	return $ret ;
-}
-function paracrm_lib_bible_lookupEntryRacx( $bible_code, $entry_key )
-{
-	global $_opDB ;
-	
-	$ret = array() ;
-
-	$view = 'view_bible_'.$bible_code.'_entry' ;
-	$query = "SELECT entry_racx FROM $view WHERE entry_key='$entry_key'" ;
-	$result = $_opDB->query($query) ;
-	while( ($arr = $_opDB->fetch_row($result)) != FALSE )
-	{
-		$ret[] = $arr[0] ;
-	}
-	return $ret ;
-}
-function paracrm_lib_bible_getTreenodeKey( $bible_code, $treenode_racx )
-{
-
-}
-function paracrm_lib_bible_getEntryKey( $bible_code, $entry_racx )
-{
-
-}
 
 
 function paracrm_lib_bible_tree_getDepth( $bible_code, $treenode_key )
@@ -349,7 +311,7 @@ function paracrm_lib_bible_queryBible( $bible_code, $mForeignEntries )
 
 	$view_name_t = 'view_bible_'.$bible_code.'_tree' ;
 	$view_name_e = 'view_bible_'.$bible_code.'_entry' ;
-	$query = "SELECT t.treenode_racx, e.* FROM $view_name_e e , $view_name_t t WHERE t.treenode_key=e.treenode_key" ;
+	$query = "SELECT e.* FROM $view_name_e e , $view_name_t t WHERE t.treenode_key=e.treenode_key" ;
 	//$query.= " AND bible_code='$bible_code'" ;
 	foreach( $mForeignEntries as $foreign_bibleCode => $foreign_entryKey )
 	{
