@@ -1,91 +1,10 @@
 <?php
 
-function paracrm_android_getDbImage()
-{
-	global $_opDB ;
-
-	$TAB = array() ;
-	
-	$tables = array() ;
-	$tables[] = 'define_bible' ;
-	$tables[] = 'define_bible_entry' ;
-	$tables[] = 'define_bible_tree' ;
-	$tables[] = 'define_file' ;
-	$tables[] = 'define_file_entry' ;
-	$tables[] = 'input_scen' ;
-	$tables[] = 'input_scen_page' ;
-	$tables[] = 'input_scen_page_field' ;
-	$tables[] = 'store_bible_entry' ;
-	$tables[] = 'store_bible_entry_field' ;
-	$tables[] = 'store_bible_tree' ;
-	$tables[] = 'store_bible_tree_field' ;
-	// $tables[] = 'define_gmap' ;
-
-	foreach( $tables as $table )
-	{
-		$data = array() ;
-		$query = "SELECT * FROM $table" ;
-		$result = $_opDB->query($query) ;
-		while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
-		{
-			$data[] = $arr ;
-		}
-	
-		$TAB[$table] = $data ;
-	}
-
-
-
-	return array('success'=>true,'data'=>$TAB) ;
-}
 function paracrm_android_getDbImageTimestamp()
 {
 	return array('success'=>true,'timestamp'=>strtotime(date('Y-m-d'))) ;
 }
-function paracrm_android_getDbImageStream()
-{
-	global $_opDB ;
-	
-	$tables = array() ;
-	$tables[] = 'define_bible' ;
-	$tables[] = 'define_bible_entry' ;
-	$tables[] = 'define_bible_tree' ;
-	$tables[] = 'define_file' ;
-	$tables[] = 'define_file_entry' ;
-	$tables[] = 'input_scen' ;
-	$tables[] = 'input_scen_page' ;
-	$tables[] = 'input_scen_page_field' ;
-	$tables[] = 'store_bible_entry' ;
-	$tables[] = 'store_bible_entry_field' ;
-	$tables[] = 'store_bible_tree' ;
-	$tables[] = 'store_bible_tree_field' ;
-	
-	$first = paracrm_android_getDbImageTimestamp() ;
-	$first['nb_tables'] = 0 ;
-	$first['nb_rows'] = 0 ;
-	foreach( $tables as $table )
-	{
-		$query = "SELECT count(*) FROM $table" ;
-		$first['nb_tables']++;
-		$first['nb_rows'] += $_opDB->query_uniqueValue($query) ;
-	}
-	echo json_encode($first) ;
-	echo "\r\n" ;
-	
-	foreach( $tables as $table )
-	{
-		$query = "SELECT * FROM $table" ;
-		$result = $_opDB->query($query) ;
-		while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
-		{
-			echo json_encode(array('table_name'=>$table,'data'=>$arr)) ;
-			echo "\r\n" ;
-		}
-	}
-	
-	die() ;
-}
-function paracrm_android_getDbImageTab($post_data)
+function paracrm_android_getDbImage($post_data)
 {
 	global $_opDB ;
 	
@@ -272,69 +191,6 @@ function paracrm_android_syncPush( $post_data )
 		$arr_ins['filerecord_id'] = 0 ;
 		$arr_ins['filerecord_parent_id'] = $arr_tmpid_fileid[$file_entry['filerecord_parent_id']] ;
 		$arr_ins['sync_timestamp'] = $timestamp ;
-		$_opDB->insert('store_file',$arr_ins) ;
-		
-		$arr_tmpid_fileid[$file_entry['filerecord_id']] = $_opDB->insert_id() ;
-		if( strpos($tab_definefile[$file_entry['file_code']]['file_type'],'media_') === 0 )
-			$arr_upload_slots[] = $arr_tmpid_fileid[$file_entry['filerecord_id']] ;
-	}
-	foreach( $data['store_file_field'] as $field_entry )
-	{
-		if( !$arr_tmpid_fileid[$file_entry['filerecord_id']])
-			continue ;
-		
-		$arr_ins = $field_entry ;
-		$arr_ins['filerecord_id'] = $arr_tmpid_fileid[$field_entry['filerecord_id']] ;
-		$_opDB->insert('store_file_field',$arr_ins) ;
-	}
-	paracrm_lib_data_endTransaction(FALSE) ;
-	
-	
-	
-
-
-	return array('success'=>true,'map_tmpid_fileid'=>$arr_tmpid_fileid,'upload_slots'=>$arr_upload_slots) ;
-}
-
-
-function paracrm_android_postDbData( $post_data )
-{
-	global $_opDB ;
-
-	$arr_tmpid_fileid = array() ;
-	$arr_upload_slots  = array() ;
-	
-	$tab_definefile = array() ;
-	$query = "SELECT * FROM define_file" ;
-	$result = $_opDB->query($query) ;
-	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
-	{
-		$tab_definefile[$arr['file_code']] = $arr ;
-	}
-	
-	$data = json_decode(paracrm_android_postDbData_prepareJson($post_data['data']),TRUE) ;
-	paracrm_lib_data_beginTransaction() ;
-	foreach( $data['store_file'] as $file_entry )
-	{
-		if( $file_entry['filerecord_parent_id'] != 0 )
-			continue ;
-		$arr_ins = $file_entry ;
-		$arr_ins['filerecord_id'] = 0 ;
-		$_opDB->insert('store_file',$arr_ins) ;
-		
-		
-		$arr_tmpid_fileid[$file_entry['filerecord_id']] = $_opDB->insert_id() ;
-		if( strpos($tab_definefile[$file_entry['file_code']]['file_type'],'media_') === 0 )
-			$arr_upload_slots[] = $arr_tmpid_fileid[$file_entry['filerecord_id']] ;
-	}
-	foreach( $data['store_file'] as $file_entry )
-	{
-		if( $file_entry['filerecord_parent_id'] == 0 || !$arr_tmpid_fileid[$file_entry['filerecord_parent_id']])
-			continue ;
-			
-		$arr_ins = $file_entry ;
-		$arr_ins['filerecord_id'] = 0 ;
-		$arr_ins['filerecord_parent_id'] = $arr_tmpid_fileid[$file_entry['filerecord_parent_id']] ;
 		$_opDB->insert('store_file',$arr_ins) ;
 		
 		$arr_tmpid_fileid[$file_entry['filerecord_id']] = $_opDB->insert_id() ;

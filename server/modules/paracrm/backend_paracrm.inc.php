@@ -58,16 +58,10 @@ switch( $post_data['_action'] )
 	
 	
 	case 'android_getDbImage' :
-	return paracrm_android_getDbImage( $post_data );
-	case 'android_getDbImageStream' :
-	return paracrm_android_getDbImageStream( $post_data );
 	case 'android_getDbImageTab' :
-	return paracrm_android_getDbImageTab( $post_data );
+	return paracrm_android_getDbImage( $post_data );
 	case 'android_getDbImageTimestamp' :
 	return paracrm_android_getDbImageTimestamp( $post_data );
-	
-	case 'android_postDbData' :
-	return paracrm_android_postDbData( $post_data );
 	
 	case 'android_syncPush' :
 	return paracrm_android_syncPush( $post_data );
