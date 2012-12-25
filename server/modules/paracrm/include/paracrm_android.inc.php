@@ -8,46 +8,245 @@ function paracrm_android_getDbImage($post_data)
 {
 	global $_opDB ;
 	
+	// ********* Tables temporaires *************
+	// DROP + CREATE
+	$query = "DROP TABLE IF EXISTS tmp_store_bible_tree" ;
+	$_opDB->query($query) ;
+	$query = "DROP TABLE IF EXISTS tmp_store_bible_tree_field" ;
+	$_opDB->query($query) ;
+	$query = "DROP TABLE IF EXISTS tmp_store_bible_entry" ;
+	$_opDB->query($query) ;
+	$query = "DROP TABLE IF EXISTS tmp_store_bible_entry_field" ;
+	$_opDB->query($query) ;
+	
+	$query = "CREATE TEMPORARY TABLE IF NOT EXISTS "
+                    . "tmp_store_bible_entry" . " ("
+                    . "bible_code" . " VARCHAR(50), "
+                    . "entry_key" . " VARCHAR(100),"
+                    . "treenode_key" . " VARCHAR(100),"
+                    . "PRIMARY KEY( bible_code, entry_key)"
+                    . ");";
+	$_opDB->query($query) ;
+	$query = "CREATE TEMPORARY TABLE IF NOT EXISTS "
+                    . "tmp_store_bible_entry_field" . " ("
+                    . "bible_code" . " VARCHAR(50), "
+                    . "entry_key" . " VARCHAR(100),"
+                    . "entry_field_code" . " VARCHAR(100),"
+                    . "entry_field_value_number" . " DECIMAL(10,2),"
+                    . "entry_field_value_string" . " VARCHAR(100),"
+                    . "entry_field_value_date" . " DATE,"
+                    . "entry_field_value_link" . " VARCHAR(500),"
+                    . "PRIMARY KEY( bible_code, entry_key,entry_field_code)"
+                    . ");";
+	$_opDB->query($query) ;
+	$query = "CREATE TEMPORARY TABLE IF NOT EXISTS "
+                    . "tmp_store_bible_tree" . " ("
+                    . "bible_code" . " VARCHAR(50), "
+                    . "treenode_key" . " VARCHAR(100),"
+                    . "treenode_parent_key" . " VARCHAR(100),"
+                    . "PRIMARY KEY( bible_code, treenode_key)"
+                    . ");";
+	$_opDB->query($query) ;
+	$query = "CREATE TEMPORARY TABLE IF NOT EXISTS "
+                    . "tmp_store_bible_tree_field" . " ("
+                    . "bible_code" . " VARCHAR(50), "
+                    . "treenode_key" . " VARCHAR(100),"
+                    . "treenode_field_code" . " VARCHAR(100),"
+                    . "treenode_field_value_number" . " DECIMAL(10,2),"
+                    . "treenode_field_value_string" . " VARCHAR(100),"
+                    . "treenode_field_value_date" . " DATE,"
+                    . "treenode_field_value_link" . " VARCHAR(500),"
+                    . "PRIMARY KEY( bible_code, treenode_key,treenode_field_code)"
+                    . ");";
+	$_opDB->query($query) ;
+	
+	
+	// foreach( define bible )
+	//    store_bible_X_tree => tmp_store_bible_tree + tmp_store_bible_tree_field
+	//    store_bible_X_entry => tmp_store_bible_entry + tmp_store_bible_entry_field
+	$bibles = array() ;
+	$query = "SELECT bible_code FROM define_bible ORDER BY bible_code" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$bibles[] = $arr[0] ;
+	}
+	foreach( $bibles as $bible_code ) {
+	
+		$map_tree = array() ;
+		$query = "SELECT tree_field_code,tree_field_type FROM define_bible_tree WHERE bible_code='$bible_code' ORDER BY tree_field_index" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$field_code = $arr[0] ;
+			$field_type = $arr[1] ;
+			
+			$map = array() ;
+			$map['field_code'] = $field_code ;
+			$map['src_db_field'] = 'field_'.$field_code.'_'.paracrm_define_tool_getEqFieldType($field_type) ;
+			switch( $field_type = $arr[1] ) {
+				case 'string' :
+					$map['dest_db_field'] = 'treenode_field_value_string' ;
+					break ;
+				case 'number' :
+					$map['dest_db_field'] = 'treenode_field_value_number' ;
+					break ;
+				case 'bool' :
+					$map['dest_db_field'] = 'treenode_field_value_number' ;
+					break ;
+				case 'date' :
+					$map['dest_db_field'] = 'treenode_field_value_date' ;
+					break ;
+				case 'link' :
+					$map['dest_db_field'] = 'treenode_field_value_link' ;
+					break ;
+			}
+			
+			$map_tree[] = $map ;
+		}
+		
+		$map_entry = array() ;
+		$query = "SELECT * FROM define_bible WHERE bible_code='$bible_code'" ;
+		$result = $_opDB->query($query) ;
+		$arr = $_opDB->fetch_assoc($result) ;
+		if( $arr['gmap_is_on'] == 'O' ) {
+			foreach( $_opDB->table_fields('define_gmap') as $field )
+			{
+				$tfield = 'gmap_'.$field ;
+				
+				$map = array() ;
+				$map['field_code'] = $tfield ;
+				$map['src_db_field'] = $tfield ;
+				$map['dest_db_field'] = 'entry_field_value_link' ;
+				$map_entry[] = $map ;
+			}
+		}
+		$query = "SELECT entry_field_code,entry_field_type FROM define_bible_entry WHERE bible_code='$bible_code' ORDER BY entry_field_index" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$field_code = $arr[0] ;
+			$field_type = $arr[1] ;
+			
+			$map = array() ;
+			$map['field_code'] = $field_code ;
+			$map['src_db_field'] = 'field_'.$field_code.'_'.paracrm_define_tool_getEqFieldType($field_type) ;
+			switch( $field_type = $arr[1] ) {
+				case 'string' :
+					$map['dest_db_field'] = 'entry_field_value_string' ;
+					break ;
+				case 'number' :
+					$map['dest_db_field'] = 'entry_field_value_number' ;
+					break ;
+				case 'bool' :
+					$map['dest_db_field'] = 'entry_field_value_number' ;
+					break ;
+				case 'date' :
+					$map['dest_db_field'] = 'entry_field_value_date' ;
+					break ;
+				case 'link' :
+					$map['dest_db_field'] = 'entry_field_value_link' ;
+					break ;
+			}
+			
+			$map_entry[] = $map ;
+		}
+		
+		$query = "SELECT * FROM store_bible_{$bible_code}_tree ORDER BY treenode_key" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+			$arr_ins = array() ;
+			$arr_ins['bible_code'] = $bible_code ;
+			$arr_ins['treenode_key'] = $arr['treenode_key'] ;
+			$arr_ins['treenode_parent_key'] = $arr['treenode_parent_key'] ;
+			$_opDB->insert('tmp_store_bible_tree',$arr_ins) ;
+		
+			foreach( $map_tree as $map ) {
+				$src = $map['src_db_field'] ;
+				if( !isset($arr[$src]) ) {
+					continue ;
+				}
+			
+				$arr_ins = array() ;
+				$arr_ins['bible_code'] = $bible_code ;
+				$arr_ins['treenode_key'] = $arr['treenode_key'] ;
+				$arr_ins['treenode_field_code'] = $map['field_code'] ;
+				$arr_ins['treenode_field_value_string'] = '' ;
+				$arr_ins['treenode_field_value_number'] = 0 ;
+				$arr_ins['treenode_field_value_date'] = '0000-00-00' ;
+				$arr_ins['treenode_field_value_link'] = '' ;
+				$arr_ins[$map['dest_db_field']] = $arr[$src] ;
+				$_opDB->insert('tmp_store_bible_tree_field',$arr_ins) ;
+			}
+		}
+	
+		$query = "SELECT * FROM store_bible_{$bible_code}_entry ORDER BY entry_key" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+			$arr_ins = array() ;
+			$arr_ins['bible_code'] = $bible_code ;
+			$arr_ins['entry_key'] = $arr['entry_key'] ;
+			$arr_ins['treenode_key'] = $arr['treenode_key'] ;
+			$_opDB->insert('tmp_store_bible_entry',$arr_ins) ;
+		
+			foreach( $map_entry as $map ) {
+				$src = $map['src_db_field'] ;
+				if( !isset($arr[$src]) ) {
+					continue ;
+				}
+			
+				$arr_ins = array() ;
+				$arr_ins['bible_code'] = $bible_code ;
+				$arr_ins['entry_key'] = $arr['entry_key'] ;
+				$arr_ins['entry_field_code'] = $map['field_code'] ;
+				$arr_ins['entry_field_value_string'] = '' ;
+				$arr_ins['entry_field_value_number'] = 0 ;
+				$arr_ins['entry_field_value_date'] = '0000-00-00' ;
+				$arr_ins['entry_field_value_link'] = '' ;
+				$arr_ins[$map['dest_db_field']] = $arr[$src] ;
+				$_opDB->insert('tmp_store_bible_entry_field',$arr_ins) ;
+			}
+		}
+	}
+	// *******************************************
+	
 	$tables = array() ;
-	$tables[] = 'define_bible' ;
-	$tables[] = 'define_bible_entry' ;
-	$tables[] = 'define_bible_tree' ;
-	$tables[] = 'define_file' ;
-	$tables[] = 'define_file_cfg_calendar' ;
-	$tables[] = 'define_file_entry' ;
-	$tables[] = 'input_calendar' ;
-	$tables[] = 'input_scen' ;
-	$tables[] = 'input_scen_page' ;
-	$tables[] = 'input_scen_pagepivot' ;
-	$tables[] = 'input_scen_pagepivot_copymap' ;
-	$tables[] = 'input_scen_page_field' ;
-	$tables[] = 'store_bible_entry' ;
-	$tables[] = 'store_bible_entry_field' ;
-	$tables[] = 'store_bible_tree' ;
-	$tables[] = 'store_bible_tree_field' ;
+	$tables['define_bible'] = 'define_bible' ;
+	$tables['define_bible_entry'] = 'define_bible_entry' ;
+	$tables['define_bible_tree'] = 'define_bible_tree' ;
+	$tables['define_file'] = 'define_file' ;
+	$tables['define_file_cfg_calendar'] = 'define_file_cfg_calendar' ;
+	$tables['define_file_entry'] = 'define_file_entry' ;
+	$tables['input_calendar'] = 'input_calendar' ;
+	$tables['input_scen'] = 'input_scen' ;
+	$tables['input_scen_page'] = 'input_scen_page' ;
+	$tables['input_scen_pagepivot'] = 'input_scen_pagepivot' ;
+	$tables['input_scen_pagepivot_copymap'] = 'input_scen_pagepivot_copymap' ;
+	$tables['input_scen_page_field'] = 'input_scen_page_field' ;
+	$tables['store_bible_entry'] = 'tmp_store_bible_entry' ;
+	$tables['store_bible_entry_field'] = 'tmp_store_bible_entry_field' ;
+	$tables['store_bible_tree'] = 'tmp_store_bible_tree' ;
+	$tables['store_bible_tree_field'] = 'tmp_store_bible_tree_field' ;
 	
 	
 	$first = paracrm_android_getDbImageTimestamp() ;
 	$first['nb_tables'] = 0 ;
 	$first['nb_rows'] = 0 ;
-	foreach( $tables as $table )
+	foreach( $tables as $local_table )
 	{
-		$query = "SELECT count(*) FROM $table" ;
+		$query = "SELECT count(*) FROM $local_table" ;
 		$first['nb_tables']++;
 		$first['nb_rows'] += $_opDB->query_uniqueValue($query) ;
 	}
 	echo json_encode($first) ;
 	echo "\r\n" ;
 	
-	foreach( $tables as $table )
+	foreach( $tables as $remote_table => $local_table )
 	{
-		echo json_encode(array($table)) ;
+		echo json_encode(array($remote_table)) ;
 		echo "\r\n" ;
 	
-		echo json_encode($_opDB->table_fields($table)) ;
+		echo json_encode($_opDB->table_fields($local_table)) ;
 		echo "\r\n" ;
 	
-		$query = "SELECT * FROM $table" ;
+		$query = "SELECT * FROM $local_table" ;
 		$result = $_opDB->query($query) ;
 		while( ($arr = $_opDB->fetch_row($result)) != FALSE )
 		{
@@ -86,7 +285,7 @@ function paracrm_android_syncPull( $post_data )
 	$query_test = "select count(*) from store_file where file_code='$file_code' AND ( sync_vuid='' OR sync_timestamp='0' )" ;
 	if( $_opDB->query_uniqueValue($query_test) > 0 ) {
 		// ***** PREPARATION DES DONNEES ******
-		$query = "LOCK TABLES store_file WRITE, store_file_field WRITE" ;
+		$query = "LOCK TABLES store_file WRITE, store_file_{$file_code} WRITE" ;
 		$_opDB->query($query) ;
 		
 		$ref_prefix = "PHPSERVER" ;
@@ -103,9 +302,69 @@ function paracrm_android_syncPull( $post_data )
 		// *************************************
 	}
 	
+	
+	$map_file = array() ;
+	$query = "SELECT * FROM define_file WHERE file_code='$file_code'" ;
+	$result = $_opDB->query($query) ;
+	$arr = $_opDB->fetch_assoc($result) ;
+	if( strpos($arr['file_type'],'media_')===0 ) {
+		foreach( $_opDB->table_fields('define_media') as $field )
+		{
+			$tfield = 'media_'.$field ;
+			
+			$map = array() ;
+			$map['field_code'] = $tfield ;
+			$map['src_db_field'] = $tfield ;
+			$map['dest_db_field'] = 'filerecord_field_value_string' ;
+			$map_file[] = $map ;
+		}
+	}
+	if( $arr['gmap_is_on'] == 'O' ) {
+		foreach( $_opDB->table_fields('define_gmap') as $field )
+		{
+			$tfield = 'gmap_'.$field ;
+			
+			$map = array() ;
+			$map['field_code'] = $tfield ;
+			$map['src_db_field'] = $tfield ;
+			$map['dest_db_field'] = 'filerecord_field_value_link' ;
+			$map_file[] = $map ;
+		}
+	}
+	$query = "SELECT entry_field_code,entry_field_type FROM define_file_entry WHERE file_code='$file_code' ORDER BY entry_field_index" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$field_code = $arr[0] ;
+		$field_type = $arr[1] ;
+		
+		$map = array() ;
+		$map['field_code'] = $field_code ;
+		$map['src_db_field'] = 'field_'.$field_code.'_'.paracrm_define_tool_getEqFieldType($field_type) ;
+		switch( $field_type = $arr[1] ) {
+			case 'string' :
+				$map['dest_db_field'] = 'filerecord_field_value_string' ;
+				break ;
+			case 'number' :
+				$map['dest_db_field'] = 'filerecord_field_value_number' ;
+				break ;
+			case 'bool' :
+				$map['dest_db_field'] = 'filerecord_field_value_number' ;
+				break ;
+			case 'date' :
+				$map['dest_db_field'] = 'filerecord_field_value_date' ;
+				break ;
+			case 'link' :
+				$map['dest_db_field'] = 'filerecord_field_value_link' ;
+				break ;
+		}
+		
+		$map_file[] = $map ;
+	}
+	
+	
 	$arr_table_query = array() ;
 	$arr_table_query['store_file'] = "SELECT * FROM store_file WHERE file_code='$file_code' AND sync_timestamp>'$sync_timestamp' AND sync_vuid<>''" ;
-	$arr_table_query['store_file_field'] = "SELECT filefield.* FROM store_file file , store_file_field filefield 
+	$arr_table_query['store_file_field'] = "SELECT filefield.* FROM store_file file , store_file_{$file_code} filefield 
 															WHERE file.filerecord_id = filefield.filerecord_id 
 															AND file.file_code='$file_code' AND file.sync_timestamp>'$sync_timestamp'" ;
 															
@@ -113,24 +372,48 @@ function paracrm_android_syncPull( $post_data )
 	echo json_encode($first) ;
 	echo "\r\n" ;
 	
-	foreach( $arr_table_query as $table => $query )
+	// ******* FILE **********
+	echo json_encode(array('store_file')) ;
+	echo "\r\n" ;
+	echo json_encode($_opDB->table_fields('store_file')) ;
+	echo "\r\n" ;
+	$result = $_opDB->query($arr_table_query['store_file']) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE )
 	{
-		echo json_encode(array($table)) ;
-		echo "\r\n" ;
-	
-		echo json_encode($_opDB->table_fields($table)) ;
-		echo "\r\n" ;
-	
-		$result = $_opDB->query($query) ;
-		while( ($arr = $_opDB->fetch_row($result)) != FALSE )
-		{
-			echo json_encode($arr) ;
-			echo "\r\n" ;
-		}
-		
-		echo json_encode(array()) ;
+		echo json_encode($arr) ;
 		echo "\r\n" ;
 	}
+	echo json_encode(array()) ;
+	echo "\r\n" ;
+	
+	// ******* FILE_FIELD **********
+	echo json_encode(array('store_file_field')) ;
+	echo "\r\n" ;
+	echo json_encode(array('filerecord_id','filerecord_field_code','filerecord_field_value_number','filerecord_field_value_string','filerecord_field_value_date','filerecord_field_value_link')) ;
+	echo "\r\n" ;
+	$result = $_opDB->query($arr_table_query['store_file_field']) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
+	{
+		foreach( $map_file as $map ) {
+			$src = $map['src_db_field'] ;
+			if( !isset($arr[$src]) ) {
+				continue ;
+			}
+		
+			$arr_ins = array() ;
+			$arr_ins['filerecord_id'] = $arr['filerecord_id'] ;
+			$arr_ins['filerecord_field_code'] = $map['field_code'] ;
+			$arr_ins['filerecord_field_value_number'] = 0 ;
+			$arr_ins['filerecord_field_value_string'] = '' ;
+			$arr_ins['filerecord_field_value_date'] = '0000-00-00' ;
+			$arr_ins['filerecord_field_value_link'] = '' ;
+			$arr_ins[$map['dest_db_field']] = $arr[$src] ;
+			echo json_encode(array_values($arr_ins)) ;
+			echo "\r\n" ;
+		}
+	}
+	echo json_encode(array()) ;
+	echo "\r\n" ;
 	
 	die() ;
 }
@@ -197,15 +480,124 @@ function paracrm_android_syncPush( $post_data )
 		if( strpos($tab_definefile[$file_entry['file_code']]['file_type'],'media_') === 0 )
 			$arr_upload_slots[] = $arr_tmpid_fileid[$file_entry['filerecord_id']] ;
 	}
-	foreach( $data['store_file_field'] as $field_entry )
-	{
+	
+	// buffer inserts store_file_X
+	$TAB_inserts = array() ;
+	$TAB_inserts[$file_code][$filerecord_id] ;
+	
+	// pour chaque remoteId => filecode
+	$arr_tmpid_filecode = array() ;
+	
+	$map_files = array() ;
+	foreach( $data['store_file'] as $file_entry ) {
 		if( !$arr_tmpid_fileid[$file_entry['filerecord_id']])
 			continue ;
+		$local_filerecord_id = $arr_tmpid_fileid[$file_entry['filerecord_id']] ;
+		$file_code = $file_entry['file_code'] ;
 		
-		$arr_ins = $field_entry ;
-		$arr_ins['filerecord_id'] = $arr_tmpid_fileid[$field_entry['filerecord_id']] ;
-		$_opDB->insert('store_file_field',$arr_ins) ;
+		$arr_tmpid_filecode[$file_entry['filerecord_id']] = $file_code ;
+		
+		
+		if( !isset($map_files[$file_code]) ) {
+			$query = "SELECT * FROM define_file WHERE file_code='$file_code'" ;
+			$result = $_opDB->query($query) ;
+			$arr = $_opDB->fetch_assoc($result) ;
+			$has_media = $has_media = FALSE ;
+			if( strpos($arr['file_type'],'media_')===0 ) {
+				$has_media = TRUE ;
+			}
+			if( $arr['gmap_is_on'] == 'O' ) {
+				$has_gmap = TRUE ;
+			}
+		
+		
+			$map_file = array() ;
+			$query = "SELECT entry_field_code,entry_field_type FROM define_file_entry WHERE file_code='$file_code' ORDER BY entry_field_index" ;
+			$result = $_opDB->query($query) ;
+			while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+				$field_code = $arr[0] ;
+				$field_type = $arr[1] ;
+				
+				$map = array() ;
+				$map['field_code'] = $field_code ;
+				$map['dest_db_field'] = 'field_'.$field_code.'_'.paracrm_define_tool_getEqFieldType($field_type) ;
+				switch( $field_type = $arr[1] ) {
+					case 'string' :
+						$map['src_db_field'] = 'filerecord_field_value_string' ;
+						break ;
+					case 'number' :
+						$map['src_db_field'] = 'filerecord_field_value_number' ;
+						break ;
+					case 'bool' :
+						$map['src_db_field'] = 'filerecord_field_value_number' ;
+						break ;
+					case 'date' :
+						$map['src_db_field'] = 'filerecord_field_value_date' ;
+						break ;
+					case 'link' :
+						$map['src_db_field'] = 'filerecord_field_value_link' ;
+						break ;
+				}
+				
+				$map_file[$field_code] = $map ;
+			}
+			if( $has_gmap ) {
+			foreach( $_opDB->table_fields('define_gmap') as $field )
+			{
+				$tfield = 'gmap_'.$field ;
+				
+				$map = array() ;
+				$map['field_code'] = $tfield ;
+				$map['dest_db_field'] = $tfield ;
+				$map['src_db_field'] = 'filerecord_field_value_link' ;
+				$map_file[$tfield] = $map ;
+			}}
+			if( $has_media ) {
+			foreach( $_opDB->table_fields('define_media') as $field )
+			{
+				$tfield = 'media_'.$field ;
+				
+				$map = array() ;
+				$map['field_code'] = $tfield ;
+				$map['dest_db_field'] = $tfield ;
+				$map['src_db_field'] = 'filerecord_field_value_string' ;
+				$map_file[$tfield] = $map ;
+			}}
+			$map_files[$file_code] = $map_file ;
+			
+			// Case vide pour inserts
+			$TAB_inserts[$file_code] = array() ;
+		}
+		$TAB_inserts[$file_code][$local_filerecord_id] = array('filerecord_id'=>$local_filerecord_id) ;
 	}
+	
+	foreach( $data['store_file_field'] as $field_entry )
+	{
+		if( !($local_filerecord_id = $arr_tmpid_fileid[$field_entry['filerecord_id']]) )
+			continue ;
+		if( !($file_code = $arr_tmpid_filecode[$field_entry['filerecord_id']]) )
+			continue ;
+			
+		if( !($map_node = $map_files[$file_code][$field_entry['filerecord_field_code']]) )
+			continue ;
+			
+		$src_db_field = $map_node['src_db_field'] ;
+		$dest_db_field = $map_node['dest_db_field'] ;
+		
+		$TAB_inserts[$file_code][$local_filerecord_id][$dest_db_field] = $field_entry[$src_db_field] ;
+	}
+	
+	foreach( $TAB_inserts as $file_code => $arrArr_ins ) {
+		$target_dbTable = 'store_file_'.$file_code ;
+		
+		$query = "DELETE FROM $target_dbTable WHERE filerecord_id NOT IN (SELECT filerecord_id FROM store_file WHERE file_code='$file_code' AND sync_is_deleted<>'O')" ;
+		$_opDB->query($query) ;
+		
+		foreach( $arrArr_ins as $arr_ins ) {
+			$_opDB->insert($target_dbTable,$arr_ins) ;
+		}
+	}
+	
 	paracrm_lib_data_endTransaction(FALSE) ;
 	
 	
