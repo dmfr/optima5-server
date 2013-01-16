@@ -281,6 +281,9 @@ function paracrm_android_syncPull( $post_data )
 	
 	$file_code = $post_data['file_code'] ;
 	$sync_timestamp = $post_data['sync_timestamp'] ;
+	$filter = $post_data['filter'] ;
+	$limit = $post_data['limit'] ;
+	
 	
 	$query_test = "select count(*) from store_file where file_code='$file_code' AND ( sync_vuid='' OR sync_timestamp='0' )" ;
 	if( $_opDB->query_uniqueValue($query_test) > 0 ) {
@@ -302,6 +305,118 @@ function paracrm_android_syncPull( $post_data )
 		// *************************************
 	}
 	
+	
+	// *** Construction de la requête de sélection ****
+	$query = "SELECT file.filerecord_id FROM store_file file , store_file_{$file_code} filefield 
+					WHERE file.filerecord_id = filefield.filerecord_id 
+					AND file.file_code='$file_code'" ;
+	if( $sync_timestamp ) {
+		$query.= " AND file.sync_timestamp>'$sync_timestamp'" ;
+	}
+	if( $filter ) {
+		$arr_fields = array() ;
+		$query_test = "SELECT distinct entry_field_code, entry_field_type FROM define_file_entry WHERE file_code='$file_code'" ;
+		$result_test = $_opDB->query($query_test) ;
+		while( ($arr = $_opDB->fetch_row($result_test)) != FALSE ) {
+			$arr_fields[$arr[0]] = 'field_'.$arr[0].'_'.paracrm_define_tool_getEqFieldType($arr[1]) ;
+		}
+	
+	
+		foreach( json_decode($filter,true) as $filter ) {
+			if( !$arr_fields[$filter['entry_field_code']] ) {
+				continue ;
+			}
+			$dbfield = $arr_fields[$filter['entry_field_code']] ;
+		
+			$query.= " AND filefield.{$dbfield}" ;
+			switch( $filter['condition_sign'] ) {
+				case 'eq' :
+				case '=' :
+					$query.= "=" ;
+					break ;
+				case 'lt' :
+				case '<=' :
+				case '<' :
+					$query.= "<=" ;
+					break ;
+				case 'gt' :
+				case '>=' :
+				case '>' :
+					$query.= ">=" ;
+					break ;
+					
+				default :
+					$query.= "=" ;
+					break ;
+			}
+			$query.="'{$filter['condition_value']}'" ;
+		}
+	}
+	if( $limit ) {
+		$query.= " ORDER BY filerecord_id DESC LIMIT {$limit}" ;
+	}
+
+	$master_query = $query ;
+	
+	$buffer_remote_storeFile = array() ;
+	$buffer_remote_storeFileField = array() ;
+	
+	$ttmp = paracrm_android_syncPull_dumpFile( $file_code, $master_query ) ;
+	$buffer_remote_storeFile = array_merge($buffer_remote_storeFile,$ttmp[0]) ;
+	$buffer_remote_storeFileField = array_merge($buffer_remote_storeFileField,$ttmp[1]) ;
+	
+	$query = "SELECT file_code FROM define_file WHERE file_parent_code='$file_code'" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$child_file_code = $arr[0] ;
+		
+		$sub_query = "SELECT child.filerecord_id FROM store_file child JOIN ($master_query) parent ON parent.filerecord_id=child.filerecord_parent_id WHERE child.file_code='$child_file_code'" ;
+		
+		$ttmp = paracrm_android_syncPull_dumpFile( $child_file_code, $sub_query ) ;
+		$buffer_remote_storeFile = array_merge($buffer_remote_storeFile,$ttmp[0]) ;
+		$buffer_remote_storeFileField = array_merge($buffer_remote_storeFileField,$ttmp[1]) ;
+	}
+	
+	
+	$first = array('success'=>true,'timestamp'=>time()) ;
+	echo json_encode($first) ;
+	echo "\r\n" ;
+	
+	// ******* FILE **********
+	echo json_encode(array('store_file')) ;
+	echo "\r\n" ;
+	echo json_encode($_opDB->table_fields('store_file')) ;
+	echo "\r\n" ;
+	foreach( $buffer_remote_storeFile as $arr )
+	{
+		echo json_encode($arr) ;
+		echo "\r\n" ;
+	}
+	echo json_encode(array()) ;
+	echo "\r\n" ;
+	
+	// ******* FILE_FIELD **********
+	echo json_encode(array('store_file_field')) ;
+	echo "\r\n" ;
+	echo json_encode(array('filerecord_id','filerecord_field_code','filerecord_field_value_number','filerecord_field_value_string','filerecord_field_value_date','filerecord_field_value_link')) ;
+	echo "\r\n" ;
+	foreach( $buffer_remote_storeFileField as $arr )
+	{
+		echo json_encode($arr) ;
+		echo "\r\n" ;
+	}
+	echo json_encode(array()) ;
+	echo "\r\n" ;
+	
+	// sleep(1) ;
+	
+	die() ;
+}
+
+
+function paracrm_android_syncPull_dumpFile( $file_code, $master_query )
+{
+	global $_opDB ;
 	
 	$map_file = array() ;
 	$query = "SELECT * FROM define_file WHERE file_code='$file_code'" ;
@@ -363,34 +478,20 @@ function paracrm_android_syncPull( $post_data )
 	
 	
 	$arr_table_query = array() ;
-	$arr_table_query['store_file'] = "SELECT * FROM store_file WHERE file_code='$file_code' AND sync_timestamp>'$sync_timestamp' AND sync_vuid<>''" ;
-	$arr_table_query['store_file_field'] = "SELECT filefield.* FROM store_file file , store_file_{$file_code} filefield 
-															WHERE file.filerecord_id = filefield.filerecord_id 
-															AND file.file_code='$file_code' AND file.sync_timestamp>'$sync_timestamp'" ;
+	$arr_table_query['store_file'] = "SELECT dumptab.* FROM store_file dumptab JOIN ($master_query) master ON dumptab.filerecord_id=master.filerecord_id" ;
+	$arr_table_query['store_file_field'] = "SELECT dumptab.* FROM store_file_{$file_code} dumptab JOIN ($master_query) master ON dumptab.filerecord_id=master.filerecord_id" ;
 															
-	$first = array('success'=>true,'timestamp'=>time()) ;
-	echo json_encode($first) ;
-	echo "\r\n" ;
-	
 	// ******* FILE **********
-	echo json_encode(array('store_file')) ;
-	echo "\r\n" ;
-	echo json_encode($_opDB->table_fields('store_file')) ;
-	echo "\r\n" ;
+	$buffer_remote_storeFile = array() ;
 	$result = $_opDB->query($arr_table_query['store_file']) ;
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE )
 	{
-		echo json_encode($arr) ;
-		echo "\r\n" ;
+		$buffer_remote_storeFile[] = $arr ;
 	}
-	echo json_encode(array()) ;
-	echo "\r\n" ;
 	
 	// ******* FILE_FIELD **********
-	echo json_encode(array('store_file_field')) ;
-	echo "\r\n" ;
-	echo json_encode(array('filerecord_id','filerecord_field_code','filerecord_field_value_number','filerecord_field_value_string','filerecord_field_value_date','filerecord_field_value_link')) ;
-	echo "\r\n" ;
+	array('filerecord_id','filerecord_field_code','filerecord_field_value_number','filerecord_field_value_string','filerecord_field_value_date','filerecord_field_value_link') ;
+	$buffer_remote_storeFileField = array() ;
 	$result = $_opDB->query($arr_table_query['store_file_field']) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
 	{
@@ -408,14 +509,12 @@ function paracrm_android_syncPull( $post_data )
 			$arr_ins['filerecord_field_value_date'] = '0000-00-00' ;
 			$arr_ins['filerecord_field_value_link'] = '' ;
 			$arr_ins[$map['dest_db_field']] = $arr[$src] ;
-			echo json_encode(array_values($arr_ins)) ;
-			echo "\r\n" ;
+			
+			$buffer_remote_storeFileField[] = array_values($arr_ins) ;
 		}
 	}
-	echo json_encode(array()) ;
-	echo "\r\n" ;
 	
-	die() ;
+	return array($buffer_remote_storeFile,$buffer_remote_storeFileField) ;
 }
 function paracrm_android_syncPush( $post_data )
 {
