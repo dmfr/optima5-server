@@ -353,7 +353,7 @@ function paracrm_android_syncPull( $post_data )
 		}
 	}
 	if( $limit ) {
-		$query.= " ORDER BY filerecord_id DESC LIMIT {$limit}" ;
+		$query.= " ORDER BY sync_timestamp DESC LIMIT {$limit}" ;
 	}
 
 	$master_query = $query ;
