@@ -1,0 +1,26 @@
+****** SYNCHRO ANDROID *******
+
+REMOTE store_file (Android) :
+- sync_vuid         : identifiant synchro unique
+- sync_is_synced    : set to ON après synchro Push / OFF=à envoyer
+- sync_is_deleted   : fichier effacé
+- sync_timestamp    : identifiant date/heure de la dernière modif du fichier
+- pull_timestamp    : utilisé pour le TTL
+
+
+* Méthode android_syncPull *
+Paramètres :
+
+- sync_timestamp (DEPRECATED) sélection des fichiers ( sync_timestamp > <valeur> )
+
+
+- filter
+- limit
+
+
+- sync_hashmap = What-I-Have 
+Le terminal Android effectue une requete interne, avant synchro,
+sur le scope des autres parametres demandés.
+Ainsi en cas de move/delete, les fichiers même hors-scope coté serveur
+seront mis à jour
+
