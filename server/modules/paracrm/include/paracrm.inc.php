@@ -23,5 +23,6 @@ include("$server_root/modules/paracrm/include/paracrm_lib_bible.inc.php") ;
 
 
 include("$server_root/modules/paracrm/include/paracrm_android.inc.php") ;
+include("$server_root/modules/paracrm/include/paracrm_android_query.inc.php") ;
 
 ?>

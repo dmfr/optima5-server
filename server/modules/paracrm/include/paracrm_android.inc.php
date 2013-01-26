@@ -207,6 +207,10 @@ function paracrm_android_getDbImage($post_data)
 	}
 	// *******************************************
 	
+	// ******* Création des tables QUERIES ***************
+	paracrm_android_query_buildTables() ;
+	// *************************************************
+	
 	$tables = array() ;
 	$tables['define_bible'] = 'define_bible' ;
 	$tables['define_bible_entry'] = 'define_bible_entry' ;
@@ -224,6 +228,9 @@ function paracrm_android_getDbImage($post_data)
 	$tables['store_bible_entry_field'] = 'tmp_store_bible_entry_field' ;
 	$tables['store_bible_tree'] = 'tmp_store_bible_tree' ;
 	$tables['store_bible_tree_field'] = 'tmp_store_bible_tree_field' ;
+	$tables['input_query'] = 'tmp_input_query' ;
+	$tables['input_query_where'] = 'tmp_input_query_where' ;
+	$tables['querygrid_template'] = 'querygrid_template' ;
 	
 	
 	$first = paracrm_android_getDbImageTimestamp() ;
@@ -390,7 +397,7 @@ function paracrm_android_syncPull( $post_data )
 	
 	$master_query = "SELECT filerecord_id FROM tmp_filerecord_ids" ;
 	
-	error_log($query) ;
+	//error_log($query) ;
 	
 	
 	
@@ -568,7 +575,7 @@ function paracrm_android_syncPull_dumpFile( $file_code, $master_query )
 	$arr_table_query['store_file'] = "SELECT dumptab.* FROM store_file dumptab JOIN ($master_query) master ON dumptab.filerecord_id=master.filerecord_id" ;
 	$arr_table_query['store_file_field'] = "SELECT dumptab.* FROM store_file_{$file_code} dumptab JOIN ($master_query) master ON dumptab.filerecord_id=master.filerecord_id" ;
 	
-	error_log( $arr_table_query['store_file_field'] ) ;
+	//error_log( $arr_table_query['store_file_field'] ) ;
 	
 	// ******* FILE **********
 	$buffer_remote_storeFile = array() ;
@@ -824,4 +831,62 @@ function paracrm_android_getFileGrid_data( $post_data )
 	return paracrm_data_getFileGrid_raw( $post_data ) ;
 }
 
+
+function paracrm_android_imgPull( $post_data )
+{
+	global $_opDB ;
+	
+	$query = "SELECT filerecord_id FROM store_file WHERE sync_vuid='{$post_data['sync_vuid']}'" ;
+	$filerecord_id = $_opDB->query_uniqueValue($query) ;
+	
+	$domain = $_SESSION['login_data']['login_domain'] ;
+	$module_name = $post_data['_moduleName'] ;
+	$module_account = $post_data['_moduleAccount'] ;
+	if( !$module_account )
+		$module_account = 'generic' ;	
+	
+	$media_path = $GLOBALS['media_storage_local_path'].'/'.$domain.'/'.$module_name.'/'.$module_account ;
+	error_log($media_path);
+	if( !is_dir($media_path) ) {
+		// die() ;
+		paracrm_android_imgPullFallback( $post_data ) ;
+	}
+	$src_path = $media_path.'/'.$filerecord_id ;
+	if( $post_data['thumbnail'] == 'O' )
+	{
+		$src_path.= '.thumb.jpg' ;
+	}
+	else
+	{
+		$src_path.= '.jpg' ;
+	}
+	if( !is_file($src_path) ) {
+		// die() ;
+		paracrm_android_imgPullFallback( $post_data ) ;
+	}
+	header('Content-type: image/jpeg');
+	readfile($src_path) ;
+	die() ;
+}
+function paracrm_android_imgPullFallback( $post_data )
+{
+	if( !$GLOBALS['media_fallback_url'] ) {
+		die() ;
+	}
+	
+	global $_opDB ;
+
+	$thumb_get = "false" ;
+	if( $post_data['thumbnail'] == 'O' ) {
+		$thumb_get = "true" ;
+	}
+	
+	$query = "SELECT filerecord_id FROM store_file WHERE sync_vuid='{$post_data['sync_vuid']}'" ;
+	$filerecord_id = $_opDB->query_uniqueValue($query) ;
+	
+	header('Content-type: image/jpeg');
+	$getUrl = "{$GLOBALS['media_fallback_url']}?_domain={$post_data['_domain']}&_moduleName={$post_data['_moduleName']}&_moduleAccount={$post_data['_moduleAccount']}&media_id={$filerecord_id}&thumb={$thumb_get}" ;
+	readfile($getUrl) ;
+	die() ;
+}
 ?>

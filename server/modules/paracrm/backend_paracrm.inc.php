@@ -74,6 +74,13 @@ switch( $post_data['_action'] )
 	case 'android_getFileGrid_data' :
 	return paracrm_android_getFileGrid_data( $post_data );
 	
+	case 'android_imgPull' :
+	session_write_close() ;
+	return paracrm_android_imgPull( $post_data );
+	
+	case 'android_query_fetchResult' :
+	return paracrm_android_query_fetchResult( $post_data );
+	
 	
 	
 	default :
