@@ -3,6 +3,18 @@
 function paracrm_define_getMainToolbar($post_data)
 {
 	global $_opDB ;
+	
+	// Cache des bible / files publiés
+	$arr_pub_bibles = $arr_pub_files = array() ;
+	$query = "SELECT target_bible_code , target_file_code FROM input_store_src" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		if( $arr['target_bible_code'] != '' ) {
+			$arr_pub_bibles[] = $arr['target_bible_code'] ;
+		} elseif( $arr['target_file_code'] != '' ) {
+			$arr_pub_files[] = $arr['target_file_code'] ;
+		}
+	}
 
 	switch( $post_data['data_type'] )
 	{
@@ -47,10 +59,51 @@ function paracrm_define_getMainToolbar($post_data)
 		unset($arr['gmap_is_on']) ;
 	
 		$arr['icon'] = 'images/op5img/'.$arr['icon'] ;
+		
+		if( $post_data['data_type'] == 'bible' && in_array($arr['bibleId'],$arr_pub_bibles) )
+			$arr['isPublished'] = true ;
+		if( $post_data['data_type'] == 'file' && in_array($arr['fileId'],$arr_pub_files) )
+			$arr['isPublished'] = true ;
+		
 		$TAB[] = $arr ;
 	}
 	return $TAB ;
 }
+
+
+function paracrm_define_togglePublish( $post_data ) {
+	global $_opDB ;
+	
+	$data_type = $post_data['data_type'] ;
+	$bible_code = $post_data['bible_code'] ;
+	$file_code = $post_data['file_code'] ;
+	$isPublished = ($post_data['isPublished']=='true')?true:false ;
+	
+	switch( $data_type )
+	{
+		case 'bible' :
+		$query = "DELETE FROM input_store_src WHERE target_bible_code='$bible_code'" ;
+		$_opDB->query($query) ;
+		if( $isPublished ) {
+			$arr_ins['target_bible_code'] = $bible_code ;
+			$_opDB->insert('input_store_src',$arr_ins) ;
+		}
+		return array('success'=>true) ;
+		break ;
+	
+		case 'file' :
+		$query = "DELETE FROM input_store_src WHERE target_file_code='$file_code'" ;
+		$_opDB->query($query) ;
+		if( $isPublished ) {
+			$arr_ins['target_file_code'] = $file_code ;
+			$_opDB->insert('input_store_src',$arr_ins) ;
+		}
+		return array('success'=>true) ;
+		break ;
+	}
+}
+
+
 
 function paracrm_define_manageTransaction( $post_data )
 {
