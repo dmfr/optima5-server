@@ -45,6 +45,13 @@ function paracrm_queries_mergerTransaction( $post_data )
 		{
 			$json =  paracrm_queries_mergerTransaction_save( $post_data , $arr_saisie ) ;
 		}
+		if( $post_data['_subaction'] == 'toggle_publish' )
+		{
+			$json =  paracrm_queries_mergerTransaction_togglePublish( $post_data , $arr_saisie ) ;
+			if( $json['success'] ) {
+				paracrm_queries_organizePublish() ;
+			}
+		}
 		
 		
 		
@@ -161,6 +168,24 @@ function paracrm_queries_mergerTransaction_submit( $post_data , &$arr_saisie )
 	$arr_saisie['arr_query_id'] = json_decode($post_data['qmerge_queries'],TRUE) ;
 	$arr_saisie['fields_mwhere'] = json_decode($post_data['qmerge_mwherefields'],TRUE) ;
 	$arr_saisie['fields_mselect'] = json_decode($post_data['qmerge_mselectfields'],TRUE) ;
+
+	return array('success'=>true) ;
+}
+function paracrm_queries_mergerTransaction_togglePublish( $post_data , &$arr_saisie )
+{
+	global $_opDB ;
+
+	$qmerge_id = $arr_saisie['qmerge_id'] ;
+	$is_published = ($post_data['isPublished']=='true')?true:false ;
+	
+	$query = "DELETE FROM input_query_src WHERE target_qmerge_id='$qmerge_id'" ;
+	$_opDB->query($query) ;
+	
+	if( $is_published ) {
+		$arr_ins = array() ;
+		$arr_ins['target_qmerge_id'] = $qmerge_id ;
+		$_opDB->insert('input_query_src',$arr_ins) ;
+	}
 
 	return array('success'=>true) ;
 }
