@@ -226,7 +226,7 @@ Ext.define('Optima5.Modules.ParaCRM.QueryPanel' ,{
 		return me.query('>treepanel')[0].getStore() ;
 	},
 			  
-	remoteAction: function( actionCode, newQueryName ) {
+	remoteAction: function( actionCode, actionParam ) {
 		var me = this ;
 		switch( actionCode ) {
 			case 'submit' :
@@ -236,10 +236,16 @@ Ext.define('Optima5.Modules.ParaCRM.QueryPanel' ,{
 				me.remoteActionSubmit( me.remoteActionSave, me ) ;
 				break ;
 			case 'saveas' :
+				var newQueryName = actionParam ;
 				me.remoteActionSubmit( me.remoteActionSaveAs, me, [newQueryName] ) ;
 				break ;
 			case 'delete' :
 				me.remoteActionSubmit( me.remoteActionDelete, me ) ;
+				break ;
+				
+			case 'toggle_publish' :
+				var isPublished = actionParam ;
+				me.remoteActionSubmit( me.remoteActionTogglePublish, me, [isPublished]  ) ;
 				break ;
 				
 			case 'run' :
@@ -363,6 +369,34 @@ Ext.define('Optima5.Modules.ParaCRM.QueryPanel' ,{
 				else {
 					me.fireEvent('querysaved',true,Ext.decode(response.responseText).query_id) ;
 					me.destroyPanel() ;
+				}
+			},
+			scope: me
+		});
+	},
+	remoteActionTogglePublish: function( isPublished ) {
+		var me = this ;
+		
+		var ajaxParams = {} ;
+		Ext.apply( ajaxParams, {
+			_sessionName: op5session.get('session_id'),
+			_moduleName: 'paracrm' ,
+			_action: 'queries_builderTransaction',
+			_transaction_id: me.transaction_id ,
+			_subaction: 'toggle_publish',
+			isPublished: isPublished
+		});
+		
+		Optima5.CoreDesktop.Ajax.request({
+			url: 'server/backend.php',
+			params: ajaxParams ,
+			succCallback: function(response) {
+				if( Ext.decode(response.responseText).success == false ) {
+					Ext.Msg.alert('Failed', 'Failed');
+					me.fireEvent('querysaved',false) ;
+				}
+				else {
+					me.fireEvent('querysaved',true,Ext.decode(response.responseText).query_id) ;
 				}
 			},
 			scope: me

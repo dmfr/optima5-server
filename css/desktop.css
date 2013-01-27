@@ -461,7 +461,12 @@
 	float: left;
 }
 
-
+.op5-datanode-published .x-menu-item-text {
+	border-bottom: 2px solid #33B6E5 ;
+}
+.op5-datanode-published .x-btn-inner {
+	border-bottom: 2px solid #33B6E5 ;
+}
 
 .ux-color-combo-wrap {
     position: relative;

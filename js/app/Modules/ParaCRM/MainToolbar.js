@@ -7,10 +7,9 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 		  'Ext.layout.container.Table'
     ],
 			  
-			  
-			  
+	clsForPublished: 'op5-datanode-published',
+	
 	bibleMenu : null ,
-			  
 	filesMenu : null ,
 			  
 			  
@@ -123,10 +122,12 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 		},this) ;
 	},
 	showHelperCfgStore: function( item ) {
+		item.menu.hide() ;
 		item.menu.removeAll() ;
 		// item.setText('') ;
 		
-		var is_grid , is_gmap , is_gallery , show_export ;
+		var hasParent, is_grid , is_gmap , is_gallery , show_export ,
+			isPublished = false ;
 		var newTxt = '' ;
 		switch( this.activeDataType ) {
 			case 'bible' :
@@ -141,6 +142,10 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 							is_gmap = true ;
 						if( item.viewmode_gallery )
 							is_gallery = true ;
+						
+						if( item.isPublished ) {
+							isPublished = true;
+						}
 					}
 				},this);
 				break ;
@@ -150,6 +155,12 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 					if( item.fileId == this.activeFileId ) {
 						newTxt = '(File)'+'&nbsp;'+'<b>'+item.text+'</b>' ;
 						
+						if( typeof item.file_parent_code !== 'undefined' && item.file_parent_code != '' ) {
+							hasParent = true ;
+						} else {
+							hasParent = false ;
+						}
+						
 						if( item.viewmode_grid )
 							is_grid = true ;
 						if( item.viewmode_gmap )
@@ -158,6 +169,10 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 							is_gallery = true ;
 						
 						show_export = true ;
+						
+						if( item.isPublished ) {
+							isPublished = true;
+						}
 					}
 				},this);
 				break ;
@@ -221,7 +236,17 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 		if( show_export ) {
 			menuItems.push('-') ;
 		}
-		if( true ){
+		if( !hasParent ){
+			menuItems.push({
+				text: 'Publish to Android',
+				checked: isPublished,
+				checkHandler : function(checkbox,isTicked) {
+					me.storeTogglePublish(isTicked) ;
+				},
+				scope: me
+			});
+		}
+		if( true ) {
 			menuItems.push({
 				text: 'Store Cfg',
 				icon: 'images/op5img/ico_config_small.gif',
@@ -231,14 +256,41 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 		}
 		item.menu.add(menuItems) ;
 		item.setText(newTxt) ;
+		if( isPublished ) {
+			item.addCls(me.clsForPublished) ;
+		} else {
+			item.removeCls(me.clsForPublished) ;
+		}
 	},
 	
 	showHelperCfgQueries: function( item ) {
+		item.menu.hide() ;
 		item.menu.removeAll() ;
 		// item.setText('') ;
 		var newTxt = '' ,
-			isNew = false ;
+			isNew = false ,
+			isPublished = false ,
 			disableSave = false ;
+			
+		// Set isPublished + Disable save IF "current query or qmerge" is published
+		this.queriesMenu.items.each( function( item ) {
+			if( typeof item.queryId !== 'undefined' && this.activeQueryId != null && item.queryId == this.activeQueryId ) {
+				if( item.isPublished ) {
+					disableSave = true ;
+					isPublished = true ;
+				}
+				return false ;
+			}
+			if( typeof item.qmergeId !== 'undefined' && this.activeQmergeId != null && item.qmergeId == this.activeQmergeId ) {
+				if( item.isPublished ) {
+					disableSave = true ;
+					isPublished = true ;
+				}
+				return false ;
+			}
+			
+		},this) ;
+			
 			
 		if( this.activeQueryId != null ) {
 			if( this.activeQueryId == 0 ) {
@@ -246,6 +298,7 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 				isNew = true ;
 			}
 			else {
+				// Set text for "current query" + Disable save IF "current query" is in any qmerge
 				this.queriesMenu.items.each( function( item ) {
 					if( typeof item.qmergeId !== 'undefined' && typeof item.menu !== 'undefined' ) {
 						item.menu.items.each( function( subItem ) {
@@ -272,6 +325,7 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 				isNew = true ;
 			}
 			else {
+				// Set text for "current qmerge"
 				this.queriesMenu.items.each( function( item ) {
 					if( typeof item.qmergeId !== 'undefined' && item.qmergeId == this.activeQmergeId ) {
 						newTxt = '(Qmerge) <b>'+item.text+'</b>' ;
@@ -299,6 +353,17 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 			menuItems.push('-') ;
 		}
 		if( !isNew ) {
+			if( true ) {
+				menuItems.push({
+					text: 'Publish to Android',
+					checked: isPublished,
+					checkHandler : function(checkbox,isTicked) {
+						me.queryTogglePublish(isTicked) ;
+					},
+					scope: me
+				});
+			}
+			
 			if( disableSave ) {
 				menuItems.push({
 					text: 'Save',
@@ -340,17 +405,30 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 			});
 		}
 		if( !isNew ) {
-			menuItems.push({
-				text: 'Delete',
-				icon: 'images/op5img/ico_delete_16.gif',
-				handler : function() {
-					me.queryDelete() ;
-				},
-				scope: me
-			});
+			if( disableSave ) {
+				menuItems.push({
+					text: 'Delete',
+					icon: 'images/op5img/ico_delete_16.gif',
+					disabled:true
+				});
+			} else {
+				menuItems.push({
+					text: 'Delete',
+					icon: 'images/op5img/ico_delete_16.gif',
+					handler : function() {
+						me.queryDelete() ;
+					},
+					scope: me
+				});
+			}
 		}
 		item.menu.add(menuItems) ;
 		item.setText(newTxt) ;
+		if( isPublished ) {
+			item.addCls(me.clsForPublished) ;
+		} else {
+			item.removeCls(me.clsForPublished) ;
+		}
 	},
 			  
 	setPanelViewMode: function( viewmode ) {
@@ -458,6 +536,9 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 	queryDelete: function(queryName) {
 		this.fireEvent('queryAction','delete') ;
 	},
+	queryTogglePublish: function( publishIsOn ) {
+		this.fireEvent('queryAction','toggle_publish',publishIsOn) ;
+	},
 			  
 	openDefineBibleWindow : function(isNew,newDataType) {
 		var desktop = op5desktop.getDesktop() ;
@@ -532,7 +613,64 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 		},this);
 	},
 		
-
+	storeTogglePublish: function( isPublished ) {
+		var me = this ;
+		
+		var ajaxParams = {
+			_moduleName: 'paracrm',
+			_action : 'define_togglePublish',
+			// store specifics inserted here
+			isPublished: isPublished
+		};
+		switch( this.activeDataType )
+		{
+			case 'bible' :
+				Ext.apply( ajaxParams, {
+					data_type: 'bible',
+					bible_code : this.activeBibleId
+				}) ;
+			break ;
+			
+			case 'file' :
+				Ext.apply( ajaxParams, {
+					data_type: 'file',
+					file_code : this.activeFileId
+				}) ;
+			break ;
+			
+			default:
+				Ext.Msg.alert('Status', 'Shouldnt happen !!!');
+				return ;
+			break ;
+		}
+		
+		Optima5.CoreDesktop.Ajax.request({
+			url: 'server/backend.php',
+			params: ajaxParams,
+			succCallback: function(response) {
+				// Rebuild helper on event "toolbarloaded"
+				me.on('toolbarloaded',function(){
+					me.showHelper('store') ;  // rebuild the helper
+				},me,{
+					single:true
+				});
+				switch( ajaxParams.data_type ) {
+					case 'bible' :
+						me.loadBibleMenu() ;
+						break ;
+						
+					case 'file' :
+						me.loadFilesMenu() ;
+						break ;
+						
+					default:
+						Ext.Msg.alert('Status', 'Shouldnt happen !!!');
+						return ;
+				}
+			},
+			scope: me
+		});
+	},
 	
 	loadBibleMenu : function() {
 		//console.dir(this.bibleMenu) ;
@@ -557,9 +695,15 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 						i.setHandler(function() {
 							this.switchToBible({bibleId: i.bibleId , forceReconfigure:true}) ;
 						},this) ;
+						if( i.isPublished ) {
+							i.addCls(me.clsForPublished) ;
+						}
 					},this) ;
 					
 					// ajout de la page de config
+					
+					// Fire an event
+					me.fireEvent('toolbarloaded','bible') ;
 				},
 				scope: this
 			});
@@ -587,9 +731,15 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 						i.setHandler(function() {
 							this.switchToFile({fileId: i.fileId , forceReconfigure:true}) ;
 						},this) ;
+						if( i.isPublished ) {
+							i.addCls(me.clsForPublished) ;
+						}
 					},this) ;
 					
 					// ajout de la page de config
+					
+					// Fire an event
+					me.fireEvent('toolbarloaded','file') ;
 				},
 				scope: this
 			});
@@ -615,12 +765,15 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 				- Array de toutes les queries déja incluses dans 1 qmerge
 				- Constitution des menu items
 				************************************************* */
-				var qObjIdName = {} ;
+				var qObjIdName = {} ,
+					qObjIdIspub = {} ;
 				Ext.Array.each( respObj.data_queries , function(v) {
 					var queryId = parseInt(v.queryId) ;
 					var queryName = v.text ;
+					var isPublished = (v.isPublished==true)? true : false ;
 					
 					qObjIdName[queryId] = queryName ;
+					qObjIdIspub[queryId] = isPublished ;
 				},me) ;
 				var qmergeQueryIds = [] ;
 				Ext.Array.each( respObj.data_qmerges , function(v) {
@@ -642,8 +795,10 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 						}
 						qMenuSubItems.push({
 							queryId : queryId,
+							isPublished: (qObjIdIspub[queryId] == true)? true:false,
 							text: qObjIdName[queryId],
 							icon: 'images/op5img/ico_process_16.gif' ,
+							cls: (qObjIdIspub[queryId] == true)? me.clsForPublished:null,
 							handler: function(){
 								me.switchToQueryOpen( queryId ) ;
 							}
@@ -652,8 +807,10 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 					
 					qMenuItems.push({
 						qmergeId: v.qmergeId,
+						isPublished: v.isPublished,
 						text: v.text,
 						icon: 'images/op5img/ico_filechild_16.gif' ,
+						cls: (v.isPublished == true)? me.clsForPublished:null,
 						handler: function(){
 							me.switchToQmergeOpen( parseInt(v.qmergeId) ) ;
 						},
@@ -668,8 +825,10 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 					
 					qMenuItems.push({
 						queryId: queryId,
+						isPublished: v.isPublished,
 						text: v.text,
 						icon: 'images/op5img/ico_process_16.gif' ,
+						cls: (v.isPublished == true)? me.clsForPublished:null,
 						handler: function(){
 							me.switchToQueryOpen( queryId ) ;
 						}

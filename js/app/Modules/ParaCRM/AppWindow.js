@@ -226,6 +226,22 @@ Ext.define('Optima5.Modules.ParaCRM.AppWindow', {
 					qPanel.remoteAction('delete') ;
 					break ;
 					
+				case 'toggle_publish' :
+					qPanel.on('querysaved',function(success,queryId){
+						if( success == true ) {
+							this.maintoolbar.on('toolbarloaded',function(){
+								this.maintoolbar.showHelper('queries') ;  // rebuild the helper
+							},this,{
+								single:true
+							});
+							this.maintoolbar.loadQueriesMenu() ;
+						}
+					},this,{
+						single: true
+					});
+					qPanel.remoteAction('toggle_publish',str) ;
+					break ;
+					
 				default :
 					break ;
 			}
