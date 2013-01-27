@@ -219,18 +219,20 @@ function paracrm_android_getDbImage($post_data)
 	$tables['define_file_cfg_calendar'] = 'define_file_cfg_calendar' ;
 	$tables['define_file_entry'] = 'define_file_entry' ;
 	$tables['input_calendar'] = 'input_calendar' ;
+	$tables['input_explorer_cfg'] = 'input_explorer_cfg' ;
 	$tables['input_scen'] = 'input_scen' ;
 	$tables['input_scen_page'] = 'input_scen_page' ;
 	$tables['input_scen_pagepivot'] = 'input_scen_pagepivot' ;
 	$tables['input_scen_pagepivot_copymap'] = 'input_scen_pagepivot_copymap' ;
 	$tables['input_scen_page_field'] = 'input_scen_page_field' ;
+	$tables['input_store_src'] = 'input_store_src' ;
+	$tables['querygrid_template'] = 'querygrid_template' ;
 	$tables['store_bible_entry'] = 'tmp_store_bible_entry' ;
 	$tables['store_bible_entry_field'] = 'tmp_store_bible_entry_field' ;
 	$tables['store_bible_tree'] = 'tmp_store_bible_tree' ;
 	$tables['store_bible_tree_field'] = 'tmp_store_bible_tree_field' ;
 	$tables['input_query'] = 'tmp_input_query' ;
 	$tables['input_query_where'] = 'tmp_input_query_where' ;
-	$tables['querygrid_template'] = 'querygrid_template' ;
 	
 	
 	$first = paracrm_android_getDbImageTimestamp() ;
