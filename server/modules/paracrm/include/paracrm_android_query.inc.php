@@ -272,10 +272,6 @@ function paracrm_android_query_fetchResult( $post_data ) {
 		}
 	}
 	
-	if( $arrQuery['querysrc_type'] == 'qweb' ) {
-		return array('success'=>false) ;
-	}
-	
 	//sleep(6) ;
 	
 	switch( $arrQuery['querysrc_type'] )
@@ -339,6 +335,36 @@ function paracrm_android_query_fetchResult( $post_data ) {
 			$tabs[$tab_id] = $tab + paracrm_queries_mpaginate_getGrid( $RES, $tab_id ) ;
 		}
 		return array('success'=>true,'tabs'=>$tabs) ;
+		
+		
+		
+		case 'qweb' :
+		$qweb_id = $_opDB->query_uniqueValue("SELECT target_qweb_id FROM input_query_src WHERE querysrc_id='$querysrc_id'") ;
+		
+		
+		$arr_saisie = array() ;
+		paracrm_queries_qwebTransaction_init( array('qweb_id'=>$qweb_id) , $arr_saisie ) ;
+		
+		if( $arr_where_conditions ) {
+			foreach( $arr_where_conditions as $querysrc_targetfield_ssid => $condition ) {
+				$qweb_fieldqwhere_idx = $querysrc_targetfield_ssid - 1 ;
+				foreach( $condition as $mkey => $mvalue ) {
+					if( strpos($mkey,'condition_') === 0 ) {
+						$arr_saisie['fields_qwhere'][$qweb_fieldqwhere_idx][$mkey] = $mvalue ;
+					}
+				}
+			}
+		}
+		
+		$RES = paracrm_queries_process_qweb($arr_saisie , FALSE ) ;
+		if( !$RES ) {
+			return array('success'=>false) ;
+		}
+		
+		$json = array() ;
+		$json['success'] = true ;
+		$json['html'] = $RES['RES_html'] ;
+		return $json ;
 	}
 	
 	return array('success'=>true) ;
