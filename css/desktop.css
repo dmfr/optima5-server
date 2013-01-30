@@ -468,6 +468,14 @@
 	border-bottom: 2px solid #33B6E5 ;
 }
 
+.op5-device-yes {
+	background: url('../images/op5img/ico_greendot.gif') no-repeat center center !important;
+}
+.op5-device-no {
+	background: url('../images/op5img/ico_cancel_small.gif') no-repeat center center !important;
+}
+
+
 .ux-color-combo-wrap {
     position: relative;
 }

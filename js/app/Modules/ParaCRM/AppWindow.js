@@ -11,6 +11,7 @@ Ext.define('Optima5.Modules.ParaCRM.AppWindow', {
         'Optima5.Modules.ParaCRM.QueryPanel',
         'Optima5.Modules.ParaCRM.QmergePanel',
         'Optima5.Modules.ParaCRM.QueryTemplatePanel',
+        'Optima5.Modules.ParaCRM.AuthAndroidPanel',
         'Optima5.Modules.ParaCRM.MainToolbar'
         //'Ext.form.field.TextArea'
     ],
@@ -69,6 +70,8 @@ Ext.define('Optima5.Modules.ParaCRM.AppWindow', {
 					this.createQmergePanel()
 				,
 					this.createQueryTemplatePanel()
+				,
+					this.createAuthAndroidPanel()
 				],
 				tbar : this.createMainToolbar()
 			});
@@ -129,6 +132,15 @@ Ext.define('Optima5.Modules.ParaCRM.AppWindow', {
 			this.querytemplatepanel.loadSettings() ;
 		},this) ;
 		
+		
+		this.maintoolbar.on('switchToAuth',function( authClass ){
+			switch( authClass ) {
+				case 'AuthAndroid' :
+				this.switchToPanel('authandroidpanel') ;
+				this.authandroidpanel.reload() ;
+				break ;
+			}
+		},this) ;
 		
 		
 		this.maintoolbar.on('switchToNotepad',function(){
@@ -293,6 +305,14 @@ Ext.define('Optima5.Modules.ParaCRM.AppWindow', {
 			mid: 'querytemplatepanel'
 		});
 		return this.querytemplatepanel;
+	},
+	
+	createAuthAndroidPanel : function(){
+		this.authandroidpanel = Ext.create('Optima5.Modules.ParaCRM.AuthAndroidPanel');
+		Ext.apply( this.authandroidpanel, {
+			mid: 'authandroidpanel'
+		});
+		return this.authandroidpanel;
 	},
 	
 	createMainToolbar : function(){

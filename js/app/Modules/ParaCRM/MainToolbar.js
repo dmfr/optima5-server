@@ -44,15 +44,21 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 					menu: {
 						xtype: 'menu',
 						plain: true,
-						items: {
-									text: 'User<br/>manager',
-									iconCls: 'edit',
-									width: 90,
-									handler : function(){
-										//console.dir(op5session) ;
-										//console.log('Session ID is ' + op5session.get('sessionID')) ;
-									}
-						}
+						items: [{
+							text: 'ParaCRM accounts',
+							icon: 'images/op5img/ico_kuser_small.gif',
+							handler : function(){
+								//console.dir(op5session) ;
+								//console.log('Session ID is ' + op5session.get('sessionID')) ;
+							}
+						},{
+							text: 'Android devices',
+							icon: 'images/op5img/ico_android_16.png',
+							handler : function(){
+								this.switchToAuth('AuthAndroid') ;
+							},
+							scope:this
+						}]
 					}
 			},'->',{
 				helperId: 'store',
@@ -83,6 +89,7 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 							'switchToFile',
 							'switchToQuery',
 							'switchToQueryTemplate',
+							'switchToAuth',
 							'switchToNotepad',
 							'switchtopanelview',
 							'queryAction');
@@ -521,6 +528,12 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 		this.activeQueryId = 0 ;
 		this.showHelper('') ;
 		this.fireEvent('switchToQueryTemplate');
+	},
+			  
+	switchToAuth: function(authClass) {
+		this.activeDataType = '' ;
+		this.showHelper('') ;
+		this.fireEvent('switchToAuth',authClass);
 	},
 			  
 			  
