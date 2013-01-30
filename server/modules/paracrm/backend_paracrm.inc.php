@@ -57,6 +57,12 @@ switch( $post_data['_action'] )
 	return paracrm_queries_gridTemplate( $post_data );
 	
 	
+	case 'auth_android_getDevicesList' :
+	return paracrm_auth_android_getDevicesList( $post_data ) ;
+	case 'auth_android_setDevice' :
+	return paracrm_auth_android_setDevice( $post_data ) ;
+	
+	
 	
 	
 	case 'android_getDbImage' :

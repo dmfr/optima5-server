@@ -1,13 +1,22 @@
 <?php
 
-function paracrm_android_getDbImageTimestamp()
+function paracrm_android_getDbImageTimestamp($post_data=NULL)
 {
+	if( $post_data && ( !$post_data['__ANDROID_ID'] || !paracrm_lib_android_authDevice_ping($post_data['__ANDROID_ID'],$ping=true) ) ) {
+		// disable MODE !
+		return array('success'=>true,'timestamp'=>time()) ;
+	}
+
 	return array('success'=>true,'timestamp'=>strtotime(date('Y-m-d'))) ;
 }
 function paracrm_android_getDbImage($post_data)
 {
 	global $_opDB ;
+	
 	$_DISABLE_MODE = FALSE ;
+	if( !$post_data['__ANDROID_ID'] || !paracrm_lib_android_authDevice_ping($post_data['__ANDROID_ID'],$ping=false) ) {
+		$_DISABLE_MODE = TRUE ;
+	}
 	
 	// ********* Tables temporaires *************
 	// DROP + CREATE

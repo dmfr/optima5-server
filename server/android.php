@@ -58,7 +58,30 @@ include("$server_root/modules/$my_module/backend_$my_module.inc.php");
 
 $_opDB->select_db( $mysql_db.'_'.$my_module) ;
 
-$TAB = backend_specific( $_REQUEST ) ;
+switch( $my_module ) {
+	case 'paracrm' :
+	switch( $_REQUEST['_action'] ) {
+		// Pour les actions suivantes, on laisse le traitement de l'authentification au backend
+		case 'android_getDbImage' :
+		case 'android_getDbImageTab' :
+		case 'android_getDbImageTimestamp' :
+		break ;
+		
+		default:
+		if( !$_REQUEST['__ANDROID_ID'] || !paracrm_lib_android_authDevice_ping($_REQUEST['__ANDROID_ID'],$ping=false) ) {
+			header("HTTP/1.0 403 Forbidden");
+			die() ;
+		}
+		break ;
+	}
+	$TAB = backend_specific( $_REQUEST ) ;
+	break ;
+
+	default :
+	header("HTTP/1.0 404 Not Found");
+	die() ;
+	break ;
+}
 
 $_opDB->select_db( $mysql_db ) ;
 
