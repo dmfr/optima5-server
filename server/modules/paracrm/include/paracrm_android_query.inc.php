@@ -296,6 +296,10 @@ function paracrm_android_query_fetchResult( $post_data ) {
 		
 		$RES = paracrm_queries_process_query($arr_saisie , FALSE ) ;
 		
+		if( $post_data['xls_export'] == 'true' ) {
+			return paracrm_android_query_fetchResultXls( $RES, $arrQuery['querysrc_type'] );
+		}
+		
 		$tabs = array() ;
 		foreach( $RES['RES_labels'] as $tab_id => $dummy )
 		{
@@ -326,6 +330,10 @@ function paracrm_android_query_fetchResult( $post_data ) {
 		}
 		
 		$RES = paracrm_queries_process_qmerge($arr_saisie , FALSE ) ;
+		
+		if( $post_data['xls_export'] == 'true' ) {
+			return paracrm_android_query_fetchResultXls( $RES, $arrQuery['querysrc_type'] );
+		}
 		
 		$tabs = array() ;
 		foreach( $RES['RES_labels'] as $tab_id => $dummy )
@@ -371,5 +379,55 @@ function paracrm_android_query_fetchResult( $post_data ) {
 }
 
 
+function paracrm_android_query_fetchResultXls( $RES , $query_type ) {
+
+	@include_once 'PHPExcel/PHPExcel.php' ;
+
+	switch( $query_type )
+	{
+		case 'query' :
+		$workbook_tab_grid = array() ;
+		foreach( $RES['RES_labels'] as $tab_id => $dummy )
+		{
+			$tab = array() ;
+			$tab['tab_title'] = $dummy['tab_title'] ;
+			$workbook_tab_grid[$tab_id] = $tab + paracrm_queries_paginate_getGrid( $RES, $tab_id ) ;
+		}
+		break ;
+		
+		case 'qmerge' :
+		$workbook_tab_grid = array() ;
+		foreach( $RES['RES_labels'] as $tab_id => $dummy )
+		{
+			$tab = array() ;
+			$tab['tab_title'] = $dummy['tab_title'] ;
+			$workbook_tab_grid[$tab_id] = $tab + paracrm_queries_mpaginate_getGrid( $RES, $tab_id ) ;
+		}
+		break ;
+		
+		default :
+		return array('success'=>false) ;
+	}
+
+	$objPHPExcel = paracrm_queries_xls_build( $workbook_tab_grid, $RES['RES_round'] ) ;
+	if( !$objPHPExcel ) {
+		return array('success'=>false) ;
+	}
+
+
+	$tmpfilename = tempnam( sys_get_temp_dir(), "FOO");
+	$objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+	$objWriter->save($tmpfilename);
+	$objPHPExcel->disconnectWorksheets();
+	unset($objPHPExcel) ;
+	
+	$binary = file_get_contents($tmpfilename) ;
+	unlink($tmpfilename) ;
+
+	$json = array() ;
+	$json['success'] = true ;
+	$json['xlsx_base64'] = base64_encode($binary);
+	return $json ;
+}
 
 ?>
