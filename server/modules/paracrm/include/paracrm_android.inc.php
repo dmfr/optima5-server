@@ -7,6 +7,7 @@ function paracrm_android_getDbImageTimestamp()
 function paracrm_android_getDbImage($post_data)
 {
 	global $_opDB ;
+	$_DISABLE_MODE = FALSE ;
 	
 	// ********* Tables temporaires *************
 	// DROP + CREATE
@@ -244,6 +245,11 @@ function paracrm_android_getDbImage($post_data)
 		$first['nb_tables']++;
 		$first['nb_rows'] += $_opDB->query_uniqueValue($query) ;
 	}
+	if( $_DISABLE_MODE ) {
+		$first['nb_rows'] = 0 ;
+		$first['timestamp'] = 1 ;
+		$first['denied'] = true ;
+	}
 	echo json_encode($first) ;
 	echo "\r\n" ;
 	
@@ -255,12 +261,14 @@ function paracrm_android_getDbImage($post_data)
 		echo json_encode($_opDB->table_fields($local_table)) ;
 		echo "\r\n" ;
 	
-		$query = "SELECT * FROM $local_table" ;
-		$result = $_opDB->query($query) ;
-		while( ($arr = $_opDB->fetch_row($result)) != FALSE )
-		{
-			echo json_encode($arr) ;
-			echo "\r\n" ;
+		if( !$_DISABLE_MODE ) {
+			$query = "SELECT * FROM $local_table" ;
+			$result = $_opDB->query($query) ;
+			while( ($arr = $_opDB->fetch_row($result)) != FALSE )
+			{
+				echo json_encode($arr) ;
+				echo "\r\n" ;
+			}
 		}
 		
 		echo json_encode(array()) ;
@@ -374,7 +382,7 @@ function paracrm_android_syncPull( $post_data )
 		}
 	}
 	if( $limit ) {
-		$query.= " ORDER BY sync_timestamp DESC LIMIT {$limit}" ;
+		$query.= " ORDER BY sync_timestamp DESC, filerecord_id DESC LIMIT {$limit}" ;
 	}
 	
 	// Note : on inclut dans la "master_query" les records présents sur le terminal Android
@@ -574,7 +582,7 @@ function paracrm_android_syncPull_dumpFile( $file_code, $master_query )
 	
 	
 	$arr_table_query = array() ;
-	$arr_table_query['store_file'] = "SELECT dumptab.* FROM store_file dumptab JOIN ($master_query) master ON dumptab.filerecord_id=master.filerecord_id" ;
+	$arr_table_query['store_file'] = "SELECT dumptab.* FROM store_file dumptab JOIN ($master_query) master ON dumptab.filerecord_id=master.filerecord_id ORDER BY dumptab.filerecord_id DESC" ;
 	$arr_table_query['store_file_field'] = "SELECT dumptab.* FROM store_file_{$file_code} dumptab JOIN ($master_query) master ON dumptab.filerecord_id=master.filerecord_id" ;
 	
 	//error_log( $arr_table_query['store_file_field'] ) ;
