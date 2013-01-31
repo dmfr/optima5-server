@@ -30,6 +30,8 @@ function paracrm_android_query_buildTables() {
 	$_opDB->query($query) ;
 	$query = "CREATE TEMPORARY TABLE IF NOT EXISTS tmp_input_query_where LIKE input_query_tpl_where" ;
 	$_opDB->query($query) ;
+	$query = "CREATE TEMPORARY TABLE IF NOT EXISTS tmp_input_query_progress LIKE input_query_tpl_progress" ;
+	$_opDB->query($query) ;
 	
 	
 	// print_r($tmplinearfields) ;
@@ -91,6 +93,26 @@ function paracrm_android_query_buildTables_forQuery( $query_id , $dest_querysrc_
 		$arr_ins['field_linkbible'] = $arr['field_linkbible'] ;
 		$arr_ins['field_lib'] = $tmplinearfields[$target_file_code][$arr['field_code']]['text'] ;
 		$_opDB->insert('tmp_input_query_where',$arr_ins) ;
+	}
+	
+	$query = "SELECT * FROM query_field_progress WHERE query_id='$query_id'" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+	
+		$query_fieldprogress_ssid = $arr['query_fieldprogress_ssid'] ;
+		
+		// on ne propose sur Android que les progress fields "NOT SET"
+		if( paracrm_android_query_buildTables_toolIsWhereSet($arr) ) {
+			continue ;
+		}
+		
+		$arr_ins = array() ;
+		$arr_ins['querysrc_id'] = $dest_querysrc_id ;
+		$arr_ins['querysrc_targetfield_ssid'] = $query_fieldprogress_ssid ;
+		$arr_ins['field_type'] = $arr['field_type'] ;
+		$arr_ins['field_linkbible'] = $arr['field_linkbible'] ;
+		$arr_ins['field_lib'] = $tmplinearfields[$target_file_code][$arr['field_code']]['text'] ;
+		$_opDB->insert('tmp_input_query_progress',$arr_ins) ;
 	}
 }
 function paracrm_android_query_buildTables_forQmerge( $qmerge_id , $dest_querysrc_id , $dest_querysrc_index ) {
@@ -225,7 +247,8 @@ function paracrm_android_query_buildTables_toolIsWhereSet( $arrDB_where ) {
 		break ;
 		
 		case 'date' :
-		if( is_date_valid($arrDB_where['condition_date_lt']) || is_date_valid($arrDB_where['condition_date_gt']) ) {
+		if( paracrm_android_query_buildTables_toolIsWhereSet_isDateValid($arrDB_where['condition_date_lt']) 
+				|| paracrm_android_query_buildTables_toolIsWhereSet_isDateValid($arrDB_where['condition_date_gt']) ) {
 			return true ;
 		}
 		break ;
@@ -236,7 +259,19 @@ function paracrm_android_query_buildTables_toolIsWhereSet( $arrDB_where ) {
 	}
 	return false ;
 }
-
+function paracrm_android_query_buildTables_toolIsWhereSet_isDateValid( $date_sql )
+{
+	if( $date_sql == '0000-00-00' )
+		return FALSE ;
+	if( $date_sql == '0000-00-00 00:00:00' )
+		return FALSE ;
+	if( !$date_sql )
+		return FALSE ;
+	if( strtotime( $date_sql ) > 0 )
+		return TRUE ;
+	// echo "NOK" ;
+	return FALSE ;
+}
 
 
 
@@ -250,6 +285,13 @@ function paracrm_android_query_fetchResult( $post_data ) {
 		foreach( json_decode($post_data['querysrc_where'],true) as $condition ) {
 			$querysrc_targetfield_ssid = $condition['querysrc_targetfield_ssid'] ;
 			$arr_where_conditions[$querysrc_targetfield_ssid] = $condition ;
+		}
+	}
+	if( $post_data['querysrc_progress'] ) {
+		$arr_progress_conditions = array() ;
+		foreach( json_decode($post_data['querysrc_progress'],true) as $condition ) {
+			$querysrc_targetfield_ssid = $condition['querysrc_targetfield_ssid'] ;
+			$arr_progress_conditions[$querysrc_targetfield_ssid] = $condition ;
 		}
 	}
 
@@ -268,7 +310,15 @@ function paracrm_android_query_fetchResult( $post_data ) {
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$querysrc_targetfield_ssid = $arr['querysrc_targetfield_ssid'] ;
 		if( !isset($arr_where_conditions[$querysrc_targetfield_ssid]) ) {
-			return array('success'=>false) ;
+			//return array('success'=>false) ;
+		}
+	}
+	$query = "SELECT * FROM tmp_input_query_progress WHERE querysrc_id='$querysrc_id'" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$querysrc_targetfield_ssid = $arr['querysrc_targetfield_ssid'] ;
+		if( !isset($arr_progress_conditions[$querysrc_targetfield_ssid]) ) {
+			//return array('success'=>false) ;
 		}
 	}
 	
@@ -289,6 +339,16 @@ function paracrm_android_query_fetchResult( $post_data ) {
 				foreach( $condition as $mkey => $mvalue ) {
 					if( strpos($mkey,'condition_') === 0 ) {
 						$arr_saisie['fields_where'][$query_fieldwhere_idx][$mkey] = $mvalue ;
+					}
+				}
+			}
+		}
+		if( $arr_progress_conditions ) {
+			foreach( $arr_progress_conditions as $querysrc_targetfield_ssid => $condition ) {
+				$query_fieldprogress_idx = $querysrc_targetfield_ssid - 1 ;
+				foreach( $condition as $mkey => $mvalue ) {
+					if( strpos($mkey,'condition_') === 0 ) {
+						$arr_saisie['fields_progress'][$query_fieldprogress_idx][$mkey] = $mvalue ;
 					}
 				}
 			}

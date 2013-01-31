@@ -243,6 +243,7 @@ function paracrm_android_getDbImage($post_data)
 	$tables['store_bible_tree_field'] = 'tmp_store_bible_tree_field' ;
 	$tables['input_query'] = 'tmp_input_query' ;
 	$tables['input_query_where'] = 'tmp_input_query_where' ;
+	$tables['input_query_progress'] = 'tmp_input_query_progress' ;
 	
 	
 	$first = paracrm_android_getDbImageTimestamp() ;
