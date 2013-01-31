@@ -166,8 +166,10 @@ Ext.define('Optima5.Modules.ParaCRM.QueryResultPanel' ,{
 			for (; i < ln; i++) {
 				records.push(Ext.create(tmpModelName, tabData.data[i]));
 			}
-			tabstore.cacheRecords(records);
-			tabstore.guaranteeRange(0, 49);
+			if( records.length > 0 ) {
+				tabstore.cacheRecords(records);
+				tabstore.guaranteeRange(0, 49);
+			}
 			
 			tabitems.push(tabgrid);
 			
