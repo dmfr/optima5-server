@@ -2008,6 +2008,8 @@ function paracrm_queries_process_labels_withTabs( $arr_saisie, $groupId_forTab )
 			if( $group_id == $groupId_forTab )
 				continue ;
 				
+			// avant Enum => intro des foreignLinks
+			$foreignLinks = array() ;
 			// avant Enum => intro de la condition specifique
 			$bibleConditions = array() ;
 			$field_groupTab = $field_group_tab ;
@@ -2032,10 +2034,17 @@ function paracrm_queries_process_labels_withTabs( $arr_saisie, $groupId_forTab )
 						$tarr[] = $treenode_key ;
 					$bibleConditions[] = $tarr ;
 				}
+				
+				if( $field_where['field_type'] == 'link' && $field_group['field_type'] == 'link'
+					&& $field_where['field_linkbible'] != $field_group['field_linkbible'] 
+					&& $field_where['condition_bible_mode'] == 'SELECT' && $field_where['condition_bible_entries'] )
+				{
+					$foreignLinks[$field_where['field_linkbible']] = $field_where['condition_bible_entries'] ;
+				}
 			}
 			
 			
-			$subsub = paracrm_queries_process_labelEnum( $group_id, $field_group, $bibleConditions ) ;
+			$subsub = paracrm_queries_process_labelEnum( $group_id, $field_group, $bibleConditions, $foreignLinks ) ;
 			switch( $field_group['display_geometry'] )
 			{
 				case 'grid-x' :
@@ -2076,6 +2085,7 @@ function paracrm_queries_process_labels_noTab( $arr_saisie )
 		{
 			// avant Enum => intro de la condition specifique
 			$bibleConditions = array() ;
+			$foreignLinks = array() ;
 			foreach( $arr_saisie['fields_where'] as $field_where )
 			{
 				if( $field_where['field_type'] == 'link'
@@ -2088,9 +2098,16 @@ function paracrm_queries_process_labels_noTab( $arr_saisie )
 						$tarr[] = $treenode_key ;
 					$bibleConditions[] = $tarr ;
 				}
+				
+				if( $field_where['field_type'] == 'link' && $field_group['field_type'] == 'link'
+					&& $field_where['field_linkbible'] != $field_group['field_linkbible'] 
+					&& $field_where['condition_bible_mode'] == 'SELECT' && $field_where['condition_bible_entries'] )
+				{
+					$foreignLinks[$field_where['field_linkbible']] = $field_where['condition_bible_entries'] ;
+				}
 			}
 
-			$subsub = paracrm_queries_process_labelEnum( $group_id, $field_group, $bibleConditions ) ;
+			$subsub = paracrm_queries_process_labelEnum( $group_id, $field_group, $bibleConditions, $foreignLinks ) ;
 			switch( $field_group['display_geometry'] )
 			{
 				case 'grid-x' :
@@ -2111,7 +2128,7 @@ function paracrm_queries_process_labels_noTab( $arr_saisie )
 	return $RES_tab_labels ;
 }
 
-function paracrm_queries_process_labelEnum( $group_id, $field_group, $bibleConditions=NULL )
+function paracrm_queries_process_labelEnum( $group_id, $field_group, $bibleConditions=NULL, $foreignLinks=NULL )
 {
 	global $_opDB ;
 
@@ -2137,7 +2154,7 @@ function paracrm_queries_process_labelEnum( $group_id, $field_group, $bibleCondi
 			$link_field_refs[] = 'entry_'.$arr[0] ;
 		}
 		
-		
+		$arr = array() ;
 		switch( $field_group['group_bible_type'] )
 		{
 			case 'TREE' :
@@ -2163,7 +2180,7 @@ function paracrm_queries_process_labelEnum( $group_id, $field_group, $bibleCondi
 			
 			
 			case 'ENTRY' :
-			foreach( paracrm_queries_process_labelEnumBibleEntries( $field_group['sql_bible_code'], '&', $bibleConditions ) as $record )
+			foreach( paracrm_queries_process_labelEnumBibleEntries( $field_group['sql_bible_code'], '&', $bibleConditions , $foreignLinks ) as $record )
 			{
 				$ttmp = array() ;
 				foreach( $field_group['group_bible_display_arrFields'] as $display_field_ref )
@@ -2201,8 +2218,6 @@ function paracrm_queries_process_labelEnumBibleTree( $bible_code, $root_treenode
 	
 	global $arr_bible_trees ;
 	
-	// ***** foreignLinks ****
-	// - conditions sur autre bible => pour la requete
 	if( !$arr_bible_trees[$bible_code] )
 	{
 		return NULL ;
@@ -2213,6 +2228,16 @@ function paracrm_queries_process_labelEnumBibleTree( $bible_code, $root_treenode
 		return NULL ;
 	}
 	
+	// ***** foreignLinks ****
+	// - conditions sur autre bible => pour la requete
+	if( $foreignLinks )
+	{
+		foreach( $foreignLinks as $foreign_bible_code => $foreign_entry )
+		{
+			// TODO!
+		
+		}
+	}
 	
 	if( $bibleConditions && count($bibleConditions)>0 )
 	{
@@ -2304,6 +2329,19 @@ function paracrm_queries_process_labelEnumBibleEntries( $bible_code, $root_treen
 		}
 	}
 	
+	// ******* foreignLinks ********
+	$query_entries = "" ;
+	if( $foreignLinks )
+	{
+		$entries = array() ;
+		foreach( paracrm_lib_bible_queryBible( $bible_code, $foreignLinks ) as $arr_row ) {
+			$entries[] = $arr_row['entry_key'] ;
+		}
+		
+		if( $entries ) {
+			$query_entries = " AND e.entry_key IN ".$_opDB->makeSQLlist($entries) ;
+		}
+	}
 	
 	
 	$arr_describe_tree = array() ;
@@ -2338,6 +2376,7 @@ function paracrm_queries_process_labelEnumBibleEntries( $bible_code, $root_treen
 	$view_name_tree = 'view_bible_'.$bible_code.'_tree' ;
 	$query = "SELECT e.entry_key as entry_key,".implode(',',$select_clause_arr)." FROM $view_name e JOIN $view_name_tree t ON t.treenode_key=e.treenode_key WHERE 1" ;
 	$query.= $query_treenode ;
+	$query.= $query_entries ;
 	$query.= " ORDER BY e.treenode_key, e.entry_key" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )

@@ -261,6 +261,10 @@ function paracrm_queries_builderTransaction_resGet( $post_data )
 		$tab = array() ;
 		$tab['tab_title'] = $dummy['tab_title'] ;
 		$tabs[$tab_id] = $tab + paracrm_queries_paginate_getGrid( $RES, $tab_id ) ;
+		
+		if( !$tabs[$tab_id]['data'] ) {
+			unset($tabs[$tab_id]) ;
+		}
 	}
 	
 	return array('success'=>true,'tabs'=>$tabs) ;
