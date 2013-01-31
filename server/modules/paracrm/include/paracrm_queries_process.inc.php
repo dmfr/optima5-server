@@ -844,7 +844,7 @@ function paracrm_queries_process_query($arr_saisie, $debug=FALSE)
 	//  pour les bibles => field_XXXXXX"_tree" ou field_XXXXXX"_entry" , on explicite les entries/treenodes qu'on doit chercher
 	//      - pour les entries : simple ( entry_key )
 	//      - pour les treenodes : utilisation de l'arbre objet et pour chaque subnode ( treenode_key )
-	foreach( $fields_where as &$field_where )
+	foreach( $fields_where as $field_id => &$field_where )
 	{
 		//print_r($field_where) ;
 	
@@ -865,7 +865,7 @@ function paracrm_queries_process_query($arr_saisie, $debug=FALSE)
 				foreach( array($field_where['condition_bible_entries']) as $entry_key )
 					$field_where['sql_arr_select'][] = $entry_key ;
 			}
-			elseif( $field_where['condition_bible_treenodes'] )
+			elseif( $field_where['condition_bible_treenodes'] && json_decode($field_where['condition_bible_treenodes'],true) )
 			{
 				$field_where['condition_bible_store'] = 'tree' ;
 				$field_where['sql_file_field_code'] = $field_where['sql_file_field_code'] ;
@@ -881,6 +881,10 @@ function paracrm_queries_process_query($arr_saisie, $debug=FALSE)
 					}
 				}
 			}
+			else
+			{
+				unset($fields_where[$field_id]) ;
+			}
 			break ;
 		
 		}
@@ -889,7 +893,7 @@ function paracrm_queries_process_query($arr_saisie, $debug=FALSE)
 
 	$fields_progress = $arr_saisie['fields_progress'] ;
 	if( $fields_progress ) {
-	foreach( $fields_progress as &$field_progress )
+	foreach( $fields_progress as $field_id => &$field_progress )
 	{
 		//print_r($field_where) ;
 	
@@ -924,8 +928,18 @@ function paracrm_queries_process_query($arr_saisie, $debug=FALSE)
 					}
 				}
 			}
+			else
+			{
+				unset($fields_progress[$field_id]) ;
+			}
 			break ;
 		
+		
+			case 'date' :
+			if( !$field_progress['condition_date_lt'] && !$field_progress['condition_date_gt'] ) {
+				unset($fields_progress[$field_id]) ;
+			}
+			break ;
 		}
 	}
 	}
