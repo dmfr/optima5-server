@@ -2158,7 +2158,7 @@ function paracrm_queries_process_labelEnum( $group_id, $field_group, $bibleCondi
 		switch( $field_group['group_bible_type'] )
 		{
 			case 'TREE' :
-			foreach( paracrm_queries_process_labelEnumBibleTree( $field_group['sql_bible_code'], '&', $field_group['group_bible_tree_depth'], $bibleConditions ) as $record )
+			foreach( paracrm_queries_process_labelEnumBibleTree( $field_group['sql_bible_code'], '&', $field_group['group_bible_tree_depth'], $bibleConditions , $foreignLinks ) as $record )
 			{
 				$ttmp = array() ;
 				foreach( $field_group['group_bible_display_arrFields'] as $display_field_ref )
@@ -2230,18 +2230,31 @@ function paracrm_queries_process_labelEnumBibleTree( $bible_code, $root_treenode
 	
 	// ***** foreignLinks ****
 	// - conditions sur autre bible => pour la requete
+	$arr_treenodes = array() ;
 	if( $foreignLinks )
 	{
-		foreach( $foreignLinks as $foreign_bible_code => $foreign_entry )
-		{
-			// TODO!
+		$treenodes = array() ;
+		foreach( paracrm_lib_bible_queryBible( $bible_code, $foreignLinks ) as $arr_row ) {
+			$treenode = $arr_row['treenode_key'] ;
+			while( TRUE ) {
+				$treenodes[$treenode] = TRUE ;
+				$query = "SELECT treenode_parent_key FROM view_bible_{$bible_code}_tree WHERE treenode_key='$treenode'" ;
+				$parent_treenode = $_opDB->query_uniqueValue($query) ;
+				if( !$parent_treenode || $parent_treenode=='&' ) {
+					break ;
+				}
+				$treenode = $parent_treenode ;
+			}
+		}
 		
+		if( $treenodes ) {
+			$arr_treenodes[] = array_keys($treenodes) ;
 		}
 	}
-	
+	// ****** bibleConditions ******
+	// - condition treenode sur meme bible
 	if( $bibleConditions && count($bibleConditions)>0 )
 	{
-		$arr_treenodes = array() ;
 		foreach( $bibleConditions as $bibleCondition )
 		{
 			$treenodes = array() ;
