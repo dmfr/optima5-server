@@ -267,7 +267,7 @@ function paracrm_queries_builderTransaction_resGet( $post_data )
 		}
 	}
 	
-	return array('success'=>true,'tabs'=>$tabs) ;
+	return array('success'=>true,'tabs'=>array_values($tabs)) ;
 }
 
 

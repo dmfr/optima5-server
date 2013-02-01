@@ -219,9 +219,13 @@ function paracrm_queries_mergerTransaction_resGet( $post_data )
 		$tab = array() ;
 		$tab['tab_title'] = $dummy['tab_title'] ;
 		$tabs[$tab_id] = $tab + paracrm_queries_mpaginate_getGrid( $RES, $tab_id ) ;
+		
+		if( !$tabs[$tab_id]['data'] ) {
+			unset($tabs[$tab_id]) ;
+		}
 	}
 	
-	return array('success'=>true,'tabs'=>$tabs) ;
+	return array('success'=>true,'tabs'=>array_values($tabs)) ;
 }
 
 

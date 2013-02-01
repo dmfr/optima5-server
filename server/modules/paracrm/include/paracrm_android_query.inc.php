@@ -371,7 +371,7 @@ function paracrm_android_query_fetchResult( $post_data ) {
 				unset($tabs[$tab_id]) ;
 			}
 		}
-		return array('success'=>true,'tabs'=>$tabs) ;
+		return array('success'=>true,'tabs'=>array_values($tabs)) ;
 		
 		
 		
@@ -410,7 +410,7 @@ function paracrm_android_query_fetchResult( $post_data ) {
 				unset($tabs[$tab_id]) ;
 			}
 		}
-		return array('success'=>true,'tabs'=>$tabs) ;
+		return array('success'=>true,'tabs'=>array_values($tabs)) ;
 		
 		
 		
