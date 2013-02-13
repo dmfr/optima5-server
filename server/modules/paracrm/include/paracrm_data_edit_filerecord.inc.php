@@ -275,6 +275,8 @@ function paracrm_data_editTransaction_fileRecord_init( $post_data , &$arr_saisie
 		}
 		if( $arr['entry_field_is_header'] == 'O' )
 			$field['allowBlank'] = false ;
+		if( $arr['entry_field_is_mandatory'] == 'O' )
+			$field['allowBlank'] = false ;
 			
 		if( isset($file_data) )
 			$field['value'] = $file_data[$field['name']] ;
@@ -364,6 +366,7 @@ function paracrm_data_editTransaction_fileRecord_init( $post_data , &$arr_saisie
 					$field['linkbible'] = $arr_file_field['entry_field_linkbible'] ;
 					$field['is_header'] = $arr_file_field['entry_field_is_header'] ;
 					$field['is_highlight'] = $arr_file_field['entry_field_is_highlight'] ;
+					$field['is_mandatory'] = $arr_file_field['entry_field_is_mandatory'] ;
 					if( $arr_file_field['entry_field_type'] == 'link' )
 					{
 						$field['altdisplay'] = 'display_'.$arr_file_field['entry_field_code'] ;

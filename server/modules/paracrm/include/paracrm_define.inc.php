@@ -218,6 +218,11 @@ function paracrm_define_manageTransaction( $post_data )
 			{
 				unset( $arr['entry_field_index'] ) ;
 				
+				if( $arr['entry_field_is_mandatory'] == 'O' )
+					$arr['entry_field_is_mandatory'] = true ;
+				else
+					$arr['entry_field_is_mandatory'] = false ;
+					
 				if( $arr['entry_field_is_highlight'] == 'O' )
 					$arr['entry_field_is_highlight'] = true ;
 				else
@@ -646,6 +651,7 @@ function paracrm_define_manageTransaction_applyFile($arr_saisie, $apply)
 		$arr_ins['entry_field_linkbible'] = $mfield['entry_field_linkbible'] ;
 		$arr_ins['entry_field_is_header'] = ($mfield['entry_field_is_header'])? 'O':'' ;
 		$arr_ins['entry_field_is_highlight'] = ($mfield['entry_field_is_highlight'])? 'O':'' ;
+		$arr_ins['entry_field_is_mandatory'] = ($mfield['entry_field_is_mandatory'])? 'O':'' ;
 		$_opDB->insert('define_file_entry',$arr_ins) ;
 	}
 	
