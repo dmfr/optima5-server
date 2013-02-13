@@ -138,6 +138,9 @@ function paracrm_lib_file_mapFile( $file_code, $is_called=FALSE )
 		$result = $_opDB->query($query) ;
 		while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
 		{
+			if( $arr['entry_field_type'] == '_label' ) {
+				continue ;
+			}
 			if( $arr['entry_field_type'] == 'link' ) {
 				$TAB = paracrm_lib_file_mapBible( $bible_code=$arr['entry_field_linkbible'], $remote_table=$file_code, $remote_field=('field_'.$arr['entry_field_code']) ) ;
 				

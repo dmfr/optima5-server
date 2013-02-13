@@ -267,6 +267,11 @@ function paracrm_data_editTransaction_fileRecord_init( $post_data , &$arr_saisie
 			$field['xtype'] = 'op5paracrmbiblepicker' ;
 			$field['bibleId'] = $arr['entry_field_linkbible'] ;
 			break ;
+			
+			case '_label' :
+			$field['xtype'] = 'label' ;
+			$field['html'] = '<b>'.$arr['entry_field_lib'].'</b>' ;
+			break ;
 		}
 		if( $arr['entry_field_is_header'] == 'O' )
 			$field['allowBlank'] = false ;
