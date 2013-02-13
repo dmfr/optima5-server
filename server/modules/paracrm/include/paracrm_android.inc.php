@@ -384,7 +384,7 @@ function paracrm_android_syncPull( $post_data )
 					$query.= "=" ;
 					break ;
 			}
-			if( is_array($filter['condition_value']) ) {
+			if( $filter['condition_sign'] == 'in' ) {
 				$query.=$_opDB->makeSQLlist($filter['condition_value']) ;
 			} else {
 				$query.="'{$filter['condition_value']}'" ;

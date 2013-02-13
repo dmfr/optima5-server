@@ -264,7 +264,7 @@ class MySQL_DB {
 	}
 
 	function makeSQLlist( $arr ) {
-		if( count($arr) == 0 )
+		if( !is_array($arr) || count($arr) == 0 )
 			return "(NULL)" ;
 
 		reset( $arr );
