@@ -595,9 +595,8 @@ Ext.define('Optima5.Modules.ParaCRM.MainToolbar' ,{
 		var definestorepanel = Ext.create('Optima5.Modules.ParaCRM.DefineStorePanel',params) ;
 		
 		this.win = desktop.createWindow({
-			id: 'pouet6',
 			title:'pouet6',
-			width:500,
+			width:620,
 			height:600,
 			iconCls: 'parapouet',
 			animCollapse:false,

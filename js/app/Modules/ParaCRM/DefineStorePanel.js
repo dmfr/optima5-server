@@ -29,6 +29,7 @@ Ext.define('Optima5.Modules.ParaCRM.DefineStorePanel' ,{
 		this.entryFieldType = Ext.create('Ext.data.Store', {
 			fields: ['dataType', 'dataTypeLib'],
 			data : [
+				{"dataType":"_label", "dataTypeLib":"None/Label"},
 				{"dataType":"string", "dataTypeLib":"Text"},
 				{"dataType":"number", "dataTypeLib":"Number"},
 				{"dataType":"bool", "dataTypeLib":"Boolean"},
@@ -169,9 +170,9 @@ Ext.define('Optima5.Modules.ParaCRM.DefineStorePanel' ,{
 				text: 'Node Type',
 				//width: 40,
 				sortable: false,
-				width:100,
+				width:150,
 				dataIndex: 'entry_field_type',
-				editor:{xtype:'combobox', forceSelection:true, editable:false, queryMode: 'local',displayField: 'dataTypeLib',valueField: 'dataType',store:this.entryFieldType}
+				editor:{xtype:'combobox', matchFieldWidth:false,listConfig:{width:200}, forceSelection:true, editable:false, queryMode: 'local',displayField: 'dataTypeLib',valueField: 'dataType',store:this.entryFieldType}
 			},{
 				xtype: 'booleancolumn',
 				type: 'boolean',
@@ -183,7 +184,7 @@ Ext.define('Optima5.Modules.ParaCRM.DefineStorePanel' ,{
 				align: 'center',
 				sortable: false,
 				dataIndex: 'entry_field_is_header',
-				editor:{xtype:'checkboxfield'}
+				editor:{xtype:'checkboxfield',padding:'0 0 0 16 '}
 			},{
 				xtype: 'booleancolumn',
 				type: 'boolean',
@@ -195,9 +196,24 @@ Ext.define('Optima5.Modules.ParaCRM.DefineStorePanel' ,{
 				align: 'center',
 				sortable: false,
 				dataIndex: 'entry_field_is_highlight',
-				editor:{xtype:'checkboxfield'}
+				editor:{xtype:'checkboxfield',padding:'0 0 0 16 '}
 			}]
 		});
+		if( this.defineDataType == 'file' ) {
+			elementtab.columns.push({
+				xtype: 'booleancolumn',
+				type: 'boolean',
+				defaultValue : false ,
+				text: 'Must?',
+				width: 50,
+				trueText: '<b>X</b>',
+				falseText: '' ,
+				align: 'center',
+				sortable: false,
+				dataIndex: 'entry_field_is_mandatory',
+				editor:{xtype:'checkboxfield',padding:'0 0 0 16 '}
+			}) ;
+		}
 		switch( this.defineDataType ) {
 			case 'bible' :
 				tabitems.push( treetab ) ;

@@ -112,6 +112,7 @@ Ext.define('Optima5.Modules.ParaCRM.DataFormPanel' ,{
 			url : 'server/backend.php',
 			baseParams: this.ajaxBaseParams ,
 			//frame: true,
+			autoScroll: true,
 			bodyPadding: 5,
 			fieldDefaults: {
 					labelAlign: 'left',
@@ -215,6 +216,9 @@ Ext.define('Optima5.Modules.ParaCRM.DataFormPanel' ,{
 			}
 
 			switch( field.type ) {
+				case '_label' :
+					return ;
+				
 				case 'link' :
 					Ext.apply( colCfg, {
 						flex:2,
@@ -222,14 +226,14 @@ Ext.define('Optima5.Modules.ParaCRM.DataFormPanel' ,{
 						editor:{
 							xtype:'op5paracrmbiblepicker',
 							bibleId: field.linkbible ,
-							allowBlank: !(field.is_header=='O')
+							allowBlank: !(field.is_header=='O' || field.is_mandatory=='O')
 						}
 					});
 					break ;
 					
 				case 'date' :
 					Ext.apply( colCfg, {
-						editor:{ xtype:'datetimefield' , allowBlank: !(field.is_header=='O') }
+						editor:{ xtype:'datetimefield' , allowBlank: !(field.is_header=='O' || field.is_mandatory=='O') }
 					});
 					break ;
 				
@@ -241,7 +245,7 @@ Ext.define('Optima5.Modules.ParaCRM.DataFormPanel' ,{
 				
 				default :
 					Ext.apply( colCfg, {
-						editor:{ xtype:'textfield', allowBlank: !(field.is_header=='O') }
+						editor:{ xtype:'textfield', allowBlank: !(field.is_header=='O' || field.is_mandatory=='O') }
 					});
 					break ;
 			}
