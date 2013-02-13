@@ -88,6 +88,9 @@ while( !feof($handle) )
 	$arr_mag['field_STORETEL'] = '+33 '.str_replace(' ',' ',$arr_csv[13]) ;
 	$arr_mag['field_STOREFAX'] = '+33 '.str_replace(' ',' ',$arr_csv[14]) ;
 	$arr_mag['field_STORESIRET'] = str_replace(' ','',$arr_csv[15]).str_replace(' ','',$arr_csv[16]) ;
+	$arr_mag['field_STOREADR'] = $arr_csv[10] ;
+	$arr_mag['field_STORECP'] = $arr_csv[9] ;
+	$arr_mag['field_STOREVILLE'] = $arr_csv[8] ;
 	/*
 	$res = FALSE ;
 	$GMap = new GMaps($google_key);
