@@ -244,6 +244,7 @@ function paracrm_android_getDbImage($post_data)
 	$tables['input_query'] = 'tmp_input_query' ;
 	$tables['input_query_where'] = 'tmp_input_query_where' ;
 	$tables['input_query_progress'] = 'tmp_input_query_progress' ;
+	$tables['input_xpressfile'] = 'input_xpressfile' ;
 	
 	
 	$first = paracrm_android_getDbImageTimestamp() ;
