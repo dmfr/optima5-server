@@ -3,11 +3,10 @@ session_start() ;
 $_SESSION['next_transaction_id'] = 1 ;
 
 //ini_set( 'memory_limit', '4096M');
-$server_root = dirname($_SERVER['SCRIPT_NAME']).'/..' ;
-if( $_SERVER['SCRIPT_NAME'] == '' )
-	$server_root = './..' ;
-
-$app_root='..' ;
+$app_root = dirname($_SERVER['SCRIPT_NAME']).'/../../..' ;
+$server_root=$app_root.'/server' ;
+$resources_root=$app_root.'/resources' ;
+$templates_dir=$resources_root.'/server/templates' ;
 //$server_root='.' ;
 
 
@@ -32,7 +31,7 @@ include("$server_root/modules/paracrm/backend_paracrm.inc.php");
 $_opDB->select_db( $mysql_db.'_'.'paracrm') ;
 
 
-$query = "SELECT * FROM view_file_ANIM" ;
+$query = "SELECT * FROM view_file_ANIM where field_ANIM_ISSENT='0'" ;
 $result = $_opDB->query($query) ;
 while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 
@@ -43,6 +42,18 @@ while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 	$query = "SELECT * FROM view_bible_SALES_entry WHERE entry_key='{$arr['field_ANIM_SALES']}'" ;
 	$res = $_opDB->query($query) ;
 	$arr_SALES = $_opDB->fetch_assoc($res) ;
+	$arr_SALES_parents = array() ;
+	$SALES_treenode = $arr_SALES['treenode_key'] ;
+	while( TRUE ) {
+		$query = "SELECT treenode_parent_key , field_SALESZONEMGR FROM view_bible_SALES_tree WHERE treenode_key='$SALES_treenode'" ;
+		$res = $_opDB->query($query) ;
+		$arrm = $_opDB->fetch_assoc($res) ;
+		if( $arrm == FALSE ) {
+			break ;
+		}
+		$arr_SALES_parents[] = $arrm['field_SALESZONEMGR'] ;
+		$SALES_treenode = $arrm['treenode_parent_key'] ;
+	}
 	
 	$query = "SELECT * FROM view_bible_ANIM_TYPE_entry WHERE entry_key='{$arr['field_ANIM_LINK']}'" ;
 	$res = $_opDB->query($query) ;
@@ -66,6 +77,16 @@ while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 	$thisanim['ent_SALESTEL'] = $arr_SALES['field_SALESMANTEL'] ;
 	$thisanim['ent_SALESEMAIL'] = $arr_SALES['field_SALESMANEMAIL'] ;
 	
+	$thisanim['email_ccmail'] = array() ;
+	foreach( $arr_SALES_parents as $SALES_parent ) {
+	foreach( explode(',',$SALES_parent) as $value ) {
+		if( strpos($value,'@') === FALSE ) {
+			continue ;
+		}
+		$thisanim['email_ccmail'][] = $value ;
+	}
+	}
+	
 	$thisanim['arr_dates'] = array() ;
 	$query = "SELECT * FROM view_file_ANIM_DATE WHERE filerecord_parent_id='{$arr['filerecord_id']}'" ;
 	$res = $_opDB->query($query) ;
@@ -85,21 +106,27 @@ while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 	$thisanim['date'] = $arr['field_ANIM_DATECDE'] ;
 	
 	$anims[] = $thisanim ;
+	
+	$query = "UPDATE store_file_ANIM SET field_ANIM_ISSENT_int='1' WHERE  filerecord_id='{$arr['filerecord_id']}'" ;
+	$_opDB->query($query) ;
 }
 
-print_r($anims) ;
+//print_r($anims) ;
+if( !$anims ) {
+	exit ;
+}
 
 foreach( $anims as $thisanim )
 {
 	$inputFileType = 'Excel5';
 	switch( $thisanim['type'] ) {
 		case 'ANIM_POM' :
-		$inputFileName = dirname($_SERVER['SCRIPT_NAME']).'/'.'QTP_121214_demoDemosthene_POM.xls' ;
+		$inputFileName = $templates_dir.'/'.'QTP_121214_demoDemosthene_POM.xls' ;
 		break;
 		
 		case 'ANIM_WP_BRI' :
 		case 'ANIM_WP_SAMP' :
-		$inputFileName = dirname($_SERVER['SCRIPT_NAME']).'/'.'QTP_121214_demoDemosthene_WP.xls' ;
+		$inputFileName = $templates_dir.'/'.'QTP_121214_demoDemosthene_WP.xls' ;
 		break ;
 		
 		default :
@@ -227,7 +254,7 @@ foreach( $anims as $thisanim )
 	$email_text = "" ;
 	$email_text.= "Societe : "."Wonderful Brands"."\r\n" ;
 	$email_text.= "Chef secteur : ".$thisanim['ent_SALESNAME']."\r\n" ;
-	$email_text.= "Tel : ".$thisanim['ent_SALESNAME']."\r\n" ;
+	$email_text.= "Tel : ".$thisanim['ent_SALESTEL']."\r\n" ;
 	$email_text.= "\r\n" ;
 	$email_text.= "Type Animation : ".$thisanim['type_txt']."\r\n" ;
 	$email_text.= "\r\n" ;
@@ -236,7 +263,13 @@ foreach( $anims as $thisanim )
 	$email_text.= "\r\n" ;
 
 	$to = array() ;
+	$to[] = 'planning@demosthene-france.fr' ;
 	$to[] = 'dm@mirabel-sil.com' ;
+	$to[] = $thisanim['ent_SALESEMAIL'] ;
+	foreach( $thisanim['email_ccmail'] as $email ) {
+		$to[] = $email ;
+	}
+	
 
 	$headers['From'] = $thisanim['ent_SALESNAME'].' <'.$thisanim['ent_SALESEMAIL'].'>' ;
 	$headers['To'] = implode(',',$to) ;
@@ -251,7 +284,7 @@ foreach( $anims as $thisanim )
 	$headers = $mime->headers($headers);
 
 	//Send the message via SMTP
-	$mail_obj =& Mail::factory('smtp', array('host' => 'smtp.wanadoo.fr', 'port' => 25));
+	$mail_obj =& Mail::factory('smtp', array('host' => '127.0.0.1', 'port' => 25));
 	$mail_obj->send($to, $headers, $body) ;
 }
 
