@@ -586,6 +586,8 @@ function paracrm_android_syncPull_dumpFile( $file_code, $master_query )
 			case 'link' :
 				$map['dest_db_field'] = 'filerecord_field_value_link' ;
 				break ;
+			default :
+				continue 2 ;
 		}
 		
 		$map_file[] = $map ;
@@ -755,6 +757,8 @@ function paracrm_android_syncPush( $post_data )
 					case 'link' :
 						$map['src_db_field'] = 'filerecord_field_value_link' ;
 						break ;
+					default :
+						continue 2 ;
 				}
 				
 				$map_file[$field_code] = $map ;
