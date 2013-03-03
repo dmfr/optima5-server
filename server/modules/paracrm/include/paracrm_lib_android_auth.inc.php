@@ -40,7 +40,7 @@ function paracrm_lib_android_authDB_updateDevice( $authandroid_id , $arr_device 
 }
 
 
-function paracrm_lib_android_authDevice_ping( $android_id, $set_timestamp=FALSE ) {
+function paracrm_lib_android_authDevice_ping( $android_id, $set_timestamp=FALSE, $version_code=NULL ) {
 	global $_opDB ;
 	
 	$android_id = strtoupper($android_id) ;
@@ -61,6 +61,9 @@ function paracrm_lib_android_authDevice_ping( $android_id, $set_timestamp=FALSE 
 	if( $set_timestamp ) {
 		$arr_update = array() ;
 		$arr_update['ping_timestamp'] = time() ;
+		if( $version_code ) {
+			$arr_update['ping_version'] = $version_code ;
+		}
 		$arr_cond = array();
 		$arr_cond['authandroid_id'] = $authandroid_id ;
 		$_opDB->update('auth_android',$arr_update,$arr_cond) ;

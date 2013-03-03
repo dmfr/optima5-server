@@ -2,7 +2,7 @@
 
 function paracrm_android_getDbImageTimestamp($post_data=NULL)
 {
-	if( $post_data && ( !$post_data['__ANDROID_ID'] || !paracrm_lib_android_authDevice_ping($post_data['__ANDROID_ID'],$ping=true) ) ) {
+	if( $post_data && ( !$post_data['__ANDROID_ID'] || !paracrm_lib_android_authDevice_ping($post_data['__ANDROID_ID'],$ping=true,$post_data['__versionCode']) ) ) {
 		// disable MODE !
 		return array('success'=>true,'timestamp'=>time()) ;
 	}
