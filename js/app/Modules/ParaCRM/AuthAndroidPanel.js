@@ -6,7 +6,8 @@ Ext.define('AuthAndroidModel', {
 		{name: 'device_android_id',   type: 'string'},
 		{name: 'device_is_allowed',   type: 'boolean'},
 		{name: 'device_desc',   type: 'string'},
-		{name: 'ping_timestamp',   type: 'int'}
+		{name: 'ping_timestamp',   type: 'int'},
+		{name: 'ping_version',   type: 'int'}
 	]
 });
 
@@ -80,7 +81,7 @@ Ext.define('Optima5.Modules.ParaCRM.AuthAndroidPanel' ,{
 		me.add({
 			xtype: 'gridpanel',
 			itemId:'mGridPanel',
-			flex:1,
+			flex:3,
 			title: 'Attached devices',
 			store: {
 				model: 'AuthAndroidModel',
@@ -146,6 +147,18 @@ Ext.define('Optima5.Modules.ParaCRM.AuthAndroidPanel' ,{
 					tmpDate.setTime(value * 1000) ;
 					return Ext.util.Format.date( tmpDate , 'd/m/Y H:i' ) ;
 				}
+			},{
+				text: 'Version',
+				flex: 0.5,
+				sortable: false,
+				dataIndex: 'ping_version',
+				menuDisabled: true,
+				renderer: function( value ) {
+					if( value <= 0 ) {
+						return "" ;
+					}
+					return value ;
+				}
 			}],
 			listeners: {
 				itemclick:function( view, record, item, index, event ) {
@@ -162,7 +175,7 @@ Ext.define('Optima5.Modules.ParaCRM.AuthAndroidPanel' ,{
 		},{
 			xtype:'panel',
 			itemId:'mFormPanel',
-			flex: 1 ,
+			flex: 2 ,
 			layout:'fit',
 			border:false
 		}) ;
