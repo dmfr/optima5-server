@@ -1,4 +1,6 @@
 <?php
+$GLOBALS['test_mode'] = FALSE ;
+
 function do_post_request($url, $data, $optional_headers = null)
 {
   $params = array('http' => array(
@@ -24,6 +26,9 @@ function oscario_http_post( $post_data ) {
 	$_domain = 'paramountfr' ;
 	$_auth_username = 'ediMirAbv04' ;
 	$_auth_password = 'paracrm' ;
+	if( $GLOBALS['test_mode'] ) {
+		$_domain = 'test' ;
+	}
 	
 	$post_base = array();
 	$post_base['oscario_domain'] = $_domain ;
@@ -198,6 +203,12 @@ while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 		$to[] = $value ;
 	}
 	}
+	if( $GLOBALS['test_mode'] ) {
+		print_r($to) ;
+		$to = array() ;
+		$to[] = 'dm@mirabel-sil.com' ;
+	}
+	
 	$headers['From'] = $bible_SALES_entry['field_SALESMANNAME'].' <'.$bible_SALES_entry['field_SALESMANEMAIL'].'>' ;
 	$headers['To'] = implode(',',$to) ;
 	$headers['Subject'] = '[Wonderful] '.$file_CDE_SAISIE['field_CDE_REFOSCAR'].' '.$bible_STORE_entry['field_STORENAME'] ;
