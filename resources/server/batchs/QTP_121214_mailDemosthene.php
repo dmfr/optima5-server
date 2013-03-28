@@ -279,11 +279,13 @@ foreach( $anims as $thisanim )
 	$mime->setTXTBody($email_text);
 	$mime->addAttachment($binarybuffer, 'application/vnd.ms-excel', date('ymd',strtotime($thisanim['date'])).'_'.$thisanim['ens'].'.xls', false, 'base64');
 
-	//Prepare the message to be sent
-	$body = $mime->get();
+	$mimeparams=array();
+	$mimeparams['text_encoding']="8bit";
+	$mimeparams['text_charset']="UTF-8";
+	$mimeparams['html_charset']="UTF-8"; 
+	$mimeparams['head_charset']="UTF-8"; 
+	$body = $mime->get($mimeparams);
 	$headers = $mime->headers($headers);
-
-	//Send the message via SMTP
 	$mail_obj =& Mail::factory('smtp', array('host' => '127.0.0.1', 'port' => 25));
 	$mail_obj->send($to, $headers, $body) ;
 }
