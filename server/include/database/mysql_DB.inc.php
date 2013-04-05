@@ -31,6 +31,7 @@ class MySQL_DB {
 		$this->db_name = $db ;
 		
 		// echo "CONNECT !!!" ;
+		mysql_query( "SET storage_engine=MYISAM", $this->connection ) ;
 		
 		foreach( $this->db_tables(NULL) as $dbtab )
 		{
@@ -48,12 +49,8 @@ class MySQL_DB {
 			@mysql_select_db( $db, $this->connection ) or die( "impossible d'ouvrir la base de donn�es\n" );
 		$this->type_de_base = "MySQL" ;
 		$this->db_name = $db ;
-	}
-	function test_mysql( $host, $db, $user, $pass ) {
-		$this->connection = @mysql_connect( $host, $user, $pass, TRUE );
-		@mysql_select_db( $db, $this->connection ) or die( "impossible d'ouvrir la base de donn�es\n" );
-		$this->type_de_base = "MySQL" ;
-		$this->db_name = $db ;
+		
+		mysql_query( "SET storage_engine=MYISAM", $this->connection ) ;
 	}
 
 	function connect_pgsql( $host, $db, $user, $pass ) {
