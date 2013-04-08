@@ -81,7 +81,9 @@ $query = "SELECT filerecord_id FROM view_file_CDE_SAISIE WHERE field_CDE_IS_SENT
 $result = $_opDB->query($query) ;
 while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 	$filerecord_id = $arr[0] ;
-	
+	$arr_filerecord_id[] = $filerecord_id ;
+}
+foreach( $arr_filerecord_id as $filerecord_id ) {
 	// ******* Chragement des tables *************
 	$query = "SELECT * FROM view_file_CDE_SAISIE WHERE filerecord_id='{$filerecord_id}'" ;
 	$result = $_opDB->query($query) ;
@@ -105,7 +107,8 @@ while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 		$TABfile_CDE_SAISIE_LIG[] = $arr ;
 	}
 	// *****************************************
-	$arr_SALES_parents = array() ;
+	$arr_mailinglist = array() ;
+	$arr_mailinglist[] = $bible_SALES_entry['field_SALESMANEMAIL'] ;
 	$SALES_treenode = $bible_SALES_entry['treenode_key'] ;
 	while( TRUE ) {
 		$query = "SELECT treenode_parent_key , field_SALESZONEMGR FROM view_bible_SALES_tree WHERE treenode_key='$SALES_treenode'" ;
@@ -114,8 +117,19 @@ while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 		if( $arrm == FALSE ) {
 			break ;
 		}
-		$arr_SALES_parents[] = $arrm['field_SALESZONEMGR'] ;
+		$arr_mailinglist[] = $arrm['field_SALESZONEMGR'] ;
 		$SALES_treenode = $arrm['treenode_parent_key'] ;
+	}
+	$CDESAISIE_treenode = $bible_CDESAISIE_entry['treenode_key'] ;
+	while( TRUE ) {
+		$query = "SELECT treenode_parent_key , field_EMAIL_LIST FROM view_bible_CDESAISIE_tree WHERE treenode_key='$CDESAISIE_treenode'" ;
+		$res = $_opDB->query($query) ;
+		$arrm = $_opDB->fetch_assoc($res) ;
+		if( $arrm == FALSE ) {
+			break ;
+		}
+		$arr_mailinglist[] = $arrm['field_EMAIL_LIST'] ;
+		$CDESAISIE_treenode = $arrm['treenode_parent_key'] ;
 	}
 	// *****************************************
 	
@@ -150,7 +164,9 @@ while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 	// ******* EDI message + Post through EDI *********
 	if( !$_errors ) {
 		$EDIFACT_ORDERS = create_ORDERS_from_crmFile( $filerecord_id ) ;
-		//echo $EDIFACT_ORDERS ;
+		if( $GLOBALS['test_mode'] ) {
+			echo $EDIFACT_ORDERS ;
+		}
 	
 		$post = array() ;
 		$post['edi_method'] = 'EDIFACT_ORDERS' ;
@@ -193,10 +209,8 @@ while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 	$email_text = mail_getBody($filerecord_id, $_errors) ;
 	$binarybuffer_xlsx = mail_getBinary_ficheNouveauClient( $bible_STORE_entry['entry_key'] ) ;
 	$to = array() ;
-	$to[] = 'ivankerkhove@paramountfarms.com' ;
-	$to[] = $bible_SALES_entry['field_SALESMANEMAIL'] ;
-	foreach( $arr_SALES_parents as $SALES_parent ) {
-	foreach( explode(',',$SALES_parent) as $value ) {
+	foreach( $arr_mailinglist as $mailinglist_entry ) {
+	foreach( explode(',',$mailinglist_entry) as $value ) {
 		if( strpos($value,'@') === FALSE ) {
 			continue ;
 		}

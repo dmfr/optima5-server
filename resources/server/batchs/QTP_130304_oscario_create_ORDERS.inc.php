@@ -80,15 +80,24 @@ function create_ORDERS_from_crmFile( $filerecord_id ) {
 	$buffer[] = "NAD+DP+{$NAD_DP}::9++{$adrliv_nom}+{$adrliv_adr1}+{$adrliv_ville}++{$adrliv_cp}+FR'" ;
 	$cnt=0 ;
 	foreach( $TABfile_CDE_SAISIE_LIG as $file_CDE_SAISIE_LIG ) {
-		$qte_cde_uvc = (float)($file_CDE_SAISIE_LIG['field_UC_PCB'] * ($file_CDE_SAISIE_LIG['field_CDE_QTE_UC_PAID']+$file_CDE_SAISIE_LIG['field_CDE_QTE_UC_FREE'])) ;
-		$uc_pcb = (float)$file_CDE_SAISIE_LIG['field_UC_PCB'] ;
-	
-		$cnt++ ;
-		$buffer[] = "LIN+{$cnt}++{$file_CDE_SAISIE_LIG['field_UVC_EAN']}:EN::9'" ;
-		$buffer[] = "PIA+5+{$file_CDE_SAISIE_LIG['field_PROD_REF']}:SA'" ;
-		$buffer[] = "IMD+F++:::{$file_CDE_SAISIE_LIG['field_PROD_LIB']}'" ;
-		$buffer[] = "QTY+21:{$qte_cde_uvc}'" ;
-		$buffer[] = "QTY+59:{$uc_pcb}'" ;
+		foreach( array('field_CDE_QTE_UC_PAID','field_CDE_QTE_UC_FREE') as $mkey ) {
+			$qte_cde_uvc = (float)($file_CDE_SAISIE_LIG['field_UC_PCB'] * $file_CDE_SAISIE_LIG[$mkey]) ;
+			$uc_pcb = (float)$file_CDE_SAISIE_LIG['field_UC_PCB'] ;
+			
+			if( $qte_cde_uvc <= 0 ) {
+				continue ;
+			}
+		
+			$cnt++ ;
+			$buffer[] = "LIN+{$cnt}++{$file_CDE_SAISIE_LIG['field_UVC_EAN']}:EN::9'" ;
+			$buffer[] = "PIA+5+{$file_CDE_SAISIE_LIG['field_PROD_REF']}:SA'" ;
+			$buffer[] = "IMD+F++:::{$file_CDE_SAISIE_LIG['field_PROD_LIB']}'" ;
+			$buffer[] = "QTY+21:{$qte_cde_uvc}'" ;
+			$buffer[] = "QTY+59:{$uc_pcb}'" ;
+			if( $mkey == 'field_CDE_QTE_UC_FREE' ) {
+				$buffer[] = "PRI+INF:0.00::DPR:1:PCE'" ;
+			}
+		}
 	}
 	$buffer[] = "UNS+S'" ;
 	$nb_ligs = count($buffer) - 2 + 1 ;

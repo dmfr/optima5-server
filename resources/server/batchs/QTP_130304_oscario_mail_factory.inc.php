@@ -103,35 +103,44 @@ function mail_getBody( $filerecord_id, $_errors ) {
 	$email_text.= "No.Cde Oscario : ".$file_CDE_SAISIE['field_CDE_REFOSCAR']."\r\n" ;
 	$email_text.= "DATE LIVRAISON : ".date('Y-m-d',strtotime($file_CDE_SAISIE['field_CDE_DATELIV']))."\r\n" ;
 	$email_text.= "\r\n" ;
-	$email_text.= "  Product    | Description                                |Qte.PCB|Qte.UVC|Bags/Pds "."\r\n" ;
-	$email_text.= "-------------|--------------------------------------------|-------|-------|---------"."\r\n" ;
+	$email_text.= "  Product    | Description                                |Tariff|  Qte   |Bags/Pds "."\r\n" ;
+	$email_text.= "-------------|--------------------------------------------|------|--------|---------"."\r\n" ;
 	
-	$email_base = "             |                                            |       |       |         " ;
+	$email_base = "             |                                            |      |        |         " ;
 	
 	foreach( $TABfile_CDE_SAISIE_LIG as $file_CDE_SAISIE_LIG ) {
-		$prod_ref = $file_CDE_SAISIE_LIG['field_CDE_PROD'] ;
-		$prod_lib = $file_CDE_SAISIE_LIG['field_PROD_LIB'] ;
-		$prod_ean = $file_CDE_SAISIE_LIG['field_UVC_EAN'] ;
-		$qte_uc = (float)( $file_CDE_SAISIE_LIG['field_CDE_QTE_UC_PAID'] + $file_CDE_SAISIE_LIG['field_CDE_QTE_UC_FREE'] ) ;
-		$qte_uvc = (float)( $file_CDE_SAISIE_LIG['field_UC_PCB'] * $qte_uc ) ;
-		$qte_unit = (float)( $file_CDE_SAISIE_LIG['field_EQ_UNIT'] * $qte_uvc ) ;
-		$poids_kg = round( $file_CDE_SAISIE_LIG['field_EQ_KG'] * $qte_uvc , 1 ) ;
-		
-		$lig = $email_base ;
-		$lig = substr_mklig($lig,$prod_ref,1,12) ;
-		$lig = substr_mklig($lig,$prod_lib,15,42) ;
-		$lig = substr_mklig($lig,$qte_uc,60,5,true) ;
-		$lig = substr_mklig($lig,$qte_uvc,68,5,true) ;
-		$lig = substr_mklig($lig,$qte_unit,76,6,true) ;
-		$email_text.= $lig."\r\n" ;
-		
-		$lig = $email_base ;
-		if( $file_CDE_SAISIE_LIG['field_CDE_QTE_UC_FREE'] > 0 ) {
-			$lig = substr_mklig($lig,'G:'.((float)$file_CDE_SAISIE_LIG['field_CDE_QTE_UC_FREE']),60,5,true) ;
+		foreach( array('field_CDE_QTE_UC_PAID','field_CDE_QTE_UC_FREE') as $mkey ) {
+			$prod_ref = $file_CDE_SAISIE_LIG['field_CDE_PROD'] ;
+			$prod_lib = $file_CDE_SAISIE_LIG['field_PROD_LIB'] ;
+			$prod_ean = $file_CDE_SAISIE_LIG['field_UVC_EAN'] ;
+			$prod_pcb = (float)$file_CDE_SAISIE_LIG['field_UC_PCB'] ;
+			$qte_uc = (float)( $file_CDE_SAISIE_LIG[$mkey] ) ;
+			$qte_uvc = (float)( $file_CDE_SAISIE_LIG['field_UC_PCB'] * $qte_uc ) ;
+			$qte_unit = (float)( $file_CDE_SAISIE_LIG['field_EQ_UNIT'] * $qte_uvc ) ;
+			$poids_kg = round( $file_CDE_SAISIE_LIG['field_EQ_KG'] * $qte_uvc , 1 ) ;
+			
+			if( $qte_uc <= 0 ) {
+				continue ;
+			}
+			
+			$lig = $email_base ;
+			$lig = substr_mklig($lig,$prod_ref,1,12) ;
+			$lig = substr_mklig($lig,$prod_lib,15,42) ;
+			if( $mkey == 'field_CDE_QTE_UC_FREE' ) {
+				$lig = substr_mklig($lig,'FREE',60,4) ;
+			}
+			$lig = substr_mklig($lig,$qte_uvc,67,6,true) ;
+			$lig = substr_mklig($lig,$qte_unit,76,6,true) ;
+			$email_text.= $lig."\r\n" ;
+			
+			$lig = $email_base ;
+			$lig = substr_mklig($lig,"EAN:".$prod_ean,17,30) ;
+			$lig = substr_mklig($lig,"PCB:".$prod_pcb,67,6) ;
+			$lig = substr_mklig($lig,$poids_kg.' kg',76,8,true) ;
+			$email_text.= $lig."\r\n" ;
+
+			$email_text.= $email_base."\r\n" ;
 		}
-		$lig = substr_mklig($lig,"EAN:".$prod_ean,17,30) ;
-		$lig = substr_mklig($lig,$poids_kg.'Kg',76,8,true) ;
-		$email_text.= $lig."\r\n" ;
 	}
 
 	return $email_text ;
