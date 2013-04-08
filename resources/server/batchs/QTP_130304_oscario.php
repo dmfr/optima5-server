@@ -1,5 +1,4 @@
 <?php
-$GLOBALS['test_mode'] = FALSE ;
 
 function do_post_request($url, $data, $optional_headers = null)
 {
@@ -26,7 +25,7 @@ function oscario_http_post( $post_data ) {
 	$_domain = 'paramountfr' ;
 	$_auth_username = 'ediMirAbv04' ;
 	$_auth_password = 'paracrm' ;
-	if( $GLOBALS['test_mode'] ) {
+	if( $GLOBALS['__OPTIMA_TEST'] ) {
 		$_domain = 'test' ;
 	}
 	
@@ -164,7 +163,7 @@ foreach( $arr_filerecord_id as $filerecord_id ) {
 	// ******* EDI message + Post through EDI *********
 	if( !$_errors ) {
 		$EDIFACT_ORDERS = create_ORDERS_from_crmFile( $filerecord_id ) ;
-		if( $GLOBALS['test_mode'] ) {
+		if( $GLOBALS['__OPTIMA_TEST'] ) {
 			echo $EDIFACT_ORDERS ;
 		}
 	
@@ -217,7 +216,7 @@ foreach( $arr_filerecord_id as $filerecord_id ) {
 		$to[] = $value ;
 	}
 	}
-	if( $GLOBALS['test_mode'] ) {
+	if( $GLOBALS['__OPTIMA_TEST'] ) {
 		print_r($to) ;
 		$to = array() ;
 		$to[] = 'dm@mirabel-sil.com' ;
