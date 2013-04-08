@@ -21,6 +21,16 @@ if( !defined('INC_CONFIG_DB') )
 	$suffixe = "( ".$_SESSION['login_data']['userstr']." )" ;
 	
 	
+	// ******** Switch mode DEV ********
+	if( $_SESSION['login_data']['dev_db']
+		|| getenv('OPTIMA_TEST') != NULL
+		|| is_file($app_root.'/DEV') ) {
+		
+		$GLOBALS['__OPTIMA_TEST'] = TRUE ;
+	}
+	// *********************************
+	
+	
 	define( 'INC_CONFIG_DB', TRUE ) ;
 }
 
