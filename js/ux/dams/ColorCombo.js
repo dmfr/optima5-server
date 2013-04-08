@@ -51,6 +51,7 @@ Ext.define('Ext.ux.dams.ColorCombo', {
 				if (rec) {
 					var newColor = rec.get(this.iconColorField);
 					this.iconClsEl.dom.style.backgroundColor=newColor ;
+					//this.iconClsEl.dom.style.background = "url('images/op5img/ico_cancel_small.gif') no-repeat center center" ;
 				}
 			} else {
 				this.on('render', this.setIconCls, this, {
