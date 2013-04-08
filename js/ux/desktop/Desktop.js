@@ -113,6 +113,20 @@ Ext.define('Ext.ux.desktop.Desktop', {
             me.createDataView()
         ];
 
+        /*
+        me.on('afterrender',function() {
+			  Ext.create('Ext.ux.window.Notification', {
+												title: 'Notification',
+												position: 'br',
+												manager: 'instructions',
+												cls: 'ux-notification-light',
+												html: 'Using bounceOut/easeIn animation effect.',
+												autoHideDelay: 2000,
+												slideInDuration: 200,
+												slideBackDuration: 200
+											}).show();
+        }); 
+        */
         me.callParent();
 
         me.shortcutsView = me.items.getAt(1);
