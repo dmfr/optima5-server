@@ -27,6 +27,7 @@ if( !defined('INC_CONFIG_DB') )
 		|| is_file($app_root.'/DEV') ) {
 		
 		$GLOBALS['__OPTIMA_TEST'] = TRUE ;
+		echo "OPTIMA test mode : TRUE\n" ;
 	}
 	// *********************************
 	
