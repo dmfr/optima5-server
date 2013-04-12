@@ -9,8 +9,10 @@ if( !defined('INC_CONFIG_DB') )
 		$mysql_db = $_SESSION['login_data']['mysql_db'] ;
 	elseif( getenv('OPTIMA_DB') != NULL )
 	{
-		echo "Base de donnees OPTIMA : ".getenv('OPTIMA_DB')."\n" ;
-		$mysql_db = getenv('OPTIMA_DB') ;
+		//echo "Base de donnees OPTIMA : ".getenv('OPTIMA_DB')."\n" ;
+		if( defined('STDERR') ) {
+			fwrite(STDERR, "Base de donnees OPTIMA : ".getenv('OPTIMA_DB')."\n");
+		}
 	}
 	
 	if( $_SESSION['login_data']['dev_db'] != NULL )
@@ -27,8 +29,10 @@ if( !defined('INC_CONFIG_DB') )
 		|| is_file($app_root.'/DEV') ) {
 		
 		$GLOBALS['__OPTIMA_TEST'] = TRUE ;
-		echo "OPTIMA test mode : TRUE\n" ;
-	}
+		//echo "OPTIMA test mode : TRUE\n" ;
+		if( defined('STDERR') ) {
+			fwrite(STDERR, "OPTIMA test mode : TRUE\n");}
+		}
 	// *********************************
 	
 	
