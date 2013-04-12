@@ -48,6 +48,8 @@ Ext.define('Optima5.CoreDesktop.OptimaDesktop', {
 		 var me = this ;
         // custom logic before getXYZ methods get called...
 		  
+		  Optima5.Helper.registerApplication( me ) ;
+		  
 		  Optima5.CoreDesktop.Ajax.request({
 				url: 'server/login.php',
 				params: {

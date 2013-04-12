@@ -8,6 +8,7 @@ Ext.Loader.setConfig({
 		}
 });
 
+Ext.require('Optima5.Helper') ;
 Ext.require('Optima5.CoreDesktop.OptimaDesktop');
 // Ext.ns('Optima5.Modules');
 
@@ -188,8 +189,15 @@ Ext.onReady(function () {
 		}
 	});
 	
+	var myMask = new Ext.LoadMask(Ext.getBody(), {useMsg:false});
+	myMask.show();
+
  	
 	
 	op5desktop = new Optima5.CoreDesktop.OptimaDesktop ;
 	op5session = new Ext.util.MixedCollection();
+	
+	Optima5.Helper.dummyMethod() ;
+	
+	console.dir(Optima5) ;
 });
