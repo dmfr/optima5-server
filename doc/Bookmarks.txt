@@ -1,0 +1,6 @@
+********* Desktop 1304 ***********
+
+2013-04-12 Model vs Store :
+http://stackoverflow.com/questions/7404870/extjs-how-to-use-proxy-model-how-are-they-related
+
+
