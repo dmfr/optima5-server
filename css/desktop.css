@@ -516,3 +516,27 @@ body .ux-notification-light {
 	background-color: transparent;
 	border: 0px solid white;
 }
+
+
+/* Loading section */
+body {    background: none repeat scroll 0 0 #F8F8F8;}
+
+#loading {
+        height: 240px;
+        left: 50%;
+        margin: -120px 0 0 -160px;
+        position: absolute;
+        top: 50%;
+        width: 320px;
+}
+
+#loading .logo{
+        background: url("../images/extdesklogo.gif") no-repeat scroll 0 0 transparent;
+        margin:0 auto;
+        display: block;
+        height: 240px;
+        left: 0px;
+        position: absolute;
+        top: 0px;
+        width: 320px;
+}
