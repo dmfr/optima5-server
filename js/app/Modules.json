@@ -3,6 +3,7 @@
 		"moduleId":"crmbase",
 		"moduleName":"CRM Base Domain",
 		"classPath":"Optima5.Modules.CrmBase",
+		"classMain":"AppWindow",
 		"moduleType":"sdomain",
 		"iconSmall":"pouet.gif",
 		"iconBig":"okook.gif",
@@ -11,7 +12,7 @@
 		"moduleId":"admin",
 		"moduleName":"Root Admin",
 		"classPath":"Optima5.Modules.Admin",
-		"moduleType":"applet",
+		"moduleType":"applet_admin",
 		"iconSmall":"pouet.gif",
 		"iconBig":"okook.gif",
 		"params":[]

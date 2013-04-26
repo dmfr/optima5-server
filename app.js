@@ -198,6 +198,6 @@ Ext.onReady(function () {
 	op5session = new Ext.util.MixedCollection();
 	
 	Optima5.Helper.dummyMethod() ;
-	console.dir( Optima5.Helper.modulesGetAll() ) ;
+	console.dir( Optima5.Helper.getModulesLib().modulesGetAll() ) ;
 	console.dir(Optima5) ;
 });

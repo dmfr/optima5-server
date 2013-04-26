@@ -1,18 +1,11 @@
-Ext.define('OptimaModuleModel', {
-	extend: 'Ext.data.Model',
-	idProperty: 'moduleId',
-	fields: [
-		{name: 'moduleId',  type: 'string'},
-		{name: 'moduleName', type:'string'}
-	]
-});
-
-
 Ext.define('Optima5.Helper',{
 	singleton:true,
-	requires:['Ext.data.Store'],
+	requires:[
+		'Ext.data.Store',
+		'Optima5.Modules'
+	],
 	
-	modulesStore: null,
+	modulesLib: null,
 	
 	registerApplication: function( op5CoreApp ) {
 		console.dir( op5CoreApp ) ;
@@ -25,31 +18,19 @@ Ext.define('Optima5.Helper',{
 	
 	constructor: function() {
 		var me = this ;
-        console.log('Helper is here!') ;
-		  me.modulesInit() ;
+		console.log('Helper is here!') ;
+		me.modulesLib = Ext.create('Optima5.Modules',{}) ;
    },
+	getModulesLib:function() {
+		var me = this ;
+		return me.modulesLib ;
+	},
 	
-	modulesInit: function() {
-		//build store
-		var me = this ;
-		me.modulesStore = Ext.create('Ext.data.Store',{
-			model:'OptimaModuleModel',
-			proxy: {
-				type: 'ajax',
-				url : './js/app/Modules.json',
-				reader: {
-					type: 'json'
-				}
-			},
-			autoLoad: true
-		}) ;
+	
+	getAjaxProxy: function( cmp ) {
+		
 	},
-	modulesGetById: function( moduleId ) {
-		var me = this ;
-		return me.modulesStore.getById(moduleId) ;
-	},
-	modulesGetAll: function() {
-		var me = this ;
-		return me.modulesStore.getRange() ;
+	getAjaxConnection: function( cmp ) {
+		
 	}
 });
