@@ -1,0 +1,11 @@
+[
+	{
+		"iconCode":"notepad",
+		"iconSrc16":"ico_notepad_16.png",
+		"iconSrc48":"ico_notepad_48.png"
+	},{
+		"iconCode":"paracrm",
+		"iconSrc16":"ico_paracrm_16.gif",
+		"iconSrc48":"ico_paracrm_48.png"
+	}
+]
