@@ -1,36 +1,36 @@
 [
 	{
+		"enabled":false,
 		"moduleId":"crmbase",
 		"moduleName":"CRM Base Domain",
 		"classPath":"Optima5.Modules.CrmBase",
 		"classMain":"AppWindow",
 		"moduleType":"sdomain",
-		"iconSmall":"pouet.gif",
-		"iconBig":"okook.gif",
+		"iconCode":"paracrm",
 		"params": [{"paramCode":"sdomain_db"}]
 	},{
+		"enabled":false,
 		"moduleId":"admin",
 		"moduleName":"Root Admin",
 		"classPath":"Optima5.Modules.Admin",
-		"moduleType":"applet_admin",
-		"iconSmall":"pouet.gif",
-		"iconBig":"okook.gif",
+		"moduleType":"admin",
+		"iconCode":"notepad",
 		"params":[]
 	},{
+		"enabled":false,
 		"moduleId":"calc",
 		"moduleName":"Calc",
 		"classPath":"Optima5.Modules.UxCalc",
 		"moduleType":"applet",
-		"iconSmall":"pouet.gif",
-		"iconBig":"okook.gif",
+		"iconCode":"notepad",
 		"params":[]
 	},{
+		"enabled":false,
 		"moduleId":"notepad",
 		"moduleName":"Notepad",
 		"classPath":"Optima5.Modules.UxNotepad",
 		"moduleType":"applet",
-		"iconSmall":"pouet.gif",
-		"iconBig":"okook.gif",
+		"iconCode":"notepad",
 		"params": [{"paramCode":"note_uri"}]
 	}
 ]

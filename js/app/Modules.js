@@ -20,6 +20,7 @@ Ext.define('OptimaModuleDescModel', {
 	extend: 'Ext.data.Model',
 	idProperty: 'moduleId',
 	fields: [
+		{name: 'enabled',   type: 'boolean'},
 		{name: 'moduleId',   type: 'string'},
 		{name: 'moduleName', type: 'string'},
 		{name: 'classPath', type: 'string'},
@@ -48,12 +49,18 @@ Ext.define('OptimaModuleExecModel', {
 
 
 Ext.define('Optima5.Modules',{
+	mixins: {
+		observable: 'Ext.util.Observable'
+	},
 	
 	modulesStore: null,
 	
-	constructor: function() {
+	constructor: function(config) {
 		//build store
 		var me = this ;
+		me.addEvents('ready') ;
+		me.mixins.observable.constructor.call(this, config);
+		
 		me.modulesStore = Ext.create('Ext.data.Store',{
 			model:'OptimaModuleDescModel',
 			proxy: {
@@ -68,13 +75,17 @@ Ext.define('Optima5.Modules',{
 		
 		// Dev : requires all dependancies
 		me.modulesStore.on('load',function() {
-			console.log('load done!') ;
 			var requireStr ;
 			Ext.Array.each(me.modulesStore.getRange(), function(moduleDesc) {
+				if( !moduleDesc.get('enabled') ) {
+					return ;
+				}
 				requireStr = moduleDesc.get('classPath')+'.'+moduleDesc.get('classMain') ;
-				console.log(requireStr) ;
+				Optima5.Helper.logDebug('Modules:constructor','Ext.require: '+requireStr) ;
 				Ext.require(requireStr) ;
 			},me) ;
+			me.modulesReady = true ;
+			me.fireEvent('ready') ;
 		},me) ;
 		
 		me.modulesStore.load() ;
