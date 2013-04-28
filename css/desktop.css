@@ -540,3 +540,8 @@ body {    background: none repeat scroll 0 0 #F8F8F8;}
         top: 0px;
         width: 320px;
 }
+
+/* Login section */
+.op5-login-west {
+	background: #eeeeee url('../images/AquaSafari_logo.png') no-repeat center center;
+}
