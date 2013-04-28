@@ -1,7 +1,9 @@
-Ext.define('Optima5.Core.ModuleInstance',{
+Ext.define('Optima5.Module',{
 	mixins: {
 		observable: 'Ext.util.Observable'
 	},
+	
+	app: null,
 	
 	moduleId : '',
 	sdomainDb : null,
@@ -9,58 +11,53 @@ Ext.define('Optima5.Core.ModuleInstance',{
 	
 	windows: null,
 	
-	constructor: function( config ) {
+	constructor: function( moduleCfg ) {
 		var me = this;
 		me.addEvents(
 			'start',
 			'stop'
 		);
-		me.mixins.observable.constructor.call(this, config);
+		me.mixins.observable.constructor.call(this, moduleCfg);
 		
-		if( config.moduleId == null ) {
-			console.log('ModuleInstance:constructor : no moduleId ?') ;
-			return ;
+		if( moduleCfg.app == null || !(moduleCfg.app instanceof Optima5.App) ) {
+			console.log('Module:constructor : missing/invalid App reference') ;
+			return null ;
 		}
 		
-		var moduleDescRecord = Optima5.Helper.getModulesLib().modulesGetById(config.moduleId) ;
+		if( moduleCfg.moduleId == null ) {
+			console.log('Module:constructor : no moduleId ?') ;
+			return null ;
+		}
+		var moduleDescRecord = Optima5.Helper.getModulesLib().modulesGetById(moduleCfg.moduleId) ;
 		if( moduleDescRecord == null ) {
-			console.log('ModuleInstance:constructor : unknown moduleId') ;
-			return ;
+			console.log('Module:constructor : unknown moduleId') ;
+			return null ;
 		}
+		
+		var moduleParams = moduleCfg.moduleParams || {} ;
 		switch( moduleDescRecord.get('moduleType') ) {
 			case 'sdomain' :
 				if( moduleParams == null || moduleParams.sdomain_db == null || moduleParams.sdomain_db == '' ) {
-					console.log('ModuleInstance:constructor : sdomain_db missing') ;
+					console.log('Module:constructor : sdomain_db missing') ;
 				} else {
 					me.sdomainDb = moduleParams.sdomain_db ;
 				}
 				break ;
 		}
 		
-		me.moduleId = config.moduleId ;
-		if( Ext.isObject(config.moduleParams) ) {
-			me.moduleParams = config.moduleParams ;
-		}
+		me.app = moduleCfg.app ;
+		me.moduleId = moduleCfg.moduleId ;
+		me.moduleParams = moduleParams ;
 		
 		me.windows = new Ext.util.MixedCollection();
 		
-		var moduleParams = {} ;
-		if( Ext.isObject(config.moduleParams) ) {
-			Ext.apply(moduleParams,config.moduleParams) ;
-		}
-		Ext.apply(moduleParams,{
-			moduleInstance: me
-		}) ;
+		me.initModule( moduleCfg ) ;
 		
-		var mainClassStr = moduleDesc.get('classPath')+'.'+moduleDesc.get('classMain') ;
-		var mainWindow = Ext.create( mainClassStr , me.moduleParams ) ;
-		if( mainWindow != null && mainWindow instanceof Ext.window.Window
-			&& me.windows.contains(mainWindows)
-		) {
-			me.fireEvent('start',me) ;
-		}
+		return me ;
 	},
-	
+	initModule: function() {
+		// To override
+	},
 	
 	createWindow: function(config, cls) {
 		var me = this ;
@@ -71,11 +68,18 @@ Ext.define('Optima5.Core.ModuleInstance',{
 		
 		var win = me.app.getDesktop().createWindow(config,cls) ;
 		
+		var fireStart = false ;
+		if( me.windows.getCount() == 0 ) {
+			fireStart = true ;
+		}
 		me.windows.add(win) ;
+		if( fireStart ) {
+			me.fireEvent('start',me) ;
+		}
 		
 		win.on({
-			beforeclose: Ext.emptyFn,
-			destroy: Ext.emptyFn,
+			beforeclose: me.onWindowClose,
+			destroy: me.onWindowDestroy,
 			scope: me
 		});
 	},

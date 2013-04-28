@@ -5,7 +5,6 @@ Ext.define('Optima5.Helper',{
 	singleton:true,
 	debug:true,
 	requires:[
-		'Ext.data.Store',
 		'Optima5.Modules',
 		'Optima5.Icons'
 	],
@@ -43,6 +42,12 @@ Ext.define('Optima5.Helper',{
 		me.addEvents('ready') ;
 		me.mixins.observable.constructor.call(this, config);
 		
+		Ext.defer(function() {
+			me.loadLibs() ;
+		},100,me) ;
+   },
+	loadLibs: function() {
+		var me = this ;
 		me.libCount = 2 ;
 		me.modulesLib = Ext.create('Optima5.Modules',{
 			listeners: {
@@ -56,14 +61,6 @@ Ext.define('Optima5.Helper',{
 				scope:me
 			}
 		}) ;
-   },
-	getModulesLib:function() {
-		var me = this ;
-		return me.modulesLib ;
-	},
-	getIconsLib: function() {
-		var me = this ;
-		return me.iconsLib ;
 	},
 	onLibLoad: function() {
 		var me = this ;
@@ -72,6 +69,14 @@ Ext.define('Optima5.Helper',{
 			me.isReady=true ;
 			me.fireEvent('ready') ;
 		}
+	},
+	getModulesLib:function() {
+		var me = this ;
+		return me.modulesLib ;
+	},
+	getIconsLib: function() {
+		var me = this ;
+		return me.iconsLib ;
 	},
 	
 	
