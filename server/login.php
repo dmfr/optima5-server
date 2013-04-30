@@ -10,7 +10,8 @@ include("$server_root/include/database/mysql_DB.inc.php");
 
 if( $_POST['_action'] == 'login' )
 {
-	$userstr = trim($_POST['login_user']) ;
+	usleep(500*1000) ;
+	$userstr = strtolower(trim($_POST['login_user'])) ;
 	if( trim($_POST['login_domain']) )
 	{
 		if( strpos($userstr,'@') === FALSE )
@@ -30,6 +31,11 @@ if( $_POST['_action'] == 'login' )
 	switch( count($arr_tmp) )
 	{
 		case 2 :
+		// TODO : support dev_db
+		$error = "Requested <u>devDB</u> (= <b>{$arr_tmp[1]}</b> for <b>{$arr_tmp[0]}</b>) not yet supported";
+		$__errors = array($error);
+		die(json_encode(array('done' => FALSE,'errors'=>$__errors))) ;
+		
 		$login_domain = $arr_tmp[0] ;
 		$login_domain.= "_";
 		$login_domain.= $arr_tmp[1] ;
@@ -71,11 +77,28 @@ if( $_POST['_action'] == 'login' )
 	$_opDB = new mysql_DB( );
 	$_opDB->connect_mysql_nocheck( $mysql_host, $mysql_db, $mysql_user, $mysql_pass );
 	
-	$query = "SELECT * FROM z_user WHERE user_login='$login_user' AND user_password='{$_POST['login_password']}'" ;
-	$result = $_opDB->query($query) ;
-	if( $_opDB->num_rows($result) != 1 )
-	{
-		die(json_encode(array('done' => FALSE,'errors'=>array("Invalid username or password for <b>{$userstr}</b>"),'mysql_db'=>$mysql_db))) ;
+	if( $login_user == 'root' ) {
+		if( defined('AUTH_ROOT_PASSWORD_PLAIN') && AUTH_ROOT_PASSWORD_PLAIN != ''
+		&& AUTH_ROOT_PASSWORD_PLAIN == $_POST['login_password'] ) {
+			
+			// OK
+		} else {
+		
+			die(json_encode(array('done' => FALSE,'errors'=>array("Cannot login as root for <b>$login_domain</b>"),'mysql_db'=>$mysql_db))) ;
+		}
+	} else {
+		$password_sha1 = sha1($login_user.AUTH_SHA1_SALT.trim($_POST['login_password'])) ;
+		$query = "SELECT * FROM auth_user WHERE user_code='$login_user' AND password_sha1='{$password_sha1}'" ;
+		$result = $_opDB->query($query) ;
+		if( $_opDB->num_rows($result) != 1 )
+		{
+			die(json_encode(array('done' => FALSE,'errors'=>array("Invalid username or password for <b>{$userstr}</b>"),'mysql_db'=>$mysql_db))) ;
+		}
+		else
+		{
+			$arr = $_opDB->fetch_assoc($result) ;
+			$auth_class = $arr['auth_class'] ;
+		}
 	}
 	//*************************
 
@@ -106,7 +129,6 @@ if( $_POST['_action'] == 'login' )
 		$_SESSION['login_data']['session_id'] = $session_name ;
 		$_SESSION['login_data']['login_password'] = $_POST['password'] ;
 		$_SESSION['login_data']['login_user'] = $login_user ;
-		$_SESSION['login_data']['login_soc'] = $login_soc ;
 		$_SESSION['login_data']['login_domain'] = $login_domain ;
 		$_SESSION['login_data']['userstr'] = strtolower($userstr) ;
 		$_SESSION['login_data']['mysql_db'] = $mysql_db ;
@@ -114,8 +136,7 @@ if( $_POST['_action'] == 'login' )
 		if( $_dev_db != NULL )
 			$_SESSION['login_data']['dev_db'] = $_dev_db ;
 			
-		$_SESSION['login_data']['auth_class'] = 'A' ;
-		$_SESSION['login_data']['wallpaper_url'] = 'wallpapers/Blue-Sencha.jpg' ;
+		$_SESSION['login_data']['auth_class'] = $auth_class ;
 		
 		
 		$_SESSION['next_transaction_id'] = 1 ;
