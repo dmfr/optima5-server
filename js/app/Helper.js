@@ -15,12 +15,15 @@ Ext.define('Optima5.Helper',{
 	modulesLib: null,
 	iconsLib: null,
 	
+	app: null,
+	
 	registerApplication: function( op5CoreApp ) {
-		console.dir( op5CoreApp ) ;
-	},
-			  
-	dummyMethod: function(){
-		console.log('Dummy was called !') ;
+		var me = this ;
+		if( op5CoreApp == null || !(op5CoreApp instanceof Optima5.App) || !(op5CoreApp instanceof Ext.Base) ) {
+			console.log('Helper:registerApplication : missing/invalid App reference') ;
+			return null ;
+		}
+		me.app = op5CoreApp ;
 	},
 	
 	logDebug: function(src,str) {

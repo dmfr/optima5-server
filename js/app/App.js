@@ -1,12 +1,11 @@
-Ext.define('OptimaSessionModel',{
+Ext.define('OptimaDesktopCfgModel',{
 	extend: 'Ext.data.Model',
 	fields: [
-		{name: 'enabled',   type: 'boolean'},
-		{name: 'moduleId',   type: 'string'},
-		{name: 'moduleName', type: 'string'},
-		{name: 'classPath', type: 'string'},
-		{name: 'classMain', type: 'string'},
-		{name: 'classInitMethod', type: 'string'}
+		{name: 'session_id',  type:'string'},
+		{name: 'login_str',   type: 'boolean'},
+		{name: 'login_userName',   type: 'string'},
+		{name: 'login_domainName', type: 'string'},
+		{name: 'wallpaper_id', type: 'int'}
 	]
 });
 
@@ -16,13 +15,15 @@ Ext.define('Optima5.App',{
 		observable: 'Ext.util.Observable'
 	},
 	requires: [
+		'Ext.ux.desktop.Desktop',
+		'Ext.ux.desktop.ShortcutModel',
 		'Optima5.Helper',
 		'Optima5.Module',
 		'Optima5.LoginWindow'
 	],
 	
 	useQuickTips: true,
-	sessionRecord: null,
+	desktopCfgRecord: null,
 	moduleInstances: null,
 	
 	isReady: false,
@@ -35,7 +36,9 @@ Ext.define('Optima5.App',{
 			'beforeunload'
 		);
 		me.mixins.observable.constructor.call(this, appCfg);
-
+		
+		Optima5.Helper.registerApplication(this) ;
+		
 		if( Optima5.Helper.isReady ) {
 			me.onReady() ;
 		} else {
@@ -61,7 +64,6 @@ Ext.define('Optima5.App',{
 			existingWin.destroy() ;
 		}
 		
-		console.log('Start login') ;
 		var loginWindow = Ext.create('Optima5.LoginWindow',{
 			id:'op5-login-window'
 		}) ;
@@ -72,31 +74,138 @@ Ext.define('Optima5.App',{
 		}) ;
 		loginWindow.show() ;
 	},
-	onLoginFailed: function(win) {
-		win.recycle() ;
+	onLoginFailed: function(win, errMsg) {
+		var me = this ;
+		Ext.Msg.alert('Initialization error', errMsg,function(){
+			win.recycle() ;
+		},me) ;
 	},
-	onLoginSuccess: function(win) {
+	onLoginSuccess: function(win, sessionId) {
+		var me = this ;
+		console.log('SessionID is: '+sessionId) ;
 		win.close() ;
+		me.desktopBoot(sessionId) ;
 	},
 	
 	
-	bootDesktop: function() {
+	desktopBoot: function(sessionId) {
+		var me = this ;
+		
+		if( me.loadMask != null ) {
+			Ext.destroy(me.loadMask) ;
+		}
+		me.loadMask = new Ext.LoadMask(Ext.getBody(), {msg:'Loading desktop...'});
+		me.loadMask.show() ;
+		
+		/*
+		 * Ajax request to retrieve sessionRecord
+		 */
+		Ext.Ajax.request({
+			url: 'server/backend.php',
+			params: {
+				_sessionName: sessionId,
+				_moduleName: 'desktop',
+				_action: 'config_getRecord'
+			},
+			success: function(response) {
+				var errorFn = function() {
+					Ext.defer(function(){
+						Ext.Msg.alert('Initialization error', 'Cannot boot desktop.\nPlease contact support.', function(){
+							window.location.reload() ;
+						}) ;
+					},500);
+					return ;
+				}
+				var responseObj ;
+				
+				try {
+					responseObj = Ext.decode(response.responseText);
+				} catch(e) {
+					return errorFn() ;
+				}
+				
+				if( responseObj.success==null || responseObj.success != true ) {
+					return errorFn() ;
+				}
+				
+				me.desktopCfgRecord = Ext.create('OptimaDesktopCfgModel',responseObj.desktop_config) ;
+				me.desktopBuild() ;
+			},
+			scope : me
+		});
+	},
+	desktopBuild: function() {
+		var me = this ;
+		
+		/*hide the gear*/
+		var el = Ext.get("loading");
+		el.hide();
+		el.remove();
+		
 		if (me.useQuickTips) {
 			Ext.QuickTips.init();
 		}
 		
 		me.moduleInstances = new Ext.util.MixedCollection();
 		
-		desktopCfg = me.getDesktopConfig();
+		var modulesLib = Optima5.Helper.getModulesLib() ;
+		var iconsLib = Optima5.Helper.getIconsLib() ;
+		
+		var desktopCfgModelRecord = me.desktopCfgRecord ;
+		var desktopCfg = {
+			app: me,
+			taskbarConfig:{
+				startConfig: {
+					title:'Damien Mirand',
+					iconCls: 'op5-desktop-user',
+					height: 300,
+					toolConfig: {
+						width: 100,
+						items: [{
+							text:'Settings',
+							iconCls: (modulesLib.modulesGetById('settings') != null)?
+								iconsLib.iconGetCls16(modulesLib.modulesGetById('settings').get('iconCode')) : 'settings',
+							handler: me.onSettings,
+							scope: me,
+							hidden: desktopCfgModelRecord.get('isAdmin')
+						},{
+							text:'Logout',
+							iconCls:'logout',
+							handler: me.onLogout,
+							scope: me
+						}]
+					}
+				},
+				trayItems: [
+					{ xtype: 'trayclock', flex: 1 , timeFormat:'d/m H:i' }
+				]
+			},
+			contextMenuItems: [
+				{ text: 'Change Settings', handler: me.onSettings, scope: me, hidden: desktopCfgModelRecord.get('isAdmin') }
+			],
+			shortcuts: Ext.create('Ext.data.Store', {
+				model: 'Ext.ux.desktop.ShortcutModel',
+				data: []
+			}),
+			wallpaper: null ,
+			wallpaperStretch: false
+		};
 		me.desktop = new Ext.ux.desktop.Desktop(desktopCfg);
-
+		
 		me.viewport = new Ext.container.Viewport({
 			layout: 'fit',
 			items: [ me.desktop ]
 		});
 
 		Ext.EventManager.on(window, 'beforeunload', me.onUnload, me);
-
+		
+		/*hide loadmask (if any)*/
+		if( me.loadMask ) {
+			Ext.defer(function(){
+				Ext.destroy(me.loadMask) ;
+			},500,me);
+		}
+		
 		me.isReady = true;
 		me.fireEvent('ready', me);
 	},

@@ -68,7 +68,7 @@ Ext.define('Optima5.LoginWindow',{
 					labelSeparator: ' :',
 					fieldLabel: '<b>Please enter login information</b>',
 					margin: '0 0 15 0',
-					labelWidth: '100%'
+					labelWidth: 200
 				},{
 					fieldLabel: 'User @ Domain',
 					allowBlank: false,
@@ -97,23 +97,66 @@ Ext.define('Optima5.LoginWindow',{
 		if( me.loginSent ) {
 			return ;
 		}
+		
 		me.loginSent=true;
 		if( me.loadMask == null ) {
 			me.loadMask = new Ext.LoadMask(Ext.getBody(), {msg:'Logging in...'});
 		}
 		me.loadMask.show();
-
-		
 		me.child('form').query('#btnEnter')[0].setDisabled(true) ;
 		
 		var form = me.child('form').getForm() ;
 		var userStr = form.findField('user').getValue() ;
 		var passStr = form.findField('password').getValue() ;
-		console.log('Login: '+userStr+':'+passStr) ;
 		
-		Ext.defer(function() {
-			me.fireEvent('loginfailed',me) ;
-		},2000,me) ;
+		var tarr = (userStr!='') ? userStr.split('@') : []
+			, loginDomain, loginUser
+			, loginPass = passStr ;
+		switch( tarr.length ) {
+			case 2 :
+				loginUser = tarr[0];
+				loginDomain = tarr[1];
+				break ;
+			case 1 :
+				loginUser = 'root' ;
+				loginDomain = tarr[0];
+				break ;
+			default :
+				Ext.MessageBox.alert('Login failed', 'Invalid user parameter (user@domain)');
+				me.recycle() ;
+				return ;
+		}
+		
+		Ext.Ajax.request({
+			url: 'server/login.php',
+			params: {
+				_action: 'login',
+				login_domain: loginDomain,
+				login_user  : loginUser,
+				login_password: loginPass
+			},
+			success: function(response) {
+				if( Ext.decode(response.responseText).done == false ) {
+					if( Ext.decode(response.responseText).errors )
+						var mstr = Ext.decode(response.responseText).errors.join('\n') ;
+					else
+						var mstr = 'Cannot open session. Contact admin.' ;
+					/*
+					Ext.Msg.alert('Initialization error', mstr,function(){
+						window.location.reload() ;
+					}) ;
+					*/
+					me.fireEvent('loginfailed',me, mstr) ;
+					return ;
+				}
+				
+				var objLoginData = Ext.decode(response.responseText).login_data ;
+				console.dir( Ext.decode(response.responseText).login_data ) ;
+				me.fireEvent('loginsuccess',me, objLoginData['session_id']) ;
+				return ;
+			},
+			scope : me
+		});
 	},
 	recycle: function() {
 		var me = this ;
@@ -122,14 +165,14 @@ Ext.define('Optima5.LoginWindow',{
 		me.child('form').query('#btnEnter')[0].setDisabled(false) ;
 		me.loginSent = false ;
 		if( me.loadMask != null ) {
-			me.loadMask.hide();
+			me.loadMask.hide() ;
 		}
 	},
 	
 	onBeforeDestroy: function() {
 		var me = this ;
 		if( me.loadMask != null ) {
-			me.loadMask.hide();
+			Ext.destroy(me.loadMask);
 		}
 	}
 	
