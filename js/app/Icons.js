@@ -59,13 +59,13 @@ Ext.define('Optima5.Icons',{
 	},
 	iconsGetAll: function() {
 		var me = this ;
-		return me.modulesStore.getRange() ;
+		return me.iconsStore.getRange() ;
 	},
 	iconGetCls16: function(iconCode) {
-		return '' ;
+		return "op5icon-"+iconCode+"-small" ;
 	},
 	iconGetCls48: function(iconCode) {
-		return '' ;
+		return "op5icon-"+iconCode+"-big" ;
 	}
 	
 });

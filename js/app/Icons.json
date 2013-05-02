@@ -7,5 +7,9 @@
 		"iconCode":"paracrm",
 		"iconSrc16":"ico_paracrm_16.gif",
 		"iconSrc48":"ico_paracrm_48.png"
+	},{
+		"iconCode":"settings",
+		"iconSrc16":"ico_settings_16.gif",
+		"iconSrc48":"ico_settings_48.png"
 	}
 ]
