@@ -23,9 +23,9 @@ Ext.define('OptimaModuleDescModel', {
 		{name: 'enabled',   type: 'boolean'},
 		{name: 'moduleId',   type: 'string'},
 		{name: 'moduleName', type: 'string'},
-		{name: 'classPath', type: 'string'},
-		{name: 'classMain', type: 'string'},
-		{name: 'classInitMethod', type: 'string'}
+		{name: 'moduleType', type: 'string'},
+		{name: 'moduleClass', type: 'string'},
+		{name: 'iconCode', type: 'string'}
 	],
 	hasMany: [{
 		model: 'OptimaModuleParamDescModel',

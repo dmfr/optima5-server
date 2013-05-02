@@ -2,10 +2,14 @@ Ext.define('OptimaDesktopCfgModel',{
 	extend: 'Ext.data.Model',
 	fields: [
 		{name: 'session_id',  type:'string'},
+		{name: 'dev_mode',    type:'boolean'},
+		{name: 'auth_is_admin',    type:'boolean'},
+		{name: 'auth_is_root',    type:'boolean'},
 		{name: 'login_str',   type: 'boolean'},
 		{name: 'login_userName',   type: 'string'},
 		{name: 'login_domainName', type: 'string'},
-		{name: 'wallpaper_id', type: 'int'}
+		{name: 'wallpaper_id', type: 'int'},
+		{name: 'wallpaper_isStretch', type: 'boolean'}
 	]
 });
 
@@ -156,7 +160,7 @@ Ext.define('Optima5.App',{
 			app: me,
 			taskbarConfig:{
 				startConfig: {
-					title:'Damien Mirand',
+					title:desktopCfgModelRecord.get('login_userName')+' <b>@</b> '+desktopCfgModelRecord.get('login_domainName'),
 					iconCls: 'op5-desktop-user',
 					height: 300,
 					toolConfig: {
@@ -167,10 +171,10 @@ Ext.define('Optima5.App',{
 								iconsLib.iconGetCls16(modulesLib.modulesGetById('settings').get('iconCode')) : 'settings',
 							handler: me.onSettings,
 							scope: me,
-							hidden: desktopCfgModelRecord.get('isAdmin')
+							hidden: desktopCfgModelRecord.get('auth_is_root')
 						},{
 							text:'Logout',
-							iconCls:'logout',
+							iconCls:'op5-desktop-logout',
 							handler: me.onLogout,
 							scope: me
 						}]
@@ -181,7 +185,7 @@ Ext.define('Optima5.App',{
 				]
 			},
 			contextMenuItems: [
-				{ text: 'Change Settings', handler: me.onSettings, scope: me, hidden: desktopCfgModelRecord.get('isAdmin') }
+				{ text: 'Change Settings', handler: me.onSettings, scope: me, hidden: desktopCfgModelRecord.get('auth_is_root') }
 			],
 			shortcuts: Ext.create('Ext.data.Store', {
 				model: 'Ext.ux.desktop.ShortcutModel',
@@ -194,9 +198,14 @@ Ext.define('Optima5.App',{
 		
 		me.viewport = new Ext.container.Viewport({
 			layout: 'fit',
-			items: [ me.desktop ]
+			items: [ me.desktop ],
+			cls: desktopCfgModelRecord.get('dev_mode') ? 'op5-viewport-devborder':''
 		});
-
+		
+		me.setWallpaper( desktopCfgModelRecord.get('wallpaper_id') || 0,
+			desktopCfgModelRecord.get('wallpaper_id') ? desktopCfgModelRecord.get('wallpaper_isStretch') : true
+		) ;
+		
 		Ext.EventManager.on(window, 'beforeunload', me.onUnload, me);
 		
 		/*hide loadmask (if any)*/
@@ -208,6 +217,25 @@ Ext.define('Optima5.App',{
 		
 		me.isReady = true;
 		me.fireEvent('ready', me);
+	},
+	setWallpaper : function(wallpId, isStretch){
+		var me = this ;
+		
+		if( me.desktopCfgRecord == null ) {
+			me.desktop.setWallpaper( '' , false ) ;
+		}
+		
+		var getParams = {
+			_sessionName: me.desktopCfgRecord.get('session_id'),
+			wallpaper_id: 0
+		};
+		var wallpUrl = 'wallpapers/wallpaper.php?' + Ext.Object.toQueryString(getParams) ;
+		
+		me.desktop.setWallpaper( wallpUrl , isStretch ) ;
+		/*
+		 * Background w/ css:
+		 * http://stackoverflow.com/questions/1150163/stretch-and-scale-a-css-image-in-the-background-with-css-only
+		 */
 	},
 	onUnload : function(e) {
 		console.log('Catching beforeunload') ;

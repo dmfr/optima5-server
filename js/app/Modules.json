@@ -3,8 +3,7 @@
 		"enabled":false,
 		"moduleId":"crmbase",
 		"moduleName":"CRM Base Domain",
-		"classPath":"Optima5.Modules.CrmBase",
-		"classMain":"AppWindow",
+		"moduleClass":"Optima5.Modules.CrmBase.CrmBaseModule",
 		"moduleType":"sdomain",
 		"iconCode":"paracrm",
 		"params": [{"paramCode":"sdomain_db"}]
@@ -12,7 +11,7 @@
 		"enabled":false,
 		"moduleId":"admin",
 		"moduleName":"Root Admin",
-		"classPath":"Optima5.Modules.Admin",
+		"moduleClass":"Optima5.Modules.Admin.AdminModule",
 		"moduleType":"admin",
 		"iconCode":"notepad",
 		"params":[]
@@ -20,7 +19,7 @@
 		"enabled":false,
 		"moduleId":"calc",
 		"moduleName":"Calc",
-		"classPath":"Optima5.Modules.UxCalc",
+		"moduleClass":"Optima5.Modules.UxCalc.UxCalcModule",
 		"moduleType":"applet",
 		"iconCode":"notepad",
 		"params":[]
@@ -28,9 +27,17 @@
 		"enabled":false,
 		"moduleId":"notepad",
 		"moduleName":"Notepad",
-		"classPath":"Optima5.Modules.UxNotepad",
+		"moduleClass":"Optima5.Modules.UxNotepad.UxNotepadModule",
 		"moduleType":"applet",
 		"iconCode":"notepad",
 		"params": [{"paramCode":"note_uri"}]
+	},{
+		"enabled":false,
+		"moduleId":"settings",
+		"moduleName":"Settings",
+		"moduleClass":"Optima5.Modules.Settings.SettingsModule",
+		"moduleType":"settings",
+		"iconCode":"settings",
+		"params": []
 	}
 ]
