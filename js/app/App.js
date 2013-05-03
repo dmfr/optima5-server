@@ -86,7 +86,7 @@ Ext.define('Optima5.App',{
 	},
 	onLoginSuccess: function(win, sessionId) {
 		var me = this ;
-		console.log('SessionID is: '+sessionId) ;
+		//console.log('SessionID is: '+sessionId) ;
 		win.close() ;
 		me.desktopBoot(sessionId) ;
 	},

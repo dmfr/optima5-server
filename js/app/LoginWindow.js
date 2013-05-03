@@ -187,7 +187,7 @@ Ext.define('Optima5.LoginWindow',{
 				}
 				
 				var objLoginData = Ext.decode(response.responseText).login_data ;
-				console.dir( Ext.decode(response.responseText).login_data ) ;
+				//console.dir( Ext.decode(response.responseText).login_data ) ;
 				me.fireEvent('loginsuccess',me, objLoginData['session_id']) ;
 				return ;
 			},
