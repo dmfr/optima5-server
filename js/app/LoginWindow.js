@@ -91,6 +91,42 @@ Ext.define('Optima5.LoginWindow',{
 		this.callParent() ;
 		
 		me.on('beforedestroy',me.onBeforeDestroy,me) ;
+		
+		me.probeAutoLogin() ;
+	},
+	probeAutoLogin: function() {
+		/*
+		 * Optional /DEV
+		 * + /DEV.autologin.json :
+		 * {
+		 *    "login_domain":"",
+		 *    "login_user":"",
+		 *    "login_password":""
+		 * }
+		 */
+		var me = this ;
+		Ext.Ajax.request({
+			url: 'DEV',
+			success: function() {
+				Ext.Ajax.request({
+					url: 'DEV.autologin.json',
+					success: function(response) {
+						var responseObj ;
+						try {
+							responseObj = Ext.decode(response.responseText);
+						} catch(e) {
+							return ;
+						}
+						var form = me.child('form').getForm() ;
+						form.findField('user').setValue(responseObj.login_user+'@'+responseObj.login_domain) ;
+						form.findField('password').setValue(responseObj.login_password) ;
+						me.doLogin() ;
+					},
+					scope:me
+				});
+			},
+			scope:me
+		});
 	},
 	doLogin: function() {
 		var me = this ;
