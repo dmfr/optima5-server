@@ -227,7 +227,7 @@ Ext.define('Optima5.App',{
 		
 		var getParams = {
 			_sessionName: me.desktopCfgRecord.get('session_id'),
-			wallpaper_id: 0
+			wallpaper_id: wallpId
 		};
 		var wallpUrl = 'wallpapers/wallpaper.php?' + Ext.Object.toQueryString(getParams) ;
 		
@@ -236,6 +236,15 @@ Ext.define('Optima5.App',{
 		 * Background w/ css:
 		 * http://stackoverflow.com/questions/1150163/stretch-and-scale-a-css-image-in-the-background-with-css-only
 		 */
+	},
+	forceCloseAllWindows: function() {
+		if( zmgr = this.desktop.getDesktopZIndexManager() ) {
+			zmgr.eachBottomUp(function(win) {
+				if (win.isWindow) {
+					win.destroy() ;
+				}
+			});
+		}
 	},
 	onUnload : function(e) {
 		console.log('Catching beforeunload') ;
@@ -296,6 +305,74 @@ Ext.define('Optima5.App',{
 		}
 		Optima5.Helper.logDebug('App:onModuleStart','Module Stopped') ;
 		Optima5.Helper.logDebug('App:onModuleStart',moduleInstance) ;
-	}
+	},
 	
+	
+	onSettings: function() {
+		var me = this ;
+		var moduleCfg = {
+			moduleCode:'settings'
+		};
+		me.moduleLaunch(moduleCfg) ;
+	},
+	onLogout: function() {
+		var me = this ;
+		Ext.Msg.confirm('Logout', 'Are you sure you want to logout?', function(btn){
+			if( btn == 'yes' ){
+				me.doLogout() ;
+			}
+		},me) ;
+	},
+	onSessionInvalid: function() {
+		
+	},
+	doLogout: function() {
+		var me = this ;
+		Ext.Ajax.request({
+			url: 'server/login.php',
+			params: {
+				_action: 'logout',
+				_sessionName: me.desktopCfgRecord.get('session_id')
+			},
+			success: function(response) {
+				if( Ext.decode(response.responseText).done != true ) {
+					Ext.Msg.alert('End session','Cannot delete session. Timed out ?') ;
+				}
+				me.endStandby(true);
+			},
+			scope : me
+		});
+	},
+	endStandby: function(doAnimate) {
+		var me = this,
+			animDuration = doAnimate? 1500 : 0 ;
+		
+		me.forceCloseAllWindows() ;
+		me.viewport.removeCls('op5-viewport-devborder');
+		
+		me.desktop.animate({
+			duration: animDuration,
+			to: {
+				opacity: 0
+			},
+			listeners: {
+				afteranimate: function() {
+					me.desktop.destroy() ;
+					me.viewport.destroy() ;
+					me.desktop = me.viewport = me.desktopCfgRecord = null ;
+				},
+				scope:me
+			}
+		});
+		
+		var el = Ext.get("standby");
+		el.setOpacity(0);
+		el.show();
+		el.animate({
+			duration: animDuration,
+			to: {
+				opacity: 1
+			}
+		});
+	}
 });

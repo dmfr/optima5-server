@@ -541,6 +541,26 @@ body {    background: none repeat scroll 0 0 #F8F8F8;}
         width: 120px;
 }
 
+#standby {
+        height: 128px;
+        left: 50%;
+        margin: -64px 0 0 -64px;
+        position: absolute;
+        top: 50%;
+        width: 128px;
+}
+
+#standby .logo{
+        background: url("../images/shutdown.png") no-repeat scroll 0 0 transparent;
+        margin:0 auto;
+        display: block;
+        height: 128px;
+        left: 0px;
+        position: absolute;
+        top: 0px;
+        width: 128px;
+}
+
 /* Login section */
 .op5-login-west {
 	background: #eeeeee url('../images/AquaSafari_logo.png') no-repeat center center;
