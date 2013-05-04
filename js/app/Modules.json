@@ -10,26 +10,28 @@
 	},{
 		"enabled":false,
 		"moduleId":"admin",
-		"moduleName":"Root Admin",
+		"moduleName":"Domain Administration",
 		"moduleClass":"Optima5.Modules.Admin.AdminModule",
 		"moduleType":"admin",
-		"iconCode":"notepad",
+		"iconCode":"admin",
 		"params":[]
 	},{
-		"enabled":false,
+		"enabled":true,
 		"moduleId":"calc",
 		"moduleName":"Calc",
 		"moduleClass":"Optima5.Modules.UxCalc.UxCalcModule",
+		"moduleCssSrc":"module-calc.css",
 		"moduleType":"applet",
-		"iconCode":"notepad",
+		"iconCode":"calc",
 		"params":[]
 	},{
-		"enabled":false,
+		"enabled":true,
 		"moduleId":"notepad",
 		"moduleName":"Notepad",
 		"moduleClass":"Optima5.Modules.UxNotepad.UxNotepadModule",
 		"moduleType":"applet",
 		"iconCode":"notepad",
+		"allowMultipleInstances":false,
 		"params": [{"paramCode":"note_uri"}]
 	},{
 		"enabled":false,
