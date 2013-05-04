@@ -1,5 +1,9 @@
 [
 	{
+		"iconCode":"admin",
+		"iconSrc16":"ico_admin_16.png",
+		"iconSrc48":"ico_admin_48.png"
+	},{
 		"iconCode":"notepad",
 		"iconSrc16":"ico_notepad_16.png",
 		"iconSrc48":"ico_notepad_48.png"
