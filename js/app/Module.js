@@ -14,8 +14,8 @@ Ext.define('Optima5.Module',{
 	constructor: function( moduleCfg ) {
 		var me = this;
 		me.addEvents(
-			'start',
-			'stop'
+			'modulestart',
+			'modulestop'
 		);
 		me.mixins.observable.constructor.call(this, moduleCfg);
 		
@@ -61,9 +61,22 @@ Ext.define('Optima5.Module',{
 	
 	createWindow: function(config, cls) {
 		var me = this ;
+		var moduleDescRecord = Optima5.Helper.getModulesLib().modulesGetById(me.moduleId) ;
+		
+		var windowTitle = '' ;
+		switch( moduleDescRecord.get('moduleType') ) {
+			case 'sdomain' :
+				windowTitle = '[' + me.sdomainDb + ']' + ' ' + config.title||'' ;
+				break ;
+			default :
+				windowTitle = config.title||moduleDescRecord.get('moduleName') ;
+				break ;
+		}
 		
 		var cfg = Ext.apply( config || {}, {
-			isMainWindow: (me.windows.getCount() == 0)
+			isMainWindow: (me.windows.getCount() == 0),
+			title:windowTitle,
+			iconCls: Optima5.Helper.getIconsLib().iconGetCls16(moduleDescRecord.get('iconCode')),
 		}) ;
 		
 		var win = me.app.getDesktop().createWindow(config,cls) ;
@@ -74,7 +87,7 @@ Ext.define('Optima5.Module',{
 		}
 		me.windows.add(win) ;
 		if( fireStart ) {
-			me.fireEvent('start',me) ;
+			me.fireEvent('modulestart',me) ;
 		}
 		
 		win.on({
@@ -82,13 +95,16 @@ Ext.define('Optima5.Module',{
 			destroy: me.onWindowDestroy,
 			scope: me
 		});
+		
+		return win ;
 	},
 	onWindowClose: function( win ) {
 		var me = this;
-		if( win.isMainWindow ) {
+		if( win.isMainWindow && me.windows.getCount() > 1 ) {
 			
 			return false ;
 		}
+		return true ;
 	},
 	onWindowDestroy: function( win ) {
 		var me = this;
@@ -108,7 +124,7 @@ Ext.define('Optima5.Module',{
 	selfDestroy: function() {
 		var me = this ;
 		me.app = null ;
-		me.fireEvent('stop',me) ;
+		me.fireEvent('modulestop',me) ;
 	}
  
 });

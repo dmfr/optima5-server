@@ -133,29 +133,73 @@ Ext.define('Optima5.App',{
 				}
 				
 				me.desktopCfgRecord = Ext.create('OptimaDesktopCfgModel',responseObj.desktop_config) ;
-				me.desktopBuild() ;
+				me.desktopCreate() ;
 			},
 			scope : me
 		});
 	},
-	desktopBuild: function() {
+	desktopBuildCfg: function() {
 		var me = this ;
-		
-		/*hide the gear*/
-		var el = Ext.get("loading");
-		el.hide();
-		el.remove();
-		
-		if (me.useQuickTips) {
-			Ext.QuickTips.init();
+		if( me.desktopCfgRecord == null ) {
+			return null ;
 		}
-		
-		me.moduleInstances = new Ext.util.MixedCollection();
 		
 		var modulesLib = Optima5.Helper.getModulesLib() ;
 		var iconsLib = Optima5.Helper.getIconsLib() ;
-		
 		var desktopCfgModelRecord = me.desktopCfgRecord ;
+		
+		var sdomainItems = [] ;
+		if( me.desktopCfgRecord.get('auth_is_admin') ) {
+			// Ajout de l'applet Admin
+			var adminModuleRecord = modulesLib.modulesGetById('admin') ;
+			var adminModuleExec = Ext.create('OptimaModuleExecModel',{
+				moduleId: adminModuleRecord.get('moduleId'),
+				params:[]
+			}) ;
+			sdomainItems.push({
+				text: '<b>'+adminModuleRecord.get('moduleName')+'</b>',
+				iconCls: iconsLib.iconGetCls16(adminModuleRecord.get('iconCode')),
+				handler : me.onModuleItemClick,
+				moduleExecRecord : adminModuleExec,
+				scope: me
+			}) ;
+			sdomainItems.push('-') ;
+		}
+		
+		var appletItems = [] ;
+		Ext.Array.each( modulesLib.modulesGetAll() , function( moduleDescRecord ) {
+			if( moduleDescRecord.get('enabled') && moduleDescRecord.get('moduleType') == 'applet' ) {
+				var moduleExec = Ext.create('OptimaModuleExecModel',{
+					moduleId: moduleDescRecord.get('moduleId'),
+					params:[]
+				}) ;
+				appletItems.push({
+					text: moduleDescRecord.get('moduleName'),
+					iconCls: iconsLib.iconGetCls16(moduleDescRecord.get('iconCode')),
+					handler : me.onModuleItemClick,
+					moduleExecRecord : moduleExec,
+					scope: me
+				}) ;
+			}
+		},me);
+		if( appletItems.length > 0 ) {
+			appletItems.push('-') ;
+		}
+		appletItems.push({
+			text:'Settings',
+			iconCls: (modulesLib.modulesGetById('settings') != null)?
+				iconsLib.iconGetCls16(modulesLib.modulesGetById('settings').get('iconCode')) : 'settings',
+			handler: me.onSettings,
+			scope: me,
+			hidden: desktopCfgModelRecord.get('auth_is_root')
+		}) ;
+		appletItems.push({
+			text:'Logout',
+			iconCls:'op5-desktop-logout',
+			handler: me.onLogout,
+			scope: me
+		}) ;
+		
 		var desktopCfg = {
 			app: me,
 			taskbarConfig:{
@@ -163,21 +207,10 @@ Ext.define('Optima5.App',{
 					title:desktopCfgModelRecord.get('login_userName')+' <b>@</b> '+desktopCfgModelRecord.get('login_domainName'),
 					iconCls: 'op5-desktop-user',
 					height: 300,
+					menu : sdomainItems,
 					toolConfig: {
 						width: 100,
-						items: [{
-							text:'Settings',
-							iconCls: (modulesLib.modulesGetById('settings') != null)?
-								iconsLib.iconGetCls16(modulesLib.modulesGetById('settings').get('iconCode')) : 'settings',
-							handler: me.onSettings,
-							scope: me,
-							hidden: desktopCfgModelRecord.get('auth_is_root')
-						},{
-							text:'Logout',
-							iconCls:'op5-desktop-logout',
-							handler: me.onLogout,
-							scope: me
-						}]
+						items: appletItems
 					}
 				},
 				trayItems: [
@@ -194,16 +227,33 @@ Ext.define('Optima5.App',{
 			wallpaper: null ,
 			wallpaperStretch: false
 		};
-		me.desktop = new Ext.ux.desktop.Desktop(desktopCfg);
+		
+		return desktopCfg ;
+	},
+	desktopCreate: function() {
+		var me = this ;
+		
+		/*hide the gear*/
+		var el = Ext.get("loading");
+		el.hide();
+		el.remove();
+		
+		if (me.useQuickTips) {
+			Ext.QuickTips.init();
+		}
+		
+		me.moduleInstances = new Ext.util.MixedCollection();
+		
+		me.desktop = new Ext.ux.desktop.Desktop(me.desktopBuildCfg());
 		
 		me.viewport = new Ext.container.Viewport({
 			layout: 'fit',
 			items: [ me.desktop ],
-			cls: desktopCfgModelRecord.get('dev_mode') ? 'op5-viewport-devborder':''
+			cls: me.desktopCfgRecord.get('dev_mode') ? 'op5-viewport-devborder':''
 		});
 		
-		me.setWallpaper( desktopCfgModelRecord.get('wallpaper_id') || 0,
-			desktopCfgModelRecord.get('wallpaper_id') ? desktopCfgModelRecord.get('wallpaper_isStretch') : true
+		me.setWallpaper( me.desktopCfgRecord.get('wallpaper_id') || 0,
+			me.desktopCfgRecord.get('wallpaper_id') ? me.desktopCfgRecord.get('wallpaper_isStretch') : true
 		) ;
 		
 		Ext.EventManager.on(window, 'beforeunload', me.onUnload, me);
@@ -217,6 +267,10 @@ Ext.define('Optima5.App',{
 		
 		me.isReady = true;
 		me.fireEvent('ready', me);
+	},
+	getDesktop: function() {
+		var me = this ;
+		return me.desktop ;
 	},
 	setWallpaper : function(wallpId, isStretch){
 		var me = this ;
@@ -253,29 +307,82 @@ Ext.define('Optima5.App',{
 		}
 	},
 	
-	
+	onModuleItemClick: function( item ) {
+		var me = this ;
+		
+		if( item instanceof Ext.menu.Item
+		|| Ext.button.Button
+		|| false ) {} else {
+			
+			Optima5.Helper.logWarning('App:onModuleItemClick','Invalid menu item') ;
+			console.dir(item) ;
+			return ;
+		}
+		if( typeof item.moduleExecRecord == 'undefined' || !((item.moduleExecRecord) instanceof OptimaModuleExecModel) ) {
+			Optima5.Helper.logWarning('App:onModuleItemClick','OptimaModuleExecModel not found in item') ;
+			return ;
+		}
+		
+		var moduleCfg = {
+			moduleId: item.moduleExecRecord.get('moduleId'),
+			moduleParams: {}
+		}
+		Ext.Array.each( item.moduleExecRecord.params().getRange(), function(moduleParamRecord) {
+			moduleCfg.moduleParams[moduleParamRecord.get('paramCode')] = moduleParamRecord.get('paramValue') ;
+		}) ;
+		
+		me.moduleLaunch(moduleCfg) ;
+	},
 	moduleLaunch: function( moduleCfg ) {
+		var me = this ;
 		if( !moduleCfg.moduleId || Optima5.Helper.getModulesLib().modulesGetById(moduleCfg.moduleId) == null ) {
-			Optima5.Helper.logWarning('App:moduleLaunch','Module unknown') ;
+			Optima5.Helper.logWarning('App:moduleLaunch','Module '+moduleCfg.moduleId+' unknown') ;
+			return ;
+		}
+		if( !Optima5.Helper.getModulesLib().modulesGetById(moduleCfg.moduleId).get('enabled') ) {
+			Optima5.Helper.logWarning('App:moduleLaunch','Module '+moduleCfg.moduleId+' disabled') ;
 			return ;
 		}
 		
 		// same module already started ?
+		var rejectLaunch = false ;
 		me.moduleInstances.each( function( moduleInstance ) {
-			if( moduleCfg.moduleId == moduleInstance.moduleId
-				&& Ext.encode( moduleCfg.moduleParams || {} ) == Ext.encode( moduleInstance.moduleParams )
-			) {
-				console.log('Same already running !') ;
-				// TODO : pop main window for moduleInstance
-				return ;
+			if( moduleCfg.moduleId != moduleInstance.moduleId ) {
+				return true ;
 			}
+			if( Ext.encode( moduleCfg.moduleParams || {} ) != Ext.encode( moduleInstance.moduleParams ) ) {
+				// parametres différents
+				return true ;
+			}
+			if( Ext.encode( moduleCfg.moduleParams || {} ) == Ext.encode( {} ) ) {
+				// parametres vides
+				if( Optima5.Helper.getModulesLib().modulesGetById(moduleCfg.moduleId).get('allowMultipleInstances') ) {
+					return true ;
+				}
+			}
+			rejectLaunch = true ;
+			return false ;
 		},me) ;
+		if( rejectLaunch ) {
+			Ext.menu.Manager.hideAll() ;
+			// TODO : pop main window for moduleInstance
+			return ;
+		}
 		
+		Ext.apply(moduleCfg,{
+			app:me,
+			listeners:{
+				modulestart:me.onModuleStart,
+				modulestop:me.onModuleStop,
+				scope:me
+			}
+		}) ;
+		Ext.create(Optima5.Helper.getModulesLib().modulesGetById(moduleCfg.moduleId).get('moduleClass'),moduleCfg) ;
 	},
 	getModuleByWindow: function( win ) {
 		var me = this ;
 		
-		if( !win.isXType('window') ) {
+		if( !(win instanceof Ext.window.Window) ) {
 			win = win.up('window') ;
 		}
 		if( typeof win === 'undefined' ) {
@@ -296,7 +403,6 @@ Ext.define('Optima5.App',{
 		var me = this ;
 		me.moduleInstances.add(moduleInstance) ;
 		Optima5.Helper.logDebug('App:onModuleStart','Module Started') ;
-		Optima5.Helper.logDebug('App:onModuleStart',moduleInstance) ;
 	},
 	onModuleStop: function( moduleInstance ) {
 		var me = this ;
@@ -304,14 +410,14 @@ Ext.define('Optima5.App',{
 			console.log('App:onModuleStop : module not found ?') ;
 		}
 		Optima5.Helper.logDebug('App:onModuleStart','Module Stopped') ;
-		Optima5.Helper.logDebug('App:onModuleStart',moduleInstance) ;
 	},
 	
 	
 	onSettings: function() {
 		var me = this ;
 		var moduleCfg = {
-			moduleCode:'settings'
+			moduleId:'settings',
+			moduleParams:[]
 		};
 		me.moduleLaunch(moduleCfg) ;
 	},
@@ -345,7 +451,7 @@ Ext.define('Optima5.App',{
 	},
 	endStandby: function(doAnimate) {
 		var me = this,
-			animDuration = doAnimate? 1500 : 0 ;
+			animDuration = doAnimate? 500 : 0 ;
 		
 		me.forceCloseAllWindows() ;
 		me.viewport.removeCls('op5-viewport-devborder');

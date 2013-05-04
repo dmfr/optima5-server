@@ -25,7 +25,9 @@ Ext.define('OptimaModuleDescModel', {
 		{name: 'moduleName', type: 'string'},
 		{name: 'moduleType', type: 'string'},
 		{name: 'moduleClass', type: 'string'},
-		{name: 'iconCode', type: 'string'}
+		{name: 'moduleCssSrc', type: 'string'},
+		{name: 'iconCode', type: 'string'},
+		{name: 'allowMultipleInstances', type: 'boolean'}
 	],
 	hasMany: [{
 		model: 'OptimaModuleParamDescModel',
@@ -54,6 +56,8 @@ Ext.define('Optima5.Modules',{
 	},
 	
 	modulesStore: null,
+	modulesNbLoaded: 0,
+	modulesNbEnabled: 0,
 	
 	constructor: function(config) {
 		//build store
@@ -75,20 +79,41 @@ Ext.define('Optima5.Modules',{
 		
 		// Dev : requires all dependancies
 		me.modulesStore.on('load',function() {
-			var requireStr ;
 			Ext.Array.each(me.modulesStore.getRange(), function(moduleDesc) {
 				if( !moduleDesc.get('enabled') ) {
 					return ;
 				}
-				requireStr = moduleDesc.get('classPath')+'.'+moduleDesc.get('classMain') ;
-				Optima5.Helper.logDebug('Modules:constructor','Ext.require: '+requireStr) ;
-				Ext.require(requireStr) ;
+				me.modulesNbEnabled++ ;
+				
+				// Load Js classes
+				Optima5.Helper.logDebug('Modules:constructor','Ext.require: '+moduleDesc.get('moduleClass')) ;
+				Ext.require(moduleDesc.get('moduleClass'),me.onModuleLoad,me) ;
+				
+				// Load optional CSS
+				if( moduleDesc.get('moduleCssSrc') != '' ) {
+					var cssId = 'isCssM'+moduleDesc.get('moduleId') ;
+					var cssSrc = 'css/'+moduleDesc.get('moduleCssSrc') ;
+					Ext.util.CSS.createStyleSheet('', cssId);
+					Ext.util.CSS.swapStyleSheet(cssId, cssSrc);
+				}
 			},me) ;
-			me.modulesReady = true ;
-			me.fireEvent('ready') ;
+			
+			if( me.modulesNbEnabled == 0 ) {
+				me.modulesReady = true ;
+				me.fireEvent('ready') ;
+				return ;
+			}
 		},me) ;
 		
 		me.modulesStore.load() ;
+	},
+	onModuleLoad: function() {
+		var me = this ;
+		me.modulesNbLoaded++ ;
+		if( me.modulesNbLoaded == me.modulesNbEnabled ) {
+			me.modulesReady = true ;
+			me.fireEvent('ready') ;
+		}
 	},
 	modulesGetById: function( moduleId ) {
 		var me = this ;
