@@ -7,11 +7,21 @@ Ext.define('Optima5.Modules.UxCalc.UxCalcModule', {
 	initModule: function() {
 		var me = this ;
 		
+		var calc = Ext.create('Optima5.Modules.UxCalc.UxCalcComponent',{
+			ui:'apple'
+		});
+		
 		var win = me.createWindow({
 			width:170,
 			height:280,
 			resizable:false,
-			items:[ Ext.create('Optima5.Modules.UxCalc.UxCalcComponent',{ui:'apple'}) ]
+			items:[calc],
+			listeners:{
+				afterrender:function(thiswin) {
+					thiswin.getEl().relayEvent( 'keydown', calc ) ;
+				},
+				scope:me
+			}
 		}) ;
 		win.show() ;
 	}

@@ -8,7 +8,7 @@ Ext.define('Optima5.Modules.UxCalc.UxCalcComponent',{
     ui: 'default',
     
     renderTpl: [
-        '<input type="text" id="{id}-display" class="{clsPrefix}-display" />',
+        '<input readonly type="text" id="{id}-display" class="{clsPrefix}-display" />',
         '<br/>',
         '<span class="{clsPrefix}-btn {clsPrefix}-clear">c</span>',
         '<span class="{clsPrefix}-btn {clsPrefix}-negative">+/-</span>',
@@ -75,39 +75,21 @@ Ext.define('Optima5.Modules.UxCalc.UxCalcComponent',{
         var me             = this,
             buttonSelector = '.' + me.clsPrefix + '-btn';
 
+        me.addEvents('keydown');
         Ext.apply(me,{
             renderData: {
                 clsPrefix: me.clsPrefix
             },
             listeners: {
+					keydown: {
+						fn: me.onKeyDown,
+						scope: me
+					},
                 el: {
                     click: {
                         fn: me.onButtonClick,
                         scope: me,
                         delegate: buttonSelector
-                    },
-                    keydown: {
-                        fn: function(e, t) {
-                            var key = e.getKey();
-                            if ((key < Ext.EventObject.NUM_ZERO || key > Ext.EventObject.NUM_NINE)
-                                && (key < Ext.EventObject.ZERO || key > Ext.EventObject.NINE)
-                                && key != Ext.EventObject.NUM_PERIOD
-                                && key != 190 // Non num pad period
-                                && key != Ext.EventObject.BACKSPACE
-                                && key != Ext.EventObject.LEFT
-                                && key != Ext.EventObject.RIGHT
-                            ) {
-                                e.stopEvent();
-                                return false;
-                            } else {
-                                // Must delay since in keydown value hasn't actually been changed yet
-                                Ext.Function.defer(function() {
-                                    me.value = t.value;
-                                }, 1);
-                            }
-                        },
-                        scope: me,
-                        delegate: 'input'
                     }
                 }
             }
@@ -146,6 +128,61 @@ Ext.define('Optima5.Modules.UxCalc.UxCalcComponent',{
         marker.alignTo(target, 'tl-tl', [-1, yOffset]);
     },
 
+	 onKeyDown: function( event, target ) {
+		 var me = this ;
+		 var key = event.getKey() ;
+
+		 if( key >= Ext.EventObject.NUM_ZERO && key <= Ext.EventObject.NUM_NINE ) {
+			 me.doNumber(key - 96) ;
+			 me.syncDisplay();
+		 } else if( key >= Ext.EventObject.ZERO && key <= Ext.EventObject.NINE ) {
+			 me.doNumber(key - 48) ;
+			 me.syncDisplay();
+		 } else if( key == Ext.EventObject.NUM_PERIOD ) {
+			 me.doNumber('.') ;
+			 me.syncDisplay();
+		 } else if( key == Ext.EventObject.BACKSPACE ) {
+			 me.doBackspace() ;
+			 me.syncDisplay();
+		 } else if( Ext.Array.contains([
+			 Ext.EventObject.ENTER,
+			 Ext.EventObject.DELETE,
+			 Ext.EventObject.NUM_DIVISION,
+			 Ext.EventObject.NUM_MULTIPLY,
+			 Ext.EventObject.NUM_MINUS,
+			 Ext.EventObject.NUM_PLUS
+		 ],key) ) {
+			 var target = null ;
+			 var selector = '.' + me.clsPrefix ;
+			 switch( key ) {
+				 case  Ext.EventObject.NUM_DIVISION :
+					 selector += '-divide' ;
+					 break ;
+				 case  Ext.EventObject.NUM_MULTIPLY :
+					 selector += '-multiply' ;
+					 break ;
+				 case  Ext.EventObject.NUM_MINUS :
+					 selector += '-minus' ;
+					 break ;
+				 case  Ext.EventObject.NUM_PLUS :
+					 selector += '-plus' ;
+					 break ;
+				 case  Ext.EventObject.ENTER :
+					 selector += '-equals' ;
+					 break ;
+				 case  Ext.EventObject.DELETE :
+					 selector += '-clear' ;
+					 break ;
+			 }
+			 var target = me.getEl().child(selector).dom ;
+			 me.onButtonClick(event,target) ;
+		 } else {
+			 // Dont stop event (ex:Function keys...)
+			 return ; 
+		 }
+		 
+		 event.stopEvent() ;
+	 },
     onButtonClick: function(event, target) {
         var me      = this,
             value   = target.innerHTML,
@@ -173,6 +210,16 @@ Ext.define('Optima5.Modules.UxCalc.UxCalcComponent',{
             me.value += number;
         }
     },
+	 doBackspace: function() {
+		var me = this ;
+		if( me.numberEdit ) {
+			if( me.value.length > 1 ) {
+				me.value = me.value.slice(0,-1) ;
+			} else {
+				me.value = '0' ;
+			}
+		}
+	 },
 
     doOperation: function(value, command, target) {
         var me = this;
