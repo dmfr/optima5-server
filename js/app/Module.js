@@ -120,6 +120,10 @@ Ext.define('Optima5.Module',{
 		}
 		return false ;
 	},
+	eachWindow: function(fn, scope){
+		this.windows.each( fn, scope ) ;
+	},
+	
 	
 	selfDestroy: function() {
 		var me = this ;

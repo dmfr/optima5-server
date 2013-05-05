@@ -210,6 +210,9 @@ Ext.define('Optima5.App',{
 					menu : sdomainItems,
 					toolConfig: {
 						width: 100,
+						defaults: {
+							textAlign:'left'
+						},
 						items: appletItems
 					}
 				},
@@ -292,13 +295,31 @@ Ext.define('Optima5.App',{
 		 */
 	},
 	forceCloseAllWindows: function() {
+		var me = this ;
+		
+		var nbOpen = 0 ;
 		if( zmgr = this.desktop.getDesktopZIndexManager() ) {
 			zmgr.eachBottomUp(function(win) {
-				if (win.isWindow) {
-					win.destroy() ;
+				if( win.isWindow ) {
+					nbOpen++ ;
 				}
 			});
 		}
+		
+		var nbClosed = 0 ;
+		me.eachModuleInstance( function(moduleInstance) {
+			console.dir(moduleInstance) ;
+			moduleInstance.eachWindow( function(window) {
+				window.destroy() ;
+				nbClosed++ ;
+			},me);
+		},me) ;
+		
+		if( nbOpen != nbClosed ) {
+			Optima5.Helper.logWarning('App:forceCloseAllWindows','NbOpen:'+nbOpen+', NbClosed:'+nbClosed+' : Leaked Window(s)') ;
+			return false ;
+		}
+		return true ;
 	},
 	onUnload : function(e) {
 		console.log('Catching beforeunload') ;
@@ -410,6 +431,9 @@ Ext.define('Optima5.App',{
 			console.log('App:onModuleStop : module not found ?') ;
 		}
 		Optima5.Helper.logDebug('App:onModuleStart','Module Stopped') ;
+	},
+	eachModuleInstance: function(fn, scope){
+		this.moduleInstances.each( fn, scope ) ;
 	},
 	
 	
