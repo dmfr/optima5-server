@@ -308,7 +308,6 @@ Ext.define('Optima5.App',{
 		
 		var nbClosed = 0 ;
 		me.eachModuleInstance( function(moduleInstance) {
-			console.dir(moduleInstance) ;
 			moduleInstance.eachWindow( function(window) {
 				window.destroy() ;
 				nbClosed++ ;
@@ -477,7 +476,9 @@ Ext.define('Optima5.App',{
 		var me = this,
 			animDuration = doAnimate? 500 : 0 ;
 		
-		me.forceCloseAllWindows() ;
+		if( !me.forceCloseAllWindows() ) {
+			return ;
+		}
 		me.viewport.removeCls('op5-viewport-devborder');
 		
 		me.desktop.animate({

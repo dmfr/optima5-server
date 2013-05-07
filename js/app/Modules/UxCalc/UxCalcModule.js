@@ -15,6 +15,7 @@ Ext.define('Optima5.Modules.UxCalc.UxCalcModule', {
 			width:170,
 			height:280,
 			resizable:false,
+			maximizable:false,
 			items:[calc],
 			listeners:{
 				afterrender:function(thiswin) {
