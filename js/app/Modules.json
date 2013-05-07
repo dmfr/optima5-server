@@ -1,11 +1,11 @@
 [
 	{
-		"enabled":false,
+		"enabled":true,
 		"moduleId":"crmbase",
 		"moduleName":"CRM Base Domain",
 		"moduleClass":"Optima5.Modules.CrmBase.CrmBaseModule",
+		"moduleCssSrc":"module-crmbase.css",
 		"moduleType":"sdomain",
-		"iconCode":"paracrm",
 		"params": [{"paramCode":"sdomain_db"}]
 	},{
 		"enabled":false,

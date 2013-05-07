@@ -10,7 +10,7 @@ Ext.define('Optima5.Module',{
 	app: null,
 	
 	moduleId : '',
-	sdomainDb : null,
+	sdomainId : null,
 	moduleParams : null,
 	
 	windows: null,
@@ -41,10 +41,10 @@ Ext.define('Optima5.Module',{
 		var moduleParams = moduleCfg.moduleParams || {} ;
 		switch( moduleDescRecord.get('moduleType') ) {
 			case 'sdomain' :
-				if( moduleParams == null || moduleParams.sdomain_db == null || moduleParams.sdomain_db == '' ) {
-					console.log('Module:constructor : sdomain_db missing') ;
+				if( moduleParams == null || moduleParams.sdomain_id == null || moduleParams.sdomain_id == '' ) {
+					console.log('Module:constructor : sdomain_id missing') ;
 				} else {
-					me.sdomainDb = moduleParams.sdomain_db ;
+					me.sdomainId = moduleParams.sdomain_id ;
 				}
 				break ;
 		}
@@ -67,20 +67,23 @@ Ext.define('Optima5.Module',{
 		var me = this ;
 		var moduleDescRecord = Optima5.Helper.getModulesLib().modulesGetById(me.moduleId) ;
 		
-		var windowTitle = '' ;
+		var windowTitle = '' , iconCls ;
 		switch( moduleDescRecord.get('moduleType') ) {
 			case 'sdomain' :
-				windowTitle = '[' + me.sdomainDb + ']' + ' ' + config.title||'' ;
+				var altTitle = me.app.desktopCfgRecord.sdomains().getById(me.sdomainId).get('sdomain_name') ;
+				windowTitle = '[' + me.sdomainId.toLowerCase() + ']' + ' ' + (config.title||altTitle) ;
+				iconCls = Optima5.Helper.getIconsLib().iconGetCls16(me.app.desktopCfgRecord.sdomains().getById(me.sdomainId).get('icon_code')) ;
 				break ;
 			default :
 				windowTitle = config.title||moduleDescRecord.get('moduleName') ;
+				iconCls = Optima5.Helper.getIconsLib().iconGetCls16(moduleDescRecord.get('iconCode')) ;
 				break ;
 		}
 		
 		var cfg = Ext.apply( config || {}, {
 			isMainWindow: (me.windows.getCount() == 0),
-			title:windowTitle,
-			iconCls: Optima5.Helper.getIconsLib().iconGetCls16(moduleDescRecord.get('iconCode')),
+			title: windowTitle,
+			iconCls: iconCls
 		}) ;
 		
 		var win = me.app.getDesktop().createWindow(config,cls) ;
@@ -136,7 +139,7 @@ Ext.define('Optima5.Module',{
 			optParams: {
 				_sessionId: me.app.desktopGetSessionId(),
 				_moduleId: me.moduleId,
-				_sdomainCode : me.sdomainDb || '',
+				_sdomainId : me.sdomainId || '',
 			}
 		}) ;
 	},
@@ -147,7 +150,7 @@ Ext.define('Optima5.Module',{
 			optParams: {
 				_sessionId: me.app.desktopGetSessionId(),
 				_moduleId: me.moduleId,
-				_sdomainCode : me.sdomainDb || '',
+				_sdomainId : me.sdomainId || '',
 			}
 		}) ;
 	},

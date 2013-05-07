@@ -1,3 +1,32 @@
+Ext.define('OptimaDesktopCfgShortcutParamModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'param_code',
+	fields: [
+		{name: 'param_code',  type:'string'},
+		{name: 'param_value',    type:'string'}
+	]
+});
+Ext.define('OptimaDesktopCfgShortcutModel',{
+	extend: 'Ext.data.Model',
+	fields: [
+		{name: 'module_id',  type:'string'},
+	],
+	hasMany: [{
+		model: 'OptimaDesktopCfgShortcutParamModel',
+		name: 'params',
+		associationKey: 'params'
+	}]
+});
+Ext.define('OptimaDesktopCfgSdomainModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'sdomain_id',
+	fields: [
+		{name: 'sdomain_id',  type:'string'},
+		{name: 'sdomain_name',    type:'string'},
+		{name: 'module_id',    type:'string'},
+		{name: 'icon_code',    type:'string'}
+	]
+});
 Ext.define('OptimaDesktopCfgModel',{
 	extend: 'Ext.data.Model',
 	fields: [
@@ -10,6 +39,25 @@ Ext.define('OptimaDesktopCfgModel',{
 		{name: 'login_domainName', type: 'string'},
 		{name: 'wallpaper_id', type: 'int'},
 		{name: 'wallpaper_isStretch', type: 'boolean'}
+	],
+	hasMany: [{
+		model: 'OptimaDesktopCfgSdomainModel',
+		name: 'sdomains',
+		associationKey: 'sdomains'
+	},{
+		model: 'OptimaDesktopCfgShortcutModel',
+		name: 'shortcuts',
+		associationKey: 'shortcuts'
+	}]
+});
+
+
+Ext.define('OptimaDesktopShortcutModel',{
+	extend: 'Ext.data.Model',
+	fields: [
+		{name: 'name'},
+		{name: 'iconCls'},
+		{name: 'execRecord'}
 	]
 });
 
@@ -21,9 +69,11 @@ Ext.define('Optima5.App',{
 	requires: [
 		'Ext.ux.desktop.Desktop',
 		'Ext.ux.desktop.ShortcutModel',
+		'Ext.ux.dams.ModelManager',
 		'Optima5.Helper',
 		'Optima5.Module',
-		'Optima5.LoginWindow'
+		'Optima5.LoginWindow',
+		'Optima5.Desktop'
 	],
 	
 	useQuickTips: true,
@@ -142,7 +192,7 @@ Ext.define('Optima5.App',{
 				}
 				
 				me.desktopSessionId = sessionId ;
-				me.desktopCfgRecord = Ext.create('OptimaDesktopCfgModel',responseObj.desktop_config) ;
+				me.desktopCfgRecord = Ext.ux.dams.ModelManager.create('OptimaDesktopCfgModel',responseObj.desktop_config) ;
 				me.desktopCreate() ;
 			},
 			scope : me
@@ -162,7 +212,7 @@ Ext.define('Optima5.App',{
 		if( me.desktopCfgRecord.get('auth_is_admin') ) {
 			// Ajout de l'applet Admin
 			var adminModuleRecord = modulesLib.modulesGetById('admin') ;
-			var adminModuleExec = Ext.create('OptimaModuleExecModel',{
+			var adminModuleExec = Ext.ux.dams.ModelManager.create('OptimaModuleExecModel',{
 				moduleId: adminModuleRecord.get('moduleId'),
 				params:[]
 			}) ;
@@ -175,11 +225,26 @@ Ext.define('Optima5.App',{
 			}) ;
 			sdomainItems.push('-') ;
 		}
+		if( true ) {
+			me.desktopCfgRecord.sdomains().each( function(sdomainRecord) {
+				var moduleExec = Ext.ux.dams.ModelManager.create('OptimaModuleExecModel',{
+					moduleId: sdomainRecord.get('module_id'),
+					params:[{paramCode:'sdomain_id',paramValue:sdomainRecord.get('sdomain_id')}]
+				}) ;
+				sdomainItems.push({
+					text: '<b>'+sdomainRecord.get('sdomain_id').toUpperCase()+'</b>&nbsp;&nbsp;:&nbsp;&nbsp;'+sdomainRecord.get('sdomain_name'),
+					iconCls: iconsLib.iconGetCls16(sdomainRecord.get('icon_code')),
+					handler : me.onModuleItemClick,
+					moduleExecRecord : moduleExec,
+					scope: me
+				}) ;
+			},me) ;
+		}
 		
 		var appletItems = [] ;
 		Ext.Array.each( modulesLib.modulesGetAll() , function( moduleDescRecord ) {
 			if( moduleDescRecord.get('enabled') && moduleDescRecord.get('moduleType') == 'applet' ) {
-				var moduleExec = Ext.create('OptimaModuleExecModel',{
+				var moduleExec = Ext.ux.dams.ModelManager.create('OptimaModuleExecModel',{
 					moduleId: moduleDescRecord.get('moduleId'),
 					params:[]
 				}) ;
@@ -210,6 +275,48 @@ Ext.define('Optima5.App',{
 			scope: me
 		}) ;
 		
+		var shortcutsData = [] ;
+		me.desktopCfgRecord.shortcuts().each( function(shortcutRecord) {
+			var name, iconCls, execRecord ;
+			var moduleDescRecord = modulesLib.modulesGetById(shortcutRecord.get('module_id')) ;
+			switch( moduleDescRecord.get('moduleType') ) {
+				case 'sdomain' :
+					var shortcutParamRecord = shortcutRecord.params().getById('sdomain_id') ;
+					if( shortcutParamRecord == null ) {
+						return ;
+					}
+					var sdomainId = shortcutParamRecord.get('param_value') ;
+					iconCls = iconsLib.iconGetCls48(me.desktopCfgRecord.sdomains().getById(sdomainId).get('icon_code')) ;
+					name = me.desktopCfgRecord.sdomains().getById(sdomainId).get('sdomain_name') ;
+					break ;
+					
+				default :
+					iconCls = iconsLib.iconGetCls48(moduleDescRecord.get('iconCode')) ;
+					name = moduleDescRecord.get('moduleName') ;
+					break ;
+			}
+			
+			var moduleParams = [] ;
+			shortcutRecord.params().each( function(shortcutParamRecord) {
+				moduleParams.push({
+					paramCode: shortcutParamRecord.get('param_code'),
+					paramValue: shortcutParamRecord.get('param_value')
+				});
+			},me) ;
+			execRecord = Ext.ux.dams.ModelManager.create('OptimaModuleExecModel',{
+				moduleId: moduleDescRecord.get('moduleId'),
+				params:moduleParams
+			}) ;
+			
+			shortcutsData.push({
+				name: name,
+				iconCls: iconCls,
+				execRecord: execRecord
+			});
+			
+		},me);
+		
+		
 		var desktopCfg = {
 			app: me,
 			taskbarConfig:{
@@ -234,8 +341,8 @@ Ext.define('Optima5.App',{
 				{ text: 'Change Settings', handler: me.onSettings, scope: me, hidden: desktopCfgModelRecord.get('auth_is_root') }
 			],
 			shortcuts: Ext.create('Ext.data.Store', {
-				model: 'Ext.ux.desktop.ShortcutModel',
-				data: []
+				model: 'OptimaDesktopShortcutModel',
+				data: shortcutsData
 			}),
 			wallpaper: null ,
 			wallpaperStretch: false
@@ -257,7 +364,7 @@ Ext.define('Optima5.App',{
 		
 		me.moduleInstances = new Ext.util.MixedCollection();
 		
-		me.desktop = new Ext.ux.desktop.Desktop(me.desktopBuildCfg());
+		me.desktop = new Optima5.Desktop(me.desktopBuildCfg());
 		
 		me.viewport = new Ext.container.Viewport({
 			layout: 'fit',
@@ -338,26 +445,31 @@ Ext.define('Optima5.App',{
 	},
 	
 	onModuleItemClick: function( item ) {
-		var me = this ;
+		var me = this ,
+			moduleExecRecord ;
 		
-		if( item instanceof Ext.menu.Item
+		if( item instanceof OptimaModuleExecModel ) {
+			moduleExecRecord = item ;
+		} else if( item instanceof Ext.menu.Item
 		|| Ext.button.Button
-		|| false ) {} else {
-			
-			Optima5.Helper.logWarning('App:onModuleItemClick','Invalid menu item') ;
+		|| false ) {
+			if( typeof item.moduleExecRecord == 'undefined' || !((item.moduleExecRecord) instanceof OptimaModuleExecModel) ) {
+				Optima5.Helper.logWarning('App:onModuleItemClick','OptimaModuleExecModel not found in item') ;
+				return ;
+			} else {
+				moduleExecRecord = item.moduleExecRecord
+			}
+		} else {
+			Optima5.Helper.logWarning('App:onModuleItemClick','Invalid exec record / menu item') ;
 			console.dir(item) ;
-			return ;
-		}
-		if( typeof item.moduleExecRecord == 'undefined' || !((item.moduleExecRecord) instanceof OptimaModuleExecModel) ) {
-			Optima5.Helper.logWarning('App:onModuleItemClick','OptimaModuleExecModel not found in item') ;
 			return ;
 		}
 		
 		var moduleCfg = {
-			moduleId: item.moduleExecRecord.get('moduleId'),
+			moduleId: moduleExecRecord.get('moduleId'),
 			moduleParams: {}
 		}
-		Ext.Array.each( item.moduleExecRecord.params().getRange(), function(moduleParamRecord) {
+		Ext.Array.each( moduleExecRecord.params().getRange(), function(moduleParamRecord) {
 			moduleCfg.moduleParams[moduleParamRecord.get('paramCode')] = moduleParamRecord.get('paramValue') ;
 		}) ;
 		
