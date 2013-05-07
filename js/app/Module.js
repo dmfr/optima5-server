@@ -96,6 +96,8 @@ Ext.define('Optima5.Module',{
 		if( fireStart ) {
 			me.fireEvent('modulestart',me) ;
 		}
+		win.addEvents('windowattach') ;
+		win.fireEvent('windowattach',win) ;
 		
 		win.on({
 			beforeclose: me.onWindowClose,

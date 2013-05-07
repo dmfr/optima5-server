@@ -39,8 +39,8 @@ Ext.define('Optima5.Ajax.Connection',{
 						Ext.MessageBox.alert('Error!', 'Data returned is not valid!'+"\n"+result.responseText);
 					}
 					
-					if( Ext.decode(result.responseText).sessionLost == true )
-						return op5desktop.onSessionInvalid() ;
+					if( jsonData.sessionLost == true )
+						return Optima5.Helper.getApplication().onSessionInvalid() ;
 					
 					Ext.callback(options.cacheSuccess, options.scope, [result, options]);
 				}

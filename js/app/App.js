@@ -575,7 +575,10 @@ Ext.define('Optima5.App',{
 		},me) ;
 	},
 	onSessionInvalid: function() {
-		
+		var me = this ;
+		Ext.Msg.alert('Session closed', 'Your session has been terminated',function(){
+			me.endStandby(false) ;
+		}) ;
 	},
 	doLogout: function() {
 		var me = this ;

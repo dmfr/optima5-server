@@ -88,6 +88,7 @@ Ext.define('Optima5.Helper',{
 	
 	
 	getAjaxConnection: function( cmp ) {
+		var me = this ;
 		var moduleInstance = me.app.getModuleByWindow(cmp) ;
 		if( moduleInstance != null ) {
 			return moduleInstance.getConfiguredAjaxConnection() ;
@@ -95,6 +96,7 @@ Ext.define('Optima5.Helper',{
 		return null;
 	},
 	getAjaxProxy: function( cmp ) {
+		var me = this ;
 		var moduleInstance = me.app.getModuleByWindow(cmp) ;
 		if( moduleInstance != null ) {
 			return moduleInstance.getConfiguredAjaxProxy() ;
