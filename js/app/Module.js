@@ -2,6 +2,10 @@ Ext.define('Optima5.Module',{
 	mixins: {
 		observable: 'Ext.util.Observable'
 	},
+	requires: [
+		'Optima5.Ajax.Connection',
+		'Optima5.Ajax.Proxy'
+	],
 	
 	app: null,
 	
@@ -122,6 +126,30 @@ Ext.define('Optima5.Module',{
 	},
 	eachWindow: function(fn, scope){
 		this.windows.each( fn, scope ) ;
+	},
+	
+	
+	getConfiguredAjaxConnection: function() {
+		var me = this ;
+		return Ext.create('Optima5.Ajax.Connection',{
+			optUrl: me.app.desktopGetBackendUrl(),
+			optParams: {
+				_sessionId: me.app.desktopGetSessionId(),
+				_moduleId: me.moduleId,
+				_sdomainCode : me.sdomainDb || '',
+			}
+		}) ;
+	},
+	getConfiguredAjaxProxy: function() {
+		var me = this ;
+		return Ext.create('Optima5.Ajax.Proxy',{
+			optUrl: me.app.desktopGetBackendUrl(),
+			optParams: {
+				_sessionId: me.app.desktopGetSessionId(),
+				_moduleId: me.moduleId,
+				_sdomainCode : me.sdomainDb || '',
+			}
+		}) ;
 	},
 	
 	

@@ -27,7 +27,10 @@ Ext.define('Optima5.App',{
 	],
 	
 	useQuickTips: true,
+	
+	desktopSessionId: null,
 	desktopCfgRecord: null,
+	
 	moduleInstances: null,
 	
 	isReady: false,
@@ -91,7 +94,13 @@ Ext.define('Optima5.App',{
 		me.desktopBoot(sessionId) ;
 	},
 	
-	
+	desktopGetBackendUrl: function() {
+		return 'server/backend.php' ;
+	},
+	desktopGetSessionId: function() {
+		var me = this ;
+		return me.desktopSessionId ;
+	},
 	desktopBoot: function(sessionId) {
 		var me = this ;
 		
@@ -105,7 +114,7 @@ Ext.define('Optima5.App',{
 		 * Ajax request to retrieve sessionRecord
 		 */
 		Ext.Ajax.request({
-			url: 'server/backend.php',
+			url: me.desktopGetBackendUrl(),
 			params: {
 				_sessionName: sessionId,
 				_moduleName: 'desktop',
@@ -132,6 +141,7 @@ Ext.define('Optima5.App',{
 					return errorFn() ;
 				}
 				
+				me.desktopSessionId = sessionId ;
 				me.desktopCfgRecord = Ext.create('OptimaDesktopCfgModel',responseObj.desktop_config) ;
 				me.desktopCreate() ;
 			},

@@ -25,6 +25,10 @@ Ext.define('Optima5.Helper',{
 		}
 		me.app = op5CoreApp ;
 	},
+	getApplication: function() {
+		var me = this ;
+		return me.app ;
+	},
 	
 	logDebug: function(src,str) {
 		if( this.debug ) {
@@ -83,10 +87,18 @@ Ext.define('Optima5.Helper',{
 	},
 	
 	
-	getAjaxProxy: function( cmp ) {
-		
-	},
 	getAjaxConnection: function( cmp ) {
-		
+		var moduleInstance = me.app.getModuleByWindow(cmp) ;
+		if( moduleInstance != null ) {
+			return moduleInstance.getConfiguredAjaxConnection() ;
+		}
+		return null;
+	},
+	getAjaxProxy: function( cmp ) {
+		var moduleInstance = me.app.getModuleByWindow(cmp) ;
+		if( moduleInstance != null ) {
+			return moduleInstance.getConfiguredAjaxProxy() ;
+		}
+		return null;
 	}
 });
