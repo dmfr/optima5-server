@@ -14,7 +14,7 @@ $domain = $_SESSION['login_data']['login_domain'] ;
 if( !$domain )
 	die() ;
 
-$media_path = $GLOBALS['media_storage_local_path'].'/'.$domain.'/'.'__wallpapers' ;
+$media_path = $GLOBALS['media_storage_local_path'].'/'.$domain.'/'.'_wallpapers' ;
 if( is_dir($media_path) && ($src_id = $_GET['wallpaper_id']) )
 {
 	$src_path = $media_path.'/'.$src_id ;
