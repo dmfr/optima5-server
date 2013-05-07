@@ -17,7 +17,7 @@ Ext.define('Optima5.Ajax.Connection',{
 		 * me.optParams = {
 		 * 	_sessionId:
 		 * 	_moduleId:
-		 * 	_sdomainCode:
+		 * 	_sdomainId:
 		 * }
 		 */
 		Ext.apply(options.params,me.optParams) ;

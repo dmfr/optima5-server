@@ -116,8 +116,8 @@ Ext.define('Optima5.App',{
 		Ext.Ajax.request({
 			url: me.desktopGetBackendUrl(),
 			params: {
-				_sessionName: sessionId,
-				_moduleName: 'desktop',
+				_sessionId: sessionId,
+				_moduleId: 'desktop',
 				_action: 'config_getRecord'
 			},
 			success: function(response) {
@@ -293,7 +293,7 @@ Ext.define('Optima5.App',{
 		}
 		
 		var getParams = {
-			_sessionName: me.desktopCfgRecord.get('session_id'),
+			_sessionId: me.desktopCfgRecord.get('session_id'),
 			wallpaper_id: wallpId
 		};
 		var wallpUrl = 'wallpapers/wallpaper.php?' + Ext.Object.toQueryString(getParams) ;
@@ -471,7 +471,7 @@ Ext.define('Optima5.App',{
 			url: 'server/login.php',
 			params: {
 				_action: 'logout',
-				_sessionName: me.desktopCfgRecord.get('session_id')
+				_sessionId: me.desktopGetSessionId()
 			},
 			success: function(response) {
 				if( Ext.decode(response.responseText).done != true ) {
