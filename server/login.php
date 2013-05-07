@@ -88,7 +88,7 @@ if( $_POST['_action'] == 'login' )
 		}
 	} else {
 		$password_sha1 = sha1($login_user.AUTH_SHA1_SALT.trim($_POST['login_password'])) ;
-		$query = "SELECT * FROM auth_user WHERE user_code='$login_user' AND password_sha1='{$password_sha1}'" ;
+		$query = "SELECT * FROM auth_user WHERE user_id='$login_user' AND password_sha1='{$password_sha1}'" ;
 		$result = $_opDB->query($query) ;
 		if( $_opDB->num_rows($result) != 1 )
 		{
@@ -164,7 +164,7 @@ if( $_POST['_action'] == 'logout' )
 {
 	sleep(0.5) ;
 
-	session_name($_POST['_sessionName']) ;
+	session_name($_POST['_sessionId']) ;
 	session_start() ;
 	if( isset($_SESSION['login_data']) )
 	{

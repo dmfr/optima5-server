@@ -15,7 +15,7 @@ $_opDB = new mysql_DB( );
 $_opDB->connect_mysql( $mysql_host, $mysql_db, $mysql_user, $mysql_pass );
 $_opDB->query("SET NAMES UTF8") ;
 
-$my_module = $_POST['_moduleName'] ;
+$my_module = $_POST['_moduleId'] ;
 include("$server_root/modules/$my_module/backend_$my_module.inc.php");
 
 $_opDB->select_db( $mysql_db.'_'.$my_module) ;
