@@ -18,11 +18,17 @@ $_opDB->query("SET NAMES UTF8") ;
 $my_module = $_POST['_moduleId'] ;
 include("$server_root/modules/$my_module/backend_$my_module.inc.php");
 
-$_opDB->select_db( $mysql_db.'_'.$my_module) ;
+$my_sdomain = $_POST['_sdomainId'] ;
+
+if( $my_sdomain ) {
+	$_opDB->select_db( $mysql_db.'_'.$my_sdomain) ;
+}
 
 $TAB = backend_specific( $_POST ) ;
 
-$_opDB->select_db( $mysql_db ) ;
+if( $my_sdomain ) {
+	$_opDB->select_db( $mysql_db ) ;
+}
 
 //ob_end_clean() ;
 //header('Content-type: text/html');
