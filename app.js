@@ -7,6 +7,7 @@ Ext.Loader.setConfig({
 		'Optima5' : './js/app'
 		}
 });
+Ext.require('Ext.*') ;
 Ext.require('Optima5.App');
 
 var op5desktop, op5session ;
