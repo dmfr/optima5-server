@@ -1,7 +1,8 @@
 Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 	extend:'Ext.window.Window',
 	requires:[
-		'Optima5.Modules.CrmBase.MainWindowButton'
+		'Optima5.Modules.CrmBase.MainWindowButton',
+		'Optima5.Modules.CrmBase.AuthAndroidPanel'
 	],
 	
 	initComponent: function() {
@@ -83,8 +84,43 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 				totHeight += item.getHeight() ;
 			},me) ;
 			me.setHeight(totHeight+50) ;
+		},me);
+		
+		
+		me.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_action : 'define_getMainToolbar',
+				data_type : 'file'
+			},
+			callback: function() {
+			},
+			success: function() {
+			}
+		});
+		
+		
+		me.on('ready',function(){
+			me.testFn() ;
 		},me) ;
 		
 		this.callParent() ;
+	},
+	testFn: function() {
+		var me = this ;
+		var win = me.optimaModule.createWindow({
+			width:800,
+			height:600,
+			title:'pouet',
+			layout: {
+				type: 'fit',
+				align: 'stretch'
+			},
+			items:[
+				Ext.create('Optima5.Modules.CrmBase.AuthAndroidPanel',{
+					optimaModule: me.optimaModule
+				})
+			]
+		}) ;
+		win.show() ;
 	}
 }) ;
