@@ -521,6 +521,7 @@ Ext.define('Optima5.App',{
 		}) ;
 		Ext.create(Optima5.Helper.getModulesLib().modulesGetById(moduleCfg.moduleId).get('moduleClass'),moduleCfg) ;
 	},
+	/*
 	getModuleByWindow: function( win ) {
 		var me = this ;
 		
@@ -532,15 +533,13 @@ Ext.define('Optima5.App',{
 			return null ;
 		}
 		
-		var parentModule = null 
-		me.moduleInstances.each( function( moduleInstance ) {
-			if( moduleInstance.hasWindow(win) ) {
-				parentModule = moduleInstance ;
-				return true ;
-			}
-		},me) ;
-		return parentModule ;
+		if( win.optimaModule != null && (win.optimaModule) instanceof Optima5.Module ) {
+			return win.optimaModule ;
+		}
+		
+		return null ;
 	},
+	*/
 	onModuleStart: function( moduleInstance ) {
 		var me = this ;
 		me.moduleInstances.add(moduleInstance) ;

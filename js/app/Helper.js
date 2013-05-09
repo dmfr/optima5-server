@@ -40,6 +40,7 @@ Ext.define('Optima5.Helper',{
 	},
 	logError: function(src,str) {
 		console.error(src+' : '+str) ;
+		Ext.Msg.alert('App Error', src+' : '+str) ;
 	},
 	
 	
@@ -84,23 +85,36 @@ Ext.define('Optima5.Helper',{
 	getIconsLib: function() {
 		var me = this ;
 		return me.iconsLib ;
-	},
+	}
 	
-	
+	/*
 	getAjaxConnection: function( cmp ) {
-		var me = this ;
-		var moduleInstance = me.app.getModuleByWindow(cmp) ;
+		var me = this,
+			moduleInstance ;
+		if( cmp instanceof Optima5.Module) {
+			moduleInstance = cmp ;
+		} else {
+			moduleInstance = me.app.getModuleByWindow(cmp) ;
+		}
 		if( moduleInstance != null ) {
 			return moduleInstance.getConfiguredAjaxConnection() ;
 		}
+		me.logError('Helper:getAjaxConnection', 'Cannot lookup parent module (Component not started ?)') ;
 		return null;
 	},
 	getAjaxProxy: function( cmp ) {
-		var me = this ;
-		var moduleInstance = me.app.getModuleByWindow(cmp) ;
+		var me = this,
+			moduleInstance ;
+		if( cmp instanceof Optima5.Module) {
+			moduleInstance = cmp ;
+		} else {
+			moduleInstance = me.app.getModuleByWindow(cmp) ;
+		}
 		if( moduleInstance != null ) {
 			return moduleInstance.getConfiguredAjaxProxy() ;
 		}
+		me.logError('Helper:getAjaxProxy', 'Cannot lookup parent module (Component not started ?)') ;
 		return null;
 	}
+	*/
 });

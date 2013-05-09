@@ -1,5 +1,5 @@
 Ext.define('Optima5.Ajax.Proxy',{
-	extend: 'Ext.data.Connection',
+	extend: 'Ext.data.proxy.Ajax',
 	requires: ['Optima5.Ajax.Connection'],
 	
 	optUrl: '',
@@ -9,7 +9,7 @@ Ext.define('Optima5.Ajax.Proxy',{
 	constructor: function(cfg) {
 		var me = this ;
 		Ext.apply(cfg,{
-			//url: me.optUrl,
+			url: 'dummy',
 			actionMethods: {
 				create:'POST',
 				read:'POST',
@@ -24,9 +24,10 @@ Ext.define('Optima5.Ajax.Proxy',{
 			optParams: cfg.optParams
 		});
 		
-		me.callParent() ;
+		me.callParent([cfg]) ;
 	},
 	doRequest: function(operation, callback, scope) {
+		var me = this ;
 		var writer  = this.getWriter(),
 				request = this.buildRequest(operation, callback, scope);
 

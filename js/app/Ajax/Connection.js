@@ -50,12 +50,12 @@ Ext.define('Optima5.Ajax.Connection',{
 					
 					Ext.callback(options.cacheSuccess, options.scope, [result, options]);
 				}
-				Ext.callback(options.cacheCallback, options.scope, [result, success, options]);
+				Ext.callback(options.cacheCallback, options.scope, [options, success, result]);
 			},
 			success : Ext.emptyFn,
 			failure : Ext.emptyFn
 		}) ;
 		
-		this.callParent(arguments) ;
+		this.callParent([options]) ;
 	}
 });

@@ -81,6 +81,7 @@ Ext.define('Optima5.Module',{
 		}
 		
 		var cfg = Ext.apply( config || {}, {
+			optimaModule: me,
 			isMainWindow: (me.windows.getCount() == 0),
 			title: windowTitle,
 			iconCls: iconCls
@@ -96,8 +97,8 @@ Ext.define('Optima5.Module',{
 		if( fireStart ) {
 			me.fireEvent('modulestart',me) ;
 		}
-		win.addEvents('windowattach') ;
-		win.fireEvent('windowattach',win) ;
+		win.addEvents('ready') ;
+		win.fireEvent('ready',win) ;
 		
 		win.on({
 			beforeclose: me.onWindowClose,
@@ -117,6 +118,7 @@ Ext.define('Optima5.Module',{
 	},
 	onWindowDestroy: function( win ) {
 		var me = this;
+		delete win.module ;
 		me.windows.remove(win);
 		if( me.windows.getCount() == 0 ) {
 			me.selfDestroy() ;
@@ -145,9 +147,9 @@ Ext.define('Optima5.Module',{
 			}
 		}) ;
 	},
-	getConfiguredAjaxProxy: function() {
+	getConfiguredAjaxProxy: function(config) {
 		var me = this ;
-		return Ext.create('Optima5.Ajax.Proxy',{
+		Ext.apply(config,{
 			optUrl: me.app.desktopGetBackendUrl(),
 			optParams: {
 				_sessionId: me.app.desktopGetSessionId(),
@@ -155,12 +157,13 @@ Ext.define('Optima5.Module',{
 				_sdomainId : me.sdomainId || '',
 			}
 		}) ;
+		return Ext.create('Optima5.Ajax.Proxy',config) ;
 	},
 	
 	
 	selfDestroy: function() {
 		var me = this ;
-		me.app = null ;
+		delete me.app ;
 		me.fireEvent('modulestop',me) ;
 	}
  
