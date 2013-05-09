@@ -111,7 +111,21 @@ Ext.define('Optima5.Module',{
 	onWindowClose: function( win ) {
 		var me = this;
 		if( win.isMainWindow && me.windows.getCount() > 1 ) {
-			
+			Ext.Msg.confirm('Close module','Close ['+me.sdomainId+'] module ?',function(btn){
+				if( btn == 'yes' ) {
+					me.eachWindow(function(cWin){
+						if( !cWin.isMainWindow ) {
+							cWin.destroy() ;
+						}
+					},me);
+					if( me.windows.getCount() != 1 ) {
+						Optima5.Helper.logError('Module:onWindowClose','Leaked window ?') ;
+					}
+					me.eachWindow(function(cWin){
+						cWin.close() ;
+					},me) ;
+				}
+			},me);
 			return false ;
 		}
 		return true ;
