@@ -80,11 +80,20 @@ Ext.define('Optima5.Module',{
 				break ;
 		}
 		
-		var cfg = Ext.apply( config || {}, {
+		if( !config ) {
+			config = {} ;
+		}
+		Ext.apply( config, {
 			optimaModule: me,
 			isMainWindow: (me.windows.getCount() == 0),
 			title: windowTitle,
 			iconCls: iconCls
+		}) ;
+		Ext.applyIf( config,{
+			layout: {
+				type: 'fit',
+				align: 'stretch'
+			}
 		}) ;
 		
 		var win = me.app.getDesktop().createWindow(config,cls) ;
@@ -97,8 +106,8 @@ Ext.define('Optima5.Module',{
 		if( fireStart ) {
 			me.fireEvent('modulestart',me) ;
 		}
-		win.addEvents('ready') ;
-		win.fireEvent('ready',win) ;
+		win.addEvents('windowattach') ;
+		win.fireEvent('windowattach',win) ;
 		
 		win.on({
 			beforeclose: me.onWindowClose,
