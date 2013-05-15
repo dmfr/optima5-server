@@ -15,7 +15,27 @@ function paracrm_define_getMainToolbar($post_data)
 			$arr_pub_files[] = $arr['target_file_code'] ;
 		}
 	}
-
+	
+	// Cache des "counts"
+	$count_bibles = $count_files = array() ;
+	$query = "SELECT table_name, TABLE_ROWS 
+					FROM INFORMATION_SCHEMA.TABLES 
+					WHERE TABLE_SCHEMA = DATABASE()" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$db_table = $arr[0] ;
+		$count = $arr[1] ;
+		
+		if( strpos($db_table,'store_bible_') === 0 && substr($db_table,-6)=='_entry' ) {
+			$bible_code = substr( substr($db_table, strlen('store_bible_')) , 0 , -1 * strlen('_entry') );
+			$count_bibles[$bible_code] = $count ;
+		}
+		if( strpos($db_table,'store_file_') === 0 ) {
+			$file_code = substr($db_table, strlen('store_file_'));
+			$count_files[$file_code] = $count ;
+		}
+	}
+	
 	switch( $post_data['data_type'] )
 	{
 		case 'bible' :
@@ -59,6 +79,16 @@ function paracrm_define_getMainToolbar($post_data)
 		unset($arr['gmap_is_on']) ;
 	
 		$arr['icon'] = 'images/op5img/'.$arr['icon'] ;
+		
+		switch( $post_data['data_type'] ) {
+			case 'bible' :
+			$arr['count'] = $count_bibles[$arr['bibleId']] ;
+			break ;
+			
+			case 'file' :
+			$arr['count'] = $count_files[$arr['fileId']] ;
+			break ;
+		}
 		
 		if( $post_data['data_type'] == 'bible' && in_array($arr['bibleId'],$arr_pub_bibles) )
 			$arr['isPublished'] = true ;
