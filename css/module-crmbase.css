@@ -2,7 +2,32 @@
 	font-size: 13px;
 	font-weight: bold;
 }
+.op5-crmmbase-mainwindowbtn-redcount {
+	font-size: 12px;
+	font-weight: bold;
+	color: red;
+}
 .op5-crmmbase-mainwindowbtn-caption {
 	font-size: 11px;
 	padding-left:4px;
+}
+
+/* Icons */
+.op5-crmbase-waitcircle {
+	background-image: url("../images/modules/crmbase-waitcircle.gif") !important;
+}
+.op5-crmbase-mainwindow-bible {
+	background-image: url("../images/modules/crmbase-dataadd-22.gif") !important;
+}
+.op5-crmbase-mainwindow-files {
+	background-image: url("../images/modules/crmbase-filelist-22.png") !important;
+}
+.op5-crmbase-mainwindow-query {
+	background-image: url("../images/modules/crmbase-process-22.gif") !important;
+}
+.op5-crmbase-mainwindow-scen {
+	background-image: url("../images/modules/crmbase-engins-22.gif") !important;
+}
+.op5-crmbase-mainwindow-admin {
+	background-image: url("../images/modules/crmbase-users-22.gif") !important;
 }
