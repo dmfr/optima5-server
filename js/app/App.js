@@ -437,6 +437,33 @@ Ext.define('Optima5.App',{
 		}
 		return true ;
 	},
+	alignNewWindow: function(win) {
+		var newPosX = curPosX = win.getPosition()[0] ,
+			newPosY = curPosY = win.getPosition()[1] ;
+		if( win.optimaModule.sdomainId && win.optimaModule.sdomainId != '' && win.isMainWindow ) {
+			newPosX = 70 ;
+			newPosY = 40 ;
+		}
+		if( zmgr = this.desktop.getDesktopZIndexManager() ) {
+			var tArr ;
+			zmgr.eachBottomUp(function(lwin) {
+				if( lwin.isWindow && lwin != win ) {
+					tArr = lwin.getPosition() ;
+					if( tArr[0] == newPosX ) {
+						newPosX += 30 ;
+					}
+					if( tArr[1] == newPosY ) {
+						newPosY += 25 ;
+					}
+				}
+			});
+		}
+		
+		
+		if( newPosX != curPosX || newPosY != curPosY ) {
+			win.setPosition(newPosX,newPosY) ;
+		}
+	},
 	onUnload : function(e) {
 		console.log('Catching beforeunload') ;
 		if (this.fireEvent('beforeunload', this) === false) {

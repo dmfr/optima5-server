@@ -97,6 +97,9 @@ Ext.define('Optima5.Module',{
 		}) ;
 		
 		var win = me.app.getDesktop().createWindow(config,cls) ;
+		win.on('afterrender',function(twin) {
+			me.app.alignNewWindow(twin) ;
+		},me,{single:true}) ;
 		
 		var fireStart = false ;
 		if( me.windows.getCount() == 0 ) {
