@@ -68,7 +68,6 @@ Ext.define('Optima5.App',{
 	},
 	requires: [
 		'Ext.ux.desktop.Desktop',
-		'Ext.ux.desktop.ShortcutModel',
 		'Ext.ux.dams.ModelManager',
 		'Optima5.Helper',
 		'Optima5.Module',
@@ -458,8 +457,6 @@ Ext.define('Optima5.App',{
 				}
 			});
 		}
-		
-		
 		if( newPosX != curPosX || newPosY != curPosY ) {
 			win.setPosition(newPosX,newPosY) ;
 		}
