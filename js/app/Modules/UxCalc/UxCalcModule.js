@@ -24,6 +24,5 @@ Ext.define('Optima5.Modules.UxCalc.UxCalcModule', {
 				scope:me
 			}
 		}) ;
-		win.show() ;
 	}
 });

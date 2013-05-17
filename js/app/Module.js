@@ -90,6 +90,8 @@ Ext.define('Optima5.Module',{
 			iconCls: iconCls
 		}) ;
 		Ext.applyIf( config,{
+			width:800,
+			height:600,
 			layout: {
 				type: 'fit',
 				align: 'stretch'
@@ -117,6 +119,8 @@ Ext.define('Optima5.Module',{
 			destroy: me.onWindowDestroy,
 			scope: me
 		});
+		
+		win.show();
 		
 		return win ;
 	},

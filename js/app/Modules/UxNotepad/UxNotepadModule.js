@@ -11,6 +11,5 @@ Ext.define('Optima5.Modules.UxNotepad.UxNotepadModule', {
 			width:600,
 			height:400
 		},Optima5.Modules.UxNotepad.UxNotepadWindow) ;
-		win.show() ;
 	}
 });

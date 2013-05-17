@@ -9,8 +9,7 @@ Ext.define('Optima5.Modules.CrmBase.CrmBaseModule', {
 		
 		me.addEvents('op5broadcast') ;
 		
-		var win = me.createWindow({},Optima5.Modules.CrmBase.MainWindow) ;
-		win.show() ;
+		me.createWindow({},Optima5.Modules.CrmBase.MainWindow) ;
 	},
 	postCrmEvent: function( crmEvent, postParams ) {
 		var me = this ;
