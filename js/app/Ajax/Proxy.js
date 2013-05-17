@@ -17,6 +17,11 @@ Ext.define('Optima5.Ajax.Proxy',{
 				destroy:'POST'
 			}
 		});
+		Ext.applyIf(cfg,{
+			reader:{
+				type:'json'
+			}
+		});
 		//Ext.apply(cfg.extraParams,me.optParams);
 		
 		me.optConnection = Ext.create('Optima5.Ajax.Connection',{
