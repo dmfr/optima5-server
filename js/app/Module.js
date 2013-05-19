@@ -67,15 +67,12 @@ Ext.define('Optima5.Module',{
 		var me = this ;
 		var moduleDescRecord = Optima5.Helper.getModulesLib().modulesGetById(me.moduleId) ;
 		
-		var windowTitle = '' , iconCls ;
+		var iconCls ;
 		switch( moduleDescRecord.get('moduleType') ) {
 			case 'sdomain' :
-				var altTitle = me.app.desktopCfgRecord.sdomains().getById(me.sdomainId).get('sdomain_name') ;
-				windowTitle = '[' + me.sdomainId.toLowerCase() + ']' + ' ' + (config.title||altTitle) ;
 				iconCls = Optima5.Helper.getIconsLib().iconGetCls16(me.app.desktopCfgRecord.sdomains().getById(me.sdomainId).get('icon_code')) ;
 				break ;
 			default :
-				windowTitle = config.title||moduleDescRecord.get('moduleName') ;
 				iconCls = Optima5.Helper.getIconsLib().iconGetCls16(moduleDescRecord.get('iconCode')) ;
 				break ;
 		}
@@ -86,8 +83,7 @@ Ext.define('Optima5.Module',{
 		Ext.apply( config, {
 			optimaModule: me,
 			isMainWindow: (me.windows.getCount() == 0),
-			title: windowTitle,
-			iconCls: iconCls
+			title: me.getWindowTitle( config.title )
 		}) ;
 		Ext.applyIf( config,{
 			width:800,
@@ -95,7 +91,8 @@ Ext.define('Optima5.Module',{
 			layout: {
 				type: 'fit',
 				align: 'stretch'
-			}
+			},
+			iconCls: iconCls
 		}) ;
 		
 		var win = me.app.getDesktop().createWindow(config,cls) ;
@@ -123,6 +120,22 @@ Ext.define('Optima5.Module',{
 		win.show();
 		
 		return win ;
+	},
+	getWindowTitle: function( cfgTitle ) {
+		var me = this,
+			moduleDescRecord = Optima5.Helper.getModulesLib().modulesGetById(me.moduleId) ;
+			windowTitle = '' ;
+			
+		switch( moduleDescRecord.get('moduleType') ) {
+			case 'sdomain' :
+				var altTitle = me.app.desktopCfgRecord.sdomains().getById(me.sdomainId).get('sdomain_name') ;
+				windowTitle = '[' + me.sdomainId.toLowerCase() + ']' + ' ' + (cfgTitle!=null?cfgTitle:altTitle) ;
+				break ;
+			default :
+				windowTitle = (cfgTitle != null)? cfgTitle : moduleDescRecord.get('moduleName') ;
+				break ;
+		}
+		return windowTitle ;
 	},
 	onWindowClose: function( win ) {
 		var me = this;
