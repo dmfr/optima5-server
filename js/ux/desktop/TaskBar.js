@@ -185,6 +185,9 @@ Ext.define('Ext.ux.desktop.TaskBar', {
 
         var cmp = this.windowBar.add(config);
         cmp.toggle(true);
+        this.mon(win,'titlechange',function(p,newTitle){
+            cmp.setText(newTitle) ;
+        });
         return cmp;
     },
 
