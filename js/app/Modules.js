@@ -93,6 +93,7 @@ Ext.define('Optima5.Modules',{
 				if( moduleDesc.get('moduleCssSrc') != '' ) {
 					var cssId = 'isCssM'+moduleDesc.get('moduleId') ;
 					var cssSrc = 'css/'+moduleDesc.get('moduleCssSrc') ;
+					cssSrc = Ext.urlAppend(cssSrc, '_dc' + '=' + (new Date().getTime()));
 					Ext.util.CSS.createStyleSheet('', cssId);
 					Ext.util.CSS.swapStyleSheet(cssId, cssSrc);
 				}
