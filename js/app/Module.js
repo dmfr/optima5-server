@@ -179,26 +179,26 @@ Ext.define('Optima5.Module',{
 	},
 	
 	
+	getConfiguredAjaxParams: function() {
+		var me = this ;
+		return {
+			_sessionId: me.app.desktopGetSessionId(),
+			_moduleId: me.moduleId,
+			_sdomainId : me.sdomainId || '',
+		};
+	},
 	getConfiguredAjaxConnection: function() {
 		var me = this ;
 		return Ext.create('Optima5.Ajax.Connection',{
 			optUrl: me.app.desktopGetBackendUrl(),
-			optParams: {
-				_sessionId: me.app.desktopGetSessionId(),
-				_moduleId: me.moduleId,
-				_sdomainId : me.sdomainId || '',
-			}
+			optParams: me.getConfiguredAjaxParams()
 		}) ;
 	},
 	getConfiguredAjaxProxy: function(config) {
 		var me = this ;
 		Ext.apply(config,{
 			optUrl: me.app.desktopGetBackendUrl(),
-			optParams: {
-				_sessionId: me.app.desktopGetSessionId(),
-				_moduleId: me.moduleId,
-				_sdomainId : me.sdomainId || '',
-			}
+			optParams: me.getConfiguredAjaxParams()
 		}) ;
 		return Ext.create('Optima5.Ajax.Proxy',config) ;
 	},
