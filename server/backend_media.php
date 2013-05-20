@@ -10,17 +10,46 @@ include("$server_root/modules/media/include/media.inc.php");
 
 
 $domain = $_SESSION['login_data']['login_domain'] ;
-$module_name = $_GET['_moduleName'] ;
-$module_account = $_GET['_moduleAccount'] ;
+$module_name = $_GET['_moduleName'] ? $_GET['_moduleName'] : $_GET['_sdomainId'] ;
+$module_account = $_GET['_moduleAccount'] ? $_GET['_moduleAccount'] : 'generic' ;
 
 if( !$domain || !$module_name || !$_GET['media_id'] )
 	die() ;
 elseif( !$module_account )
 	$module_account = 'generic' ;
 
+function do_fallback() {
+	if( !$GLOBALS['media_fallback_url'] ) {
+		die() ;
+	}
+	
+	$thumb_get = "false" ;
+	if( $_GET['thumb'] === true || $_GET['thumb'] == 'true' ) {
+		$thumb_get = "true" ;
+	}
+	
+	$getUrl = $GLOBALS['media_fallback_url']."?".http_build_query($_GET) ;
+	
+	if( $_GET['download'] === true || $_GET['download'] == 'true' )
+	{
+		$filename = 'OP5.'.rand ( 1000000000 , 9999999999 ).'.jpg' ;
+		header("Content-Type: application/force-download; name=\"$filename\""); 
+		header("Content-Disposition: attachment; filename=\"$filename\""); 
+	}
+	elseif( $_GET['getsize'] === true || $_GET['getsize'] == 'true' ) {
+		//
+	} else {
+		header('Content-type: image/jpeg');
+	}
+	readfile($getUrl) ;
+	die() ;
+}
+
 $media_path = $GLOBALS['media_storage_local_path'].'/'.$domain.'/'.$module_name.'/'.$module_account ;
 if( !is_dir($media_path) )
-	die() ;
+{
+	do_fallback() ;
+}
 	
 $src_id = $_GET['media_id'] ;
 if( strpos($src_id,'tmp_') === 0 )
@@ -41,9 +70,10 @@ else
 	$src_path.= '.jpg' ;
 }
 
-if( !is_file($src_path) )
-	die() ;
-	
+if( !is_file($src_path) ) {
+	do_fallback() ;
+}
+
 if( $_GET['getsize'] === true || $_GET['getsize'] == 'true' )
 {
 	$img_src = imagecreatefromjpeg($src_path);
@@ -67,4 +97,5 @@ else
 	header('Content-type: image/jpeg');
 }
 readfile($src_path) ;
+die() ;
 ?>
