@@ -285,6 +285,9 @@ Ext.define('Optima5.App',{
 						return ;
 					}
 					var sdomainId = shortcutParamRecord.get('param_value') ;
+					if( me.desktopCfgRecord.sdomains().getById(sdomainId) == null ) {
+						return ;
+					}
 					iconCls = iconsLib.iconGetCls48(me.desktopCfgRecord.sdomains().getById(sdomainId).get('icon_code')) ;
 					name = me.desktopCfgRecord.sdomains().getById(sdomainId).get('sdomain_name') ;
 					break ;
