@@ -57,6 +57,17 @@ function paracrm_define_getMainToolbar($post_data)
 	$TAB = array() ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
 	{
+		if( $post_data['data_type'] == 'bible' && $post_data['bible_code']
+			&& $post_data['bible_code'] != $arr['bibleId'] ) {
+			
+			continue ;
+		}
+		if( $post_data['data_type'] == 'file' && $post_data['file_code']
+			&& $post_data['file_code'] != $arr['fileId'] ) {
+			
+			continue ;
+		}
+	
 		$arr['viewmode_grid'] = true ;
 		if( $arr['gmap_is_on'] == 'O' )
 			$arr['viewmode_gmap'] = true ;

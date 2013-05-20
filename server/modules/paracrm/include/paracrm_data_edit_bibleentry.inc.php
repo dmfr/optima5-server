@@ -134,6 +134,8 @@ function paracrm_data_editTransaction_bibleEntry( $post_data , &$arr_saisie )
 				default :
 				continue 2 ;
 			}
+			if( isset($arr_saisie['arr_ent']) )
+				$form_item['value'] = $arr_saisie['arr_ent'][$form_item['name']] ;
 			$layout_form[] = $form_item ;
 		}
 		

@@ -6,8 +6,7 @@ function paracrm_data_getBibleCfg( $post_data )
 	$bible_code = $post_data['bible_code'] ;
 	$tree_key_lib = NULL ;
 	
-	$query = "SELECT bible_lib FROM define_bible WHERE bible_code='$bible_code'" ;
-	$bible_lib = $_opDB->query_uniqueValue($query);
+	$arr_define_bible = current( paracrm_define_getMainToolbar(array('data_type'=>'bible','bible_code'=>$bible_code)) ) ;
 	
 	$tab_tree_fields = array() ;
 	$tab_tree_fields[] = array('tree_field_code'=>'treenode_key','tree_field_type'=>'string','tree_field_lib'=>'NodeKey','tree_field_is_highlight'=>false) ;
@@ -105,7 +104,7 @@ function paracrm_data_getBibleCfg( $post_data )
 	}
 	
 	
-	return array('success'=>true,'data'=>array('bible_lib'=>$bible_lib,'tree_fields'=>$tab_tree_fields,'entry_fields'=>$tab_entry_fields)) ;
+	return array('success'=>true,'data'=>array('define_bible'=>$arr_define_bible,'bible_lib'=>$bible_lib,'tree_fields'=>$tab_tree_fields,'entry_fields'=>$tab_entry_fields)) ;
 }
 
 
@@ -374,9 +373,7 @@ function paracrm_data_getFileGrid_config( $post_data )
 {
 	global $_opDB ;
 
-	$query = "SELECT * FROM define_file WHERE file_code='{$post_data['file_code']}'" ;
-	$result = $_opDB->query($query) ;
-	$arr_define_file = $_opDB->fetch_assoc($result) ;
+	$arr_define_file = current( paracrm_define_getMainToolbar(array('data_type'=>'file','file_code'=>$post_data['file_code'])) ) ;
 	
 	$TAB = paracrm_lib_file_access( $file_code = $post_data['file_code'] ) ;
 	if( !$TAB['select_map'] )
