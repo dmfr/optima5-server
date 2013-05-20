@@ -110,6 +110,10 @@ Ext.define('Ext.ux.dams.FieldTree',{
 		}
 		
 		// Ext.apply(this, {listeners: {resize: function() {this.mytree.doLayout();}}});
+		var me = this ;
+		if( me.value ) {
+			me.setRawValue(me.value) ;
+		}
 	},
 			  
 	getSubmitData: function() {

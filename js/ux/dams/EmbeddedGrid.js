@@ -1,13 +1,11 @@
-Ext.define('Ext.ux.dams.RestfulGrid',{
+Ext.define('Ext.ux.dams.EmbeddedGrid',{
 	extend : 'Ext.grid.Panel',
 			  
-	alias : 'widget.damsrestfulgrid',
+	alias : 'widget.damsembeddedgrid',
 			  
 	translateCache : [] , // SUPER CRADE !!!
 			  
 	initComponent: function(){
-		var me = this ;
-		
 		var modelfields = new Array() ;
 		var modelvalidations = new Array() ;
 		Ext.each( this.columns, function( v ){
@@ -37,17 +35,7 @@ Ext.define('Ext.ux.dams.RestfulGrid',{
 			autoLoad: false,
 			autoSync: false,
 			model: this.modelname,
-			proxy: {
-				type: 'ajax',
-				url: this.url,
-				reader: {
-					type: 'json',
-					root: 'data'
-				}
-			}
-		}) ;
-		Ext.apply(this.linkstore.proxy.actionMethods,{
-			read:'POST' 
+			data: this.data || []
 		}) ;
 		
 		
@@ -113,11 +101,23 @@ Ext.define('Ext.ux.dams.RestfulGrid',{
 		return s.indexOf(r[0]);
    },
 	
-	load : function() {
-		this.linkstore.proxy.extraParams = new Object() ;
-		Ext.apply( this.linkstore.proxy.extraParams, this.baseParams ) ;
-		Ext.apply( this.linkstore.proxy.extraParams, this.loadParams ) ;
-		this.linkstore.load() ;
+	setData: function( tabData ) {
+		var ln = tabData.length,
+			records = [],
+			i = 0;
+		for (; i < ln; i++) {
+			records.push(Ext.create(this.modelname, tabData[i]));
+		}
+		this.linkstore.loadData(records) ;
+	},
+	getData: function() {
+		var datar = new Array();
+		var jsonDataEncode = "";
+		var records = this.linkstore.getRange();
+		for (var i = 0; i < records.length; i++) {
+			datar.push(records[i].data);
+		}
+		return datar ;
 	},
 			  
 	onCancelEdit : function(){
@@ -134,34 +134,5 @@ Ext.define('Ext.ux.dams.RestfulGrid',{
 			if( records[i].validate().getCount() > 0 )
 				this.linkstore.remove(records[i]) ;
 		}
-	},
-			  
-	save : function(callback,callbackScope) {
-		if( !callback ) {
-			callback = Ext.emptyFn ;
-		}
-		
-		var datar = new Array();
-		var jsonDataEncode = "";
-		var records = this.linkstore.getRange();
-		for (var i = 0; i < records.length; i++) {
-			datar.push(records[i].data);
-		}
-		jsonDataEncode = Ext.JSON.encode(datar);
-		
-		//jsonData = Ext.encode(Ext.pluck(this.linkstore.data.items, 'data'));
-		
-		var ajaxParams = new Object() ;
-		Ext.apply( ajaxParams, this.baseParams ) ;
-		Ext.apply( ajaxParams, this.saveParams ) ;
-		Ext.apply( ajaxParams, {data:jsonDataEncode} ) ;
-		Optima5.CoreDesktop.Ajax.request({
-			url: 'server/backend.php',
-			params: ajaxParams,
-			succCallback : callback,
-			scope: callbackScope
-		});
 	}
-			  
-	
 });
