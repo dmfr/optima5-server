@@ -1,25 +1,24 @@
-Ext.define('Optima5.Modules.ParaCRM.FilePanel' ,{
+Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 	extend: 'Ext.panel.Panel',
 			  
-	alias: 'widget.op5paracrmfile',
-			  
 	requires: [
-		'Ext.form.*',
-		'Ext.data.*',
-		'Ext.grid.*',
-		'Ext.tree.*',
-		'Optima5.Modules.ParaCRM.DataFormPanel',
-		'Optima5.Modules.ParaCRM.FilePanelGmap',
-		'Optima5.Modules.ParaCRM.FilePanelGallery',
+		'Optima5.Modules.CrmBase.DataFormPanel',
+		'Optima5.Modules.CrmBase.FilePanelGmap',
+		'Optima5.Modules.CrmBase.FilePanelGallery',
 		'Ext.ux.grid.FiltersFeature',
-		'Optima5.Modules.ParaCRM.BibleFilter',
-		'Optima5.Modules.ParaCRM.BibleTreeFilter'
+		'Optima5.Modules.CrmBase.BibleFilter',
+		'Optima5.Modules.CrmBase.BibleTreeFilter'
 	],
-			  
+	
+	optimaModule: null,
 	fileId: '' ,
-			  
-			  
+	
+	
 	initComponent: function() {
+		var me = this ;
+		if( (me.optimaModule) instanceof Optima5.Module ) {} else {
+			Optima5.Helper.logError('CrmBase:FilePanel','No module reference ?') ;
+		}
 		
 		this.gridpanel = Ext.create('Ext.grid.Panel',{
 			store: {
@@ -50,30 +49,26 @@ Ext.define('Optima5.Modules.ParaCRM.FilePanel' ,{
 				type: 'hbox',
 				align: 'stretch'
 			},
-			
-			items: [this.mainview],
-			 
-			listeners : {
-				reloadiffile: {
-					fn: this.onReloadIfFile,
-					scope : this
-				}
-			}
+			items: [this.mainview]
 		});
 		
 		this.callParent(arguments);
 	},
 			  
 			  
-	reconfigure: function( fileId ) {
-		Optima5.CoreDesktop.Ajax.request({
-			url: 'server/backend.php',
+	reconfigure: function( fileId, fileCfgObj ) {
+		if( Ext.isObject(fileCfgObj) ) {
+			this.fileId = fileId ;
+			this.reconfigureData( fileCfgObj ) ;
+			return ;
+		}
+		
+		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
-				_moduleName: 'paracrm',
 				_action : 'data_getFileGrid_config',
 				file_code : fileId
 			},
-			succCallback: function(response) {
+			success: function(response) {
 				if( Ext.decode(response.responseText).success == true ) {
 					this.fileId = fileId ;
 					this.reconfigureData( Ext.decode(response.responseText).data ) ;
@@ -88,6 +83,7 @@ Ext.define('Optima5.Modules.ParaCRM.FilePanel' ,{
 	},
 			  
 	reconfigureData: function( ajaxData ) {
+		var me = this ;
 		this.removeAll() ;
 		
 		this.gridstore = this.reconfigureDataBuildStore( ajaxData ) ;
@@ -107,7 +103,7 @@ Ext.define('Optima5.Modules.ParaCRM.FilePanel' ,{
 			activeItem : 0,
 			//resizable : true ,
 			items: [this.gridpanel,{
-				xtype:'op5paracrmfilegmap',
+				xtype:'op5crmbasefilegmap',
 				panelType: 'gmap',
 				store:this.gridstore,
 				fileId: this.fileId,
@@ -121,7 +117,8 @@ Ext.define('Optima5.Modules.ParaCRM.FilePanel' ,{
 					}
 				}
 			},{
-				xtype:'op5paracrmfilegallery',
+				xtype:'op5crmbasefilegallery',
+				optimaModule: me.optimaModule,
 				panelType: 'gallery',
 				store:this.gridstore,
 				fileId: this.fileId,
@@ -193,30 +190,25 @@ Ext.define('Optima5.Modules.ParaCRM.FilePanel' ,{
 			//clearOnLoad: false,
 			remoteSort: true,
 			autoLoad: true,
-			proxy: {
-				type: 'ajax',
-				url: 'server/backend.php',
+			proxy: this.optimaModule.getConfiguredAjaxProxy({
 				extraParams : {
-					_sessionName: op5session.get('session_id'),
-					_moduleName: 'paracrm' ,
 					_action: 'data_getFileGrid_data' ,
 					file_code: this.fileId
-				},
-				actionMethods: {
-					read:'POST'
 				},
 				reader: {
 					type: 'json',
 					root: 'data',
 					totalProperty: 'total'
 				}
-			}
+			})
 		});
 		
 		return gridstore ;
 	},
 	
 	reconfigureDataBuildGrid: function( ajaxData, gridstore ) {
+		var me = this ;
+		
 		var gridModelName = 'FileGrid'+'-'+this.fileId ;
 		
 		var daterenderer = Ext.util.Format.dateRenderer('d/m/Y H:i');
@@ -297,7 +289,8 @@ Ext.define('Optima5.Modules.ParaCRM.FilePanel' ,{
 				if( v.link_bible_type == 'tree' ) {
 					Ext.apply(columnObject,{
 						filter: {
-							type: 'op5paracrmbibletree',
+							type: 'op5crmbasebibletree',
+							optimaModule: me.optimaModule,
 							bibleId: v.link_bible
 						}
 					}) ;
@@ -306,7 +299,8 @@ Ext.define('Optima5.Modules.ParaCRM.FilePanel' ,{
 				if( v.link_bible_type == 'entry' ) {
 					Ext.apply(columnObject,{
 						filter: {
-							type: 'op5paracrmbible',
+							type: 'op5crmbasebible',
+							optimaModule: me.optimaModule,
 							bibleId: v.link_bible
 						}
 					}) ;
@@ -500,49 +494,42 @@ Ext.define('Optima5.Modules.ParaCRM.FilePanel' ,{
 			}]);
 		}
 	},
-			  
+	
 	reload: function() {
 		if( this.gridstore ) {
 			this.gridstore.load() ;
 		}
 	},
-	onReloadIfFile: function(fileId) {
-		//console.log('Asked to reload if curFile is '+fileId) ;
-		if( this.isVisible() && (this.fileId == fileId) ) {
-			this.reload() ;
-		}
-	},
-			  
+	
 	editRecordNew: function( treenodeKey ) {
+		var me = this ;
+		
 		var ajaxParams = new Object() ;
 		Ext.apply( ajaxParams, {
-			_sessionName: op5session.get('session_id'),
-			_moduleName: 'paracrm' ,
 			_action: 'data_editTransaction',
 			_subaction: 'init',
 			data_type: 'file_record',
 			file_code: this.fileId,
 			is_new: true
 		});
-		Optima5.CoreDesktop.Ajax.request({
-			url: 'server/backend.php',
+		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams ,
-			succCallback: function(response) {
+			success: function(response) {
 				if( Ext.decode(response.responseText).success == false ) {
 					Ext.Msg.alert('Failed', 'Failed');
 				}
 				else {
-					this.openEditFormWindow( {}, Ext.decode(response.responseText).transaction_id ) ;
+					this.openEditFormWindow( {isNew:true}, Ext.decode(response.responseText).transaction_id ) ;
 				}
 			},
 			scope: this
 		});
 	},
 	editRecordUpdate: function( filerecordId ) {
+		var me = this ;
+		
 		var ajaxParams = new Object() ;
 		Ext.apply( ajaxParams, {
-			_sessionName: op5session.get('session_id'),
-			_moduleName: 'paracrm' ,
 			_action: 'data_editTransaction',
 			_subaction: 'init',
 			data_type: 'file_record',
@@ -550,44 +537,42 @@ Ext.define('Optima5.Modules.ParaCRM.FilePanel' ,{
 			is_new: false,
 			filerecord_id: filerecordId
 		});
-		Optima5.CoreDesktop.Ajax.request({
-			url: 'server/backend.php',
+		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams ,
-			succCallback: function(response) {
+			success: function(response) {
 				if( Ext.decode(response.responseText).success == false ) {
 					Ext.Msg.alert('Failed', 'Failed');
 				}
 				else {
-					this.openEditFormWindow( {}, Ext.decode(response.responseText).transaction_id ) ;
+					this.openEditFormWindow( {isNew:false,filerecordId:filerecordId}, Ext.decode(response.responseText).transaction_id ) ;
 				}
 			},
 			scope: this
 		});
 	},
 	editRecordDelete: function( filerecordId ) {
+		var me = this ;
+		
 		var ajaxParams = new Object() ;
 		Ext.apply( ajaxParams, {
-			_sessionName: op5session.get('session_id'),
-			_moduleName: 'paracrm' ,
 			_action: 'data_deleteRecord',
 			data_type: 'file_record',
 			file_code: this.fileId,
 			filerecord_id: filerecordId
 		});
 		var me = this ;
-		Optima5.CoreDesktop.Ajax.request({
-			url: 'server/backend.php',
+		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams ,
-			succCallback: function(response) {
+			success: function(response) {
 				if( Ext.decode(response.responseText).success == false ) {
 					Ext.Msg.alert('Failed', 'Failed');
 				}
 				else {
-					Ext.each( Ext.ComponentQuery.query('window > panel'), function(obj) {
-						if( Ext.getClassName(obj) == 'Optima5.Modules.ParaCRM.FilePanel' ) {
-							obj.fireEvent('reloadiffile',me.fileId) ;
-						}
-					},me) ;
+					me.optimaModule.postCrmEvent('datachange',{
+						dataType: 'file',
+						bibleId: null,
+						fileId: me.fileId
+					});
 				}
 			},
 			scope: me
@@ -595,41 +580,24 @@ Ext.define('Optima5.Modules.ParaCRM.FilePanel' ,{
 	},
 			  
 	openEditFormWindow: function(editDetails,transactionId) {
-		var baseAjaxParams = new Object() ;
-		Ext.apply( baseAjaxParams, {
-			_sessionName: op5session.get('session_id'),
-			_moduleName: 'paracrm' ,
-			_action: 'data_editTransaction',
-			_transaction_id : transactionId
-		});
-		
-		var dataformpanel = Ext.create('Optima5.Modules.ParaCRM.DataFormPanel',{
-			ajaxBaseParams: baseAjaxParams
+		var me = this ;
+		var dataformpanel = Ext.create('Optima5.Modules.CrmBase.DataFormPanel',{
+			optimaModule: me.optimaModule,
+			transactionID: transactionId,
+			transactionDataType: 'file',
+			transactionFileId: me.fileId
 		}) ;
-		var dataformpanelWindow = op5desktop.getDesktop().createWindow({
-			title:'DataFormPanel(Rename!!)',
+		me.optimaModule.createWindow({
+			title: (editDetails.isNew? 'New':'#'+editDetails.filerecordId)+' ('+me.fileId+')',
 			width:500,
 			height:600,
-			iconCls: 'parapouet',
+			iconCls: 'op5-crmbase-dataformwindow-icon',
 			animCollapse:false,
 			border: false,
-
-			layout: {
-				type: 'card',
-				align: 'stretch'
-			},
 			items: [ dataformpanel ]
 		}) ;
-		dataformpanelWindow.show() ;
 		
 		var me = this ;
-		dataformpanel.on('transactionend',function(){
-			Ext.each( Ext.ComponentQuery.query('window > panel'), function(obj) {
-				if( Ext.getClassName(obj) == 'Optima5.Modules.ParaCRM.FilePanel' ) {
-					obj.fireEvent('reloadiffile',me.fileId) ;
-				}
-			},me) ;
-		});
 		dataformpanel.on('beforedestroy',function(destroyedpanel){
 			if( destroyedpanel.up('window') ) {
 				destroyedpanel.up('window').close() ;
@@ -659,10 +627,8 @@ Ext.define('Optima5.Modules.ParaCRM.FilePanel' ,{
 			return ;
 		}
 		
-		var exportParams = {} ;
+		var exportParams = me.optimaModule.getConfiguredAjaxParams() ;
 		Ext.apply(exportParams,{
-			_sessionName: op5session.get('session_id'),
-			_moduleName: 'paracrm' ,
 			_action: 'data_getFileGrid_exportXLS' ,
 			file_code: this.fileId
 		}) ;
@@ -683,7 +649,7 @@ Ext.define('Optima5.Modules.ParaCRM.FilePanel' ,{
 		Ext.create('Ext.ux.dams.FileDownloader',{
 			renderTo: Ext.getBody(),
 			requestParams: exportParams,
-			requestAction: 'server/backend.php',
+			requestAction: Optima5.Helper.getApplication().desktopGetBackendUrl(),
 			requestMethod: 'POST'
 		}) ;
 	},
@@ -693,10 +659,8 @@ Ext.define('Optima5.Modules.ParaCRM.FilePanel' ,{
 			return ;
 		}
 		
-		var exportParams = {} ;
+		var exportParams = me.optimaModule.getConfiguredAjaxParams() ;
 		Ext.apply(exportParams,{
-			_sessionName: op5session.get('session_id'),
-			_moduleName: 'paracrm' ,
 			_action: 'data_getFileGrid_exportGallery' ,
 			file_code: this.fileId
 		}) ;
@@ -728,7 +692,7 @@ Ext.define('Optima5.Modules.ParaCRM.FilePanel' ,{
 		Ext.create('Ext.ux.dams.FileDownloader',{
 			renderTo: Ext.getBody(),
 			requestParams: exportParams,
-			requestAction: 'server/backend.php',
+			requestAction: Optima5.Helper.getApplication().desktopGetBackendUrl(),
 			requestMethod: 'POST'
 		}) ;
 	}

@@ -12,10 +12,31 @@
 	padding-left:4px;
 }
 
+
+.op5-crmbase-published .x-menu-item-text {
+	border-bottom: 2px solid #33B6E5 ;
+}
+.op5-crmbase-published .x-btn-inner {
+	border-bottom: 2px solid #33B6E5 ;
+}
+
+
 /* Icons */
 .op5-crmbase-waitcircle {
 	background-image: url("../images/modules/crmbase-waitcircle.gif") !important;
 }
+
+.op5-crmbase-definewindow-icon {
+	background-image: url("../images/modules/crmbase-config-16.gif") !important;
+}
+
+.op5-crmbase-dataformwindow-icon {
+	background-image: url("../images/modules/crmbase-edit-16.gif") !important;
+}
+.op5-crmbase-dataformwindow-photo-icon {
+	background-image: url("../images/modules/crmbase-camera-16.png") !important;
+}
+
 .op5-crmbase-mainwindow-bible {
 	background-image: url("../images/modules/crmbase-dataadd-22.gif") !important;
 }
@@ -30,4 +51,32 @@
 }
 .op5-crmbase-mainwindow-admin {
 	background-image: url("../images/modules/crmbase-users-22.gif") !important;
+}
+
+.op5-crmbase-datatoolbar-file {
+	background-image: url("../images/modules/crmbase-save-16.gif") !important;
+}
+.op5-crmbase-datatoolbar-file-export-excel {
+	background-image: url("../images/modules/crmbase-save-16.gif") !important;
+}
+.op5-crmbase-datatoolbar-file-export-gallery {
+	background-image: url("../images/modules/crmbase-saveas-16.gif") !important;
+}
+.op5-crmbase-datatoolbar-view {
+	background-image: url("../images/modules/crmbase-piece-16.png") !important;
+}
+.op5-crmbase-datatoolbar-view-grid {
+	background-image: url("../images/modules/crmbase-listall-16.gif") !important;
+}
+.op5-crmbase-datatoolbar-view-gmap {
+	background-image: url("../images/modules/crmbase-planet-16.gif") !important;
+}
+.op5-crmbase-datatoolbar-view-gallery {
+	background-image: url("../images/modules/crmbase-camera-16.png") !important;
+}
+.op5-crmbase-datatoolbar-options {
+	background-image: url("../images/modules/crmbase-config-16.gif") !important;
+}
+.op5-crmbase-datatoolbar-options-definestore {
+	background-image: url("../images/modules/crmbase-config-16.gif") !important;
 }

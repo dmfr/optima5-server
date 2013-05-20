@@ -7,7 +7,7 @@ Ext.define('DefineStoreCalendarFormModel', {
     ],
     idProperty:'field_code'
 });
-Ext.define('Optima5.Modules.ParaCRM.DefineStoreCalendarForm' ,{
+Ext.define('Optima5.Modules.CrmBase.DefineStoreCalendarForm' ,{
 	extend: 'Ext.form.Panel',
 			  
 	requires: [
@@ -18,6 +18,9 @@ Ext.define('Optima5.Modules.ParaCRM.DefineStoreCalendarForm' ,{
 			  
 	initComponent: function() {
 		var me = this ;
+		if( (me.optimaModule) instanceof Optima5.Module ) {} else {
+			Optima5.Helper.logError('CrmBase:DefineStoreCalendarForm','No module reference ?') ;
+		}
 		
 		me.fieldsStore = Ext.create('Ext.data.Store',{
 			model:'DefineStoreCalendarFormModel',
@@ -224,14 +227,12 @@ Ext.define('Optima5.Modules.ParaCRM.DefineStoreCalendarForm' ,{
 		}
 		var mSelectedRecordBiblecode = mSelectedRecordType.substr(5) ;
 		
-		Optima5.CoreDesktop.Ajax.request({
-			url: 'server/backend.php',
+		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
-				_moduleName: 'paracrm',
 				_action : 'data_getBibleCfg',
 				bible_code : mSelectedRecordBiblecode
 			},
-			succCallback: function(response) {
+			success: function(response) {
 				var ajaxData = Ext.decode(response.responseText).data ;
 				
 				var bibleFields = [] ;
@@ -255,7 +256,22 @@ Ext.define('Optima5.Modules.ParaCRM.DefineStoreCalendarForm' ,{
 			scope: me
 		});
 	},
-			  
+	
+	setValues: function( values ) {
+		var me = this ;
+		me.getForm().setValues(values);
+		me.child('#status_is_on').setValue( me.child('#status_row').child('#eventstatus_filefield').getValue() != '' ) ;
+		
+		// chargement du formulaire => update layout + chargement de ttes les données auxiliaires
+			// me.calcLayout() ; // Change Event is already fired on "load"
+			me.syncDurationFields() ;
+	},
+	getValues: function() {
+		var me = this ;
+		return me.getForm().getValues() ;
+	}
+	
+	/*
 	save: function(callback,callbackScope) {
 		var me = this ;
 		if( !callback ) {
@@ -287,6 +303,6 @@ Ext.define('Optima5.Modules.ParaCRM.DefineStoreCalendarForm' ,{
 		
 		me.callParent(arguments);
 	}
-	
+	*/
 	
 });

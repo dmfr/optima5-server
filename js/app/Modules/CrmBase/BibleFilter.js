@@ -1,6 +1,6 @@
-Ext.define('Optima5.Modules.ParaCRM.BibleFilter', {
+Ext.define('Optima5.Modules.CrmBase.BibleFilter', {
     extend: 'Ext.ux.grid.filter.Filter',
-    alias: 'gridfilter.op5paracrmbible',
+    alias: 'gridfilter.op5crmbasebible',
 
     requires: ['Ext.selection.CheckboxModel'] ,
 
@@ -17,37 +17,40 @@ Ext.define('Optima5.Modules.ParaCRM.BibleFilter', {
 			  
 	inputValue: [],
 
-    /**
-     * @private
-     * Template method that is to initialize the filter and install required menu items.
-     */
-    init : function (config) {
-        Ext.applyIf(config, {
-            enableKeyEvents: true,
-            iconCls: this.iconCls,
-            hideLabel: true,
-            listeners: {
-                scope: this,
-                keyup: this.onInputKeyUp,
-                el: {
-                    click: function(e) {
-                        e.stopPropagation();
-                    }
-                }
-            }
-        });
-
-        this.updateTask = Ext.create('Ext.util.DelayedTask', this.onTypeAhead, this);
+	/**
+	* @private
+	* Template method that is to initialize the filter and install required menu items.
+	*/
+	init : function (config) {
+		var me = this ;
+		if( (me.optimaModule) instanceof Optima5.Module ) {} else {
+			Optima5.Helper.logError('CrmBase:BibleTreeFilter','No module reference ?') ;
+		}
+		
+		Ext.applyIf(config, {
+			enableKeyEvents: true,
+			iconCls: this.iconCls,
+			hideLabel: true,
+			listeners: {
+				scope: this,
+				keyup: this.onInputKeyUp,
+				el: {
+					click: function(e) {
+							e.stopPropagation();
+					}
+				}
+			}
+		});
+		
+		this.updateTask = Ext.create('Ext.util.DelayedTask', this.onTypeAhead, this);
 		  
 		  
-		Optima5.CoreDesktop.Ajax.request({
-			url: 'server/backend.php',
+		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
-				_moduleName: 'paracrm',
 				_action : 'data_getBibleCfg',
 				bible_code : this.bibleId
 			},
-			succCallback: function(response) {
+			success: function(response) {
 				if( Ext.decode(response.responseText).success == true ) {
 					// this.bibleId = bibleId ;
 					this.initSetupBible( Ext.decode(response.responseText).data ) ;
@@ -132,24 +135,17 @@ Ext.define('Optima5.Modules.ParaCRM.BibleFilter', {
 		
 		this.myStore = Ext.create('Ext.data.Store', {
 			model: this.myModelname,
-			proxy: {
-				type: 'ajax',
-				url: 'server/backend.php',
+			proxy: this.optimaModule.getConfiguredAjaxProxy({
 				extraParams : {
-					_sessionName: op5session.get('session_id'),
-					_moduleName: 'paracrm' ,
 					_action: 'data_getBibleGrid' ,
 					bible_code: this.bibleId
-				},
-				actionMethods: {
-					read:'POST'
 				},
 				reader: {
 					type: 'json',
 					root: 'data',
 					totalProperty: 'total'
 				}
-			}
+			})
 		});
 		
 		

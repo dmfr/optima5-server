@@ -1,17 +1,16 @@
-Ext.define('Optima5.Modules.ParaCRM.DefineStorePanel' ,{
+Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 	extend: 'Ext.panel.Panel',
 	
 	requires : [
-		'Optima5.CoreDesktop.Ajax',
-		'Ext.ux.dams.RestfulGrid',
-		'Optima5.Modules.ParaCRM.DefineStoreCalendarForm',
-		'Ext.container.ButtonGroup',
-		'Ext.layout.container.Table',
-		'Ext.tab.Panel'
+		'Ext.ux.dams.EmbeddedGrid',
+		'Optima5.Modules.CrmBase.DefineStoreCalendarForm'
 	],
 	
 	initComponent: function() {
 		var me = this ;
+		if( (me.optimaModule) instanceof Optima5.Module ) {} else {
+			Optima5.Helper.logError('CrmBase:DefineStorePanel','No module reference ?') ;
+		}
 		
 		// Creation du layout : form + tabpanel(restful grid X 2) 
 		// Envoi AJAX pour ouvrir la session => success on redirige vers initLoadEverything
@@ -44,7 +43,8 @@ Ext.define('Optima5.Modules.ParaCRM.DefineStorePanel' ,{
 		
 		
 		var tabitems = new Array() ;
-		var calendartab = Ext.create( 'Optima5.Modules.ParaCRM.DefineStoreCalendarForm', {
+		var calendartab = Ext.create( 'Optima5.Modules.CrmBase.DefineStoreCalendarForm', {
+			optimaModule: me.optimaModule,
 			title:'Calendar Cfg',
 			itemId:'calendartab',
 			frame: true,
@@ -63,31 +63,13 @@ Ext.define('Optima5.Modules.ParaCRM.DefineStorePanel' ,{
 					this.query('> tabpanel')[0].child('#calendartab').loadCurrentlyDefinedFields(fieldsTab) ;
 				},
 				scope: me
-			},
-			url : 'server/backend.php',
-			baseParams: {
-				_sessionName: op5session.get('session_id'),
-				_moduleName: 'paracrm' ,
-				_action: 'define_manageTransaction' 
 			}
 		}) ;
 		var treetab = new Object() ;
 		Ext.apply( treetab, {
 			title:'TreeStructure',
 			itemId:'treetab',
-			xtype:'damsrestfulgrid',
-			url : 'server/backend.php',
-			baseParams: {
-				_sessionName: op5session.get('session_id'),
-				_moduleName: 'paracrm' ,
-				_action: 'define_manageTransaction' 
-			},
-			loadParams: {
-				_subaction: 'treeFields_get'
-			},
-			saveParams: {
-				_subaction: 'treeFields_set'
-			},
+			xtype:'damsembeddedgrid',
 			columns: [{
 				text: 'Node Code',
 				// width: 40,
@@ -106,7 +88,7 @@ Ext.define('Optima5.Modules.ParaCRM.DefineStorePanel' ,{
 				text: 'Node Type',
 				//width: 40,
 				sortable: false,
-				width:100,
+				width:150,
 				dataIndex: 'tree_field_type',
 				editor:{xtype:'combobox', forceSelection:true, editable:false, queryMode: 'local',displayField: 'dataTypeLib',valueField: 'dataType',store:this.treeFieldType}
 			},{
@@ -139,19 +121,7 @@ Ext.define('Optima5.Modules.ParaCRM.DefineStorePanel' ,{
 		Ext.apply( elementtab, {
 			title:'Element',
 			itemId:'elementtab',
-			xtype:'damsrestfulgrid',
-			url : 'server/backend.php',
-			baseParams: {
-				_sessionName: op5session.get('session_id'),
-				_moduleName: 'paracrm' ,
-				_action: 'define_manageTransaction' 
-			},
-			loadParams: {
-				_subaction: 'entryFields_get'
-			},
-			saveParams: {
-				_subaction: 'entryFields_set'
-			},
+			xtype:'damsembeddedgrid',
 			columns: [{
 				text: 'Node Code',
 				// width: 40,
@@ -318,12 +288,6 @@ Ext.define('Optima5.Modules.ParaCRM.DefineStorePanel' ,{
 			items : [{
 				xtype:'form',
 				flex: 1,
-				url : 'server/backend.php',
-				baseParams: {
-					_sessionName: op5session.get('session_id'),
-					_moduleName: 'paracrm' ,
-					_action: 'define_manageTransaction' 
-				},
 				frame: true,
 				bodyPadding: 5,
 				fieldDefaults: {
@@ -357,19 +321,17 @@ Ext.define('Optima5.Modules.ParaCRM.DefineStorePanel' ,{
 			}]
 		});
 		
-		// this.on('beforedestroy',this.onClose,this) ;
 		this.on('afterrender',this.initLoadEverything,this) ;
-		
-		this.addEvents('definechanged') ;
 		
 		this.callParent() ;
 	},
 			  
 			  
 	initLoadEverything: function() {
+		var me = this ;
+		
 		// Question ? store_type (bible, file) + store_id
 		var ajaxParams = {
-			_moduleName: 'paracrm',
 			_action : 'define_manageTransaction',
 			data_type : this.defineDataType
 		};
@@ -395,71 +357,94 @@ Ext.define('Optima5.Modules.ParaCRM.DefineStorePanel' ,{
 		
 		// Envoi AJAX pour ouvrir la session 
 		//  => success on applique d'ID de transaction aux composants + LOAD des composants
-		Optima5.CoreDesktop.Ajax.request({
-			url: 'server/backend.php',
+		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams ,
-			succCallback: function(response) {
+			success: function(response) {
 				if( Ext.decode(response.responseText).success == false )
 					return this.onAbort() ;
 				else {
 					this.transactionID = Ext.decode(response.responseText).transaction_id ;
-					
-					// On applique l'ID de transaction et on load le formulaire
-					Ext.apply( this.query('form')[0].baseParams, {
-						_transaction_id: this.transactionID
-					});
-					this.query('form')[0].load({
-						params:{ _subaction:'ent_get' },
-						success: this.updateLayout,
-						scope: this
-					}) ;
-					
-					// On applique l'ID de transaction et on load
-					Ext.each( this.query('tabpanel')[0].query('damsrestfulgrid') , function(item){
-						Ext.apply( item.baseParams,{
-							_transaction_id: this.transactionID
-						});
-						item.load() ;
-						item.getStore().on('update',function(){
-							item.save() ;
-						},this) ;
-						item.getStore().on('remove',function(){
-							item.save() ;
-						},this) ;
-					},this) ;
-					
-					
-					var calendarTab = this.query('> tabpanel')[0].child('#calendartab')
-					if( calendarTab != null ) {
-						Ext.apply( calendarTab.baseParams, {
-							_transaction_id: this.transactionID
-						}) ;
-						
-						calendarTab.load() ;
-					}
-					
-					
-					this.populateFieldTypesStores(this.transactionID) ;
-					//this.updateLayout() ;
+					me.loadAll() ;
 				}
 			},
-			scope: this
+			scope: me
 		});
+	},
+	loadAll: function() {
+		var me = this ;
+		if( !me.transactionID ) {
+			return ;
+		}
+		
+		me.optimaModule.getConfiguredAjaxConnection().request({
+			params:{
+				_action: 'define_manageTransaction',
+				_transaction_id: this.transactionID,
+				_subaction:'ent_get'
+			},
+			success: function(response) {
+				me.query('form')[0].getForm().setValues( Ext.decode(response.responseText).data ) ;
+				me.updateLayout() ;
+			},
+			scope:me
+		}) ;
+		
+		Ext.Array.each( me.query('tabpanel')[0].query('damsembeddedgrid') , function(item){
+			var params = {
+				_action: 'define_manageTransaction',
+				_transaction_id: me.transactionID,
+			};
+			switch( item.itemId ) {
+				case 'treetab' :
+					params['_subaction']='treeFields_get' ;
+					break ;
+				case 'elementtab' :
+					params['_subaction']='entryFields_get' ;
+					break ;
+				default :
+					console.log('???') ;
+					return ;
+			}
+			
+			me.optimaModule.getConfiguredAjaxConnection().request({
+				params:params,
+				success: function(response) {
+					item.setData( Ext.decode(response.responseText).data ) ;
+				},
+				scope:me
+			}) ;
+		},me) ;
+		
+		var calendarTab = this.query('> tabpanel')[0].child('#calendartab')
+		if( calendarTab != null ) {
+			var params = {
+				_action: 'define_manageTransaction',
+				_transaction_id: me.transactionID,
+			  _subaction:'calendarCfg_get'
+			};
+			
+			me.optimaModule.getConfiguredAjaxConnection().request({
+				params:params,
+				success: function(response) {
+					calendarTab.setValues( Ext.decode(response.responseText).data ) ;
+				},
+				scope:me
+			}) ;
+		}
+					
+		me.populateFieldTypesStores(this.transactionID) ;
+		//me.updateLayout() ;
 	},
 	
 	populateFieldTypesStores: function() {
-		var ajaxParams = {
-			_moduleName: 'paracrm',
-			_action : 'define_manageTransaction',
-			_subaction : 'tool_getLinks',
-			_transaction_id : this.transactionID
-		};
-		
-		
-		Optima5.CoreDesktop.Ajax.request({
-			url: 'server/backend.php',
-			params: ajaxParams ,
-			succCallback: function(response) {
+		var me = this ;
+		me.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_action : 'define_manageTransaction',
+				_subaction : 'tool_getLinks',
+				_transaction_id : me.transactionID
+			},
+			success: function(response) {
 				if( Ext.decode(response.responseText).success == false )
 					return this.onAbort() ;
 				else {
@@ -474,6 +459,7 @@ Ext.define('Optima5.Modules.ParaCRM.DefineStorePanel' ,{
 			  
 	updateLayout: function() {
 		var hideFieldsets=false , hideGmap=false ;
+		
 		this.query('form')[0].getForm().getFields().each( function(formitem,idx) {
 			if( formitem.name==='store_type' ) {
 				switch( formitem.getValue() ) {
@@ -499,6 +485,7 @@ Ext.define('Optima5.Modules.ParaCRM.DefineStorePanel' ,{
 			}
 		},this) ;
 		
+		
 		if( hideFieldsets ) {
 			this.query('> tabpanel')[0].hide() ;
 		}
@@ -516,30 +503,30 @@ Ext.define('Optima5.Modules.ParaCRM.DefineStorePanel' ,{
 				this.query('> tabpanel')[0].setActiveTab(0) ;
 			}
 		}
-		
-		
-		
 	},
 			  
 			  
-	onClose: function(){
-		Ext.Msg.alert('Status', 'Arret de la transaction');
-	},
 	onAbort: function(){
 		this.destroy() ;
 	},
 	onSave: function() {
 		var me = this ;
-		this.query('form')[0].submit({
-			params:{ _subaction:'ent_set' },
+		
+		var params = {
+			_action: 'define_manageTransaction',
+			_transaction_id: this.transactionID,
+			_subaction:'ent_set'
+		};
+		Ext.apply(params,this.query('form')[0].getForm().getValues()) ;
+		me.optimaModule.getConfiguredAjaxConnection().request({
+			params:params,
 			success : me.saveAll,
 			failure: function(form,action){
 				if( action.result.msg )
 					Ext.Msg.alert('Failed', action.result.msg);
 			},
-			scope: this
+			scope: me
 		}) ;
-		
 	},
 	saveAll: function() {
 		var me = this ;
@@ -550,18 +537,62 @@ Ext.define('Optima5.Modules.ParaCRM.DefineStorePanel' ,{
 			me.saveAndApply() ;
 		},me) ;
 		
-		me.query('form')[0].submit({
-			params:{ _subaction:'ent_set' },
+		var ajaxConnection = me.optimaModule.getConfiguredAjaxConnection()
+		
+		var params = {
+			_action: 'define_manageTransaction',
+			_transaction_id: this.transactionID,
+			_subaction:'ent_set'
+		};
+		Ext.apply(params,this.query('form')[0].getForm().getValues()) ;
+		ajaxConnection.request({
+			params:params,
 			success : me.onSaveComponentCallback,
 			failure: function(form,action){
-				if( action.result && action.result.msg )
+				if( action.result.msg )
 					Ext.Msg.alert('Failed', action.result.msg);
 			},
 			scope: me
 		}) ;
 		
+		Ext.each( me.query('tabpanel')[0].query('damsembeddedgrid') , function(item){
+			var params = {
+				_action: 'define_manageTransaction',
+				_transaction_id: me.transactionID,
+			};
+			switch( item.itemId ) {
+				case 'treetab' :
+					params['_subaction']='treeFields_set' ;
+					break ;
+				case 'elementtab' :
+					params['_subaction']='entryFields_set' ;
+					break ;
+				default :
+					console.log('???') ;
+					return ;
+			}
+			params['data'] = Ext.encode(item.getData()) ;
+			
+			me.optimaModule.getConfiguredAjaxConnection().request({
+				params:params,
+				success: me.onSaveComponentCallback,
+				scope:me
+			}) ;
+		},me) ;
+		
+		
 		if( this.query('> tabpanel')[0].child('#calendartab') != null ) {
-			this.query('> tabpanel')[0].child('#calendartab').save(me.onSaveComponentCallback,me) ;
+			var params = {
+				_action: 'define_manageTransaction',
+				_transaction_id: this.transactionID,
+				_subaction:'calendarCfg_set'
+			};
+			Ext.apply(params,this.query('> tabpanel')[0].child('#calendartab').getValues()) ;
+			ajaxConnection.request({
+				params:params,
+				success : me.onSaveComponentCallback,
+				scope: me
+			}) ;
 		}
 	},
 	onSaveComponentCallback: function() {
@@ -571,6 +602,7 @@ Ext.define('Optima5.Modules.ParaCRM.DefineStorePanel' ,{
 			me.nbComponentsSaved = 0 ;
 		
 		var nbToSave = 1 ;
+		nbToSave += me.query('> tabpanel')[0].query('damsembeddedgrid').length ;
 		if( this.query('> tabpanel')[0].child('#calendartab') != null ) {
 			nbToSave++ ;
 		}
@@ -583,26 +615,25 @@ Ext.define('Optima5.Modules.ParaCRM.DefineStorePanel' ,{
 		}
 	},
 	saveAndApply: function() {
+		var me = this ;
 		var msgbox = Ext.Msg.wait('Updating. Please Wait.');
 		
 		var ajaxParams = {
-			_moduleName: 'paracrm',
 			_action : 'define_manageTransaction',
 			_subaction : 'save_and_apply',
 			_transaction_id : this.transactionID
 		};
 		
-		Optima5.CoreDesktop.Ajax.request({
-			url: 'server/backend.php',
+		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams ,
-			succCallback: function(response) {
+			success: function(response) {
 				msgbox.close() ;
 				if( Ext.decode(response.responseText).success == false ) {
 					Ext.Msg.alert('Failed', 'Save failed. Unknown error');
 				}
 				else {
 					msgbox.close() ;
-					this.fireEvent('definechanged',{
+					this.optimaModule.postCrmEvent('definechange',{
 						dataType: this.defineDataType,
 						bibleId: this.defineBibleId,
 						fileId: this.defineFileId

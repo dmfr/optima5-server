@@ -1,4 +1,4 @@
-Ext.define('Optima5.Modules.ParaCRM.DataFormPanelGmap' ,{
+Ext.define('Optima5.Modules.CrmBase.DataFormPanelGmap' ,{
 	extend: 'Ext.panel.Panel',
 	
 	requires : ['Ext.ux.dams.GMapPanel'],
@@ -7,6 +7,13 @@ Ext.define('Optima5.Modules.ParaCRM.DataFormPanelGmap' ,{
 	
 	initComponent: function() {
 		var me = this ;
+		if( (me.optimaModule) instanceof Optima5.Module ) {} else {
+			Optima5.Helper.logError('CrmBase:DataFormPanelGrid','No module reference ?') ;
+		}
+		if( !me.transactionID ) {
+			Optima5.Helper.logError('CrmBase:DataFormPanelGrid','No transaction ID ?') ;
+		}
+		
 		Ext.apply(this,{
 			layout: 'fit' ,
 			items: {
@@ -121,12 +128,13 @@ Ext.define('Optima5.Modules.ParaCRM.DataFormPanelGmap' ,{
 	},
 	myLoad: function() {
 		var me = this ;
-		Optima5.CoreDesktop.Ajax.request({
-			url: 'server/backend.php',
+		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: Ext.Object.merge(me.ajaxBaseParams,{
+				_action:'data_editTransaction',
+				_transaction_id : me.transactionID,
 				_subaction:'gmap_get'
 			}),
-			succCallback: function(response) {
+			success: function(response) {
 				if( Ext.decode(response.responseText).success == false ) {
 					Ext.Msg.alert('Failed', 'Load failed. Unknown error');
 				}
@@ -158,8 +166,9 @@ Ext.define('Optima5.Modules.ParaCRM.DataFormPanelGmap' ,{
 		
 		var me = this ;
 		var ajaxParams = {} ;
-		Ext.apply(ajaxParams,me.ajaxBaseParams);
 		Ext.apply(ajaxParams,{
+			_action:'data_editTransaction',
+			_transaction_id : me.transactionID,
 			_subaction:'gmap_set'
 		}) ;
 		if( this.gIsSet ) {
@@ -171,10 +180,9 @@ Ext.define('Optima5.Modules.ParaCRM.DataFormPanelGmap' ,{
 		}
 		//console.dir( ajaxParams ) ;
 		//console.dir( me.ajaxBaseParams ) ;
-		Optima5.CoreDesktop.Ajax.request({
-			url: 'server/backend.php',
+		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams,
-			succCallback: callback,
+			success: callback,
 			scope: callbackScope
 		});
 	}

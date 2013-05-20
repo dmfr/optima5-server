@@ -1,6 +1,6 @@
-Ext.define('Optima5.Modules.ParaCRM.BibleMemoryPicker',{
+Ext.define('Optima5.Modules.CrmBase.BibleMemoryPicker',{
 	extend:'Ext.form.field.Picker',
-	alias: 'widget.op5paracrmbiblememorypicker',
+	alias: 'widget.op5crmbasebiblememorypicker',
 	requires: ['Ext.XTemplate','Ext.grid.Panel'], 
 
 	fieldSubTpl: [
@@ -32,18 +32,20 @@ Ext.define('Optima5.Modules.ParaCRM.BibleMemoryPicker',{
 	
 	initComponent: function() {
 		var me = this ;
+		if( (me.optimaModule) instanceof Optima5.Module ) {} else {
+			Optima5.Helper.logError('CrmBase:FilePanel','No module reference ?') ;
+		}
+		
 		this.addEvents('iamready') ;
 		this.addChildEls('divicon','divtext') ;
 		this.callParent() ;
 		
-		Optima5.CoreDesktop.Ajax.request({
-			url: 'server/backend.php',
+		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
-				_moduleName: 'paracrm',
 				_action : 'data_getBibleCfg',
 				bible_code : this.bibleId
 			},
-			succCallback: function(response) {
+			success: function(response) {
 				if( Ext.decode(response.responseText).success == true ) {
 					// this.bibleId = bibleId ;
 					this.initSetupBible( Ext.decode(response.responseText).data ) ;
@@ -132,17 +134,10 @@ Ext.define('Optima5.Modules.ParaCRM.BibleMemoryPicker',{
 			//root: treeroot,
 			//clearOnLoad: false,
 			autoLoad: true,
-			proxy: {
-				type: 'ajax',
-				url: 'server/backend.php',
+			proxy: me.optimaModule.getConfiguredAjaxProxy({
 				extraParams : {
-					_sessionName: op5session.get('session_id'),
-					_moduleName: 'paracrm' ,
 					_action: 'data_getBibleGrid' ,
-					bible_code: this.bibleId
-				},
-				actionMethods: {
-					read:'POST'
+					bible_code: me.bibleId
 				},
 				reader: {
 					type: 'json',
@@ -152,7 +147,7 @@ Ext.define('Optima5.Modules.ParaCRM.BibleMemoryPicker',{
 				startParam: undefined,
 				limitParam: undefined,
 				pageParam: undefined
-			},
+			}),
 			listeners: {
 				load: {
 					fn: function() {

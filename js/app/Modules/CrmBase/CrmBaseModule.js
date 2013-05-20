@@ -18,13 +18,12 @@ Ext.define('Optima5.Modules.CrmBase.CrmBaseModule', {
 		switch( crmEvent ) {
 			case 'datachange' :
 			case 'definechange' :
+			case 'togglepublishdata' :
 				Ext.apply( eventParams, {
-					storeType: postParams.storeType,
+					dataType: postParams.dataType,
 					bibleId: postParams.bibleId,
 					fileId: postParams.fileId
 				}) ;
-				break ;
-			case 'togglepublish' :
 				break ;
 			
 			default :

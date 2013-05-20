@@ -1,14 +1,13 @@
-Ext.define('Optima5.Modules.ParaCRM.DataFormPanel' ,{
+Ext.define('Optima5.Modules.CrmBase.DataFormPanel' ,{
 	extend: 'Ext.panel.Panel',
 	
 	requires : [
-		'Optima5.CoreDesktop.Ajax',
-		'Optima5.Modules.ParaCRM.DataFormPanelGmap',
-		'Optima5.Modules.ParaCRM.BiblePicker' ,
+		'Optima5.Modules.CrmBase.DataFormPanelGmap',
+		'Optima5.Modules.CrmBase.BiblePicker' ,
 		'Ext.ux.form.field.ColorPickerCombo' ,
 		'Ext.ux.form.field.DateTime' ,
-		'Optima5.Modules.ParaCRM.DataFormPanelGrid',
-		'Optima5.Modules.ParaCRM.DataFormPanelGallery',
+		'Optima5.Modules.CrmBase.DataFormPanelGrid',
+		'Optima5.Modules.CrmBase.DataFormPanelGallery',
 		'Ext.ux.dams.FieldTree',
 		'Ext.ux.dams.GMapPanel',
 		'Ext.container.ButtonGroup',
@@ -16,39 +15,22 @@ Ext.define('Optima5.Modules.ParaCRM.DataFormPanel' ,{
 		'Ext.tab.Panel'
 	],
 			  
-	ajaxBaseParams : {},
+	transactionID: null,
 	
 	initComponent: function() {
-		Ext.apply(this,{
+		var me = this ;
+		if( (me.optimaModule) instanceof Optima5.Module ) {} else {
+			Optima5.Helper.logError('CrmBase:DataFormPanel','No module reference ?') ;
+		}
+		if( !me.transactionID || !me.transactionDataType ) {
+			Optima5.Helper.logError('CrmBase:DataFormPanel','No transaction ID ?') ;
+		}
+		
+		Ext.apply(me,{
 			layout:{
 				type:'vbox',
 				align:'stretch'
 			},
-			
-			/*
-			items : [{
-				xtype:'form',
-				flex: 0,
-				url : 'server/backend.php',
-				baseParams: this.ajaxBaseParams ,
-				//frame: true,
-				bodyPadding: 5,
-				fieldDefaults: {
-						labelAlign: 'left',
-						labelWidth: 75,
-						anchor: '100%'
-				},
-			},{
-				xtype:'tabpanel' ,
-				flex: 1,
-				//frame: true,
-				activeTab: 0,
-				defaults :{
-						// bodyPadding: 10
-				},
-			}],
-			*/
-					 
 			dockedItems: [{
 				xtype: 'toolbar',
 				dock: 'bottom',
@@ -56,35 +38,30 @@ Ext.define('Optima5.Modules.ParaCRM.DataFormPanel' ,{
 				defaults: {minWidth: 100},
 				items: [
 					{ xtype: 'component', flex: 1 },
-					{ xtype: 'button', text: 'Save' , handler:this.onSave, scope:this },
-					{ xtype: 'button', text: 'Cancel' , handler:this.onAbort , scope:this }
+					{ xtype: 'button', text: 'Save' , handler:me.onSave, scope:me },
+					{ xtype: 'button', text: 'Cancel' , handler:me.onAbort , scope:me }
 				]
 			}]
 		});
 		
 		
-		// AJAX request
-		var ajaxParams = {} ;
-		Ext.apply( ajaxParams, this.ajaxBaseParams );
-		Ext.apply( ajaxParams, {
-			_subaction : 'get_layout'
-		}) ;
-		
-		
-		Optima5.CoreDesktop.Ajax.request({
-			url: 'server/backend.php',
-			params: ajaxParams ,
-			succCallback: function(response) {
+		me.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_action:'data_editTransaction',
+				_subaction:'get_layout',
+				_transaction_id : me.transactionID
+			},
+			success: function(response) {
 				if( Ext.decode(response.responseText).success == false )
 					return this.onAbort() ;
 				else {
 					this.addConfiguredComponents( Ext.decode(response.responseText).data ) ;
 				}
 			},
-			scope: this
+			scope: me
 		});
 		
-		this.callParent() ;
+		me.callParent() ;
 	},
 	
 	addConfiguredComponents: function( layoutFromAjax ) {
@@ -92,6 +69,9 @@ Ext.define('Optima5.Modules.ParaCRM.DataFormPanel' ,{
 		
 		var formitems = new Array() ;
 		Ext.Array.each( layoutFromAjax.form, function(v) {
+			if( v.xtype=='op5crmbasebiblepicker' ) {
+				Ext.apply(v,{optimaModule:me.optimaModule}) ;
+			}
 			if( v.xtype=='damsfieldtree' ) {
 				Ext.apply(v,{width:300,autoHeight:true}) ;
 			}
@@ -104,14 +84,16 @@ Ext.define('Optima5.Modules.ParaCRM.DataFormPanel' ,{
 					}
 				});
 			}
+			if( v.xtype=='checkboxfield' ) {
+				Ext.apply(v,{
+					checked:(v.value==v.inputValue)
+				});
+			}
 			formitems.push( v );
 		}) ;
 		var formconfig = new Object();
 		Ext.apply( formconfig, {
 			xtype:'form',
-			url : 'server/backend.php',
-			baseParams: this.ajaxBaseParams ,
-			//frame: true,
 			autoScroll: true,
 			bodyPadding: 5,
 			fieldDefaults: {
@@ -127,9 +109,11 @@ Ext.define('Optima5.Modules.ParaCRM.DataFormPanel' ,{
 		var tabitems = new Array() ;
 		
 		if( layoutFromAjax.gmap ) {
-			var gmaptab = Ext.create('Optima5.Modules.ParaCRM.DataFormPanelGmap',{
+			var gmaptab = Ext.create('Optima5.Modules.CrmBase.DataFormPanelGmap',{
 				title:'Adr/GMap',
-				ajaxBaseParams: this.ajaxBaseParams
+				itemId:'gmap',
+				optimaModule: me.optimaModule,
+				transactionID : me.transactionID
 			}) ;
 			tabitems.push( gmaptab ) ;
 		}
@@ -224,7 +208,8 @@ Ext.define('Optima5.Modules.ParaCRM.DataFormPanel' ,{
 						flex:2,
 						type: 'string',
 						editor:{
-							xtype:'op5paracrmbiblepicker',
+							xtype:'op5crmbasebiblepicker',
+							optimaModule:me.optimaModule,
 							bibleId: field.linkbible ,
 							allowBlank: !(field.is_header=='O' || field.is_mandatory=='O')
 						}
@@ -266,22 +251,19 @@ Ext.define('Optima5.Modules.ParaCRM.DataFormPanel' ,{
 		
 		var objCfg = {} ;
 		Ext.apply( objCfg, {
-			xtype:'op5paracrmdataformpanelgrid' ,
+			xtype:'op5crmbasedataformpanelgrid' ,
+			optimaModule: me.optimaModule,
+			transactionID : me.transactionID,
 			title:cfgsubfile.file_lib,
 			itemId: cfgsubfile.file_code,
-			url : 'server/backend.php',
-			baseParams: ajaxBaseParams,
-			loadParams: {
-				_subaction: 'subfileData_get'
-			},
-			saveParams: {
-				_subaction: 'subfileData_set'
-			},
-			columns : columns
+			columns : columns,
+			data:cfgsubfile.data
 		}) ;
 		return objCfg ;
 	},
 	buildSubfileGallery: function( cfgsubfile ) {
+		var me = this ;
+		
 		var ajaxBaseParams = {} ;
 		Ext.apply( ajaxBaseParams , this.ajaxBaseParams ) ;
 		Ext.apply( ajaxBaseParams , {
@@ -290,34 +272,18 @@ Ext.define('Optima5.Modules.ParaCRM.DataFormPanel' ,{
 		
 		var objCfg = {} ;
 		Ext.apply( objCfg, {
-			xtype:'op5paracrmdataformpanelgallery' ,
+			xtype:'op5crmbasedataformpanelgallery' ,
+			optimaModule: me.optimaModule,
+			transactionID : me.transactionID,
 			title:cfgsubfile.file_lib,
 			itemId: cfgsubfile.file_code,
-			url : 'server/backend.php',
-			baseParams: ajaxBaseParams,
-			loadParams: {
-				_subaction: 'subfileGallery_get'
-			},
-			uploadParams: {
-				_subaction: 'subfileGallery_upload'
-			},
-			deleteParams: {
-				_subaction: 'subfileGallery_delete'
-			}
 		}) ;
 		return objCfg ;
 	},
 			  
 			  
 	loadEverything: function() {
-		var me = this ;
-		me.query('form')[0].load({params:{ _subaction:'form_getValues' }}) ;
-		//console.dir( me.query('tabpanel')[0].query('> panel') ) ;
-		if( me.query('tabpanel').length > 0 ) {
-			Ext.Array.each( me.query('tabpanel')[0].query('> panel'), function(item) {
-				item.load() ;
-			}) ;
-		}
+		// data loaded inline while building form / subpanels
 	},
 			  
 	
@@ -328,12 +294,13 @@ Ext.define('Optima5.Modules.ParaCRM.DataFormPanel' ,{
 		var me = this ;
 		if( !me.nbComponentsSaved )
 			me.nbComponentsSaved = 0 ;
+		
+		var nbToSave = 1 ;
 		if( me.query('tabpanel').length > 0 ) {
-			var nbToSave = 1 + me.query('tabpanel')[0].query('> panel').length ;
+			nbToSave += me.query('> tabpanel')[0].query('damsembeddedgrid').length ;
+			nbToSave += (me.query('> tabpanel')[0].child('#gmap') != null) ? 1 : 0 ;
 		}
-		else {
-			var nbToSave = 1 ;
-		}
+		
 		if( me.nbComponentsSaved >= nbToSave )
 			return ;
 		me.nbComponentsSaved = me.nbComponentsSaved + 1 ;
@@ -351,8 +318,14 @@ Ext.define('Optima5.Modules.ParaCRM.DataFormPanel' ,{
 		me.query('>toolbar')[0].setDisabled(true) ;
 		me.saveMask.show() ;
 		
-		me.query('form')[0].submit({
-			params:{ _subaction:'form_setValues' },
+		var params = {
+			_action: 'data_editTransaction',
+			_transaction_id: this.transactionID,
+			_subaction:'form_setValues'
+		};
+		Ext.apply(params,this.query('form')[0].getForm().getValues()) ;
+		me.optimaModule.getConfiguredAjaxConnection().request({
+			params:params,
 			success : me.saveAll,
 			failure: function(form,action){
 				me.query('>toolbar')[0].setDisabled(false) ;
@@ -374,8 +347,14 @@ Ext.define('Optima5.Modules.ParaCRM.DataFormPanel' ,{
 			me.saveAndApply() ;
 		},me) ;
 		
-		me.query('form')[0].submit({
-			params:{ _subaction:'form_setValues' },
+		var params = {
+			_action: 'data_editTransaction',
+			_transaction_id: this.transactionID,
+			_subaction:'form_setValues'
+		};
+		Ext.apply(params,this.query('form')[0].getForm().getValues()) ;
+		me.optimaModule.getConfiguredAjaxConnection().request({
+			params:params,
 			success : me.onSaveComponentCallback,
 			failure: function(form,action){
 				me.query('>toolbar')[0].setDisabled(false) ;
@@ -388,21 +367,36 @@ Ext.define('Optima5.Modules.ParaCRM.DataFormPanel' ,{
 		}) ;
 		
 		if( me.query('tabpanel').length > 0 ) {
-			Ext.Array.each( me.query('tabpanel')[0].query('> panel'), function(item) {
-				item.save(me.onSaveComponentCallback,me) ;
-			}) ;
+			Ext.Array.each( me.query('tabpanel')[0].query('damsembeddedgrid'), function(item) {
+				var params = {
+					_action: 'data_editTransaction',
+					_transaction_id: me.transactionID,
+					_subaction: 'subfileData_set',
+					subfile_code: item.itemId
+				};
+				params['data'] = Ext.encode(item.getData()) ;
+				
+				me.optimaModule.getConfiguredAjaxConnection().request({
+					params:params,
+					success: me.onSaveComponentCallback,
+					scope:me
+				}) ;
+			},me) ;
+			
+			if( me.query('> tabpanel')[0].child('#gmap') != null ) {
+				me.query('> tabpanel')[0].child('#gmap').save(me.onSaveComponentCallback,me) ;
+			}
 		}
-		
 	},
 	saveAndApply: function() {
-		var ajaxParams = Ext.apply( this.ajaxBaseParams, {
-			_subaction : 'save_and_apply'
-		}) ;
-		
-		Optima5.CoreDesktop.Ajax.request({
-			url: 'server/backend.php',
-			params: ajaxParams ,
-			succCallback: function(response) {
+		var me = this ;
+		me.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_action: 'data_editTransaction',
+				_transaction_id: me.transactionID,
+				_subaction : 'save_and_apply'
+			},
+			success: function(response) {
 				if( Ext.decode(response.responseText).success == false ) {
 					me.query('>toolbar')[0].setDisabled(false) ;
 					if( me.saveMask )
@@ -410,7 +404,11 @@ Ext.define('Optima5.Modules.ParaCRM.DataFormPanel' ,{
 					Ext.Msg.alert('Failed', 'Save failed. Unknown error');
 				}
 				else {
-					this.fireEvent('transactionend') ;
+					this.optimaModule.postCrmEvent('datachange',{
+						dataType: me.transactionDataType,
+						bibleId: me.transactionBibleId,
+						fileId: me.transactionFileId
+					});
 					this.destroy() ;
 				}
 			},

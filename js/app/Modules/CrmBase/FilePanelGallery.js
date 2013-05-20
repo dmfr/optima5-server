@@ -1,10 +1,17 @@
-Ext.define('Optima5.Modules.ParaCRM.GalleryWithStore',{
+Ext.define('Optima5.Modules.CrmBase.FilePanelGallery',{
 	extend : 'Ext.panel.Panel',
-
+	
 	requires : ['Ext.Img','Ext.ux.dams.FileDownloader'],
-
+			  
+	alias : 'widget.op5crmbasefilegallery',
+			  
+	storeKeyField : 'filerecord_id',
+	
 	initComponent: function() {
 		var me = this ;
+		if( (me.optimaModule) instanceof Optima5.Module ) {} else {
+			Optima5.Helper.logError('CrmBase:FilePanelGallery','No module reference ?') ;
+		}
 		
 		Ext.apply( me, {
 			autoScroll:true,
@@ -27,7 +34,18 @@ Ext.define('Optima5.Modules.ParaCRM.GalleryWithStore',{
 				overItemCls: 'x-item-over',
 				itemSelector: 'div.thumb-box',
 				emptyText: 'No images to display',
-				prepareData: me.prepareData,
+				prepareData: function(data) {
+					var getParams = me.optimaModule.getConfiguredAjaxParams() ;
+					Ext.apply( getParams, {
+						media_id: data.filerecord_id,
+						thumb: true
+					});
+					
+					Ext.apply(data, {
+						thumb_url: 'server/backend_media.php?' + Ext.Object.toQueryString(getParams)
+					});
+					return data;
+				},
 				listeners: {
 					itemcontextmenu: {
 						fn:function(view, record, item, index, event) {
@@ -71,21 +89,30 @@ Ext.define('Optima5.Modules.ParaCRM.GalleryWithStore',{
 			}]
 		}) ;
 		
-		this.callParent() ;
+		me.callParent() ;
 	},
+	
 	prepareData: function( data ) {
+		var me = this.up('op5crmbasefilegallery') ;
+		var getParams = me.optimaModule.getConfiguredAjaxParams() ;
+		Ext.apply( getParams, {
+			media_id: data.filerecord_id,
+			thumb: true
+		});
+		
+		Ext.apply(data, {
+			thumb_url: 'server/backend_media.php?' + Ext.Object.toQueryString(getParams)
+		});
 		return data;
 	},
-			  
+	
 	showPhoto: function( mediaId ) {
 		var me = this ;
-		var getParams = new Object() ;
+		
+		var getParams = me.optimaModule.getConfiguredAjaxParams() ;
 		Ext.apply( getParams, {
-			_sessionName: op5session.get('session_id'),
-			_moduleName: 'paracrm' ,
-			_moduleAccount: '',
 			media_id: mediaId,
-			thumb:''
+			thumb: ''
 		});
 		
 		var getSizeParams = new Object() ;
@@ -93,11 +120,11 @@ Ext.define('Optima5.Modules.ParaCRM.GalleryWithStore',{
 		Ext.apply( getSizeParams, {
 			getsize:'true'
 		});
-		Optima5.CoreDesktop.Ajax.request({
+		Ext.Ajax.request({
 			url: 'server/backend_media.php',
 			params: getSizeParams,
 			method:'GET',
-			succCallback : function(response) {
+			success : function(response) {
 				if( Ext.decode(response.responseText).success == false ) {
 					Ext.Msg.alert('Failed', 'Failed');
 					return ;
@@ -115,25 +142,19 @@ Ext.define('Optima5.Modules.ParaCRM.GalleryWithStore',{
 				}
 				
 				
-				var imageviewerWindow = op5desktop.getDesktop().createWindow({
+				var imageviewerWindow = me.optimaModule.createWindow({
 					title:'Image Viewer',
 					width:dispwidth,
 					height:dispheight,
-					iconCls: 'parapouet',
+					iconCls: 'op5-crmbase-dataformwindow-photo-icon',
 					animCollapse:false,
 					border: false,
-
-					layout: {
-						type: 'card',
-						align: 'stretch'
-					},
 					items: [{
 						xtype:'image',
 						src: 'server/backend_media.php?' + Ext.Object.toQueryString(getParams),
 						resizable: false
 					}]
 				}) ;
-				imageviewerWindow.show() ;
 			},
 			scope: me
 		});
@@ -145,14 +166,11 @@ Ext.define('Optima5.Modules.ParaCRM.GalleryWithStore',{
 	},
 	downloadPhoto: function(mediaId) {
 		var me = this ;
-		var getParams = new Object() ;
+		var getParams = me.optimaModule.getConfiguredAjaxParams() ;
 		Ext.apply( getParams, {
-			_sessionName: op5session.get('session_id'),
-			_moduleName: 'paracrm' ,
-			_moduleAccount: '',
 			media_id: mediaId,
 			thumb:'',
-			download:'true'
+			download:true
 		});
 		
 		Ext.create('Ext.ux.dams.FileDownloader',{

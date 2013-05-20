@@ -6,9 +6,9 @@ Ext.define('BibleTreeFilterModel', {
      ]
 });
 
-Ext.define('Optima5.Modules.ParaCRM.BibleTreeFilter', {
+Ext.define('Optima5.Modules.CrmBase.BibleTreeFilter', {
     extend: 'Ext.ux.grid.filter.Filter',
-    alias: 'gridfilter.op5paracrmbibletree',
+    alias: 'gridfilter.op5crmbasebibletree',
 
     requires: ['Ext.selection.CheckboxModel'] ,
 
@@ -25,37 +25,40 @@ Ext.define('Optima5.Modules.ParaCRM.BibleTreeFilter', {
 			  
 	inputValue: [],
 
-    /**
-     * @private
-     * Template method that is to initialize the filter and install required menu items.
-     */
-    init : function (config) {
-        Ext.applyIf(config, {
-            enableKeyEvents: true,
-            iconCls: this.iconCls,
-            hideLabel: true,
-            listeners: {
-                scope: this,
-                keyup: this.onInputKeyUp,
-                el: {
-                    click: function(e) {
-                        e.stopPropagation();
-                    }
-                }
-            }
-        });
-
-        this.updateTask = Ext.create('Ext.util.DelayedTask', this.fireUpdate, this);
+	/**
+	* @private
+	* Template method that is to initialize the filter and install required menu items.
+	*/
+	init : function (config) {
+		var me = this ;
+		if( (me.optimaModule) instanceof Optima5.Module ) {} else {
+			Optima5.Helper.logError('CrmBase:BibleTreeFilter','No module reference ?') ;
+		}
+		
+		Ext.applyIf(config, {
+			enableKeyEvents: true,
+			iconCls: this.iconCls,
+			hideLabel: true,
+			listeners: {
+				scope: this,
+				keyup: this.onInputKeyUp,
+				el: {
+					click: function(e) {
+							e.stopPropagation();
+					}
+				}
+			}
+		});
+		
+		this.updateTask = Ext.create('Ext.util.DelayedTask', this.fireUpdate, this);
 		  
 		  
-		Optima5.CoreDesktop.Ajax.request({
-			url: 'server/backend.php',
+		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
-				_moduleName: 'paracrm',
 				_action : 'data_getBibleTreeOne',
 				bible_code : this.bibleId
 			},
-			succCallback: function(response) {
+			success: function(response) {
 				if( Ext.decode(response.responseText).success == true ) {
 					// this.bibleId = bibleId ;
 					this.initSetupTree( Ext.decode(response.responseText).dataRoot ) ;

@@ -2,8 +2,11 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 	extend:'Ext.window.Window',
 	requires:[
 		'Optima5.Modules.CrmBase.MainWindowButton',
-		'Optima5.Modules.CrmBase.AuthAndroidPanel'
+		
+		'Optima5.Modules.CrmBase.DataWindow',
 	],
+	
+	clsForPublished: 'op5-crmbase-published',
 	
 	initComponent: function() {
 		var me = this ;
@@ -20,7 +23,7 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 					align:'stretch'
 				},
 				defaults:{
-					xtype:'op5paracrmmwbutton',
+					xtype:'op5crmbasemwbutton',
 					scale:'large',
 					textAlign:'left',
 					width:300,
@@ -34,23 +37,23 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 				items:[{
 					itemId: 'btn-bible',
 					textTitle: 'Bible Library',
-					//textCaption: 'Bible',
+					//textCaption: '',
 					iconCls: 'op5-crmbase-waitcircle'
 				},{
 					itemId: 'btn-files',
 					textTitle: 'Data Files',
-					//textCaption: 'Bible',
+					//textCaption: '',
 					iconCls: 'op5-crmbase-waitcircle'
 				},{
 					itemId: 'btn-scen',
 					textTitle: 'Scenarios',
-					//textCaption: 'Bible',
+					//textCaption: '',
 					iconCls: 'op5-crmbase-mainwindow-scen',
 					menu: null
 				},{
 					itemId: 'btn-query',
 					textTitle: 'Queries / Qmerge',
-					textCaption: 'Bible',
+					textCaption: '',
 					iconCls: 'op5-crmbase-waitcircle'
 				},{
 					itemId: 'btn-admin',
@@ -99,7 +102,7 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 	onCrmeventBroadcast: function( crmEvent, eventParams ) {
 		var me = this ;
 		switch( crmEvent ) {
-			case 'togglepublish' :
+			case 'togglepublishdata' :
 			case 'definechange' :
 				me.syncData() ;
 				break ;
@@ -170,6 +173,7 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 		var menuCfg = Ext.decode(response.responseText) ;
 		Ext.Array.each( menuCfg, function(o) {
 			Ext.apply(o,{
+				cls: o.isPublished ? me.clsForPublished : '' ,
 				handler: function() {
 					me.openFile( o.fileId ) ;
 				},
@@ -370,5 +374,68 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 			return true ;
 		}) ;
 		return resultStr ;
+	},
+	
+	
+	openBible: function( bibleId ) {
+		var me = this ;
+		
+		// recherche d'une fenetre deja ouverte
+		var doOpen = true ;
+		me.optimaModule.eachWindow(function(win){
+			if( !(win instanceof Optima5.Modules.CrmBase.DataWindow) ) {
+				return true ;
+			}
+			if( win.dataType == 'bible' && win.bibleId == bibleId ) {
+				win.show() ;
+				win.focus() ;
+				doOpen = false ;
+				return false ;
+			}
+		},me) ;
+		
+		if( !doOpen ) {
+			return ;
+		}
+		
+		var win = me.optimaModule.createWindow({
+			title: '',
+			
+			dataType:'bible',
+			bibleId:bibleId
+		},Optima5.Modules.CrmBase.DataWindow) ;
+		win.show() ;
+	},
+	openFile: function( fileId ) {
+		var me = this ;
+		
+		// recherche d'une fenetre deja ouverte
+		var doOpen = true ;
+		me.optimaModule.eachWindow(function(win){
+			if( !(win instanceof Optima5.Modules.CrmBase.DataWindow) ) {
+				return true ;
+			}
+			if( win.dataType == 'file' && win.fileId == fileId ) {
+				win.show() ;
+				win.focus() ;
+				doOpen = false ;
+				return false ;
+			}
+		},me) ;
+		
+		if( !doOpen ) {
+			return ;
+		}
+		
+		var win = me.optimaModule.createWindow({
+			title: '',
+			
+			dataType:'file',
+			fileId:fileId
+		},Optima5.Modules.CrmBase.DataWindow) ;
+		win.show() ;
 	}
+	
+	
+	
 }) ;

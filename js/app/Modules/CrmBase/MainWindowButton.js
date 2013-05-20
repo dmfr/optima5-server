@@ -1,6 +1,6 @@
 Ext.define('Optima5.Modules.CrmBase.MainWindowButton',{
 	extend:'Ext.button.Button',
-	alias: 'widget.op5paracrmmwbutton',
+	alias: 'widget.op5crmbasemwbutton',
 	
 	renderTpl:
 		'<em id="{id}-btnWrap" class="{splitCls}">' +

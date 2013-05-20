@@ -1,21 +1,20 @@
-Ext.define('Optima5.Modules.ParaCRM.BiblePanel' ,{
+Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 	extend: 'Ext.panel.Panel',
 			  
-	alias: 'widget.op5paracrmbible',
-			  
 	requires: [
-		'Ext.form.*',
-		'Ext.data.*',
-		'Ext.grid.*',
-		'Ext.tree.*',
-		'Optima5.Modules.ParaCRM.DataFormPanel',
-		'Optima5.Modules.ParaCRM.BiblePanelGmap'
+		'Optima5.Modules.CrmBase.DataFormPanel',
+		'Optima5.Modules.CrmBase.BiblePanelGmap'
 	],
-			  
+	
+	optimaModule: null,
 	bibleId: '' ,
 			  
 			  
 	initComponent: function() {
+		var me = this ;
+		if( (me.optimaModule) instanceof Optima5.Module ) {} else {
+			Optima5.Helper.logError('CrmBase:BiblePanel','No module reference ?') ;
+		}
 		
 		this.gridpanel = Ext.create('Ext.grid.Panel',{
 			store: {
@@ -46,30 +45,26 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePanel' ,{
 				type: 'hbox',
 				align: 'stretch'
 			},
-			
-			items: [this.mainview],
-			 
-			listeners : {
-				reloadifbible: {
-					fn: this.onReloadIfBible,
-					scope : this
-				}
-			}
+			items: [this.mainview]
 		});
 		
 		this.callParent(arguments);
 	},
 			  
 			  
-	reconfigure: function( bibleId ) {
-		Optima5.CoreDesktop.Ajax.request({
-			url: 'server/backend.php',
+	reconfigure: function( bibleId, bibleCfgObj ) {
+		if( Ext.isObject(bibleCfgObj) ) {
+			this.bibleId = bibleId ;
+			this.reconfigureData( bibleCfgObj ) ;
+			return ;
+		}
+		
+		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
-				_moduleName: 'paracrm',
 				_action : 'data_getBibleCfg',
 				bible_code : bibleId
 			},
-			succCallback: function(response) {
+			success: function(response) {
 				if( Ext.decode(response.responseText).success == true ) {
 					this.bibleId = bibleId ;
 					this.reconfigureData( Ext.decode(response.responseText).data ) ;
@@ -106,7 +101,7 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePanel' ,{
 			activeItem : 0,
 			//resizable : true ,
 			items: [this.gridpanel,{
-				xtype:'op5paracrmbiblegmap',
+				xtype:'op5crmbasebiblegmap',
 				panelType: 'gmap',
 				store:this.gridstore,
 				bibleId: this.bibleId
@@ -155,26 +150,19 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePanel' ,{
 		});
 		
 		var treeroot = {iconCls:'task-folder',expanded:true,treenode_key:'&',allowDrop:false} ;
-		treeroot[keyfield] = '<b>Bible</b>: '+ajaxData.bible_lib ;
+		treeroot[keyfield] = '<b>Bible</b>: '+ajaxData.define_bible.text ;
 		var treestore = Ext.create('Ext.data.TreeStore', {
 			model: treeModelName,
 			// nodeParam: 'treenode_key',
 			folderSort: true,
 			root: treeroot,
 			//clearOnLoad: false,
-			proxy: {
-				type: 'ajax',
-				url: 'server/backend.php',
+			proxy: this.optimaModule.getConfiguredAjaxProxy({
 				extraParams : {
-					_sessionName: op5session.get('session_id'),
-					_moduleName: 'paracrm' ,
 					_action: 'data_getBibleTree' ,
 					bible_code: this.bibleId
-				},
-				actionMethods: {
-					read:'POST'
 				}
-			}
+			})
 		});
 		
 		var treeColumns = new Array() ;
@@ -387,24 +375,17 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePanel' ,{
 			autoLoad: true,
 			remoteSort: true,
 			remoteFilter: true,
-			proxy: {
-				type: 'ajax',
-				url: 'server/backend.php',
+			proxy: this.optimaModule.getConfiguredAjaxProxy({
 				extraParams : {
-					_sessionName: op5session.get('session_id'),
-					_moduleName: 'paracrm' ,
 					_action: 'data_getBibleGrid' ,
 					bible_code: this.bibleId
-				},
-				actionMethods: {
-					read:'POST'
 				},
 				reader: {
 					type: 'json',
 					root: 'data',
 					totalProperty: 'total'
 				}
-			}
+			})
 		});
 		
 		return gridstore ;
@@ -551,13 +532,7 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePanel' ,{
 			this.gridstore.load() ;
 		}
 	},
-	onReloadIfBible: function(bibleId) {
-		//console.log('Asked to reload if curBible is '+bibleId) ;
-		if( this.isVisible() && (this.bibleId == bibleId) ) {
-			this.reload() ;
-		}
-	},
-			  
+	
 	filterGridByTreenode: function( treenodeKey ) {
 		var parameters = new Object() ;
 		Ext.apply(parameters,{
@@ -590,10 +565,9 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePanel' ,{
 	},
 			  
 	editNodeNew: function( parentTreenodeKey ) {
+		var me = this ;
 		var ajaxParams = new Object() ;
 		Ext.apply( ajaxParams, {
-			_sessionName: op5session.get('session_id'),
-			_moduleName: 'paracrm' ,
 			_action: 'data_editTransaction',
 			_subaction: 'init',
 			data_type: 'bible_treenode',
@@ -601,25 +575,23 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePanel' ,{
 			is_new: true,
 			treenode_parent_key: parentTreenodeKey
 		});
-		Optima5.CoreDesktop.Ajax.request({
-			url: 'server/backend.php',
+		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams ,
-			succCallback: function(response) {
+			success: function(response) {
 				if( Ext.decode(response.responseText).success == false ) {
 					Ext.Msg.alert('Failed', 'Failed');
 				}
 				else {
-					this.openEditFormWindow( {}, Ext.decode(response.responseText).transaction_id ) ;
+					this.openEditFormWindow( {isNew:true}, Ext.decode(response.responseText).transaction_id ) ;
 				}
 			},
 			scope: this
 		});
 	},
 	editNodeUpdate: function( treenodeKey ) {
+		var me = this ;
 		var ajaxParams = new Object() ;
 		Ext.apply( ajaxParams, {
-			_sessionName: op5session.get('session_id'),
-			_moduleName: 'paracrm' ,
 			_action: 'data_editTransaction',
 			_subaction: 'init',
 			data_type: 'bible_treenode',
@@ -627,25 +599,23 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePanel' ,{
 			is_new: false,
 			treenode_key: treenodeKey
 		});
-		Optima5.CoreDesktop.Ajax.request({
-			url: 'server/backend.php',
+		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams ,
-			succCallback: function(response) {
+			success: function(response) {
 				if( Ext.decode(response.responseText).success == false ) {
 					Ext.Msg.alert('Failed', 'Failed');
 				}
 				else {
-					this.openEditFormWindow( {}, Ext.decode(response.responseText).transaction_id ) ;
+					this.openEditFormWindow( {isNew:false,biblerecordId:treenodeKey}, Ext.decode(response.responseText).transaction_id ) ;
 				}
 			},
 			scope: this
 		});
 	},
 	editNodeDelete: function( treenodeKey ) {
+		var me = this ;
 		var ajaxParams = new Object() ;
 		Ext.apply( ajaxParams, {
-			_sessionName: op5session.get('session_id'),
-			_moduleName: 'paracrm' ,
 			_action: 'data_deleteRecord',
 			data_type: 'bible_treenode',
 			bible_code: this.bibleId,
@@ -653,30 +623,28 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePanel' ,{
 		});
 		var me = this ;
 		me.editMaskSet(true) ;
-		Optima5.CoreDesktop.Ajax.request({
-			url: 'server/backend.php',
+		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams ,
-			succCallback: function(response) {
+			success: function(response) {
 				me.editMaskSet(false) ;
 				if( Ext.decode(response.responseText).success == false ) {
 					Ext.Msg.alert('Failed', 'Failed');
 				}
 				else {
-					Ext.each( Ext.ComponentQuery.query('window > panel'), function(obj) {
-						if( Ext.getClassName(obj) == 'Optima5.Modules.ParaCRM.BiblePanel' ) {
-							obj.fireEvent('reloadifbible',me.bibleId) ;
-						}
-					},me) ;
+					me.optimaModule.postCrmEvent('datachange',{
+						dataType: 'bible',
+						bibleId: me.bibleId,
+						fileId: null
+					});
 				}
 			},
 			scope: me
 		});
 	},
 	editEntryNew: function( treenodeKey ) {
+		var me = this ;
 		var ajaxParams = new Object() ;
 		Ext.apply( ajaxParams, {
-			_sessionName: op5session.get('session_id'),
-			_moduleName: 'paracrm' ,
 			_action: 'data_editTransaction',
 			_subaction: 'init',
 			data_type: 'bible_entry',
@@ -684,25 +652,23 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePanel' ,{
 			is_new: true,
 			treenode_key: treenodeKey
 		});
-		Optima5.CoreDesktop.Ajax.request({
-			url: 'server/backend.php',
+		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams ,
-			succCallback: function(response) {
+			success: function(response) {
 				if( Ext.decode(response.responseText).success == false ) {
 					Ext.Msg.alert('Failed', 'Failed');
 				}
 				else {
-					this.openEditFormWindow( {}, Ext.decode(response.responseText).transaction_id ) ;
+					this.openEditFormWindow( {isNew:true}, Ext.decode(response.responseText).transaction_id ) ;
 				}
 			},
 			scope: this
 		});
 	},
 	editEntryUpdate: function( entryKey ) {
+		var me = this ;
 		var ajaxParams = new Object() ;
 		Ext.apply( ajaxParams, {
-			_sessionName: op5session.get('session_id'),
-			_moduleName: 'paracrm' ,
 			_action: 'data_editTransaction',
 			_subaction: 'init',
 			data_type: 'bible_entry',
@@ -710,25 +676,23 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePanel' ,{
 			is_new: false,
 			entry_key: entryKey
 		});
-		Optima5.CoreDesktop.Ajax.request({
-			url: 'server/backend.php',
+		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams ,
-			succCallback: function(response) {
+			success: function(response) {
 				if( Ext.decode(response.responseText).success == false ) {
 					Ext.Msg.alert('Failed', 'Failed');
 				}
 				else {
-					this.openEditFormWindow( {}, Ext.decode(response.responseText).transaction_id ) ;
+					this.openEditFormWindow( {isNew:false,biblerecordId:entryKey}, Ext.decode(response.responseText).transaction_id ) ;
 				}
 			},
 			scope: this
 		});
 	},
 	editEntryDelete: function( entryKey ) {
+		var me = this ;
 		var ajaxParams = new Object() ;
 		Ext.apply( ajaxParams, {
-			_sessionName: op5session.get('session_id'),
-			_moduleName: 'paracrm' ,
 			_action: 'data_deleteRecord',
 			data_type: 'bible_entry',
 			bible_code: this.bibleId,
@@ -736,20 +700,19 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePanel' ,{
 		});
 		var me = this ;
 		me.editMaskSet(true) ;
-		Optima5.CoreDesktop.Ajax.request({
-			url: 'server/backend.php',
+		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams ,
-			succCallback: function(response) {
+			success: function(response) {
 				me.editMaskSet(false) ;
 				if( Ext.decode(response.responseText).success == false ) {
 					Ext.Msg.alert('Failed', 'Failed');
 				}
 				else {
-					Ext.each( Ext.ComponentQuery.query('window > panel'), function(obj) {
-						if( Ext.getClassName(obj) == 'Optima5.Modules.ParaCRM.BiblePanel' ) {
-							obj.fireEvent('reloadifbible',me.bibleId) ;
-						}
-					},me) ;
+					me.optimaModule.postCrmEvent('datachange',{
+						dataType: 'bible',
+						bibleId: me.bibleId,
+						fileId: null
+					});
 				}
 			},
 			scope: me
@@ -757,10 +720,9 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePanel' ,{
 	},
 			  
 	editEntryAssignTreenode: function( entryKey, targetTreenodeKey ) {
+		var me = this ;
 		var ajaxParams = new Object() ;
 		Ext.apply( ajaxParams, {
-			_sessionName: op5session.get('session_id'),
-			_moduleName: 'paracrm' ,
 			_action: 'data_bibleAssignTreenode',
 			bible_code: this.bibleId,
 			entry_key: entryKey,
@@ -768,20 +730,19 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePanel' ,{
 		});
 		var me = this ;
 		me.editMaskSet(true) ;
-		Optima5.CoreDesktop.Ajax.request({
-			url: 'server/backend.php',
+		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams ,
-			succCallback: function(response) {
+			success: function(response) {
 				me.editMaskSet(false) ;
 				if( Ext.decode(response.responseText).success == false ) {
 					Ext.Msg.alert('Failed', 'Failed');
 				}
 				else {
-					Ext.each( Ext.ComponentQuery.query('window > panel'), function(obj) {
-						if( Ext.getClassName(obj) == 'Optima5.Modules.ParaCRM.BiblePanel' ) {
-							obj.fireEvent('reloadifbible',me.bibleId) ;
-						}
-					},me) ;
+					me.optimaModule.postCrmEvent('datachange',{
+						dataType: 'bible',
+						bibleId: me.bibleId,
+						fileId: null
+					});
 				}
 			},
 			scope: me
@@ -789,41 +750,24 @@ Ext.define('Optima5.Modules.ParaCRM.BiblePanel' ,{
 	},
 			  
 	openEditFormWindow: function(editDetails,transactionId) {
-		var baseAjaxParams = new Object() ;
-		Ext.apply( baseAjaxParams, {
-			_sessionName: op5session.get('session_id'),
-			_moduleName: 'paracrm' ,
-			_action: 'data_editTransaction',
-			_transaction_id : transactionId
-		});
-		
-		var dataformpanel = Ext.create('Optima5.Modules.ParaCRM.DataFormPanel',{
-			ajaxBaseParams: baseAjaxParams
+		var me = this ;
+		var dataformpanel = Ext.create('Optima5.Modules.CrmBase.DataFormPanel',{
+			optimaModule: me.optimaModule,
+			transactionID: transactionId,
+			transactionDataType: 'bible',
+			transactionBibleId: me.bibleId
 		}) ;
-		var dataformpanelWindow = op5desktop.getDesktop().createWindow({
-			title:'DataFormPanel(Rename!!)',
+		me.optimaModule.createWindow({
+			title: (editDetails.isNew? 'New':'#'+editDetails.biblerecordId)+' ('+me.bibleId+')',
 			width:500,
 			height:600,
-			iconCls: 'parapouet',
+			iconCls: 'op5-crmbase-dataformwindow-icon',
 			animCollapse:false,
 			border: false,
-
-			layout: {
-				type: 'card',
-				align: 'stretch'
-			},
 			items: [ dataformpanel ]
 		}) ;
-		dataformpanelWindow.show() ;
 		
 		var me = this ;
-		dataformpanel.on('transactionend',function(){
-			Ext.each( Ext.ComponentQuery.query('window > panel'), function(obj) {
-				if( Ext.getClassName(obj) == 'Optima5.Modules.ParaCRM.BiblePanel' ) {
-					obj.fireEvent('reloadifbible',me.bibleId) ;
-				}
-			},me) ;
-		});
 		dataformpanel.on('beforedestroy',function(destroyedpanel){
 			if( destroyedpanel.up('window') ) {
 				destroyedpanel.up('window').close() ;
