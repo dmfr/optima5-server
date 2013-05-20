@@ -16,9 +16,9 @@ else
 
 if(TRUE)
 {
-	$_POST['_domain'] = 'paramount' ;
-	$_POST['_moduleName'] = 'paracrm' ;
-	$_POST['_moduleAccount'] = 'generic' ;
+	$_POST['_domainId'] = 'wonderful' ;
+	$_POST['_moduleId'] = 'crmbase' ;
+	$_POST['_sdomainId'] = 'fdvfr' ;
 }
 
 $domain = $_POST['_domainId'] ;
