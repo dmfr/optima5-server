@@ -50,6 +50,9 @@ $_opDB->query("SET NAMES UTF8") ;
 
 
 $my_module = $_POST['_moduleId'] ;
+if( $my_module == 'crmbase' ) {
+	$my_module = 'paracrm' ;
+}
 include("$server_root/modules/$my_module/backend_$my_module.inc.php");
 
 $my_sdomain = $_POST['_sdomainId'] ;
