@@ -26,6 +26,10 @@
 	background-image: url("../images/modules/crmbase-waitcircle.gif") !important;
 }
 
+.op5-crmbase-authandroidwindow-icon {
+	background-image: url("../images/modules/crmbase-android-16.png") !important;
+}
+
 .op5-crmbase-definewindow-icon {
 	background-image: url("../images/modules/crmbase-config-16.gif") !important;
 }
@@ -51,6 +55,12 @@
 }
 .op5-crmbase-mainwindow-admin {
 	background-image: url("../images/modules/crmbase-users-22.gif") !important;
+}
+.op5-crmbase-mainwindow-admin-authaccounts {
+	background-image: url("../images/modules/crmbase-kuser-16.gif") !important;
+}
+.op5-crmbase-mainwindow-admin-authandroid {
+	background-image: url("../images/modules/crmbase-android-16.png") !important;
 }
 
 .op5-crmbase-datatoolbar-file {

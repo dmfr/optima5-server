@@ -1,4 +1,4 @@
-Ext.define('Optima5.Modules.ParaCRM.AuthAndroidForm' ,{
+Ext.define('Optima5.Modules.CrmBase.AuthAndroidForm' ,{
 	extend: 'Ext.form.Panel',
 			  
 	requires: [] ,
@@ -12,6 +12,9 @@ Ext.define('Optima5.Modules.ParaCRM.AuthAndroidForm' ,{
 			  
 	initComponent: function() {
 		var me = this ;
+		if( (me.optimaModule) instanceof Optima5.Module ) {} else {
+			Optima5.Helper.logError('CrmBase:AuthAndroidForm','No module reference ?') ;
+		}
 		
 		Ext.apply(me,{
 			padding:10,
@@ -45,10 +48,11 @@ Ext.define('Optima5.Modules.ParaCRM.AuthAndroidForm' ,{
 					me.submitRecord() ;
 				},
 				scope:me
-			}],
+			}]
 		});
 		
 		this.callParent() ;
+		this.addEvents('saved') ;
 		
 		// console.dir( me.query('combobox') ) ;
 		
@@ -66,20 +70,15 @@ Ext.define('Optima5.Modules.ParaCRM.AuthAndroidForm' ,{
 			  
 	submitRecord: function() {
 		var me = this ;
-		me.submit({
-			url: 'server/backend.php',
-			params:{
-				_sessionName: op5session.get('session_id'),
-				_moduleName: 'paracrm' ,
+		
+		me.optimaModule.getConfiguredAjaxConnection().request({
+			params:Ext.apply(me.getValues(),{
 				_action: 'auth_android_setDevice'
-			},
+			}),
 			success : function() {
 				me.fireEvent('saved') ;
 			},
 			failure: function(form,action){
-				me.query('>toolbar')[0].setDisabled(false) ;
-				if( me.saveMask )
-					me.saveMask.hide() ;
 				if( action.result && action.result.msg )
 					Ext.Msg.alert('Failed', action.result.msg);
 			},

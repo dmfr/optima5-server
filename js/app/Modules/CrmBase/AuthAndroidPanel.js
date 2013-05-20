@@ -12,19 +12,23 @@ Ext.define('AuthAndroidModel', {
 });
 
 
-Ext.define('Optima5.Modules.ParaCRM.AuthAndroidPanel' ,{
+Ext.define('Optima5.Modules.CrmBase.AuthAndroidPanel' ,{
 	extend: 'Ext.panel.Panel',
 			  
-	alias: 'widget.op5paracrmauthandroid',
+	alias: 'widget.op5crmbaseauthandroid',
 			  
 	requires: [
-		'Optima5.Modules.ParaCRM.AuthAndroidForm'
+		'Optima5.Modules.CrmBase.AuthAndroidForm'
 	] ,
 			  
 	isLoaded: false,
 			  
 	initComponent: function() {
 		var me = this ;
+		if( (me.optimaModule) instanceof Optima5.Module ) {} else {
+			Optima5.Helper.logError('CrmBase:AuthAndroidPanel','No module reference ?') ;
+		}
+		
 		Ext.apply( me, {
 			border:false,
 			layout: {
@@ -42,30 +46,12 @@ Ext.define('Optima5.Modules.ParaCRM.AuthAndroidPanel' ,{
 		
 		me.callParent() ;
 		
-		me.on({
-			scope: me,
-			activate: me.createPanel,
-			deactivate: me.destroyPanel
-		});
-	},
-			  
-			  
-	
-	
-	createPanel: function(){
-		var me = this ;
-		
-		me.isActive = true ;
-		
-		me.removeAll();
 		me.addComponents();
 	},
-	destroyPanel: function(){
-		var me = this ;
-		
-		me.isActive = false ;
-		me.removeAll();
-	},
+			  
+			  
+	
+	
 	reload: function() {
 		var me = this ;
 		if( this.query('>gridpanel').length == 1 && this.isLoaded == true ) {
@@ -85,23 +71,16 @@ Ext.define('Optima5.Modules.ParaCRM.AuthAndroidPanel' ,{
 			title: 'Attached devices',
 			store: {
 				model: 'AuthAndroidModel',
-				proxy: {
-					type: 'ajax',
-					url: 'server/backend.php',
+				proxy: me.optimaModule.getConfiguredAjaxProxy({
 					extraParams : {
-						_sessionName: op5session.get('session_id'),
-						_moduleName: 'paracrm' ,
 						_action: 'auth_android_getDevicesList' ,
-					},
-					actionMethods: {
-						read:'POST'
 					},
 					reader: {
 						type: 'json',
 						root: 'data',
 						totalProperty: 'total'
 					}
-				},
+				}),
 				listeners: {
 					load:function() {
 						me.isLoaded = true ;
@@ -197,7 +176,8 @@ Ext.define('Optima5.Modules.ParaCRM.AuthAndroidPanel' ,{
 			return ;
 		}
 		
-		var mform = Ext.create('Optima5.Modules.ParaCRM.AuthAndroidForm',{
+		var mform = Ext.create('Optima5.Modules.CrmBase.AuthAndroidForm',{
+			optimaModule: me.optimaModule,
 			frame:true,
 			listeners: {
 				saved: function() {

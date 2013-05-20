@@ -4,6 +4,7 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 		'Optima5.Modules.CrmBase.MainWindowButton',
 		
 		'Optima5.Modules.CrmBase.DataWindow',
+		'Optima5.Modules.CrmBase.AuthAndroidPanel'
 	],
 	
 	clsForPublished: 'op5-crmbase-published',
@@ -65,14 +66,14 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 						plain: true,
 						items: [{
 							text: 'ParaCRM accounts',
-							icon: 'images/op5img/ico_kuser_small.gif',
+							iconCls: 'op5-crmbase-mainwindow-admin-authaccounts',
 							handler : function(){
 								//console.dir(op5session) ;
 								//console.log('Session ID is ' + op5session.get('sessionID')) ;
 							}
 						},{
 							text: 'Android devices',
-							icon: 'images/op5img/ico_android_16.png',
+							iconCls: 'op5-crmbase-mainwindow-admin-authandroid',
 							handler : function(){
 								this.openAuth('AuthAndroid') ;
 							},
@@ -404,7 +405,6 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 			dataType:'bible',
 			bibleId:bibleId
 		},Optima5.Modules.CrmBase.DataWindow) ;
-		win.show() ;
 	},
 	openFile: function( fileId ) {
 		var me = this ;
@@ -433,7 +433,37 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 			dataType:'file',
 			fileId:fileId
 		},Optima5.Modules.CrmBase.DataWindow) ;
-		win.show() ;
+	},
+	openAuth: function( authClass ) {
+		var me = this ;
+		
+		switch( authClass ) {
+			case 'AuthAndroid' :
+				// recherche d'une fenetre deja ouverte
+				var doOpen = true ;
+				me.optimaModule.eachWindow(function(win){
+					if( win.itemId == 'auth-android-window' ) {
+						win.show() ;
+						win.focus() ;
+						doOpen = false ;
+						return false ;
+					}
+				},me) ;
+				
+				if( !doOpen ) {
+					return ;
+				}
+				
+				var win = me.optimaModule.createWindow({
+					title: 'Android Authentication',
+					iconCls: 'op5-crmbase-authandroidwindow-icon',
+					itemId: 'auth-android-window',
+					items:[Ext.create('Optima5.Modules.CrmBase.AuthAndroidPanel',{
+						optimaModule: me.optimaModule
+					})]
+				}) ;
+				break ;
+		}
 	}
 	
 	
