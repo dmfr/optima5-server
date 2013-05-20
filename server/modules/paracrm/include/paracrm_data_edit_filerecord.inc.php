@@ -164,7 +164,7 @@ function paracrm_data_editTransaction_fileRecord( $post_data , &$arr_saisie )
 	if( $post_data['_subaction'] == 'subfileGallery_upload' )
 	{
 		usleep(500000) ;
-		media_contextOpen( 'paracrm', '' ) ;
+		media_contextOpen( $_POST['_sdomainId'] ) ;
 		$media_id = media_img_processUploaded( $_FILES['photo-filename']['tmp_name'] ) ;
 		media_contextClose() ;
 		if( !$media_id ) {
@@ -513,7 +513,7 @@ function paracrm_data_editTransaction_fileRecord_apply( $arr_saisie, $apply=FALS
 		
 		if( $subfile['file_type'] == 'media_img' )
 		{
-			media_contextOpen( 'paracrm', '' ) ;
+			media_contextOpen( $_POST['_sdomainId'] ) ;
 			foreach( $subfile['data'] as &$data_record )
 			{
 				// quoi faire ?

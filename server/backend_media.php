@@ -10,13 +10,10 @@ include("$server_root/modules/media/include/media.inc.php");
 
 
 $domain = $_SESSION['login_data']['login_domain'] ;
-$module_name = $_GET['_moduleName'] ? $_GET['_moduleName'] : $_GET['_sdomainId'] ;
-$module_account = $_GET['_moduleAccount'] ? $_GET['_moduleAccount'] : 'generic' ;
+$sdomain_id = $_GET['_sdomainId'] ;
 
-if( !$domain || !$module_name || !$_GET['media_id'] )
+if( !$domain || !$sdomain_id || !$_GET['media_id'] )
 	die() ;
-elseif( !$module_account )
-	$module_account = 'generic' ;
 
 function do_fallback() {
 	if( !$GLOBALS['media_fallback_url'] ) {
@@ -45,7 +42,7 @@ function do_fallback() {
 	die() ;
 }
 
-$media_path = $GLOBALS['media_storage_local_path'].'/'.$domain.'/'.$module_name.'/'.$module_account ;
+$media_path = $GLOBALS['media_storage_local_path'].'/'.$domain.'/'.$sdomain_id ;
 if( !is_dir($media_path) )
 {
 	do_fallback() ;

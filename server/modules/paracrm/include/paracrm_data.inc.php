@@ -712,7 +712,7 @@ function paracrm_data_getFileGrid_exportGallery( $post_data )
 		$map_filerecordId_dstFilename[$filerecord_id] = $dst_filename ;
 	}
 	
-	media_contextOpen( 'paracrm', '' ) ;
+	media_contextOpen( $post_data['_sdomainId'] ) ;
 	
 	// ******** Test de la taille totale *******
 	$tmp_totalBytes = 0 ;

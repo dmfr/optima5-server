@@ -833,7 +833,7 @@ function paracrm_android_syncPush( $post_data )
 
 function paracrm_android_postBinary( $post_data )
 {
-	media_contextOpen( 'paracrm', '' ) ;
+	media_contextOpen( $post_data['_sdomainId'] ) ;
 
 	$base=$post_data['base64_binary'];
    $binary=base64_decode($base);
@@ -865,13 +865,10 @@ function paracrm_android_imgPull( $post_data )
 	$filerecord_id = $_opDB->query_uniqueValue($query) ;
 	
 	$domain = $_SESSION['login_data']['login_domain'] ;
-	$module_name = $post_data['_moduleName'] ;
-	$module_account = $post_data['_moduleAccount'] ;
-	if( !$module_account )
-		$module_account = 'generic' ;	
+	$sdomain_id = $post_data['_sdomainId'] ;
 	
-	$media_path = $GLOBALS['media_storage_local_path'].'/'.$domain.'/'.$module_name.'/'.$module_account ;
-	error_log($media_path);
+	$media_path = $GLOBALS['media_storage_local_path'].'/'.$domain.'/'.$sdomain_id ;
+	//error_log($media_path);
 	if( !is_dir($media_path) ) {
 		// die() ;
 		paracrm_android_imgPullFallback( $post_data ) ;
@@ -910,7 +907,7 @@ function paracrm_android_imgPullFallback( $post_data )
 	$filerecord_id = $_opDB->query_uniqueValue($query) ;
 	
 	header('Content-type: image/jpeg');
-	$getUrl = "{$GLOBALS['media_fallback_url']}?_domain={$post_data['_domain']}&_moduleName={$post_data['_moduleName']}&_moduleAccount={$post_data['_moduleAccount']}&media_id={$filerecord_id}&thumb={$thumb_get}" ;
+	$getUrl = "{$GLOBALS['media_fallback_url']}?_domainId={$post_data['_domainId']}&_sdomainId={$post_data['_sdomainId']}&media_id={$filerecord_id}&thumb={$thumb_get}" ;
 	readfile($getUrl) ;
 	die() ;
 }

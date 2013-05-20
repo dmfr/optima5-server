@@ -2,7 +2,7 @@
 
 include("$server_root/modules/media/include/media_img.inc.php") ;
 
-function media_contextOpen( $module_name, $module_account )
+function media_contextOpen( $module_name )
 {
 	unset($GLOBALS['_media_context']) ;
 	
@@ -10,14 +10,9 @@ function media_contextOpen( $module_name, $module_account )
 	{
 		return ;
 	}
-	elseif( !$module_account )
-	{
-		$module_account = 'generic' ;
-	}
 	
 	$GLOBALS['_media_context'] = array() ;
-	$GLOBALS['_media_context']['module_name'] = $module_name ;
-	$GLOBALS['_media_context']['module_account'] = $module_account ;
+	$GLOBALS['_media_context']['sdomain_id'] = $module_name ;
 }
 function media_contextGetDirPath()
 {
@@ -38,14 +33,7 @@ function media_contextGetDirPath()
 	elseif( !mkdir($dir_domain) )
 		return NULL ;
 		
-	$dir_module = $GLOBALS['media_storage_local_path'].'/'.$domain.'/'.$GLOBALS['_media_context']['module_name'] ;
-	if( is_dir($dir_module) ) {}
-	elseif( file_exists($dir_module) )
-		return NULL ;
-	elseif( !mkdir($dir_module) )
-		return NULL ;
-		
-	$dir_moduleacc = $GLOBALS['media_storage_local_path'].'/'.$domain.'/'.$GLOBALS['_media_context']['module_name'].'/'.$GLOBALS['_media_context']['module_account'] ;
+	$dir_moduleacc = $GLOBALS['media_storage_local_path'].'/'.$domain.'/'.$GLOBALS['_media_context']['sdomain_id'] ;
 	if( is_dir($dir_moduleacc) ) {}
 	elseif( file_exists($dir_moduleacc) )
 		return NULL ;

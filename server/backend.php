@@ -19,7 +19,6 @@ $my_module = $_POST['_moduleId'] ;
 include("$server_root/modules/$my_module/backend_$my_module.inc.php");
 
 $my_sdomain = $_POST['_sdomainId'] ;
-
 if( $my_sdomain ) {
 	$_opDB->select_db( $mysql_db.'_'.$my_sdomain) ;
 }

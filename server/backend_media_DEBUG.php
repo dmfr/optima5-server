@@ -2,43 +2,24 @@
 $app_root='..' ;
 $server_root='.' ;
 
+//include("$server_root/backend_checksession.inc.php") ;
+
 include("$server_root/include/config.inc.php");
 
 include("$server_root/modules/media/include/media.inc.php");
 
 
 $domain = 'paramount_prod' ;
-$module_name = $_GET['_moduleName'] ? $_GET['_moduleName'] : $_GET['_sdomainId'] ;
-$module_account = $_GET['_moduleAccount'] ? $_GET['_moduleAccount'] : 'generic' ;
+$sdomain_id = $_GET['_sdomainId'] ;
 
-if( !$domain || !$module_name || !$_GET['media_id'] )
+if( !$domain || !$sdomain_id || !$_GET['media_id'] )
 	die() ;
-elseif( !$module_account )
-	$module_account = 'generic' ;
 
 function do_fallback() {
-	if( !$GLOBALS['media_fallback_url'] ) {
-		die() ;
-	}
-	
-	$thumb_get = "false" ;
-	if( $_GET['thumb'] === true || $_GET['thumb'] == 'true' ) {
-		$thumb_get = "true" ;
-	}
-	
-	$getUrl = $GLOBALS['media_fallback_url']."?".http_build_query($_GET) ;
-	
-	if( $_GET['getsize'] === true || $_GET['getsize'] == 'true' ) {
-		
-	} else {
-		header('Content-type: image/jpeg');
-	}
-	readfile($getUrl) ;
 	die() ;
 }
 
-
-$media_path = $GLOBALS['media_storage_local_path'].'/'.$domain.'/'.$module_name.'/'.$module_account ;
+$media_path = $GLOBALS['media_storage_local_path'].'/'.$domain.'/'.$sdomain_id ;
 if( !is_dir($media_path) )
 {
 	do_fallback() ;
@@ -90,4 +71,5 @@ else
 	header('Content-type: image/jpeg');
 }
 readfile($src_path) ;
+die();
 ?>

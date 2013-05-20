@@ -21,14 +21,10 @@ if(TRUE)
 	$_POST['_moduleAccount'] = 'generic' ;
 }
 
-$domain = $_POST['_domain'] ;
-$module_name = $_POST['_moduleName'] ;
-$module_account = $_POST['_moduleAccount'] ;
-
-if( !$domain || !$module_name )
+$domain = $_POST['_domainId'] ;
+$sdomain_id = $_POST['_sdomainId'] ;
+if( !$domain || !$sdomain_id )
 	die() ;
-elseif( !$module_account )
-	$module_account = 'generic' ;
 
 
 session_start() ;
@@ -53,14 +49,17 @@ $_opDB->query("SET NAMES UTF8") ;
 
 
 
-$my_module = $_POST['_moduleName'] ;
+$my_module = $_POST['_moduleId'] ;
 include("$server_root/modules/$my_module/backend_$my_module.inc.php");
 
-$_opDB->select_db( $mysql_db.'_'.$my_module) ;
+$my_sdomain = $_POST['_sdomainId'] ;
+if( $my_sdomain ) {
+	$_opDB->select_db( $mysql_db.'_'.$my_sdomain) ;
+}
 
 switch( $my_module ) {
 	case 'paracrm' :
-	switch( $_REQUEST['_action'] ) {
+	switch( $_POST['_action'] ) {
 		// Pour les actions suivantes, on laisse le traitement de l'authentification au backend
 		case 'android_getDbImage' :
 		case 'android_getDbImageTab' :
@@ -68,13 +67,13 @@ switch( $my_module ) {
 		break ;
 		
 		default:
-		if( !$_REQUEST['__ANDROID_ID'] || !paracrm_lib_android_authDevice_ping($_REQUEST['__ANDROID_ID'],$ping=false) ) {
+		if( !$_POST['__ANDROID_ID'] || !paracrm_lib_android_authDevice_ping($_POST['__ANDROID_ID'],$ping=false) ) {
 			header("HTTP/1.0 403 Forbidden");
 			die() ;
 		}
 		break ;
 	}
-	$TAB = backend_specific( $_REQUEST ) ;
+	$TAB = backend_specific( $_POST ) ;
 	break ;
 
 	default :
