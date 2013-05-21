@@ -49,6 +49,17 @@ function desktop_config_getRecord($post_data) {
 	}
 	$arr_shortcuts = array_values($arr_shortcuts) ;
 	
+	// *** Load wallpaper ***
+	$query = "SELECT wallpaper_id, wallpaper_is_stretch FROM auth_user_pref_wallpaper WHERE user_id='$user_id'" ;
+	$result = $_opDB->query($query) ;
+	if( $_opDB->num_rows($result) == 1 ) {
+		$arr = $_opDB->fetch_row($result) ;
+		$wallpaper_id = $arr[0] ;
+		$wallpaper_isStretch = ($arr[1]=='O') ;
+	} else {
+		$wallpaper_id = 0 ;
+		$wallpaper_isStretch = false ;
+	}
 	
 	return array(
 		'desktop_config'=>array(
@@ -62,7 +73,10 @@ function desktop_config_getRecord($post_data) {
 			
 			'sdomains' => $arr_sdomains,
 			
-			'shortcuts' => $arr_shortcuts
+			'shortcuts' => $arr_shortcuts,
+			
+			'wallpaper_id' => $wallpaper_id,
+			'wallpaper_isStretch' => $wallpaper_isStretch
 		),
 		'success'=>true
 	);
