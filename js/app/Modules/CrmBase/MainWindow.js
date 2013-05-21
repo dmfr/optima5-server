@@ -4,6 +4,8 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 		'Optima5.Modules.CrmBase.MainWindowButton',
 		
 		'Optima5.Modules.CrmBase.DataWindow',
+		'Optima5.Modules.CrmBase.Qwindow',
+		'Optima5.Modules.CrmBase.QueryTemplatePanel',
 		'Optima5.Modules.CrmBase.AuthAndroidPanel'
 	],
 	
@@ -68,8 +70,6 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 							text: 'ParaCRM accounts',
 							iconCls: 'op5-crmbase-mainwindow-admin-authaccounts',
 							handler : function(){
-								//console.dir(op5session) ;
-								//console.log('Session ID is ' + op5session.get('sessionID')) ;
 							}
 						},{
 							text: 'Android devices',
@@ -104,7 +104,9 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 		var me = this ;
 		switch( crmEvent ) {
 			case 'togglepublishdata' :
+			case 'togglepublishquery' :
 			case 'definechange' :
+			case 'querychange' :
 				me.syncData() ;
 				break ;
 		}
@@ -464,8 +466,90 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 				}) ;
 				break ;
 		}
+	},
+	
+	openQueryNew: function( fileCode ) {
+		var me = this ;
+		return me.openQwindow({
+			qType: 'query',
+			queryNewFileId: fileCode
+		});
+	},
+	openQuery: function( queryId ) {
+		var me = this ;
+		return me.openQwindow({
+			qType: 'query',
+			queryId: queryId
+		});
+	},
+	openQmergeNew: function() {
+		var me = this ;
+		return me.openQwindow({
+			qType: 'qmerge',
+			qmergeNew: true
+		});
+	},
+	openQmerge: function( qmergeId ) {
+		var me = this ;
+		return me.openQwindow({
+			qType: 'qmerge',
+			qmergeId: qmergeId
+		});
+	},
+	openQwindow: function( qCfg ) {
+		var me = this ;
+		
+		// recherche d'une fenetre deja ouverte
+		var doOpen = true ;
+		me.optimaModule.eachWindow(function(win){
+			if( !(win instanceof Optima5.Modules.CrmBase.Qwindow) ) {
+				return true ;
+			}
+			if( Ext.encode(qCfg) == Ext.encode( win.getQcfg() ) ) {
+				win.show() ;
+				win.focus() ;
+				doOpen = false ;
+				return false ;
+			}
+		},me) ;
+		
+		if( !doOpen ) {
+			return ;
+		}
+		
+		Ext.apply(qCfg,{
+			width:800,
+			height:700
+		}) ;
+		
+		me.optimaModule.createWindow(qCfg,Optima5.Modules.CrmBase.Qwindow) ;
+	},
+	
+	openQueryTemplate: function() {
+		var me = this ;
+		
+		// recherche d'une fenetre deja ouverte
+		var doOpen = true ;
+		me.optimaModule.eachWindow(function(win){
+			if( win.itemId == 'qtemplate-window' ) {
+				win.show() ;
+				win.focus() ;
+				doOpen = false ;
+				return false ;
+			}
+		},me) ;
+		
+		if( !doOpen ) {
+			return ;
+		}
+		
+		var win = me.optimaModule.createWindow({
+			title: 'Query layout template',
+			iconCls: 'op5-crmbase-qtemplatewindow-icon',
+			itemId: 'qtemplate-window',
+			items:[Ext.create('Optima5.Modules.CrmBase.QueryTemplatePanel',{
+				optimaModule: me.optimaModule
+			})]
+		}) ;
 	}
-	
-	
-	
 }) ;

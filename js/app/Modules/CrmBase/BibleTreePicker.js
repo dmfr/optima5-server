@@ -7,9 +7,9 @@ Ext.define('BibleTreePickerModel', {
      ]
 });
 
-Ext.define('Optima5.Modules.ParaCRM.BibleTreePicker',{
+Ext.define('Optima5.Modules.CrmBase.BibleTreePicker',{
 	extend:'Ext.form.field.Picker',
-	alias: 'widget.op5paracrmbibletreepicker',
+	alias: 'widget.op5crmbasebibletreepicker',
 	requires: ['Ext.XTemplate','Ext.grid.Panel'], 
 
 	fieldSubTpl: [
@@ -41,18 +41,20 @@ Ext.define('Optima5.Modules.ParaCRM.BibleTreePicker',{
 	
 	initComponent: function() {
 		var me = this ;
+		if( (me.optimaModule) instanceof Optima5.Module ) {} else {
+			Optima5.Helper.logError('CrmBase:BibleTreePicker','No module reference ?') ;
+		}
+		
 		this.addEvents('iamready') ;
 		this.addChildEls('divicon','divtext') ;
 		this.callParent() ;
 		
-		Optima5.CoreDesktop.Ajax.request({
-			url: 'server/backend.php',
+		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
-				_moduleName: 'paracrm',
 				_action : 'data_getBibleTreeOne',
 				bible_code : this.bibleId
 			},
-			succCallback: function(response) {
+			success: function(response) {
 				if( Ext.decode(response.responseText).success == true ) {
 					// this.bibleId = bibleId ;
 					this.initSetupTreestore( Ext.decode(response.responseText).dataRoot ) ;

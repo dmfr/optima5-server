@@ -1,8 +1,8 @@
-Ext.define('Optima5.Modules.ParaCRM.QueryGroupFormDate' ,{
-	extend: 'Optima5.Modules.ParaCRM.QueryGroupForm',
+Ext.define('Optima5.Modules.CrmBase.QueryGroupFormDate' ,{
+	extend: 'Optima5.Modules.CrmBase.QueryGroupForm',
 			  
 	requires: [
-		'Optima5.Modules.ParaCRM.QueryGroupForm'
+		'Optima5.Modules.CrmBase.QueryGroupForm'
 	] ,
 			  
 	initComponent: function() {

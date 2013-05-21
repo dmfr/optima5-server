@@ -111,14 +111,14 @@ Ext.define('QmergeMselectModel', {
 
 
 
-Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
+Ext.define('Optima5.Modules.CrmBase.QmergePanel' ,{
 	extend: 'Ext.panel.Panel',
 			  
-	alias: 'widget.op5paracrmqmerge',
+	alias: 'widget.op5crmbaseqmerge',
 			  
 	requires: [
-		'Optima5.Modules.ParaCRM.QmergeSubpanelMwhere',
-		'Optima5.Modules.ParaCRM.QmergeSubpanelMselect'
+		'Optima5.Modules.CrmBase.QmergeSubpanelMwhere',
+		'Optima5.Modules.CrmBase.QmergeSubpanelMselect'
 	] ,
 			  
 	
@@ -135,71 +135,40 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 			  
 	initComponent: function() {
 		var me = this ;
+		if( (me.optimaModule) instanceof Optima5.Module ) {} else {
+			Optima5.Helper.logError('CrmBase:QueryPanel','No module reference ?') ;
+		}
+		
 		Ext.apply( me, {
 			border:true,
 			layout: {
 				type: 'hbox',
 				align: 'stretch'
 			},
+			items:[{
+				xtype:'box',
+				cls:'op5-waiting',
+				flex:1
+			}],
 			autoDestroy: true
 		}) ;
 		
-		me.qmergePanelCfg = {} ;
-		Ext.apply(me.qmergePanelCfg,{
-			
-			
-		});
-		
 		me.callParent() ;
-		
-		me.on({
-			scope: me,
-			activate: me.createPanel,
-			deactivate: me.destroyPanel
-		});
 	},
-			  
-			  
 	
 	
-	createPanel: function(){
-		var me = this ;
-		
-		me.isActive = true ;
-		
-		me.removeAll();
-		if( me.loadMask == null ) {
-			me.loadMask = Ext.create('Ext.LoadMask',me,{msg:'Wait...'}) ;
-		}
-		me.loadMask.show() ;
-	},
-	destroyPanel: function(){
-		var me = this ;
-		
-		me.isActive = false ;
-		me.removeAll();
-		me.bibleQueriesStore = null ;
-	},
-
 	qmergeNew: function() {
 		var me = this ;
-		if( me.isVisible() ){
-			me.destroyPanel() ;
-			me.createPanel() ;
-		}
 		
 		var ajaxParams = new Object() ;
 		Ext.apply( ajaxParams, {
-			_sessionName: op5session.get('session_id'),
-			_moduleName: 'paracrm' ,
 			_action: 'queries_mergerTransaction',
 			_subaction: 'init',
 			is_new: 'true'
 		});
-		Optima5.CoreDesktop.Ajax.request({
-			url: 'server/backend.php',
+		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams ,
-			succCallback: function(response) {
+			success: function(response) {
 				if( Ext.decode(response.responseText).success == false ) {
 					Ext.Msg.alert('Failed', 'Failed');
 				}
@@ -213,23 +182,17 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 	},
 	qmergeOpen: function( qmergeId ) {
 		var me = this ;
-		if( me.isVisible() ){
-			me.destroyPanel() ;
-		}
 		
 		var ajaxParams = new Object() ;
 		Ext.apply( ajaxParams, {
-			_sessionName: op5session.get('session_id'),
-			_moduleName: 'paracrm' ,
 			_action: 'queries_mergerTransaction',
 			_subaction: 'init',
 			qmerge_id: qmergeId,
 			is_new: 'false'
 		});
-		Optima5.CoreDesktop.Ajax.request({
-			url: 'server/backend.php',
+		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams ,
-			succCallback: function(response) {
+			success: function(response) {
 				if( Ext.decode(response.responseText).success == false ) {
 					Ext.Msg.alert('Failed', 'Failed');
 				}
@@ -243,8 +206,19 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 			scope: this
 		});
 	},
+	
+	
 	addComponents: function( ajaxResponse ) {
-
+		var me = this ;
+		
+		me.removeAll();
+		
+		me.transaction_id = ajaxResponse.transaction_id ;
+		if( ajaxResponse.qmerge_id && ajaxResponse.qmerge_id > 0 ) {
+			me.qmerge_id = ajaxResponse.qmerge_id ;
+			me.qmerge_name =  ajaxResponse.qmerge_name ;
+		}
+		
 		/*
 		***** Initialisation de la page *****
 		
@@ -448,7 +422,10 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 		
 		
 		me.syncComponents() ;
-		me.loadMask.hide() ;
+		
+		if( me.loadMask ) {
+			me.loadMask.hide() ;
+		}
 	},
 	addComponentsOnMqueryTreeRender: function( tree ) {
 		var me = this ;
@@ -811,13 +788,13 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 		}
 
 		panel.add([
-			Ext.create('Optima5.Modules.ParaCRM.QmergeSubpanelMwhere',{
+			Ext.create('Optima5.Modules.CrmBase.QmergeSubpanelMwhere',{
 				parentQmergePanel: me,
 				mwhereStore: me.mwhereStore,
 				flex:1,
 				border:false
 			}),
-			Ext.create('Optima5.Modules.ParaCRM.QmergeSubpanelMselect',{
+			Ext.create('Optima5.Modules.CrmBase.QmergeSubpanelMselect',{
 				parentQmergePanel: me,
 				qmergeGrouptagObj: me.qmergeGrouptagObj,
 				mselectStore: me.mselectStore,
@@ -886,8 +863,6 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 		
 		var ajaxParams = {} ;
 		Ext.apply( ajaxParams, {
-			_sessionName: op5session.get('session_id'),
-			_moduleName: 'paracrm' ,
 			_action: 'queries_mergerTransaction',
 			_transaction_id: me.transaction_id ,
 			_subaction: 'submit',
@@ -897,10 +872,9 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 			qmerge_mselectfields: Ext.JSON.encode(mselectStoreData)
 		});
 		
-		Optima5.CoreDesktop.Ajax.request({
-			url: 'server/backend.php',
+		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams ,
-			succCallback: function(response) {
+			success: function(response) {
 				if( Ext.decode(response.responseText).success == false ) {
 					Ext.Msg.alert('Failed', 'Failed');
 				}
@@ -916,22 +890,20 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 		
 		var ajaxParams = {} ;
 		Ext.apply( ajaxParams, {
-			_sessionName: op5session.get('session_id'),
-			_moduleName: 'paracrm' ,
 			_action: 'queries_mergerTransaction',
 			_transaction_id: me.transaction_id ,
 			_subaction: 'save'
 		});
 		
-		Optima5.CoreDesktop.Ajax.request({
-			url: 'server/backend.php',
+		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams ,
-			succCallback: function(response) {
+			success: function(response) {
 				if( Ext.decode(response.responseText).success == false ) {
 					Ext.Msg.alert('Failed', 'Failed');
 					me.fireEvent('querysaved',false) ;
 				}
 				else {
+					me.optimaModule.postCrmEvent('querychange') ;
 					me.fireEvent('querysaved',true,Ext.decode(response.responseText).qmerge_id) ;
 				}
 			},
@@ -943,23 +915,21 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 		
 		var ajaxParams = {} ;
 		Ext.apply( ajaxParams, {
-			_sessionName: op5session.get('session_id'),
-			_moduleName: 'paracrm' ,
 			_action: 'queries_mergerTransaction',
 			_transaction_id: me.transaction_id ,
 			_subaction: 'saveas',
 			qmerge_name: newQueryName
 		});
 		
-		Optima5.CoreDesktop.Ajax.request({
-			url: 'server/backend.php',
+		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams ,
-			succCallback: function(response) {
+			success: function(response) {
 				if( Ext.decode(response.responseText).success == false ) {
 					Ext.Msg.alert('Failed', 'Failed');
 					me.fireEvent('querysaved',false) ;
 				}
 				else {
+					me.optimaModule.postCrmEvent('querychange') ;
 					me.fireEvent('querysaved',true,Ext.decode(response.responseText).qmerge_id) ;
 				}
 			},
@@ -971,24 +941,22 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 		
 		var ajaxParams = {} ;
 		Ext.apply( ajaxParams, {
-			_sessionName: op5session.get('session_id'),
-			_moduleName: 'paracrm' ,
 			_action: 'queries_mergerTransaction',
 			_transaction_id: me.transaction_id ,
 			_subaction: 'delete'
 		});
 		
-		Optima5.CoreDesktop.Ajax.request({
-			url: 'server/backend.php',
+		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams ,
-			succCallback: function(response) {
+			success: function(response) {
 				if( Ext.decode(response.responseText).success == false ) {
 					Ext.Msg.alert('Failed', 'Failed');
-					me.fireEvent('querysaved',false) ;
+					me.fireEvent('querydelete',false) ;
 				}
 				else {
-					me.fireEvent('querysaved',true,Ext.decode(response.responseText).qmerge_id) ;
-					me.destroyPanel() ;
+					me.optimaModule.postCrmEvent('querychange') ;
+					me.fireEvent('querydelete',true ) ;
+					me.destroy() ;
 				}
 			},
 			scope: me
@@ -999,24 +967,23 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 		
 		var ajaxParams = {} ;
 		Ext.apply( ajaxParams, {
-			_sessionName: op5session.get('session_id'),
-			_moduleName: 'paracrm' ,
 			_action: 'queries_mergerTransaction',
 			_transaction_id: me.transaction_id ,
 			_subaction: 'toggle_publish',
 			isPublished: isPublished
 		});
 		
-		Optima5.CoreDesktop.Ajax.request({
-			url: 'server/backend.php',
+		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams ,
-			succCallback: function(response) {
+			success: function(response) {
 				if( Ext.decode(response.responseText).success == false ) {
 					Ext.Msg.alert('Failed', 'Failed');
-					me.fireEvent('querysaved',false) ;
 				}
 				else {
-					me.fireEvent('querysaved',true,Ext.decode(response.responseText).query_id) ;
+					me.optimaModule.postCrmEvent('togglepublishquery',{
+						qType:'qmerge',
+						qmergeId:me.qmerge_id
+					}) ;
 				}
 			},
 			scope: me
@@ -1028,17 +995,14 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 		
 		var ajaxParams = {} ;
 		Ext.apply( ajaxParams, {
-			_sessionName: op5session.get('session_id'),
-			_moduleName: 'paracrm' ,
 			_action: 'queries_mergerTransaction',
 			_transaction_id: me.transaction_id ,
 			_subaction: 'run'
 		});
 		
-		Optima5.CoreDesktop.Ajax.request({
-			url: 'server/backend.php',
+		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams ,
-			succCallback: function(response) {
+			success: function(response) {
 				msgbox.close() ;
 				if( Ext.decode(response.responseText).success == false || Ext.decode(response.responseText).query_status != 'OK' ) {
 					Ext.Msg.alert('Failed', 'Failed');
@@ -1056,31 +1020,24 @@ Ext.define('Optima5.Modules.ParaCRM.QmergePanel' ,{
 		
 		var baseAjaxParams = new Object() ;
 		Ext.apply( baseAjaxParams, {
-			_sessionName: op5session.get('session_id'),
-			_moduleName: 'paracrm' ,
 			_action: 'queries_mergerTransaction',
 			_transaction_id : me.transaction_id
 		});
 		
-		var queryResultPanel = Ext.create('Optima5.Modules.ParaCRM.QueryResultPanel',{
+		var queryResultPanel = Ext.create('Optima5.Modules.CrmBase.QueryResultPanel',{
+			optimaModule:me.optimaModule,
 			ajaxBaseParams: baseAjaxParams,
 			RES_id: resultId
 		}) ;
-		var queryResultPanelWindow = op5desktop.getDesktop().createWindow({
-			title:'(Qmerge) '+me.qmerge_name ,
+		me.optimaModule.createWindow({
+			title:'(Query) '+me.query_name ,
 			width:800,
 			height:600,
-			iconCls: 'parapouet',
+			iconCls: 'op5-crmbase-qresultwindow-icon',
 			animCollapse:false,
 			border: false,
-
-			layout: {
-				type: 'card',
-				align: 'stretch'
-			},
 			items: [ queryResultPanel ]
 		}) ;
-		queryResultPanelWindow.show() ;
 		
 		queryResultPanel.on('beforedestroy',function(destroyedpanel){
 			if( destroyedpanel.up('window') ) {

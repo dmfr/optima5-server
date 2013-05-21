@@ -1,8 +1,5 @@
 Ext.define('Optima5.Modules.CrmBase.DataWindowToolbar' ,{
 	extend: 'Ext.toolbar.Toolbar',
-	requires: [
-		'Optima5.Modules.CrmBase.DefineStorePanel'
-	],
 	
 	clsForPublished: 'op5-crmbase-published',
 	

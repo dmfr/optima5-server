@@ -1,4 +1,4 @@
-Ext.define('Optima5.Modules.ParaCRM.QueryGroupForm' ,{
+Ext.define('Optima5.Modules.CrmBase.QueryWhereForm' ,{
 	extend: 'Ext.form.Panel',
 			  
 	requires: [] ,
@@ -39,5 +39,4 @@ Ext.define('Optima5.Modules.ParaCRM.QueryGroupForm' ,{
 	calcLayout: function() {
 		
 	}
-			  
 });

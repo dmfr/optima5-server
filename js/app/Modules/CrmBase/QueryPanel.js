@@ -12,82 +12,57 @@ Ext.define('QueryFieldsTreeModel', {
 	]
 });
 
-Ext.define('Optima5.Modules.ParaCRM.QueryPanel' ,{
+Ext.define('Optima5.Modules.CrmBase.QueryPanel' ,{
 	extend: 'Ext.panel.Panel',
 			  
-	alias: 'widget.op5paracrmquery',
+	alias: 'widget.op5crmbasequery',
 			  
 	requires: [
-		'Optima5.Modules.ParaCRM.QuerySubpanelWhere',
-		'Optima5.Modules.ParaCRM.QuerySubpanelGroup',
-		'Optima5.Modules.ParaCRM.QuerySubpanelSelect',
-		'Optima5.Modules.ParaCRM.QuerySubpanelProgress',
+		'Optima5.Modules.CrmBase.QuerySubpanelWhere',
+		'Optima5.Modules.CrmBase.QuerySubpanelGroup',
+		'Optima5.Modules.CrmBase.QuerySubpanelSelect',
+		'Optima5.Modules.CrmBase.QuerySubpanelProgress',
 		
-		'Optima5.Modules.ParaCRM.QueryResultPanel'
+		'Optima5.Modules.CrmBase.QueryResultPanel'
 	] ,
 			  
 	initComponent: function() {
 		var me = this ;
+		if( (me.optimaModule) instanceof Optima5.Module ) {} else {
+			Optima5.Helper.logError('CrmBase:QueryPanel','No module reference ?') ;
+		}
+		
 		Ext.apply( me, {
 			border:false,
 			layout: {
 				type: 'hbox',
 				align: 'stretch'
 			},
+			items:[{
+				xtype:'box',
+				cls:'op5-waiting',
+				flex:1
+			}],
 			autoDestroy: true
 		}) ;
 		
-		me.queryPanelCfg = {} ;
-		Ext.apply(me.queryPanelCfg,{
-			
-			
-		});
-		
 		me.callParent() ;
-		
-		me.on({
-			scope: me,
-			activate: me.createPanel,
-			deactivate: me.destroyPanel
-		});
 	},
-			  
-			  
 	
 	
-	createPanel: function(){
-		var me = this ;
-		
-		me.isActive = true ;
-		
-		me.removeAll();
-	},
-	destroyPanel: function(){
-		var me = this ;
-		
-		me.isActive = false ;
-		me.removeAll();
-	},
-
 	queryNew: function( targetFileId ) {
 		var me = this ;
-		if( me.isVisible() ){
-			me.destroyPanel() ;
-		}
 		
 		var ajaxParams = new Object() ;
 		Ext.apply( ajaxParams, {
-			_sessionName: op5session.get('session_id'),
-			_moduleName: 'paracrm' ,
 			_action: 'queries_builderTransaction',
 			_subaction: 'init',
 			target_file_code: targetFileId,
 			is_new: 'true'
 		});
-		Optima5.CoreDesktop.Ajax.request({
-			url: 'server/backend.php',
+		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams ,
-			succCallback: function(response) {
+			success: function(response) {
 				if( Ext.decode(response.responseText).success == false ) {
 					Ext.Msg.alert('Failed', 'Failed');
 				}
@@ -102,23 +77,18 @@ Ext.define('Optima5.Modules.ParaCRM.QueryPanel' ,{
 	},
 	queryOpen: function( queryId ) {
 		var me = this ;
-		if( me.isVisible() ){
-			me.destroyPanel() ;
-		}
 		
 		var ajaxParams = new Object() ;
 		Ext.apply( ajaxParams, {
-			_sessionName: op5session.get('session_id'),
-			_moduleName: 'paracrm' ,
 			_action: 'queries_builderTransaction',
 			_subaction: 'init',
 			query_id: queryId,
 			is_new: 'false'
 		});
-		Optima5.CoreDesktop.Ajax.request({
+		me.optimaModule.getConfiguredAjaxConnection().request({
 			url: 'server/backend.php',
 			params: ajaxParams ,
-			succCallback: function(response) {
+			success: function(response) {
 				if( Ext.decode(response.responseText).success == false ) {
 					Ext.Msg.alert('Failed', 'Failed');
 				}
@@ -132,8 +102,18 @@ Ext.define('Optima5.Modules.ParaCRM.QueryPanel' ,{
 			scope: this
 		});
 	},
+	
+	
 	addComponents: function( ajaxParams ){
 		var me = this ;
+		
+		me.removeAll();
+		
+		me.transaction_id = ajaxParams.transaction_id ;
+		if( ajaxParams.query_id && ajaxParams.query_id > 0 ) {
+			me.query_id = ajaxParams.query_id ;
+			me.query_name =  ajaxParams.query_name ;
+		}
 		
 		var treeCfg = {} ;
 		Ext.apply( treeCfg, {
@@ -187,19 +167,23 @@ Ext.define('Optima5.Modules.ParaCRM.QueryPanel' ,{
 				type: 'vbox',
 				align: 'stretch'
 			},
-			items:[ Ext.create('Optima5.Modules.ParaCRM.QuerySubpanelWhere', {
+			items:[ Ext.create('Optima5.Modules.CrmBase.QuerySubpanelWhere', {
+				optimaModule: me.optimaModule,
 				whereFields: ajaxParams.data_wherefields,
 				flex:1 ,
 				border:false
-			}),Ext.create('Optima5.Modules.ParaCRM.QuerySubpanelGroup', {
+			}),Ext.create('Optima5.Modules.CrmBase.QuerySubpanelGroup', {
+				optimaModule: me.optimaModule,
 				groupFields: ajaxParams.data_groupfields,
 				flex:1 ,
 				border:false
-			}),Ext.create('Optima5.Modules.ParaCRM.QuerySubpanelSelect', {
+			}),Ext.create('Optima5.Modules.CrmBase.QuerySubpanelSelect', {
+				optimaModule: me.optimaModule,
 				selectFields: ajaxParams.data_selectfields ,
 				flex:1 ,
 				border:false
-			}),Ext.create('Optima5.Modules.ParaCRM.QuerySubpanelProgress',{
+			}),Ext.create('Optima5.Modules.CrmBase.QuerySubpanelProgress',{
+				optimaModule: me.optimaModule,
 				flex:1,
 				height:1,
 				progressFields: ajaxParams.data_progressfields,
@@ -219,6 +203,10 @@ Ext.define('Optima5.Modules.ParaCRM.QueryPanel' ,{
 			})],
 			autoDestroy: true
 		}) ;
+		
+		if( me.loadMask ) {
+			me.loadMask.hide() ;
+		}
 	},
 	getTreeStore: function() {
 		var me = this ;
@@ -265,22 +253,19 @@ Ext.define('Optima5.Modules.ParaCRM.QueryPanel' ,{
 		
 		var ajaxParams = {} ;
 		Ext.apply( ajaxParams, {
-			_sessionName: op5session.get('session_id'),
-			_moduleName: 'paracrm' ,
 			_action: 'queries_builderTransaction',
 			_transaction_id: me.transaction_id ,
 			_subaction: 'submit',
 					  
-			data_wherefields: Ext.JSON.encode(me.query('op5paracrmquerywhere')[0].saveGetArray() ) ,
-			data_groupfields: Ext.JSON.encode(me.query('op5paracrmquerygroup')[0].saveGetArray() ) ,
-			data_selectfields: Ext.JSON.encode(me.query('op5paracrmqueryselect')[0].saveGetArray() ),
-			data_progressfields: Ext.JSON.encode(me.query('op5paracrmqueryprogress')[0].saveGetArray() )
+			data_wherefields: Ext.JSON.encode(me.query('op5crmbasequerywhere')[0].saveGetArray() ) ,
+			data_groupfields: Ext.JSON.encode(me.query('op5crmbasequerygroup')[0].saveGetArray() ) ,
+			data_selectfields: Ext.JSON.encode(me.query('op5crmbasequeryselect')[0].saveGetArray() ),
+			data_progressfields: Ext.JSON.encode(me.query('op5crmbasequeryprogress')[0].saveGetArray() )
 		});
 		
-		Optima5.CoreDesktop.Ajax.request({
-			url: 'server/backend.php',
+		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams ,
-			succCallback: function(response) {
+			success: function(response) {
 				if( Ext.decode(response.responseText).success == false ) {
 					Ext.Msg.alert('Failed', 'Failed');
 				}
@@ -296,22 +281,20 @@ Ext.define('Optima5.Modules.ParaCRM.QueryPanel' ,{
 		
 		var ajaxParams = {} ;
 		Ext.apply( ajaxParams, {
-			_sessionName: op5session.get('session_id'),
-			_moduleName: 'paracrm' ,
 			_action: 'queries_builderTransaction',
 			_transaction_id: me.transaction_id ,
 			_subaction: 'save'
 		});
 		
-		Optima5.CoreDesktop.Ajax.request({
-			url: 'server/backend.php',
+		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams ,
-			succCallback: function(response) {
+			success: function(response) {
 				if( Ext.decode(response.responseText).success == false ) {
 					Ext.Msg.alert('Failed', 'Failed');
 					me.fireEvent('querysaved',false) ;
 				}
 				else {
+					me.optimaModule.postCrmEvent('querychange') ;
 					me.fireEvent('querysaved',true,Ext.decode(response.responseText).query_id) ;
 				}
 			},
@@ -323,23 +306,21 @@ Ext.define('Optima5.Modules.ParaCRM.QueryPanel' ,{
 		
 		var ajaxParams = {} ;
 		Ext.apply( ajaxParams, {
-			_sessionName: op5session.get('session_id'),
-			_moduleName: 'paracrm' ,
 			_action: 'queries_builderTransaction',
 			_transaction_id: me.transaction_id ,
 			_subaction: 'saveas',
 			query_name: newQueryName
 		});
 		
-		Optima5.CoreDesktop.Ajax.request({
-			url: 'server/backend.php',
+		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams ,
-			succCallback: function(response) {
+			success: function(response) {
 				if( Ext.decode(response.responseText).success == false ) {
 					Ext.Msg.alert('Failed', 'Failed');
 					me.fireEvent('querysaved',false) ;
 				}
 				else {
+					me.optimaModule.postCrmEvent('querychange') ;
 					me.fireEvent('querysaved',true,Ext.decode(response.responseText).query_id) ;
 				}
 			},
@@ -351,24 +332,22 @@ Ext.define('Optima5.Modules.ParaCRM.QueryPanel' ,{
 		
 		var ajaxParams = {} ;
 		Ext.apply( ajaxParams, {
-			_sessionName: op5session.get('session_id'),
-			_moduleName: 'paracrm' ,
 			_action: 'queries_builderTransaction',
 			_transaction_id: me.transaction_id ,
 			_subaction: 'delete'
 		});
 		
-		Optima5.CoreDesktop.Ajax.request({
-			url: 'server/backend.php',
+		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams ,
-			succCallback: function(response) {
+			success: function(response) {
 				if( Ext.decode(response.responseText).success == false ) {
 					Ext.Msg.alert('Failed', 'Failed');
-					me.fireEvent('querysaved',false) ;
+					me.fireEvent('querydelete',false) ;
 				}
 				else {
-					me.fireEvent('querysaved',true,Ext.decode(response.responseText).query_id) ;
-					me.destroyPanel() ;
+					me.optimaModule.postCrmEvent('querychange') ;
+					me.fireEvent('querydelete',true ) ;
+					me.destroy() ;
 				}
 			},
 			scope: me
@@ -379,24 +358,23 @@ Ext.define('Optima5.Modules.ParaCRM.QueryPanel' ,{
 		
 		var ajaxParams = {} ;
 		Ext.apply( ajaxParams, {
-			_sessionName: op5session.get('session_id'),
-			_moduleName: 'paracrm' ,
 			_action: 'queries_builderTransaction',
 			_transaction_id: me.transaction_id ,
 			_subaction: 'toggle_publish',
 			isPublished: isPublished
 		});
 		
-		Optima5.CoreDesktop.Ajax.request({
-			url: 'server/backend.php',
+		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams ,
-			succCallback: function(response) {
+			success: function(response) {
 				if( Ext.decode(response.responseText).success == false ) {
 					Ext.Msg.alert('Failed', 'Failed');
-					me.fireEvent('querysaved',false) ;
 				}
 				else {
-					me.fireEvent('querysaved',true,Ext.decode(response.responseText).query_id) ;
+					me.optimaModule.postCrmEvent('togglepublishquery',{
+						qType:'query',
+						queryId:me.query_id
+					}) ;
 				}
 			},
 			scope: me
@@ -408,17 +386,14 @@ Ext.define('Optima5.Modules.ParaCRM.QueryPanel' ,{
 		
 		var ajaxParams = {} ;
 		Ext.apply( ajaxParams, {
-			_sessionName: op5session.get('session_id'),
-			_moduleName: 'paracrm' ,
 			_action: 'queries_builderTransaction',
 			_transaction_id: me.transaction_id ,
 			_subaction: 'run'
 		});
 		
-		Optima5.CoreDesktop.Ajax.request({
-			url: 'server/backend.php',
+		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams ,
-			succCallback: function(response) {
+			success: function(response) {
 				msgbox.close() ;
 				if( Ext.decode(response.responseText).success == false ) {
 					Ext.Msg.alert('Failed', 'Failed');
@@ -436,31 +411,24 @@ Ext.define('Optima5.Modules.ParaCRM.QueryPanel' ,{
 		
 		var baseAjaxParams = new Object() ;
 		Ext.apply( baseAjaxParams, {
-			_sessionName: op5session.get('session_id'),
-			_moduleName: 'paracrm' ,
 			_action: 'queries_builderTransaction',
 			_transaction_id : me.transaction_id
 		});
 		
-		var queryResultPanel = Ext.create('Optima5.Modules.ParaCRM.QueryResultPanel',{
+		var queryResultPanel = Ext.create('Optima5.Modules.CrmBase.QueryResultPanel',{
+			optimaModule:me.optimaModule,
 			ajaxBaseParams: baseAjaxParams,
 			RES_id: resultId
 		}) ;
-		var queryResultPanelWindow = op5desktop.getDesktop().createWindow({
+		me.optimaModule.createWindow({
 			title:'(Query) '+me.query_name ,
 			width:800,
 			height:600,
-			iconCls: 'parapouet',
+			iconCls: 'op5-crmbase-qresultwindow-icon',
 			animCollapse:false,
 			border: false,
-
-			layout: {
-				type: 'card',
-				align: 'stretch'
-			},
 			items: [ queryResultPanel ]
 		}) ;
-		queryResultPanelWindow.show() ;
 		
 		queryResultPanel.on('beforedestroy',function(destroyedpanel){
 			if( destroyedpanel.up('window') ) {
@@ -468,5 +436,4 @@ Ext.define('Optima5.Modules.ParaCRM.QueryPanel' ,{
 			}
 		});
 	}
-
 });

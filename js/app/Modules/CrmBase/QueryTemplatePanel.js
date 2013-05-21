@@ -10,14 +10,14 @@ Ext.define('QueryTemplateDemoModel', {
 
 
 
-Ext.define('Optima5.Modules.ParaCRM.QueryTemplatePanel' ,{
+Ext.define('Optima5.Modules.CrmBase.QueryTemplatePanel' ,{
 	extend: 'Ext.panel.Panel',
 			  
-	alias: 'widget.op5paracrmquerytemplate',
+	alias: 'widget.op5crmbasequerytemplate',
 			  
 	requires: [
 		'Ext.ux.dams.ColorCombo',
-		'Optima5.Modules.ParaCRM.QueryTemplateManager'
+		'Optima5.Modules.CrmBase.QueryTemplateManager'
 	],
 			  
 	settingsRecord: null ,
@@ -39,12 +39,21 @@ Ext.define('Optima5.Modules.ParaCRM.QueryTemplatePanel' ,{
 			  
 	initComponent: function() {
 		var me = this ;
+		if( (me.optimaModule) instanceof Optima5.Module ) {} else {
+			Optima5.Helper.logError('CrmBase:QueryTemplatePanel','No module reference ?') ;
+		}
+		
 		Ext.apply( me, {
 			border:false,
 			layout: {
 				type: 'hbox',
 				align: 'stretch'
 			},
+			items:[{
+				xtype:'box',
+				cls:'op5-waiting',
+				flex:1
+			}],
 			autoDestroy: true
 		}) ;
 		
@@ -53,56 +62,25 @@ Ext.define('Optima5.Modules.ParaCRM.QueryTemplatePanel' ,{
 			model:'QueryTemplateColorModel'
 		}) ;
 		
-		me.queryPanelCfg = {} ;
-		Ext.apply(me.queryPanelCfg,{
-			
-			
-		});
-		
 		me.callParent() ;
 		
-		me.on({
-			scope: me,
-			activate: me.createPanel,
-			deactivate: me.destroyPanel
-		});
+		me.loadSettings() ;
 	},
 			  
 			  
 	
 	
-	createPanel: function(){
-		var me = this ;
-		
-		me.isActive = true ;
-		
-		me.removeAll();
-	},
-	destroyPanel: function(){
-		var me = this ;
-		
-		me.isActive = false ;
-		me.removeAll();
-	},
-			  
-			  
 	loadSettings: function() {
 		var me = this ;
-		if( me.isVisible() ){
-			me.destroyPanel() ;
-		}
 		
 		var ajaxParams = new Object() ;
 		Ext.apply( ajaxParams, {
-			_sessionName: op5session.get('session_id'),
-			_moduleName: 'paracrm' ,
 			_action: 'queries_gridTemplate',
 			_subaction: 'load'
 		});
-		Optima5.CoreDesktop.Ajax.request({
-			url: 'server/backend.php',
+		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams ,
-			succCallback: function(response) {
+			success: function(response) {
 				if( Ext.decode(response.responseText).success == false ) {
 					Ext.Msg.alert('Failed', 'Failed');
 				}
@@ -203,7 +181,7 @@ Ext.define('Optima5.Modules.ParaCRM.QueryTemplatePanel' ,{
 		
 		me.add({
 			xtype:'panel',
-			cls:'op5paracrm-querygrid-demo',
+			cls:'op5crmbase-querygrid-demo',
 			title:'Preview / Demo',
 			flex: 2 ,
 			items:[{
@@ -211,24 +189,24 @@ Ext.define('Optima5.Modules.ParaCRM.QueryTemplatePanel' ,{
 				columns:[{
 					text:'Col1',
 					dataIndex:'col1',
-					tdCls: 'op5paracrm-datacolumn',
+					tdCls: 'op5crmbase-datacolumn',
 					align: ''
 				},{
 					text:'Col2',
 					dataIndex:'col2',
-					tdCls: 'op5paracrm-datacolumn',
+					tdCls: 'op5crmbase-datacolumn',
 					align: ''
 				},{
 					text:'Progress',
 					dataIndex:'col3',
-					tdCls: 'op5paracrm-progresscolumn',
+					tdCls: 'op5crmbase-progresscolumn',
 					align: '',
 					renderer: function(value,meta) {
 						if( value > 0 ) {
-							meta.tdCls = 'op5paracrm-progresscell-pos' ;
+							meta.tdCls = 'op5crmbase-progresscell-pos' ;
 							return '+ '+Math.abs(value) ;
 						} else if( value < 0 ) {
-							meta.tdCls = 'op5paracrm-progresscell-neg' ;
+							meta.tdCls = 'op5crmbase-progresscell-neg' ;
 							return '- '+Math.abs(value) ;
 						} else if( value==='' ) {
 							return '' ;
@@ -270,7 +248,7 @@ Ext.define('Optima5.Modules.ParaCRM.QueryTemplatePanel' ,{
 		// build a new grid
 		
 		// apply styles
-		Ext.util.CSS.removeStyleSheet('op5paracrmQuerygridDemo');
+		Ext.util.CSS.removeStyleSheet('op5crmbaseQuerygridDemo');
 		
 		if( !me.settingsRecord.get('template_is_on') ) {
 			return ;
@@ -280,25 +258,25 @@ Ext.define('Optima5.Modules.ParaCRM.QueryTemplatePanel' ,{
 		var cssBlob = '' ;
 		
 		columnColor = me.settingsRecord.get('colorhex_columns') ;
-		cssBlob += ".op5paracrm-querygrid-demo .x-column-header { background-color:"+columnColor+"; background:"+columnColor+"; }\r\n" ;
+		cssBlob += ".op5crmbase-querygrid-demo .x-column-header { background-color:"+columnColor+"; background:"+columnColor+"; }\r\n" ;
 		rowColor = me.settingsRecord.get('colorhex_row') ;
-		cssBlob += ".op5paracrm-querygrid-demo .x-grid-row .x-grid-cell { background-color:"+rowColor+" }\r\n" ;
+		cssBlob += ".op5crmbase-querygrid-demo .x-grid-row .x-grid-cell { background-color:"+rowColor+" }\r\n" ;
 		rowColorAlt = me.settingsRecord.get('colorhex_row_alt') ;
-		cssBlob += ".op5paracrm-querygrid-demo .x-grid-row-alt .x-grid-cell { background-color:"+rowColorAlt+" }\r\n" ;
+		cssBlob += ".op5crmbase-querygrid-demo .x-grid-row-alt .x-grid-cell { background-color:"+rowColorAlt+" }\r\n" ;
 		
 		dataBold = me.settingsRecord.get('data_select_is_bold') ;
-		cssBlob += ".op5paracrm-querygrid-demo .op5paracrm-datacolumn { font-weight:"+ (dataBold?'bold':'normal') +"; }\r\n" ;
+		cssBlob += ".op5crmbase-querygrid-demo .op5crmbase-datacolumn { font-weight:"+ (dataBold?'bold':'normal') +"; }\r\n" ;
 		progressBold = me.settingsRecord.get('data_progress_is_bold') ;
-		cssBlob += ".op5paracrm-querygrid-demo .op5paracrm-progresscolumn { font-weight:"+ (progressBold?'bold':'normal') +"; }\r\n" ;
+		cssBlob += ".op5crmbase-querygrid-demo .op5crmbase-progresscolumn { font-weight:"+ (progressBold?'bold':'normal') +"; }\r\n" ;
 		
 		textAlign = me.settingsRecord.get('data_align') ;
-		cssBlob += ".op5paracrm-querygrid-demo .op5paracrm-datacolumn .x-grid-cell-inner { text-align:"+ textAlign +"; }\r\n" ;
-		cssBlob += ".op5paracrm-querygrid-demo .op5paracrm-progresscolumn .x-grid-cell-inner { text-align:left; }\r\n" ;
+		cssBlob += ".op5crmbase-querygrid-demo .op5crmbase-datacolumn .x-grid-cell-inner { text-align:"+ textAlign +"; }\r\n" ;
+		cssBlob += ".op5crmbase-querygrid-demo .op5crmbase-progresscolumn .x-grid-cell-inner { text-align:left; }\r\n" ;
 		
-		cssBlob += ".op5paracrm-querygrid-demo .op5paracrm-progresscell-pos .x-grid-cell-inner { color: green; }\r\n" ;
-		cssBlob += ".op5paracrm-querygrid-demo .op5paracrm-progresscell-neg .x-grid-cell-inner { color: red; }\r\n" ;
+		cssBlob += ".op5crmbase-querygrid-demo .op5crmbase-progresscell-pos .x-grid-cell-inner { color: green; }\r\n" ;
+		cssBlob += ".op5crmbase-querygrid-demo .op5crmbase-progresscell-neg .x-grid-cell-inner { color: red; }\r\n" ;
 		
-		Ext.util.CSS.createStyleSheet(cssBlob, 'op5paracrmQuerygridDemo');
+		Ext.util.CSS.createStyleSheet(cssBlob, 'op5crmbaseQuerygridDemo');
 	},
 	
 	onFormChanged: function() {
@@ -334,8 +312,6 @@ Ext.define('Optima5.Modules.ParaCRM.QueryTemplatePanel' ,{
 		
 		var ajaxParams = {} ;
 		Ext.apply( ajaxParams, {
-			_sessionName: op5session.get('session_id'),
-			_moduleName: 'paracrm' ,
 			_action: 'queries_gridTemplate',
 			_subaction: 'save',
 					  
@@ -343,16 +319,15 @@ Ext.define('Optima5.Modules.ParaCRM.QueryTemplatePanel' ,{
 		});
 		
 		me.saveMaskSet(true) ;
-		Optima5.CoreDesktop.Ajax.request({
-			url: 'server/backend.php',
+		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams ,
-			succCallback: function(response) {
+			success: function(response) {
 				me.saveMaskSet(false) ;
 				if( Ext.decode(response.responseText).success == false ) {
 					Ext.Msg.alert('Failed', 'Failed');
 				}
 				else {
-					Optima5.Modules.ParaCRM.QueryTemplateManager.applySettingsRecord(me.settingsRecord) ;
+					Optima5.Modules.CrmBase.QueryTemplateManager.applySettingsRecord(me.optimaModule.sdomainId, me.settingsRecord) ;
 				}
 			},
 			scope: me

@@ -33,7 +33,7 @@ Ext.define('Optima5.Modules.CrmBase.BiblePicker',{
 	initComponent: function() {
 		var me = this ;
 		if( (me.optimaModule) instanceof Optima5.Module ) {} else {
-			Optima5.Helper.logError('CrmBase:FilePanel','No module reference ?') ;
+			Optima5.Helper.logError('CrmBase:BiblePicker','No module reference ?') ;
 		}
 		
 		this.addEvents('iamready') ;

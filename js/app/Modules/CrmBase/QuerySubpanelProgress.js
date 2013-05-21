@@ -1,4 +1,4 @@
-Ext.define('QueryWhereModel', {
+Ext.define('QueryProgressModel', {
 	extend: 'Ext.data.Model',
 	fields: [
 		{name: 'field_code',  type: 'string'},
@@ -17,24 +17,24 @@ Ext.define('QueryWhereModel', {
 });
 
 
-Ext.define('Optima5.Modules.ParaCRM.QuerySubpanelWhere' ,{
-	extend: 'Optima5.Modules.ParaCRM.QuerySubpanel',
+Ext.define('Optima5.Modules.CrmBase.QuerySubpanelProgress' ,{
+	extend: 'Optima5.Modules.CrmBase.QuerySubpanel',
 			  
-	alias: 'widget.op5paracrmquerywhere',
+	alias: 'widget.op5crmbasequeryprogress',
 			  
 	requires: [
-		'Optima5.Modules.ParaCRM.QuerySubpanel',
-		'Optima5.Modules.ParaCRM.QueryWhereFormBible',
-		'Optima5.Modules.ParaCRM.QueryWhereFormDate'
+		'Optima5.Modules.CrmBase.QuerySubpanel',
+		'Optima5.Modules.CrmBase.QueryWhereFormBible',
+		'Optima5.Modules.CrmBase.QueryWhereFormDate'
 	] ,
 			  
-	whereFields : [] ,
+	progressFields : [] ,
 			  
 	initComponent: function() {
 		var me = this ;
 		
 		Ext.apply( me, {
-			title: '"Where?" / Query Conditions' ,
+			title: 'Progress StepPoints' ,
 			layout: {
 				type: 'hbox',
 				align: 'stretch'
@@ -58,8 +58,8 @@ Ext.define('Optima5.Modules.ParaCRM.QuerySubpanelWhere' ,{
 			autoLoad: true,
 			sortOnLoad: false,
 			sortOnFilter: false,
-			model: 'QueryWhereModel',
-			data : me.whereFields ,
+			model: 'QueryProgressModel',
+			data : me.progressFields ,
 			proxy: {
 				type: 'memory'
 			}
@@ -137,7 +137,7 @@ Ext.define('Optima5.Modules.ParaCRM.QuerySubpanelWhere' ,{
 				drop: function(){
 					me.query('gridpanel')[0].getStore().sync() ;
 					var delayedLoad = new Ext.util.DelayedTask(function () {
-						console.dir( me.whereFields ) ;
+						//console.dir( me.whereFields ) ;
 					})
 					delayedLoad.delay(250);
 				},
@@ -156,7 +156,7 @@ Ext.define('Optima5.Modules.ParaCRM.QuerySubpanelWhere' ,{
 					},
 					plugins: {
 						ptype: 'gridviewdragdrop',
-						ddGroup: 'querywherereorder'
+						ddGroup: 'queryprogressreorder'
 					}
 			}
 		}) ;
@@ -215,7 +215,7 @@ Ext.define('Optima5.Modules.ParaCRM.QuerySubpanelWhere' ,{
 							return false ;
 					}
 					
-					var newRecord = Ext.create('QueryWhereModel',{
+					var newRecord = Ext.create('QueryProgressModel',{
 						field_code:selectedRecord.get('field_code'),
 						field_type:selectedRecord.get('field_type'),
 						field_linkbible:selectedRecord.get('field_linkbible')
@@ -258,26 +258,26 @@ Ext.define('Optima5.Modules.ParaCRM.QuerySubpanelWhere' ,{
 		var mform ;
 		switch( record.get('field_type') ) {
 			case 'link' :
-				mform = Ext.create('Optima5.Modules.ParaCRM.QueryWhereFormBible',{
+				mform = Ext.create('Optima5.Modules.CrmBase.QueryWhereFormBible',{
 					bibleId: record.get('field_linkbible') ,
 					frame:true
 				}) ;
 				break ;
 				
 			case 'date' :
-				mform = Ext.create('Optima5.Modules.ParaCRM.QueryWhereFormDate',{
+				mform = Ext.create('Optima5.Modules.CrmBase.QueryWhereFormDate',{
 					frame:true
 				}) ;
 				break ;
 				
 			case 'number' :
-				mform = Ext.create('Optima5.Modules.ParaCRM.QueryWhereFormNumber',{
+				mform = Ext.create('Optima5.Modules.CrmBase.QueryWhereFormNumber',{
 					frame:true
 				}) ;
 				break ;
 				
 			default :
-				mform = Ext.create('Optima5.Modules.ParaCRM.QueryWhereForm',{
+				mform = Ext.create('Optima5.Modules.CrmBase.QueryWhereForm',{
 					frame:true
 				}) ;
 				break ;

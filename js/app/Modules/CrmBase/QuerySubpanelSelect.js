@@ -1,25 +1,46 @@
-Ext.define('QmergeMselectGrouptagTreeModel', {
+Ext.define('QuerySelectFormulasymbolModel', {
 	extend: 'Ext.data.Model',
+	belongsTo: 'QuerySelectModel',
 	fields: [
-		{name: 'id',  type: 'int'},
-		{name: 'text', type:'string'},
-		{name: 'display_geometry',  type: 'string'}
+		{name: 'sequence',  type: 'int'},
+		{name: 'math_operation',   type: 'string'},
+		{name: 'math_parenthese_in',   type: 'boolean'},
+		{name: 'math_fieldoperand',   type: 'string'},
+		{name: 'math_staticvalue',   type: 'numeric'},
+		{name: 'math_parenthese_out',   type: 'boolean'}
 	]
 });
+Ext.define('QuerySelectModel', {
+	extend: 'Ext.data.Model',
+	fields: [
+		{name: 'select_lib',  type: 'string'},
+		{name: 'math_func_mode', type: 'string'},
+		{name: 'math_func_group', type: 'string'},
+		{name: 'math_round', type: 'numeric'}
+	],
+	validations: [
+		{type: 'length',    field: 'select_lib',     min: 1},
+	],
+	hasMany: { 
+		model: 'QuerySelectFormulasymbolModel',
+		name: 'math_expression',
+		associationKey: 'math_expression'
+	}
+});
 
-Ext.define('Optima5.Modules.ParaCRM.QmergeSubpanelMselect' ,{
-	extend: 'Optima5.Modules.ParaCRM.QmergeSubpanel',
+
+Ext.define('Optima5.Modules.CrmBase.QuerySubpanelSelect' ,{
+	extend: 'Optima5.Modules.CrmBase.QuerySubpanel',
 			  
-	alias: 'widget.op5paracrmqmergemselect',
+	alias: 'widget.op5crmbasequeryselect',
 			  
-	qmergeGrouptagObj: null,
-	mselectStore : null ,
+	selectFields : [] ,
 			  
 	initComponent: function() {
 		var me = this ;
 		
 		Ext.apply( me, {
-			title: 'M-Query target results' ,
+			title: 'Math / Count results' ,
 			layout: {
 				type: 'hbox',
 				align: 'stretch'
@@ -39,6 +60,23 @@ Ext.define('Optima5.Modules.ParaCRM.QmergeSubpanelMselect' ,{
 	initComponentCreateGrid: function() {
 		var me = this ;
 		
+		var store = Ext.create('Ext.data.Store',{
+			autoLoad: true,
+			autoSync: true,
+			model: 'QuerySelectModel',
+			data : me.selectFields,
+			proxy: {
+				type: 'memory' ,
+				reader: {
+						type: 'json'
+				},
+				writer: {
+					type:'json',
+					writeAllFields: true
+				}
+			}
+		}) ;
+		
 		var rowEditing = Ext.create('Ext.grid.plugin.RowEditing') ;
 		rowEditing.on('canceledit', function() {
 			var records = store.getRange();
@@ -51,7 +89,7 @@ Ext.define('Optima5.Modules.ParaCRM.QmergeSubpanelMselect' ,{
 		
 		var grid = Ext.create('Ext.grid.Panel',{
 			plugins: [rowEditing],
-			store: me.mselectStore ,
+			store: store ,
 			sortableColumns: false ,
 			columns: [
 				{ menuDisabled: true , header: 'Field Code',  dataIndex: 'select_lib' , flex:1, editor:{xtype:'textfield'}  }
@@ -62,9 +100,9 @@ Ext.define('Optima5.Modules.ParaCRM.QmergeSubpanelMselect' ,{
 				items: [{
 					iconCls: 'icon-add',
 					handler: function(){
-						var newRecordIndex = me.mselectStore.getCount() ;
+						var newRecordIndex = 0 ;
 						
-						me.mselectStore.insert(newRecordIndex, Ext.create('QmergeMselectModel'));
+						store.insert(newRecordIndex, Ext.create('QuerySelectModel'));
 						grid.getView().getSelectionModel().select(newRecordIndex) ;
 						rowEditing.startEdit(newRecordIndex, 0);
 					},
@@ -76,18 +114,12 @@ Ext.define('Optima5.Modules.ParaCRM.QmergeSubpanelMselect' ,{
 					handler: function(){
 						var selection = grid.getView().getSelectionModel().getSelection()[0];
 						if (selection) {
-							me.mselectStore.remove(selection);
+							store.remove(selection);
 						}
 					},
 					scope: me
 				}]
-			}],
-			viewConfig: {
-				plugins: {
-					ptype: 'gridviewdragdrop',
-					ddGroup: 'qmergemselectreorder'
-				}
-			}
+			}]
 		}) ;
 		
 		grid.getSelectionModel().on('selectionchange', function(selModel, selections){
@@ -101,10 +133,7 @@ Ext.define('Optima5.Modules.ParaCRM.QmergeSubpanelMselect' ,{
 		var me = this ;
 		
 		me.formulapanel = Ext.create('Ext.panel.Panel',{
-			layout: {
-				type: 'vbox',
-				align: 'stretch'
-			},
+			layout:'fit',
 			border:false
 		}) ;
 		
@@ -120,141 +149,14 @@ Ext.define('Optima5.Modules.ParaCRM.QmergeSubpanelMselect' ,{
 			me.formulapanel.add({
 				xtype:'panel',
 				border:false,
-				frame:true,
-				flex:1
+				frame:true
 			});
 			return ;
 		}
 		
-		/*
-		***************************************
-			qmergeGrouptagObj > Axis Detach
-		**************************************
-		*/
-		var mselectAxisdetachStore = editedrecord.axis_detach() ;
-		var axisDetached = [] ;
-		Ext.Array.each( mselectAxisdetachStore.getRange(), function(rec) {
-			if( rec.get('axis_is_detach') == true ) {
-				axisDetached.push(rec.get('display_geometry')) ;
-			}
-		},me) ;
-		
-		
-		var nodeId = 0;
-		var grouptabTreeChildren = [] ;
-		Ext.Object.each( me.qmergeGrouptagObj, function(k,v) {
-			var grouptabTreeSubnodes = [] ;
-			Ext.Object.each( v , function(sk,sv) {
-				var text = 'UNKNOWN' ;
-				var grouptagSegments = sk.split('%') ;
-				switch( grouptagSegments[0] ) {
-					case 'BIBLE' :
-						text = '<u>Link</u>'+' <b>'+grouptagSegments[1]+'</b>' ;
-						break ;
-						
-					case 'DATE' :
-						text = '<u>Date</u>'+' ('+grouptagSegments[1]+')' ;
-						break ;
-					
-				}
-				
-				nodeId++ ;
-				grouptabTreeSubnodes.push({
-					id:nodeId ,
-					text:text,
-					leaf:true
-				}) ;
-			},me) ;
-			
-			nodeId++ ;
-			var text,display_geometry ;
-			switch( k ) {
-				case 'tab' :
-					text = '<b>'+'Worksheet Tabs'+'</b>' ;
-					display_geometry = 'tab' ;
-					break ;
-				case 'grid_y' :
-					text = '<b>'+'Grid Y'+'</b>' ;
-					display_geometry = 'grid-y' ;
-					break ;
-				case 'grid_x' :
-					text = '<b>'+'Grid X'+'</b>' ;
-					display_geometry = 'grid-x' ;
-					break ;
-					
-				default : return ;
-			}
-			
-			grouptabTreeChildren.push({
-				id: nodeId,
-				text: text,
-				display_geometry: display_geometry,
-				checked:!(Ext.Array.contains(axisDetached,display_geometry)),
-				expanded:true,
-				children:grouptabTreeSubnodes
-			});
-			
-		},me) ;
-		nodeId++ ;
-		var grouptabTreeRoot = {
-			root:true,
-			id:nodeId,
-			text:'Query Parameters',
-			children:grouptabTreeChildren,
-			expanded:true
-		}
-		
-		var grouptabTreeOnCheckchange = function(){
-			var mselectAxisdetachStore = editedrecord.axis_detach() ;
-			var mselectAxisdetachStoreRecId = -1 ;
-			mselectAxisdetachStore.removeAll() ;
-			grouptagTree.getStore().getRootNode().cascadeBy( function(rec) {
-				if( rec.get('checked') === null ) {
-					return true ;
-				}
-				if( rec.get('display_geometry') == 'tab' ) {
-					rec.set('checked',true) ;
-				}
-				mselectAxisdetachStoreRecId++ ;
-				mselectAxisdetachStore.insert(mselectAxisdetachStoreRecId,Ext.create('QmergeMselectAxisdetachModel',{
-					display_geometry:rec.get('display_geometry'),
-					axis_is_detach:!(rec.get('checked'))
-				})) ;
-				return false ;
-			},me) ;
-		}
-		
-		var grouptagTree = Ext.create('Ext.tree.Panel',{
-			title:'Attach to Axis',
-			itemId: 'mqueryMwhereTree',
-			flex: 2,
-			useArrows: true,
-			rootVisible: false,
-			store: {
-				model: 'QmergeMselectGrouptagTreeModel',
-				nodeParam: 'id',
-				root: grouptabTreeRoot
-			},
-			viewConfig: {
-				listeners: {
-					checkchange: grouptabTreeOnCheckchange,
-					scope:me
-				}
-			}
-		}) ;
-		
-		grouptabTreeOnCheckchange.call(me) ;
-		
-		
-		/*
-		****************************************
-			FormulaStore + FormulaGrid
-		**************************************
-		*/
 		var formulaStore = editedrecord.math_expression() ;
 		
 		var formulaGrid = Ext.create('Ext.grid.Panel',{
-			flex:3,
 			sortableColumns: false ,
 			plugins: [Ext.create('Ext.grid.plugin.RowEditing')] ,
 			store : formulaStore ,
@@ -302,15 +204,26 @@ Ext.define('Optima5.Modules.ParaCRM.QmergeSubpanelMselect' ,{
 			},{
 				menuDisabled: true ,
 				header: 'Field/Value' ,
-				//dataIndex: 'math_fieldoperand',
+				dataIndex: 'math_fieldoperand',
 				flex:1 ,
 				renderer: function( value, metaData, record ) {
-					var queryId = record.get('math_operand_query_id') ;
-					var queryWherefieldIdx = record.get('math_operand_selectfield_idx') ;
+					if( record.get('math_staticvalue') > 0 ) {
+						return 'STATIC(<u>'+record.get('math_staticvalue')+'</u>)' ;
+					}
 					
-					var strVal = me.getQmergePanel().bibleQueriesStore.getById(queryId).fields_select().getAt(queryWherefieldIdx).get('select_lib') ;
 					
-					return strVal ;
+					var treeRecord ;
+					if( treeRecord = me.getQueryPanel().getTreeStore().getNodeById(value) ) {
+						switch( treeRecord.get('field_type') ) {
+							case 'file' :
+							case 'link' :
+								return 'COUNT('+treeRecord.get('field_text')+')' ;
+						
+							default :
+								return treeRecord.get('field_text_full')
+						}
+					}
+					return value ;
 				}
 			},{
 				menuDisabled: true ,
@@ -413,7 +326,7 @@ Ext.define('Optima5.Modules.ParaCRM.QmergeSubpanelMselect' ,{
 							handler: function(button){
 								var textfield = button.up().query('textfield')[0] ;
 								if( textfield.isValid() ) {
-									var newRecord = Ext.create('QmergeMselectFormulasymbolModel',{
+									var newRecord = Ext.create('QuerySelectFormulasymbolModel',{
 										math_staticvalue:textfield.getValue()
 									}) ;
 									formulaGrid.getStore().insert( formulaGrid.getStore().count(), newRecord );
@@ -457,7 +370,7 @@ Ext.define('Optima5.Modules.ParaCRM.QmergeSubpanelMselect' ,{
 			formulaGrid.down('#delete').setDisabled(selections.length === 0);
 		},me);
 		
-		me.formulapanel.add([grouptagTree,formulaGrid]) ;
+		me.formulapanel.add(formulaGrid) ;
 	},
 	setFormulaRecordOnGridRender: function(grid) {
 		var me = this ;
@@ -465,7 +378,7 @@ Ext.define('Optima5.Modules.ParaCRM.QmergeSubpanelMselect' ,{
 		var gridPanelDropTargetEl =  grid.body.dom;
 
 		var gridPanelDropTarget = Ext.create('Ext.dd.DropTarget', gridPanelDropTargetEl, {
-			ddGroup: 'MqueriesToMpanels',
+			ddGroup: 'TreeToGrids',
 			notifyEnter: function(ddSource, e, data) {
 					//Add some flare to invite drop.
 					grid.body.stopAnimation();
@@ -475,22 +388,31 @@ Ext.define('Optima5.Modules.ParaCRM.QmergeSubpanelMselect' ,{
 					// Reference the record (single selection) for readability
 					var selectedRecord = ddSource.dragData.records[0];
 					
-					if( Ext.getClassName(selectedRecord) != 'QmergeItemsTreeModel' ) {
-						return false ;
-					}
-					if( selectedRecord.get('query_field_type') != 'select' || selectedRecord.parentNode == null ) {
-						return false ;
+					switch( selectedRecord.get('field_type') ) {
+						case 'file' :
+						case 'link' :
+						case 'date' :
+						case 'number' :
+							break ;
+						
+						default :
+							return false ;
 					}
 					
-					var queryId = selectedRecord.parentNode.get('query_id') ;
-					var queryWherefieldIdx = selectedRecord.get('query_field_idx') ;
-					
-					var newRecord = Ext.create('QmergeMselectFormulasymbolModel',{
-						math_operand_query_id:queryId ,
-						math_operand_selectfield_idx:queryWherefieldIdx
+					var newRecord = Ext.create('QuerySelectFormulasymbolModel',{
+						math_fieldoperand:selectedRecord.get('field_code')
 					}) ;
 					
+					
+					
 					grid.getStore().insert( grid.getStore().count(), newRecord );
+
+					/*
+					// Load the record into the form
+					formPanel.getForm().loadRecord(selectedRecord);
+					// Delete record from the source store.  not really required.
+					ddSource.view.store.remove(selectedRecord);
+					*/
 					return true;
 			}
 		});

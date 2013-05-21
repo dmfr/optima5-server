@@ -1,10 +1,10 @@
-Ext.define('Optima5.Modules.ParaCRM.QueryWhereFormBible' ,{
-	extend: 'Optima5.Modules.ParaCRM.QueryWhereForm',
+Ext.define('Optima5.Modules.CrmBase.QueryWhereFormBible' ,{
+	extend: 'Optima5.Modules.CrmBase.QueryWhereForm',
 			  
 	requires: [
-		'Optima5.Modules.ParaCRM.QueryWhereForm',
-		'Optima5.Modules.ParaCRM.BibleTreePicker',
-		'Optima5.Modules.ParaCRM.BiblePicker'
+		'Optima5.Modules.CrmBase.QueryWhereForm',
+		'Optima5.Modules.CrmBase.BibleTreePicker',
+		'Optima5.Modules.CrmBase.BiblePicker'
 	] ,
 			  
 	bibleId: '',
@@ -51,11 +51,13 @@ Ext.define('Optima5.Modules.ParaCRM.QueryWhereFormBible' ,{
 				defaults: {anchor: '100%'},
 				layout: 'anchor',
 				items: [{
-					xtype: 'op5paracrmbibletreepicker',
+					xtype: 'op5crmbasebibletreepicker',
+					optimaModule: me.optimaModule,
 					name:'condition_bible_treenodes',
 					bibleId:me.bibleId
 				}, {
-					xtype: 'op5paracrmbiblepicker',
+					xtype: 'op5crmbasebiblepicker',
+					optimaModule: me.optimaModule,
 					name:'condition_bible_entries',
 					bibleId:me.bibleId
 				}]

@@ -13,6 +13,9 @@ Ext.define('Optima5.Modules.CrmBase.CrmBaseModule', {
 	},
 	postCrmEvent: function( crmEvent, postParams ) {
 		var me = this ;
+		if( typeof postParams === 'undefined' ) {
+			postParams = {} ;
+		}
 		
 		var eventParams = {} ;
 		switch( crmEvent ) {
@@ -23,6 +26,15 @@ Ext.define('Optima5.Modules.CrmBase.CrmBaseModule', {
 					dataType: postParams.dataType,
 					bibleId: postParams.bibleId,
 					fileId: postParams.fileId
+				}) ;
+				break ;
+			
+			case 'querychange' :
+			case 'togglepublishquery' :
+				Ext.apply( eventParams, {
+					qType: postParams.qType,
+					queryId: postParams.queryId,
+					qmergeId: postParams.qmergeId
 				}) ;
 				break ;
 			

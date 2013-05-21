@@ -1,4 +1,4 @@
-Ext.define('Optima5.Modules.ParaCRM.QmergeSubpanel' ,{
+Ext.define('Optima5.Modules.CrmBase.QmergeSubpanel' ,{
 	extend: 'Ext.panel.Panel',
 			  
 	parentQmergePanel: null,

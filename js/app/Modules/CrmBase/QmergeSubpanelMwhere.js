@@ -10,13 +10,13 @@ Ext.define('QmergeMwhereTreeModel', {
 });
 
 
-Ext.define('Optima5.Modules.ParaCRM.QmergeSubpanelMwhere' ,{
-	extend: 'Optima5.Modules.ParaCRM.QmergeSubpanel',
+Ext.define('Optima5.Modules.CrmBase.QmergeSubpanelMwhere' ,{
+	extend: 'Optima5.Modules.CrmBase.QmergeSubpanel',
 			  
-	alias: 'widget.op5paracrmqmergemwhere',
+	alias: 'widget.op5crmbaseqmergemwhere',
 			  
 	requires: [
-		'Optima5.Modules.ParaCRM.QmergeSubpanel'
+		'Optima5.Modules.CrmBase.QmergeSubpanel'
 	] ,
 			  
 	mwhereStore : null ,
@@ -395,26 +395,30 @@ Ext.define('Optima5.Modules.ParaCRM.QmergeSubpanelMwhere' ,{
 		var mform ;
 		switch( record.get('mfield_type') ) {
 			case 'link' :
-				mform = Ext.create('Optima5.Modules.ParaCRM.QueryWhereFormBible',{
+				mform = Ext.create('Optima5.Modules.CrmBase.QueryWhereFormBible',{
+					optimaModule: me.optimaModule,
 					bibleId: record.get('mfield_linkbible') ,
 					frame:true
 				}) ;
 				break ;
 				
 			case 'date' :
-				mform = Ext.create('Optima5.Modules.ParaCRM.QueryWhereFormDate',{
+				mform = Ext.create('Optima5.Modules.CrmBase.QueryWhereFormDate',{
+					optimaModule: me.optimaModule,
 					frame:true
 				}) ;
 				break ;
 				
 			case 'number' :
-				mform = Ext.create('Optima5.Modules.ParaCRM.QueryWhereFormNumber',{
+				mform = Ext.create('Optima5.Modules.CrmBase.QueryWhereFormNumber',{
+					optimaModule: me.optimaModule,
 					frame:true
 				}) ;
 				break ;
 				
 			default :
-				mform = Ext.create('Optima5.Modules.ParaCRM.QueryWhereForm',{
+				mform = Ext.create('Optima5.Modules.CrmBase.QueryWhereForm',{
+					optimaModule: me.optimaModule,
 					frame:true
 				}) ;
 				break ;

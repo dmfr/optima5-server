@@ -1,4 +1,4 @@
-Ext.define('Optima5.Modules.ParaCRM.QuerySubpanel' ,{
+Ext.define('Optima5.Modules.CrmBase.QuerySubpanel' ,{
 	extend: 'Ext.panel.Panel',
 
 	initComponent: function() {
@@ -6,7 +6,7 @@ Ext.define('Optima5.Modules.ParaCRM.QuerySubpanel' ,{
 	},
 			  
 	getQueryPanel: function() {
-		var objPanel = this.up('op5paracrmquery') ;
+		var objPanel = this.up('op5crmbasequery') ;
 		if( typeof objPanel !== 'undefined' ) {
 			return objPanel ;
 		}

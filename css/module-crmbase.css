@@ -90,3 +90,30 @@
 .op5-crmbase-datatoolbar-options-definestore {
 	background-image: url("../images/modules/crmbase-config-16.gif") !important;
 }
+
+.op5-crmbase-qtoolbar-file {
+	background-image: url("../images/modules/crmbase-save-16.gif") !important;
+}
+.op5-crmbase-qtoolbar-file-save {
+	background-image: url("../images/modules/crmbase-save-16.gif") !important;
+}
+.op5-crmbase-qtoolbar-file-saveas {
+	background-image: url("../images/modules/crmbase-saveas-16.gif") !important;
+}
+.op5-crmbase-qtoolbar-file-delete {
+	background-image: url("../images/modules/crmbase-delete-16.gif") !important;
+}
+.op5-crmbase-qtoolbar-run {
+	background-image: url("../images/modules/crmbase-process-16.gif") !important;
+}
+.op5-crmbase-qtoolbar-options {
+	background-image: url("../images/modules/crmbase-config-16.gif") !important;
+}
+
+.op5-crmbase-qresultwindow-icon {
+	background-image: url("../images/modules/crmbase-camera-16.png") !important;
+}
+
+.op5-crmbase-qtemplatewindow-icon {
+	background-image: url("../images/modules/crmbase-barschart-16.gif") !important;
+}

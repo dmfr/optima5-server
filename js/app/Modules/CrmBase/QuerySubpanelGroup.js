@@ -14,15 +14,15 @@ Ext.define('QueryGroupModel', {
 });
 
 
-Ext.define('Optima5.Modules.ParaCRM.QuerySubpanelGroup' ,{
-	extend: 'Optima5.Modules.ParaCRM.QuerySubpanel',
+Ext.define('Optima5.Modules.CrmBase.QuerySubpanelGroup' ,{
+	extend: 'Optima5.Modules.CrmBase.QuerySubpanel',
 			  
-	alias: 'widget.op5paracrmquerygroup',
+	alias: 'widget.op5crmbasequerygroup',
 			  
 	requires: [
-		'Optima5.Modules.ParaCRM.QuerySubpanel',
-		'Optima5.Modules.ParaCRM.QueryGroupFormDate',
-		'Optima5.Modules.ParaCRM.QueryGroupFormBible'
+		'Optima5.Modules.CrmBase.QuerySubpanel',
+		'Optima5.Modules.CrmBase.QueryGroupFormDate',
+		'Optima5.Modules.CrmBase.QueryGroupFormBible'
 	] ,
 	
 	groupFields : [] ,
@@ -220,7 +220,7 @@ Ext.define('Optima5.Modules.ParaCRM.QuerySubpanelGroup' ,{
 		var mform ;
 		switch( record.get('field_type') ) {
 			case 'link' :
-				mform = Ext.create('Optima5.Modules.ParaCRM.QueryGroupFormBible',{
+				mform = Ext.create('Optima5.Modules.CrmBase.QueryGroupFormBible',{
 					bibleId: record.get('field_linkbible') ,
 					bibleMapNode: me.getQueryPanel().getTreeStore().getNodeById( record.get('field_code') ),
 					frame:true
@@ -228,13 +228,13 @@ Ext.define('Optima5.Modules.ParaCRM.QuerySubpanelGroup' ,{
 				break ;
 				
 			case 'date' :
-				mform = Ext.create('Optima5.Modules.ParaCRM.QueryGroupFormDate',{
+				mform = Ext.create('Optima5.Modules.CrmBase.QueryGroupFormDate',{
 					frame:true
 				}) ;
 				break ;
 				
 			default :
-				mform = Ext.create('Optima5.Modules.ParaCRM.QueryGroupForm',{
+				mform = Ext.create('Optima5.Modules.CrmBase.QueryGroupForm',{
 					frame:true
 				}) ;
 				break ;

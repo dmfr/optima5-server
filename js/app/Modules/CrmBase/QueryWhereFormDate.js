@@ -1,10 +1,10 @@
-Ext.define('Optima5.Modules.ParaCRM.QueryWhereFormDate' ,{
-	extend: 'Optima5.Modules.ParaCRM.QueryWhereForm',
+Ext.define('Optima5.Modules.CrmBase.QueryWhereFormDate' ,{
+	extend: 'Optima5.Modules.CrmBase.QueryWhereForm',
 			  
 	requires: [
-		'Optima5.Modules.ParaCRM.QueryWhereForm',
-		'Optima5.Modules.ParaCRM.BibleTreePicker',
-		'Optima5.Modules.ParaCRM.BiblePicker'
+		'Optima5.Modules.CrmBase.QueryWhereForm',
+		'Optima5.Modules.CrmBase.BibleTreePicker',
+		'Optima5.Modules.CrmBase.BiblePicker'
 	] ,
 			  
 	bibleId: '',

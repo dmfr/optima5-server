@@ -1,13 +1,17 @@
-Ext.define('Optima5.Modules.ParaCRM.QueryResultPanel' ,{
+Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 	extend: 'Ext.panel.Panel',
 			  
-	requires: ['Optima5.Modules.ParaCRM.QueryTemplateManager'],
+	requires: ['Optima5.Modules.CrmBase.QueryTemplateManager'],
 			  
 	ajaxBaseParams:{},
 	RES_id: '',
 			  
 	initComponent: function() {
 		var me = this ;
+		if( (me.optimaModule) instanceof Optima5.Module ) {} else {
+			Optima5.Helper.logError('CrmBase:QueryPanel','No module reference ?') ;
+		}
+		
 		Ext.apply( me, {
 			border:false,
 			layout: 'fit',
@@ -27,7 +31,7 @@ Ext.define('Optima5.Modules.ParaCRM.QueryResultPanel' ,{
 		}) ;
 		this.callParent() ;
 		
-		Optima5.Modules.ParaCRM.QueryTemplateManager.loadStyle();
+		Optima5.Modules.CrmBase.QueryTemplateManager.loadStyle(me.optimaModule);
 		
 		var ajaxParams = {} ;
 		Ext.apply(ajaxParams,me.ajaxBaseParams) ;
@@ -35,10 +39,9 @@ Ext.define('Optima5.Modules.ParaCRM.QueryResultPanel' ,{
 			_subaction:'res_get',
 			RES_id:me.RES_id
 		});
-		Optima5.CoreDesktop.Ajax.request({
-			url: 'server/backend.php',
+		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams ,
-			succCallback: function(response) {
+			success: function(response) {
 				if( Ext.decode(response.responseText).success == false ) {
 					me.destroy() ;
 				}
@@ -86,18 +89,18 @@ Ext.define('Optima5.Modules.ParaCRM.QueryResultPanel' ,{
 				}
 				else if( columnDef.detachedColumn == true ) {
 					Ext.apply(columnDef,{
-						tdCls: 'op5paracrm-detachedcolumn'
+						tdCls: 'op5crmbase-detachedcolumn'
 					}) ;
 				}
 				else if( columnDef.progressColumn == true ) {
 					Ext.apply(columnDef,{
-						tdCls: 'op5paracrm-progresscolumn',
+						tdCls: 'op5crmbase-progresscolumn',
 						renderer: function(value,meta) {
 							if( value > 0 ) {
-								meta.tdCls = 'op5paracrm-progresscell-pos' ;
+								meta.tdCls = 'op5crmbase-progresscell-pos' ;
 								return '+ '+Math.abs(value) ;
 							} else if( value < 0 ) {
-								meta.tdCls = 'op5paracrm-progresscell-neg' ;
+								meta.tdCls = 'op5crmbase-progresscell-neg' ;
 								return '- '+Math.abs(value) ;
 							} else if( value==='' ) {
 								return '' ;
@@ -109,7 +112,7 @@ Ext.define('Optima5.Modules.ParaCRM.QueryResultPanel' ,{
 				}
 				else {
 					Ext.apply(columnDef,{
-						tdCls: 'op5paracrm-datacolumn'
+						tdCls: 'op5crmbase-datacolumn'
 					}) ;
 				}
 				Ext.apply(columnDef,{
@@ -140,7 +143,7 @@ Ext.define('Optima5.Modules.ParaCRM.QueryResultPanel' ,{
 			});
 			var tabgrid = Ext.create('Ext.grid.Panel',{
 				xtype:'grid',
-				cls:'op5paracrm-querygrid',
+				cls:'op5crmbase-querygrid-'+me.optimaModule.sdomainId,
 				title:tabData.tab_title,
 				columns:columns,
 				store:tabstore,
@@ -152,7 +155,7 @@ Ext.define('Optima5.Modules.ParaCRM.QueryResultPanel' ,{
 				viewConfig: { 
 					//stripeRows: false, 
 					getRowClass: function(record) { 
-						return record.get('detachedRow') ? 'op5paracrm-detachedrow' : ''; 
+						return record.get('detachedRow') ? 'op5crmbase-detachedrow' : ''; 
 					}
 				} 											 
 			});
@@ -189,11 +192,9 @@ Ext.define('Optima5.Modules.ParaCRM.QueryResultPanel' ,{
 	exportExcel: function(){
 		var me = this ;
 		
-		var ajaxParams = {} ;
+		var ajaxParams = me.optimaModule.getConfiguredAjaxParams() ;
 		Ext.apply(ajaxParams,me.ajaxBaseParams) ;
 		Ext.apply(ajaxParams,{
-			_sessionName: op5session.get('session_id'),
-			_moduleName: 'paracrm' ,
 			_subaction:'exportXLS',
 			RES_id:me.RES_id
 		});
@@ -202,7 +203,7 @@ Ext.define('Optima5.Modules.ParaCRM.QueryResultPanel' ,{
 		Ext.create('Ext.ux.dams.FileDownloader',{
 			renderTo: Ext.getBody(),
 			requestParams: ajaxParams,
-			requestAction: 'server/backend.php',
+			requestAction: Optima5.Helper.getApplication().desktopGetBackendUrl(),
 			requestMethod: 'POST'
 		}) ;		
 	}
