@@ -40,7 +40,7 @@ function create_ORDERS_from_crmFile( $filerecord_id ) {
 
 	$cde_refcli = $file_CDE_SAISIE['field_CDE_REFCLI'] ;
 	if( !$cde_refcli ) {
-		$cde_refcli = 'CRM/'.$filerecord_id ;
+		$cde_refcli = 'CRM'.$filerecord_id ;
 	}
 	
 	$NAD_BY = $file_CDE_SAISIE['field_CDE_STORE'] ;
