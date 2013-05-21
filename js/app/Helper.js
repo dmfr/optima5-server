@@ -3,7 +3,7 @@ Ext.define('Optima5.Helper',{
 		observable: 'Ext.util.Observable'
 	},
 	singleton:true,
-	debug:true,
+	debug:false,
 	requires:[
 		'Optima5.Modules',
 		'Optima5.Icons'
