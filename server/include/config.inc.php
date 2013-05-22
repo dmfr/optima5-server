@@ -10,6 +10,7 @@ if( !defined('INC_CONFIG_DB') )
 	elseif( getenv('OPTIMA_DB') != NULL )
 	{
 		//echo "Base de donnees OPTIMA : ".getenv('OPTIMA_DB')."\n" ;
+		$mysql_db = getenv('OPTIMA_DB') ;
 		if( defined('STDERR') ) {
 			fwrite(STDERR, "Base de donnees OPTIMA : ".getenv('OPTIMA_DB')."\n");
 		}

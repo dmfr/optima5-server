@@ -22,7 +22,6 @@ include("$server_root/modules/paracrm/backend_paracrm.inc.php");
 
 include("$server_root/include/GMaps.php" ) ;
 
-$_opDB->select_db( $mysql_db.'_'.'paracrm') ;
 
 $bible_code = 'STORE' ;
 

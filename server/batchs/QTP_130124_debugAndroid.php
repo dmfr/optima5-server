@@ -20,7 +20,6 @@ $_opDB->query("SET NAMES UTF8") ;
 
 include("$server_root/modules/paracrm/backend_paracrm.inc.php");
 
-$_opDB->select_db( $mysql_db.'_'.'paracrm') ;
 
 /*
 $post_data = array() ;
