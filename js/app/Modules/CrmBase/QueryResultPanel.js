@@ -1,7 +1,10 @@
 Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 	extend: 'Ext.panel.Panel',
 			  
-	requires: ['Optima5.Modules.CrmBase.QueryTemplateManager'],
+	requires: [
+		'Optima5.Modules.CrmBase.QueryTemplateManager',
+		'Ext.ux.dams.IFrameContent'
+	],
 			  
 	ajaxBaseParams:{},
 	RES_id: '',
@@ -48,7 +51,11 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 				else {
 					var ajaxData = Ext.decode(response.responseText) ;
 					me.initAddToolbar( ajaxData ) ;
-					me.initAddGrids( ajaxData ) ;
+					if( ajaxData.tabs ) {
+						me.initAddTabs( ajaxData ) ;
+					} else if( ajaxData.html ) {
+						me.initAddHtml( ajaxData ) ;
+					}
 				}
 			},
 			scope: me
@@ -57,7 +64,11 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 	initAddToolbar:function( ajaxData ){
 		var dockedTopToolbar = this.query('toolbar')[0] ;
 	},
-	initAddGrids:function( ajaxData ){
+	initAddHtml: function( ajaxData ) {
+		var me = this ;
+		me.add(Ext.create('Ext.ux.dams.IFrameContent',{content:ajaxData.html})) ;
+	},
+	initAddTabs:function( ajaxData ){
 		var me = this ;
 		
 		var tabitems = new Array() ;

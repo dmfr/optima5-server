@@ -3,7 +3,8 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 	requires: [
 		'Optima5.Modules.CrmBase.QwindowToolbar',
 		'Optima5.Modules.CrmBase.QueryPanel',
-		'Optima5.Modules.CrmBase.QmergePanel'
+		'Optima5.Modules.CrmBase.QmergePanel',
+		'Optima5.Modules.CrmBase.QsimplePanel'
 	],
 	
 	optimaModule: null,
@@ -16,6 +17,8 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 	
 	qmergeId:null,
 	qmergeNew:false,
+	
+	qwebId:null,
 	
 	getQcfg: function() {
 		var me = this ;
@@ -38,6 +41,11 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 				} else {
 					qCfg['qmergeId'] = me.qmergeId ;
 				}
+				return qCfg ;
+				break ;
+			case 'qweb' :
+				qCfg['qType'] = me.qType ;
+				qCfg['qwebId'] = me.qwebId ;
 				return qCfg ;
 				break ;
 			default:
@@ -104,6 +112,18 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 				}
 				break ;
 				
+			case 'qweb' :
+				if( me.qwebId > 0 ) {
+					Ext.apply(me,{
+						items:[Ext.create('Optima5.Modules.CrmBase.QsimplePanel',{
+							itemId:'qPanel',
+							optimaModule: me.optimaModule
+						})]
+					}) ;
+					cfgValid = true ;
+				}
+				break ;
+				
 			default : break ;
 		}
 		if( !cfgValid ) {
@@ -122,6 +142,21 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 			})
 		}) ;
 		
+		switch( Ext.getClassName(me.items[0]) ) {
+			case 'Optima5.Modules.CrmBase.QsimplePanel' :
+				Ext.apply(me,{
+					width:800,
+					height:350
+				}) ;
+				break ;
+				
+			default :
+				Ext.apply(me,{
+					width:800,
+					height:700
+				}) ;
+				break ;
+		}
 		
 		me.on('show', function() {
 			// configure panel + load data
@@ -173,6 +208,7 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 		switch( me.qType ) {
 			case 'query' :
 			case 'qmerge' :
+			case 'qweb' :
 				return me.child('#qPanel') ;
 			default :
 				return null ;
@@ -199,6 +235,9 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 						me.getPanel().qmergeOpen(me.qmergeId) ;
 					}
 					break ;
+				case 'qweb' :
+					me.getPanel().qwebOpen(me.qwebId) ;
+					break ;
 				default:
 					return ;
 			}
@@ -211,8 +250,8 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 			success: function(response) {
 				var ajaxData = Ext.decode(response.responseText),
 					winTitle,
-					tbarIsNew=false, tbarDisableSave=false, tbarIsPublished=false ;
-
+					tbarDisableFile=false, tbarIsNew=false, tbarDisableSave=false, tbarIsPublished=false ;
+				
 				switch( me.qType ) {
 					case 'query' :
 						if( me.queryNewFileId ) {
@@ -254,6 +293,18 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 							});
 						}
 						break ;
+					case 'qweb' :
+						tbarDisableFile = tbarDisableSave = true ;
+						Ext.Array.each( ajaxData.data_qwebs, function(o) {
+							if( o.qwebId == me.qwebId ) {
+								winTitle = 'Q# '+o.text ;
+								if( o.isPublished ) {
+									tbarIsPublished = true ;
+								}
+								return false ;
+							}
+						});
+						break ;
 					default:
 						return ;
 				}
@@ -264,6 +315,7 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 				// ** Configure toolbar **
 				var tbar = me.getToolbar() ;
 				var tbarFileMenu = tbar.child('#file') ;
+				tbarFileMenu.setVisible(!tbarDisableFile) ;
 				tbarFileMenu.menu.child('#save').setVisible(!tbarIsNew);
 				tbarFileMenu.menu.child('#save').setDisabled(tbarDisableSave);
 				tbarFileMenu.menu.child('#saveas').setVisible(true);

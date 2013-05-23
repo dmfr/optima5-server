@@ -277,6 +277,21 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 				scope: me,
 			});
 		},me) ;
+		Ext.Array.each( respObj.data_qwebs , function(v) {
+			var qwebId = parseInt(v.qwebId) ;
+			
+			qMenuItems.push({
+				qwebId: qwebId,
+				isPublished: v.isPublished,
+				text: v.text,
+				icon: 'images/op5img/ico_planet_16.png' ,
+				cls: (v.isPublished == true)? me.clsForPublished:null,
+				handler: function(){
+					me.openQweb( qwebId ) ;
+				},
+				scope: me,
+			});
+		},me) ;
 		Ext.Array.sort( qMenuItems, function(o1,o2) {
 			if( o1.text < o2.text ) {
 				return -1 ;
@@ -496,6 +511,13 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 			qmergeId: qmergeId
 		});
 	},
+	openQweb: function( qwebId ) {
+		var me = this ;
+		return me.openQwindow({
+			qType: 'qweb',
+			qwebId: qwebId
+		});
+	},
 	openQwindow: function( qCfg ) {
 		var me = this ;
 		
@@ -516,11 +538,6 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 		if( !doOpen ) {
 			return ;
 		}
-		
-		Ext.apply(qCfg,{
-			width:800,
-			height:700
-		}) ;
 		
 		me.optimaModule.createWindow(qCfg,Optima5.Modules.CrmBase.Qwindow) ;
 	},

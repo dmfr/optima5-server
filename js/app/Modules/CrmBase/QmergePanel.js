@@ -1030,7 +1030,7 @@ Ext.define('Optima5.Modules.CrmBase.QmergePanel' ,{
 			RES_id: resultId
 		}) ;
 		me.optimaModule.createWindow({
-			title:'(Query) '+me.query_name ,
+			title:me.qmerge_name ,
 			width:800,
 			height:600,
 			iconCls: 'op5-crmbase-qresultwindow-icon',

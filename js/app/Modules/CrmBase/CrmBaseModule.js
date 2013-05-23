@@ -34,7 +34,8 @@ Ext.define('Optima5.Modules.CrmBase.CrmBaseModule', {
 				Ext.apply( eventParams, {
 					qType: postParams.qType,
 					queryId: postParams.queryId,
-					qmergeId: postParams.qmergeId
+					qmergeId: postParams.qmergeId,
+					qwebId: postParams.qwebId
 				}) ;
 				break ;
 			
