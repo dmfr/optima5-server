@@ -165,9 +165,34 @@ function paracrm_queries_mergerTransaction_submit( $post_data , &$arr_saisie )
 {
 	global $_opDB ;
 	
-	$arr_saisie['arr_query_id'] = json_decode($post_data['qmerge_queries'],TRUE) ;
+	$map_client2server = array() ;
+	$map_client2server['qmerge_queries'] = 'arr_query_id' ;
+	$map_client2server['qmerge_mwherefields'] = 'fields_mwhere' ;
+	$map_client2server['qmerge_mselectfields'] = 'fields_mselect' ;
+	
+	if( !$post_data['_qsimple'] ) {
+		// controle des champs obligatoires
+		foreach( $map_client2server as $mkey_client => $mkey_local ) {
+			if( !isset($post_data[$mkey_client]) ) {
+				return array('success'=>false) ;
+			}
+		}
+	}
+	
+	foreach( $map_client2server as $mkey_client => $mkey_local ) {
+		if( !isset($post_data[$mkey_client]) ) {
+			continue ;
+		}
+		$arr_saisie[$mkey_local] = json_decode($post_data[$mkey_client],TRUE) ;
+	}
+
+	return array('success'=>true) ;
+}
+function paracrm_queries_mergerTransaction_submitSimple( $post_data , &$arr_saisie )
+{
+	global $_opDB ;
+	
 	$arr_saisie['fields_mwhere'] = json_decode($post_data['qmerge_mwherefields'],TRUE) ;
-	$arr_saisie['fields_mselect'] = json_decode($post_data['qmerge_mselectfields'],TRUE) ;
 
 	return array('success'=>true) ;
 }

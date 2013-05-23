@@ -20,14 +20,16 @@ function paracrm_queries_getToolbarData( $post_data )
 	}
 	
 	// Queries / Qmerges publiés
-	$arr_pub_query = $arr_pub_qmerge = array() ;
-	$query = "SELECT target_query_id , target_qmerge_id FROM input_query_src" ;
+	$arr_pub_query = $arr_pub_qmerge = $arr_pub_qweb = array() ;
+	$query = "SELECT target_query_id , target_qmerge_id , target_qweb_id FROM input_query_src" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		if( $arr['target_query_id'] > 0 ) {
 			$arr_pub_query[] = $arr['target_query_id'] ;
 		} elseif( $arr['target_qmerge_id'] > 0 ) {
 			$arr_pub_qmerge[] = $arr['target_qmerge_id'] ;
+		} elseif( $arr['target_qweb_id'] > 0 ) {
+			$arr_pub_qweb[] = $arr['target_qweb_id'] ;
 		}
 	}
 	// Queries
@@ -80,10 +82,22 @@ function paracrm_queries_getToolbarData( $post_data )
 		$TAB_qmerges[] = $arr ;
 	}
 	
-	
+	// Qwebs
+	$query = "SELECT qweb_id as qwebId, qweb_name as text
+				FROM qweb" ;
+	$result = $_opDB->query($query) ;
+	$TAB_qwebs = array() ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$qweb_id = $arr['qwebId'] ;
+		
+		if( in_array($qweb_id,$arr_pub_qweb) ) {
+			$arr['isPublished'] = TRUE ;
+		}
+		$TAB_qwebs[] = $arr ;
+	}
 
 
-	return array('success'=>true,'data_filetargets'=>$TAB_filetargets,'data_queries'=>$TAB_queries,'data_qmerges'=>$TAB_qmerges) ;
+	return array('success'=>true,'data_filetargets'=>$TAB_filetargets,'data_queries'=>$TAB_queries,'data_qmerges'=>$TAB_qmerges,'data_qwebs'=>$TAB_qwebs) ;
 }
 
 

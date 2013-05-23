@@ -152,10 +152,27 @@ function paracrm_queries_builderTransaction_submit( $post_data , &$arr_saisie )
 {
 	global $_opDB ;
 	
-	$arr_saisie['fields_where'] = json_decode($post_data['data_wherefields'],TRUE) ;
-	$arr_saisie['fields_group'] = json_decode($post_data['data_groupfields'],TRUE) ;
-	$arr_saisie['fields_select'] = json_decode($post_data['data_selectfields'],TRUE) ;
-	$arr_saisie['fields_progress'] = json_decode($post_data['data_progressfields'],TRUE) ;
+	$map_client2server = array() ;
+	$map_client2server['data_wherefields'] = 'fields_where' ;
+	$map_client2server['data_groupfields'] = 'fields_group' ;
+	$map_client2server['data_selectfields'] = 'fields_select' ;
+	$map_client2server['data_progressfields'] = 'fields_progress' ;
+	
+	if( !$post_data['_qsimple'] ) {
+		// controle des champs obligatoires
+		foreach( $map_client2server as $mkey_client => $mkey_local ) {
+			if( !isset($post_data[$mkey_client]) ) {
+				return array('success'=>false) ;
+			}
+		}
+	}
+	
+	foreach( $map_client2server as $mkey_client => $mkey_local ) {
+		if( !isset($post_data[$mkey_client]) ) {
+			continue ;
+		}
+		$arr_saisie[$mkey_local] = json_decode($post_data[$mkey_client],TRUE) ;
+	}
 
 	return array('success'=>true) ;
 }
