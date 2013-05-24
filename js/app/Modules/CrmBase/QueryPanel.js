@@ -394,12 +394,17 @@ Ext.define('Optima5.Modules.CrmBase.QueryPanel' ,{
 			params: ajaxParams ,
 			success: function(response) {
 				msgbox.close() ;
-				if( Ext.decode(response.responseText).success == false ) {
-					Ext.Msg.alert('Failed', 'Failed');
+				var ajaxData = Ext.decode(response.responseText) ;
+				if( ajaxData.success == false ) {
+					if( ajaxData.query_error ) {
+						Ext.Msg.alert('Query status', ajaxData.query_error);
+					} else {
+						Ext.Msg.alert('Failed', 'Unknown error / Missing parameters');
+					}
 				}
 				else {
 					// do something to open window
-					me.openQueryResultPanel( Ext.decode(response.responseText).RES_id ) ;
+					me.openQueryResultPanel( ajaxData.RES_id ) ;
 				}
 			},
 			scope: me

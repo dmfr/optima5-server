@@ -66,7 +66,9 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 	},
 	initAddHtml: function( ajaxData ) {
 		var me = this ;
-		me.add(Ext.create('Ext.ux.dams.IFrameContent',{content:ajaxData.html})) ;
+		me.add(Ext.create('Ext.ux.dams.IFrameContent',{
+			content:ajaxData.html
+		})) ;
 	},
 	initAddTabs:function( ajaxData ){
 		var me = this ;
@@ -77,6 +79,14 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 		var tabCount = -1 ;
 		Ext.Array.each( ajaxData.tabs , function(tabData) {
 			tabCount++ ;
+			
+			if( tabData.html ) {
+				tabitems.push( Ext.create('Ext.ux.dams.IFrameContent',{
+					title:tabData.tab_title,
+					content:tabData.html
+				}) ) ;
+				return true ;
+			}
 			
 			columns = [] ;
 			fields = [] ;
@@ -186,7 +196,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			}
 			
 			tabitems.push(tabgrid);
-			
+			return true ;
 		},me) ;
 		
 		me.add({

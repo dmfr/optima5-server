@@ -73,8 +73,21 @@ Ext.define('Optima5.Modules.CrmBase.QwebSubpanelQwhere' ,{
 				flex:1,
 				dataIndex: 'field_code',
 				renderer: function( value, metaData, record ) {
-					//return me.getQueryPanel().getTreeStore().getNodeById(record.get('field_code')).get('field_text_full') ;
-					return record.get('target_resource_qweb_key')+' '+record.get('qfield_type')+' '+record.get('qfield_linkbible') ;
+					var text = '' //'('+record.get('target_resource_qweb_key')+') ' ;
+					switch( record.get('qfield_type') ) {
+						case 'link' :
+							text += '<u>Link</u>'+' <b>'+record.get('qfield_linkbible')+'</b>' ;
+							break ;
+							
+						case 'date' :
+							text = '<u>Date</u>' ;
+							break ;
+						
+						default : 
+							text += record.get('qfield_type');
+							break ;
+					}
+					return text ;
 				}
 			},{
 				header: 'Clause',
