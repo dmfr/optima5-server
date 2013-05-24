@@ -235,11 +235,11 @@ function paracrm_queries_qwebTransaction_runQuery( $post_data, &$arr_saisie )
 	
 	$RES = paracrm_queries_process_qweb($arr_saisie , (isset($post_data['_debug'])&&$post_data['_debug']==TRUE)?true:false ) ;
 	if( !$RES )
-		return array('success'=>true,'query_status'=>'NOK') ;
+		return array('success'=>false,'query_status'=>'NOK') ;
 		
 	$transaction_id = $post_data['_transaction_id'] ;
 	if( !is_array($_SESSION['transactions'][$transaction_id]['arr_RES']) )
-		return array('success'=>true,'query_status'=>'NO_RES') ;
+		return array('success'=>false,'query_status'=>'NO_RES') ;
 	
 	$new_RES_key = count($_SESSION['transactions'][$transaction_id]['arr_RES']) + 1 ;
 	$_SESSION['transactions'][$transaction_id]['arr_RES'][$new_RES_key] = $RES ;
@@ -254,7 +254,22 @@ function paracrm_queries_qwebTransaction_resGet( $post_data )
 	$transaction_id = $post_data['_transaction_id'] ;
 	$RES = $_SESSION['transactions'][$transaction_id]['arr_RES'][$post_data['RES_id']] ;
 	
-	return array('success'=>true,'html'=>$RES['RES_html']) ;
+	if( is_array($RES['RES_html']) ) {
+		$tabs = array() ;
+		foreach( $RES['RES_labels'] as $tab_id => $dummy )
+		{
+			$tab = array() ;
+			$tab['tab_title'] = $dummy['tab_title'] ;
+			$tabs[$tab_id] = $tab + array('html'=>$RES['RES_html'][$tab_id]) ;
+			
+			if( !$tabs[$tab_id]['html'] ) {
+				unset($tabs[$tab_id]) ;
+			}
+		}
+		return array('success'=>true,'tabs'=>array_values($tabs)) ;
+	} else {
+		return array('success'=>true,'html'=>$RES['RES_html']) ;
+	}
 }
 
 
@@ -307,14 +322,23 @@ function paracrm_queries_process_qweb($arr_saisie, $debug=FALSE)
 	// ******* EXECUTION REQUETE *********
 	// -- input : $_QWEB_QWHERE
 	include($resource_path) ;
-	// -- output : $_QWEB_HTML
+	// -- output : $_QWEB_HTML or $_QWEB_TABS_HTML
 	// ***********************************
 	
-	if( !$_QWEB_HTML ) {
+	if( $_QWEB_TABS_HTML ) {
+		$RES = array() ;
+		$RES['RES_labels'] = array() ;
+		$RES['RES_html'] = array() ;
+		foreach( $_QWEB_TABS_HTML as $tab_title => $html ) {
+			$RES['RES_labels'][] = array('tab_title'=>$tab_title) ;
+			$RES['RES_html'][] = $html ;
+		}
+		return $RES ;
+	} elseif( $_QWEB_HTML ) {
+		return array('RES_html'=>$_QWEB_HTML) ;
+	} else {
 		return NULL ;
 	}
-	
-	return array('RES_html'=>$_QWEB_HTML) ;
 }
 
 

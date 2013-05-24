@@ -253,11 +253,11 @@ function paracrm_queries_builderTransaction_runQuery( $post_data, &$arr_saisie )
 	
 	$RES = paracrm_queries_process_query($arr_saisie , (isset($post_data['_debug'])&&$post_data['_debug']==TRUE)?true:false ) ;
 	if( !$RES )
-		return array('success'=>true,'query_status'=>'NOK') ;
+		return array('success'=>false,'query_status'=>'NOK') ;
 		
 	$transaction_id = $post_data['_transaction_id'] ;
 	if( !is_array($_SESSION['transactions'][$transaction_id]['arr_RES']) )
-		return array('success'=>true,'query_status'=>'NO_RES') ;
+		return array('success'=>false,'query_status'=>'NO_RES') ;
 	
 	$new_RES_key = count($_SESSION['transactions'][$transaction_id]['arr_RES']) + 1 ;
 	$_SESSION['transactions'][$transaction_id]['arr_RES'][$new_RES_key] = $RES ;

@@ -437,10 +437,28 @@ function paracrm_android_query_fetchResult( $post_data ) {
 			return array('success'=>false) ;
 		}
 		
-		$json = array() ;
-		$json['success'] = true ;
-		$json['html'] = $RES['RES_html'] ;
-		return $json ;
+		if( is_array($RES['RES_html']) ) {
+			$tabs = array() ;
+			foreach( $RES['RES_labels'] as $tab_id => $dummy )
+			{
+				$tab = array() ;
+				$tab['tab_title'] = $dummy['tab_title'] ;
+				$tabs[$tab_id] = $tab + array('html'=>$RES['RES_html'][$tab_id]) ;
+				
+				if( !$tabs[$tab_id]['html'] ) {
+					unset($tabs[$tab_id]) ;
+				}
+			}
+			$json = array() ;
+			$json['success'] = true ;
+			$json['tabs'] = array_values($tabs) ;
+			return $json ;
+		} else {
+			$json = array() ;
+			$json['success'] = true ;
+			$json['html'] = $RES['RES_html'] ;
+			return $json ;
+		}
 	}
 	
 	return array('success'=>true) ;
