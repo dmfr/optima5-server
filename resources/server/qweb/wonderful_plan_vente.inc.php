@@ -1,8 +1,14 @@
 <?php
 ob_start() ;
+while( true ) {
 $_IMG = array() ;
 
 $mag_code = $_QWEB_QWHERE['PLANVENTE_STORE']['condition_bible_entries'] ;
+if( !$mag_code ) {
+	unset($_QWEB_HTML) ;
+	break ;
+}
+
 $enseigne = substr($mag_code,0,5) ;
 
 $query = "SELECT field_STORENAME FROM view_bible_STORE_entry WHERE entry_key='$mag_code'" ;
@@ -282,4 +288,6 @@ ob_start() ;
 <?
 unset($_IMG) ;
 $_QWEB_HTML = ob_get_clean() ;
+break ;
+}
 ?>
