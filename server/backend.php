@@ -6,6 +6,7 @@ $server_root='.' ;
 include("$server_root/backend_checksession.inc.php") ;
 
 include("$server_root/include/config.inc.php");
+include("$server_root/include/toolfunctions.inc.php");
 
 include("$server_root/modules/media/include/media.inc.php");
 

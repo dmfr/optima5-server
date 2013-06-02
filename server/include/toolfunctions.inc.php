@@ -12,6 +12,12 @@ function utf8_substr_replace($original, $replacement, $position, $length)
 	return $out;
 }
 
+function isJson($string) {
+	if( !is_array(json_decode($string)) ) {
+		return false ;
+	}
+	return (json_last_error() == JSON_ERROR_NONE);
+}
 
 function substr_mklig( $ligne, $text, $offset, $length, $right_align=FALSE )
 {

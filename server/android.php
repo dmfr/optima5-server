@@ -33,6 +33,7 @@ $_SESSION['login_data']['mysql_db'] = 'op5_'.$domain.'_prod' ;
 $_SESSION['login_data']['login_domain'] = $domain."_prod" ;
 
 include("$server_root/include/config.inc.php");
+include("$server_root/include/toolfunctions.inc.php");
 
 include("$server_root/modules/media/include/media.inc.php");
 
