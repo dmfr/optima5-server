@@ -35,24 +35,34 @@ Ext.define('Ext.ux.dams.IFrameContent', {
 	
 	onAfterRender: function() {
 		var me = this,
-			doc = me.getDoc() ;
+			doc = me.getDoc(),
+			fn = me.onRelayedEvent;
 		
 		if (doc) {
 			try {
+				if( me.content ) {
+					doc.open() ;
+					doc.write(me.content) ;
+					doc.write() ;
+				}
 				Ext.EventManager.removeAll(doc);
+				Ext.EventManager.on(doc, {
+					mousedown: fn, // menu dismisal (MenuManager) and Window onMouseDown (toFront)
+					//mousemove: fn, // window resize drag detection
+					mouseup: fn,   // window resize termination
+					//click: fn,     // not sure, but just to be safe
+					//dblclick: fn,  // not sure again
+					scope: me
+				});
 			} catch(e) {
 				// cannot do this xss
+				//console.dir(e) ;
 			}
+			
 			// We need to be sure we remove all our events from the iframe on unload or we're going to LEAK!
 			Ext.EventManager.on(window, 'unload', me.beforeDestroy, me);
 			this.el.unmask();
 			this.fireEvent('load', this);
-			
-			if( me.content ) {
-				doc.open() ;
-				doc.write(me.content) ;
-				doc.write() ;
-			}
 		}
 	},
 
@@ -102,6 +112,11 @@ Ext.define('Ext.ux.dams.IFrameContent', {
 		}
 
 		me.callParent();
+	},
+	onRelayedEvent: function (event) {
+		// relay event from the iframe's document to the document that owns the iframe...
+		var iframeEl = this.iframeEl ;
+		event.injectEvent(iframeEl); // blame the iframe for the event...
 	},
 	
 	updateContent: function(content) {
