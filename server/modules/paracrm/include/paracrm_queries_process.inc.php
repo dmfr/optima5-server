@@ -861,9 +861,13 @@ function paracrm_queries_process_query($arr_saisie, $debug=FALSE)
 			{
 				$field_where['condition_bible_store'] = 'entry' ;
 				$field_where['sql_file_field_code'] = $field_where['sql_file_field_code'] ;
-				$field_where['sql_arr_select'] = array() ;
-				foreach( array($field_where['condition_bible_entries']) as $entry_key )
+				if( isJson($field_where['condition_bible_entries']) ) {
+					$field_where['sql_arr_select'] = json_decode($field_where['condition_bible_entries'],true) ;
+				} else {
+					$entry_key = $field_where['condition_bible_entries'] ;
+					$field_where['sql_arr_select'] = array();
 					$field_where['sql_arr_select'][] = $entry_key ;
+				}
 			}
 			elseif( $field_where['condition_bible_treenodes'] && json_decode($field_where['condition_bible_treenodes'],true) )
 			{
@@ -909,9 +913,13 @@ function paracrm_queries_process_query($arr_saisie, $debug=FALSE)
 			{
 				$field_progress['condition_bible_store'] = 'entry' ;
 				$field_progress['sql_file_field_code'] = $field_progress['sql_file_field_code'].'_entry' ;
-				$field_progress['sql_arr_select'] = array() ;
-				foreach( array($field_where['condition_bible_entries']) as $entry_key )
+				if( isJson($field_progress['condition_bible_entries']) ) {
+					$field_progress['sql_arr_select'] = json_decode($field_progress['condition_bible_entries'],true) ;
+				} else {
+					$entry_key = $field_progress['condition_bible_entries'] ;
+					$field_progress['sql_arr_select'] = array();
 					$field_progress['sql_arr_select'][] = $entry_key ;
+				}
 			}
 			elseif( $field_progress['condition_bible_treenodes'] )
 			{
@@ -2045,7 +2053,13 @@ function paracrm_queries_process_labels_withTabs( $arr_saisie, $groupId_forTab )
 					&& $field_where['field_linkbible'] != $field_group['field_linkbible'] 
 					&& $field_where['condition_bible_mode'] == 'SELECT' && $field_where['condition_bible_entries'] )
 				{
-					$foreignLinks[$field_where['field_linkbible']] = $field_where['condition_bible_entries'] ;
+					// TMP: pour la sélection des labels à énumerer, on fait appel aux conditions sur bible (foreignKey)
+					// -uniquement- si l'entrée est unitaire
+					// Ex : seulement les mags STORE du chef secteur SALES sélectionné
+					if( !isJson($field_where['condition_bible_entries']) ) {
+						$entry_key = $field_where['condition_bible_entries'] ;
+						$foreignLinks[$field_where['field_linkbible']] = $entry_key ;
+					}
 				}
 			}
 			
@@ -2109,7 +2123,13 @@ function paracrm_queries_process_labels_noTab( $arr_saisie )
 					&& $field_where['field_linkbible'] != $field_group['field_linkbible'] 
 					&& $field_where['condition_bible_mode'] == 'SELECT' && $field_where['condition_bible_entries'] )
 				{
-					$foreignLinks[$field_where['field_linkbible']] = $field_where['condition_bible_entries'] ;
+					// TMP: pour la sélection des labels à énumerer, on fait appel aux conditions sur bible (foreignKey)
+					// -uniquement- si l'entrée est unitaire
+					// Ex : seulement les mags STORE du chef secteur SALES sélectionné
+					if( !isJson($field_where['condition_bible_entries']) ) {
+						$entry_key = $field_where['condition_bible_entries'] ;
+						$foreignLinks[$field_where['field_linkbible']] = $entry_key ;
+					}
 				}
 			}
 
