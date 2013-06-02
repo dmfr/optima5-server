@@ -1618,6 +1618,12 @@ function paracrm_queries_process_query_doCount( $arr_saisie, $target_fileCode, $
 				$mkey = $symbol['sql_file_field_code'] ;
 				$row_pivot[$symbol['sql_file_code']][$mkey] = $bible_record['entry_key'] ;
 				
+				// application des conditions
+				$row_test = array() ;
+				$row_test[$symbol['sql_file_code']][$mkey] = $bible_record['entry_key'] ;
+				if( !paracrm_queries_process_queryHelp_where( $row_test, $arr_saisie['fields_where'] ) )
+					continue ;
+				
 				$group_key_id = paracrm_queries_process_queryHelp_group( $row_pivot, $arr_saisie['fields_group'] ) ;
 			
 				$subRES_group_symbol_value[$group_key_id][$symbol_id]++ ;
