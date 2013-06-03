@@ -861,7 +861,7 @@ function paracrm_queries_process_query($arr_saisie, $debug=FALSE)
 			{
 				$field_where['condition_bible_store'] = 'entry' ;
 				$field_where['sql_file_field_code'] = $field_where['sql_file_field_code'] ;
-				if( isJson($field_where['condition_bible_entries']) ) {
+				if( isJsonArr($field_where['condition_bible_entries']) ) {
 					$field_where['sql_arr_select'] = json_decode($field_where['condition_bible_entries'],true) ;
 				} else {
 					$entry_key = $field_where['condition_bible_entries'] ;
@@ -913,7 +913,7 @@ function paracrm_queries_process_query($arr_saisie, $debug=FALSE)
 			{
 				$field_progress['condition_bible_store'] = 'entry' ;
 				$field_progress['sql_file_field_code'] = $field_progress['sql_file_field_code'].'_entry' ;
-				if( isJson($field_progress['condition_bible_entries']) ) {
+				if( isJsonArr($field_progress['condition_bible_entries']) ) {
 					$field_progress['sql_arr_select'] = json_decode($field_progress['condition_bible_entries'],true) ;
 				} else {
 					$entry_key = $field_progress['condition_bible_entries'] ;
@@ -2056,7 +2056,7 @@ function paracrm_queries_process_labels_withTabs( $arr_saisie, $groupId_forTab )
 					// TMP: pour la sélection des labels à énumerer, on fait appel aux conditions sur bible (foreignKey)
 					// -uniquement- si l'entrée est unitaire
 					// Ex : seulement les mags STORE du chef secteur SALES sélectionné
-					if( !isJson($field_where['condition_bible_entries']) ) {
+					if( !isJsonArr($field_where['condition_bible_entries']) ) {
 						$entry_key = $field_where['condition_bible_entries'] ;
 						$foreignLinks[$field_where['field_linkbible']] = $entry_key ;
 					}
@@ -2126,7 +2126,7 @@ function paracrm_queries_process_labels_noTab( $arr_saisie )
 					// TMP: pour la sélection des labels à énumerer, on fait appel aux conditions sur bible (foreignKey)
 					// -uniquement- si l'entrée est unitaire
 					// Ex : seulement les mags STORE du chef secteur SALES sélectionné
-					if( !isJson($field_where['condition_bible_entries']) ) {
+					if( !isJsonArr($field_where['condition_bible_entries']) ) {
 						$entry_key = $field_where['condition_bible_entries'] ;
 						$foreignLinks[$field_where['field_linkbible']] = $entry_key ;
 					}
