@@ -215,13 +215,13 @@ function paracrm_queries_qwebTransaction_togglePublish( $post_data , &$arr_saisi
 	$qweb_id = $arr_saisie['qweb_id'] ;
 	$is_published = ($post_data['isPublished']=='true')?true:false ;
 	
-	$query = "DELETE FROM input_qweb_src WHERE target_qweb_id='$qweb_id'" ;
+	$query = "DELETE FROM input_query_src WHERE target_qweb_id='$qweb_id'" ;
 	$_opDB->query($query) ;
 	
 	if( $is_published ) {
 		$arr_ins = array() ;
 		$arr_ins['target_qweb_id'] = $qweb_id ;
-		$_opDB->insert('input_qweb_src',$arr_ins) ;
+		$_opDB->insert('input_query_src',$arr_ins) ;
 	}
 
 	return array('success'=>true) ;
