@@ -25,7 +25,7 @@ Ext.define('Optima5.Ajax.Connection',{
 		Ext.apply(options,{
 			cacheSuccess: options.success,
 			cacheFailure: options.failure,
-			cacheCallback: options.callback,
+			cacheCallback: options.callback
 		}) ;
 		
 		Ext.apply(options,{

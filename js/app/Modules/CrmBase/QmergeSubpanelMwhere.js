@@ -196,7 +196,7 @@ Ext.define('Optima5.Modules.CrmBase.QmergeSubpanelMwhere' ,{
 					mfield_idx: -1,
 					query_id: queryId,
 					query_wherefield_idx: queryWherefieldIdx,
-					icon: 'images/dot_orange_16.gif',
+					icon: 'images/dot_orange_16.gif'
 				}) ;
 				
 			},me) ;

@@ -184,7 +184,7 @@ Ext.define('Optima5.Module',{
 		return {
 			_sessionId: me.app.desktopGetSessionId(),
 			_moduleId: me.moduleId,
-			_sdomainId : me.sdomainId || '',
+			_sdomainId : me.sdomainId || ''
 		};
 	},
 	getConfiguredAjaxConnection: function() {

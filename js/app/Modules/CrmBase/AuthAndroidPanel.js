@@ -73,7 +73,7 @@ Ext.define('Optima5.Modules.CrmBase.AuthAndroidPanel' ,{
 				model: 'AuthAndroidModel',
 				proxy: me.optimaModule.getConfiguredAjaxProxy({
 					extraParams : {
-						_action: 'auth_android_getDevicesList' ,
+						_action: 'auth_android_getDevicesList'
 					},
 					reader: {
 						type: 'json',

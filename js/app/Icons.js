@@ -5,7 +5,7 @@ Ext.define('OptimaIconModel', {
 		{name: 'iconCode', type: 'string'},
 		{name: 'iconSrc16', type: 'string'},
 		{name: 'iconSrc48', type: 'string'}
-	],
+	]
 });
  
 Ext.define('Optima5.Icons',{

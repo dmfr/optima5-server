@@ -276,7 +276,7 @@ Ext.define('Optima5.Modules.CrmBase.DataFormPanel' ,{
 			optimaModule: me.optimaModule,
 			transactionID : me.transactionID,
 			title:cfgsubfile.file_lib,
-			itemId: cfgsubfile.file_code,
+			itemId: cfgsubfile.file_code
 		}) ;
 		return objCfg ;
 	},

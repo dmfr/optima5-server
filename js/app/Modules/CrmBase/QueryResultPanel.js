@@ -137,7 +137,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 					}) ;
 				}
 				Ext.apply(columnDef,{
-					align:'',
+					align:''
 				});
 				if( !columnDef.invisible ) {
 					columns.push(columnDef);

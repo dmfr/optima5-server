@@ -313,6 +313,6 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 			},
 			scope: me
 		});
-	},
+	}
 	
 });

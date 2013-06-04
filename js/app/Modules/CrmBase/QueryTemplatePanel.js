@@ -315,7 +315,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryTemplatePanel' ,{
 			_action: 'queries_gridTemplate',
 			_subaction: 'save',
 					  
-			data_templatecfg: Ext.JSON.encode( me.settingsRecord.data ) ,
+			data_templatecfg: Ext.JSON.encode( me.settingsRecord.data )
 		});
 		
 		me.saveMaskSet(true) ;

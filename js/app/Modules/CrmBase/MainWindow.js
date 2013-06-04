@@ -242,7 +242,7 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 					handler: function(){
 						me.openQuery( queryId ) ;
 					},
-					scope: me,
+					scope: me
 				}) ;
 			},me) ;
 			
@@ -274,7 +274,7 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 				handler: function(){
 					me.openQuery( queryId ) ;
 				},
-				scope: me,
+				scope: me
 			});
 		},me) ;
 		Ext.Array.each( respObj.data_qwebs , function(v) {
@@ -289,7 +289,7 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 				handler: function(){
 					me.openQweb( qwebId ) ;
 				},
-				scope: me,
+				scope: me
 			});
 		},me) ;
 		Ext.Array.sort( qMenuItems, function(o1,o2) {

@@ -56,7 +56,7 @@ Ext.define('Ext.ux.form.field.ColorPickerCombo', {
 							me.setValue(color);
 							me.fireEvent('select', me, color);
 						}
-					},
+					}
 			});
 			colourMenu.showAt(event.getXY());
 		}, this);

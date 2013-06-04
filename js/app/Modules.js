@@ -4,7 +4,7 @@ Ext.define('OptimaModuleParamDescModel', {
 	fields: [
 		{name: 'paramCode', type: 'string'},
 		{name: 'paramDesc', type: 'string'}
-	],
+	]
 });
 
 Ext.define('OptimaModuleParamValueModel', {
@@ -13,7 +13,7 @@ Ext.define('OptimaModuleParamValueModel', {
 	fields: [
 		{name: 'paramCode',  type: 'string'},
 		{name: 'paramValue', type: 'string'}
-	],
+	]
 });
 
 Ext.define('OptimaModuleDescModel', {

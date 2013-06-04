@@ -19,11 +19,11 @@ Ext.define('Optima5.Modules.CrmBase.DataWindowToolbar' ,{
 					items: [{
 						itemId: 'export-excel',
 						text: 'Excel export',
-						iconCls: 'op5-crmbase-datatoolbar-file-export-excel',
+						iconCls: 'op5-crmbase-datatoolbar-file-export-excel'
 					},{
 						itemId: 'export-gallery',
 						text: 'DL gallery as zip',
-						iconCls: 'op5-crmbase-datatoolbar-file-export-gallery',
+						iconCls: 'op5-crmbase-datatoolbar-file-export-gallery'
 					}]
 				}
 			},{
@@ -39,15 +39,15 @@ Ext.define('Optima5.Modules.CrmBase.DataWindowToolbar' ,{
 					items: [{
 						itemId: 'grid',
 						text: 'Grid data',
-						iconCls: 'op5-crmbase-datatoolbar-view-grid',
+						iconCls: 'op5-crmbase-datatoolbar-view-grid'
 					},{
 						itemId: 'gmap',
 						text: 'GMap/locations',
-						iconCls: 'op5-crmbase-datatoolbar-view-gmap',
+						iconCls: 'op5-crmbase-datatoolbar-view-gmap'
 					},{
 						itemId: 'gallery',
 						text: 'Img Gallery',
-						iconCls: 'op5-crmbase-datatoolbar-view-gallery',
+						iconCls: 'op5-crmbase-datatoolbar-view-gallery'
 					}]
 				}
 			},{
@@ -70,7 +70,7 @@ Ext.define('Optima5.Modules.CrmBase.DataWindowToolbar' ,{
 					},{
 						itemId: 'definestore',
 						text: 'Store Cfg',
-						iconCls: 'op5-crmbase-datatoolbar-options-definestore',
+						iconCls: 'op5-crmbase-datatoolbar-options-definestore'
 					}]
 				}
 			}]

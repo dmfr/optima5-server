@@ -19,7 +19,7 @@ Ext.define('Optima5.Modules.CrmBase.QwindowToolbar',{
 					items: [{
 						itemId: 'save',
 						text: 'Save',
-						iconCls: 'op5-crmbase-qtoolbar-file-save',
+						iconCls: 'op5-crmbase-qtoolbar-file-save'
 					},{
 						itemId: 'saveas',
 						text: 'Save as',
@@ -44,7 +44,7 @@ Ext.define('Optima5.Modules.CrmBase.QwindowToolbar',{
 					},{
 						itemId: 'delete',
 						text: 'Delete',
-						iconCls: 'op5-crmbase-qtoolbar-file-delete',
+						iconCls: 'op5-crmbase-qtoolbar-file-delete'
 					}]
 				}
 			},{

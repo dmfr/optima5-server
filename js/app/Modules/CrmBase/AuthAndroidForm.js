@@ -24,7 +24,7 @@ Ext.define('Optima5.Modules.CrmBase.AuthAndroidForm' ,{
 			},
 			items:[{
 				xtype:'hiddenfield',
-				name:'authandroid_id',
+				name:'authandroid_id'
 			},{
 				xtype:'textfield',
 				name:'device_android_id',
