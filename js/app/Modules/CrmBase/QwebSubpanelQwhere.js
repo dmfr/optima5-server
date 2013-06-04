@@ -1,6 +1,7 @@
 Ext.define('QwebQwhereModel', {
 	extend: 'Ext.data.Model',
 	fields: [
+		{name: 'qweb_fieldqwhere_desc', type: 'string'},
 		{name: 'target_resource_qweb_key',  type: 'string'},
 		{name: 'qfield_type',   type: 'string'},
 		{name: 'qfield_linkbible',   type: 'string'},
@@ -73,6 +74,9 @@ Ext.define('Optima5.Modules.CrmBase.QwebSubpanelQwhere' ,{
 				flex:1,
 				dataIndex: 'field_code',
 				renderer: function( value, metaData, record ) {
+					if( record.get('qweb_fieldqwhere_desc') && record.get('qweb_fieldqwhere_desc') != '' ) {
+						return record.get('qweb_fieldqwhere_desc') ;
+					}
 					var text = '' //'('+record.get('target_resource_qweb_key')+') ' ;
 					switch( record.get('qfield_type') ) {
 						case 'link' :
