@@ -109,6 +109,7 @@ function paracrm_android_query_buildTables_forQuery( $query_id , $dest_querysrc_
 		$arr_ins = array() ;
 		$arr_ins['querysrc_id'] = $dest_querysrc_id ;
 		$arr_ins['querysrc_targetfield_ssid'] = $query_fieldprogress_ssid ;
+		$arr_ins['field_is_optional'] = 'O' ;
 		$arr_ins['field_type'] = $arr['field_type'] ;
 		$arr_ins['field_linkbible'] = $arr['field_linkbible'] ;
 		$arr_ins['field_lib'] = $tmplinearfields[$target_file_code][$arr['field_code']]['text'] ;
@@ -211,23 +212,28 @@ function paracrm_android_query_buildTables_forQweb( $qweb_id , $dest_querysrc_id
 		$arr_ins = array() ;
 		$arr_ins['querysrc_id'] = $dest_querysrc_id ;
 		$arr_ins['querysrc_targetfield_ssid'] = $qweb_fieldqwhere_ssid ;
+		$arr_ins['field_is_optional'] = ($arr['qfield_is_optional']=='O')?'O':'' ;
 		$arr_ins['field_type'] = $arr['qfield_type'] ;
 		$arr_ins['field_linkbible'] = $arr['qfield_linkbible'] ;
 		
 		// Pour les libellés
-		switch( $arr_ins['field_type'] )
-		{
-			case 'date' :
-			$arr_ins['field_lib'] = 'Date range' ;
-			break ;
-		
-			case 'link' :
-			$query = "SELECT bible_lib FROM define_bible WHERE bible_code='{$arr_ins['field_linkbible']}'" ;
-			$arr_ins['field_lib'] = 'Bible <'.$_opDB->query_uniqueValue($query).'>' ;
-			break ;
-		
-			default :
-			break ;
+		if( $arr['qweb_fieldqwhere_desc'] != '' ) {
+			$arr_ins['field_lib'] = $arr['qweb_fieldqwhere_desc'] ;
+		} else {
+			switch( $arr_ins['field_type'] )
+			{
+				case 'date' :
+				$arr_ins['field_lib'] = 'Date range' ;
+				break ;
+			
+				case 'link' :
+				$query = "SELECT bible_lib FROM define_bible WHERE bible_code='{$arr_ins['field_linkbible']}'" ;
+				$arr_ins['field_lib'] = 'Bible <'.$_opDB->query_uniqueValue($query).'>' ;
+				break ;
+			
+				default :
+				break ;
+			}
 		}
 		
 		$_opDB->insert('tmp_input_query_where',$arr_ins) ;
