@@ -8,10 +8,11 @@
 		"moduleType":"sdomain",
 		"params": [{"paramCode":"sdomain_db"}]
 	},{
-		"enabled":false,
+		"enabled":true,
 		"moduleId":"admin",
 		"moduleName":"Domain Administration",
 		"moduleClass":"Optima5.Modules.Admin.AdminModule",
+		"moduleCssSrc":"module-admin.css",
 		"moduleType":"admin",
 		"iconCode":"admin",
 		"params":[]
