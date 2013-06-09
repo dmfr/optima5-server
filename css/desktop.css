@@ -443,12 +443,42 @@
     -moz-border-radius: .5em;
     border-radius: .5em;
 }
-
- 
 .thumb-box:hover {
     background: #999999;
     border-color: #999999;
 }
+
+
+
+div.thumb-wrap{	
+	background-repeat: no-repeat;
+	background-position: 0 50%;
+	margin: 15px;
+	clear :both;
+	height: 48px;
+	padding:2px;
+}
+div.thumb-wrap:hover{	
+	/*backg: 1px solid blue;*/
+	color:#3D71B8;
+	cursor :pointer;
+}
+div.thumb-wrap span{
+	padding-left : 64px;
+}
+div.thumb-wrap span.title{
+	font-size: 14px;
+	color:#269926;
+}
+div.thumb-wrap span.caption{
+	color:#133CAC;
+}
+div.thumb-wrap:hover span.title{	
+	font-weight:bold;
+	text-decoration: underline;
+}
+
+
 
 .upload-icon {
 	background: url('../images/image_add.png') no-repeat 0 0 !important;
