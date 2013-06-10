@@ -2,7 +2,7 @@ Ext.define('AdminSdomainModel',{
 	extend: 'Ext.data.Model',
 	idProperty: 'sdomain_id',
 	fields: [
-		{name: 'sdomain_id',  type:'string'},
+		{name: 'sdomain_id',  type:'string', convert:function(v){return v.toUpperCase();}},
 		{name: 'sdomain_name',  type:'string'},
 		{name: 'module_id',    type:'string'},
 		{name: 'icon_code',type:'string'},
@@ -16,6 +16,8 @@ Ext.define('AdminSdomainModel',{
 Ext.define('Optima5.Modules.Admin.SdomainsPanel',{
 	extend:'Ext.panel.Panel',
 	
+	requires:['Optima5.Modules.Admin.SdomainsForm'],
+	
 	initComponent: function() {
 		var me = this ;
 		if( (me.optimaModule) instanceof Optima5.Module ) {} else {
@@ -26,8 +28,10 @@ Ext.define('Optima5.Modules.Admin.SdomainsPanel',{
 			layout: 'border',
 			items:[{
 				xtype: 'gridpanel',
+				itemId: 'mSdomainsList',
 				region: 'center',
 				layout: 'fit',
+				border:false,
 				store: {
 					model: 'AdminSdomainModel',
 					proxy: me.optimaModule.getConfiguredAjaxProxy({
@@ -102,6 +106,9 @@ Ext.define('Optima5.Modules.Admin.SdomainsPanel',{
 					align:'right'
 				}],
 				listeners: {
+					itemclick:function( view, record, item, index, event ) {
+						me.setFormpanelRecord( record ) ;
+					},
 					scrollershow: function(scroller) {
 						if (scroller && scroller.scrollEl) {
 							scroller.clearManagedListeners(); 
@@ -110,9 +117,50 @@ Ext.define('Optima5.Modules.Admin.SdomainsPanel',{
 					},
 					scope:me
 				}
+			},{
+				region:'east',
+				xtype: 'panel',
+				layout:'fit',
+				width: 400,
+				itemId:'mSdomainsFormContainer',
+				title: '',
+				collapsible:true,
+				collapsed: true,
+				empty:true,
+				listeners:{
+					beforeexpand:function(eastpanel) {
+						if( eastpanel.empty ) {
+							return false;
+						}
+					},
+					scope:me
+				}
 			}]
 		});
 		
 		this.callParent() ;
+	},
+	setFormpanelRecord: function( record ) {
+		var me = this,
+			mformcontainer = me.getComponent('mSdomainsFormContainer'),
+			mform = mformcontainer.getComponent('mSdomainsForm') ;
+		
+		mform = Ext.create('Optima5.Modules.Admin.SdomainsForm',{
+			border:false,
+			itemId:'mSdomainsForm',
+			optimaModule: me.optimaModule,
+			listeners: {
+				saved: function() {
+					me.getComponent('mSdomainsList').reload() ;
+				},
+				scope:me
+			}
+		}) ;
+		mform.loadRecord(record) ;
+		mformcontainer.setTitle( record.get('sdomain_id')+' : '+record.get('sdomain_name') ) ;
+		mformcontainer.empty = false ;
+		mformcontainer.expand() ;
+		mformcontainer.removeAll() ;
+		mformcontainer.add(mform) ;
 	}
 });

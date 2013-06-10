@@ -16,3 +16,7 @@
 	background-repeat: no-repeat;
 	background-position: 50% 50%;
 }
+
+.op5-sdomains-menu-submit {
+	background-image: url("../images/modules/admin-save-16.gif") !important;
+}
