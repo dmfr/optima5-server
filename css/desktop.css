@@ -454,6 +454,36 @@
 }
 
 
+.ux-icon48picker {
+	width:56px;
+	height:56px;
+	padding:0px 0px 1px 1px;
+}
+.ux-icon48picker-icon {
+	width:48px;
+	height:48px;
+	background-repeat: no-repeat;
+	background-position: 50% 50%;
+}
+.ux-icon48picker-thumb-box  {
+    float: left;
+    width: 50px;
+	 height: 50px;
+    padding: 1px;
+    text-align: center;
+    margin: 4px;
+    background: #ccd8e7;
+    border: 1px solid #99BBE8;
+    -webkit-border-radius: .5em;
+    -moz-border-radius: .5em;
+    border-radius: .5em;
+}
+.ux-icon48picker-thumb-box:hover {
+    background-color: #999999;
+    border-color: #999999;
+}
+
+
 
 div.thumb-wrap{	
 	background-repeat: no-repeat;
