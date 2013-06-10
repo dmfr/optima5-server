@@ -1,3 +1,8 @@
+.background-center-norepeat {
+	background-repeat: no-repeat;
+	background-position: 50% 50%;
+}
+
 /*!
 * Ext JS Library 4.0
 * Copyright(c) 2006-2011 Sencha Inc.

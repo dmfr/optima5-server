@@ -10,3 +10,9 @@
 .op5-admin-menu-sdomains-icon {
 	background-image: url("../images/modules/admin-sdomains-16.png") !important;
 }
+
+.op5-admin-column-padlock .x-column-header-inner {
+	background-image: url("../images/modules/admin-padlock-16.gif") !important;
+	background-repeat: no-repeat;
+	background-position: 50% 50%;
+}

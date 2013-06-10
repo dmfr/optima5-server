@@ -124,6 +124,7 @@ Ext.define('Optima5.Modules.Admin.AdminModule', {
 			return null ;
 		}
 		tab = Ext.create(record.get('class'),{
+			optimaModule: me,
 			itemId: tabId,
 			title: record.get('title'),
 			iconCls: record.get('iconClsSmall'),
