@@ -68,7 +68,6 @@ Ext.define('Ext.ux.dams.Icon48Picker',{
 		me.mon(me.btnEl, 'click', me.onTriggerClick, me);
 	},
 	createPicker: function() {
-		console.log('created!!') ;
 		var me = this ;
 		
 		return Ext.create('Ext.panel.Panel',{
@@ -119,6 +118,7 @@ Ext.define('Ext.ux.dams.Icon48Picker',{
 		var oldValue = me.idxValue ;
 		me.idxValue = record.getId() ;
 		me.setValueRendered() ;
+		me.clearInvalid();
 		this.fireEvent('change',me,me.idxValue,oldValue) ;
 		me.collapse() ;
 	},
@@ -162,5 +162,15 @@ Ext.define('Ext.ux.dams.Icon48Picker',{
 		var data = {} ;
 		data[this.getName()] = value ;
 		return data ;
+	},
+	
+	
+	markInvalid: function( arrErrors ) {
+		var me = this;
+		me.btnEl.addCls(me.invalidCls + '-field');
+	},
+	clearInvalid: function( arrErrors ) {
+		var me = this;
+		me.btnEl.removeCls(me.invalidCls + '-field');
 	}
 }) ;

@@ -30,6 +30,7 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 		var me = this ;
 		if( adminSdomainRecord != null ) {
 			me.isNew = false ;
+			me.sdomainId = adminSdomainRecord.getId() ;
 		} else {
 			me.isNew = true ;
 		}
@@ -109,7 +110,8 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 					name:'overwrite_is_locked',
 					fieldLabel:'Overwrite locked',
 					inputValue:1,
-					uncheckedValue:0
+					uncheckedValue:0,
+					checked : me.isNew ? false : adminSdomainRecord.get('overwrite_is_locked')
 				},{
 					xtype:'component',
 					itemId:'overwrite_msg',
@@ -141,19 +143,34 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 	saveRecord: function() {
 		var me = this ;
 		
-		var values = me.getComponent('mFormAttributes').getValues() ;
-		if( me.isNew ) {
-			values['_is_new'] = true ;
+		if( !me.isNew ) {
+			if( me.tool_checkModuleRunning() ) {
+				return ;
+			}
 		}
 		
-		console.dir(values) ;
+		var values = me.getComponent('mFormAttributes').getValues() ;
+		if( me.isNew ) {
+			values['_is_new'] = 1 ;
+		} else {
+			values['sdomain_id'] = me.sdomainId ;
+		}
 		
 		me.optimaModule.getConfiguredAjaxConnection().request({
 			params:Ext.apply(values,{
 				_action: 'sdomains_setSdomain'
 			}),
-			success : function() {
-				me.fireEvent('saved') ;
+			success : function(response) {
+				if( Ext.decode(response.responseText).success == false ) {
+					if( Ext.decode(response.responseText).errors ) {
+						me.getComponent('mFormAttributes').getForm().markInvalid(Ext.decode(response.responseText).errors) ;
+					} else {
+						Ext.Msg.alert('Failed', 'Save failed. Unknown error');
+					}
+				}
+				else {
+					me.fireEvent('saved') ;
+				}
 			},
 			failure: function(form,action){
 				if( action.result && action.result.msg )
@@ -162,5 +179,25 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 			scope: me
 		}) ;
 		
+	},
+	
+	tool_checkModuleRunning: function() {
+		var me = this ;
+		// Check for sdomain open windows
+		if( !me.isNew ) {
+			var optimaApp = me.optimaModule.app ,
+				runningInstance = null ;
+			optimaApp.eachModuleInstance( function(moduleInstance) {
+				if( moduleInstance.sdomainId != null && moduleInstance.sdomainId.toUpperCase() === me.sdomainId.toUpperCase() ) {
+					runningInstance = moduleInstance ;
+					return false ;
+				}
+			},me); 
+			if( runningInstance != null ) {
+				Ext.Msg.alert('Module running', 'Close all instances of '+me.sdomainId+' on desktop before applying changes');
+				return true ;
+			}
+			return false ;
+		}
 	}
 });

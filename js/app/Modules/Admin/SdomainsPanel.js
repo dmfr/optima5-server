@@ -32,6 +32,14 @@ Ext.define('Optima5.Modules.Admin.SdomainsPanel',{
 				region: 'center',
 				layout: 'fit',
 				border:false,
+				tbar:[{
+					iconCls:'op5-sdomains-menu-new',
+					text:'Create Sdomain',
+					handler: function() {
+						me.setFormpanelRecord(null) ;
+					},
+					scope:me
+				}],
 				store: {
 					model: 'AdminSdomainModel',
 					proxy: me.optimaModule.getConfiguredAjaxProxy({
@@ -145,22 +153,51 @@ Ext.define('Optima5.Modules.Admin.SdomainsPanel',{
 			mformcontainer = me.getComponent('mSdomainsFormContainer'),
 			mform = mformcontainer.getComponent('mSdomainsForm') ;
 		
+		if( mform != null ) {
+			if( record != null ) {
+				if( record.getId() == mform.sdomainId ) {
+					return ;
+				}
+			} else {
+				if( mform.isNew ) {
+					return ;
+				}
+			}
+		}
+		
 		mform = Ext.create('Optima5.Modules.Admin.SdomainsForm',{
 			border:false,
 			itemId:'mSdomainsForm',
 			optimaModule: me.optimaModule,
 			listeners: {
 				saved: function() {
-					me.getComponent('mSdomainsList').reload() ;
+					me.endFormpanelAction() ;
 				},
 				scope:me
 			}
 		}) ;
 		mform.loadRecord(record) ;
-		mformcontainer.setTitle( record.get('sdomain_id')+' : '+record.get('sdomain_name') ) ;
+		var strTitle = ( record == null ? 'New Sdomain' : record.get('sdomain_id')+' : '+record.get('sdomain_name') ) ;
+		mformcontainer.setTitle( strTitle ) ;
 		mformcontainer.empty = false ;
 		mformcontainer.expand() ;
 		mformcontainer.removeAll() ;
 		mformcontainer.add(mform) ;
+	},
+	endFormpanelAction: function() {
+		var me = this,
+			mformcontainer = me.getComponent('mSdomainsFormContainer') ;
+		
+		// ** Clear du formpanel ***
+		mformcontainer.removeAll() ;
+		mformcontainer.setTitle('') ;
+		mformcontainer.collapse() ;
+		mformcontainer.empty = true ;
+		
+		// ** Reload list ***
+		me.getComponent('mSdomainsList').getStore().load() ;
+		
+		// ** Refresh desktop ***
+		me.optimaModule.app.desktopReloadSdomains() ;
 	}
 });
