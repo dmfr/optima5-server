@@ -394,6 +394,65 @@ Ext.define('Optima5.App',{
 		var me = this ;
 		return me.desktop ;
 	},
+	desktopReloadCfg: function( callback, callbackScope, callbackArguments ) {
+		var me = this ;
+		/*
+		 * Ajax request to retrieve sessionRecord
+		 */
+		Ext.Ajax.request({
+			url: me.desktopGetBackendUrl(),
+			params: {
+				_sessionId: me.desktopGetSessionId(),
+				_moduleId: 'desktop',
+				_action: 'config_getRecord'
+			},
+			success: function(response) {
+				var responseObj ;
+				
+				try {
+					responseObj = Ext.decode(response.responseText);
+				} catch(e) {
+					return ;
+				}
+				
+				if( responseObj.success==null || responseObj.success != true ) {
+					return ;
+				}
+				
+				me.desktopCfgRecord = Ext.ux.dams.ModelManager.create('OptimaDesktopCfgModel',responseObj.desktop_config) ;
+				if( callback == null ) {
+					callback = Ext.emptyFn ;
+				}
+				callback.call( me, callbackArguments ) ;
+			},
+			scope : me
+		});
+	},
+	desktopReloadSdomains: function() {
+		var me = this ;
+		
+		me.desktopReloadCfg(function() {
+			var newDesktopConfig = me.desktopBuildCfg() ;
+			
+			// Refresh shortcuts data view
+			var shortcutsView = me.desktop.shortcutsView ;
+			shortcutsView.getStore().loadData( newDesktopConfig.shortcuts.getRange() ) ;
+			shortcutsView.refresh() ;
+			
+			// Refresh startmenu
+			me.desktop.taskbar.startMenu.menu.removeAll() ;
+			me.desktop.taskbar.startMenu.menu.add( newDesktopConfig.taskbarConfig.startConfig.menu ) ;
+		},me,[]) ;
+	},
+	desktopReloadWallpaper: function() {
+		var me = this ;
+		
+		me.desktopReloadCfg(function() {
+			me.setWallpaper( me.desktopCfgRecord.get('wallpaper_id') || 0,
+				me.desktopCfgRecord.get('wallpaper_id') ? me.desktopCfgRecord.get('wallpaper_isStretch') : true
+			) ;
+		},me,[]) ;
+	},
 	setWallpaper : function(wallpId, isStretch){
 		var me = this ;
 		

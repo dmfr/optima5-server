@@ -180,12 +180,15 @@ Ext.define('Optima5.Module',{
 	
 	
 	getConfiguredAjaxParams: function() {
-		var me = this ;
-		return {
-			_sessionId: me.app.desktopGetSessionId(),
-			_moduleId: me.moduleId,
-			_sdomainId : me.sdomainId || ''
-		};
+		var me = this,
+			obj = {
+				_sessionId: me.app.desktopGetSessionId(),
+				_moduleId: me.moduleId,
+			} ;
+		if( me.sdomainId != null ) {
+			obj['_sdomainId'] = me.sdomainId
+		}
+		return obj ;
 	},
 	getConfiguredAjaxConnection: function() {
 		var me = this ;
