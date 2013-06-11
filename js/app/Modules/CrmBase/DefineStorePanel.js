@@ -520,7 +520,18 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 		Ext.apply(params,this.query('form')[0].getForm().getValues()) ;
 		me.optimaModule.getConfiguredAjaxConnection().request({
 			params:params,
-			success : me.saveAll,
+			success : function(response) {
+				if( Ext.decode(response.responseText).success == false ) {
+					if( Ext.decode(response.responseText).errors ) {
+						this.query('form')[0].getForm().markInvalid(Ext.decode(response.responseText).errors) ;
+					} else {
+						Ext.Msg.alert('Failed', 'Save failed. Unknown error');
+					}
+				}
+				else {
+					me.saveAll() ;
+				}
+			},
 			failure: function(form,action){
 				if( action.result.msg )
 					Ext.Msg.alert('Failed', action.result.msg);
