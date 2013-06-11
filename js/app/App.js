@@ -573,7 +573,8 @@ Ext.define('Optima5.App',{
 		}
 		
 		// same module already started ?
-		var rejectLaunch = false ;
+		var rejectLaunch = false,
+			runningModuleInstance = null ;
 		me.moduleInstances.each( function( moduleInstance ) {
 			if( moduleCfg.moduleId != moduleInstance.moduleId ) {
 				return true ;
@@ -589,11 +590,28 @@ Ext.define('Optima5.App',{
 				}
 			}
 			rejectLaunch = true ;
+			runningModuleInstance = moduleInstance
 			return false ;
 		},me) ;
 		if( rejectLaunch ) {
 			Ext.menu.Manager.hideAll() ;
-			// TODO : pop main window for moduleInstance
+			
+			// pop main window for moduleInstance
+			if( runningModuleInstance != null ) {
+				runningModuleInstance.eachWindow( function(win) {
+					if( win.isMainWindow ) {
+						if( win.minimized ) {
+							win.show() ;
+						}
+						win.focus() ;
+					} else {
+						if( !win.minimized ) {
+							win.focus() ;
+						}
+					}
+				},me) ;
+			}
+			
 			return ;
 		}
 		
