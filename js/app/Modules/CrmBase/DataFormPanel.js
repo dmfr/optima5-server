@@ -308,8 +308,7 @@ Ext.define('Optima5.Modules.CrmBase.DataFormPanel' ,{
 			me.fireEvent('allsaved',me.nbComponentsSaved) ;
 		}
 	},
-	onSave: function(){
-		//console.dir( this.query('form')[0].getForm().owner.query('[isFormField]') );
+	onSave: function() {
 		var me = this ;
 		
 		if( !me.saveMask ) {
@@ -318,42 +317,7 @@ Ext.define('Optima5.Modules.CrmBase.DataFormPanel' ,{
 		me.query('>toolbar')[0].setDisabled(true) ;
 		me.saveMask.show() ;
 		
-		var params = {
-			_action: 'data_editTransaction',
-			_transaction_id: this.transactionID,
-			_subaction:'form_setValues'
-		};
-		Ext.apply(params,this.query('form')[0].getForm().getValues()) ;
-		me.optimaModule.getConfiguredAjaxConnection().request({
-			params:params,
-			success : function(response) {
-				if( Ext.decode(response.responseText).success == false ) {
-					me.query('>toolbar')[0].setDisabled(false) ;
-					if( me.saveMask )
-						me.saveMask.hide() ;
-					
-					if( Ext.decode(response.responseText).errors ) {
-						this.query('form')[0].getForm().markInvalid(Ext.decode(response.responseText).errors) ;
-					} else {
-						Ext.Msg.alert('Failed', 'Save failed. Unknown error');
-					}
-				}
-				else {
-					me.saveAll() ;
-				}
-			},
-			failure: function(form,action){
-				me.query('>toolbar')[0].setDisabled(false) ;
-				if( me.saveMask )
-					me.saveMask.hide() ;
-				if( action.result && action.result.msg )
-					Ext.Msg.alert('Failed', action.result.msg);
-			},
-			scope: me
-		}) ;
-	},
-	saveAll: function() {
-		var me = this ;
+		
 		me.nbComponentsSaved = 0 ;
 		
 		me.addEvents('allsaved') ;
@@ -416,7 +380,17 @@ Ext.define('Optima5.Modules.CrmBase.DataFormPanel' ,{
 					me.query('>toolbar')[0].setDisabled(false) ;
 					if( me.saveMask )
 						me.saveMask.hide() ;
-					Ext.Msg.alert('Failed', 'Save failed. Unknown error');
+					
+					if( Ext.decode(response.responseText).errors ) {
+						this.query('form')[0].getForm().markInvalid(Ext.decode(response.responseText).errors) ;
+					} else {
+						var msg = Ext.decode(response.responseText).msg ;
+						if( msg != null ) {
+							Ext.Msg.alert('Failed', msg);
+						} else {
+							Ext.Msg.alert('Failed', 'Save failed. Unknown error');
+						}
+					}
 				}
 				else {
 					this.optimaModule.postCrmEvent('datachange',{

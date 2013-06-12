@@ -512,36 +512,6 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 	},
 	onSave: function() {
 		var me = this ;
-		
-		var params = {
-			_action: 'define_manageTransaction',
-			_transaction_id: this.transactionID,
-			_subaction:'ent_set'
-		};
-		Ext.apply(params,this.query('form')[0].getForm().getValues()) ;
-		me.optimaModule.getConfiguredAjaxConnection().request({
-			params:params,
-			success : function(response) {
-				if( Ext.decode(response.responseText).success == false ) {
-					if( Ext.decode(response.responseText).errors ) {
-						this.query('form')[0].getForm().markInvalid(Ext.decode(response.responseText).errors) ;
-					} else {
-						Ext.Msg.alert('Failed', 'Save failed. Unknown error');
-					}
-				}
-				else {
-					me.saveAll() ;
-				}
-			},
-			failure: function(form,action){
-				if( action.result.msg )
-					Ext.Msg.alert('Failed', action.result.msg);
-			},
-			scope: me
-		}) ;
-	},
-	saveAll: function() {
-		var me = this ;
 		me.nbComponentsSaved = 0 ;
 		
 		me.addEvents('allsaved') ;
@@ -641,7 +611,16 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 			success: function(response) {
 				msgbox.close() ;
 				if( Ext.decode(response.responseText).success == false ) {
-					Ext.Msg.alert('Failed', 'Save failed. Unknown error');
+					if( Ext.decode(response.responseText).errors ) {
+						this.query('form')[0].getForm().markInvalid(Ext.decode(response.responseText).errors) ;
+					} else {
+						var msg = Ext.decode(response.responseText).msg ;
+						if( msg != null ) {
+							Ext.Msg.alert('Failed', msg);
+						} else {
+							Ext.Msg.alert('Failed', 'Save failed. Unknown error');
+						}
+					}
 				}
 				else {
 					msgbox.close() ;
