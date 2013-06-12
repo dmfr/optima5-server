@@ -225,6 +225,9 @@ if( $alt_mag_code ) {
  include("$pchart_root/class/pPie.class.php");
  include("$pchart_root/class/pImage.class.php");
  
+ $Palette = array("0"=>array("R"=>155,"G"=>10,"B"=>58,"Alpha"=>100),
+                 "1"=>array("R"=>224,"G"=>100,"B"=>46,"Alpha"=>100));
+ 
  $MyData = new pData();
  $MyData->addPoints(array($data_mag['POM_FACING'],$data_mag_alt['POM_FACING']),"Facing");
  $MyData->setSerieOnAxis("Facing",0);
@@ -241,7 +244,7 @@ if( $alt_mag_code ) {
  $myPicture->drawScale(array("Mode"=>SCALE_MODE_START0));
  //$myPicture->setShadow(TRUE,array("X"=>1,"Y"=>1,"R"=>0,"G"=>0,"B"=>0,"Alpha"=>10));
  
- $myPicture->drawBarChart(array("DisplayPos"=>LABEL_POS_INSIDE,"DisplayValues"=>TRUE,"Rounded"=>TRUE,"Surrounding"=>30));
+ $myPicture->drawBarChart(array("DisplayPos"=>LABEL_POS_OUTSIDE,"DisplayValues"=>TRUE,"Rounded"=>TRUE,"Surrounding"=>30,"OverrideColors"=>$Palette));
  $tmpfname = tempnam( sys_get_temp_dir(), "FOO");
 
  $myPicture->render($tmpfname);
@@ -254,7 +257,7 @@ if( $alt_mag_code ) {
  $MyData = new pData();
  $MyData->addPoints(array($data_mag['POM_QTE_TOT'],$data_mag_alt['POM_QTE_TOT']),"Qte");
  $MyData->setSerieOnAxis("Qte",0);
- $MyData->setAxisName(0,"Qte Totale POM");
+ $MyData->setAxisName(0,"Qte Totale POM (**)");
  
  $MyData->addPoints(array($data_mag['STORE_NAME'],$data_mag_alt['STORE_NAME']),"Mags");
  $MyData->setAbscissa("Mags");
@@ -266,7 +269,7 @@ if( $alt_mag_code ) {
  $myPicture->drawScale(array("Mode"=>SCALE_MODE_START0));
  //$myPicture->setShadow(TRUE,array("X"=>1,"Y"=>1,"R"=>0,"G"=>0,"B"=>0,"Alpha"=>10));
  
- $myPicture->drawBarChart(array("DisplayPos"=>LABEL_POS_INSIDE,"DisplayValues"=>TRUE,"Rounded"=>TRUE,"Surrounding"=>30));
+ $myPicture->drawBarChart(array("DisplayPos"=>LABEL_POS_OUTSIDE,"DisplayValues"=>TRUE,"Rounded"=>TRUE,"OverrideColors"=>$Palette));
  $tmpfname = tempnam( sys_get_temp_dir(), "FOO");
 
  $myPicture->render($tmpfname);
@@ -298,6 +301,13 @@ ob_start() ;
 		.text-small {
 			font-family: Verdana, Geneva, Arial, Helvetica, sans-serif;
 			font-size: 12pt;
+			/*color: navy;*/
+			padding-top: 12px;
+			padding-bottom: 3px;
+		}
+		.text-xsmall {
+			font-family: Verdana, Geneva, Arial, Helvetica, sans-serif;
+			font-size: 8pt;
 			/*color: navy;*/
 			padding-top: 12px;
 			padding-bottom: 3px;
@@ -342,7 +352,6 @@ ob_start() ;
 		</tr></table>
 		
 		<br>
-	
 		<table cellspacing='0' width='100%'><tr>
 			<td align='center'>
 				<img src="data:image/jpeg;base64,<?echo base64_encode($_IMG['barchart_POM_FACING']);?>" />
@@ -354,6 +363,7 @@ ob_start() ;
 				<img src="data:image/jpeg;base64,<?echo base64_encode($_IMG['logo_POM']);?>" />
 			</td>
 		</tr></table>
+		<span class='text-xsmall' style='line-height:16px ; padding:0px 10px'>**&nbsp;<i>Les données <u>Qte Totale POM</u> sont exprimées du <b>01/07/2012</b> au <b>31/12/2012</b></i></span><br>
 		
 	</td></tr></table>
 	</div></body>
