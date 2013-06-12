@@ -1,7 +1,7 @@
 Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 	extend: 'Ext.panel.Panel',
 			  
-	requires: ['Ext.ux.dams.Icon48Picker'] ,
+	requires: ['Ext.ux.dams.Icon48Picker','Optima5.Modules.Admin.CardHeader'] ,
 			 
 			  
 	initComponent: function() {
@@ -78,6 +78,35 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 					me.saveRecord() ;
 				},
 				scope:me
+			},{
+				iconCls:'op5-sdomains-menu-actions',
+				text:'Actions',
+				hidden: me.isNew,
+				menu:[{
+					iconCls:'op5-sdomains-menu-export',
+					text:'Export / Dump',
+					hidden : me.isNew,
+					handler: function() {
+						me.getLayout().setActiveItem('mCardExport') ;
+					},
+					scope:me
+				},{
+					iconCls:'op5-sdomains-menu-import',
+					text:'Import (overwrite)',
+					hidden : me.isNew || adminSdomainRecord.get('overwrite_is_locked'),
+					handler: function() {
+						me.getLayout().setActiveItem('mCardImport') ;
+					},
+					scope:me
+				},{
+					iconCls:'op5-sdomains-menu-delete',
+					text:'Delete',
+					hidden : me.isNew || adminSdomainRecord.get('overwrite_is_locked'),
+					handler: function() {
+						me.getLayout().setActiveItem('mCardDelete') ;
+					},
+					scope:me
+				}]
 			}],
 			items:[{
 				xtype:'textfield',
@@ -135,8 +164,241 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 		},me) ;
 		
 		
+		var cardExport = Ext.create('Ext.panel.Panel',{
+			itemId:'mCardExport',
+			border: false,
+			frame:false,
+			bodyCls: 'ux-noframe-bg',
+			bodyPadding: "0 10px",
+			layout: {
+				type: 'vbox',
+				align: 'center'
+			},
+			tbar:[{
+				iconCls:'op5-sdomains-menu-back',
+				text:'Back',
+				handler: function() {
+					me.getLayout().setActiveItem('mFormAttributes') ;
+				},
+				scope:me
+			}],
+			items:[Ext.create('Optima5.Modules.Admin.CardHeader',{
+				width:'100%',
+				data:{
+					iconCls:'op5-sdomains-icon-export',
+					title: 'Export Sdomain',
+					caption: 'Download sdomain as OP5 data file'
+				}
+			}),{
+				xtype:'container',
+				padding: "24 0 0 0",
+				layout:'column',
+				items:[{
+					xtype: 'button',
+					padding: '0 16px',
+					scale: 'large',
+					text: 'Download',
+					handler: null
+				}]
+			},{
+			}]
+		}) ;
+		
+		var cardImport = Ext.create('Ext.panel.Panel',{
+			itemId:'mCardImport',
+			border: false,
+			frame:false,
+			bodyCls: 'ux-noframe-bg',
+			bodyPadding: "0 10px",
+			layout: {
+				type: 'vbox',
+				align: 'center'
+			},
+			tbar:[{
+				iconCls:'op5-sdomains-menu-back',
+				text:'Back',
+				handler: function() {
+					me.getLayout().setActiveItem('mFormAttributes') ;
+				},
+				scope:me
+			}],
+			items:[Ext.create('Optima5.Modules.Admin.CardHeader',{
+				width:'100%',
+				data:{
+					iconCls:'op5-sdomains-icon-import',
+					title: 'Import Sdomain',
+					caption: 'Overwrite sdomain from OP5 data (file/remote)'
+				}
+			}),{
+				xtype:'form',
+				border: false,
+				frame:false,
+				bodyCls: 'ux-noframe-bg',
+				padding: "8 0 0 0",
+				width:'100%',
+				layout:'anchor',
+				items:[{
+					xtype: 'fieldset',
+					title: 'From local file',
+					items:[{
+						xtype: 'filefield',
+						anchor:'100%',
+						emptyText: 'Select local OP5 file',
+						name: 'op5-filename',
+						buttonText: '',
+						buttonConfig: {
+							iconCls: 'upload-icon'
+						}
+					},{
+						xtype:'container',
+						width:'100%',
+						style:{textAlign:'right'},
+						padding: "0 6px 6px 0",
+						items:[{
+							xtype: 'button',
+							padding: '0 16px',
+							scale: 'small',
+							text: 'Ok',
+							handler: null
+						}]
+					}]
+				}]
+			},{
+				xtype:'form',
+				border: false,
+				frame:false,
+				bodyCls: 'ux-noframe-bg',
+				padding: "0 0 0 0",
+				width:'100%',
+				layout:'anchor',
+				fieldDefaults: {
+					labelAlign: 'left',
+					labelSeparator: '',
+					labelWidth: 90
+				},
+				items:[{
+					xtype: 'fieldset',
+					title: 'From remote source',
+					items:[{
+						xtype: 'textfield',
+						anchor:'100%',
+						emptyText: 'Server URL',
+						fieldLabel: 'Server URL',
+						name: 'fetch_url'
+					},{
+						xtype: 'textfield',
+						width:'100',
+						emptyText: 'Login domain',
+						fieldLabel: 'Domain',
+						name: 'fetch_login_domain'
+					},{
+						xtype:'fieldcontainer',
+						anchor:'100%',
+						fieldLabel:'Administrator',
+						layout:'hbox',
+						items:[{
+							xtype: 'textfield',
+							flex:1,
+							emptyText: 'Username',
+							name: 'fetch_login_user'
+						},{
+							xtype:'splitter'
+						},{
+							xtype: 'textfield',
+							flex:1,
+							emptyText: 'Password',
+							name: 'fetch_login_pass'
+						}]
+					},{
+						xtype:'container',
+						width:'100%',
+						style:{textAlign:'right'},
+						padding: "0 6px 6px 0",
+						items:[{
+							xtype: 'button',
+							padding: '0 16px',
+							scale: 'small',
+							text: 'Search',
+							handler: null
+						}],
+						hidden:false
+					},{
+						xtype: 'textfield',
+						width:'100',
+						emptyText: 'Src Sdomain',
+						fieldLabel: 'Src Sdomain',
+						name: 'fetch_src_sdomain',
+						hidden:true
+					},{
+						xtype:'container',
+						width:'100%',
+						style:{textAlign:'right'},
+						padding: "0 6px 6px 0",
+						items:[{
+							xtype: 'button',
+							padding: '0 16px',
+							scale: 'small',
+							text: 'Ok',
+							handler: null
+						}],
+						hidden:true
+					}]
+				}]
+			}]
+		}) ;
+		
+		var cardDelete = Ext.create('Ext.panel.Panel',{
+			itemId:'mCardDelete',
+			border: false,
+			frame:false,
+			bodyCls: 'ux-noframe-bg',
+			bodyPadding: "0 10px",
+			layout: {
+				type: 'vbox',
+				align: 'center'
+			},
+			tbar:[{
+				iconCls:'op5-sdomains-menu-back',
+				text:'Back',
+				handler: function() {
+					me.getLayout().setActiveItem('mFormAttributes') ;
+				},
+				scope:me
+			}],
+			items:[Ext.create('Optima5.Modules.Admin.CardHeader',{
+				width:'100%',
+				data:{
+					iconCls:'op5-sdomains-icon-delete',
+					title: 'Delete Sdomain',
+					caption: 'Permanently delete all associated data'
+				}
+			}),{
+				xtype:'container',
+				padding: "24 0 8 0",
+				layout:'column',
+				items:[{
+					xtype:'checkbox',
+				},{
+					xtype:'component',
+					style:{color:'#CC0000',fontWeight:'bold'},
+					html:'Confirm deletion of current sdomain',
+					padding:'2px 6px'
+				}]
+			},{
+				xtype: 'button',
+				padding: '0 16px',
+				scale: 'large',
+				text: 'Delete',
+				handler: null
+			}]
+		}) ;
+		
+		
 		me.removeAll() ;
 		me.add(formAttributes) ;
+		me.add(cardExport) ;
+		me.add(cardImport) ;
+		me.add(cardDelete) ;
 		me.calcLayout() ;
 		//me.getLayout().setActiveItem(0) ;
 	},

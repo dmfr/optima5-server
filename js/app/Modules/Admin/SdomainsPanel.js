@@ -156,10 +156,12 @@ Ext.define('Optima5.Modules.Admin.SdomainsPanel',{
 		if( mform != null ) {
 			if( record != null ) {
 				if( record.getId() == mform.sdomainId ) {
+					mformcontainer.expand() ;
 					return ;
 				}
 			} else {
 				if( mform.isNew ) {
+					mformcontainer.expand() ;
 					return ;
 				}
 			}
