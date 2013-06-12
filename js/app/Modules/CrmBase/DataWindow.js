@@ -12,6 +12,7 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 	dataType:'', /* 'bible','file' */
 	bibleId:null,
 	fileId:null,
+	parentFileId:null,
 	
 	initComponent: function() {
 		var me = this ;
@@ -87,7 +88,7 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 						}
 						break ;
 					case 'file' :
-						if( me.dataType=='file' && eventParams.fileId == me.fileId ) {
+						if( me.dataType=='file' && ( eventParams.fileId == me.fileId || eventParams.fileId == me.parentFileId ) ) {
 						} else {
 							return ;
 						}
@@ -156,8 +157,13 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 	},
 	onConfigLoad: function( ajaxData, toolbarOnly ) {
 		var me = this ;
+		
+		me.bibleId = me.fileId = me.parentFileId = null ;
+		
 		switch( me.dataType ) {
 			case 'bible' :
+				me.bibleId = ajaxData.define_file.bible_code ;
+				
 				me.setTitle( me.optimaModule.getWindowTitle( ajaxData.define_bible.text ) ) ;
 				me.child('#tbar').reconfigure( ajaxData.define_bible ) ;
 				if( !toolbarOnly ) {
@@ -165,6 +171,11 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 				}
 				break ;
 			case 'file' :
+				me.fileId = ajaxData.define_file.file_code ;
+				if( ajaxData.define_file.file_parent_code != '' ) {
+					me.parentFileId = ajaxData.define_file.file_parent_code ;
+				}
+				
 				me.setTitle( me.optimaModule.getWindowTitle( ajaxData.define_file.text ) ) ;
 				me.child('#tbar').reconfigure( ajaxData.define_file ) ;
 				if( !toolbarOnly ) {
