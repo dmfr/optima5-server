@@ -19,5 +19,9 @@
 		"iconCode":"settings",
 		"iconSrc16":"ico_settings_16.gif",
 		"iconSrc48":"ico_settings_48.png"
+	},{
+		"iconCode":"safari",
+		"iconSrc16":"ico_safari_16.png",
+		"iconSrc48":"ico_safari_48.png"
 	}
 ]
