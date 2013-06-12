@@ -107,7 +107,7 @@ Ext.define('Optima5.Modules.Admin.SdomainsPanel',{
 					align:'right'
 				},{
 					text: 'Db.Size',
-					width: 50,
+					width: 65,
 					sortable: false,
 					dataIndex: 'stat_dbSize',
 					menuDisabled: true,
@@ -156,10 +156,12 @@ Ext.define('Optima5.Modules.Admin.SdomainsPanel',{
 		if( mform != null ) {
 			if( record != null ) {
 				if( record.getId() == mform.sdomainId ) {
+					mformcontainer.expand() ;
 					return ;
 				}
 			} else {
 				if( mform.isNew ) {
+					mformcontainer.expand() ;
 					return ;
 				}
 			}
