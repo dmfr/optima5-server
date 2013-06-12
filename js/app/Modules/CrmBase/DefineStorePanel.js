@@ -3,7 +3,8 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 	
 	requires : [
 		'Ext.ux.dams.EmbeddedGrid',
-		'Optima5.Modules.CrmBase.DefineStoreCalendarForm'
+		'Optima5.Modules.CrmBase.DefineStoreCalendarForm',
+		'Ext.ux.dams.ComboBoxCached'
 	],
 	
 	initComponent: function() {
@@ -255,7 +256,7 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 					}
 				}]
 			},{
-				xtype:'combobox', 
+				xtype:'comboboxcached', 
 				name: 'store_parent_code',
 				fieldLabel: 'Parent file',
 				forceSelection:true,

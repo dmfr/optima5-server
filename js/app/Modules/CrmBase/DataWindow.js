@@ -3,7 +3,8 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 	requires: [
 		'Optima5.Modules.CrmBase.DataWindowToolbar',
 		'Optima5.Modules.CrmBase.BiblePanel',
-		'Optima5.Modules.CrmBase.FilePanel'
+		'Optima5.Modules.CrmBase.FilePanel',
+		'Optima5.Modules.CrmBase.DefineStorePanel'
 	],
 	
 	optimaModule: null,
