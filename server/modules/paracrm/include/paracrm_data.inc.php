@@ -105,7 +105,7 @@ function paracrm_data_getBibleCfg( $post_data )
 	}
 	
 	
-	return array('success'=>true,'data'=>array('define_bible'=>$arr_define_bible,'bible_lib'=>$bible_lib,'tree_fields'=>$tab_tree_fields,'entry_fields'=>$tab_entry_fields)) ;
+	return array('success'=>true,'data'=>array('define_bible'=>$arr_define_bible,'tree_fields'=>$tab_tree_fields,'entry_fields'=>$tab_entry_fields)) ;
 }
 
 
