@@ -373,7 +373,7 @@ function paracrm_define_manageTransaction( $post_data )
 				$errors_form[$field] = 'Invalid' ;
 		}
 		
-		return paracrm_define_manageTransaction_apply($arr_saisie, $apply=FALSE) ;
+		return array('success'=>true) ;
 	}
 	
 	

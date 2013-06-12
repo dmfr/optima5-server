@@ -181,7 +181,7 @@ function paracrm_data_editTransaction_bibleEntry( $post_data , &$arr_saisie )
 		}
 		$arr_saisie['arr_ent'] = $arr_ent ;
 		
-		return paracrm_data_editTransaction_bibleEntry_apply($arr_saisie, $apply=FALSE) ;
+		return array('success'=>true) ;
 	}
 	
 	

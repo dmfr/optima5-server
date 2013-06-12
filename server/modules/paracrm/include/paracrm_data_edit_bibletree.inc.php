@@ -163,7 +163,7 @@ function paracrm_data_editTransaction_bibleTree( $post_data , &$arr_saisie )
 		}
 		$arr_saisie['arr_ent'] = $arr_ent ;
 		
-		return paracrm_data_editTransaction_bibleTree_apply($arr_saisie, $apply=FALSE) ;
+		return array('success'=>true) ;
 	}
 	
 	if( $post_data['_subaction'] == 'save_and_apply' )

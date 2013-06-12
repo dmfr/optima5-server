@@ -39,7 +39,7 @@ function paracrm_data_editTransaction_fileRecord( $post_data , &$arr_saisie )
 			if( isset( $post_data[$mkey] ) )
 				$arr_saisie['file_form'][$mid]['value'] = trim($post_data[$mkey]) ;
 		}
-		return paracrm_data_editTransaction_fileRecord_apply($arr_saisie, $apply=FALSE) ;
+		return array('success'=>true) ;
 	}
 	
 	if( $post_data['_subaction'] == 'gmap_get' )
