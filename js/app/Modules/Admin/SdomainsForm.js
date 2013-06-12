@@ -312,7 +312,8 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 							xtype: 'textfield',
 							flex:1,
 							emptyText: 'Password',
-							name: 'fetch_login_pass'
+							name: 'fetch_login_pass',
+							inputType: 'password'
 						}]
 					},{
 						xtype:'container',

@@ -22,7 +22,7 @@ Ext.define('Optima5.Modules.Admin.AdminModule', {
 		caption:'Manage users, assign permission group(s) per sdomain',
 		iconClsBig:'op5-admin-menu-users',
 		iconClsSmall:'op5-admin-menu-users-icon',
-		class:'Optima5.Modules.Admin.UsersPanel'
+		class:'Optima5.Modules.Admin.AuthPanel'
 	},{
 		id:'sdomain-manager',
 		title:'SDomains',
