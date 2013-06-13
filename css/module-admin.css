@@ -78,3 +78,14 @@
 	font-size: 11px;
 	padding-left:4px;
 }
+
+
+.op5-auth-menu-new {
+	background-image: url("../images/modules/admin-new-16.gif") !important;
+}
+.op5-auth-panel-users {
+	background-image: url("../images/modules/admin-user-16.png") !important;
+}
+.op5-auth-panel-groups {
+	background-image: url("../images/modules/admin-group-16.png") !important;
+}

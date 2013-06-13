@@ -14,7 +14,11 @@ Ext.define('AdminModuleItem',{
 Ext.define('Optima5.Modules.Admin.AdminModule', {
 	extend: 'Optima5.Module',
 	
-	requires: ['Optima5.ThumbListModel'],
+	requires: [
+		'Optima5.ThumbListModel',
+		'Optima5.Modules.Admin.AuthPanel',
+		'Optima5.Modules.Admin.SdomainsPanel'
+	],
 	
 	menuData: [{
 		id:'auth-manager',
