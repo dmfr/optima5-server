@@ -162,7 +162,7 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 		
 		switch( me.dataType ) {
 			case 'bible' :
-				me.bibleId = ajaxData.define_file.bible_code ;
+				me.bibleId = ajaxData.define_bible.bible_code ;
 				
 				me.setTitle( me.optimaModule.getWindowTitle( ajaxData.define_bible.text ) ) ;
 				me.child('#tbar').reconfigure( ajaxData.define_bible ) ;
