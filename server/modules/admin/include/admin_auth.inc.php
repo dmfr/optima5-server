@@ -78,6 +78,8 @@ function admin_auth_groups_getList($post_data) {
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$group_id = $arr['group_id'] ;
 		
+		$arr['auth_has_all'] = ($arr['auth_has_all']=='O') ;
+		
 		if( !isset($arr_groups_actions[$group_id]) ) {
 			$arr_groups_actions[$group_id] = array() ;
 		}
