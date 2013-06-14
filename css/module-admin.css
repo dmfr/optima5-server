@@ -86,6 +86,26 @@
 .op5-auth-panel-users {
 	background-image: url("../images/modules/admin-user-16.png") !important;
 }
+.op5-auth-panel-user {
+	background-image: url("../images/modules/admin-user-16.png") !important;
+}
+.op5-auth-panel-user-admin {
+	background-image: url("../images/modules/admin-user-red-16.png") !important;
+}
 .op5-auth-panel-groups {
 	background-image: url("../images/modules/admin-group-16.png") !important;
+}
+.op5-auth-panel-group {
+	background-image: url("../images/modules/admin-group-16.png") !important;
+}
+.op5-auth-panel-group-admin {
+	background-image: url("../images/modules/admin-group-red-16.png") !important;
+}
+
+span.op5-auth-treetext-userid {
+	position:absolute ;
+	font-weight:bold;
+}
+span.op5-auth-treetext-username {
+	padding-left:100px ;
 }

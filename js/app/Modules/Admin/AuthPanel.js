@@ -48,6 +48,7 @@ Ext.define('AuthGroupModel',{
 
 Ext.define('AuthTreeUsersModel', {
 	extend: 'Ext.data.Model',
+	idProperty:'id',
 	fields: [
 		{name: 'id', type:'string'}, // dummy ID as tree is built for display purposes only
 		{name: 'text', type:'string'},
@@ -80,7 +81,7 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 	stores: {
 		sdomainsStore: null,
 		usersStore: null,
-		groupsStore: null,
+		groupsStore: null
 	},
 	storesLoading: 0,
 	
@@ -113,6 +114,7 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 					itemId:'pTreeUsers',
 					flex:1,
 					rootVisible: false,
+					useArrows: true,
 					title:'Users',
 					iconCls:'op5-auth-panel-users',
 					store:{
@@ -134,6 +136,7 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 					itemId:'pTreeGroups',
 					flex:1,
 					rootVisible: false,
+					useArrows: true,
 					title:'Groups',
 					iconCls:'op5-auth-panel-groups',
 					store:{
@@ -268,9 +271,9 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 		me.storesLoading-- ;
 		
 		if( store == me.stores.sdomainsStore ) {
-			console.log('building menu') ;
+			// console.log('building menu') ;
 			
-			var menuCfg = []
+			var menuCfg = [],
 				iconsLib = Optima5.Helper.getIconsLib() ;
 			me.stores.sdomainsStore.each(function(sdomain) {
 				menuCfg.push({
@@ -286,9 +289,99 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 		if( me.storesLoading > 0 ) {
 			return ;
 		}
+		
+		// dernier appel (storesLoading=0) => affichage des trees
 		me.buildTrees() ;
 	},
 	buildTrees: function() {
-		console.log('building trees') ;
-	},
+		var me = this,
+			iconsLib = Optima5.Helper.getIconsLib(),
+			id = 0 ;
+		
+		// console.log('building trees') ;
+		var childrenUsers = [] ;
+		me.stores.usersStore.each( function(userRecord) {
+			var userId = userRecord.get('user_id'),
+				userName = userRecord.get('user_fullname'),
+				userIsAdmin = userRecord.get('auth_is_admin'),
+				oSdomainGroups = {} ;
+			userRecord.link_groups().each( function(linkgroupRecord) {
+				var groupRecord = me.stores.groupsStore.getById( linkgroupRecord.get('link_group_id') ) ,
+					groupId = groupRecord.get('group_id'),
+					sdomainId = groupRecord.get('sdomain_id'),
+					groupName = groupRecord.get('group_name'),
+					groupHasAll = groupRecord.get('auth_has_all');
+				
+				if( typeof oSdomainGroups[sdomainId] == 'undefined' ) {
+					oSdomainGroups[sdomainId] = [] ;
+				}
+				oSdomainGroups[sdomainId].push({
+					group_id: groupId,
+					group_name: groupName,
+					auth_has_all: groupHasAll
+				});
+			},me );
+			
+			var childrenUserSdomains = [] ;
+			Ext.Object.each( oSdomainGroups, function(sdomainId,arrGroups) {
+				var childrenUserSdomainGroups = [] ;
+				Ext.Array.each( arrGroups, function( groupObj ) {
+					id++ ;
+					childrenUserSdomainGroups.push({
+						id: id,
+						iconCls: groupObj.auth_has_all ? 'op5-auth-panel-group-admin' : 'op5-auth-panel-group' ,
+						text: groupObj.group_name,
+						leaf: true,
+						group_id: groupObj.group_id,
+						group_name: groupObj.group_name
+					}) ;
+				},me);
+				
+				var sdomainRecord = me.stores.sdomainsStore.getById(sdomainId.toUpperCase()) ;
+				if( sdomainRecord == null ) {
+					return true ;
+				}
+				
+				id++ ;
+				childrenUserSdomains.push({
+					id: id,
+					iconCls: iconsLib.iconGetCls16(sdomainRecord.get('icon_code')),
+					text: sdomainRecord.get('sdomain_name'),
+					children: childrenUserSdomainGroups,
+					sdomain_id: sdomainId,
+					sdomain_name: sdomainRecord.get('sdomain_name'),
+					expanded: false
+				});
+			},me) ;
+			
+			var userText = '' ;
+			userText += '<span class="op5-auth-treetext-userid">' ;
+			userText += userId ;
+			userText += '</span>' ;
+			userText += '<span class="op5-auth-treetext-username">' ;
+			userText += userName ;
+			userText += '</span>' ;
+			
+			id++ ;
+			childrenUsers.push({
+				id:id,
+				iconCls: userIsAdmin ? 'op5-auth-panel-user-admin' : 'op5-auth-panel-user' ,
+				text: userText,
+				children: childrenUserSdomains,
+				user_id: userId,
+				user_name: userName,
+				expanded: false
+			}) ;
+		},me) ;
+		
+		
+		id++ ;
+		me.getComponent('mAuthList').getComponent('pTreeUsers').getStore().setRootNode({
+			id: id,
+			root:true,
+			children:childrenUsers,
+			expanded:true
+		});
+		
+	}
 });

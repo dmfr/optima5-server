@@ -52,8 +52,8 @@ Ext.define('Optima5.Icons',{
 		
 		var cssBlob = '' ;
 		Ext.Array.each( me.iconsStore.getRange(),function(record){
-			cssBlob += ".op5icon-"+record.get('iconCode')+"-small { background-image: url(images/icons/"+record.get('iconSrc16')+"); }\r\n" ;
-			cssBlob += ".op5icon-"+record.get('iconCode')+"-big   { background-image: url(images/icons/"+record.get('iconSrc48')+"); }\r\n" ;
+			cssBlob += ".op5icon-"+record.get('iconCode')+"-small { background-image: url(images/icons/"+record.get('iconSrc16')+") !important ; }\r\n" ;
+			cssBlob += ".op5icon-"+record.get('iconCode')+"-big   { background-image: url(images/icons/"+record.get('iconSrc48')+") !important ; }\r\n" ;
 		},me) ;
 		Ext.util.CSS.createStyleSheet(cssBlob, 'op5icons');
 	},
