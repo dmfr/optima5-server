@@ -7,7 +7,7 @@ Ext.define('AdminModuleItem',{
 		{name: 'caption',    type:'string'},
 		{name: 'iconClsSmall',type:'string'},
 		{name: 'iconClsBig',type:'string'},
-		{name: 'class', type:'string'}
+		{name: 'jsClass', type:'string'}
 	]
 });
 
@@ -26,14 +26,14 @@ Ext.define('Optima5.Modules.Admin.AdminModule', {
 		caption:'Manage users, assign permission group(s) per sdomain',
 		iconClsBig:'op5-admin-menu-users',
 		iconClsSmall:'op5-admin-menu-users-icon',
-		class:'Optima5.Modules.Admin.AuthPanel'
+		jsClass:'Optima5.Modules.Admin.AuthPanel'
 	},{
 		id:'sdomain-manager',
 		title:'SDomains',
 		caption:'Manage CRM sdomains, Db definition + import/export',
 		iconClsBig:'op5-admin-menu-sdomains',
 		iconClsSmall:'op5-admin-menu-sdomains-icon',
-		class:'Optima5.Modules.Admin.SdomainsPanel'
+		jsClass:'Optima5.Modules.Admin.SdomainsPanel'
 	}],
 	
 	initModule: function() {
@@ -46,8 +46,8 @@ Ext.define('Optima5.Modules.Admin.AdminModule', {
 		
 		var thumbListData = [] ;
 		me.menuStore.each( function(record) {
-			if( !Ext.ClassManager.isCreated( record.get('class') ) ) {
-				Ext.require(record.get('class'),null,me) ;
+			if( !Ext.ClassManager.isCreated( record.get('jsClass') ) ) {
+				Ext.require(record.get('jsClass'),null,me) ;
 			}
 			
 			thumbListData.push({
@@ -123,11 +123,11 @@ Ext.define('Optima5.Modules.Admin.AdminModule', {
 		if( record == null ) {
 			return null ;
 		}
-		if( !Ext.ClassManager.isCreated( record.get('class') ) ) {
-			console.log( record.get('class') + ' not defined!' ) ;
+		if( !Ext.ClassManager.isCreated( record.get('jsClass') ) ) {
+			console.log( record.get('jsClass') + ' not defined!' ) ;
 			return null ;
 		}
-		tab = Ext.create(record.get('class'),{
+		tab = Ext.create(record.get('jsClass'),{
 			optimaModule: me,
 			itemId: tabId,
 			title: record.get('title'),
