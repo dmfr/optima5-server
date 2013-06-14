@@ -393,7 +393,7 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 		Ext.Array.each( me.query('tabpanel')[0].query('damsembeddedgrid') , function(item){
 			var params = {
 				_action: 'define_manageTransaction',
-				_transaction_id: me.transactionID,
+				_transaction_id: me.transactionID
 			};
 			switch( item.itemId ) {
 				case 'treetab' :
@@ -540,7 +540,7 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 		Ext.each( me.query('tabpanel')[0].query('damsembeddedgrid') , function(item){
 			var params = {
 				_action: 'define_manageTransaction',
-				_transaction_id: me.transactionID,
+				_transaction_id: me.transactionID
 			};
 			switch( item.itemId ) {
 				case 'treetab' :
