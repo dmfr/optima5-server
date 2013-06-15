@@ -295,10 +295,9 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 	},
 	buildTrees: function() {
 		var me = this,
-			iconsLib = Optima5.Helper.getIconsLib(),
-			id = 0 ;
+			iconsLib = Optima5.Helper.getIconsLib() ;
 		
-		// console.log('building trees') ;
+		// console.log('building trees : users') ;
 		var childrenUsers = [] ;
 		me.stores.usersStore.each( function(userRecord) {
 			var userId = userRecord.get('user_id'),
@@ -326,9 +325,7 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 			Ext.Object.each( oSdomainGroups, function(sdomainId,arrGroups) {
 				var childrenUserSdomainGroups = [] ;
 				Ext.Array.each( arrGroups, function( groupObj ) {
-					id++ ;
 					childrenUserSdomainGroups.push({
-						id: id,
 						iconCls: groupObj.auth_has_all ? 'op5-auth-panel-group-admin' : 'op5-auth-panel-group' ,
 						text: groupObj.group_name,
 						leaf: true,
@@ -342,9 +339,7 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 					return true ;
 				}
 				
-				id++ ;
 				childrenUserSdomains.push({
-					id: id,
 					iconCls: iconsLib.iconGetCls16(sdomainRecord.get('icon_code')),
 					text: sdomainRecord.get('sdomain_name'),
 					children: childrenUserSdomainGroups,
@@ -362,9 +357,7 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 			userText += userName ;
 			userText += '</span>' ;
 			
-			id++ ;
 			childrenUsers.push({
-				id:id,
 				iconCls: userIsAdmin ? 'op5-auth-panel-user-admin' : 'op5-auth-panel-user' ,
 				text: userText,
 				children: childrenUserSdomains,
@@ -374,14 +367,63 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 			}) ;
 		},me) ;
 		
-		
-		id++ ;
 		me.getComponent('mAuthList').getComponent('pTreeUsers').getStore().setRootNode({
-			id: id,
 			root:true,
 			children:childrenUsers,
 			expanded:true
 		});
 		
+		
+		
+		
+		// console.log('building trees : groups') ;
+		var oSdomainGroups = {} ;
+		me.stores.groupsStore.each( function(groupRecord) {
+			var groupId = groupRecord.get('group_id'),
+				sdomainId = groupRecord.get('sdomain_id'),
+				groupName = groupRecord.get('group_name'),
+				groupHasAll = groupRecord.get('auth_has_all');
+				
+			if( typeof oSdomainGroups[sdomainId] == 'undefined' ) {
+				oSdomainGroups[sdomainId] = [] ;
+			}
+			oSdomainGroups[sdomainId].push({
+				group_id: groupId,
+				group_name: groupName,
+				auth_has_all: groupHasAll
+			});
+		},me) ;
+		
+		var childrenSdomains = [] ;
+		me.stores.sdomainsStore.each( function(sdomainRecord) {
+			var sdomainId = sdomainRecord.getId() ;
+			
+			var childrenSdomainGroups = [] ;
+			if( typeof oSdomainGroups[sdomainId] !== 'undefined' ) {
+				Ext.Array.each( oSdomainGroups[sdomainId], function( groupObj ) {
+					childrenSdomainGroups.push({
+						iconCls: groupObj.auth_has_all ? 'op5-auth-panel-group-admin' : 'op5-auth-panel-group' ,
+						text: groupObj.group_name,
+						leaf: true,
+						group_id: groupObj.group_id,
+						group_name: groupObj.group_name
+					}) ;
+				},me);
+			}
+			childrenSdomains.push({
+				iconCls: iconsLib.iconGetCls16(sdomainRecord.get('icon_code')),
+				text: sdomainRecord.get('sdomain_name'),
+				children: childrenSdomainGroups,
+				sdomain_id: sdomainId,
+				sdomain_name: sdomainRecord.get('sdomain_name'),
+				expanded: false
+			});
+		},me) ;
+		
+		me.getComponent('mAuthList').getComponent('pTreeGroups').getStore().setRootNode({
+			root:true,
+			children:childrenSdomains,
+			expanded:true
+		});
 	}
 });
