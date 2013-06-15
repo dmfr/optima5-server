@@ -182,7 +182,6 @@ Ext.define('Optima5.Modules.Admin.SdomainsPanel',{
 			border:false,
 			itemId:'mSdomainsForm',
 			optimaModule: me.optimaModule
-			}
 		}) ;
 		mform.loadRecord(record) ;
 		var strTitle = ( record == null ? 'New Sdomain' : record.get('sdomain_id')+' : '+record.get('sdomain_name') ) ;
