@@ -119,7 +119,7 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 				fieldLabel:'Sdomain Code',
 				width: 175,
 				readOnly: me.isNew ? false : true,
-				value: me.isNew ? null : adminSdomainRecord.get('sdomain_id')
+				value: me.isNew ? null : adminSdomainRecord.get('sdomain_id_forDisplay')
 			},{
 				xtype: 'combobox',
 				anchor:'100%',

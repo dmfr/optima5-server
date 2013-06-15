@@ -337,7 +337,7 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 					}) ;
 				},me);
 				
-				var sdomainRecord = me.stores.sdomainsStore.getById(sdomainId.toUpperCase()) ;
+				var sdomainRecord = me.stores.sdomainsStore.getById(sdomainId) ;
 				if( sdomainRecord == null ) {
 					return true ;
 				}

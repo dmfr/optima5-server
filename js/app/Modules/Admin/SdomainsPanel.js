@@ -2,14 +2,15 @@ Ext.define('AdminSdomainModel',{
 	extend: 'Ext.data.Model',
 	idProperty: 'sdomain_id',
 	fields: [
-		{name: 'sdomain_id',  type:'string', convert:function(v){return v.toUpperCase();}},
+		{name: 'sdomain_id',  type:'string'},
 		{name: 'sdomain_name',  type:'string'},
 		{name: 'module_id',    type:'string'},
 		{name: 'icon_code',type:'string'},
 		{name: 'overwrite_is_locked',type:'boolean'},
 		{name: 'stat_nbBibles', type:'int'},
 		{name: 'stat_nbFiles', type:'int'},
-		{name: 'stat_dbSize', type:'string'}
+		{name: 'stat_dbSize', type:'string'},
+		{name: 'sdomain_id_forDisplay',  type:'string', convert:function(v,record){return record.getId().toUpperCase();}}
 	]
 });
 
@@ -83,7 +84,7 @@ Ext.define('Optima5.Modules.Admin.SdomainsPanel',{
 					text: 'Sdomain Id',
 					width:100,
 					sortable: false,
-					dataIndex: 'sdomain_id',
+					dataIndex: 'sdomain_id_forDisplay',
 					menuDisabled: true
 				},{
 					text: 'Description',
