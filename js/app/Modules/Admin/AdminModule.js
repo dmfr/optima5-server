@@ -39,6 +39,9 @@ Ext.define('Optima5.Modules.Admin.AdminModule', {
 	initModule: function() {
 		var me = this ;
 		
+		me.addEvents('op5broadcast') ;
+		
+		
 		me.menuStore = Ext.create('Ext.data.Store',{
 			model:'AdminModuleItem',
 			data:me.menuData
@@ -136,5 +139,25 @@ Ext.define('Optima5.Modules.Admin.AdminModule', {
 		}) ;
 		me.getTabPanel().add(tab) ;
 		return tab ;
+	},
+	
+	postCrmEvent: function( crmEvent, postParams ) {
+		var me = this ;
+		if( typeof postParams === 'undefined' ) {
+			postParams = {} ;
+		}
+		
+		var eventParams = {} ;
+		switch( crmEvent ) {
+			case 'sdomainchange' :
+				Ext.apply( eventParams, {
+					sdomainId: postParams.sdomainId,
+				}) ;
+				break ;
+				
+			default :
+				return ;
+		}
+		me.fireEvent('op5broadcast',crmEvent,eventParams) ;
 	}
 });

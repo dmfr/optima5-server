@@ -254,7 +254,15 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 		
 		
 		me.callParent() ;
+		me.mon(me.optimaModule,'op5broadcast',me.onCrmeventBroadcast,me) ;
 		me.load() ;
+	},
+	onCrmeventBroadcast: function( crmEvent, eventParams ) {
+		var me = this ;
+		switch( crmEvent ) {
+			case 'sdomainchange' :
+				return me.load() ;
+		}
 	},
 	load: function() {
 		var me = this ;
@@ -345,7 +353,8 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 					children: childrenUserSdomainGroups,
 					sdomain_id: sdomainId,
 					sdomain_name: sdomainRecord.get('sdomain_name'),
-					expanded: false
+					expandable: true,
+					expanded:true
 				});
 			},me) ;
 			

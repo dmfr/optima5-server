@@ -15,7 +15,6 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 		});
 		
 		this.callParent() ;
-		this.addEvents('saved') ;
 		
 		// console.dir( me.query('combobox') ) ;
 		me.on('destroy',function() {
@@ -399,8 +398,6 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 				text: 'Delete',
 				handler: function( btn ) {
 					if( btn.up('panel').getComponent('pCheckContainer').getComponent('pCheckbox').getValue() ) {
-						me.loadMask = new Ext.LoadMask(me.getComponent('mCardDelete'), {msg:'Deleting...'});
-						me.loadMask.show() ;
 						me.doDelete();
 					}
 				},
@@ -426,7 +423,7 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 			}
 		}
 		
-		me.loadMask = new Ext.LoadMask(me.getComponent('mCardDelete'), {msg:'Deleting...'});
+		me.loadMask = new Ext.LoadMask(me.getComponent('mFormAttributes'), {msg:'Saving...'});
 		me.loadMask.show() ;
 		
 		var values = me.getComponent('mFormAttributes').getValues() ;
@@ -449,7 +446,9 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 					}
 				}
 				else {
-					me.fireEvent('saved') ;
+					me.optimaModule.postCrmEvent('sdomainchange',{
+						sdomainId: values.sdomain_id
+					}) ;
 				}
 			},
 			failure: function(form,action){
@@ -461,6 +460,16 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 	},
 	doDelete:function(){
 		var me = this ;
+		
+		if( !me.isNew ) {
+			if( me.tool_checkModuleRunning() ) {
+				return ;
+			}
+		}
+		
+		me.loadMask = new Ext.LoadMask(me.getComponent('mCardDelete'), {msg:'Deleting...'});
+		me.loadMask.show() ;
+		
 		var values = {sdomain_id:me.sdomainId} ;
 		me.optimaModule.getConfiguredAjaxConnection().request({
 			params:Ext.apply(values,{
@@ -471,7 +480,9 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 					Ext.Msg.alert('Failed', 'Delete failed. Unknown error');
 				}
 				else {
-					me.fireEvent('saved') ;
+					me.optimaModule.postCrmEvent('sdomainchange',{
+						sdomainId: values.sdomain_id
+					}) ;
 				}
 			},
 			scope: me

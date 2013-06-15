@@ -148,7 +148,17 @@ Ext.define('Optima5.Modules.Admin.SdomainsPanel',{
 		});
 		
 		this.callParent() ;
+		
+		me.mon(me.optimaModule,'op5broadcast',me.onCrmeventBroadcast,me) ;
 	},
+	onCrmeventBroadcast: function( crmEvent, eventParams ) {
+		var me = this ;
+		switch( crmEvent ) {
+			case 'sdomainchange' :
+				return me.endFormpanelAction() ;
+		}
+	},
+	
 	setFormpanelRecord: function( record ) {
 		var me = this,
 			mformcontainer = me.getComponent('mSdomainsFormContainer'),
@@ -171,12 +181,7 @@ Ext.define('Optima5.Modules.Admin.SdomainsPanel',{
 		mform = Ext.create('Optima5.Modules.Admin.SdomainsForm',{
 			border:false,
 			itemId:'mSdomainsForm',
-			optimaModule: me.optimaModule,
-			listeners: {
-				saved: function() {
-					me.endFormpanelAction() ;
-				},
-				scope:me
+			optimaModule: me.optimaModule
 			}
 		}) ;
 		mform.loadRecord(record) ;
