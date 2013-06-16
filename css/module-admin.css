@@ -101,6 +101,9 @@
 .op5-auth-panel-group-admin {
 	background-image: url("../images/modules/admin-group-red-16.png") !important;
 }
+.op5-auth-panel-unassociate {
+	background-image: url("../images/modules/admin-delete-16.png") !important;
+}
 
 span.op5-auth-treetext-userid {
 	position:absolute ;

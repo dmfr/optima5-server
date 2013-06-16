@@ -52,6 +52,7 @@ Ext.define('AuthTreeUsersModel', {
 	fields: [
 		{name: 'id', type:'string'}, // dummy ID as tree is built for display purposes only
 		{name: 'text', type:'string'},
+		{name: '_type', type:'string'},
 		{name: 'user_id',  type: 'string'},
 		{name: 'user_fullname', type:'string'},
 		{name: 'sdomain_id',  type: 'string'},
@@ -66,6 +67,7 @@ Ext.define('AuthTreeGroupsModel', {
 	fields: [
 		{name: 'id',  type: 'int'}, // dummy ID as tree is built for display purposes only
 		{name: 'text', type:'string'},
+		{name: '_type', type:'string'},
 		{name: 'sdomain_id',  type: 'string'},
 		{name: 'sdomain_name',  type: 'string'},
 		{name: 'group_id',  type: 'int'},
@@ -124,11 +126,80 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 						}
 					},
 					listeners: {
+						itemclick: function(view, record, item, index, event) {
+							treeContextMenuItems = new Array() ;
+							switch( record.get('_type') ) {
+								case 'user' :
+									treeContextMenuItems.push({
+										iconCls: 'op5-auth-panel-user',
+										text: 'Edit User',
+										handler : function() {
+											me.editUser( record.get('user_id') ) ;
+										},
+										scope : me
+									});
+									break ;
+								case 'group' :
+									treeContextMenuItems.push({
+										iconCls: 'op5-auth-panel-unassociate',
+										text: 'Unassociate group',
+										handler : function() {
+											// find parent
+											var userRecord = record ;
+											while( true ) {
+												if( userRecord == null ) {
+													return ;
+												}
+												if( userRecord.get('_type') == 'user' ) {
+													break ;
+												}
+												userRecord = userRecord.parentNode ;
+											}
+											me.ugUnassociate( userRecord.get('user_id'), record.get('group_id') ) ;
+										},
+										scope : me
+									});
+									break ;
+							}
+							if( treeContextMenuItems.length == 0 ) {
+								return ;
+							}
+							var treeContextMenu = Ext.create('Ext.menu.Menu',{
+								items : treeContextMenuItems
+							}) ;
+							treeContextMenu.showAt(event.getXY());
+						},
 						scrollershow: function(scroller) {
 							if (scroller && scroller.scrollEl) {
 								scroller.clearManagedListeners(); 
 								scroller.mon(scroller.scrollEl, 'scroll', scroller.onElScroll, scroller); 
 							}
+						},
+						scope:me
+					},
+					viewConfig: {
+						plugins: {
+							ptype: 'treeviewdragdrop',
+							dragGroup:'user2group',
+							dropGroup:'group2user',
+							appendOnly:true,
+							allowParentInsert:false
+						},
+						listeners:{
+							beforedrop:function(node, data, dropRecord, dropPosition, dropHandlers){
+								var srcNodeGroup = data.records[0] ;
+								var destNodeUser = dropRecord ;
+								if( srcNodeGroup == null || destNodeUser == null ) {
+									return false ;
+								}
+								if( srcNodeGroup.get('_type') == 'group' && destNodeUser.get('_type') == 'user' ) {
+									dropHandlers.wait=true
+									me.ugAssociate( destNodeUser.get('user_id'), srcNodeGroup.get('group_id') ) ;
+									return true ;
+								}
+								return false ;
+							},
+							scope:me
 						}
 					}
 				},{
@@ -146,11 +217,80 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 						}
 					},
 					listeners: {
+						itemclick: function(view, record, item, index, event) {
+							treeContextMenuItems = new Array() ;
+							switch( record.get('_type') ) {
+								case 'group' :
+									treeContextMenuItems.push({
+										iconCls: 'op5-auth-panel-group',
+										text: 'Edit Group',
+										handler : function() {
+											me.editGroup( record.get('group_id') ) ;
+										},
+										scope : me
+									});
+									break ;
+								case 'user' :
+									treeContextMenuItems.push({
+										iconCls: 'op5-auth-panel-unassociate',
+										text: 'Unassociate user',
+										handler : function() {
+											// find parent
+											var groupRecord = record ;
+											while( true ) {
+												if( groupRecord == null ) {
+													return ;
+												}
+												if( groupRecord.get('_type') == 'group' ) {
+													break ;
+												}
+												groupRecord = groupRecord.parentNode ;
+											}
+											me.ugUnassociate( record.get('user_id'), groupRecord.get('group_id') ) ;
+										},
+										scope : me
+									});
+									break ;
+							}
+							if( treeContextMenuItems.length == 0 ) {
+								return ;
+							}
+							var treeContextMenu = Ext.create('Ext.menu.Menu',{
+								items : treeContextMenuItems
+							}) ;
+							treeContextMenu.showAt(event.getXY());
+						},
 						scrollershow: function(scroller) {
 							if (scroller && scroller.scrollEl) {
 								scroller.clearManagedListeners(); 
 								scroller.mon(scroller.scrollEl, 'scroll', scroller.onElScroll, scroller); 
 							}
+						},
+						scope:me
+					},
+					viewConfig: {
+						plugins: {
+							ptype: 'treeviewdragdrop',
+							dragGroup:'group2user',
+							dropGroup:'user2group',
+							appendOnly:true,
+							allowParentInsert:false
+						},
+						listeners:{
+							beforedrop:function(node, data, dropRecord, dropPosition, dropHandlers){
+								var srcNodeUser = data.records[0] ;
+								var destNodeGroup = dropRecord ;
+								if( srcNodeUser == null || destNodeGroup == null ) {
+									return false ;
+								}
+								if( srcNodeUser.get('_type') == 'user' && destNodeGroup.get('_type') == 'group' ) {
+									dropHandlers.wait=true
+									me.ugAssociate( srcNodeUser.get('user_id'), destNodeGroup.get('group_id') ) ;
+									return true ;
+								}
+								return false ;
+							},
+							scope:me
 						}
 					}
 				}]
@@ -336,9 +476,12 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 					childrenUserSdomainGroups.push({
 						iconCls: groupObj.auth_has_all ? 'op5-auth-panel-group-admin' : 'op5-auth-panel-group' ,
 						text: groupObj.group_name,
+						_type:'group',
 						leaf: true,
 						group_id: groupObj.group_id,
-						group_name: groupObj.group_name
+						group_name: groupObj.group_name,
+						allowDrag:false,
+						allowDrop:false
 					}) ;
 				},me);
 				
@@ -350,11 +493,14 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 				childrenUserSdomains.push({
 					iconCls: iconsLib.iconGetCls16(sdomainRecord.get('icon_code')),
 					text: sdomainRecord.get('sdomain_name'),
+					_type:'sdomain',
 					children: childrenUserSdomainGroups,
 					sdomain_id: sdomainId,
 					sdomain_name: sdomainRecord.get('sdomain_name'),
 					expandable: true,
-					expanded:true
+					expanded:true,
+					allowDrag:false,
+					allowDrop:false
 				});
 			},me) ;
 			
@@ -369,10 +515,13 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 			childrenUsers.push({
 				iconCls: userIsAdmin ? 'op5-auth-panel-user-admin' : 'op5-auth-panel-user' ,
 				text: userText,
+				_type:'user',
 				children: childrenUserSdomains,
 				user_id: userId,
 				user_name: userName,
-				expanded: false
+				expanded: false,
+				allowDrag: userIsAdmin ? false : true,
+				allowDrop: userIsAdmin ? false : true
 			}) ;
 		},me) ;
 		
@@ -413,19 +562,25 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 					childrenSdomainGroups.push({
 						iconCls: groupObj.auth_has_all ? 'op5-auth-panel-group-admin' : 'op5-auth-panel-group' ,
 						text: groupObj.group_name,
-						leaf: true,
+						_type:'group',
+						children:[],
 						group_id: groupObj.group_id,
-						group_name: groupObj.group_name
+						group_name: groupObj.group_name,
+						allowDrop:true,
+						allowDrag:true
 					}) ;
 				},me);
 			}
 			childrenSdomains.push({
 				iconCls: iconsLib.iconGetCls16(sdomainRecord.get('icon_code')),
 				text: sdomainRecord.get('sdomain_name'),
+				_type:'sdomain',
 				children: childrenSdomainGroups,
 				sdomain_id: sdomainId,
 				sdomain_name: sdomainRecord.get('sdomain_name'),
-				expanded: false
+				expanded: true,
+				allowDrop:false,
+				allowDrag:false
 			});
 		},me) ;
 		
@@ -434,5 +589,17 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 			children:childrenSdomains,
 			expanded:true
 		});
+	},
+	editUser: function( userId ) {
+		console.log('Editing user '+userId) ;
+	},
+	editGroup: function( groupId ) {
+		console.log('Editing group '+groupId) ;
+	},
+	ugAssociate: function( userId, groupId ) {
+		console.log('Associating user '+userId+' with group '+groupId) ;
+	},
+	ugUnassociate: function( userId, groupId ) {
+		console.log('Unassociating user '+userId+' with group '+groupId) ;
 	}
 });
