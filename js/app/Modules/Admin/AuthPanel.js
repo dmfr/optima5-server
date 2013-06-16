@@ -552,6 +552,22 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 			});
 		},me) ;
 		
+		var oGroupUsers = {} ;
+		me.stores.usersStore.each( function(userRecord) {
+			userRecord.link_groups().each( function(userLinkGroupRecord) {
+				var userId = userRecord.getId() ;
+				var groupId = userLinkGroupRecord.get('link_group_id') ;
+				
+				if( typeof oGroupUsers[groupId] == 'undefined' ) {
+					oGroupUsers[groupId] = [] ;
+				}
+				oGroupUsers[groupId].push({
+					user_id:userRecord.getId(),
+					user_name:userRecord.get('user_fullname')
+				});
+			},me) ;
+		},me) ;
+		
 		var childrenSdomains = [] ;
 		me.stores.sdomainsStore.each( function(sdomainRecord) {
 			var sdomainId = sdomainRecord.getId() ;
@@ -559,13 +575,40 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 			var childrenSdomainGroups = [] ;
 			if( typeof oSdomainGroups[sdomainId] !== 'undefined' ) {
 				Ext.Array.each( oSdomainGroups[sdomainId], function( groupObj ) {
+					var childrenSdomainGroupUsers = [],
+						groupId = groupObj.group_id ;
+					
+					if( typeof oGroupUsers[groupId] !== 'undefined' ) {
+						Ext.Array.each( oGroupUsers[groupId], function( userObj ) {
+							var userText = '' ;
+							userText += '<span class="op5-auth-treetext-userid">' ;
+							userText += userObj.user_id ;
+							userText += '</span>' ;
+							userText += '<span class="op5-auth-treetext-username">' ;
+							userText += userObj.user_name ;
+							userText += '</span>' ;
+							
+							childrenSdomainGroupUsers.push({
+								iconCls: 'op5-auth-panel-user' ,
+								text: userText,
+								_type:'user',
+								leaf:true,
+								user_id: userObj.user_id,
+								user_name: userObj.user_name,
+								allowDrop:false,
+								allowDrag:false
+							}) ;
+						},me) ;
+					}
+					
 					childrenSdomainGroups.push({
 						iconCls: groupObj.auth_has_all ? 'op5-auth-panel-group-admin' : 'op5-auth-panel-group' ,
 						text: groupObj.group_name,
 						_type:'group',
-						children:[],
+						children:childrenSdomainGroupUsers,
 						group_id: groupObj.group_id,
 						group_name: groupObj.group_name,
+						expanded: false,
 						allowDrop:true,
 						allowDrag:true
 					}) ;
@@ -597,9 +640,134 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 		console.log('Editing group '+groupId) ;
 	},
 	ugAssociate: function( userId, groupId ) {
-		console.log('Associating user '+userId+' with group '+groupId) ;
+		//console.log('Associating user '+userId+' with group '+groupId) ;
+		
+		var me = this ;
+		
+		/*
+		 * me.stores.usersStore :
+		 * - recherche user
+		 * - ajout link_groups() si non existant
+		 */
+		var userRecord = me.stores.usersStore.getById( userId ) ,
+			groupRecord = me.stores.groupsStore.getById( groupId ) ,
+			sdomainRecord = ( groupRecord != null ) ? me.stores.sdomainsStore.getById( groupRecord.get('sdomain_id') ) : null ;
+		if( userRecord == null || groupRecord == null || sdomainRecord == null ) {
+			return ;
+		}
+		if( userRecord.link_groups().findRecord('link_group_id',groupId) ) {
+			//console.log('Perm already set !') ;
+			return ;
+		}
+		userRecord.link_groups().add( Ext.create('AuthUserGroupLinkModel',{link_group_id:groupId}) ) ;
+		
+		
+		/*
+		 * treeUsers :
+		 * develop du user
+		 * ajout du sdomain si non existant + develop du sdomain
+		 * ajout du group
+		 */
+		var treeUsersRoot = me.getComponent('mAuthList').getComponent('pTreeUsers').getRootNode() ,
+				userNode = treeUsersRoot.findChild('user_id',userId) ;
+		if( userNode != null ) {
+			userNode.expand(true) ;
+			var sdomainNode = userNode.findChild('sdomain_id',groupRecord.get('sdomain_id')) ;
+			if( sdomainNode == null ) {
+				sdomainNode = userNode.appendChild({
+					iconCls: Optima5.Helper.getIconsLib().iconGetCls16(sdomainRecord.get('icon_code')),
+					text: sdomainRecord.get('sdomain_name'),
+					_type:'sdomain',
+					children: [],
+					sdomain_id: sdomainRecord.getId(),
+					sdomain_name: sdomainRecord.get('sdomain_name'),
+					expandable: true,
+					expanded:true,
+					allowDrag:false,
+					allowDrop:false
+				}) ;
+			}
+			sdomainNode.appendChild({
+				iconCls: groupRecord.get('auth_has_all') ? 'op5-auth-panel-group-admin' : 'op5-auth-panel-group' ,
+				text: groupRecord.get('group_name'),
+				_type:'group',
+				leaf: true,
+				group_id: groupRecord.get('group_id'),
+				group_name: groupRecord.get('group_name'),
+				allowDrag:false,
+				allowDrop:false
+			});
+		}
+		
+		
+		/*
+		 * treeGroups :
+		 * - develop du group
+		 * - ajout du user
+		 */
+		var treeGroupsRoot = me.getComponent('mAuthList').getComponent('pTreeGroups').getRootNode() ,
+				sdomainNode = treeGroupsRoot.findChild('sdomain_id',groupRecord.get('sdomain_id')) ,
+				groupNode = (sdomainNode != null) ? sdomainNode.findChild('group_id',groupId) : null ;
+		if( groupNode != null ) {
+			groupNode.expand() ;
+			
+			var userText = '' ;
+			userText += '<span class="op5-auth-treetext-userid">' ;
+			userText += userRecord.get('user_id') ;
+			userText += '</span>' ;
+			userText += '<span class="op5-auth-treetext-username">' ;
+			userText += userRecord.get('user_fullname') ;
+			userText += '</span>' ;
+			groupNode.appendChild({
+				iconCls: 'op5-auth-panel-user' ,
+				text: userText,
+				_type:'user',
+				leaf:true,
+				user_id: userRecord.get('user_id'),
+				user_name: userRecord.get('user_fullname'),
+				allowDrop:false,
+				allowDrag:false
+			});
+		}
+		
 	},
 	ugUnassociate: function( userId, groupId ) {
-		console.log('Unassociating user '+userId+' with group '+groupId) ;
+		//console.log('Unassociating user '+userId+' with group '+groupId) ;
+		
+		var me = this ;
+		
+		var userRecord = me.stores.usersStore.getById( userId ) ,
+			groupRecord = me.stores.groupsStore.getById( groupId ) ,
+			sdomainRecord = ( groupRecord != null ) ? me.stores.sdomainsStore.getById( groupRecord.get('sdomain_id') ) : null ;
+		if( userRecord == null || groupRecord == null || sdomainRecord == null ) {
+			return ;
+		}
+		var userLinkGroupRecord = userRecord.link_groups().findRecord('link_group_id',groupId) ;
+		if( userLinkGroupRecord == null ) {
+			//console.log('Perm not set !') ;
+			return ;
+		}
+		userRecord.link_groups().remove( userLinkGroupRecord ) ;
+		
+		
+		var treeUsersRoot = me.getComponent('mAuthList').getComponent('pTreeUsers').getRootNode() ,
+				userNode = treeUsersRoot.findChild('user_id',userId) ,
+				sdomainNode = (userNode != null) ? userNode.findChild('sdomain_id',groupRecord.get('sdomain_id')) : null ,
+				groupNode = (sdomainNode != null) ? sdomainNode.findChild('group_id',groupId) : null ;
+		if( groupNode != null ) {
+			groupNode.remove() ;
+			if( !sdomainNode.hasChildNodes() ) {
+				sdomainNode.remove();
+			}
+		}
+		
+		var treeGroupsRoot = me.getComponent('mAuthList').getComponent('pTreeGroups').getRootNode() ,
+				sdomainNode = treeGroupsRoot.findChild('sdomain_id',groupRecord.get('sdomain_id')) ,
+				groupNode = (sdomainNode != null) ? sdomainNode.findChild('group_id',groupId) : null ,
+				userNode = (groupNode != null) ? groupNode.findChild('user_id',userId) : null ;
+		if( userNode != null ) {
+			userNode.remove();
+		}
+		
 	}
 });
