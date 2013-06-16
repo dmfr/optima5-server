@@ -130,6 +130,7 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 							treeContextMenuItems = new Array() ;
 							switch( record.get('_type') ) {
 								case 'user' :
+									record.expand() ;
 									treeContextMenuItems.push({
 										iconCls: 'op5-auth-panel-user',
 										text: 'Edit User',
@@ -221,6 +222,7 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 							treeContextMenuItems = new Array() ;
 							switch( record.get('_type') ) {
 								case 'group' :
+									record.expand() ;
 									treeContextMenuItems.push({
 										iconCls: 'op5-auth-panel-group',
 										text: 'Edit Group',
@@ -634,10 +636,10 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 		});
 	},
 	editUser: function( userId ) {
-		console.log('Editing user '+userId) ;
+		//console.log('Editing user '+userId) ;
 	},
 	editGroup: function( groupId ) {
-		console.log('Editing group '+groupId) ;
+		//console.log('Editing group '+groupId) ;
 	},
 	ugAssociate: function( userId, groupId ) {
 		//console.log('Associating user '+userId+' with group '+groupId) ;
@@ -660,6 +662,8 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 			return ;
 		}
 		userRecord.link_groups().add( Ext.create('AuthUserGroupLinkModel',{link_group_id:groupId}) ) ;
+		
+		me.ugSubmit(userId) ;
 		
 		
 		/*
@@ -749,6 +753,8 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 		}
 		userRecord.link_groups().remove( userLinkGroupRecord ) ;
 		
+		me.ugSubmit(userId) ;
+		
 		
 		var treeUsersRoot = me.getComponent('mAuthList').getComponent('pTreeUsers').getRootNode() ,
 				userNode = treeUsersRoot.findChild('user_id',userId) ,
@@ -768,6 +774,41 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 		if( userNode != null ) {
 			userNode.remove();
 		}
+		
+	},
+	ugSubmit: function( userId ) {
+		var me = this,
+			oUserLinkGroups = {} ;
+		
+		var records = userId ? [me.stores.usersStore.getById(userId)] : me.stores.usersStore.getRange() ;
+		for (var i = 0; i < records.length; i++) {
+			var userRecord = records[i] ;
+			if( userRecord == null ) {
+				continue ;
+			}
+			oUserLinkGroups[userRecord.getId()] = [] ;
+			userRecord.link_groups().each( function(userLinkGroupRecord) {
+				oUserLinkGroups[userRecord.getId()].push(userLinkGroupRecord.get('link_group_id')) ;
+			},me) ;
+		}
+		
+		
+		var ajaxParams = {} ;
+		Ext.apply( ajaxParams, {
+			_action: 'auth_uglinks_set',
+					  
+			data: Ext.JSON.encode(oUserLinkGroups)
+		});
+		
+		me.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams ,
+			success: function(response) {
+				if( Ext.decode(response.responseText).success == false ) {
+					Ext.Msg.alert('Failed', 'Failed');
+				}
+			},
+			scope: me
+		});
 		
 	}
 });
