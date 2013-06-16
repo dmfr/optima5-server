@@ -94,4 +94,34 @@ function admin_auth_groups_getList($post_data) {
 	);
 }
 
+function admin_auth_uglinks_set($post_data) {
+	global $_opDB ;
+	
+	foreach( json_decode($post_data['data'],true) as $user_id => $arr_link_group_id ) {
+		$query = "SELECT user_id FROM auth_user WHERE user_id='$user_id'" ;
+		$result = $_opDB->query($query) ;
+		if( $_opDB->num_rows($result) != 1 ) {
+			continue ;
+		}
+		$arr = $_opDB->fetch_row($result) ;
+		$user_id = $arr[0] ;
+		
+		$query = "DELETE FROM auth_user_link_group WHERE user_id='$user_id'" ;
+		$_opDB->query($query) ;
+		
+		$user_linkgroup_ssid = 0 ;
+		foreach( $arr_link_group_id as $link_group_id ) {
+			$user_linkgroup_ssid++ ;
+			
+			$arr_ins = array() ;
+			$arr_ins['user_id'] = $user_id ;
+			$arr_ins['user_linkgroup_ssid'] = $user_linkgroup_ssid  ;
+			$arr_ins['link_group_id'] = $link_group_id ;
+			$_opDB->insert('auth_user_link_group',$arr_ins) ;
+		}
+	}
+
+	return array('success'=>true) ;
+}
+
 ?>

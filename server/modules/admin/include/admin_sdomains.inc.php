@@ -108,7 +108,8 @@ function admin_sdomains_setSdomain($post_data) {
 		$arr_cond['sdomain_id'] = $post_data['sdomain_id'] ;
 		$_opDB->update('sdomain',$arr_update,$arr_cond) ;
 	}
-		
+	
+	sleep(1) ;
 	return $response ;
 }
 

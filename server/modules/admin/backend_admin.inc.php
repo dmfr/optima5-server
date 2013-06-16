@@ -17,6 +17,8 @@ switch( $post_data['_action'] )
 		return admin_auth_users_getList( $post_data ) ;
 	case 'auth_groups_getList' :
 		return admin_auth_groups_getList( $post_data ) ;
+	case 'auth_uglinks_set' :
+		return admin_auth_uglinks_set( $post_data ) ;
 	
 	default :
 	return NULL ;
