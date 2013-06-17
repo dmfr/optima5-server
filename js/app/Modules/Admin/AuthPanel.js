@@ -105,6 +105,15 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 					itemId:'tbUserBtn',
 					iconCls:'op5-auth-menu-new',
 					text:'Create User'
+				},{
+					itemId:'tbSavePermBtn',
+					iconCls:'op5-auth-menu-save',
+					text:'Save permissions',
+					hidden:true,
+					handler:function() {
+						me.ugSubmit() ;
+					},
+					scope:me
 				},'->',{
 					itemId:'tbGroupBtn',
 					iconCls:'op5-auth-menu-new',
@@ -663,7 +672,7 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 		}
 		userRecord.link_groups().add( Ext.create('AuthUserGroupLinkModel',{link_group_id:groupId}) ) ;
 		
-		me.ugSubmit(userId) ;
+		me.ugShowSave() ;
 		
 		
 		/*
@@ -753,7 +762,7 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 		}
 		userRecord.link_groups().remove( userLinkGroupRecord ) ;
 		
-		me.ugSubmit(userId) ;
+		me.ugShowSave() ;
 		
 		
 		var treeUsersRoot = me.getComponent('mAuthList').getComponent('pTreeUsers').getRootNode() ,
@@ -775,6 +784,10 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 			userNode.remove();
 		}
 		
+	},
+	ugShowSave: function() {
+		var me = this ;
+		me.getComponent('mAuthList').child('toolbar').getComponent('tbSavePermBtn').show() ;
 	},
 	ugSubmit: function( userId ) {
 		var me = this,
@@ -805,6 +818,8 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 			success: function(response) {
 				if( Ext.decode(response.responseText).success == false ) {
 					Ext.Msg.alert('Failed', 'Failed');
+				} else {
+					me.getComponent('mAuthList').child('toolbar').getComponent('tbSavePermBtn').hide() ;
 				}
 			},
 			scope: me
