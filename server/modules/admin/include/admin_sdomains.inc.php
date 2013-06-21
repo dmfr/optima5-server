@@ -12,7 +12,12 @@ function admin_sdomains_getList($post_data) {
 	}
 
 	$arr_sdomains = array() ;
-	$query = "SELECT * FROM sdomain ORDER BY sdomain_id" ;
+	$query = "SELECT * FROM sdomain" ;
+	if( $post_data['sdomain_id'] ) {
+		$query.= " WHERE sdomain_id='{$post_data['sdomain_id']}'" ;
+	} else {
+		$query.= " ORDER BY sdomain_id" ;
+	}
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		//$arr['sdomain_id'] = strtoupper($arr['sdomain_id']) ;

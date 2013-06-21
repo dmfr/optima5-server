@@ -19,6 +19,13 @@ switch( $post_data['_action'] )
 		return admin_auth_groups_getList( $post_data ) ;
 	case 'auth_uglinks_set' :
 		return admin_auth_uglinks_set( $post_data ) ;
+		
+	case 'auth_getSdomainActionsTree' :
+		return admin_auth_getSdomainActionsTree( $post_data ) ;
+	case 'auth_setGroup' :
+		return admin_auth_setGroup( $post_data ) ;
+	case 'auth_deleteGroup' :
+		return admin_auth_deleteGroup( $post_data ) ;
 	
 	default :
 	return NULL ;

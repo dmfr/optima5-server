@@ -124,4 +124,241 @@ function admin_auth_uglinks_set($post_data) {
 	return array('success'=>true) ;
 }
 
+function admin_auth_getSdomainActionsTree( $post_data ) {
+	global $_opDB ;
+	
+	$tmp_dbengine_sizes = array() ;
+	$query = "SELECT table_schema, sum( data_length + index_length ) / 1024 / 1024
+				FROM information_schema.TABLES GROUP BY table_schema" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$tmp_dbengine_sizes[$arr[0]] = $arr[1] ;
+	}
+	
+	$sdomain_id = $post_data['sdomain_id'] ;
+	$db_name = $GLOBALS['mysql_db'].'_'.$sdomain_id ;
+	if( !isset($tmp_dbengine_sizes[$db_name]) ) {
+		return array('success'=>false) ;
+	}
+	
+	
+	
+	$children = array() ;
+	
+	
+	// interro des bible
+	$child_bible = array(
+		'text' => '<b>Bible Library</b>',
+		'action_code' => 'bible',
+		'action_param_is_wildcard' => true,
+		'icon' => 'images/op5img/'.'ico_dataadd_16.gif',
+		'children' => array()
+	) ;
+	$query = "SELECT bible_code , bible_lib, bible_iconfile FROM {$db_name}.define_bible ORDER BY bible_code" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$entry = array() ;
+		$entry['text'] = $arr['bible_lib'] ;
+		$entry['icon'] = 'images/op5img/'.$arr['bible_iconfile'] ;
+		$entry['action_code'] = 'bible' ;
+		$entry['action_param_is_wildcard'] = false ;
+		$entry['action_param_data'] = 'bible_code:'.$arr['bible_code'] ;
+		
+		$child_bible['children'][] = $entry ;
+	}
+	$children[] = $child_bible ;
+	
+	
+	// interro des files
+	$child_files = array(
+		'text' => '<b>Data files</b>',
+		'action_code' => 'files',
+		'action_param_is_wildcard' => true,
+		'icon' => 'images/op5img/'.'ico_filechild_16.gif',
+		'children' => array()
+	) ;
+	$query = "SELECT file_code , file_lib, file_iconfile FROM {$db_name}.define_file
+				WHERE file_parent_code='' ORDER BY file_code" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$entry = array() ;
+		$entry['text'] = $arr['file_lib'] ;
+		$entry['icon'] = 'images/op5img/'.$arr['file_iconfile'] ;
+		$entry['action_code'] = 'files' ;
+		$entry['action_param_is_wildcard'] = false ;
+		$entry['action_param_data'] = 'file_code:'.$arr['file_code'] ;
+		
+		$child_files['children'][] = $entry ;
+	}
+	$children[] = $child_files ;
+	
+	
+	// interro des queries
+	$child_queries = array(
+		'text' => '<b>Queries</b>',
+		'action_code' => 'queries',
+		'action_param_is_wildcard' => true,
+		'icon' => 'images/op5img/'.'ico_blocs_small.gif',
+		'children' => array()
+	) ;
+		
+	$arr_nested_query_id = array() ;
+	$arr_nested_qmerge_id = array() ;
+	$query = "SELECT * FROM {$db_name}.qmerge_query" ;
+	$result = $_opDB->query($query);
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		if( $arr['link_query_id'] ) {
+			$arr_nested_query_id[] = $arr['link_query_id'] ;
+		}
+		if( $arr['link_qmerge_id'] ) {
+			$arr_nested_qmerge_id[] = $arr['link_query_id'] ;
+		}
+	}
+		
+	$query = "SELECT query_id , query_name FROM {$db_name}.query" ;
+	$result = $_opDB->query($query);
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$entry = array() ;
+		$entry['text'] = $arr['query_name'] ;
+		$entry['icon'] = 'images/op5img/'.'ico_process_16.gif' ;
+		$entry['action_code'] = 'queries' ;
+		$entry['action_param_is_wildcard'] = false ;
+		$entry['action_param_data'] = 'query_id:'.$arr['query_id'] ;
+		
+		$child_queries['children'][] = $entry ;
+	}
+	
+	$query = "SELECT qmerge_id , qmerge_name FROM {$db_name}.qmerge" ;
+	$result = $_opDB->query($query);
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$entry = array() ;
+		$entry['text'] = $arr['qmerge_name'] ;
+		$entry['icon'] = 'images/op5img/'.'ico_filechild_16.gif' ;
+		$entry['action_code'] = 'queries' ;
+		$entry['action_param_is_wildcard'] = false ;
+		$entry['action_param_data'] = 'qmerge_id:'.$arr['qmerge_id'] ;
+		
+		$child_queries['children'][] = $entry ;
+	}
+	
+	$query = "SELECT qweb_id , qweb_name FROM {$db_name}.qweb" ;
+	$result = $_opDB->query($query);
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$entry = array() ;
+		$entry['text'] = $arr['qweb_name'] ;
+		$entry['icon'] = 'images/op5img/'.'ico_planet_16.png' ;
+		$entry['action_code'] = 'queries' ;
+		$entry['action_param_is_wildcard'] = false ;
+		$entry['action_param_data'] = 'qweb_id:'.$arr['qweb_id'] ;
+		
+		$child_queries['children'][] = $entry ;
+	}
+	
+	$usort = function($arr1,$arr2)
+	{
+		return strcasecmp($arr1['text'],$arr2['text']) ;
+	};
+	usort($child_queries['children'],$usort) ;
+	
+	$children[] = $child_queries ;
+	
+	
+	return array('success'=>true , 'children'=>$children) ;
+}
+
+function admin_auth_setGroup( $post_data ) {
+	global $_opDB ;
+
+	$arr_update = array() ;
+	if( $post_data['_is_new'] ) {
+		
+		$arr_update['sdomain_id'] = strtolower($post_data['sdomain_id']) ;
+		if( $arr_update['sdomain_id'] == '' ) {
+			$missing_sdomain = TRUE ;
+		}
+		
+		$query_test = "SELECT sdomain_id FROM sdomain WHERE sdomain_id='{$arr_update['sdomain_id']}'" ;
+		if( $_opDB->num_rows($_opDB->query($query_test)) == 0 ) {
+			$missing_sdomain = TRUE ;
+		}
+	} else {
+		$query_test = "SELECT group_id FROM auth_group WHERE group_id='{$post_data['group_id']}'" ;
+		if( $_opDB->num_rows($_opDB->query($query_test)) == 0 ) {
+			$missing_group = TRUE ;
+		}
+	}
+	foreach( array('group_name') as $mkey ) {
+		if( $post_data[$mkey] != '' ) {
+			$arr_update[$mkey] = $post_data[$mkey] ;
+		} else {
+			$errors_form[$mkey] = "Missing $mkey" ;
+		}
+	}
+	foreach( array('auth_has_all') as $mkey ) {
+		if( !isset($post_data[$mkey]) ) {
+			$errors_form[$mkey] = "Missing $mkey" ;
+		} else {
+			$arr_update[$mkey] = $post_data[$mkey] ? 'O' : '' ;
+		}
+	}
+	
+	$success = TRUE ;
+	if( $errors_form || $missing_sdomain || $missing_group )
+		$success = FALSE ;
+		
+	$response = array() ;
+	$response['success'] = $success ;
+	if( $errors_form )
+		$response['errors'] = $errors_form ;
+	if( $missing_sdomain )
+		$response['msg'] = 'Missing Sdomain (??)' ;
+	if( $missing_group )
+		$response['msg'] = 'Unknown group (Deleted ?)' ;
+	if( !$response['success'] )
+		return $response ;
+	
+	
+	if( $post_data['_is_new'] ) {
+		$_opDB->insert('auth_group',$arr_update) ;
+		$group_id = $_opDB->insert_id();
+	} else {
+		$arr_cond = array() ;
+		$arr_cond['group_id'] = $post_data['group_id'] ;
+		$_opDB->update('auth_group',$arr_update,$arr_cond) ;
+		$group_id = $arr_cond['group_id'] ;
+	}
+	
+	$query = "DELETE FROM auth_group_action WHERE group_id='{$group_id}'" ;
+	$_opDB->query($query) ;
+	$group_action_ssid = 0 ;
+	foreach( json_decode($post_data['actions'],true) as $action ) {
+		$group_action_ssid++ ;
+		
+		$arr_ins['group_id'] = $group_id ;
+		$arr_ins['group_action_ssid'] = $group_action_ssid ;
+		$arr_ins['action_code'] = $action['action_code'] ;
+		$arr_ins['action_param_is_wildcard'] = ( $action['action_param_is_wildcard'] ? 'O' : '' ) ;
+		$arr_ins['action_param_data'] = $action['action_param_data'] ;
+		$arr_ins['auth_has_read'] = ( $action['auth_has_read'] ? 'O' : '' ) ;
+		$arr_ins['auth_has_write'] = ( $action['auth_has_write'] ? 'O' : '' ) ;
+		$_opDB->insert('auth_group_action',$arr_ins) ;
+	}
+	
+	sleep(1) ;
+	return $response ;
+}
+
+function admin_auth_deleteGroup( $post_data ) {
+	global $_opDB ;
+	
+	$group_id = $post_data['group_id'] ;
+	$query = "DELETE FROM auth_group_action WHERE group_id='{$group_id}'" ;
+	$_opDB->query($query) ;
+	$query = "DELETE FROM auth_group WHERE group_id='{$group_id}'" ;
+	$_opDB->query($query) ;
+	$query = "DELETE FROM auth_user_link_group WHERE link_group_id='{$group_id}'" ;
+	$_opDB->query($query) ;
+	return array('success'=>true) ;
+}
+
 ?>
