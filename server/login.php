@@ -97,6 +97,9 @@ if( $_POST['_action'] == 'login' )
 		else
 		{
 			$arr = $_opDB->fetch_assoc($result) ;
+			if( $arr['auth_is_disabled'] == 'O' ) {
+				die(json_encode(array('done' => FALSE,'errors'=>array("Login disabled for <b>{$userstr}</b>"),'mysql_db'=>$mysql_db))) ;
+			}
 			$auth_class = $arr['auth_class'] ;
 		}
 	}
