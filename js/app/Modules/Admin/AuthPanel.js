@@ -112,7 +112,11 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 				tbar:[{
 					itemId:'tbUserBtn',
 					iconCls:'op5-auth-menu-new',
-					text:'Create User'
+					text:'Create User',
+					handler : function() {
+						me.editUser( null ) ;
+					},
+					scope : me
 				},{
 					itemId:'tbSavePermBtn',
 					iconCls:'op5-auth-menu-save',
@@ -343,7 +347,7 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 				region:'west',
 				xtype: 'panel',
 				layout:'fit',
-				width: 400,
+				width: 350,
 				itemId:'mUserFormContainer',
 				title: '',
 				collapsible:true,
@@ -663,8 +667,9 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 			mformcontainer = me.getComponent('mUserFormContainer'),
 			mform = mformcontainer.getComponent('mUserForm') ,
 			record = me.stores.usersStore.getById(userId) ;
-		
-		if( record==null ) {
+			
+		if( me.optimaModule.getApp().desktopGetCfgRecord().get('login_userId') == userId ) {
+			Ext.Msg.alert('Stop', 'Can\'t edit own user record ['+userId+']');
 			return ;
 		}
 		
