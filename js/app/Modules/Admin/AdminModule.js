@@ -151,7 +151,14 @@ Ext.define('Optima5.Modules.Admin.AdminModule', {
 		switch( crmEvent ) {
 			case 'sdomainchange' :
 				Ext.apply( eventParams, {
-					sdomainId: postParams.sdomainId,
+					sdomainId: postParams.sdomainId
+				}) ;
+				break ;
+				
+			case 'authchange' :
+				Ext.apply( eventParams, {
+					userId: postParams.userId,
+					groupId: postParams.groupId
 				}) ;
 				break ;
 				

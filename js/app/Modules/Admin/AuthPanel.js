@@ -26,8 +26,8 @@ Ext.define('AuthGroupActionModel',{
 		{name: 'action_code', type:'string'},
 		{name: 'action_param_is_wildcard', type:'boolean'},
 		{name: 'action_param_data', type:'string'},
-		{name: 'auth_has_read', type:'string'},
-		{name: 'auth_has_write', type:'string'}
+		{name: 'auth_has_read', type:'boolean'},
+		{name: 'auth_has_write', type:'boolean'}
 	]
 });
 Ext.define('AuthGroupModel',{
@@ -80,6 +80,11 @@ Ext.define('AuthTreeGroupsModel', {
 Ext.define('Optima5.Modules.Admin.AuthPanel',{
 	extend:'Ext.panel.Panel',
 	
+	requires:[
+		'Optima5.Modules.Admin.AuthGroupForm',
+		'Optima5.Modules.Admin.AuthUserForm'
+	],
+	
 	stores: {
 		sdomainsStore: null,
 		usersStore: null,
@@ -89,6 +94,9 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 	
 	initComponent: function() {
 		var me = this ;
+		if( (me.optimaModule) instanceof Optima5.Module ) {} else {
+			Optima5.Helper.logError('Admin:SdomainsPanel','No module reference ?') ;
+		}
 		
 		Ext.apply(me,{
 			layout: 'border',
@@ -314,7 +322,7 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 				title: '',
 				collapsible:true,
 				collapsed: true,
-				empty:false,
+				empty:true,
 				listeners:{
 					beforeexpand:function(eastpanel) {
 						if( eastpanel.empty || !(me.getComponent('mUserFormContainer').getState().collapsed) ) {
@@ -340,7 +348,7 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 				title: '',
 				collapsible:true,
 				collapsed: true,
-				empty:false,
+				empty:true,
 				listeners:{
 					beforeexpand:function(westpanel) {
 						if( westpanel.empty || !(me.getComponent('mGroupFormContainer').getState().collapsed) ) {
@@ -411,8 +419,8 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 	onCrmeventBroadcast: function( crmEvent, eventParams ) {
 		var me = this ;
 		switch( crmEvent ) {
-			case 'sdomainchange' :
-				return me.load() ;
+			case 'authchange' :
+				return me.endFormpanelAction() ;
 		}
 	},
 	load: function() {
@@ -437,7 +445,10 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 			me.stores.sdomainsStore.each(function(sdomain) {
 				menuCfg.push({
 					text: sdomain.get('sdomain_name'),
-					iconCls: iconsLib.iconGetCls16(sdomain.get('icon_code'))
+					iconCls: iconsLib.iconGetCls16(sdomain.get('icon_code')),
+					handler: function() {
+						me.editGroup(null,sdomain.getId()) ;
+					}
 				}) ;
 			},me);
 			
@@ -646,10 +657,82 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 	},
 	editUser: function( userId ) {
 		//console.log('Editing user '+userId) ;
+		var me = this,
+			mformcontainer = me.getComponent('mUserFormContainer'),
+			mform = mformcontainer.getComponent('mUserForm') ,
+			record = me.stores.usersStore.getById(userId) ;
+		
+		if( record==null ) {
+			return ;
+		}
+		
+		if( mform != null ) {
+			if( record != null ) {
+				if( record.getId() == mform.sdomainId ) {
+					mformcontainer.expand() ;
+					return ;
+				}
+			} else {
+				if( mform.isNew ) {
+					mformcontainer.expand() ;
+					return ;
+				}
+			}
+		}
+		
+		mform = Ext.create('Optima5.Modules.Admin.AuthUserForm',{
+			border:false,
+			itemId:'mUserForm',
+			optimaModule: me.optimaModule
+		}) ;
+		mform.loadRecord(record) ;
+		var strTitle = ( record == null ? 'New user account' : record.get('user_id')+' : '+record.get('user_fullname') ) ;
+		mformcontainer.setTitle( strTitle ) ;
+		mformcontainer.empty = false ;
+		mformcontainer.expand() ;
+		mformcontainer.removeAll() ;
+		mformcontainer.add(mform) ;
 	},
-	editGroup: function( groupId ) {
+	editGroup: function( groupId, newSdomainId ) {
 		//console.log('Editing group '+groupId) ;
+		var me = this,
+			mformcontainer = me.getComponent('mGroupFormContainer'),
+			mform = mformcontainer.getComponent('mGroupForm') ,
+			record = me.stores.groupsStore.getById(groupId) ;
+		
+		if( record==null && newSdomainId==null ) {
+			return ;
+		}
+		
+		if( mform != null ) {
+			if( record != null ) {
+				if( record.getId() == mform.groupId ) {
+					mformcontainer.expand() ;
+					return ;
+				}
+			} else {
+				if( mform.isNew && mform.sdomainId == newSdomainId ) {
+					mformcontainer.expand() ;
+					return ;
+				}
+			}
+		}
+		
+		mform = Ext.create('Optima5.Modules.Admin.AuthGroupForm',{
+			border:false,
+			itemId:'mGroupForm',
+			optimaModule: me.optimaModule
+		}) ;
+		mform.loadRecord(record,newSdomainId) ;
+		var strTitle = ( record == null ? 'New group' : record.get('group_name') ) ;
+		mformcontainer.setTitle( strTitle ) ;
+		mformcontainer.empty = false ;
+		mformcontainer.expand() ;
+		mformcontainer.removeAll() ;
+		mformcontainer.add(mform) ;
 	},
+	
+	
 	ugAssociate: function( userId, groupId ) {
 		//console.log('Associating user '+userId+' with group '+groupId) ;
 		
@@ -824,6 +907,26 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 			},
 			scope: me
 		});
+	},
+	
+	endFormpanelAction: function() {
+		var me = this,
+			mgroupformcontainer = me.getComponent('mGroupFormContainer'),
+			muserformcontainer = me.getComponent('mUserFormContainer') ;
 		
-	}
+		// ** Clear du formpanel ***
+		mgroupformcontainer.removeAll() ;
+		mgroupformcontainer.setTitle('') ;
+		mgroupformcontainer.collapse() ;
+		mgroupformcontainer.empty = true ;
+		
+		// ** Clear du formpanel ***
+		muserformcontainer.removeAll() ;
+		muserformcontainer.setTitle('') ;
+		muserformcontainer.collapse() ;
+		muserformcontainer.empty = true ;
+		
+		// ** Reload list ***
+		me.load() ;
+	}	
 });

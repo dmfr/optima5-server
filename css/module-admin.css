@@ -86,6 +86,9 @@
 .op5-auth-menu-save {
 	background-image: url("../images/modules/admin-save-16.gif") !important;
 }
+.op5-auth-menu-delete {
+	background-image: url("../images/modules/admin-delete-16.gif") !important;
+}
 .op5-auth-panel-users {
 	background-image: url("../images/modules/admin-user-16.png") !important;
 }
