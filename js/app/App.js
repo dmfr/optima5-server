@@ -35,6 +35,7 @@ Ext.define('OptimaDesktopCfgModel',{
 		{name: 'auth_is_admin',    type:'boolean'},
 		{name: 'auth_is_root',    type:'boolean'},
 		{name: 'login_str',   type: 'boolean'},
+		{name: 'login_userId',   type: 'string'},
 		{name: 'login_userName',   type: 'string'},
 		{name: 'login_domainName', type: 'string'},
 		{name: 'wallpaper_id', type: 'int'},
@@ -149,6 +150,10 @@ Ext.define('Optima5.App',{
 	desktopGetSessionId: function() {
 		var me = this ;
 		return me.desktopSessionId ;
+	},
+	desktopGetCfgRecord: function() {
+		var me = this ;
+		return me.desktopCfgRecord ;
 	},
 	desktopBoot: function(sessionId) {
 		var me = this ;

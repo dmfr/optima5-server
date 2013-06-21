@@ -70,7 +70,7 @@ Ext.define('Optima5.Module',{
 		var iconCls ;
 		switch( moduleDescRecord.get('moduleType') ) {
 			case 'sdomain' :
-				iconCls = Optima5.Helper.getIconsLib().iconGetCls16(me.app.desktopCfgRecord.sdomains().getById(me.sdomainId).get('icon_code')) ;
+				iconCls = Optima5.Helper.getIconsLib().iconGetCls16(me.app.desktopGetCfgRecord().sdomains().getById(me.sdomainId).get('icon_code')) ;
 				break ;
 			default :
 				iconCls = Optima5.Helper.getIconsLib().iconGetCls16(moduleDescRecord.get('iconCode')) ;
@@ -128,7 +128,7 @@ Ext.define('Optima5.Module',{
 			
 		switch( moduleDescRecord.get('moduleType') ) {
 			case 'sdomain' :
-				var altTitle = me.app.desktopCfgRecord.sdomains().getById(me.sdomainId).get('sdomain_name') ;
+				var altTitle = me.app.desktopGetCfgRecord().sdomains().getById(me.sdomainId).get('sdomain_name') ;
 				windowTitle = '[' + me.sdomainId.toLowerCase() + ']' + ' ' + (cfgTitle!=null?cfgTitle:altTitle) ;
 				break ;
 			default :
@@ -178,6 +178,10 @@ Ext.define('Optima5.Module',{
 		this.windows.each( fn, scope ) ;
 	},
 	
+	getApp: function() {
+		var me = this ;
+		return me.app ;
+	},
 	
 	getConfiguredAjaxParams: function() {
 		var me = this,
