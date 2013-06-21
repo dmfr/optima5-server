@@ -68,6 +68,7 @@ function desktop_config_getRecord($post_data) {
 			'auth_is_admin' => ($_SESSION['login_data']['auth_class']=='A'),
 			'auth_is_root' => ($user_id=='root'),
 			'login_str' => $_SESSION['login_data']['userstr'],
+			'login_userId' => $_SESSION['login_data']['login_user'],
 			'login_userName' => $login_userName,
 			'login_domainName' => $login_domainName,
 			
