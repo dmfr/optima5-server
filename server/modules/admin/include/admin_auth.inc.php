@@ -361,4 +361,92 @@ function admin_auth_deleteGroup( $post_data ) {
 	return array('success'=>true) ;
 }
 
+
+
+
+
+function admin_auth_setUser( $post_data ) {
+	global $_opDB ;
+
+	$arr_update = array() ;
+	if( $post_data['_is_new'] ) {
+		$arr_update['user_id'] = strtolower(trim($post_data['user_id'])) ;
+		if( $arr_update['user_id'] == '' ) {
+			$errors_form['user_id'] = 'user_ID unspecified' ;
+		}
+		
+		$query_test = "SELECT user_id FROM auth_user WHERE user_id='{$arr_update['user_id']}'" ;
+		if( $_opDB->num_rows($_opDB->query($query_test)) > 0 ) {
+			$errors_form['user_id'] = 'Existing user_ID' ;
+		}
+		$user_id = $arr_update['user_id'];
+	} else {
+		$query_test = "SELECT user_id FROM auth_user WHERE user_id='{$post_data['user_id']}'" ;
+		if( $_opDB->num_rows($_opDB->query($query_test)) == 0 ) {
+			$errors_form['user_id'] = 'Unknown user_ID' ;
+		}
+		$user_id = $post_data['user_id'] ;
+	}
+	foreach( array('user_fullname','user_email') as $mkey ) {
+		if( $post_data[$mkey] != '' ) {
+			$arr_update[$mkey] = $post_data[$mkey] ;
+		} else {
+			$errors_form[$mkey] = "Missing $mkey" ;
+		}
+	}
+	foreach( array('auth_is_disabled') as $mkey ) {
+		if( !isset($post_data[$mkey]) ) {
+			$errors_form[$mkey] = "Missing $mkey" ;
+		} else {
+			$arr_update[$mkey] = $post_data[$mkey] ? 'O' : '' ;
+		}
+	}
+	$arr_update['auth_class'] = $post_data['auth_is_admin'] ? 'A' : 'U' ;
+	
+	if( $post_data['password_do_set'] == TRUE ) {
+		if( trim($post_data['password_plain']) == '' ) {
+			$errors_form['password_plain'] = "Empty password" ;
+		} else {
+			$arr_update['password_sha1'] = sha1($user_id.AUTH_SHA1_SALT.trim($post_data['password_plain'])) ;
+		}
+	}
+	
+	$success = TRUE ;
+	if( $errors_form )
+		$success = FALSE ;
+		
+	$response = array() ;
+	$response['success'] = $success ;
+	if( $errors_form )
+		$response['errors'] = $errors_form ;
+	if( !$response['success'] )
+		return $response ;
+	
+	if( $post_data['_is_new'] ) {
+		$_opDB->insert('auth_user',$arr_update) ;
+	} else {
+		$arr_cond = array() ;
+		$arr_cond['user_id'] = $post_data['user_id'] ;
+		$_opDB->update('auth_user',$arr_update,$arr_cond) ;
+	}
+	
+	sleep(1) ;
+	return $response ;
+}
+
+function admin_auth_deleteUser( $post_data ) {
+	global $_opDB ;
+	
+	$user_id = $post_data['user_id'] ;
+	
+	foreach( $_opDB->db_tables() as $db_table ) {
+		if( strpos($db_table,'auth_user') === 0 ) {
+			$query = "DELETE FROM {$db_table} WHERE user_id='{$user_id}'" ;
+			$_opDB->query($query) ;
+		}
+	}
+	
+	return array('success'=>true) ;
+}
+
 ?>

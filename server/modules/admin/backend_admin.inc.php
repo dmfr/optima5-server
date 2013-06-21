@@ -27,6 +27,11 @@ switch( $post_data['_action'] )
 	case 'auth_deleteGroup' :
 		return admin_auth_deleteGroup( $post_data ) ;
 	
+	case 'auth_setUser' :
+		return admin_auth_setUser( $post_data ) ;
+	case 'auth_deleteUser' :
+		return admin_auth_deleteUser( $post_data ) ;
+	
 	default :
 	return NULL ;
 }
