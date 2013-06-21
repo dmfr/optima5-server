@@ -78,8 +78,8 @@ Ext.define('Optima5.Modules.Admin.AuthGroupForm' ,{
 			me.loadMask.show() ;
 		},me) ;
 		me.on('destroy',function() {
-			if( me.loadmask ) {
-				me.loadmask.destroy() ;
+			if( me.loadMask ) {
+				me.loadMask.destroy() ;
 			}
 		},me) ;
 	},
@@ -315,6 +315,7 @@ Ext.define('Optima5.Modules.Admin.AuthGroupForm' ,{
 			},me);
 		}
 		
+		me.loaded = true ;
 		Ext.defer(function(){
 			me.loadMask.destroy();
 		},200,me);

@@ -18,8 +18,8 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 		
 		// console.dir( me.query('combobox') ) ;
 		me.on('destroy',function() {
-			if( me.loadmask ) {
-				me.loadmask.destroy()
+			if( me.loadMask ) {
+				me.loadMask.destroy()
 			}
 		},me) ;
 	},
