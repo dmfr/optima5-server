@@ -129,7 +129,7 @@ Ext.define('Optima5.Modules.Admin.AuthGroupForm' ,{
 			items:[{
 				xtype:'textfield',
 				name:'group_name',
-				fieldLabel:'Sdomain Desc',
+				fieldLabel:'Group Desc',
 				anchor:'100%',
 				value: me.isNew ? null : me.loadedAdminAuthGroupRecord.get('group_name')
 			},{
@@ -316,8 +316,8 @@ Ext.define('Optima5.Modules.Admin.AuthGroupForm' ,{
 		}
 		
 		Ext.defer(function(){
-			me.loadMask.hide();
-		},500,me);
+			me.loadMask.destroy();
+		},200,me);
 	},
 	onRemoteActionsTreeLoad_processChildren: function( srcChildren ) {
 		var me = this ,
@@ -368,6 +368,14 @@ Ext.define('Optima5.Modules.Admin.AuthGroupForm' ,{
 				nodeRecord.collapse() ;
 			}
 		}
+		// traitement specifique auth_has_read
+		if( dataIndex == 'auth_has_read' ) {
+			// si write mis, on laisse le read
+			if( nodeRecord.get('auth_has_write') && !nodeRecord.get('auth_has_read') ) {
+				nodeRecord.set('auth_has_read',true) ;
+				return ;
+			}
+		}
 		
 		switch( dataIndex ) {
 			case 'auth_has_read' :
@@ -405,6 +413,7 @@ Ext.define('Optima5.Modules.Admin.AuthGroupForm' ,{
 		var values = me.getComponent('mForm').getValues() ;
 		if( me.isNew ) {
 			values['_is_new'] = 1 ;
+			values['sdomain_id'] = me.sdomainId ;
 		} else {
 			values['group_id'] = me.groupId ;
 		}
@@ -444,12 +453,17 @@ Ext.define('Optima5.Modules.Admin.AuthGroupForm' ,{
 			params:Ext.apply(values,{
 				_action: 'auth_setGroup'
 			}),
+			callback: function() {
+				me.loadMask.destroy() ;
+			},
 			success : function(response) {
-				if( Ext.decode(response.responseText).success == false ) {
-					if( Ext.decode(response.responseText).errors ) {
-						me.getComponent('mForm').getForm().markInvalid(Ext.decode(response.responseText).errors) ;
-					} else {
-						Ext.Msg.alert('Failed', 'Save failed. Unknown error');
+				var responseObj = Ext.decode(response.responseText) ;
+				if( responseObj.success == false ) {
+					if( responseObj.errors ) {
+						me.getComponent('mForm').getForm().markInvalid(responseObj.errors) ;
+					}
+					if( responseObj.msg != null ) {
+						Ext.Msg.alert('Failed', responseObj.msg);
 					}
 				}
 				else {
@@ -478,7 +492,10 @@ Ext.define('Optima5.Modules.Admin.AuthGroupForm' ,{
 				me.optimaModule.getConfiguredAjaxConnection().request({
 					params:{
 						_action: 'auth_deleteGroup',
-						groupId: me.groupId
+						group_id: me.groupId
+					},
+					callback: function() {
+						me.loadMask.destroy() ;
 					},
 					success : function(response) {
 						if( Ext.decode(response.responseText).success == false ) {

@@ -425,6 +425,8 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 	},
 	load: function() {
 		var me = this ;
+		me.getComponent('mAuthList').child('toolbar').getComponent('tbSavePermBtn').hide() ;
+		
 		Ext.Object.each( me.stores, function(key,store) {
 			store.on('load',me.onStoreLoaded,me,{single:true}) ;
 		},me) ;

@@ -437,12 +437,17 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 			params:Ext.apply(values,{
 				_action: 'sdomains_setSdomain'
 			}),
+			callback: function() {
+				me.loadMask.destroy() ;
+			},
 			success : function(response) {
-				if( Ext.decode(response.responseText).success == false ) {
-					if( Ext.decode(response.responseText).errors ) {
-						me.getComponent('mFormAttributes').getForm().markInvalid(Ext.decode(response.responseText).errors) ;
-					} else {
-						Ext.Msg.alert('Failed', 'Save failed. Unknown error');
+				var responseObj = Ext.decode(response.responseText) ;
+				if( responseObj.success == false ) {
+					if( responseObj.errors ) {
+						me.getComponent('mFormAttributes').getForm().markInvalid(responseObj.errors) ;
+					}
+					if( responseObj.msg != null ) {
+						Ext.Msg.alert('Failed', responseObj.msg);
 					}
 				}
 				else {
