@@ -479,6 +479,7 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 			var userId = userRecord.get('user_id'),
 				userName = userRecord.get('user_fullname'),
 				userIsAdmin = userRecord.get('auth_is_admin'),
+				userIsDisabled = userRecord.get('auth_is_disabled'),
 				oSdomainGroups = {} ;
 			userRecord.link_groups().each( function(linkgroupRecord) {
 				var groupRecord = me.stores.groupsStore.getById( linkgroupRecord.get('link_group_id') ) ,
@@ -533,15 +534,23 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 			},me) ;
 			
 			var userText = '' ;
-			userText += '<span class="op5-auth-treetext-userid">' ;
+			if( userIsDisabled ) {
+				userText += '<span class="op5-auth-treetext-userid op5-auth-treetext-disabled">' ;
+			} else {
+				userText += '<span class="op5-auth-treetext-userid">' ;
+			}
 			userText += userId ;
 			userText += '</span>' ;
-			userText += '<span class="op5-auth-treetext-username">' ;
+			if( userIsDisabled ) {
+				userText += '<span class="op5-auth-treetext-username op5-auth-treetext-disabled">' ;
+			} else {
+				userText += '<span class="op5-auth-treetext-username">' ;
+			}
 			userText += userName ;
 			userText += '</span>' ;
 			
 			childrenUsers.push({
-				iconCls: userIsAdmin ? 'op5-auth-panel-user-admin' : 'op5-auth-panel-user' ,
+				iconCls: (userIsDisabled ? 'op5-auth-panel-user-disabled' : (userIsAdmin ? 'op5-auth-panel-user-admin' : 'op5-auth-panel-user')) ,
 				text: userText,
 				_type:'user',
 				children: childrenUserSdomains,

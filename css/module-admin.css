@@ -98,6 +98,9 @@
 .op5-auth-panel-user-admin {
 	background-image: url("../images/modules/admin-user-red-16.png") !important;
 }
+.op5-auth-panel-user-disabled {
+	background-image: url("../images/modules/admin-user-disabled-16.png") !important;
+}
 .op5-auth-panel-groups {
 	background-image: url("../images/modules/admin-group-16.png") !important;
 }
@@ -117,4 +120,7 @@ span.op5-auth-treetext-userid {
 }
 span.op5-auth-treetext-username {
 	padding-left:100px ;
+}
+span.op5-auth-treetext-disabled {
+	text-decoration: line-through;
 }
