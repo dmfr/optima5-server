@@ -18,7 +18,17 @@ function desktop_config_getRecord($post_data) {
 	$query = "SELECT * FROM sdomain" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
-		//$arr['sdomain_id'] = strtoupper($arr['sdomain_id']) ;
+		$sdomain_id = $arr['sdomain_id'] ;
+		
+		if( Auth_Manager::getInstance()->auth_query_sdomain_admin($sdomain_id) ) {
+			$arr['auth_has_all'] = TRUE ;
+		} elseif( $arr_openActions = Auth_Manager::getInstance()->auth_query_sdomain_openActions($sdomain_id) ) {
+			$arr['auth_has_all'] = FALSE ;
+			$arr['auth_arrOpenActions'] = $arr_openActions ;
+		} else {
+			continue ;
+		}
+		
 		$arr_sdomains[] = $arr ;
 	}
 	
