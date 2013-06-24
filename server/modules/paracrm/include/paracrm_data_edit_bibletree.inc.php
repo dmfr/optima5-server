@@ -182,6 +182,16 @@ function paracrm_data_editTransaction_bibleTree_apply($arr_saisie, $apply=FALSE)
 	
 	$bible_code = $arr_saisie['bible_code'] ;
 	
+	if( !Auth_Manager::getInstance()->auth_query_sdomain_action(
+			Auth_Manager::sdomain_getCurrent(),
+			'bible',
+			array('bible_code'=>$bible_code),
+			$write=true
+		)) {
+		
+		return Auth_Manager::auth_getDenialResponse() ;
+	}
+	
 	$query = "SELECT tree_field_code FROM define_bible_tree WHERE bible_code='$bible_code' AND tree_field_is_key='O'" ;
 	if( $mval = $_opDB->query_uniqueValue($query) )
 		$key_field = 'field_'.$mval ;

@@ -41,6 +41,25 @@ function paracrm_queries_getToolbarData( $post_data )
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
 	{
 		$query_id = $arr['queryId'] ;
+		
+		if( !Auth_Manager::getInstance()->auth_query_sdomain_action(
+			Auth_Manager::sdomain_getCurrent(),
+			'queries',
+			array( 'query_id' => $query_id ),
+			$write=false
+		)) {
+			// Permission denied
+			continue ;
+		}
+		if( !Auth_Manager::getInstance()->auth_query_sdomain_action(
+			Auth_Manager::sdomain_getCurrent(),
+			'queries',
+			array( 'query_id' => $query_id ),
+			$write=true
+		)) {
+			$arr['authReadOnly'] = TRUE ;
+		}
+		
 		if( in_array($query_id,$arr_pub_query) ) {
 			$arr['isPublished'] = TRUE ;
 		}
@@ -70,6 +89,24 @@ function paracrm_queries_getToolbarData( $post_data )
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$qmerge_id = $arr['qmergeId'] ;
 		
+		if( !Auth_Manager::getInstance()->auth_query_sdomain_action(
+			Auth_Manager::sdomain_getCurrent(),
+			'queries',
+			array( 'qmerge_id' => $qmerge_id ),
+			$write=false
+		)) {
+			// Permission denied
+			continue ;
+		}
+		if( !Auth_Manager::getInstance()->auth_query_sdomain_action(
+			Auth_Manager::sdomain_getCurrent(),
+			'queries',
+			array( 'qmerge_id' => $qmerge_id ),
+			$write=true
+		)) {
+			$arr['authReadOnly'] = TRUE ;
+		}
+		
 		if( in_array($qmerge_id,$arr_pub_qmerge) ) {
 			$arr['isPublished'] = TRUE ;
 		}
@@ -90,14 +127,41 @@ function paracrm_queries_getToolbarData( $post_data )
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$qweb_id = $arr['qwebId'] ;
 		
+		if( !Auth_Manager::getInstance()->auth_query_sdomain_action(
+			Auth_Manager::sdomain_getCurrent(),
+			'queries',
+			array( 'qweb_id' => $qweb_id ),
+			$write=false
+		)) {
+			// Permission denied
+			continue ;
+		}
+		if( !Auth_Manager::getInstance()->auth_query_sdomain_action(
+			Auth_Manager::sdomain_getCurrent(),
+			'queries',
+			array( 'qweb_id' => $qweb_id ),
+			$write=true
+		)) {
+			$arr['authReadOnly'] = TRUE ;
+		}
+		
 		if( in_array($qweb_id,$arr_pub_qweb) ) {
 			$arr['isPublished'] = TRUE ;
 		}
 		$TAB_qwebs[] = $arr ;
 	}
-
-
-	return array('success'=>true,'data_filetargets'=>$TAB_filetargets,'data_queries'=>$TAB_queries,'data_qmerges'=>$TAB_qmerges,'data_qwebs'=>$TAB_qwebs) ;
+	
+	$arr_auth_status = array(
+		'disableAdmin' => !Auth_Manager::getInstance()->auth_query_sdomain_admin( Auth_Manager::sdomain_getCurrent() ),
+		'readOnly' => !Auth_Manager::getInstance()->auth_query_sdomain_action(
+			Auth_Manager::sdomain_getCurrent(),
+			'queries',
+			NULL,
+			$write=true
+		)
+	) ;
+	
+	return array('success'=>true,'auth_status'=>$arr_auth_status,'data_filetargets'=>$TAB_filetargets,'data_queries'=>$TAB_queries,'data_qmerges'=>$TAB_qmerges,'data_qwebs'=>$TAB_qwebs) ;
 }
 
 

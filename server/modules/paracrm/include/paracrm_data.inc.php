@@ -2,7 +2,17 @@
 function paracrm_data_getBibleCfg( $post_data )
 {
 	global $_opDB ;
-
+	
+	$arr_auth_status = array(
+		'disableAdmin' => !Auth_Manager::getInstance()->auth_query_sdomain_admin( Auth_Manager::sdomain_getCurrent() ),
+		'readOnly' => !Auth_Manager::getInstance()->auth_query_sdomain_action(
+			Auth_Manager::sdomain_getCurrent(),
+			'bible',
+			array('bible_code'=>$post_data['bible_code']),
+			$write=true
+		)
+	) ;
+	
 	$bible_code = $post_data['bible_code'] ;
 	$tree_key_lib = NULL ;
 	
@@ -105,7 +115,7 @@ function paracrm_data_getBibleCfg( $post_data )
 	}
 	
 	
-	return array('success'=>true,'data'=>array('define_bible'=>$arr_define_bible,'tree_fields'=>$tab_tree_fields,'entry_fields'=>$tab_entry_fields)) ;
+	return array('success'=>true,'data'=>array('auth_status'=>$arr_auth_status,'define_bible'=>$arr_define_bible,'tree_fields'=>$tab_tree_fields,'entry_fields'=>$tab_entry_fields)) ;
 }
 
 
@@ -235,8 +245,6 @@ function paracrm_data_getBibleTreeBranch_call( $tab_parentkey_nodes, $treenode_k
 function paracrm_data_getBibleGrid( $post_data )
 {
 	global $_opDB ;
-	
-	// sleep(2) ;
 	
 	$bible_code = $post_data['bible_code'] ;
 	$view_name = 'view_bible_'.$bible_code.'_entry' ;
@@ -373,7 +381,25 @@ function paracrm_data_getBibleGrid_filterNode( $treenode_key, $TAB_parentNode_ar
 function paracrm_data_getFileGrid_config( $post_data )
 {
 	global $_opDB ;
-
+	
+	if( !Auth_Manager::getInstance()->auth_query_sdomain_action(
+		Auth_Manager::sdomain_getCurrent(),
+		'files',
+		array('file_code'=>paracrm_define_tool_fileGetParentCode($post_data['file_code'])),
+		$write=false
+	)) {
+			return Auth_Manager::auth_getDenialResponse() ;
+	}
+	$arr_auth_status = array(
+		'disableAdmin' => !Auth_Manager::getInstance()->auth_query_sdomain_admin( Auth_Manager::sdomain_getCurrent() ),
+		'readOnly' => !Auth_Manager::getInstance()->auth_query_sdomain_action(
+			Auth_Manager::sdomain_getCurrent(),
+			'files',
+			array('file_code'=>paracrm_define_tool_fileGetParentCode($post_data['file_code'])),
+			$write=true
+		)
+	) ;
+	
 	$arr_define_file = current( paracrm_define_getMainToolbar(array('data_type'=>'file','file_code'=>$post_data['file_code'])) ) ;
 	$arr_define_file['file_code'] = $arr_define_file['fileId'] ;
 	
@@ -381,11 +407,20 @@ function paracrm_data_getFileGrid_config( $post_data )
 	if( !$TAB['select_map'] )
 		return array('success'=>false) ;
 	
-	return array('success'=>true,'data'=>array('define_file'=>$arr_define_file,'grid_fields'=>$TAB['select_map'])) ;
+	return array('success'=>true,'data'=>array('auth_status'=>$arr_auth_status,'define_file'=>$arr_define_file,'grid_fields'=>$TAB['select_map'])) ;
 }
 function paracrm_data_getFileGrid_data( $post_data )
 {
 	global $_opDB ;
+	
+	if( !Auth_Manager::getInstance()->auth_query_sdomain_action(
+		Auth_Manager::sdomain_getCurrent(),
+		'files',
+		array('file_code'=>paracrm_define_tool_fileGetParentCode($post_data['file_code'])),
+		$write=false
+	)) {
+			return Auth_Manager::auth_getDenialResponse() ;
+	}
 	
 	$sql_calc_found_rows = ( isset($post_data['filter']) && count(json_decode($post_data['filter'],TRUE)) > 0 ) ; // **** Tweak to speedup count ****
 	$TAB = paracrm_lib_file_access( $file_code = $post_data['file_code'] , $sql_calc_found_rows ) ;
@@ -598,6 +633,15 @@ function paracrm_data_getFileGrid_raw( $post_data )
 
 function paracrm_data_getFileGrid_exportXLS( $post_data )
 {
+	if( !Auth_Manager::getInstance()->auth_query_sdomain_action(
+		Auth_Manager::sdomain_getCurrent(),
+		'files',
+		array('file_code'=>paracrm_define_tool_fileGetParentCode($post_data['file_code'])),
+		$write=false
+	)) {
+			return Auth_Manager::auth_getDenialResponse() ;
+	}
+	
 	if( !class_exists('PHPExcel') )
 		return NULL ;
 		
@@ -678,6 +722,15 @@ function paracrm_data_getFileGrid_exportXLS( $post_data )
 }
 function paracrm_data_getFileGrid_exportGallery( $post_data )
 {
+	if( !Auth_Manager::getInstance()->auth_query_sdomain_action(
+		Auth_Manager::sdomain_getCurrent(),
+		'files',
+		array('file_code'=>paracrm_define_tool_fileGetParentCode($post_data['file_code'])),
+		$write=false
+	)) {
+			return Auth_Manager::auth_getDenialResponse() ;
+	}
+	
 	if( !class_exists('PHPExcel') )
 		return NULL ;
 		

@@ -67,7 +67,34 @@ function paracrm_define_getMainToolbar($post_data)
 			
 			continue ;
 		}
-	
+		
+		// ** Authentication **
+		switch( $post_data['data_type'] ) {
+			case 'bible' :
+				if( !Auth_Manager::getInstance()->auth_query_sdomain_action(
+					Auth_Manager::sdomain_getCurrent(),
+					'bible',
+					array('bible_code'=>$arr['bibleId']),
+					$write=false
+				)) {
+					// Permission denied
+					continue 2 ;
+				}
+				break ;
+				
+			case 'file' :
+				if( !Auth_Manager::getInstance()->auth_query_sdomain_action(
+					Auth_Manager::sdomain_getCurrent(),
+					'files',
+					array( 'file_code' => ($arr['file_parent_code']==NULL ? $arr['fileId']:$arr['file_parent_code']) ),
+					$write=false
+				)) {
+					// Permission denied
+					continue 2 ;
+				}
+				break ;
+		}
+		
 		$arr['viewmode_grid'] = true ;
 		if( $arr['gmap_is_on'] == 'O' )
 			$arr['viewmode_gmap'] = true ;
@@ -115,6 +142,10 @@ function paracrm_define_getMainToolbar($post_data)
 function paracrm_define_togglePublish( $post_data ) {
 	global $_opDB ;
 	
+	if( !Auth_Manager::getInstance()->auth_query_sdomain_admin( Auth_Manager::sdomain_getCurrent() ) ) {
+		return Auth_Manager::auth_getDenialResponse() ;
+	}
+	
 	$data_type = $post_data['data_type'] ;
 	$bible_code = $post_data['bible_code'] ;
 	$file_code = $post_data['file_code'] ;
@@ -149,7 +180,11 @@ function paracrm_define_togglePublish( $post_data ) {
 function paracrm_define_manageTransaction( $post_data )
 {
 	global $_opDB ;
-
+	
+	if( !Auth_Manager::getInstance()->auth_query_sdomain_admin( Auth_Manager::sdomain_getCurrent() ) ) {
+		return Auth_Manager::auth_getDenialResponse() ;
+	}
+	
 	if( $post_data['_subaction'] == 'init_new' && $post_data['data_type'] )
 	{
 		$transaction_id = $_SESSION['next_transaction_id']++ ;
@@ -1233,7 +1268,23 @@ function paracrm_define_tool_syncTableStructure( $db_table , $arrAssoc_field_fie
 		}
 	}
 }
-
-
+function paracrm_define_tool_fileGetParentCode( $file_code ) {
+	global $_opDB ;
+	
+	while( TRUE ) {
+		$query = "SELECT file_parent_code FROM define_file WHERE file_code='{$file_code}'" ;
+		$result = $_opDB->query($query) ;
+		if( $_opDB->num_rows($result) != 1 ) {
+			return NULL ;
+		}
+		$arr = $_opDB->fetch_row($result) ;
+		$parent_file_code = $arr[0] ;
+		if( $parent_file_code=='' ) {
+			break ;
+		}
+		$file_code = $parent_file_code ;
+	}
+	return $file_code ;
+}
 
 ?>

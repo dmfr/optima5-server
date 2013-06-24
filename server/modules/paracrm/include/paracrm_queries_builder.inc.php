@@ -180,6 +180,15 @@ function paracrm_queries_builderTransaction_save( $post_data , &$arr_saisie )
 {
 	global $_opDB ;
 	
+	if( !Auth_Manager::getInstance()->auth_query_sdomain_action(
+		Auth_Manager::sdomain_getCurrent(),
+		'queries',
+		NULL,
+		$write=true
+	)) {
+			return Auth_Manager::auth_getDenialResponse() ;
+	}
+	
 	if( $post_data['_subaction'] == 'save' )
 	{
 		if( !$arr_saisie['query_id'] )

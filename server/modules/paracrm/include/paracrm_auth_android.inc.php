@@ -1,9 +1,15 @@
 <?php
 
 function paracrm_auth_android_getDevicesList() {
+	if( !Auth_Manager::getInstance()->auth_query_sdomain_admin( Auth_Manager::sdomain_getCurrent() ) ) {
+		return Auth_Manager::auth_getDenialResponse() ;
+	}
 	return array('success'=>true,'data'=>paracrm_lib_android_authDb_getList()) ;
 }
 function paracrm_auth_android_setDevice($post_data) {
+	if( !Auth_Manager::getInstance()->auth_query_sdomain_admin( Auth_Manager::sdomain_getCurrent() ) ) {
+		return Auth_Manager::auth_getDenialResponse() ;
+	}
 	$arr_device = array() ;
 	foreach( $post_data as $mkey=>$mvalue ) {
 		switch( $mkey )

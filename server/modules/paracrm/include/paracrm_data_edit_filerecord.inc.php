@@ -407,6 +407,16 @@ function paracrm_data_editTransaction_fileRecord_apply( $arr_saisie, $apply=FALS
 	
 	$file_code = $arr_saisie['file_code'] ;
 	
+	if( !Auth_Manager::getInstance()->auth_query_sdomain_action(
+			Auth_Manager::sdomain_getCurrent(),
+			'files',
+			array('file_code'=>$file_code),
+			$write=true
+		)) {
+		
+		return Auth_Manager::auth_getDenialResponse() ;
+	}
+	
 	// toutes verifications
 	$errors_form = array() ;
 	$missing_parent = FALSE ;

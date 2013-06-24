@@ -15,6 +15,33 @@ function paracrm_data_editTransaction( $post_data )
 		$_SESSION['transactions'][$transaction_id]['arr_saisie'] = $arr_saisie ;
 		
 		$post_data['_transaction_id'] = $transaction_id ;
+		
+		
+		// ******* Auth *******
+		switch( $post_data['data_type'] ) {
+			case 'bible_treenode' :
+			case 'bible_entry' :
+				$arr_auth_status = array(
+					'readOnly' => !Auth_Manager::getInstance()->auth_query_sdomain_action(
+						Auth_Manager::sdomain_getCurrent(),
+						'bible',
+						array('bible_code'=>$post_data['bible_code']),
+						$write=true
+					)
+				) ;
+				break ;
+				
+			case 'file_record' :
+				$arr_auth_status = array(
+					'readOnly' => !Auth_Manager::getInstance()->auth_query_sdomain_action(
+						Auth_Manager::sdomain_getCurrent(),
+						'files',
+						array('file_code'=>$post_data['file_code']),
+						$write=true
+					)
+				) ;
+				break ;
+		}
 	}
 	
 	
@@ -63,6 +90,9 @@ function paracrm_data_editTransaction( $post_data )
 			unset($_SESSION['transactions'][$transaction_id]) ;
 		}
 		
+		if( $arr_auth_status ) {
+			$json['auth_status'] = $arr_auth_status ;
+		}
 		return $json ;
 	}
 }
@@ -70,6 +100,34 @@ function paracrm_data_editTransaction( $post_data )
 
 function paracrm_data_deleteRecord( $post_data )
 {
+	// ******* Auth *******
+	switch( $post_data['data_type'] ) {
+		case 'bible_treenode' :
+		case 'bible_entry' :
+			if( !Auth_Manager::getInstance()->auth_query_sdomain_action(
+					Auth_Manager::sdomain_getCurrent(),
+					'bible',
+					array('bible_code'=>$post_data['bible_code']),
+					$write=true
+				)) {
+				
+				return Auth_Manager::auth_getDenialResponse() ;
+			}
+			break ;
+			
+		case 'file_record' :
+			if( !Auth_Manager::getInstance()->auth_query_sdomain_action(
+					Auth_Manager::sdomain_getCurrent(),
+					'files',
+					array('file_code'=>$post_data['file_code']),
+					$write=true
+				)) {
+				
+				return Auth_Manager::auth_getDenialResponse() ;
+			}
+			break ;
+	}
+	
 	switch( $post_data['data_type'] )
 	{
 		case 'bible_treenode' :
