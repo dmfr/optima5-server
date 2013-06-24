@@ -182,6 +182,10 @@ Ext.define('Optima5.Module',{
 		var me = this ;
 		return me.app ;
 	},
+	getSdomainRecord: function() {
+		var me = this ;
+		return me.getApp().desktopGetCfgRecord().sdomains().getById(me.sdomainId) ;
+	},
 	
 	getConfiguredAjaxParams: function() {
 		var me = this,

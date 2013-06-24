@@ -24,7 +24,9 @@ Ext.define('OptimaDesktopCfgSdomainModel',{
 		{name: 'sdomain_id',  type:'string'},
 		{name: 'sdomain_name',    type:'string'},
 		{name: 'module_id',    type:'string'},
-		{name: 'icon_code',    type:'string'}
+		{name: 'icon_code',    type:'string'},
+		{name: 'auth_has_all', type:'boolean'},
+		{name: 'auth_arrOpenActions', type:'auto'}
 	]
 });
 Ext.define('OptimaDesktopCfgModel',{
