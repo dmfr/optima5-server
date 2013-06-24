@@ -20,6 +20,8 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 	
 	qwebId:null,
 	
+	authReadOnly: false,
+	
 	getQcfg: function() {
 		var me = this ;
 		
@@ -60,12 +62,17 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 			Optima5.Helper.logError('CrmBase:Qwindow','No module reference ?') ;
 		}
 		
-		var cfgValid = false ;
+		var cfgValid = false,
+			panelClass ;
 		switch( me.qType ) {
 			case 'query' :
 				if( me.queryId > 0 || me.queryNewFileId != '' ) {
+					panelClass = 'Optima5.Modules.CrmBase.QueryPanel' ;
+					if( me.authReadOnly ) {
+						//panelClass = 'Optima5.Modules.CrmBase.QsimplePanel' ;
+					}
 					Ext.apply(me,{
-						items:[Ext.create('Optima5.Modules.CrmBase.QueryPanel',{
+						items:[Ext.create(panelClass,{
 							itemId:'qPanel',
 							optimaModule: me.optimaModule,
 							listeners: {
@@ -89,8 +96,12 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 				
 			case 'qmerge' :
 				if( me.qmergeId || me.qmergeNew ) {
+					panelClass = 'Optima5.Modules.CrmBase.QmergePanel' ;
+					if( me.authReadOnly ) {
+						//panelClass = 'Optima5.Modules.CrmBase.QsimplePanel' ;
+					}
 					Ext.apply(me,{
-						items:[Ext.create('Optima5.Modules.CrmBase.QmergePanel',{
+						items:[Ext.create(panelClass,{
 							itemId:'qPanel',
 							optimaModule: me.optimaModule,
 							listeners: {
@@ -252,6 +263,17 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 					winTitle,
 					tbarDisableFile=false, tbarIsNew=false, tbarDisableSave=false, tbarIsPublished=false ;
 				
+				var authReadOnly=false,
+						authDisableAdmin=false;
+				if( ajaxData.auth_status ) {
+					if( ajaxData.auth_status.disableAdmin ) {
+						authDisableAdmin = true ;
+					}
+					if( ajaxData.auth_status.readOnly ) {
+						authReadOnly = true ;
+					}
+				}
+				
 				switch( me.qType ) {
 					case 'query' :
 						if( me.queryNewFileId ) {
@@ -315,7 +337,7 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 				// ** Configure toolbar **
 				var tbar = me.getToolbar() ;
 				var tbarFileMenu = tbar.child('#file') ;
-				tbarFileMenu.setVisible(!tbarDisableFile) ;
+				tbarFileMenu.setVisible(!tbarDisableFile && !authReadOnly) ;
 				tbarFileMenu.menu.child('#save').setVisible(!tbarIsNew);
 				tbarFileMenu.menu.child('#save').setDisabled(tbarDisableSave);
 				tbarFileMenu.menu.child('#saveas').setVisible(true);
@@ -323,7 +345,7 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 				tbarFileMenu.menu.child('#delete').setDisabled(!tbarIsNew);
 				tbarFileMenu.menu.child('#delete').setDisabled(tbarDisableSave);
 				var tbarOptionsMenu = tbar.child('#options') ;
-				tbarOptionsMenu.setVisible(!tbarIsNew);
+				tbarOptionsMenu.setVisible(!tbarIsNew && !authDisableAdmin);
 				if( tbarIsPublished ) {
 					tbarOptionsMenu.menu.child('#toggle-android').setChecked(true,true) ;
 					tbarOptionsMenu.menu.child('#toggle-android').addCls(tbar.clsForPublished) ;

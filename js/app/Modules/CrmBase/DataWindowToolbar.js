@@ -51,6 +51,7 @@ Ext.define('Optima5.Modules.CrmBase.DataWindowToolbar' ,{
 					}]
 				}
 			},{
+				hidden: true,
 				itemId: 'options',
 				text: 'Options',
 				iconCls: 'op5-crmbase-datatoolbar-options',
@@ -103,7 +104,11 @@ Ext.define('Optima5.Modules.CrmBase.DataWindowToolbar' ,{
 		
 		var optionsMenu = me.child('#options') ;
 		optionsMenu.menu.hide() ;
-		optionsMenu.setVisible(true) ;
+		if( ajaxData.auth_status != null && ajaxData.auth_status.disableAdmin ) {
+			optionsMenu.setVisible(true) ;
+		} else {
+			optionsMenu.setVisible(false) ;
+		}
 		optionsMenu.menu.child('#toggle-android').setChecked( ajaxData.isPublished, true ) ;
 		if( ajaxData.isPublished ) {
 			optionsMenu.menu.child('#toggle-android').addCls( me.clsForPublished ) ;

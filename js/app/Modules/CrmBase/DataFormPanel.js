@@ -16,6 +16,7 @@ Ext.define('Optima5.Modules.CrmBase.DataFormPanel' ,{
 	],
 			  
 	transactionID: null,
+	authReadOnly: false,
 	
 	initComponent: function() {
 		var me = this ;
@@ -38,8 +39,9 @@ Ext.define('Optima5.Modules.CrmBase.DataFormPanel' ,{
 				defaults: {minWidth: 100},
 				items: [
 					{ xtype: 'component', flex: 1 },
-					{ xtype: 'button', text: 'Save' , handler:me.onSave, scope:me },
-					{ xtype: 'button', text: 'Cancel' , handler:me.onAbort , scope:me }
+					{ xtype: 'button', text: 'Save' , handler:me.onSave, scope:me , hidden:me.authReadOnly },
+					{ xtype: 'button', text: 'Cancel' , handler:me.onAbort , scope:me , hidden:me.authReadOnly },
+					{ xtype: 'button', text: 'Close' , handler:me.onAbort , scope:me , hidden:!me.authReadOnly }
 				]
 			}]
 		});

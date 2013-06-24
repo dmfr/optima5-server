@@ -12,7 +12,9 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 	clsForPublished: 'op5-crmbase-published',
 	
 	initComponent: function() {
-		var me = this ;
+		var me = this,
+			moduleRecord = me.optimaModule.getSdomainRecord() ;
+		
 		Ext.apply(me,{
 			width:250,
 			height:600,
@@ -41,23 +43,27 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 					itemId: 'btn-bible',
 					textTitle: 'Bible Library',
 					//textCaption: '',
-					iconCls: 'op5-crmbase-waitcircle'
+					iconCls: 'op5-crmbase-waitcircle',
+					hidden: (!moduleRecord.get('auth_has_all') && !Ext.Array.contains(moduleRecord.get('auth_arrOpenActions'),'bible'))
 				},{
 					itemId: 'btn-files',
 					textTitle: 'Data Files',
 					//textCaption: '',
-					iconCls: 'op5-crmbase-waitcircle'
+					iconCls: 'op5-crmbase-waitcircle',
+					hidden: (!moduleRecord.get('auth_has_all') && !Ext.Array.contains(moduleRecord.get('auth_arrOpenActions'),'files'))
 				},{
 					itemId: 'btn-scen',
 					textTitle: 'Scenarios',
 					//textCaption: '',
 					iconCls: 'op5-crmbase-mainwindow-scen',
-					menu: null
+					menu: null,
+					hidden: (!moduleRecord.get('auth_has_all'))
 				},{
 					itemId: 'btn-query',
 					textTitle: 'Queries / Qmerge',
 					textCaption: '',
-					iconCls: 'op5-crmbase-waitcircle'
+					iconCls: 'op5-crmbase-waitcircle',
+					hidden: (!moduleRecord.get('auth_has_all') && !Ext.Array.contains(moduleRecord.get('auth_arrOpenActions'),'queries'))
 				},{
 					itemId: 'btn-admin',
 					iconCls: 'op5-crmbase-mainwindow-admin',
@@ -79,7 +85,8 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 							},
 							scope:this
 						}]
-					}
+					},
+					hidden: (!moduleRecord.get('auth_has_all'))
 				}]
 			}]
 		}) ;
@@ -87,6 +94,9 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 		me.on('afterrender',function(){
 			var totHeight = 0 ;
 			Ext.Array.each(me.child('toolbar').query('>button'),function(item) {
+				if( item.isHidden() ) {
+					return ;
+				}
 				totHeight += item.getHeight() ;
 			},me) ;
 			me.setHeight(totHeight+50) ;
@@ -200,6 +210,17 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 		
 		var respObj = Ext.decode(response.responseText) ;
 		
+		var authReadOnly=false,
+				authDisableAdmin=false;
+		if( respObj.auth_status ) {
+			if( respObj.auth_status.disableAdmin ) {
+				authDisableAdmin = true ;
+			}
+			if( respObj.auth_status.readOnly ) {
+				authReadOnly = true ;
+			}
+		}
+		
 		/* ********* Liste des queries / qmerges *********
 		- AssocArray(Obj) QueryId => QueryName
 		- Array de toutes les queries déja incluses dans 1 qmerge
@@ -240,7 +261,7 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 					icon: 'images/op5img/ico_process_16.gif' ,
 					cls: (qObjIdIspub[queryId] == true)? me.clsForPublished:null,
 					handler: function(){
-						me.openQuery( queryId ) ;
+						me.openQuery( queryId, v.authReadOnly ) ;
 					},
 					scope: me
 				}) ;
@@ -253,7 +274,7 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 				icon: 'images/op5img/ico_filechild_16.gif' ,
 				cls: (v.isPublished == true)? me.clsForPublished:null,
 				handler: function(){
-					me.openQmerge( parseInt(v.qmergeId) ) ;
+					me.openQmerge( parseInt(v.qmergeId), v.authReadOnly ) ;
 				},
 				scope: me,
 				menu:qMenuSubItems
@@ -272,7 +293,7 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 				icon: 'images/op5img/ico_process_16.gif' ,
 				cls: (v.isPublished == true)? me.clsForPublished:null,
 				handler: function(){
-					me.openQuery( queryId ) ;
+					me.openQuery( queryId, v.authReadOnly ) ;
 				},
 				scope: me
 			});
@@ -287,7 +308,7 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 				icon: 'images/op5img/ico_planet_16.png' ,
 				cls: (v.isPublished == true)? me.clsForPublished:null,
 				handler: function(){
-					me.openQweb( qwebId ) ;
+					me.openQweb( qwebId, v.authReadOnly ) ;
 				},
 				scope: me
 			});
@@ -315,7 +336,7 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 		
 		var menuItems = [] ;
 		// ajout du "new"
-		if( respObj.data_filetargets && respObj.data_filetargets.length > 0 ) {
+		if( !authReadOnly && respObj.data_filetargets && respObj.data_filetargets.length > 0 ) {
 			var subMenuFiles = Ext.Array.clone( respObj.data_filetargets ) ;
 			Ext.Array.each( subMenuFiles, function(o) {
 				Ext.apply(o,{
@@ -332,7 +353,7 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 			}) ;
 		}
 		// ajout du "new" Qmerge
-		if( respObj.data_queries && respObj.data_queries.length > 0 ) {
+		if( !authReadOnly && respObj.data_queries && respObj.data_queries.length > 0 ) {
 			menuItems.push({
 				icon: 'images/op5img/ico_casier_small.gif' ,
 				text: 'Create Qmerge on queries' ,
@@ -342,13 +363,13 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 				scope : me
 			}) ;
 		}
-		if( respObj.data_filetargets && respObj.data_filetargets.length > 0
+		if( !authReadOnly && respObj.data_filetargets && respObj.data_filetargets.length > 0
 				&& qMenuItems.length > 0 ) {
 			
 			menuItems.push('-') ;
 		}
 		menuItems = Ext.Array.union(menuItems,qMenuItems) ;
-		if( true ) {
+		if( !authDisableAdmin ) {
 			menuItems.push('-') ;
 			menuItems.push({
 				icon: 'images/op5img/ico_config_small.gif' ,
@@ -490,11 +511,12 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 			queryNewFileId: fileCode
 		});
 	},
-	openQuery: function( queryId ) {
+	openQuery: function( queryId, readOnly ) {
 		var me = this ;
 		return me.openQwindow({
 			qType: 'query',
-			queryId: queryId
+			queryId: queryId,
+			authReadOnly: readOnly
 		});
 	},
 	openQmergeNew: function() {
@@ -504,18 +526,20 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 			qmergeNew: true
 		});
 	},
-	openQmerge: function( qmergeId ) {
+	openQmerge: function( qmergeId, readOnly ) {
 		var me = this ;
 		return me.openQwindow({
 			qType: 'qmerge',
-			qmergeId: qmergeId
+			qmergeId: qmergeId,
+			authReadOnly: readOnly
 		});
 	},
-	openQweb: function( qwebId ) {
+	openQweb: function( qwebId, readOnly ) {
 		var me = this ;
 		return me.openQwindow({
 			qType: 'qweb',
-			qwebId: qwebId
+			qwebId: qwebId,
+			authReadOnly: readOnly
 		});
 	},
 	openQwindow: function( qCfg ) {

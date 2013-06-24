@@ -209,6 +209,11 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 	reconfigureDataBuildGrid: function( ajaxData, gridstore ) {
 		var me = this ;
 		
+		var authReadOnly = false;
+		if( ajaxData.auth_status != null && ajaxData.auth_status.readOnly ) {
+			authReadOnly = true ;
+		}
+		
 		var gridModelName = 'FileGrid'+'-'+this.fileId ;
 		
 		var daterenderer = Ext.util.Format.dateRenderer('d/m/Y H:i');
@@ -398,14 +403,14 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 				if( true ) {
 					gridContextMenuItems.push({
 						iconCls: 'icon-bible-edit',
-						text: 'Edit record',
+						text: ( authReadOnly ? 'Open record' : 'Edit record' ),
 						handler : function() {
 							me.editRecordUpdate( record.get(keyfield) ) ;
 						},
 						scope : me
 					});
 				}
-				if( true ) {
+				if( !authReadOnly ) {
 					gridContextMenuItems.push({
 						iconCls: 'icon-bible-delete',
 						text: 'Delete record',
@@ -426,7 +431,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 						scope : me
 					});
 				}
-				if( !noNew ) {
+				if( !noNew && !authReadOnly ) {
 					gridContextMenuItems.push('-') ;
 					gridContextMenuItems.push({
 						iconCls: 'icon-bible-new',
@@ -447,7 +452,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 			
 			gridpanel.on('containercontextmenu',function(view,event) {
 				gridContextMenuItems = new Array() ;
-				if( !noNew ) {
+				if( !noNew && !authReadOnly ) {
 					gridContextMenuItems.push({
 						iconCls: 'icon-bible-new',
 						text: 'New record',
@@ -519,7 +524,11 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 					Ext.Msg.alert('Failed', 'Failed');
 				}
 				else {
-					this.openEditFormWindow( {isNew:true}, Ext.decode(response.responseText).transaction_id ) ;
+					var readOnly = false ;
+					if( Ext.decode(response.responseText).auth_status != null && Ext.decode(response.responseText).auth_status.readOnly ) {
+						readOnly = true ;
+					}
+					this.openEditFormWindow( {isNew:true}, Ext.decode(response.responseText).transaction_id, readOnly ) ;
 				}
 			},
 			scope: this
@@ -544,7 +553,11 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 					Ext.Msg.alert('Failed', 'Failed');
 				}
 				else {
-					this.openEditFormWindow( {isNew:false,filerecordId:filerecordId}, Ext.decode(response.responseText).transaction_id ) ;
+					var readOnly = false ;
+					if( Ext.decode(response.responseText).auth_status != null && Ext.decode(response.responseText).auth_status.readOnly ) {
+						readOnly = true ;
+					}
+					this.openEditFormWindow( {isNew:false,filerecordId:filerecordId}, Ext.decode(response.responseText).transaction_id, readOnly ) ;
 				}
 			},
 			scope: this
@@ -579,13 +592,14 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 		});
 	},
 			  
-	openEditFormWindow: function(editDetails,transactionId) {
+	openEditFormWindow: function(editDetails,transactionId,readOnly) {
 		var me = this ;
 		var dataformpanel = Ext.create('Optima5.Modules.CrmBase.DataFormPanel',{
 			optimaModule: me.optimaModule,
 			transactionID: transactionId,
 			transactionDataType: 'file',
-			transactionFileId: me.fileId
+			transactionFileId: me.fileId,
+			authReadOnly: readOnly
 		}) ;
 		me.optimaModule.createWindow({
 			title: (editDetails.isNew? 'New':'#'+editDetails.filerecordId)+' ('+me.fileId+')',

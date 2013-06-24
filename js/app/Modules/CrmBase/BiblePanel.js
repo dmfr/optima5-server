@@ -112,6 +112,11 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 	},
 	
 	reconfigureDataBuildTree: function( ajaxData ) {
+		var authReadOnly = false;
+		if( ajaxData.auth_status != null && ajaxData.auth_status.readOnly ) {
+			authReadOnly = true ;
+		}
+		
 		var treeModelName = 'BibleTree'+'-'+this.bibleId ;
 		
 		// Création du modèle TREE
@@ -273,7 +278,7 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 		treegrid.on('itemcontextmenu', function(view, record, item, index, event) {
 			
 			treeContextMenuItems = new Array() ;
-			if( true ) {
+			if( !authReadOnly ) {
 				var mytext = 'New root node' ;
 				if( record.get('treenode_key') != '&' )
 					mytext = 'New subnode for <b>'+record.get('treenode_key')+'</b>' ;
@@ -290,14 +295,14 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 			if( record.get('treenode_key') != '&' ) {
 				treeContextMenuItems.push({
 					iconCls: 'icon-bible-edit',
-					text: 'Edit <b>'+record.get('treenode_key')+'</b> node',
+					text: authReadOnly ? 'Open <b>'+record.get('treenode_key')+'</b> node' : 'Edit <b>'+record.get('treenode_key')+'</b> node',
 					handler : function() {
 						me.editNodeUpdate( record.get('treenode_key') ) ;
 					},
 					scope : me
 				});
 			}
-			if( !(record.get('nb_entries') > 0) && !(record.get('nb_children') > 0) && record.get('treenode_key') != '&' ) {
+			if( !authReadOnly && !(record.get('nb_entries') > 0) && !(record.get('nb_children') > 0) && record.get('treenode_key') != '&' ) {
 				treeContextMenuItems.push({
 					iconCls: 'icon-bible-delete',
 					text: 'Delete <b>'+record.get('treenode_key')+'</b> Node',
@@ -307,7 +312,7 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 					scope : me
 				});
 			}
-			if( record.get('treenode_key') != '&' ) {
+			if( !authReadOnly && record.get('treenode_key') != '&' ) {
 				treeContextMenuItems.push('-') ;
 				treeContextMenuItems.push({
 					iconCls: 'icon-bible-newfile',
@@ -392,6 +397,11 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 	},
 			  
 	reconfigureDataBuildGrid: function( ajaxData , gridstore ) {
+		var authReadOnly = false;
+		if( ajaxData.auth_status != null && ajaxData.auth_status.readOnly ) {
+			authReadOnly = true ;
+		}
+		
 		var keyfield = '' ;
 		var gridColumns = new Array() ;
 		Ext.Object.each( ajaxData.entry_fields , function(k,v) {
@@ -470,7 +480,17 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 			
 			
 			gridContextMenuItems = new Array() ;
-			if( true ) {
+			if( authReadOnly ) {
+				gridContextMenuItems.push({
+					iconCls: 'icon-bible-edit',
+					text: 'Open <b>'+strHeader+'</b>',
+					handler : function() {
+						me.editEntryUpdate( record.get('entry_key') ) ;
+					},
+					scope : me
+				});
+			}
+			if( !authReadOnly ) {
 				gridContextMenuItems.push({
 					iconCls: 'icon-bible-edit',
 					text: 'Edit <b>'+strHeader+'</b>',
@@ -480,7 +500,7 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 					scope : me
 				});
 			}
-			if( true ) {
+			if( !authReadOnly ) {
 				gridContextMenuItems.push({
 					iconCls: 'icon-bible-delete',
 					text: 'Delete <b>'+strHeader+'</b>',
@@ -582,7 +602,11 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 					Ext.Msg.alert('Failed', 'Failed');
 				}
 				else {
-					this.openEditFormWindow( {isNew:true}, Ext.decode(response.responseText).transaction_id ) ;
+					var readOnly = false ;
+					if( Ext.decode(response.responseText).auth_status != null && Ext.decode(response.responseText).auth_status.readOnly ) {
+						readOnly = true ;
+					}
+					this.openEditFormWindow( {isNew:true}, Ext.decode(response.responseText).transaction_id, readOnly ) ;
 				}
 			},
 			scope: this
@@ -606,7 +630,11 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 					Ext.Msg.alert('Failed', 'Failed');
 				}
 				else {
-					this.openEditFormWindow( {isNew:false,biblerecordId:treenodeKey}, Ext.decode(response.responseText).transaction_id ) ;
+					var readOnly = false ;
+					if( Ext.decode(response.responseText).auth_status != null && Ext.decode(response.responseText).auth_status.readOnly ) {
+						readOnly = true ;
+					}
+					this.openEditFormWindow( {isNew:false,biblerecordId:treenodeKey}, Ext.decode(response.responseText).transaction_id, readOnly ) ;
 				}
 			},
 			scope: this
@@ -659,7 +687,11 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 					Ext.Msg.alert('Failed', 'Failed');
 				}
 				else {
-					this.openEditFormWindow( {isNew:true}, Ext.decode(response.responseText).transaction_id ) ;
+					var readOnly = false ;
+					if( Ext.decode(response.responseText).auth_status != null && Ext.decode(response.responseText).auth_status.readOnly ) {
+						readOnly = true ;
+					}
+					this.openEditFormWindow( {isNew:true}, Ext.decode(response.responseText).transaction_id, readOnly ) ;
 				}
 			},
 			scope: this
@@ -683,7 +715,11 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 					Ext.Msg.alert('Failed', 'Failed');
 				}
 				else {
-					this.openEditFormWindow( {isNew:false,biblerecordId:entryKey}, Ext.decode(response.responseText).transaction_id ) ;
+					var readOnly = false ;
+					if( Ext.decode(response.responseText).auth_status != null && Ext.decode(response.responseText).auth_status.readOnly ) {
+						readOnly = true ;
+					}
+					this.openEditFormWindow( {isNew:false,biblerecordId:entryKey}, Ext.decode(response.responseText).transaction_id, readOnly ) ;
 				}
 			},
 			scope: this
@@ -749,13 +785,14 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 		});
 	},
 			  
-	openEditFormWindow: function(editDetails,transactionId) {
+	openEditFormWindow: function(editDetails,transactionId,readOnly) {
 		var me = this ;
 		var dataformpanel = Ext.create('Optima5.Modules.CrmBase.DataFormPanel',{
 			optimaModule: me.optimaModule,
 			transactionID: transactionId,
 			transactionDataType: 'bible',
-			transactionBibleId: me.bibleId
+			transactionBibleId: me.bibleId,
+			authReadOnly: readOnly
 		}) ;
 		me.optimaModule.createWindow({
 			title: (editDetails.isNew? 'New':'#'+editDetails.biblerecordId)+' ('+me.bibleId+')',
