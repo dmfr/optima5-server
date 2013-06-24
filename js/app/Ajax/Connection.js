@@ -35,19 +35,29 @@ Ext.define('Optima5.Ajax.Connection',{
 					try{
 						var responseText = ( result.responseText != null ? result.responseText : '' ) ;
 						jsonData = Ext.decode(responseText);
-						if( jsonData.sessionLost == true )
+						
+						if( jsonData.sessionLost == true ) {
 							return Optima5.Helper.getApplication().onSessionInvalid() ;
+						}
+						
+						if( jsonData.authDenied == true ) {
+							Ext.MessageBox.alert('Error!', 'Permission denied !');
+							Ext.callback(options.cacheFailure, options.scope, [result, options]);
+							return ;
+						}
+						
+						Ext.callback(options.cacheSuccess, options.scope, [result, options]);
 					}
 					catch(e){
 						Ext.MessageBox.alert('Error!', 'Data returned is not valid!'+"\n"+result.responseText);
+						Ext.callback(options.cacheFailure, options.scope, [result, options]);
 					}
-					Ext.callback(options.cacheSuccess, options.scope, [result, options]);
 				}
 				else
 				{
 					Ext.MessageBox.alert('Error!', 'The web transaction failed!');
 					
-					Ext.callback(options.cacheSuccess, options.scope, [result, options]);
+					Ext.callback(options.cacheFailure, options.scope, [result, options]);
 				}
 				Ext.callback(options.cacheCallback, options.scope, [options, success, result]);
 			},
