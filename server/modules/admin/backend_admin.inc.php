@@ -4,6 +4,9 @@ include("$server_root/modules/admin/include/admin.inc.php") ;
 
 function backend_specific( $post_data )
 {
+if( !Auth_Manager::getInstance()->auth_is_admin() ) {
+	return Auth_Manager::auth_getDenialResponse() ;
+}
 switch( $post_data['_action'] )
 {
 	case 'sdomains_getList' :
