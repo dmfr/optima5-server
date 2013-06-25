@@ -131,7 +131,7 @@ Ext.define('Optima5.Modules.Admin.AuthUserForm' ,{
 					inputValue:1,
 					uncheckedValue:0,
 					checked : me.isNew,
-					hidden: me.isNew,
+					hidden: me.isNew
 				},{
 					xtype:'textfield',
 					name:'password_plain',
