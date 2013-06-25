@@ -599,7 +599,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 			transactionID: transactionId,
 			transactionDataType: 'file',
 			transactionFileId: me.fileId,
-			authReadOnly: readOnly
+			readOnly: readOnly
 		}) ;
 		me.optimaModule.createWindow({
 			title: (editDetails.isNew? 'New':'#'+editDetails.filerecordId)+' ('+me.fileId+')',

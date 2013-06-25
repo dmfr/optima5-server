@@ -792,7 +792,7 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 			transactionID: transactionId,
 			transactionDataType: 'bible',
 			transactionBibleId: me.bibleId,
-			authReadOnly: readOnly
+			readOnly: readOnly
 		}) ;
 		me.optimaModule.createWindow({
 			title: (editDetails.isNew? 'New':'#'+editDetails.biblerecordId)+' ('+me.bibleId+')',

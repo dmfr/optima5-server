@@ -47,35 +47,42 @@ Ext.define('Optima5.Modules.CrmBase.DataFormPanelGmap' ,{
 						scope: me
 					}
 				}
-			},
-					  
-			tbar : [{
-				xtype:'textfield',
-				flex:1,
-				listeners : {
-					change: function( field ) {
-						field.clearInvalid() ;
-					},
-					specialkey: function(field, e){
-						if (e.getKey() == e.ENTER) {
-							field.up().up().addrSearch() ;
+			}
+		});
+		
+		if( !this.readOnly ) {
+			Ext.apply(this,{
+				tbar : [{
+					xtype:'textfield',
+					flex:1,
+					listeners : {
+						change: function( field ) {
+							field.clearInvalid() ;
+						},
+						specialkey: function(field, e){
+							if (e.getKey() == e.ENTER) {
+								field.up().up().addrSearch() ;
+							}
 						}
 					}
-				}
-			},{
-				xtype:'button',
-				text: 'Apply',
-				handler : function(button,event) {
-					me.addrSearch() ;
-				},
-				scope : me
-			}]
-		});
+				},{
+					xtype:'button',
+					text: 'Apply',
+					handler : function(button,event) {
+						me.addrSearch() ;
+					},
+					scope : me
+				}]
+			});
+		}
 		
 		this.callParent() ;
 	},
 			  
 	addrSearch :  function() {
+		if( this.readOnly ) {
+			return ;
+		}
 		var textfield = this.getDockedItems('toolbar')[0].query('textfield')[0] ;
 		var gmappanel = this.query('gmappanel')[0] ;
 		var me = this ;

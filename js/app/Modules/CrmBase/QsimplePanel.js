@@ -177,10 +177,12 @@ Ext.define('Optima5.Modules.CrmBase.QsimplePanel' ,{
 						border:false,
 						items:[Ext.create('Optima5.Modules.CrmBase.QuerySubpanelWhere', {
 							title:'Where',
+							border:false,
 							optimaModule: me.optimaModule,
 							whereFields: ajaxParams.data_wherefields
 						}),Ext.create('Optima5.Modules.CrmBase.QuerySubpanelProgress',{
 							title:'Progress',
+							border:false,
 							optimaModule: me.optimaModule,
 							progressFields: ajaxParams.data_progressfields,
 							hidden: (ajaxParams.data_progressfields.length == 0)? true:false

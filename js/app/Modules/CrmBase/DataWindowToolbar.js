@@ -81,7 +81,7 @@ Ext.define('Optima5.Modules.CrmBase.DataWindowToolbar' ,{
 		this.callParent() ;
 	},
 	
-	reconfigure: function( ajaxData ) {
+	reconfigure: function( ajaxData, authStatus ) {
 		var me = this ;
 		
 		// menu File
@@ -104,10 +104,10 @@ Ext.define('Optima5.Modules.CrmBase.DataWindowToolbar' ,{
 		
 		var optionsMenu = me.child('#options') ;
 		optionsMenu.menu.hide() ;
-		if( ajaxData.auth_status != null && ajaxData.auth_status.disableAdmin ) {
-			optionsMenu.setVisible(true) ;
-		} else {
+		if( authStatus != null && authStatus.disableAdmin ) {
 			optionsMenu.setVisible(false) ;
+		} else {
+			optionsMenu.setVisible(true) ;
 		}
 		optionsMenu.menu.child('#toggle-android').setChecked( ajaxData.isPublished, true ) ;
 		if( ajaxData.isPublished ) {

@@ -102,16 +102,19 @@ Ext.define('Optima5.Modules.CrmBase.DataFormPanelGallery',{
 								},
 								scope : me
 							});
-							contextMenuItems.push('-') ;
-							contextMenuItems.push({
-								iconCls: 'icon-bible-delete',
-								text: 'Delete photo',
-								handler : function() {
-									me.deleteItem(record.get('_media_id')) ;
-								},
-								scope : me
-							});
-
+							
+							if( !me.readOnly ) {
+								contextMenuItems.push('-') ;
+								contextMenuItems.push({
+									iconCls: 'icon-bible-delete',
+									text: 'Delete photo',
+									handler : function() {
+										me.deleteItem(record.get('_media_id')) ;
+									},
+									scope : me
+								});
+							}
+							
 							var contextMenu = Ext.create('Ext.menu.Menu',{
 								items : contextMenuItems
 							}) ;
@@ -128,40 +131,43 @@ Ext.define('Optima5.Modules.CrmBase.DataFormPanelGallery',{
 						scope:me
 					}
 				}
-			}],
-			dockedItems: [{
-				xtype: 'form',
-				dock: 'top',
-				frame: true,
-				defaults: {
-						anchor: '100%',
-						allowBlank: false,
-						msgTarget: 'side',
-						labelWidth: 50
-				},
-				//bodyPadding: '0 0 0 0',
-				items: [{
-					xtype: 'filefield',
-					width: 450,
-					emptyText: 'Select an image',
-					fieldLabel: 'Photo',
-					name: 'photo-filename',
-					buttonText: '',
-					buttonConfig: {
-						iconCls: 'upload-icon'
-					},
-					listeners: {
-						change: {
-							fn: me.doUpload,
-							scope:me
-						}
-					}
-				}]
 			}]
 		}) ;
 		
 		
-		
+		if( !me.readOnly ) {
+			Ext.apply(me,{
+				dockedItems: [{
+					xtype: 'form',
+					dock: 'top',
+					frame: true,
+					defaults: {
+							anchor: '100%',
+							allowBlank: false,
+							msgTarget: 'side',
+							labelWidth: 50
+					},
+					//bodyPadding: '0 0 0 0',
+					items: [{
+						xtype: 'filefield',
+						width: 450,
+						emptyText: 'Select an image',
+						fieldLabel: 'Photo',
+						name: 'photo-filename',
+						buttonText: '',
+						buttonConfig: {
+							iconCls: 'upload-icon'
+						},
+						listeners: {
+							change: {
+								fn: me.doUpload,
+								scope:me
+							}
+						}
+					}]
+				}]
+			});
+		}
 		
 		
 		

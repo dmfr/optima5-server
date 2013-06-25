@@ -165,7 +165,7 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 				me.bibleId = ajaxData.define_bible.bible_code ;
 				
 				me.setTitle( me.optimaModule.getWindowTitle( ajaxData.define_bible.text ) ) ;
-				me.child('#tbar').reconfigure( ajaxData.define_bible ) ;
+				me.child('#tbar').reconfigure( ajaxData.define_bible, ajaxData.auth_status ) ;
 				if( !toolbarOnly ) {
 					me.child('#biblePanel').reconfigure( me.bibleId, ajaxData ) ;
 				}
@@ -177,7 +177,7 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 				}
 				
 				me.setTitle( me.optimaModule.getWindowTitle( ajaxData.define_file.text ) ) ;
-				me.child('#tbar').reconfigure( ajaxData.define_file ) ;
+				me.child('#tbar').reconfigure( ajaxData.define_file, ajaxData.auth_status ) ;
 				if( !toolbarOnly ) {
 					me.child('#filePanel').reconfigure( me.fileId, ajaxData ) ;
 				}

@@ -16,7 +16,7 @@ Ext.define('Optima5.Modules.CrmBase.DataFormPanel' ,{
 	],
 			  
 	transactionID: null,
-	authReadOnly: false,
+	readOnly: false,
 	
 	initComponent: function() {
 		var me = this ;
@@ -39,9 +39,9 @@ Ext.define('Optima5.Modules.CrmBase.DataFormPanel' ,{
 				defaults: {minWidth: 100},
 				items: [
 					{ xtype: 'component', flex: 1 },
-					{ xtype: 'button', text: 'Save' , handler:me.onSave, scope:me , hidden:me.authReadOnly },
-					{ xtype: 'button', text: 'Cancel' , handler:me.onAbort , scope:me , hidden:me.authReadOnly },
-					{ xtype: 'button', text: 'Close' , handler:me.onAbort , scope:me , hidden:!me.authReadOnly }
+					{ xtype: 'button', text: 'Save' , handler:me.onSave, scope:me , hidden:me.readOnly },
+					{ xtype: 'button', text: 'Cancel' , handler:me.onAbort , scope:me , hidden:me.readOnly },
+					{ xtype: 'button', text: 'Close' , handler:me.onAbort , scope:me , hidden:!me.readOnly }
 				]
 			}]
 		});
@@ -91,6 +91,11 @@ Ext.define('Optima5.Modules.CrmBase.DataFormPanel' ,{
 					checked:(v.value==v.inputValue)
 				});
 			}
+			
+			if( me.readOnly ) {
+				v.readOnly = true ;
+			}
+			
 			formitems.push( v );
 		}) ;
 		var formconfig = new Object();
@@ -115,7 +120,8 @@ Ext.define('Optima5.Modules.CrmBase.DataFormPanel' ,{
 				title:'Adr/GMap',
 				itemId:'gmap',
 				optimaModule: me.optimaModule,
-				transactionID : me.transactionID
+				transactionID : me.transactionID,
+				readOnly: me.readOnly
 			}) ;
 			tabitems.push( gmaptab ) ;
 		}
@@ -259,7 +265,8 @@ Ext.define('Optima5.Modules.CrmBase.DataFormPanel' ,{
 			title:cfgsubfile.file_lib,
 			itemId: cfgsubfile.file_code,
 			columns : columns,
-			data:cfgsubfile.data
+			data:cfgsubfile.data,
+			readOnly: me.readOnly
 		}) ;
 		return objCfg ;
 	},
@@ -278,7 +285,8 @@ Ext.define('Optima5.Modules.CrmBase.DataFormPanel' ,{
 			optimaModule: me.optimaModule,
 			transactionID : me.transactionID,
 			title:cfgsubfile.file_lib,
-			itemId: cfgsubfile.file_code
+			itemId: cfgsubfile.file_code,
+			readOnly: me.readOnly
 		}) ;
 		return objCfg ;
 	},
