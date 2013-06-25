@@ -25,11 +25,6 @@ Ext.define('Ext.ux.dams.EmbeddedGrid',{
 		}) ;
 		
 		
-		
-		this.rowEditing = Ext.create('Ext.grid.plugin.RowEditing');
-		this.rowEditing.on('canceledit',this.onCancelEdit,this) ;
-		
-		
 		// creation du store uniquement !!
 		this.linkstore = Ext.create('Ext.data.Store', {
 			autoLoad: false,
@@ -37,40 +32,48 @@ Ext.define('Ext.ux.dams.EmbeddedGrid',{
 			model: this.modelname,
 			data: this.data || []
 		}) ;
-		
-		
 		Ext.apply(this,{
-			plugins: [this.rowEditing],
 			// frame: true,
 			//minHeight:300,
-			store: this.linkstore,
-			dockedItems: [{
-				xtype: 'toolbar',
-				items: [{
-					text: 'Add',
-					iconCls: 'icon-add',
-					handler: function(){
-						var newRecordIndex = ( this.getSelectedRowIndex() + 1 ) ;
-						
-						this.linkstore.insert(newRecordIndex, Ext.create(this.modelname) );
-						this.rowEditing.startEdit(newRecordIndex, 0);
-					},
-					scope: this
-				}, '-', {
-					itemId: 'delete',
-					text: 'Delete',
-					iconCls: 'icon-delete',
-					disabled: true,
-					handler: function(){
-						var selection = this.getView().getSelectionModel().getSelection()[0];
-						if (selection) {
-							this.linkstore.remove(selection);
-						}
-					},
-					scope: this
+			store: this.linkstore
+		}) ;
+		
+		if( !this.readOnly ) {
+			this.rowEditing = Ext.create('Ext.grid.plugin.RowEditing');
+			this.rowEditing.on('canceledit',this.onCancelEdit,this) ;
+			Ext.apply(this,{
+				plugins: [this.rowEditing]
+			}) ;
+			Ext.apply(this,{
+				dockedItems: [{
+					xtype: 'toolbar',
+					items: [{
+						text: 'Add',
+						iconCls: 'icon-add',
+						handler: function(){
+							var newRecordIndex = ( this.getSelectedRowIndex() + 1 ) ;
+							
+							this.linkstore.insert(newRecordIndex, Ext.create(this.modelname) );
+							this.rowEditing.startEdit(newRecordIndex, 0);
+						},
+						scope: this
+					}, '-', {
+						itemId: 'delete',
+						text: 'Delete',
+						iconCls: 'icon-delete',
+						disabled: true,
+						handler: function(){
+							var selection = this.getView().getSelectionModel().getSelection()[0];
+							if (selection) {
+								this.linkstore.remove(selection);
+							}
+						},
+						scope: this
+					}]
 				}]
-			}]
-		});
+			});
+		}
+		
 		
 		this.getSelectionModel().on('selectionchange', function(selModel, selections){
 			this.down('#delete').setDisabled(selections.length === 0);

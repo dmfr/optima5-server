@@ -33,13 +33,15 @@ Ext.define('Ext.ux.form.field.DateTime', {
                 xtype: 'datefield',
                 format: 'Y-m-d',
                 width: 100 ,
-		isFormField: false
+                readOnly: this.readOnly,
+                isFormField: false
             },this.dateCfg),
             Ext.apply({
                 xtype: 'timefield',
                 format: 'H:i',
                 width: 80,
-		isFormField: false
+                readOnly: this.readOnly,
+                isFormField: false
             },this.timeCfg)
         ]
     },
