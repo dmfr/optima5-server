@@ -79,7 +79,7 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelGroup' ,{
 				dataIndex: 'field_code',
 				flex:1,
 				renderer: function( value, metaData, record ) {
-					return me.getQueryPanel().getTreeStore().getNodeById(record.get('field_code')).get('field_text_full') ;
+					return me.getQueryPanel().getQueryPanelTreeStore().getNodeById(record.get('field_code')).get('field_text_full') ;
 				}
 			},{
 				menuDisabled: true ,
@@ -222,7 +222,7 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelGroup' ,{
 			case 'link' :
 				mform = Ext.create('Optima5.Modules.CrmBase.QueryGroupFormBible',{
 					bibleId: record.get('field_linkbible') ,
-					bibleMapNode: me.getQueryPanel().getTreeStore().getNodeById( record.get('field_code') ),
+					bibleMapNode: me.getQueryPanel().getQueryPanelTreeStore().getNodeById( record.get('field_code') ),
 					frame:true
 				}) ;
 				break ;

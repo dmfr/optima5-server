@@ -213,7 +213,7 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelSelect' ,{
 					
 					
 					var treeRecord ;
-					if( treeRecord = me.getQueryPanel().getTreeStore().getNodeById(value) ) {
+					if( treeRecord = me.getQueryPanel().getQueryPanelTreeStore().getNodeById(value) ) {
 						switch( treeRecord.get('field_type') ) {
 							case 'file' :
 							case 'link' :
