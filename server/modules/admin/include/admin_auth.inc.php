@@ -218,6 +218,10 @@ function admin_auth_getSdomainActionsTree( $post_data ) {
 	$query = "SELECT query_id , query_name FROM {$db_name}.query" ;
 	$result = $_opDB->query($query);
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		if( in_array($arr['query_id'],$arr_nested_query_id) ) {
+			continue ;
+		}
+		
 		$entry = array() ;
 		$entry['text'] = $arr['query_name'] ;
 		$entry['icon'] = 'images/op5img/'.'ico_process_16.gif' ;
@@ -231,6 +235,10 @@ function admin_auth_getSdomainActionsTree( $post_data ) {
 	$query = "SELECT qmerge_id , qmerge_name FROM {$db_name}.qmerge" ;
 	$result = $_opDB->query($query);
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		if( in_array($arr['qmerge_id'],$arr_nested_qmerge_id) ) {
+			continue ;
+		}
+		
 		$entry = array() ;
 		$entry['text'] = $arr['qmerge_name'] ;
 		$entry['icon'] = 'images/op5img/'.'ico_filechild_16.gif' ;
