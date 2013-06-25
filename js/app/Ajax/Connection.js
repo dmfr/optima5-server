@@ -31,7 +31,7 @@ Ext.define('Optima5.Ajax.Connection',{
 		Ext.apply(options,{
 			callback: function(options,success,result) {
 				if( success==true ) {
-					var jsonData ;
+					var jsonData, jSuccess=false ;
 					try{
 						var responseText = ( result.responseText != null ? result.responseText : '' ) ;
 						jsonData = Ext.decode(responseText);
@@ -42,14 +42,17 @@ Ext.define('Optima5.Ajax.Connection',{
 						
 						if( jsonData.authDenied == true ) {
 							Ext.MessageBox.alert('Error!', 'Permission denied !');
-							Ext.callback(options.cacheFailure, options.scope, [result, options]);
-							return ;
+						} else {
+							jSuccess=true ;
 						}
-						
-						Ext.callback(options.cacheSuccess, options.scope, [result, options]);
 					}
 					catch(e){
 						Ext.MessageBox.alert('Error!', 'Data returned is not valid!'+"\n"+result.responseText);
+					}
+					
+					if( jSuccess ) {
+						Ext.callback(options.cacheSuccess, options.scope, [result, options]);
+					} else {
 						Ext.callback(options.cacheFailure, options.scope, [result, options]);
 					}
 				}
