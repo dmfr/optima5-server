@@ -40,6 +40,60 @@ Ext.define('Optima5.Modules.CrmBase.QsimplePanel' ,{
 		
 		me.callParent() ;
 	},
+	queryOpen: function( queryId ) {
+		var me = this ;
+		me.qType = 'query' ;
+		
+		var ajaxParams = new Object() ;
+		Ext.apply( ajaxParams, {
+			_action: me.getAjaxAction(),
+			_subaction: 'init',
+			query_id: queryId,
+			is_new: 'false'
+		});
+		me.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams ,
+			success: function(response) {
+				if( Ext.decode(response.responseText).success == false ) {
+					Ext.Msg.alert('Failed', 'Failed');
+				}
+				else {
+					me.query_id = queryId ;
+					me.query_name = Ext.decode(response.responseText).query_name ;
+					me.transaction_id = Ext.decode(response.responseText).transaction_id ;
+					me.addComponents( Ext.decode(response.responseText) ) ;
+				}
+			},
+			scope: this
+		});
+	},
+	qmergeOpen: function( qmergeId ) {
+		var me = this ;
+		me.qType = 'qmerge' ;
+		
+		var ajaxParams = new Object() ;
+		Ext.apply( ajaxParams, {
+			_action: me.getAjaxAction(),
+			_subaction: 'init',
+			qmerge_id: qmergeId,
+			is_new: 'false'
+		});
+		me.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams ,
+			success: function(response) {
+				if( Ext.decode(response.responseText).success == false ) {
+					Ext.Msg.alert('Failed', 'Failed');
+				}
+				else {
+					me.qmerge_id = qmergeId ;
+					me.qmerge_name = Ext.decode(response.responseText).qmerge_name ;
+					me.transaction_id = Ext.decode(response.responseText).transaction_id ;
+					me.addComponents( Ext.decode(response.responseText) ) ;
+				}
+			},
+			scope: this
+		});
+	},
 	qwebOpen: function( qwebId ) {
 		var me = this ;
 		me.qType = 'qweb' ;
@@ -73,25 +127,130 @@ Ext.define('Optima5.Modules.CrmBase.QsimplePanel' ,{
 		me.removeAll();
 		
 		me.transaction_id = ajaxParams.transaction_id ;
-		if( ajaxParams.qweb_id && ajaxParams.qweb_id > 0 ) {
-			me.qweb_id = ajaxParams.qweb_id ;
-			me.qweb_name =  ajaxParams.qweb_name ;
+		switch( me.qType ) {
+			case 'qweb' :
+				if( ajaxParams.qweb_id && ajaxParams.qweb_id > 0 ) {
+					me.qweb_id = ajaxParams.qweb_id ;
+					me.qweb_name =  ajaxParams.qweb_name ;
+					
+					me.add([{
+						xtype:'component',
+						height:80,
+						tpl:me.headerTpl,
+						data:{
+							title: me.qweb_name,
+							caption: 'Specify condition parameters below, then click "Run"'
+						}
+					},Ext.create('Optima5.Modules.CrmBase.QwebSubpanelQwhere', {
+						optimaModule: me.optimaModule,
+						qwhereFields: ajaxParams.qweb_qwherefields,
+						flex:1 ,
+						border:false
+					})]);
+				}
+				break ;
+			
+			case 'query' :
+				if( ajaxParams.query_id && ajaxParams.query_id > 0 ) {
+					me.query_id = ajaxParams.query_id ;
+					me.query_name =  ajaxParams.query_name ;
+					
+					// *** Création d'attributs/propriétés muettes
+					//     pour simuler le fonctionnement d'un "vrai" QueryPanel
+					me.treestore = Ext.create('Ext.data.TreeStore',{
+						model: 'QueryFieldsTreeModel',
+						nodeParam: 'field_code',
+						root: ajaxParams.treefields_root
+					});
+					
+					me.add([{
+						xtype:'component',
+						height:80,
+						tpl:me.headerTpl,
+						data:{
+							title: me.query_name,
+							caption: 'Specify condition parameters below, then click "Run"'
+						}
+					},{
+						xtype:'tabpanel',
+						flex:1,
+						border:false,
+						items:[Ext.create('Optima5.Modules.CrmBase.QuerySubpanelWhere', {
+							title:'Where',
+							optimaModule: me.optimaModule,
+							whereFields: ajaxParams.data_wherefields
+						}),Ext.create('Optima5.Modules.CrmBase.QuerySubpanelProgress',{
+							title:'Progress',
+							optimaModule: me.optimaModule,
+							progressFields: ajaxParams.data_progressfields,
+							hidden: (ajaxParams.data_progressfields.length == 0)? true:false
+						})]
+					}]);
+				}
+				break ;
+			
+			case 'qmerge' :
+				if( ajaxParams.qmerge_id && ajaxParams.qmerge_id > 0 ) {
+					me.qmerge_id = ajaxParams.qmerge_id ;
+					me.qmerge_name =  ajaxParams.qmerge_name ;
+					
+					// *** Création d'attributs/propriétés muettes
+					//     pour simuler le fonctionnement d'un "vrai" QmergePanel
+					me.bibleQueriesStore = Ext.create('Ext.data.Store',{
+						autoLoad: true,
+						autoSync: true,
+						model: 'QmergeQueryModel',
+						data : ajaxParams.bible_queries,
+						proxy: {
+							type: 'memory' ,
+							reader: {
+									type: 'json'
+							},
+							writer: {
+								type:'json',
+								writeAllFields: true
+							}
+						}
+					}) ;
+					me.bibleFilesTreefields = {} ;
+					Ext.Object.each( ajaxParams.bible_files_treefields, function(k,v) {
+						var treestore = Ext.create('Ext.data.TreeStore',{
+							model: 'QueryFieldsTreeModel',
+							nodeParam: 'field_code',
+							root: v
+						});
+						
+						me.bibleFilesTreefields[k] = treestore ;
+					},me) ;
+					
+					
+					me.add([{
+						xtype:'component',
+						height:80,
+						tpl:me.headerTpl,
+						data:{
+							title: me.qmerge_name,
+							caption: 'Specify condition parameters below, then click "Run"'
+						}
+					},Ext.create('Optima5.Modules.CrmBase.QmergeSubpanelMwhere', {
+						optimaModule: me.optimaModule,
+						parentQmergePanel: me,
+						mwhereStore: Ext.create('Ext.data.Store',{
+							autoLoad: true,
+							sortOnLoad: false,
+							sortOnFilter: false,
+							model: 'QmergeMwhereModel',
+							data : ajaxParams.qmerge_mwherefields , //me.mwhereFields
+							proxy: {
+								type: 'memory'
+							}
+						}),
+						flex:1 ,
+						border:false
+					})]);
+				}
+				break ;
 		}
-		
-		me.add([{
-			xtype:'component',
-			height:80,
-			tpl:me.headerTpl,
-			data:{
-				title: me.qweb_name,
-				caption: 'Specify condition parameters below, then click "Run"'
-			}
-		},Ext.create('Optima5.Modules.CrmBase.QwebSubpanelQwhere', {
-			optimaModule: me.optimaModule,
-			qwhereFields: ajaxParams.qweb_qwherefields,
-			flex:1 ,
-			border:false
-		})]);
 	},
 	
 	getAjaxAction: function() {
@@ -104,6 +263,10 @@ Ext.define('Optima5.Modules.CrmBase.QsimplePanel' ,{
 			case 'qweb' :
 				return 'queries_qwebTransaction' ;
 		}
+	},
+	getQueryPanelTreeStore: function() { // Fn bidon pour simuler le fonctionnement d'un "vrai" QueryPanel
+		var me = this ;
+		return me.treestore ;
 	},
 	remoteAction: function( actionCode, actionParam ) {
 		var me = this ;
@@ -149,8 +312,9 @@ Ext.define('Optima5.Modules.CrmBase.QsimplePanel' ,{
 				break ;
 				
 			case 'qmerge' :
+				var mwhereStore = me.query('op5crmbaseqmergemwhere')[0].mwhereStore ;
 				var mwhereStoreData = [] ;
-				var mwhereStoreRecords = me.mwhereStore.getRange();
+				var mwhereStoreRecords = mwhereStore.getRange();
 				for (var i = 0; i < mwhereStoreRecords.length; i++) {
 					saveObj = {} ;
 					Ext.apply( saveObj, mwhereStoreRecords[i].data ) ;

@@ -20,7 +20,7 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 	
 	qwebId:null,
 	
-	authReadOnly: false,
+	forceQsimple: false,
 	
 	getQcfg: function() {
 		var me = this ;
@@ -68,8 +68,8 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 			case 'query' :
 				if( me.queryId > 0 || me.queryNewFileId != '' ) {
 					panelClass = 'Optima5.Modules.CrmBase.QueryPanel' ;
-					if( me.authReadOnly ) {
-						//panelClass = 'Optima5.Modules.CrmBase.QsimplePanel' ;
+					if( me.forceQsimple ) {
+						panelClass = 'Optima5.Modules.CrmBase.QsimplePanel' ;
 					}
 					Ext.apply(me,{
 						items:[Ext.create(panelClass,{
@@ -97,8 +97,8 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 			case 'qmerge' :
 				if( me.qmergeId || me.qmergeNew ) {
 					panelClass = 'Optima5.Modules.CrmBase.QmergePanel' ;
-					if( me.authReadOnly ) {
-						//panelClass = 'Optima5.Modules.CrmBase.QsimplePanel' ;
+					if( me.forceQsimple ) {
+						panelClass = 'Optima5.Modules.CrmBase.QsimplePanel' ;
 					}
 					Ext.apply(me,{
 						items:[Ext.create(panelClass,{

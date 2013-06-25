@@ -10,6 +10,10 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanel' ,{
 		if( typeof objPanel !== 'undefined' ) {
 			return objPanel ;
 		}
+		var objPanel = this.up('op5crmbaseqsimple') ;
+		if( typeof objPanel !== 'undefined' ) {
+			return objPanel ;
+		}
 		return null ;
 	},
 			  

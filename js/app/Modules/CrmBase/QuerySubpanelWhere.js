@@ -74,7 +74,7 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelWhere' ,{
 				flex:1,
 				dataIndex: 'field_code',
 				renderer: function( value, metaData, record ) {
-					return me.getQueryPanel().getTreeStore().getNodeById(record.get('field_code')).get('field_text_full') ;
+					return me.getQueryPanel().getQueryPanelTreeStore().getNodeById(record.get('field_code')).get('field_text_full') ;
 				}
 			},{
 				header: 'Clause',

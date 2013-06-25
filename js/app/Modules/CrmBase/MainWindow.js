@@ -516,7 +516,7 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 		return me.openQwindow({
 			qType: 'query',
 			queryId: queryId,
-			authReadOnly: readOnly
+			forceQsimple: readOnly
 		});
 	},
 	openQmergeNew: function() {
@@ -531,7 +531,7 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 		return me.openQwindow({
 			qType: 'qmerge',
 			qmergeId: qmergeId,
-			authReadOnly: readOnly
+			forceQsimple: readOnly
 		});
 	},
 	openQweb: function( qwebId, readOnly ) {
@@ -539,7 +539,7 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 		return me.openQwindow({
 			qType: 'qweb',
 			qwebId: qwebId,
-			authReadOnly: readOnly
+			forceQsimple: readOnly
 		});
 	},
 	openQwindow: function( qCfg ) {

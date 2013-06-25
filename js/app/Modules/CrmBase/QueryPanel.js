@@ -207,7 +207,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryPanel' ,{
 			me.loadMask.hide() ;
 		}
 	},
-	getTreeStore: function() {
+	getQueryPanelTreeStore: function() {
 		var me = this ;
 		
 		return me.query('>treepanel')[0].getStore() ;
