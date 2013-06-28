@@ -16,7 +16,7 @@ else
 
 if(TRUE)
 {
-	$_POST['_domainId'] = 'wonderful' ;
+	$_POST['_domainId'] = 'wonderful_prod' ;
 	$_POST['_moduleId'] = 'crmbase' ;
 	$_POST['_sdomainId'] = 'fdvfr' ;
 }
@@ -29,8 +29,8 @@ if( !$domain || !$sdomain_id )
 
 session_start() ;
 
-$_SESSION['login_data']['mysql_db'] = 'op5_'.$domain.'_prod' ;
-$_SESSION['login_data']['login_domain'] = $domain."_prod" ;
+$_SESSION['login_data']['mysql_db'] = 'op5_'.$domain ;
+$_SESSION['login_data']['login_domain'] = $domain ;
 
 include("$server_root/include/config.inc.php");
 include("$server_root/include/toolfunctions.inc.php");

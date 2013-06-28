@@ -26,6 +26,7 @@ function do_fallback() {
 		$thumb_get = "true" ;
 	}
 	
+	$_GET['_domainId'] = $_SESSION['login_data']['login_domain'] ;
 	$getUrl = $GLOBALS['media_fallback_url']."?".http_build_query($_GET) ;
 	
 	if( $_GET['download'] === true || $_GET['download'] == 'true' )

@@ -9,7 +9,7 @@ include("$server_root/include/config.inc.php");
 include("$server_root/modules/media/include/media.inc.php");
 
 
-$domain = 'paramount_prod' ;
+$domain = $_GET['_domainId'] ;
 $sdomain_id = $_GET['_sdomainId'] ;
 
 if( !$domain || !$sdomain_id || !$_GET['media_id'] )
