@@ -4,10 +4,12 @@ Ext.Loader.setConfig({
 	paths: {
 		'Ext': './extjs/src', 
 		'Ext.ux' : './js/ux',
+		'Ext.calendar' : './js/ext/calendar',
 		'Optima5' : './js/app'
 		}
 });
 Ext.require('Ext.*') ;
+Ext.require('Ext.calendar.CalendarPanel') ;
 Ext.require('Optima5.App');
 
 var op5desktop, op5session ;
