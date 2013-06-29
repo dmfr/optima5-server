@@ -543,7 +543,7 @@ td.ext-cal-dtitle-today div {
 
 .ext-cal-spl,
 .ext-cal-spr {
-/*    background-image:url(../images/default/calendar-sprites.gif);
+/*    background-image:url(../images/calendar/calendar-sprites.gif);
     background-repeat:no-repeat;
     display: inline-block;
     height: 15px;
@@ -566,7 +566,7 @@ td.ext-cal-dtitle-today div {
 
 /* Generic calendar icons */
 .ext-cal-ic {
-    background-image:url(../images/default/calendar-sprites.gif);
+    background-image:url(../images/calendar/calendar-sprites.gif);
     background-repeat:no-repeat;
     display:inline-block;
     height:11px;
@@ -803,7 +803,7 @@ td.ext-cal-dtitle-today div {
     border-color: #99BBE8;
 }
 .ext-cal-nav-picker .x-datepicker-header {
-    background: #D3E1F1 url(../images/default/bg.gif) repeat-x;
+    background: #D3E1F1 url(../images/calendar/bg.gif) repeat-x;
 }
 .ext-cal-nav-picker .x-datepicker-month,
 .ext-cal-nav-picker .x-datepicker-prev,
@@ -811,10 +811,10 @@ td.ext-cal-dtitle-today div {
     background: transparent;
 }
 .ext-cal-nav-picker .x-datepicker-prev a {
-    background-image: url(../images/default/page-prev.gif);
+    background-image: url(../images/calendar/page-prev.gif);
 }
 .ext-cal-nav-picker .x-datepicker-next a {
-    background-image: url(../images/default/page-next.gif);
+    background-image: url(../images/calendar/page-next.gif);
 }
 .ext-cal-nav-picker .x-datepicker-month {
     padding: 3px 0;
@@ -825,7 +825,7 @@ td.ext-cal-dtitle-today div {
     font-family: arial,tahoma,verdana,helvetica;
 }
 .ext-cal-nav-picker .x-datepicker-month .x-btn-split-right {
-    background-image: url(../images/default/arrow.gif) !important;
+    background-image: url(../images/calendar/arrow.gif) !important;
     background-position: right 4px;
 }
 .ext-cal-nav-picker .x-datepicker-inner {
@@ -846,7 +846,7 @@ td.ext-cal-dtitle-today div {
     left: 0 !important;
 }
 .ext-cal-nav-picker .x-datepicker-footer {
-    background: #D3E1F1 url(../images/default/bg.gif) repeat-x;
+    background: #D3E1F1 url(../images/calendar/bg.gif) repeat-x;
 }
 
 /*******************************************
@@ -864,7 +864,7 @@ td.ext-cal-dtitle-today div {
     border-bottom: 1px solid #99BBE8;
 }
 .ext-evt-edit-form .x-panel-header {
-    background: transparent url(../images/default/ext-cal-edit-hd.png) repeat-x;
+    background: transparent url(../images/calendar/ext-cal-edit-hd.png) repeat-x;
     padding: 9px 0 4px !important;
     font-size: 13px !important;
     font-family: helvetica, arial, sans-serif;
