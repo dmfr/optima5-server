@@ -5,6 +5,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 		'Optima5.Modules.CrmBase.DataFormPanel',
 		'Optima5.Modules.CrmBase.FilePanelGmap',
 		'Optima5.Modules.CrmBase.FilePanelGallery',
+		'Optima5.Modules.CrmBase.FilePanelCalendar',
 		'Ext.ux.grid.FiltersFeature',
 		'Optima5.Modules.CrmBase.BibleFilter',
 		'Optima5.Modules.CrmBase.BibleTreeFilter'
@@ -103,6 +104,20 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 			activeItem : 0,
 			//resizable : true ,
 			items: [this.gridpanel,{
+				xtype:'op5crmbasefilecalendar',
+				panelType: 'calendar',
+				store:this.gridstore,
+				fileId: this.fileId,
+				gridCfg: ajaxData,
+				listeners: {
+					openfile: {
+						fn:function(filerecordid) {
+							this.editRecordUpdate(filerecordid) ;
+						},
+						scope:this
+					}
+				}
+			},{
 				xtype:'op5crmbasefilegmap',
 				panelType: 'gmap',
 				store:this.gridstore,

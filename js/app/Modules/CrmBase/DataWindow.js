@@ -201,6 +201,7 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 			case 'view' :
 				switch( menuItemId ) {
 					case 'grid' :
+					case 'calendar' :
 					case 'gallery' :
 					case 'gmap' :
 						var viewmode = menuItemId ;

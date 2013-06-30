@@ -114,6 +114,9 @@
 .op5-crmbase-datatoolbar-view-gallery {
 	background-image: url("../images/modules/crmbase-camera-16.png") !important;
 }
+.op5-crmbase-datatoolbar-view-calendar {
+	background-image: url("../images/modules/crmbase-calendar-16.png") !important;
+}
 .op5-crmbase-datatoolbar-options {
 	background-image: url("../images/modules/crmbase-config-16.gif") !important;
 }
