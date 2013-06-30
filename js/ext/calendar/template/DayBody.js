@@ -10,7 +10,7 @@
  * @param {Object} config The config object
  */
 Ext.define('Ext.calendar.template.DayBody', {
-    extend: 'Ext.XTemplate',
+    extend: 'Ext.calendar.template.XTemplate',
     
     constructor: function(config){
         

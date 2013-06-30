@@ -12,7 +12,7 @@
  * @param {Object} config The config object
  */
 Ext.define('Ext.calendar.template.DayHeader', {
-    extend: 'Ext.XTemplate',
+    extend: 'Ext.calendar.template.XTemplate',
     
     requires: ['Ext.calendar.template.BoxLayout'],
     
