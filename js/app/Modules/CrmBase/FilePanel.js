@@ -6,6 +6,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 		'Optima5.Modules.CrmBase.FilePanelGmap',
 		'Optima5.Modules.CrmBase.FilePanelGallery',
 		'Optima5.Modules.CrmBase.FilePanelCalendar',
+		'Optima5.Modules.CrmBase.FilePanelCalendarExample',
 		'Ext.ux.grid.FiltersFeature',
 		'Optima5.Modules.CrmBase.BibleFilter',
 		'Optima5.Modules.CrmBase.BibleTreeFilter'
@@ -22,6 +23,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 		}
 		
 		this.gridpanel = Ext.create('Ext.grid.Panel',{
+			border:false,
 			store: {
 				fields: ['dummy'],
 				data  : [{
@@ -35,6 +37,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 		
 		this.mainview = Ext.create('Ext.panel.Panel',{
 			flex: 1,
+			border:false,
 			layout: {
 				type: 'card',
 				align: 'stretch'
@@ -90,11 +93,13 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 		this.gridstore = this.reconfigureDataBuildStore( ajaxData ) ;
 		this.gridpanel = this.reconfigureDataBuildGrid( ajaxData, this.gridstore ) ;
 		Ext.apply(this.gridpanel,{
-			panelType: 'grid'
+			panelType: 'grid',
+			border:false
 		}) ;
 		
 		this.mainview  = Ext.create('Ext.panel.Panel',{
 			flex: 2,
+			border:false,
 			layout: {
 				type: 'card',
 				align: 'stretch',
@@ -105,6 +110,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 			//resizable : true ,
 			items: [this.gridpanel,{
 				xtype:'op5crmbasefilecalendar',
+				border:false,
 				panelType: 'calendar',
 				store:this.gridstore,
 				fileId: this.fileId,
@@ -119,6 +125,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 				}
 			},{
 				xtype:'op5crmbasefilegmap',
+				border:false,
 				panelType: 'gmap',
 				store:this.gridstore,
 				fileId: this.fileId,
@@ -133,6 +140,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 				}
 			},{
 				xtype:'op5crmbasefilegallery',
+				border:false,
 				optimaModule: me.optimaModule,
 				panelType: 'gallery',
 				store:this.gridstore,

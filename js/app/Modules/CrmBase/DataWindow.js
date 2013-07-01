@@ -27,6 +27,7 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 					Ext.apply(me,{
 						items:[Ext.create('Optima5.Modules.CrmBase.BiblePanel',{
 							itemId:'biblePanel',
+							border: false,
 							optimaModule: me.optimaModule
 						})]
 					}) ;
@@ -39,6 +40,7 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 					Ext.apply(me,{
 						items:[Ext.create('Optima5.Modules.CrmBase.FilePanel',{
 							itemId:'filePanel',
+							border: false,
 							optimaModule: me.optimaModule
 						})]
 					}) ;
@@ -53,6 +55,7 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 		}
 		
 		Ext.apply(me,{
+			border: false,
 			tbar: Ext.create('Optima5.Modules.CrmBase.DataWindowToolbar',{
 				itemId:'tbar',
 				optimaModule: me.optimaModule,

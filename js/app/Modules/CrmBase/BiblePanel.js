@@ -17,6 +17,7 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 		}
 		
 		this.gridpanel = Ext.create('Ext.grid.Panel',{
+			border:false,
 			store: {
 				fields: ['dummy'],
 				data  : [{
@@ -30,6 +31,7 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 		
 		this.mainview = Ext.create('Ext.panel.Panel',{
 			flex: 1,
+			border:false,
 			layout: {
 				type: 'card',
 				align: 'stretch'
@@ -82,16 +84,22 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 		this.removeAll() ;
 		
 		this.treegrid  = this.reconfigureDataBuildTree( ajaxData ) ;
+		Ext.apply(this.treegrid,{
+			border:true,
+			flex: 1
+		});
 		
 		this.gridstore = this.reconfigureDataBuildGridStore( ajaxData ) ;
 		
 		this.gridpanel = this.reconfigureDataBuildGrid( ajaxData , this.gridstore ) ;
 		Ext.apply(this.gridpanel,{
-			panelType: 'grid'
+			panelType: 'grid',
+			border:false
 		});
 		
 		this.mainview  = Ext.create('Ext.panel.Panel',{
 			flex: 2,
+			border:true,
 			layout: {
 				type: 'card',
 				align: 'stretch',
@@ -102,6 +110,7 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 			//resizable : true ,
 			items: [this.gridpanel,{
 				xtype:'op5crmbasebiblegmap',
+				border:false,
 				panelType: 'gmap',
 				store:this.gridstore,
 				bibleId: this.bibleId
@@ -215,7 +224,6 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 		
 		var treegrid = Ext.create('Ext.tree.Panel',{
 			store: treestore,
-			flex: 1,
 			collapsible: false,
 			useArrows: false,
 			rootVisible: true,
