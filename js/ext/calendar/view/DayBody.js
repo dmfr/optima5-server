@@ -184,13 +184,13 @@ Ext.define('Ext.calendar.view.DayBody', {
         if (!this.eventTpl) {
             this.eventTpl = !(Ext.isIE || Ext.isOpera) ?
             new Ext.XTemplate(
-                '<div id="{_elId}" class="{_selectorCls} {_colorCls} ext-cal-evt ext-cal-evr" style="left: {_left}%; width: {_width}%; top: {_top}px; height: {_height}px;">',
+                '<div id="{_elId}" class="{_selectorCls} ext-cal-evt ext-cal-evr {_doneCls}" style="left: {_left}%; width: {_width}%; top: {_top}px; height: {_height}px; background-color:{_colorHex};">',
                 '<div class="ext-evt-bd">', this.getEventBodyMarkup(), '</div>',
                 '<div class="ext-evt-rsz"><div class="ext-evt-rsz-h">&#160;</div></div>',
                 '</div>'
             )
             : new Ext.XTemplate(
-                '<div id="{_elId}" class="ext-cal-evt {_selectorCls} {_colorCls}-x" style="left: {_left}%; width: {_width}%; top: {_top}px;">',
+                '<div id="{_elId}" class="ext-cal-evt ext-cal-evt-done {_selectorCls} {_doneCls}" style="left: {_left}%; width: {_width}%; top: {_top}px; background-color:{_colorHex};">',
                 '<div class="ext-cal-evb">&#160;</div>',
                 '<dl style="height: {_height}px;" class="ext-cal-evdm">',
                 '<dd class="ext-evt-bd">',
@@ -224,13 +224,13 @@ Ext.define('Ext.calendar.view.DayBody', {
 
             tpl = !(Ext.isIE || Ext.isOpera) ?
             new Ext.XTemplate(
-                '<div id="{_elId}" class="{_selectorCls} {_colorCls} {spanCls} ext-cal-evt ext-cal-evr" style="left: {_left}%; width: {_width}%; top: {_top}px; height: {_height}px;">',
+                '<div id="{_elId}" class="{_selectorCls} {spanCls} ext-cal-evt ext-cal-evr {_doneCls}" style="left: {_left}%; width: {_width}%; top: {_top}px; height: {_height}px; background:{_colorHex};">',
                 body,
                 '</div>'
             )
             : new Ext.XTemplate(
-                '<div id="{_elId}" class="ext-cal-evt" style="left: {_left}%; width: {_width}%; top: {_top}px; height: {_height}px;">',
-                '<div class="{_selectorCls} {spanCls} {_colorCls} ext-cal-evo">',
+                '<div id="{_elId}" class="ext-cal-evt {_doneCls}" style="left: {_left}%; width: {_width}%; top: {_top}px; height: {_height}px; background:{_colorHex};">',
+                '<div class="{_selectorCls} {spanCls} ext-cal-evo">',
                 '<div class="ext-cal-evm">',
                 '<div class="ext-cal-evi">',
                 body,
@@ -253,10 +253,11 @@ Ext.define('Ext.calendar.view.DayBody', {
         this.getTemplateEventBox(evt);
 
         data._selectorCls = selector;
-        data._colorCls = 'ext-color-' + (evt[M.CalendarId.name] || '0') + (evt._renderAsAllDay ? '-ad': '');
+        data._colorHex = ( evt[M.ColorHex.name] ? ( evt[M.ColorHex.name].charAt(0)=='#' ? evt[M.ColorHex.name] : '#'+evt[M.ColorHex.name] ) : '#000000' ) ;
         data._elId = selector + (evt._weekIndex ? '-' + evt._weekIndex: '');
         data._isRecurring = evt.Recurrence && evt.Recurrence != '';
         data._isReminder = evt[M.Reminder.name] && evt[M.Reminder.name] != '';
+		  data._doneCls = evt[M.IsDone.name] ? 'ext-evt-done' : '' ;
         var title = evt[M.Title.name];
         data.Title = (evt[M.IsAllDay.name] ? '': Ext.Date.format(evt[M.StartDate.name], 'g:ia ')) + (!title || title.length == 0 ? '(No title)': title);
 

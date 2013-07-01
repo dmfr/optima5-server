@@ -603,8 +603,22 @@ td.ext-cal-dtitle-today div {
 .ext-evt-over,
 /* IE/Opera: */
 .ext-evt-over .ext-cal-evm {
-    opacity: .8;
-    filter: alpha(opacity=80);
+    opacity: .5;
+    filter: alpha(opacity=50);
+}
+
+/* Event done style */
+.ext-evt-done {
+  background-color: transparent;
+  background-size: 20px 20px;
+  background-image:
+     -webkit-repeating-linear-gradient(-45deg, white, white 1px, transparent 1px, transparent 14px);
+  background-image:
+     -moz-repeating-linear-gradient(-45deg, white, white 1px, transparent 1px, transparent 14px);
+  background-image:
+     -o-repeating-linear-gradient(-45deg, white, white 1px, transparent 1px, transparent 14px);
+  background-image:
+     repeating-linear-gradient(-45deg, white, white 1px, transparent 1px, transparent 14px);
 }
 
 /* Calendar Picker */

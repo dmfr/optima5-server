@@ -221,18 +221,18 @@ Ext.define('Ext.calendar.view.Month', {
 
             tpl = !(Ext.isIE || Ext.isOpera) ?
             new Ext.XTemplate(
-                '<div id="{_elId}" class="{_selectorCls} {_colorCls} {spanCls} ext-cal-evt ext-cal-evr">',
+                '<div id="{_elId}" class="{_selectorCls} {_doneCls} {spanCls} ext-cal-evt ext-cal-evr" style="background-color:{_colorHex};">',
                     body,
                 '</div>'
             )
             : new Ext.XTemplate(
                 '<tpl if="_renderAsAllDay">',
-                    '<div id="{_elId}" class="{_selectorCls} {spanCls} {_colorCls} ext-cal-evt ext-cal-evo">',
+                    '<div id="{_elId}" class="{_selectorCls} {_doneCls} {spanCls} ext-cal-evt ext-cal-evo" style="background-color:{_colorHex};">',
                         '<div class="ext-cal-evm">',
                             '<div class="ext-cal-evi">',
                 '</tpl>',
                 '<tpl if="!_renderAsAllDay">',
-                    '<div id="{_elId}" class="{_selectorCls} {_colorCls} ext-cal-evt ext-cal-evr">',
+                    '<div id="{_elId}" class="{_selectorCls} {_doneCls} ext-cal-evt ext-cal-evr" style="background-color:{_colorHex};">',
                 '</tpl>',
                     body,
                 '<tpl if="_renderAsAllDay">',
@@ -255,12 +255,12 @@ Ext.define('Ext.calendar.view.Month', {
 
         return Ext.applyIf({
             _selectorCls: selector,
-            _colorCls: 'ext-color-' + (evt[M.CalendarId.name] ?
-            evt[M.CalendarId.name] : 'default') + (evt._renderAsAllDay ? '-ad': ''),
+            _colorHex: ( evt[M.ColorHex.name] ? ( evt[M.ColorHex.name].charAt(0)=='#' ? evt[M.ColorHex.name] : '#'+evt[M.ColorHex.name] ) : '#000000' ),
             _elId: selector + '-' + evt._weekIndex,
             _isRecurring: evt.Recurrence && evt.Recurrence != '',
             _isReminder: evt[M.Reminder.name] && evt[M.Reminder.name] != '',
-            Title: (evt[M.IsAllDay.name] ? '' : Ext.Date.format(evt[M.StartDate.name], 'g:ia ')) + (!title || title.length == 0 ? '(No title)' : title)
+            Title: (evt[M.IsAllDay.name] ? '' : Ext.Date.format(evt[M.StartDate.name], 'g:ia ')) + (!title || title.length == 0 ? '(No title)' : title),
+            _doneCls: (evt[M.IsDone.name] ? 'ext-evt-done' : '' )
         },
         evt);
     },

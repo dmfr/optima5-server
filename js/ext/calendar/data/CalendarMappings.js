@@ -9,7 +9,7 @@ Ext.calendar.data.CalendarMappings = {
     CalendarId: {
         name:    'CalendarId',
         mapping: 'id',
-        type:    'int'
+        type:    'auto'
     },
     Title: {
         name:    'Title',
@@ -21,10 +21,10 @@ Ext.calendar.data.CalendarMappings = {
         mapping: 'desc',   
         type:    'string' 
     },
-    ColorId: {
-        name:    'ColorId',
-        mapping: 'color',
-        type:    'int'
+    ColorHex: {
+        name:    'ColorHex',
+        mapping: 'color_hex6',
+        type:    'string'
     },
     IsHidden: {
         name:    'IsHidden',

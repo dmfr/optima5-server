@@ -9,12 +9,17 @@ Ext.calendar.data.EventMappings = {
     EventId: {
         name: 'EventId',
         mapping: 'id',
-        type: 'int'
+        type: 'auto'
     },
     CalendarId: {
         name: 'CalendarId',
         mapping: 'cid',
-        type: 'int'
+        type: 'auto'
+    },
+    ColorHex: {
+        name: 'ColorHex',
+        mapping: 'color_hex6',
+        type: 'string'
     },
     Title: {
         name: 'Title',
@@ -61,6 +66,11 @@ Ext.calendar.data.EventMappings = {
     IsNew: {
         name: 'IsNew',
         mapping: 'n',
+        type: 'boolean'
+    },
+    IsDone: {
+        name: 'IsDone',
+        mapping: 'done',
         type: 'boolean'
     }
 };
