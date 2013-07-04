@@ -14,13 +14,21 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 	
 	rotatingColors:['#306da6','#86a723','#b6a980'],
 	
+	/**
+	* @cfg {Number} startDay
+	* The 0-based index for the day on which the calendar week begins (0=Sunday, which is the default)
+	*/
+	startDay: 0,
+	
 	// forward (ajax)config from FilePanel
 	gridCfg: null,
 	
 	// private property
 	accountIsOn: false,
 	accountsSelected: [],
-	dataFilerecordsCache: [],
+	dataCacheDateMinEnd: null,
+	dataCacheDateMaxStart: null,
+	dataCacheArray: [],
 	
 	initComponent: function() {
 		var me = this ;
@@ -72,7 +80,14 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 				layout:'fit',
 				border:false,
 				region:'center',
+				dayViewCfg: {
+					startDay: me.startDay // start on Monday
+				},
+				weekViewCfg: {
+					startDay: me.startDay // start on Monday
+				},
 				monthViewCfg: {
+					startDay: me.startDay, // start on Monday
 					showHeader: true,
 					showWeekLinks: true,
 					showWeekNumbers: true
@@ -87,6 +102,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 								// will be null when switching to the event edit form so ignore
 								this.getComponent('calendar-west').getComponent('calendar-nav-datepicker').setValue(dateInfo.activeDate);
 								this.updateTitle(dateInfo.viewStart, dateInfo.viewEnd);
+								this.onDateChange(dateInfo.viewStart, dateInfo.viewEnd);
 							}
 						},
 						scope: this
@@ -104,6 +120,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 				border: true,
 				items: [{
 					xtype: 'datepicker',
+					startDay: me.startDay,
 					itemId: 'calendar-nav-datepicker',
 					cls: 'ext-cal-nav-picker',
 					listeners: {
@@ -159,7 +176,14 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 		me.addCls('op5-crmbase-filecalendar-panel') ;
 		
 		me.callParent() ;
-		
+		me.on('afterrender',function() {
+			Ext.defer(function() {
+				me.loadMask = new Ext.LoadMask( me.getComponent('calendar-center').getEl() ) ;
+				if( me.loading ) {
+					me.loadMask.show() ;
+				}
+			},10,me);
+		},me);
 		if( !me.gridCfg.define_file.calendar_cfg ) {
 			return ;
 		}
@@ -176,8 +200,13 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 		if( !me.gridCfg.define_file.calendar_cfg.account_is_on ) {
 			accountsStore.loadData([]) ;
 			accountsGridCmp.setVisible(false) ;
+			
+			me.accountIsOn = false ;
+			
 			return ;
 		}
+		
+		me.accountIsOn = true ;
 		
 		/*
 		 * Constitution de la liste des accounts :
@@ -277,14 +306,164 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 	/*
 	 * Data
 	 */
-	onViewChange: function() {
+	onDateChange: function(dateStart, dateEnd) {
+		//console.dir(dateStart) ;
+		//console.dir(dateEnd) ;
+		
+		var me = this,
+			dateMinEnd = Ext.Date.clearTime(dateStart),
+			dateMaxStart = Ext.Date.clearTime(dateEnd) ,
+			doLoad = false ;
+			
+		if( me.dataCacheDateMinEnd == null && me.dataCacheDateMaxStart == null ) {
+			doLoad = true ;
+		} else if( me.dataCacheDateMinEnd > dateMinEnd || me.dataCacheDateMaxStart < dateMaxStart ) {
+			doLoad = true ;
+		}
+		if( doLoad ) {
+			me.fetchEvents( dateMinEnd, dateMaxStart ) ;
+		} else {
+			//me.buildEvents() ;
+		}
 		
 	},
-	fetchEvents: function() {
+	fetchEvents: function( dateMinEnd, dateMaxStart ) {
+		var me = this ;
+		if( me.loadMask ) {
+			me.loadMask.show() ;
+		} else {
+			me.loading = true ;
+		}
 		
+		var fileCode = me.gridCfg.define_file.file_code,
+			startFileField = me.gridCfg.define_file.calendar_cfg.eventstart_filefield ,
+			endFileField = me.gridCfg.define_file.calendar_cfg.eventend_filefield ,
+			startField,
+			endField ;
+		Ext.Array.each( me.gridCfg.grid_fields, function( gridField ) {
+			if( gridField.file_code != fileCode ) {
+				return ;
+			}
+			if( gridField.file_field == startFileField ) {
+				startField = gridField.field ;
+			}
+			if( gridField.file_field == endFileField ) {
+				endField = gridField.field ;
+			}
+		},me) ;
+		
+		var ajaxParams = {
+			_action: 'data_getFileGrid_data',
+			file_code: fileCode,
+			filter: Ext.JSON.encode([{
+				type: 'date',
+				comparison: 'gt',
+				field: endField ,
+				value: Ext.Date.format(dateMinEnd,'Y-m-d')
+			},{
+				type: 'date',
+				comparison: 'lt',
+				field: startField ,
+				value: Ext.Date.format(dateMaxStart,'Y-m-d')
+			}])
+		};
+		me.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams,
+			success: function(response) {
+				var ajaxData = Ext.decode(response.responseText) ;
+				if( ajaxData.success == false ) {
+					return ;
+				}
+				if( Ext.isArray(ajaxData.data) ) {
+					me.dataCacheArray = ajaxData.data ;
+					me.dataCacheDateMinEnd = dateMinEnd ;
+					me.dataCacheDateMaxStart = dateMaxStart ;
+				}
+				me.buildEvents() ;
+			},
+			scope: me
+		}) ;
 	},
 	buildEvents: function() {
+		var me = this ;
 		
+		var calendarCfg = me.gridCfg.define_file.calendar_cfg,
+			fileCode = me.gridCfg.define_file.file_code,
+			accountFileField = ( calendarCfg.account_is_on ? calendarCfg.account_filefield : null),
+			isDoneFileField = calendarCfg.eventstatus_filefield ,
+			colorFileField = ( calendarCfg.color_is_fixed ? calendarCfg.color_filefield : null),
+			accountField,
+			isDoneField,
+			colorField,
+			startFileField = calendarCfg.eventstart_filefield ,
+			endFileField = calendarCfg.eventend_filefield ,
+			startField,
+			endField ;
+		Ext.Array.each( me.gridCfg.grid_fields, function( gridField ) {
+			if( gridField.file_code != fileCode ) {
+				return ;
+			}
+			if( accountFileField != null && gridField.file_field == accountFileField 
+					&& gridField.link_bible_is_key==true && gridField.link_bible_type=='entry' ) {
+				accountField = gridField.field ;
+			}
+			if( isDoneFileField != null && gridField.file_field == isDoneFileField ) {
+				isDoneField = gridField.field ;
+			}
+			if( colorFileField != null && gridField.file_field == colorFileField ) {
+				colorField = gridField.field ;
+			}
+			
+			if( gridField.file_field == startFileField ) {
+				startField = gridField.field ;
+			}
+			if( gridField.file_field == endFileField ) {
+				endField = gridField.field ;
+			}
+		},me) ;
+		
+		if( me.accountIsOn ) {
+			var accountsMap = {} ;
+			for( var i=0 ; i<me.accountsSelected.length ; i++ ) {
+				var eKey = me.accountsSelected[i] ;
+				accountsMap[eKey] = me.calendarStore.getById(eKey).get('ColorHex') ;
+			}
+		}
+		
+		var eventsData = [], fileRecord ;
+		for( var i=0 ; i<me.dataCacheArray.length ; i++ ) {
+			fileRecord = me.dataCacheArray[i] ;
+			
+			var evt = {
+				id: fileRecord.filerecord_id,
+				cid: null,
+				color_hex6: null,
+				title: 'Pouet',
+				start: Ext.Date.parse(fileRecord[startField], "Y-m-d H:i:s", true),
+				end: Ext.Date.parse(fileRecord[endField], "Y-m-d H:i:s", true),
+				done: true
+			}
+			
+			if( me.accountIsOn ) {
+				var accountKey = fileRecord[accountField] ;
+				if( typeof accountsMap[accountKey] === 'undefined' ) {
+					continue ;
+				}
+				evt['cid'] = accountKey ;
+				evt['color_hex6'] = accountsMap[accountKey] ;
+			}
+			
+			eventsData.push(evt) ;
+		}
+		me.eventStore.getProxy().data = eventsData ;
+		me.eventStore.load() ;
+		
+		Ext.defer(function() {
+			if( me.loadMask ) {
+				me.loadMask.hide() ;
+			}
+			me.loading = false ;
+		},200,me) ;
 	},
 	
 	/*
@@ -313,7 +492,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 		Ext.Array.each(selRecords, function( selRecord ) {
 			var eKey = selRecord.getId() ;
 			if( !Ext.Array.contains(previousSelKeys,eKey) ) {
-				var colorHex6 = me.rotatingColors[( previousSelKeys.length % (me.rotatingColors.length) )] ;
+				var colorHex6 = me.rotatingColors[( nbKeysSet % (me.rotatingColors.length) )] ;
 				if( colorHex6.charAt(0) == '#' ) {
 					colorHex6 = colorHex6.substr(1) ;
 				}

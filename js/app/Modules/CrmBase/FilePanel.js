@@ -115,6 +115,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 				optimaModule: me.optimaModule,
 				fileId: this.fileId,
 				gridCfg: ajaxData,
+				startDay: 1,  // 0-based index for the day, 1 = Monday
 				listeners: {
 					openfile: {
 						fn:function(filerecordid) {
