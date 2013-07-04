@@ -217,7 +217,15 @@ Ext.onReady(function () {
 	Ext.AbstractComponent.override({
 		afterComponentLayout: function(width, height, isSetSize, callingContainer) {
 			this.callOverridden(arguments) ;
-			this.onResize(width, height, this.preLayoutSize.width, this.preLayoutSize.height);
+			
+			var oldWidth = 0,
+				oldHeight = 0 ;
+			if( this.preLayoutSize ) {
+				oldWidth = this.preLayoutSize.width ;
+				oldHeight = this.preLayoutSize.height ;
+			}
+			
+			this.onResize(width, height, oldWidth, oldHeight);
 		}
 	});
 	
