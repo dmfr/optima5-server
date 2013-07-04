@@ -150,3 +150,14 @@
 .op5-crmbase-qtemplatewindow-icon {
 	background-image: url("../images/modules/crmbase-barschart-16.gif") !important;
 }
+
+/*
+ * Centered title 
+ */
+.op5-crmbase-filecalendar-panel > .x-panel-header {
+    font-size: 13px;
+    text-align: center;
+    padding-left: 178px;
+    font-family: helvetica, arial, sans-serif;
+    color: #455C6F;
+}

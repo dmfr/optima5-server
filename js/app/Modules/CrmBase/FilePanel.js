@@ -112,7 +112,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 				xtype:'op5crmbasefilecalendar',
 				border:false,
 				panelType: 'calendar',
-				store:this.gridstore,
+				optimaModule: me.optimaModule,
 				fileId: this.fileId,
 				gridCfg: ajaxData,
 				listeners: {
