@@ -143,7 +143,8 @@ Ext.define('Ext.calendar.CalendarPanel', {
         this.tbar.items.push('->');
 
         var idx = this.viewCount - 1;
-        this.activeItem = this.activeItem === undefined ? idx: (this.activeItem > idx ? idx: this.activeItem);
+        this.nextActive = this.activeItem === undefined ? idx: (this.activeItem > idx ? idx: this.activeItem);
+        this.activeItem = 0 ;
 
         if (this.showNavBar === false) {
             delete this.tbar;
@@ -273,6 +274,14 @@ Ext.define('Ext.calendar.CalendarPanel', {
 
         this.layout = 'card';
         // do not allow override
+        if (true) {
+            var wait = {
+                xtype: 'box',
+                cls: 'op5-waiting'
+            };
+
+            this.add(wait);
+        }
         if (this.showDayView) {
             var day = Ext.apply({
                 xtype: 'dayview',
@@ -374,6 +383,7 @@ Ext.define('Ext.calendar.CalendarPanel', {
         this.body.addCls('x-cal-body');
         
         Ext.defer(function() {
+            this.setActiveView( this.getLayout().getLayoutItems()[this.nextActive+1].id );
             this.updateNavState();
             this.fireViewChange();
         }, 10, this);
