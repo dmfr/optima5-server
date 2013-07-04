@@ -72,7 +72,7 @@ Ext.define('Ext.calendar.template.DayBody', {
         dt = Ext.Date.clearTime(new Date('5/26/1972'));
         
         for(i=0; i<24; i++){
-            times.push(Ext.Date.format(dt, 'ga'));
+            times.push(Ext.Date.format(dt, 'G')+':00');
             dt = Ext.calendar.util.Date.add(dt, {hours: 1});
         }
         

@@ -731,6 +731,10 @@ Ext.define('Ext.calendar.view.AbstractCalendar', {
             offset = start.getDay() - this.startDay,
             Dt = Ext.calendar.util.Date;
 
+        if( offset < 0 ) {
+            offset += 7 ;
+        }
+
         switch (this.weekCount) {
         case 0:
         case 1:
@@ -749,7 +753,7 @@ Ext.define('Ext.calendar.view.AbstractCalendar', {
             // start from current month start, not view start:
             var end = Dt.add(start, {months: 1, seconds: -1});
             // fill out to the end of the week:
-            this.viewEnd = Dt.add(end, {days: 6 - end.getDay()});
+            this.viewEnd = Dt.add(end, {days: 7 - end.getDay()});
             return;
 
         default:
