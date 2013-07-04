@@ -213,6 +213,13 @@ Ext.onReady(function () {
 			this.updateOperation.apply(this, arguments);
 		}
 	});
+	// Missing private "onResize" call in Ext 4.0.7
+	Ext.AbstractComponent.override({
+		afterComponentLayout: function(width, height, isSetSize, callingContainer) {
+			this.callOverridden(arguments) ;
+			this.onResize(width, height, this.preLayoutSize.width, this.preLayoutSize.height);
+		}
+	});
 	
 	
 	// onReady : bootstrap Optima app.

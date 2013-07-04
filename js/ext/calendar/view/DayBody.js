@@ -107,12 +107,12 @@ Ext.define('Ext.calendar.view.DayBody', {
         defer = defer || (Ext.isIE || Ext.isOpera);
         if (defer) {
             Ext.defer(function() {
-                this.el.scrollTo('top', y, true);
+                this.el.scrollTo('top', y, false);
                 this.scrollReady = true;
             }, 10, this);
         }
         else {
-            this.el.scrollTo('top', y, true);
+            this.el.scrollTo('top', y, false);
             this.scrollReady = true;
         }
     },
