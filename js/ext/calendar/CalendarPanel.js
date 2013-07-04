@@ -384,8 +384,8 @@ Ext.define('Ext.calendar.CalendarPanel', {
         
         Ext.defer(function() {
             this.setActiveView( this.getLayout().getLayoutItems()[this.nextActive+1].id );
-            this.updateNavState();
-            this.fireViewChange();
+            //this.updateNavState();
+            //this.fireViewChange();
         }, 10, this);
     },
 
