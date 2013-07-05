@@ -4,7 +4,7 @@ Ext.define('Optima5.Modules.CrmBase.MainWindowButton',{
 	
 	renderTpl:
 		'<em id="{id}-btnWrap" class="{splitCls}">' +
-			'<button id="{id}-btnEl" type="{type}" hidefocus="true" role="button" autocomplete="off">' +
+			'<button id="{id}-btnEl" type="{type}" class="{btnCls}" hidefocus="true" role="button" autocomplete="off">' +
 				'<span id="{id}-btnInnerEl" class="{baseCls}-inner" style="{innerSpanStyle}">' +
 					'<span id="{id}-btnInnerTextTitle" class="op5-crmmbase-mainwindowbtn-title">{textTitle}</span>' +
 					'&nbsp;&nbsp;' +
@@ -29,6 +29,10 @@ Ext.define('Optima5.Modules.CrmBase.MainWindowButton',{
 		
 		me.callParent() ;
 	},
+	afterRender: function() {
+		var me = this;
+		me.setComponentCls();
+	},
 	getTemplateArgs: function() {
 		var me = this ;
 		return Ext.apply(me.callParent(),{
@@ -50,7 +54,7 @@ Ext.define('Optima5.Modules.CrmBase.MainWindowButton',{
 			me.btnInnerTextTitle.update(me.textTitle || '&#160;');
 			me.btnInnerTextRedcount.update('(' + (me.textRedcount || '&#160;') + ')');
 			me.btnInnerTextCaption.update(me.textCaption || '&#160;');
-			me.setButtonCls();
+			me.setComponentCls();
 		}
 		me.doComponentLayout() ;
 	},
@@ -62,7 +66,7 @@ Ext.define('Optima5.Modules.CrmBase.MainWindowButton',{
 			caption: me.textCaption
 		} ;
 	},
-	setButtonCls: function() {
+	setComponentCls: function() {
 		var me = this ;
 		me.callParent() ;
 		if( me.textRedcount && me.textRedcount != '' ) {
