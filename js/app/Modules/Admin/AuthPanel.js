@@ -705,9 +705,9 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 		var strTitle = ( record == null ? 'New user account' : record.get('user_id')+' : '+record.get('user_fullname') ) ;
 		mformcontainer.setTitle( strTitle ) ;
 		mformcontainer.empty = false ;
-		mformcontainer.expand() ;
 		mformcontainer.removeAll() ;
 		mformcontainer.add(mform) ;
+		mformcontainer.expand() ;
 	},
 	editGroup: function( groupId, newSdomainId ) {
 		//console.log('Editing group '+groupId) ;
@@ -743,9 +743,9 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 		var strTitle = ( record == null ? 'New group' : record.get('group_name') ) ;
 		mformcontainer.setTitle( strTitle ) ;
 		mformcontainer.empty = false ;
-		mformcontainer.expand() ;
 		mformcontainer.removeAll() ;
 		mformcontainer.add(mform) ;
+		mformcontainer.expand() ;
 	},
 	
 	

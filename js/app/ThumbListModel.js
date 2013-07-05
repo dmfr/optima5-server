@@ -3,7 +3,7 @@ Ext.define('Optima5.ThumbListModel',{
 	idProperty: 'id',
 	fields: [
 		{name: 'id',  type:'string'},
-		{name: 'text',  type:'string'},
+		{name: 'title',  type:'string'},
 		{name: 'caption',    type:'string'},
 		{name: 'iconCls',type:'string'}
 	]

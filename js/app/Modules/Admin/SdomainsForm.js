@@ -196,7 +196,6 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 			}),{
 				xtype:'container',
 				padding: "24 0 0 0",
-				layout:'column',
 				items:[{
 					xtype: 'button',
 					padding: '0 16px',
@@ -381,7 +380,7 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 				xtype:'container',
 				itemId:'pCheckContainer',
 				padding: "24 0 8 0",
-				layout:'column',
+				layout:'hbox',
 				items:[{
 					xtype:'checkbox',
 					itemId:'pCheckbox'

@@ -3,7 +3,7 @@ Ext.define('AdminModuleItem',{
 	idProperty: 'id',
 	fields: [
 		{name: 'id',  type:'string'},
-		{name: 'text',  type:'string'},
+		{name: 'title',  type:'string'},
 		{name: 'caption',    type:'string'},
 		{name: 'iconClsSmall',type:'string'},
 		{name: 'iconClsBig',type:'string'},
