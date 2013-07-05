@@ -485,7 +485,7 @@ Ext.define('Optima5.App',{
 		var nbOpen = 0 ;
 		if( zmgr = this.desktop.getDesktopZIndexManager() ) {
 			zmgr.eachBottomUp(function(win) {
-				if( win.isWindow ) {
+				if( win.isWindow && !(win instanceof Ext.window.MessageBox) ) {
 					nbOpen++ ;
 				}
 			});
@@ -515,7 +515,7 @@ Ext.define('Optima5.App',{
 		if( zmgr = this.desktop.getDesktopZIndexManager() ) {
 			var tArr ;
 			zmgr.eachBottomUp(function(lwin) {
-				if( lwin.isWindow && lwin != win ) {
+				if( lwin.isWindow && !(lwin instanceof Ext.window.MessageBox) && lwin != win ) {
 					tArr = lwin.getPosition() ;
 					if( tArr[0] == newPosX ) {
 						newPosX += 30 ;
