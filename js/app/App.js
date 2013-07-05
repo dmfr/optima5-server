@@ -566,6 +566,7 @@ Ext.define('Optima5.App',{
 			moduleCfg.moduleParams[moduleParamRecord.get('paramCode')] = moduleParamRecord.get('paramValue') ;
 		}) ;
 		
+		Ext.menu.Manager.hideAll() ;
 		me.moduleLaunch(moduleCfg) ;
 	},
 	moduleLaunch: function( moduleCfg ) {
@@ -601,8 +602,6 @@ Ext.define('Optima5.App',{
 			return false ;
 		},me) ;
 		if( rejectLaunch ) {
-			Ext.menu.Manager.hideAll() ;
-			
 			// pop main window for moduleInstance
 			if( runningModuleInstance != null ) {
 				runningModuleInstance.eachWindow( function(win) {
