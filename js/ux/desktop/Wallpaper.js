@@ -34,6 +34,8 @@ Ext.define('Ext.ux.desktop.Wallpaper', {
 
     stretch: false,
     wallpaper: null,
+    stateful  : true,
+    stateId  : 'desk-wallpaper',
 
     afterRender: function () {
         var me = this;
@@ -84,6 +86,9 @@ Ext.define('Ext.ux.desktop.Wallpaper', {
             me.el.setStyle({
                 backgroundImage: bkgnd || ''
             });
+            if(me.stateful) {
+                me.saveState();
+            }
         }
         return me;
     }

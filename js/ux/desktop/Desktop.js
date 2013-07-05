@@ -36,8 +36,7 @@ Ext.define('Ext.ux.desktop.Desktop', {
         'Ext.window.Window',
 
         'Ext.ux.desktop.TaskBar',
-        'Ext.ux.desktop.Wallpaper',
-        'Ext.ux.desktop.FitAllLayout'
+        'Ext.ux.desktop.Wallpaper'
     ],
 
     activeWindowCls: 'ux-desktop-active-win',
@@ -46,7 +45,7 @@ Ext.define('Ext.ux.desktop.Desktop', {
 
     border: false,
     html: '&#160;',
-    layout: 'fitall',
+    layout: 'fit',
 
     xTickSize: 1,
     yTickSize: 1,
@@ -157,6 +156,10 @@ Ext.define('Ext.ux.desktop.Desktop', {
             trackOver: true,
             itemSelector: me.shortcutItemSelector,
             store: me.shortcuts,
+            style: {
+                position: 'absolute'
+            },
+            x: 0, y: 0,
             tpl: new Ext.XTemplate(me.shortcutTpl)
         };
     },
@@ -258,6 +261,7 @@ Ext.define('Ext.ux.desktop.Desktop', {
         var me = this, win = me.windowMenu.theWin;
 
         win.maximize();
+        win.toFront();
     },
 
     onWindowMenuMinimize: function () {
@@ -341,7 +345,7 @@ Ext.define('Ext.ux.desktop.Desktop', {
         });
 
         win.on({
-            afterrender: function () {
+            boxready: function () {
                 win.dd.xTickSize = me.xTickSize;
                 win.dd.yTickSize = me.yTickSize;
 
