@@ -12,9 +12,10 @@ Ext.define('Optima5.Modules.UxCalc.UxCalcModule', {
 		});
 		
 		var win = me.createWindow({
-			width:170,
-			height:280,
-			resizable:false,
+			layout:'auto',
+			width:197,
+			height:277,
+			resizable:true,
 			maximizable:false,
 			items:[calc],
 			listeners:{
