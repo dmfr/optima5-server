@@ -318,7 +318,7 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelSelect' ,{
 						items:[{
 							xtype:'textfield' ,
 							allowBlank: false,
-							regex: /^\s*\d+\s*$/ ,
+							regex: /^[0-9]\d*(\.\d+)?$/ ,
 							width:50
 						},{
 							xtype:'button',

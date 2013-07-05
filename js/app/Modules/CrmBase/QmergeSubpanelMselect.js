@@ -305,6 +305,10 @@ Ext.define('Optima5.Modules.CrmBase.QmergeSubpanelMselect' ,{
 				//dataIndex: 'math_fieldoperand',
 				flex:1 ,
 				renderer: function( value, metaData, record ) {
+					if( record.get('math_staticvalue') > 0 ) {
+						return 'STATIC(<u>'+record.get('math_staticvalue')+'</u>)' ;
+					}
+					
 					var queryId = record.get('math_operand_query_id') ;
 					var queryWherefieldIdx = record.get('math_operand_selectfield_idx') ;
 					
@@ -405,7 +409,7 @@ Ext.define('Optima5.Modules.CrmBase.QmergeSubpanelMselect' ,{
 						items:[{
 							xtype:'textfield' ,
 							allowBlank: false,
-							regex: /^\s*\d+\s*$/ ,
+							regex: /^[0-9]\d*(\.\d+)?$/ ,
 							width:50
 						},{
 							xtype:'button',
