@@ -571,11 +571,11 @@ function paracrm_queries_process_qmerge($arr_saisie, $debug=FALSE)
 			$cellValues = array() ;
 			foreach( $mselect_field['math_expression'] as $symbol_id => $symbol )
 			{
+				if( $symbol['math_operand_query_id'] ) {} else continue ;
+				
 				//initialement, toutes les valeurs recherchées sont inexistantes
 				$cellValues[$symbol_id] = FALSE ;
 			
-				if( $symbol['math_operand_query_id'] ) {} else continue ;
-				
 				$query_id = $symbol['math_operand_query_id'] ;
 				$selectfield_idx = $symbol['math_operand_selectfield_idx'] ;
 				
