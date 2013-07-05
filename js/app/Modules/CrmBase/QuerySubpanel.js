@@ -16,6 +16,11 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanel' ,{
 		}
 		return null ;
 	},
+	getParentId: function() {
+		if( this.getQueryPanel() ) {
+			return this.getQueryPanel().getId() ;
+		}
+	},
 			  
 	saveGetArray: function() {
 		var saveArr = [] ;

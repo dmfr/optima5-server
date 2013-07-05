@@ -153,7 +153,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryPanel' ,{
 						ptype: 'treeviewdragdrop',
 						enableDrag: true,
 						enableDrop: false,
-						ddGroup: 'TreeToGrids'
+						ddGroup: 'TreeToGrids'+me.getId()
 					}
 			}
 		}) ;

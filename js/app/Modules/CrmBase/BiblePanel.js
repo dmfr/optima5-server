@@ -242,7 +242,7 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 			viewConfig: {
 				plugins: {
 					ptype: 'treeviewdragdrop',
-					ddGroup:'setTreenode',
+					ddGroup:'setTreenode'+this.getId(),
 					enableDrag:false,
 					appendOnly:true,
 					allowParentInsert:false
@@ -470,7 +470,7 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 				}
 			},
 			viewConfig: {
-				plugins: { ptype: 'gridviewdragdrop', ddGroup:'setTreenode', enableDrop:false }
+				plugins: { ptype: 'gridviewdragdrop', ddGroup:'setTreenode'+this.getId(), enableDrop:false }
 			}
 		}) ;
 		

@@ -230,6 +230,13 @@ Ext.onReady(function () {
 	});
 	
 	
+	
+	/*
+	 * From ExtJS 4.1 : fix EXTJSIV-5383 bug in Ext.dd.DragDropManager
+	 */
+	
+	
+	
 	// onReady : bootstrap Optima app.
 	Ext.create('Optima5.App',{}) ;
 });

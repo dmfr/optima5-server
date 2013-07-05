@@ -352,7 +352,8 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelSelect' ,{
 				}]
 			}],
 			listeners: {
-				render: me.setFormulaRecordOnGridRender
+				render: me.setFormulaRecordOnGridRender,
+				scope: me
 			},
 			viewConfig: {
 					listeners: {
@@ -362,7 +363,7 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelSelect' ,{
 					},
 					plugins: {
 						ptype: 'gridviewdragdrop',
-						ddGroup: 'queryselectreorder'
+						ddGroup: 'queryselectreorder'+me.getParentId()
 					}
 			}
 		}) ;
@@ -378,7 +379,7 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelSelect' ,{
 		var gridPanelDropTargetEl =  grid.body.dom;
 
 		var gridPanelDropTarget = Ext.create('Ext.dd.DropTarget', gridPanelDropTargetEl, {
-			ddGroup: 'TreeToGrids',
+			ddGroup: 'TreeToGrids'+me.getParentId(),
 			notifyEnter: function(ddSource, e, data) {
 					//Add some flare to invite drop.
 					grid.body.stopAnimation();

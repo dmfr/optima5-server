@@ -341,7 +341,7 @@ Ext.define('Optima5.Modules.CrmBase.QmergePanel' ,{
 						ptype: 'treeviewdragdrop',
 						enableDrag: true,
 						enableDrop: false,
-						ddGroup: 'QueryToMqueries'
+						ddGroup: 'QueryToMqueries'+me.getId()
 					}
 			}
 		}) ;
@@ -403,7 +403,7 @@ Ext.define('Optima5.Modules.CrmBase.QmergePanel' ,{
 					ptype: 'treeviewdragdrop',
 					enableDrag: true,
 					enableDrop: false,
-					ddGroup: 'MqueriesToMpanels'
+					ddGroup: 'MqueriesToMpanels'+me.getId()
 				}
 			}
 		}) ;
@@ -433,7 +433,7 @@ Ext.define('Optima5.Modules.CrmBase.QmergePanel' ,{
 		var mqueryTreeDropTargetEl =  tree.body.dom;
 
 		var mqueryTreeDropTarget = Ext.create('Ext.dd.DropTarget', mqueryTreeDropTargetEl, {
-			ddGroup: 'QueryToMqueries',
+			ddGroup: 'QueryToMqueries'+me.getId(),
 			notifyEnter: function(ddSource, e, data) {
 					//Add some flare to invite drop.
 					tree.body.stopAnimation();

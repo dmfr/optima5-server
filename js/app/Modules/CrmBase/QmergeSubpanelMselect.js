@@ -85,7 +85,7 @@ Ext.define('Optima5.Modules.CrmBase.QmergeSubpanelMselect' ,{
 			viewConfig: {
 				plugins: {
 					ptype: 'gridviewdragdrop',
-					ddGroup: 'qmergemselectreorder'
+					ddGroup: 'qmergemselectreorder'+me.getParentId()
 				}
 			}
 		}) ;
@@ -439,7 +439,8 @@ Ext.define('Optima5.Modules.CrmBase.QmergeSubpanelMselect' ,{
 				}]
 			}],
 			listeners: {
-				render: me.setFormulaRecordOnGridRender
+				render: me.setFormulaRecordOnGridRender,
+				scope:me
 			},
 			viewConfig: {
 					listeners: {
@@ -449,7 +450,7 @@ Ext.define('Optima5.Modules.CrmBase.QmergeSubpanelMselect' ,{
 					},
 					plugins: {
 						ptype: 'gridviewdragdrop',
-						ddGroup: 'queryselectreorder'
+						ddGroup: 'queryselectreorder'+me.getParentId()
 					}
 			}
 		}) ;
@@ -465,7 +466,7 @@ Ext.define('Optima5.Modules.CrmBase.QmergeSubpanelMselect' ,{
 		var gridPanelDropTargetEl =  grid.body.dom;
 
 		var gridPanelDropTarget = Ext.create('Ext.dd.DropTarget', gridPanelDropTargetEl, {
-			ddGroup: 'MqueriesToMpanels',
+			ddGroup: 'MqueriesToMpanels'+me.getParentId(),
 			notifyEnter: function(ddSource, e, data) {
 					//Add some flare to invite drop.
 					grid.body.stopAnimation();

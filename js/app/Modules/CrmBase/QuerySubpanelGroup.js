@@ -119,7 +119,7 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelGroup' ,{
 			viewConfig: {
 				plugins: {
 					ptype: 'gridviewdragdrop',
-					ddGroup: 'querygroupreorder'
+					ddGroup: 'querygroupreorder'+me.getParentId()
 				}
 			}
 		}) ;
@@ -157,7 +157,7 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelGroup' ,{
 		var gridPanelDropTargetEl =  grid.body.dom;
 
 		var gridPanelDropTarget = Ext.create('Ext.dd.DropTarget', gridPanelDropTargetEl, {
-			ddGroup: 'TreeToGrids',
+			ddGroup: 'TreeToGrids'+me.getParentId(),
 			notifyEnter: function(ddSource, e, data) {
 					//Add some flare to invite drop.
 					grid.body.stopAnimation();

@@ -10,6 +10,11 @@ Ext.define('Optima5.Modules.CrmBase.QmergeSubpanel' ,{
 	getQmergePanel: function() {
 		return this.parentQmergePanel ;
 	},
+	getParentId: function() {
+		if( this.getQmergePanel() ) {
+			return this.getQmergePanel().getId() ;
+		}
+	},
 			  
 	saveGetArray: function() {
 		var saveArr = [] ;
