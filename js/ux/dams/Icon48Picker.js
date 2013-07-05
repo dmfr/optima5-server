@@ -13,16 +13,15 @@ Ext.define('Ext.ux.dams.Icon48Picker',{
 	requires: ['Ext.XTemplate','Ext.grid.Panel'], 
 
 	fieldSubTpl:
+		'<div id={id}>'+
 		'<button id="{cmpId}-btnEl" type="{type}" hidefocus="true" role="button" autocomplete="off" class="ux-icon48picker">' +
 			'<div id="{cmpId}-btnIconEl" class="ux-icon48picker-icon {iconCls}"></div>' +
 		'</button>' +
-		'<div id="{id}" type="{type}"></div>' +
-		'<div id="{cmpId}-triggerWrap" class="{triggerWrapCls}" role="presentation">' +
-			//'{triggerEl}' +
 		'</div>',
 	
 	isFormField: true,
 	submitValue: true,
+	hideTrigger: true,
 	
 	clsValue : '' ,
 	idxValue : '' ,
@@ -124,21 +123,27 @@ Ext.define('Ext.ux.dams.Icon48Picker',{
 	},
 	
 	
-	setValue: function( idxValue ) {
+	getRawValue: function() {
 		var me = this ;
-		
+		return me.idxValue ;
+	},
+	setRawValue: function( idxValue ) {
+		var me = this ;
+		if( idxValue==null ) {
+			idxValue = '' ;
+		}
 		me.idxValue = idxValue ;
 		
 		if( !me.rendered ) {
 			me.on('afterrender',function() {
-				me.setValueRendered() ;
+				me.renderValue() ;
 			},me,{single:true}) ;
 			return ;
 		}
 		
-		me.setValueRendered() ;
+		me.renderValue() ;
 	},
-	setValueRendered: function() {
+	renderValue: function() {
 		var me = this ;
 		
 		if( me.clsValue != '' ) {
@@ -152,10 +157,6 @@ Ext.define('Ext.ux.dams.Icon48Picker',{
 		}
 		me.clsValue = record.get('iconCls') ;
 		me.btnIconEl.addCls(me.clsValue) ;
-	},
-	getValue: function() {
-		var me = this ;
-		return me.idxValue ;
 	},
 	getSubmitData: function() {
 		var value = this.getValue() ;
