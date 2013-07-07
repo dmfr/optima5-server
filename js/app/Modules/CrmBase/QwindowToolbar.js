@@ -83,21 +83,21 @@ Ext.define('Optima5.Modules.CrmBase.QwindowToolbar',{
 	},
 	onItemClick:function( item ) {
 		var menuItem = item ;
-		var toolbarButton = item.up().floatParent ;
+		var toolbarButton = item.up().ownerButton ;
 		
 		var me = this ;
 		me.fireEvent('toolbaritemclick',toolbarButton.itemId,menuItem.itemId,null) ;
 	},
 	onCheckItemChange: function( checkItem, checked ) {
 		var menuItem = checkItem ;
-		var toolbarButton = checkItem.up().floatParent ;
+		var toolbarButton = checkItem.up().ownerButton ;
 		
 		var me = this ;
 		me.fireEvent('toolbaritemclick',toolbarButton.itemId,menuItem.itemId,checked) ;
 	},
 	onItemMenuSubmit:function( item, input ) {
 		var menuItem = item ;
-		var toolbarButton = item.up().floatParent ;
+		var toolbarButton = item.up().ownerButton ;
 		
 		var me = this ;
 		me.fireEvent('toolbaritemclick',toolbarButton.itemId,menuItem.itemId,input) ;
