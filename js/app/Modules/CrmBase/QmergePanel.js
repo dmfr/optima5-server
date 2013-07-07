@@ -328,14 +328,6 @@ Ext.define('Optima5.Modules.CrmBase.QmergePanel' ,{
 					expanded:true
 				}
 			},
-			listeners: {
-				scrollershow: function(scroller) {
-					if (scroller && scroller.scrollEl) {
-						scroller.clearManagedListeners(); 
-						scroller.mon(scroller.scrollEl, 'scroll', scroller.onElScroll, scroller); 
-					}
-				}
-			},
 			viewConfig: {
 					plugins: {
 						ptype: 'treeviewdragdrop',
@@ -366,12 +358,6 @@ Ext.define('Optima5.Modules.CrmBase.QmergePanel' ,{
 				}
 			},
 			listeners: {
-				scrollershow: function(scroller) {
-					if (scroller && scroller.scrollEl) {
-						scroller.clearManagedListeners(); 
-						scroller.mon(scroller.scrollEl, 'scroll', scroller.onElScroll, scroller); 
-					}
-				},
 				itemcontextmenu: function(view, record, item, index, event) {
 					treeContextMenuItems = new Array() ;
 					if( record.get('query_id') > 0 ) {

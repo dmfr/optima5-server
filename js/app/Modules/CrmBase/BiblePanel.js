@@ -231,14 +231,6 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 			singleExpand: false,
 			// viewConfig:{toggleOnDblClick: false},
 			columns: treeColumns,
-			listeners: {
-				scrollershow: function(scroller) {
-					if (scroller && scroller.scrollEl) {
-						scroller.clearManagedListeners(); 
-						scroller.mon(scroller.scrollEl, 'scroll', scroller.onElScroll, scroller); 
-					}
-				}
-			},
 			viewConfig: {
 				plugins: {
 					ptype: 'treeviewdragdrop',
@@ -458,14 +450,6 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 				dock: 'bottom',
 				displayInfo: true
 			}],
-			listeners: {
-				scrollershow: function(scroller) {
-					if (scroller && scroller.scrollEl) {
-						scroller.clearManagedListeners(); 
-						scroller.mon(scroller.scrollEl, 'scroll', scroller.onElScroll, scroller); 
-					}
-				}
-			},
 			viewConfig: {
 				plugins: { ptype: 'gridviewdragdrop', ddGroup:'setTreenode'+this.getId(), enableDrop:false }
 			}

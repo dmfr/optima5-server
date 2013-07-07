@@ -207,16 +207,7 @@ Ext.define('Optima5.Modules.Admin.AuthGroupForm' ,{
 					checkchange: me.onTreeCheck,
 					scope:me
 				}
-			})],
-			listeners: {
-				scrollershow: function(scroller) {
-					if (scroller && scroller.scrollEl) {
-						scroller.clearManagedListeners(); 
-						scroller.mon(scroller.scrollEl, 'scroll', scroller.onElScroll, scroller); 
-					}
-				},
-				scope:me
-			}
+			})]
 		}) ;
 		
 		me.removeAll() ;

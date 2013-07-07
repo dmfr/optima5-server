@@ -118,12 +118,6 @@ Ext.define('Optima5.Modules.Admin.SdomainsPanel',{
 					itemclick:function( view, record, item, index, event ) {
 						me.setFormpanelRecord( record ) ;
 					},
-					scrollershow: function(scroller) {
-						if (scroller && scroller.scrollEl) {
-							scroller.clearManagedListeners(); 
-							scroller.mon(scroller.scrollEl, 'scroll', scroller.onElScroll, scroller); 
-						}
-					},
 					scope:me
 				}
 			},{

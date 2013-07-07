@@ -172,14 +172,6 @@ Ext.define('Optima5.Modules.CrmBase.BibleFilter', {
 			columns: me.myColumns,
 			height: 250,
 			width:400,
-			listeners: {
-				scrollershow: function(scroller) {
-					if (scroller && scroller.scrollEl) {
-						scroller.clearManagedListeners(); 
-						scroller.mon(scroller.scrollEl, 'scroll', scroller.onElScroll, scroller); 
-					}
-				}
-			},
 			selModel: Ext.create('Ext.selection.CheckboxModel',{
 				mode: 'MULTI',
 				checkOnly: true,

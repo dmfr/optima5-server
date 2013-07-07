@@ -191,12 +191,6 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 							}) ;
 							treeContextMenu.showAt(event.getXY());
 						},
-						scrollershow: function(scroller) {
-							if (scroller && scroller.scrollEl) {
-								scroller.clearManagedListeners(); 
-								scroller.mon(scroller.scrollEl, 'scroll', scroller.onElScroll, scroller); 
-							}
-						},
 						scope:me
 					},
 					viewConfig: {
@@ -282,12 +276,6 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 								items : treeContextMenuItems
 							}) ;
 							treeContextMenu.showAt(event.getXY());
-						},
-						scrollershow: function(scroller) {
-							if (scroller && scroller.scrollEl) {
-								scroller.clearManagedListeners(); 
-								scroller.mon(scroller.scrollEl, 'scroll', scroller.onElScroll, scroller); 
-							}
 						},
 						scope:me
 					},

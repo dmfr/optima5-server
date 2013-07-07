@@ -396,15 +396,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 				store: gridstore,   // same store GridPanel is using
 				dock: 'bottom',
 				displayInfo: true
-			}],
-			listeners: {
-				scrollershow: function(scroller) {
-					if (scroller && scroller.scrollEl) {
-						scroller.clearManagedListeners(); 
-						scroller.mon(scroller.scrollEl, 'scroll', scroller.onElScroll, scroller); 
-					}
-				}
-			}
+			}]
 		}) ;
 		
 		

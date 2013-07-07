@@ -140,14 +140,6 @@ Ext.define('Optima5.Modules.CrmBase.QueryPanel' ,{
 				dataIndex: 'field_type_text',
 				menuDisabled: true
 			}],
-			listeners: {
-				scrollershow: function(scroller) {
-					if (scroller && scroller.scrollEl) {
-						scroller.clearManagedListeners(); 
-						scroller.mon(scroller.scrollEl, 'scroll', scroller.onElScroll, scroller); 
-					}
-				}
-			},
 			viewConfig: {
 					plugins: {
 						ptype: 'treeviewdragdrop',
