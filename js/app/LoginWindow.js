@@ -6,7 +6,6 @@ Ext.define('Optima5.LoginWindow',{
 	extend  :'Ext.window.Window',
 	
 	loginSent: false,
-	loadMask: null,
 	
 	initComponent:function() {
 		var me = this ;
@@ -135,10 +134,7 @@ Ext.define('Optima5.LoginWindow',{
 		}
 		
 		me.loginSent=true;
-		if( me.loadMask == null ) {
-			me.loadMask = new Ext.LoadMask(Ext.getBody(), {msg:'Logging in...'});
-		}
-		me.loadMask.show();
+		Ext.getBody().mask('Logging in...') ;
 		me.child('form').query('#btnEnter')[0].setDisabled(true) ;
 		
 		var form = me.child('form').getForm() ;
@@ -200,15 +196,14 @@ Ext.define('Optima5.LoginWindow',{
 		form.findField('password').setValue() ;
 		me.child('form').query('#btnEnter')[0].setDisabled(false) ;
 		me.loginSent = false ;
-		if( me.loadMask != null ) {
-			me.loadMask.hide() ;
-		}
+		Ext.getBody().unmask() ;
 	},
 	
 	onBeforeDestroy: function() {
-		var me = this ;
-		if( me.loadMask != null ) {
-			Ext.destroy(me.loadMask);
+		var me = this,
+			docBody = Ext.getBody() ;
+		if( docBody.isMasked() ) {
+			docBody.unmask() ;
 		}
 	}
 	

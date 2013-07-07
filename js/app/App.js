@@ -160,11 +160,7 @@ Ext.define('Optima5.App',{
 	desktopBoot: function(sessionId) {
 		var me = this ;
 		
-		if( me.loadMask != null ) {
-			Ext.destroy(me.loadMask) ;
-		}
-		me.loadMask = new Ext.LoadMask(Ext.getBody(), {msg:'Loading desktop...'});
-		me.loadMask.show() ;
+		Ext.getBody().mask('Loading desktop...') ;
 		
 		/*
 		 * Ajax request to retrieve sessionRecord
@@ -387,12 +383,10 @@ Ext.define('Optima5.App',{
 		
 		Ext.EventManager.on(window, 'beforeunload', me.onUnload, me);
 		
-		/*hide loadmask (if any)*/
-		if( me.loadMask ) {
-			Ext.defer(function(){
-				Ext.destroy(me.loadMask) ;
-			},500,me);
-		}
+		/*hide mask (if any)*/
+		Ext.defer(function(){
+			Ext.getBody().unmask() ;
+		},500,me);
 		
 		me.isReady = true;
 		me.fireEvent('ready', me);
