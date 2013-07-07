@@ -11,10 +11,6 @@ Ext.define('Optima5.Modules.CrmBase.BiblePicker',{
 			'<span id="{cmpId}-divicon" class="biblepicker-icon">&#160;</span>',
 			'<span id="{cmpId}-divtext" class="biblepicker-text">&#160;</span>',
 		'</div>',
-		'<div id="{cmpId}-triggerWrap" class="{triggerWrapCls}" role="presentation">',
-			'{triggerEl}',
-			'<div class="{clearCls}" role="presentation"></div>',
-		'</div>',
 		{
 			compiled: true,
 			disableFormats: true
