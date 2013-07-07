@@ -250,7 +250,7 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 					//readOnly : (this.defineIsNew == false),
 					listeners: {
 						select:{
-							fn: this.updateLayout,
+							fn: this.calcFormLayout,
 							scope : this
 						}
 					}
@@ -385,7 +385,7 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 			},
 			success: function(response) {
 				me.query('form')[0].getForm().setValues( Ext.decode(response.responseText).data ) ;
-				me.updateLayout() ;
+				me.calcFormLayout() ;
 			},
 			scope:me
 		}) ;
@@ -434,7 +434,7 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 		}
 					
 		me.populateFieldTypesStores(this.transactionID) ;
-		//me.updateLayout() ;
+		//me.calcFormLayout() ;
 	},
 	
 	populateFieldTypesStores: function() {
@@ -458,7 +458,7 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 		});
 	},
 			  
-	updateLayout: function() {
+	calcFormLayout: function() {
 		var hideFieldsets=false , hideGmap=false ;
 		
 		this.query('form')[0].getForm().getFields().each( function(formitem,idx) {
