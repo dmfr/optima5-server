@@ -149,51 +149,53 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 				});
 			},me);
 			
-			
 			var tmpModelName = 'QueryResultModel-' + me.ajaxBaseParams._transaction_id + '-' + me.RES_id + '-' + tabCount ;
 			//console.log('Defining a model '+tmpModelName) ;
 			Ext.define(tmpModelName, {
 				extend: 'Ext.data.Model',
 				fields: fields
 			});
-			var tabstore = Ext.create('Ext.data.Store',{
-				model:tmpModelName,
-				pageSize: 50,
-				buffered: true,
-				purgePageCount: 0
-			});
-			var tabgrid = Ext.create('Ext.grid.Panel',{
-				xtype:'grid',
-				cls:'op5crmbase-querygrid-'+me.optimaModule.sdomainId,
-				title:tabData.tab_title,
-				columns:columns,
-				store:tabstore,
-				verticalScroller: {
-						xtype: 'paginggridscroller',
-						activePrefetch: false
-				},
-				invalidateScrollerOnRefresh: false,
-				viewConfig: { 
-					//stripeRows: false, 
-					getRowClass: function(record) { 
-						return record.get('detachedRow') ? 'op5crmbase-detachedrow' : ''; 
-					}
-				} 											 
-			});
-			tabgrid.on('destroy',function(){
-				// console.log('Unregistering model '+tmpModelName) ;
-				Ext.ModelManager.unregister( tmpModelName ) ;
-			},me);
+			
 			var ln = tabData.data.length,
 				records = [],
 				i = 0;
 			for (; i < ln; i++) {
 				records.push(Ext.create(tmpModelName, tabData.data[i]));
 			}
-			if( records.length > 0 ) {
-				tabstore.cacheRecords(records);
-				tabstore.guaranteeRange(0, 49);
-			}
+			
+			var tabstore = Ext.create('Ext.data.Store',{
+				model:tmpModelName,
+				pageSize: records.length,
+				buffered: true,
+				data: records,
+				proxy:{
+					type:'memory'
+				}
+			});
+			
+			var tabgrid = Ext.create('Ext.grid.Panel',{
+				xtype:'grid',
+				cls:'op5crmbase-querygrid-'+me.optimaModule.sdomainId,
+				title:tabData.tab_title,
+				columns:columns,
+				store:tabstore,
+				/* verticalScroller: {
+					numFromEdge: 5,
+					trailingBufferZone: 10,
+					leadingBufferZone: 20
+				},*/
+				viewConfig: { 
+					//stripeRows: false, 
+					getRowClass: function(record) { 
+						return record.get('detachedRow') ? 'op5crmbase-detachedrow' : ''; 
+					}
+				}
+			});
+			
+			tabgrid.on('destroy',function(){
+				// console.log('Unregistering model '+tmpModelName) ;
+				Ext.ModelManager.unregister( tmpModelName ) ;
+			},me);
 			
 			tabitems.push(tabgrid);
 			return true ;
