@@ -170,7 +170,7 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 			// nodeParam: 'treenode_key',
 			folderSort: true,
 			root: treeroot,
-			//clearOnLoad: false,
+			clearOnLoad: true,
 			proxy: this.optimaModule.getConfiguredAjaxProxy({
 				extraParams : {
 					_action: 'data_getBibleTree' ,
@@ -382,9 +382,6 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 		
 		var gridstore = Ext.create('Ext.data.Store', {
 			model: gridModelName,
-			//folderSort: true,
-			//root: treeroot,
-			//clearOnLoad: false,
 			autoLoad: true,
 			remoteSort: true,
 			remoteFilter: true,

@@ -130,9 +130,6 @@ Ext.define('Optima5.Modules.CrmBase.BibleMemoryPicker',{
 		
 		this.myStore = Ext.create('Ext.data.Store', {
 			model: this.myModelname,
-			//folderSort: true,
-			//root: treeroot,
-			//clearOnLoad: false,
 			autoLoad: true,
 			proxy: me.optimaModule.getConfiguredAjaxProxy({
 				extraParams : {

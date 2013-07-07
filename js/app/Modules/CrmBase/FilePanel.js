@@ -209,9 +209,6 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 		
 		var gridstore = Ext.create('Ext.data.Store', {
 			model: gridModelName,
-			//folderSort: true,
-			//root: treeroot,
-			//clearOnLoad: false,
 			remoteSort: true,
 			autoLoad: true,
 			proxy: this.optimaModule.getConfiguredAjaxProxy({
