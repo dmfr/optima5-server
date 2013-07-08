@@ -164,6 +164,14 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 						mode: 'MULTI',
 						checkOnly: true,
 						listeners: {
+							beforeselect:{
+								fn:me.onAccountSelect,
+								scope:me
+							},
+							beforedeselect:{
+								fn:me.onAccountDeselect,
+								scope:me
+							},
 							selectionchange:{
 								fn:me.onAccountsSelectionChange,
 								scope:me
@@ -469,11 +477,22 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 	/*
 	 * Accounts listener
 	 */
+	onAccountSelect: function(selModel, selectedRecord) {
+		var me = this,
+			nbKeysSet = selModel.getCount() ;
+			colorHex6 = me.rotatingColors[( nbKeysSet % (me.rotatingColors.length) )] ;
+			
+			if( colorHex6.charAt(0) == '#' ) {
+				colorHex6 = colorHex6.substr(1) ;
+			}
+			
+		selectedRecord.set('ColorHex',colorHex6) ;
+	},
+	onAccountDeselect: function(selModel, deselectedRecord) {
+		deselectedRecord.set('ColorHex',null);
+	},
 	onAccountsSelectionChange: function(selModel, selRecords) {
 		var me = this ;
-		
-		var previousSelKeys = me.accountsSelected,
-			nbKeysSet = previousSelKeys.length,
 			currentSelKeys = [] ;
 		
 		Ext.Array.each(selRecords, function( selRecord ) {
@@ -481,30 +500,9 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 			currentSelKeys.push(eKey) ;
 		});
 		
-		// nettoyage des couleurs
-		Ext.Array.each(previousSelKeys, function( previousSelKey, index ) {
-			if( !Ext.Array.contains(currentSelKeys,previousSelKey) ) {
-				me.calendarStore.getById(previousSelKey).set('ColorHex',null) ;
-				nbKeysSet-- ;
-			}
-		});
-		
-		Ext.Array.each(selRecords, function( selRecord ) {
-			var eKey = selRecord.getId() ;
-			if( !Ext.Array.contains(previousSelKeys,eKey) ) {
-				var colorHex6 = me.rotatingColors[( nbKeysSet % (me.rotatingColors.length) )] ;
-				if( colorHex6.charAt(0) == '#' ) {
-					colorHex6 = colorHex6.substr(1) ;
-				}
-				
-				me.calendarStore.getById(eKey).set('ColorHex',colorHex6) ;
-				nbKeysSet++ ;
-			}
-		},me);
 		
 		me.accountsSelected = currentSelKeys ;
 		
 		me.buildEvents() ;
 	}
-	
 });
