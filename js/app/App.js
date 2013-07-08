@@ -9,7 +9,7 @@ Ext.define('OptimaDesktopCfgShortcutParamModel',{
 Ext.define('OptimaDesktopCfgShortcutModel',{
 	extend: 'Ext.data.Model',
 	fields: [
-		{name: 'module_id',  type:'string'},
+		{name: 'module_id',  type:'string'}
 	],
 	hasMany: [{
 		model: 'OptimaDesktopCfgShortcutParamModel',

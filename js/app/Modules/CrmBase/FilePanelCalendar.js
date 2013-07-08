@@ -52,7 +52,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 				reader: {
 					type: 'json'
 				}
-			},
+			}
 		});
 		this.eventStore = Ext.create('Ext.data.Store', {
 			model: 'Ext.calendar.data.EventModel',
@@ -62,7 +62,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 				reader: {
 					type: 'json'
 				}
-			},
+			}
 		});
 		
 		/*
