@@ -25,7 +25,8 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelWhere' ,{
 	requires: [
 		'Optima5.Modules.CrmBase.QuerySubpanel',
 		'Optima5.Modules.CrmBase.QueryWhereFormBible',
-		'Optima5.Modules.CrmBase.QueryWhereFormDate'
+		'Optima5.Modules.CrmBase.QueryWhereFormDate',
+		'Optima5.Modules.CrmBase.QueryWhereFormNumber'
 	] ,
 			  
 	whereFields : [] ,
