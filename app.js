@@ -9,7 +9,6 @@ Ext.Loader.setConfig({
 		}
 });
 Ext.require('Ext.*') ;
-Ext.require('Ext.calendar.CalendarPanel') ;
 Ext.require('Optima5.App');
 
 var op5desktop, op5session ;
@@ -68,32 +67,6 @@ Ext.onReady(function () {
 			this.callOverridden(arguments);
 		}
 	});
-	
-	
-	/*
-	 * From ExtJS 4.1 Calendar Example
-	 */
-	// Currently MemoryProxy really only functions for read-only data. Since we want
-	// to simulate CRUD transactions we have to at the very least allow them to be
-	// marked as completed and successful, otherwise they will never filter back to the
-	// UI components correctly.
-	Ext.data.MemoryProxy.override({
-		updateOperation: function(operation, callback, scope) {
-			operation.setCompleted();
-			operation.setSuccessful();
-			Ext.callback(callback, scope || me, [operation]);
-		},
-		create: function() {
-			this.updateOperation.apply(this, arguments);
-		},
-		update: function() {
-			this.updateOperation.apply(this, arguments);
-		},
-		destroy: function() {
-			this.updateOperation.apply(this, arguments);
-		}
-	});
-	
 	
 	
 	

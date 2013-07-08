@@ -1,5 +1,5 @@
 Ext.define('Ext.calendar.template.BoxLayout', {
-    extend: 'Ext.calendar.template.XTemplate',
+    extend: 'Ext.XTemplate',
     
     requires: ['Ext.Date'],
     
