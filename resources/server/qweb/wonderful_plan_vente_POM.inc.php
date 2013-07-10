@@ -205,14 +205,27 @@ $_IMG['logo_POM'] = file_get_contents($app_root."/resources/server/templates/log
 
 $data_mag = $tab_data[$mag_code] ;
 if( $alt_mag_code ) {
-	$data_mag_alt = $tab_data[$alt_mag_code] ;
+	$compare_mag_code = $alt_mag_code ;
 } else {
-	foreach( $tab_data as $test_mag_alt ) {
+	foreach( $tab_data as $test_mag_code => $test_mag_alt ) {
 		if( $test_mag_alt['POM_QTE_TOT'] > $data_mag['POM_QTE_TOT'] 
 			&& $test_mag_alt['POM_QTE_TOT'] > $data_mag_alt['POM_QTE_TOT']
 			&& $test_mag_alt['POM_FACING'] > $data_mag['POM_FACING'] ) {
-			$data_mag_alt = $test_mag_alt ;
+			$compare_mag_code = $test_mag_code ;
 		}
+	}
+}
+
+// Choix des magasins à afficher
+$arr_alt_mag_code = array() ;
+if( $alt_mag_code ) {
+	$arr_alt_mag_code[] = $alt_mag_code ;
+} else {
+	foreach( $tab_data as $test_mag_code => $test_mag_alt ) {
+		if( $test_mag_code == $mag_code ) {
+			continue ;
+		}
+		$arr_alt_mag_code[] = $test_mag_code ;
 	}
 }
  
@@ -228,60 +241,77 @@ if( $alt_mag_code ) {
  $Palette = array("0"=>array("R"=>155,"G"=>10,"B"=>58,"Alpha"=>100),
                  "1"=>array("R"=>224,"G"=>100,"B"=>46,"Alpha"=>100));
  
- $MyData = new pData();
- $MyData->addPoints(array($data_mag['POM_FACING'],$data_mag_alt['POM_FACING']),"Facing");
- $MyData->setSerieOnAxis("Facing",0);
- $MyData->setAxisName(0,"Facing");
- $MyData->setAxisPosition(1,AXIS_POSITION_RIGHT);
+ foreach( $arr_alt_mag_code as $alt_mag_code ) {
  
- $MyData->addPoints(array($data_mag['STORE_NAME'],$data_mag_alt['STORE_NAME']),"Mags");
- $MyData->setAbscissa("Mags");
+	$data_mag_alt = $tab_data[$alt_mag_code] ;
  
- $myPicture = new pImage(250,300,$MyData,TRUE);
- $myPicture->setFontProperties(array("FontName"=>"$pchart_root/fonts/verdana.ttf","FontSize"=>8,"R"=>0,"G"=>0,"B"=>0));
- 
- $myPicture->setGraphArea(50,10,250,260);
- $myPicture->drawScale(array("Mode"=>SCALE_MODE_START0));
- //$myPicture->setShadow(TRUE,array("X"=>1,"Y"=>1,"R"=>0,"G"=>0,"B"=>0,"Alpha"=>10));
- 
- $myPicture->drawBarChart(array("DisplayPos"=>LABEL_POS_OUTSIDE,"DisplayValues"=>TRUE,"Rounded"=>TRUE,"Surrounding"=>30,"OverrideColors"=>$Palette));
- $tmpfname = tempnam( sys_get_temp_dir(), "FOO");
+	$MyData = new pData();
+	$MyData->addPoints(array($data_mag['POM_FACING'],$data_mag_alt['POM_FACING']),"Facing");
+	$MyData->setSerieOnAxis("Facing",0);
+	$MyData->setAxisName(0,"Facing");
+	$MyData->setAxisPosition(1,AXIS_POSITION_RIGHT);
+	
+	$MyData->addPoints(array($data_mag['STORE_NAME'],$data_mag_alt['STORE_NAME']),"Mags");
+	$MyData->setAbscissa("Mags");
+	
+	$myPicture = new pImage(250,300,$MyData,TRUE);
+	$myPicture->setFontProperties(array("FontName"=>"$pchart_root/fonts/verdana.ttf","FontSize"=>8,"R"=>0,"G"=>0,"B"=>0));
+	
+	$myPicture->setGraphArea(50,10,250,260);
+	$myPicture->drawScale(array("Mode"=>SCALE_MODE_START0));
+	//$myPicture->setShadow(TRUE,array("X"=>1,"Y"=>1,"R"=>0,"G"=>0,"B"=>0,"Alpha"=>10));
+	
+	$myPicture->drawBarChart(array("DisplayPos"=>LABEL_POS_OUTSIDE,"DisplayValues"=>TRUE,"Rounded"=>TRUE,"Surrounding"=>30,"OverrideColors"=>$Palette));
+	$tmpfname = tempnam( sys_get_temp_dir(), "FOO");
 
- $myPicture->render($tmpfname);
- 
- $_IMG['barchart_POM_FACING'] = file_get_contents($tmpfname) ;
- unlink($tmpfname) ;
- 
- 
- 
- $MyData = new pData();
- $MyData->addPoints(array($data_mag['POM_QTE_TOT'],$data_mag_alt['POM_QTE_TOT']),"Qte");
- $MyData->setSerieOnAxis("Qte",0);
- $MyData->setAxisName(0,"Qte Totale POM (**)");
- 
- $MyData->addPoints(array($data_mag['STORE_NAME'],$data_mag_alt['STORE_NAME']),"Mags");
- $MyData->setAbscissa("Mags");
- 
- $myPicture = new pImage(250,300,$MyData,TRUE);
- $myPicture->setFontProperties(array("FontName"=>"$pchart_root/fonts/verdana.ttf","FontSize"=>8,"R"=>0,"G"=>0,"B"=>0));
- 
- $myPicture->setGraphArea(50,10,250,260);
- $myPicture->drawScale(array("Mode"=>SCALE_MODE_START0));
- //$myPicture->setShadow(TRUE,array("X"=>1,"Y"=>1,"R"=>0,"G"=>0,"B"=>0,"Alpha"=>10));
- 
- $myPicture->drawBarChart(array("DisplayPos"=>LABEL_POS_OUTSIDE,"DisplayValues"=>TRUE,"Rounded"=>TRUE,"OverrideColors"=>$Palette));
- $tmpfname = tempnam( sys_get_temp_dir(), "FOO");
+	$myPicture->render($tmpfname);
+	
+	$_IMG[$alt_mag_code]['barchart_POM_FACING'] = file_get_contents($tmpfname) ;
+	unlink($tmpfname) ;
+	
+	
+	
+	$MyData = new pData();
+	$MyData->addPoints(array($data_mag['POM_QTE_TOT'],$data_mag_alt['POM_QTE_TOT']),"Qte");
+	$MyData->setSerieOnAxis("Qte",0);
+	$MyData->setAxisName(0,"Qte Totale POM (**)");
+	
+	$MyData->addPoints(array($data_mag['STORE_NAME'],$data_mag_alt['STORE_NAME']),"Mags");
+	$MyData->setAbscissa("Mags");
+	
+	$myPicture = new pImage(250,300,$MyData,TRUE);
+	$myPicture->setFontProperties(array("FontName"=>"$pchart_root/fonts/verdana.ttf","FontSize"=>8,"R"=>0,"G"=>0,"B"=>0));
+	
+	$myPicture->setGraphArea(50,10,250,260);
+	$myPicture->drawScale(array("Mode"=>SCALE_MODE_START0));
+	//$myPicture->setShadow(TRUE,array("X"=>1,"Y"=>1,"R"=>0,"G"=>0,"B"=>0,"Alpha"=>10));
+	
+	$myPicture->drawBarChart(array("DisplayPos"=>LABEL_POS_OUTSIDE,"DisplayValues"=>TRUE,"Rounded"=>TRUE,"OverrideColors"=>$Palette));
+	$tmpfname = tempnam( sys_get_temp_dir(), "FOO");
 
- $myPicture->render($tmpfname);
- 
- $_IMG['barchart_POM_QTE'] = file_get_contents($tmpfname) ;
- unlink($tmpfname) ;
+	$myPicture->render($tmpfname);
+	
+	$_IMG[$alt_mag_code]['barchart_POM_QTE'] = file_get_contents($tmpfname) ;
+	unlink($tmpfname) ;
+	
+ }
 ?>
 <?php
 ob_end_clean() ;
 ob_start() ;
 ?>
 <html>
+	<script>
+	function setMagVisibility( selector ) {
+		var options = selector.options,
+			magId ;
+		for( var i=0 ; i<options.length ; i++ ) {
+			magId = options[i].value ;
+			document.getElementById( 'data_mag_'+magId ).style.display = ( options[i].selected ? '' : 'none' ) ;
+			document.getElementById( 'img_mag_'+magId ).style.display = ( options[i].selected ? '' : 'none' ) ;
+		}
+	}
+	</script>
 	<style type="text/css">
 		body {  font-family: Arial, Helvetica, sans-serif; font-size:smaller ;  margin:4px; display:block }
 		.text-big {
@@ -312,6 +342,13 @@ ob_start() ;
 			padding-top: 12px;
 			padding-bottom: 3px;
 		}
+		.select-med {
+			font-family: Verdana, Geneva, Arial, Helvetica, sans-serif;
+			font-size: 14pt;
+			/*color: navy;*/
+			padding-top: 3px;
+			padding-bottom: 3px;
+		}
 	</style>
 	<body style='background-color:#eeeeee'><div align='center'>
 	<table cellpadding='0' cellspacing='0' align='center' style='background-color:#ffffff' width='800' height='600'><tr><td valign='top'>
@@ -327,6 +364,23 @@ ob_start() ;
 		
 		<br>
 		
+		<?php
+		if( count($arr_alt_mag_code) > 0 ) {
+			echo "<div align='right'>" ;
+				echo "<select id='alt_mag_select' class='select-med' onchange='setMagVisibility(this)'>" ;
+				foreach( $arr_alt_mag_code as $alt_mag_code ) {
+					$sel = '' ;
+					if( $alt_mag_code == $compare_mag_code ) {
+						$sel = 'selected' ;
+					}
+				
+					echo "<option $sel value='$alt_mag_code'>".$tab_data[$alt_mag_code]['STORE_NAME']."</option>" ;
+				}
+				echo "</select>" ;
+			echo "</div>" ;
+		}
+		?>
+		
 		<table cellspacing='0' width='100%' height='120'><tr>
 			<td>
 				<table cellspacing='4'>
@@ -337,36 +391,54 @@ ob_start() ;
 			</td>
 			<td>
 			<?php
-			if( $data_mag_alt ) {
+			if( $arr_alt_mag_code ) {
+			foreach( $arr_alt_mag_code as $alt_mag_code ) {
+				$data_mag_alt = $tab_data[$alt_mag_code] ;
+				echo "<div id='data_mag_{$alt_mag_code}' style='display:none'>" ;
 				?>
 				<table cellspacing='4'>
-				<tr><td colspan='2'><span class='text-med'><?php echo $data_mag_alt['STORE_NAME'];?></span></td></tr>
 				<tr><td style='text-align:right'><span class='text-small'><i>DN</i> :</span></td><td width='100' style='border: 2px solid #9D080E ; text-align:right ; padding-right:6px'><span class='text-med'><b><?php echo (int)$data_mag_alt['POM_DN'];?></b>&nbsp;%&nbsp;</span></td></tr>
 				<tr><td style='text-align:right'><span class='text-small'><i>Pos. POM / Ens</i> :</span></td><td width='100' style='border: 2px solid #9D080E ; text-align:right ; padding-right:6px'><span class='text-med'><?php echo (int)$data_mag_alt['VCA_RANK_POM'];?></span></td></tr>
 				<tr><td style='text-align:right'><span class='text-small'><i>Pos. Mag / Ens</i> :</span></td><td width='100' style='border: 2px solid #9D080E ; text-align:right ; padding-right:6px'><span class='text-med'><?php echo (int)$data_mag_alt['VCA_RANK_ENS'];?></span></td></tr>
 				</table>
 				<?php
+				echo "</div>" ;
+			}
 			}
 			?>
 			</td>
 		</tr></table>
 		
 		<br>
-		<table cellspacing='0' width='100%'><tr>
-			<td align='center'>
-				<img src="data:image/jpeg;base64,<?echo base64_encode($_IMG['barchart_POM_FACING']);?>" />
-			</td>
-			<td align='center'>
-				<img src="data:image/jpeg;base64,<?echo base64_encode($_IMG['barchart_POM_QTE']);?>" />
-			</td>
-			<td align='center'>
-				<img src="data:image/jpeg;base64,<?echo base64_encode($_IMG['logo_POM']);?>" />
-			</td>
-		</tr></table>
+		<?php
+		if( $arr_alt_mag_code ) {
+		foreach( $arr_alt_mag_code as $alt_mag_code ) {
+			echo "<div id='img_mag_{$alt_mag_code}' style='display:none'>" ;
+			?>
+			<table cellspacing='0' width='100%'><tr>
+				<td align='center'>
+					<img src="data:image/jpeg;base64,<?echo base64_encode($_IMG[$alt_mag_code]['barchart_POM_FACING']);?>" />
+				</td>
+				<td align='center'>
+					<img src="data:image/jpeg;base64,<?echo base64_encode($_IMG[$alt_mag_code]['barchart_POM_QTE']);?>" />
+				</td>
+				<td align='center'>
+					<img src="data:image/jpeg;base64,<?echo base64_encode($_IMG['logo_POM']);?>" />
+				</td>
+			</tr></table>
+			<?php
+			echo "</div>" ;
+		}
+		}
+		?>
 		<span class='text-xsmall' style='line-height:16px ; padding:0px 10px'>**&nbsp;<i>Les données <u>Qte Totale POM</u> sont exprimées du <b>01/07/2012</b> au <b>31/12/2012</b></i></span><br>
 		
 	</td></tr></table>
-	</div></body>
+	</div>
+	<script>
+	setMagVisibility( document.getElementById('alt_mag_select') ) ;
+	</script>
+	</body>
 </html>
 <?
 unset($_IMG) ;
