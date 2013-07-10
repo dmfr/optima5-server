@@ -19,7 +19,11 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			border:false,
 			layout: 'fit',
 			autoDestroy: true,
-					  
+			items:[{
+				xtype:'box',
+				cls:'op5-waiting',
+				flex:1
+			}],
 			dockedItems: [{
 				xtype: 'toolbar',
 				dock: 'top',
@@ -66,6 +70,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 	},
 	initAddHtml: function( ajaxData ) {
 		var me = this ;
+		me.removeAll() ;
 		me.add(Ext.create('Ext.ux.dams.IFrameContent',{
 			content:ajaxData.html
 		})) ;
@@ -201,6 +206,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			return true ;
 		},me) ;
 		
+		me.removeAll() ;
 		me.add({
 				xtype:'tabpanel' ,
 				//frame: true,
