@@ -245,7 +245,7 @@ function paracrm_queries_qwebTransaction_runQuery( $post_data, &$arr_saisie )
 	$_SESSION['transactions'][$transaction_id]['arr_RES'][$new_RES_key] = $RES ;
 	
 	
-	return array('success'=>true,'query_status'=>'OK','RES_id'=>$new_RES_key,'debug'=>$RES) ;
+	return array('success'=>true,'query_status'=>'OK','RES_id'=>$new_RES_key) ;
 }
 
 
