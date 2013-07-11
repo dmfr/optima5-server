@@ -3,11 +3,10 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 	
 	requires : [
 		'Ext.calendar.CalendarPanel',
-		'Ext.calendar.data.MemoryCalendarStore',
-		'Ext.calendar.data.MemoryEventStore',
 		'Ext.calendar.util.Date',
 		'Ext.calendar.data.Events',
-		'Ext.calendar.data.Calendars'
+		'Ext.calendar.data.Calendars',
+		'Optima5.Modules.CrmBase.FilePanelEventDetailView'
 	],
 	
 	alias : 'widget.op5crmbasefilecalendar',
@@ -29,6 +28,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 	dataCacheDateMinEnd: null,
 	dataCacheDateMaxStart: null,
 	dataCacheArray: [],
+	eventDetailPanel: null,
 	
 	initComponent: function() {
 		var me = this ;
@@ -95,9 +95,11 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 				listeners: {
 					'viewchange': {
 						fn: function(p, vw, dateInfo){
-							if(this.editWin){
-								this.editWin.hide();
+							/*
+							if(this.eventDetailPanel){
+								this.eventDetailPanel.hide();
 							}
+							*/
 							if(dateInfo){
 								// will be null when switching to the event edit form so ignore
 								this.getComponent('calendar-west').getComponent('calendar-nav-datepicker').setValue(dateInfo.activeDate);
@@ -106,6 +108,14 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 							}
 						},
 						scope: this
+					},
+					'eventclick': {
+						fn: me.onEventClick,
+						scope: me
+					},
+					'destroy': {
+						fn: me.onDestroy,
+						scope:me
 					}
 				}
 			},{
@@ -504,5 +514,86 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 		me.accountsSelected = currentSelKeys ;
 		
 		me.buildEvents() ;
+	},
+	
+	/*
+	 * Event detail floating window
+	 */
+	onEventClick: function( calendarView, eventRecord, clickEl ) {
+		var me = this ,
+			newEventDetailPanel ;
+			
+		console.dir(arguments) ;
+		
+		if( !me.eventDetailPanel ) {
+			me.eventDetailPanel = Ext.create('Ext.Panel', {
+				id: this.id + '-eventdetailpanel',
+				title: '...',
+				layout: 'fit',
+				floating: true,
+				renderTo: Ext.getBody(),
+				tools: [{
+					type: 'close',
+					handler: function(e, t, p) {
+						p.ownerCt.hide();
+					}
+				}],
+				items: Ext.create('Optima5.Modules.CrmBase.FilePanelEventDetailView',{
+					id: this.id + '-eventdetailview'
+				}),
+				bbar:[{
+					iconCls:'op5-crmbase-dataformwindow-icon',
+					text:'Edit'
+				},'->',{
+					iconCls:'op5-crmbase-qtoolbar-file-delete',
+					text:'Delete'
+				}],
+				listeners:{
+					hide:me.onEventDetailHide,
+					scope:me
+				}
+			});
+		}
+		me.eventDetailPanel.getComponent(this.id + '-eventdetailview').on('eventdetailrendered',function(){
+			me.onEventDetailRendered(clickEl) ;
+		},me,{single:true}) ;
+		me.eventDetailPanel.getComponent(this.id + '-eventdetailview').update(123456545) ;
+	},
+	onEventDetailRendered: function( clickEl ) {
+		var me = this,
+			p = me.eventDetailPanel,
+			hideIf = me.eventDetailHideIf ;
+		
+		p.setWidth(Math.max(220, 220));
+		p.show();
+		p.getPositionEl().alignTo(clickEl, 'tl-bl');
+		
+		// monitor clicking and mousewheel
+		me.mon(Ext.getDoc(), {
+				mousewheel: hideIf,
+				mouseup: hideIf,
+				scope: me
+		});
+	},
+	onEventDetailHide: function( p ) {
+		var me = this ;
+			hideIf = me.eventDetailHideIf,
+			doc = Ext.getDoc() ;
+			
+		doc.un('mousewheel', hideIf, me);
+		doc.un('mouseup', hideIf, me);
+	},
+	eventDetailHideIf: function(e) {
+		var me = this;
+		
+		if( !me.isDestroyed && !e.within(me.eventDetailPanel.el, false, true) ) {
+			me.eventDetailPanel.hide();
+		}
+	},
+	onDestroy: function() {
+		var me = this ;
+		if( me.eventDetailPanel ) {
+			//me.eventDetailPanel.destroy() ;
+		}
 	}
 });

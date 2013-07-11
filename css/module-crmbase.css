@@ -161,3 +161,50 @@
     font-family: helvetica, arial, sans-serif;
     color: #455C6F;
 }
+
+
+table.op5-crmbase-filecalendar-eventdetail-tbl {
+    width:100%;
+    color:black;
+	 font-size:12px;
+	 font-family:tahoma,arial,verdana,sans-serif
+}
+table.op5-crmbase-filecalendar-eventdetail-tbl > tbody > tr > td.op5-crmbase-filecalendar-eventdetail-tdtitle {
+	 font-weight:bold;
+}
+
+table.op5-crmbase-filecalendar-eventdetail-tbl td > span.op5-crmbase-filecalendar-eventdetail-accountwrap {
+    position: relative;
+	 line-height:24px;
+}
+.op5-crmbase-filecalendar-eventdetail-tbl td  span.op5-crmbase-filecalendar-eventdetail-accounticon {
+    position: absolute;
+    top: 4px;
+    left: 5px;    
+    background-repeat: no-repeat;
+    background-position: 0 50%;
+    width: 18px;
+    height: 14px;
+}
+.op5-crmbase-filecalendar-eventdetail-tbl td  span.op5-crmbase-filecalendar-eventdetail-accounttxt {
+    padding-left: 24px;
+    background-repeat: no-repeat;
+    background-position: 3px 50%;    
+}
+
+
+.op5-crmbase-filecalendar-eventdetail {
+	padding:2px ;
+}
+.op5-crmbase-filecalendar-eventdetail .op5-crmbase-filecalendar-eventdetail-account {
+	margin-bottom:4px ;
+	padding:2px ;
+	color:white;
+}
+
+
+
+
+
+
+
