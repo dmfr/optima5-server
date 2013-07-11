@@ -96,7 +96,7 @@ Ext.define('Optima5.Module',{
 		}) ;
 		
 		var win = me.app.getDesktop().createWindow(config,cls) ;
-		win.on('afterrender',function(twin) {
+		win.on('boxready',function(twin) {
 			me.app.alignNewWindow(twin) ;
 		},me,{single:true}) ;
 		

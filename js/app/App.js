@@ -510,7 +510,7 @@ Ext.define('Optima5.App',{
 			var tArr ;
 			zmgr.eachBottomUp(function(lwin) {
 				if( lwin.isWindow && !(lwin instanceof Ext.window.MessageBox) && lwin != win ) {
-					tArr = lwin.getPosition() ;
+					tArr = lwin.getPosition(true) ;
 					if( tArr[0] == newPosX ) {
 						newPosX += 30 ;
 					}
