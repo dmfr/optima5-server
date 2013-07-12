@@ -260,7 +260,7 @@ Ext.define('Ext.calendar.view.DayBody', {
 		  data._doneCls = evt[M.IsDone.name] ? 'ext-evt-done' : '' ;
         var title = evt[M.Title.name];
         //data.Title = (evt[M.IsAllDay.name] ? '': Ext.Date.format(evt[M.StartDate.name], 'g:ia ')) + (!title || title.length == 0 ? '(No title)': title);
-		  data.Title = title ;
+		  data.Title = (!title || title.length == 0 ? '(No title)': title) ;
 
         return Ext.applyIf(data, evt);
     },
