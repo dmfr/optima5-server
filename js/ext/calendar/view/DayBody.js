@@ -190,7 +190,7 @@ Ext.define('Ext.calendar.view.DayBody', {
                 '</div>'
             )
             : new Ext.XTemplate(
-                '<div id="{_elId}" class="ext-cal-evt ext-cal-evt-done {_selectorCls} {_doneCls}" style="left: {_left}%; width: {_width}%; top: {_top}px; background-color:{_colorHex};">',
+                '<div id="{_elId}" class="ext-cal-evt {_selectorCls} {_doneCls}" style="left: {_left}%; width: {_width}%; top: {_top}px; background-color:{_colorHex};">',
                 '<div class="ext-cal-evb">&#160;</div>',
                 '<dl style="height: {_height}px;" class="ext-cal-evdm">',
                 '<dd class="ext-evt-bd">',
@@ -259,7 +259,8 @@ Ext.define('Ext.calendar.view.DayBody', {
         data._isReminder = evt[M.Reminder.name] && evt[M.Reminder.name] != '';
 		  data._doneCls = evt[M.IsDone.name] ? 'ext-evt-done' : '' ;
         var title = evt[M.Title.name];
-        data.Title = (evt[M.IsAllDay.name] ? '': Ext.Date.format(evt[M.StartDate.name], 'g:ia ')) + (!title || title.length == 0 ? '(No title)': title);
+        //data.Title = (evt[M.IsAllDay.name] ? '': Ext.Date.format(evt[M.StartDate.name], 'g:ia ')) + (!title || title.length == 0 ? '(No title)': title);
+		  data.Title = title ;
 
         return Ext.applyIf(data, evt);
     },

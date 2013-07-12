@@ -406,6 +406,8 @@ td.ext-cal-dtitle-today div {
 
 .ext-cal-evt {
     cursor:pointer;
+    font-size: 10px; /* Paracrm : font-size */
+    line-height: 10px; /* Paracrm : narrow line */
 }
 
 /* Default rounded event div (Gecko/Webkit/W3C) */
@@ -610,15 +612,15 @@ td.ext-cal-dtitle-today div {
 /* Event done style */
 .ext-evt-done {
   background-color: transparent;
-  background-size: 20px 20px;
+  background-size: 40px 40px;
   background-image:
-     -webkit-repeating-linear-gradient(-45deg, white, white 1px, transparent 1px, transparent 14px);
+     -webkit-repeating-linear-gradient(-45deg, white, white 1px, transparent 1px, transparent 28px);
   background-image:
-     -moz-repeating-linear-gradient(-45deg, white, white 1px, transparent 1px, transparent 14px);
+     -moz-repeating-linear-gradient(-45deg, white, white 1px, transparent 1px, transparent 28px);
   background-image:
-     -o-repeating-linear-gradient(-45deg, white, white 1px, transparent 1px, transparent 14px);
+     -o-repeating-linear-gradient(-45deg, white, white 1px, transparent 1px, transparent 28px);
   background-image:
-     repeating-linear-gradient(-45deg, white, white 1px, transparent 1px, transparent 14px);
+     repeating-linear-gradient(-45deg, white, white 1px, transparent 1px, transparent 28px);
 }
 
 /* Calendar Picker */
