@@ -564,9 +564,13 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 			p = me.eventDetailPanel,
 			hideIf = me.eventDetailHideIf ;
 		
-		p.setWidth(Math.max(220, 220));
+		p.setWidth(null) ; // Clear any previously forced maxSize applied below (400px)
 		p.show();
-		p.getPositionEl().alignTo(clickEl, 'tl-bl');
+		p.getEl().alignTo(clickEl, 'tl-bl?');
+		p.doComponentLayout() ; // Force panel to calculate fit size based on new alignTo
+		if( p.getWidth() > 400 ) {
+			p.setWidth(400) ;
+		}
 		
 		// monitor clicking and mousewheel
 		me.mon(Ext.getDoc(), {

@@ -152,7 +152,7 @@
 }
 
 /*
- * Centered title 
+ * Calendar Panel : Centered title 
  */
 .op5-crmbase-filecalendar-panel > .x-panel-header {
     font-size: 13px;
@@ -163,48 +163,67 @@
 }
 
 
-table.op5-crmbase-filecalendar-eventdetail-tbl {
-    width:100%;
-    color:black;
-	 font-size:12px;
-	 font-family:tahoma,arial,verdana,sans-serif
-}
-table.op5-crmbase-filecalendar-eventdetail-tbl > tbody > tr > td.op5-crmbase-filecalendar-eventdetail-tdtitle {
-	 font-weight:bold;
-}
-
-table.op5-crmbase-filecalendar-eventdetail-tbl td > span.op5-crmbase-filecalendar-eventdetail-accountwrap {
-    position: relative;
-	 line-height:24px;
-}
-.op5-crmbase-filecalendar-eventdetail-tbl td  span.op5-crmbase-filecalendar-eventdetail-accounticon {
-    position: absolute;
-    top: 4px;
-    left: 5px;    
-    background-repeat: no-repeat;
-    background-position: 0 50%;
-    width: 18px;
-    height: 14px;
-}
-.op5-crmbase-filecalendar-eventdetail-tbl td  span.op5-crmbase-filecalendar-eventdetail-accounttxt {
-    padding-left: 24px;
-    background-repeat: no-repeat;
-    background-position: 3px 50%;    
-}
-
-
+/*
+ * Calendar Panel : Eventdetail View
+ */
 .op5-crmbase-filecalendar-eventdetail {
 	padding:2px ;
 }
+
 .op5-crmbase-filecalendar-eventdetail .op5-crmbase-filecalendar-eventdetail-account {
 	margin-bottom:4px ;
 	padding:2px ;
 	color:white;
 }
 
+.op5-crmbase-filecalendar-eventdetail-timewrap {
+	position: relative ;
+	border-color: #999999 ;
+	border-style: solid;
+	border-width: 1px;
+	padding: 2px 0px 2px 24px;
+	background-position: 4px 50%;
+	background-repeat: no-repeat;
+	background-image: url("../images/modules/crmbase-calendar-16.png") !important;
+}
+.op5-crmbase-filecalendar-eventdetail-timelabel {
+	position: relative ;
+	padding-left: 2px ;
+}
+.op5-crmbase-filecalendar-eventdetail-timevalue {
+	position: absolute ;
+	top: 0px ;
+	left: 32px ;
+}
+.op5-crmbase-filecalendar-eventdetail-timevalue {
+	position: absolute ;
+	top: 0px ;
+	left: 32px ;
+}
+.op5-crmbase-filecalendar-eventdetail-timedone {
+	position: absolute ;
+	top: 0px ;
+	left: 0px ;
+	height: 100% ;
+	width: 100% ;
+	background-repeat: no-repeat;
+	background-position: 98% 50%;
+}
+.op5-crmbase-filecalendar-eventdetail-timedoneicon {
+	background-image: url("../images/modules/crmbase-ok-16.gif") !important;
+}
 
-
-
-
-
-
+table.op5-crmbase-filecalendar-eventdetail-tbl {
+	margin: 5px;
+	width:100%;
+	color:black;
+	font-size:12px;
+	font-family:tahoma,arial,verdana,sans-serif
+}
+table.op5-crmbase-filecalendar-eventdetail-tbl > tbody > tr > td.op5-crmbase-filecalendar-eventdetail-tdlabel {
+	 padding: 2px 0px;
+	 font-style: italic;
+}
+table.op5-crmbase-filecalendar-eventdetail-tbl > tbody > tr > td.op5-crmbase-filecalendar-eventdetail-tdvalue {
+	 padding: 2px 0px 2px 8px;
+}
