@@ -495,13 +495,16 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 			}
 		}
 		
-		var eventsData = [], fileRecord, crmData ;
+		var eventsData = [], fileRecord, crmData, tValue ;
 		for( var i=0 ; i<me.dataCacheArray.length ; i++ ) {
 			fileRecord = me.dataCacheArray[i] ;
 			
 			crmData=[] ;
 			for( var j=0 ; j<crmFields.length ; j++ ) {
-				crmData.push(fileRecord[crmFields[j]]) ;
+				tValue = fileRecord[crmFields[j]] ;
+				if( tValue != null && tValue.length > 0 ) {
+					crmData.push(fileRecord[crmFields[j]]) ;
+				}
 			}
 			
 			var evt = {
@@ -522,6 +525,10 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 				}
 				evt['cid'] = accountKey ;
 				evt['color_hex6'] = accountsMap[accountKey] ;
+			}
+			
+			if( colorField != null && fileRecord[colorField] ) {
+				evt['color_hex6'] = fileRecord[colorField] ;
 			}
 			
 			eventsData.push(evt) ;
