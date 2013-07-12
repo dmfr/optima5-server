@@ -100,6 +100,8 @@ function paracrm_define_getMainToolbar($post_data)
 			$arr['viewmode_gmap'] = true ;
 		if( $arr['store_type'] == 'media_img' )
 			$arr['viewmode_gallery'] = true ;
+		if( $arr['store_type'] == 'calendar' )
+			$arr['viewmode_calendar'] = true ;
 			
 		if( $post_data['data_type'] == 'file' )
 		{

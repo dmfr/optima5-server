@@ -407,7 +407,22 @@ function paracrm_data_getFileGrid_config( $post_data )
 	if( !$TAB['select_map'] )
 		return array('success'=>false) ;
 	
-	return array('success'=>true,'data'=>array('auth_status'=>$arr_auth_status,'define_file'=>$arr_define_file,'grid_fields'=>$TAB['select_map'])) ;
+	if( $arr_define_file['viewmode_calendar'] ) {
+		$query = "SELECT * FROM define_file_cfg_calendar WHERE file_code='{$post_data['file_code']}'" ;
+		$result = $_opDB->query($query) ;
+		$cfg_calendar = $_opDB->fetch_assoc($result) ;
+		$cfg_calendar['account_is_on'] = ($cfg_calendar['account_is_on']=='O')? true:false ;
+		$cfg_calendar['duration_is_fixed'] = ($cfg_calendar['duration_is_fixed']=='O')? true:false ;
+		$cfg_calendar['color_is_fixed'] = ($cfg_calendar['color_is_fixed']=='O')? true:false ;
+		$arr_define_file['calendar_cfg'] = $cfg_calendar ;
+	}
+	
+	$return_data = array(
+		'auth_status'=>$arr_auth_status,
+		'define_file'=>$arr_define_file,
+		'grid_fields'=>$TAB['select_map']
+	) ;
+	return array('success'=>true,'data'=>$return_data) ;
 }
 function paracrm_data_getFileGrid_data( $post_data )
 {
