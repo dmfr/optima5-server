@@ -416,7 +416,11 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 			startFileField = calendarCfg.eventstart_filefield ,
 			endFileField = calendarCfg.eventend_filefield ,
 			startField,
-			endField ;
+			endField,
+			durationSrcFileField = ( calendarCfg.duration_is_fixed ? calendarCfg.duration_src_filefield : null ),
+			durationSrcBibleField = ( calendarCfg.duration_is_fixed ? calendarCfg.duration_src_biblefield : null ),
+			durationField,
+			crmFields=[] ;
 		Ext.Array.each( me.gridCfg.grid_fields, function( gridField ) {
 			if( gridField.file_code != fileCode ) {
 				return ;
@@ -438,6 +442,38 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 			if( gridField.file_field == endFileField ) {
 				endField = gridField.field ;
 			}
+			
+			if( durationSrcFileField != null && durationSrcBibleField != null 
+				&& gridField.file_field == durationSrcFileField
+				&& gridField.link_bible_field == durationSrcBibleField ) {
+				
+				durationField = gridField.field ;
+			}
+			
+			/*
+			 * Regular CRM fields
+			 * - exclude calendarCfg fields above
+			 * - File fields (is_header=TRUE)
+			 * - Bible link fields ( link_bible_type=entry + link_bible_is_key=FALDE + link_bible_is_header=TRUE)
+			 */
+			if( (accountFileField != null && accountFileField == gridField.file_field)
+				|| (isDoneFileField != null && isDoneFileField == gridField.file_field)
+				|| (colorFileField != null && colorFileField == gridField.file_field)
+				|| (startFileField != null && startFileField == gridField.file_field)
+				|| (endFileField != null && endFileField == gridField.file_field) ) {
+				
+				return true ;
+			}
+			
+			if( gridField.link_bible ) {
+				if( gridField.link_bible_type=='entry' && !gridField.link_bible_is_key && gridField.link_bible_is_header ) {
+					crmFields.push( gridField.field ) ;
+				}
+			} else {
+				if( gridField.is_header ) {
+					crmFields.push( gridField.field ) ;
+				}
+			}
 		},me) ;
 		
 		if( me.accountIsOn ) {
@@ -448,18 +484,24 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 			}
 		}
 		
-		var eventsData = [], fileRecord ;
+		var eventsData = [], fileRecord, crmData ;
 		for( var i=0 ; i<me.dataCacheArray.length ; i++ ) {
 			fileRecord = me.dataCacheArray[i] ;
+			
+			crmData=[] ;
+			for( var j=0 ; j<crmFields.length ; j++ ) {
+				crmData.push(fileRecord[crmFields[j]]) ;
+			}
 			
 			var evt = {
 				id: fileRecord.filerecord_id,
 				cid: null,
 				color_hex6: null,
-				title: 'Pouet',
+				title: crmData.join(" "),
 				start: Ext.Date.parse(fileRecord[startField], "Y-m-d H:i:s", true),
 				end: Ext.Date.parse(fileRecord[endField], "Y-m-d H:i:s", true),
-				done: true
+				done: (isDoneField != null && fileRecord[isDoneField]),
+				ad: (durationField != null && fileRecord[durationField] > 0)
 			}
 			
 			if( me.accountIsOn ) {
