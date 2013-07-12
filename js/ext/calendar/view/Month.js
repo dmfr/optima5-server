@@ -438,7 +438,7 @@ Ext.define('Ext.calendar.view.Month', {
 
     // private
     onClick: function(e, t) {
-        if (this.detailPanel) {
+        if (this.detailPanel && (this.detailPanel.getEl() != null) && !e.within(this.detailPanel.getEl(), false, true) ) {
             this.detailPanel.hide();
         }
         if (Ext.calendar.view.Month.superclass.onClick.apply(this, arguments)) {
