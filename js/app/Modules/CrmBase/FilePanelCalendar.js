@@ -194,6 +194,11 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 		me.addCls('op5-crmbase-filecalendar-panel') ;
 		
 		me.callParent() ;
+		
+		me.on('activate',function() {
+			me.buildEvents();
+		},me) ;
+		
 		me.on('afterrender',function() {
 			Ext.defer(function() {
 				me.loadMask = new Ext.LoadMask( me.getComponent('calendar-center') ) ;
@@ -324,6 +329,12 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 	/*
 	 * Data
 	 */
+	reload: function() {
+		var me = this ;
+		if( me.dataCacheDateMinEnd != null && me.dataCacheDateMaxStart != null ) {
+			me.fetchEvents( me.dataCacheDateMinEnd, me.dataCacheDateMaxStart ) ;
+		}
+	},
 	onDateChange: function(dateStart, dateEnd) {
 		//console.dir(dateStart) ;
 		//console.dir(dateEnd) ;

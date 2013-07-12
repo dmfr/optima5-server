@@ -517,6 +517,9 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 		if( this.gridstore ) {
 			this.gridstore.load() ;
 		}
+		if( this.mainview && this.mainview.child('op5crmbasefilecalendar') ) {
+			this.mainview.child('op5crmbasefilecalendar').reload() ;
+		}
 	},
 	
 	editRecordNew: function( treenodeKey ) {
