@@ -72,6 +72,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 		Ext.apply(me,{
 			layout: 'border',
 			title: 'Loading...',
+			titleAlign: 'center',
 			items: [{
 				itemId:'calendar-center',
 				xtype:'calendarpanel',
@@ -211,7 +212,6 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 			return ;
 		}
 		
-		console.dir(me.gridCfg) ;
 		me.initAccounts() ;
 	},
 	initAccounts: function() {
@@ -471,7 +471,8 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 				|| (isDoneFileField != null && isDoneFileField == gridField.file_field)
 				|| (colorFileField != null && colorFileField == gridField.file_field)
 				|| (startFileField != null && startFileField == gridField.file_field)
-				|| (endFileField != null && endFileField == gridField.file_field) ) {
+				|| (endFileField != null && endFileField == gridField.file_field)
+				|| (durationField != null && durationField == gridField.file_field) ) {
 				
 				return true ;
 			}
@@ -508,7 +509,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 			}
 			
 			var evt = {
-				id: fileRecord.filerecord_id,
+				id: i,
 				cid: null,
 				color_hex6: null,
 				title: crmData.join(" "),
@@ -583,8 +584,6 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 		var me = this ,
 			newEventDetailPanel ;
 			
-		console.dir(arguments) ;
-		
 		if( !me.eventDetailPanel ) {
 			me.eventDetailPanel = Ext.create('Ext.Panel', {
 				id: this.id + '-eventdetailpanel',
@@ -599,7 +598,8 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 					}
 				}],
 				items: Ext.create('Optima5.Modules.CrmBase.FilePanelEventDetailView',{
-					id: this.id + '-eventdetailview'
+					id: this.id + '-eventdetailview',
+					filePanelCalendar: this
 				}),
 				bbar:[{
 					iconCls:'op5-crmbase-dataformwindow-icon',
@@ -617,7 +617,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 		me.eventDetailPanel.getComponent(this.id + '-eventdetailview').on('eventdetailrendered',function(){
 			me.onEventDetailRendered(clickEl) ;
 		},me,{single:true}) ;
-		me.eventDetailPanel.getComponent(this.id + '-eventdetailview').update(123456545) ;
+		me.eventDetailPanel.getComponent(this.id + '-eventdetailview').update(eventRecord.get('EventId')) ;
 	},
 	onEventDetailRendered: function( clickEl ) {
 		var me = this,
@@ -657,7 +657,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 	onDestroy: function() {
 		var me = this ;
 		if( me.eventDetailPanel ) {
-			//me.eventDetailPanel.destroy() ;
+			me.eventDetailPanel.destroy() ;
 		}
 	}
 });
