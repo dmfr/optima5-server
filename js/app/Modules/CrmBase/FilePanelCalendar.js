@@ -515,7 +515,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 				title: crmData.join(" "),
 				start: Ext.Date.parse(fileRecord[startField], "Y-m-d H:i:s", true),
 				end: Ext.Date.parse(fileRecord[endField], "Y-m-d H:i:s", true),
-				done: (isDoneField != null && fileRecord[isDoneField]),
+				done: (isDoneField != null && fileRecord[isDoneField]==1),
 				ad: (durationField != null && fileRecord[durationField] > 0)
 			}
 			

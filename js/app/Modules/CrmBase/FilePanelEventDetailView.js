@@ -208,7 +208,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelEventDetailView',{
 		}
 		
 		var sampleTplData = {
-			isDone: filerecord[tplMapping.isDoneField],
+			isDone: ( tplMapping.isDoneField && filerecord[tplMapping.isDoneField]==1 ),
 			headerColor: null ,
 			headerTxt: ( tplMapping.accountSrcValues != null ? tRenderer(filerecord,tplMapping.accountSrcValues) : null ),
 			startTxt: Ext.Date.format( Ext.Date.parse(filerecord[tplMapping.startField], "Y-m-d H:i:s", true), "Y-m-d H:i" ) ,
