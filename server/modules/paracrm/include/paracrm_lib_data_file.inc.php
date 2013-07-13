@@ -142,7 +142,7 @@ function paracrm_lib_file_mapFile( $file_code, $is_called=FALSE )
 				continue ;
 			}
 			if( $arr['entry_field_type'] == 'link' ) {
-				$TAB = paracrm_lib_file_mapBible( $bible_code=$arr['entry_field_linkbible'], $remote_table=$file_code, $remote_field=('field_'.$arr['entry_field_code']) ) ;
+				$TAB = paracrm_lib_file_mapBible( $bible_code=$arr['entry_field_linkbible'], $remote_table=$file_code, $remote_field=('field_'.$arr['entry_field_code']), $remote_field_lib=$arr['entry_field_lib'] ) ;
 				
 				$sql_selectfields = array_merge($sql_selectfields,$TAB['sql_selectfields']) ;
 				$sql_leftjoin = array_merge($sql_leftjoin,$TAB['sql_leftjoin']) ;
@@ -160,6 +160,7 @@ function paracrm_lib_file_mapFile( $file_code, $is_called=FALSE )
 			$grid_cell['text'] = $arr['entry_field_lib'] ;
 			$grid_cell['file_code'] = $file_code ;
 			$grid_cell['file_field'] = $arr['entry_field_code'] ;
+			$grid_cell['file_field_lib'] = $arr['entry_field_lib'] ;
 			$grid_cell['is_display'] = true ;
 			$grid_cell['is_header'] = ( $arr['entry_field_is_header'] == 'O' );
 			$grid_cell['is_highlight'] = ( $arr['entry_field_is_highlight'] == 'O' );
@@ -183,7 +184,7 @@ function paracrm_lib_file_mapFile( $file_code, $is_called=FALSE )
 					'grid_map'=>$grid_map
 					);
 }
-function paracrm_lib_file_mapBible( $bible_code, $remote_table, $remote_field )
+function paracrm_lib_file_mapBible( $bible_code, $remote_table, $remote_field, $remote_field_lib=NULL )
 {
 	global $_opDB ;
 	
@@ -206,9 +207,10 @@ function paracrm_lib_file_mapBible( $bible_code, $remote_table, $remote_field )
 		$grid_cell = array() ;
 		$grid_cell['field'] = $remote_table.'_'.$remote_field.'_tree_'.$arr['tree_field_code'] ;
 		$grid_cell['type'] = $arr['tree_field_type'] ;
-		$grid_cell['text'] = '('.$bible_code.')'.' '.$arr['tree_field_lib'] ;
+		$grid_cell['text'] = '('.$remote_field_lib.')'.' '.$arr['tree_field_lib'] ;
 		$grid_cell['file_code'] = $remote_table ;
 		$grid_cell['file_field'] = substr($remote_field,6,strlen($remote_field)-6) ;
+		$grid_cell['file_field_lib'] = $remote_field_lib ;
 		$grid_cell['link_bible'] = $bible_code ;
 		$grid_cell['link_bible_type'] = 'tree' ;
 		$grid_cell['link_bible_field'] = $arr['tree_field_code'] ;
@@ -234,9 +236,10 @@ function paracrm_lib_file_mapBible( $bible_code, $remote_table, $remote_field )
 		$grid_cell = array() ;
 		$grid_cell['field'] = $remote_table.'_'.$remote_field.'_entry_'.$arr['entry_field_code'] ;
 		$grid_cell['type'] = $arr['entry_field_type'] ;
-		$grid_cell['text'] = '('.$bible_code.')'.' '.$arr['entry_field_lib'] ;
+		$grid_cell['text'] = '('.$remote_field_lib.')'.' '.$arr['entry_field_lib'] ;
 		$grid_cell['file_code'] = $remote_table ;
 		$grid_cell['file_field'] = substr($remote_field,6,strlen($remote_field)-6) ;
+		$grid_cell['file_field_lib'] = $remote_field_lib ;
 		$grid_cell['link_bible'] = $bible_code ;
 		$grid_cell['link_bible_type'] = 'entry' ;
 		$grid_cell['link_bible_field'] = $arr['entry_field_code'] ;
