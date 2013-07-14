@@ -435,6 +435,15 @@ Ext.define('Ext.calendar.view.Month', {
             this.detailPanel.hide();
         }
     },
+    
+    // private
+    onDestroy: function() {
+        if (this.detailPanel) {
+            this.detailPanel.destroy();
+        }
+        
+        this.callParent(arguments);
+    },
 
     // private
     onClick: function(e, t) {
