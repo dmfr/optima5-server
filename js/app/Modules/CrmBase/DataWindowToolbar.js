@@ -37,13 +37,13 @@ Ext.define('Optima5.Modules.CrmBase.DataWindowToolbar' ,{
 						scope:me
 					},
 					items: [{
-						itemId: 'grid',
-						text: 'Grid data',
-						iconCls: 'op5-crmbase-datatoolbar-view-grid'
-					},{
 						itemId: 'calendar',
 						text: 'Calendar',
 						iconCls: 'op5-crmbase-datatoolbar-view-calendar'
+					},{
+						itemId: 'grid',
+						text: 'Grid data',
+						iconCls: 'op5-crmbase-datatoolbar-view-grid'
 					},{
 						itemId: 'gmap',
 						text: 'GMap/locations',

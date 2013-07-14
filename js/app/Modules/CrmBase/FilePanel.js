@@ -106,7 +106,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 				deferredRender: true
 			},
 			maintainFlex : true,
-			activeItem : 0,
+			activeItem : (ajaxData.define_file.viewmode_calendar ? 1 : 0),
 			//resizable : true ,
 			items: [this.gridpanel,{
 				xtype:'op5crmbasefilecalendar',
