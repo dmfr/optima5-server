@@ -280,6 +280,12 @@ function paracrm_data_editTransaction_fileRecord_init( $post_data , &$arr_saisie
 			
 		if( isset($file_data) )
 			$field['value'] = $file_data[$field['name']] ;
+		elseif( $post_data['form_presets'] ) {
+			$tmpDecode = json_decode($post_data['form_presets'],true) ;
+			if( $tmpDecode[$field['name']] ) {
+				$field['value'] = $tmpDecode[$field['name']] ;
+			}
+		}
 		
 		$ent_file[] = $field ;
 	}
