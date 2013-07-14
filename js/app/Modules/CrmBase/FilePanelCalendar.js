@@ -118,6 +118,10 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 						fn: me.onEventClick,
 						scope: me
 					},
+					'dayclick': {
+						fn: me.onDayClick,
+						scope: me
+					},
 					'destroy': {
 						fn: me.onCalendarDestroy,
 						scope:me
@@ -692,6 +696,37 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 		if( !me.isDestroyed && !e.within(me.eventDetailPanel.el, false, true) ) {
 			me.eventDetailPanel.hide();
 		}
+	},
+	
+	
+	/*
+	 * Day click (new events)
+	 */
+	onDayClick: function( calendarView, startDate, isAllDay ) {
+		var me = this,
+			calendarCfg = me.gridCfg.define_file.calendar_cfg,
+			startFileField = calendarCfg.eventstart_filefield,
+			endFileField = calendarCfg.eventend_filefield,
+			msg = ( Ext.Date.format(startDate,'Y-m-d') + (isAllDay ? '' : ' (at '+Ext.Date.format(startDate,'H')+':00)' ) );
+			presets = {} ;
+			
+		if( isAllDay ) {
+			presets['field_'+startFileField] = Ext.Date.format(startDate,'Y-m-d')+' 00:00:00' ;
+		} else {
+			presets['field_'+startFileField] = Ext.Date.format(startDate,'Y-m-d H')+':00:00' ;
+			presets['field_'+endFileField] = Ext.Date.format(Ext.Date.add(startDate, Ext.Date.HOUR, 1),'Y-m-d H')+':00:00' ;
+		}
+		Ext.Msg.show({
+			title:'Create event',
+			msg: 'Create event on '+msg+' ?' ,
+			buttons: Ext.Msg.YESNO,
+			fn:function(buttonId){
+				if( buttonId == 'yes' ) {
+					me.parentFilePanel.editRecordNew(presets) ;
+				}
+			},
+			scope:me
+		}) ;
 	},
 	
 	

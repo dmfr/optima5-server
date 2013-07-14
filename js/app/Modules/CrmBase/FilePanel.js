@@ -523,7 +523,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 		}
 	},
 	
-	editRecordNew: function( treenodeKey ) {
+	editRecordNew: function( formPresets ) {
 		var me = this ;
 		
 		var ajaxParams = new Object() ;
@@ -534,6 +534,9 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 			file_code: this.fileId,
 			is_new: true
 		});
+		if( Ext.isObject(formPresets) ) {
+			ajaxParams['form_presets'] = Ext.JSON.encode(formPresets) ;
+		}
 		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams ,
 			success: function(response) {
