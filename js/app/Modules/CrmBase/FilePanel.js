@@ -113,6 +113,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 				border:false,
 				panelType: 'calendar',
 				optimaModule: me.optimaModule,
+				parentFilePanel: me,
 				fileId: this.fileId,
 				gridCfg: ajaxData,
 				startDay: 1,  // 0-based index for the day, 1 = Monday

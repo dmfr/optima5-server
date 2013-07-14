@@ -36,6 +36,10 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 			Optima5.Helper.logError('CrmBase:FilePanelCalendar','No module reference ?') ;
 			return ;
 		}
+		if( (me.parentFilePanel) instanceof Optima5.Modules.CrmBase.FilePanel ) {} else {
+			Optima5.Helper.logError('CrmBase:FilePanelCalendar','No parent FilePanel reference ?') ;
+			return ;
+		}
 		if( !me.gridCfg || !me.gridCfg.grid_fields ) {
 			Optima5.Helper.logError('CrmBase:FilePanelCalendar','No proper config ?') ;
 			return ;
@@ -603,10 +607,32 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 				}),
 				bbar:[{
 					iconCls:'op5-crmbase-dataformwindow-icon',
-					text:'Edit'
+					text:'Edit',
+					handler: function(btn) {
+						var filerecordId = btn.up('panel').filerecordId ;
+						me.eventDetailPanel.hide() ;
+						me.parentFilePanel.editRecordUpdate( filerecordId ) ;
+					},
+					scope: this
 				},'->',{
 					iconCls:'op5-crmbase-qtoolbar-file-delete',
-					text:'Delete'
+					text:'Delete',
+					handler: function(btn) {
+						var filerecordId = btn.up('panel').filerecordId ;
+						Ext.Msg.show({
+							title:'Delete file record',
+							msg: 'Delete record '+filerecordId+' ?' ,
+							buttons: Ext.Msg.YESNO,
+							fn:function(buttonId){
+								me.eventDetailPanel.hide() ;
+								if( buttonId == 'yes' ) {
+									me.parentFilePanel.editRecordDelete( filerecordId ) ;
+								}
+							},
+							scope:me
+						});
+					},
+					scope: this
 				}],
 				listeners:{
 					hide:me.onEventDetailHide,
@@ -614,10 +640,19 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 				}
 			});
 		}
+		
+		var recordIdx = eventRecord.get('EventId'),
+			filerecordId = me.dataCacheArray[recordIdx].filerecord_id ;
+			
+		// *** Titre ***
+		me.eventDetailPanel.filerecordId = filerecordId ;
+		me.eventDetailPanel.setTitle('Event #'+filerecordId) ;
+		
+		// *** mise en place de la vue ***
 		me.eventDetailPanel.getComponent(this.id + '-eventdetailview').on('eventdetailrendered',function(){
 			me.onEventDetailRendered(clickEl) ;
 		},me,{single:true}) ;
-		me.eventDetailPanel.getComponent(this.id + '-eventdetailview').update(eventRecord.get('EventId')) ;
+		me.eventDetailPanel.getComponent(this.id + '-eventdetailview').update(recordIdx) ;
 	},
 	onEventDetailRendered: function( clickEl ) {
 		var me = this,
