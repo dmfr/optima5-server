@@ -612,15 +612,15 @@ td.ext-cal-dtitle-today div {
 /* Event done style */
 .ext-evt-done {
   background-color: transparent;
-  background-size: 40px 40px;
+  background-size: 20px 20px;
   background-image:
-     -webkit-repeating-linear-gradient(-45deg, white, white 1px, transparent 1px, transparent 28px);
+     -webkit-repeating-linear-gradient(-45deg, white, white 1px, transparent 1px, transparent 14px);
   background-image:
-     -moz-repeating-linear-gradient(-45deg, white, white 1px, transparent 1px, transparent 28px);
+     -moz-repeating-linear-gradient(-45deg, white, white 1px, transparent 1px, transparent 14px);
   background-image:
-     -o-repeating-linear-gradient(-45deg, white, white 1px, transparent 1px, transparent 28px);
+     -o-repeating-linear-gradient(-45deg, white, white 1px, transparent 1px, transparent 14px);
   background-image:
-     repeating-linear-gradient(-45deg, white, white 1px, transparent 1px, transparent 28px);
+     repeating-linear-gradient(-45deg, white, white 1px, transparent 1px, transparent 14px);
 }
 
 /* Calendar Picker */

@@ -119,7 +119,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 						scope: me
 					},
 					'destroy': {
-						fn: me.onDestroy,
+						fn: me.onCalendarDestroy,
 						scope:me
 					}
 				}
@@ -525,11 +525,15 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 			
 			if( me.accountIsOn ) {
 				var accountKey = fileRecord[accountField] ;
-				if( typeof accountsMap[accountKey] === 'undefined' ) {
+				if( accountKey == null ) {
+					evt['cid'] = '' ;
+					evt['color_hex6'] = '000000' ;
+				} else if( typeof accountsMap[accountKey] === 'undefined' ) {
 					continue ;
+				} else {
+					evt['cid'] = accountKey ;
+					evt['color_hex6'] = accountsMap[accountKey] ;
 				}
-				evt['cid'] = accountKey ;
-				evt['color_hex6'] = accountsMap[accountKey] ;
 			}
 			
 			if( colorField != null && fileRecord[colorField] ) {
@@ -689,7 +693,12 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 			me.eventDetailPanel.hide();
 		}
 	},
-	onDestroy: function() {
+	
+	
+	/*
+	 * CalendarPanel onDestroy
+	 */
+	onCalendarDestroy: function() {
 		var me = this ;
 		if( me.eventDetailPanel ) {
 			me.eventDetailPanel.destroy() ;

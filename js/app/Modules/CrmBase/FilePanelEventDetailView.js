@@ -218,7 +218,10 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelEventDetailView',{
 		
 		if( tplMapping.accountField ) {
 			var eKey = filerecord[tplMapping.accountField] ;
-			sampleTplData.headerColor = this.filePanelCalendar.calendarStore.getById(eKey).get('ColorHex') ;
+			sampleTplData.headerColor = '000000' ;
+			if( this.filePanelCalendar.calendarStore.getById(eKey) != null ) {
+				sampleTplData.headerColor = this.filePanelCalendar.calendarStore.getById(eKey).get('ColorHex') ;
+			}
 		}
 		if( tplMapping.colorField ) {
 			sampleTplData.headerColor = filerecord[tplMapping.colorField] ;
