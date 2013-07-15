@@ -223,6 +223,12 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 					default : break ;
 				}
 				break ;
+				
+			case 'refresh' :
+				if( me.getPanel() ) {
+					me.getPanel().reload() ;
+				}
+				break ;
 		}
 	},
 	

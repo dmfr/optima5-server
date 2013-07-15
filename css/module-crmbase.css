@@ -123,6 +123,9 @@
 .op5-crmbase-datatoolbar-options-definestore {
 	background-image: url("../images/modules/crmbase-config-16.gif") !important;
 }
+.op5-crmbase-datatoolbar-refresh {
+	background-image: url("../images/modules/crmbase-viewrefresh-16.png") !important;
+}
 
 .op5-crmbase-qtoolbar-file {
 	background-image: url("../images/modules/crmbase-save-16.gif") !important;

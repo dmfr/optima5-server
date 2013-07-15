@@ -78,6 +78,13 @@ Ext.define('Optima5.Modules.CrmBase.DataWindowToolbar' ,{
 						iconCls: 'op5-crmbase-datatoolbar-options-definestore'
 					}]
 				}
+			},'->',{
+				hidden: true,
+				itemId: 'refresh',
+				text: 'Refresh',
+				iconCls: 'op5-crmbase-datatoolbar-refresh',
+				handler:me.onItemClick,
+				scope:me
 			}]
 		});
 		// console.dir(this.bibleMenu.items) ;
@@ -120,14 +127,25 @@ Ext.define('Optima5.Modules.CrmBase.DataWindowToolbar' ,{
 		} else {
 			optionsMenu.menu.child('#toggle-android').removeCls( me.clsForPublished ) ;
 		}
+		
+		var refreshBtn = me.child('#refresh') ;
+		refreshBtn.setVisible(true) ;
 	},
 	
 	onItemClick:function( item ) {
-		var menuItem = item ;
-		var toolbarButton = item.up().ownerButton ;
+		var menuItem, toolbarButton ;
+		if( item instanceof Ext.menu.Item ) {
+			menuItem = item ;
+			toolbarButton = item.up().ownerButton ;
+		} else if( item instanceof Ext.button.Button ) {
+			menuItem = null ;
+			toolbarButton = item ;
+		} else {
+			return ;
+		}
 		
 		var me = this ;
-		me.fireEvent('toolbaritemclick',toolbarButton.itemId,menuItem.itemId,null) ;
+		me.fireEvent('toolbaritemclick',toolbarButton.itemId,(menuItem ? menuItem.itemId : null),null) ;
 	},
 	onCheckItemChange: function( checkItem, checked ) {
 		var menuItem = checkItem ;
