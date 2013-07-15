@@ -155,7 +155,7 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 				align: 'center',
 				sortable: false,
 				dataIndex: 'entry_field_is_header',
-				editor:{xtype:'checkboxfield',padding:'0 0 0 16 '}
+				editor:{xtype:'checkboxfield'}
 			},{
 				xtype: 'booleancolumn',
 				type: 'boolean',
@@ -167,7 +167,7 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 				align: 'center',
 				sortable: false,
 				dataIndex: 'entry_field_is_highlight',
-				editor:{xtype:'checkboxfield',padding:'0 0 0 16 '}
+				editor:{xtype:'checkboxfield'}
 			}]
 		});
 		if( this.defineDataType == 'file' ) {
@@ -182,7 +182,7 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 				align: 'center',
 				sortable: false,
 				dataIndex: 'entry_field_is_mandatory',
-				editor:{xtype:'checkboxfield',padding:'0 0 0 16 '}
+				editor:{xtype:'checkboxfield'}
 			}) ;
 		}
 		switch( this.defineDataType ) {
