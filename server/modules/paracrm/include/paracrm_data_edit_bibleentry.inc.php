@@ -123,6 +123,14 @@ function paracrm_data_editTransaction_bibleEntry( $post_data , &$arr_saisie )
 				}
 				break ;
 				
+				case 'bool' :
+				$form_item['xtype'] = 'checkboxfield' ;
+				$form_item['name'] = 'field_'.$arr['entry_field_code'] ;
+				$form_item['fieldLabel'] = $arr['entry_field_lib'] ;
+				$form_item['inputValue'] = 1 ;
+				$form_item['uncheckedValue'] = 0 ;
+				break ;
+			
 				case 'link' :
 				$form_item['xtype'] = 'damsfieldtree' ;
 				$form_item['name'] = 'field_'.$arr['entry_field_code'] ;
