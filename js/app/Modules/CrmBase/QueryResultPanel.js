@@ -161,20 +161,30 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 				fields: fields
 			});
 			
-			var ln = tabData.data.length,
-				records = [],
-				i = 0;
-			for (; i < ln; i++) {
-				records.push(Ext.create(tmpModelName, tabData.data[i]));
-			}
-			
 			var tabstore = Ext.create('Ext.data.Store',{
 				model:tmpModelName,
-				pageSize: records.length,
+				pageSize: tabData.data.length,
 				buffered: true,
-				data: records,
+				remoteSort: true, // this just keeps sorting from being disabled
+				data: tabData.data,
 				proxy:{
 					type:'memory'
+				},
+				
+				/* 
+				* Custom sort function that overrides the normal store sort function.
+				* Basically this pulls all the buffered data into a MixedCollection
+				* and applies the sort to that, then it puts the SORTED data back
+				* into the buffered store.               
+				*/                    
+				sort: function(sorters) {
+					var collection = new Ext.util.MixedCollection();
+					collection.addAll(this.getProxy().data);
+					collection.sort(sorters);
+					
+					this.pageMap.clear();
+					this.getProxy().data = collection.getRange();
+					this.load();
 				}
 			});
 			

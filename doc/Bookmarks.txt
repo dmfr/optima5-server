@@ -4,3 +4,7 @@
 http://stackoverflow.com/questions/7404870/extjs-how-to-use-proxy-model-how-are-they-related
 
 
+2013-07-15 buffered store with local sorting (client-side)
+http://stackoverflow.com/questions/11037540/buffered-store-with-local-sorting-client-side
+QueryResultPanel
+
