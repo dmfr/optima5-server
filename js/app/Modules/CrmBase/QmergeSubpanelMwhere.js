@@ -396,7 +396,7 @@ Ext.define('Optima5.Modules.CrmBase.QmergeSubpanelMwhere' ,{
 		switch( record.get('mfield_type') ) {
 			case 'link' :
 				mform = Ext.create('Optima5.Modules.CrmBase.QueryWhereFormBible',{
-					optimaModule: me.optimaModule,
+					optimaModule: me.parentQmergePanel.optimaModule,
 					bibleId: record.get('mfield_linkbible') ,
 					frame:true
 				}) ;
@@ -404,21 +404,21 @@ Ext.define('Optima5.Modules.CrmBase.QmergeSubpanelMwhere' ,{
 				
 			case 'date' :
 				mform = Ext.create('Optima5.Modules.CrmBase.QueryWhereFormDate',{
-					optimaModule: me.optimaModule,
+					optimaModule: me.parentQmergePanel.optimaModule,
 					frame:true
 				}) ;
 				break ;
 				
 			case 'number' :
 				mform = Ext.create('Optima5.Modules.CrmBase.QueryWhereFormNumber',{
-					optimaModule: me.optimaModule,
+					optimaModule: me.parentQmergePanel.optimaModule,
 					frame:true
 				}) ;
 				break ;
 				
 			default :
 				mform = Ext.create('Optima5.Modules.CrmBase.QueryWhereForm',{
-					optimaModule: me.optimaModule,
+					optimaModule: me.parentQmergePanel.optimaModule,
 					frame:true
 				}) ;
 				break ;
