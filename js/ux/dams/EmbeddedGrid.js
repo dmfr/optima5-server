@@ -8,7 +8,7 @@ Ext.define('Ext.ux.dams.EmbeddedGrid',{
 	initComponent: function(){
 		var modelfields = new Array() ;
 		var modelvalidations = new Array() ;
-		Ext.each( this.columns, function( v ){
+		Ext.each( ( Ext.isObject(this.columns) ? this.columns.items : this.columns ), function( v ){
 			var type = 'string' ;
 			if( v.type ) {
 				type = v.type ;
@@ -39,7 +39,7 @@ Ext.define('Ext.ux.dams.EmbeddedGrid',{
 		}) ;
 		
 		if( !this.readOnly ) {
-			this.rowEditing = Ext.create('Ext.grid.plugin.RowEditing');
+			this.rowEditing = Ext.create('Ext.grid.plugin.RowEditing',{pluginId:'rowEditor'});
 			this.rowEditing.on('canceledit',this.onCancelEdit,this) ;
 			Ext.apply(this,{
 				plugins: [this.rowEditing]
@@ -48,25 +48,21 @@ Ext.define('Ext.ux.dams.EmbeddedGrid',{
 				dockedItems: [{
 					xtype: 'toolbar',
 					items: [{
+						itemId: 'add',
 						text: 'Add',
 						iconCls: 'icon-add',
 						handler: function(){
-							var newRecordIndex = ( this.getSelectedRowIndex() + 1 ) ;
-							
-							this.linkstore.insert(newRecordIndex, Ext.create(this.modelname) );
-							this.rowEditing.startEdit(newRecordIndex, 0);
+							this.onBtnAdd({}) ;
 						},
-						scope: this
+						scope: this,
+						menu: []
 					}, '-', {
 						itemId: 'delete',
 						text: 'Delete',
 						iconCls: 'icon-delete',
 						disabled: true,
 						handler: function(){
-							var selection = this.getView().getSelectionModel().getSelection()[0];
-							if (selection) {
-								this.linkstore.remove(selection);
-							}
+							this.onBtnDelete() ;
 						},
 						scope: this
 					}]
@@ -136,6 +132,19 @@ Ext.define('Ext.ux.dams.EmbeddedGrid',{
 			},this) ;
 			if( records[i].validate().getCount() > 0 )
 				this.linkstore.remove(records[i]) ;
+		}
+	},
+	
+	onBtnAdd: function( newRecordValues ) {
+		var newRecordIndex = ( this.getSelectedRowIndex() + 1 ) ;
+		
+		this.linkstore.insert(newRecordIndex, Ext.create(this.modelname,newRecordValues) );
+		this.rowEditing.startEdit(newRecordIndex, 0);
+	},
+	onBtnDelete: function() {
+		var selection = this.getView().getSelectionModel().getSelection()[0];
+		if (selection) {
+			this.linkstore.remove(selection);
 		}
 	}
 });

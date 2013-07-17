@@ -3,6 +3,7 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 	
 	requires : [
 		'Ext.ux.dams.EmbeddedGrid',
+		'Ext.ux.dams.EmbeddedButton',
 		'Optima5.Modules.CrmBase.DefineStoreCalendarForm',
 		'Ext.ux.dams.ComboBoxCached'
 	],
@@ -71,120 +72,130 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 			title:'TreeStructure',
 			itemId:'treetab',
 			xtype:'damsembeddedgrid',
-			columns: [{
-				text: 'Node Code',
-				// width: 40,
-				sortable: false,
-				width:140,
-				dataIndex: 'tree_field_code',
-				editor:{xtype:'textfield',allowBlank:false}
-			},{
-				text: 'Description',
-				//width: 40,
-				sortable: false,
-				width:140,
-				dataIndex: 'tree_field_lib',
-				editor:{xtype:'textfield',allowBlank:false}
-			},{
-				text: 'Node Type',
-				//width: 40,
-				sortable: false,
-				width:150,
-				dataIndex: 'tree_field_type',
-				editor:{xtype:'combobox', forceSelection:true, editable:false, queryMode: 'local',displayField: 'dataTypeLib',valueField: 'dataType',store:this.treeFieldType}
-			},{
-				xtype: 'booleancolumn',
-				type: 'boolean',
-				defaultValue : true ,
-				text: 'Title?',
-				width: 50,
-				trueText: '<b>X</b>',
-				falseText: '' ,
-				align: 'center',
-				sortable: false,
-				dataIndex: 'tree_field_is_header',
-				editor:{xtype:'checkboxfield'}
-			},{
-				xtype: 'booleancolumn',
-				type: 'boolean',
-				defaultValue : true ,
-				text: 'Show?',
-				width: 50,
-				trueText: '<b>X</b>',
-				falseText: '' ,
-				align: 'center',
-				sortable: false,
-				dataIndex: 'tree_field_is_highlight',
-				editor:{xtype:'checkboxfield'}
-			}]
+			columns: {
+				defaults: {
+					menuDisabled: true,
+					draggable: false,
+					sortable: false
+				},
+				items: [{
+					text: 'Node Code',
+					// width: 40,
+					width:140,
+					dataIndex: 'tree_field_code',
+					editor:{xtype:'textfield',allowBlank:false}
+				},{
+					text: 'Description',
+					//width: 40,
+					width:140,
+					dataIndex: 'tree_field_lib',
+					editor:{xtype:'textfield',allowBlank:false}
+				},{
+					text: 'Node Type',
+					//width: 40,
+					width:150,
+					dataIndex: 'tree_field_type',
+					editor:{xtype:'combobox', forceSelection:true, editable:false, queryMode: 'local',displayField: 'dataTypeLib',valueField: 'dataType',store:this.treeFieldType}
+				},{
+					xtype: 'booleancolumn',
+					type: 'boolean',
+					defaultValue : true ,
+					text: 'Title?',
+					width: 50,
+					trueText: '<b>X</b>',
+					falseText: '' ,
+					align: 'center',
+					dataIndex: 'tree_field_is_header',
+					editor:{xtype:'checkboxfield'}
+				},{
+					xtype: 'booleancolumn',
+					type: 'boolean',
+					defaultValue : true ,
+					text: 'Show?',
+					width: 50,
+					trueText: '<b>X</b>',
+					falseText: '' ,
+					align: 'center',
+					dataIndex: 'tree_field_is_highlight',
+					editor:{xtype:'checkboxfield'}
+				}]
+			}
 		});
 		var elementtab = new Object() ;
 		Ext.apply( elementtab, {
 			title:'Element',
 			itemId:'elementtab',
 			xtype:'damsembeddedgrid',
-			columns: [{
-				text: 'Node Code',
-				// width: 40,
-				sortable: false,
-				width:140,
-				dataIndex: 'entry_field_code',
-				editor:{xtype:'textfield',allowBlank:false}
-			},{
-				text: 'Description',
-				//width: 40,
-				sortable: false,
-				width:140,
-				dataIndex: 'entry_field_lib',
-				editor:{xtype:'textfield',allowBlank:false}
-			},{
-				text: 'Node Type',
-				//width: 40,
-				sortable: false,
-				width:150,
-				dataIndex: 'entry_field_type',
-				editor:{xtype:'combobox', matchFieldWidth:false,listConfig:{width:200}, forceSelection:true, editable:false, queryMode: 'local',displayField: 'dataTypeLib',valueField: 'dataType',store:this.entryFieldType}
-			},{
-				xtype: 'booleancolumn',
-				type: 'boolean',
-				defaultValue : true ,
-				text: 'Title?',
-				width: 50,
-				trueText: '<b>X</b>',
-				falseText: '' ,
-				align: 'center',
-				sortable: false,
-				dataIndex: 'entry_field_is_header',
-				editor:{xtype:'checkboxfield'}
-			},{
-				xtype: 'booleancolumn',
-				type: 'boolean',
-				defaultValue : true ,
-				text: 'Show?',
-				width: 50,
-				trueText: '<b>X</b>',
-				falseText: '' ,
-				align: 'center',
-				sortable: false,
-				dataIndex: 'entry_field_is_highlight',
-				editor:{xtype:'checkboxfield'}
-			}]
+			columns: {
+				defaults: {
+					menuDisabled: true,
+					draggable: false,
+					sortable: false
+				},
+				items: [{
+					text: 'Node Code',
+					// width: 40,
+					width:140,
+					dataIndex: 'entry_field_code',
+					editor:{xtype:'textfield',allowBlank:false}
+				},{
+					text: 'Description',
+					//width: 40,
+					width:140,
+					dataIndex: 'entry_field_lib',
+					editor:{xtype:'textfield',allowBlank:false}
+				},{
+					text: 'Node Type',
+					//width: 40,
+					width:150,
+					dataIndex: 'entry_field_type',
+					editorTpl:{xtype:'combobox', matchFieldWidth:false,listConfig:{width:200}, forceSelection:true, editable:false, queryMode: 'local',displayField: 'dataTypeLib',valueField: 'dataType',store:this.entryFieldType},
+					buttonTpl:{xtype:'damsembeddedbutton', text:'Configure JOIN'}
+				},{
+					xtype: 'booleancolumn',
+					type: 'boolean',
+					defaultValue : true ,
+					text: 'Title?',
+					width: 50,
+					trueText: '<b>X</b>',
+					falseText: '' ,
+					align: 'center',
+					dataIndex: 'entry_field_is_header',
+					editor:{xtype:'checkboxfield'}
+				},{
+					xtype: 'booleancolumn',
+					type: 'boolean',
+					defaultValue : true ,
+					text: 'Show?',
+					width: 50,
+					trueText: '<b>X</b>',
+					falseText: '' ,
+					align: 'center',
+					dataIndex: 'entry_field_is_highlight',
+					editor:{xtype:'checkboxfield'}
+				},{
+					xtype: 'booleancolumn',
+					type: 'boolean',
+					defaultValue : false ,
+					text: 'Must?',
+					width: 50,
+					trueText: '<b>X</b>',
+					falseText: '' ,
+					align: 'center',
+					hidden: !(this.defineDataType == 'file'),
+					dataIndex: 'entry_field_is_mandatory',
+					editor:{xtype:'checkboxfield'}
+				},{
+					hidden:true,
+					dataIndex:'join_target_file_code'
+				},{
+					type:'auto',
+					hidden:true,
+					dataIndex:'join_map_fields'
+				}]
+			}
 		});
-		if( this.defineDataType == 'file' ) {
-			elementtab.columns.push({
-				xtype: 'booleancolumn',
-				type: 'boolean',
-				defaultValue : false ,
-				text: 'Must?',
-				width: 50,
-				trueText: '<b>X</b>',
-				falseText: '' ,
-				align: 'center',
-				sortable: false,
-				dataIndex: 'entry_field_is_mandatory',
-				editor:{xtype:'checkboxfield'}
-			}) ;
-		}
+		
 		switch( this.defineDataType ) {
 			case 'bible' :
 				tabitems.push( treetab ) ;
@@ -322,7 +333,8 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 			}]
 		});
 		
-		this.on('afterrender',this.initLoadEverything,this) ;
+		this.on('afterrender',this.initLoadEverything,this,{single:true}) ;
+		this.on('afterrender',this.configureEditors,this,{single:true}) ;
 		
 		this.callParent() ;
 	},
@@ -435,6 +447,73 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 					
 		me.populateFieldTypesStores(this.transactionID) ;
 		//me.calcFormLayout() ;
+		
+		
+	},
+	
+	configureEditors: function() {
+		var me = this ,
+			elementgrid = me.query('tabpanel')[0].child('#elementtab') ;
+		
+		elementgrid.getPlugin('rowEditor').on('beforeedit',me.onBeforeEditElementGrid,me) ;
+		
+		if( this.defineDataType == 'file' ) {
+			elementgrid.child('toolbar').child('#add').handler = null 
+			var addMenu = [{
+					iconCls:'icon-add',
+					text:'File Field',
+					handler:function(btn) {
+						var p = btn.up('damsembeddedgrid') ;
+						p.onBtnAdd({}) ;
+					},
+					scope:me
+				},{
+					icon:'images/op5img/ico_filechild_16.gif',
+					text:'Table JOIN',
+					handler:function(btn) {
+						var p = btn.up('damsembeddedgrid') ;
+						p.onBtnAdd({
+							entry_field_type:'join'
+						}) ;
+					},
+					scope:me
+				}] ;
+			elementgrid.child('toolbar').child('#add').menu.add(addMenu);
+		}
+	},
+	onBeforeEditElementGrid: function(editor,editEvent) {
+		var me = this ;
+		
+		editor.cancelEdit() ;
+		
+		var columnsByKey = {} ;
+		Ext.Array.forEach( editEvent.grid.columns, function(col) {
+			columnsByKey[col.dataIndex] = col ;
+		},me);
+		
+		var fieldTypeCol = columnsByKey['entry_field_type'] ;
+		if( editEvent.record && editEvent.record.get('entry_field_type') && editEvent.record.get('entry_field_type')=='join' ) {
+			var buttonTpl = Ext.apply({},fieldTypeCol.buttonTpl) ;
+			Ext.apply(buttonTpl,{
+				rowIdx: editEvent.rowIdx,
+				handler: function(btn) {
+					me.onClickJoinCfg(btn.rowIdx) ;
+				},
+				scope:me
+			});
+			
+			fieldTypeCol.setEditor(buttonTpl) ;
+		} else {
+			fieldTypeCol.setEditor(fieldTypeCol.editorTpl) ;
+		}
+	},
+	onClickJoinCfg: function( rowIdx ) {
+		var me = this ,
+			elementgrid = me.query('tabpanel')[0].child('#elementtab'),
+			editPlugin = elementgrid.getPlugin('rowEditor') ;
+			
+		//editPlugin.completeEdit() ;
+		console.log('Advanced editing for row '+rowIdx) ;
 	},
 	
 	populateFieldTypesStores: function() {
