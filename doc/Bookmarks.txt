@@ -8,3 +8,6 @@ http://stackoverflow.com/questions/7404870/extjs-how-to-use-proxy-model-how-are-
 http://stackoverflow.com/questions/11037540/buffered-store-with-local-sorting-client-side
 QueryResultPanel
 
+
+2013-07-17 Weird behavior of MemoryProxy with embeddedgrid + feature RowBody
+- utilisation de la feinte Ext.calendar , override updateOperation + sync() à chaque operation

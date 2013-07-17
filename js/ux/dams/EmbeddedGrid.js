@@ -27,10 +27,17 @@ Ext.define('Ext.ux.dams.EmbeddedGrid',{
 		
 		// creation du store uniquement !!
 		this.linkstore = Ext.create('Ext.data.Store', {
-			autoLoad: false,
-			autoSync: false,
+			autoLoad: true,
+			autoSync: true,
 			model: this.modelname,
-			data: this.data || []
+			data: this.data || [],
+			proxy: Ext.create('Ext.data.proxy.Memory',{
+				updateOperation: function(operation, callback, scope) {
+					operation.setCompleted();
+					operation.setSuccessful();
+					Ext.callback(callback, scope || me, [operation]);
+				}
+			})
 		}) ;
 		Ext.apply(this,{
 			// frame: true,
@@ -41,6 +48,7 @@ Ext.define('Ext.ux.dams.EmbeddedGrid',{
 		if( !this.readOnly ) {
 			this.rowEditing = Ext.create('Ext.grid.plugin.RowEditing',{pluginId:'rowEditor'});
 			this.rowEditing.on('canceledit',this.onCancelEdit,this) ;
+			this.rowEditing.on('edit',this.onAfterEdit,this) ;
 			Ext.apply(this,{
 				plugins: [this.rowEditing]
 			}) ;
@@ -133,18 +141,25 @@ Ext.define('Ext.ux.dams.EmbeddedGrid',{
 			if( records[i].validate().getCount() > 0 )
 				this.linkstore.remove(records[i]) ;
 		}
+		this.linkstore.sync() ;
+	},
+	onAfterEdit: function() {
+		this.getView().getSelectionModel().deselectAll( true ) ;
 	},
 	
 	onBtnAdd: function( newRecordValues ) {
 		var newRecordIndex = ( this.getSelectedRowIndex() + 1 ) ;
 		
 		this.linkstore.insert(newRecordIndex, Ext.create(this.modelname,newRecordValues) );
+		this.linkstore.sync() ;
+		
 		this.rowEditing.startEdit(newRecordIndex, 0);
 	},
 	onBtnDelete: function() {
 		var selection = this.getView().getSelectionModel().getSelection()[0];
 		if (selection) {
 			this.linkstore.remove(selection);
+			this.linkstore.sync() ;
 		}
 	}
 });
