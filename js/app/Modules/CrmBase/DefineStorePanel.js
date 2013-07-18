@@ -153,6 +153,19 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 					buttonTpl:{xtype:'damsembeddedbutton', text:'Configure JOIN'}
 				},{
 					xtype: 'booleancolumn',
+					itemId: 'primaryKeyColumn',
+					type: 'boolean',
+					defaultValue : false ,
+					text: 'Key?',
+					width: 50,
+					trueText: '<b>X</b>',
+					falseText: '' ,
+					align: 'center',
+					hidden: true,
+					dataIndex: 'entry_field_is_primarykey',
+					editor:{xtype:'checkboxfield'}
+				},{
+					xtype: 'booleancolumn',
 					type: 'boolean',
 					defaultValue : true ,
 					text: 'Title?',
@@ -254,6 +267,7 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 						fields: ['storeType', 'storeTypeLib'],
 						data: [
 							{"storeType":"","storeTypeLib":"Std / Fieldset"},
+							{"storeType":"file_primarykey","storeTypeLib":"File w/ primarykey"},
 							{"storeType":"calendar","storeTypeLib":"Calendar"},
 							{"storeType":"media_img","storeTypeLib":"Media : pictures"}
 						]
@@ -546,12 +560,21 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 					case 'media_img' :
 						hideFieldsets = true ;
 						hideGmap = true ;
+						showPrimarykeyCol = false ;
 						showCalendarTab = false ;
 						break ;
 					
 					case 'calendar' :
 						hideFieldsets = false ;
 						hideGmap = true ;
+						showPrimarykeyCol = false ;
+						showCalendarTab = true ;
+						break ;
+						
+					case 'file_primarykey' :
+						hideFieldsets = false ;
+						hideGmap = true ;
+						showPrimarykeyCol = true ;
 						showCalendarTab = true ;
 						break ;
 						
@@ -559,6 +582,7 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 					default :
 						hideFieldsets = false ;
 						hideGmap = false ;
+						showPrimarykeyCol = false ;
 						showCalendarTab = false ;
 						break ;
 				}
@@ -581,6 +605,17 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 			else {
 				calendarTab.tab.hide();
 				this.query('> tabpanel')[0].setActiveTab(0) ;
+			}
+		}
+		
+		var elementTab = this.query('> tabpanel')[0].child('#elementtab') ;
+			primarykeyCol = elementTab.query('#primaryKeyColumn')[0] ;
+		if( primarykeyCol ){
+			if( showPrimarykeyCol ) {
+				primarykeyCol.show();
+			}
+			else {
+				primarykeyCol.hide();
 			}
 		}
 	},
