@@ -5,6 +5,7 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 		'Ext.ux.dams.EmbeddedGrid',
 		'Ext.ux.dams.EmbeddedButton',
 		'Optima5.Modules.CrmBase.DefineStoreCalendarForm',
+		'Optima5.Modules.CrmBase.DefineStoreFieldJoinPanel',
 		'Ext.ux.dams.ComboBoxCached'
 	],
 	
@@ -264,7 +265,7 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 									'</tbody>',
 									'<tbody class="op5-crmbase-define-grid-join-tbody-select"><tr>',
 										'<td class="op5-crmbase-define-grid-join-td-icon">&#160;</td>',
-										'<td class="op5-crmbase-define-grid-join-td-local">select :</td>',
+										'<td class="op5-crmbase-define-grid-join-td-local"><i>select :</i></td>',
 										'<td class="op5-crmbase-define-grid-join-td-remote"><u>{joinSelectField}</u></td>',
 									'</tr></tbody>',
 								'</table>',
@@ -599,11 +600,39 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 	},
 	onClickJoinCfg: function( rowIdx ) {
 		var me = this ,
-			elementgrid = me.query('tabpanel')[0].child('#elementtab'),
+			tabpanel = me.query('tabpanel')[0],
+			elementgrid = tabpanel.child('#elementtab'),
 			editPlugin = elementgrid.getPlugin('rowEditor') ;
 			
 		//editPlugin.completeEdit() ;
 		console.log('Advanced editing for row '+rowIdx) ;
+		
+		// Create panel
+		if( !me.joinPanel ) {
+			me.joinPanel = Ext.create('Optima5.Modules.CrmBase.DefineStoreFieldJoinPanel',{
+				title: 'Join field settings',
+				floating: true,
+				renderTo: me.getEl(),
+				tools: [{
+					type: 'close',
+					handler: function(e, t, p) {
+						p.ownerCt.hide();
+					}
+				}],
+			});
+		}
+		// Size + position
+		me.joinPanel.setSize({
+			width: tabpanel.getSize().width - 20,
+			height: tabpanel.getSize().height - 20
+		}) ;
+		me.joinPanel.on('hide',function() {
+			me.getEl().unmask() ;
+		},me,{single:true}) ;
+		me.getEl().mask() ;
+		me.joinPanel.show();
+		me.joinPanel.getEl().alignTo(tabpanel.getEl(), 'c-c?');
+		
 	},
 	
 	populateFieldTypesStores: function() {
