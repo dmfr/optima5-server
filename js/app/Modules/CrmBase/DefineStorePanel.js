@@ -202,11 +202,87 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 					hidden:true,
 					dataIndex:'join_target_file_code'
 				},{
+					hidden:true,
+					dataIndex:'join_select_file_field_code'
+				},{
 					type:'auto',
 					hidden:true,
-					dataIndex:'join_map_fields'
+					dataIndex:'join_map'
 				}]
-			}
+			},
+			features: [{
+				ftype: 'rowbody',
+				getAdditionalData: function(data, rowIndex, record, orig) {
+					if( record.get('entry_field_type') != 'join' ) {
+						return this.callParent(arguments) ;
+					}
+					
+					
+					
+					var localFileCode = me.defineFileId,
+						parentFileCode = me.query('form')[0].getForm().findField('store_parent_code').getValue(),
+						joinMapRaw = record.get('join_map'),
+						joinMap = [],
+						rawMapObj ;
+					for( var tIdx=0 ; tIdx<joinMapRaw.length ; tIdx++ ) {
+						rawMapObj = joinMapRaw[tIdx] ;
+						
+						joinMap.push({
+							joinLocalField: (rawMapObj.join_local_alt_file_code=='' ? '' : ( rawMapObj.join_local_alt_file_code==parentFileCode ? '(parent) ' : '(err???)' ) ) + rawMapObj.join_local_file_field_code,
+							joinTargetField: rawMapObj.join_target_file_field_code
+						});
+					}
+					
+					var joinCfg = {
+						status: ( record.get('join_target_file_code') != '' && record.get('join_select_file_field_code') != '' ),
+						joinTargetFile: record.get('join_target_file_code'),
+						joinSelectField: record.get('join_select_file_field_code'),
+						joinMap:joinMap
+					};
+					
+					var headerCt = this.view.headerCt,
+						colspan = headerCt.getColumnCount();
+						rowbody = new Ext.XTemplate(
+							'<div style="position:relative;">',
+							'<tpl if="status">',
+								'<table class="op5-crmbase-define-grid-join-tbl" cellspacing="0">',
+									'<tbody class="op5-crmbase-define-grid-join-tbody-file"><tr>',
+										'<td class="op5-crmbase-define-grid-join-td-icon">&#160;</td>',
+										'<td class="op5-crmbase-define-grid-join-td-local"><i>local</i></td>',
+										'<td class="op5-crmbase-define-grid-join-td-remote"><b>{joinTargetFile}</b></td>',
+									'</tr></tbody>',
+									'<tbody class="op5-crmbase-define-grid-join-tbody-map">',
+									'<tpl for="joinMap">',
+										'<tr>',
+										'<tpl if="xindex < 2">',
+											'<td rowspan="{[xcount]}" class="op5-crmbase-define-grid-join-td-icon">&#160;</td>',
+										'</tpl>',
+										'<td class="op5-crmbase-define-grid-join-td-local">{joinLocalField}</td>',
+										'<td class="op5-crmbase-define-grid-join-td-remote">{joinTargetField}</td>',
+										'</tr>',
+									'</tpl>',
+									'</tbody>',
+									'<tbody class="op5-crmbase-define-grid-join-tbody-select"><tr>',
+										'<td class="op5-crmbase-define-grid-join-td-icon">&#160;</td>',
+										'<td class="op5-crmbase-define-grid-join-td-local">select :</td>',
+										'<td class="op5-crmbase-define-grid-join-td-remote"><u>{joinSelectField}</u></td>',
+									'</tr></tbody>',
+								'</table>',
+							'<tpl else>',
+								'<div class="op5-crmbase-define-grid-join-erricon"></div>',
+								'<div class="op5-crmbase-define-grid-join-errtxt">Incomplete JOIN settings</div>',
+							'</tpl>',
+							'</div>'
+						).apply(joinCfg);
+					
+					return {
+						//rowBody: '<div style="padding: 2px 4px 10px 4px">'++'</div>',
+						rowBodyCls: "op5-crmbase-define-grid-joinbody",
+						rowBodyColspan: colspan,
+						rowBody: rowbody
+					};
+				}
+			}]
 		});
 		
 		switch( this.defineDataType ) {
@@ -573,9 +649,9 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 						
 					case 'file_primarykey' :
 						hideFieldsets = false ;
-						hideGmap = true ;
+						hideGmap = false ;
 						showPrimarykeyCol = true ;
-						showCalendarTab = true ;
+						showCalendarTab = false ;
 						break ;
 						
 					case '' :

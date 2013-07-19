@@ -148,7 +148,10 @@ Ext.define('Ext.ux.dams.EmbeddedGrid',{
 	},
 	
 	onBtnAdd: function( newRecordValues ) {
-		var newRecordIndex = ( this.getSelectedRowIndex() + 1 ) ;
+		var newRecordIndex = this.getSelectedRowIndex() ;
+		if( newRecordIndex == -1 ) {
+			newRecordIndex = this.linkstore.getCount() ;
+		}
 		
 		this.linkstore.insert(newRecordIndex, Ext.create(this.modelname,newRecordValues) );
 		this.linkstore.sync() ;

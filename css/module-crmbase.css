@@ -227,3 +227,85 @@ table.op5-crmbase-filecalendar-eventdetail-tbl > tbody > tr > td.op5-crmbase-fil
 table.op5-crmbase-filecalendar-eventdetail-tbl > tbody > tr > td.op5-crmbase-filecalendar-eventdetail-tdvalue {
 	 padding: 2px 0px 2px 8px;
 }
+
+
+/*
+ * Define form
+ */
+.op5-crmbase-define-grid-joinbody > td {
+	padding: 4px 24px 14px 24px ;
+}
+.op5-crmbase-define-grid-join-erricon {
+    position: absolute;
+    top: 0px;
+    left: 8px;
+	 height: 16px;
+	 width: 16px;
+    background-repeat: no-repeat;
+    background-position: center center ;
+	 background-image: url("../images/delete.png") !important;
+}
+.op5-crmbase-define-grid-join-errtxt {
+    position: relative;
+	 padding-left:32px;
+	 font-weight:bold;
+	 line-height:16px;
+}
+
+table.op5-crmbase-define-grid-join-tbl {
+	margin:0px 0px ;
+	color:black;
+	font-size:12px;
+	font-family:tahoma,arial,verdana,sans-serif
+}
+table.op5-crmbase-define-grid-join-tbl > tbody > tr:first-child > td {
+	padding-top: 6px ;
+}
+table.op5-crmbase-define-grid-join-tbl > tbody:first-child > tr:first-child > td {
+	padding-top: 0px ;
+}
+
+tr.op5-crmbase-define-grid-join-tr-map > td.op5-crmbase-define-grid-join-td-local {
+	border-right: 1px solid #444444 ;
+}
+td.op5-crmbase-define-grid-join-td-icon {
+	width: 32px;
+	background-repeat: no-repeat;
+	background-position: left center ;
+}
+td.op5-crmbase-define-grid-join-td-local {
+	text-align:right;
+	padding-right: 17px ;
+}
+td.op5-crmbase-define-grid-join-td-remote {
+	text-align:left;
+	padding-left: 15px ;
+}
+
+tbody.op5-crmbase-define-grid-join-tbody-file td.op5-crmbase-define-grid-join-td-icon {
+	background-image: url("../images/modules/crmbase-file-16.gif") !important;
+}
+tbody.op5-crmbase-define-grid-join-tbody-map td.op5-crmbase-define-grid-join-td-icon {
+	background-image: url("../images/modules/crmbase-filechild-16.gif") !important;
+}
+tbody.op5-crmbase-define-grid-join-tbody-map td {
+	font-size:11px;
+}
+tbody.op5-crmbase-define-grid-join-tbody-file td.op5-crmbase-define-grid-join-td-local {
+	border-right: 1px solid #444444 ;
+}
+tbody.op5-crmbase-define-grid-join-tbody-map td.op5-crmbase-define-grid-join-td-local {
+	border-right: 1px solid #444444 ;
+}
+tbody.op5-crmbase-define-grid-join-tbody-select td.op5-crmbase-define-grid-join-td-icon {
+	background-image: url("../images/modules/crmbase-piece-16.png") !important;
+}
+tbody.op5-crmbase-define-grid-join-tbody-select td.op5-crmbase-define-grid-join-td-local {
+	padding-right: 0px ;
+}
+tbody.op5-crmbase-define-grid-join-tbody-select td.op5-crmbase-define-grid-join-td-local {
+	padding-left: 2px ;
+}
+tbody.op5-crmbase-define-grid-join-tbody-separator tr {
+	height: 10px ;
+}
