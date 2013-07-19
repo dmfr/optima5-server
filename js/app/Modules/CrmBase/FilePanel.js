@@ -6,7 +6,6 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 		'Optima5.Modules.CrmBase.FilePanelGmap',
 		'Optima5.Modules.CrmBase.FilePanelGallery',
 		'Optima5.Modules.CrmBase.FilePanelCalendar',
-		'Optima5.Modules.CrmBase.FilePanelCalendarExample',
 		'Ext.ux.grid.FiltersFeature',
 		'Optima5.Modules.CrmBase.BibleFilter',
 		'Optima5.Modules.CrmBase.BibleTreeFilter'
