@@ -200,7 +200,14 @@ function paracrm_lib_bible_buildRelationships_walkTree( $bible_code, $curTreeNod
 			$mCurrentNodeLinks[$tfield] = array() ;
 			foreach( json_decode($json_foreignNodeLinks,true) as $foreignNodeLink )
 			{
-				$mCurrentNodeLinks[$tfield] = array_merge($mCurrentNodeLinks[$tfield],$foreignTree->getTree($foreignNodeLink)->getAllMembers()) ;
+				$foreignNodeTree = $foreignTree->getTree($foreignNodeLink) ;
+				if( $foreignNodeTree === NULL ) {
+					continue ; // no bible treenode match for this foreign reference ( deleted ? )
+				}
+				
+				$foreignNodeAllMembers = $foreignNodeTree->getAllMembers() ;
+				
+				$mCurrentNodeLinks[$tfield] = array_merge($mCurrentNodeLinks[$tfield],$foreignNodeAllMembers) ;
 			}
 		}
 	}
@@ -270,7 +277,12 @@ function paracrm_lib_bible_buildRelationships_walkEntries( $bible_code )
 			$cnt = 0 ;
 			foreach( json_decode($json_foreignNodeLinks,true) as $foreignNodeLink )
 			{
-				foreach( $foreignTree->getTree($foreignNodeLink)->getAllMembers() as $foreign_treenodeKey )
+				$foreignNodeTree = $foreignTree->getTree($foreignNodeLink) ;
+				if( $foreignNodeTree === NULL ) {
+					continue ; // no bible treenode match for this foreign reference ( deleted ? )
+				}
+				
+				foreach( $foreignNodeTree->getAllMembers() as $foreign_treenodeKey )
 				{
 					$cnt++ ;
 					$arr_ins['entry_field_linkmember_index'] = $cnt ;

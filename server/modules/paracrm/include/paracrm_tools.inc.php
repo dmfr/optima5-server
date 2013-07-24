@@ -86,6 +86,20 @@ class GenericTree {
 		}
 		return $arr ;
 	}
+	
+	
+	public function printTree($increment=0) {
+		$s = "";
+		$inc = "";
+		for ($i = 0; $i < $increment; $i++) {
+			$inc = $inc." ";
+		}
+		$s.= $inc.$this->getHead();
+		foreach($this->getLeafs() as $child) {
+			$s.= "\n".$child->printTree($increment + 2);
+		}
+		return $s;
+	}
 }
 
 ?>

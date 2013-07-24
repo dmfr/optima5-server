@@ -879,7 +879,12 @@ function paracrm_queries_process_query($arr_saisie, $debug=FALSE)
 				$tmp_tree = $arr_bible_trees[$arr_indexed_treefields[$tfield]['bible_code']] ;
 				foreach( json_decode($field_where['condition_bible_treenodes'],true) as $trootnode )
 				{
-					foreach( $tmp_tree->getTree($trootnode)->getAllMembers() as $tnode )
+					$tRootTree = $tmp_tree->getTree($trootnode) ;
+					if( $tRootTree == NULL ) {
+						continue ;
+					}
+					
+					foreach( $tRootTree->getAllMembers() as $tnode )
 					{
 						$field_where['sql_arr_select'][] = $tnode ;
 					}
@@ -930,7 +935,12 @@ function paracrm_queries_process_query($arr_saisie, $debug=FALSE)
 				$tmp_tree = $arr_bible_trees[$arr_indexed_treefields[$tfield]['bible_code']] ;
 				foreach( json_decode($field_progress['condition_bible_treenodes'],true) as $trootnode )
 				{
-					foreach( $tmp_tree->getTree($trootnode)->getAllMembers() as $tnode )
+					$tRootTree = $tmp_tree->getTree($trootnode) ;
+					if( $tRootTree == NULL ) {
+						continue ;
+					}
+					
+					foreach( $tRootTree->getAllMembers() as $tnode )
 					{
 						$field_progress['sql_arr_select'][] = $tnode ;
 					}
