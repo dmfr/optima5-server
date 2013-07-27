@@ -4,8 +4,8 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 	requires : [
 		'Ext.calendar.CalendarPanel',
 		'Ext.calendar.util.Date',
-		'Ext.calendar.data.Events',
-		'Ext.calendar.data.Calendars',
+		'Ext.calendar.data.EventModel',
+		'Ext.calendar.data.CalendarModel',
 		'Optima5.Modules.CrmBase.FilePanelEventDetailView'
 	],
 	
