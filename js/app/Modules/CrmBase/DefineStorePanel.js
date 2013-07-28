@@ -610,7 +610,9 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 		// Create panel
 		if( !me.joinPanel ) {
 			me.joinPanel = Ext.create('Optima5.Modules.CrmBase.DefineStoreFieldJoinPanel',{
-				title: 'Join field settings',
+				defineStorePanel: me,
+				elementtabIdx: rowIdx,
+				
 				floating: true,
 				renderTo: me.getEl(),
 				tools: [{
@@ -630,9 +632,9 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 			me.getEl().unmask() ;
 		},me,{single:true}) ;
 		me.getEl().mask() ;
+		
 		me.joinPanel.show();
 		me.joinPanel.getEl().alignTo(tabpanel.getEl(), 'c-c?');
-		
 	},
 	
 	populateFieldTypesStores: function() {
