@@ -601,6 +601,10 @@ body .ux-notification-light {
     text-align: center;
 }
 
+.x-drop-target-active td.x-grid-cell {
+    background-color: #D88 !important;
+}
+
 
 
 /* Loading section */
