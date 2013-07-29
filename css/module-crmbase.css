@@ -309,3 +309,15 @@ tbody.op5-crmbase-define-grid-join-tbody-select td.op5-crmbase-define-grid-join-
 tbody.op5-crmbase-define-grid-join-tbody-separator tr {
 	height: 10px ;
 }
+
+.op5-crmbase-definejoin-grid-td-empty {
+    background-repeat: no-repeat;
+    background-position: center top ;
+	 background-image: url("../images/op5img/ico_cancel_small.gif") ;
+}
+.op5-crmbase-definejoin-grid-td-ok {
+    background-repeat: no-repeat;
+    background-position: left top ;
+	 background-image: url("../images/leaf.gif") ;
+	 padding-left: 16px
+}

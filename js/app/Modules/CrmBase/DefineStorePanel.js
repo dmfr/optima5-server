@@ -611,7 +611,6 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 		if( !me.joinPanel ) {
 			me.joinPanel = Ext.create('Optima5.Modules.CrmBase.DefineStoreFieldJoinPanel',{
 				defineStorePanel: me,
-				elementtabIdx: rowIdx,
 				
 				floating: true,
 				renderTo: me.getEl(),
@@ -632,6 +631,8 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 			me.getEl().unmask() ;
 		},me,{single:true}) ;
 		me.getEl().mask() ;
+		
+		me.joinPanel.setElementtabIdx( rowIdx ) ;
 		
 		me.joinPanel.show();
 		me.joinPanel.getEl().alignTo(tabpanel.getEl(), 'c-c?');
