@@ -311,8 +311,36 @@ function paracrm_define_manageTransaction( $post_data )
 				else
 					$arr['entry_field_is_header'] = false ;
 					
+				if( $arr['entry_field_is_primarykey'] == 'O' )
+					$arr['entry_field_is_primarykey'] = true ;
+				else
+					$arr['entry_field_is_primarykey'] = false ;
+					
 				if( $arr['entry_field_type'] == 'link' )
 					$arr['entry_field_type'] = $arr['entry_field_type'].'_'.$arr['entry_field_linkbible'] ;
+				if( $arr['entry_field_type'] == 'join' ) {
+					// **** Load join parameters ****
+					$query = "SELECT * FROM define_file_entry_join WHERE file_code='{$arr['file_code']}' AND entry_field_code='{$arr['entry_field_code']}'" ;
+					$res_join = $_opDB->query($query) ;
+					$arr_join = $_opDB->fetch_assoc($res_join) ;
+					
+					$arr['join_target_file_code'] = $arr_join['join_target_file_code'] ;
+					$arr['join_select_file_field_code'] = $arr_join['join_select_file_field_code'] ;
+					$arr['join_map'] = array() ;
+					$query = "SELECT * FROM define_file_entry_join_map 
+								WHERE file_code='{$arr['file_code']}' AND entry_field_code='{$arr['entry_field_code']}'
+								ORDER BY join_map_ssid" ;
+					$res_join_map = $_opDB->query($query) ;
+					while( ($arr_join_map = $_opDB->fetch_assoc($res_join_map)) != FALSE ) {
+						$arr['join_map'][] = array(
+							'join_target_file_field_code'=>$arr_join_map['join_target_file_field_code'],
+							'join_local_alt_file_code'=>$arr_join_map['join_local_alt_file_code'],
+							'join_local_file_field_code'=>$arr_join_map['join_local_file_field_code'],
+						) ;
+					}
+				}
+				
+				
 					
 				$tab[] = $arr ;
 			}
@@ -442,6 +470,77 @@ function paracrm_define_manageTransaction( $post_data )
 		return array('success'=>true) ;
 	}
 	
+	if( $arr_transaction && $post_data['_subaction'] == 'tool_getAltFiles' ) {
+		$tab = array() ;
+		$query = "SELECT * FROM define_file ORDER BY file_code" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
+		{
+			if( $arr['gmap_is_on'] == 'O' )
+				$arr['gmap_is_on'] = true ;
+			else
+				$arr['gmap_is_on'] = false ;
+				
+			$tab[] = $arr ;
+		}
+		return array('success'=>true,'data'=>$tab) ;
+	}
+	if( $arr_transaction && $post_data['_subaction'] == 'tool_getAltFileFields' ) {
+		$tab = array() ;
+		$query = "SELECT * FROM define_file_entry WHERE file_code='{$post_data['file_code']}' ORDER BY entry_field_index" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
+		{
+			unset( $arr['entry_field_index'] ) ;
+			
+			if( $arr['entry_field_is_mandatory'] == 'O' )
+				$arr['entry_field_is_mandatory'] = true ;
+			else
+				$arr['entry_field_is_mandatory'] = false ;
+				
+			if( $arr['entry_field_is_highlight'] == 'O' )
+				$arr['entry_field_is_highlight'] = true ;
+			else
+				$arr['entry_field_is_highlight'] = false ;
+				
+			if( $arr['entry_field_is_header'] == 'O' )
+				$arr['entry_field_is_header'] = true ;
+			else
+				$arr['entry_field_is_header'] = false ;
+				
+			if( $arr['entry_field_is_primarykey'] == 'O' )
+				$arr['entry_field_is_primarykey'] = true ;
+			else
+				$arr['entry_field_is_primarykey'] = false ;
+				
+			if( $arr['entry_field_type'] == 'link' )
+				$arr['entry_field_type'] = $arr['entry_field_type'].'_'.$arr['entry_field_linkbible'] ;
+			if( $arr['entry_field_type'] == 'join' ) {
+				// **** Load join parameters ****
+				$query = "SELECT * FROM define_file_entry_join WHERE file_code='{$arr['file_code']}' AND entry_field_code='{$arr['entry_field_code']}'" ;
+				$res_join = $_opDB->query($query) ;
+				$arr_join = $_opDB->fetch_assoc($res_join) ;
+				
+				$arr['join_target_file_code'] = $arr_join['join_target_file_code'] ;
+				$arr['join_select_file_field_code'] = $arr_join['join_select_file_field_code'] ;
+				$arr['join_map'] = array() ;
+				$query = "SELECT * FROM define_file_entry_join_map 
+							WHERE file_code='{$arr['file_code']}' AND entry_field_code='{$arr['entry_field_code']}'
+							ORDER BY join_map_ssid" ;
+				$res_join_map = $_opDB->query($query) ;
+				while( ($arr_join_map = $_opDB->fetch_assoc($res_join_map)) != FALSE ) {
+					$arr['join_map'][] = array(
+						'join_target_file_field_code'=>$arr_join_map['join_target_file_field_code'],
+						'join_local_alt_file_code'=>$arr_join_map['join_local_alt_file_code'],
+						'join_local_file_field_code'=>$arr_join_map['join_local_file_field_code'],
+					) ;
+				}
+			}
+				
+			$tab[] = $arr ;
+		}
+		return array('success'=>true,'data'=>$tab) ;
+	}
 	
 	
 
@@ -677,6 +776,10 @@ function paracrm_define_manageTransaction_applyFile($arr_saisie, $apply)
 	$_opDB->query($query) ;
 	$query = "DELETE FROM define_file_entry WHERE file_code='$file_code'" ;
 	$_opDB->query($query) ;
+	$query = "DELETE FROM define_file_entry_join WHERE file_code='$file_code'" ;
+	$_opDB->query($query) ;
+	$query = "DELETE FROM define_file_entry_join_map WHERE file_code='$file_code'" ;
+	$_opDB->query($query) ;
 	
 	$arr_ins = array() ;
 	$arr_ins['file_code'] = $arr_saisie['arr_ent']['store_code'] ;
@@ -730,7 +833,31 @@ function paracrm_define_manageTransaction_applyFile($arr_saisie, $apply)
 		$arr_ins['entry_field_is_header'] = ($mfield['entry_field_is_header'])? 'O':'' ;
 		$arr_ins['entry_field_is_highlight'] = ($mfield['entry_field_is_highlight'])? 'O':'' ;
 		$arr_ins['entry_field_is_mandatory'] = ($mfield['entry_field_is_mandatory'])? 'O':'' ;
+		$arr_ins['entry_field_is_primarykey'] = ($arr_saisie['arr_ent']['store_type']=='file_primarykey' && $mfield['entry_field_is_primarykey'])? 'O':'' ;
 		$_opDB->insert('define_file_entry',$arr_ins) ;
+		
+		if( $mfield['entry_field_type'] == 'join' ) {
+			$arr_ins = array() ;
+			$arr_ins['file_code'] = $file_code ;
+			$arr_ins['entry_field_code'] = $mfield['entry_field_code'] ;
+			$arr_ins['join_target_file_code'] = $mfield['join_target_file_code'] ;
+			$arr_ins['join_select_file_field_code'] = $mfield['join_select_file_field_code'] ;
+			$_opDB->insert('define_file_entry_join',$arr_ins) ;
+			
+			if( is_array($mfield['join_map']) ) {
+				$mIdx = 1 ;
+				foreach( $mfield['join_map'] as $map_e ) {
+					$arr_ins = array() ;
+					$arr_ins['file_code'] = $file_code ;
+					$arr_ins['entry_field_code'] = $mfield['entry_field_code'] ;
+					$arr_ins['join_map_ssid'] = $mIdx++ ;
+					foreach( array('join_target_file_field_code','join_local_alt_file_code','join_local_file_field_code') as $mkey ) {
+						$arr_ins[$mkey] = $map_e[$mkey] ;
+					}
+					$_opDB->insert('define_file_entry_join_map',$arr_ins) ;
+				}
+			}
+		}
 	}
 	
 	paracrm_define_buildFile( $file_code ) ;
