@@ -29,8 +29,8 @@ while( ($arr = $_opDB->fetch_row($result)) != FALSE )
 {
 	$bible_code = $arr[0] ;
 	
-	paracrm_define_buildBibleTree( $bible_code ) ;
-	paracrm_define_buildBibleEntry( $bible_code ) ;
+	$t = new DatabaseMgr_Sdomain();
+	$t->sdomainDefine_buildBible( DatabaseMgr_Sdomain::sdomain_getCurrent(), $bible_code ) ;
 }
 
 
@@ -40,10 +40,8 @@ while( ($arr = $_opDB->fetch_row($result)) != FALSE )
 {
 	$file_code = $arr[0] ;
 	
-	$ttmp = paracrm_define_buildFile( $file_code ) ;
-	$db_table = $ttmp[0] ;
-	$query = "DELETE FROM $db_table WHERE filerecord_id NOT IN (SELECT filerecord_id FROM store_file WHERE file_code='$file_code' AND sync_is_deleted<>'O')" ;
-	$_opDB->query($query) ;
+	$t = new DatabaseMgr_Sdomain();
+	$t->sdomainDefine_buildFile( DatabaseMgr_Sdomain::sdomain_getCurrent(), $file_code ) ;
 }
 
 
