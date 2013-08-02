@@ -161,12 +161,12 @@ Ext.define('Optima5.Modules.Admin.SdomainsPanel',{
 		if( mform != null ) {
 			if( record != null ) {
 				if( record.getId() == mform.sdomainId ) {
-					mformcontainer.expand() ;
+					mformcontainer.expand(false) ;
 					return ;
 				}
 			} else {
 				if( mform.isNew ) {
-					mformcontainer.expand() ;
+					mformcontainer.expand(false) ;
 					return ;
 				}
 			}
@@ -185,7 +185,7 @@ Ext.define('Optima5.Modules.Admin.SdomainsPanel',{
 		mformcontainer.empty = false ;
 		mformcontainer.removeAll() ;
 		mformcontainer.add(mform) ;
-		mformcontainer.expand() ;
+		mformcontainer.expand(false) ;
 	},
 	endFormpanelAction: function() {
 		var me = this,
@@ -194,7 +194,7 @@ Ext.define('Optima5.Modules.Admin.SdomainsPanel',{
 		// ** Clear du formpanel ***
 		mformcontainer.removeAll() ;
 		mformcontainer.setTitle('') ;
-		mformcontainer.collapse() ;
+		mformcontainer.collapse(false) ;
 		mformcontainer.empty = true ;
 		
 		// ** Reload list ***

@@ -673,12 +673,12 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 		if( mform != null ) {
 			if( record != null ) {
 				if( record.getId() == mform.sdomainId ) {
-					mformcontainer.expand() ;
+					mformcontainer.expand(false) ;
 					return ;
 				}
 			} else {
 				if( mform.isNew ) {
-					mformcontainer.expand() ;
+					mformcontainer.expand(false) ;
 					return ;
 				}
 			}
@@ -695,7 +695,7 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 		mformcontainer.empty = false ;
 		mformcontainer.removeAll() ;
 		mformcontainer.add(mform) ;
-		mformcontainer.expand() ;
+		mformcontainer.expand(false) ;
 	},
 	editGroup: function( groupId, newSdomainId ) {
 		//console.log('Editing group '+groupId) ;
@@ -711,12 +711,12 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 		if( mform != null ) {
 			if( record != null ) {
 				if( record.getId() == mform.groupId ) {
-					mformcontainer.expand() ;
+					mformcontainer.expand(false) ;
 					return ;
 				}
 			} else {
 				if( mform.isNew && mform.sdomainId == newSdomainId ) {
-					mformcontainer.expand() ;
+					mformcontainer.expand(false) ;
 					return ;
 				}
 			}
@@ -733,7 +733,7 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 		mformcontainer.empty = false ;
 		mformcontainer.removeAll() ;
 		mformcontainer.add(mform) ;
-		mformcontainer.expand() ;
+		mformcontainer.expand(false) ;
 	},
 	
 	
@@ -921,13 +921,13 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 		// ** Clear du formpanel ***
 		mgroupformcontainer.removeAll() ;
 		mgroupformcontainer.setTitle('') ;
-		mgroupformcontainer.collapse() ;
+		mgroupformcontainer.collapse(false) ;
 		mgroupformcontainer.empty = true ;
 		
 		// ** Clear du formpanel ***
 		muserformcontainer.removeAll() ;
 		muserformcontainer.setTitle('') ;
-		muserformcontainer.collapse() ;
+		muserformcontainer.collapse(false) ;
 		muserformcontainer.empty = true ;
 		
 		// ** Reload list ***
