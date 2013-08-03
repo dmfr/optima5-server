@@ -26,7 +26,8 @@ Ext.define('OptimaDesktopCfgSdomainModel',{
 		{name: 'module_id',    type:'string'},
 		{name: 'icon_code',    type:'string'},
 		{name: 'auth_has_all', type:'boolean'},
-		{name: 'auth_arrOpenActions', type:'auto'}
+		{name: 'auth_arrOpenActions', type:'auto'},
+		{name: 'db_needUpdate', type:'boolean'}
 	]
 });
 Ext.define('OptimaDesktopCfgModel',{
@@ -569,10 +570,25 @@ Ext.define('Optima5.App',{
 			Optima5.Helper.logWarning('App:moduleLaunch','Module '+moduleCfg.moduleId+' unknown') ;
 			return ;
 		}
-		if( !Optima5.Helper.getModulesLib().modulesGetById(moduleCfg.moduleId).get('enabled') ) {
+		
+		var moduleRecord = Optima5.Helper.getModulesLib().modulesGetById(moduleCfg.moduleId) ;
+		if( !moduleRecord.get('enabled') ) {
 			Optima5.Helper.logWarning('App:moduleLaunch','Module '+moduleCfg.moduleId+' disabled') ;
 			return ;
 		}
+		if( moduleRecord.get('moduleType') == 'sdomain' ) {
+			var sdomainId = moduleCfg.moduleParams.sdomain_id,
+				sdomainRecord = me.desktopCfgRecord.sdomains().getById(sdomainId) ;
+			if( sdomainRecord == null ) {
+				Optima5.Helper.logWarning('App:moduleLaunch','Sdomain '+sdomainId+' unknown') ;
+				return ;
+			}
+			if( sdomainRecord.get('db_needUpdate') ) {
+				Ext.Msg.alert('Error', 'Sdomain ['+ sdomainId.toUpperCase() +'] unavailable. Please upgrade DB schema.') ;
+				return ;
+			}
+		}
+		
 		
 		// same module already started ?
 		var rejectLaunch = false,
