@@ -28,6 +28,11 @@ function admin_sdomains_getList($post_data) {
 			$arr['stat_nbBibles'] = $_opDB->query_uniqueValue("SELECT count(*) FROM {$db_name}.define_bible") ;
 			$arr['stat_nbFiles'] = $_opDB->query_uniqueValue("SELECT count(*) FROM {$db_name}.define_file") ;
 			$arr['stat_dbSize'] = round($tmp_dbengine_sizes[$db_name],1).' '.'MB' ;
+			
+			$t = new DatabaseMgr_Sdomain ;
+			if( $t->sdomainDb_needUpdate($arr['sdomain_id']) ) {
+				$arr['stat_dbSize'] = 'needupdate' ;
+			}
 		} else {
 			$arr['stat_nbBibles'] = 0 ;
 			$arr['stat_nbFiles'] = 0 ;
@@ -47,6 +52,9 @@ function admin_sdomains_deleteSdomain($post_data) {
 	global $_opDB ;
 	
 	sleep(1) ;
+	
+	$t = new DatabaseMgr_Sdomain ;
+	$t->sdomainDb_delete($post_data['sdomain_id']) ;
 	
 	$query = "DELETE FROM sdomain WHERE sdomain_id='{$post_data['sdomain_id']}'" ;
 	$_opDB->query($query) ;
@@ -107,6 +115,12 @@ function admin_sdomains_setSdomain($post_data) {
 		return $response ;
 		
 	if( $post_data['_is_new'] ) {
+		try {
+			$t = new DatabaseMgr_Sdomain() ;
+			$t->sdomainDb_create( $arr_update['sdomain_id'] ) ;
+		} catch( Exception $e ) {
+			return array('success'=>false) ;
+		}
 		$_opDB->insert('sdomain',$arr_update) ;
 	} else {
 		$arr_cond = array() ;
@@ -116,6 +130,15 @@ function admin_sdomains_setSdomain($post_data) {
 	
 	sleep(1) ;
 	return $response ;
+}
+function admin_sdomains_updateSchema( $post_data ) {
+	global $_opDB ;
+	
+	$t = new DatabaseMgr_Sdomain() ;
+	$t->sdomainDb_updateSchema( $post_data['sdomain_id'] ) ;
+	
+	sleep(1) ;
+	return array('success'=>true) ;
 }
 
 ?>

@@ -24,44 +24,17 @@ class DatabaseMgr_Util {
 		$query = "CREATE DATABASE $tmpdb" ;
 		$_opDB->query($query) ;
 		
-		if( !$_opDB->select_db( $tmpdb ) )
-		{
-			echo "ERROR selecting $tmpdb\n" ;
-			return FALSE ;
-		}
-		
-		$buf = '' ;
-		while(TRUE)
-		{
-			if( feof($handle) )
-				break ;
-			$str = fgets($handle) ;
-			if( substr($str,0,2) == '--' )
-				continue ;
-			if( trim($str) == '' )
-				continue ;
-				
-			if( strpos($str,';') )
-			{
-				$tarr = explode(';',$str) ;
-				$buf.= $tarr[0] ;
-				$buf.= ';'."\r\n" ;
-				//echo $buf ;
-				$_opDB->query($buf) ;
-				
-				$buf = '' ;
+		$selected_db = $_opDB->query_uniqueValue("SELECT DATABASE()") ;
+		$_opDB->select_db( $tmpdb ) ;
+		foreach( explode(';',$create_schema) as $sql_statement ) {
+			if( !trim($sql_statement) ) {
 				continue ;
 			}
-			
-			
-			$buf.= trim($str,"\r\n") ;
-		}
 		
-		if( !$_opDB->select_db( $mysql_db ) )
-		{
-			echo "ERROR selecting mysql\n" ;
-			return FALSE ;
+			$sql_statement.= ';'."\r\n" ;
+			$_opDB->query($sql_statement) ;
 		}
+		$_opDB->select_db( $selected_db ) ;
 		
 		
 		
@@ -75,10 +48,14 @@ class DatabaseMgr_Util {
 			$arr_model_tables[] = $arr[0] ;
 		
 		$arr_existing_tables = array() ;
-		$query = "SHOW TABLES FROM $mysql_db" ;
+		$query = "SHOW FULL TABLES FROM $mysql_db" ;
 		$result = $_opDB->query($query) ;
-		while( ($arr = $_opDB->fetch_row($result)) != FALSE )
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			if( $arr[1] && $arr[1] != 'BASE TABLE' ) {
+				continue ;
+			}
 			$arr_existing_tables[] = $arr[0] ;
+		}
 			
 		foreach( $arr_model_tables as $db_table )
 		{
@@ -88,22 +65,6 @@ class DatabaseMgr_Util {
 				$_opDB->query($query) ;
 			}
 		}
-		
-		
-		// ********* Partie X : conversion vers UTF8 **********
-		$query = "ALTER DATABASE CHARACTER SET UTF8 COLLATE utf8_unicode_ci" ;
-		$_opDB->query($query) ;
-		
-		
-		foreach( $arr_existing_tables as $db_table )
-		{
-			$query = "ALTER TABLE $db_table CHARACTER SET UTF8 COLLATE utf8_unicode_ci" ;
-			$_opDB->query($query) ;
-		
-			$query = "ALTER TABLE $db_table CONVERT TO CHARACTER SET UTF8 COLLATE utf8_unicode_ci" ;
-			$_opDB->query($query) ;
-		}
-		// ************************
 		
 		
 		
@@ -217,10 +178,7 @@ class DatabaseMgr_Util {
 					//continue 
 					continue ;
 				}
-			
 			}
-		
-		
 		}
 		
 		
@@ -336,6 +294,25 @@ class DatabaseMgr_Util {
 			}
 		
 		}
+		
+		
+		
+		// ********* Partie X : conversion vers UTF8 **********
+		/*
+		$query = "ALTER DATABASE {$mysql_db} CHARACTER SET UTF8 COLLATE utf8_unicode_ci" ;
+		$_opDB->query($query) ;
+		foreach( $arr_existing_tables as $db_table )
+		{
+			$query = "ALTER TABLE {$mysql_db}.{$db_table} CHARACTER SET UTF8 COLLATE utf8_unicode_ci" ;
+			$_opDB->query($query) ;
+		
+			$query = "ALTER TABLE {$mysql_db}.{$db_table} CONVERT TO CHARACTER SET UTF8 COLLATE utf8_unicode_ci" ;
+			$_opDB->query($query) ;
+		}
+		*/
+		// ************************
+		
+		
 		
 		$query = "DROP DATABASE $tmpdb" ;
 		$_opDB->query($query) ;

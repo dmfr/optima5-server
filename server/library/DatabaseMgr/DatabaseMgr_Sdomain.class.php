@@ -3,27 +3,467 @@ class DatabaseMgr_Sdomain {
 	
 	private $_opDB ;
 	
-	private static $dbVersion = 1 ;
+	private static $dbVersion = 4 ;
 	
 	public function __construct () {
 		$this->_opDB = $GLOBALS['_opDB'] ;
 	}
 	
 	public static function version_getVcode() {
-		return self::$versionCode ;
+		return self::$dbVersion ;
 	}
 	public static function version_getSchema() {
 		return <<<EOF
 
-CREATE TABLE `store_file_CDE_LIG_UVC` (
-	`filerecord_id` int(11) NOT NULL,
-	`field_PROD_EAN_str` varchar(200) COLLATE utf8_unicode_ci NOT NULL,
-	`field_ORDER_QTY_dec` decimal(10,2) NOT NULL,
-	`field_SHIP_QTY_dec` decimal(10,2) NOT NULL,
-	`field_SPEC_BATCH_str` varchar(200) COLLATE utf8_unicode_ci NOT NULL,
-	`field_SPEC_DATE_str` varchar(200) COLLATE utf8_unicode_ci NOT NULL,
-	PRIMARY KEY (`filerecord_id`)
-	) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+CREATE TABLE `_DB_INFO` (
+  `zero_id` int(11) NOT NULL,
+  `db_version` int(11) NOT NULL,
+  PRIMARY KEY (`zero_id`)
+) ;
+
+CREATE TABLE `auth_android` (
+  `authandroid_id` int(11) NOT NULL AUTO_INCREMENT,
+  `device_android_id` varchar(100) NOT NULL,
+  `device_is_allowed` varchar(1) NOT NULL,
+  `device_desc` varchar(100) NOT NULL,
+  `ping_timestamp` int(11) NOT NULL,
+  `ping_version` int(11) NOT NULL,
+  PRIMARY KEY (`authandroid_id`),
+  UNIQUE KEY `device_android_id` (`device_android_id`)
+) ;
+
+CREATE TABLE `define_bible` (
+  `bible_code` varchar(50) NOT NULL,
+  `bible_lib` varchar(100) NOT NULL,
+  `bible_iconfile` varchar(50) NOT NULL,
+  `bible_specdata` varchar(10) NOT NULL,
+  `gmap_is_on` varchar(1) NOT NULL,
+  PRIMARY KEY (`bible_code`)
+) ;
+
+CREATE TABLE `define_bible_entry` (
+  `bible_code` varchar(50) NOT NULL,
+  `entry_field_code` varchar(20) NOT NULL,
+  `entry_field_is_key` varchar(1) NOT NULL,
+  `entry_field_index` int(11) NOT NULL,
+  `entry_field_lib` varchar(100) NOT NULL,
+  `entry_field_type` varchar(10) NOT NULL,
+  `entry_field_linkbible` varchar(50) NOT NULL,
+  `entry_field_is_header` varchar(1) NOT NULL,
+  `entry_field_is_highlight` varchar(1) NOT NULL,
+  PRIMARY KEY (`bible_code`,`entry_field_code`)
+) ;
+
+CREATE TABLE `define_bible_tree` (
+  `bible_code` varchar(50) NOT NULL,
+  `tree_field_code` varchar(20) NOT NULL,
+  `tree_field_is_key` varchar(1) NOT NULL,
+  `tree_field_index` int(11) NOT NULL,
+  `tree_field_lib` varchar(100) NOT NULL,
+  `tree_field_type` varchar(10) NOT NULL,
+  `tree_field_linkbible` varchar(50) NOT NULL,
+  `tree_field_is_header` varchar(1) NOT NULL,
+  `tree_field_is_highlight` varchar(1) NOT NULL,
+  PRIMARY KEY (`bible_code`,`tree_field_code`)
+) ;
+
+CREATE TABLE `define_file` (
+  `file_code` varchar(50) NOT NULL,
+  `file_parent_code` varchar(50) NOT NULL,
+  `file_iconfile` varchar(50) NOT NULL,
+  `file_lib` varchar(100) NOT NULL,
+  `file_type` varchar(50) NOT NULL,
+  `file_specdata` varchar(10) NOT NULL,
+  `gmap_is_on` varchar(1) NOT NULL,
+  PRIMARY KEY (`file_code`)
+) ;
+
+CREATE TABLE `define_file_cfg_calendar` (
+  `file_code` varchar(50) NOT NULL,
+  `eventstart_filefield` varchar(20) NOT NULL,
+  `eventend_filefield` varchar(20) NOT NULL,
+  `eventstatus_filefield` varchar(20) NOT NULL,
+  `account_is_on` varchar(1) NOT NULL,
+  `account_filefield` varchar(20) NOT NULL,
+  `duration_is_fixed` varchar(1) NOT NULL,
+  `duration_src_filefield` varchar(20) NOT NULL,
+  `duration_src_biblefield` varchar(20) NOT NULL,
+  `color_is_fixed` varchar(1) NOT NULL,
+  `color_filefield` varchar(20) NOT NULL,
+  PRIMARY KEY (`file_code`)
+) ;
+
+CREATE TABLE `define_file_entry` (
+  `file_code` varchar(50) NOT NULL,
+  `entry_field_code` varchar(20) NOT NULL,
+  `entry_field_index` int(11) NOT NULL,
+  `entry_field_lib` varchar(100) NOT NULL,
+  `entry_field_type` varchar(10) NOT NULL,
+  `entry_field_linkbible` varchar(50) NOT NULL,
+  `entry_field_is_header` varchar(1) NOT NULL,
+  `entry_field_is_highlight` varchar(1) NOT NULL,
+  `entry_field_is_mandatory` varchar(1) NOT NULL,
+  `entry_field_is_primarykey` varchar(1) NOT NULL,
+  PRIMARY KEY (`file_code`,`entry_field_code`)
+) ;
+
+CREATE TABLE `define_file_entry_join` (
+  `file_code` varchar(50) NOT NULL,
+  `entry_field_code` varchar(20) NOT NULL,
+  `join_target_file_code` varchar(50) NOT NULL,
+  `join_select_file_field_code` varchar(20) NOT NULL,
+  PRIMARY KEY (`file_code`,`entry_field_code`)
+) ;
+
+CREATE TABLE `define_file_entry_join_map` (
+  `file_code` varchar(50) NOT NULL,
+  `entry_field_code` varchar(20) NOT NULL,
+  `join_map_ssid` int(11) NOT NULL,
+  `join_target_file_field_code` varchar(20) NOT NULL,
+  `join_local_alt_file_code` varchar(50) NOT NULL,
+  `join_local_file_field_code` varchar(20) NOT NULL,
+  PRIMARY KEY (`file_code`,`entry_field_code`,`join_map_ssid`)
+) ;
+
+CREATE TABLE `define_gmap` (
+  `location` varchar(1) NOT NULL,
+  `formattedAddress` varchar(1) NOT NULL
+) ;
+
+CREATE TABLE `define_media` (
+  `title` int(11) NOT NULL,
+  `date` datetime NOT NULL,
+  `mimetype` varchar(100) NOT NULL
+) ;
+
+CREATE TABLE `input_calendar` (
+  `calendar_id` int(11) NOT NULL AUTO_INCREMENT,
+  `calendar_name` varchar(100) NOT NULL,
+  `target_filecode` varchar(100) NOT NULL,
+  `is_readonly` varchar(1) NOT NULL,
+  `linkscen_is_on` varchar(1) NOT NULL,
+  `linkscen_scen_id` int(11) NOT NULL,
+  `linkscen_autoforward_is_on` varchar(1) NOT NULL,
+  `setdone_is_locked` varchar(1) NOT NULL,
+  PRIMARY KEY (`calendar_id`)
+) ;
+
+CREATE TABLE `input_explorer_cfg` (
+  `explorercfg_id` int(11) NOT NULL,
+  `account_is_on` varchar(1) NOT NULL,
+  `account_linkbible` varchar(100) NOT NULL,
+  PRIMARY KEY (`explorercfg_id`)
+) ;
+
+CREATE TABLE `input_query_src` (
+  `querysrc_id` int(11) NOT NULL AUTO_INCREMENT,
+  `querysrc_index` int(11) NOT NULL,
+  `target_query_id` int(11) NOT NULL,
+  `target_qmerge_id` int(11) NOT NULL,
+  `target_qweb_id` int(11) NOT NULL,
+  PRIMARY KEY (`querysrc_id`)
+) ;
+
+CREATE TABLE `input_query_tpl` (
+  `querysrc_id` int(11) NOT NULL,
+  `querysrc_index` int(11) NOT NULL,
+  `querysrc_type` varchar(10) NOT NULL,
+  `querysrc_name` varchar(100) NOT NULL,
+  PRIMARY KEY (`querysrc_id`)
+) ;
+
+CREATE TABLE `input_query_tpl_progress` (
+  `querysrc_id` int(11) NOT NULL,
+  `querysrc_targetfield_ssid` int(11) NOT NULL,
+  `field_is_optional` varchar(1) NOT NULL,
+  `field_type` varchar(10) NOT NULL,
+  `field_linkbible` varchar(100) NOT NULL,
+  `field_lib` varchar(100) NOT NULL,
+  PRIMARY KEY (`querysrc_id`,`querysrc_targetfield_ssid`)
+) ;
+
+CREATE TABLE `input_query_tpl_where` (
+  `querysrc_id` int(11) NOT NULL,
+  `querysrc_targetfield_ssid` int(11) NOT NULL,
+  `field_is_optional` varchar(1) NOT NULL,
+  `field_type` varchar(10) NOT NULL,
+  `field_linkbible` varchar(100) NOT NULL,
+  `field_lib` varchar(100) NOT NULL,
+  PRIMARY KEY (`querysrc_id`,`querysrc_targetfield_ssid`)
+) ;
+
+CREATE TABLE `input_scen` (
+  `scen_id` int(11) NOT NULL AUTO_INCREMENT,
+  `scen_name` varchar(100) NOT NULL,
+  `scen_is_hidden` varchar(1) NOT NULL,
+  `target_filecode` varchar(100) NOT NULL,
+  PRIMARY KEY (`scen_id`)
+) ;
+
+CREATE TABLE `input_scen_page` (
+  `scen_id` int(11) NOT NULL,
+  `scen_page_index` int(11) NOT NULL,
+  `scen_page_parent_index` int(11) NOT NULL,
+  `scen_page_name` varchar(100) NOT NULL,
+  `target_filecode` varchar(100) NOT NULL,
+  `page_type` varchar(100) NOT NULL,
+  `page_table_type` varchar(100) NOT NULL,
+  `autocomplete_is_on` varchar(1) NOT NULL,
+  `autocomplete_filter_is_on` varchar(1) NOT NULL,
+  `autocomplete_filter_src` varchar(100) NOT NULL,
+  PRIMARY KEY (`scen_id`,`scen_page_index`)
+) ;
+
+CREATE TABLE `input_scen_page_field` (
+  `scen_id` int(11) NOT NULL,
+  `scen_page_index` int(11) NOT NULL,
+  `scen_page_field_index` int(11) NOT NULL,
+  `target_filecode` varchar(100) NOT NULL,
+  `target_filefield` varchar(100) NOT NULL,
+  `input_cfg_json` varchar(500) NOT NULL,
+  `field_autovalue_is_on` varchar(1) NOT NULL,
+  `field_autovalue_src` varchar(100) NOT NULL,
+  `field_is_pivot` varchar(1) NOT NULL,
+  `search_is_condition` varchar(1) NOT NULL,
+  `linkfile_is_on` varchar(1) NOT NULL,
+  `linkfile_xpressfile_id` int(11) NOT NULL,
+  PRIMARY KEY (`scen_id`,`scen_page_index`,`scen_page_field_index`)
+) ;
+
+CREATE TABLE `input_scen_pagepivot` (
+  `scen_id` int(11) NOT NULL,
+  `scen_page_index` int(11) NOT NULL,
+  `pivot_type` varchar(100) NOT NULL,
+  `target_bible_code` varchar(50) NOT NULL,
+  `target_page_index` int(11) NOT NULL,
+  `target_page_field_index` int(11) NOT NULL,
+  `condition_is_on` varchar(1) NOT NULL,
+  `condition_json` varchar(500) NOT NULL,
+  `foreignsrc_is_on` varchar(1) NOT NULL,
+  `foreignsrc_page_index` int(11) NOT NULL,
+  `foreignsrc_page_field_index` int(11) NOT NULL,
+  `repeat_foreignsrc_is_on` varchar(1) NOT NULL,
+  `repeat_foreignsrc_page_field_index` int(11) NOT NULL,
+  PRIMARY KEY (`scen_id`,`scen_page_index`,`pivot_type`)
+) ;
+
+CREATE TABLE `input_scen_pagepivot_copymap` (
+  `scen_id` int(11) NOT NULL,
+  `scen_page_index` int(11) NOT NULL,
+  `copydst_page_field_index` int(11) NOT NULL,
+  `copysrc_page_field_index` int(11) NOT NULL,
+  PRIMARY KEY (`scen_id`,`scen_page_index`,`copydst_page_field_index`)
+) ;
+
+CREATE TABLE `input_store_src` (
+  `storesrc_id` int(11) NOT NULL AUTO_INCREMENT,
+  `target_bible_code` varchar(100) NOT NULL,
+  `target_file_code` varchar(100) NOT NULL,
+  PRIMARY KEY (`storesrc_id`)
+) ;
+
+CREATE TABLE `input_xpressfile` (
+  `xpressfile_id` int(11) NOT NULL AUTO_INCREMENT,
+  `xpressfile_is_hidden` varchar(1) NOT NULL,
+  `target_filecode` varchar(100) NOT NULL,
+  `target_primarykey_fieldcode` varchar(100) NOT NULL,
+  PRIMARY KEY (`xpressfile_id`)
+) ;
+
+CREATE TABLE `qmerge` (
+  `qmerge_id` int(11) NOT NULL AUTO_INCREMENT,
+  `qmerge_name` varchar(100) NOT NULL,
+  PRIMARY KEY (`qmerge_id`)
+) ;
+
+CREATE TABLE `qmerge_field_mselect` (
+  `qmerge_id` int(11) NOT NULL,
+  `qmerge_fieldmselect_ssid` int(11) NOT NULL,
+  `select_lib` varchar(100) NOT NULL,
+  `math_func_mode` varchar(10) NOT NULL,
+  `math_func_group` varchar(10) NOT NULL,
+  `math_round` int(11) NOT NULL,
+  PRIMARY KEY (`qmerge_id`,`qmerge_fieldmselect_ssid`)
+) ;
+
+CREATE TABLE `qmerge_field_mselect_axisdetach` (
+  `qmerge_id` int(11) NOT NULL,
+  `qmerge_fieldmselect_ssid` int(11) NOT NULL,
+  `display_geometry` varchar(20) NOT NULL,
+  `axis_is_detach` varchar(1) NOT NULL,
+  PRIMARY KEY (`qmerge_id`,`qmerge_fieldmselect_ssid`,`display_geometry`)
+) ;
+
+CREATE TABLE `qmerge_field_mselect_symbol` (
+  `qmerge_id` int(11) NOT NULL,
+  `qmerge_fieldmselect_ssid` int(11) NOT NULL,
+  `qmerge_fieldmselect_symbol_index` int(11) NOT NULL,
+  `sequence` int(11) NOT NULL,
+  `math_operation` varchar(50) NOT NULL,
+  `math_parenthese_in` varchar(1) NOT NULL,
+  `math_operand_query_id` int(11) NOT NULL,
+  `math_operand_selectfield_idx` int(11) NOT NULL,
+  `math_staticvalue` decimal(10,2) NOT NULL,
+  `math_parenthese_out` varchar(1) NOT NULL,
+  PRIMARY KEY (`qmerge_id`,`qmerge_fieldmselect_ssid`,`qmerge_fieldmselect_symbol_index`)
+) ;
+
+CREATE TABLE `qmerge_field_mwhere` (
+  `qmerge_id` int(11) NOT NULL,
+  `qmerge_fieldmwhere_ssid` int(11) NOT NULL,
+  `mfield_type` varchar(100) NOT NULL,
+  `mfield_linkbible` varchar(100) NOT NULL,
+  `condition_string` varchar(100) NOT NULL,
+  `condition_date_lt` date NOT NULL,
+  `condition_date_gt` date NOT NULL,
+  `condition_num_lt` decimal(10,2) NOT NULL,
+  `condition_num_gt` decimal(10,2) NOT NULL,
+  `condition_num_eq` decimal(10,2) NOT NULL,
+  `condition_bible_mode` varchar(50) NOT NULL,
+  `condition_bible_treenodes` varchar(500) NOT NULL,
+  `condition_bible_entries` varchar(500) NOT NULL,
+  PRIMARY KEY (`qmerge_id`,`qmerge_fieldmwhere_ssid`)
+) ;
+
+CREATE TABLE `qmerge_field_mwhere_link` (
+  `qmerge_id` int(11) NOT NULL,
+  `qmerge_fieldmwhere_ssid` int(11) NOT NULL,
+  `query_id` int(11) NOT NULL,
+  `query_wherefield_idx` int(11) NOT NULL,
+  PRIMARY KEY (`qmerge_id`,`qmerge_fieldmwhere_ssid`,`query_id`,`query_wherefield_idx`)
+) ;
+
+CREATE TABLE `qmerge_query` (
+  `qmerge_id` int(11) NOT NULL,
+  `qmerge_query_ssid` int(11) NOT NULL,
+  `link_query_id` int(11) NOT NULL,
+  PRIMARY KEY (`qmerge_id`,`qmerge_query_ssid`)
+) ;
+
+CREATE TABLE `query` (
+  `query_id` int(11) NOT NULL AUTO_INCREMENT,
+  `query_name` varchar(100) NOT NULL,
+  `target_file_code` varchar(100) NOT NULL,
+  PRIMARY KEY (`query_id`)
+) ;
+
+CREATE TABLE `query_field_group` (
+  `query_id` int(11) NOT NULL,
+  `query_fieldgroup_ssid` int(11) NOT NULL,
+  `field_code` varchar(100) NOT NULL,
+  `field_type` varchar(100) NOT NULL,
+  `field_linkbible` varchar(100) NOT NULL,
+  `display_geometry` varchar(50) NOT NULL,
+  `group_bible_type` varchar(50) NOT NULL,
+  `group_bible_tree_depth` int(11) NOT NULL,
+  `group_bible_display_treenode` varchar(500) NOT NULL,
+  `group_bible_display_entry` varchar(500) NOT NULL,
+  `group_date_type` varchar(50) NOT NULL,
+  PRIMARY KEY (`query_id`,`query_fieldgroup_ssid`)
+) ;
+
+CREATE TABLE `query_field_progress` (
+  `query_id` int(11) NOT NULL,
+  `query_fieldprogress_ssid` int(11) NOT NULL,
+  `field_code` varchar(100) NOT NULL,
+  `field_type` varchar(100) NOT NULL,
+  `field_linkbible` varchar(100) NOT NULL,
+  `condition_string` varchar(100) NOT NULL,
+  `condition_date_lt` date NOT NULL,
+  `condition_date_gt` date NOT NULL,
+  `condition_num_lt` decimal(10,2) NOT NULL,
+  `condition_num_gt` decimal(10,2) NOT NULL,
+  `condition_num_eq` decimal(10,2) NOT NULL,
+  `condition_bible_mode` varchar(50) NOT NULL,
+  `condition_bible_treenodes` varchar(500) NOT NULL,
+  `condition_bible_entries` varchar(500) NOT NULL,
+  PRIMARY KEY (`query_id`,`query_fieldprogress_ssid`)
+) ;
+
+CREATE TABLE `query_field_select` (
+  `query_id` int(11) NOT NULL,
+  `query_fieldselect_ssid` int(11) NOT NULL,
+  `select_lib` varchar(100) NOT NULL,
+  `math_func_mode` varchar(10) NOT NULL,
+  `math_func_group` varchar(10) NOT NULL,
+  `math_round` int(11) NOT NULL,
+  PRIMARY KEY (`query_id`,`query_fieldselect_ssid`)
+) ;
+
+CREATE TABLE `query_field_select_symbol` (
+  `query_id` int(11) NOT NULL,
+  `query_fieldselect_ssid` int(11) NOT NULL,
+  `query_fieldselect_symbol_index` int(11) NOT NULL,
+  `sequence` int(11) NOT NULL,
+  `math_operation` varchar(50) NOT NULL,
+  `math_parenthese_in` varchar(1) NOT NULL,
+  `math_fieldoperand` varchar(100) NOT NULL,
+  `math_staticvalue` decimal(10,2) NOT NULL,
+  `math_parenthese_out` varchar(1) NOT NULL,
+  PRIMARY KEY (`query_id`,`query_fieldselect_ssid`,`query_fieldselect_symbol_index`)
+) ;
+
+CREATE TABLE `query_field_where` (
+  `query_id` int(11) NOT NULL,
+  `query_fieldwhere_ssid` int(11) NOT NULL,
+  `field_code` varchar(100) NOT NULL,
+  `field_type` varchar(100) NOT NULL,
+  `field_linkbible` varchar(100) NOT NULL,
+  `condition_string` varchar(100) NOT NULL,
+  `condition_date_lt` date NOT NULL,
+  `condition_date_gt` date NOT NULL,
+  `condition_num_lt` decimal(10,2) NOT NULL,
+  `condition_num_gt` decimal(10,2) NOT NULL,
+  `condition_num_eq` decimal(10,2) NOT NULL,
+  `condition_bible_mode` varchar(50) NOT NULL,
+  `condition_bible_treenodes` varchar(500) NOT NULL,
+  `condition_bible_entries` varchar(500) NOT NULL,
+  PRIMARY KEY (`query_id`,`query_fieldwhere_ssid`)
+) ;
+
+CREATE TABLE `querygrid_template` (
+  `query_id` int(11) NOT NULL,
+  `template_is_on` varchar(1) NOT NULL,
+  `color_key` varchar(20) NOT NULL,
+  `colorhex_columns` varchar(10) NOT NULL,
+  `colorhex_row` varchar(10) NOT NULL,
+  `colorhex_row_alt` varchar(10) NOT NULL,
+  `data_align` varchar(10) NOT NULL,
+  `data_select_is_bold` varchar(1) NOT NULL,
+  `data_progress_is_bold` varchar(1) NOT NULL,
+  PRIMARY KEY (`query_id`)
+) ;
+
+CREATE TABLE `qweb` (
+  `qweb_id` int(11) NOT NULL AUTO_INCREMENT,
+  `qweb_name` varchar(100) NOT NULL,
+  `target_resource_qweb` varchar(100) NOT NULL,
+  PRIMARY KEY (`qweb_id`)
+) ;
+
+CREATE TABLE `qweb_field_qwhere` (
+  `qweb_id` int(11) NOT NULL,
+  `qweb_fieldqwhere_ssid` int(11) NOT NULL,
+  `qweb_fieldqwhere_desc` varchar(100) NOT NULL,
+  `target_resource_qweb_key` varchar(100) NOT NULL,
+  `qfield_is_optional` varchar(1) NOT NULL,
+  `qfield_type` varchar(100) NOT NULL,
+  `qfield_linkbible` varchar(100) NOT NULL,
+  PRIMARY KEY (`qweb_id`,`qweb_fieldqwhere_ssid`)
+) ;
+
+CREATE TABLE `store_file` (
+  `filerecord_id` int(11) NOT NULL AUTO_INCREMENT,
+  `filerecord_parent_id` int(11) NOT NULL,
+  `file_code` varchar(50) NOT NULL,
+  `sync_vuid` varchar(100) NOT NULL,
+  `sync_is_deleted` varchar(1) NOT NULL,
+  `sync_timestamp` int(11) NOT NULL,
+  PRIMARY KEY (`filerecord_id`),
+  KEY `filerecord_parent_id` (`filerecord_parent_id`),
+  KEY `file_code` (`file_code`),
+  KEY `sync_vuid` (`sync_vuid`)
+) ;
 
 EOF;
 	}
@@ -66,15 +506,24 @@ EOF;
 		$sdomain_db = $this->getSdomainDb( $sdomain_id ) ;
 		
 		$query = "SELECT db_version FROM {$sdomain_db}._DB_INFO WHERE zero_id='0'" ;
-		$db_version = $opDB->query_uniqueValue($query) ;
+		$db_version = $_opDB->query_uniqueValue($query) ;
 		if( $db_version < self::version_getVcode() ) {
 			return TRUE ;
 		}
 		return FALSE ;
 	}
 	public function sdomainDb_updateSchema( $sdomain_id ) {
+		$_opDB = $this->_opDB ;
+		$sdomain_db = $this->getSdomainDb( $sdomain_id ) ;
+		
 		DatabaseMgr_Util::syncSQLschema( $this->getSdomainDb( $sdomain_id ), self::version_getSchema() ) ;
 		$this->sdomainDefine_buildAll($sdomain_id) ;
+		
+		$query = "INSERT IGNORE INTO {$sdomain_db}._DB_INFO (`zero_id`) VALUES ('0')" ;
+		$_opDB->query($query) ;
+		$db_version = self::version_getVcode() ;
+		$query = "UPDATE {$sdomain_db}._DB_INFO SET db_version='$db_version' WHERE zero_id='0'" ;
+		$_opDB->query($query) ;
 	}
 	
 	public function sdomainDefine_buildAll($sdomain_id) {
