@@ -536,10 +536,10 @@ div.thumb-wrap:hover span.title{
 }
 
 .op5-device-yes {
-	background: url('../images/op5img/ico_greendot.gif') no-repeat center center !important;
+	background: url('../images/op5img/ico_greendot.gif') no-repeat center center ;
 }
 .op5-device-no {
-	background: url('../images/op5img/ico_cancel_small.gif') no-repeat center center !important;
+	background: url('../images/op5img/ico_cancel_small.gif') no-repeat center center ;
 }
 
 

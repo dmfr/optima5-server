@@ -87,6 +87,18 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 				text:'Actions',
 				hidden: me.isNew,
 				menu:[{
+					iconCls:'op5-sdomains-menu-updateschema',
+					text:'Update schema',
+					hidden : me.isNew,
+					handler: function() {
+						Ext.Msg.confirm('SQL update','Update SQL schema ?',function(btn) {
+							if( btn=='yes' ) {
+								me.doUpdateSchema() ;
+							}
+						},me) ;
+					},
+					scope:me
+				},{
 					iconCls:'op5-sdomains-menu-export',
 					text:'Export / Dump',
 					hidden : me.isNew,
@@ -488,6 +500,38 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 						sdomainId: values.sdomain_id
 					}) ;
 				}
+			},
+			scope: me
+		}) ;
+	},
+	doUpdateSchema: function() {
+		var me = this ;
+		
+		if( !me.isNew ) {
+			if( me.tool_checkModuleRunning() ) {
+				return ;
+			}
+		}
+		
+		var msgbox = Ext.Msg.wait('Updating SQL schema. Please Wait.');
+		
+		var values = {sdomain_id:me.sdomainId} ;
+		me.optimaModule.getConfiguredAjaxConnection().request({
+			params:Ext.apply(values,{
+				_action: 'sdomains_updateSchema'
+			}),
+			success : function(response) {
+				if( Ext.decode(response.responseText).success == false ) {
+					Ext.Msg.alert('Failed', 'Delete failed. Unknown error');
+				}
+				else {
+					me.optimaModule.postCrmEvent('sdomainchange',{
+						sdomainId: values.sdomain_id
+					}) ;
+				}
+			},
+			callback: function() {
+				msgbox.close() ;
 			},
 			scope: me
 		}) ;

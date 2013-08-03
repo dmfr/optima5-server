@@ -112,7 +112,14 @@ Ext.define('Optima5.Modules.Admin.SdomainsPanel',{
 					sortable: false,
 					dataIndex: 'stat_dbSize',
 					menuDisabled: true,
-					align:'right'
+					align:'right',
+					renderer: function( value, metaData ) {
+						if( value=='needupdate' ) {
+							metaData.tdCls = 'op5-sdomains-grid-needupdate' ;
+							return '' ;
+						}
+						return value ;
+					}
 				}],
 				listeners: {
 					itemclick:function( view, record, item, index, event ) {

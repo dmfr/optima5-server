@@ -35,6 +35,9 @@
 .op5-sdomains-menu-delete {
 	background-image: url("../images/modules/admin-delete-16.gif") !important;
 }
+.op5-sdomains-menu-updateschema {
+	background-image: url("../images/modules/admin-update-16.png") !important;
+}
 .op5-sdomains-menu-back {
 	background-image: url("../images/modules/admin-back-16.png") !important;
 }
@@ -49,6 +52,11 @@
 .op5-sdomains-icon-delete {
 	background-image: url("../images/modules/admin-delete-48.png") !important;
 }
+
+.op5-sdomains-grid-needupdate {
+	background: url('../images/op5img/ico_cancel_small.gif') no-repeat center top ;
+}
+
 
 .op5-admin-cardheader-wrap {
 	position: relative;
