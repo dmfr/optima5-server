@@ -33,12 +33,14 @@ class MySQL_DB {
 		// echo "CONNECT !!!" ;
 		mysql_query( "SET storage_engine=MYISAM", $this->connection ) ;
 		
-		foreach( $this->db_tables(NULL) as $dbtab )
-		{
-			$query = "SELECT count(*) FROM $dbtab" ;
-			if( !$this->query($query) )
+		if( $db ) {
+			foreach( $this->db_tables(NULL) as $dbtab )
 			{
-				die("DB corruption !!! Contact support.<br>\n") ;
+				$query = "SELECT count(*) FROM $dbtab" ;
+				if( !$this->query($query) )
+				{
+					die("DB corruption !!! Contact support.<br>\n") ;
+				}
 			}
 		}
 		$this->nb_queries = 0 ;
