@@ -20,8 +20,10 @@ function desktop_config_getRecord($post_data) {
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$sdomain_id = $arr['sdomain_id'] ;
 		
-		$t = new DatabaseMgr_Sdomain ;
-		if( $t->sdomainDb_needUpdate($sdomain_id) ) {
+		if( !$dmgr_sdomain ) {
+			$dmgr_sdomain = new DatabaseMgr_Sdomain( DatabaseMgr_Base::dbCurrent_getDomainId() ) ;
+		}
+		if( $dmgr_sdomain->sdomainDb_needUpdate($sdomain_id) ) {
 			$arr['db_needUpdate'] = TRUE ;
 		}
 		

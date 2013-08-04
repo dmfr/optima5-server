@@ -29,8 +29,8 @@ while( ($arr = $_opDB->fetch_row($result)) != FALSE )
 {
 	$bible_code = $arr[0] ;
 	
-	$t = new DatabaseMgr_Sdomain();
-	$t->sdomainDefine_buildBible( DatabaseMgr_Sdomain::sdomain_getCurrent(), $bible_code ) ;
+	$t = new DatabaseMgr_Sdomain( DatabaseMgr_Base::dbCurrent_getDomainId() );
+	$t->sdomainDefine_buildBible( DatabaseMgr_Sdomain::dbCurrent_getSdomainId(), $bible_code ) ;
 }
 
 
@@ -40,8 +40,8 @@ while( ($arr = $_opDB->fetch_row($result)) != FALSE )
 {
 	$file_code = $arr[0] ;
 	
-	$t = new DatabaseMgr_Sdomain();
-	$t->sdomainDefine_buildFile( DatabaseMgr_Sdomain::sdomain_getCurrent(), $file_code ) ;
+	$t = new DatabaseMgr_Sdomain( DatabaseMgr_Base::dbCurrent_getDomainId() );
+	$t->sdomainDefine_buildFile( DatabaseMgr_Sdomain::dbCurrent_getSdomainId(), $file_code ) ;
 }
 
 

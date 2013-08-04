@@ -29,8 +29,10 @@ function admin_sdomains_getList($post_data) {
 			$arr['stat_nbFiles'] = $_opDB->query_uniqueValue("SELECT count(*) FROM {$db_name}.define_file") ;
 			$arr['stat_dbSize'] = round($tmp_dbengine_sizes[$db_name],1).' '.'MB' ;
 			
-			$t = new DatabaseMgr_Sdomain ;
-			if( $t->sdomainDb_needUpdate($arr['sdomain_id']) ) {
+			if( !$dmgr_sdomain ) {
+				$dmgr_sdomain = new DatabaseMgr_Sdomain( DatabaseMgr_Base::dbCurrent_getDomainId() ) ;
+			}
+			if( $dmgr_sdomain->sdomainDb_needUpdate($arr['sdomain_id']) ) {
 				$arr['stat_dbSize'] = 'needupdate' ;
 			}
 		} else {
@@ -53,7 +55,7 @@ function admin_sdomains_deleteSdomain($post_data) {
 	
 	sleep(1) ;
 	
-	$t = new DatabaseMgr_Sdomain ;
+	$t = new DatabaseMgr_Sdomain( DatabaseMgr_Base::dbCurrent_getDomainId() );
 	$t->sdomainDb_delete($post_data['sdomain_id']) ;
 	
 	$query = "DELETE FROM sdomain WHERE sdomain_id='{$post_data['sdomain_id']}'" ;
@@ -116,7 +118,7 @@ function admin_sdomains_setSdomain($post_data) {
 		
 	if( $post_data['_is_new'] ) {
 		try {
-			$t = new DatabaseMgr_Sdomain() ;
+			$t = new DatabaseMgr_Sdomain( DatabaseMgr_Base::dbCurrent_getDomainId() );
 			$t->sdomainDb_create( $arr_update['sdomain_id'] ) ;
 		} catch( Exception $e ) {
 			return array('success'=>false) ;
@@ -134,7 +136,7 @@ function admin_sdomains_setSdomain($post_data) {
 function admin_sdomains_updateSchema( $post_data ) {
 	global $_opDB ;
 	
-	$t = new DatabaseMgr_Sdomain() ;
+	$t = new DatabaseMgr_Sdomain( DatabaseMgr_Base::dbCurrent_getDomainId() );
 	$t->sdomainDb_updateSchema( $post_data['sdomain_id'] ) ;
 	
 	sleep(1) ;

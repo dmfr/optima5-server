@@ -729,8 +729,8 @@ function paracrm_define_manageTransaction_applyBible($arr_saisie, $apply)
 		$_opDB->insert('define_bible_entry',$arr_ins) ;
 	}
 	
-	$t = new DatabaseMgr_Sdomain();
-	$t->sdomainDefine_buildBible( DatabaseMgr_Sdomain::sdomain_getCurrent(), $bible_code ) ;
+	$t = new DatabaseMgr_Sdomain( DatabaseMgr_Base::dbCurrent_getDomainId() );
+	$t->sdomainDefine_buildBible( DatabaseMgr_Sdomain::dbCurrent_getSdomainId(), $bible_code ) ;
 	
 	return array('success'=>true) ;
 }
@@ -860,8 +860,8 @@ function paracrm_define_manageTransaction_applyFile($arr_saisie, $apply)
 		}
 	}
 	
-	$t = new DatabaseMgr_Sdomain();
-	$t->sdomainDefine_buildFile( DatabaseMgr_Sdomain::sdomain_getCurrent(), $file_code ) ;
+	$t = new DatabaseMgr_Sdomain( DatabaseMgr_Base::dbCurrent_getDomainId() );
+	$t->sdomainDefine_buildFile( DatabaseMgr_Sdomain::dbCurrent_getSdomainId(), $file_code ) ;
 	
 	return array('success'=>true) ;
 }

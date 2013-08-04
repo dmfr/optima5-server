@@ -2,11 +2,13 @@
 class DatabaseMgr_Sdomain {
 	
 	private $_opDB ;
+	private $domain_id ;
 	
 	private static $dbVersion = 4 ;
 	
-	public function __construct () {
+	public function __construct( $domain_id ) {
 		$this->_opDB = $GLOBALS['_opDB'] ;
+		$this->domain_id = $domain_id ;
 	}
 	
 	public static function version_getVcode() {
@@ -469,7 +471,24 @@ EOF;
 	}
 	
 	private function getSdomainDb( $sdomain_id ) {
-		return self::db_getBase().'_'.strtolower($sdomain_id) ;
+		return DatabaseMgr_Base::getBaseDb( $this->domain_id ).'_'.strtolower($sdomain_id) ;
+	}
+	
+	public function sdomains_getAll() {
+		$_opDB = $this->_opDB ;
+		$base_db = DatabaseMgr_Base::getBaseDb( $this->domain_id ) ;
+		
+		$arr_sdomainId = array() ;
+		
+		$result = $_opDB->query("SHOW DATABASES") ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$db = $arr[0] ;
+			if( strpos($db,$base_db.'_') === 0 ) {
+				$arr_sdomainId[] = substr($db,strlen($base_db.'_')) ;
+			}
+		}
+		
+		return $arr_sdomainId ;
 	}
 	
 	public function sdomainDb_create( $sdomain_id, $overwrite=FALSE ) {
@@ -529,7 +548,20 @@ EOF;
 	public function sdomainDefine_buildAll($sdomain_id) {
 		$_opDB = $this->_opDB ;
 		$sdomain_db = $this->getSdomainDb( $sdomain_id ) ;
-	
+		
+		$query = "SELECT bible_code FROM {$sdomain_db}.define_bible" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$bible_code = $arr[0] ;
+			$this->sdomainDefine_buildBible( $sdomain_id , $bible_code ) ;
+		}
+		
+		$query = "SELECT file_code FROM {$sdomain_db}.define_file" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$file_code = $arr[0] ;
+			$this->sdomainDefine_buildFile( $sdomain_id , $file_code ) ;
+		}
 	}
 	public function sdomainDefine_buildBible( $sdomain_id , $bible_code ) {
 		$_opDB = $this->_opDB ;
@@ -813,35 +845,15 @@ EOF;
 		$query.= " WHERE mstr.file_code='{$file_code}' AND mstr.sync_is_deleted<>'O'" ;
 		$_opDB->query($query) ;
 		
-		$query = "DELETE FROM {$sdomain_db}.{$db_table} WHERE filerecord_id NOT IN (SELECT filerecord_id FROM store_file WHERE file_code='$file_code' AND sync_is_deleted<>'O')" ;
+		$query = "DELETE FROM {$sdomain_db}.{$db_table} WHERE filerecord_id NOT IN (SELECT filerecord_id FROM {$sdomain_db}.store_file WHERE file_code='$file_code' AND sync_is_deleted<>'O')" ;
 		$_opDB->query($query) ;
 		
 		return array($db_table , $arrAssoc_dbField_fieldType , $arr_model_keys, $arrAssoc_crmField_dbField) ;
 	}
 	
-	public static function db_getBase() {
-		$_opDB = $GLOBALS['_opDB'] ;
 	
-		$current_database = $_opDB->query_uniqueValue("SELECT DATABASE()") ;
-		$base_database = $GLOBALS['mysql_db'] ;
-		
-		if( !(strpos($current_database,$base_database) === 0) ) {
-			return NULL ;
-		}
-		$ttmp = explode('_',$current_database) ;
-		switch( count($ttmp) ) {
-			case 4 :
-			unset( $ttmp[3] ) ;
-			return implode('_',$ttmp) ;
-			
-			case 3 :
-			return $current_database ;
-			
-			default :
-			return NULL ;
-		}
-	}
-	public static function sdomain_getCurrent() {
+	
+	public static function dbCurrent_getSdomainId() {
 		$_opDB = $GLOBALS['_opDB'] ;
 	
 		$current_database = $_opDB->query_uniqueValue("SELECT DATABASE()") ;
