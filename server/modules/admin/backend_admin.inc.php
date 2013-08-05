@@ -21,6 +21,8 @@ switch( $post_data['_action'] )
 		return admin_sdomains_export( $post_data ) ;
 	case 'sdomains_exportDL' :
 		return admin_sdomains_exportDL( $post_data ) ;
+	case 'sdomains_import_upload' :
+		return admin_sdomains_import_upload( $post_data ) ;
 	
 	case 'auth_users_getList' :
 		return admin_auth_users_getList( $post_data ) ;

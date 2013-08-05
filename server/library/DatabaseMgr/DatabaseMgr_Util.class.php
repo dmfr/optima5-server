@@ -592,5 +592,114 @@ class DatabaseMgr_Util {
 			fputcsv( $handle , $arr , ',' ,'"') ;
 		}
 	}
+	
+	public static function feed_DB( $handle, $db_name, $skip_store=FALSE ) {
+		global $_opDB ;
+		$dst_db = $db_name ;
+
+		$query = "SHOW FULL TABLES FROM $dst_db " ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE )
+		{
+			if( $arr[1] && $arr[1] != 'BASE TABLE' ) {
+				continue ;
+			}
+			
+			$query = "TRUNCATE TABLE {$dst_db}.{$arr[0]}" ;
+			$_opDB->query($query) ;
+			
+			$arr_dst_tables[] = $arr[0] ;
+		}
+
+		// integration du fichier CSV
+		while( !feof($handle) )
+		{
+			$arrcsv = fgetcsv($handle) ;
+			if( !$arrcsv )
+				continue ;
+			
+			if( count($arrcsv) == 1 )
+			{
+				if( $query_insert )
+					$_opDB->query_unbuf( $query_insert ) ;
+				$query_insert = '' ;
+			
+				$table_str = current($arrcsv) ;
+				$table_str = substr($table_str,3,strlen($table_str)-6) ;
+				$tarr = explode('**',$table_str) ;
+				$current_table = $tarr[1] ;
+				
+				// plan de la table dans le csv ?
+				$map_csv = fgetcsv($handle) ;
+				
+				
+				
+				// plan de la table dans la base destination ?
+				$map = array() ;
+				
+				if( !in_array($current_table,$arr_dst_tables) )
+					continue ;
+					
+				$query = "TRUNCATE TABLE {$dst_db}.{$current_table}" ;
+				$_opDB->query($query) ;
+				
+				$query = "SHOW COLUMNS FROM {$dst_db}.{$current_table}" ;
+				$result = $_opDB->query($query) ;
+				while( ($arr = $_opDB->fetch_row($result)) != FALSE )
+				{
+					$field_name = $arr[0] ;
+					
+					reset($map_csv) ;
+					foreach( $map_csv as $csv_pos => $csv_field )
+					{
+						if( $field_name == $csv_field )
+						{
+							$map[] = $csv_pos ;
+							continue 2 ;
+						}
+					}
+					$map[] = -1 ;
+				}
+				continue ;
+			}
+			
+			// print_r($map) ;
+			if( !in_array($current_table,$arr_dst_tables) )
+				continue ;
+			if( $skip_store && strpos($current_table,'store_')===0 ) {
+				continue ;
+			}
+			
+			if( !$query_insert )
+				$query_insert = "INSERT INTO {$dst_db}.{$current_table} VALUES " ;
+			else
+				$query_insert.= ',' ;
+			$isfirst = TRUE ;
+			$query_insert.= '(' ;
+			foreach( $map as $csv_pos )
+			{
+				if( !$isfirst )
+					$query_insert.="," ;
+				if( $csv_pos >= 0 )
+					$query_insert.="'".addslashes($arrcsv[$csv_pos])."'" ;
+				else
+					$query_insert.="''" ;
+				$isfirst=FALSE ;
+			}
+			$query_insert.=')' ;
+			// $_opDB->query_unbuf_mysql( $query ) ;
+			
+			$nbc++ ;
+			if( $nbc % 1000 == 0 )
+			{
+				$_opDB->query_unbuf( $query_insert ) ;
+				// echo strlen($query_insert)."\n" ;
+				$query_insert = '' ;
+			}
+		}
+
+		if( $query_insert )
+			$_opDB->query_unbuf( $query_insert ) ;
+	}
 }
 ?>

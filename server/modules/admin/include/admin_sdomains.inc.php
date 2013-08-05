@@ -204,5 +204,50 @@ function admin_sdomains_exportDL( $post_data ) {
 	}
 	die() ;
 }
+function admin_sdomains_import_upload( $post_data ) {
+	global $_opDB ;
+	
+	$domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
+	$sdomain_id = $post_data['sdomain_id'] ;
+	
+	$query = "SELECT count(*) FROM sdomain WHERE sdomain_id='{$sdomain_id}' AND overwrite_is_locked<>'O'";
+	if( $_opDB->query_uniqueValue($query) != 1 ) {
+		return array('success'=>false) ;
+	}
+	
+	if( $_FILES['op5file']['error'] || !($_FILES['op5file']['size'] > 0) )
+	{
+		$_opsync_error = 'Unable to open uploaded file ?' ;
+		return array('success'=>false,'error'=>'Unable to open uploaded file ?') ;
+	}
+	
+	$filename_zip = $_FILES['op5file']['name'] ;
+	if( count($ttmp=explode('.',$filename_zip)) != 6 
+		|| substr($filename_zip,0,8) != 'op5dump.'
+		|| substr($filename_zip,strlen($filename_zip)-8,8) != '.csv.zip' )
+	{
+		return array('success'=>false,'error'=>'Unrecognized file format') ;
+	}
+	
+	$filename_csv = substr($filename_zip,0,strlen($filename_zip)-4) ;
+	$obj_zip = new ZipArchive ;
+	$obj_zip->open( $_FILES['op5file']['tmp_name'] ) ;
+	if( !($handle = $obj_zip->getStream($filename_csv)) )
+	{
+		return array('success'=>false,'error'=>"Cannot find correct CSV stream in Zip archive") ;
+	}
+	
+	$handle_local = tmpfile() ;
+	stream_copy_to_stream( $handle, $handle_local ) ;
+	fseek( $handle_local, 0 ) ;
+	
+	$t = new DatabaseMgr_Sdomain( $domain_id );
+	$t->sdomainDump_import( $sdomain_id, $handle_local ) ;
+	
+	fclose($handle_local) ;
+	fclose($handle) ;
+	
+	return array('success'=>true) ;
+}
 
 ?>

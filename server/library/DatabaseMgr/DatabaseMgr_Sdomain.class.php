@@ -859,7 +859,23 @@ EOF;
 		
 		DatabaseMgr_Util::dump_DB( $handle_out, $sdomain_db ) ;
 	}
-	
+	public function sdomainDump_import( $sdomain_id, $handle_in ) {
+		$_opDB = $this->_opDB ;
+		
+		$this->sdomainDb_create( $sdomain_id, $overwrite=TRUE ) ;  // del + recréation base + structure
+		fseek($handle_in,0) ;
+		DatabaseMgr_Util::feed_DB( $handle_in, $this->getSdomainDb( $sdomain_id ), $skip_store=TRUE ) ;  // feed define
+		$this->sdomainDefine_buildAll( $sdomain_id ) ; // structure données
+		fseek($handle_in,0) ;
+		DatabaseMgr_Util::feed_DB( $handle_in, $this->getSdomainDb( $sdomain_id ) ) ;  // restauration complete
+		
+		$sdomain_db = $this->getSdomainDb( $sdomain_id ) ;
+		$query = "INSERT IGNORE INTO {$sdomain_db}._DB_INFO (`zero_id`) VALUES ('0')" ;
+		$_opDB->query($query) ;
+		$db_version = self::version_getVcode() ;
+		$query = "UPDATE {$sdomain_db}._DB_INFO SET db_version='$db_version' WHERE zero_id='0'" ;
+		$_opDB->query($query) ;
+	}
 	
 	
 	public static function dbCurrent_getSdomainId() {
