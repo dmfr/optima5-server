@@ -213,7 +213,8 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 					padding: '0 16px',
 					scale: 'large',
 					text: 'Download',
-					handler: null
+					handler: me.doExport,
+					scope: me
 				}]
 			},{
 			}]
@@ -246,6 +247,7 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 				}
 			}),{
 				xtype:'form',
+				itemId:'cUploadForm',
 				border: false,
 				frame:false,
 				bodyCls: 'ux-noframe-bg',
@@ -257,9 +259,10 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 					title: 'From local file',
 					items:[{
 						xtype: 'filefield',
+						allowBlank: false,
 						anchor:'100%',
 						emptyText: 'Select local OP5 file',
-						name: 'op5-filename',
+						name: 'op5file',
 						buttonText: '',
 						buttonConfig: {
 							iconCls: 'upload-icon'
@@ -274,12 +277,14 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 							padding: '0 16px',
 							scale: 'small',
 							text: 'Ok',
-							handler: null
+							handler: me.doImportUpload,
+							scope: me
 						}]
 					}]
 				}]
 			},{
 				xtype:'form',
+				itemId:'cRemoteForm',
 				border: false,
 				frame:false,
 				bodyCls: 'ux-noframe-bg',
@@ -291,6 +296,40 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 					labelSeparator: '',
 					labelWidth: 90
 				},
+				setSdomains: function( data ) {
+					this.getForm().getFields().each( function(f) {
+						switch( f.getName() ) {
+							case 'fetch_url' :
+							case 'fetch_login_domain' :
+							case 'fetch_login_user' :
+							case 'fetch_login_pass' :
+								f.setReadOnly(true) ;
+								break ;
+						}
+					},this) ;
+					this.query('#fSearchContainer')[0].setVisible(false) ;
+					this.query('#fSdomainField')[0].setVisible(true) ;
+					this.query('#fSdomainField')[0].allowBlank = false ;
+					this.query('#fSdomainField')[0].getStore().loadData( data ) ;
+					this.query('#fSubmitContainer')[0].setVisible(true) ;
+				},
+				setNull: function() {
+					this.getForm().reset() ;
+					this.getForm().getFields().each( function(f) {
+						switch( f.getName() ) {
+							case 'fetch_url' :
+							case 'fetch_login_domain' :
+							case 'fetch_login_user' :
+							case 'fetch_login_pass' :
+								f.setReadOnly(false) ;
+								break ;
+						}
+					},this) ;
+					this.query('#fSearchContainer')[0].setVisible(true) ;
+					this.query('#fSdomainField')[0].setVisible(false) ;
+					this.query('#fSdomainField')[0].allowBlank = true ;
+					this.query('#fSubmitContainer')[0].setVisible(false) ;
+				},
 				items:[{
 					xtype: 'fieldset',
 					title: 'From remote source',
@@ -299,13 +338,15 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 						anchor:'100%',
 						emptyText: 'Server URL',
 						fieldLabel: 'Server URL',
-						name: 'fetch_url'
+						name: 'fetch_url',
+						allowBlank: false
 					},{
 						xtype: 'textfield',
 						width:'100',
 						emptyText: 'Login domain',
 						fieldLabel: 'Domain',
-						name: 'fetch_login_domain'
+						name: 'fetch_login_domain',
+						allowBlank: false
 					},{
 						xtype:'fieldcontainer',
 						anchor:'100%',
@@ -315,7 +356,8 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 							xtype: 'textfield',
 							flex:1,
 							emptyText: 'Username',
-							name: 'fetch_login_user'
+							name: 'fetch_login_user',
+							allowBlank: false
 						},{
 							xtype:'splitter'
 						},{
@@ -323,10 +365,12 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 							flex:1,
 							emptyText: 'Password',
 							name: 'fetch_login_pass',
-							inputType: 'password'
+							inputType: 'password',
+							allowBlank: false
 						}]
 					},{
 						xtype:'container',
+						itemId:'fSearchContainer',
 						width:'100%',
 						style:{textAlign:'right'},
 						padding: "0 6px 6px 0",
@@ -335,18 +379,29 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 							padding: '0 16px',
 							scale: 'small',
 							text: 'Search',
-							handler: null
+							handler: me.importRemoteQuerySdomains,
+							scope: me
 						}],
 						hidden:false
 					},{
-						xtype: 'textfield',
-						width:'100',
-						emptyText: 'Src Sdomain',
-						fieldLabel: 'Src Sdomain',
+						xtype: 'combobox',
+						itemId: 'fSdomainField',
+						anchor:'100%',
 						name: 'fetch_src_sdomain',
+						fieldLabel: 'Src Sdomain',
+						forceSelection: true,
+						editable: false,
+						store: {
+							fields: ['id', 'txt'],
+							data : []
+						},
+						queryMode: 'local',
+						displayField: 'txt',
+						valueField: 'id',
 						hidden:true
 					},{
 						xtype:'container',
+						itemId:'fSubmitContainer',
 						width:'100%',
 						style:{textAlign:'right'},
 						padding: "0 6px 6px 0",
@@ -354,8 +409,17 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 							xtype: 'button',
 							padding: '0 16px',
 							scale: 'small',
+							text: 'Reset',
+							handler: function(btn) {
+								btn.up('form').setNull() ;
+							}
+						},{
+							xtype: 'button',
+							padding: '0 16px',
+							scale: 'small',
 							text: 'Ok',
-							handler: null
+							handler: me.importRemoteQueryDo,
+							scope: me
 						}],
 						hidden:true
 					}]
@@ -535,6 +599,155 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 			},
 			scope: me
 		}) ;
+	},
+	doExport: function() {
+		var me = this ;
+		
+		var msgbox = Ext.Msg.wait('Export in progress. Please Wait.');
+		
+		var values = {sdomain_id:me.sdomainId} ;
+		me.optimaModule.getConfiguredAjaxConnection().request({
+			params:Ext.apply(values,{
+				_action: 'sdomains_export'
+			}),
+			success : function(response) {
+				if( Ext.decode(response.responseText).success == false ) {
+					Ext.Msg.alert('Failed', 'Delete failed. Unknown error');
+					return ;
+				}
+				if( Ext.decode(response.responseText).empty == true ) {
+					Ext.Msg.alert('End', 'Sdomain has no data');
+					return ;
+				}
+				
+				var dlParams = me.optimaModule.getConfiguredAjaxParams() ;
+				Ext.apply(dlParams,{
+					_action: 'sdomains_exportDL',
+					transaction_id: Ext.decode(response.responseText).transaction_id
+				}) ;
+				Ext.create('Ext.ux.dams.FileDownloader',{
+					renderTo: Ext.getBody(),
+					requestParams: dlParams,
+					requestAction: Optima5.Helper.getApplication().desktopGetBackendUrl(),
+					requestMethod: 'POST'
+				}) ;
+			},
+			callback: function() {
+				msgbox.close() ;
+			},
+			scope: me
+		}) ;
+	},
+	doImportUpload: function() {
+		var me = this,
+			  uploadForm = me.getComponent('mCardImport').getComponent('cUploadForm'),
+			  baseForm = uploadForm.getForm() ;
+			  
+		if( !me.isNew ) {
+			if( me.tool_checkModuleRunning() ) {
+				return ;
+			}
+		}
+		
+		if( baseForm.isValid() ) {
+			var msgbox = Ext.Msg.wait('Uploading...');
+			
+			var ajaxParams = me.optimaModule.getConfiguredAjaxParams() ;
+			Ext.apply( ajaxParams, {
+				_action:'sdomains_import_upload',
+				sdomain_id:me.sdomainId
+			}) ;
+			
+			baseForm.submit({
+				url: Optima5.Helper.getApplication().desktopGetBackendUrl(),
+				params: ajaxParams,
+				success : function(fp, o){
+					msgbox.close() ;
+					me.optimaModule.postCrmEvent('sdomainchange',{
+						sdomainId: me.sdomainId
+					}) ;
+				},
+				failure: function(fp, o) {
+					msgbox.close() ;
+					Ext.Msg.alert('Error',Ext.decode(o.response.responseText).error || 'Undefined error') ;
+				},
+				scope: me
+			});
+		}
+	},
+	
+	importRemoteQuerySdomains: function() {
+		var me = this,
+			remoteForm = me.getComponent('mCardImport').getComponent('cRemoteForm'),
+			baseForm = remoteForm.getForm() ;
+			ajaxParams = {} ;
+		
+		Ext.apply(ajaxParams,{
+			_action:'sdomains_importRemote_getSdomains'
+		}) ;
+		Ext.apply(ajaxParams, baseForm.getValues()) ;
+		
+		if( baseForm.isValid() ) {
+			remoteForm.getEl().mask('Please wait') ;
+			
+			me.optimaModule.getConfiguredAjaxConnection().request({
+				params:ajaxParams,
+				success : function(response) {
+					var responseObj = Ext.decode(response.responseText) ;
+					
+					baseForm.setValues( responseObj.values ) ;
+					
+					if( responseObj.success == false ) {
+						baseForm.markInvalid( responseObj.errors ) ;
+					} else {
+						var data = [{id:'',txt:'- select Sdomain -'}] ;
+						Ext.Array.each( responseObj.sdomains, function(sdomain) {
+							data.push({
+								id: sdomain.sdomain_id,
+								txt: (sdomain.sdomain_id + ' :: ' + sdomain.sdomain_name)
+							}) ;
+						},me) ;
+						remoteForm.setSdomains( data ) ;
+					}
+				},
+				callback: function() {
+					remoteForm.getEl().unmask() ;
+				},
+				scope: me
+			}) ;
+		}
+	},
+	importRemoteQueryDo: function() {
+		var me = this,
+			remoteForm = me.getComponent('mCardImport').getComponent('cRemoteForm'),
+			baseForm = remoteForm.getForm() ;
+			ajaxParams = {} ;
+		
+		Ext.apply(ajaxParams,{
+			_action:'sdomains_importRemote_do'
+		}) ;
+		Ext.apply(ajaxParams, baseForm.getValues()) ;
+		
+		if( baseForm.isValid() ) {
+			var msgbox = Ext.Msg.wait('Remote cloning in progress...');
+			
+			me.optimaModule.getConfiguredAjaxConnection().request({
+				params:ajaxParams,
+				success : function(response) {
+					var responseObj = Ext.decode(response.responseText) ;
+					if( responseObj.success == false ) {
+						return ;
+					}
+					me.optimaModule.postCrmEvent('sdomainchange',{
+						sdomainId: me.sdomainId
+					}) ;
+				},
+				callback: function() {
+					msgbox.close() ;
+				},
+				scope: me
+			}) ;
+		}
 	},
 	
 	tool_checkModuleRunning: function() {
