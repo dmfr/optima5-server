@@ -549,5 +549,48 @@ class DatabaseMgr_Util {
 		}
 	}
 	
+	
+	
+	
+	public static function dump_DB( $handle, $db_name ) {
+		global $_opDB ;
+
+		$arr_db_tabs = array() ;
+		$query = "SHOW FULL TABLES FROM {$db_name}" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE )
+		{
+			if( $arr[1] && $arr[1] != 'BASE TABLE' ) {
+				continue ;
+			}
+			$arr_db_tabs[] = $arr[0] ;
+		}
+		
+		foreach( $arr_db_tabs as $db_table )
+		{
+			self::dump_DBtable( $handle, $db_name, $db_table ) ;
+		}
+	}
+	private static function dump_DBtable( $handle, $db_name, $db_table ) {
+		global $_opDB ;
+		
+		fwrite($handle,"***BEGIN_TABLE**{$db_table}***\r\n") ;
+		
+		$arr_columns = array() ;
+		$query = "SHOW COLUMNS FROM {$db_name}.{$db_table}" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE )
+		{
+			$arr_columns[] = $arr[0] ;
+		}
+		fwrite($handle,implode(',',$arr_columns)."\r\n") ;
+
+		$query = "SELECT * FROM {$db_name}.{$db_table}" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE )
+		{
+			fputcsv( $handle , $arr , ',' ,'"') ;
+		}
+	}
 }
 ?>

@@ -143,4 +143,66 @@ function admin_sdomains_updateSchema( $post_data ) {
 	return array('success'=>true) ;
 }
 
+
+function admin_sdomains_export( $post_data ) {
+	global $_opDB ;
+	
+	$domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
+	$sdomain_id = $post_data['sdomain_id'] ;
+	
+	$filename_csv = 'op5dump'.'.'.$domain_id.'.'.$sdomain_id.'.'.date('Ymd_Hi').'.csv' ;
+	$filename_zip = $filename_csv.'.zip' ;
+	$filepath_csv = tempnam(sys_get_temp_dir(),'dmp') ;
+	$ttmp = tempnam(sys_get_temp_dir(),'dmp') ;
+	$filepath_zip = $ttmp.'.zip' ;
+	unlink($ttmp) ;
+	$handle = fopen( $filepath_csv , 'wb' ) ;
+	
+	$t = new DatabaseMgr_Sdomain($domain_id) ;
+	$t->sdomainDump_export( $sdomain_id, $handle ) ;
+		
+	$nothing = FALSE ;
+	if( ftell($handle) == 0 )
+		$nothing = TRUE ;
+	fclose($handle) ;
+	
+	if( $nothing )
+		return array('success'=>true,'empty'=>true) ;
+	
+	$obj_zip = new ZipArchive() ;
+	$obj_zip->open( $filepath_zip , ZIPARCHIVE::CREATE ) ;
+	$obj_zip->addFile( $filepath_csv , $filename_csv ) ;
+	$obj_zip->close() ;
+	
+	unlink($filepath_csv) ;
+	
+	$transaction_id = $_SESSION['next_transaction_id']++ ;
+	$_SESSION['transactions'][$transaction_id] = array() ;
+	$_SESSION['transactions'][$transaction_id]['transaction_code'] = 'admin_sdomains_export' ;
+	$_SESSION['transactions'][$transaction_id]['dmp_export_filepath'] = $filepath_zip ;
+	$_SESSION['transactions'][$transaction_id]['dmp_export_filename'] = $filename_zip ;
+	return array(
+		'success'=>true,
+		'transaction_id'=>$transaction_id
+	) ;
+}
+function admin_sdomains_exportDL( $post_data ) {
+	if( ($transaction_id=$post_data['transaction_id'])
+	&& is_array($_SESSION['transactions'][$transaction_id])
+	&& $_SESSION['transactions'][$transaction_id]['transaction_code'] == 'admin_sdomains_export' ) {
+		
+		$transaction = $_SESSION['transactions'][$transaction_id] ;
+		$filename = $transaction['dmp_export_filename'] ;
+		$tmpfilepath = $transaction['dmp_export_filepath'] ;
+			
+		header("Content-Type: application/force-download; name=\"$filename\""); 
+		header("Content-Disposition: attachment; filename=\"$filename\""); 
+		readfile($tmpfilepath) ;
+		unlink($tmpfilepath) ;
+		unset($_SESSION['transactions'][$transaction_id]) ;
+		die() ;
+	}
+	die() ;
+}
+
 ?>

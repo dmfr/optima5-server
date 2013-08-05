@@ -853,6 +853,15 @@ EOF;
 	
 	
 	
+	public function sdomainDump_export( $sdomain_id, $handle_out ) {
+		$_opDB = $this->_opDB ;
+		$sdomain_db = $this->getSdomainDb( $sdomain_id ) ;
+		
+		DatabaseMgr_Util::dump_DB( $handle_out, $sdomain_db ) ;
+	}
+	
+	
+	
 	public static function dbCurrent_getSdomainId() {
 		$_opDB = $GLOBALS['_opDB'] ;
 	
