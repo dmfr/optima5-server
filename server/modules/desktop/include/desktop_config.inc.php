@@ -13,6 +13,9 @@ function desktop_config_getRecord($post_data) {
 	$login_userName = $_opDB->query_uniqueValue("SELECT user_fullname FROM auth_user WHERE user_id='$user_id'") ;
 	$login_domainName = $_opDB->query_uniqueValue("SELECT domain_name FROM domain WHERE zero_id='0'") ;
 	
+	$t = new DatabaseMgr_Base() ;
+	$db_needUpdate = $t->baseDb_needUpdate( DatabaseMgr_Base::dbCurrent_getDomainId() ) ;
+	
 	// *** Annonces des Sdomains ouverts ***
 	$arr_sdomains = array() ;
 	$query = "SELECT * FROM sdomain" ;
@@ -88,6 +91,7 @@ function desktop_config_getRecord($post_data) {
 			'login_userId' => $_SESSION['login_data']['login_user'],
 			'login_userName' => $login_userName,
 			'login_domainName' => $login_domainName,
+			'db_needUpdate' => $db_needUpdate,
 			
 			'sdomains' => $arr_sdomains,
 			
