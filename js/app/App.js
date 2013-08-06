@@ -42,7 +42,8 @@ Ext.define('OptimaDesktopCfgModel',{
 		{name: 'login_userName',   type: 'string'},
 		{name: 'login_domainName', type: 'string'},
 		{name: 'wallpaper_id', type: 'int'},
-		{name: 'wallpaper_isStretch', type: 'boolean'}
+		{name: 'wallpaper_isStretch', type: 'boolean'},
+		{name: 'db_needUpdate', type:'boolean'}
 	],
 	hasMany: [{
 		model: 'OptimaDesktopCfgSdomainModel',
@@ -147,6 +148,59 @@ Ext.define('Optima5.App',{
 		me.desktopBoot(sessionId) ;
 	},
 	
+	holdDbAlert: function() {
+		var me = this ;
+		Ext.getBody().unmask()
+		if( me.desktopCfgRecord.get('auth_is_admin') ) {
+			me.holdDbAlertAdmin() ;
+			return ;
+		}
+		me.holdDbAlertUser() ;
+	},
+	holdDbAlertUser: function() {
+		var me = this ;
+		Ext.Msg.alert('Initialization error', 'Cannot boot desktop.\nDatabase not available.', function(){
+			me.doLogout() ;
+		},me) ;
+	},
+	holdDbAlertAdmin: function() {
+		var me = this ;
+		Ext.Msg.confirm('DB schema', 'Base DB needs upgrade. Proceed ?', function(btn){
+			if( btn=='yes' ) {
+				me.doDbUpgrade() ;
+			} else {
+				me.doLogout() ;
+			}
+		},me) ;
+	},
+	doDbUpgrade: function() {
+		var me = this ;
+		
+		Ext.Ajax.request({
+			url: me.desktopGetBackendUrl(),
+			params: {
+				_sessionId: me.desktopGetSessionId(),
+				_moduleId: 'desktop',
+				_action: 'db_updateSchema'
+			},
+			success: function(response) {
+				if( Ext.decode(response.responseText).success ) {
+					me.onDbUpgrade() ;
+					return ;
+				}
+				me.doLogout() ;
+			},
+			failure: function(response) {
+				me.doLogout() ;
+			},
+			scope: me
+		}) ;
+	},
+	onDbUpgrade: function() {
+		var me = this ;
+		me.desktopBoot( me.desktopGetSessionId() ) ;
+	},
+	
 	desktopGetBackendUrl: function() {
 		return 'server/backend.php' ;
 	},
@@ -196,6 +250,12 @@ Ext.define('Optima5.App',{
 				
 				me.desktopSessionId = sessionId ;
 				me.desktopCfgRecord = Ext.ux.dams.ModelManager.create('OptimaDesktopCfgModel',responseObj.desktop_config) ;
+				
+				if( me.desktopCfgRecord.get('db_needUpdate') ) {
+					me.holdDbAlert() ;
+					return ;
+				}
+				
 				me.desktopCreate() ;
 			},
 			scope : me
@@ -720,25 +780,27 @@ Ext.define('Optima5.App',{
 		var me = this,
 			animDuration = doAnimate? 500 : 0 ;
 		
-		if( !me.forceCloseAllWindows() ) {
-			return ;
-		}
-		me.viewport.removeCls('op5-viewport-devborder');
-		
-		me.desktop.animate({
-			duration: animDuration,
-			to: {
-				opacity: 0
-			},
-			listeners: {
-				afteranimate: function() {
-					me.desktop.destroy() ;
-					me.viewport.destroy() ;
-					me.desktop = me.viewport = me.desktopCfgRecord = null ;
-				},
-				scope:me
+		if( me.desktop ) {
+			if( !me.forceCloseAllWindows() ) {
+				return ;
 			}
-		});
+			me.viewport.removeCls('op5-viewport-devborder');
+			
+			me.desktop.animate({
+				duration: animDuration,
+				to: {
+					opacity: 0
+				},
+				listeners: {
+					afteranimate: function() {
+						me.desktop.destroy() ;
+						me.viewport.destroy() ;
+						me.desktop = me.viewport = me.desktopCfgRecord = null ;
+					},
+					scope:me
+				}
+			});
+		}
 		
 		var el = Ext.get("standby");
 		el.setOpacity(0);
