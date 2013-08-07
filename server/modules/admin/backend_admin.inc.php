@@ -23,6 +23,10 @@ switch( $post_data['_action'] )
 		return admin_sdomains_exportDL( $post_data ) ;
 	case 'sdomains_import_upload' :
 		return admin_sdomains_import_upload( $post_data ) ;
+	case 'sdomains_importRemote_getSdomains' :
+	case 'sdomains_importRemote_do' :
+		session_write_close() ;
+		return admin_sdomains_importRemote( $post_data ) ;
 	
 	case 'auth_users_getList' :
 		return admin_auth_users_getList( $post_data ) ;
