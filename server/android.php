@@ -58,6 +58,14 @@ include("$server_root/modules/$my_module/backend_$my_module.inc.php");
 
 $my_sdomain = $_POST['_sdomainId'] ;
 if( $my_sdomain ) {
+	$domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
+	$obj_dmgr_base = new DatabaseMgr_Base() ;
+	$obj_dmgr_sdomain = new DatabaseMgr_Sdomain( $domain_id ) ;
+	if( $obj_dmgr_base->baseDb_needUpdate( $domain_id ) || $obj_dmgr_sdomain->sdomainDb_needUpdate( $my_sdomain ) ) {
+		header('HTTP/1.1 503 Service Temporarily Unavailable');
+		die() ;
+	}
+	
 	$_opDB->select_db( $mysql_db.'_'.$my_sdomain) ;
 }
 
