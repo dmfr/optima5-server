@@ -683,7 +683,8 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 			ajaxParams = {} ;
 		
 		Ext.apply(ajaxParams,{
-			_action:'sdomains_importRemote_getSdomains'
+			_action:'sdomains_importRemote_getSdomains',
+			sdomain_id:me.sdomainId
 		}) ;
 		Ext.apply(ajaxParams, baseForm.getValues()) ;
 		
@@ -724,7 +725,8 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 			ajaxParams = {} ;
 		
 		Ext.apply(ajaxParams,{
-			_action:'sdomains_importRemote_do'
+			_action:'sdomains_importRemote_do',
+			sdomain_id:me.sdomainId
 		}) ;
 		Ext.apply(ajaxParams, baseForm.getValues()) ;
 		
@@ -732,6 +734,7 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 			var msgbox = Ext.Msg.wait('Remote cloning in progress...');
 			
 			me.optimaModule.getConfiguredAjaxConnection().request({
+				timeout: (300 * 1000),
 				params:ajaxParams,
 				success : function(response) {
 					var responseObj = Ext.decode(response.responseText) ;
