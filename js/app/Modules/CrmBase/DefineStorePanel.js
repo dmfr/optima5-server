@@ -660,7 +660,7 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 	},
 			  
 	calcFormLayout: function() {
-		var hideFieldsets=false , hideGmap=false ;
+		var hideFieldsets=false , hideGmap=false, showPrimarykeyCol=false, showCalendarTab=false ;
 		
 		this.query('form')[0].getForm().getFields().each( function(formitem,idx) {
 			if( formitem.name==='store_type' ) {
