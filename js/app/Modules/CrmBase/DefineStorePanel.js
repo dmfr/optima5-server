@@ -619,7 +619,7 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 					handler: function(e, t, p) {
 						p.ownerCt.hide();
 					}
-				}],
+				}]
 			});
 		}
 		// Size + position

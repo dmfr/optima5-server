@@ -306,15 +306,15 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 							{
 								boxLabel  : 'File upload',
 								name      : 'import_mode',
-								inputValue: 'file',
+								inputValue: 'file'
 							}, {
 								boxLabel  : 'Local Sdomain',
 								name      : 'import_mode',
-								inputValue: 'local',
+								inputValue: 'local'
 							}, {
 								boxLabel  : 'Remote server',
 								name      : 'import_mode',
-								inputValue: 'remote',
+								inputValue: 'remote'
 							}
 						]
 					}]
