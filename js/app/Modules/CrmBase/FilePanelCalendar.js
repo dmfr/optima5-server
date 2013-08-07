@@ -689,12 +689,17 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 			
 		doc.un('mousewheel', hideIf, me);
 		doc.un('mouseup', hideIf, me);
+		me.stopOneClick = true ;
 	},
 	eventDetailHideIf: function(e) {
 		var me = this;
 		
 		if( !me.isDestroyed && !e.within(me.eventDetailPanel.el, false, true) ) {
 			me.eventDetailPanel.hide();
+			
+			me.mon(Ext.getDoc(),'click',function(e) {
+				me.stopOneClick = false ;
+			},me,{single:true}) ;
 		}
 	},
 	
@@ -707,8 +712,12 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 			calendarCfg = me.gridCfg.define_file.calendar_cfg,
 			startFileField = calendarCfg.eventstart_filefield,
 			endFileField = calendarCfg.eventend_filefield,
-			msg = ( Ext.Date.format(startDate,'Y-m-d') + (isAllDay ? '' : ' (at '+Ext.Date.format(startDate,'H')+':00)' ) );
+			msg = ( Ext.Date.format(startDate,'Y-m-d') + (isAllDay ? '' : ' (at '+Ext.Date.format(startDate,'H')+':00)' ) ),
 			presets = {} ;
+
+		if( me.stopOneClick ) {
+			return ;
+		}
 			
 		if( isAllDay ) {
 			presets['field_'+startFileField] = Ext.Date.format(startDate,'Y-m-d')+' 00:00:00' ;
