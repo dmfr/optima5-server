@@ -140,17 +140,114 @@ Ext.define('Optima5.Modules.CrmBase.QmergePanel' ,{
 		}
 		
 		Ext.apply( me, {
-			border:true,
-			layout: {
-				type: 'hbox',
-				align: 'stretch'
-			},
+			border: false,
+			layout: 'border',
+			//autoDestroy: true,
 			items:[{
-				xtype:'box',
-				cls:'op5-waiting',
-				flex:1
-			}],
-			autoDestroy: true
+				region:'west',
+				flex: 1.5,
+				xtype: 'treepanel',
+				itemId: 'bQueriesTree' ,
+				title: 'All Queries',
+				border: false,
+				collapsible:true ,
+				collapseDirection:'left',
+				collapseMode:'header',
+				collapsed: true ,
+				headerPosition:'right',
+				useArrows: true,
+				rootVisible: true,
+				store: {
+					model: 'QmergeItemsTreeModel',
+					nodeParam: 'id',
+					root: {
+						root:true,
+						id:1,
+						text:'Queries',
+						children:[],
+						expanded:true
+					}
+				},
+				viewConfig: {
+					plugins: {
+						ptype: 'treeviewdragdrop',
+						enableDrag: true,
+						enableDrop: false,
+						ddGroup: 'QueryToMqueries'+me.getId()
+					}
+				}
+			},{
+				region: 'center',
+				itemId: 'bCenterPanel',
+				flex: 4,
+				border:false,
+				layout: {
+					type: 'hbox',
+					align: 'stretch'
+				},
+				items: [{
+					xtype: 'treepanel',
+					itemId: 'mqueryTree' ,
+					title: 'Merge Queries',
+					flex: 1,
+					useArrows: true,
+					rootVisible: false,
+					store: {
+						model: 'QmergeItemsTreeModel',
+						nodeParam: 'id',
+						root: {
+							root:true,
+							id:1,
+							text:'Queries',
+							children:[]
+						}
+					},
+					listeners: {
+						itemcontextmenu: function(view, record, item, index, event) {
+							treeContextMenuItems = new Array() ;
+							if( record.get('query_id') > 0 ) {
+								treeContextMenuItems.push({
+									iconCls: 'icon-bible-delete',
+									text: 'Discard query',
+									handler : function() {
+										me.onQueryExclude( record.get('query_id') ) ;
+									},
+									scope : me
+								});
+							}
+							if( treeContextMenuItems.length == 0 ) {
+								return ;
+							}
+							
+							var treeContextMenu = Ext.create('Ext.menu.Menu',{
+								items : treeContextMenuItems
+							}) ;
+							
+							treeContextMenu.showAt(event.getXY());
+							
+						},
+						render: me.addComponentsOnMqueryTreeRender,
+						scope: me
+					},
+					viewConfig: {
+						plugins: {
+							ptype: 'treeviewdragdrop',
+							enableDrag: true,
+							enableDrop: false,
+							ddGroup: 'MqueriesToMpanels'+me.getId()
+						}
+					}
+				},{
+					xtype:'panel',
+					itemId: 'mqueryCfg',
+					flex: 3 ,
+					frame:false,
+					layout: {
+						type: 'vbox',
+						align: 'stretch'
+					}
+				}]
+			}]
 		}) ;
 		
 		me.callParent() ;
@@ -159,6 +256,7 @@ Ext.define('Optima5.Modules.CrmBase.QmergePanel' ,{
 	
 	qmergeNew: function() {
 		var me = this ;
+		me.onLoadBegin() ;
 		
 		var ajaxParams = new Object() ;
 		Ext.apply( ajaxParams, {
@@ -182,6 +280,7 @@ Ext.define('Optima5.Modules.CrmBase.QmergePanel' ,{
 	},
 	qmergeOpen: function( qmergeId ) {
 		var me = this ;
+		me.onLoadBegin() ;
 		
 		var ajaxParams = new Object() ;
 		Ext.apply( ajaxParams, {
@@ -207,11 +306,32 @@ Ext.define('Optima5.Modules.CrmBase.QmergePanel' ,{
 		});
 	},
 	
+	onLoadBegin: function() {
+		var me = this ;
+		me.loading = true ;
+		if( me.rendered ) {
+			me.loadMask = new Ext.LoadMask(me,{msg:"Please wait..."}) ;
+			me.loadMask.show() ;
+		} else {
+			me.on('afterrender',function(p) {
+				if( p.loading ) {
+					return ;
+				}
+				p.loadMask = new Ext.LoadMask(p,{msg:"Please wait..."}) ;
+				p.loadMask.show() ;
+			},me,{single:true}) ;
+		}
+	},
+	onLoadEnd: function() {
+		var me = this ;
+		if( me.loadMask ) {
+			me.loadMask.hide() ;
+		}
+		me.loading = false ;
+	},
 	
 	addComponents: function( ajaxResponse ) {
 		var me = this ;
-		
-		me.removeAll();
 		
 		me.transaction_id = ajaxResponse.transaction_id ;
 		if( ajaxResponse.qmerge_id && ajaxResponse.qmerge_id > 0 ) {
@@ -230,8 +350,8 @@ Ext.define('Optima5.Modules.CrmBase.QmergePanel' ,{
 		- store $this->mwhereStore : paramètres WHERE fusionnés pour les subQueries
 		- store $this->mselectStore : paramètres SELECT de la mQuery
 		
-		- tree itemId=queriesTree : toutes queries simple CRM
-		- tree itemId=mqueryTree : queries liées à ce Qmerge, champs where+select développés dans D&D
+		- tree itemId=bQueriesTree : toutes queries simple CRM
+		- tree itemId=bCenterPanel>mqueryTree : queries liées à ce Qmerge, champs where+select développés dans D&D
 		Note : tree actifs mais vides !
 		Note2: gestion du contenu des trees dans syncComponents
 		
@@ -301,117 +421,9 @@ Ext.define('Optima5.Modules.CrmBase.QmergePanel' ,{
 			}
 		}) ;
 		
-		
-		
-		var queriesTreeCfg = {} ;
-		Ext.apply( queriesTreeCfg, {
-			xtype: 'treepanel',
-			itemId: 'queriesTree' ,
-			title: 'All Queries',
-			flex:1.5 ,
-			width:100 ,
-			collapsible:true ,
-			collapseDirection:'left',
-			collapseMode:'header',
-			collapsed: (me.qmergeQueriesIds.length>0) ? true:false ,
-			headerPosition:'left',
-			useArrows: true,
-			rootVisible: true,
-			store: {
-				model: 'QmergeItemsTreeModel',
-				nodeParam: 'id',
-				root: {
-					root:true,
-					id:1,
-					text:'Queries',
-					children:[],
-					expanded:true
-				}
-			},
-			viewConfig: {
-					plugins: {
-						ptype: 'treeviewdragdrop',
-						enableDrag: true,
-						enableDrop: false,
-						ddGroup: 'QueryToMqueries'+me.getId()
-					}
-			}
-		}) ;
-		me.add(queriesTreeCfg) ;
-
-		var mqueryTreeCfg = {} ;
-		Ext.apply( mqueryTreeCfg, {
-			xtype: 'treepanel',
-			itemId: 'mqueryTree' ,
-			title: 'Merge Queries',
-			flex: 1,
-			useArrows: true,
-			rootVisible: false,
-			store: {
-				model: 'QmergeItemsTreeModel',
-				nodeParam: 'id',
-				root: {
-					root:true,
-					id:1,
-					text:'Queries',
-					children:[]
-				}
-			},
-			listeners: {
-				itemcontextmenu: function(view, record, item, index, event) {
-					treeContextMenuItems = new Array() ;
-					if( record.get('query_id') > 0 ) {
-						treeContextMenuItems.push({
-							iconCls: 'icon-bible-delete',
-							text: 'Discard query',
-							handler : function() {
-								me.onQueryExclude( record.get('query_id') ) ;
-							},
-							scope : me
-						});
-					}
-					if( treeContextMenuItems.length == 0 ) {
-						return ;
-					}
-					
-					var treeContextMenu = Ext.create('Ext.menu.Menu',{
-						items : treeContextMenuItems
-					}) ;
-					
-					treeContextMenu.showAt(event.getXY());
-					
-				},
-				render: me.addComponentsOnMqueryTreeRender,
-				scope: me
-			},
-			viewConfig: {
-				plugins: {
-					ptype: 'treeviewdragdrop',
-					enableDrag: true,
-					enableDrop: false,
-					ddGroup: 'MqueriesToMpanels'+me.getId()
-				}
-			}
-		}) ;
-		me.add(mqueryTreeCfg) ;
-		
-		me.add({
-			xtype:'panel',
-			itemId: 'mqueryCfg',
-			flex: 3 ,
-			frame:false,
-			layout: {
-				type: 'vbox',
-				align: 'stretch'
-			}
-		});
-		
-		
 		me.syncComponents() ;
 		
-		if( me.loadMask ) {
-			me.loadMask.hide() ;
-		}
+		me.onLoadEnd() ;
 	},
 	addComponentsOnMqueryTreeRender: function( tree ) {
 		var me = this ;
@@ -446,7 +458,7 @@ Ext.define('Optima5.Modules.CrmBase.QmergePanel' ,{
 		me.mainpanelDisable() ;
 		
 		/*
-		***** Gestion des treeviews (queriesTree + mqueryTree) *****
+		***** Gestion des treeviews (bQueriesTree + bCenterPanel>mqueryTree) *****
 		
 		- tree itemId=queriesTree : toutes queries simple CRM
 		- tree itemId=mqueryTree : queries liées à ce Qmerge, champs where+select développés dans D&D
@@ -475,7 +487,7 @@ Ext.define('Optima5.Modules.CrmBase.QmergePanel' ,{
 			
 		},me) ;
 		nodeId++ ;
-		me.getComponent('queriesTree').getStore().setRootNode({
+		me.getComponent('bQueriesTree').getStore().setRootNode({
 			root:true,
 			id:nodeId,
 			text:'Queries',
@@ -540,7 +552,7 @@ Ext.define('Optima5.Modules.CrmBase.QmergePanel' ,{
 			
 		},me) ;
 		nodeId++ ;
-		me.getComponent('mqueryTree').getStore().setRootNode({
+		me.getComponent('bCenterPanel').getComponent('mqueryTree').getStore().setRootNode({
 			root:true,
 			id:nodeId,
 			text:'Queries',
@@ -549,8 +561,8 @@ Ext.define('Optima5.Modules.CrmBase.QmergePanel' ,{
 		});
 		
 		// *** Recouverture du tree ? *** 
-		if( me.qmergeQueriesIds.length <= 1 && me.getComponent('queriesTree').collapsed == true ) {
-			// me.getComponent('queriesTree').expand() ;
+		if( me.qmergeQueriesIds.length <= 1 && me.getComponent('bQueriesTree').collapsed == true ) {
+			me.getComponent('bQueriesTree').expand() ;
 		}
 		
 		
@@ -752,9 +764,10 @@ Ext.define('Optima5.Modules.CrmBase.QmergePanel' ,{
 	},
 			  
 	mainpanelDisable: function() {
-		var me = this ;
-		me.getComponent('mqueryCfg').removeAll() ;
-		me.getComponent('mqueryCfg').add({
+		var me = this,
+			panel = me.getComponent('bCenterPanel').getComponent('mqueryCfg') ;
+		panel.removeAll() ;
+		panel.add({
 			xtype:'panel',
 			frame: true ,
 			flex: 1
@@ -762,7 +775,7 @@ Ext.define('Optima5.Modules.CrmBase.QmergePanel' ,{
 	},
 	mainpanelEnable: function( isValid ) {
 		var me = this ;
-		var panel = me.getComponent('mqueryCfg') ;
+		var panel = me.getComponent('bCenterPanel').getComponent('mqueryCfg') ;
 		panel.removeAll() ;
 		if( !isValid ) {
 			panel.add({

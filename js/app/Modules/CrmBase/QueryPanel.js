@@ -153,30 +153,38 @@ Ext.define('Optima5.Modules.CrmBase.QueryPanel' ,{
 		me.add(treeCfg) ;
 		me.add({
 			xtype:'panel',
-			flex: 2 ,
-			layout: {
-				type: 'vbox',
-				align: 'stretch'
-			},
-			items:[ Ext.create('Optima5.Modules.CrmBase.QuerySubpanelWhere', {
-				optimaModule: me.optimaModule,
-				whereFields: ajaxParams.data_wherefields,
-				flex:1 ,
-				border:false
-			}),Ext.create('Optima5.Modules.CrmBase.QuerySubpanelGroup', {
-				optimaModule: me.optimaModule,
-				groupFields: ajaxParams.data_groupfields,
-				flex:1 ,
-				border:false
-			}),Ext.create('Optima5.Modules.CrmBase.QuerySubpanelSelect', {
-				optimaModule: me.optimaModule,
-				selectFields: ajaxParams.data_selectfields ,
-				flex:1 ,
-				border:false
-			}),Ext.create('Optima5.Modules.CrmBase.QuerySubpanelProgress',{
+			layout: 'border',
+			flex: 2,
+			items:[{
+				xtype:'panel',
+				region:'center',
+				flex: 3,
+				border:false,
+				layout: {
+					type: 'vbox',
+					align: 'stretch'
+				},
+				items:[ Ext.create('Optima5.Modules.CrmBase.QuerySubpanelWhere', {
+					optimaModule: me.optimaModule,
+					whereFields: ajaxParams.data_wherefields,
+					flex:1 ,
+					border:false
+				}),Ext.create('Optima5.Modules.CrmBase.QuerySubpanelGroup', {
+					optimaModule: me.optimaModule,
+					groupFields: ajaxParams.data_groupfields,
+					flex:1 ,
+					border:false
+				}),Ext.create('Optima5.Modules.CrmBase.QuerySubpanelSelect', {
+					optimaModule: me.optimaModule,
+					selectFields: ajaxParams.data_selectfields ,
+					flex:1 ,
+					border:false
+				})]
+			},Ext.create('Optima5.Modules.CrmBase.QuerySubpanelProgress',{
 				optimaModule: me.optimaModule,
 				flex:1,
-				height:1,
+				region: 'south',
+				border:false,
 				progressFields: ajaxParams.data_progressfields,
 				listeners: {
 					expand: function(progresspanel) {
@@ -188,7 +196,6 @@ Ext.define('Optima5.Modules.CrmBase.QueryPanel' ,{
 					},
 					scope: me
 				},
-				border:false,
 				collapsible: true,
 				collapsed: (ajaxParams.data_progressfields.length == 0)? true:false
 			})],
