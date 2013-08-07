@@ -60,6 +60,22 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 			icons[key] = val ;
 		}); 
 		
+		
+		var localComboSdomains = [] ;
+		if( me.sdomainsStore ) {
+			var localComboSdomains = [{id:'',txt:'- Local Sdomain -'}] ;
+			me.sdomainsStore.each( function(sdomainRecord){
+				if( sdomainRecord.get('sdomain_id') == me.sdomainId ) {
+					return ;
+				}
+				localComboSdomains.push({
+					id: sdomainRecord.get('sdomain_id'),
+					txt: sdomainRecord.get('sdomain_id')+' :: '+sdomainRecord.get('sdomain_name')
+				}) ;
+			}) ;
+		}
+		
+		
 		var formAttributes = Ext.create('Ext.form.Panel',{
 			itemId:'mFormAttributes',
 			border: false,
@@ -238,6 +254,11 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 				},
 				scope:me
 			}],
+			setMode: function( mode ) {
+				this.getComponent('cUploadForm').setVisible( mode=='file' ) ;
+				this.getComponent('cLocalForm').setVisible( mode=='local' ) ;
+				this.getComponent('cRemoteForm').setVisible( mode=='remote' ) ;
+			},
 			items:[Ext.create('Optima5.Modules.Admin.CardHeader',{
 				width:'100%',
 				data:{
@@ -247,7 +268,61 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 				}
 			}),{
 				xtype:'form',
+				itemId:'cDummyForm',
+				border: false,
+				frame:false,
+				bodyCls: 'ux-noframe-bg',
+				padding: "0 0 0 0",
+				width:'100%',
+				layout:'anchor',
+				fieldDefaults: {
+					labelAlign: 'left',
+					labelSeparator: '',
+					labelWidth: 90
+				},
+				items: [{
+					xtype: 'fieldset',
+					width: '100%',
+					title: 'Input source',
+					items:[{
+						xtype      : 'fieldcontainer',
+						defaultType: 'radiofield',
+						defaults: {
+							flex: 1,
+							listeners: {
+								change: function( field, value ) {
+									if( field.getName()=='import_mode' && value == true ) {
+										// console.log('mode = '+field.inputValue) ;
+										var cardImport = field.up('form').up() ;
+										cardImport.setMode( field.inputValue ) ;
+										return ;
+									}
+								},
+								scope: me
+							}
+						},
+						layout: 'hbox',
+						items: [
+							{
+								boxLabel  : 'File upload',
+								name      : 'import_mode',
+								inputValue: 'file',
+							}, {
+								boxLabel  : 'Local Sdomain',
+								name      : 'import_mode',
+								inputValue: 'local',
+							}, {
+								boxLabel  : 'Remote server',
+								name      : 'import_mode',
+								inputValue: 'remote',
+							}
+						]
+					}]
+				}]
+			},{
+				xtype:'form',
 				itemId:'cUploadForm',
+				hidden: true,
 				border: false,
 				frame:false,
 				bodyCls: 'ux-noframe-bg',
@@ -284,11 +359,56 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 				}]
 			},{
 				xtype:'form',
-				itemId:'cRemoteForm',
+				itemId:'cLocalForm',
+				hidden: true,
 				border: false,
 				frame:false,
 				bodyCls: 'ux-noframe-bg',
-				padding: "0 0 0 0",
+				padding: "8 0 0 0",
+				width:'100%',
+				layout:'anchor',
+				items:[{
+					xtype: 'fieldset',
+					title: 'From local Sdomain',
+					items:[{
+						xtype: 'combobox',
+						itemId: 'fSdomainField',
+						anchor:'100%',
+						name: 'src_sdomain_id',
+						fieldLabel: 'Src Sdomain',
+						forceSelection: true,
+						editable: false,
+						store: {
+							fields: ['id', 'txt'],
+							data : localComboSdomains
+						},
+						queryMode: 'local',
+						displayField: 'txt',
+						valueField: 'id',
+						allowBlank: false
+					},{
+						xtype:'container',
+						width:'100%',
+						style:{textAlign:'right'},
+						padding: "0 6px 6px 0",
+						items:[{
+							xtype: 'button',
+							padding: '0 16px',
+							scale: 'small',
+							text: 'Ok',
+							handler: me.doImportLocal,
+							scope: me
+						}]
+					}]
+				}]
+			},{
+				xtype:'form',
+				itemId:'cRemoteForm',
+				hidden: true,
+				border: false,
+				frame:false,
+				bodyCls: 'ux-noframe-bg',
+				padding: "8 0 0 0",
 				width:'100%',
 				layout:'anchor',
 				fieldDefaults: {
@@ -673,6 +793,46 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 				},
 				scope: me
 			});
+		}
+	},
+	
+	doImportLocal: function() {
+		var me = this,
+			  importLocalForm = me.getComponent('mCardImport').getComponent('cLocalForm'),
+			  baseForm = importLocalForm.getForm() ;
+			  
+		if( !me.isNew ) {
+			if( me.tool_checkModuleRunning() ) {
+				return ;
+			}
+		}
+		
+		if( baseForm.isValid() ) {
+			var msgbox = Ext.Msg.wait('Remote cloning in progress...');
+			
+			var ajaxParams = {
+				_action:'sdomains_importLocal_do',
+				src_sdomain_id:baseForm.findField('src_sdomain_id').getValue(),
+				dst_sdomain_id:me.sdomainId
+			} ;
+			
+			me.optimaModule.getConfiguredAjaxConnection().request({
+				timeout: (300 * 1000),
+				params:ajaxParams,
+				success : function(response) {
+					var responseObj = Ext.decode(response.responseText) ;
+					if( responseObj.success == false ) {
+						return ;
+					}
+					me.optimaModule.postCrmEvent('sdomainchange',{
+						sdomainId: me.sdomainId
+					}) ;
+				},
+				callback: function() {
+					msgbox.close() ;
+				},
+				scope: me
+			}) ;
 		}
 	},
 	

@@ -25,6 +25,20 @@ Ext.define('Optima5.Modules.Admin.SdomainsPanel',{
 			Optima5.Helper.logError('Admin:SdomainsPanel','No module reference ?') ;
 		}
 		
+		me.sdomainsStore = Ext.create('Ext.data.Store',{
+			model: 'AdminSdomainModel',
+			proxy: me.optimaModule.getConfiguredAjaxProxy({
+				extraParams : {
+					_action: 'sdomains_getList'
+				},
+				reader: {
+					type: 'json',
+					root: 'data'
+				}
+			}),
+			autoLoad: true
+		}) ;
+		
 		Ext.apply(me,{
 			layout: 'border',
 			items:[{
@@ -41,19 +55,7 @@ Ext.define('Optima5.Modules.Admin.SdomainsPanel',{
 					},
 					scope:me
 				}],
-				store: {
-					model: 'AdminSdomainModel',
-					proxy: me.optimaModule.getConfiguredAjaxProxy({
-						extraParams : {
-							_action: 'sdomains_getList'
-						},
-						reader: {
-							type: 'json',
-							root: 'data'
-						}
-					}),
-					autoLoad: true
-				},
+				store: me.sdomainsStore,
 				columns: [{
 					text:'',
 					width: 20,
@@ -183,7 +185,8 @@ Ext.define('Optima5.Modules.Admin.SdomainsPanel',{
 		mform = Ext.create('Optima5.Modules.Admin.SdomainsForm',{
 			border:false,
 			itemId:'mSdomainsForm',
-			optimaModule: me.optimaModule
+			optimaModule: me.optimaModule,
+			sdomainsStore: me.sdomainsStore
 		}) ;
 		mform.loadRecord(record) ;
 		
