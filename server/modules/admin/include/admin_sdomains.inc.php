@@ -277,26 +277,26 @@ function admin_sdomains_importRemote( $post_data ) {
 			$post_url['login_password'] = $post_data['fetch_login_pass'] ;
 			
 			try {
-				$response = admin_sdomains_importRemote_doPostRequest( $private_url, http_build_query($post_url) ) ;
+				$response = admin_sdomains_importRemote_doPostRequest( $private_url, http_build_query($post_url), 10.0 ) ;
 			} catch( Exception $e ) {
-				return array('success'=>false,'values'=>$values,'errors'=>array('fetch_url'=>TRUE)) ;
+				return array('success'=>false,'values'=>$values,'errors'=>array('fetch_url'=>'Url')) ;
 			}
 			
 			$response_json = json_decode($response,true) ;
 			if( !$response_json ) {
-				return array('success'=>false,'values'=>$values,'errors'=>array('fetch_url'=>TRUE)) ;
+				return array('success'=>false,'values'=>$values,'errors'=>array('fetch_url'=>'Url')) ;
 			}
 			
 			$values['fetch_login_domain'] = strtolower($post_data['fetch_login_domain']) ;
 			
 			if( $response_json['success'] == false && $response_json['error'] == 'ERR_DOMAIN' ) {
-				return array('success'=>false,'values'=>$values,'errors'=>array('fetch_login_domain'=>TRUE)) ;
+				return array('success'=>false,'values'=>$values,'errors'=>array('fetch_login_domain'=>'Domain')) ;
 			}
 			
 			$values['fetch_login_user'] = strtolower($post_data['fetch_login_user']) ;
 			
 			if( $response_json['success'] == false && $response_json['error'] == 'ERR_AUTH' ) {
-				return array('success'=>false,'values'=>$values,'errors'=>array('fetch_login_user'=>TRUE,'fetch_login_pass'=>TRUE)) ;
+				return array('success'=>false,'values'=>$values,'errors'=>array('fetch_login_user'=>'Username','fetch_login_pass'=>'Password')) ;
 			}
 			
 			$values['fetch_login_pass'] = strtolower($post_data['fetch_login_pass']) ;
@@ -319,7 +319,7 @@ function admin_sdomains_importRemote( $post_data ) {
 			$post_url['dump_sdomain'] = $post_data['fetch_src_sdomain'] ;
 			
 			try {
-				$response = admin_sdomains_importRemote_doPostRequest( $private_url, http_build_query($post_url) ) ;
+				$response = admin_sdomains_importRemote_doPostRequest( $private_url, http_build_query($post_url), 120.0 ) ;
 			} catch( Exception $e ) {
 				return array('success'=>false) ;
 			}
@@ -361,16 +361,13 @@ function admin_sdomains_importRemote( $post_data ) {
 	}
 }
 
-function admin_sdomains_importRemote_doPostRequest($url, $data, $optional_headers = null)
+function admin_sdomains_importRemote_doPostRequest( $url, $data, $timeout=60.0 )
 {
 	$params = array('http' => array(
 					'method' => 'POST',
 					'content' => $data,
-					'timeout' => 10.0
+					'timeout' => $timeout
 					));
-	if ($optional_headers !== null) {
-		$params['http']['header'] = $optional_headers;
-	}
 	$ctx = stream_context_create($params);
 	$fp = @fopen($url, 'rb', false, $ctx);
 	if (!$fp) {
