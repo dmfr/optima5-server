@@ -250,6 +250,21 @@ function admin_sdomains_import_upload( $post_data ) {
 	return array('success'=>true) ;
 }
 
+function admin_sdomains_importLocal( $post_data ) {
+	$domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
+	$src_sdomain_id = $post_data['src_sdomain_id'] ;
+	$dst_sdomain_id = $post_data['dst_sdomain_id'] ;
+	
+	$t = new DatabaseMgr_Sdomain( $domain_id );
+	try {
+		$t->sdomainDb_clone( $src_sdomain_id, $dst_sdomain_id ) ;
+	} catch( Exception $e ) {
+		return array('success'=>false) ;
+	}
+	
+	return array('success'=>true) ;
+}
+
 function admin_sdomains_importRemote( $post_data ) {
 	$domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
 	$sdomain_id = $post_data['sdomain_id'] ;

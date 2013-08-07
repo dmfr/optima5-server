@@ -545,6 +545,36 @@ EOF;
 		$_opDB->query($query) ;
 	}
 	
+	public function sdomainDb_clone( $src_sdomain_id, $dst_sdomain_id ) {
+		$_opDB = $this->_opDB ;
+		$src_sdomain_db = $this->getSdomainDb( $src_sdomain_id ) ;
+		
+		if( $this->sdomainDb_needUpdate( $src_sdomain_id ) ) {
+			throw new Exception("SDOMAIN_NEEDUPDATE");
+		}
+		
+		$query = "SHOW DATABASES" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			if( $arr[0] == $src_sdomain_db ) {
+				$found = TRUE ;
+			}
+		}
+		if( !$found ) {
+			throw new Exception("SDOMAIN_NOTFOUND");
+		}
+		
+		$dst_sdomain_db = $this->getSdomainDb( $dst_sdomain_id ) ;
+		$this->sdomainDb_delete( $dst_sdomain_id ) ;
+		$query = "CREATE DATABASE $dst_sdomain_db" ;
+		$_opDB->query($query) ;
+		DatabaseMgr_Util::clone_DB( $src_sdomain_db, $dst_sdomain_db ) ;
+		$this->sdomainDefine_buildAll($dst_sdomain_id) ;
+	}
+	
+	
+	
+	
 	public function sdomainDefine_buildAll($sdomain_id) {
 		$_opDB = $this->_opDB ;
 		$sdomain_db = $this->getSdomainDb( $sdomain_id ) ;

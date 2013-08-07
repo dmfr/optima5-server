@@ -701,5 +701,29 @@ class DatabaseMgr_Util {
 		if( $query_insert )
 			$_opDB->query_unbuf( $query_insert ) ;
 	}
+	
+	
+	public static function clone_DB( $src_db, $dst_db, $skip_store=FALSE ) {
+		global $_opDB ;
+		
+		$query = "SHOW FULL TABLES FROM $src_db " ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE )
+		{
+			if( $arr[1] && $arr[1] != 'BASE TABLE' ) {
+				continue ;
+			}
+			
+			$query = "DROP TABLE IF EXISTS {$dst_db}.{$arr[0]}" ;
+			$_opDB->query($query) ;
+			
+			$query = "CREATE TABLE {$dst_db}.{$arr[0]} LIKE {$src_db}.{$arr[0]}" ;
+			$_opDB->query($query) ;
+			
+			$query = "INSERT INTO {$dst_db}.{$arr[0]} SELECT * FROM {$src_db}.{$arr[0]}" ;
+			$_opDB->query($query) ;
+		}
+	}
+	
 }
 ?>
