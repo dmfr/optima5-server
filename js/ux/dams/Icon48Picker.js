@@ -116,7 +116,7 @@ Ext.define('Ext.ux.dams.Icon48Picker',{
 		var me = this ;
 		var oldValue = me.idxValue ;
 		me.idxValue = record.getId() ;
-		me.setValueRendered() ;
+		me.renderValue() ;
 		me.clearInvalid();
 		this.fireEvent('change',me,me.idxValue,oldValue) ;
 		me.collapse() ;
