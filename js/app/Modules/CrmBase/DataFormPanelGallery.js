@@ -202,14 +202,16 @@ Ext.define('Optima5.Modules.CrmBase.DataFormPanelGallery',{
 				subfile_code:me.itemId
 			}) ;
 			
+			var msgbox = Ext.Msg.wait('Uploading your photo...');
 			baseForm.submit({
 				url: Optima5.Helper.getApplication().desktopGetBackendUrl(),
 				params: ajaxParams,
-				waitMsg: 'Uploading your photo...',
 				success : function(){
+					msgbox.close() ;
 					me.linkstore.load() ;
 				},
 				failure: function(fp, o) {
+					msgbox.close() ;
 					msg('Pouet','Error during upload') ;	
 				},
 				scope: me
