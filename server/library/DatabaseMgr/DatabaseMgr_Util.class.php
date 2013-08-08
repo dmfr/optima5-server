@@ -596,7 +596,15 @@ class DatabaseMgr_Util {
 	public static function feed_DB( $handle, $db_name, $skip_store=FALSE ) {
 		global $_opDB ;
 		$dst_db = $db_name ;
-
+		
+		$result = $_opDB->query("SHOW VARIABLES LIKE 'max_allowed_packet'") ;
+		$arr = $_opDB->fetch_row($result) ;
+		$max_packet_size = $arr[1] ;
+		if( !$max_packet_size ) {
+			$max_packet_size = (1024 * 1024) ;
+		}
+		$max_packet_size = $max_packet_size * 0.9 ;
+		
 		$query = "SHOW FULL TABLES FROM $dst_db " ;
 		$result = $_opDB->query($query) ;
 		while( ($arr = $_opDB->fetch_row($result)) != FALSE )
@@ -690,7 +698,7 @@ class DatabaseMgr_Util {
 			// $_opDB->query_unbuf_mysql( $query ) ;
 			
 			$nbc++ ;
-			if( $nbc % 1000 == 0 )
+			if( strlen($query_insert) > $max_packet_size )
 			{
 				$_opDB->query_unbuf( $query_insert ) ;
 				// echo strlen($query_insert)."\n" ;
