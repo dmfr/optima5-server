@@ -842,14 +842,14 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 			baseForm = remoteForm.getForm() ;
 			ajaxParams = {} ;
 		
-		Ext.apply(ajaxParams,{
-			_action:'sdomains_importRemote_getSdomains',
-			sdomain_id:me.sdomainId
-		}) ;
-		Ext.apply(ajaxParams, baseForm.getValues()) ;
-		
 		if( baseForm.isValid() ) {
 			remoteForm.getEl().mask('Please wait') ;
+			
+			Ext.apply(ajaxParams,{
+				_action:'sdomains_importRemote_getSdomains',
+				sdomain_id:me.sdomainId
+			}) ;
+			Ext.apply(ajaxParams, baseForm.getValues()) ;
 			
 			me.optimaModule.getConfiguredAjaxConnection().request({
 				params:ajaxParams,
@@ -884,17 +884,23 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 			baseForm = remoteForm.getForm() ;
 			ajaxParams = {} ;
 		
-		Ext.apply(ajaxParams,{
-			_action:'sdomains_importRemote_do',
-			sdomain_id:me.sdomainId
-		}) ;
-		Ext.apply(ajaxParams, baseForm.getValues()) ;
+		if( !me.isNew ) {
+			if( me.tool_checkModuleRunning() ) {
+				return ;
+			}
+		}
 		
 		if( baseForm.isValid() ) {
 			var msgbox = Ext.Msg.wait('Remote cloning in progress...');
 			
+			Ext.apply(ajaxParams,{
+				_action:'sdomains_importRemote_do',
+				sdomain_id:me.sdomainId
+			}) ;
+			Ext.apply(ajaxParams, baseForm.getValues()) ;
+			
 			me.optimaModule.getConfiguredAjaxConnection().request({
-				timeout: (300 * 1000),
+				timeout: (10 * 60 * 1000),
 				params:ajaxParams,
 				success : function(response) {
 					var responseObj = Ext.decode(response.responseText) ;
