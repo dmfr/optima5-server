@@ -151,7 +151,16 @@ function paracrm_lib_file_mapFile( $file_code, $is_called=FALSE )
 				continue ;
 			}
 		
-		
+			switch( $arr['entry_field_type'] ) {
+				case 'date' :
+				case 'string' :
+				case 'bool' :
+				case 'number' :
+					break ;
+					
+				default :
+					continue 2 ;
+			}
 		
 			$sql_selectfields[] = array($file_code.'.'.'field_'.$arr['entry_field_code'],$myprefix.'field_'.$arr['entry_field_code']) ;
 			$grid_cell = array() ;
