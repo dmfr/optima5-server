@@ -64,14 +64,14 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 		this.linktypesForBible = Ext.create('Ext.data.Store', {
 			fields: ['linktypeCode', 'linktypeLib','linktypeIconCls'],
 			data:[
-				{linktypeCode:'tree',linktypeLib:'Treenode',linktypeIconCls:'op5-crmbase-definelink-type-treenode'}
+				{linktypeCode:'treenode',linktypeLib:'Treenode',linktypeIconCls:'op5-crmbase-definelink-type-treenode'}
 			]
 		}) ;
 		this.linktypesForFile = Ext.create('Ext.data.Store', {
 			fields: ['linktypeCode', 'linktypeLib','linktypeIconCls'],
 			data:[
 				{linktypeCode:'entry',linktypeLib:'Entry',linktypeIconCls:'op5-crmbase-definelink-type-entry'},
-				{linktypeCode:'tree',linktypeLib:'Treenode',linktypeIconCls:'op5-crmbase-definelink-type-treenode'}
+				{linktypeCode:'treenode',linktypeLib:'Treenode',linktypeIconCls:'op5-crmbase-definelink-type-treenode'}
 			]
 		}) ;
 		
