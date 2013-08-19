@@ -264,8 +264,19 @@ function paracrm_data_editTransaction_fileRecord_init( $post_data , &$arr_saisie
 			break ;
 			
 			case 'link' :
-			$field['xtype'] = 'op5crmbasebiblepicker' ;
-			$field['bibleId'] = $arr['entry_field_linkbible'] ;
+			switch( $arr['entry_field_linktype'] ) {
+				case 'treenode' :
+					$field['xtype'] = 'op5crmbasebibletreepicker' ;
+					$field['selectMode'] = 'single' ;
+					$field['bibleId'] = $arr['entry_field_linkbible'] ;
+					break ;
+					
+				case 'entry' :
+				default :
+					$field['xtype'] = 'op5crmbasebiblepicker' ;
+					$field['bibleId'] = $arr['entry_field_linkbible'] ;
+					break ;
+			}
 			break ;
 			
 			case '_label' :
