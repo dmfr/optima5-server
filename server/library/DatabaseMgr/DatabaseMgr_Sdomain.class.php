@@ -4,7 +4,7 @@ class DatabaseMgr_Sdomain {
 	private $_opDB ;
 	private $domain_id ;
 	
-	private static $dbVersion = 4 ;
+	private static $dbVersion = 5 ;
 	
 	public function __construct( $domain_id ) {
 		$this->_opDB = $GLOBALS['_opDB'] ;
@@ -50,6 +50,7 @@ CREATE TABLE `define_bible_entry` (
   `entry_field_index` int(11) NOT NULL,
   `entry_field_lib` varchar(100) NOT NULL,
   `entry_field_type` varchar(10) NOT NULL,
+  `entry_field_linktype` varchar(10) NOT NULL,
   `entry_field_linkbible` varchar(50) NOT NULL,
   `entry_field_is_header` varchar(1) NOT NULL,
   `entry_field_is_highlight` varchar(1) NOT NULL,
@@ -63,6 +64,7 @@ CREATE TABLE `define_bible_tree` (
   `tree_field_index` int(11) NOT NULL,
   `tree_field_lib` varchar(100) NOT NULL,
   `tree_field_type` varchar(10) NOT NULL,
+  `tree_field_linktype` varchar(10) NOT NULL,
   `tree_field_linkbible` varchar(50) NOT NULL,
   `tree_field_is_header` varchar(1) NOT NULL,
   `tree_field_is_highlight` varchar(1) NOT NULL,
@@ -101,6 +103,7 @@ CREATE TABLE `define_file_entry` (
   `entry_field_index` int(11) NOT NULL,
   `entry_field_lib` varchar(100) NOT NULL,
   `entry_field_type` varchar(10) NOT NULL,
+  `entry_field_linktype` varchar(10) NOT NULL,
   `entry_field_linkbible` varchar(50) NOT NULL,
   `entry_field_is_header` varchar(1) NOT NULL,
   `entry_field_is_highlight` varchar(1) NOT NULL,

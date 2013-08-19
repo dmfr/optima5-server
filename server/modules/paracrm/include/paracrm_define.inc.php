@@ -257,8 +257,12 @@ function paracrm_define_manageTransaction( $post_data )
 					$arr['tree_field_is_header'] = true ;
 				else
 					$arr['tree_field_is_header'] = false ;
-				if( $arr['tree_field_type'] == 'link' )
-					$arr['tree_field_type'] = $arr['tree_field_type'].'_'.$arr['tree_field_linkbible'] ;
+				
+				if( $arr['entry_field_type'] == 'link' ) {
+					$arr['entry_field_linkbible'] ;
+					$arr['entry_field_linktype'] ;
+				}
+				
 				$tab[] = $arr ;
 			}
 			$arr_saisie['tab_treeFields'] = $tab ;
@@ -280,8 +284,10 @@ function paracrm_define_manageTransaction( $post_data )
 				else
 					$arr['entry_field_is_header'] = false ;
 					
-				if( $arr['entry_field_type'] == 'link' )
-					$arr['entry_field_type'] = $arr['entry_field_type'].'_'.$arr['entry_field_linkbible'] ;
+				if( $arr['entry_field_type'] == 'link' ) {
+					$arr['entry_field_linkbible'] ;
+					$arr['entry_field_linktype'] ;
+				}
 					
 				$tab[] = $arr ;
 			}
@@ -316,8 +322,11 @@ function paracrm_define_manageTransaction( $post_data )
 				else
 					$arr['entry_field_is_primarykey'] = false ;
 					
-				if( $arr['entry_field_type'] == 'link' )
-					$arr['entry_field_type'] = $arr['entry_field_type'].'_'.$arr['entry_field_linkbible'] ;
+				if( $arr['entry_field_type'] == 'link' ) {
+					$arr['entry_field_linkbible'] ;
+					$arr['entry_field_linktype'] ;
+				}
+				
 				if( $arr['entry_field_type'] == 'join' ) {
 					// **** Load join parameters ****
 					$query = "SELECT * FROM define_file_entry_join WHERE file_code='{$arr['file_code']}' AND entry_field_code='{$arr['entry_field_code']}'" ;
@@ -368,7 +377,7 @@ function paracrm_define_manageTransaction( $post_data )
 	if( $arr_transaction && $post_data['_subaction'] == 'tool_getLinks' )
 	{
 		$arr_saisie = $arr_transaction['arr_saisie'] ;
-		$links_tree = $links_entry = $parent_files = array() ;
+		$parent_files = $links_bible = array() ;
 		
 		if( $arr_transaction['arr_saisie']['data_type'] == 'bible' )
 		{
@@ -379,8 +388,7 @@ function paracrm_define_manageTransaction( $post_data )
 			$result = $_opDB->query($query) ;
 			while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
 			{
-				$links_tree[] = array('dataType'=>'link_'.$arr['bible_code'],'dataTypeLib'=>'<b>Link</b>: '.$arr['bible_lib']) ;
-				$links_entry[] = array('dataType'=>'link_'.$arr['bible_code'],'dataTypeLib'=>'<b>Link</b>: '.$arr['bible_lib']) ;
+				$link_bibles[] = array('bibleCode'=>$arr['bible_code'] , 'bibleLib'=>$arr['bible_lib']) ;
 			}
 		}
 		if( $arr_transaction['arr_saisie']['data_type'] == 'file' )
@@ -392,7 +400,7 @@ function paracrm_define_manageTransaction( $post_data )
 			$result = $_opDB->query($query) ;
 			while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
 			{
-				$links_entry[] = array('dataType'=>'link_'.$arr['bible_code'],'dataTypeLib'=>'<b>Link</b>: '.$arr['bible_lib']) ;
+				$link_bibles[] = array('bibleCode'=>$arr['bible_code'] , 'bibleLib'=>$arr['bible_lib']) ;
 			}
 			
 			$query = "SELECT file_code, file_lib 
@@ -406,7 +414,7 @@ function paracrm_define_manageTransaction( $post_data )
 		}
 		
 		
-		return array('success'=>true,'data'=>array('links_tree'=>$links_tree,'links_entry'=>$links_entry,'parent_files'=>$parent_files)) ;
+		return array('success'=>true,'data'=>array('parent_files'=>$parent_files,'link_bibles'=>$link_bibles)) ;
 	}
 	
 	
@@ -513,8 +521,6 @@ function paracrm_define_manageTransaction( $post_data )
 			else
 				$arr['entry_field_is_primarykey'] = false ;
 				
-			if( $arr['entry_field_type'] == 'link' )
-				$arr['entry_field_type'] = $arr['entry_field_type'].'_'.$arr['entry_field_linkbible'] ;
 			if( $arr['entry_field_type'] == 'join' ) {
 				// **** Load join parameters ****
 				$query = "SELECT * FROM define_file_entry_join WHERE file_code='{$arr['file_code']}' AND entry_field_code='{$arr['entry_field_code']}'" ;
@@ -680,16 +686,6 @@ function paracrm_define_manageTransaction_applyBible($arr_saisie, $apply)
 	$idx = 1 ;
 	foreach( $arr_saisie['tab_treeFields'] as $mfield )
 	{
-		if( strpos($mfield['tree_field_type'],'link_') === 0 )
-		{
-			$mfield['tree_field_linkbible'] = substr($mfield['tree_field_type'],5,strlen($mfield['tree_field_type'])-5) ;
-			$mfield['tree_field_type'] = 'link' ;
-		}
-		else
-		{
-			$mfield['tree_field_linkbible'] = '' ;
-		}
-	
 		$arr_ins = array() ;
 		$arr_ins['bible_code'] = $bible_code ;
 		$arr_ins['tree_field_code'] = $mfield['tree_field_code'] ;
@@ -697,6 +693,7 @@ function paracrm_define_manageTransaction_applyBible($arr_saisie, $apply)
 		$arr_ins['tree_field_index'] = $idx++ ;
 		$arr_ins['tree_field_lib'] = $mfield['tree_field_lib'] ;
 		$arr_ins['tree_field_type'] = ($mfield['tree_field_type'])? $mfield['tree_field_type']:'string' ;
+		$arr_ins['tree_field_linktype'] = $mfield['tree_field_linktype'] ;
 		$arr_ins['tree_field_linkbible'] = $mfield['tree_field_linkbible'] ;
 		$arr_ins['tree_field_is_header'] = ($mfield['tree_field_is_header'])? 'O':'' ;
 		$arr_ins['tree_field_is_highlight'] = ($mfield['tree_field_is_highlight'])? 'O':'' ;
@@ -706,16 +703,6 @@ function paracrm_define_manageTransaction_applyBible($arr_saisie, $apply)
 	$idx = 1 ;
 	foreach( $arr_saisie['tab_entryFields'] as $mfield )
 	{
-		if( strpos($mfield['entry_field_type'],'link_') === 0 )
-		{
-			$mfield['entry_field_linkbible'] = substr($mfield['entry_field_type'],5,strlen($mfield['entry_field_type'])-5) ;
-			$mfield['entry_field_type'] = 'link' ;
-		}
-		else
-		{
-			$mfield['entry_field_linkbible'] = '' ;
-		}
-	
 		$arr_ins = array() ;
 		$arr_ins['bible_code'] = $bible_code ;
 		$arr_ins['entry_field_code'] = $mfield['entry_field_code'] ;
@@ -723,6 +710,7 @@ function paracrm_define_manageTransaction_applyBible($arr_saisie, $apply)
 		$arr_ins['entry_field_index'] = $idx++ ;
 		$arr_ins['entry_field_lib'] = $mfield['entry_field_lib'] ;
 		$arr_ins['entry_field_type'] = ($mfield['entry_field_type'])? $mfield['entry_field_type']:'string' ;
+		$arr_ins['entry_field_linktype'] = $mfield['entry_field_linktype'] ;
 		$arr_ins['entry_field_linkbible'] = $mfield['entry_field_linkbible'] ;
 		$arr_ins['entry_field_is_header'] = ($mfield['entry_field_is_header'])? 'O':'' ;
 		$arr_ins['entry_field_is_highlight'] = ($mfield['entry_field_is_highlight'])? 'O':'' ;
@@ -813,22 +801,13 @@ function paracrm_define_manageTransaction_applyFile($arr_saisie, $apply)
 	$idx = 1 ;
 	foreach( $arr_saisie['tab_entryFields'] as $mfield )
 	{
-		if( strpos($mfield['entry_field_type'],'link_') === 0 )
-		{
-			$mfield['entry_field_linkbible'] = substr($mfield['entry_field_type'],5,strlen($mfield['entry_field_type'])-5) ;
-			$mfield['entry_field_type'] = 'link' ;
-		}
-		else
-		{
-			$mfield['entry_field_linkbible'] = '' ;
-		}
-	
 		$arr_ins = array() ;
 		$arr_ins['file_code'] = $file_code ;
 		$arr_ins['entry_field_code'] = $mfield['entry_field_code'] ;
 		$arr_ins['entry_field_index'] = $idx++ ;
 		$arr_ins['entry_field_lib'] = $mfield['entry_field_lib'] ;
 		$arr_ins['entry_field_type'] = ($mfield['entry_field_type'])? $mfield['entry_field_type']:'string' ;
+		$arr_ins['entry_field_linktype'] = $mfield['entry_field_linktype'] ;
 		$arr_ins['entry_field_linkbible'] = $mfield['entry_field_linkbible'] ;
 		$arr_ins['entry_field_is_header'] = ($mfield['entry_field_is_header'])? 'O':'' ;
 		$arr_ins['entry_field_is_highlight'] = ($mfield['entry_field_is_highlight'])? 'O':'' ;
