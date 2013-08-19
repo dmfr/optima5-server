@@ -321,3 +321,10 @@ tbody.op5-crmbase-define-grid-join-tbody-separator tr {
 	 background-image: url("../images/leaf.gif") ;
 	 padding-left: 16px
 }
+
+.op5-crmbase-definelink-type-treenode {
+	background-image: url("../images/modules/crmbase-filechild-16.gif") !important;
+}
+.op5-crmbase-definelink-type-entry {
+	background-image: url("../images/modules/crmbase-listall-16.gif") !important;
+}

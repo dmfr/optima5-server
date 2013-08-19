@@ -6,6 +6,7 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 		'Ext.ux.dams.EmbeddedButton',
 		'Optima5.Modules.CrmBase.DefineStoreCalendarForm',
 		'Optima5.Modules.CrmBase.DefineStoreFieldJoinPanel',
+		'Optima5.Modules.CrmBase.DefineStoreLinkbibleField',
 		'Ext.ux.dams.ComboBoxCached'
 	],
 	
@@ -43,6 +44,24 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 			fields: ['fileCode', 'fileLib'],
 			data : [{"fileCode":"", "fileLib":"<i>Root file / No parent</i>"}]
 		});
+		
+		this.linkBibles = Ext.create('Ext.data.Store', {
+			fields: ['bibleCode', 'bibleLib'],
+			data: []
+		}) ;
+		this.linktypesForBible = Ext.create('Ext.data.Store', {
+			fields: ['linktypeCode', 'linktypeLib','linktypeIconCls'],
+			data:[
+				{linktypeCode:'tree',linktypeLib:'Treenode',linktypeIconCls:'op5-crmbase-definelink-type-treenode'}
+			]
+		}) ;
+		this.linktypesForFile = Ext.create('Ext.data.Store', {
+			fields: ['linktypeCode', 'linktypeLib','linktypeIconCls'],
+			data:[
+				{linktypeCode:'entry',linktypeLib:'Entry',linktypeIconCls:'op5-crmbase-definelink-type-entry'},
+				{linktypeCode:'tree',linktypeLib:'Treenode',linktypeIconCls:'op5-crmbase-definelink-type-treenode'}
+			]
+		}) ;
 		
 		
 		var tabitems = new Array() ;
@@ -94,9 +113,17 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 				},{
 					text: 'Node Type',
 					//width: 40,
-					width:150,
+					width:210,
 					dataIndex: 'tree_field_type',
-					editor:{xtype:'combobox', forceSelection:true, editable:false, queryMode: 'local',displayField: 'dataTypeLib',valueField: 'dataType',store:this.treeFieldType}
+					editorTpl:{xtype:'combobox', matchFieldWidth:false,listConfig:{width:200}, forceSelection:true, editable:false, queryMode: 'local',displayField: 'dataTypeLib',valueField: 'dataType',store:this.entryFieldType},
+					linkbibleTpl:{xtype:'op5crmbasedelinkbiblefield'},
+					buttonTpl:{xtype:'damsembeddedbutton', text:'Configure JOIN'}
+				},{
+					hidden:true,
+					dataIndex:'tree_field_linktype'
+				},{
+					hidden:true,
+					dataIndex:'tree_field_linkbible'
 				},{
 					xtype: 'booleancolumn',
 					type: 'boolean',
@@ -148,10 +175,17 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 				},{
 					text: 'Node Type',
 					//width: 40,
-					width:150,
+					width:210,
 					dataIndex: 'entry_field_type',
 					editorTpl:{xtype:'combobox', matchFieldWidth:false,listConfig:{width:200}, forceSelection:true, editable:false, queryMode: 'local',displayField: 'dataTypeLib',valueField: 'dataType',store:this.entryFieldType},
+					linkbibleTpl:{xtype:'op5crmbasedelinkbiblefield'},
 					buttonTpl:{xtype:'damsembeddedbutton', text:'Configure JOIN'}
+				},{
+					hidden:true,
+					dataIndex:'entry_field_linktype'
+				},{
+					hidden:true,
+					dataIndex:'entry_field_linkbible'
 				},{
 					xtype: 'booleancolumn',
 					itemId: 'primaryKeyColumn',
@@ -544,18 +578,97 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 	
 	configureEditors: function() {
 		var me = this ,
+			treegrid = me.query('tabpanel')[0].child('#treetab'),
 			elementgrid = me.query('tabpanel')[0].child('#elementtab') ;
 		
-		elementgrid.getPlugin('rowEditor').on('beforeedit',me.onBeforeEditElementGrid,me) ;
+		if( treegrid != null ) {
+			treegrid.getPlugin('rowEditor').on({
+				'beforeedit': {
+					fn: me.onBeforeEditTreeGrid,
+					scope: me
+				},
+				'edit': {
+					fn: me.onAfterEditTreeGrid,
+					scope: me
+				}
+			});
+		}
+		if( elementgrid != null ) {
+			elementgrid.getPlugin('rowEditor').on({
+				'beforeedit': {
+					fn: me.onBeforeEditElementGrid,
+					scope: me
+				},
+				'edit': {
+					fn: me.onAfterEditElementGrid,
+					scope: me
+				}
+			});
+		}
 		
+		if( this.defineDataType == 'bible' ) {
+			treegrid.child('toolbar').child('#add').handler = null 
+			var addMenu = [{
+					iconCls:'icon-add',
+					text:'Data Field',
+					handler:function(btn) {
+						var p = btn.up('damsembeddedgrid') ;
+						p.onBtnAdd({}) ;
+					},
+					scope:me
+				},{
+					icon:'images/op5img/ico_dataadd_16.gif',
+					text:'Bible LINK',
+					handler:function(btn) {
+						var p = btn.up('damsembeddedgrid') ;
+						p.onBtnAdd({
+							tree_field_type:'link'
+						}) ;
+					},
+					scope:me
+				}] ;
+			treegrid.child('toolbar').child('#add').menu.add(addMenu);
+			
+			elementgrid.child('toolbar').child('#add').handler = null 
+			var addMenu = [{
+					iconCls:'icon-add',
+					text:'Data Field',
+					handler:function(btn) {
+						var p = btn.up('damsembeddedgrid') ;
+						p.onBtnAdd({}) ;
+					},
+					scope:me
+				},{
+					icon:'images/op5img/ico_dataadd_16.gif',
+					text:'Bible LINK',
+					handler:function(btn) {
+						var p = btn.up('damsembeddedgrid') ;
+						p.onBtnAdd({
+							entry_field_type:'link'
+						}) ;
+					},
+					scope:me
+				}] ;
+			elementgrid.child('toolbar').child('#add').menu.add(addMenu);
+		}
 		if( this.defineDataType == 'file' ) {
 			elementgrid.child('toolbar').child('#add').handler = null 
 			var addMenu = [{
 					iconCls:'icon-add',
-					text:'File Field',
+					text:'Data Field',
 					handler:function(btn) {
 						var p = btn.up('damsembeddedgrid') ;
 						p.onBtnAdd({}) ;
+					},
+					scope:me
+				},{
+					icon:'images/op5img/ico_dataadd_16.gif',
+					text:'Bible LINK',
+					handler:function(btn) {
+						var p = btn.up('damsembeddedgrid') ;
+						p.onBtnAdd({
+							entry_field_type:'link'
+						}) ;
 					},
 					scope:me
 				},{
@@ -572,7 +685,13 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 			elementgrid.child('toolbar').child('#add').menu.add(addMenu);
 		}
 	},
+	onBeforeEditTreeGrid: function(editor,editEvent) {
+		return this.onBeforeEditGrid( editor,editEvent,'tree' ) ;
+	},
 	onBeforeEditElementGrid: function(editor,editEvent) {
+		return this.onBeforeEditGrid( editor,editEvent,'element' ) ;
+	},
+	onBeforeEditGrid: function(editor,editEvent,gridType) {
 		var me = this ;
 		
 		editor.cancelEdit() ;
@@ -582,9 +701,24 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 			columnsByKey[col.dataIndex] = col ;
 		},me);
 		
-		var fieldTypeCol = columnsByKey['entry_field_type'] ;
-		if( editEvent.record && editEvent.record.get('entry_field_type') && editEvent.record.get('entry_field_type')=='join' ) {
-			var buttonTpl = Ext.apply({},fieldTypeCol.buttonTpl) ;
+		var fieldTypeColumnKey = '' ;
+		switch( gridType ) {
+			case 'tree' :
+				fieldTypeColumnKey = 'tree_field_type' ;
+				fieldLinktypeColumnKey = 'tree_field_linktype' ;
+				fieldLinkbibleColumnKey = 'tree_field_linkbible' ;
+				break ;
+			case 'element' :
+				fieldTypeColumnKey = 'entry_field_type' ;
+				fieldLinktypeColumnKey = 'entry_field_linktype' ;
+				fieldLinkbibleColumnKey = 'entry_field_linkbible' ;
+				break ;
+		}
+		var fieldType = ( (editEvent.record != null) ? editEvent.record.get(fieldTypeColumnKey) : null ) ;
+		var fieldTypeColumn = columnsByKey[fieldTypeColumnKey] ;
+		
+		if( fieldType == 'join' ) {
+			var buttonTpl = Ext.apply({},fieldTypeColumn.buttonTpl) ;
 			Ext.apply(buttonTpl,{
 				rowIdx: editEvent.rowIdx,
 				handler: function(btn) {
@@ -593,9 +727,73 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 				scope:me
 			});
 			
-			fieldTypeCol.setEditor(buttonTpl) ;
+			fieldTypeColumn.setEditor(buttonTpl) ;
+		} else if( fieldType == 'link' ) {
+			var linkbibleTpl = Ext.apply({},fieldTypeColumn.linkbibleTpl) ;
+			
+			var linktypeStore ;
+			switch( me.defineDataType ) {
+				case 'bible' :
+					linktypeStore = me.linktypesForBible ;
+					break ;
+				case 'file' :
+					linktypeStore = me.linktypesForFile ;
+					break ;
+			}
+			Ext.apply(linkbibleTpl,{
+				linkBiblesStore: me.linkBibles,
+				linkTypesStore: linktypeStore,
+				
+				listeners: {
+					afterrender: function(formField) {
+						formField.setLinkValues({
+							linkType: editEvent.record.get(fieldLinktypeColumnKey),
+							linkBibleCode: editEvent.record.get(fieldLinkbibleColumnKey)
+						}) ;
+					}
+				}
+			});
+			fieldTypeColumn.setEditor(linkbibleTpl) ;
 		} else {
-			fieldTypeCol.setEditor(fieldTypeCol.editorTpl) ;
+			fieldTypeColumn.setEditor(fieldTypeColumn.editorTpl) ;
+		}
+	},
+	onAfterEditTreeGrid: function(editor,editEvent) {
+		return this.onAfterEditGrid( editor,editEvent,'tree' ) ;
+	},
+	onAfterEditElementGrid: function(editor,editEvent) {
+		return this.onAfterEditGrid( editor,editEvent,'element' ) ;
+	},
+	onAfterEditGrid: function(editor,editEvent,gridType) {
+		var me = this ;
+		
+		var columnsByKey = {} ;
+		Ext.Array.forEach( editEvent.grid.columns, function(col) {
+			columnsByKey[col.dataIndex] = col ;
+		},me);
+		
+		var fieldTypeColumnKey = '' ;
+		switch( gridType ) {
+			case 'tree' :
+				fieldTypeColumnKey = 'tree_field_type' ;
+				fieldLinktypeColumnKey = 'tree_field_linktype' ;
+				fieldLinkbibleColumnKey = 'tree_field_linkbible' ;
+				break ;
+			case 'element' :
+				fieldTypeColumnKey = 'entry_field_type' ;
+				fieldLinktypeColumnKey = 'entry_field_linktype' ;
+				fieldLinkbibleColumnKey = 'entry_field_linkbible' ;
+				break ;
+		}
+		var fieldType = ( (editEvent.record != null) ? editEvent.record.get(fieldTypeColumnKey) : null ) ;
+		var fieldTypeColumn = columnsByKey[fieldTypeColumnKey] ;
+		var formField = fieldTypeColumn.getEditor() ;
+		
+		switch( formField.getXType() ) {
+			case fieldTypeColumn.linkbibleTpl.xtype :
+				editEvent.record.set(fieldLinktypeColumnKey, formField.getLinkValues().linkType) ;
+				editEvent.record.set(fieldLinkbibleColumnKey, formField.getLinkValues().linkBibleCode) ;
+				break ;
 		}
 	},
 	onClickJoinCfg: function( rowIdx ) {
@@ -605,7 +803,7 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 			editPlugin = elementgrid.getPlugin('rowEditor') ;
 			
 		//editPlugin.completeEdit() ;
-		console.log('Advanced editing for row '+rowIdx) ;
+		// console.log('Advanced editing for row '+rowIdx) ;
 		
 		// Create panel
 		if( !me.joinPanel ) {
@@ -650,9 +848,8 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 				if( Ext.decode(response.responseText).success == false )
 					return this.onAbort() ;
 				else {
-					this.treeFieldType.add( Ext.decode(response.responseText).data.links_tree ) ;
-					this.entryFieldType.add( Ext.decode(response.responseText).data.links_entry ) ;
 					this.parentFiles.add( Ext.decode(response.responseText).data.parent_files ) ;
+					this.linkBibles.add( Ext.decode(response.responseText).data.link_bibles ) ;
 				}
 			},
 			scope: this

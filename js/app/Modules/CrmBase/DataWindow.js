@@ -286,7 +286,7 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 		
 		me.optimaModule.createWindow({
 			title:'Store definition',
-			width:620,
+			width:720,
 			height:600,
 			iconCls: 'op5-crmbase-definewindow-icon',
 			animCollapse:false,
