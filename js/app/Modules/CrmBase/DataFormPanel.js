@@ -74,6 +74,9 @@ Ext.define('Optima5.Modules.CrmBase.DataFormPanel' ,{
 			if( v.xtype=='op5crmbasebiblepicker' ) {
 				Ext.apply(v,{optimaModule:me.optimaModule}) ;
 			}
+			if( v.xtype=='op5crmbasebibletreepicker' ) {
+				Ext.apply(v,{optimaModule:me.optimaModule}) ;
+			}
 			if( v.xtype=='damsfieldtree' ) {
 				Ext.apply(v,{width:300,autoHeight:true}) ;
 			}
