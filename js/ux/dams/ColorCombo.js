@@ -14,7 +14,7 @@ Ext.define('Ext.ux.dams.ColorCombo', {
 					'<div class="x-boundlist-item ux-color-combo-item ">',
 					'{' + me.displayField + '}',
 					'</div>',
-					'<div class="ux-color-combo-icon" style="background-color:{' + me.iconColorField + '}"></div>',
+					'<div class="ux-color-combo-icon {' + me.iconClsField + '}" style="background-color:{' + me.iconColorField + '}"></div>',
 					'</div>',
 				'</tpl>',
 				{ compiled: true, disableFormats: true }
@@ -46,22 +46,56 @@ Ext.define('Ext.ux.dams.ColorCombo', {
 	},
 		
 	setIconCls: function() {
-			if (this.rendered) {        
-				var rec = this.store.findRecord(this.valueField, this.getValue());
-				if (rec) {
+		if (this.rendered) {       
+			var rec = this.store.findRecord(this.valueField, this.getValue());
+			if (rec) {
+				if( this.iconColorField ) {
 					var newColor = rec.get(this.iconColorField);
 					this.iconClsEl.dom.style.backgroundColor=newColor ;
 					//this.iconClsEl.dom.style.background = "url('images/op5img/ico_cancel_small.gif') no-repeat center center" ;
 				}
-			} else {
-				this.on('render', this.setIconCls, this, {
-					single: true
-				});
+				if( this.iconClsField ) {
+					var newIconCls = rec.get(this.iconClsField);
+					if( this.currentIconCls ) {
+						this.iconClsEl.removeCls( this.currentIconCls ) ;
+					}
+					this.currentIconCls = newIconCls ;
+					this.iconClsEl.addCls( newIconCls ) ;
+				}
 			}
+		} else {
+			this.on('render', this.setIconCls, this, {
+				single: true
+			});
+		}
 	},
 	
 	setValue: function(value) {
-			this.callParent(arguments);
-			this.setIconCls();
-	}     
+		var me = this ;
+		
+		value = Ext.Array.from(value);
+		if( value.length == 1 ) {
+			var record = value[0];
+			// record found, select it.
+			if(record.isModel) {
+				me.cachedValue = record.get(me.valueField) ;
+			}
+			else {
+				me.cachedValue = record ;
+			}
+		}
+		else if(value.length == 0 ) {
+			me.cachedValue = null ;
+		}
+		
+		me.callParent(arguments);
+		me.setIconCls();
+		if( me.iconOnly && me.inputEl ) {
+			me.inputEl.dom.value = '';
+		}
+	},
+	getValue: function() {
+		var me = this ;
+		return me.cachedValue ;
+	}
 });
