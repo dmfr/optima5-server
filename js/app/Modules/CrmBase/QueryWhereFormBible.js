@@ -52,6 +52,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryWhereFormBible' ,{
 				layout: 'anchor',
 				items: [{
 					xtype: 'op5crmbasebibletreepicker',
+					selectMode: 'multi',
 					optimaModule: me.optimaModule,
 					name:'condition_bible_treenodes',
 					bibleId:me.bibleId

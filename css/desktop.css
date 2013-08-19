@@ -401,6 +401,9 @@
 .biblepicker-iconimg-ok {
 	background-image: url( ../images/op5img/ico_dataadd_16.gif ) !important;
 }
+.biblepicker-iconimg-oktree {
+	background-image: url( ../images/op5img/ico_filechild_16.gif ) !important;
+}
 .biblepicker-iconimg-nok {
 	background-image: url( ../images/op5img/ico_info_small.gif ) !important;
 }

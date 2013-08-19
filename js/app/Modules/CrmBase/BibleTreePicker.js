@@ -38,6 +38,7 @@ Ext.define('Optima5.Modules.CrmBase.BibleTreePicker',{
 	myValue : [] ,
 	
 	bibleId: '' ,
+	selectMode: 'multi',
 	
 	initComponent: function() {
 		var me = this ;
@@ -127,32 +128,62 @@ Ext.define('Optima5.Modules.CrmBase.BibleTreePicker',{
 			pickerField: me
 		}) ;
 		
-		treepanel.getRootNode().cascadeBy(function(rec){
-			if( Ext.Array.contains( me.myValue , rec.get('nodeKey') ) ) {
-				rec.set('checked',true) ;
-				rec.cascadeBy(function(childrec){
-					childrec.set('checked',true) ;
-				},this) ;
-				return false ;
-			}
-			else {
-				rec.set('checked',false) ;
-			}
-		},this) ;
 		
-		treepanel.getView().on('checkchange',function(rec,check){
-			rec.cascadeBy(function(chrec){
-				chrec.set('checked',check) ;
-			},this);
-			if( !check ) {
-				var upRecord = rec ;
-				while( upRecord.parentNode ) {
-					upRecord.parentNode.set('checked',check) ;
-					upRecord = upRecord.parentNode
+		if( me.selectMode == 'multi' ) {
+			treepanel.getRootNode().cascadeBy(function(rec){
+				if( Ext.Array.contains( me.myValue , rec.get('nodeKey') ) ) {
+					rec.set('checked',true) ;
+					rec.cascadeBy(function(childrec){
+						childrec.set('checked',true) ;
+					},this) ;
+					return false ;
 				}
-			}
-			me.onCheckChange() ;
-		},this) ;
+				else {
+					rec.set('checked',false) ;
+				}
+			},this) ;
+			
+			treepanel.getView().on('checkchange',function(rec,check){
+				rec.cascadeBy(function(chrec){
+					chrec.set('checked',check) ;
+				},this);
+				if( !check ) {
+					var upRecord = rec ;
+					while( upRecord.parentNode ) {
+						upRecord.parentNode.set('checked',check) ;
+						upRecord = upRecord.parentNode
+					}
+				}
+				me.onCheckChange() ;
+			},this) ;
+		}
+		
+		if( me.selectMode == 'single' ) {
+			treepanel.getRootNode().cascadeBy(function(rec){
+				if( Ext.Array.contains( me.myValue , rec.get('nodeKey') ) ) {
+					rec.set('checked',true) ;
+				}
+				else {
+					rec.set('checked',false) ;
+				}
+			},this) ;
+			
+			treepanel.getView().on('checkchange',function(rec,check){
+				if( !check ) {
+					treepanel.getRootNode().cascadeBy(function(chrec){
+						chrec.set('checked',false) ;
+					},this);
+				} else {
+					treepanel.getRootNode().cascadeBy(function(chrec){
+						if( chrec != rec ) {
+							chrec.set('checked',false) ;
+						}
+					},this);
+				}
+				
+				me.onCheckChange() ;
+			},this) ;
+		}
 		
 		return treepanel ;
 	},
@@ -203,15 +234,26 @@ Ext.define('Optima5.Modules.CrmBase.BibleTreePicker',{
 		}
 		
 		var myNewValue ;
-		if( (myNewValue = Ext.JSON.decode(mvalue,true)) == null ) {
-			myNewValue = [] ;
-			//return ;
+		switch( me.selectMode ) {
+			case 'multi' :
+				if( (myNewValue = Ext.JSON.decode(mvalue,true)) == null ) {
+					myNewValue = [] ;
+					//return ;
+				}
+				break ;
+			case 'single' :
+				if( mvalue == null || mvalue == '' ) {
+					myNewValue = [] ;
+				} else {
+					myNewValue = [mvalue] ;
+				}
+				break ;
 		}
 		
 		
 		if( me.rendered ) {
 			me.divicon.removeCls('biblepicker-iconimg-nok') ;
-			me.divicon.removeCls('biblepicker-iconimg-ok') ;
+			me.divicon.removeCls('biblepicker-iconimg-oktree') ;
 			me.divtext.dom.innerHTML = '' ;
 		}
 		
@@ -232,7 +274,7 @@ Ext.define('Optima5.Modules.CrmBase.BibleTreePicker',{
 		var mvalue = me.myValue ;
 		
 		if( !mvalue || mvalue.length == 0 ) {
-			me.divicon.removeCls('biblepicker-iconimg-ok') ;
+			me.divicon.removeCls('biblepicker-iconimg-oktree') ;
 			me.divicon.addCls('biblepicker-iconimg-nok') ;
 			me.divtext.dom.innerHTML = '' ;
 			return ;
@@ -240,19 +282,27 @@ Ext.define('Optima5.Modules.CrmBase.BibleTreePicker',{
 		
 		if( mvalue.length == 1 ) {
 			me.divicon.removeCls('biblepicker-iconimg-nok') ;
-			me.divicon.addCls('biblepicker-iconimg-ok') ;
+			me.divicon.addCls('biblepicker-iconimg-oktree') ;
 			me.divtext.dom.innerHTML = this.mystore.getNodeById(mvalue[0]).get('nodeText') ;
 			return ;
 		}
 		
 		me.divicon.removeCls('biblepicker-iconimg-nok') ;
-		me.divicon.addCls('biblepicker-iconimg-ok') ;
+		me.divicon.addCls('biblepicker-iconimg-oktree') ;
 		me.divtext.dom.innerHTML = mvalue.join(' / ') ;
 		return ;
 	},
 	getRawValue: function() {
 		var me = this ;
-		return Ext.JSON.encode(me.myValue) ;
+		
+		switch( me.selectMode ) {
+			case 'multi' :
+				return Ext.JSON.encode(me.myValue) ;
+				break ;
+			case 'single' :
+				return ( ( me.myValue.length == 0 ) ? '' : me.myValue[0] ) ;
+				break ;
+		}
 	},
 	getErrors: function( curvalue ) {
 		var errors = this.callParent(arguments) ;
