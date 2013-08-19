@@ -49,6 +49,18 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 			fields: ['bibleCode', 'bibleLib'],
 			data: []
 		}) ;
+		this.linkBibles.on('load',function() { // Hack to force renderer to catch bibles Libs
+			var tabpanel = me.down('tabpanel'),
+				treetab = ( tabpanel != null ? tabpanel.child('#treetab') : null ),
+				elementtab = ( tabpanel != null ? tabpanel.child('#elementtab') : null ) ;
+			if( treetab ) {
+				treetab.getView().refresh() ;
+			}
+			if( elementtab ) {
+				elementtab.getView().refresh() ;
+			}
+		},me) ;
+		
 		this.linktypesForBible = Ext.create('Ext.data.Store', {
 			fields: ['linktypeCode', 'linktypeLib','linktypeIconCls'],
 			data:[
@@ -63,6 +75,68 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 			]
 		}) ;
 		
+		
+		me.fieldTypeRenderer = function( value, metaData, record, gridType ) {
+			var fieldTypeColumnKey, fieldLinktypeColumnKey, fieldLinkbibleColumnKey, fieldTypesStore ;
+			switch( gridType ) {
+				case 'tree' :
+					fieldTypeColumnKey = 'tree_field_type' ;
+					fieldLinktypeColumnKey = 'tree_field_linktype' ;
+					fieldLinkbibleColumnKey = 'tree_field_linkbible' ;
+					fieldTypesStore = this.treeFieldType ;
+					break ;
+				case 'entry' :
+					fieldTypeColumnKey = 'entry_field_type' ;
+					fieldLinktypeColumnKey = 'entry_field_linktype' ;
+					fieldLinkbibleColumnKey = 'entry_field_linkbible' ;
+					fieldTypesStore = this.entryFieldType ;
+					break ;
+				default :
+					return value ;
+					break ;
+			}
+			
+			switch( record.get(fieldTypeColumnKey) ) {
+				case 'join' :
+					value = '<b>'+'Table Join'+'</b>' ;
+					break ;
+					
+				case 'link' :
+					value = '<b>'+'Link:'+'</b>'+'&#160;' ;
+					switch( record.get(fieldLinktypeColumnKey) ) {
+						case 'treenode' :
+							value += '(TreeNode)'+'&#160;' ;
+							break ;
+						case 'entry' :
+							value += '(Entry)'+'&#160;' ;
+							break ;
+						default :
+							break ;
+					}
+					var bibleCode = record.get(fieldLinkbibleColumnKey),
+						bibleRecord = me.linkBibles.findRecord('bibleCode',bibleCode) ;
+					if( bibleRecord != null ) {
+						value += bibleRecord.get('bibleLib') ;
+					} else {
+						value += bibleCode ;
+					}
+					break ;
+					
+				default :
+					var fieldType = record.get(fieldTypeColumnKey),
+						fieldTypeRecord = fieldTypesStore.findRecord('dataType',fieldType) ;
+					if( fieldTypeRecord != null ) {
+						value = '<b>'+'type:'+'</b>'+'&#160;'+fieldTypeRecord.get('dataTypeLib') ;
+					}
+			}
+			return value ;
+		}
+		var treeFieldTypeRenderer = function( value, metaData, record, rowIndex, colIndex, store, view ) {
+			return me.fieldTypeRenderer( value, metaData, record, 'tree' ) ;
+		}
+		var entryFieldTypeRenderer = function( value, metaData, record, rowIndex, colIndex, store, view ) {
+			return me.fieldTypeRenderer( value, metaData, record, 'entry' ) ;
+		}
 		
 		var tabitems = new Array() ;
 		var calendartab = Ext.create( 'Optima5.Modules.CrmBase.DefineStoreCalendarForm', {
@@ -115,6 +189,7 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 					//width: 40,
 					width:210,
 					dataIndex: 'tree_field_type',
+					renderer: treeFieldTypeRenderer,
 					editorTpl:{xtype:'combobox', matchFieldWidth:false,listConfig:{width:200}, forceSelection:true, editable:false, queryMode: 'local',displayField: 'dataTypeLib',valueField: 'dataType',store:this.entryFieldType},
 					linkbibleTpl:{xtype:'op5crmbasedelinkbiblefield'},
 					buttonTpl:{xtype:'damsembeddedbutton', text:'Configure JOIN'}
@@ -177,6 +252,7 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 					//width: 40,
 					width:210,
 					dataIndex: 'entry_field_type',
+					renderer: entryFieldTypeRenderer,
 					editorTpl:{xtype:'combobox', matchFieldWidth:false,listConfig:{width:200}, forceSelection:true, editable:false, queryMode: 'local',displayField: 'dataTypeLib',valueField: 'dataType',store:this.entryFieldType},
 					linkbibleTpl:{xtype:'op5crmbasedelinkbiblefield'},
 					buttonTpl:{xtype:'damsembeddedbutton', text:'Configure JOIN'}
@@ -701,7 +777,7 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 			columnsByKey[col.dataIndex] = col ;
 		},me);
 		
-		var fieldTypeColumnKey = '' ;
+		var fieldTypeColumnKey, fieldLinktypeColumnKey, fieldLinkbibleColumnKey ;
 		switch( gridType ) {
 			case 'tree' :
 				fieldTypeColumnKey = 'tree_field_type' ;
@@ -772,7 +848,7 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 			columnsByKey[col.dataIndex] = col ;
 		},me);
 		
-		var fieldTypeColumnKey = '' ;
+		var fieldTypeColumnKey, fieldLinktypeColumnKey, fieldLinkbibleColumnKey ;
 		switch( gridType ) {
 			case 'tree' :
 				fieldTypeColumnKey = 'tree_field_type' ;
@@ -849,7 +925,7 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 					return this.onAbort() ;
 				else {
 					this.parentFiles.add( Ext.decode(response.responseText).data.parent_files ) ;
-					this.linkBibles.add( Ext.decode(response.responseText).data.link_bibles ) ;
+					this.linkBibles.loadRawData( Ext.decode(response.responseText).data.link_bibles ) ;
 				}
 			},
 			scope: this
