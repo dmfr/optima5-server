@@ -353,7 +353,7 @@ class DatabaseMgr_Util {
 				if( $key_name == 'PRIMARY' ) {
 					$query.= "PRIMARY KEY " ;
 				} elseif( $key_desc['non_unique'] == 'O' ) {
-					$query.= "INDEX " ;
+					$query.= "UNIQUE " ;
 				} else {
 					$query.= "INDEX " ;
 				}
@@ -485,7 +485,7 @@ class DatabaseMgr_Util {
 					if( $existing_key_name == 'PRIMARY' )
 						$query.= " PRIMARY KEY" ;
 					elseif( $existing_key['non_unique'] == '0' )
-						$query.= " INDEX `$existing_key_name`" ;
+						$query.= " UNIQUE `$existing_key_name`" ;
 					else
 						$query.= " INDEX `$existing_key_name`" ;
 							
@@ -520,7 +520,7 @@ class DatabaseMgr_Util {
 						if( $model_key_name == 'PRIMARY' )
 							$query.= " PRIMARY KEY" ;
 						elseif( $existing_key['non_unique'] == '0' )
-							$query.= " INDEX `$model_key_name`" ;
+							$query.= " UNIQUE `$model_key_name`" ;
 						else
 							$query.= " INDEX `$model_key_name`" ;
 						$query.= "," ;
@@ -529,7 +529,7 @@ class DatabaseMgr_Util {
 					if( $model_key_name == 'PRIMARY' )
 						$query.= " PRIMARY KEY" ;
 					elseif( $model_key['non_unique'] == '0' )
-						$query.= " INDEX `$model_key_name`" ;
+						$query.= " UNIQUE `$model_key_name`" ;
 					else
 						$query.= " INDEX `$model_key_name`" ;
 					$query.= "(" ;

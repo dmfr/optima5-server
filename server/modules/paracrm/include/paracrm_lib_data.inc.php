@@ -592,6 +592,8 @@ function paracrm_lib_data_insertRecord_file( $file_code , $filerecord_parent_id 
 		}
 		break ;
 	
+		case 'file_primarykey' :
+		$arr_fieldsPrimaryKey = array() ;
 		default :
 		$fields = array() ;
 		$arr_media = array() ;
@@ -600,6 +602,9 @@ function paracrm_lib_data_insertRecord_file( $file_code , $filerecord_parent_id 
 		while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
 		{
 			$fields[$arr['entry_field_code']] = $arr['entry_field_type'] ;
+			if( is_array($arr_fieldsPrimaryKey) && ($arr['entry_field_is_primarykey'] == 'O') ) {
+				$arr_fieldsPrimaryKey[] = $arr['entry_field_code'] ;
+			}
 		}
 		break ;
 	}
@@ -621,6 +626,23 @@ function paracrm_lib_data_insertRecord_file( $file_code , $filerecord_parent_id 
 	{
 		if( !paracrm_lib_data_getRecord_file( $arr['file_parent_code'], $filerecord_parent_id ) )
 			return -1 ;
+	}
+	if( is_array($arr_fieldsPrimaryKey) ) {
+		$db_table = 'store_file_'.$file_code ;
+		$query = "SELECT filerecord_id FROM {$db_table} WHERE 1" ;
+		foreach( $arr_fieldsPrimaryKey as $field_primaryKey ) {
+			$datafield = 'field_'.$field_primaryKey ;
+			if( !isset($fields[$field_primaryKey]) )
+				continue ;
+			if( !($suffix = paracrm_define_tool_getEqFieldType($fields[$field_primaryKey])) )
+				continue ;
+			$dbfield = $datafield.'_'.$suffix ;
+			
+			$query.= " AND `{$dbfield}` = '{$data[$datafield]}'" ;
+		}
+		if( $primaryKey_filerecordId = $_opDB->query_uniqueValue($query) ) {
+			return paracrm_lib_data_updateRecord_file( $file_code , $data, $primaryKey_filerecordId ) ;
+		}
 	}
 	
 	

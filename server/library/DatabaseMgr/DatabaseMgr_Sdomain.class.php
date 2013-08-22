@@ -793,6 +793,8 @@ EOF;
 			$arr_media_define = $_opDB->table_fields($sdomain_db.'.'.'define_media') ;
 			break ;
 		
+			case 'file_primarykey' :
+			$arr_field_primaryKey = array() ;
 			default :
 			$arr_field_type = array() ;
 			$arr_media_define = array() ;
@@ -801,6 +803,9 @@ EOF;
 			while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
 			{
 				$arr_field_type[$arr['entry_field_code']] = $arr['entry_field_type'] ;
+				if( is_array($arr_field_primaryKey) ) {
+					$arr_field_primaryKey[$arr['entry_field_code']] = ($arr['entry_field_is_primarykey'] == 'O') ;
+				}
 			}
 			break ;
 		}
@@ -852,11 +857,27 @@ EOF;
 				$arr_model_keys[$field_name] = array('non_unique'=>'1','arr_columns'=>array($field_name)) ;
 				break ;
 				
+				case 'join' :
+				$field_name = NULL ;
+				break ;
+				
 				default :
 				continue 2 ;
 			}
 			$field_crm = 'field_'.$field_code ;
 			$arrAssoc_crmField_dbField[$field_crm] = $field_name ;
+		}
+		if( is_array($arr_field_primaryKey) ) {
+			$arr_primaryKeyColumns = array() ;
+			foreach( $arr_field_primaryKey as $field_code => $isKey ) {
+				$field_crm = 'field_'.$field_code ;
+				$field_name = $arrAssoc_crmField_dbField[$field_crm] ;
+				
+				if( $isKey ) {
+					$arr_primaryKeyColumns[] = $field_name ;
+				}
+			}
+			$arr_model_keys['CRM_PRIMARYKEY'] = array('non_unique'=>'0','arr_columns'=>$arr_primaryKeyColumns) ;
 		}
 		
 		DatabaseMgr_Util::syncTableStructure( $sdomain_db , $db_table , $arrAssoc_dbField_fieldType , $arr_model_keys ) ;
@@ -868,6 +889,10 @@ EOF;
 		$query = "CREATE ALGORITHM=MERGE VIEW {$sdomain_db}.{$view_name} AS SELECT mstr.filerecord_id, mstr.filerecord_parent_id" ;
 		foreach( $arrAssoc_crmField_dbField as $field_crm => $field_name ) {
 			if( $field_name == 'filerecord_id' ) {
+				continue ;
+			}
+			if( $field_name == NULL ) {
+				$query.= ",'@JOIN' AS {$field_crm}" ;
 				continue ;
 			}
 		
