@@ -543,6 +543,7 @@ function paracrm_data_getFileGrid_data( $post_data )
 	$TAB_json = array() ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
 	{
+		paracrm_lib_file_joinGridRecord( $file_code, $arr ) ;
 		$TAB_json[] = $arr ;
 	}
 	return array('success'=>true,'data'=>$TAB_json,'total'=>$nb_rows) ;

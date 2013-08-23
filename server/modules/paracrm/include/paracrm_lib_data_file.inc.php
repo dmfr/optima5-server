@@ -156,6 +156,7 @@ function paracrm_lib_file_mapFile( $file_code, $is_called=FALSE )
 				case 'string' :
 				case 'bool' :
 				case 'number' :
+				case 'join' :
 					break ;
 					
 				default :

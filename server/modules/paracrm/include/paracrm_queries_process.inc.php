@@ -1527,6 +1527,8 @@ function paracrm_queries_process_query_doValue( $arr_saisie, $target_fileCode, $
 		$row_group[$target_fileCode] = $arr2 ;
 		$group_key_id = paracrm_queries_process_queryHelp_group( $row_group, $arr_saisie['fields_group'] ) ;
 		
+		// TODO: cleaner join arch
+		paracrm_lib_file_joinQueryRecord($target_fileCode,$row_group) ;
 	
 		$subRES_group_symbol_value = array() ;
 		// iteration sur les symboles

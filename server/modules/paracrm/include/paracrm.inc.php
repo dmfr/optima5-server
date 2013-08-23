@@ -21,6 +21,7 @@ include("$server_root/modules/paracrm/include/paracrm_queries_qweb.inc.php") ;
 
 include("$server_root/modules/paracrm/include/paracrm_lib_data.inc.php") ;
 include("$server_root/modules/paracrm/include/paracrm_lib_data_file.inc.php") ;
+include("$server_root/modules/paracrm/include/paracrm_lib_data_file_join.inc.php") ;
 
 include("$server_root/modules/paracrm/include/paracrm_lib_bible.inc.php") ;
 
