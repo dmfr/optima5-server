@@ -906,8 +906,11 @@ function paracrm_android_imgPullFallback( $post_data )
 	$query = "SELECT filerecord_id FROM store_file WHERE sync_vuid='{$post_data['sync_vuid']}'" ;
 	$filerecord_id = $_opDB->query_uniqueValue($query) ;
 	
+	$domain_id = $_SESSION['login_data']['login_domain'] ;
+	$sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
+	
 	header('Content-type: image/jpeg');
-	$getUrl = "{$GLOBALS['media_fallback_url']}?_domainId={$post_data['_domainId']}&_sdomainId={$post_data['_sdomainId']}&media_id={$filerecord_id}&thumb={$thumb_get}" ;
+	$getUrl = "{$GLOBALS['media_fallback_url']}?_domainId={$domain_id}&_sdomainId={$sdomain_id}&media_id={$filerecord_id}&thumb={$thumb_get}" ;
 	readfile($getUrl) ;
 	die() ;
 }

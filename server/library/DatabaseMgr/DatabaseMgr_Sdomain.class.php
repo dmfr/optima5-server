@@ -494,6 +494,16 @@ EOF;
 		return $arr_sdomainId ;
 	}
 	
+	public function sdomainDb_exists( $sdomain_id ) {
+		$_opDB = $this->_opDB ;
+		$sdomain_db = $this->getSdomainDb( $sdomain_id ) ;
+		
+		if( $_opDB->num_rows( $_opDB->query("SHOW DATABASES LIKE '{$sdomain_db}'") ) == 1 ) {
+			return TRUE ;
+		} else {
+			return FALSE ;
+		}
+	}
 	public function sdomainDb_create( $sdomain_id, $overwrite=FALSE ) {
 		$_opDB = $this->_opDB ;
 		$sdomain_db = $this->getSdomainDb( $sdomain_id ) ;

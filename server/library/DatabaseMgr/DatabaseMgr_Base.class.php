@@ -103,6 +103,16 @@ EOF;
 		return 'op5'.'_'.strtolower($domain_id).'_'.( $dev_suffix ? $dev_suffix : 'prod' ) ;
 	}
 	
+	public function baseDb_exists( $domain_id ) {
+		$_opDB = $this->_opDB ;
+		$base_db = self::getBaseDb( $domain_id ) ;
+		
+		if( $_opDB->num_rows( $_opDB->query("SHOW DATABASES LIKE '{$base_db}'") ) == 1 ) {
+			return TRUE ;
+		} else {
+			return FALSE ;
+		}
+	}
 	public function baseDb_create( $domain_id ) {
 		$_opDB = $this->_opDB ;
 		$base_db = self::getBaseDb( $domain_id ) ;
