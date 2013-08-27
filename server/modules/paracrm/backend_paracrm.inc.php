@@ -13,6 +13,8 @@ switch( $post_data['_action'] )
 	return paracrm_define_manageTransaction( $post_data );
 	case 'define_togglePublish' :
 	return paracrm_define_togglePublish( $post_data );
+	case 'define_drop' :
+	return paracrm_define_drop( $post_data );
 	
 	case 'data_getBibleCfg' :
 	return paracrm_data_getBibleCfg( $post_data );

@@ -16,7 +16,8 @@ function paracrm_data_getBibleCfg( $post_data )
 	$bible_code = $post_data['bible_code'] ;
 	$tree_key_lib = NULL ;
 	
-	$arr_define_bible = current( paracrm_define_getMainToolbar(array('data_type'=>'bible','bible_code'=>$bible_code)) ) ;
+	$ttmp = paracrm_define_getMainToolbar(array('data_type'=>'bible','bible_code'=>$bible_code)) ;
+	$arr_define_bible = current( $ttmp['data_bible'] ) ;
 	$arr_define_bible['bible_code'] = $arr_define_bible['bibleId'] ;
 	
 	$tab_tree_fields = array() ;
@@ -400,7 +401,8 @@ function paracrm_data_getFileGrid_config( $post_data )
 		)
 	) ;
 	
-	$arr_define_file = current( paracrm_define_getMainToolbar(array('data_type'=>'file','file_code'=>$post_data['file_code'])) ) ;
+	$ttmp = paracrm_define_getMainToolbar(array('data_type'=>'file','file_code'=>$post_data['file_code'])) ;
+	$arr_define_file = current( $ttmp['data_files'] ) ;
 	$arr_define_file['file_code'] = $arr_define_file['fileId'] ;
 	
 	$TAB = paracrm_lib_file_access( $file_code = $post_data['file_code'] ) ;

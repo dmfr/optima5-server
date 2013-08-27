@@ -137,7 +137,19 @@ function paracrm_define_getMainToolbar($post_data)
 		
 		$TAB[] = $arr ;
 	}
-	return $TAB ;
+	
+	$arr_auth_status = array(
+		'disableAdmin' => !Auth_Manager::getInstance()->auth_query_sdomain_admin( Auth_Manager::sdomain_getCurrent() )
+	) ;
+	
+	switch( $post_data['data_type'] ) {
+		case 'bible' :
+			return array('success'=>true,'auth_status'=>$arr_auth_status,'data_bible'=>$TAB) ;
+		case 'file' :
+			return array('success'=>true,'auth_status'=>$arr_auth_status,'data_files'=>$TAB) ;
+		default :
+			return array('success'=>false) ;
+	}
 }
 
 
@@ -178,6 +190,68 @@ function paracrm_define_togglePublish( $post_data ) {
 }
 
 
+function paracrm_define_drop( $post_data ) {
+	global $_opDB ;
+	
+	if( !Auth_Manager::getInstance()->auth_query_sdomain_admin( Auth_Manager::sdomain_getCurrent() ) ) {
+		return Auth_Manager::auth_getDenialResponse() ;
+	}
+	
+	$data_type = $post_data['data_type'] ;
+	$bible_code = $post_data['bible_code'] ;
+	$file_code = $post_data['file_code'] ;
+	
+	switch( $data_type )
+	{
+		case 'bible' :
+		$query_t = "SELECT count(*) FROM store_bible_{$bible_code}_tree" ;
+		$query_e = "SELECT count(*) FROM store_bible_{$bible_code}_entry" ;
+		$num_rows = $_opDB->query_uniqueValue($query_t) + $_opDB->query_uniqueValue($query_e) ;
+		if( $num_rows > 0 ) {
+			return array('success'=>false) ;
+		}
+		
+		$t = new DatabaseMgr_Sdomain( DatabaseMgr_Base::dbCurrent_getDomainId() );
+		$t->sdomainDefine_dropBible( DatabaseMgr_Sdomain::dbCurrent_getSdomainId(), $bible_code ) ;
+		
+		$query = "DELETE FROM define_bible WHERE bible_code='$bible_code'" ;
+		$_opDB->query($query) ;
+		$query = "DELETE FROM define_bible_entry WHERE bible_code='$bible_code'" ;
+		$_opDB->query($query) ;
+		$query = "DELETE FROM define_bible_tree WHERE bible_code='$bible_code'" ;
+		$_opDB->query($query) ;
+		
+		return array('success'=>true) ;
+		break ;
+		
+		
+		
+		case 'file' :
+		$query_e = "SELECT count(*) FROM store_file_{$file_code}" ;
+		$num_rows = $_opDB->query_uniqueValue($query_e) ;
+		if( $num_rows > 0 ) {
+			return array('success'=>false) ;
+		}
+		
+		$t = new DatabaseMgr_Sdomain( DatabaseMgr_Base::dbCurrent_getDomainId() );
+		$t->sdomainDefine_dropFile( DatabaseMgr_Sdomain::dbCurrent_getSdomainId(), $file_code ) ;
+		
+		$query = "DELETE FROM define_file WHERE file_code='$file_code'" ;
+		$_opDB->query($query) ;
+		$query = "DELETE FROM define_file_cfg_calendar WHERE file_code='$file_code'" ;
+		$_opDB->query($query) ;
+		$query = "DELETE FROM define_file_entry WHERE file_code='$file_code'" ;
+		$_opDB->query($query) ;
+		$query = "DELETE FROM define_file_entry_join WHERE file_code='$file_code'" ;
+		$_opDB->query($query) ;
+		$query = "DELETE FROM define_file_entry_join_map WHERE file_code='$file_code'" ;
+		$_opDB->query($query) ;
+		
+		return array('success'=>true) ;
+		break ;
+	}
+}
+
 
 function paracrm_define_manageTransaction( $post_data )
 {
@@ -191,9 +265,22 @@ function paracrm_define_manageTransaction( $post_data )
 	{
 		$transaction_id = $_SESSION['next_transaction_id']++ ;
 		
-		$_SESSION[$transaction_id] = array() ;
-		$_SESSION[$transaction_id]['transaction_code'] = 'paracrm_define_manageTransaction' ;
-		$_SESSION[$transaction_id]['arr_saisie'] = array() ;
+		$_SESSION['transactions'][$transaction_id] = array() ;
+		$_SESSION['transactions'][$transaction_id]['transaction_code'] = 'paracrm_define_manageTransaction' ;
+			$arr_saisie = array() ;
+			$arr_saisie['data_type'] = $post_data['data_type'] ;
+			switch( $arr_saisie['data_type'] )
+			{
+				case 'bible' :
+				$arr_saisie['tab_treeFields'] = array() ;
+				$arr_saisie['tab_entryFields'] = array() ;
+				break ;
+			
+				case 'file' :
+				$arr_saisie['tab_entryFields'] = array() ;
+				break ;
+			}
+		$_SESSION['transactions'][$transaction_id]['arr_saisie'] = $arr_saisie ;
 		
 		$TAB['success'] = true ;
 		$TAB['transaction_id'] = $transaction_id ;
@@ -205,8 +292,6 @@ function paracrm_define_manageTransaction( $post_data )
 	){
 		$transaction_id = $_SESSION['next_transaction_id']++ ;
 		
-		$_SESSION['pouet'] = 'okok' ;
-	
 		$_SESSION['transactions'][$transaction_id] = array() ;
 		$_SESSION['transactions'][$transaction_id]['transaction_code'] = 'paracrm_define_manageTransaction' ;
 		
