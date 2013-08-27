@@ -56,6 +56,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 		});
 		
 		this.callParent(arguments);
+		this.addEvents('load') ;
 	},
 			  
 			  
@@ -221,7 +222,13 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 					root: 'data',
 					totalProperty: 'total'
 				}
-			})
+			}),
+			listeners: {
+				load: {
+					fn: this.onStoreLoad,
+					scope: this
+				}
+			}
 		});
 		
 		return gridstore ;
@@ -520,6 +527,12 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 		if( this.mainview && this.mainview.child('op5crmbasefilecalendar') ) {
 			this.mainview.child('op5crmbasefilecalendar').reload() ;
 		}
+	},
+	onStoreLoad: function() {
+		this.fireEvent('load',this) ;
+	},
+	isEmpty: function() {
+		return ( this.gridstore.getTotalCount() == 0 ) ;
 	},
 	
 	editRecordNew: function( formPresets ) {

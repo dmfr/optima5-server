@@ -76,6 +76,11 @@ Ext.define('Optima5.Modules.CrmBase.DataWindowToolbar' ,{
 						itemId: 'definestore',
 						text: 'Store Cfg',
 						iconCls: 'op5-crmbase-datatoolbar-options-definestore'
+					},{
+						itemId: 'dropstore',
+						text: 'Drop Store',
+						iconCls: 'op5-crmbase-datatoolbar-options-dropstore',
+						hidden: true
 					}]
 				}
 			},'->',{
@@ -130,6 +135,10 @@ Ext.define('Optima5.Modules.CrmBase.DataWindowToolbar' ,{
 		
 		var refreshBtn = me.child('#refresh') ;
 		refreshBtn.setVisible(true) ;
+	},
+	enableDropStore: function( bool ) {
+		var me = this ;
+		me.child('#options').menu.child('#dropstore').setVisible(bool) ;
 	},
 	
 	onItemClick:function( item ) {

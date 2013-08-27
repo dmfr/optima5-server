@@ -153,11 +153,12 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 		});
 	},
 	onLoadBible: function( response ) {
-		var me = this ;
+		var me = this,
+			respObj = Ext.decode(response.responseText) ;
 		
 		var btnBible = me.child('toolbar').child('#btn-bible') ;
 		
-		var menuCfg = Ext.decode(response.responseText) ;
+		var menuCfg = respObj.data_bible ;
 		Ext.Array.each( menuCfg, function(o) {
 			Ext.apply(o,{
 				handler: function() {
@@ -170,6 +171,18 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 		if( btnBible.menu ) {
 			btnBible.menu.removeAll() ;
 			btnBible.menu.add(menuCfg) ;
+			
+			if( respObj.auth_status && !respObj.auth_status.disableAdmin ) {
+				btnBible.menu.add('-') ;
+				btnBible.menu.add({
+					icon: 'images/op5img/ico_new_16.gif' ,
+					text: 'Define new Bible' ,
+					handler : function() {
+						me.openBibleDefineNew() ;
+					},
+					scope : me
+				}) ;
+			}
 		}
 		btnBible.setIconCls('op5-crmbase-mainwindow-bible') ;
 		btnBible.setObjText({
@@ -179,11 +192,12 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 		});
 	},
 	onLoadFiles: function( response ) {
-		var me = this ;
+		var me = this,
+			respObj = Ext.decode(response.responseText) ;
 		
 		var btnFiles = me.child('toolbar').child('#btn-files') ;
 		
-		var menuCfg = Ext.decode(response.responseText) ;
+		var menuCfg = respObj.data_files ;
 		Ext.Array.each( menuCfg, function(o) {
 			Ext.apply(o,{
 				cls: o.isPublished ? me.clsForPublished : '' ,
@@ -197,6 +211,18 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 		if( btnFiles.menu ) {
 			btnFiles.menu.removeAll() ;
 			btnFiles.menu.add(menuCfg) ;
+			
+			if( respObj.auth_status && !respObj.auth_status.disableAdmin ) {
+				btnFiles.menu.add('-') ;
+				btnFiles.menu.add({
+					icon: 'images/op5img/ico_new_16.gif' ,
+					text: 'Define new File' ,
+					handler : function() {
+						me.openFileDefineNew() ;
+					},
+					scope : me
+				}) ;
+			}
 		}
 		btnFiles.setIconCls('op5-crmbase-mainwindow-files') ;
 		btnFiles.setObjText({
@@ -444,6 +470,10 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 			bibleId:bibleId
 		},Optima5.Modules.CrmBase.DataWindow) ;
 	},
+	openBibleDefineNew: function() {
+		var me = this ;
+		Optima5.Modules.CrmBase.DataWindow.sOpenDefineWindow(me.optimaModule,'bible',true) ;
+	},
 	openFile: function( fileId ) {
 		var me = this ;
 		
@@ -471,6 +501,10 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 			dataType:'file',
 			fileId:fileId
 		},Optima5.Modules.CrmBase.DataWindow) ;
+	},
+	openFileDefineNew: function() {
+		var me = this ;
+		Optima5.Modules.CrmBase.DataWindow.sOpenDefineWindow(me.optimaModule,'file',true) ;
 	},
 	openAuth: function( authClass ) {
 		var me = this ;

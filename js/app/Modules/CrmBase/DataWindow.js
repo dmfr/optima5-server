@@ -14,6 +14,68 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 	fileId:null,
 	parentFileId:null,
 	
+	
+	statics: {
+		sOpenDefineWindow : function(optimaModule, defineDataType, defineIsNew, defineDataId) {
+			var params = new Object() ;
+			Ext.apply(params,{
+				optimaModule: optimaModule
+			}) ;
+			if( defineIsNew == true ){
+				Ext.apply( params, {
+					defineDataType: defineDataType ,
+					defineIsNew: true
+				}) ;
+			}
+			else
+			{
+				switch( defineDataType )
+				{
+					case 'bible' :
+						Ext.apply( params, {
+							defineIsNew: false,
+							defineDataType: defineDataType ,
+							defineBibleId : defineDataId
+						}) ;
+					break ;
+					
+					case 'file' :
+						Ext.apply( params, {
+							defineIsNew: false,
+							defineDataType: defineDataType ,
+							defineFileId : defineDataId
+						}) ;
+					break ;
+					
+					default:
+						Ext.Msg.alert('Status', 'Shouldnt happen !!!');
+						return ;
+					break ;
+				}
+			}
+			
+			var definestorepanel = Ext.create('Optima5.Modules.CrmBase.DefineStorePanel',params) ;
+			definestorepanel.on('beforedestroy',function(panel){
+				if( panel.up('window') ) {
+					var parentwin = panel.up('window') ;
+					panel.on('destroy',function() {
+						parentwin.close() ;
+					}) ;
+				}
+			});
+			
+			optimaModule.createWindow({
+				title:'Store definition',
+				width:720,
+				height:600,
+				iconCls: 'op5-crmbase-definewindow-icon',
+				animCollapse:false,
+				border: false,
+				items: [ definestorepanel ]
+			}) ;
+		}
+	},
+	
 	initComponent: function() {
 		var me = this ;
 		if( (me.optimaModule) instanceof Optima5.Module ) {} else {
@@ -28,7 +90,13 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 						items:[Ext.create('Optima5.Modules.CrmBase.BiblePanel',{
 							itemId:'biblePanel',
 							border: false,
-							optimaModule: me.optimaModule
+							optimaModule: me.optimaModule,
+							listeners: {
+								load: {
+									fn: me.onReload,
+									scope: me
+								}
+							}
 						})]
 					}) ;
 					cfgValid = true ;
@@ -41,7 +109,13 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 						items:[Ext.create('Optima5.Modules.CrmBase.FilePanel',{
 							itemId:'filePanel',
 							border: false,
-							optimaModule: me.optimaModule
+							optimaModule: me.optimaModule,
+							listeners: {
+								load: {
+									fn: me.onReload,
+									scope: me
+								}
+							}
 						})]
 					}) ;
 					cfgValid = true ;
@@ -76,6 +150,11 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 		me.callParent() ;
 		
 		me.mon(me.optimaModule,'op5broadcast',me.onCrmeventBroadcast,me) ;
+	},
+	onReload: function() {
+		var me = this ;
+		me.getToolbar().enableDropStore( me.getPanel().isEmpty() ) ;
+		
 	},
 	onCrmeventBroadcast: function( crmEvent, eventParams ) {
 		var me = this ;
@@ -220,6 +299,8 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 						return me.storeTogglePublish( checked ) ;
 					case 'definestore' :
 						return me.openDefineWindow( false ) ;
+					case 'dropstore' :
+						return me.handleDeleteStore() ;
 					default : break ;
 				}
 				break ;
@@ -232,67 +313,102 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 		}
 	},
 	
-	openDefineWindow : function(isNew,newDataType) {
+	openDefineWindow : function() {
 		var me = this ;
 		
-		// console.log( this.activeBibleId ) ;
-		
-		var params = new Object() ;
-		Ext.apply(params,{
-			optimaModule: me.optimaModule
-		}) ;
-		if( isNew == true ){
-			Ext.apply( params, {
-				defineDataType: newDataType ,
-				defineIsNew: true
-			}) ;
-		}
-		else
+		switch( me.dataType )
 		{
-			switch( me.dataType )
-			{
-				case 'bible' :
-					Ext.apply( params, {
-						defineIsNew: false,
-						defineDataType: me.dataType ,
-						defineBibleId : me.bibleId
-					}) ;
+			case 'bible' :
+				Optima5.Modules.CrmBase.DataWindow.sOpenDefineWindow(me.optimaModule,'bible',false,me.bibleId) ;
+			break ;
+			
+			case 'file' :
+				Optima5.Modules.CrmBase.DataWindow.sOpenDefineWindow(me.optimaModule,'file',false,me.fileId) ;
+			break ;
+			
+			default:
+				Ext.Msg.alert('Status', 'Shouldnt happen !!!');
+				return ;
+			break ;
+		}
+	},
+	handleDeleteStore: function() {
+		var me = this,
+			msg ;
+		
+		msg = "Drop " ;
+		switch( this.dataType ) {
+			case 'bible' :
+				msg+= ' bible ' + this.bibleId ;
 				break ;
-				
-				case 'file' :
-					Ext.apply( params, {
-						defineIsNew: false,
-						defineDataType: me.dataType ,
-						defineFileId : me.fileId
-					}) ;
+			case 'file' :
+				msg+= ' file ' + this.fileId ;
 				break ;
-				
-				default:
-					Ext.Msg.alert('Status', 'Shouldnt happen !!!');
-					return ;
-				break ;
-			}
+			default :
+				return ;
+		}
+		msg+= ' and all associated data ?' ;
+		
+		Ext.Msg.show({
+			title:'Delete file record',
+			msg: msg ,
+			icon: Ext.Msg.WARNING,
+			buttons: Ext.Msg.YESNO,
+			fn:function(buttonId){
+				switch( buttonId ) {
+					case 'yes':
+						me.doDeleteStore() ;
+						break ;
+				}
+			},
+			scope:me
+		}) ;
+	},
+	doDeleteStore: function() {
+		var me = this ;
+		
+		var ajaxParams = {
+			_action : 'define_drop'
+		};
+		switch( this.dataType )
+		{
+			case 'bible' :
+				Ext.apply( ajaxParams, {
+					data_type: 'bible',
+					bible_code : this.bibleId
+				}) ;
+			break ;
+			
+			case 'file' :
+				Ext.apply( ajaxParams, {
+					data_type: 'file',
+					file_code : this.fileId
+				}) ;
+			break ;
+			
+			default:
+				Ext.Msg.alert('Status', 'Shouldnt happen !!!');
+				return ;
+			break ;
 		}
 		
-		var definestorepanel = Ext.create('Optima5.Modules.CrmBase.DefineStorePanel',params) ;
-		definestorepanel.on('beforedestroy',function(panel){
-			if( panel.up('window') ) {
-				var parentwin = panel.up('window') ;
-				me.mon(panel,'destroy',function() {
-					parentwin.close() ;
-				},me) ;
-			}
-		},me);
-		
-		me.optimaModule.createWindow({
-			title:'Store definition',
-			width:720,
-			height:600,
-			iconCls: 'op5-crmbase-definewindow-icon',
-			animCollapse:false,
-			border: false,
-			items: [ definestorepanel ]
-		}) ;
+		me.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams,
+			success: function(response) {
+				if( Ext.decode(response.responseText).success == false ) {
+					Ext.Msg.alert('Failed', 'Failed');
+				}
+				else {
+					me.optimaModule.postCrmEvent('definechange',{
+						dataType:me.dataType,
+						bibleId:me.bibleId,
+						fileId:me.fileId
+					}) ;
+					me.destroy() ;
+				}
+			},
+			scope: me
+		});
 	},
 	storeTogglePublish: function( isPublished ) {
 		var me = this ;
@@ -336,5 +452,4 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 			scope: me
 		});
 	}
-	
 });

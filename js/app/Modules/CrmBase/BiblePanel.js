@@ -51,6 +51,7 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 		});
 		
 		this.callParent(arguments);
+		this.addEvents('load') ;
 	},
 			  
 			  
@@ -176,7 +177,13 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 					_action: 'data_getBibleTree' ,
 					bible_code: this.bibleId
 				}
-			})
+			}),
+			listeners: {
+				load: {
+					fn: this.onStoreLoad,
+					scope: this
+				}
+			}
 		});
 		
 		var treeColumns = new Array() ;
@@ -387,7 +394,13 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 					root: 'data',
 					totalProperty: 'total'
 				}
-			})
+			}),
+			listeners: {
+				load: {
+					fn: this.onStoreLoad,
+					scope: this
+				}
+			}
 		});
 		
 		return gridstore ;
@@ -554,6 +567,12 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 		if( this.gridstore ) {
 			this.gridstore.load() ;
 		}
+	},
+	onStoreLoad: function() {
+		this.fireEvent('load',this) ;
+	},
+	isEmpty: function() {
+		return ( !this.treegrid.getRootNode().hasChildNodes() && this.gridstore.getTotalCount() == 0 ) ;
 	},
 	
 	filterGridByTreenode: function( treenodeKey ) {
