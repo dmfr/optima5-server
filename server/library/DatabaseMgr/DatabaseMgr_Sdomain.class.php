@@ -807,6 +807,7 @@ EOF;
 			$arr_field_primaryKey = array() ;
 			default :
 			$arr_field_type = array() ;
+			$arr_field_isIndex = array() ;
 			$arr_media_define = array() ;
 			$query = "SELECT * FROM {$sdomain_db}.define_file_entry WHERE file_code='$file_code' ORDER BY entry_field_index" ;
 			$result = $_opDB->query($query) ;
@@ -815,6 +816,8 @@ EOF;
 				$arr_field_type[$arr['entry_field_code']] = $arr['entry_field_type'] ;
 				if( is_array($arr_field_primaryKey) ) {
 					$arr_field_primaryKey[$arr['entry_field_code']] = ($arr['entry_field_is_primarykey'] == 'O') ;
+				} else {
+					$arr_field_isIndex[$arr['entry_field_code']] = ($arr['entry_field_is_header'] == 'O') ;
 				}
 			}
 			break ;
@@ -844,6 +847,9 @@ EOF;
 				case 'string' :
 				$field_name.= '_str' ;
 				$arrAssoc_dbField_fieldType[$field_name] = 'varchar(200)' ;
+				if( $arr_field_isIndex[$field_code] ) {
+					$arr_model_keys[$field_name] = array('non_unique'=>'1','arr_columns'=>array($field_name)) ;
+				}
 				break ;
 				
 				case 'number' :
@@ -864,7 +870,9 @@ EOF;
 				case 'link' :
 				$field_name.= '_str' ;
 				$arrAssoc_dbField_fieldType[$field_name] = 'varchar(500)' ;
-				$arr_model_keys[$field_name] = array('non_unique'=>'1','arr_columns'=>array($field_name)) ;
+				if( TRUE ) {
+					$arr_model_keys[$field_name] = array('non_unique'=>'1','arr_columns'=>array($field_name)) ;
+				}
 				break ;
 				
 				case 'join' :
