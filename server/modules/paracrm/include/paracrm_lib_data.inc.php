@@ -565,6 +565,26 @@ function paracrm_lib_data_bibleAssignTreenode( $bible_code, $entry_key, $new_tre
 	
 	return 0 ;
 }
+function paracrm_lib_data_bibleAssignParentTreenode( $bible_code, $treenode_key, $parent_treenode_key )
+{
+	global $_opDB ;
+	if( !paracrm_lib_data_getRecord_bibleTreenode( $bible_code, $treenode_key ) )
+		return -1 ;
+	if( $parent_treenode_key && $parent_treenode_key != '&' )
+	{
+		if( !paracrm_lib_data_getRecord_bibleTreenode( $bible_code, $parent_treenode_key ) )
+			return -1 ;
+	}
+	
+	$db_table = 'store_bible_'.$bible_code.'_tree' ;
+	
+	$arr_update['treenode_parent_key'] = ($parent_treenode_key=='&')?'':$parent_treenode_key ;
+	
+	$query = "UPDATE $db_table SET treenode_parent_key='{$arr_update['treenode_parent_key']}' WHERE treenode_key='$treenode_key'" ;
+	$_opDB->query($query) ;
+	
+	return 0 ;
+}
 
 
 

@@ -176,6 +176,21 @@ function paracrm_data_bibleAssignTreenode( $post_data )
 	else
 		return array('success'=>false) ;
 }
+function paracrm_data_bibleAssignParentTreenode( $post_data )
+{
+	$bible_code = $post_data['bible_code'] ;
+	$treenode_key = $post_data['treenode_key'] ;
+	$target_treenode_key = $post_data['target_treenode_key'] ;
+
+	paracrm_lib_data_beginTransaction() ;
+	$ret = paracrm_lib_data_bibleAssignParentTreenode( $bible_code, $treenode_key, $target_treenode_key ) ;
+	paracrm_lib_data_endTransaction(FALSE) ;
+	
+	if( $ret == 0 )
+		return array('success'=>true) ;
+	else
+		return array('success'=>false) ;
+}
 
 
 ?>

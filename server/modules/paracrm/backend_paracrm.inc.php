@@ -35,6 +35,8 @@ switch( $post_data['_action'] )
 	
 	case 'data_bibleAssignTreenode' :
 	return paracrm_data_bibleAssignTreenode( $post_data ) ;
+	case 'data_bibleAssignParentTreenode' :
+	return paracrm_data_bibleAssignParentTreenode( $post_data ) ;
 	
 	
 	case 'data_getFileGrid_config' :
