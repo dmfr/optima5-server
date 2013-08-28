@@ -558,6 +558,35 @@ EOF;
 		$_opDB->query($query) ;
 	}
 	
+	public function sdomainDb_purgeStore( $sdomain_id ) {
+		$_opDB = $this->_opDB ;
+		$sdomain_db = $this->getSdomainDb( $sdomain_id ) ;
+		
+		$this->sdomainDefine_buildAll( $sdomain_id ) ;
+		
+		$query = "SELECT bible_code FROM {$sdomain_db}.define_bible" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$bible_code = $arr[0] ;
+			
+			$query = "TRUNCATE TABLE {$sdomain_db}.store_bible_{$bible_code}_tree" ;
+			$_opDB->query($query) ;
+			$query = "TRUNCATE TABLE {$sdomain_db}.store_bible_{$bible_code}_entry" ;
+			$_opDB->query($query) ;
+		}
+		
+		$query = "SELECT file_code FROM {$sdomain_db}.define_file" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$file_code = $arr[0] ;
+			
+			$query = "TRUNCATE TABLE {$sdomain_db}.store_file_{$file_code}" ;
+			$_opDB->query($query) ;
+		}
+		$query = "TRUNCATE TABLE {$sdomain_db}.store_file" ;
+		$_opDB->query($query) ;
+	}
+	
 	public function sdomainDb_clone( $src_sdomain_id, $dst_sdomain_id ) {
 		$_opDB = $this->_opDB ;
 		$src_sdomain_db = $this->getSdomainDb( $src_sdomain_id ) ;

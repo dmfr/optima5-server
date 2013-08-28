@@ -63,6 +63,16 @@ function admin_sdomains_deleteSdomain($post_data) {
 	
 	return array('success'=>true) ;
 }
+function admin_sdomains_truncateSdomain($post_data) {
+	global $_opDB ;
+	
+	sleep(1) ;
+	
+	$t = new DatabaseMgr_Sdomain( DatabaseMgr_Base::dbCurrent_getDomainId() );
+	$t->sdomainDb_purgeStore($post_data['sdomain_id']) ;
+	
+	return array('success'=>true) ;
+}
 function admin_sdomains_setSdomain($post_data) {
 	global $_opDB ;
 	

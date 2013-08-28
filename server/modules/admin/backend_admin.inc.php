@@ -15,6 +15,8 @@ switch( $post_data['_action'] )
 		return admin_sdomains_setSdomain( $post_data ) ;
 	case 'sdomains_deleteSdomain' :
 		return admin_sdomains_deleteSdomain( $post_data ) ;
+	case 'sdomains_truncateSdomain' :
+		return admin_sdomains_truncateSdomain( $post_data ) ;
 	case 'sdomains_updateSchema' :
 		return admin_sdomains_updateSchema( $post_data ) ;
 	case 'sdomains_export' :
