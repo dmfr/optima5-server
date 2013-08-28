@@ -121,13 +121,16 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 		this.add( [this.treegrid,{xtype: 'splitter'},this.mainview] ) ;
 	},
 	
+	getTreeModelName: function() {
+		return 'BibleTree'+'-'+this.bibleId ;
+	},
 	reconfigureDataBuildTree: function( ajaxData ) {
 		var authReadOnly = false;
 		if( ajaxData.auth_status != null && ajaxData.auth_status.readOnly ) {
 			authReadOnly = true ;
 		}
 		
-		var treeModelName = 'BibleTree'+'-'+this.bibleId ;
+		var treeModelName = this.getTreeModelName() ;
 		
 		// Création du modèle TREE
 		var modelFields = new Array() ;
@@ -164,7 +167,7 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 			fields: modelFields
 		});
 		
-		var treeroot = {iconCls:'task-folder',expanded:true,treenode_key:'&',allowDrop:false} ;
+		var treeroot = {iconCls:'task-folder',expanded:true,treenode_key:'&',allowDrop:true,allowDrag:false} ;
 		treeroot[keyfield] = '<b>Bible</b>: '+ajaxData.define_bible.text ;
 		var treestore = Ext.create('Ext.data.TreeStore', {
 			model: treeModelName,
@@ -242,7 +245,7 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 				plugins: {
 					ptype: 'treeviewdragdrop',
 					ddGroup:'setTreenode'+this.getId(),
-					enableDrag:false,
+					enableDrag:true,
 					appendOnly:true,
 					allowParentInsert:false
 				},
@@ -251,25 +254,65 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 						dropHandlers.wait = true ;
 						
 						if( data.records.length > 0 && dropRecord ) {
-							var entryKey = data.records[0].get('entry_key') ;
-							var targetTreenode = dropRecord.get('treenode_key') ;
-						
-							Ext.Msg.show({
-								title:'Assign treenode',
-								msg: 'Assign <b>'+entryKey+'</b> to treenode <b>'+targetTreenode+'</b> ?' ,
-								buttons: Ext.Msg.YESNO,
-								fn:function(buttonId){
-									if( buttonId == 'yes' ) {
-										me.editEntryAssignTreenode(entryKey,targetTreenode) ;
+							var dragRecord = data.records[0] ;
+							switch( Ext.getClassName(dragRecord) ) {
+								case this.getGridModelName() :
+									if( dropRecord.isRoot() ) {
+										Ext.Msg.show({
+											title:'Assign treenode',
+											msg: 'Cannot assign bible entry on root node !' ,
+											buttons: Ext.Msg.OK,
+											icon: Ext.Msg.WARNING
+										});
+										return ;
 									}
-								},
-								scope:me
-							});
+									
+									var entryKey = data.records[0].get('entry_key') ;
+									var targetTreenode = dropRecord.get('treenode_key') ;
+								
+									Ext.Msg.show({
+										title:'Assign treenode',
+										msg: 'Assign <b>'+entryKey+'</b> to treenode <b>'+targetTreenode+'</b> ?' ,
+										buttons: Ext.Msg.YESNO,
+										fn:function(buttonId){
+											if( buttonId == 'yes' ) {
+												me.editEntryAssignTreenode(entryKey,targetTreenode) ;
+											}
+										},
+										scope:me
+									});
+									break ;
+								
+								case this.getTreeModelName() :
+									var treenodeKey = data.records[0].get('treenode_key') ;
+									var targetTreenode = dropRecord.get('treenode_key') ;
+									var msg ;
+									if( dropRecord.isRoot() ) {
+										msg = 'Assign <b>'+treenodeKey+'</b> as child of <b>root</b> node ?' ;
+									} else {
+										msg = 'Assign <b>'+treenodeKey+'</b> as child of node <b>'+targetTreenode+'</b> ?' ;
+									}
+									Ext.Msg.show({
+										title:'Assign treenode',
+										msg: msg ,
+										buttons: Ext.Msg.YESNO,
+										fn:function(buttonId){
+											if( buttonId == 'yes' ) {
+												me.editTreenodeAssignParentTreenode(treenodeKey,targetTreenode) ;
+											}
+										},
+										scope:me
+									});
+									break ;
+								
+								default :
+									return true ;
+							}
 						}
 						
 						return true ;
 					},
-					scope:me
+					scope:this
 				}
 			}
 		});
@@ -342,8 +385,12 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 		
 		return treegrid ;
 	},
+	
+	getGridModelName: function() {
+		return 'BibleGrid'+'-'+this.bibleId ;
+	},
 	reconfigureDataBuildGridStore: function( ajaxData ) {
-		var gridModelName = 'BibleGrid'+'-'+this.bibleId ;
+		var gridModelName = this.getGridModelName() ;
 		
 		// Création du modèle GRID
 		var modelFields = new Array() ;
@@ -785,6 +832,35 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 			bible_code: this.bibleId,
 			entry_key: entryKey,
 			target_treenode_key: targetTreenodeKey
+		});
+		var me = this ;
+		me.editMaskSet(true) ;
+		me.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams ,
+			success: function(response) {
+				me.editMaskSet(false) ;
+				if( Ext.decode(response.responseText).success == false ) {
+					Ext.Msg.alert('Failed', 'Failed');
+				}
+				else {
+					me.optimaModule.postCrmEvent('datachange',{
+						dataType: 'bible',
+						bibleId: me.bibleId,
+						fileId: null
+					});
+				}
+			},
+			scope: me
+		});
+	},
+	editTreenodeAssignParentTreenode: function( treenodeKey, parentTreenodeKey ) {
+		var me = this ;
+		var ajaxParams = new Object() ;
+		Ext.apply( ajaxParams, {
+			_action: 'data_bibleAssignParentTreenode',
+			bible_code: this.bibleId,
+			treenode_key: treenodeKey,
+			target_treenode_key: parentTreenodeKey
 		});
 		var me = this ;
 		me.editMaskSet(true) ;
