@@ -565,6 +565,10 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 				},
 				scope:me
 			}],
+			setEnabled: function( bool ) {
+				this.getComponent('pCheckContainer').setVisible( bool ) ;
+				this.getComponent('pButton').setVisible( bool ) ;
+			},
 			items:[Ext.create('Optima5.Modules.Admin.CardHeader',{
 				width:'100%',
 				data:{
@@ -573,9 +577,59 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 					caption: 'Permanently delete all associated data'
 				}
 			}),{
+				xtype:'form',
+				itemId:'pDummyForm',
+				border: false,
+				frame:false,
+				bodyCls: 'ux-noframe-bg',
+				padding: "8 0 0 0",
+				width:'100%',
+				layout:'anchor',
+				fieldDefaults: {
+					labelAlign: 'left',
+					labelSeparator: '',
+					labelWidth: 90
+				},
+				items: [{
+					xtype: 'fieldset',
+					width: '100%',
+					title: 'Delete mode',
+					items:[{
+						xtype      : 'fieldcontainer',
+						defaultType: 'radiofield',
+						defaults: {
+							flex: 1,
+							listeners: {
+								change: function( field, value ) {
+									if( field.getName()=='delete_mode' && value == true ) {
+										// console.log('mode = '+field.inputValue) ;
+										var cardDelete = field.up('form').up() ;
+										cardDelete.setEnabled( (field.inputValue && field.inputValue.length>0) ) ;
+										return ;
+									}
+								},
+								scope: me
+							}
+						},
+						layout: 'hbox',
+						items: [
+							{
+								boxLabel  : 'Truncate all data stores',
+								name      : 'delete_mode',
+								inputValue: 'truncate'
+							}, {
+								boxLabel  : 'Drop (delete) Sdomain',
+								name      : 'delete_mode',
+								inputValue: 'drop'
+							}
+						]
+					}]
+				}]
+			},{
 				xtype:'container',
 				itemId:'pCheckContainer',
-				padding: "24 0 8 0",
+				hidden:true,
+				padding: "8 0 8 0",
 				layout:'hbox',
 				items:[{
 					xtype:'checkbox',
@@ -588,6 +642,8 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 				}]
 			},{
 				xtype: 'button',
+				itemId:'pButton',
+				hidden:true,
 				padding: '0 16px',
 				scale: 'large',
 				text: 'Delete',
@@ -659,7 +715,9 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 		}) ;
 	},
 	doDelete:function(){
-		var me = this ;
+		var me = this,
+			dModeForm = me.getComponent('mCardDelete').getComponent('pDummyForm'),
+			dMode = dModeForm.getValues().delete_mode ;
 		
 		if( !me.isNew ) {
 			if( me.tool_checkModuleRunning() ) {
@@ -667,21 +725,34 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 			}
 		}
 		
+		var action ;
+		switch( dMode ) {
+			case 'truncate' :
+				action = 'sdomains_truncateSdomain' ;
+				break ;
+			case 'drop' :
+				action = 'sdomains_deleteSdomain' ;
+				break ;
+			default :
+				return ;
+		}
+		var params = {
+			sdomain_id:me.sdomainId,
+			_action: action
+		} ;
+		
 		me.loadMask = new Ext.LoadMask(me.getComponent('mCardDelete'), {msg:'Deleting...'});
 		me.loadMask.show() ;
 		
-		var values = {sdomain_id:me.sdomainId} ;
 		me.optimaModule.getConfiguredAjaxConnection().request({
-			params:Ext.apply(values,{
-				_action: 'sdomains_deleteSdomain'
-			}),
+			params:params,
 			success : function(response) {
 				if( Ext.decode(response.responseText).success == false ) {
 					Ext.Msg.alert('Failed', 'Delete failed. Unknown error');
 				}
 				else {
 					me.optimaModule.postCrmEvent('sdomainchange',{
-						sdomainId: values.sdomain_id
+						sdomainId: params.sdomain_id
 					}) ;
 				}
 			},
