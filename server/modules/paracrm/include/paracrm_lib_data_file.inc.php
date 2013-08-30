@@ -142,7 +142,27 @@ function paracrm_lib_file_mapFile( $file_code, $is_called=FALSE )
 				continue ;
 			}
 			if( $arr['entry_field_type'] == 'link' ) {
-				$TAB = paracrm_lib_file_mapBible( $bible_code=$arr['entry_field_linkbible'], $remote_table=$file_code, $remote_field=('field_'.$arr['entry_field_code']), $remote_field_lib=$arr['entry_field_lib'] ) ;
+				switch( $arr['entry_field_linktype'] ) {
+					case 'treenode' :
+						$TAB = paracrm_lib_file_mapBibleTreenode( 
+							$bible_code=$arr['entry_field_linkbible'], 
+							$remote_table=$file_code, 
+							$remote_field=('field_'.$arr['entry_field_code']), 
+							$remote_field_lib=$arr['entry_field_lib']
+						) ;
+					break ;
+					
+					case 'entry' :
+					default :
+						$TAB = paracrm_lib_file_mapBibleEntry( 
+							$bible_code=$arr['entry_field_linkbible'], 
+							$remote_table=$file_code, 
+							$remote_field=('field_'.$arr['entry_field_code']), 
+							$remote_field_lib=$arr['entry_field_lib']
+						) ;
+						break ;
+				}
+				
 				
 				$sql_selectfields = array_merge($sql_selectfields,$TAB['sql_selectfields']) ;
 				$sql_leftjoin = array_merge($sql_leftjoin,$TAB['sql_leftjoin']) ;
@@ -194,7 +214,7 @@ function paracrm_lib_file_mapFile( $file_code, $is_called=FALSE )
 					'grid_map'=>$grid_map
 					);
 }
-function paracrm_lib_file_mapBible( $bible_code, $remote_table, $remote_field, $remote_field_lib=NULL )
+function paracrm_lib_file_mapBibleEntry( $bible_code, $remote_table, $remote_field, $remote_field_lib=NULL )
 {
 	global $_opDB ;
 	
@@ -270,6 +290,71 @@ function paracrm_lib_file_mapBible( $bible_code, $remote_table, $remote_field, $
 								$myalias_tree ,
 								$myalias_tree.'.'.'treenode_key' ,
 								$myalias_entry.'.'.'treenode_key' ) ;
+	// ********************************************
+	/*
+	// ****** 2012-05 METHOD (racx indexes) ********
+	$sql_leftjoin[] = array($mytable_entry ,
+								$myalias_entry ,
+								$myalias_entry.'.'.'entry_racx' ,
+								$remote_table.'.'.$remote_field.'_erx' ) ;
+	$sql_leftjoin[] = array($mytable_tree ,
+								$myalias_tree ,
+								$myalias_tree.'.'.'treenode_racx' ,
+								$remote_table.'.'.$remote_field.'_trx' ) ;
+	// ********************************************
+	*/
+
+	return array('sql_selectfields'=>$sql_selectfields,
+					'sql_from'=>array(),
+					'sql_leftjoin'=>$sql_leftjoin,
+					'sql_where'=>array(),
+					'grid_map'=>$grid_map
+					);
+}
+
+function paracrm_lib_file_mapBibleTreenode( $bible_code, $remote_table, $remote_field, $remote_field_lib=NULL )
+{
+	global $_opDB ;
+	
+	$sql_selectfields = array() ;
+	$sql_leftjoin = array() ;
+	$grid_map = array() ;
+
+	$mytable_tree = 'view_bible_'.$bible_code.'_tree' ;
+	$myalias_tree = $remote_table.'_'.$remote_field.'_tree' ;
+	$query = "SELECT * FROM define_bible_tree WHERE bible_code='$bible_code' ORDER BY tree_field_index" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
+	{
+		if( $arr['tree_field_type'] == 'link' )
+			continue ;
+			
+		$sql_selectfields[] = array($myalias_tree.'.field_'.$arr['tree_field_code']
+										,$remote_table.'_'.$remote_field.'_tree_'.$arr['tree_field_code']) ;
+		
+		$grid_cell = array() ;
+		$grid_cell['field'] = $remote_table.'_'.$remote_field.'_tree_'.$arr['tree_field_code'] ;
+		$grid_cell['type'] = $arr['tree_field_type'] ;
+		$grid_cell['text'] = '('.$remote_field_lib.')'.' '.$arr['tree_field_lib'] ;
+		$grid_cell['file_code'] = $remote_table ;
+		$grid_cell['file_field'] = substr($remote_field,6,strlen($remote_field)-6) ;
+		$grid_cell['file_field_lib'] = $remote_field_lib ;
+		$grid_cell['link_bible'] = $bible_code ;
+		$grid_cell['link_bible_type'] = 'tree' ;
+		$grid_cell['link_bible_field'] = $arr['tree_field_code'] ;
+		$grid_cell['link_bible_is_key'] = ($arr['tree_field_is_key']=='O')?true:false ;
+		$grid_cell['link_bible_is_header'] = ($arr['tree_field_is_header']=='O')?true:false ;
+		$grid_cell['link_bible_is_highlight'] = ($arr['tree_field_is_highlight']=='O')?true:false ;
+		$grid_cell['is_display'] = ($arr['tree_field_is_header']=='O')?true:false ;
+		$grid_map[] = $grid_cell ;
+	}
+	
+	
+	// ****** OLD METHOD (no racx indexes) ********
+	$sql_leftjoin[] = array($mytable_tree ,
+								$myalias_tree ,
+								$myalias_tree.'.'.'treenode_key' ,
+								$remote_table.'.'.$remote_field ) ;
 	// ********************************************
 	/*
 	// ****** 2012-05 METHOD (racx indexes) ********
