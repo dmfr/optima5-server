@@ -353,9 +353,9 @@ class DatabaseMgr_Util {
 				if( $key_name == 'PRIMARY' ) {
 					$query.= "PRIMARY KEY " ;
 				} elseif( $key_desc['non_unique'] == 'O' ) {
-					$query.= "UNIQUE " ;
+					$query.= "UNIQUE `$key_name`" ;
 				} else {
-					$query.= "INDEX " ;
+					$query.= "INDEX `$key_name`" ;
 				}
 				$query.= "(" ;
 				$is_first_k=TRUE ;
