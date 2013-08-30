@@ -303,7 +303,10 @@ Ext.define('Optima5.Modules.CrmBase.DefineStoreFieldJoinPanel' ,{
 			alt_file_code: null,
 			text: '<b>'+currentFileName+'</b>'
 		};
-		Ext.Array.each( me.getElementtab().getStore().getRange(), function(rec){
+		Ext.Array.each( me.getElementtab().getStore().getRange(), function(rec,idx){
+			if( idx == me.elementtabIdx ) {
+				return ;
+			}
 			treeCurrentFileNode.children.push({
 				alt_file_code: null,
 				file_field_code: rec.get('entry_field_code'),
