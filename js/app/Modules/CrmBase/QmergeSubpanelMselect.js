@@ -283,7 +283,10 @@ Ext.define('Optima5.Modules.CrmBase.QmergeSubpanelMselect' ,{
 					valueField: 'math_operation'
 				},
 				renderer: function( value ) {
-					return '<b>'+value+'</b>' ;
+					if( value != null && value.length > 0 ) {
+						return '<b>'+value+'</b>' ;
+					}
+					return '' ;
 				}
 			},{
 				menuDisabled: true ,

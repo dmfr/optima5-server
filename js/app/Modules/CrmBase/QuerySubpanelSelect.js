@@ -185,7 +185,10 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelSelect' ,{
 					valueField: 'math_operation'
 				},
 				renderer: function( value ) {
-					return '<b>'+value+'</b>' ;
+					if( value != null && value.length > 0 ) {
+						return '<b>'+value+'</b>' ;
+					}
+					return '' ;
 				}
 			},{
 				menuDisabled: true ,
@@ -392,6 +395,7 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelSelect' ,{
 					switch( selectedRecord.get('field_type') ) {
 						case 'file' :
 						case 'link' :
+						case 'join' :
 						case 'date' :
 						case 'number' :
 							break ;
