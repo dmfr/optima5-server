@@ -11,3 +11,27 @@ QueryResultPanel
 
 2013-07-17 Weird behavior of MemoryProxy with embeddedgrid + feature RowBody
 - utilisation de la feinte Ext.calendar , override updateOperation + sync() à chaque operation
+
+
+2013-07-18   LIMIT 1 inside JOIN from specific tables in MySQL?
+http://stackoverflow.com/questions/4115057/limit-1-inside-join-from-specific-tables-in-mysql
+Example :
+select o.outbound_id , o.product,o.date, p1.price,p1.date,p2.price,p2.date 
+FROM outbound o 
+LEFT OUTER JOIN price p1 ON p1.product=o.product AND o.date > p1.date
+LEFT OUTER JOIN price p2 ON p2.product=p1.product AND o.date > p2.date AND p2.date>p1.date 
+WHERE 1 
+AND p2.date IS NULL
+ORDER BY outbound_id;
+
+
+
+2013-08-31 : paracrm_lib_data_file_join.inc.php
+
+- Chargement de la map, OK.
+- Identification des valeurs flottantes (=>dates)
+	- pour chaque field concerné, chargement de toutes les valeurs distinctes (maximum ???)
+
+- Etape 1 : calcul du HASH selon le join Map
+
+- Etape 2 : recherche de la valeur dans le cache
