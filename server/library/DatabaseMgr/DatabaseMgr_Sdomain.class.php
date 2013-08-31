@@ -833,7 +833,7 @@ EOF;
 			break ;
 		
 			case 'file_primarykey' :
-			$arr_field_primaryKey = array() ;
+			$_mode_primaryKey = TRUE ;
 			default :
 			$arr_field_type = array() ;
 			$arr_field_isIndex = array() ;
@@ -843,11 +843,8 @@ EOF;
 			while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
 			{
 				$arr_field_type[$arr['entry_field_code']] = $arr['entry_field_type'] ;
-				if( is_array($arr_field_primaryKey) ) {
-					$arr_field_primaryKey[$arr['entry_field_code']] = ($arr['entry_field_is_primarykey'] == 'O') ;
-				} else {
-					$arr_field_isIndex[$arr['entry_field_code']] = ($arr['entry_field_is_header'] == 'O') ;
-				}
+				
+				$arr_field_isIndex[$arr['entry_field_code']] = ( ($arr['entry_field_is_header'] == 'O') || ($_mode_primaryKey && ($arr['entry_field_is_primarykey'] == 'O')) ) ;
 			}
 			break ;
 		}
@@ -894,6 +891,9 @@ EOF;
 				case 'date' :
 				$field_name.= '_dtm' ;
 				$arrAssoc_dbField_fieldType[$field_name] = 'datetime' ;
+				if( $arr_field_isIndex[$field_code] ) {
+					$arr_model_keys[$field_name] = array('non_unique'=>'1','arr_columns'=>array($field_name)) ;
+				}
 				break ;
 				
 				case 'link' :
@@ -914,18 +914,6 @@ EOF;
 			$field_crm = 'field_'.$field_code ;
 			$arrAssoc_crmField_dbField[$field_crm] = $field_name ;
 		}
-		if( is_array($arr_field_primaryKey) ) {
-			$arr_primaryKeyColumns = array() ;
-			foreach( $arr_field_primaryKey as $field_code => $isKey ) {
-				$field_crm = 'field_'.$field_code ;
-				$field_name = $arrAssoc_crmField_dbField[$field_crm] ;
-				
-				if( $isKey ) {
-					$arr_primaryKeyColumns[] = $field_name ;
-				}
-			}
-			$arr_model_keys['CRM_PRIMARYKEY'] = array('non_unique'=>'0','arr_columns'=>$arr_primaryKeyColumns) ;
-		}
 		
 		DatabaseMgr_Util::syncTableStructure( $sdomain_db , $db_table , $arrAssoc_dbField_fieldType , $arr_model_keys ) ;
 		
@@ -933,7 +921,7 @@ EOF;
 		$query = "DROP VIEW IF EXISTS {$sdomain_db}.{$view_name}" ;
 		$_opDB->query($query) ;
 		
-		$query = "CREATE ALGORITHM=MERGE VIEW {$sdomain_db}.{$view_name} AS SELECT mstr.filerecord_id, mstr.filerecord_parent_id" ;
+		$query = "CREATE ALGORITHM=MERGE VIEW {$sdomain_db}.{$view_name} AS SELECT data.filerecord_id, mstr.filerecord_parent_id" ;
 		foreach( $arrAssoc_crmField_dbField as $field_crm => $field_name ) {
 			if( $field_name == 'filerecord_id' ) {
 				continue ;
@@ -945,9 +933,9 @@ EOF;
 		
 			$query.= ",data.{$field_name} AS {$field_crm}" ;
 		}
-		$query.= " FROM {$sdomain_db}.store_file mstr" ;
-		$query.= " LEFT JOIN {$sdomain_db}.{$db_table} data ON data.filerecord_id = mstr.filerecord_id" ;
-		$query.= " WHERE mstr.file_code='{$file_code}' AND mstr.sync_is_deleted<>'O'" ;
+		$query.= " FROM {$sdomain_db}.{$db_table} data" ;
+		$query.= " LEFT JOIN {$sdomain_db}.store_file mstr ON data.filerecord_id = mstr.filerecord_id AND mstr.sync_is_deleted<>'O'" ;
+		$query.= " " ;
 		$_opDB->query($query) ;
 		
 		$query = "DELETE FROM {$sdomain_db}.{$db_table} WHERE filerecord_id NOT IN (SELECT filerecord_id FROM {$sdomain_db}.store_file WHERE file_code='$file_code' AND sync_is_deleted<>'O')" ;
