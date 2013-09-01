@@ -1,5 +1,7 @@
 <?php
 
+$GLOBALS['debug_disableJoin'] = FALSE ;
+
 $GLOBALS['cache_joinMap'] = array() ;
 $GLOBALS['cache_joinMap'][$file_code][$field_code] ;
 
@@ -11,11 +13,23 @@ function paracrm_lib_file_joinGridRecord( $file_code, &$record_row ) {
 	global $_opDB ;
 	$jMap = paracrm_lib_file_joinPrivate_getMap( $file_code ) ;
 	
-	foreach( $jMap as $entry_field_code => $dummy ) {
+	foreach( $jMap as $entry_field_code => $jMapNode ) {
 		$mkey = $file_code.'_field_'.$entry_field_code ;
+		if( $GLOBALS['debug_disableJoin'] ) {
+			$record_row[$mkey] = '@JOIN@@' ;
+			return ;
+		}
 		
-		$record_row[$mkey] = '@JOIN@@' ;
-		$record_row[$mkey] = 2 ;
+		$jSrcValues = array() ;
+		foreach( $jMapNode['join_map'] as $joinCondition ) {
+			$src_fileCode = ( $joinCondition['join_local_alt_file_code'] != NULL ? $joinCondition['join_local_alt_file_code'] : $file_code ) ;
+			$src_fileFieldCode = $joinCondition['join_local_file_field_code'] ;
+			
+			$src_mkey = $src_fileCode.'_field_'.$src_fileFieldCode ;
+			$jSrcValues[] = $record_row[$src_mkey] ;
+		}
+		$jRes = paracrm_lib_file_joinPrivate_do( $file_code, $entry_field_code, $jSrcValues ) ;
+		$record_row[$mkey] = $jRes ;
 	}
 }
 function paracrm_lib_file_joinQueryRecord( $file_code, &$record_row ) {
@@ -23,20 +37,23 @@ function paracrm_lib_file_joinQueryRecord( $file_code, &$record_row ) {
 	$jMap = paracrm_lib_file_joinPrivate_getMap( $file_code ) ;
 	
 	foreach( $jMap as $entry_field_code => $jMapNode ) {
+		$mkey_file = $file_code ;
+		$mkey_field = 'field_'.$entry_field_code ;
+		if( $GLOBALS['debug_disableJoin'] ) {
+			$record_row[$mkey_file][$mkey_field] = '@JOIN@@' ;
+			return ;
+		}
+		
 		$jSrcValues = array() ;
 		foreach( $jMapNode['join_map'] as $joinCondition ) {
 			$src_fileCode = ( $joinCondition['join_local_alt_file_code'] != NULL ? $joinCondition['join_local_alt_file_code'] : $file_code ) ;
 			$src_fileFieldCode = $joinCondition['join_local_file_field_code'] ;
 			
-			$mkey_file = $src_fileCode ;
-			$mkey_field = 'field_'.$src_fileFieldCode ;
-			$jSrcValues[] = $record_row[$mkey_file][$mkey_field] ;
+			$src_mkey_file = $src_fileCode ;
+			$src_mkey_field = 'field_'.$src_fileFieldCode ;
+			$jSrcValues[] = $record_row[$src_mkey_file][$src_mkey_field] ;
 		}
 		$jRes = paracrm_lib_file_joinPrivate_do( $file_code, $entry_field_code, $jSrcValues ) ;
-		
-		$mkey_file = $file_code ;
-		$mkey_field = 'field_'.$entry_field_code ;
-		//$record_row[$mkey_file][$mkey_field] = '@JOIN@@' ;
 		$record_row[$mkey_file][$mkey_field] = $jRes ;
 	}
 }
@@ -57,7 +74,7 @@ function paracrm_lib_file_joinPrivate_do( $file_code, $entry_field_code, $jSrcVa
 		$jSrcValue = $jSrcValues[$idx] ;
 		switch( $joinCondition['join_field_type'] ) {
 			case 'date' :
-				$jSrcValues_arrHash[] = paracrm_lib_file_joinTool_findInfLevel( $jSrcValue, $joinCondition['join_field_arrLevels'] ) ;
+				$jSrcValues_arrHash[] = paracrm_lib_file_joinTool_findInfLevel( strtotime($jSrcValue), $joinCondition['join_field_arrLevels'] ) ;
 				break ;
 			default :
 				$jSrcValues_arrHash[] = $jSrcValue ;
@@ -65,9 +82,13 @@ function paracrm_lib_file_joinPrivate_do( $file_code, $entry_field_code, $jSrcVa
 		}
 	}
 	$jSrcValues_hash = implode('@@',$jSrcValues_arrHash) ;
-	if( isset($GLOBALS['cache_joinRes'][$file_code][$entry_field_code][$jSrcValues_hash]) ) {
-		return $GLOBALS['cache_joinRes'][$file_code][$entry_field_code][$jSrcValues_hash] ;
+	
+	$jVal = $GLOBALS['cache_joinRes'][$file_code][$entry_field_code][$jSrcValues_hash] ;
+	if( isset($jVal) ) {
+		//echo "cache! for ".$jSrcValues_hash."\n" ;
+		return $jVal ;
 	}
+	unset($jVal) ;
 	
 	// foreach joinConditions
 	//   - link bible : entry  => valeur exacte ou valeur null (+1)
@@ -128,7 +149,7 @@ function paracrm_lib_file_joinPrivate_do( $file_code, $entry_field_code, $jSrcVa
 				break ;
 			
 			case 'date' :
-				$jSchemaCondition['_field_type'] = 'link' ;
+				$jSchemaCondition['_field_type'] = 'date' ;
 				$jSchemaCondition['date_max'] = $jSrcValue ;
 				$jSchemaCondition['date_lastValue'] = NULL ;
 				break ;
@@ -138,13 +159,101 @@ function paracrm_lib_file_joinPrivate_do( $file_code, $entry_field_code, $jSrcVa
 				break ;
 		}
 		
-		$jSchema[] = $jSchemaCondition ;
+		$mkey = 'field_'.$jSchemaCondition['_field_target'] ;
+		$jSchema[$mkey] = $jSchemaCondition ;
 	}
 	
-	print_r($jSchema) ;
+	//print_r($jSchema) ;
 	
 	// Ecriture de la requête
+	$select_fields = array() ;
+	$select_fields[] = 'field_'.$jMapNode['join_select_file_field_code'] ;
+	$from_view = 'view_file_'.$jMapNode['join_target_file_code'] ;
+	$where_words = array() ;
+	$orderBy_words = array() ;
+	foreach( $jSchema as &$jSchemaCondition ) {
+		$select_fields[] = 'field_'.$jSchemaCondition['_field_target'] ;
+		
+		switch( $jSchemaCondition['_field_type'] ) {
+			case 'link' :
+				$where_words[] = 'field_'.$jSchemaCondition['_field_target'].' IN '.$_opDB->makeSQLlist(array_keys($jSchemaCondition['link_values'])) ;
+				break ;
+				
+			case 'date' :
+				$where_words[] = 'field_'.$jSchemaCondition['_field_target']." <= '".$jSchemaCondition['date_max']."'" ;
+				$orderBy_words[] = 'field_'.$jSchemaCondition['_field_target'].' DESC' ;
+				break ;
+				
+			case 'eq' :
+				$where_words[] = 'field_'.$jSchemaCondition['_field_target']."='".$jSchemaCondition['eq_value']."'" ;
+				break ;
+		}
+	}
 	
+	$query = "SELECT ".implode(',',$select_fields)." FROM ".$from_view." WHERE ".implode(' AND ',$where_words) ;
+	if( $orderBy_words ) {
+		$query.= " ORDER BY ".implode(',',$orderBy_words) ;
+	}
+	
+	
+	//echo $query ;
+	
+	
+	// Analyse et notation des résultats
+	$result = $_opDB->query($query) ;
+	$_stopFetch = FALSE ;
+	$TAB_results = array() ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$value_key = 'field_'.$jMapNode['join_select_file_field_code'] ;
+		$value = $arr[$value_key] ;
+		
+		$note = 0 ;
+		foreach( $jSchema as &$jSchemaCondition ) {
+			$condValue_key = 'field_'.$jSchemaCondition['_field_target'] ;
+			$condValue = $arr[$condValue_key] ;
+			
+			switch( $jSchemaCondition['_field_type'] ) {
+				case 'link' :
+					$note += $jSchemaCondition['link_values'][$condValue] ;
+					break ;
+					
+				case 'date' :
+					if( $jSchemaCondition['date_lastValue'] == NULL ) {
+						$jSchemaCondition['date_lastValue'] = $condValue ;
+					} elseif( $jSchemaCondition['date_lastValue'] == $condValue ) {
+						// rien
+					} else {
+						$_stopFetch = true ; 
+					}
+					break ;
+					
+				default : break ;
+			}
+		}
+		if( $_stopFetch ) {
+			break ;
+		}
+		$TAB_results[] = array('value'=>$value,'note'=>$note) ;
+	}
+	
+	//print_r($TAB_results) ;
+	if( count($TAB_results) > 0 ) {
+		
+		// Classement des résultats
+		$sort_func = create_function('$a,$b','return ($a[\'note\'] - $b[\'note\']) ;') ;
+		uasort($TAB_results,$sort_func) ;
+		
+		// Renvoi
+		$winner = reset($TAB_results) ;
+		//print_r($winner) ;
+		
+		$jVal = $winner['value'] ;
+	} else {
+		$jVal = 0 ;
+	}
+	
+	$GLOBALS['cache_joinRes'][$file_code][$entry_field_code][$jSrcValues_hash] = $jVal ;
+	return $jVal ;
 }
 
 function paracrm_lib_file_joinPrivate_getMap( $file_code ) {

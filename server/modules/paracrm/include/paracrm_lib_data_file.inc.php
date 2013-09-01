@@ -142,6 +142,8 @@ function paracrm_lib_file_mapFile( $file_code, $is_called=FALSE )
 				continue ;
 			}
 			if( $arr['entry_field_type'] == 'link' ) {
+				$sql_selectfields[] = array($file_code.'.'.'field_'.$arr['entry_field_code'],$myprefix.'field_'.$arr['entry_field_code']) ;
+			
 				switch( $arr['entry_field_linktype'] ) {
 					case 'treenode' :
 						$TAB = paracrm_lib_file_mapBibleTreenode( 
@@ -162,8 +164,6 @@ function paracrm_lib_file_mapFile( $file_code, $is_called=FALSE )
 						) ;
 						break ;
 				}
-				
-				
 				$sql_selectfields = array_merge($sql_selectfields,$TAB['sql_selectfields']) ;
 				$sql_leftjoin = array_merge($sql_leftjoin,$TAB['sql_leftjoin']) ;
 				$grid_map = array_merge($grid_map,$TAB['grid_map']) ;
