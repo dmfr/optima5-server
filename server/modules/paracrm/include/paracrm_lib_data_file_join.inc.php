@@ -358,6 +358,13 @@ function paracrm_lib_file_joinTool_findInfLevel( $value, $arr_levels ) {
 	if( $idx_max < 0 ) {
 		return -1 ;
 	}
+	
+	if( $value >= $arr_levels[$idx_max] ) {
+		return $arr_levels[$idx_max] ;
+	}
+	if( $value < $arr_levels[$idx_min] ) {
+		return 0 ;
+	}
 
 	while( $idx_max - $idx_min > 1 ) {
 		$idx_middle = floor( ($idx_max + $idx_min)/2 ) ;
