@@ -153,7 +153,9 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 						fieldsTab.push({
 							field_code: rec.get('entry_field_code'),
 							field_desc: rec.get('entry_field_code')+': '+rec.get('entry_field_lib'),
-							field_type: rec.get('entry_field_type')
+							field_type: rec.get('entry_field_type'),
+							field_linktype: rec.get('entry_field_linktype'),
+							field_linkbible: rec.get('entry_field_linkbible')
 						});
 					});
 					this.query('> tabpanel')[0].child('#calendartab').loadCurrentlyDefinedFields(fieldsTab) ;

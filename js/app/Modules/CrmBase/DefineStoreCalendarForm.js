@@ -3,7 +3,9 @@ Ext.define('DefineStoreCalendarFormModel', {
     fields: [
         {name: 'field_code',  type: 'string'},
         {name: 'field_desc',  type: 'string'},
-        {name: 'field_type',  type: 'string'}
+        {name: 'field_type',  type: 'string'},
+        {name: 'field_linktype',  type: 'string'},
+        {name: 'field_linkbible',  type: 'string'}
     ],
     idProperty:'field_code'
 });
@@ -222,10 +224,10 @@ Ext.define('Optima5.Modules.CrmBase.DefineStoreCalendarForm' ,{
 			return ;
 		}
 		var mSelectedRecordType = mSelectedRecord.get('field_type') ;
-		if( mSelectedRecordType.indexOf('link_') != 0 ) {
+		if( mSelectedRecordType != 'link' ) {
 			return ;
 		}
-		var mSelectedRecordBiblecode = mSelectedRecordType.substr(5) ;
+		var mSelectedRecordBiblecode = mSelectedRecord.get('field_linkbible') ;
 		
 		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
