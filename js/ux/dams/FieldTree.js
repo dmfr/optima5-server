@@ -27,6 +27,12 @@ Ext.define('Ext.ux.dams.FieldTree',{
 	blankText: 'Selection cannot be empty' ,
 	invalidCls: 'damsfieldtree-invalid',
 	
+	
+	onDestroy: function() {
+		if( this.mytree ) {
+			this.mytree.destroy() ;
+		}
+	},
 			  
 	afterRender: function() {
 		this.callParent();
@@ -61,32 +67,7 @@ Ext.define('Ext.ux.dams.FieldTree',{
 			useArrows: true,
 			renderTo: this.getInputId(),
 			width: width,
-			height: height,
-			dockedItems: [{
-			hidden: true,
-			xtype: 'toolbar',
-			items: {
-				// hidden: true,
-				text: 'Get checked nodes',
-				handler: function(){
-				var records = this.mytree.getView().getChecked(),
-					names = [];
-				
-				Ext.Array.each(records, function(rec){
-					//console.dir(rec) ;
-					names.push(rec.get('nodeKey'));
-					// rec.set('checked', true);
-				});
-				
-				Ext.MessageBox.show({
-					title: 'Selected Nodes',
-					msg: names.join('<br />'),
-					icon: Ext.MessageBox.INFO
-				});
-				},
-				scope:this
-			}
-			}]
+			height: height
 		});
 		
 		if( this.readOnlyChecked ) {
