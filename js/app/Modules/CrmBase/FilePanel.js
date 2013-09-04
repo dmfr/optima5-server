@@ -553,6 +553,9 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 			this.editRecordNew() ;
 			return ;
 		}
+		if( this.mainview && this.mainview.child('op5crmbasefileeditgrid') ) {
+			this.mainview.child('op5crmbasefileeditgrid').onClickNew() ;
+		}
 	},
 	onStoreLoad: function() {
 		this.fireEvent('load',this) ;

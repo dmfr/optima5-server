@@ -33,13 +33,22 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelEditGrid',{
 		
 		var gridStore = Ext.create('Ext.data.Store',me.initGetStoreCfg()) ;
 		
-		
 		Ext.apply(me,{
 			store: gridStore,
 			columns: gridColumns,
 			features: [{
 				ftype:'filters',
 				encode: true
+			}],
+			plugins: [{
+				ptype: 'rowediting',
+				pluginId: 'rowEditor',
+				listeners: {
+					beforeedit: me.onBeforeEditRecord,
+					edit: me.onAfterEditRecord,
+					canceledit: me.onCancelEditRecord,
+					scope: me
+				}
 			}],
 			dockedItems: [{
 				xtype: 'pagingtoolbar',
@@ -87,6 +96,10 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelEditGrid',{
 					break ;
 			}
 			
+			if( v.link_bible && !v.is_raw_link ) {
+				return ;
+			}
+			
 			var columnObject = new Object();
 			Ext.apply(columnObject,{
             text: v.text,
@@ -104,7 +117,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelEditGrid',{
 			}
 			if( v.type == 'date' ) {
 				Ext.apply(columnObject,{
-					renderer: daterenderer
+					renderer: daterenderer,
 				}) ;
 			}
 			if( v.type == 'bool' ) {
@@ -123,22 +136,34 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelEditGrid',{
 				}) ;
 			}
 			
-			if( v.link_bible && v.link_bible_is_key ) {
-				if( v.link_bible_type == 'tree' ) {
+			if( v.link_bible ) {
+				if( v.link_type == 'treenode' ) {
 					Ext.apply(columnObject,{
 						filter: {
 							type: 'op5crmbasebibletree',
 							optimaModule: me.optimaModule,
 							bibleId: v.link_bible
+						},
+						editor:{
+							xtype:'op5crmbasebibletreepicker',
+							selectMode: 'single',
+							optimaModule:me.optimaModule,
+							bibleId: v.link_bible
 						}
 					}) ;
 				}
 				
-				if( v.link_bible_type == 'entry' ) {
+				if( v.link_type == 'entry' ) {
 					Ext.apply(columnObject,{
 						filter: {
 							type: 'op5crmbasebible',
 							optimaModule: me.optimaModule,
+							bibleId: v.link_bible
+						},
+						editor:{
+							xtype:'op5crmbasebiblepicker',
+							selectMode: 'single',
+							optimaModule:me.optimaModule,
 							bibleId: v.link_bible
 						}
 					}) ;
@@ -159,6 +184,11 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelEditGrid',{
 					}) ;
 				}
 			}
+			
+			// *** Apply editors ***
+			Ext.apply(columnObject,{
+				
+			}) ;
 			
 			
 			if( v.entry_field_type == 'link' ) {
@@ -233,6 +263,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelEditGrid',{
 			model: gridModelName,
 			remoteSort: true,
 			autoLoad: true,
+			autoSync: false,
 			proxy: this.optimaModule.getConfiguredAjaxProxy({
 				extraParams : {
 					_action: 'data_getFileGrid_data' ,
@@ -253,6 +284,27 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelEditGrid',{
 		};
 		
 		return gridStoreCfg ;
+	},
+	
+	onClickNew: function() {
+		if( this.isVisible() ) {
+			console.log('New Record') ;
+		}
+	},
+	onBeforeEditRecord: function(editor,editEvent) {
+		
+	},
+	onCancelEditRecord: function(editor,editEvent) {
+		
+	},
+	onAfterEditRecord: function(editor,editEvent) {
+		console.dir( arguments );
+	},
+	
+	reload: function() {
+		if( this.getStore() ) {
+			this.getStore().load() ;
+		}
 	}
 	
 });
