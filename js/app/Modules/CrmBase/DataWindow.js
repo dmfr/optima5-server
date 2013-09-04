@@ -114,6 +114,10 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 								load: {
 									fn: me.onReload,
 									scope: me
+								},
+								viewchange: {
+									fn: me.onFileViewChanged,
+									scope: me
 								}
 							}
 						})]
@@ -154,8 +158,21 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 	onReload: function() {
 		var me = this ;
 		me.getToolbar().enableDropStore( me.getPanel().isEmpty() ) ;
-		
 	},
+	onFileViewChanged: function(viewId) {
+		var me = this ;
+		switch( viewId ) {
+			case 'grid' :
+			case 'editgrid' :
+				me.getToolbar().enableNew( true ) ;
+				break ;
+			
+			default :
+				me.getToolbar().enableNew( false ) ;
+				break ;
+		}
+	},
+	
 	onCrmeventBroadcast: function( crmEvent, eventParams ) {
 		var me = this ;
 		switch( crmEvent ) {
@@ -270,6 +287,10 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 		var me = this ;
 		//console.log(menuId+':'+menuItemId+' '+checked) ;
 		switch( menuId ) {
+			case 'new' :
+				return me.getPanel().onClickNew() ;
+				break ;
+				
 			case 'file' :
 				switch( menuItemId ) {
 					case 'export-excel' :

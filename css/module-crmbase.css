@@ -93,6 +93,9 @@
 	background-image: url("../images/modules/crmbase-android-16.png") !important;
 }
 
+.op5-crmbase-datatoolbar-new {
+	background-image: url("../images/modules/crmbase-new-16.gif") !important;
+}
 .op5-crmbase-datatoolbar-file {
 	background-image: url("../images/modules/crmbase-save-16.gif") !important;
 }

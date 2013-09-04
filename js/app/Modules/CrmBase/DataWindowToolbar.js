@@ -7,6 +7,13 @@ Ext.define('Optima5.Modules.CrmBase.DataWindowToolbar' ,{
 		var me = this ;
 		Ext.apply( this , {
 			items : [{
+				hidden: true,
+				itemId: 'new',
+				text: 'New',
+				iconCls: 'op5-crmbase-datatoolbar-new',
+				handler:me.onItemClick,
+				scope:me
+			},{
 				itemId: 'file',
 				text: 'File',
 				iconCls: 'op5-crmbase-datatoolbar-file',
@@ -140,6 +147,10 @@ Ext.define('Optima5.Modules.CrmBase.DataWindowToolbar' ,{
 		
 		var refreshBtn = me.child('#refresh') ;
 		refreshBtn.setVisible(true) ;
+	},
+	enableNew: function( bool ) {
+		var me = this ;
+		me.child('#new').setVisible(bool) ;
 	},
 	enableDropStore: function( bool ) {
 		var me = this ;

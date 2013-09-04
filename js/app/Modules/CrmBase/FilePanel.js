@@ -57,7 +57,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 		});
 		
 		this.callParent(arguments);
-		this.addEvents('load') ;
+		this.addEvents('load','viewchanged') ;
 	},
 			  
 			  
@@ -170,6 +170,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 		});
 		
 		this.add( this.mainview ) ;
+		this.fireViewChange() ;
 	},
 	
 	reconfigureDataBuildStore: function( ajaxData ) {
@@ -292,6 +293,10 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 			{
 				default :
 					break ;
+			}
+			
+			if( v.is_raw_link ) {
+				return ;
 			}
 			
 			var columnObject = new Object();
@@ -539,6 +544,15 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 		if( this.mainview && this.mainview.child('op5crmbasefilecalendar') ) {
 			this.mainview.child('op5crmbasefilecalendar').reload() ;
 		}
+		if( this.mainview && this.mainview.child('op5crmbasefileeditgrid') ) {
+			this.mainview.child('op5crmbasefileeditgrid').reload() ;
+		}
+	},
+	onClickNew: function() {
+		if( this.gridpanel && this.gridpanel.isVisible() ) {
+			this.editRecordNew() ;
+			return ;
+		}
 	},
 	onStoreLoad: function() {
 		this.fireEvent('load',this) ;
@@ -677,6 +691,13 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 				var newPanel = this.mainview.items.getAt(newPanelIdx) ;
 				layout.setActiveItem(newPanelIdx);
 		}
+		this.fireViewChange() ;
+	},
+	fireViewChange: function() {
+		var me = this,
+			activeId = this.mainview.getLayout().getActiveItem().panelType ;
+			
+		me.fireEvent('viewchange',activeId) ;
 	},
 	
 	exportExcel: function() {
