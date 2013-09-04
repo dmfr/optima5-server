@@ -4,7 +4,7 @@ class DatabaseMgr_Sdomain {
 	private $_opDB ;
 	private $domain_id ;
 	
-	private static $dbVersion = 5 ;
+	private static $dbVersion = 6 ;
 	
 	public function __construct( $domain_id ) {
 		$this->_opDB = $GLOBALS['_opDB'] ;
@@ -89,6 +89,8 @@ CREATE TABLE `define_file_cfg_calendar` (
   `eventstatus_filefield` varchar(20) NOT NULL,
   `account_is_on` varchar(1) NOT NULL,
   `account_filefield` varchar(20) NOT NULL,
+  `account_boolean_is_on` varchar(1) NOT NULL,
+  `account_boolean_biblefield` varchar(20) NOT NULL,
   `duration_is_fixed` varchar(1) NOT NULL,
   `duration_src_filefield` varchar(20) NOT NULL,
   `duration_src_biblefield` varchar(20) NOT NULL,
@@ -157,6 +159,8 @@ CREATE TABLE `input_explorer_cfg` (
   `explorercfg_id` int(11) NOT NULL,
   `account_is_on` varchar(1) NOT NULL,
   `account_linkbible` varchar(100) NOT NULL,
+  `account_boolean_is_on` varchar(1) NOT NULL,
+  `account_boolean_biblefield` varchar(20) NOT NULL,
   PRIMARY KEY (`explorercfg_id`)
 ) ;
 
