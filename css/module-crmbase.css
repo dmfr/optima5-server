@@ -108,6 +108,9 @@
 .op5-crmbase-datatoolbar-view-grid {
 	background-image: url("../images/modules/crmbase-listall-16.gif") !important;
 }
+.op5-crmbase-datatoolbar-view-editgrid {
+	background-image: url("../images/modules/crmbase-editgrid-16.png") !important;
+}
 .op5-crmbase-datatoolbar-view-gmap {
 	background-image: url("../images/modules/crmbase-planet-16.gif") !important;
 }

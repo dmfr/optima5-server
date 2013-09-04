@@ -3,6 +3,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 			  
 	requires: [
 		'Optima5.Modules.CrmBase.DataFormPanel',
+		'Optima5.Modules.CrmBase.FilePanelEditGrid',
 		'Optima5.Modules.CrmBase.FilePanelGmap',
 		'Optima5.Modules.CrmBase.FilePanelGallery',
 		'Optima5.Modules.CrmBase.FilePanelCalendar',
@@ -109,6 +110,17 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 			activeItem : (ajaxData.define_file.viewmode_calendar ? 1 : 0),
 			//resizable : true ,
 			items: [this.gridpanel,{
+				xtype:'op5crmbasefileeditgrid',
+				border:false,
+				panelType: 'editgrid',
+				optimaModule: me.optimaModule,
+				parentFilePanel: me,
+				fileId: this.fileId,
+				gridCfg: ajaxData,
+				listeners: {
+					
+				}
+			},{
 				xtype:'op5crmbasefilecalendar',
 				border:false,
 				panelType: 'calendar',

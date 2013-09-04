@@ -45,6 +45,10 @@ Ext.define('Optima5.Modules.CrmBase.DataWindowToolbar' ,{
 						text: 'Grid data',
 						iconCls: 'op5-crmbase-datatoolbar-view-grid'
 					},{
+						itemId: 'editgrid',
+						text: 'Editable grid',
+						iconCls: 'op5-crmbase-datatoolbar-view-editgrid'
+					},{
 						itemId: 'gmap',
 						text: 'GMap/locations',
 						iconCls: 'op5-crmbase-datatoolbar-view-gmap'
@@ -115,6 +119,7 @@ Ext.define('Optima5.Modules.CrmBase.DataWindowToolbar' ,{
 		viewMenu.menu.hide() ;
 		viewMenu.setVisible(true) ;
 		viewMenu.menu.child('#grid').setVisible( ajaxData.viewmode_grid ) ;
+		viewMenu.menu.child('#editgrid').setVisible( ajaxData.viewmode_editgrid ) ;
 		viewMenu.menu.child('#calendar').setVisible( ajaxData.viewmode_calendar ) ;
 		viewMenu.menu.child('#gmap').setVisible( ajaxData.viewmode_gmap ) ;
 		viewMenu.menu.child('#gallery').setVisible( ajaxData.viewmode_gallery ) ;
