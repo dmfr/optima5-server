@@ -247,7 +247,8 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 					ddGroup:'setTreenode'+this.getId(),
 					enableDrag:true,
 					appendOnly:true,
-					allowParentInsert:false
+					allowParentInsert:false,
+					containerScroll: true
 				},
 				listeners:{
 					beforedrop:function(node, data, dropRecord, dropPosition, dropHandlers){

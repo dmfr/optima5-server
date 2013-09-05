@@ -39,6 +39,38 @@ Ext.onReady(function () {
 		}
 	});
 	
+	/*
+	TreeViewDragDrop : containerScroll 
+	*/
+	Ext.tree.plugin.TreeViewDragDrop.override( {
+		onViewRender : function(view) {
+			var me = this;
+			
+			if (me.enableDrag) {
+					me.dragZone = new Ext.tree.ViewDragZone({
+						view: view,
+						ddGroup: me.dragGroup || me.ddGroup,
+						dragText: me.dragText,
+						repairHighlightColor: me.nodeHighlightColor,
+						repairHighlight: me.nodeHighlightOnRepair
+					});
+			}
+			
+			if (me.enableDrop) {
+				me.dropZone = new Ext.tree.ViewDropZone({
+					view: view,
+					ddGroup: me.dropGroup || me.ddGroup,
+					allowContainerDrops: me.allowContainerDrops,
+					appendOnly: me.appendOnly,
+					allowParentInserts: me.allowParentInserts,
+					expandDelay: me.expandDelay,
+					dropHighlightColor: me.nodeHighlightColor,
+					dropHighlight: me.nodeHighlightOnDrop,
+					containerScroll: me.containerScroll
+				});
+			}
+		}
+	});
 	
 	/*
 	Désactiver le click droit
