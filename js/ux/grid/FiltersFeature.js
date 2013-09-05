@@ -522,8 +522,55 @@ Ext.define('Ext.ux.grid.FiltersFeature', {
             headerCt = me.view.headerCt;
         if (headerCt) {
             headerCt.items.each(function(header) {
+					if( !header.origText ) {
+						header.origText = header.text ;
+					}
+					
                 var filter = me.getFilter(header.dataIndex);
                 header[filter && filter.active ? 'addCls' : 'removeCls'](me.filterCls);
+					 
+					if( filter && filter.active ) {
+						var addText = '' ,
+							filterData = filter.getSerialArgs() ;
+							
+							if( Ext.isArray ) {
+								for( var idx=0 ; idx<filterData.length ; idx++ ) {
+									addText += '<br>' ;
+									switch( filterData[idx].comparison ) {
+										case 'eq' :
+											addText += '&nbsp;'+'='+'&nbsp;'+filterData[idx].value ;
+											break ;
+										case 'lt' :
+											addText += '&nbsp;'+'<='+'&nbsp;'+filterData[idx].value ;
+											break ;
+										case 'gt' :
+											addText += '&nbsp;'+'>='+'&nbsp;'+filterData[idx].value ;
+											break ;
+									}
+								}
+							}
+							if( Ext.isObject ) {
+								switch( filterData.type ) {
+									case 'list' :
+										if( filter.alias == 'gridfilter.op5crmbasebibletree' ) {
+											addText += '<br>' + filterData.valueRoot.join(' + ') ;
+											break ;
+										}
+										addText += '<br>' + filterData.value.join(' + ') ;
+										break ;
+									
+									case 'string' :
+										addText += '<br>' + '&nbsp;' + '=' + '&nbsp;' + filterData.value ;
+										break ;
+									default :
+										break ;
+								}
+							}
+						 
+						header.setText(header.origText+''+addText) ;
+					} else if( header.origText ) {
+						header.setText( header.origText ) ;
+					}
             });
         }
     },

@@ -144,6 +144,17 @@ Ext.define('Optima5.Modules.CrmBase.BibleTreeFilter', {
 		}
 		me.inputValue = checkedKeys ;
 		
+		var checkedKeysRoot = new Array() ;
+		if( this.mystore ) {
+			this.mystore.getRootNode().cascadeBy(function(rec){
+				if( rec.get('checked') == true ) {
+					checkedKeysRoot.push( rec.get('nodeKey') ) ;
+					return false ;
+				}
+			},this) ;
+		}
+		me.inputValueRoot = checkedKeysRoot ;
+		
 		me.fireUpdate() ;
 	},
 	isActivatable : function () {
@@ -151,7 +162,7 @@ Ext.define('Optima5.Modules.CrmBase.BibleTreeFilter', {
 	},
 	getSerialArgs : function () {
 		var me = this ;
-		return {type: 'list', value: this.phpMode ? me.getValue().join(',') : me.getValue()};
+		return {type: 'list', value: this.phpMode ? me.getValue().join(',') : me.getValue() , valueRoot : this.phpMode ? me.getValue().join(',') : me.inputValueRoot };
 	},
 	getValue : function() {
 		var me = this ;
