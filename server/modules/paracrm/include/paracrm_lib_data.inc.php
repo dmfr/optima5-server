@@ -188,6 +188,10 @@ function paracrm_lib_dataTool_getBibleTreeRoot( $bible_code, $treenode_key=NULL 
 			$tab_parentkey_nodes[$arr['treenode_parent_key']][$arr['treenode_key']] = $txt ;
 		}
 		
+		foreach( $tab_parentkey_nodes as $treenode_parent_key => $dummy ) {
+			ksort($tab_parentkey_nodes[$treenode_parent_key]) ;
+		}
+		
 		
 		// print_r($tab_parentkey_nodes) ;
 		

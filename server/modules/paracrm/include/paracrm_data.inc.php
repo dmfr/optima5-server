@@ -172,6 +172,7 @@ function paracrm_data_getBibleTree( $post_data )
 			$record['nb_entries'] = $arr_treenode_nbEntries[$treenode_key] ;
 			$tab_parentkey_nodes[$treenode_parent_key][$treenode_key] = $record ;
 		}
+		ksort($tab_parentkey_nodes[$treenode_parent_key]) ;
 	}
 	
 	// print_r($tab_parentkey_nodes) ;
