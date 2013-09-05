@@ -49,6 +49,8 @@ switch( $post_data['_action'] )
 	case 'data_getFileGrid_exportGallery' :
 	session_write_close() ;
 	return paracrm_data_getFileGrid_exportGallery( $post_data );
+	case 'data_setFileGrid_raw' :
+	return paracrm_data_setFileGrid_raw( $post_data );
 	
 	
 	case 'queries_getToolbarData' :

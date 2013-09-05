@@ -96,6 +96,8 @@ function paracrm_define_getMainToolbar($post_data)
 		}
 		
 		$arr['viewmode_grid'] = true ;
+		if( $post_data['data_type']=='file' && $arr['file_parent_code']==NULL )
+			$arr['viewmode_editgrid'] = true ;
 		if( $arr['gmap_is_on'] == 'O' )
 			$arr['viewmode_gmap'] = true ;
 		if( $arr['store_type'] == 'media_img' )

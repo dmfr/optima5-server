@@ -142,7 +142,23 @@ function paracrm_lib_file_mapFile( $file_code, $is_called=FALSE )
 				continue ;
 			}
 			if( $arr['entry_field_type'] == 'link' ) {
+				// Champ link "brut" :
+				//  - process join
+				//  - EditGrid
 				$sql_selectfields[] = array($file_code.'.'.'field_'.$arr['entry_field_code'],$myprefix.'field_'.$arr['entry_field_code']) ;
+				$grid_cell = array() ;
+				$grid_cell['field'] = $myprefix.'field_'.$arr['entry_field_code'] ;
+				$grid_cell['type'] = ( $color_field && ($color_field == $arr['entry_field_code']) ) ? 'color' : $arr['entry_field_type'] ;
+				$grid_cell['text'] = $arr['entry_field_lib'] ;
+				$grid_cell['file_code'] = $file_code ;
+				$grid_cell['file_field'] = $arr['entry_field_code'] ;
+				$grid_cell['file_field_lib'] = $arr['entry_field_lib'] ;
+				$grid_cell['is_display'] = true ;
+				$grid_cell['is_raw_link'] = true ;
+				$grid_cell['link_bible'] = $arr['entry_field_linkbible'] ;
+				$grid_cell['link_type'] = $arr['entry_field_linktype'] ;
+				
+				$grid_map[] = $grid_cell ;
 			
 				switch( $arr['entry_field_linktype'] ) {
 					case 'treenode' :

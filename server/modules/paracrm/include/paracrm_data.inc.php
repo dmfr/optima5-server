@@ -648,6 +648,30 @@ function paracrm_data_getFileGrid_raw( $post_data )
 
 
 
+function paracrm_data_setFileGrid_raw( $post_data ) {
+	global $_opDB ;
+	
+	$filerecord_id = $post_data['filerecord_id'] ;
+	$file_code = $post_data['file_code'] ;
+	$data = json_decode($post_data['data'],true) ;
+	$do_delete = $post_data['do_delete'] ;
+	$is_new = $post_data['is_new'] ;
+	
+	if( !$is_new ) {
+		if( $do_delete ) {
+			paracrm_lib_data_deleteRecord_file( $file_code , $filerecord_id ) ;
+		} else {
+			paracrm_lib_data_updateRecord_file( $file_code , $data, $filerecord_id ) ;
+		}
+	} else {
+		$filerecord_id = paracrm_lib_data_insertRecord_file( $file_code , 0, $data ) ;
+	}
+	
+	return array('success'=>true, 'filerecord_id'=>$filerecord_id ) ;
+}
+
+
+
 
 function paracrm_data_getFileGrid_exportXLS( $post_data )
 {
