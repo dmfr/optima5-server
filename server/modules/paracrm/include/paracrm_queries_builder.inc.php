@@ -361,7 +361,9 @@ function paracrm_queries_builderTransaction_getTreeFields( &$arr_saisie )
 		
 		if( $field['link_bible'] )
 		{
-			$TAB_file_fields[$file_code][$file_field][] = $field['field'] ;
+			if( !$field['is_raw_link'] ) {
+				$TAB_file_fields[$file_code][$file_field][] = $field['field'] ;
+			}
 		}
 		else
 		{
