@@ -50,6 +50,26 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelEditGrid',{
 					scope: me
 				}
 			}],
+			listeners: {
+				itemcontextmenu: function(view, record, item, index, event) {
+					gridContextMenuItems = new Array() ;
+					if( true || !authReadOnly ) {
+						gridContextMenuItems.push({
+							iconCls: 'icon-bible-delete',
+							text: 'Delete record',
+							handler : function() {
+								me.onClickDelete(record) ;
+							},
+							scope : me
+						});
+					}
+					var gridContextMenu = Ext.create('Ext.menu.Menu',{
+						items : gridContextMenuItems
+					}) ;
+					gridContextMenu.showAt(event.getXY());
+				},
+				scope: me
+			},
 			dockedItems: [{
 				xtype: 'pagingtoolbar',
 				store: gridStore,   // same store GridPanel is using
@@ -57,8 +77,6 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelEditGrid',{
 				displayInfo: true
 			}]
 		}) ;
-		
-		
 		
 		me.callParent(arguments) ;
 	},
@@ -112,17 +130,29 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelEditGrid',{
 			}) ;
 			if( v.type == 'color' ) {
 				Ext.apply(columnObject,{
-					renderer: colorrenderer
+					renderer: colorrenderer,
+					editorTpl:{ xtype:'colorpickercombo'  }
 				}) ;
 			}
 			if( v.type == 'date' ) {
 				Ext.apply(columnObject,{
 					renderer: daterenderer,
+					editorTpl:{ xtype:'datetimefield'  }
 				}) ;
 			}
 			if( v.type == 'bool' ) {
 				Ext.apply(columnObject,{
 					renderer: boolrenderer
+				}) ;
+			}
+			if( v.type == 'string' ) {
+				Ext.apply(columnObject,{
+					editorTpl:{ xtype:'textfield'  }
+				}) ;
+			}
+			if( v.type == 'number' ) {
+				Ext.apply(columnObject,{
+					editorTpl:{ xtype:'numberfield', hideTrigger:true  }
 				}) ;
 			}
 			if( v.file_code == this.fileId && (!v.link_bible || v.link_bible_is_key) ) {
@@ -137,6 +167,10 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelEditGrid',{
 			}
 			
 			if( v.link_bible ) {
+				Ext.apply(columnObject,{
+					width: 200
+				}) ;
+				
 				if( v.link_type == 'treenode' ) {
 					Ext.apply(columnObject,{
 						filter: {
@@ -144,8 +178,9 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelEditGrid',{
 							optimaModule: me.optimaModule,
 							bibleId: v.link_bible
 						},
-						editor:{
+						editorTpl:{
 							xtype:'op5crmbasebibletreepicker',
+							pickerWidth:400,
 							selectMode: 'single',
 							optimaModule:me.optimaModule,
 							bibleId: v.link_bible
@@ -160,8 +195,9 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelEditGrid',{
 							optimaModule: me.optimaModule,
 							bibleId: v.link_bible
 						},
-						editor:{
+						editorTpl:{
 							xtype:'op5crmbasebiblepicker',
+							pickerWidth:400,
 							selectMode: 'single',
 							optimaModule:me.optimaModule,
 							bibleId: v.link_bible
@@ -287,18 +323,182 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelEditGrid',{
 	},
 	
 	onClickNew: function() {
-		if( this.isVisible() ) {
-			console.log('New Record') ;
+		var me = this ;
+		
+		if( !this.isVisible() ) {
+			return ;
 		}
+		
+		// **** get Enabled Filters > initial data ****
+		var hasError = false ;
+		var presetFieldValue = {filerecord_id:-1} ;
+		Ext.Array.each( me.filters.getFilterData(), function(filterCfg){
+			var filter = me.filters.getFilter( filterCfg.field ) ;
+			if( !filter || !filter.active ) {
+				return ;
+			}
+			var filterArgs = filter.getSerialArgs() ;
+			switch( filter.alias[0] ) {
+				case 'gridfilter.op5crmbasebibletree' :
+					if( filterArgs.valueRoot.length != 1 ) {
+						hasError = true ;
+						return false ;
+					}
+					presetFieldValue[filterCfg.field] = filterArgs.valueRoot[0] ;
+					break ;
+				
+				case 'gridfilter.op5crmbasebible' :
+					if( filterArgs.value.length != 1 ) {
+						hasError = true ;
+						return false ;
+					}
+					presetFieldValue[filterCfg.field] = filterArgs.value[0] ;
+					break ;
+				
+				case 'gridfilter.date' :
+					Ext.Array.each( filterArgs, function(filterArg) {
+						if( filterArg.comparison == 'eq' ) {
+							presetFieldValue[filterCfg.field] = Ext.Date.parse(filterArg.value,'Y-m-d') ;
+						} else {
+							hasError = true ;
+							return false ;
+						}
+					},me) ;
+					break ;
+				
+				default :
+					hasError = true ;
+					return false ;
+					break ;
+			}
+		},me);
+		
+		if( hasError ) {
+			Ext.Msg.show({
+				title:'New record',
+				msg: "Cannot set unique value(s) from current filter(s)" ,
+				buttons: Ext.Msg.OK,
+				icon: Ext.Msg.WARNING
+			});
+			return ;
+		}
+		
+		var newRecord = Ext.create('FileEditGrid'+'-'+this.fileId, presetFieldValue) ;
+		
+		this.getStore().insert(0, newRecord );
+		this.getPlugin('rowEditor').startEdit(0,0) ;
 	},
 	onBeforeEditRecord: function(editor,editEvent) {
+		var me = this,
+			readonlyColumns = [] ;
 		
+		// **** get Enabled Filters > READONLY ****
+		Ext.Array.each( me.filters.getFilterData(), function(filterCfg){
+			var filter = me.filters.getFilter( filterCfg.field ) ;
+			if( !filter ) {
+				return ;
+			}
+			if( filter.active ) {
+				readonlyColumns.push( filterCfg.field ) ;
+			}
+		},me);
+		
+		Ext.Array.forEach( editEvent.grid.columns, function(col) {
+			if( col.editorTpl ) {
+				var editorTpl = Ext.apply({},col.editorTpl) ;
+				if( Ext.Array.contains( readonlyColumns, col.dataIndex ) ) {
+					Ext.apply( editorTpl, {
+						readOnly: true
+					}) ;
+				}
+				col.setEditor(editorTpl) ;
+			}
+		},me);
 	},
 	onCancelEditRecord: function(editor,editEvent) {
-		
+		var me = this,
+			editedRecord = editEvent.record ;
+			
+		if( editedRecord.data.filerecord_id == -1 ) {
+			this.getStore().remove(editedRecord) ;
+		}
 	},
 	onAfterEditRecord: function(editor,editEvent) {
-		console.dir( arguments );
+		var me = this,
+			crmFields = {},
+			editedRecord = editEvent.record ;
+		
+		if( editedRecord.get('filerecord_id') == -1 ) {
+			editedRecord.set('filerecord_id',0);
+		}
+			
+		Ext.Object.each( me.gridCfg.grid_fields , function(k,v) {
+			if( v.link_bible && !v.is_raw_link ) {
+				return ;
+			}
+			
+			if( editedRecord.data[v.field] != null && v.file_field != null ) {
+				var fieldCode = 'field_'+v.file_field ;
+				switch( v.type ) {
+					case 'date' :
+						crmFields[fieldCode] = Ext.Date.format(editedRecord.data[v.field], 'Y-m-d H:i:s') ;
+						break ;
+						
+					default :
+						crmFields[fieldCode] = editedRecord.data[v.field] ;
+						break ;
+				}
+			}
+		}) ;
+		
+		
+		var ajaxParams = new Object() ;
+		Ext.apply( ajaxParams, {
+			_action: 'data_setFileGrid_raw',
+			data: Ext.JSON.encode(crmFields),
+			file_code: this.fileId,
+			is_new: ( editedRecord.get('filerecord_id')>0 ? 0 : 1 ),
+			filerecord_id: editedRecord.get('filerecord_id')
+		});
+		me.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams ,
+			success: function(response) {
+				if( Ext.decode(response.responseText).success == false ) {
+					Ext.Msg.alert('Failed', 'Failed');
+				}
+				else {
+					var filerecordId = Ext.decode(response.responseText).filerecord_id ;
+					editedRecord.set('filerecord_id',filerecordId) ;
+					editedRecord.set(me.fileId+'_id',filerecordId) ;
+				}
+			},
+			scope: this
+		});
+	},
+	onClickDelete: function(record) {
+		var me = this ;
+		
+		if( record.get('filerecord_id') > 0 ) {
+			var ajaxParams = new Object() ;
+			Ext.apply( ajaxParams, {
+				_action: 'data_setFileGrid_raw',
+				do_delete: 1,
+				file_code: this.fileId,
+				is_new: 0,
+				filerecord_id: record.get('filerecord_id')
+			});
+			me.optimaModule.getConfiguredAjaxConnection().request({
+				params: ajaxParams ,
+				success: function(response) {
+					if( Ext.decode(response.responseText).success == false ) {
+						Ext.Msg.alert('Failed', 'Failed');
+					}
+				},
+				scope: this
+			});
+		}
+		
+		me.getStore().remove(record) ;
 	},
 	
 	reload: function() {

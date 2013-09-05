@@ -162,7 +162,6 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 	onFileViewChanged: function(viewId) {
 		var me = this ;
 		switch( viewId ) {
-			case 'grid' :
 			case 'editgrid' :
 				me.getToolbar().enableNew( true ) ;
 				break ;
