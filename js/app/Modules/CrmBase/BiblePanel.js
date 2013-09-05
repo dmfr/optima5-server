@@ -268,16 +268,26 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 										return ;
 									}
 									
-									var entryKey = data.records[0].get('entry_key') ;
+									var entryKeys = [],
+										  msg ;
+									for( var recIdx=0 ; recIdx<data.records.length ; recIdx++ ) {
+										entryKeys.push(data.records[recIdx].get('entry_key')) ;
+									}
+									if( entryKeys.length == 1 ) {
+										msg = 'Assign <b>'+entryKeys[0]+'</b> to treenode <b>'+targetTreenode+'</b> ?' ;
+									} else {
+										msg = 'Assign <b>'+entryKeys.length+'</b> records to treenode <b>'+targetTreenode+'</b> ?' ;
+									}
+									
 									var targetTreenode = dropRecord.get('treenode_key') ;
 								
 									Ext.Msg.show({
 										title:'Assign treenode',
-										msg: 'Assign <b>'+entryKey+'</b> to treenode <b>'+targetTreenode+'</b> ?' ,
+										msg: msg ,
 										buttons: Ext.Msg.YESNO,
 										fn:function(buttonId){
 											if( buttonId == 'yes' ) {
-												me.editEntryAssignTreenode(entryKey,targetTreenode) ;
+												me.editEntryAssignTreenode(entryKeys,targetTreenode) ;
 											}
 										},
 										scope:me
@@ -525,6 +535,9 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 				dock: 'bottom',
 				displayInfo: true
 			}],
+			selModel: {
+				mode: 'MULTI'
+			},
 			viewConfig: {
 				plugins: { ptype: 'gridviewdragdrop', ddGroup:'setTreenode'+this.getId(), enableDrop:false }
 			}
@@ -540,39 +553,58 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 		},me) ;
 		
 		gridpanel.on('itemcontextmenu', function(view, record, item, index, event) {
-			var strHeader = record.get('treenode_key')+' - '+record.get('entry_key')
+			var gridContextMenuItems = new Array() ;
 			
-			
-			gridContextMenuItems = new Array() ;
-			if( authReadOnly ) {
-				gridContextMenuItems.push({
-					iconCls: 'icon-bible-edit',
-					text: 'Open <b>'+strHeader+'</b>',
-					handler : function() {
-						me.editEntryUpdate( record.get('entry_key') ) ;
-					},
-					scope : me
-				});
-			}
-			if( !authReadOnly ) {
-				gridContextMenuItems.push({
-					iconCls: 'icon-bible-edit',
-					text: 'Edit <b>'+strHeader+'</b>',
-					handler : function() {
-						me.editEntryUpdate( record.get('entry_key') ) ;
-					},
-					scope : me
-				});
-			}
-			if( !authReadOnly ) {
-				gridContextMenuItems.push({
-					iconCls: 'icon-bible-delete',
-					text: 'Delete <b>'+strHeader+'</b>',
-					handler : function() {
-						me.editEntryDelete( record.get('entry_key') ) ;
-					},
-					scope : me
-				});
+			var selRecords = view.getSelectionModel().getSelection() ;
+			if( selRecords.length > 1 ) {
+				if( !authReadOnly ) {
+					var entryKeys = [] ;
+					for( var recIdx=0 ; recIdx<selRecords.length ; recIdx++ ) {
+						entryKeys.push( selRecords[recIdx].get('entry_key') ) ;
+					}
+					gridContextMenuItems.push({
+						iconCls: 'icon-bible-delete',
+						text: 'Delete <b>'+selRecords.length+'</b> records',
+						handler : function() {
+							
+							me.editEntryDelete( entryKeys ) ;
+						},
+						scope : me
+					});
+				}
+			} else {
+				var strHeader = record.get('treenode_key')+' - '+record.get('entry_key')
+				
+				if( authReadOnly ) {
+					gridContextMenuItems.push({
+						iconCls: 'icon-bible-edit',
+						text: 'Open <b>'+strHeader+'</b>',
+						handler : function() {
+							me.editEntryUpdate( record.get('entry_key') ) ;
+						},
+						scope : me
+					});
+				}
+				if( !authReadOnly ) {
+					gridContextMenuItems.push({
+						iconCls: 'icon-bible-edit',
+						text: 'Edit <b>'+strHeader+'</b>',
+						handler : function() {
+							me.editEntryUpdate( record.get('entry_key') ) ;
+						},
+						scope : me
+					});
+				}
+				if( !authReadOnly ) {
+					gridContextMenuItems.push({
+						iconCls: 'icon-bible-delete',
+						text: 'Delete <b>'+strHeader+'</b>',
+						handler : function() {
+							me.editEntryDelete( [record.get('entry_key')] ) ;
+						},
+						scope : me
+					});
+				}
 			}
 			
 			var gridContextMenu = Ext.create('Ext.menu.Menu',{
@@ -795,14 +827,14 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 			scope: this
 		});
 	},
-	editEntryDelete: function( entryKey ) {
+	editEntryDelete: function( entryKeys ) {
 		var me = this ;
 		var ajaxParams = new Object() ;
 		Ext.apply( ajaxParams, {
 			_action: 'data_deleteRecord',
 			data_type: 'bible_entry',
 			bible_code: this.bibleId,
-			entry_key: entryKey
+			entry_keys: Ext.JSON.encode(entryKeys)
 		});
 		var me = this ;
 		me.editMaskSet(true) ;
@@ -825,13 +857,13 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 		});
 	},
 			  
-	editEntryAssignTreenode: function( entryKey, targetTreenodeKey ) {
+	editEntryAssignTreenode: function( entryKeys, targetTreenodeKey ) {
 		var me = this ;
 		var ajaxParams = new Object() ;
 		Ext.apply( ajaxParams, {
 			_action: 'data_bibleAssignTreenode',
 			bible_code: this.bibleId,
-			entry_key: entryKey,
+			entry_keys: Ext.JSON.encode(entryKeys),
 			target_treenode_key: targetTreenodeKey
 		});
 		var me = this ;
