@@ -137,8 +137,20 @@ function paracrm_data_deleteRecord( $post_data )
 		break ;
 	
 		case 'bible_entry' :
+		if( isset($post_data['entry_keys']) ) {
+			$entry_keys = json_decode($post_data['entry_keys'],true) ;
+		} elseif( isset($post_data['entry_key']) ) {
+			$entry_keys = array($post_data['entry_key']) ;
+		} else {
+			return array('success'=>false) ;
+		}
 		paracrm_lib_data_beginTransaction() ;
-		$ret = paracrm_lib_data_deleteRecord_bibleEntry( $post_data['bible_code'], $post_data['entry_key'] ) ;
+		foreach( $entry_keys as $entry_key ) {
+			$ret = paracrm_lib_data_deleteRecord_bibleEntry( $post_data['bible_code'], $entry_key ) ;
+			if( $ret != 0 ) {
+				break ;
+			}
+		}
 		paracrm_lib_data_endTransaction(TRUE) ;
 		break ;
 	
@@ -164,11 +176,22 @@ function paracrm_data_deleteRecord( $post_data )
 function paracrm_data_bibleAssignTreenode( $post_data )
 {
 	$bible_code = $post_data['bible_code'] ;
-	$entry_key = $post_data['entry_key'] ;
+	if( isset($post_data['entry_keys']) ) {
+		$entry_keys = json_decode($post_data['entry_keys'],true) ;
+	} elseif( isset($post_data['entry_key']) ) {
+		$entry_keys = array($post_data['entry_key']) ;
+	} else {
+		return array('success'=>false) ;
+	}
 	$target_treenode_key = $post_data['target_treenode_key'] ;
 
 	paracrm_lib_data_beginTransaction() ;
-	$ret = paracrm_lib_data_bibleAssignTreenode( $bible_code, $entry_key, $target_treenode_key ) ;
+	foreach( $entry_keys as $entry_key ) {
+		$ret = paracrm_lib_data_bibleAssignTreenode( $bible_code, $entry_key, $target_treenode_key ) ;
+		if( $ret != 0 ) {
+			break ;
+		}
+	}
 	paracrm_lib_data_endTransaction(FALSE) ;
 	
 	if( $ret == 0 )
