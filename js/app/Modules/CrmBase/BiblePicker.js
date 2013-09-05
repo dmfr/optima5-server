@@ -256,7 +256,9 @@ Ext.define('Optima5.Modules.CrmBase.BiblePicker',{
 
 		if (me.isExpanded) {
 				picker = me.getPicker();
-				if (me.matchFieldWidth) {
+				if( me.pickerWidth ) {
+					picker.setSize(me.pickerWidth);
+				} else if (me.matchFieldWidth) {
 					// Auto the height (it will be constrained by min and max width) unless there are no records to display.
 					picker.setSize(me.bodyEl.getWidth());
 				}
