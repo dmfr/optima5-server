@@ -264,52 +264,7 @@ fclose($handle) ;
 	Partie PRODUITS
 *******************************
 */
-
-$post = array() ;
-$post['edi_method'] = 'dump' ;
-$post['dump_table'] = 'prod_group' ;
-$handle = oscario_http_post($post, $fp=TRUE) ;
-
-$lig = fgets($handle)  ;
-$fields = json_decode($lig) ;
-
-$map_localField_position = array() ;
-foreach( $fields as $position => $field ) {
-	$localTarget = NULL ;
-	switch( $field ) {
-		case 'prodgroup_code' : $target = 'field_PRODGROUP_CODE_str' ; break ;
-		case 'prodgroup_lib' : $target = 'field_PRODGROUP_NAME_str' ; break ;
-		default : continue 2 ;
-	}
-	$map_localField_position[$target] = $position ;
-}
-while( !feof($handle) ) {
-	$lig = fgets($handle) ;
-	$arr = json_decode($lig) ;
-	
-	$arr_ins = array() ;
-	foreach( $map_localField_position as $target => $position ) {
-		$mkey = $target ;
-		$mvalue = $arr[$position] ;
-		$arr_ins[$mkey] = $mvalue ;
-	}
-	$treenode_key = $arr_ins['field_PRODGROUP_CODE_str'] ;
-	$arr_ins['treenode_key'] = $treenode_key ;
-	if( !$treenode_key ) {
-		continue ;
-	}
-	
-	$query = "SELECT * FROM store_bible__PROD_LOG_tree WHERE treenode_key='{$treenode_key}'" ;
-	if( $_opDB->num_rows($_opDB->query($query)) > 0 ) {
-		$arr_cond = array();
-		$arr_cond['treenode_key'] = $treenode_key ;
-		$_opDB->update('store_bible__PROD_LOG_tree',$arr_ins,$arr_cond) ;
-	} else {
-		$_opDB->insert('store_bible__PROD_LOG_tree',$arr_ins) ;
-	}
-}
-fclose($handle) ;
-
+$arr_existing_treenodes = array() ;
 
 $post = array() ;
 $post['edi_method'] = 'dump' ;
@@ -352,12 +307,19 @@ while( !feof($handle) ) {
 	unset($arr_ins['_']) ;
 	
 	$query = "SELECT * FROM store_bible__PROD_LOG_entry WHERE entry_key='{$entry_key}'" ;
-	if( $_opDB->num_rows($_opDB->query($query)) > 0 ) {
+	if( $_opDB->num_rows($res = $_opDB->query($query)) > 0 ) {
+		$arrDB = $_opDB->fetch_assoc($res) ;
+		$treenode_key = $arrDB['treenode_key'] ;
+		$arr_existing_treenodes[$treenode_key] = TRUE ;
+		
 		$arr_cond = array();
 		$arr_cond['entry_key'] = $entry_key ;
 		unset($arr_ins['treenode_key']) ;
 		$_opDB->update('store_bible__PROD_LOG_entry',$arr_ins,$arr_cond) ;
 	} else {
+		$treenode_key = $arr_ins['treenode_key'] ;
+		$arr_existing_treenodes[$treenode_key] = TRUE ;
+		
 		$_opDB->insert('store_bible__PROD_LOG_entry',$arr_ins) ;
 	}
 }
@@ -365,15 +327,10 @@ fclose($handle) ;
 
 
 
-/*
-*****************************
-	Partie CLIENTS
-*******************************
-*/
 
 $post = array() ;
 $post['edi_method'] = 'dump' ;
-$post['dump_table'] = 'cli_group' ;
+$post['dump_table'] = 'prod_group' ;
 $handle = oscario_http_post($post, $fp=TRUE) ;
 
 $lig = fgets($handle)  ;
@@ -383,8 +340,8 @@ $map_localField_position = array() ;
 foreach( $fields as $position => $field ) {
 	$localTarget = NULL ;
 	switch( $field ) {
-		case 'cligroup_code' : $target = 'field_CLIGROUP_CODE_str' ; break ;
-		case 'cligroup_lib' : $target = 'field_CLIGROUP_NAME_str' ; break ;
+		case 'prodgroup_code' : $target = 'field_PRODGROUP_CODE_str' ; break ;
+		case 'prodgroup_lib' : $target = 'field_PRODGROUP_NAME_str' ; break ;
 		default : continue 2 ;
 	}
 	$map_localField_position[$target] = $position ;
@@ -399,23 +356,36 @@ while( !feof($handle) ) {
 		$mvalue = $arr[$position] ;
 		$arr_ins[$mkey] = $mvalue ;
 	}
-	$treenode_key = $arr_ins['field_CLIGROUP_CODE_str'] ;
+	$treenode_key = $arr_ins['field_PRODGROUP_CODE_str'] ;
 	$arr_ins['treenode_key'] = $treenode_key ;
 	if( !$treenode_key ) {
 		continue ;
 	}
 	
-	$query = "SELECT * FROM store_bible__CLI_tree WHERE treenode_key='{$treenode_key}'" ;
+	if( !$arr_existing_treenodes[$treenode_key] ) {
+		continue ;
+	}
+	
+	$query = "SELECT * FROM store_bible__PROD_LOG_tree WHERE treenode_key='{$treenode_key}'" ;
 	if( $_opDB->num_rows($_opDB->query($query)) > 0 ) {
 		$arr_cond = array();
 		$arr_cond['treenode_key'] = $treenode_key ;
-		$_opDB->update('store_bible__CLI_tree',$arr_ins,$arr_cond) ;
+		$_opDB->update('store_bible__PROD_LOG_tree',$arr_ins,$arr_cond) ;
 	} else {
-		$_opDB->insert('store_bible__CLI_tree',$arr_ins) ;
+		$_opDB->insert('store_bible__PROD_LOG_tree',$arr_ins) ;
 	}
 }
 fclose($handle) ;
 
+
+
+
+/*
+*****************************
+	Partie CLIENTS
+*******************************
+*/
+$arr_existing_treenodes = array() ;
 
 $post = array() ;
 $post['edi_method'] = 'dump' ;
@@ -457,16 +427,75 @@ while( !feof($handle) ) {
 	}
 	
 	$query = "SELECT * FROM store_bible__CLI_entry WHERE entry_key='{$entry_key}'" ;
-	if( $_opDB->num_rows($_opDB->query($query)) > 0 ) {
+	if( $_opDB->num_rows($res = $_opDB->query($query)) > 0 ) {
+		$arrDB = $_opDB->fetch_assoc($res) ;
+		$treenode_key = $arrDB['treenode_key'] ;
+		$arr_existing_treenodes[$treenode_key] = TRUE ;
+		
 		$arr_cond = array();
 		$arr_cond['entry_key'] = $entry_key ;
 		unset($arr_ins['treenode_key']) ;
 		$_opDB->update('store_bible__CLI_entry',$arr_ins,$arr_cond) ;
 	} else {
+		$treenode_key = $arr_ins['treenode_key'] ;
+		$arr_existing_treenodes[$treenode_key] = TRUE ;
+		
 		$_opDB->insert('store_bible__CLI_entry',$arr_ins) ;
 	}
 }
 fclose($handle) ;
+
+
+$post = array() ;
+$post['edi_method'] = 'dump' ;
+$post['dump_table'] = 'cli_group' ;
+$handle = oscario_http_post($post, $fp=TRUE) ;
+
+$lig = fgets($handle)  ;
+$fields = json_decode($lig) ;
+
+$map_localField_position = array() ;
+foreach( $fields as $position => $field ) {
+	$localTarget = NULL ;
+	switch( $field ) {
+		case 'cligroup_code' : $target = 'field_CLIGROUP_CODE_str' ; break ;
+		case 'cligroup_lib' : $target = 'field_CLIGROUP_NAME_str' ; break ;
+		default : continue 2 ;
+	}
+	$map_localField_position[$target] = $position ;
+}
+while( !feof($handle) ) {
+	$lig = fgets($handle) ;
+	$arr = json_decode($lig) ;
+	
+	$arr_ins = array() ;
+	foreach( $map_localField_position as $target => $position ) {
+		$mkey = $target ;
+		$mvalue = $arr[$position] ;
+		$arr_ins[$mkey] = $mvalue ;
+	}
+	$treenode_key = $arr_ins['field_CLIGROUP_CODE_str'] ;
+	$arr_ins['treenode_key'] = $treenode_key ;
+	if( !$treenode_key ) {
+		continue ;
+	}
+	
+	if( !$arr_existing_treenodes[$treenode_key] ) {
+		continue ;
+	}
+	
+	$query = "SELECT * FROM store_bible__CLI_tree WHERE treenode_key='{$treenode_key}'" ;
+	if( $_opDB->num_rows($_opDB->query($query)) > 0 ) {
+		$arr_cond = array();
+		$arr_cond['treenode_key'] = $treenode_key ;
+		$_opDB->update('store_bible__CLI_tree',$arr_ins,$arr_cond) ;
+	} else {
+		$_opDB->insert('store_bible__CLI_tree',$arr_ins) ;
+	}
+}
+fclose($handle) ;
+
+
 
 
 
