@@ -1622,7 +1622,7 @@ function paracrm_queries_process_query_doValue( $arr_saisie, $target_fileCode, $
 		$row_group = array() ;
 		$row_group = $base_row ;
 		$row_group[$target_fileCode] = $arr2 ;
-		$group_key_id = paracrm_queries_process_queryHelp_group( $row_group, $arr_saisie['fields_group'] ) ;
+		$arr_groupKeyId = paracrm_queries_process_queryHelp_group( $row_group, $arr_saisie['fields_group'] ) ;
 		
 		// TODO: cleaner join arch
 		paracrm_lib_file_joinQueryRecord($target_fileCode,$row_group) ;
@@ -1649,12 +1649,15 @@ function paracrm_queries_process_query_doValue( $arr_saisie, $target_fileCode, $
 				// field of bible record
 				$bible_field_code = $symbol['sql_bible_field_code'] ;
 				$bible_record = paracrm_lib_data_getRecord_bibleEntry($symbol['sql_bible_code'], $row_group[$file_code][$file_field_code]) ;
-				$subRES_group_symbol_value[$group_key_id][$symbol_id] = $bible_record[$bible_field_code] ;
+				foreach( $arr_groupKeyId as $group_key_id ) {
+					$subRES_group_symbol_value[$group_key_id][$symbol_id] = $bible_record[$bible_field_code] ;
+				}
 			}
 			else {
-			
 				// field of cursor file record : standard
-				$subRES_group_symbol_value[$group_key_id][$symbol_id] = $row_group[$file_code][$file_field_code] ;
+				foreach( $arr_groupKeyId as $group_key_id ) {
+					$subRES_group_symbol_value[$group_key_id][$symbol_id] = $row_group[$file_code][$file_field_code] ;
+				}
 			}
 		}
 		
@@ -1695,9 +1698,10 @@ function paracrm_queries_process_query_doCount( $arr_saisie, $target_fileCode, $
 			
 		if( $symbol['sql_file_code'] == $parent_fileCode )
 		{
-			$group_key_id = paracrm_queries_process_queryHelp_group( $base_row, $arr_saisie['fields_group'] ) ;
-			
-			$subRES_group_symbol_value[$group_key_id][$symbol_id] = 1 ;
+			$arr_groupKeyId = paracrm_queries_process_queryHelp_group( $base_row, $arr_saisie['fields_group'] ) ;
+			foreach( $arr_groupKeyId as $group_key_id ) {
+				$subRES_group_symbol_value[$group_key_id][$symbol_id] = 1 ;
+			}
 			continue ;
 		}
 		
@@ -1741,9 +1745,10 @@ function paracrm_queries_process_query_doCount( $arr_saisie, $target_fileCode, $
 				if( !paracrm_queries_process_queryHelp_where( $row_test, $arr_saisie['fields_where'] ) )
 					continue ;
 				
-				$group_key_id = paracrm_queries_process_queryHelp_group( $row_pivot, $arr_saisie['fields_group'] ) ;
-			
-				$subRES_group_symbol_value[$group_key_id][$symbol_id]++ ;
+				$arr_groupKeyId = paracrm_queries_process_queryHelp_group( $row_pivot, $arr_saisie['fields_group'] ) ;
+				foreach( $arr_groupKeyId as $group_key_id ) {
+					$subRES_group_symbol_value[$group_key_id][$symbol_id]++ ;
+				}
 			}
 			
 			continue ;
@@ -1769,8 +1774,10 @@ function paracrm_queries_process_query_doCount( $arr_saisie, $target_fileCode, $
 				
 				//print_r($row_group) ;
 			
-				$group_key_id = paracrm_queries_process_queryHelp_group( $row_group, $arr_saisie['fields_group'] ) ;
-				$subRES_group_symbol_value[$group_key_id][$symbol_id]++ ;
+				$arr_groupKeyId = paracrm_queries_process_queryHelp_group( $row_group, $arr_saisie['fields_group'] ) ;
+				foreach( $arr_groupKeyId as $group_key_id ) {
+					$subRES_group_symbol_value[$group_key_id][$symbol_id]++ ;
+				}
 			}
 			continue ;
 		}
@@ -1937,6 +1944,33 @@ function paracrm_queries_process_queryHelp_getGroupHash( $record_glob, $fields_g
 		if( $field_group['field_type'] == 'link' )
 		{
 			// déterminer la valeur
+			if( $field_group['group_bible_type'] == 'TREEVIEW' )
+			{
+				$src_code = $field_group['sql_file_code'] ;
+				$src_field = $field_group['sql_file_field_code'] ;
+				$bible_code = $field_group['sql_bible_code'] ;
+				
+				$src_value_entry = $record_glob[$src_code][$src_field] ;
+				$src_value_treenode = $GLOBALS['arr_bible_entries'][$bible_code][$src_value_entry]['treenode_key'] ;
+				
+				
+				$fieldgroup_values = array() ;
+				
+				if( $field_group['group_do_entries'] ) {
+					$fieldgroup_values[] = 'e_'.$src_value_entry ;
+				}
+				
+				$obj_tree = $arr_bible_trees[$field_group['sql_bible_code']] ;
+				$obj_tree = $obj_tree->getTree($src_value_treenode) ;
+				while( $obj_tree )
+				{
+					$fieldgroup_values[] = 't_'.$obj_tree->getHead() ;
+					$obj_tree = $obj_tree->getParent() ;
+				}
+				
+				$tab[$fieldgroup_id] = $fieldgroup_values ;
+			}
+			// déterminer la valeur
 			if( $field_group['group_bible_type'] == 'ENTRY' )
 			{
 				$src_code = $field_group['sql_file_code'] ;
@@ -2033,17 +2067,33 @@ function paracrm_queries_process_queryHelp_getGroupHash( $record_glob, $fields_g
 		}
 	}
 	
+	// *** Multiplication du return_tab
+	$return_tab = array() ;
+	$return_tab[] = $tab ;
+	foreach( $tab as $fieldgroup_id => $group_value ) {
+		if( is_array($group_value) ) {
+			$new_return_tab = array() ;
+			foreach( $return_tab as $tab ) {
+				foreach( $group_value as $group_value_single ) {
+					$tab[$fieldgroup_id] = $group_value_single ;
+					$new_return_tab[] = $tab ;
+				}
+			}
+			$return_tab = $new_return_tab ;
+		}
+	}
 	
-	return $tab ;
-	
-	// return $arr[$group_field] = $value ;
+	return $return_tab ;
 }
 
 function paracrm_queries_process_queryHelp_group( $record_glob, $fields_group )
 {
-	$group_hash = paracrm_queries_process_queryHelp_getGroupHash( $record_glob, $fields_group ) ;
-	$group_key_id = paracrm_queries_process_queryHelp_getIdGroup($group_hash) ;
-	return $group_key_id ;
+	$arr_groupKeyId = array() ;
+	foreach( paracrm_queries_process_queryHelp_getGroupHash( $record_glob, $fields_group ) as $group_hash ) {
+		$group_key_id = paracrm_queries_process_queryHelp_getIdGroup($group_hash) ;
+		$arr_groupKeyId[] = $group_key_id ;
+	}
+	return $arr_groupKeyId ;
 }
 
 
