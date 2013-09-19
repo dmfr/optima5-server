@@ -21,10 +21,12 @@ function paracrm_queries_paginate_getGrid( &$RES, $tab_id )
 		$RES['RES_groupHash_groupKey'] = $RES_groupHash_groupKey ;
 	}
 	
+	// preparation d'un treeview
+	$do_treeview = $RES['RES_titles']['cfg_doTreeview'] ;
 
 	$ret = array() ;
 	$ret['columns'] = paracrm_queries_paginate_getGridColumns( $RES, $RES_labels_tab ) ;
-	$ret['data'] = paracrm_queries_paginate_getGridRows( $RES, $RES_labels_tab ) ;
+	$ret['data'] = paracrm_queries_paginate_getGridRows( $RES, $RES_labels_tab, $do_treeview ) ;
 	return $ret ;
 }
 function paracrm_queries_paginate_getGridColumns( &$RES, $RES_labels_tab )
@@ -103,7 +105,7 @@ function paracrm_queries_paginate_getGridColumns( &$RES, $RES_labels_tab )
 	
 	return $tab ;
 }
-function paracrm_queries_paginate_getGridRows( &$RES, $RES_labels_tab )
+function paracrm_queries_paginate_getGridRows( &$RES, $RES_labels_tab, $do_treeview=FALSE )
 {
 	$arr_static = array() ;
 	if( isset($RES_labels_tab['group_id']) )
@@ -114,7 +116,7 @@ function paracrm_queries_paginate_getGridRows( &$RES, $RES_labels_tab )
 	{
 		foreach( paracrm_queries_paginate_getGridRows_iterate($RES_labels_tab['arr_grid-y'],0) as $arr_y_group_id_key )
 		{
-			$tab_rows[] = paracrm_queries_paginate_getGridRow( $RES, $arr_static, $RES_labels_tab['arr_grid-x'], $RES_labels_tab['arr_grid-y'], $arr_y_group_id_key ) ;
+			$tab_rows[] = paracrm_queries_paginate_getGridRow( $RES, $arr_static, $RES_labels_tab['arr_grid-x'], $RES_labels_tab['arr_grid-y'], $arr_y_group_id_key, $do_treeview ) ;
 		}
 	}
 	else
@@ -151,13 +153,23 @@ function paracrm_queries_paginate_getGridRows_iterate( $arr_grid_y, $pos )
 	}
 	return $tab ;
 }
-function paracrm_queries_paginate_getGridRow( &$RES, $arr_static, $arr_grid_x, $arr_grid_y, $arr_y_group_id_key )
+function paracrm_queries_paginate_getGridRow( &$RES, $arr_static, $arr_grid_x, $arr_grid_y, $arr_y_group_id_key, $do_treeview=FALSE )
 {
 	reset($arr_grid_x) ;
 	$x_group_id = key($arr_grid_x) ;
 	$x_grid = current($arr_grid_x) ;
 	
 	$row = array() ;
+	
+	if( $do_treeview && count($arr_y_group_id_key) == 1 ) {
+		// do_treeview = TRUE 
+		// => on ajoute les champs necessaires a la construction du TV
+		$group_id = key($arr_y_group_id_key) ;
+		$group_key = current($arr_y_group_id_key) ;
+		
+		$row['_id'] = $arr_grid_y[$group_id][$group_key]['_id'] ;
+		$row['_parent_id'] = $arr_grid_y[$group_id][$group_key]['_parent_id'] ;
+	}
 	
 	if( count($arr_y_group_id_key) == 1 )
 	{

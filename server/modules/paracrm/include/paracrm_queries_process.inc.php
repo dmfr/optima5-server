@@ -1307,6 +1307,7 @@ function paracrm_queries_process_query($arr_saisie, $debug=FALSE)
 	}
 	$RES_labels = paracrm_queries_process_labels( $arr_saisie ) ;
 	
+	$tmp_treeviewGroups = $tmp_yGroups = array() ;
 	$RES_titles = array() ;
 	$RES_titles['fields_group'] = array() ;
 	foreach( $arr_saisie['fields_group'] as $field_id => &$field_group )
@@ -1329,6 +1330,17 @@ function paracrm_queries_process_query($arr_saisie, $debug=FALSE)
 			$RES_titles['group_fields'][$field_id][$display_field_key] = $txt ;
 		}
 		}
+		
+		if( $field_group['group_bible_type'] == 'TREEVIEW' || $field_group['display_geometry'] == 'grid-y' ) {
+			$tmp_yGroups[] = $field_id ;
+			if( $field_group['group_bible_type'] == 'TREEVIEW' ) {
+				$tmp_treeviewGroups[] = $field_id ;
+			}
+		}
+	}
+	if( count($tmp_treeviewGroups) == 1 && count($tmp_yGroups) == 1 ) {
+		// Ok for actual treeview
+		$RES_titles['cfg_doTreeview'] = TRUE ;
 	}
 	$RES_titles['fields_select'] = array() ;
 	$RES_titles['fields_select'][0] = $field_select['select_lib'] ;
@@ -2348,6 +2360,10 @@ function paracrm_queries_process_labelEnum( $group_id, $field_group, $bibleCondi
 				$ttmp = array() ;
 				foreach( $field_group['group_bible_display_arrFields'] as $display_field_key => $display_field_arrDesc )
 				{
+					if( $record['_type'] != $display_field_arrDesc['bible_type'] ) {
+						continue ;
+					}
+				
 					$bible_field_code = $display_field_arrDesc['bible_type'].'_'.$display_field_arrDesc['bible_field_code'] ;
 					if( in_array($bible_field_code,$link_field_refs) ) {
 						// décodage JSON
@@ -2358,6 +2374,8 @@ function paracrm_queries_process_labelEnum( $group_id, $field_group, $bibleCondi
 					}
 				}
 				// ::Forward node _id and _parent_id for building treeview hierarchy
+				$ttmp['_id'] = $record['_id'] ;
+				$ttmp['_parent_id'] = $record['_parent_id'] ;
 				
 				$treeview_node_key = $record['_id'] ;
 				
