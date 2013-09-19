@@ -163,7 +163,8 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			
 			var tabstore = Ext.create('Ext.data.Store',{
 				model:tmpModelName,
-				pageSize: tabData.data.length,
+				pageSize: (tabData.data.length > 50 ? tabData.data.length : 50 ),
+				//pageSize: tabData.data.length,
 				buffered: true,
 				remoteSort: true, // this just keeps sorting from being disabled
 				data: tabData.data,
