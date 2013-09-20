@@ -154,10 +154,41 @@ function paracrm_queries_process_qmerge($arr_saisie, $debug=FALSE)
 	}
 	
 	
+
 	
 	
 	if( $debug ) {
-		echo "Qmerge 2: evaluating groups..." ;
+		echo "Qmerge 2: executing queries..." ;
+	}
+	$RESqueries = array() ;
+	foreach( $arr_queryId_arrSaisieQuery as $query_id => $arrSaisieQuery ) {
+		$RESquery = paracrm_queries_process_query($arrSaisieQuery , FALSE ) ;
+		$arr_queryId_arrSaisieQuery[$query_id] = $RESquery['ARG_params'] ;
+		
+		$RESquery_groupHash_groupKey = array() ;
+		foreach( $RESquery['RES_groupKey_groupDesc'] as $key_id => $group_desc )
+		{
+			ksort($group_desc) ;
+			$group_hash = implode('@@',$group_desc) ;
+			$RESquery_groupHash_groupKey[$group_hash] = $key_id ;
+		}
+		//echo "end  ".count($RES_groupHash_groupKey)." \n" ;
+		$RESquery['RES_groupHash_groupKey'] = $RESquery_groupHash_groupKey ;
+		
+		$RESqueries[$query_id] = $RESquery ;
+	}
+	// print_r($RESqueries) ;
+	if( $debug ) {
+		echo "OK\n" ;
+	}
+	
+	
+	
+	
+	
+	
+	if( $debug ) {
+		echo "Qmerge 3: evaluating groups..." ;
 	}
 	$probeGeoGrouphashArrQueries = array(
 		'tab' => array(),
@@ -227,33 +258,6 @@ function paracrm_queries_process_qmerge($arr_saisie, $debug=FALSE)
 	if( $debug ) {
 		echo "OK\n" ;
 	}
-	
-	
-	
-	
-	if( $debug ) {
-		echo "Qmerge 3: executing queries..." ;
-	}
-	$RESqueries = array() ;
-	foreach( $arr_queryId_arrSaisieQuery as $query_id => $arrSaisieQuery ) {
-		$RESquery = paracrm_queries_process_query($arrSaisieQuery , FALSE ) ;
-		$RESquery_groupHash_groupKey = array() ;
-		foreach( $RESquery['RES_groupKey_groupDesc'] as $key_id => $group_desc )
-		{
-			ksort($group_desc) ;
-			$group_hash = implode('@@',$group_desc) ;
-			$RESquery_groupHash_groupKey[$group_hash] = $key_id ;
-		}
-		//echo "end  ".count($RES_groupHash_groupKey)." \n" ;
-		$RESquery['RES_groupHash_groupKey'] = $RESquery_groupHash_groupKey ;
-		
-		$RESqueries[$query_id] = $RESquery ;
-	}
-	// print_r($RESqueries) ;
-	if( $debug ) {
-		echo "OK\n" ;
-	}
-	
 	
 	
 	
@@ -1012,9 +1016,8 @@ function paracrm_queries_process_query($arr_saisie, $debug=FALSE)
 	
 	foreach( $fields_group as $field_id => &$field_group )
 	{
-		unset($fields_group[$field_id]) ;
-	
 		if( $field_group['field_type'] == 'link' ) {
+			unset($fields_group[$field_id]) ;
 
 			// identifiant LINK+geometry du groupe factorisé
 			$group_target_hash = $field_group['field_code'].'@'.$field_group['display_geometry'] ;
@@ -1354,7 +1357,8 @@ function paracrm_queries_process_query($arr_saisie, $debug=FALSE)
 					'RES_titles'=>$RES_titles,
 					'RES_nullValue'=>$field_select['null_value'],
 					'RES_round'=>$field_select['math_round'],
-					'RES_progress'=>$RES_progress) ;
+					'RES_progress'=>$RES_progress,
+					'ARG_params'=>$arr_saisie) ;
 }
 function paracrm_queries_process_query_iteration( $arr_saisie )
 {
