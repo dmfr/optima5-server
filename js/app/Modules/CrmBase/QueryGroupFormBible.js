@@ -31,7 +31,6 @@ Ext.define('Optima5.Modules.CrmBase.QueryGroupFormBible' ,{
 				switch( node.get('field_linkbible_type') ) {
 					case 'tree' :
 						treeFields.push(occur) ;
-						entryFields.push(occur) ;
 						break ;
 				
 					case 'entry' :
@@ -81,7 +80,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryGroupFormBible' ,{
 					xtype:'numberfield',
 					//width:60 ,
 					hidden: true,
-					minValue: 1,
+					minValue: 0,
 					maxValue: 10,
 					allowDecimals: false,
 					fieldLabel: 'Tree depth',

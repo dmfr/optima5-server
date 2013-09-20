@@ -95,7 +95,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			
 			columns = [] ;
 			fields = [] ;
-			Ext.Array.each(tabData.columns, function(columnDef) {
+			Ext.Array.each(tabData.columns, function(columnDef,colIdx) {
 				if( columnDef.text_bold == true ) {
 					columnDef.text = '<b>'+columnDef.text+'</b>' ;
 				}
@@ -160,6 +160,37 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 				extend: 'Ext.data.Model',
 				fields: fields
 			});
+			
+			if( tabData.cfg_doTreeview && tabData.data_root ) {
+				Ext.apply( columns[0], {
+					xtype: 'treecolumn'
+				}) ;
+				
+				var tabtree = Ext.create('Ext.tree.Panel',{
+					title:tabData.tab_title,
+					store: {
+						model: tmpModelName,
+						nodeParam: '_id',
+						folderSort: true,
+						root: tabData.data_root,
+						clearOnLoad: true
+					},
+					useArrows: false,
+					rootVisible: true,
+					multiSelect: false,
+					singleExpand: false,
+					// viewConfig:{toggleOnDblClick: false},
+					columns: columns
+				}) ;
+				
+				tabtree.on('destroy',function(){
+					// console.log('Unregistering model '+tmpModelName) ;
+					Ext.ModelManager.unregister( tmpModelName ) ;
+				},me);
+				
+				tabitems.push(tabtree);
+				return true ;
+			}
 			
 			var tabstore = Ext.create('Ext.data.Store',{
 				model:tmpModelName,
