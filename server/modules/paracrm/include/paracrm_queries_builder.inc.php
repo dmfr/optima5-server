@@ -287,11 +287,17 @@ function paracrm_queries_builderTransaction_resGet( $post_data )
 		$tab = array() ;
 		$tab['tab_title'] = $dummy['tab_title'] ;
 		$tab['cfg_doTreeview'] = ($RES['RES_titles']['cfg_doTreeview'] == TRUE) ;
-		$tabs[$tab_id] = $tab + paracrm_queries_paginate_getGrid( $RES, $tab_id ) ;
+		$tab = $tab + paracrm_queries_paginate_getGrid( $RES, $tab_id ) ;
 		
-		if( !$tabs[$tab_id]['data'] ) {
-			unset($tabs[$tab_id]) ;
+		if( !$tab['data'] ) {
+			continue ;
 		}
+		
+		if( $tab['cfg_doTreeview'] ) {
+			$tab['data_root'] = paracrm_queries_paginate_buildTree( $tab['data'] ) ;
+		}
+		
+		$tabs[$tab_id] = $tab ;
 	}
 	
 	return array('success'=>true,'tabs'=>array_values($tabs)) ;

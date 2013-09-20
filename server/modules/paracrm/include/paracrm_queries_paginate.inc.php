@@ -306,4 +306,40 @@ function paracrm_queries_paginate_getGroupKey( &$RES, $group_desc )
 	return $key_id ;
 }
 
+
+
+
+
+
+
+function paracrm_queries_paginate_buildTree( $grid_data ) {
+	// sort/index all nodes per parent
+	$arr_parentId_nodes = array() ;
+	foreach( $grid_data as $grid_row ) {
+		$row_parent_id = $grid_row['_parent_id'] ;
+		if( !isset($arr_parentId_nodes[$row_parent_id]) ) {
+			$arr_parentId_nodes[$row_parent_id] = array() ;
+		}
+		$arr_parentId_nodes[$row_parent_id][] = $grid_row ;
+	}
+
+	return array('expanded'=>TRUE,'children'=>paracrm_queries_paginate_buildTree_call($arr_parentId_nodes,'')) ;
+}
+function paracrm_queries_paginate_buildTree_call( $arr_parentId_nodes, $parent_id ) {
+	$arr = array() ;
+	foreach( $arr_parentId_nodes[$parent_id] as $grid_row ) {
+		$row_id = $grid_row['_id'] ;
+		
+		if( $arr_parentId_nodes[$row_id] ) {
+			$grid_row['children'] = paracrm_queries_paginate_buildTree_call($arr_parentId_nodes,$row_id) ;
+			$grid_row['expanded'] = TRUE ;
+		} else {
+			$grid_row['leaf'] = TRUE ;
+		}
+		
+		$arr[] = $grid_row ;
+	}
+	return $arr ;
+}
+
 ?>
