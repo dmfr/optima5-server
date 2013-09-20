@@ -3,7 +3,8 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			  
 	requires: [
 		'Optima5.Modules.CrmBase.QueryTemplateManager',
-		'Ext.ux.dams.IFrameContent'
+		'Ext.ux.dams.IFrameContent',
+		'Ext.ux.ColumnAutoWidthPlugin'
 	],
 			  
 	ajaxBaseParams:{},
@@ -180,7 +181,8 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 					multiSelect: false,
 					singleExpand: false,
 					// viewConfig:{toggleOnDblClick: false},
-					columns: columns
+					columns: columns,
+					plugins: [Ext.create('Ext.ux.ColumnAutoWidthPlugin', {allColumns:true, minAutoWidth:90})]
 				}) ;
 				
 				tabtree.on('destroy',function(){
@@ -231,6 +233,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 					trailingBufferZone: 10,
 					leadingBufferZone: 20
 				},*/
+				plugins: [Ext.create('Ext.ux.ColumnAutoWidthPlugin', {allColumns:true, minAutoWidth:90})],
 				viewConfig: { 
 					//stripeRows: false, 
 					getRowClass: function(record) { 
