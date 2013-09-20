@@ -2202,6 +2202,8 @@ function paracrm_queries_process_labels_withTabs( $arr_saisie, $groupId_forTab )
 				&& $field_groupTab['field_code'] == $field_group['field_code']
 				&& $field_groupTab['group_bible_type'] == 'TREE' )
 			{
+				$bible_key = substr($subRES_tab['group_key'],2) ; // groupKey for bible is <t>_<id>
+				
 				$tarr = array() ;
 				$tarr[] = $bible_key ;
 				$bibleConditions[] = $tarr ;
