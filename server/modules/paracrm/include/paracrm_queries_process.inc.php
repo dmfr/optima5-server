@@ -161,9 +161,8 @@ function paracrm_queries_process_qmerge($arr_saisie, $debug=FALSE)
 		echo "Qmerge 2: executing queries..." ;
 	}
 	$RESqueries = array() ;
-	foreach( $arr_queryId_arrSaisieQuery as $query_id => $arrSaisieQuery ) {
+	foreach( $arr_queryId_arrSaisieQuery as $query_id => &$arrSaisieQuery ) {
 		$RESquery = paracrm_queries_process_query($arrSaisieQuery , FALSE ) ;
-		$arr_queryId_arrSaisieQuery[$query_id] = $RESquery['ARG_params'] ;
 		
 		$RESquery_groupHash_groupKey = array() ;
 		foreach( $RESquery['RES_groupKey_groupDesc'] as $key_id => $group_desc )
@@ -177,6 +176,7 @@ function paracrm_queries_process_qmerge($arr_saisie, $debug=FALSE)
 		
 		$RESqueries[$query_id] = $RESquery ;
 	}
+	unset($arrSaisieQuery) ;
 	// print_r($RESqueries) ;
 	if( $debug ) {
 		echo "OK\n" ;
@@ -781,7 +781,7 @@ function paracrm_queries_process_toolArrayMultiply( $tab, $mkey, $arr_mvalues ) 
 
 
 
-function paracrm_queries_process_query($arr_saisie, $debug=FALSE) 
+function paracrm_queries_process_query(&$arr_saisie, $debug=FALSE) 
 {
 	global $_opDB ;
 	
@@ -1357,8 +1357,7 @@ function paracrm_queries_process_query($arr_saisie, $debug=FALSE)
 					'RES_titles'=>$RES_titles,
 					'RES_nullValue'=>$field_select['null_value'],
 					'RES_round'=>$field_select['math_round'],
-					'RES_progress'=>$RES_progress,
-					'ARG_params'=>$arr_saisie) ;
+					'RES_progress'=>$RES_progress) ;
 }
 function paracrm_queries_process_query_iteration( $arr_saisie )
 {
