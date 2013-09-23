@@ -824,9 +824,6 @@ function paracrm_queries_process_query(&$arr_saisie, $debug=FALSE)
 	}
 	
 	
-	if( count($arr_saisie['fields_select']) != 1 )
-		return NULL ;
-		
 	
 	// On initialise les variables "globales" dans le cadre de la requête
 	//  - tableau des ensembles "unique / last occurence" déjà rencontrés
@@ -1116,6 +1113,7 @@ function paracrm_queries_process_query(&$arr_saisie, $debug=FALSE)
 		
 		$fields_group[] = $field_group ;
 	}
+	unset($field_group) ;
 	
 	$arr_saisie['fields_group'] = $fields_group ;
 	if( $debug ) {
@@ -1127,73 +1125,76 @@ function paracrm_queries_process_query(&$arr_saisie, $debug=FALSE)
 	if( $debug ) {
 		echo "Debug 3c: preprocess SELECT..." ;
 	}
-	$field_select = $arr_saisie['fields_select'][0] ;
+	$fields_select = $arr_saisie['fields_select'] ;
 	// analyse !!! Mode de requête ? Count / Value
 	// --- Si dans les operands on a un titre de fichier ou de bible => mode COUNT
 	// --- Sinon mode VALUE
 	// Réalisation de la requête :
 	//  COUNT => une opération à la fois
 	//  VALUES => tout en même temps
-	$is_values = $is_counts = FALSE ;
-	foreach( $field_select['math_expression'] as $symbol_id => &$symbol )
-	{
-		if( $symbol['math_staticvalue'] != 0 )
-			continue ;
+	foreach( $fields_select as $select_id => &$field_select ) {
+		$is_values = $is_counts = FALSE ;
+		foreach( $field_select['math_expression'] as $symbol_id => &$symbol )
+		{
+			if( $symbol['math_staticvalue'] != 0 )
+				continue ;
+			
 		
-	
-		// catalogue du field
-		$math_operand = $symbol['math_fieldoperand'] ;
-		$symbol['sql_file_code'] = $arr_indexed_treefields[$math_operand]['file_code'] ;
-		if( $arr_indexed_treefields[$math_operand]['bible_code'] && $arr_indexed_treefields[$math_operand]['bible_field_code'] )
-		{
-			$symbol['sql_file_field_code'] = 'field_'.$arr_indexed_treefields[$math_operand]['file_field_code'] ;
-			$symbol['sql_bible_code'] = $arr_indexed_treefields[$math_operand]['bible_code'] ;
-			$symbol['sql_bible_field_code'] = 'field_'.$arr_indexed_treefields[$math_operand]['bible_field_code'] ;
-		}
-		elseif( $arr_indexed_treefields[$math_operand]['bible_code'] )
-		{
-			$symbol['sql_file_field_code'] = 'field_'.$arr_indexed_treefields[$math_operand]['file_field_code'] ;
-			$symbol['sql_bible_code'] = $arr_indexed_treefields[$math_operand]['bible_code'] ;
-		}
-		elseif( $arr_indexed_treefields[$math_operand]['file_field_code'] )
-		{
-			$symbol['sql_file_field_code'] = 'field_'.$arr_indexed_treefields[$math_operand]['file_field_code'] ;
-		}
-	
-		// FICHIERS ?
-		if( $math_operand && in_array($math_operand,array($target_file_code,$parent_target_file_code)) )
-		{
-			$is_counts = TRUE ;
-			continue ;
-		}
-
-		// BIBLES DU FICHIER TARGET ?
-		foreach( $target_bibles as $field_code => $target_bible )
-		{
-			if( $target_file_code.'_'.'field'.'_'.$field_code == $math_operand )
+			// catalogue du field
+			$math_operand = $symbol['math_fieldoperand'] ;
+			$symbol['sql_file_code'] = $arr_indexed_treefields[$math_operand]['file_code'] ;
+			if( $arr_indexed_treefields[$math_operand]['bible_code'] && $arr_indexed_treefields[$math_operand]['bible_field_code'] )
+			{
+				$symbol['sql_file_field_code'] = 'field_'.$arr_indexed_treefields[$math_operand]['file_field_code'] ;
+				$symbol['sql_bible_code'] = $arr_indexed_treefields[$math_operand]['bible_code'] ;
+				$symbol['sql_bible_field_code'] = 'field_'.$arr_indexed_treefields[$math_operand]['bible_field_code'] ;
+			}
+			elseif( $arr_indexed_treefields[$math_operand]['bible_code'] )
+			{
+				$symbol['sql_file_field_code'] = 'field_'.$arr_indexed_treefields[$math_operand]['file_field_code'] ;
+				$symbol['sql_bible_code'] = $arr_indexed_treefields[$math_operand]['bible_code'] ;
+			}
+			elseif( $arr_indexed_treefields[$math_operand]['file_field_code'] )
+			{
+				$symbol['sql_file_field_code'] = 'field_'.$arr_indexed_treefields[$math_operand]['file_field_code'] ;
+			}
+		
+			// FICHIERS ?
+			if( $math_operand && in_array($math_operand,array($target_file_code,$parent_target_file_code)) )
 			{
 				$is_counts = TRUE ;
-				continue 2 ;
+				continue ;
 			}
+
+			// BIBLES DU FICHIER TARGET ?
+			foreach( $target_bibles as $field_code => $target_bible )
+			{
+				if( $target_file_code.'_'.'field'.'_'.$field_code == $math_operand )
+				{
+					$is_counts = TRUE ;
+					continue 2 ;
+				}
+			}
+			
+			$is_values = TRUE ;
+			continue ;
+			
+			return NULL ;
 		}
-		
-		$is_values = TRUE ;
-		continue ;
-		
-		return NULL ;
+		if( $is_counts && !$is_values ) {
+			$field_select['iteration_mode'] = 'count' ;
+		}
+		elseif( $is_values && !$is_counts )
+		{
+			$field_select['iteration_mode'] = 'value' ;
+		}
+		else
+		{
+			return NULL ;
+		}
 	}
-	if( $is_counts && !$is_values ) {
-		$field_select['iteration_mode'] = 'count' ;
-	}
-	elseif( $is_values && !$is_counts )
-	{
-		$field_select['iteration_mode'] = 'value' ;
-	}
-	else
-	{
-		return NULL ;
-	}
-	$arr_saisie['fields_select'][0] = $field_select ;
+	unset($field_select) ;
+	$arr_saisie['fields_select'] = $fields_select ;
 	if( $debug ) {
 		echo "OK\n" ;
 	}
@@ -1202,74 +1203,75 @@ function paracrm_queries_process_query(&$arr_saisie, $debug=FALSE)
 	
 	// CALCUL (pour chaque select_field) de la NULL value
 	if( $debug ) {
-		echo "Debug 4pre: calcul null value " ;
+		echo "Debug 4pre: calcul null value...\n" ;
 	}
-	$field_select = $arr_saisie['fields_select'][0] ;
-	while(TRUE) {
-		
-		// Mode VALUE + operand non numérique => valeur NULL
-		if( $field_select['iteration_mode'] == 'value' )
-		{
-			foreach( $field_select['math_expression'] as $symbol_id => &$symbol )
+	foreach( $arr_saisie['fields_select'] as $select_id => &$field_select ) {
+		while(TRUE) {
+			
+			// Mode VALUE + operand non numérique => valeur NULL
+			if( $field_select['iteration_mode'] == 'value' )
 			{
-				if( $symbol['math_staticvalue'] != 0 )
-					continue ;
-				$math_operand = $symbol['math_fieldoperand'] ;
-				if( $arr_indexed_treefields[$math_operand]['field_type'] != 'number' )
+				foreach( $field_select['math_expression'] as $symbol_id => &$symbol )
 				{
-					$field_select['null_value'] = NULL ;
-					break 2 ;
+					if( $symbol['math_staticvalue'] != 0 )
+						continue ;
+					$math_operand = $symbol['math_fieldoperand'] ;
+					if( $arr_indexed_treefields[$math_operand]['field_type'] != 'number' )
+					{
+						$field_select['null_value'] = NULL ;
+						break 2 ;
+					}
 				}
 			}
-		}
-		
-		// Quelle est la fonction opératoire ? AVG / MIN / MAX => valeur NULL
-		switch( $field_select['math_func_group'] )
-		{
-			case 'AVG' :
-			case 'MIN':
-			case 'MAX' :
-			$field_select['null_value'] = NULL ;
-			break 2 ;
 			
-			case 'SUM' :
-			default :
+			// Quelle est la fonction opératoire ? AVG / MIN / MAX => valeur NULL
+			switch( $field_select['math_func_group'] )
+			{
+				case 'AVG' :
+				case 'MIN':
+				case 'MAX' :
+				$field_select['null_value'] = NULL ;
+				break 2 ;
+				
+				case 'SUM' :
+				default :
+				break ;
+			}
+			
+			// Sinon : simu de l'operation avec valeurs nulles
+			foreach( $field_select['math_expression'] as $symbol_id => &$symbol )
+			{
+				$eval_string.= $symbol['math_operation'] ;
+				
+				if( $symbol['math_parenthese_in'] )
+					$eval_string.= '(' ;
+					
+				if( $symbol['math_staticvalue'] != 0 )
+					$value = (float)($symbol['math_staticvalue']) ;
+				else
+					$value = 0 ;
+				$eval_string.= $value ;
+				
+				if( $symbol['math_parenthese_out'] )
+					$eval_string.= ')' ;
+			}
+			
+			
+			$evalmath = new EvalMath ;
+			$evalmath->suppress_errors = TRUE ;
+			if( ($val = $evalmath->evaluate($eval_string)) === FALSE )
+			{
+				$field_select['null_value'] = NULL ;
+				break ; ;
+			}
+			$field_select['null_value'] = $val ;
 			break ;
 		}
-		
-		// Sinon : simu de l'operation avec valeurs nulles
-		foreach( $field_select['math_expression'] as $symbol_id => &$symbol )
-		{
-			$eval_string.= $symbol['math_operation'] ;
-			
-			if( $symbol['math_parenthese_in'] )
-				$eval_string.= '(' ;
-				
-			if( $symbol['math_staticvalue'] != 0 )
-				$value = (float)($symbol['math_staticvalue']) ;
-			else
-				$value = 0 ;
-			$eval_string.= $value ;
-			
-			if( $symbol['math_parenthese_out'] )
-				$eval_string.= ')' ;
+		if( $debug ) {
+			echo " for {$select_id} is [{$field_select['null_value']}] , OK\n" ;
 		}
-		
-		
-		$evalmath = new EvalMath ;
-		$evalmath->suppress_errors = TRUE ;
-		if( ($val = $evalmath->evaluate($eval_string)) === FALSE )
-		{
-			$field_select['null_value'] = NULL ;
-			break ; ;
-		}
-		$field_select['null_value'] = $val ;
-		break ;
 	}
-	$arr_saisie['fields_select'][0] = $field_select ;
-	if( $debug ) {
-		echo " is [{$field_select['null_value']}] , OK\n" ;
-	}
+	unset($field_select) ;
 	
 	
 	// EXECUTION DE LA REQUETE
@@ -1279,10 +1281,10 @@ function paracrm_queries_process_query(&$arr_saisie, $debug=FALSE)
 	if( $debug ) {
 		echo "Debug 4: execution query " ;
 	}
-	$RES_groupKey_value = array() ;
-	$RES_groupKey_value = paracrm_queries_process_query_iteration( $arr_saisie ) ;
+	$RES_groupKey_selectId_value = array() ;
+	$RES_groupKey_selectId_value = paracrm_queries_process_query_iteration( $arr_saisie ) ;
 	
-	$RES_progress = array() ;
+	$RES_progress_groupKey_selectId_value = array() ;
 	if( $arr_saisie['fields_progress'] ) {
 		foreach( $arr_saisie['fields_progress'] as &$field_progress ) {
 			$arr_saisie_copy = $arr_saisie ;
@@ -1292,11 +1294,11 @@ function paracrm_queries_process_query(&$arr_saisie, $debug=FALSE)
 			
 			// execution d'une requete alternative
 			$RES_alt_progress = paracrm_queries_process_query_iteration( $arr_saisie_copy ) ;
-			$RES_progress[] = $RES_alt_progress ;
+			$RES_progress_groupKey_selectId_value[] = $RES_alt_progress ;
 		}
 	}
 	
-	if( $RES_groupKey_value === NULL )
+	if( $RES_groupKey_selectId_value === NULL )
 		return NULL ;
 		
 	$RES_groupKey_groupDesc = $_groups_hashes ;
@@ -1345,19 +1347,56 @@ function paracrm_queries_process_query(&$arr_saisie, $debug=FALSE)
 		// Ok for actual treeview
 		$RES_titles['cfg_doTreeview'] = TRUE ;
 	}
+	$RES_selectId_nullValue = array() ;
+	$RES_selectId_round = array() ;
 	$RES_titles['fields_select'] = array() ;
-	$RES_titles['fields_select'][0] = $field_select['select_lib'] ;
+	foreach( $arr_saisie['fields_select'] as $select_id => &$field_select ) {
+		$RES_titles['fields_select'][$select_id] = $field_select['select_lib'] ;
+		$RES_selectId_nullValue[$select_id] = $field_select['null_value'] ;
+		$RES_selectId_round[$select_id] = $field_select['math_round'] ;
+	}
+	unset($field_select) ;
+	
 	if( $debug ) {
 		echo "OK\n" ;
 	}
 	
+	
+	if( $debug ) {
+		echo "Debug 99: tableaux compat selectId=0" ;
+	}
+	$field_select_0 = $arr_saisie['fields_select'][0] ;
+	$RES_select0_groupKey_value = array() ;
+	foreach( $RES_groupKey_selectId_value as $groupKey => $ttmp ) {
+		$value = $ttmp[0] ;
+		$RES_select0_groupKey_value[$groupKey] = $value ;
+	}
+	$RES_progress_0 = array() ;
+	foreach( $RES_progress_groupKey_selectId_value as $ttmp ) {
+		$subRes_thisProgress = array() ;
+		foreach( $ttmp as $groupKey => $ttmp1 ) {
+			$value = $ttmp1[0] ;
+			$subRes_thisProgress[$groupKey] = $value ;
+		}
+		$RES_progress_0[] = $subRes_thisProgress ;
+	}
+	if( $debug ) {
+		echo "OK\n" ;
+	}
+	
+	
+	
 	return array('RES_groupKey_groupDesc'=>$RES_groupKey_groupDesc,
-					'RES_groupKey_value'=>$RES_groupKey_value,
+					'RES_groupKey_selectId_value'=>$RES_groupKey_selectId_value,
+					'RES_groupKey_value'=>$RES_select0_groupKey_value,
 					'RES_labels'=>$RES_labels,
 					'RES_titles'=>$RES_titles,
-					'RES_nullValue'=>$field_select['null_value'],
-					'RES_round'=>$field_select['math_round'],
-					'RES_progress'=>$RES_progress) ;
+					'RES_selectId_nullValue'=>$RES_selectId_nullValue,
+					'RES_nullValue'=>$field_select_0['null_value'],
+					'RES_selectId_round'=>$RES_selectId_round,
+					'RES_round'=>$field_select_0['math_round'],
+					'RES_progress_groupKey_selectId_value'=>$RES_progress_groupKey_selectId_value,
+					'RES_progress'=>$RES_progress_0) ;
 }
 function paracrm_queries_process_query_iteration( $arr_saisie )
 {
@@ -1385,109 +1424,66 @@ function paracrm_queries_process_query_iteration( $arr_saisie )
 	}
 	$arr_chain = array_reverse($arr_chain) ;
 	
-	$field_select = $arr_saisie['fields_select'][0] ;
 	
-	$RES_group_arr_arrSymbolValue = paracrm_queries_process_query_iterationDo( $arr_saisie, $arr_chain, 0, array(), NULL, NULL ) ;
+	$RES_selectId_group_arr_arrSymbolValue = paracrm_queries_process_query_iterationDo( $arr_saisie, $arr_chain, 0, array(), NULL, NULL ) ;
 	
-	$RES_group_value = array() ;
-	switch( $field_select['math_func_mode'] ) {
+	//$RES_group_value = array() ; // return value @OBSOLETE
+	$RES_group_selectId_value = array() ;
 	
-		case 'IN' :
-			$RES_group_arrSymbolValue = array() ;
-			
-			// Application intra symboles de l'operation SUM/MAX/AVG....
-			foreach( $RES_group_arr_arrSymbolValue as $group_key_id => $arr_arrSymbolValue )
-			{
-				$subGroup_symbol_arrValues = array() ;
-				foreach( $arr_arrSymbolValue as $arr_symbolId_value )
-				{
-					foreach( $arr_symbolId_value as $symbol_id => $value )
-					{
-						if( !is_array($subGroup_symbol_arrValues[$symbol_id]) )
-							$subGroup_symbol_arrValues[$symbol_id] = array() ;
-						$subGroup_symbol_arrValues[$symbol_id][] = $value ;
-					}
-				}
-				
-				// pour chaque symbole/operand => execution de la fonction operatoire en intra
-				foreach( $subGroup_symbol_arrValues as $symbol_id => $arrValues )
-				{
-					switch( $field_select['math_func_group'] )
-					{
-						case 'AVG' :
-						$val = array_sum($arrValues) / count($arrValues) ;
-						break ;
-						
-						case 'SUM' :
-						$val = array_sum($arrValues) ;
-						break ;
-						
-						case 'MIN':
-						$val = min($arrValues) ;
-						break ;
-						
-						case 'MAX' :
-						$val = max($arrValues) ;
-						break ;
-						
-						default :
-						$val = '' ;
-						break ;
-					}
-					$RES_group_arrSymbolValue[$group_key_id][$symbol_id] = $val ;
-				}
-			}
+	foreach( $arr_saisie['fields_select'] as $select_id => $field_select ) {
+	
+		$RES_group_arr_arrSymbolValue = $RES_selectId_group_arr_arrSymbolValue[$select_id] ;
+	
+		switch( $field_select['math_func_mode'] ) {
 		
-			// Puis, résolution de l'expression de calcul une seule fois (par groupe)
-			foreach( $RES_group_arrSymbolValue as $group_key_id => $arr_symbolId_value )
-			{
-				if( count($field_select['math_expression']) > 1 )
+			case 'IN' :
+				$RES_group_arrSymbolValue = array() ;
+				
+				// Application intra symboles de l'operation SUM/MAX/AVG....
+				foreach( $RES_group_arr_arrSymbolValue as $group_key_id => $arr_arrSymbolValue )
 				{
-					$eval_string = '' ;
-					foreach( $field_select['math_expression'] as $symbol_id => $symbol )
+					$subGroup_symbol_arrValues = array() ;
+					foreach( $arr_arrSymbolValue as $arr_symbolId_value )
 					{
-						$eval_string.= $symbol['math_operation'] ;
-						
-						if( $symbol['math_parenthese_in'] )
-							$eval_string.= '(' ;
-							
-						if( $symbol['math_staticvalue'] != 0 )
-							$value = (float)($symbol['math_staticvalue']) ;
-						elseif( isset($arr_symbolId_value[$symbol_id]) )
-							$value = $arr_symbolId_value[$symbol_id] ;
-						else
-							$value = 0 ;
-						$eval_string.= $value ;
-						
-						if( $symbol['math_parenthese_out'] )
-							$eval_string.= ')' ;
+						foreach( $arr_symbolId_value as $symbol_id => $value )
+						{
+							if( !is_array($subGroup_symbol_arrValues[$symbol_id]) )
+								$subGroup_symbol_arrValues[$symbol_id] = array() ;
+							$subGroup_symbol_arrValues[$symbol_id][] = $value ;
+						}
 					}
 					
-					$evalmath = new EvalMath ;
-					$evalmath->suppress_errors = TRUE ;
-					if( ($val = $evalmath->evaluate($eval_string)) === FALSE )
+					// pour chaque symbole/operand => execution de la fonction operatoire en intra
+					foreach( $subGroup_symbol_arrValues as $symbol_id => $arrValues )
 					{
-						continue ;
+						switch( $field_select['math_func_group'] )
+						{
+							case 'AVG' :
+							$val = array_sum($arrValues) / count($arrValues) ;
+							break ;
+							
+							case 'SUM' :
+							$val = array_sum($arrValues) ;
+							break ;
+							
+							case 'MIN':
+							$val = min($arrValues) ;
+							break ;
+							
+							case 'MAX' :
+							$val = max($arrValues) ;
+							break ;
+							
+							default :
+							$val = '' ;
+							break ;
+						}
+						$RES_group_arrSymbolValue[$group_key_id][$symbol_id] = $val ;
 					}
 				}
-				else
-				{
-					$val = current($arr_symbolId_value) ;
-				}
-				
-				$RES_group_value[$group_key_id] = $val ;
-			}
-			break ;
-		
-		
-		
-		case 'OUT' :
-		default :
-			$RES_group_arrValues = array() ;
-			// *** Resolution des expressions opératoires en premier  ****
-			foreach( $RES_group_arr_arrSymbolValue as $group_key_id => $arr_arrSymbolValue )
-			{
-				foreach( $arr_arrSymbolValue as $arr_symbolId_value )
+			
+				// Puis, résolution de l'expression de calcul une seule fois (par groupe)
+				foreach( $RES_group_arrSymbolValue as $group_key_id => $arr_symbolId_value )
 				{
 					if( count($field_select['math_expression']) > 1 )
 					{
@@ -1522,42 +1518,91 @@ function paracrm_queries_process_query_iteration( $arr_saisie )
 					{
 						$val = current($arr_symbolId_value) ;
 					}
-					if( !is_array($RES_group_arrValues[$group_key_id]) )
-						$RES_group_arrValues[$group_key_id] = array() ;
-					$RES_group_arrValues[$group_key_id][] = $val ;
+					
+					$RES_group_selectId_value[$group_key_id][$select_id] = $val ;
 				}
-			}
+				break ;
 			
-			foreach( $RES_group_arrValues as $group_key_id => $arr_values )
-			{
-				switch( $field_select['math_func_group'] )
+			
+			
+			case 'OUT' :
+			default :
+				$RES_group_arrValues = array() ;
+				// *** Resolution des expressions opératoires en premier  ****
+				foreach( $RES_group_arr_arrSymbolValue as $group_key_id => $arr_arrSymbolValue )
 				{
-					case 'AVG' :
-					$val = array_sum($arr_values) / count($arr_values) ;
-					break ;
-					
-					case 'SUM' :
-					$val = array_sum($arr_values) ;
-					break ;
-					
-					case 'MIN':
-					$val = min($arr_values) ;
-					break ;
-					
-					case 'MAX' :
-					$val = max($arr_values) ;
-					break ;
-					
-					default :
-					$val = '' ;
-					break ;
+					foreach( $arr_arrSymbolValue as $arr_symbolId_value )
+					{
+						if( count($field_select['math_expression']) > 1 )
+						{
+							$eval_string = '' ;
+							foreach( $field_select['math_expression'] as $symbol_id => $symbol )
+							{
+								$eval_string.= $symbol['math_operation'] ;
+								
+								if( $symbol['math_parenthese_in'] )
+									$eval_string.= '(' ;
+									
+								if( $symbol['math_staticvalue'] != 0 )
+									$value = (float)($symbol['math_staticvalue']) ;
+								elseif( isset($arr_symbolId_value[$symbol_id]) )
+									$value = $arr_symbolId_value[$symbol_id] ;
+								else
+									$value = 0 ;
+								$eval_string.= $value ;
+								
+								if( $symbol['math_parenthese_out'] )
+									$eval_string.= ')' ;
+							}
+							
+							$evalmath = new EvalMath ;
+							$evalmath->suppress_errors = TRUE ;
+							if( ($val = $evalmath->evaluate($eval_string)) === FALSE )
+							{
+								continue ;
+							}
+						}
+						else
+						{
+							$val = current($arr_symbolId_value) ;
+						}
+						if( !is_array($RES_group_arrValues[$group_key_id]) )
+							$RES_group_arrValues[$group_key_id] = array() ;
+						$RES_group_arrValues[$group_key_id][] = $val ;
+					}
 				}
 				
-				$RES_group_value[$group_key_id] = $val ;
-			}
-			break ;
+				foreach( $RES_group_arrValues as $group_key_id => $arr_values )
+				{
+					switch( $field_select['math_func_group'] )
+					{
+						case 'AVG' :
+						$val = array_sum($arr_values) / count($arr_values) ;
+						break ;
+						
+						case 'SUM' :
+						$val = array_sum($arr_values) ;
+						break ;
+						
+						case 'MIN':
+						$val = min($arr_values) ;
+						break ;
+						
+						case 'MAX' :
+						$val = max($arr_values) ;
+						break ;
+						
+						default :
+						$val = '' ;
+						break ;
+					}
+					
+					$RES_group_selectId_value[$group_key_id][$select_id] = $val ;
+				}
+				break ;
+		}
 	}
-	return $RES_group_value ;
+	return $RES_group_selectId_value ;
 }
 function paracrm_queries_process_query_iterationDo( $arr_saisie, $iteration_chain, $iteration_chain_offset, $base_row, $parent_fileCode, $parent_filerecordId )
 {
@@ -1570,15 +1615,15 @@ function paracrm_queries_process_query_iterationDo( $arr_saisie, $iteration_chai
 		switch( $arr_saisie['fields_select'][0]['iteration_mode'] )
 		{
 			case 'count' :
-			return $RES_group_arr_arrSymbolValue = paracrm_queries_process_query_doCount( $arr_saisie, $target_fileCode, $base_row, $parent_fileCode, $parent_filerecordId ) ;
+			return $RES_selectId_group_arr_arrSymbolValue = paracrm_queries_process_query_doCount( $arr_saisie, $target_fileCode, $base_row, $parent_fileCode, $parent_filerecordId ) ;
 			
 			case 'value' :
-			return $RES_group_arr_arrSymbolValue = paracrm_queries_process_query_doValue( $arr_saisie, $target_fileCode, $base_row, $parent_fileCode, $parent_filerecordId ) ;
+			return $RES_selectId_group_arr_arrSymbolValue = paracrm_queries_process_query_doValue( $arr_saisie, $target_fileCode, $base_row, $parent_fileCode, $parent_filerecordId ) ;
 		}
 	}
 	
 	
-	$RES_group_arr_arrSymbolValue = array() ;
+	$RES_selectId_group_arr_arrSymbolValue = array() ;
 	
 	$target_fileCode = $iteration_chain[$iteration_chain_offset] ;
 	$view_filecode = 'view_file_'.$target_fileCode ;
@@ -1596,18 +1641,23 @@ function paracrm_queries_process_query_iterationDo( $arr_saisie, $iteration_chai
 		$row[$target_fileCode] = $arr ;
 			
 
-		$subRes_group_arrSymbolValue = paracrm_queries_process_query_iterationDo($arr_saisie,$iteration_chain, $iteration_chain_offset+1,$row,$target_fileCode,$arr['filerecord_id']) ;
-		foreach( $subRes_group_arrSymbolValue as $group_key_id => $arr_arrSymbolValue )
-		{
-			if( !is_array($RES_group_arr_arrSymbolValue[$group_key_id]) )
-				$RES_group_arr_arrSymbolValue[$group_key_id] = array() ;
-			
-			$RES_group_arr_arrSymbolValue[$group_key_id] = array_merge( $RES_group_arr_arrSymbolValue[$group_key_id], $arr_arrSymbolValue ) ;
+		$subRes_selectId_group_arrSymbolValue = paracrm_queries_process_query_iterationDo($arr_saisie,$iteration_chain, $iteration_chain_offset+1,$row,$target_fileCode,$arr['filerecord_id']) ;
+		foreach( $subRes_selectId_group_arrSymbolValue as $select_id => $subRes_group_arrSymbolValue ) {
+			if( !is_array($RES_selectId_group_arr_arrSymbolValue[$select_id]) ) {
+				$RES_selectId_group_arr_arrSymbolValue[$select_id] = array() ;
+			}
+			foreach( $subRes_group_arrSymbolValue as $group_key_id => $arr_arrSymbolValue )
+			{
+				if( !is_array($RES_selectId_group_arr_arrSymbolValue[$select_id][$group_key_id]) )
+					$RES_selectId_group_arr_arrSymbolValue[$select_id][$group_key_id] = array() ;
+				
+				$RES_selectId_group_arr_arrSymbolValue[$select_id][$group_key_id] = array_merge( $RES_selectId_group_arr_arrSymbolValue[$select_id][$group_key_id], $arr_arrSymbolValue ) ;
+			}
 		}
 		// print_r($row) ;
 		$c++ ;
 	}
-	return $RES_group_arr_arrSymbolValue ;
+	return $RES_selectId_group_arr_arrSymbolValue ;
 }
 
 
@@ -1618,9 +1668,8 @@ function paracrm_queries_process_query_doValue( $arr_saisie, $target_fileCode, $
 	global $_opDB ;
 	global $arr_bible_trees , $arr_bible_entries ;
 	
-	$subRes_group_arr_arrSymbolValue = array() ;
-	
-	$field_select = current($arr_saisie['fields_select']) ;
+	// $subRes_group_arr_arrSymbolValue = array() ; // return value @OBSOLETE
+	$subRes_selectId_group_arr_arrSymbolValue = array() ; // return value
 	
 	// iteration principale
 	$view_filecode = 'view_file_'.$target_fileCode ;
@@ -1642,56 +1691,58 @@ function paracrm_queries_process_query_doValue( $arr_saisie, $target_fileCode, $
 		// TODO: cleaner join arch
 		paracrm_lib_file_joinQueryRecord($target_fileCode,$row_group) ;
 	
-		$subRES_group_symbol_value = array() ;
-		// iteration sur les symboles
-		foreach( $field_select['math_expression'] as $symbol_id => $symbol )
-		{
-			if( $symbol['math_staticvalue'] != 0 )
-				continue ;
-		
-			if( $symbol['sql_file_code'] != $target_fileCode )
-				return array() ;
-			if( !$symbol['sql_file_field_code'] )
-				return array() ;
-			if( $symbol['sql_bible_code'] && !$symbol['sql_bible_field_code'] )
-				return array() ;
+		foreach( $arr_saisie['fields_select'] as $select_id => $field_select ) {
+			$subRES_group_symbol_value = array() ;
+			// iteration sur les symboles
+			foreach( $field_select['math_expression'] as $symbol_id => $symbol )
+			{
+				if( $symbol['math_staticvalue'] != 0 )
+					continue ;
+			
+				if( $symbol['sql_file_code'] != $target_fileCode )
+					return array() ;
+				if( !$symbol['sql_file_field_code'] )
+					return array() ;
+				if( $symbol['sql_bible_code'] && !$symbol['sql_bible_field_code'] )
+					return array() ;
+					
+				$file_code = $symbol['sql_file_code'] ;
+				$file_field_code = $symbol['sql_file_field_code'] ;
 				
-			$file_code = $symbol['sql_file_code'] ;
-			$file_field_code = $symbol['sql_file_field_code'] ;
-			
-			if( $symbol['sql_bible_code'] && $symbol['sql_bible_field_code'] ) {
-			
-				// field of bible record
-				$bible_field_code = $symbol['sql_bible_field_code'] ;
-				$bible_record = paracrm_lib_data_getRecord_bibleEntry($symbol['sql_bible_code'], $row_group[$file_code][$file_field_code]) ;
-				foreach( $arr_groupKeyId as $group_key_id ) {
-					$subRES_group_symbol_value[$group_key_id][$symbol_id] = $bible_record[$bible_field_code] ;
+				if( $symbol['sql_bible_code'] && $symbol['sql_bible_field_code'] ) {
+				
+					// field of bible record
+					$bible_field_code = $symbol['sql_bible_field_code'] ;
+					$bible_record = paracrm_lib_data_getRecord_bibleEntry($symbol['sql_bible_code'], $row_group[$file_code][$file_field_code]) ;
+					foreach( $arr_groupKeyId as $group_key_id ) {
+						$subRES_group_symbol_value[$group_key_id][$symbol_id] = $bible_record[$bible_field_code] ;
+					}
+				}
+				else {
+					// field of cursor file record : standard
+					foreach( $arr_groupKeyId as $group_key_id ) {
+						$subRES_group_symbol_value[$group_key_id][$symbol_id] = $row_group[$file_code][$file_field_code] ;
+					}
 				}
 			}
-			else {
-				// field of cursor file record : standard
-				foreach( $arr_groupKeyId as $group_key_id ) {
-					$subRES_group_symbol_value[$group_key_id][$symbol_id] = $row_group[$file_code][$file_field_code] ;
-				}
+			
+			
+			foreach( $subRES_group_symbol_value as $group_key_id => $subSubRES_symbol_value )
+			{
+				/* En mode VALUE :
+					Pour chaque groupe on retourne plusieurs valeurs (principe de l'empilage valeurs)
+					l'opération est effectuée une seule fois par groupe à la fin
+				*/
+				if( !isset($subRes_group_arr_arrSymbolValue[$group_key_id]) )
+					$subRes_group_arr_arrSymbolValue[$group_key_id] = array() ;
+				$subRes_group_arr_arrSymbolValue[$group_key_id][] = $subSubRES_symbol_value ;
 			}
-		}
-		
-		
-		foreach( $subRES_group_symbol_value as $group_key_id => $subSubRES_symbol_value )
-		{
-			/* En mode VALUE :
-				Pour chaque groupe on retourne plusieurs valeurs (principe de l'empilage valeurs)
-				l'opération est effectuée une seule fois par groupe à la fin
-			*/
-			if( !isset($subRes_group_arr_arrSymbolValue[$group_key_id]) )
-				$subRes_group_arr_arrSymbolValue[$group_key_id] = array() ;
-			$subRes_group_arr_arrSymbolValue[$group_key_id][] = $subSubRES_symbol_value ;
+			
+			$subRes_selectId_group_arr_arrSymbolValue[$select_id] = $subRes_group_arr_arrSymbolValue ;
 		}
 	}
-
-	// print_r($subRes_group_arrValues) ;
-
-	return $subRes_group_arr_arrSymbolValue ;
+	
+	return $subRes_selectId_group_arr_arrSymbolValue ;
 }
 
 function paracrm_queries_process_query_doCount( $arr_saisie, $target_fileCode, $base_row, $parent_fileCode, $parent_filerecordId )
@@ -1700,126 +1751,122 @@ function paracrm_queries_process_query_doCount( $arr_saisie, $target_fileCode, $
 	global $arr_bible_trees , $arr_bible_entries ;
 	
 	
-	// subiteration sur les symboles
-	$results_symbols = array() ;
-	$subRES_group_symbol_value = array() ;
-	$field_select = current($arr_saisie['fields_select']) ;
-	foreach( $field_select['math_expression'] as $symbol_id => $symbol )
-	{
-		if( $symbol['math_staticvalue'] != 0 )
-			continue ;
-			
-			
-			
-		if( $symbol['sql_file_code'] == $parent_fileCode )
-		{
-			$arr_groupKeyId = paracrm_queries_process_queryHelp_group( $base_row, $arr_saisie['fields_group'] ) ;
-			foreach( $arr_groupKeyId as $group_key_id ) {
-				$subRES_group_symbol_value[$group_key_id][$symbol_id] = 1 ;
-			}
-			continue ;
-		}
+	// $subRes_group_arr_arrSymbolValue = array() ; // return value @OBSOLETE
+	$subRes_selectId_group_arr_arrSymbolValue = array() ; // return value
+	
+	foreach( $arr_saisie['fields_select'] as $select_id => $field_select ) {
 		
-		if( $symbol['sql_file_code'] != $target_fileCode )
+		$subRES_group_symbol_value = array() ;
+		// subiteration sur les symboles
+		foreach( $field_select['math_expression'] as $symbol_id => $symbol )
 		{
-			return NULL ;
-		}
-		
-		
-		if( $symbol['sql_bible_code'] )
-		{
-			// quels sont les conditions étrangères (autre bible) déjà présentes
-			$bible_foreignConstraints = array() ;
-			foreach( $arr_saisie['define_treefields'] as $define_field )
+			if( $symbol['math_staticvalue'] != 0 )
+				continue ;
+				
+				
+				
+			if( $symbol['sql_file_code'] == $parent_fileCode )
 			{
-				if( $define_field['field_type'] != 'link' ) {
-					continue ;
-				}
-				
-				$file_code = $define_field['file_code'] ;
-				$file_field_code = 'field_'.$define_field['file_field_code'] ;
-				
-				if( !isset($base_row[$file_code][$file_field_code]) ) {
-					continue ;
-				}
-				
-				// print_r($define_field) ;
-				$bible_foreignConstraints[$define_field['bible_code']] = $base_row[$file_code][$file_field_code] ;
-			}
-		
-			// iteration sur la bible !!!!!
-			foreach( paracrm_lib_bible_queryBible( $symbol['sql_bible_code'], $bible_foreignConstraints ) as $bible_record )
-			{
-				$row_pivot = $base_row ;
-				$mkey = $symbol['sql_file_field_code'] ;
-				$row_pivot[$symbol['sql_file_code']][$mkey] = $bible_record['entry_key'] ;
-				
-				// application des conditions
-				$row_test = array() ;
-				$row_test[$symbol['sql_file_code']][$mkey] = $bible_record['entry_key'] ;
-				if( !paracrm_queries_process_queryHelp_where( $row_test, $arr_saisie['fields_where'] ) )
-					continue ;
-				
-				$arr_groupKeyId = paracrm_queries_process_queryHelp_group( $row_pivot, $arr_saisie['fields_group'] ) ;
+				$arr_groupKeyId = paracrm_queries_process_queryHelp_group( $base_row, $arr_saisie['fields_group'] ) ;
 				foreach( $arr_groupKeyId as $group_key_id ) {
-					$subRES_group_symbol_value[$group_key_id][$symbol_id]++ ;
+					$subRES_group_symbol_value[$group_key_id][$symbol_id] = 1 ;
 				}
+				continue ;
 			}
 			
-			continue ;
-		}
-		
-		if( $symbol['sql_file_code'] == $target_fileCode && !$symbol['sql_file_field_code'] )
-		{
-			// iteration principale
-			$view_filecode = 'view_file_'.$target_fileCode ;
-			$query2 = "SELECT * FROM $view_filecode WHERE filerecord_parent_id='{$parent_filerecordId}'" ;
-			$result2 = $_opDB->query($query2);
-			while( ($arr2 = $_opDB->fetch_assoc($result2)) != FALSE )
+			if( $symbol['sql_file_code'] != $target_fileCode )
 			{
-				$row_child = array() ;
-				$row_child[$target_fileCode] = $arr2 ;
-				// application des conditions
-				if( !paracrm_queries_process_queryHelp_where( $row_child, $arr_saisie['fields_where'] ) )
-					continue ;
-			
-				$row_group = array() ;
-				$row_group = $base_row ;
-				$row_group[$target_fileCode] = $arr2 ;
-				
-				//print_r($row_group) ;
-			
-				$arr_groupKeyId = paracrm_queries_process_queryHelp_group( $row_group, $arr_saisie['fields_group'] ) ;
-				foreach( $arr_groupKeyId as $group_key_id ) {
-					$subRES_group_symbol_value[$group_key_id][$symbol_id]++ ;
-				}
+				return NULL ;
 			}
-			continue ;
+			
+			
+			if( $symbol['sql_bible_code'] )
+			{
+				// quels sont les conditions étrangères (autre bible) déjà présentes
+				$bible_foreignConstraints = array() ;
+				foreach( $arr_saisie['define_treefields'] as $define_field )
+				{
+					if( $define_field['field_type'] != 'link' ) {
+						continue ;
+					}
+					
+					$file_code = $define_field['file_code'] ;
+					$file_field_code = 'field_'.$define_field['file_field_code'] ;
+					
+					if( !isset($base_row[$file_code][$file_field_code]) ) {
+						continue ;
+					}
+					
+					// print_r($define_field) ;
+					$bible_foreignConstraints[$define_field['bible_code']] = $base_row[$file_code][$file_field_code] ;
+				}
+			
+				// iteration sur la bible !!!!!
+				foreach( paracrm_lib_bible_queryBible( $symbol['sql_bible_code'], $bible_foreignConstraints ) as $bible_record )
+				{
+					$row_pivot = $base_row ;
+					$mkey = $symbol['sql_file_field_code'] ;
+					$row_pivot[$symbol['sql_file_code']][$mkey] = $bible_record['entry_key'] ;
+					
+					// application des conditions
+					$row_test = array() ;
+					$row_test[$symbol['sql_file_code']][$mkey] = $bible_record['entry_key'] ;
+					if( !paracrm_queries_process_queryHelp_where( $row_test, $arr_saisie['fields_where'] ) )
+						continue ;
+					
+					$arr_groupKeyId = paracrm_queries_process_queryHelp_group( $row_pivot, $arr_saisie['fields_group'] ) ;
+					foreach( $arr_groupKeyId as $group_key_id ) {
+						$subRES_group_symbol_value[$group_key_id][$symbol_id]++ ;
+					}
+				}
+				
+				continue ;
+			}
+			
+			if( $symbol['sql_file_code'] == $target_fileCode && !$symbol['sql_file_field_code'] )
+			{
+				// iteration principale
+				$view_filecode = 'view_file_'.$target_fileCode ;
+				$query2 = "SELECT * FROM $view_filecode WHERE filerecord_parent_id='{$parent_filerecordId}'" ;
+				$result2 = $_opDB->query($query2);
+				while( ($arr2 = $_opDB->fetch_assoc($result2)) != FALSE )
+				{
+					$row_child = array() ;
+					$row_child[$target_fileCode] = $arr2 ;
+					// application des conditions
+					if( !paracrm_queries_process_queryHelp_where( $row_child, $arr_saisie['fields_where'] ) )
+						continue ;
+				
+					$row_group = array() ;
+					$row_group = $base_row ;
+					$row_group[$target_fileCode] = $arr2 ;
+					
+					//print_r($row_group) ;
+				
+					$arr_groupKeyId = paracrm_queries_process_queryHelp_group( $row_group, $arr_saisie['fields_group'] ) ;
+					foreach( $arr_groupKeyId as $group_key_id ) {
+						$subRES_group_symbol_value[$group_key_id][$symbol_id]++ ;
+					}
+				}
+				continue ;
+			}
 		}
 		
 		
 		
+		$subRes_group_arr_arrSymbolValue = array() ;
+		foreach( $subRES_group_symbol_value as $group_key_id => $subSubRES_symbol_value )
+		{
+			// *** Mode COUNT ****
+			// *** Pour chaque groupe on ne retourne qu'un seul map symbole>valeur => principe du comptage sur une itération
+			$subRes_group_arr_arrSymbolValue[$group_key_id] = array() ;
+			$subRes_group_arr_arrSymbolValue[$group_key_id][] = $subSubRES_symbol_value ;
+		}
 		
-		
-	
-	}
-	// print_r($subRES_group_symbol_value) ;
-	
-	
-	
-	$subRes_group_arr_arrSymbolValue = array() ;
-	foreach( $subRES_group_symbol_value as $group_key_id => $subSubRES_symbol_value )
-	{
-		// *** Mode COUNT ****
-		// *** Pour chaque groupe on ne retourne qu'un seul map symbole>valeur => principe du comptage sur une itération
-		$subRes_group_arr_arrSymbolValue[$group_key_id] = array() ;
-		$subRes_group_arr_arrSymbolValue[$group_key_id][] = $subSubRES_symbol_value ;
+		$subRes_selectId_group_arr_arrSymbolValue[$select_id] = $subRes_group_arr_arrSymbolValue ;
 	}
 	
-	
-	// print_r($subRes_group_arrValues) ;
-	
-	return $subRes_group_arr_arrSymbolValue ;
+	return $subRes_selectId_group_arr_arrSymbolValue ;
 }
 
 function paracrm_queries_process_queryHelp_where( $record_file, $fields_where ) // ** les fields where doivent etre prémachés pour les bibles !!!
