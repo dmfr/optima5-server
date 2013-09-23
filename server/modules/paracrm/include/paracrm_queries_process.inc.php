@@ -2209,8 +2209,10 @@ function paracrm_queries_process_labels_withTabs( $arr_saisie, $groupId_forTab )
 	if( $field_group_tab['display_geometry'] != 'tab' )
 		return NULL ;
 		
-	$field_select = current($arr_saisie['fields_select']) ;
-	$select_lib = $field_select['select_lib'] ;
+	$map_selectId_lib = array() ;
+	foreach( $arr_saisie['fields_select'] as $selectId => $field_select ) {
+		$map_selectId_lib[$selectId] = $field_select['select_lib'] ;
+	}
 		
 	$RES_tab_labels = array() ;
 		$tabBibleConditions = array() ;
@@ -2230,7 +2232,7 @@ function paracrm_queries_process_labels_withTabs( $arr_saisie, $groupId_forTab )
 	foreach( paracrm_queries_process_labelEnum( $group_id, $field_group_tab, $tabBibleConditions ) as $bible_key => $cells_display )
 	{
 		$subRES_tab = array() ;
-		$subRES_tab['select_lib'] = $select_lib ;
+		$subRES_tab['map_selectId_lib'] = $map_selectId_lib ;
 		$subRES_tab['group_id'] = $groupId_forTab ;
 		$subRES_tab['group_key'] = $bible_key ;
 		$subRES_tab['tab_title'] = implode(' - ',$cells_display) ;
@@ -2313,13 +2315,15 @@ function paracrm_queries_process_labels_noTab( $arr_saisie )
 	$fields_group = $arr_saisie['fields_group'] ;
 	$RES_tab_labels = array() ;
 	
-		$field_select = current($arr_saisie['fields_select']) ;
-		$select_lib = $field_select['select_lib'] ;
+		$map_selectId_lib = array() ;
+		foreach( $arr_saisie['fields_select'] as $selectId => $field_select ) {
+			$map_selectId_lib[$selectId] = $field_select['select_lib'] ;
+		}
 	
 		$subRES_tab = array() ;
-		$subRES_tab['select_lib'] = $select_lib ;
+		$subRES_tab['map_selectId_lib'] = $map_selectId_lib ;
 		
-		$subRES_tab['tab_title'] = $select_lib ;
+		$subRES_tab['tab_title'] = implode(' + ',array_values($map_selectId_lib)) ;
 	
 		$subRES_tab['arr_grid-x'] = array() ;
 		$subRES_tab['arr_grid-y'] = array() ;
