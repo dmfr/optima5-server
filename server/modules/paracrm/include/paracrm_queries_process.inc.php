@@ -1651,7 +1651,10 @@ function paracrm_queries_process_query_iterationDo( $arr_saisie, $iteration_chai
 				if( !is_array($RES_selectId_group_arr_arrSymbolValue[$select_id][$group_key_id]) )
 					$RES_selectId_group_arr_arrSymbolValue[$select_id][$group_key_id] = array() ;
 				
-				$RES_selectId_group_arr_arrSymbolValue[$select_id][$group_key_id] = array_merge( $RES_selectId_group_arr_arrSymbolValue[$select_id][$group_key_id], $arr_arrSymbolValue ) ;
+				$tmp_toMerge =& $RES_selectId_group_arr_arrSymbolValue[$select_id][$group_key_id] ;
+				foreach( $arr_arrSymbolValue as $arrSymbolValue ) {
+					$tmp_toMerge[] = $arrSymbolValue ;
+				}
 			}
 		}
 		// print_r($row) ;
