@@ -25,15 +25,21 @@ $_opDB->query("SET NAMES UTF8") ;
 include("$server_root/modules/paracrm/backend_paracrm.inc.php");
 
 
+$query_id = getenv('OPTIMA_QUERY_ID') ;
+if( !$query_id ) {
+	fwrite(STDERR, "ERR: No queryId specified (OPTIMA_QUERY_ID)"."\n");
+	exit ;
+}
+
 echo "Query init :\n\n" ;
 $post_test = array() ;
 $post_test['_action'] = 'queries_builderTransaction' ;
 $post_test['_subaction'] = 'init' ;
-$post_test['query_id'] = 24 ;
+$post_test['query_id'] = $query_id ;
 $json = backend_specific( $post_test ) ;
-print_r($json) ;
-echo "Transaction ID : {$json['transaction_id']}\n" ;
-echo "\n\n" ;
+//print_r($json) ;
+//echo "Transaction ID : {$json['transaction_id']}\n" ;
+//echo "\n\n" ;
 
 $transaction_id = $json['transaction_id'] ;
 
@@ -46,7 +52,7 @@ $post_test['_transaction_id'] = $json['transaction_id'] ;
 $post_test['_subaction'] = 'run' ;
 $post_test['_debug'] = TRUE ;
 $json = backend_specific( $post_test ) ;
-// print_r($json) ;
+//print_r($json) ;
 echo "\n\n" ;
 
 

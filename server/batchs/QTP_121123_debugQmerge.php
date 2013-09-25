@@ -25,11 +25,17 @@ $_opDB->query("SET NAMES UTF8") ;
 include("$server_root/modules/paracrm/backend_paracrm.inc.php");
 
 
+$qmerge_id = getenv('OPTIMA_QMERGE_ID') ;
+if( !$qmerge_id ) {
+	fwrite(STDERR, "ERR: No queryId specified (OPTIMA_QMERGE_ID)"."\n");
+	exit ;
+}
+
 echo "Qmerge init :\n\n" ;
 $post_test = array() ;
 $post_test['_action'] = 'queries_mergerTransaction' ;
 $post_test['_subaction'] = 'init' ;
-$post_test['qmerge_id'] = 2 ;
+$post_test['qmerge_id'] = $qmerge_id ;
 $json = backend_specific( $post_test ) ;
 //print_r($json) ;
 echo "Transaction ID : {$json['transaction_id']}\n" ;
