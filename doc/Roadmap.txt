@@ -1,0 +1,19 @@
+2013-09-02 : TODO LIST
+
+Relevé produits : présence boxs Wonderful Pistachios Epicerie / WP F/L / WAlmonds
+- case à cocher ( + photo liée obligatiore )
+
+Classification DIAMANT / OR / ARGENT / BRONZE
+- liste de choix par mag 
+- utilisation dans les requetes
+
+MODULE DASHBOARD
+- Store card
+
+Store Notepad (epicerie / FL / jus frais) :
+- nom chef rayon
+- tel direct
+- email
+- (+adjoint)
+- (+ELS)
+- surface de vente

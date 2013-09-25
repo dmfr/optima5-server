@@ -35,3 +35,25 @@ ORDER BY outbound_id;
 - Etape 1 : calcul du HASH selon le join Map
 
 - Etape 2 : recherche de la valeur dans le cache
+
+
+
+
+
+2013-09-19 : Grid.Panel w/ local store hangs loading
+
+tmp fix : 
+commit 88d9dc904d8361d23bf16abfbe1bf64af5730053
+Author: Damien Mirand <dm@mirabel-sil.com>
+Date:   Thu Sep 19 04:40:58 2013 +0200
+    JS - CRM QueryResult, pagingScroller fix
+
+possible fix (not working) :
+/*
+* Bug EXTJSIV-6988
+* fixed in 4.1.2
+* http://www.sencha.com/forum/showthread.php?230125-Buffered-store-w-grid-locks-up-in-loading&p=856067&viewfull=1#post856067
+* override purpose : remove "me.loading" after beforeprefetch firing
+*/
+
+
