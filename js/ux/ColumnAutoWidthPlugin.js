@@ -43,11 +43,9 @@ Ext.define('Ext.ux.ColumnAutoWidthPlugin', {
             var view = grid.getView();
 
 				if( me.singleOnly ) {
-					console.log('ssingle Only') ;
 					me.mon(view, 'refresh',         me.onViewChange, me, {single:true} );
 					me.mon(grid, 'columnshow', me.onColumnChange, me);//, { buffer: 100 });
 				} else {
-					console.log('multiple') ;
 					me.mon(view, 'refresh',         me.onViewChange, me );
 					me.mon(view, 'itemadd',         me.onViewChange, me );
 					me.mon(view, 'itemremove',      me.onViewChange, me );
@@ -73,7 +71,7 @@ Ext.define('Ext.ux.ColumnAutoWidthPlugin', {
     },
     onColumnChange: function(ct, column) {
         if( this.suspendAutoSize ) return;
-        console.log('ColumnAutoWidthPlugin','onColumnChange');
+        //console.log('ColumnAutoWidthPlugin','onColumnChange');
         if ( column.autoWidth ) this.doAutoSize([column]); 
     },
     onViewChange: function() {
