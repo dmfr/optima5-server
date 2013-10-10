@@ -17,3 +17,18 @@ Store Notepad (epicerie / FL / jus frais) :
 - (+adjoint)
 - (+ELS)
 - surface de vente
+
+
+
+
+2013-10-08 : QUERIES
+
+- Charts for Axis-Y in query display
+
+- Workbook of queries ( vbox or tabs )
+
+- Forecast option when group by date
+
+- Import data on file (UIs)
+
+
