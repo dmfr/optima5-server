@@ -182,7 +182,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 					singleExpand: false,
 					// viewConfig:{toggleOnDblClick: false},
 					columns: columns,
-					plugins: [Ext.create('Ext.ux.ColumnAutoWidthPlugin', {allColumns:true, minAutoWidth:90})]
+					plugins: [Ext.create('Ext.ux.ColumnAutoWidthPlugin', {allColumns:true, minAutoWidth:90, singleOnly:true})]
 				}) ;
 				
 				tabtree.on('destroy',function(){
@@ -233,7 +233,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 					trailingBufferZone: 10,
 					leadingBufferZone: 20
 				},*/
-				plugins: [Ext.create('Ext.ux.ColumnAutoWidthPlugin', {allColumns:true, minAutoWidth:90})],
+				plugins: [Ext.create('Ext.ux.ColumnAutoWidthPlugin', {allColumns:true, minAutoWidth:90, singleOnly:true})],
 				viewConfig: { 
 					//stripeRows: false, 
 					getRowClass: function(record) { 

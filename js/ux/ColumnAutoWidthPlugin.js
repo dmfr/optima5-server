@@ -16,6 +16,7 @@ Ext.define('Ext.ux.ColumnAutoWidthPlugin', {
     autoUpdate: true,
     allColumns: false,
     minAutoWidth: 0,
+    singleOnly: false,
     constructor: function(config) {
         var me = this;
         Ext.apply(me, config);
@@ -40,14 +41,21 @@ Ext.define('Ext.ux.ColumnAutoWidthPlugin', {
         
         if (me.autoUpdate && me.disabled && grid){
             var view = grid.getView();
-            
-            me.mon(view, 'refresh',         me.onViewChange, me );
-            me.mon(view, 'itemadd',         me.onViewChange, me );
-            me.mon(view, 'itemremove',      me.onViewChange, me );
-            me.mon(view, 'itemupdate',      me.onViewChange, me );
-            me.mon(view, 'afteritemexpand', me.onViewChange, me );
-            
-            me.mon(grid, 'columnshow', me.onColumnChange, me);//, { buffer: 100 });
+
+				if( me.singleOnly ) {
+					console.log('ssingle Only') ;
+					me.mon(view, 'refresh',         me.onViewChange, me, {single:true} );
+					me.mon(grid, 'columnshow', me.onColumnChange, me);//, { buffer: 100 });
+				} else {
+					console.log('multiple') ;
+					me.mon(view, 'refresh',         me.onViewChange, me );
+					me.mon(view, 'itemadd',         me.onViewChange, me );
+					me.mon(view, 'itemremove',      me.onViewChange, me );
+					me.mon(view, 'itemupdate',      me.onViewChange, me );
+					me.mon(view, 'afteritemexpand', me.onViewChange, me );
+					
+					me.mon(grid, 'columnshow', me.onColumnChange, me);//, { buffer: 100 });
+				}
         }
         
         me.callParent();
@@ -178,7 +186,7 @@ Ext.define('Ext.ux.ColumnAutoWidthPlugin', {
         });
         
         restoreScroll();
-        console.log('ColumnAutoWidthPlugin','doAutoSize took', 0-start + (start = new Date().getTime()), 'ms');
+        //console.log('ColumnAutoWidthPlugin','doAutoSize took', 0-start + (start = new Date().getTime()), 'ms');
         
     }
     
