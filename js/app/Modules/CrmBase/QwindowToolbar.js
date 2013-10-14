@@ -24,8 +24,8 @@ Ext.define('Optima5.Modules.CrmBase.QwindowToolbar',{
 						itemId: 'saveas',
 						text: 'Save as',
 						iconCls: 'op5-crmbase-qtoolbar-file-saveas',
+						handler: null,
 						menu: {
-							title: 'User options',
 							items:[{
 								xtype:'textfield' ,
 								width:150

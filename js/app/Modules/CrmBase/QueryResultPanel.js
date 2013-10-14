@@ -4,11 +4,14 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 	requires: [
 		'Optima5.Modules.CrmBase.QueryTemplateManager',
 		'Ext.ux.dams.IFrameContent',
-		'Ext.ux.ColumnAutoWidthPlugin'
+		'Ext.ux.ColumnAutoWidthPlugin',
+		'Ext.ux.AddTabButton'
 	],
 			  
 	ajaxBaseParams:{},
 	RES_id: '',
+	
+	chartsEnabled : false,
 			  
 	initComponent: function() {
 		var me = this ;
@@ -18,7 +21,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 		
 		Ext.apply( me, {
 			border:false,
-			layout: 'fit',
+			layout: 'border',
 			autoDestroy: true,
 			items:[{
 				xtype:'box',
@@ -168,6 +171,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 				}) ;
 				
 				var tabtree = Ext.create('Ext.tree.Panel',{
+					border:false,
 					title:tabData.tab_title,
 					store: {
 						model: tmpModelName,
@@ -189,6 +193,8 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 					// console.log('Unregistering model '+tmpModelName) ;
 					Ext.ModelManager.unregister( tmpModelName ) ;
 				},me);
+				
+				tabtree.getView().headerCt.on('menucreate',me.onColumnsMenuCreate,me) ;
 				
 				tabitems.push(tabtree);
 				return true ;
@@ -224,6 +230,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			
 			var tabgrid = Ext.create('Ext.grid.Panel',{
 				xtype:'grid',
+				border:false,
 				cls:'op5crmbase-querygrid-'+me.optimaModule.sdomainId,
 				title:tabData.tab_title,
 				columns:columns,
@@ -247,21 +254,56 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 				Ext.ModelManager.unregister( tmpModelName ) ;
 			},me);
 			
+			tabgrid.getView().headerCt.on('menucreate',me.onColumnsMenuCreate,me) ;
+			
 			tabitems.push(tabgrid);
 			return true ;
 		},me) ;
 		
 		me.removeAll() ;
 		me.add({
-				xtype:'tabpanel' ,
-				//frame: true,
-				border:false,
-				activeTab: 0,
-				defaults :{
-						// bodyPadding: 10
-				},
-				items: tabitems
-			}) ;
+			xtype:'tabpanel' ,
+			itemId: 'pResultTab',
+			//frame: true,
+			region:'center',
+			flex:2,
+			border:false,
+			activeTab: 0,
+			defaults :{
+					// bodyPadding: 10
+			},
+			items: tabitems
+		},{
+			xtype:'tabpanel',
+			region:'south',
+			itemId: 'pCharts',
+			flex: 1,
+			title: 'Charts',
+			collapsible: true,
+			plugins:[{ 
+				ptype: 'AddTabButton', 
+				iconCls: 'icon-add', 
+				toolTip: 'New empty chart'
+			}],
+			listeners:{
+				afterlayout:{
+					fn: function(p) {
+						this.mon( p.getTabBar().el, {
+							contextmenu: this.onTabChartRightClick, 
+							scope: this,
+							delegate: 'div.x-tab'
+						}) ;
+					},
+					scope: this,
+					single: true
+				}
+			}
+		}) ;
+	},
+	getActiveResultPanel: function() {
+		var me = this,
+			pResultTab = me.child('#pResultTab') ;
+		return pResultTab.getActiveTab() ;
 	},
 	exportExcel: function(){
 		var me = this ;
@@ -280,5 +322,146 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			requestAction: Optima5.Helper.getApplication().desktopGetBackendUrl(),
 			requestMethod: 'POST'
 		}) ;		
+	},
+	
+	onColumnsMenuCreate: function( headerCt, menu ) {
+		var me = this;
+		me.getColorPicker() ;
+		menu.on('beforeshow', me.onColumnsMenuBeforeShow, me);
+	},
+	onColumnsMenuBeforeShow: function( menu ) {
+		var me = this,
+			columnDataIndex = menu.activeHeader.dataIndex ;  // Which column ?
+		
+		if( !menu.child('#chrt-btn-add') ) {
+			menu.add('-') ;
+			menu.add({
+				itemId: 'chrt-btn-add',
+				iconCls: 'op5-crmbase-qresult-kchart-add' ,
+				text: '&#160;',
+				listeners: {
+					scope: me
+				}
+			});
+			menu.add({
+				itemId: 'chrt-btn-delete',
+				iconCls: 'op5-crmbase-qresult-kchart-remove' ,
+				text: 'Remove from chart',
+				listeners: {
+					scope: me
+				}
+			});
+		}
+		
+		var menuItemAdd = menu.child('#chrt-btn-add'),
+			  menuItemDel = menu.child('#chrt-btn-delete') ;
+		menuItemAdd.menu = me.getColorPicker() ;
+		
+		if( me.getActiveResultPanel() && me.getActiveResultPanel() instanceof Ext.grid.Panel ) {
+			menu.query('menuseparator')[0].setVisible(true) ;
+			menuItemAdd.setVisible(true) ;
+			menuItemDel.setVisible(true) ;
+		} else {
+			menu.query('menuseparator')[0].setVisible(false) ;
+			menuItemAdd.setVisible(false) ;
+			menuItemDel.setVisible(false) ;
+		}
+	},
+	
+	
+	onTabChartRightClick: function(event, targetElement) {
+		var me = this,
+			tabBar = me.child('#pCharts').getTabBar()
+			tab = tabBar.getChildByElement(targetElement),
+			index = tabBar.items.indexOf(tab);
+			
+		/*
+		 * Builds and displays a context menu for current chart
+		 * - destroy chart
+		 * - change chart type (query available types ?)
+		 * - rename chart
+		 */
+		var menu = Ext.create('Ext.menu.Menu',{
+			defaults: {
+				handler: function() {
+					//console.dir(arguments) ;
+				},
+				scope: me
+			},
+			items: [{
+				text: 'Rename to',
+				handler: null,
+				menu: {
+					items:[{
+						xtype:'textfield' ,
+						value: tab.getText(),
+						width:150
+					},{
+						xtype:'button',
+						text:'Ok',
+						handler: function(button){
+							var textfield = button.up('menu').query('textfield')[0] ;
+							
+							Ext.menu.Manager.hideAll();
+						},
+						scope:me
+					}]
+				}
+			},{
+				xtype: 'menuseparator'
+			},{
+				text: 'Area stacked',
+				itemId: 'sChartAreaStacked',
+				iconCls: 'op5-crmbase-qresult-chart-areastacked'
+			},{
+				text: 'Bar chart',
+				itemId: 'sChartBar',
+				iconCls: 'op5-crmbase-qresult-chart-bar'
+			},{
+				text: 'Line chart',
+				itemId: 'sChartLine',
+				iconCls: 'op5-crmbase-qresult-chart-line'
+			},{
+				text: 'Pie chart',
+				itemId: 'sChartPie',
+				iconCls: 'op5-crmbase-qresult-chart-pie'
+			},{
+				xtype: 'menuseparator'
+			},{
+				text: 'Delete chart',
+				itemId: 'delete',
+				iconCls: 'op5-crmbase-qresult-deletechart'
+			}]
+		}) ;
+		event.preventDefault();
+		menu.showAt(event.getXY());
+	},
+	onTabChartMenu: function() {
+		
+	},
+	
+	onChartAddColumn: function() {
+		
+	},
+	onChartAddRow: function() {
+		
+	},
+	onChartAddNodeRow: function() {
+		
+	},
+	onChartAddNodeColumn: function() {
+		
+	},
+	getColorPicker: function() {
+		var me = this ;
+		if( !me.chartColorPicker ) {
+			me.chartColorPicker = Ext.create('Ext.menu.Menu',{
+				layout:'fit',
+				items:[{
+					xtype:'colorpicker'
+				}]
+			});
+		}
+		return me.chartColorPicker ;
 	}
 }) ;

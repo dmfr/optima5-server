@@ -159,6 +159,31 @@
 	background-image: url("../images/modules/crmbase-camera-16.png") !important;
 }
 
+.op5-crmbase-qresult-kchart-add {
+	background-image: url("../images/modules/crmbase-kchart-16.png") !important;
+}
+.op5-crmbase-qresult-kchart-remove {
+	background-image: url("../images/delete.png") !important;
+}
+
+.op5-crmbase-qresult-chart-areastacked {
+	background-image: url("../images/modules/crmbase-chart-areastacked-16.png") !important;
+}
+.op5-crmbase-qresult-chart-bar {
+	background-image: url("../images/modules/crmbase-chart-bar-16.png") !important;
+}
+.op5-crmbase-qresult-chart-line {
+	background-image: url("../images/modules/crmbase-chart-line-16.png") !important;
+}
+.op5-crmbase-qresult-chart-pie {
+	background-image: url("../images/modules/crmbase-chart-pie-16.png") !important;
+}
+
+.op5-crmbase-qresult-deletechart {
+	background-image: url("../images/modules/crmbase-delete-16.gif") !important;
+}
+
+
 .op5-crmbase-qtemplatewindow-icon {
 	background-image: url("../images/modules/crmbase-barschart-16.gif") !important;
 }
