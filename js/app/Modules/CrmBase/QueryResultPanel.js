@@ -5,13 +5,14 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 		'Optima5.Modules.CrmBase.QueryTemplateManager',
 		'Ext.ux.dams.IFrameContent',
 		'Ext.ux.ColumnAutoWidthPlugin',
-		'Ext.ux.AddTabButton'
+		'Ext.ux.AddTabButton',
+		'Optima5.Modules.CrmBase.QueryResultChartPanel'
 	],
 			  
 	ajaxBaseParams:{},
 	RES_id: '',
 	
-	chartsEnabled : false,
+	chartsVisible : false,
 			  
 	initComponent: function() {
 		var me = this ;
@@ -31,12 +32,38 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			dockedItems: [{
 				xtype: 'toolbar',
 				dock: 'top',
-				items: ['->',{
-					xtype:'button',
+				items: [{
+					itemId: 'exportexcel',
 					text: 'Export Excel',
 					icon: 'images/op5img/ico_save_16.gif',
 					handler: me.exportExcel,
 					scope:me
+				},{
+					itemId: 'kchart',
+					text: 'Charts/Graphs',
+					iconCls: 'op5-crmbase-qresultmenu-kchart',
+					menu:[{
+						itemId: 'enabled',
+						text: 'Charting enabled',
+						checked: false,
+						listeners: {
+							checkchange: function( ci, checked ) {
+								me.setChartsVisible( checked ) ;
+							},
+							scope: me
+						}
+					},{
+						itemId: 'separator',
+						xtype: 'menuseparator'
+					},{
+						itemId: 'save',
+						text: 'Save defined charts',
+						iconCls: 'op5-crmbase-qresultmenu-save'
+					},{
+						itemId: 'delete',
+						text: 'Delete all charts',
+						iconCls: 'op5-crmbase-qresultmenu-delete'
+					}]
 				}]
 			}]
 		}) ;
@@ -283,7 +310,10 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			plugins:[{ 
 				ptype: 'AddTabButton', 
 				iconCls: 'icon-add', 
-				toolTip: 'New empty chart'
+				toolTip: 'New empty chart',
+				panelConfig: {
+					xtype: 'op5crmbasequeryresultchart'
+				}
 			}],
 			listeners:{
 				afterlayout:{
@@ -299,11 +329,39 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 				}
 			}
 		}) ;
+		
+		// TODO: use server-side charts cfg
+		me.setChartsVisible(false) ;
 	},
 	getActiveResultPanel: function() {
 		var me = this,
 			pResultTab = me.child('#pResultTab') ;
 		return pResultTab.getActiveTab() ;
+	},
+	setChartsVisible: function(torf) {
+		/* Components to hide/show :
+		 * - main toolbar's kchart checkbox + menu items
+		 * - docked (south) chart panel
+		 */
+		var me = this,
+			kchartMenu = me.query('toolbar')[0].child('#kchart').menu,
+			chartTabPanel = me.child('#pCharts') ;
+			
+		me.chartsVisible = torf ;
+		kchartMenu.items.each( function(menuitem) {
+			switch( menuitem.itemId ) {
+				case 'enabled' :
+					menuitem.setChecked(torf) ;
+					break ;
+					
+				case 'separator' :
+				case 'save' :
+				case 'delete':
+					menuitem.setVisible(torf) ;
+					break ;
+			}
+		},me) ;
+		chartTabPanel.setVisible(torf) ;
 	},
 	exportExcel: function(){
 		var me = this ;
@@ -353,16 +411,25 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			});
 		}
 		
+		
+		
+		/*
+		 * Show context items for Charts IF :
+		 * - column type is group ( != label ), see RES map
+		 * - panel is type GRID ( tree uses areastacked on nodes )
+		 * - charting is enabled + current chart panel != null
+		 */
+		
 		var menuItemAdd = menu.child('#chrt-btn-add'),
 			  menuItemDel = menu.child('#chrt-btn-delete') ;
 		menuItemAdd.menu = me.getColorPicker() ;
 		
 		if( me.getActiveResultPanel() && me.getActiveResultPanel() instanceof Ext.grid.Panel ) {
-			menu.query('menuseparator')[0].setVisible(true) ;
+			menu.query('menuseparator')[1].setVisible(true) ;
 			menuItemAdd.setVisible(true) ;
 			menuItemDel.setVisible(true) ;
 		} else {
-			menu.query('menuseparator')[0].setVisible(false) ;
+			menu.query('menuseparator')[1].setVisible(false) ;
 			menuItemAdd.setVisible(false) ;
 			menuItemDel.setVisible(false) ;
 		}
@@ -373,7 +440,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 		var me = this,
 			tabBar = me.child('#pCharts').getTabBar()
 			tab = tabBar.getChildByElement(targetElement),
-			index = tabBar.items.indexOf(tab);
+			tabIndex = tabBar.items.indexOf(tab);
 			
 		/*
 		 * Builds and displays a context menu for current chart
@@ -383,8 +450,8 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 		 */
 		var menu = Ext.create('Ext.menu.Menu',{
 			defaults: {
-				handler: function() {
-					//console.dir(arguments) ;
+				handler: function(menuItem) {
+					me.onTabChartMenuItemClick( tabIndex, menuItem.itemId ) ;
 				},
 				scope: me
 			},
@@ -399,9 +466,10 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 					},{
 						xtype:'button',
 						text:'Ok',
-						handler: function(button){
-							var textfield = button.up('menu').query('textfield')[0] ;
-							
+						handler: function(button) {
+							var textfield = button.up('menu').query('textfield')[0],
+								textValue = textfield.getValue() ;
+							me.getChartPanelAtIndex(tabIndex).setChartName(textValue) ;
 							Ext.menu.Manager.hideAll();
 						},
 						scope:me
@@ -436,8 +504,31 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 		event.preventDefault();
 		menu.showAt(event.getXY());
 	},
-	onTabChartMenu: function() {
-		
+	onTabChartMenuItemClick: function( tabIndex, menuItemId ) {
+		var me = this ;
+		if( menuItemId == 'delete' ) {
+			me.handleDeleteChartPanelAtIndex(tabIndex) ;
+			return ;
+		}
+		if( menuItemId.indexOf('sChart') === 0 ) {
+			var targetChartType = '' ;
+			switch( menuItemId ) {
+				case 'sChartAreaStacked' : 
+					targetChartType = 'areastacked' ;
+					break ;
+				case 'sChartBar' : 
+					targetChartType = 'bar' ;
+					break ;
+				case 'sChartLine' : 
+					targetChartType = 'line' ;
+					break ;
+				case 'sChartPie' : 
+					targetChartType = 'pie' ;
+					break ;
+			}
+			me.getChartPanelAtIndex(tabIndex).setChartType(targetChartType) ;
+			return ;
+		}
 	},
 	
 	onChartAddColumn: function() {
@@ -463,5 +554,20 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			});
 		}
 		return me.chartColorPicker ;
+	},
+	getChartPanelAtIndex: function( index ) {
+		var me = this,
+			panel = me.child('#pCharts').items.getAt(index) ;
+		return panel ;
+	},
+	handleDeleteChartPanelAtIndex: function( index ) {
+		var me = this,
+			panel = me.getChartPanelAtIndex(index),
+			panelTitle = panel.title ;
+		Ext.Msg.confirm('Delete chart', 'Remove chart '+panelTitle+' ?', function(btn){
+			if( btn == 'yes' ) {
+				me.child('#pCharts').remove(panel) ;
+			}
+		},me) ;
 	}
 }) ;

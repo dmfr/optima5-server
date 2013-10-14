@@ -159,6 +159,16 @@
 	background-image: url("../images/modules/crmbase-camera-16.png") !important;
 }
 
+.op5-crmbase-qresultmenu-kchart {
+	background-image: url("../images/modules/crmbase-kchart-16.png") !important;
+}
+.op5-crmbase-qresultmenu-save {
+	background-image: url("../images/modules/crmbase-save-16.gif") !important;
+}
+.op5-crmbase-qresultmenu-delete {
+	background-image: url("../images/modules/crmbase-delete-16.gif") !important;
+}
+
 .op5-crmbase-qresult-kchart-add {
 	background-image: url("../images/modules/crmbase-kchart-16.png") !important;
 }
@@ -181,6 +191,9 @@
 
 .op5-crmbase-qresult-deletechart {
 	background-image: url("../images/modules/crmbase-delete-16.gif") !important;
+}
+.op5-crmbase-qresult-warning {
+	background-image: url("../images/modules/crmbase-warning-16.png") !important;
 }
 
 
