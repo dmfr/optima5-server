@@ -10,6 +10,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 	],
 			  
 	ajaxBaseParams:{},
+	ajaxResponse:null,
 	RES_id: '',
 	
 	chartsVisible : false,
@@ -84,12 +85,12 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 					me.destroy() ;
 				}
 				else {
-					var ajaxData = Ext.decode(response.responseText) ;
-					me.initAddToolbar( ajaxData ) ;
-					if( ajaxData.tabs ) {
-						me.initAddTabs( ajaxData ) ;
-					} else if( ajaxData.html ) {
-						me.initAddHtml( ajaxData ) ;
+					me.ajaxResponse = Ext.decode(response.responseText) ;
+					me.initAddToolbar( me.ajaxResponse ) ;
+					if( me.ajaxResponse.tabs ) {
+						me.initAddTabs( me.ajaxResponse ) ;
+					} else if( me.ajaxResponse.html ) {
+						me.initAddHtml( me.ajaxResponse ) ;
 					}
 				}
 			},
@@ -125,7 +126,16 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			}
 			
 			columns = [] ;
-			fields = [] ;
+			fields = [{
+				name:'_rowIdx', // server-side rowIdx ( ie related to row_pivotMap )
+				type:'int'
+			},{
+				name:'_id',     // node "_id" (not used here but server available)
+				type:'string'
+			},{
+				name:'_tdCls',     // node "_id" (not used here but server available)
+				type:'string'
+			}] ;
 			Ext.Array.each(tabData.columns, function(columnDef,colIdx) {
 				if( columnDef.text_bold == true ) {
 					columnDef.text = '<b>'+columnDef.text+'</b>' ;
@@ -185,6 +195,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 				});
 			},me);
 			
+			
 			var tmpModelName = 'QueryResultModel-' + me.ajaxBaseParams._transaction_id + '-' + me.RES_id + '-' + tabCount ;
 			//console.log('Defining a model '+tmpModelName) ;
 			Ext.define(tmpModelName, {
@@ -199,6 +210,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 				
 				var tabtree = Ext.create('Ext.tree.Panel',{
 					border:false,
+					tabIdx: tabCount,
 					title:tabData.tab_title,
 					store: {
 						model: tmpModelName,
@@ -213,7 +225,29 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 					singleExpand: false,
 					// viewConfig:{toggleOnDblClick: false},
 					columns: columns,
-					plugins: [Ext.create('Ext.ux.ColumnAutoWidthPlugin', {allColumns:true, minAutoWidth:90, singleOnly:true})]
+					plugins: [Ext.create('Ext.ux.ColumnAutoWidthPlugin', {allColumns:true, minAutoWidth:90, singleOnly:true})],
+					listeners: {
+						itemcontextmenu: me.onRowRightClick,
+						scope:me
+					},
+					viewConfig: { 
+						//stripeRows: false,
+						listeners: {
+							beforerefresh: function(view) {
+								var treePanel = view.up('treepanel') ;
+								me.onBeforeGridRefresh( treePanel.tabIdx, treePanel ) ;
+							},
+							scope: me
+						},
+						getRowClass: function(record,index) {
+							var rowIdx = record.get('_rowIdx'),
+								color = this.colorMapObj[rowIdx] ;
+								
+							if( color != null ) {
+								return 'ux-grid-row-bk-'+color ;
+							}
+						}
+					}
 				}) ;
 				
 				tabtree.on('destroy',function(){
@@ -259,6 +293,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 				xtype:'grid',
 				border:false,
 				cls:'op5crmbase-querygrid-'+me.optimaModule.sdomainId,
+				tabIdx: tabCount,
 				title:tabData.tab_title,
 				columns:columns,
 				store:tabstore,
@@ -267,10 +302,21 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 					trailingBufferZone: 10,
 					leadingBufferZone: 20
 				},*/
+				listeners: {
+					itemcontextmenu: me.onRowRightClick,
+					scope:me
+				},
 				plugins: [Ext.create('Ext.ux.ColumnAutoWidthPlugin', {allColumns:true, minAutoWidth:90, singleOnly:true})],
 				viewConfig: { 
-					//stripeRows: false, 
-					getRowClass: function(record) { 
+					//stripeRows: false,
+					listeners: {
+						beforerefresh: function(view) {
+							var gridPanel = view.up('gridpanel') ;
+							me.onBeforeGridRefresh( gridPanel.tabIdx, gridPanel ) ;
+						},
+						scope: me
+					},
+					getRowClass: function(record,index) { 
 						return record.get('detachedRow') ? 'op5crmbase-detachedrow' : ''; 
 					}
 				}
@@ -290,7 +336,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 		me.removeAll() ;
 		me.add({
 			xtype:'tabpanel' ,
-			itemId: 'pResultTab',
+			itemId: 'pResult',
 			//frame: true,
 			region:'center',
 			flex:2,
@@ -307,6 +353,14 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			flex: 1,
 			title: 'Charts',
 			collapsible: true,
+			defaults:{
+				listeners: {
+					serieschanged: function() {
+						me.getActiveResultPanel().getView().refresh() ;
+					},
+					scope:me
+				}
+			},
 			plugins:[{ 
 				ptype: 'AddTabButton', 
 				iconCls: 'icon-add', 
@@ -330,13 +384,72 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			}
 		}) ;
 		
+		/*
+		 * Attach listeners to pCharts to monitor visibility/tabchange
+		 * => triggers pResult view refresh ( show series )
+		 */
+		me.child('#pCharts').on({
+			show:me.onChartsVisibilityChange,
+			hide:me.onChartsVisibilityChange,
+			collapse:me.onChartsVisibilityChange,
+			expand:me.onChartsVisibilityChange,
+			tabchange:me.onChartsVisibilityChange,
+			scope:me
+		}) ;
+		
+		
 		// TODO: use server-side charts cfg
 		me.setChartsVisible(false) ;
 	},
 	getActiveResultPanel: function() {
 		var me = this,
-			pResultTab = me.child('#pResultTab') ;
-		return pResultTab.getActiveTab() ;
+			pResult = me.child('#pResult') ;
+		return pResult.getActiveTab() ;
+	},
+	getActiveResultPanelMapGroups: function() {
+		var me = this,
+			tabIndex = me.child('#pResult').items.indexOf(me.getActiveResultPanel());
+			mapGroups = me.ajaxResponse.tabs[tabIndex].MAP_groups ;
+		//console.dir(mapGroups) ;
+		return mapGroups ;
+	},
+	getMapGroupsForPanel: function(rPanel) {
+		var me = this,
+			tabIndex = me.child('#pResult').items.indexOf(rPanel);
+			mapGroups = me.ajaxResponse.tabs[tabIndex].MAP_groups ;
+		//console.dir(mapGroups) ;
+		return mapGroups ;
+	},
+	getPivotForRow: function(rPanel,rowRecord) {
+		var me = this,
+			tabIndex = me.child('#pResult').items.indexOf(rPanel),
+			mapGroups = me.ajaxResponse.tabs[tabIndex].MAP_groups,
+			rowIdx = rowRecord.get('_rowIdx'),
+			rowPivot = mapGroups.row_pivotMap[rowIdx] ;
+			
+		return rowPivot ;
+	},
+	getPivotForColumn: function(rPanel,columnDataIndex) {
+		var me = this,
+			tabIndex = me.child('#pResult').items.indexOf(rPanel),
+			mapGroups = me.ajaxResponse.tabs[tabIndex].MAP_groups,
+			colPivot = mapGroups.col_pivotMap[columnDataIndex] ;
+		
+		return colPivot ;
+	},
+	getIterationsForRows: function(rPanel) {
+		var me = this,
+			tabIndex = me.child('#pResult').items.indexOf(rPanel),
+			mapGroups = me.ajaxResponse.tabs[tabIndex].MAP_groups ;
+			
+		return mapGroups.col_iterations ;
+	},
+	getIterationsForColumns: function(rPanel) {
+		var me = this,
+			tabIndex = me.child('#pResult').items.indexOf(rPanel),
+			mapGroups = me.ajaxResponse.tabs[tabIndex].MAP_groups ;
+		
+		return mapGroups.row_iterations ;
 	},
 	setChartsVisible: function(torf) {
 		/* Components to hide/show :
@@ -382,6 +495,45 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 		}) ;		
 	},
 	
+	onChartsVisibilityChange: function() {
+		var me = this ;
+		console.log('onChartsVisibilityChange') ;
+		me.getActiveResultPanel().getView().refresh() ;
+	},
+	
+	onBeforeGridRefresh: function( tabIndex, rPanel ) {
+		console.log('onBeforeGridRefresh') ;
+		var me = this,
+			chartPanel = me.getActiveChartPanel(),
+			cssId = 'cssId-'+me.getId() ;
+		
+		var me = this,
+			tabIndex = me.child('#pResult').items.indexOf(rPanel),
+			mapGroups = me.ajaxResponse.tabs[tabIndex].MAP_groups,
+			colorMapObj={} ;
+		
+		Ext.Array.each( me.ajaxResponse.tabs[tabIndex].data, function(rec) {
+			var rowIdx = rec['_rowIdx'] ,
+				rowPivot = mapGroups.row_pivotMap[rowIdx],
+				color = (chartPanel!=null ? chartPanel.getPivotColor( rowPivot ) : null ) ;
+				
+			if( color != null ) {
+				colorMapObj[rowIdx] = color ;
+			}
+		},me) ;
+		rPanel.getView().colorMapObj = colorMapObj ;
+		
+		// ajust CSS styles to highlight selected series
+		// console.dir(arguments) ;
+		var cssBlob = '' ;
+		Ext.Object.each( colorMapObj, function(k,v) {
+			cssBlob += ".ux-grid-row-bk-"+v+" .x-grid-cell { background-color: #"+v+" !important ; }\r\n" ;
+		},me) ;
+		console.log(cssBlob) ;
+		Ext.util.CSS.removeStyleSheet( cssId ) ;
+		Ext.util.CSS.createStyleSheet( cssBlob, cssId ) ;
+	},
+	
 	onColumnsMenuCreate: function( headerCt, menu ) {
 		var me = this;
 		me.getColorPicker() ;
@@ -389,10 +541,20 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 	},
 	onColumnsMenuBeforeShow: function( menu ) {
 		var me = this,
-			columnDataIndex = menu.activeHeader.dataIndex ;  // Which column ?
+			columnDataIndex = menu.activeHeader.dataIndex,
+			rPanel = menu.up('tablepanel'),
+			chartPanel = me.getActiveChartPanel() ;
+			
+		console.dir(rPanel) ;
 		
 		if( !menu.child('#chrt-btn-add') ) {
 			menu.add('-') ;
+			menu.add({
+				itemId: 'chrt-btn-disabled',
+				iconCls: 'op5-crmbase-qresult-warning',
+				text: 'Cannot add to chart',
+				disabled: true
+			});
 			menu.add({
 				itemId: 'chrt-btn-add',
 				iconCls: 'op5-crmbase-qresult-kchart-add' ,
@@ -415,24 +577,117 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 		
 		/*
 		 * Show context items for Charts IF :
-		 * - column type is group ( != label ), see RES map
+		 * - column type is group ( != label ), ie has pivotMap entry
 		 * - panel is type GRID ( tree uses areastacked on nodes )
-		 * - charting is enabled + current chart panel != null
+		 * - only one iteration on ROWS
+		 * - charting is enabled + current chart panel != null + current chart panel compatible
 		 */
 		
-		var menuItemAdd = menu.child('#chrt-btn-add'),
-			  menuItemDel = menu.child('#chrt-btn-delete') ;
-		menuItemAdd.menu = me.getColorPicker() ;
+		var menuSeparator = menu.query('menuseparator')[1],
+			  menuItemAdd = menu.child('#chrt-btn-add'),
+			  menuItemDel = menu.child('#chrt-btn-delete'),
+			  menuItemDis = menu.child('#chrt-btn-disabled') ;
 		
-		if( me.getActiveResultPanel() && me.getActiveResultPanel() instanceof Ext.grid.Panel ) {
-			menu.query('menuseparator')[1].setVisible(true) ;
-			menuItemAdd.setVisible(true) ;
-			menuItemDel.setVisible(true) ;
-		} else {
-			menu.query('menuseparator')[1].setVisible(false) ;
+		var colPivot = me.getPivotForColumn(rPanel,columnDataIndex),
+			  colIterations = me.getIterationsForColumns(rPanel) ;
+			  colIteration  = ( colIterations.length == 1 ? colIterations[0] : null ) ;
+			  
+		console.dir(colPivot) ;
+		
+		if( !(me.chartsVisible)
+			|| !(rPanel instanceof Ext.grid.Panel)
+			|| !(colPivot) ) {
+			menuSeparator.setVisible(false) ;
 			menuItemAdd.setVisible(false) ;
 			menuItemDel.setVisible(false) ;
+			menuItemDis.setVisible(false) ;
+			return ;
 		}
+		
+		if( !chartPanel ) {
+			menuSeparator.setVisible(true) ;
+			menuItemAdd.setVisible(false) ;
+			menuItemDel.setVisible(false) ;
+			menuItemDis.setText('No defined charts below') ;
+			menuItemDis.setVisible(true) ;
+			return ;
+		}
+		
+		if( !(colIteration) || !(chartPanel.testChartIteration(colIteration)) ) {
+			menuSeparator.setVisible(true) ;
+			menuItemAdd.setVisible(false) ;
+			menuItemDel.setVisible(false) ;
+			menuItemDis.setText('Cannot add serie to chart') ;
+			menuItemDis.setVisible(true) ;
+			return ;
+		}
+		
+		menuItemAdd.menu = me.getColorPicker() ;
+		
+		menu.query('menuseparator')[1].setVisible(true) ;
+		menuItemAdd.setVisible(true) ;
+		menuItemDel.setVisible(true) ;
+		menuItemDis.setVisible(false) ;
+	},
+	
+	onRowRightClick: function(rPanelView,record,targetElement,index,event) {
+		var me = this,
+			rPanel = rPanelView.up('tablepanel'),
+			chartPanel = me.getActiveChartPanel() ;
+			
+		var rowPivot = me.getPivotForRow(rPanel,record),
+			  rowIterations = me.getIterationsForRows(rPanel) ;
+			  rowIteration   = ( rowIterations.length == 1 ? rowIterations[0] : null ) ;
+		
+		if( !(me.chartsVisible) || !(rowPivot) ) {
+			return ;
+		}
+		
+		var gridContextMenuItems = [] ;
+		
+		if( !chartPanel ) {
+			gridContextMenuItems.push({
+				iconCls: 'op5-crmbase-qresult-warning',
+				text: 'No defined charts below',
+				disabled: true
+			});
+		} else if( !(rowIteration) || !(chartPanel.defineChartIteration(rowIteration)) ) {
+			gridContextMenuItems.push({
+				iconCls: 'op5-crmbase-qresult-warning',
+				text: 'Cannot add serie to chart',
+				disabled: true
+			});
+		} else {
+			gridContextMenuItems.push({
+				iconCls: 'op5-crmbase-qresult-kchart-add' ,
+				text: '&#160;',
+				menu: {
+					layout:'fit',
+					items:[{
+						xtype: 'colorpicker',
+						handler: function(picker, color) {
+							me.onChartAddRow( rPanel, rowPivot, color ) ;
+							Ext.menu.Manager.hideAll();
+						},
+						scope:me
+					}]
+				},
+				handler: function(){}
+			});
+			gridContextMenuItems.push({
+				iconCls: 'op5-crmbase-qresult-kchart-remove' ,
+				text: 'Remove from chart',
+				listeners: {
+					scope: me
+				}
+			});
+		}
+		
+		var gridContextMenu = Ext.create('Ext.menu.Menu',{
+			items : gridContextMenuItems
+		}) ;
+		
+		gridContextMenu.showAt(event.getXY());
 	},
 	
 	
@@ -534,13 +789,17 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 	onChartAddColumn: function() {
 		
 	},
-	onChartAddRow: function() {
-		
+	onChartAddRow: function( rPanel, rowPivot, color ) {
+		var me = this,
+			chartPanel = me.getActiveChartPanel(),
+			rowIteration = me.getIterationsForRows(rPanel)[0] ;
+		if( !chartPanel || !rowIteration ) {
+			return ;
+		}
+		chartPanel.defineChartIteration( rowIteration ) ;
+		chartPanel.addPivot( color, rowPivot ) ;
 	},
 	onChartAddNodeRow: function() {
-		
-	},
-	onChartAddNodeColumn: function() {
 		
 	},
 	getColorPicker: function() {
@@ -554,6 +813,11 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			});
 		}
 		return me.chartColorPicker ;
+	},
+	getActiveChartPanel: function() {
+		var me = this,
+			pCharts = me.child('#pCharts') ;
+		return pCharts.getActiveTab() ;
 	},
 	getChartPanelAtIndex: function( index ) {
 		var me = this,
