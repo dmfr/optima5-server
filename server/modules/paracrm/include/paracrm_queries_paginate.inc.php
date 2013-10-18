@@ -25,13 +25,31 @@ function paracrm_queries_paginate_getGrid( &$RES, $tab_id )
 	$do_treeview = $RES['RES_titles']['cfg_doTreeview'] ;
 
 	$ret = array() ;
-	$ret['columns'] = paracrm_queries_paginate_getGridColumns( $RES, $RES_labels_tab ) ;
-	$ret['data'] = paracrm_queries_paginate_getGridRows( $RES, $RES_labels_tab, $do_treeview ) ;
+	$ret['MAP_groups'] = array(
+		'col_iterations'=>array(),
+		'col_pivotMap'  =>array(),
+		'row_iterations'=>array(),
+		'row_pivotMap'  =>array()
+	) ;
+	$ret['columns'] = paracrm_queries_paginate_getGridColumns( $RES, $RES_labels_tab, $ret['MAP_groups']['col_iterations'], $ret['MAP_groups']['col_pivotMap'] ) ;
+	$ret['data'] = paracrm_queries_paginate_getGridRows( $RES, $RES_labels_tab, $do_treeview, $ret['MAP_groups']['row_iterations'], $ret['MAP_groups']['row_pivotMap'] ) ;
 	return $ret ;
 }
-function paracrm_queries_paginate_getGridColumns( &$RES, $RES_labels_tab )
+function paracrm_queries_paginate_getGridColumns( &$RES, $RES_labels_tab, &$logIterations_arr_arr_GroupTagId=array(), &$logMap_colId_arr_GroupTagId_value=array() )
 {
 	$x_grid = current($RES_labels_tab['arr_grid-x']) ;
+	if( $x_grid ) {
+		$x_groupId = key($RES_labels_tab['arr_grid-x']) ;
+		$x_groupTagId = $RES['RES_titles']['group_tagId'][$x_groupId] ;
+	}
+	
+	$map_groupTagId_value_baseTab = array() ;
+	if( isset($RES_labels_tab['group_id']) ) {
+		$tab_groupId = $RES_labels_tab['group_id'] ;
+		$tab_groupTagId = $RES['RES_titles']['group_tagId'][$tab_groupId] ;
+		$map_groupTagId_value_baseTab[$tab_groupTagId] = $RES_labels_tab['group_key'] ;
+	}
+	
 
 	$tab = array() ;
 
@@ -69,8 +87,11 @@ function paracrm_queries_paginate_getGridColumns( &$RES, $RES_labels_tab )
 	
 	if( $x_grid )
 	{
+		$logIterations_arr_arr_GroupTagId[] = array($x_groupTagId) ;
 		foreach( $x_grid as $x_code => $x_arr_strings )
 		{
+			$map_groupTagId_value = $map_groupTagId_value_baseTab ;
+			$map_groupTagId_value[$x_groupTagId] = $x_code ;
 			foreach( $RES_labels_tab['map_selectId_lib'] as $select_id => $select_lib ) {
 				$col = array() ;
 				$col['text'] = ( $select_id == 0 ? implode(' - ',$x_arr_strings) : '' ) ;
@@ -78,18 +99,22 @@ function paracrm_queries_paginate_getGridColumns( &$RES, $RES_labels_tab )
 				$col['dataIndex'] = 'valueCol_'.$x_code.'_sId_'.$select_id ;
 				$col['dataType'] = 'string' ;
 				$tab[] = $col ;
+				$logMap_colId_arr_GroupTagId_value[$col['dataIndex']] = $map_groupTagId_value ;
 				for( $i=0 ; $i<count($RES['RES_progress']) ; $i++ ) {
 					$col = array() ;
 					$col['dataIndex'] = 'valueCol_'.$x_code.'_sId_'.$select_id.'_prog_'.$i ;
 					$col['dataType'] = 'string' ;
 					$col['progressColumn'] = true ;
 					$tab[] = $col ;
+					$logMap_colId_arr_GroupTagId_value[$col['dataIndex']] = $map_groupTagId_value ;
 				}
 			}
 		}
 	}
 	else
 	{
+		$map_groupTagId_value = $map_groupTagId_value_baseTab ; 
+		$map_groupTagId_value ; // no pivotage on X
 		foreach( $RES_labels_tab['map_selectId_lib'] as $select_id => $select_lib ) {
 			$col = array() ;
 			$col['text'] = $select_lib ;
@@ -97,36 +122,66 @@ function paracrm_queries_paginate_getGridColumns( &$RES, $RES_labels_tab )
 			$col['dataIndex'] = 'valueCol'.'_sId_'.$select_id ;
 			$col['dataType'] = 'string' ;
 			$tab[] = $col ;
+			$logMap_colId_arr_GroupTagId_value[$col['dataIndex']] = $map_groupTagId_value ;
 			for( $i=0 ; $i<count($RES['RES_progress']) ; $i++ ) {
 				$col = array() ;
 				$col['dataIndex'] = 'valueCol'.'_sId_'.$select_id.'_prog_'.$i ;
 				$col['dataType'] = 'string' ;
 				$col['progressColumn'] = true ;
 				$tab[] = $col ;
+				$logMap_colId_arr_GroupTagId_value[$col['dataIndex']] = $map_groupTagId_value ;
 			}
 		}
 	}
 	
 	return $tab ;
 }
-function paracrm_queries_paginate_getGridRows( &$RES, $RES_labels_tab, $do_treeview=FALSE )
+function paracrm_queries_paginate_getGridRows( &$RES, $RES_labels_tab, $do_treeview=FALSE, &$logIterations_arr_arr_GroupTagId=array(), &$logMap_rowIdx_arr_GroupTagId_value=array() )
 {
 	$arr_static = array() ;
-	if( isset($RES_labels_tab['group_id']) )
+	$map_groupTagId_value_baseTab = array() ;
+	if( isset($RES_labels_tab['group_id']) ) {
 		$arr_static[$RES_labels_tab['group_id']] = $RES_labels_tab['group_key'] ;
+		
+		$tab_groupId = $RES_labels_tab['group_id'] ;
+		$tab_groupTagId = $RES['RES_titles']['group_tagId'][$tab_groupId] ;
+		$map_groupTagId_value_baseTab[$tab_groupTagId] = $RES_labels_tab['group_key'] ;
+	}
 	
 	$tab_rows = array() ;
 	if( count($RES_labels_tab['arr_grid-y']) )
 	{
+		$unique_y_iteration = array() ; // mode Query : 1 seule iteration sur chaque axe
+		foreach( $RES_labels_tab['arr_grid-y'] as $y_groupId => $dummy ) {
+			$group_tagId = $RES['RES_titles']['group_tagId'][$y_groupId] ;
+			$unique_y_iteration[] = $group_tagId ;
+		}
+		$logIterations_arr_arr_GroupTagId[] = $unique_y_iteration ;
 		foreach( paracrm_queries_paginate_getGridRows_iterate($RES_labels_tab['arr_grid-y'],0) as $arr_y_group_id_key )
 		{
+			$map_groupTagId_value = $map_groupTagId_value_baseTab ;
+			foreach( $arr_y_group_id_key as $y_groupId => $y_groupKey ) {
+				$group_tagId = $RES['RES_titles']['group_tagId'][$y_groupId] ;
+				$map_groupTagId_value[$group_tagId] = $y_groupKey ;
+			}
+			$logMap_rowIdx_arr_GroupTagId_value[] = $map_groupTagId_value ;
 			$tab_rows[] = paracrm_queries_paginate_getGridRow( $RES, $RES_labels_tab, $arr_static, $RES_labels_tab['arr_grid-x'], $RES_labels_tab['arr_grid-y'], $arr_y_group_id_key, $do_treeview ) ;
 		}
 	}
 	else
 	{
+		$map_groupTagId_value = $map_groupTagId_value_baseTab ;
+		$map_groupTagId_value ; // no pivotage on Y
+		$logMap_rowIdx_arr_GroupTagId_value[] = $map_groupTagId_value ;
 		$tab_rows[] = paracrm_queries_paginate_getGridRow( $RES, $RES_labels_tab, $arr_static, $RES_labels_tab['arr_grid-x'], $RES_labels_tab['arr_grid-y'], array() ) ;
 	}
+	
+	$row_idx = 0 ;
+	foreach( $tab_rows as &$row ) {
+		$row['_rowIdx'] = $row_idx++ ;
+	}
+	unset($row);
+	
 	return $tab_rows ;
 }
 function paracrm_queries_paginate_getGridRows_iterate( $arr_grid_y, $pos )
