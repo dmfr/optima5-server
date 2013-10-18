@@ -293,7 +293,9 @@ function paracrm_queries_process_qmerge($arr_saisie, $debug=FALSE)
 			}
 		}
 		if( $group_key != NULL ) {
-			$RES_labels[$tabidx]['group_id'] = key($probeGeoGrouphashArrQueries['tab']) ;
+			$grouphash = key($probeGeoGrouphashArrQueries['tab']) ;
+			$RES_titles['group_tagId'][$grouphash] = $grouphash ;
+			$RES_labels[$tabidx]['group_id'] = $grouphash ;
 			$RES_labels[$tabidx]['group_key'] = $group_key ;
 			$RES_labels[$tabidx]['tab_title'] = $tab_title ;
 		}
@@ -317,6 +319,7 @@ function paracrm_queries_process_qmerge($arr_saisie, $debug=FALSE)
 				}
 			}
 			$RES_labels[$tabidx]['arr_grid-x'][$grouphash] = $grid ;
+			$RES_titles['group_tagId'][$grouphash] = $grouphash ;
 			$RES_titles['group_fields'][$grouphash] = $RESqueries[$target_queryId]['RES_titles']['group_fields'][$target_query_fieldgroup_idx] ;
 			$RES_titles['group_title'][$grouphash] = $RESqueries[$target_queryId]['RES_titles']['group_title'][$target_query_fieldgroup_idx] ;
 		}
@@ -333,6 +336,7 @@ function paracrm_queries_process_qmerge($arr_saisie, $debug=FALSE)
 				}
 			}
 			$RES_labels[$tabidx]['arr_grid-y'][$grouphash] = $grid ;
+			$RES_titles['group_tagId'][$grouphash] = $grouphash ;
 			$RES_titles['group_fields'][$grouphash] = $RESqueries[$target_queryId]['RES_titles']['group_fields'][$target_query_fieldgroup_idx] ;
 			$RES_titles['group_title'][$grouphash] = $RESqueries[$target_queryId]['RES_titles']['group_title'][$target_query_fieldgroup_idx] ;
 		}
@@ -1317,6 +1321,16 @@ function paracrm_queries_process_query(&$arr_saisie, $debug=FALSE)
 	$RES_titles['fields_group'] = array() ;
 	foreach( $arr_saisie['fields_group'] as $field_id => &$field_group )
 	{
+		// tagId for group : unique identifier for this group inwithin query groups
+		$group_tagId = $field_group['field_code'] ;
+		if( $field_group['field_type'] == 'link' ) {
+			$group_tagId.= '%'.$field_group['group_bible_type'] ;
+			if( $field_group['group_bible_type'] == 'TREE' ) {
+				$group_tagId.= '%'.$field_group['group_bible_tree_depth'] ;
+			}
+		}
+		$RES_titles['group_tagId'][$field_id] = $group_tagId ;
+	
 		$RES_titles['group_title'][$field_id] = $arr_indexed_treefields[$field_group['field_code']]['text'] ;
 		
 		$RES_titles['group_fields'][$field_id] = array() ;
