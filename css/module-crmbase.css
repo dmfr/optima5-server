@@ -175,6 +175,18 @@
 .op5-crmbase-qresult-kchart-remove {
 	background-image: url("../images/delete.png") !important;
 }
+.op5-crmbase-qresult-kchart-rowserie .x-grid-cell-first {
+	background-image: url("../images/modules/crmbase-kchart-16.png") ;
+	background-repeat: no-repeat; 
+	background-position: center right;
+	padding-right: 12px; 
+}
+.op5-crmbase-qresult-kchart-colserie .x-column-header-inner {
+	background-image: url("../images/modules/crmbase-kchart-16.png") ;
+	background-repeat: no-repeat; 
+	background-position: center right;
+	padding-right: 12px; 
+}
 
 .op5-crmbase-qresult-chart-areastacked {
 	background-image: url("../images/modules/crmbase-chart-areastacked-16.png") !important;

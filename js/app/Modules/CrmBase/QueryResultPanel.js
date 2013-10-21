@@ -12,6 +12,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 	ajaxBaseParams:{},
 	ajaxResponse:null,
 	RES_id: '',
+	activeCssId: null,
 	
 	chartsVisible : false,
 			  
@@ -69,6 +70,12 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			}]
 		}) ;
 		this.callParent() ;
+		this.on('destroy',function() {
+			if( this.activeCssId != null ) {
+				//console.log('removing CSS '+this.activeCssId) ;
+				Ext.util.CSS.removeStyleSheet( this.activeCssId ) ;
+			}
+		},this) ;
 		
 		Optima5.Modules.CrmBase.QueryTemplateManager.loadStyle(me.optimaModule);
 		
@@ -109,6 +116,27 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 	},
 	initAddTabs:function( ajaxData ){
 		var me = this ;
+		
+		/*
+		 * Apply CSS style to grid Rows
+		 * (NB: "this" context = Ext.view.Table )
+		 */
+		var getRowClassFn = function(record,index) {
+			var cssClasses = [] ;
+			
+			var rowIdx = record.get('_rowIdx'),
+				color = this.colorMapObj[rowIdx] ;
+			if( color != null ) {
+				cssClasses.push('op5-crmbase-qresult-kchart-rowserie') ;
+				cssClasses.push('ux-grid-row-bk-'+color) ;
+			}
+			
+			if( record.get('detachedRow') ) {
+				cssClasses.push('op5crmbase-detachedrow') ;
+			}
+			
+			return cssClasses.join(' ') ;
+		} ;
 		
 		var tabitems = new Array() ;
 		var columns = null ;
@@ -210,6 +238,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 				
 				var tabtree = Ext.create('Ext.tree.Panel',{
 					border:false,
+					cls:'op5crmbase-querygrid-'+me.optimaModule.sdomainId,
 					tabIdx: tabCount,
 					title:tabData.tab_title,
 					store: {
@@ -239,14 +268,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 							},
 							scope: me
 						},
-						getRowClass: function(record,index) {
-							var rowIdx = record.get('_rowIdx'),
-								color = this.colorMapObj[rowIdx] ;
-								
-							if( color != null ) {
-								return 'ux-grid-row-bk-'+color ;
-							}
-						}
+						getRowClass: getRowClassFn
 					}
 				}) ;
 				
@@ -316,9 +338,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 						},
 						scope: me
 					},
-					getRowClass: function(record,index) { 
-						return record.get('detachedRow') ? 'op5crmbase-detachedrow' : ''; 
-					}
+					getRowClass: getRowClassFn
 				}
 			});
 			
@@ -345,19 +365,22 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			defaults :{
 					// bodyPadding: 10
 			},
-			items: tabitems
+			items: tabitems,
+			listeners:{
+				tabchange: me.onResultTabChange,
+				scope: me
+			}
 		},{
 			xtype:'tabpanel',
 			region:'south',
 			itemId: 'pCharts',
 			flex: 1,
 			title: 'Charts',
+			hidden:true,
 			collapsible: true,
 			defaults:{
 				listeners: {
-					serieschanged: function() {
-						me.getActiveResultPanel().getView().refresh() ;
-					},
+					serieschanged: me.onChartSeriesChange,
 					scope:me
 				}
 			},
@@ -370,6 +393,20 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 				}
 			}],
 			listeners:{
+				/*
+				* Attach listeners to pCharts to monitor visibility/tabchange
+				* => triggers pResult view refresh ( show series )
+				*/
+				show:me.onChartsVisibilityChange,
+				hide:me.onChartsVisibilityChange,
+				collapse:me.onChartsVisibilityChange,
+				expand:me.onChartsVisibilityChange,
+				tabchange:me.onChartsVisibilityChange,
+				scope:me,
+				
+				/*
+				* Attach managed listener to pCharts tabBar (right click)
+				*/
 				afterlayout:{
 					fn: function(p) {
 						this.mon( p.getTabBar().el, {
@@ -383,20 +420,6 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 				}
 			}
 		}) ;
-		
-		/*
-		 * Attach listeners to pCharts to monitor visibility/tabchange
-		 * => triggers pResult view refresh ( show series )
-		 */
-		me.child('#pCharts').on({
-			show:me.onChartsVisibilityChange,
-			hide:me.onChartsVisibilityChange,
-			collapse:me.onChartsVisibilityChange,
-			expand:me.onChartsVisibilityChange,
-			tabchange:me.onChartsVisibilityChange,
-			scope:me
-		}) ;
-		
 		
 		// TODO: use server-side charts cfg
 		me.setChartsVisible(false) ;
@@ -497,12 +520,24 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 	
 	onChartsVisibilityChange: function() {
 		var me = this ;
-		console.log('onChartsVisibilityChange') ;
+		//console.log('onChartsVisibilityChange') ;
 		me.getActiveResultPanel().getView().refresh() ;
+	},
+	onChartSeriesChange: function() {
+		var me = this ;
+		//console.log('onChartSeriesChange') ;
+		me.getActiveResultPanel().getView().refresh() ;
+	},
+	onResultTabChange: function(tPanel, rPanel, oldRPanel) {
+		var me = this ;
+		//console.log('onResultTabChange') ;
+		if( rPanel instanceof Ext.panel.Table ) {
+			rPanel.getView().refresh() ;
+		}
 	},
 	
 	onBeforeGridRefresh: function( tabIndex, rPanel ) {
-		console.log('onBeforeGridRefresh') ;
+		//console.log('onBeforeGridRefresh') ;
 		var me = this,
 			chartPanel = me.getActiveChartPanel(),
 			cssId = 'cssId-'+me.getId() ;
@@ -510,7 +545,8 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 		var me = this,
 			tabIndex = me.child('#pResult').items.indexOf(rPanel),
 			mapGroups = me.ajaxResponse.tabs[tabIndex].MAP_groups,
-			colorMapObj={} ;
+			rowsColorMapObj={},
+			colsColorMapObj={} ;
 		
 		Ext.Array.each( me.ajaxResponse.tabs[tabIndex].data, function(rec) {
 			var rowIdx = rec['_rowIdx'] ,
@@ -518,25 +554,51 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 				color = (chartPanel!=null ? chartPanel.getPivotColor( rowPivot ) : null ) ;
 				
 			if( color != null ) {
-				colorMapObj[rowIdx] = color ;
+				rowsColorMapObj[rowIdx] = color ;
 			}
 		},me) ;
-		rPanel.getView().colorMapObj = colorMapObj ;
+		rPanel.getView().colorMapObj = rowsColorMapObj ;
+		
+		rPanel.getView().headerCt.items.each( function(col) {
+			var colDataIndex = col.dataIndex,
+				colPivot = mapGroups.col_pivotMap[colDataIndex],
+				color = ( (chartPanel!=null && colPivot!=null) ? chartPanel.getPivotColor( colPivot ) : null ) ;
+				
+			if( color != null ) {
+				colsColorMapObj[colDataIndex] = color ;
+				if( !col.tdClsOrig ) {
+					col.tdClsOrig = col.tdCls ;
+				}
+				col.tdCls += ' ' + 'ux-grid-cell-bk-' + color ;
+				col.addCls('op5-crmbase-qresult-kchart-colserie') ;
+			} else {
+				if( col.tdClsOrig != null ) {
+					col.tdCls = col.tdClsOrig ;
+					delete( col.tdClsOrig ) ;
+				}
+				col.removeCls('op5-crmbase-qresult-kchart-colserie') ;
+			}
+		},me) ;
+		rPanel.getView().setNewTemplate();
 		
 		// ajust CSS styles to highlight selected series
 		// console.dir(arguments) ;
 		var cssBlob = '' ;
-		Ext.Object.each( colorMapObj, function(k,v) {
+		Ext.Object.each( rowsColorMapObj, function(k,v) {
 			cssBlob += ".ux-grid-row-bk-"+v+" .x-grid-cell { background-color: #"+v+" !important ; }\r\n" ;
 		},me) ;
-		console.log(cssBlob) ;
-		Ext.util.CSS.removeStyleSheet( cssId ) ;
-		Ext.util.CSS.createStyleSheet( cssBlob, cssId ) ;
+		Ext.Object.each( colsColorMapObj, function(k,v) {
+			cssBlob += ".ux-grid-cell-bk-"+v+" { background-color: #"+v+" !important ; }\r\n" ;
+		},me) ;
+		if( this.activeCssId != null ) {
+			Ext.util.CSS.removeStyleSheet( cssId ) ;
+			this.activeCssId = null ;
+		}
+		Ext.util.CSS.createStyleSheet( cssBlob, this.activeCssId=cssId ) ;
 	},
 	
 	onColumnsMenuCreate: function( headerCt, menu ) {
 		var me = this;
-		me.getColorPicker() ;
 		menu.on('beforeshow', me.onColumnsMenuBeforeShow, me);
 	},
 	onColumnsMenuBeforeShow: function( menu ) {
@@ -545,8 +607,6 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			rPanel = menu.up('tablepanel'),
 			chartPanel = me.getActiveChartPanel() ;
 			
-		console.dir(rPanel) ;
-		
 		if( !menu.child('#chrt-btn-add') ) {
 			menu.add('-') ;
 			menu.add({
@@ -559,16 +619,16 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 				itemId: 'chrt-btn-add',
 				iconCls: 'op5-crmbase-qresult-kchart-add' ,
 				text: '&#160;',
-				listeners: {
-					scope: me
-				}
+				handler: null,
+				menu:[]
 			});
 			menu.add({
 				itemId: 'chrt-btn-delete',
 				iconCls: 'op5-crmbase-qresult-kchart-remove' ,
 				text: 'Remove from chart',
-				listeners: {
-					scope: me
+				handler: function( menuitem ) {
+					Ext.callback( menuitem.handlerFn , me, arguments ) ;
+					Ext.menu.Manager.hideAll();
 				}
 			});
 		}
@@ -592,8 +652,6 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			  colIterations = me.getIterationsForColumns(rPanel) ;
 			  colIteration  = ( colIterations.length == 1 ? colIterations[0] : null ) ;
 			  
-		console.dir(colPivot) ;
-		
 		if( !(me.chartsVisible)
 			|| !(rPanel instanceof Ext.grid.Panel)
 			|| !(colPivot) ) {
@@ -622,11 +680,39 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			return ;
 		}
 		
-		menuItemAdd.menu = me.getColorPicker() ;
+		
+		var existingSerie = (chartPanel.searchPivot(colPivot) != null) ;
+		
+		if( !me.chartColorPicker ) {
+			me.chartColorPicker = Ext.create('Ext.menu.Menu',{
+				layout:'fit',
+				items:[{
+					xtype:'colorpicker',
+					handler: function(picker, color) {
+						Ext.callback( picker.handlerFn , me, arguments ) ;
+						Ext.menu.Manager.hideAll();
+					},
+					scope:me
+				}]
+			});
+		}
+		var colorPickerMenu = me.chartColorPicker,
+			colorPicker = colorPickerMenu.child('colorpicker') ;
+		colorPicker.handlerFn = function(picker, color) {
+			me.onChartAddColumn( rPanel, colPivot, color ) ;
+			Ext.menu.Manager.hideAll();
+		} ;
+		menuItemAdd.menu = colorPickerMenu ;
+		
+		menuItemDel.handlerFn = function() {
+			me.onChartRemoveColumn( rPanel, colPivot ) ;
+			Ext.menu.Manager.hideAll();
+		} ;
 		
 		menu.query('menuseparator')[1].setVisible(true) ;
+		menuItemAdd.setText( (existingSerie ? 'Change serie color' : 'Add serie to chart') ) ;
 		menuItemAdd.setVisible(true) ;
-		menuItemDel.setVisible(true) ;
+		menuItemDel.setVisible(existingSerie) ;
 		menuItemDis.setVisible(false) ;
 	},
 	
@@ -651,42 +737,58 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 				text: 'No defined charts below',
 				disabled: true
 			});
-		} else if( !(rowIteration) || !(chartPanel.defineChartIteration(rowIteration)) ) {
+		} else if( !(rowIteration) || !(chartPanel.testChartIteration(rowIteration)) ) {
 			gridContextMenuItems.push({
 				iconCls: 'op5-crmbase-qresult-warning',
 				text: 'Cannot add serie to chart',
 				disabled: true
 			});
 		} else {
+			var existingSerie = (chartPanel.searchPivot(rowPivot) != null) ;
+			
+			if( chartPanel.isEmpty() && rPanel.getXType()=='treepanel' ) {
+				gridContextMenuItems.push({
+					iconCls: 'op5-crmbase-qresult-chart-areastacked' ,
+					text: 'Add child nodes to chart',
+					handler: function(){}
+				});
+			}
 			gridContextMenuItems.push({
 				iconCls: 'op5-crmbase-qresult-kchart-add' ,
-				text: '&#160;',
-				menu: {
+				text: (existingSerie ? 'Change serie color' : 'Add serie to chart'),
+				menu: Ext.create('Ext.menu.Menu',{
 					layout:'fit',
 					items:[{
-						xtype: 'colorpicker',
+						xtype:'colorpicker',
 						handler: function(picker, color) {
 							me.onChartAddRow( rPanel, rowPivot, color ) ;
 							Ext.menu.Manager.hideAll();
 						},
 						scope:me
 					}]
-				},
+				}),
 				handler: function(){}
 			});
-			gridContextMenuItems.push({
-				iconCls: 'op5-crmbase-qresult-kchart-remove' ,
-				text: 'Remove from chart',
-				listeners: {
+			if( existingSerie ) {
+				gridContextMenuItems.push({
+					iconCls: 'op5-crmbase-qresult-kchart-remove' ,
+					text: 'Remove from chart',
+					handler: function() {
+						me.onChartRemoveRow( rPanel, rowPivot ) ;
+					},
 					scope: me
-				}
-			});
+				});
+			}
 		}
 		
 		var gridContextMenu = Ext.create('Ext.menu.Menu',{
-			items : gridContextMenuItems
+			items : gridContextMenuItems,
+			listeners: {
+				hide: function(menu) {
+					menu.destroy() ;
+				}
+			}
 		}) ;
-		
 		gridContextMenu.showAt(event.getXY());
 	},
 	
@@ -786,8 +888,23 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 		}
 	},
 	
-	onChartAddColumn: function() {
-		
+	onChartAddColumn: function( rPanel, colPivot, color ) {
+		var me = this,
+			chartPanel = me.getActiveChartPanel(),
+			colIteration = me.getIterationsForColumns(rPanel)[0] ;
+		if( !chartPanel || !colIteration ) {
+			return ;
+		}
+		chartPanel.defineChartIteration( colIteration ) ;
+		chartPanel.addPivot( color, colPivot ) ;
+	},
+	onChartRemoveColumn: function( rPanel, colPivot ) {
+		var me = this,
+			chartPanel = me.getActiveChartPanel() ;
+		if( !chartPanel ) {
+			return ;
+		}
+		chartPanel.removePivot( colPivot ) ;
 	},
 	onChartAddRow: function( rPanel, rowPivot, color ) {
 		var me = this,
@@ -799,25 +916,21 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 		chartPanel.defineChartIteration( rowIteration ) ;
 		chartPanel.addPivot( color, rowPivot ) ;
 	},
+	onChartRemoveRow: function( rPanel, rowPivot ) {
+		var me = this,
+			chartPanel = me.getActiveChartPanel() ;
+		if( !chartPanel ) {
+			return ;
+		}
+		chartPanel.removePivot( rowPivot ) ;
+	},
 	onChartAddNodeRow: function() {
 		
-	},
-	getColorPicker: function() {
-		var me = this ;
-		if( !me.chartColorPicker ) {
-			me.chartColorPicker = Ext.create('Ext.menu.Menu',{
-				layout:'fit',
-				items:[{
-					xtype:'colorpicker'
-				}]
-			});
-		}
-		return me.chartColorPicker ;
 	},
 	getActiveChartPanel: function() {
 		var me = this,
 			pCharts = me.child('#pCharts') ;
-		return pCharts.getActiveTab() ;
+		return ( me.chartsVisible ? pCharts.getActiveTab() : null ) ;
 	},
 	getChartPanelAtIndex: function( index ) {
 		var me = this,

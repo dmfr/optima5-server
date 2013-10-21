@@ -62,9 +62,15 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 				chart_type: null 
 			}) ;
 		}
-		me.chartCfgRecord.series().on('datachanged',function() {
+		
+		var onDataChangeCallback = function() {
 			me.fireEvent('serieschanged') ;
 			me.buildViews() ;
+		}
+		me.chartCfgRecord.series().on({
+			datachanged: onDataChangeCallback,
+			update: onDataChangeCallback,
+			scope: me
 		},me) ;
 		
 		this.callParent() ;
@@ -134,33 +140,18 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 		return true ;
 	},
 	defineChartIteration: function( arr_groupIdTag ) {
-		if( !Ext.isArray(arr_groupIdTag) || arr_groupIdTag.length == 0 ) {
-			return false ;
-		}
-		
 		var me = this,
 			chartCfgRecord = me.chartCfgRecord,
 			iterationStore = chartCfgRecord.iteration_groupTags() ;
+		if( !me.testChartIteration(arr_groupIdTag) ) {
+			return false ;
+		}
 		if( iterationStore.getCount() == 0 ) {
 			Ext.Array.each(arr_groupIdTag,function(groupIdTag) {
 				iterationStore.add( Ext.create('QueryResultChartGrouptagModel',{
 					group_tagid: groupIdTag
 				}) ) ;
 			},me) ;
-			return true ;
-		} else {
-			var iterationTest = [] ;
-			Ext.Array.each(arr_groupIdTag,function(groupIdTag) {
-				iterationTest.push({
-					group_tagid: groupIdTag
-				});
-			},me) ;
-			
-			var iteration = Ext.pluck(iterationStore.data.items,'data') ;
-			
-			if( Ext.JSON.encode(iteration) != Ext.JSON.encode(iterationTest) ) {
-				return false ;
-			}
 		}
 		return true ;
 	},
@@ -186,6 +177,12 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 			}
 		},me) ;
 		return searchResult ;
+	},
+	isEmpty: function() {
+		var me = this,
+			chartCfgRecord = me.chartCfgRecord,
+			seriesStore = chartCfgRecord.series() ;
+		return ( seriesStore.getCount() == 0 ) ;
 	},
 	
 	getPivotColor: function(arr_groupIdTag_groupKey) {
@@ -215,6 +212,19 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 			serie_color: serieColor,
 			serie_pivot: seriePivot
 		}) ) ;
+	},
+	removePivot: function( arr_groupIdTag_groupKey ) {
+		var me = this,
+			chartCfgRecord = me.chartCfgRecord,
+			seriesStore = chartCfgRecord.series(),
+			searchResult = me.searchPivot( arr_groupIdTag_groupKey ) ;
+		
+		if( searchResult != null ) {
+			seriesStore.remove(searchResult) ;
+		}
+		if( me.isEmpty() ) {
+			chartCfgRecord.iteration_groupTags().removeAll() ;
+		}
 	},
 	
 	buildViews: function() {
