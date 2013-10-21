@@ -4,7 +4,7 @@ class DatabaseMgr_Sdomain {
 	private $_opDB ;
 	private $domain_id ;
 	
-	private static $dbVersion = 6 ;
+	private static $dbVersion = 7 ;
 	
 	public function __construct( $domain_id ) {
 		$this->_opDB = $GLOBALS['_opDB'] ;
@@ -472,6 +472,51 @@ CREATE TABLE `store_file` (
   KEY `filerecord_parent_id` (`filerecord_parent_id`),
   KEY `file_code` (`file_code`),
   KEY `sync_vuid` (`sync_vuid`)
+) ;
+
+CREATE TABLE `q_cfgchart` (
+  `q_type` varchar(20) NOT NULL,
+  `q_id` int(11) NOT NULL,
+  `charts_is_enabled` varchar(1) NOT NULL,
+  PRIMARY KEY (`q_type`,`q_id`)
+) ;
+
+CREATE TABLE `q_chart` (
+  `q_type` varchar(20) NOT NULL,
+  `q_id` int(11) NOT NULL,
+  `chart_index` int(11) NOT NULL,
+  `chart_name` varchar(100) NOT NULL,
+  `chart_type` varchar(20) NOT NULL,
+  PRIMARY KEY (`q_type`,`q_id`,`chart_index`)
+) ;
+
+CREATE TABLE `q_chart_iterationdot` (
+  `q_type` varchar(20) NOT NULL,
+  `q_id` int(11) NOT NULL,
+  `chart_index` int(11) NOT NULL,
+  `iterationdot_ssid` int(11) NOT NULL,
+  `group_tagid` varchar(100) NOT NULL,
+  PRIMARY KEY (`q_type`,`q_id`,`chart_index`,`iterationdot_ssid`)
+) ;
+
+CREATE TABLE `q_chart_serie` (
+  `q_type` varchar(20) NOT NULL,
+  `q_id` int(11) NOT NULL,
+  `chart_index` int(11) NOT NULL,
+  `serie_ssid` int(11) NOT NULL,
+  `serie_color` varchar(10) NOT NULL,
+  PRIMARY KEY (`q_type`,`q_id`,`chart_index`,`serie_ssid`)
+) ;
+
+CREATE TABLE `q_chart_serie_pivotdot` (
+  `q_type` varchar(20) NOT NULL,
+  `q_id` int(11) NOT NULL,
+  `chart_index` int(11) NOT NULL,
+  `serie_ssid` int(11) NOT NULL,
+  `serie_pivotdot_ssid` int(11) NOT NULL,
+  `group_tagid` varchar(100) NOT NULL,
+  `group_key` varchar(100) NOT NULL,
+  PRIMARY KEY (`q_type`,`q_id`,`chart_index`,`serie_ssid`,`serie_pivotdot_ssid`)
 ) ;
 
 EOF;
