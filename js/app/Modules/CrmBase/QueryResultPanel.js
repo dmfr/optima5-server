@@ -50,7 +50,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 						checked: false,
 						listeners: {
 							checkchange: function( ci, checked ) {
-								me.setChartsVisible( checked ) ;
+								this.setChartsVisible( checked ) ;
 							},
 							scope: me
 						}
@@ -60,11 +60,23 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 					},{
 						itemId: 'save',
 						text: 'Save defined charts',
-						iconCls: 'op5-crmbase-qresultmenu-save'
+						iconCls: 'op5-crmbase-qresultmenu-save',
+						handler: function() {
+							this.chartsDoSave() ;
+						},
+						scope:me
 					},{
 						itemId: 'delete',
 						text: 'Delete all charts',
-						iconCls: 'op5-crmbase-qresultmenu-delete'
+						iconCls: 'op5-crmbase-qresultmenu-delete',
+						handler: function() {
+							Ext.Msg.confirm('Remove charts', 'Discard configured charts ?', function(btn){
+								if( btn == 'yes' ) {
+									this.chartsDoDelete() ;
+								}
+							},this) ;
+						},
+						scope:me
 					}]
 				}]
 			}]
@@ -79,6 +91,9 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 		
 		Optima5.Modules.CrmBase.QueryTemplateManager.loadStyle(me.optimaModule);
 		
+		/*
+		 * Query grid RESULTS
+		 */
 		var ajaxParams = {} ;
 		Ext.apply(ajaxParams,me.ajaxBaseParams) ;
 		Ext.apply(ajaxParams,{
@@ -422,7 +437,51 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 		}) ;
 		
 		// TODO: use server-side charts cfg
-		me.setChartsVisible(false) ;
+		/*
+		 * Query charts configuration (if any)
+		 */
+		var ajaxParams = {} ;
+		Ext.apply(ajaxParams,me.ajaxBaseParams) ;
+		Ext.apply(ajaxParams,{
+			_subaction:'chart_cfg_load'
+		});
+		me.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams ,
+			success: function(response) {
+				if( Ext.decode(response.responseText).success == true ) {
+					ajaxCharts = Ext.decode(response.responseText) ;
+					me.initLoadCharts( ajaxCharts ) ;
+				}
+			},
+			scope: me
+		});
+	},
+	initLoadCharts: function( ajaxCharts ) {
+		var me = this,
+			enabled = ajaxCharts.enabled,
+			arr_QueryResultChartModel = (enabled ? ajaxCharts.arr_QueryResultChartModel : []) ;
+		if( !enabled ) {
+			me.setChartsVisible(false);
+			return ;
+		}
+		var i=0,
+			chartsLn = arr_QueryResultChartModel.length,
+			queryResultChartModel = null,
+			pCharts = me.child('#pCharts') ;
+			pChartsItems = [] 
+			
+		for( ; i < chartsLn ; i++ ) {
+			queryResultChartModel = arr_QueryResultChartModel[i] ;
+			
+			pChartsItems.push({
+				xtype:'op5crmbasequeryresultchart',
+				chartCfgRecord: Ext.ux.dams.ModelManager.create('QueryResultChartModel',queryResultChartModel)
+			});
+		}
+		pCharts.removeAll() ;
+		pCharts.add(pChartsItems) ;
+		pCharts.setActiveTab(0) ;
+		me.setChartsVisible(true);
 	},
 	getActiveResultPanel: function() {
 		var me = this,
@@ -698,6 +757,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 		}
 		var colorPickerMenu = me.chartColorPicker,
 			colorPicker = colorPickerMenu.child('colorpicker') ;
+		colorPicker.select( '000000', true ) ;
 		colorPicker.handlerFn = function(picker, color) {
 			me.onChartAddColumn( rPanel, colPivot, color ) ;
 			Ext.menu.Manager.hideAll();
@@ -760,6 +820,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 					layout:'fit',
 					items:[{
 						xtype:'colorpicker',
+						value:'000000',
 						handler: function(picker, color) {
 							me.onChartAddRow( rPanel, rowPivot, color ) ;
 							Ext.menu.Manager.hideAll();
@@ -946,5 +1007,80 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 				me.child('#pCharts').remove(panel) ;
 			}
 		},me) ;
-	}
+	},
+	
+	
+	chartsDoSave: function() {
+		var me = this ;
+		if( !me.chartsVisible ) {
+			return ;
+		}
+		
+		var arr_QueryResultChartModel = [],
+			chartTabPanel = me.child('#pCharts'),
+			getAssociatedData = true ;
+		chartTabPanel.items.each( function(chartPanel) {
+			if( !(chartPanel instanceof Optima5.Modules.CrmBase.QueryResultChartPanel)
+				|| chartPanel.chartCfgRecord == null
+			) {
+				return ;
+			}
+			arr_QueryResultChartModel.push( chartPanel.chartCfgRecord.getData(getAssociatedData=true) ) ;
+		},me) ;
+				
+		var ajaxParams = me.optimaModule.getConfiguredAjaxParams() ;
+		Ext.apply(ajaxParams,me.ajaxBaseParams) ;
+		Ext.apply(ajaxParams,{
+			_subaction: 'chart_cfg_save',
+					  
+			arr_QueryResultChartModel: Ext.JSON.encode(arr_QueryResultChartModel)
+		});
+		
+		me.loadMask = new Ext.LoadMask(me, {msg:'Saving charts'});
+		me.loadMask.show() ;
+		me.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams ,
+			success: function(response) {
+				if( Ext.decode(response.responseText).success == false ) {
+					Ext.Msg.alert('Failed', 'Failed');
+				}
+			},
+			callback: function() {
+				me.loadMask.hide() ;
+			},
+			scope: me
+		});
+	},
+	chartsDoDelete: function() {
+		var me = this ;
+		if( !me.chartsVisible ) {
+			return ;
+		}
+		
+		var ajaxParams = me.optimaModule.getConfiguredAjaxParams() ;
+		Ext.apply(ajaxParams,me.ajaxBaseParams) ;
+		Ext.apply(ajaxParams,{
+			_subaction: 'chart_cfg_save',
+					  
+			arr_QueryResultChartModel: null
+		});
+		
+		me.loadMask = new Ext.LoadMask(me, {msg:'Discarding charts'});
+		me.loadMask.show() ;
+		me.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams ,
+			success: function(response) {
+				if( Ext.decode(response.responseText).success == false ) {
+					Ext.Msg.alert('Failed', 'Failed');
+				} else {
+					me.child('#pCharts').removeAll() ;
+					me.setChartsVisible(false) ;
+				}
+			},
+			callback: function() {
+				me.loadMask.hide() ;
+			},
+			scope: me
+		});
+	},
 }) ;
