@@ -91,10 +91,10 @@ function paracrm_queries_builderTransaction( $post_data )
 					break ;
 				}
 				
-				$queryResultChartModel = json_decode($post_data['queryResultChartModel']) ;
+				$queryResultChartModel = json_decode($post_data['queryResultChartModel'],true) ;
 				
-				$RESchart_series = paracrm_queries_charts_getSeries($RES,$queryResultChartModel) ;
-				$json = array('success'=>$success,'RESchart_series'=>$RESchart_series) ;
+				$RESchart = paracrm_queries_charts_getResChart($RES,$queryResultChartModel) ;
+				$json = array('success'=>true,'RESchart'=>$RESchart) ;
 				break ;
 		}
 		
