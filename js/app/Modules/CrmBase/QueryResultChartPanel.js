@@ -45,10 +45,17 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 	extend: 'Ext.panel.Panel',
 	alias: 'widget.op5crmbasequeryresultchart',
 	
+	ajaxBaseParams:null,
 	chartCfgRecord: null,
 	
 	initComponent: function() {
 		var me = this ;
+		if( (me.optimaModule) instanceof Optima5.Module ) {} else {
+			Optima5.Helper.logError('CrmBase:QueryResultChartPanel','No module reference ?') ;
+		}
+		if( me.ajaxBaseParams != null ) {} else {
+			Optima5.Helper.logError('CrmBase:QueryResultChartPanel','No ajaxBaseParams ?') ;
+		}
 		
 		Ext.apply(me,{
 			header: false,
@@ -68,12 +75,21 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 			me.buildViews() ;
 		}
 		me.chartCfgRecord.series().on({
+			clear: onDataChangeCallback,
 			datachanged: onDataChangeCallback,
 			update: onDataChangeCallback,
 			scope: me
 		},me) ;
 		
+		/* Base layout for QueryResultChartPanel */
+		Ext.apply(this,{
+			layout: {
+				type: 'hbox',
+				align: 'stretch'
+			}
+		}) ;
 		this.callParent() ;
+		
 		me.applyTitle() ;
 		me.buildViews() ;
 	},
@@ -111,6 +127,13 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 			chartCfgRecord = me.chartCfgRecord ;
 		chartCfgRecord.set('chart_type',chartType) ;
 		me.applyTitle() ;
+		me.buildViews() ;
+	},
+	getChartType: function() {
+		var me = this,
+			chartCfgRecord = me.chartCfgRecord,
+			chartType = chartCfgRecord.get('chart_type') ;
+		return ( ( chartType != null && chartType != '' ) ? chartType : null ) ;
 	},
 	
 	testChartIteration: function( arr_groupIdTag ) {
@@ -184,6 +207,14 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 			seriesStore = chartCfgRecord.series() ;
 		return ( seriesStore.getCount() == 0 ) ;
 	},
+	doEmpty: function() {
+		var me = this,
+			chartCfgRecord = me.chartCfgRecord ;
+		
+		chartCfgRecord.series().removeAll() ;
+		chartCfgRecord.iteration_groupTags().removeAll() ;
+		return ;
+	},
 	
 	getPivotColor: function(arr_groupIdTag_groupKey) {
 		var me = this,
@@ -230,11 +261,68 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 	buildViews: function() {
 		var me = this,
 			chartCfgRecord = me.chartCfgRecord,
-			searchResult = null ;
-	
-		chartCfgRecord.series().each( function(serie) {
-			var seriePivot = Ext.pluck(serie.serie_pivot().data.items,'data') ;
-			//console.dir(seriePivot) ;
-		},me) ;
+			getAssociatedData ;
+			
+		if( me.isEmpty() ) {
+			return me.buildViewAlert( 'Empty chart', 'No series have been defined' ) ;
+		}
+		if( me.getChartType() == null ) {
+			return me.buildViewAlert( 'Chart type not specified', 'Select a chart type/model' ) ;
+		}
+			
+		me.removeAll() ;
+		me.add({
+			xtype:'box',
+			cls:'op5-waiting',
+			flex:1
+		}) ;
+		/*
+		 * Query chart series
+		 */
+		var ajaxParams = {} ;
+		Ext.apply(ajaxParams,me.ajaxBaseParams) ;
+		Ext.apply(ajaxParams,{
+			_subaction: 'chart_tab_getSeries',
+					  
+			queryResultChartModel: Ext.JSON.encode(chartCfgRecord.getData(getAssociatedData=true))
+		});
+		me.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams ,
+			success: function(response) {
+				if( Ext.decode(response.responseText).success != true ) {
+					
+				}
+			},
+			scope: me
+		});
+		
+	},
+	buildViewAlert: function( title, caption ) {
+		var me = this ;
+		me.removeAll() ;
+		me.add({
+			xtype:'panel',
+			bodyCls: 'ux-noframe-bg',
+			layout:'fit',
+			flex:1,
+			border: false,
+			items:[{
+				xtype:'component',
+				tpl:[
+					'<div class="op5-admin-cardheader-wrap">',
+					'<span class="op5-admin-cardheader-title">{title}</span>',
+					'<br>',
+					'<span class="op5-admin-cardheader-caption">{caption}</span>',
+					'<div class="op5-admin-cardheader-icon {iconCls}"></div>',
+					'</div>'
+				],
+				width:'100%',
+				data:{
+					iconCls:'op5-sdomains-icon-delete',
+					title: title,
+					caption: caption
+				}
+			}]
+		}) ;
 	}
 });

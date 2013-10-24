@@ -21,6 +21,11 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 		if( (me.optimaModule) instanceof Optima5.Module ) {} else {
 			Optima5.Helper.logError('CrmBase:QueryPanel','No module reference ?') ;
 		}
+		if( me.RES_id ) {
+			Ext.apply(me.ajaxBaseParams,{
+				RES_id: me.RES_id
+			});
+		}
 		
 		Ext.apply( me, {
 			border:false,
@@ -97,8 +102,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 		var ajaxParams = {} ;
 		Ext.apply(ajaxParams,me.ajaxBaseParams) ;
 		Ext.apply(ajaxParams,{
-			_subaction:'res_get',
-			RES_id:me.RES_id
+			_subaction:'res_get'
 		});
 		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams ,
@@ -404,7 +408,10 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 				iconCls: 'icon-add', 
 				toolTip: 'New empty chart',
 				panelConfig: {
-					xtype: 'op5crmbasequeryresultchart'
+					xtype: 'op5crmbasequeryresultchart',
+					optimaModule: me.optimaModule,
+					ajaxBaseParams: me.ajaxBaseParams,
+					chartCfgRecord: null
 				}
 			}],
 			listeners:{
@@ -436,9 +443,8 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			}
 		}) ;
 		
-		// TODO: use server-side charts cfg
 		/*
-		 * Query charts configuration (if any)
+		 * Query charts configuration (server-side charts cfg , if any)
 		 */
 		var ajaxParams = {} ;
 		Ext.apply(ajaxParams,me.ajaxBaseParams) ;
@@ -475,6 +481,8 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			
 			pChartsItems.push({
 				xtype:'op5crmbasequeryresultchart',
+				optimaModule: me.optimaModule,
+				ajaxBaseParams: me.ajaxBaseParams,
 				chartCfgRecord: Ext.ux.dams.ModelManager.create('QueryResultChartModel',queryResultChartModel)
 			});
 		}
@@ -564,8 +572,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 		var ajaxParams = me.optimaModule.getConfiguredAjaxParams() ;
 		Ext.apply(ajaxParams,me.ajaxBaseParams) ;
 		Ext.apply(ajaxParams,{
-			_subaction:'exportXLS',
-			RES_id:me.RES_id
+			_subaction:'exportXLS'
 		});
 		
 		
@@ -858,7 +865,8 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 		var me = this,
 			tabBar = me.child('#pCharts').getTabBar()
 			tab = tabBar.getChildByElement(targetElement),
-			tabIndex = tabBar.items.indexOf(tab);
+			tabIndex = tabBar.items.indexOf(tab),
+			cPanel = me.getChartPanelAtIndex(tabIndex) ;
 			
 		/*
 		 * Builds and displays a context menu for current chart
@@ -912,14 +920,54 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 				itemId: 'sChartPie',
 				iconCls: 'op5-crmbase-qresult-chart-pie'
 			},{
+				text: 'Pie chart (swap-series)',
+				itemId: 'sChartPieSwap',
+				iconCls: 'op5-crmbase-qresult-chart-pie'
+			},{
 				xtype: 'menuseparator'
+			},{
+				text: 'Remove all series',
+				itemId: 'removeSeries',
+				hidden: cPanel.isEmpty(),
+				iconCls: 'op5-crmbase-qresult-removeseries'
 			},{
 				text: 'Delete chart',
 				itemId: 'delete',
 				iconCls: 'op5-crmbase-qresult-deletechart'
-			}]
+			}],
+			listeners: {
+				hide: function(menu) {
+					menu.destroy() ;
+				}
+			}
 		}) ;
 		event.preventDefault();
+		menu.items.each( function(menuitem) {
+			var menuItemId = menuitem.itemId,
+				cPanelType = (cPanel != null ? cPanel.getChartType() : '') ;
+			if( (menuItemId!=null) && (menuItemId.indexOf('sChart') === 0) && (cPanel != null) ) {
+				switch( menuItemId ) {
+					case 'sChartAreaStacked' :
+						targetChartType = 'areastacked' ;
+						break ;
+					case 'sChartBar' :
+						targetChartType = 'bar' ;
+						break ;
+					case 'sChartLine' :
+						targetChartType = 'line' ;
+						break ;
+					case 'sChartPie' :
+						targetChartType = 'pie' ;
+						break ;
+					case 'sChartPieSwap' :
+						targetChartType = 'pieswap' ;
+						break ;
+				}
+				if( targetChartType == cPanelType ) {
+					menuitem.addCls('op5-crmbase-menuitem-boldunderline') ;
+				}
+			}
+		},me) ;
 		menu.showAt(event.getXY());
 	},
 	onTabChartMenuItemClick: function( tabIndex, menuItemId ) {
@@ -928,20 +976,27 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			me.handleDeleteChartPanelAtIndex(tabIndex) ;
 			return ;
 		}
+		if( menuItemId == 'removeSeries' ) {
+			me.getChartPanelAtIndex(tabIndex).doEmpty() ;
+			return ;
+		}
 		if( menuItemId.indexOf('sChart') === 0 ) {
 			var targetChartType = '' ;
 			switch( menuItemId ) {
-				case 'sChartAreaStacked' : 
+				case 'sChartAreaStacked' :
 					targetChartType = 'areastacked' ;
 					break ;
-				case 'sChartBar' : 
+				case 'sChartBar' :
 					targetChartType = 'bar' ;
 					break ;
-				case 'sChartLine' : 
+				case 'sChartLine' :
 					targetChartType = 'line' ;
 					break ;
-				case 'sChartPie' : 
+				case 'sChartPie' :
 					targetChartType = 'pie' ;
+					break ;
+				case 'sChartPieSwap' :
+					targetChartType = 'pieswap' ;
 					break ;
 			}
 			me.getChartPanelAtIndex(tabIndex).setChartType(targetChartType) ;

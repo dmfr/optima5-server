@@ -51,6 +51,15 @@
 }
 
 
+
+.op5-crmbase-menuitem-boldunderline .x-menu-item-text {
+	font-weight: bold ;
+	text-decoration: underline ;
+}
+
+
+
+
 /* Icons */
 .op5-crmbase-waitcircle {
 	background-image: url("../images/modules/crmbase-waitcircle.gif") !important;
@@ -201,6 +210,9 @@
 	background-image: url("../images/modules/crmbase-chart-pie-16.png") !important;
 }
 
+.op5-crmbase-qresult-removeseries {
+	background-image: url("../images/modules/crmbase-trash-16.png") !important;
+}
 .op5-crmbase-qresult-deletechart {
 	background-image: url("../images/modules/crmbase-delete-16.gif") !important;
 }
