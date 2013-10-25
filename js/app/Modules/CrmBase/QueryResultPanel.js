@@ -280,6 +280,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 					},
 					viewConfig: { 
 						//stripeRows: false,
+						preserveScrollOnRefresh: true,
 						listeners: {
 							beforerefresh: function(view) {
 								var treePanel = view.up('treepanel') ;
@@ -378,7 +379,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			itemId: 'pResult',
 			//frame: true,
 			region:'center',
-			flex:2,
+			flex:1,
 			border:false,
 			activeTab: 0,
 			defaults :{
@@ -394,6 +395,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			region:'south',
 			itemId: 'pCharts',
 			flex: 1,
+			split:true,
 			title: 'Charts',
 			hidden:true,
 			collapsible: true,

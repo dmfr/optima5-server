@@ -48,6 +48,8 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 	ajaxBaseParams:null,
 	chartCfgRecord: null,
 	
+	chartDataStoreModel: null,
+	
 	initComponent: function() {
 		var me = this ;
 		if( (me.optimaModule) instanceof Optima5.Module ) {} else {
@@ -72,7 +74,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 		
 		var onDataChangeCallback = function() {
 			me.fireEvent('serieschanged') ;
-			me.buildViews() ;
+			me.doViews() ;
 		}
 		me.chartCfgRecord.series().on({
 			clear: onDataChangeCallback,
@@ -91,7 +93,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 		this.callParent() ;
 		
 		me.applyTitle() ;
-		me.buildViews() ;
+		me.doViews() ;
 	},
 	applyTitle: function() {
 		var me = this,
@@ -127,7 +129,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 			chartCfgRecord = me.chartCfgRecord ;
 		chartCfgRecord.set('chart_type',chartType) ;
 		me.applyTitle() ;
-		me.buildViews() ;
+		me.doViews() ;
 	},
 	getChartType: function() {
 		var me = this,
@@ -258,7 +260,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 		}
 	},
 	
-	buildViews: function() {
+	doViews: function() {
 		var me = this,
 			chartCfgRecord = me.chartCfgRecord,
 			getAssociatedData ;
@@ -289,9 +291,11 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams ,
 			success: function(response) {
-				if( Ext.decode(response.responseText).success != true ) {
-					
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success != true ) {
+					return me.buildViewAlert('Unknown error','Failed to build chart. Remove all series and start over.') ;
 				}
+				me.buildViewCharts( ajaxResponse ) ;
 			},
 			scope: me
 		});
@@ -324,5 +328,127 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 				}
 			}]
 		}) ;
-	}
+	},
+	buildViewCharts: function(ajaxResponse) {
+		var me = this,
+			RESchart = ajaxResponse.RESchart ;
+		
+		if( !me.chartDataStoreModel ) {
+			me.chartDataStoreModel = 'QueryResultChartModel-' + me.getId() ;
+			me.on('destroy',function(thisP) {
+				console.log('unregistering model') ;
+				Ext.data.ModelManager.unregister(thisP.chartDataStoreModel) ;
+			},me) ;
+		}
+		
+		var fields = [],
+			fieldsSeries = [],
+			colorSet = [],
+			titles = [],
+			i=0,
+			seriesCount=RESchart.seriesTitle.length ;
+		fields.push('name');
+		for( ; i<seriesCount ; i++ ) {
+			fields.push('serie'+i) ;
+			fieldsSeries.push('serie'+i) ;
+			colorSet.push(RESchart.seriesColor[i]) ;
+			
+			var strArr = [] ;
+			Ext.Object.each( RESchart.seriesTitle[i],function(k,v){
+				strArr.push(v) ;
+			});
+			titles.push(strArr.join(' ')) ;
+		}
+		Ext.define(me.chartDataStoreModel, {
+			extend: 'Ext.data.Model',
+			fields: fields
+		});
+		
+		var data = [],
+			j=0,
+			stepsSerieValue = RESchart.stepsSerieValue,
+			stepsLabel = RESchart.stepsLabel,
+			seriesLn=stepsSerieValue.length ;
+		for( ; j<seriesLn ; j++ ) {
+			var strArr = [] ;
+			Ext.Object.each( stepsLabel[j],function(k,v){
+				strArr.push(v) ;
+			});
+			var obj = {
+				name:strArr.join(' ')
+			} ;
+			for( i=0 ; i<seriesCount ; i++ ) {
+				var serieField = 'serie'+i ;
+				obj[serieField] = stepsSerieValue[j][i] ;
+			}
+			data.push(obj) ;
+		}
+		
+		var store = Ext.create('Ext.data.JsonStore',{
+			fields: fields,
+			data: data
+		}) ;
+		
+		console.dir(store.getRange() ) ;
+		
+		
+    var chart = Ext.create('Ext.chart.Chart', {
+			xtype: 'chart',
+			flex: 1,
+			style: 'background:#fff',
+			animate: false,
+			store: store,
+			legend: {
+				position: 'right'
+			},
+			axes: [{
+				type: 'Numeric',
+				grid: true,
+				position: 'left',
+				fields: fieldsSeries,
+				//title: '#selectId',
+				grid: {
+					odd: {
+						opacity: 1,
+						fill: '#ddd',
+						stroke: '#bbb',
+						'stroke-width': 1
+					}
+				},
+				minimum: 0,
+				adjustMinimumByMajorUnit: 0
+			}, {
+				type: 'Category',
+				position: 'bottom',
+				fields: ['name'],
+				//title: 'Month of the Year',
+				grid: true,
+			}],
+			series: [{
+				type: 'area',
+				highlight: false,
+				axis: 'left',
+				xField: 'name',
+				yField: fieldsSeries,
+				title: titles,
+				style: {
+					opacity: 1
+				},
+				getLegendColor: function(index) {
+					return this.colorSet[index] ;
+				},
+				colorSet: colorSet,
+				renderer: function( sprite, record, attributes, index, store ) {
+					Ext.apply(attributes,{
+						fill: this.colorSet[index],
+						stroke: this.colorSet[index]
+					}) ;
+					return attributes ;
+				}
+			}]
+		});
+		
+		me.removeAll() ;
+		me.add(chart) ;
+	},
 });
