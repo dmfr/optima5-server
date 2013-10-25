@@ -212,6 +212,10 @@ function paracrm_queries_charts_getResChart( $RES, $queryResultChartModel ) {
 		$series_arrGroupidGroupkey[] = $t_arrGroupidGroupkey ;
 	}
 	
+	$RES_seriesColor = array() ;
+	foreach( $queryResultChartModel['series'] as $queryResultChartModelSerie ) {
+		$RES_seriesColor[] = '#'.$queryResultChartModelSerie['serie_color'] ;
+	}
 	
 	$RES_seriesTitle = array() ;
 	foreach( $series_arrGroupidGroupkey as $serie_arrGroupidGroupkey ) {
@@ -284,10 +288,11 @@ function paracrm_queries_charts_getResChart( $RES, $queryResultChartModel ) {
 	
 	
 	return array(
-		'stepsSeriesValue' => $RES_stepsSerieValue,
+		'stepsSerieValue' => $RES_stepsSerieValue,
 		'stepsLabel'=> $RES_stepsLabel,
 		'iterationTitle' => $RES_iteration_title ,
-		'seriesTitle' => $RES_seriesTitle
+		'seriesTitle' => $RES_seriesTitle,
+		'seriesColor' => $RES_seriesColor
 	) ;
 }
 
