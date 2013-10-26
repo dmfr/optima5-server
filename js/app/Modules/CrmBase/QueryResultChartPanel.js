@@ -295,7 +295,9 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 				if( ajaxResponse.success != true ) {
 					return me.buildViewAlert('Unknown error','Failed to build chart. Remove all series and start over.') ;
 				}
-				me.buildViewCharts( ajaxResponse ) ;
+				if( !me.buildViewCharts( ajaxResponse ) ) {
+					return me.buildViewAlert('Unknown error','Failed to build chart. Remove all series and start over.') ;
+				}
 			},
 			scope: me
 		});
@@ -389,66 +391,150 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 			data: data
 		}) ;
 		
-		console.dir(store.getRange() ) ;
-		
-		
-    var chart = Ext.create('Ext.chart.Chart', {
-			xtype: 'chart',
-			flex: 1,
-			style: 'background:#fff',
-			animate: false,
-			store: store,
-			legend: {
-				position: 'right'
-			},
-			axes: [{
-				type: 'Numeric',
-				grid: true,
-				position: 'left',
-				fields: fieldsSeries,
-				//title: '#selectId',
-				grid: {
-					odd: {
-						opacity: 1,
-						fill: '#ddd',
-						stroke: '#bbb',
-						'stroke-width': 1
-					}
-				},
-				minimum: 0,
-				adjustMinimumByMajorUnit: 0
-			}, {
-				type: 'Category',
-				position: 'bottom',
-				fields: ['name'],
-				//title: 'Month of the Year',
-				grid: true,
-			}],
-			series: [{
-				type: 'area',
-				highlight: false,
-				axis: 'left',
-				xField: 'name',
-				yField: fieldsSeries,
-				title: titles,
-				style: {
-					opacity: 1
-				},
-				getLegendColor: function(index) {
-					return this.colorSet[index] ;
-				},
-				colorSet: colorSet,
-				renderer: function( sprite, record, attributes, index, store ) {
-					Ext.apply(attributes,{
-						fill: this.colorSet[index],
-						stroke: this.colorSet[index]
-					}) ;
-					return attributes ;
+		var chartComponents = [] ;
+		switch( me.getChartType() ) {
+			case 'areastacked' :
+			case 'bar' :
+			case 'line':
+				var series, serieType, markerConfig ;
+				switch( me.getChartType() ) {
+					case 'areastacked' :
+						series = [{
+							type: 'area',
+							highlight: false,
+							axis: 'left',
+							fill: true,
+							xField: 'name',
+							yField: fieldsSeries,
+							title: titles,
+							style: {
+								opacity: 1
+							},
+							getLegendColor: function(index) {
+								return this.colorSet[index] ;
+							},
+							colorSet: colorSet,
+							renderer: function( sprite, record, attributes, index, store ) {
+								index = index % this.colorSet.length ;
+								Ext.apply(attributes,{
+									fill: this.colorSet[index],
+									stroke: this.colorSet[index]
+								}) ;
+								return attributes ;
+							}
+						}] ;
+						break ;
+					case 'bar' :
+						series = [{
+							type: 'column',
+							highlight: false,
+							axis: 'left',
+							fill: true,
+							xField: 'name',
+							yField: fieldsSeries,
+							title: titles,
+							getLegendColor: function(index) {
+								return this.colorSet[index] ;
+							},
+							colorSet: colorSet,
+							renderer: function( sprite, record, attributes, index, store ) {
+								index = index % this.colorSet.length ;
+								Ext.apply(attributes,{
+									fill: this.colorSet[index],
+									stroke: this.colorSet[index]
+								}) ;
+								return attributes ;
+							}
+						}] ;
+						break ;
+					case 'line':
+						serieType = 'line' ;
+						markerConfig = {
+							type: 'cross',
+							size: 4,
+							radius: 4,
+							'stroke-width': 0
+						} ;
+						var i=0,
+							series = [] ;
+						for( ; i<fieldsSeries.length ; i++ ) {
+							series.push({
+								type: 'line',
+								highlight: false,
+								markerConfig: {
+									type: 'cross',
+									size: 4,
+									radius: 4,
+									'stroke-width': 0
+								},
+								axis: 'left',
+								style: {
+									fill: colorSet[i],
+									stroke: colorSet[i],
+									'stroke-width': 3,
+									opacity: 1
+								},
+								xField: 'name',
+								yField: fieldsSeries[i],
+								title: titles[i],
+								getLegendColor: function(index) {
+									return colorSet[i] ;
+								}
+							}) ;
+						}
+						break ;
+					default :
+						return false ;
+						break ;
 				}
-			}]
-		});
+				chartComponents.push({
+					xtype: 'chart',
+					flex: 1,
+					style: 'background:#fff',
+					animate: false,
+					store: store,
+					legend: {
+						position: 'right'
+					},
+					axes: [{
+						type: 'Numeric',
+						grid: true,
+						position: 'left',
+						fields: fieldsSeries,
+						//title: '#selectId',
+						grid: {
+							odd: {
+								opacity: 1,
+								fill: '#ddd',
+								stroke: '#bbb',
+								'stroke-width': 1
+							}
+						},
+						minimum: 0,
+						adjustMinimumByMajorUnit: 0
+					}, {
+						type: 'Category',
+						position: 'bottom',
+						fields: ['name'],
+						//title: 'Month of the Year',
+						grid: true,
+					}],
+					series: series
+				});
+				break ;
+				
+			case 'pie' :
+			case 'pieswap' :
+				return false ;
+				break ;
+			
+			default :
+				return false ;
+				break ;
+		}
 		
 		me.removeAll() ;
-		me.add(chart) ;
+		me.add(chartComponents) ;
+		return true ;
 	},
 });
