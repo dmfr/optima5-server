@@ -924,7 +924,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			},{
 				text: 'Pie chart (swap-series)',
 				itemId: 'sChartPieSwap',
-				iconCls: 'op5-crmbase-qresult-chart-pie'
+				iconCls: 'op5-crmbase-qresult-chart-pieswap'
 			},{
 				xtype: 'menuseparator'
 			},{

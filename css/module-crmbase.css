@@ -209,6 +209,9 @@
 .op5-crmbase-qresult-chart-pie {
 	background-image: url("../images/modules/crmbase-chart-pie-16.png") !important;
 }
+.op5-crmbase-qresult-chart-pieswap {
+	background-image: url("../images/modules/crmbase-chart-pie-16.png") !important;
+}
 
 .op5-crmbase-qresult-removeseries {
 	background-image: url("../images/modules/crmbase-trash-16.png") !important;

@@ -44,11 +44,12 @@ Ext.define('QueryResultChartModel', {
 Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 	extend: 'Ext.panel.Panel',
 	alias: 'widget.op5crmbasequeryresultchart',
+	requires: ['Ext.ux.chart.TitleChart'],
+	
+	minChartWidth: 200,
 	
 	ajaxBaseParams:null,
 	chartCfgRecord: null,
-	
-	chartDataStoreModel: null,
 	
 	initComponent: function() {
 		var me = this ;
@@ -85,6 +86,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 		
 		/* Base layout for QueryResultChartPanel */
 		Ext.apply(this,{
+			autoScroll: true,
 			layout: {
 				type: 'hbox',
 				align: 'stretch'
@@ -106,6 +108,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 			case 'bar' :
 			case 'line' :
 			case 'pie':
+			case 'pieswap':
 				iconCls = 'op5-crmbase-qresult-chart-'+chartType ;
 				break ;
 				
@@ -333,63 +336,97 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 	},
 	buildViewCharts: function(ajaxResponse) {
 		var me = this,
-			RESchart = ajaxResponse.RESchart ;
+			RESchart = ajaxResponse.RESchart,
+			doSwap = false ;
 		
-		if( !me.chartDataStoreModel ) {
-			me.chartDataStoreModel = 'QueryResultChartModel-' + me.getId() ;
-			me.on('destroy',function(thisP) {
-				console.log('unregistering model') ;
-				Ext.data.ModelManager.unregister(thisP.chartDataStoreModel) ;
-			},me) ;
+		switch( me.getChartType() ) {
+			case 'pieswap' :
+				doSwap = true ;
+				break ;
+			default :
+				break ;
 		}
 		
-		var fields = [],
+		var data = [],
+			fields = [],
 			fieldsSeries = [],
 			colorSet = [],
 			titles = [],
-			i=0,
+			i=0, j=0,
 			seriesCount=RESchart.seriesTitle.length ;
-		fields.push('name');
-		for( ; i<seriesCount ; i++ ) {
-			fields.push('serie'+i) ;
-			fieldsSeries.push('serie'+i) ;
-			colorSet.push(RESchart.seriesColor[i]) ;
-			
-			var strArr = [] ;
-			Ext.Object.each( RESchart.seriesTitle[i],function(k,v){
-				strArr.push(v) ;
-			});
-			titles.push(strArr.join(' ')) ;
-		}
-		Ext.define(me.chartDataStoreModel, {
-			extend: 'Ext.data.Model',
-			fields: fields
-		});
-		
-		var data = [],
-			j=0,
 			stepsSerieValue = RESchart.stepsSerieValue,
 			stepsLabel = RESchart.stepsLabel,
 			seriesLn=stepsSerieValue.length ;
-		for( ; j<seriesLn ; j++ ) {
-			var strArr = [] ;
-			Ext.Object.each( stepsLabel[j],function(k,v){
-				strArr.push(v) ;
-			});
-			var obj = {
-				name:strArr.join(' ')
-			} ;
-			for( i=0 ; i<seriesCount ; i++ ) {
-				var serieField = 'serie'+i ;
-				obj[serieField] = stepsSerieValue[j][i] ;
+		if( doSwap ) {
+			fields.push('name');
+			for( ; i<seriesLn ; i++ ) {
+				fields.push('serie'+i) ;
+				fieldsSeries.push('serie'+i) ;
+				
+				var strArr = [] ;
+				Ext.Object.each( stepsLabel[i],function(k,v){
+					strArr.push(v) ;
+				});
+				titles.push(strArr.join(' ')) ;
 			}
-			data.push(obj) ;
+			for( ; j<seriesCount ; j++ ) {
+				colorSet.push(RESchart.seriesColor[j]) ;
+				
+				var strArr = [] ;
+				Ext.Object.each( RESchart.seriesTitle[j],function(k,v){
+					strArr.push(v) ;
+				});
+				var obj = {
+					name:strArr.join(' ')
+				} ;
+				for( i=0 ; i<seriesLn ; i++ ) {
+					var serieField = 'serie'+i ;
+					obj[serieField] = stepsSerieValue[i][j] ;
+				}
+				data.push(obj) ;
+			}
+		} else {
+			fields.push('name');
+			for( ; i<seriesCount ; i++ ) {
+				fields.push('serie'+i) ;
+				fieldsSeries.push('serie'+i) ;
+				colorSet.push(RESchart.seriesColor[i]) ;
+				
+				var strArr = [] ;
+				Ext.Object.each( RESchart.seriesTitle[i],function(k,v){
+					strArr.push(v) ;
+				});
+				titles.push(strArr.join(' ')) ;
+			}
+			for( ; j<seriesLn ; j++ ) {
+				var strArr = [] ;
+				Ext.Object.each( stepsLabel[j],function(k,v){
+					strArr.push(v) ;
+				});
+				var obj = {
+					name:strArr.join(' ')
+				} ;
+				for( i=0 ; i<seriesCount ; i++ ) {
+					var serieField = 'serie'+i ;
+					obj[serieField] = stepsSerieValue[j][i] ;
+				}
+				data.push(obj) ;
+			}
 		}
 		
 		var store = Ext.create('Ext.data.JsonStore',{
 			fields: fields,
 			data: data
 		}) ;
+		
+		var serieRenderer = function( sprite, record, attributes, index, store ) {
+			index = index % this.colorSet.length ;
+			Ext.apply(attributes,{
+				fill: this.colorSet[index],
+				stroke: this.colorSet[index]
+			}) ;
+			return attributes ;
+		} ;
 		
 		var chartComponents = [] ;
 		switch( me.getChartType() ) {
@@ -414,14 +451,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 								return this.colorSet[index] ;
 							},
 							colorSet: colorSet,
-							renderer: function( sprite, record, attributes, index, store ) {
-								index = index % this.colorSet.length ;
-								Ext.apply(attributes,{
-									fill: this.colorSet[index],
-									stroke: this.colorSet[index]
-								}) ;
-								return attributes ;
-							}
+							renderer: serieRenderer
 						}] ;
 						break ;
 					case 'bar' :
@@ -437,14 +467,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 								return this.colorSet[index] ;
 							},
 							colorSet: colorSet,
-							renderer: function( sprite, record, attributes, index, store ) {
-								index = index % this.colorSet.length ;
-								Ext.apply(attributes,{
-									fill: this.colorSet[index],
-									stroke: this.colorSet[index]
-								}) ;
-								return attributes ;
-							}
+							renderer: serieRenderer
 						}] ;
 						break ;
 					case 'line':
@@ -490,6 +513,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 				chartComponents.push({
 					xtype: 'chart',
 					flex: 1,
+					minWidth:me.minChartWidth,
 					style: 'background:#fff',
 					animate: false,
 					store: store,
@@ -525,7 +549,59 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 				
 			case 'pie' :
 			case 'pieswap' :
-				return false ;
+				var i=0 ;
+				for( ; i<fieldsSeries.length ; i++ ) {
+					chartComponents.push({
+						xtype: 'titlechart',
+						flex: 1,
+						minWidth:me.minChartWidth,
+						style: 'background:#fff',
+						shadow: false,
+						animate: false,
+						store: store,
+						titleFont: 'bold 14px Arial',
+						titleLocation:'bottom',
+						title:titles[i],
+						series: [{
+							type: 'pie',
+							angleField: fieldsSeries[i],
+							highlight: false,
+							label: {
+								field: 'name',
+								display: 'rotate',
+								contrast: true,
+								font: 'bold 16px Arial'
+							},
+							highlight: {
+								segment: {
+									margin: 20
+								}
+							},
+							tips: {
+								trackMouse: true,
+								width: 140,
+								height: 52,
+								dataField: fieldsSeries[i],
+								renderer: function(storeItem, item) {
+									// calculate and display percentage on hover
+									var total = 0,
+										dataField = this.dataField,
+										title = [] ;
+									
+									store.each(function(rec) {
+										total += rec.get(dataField);
+									});
+									
+									title.push( storeItem.get('name') + ':' ) ;
+									title.push( '&#160;' + 'Qty : ' + storeItem.get(dataField) ) ;
+									title.push( '&#160;' + 'Ratio : ' + Math.round(storeItem.get(dataField) / total * 100) + '%' ) ;
+									this.setTitle(title.join('<br>'));
+								}
+							},
+							colorSet: (doSwap ? colorSet : null)
+						}]
+					});
+				}
 				break ;
 			
 			default :
