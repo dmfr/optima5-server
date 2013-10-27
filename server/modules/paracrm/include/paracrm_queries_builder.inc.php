@@ -66,6 +66,10 @@ function paracrm_queries_builderTransaction( $post_data )
 		
 		switch( $post_data['_subaction'] ) {
 			case 'chart_cfg_load' :
+				if( !$arr_saisie['query_id'] ) {
+					$json = array('success'=>true,'enabled'=>false) ;
+					break ;
+				}
 				$arr_QueryResultChartModel = paracrm_queries_charts_cfgLoad('query',$arr_saisie['query_id']) ;
 				if( !is_array($arr_QueryResultChartModel) ) {
 					$json = array('success'=>true,'enabled'=>false) ;
@@ -78,6 +82,10 @@ function paracrm_queries_builderTransaction( $post_data )
 				) ;
 				break ;
 			case 'chart_cfg_save' :
+				if( !$arr_saisie['query_id'] ) {
+					$json = array('success'=>true) ;
+					break ;
+				}
 				$arr_QueryResultChartModel = json_decode($post_data['arr_QueryResultChartModel'],true) ;
 				paracrm_queries_charts_cfgSave('query',$arr_saisie['query_id'],$arr_QueryResultChartModel) ;
 				$json = array('success'=>true) ;
