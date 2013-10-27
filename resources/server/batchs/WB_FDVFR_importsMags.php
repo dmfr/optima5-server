@@ -34,9 +34,12 @@ while( ($arr = $_opDB->fetch_assoc($res)) != FALSE )
 }
 
 
-$query = "DELETE FROM $db_table_tree" ;
+$query = "DELETE FROM $db_table_entry WHERE entry_key NOT IN (select distinct field_VSTORE FROM view_file_VISIT)" ;
 $_opDB->query($query) ;
-$query = "DELETE FROM $db_table_entry" ;
+$empty_PFF = json_encode(array()) ;
+$query = "UPDATE $db_table_entry SET field_STORELINK_str='{$empty_PFF}'" ;
+$_opDB->query($query) ;
+$query = "DELETE FROM $db_table_tree WHERE treenode_key NOT IN (select treenode_key FROM $db_table_entry)" ;
 $_opDB->query($query) ;
 
 
@@ -153,7 +156,14 @@ foreach($tab_tree as $arr_tree )
 		$mkey.= '_str' ; 
 		$arr_ins[$mkey] = $mvalue ;
 	}
-	$_opDB->insert($db_table_tree,$arr_ins) ;
+	$query = "SELECT treenode_key FROM $db_table_tree WHERE treenode_key='{$arr_ins['treenode_key']}'" ;
+	if( $_opDB->num_rows($_opDB->query($query)) > 0 ) {
+		$arr_cond = array() ;
+		$arr_cond['treenode_key'] = $arr_ins['treenode_key'] ;
+		$_opDB->update($db_table_tree,$arr_ins,$arr_cond) ;
+	} else {
+		$_opDB->insert($db_table_tree,$arr_ins) ;
+	}
 }
 
 
@@ -176,7 +186,14 @@ foreach($tab_entries as $arr_entry )
 			continue ;
 		$arr_ins[$mkey] = $mvalue ;
 	}
-	$_opDB->insert($db_table_entry,$arr_ins) ;
+	$query = "SELECT entry_key FROM $db_table_entry WHERE entry_key='{$arr_ins['entry_key']}'" ;
+	if( $_opDB->num_rows($_opDB->query($query)) > 0 ) {
+		$arr_cond = array() ;
+		$arr_cond['entry_key'] = $arr_ins['entry_key'] ;
+		$_opDB->update($db_table_entry,$arr_ins,$arr_cond) ;
+	} else {
+		$_opDB->insert($db_table_entry,$arr_ins) ;
+	}
 }
 
 
