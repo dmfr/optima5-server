@@ -1,0 +1,3 @@
+Ext User-extension : TITLE CHART
+https://github.com/nohuhu/Ext.ux.chart.TitleChart
+https://market.sencha.com/extensions/ext-ux-chart-titlechart
