@@ -28,13 +28,41 @@ function paracrm_queries_mpaginate_getGrid( &$RES, $tab_id )
 	$do_treeview = $RES['RES_titles']['cfg_doTreeview'] ;
 
 	$ret = array() ;
-	$ret['columns'] = paracrm_queries_mpaginate_getGridColumns( $RES, $RES_labels_tab ) ;
-	$ret['data'] = paracrm_queries_mpaginate_getGridRows( $RES, $RES_labels_tab, $ret['columns'], $do_treeview ) ;
+	$ret['MAP_groups'] = array(
+		'col_iterations'=>array(),
+		'col_pivotMap'  =>array(),
+		'row_iterations'=>array(),
+		'row_pivotMap'  =>array()
+	) ;
+	$ret['columns'] = paracrm_queries_mpaginate_getGridColumns( $RES, $RES_labels_tab, $ret['MAP_groups']['col_iterations'], $ret['MAP_groups']['col_pivotMap'] ) ;
+	$ret['data'] = paracrm_queries_mpaginate_getGridRows( $RES, $RES_labels_tab, $ret['columns'], $do_treeview, $ret['MAP_groups']['row_iterations'], $ret['MAP_groups']['row_pivotMap'] ) ;
 	return $ret ;
 }
-function paracrm_queries_mpaginate_getGridColumns( &$RES, $RES_labels_tab )
+function paracrm_queries_mpaginate_getGridColumns( &$RES, $RES_labels_tab, &$logIterations_arr_arr_GroupTagId=array(), &$logMap_colId_arr_GroupTagId_value=array() )
 {
-	$x_grid = current($RES_labels_tab['arr_grid-x']) ;
+	$map_groupTagId_value_base = array() ;
+	if( isset($RES_labels_tab['group_id']) ) {
+		$tab_groupId = $RES_labels_tab['group_id'] ;
+		$tab_groupTagId = $RES['RES_titles']['group_tagId'][$tab_groupId] ;
+		$map_groupTagId_value_base[$tab_groupTagId] = $RES_labels_tab['group_key'] ;
+	}
+	// Qmerge : tous les groupes ne sont pas forcément "utilisés" simultanément
+	// => constitution d'un hash statique, avec tous les groupes potentiels à %%% (pas de valeur)
+	foreach( $RES_labels_tab['arr_grid-y'] as $groupId => $dummy ) {
+		if( !$groupId ) {
+			continue ;
+		}
+		$groupTagId = $RES['RES_titles']['group_tagId'][$groupId] ;
+		$map_groupTagId_value_base[$groupTagId] = '%%%' ;
+	}
+	foreach( $RES_labels_tab['arr_grid-x'] as $groupId => $dummy ) {
+		if( !$groupId ) {
+			continue ;
+		}
+		$groupTagId = $RES['RES_titles']['group_tagId'][$groupId] ;
+		$map_groupTagId_value_base[$groupTagId] = '%%%' ;
+	}
+	
 
 	$tab = array() ;
 
@@ -82,6 +110,8 @@ function paracrm_queries_mpaginate_getGridColumns( &$RES, $RES_labels_tab )
 		$RES_infos = $RES['RES_selectId_infos'][$select_id] ;
 		
 		if( $RES_infos['axis_x_detached'] ) {
+			$logIterations_arr_arr_GroupTagId[] = array() ; // colonne détachée = iteration vide
+			
 			$col = array() ;
 			$col['text'] = $RES_infos['select_lib'] ;
 			$col['text_italic'] = true ;
@@ -92,6 +122,10 @@ function paracrm_queries_mpaginate_getGridColumns( &$RES, $RES_labels_tab )
 			}
 			$tab[] = $col ;
 			
+			$map_groupTagId_value = $map_groupTagId_value_base ; 
+			$map_groupTagId_value ; // no pivotage on X
+			$logMap_colId_arr_GroupTagId_value[$col['dataIndex']] = $map_groupTagId_value ;
+			
 			$passed_selectIds[] = $select_id ;
 			
 			continue ;
@@ -99,10 +133,13 @@ function paracrm_queries_mpaginate_getGridColumns( &$RES, $RES_labels_tab )
 	
 		// on cherche quel groupe-X est concerné
 		foreach( $RES_labels_tab['arr_grid-x'] as $x_groupId => $x_grid ) {
+			$x_groupTagId = $RES['RES_titles']['group_tagId'][$x_groupId] ;
+			
 			if( in_array($x_groupId,$passed_xGroups) || !in_array($x_groupId,$RES_infos['axis_groups']) ) {
 				continue ;
 			}
 			$passed_xGroups[] = $x_groupId ;
+			$logIterations_arr_arr_GroupTagId[] = array($x_groupTagId) ;
 			
 			// du coup=> toutes les queries concernées par ce X groupe
 			// - d'abord les requêtes attachées x + y
@@ -134,6 +171,8 @@ function paracrm_queries_mpaginate_getGridColumns( &$RES, $RES_labels_tab )
 			}
 			
 			foreach( $x_grid as $x_code => $x_arr_strings ) {
+				$map_groupTagId_value = $map_groupTagId_value_base ;
+				$map_groupTagId_value[$x_groupTagId] = $x_code ;
 				
 				foreach( $inner_selectIds as $inner_select_id ) {
 					$col = array() ;
@@ -142,6 +181,7 @@ function paracrm_queries_mpaginate_getGridColumns( &$RES, $RES_labels_tab )
 					$col['dataIndex'] = 'valueCol_'.$inner_select_id.'_'.$x_code ;
 					$col['dataType'] = 'string' ;
 					$tab[] = $col ;
+					$logMap_colId_arr_GroupTagId_value[$col['dataIndex']] = $map_groupTagId_value ;
 				}
 			}
 		}
@@ -154,11 +194,17 @@ function paracrm_queries_mpaginate_getGridColumns( &$RES, $RES_labels_tab )
 	
 	return $tab ;
 }
-function paracrm_queries_mpaginate_getGridRows( &$RES, $RES_labels_tab, $grid_columns, $do_treeview=FALSE )
+function paracrm_queries_mpaginate_getGridRows( &$RES, $RES_labels_tab, $grid_columns, $do_treeview=FALSE, &$logIterations_arr_arr_GroupTagId=array(), &$logMap_rowIdx_arr_GroupTagId_value=array() )
 {
 	$arr_static = array() ;
-	if( isset($RES_labels_tab['group_id']) )
+	$map_groupTagId_value_base = array() ;
+	if( isset($RES_labels_tab['group_id']) ) {
 		$arr_static[$RES_labels_tab['group_id']] = $RES_labels_tab['group_key'] ;
+		
+		$tab_groupId = $RES_labels_tab['group_id'] ;
+		$tab_groupTagId = $RES['RES_titles']['group_tagId'][$tab_groupId] ;
+		$map_groupTagId_value_base[$tab_groupTagId] = $RES_labels_tab['group_key'] ;
+	}
 		
 	// $arr_static = constitution d'un hash statique, avec tous les groupes potentiels à %%% (pas de valeur)
 	foreach( $RES_labels_tab['arr_grid-y'] as $group_id => $dummy ) {
@@ -166,24 +212,38 @@ function paracrm_queries_mpaginate_getGridRows( &$RES, $RES_labels_tab, $grid_co
 			continue ;
 		}
 		$arr_static[$group_id] = '%%%' ;
+		
+		$groupTagId = $RES['RES_titles']['group_tagId'][$group_id] ;
+		$map_groupTagId_value_base[$groupTagId] = '%%%' ;
 	}
 	foreach( $RES_labels_tab['arr_grid-x'] as $group_id => $dummy ) {
 		if( !$group_id ) {
 			continue ;
 		}
 		$arr_static[$group_id] = '%%%' ;
+		
+		$groupTagId = $RES['RES_titles']['group_tagId'][$group_id] ;
+		$map_groupTagId_value_base[$groupTagId] = '%%%' ;
 	}
 	
 	$tab_rows = array() ;
 	//if( count($RES_labels_tab['arr_grid-y']) ) // toujours oui car on a au moins le groupe fantome
 	foreach( $RES_labels_tab['arr_grid-y'] as $y_groupId => $y_grid )
 	{
+		if( $y_groupId != '' ) {  // groupe fantome => skip
+			$y_groupTagId = $RES['RES_titles']['group_tagId'][$y_groupId] ;
+			$logIterations_arr_arr_GroupTagId[] = array($y_groupTagId) ;
+		}
+		
 		foreach( $y_grid as $y_code => $y_arr_strings )
 		{
 			$arr_y_group_id_key = array() ;
 			$arr_y_group_id_key[$y_groupId] = $y_code ;
 		
 			$tab_rows[] = paracrm_queries_mpaginate_getGridRow( $RES, $arr_static, $RES_labels_tab['arr_grid-x'], $RES_labels_tab['arr_grid-y'], $arr_y_group_id_key, FALSE, FALSE, $do_treeview ) ;
+			$map_groupTagId_value = $map_groupTagId_value_base ;
+			$map_groupTagId_value[$y_groupTagId] = $y_code ;
+			$logMap_rowIdx_arr_GroupTagId_value[] = $map_groupTagId_value ;
 		}
 	}
 	// ensuite => requêtes détachées du Y
@@ -195,11 +255,20 @@ function paracrm_queries_mpaginate_getGridRows( &$RES, $RES_labels_tab, $grid_co
 			continue ;
 		}
 		
+		$logIterations_arr_arr_GroupTagId[] = array() ; // colonne détachée = iteration vide
+		
+		$map_groupTagId_value = $map_groupTagId_value_baseTab ;
+		$map_groupTagId_value ; // no pivotage on Y
+		$logMap_rowIdx_arr_GroupTagId_value[] = $map_groupTagId_value ;
+		
 		$tab_rows[] = paracrm_queries_mpaginate_getGridRow( $RES, $arr_static, $RES_labels_tab['arr_grid-x'], $RES_labels_tab['arr_grid-y'], NULL, $select_id, $nullY_titleColumnDataindex, $do_treeview ) ;
 	}
 	
-	
-	
+	$row_idx = 0 ;
+	foreach( $tab_rows as &$row ) {
+		$row['_rowIdx'] = $row_idx++ ;
+	}
+	unset($row);
 	
 	return $tab_rows ;
 }

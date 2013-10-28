@@ -64,6 +64,47 @@ function paracrm_queries_mergerTransaction( $post_data )
 			$json =  paracrm_queries_mergerTransaction_exportXLS( $post_data , $arr_saisie ) ;
 		}
 		
+		switch( $post_data['_subaction'] ) {
+			case 'chart_cfg_load' :
+				if( !$arr_saisie['qmerge_id'] ) {
+					$json = array('success'=>true,'enabled'=>false) ;
+					break ;
+				}
+				$arr_QueryResultChartModel = paracrm_queries_charts_cfgLoad('qmerge',$arr_saisie['qmerge_id']) ;
+				if( !is_array($arr_QueryResultChartModel) ) {
+					$json = array('success'=>true,'enabled'=>false) ;
+					break ;
+				}
+				$json = array(
+					'success'=>true,
+					'enabled'=>true,
+					'arr_QueryResultChartModel'=>$arr_QueryResultChartModel
+				) ;
+				break ;
+			case 'chart_cfg_save' :
+				if( !$arr_saisie['qmerge_id'] ) {
+					$json = array('success'=>true) ;
+					break ;
+				}
+				$arr_QueryResultChartModel = json_decode($post_data['arr_QueryResultChartModel'],true) ;
+				paracrm_queries_charts_cfgSave('qmerge',$arr_saisie['qmerge_id'],$arr_QueryResultChartModel) ;
+				$json = array('success'=>true) ;
+				break ;
+			case 'chart_tab_getSeries' :
+				$transaction_id ;
+				$RES_id = $post_data['RES_id'] ;
+				$RES = $_SESSION['transactions'][$transaction_id]['arr_RES'][$RES_id] ;
+				if( !$RES ) {
+					$json = array('success'=>false) ;
+					break ;
+				}
+				
+				$queryResultChartModel = json_decode($post_data['queryResultChartModel'],true) ;
+				
+				$RESchart = paracrm_queries_charts_getResChart($RES,$queryResultChartModel) ;
+				$json = array('success'=>true,'RESchart'=>$RESchart) ;
+				break ;
+		}
 		
 		
 

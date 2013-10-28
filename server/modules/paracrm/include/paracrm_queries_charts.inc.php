@@ -265,11 +265,19 @@ function paracrm_queries_charts_getResChart( $RES, $queryResultChartModel ) {
 		foreach( $series_arrGroupidGroupkey as $serie_arrGroupidGroupkey ) {
 			$group_desc = $step_arrGroupidGroupkey + $serie_arrGroupidGroupkey ;
 			$key_id = paracrm_queries_charts_getGroupKey($RES, $group_desc) ;
-			if( $key_id === FALSE ) {
-				$value = $RES['RES_selectId_nullValue'][$select_id] ;
-			} else {
-				$value = $RES['RES_groupKey_selectId_value'][$key_id][$select_id] ;
+			
+			if( isset($RES['RES_groupKey_selectId_value']) ) { // mode QUERY
+				if( $key_id === FALSE ) {
+					$value = $RES['RES_selectId_nullValue'][$select_id] ;
+				} else {
+					$value = $RES['RES_groupKey_selectId_value'][$key_id][$select_id] ;
+				}
 			}
+			
+			if( isset($RES['RES_selectId_groupKey_value']) ) { // mode QMERGE
+				$value = $RES['RES_selectId_groupKey_value'][$select_id][$key_id] ;
+			}
+			
 			$sRES_serieValue[] = $value ;
 		}
 		
