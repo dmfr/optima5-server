@@ -216,11 +216,15 @@ function paracrm_queries_process_qmerge($arr_saisie, $debug=FALSE)
 				case 'link' :
 				$grouphash.= 'BIBLE'.'%'.$field_group['field_linkbible'] ;
 				switch( $field_group['group_bible_type'] ) {
+					case 'TREEVIEW' :
+						$grouphash .= '%'.'TREEVIEW' ;
+						break ;
 					case 'ENTRY' :
 						$grouphash .= '%'.'ENTRY' ;
 						break ;
 					case 'TREE' :
 						$grouphash .= '%'.'TREE'.'%'.$field_group['group_bible_tree_depth'] ;
+						break ;
 				}
 				break ;
 				
@@ -350,6 +354,13 @@ function paracrm_queries_process_qmerge($arr_saisie, $debug=FALSE)
 			$RES_labels[$tabidx]['arr_grid-y'][''] = array() ;
 		}
 		
+		if( count($probeGeoGrouphashArrQueries['grid-y'])==1 ) {
+			reset($probeGeoGrouphashArrQueries['grid-y']) ;
+			$unique_y_grouphash = key($probeGeoGrouphashArrQueries['grid-y']) ;
+			if( strpos($unique_y_grouphash,'BIBLE%')===0 && strstr($unique_y_grouphash,'%TREEVIEW')=='%TREEVIEW' ) {
+				$RES_titles['cfg_doTreeview'] = TRUE ;
+			}
+		}
 	}
 	
 	if( $debug ) {

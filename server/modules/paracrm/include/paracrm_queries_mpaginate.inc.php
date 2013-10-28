@@ -24,9 +24,12 @@ function paracrm_queries_mpaginate_getGrid( &$RES, $tab_id )
 	}
 	
 
+	// preparation d'un treeview
+	$do_treeview = $RES['RES_titles']['cfg_doTreeview'] ;
+
 	$ret = array() ;
 	$ret['columns'] = paracrm_queries_mpaginate_getGridColumns( $RES, $RES_labels_tab ) ;
-	$ret['data'] = paracrm_queries_mpaginate_getGridRows( $RES, $RES_labels_tab, $ret['columns'] ) ;
+	$ret['data'] = paracrm_queries_mpaginate_getGridRows( $RES, $RES_labels_tab, $ret['columns'], $do_treeview ) ;
 	return $ret ;
 }
 function paracrm_queries_mpaginate_getGridColumns( &$RES, $RES_labels_tab )
@@ -151,7 +154,7 @@ function paracrm_queries_mpaginate_getGridColumns( &$RES, $RES_labels_tab )
 	
 	return $tab ;
 }
-function paracrm_queries_mpaginate_getGridRows( &$RES, $RES_labels_tab, $grid_columns )
+function paracrm_queries_mpaginate_getGridRows( &$RES, $RES_labels_tab, $grid_columns, $do_treeview=FALSE )
 {
 	$arr_static = array() ;
 	if( isset($RES_labels_tab['group_id']) )
@@ -180,7 +183,7 @@ function paracrm_queries_mpaginate_getGridRows( &$RES, $RES_labels_tab, $grid_co
 			$arr_y_group_id_key = array() ;
 			$arr_y_group_id_key[$y_groupId] = $y_code ;
 		
-			$tab_rows[] = paracrm_queries_mpaginate_getGridRow( $RES, $arr_static, $RES_labels_tab['arr_grid-x'], $RES_labels_tab['arr_grid-y'], $arr_y_group_id_key ) ;
+			$tab_rows[] = paracrm_queries_mpaginate_getGridRow( $RES, $arr_static, $RES_labels_tab['arr_grid-x'], $RES_labels_tab['arr_grid-y'], $arr_y_group_id_key, FALSE, FALSE, $do_treeview ) ;
 		}
 	}
 	// ensuite => requêtes détachées du Y
@@ -192,7 +195,7 @@ function paracrm_queries_mpaginate_getGridRows( &$RES, $RES_labels_tab, $grid_co
 			continue ;
 		}
 		
-		$tab_rows[] = paracrm_queries_mpaginate_getGridRow( $RES, $arr_static, $RES_labels_tab['arr_grid-x'], $RES_labels_tab['arr_grid-y'], NULL, $select_id, $nullY_titleColumnDataindex ) ;
+		$tab_rows[] = paracrm_queries_mpaginate_getGridRow( $RES, $arr_static, $RES_labels_tab['arr_grid-x'], $RES_labels_tab['arr_grid-y'], NULL, $select_id, $nullY_titleColumnDataindex, $do_treeview ) ;
 	}
 	
 	
@@ -200,35 +203,7 @@ function paracrm_queries_mpaginate_getGridRows( &$RES, $RES_labels_tab, $grid_co
 	
 	return $tab_rows ;
 }
-function paracrm_queries_mpaginate_getGridRows_iterate( $arr_grid_y, $pos )
-{
-	reset( $arr_grid_y ) ;
-	for( $i=0 ; $i<$pos ; $i++ )
-	{
-		next( $arr_grid_y ) ;
-	}
-	
-	$group_id = key($arr_grid_y) ;
-	
-	$tab = array() ;
-	foreach( current($arr_grid_y) as $group_key => $dummy )
-	{
-		$arr = array() ;
-		$arr[$group_id] = $group_key ;
-		if( $pos + 1 == count($arr_grid_y) )
-			$tab[] = $arr ;
-		else
-		{
-			foreach( paracrm_queries_mpaginate_getGridRows_iterate( $arr_grid_y, $pos+1 ) as $sub_arr )
-			{
-				$sub_arr = $arr + $sub_arr ;
-				$tab[] = $sub_arr ;
-			}
-		}
-	}
-	return $tab ;
-}
-function paracrm_queries_mpaginate_getGridRow( &$RES, $arr_static, $arr_grid_x, $arr_grid_y, $arr_y_group_id_key, $nullY_selectId=FALSE, $nullY_titleColumnDataindex=FALSE )
+function paracrm_queries_mpaginate_getGridRow( &$RES, $arr_static, $arr_grid_x, $arr_grid_y, $arr_y_group_id_key, $nullY_selectId=FALSE, $nullY_titleColumnDataindex=FALSE, $do_treeview=FALSE )
 {
 	reset($arr_grid_x) ;
 	$x_group_id = key($arr_grid_x) ;
@@ -266,6 +241,15 @@ function paracrm_queries_mpaginate_getGridRow( &$RES, $arr_static, $arr_grid_x, 
 		}
 	}
 	
+	if( $do_treeview && count($arr_y_group_id_key) == 1 ) {
+		// do_treeview = TRUE 
+		// => on ajoute les champs necessaires a la construction du TV
+		$group_id = key($arr_y_group_id_key) ;
+		$group_key = current($arr_y_group_id_key) ;
+		
+		$row['_id'] = $arr_grid_y[$group_id][$group_key]['_id'] ;
+		$row['_parent_id'] = $arr_grid_y[$group_id][$group_key]['_parent_id'] ;
+	}
 	
 	// Parcours de toutes les calculs pour reconstituer une ligne
 	$count_RES_selectId = count($RES['RES_selectId_infos']) ;
@@ -348,4 +332,11 @@ function paracrm_queries_mpaginate_getGroupKey( &$RES, $group_desc )
 	return $key_id ;
 }
 
+
+
+
+
+function paracrm_queries_mpaginate_buildTree( $grid_data ) {
+	return paracrm_queries_paginate_buildTree( $grid_data ) ;
+}
 ?>
