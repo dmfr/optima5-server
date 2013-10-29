@@ -358,9 +358,9 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 			stepsLabel = RESchart.stepsLabel,
 			seriesLn=stepsSerieValue.length ;
 		if( doSwap ) {
-			fields.push('name');
+			fields.push({name:'name',type:'string'});
 			for( ; i<seriesLn ; i++ ) {
-				fields.push('serie'+i) ;
+				fields.push({name:'serie'+i,type:'number'}) ;
 				fieldsSeries.push('serie'+i) ;
 				
 				var strArr = [] ;
@@ -386,9 +386,9 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 				data.push(obj) ;
 			}
 		} else {
-			fields.push('name');
+			fields.push({name:'name',type:'string'});
 			for( ; i<seriesCount ; i++ ) {
-				fields.push('serie'+i) ;
+				fields.push({name:'serie'+i,type:'number'}) ;
 				fieldsSeries.push('serie'+i) ;
 				colorSet.push(RESchart.seriesColor[i]) ;
 				
@@ -568,9 +568,8 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 							highlight: false,
 							label: {
 								field: 'name',
-								display: 'rotate',
-								contrast: true,
-								font: 'bold 16px Arial'
+								display: 'over',
+								contrast: true
 							},
 							highlight: {
 								segment: {
