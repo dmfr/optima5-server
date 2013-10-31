@@ -42,5 +42,14 @@
 		"moduleType":"settings",
 		"iconCode":"settings",
 		"params": []
+	},{
+		"enabled":true,
+		"moduleId":"spec_wb_mrfoxy",
+		"parentModuleId":"crmbase",
+		"moduleName":"(Wonderful) Mr Foxy",
+		"moduleClass":"Optima5.Modules.Spec.WbMrfoxy.WbMrfoxyModule",
+		"moduleCssSrc":"module-spec_wb_myfoxy.css",
+		"moduleType":"sdomain",
+		"params": []
 	}
 ]
