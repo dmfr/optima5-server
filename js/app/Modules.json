@@ -6,7 +6,7 @@
 		"moduleClass":"Optima5.Modules.CrmBase.CrmBaseModule",
 		"moduleCssSrc":"module-crmbase.css",
 		"moduleType":"sdomain",
-		"params": [{"paramCode":"sdomain_db"}]
+		"params": []
 	},{
 		"enabled":true,
 		"moduleId":"admin",

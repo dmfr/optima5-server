@@ -290,6 +290,55 @@ Ext.define('Optima5.App',{
 		}
 		if( true ) {
 			me.desktopCfgRecord.sdomains().each( function(sdomainRecord) {
+				var moduleId = sdomainRecord.get('module_id'),
+					moduleDescRecord = modulesLib.modulesGetById(moduleId) ;
+				if( moduleDescRecord == null ) {
+					return ;
+				}
+				if( moduleDescRecord.get('parentModuleId') != '' ) {
+					var subMenuCfg = [{
+						text: sdomainRecord.get('sdomain_name'),
+						iconCls: iconsLib.iconGetCls16(sdomainRecord.get('icon_code')),
+						handler : me.onModuleItemClick,
+						moduleExecRecord : Ext.ux.dams.ModelManager.create('OptimaModuleExecModel',{
+							moduleId: sdomainRecord.get('module_id'),
+							params:[
+								{paramCode:'sdomain_id',paramValue:sdomainRecord.get('sdomain_id')},
+								{paramCode:'doRawAccess',paramValue:true}
+							]
+						}),
+						scope: me
+					}] ;
+					var iterModuleDescRecord = moduleDescRecord ;
+					while(true) {
+						if( iterModuleDescRecord.get('parentModuleId') == '' ) {
+							break;
+						}
+						iterModuleDescRecord = modulesLib.modulesGetById(iterModuleDescRecord.get('parentModuleId')) ;
+						
+						subMenuCfg.push({
+							text: iterModuleDescRecord.get('moduleName'),
+							iconCls: iconsLib.iconGetCls16('admin'),
+							handler : me.onModuleItemClick,
+							moduleExecRecord : Ext.ux.dams.ModelManager.create('OptimaModuleExecModel',{
+								moduleId: iterModuleDescRecord.get('moduleId'),
+								params:[
+									{paramCode:'sdomain_id',paramValue:sdomainRecord.get('sdomain_id')}
+								]
+							}),
+							scope: me
+						}) ;
+					}
+					sdomainItems.push({
+						text: '<b>'+sdomainRecord.get('sdomain_id').toUpperCase()+'</b>&nbsp;&nbsp;:&nbsp;&nbsp;'+sdomainRecord.get('sdomain_name'),
+						iconCls: iconsLib.iconGetCls16(sdomainRecord.get('icon_code')),
+						handler : null,
+						menu:subMenuCfg
+					}) ;
+					
+					return ;
+				}
+				
 				var moduleExec = Ext.ux.dams.ModelManager.create('OptimaModuleExecModel',{
 					moduleId: sdomainRecord.get('module_id'),
 					params:[{paramCode:'sdomain_id',paramValue:sdomainRecord.get('sdomain_id')}]
@@ -342,6 +391,9 @@ Ext.define('Optima5.App',{
 		me.desktopCfgRecord.shortcuts().each( function(shortcutRecord) {
 			var name, iconCls, execRecord ;
 			var moduleDescRecord = modulesLib.modulesGetById(shortcutRecord.get('module_id')) ;
+			if( moduleDescRecord == null ) {
+				return ;
+			}
 			switch( moduleDescRecord.get('moduleType') ) {
 				case 'sdomain' :
 					var shortcutParamRecord = shortcutRecord.params().getById('sdomain_id') ;
