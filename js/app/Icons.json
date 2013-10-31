@@ -23,5 +23,9 @@
 		"iconCode":"safari",
 		"iconSrc16":"ico_safari_16.png",
 		"iconSrc48":"ico_safari_48.png"
+	},{
+		"iconCode":"firefox",
+		"iconSrc16":"ico_firefox_16.png",
+		"iconSrc48":"ico_firefox_48.png"
 	}
 ]
