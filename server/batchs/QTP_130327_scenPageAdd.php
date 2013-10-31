@@ -31,16 +31,16 @@ $query = "UPDATE input_scen_page
 				WHERE scen_id='$scen_id' AND scen_page_index >= '$scen_page_index'
 				ORDER BY scen_page_index DESC" ;
 $_opDB->query($query) ;
+$query = "UPDATE input_scen_page
+				SET scen_page_parent_index = scen_page_parent_index + 1
+				WHERE scen_id='$scen_id' AND scen_page_parent_index<>'0' AND scen_page_parent_index >= '$scen_page_index'
+				ORDER BY scen_page_parent_index DESC" ;
+$_opDB->query($query) ;
 
 $query = "UPDATE input_scen_page_field 
 				SET scen_page_index = scen_page_index + 1
 				WHERE scen_id='$scen_id' AND scen_page_index >= '$scen_page_index'
 				ORDER BY scen_page_index DESC" ;
-$_opDB->query($query) ;
-$query = "UPDATE input_scen_page_field 
-				SET scen_page_parent_index = scen_page_parent_index + 1
-				WHERE scen_id='$scen_id' AND scen_page_parent_index<>'0' AND scen_page_parent_index >= '$scen_page_index'
-				ORDER BY scen_page_parent_index DESC" ;
 $_opDB->query($query) ;
 
 $query = "UPDATE input_scen_pagepivot 
