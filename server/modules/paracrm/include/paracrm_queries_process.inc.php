@@ -747,7 +747,15 @@ function paracrm_queries_process_qmerge($arr_saisie, $debug=FALSE)
 		echo "OK\n" ;
 	}
 
-	// return array('RES_groupKey_groupDesc',$RES_groupKey_groupDesc) ;
+	// Clean des groupes fantomes utilisés pour la création des axes
+	foreach( $RES_labels as $tabidx => $dummy ) {
+		if( isset($RES_labels[$tabidx]['arr_grid-x']['']) ) {
+			unset($RES_labels[$tabidx]['arr_grid-x']['']) ;
+		}
+		if( isset($RES_labels[$tabidx]['arr_grid-y']['']) ) {
+			unset($RES_labels[$tabidx]['arr_grid-y']['']) ;
+		}
+	}
 
 	return array('RES_groupKey_groupDesc'=>$RES_groupKey_groupDesc,
 					'RES_selectId_groupKey_value'=>$RES_selectId_groupKey_value,

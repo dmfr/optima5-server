@@ -66,7 +66,17 @@ function paracrm_queries_mpaginate_getGridColumns( &$RES, $RES_labels_tab, &$log
 
 	$tab = array() ;
 
-	if( count($RES_labels_tab['arr_grid-y']) == 1 )
+	if( count($RES_labels_tab['arr_grid-y']) == 0 )
+	{
+			$col = array() ;
+			$col['text'] = '' ;
+			$col['text_italic'] = true ;
+			$col['dataIndex'] = 'titleCol' ;
+			$col['dataType'] = 'string' ;
+			$col['is_bold'] = true ;
+			$tab[] = $col ;
+	}
+	elseif( count($RES_labels_tab['arr_grid-y']) == 1 )
 	{
 		// Si critère Y unique
 		// => on développe en colonnes le critère Y
@@ -98,7 +108,7 @@ function paracrm_queries_mpaginate_getGridColumns( &$RES, $RES_labels_tab, &$log
 		}
 	}
 	
-	
+	$select_index = 0 ;  // Update 2013-10-31 : select index , indexation de plusieurs calculs sur une meme ligne
 	$passed_xGroups = array() ;
 	$passed_selectIds = array() ;
 	$count_RES_selectId = count($RES['RES_selectId_infos']) ;
@@ -131,6 +141,7 @@ function paracrm_queries_mpaginate_getGridColumns( &$RES, $RES_labels_tab, &$log
 			continue ;
 		}
 	
+		
 		// on cherche quel groupe-X est concerné
 		foreach( $RES_labels_tab['arr_grid-x'] as $x_groupId => $x_grid ) {
 			$x_groupTagId = $RES['RES_titles']['group_tagId'][$x_groupId] ;
@@ -174,16 +185,19 @@ function paracrm_queries_mpaginate_getGridColumns( &$RES, $RES_labels_tab, &$log
 				$map_groupTagId_value = $map_groupTagId_value_base ;
 				$map_groupTagId_value[$x_groupTagId] = $x_code ;
 				
-				foreach( $inner_selectIds as $inner_select_id ) {
+				// Update 2013-10-31 : select index , indexation de plusieurs calculs sur une meme position groupe-X plusieurs calculs sur une case
+				for( $i=0 ; $i<count($inner_selectIds) ; $i++ ) {
+					$select_index_inner = $select_index + $i ;
 					$col = array() ;
 					$col['text'] = implode(' - ',$x_arr_strings) ;
 					$col['text_bold'] = true ;
-					$col['dataIndex'] = 'valueCol_'.$inner_select_id.'_'.$x_code ;
+					$col['dataIndex'] = 'valueCol_'.$select_index_inner.'_'.$x_code ;
 					$col['dataType'] = 'string' ;
 					$tab[] = $col ;
 					$logMap_colId_arr_GroupTagId_value[$col['dataIndex']] = $map_groupTagId_value ;
 				}
 			}
+			$select_index += count($inner_selectIds) ;
 		}
 	}
 	
@@ -320,6 +334,9 @@ function paracrm_queries_mpaginate_getGridRow( &$RES, $arr_static, $arr_grid_x, 
 		$row['_parent_id'] = $arr_grid_y[$group_id][$group_key]['_parent_id'] ;
 	}
 	
+	
+	// Update 2013-10-31 : select index , indexation de plusieurs calculs sur une meme ligne
+	$select_index = -1 ;
 	// Parcours de toutes les calculs pour reconstituer une ligne
 	$count_RES_selectId = count($RES['RES_selectId_infos']) ;
 	for( $select_id=0 ; $select_id<count($RES['RES_selectId_infos']) ; $select_id++ ) {
@@ -353,12 +370,13 @@ function paracrm_queries_mpaginate_getGridRow( &$RES, $arr_static, $arr_grid_x, 
 		}
 		
 		
-		if( $RES_infos['axis_y_detached'] ) {
+		if( $RES_infos['axis_y_detached'] && !($select_id===$nullY_selectId) ) {
 			continue ;
 		}
+		$select_index++ ;
 		foreach( $arr_grid_x as $x_groupId => $x_grid ) {
 			foreach( $x_grid as $x_key => $x_arr_strings ) {
-				$dataIndex = 'valueCol_'.$select_id.'_'.$x_key ;
+				$dataIndex = 'valueCol_'.$select_index.'_'.$x_key ;
 				// HERE: on est dans une case de la ligne
 				
 				$hash = $arr_y_group_id_key + array($x_groupId=>$x_key) + $arr_static ;
