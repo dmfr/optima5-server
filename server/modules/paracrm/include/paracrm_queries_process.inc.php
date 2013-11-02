@@ -20,7 +20,7 @@ function paracrm_queries_process_buildTrees() {
 	
 	foreach( $arr_bibles as $bible_code )
 	{
-		$query = "SELECT treenode_key, treenode_parent_key FROM store_bible_{$bible_code}_tree" ;
+		$query = "SELECT treenode_key, treenode_parent_key FROM store_bible_{$bible_code}_tree ORDER BY treenode_key" ;
 		$result = $_opDB->query($query) ;
 		$raw_records = array() ;
 		while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
@@ -2602,7 +2602,7 @@ function paracrm_queries_process_labelEnumBible_getTreeviewNodes( $bible_code, $
 	}
 	// ***** Select ALL from view
 	$tab = array() ;
-	$query = "SELECT * FROM ".'view_bible_'.$bible_code.'_tree' ;
+	$query = "SELECT * FROM ".'view_bible_'.$bible_code.'_tree'.' ORDER BY treenode_key' ;
 	$result = $_opDB->query($query) ;
 	while( ($treenode_row = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$treenode_key = $treenode_row['treenode_key'] ;

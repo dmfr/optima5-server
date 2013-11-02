@@ -76,7 +76,7 @@ function paracrm_queries_mpaginate_getGridColumns( &$RES, $RES_labels_tab, &$log
 			$col['is_bold'] = true ;
 			$tab[] = $col ;
 	}
-	elseif( count($RES_labels_tab['arr_grid-y']) == 1 )
+	elseif( count($RES_labels_tab['arr_grid-y']) == 1 && $RES['RES_titles']['group_fields'][key($RES_labels_tab['arr_grid-y'])] )
 	{
 		// Si critère Y unique
 		// => on développe en colonnes le critère Y
@@ -301,7 +301,7 @@ function paracrm_queries_mpaginate_getGridRow( &$RES, $arr_static, $arr_grid_x, 
 	if( $nullY_selectId !== FALSE ) {
 		$row[$nullY_titleColumnDataindex] = $RES['RES_selectId_infos'][$nullY_selectId]['select_lib'] ;
 	}
-	elseif( count($arr_y_group_id_key) == 1 )
+	elseif( count($arr_y_group_id_key) == 1 && $RES['RES_titles']['group_fields'][key($arr_y_group_id_key)] )
 	{
 		// Si critère Y unique
 		// => on développe en colonnes le critère Y

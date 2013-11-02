@@ -53,7 +53,7 @@ function paracrm_queries_paginate_getGridColumns( &$RES, $RES_labels_tab, &$logI
 
 	$tab = array() ;
 
-	if( count($RES_labels_tab['arr_grid-y']) == 1 )
+	if( count($RES_labels_tab['arr_grid-y']) == 1 && $RES['RES_titles']['group_fields'][key($RES_labels_tab['arr_grid-y'])] )
 	{
 		// Si critère Y unique
 		// => on développe en colonnes le critère Y
@@ -230,7 +230,7 @@ function paracrm_queries_paginate_getGridRow( &$RES, $RES_labels_tab, $arr_stati
 		$row['_parent_id'] = $arr_grid_y[$group_id][$group_key]['_parent_id'] ;
 	}
 	
-	if( count($arr_y_group_id_key) == 1 )
+	if( count($arr_y_group_id_key) == 1 && $RES['RES_titles']['group_fields'][key($arr_y_group_id_key)] )
 	{
 		// Si critère Y unique
 		// => on développe en colonnes le critère Y
