@@ -258,7 +258,6 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 				var tabtree = Ext.create('Ext.tree.Panel',{
 					border:false,
 					cls:'op5crmbase-querygrid-'+me.optimaModule.sdomainId,
-					tabIdx: tabCount,
 					title:tabData.tab_title,
 					store: {
 						model: tmpModelName,
@@ -284,7 +283,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 						listeners: {
 							beforerefresh: function(view) {
 								var treePanel = view.up('treepanel') ;
-								me.onBeforeGridRefresh( treePanel.tabIdx, treePanel ) ;
+								me.onBeforeGridRefresh( treePanel ) ;
 							},
 							scope: me
 						},
@@ -335,7 +334,6 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 				xtype:'grid',
 				border:false,
 				cls:'op5crmbase-querygrid-'+me.optimaModule.sdomainId,
-				tabIdx: tabCount,
 				title:tabData.tab_title,
 				columns:columns,
 				store:tabstore,
@@ -354,7 +352,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 					listeners: {
 						beforerefresh: function(view) {
 							var gridPanel = view.up('gridpanel') ;
-							me.onBeforeGridRefresh( gridPanel.tabIdx, gridPanel ) ;
+							me.onBeforeGridRefresh( gridPanel ) ;
 						},
 						scope: me
 					},
@@ -373,24 +371,31 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			return true ;
 		},me) ;
 		
-		me.removeAll() ;
-		me.add({
-			xtype:'tabpanel' ,
+		var pResult ;
+		if( tabitems.length==1 ) {
+			pResult = tabitems[0] ;
+			delete(pResult['title']) ;
+		} else {
+			pResult = {
+				xtype:'tabpanel' ,
+				activeTab: 0,
+				items: tabitems,
+				listeners:{
+					tabchange: me.onResultTabChange,
+					scope: me
+				}
+			} ;
+		}
+		Ext.apply(pResult,{
 			itemId: 'pResult',
 			//frame: true,
 			region:'center',
 			flex:1,
-			border:false,
-			activeTab: 0,
-			defaults :{
-					// bodyPadding: 10
-			},
-			items: tabitems,
-			listeners:{
-				tabchange: me.onResultTabChange,
-				scope: me
-			}
-		},{
+			border:false
+		}) ;
+		
+		me.removeAll() ;
+		me.add(pResult,{
 			xtype:'tabpanel',
 			region:'south',
 			itemId: 'pCharts',
@@ -496,25 +501,20 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 	getActiveResultPanel: function() {
 		var me = this,
 			pResult = me.child('#pResult') ;
-		return pResult.getActiveTab() ;
-	},
-	getActiveResultPanelMapGroups: function() {
-		var me = this,
-			tabIndex = me.child('#pResult').items.indexOf(me.getActiveResultPanel());
-			mapGroups = me.ajaxResponse.tabs[tabIndex].MAP_groups ;
-		//console.dir(mapGroups) ;
-		return mapGroups ;
+		return (pResult.isXType('tabpanel') ? pResult.getActiveTab() : pResult) ;
 	},
 	getMapGroupsForPanel: function(rPanel) {
 		var me = this,
-			tabIndex = me.child('#pResult').items.indexOf(rPanel);
+			pResult = me.child('#pResult'),
+			tabIndex = (pResult.isXType('tabpanel') ? pResult.items.indexOf(rPanel) : 0) ,
 			mapGroups = me.ajaxResponse.tabs[tabIndex].MAP_groups ;
 		//console.dir(mapGroups) ;
 		return mapGroups ;
 	},
 	getPivotForRow: function(rPanel,rowRecord) {
 		var me = this,
-			tabIndex = me.child('#pResult').items.indexOf(rPanel),
+			pResult = me.child('#pResult'),
+			tabIndex = (pResult.isXType('tabpanel') ? pResult.items.indexOf(rPanel) : 0) ,
 			mapGroups = me.ajaxResponse.tabs[tabIndex].MAP_groups,
 			rowIdx = rowRecord.get('_rowIdx'),
 			rowPivot = mapGroups.row_pivotMap[rowIdx] ;
@@ -523,7 +523,8 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 	},
 	getPivotForColumn: function(rPanel,columnDataIndex) {
 		var me = this,
-			tabIndex = me.child('#pResult').items.indexOf(rPanel),
+			pResult = me.child('#pResult'),
+			tabIndex = (pResult.isXType('tabpanel') ? pResult.items.indexOf(rPanel) : 0) ,
 			mapGroups = me.ajaxResponse.tabs[tabIndex].MAP_groups,
 			colPivot = mapGroups.col_pivotMap[columnDataIndex] ;
 		
@@ -531,14 +532,16 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 	},
 	getIterationsForRows: function(rPanel) {
 		var me = this,
-			tabIndex = me.child('#pResult').items.indexOf(rPanel),
+			pResult = me.child('#pResult'),
+			tabIndex = (pResult.isXType('tabpanel') ? pResult.items.indexOf(rPanel) : 0) ,
 			mapGroups = me.ajaxResponse.tabs[tabIndex].MAP_groups ;
 			
 		return mapGroups.col_iterations ;
 	},
 	getIterationsForColumns: function(rPanel) {
 		var me = this,
-			tabIndex = me.child('#pResult').items.indexOf(rPanel),
+			pResult = me.child('#pResult'),
+			tabIndex = (pResult.isXType('tabpanel') ? pResult.items.indexOf(rPanel) : 0) ,
 			mapGroups = me.ajaxResponse.tabs[tabIndex].MAP_groups ;
 		
 		return mapGroups.row_iterations ;
@@ -604,14 +607,15 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 		}
 	},
 	
-	onBeforeGridRefresh: function( tabIndex, rPanel ) {
+	onBeforeGridRefresh: function( rPanel ) {
 		//console.log('onBeforeGridRefresh') ;
 		var me = this,
 			chartPanel = me.getActiveChartPanel(),
 			cssId = 'cssId-'+me.getId() ;
 		
 		var me = this,
-			tabIndex = me.child('#pResult').items.indexOf(rPanel),
+			pResult = me.child('#pResult'),
+			tabIndex = (pResult.isXType('tabpanel') ? pResult.items.indexOf(rPanel) : 0) ,
 			mapGroups = me.ajaxResponse.tabs[tabIndex].MAP_groups,
 			rowsColorMapObj={},
 			colsColorMapObj={} ;
