@@ -99,7 +99,7 @@ function paracrm_queries_paginate_getGridColumns( &$RES, $RES_labels_tab, &$logI
 				$col['dataIndex'] = 'valueCol_'.$x_code.'_sId_'.$select_id ;
 				$col['dataType'] = 'string' ;
 				$tab[] = $col ;
-				$logMap_colId_arr_GroupTagId_value[$col['dataIndex']] = $map_groupTagId_value ;
+				$logMap_colId_arr_GroupTagId_value[$col['dataIndex']] = $map_groupTagId_value + array('='=>array($select_id)) ;
 				for( $i=0 ; $i<count($RES['RES_progress']) ; $i++ ) {
 					$col = array() ;
 					$col['dataIndex'] = 'valueCol_'.$x_code.'_sId_'.$select_id.'_prog_'.$i ;
@@ -122,7 +122,7 @@ function paracrm_queries_paginate_getGridColumns( &$RES, $RES_labels_tab, &$logI
 			$col['dataIndex'] = 'valueCol'.'_sId_'.$select_id ;
 			$col['dataType'] = 'string' ;
 			$tab[] = $col ;
-			$logMap_colId_arr_GroupTagId_value[$col['dataIndex']] = $map_groupTagId_value ;
+			$logMap_colId_arr_GroupTagId_value[$col['dataIndex']] = $map_groupTagId_value + array('='=>array($select_id)) ;
 			for( $i=0 ; $i<count($RES['RES_progress']) ; $i++ ) {
 				$col = array() ;
 				$col['dataIndex'] = 'valueCol'.'_sId_'.$select_id.'_prog_'.$i ;
@@ -147,6 +147,7 @@ function paracrm_queries_paginate_getGridRows( &$RES, $RES_labels_tab, $do_treev
 		$tab_groupTagId = $RES['RES_titles']['group_tagId'][$tab_groupId] ;
 		$map_groupTagId_value_baseTab[$tab_groupTagId] = $RES_labels_tab['group_key'] ;
 	}
+	$map_groupTagId_value_baseTab += array('='=>array_keys($RES_labels_tab['map_selectId_lib'])) ;
 	
 	$tab_rows = array() ;
 	if( count($RES_labels_tab['arr_grid-y']) )

@@ -60,6 +60,7 @@ function paracrm_queries_charts_cfgSave( $q_type, $q_id, $arr_QueryResultChartMo
 			$arr_ins['chart_index'] = $chart_index ;
 			$arr_ins['serie_ssid'] = ++$serie_ssid ;
 			$arr_ins['serie_color'] = $serie['serie_color'] ;
+			$arr_ins['data_selectid'] = $serie['data_selectid'] ;
 			$_opDB->insert('q_chart_serie',$arr_ins) ;
 			
 			$serie_pivotdot_ssid = 0 ;
@@ -198,6 +199,7 @@ function paracrm_queries_charts_getResChart( $RES, $queryResultChartModel ) {
 	
 	// Translate series into series_arrGroupidGroupkey
 	$series_arrGroupidGroupkey = array() ;
+	$series_selectId = array() ;
 	foreach( $queryResultChartModel['series'] as $queryResultChartModelSerie ) {
 		$t_arrGroupidGroupkey = array() ;
 		foreach( $queryResultChartModelSerie['serie_pivot'] as $queryResultChartModelSeriePivotDot ) {
@@ -210,7 +212,10 @@ function paracrm_queries_charts_getResChart( $RES, $queryResultChartModel ) {
 			$t_arrGroupidGroupkey[$pivotDot_groupId] = $pivotDot_groupKey ;
 		}
 		$series_arrGroupidGroupkey[] = $t_arrGroupidGroupkey ;
+		
+		$series_selectId[] = ( $queryResultChartModelSerie['data_selectid'] != '' ? $queryResultChartModelSerie['data_selectid'] : 0 ) ;
 	}
+	
 	
 	$RES_seriesColor = array() ;
 	foreach( $queryResultChartModel['series'] as $queryResultChartModelSerie ) {
@@ -218,9 +223,13 @@ function paracrm_queries_charts_getResChart( $RES, $queryResultChartModel ) {
 	}
 	
 	$RES_seriesTitle = array() ;
-	foreach( $series_arrGroupidGroupkey as $serie_arrGroupidGroupkey ) {
+	foreach( $series_arrGroupidGroupkey as $idx => $serie_arrGroupidGroupkey ) {
 		$serieTitle_arrGroupIdGroupLabel = array() ;
 		foreach( $serie_arrGroupidGroupkey as $group_id => $group_key ) {
+			if( $group_key=='%%%' ) {
+				// Qmerge case : dummy/unactive group
+				continue ;
+			}
 			foreach( $RES['RES_labels'] as $RES_labels_tab ) {
 				if( isset($RES_labels_tab['group_id']) && $RES_labels_tab['group_id']==$group_id && $RES_labels_tab['group_key']==$group_key ) {
 					$serieTitle_arrGroupIdGroupLabel[$group_id] = $RES_labels_tab['tab_title'] ;
@@ -233,19 +242,32 @@ function paracrm_queries_charts_getResChart( $RES, $queryResultChartModel ) {
 				}
 			}
 		}
-		foreach( $serieTitle_arrGroupIdGroupLabel as $groupId => &$groupLabel ) {
-			if( is_array($groupLabel) ) {
-				unset($groupLabel['_id']) ;
-				unset($groupLabel['_parent_id']) ;
-				$groupLabel = implode(' ',$groupLabel) ;
+		if( $serieTitle_arrGroupIdGroupLabel ) {
+			// "regular" serie : serie defined by group pivot
+			foreach( $serieTitle_arrGroupIdGroupLabel as $groupId => &$groupLabel ) {
+				if( is_array($groupLabel) ) {
+					unset($groupLabel['_id']) ;
+					unset($groupLabel['_parent_id']) ;
+					$groupLabel = implode(' ',$groupLabel) ;
+				}
 			}
+			unset($groupLabel) ;
+			$RES_seriesTitle[] = $serieTitle_arrGroupIdGroupLabel ;
+		} else {
+			// "select" serie : serie defined by selectId
+			$select_id = $series_selectId[$idx] ;
+			$select_lib = '' ;
+			if( $RES['RES_selectId_infos'] ) { // Qmerge
+				$select_lib = $RES['RES_selectId_infos'][$select_id]['select_lib'] ;
+			} else { // Query
+				$select_lib = $RES['RES_titles']['fields_select'][$select_id] ;
+			}
+			
+			$RES_seriesTitle[] = array($select_lib) ;
 		}
-		unset($groupLabel) ;
-		$RES_seriesTitle[] = $serieTitle_arrGroupIdGroupLabel ;
 	}
 	
 	
-	$select_id = 0 ;
 	$RES_stepsLabel = array() ;
 	$RES_stepsSerieValue = array() ;
 	foreach( $iterationFlat as $step_arrGroupidGroupkey ) {
@@ -262,7 +284,9 @@ function paracrm_queries_charts_getResChart( $RES, $queryResultChartModel ) {
 		
 		
 		$sRES_serieValue = array() ;
-		foreach( $series_arrGroupidGroupkey as $serie_arrGroupidGroupkey ) {
+		foreach( $series_arrGroupidGroupkey as $idx => $serie_arrGroupidGroupkey ) {
+			$select_id = $series_selectId[$idx] ;
+		
 			$group_desc = $step_arrGroupidGroupkey + $serie_arrGroupidGroupkey ;
 			$key_id = paracrm_queries_charts_getGroupKey($RES, $group_desc) ;
 			

@@ -135,6 +135,7 @@ function paracrm_queries_mpaginate_getGridColumns( &$RES, $RES_labels_tab, &$log
 			$map_groupTagId_value = $map_groupTagId_value_base ; 
 			$map_groupTagId_value ; // no pivotage on X
 			$logMap_colId_arr_GroupTagId_value[$col['dataIndex']] = $map_groupTagId_value ;
+			$logMap_colId_arr_GroupTagId_value[$col['dataIndex']] = $map_groupTagId_value + array('='=>array($select_id)) ;
 			
 			$passed_selectIds[] = $select_id ;
 			
@@ -195,6 +196,7 @@ function paracrm_queries_mpaginate_getGridColumns( &$RES, $RES_labels_tab, &$log
 					$col['dataType'] = 'string' ;
 					$tab[] = $col ;
 					$logMap_colId_arr_GroupTagId_value[$col['dataIndex']] = $map_groupTagId_value ;
+					$logMap_colId_arr_GroupTagId_value[$col['dataIndex']] = $map_groupTagId_value + array('='=>$inner_selectIds) ;
 				}
 			}
 			$select_index += count($inner_selectIds) ;
@@ -242,6 +244,14 @@ function paracrm_queries_mpaginate_getGridRows( &$RES, $RES_labels_tab, $grid_co
 	
 	$tab_rows = array() ;
 	//if( count($RES_labels_tab['arr_grid-y']) ) // toujours oui car on a au moins le groupe fantome
+	$y_attached_selectIds = array() ;
+	foreach( $RES['RES_selectId_infos'] as $select_id=>$RES_infos ) {
+		// pour reporting $logMap_rowIdx_arr_GroupTagId_value[=]
+		if( $RES_infos['axis_y_detached'] ) {
+			continue ;
+		}
+		$y_attached_selectIds[] = $select_id ;
+	}
 	foreach( $RES_labels_tab['arr_grid-y'] as $y_groupId => $y_grid )
 	{
 		if( $y_groupId != '' ) {  // groupe fantome => skip
@@ -257,7 +267,7 @@ function paracrm_queries_mpaginate_getGridRows( &$RES, $RES_labels_tab, $grid_co
 			$tab_rows[] = paracrm_queries_mpaginate_getGridRow( $RES, $arr_static, $RES_labels_tab['arr_grid-x'], $RES_labels_tab['arr_grid-y'], $arr_y_group_id_key, FALSE, FALSE, $do_treeview ) ;
 			$map_groupTagId_value = $map_groupTagId_value_base ;
 			$map_groupTagId_value[$y_groupTagId] = $y_code ;
-			$logMap_rowIdx_arr_GroupTagId_value[] = $map_groupTagId_value ;
+			$logMap_rowIdx_arr_GroupTagId_value[] = $map_groupTagId_value + array('='=>$y_attached_selectIds) ;
 		}
 	}
 	// ensuite => requêtes détachées du Y
@@ -273,7 +283,7 @@ function paracrm_queries_mpaginate_getGridRows( &$RES, $RES_labels_tab, $grid_co
 		
 		$map_groupTagId_value = $map_groupTagId_value_baseTab ;
 		$map_groupTagId_value ; // no pivotage on Y
-		$logMap_rowIdx_arr_GroupTagId_value[] = $map_groupTagId_value ;
+		$logMap_rowIdx_arr_GroupTagId_value[] = $map_groupTagId_value + array('='=>array($select_id)) ;
 		
 		$tab_rows[] = paracrm_queries_mpaginate_getGridRow( $RES, $arr_static, $RES_labels_tab['arr_grid-x'], $RES_labels_tab['arr_grid-y'], NULL, $select_id, $nullY_titleColumnDataindex, $do_treeview ) ;
 	}
