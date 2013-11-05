@@ -518,8 +518,26 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			mapGroups = me.ajaxResponse.tabs[tabIndex].MAP_groups,
 			rowIdx = rowRecord.get('_rowIdx'),
 			rowPivot = mapGroups.row_pivotMap[rowIdx] ;
-			
-		return rowPivot ;
+		
+		if( rowPivot == null ) {
+			return null ;
+		}
+		var rowPivotGroups = Ext.clone(rowPivot) ;
+		delete(rowPivotGroups['=']) ;
+		return rowPivotGroups ;
+	},
+	getSelectidsForRow: function(rPanel,rowRecord) {
+		var me = this,
+			pResult = me.child('#pResult'),
+			tabIndex = (pResult.isXType('tabpanel') ? pResult.items.indexOf(rPanel) : 0) ,
+			mapGroups = me.ajaxResponse.tabs[tabIndex].MAP_groups,
+			rowIdx = rowRecord.get('_rowIdx'),
+			rowPivot = mapGroups.row_pivotMap[rowIdx] ;
+		
+		if( rowPivot == null ) {
+			return null ;
+		}
+		return rowPivot['='] ;
 	},
 	getPivotForColumn: function(rPanel,columnDataIndex) {
 		var me = this,
@@ -528,7 +546,24 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			mapGroups = me.ajaxResponse.tabs[tabIndex].MAP_groups,
 			colPivot = mapGroups.col_pivotMap[columnDataIndex] ;
 		
-		return colPivot ;
+		if( colPivot == null ) {
+			return null ;
+		}
+		var colPivotGroups = Ext.clone(colPivot) ;
+		delete(colPivotGroups['=']) ;
+		return colPivotGroups ;
+	},
+	getSelectidsForColumn: function(rPanel,columnDataIndex) {
+		var me = this,
+			pResult = me.child('#pResult'),
+			tabIndex = (pResult.isXType('tabpanel') ? pResult.items.indexOf(rPanel) : 0) ,
+			mapGroups = me.ajaxResponse.tabs[tabIndex].MAP_groups,
+			colPivot = mapGroups.col_pivotMap[columnDataIndex] ;
+		
+		if( colPivot == null ) {
+			return null ;
+		}
+		return colPivot['='] ;
 	},
 	getIterationsForRows: function(rPanel) {
 		var me = this,
@@ -623,8 +658,16 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 		Ext.Array.each( me.ajaxResponse.tabs[tabIndex].data, function(rec) {
 			var rowIdx = rec['_rowIdx'] ,
 				rowPivot = mapGroups.row_pivotMap[rowIdx],
-				color = (chartPanel!=null ? chartPanel.getPivotColor( rowPivot ) : null ) ;
+				rowPivotGroups, 
+				rowSelectIds,
+				color ;
 				
+			if( rowPivot != null ) {
+				rowPivotGroups = Ext.clone(rowPivot) ;
+				delete(rowPivotGroups['=']) ;
+				rowSelectIds = rowPivot['='] ;
+			}
+			color = ( (chartPanel!=null && rowPivot!=null) ? chartPanel.getPivotColor( rowPivotGroups, rowSelectIds ) : null ) ;
 			if( color != null ) {
 				rowsColorMapObj[rowIdx] = color ;
 			}
@@ -634,8 +677,16 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 		rPanel.getView().headerCt.items.each( function(col) {
 			var colDataIndex = col.dataIndex,
 				colPivot = mapGroups.col_pivotMap[colDataIndex],
-				color = ( (chartPanel!=null && colPivot!=null) ? chartPanel.getPivotColor( colPivot ) : null ) ;
-				
+				colPivotGroups,
+				colSelectIds,
+				color ;
+			
+			if( colPivot != null ) {
+				colPivotGroups = Ext.clone(colPivot) ;
+				delete(colPivotGroups['=']) ;
+				colSelectIds = colPivot['='] ;
+			}
+			color = ( (chartPanel!=null && colPivot!=null) ? chartPanel.getPivotColor( colPivotGroups, colSelectIds ) : null ) ;
 			if( color != null ) {
 				colsColorMapObj[colDataIndex] = color ;
 				if( !col.tdClsOrig ) {
@@ -721,6 +772,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			  menuItemDis = menu.child('#chrt-btn-disabled') ;
 		
 		var colPivot = me.getPivotForColumn(rPanel,columnDataIndex),
+			  colSelectIds = me.getSelectidsForColumn(rPanel,columnDataIndex),
 			  colIterations = me.getIterationsForColumns(rPanel) ;
 			  colIteration  = ( colIterations.length == 1 ? colIterations[0] : null ) ;
 			  
@@ -743,7 +795,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			return ;
 		}
 		
-		if( !(colIteration) || !(chartPanel.testChartIteration(colIteration)) ) {
+		if( !(colIteration) || !(chartPanel.testChartIteration(colIteration)) || (colSelectIds.length != 1) ) {
 			menuSeparator.setVisible(true) ;
 			menuItemAdd.setVisible(false) ;
 			menuItemDel.setVisible(false) ;
@@ -753,7 +805,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 		}
 		
 		
-		var existingSerie = (chartPanel.searchPivot(colPivot) != null) ;
+		var existingSerie = (chartPanel.searchPivot(colPivot,colSelectIds) != null) ;
 		
 		if( !me.chartColorPicker ) {
 			me.chartColorPicker = Ext.create('Ext.menu.Menu',{
@@ -772,13 +824,13 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			colorPicker = colorPickerMenu.child('colorpicker') ;
 		colorPicker.select( '000000', true ) ;
 		colorPicker.handlerFn = function(picker, color) {
-			me.onChartAddColumn( rPanel, colPivot, color ) ;
+			me.onChartAddColumn( rPanel, colPivot, colSelectIds[0], color ) ;
 			Ext.menu.Manager.hideAll();
 		} ;
 		menuItemAdd.menu = colorPickerMenu ;
 		
 		menuItemDel.handlerFn = function() {
-			me.onChartRemoveColumn( rPanel, colPivot ) ;
+			me.onChartRemoveColumn( rPanel, colPivot, colSelectIds[0] ) ;
 			Ext.menu.Manager.hideAll();
 		} ;
 		
@@ -795,9 +847,10 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			chartPanel = me.getActiveChartPanel() ;
 			
 		var rowPivot = me.getPivotForRow(rPanel,record),
+			  rowSelectIds = me.getSelectidsForRow(rPanel,record),
 			  rowIterations = me.getIterationsForRows(rPanel) ;
 			  rowIteration   = ( rowIterations.length == 1 ? rowIterations[0] : null ) ;
-		
+			  
 		if( !(me.chartsVisible) || !(rowPivot) ) {
 			return ;
 		}
@@ -810,14 +863,14 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 				text: 'No defined charts below',
 				disabled: true
 			});
-		} else if( !(rowIteration) || !(chartPanel.testChartIteration(rowIteration)) ) {
+		} else if( !(rowIteration) || !(chartPanel.testChartIteration(rowIteration)) || (rowSelectIds.length != 1) ) {
 			gridContextMenuItems.push({
 				iconCls: 'op5-crmbase-qresult-warning',
 				text: 'Cannot add serie to chart',
 				disabled: true
 			});
 		} else {
-			var existingSerie = (chartPanel.searchPivot(rowPivot) != null) ;
+			var existingSerie = (chartPanel.searchPivot(rowPivot,rowSelectIds) != null) ;
 			
 			if( chartPanel.isEmpty() && rPanel.getXType()=='treepanel' ) {
 				gridContextMenuItems.push({
@@ -835,7 +888,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 						xtype:'colorpicker',
 						value:'000000',
 						handler: function(picker, color) {
-							me.onChartAddRow( rPanel, rowPivot, color ) ;
+							me.onChartAddRow( rPanel, rowPivot, rowSelectIds[0], color ) ;
 							Ext.menu.Manager.hideAll();
 						},
 						scope:me
@@ -848,7 +901,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 					iconCls: 'op5-crmbase-qresult-kchart-remove' ,
 					text: 'Remove from chart',
 					handler: function() {
-						me.onChartRemoveRow( rPanel, rowPivot ) ;
+						me.onChartRemoveRow( rPanel, rowPivot, rowSelectIds[0] ) ;
 					},
 					scope: me
 				});
@@ -1010,7 +1063,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 		}
 	},
 	
-	onChartAddColumn: function( rPanel, colPivot, color ) {
+	onChartAddColumn: function( rPanel, colPivot, dataSelectId, color ) {
 		var me = this,
 			chartPanel = me.getActiveChartPanel(),
 			colIteration = me.getIterationsForColumns(rPanel)[0] ;
@@ -1018,17 +1071,17 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			return ;
 		}
 		chartPanel.defineChartIteration( colIteration ) ;
-		chartPanel.addPivot( color, colPivot ) ;
+		chartPanel.addPivot( color, colPivot, dataSelectId ) ;
 	},
-	onChartRemoveColumn: function( rPanel, colPivot ) {
+	onChartRemoveColumn: function( rPanel, colPivot, dataSelectId ) {
 		var me = this,
 			chartPanel = me.getActiveChartPanel() ;
 		if( !chartPanel ) {
 			return ;
 		}
-		chartPanel.removePivot( colPivot ) ;
+		chartPanel.removePivot( colPivot, dataSelectId ) ;
 	},
-	onChartAddRow: function( rPanel, rowPivot, color ) {
+	onChartAddRow: function( rPanel, rowPivot, dataSelectId, color ) {
 		var me = this,
 			chartPanel = me.getActiveChartPanel(),
 			rowIteration = me.getIterationsForRows(rPanel)[0] ;
@@ -1036,15 +1089,15 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			return ;
 		}
 		chartPanel.defineChartIteration( rowIteration ) ;
-		chartPanel.addPivot( color, rowPivot ) ;
+		chartPanel.addPivot( color, rowPivot, dataSelectId ) ;
 	},
-	onChartRemoveRow: function( rPanel, rowPivot ) {
+	onChartRemoveRow: function( rPanel, rowPivot, dataSelectId ) {
 		var me = this,
 			chartPanel = me.getActiveChartPanel() ;
 		if( !chartPanel ) {
 			return ;
 		}
-		chartPanel.removePivot( rowPivot ) ;
+		chartPanel.removePivot( rowPivot, dataSelectId ) ;
 	},
 	onChartAddNodeRow: function() {
 		

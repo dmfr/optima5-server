@@ -15,7 +15,8 @@ Ext.define('QueryResultChartGrouptagValueModel', {
 Ext.define('QueryResultChartSerieModel', {
 	extend: 'Ext.data.Model',
 	fields: [
-		{name: 'serie_color',type: 'string'}
+		{name: 'serie_color',type: 'string'},
+		{name: 'data_selectid',type: 'int'}
 	],
 	hasMany: [{ 
 		model: 'QueryResultChartGrouptagValueModel',
@@ -184,7 +185,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 		return true ;
 	},
 	
-	searchPivot: function( arr_groupIdTag_groupKey ) {
+	searchPivot: function( arr_groupIdTag_groupKey, arr_selectIds ) {
 		var me = this,
 			chartCfgRecord = me.chartCfgRecord,
 			searchResult = null ;
@@ -198,6 +199,9 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 		}) ;
 		
 		chartCfgRecord.series().each( function(serie) {
+			if( !Ext.Array.contains(arr_selectIds,serie.get('data_selectid')) ) {
+				return true ;
+			}
 			var seriePivot = Ext.pluck(serie.serie_pivot().data.items,'data') ;
 			if( Ext.JSON.encode(seriePivot) == Ext.JSON.encode(seriePivotTest) ) {
 				searchResult = serie ;
@@ -221,18 +225,18 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 		return ;
 	},
 	
-	getPivotColor: function(arr_groupIdTag_groupKey) {
+	getPivotColor: function(arr_groupIdTag_groupKey, arr_selectIds) {
 		var me = this,
-			searchResult = me.searchPivot( arr_groupIdTag_groupKey ) ;
+			searchResult = me.searchPivot( arr_groupIdTag_groupKey, arr_selectIds ) ;
 		if( searchResult != null ) {
 			return searchResult.get('serie_color') ;
 		}
 		return null ;
 	},
-	addPivot: function( serieColor, arr_groupIdTag_groupKey ) {
+	addPivot: function( serieColor, arr_groupIdTag_groupKey, dataSelectId ) {
 		var me = this,
 			chartCfgRecord = me.chartCfgRecord,
-			searchResult = me.searchPivot( arr_groupIdTag_groupKey ) ;
+			searchResult = me.searchPivot( arr_groupIdTag_groupKey, [dataSelectId] ) ;
 		if( searchResult != null ) {
 			searchResult.set('serie_color',serieColor) ;
 			return ;
@@ -246,14 +250,15 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 		}) ;
 		chartCfgRecord.series().add( Ext.ux.dams.ModelManager.create('QueryResultChartSerieModel',{
 			serie_color: serieColor,
-			serie_pivot: seriePivot
+			serie_pivot: seriePivot,
+			data_selectid: dataSelectId
 		}) ) ;
 	},
-	removePivot: function( arr_groupIdTag_groupKey ) {
+	removePivot: function( arr_groupIdTag_groupKey, dataSelectId ) {
 		var me = this,
 			chartCfgRecord = me.chartCfgRecord,
 			seriesStore = chartCfgRecord.series(),
-			searchResult = me.searchPivot( arr_groupIdTag_groupKey ) ;
+			searchResult = me.searchPivot( arr_groupIdTag_groupKey, [dataSelectId] ) ;
 		
 		if( searchResult != null ) {
 			seriesStore.remove(searchResult) ;
