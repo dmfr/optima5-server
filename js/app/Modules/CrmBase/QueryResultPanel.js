@@ -1196,5 +1196,5 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			},
 			scope: me
 		});
-	},
+	}
 }) ;

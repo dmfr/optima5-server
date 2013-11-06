@@ -22,7 +22,7 @@ Ext.define('QueryResultChartSerieModel', {
 		model: 'QueryResultChartGrouptagValueModel',
 		name: 'serie_pivot', // group tag(s) on which the single iteration will occur to build a serie
 		associationKey: 'serie_pivot'
-	}],
+	}]
 });
 
 Ext.define('QueryResultChartModel', {
@@ -546,7 +546,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 						position: 'bottom',
 						fields: ['name'],
 						//title: 'Month of the Year',
-						grid: true,
+						grid: true
 					}],
 					series: series
 				});
@@ -616,5 +616,5 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 		me.removeAll() ;
 		me.add(chartComponents) ;
 		return true ;
-	},
+	}
 });

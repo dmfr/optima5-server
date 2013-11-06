@@ -12,7 +12,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.MainWindow',{
 			height:600,
 			resizable:false,
 			maximizable:false,
-			layout:'fit',
+			layout:'fit'
 		});
 		
 		this.callParent() ;
