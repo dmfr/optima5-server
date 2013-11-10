@@ -723,10 +723,8 @@ function paracrm_queries_process_qmerge($arr_saisie, $debug=FALSE)
 								$eval_string.= ')' ;
 						}
 						
-						$evalmath = new EvalMath ;
-						$evalmath->suppress_errors = TRUE ;
-						if( ($val = $evalmath->evaluate($eval_string)) === FALSE )
-						{
+						@eval( '$val = ('.$eval_string.') ;' ) ;
+						if( $val===FALSE ) {
 							continue ;
 						}
 					}
@@ -1207,6 +1205,9 @@ function paracrm_queries_process_query(&$arr_saisie, $debug=FALSE)
 			elseif( $arr_indexed_treefields[$math_operand]['file_field_code'] )
 			{
 				$symbol['sql_file_field_code'] = 'field_'.$arr_indexed_treefields[$math_operand]['file_field_code'] ;
+				if( $arr_indexed_treefields[$math_operand]['field_type'] == 'join' ) {
+					$symbol['join_do'] = TRUE ;
+				}
 			}
 		
 			// FICHIERS ?
@@ -1306,13 +1307,9 @@ function paracrm_queries_process_query(&$arr_saisie, $debug=FALSE)
 					$eval_string.= ')' ;
 			}
 			
-			
-			$evalmath = new EvalMath ;
-			$evalmath->suppress_errors = TRUE ;
-			if( ($val = $evalmath->evaluate($eval_string)) === FALSE )
-			{
-				$field_select['null_value'] = NULL ;
-				break ; ;
+			@eval( '$val = ('.$eval_string.') ;' ) ;
+			if( $val===FALSE ) {
+				break ;
 			}
 			$field_select['null_value'] = $val ;
 			break ;
@@ -1567,10 +1564,8 @@ function paracrm_queries_process_query_iteration( $arr_saisie )
 								$eval_string.= ')' ;
 						}
 						
-						$evalmath = new EvalMath ;
-						$evalmath->suppress_errors = TRUE ;
-						if( ($val = $evalmath->evaluate($eval_string)) === FALSE )
-						{
+						@eval( '$val = ('.$eval_string.') ;' ) ;
+						if( $val===FALSE ) {
 							continue ;
 						}
 					}
@@ -1615,10 +1610,8 @@ function paracrm_queries_process_query_iteration( $arr_saisie )
 									$eval_string.= ')' ;
 							}
 							
-							$evalmath = new EvalMath ;
-							$evalmath->suppress_errors = TRUE ;
-							if( ($val = $evalmath->evaluate($eval_string)) === FALSE )
-							{
+							@eval( '$val = ('.$eval_string.') ;' ) ;
+							if( $val===FALSE ) {
 								continue ;
 							}
 						}
@@ -1715,9 +1708,8 @@ function paracrm_queries_process_query_iterationDo( $arr_saisie, $iteration_chai
 				if( !is_array($RES_selectId_group_arr_arrSymbolValue[$select_id][$group_key_id]) )
 					$RES_selectId_group_arr_arrSymbolValue[$select_id][$group_key_id] = array() ;
 				
-				$tmp_toMerge =& $RES_selectId_group_arr_arrSymbolValue[$select_id][$group_key_id] ;
 				foreach( $arr_arrSymbolValue as $arrSymbolValue ) {
-					$tmp_toMerge[] = $arrSymbolValue ;
+					$RES_selectId_group_arr_arrSymbolValue[$select_id][$group_key_id][] = $arrSymbolValue ;
 				}
 			}
 		}
@@ -1755,14 +1747,18 @@ function paracrm_queries_process_query_doValue( $arr_saisie, $target_fileCode, $
 		$row_group[$target_fileCode] = $arr2 ;
 		$arr_groupKeyId = paracrm_queries_process_queryHelp_group( $row_group, $arr_saisie['fields_group'] ) ;
 		
-		// TODO: cleaner join arch
-		paracrm_lib_file_joinQueryRecord($target_fileCode,$row_group) ;
-	
+		// TODO: cleaner join arch (EDIT 13-11-10 : conditional join)
+		$join_done = FALSE ;
 		foreach( $arr_saisie['fields_select'] as $select_id => $field_select ) {
 			$subRES_group_symbol_value = array() ;
 			// iteration sur les symboles
 			foreach( $field_select['math_expression'] as $symbol_id => $symbol )
 			{
+				if( $symbol['join_do'] && !$join_done ) {
+					paracrm_lib_file_joinQueryRecord($target_fileCode,$row_group) ;
+					$join_done = TRUE ;
+				}
+				
 				if( $symbol['math_staticvalue'] != 0 )
 					continue ;
 			
