@@ -447,9 +447,11 @@ function paracrm_queries_builderTransaction_getTreeFields( &$arr_saisie )
 		
 			if( is_array($mvalue) )
 			{
-				$query = "SELECT entry_field_linkbible FROM define_file_entry
+				$query = "SELECT entry_field_linktype,entry_field_linkbible FROM define_file_entry
 							WHERE file_code='$file_code' AND entry_field_code='$field_code'" ;
-				$linkbible = $_opDB->query_uniqueValue($query);
+				$tarr = $_opDB->fetch_row($_opDB->query($query)) ;
+				$linktype = ( $tarr[0] ? $tarr[0] : 'entry' ) ;
+				$linkbible = $tarr[1] ;
 			
 				$json_field_bible = array() ;
 				$json_field_bible['field_code'] = $file_code.'_field_'.$field_code ;
@@ -457,6 +459,7 @@ function paracrm_queries_builderTransaction_getTreeFields( &$arr_saisie )
 				$json_field_bible['field_text_full'] = $entry_field_lib ;
 				$json_field_bible['field_type'] = 'link' ;
 				$json_field_bible['field_type_text'] = 'Link '.$linkbible ;
+				$json_field_bible['field_linktype'] = $linktype ;
 				$json_field_bible['field_linkbible'] = $linkbible ;
 				$json_field_bible['file_code'] = $file_code ;
 				$json_field_bible['file_field_code'] = $field_code ;
@@ -475,6 +478,8 @@ function paracrm_queries_builderTransaction_getTreeFields( &$arr_saisie )
 					$field['field_text_full'] = $selectmap['text'] ;
 					$field['field_type'] = $selectmap['type'] ;
 					$field['field_type_text'] = $selectmap['type'] ;
+					$field['field_linktype'] = $linktype ;
+					$field['field_linkbible'] = $linkbible ;
 					$field['field_linkbible_type'] = $selectmap['link_bible_type'] ;
 					$field['file_code'] = $file_code ;
 					$field['file_field_code'] = $field_code ;

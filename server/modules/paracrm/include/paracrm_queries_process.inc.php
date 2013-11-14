@@ -885,6 +885,7 @@ function paracrm_queries_process_query(&$arr_saisie, $debug=FALSE)
 		if( $arr_indexed_treefields[$tfield]['bible_code'] && $arr_indexed_treefields[$tfield]['bible_field_code'] )
 		{
 			$field_where['sql_file_field_code'] = 'field_'.$arr_indexed_treefields[$tfield]['file_field_code'] ;
+			$field_where['sql_linktype'] = $arr_indexed_treefields[$tfield]['field_linktype'] ;
 			$field_where['sql_bible_code'] = $arr_indexed_treefields[$tfield]['bible_code'] ;
 			$field_where['sql_bible_field_code'] = 'field_'.$arr_indexed_treefields[$tfield]['bible_field_code'] ;
 			$field_where['sql_bible_type'] = $arr_indexed_treefields[$tfield]['bible_type'] ;
@@ -892,6 +893,7 @@ function paracrm_queries_process_query(&$arr_saisie, $debug=FALSE)
 		elseif( $arr_indexed_treefields[$tfield]['bible_code'] )
 		{
 			$field_where['sql_file_field_code'] = 'field_'.$arr_indexed_treefields[$tfield]['file_field_code'] ;
+			$field_where['sql_linktype'] = $arr_indexed_treefields[$tfield]['field_linktype'] ;
 			$field_where['sql_bible_code'] = $arr_indexed_treefields[$tfield]['bible_code'] ;
 		}
 		elseif( $arr_indexed_treefields[$tfield]['file_field_code'] )
@@ -1042,7 +1044,7 @@ function paracrm_queries_process_query(&$arr_saisie, $debug=FALSE)
 			unset($fields_group[$field_id]) ;
 		}
 		
-		
+		$field_group['sql_linktype'] = $arr_indexed_treefields[$tfield]['field_linktype'] ;
 		$field_group['sql_bible_code'] = $arr_indexed_treefields[$tfield]['bible_code'] ;
 	}
 	$arr_saisie['fields_group'] = $fields_group ;
@@ -1075,6 +1077,7 @@ function paracrm_queries_process_query(&$arr_saisie, $debug=FALSE)
 				$new_link_group['display_geometry'] = $field_group['display_geometry'] ;
 				$new_link_group['sql_file_code'] = $field_group['sql_file_code'] ;
 				$new_link_group['sql_file_field_code'] = $field_group['sql_file_field_code'] ;
+				$new_link_group['sql_linktype'] = $field_group['sql_linktype'] ;
 				$new_link_group['sql_bible_code'] = $field_group['sql_bible_code'] ;
 				$fields_group_new[$group_target_hash] = $new_link_group ;
 			}
@@ -1193,6 +1196,7 @@ function paracrm_queries_process_query(&$arr_saisie, $debug=FALSE)
 			if( $arr_indexed_treefields[$math_operand]['bible_code'] && $arr_indexed_treefields[$math_operand]['bible_field_code'] )
 			{
 				$symbol['sql_file_field_code'] = 'field_'.$arr_indexed_treefields[$math_operand]['file_field_code'] ;
+				$symbol['sql_linktype'] = $arr_indexed_treefields[$math_operand]['field_linktype'] ;
 				$symbol['sql_bible_code'] = $arr_indexed_treefields[$math_operand]['bible_code'] ;
 				$symbol['sql_bible_field_code'] = 'field_'.$arr_indexed_treefields[$math_operand]['bible_field_code'] ;
 				$symbol['sql_bible_type'] = $arr_indexed_treefields[$math_operand]['bible_type'] ;
@@ -1200,6 +1204,7 @@ function paracrm_queries_process_query(&$arr_saisie, $debug=FALSE)
 			elseif( $arr_indexed_treefields[$math_operand]['bible_code'] )
 			{
 				$symbol['sql_file_field_code'] = 'field_'.$arr_indexed_treefields[$math_operand]['file_field_code'] ;
+				$symbol['sql_linktype'] = $arr_indexed_treefields[$math_operand]['field_linktype'] ;
 				$symbol['sql_bible_code'] = $arr_indexed_treefields[$math_operand]['bible_code'] ;
 			}
 			elseif( $arr_indexed_treefields[$math_operand]['file_field_code'] )
@@ -1773,16 +1778,25 @@ function paracrm_queries_process_query_doValue( $arr_saisie, $target_fileCode, $
 				$file_field_code = $symbol['sql_file_field_code'] ;
 				
 				if( $symbol['sql_bible_code'] && $symbol['sql_bible_field_code'] ) {
+					switch( $symbol['sql_linktype'] ) {
+						case 'entry' :
+						$entry_key = $row_group[$file_code][$file_field_code] ;
+						$treenode_key = $arr_bible_entries[$symbol['sql_bible_code']][$entry_key]['treenode_key'] ;
+						break ;
+						
+						case 'treenode' :
+						$entry_key = NULL ;
+						$treenode_key = $row_group[$file_code][$file_field_code] ;
+						break ;
+						
+						default :
+						$entry_key = $treenode_key = NULL ;
+						break ;
+					}
 					// field of bible record
 					$eval_value = NULL ;
-					$entry_key = $row_group[$file_code][$file_field_code] ;
 					switch( $symbol['sql_bible_type'] ) {
 						case 'tree' :
-							if( isset($arr_bible_entries[$symbol['sql_bible_code']][$entry_key]) ) {
-								$treenode_key = $arr_bible_entries[$symbol['sql_bible_code']][$entry_key]['treenode_key'] ;
-							} else {
-								$treenode_key = $entry_key ; //TODO : DIRTY AND UNSAFE!! use bible link type
-							}
 							$eval_value = $arr_bible_treenodes[$symbol['sql_bible_code']][$treenode_key][$symbol['sql_bible_field_code']] ;
 							break ;
 						case 'entry' :
@@ -1962,14 +1976,23 @@ function paracrm_queries_process_queryHelp_where( $record_file, $fields_where ) 
 			continue ;
 		$eval_value = $record_file[$file_code][$file_field_code] ;
 		if( $field_where['sql_bible_code'] && $field_where['sql_bible_field_code'] ) {
-			$entry_key = $eval_value ;
+			switch( $field_where['sql_linktype'] ) {
+				case 'entry' :
+				$entry_key = $eval_value ;
+				$treenode_key = $arr_bible_entries[$field_where['sql_bible_code']][$eval_value]['treenode_key'] ;
+				break ;
+				
+				case 'treenode' :
+				$entry_key = NULL ;
+				$treenode_key = $eval_value ;
+				break ;
+				
+				default :
+				$entry_key = $treenode_key = NULL ;
+				break ;
+			}
 			switch( $field_where['sql_bible_type'] ) {
 				case 'tree' :
-					if( isset($arr_bible_entries[$field_where['sql_bible_code']][$entry_key]) ) {
-						$treenode_key = $arr_bible_entries[$field_where['sql_bible_code']][$entry_key]['treenode_key'] ;
-					} else {
-						$treenode_key = $entry_key ; //TODO : DIRTY AND UNSAFE!! use bible link type
-					}
 					$eval_value = $arr_bible_treenodes[$field_where['sql_bible_code']][$treenode_key][$field_where['sql_bible_field_code']] ;
 					break ;
 				case 'entry' :
@@ -1996,7 +2019,11 @@ function paracrm_queries_process_queryHelp_where( $record_file, $fields_where ) 
 					case 'tree' :
 					// recherche du treenode associé
 					$eval_value_entry = $eval_value ;
-					$eval_value_tree = $GLOBALS['arr_bible_entries'][$bible_code][$eval_value_entry]['treenode_key'] ;
+					if( $GLOBALS['arr_bible_entries'][$bible_code][$eval_value_entry] ) {
+						$eval_value_tree = $GLOBALS['arr_bible_entries'][$bible_code][$eval_value_entry]['treenode_key'] ;
+					} else {
+						$eval_value_tree = $eval_value_entry ;
+					}
 					if( !in_array($eval_value_tree,$field_where['sql_arr_select']) )
 						return FALSE ;
 					break ;
@@ -2098,17 +2125,29 @@ function paracrm_queries_process_queryHelp_getGroupHash( $record_glob, $fields_g
 		// ---- recherche du field -----
 		if( $field_group['field_type'] == 'link' )
 		{
+			// source value : treenode / entry
+			$src_code = $field_group['sql_file_code'] ;
+			$src_field = $field_group['sql_file_field_code'] ;
+			$bible_code = $field_group['sql_bible_code'] ;
+			switch( $field_group['sql_linktype'] ) {
+				case 'entry' :
+				$src_value_entry = $record_glob[$src_code][$src_field] ;
+				$src_value_treenode = $GLOBALS['arr_bible_entries'][$bible_code][$src_value_entry]['treenode_key'] ;
+				break ;
+				
+				case 'treenode' :
+				$src_value_entry = NULL ;
+				$src_value_treenode = $record_glob[$src_code][$src_field] ;
+				break ;
+				
+				default :
+				$src_value_entry = $src_value_treenode = NULL ;
+				break ;
+			}
+			
 			// déterminer la valeur
 			if( $field_group['group_bible_type'] == 'TREEVIEW' )
 			{
-				$src_code = $field_group['sql_file_code'] ;
-				$src_field = $field_group['sql_file_field_code'] ;
-				$bible_code = $field_group['sql_bible_code'] ;
-				
-				$src_value_entry = $record_glob[$src_code][$src_field] ;
-				$src_value_treenode = $GLOBALS['arr_bible_entries'][$bible_code][$src_value_entry]['treenode_key'] ;
-				
-				
 				$fieldgroup_values = array() ;
 				
 				if( $field_group['group_do_entries'] ) {
@@ -2128,10 +2167,6 @@ function paracrm_queries_process_queryHelp_getGroupHash( $record_glob, $fields_g
 			// déterminer la valeur
 			if( $field_group['group_bible_type'] == 'ENTRY' )
 			{
-				$src_code = $field_group['sql_file_code'] ;
-				$src_field = $field_group['sql_file_field_code'] ;
-				
-				$src_value_entry = $record_glob[$src_code][$src_field] ;
 				if( !$src_value_entry )
 				{
 					$tab[$fieldgroup_id] = NULL ;
@@ -2148,17 +2183,6 @@ function paracrm_queries_process_queryHelp_getGroupHash( $record_glob, $fields_g
 			// déterminer la valeur
 			if( $field_group['group_bible_type'] == 'TREE' )
 			{
-				$src_code = $field_group['sql_file_code'] ;
-				$src_field = $field_group['sql_file_field_code'] ;
-				$bible_code = $field_group['sql_bible_code'] ;
-				
-				$src_value_entry = $record_glob[$src_code][$src_field] ;
-				if( !$src_value_entry )
-				{
-					$tab[$fieldgroup_id] = NULL ;
-					continue ;
-				}
-				$src_value_treenode = $GLOBALS['arr_bible_entries'][$bible_code][$src_value_entry]['treenode_key'] ;
 				if( !($group_value_tree = $src_value_treenode) )
 				{
 					$tab[$fieldgroup_id] = NULL ;
@@ -2261,6 +2285,10 @@ function paracrm_queries_process_linearTreefields( $arr_node )
 		$row = array() ;
 		$row['text'] = $arr_node['field_text'] ;
 		$row['field_type'] = $arr_node['field_type'] ;
+		if( isset($arr_node['field_linktype']) && isset($arr_node['field_linkbible']) ) {
+			$row['field_linktype'] = $arr_node['field_linktype'] ;
+			$row['field_linkbible'] = $arr_node['field_linkbible'] ;
+		}
 		foreach( array('file_code','file_field_code','bible_code','bible_field_code') as $mkey )
 			$row[$mkey] = $arr_node[$mkey] ;
 		$row['bible_type'] = $arr_node['field_linkbible_type'] ;
