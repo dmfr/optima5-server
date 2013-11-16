@@ -252,19 +252,52 @@ function paracrm_queries_charts_getResChart( $RES, $queryResultChartModel ) {
 				}
 			}
 			unset($groupLabel) ;
-			$RES_seriesTitle[] = $serieTitle_arrGroupIdGroupLabel ;
 		} else {
-			// "select" serie : serie defined by selectId
-			$select_id = $series_selectId[$idx] ;
-			$select_lib = '' ;
-			if( $RES['RES_selectId_infos'] ) { // Qmerge
+			$serieTitle_arrGroupIdGroupLabel = array() ;
+		}
+		
+		// "select" serie : serie defined by selectId
+		$select_id = $series_selectId[$idx] ;
+		$select_lib = NULL ;
+		if( $RES['RES_selectId_infos'] ) { // Qmerge
+			if( count($RES['RES_selectId_infos']) > 1 ) {
 				$select_lib = $RES['RES_selectId_infos'][$select_id]['select_lib'] ;
-			} else { // Query
+			}
+		} else { // Query
+			if( count($RES['RES_titles']['fields_select']) > 1 ) {
 				$select_lib = $RES['RES_titles']['fields_select'][$select_id] ;
 			}
-			
-			$RES_seriesTitle[] = array($select_lib) ;
 		}
+		
+		$serieTitle = array() ;
+		if( $select_lib ) {
+			$serieTitle[] = $select_lib ;
+		}
+		$serieTitle = array_merge($serieTitle, $serieTitle_arrGroupIdGroupLabel) ;
+		$RES_seriesTitle[] = $serieTitle ;
+	}
+	// Suppress duplicate substrings in titles
+	if( count($RES_seriesTitle) > 1 ) {
+		$idxStrs = array() ;
+		foreach( $RES_seriesTitle as $serieTitle ) {
+			foreach( $serieTitle as $idx => $serieTitleStr ) {
+				if( !isset($idxStrs[$idx]) ) {
+					$idxStrs[$idx] = array() ;
+				}
+				if( !in_array($serieTitleStr,$idxStrs[$idx]) ) {
+					$idxStrs[$idx][] = $serieTitleStr ;
+				}
+			}
+		}
+		foreach( $idxStrs as $idx => $strs ) {
+			if( count($strs) == 1 ) {
+				foreach( $RES_seriesTitle as &$serieTitle ) {
+					unset($serieTitle[$idx]) ;
+				}
+				unset($serieTitle) ;
+			}
+		}
+		unset($idxStrs) ;
 	}
 	
 	

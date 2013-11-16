@@ -63,7 +63,13 @@ function paracrm_queries_qwebTransaction( $post_data )
 			$json =  paracrm_queries_qwebTransaction_exportXLS( $post_data, $arr_saisie ) ;
 		}
 		
-		
+		switch( $post_data['_subaction'] ) {
+			case 'chart_cfg_load' :
+			case 'chart_cfg_save' :
+			case 'chart_tab_getSeries' :
+				return array('success'=>true) ;
+				break ;
+		}
 		
 
 		if( is_array($arr_saisie) )
@@ -341,6 +347,346 @@ function paracrm_queries_process_qweb($arr_saisie, $debug=FALSE)
 	}
 }
 
+
+function paracrm_queries_qweb_getQresultObjs( $q_type, $q_id, $arr_where_conditions, $img_options=array('width'=>800,'height'=>220) ) {
+	global $_opDB ;
+	
+	switch( $q_type ) {
+		case 'query' :
+		if( !is_numeric($q_id) ) {
+			$query = "SELECT query_id FROM query WHERE query_name LIKE '{$q_id}'";
+			$q_id = $_opDB->query_uniqueValue($query) ;
+			if( !$q_id ) {
+				return NULL ;
+			}
+		}
+		
+		$arr_saisie = array() ;
+		paracrm_queries_builderTransaction_init( array('query_id'=>$q_id) , $arr_saisie ) ;
+		
+		if( $arr_where_conditions ) {
+			foreach( $arr_where_conditions as $query_targetfield_ssid => $condition ) {
+				$query_fieldwhere_idx = $query_targetfield_ssid - 1 ;
+				foreach( $condition as $mkey => $mvalue ) {
+					if( strpos($mkey,'condition_') === 0 ) {
+						$arr_saisie['fields_where'][$query_fieldwhere_idx][$mkey] = $mvalue ;
+					}
+				}
+			}
+		}
+		
+		$RES = paracrm_queries_process_query($arr_saisie , FALSE ) ;
+		
+		$tabs = array() ;
+		foreach( $RES['RES_labels'] as $tab_id => $dummy )
+		{
+			$tab = array() ;
+			$tab['tab_title'] = $dummy['tab_title'] ;
+			$tabs[$tab_id] = $tab + paracrm_queries_paginate_getGrid( $RES, $tab_id ) ;
+			
+			if( !$tabs[$tab_id]['data'] ) {
+				unset($tabs[$tab_id]) ;
+			}
+		}
+		break ;
+		
+		
+		
+		case 'qmerge' :
+		if( !is_numeric($q_id) ) {
+			$query = "SELECT qmerge_id FROM qmerge WHERE qmerge_name LIKE '{$q_id}'";
+			$q_id = $_opDB->query_uniqueValue($query) ;
+			if( !$q_id ) {
+				return NULL ;
+			}
+		}
+		
+		$arr_saisie = array() ;
+		paracrm_queries_mergerTransaction_init( array('qmerge_id'=>$q_id) , $arr_saisie ) ;
+		
+		if( $arr_where_conditions ) {
+			foreach( $arr_where_conditions as $query_targetfield_ssid => $condition ) {
+				$qmerge_fieldmwhere_idx = $query_targetfield_ssid - 1 ;
+				foreach( $condition as $mkey => $mvalue ) {
+					if( strpos($mkey,'condition_') === 0 ) {
+						$arr_saisie['fields_mwhere'][$qmerge_fieldmwhere_idx][$mkey] = $mvalue ;
+					}
+				}
+			}
+		}
+		
+		$RES = paracrm_queries_process_qmerge($arr_saisie , FALSE ) ;
+		
+		if( $post_data['xls_export'] == 'true' ) {
+			return paracrm_android_query_fetchResultXls( $RES, $arrQuery['querysrc_type'] );
+		}
+		
+		$tabs = array() ;
+		foreach( $RES['RES_labels'] as $tab_id => $dummy )
+		{
+			$tab = array() ;
+			$tab['tab_title'] = $dummy['tab_title'] ;
+			$tabs[$tab_id] = $tab + paracrm_queries_mpaginate_getGrid( $RES, $tab_id ) ;
+			
+			if( !$tabs[$tab_id]['data'] ) {
+				unset($tabs[$tab_id]) ;
+			}
+		}
+		break ;
+	}
+	
+	if( !$tabs ) {
+		return NULL ;
+	}
+	
+	$objs = array() ;
+	foreach( $tabs as $tab ) {
+		$obj = array() ;
+		$obj['type'] = 'table' ;
+		$obj['title'] = $tab['tab_title'] ;
+		$obj['table_html'] = paracrm_queries_qweb_makeTable( $tab['columns'], $tab['data'] ) ;
+		$objs[] = $obj ;
+	}
+	if( !($arr_QueryResultChartModel = paracrm_queries_charts_cfgLoad($q_type,$q_id)) ) {
+		return $objs ;
+	}
+	foreach( $arr_QueryResultChartModel as $queryResultChartModel ) {
+		if( !($binary = paracrm_queries_qweb_makeImgChart($RES, $queryResultChartModel, $img_options)) ) {
+			continue ;
+		}
+		
+		$obj = array() ;
+		$obj['type'] = 'chart' ;
+		$obj['title'] = $queryResultChartModel['chart_name'] ;
+		$obj['img_base64'] = base64_encode( $binary ) ;
+		$objs[] = $obj ;
+	}
+	return $objs ;
+}
+function paracrm_queries_qweb_makeTable($columns,$data) {
+	$buffer = '' ;
+	
+	$buffer.= '<table>' ;
+	
+	$buffer.= '<thead>' ;
+		$buffer.= '<tr>' ;
+		foreach( $columns as $column ) {
+			if( $column['invisible'] ) {
+				continue ;
+			}
+			
+			if( $column['is_bold'] ) {
+				$tag='th' ;
+			} else {
+				$tag='td' ;
+			}
+			$buffer.= "<{$tag}>" ;
+			$buffer.= $column['text'] ;
+			$buffer.= "</{$tag}>" ;
+		}
+		$buffer.= '</tr>' ;
+	$buffer.= '</thead>' ;
+	
+	$buffer.= '<tbody>' ;
+	foreach( $data as $row_id => $row_data ) {
+		$buffer.= '<tr>' ;
+		foreach( $columns as $column ) {
+			if( $column['invisible'] ) {
+				continue ;
+			}
+			
+			$dataIndex = $column['dataIndex'] ;
+			if( $column['is_bold'] ) {
+				$tag='th' ;
+			} else {
+				$tag='td' ;
+			}
+			$buffer.= "<{$tag}>" ;
+			$buffer.= $row_data[$dataIndex] ;
+			$buffer.= "</{$tag}>" ;
+		}
+		$buffer.= '</tr>' ;
+	}
+	$buffer.= '</tbody>' ;
+	
+	$buffer.= '</table>' ;
+	
+	return $buffer ;
+}
+function paracrm_queries_qweb_makeImgChart(&$RES, $queryResultChartModel, $img_options) {
+	if( is_dir($pchart_root = $GLOBALS['app_root']."/resources/pChart") ) {
+		include_once("$pchart_root/class/pData.class.php");
+		include_once("$pchart_root/class/pDraw.class.php");
+		include_once("$pchart_root/class/pPie.class.php");
+		include_once("$pchart_root/class/pImage.class.php");
+	};
+	if( !class_exists('pData') ) {
+		return NULL ;
+	}
+	
+	if( !($RES_chart = paracrm_queries_charts_getResChart($RES, $queryResultChartModel)) ) {
+		return NULL ;
+	}
+	
+	$series = array() ;
+	$myPalette = array() ;
+	foreach( $RES_chart['stepsSerieValue'] as $ttmp ) {
+		foreach( $ttmp as $serie_idx => $point_value ) {
+			if( !isset($series[$serie_idx]) ) {
+				$series[$serie_idx] = array() ;
+			}
+			$series[$serie_idx][] = $point_value ;
+			
+			$myPalette[] = array("R"=>$r,"G"=>$g,"B"=>$b,"Alpha"=>100) ;
+		}
+	}
+	$series_title = array() ;
+	foreach( $RES_chart['seriesTitle'] as $ttmp ) {
+		$series_title[] = implode($ttmp) ;
+	}
+	
+	$iteration_points = array() ;
+	foreach( $RES_chart['stepsLabel'] as $ttmp ) {
+		$iteration_points[] = implode(' ',$ttmp) ;
+	}
+	$iteration_title = implode(' ',$RES_chart['iterationTitle']) ;
+	
+	if( $do_swap = in_array($queryResultChartModel['chart_type'],array('pieswap')) ) {
+		$new_series = array() ;
+		foreach( $series as $serie_idx => $serie ) {
+			foreach( $serie as $iteration_idx => $value ) {
+				if( !isset($new_series[$iteration_idx]) ) {
+					$new_series[$iteration_idx] = array() ;
+				}
+				$new_series[$iteration_idx][] = $value ;
+			}
+		}
+		$new_iteration_points = $series_title ;
+		$new_series_title = $iteration_points ;
+		
+		$series = $new_series ;
+		$iteration_points = $new_iteration_points ;
+		$series_title = $new_series_title ;
+	}
+	
+	
+	
+	$img_width = $img_options['width'] ;
+	$img_height = $img_options['height'] ;
+
+	
+	$MyData = new pData();
+	foreach( $series as $serie_idx => $serie_points ) {
+		$MyData->addPoints($serie_points,$series_title[$serie_idx]);
+		
+		$hex_color = $RES_chart['seriesColor'][$serie_idx] ;
+		$hex = str_replace("#", "", $hex_color);
+		$r = hexdec(substr($hex,0,2));
+		$g = hexdec(substr($hex,2,2));
+		$b = hexdec(substr($hex,4,2));
+		$MyData->setPalette($series_title[$serie_idx],array("R"=>$r,"G"=>$g,"B"=>$b));
+	}
+	//$MyData->setAxisName(0,"Hits");
+	$MyData->addPoints($iteration_points,"name");
+	$MyData->setSerieDescription("name",$iteration_title);
+	$MyData->setAbscissa("name");
+	
+	$myPicture = new pImage($img_width,$img_height,$MyData,TRUE);
+	$myPicture->setFontProperties(array("FontName"=>"$pchart_root/fonts/verdana.ttf","FontSize"=>8,"R"=>0,"G"=>0,"B"=>0));
+	
+	switch( $queryResultChartModel['chart_type'] ) {
+		case 'areastacked' :
+		case 'bar' :
+		case 'line' :
+			if( $queryResultChartModel['chart_type'] == 'areastacked' ) {
+				$PCHART_scale_mode = SCALE_MODE_ADDALL_START0 ;
+			} else {
+				$PCHART_scale_mode = SCALE_MODE_START0 ;
+			}
+			$width_minus = ($img_options['legend'] ? 200 : 60) ;
+			$myPicture->setGraphArea(50,10,$img_width - $width_minus,$img_height - 20 );
+			$myPicture->drawScale(array("Mode"=>$PCHART_scale_mode,"GridR"=>200,"GridG"=>200,"GridB"=>200,"DrawSubTicks"=>TRUE,"CycleBackground"=>TRUE));
+			//$myPicture->setShadow(TRUE,array("X"=>1,"Y"=>1,"R"=>0,"G"=>0,"B"=>0,"Alpha"=>10));
+			
+			switch( $queryResultChartModel['chart_type'] ) {
+				case 'areastacked' :
+					$myPicture->drawStackedAreaChart(array("DisplayValues"=>TRUE,"DisplayColor"=>DISPLAY_AUTO,"Surrounding"=>20));
+					break ;
+				case 'bar' :
+					$myPicture->drawBarChart(array("DisplayPos"=>LABEL_POS_OUTSIDE,"DisplayValues"=>TRUE,"Rounded"=>TRUE,"Surrounding"=>30));
+					break ;
+				case 'line' :
+					$myPicture->drawLineChart(array("DisplayValues"=>TRUE,"DisplayColor"=>DISPLAY_AUTO));
+					break ;
+				default :
+					break ;
+			}
+			if( $img_options['legend'] ) {
+				$myPicture->drawLegend($img_width - 130,12,array("Style"=>LEGEND_NOBORDER,"Mode"=>LEGEND_VERTICAL)); 
+			}
+			break ;
+		
+		case 'pie' :
+		case 'pieswap' :
+			// Split IMG width for x-Pies + legend
+			$t_nbPies = count($series) ;
+			$t_availableWidth = $img_width ; 
+			if( $img_options['legend'] ) {
+				$t_availableWidth -= 130 ; 
+			}
+			$t_widthPerPie = $t_availableWidth / $t_nbPies ;
+			
+			$t_radius = ( min($t_widthPerPie,$img_height) - 5 ) / 2 ;
+			
+			$w_cursor = $t_radius ;
+			$h_cursor = $img_height / 2 ;
+			foreach( $series as $serie_idx => $serie ) {
+				$MyDataPie = new pData();
+				$MyDataPie->addPoints($serie,$series_title[$serie_idx]);
+				$MyDataPie->addPoints($iteration_points,"name");
+				$MyDataPie->setSerieDescription("name",$iteration_title);
+				$MyDataPie->setAbscissa("name");
+				
+				
+				/* Create the pPie object */ 
+				$PieChart = new pPie($myPicture,$MyDataPie);
+				if( $do_swap && count($RES_chart['seriesColor'])==count($serie) ) {
+					foreach( $RES_chart['seriesColor'] as $idx=>$hex_color ) {
+						$hex = str_replace("#", "", $hex_color);
+						$r = hexdec(substr($hex,0,2));
+						$g = hexdec(substr($hex,2,2));
+						$b = hexdec(substr($hex,4,2));
+						$PieChart->setSliceColor($idx,array("R"=>$r,"G"=>$g,"B"=>$b));
+					}
+				}
+				$PieChart->draw2DPie($w_cursor,$h_cursor,array("WriteValues"=>TRUE,"Border"=>TRUE,"Radius"=>$t_radius));
+				
+				if( $img_options['legend'] ) {
+					$myPicture->setFontProperties(array("FontName"=>"$pchart_root/fonts/verdana.ttf","FontSize"=>12,"R"=>0,"G"=>0,"B"=>0));
+					$myPicture->drawText($w_cursor,$img_height-5,$series_title[$serie_idx], array("Align"=>TEXT_ALIGN_BOTTOMMIDDLE)) ;
+ 				}
+				
+				$w_cursor += $t_widthPerPie ;
+			}
+			if( $img_options['legend'] ) {
+				$myPicture->setFontProperties(array("FontName"=>"$pchart_root/fonts/verdana.ttf","FontSize"=>10,"R"=>0,"G"=>0,"B"=>0));
+				$PieChart->drawPieLegend($img_width - 130,12,array("Style"=>LEGEND_NOBORDER,"Mode"=>LEGEND_VERTICAL));
+			}
+			
+			break ;
+	
+		default :
+			return NULL ;
+	}
+	
+	
+	$tmpfname = tempnam( sys_get_temp_dir(), "FOO");
+	$myPicture->render($tmpfname);
+	$buffer = file_get_contents($tmpfname) ;
+	unlink($tmpfname) ;
+	
+	return $buffer ;
+}
 
 
 ?>
