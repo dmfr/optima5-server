@@ -541,6 +541,7 @@ function paracrm_queries_builderTransaction_loadFields( &$arr_saisie , $query_id
 	{
 		unset($arr['query_id']) ;
 		unset($arr['query_fieldgroup_ssid']) ;
+		$arr['extrapolate_is_on'] = ($arr['extrapolate_is_on'] == 'O') ;
 		$arr_saisie['fields_group'][] = $arr ;
 	}
 	
@@ -643,6 +644,10 @@ function paracrm_queries_builderTransaction_saveFields( &$arr_saisie , $query_id
 	$group[] = 'group_bible_display_treenode' ;
 	$group[] = 'group_bible_display_entry' ;
 	$group[] = 'group_date_type' ;
+	$group[] = 'extrapolate_is_on' ;
+	$group[] = 'extrapolate_src_date_from' ;
+	$group[] = 'extrapolate_calc_date_from' ;
+	$group[] = 'extrapolate_calc_date_to' ;
 	foreach( $arr_saisie['fields_group'] as $field_group )
 	{
 		$cnt++ ;
@@ -652,6 +657,10 @@ function paracrm_queries_builderTransaction_saveFields( &$arr_saisie , $query_id
 		$arr_ins['query_fieldgroup_ssid'] = $cnt ;
 		foreach( $group as $w )
 		{
+			if( $w=='extrapolate_is_on' ) {
+				$arr_ins[$w] = ( $field_group[$w] ? 'O' : 'N') ;
+				continue ;
+			}
 			$arr_ins[$w] = $field_group[$w] ;
 		}
 		$_opDB->insert('query_field_group',$arr_ins) ;

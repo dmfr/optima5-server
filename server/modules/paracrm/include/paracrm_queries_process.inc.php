@@ -4,8 +4,10 @@ function paracrm_queries_process_buildTrees() {
 	
 	global $_opDB ;
 	
-	global $arr_bible_trees , $arr_bible_entries , $arr_bible_treenodes ;
-	
+	global $arr_bible_trees , $arr_bible_entries , $arr_bible_treenodes, $_biblesDone ;
+	if( $_biblesDone ) {
+		return ;
+	}
 
 	$arr_bibles = array() ;
 	$query = "SELECT bible_code FROM define_bible" ;
@@ -93,7 +95,7 @@ function paracrm_queries_process_buildTrees() {
 	//$mtree = $arr_bible_trees['STORE'] ;
 	//print_r( $mtree->getTree('33040')->getAllMembers() ) ;
 	
-
+	$_biblesDone = TRUE ;
 	return ;
 }
 
@@ -1447,6 +1449,13 @@ function paracrm_queries_process_query(&$arr_saisie, $debug=FALSE)
 	}
 	
 	
+	/*
+	* Extrapolate : 
+	* Send parameters + results(map + values) to extrapolate processing "filter"
+	* TODO: cleaner ?
+	*/
+	$RES_groupKey_isExtrapolate = paracrm_queries_process_extrapolate( $arr_saisie, $RES_groupKey_groupDesc, $RES_groupKey_selectId_value, $RES_selectId_nullValue ) ;
+	
 	
 	return array('RES_groupKey_groupDesc'=>$RES_groupKey_groupDesc,
 					'RES_groupKey_selectId_value'=>$RES_groupKey_selectId_value,
@@ -1458,7 +1467,8 @@ function paracrm_queries_process_query(&$arr_saisie, $debug=FALSE)
 					'RES_selectId_round'=>$RES_selectId_round,
 					'RES_round'=>$field_select_0['math_round'],
 					'RES_progress_groupKey_selectId_value'=>$RES_progress_groupKey_selectId_value,
-					'RES_progress'=>$RES_progress_0) ;
+					'RES_progress'=>$RES_progress_0,
+					'RES_groupKey_isExtrapolate'=>$RES_groupKey_isExtrapolate) ;
 }
 function paracrm_queries_process_query_iteration( $arr_saisie )
 {
@@ -2609,7 +2619,11 @@ function paracrm_queries_process_labelEnum( $group_id, $field_group, $bibleCondi
 		break ;
 		
 		case 'date' :
-		foreach( paracrm_queries_process_labelEnumDate( $group_id, $field_group['group_date_type'] ) as $group_key )
+		$force_values = array() ;
+		if( $field_group['extrapolate_is_on'] && paracrm_queries_process_extrapolate_isDateValid($field_group['extrapolate_calc_date_to']) ) {
+			$force_values['key_end'] = paracrm_queries_process_extrapolateGroup_outputDate( $field_group['extrapolate_calc_date_to'], $field_group['group_date_type'] );
+		}
+		foreach( paracrm_queries_process_labelEnumDate( $group_id, $field_group['group_date_type'], $force_values ) as $group_key )
 		{
 			$arr[$group_key] = array($group_key) ;
 		}
@@ -2939,7 +2953,7 @@ function paracrm_queries_process_labelEnumBibleEntries( $bible_code, $root_treen
 	}
 	return $tab ;
 }
-function paracrm_queries_process_labelEnumDate( $group_id, $group_date_type )
+function paracrm_queries_process_labelEnumDate( $group_id, $group_date_type, $force_values=NULL )
 {
 	global $_groups_hashes ;
 	
@@ -2953,6 +2967,12 @@ function paracrm_queries_process_labelEnumDate( $group_id, $group_date_type )
 	$keys = array() ;
 	$cur_key = min($ttmp);
 	$end_key = max($ttmp);
+	if( isset($force_values['key_start']) && $force_values['key_start'] < $cur_key ) {
+		$cur_key = $force_values['key_start'] ;
+	}
+	if( isset($force_values['key_end']) && $end_key < $force_values['key_end'] ) {
+		$end_key = $force_values['key_end'] ;
+	}
 	while( TRUE )
 	{
 		$keys[] = $cur_key ;
@@ -2997,6 +3017,200 @@ function paracrm_queries_process_labelEnumDate( $group_id, $group_date_type )
 	}
 	
 	return $keys ;
+}
+
+function paracrm_queries_process_extrapolate( $arr_saisie, &$RES_groupKey_groupDesc, &$RES_groupKey_selectId_value, $RES_selectId_nullValue ) {
+	$extrapolate_batches = array() ;
+	foreach( $arr_saisie['fields_group'] as $group_id => $field_group ) {
+		if( $field_group['field_type'] == 'date' 
+				&& $field_group['extrapolate_is_on'] 
+				&& paracrm_queries_process_extrapolate_isDateValid($field_group['extrapolate_src_date_from'])
+				&& paracrm_queries_process_extrapolate_isDateValid($field_group['extrapolate_calc_date_from'])
+				&& paracrm_queries_process_extrapolate_isDateValid($field_group['extrapolate_calc_date_to']) ) {
+			
+			$extrapolate_batch = array() ;
+			$extrapolate_batch['group_id'] = $group_id ;
+			$extrapolate_batch['group_date_type'] = $field_group['group_date_type'] ;
+			$extrapolate_batch['extrapolate_src_date_from'] = $field_group['extrapolate_src_date_from'] ;
+			$extrapolate_batch['extrapolate_calc_date_from'] = $field_group['extrapolate_calc_date_from'] ;
+			$extrapolate_batch['extrapolate_calc_date_to'] = $field_group['extrapolate_calc_date_to'] ;
+			$extrapolate_batches[] = $extrapolate_batch ;
+			
+			// recherche du field conditionnel (where) correspondant
+			foreach( $arr_saisie['fields_where'] as $test_fieldWhere ) {
+				if( $test_fieldWhere['field_code'] == $field_group['field_code'] ) {
+					/*
+					$extrapolate_batch['where_date_from'] = paracrm_queries_process_extrapolate_isDateValid($test_fieldWhere['condition_date_gt']) ;
+					$extrapolate_batch['where_date_to'] = paracrm_queries_process_extrapolate_isDateValid($test_fieldWhere['condition_date_lt']) ;
+					*/
+					// REMOVE: LINK to whereField is not used
+					break ;
+				}
+			}
+		}
+	}
+	
+	foreach( $extrapolate_batches as &$extrapolate_batch ) {
+		/*
+		// "probe" data_date_from / data_date_to
+		$current_groupId = $extrapolate_batch['group_id'] ;
+		if( $extrapolate_batch['data_date_from'] === FALSE ) {
+			foreach( $RES_groupKey_groupDesc as $groupDesc ) {
+				//print_r($groupDesc) ;
+			}
+		}
+		if( $extrapolate_batch['data_date_to'] === FALSE ) {
+			foreach( $RES_groupKey_groupDesc as $groupDesc ) {
+				//print_r($groupDesc) ;
+			}
+		}
+		*/
+		
+		paracrm_queries_process_extrapolateGroup( $extrapolate_batch, $RES_groupKey_groupDesc, $RES_groupKey_selectId_value, $RES_selectId_nullValue ) ;
+	}
+	unset($extrapolate_batch) ;
+}
+function paracrm_queries_process_extrapolate_isDateValid( $date_sql )
+{
+	if( $date_sql == '0000-00-00' )
+		return FALSE ;
+	if( $date_sql == '0000-00-00 00:00:00' )
+		return FALSE ;
+	if( !$date_sql )
+		return FALSE ;
+	if( strtotime( $date_sql ) === FALSE  )
+		return FALSE ;
+	// echo "NOK" ;
+	return $date_sql ;
+}
+
+
+function paracrm_queries_process_extrapolateGroup( $extrapolate_batch, &$RES_groupKey_groupDesc, &$RES_groupKey_selectId_value, $RES_selectId_nullValue ) {
+	/*
+	$params['group_id']
+	$params['group_date_type']
+	$params['extrapolate_src_date_from'] ;
+	$params['extrapolate_calc_date_from'] ;
+	$params['extrapolate_calc_date_to'] ;
+	*/
+	// **** Conversion en format date spécifié **** 
+	$extrapolate_batch['extrapolate_src_date_from'] = paracrm_queries_process_extrapolateGroup_outputDate( $extrapolate_batch['extrapolate_src_date_from'], $extrapolate_batch['group_date_type'] ) ;
+	$extrapolate_batch['extrapolate_calc_date_from'] = paracrm_queries_process_extrapolateGroup_outputDate( $extrapolate_batch['extrapolate_calc_date_from'], $extrapolate_batch['group_date_type'] ) ;
+	$extrapolate_batch['extrapolate_calc_date_to'] = paracrm_queries_process_extrapolateGroup_outputDate( $extrapolate_batch['extrapolate_calc_date_to'], $extrapolate_batch['group_date_type'] );
+	
+	// *** Construction de l'iteration global sur le groupId *** 
+	// covering real + extrapolate
+	$force_values = array() ;
+	$force_values['key_end'] = $extrapolate_batch['extrapolate_calc_date_to'] ;
+	$ITERATION_dates = paracrm_queries_process_labelEnumDate($extrapolate_batch['group_id'],$extrapolate_batch['group_date_type'],$force_values) ;
+	$ITERATION_src_dates = array() ;
+	$ITERATION_calc_dates = array() ;
+	foreach( $ITERATION_dates as $date_step ) {
+		if( $date_step < $extrapolate_batch['extrapolate_src_date_from'] ) {
+			// ignore
+		} elseif( $date_step >= $extrapolate_batch['extrapolate_src_date_from'] && $extrapolate_batch['extrapolate_calc_date_from'] > $date_step ) {
+			$ITERATION_src_dates[] = $date_step ;
+		} elseif( $extrapolate_batch['extrapolate_calc_date_to'] >= $date_step ) {
+			$ITERATION_calc_dates[] = $date_step ;
+		}
+	}
+	
+	
+	$current_groupId = $extrapolate_batch['group_id'] ;
+	$LOCAL_newKey = 0 ;
+	$LOCAL_groupKey_groupDesc = array() ;
+	$LOCAL_groupKey_selectId_srcValues = array() ;
+	$LOCAL_groupKey_selectId_calcValues = array() ;
+	$LOCAL_groupHash_groupKey = array() ;
+	// *** Construction des groupes ***
+	// - groupDesc ( minus groupId )
+	// - list<value+weight>
+	foreach( $RES_groupKey_groupDesc as $groupKey => $groupDesc ) {
+		$striped_date = $groupDesc[$current_groupId] ;
+		$groupDesc[$current_groupId] = '%%%' ;
+		$string_hash = implode('@',$groupDesc) ;
+		if( !isset($LOCAL_groupHash_groupKey[$string_hash]) ) {
+			$LOCAL_newKey++ ;
+			$LOCAL_groupHash_groupKey[$string_hash] = $LOCAL_newKey ;
+			$LOCAL_groupKey_groupDesc[$LOCAL_newKey] = $groupDesc ;
+		}
+		$local_groupKey = $LOCAL_groupHash_groupKey[$string_hash] ;
+		
+		if( !isset($LOCAL_groupKey_selectId_srcValues[$local_groupKey]) ) {
+			$LOCAL_groupKey_selectId_srcValues[$local_groupKey] = array() ;
+		}
+		if( isset($RES_groupKey_selectId_value[$groupKey]) ) {
+			foreach( $RES_groupKey_selectId_value[$groupKey] as $select_id => $value ) {
+				if( !isset($LOCAL_groupKey_selectId_srcValues[$local_groupKey][$select_id]) ) {
+					$LOCAL_groupKey_selectId_srcValues[$local_groupKey][$select_id] = array() ;
+					foreach( $ITERATION_src_dates as $date_step ) {
+						$LOCAL_groupKey_selectId_srcValues[$local_groupKey][$select_id][$date_step] = $RES_selectId_nullValue[$select_id] ;
+					}
+				}
+				if( in_array($striped_date,$ITERATION_src_dates) ) {
+					$LOCAL_groupKey_selectId_srcValues[$local_groupKey][$select_id][$striped_date] = $value ;
+				}
+			}
+		}
+	}
+	
+	// **** Calcul *****
+	foreach( $LOCAL_groupKey_selectId_srcValues as $local_groupKey => $t_selectId_srcValues ) {
+		foreach( $t_selectId_srcValues as $select_id => $values ) {
+			$val = array_sum($values) / count($values) ;
+			
+			$destValues = array() ;
+			foreach( $ITERATION_calc_dates as $date_step ) {
+				$destValues[$date_step] = $val ;
+			}
+			$LOCAL_groupKey_selectId_calcValues[$local_groupKey][$select_id] = $destValues ;
+		}
+	}
+	
+	// **** Fusion avec le résultat ****
+	$RES_groupKey_isExtrapolate = array() ;
+	foreach( $LOCAL_groupKey_selectId_calcValues as $local_groupKey => $t_selectId_dstValues ) {
+		$groupDesc = $LOCAL_groupKey_groupDesc[$local_groupKey] ;
+		foreach( $t_selectId_dstValues as $select_id => $dstValues ) {
+			foreach( $dstValues as $date_step => $val ) {
+				$new_groupDesc = $groupDesc ;
+				$new_groupDesc[$current_groupId] = $date_step ;
+				
+				$group_key_id = paracrm_queries_process_queryHelp_getIdGroup($new_groupDesc) ;
+				$RES_groupKey_isExtrapolate[$group_key_id] = TRUE ;
+				if( !isset($RES_groupKey_groupDesc[$group_key_id]) ) {
+					$RES_groupKey_groupDesc[$group_key_id] = $new_groupDesc ;
+				}
+				$RES_groupKey_selectId_value[$group_key_id][$select_id] = $val ;
+			}
+		}
+	}
+	
+	// ***** Retour des groupes extrapolés ******
+	return $RES_groupKey_isExtrapolate ;
+}
+function paracrm_queries_process_extrapolateGroup_outputDate( $date_sql, $output_dateType ) {
+	switch( $output_dateType )
+	{
+		case 'YEAR' :
+		return date('Y',strtotime($date_sql)) ;
+		break ;
+		
+		case 'MONTH' :
+		return date('Y-m',strtotime($date_sql)) ;
+		break ;
+		
+		case 'WEEK' :
+		return date('Y-W',strtotime($date_sql)) ;
+		break ;
+		
+		case 'DAY' :
+		return date('Y-m-d',strtotime($date_sql)) ;
+		break ;
+	
+		default :
+		return NULL ;
+	}
 }
 
 ?>

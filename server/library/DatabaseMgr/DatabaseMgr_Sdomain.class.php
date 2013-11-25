@@ -4,7 +4,7 @@ class DatabaseMgr_Sdomain {
 	private $_opDB ;
 	private $domain_id ;
 	
-	private static $dbVersion = 8 ;
+	private static $dbVersion = 9 ;
 	
 	public function __construct( $domain_id ) {
 		$this->_opDB = $GLOBALS['_opDB'] ;
@@ -368,6 +368,10 @@ CREATE TABLE `query_field_group` (
   `group_bible_display_treenode` varchar(500) NOT NULL,
   `group_bible_display_entry` varchar(500) NOT NULL,
   `group_date_type` varchar(50) NOT NULL,
+  `extrapolate_is_on` varchar(1) NOT NULL,
+  `extrapolate_src_date_from` date NOT NULL,
+  `extrapolate_calc_date_from` date NOT NULL,
+  `extrapolate_calc_date_to` date NOT NULL,
   PRIMARY KEY (`query_id`,`query_fieldgroup_ssid`)
 ) ;
 
