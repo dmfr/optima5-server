@@ -281,7 +281,7 @@ function paracrm_queries_mpaginate_getGridRows( &$RES, $RES_labels_tab, $grid_co
 		
 		$logIterations_arr_arr_GroupTagId[] = array() ; // colonne détachée = iteration vide
 		
-		$map_groupTagId_value = $map_groupTagId_value_baseTab ;
+		$map_groupTagId_value = $map_groupTagId_value_base ;
 		$map_groupTagId_value ; // no pivotage on Y
 		$logMap_rowIdx_arr_GroupTagId_value[] = $map_groupTagId_value + array('='=>array($select_id)) ;
 		
