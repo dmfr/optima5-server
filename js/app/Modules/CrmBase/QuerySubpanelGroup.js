@@ -9,7 +9,11 @@ Ext.define('QueryGroupModel', {
 		{name: 'group_bible_tree_depth',   type: 'int'},
 		{name: 'group_bible_display_treenode',   type: 'string'},
 		{name: 'group_bible_display_entry',   type: 'string'},
-		{name: 'group_date_type',   type: 'string'}
+		{name: 'group_date_type',   type: 'string'},
+		{name: 'extrapolate_is_on',   type: 'boolean'},
+		{name: 'extrapolate_src_date_from', type: 'string'},
+		{name: 'extrapolate_calc_date_from', type: 'string'},
+		{name: 'extrapolate_calc_date_to',   type: 'string'}
 	]
 });
 
@@ -117,6 +121,12 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelGroup' ,{
 				scope: me
 			},
 			viewConfig: {
+				getRowClass: function(record) {
+					if( record.get('extrapolate_is_on') ) {
+						return 'op5-crmbase-query-groupextrapolate-row' ;
+					}
+					return '' ;
+				},
 				plugins: {
 					ptype: 'gridviewdragdrop',
 					ddGroup: 'querygroupreorder'+me.getParentId()
@@ -257,6 +267,16 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelGroup' ,{
 						
 					case 'group_date_type' :
 						record.set(k,v) ;
+						break ;
+						
+					case 'extrapolate_is_on' :
+						record.set(k,v) ;
+						break ;
+						
+					case 'extrapolate_src_date_from' :
+					case 'extrapolate_calc_date_from' :
+					case 'extrapolate_calc_date_to' :
+						record.set(k,mform.getForm().findField(k).getSubmitValue()) ;
 						break ;
 						
 					default :

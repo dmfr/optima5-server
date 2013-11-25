@@ -41,6 +41,37 @@ Ext.define('Optima5.Modules.CrmBase.QueryGroupFormDate' ,{
 					displayField: 'lib',
 					valueField: 'mode'
 				}]
+			},{
+				xtype: 'fieldset',
+				title: 'Extrapolate on timeline',
+				defaultType: 'textfield',
+				defaults: {
+					anchor: '100%'
+				},
+				layout: 'anchor',
+				items: [{
+					xtype:'checkbox',
+					name:'extrapolate_is_on',
+					fieldLabel:'Extrapolate'
+				},{
+					xtype: 'datefield',
+					format: 'Y-m-d',
+					width: 100 ,
+					fieldLabel: 'Base from',
+					name: 'extrapolate_src_date_from'
+				},{
+					xtype: 'datefield',
+					format: 'Y-m-d',
+					width: 100 ,
+					fieldLabel: 'Output from',
+					name: 'extrapolate_calc_date_from'
+				},{
+					xtype: 'datefield',
+					format: 'Y-m-d',
+					width: 100 ,
+					fieldLabel: 'Output to',
+					name: 'extrapolate_calc_date_to'
+				}]
 			}]
 		}) ;
 		
@@ -49,6 +80,15 @@ Ext.define('Optima5.Modules.CrmBase.QueryGroupFormDate' ,{
 		this.callParent() ;
 	},
 	calcLayout: function(){
-		var me = this ;
+		var me = this,
+			form = me.getForm(),
+			extrapolate_is_on = form.findField('extrapolate_is_on').getValue(),
+			field_extrapolate_src_from = form.findField('extrapolate_src_date_from'),
+			field_extrapolate_calc_from = form.findField('extrapolate_calc_date_from'),
+			field_extrapolate_calc_to = form.findField('extrapolate_calc_date_to') ;
+		
+		field_extrapolate_src_from.setVisible( extrapolate_is_on ) ;
+		field_extrapolate_calc_from.setVisible( extrapolate_is_on ) ;
+		field_extrapolate_calc_to.setVisible( extrapolate_is_on ) ;
 	}
 }) ;
