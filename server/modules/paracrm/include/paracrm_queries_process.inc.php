@@ -1834,19 +1834,16 @@ function paracrm_queries_process_query_doValue( $arr_saisie, $target_fileCode, $
 				}
 			}
 			
-			
 			foreach( $subRES_group_symbol_value as $group_key_id => $subSubRES_symbol_value )
 			{
 				/* En mode VALUE :
 					Pour chaque groupe on retourne plusieurs valeurs (principe de l'empilage valeurs)
 					l'opération est effectuée une seule fois par groupe à la fin
 				*/
-				if( !isset($subRes_group_arr_arrSymbolValue[$group_key_id]) )
-					$subRes_group_arr_arrSymbolValue[$group_key_id] = array() ;
-				$subRes_group_arr_arrSymbolValue[$group_key_id][] = $subSubRES_symbol_value ;
+				if( !isset($subRes_selectId_group_arr_arrSymbolValue[$select_id][$group_key_id]) )
+					$subRes_selectId_group_arr_arrSymbolValue[$select_id][$group_key_id] = array() ;
+				$subRes_selectId_group_arr_arrSymbolValue[$select_id][$group_key_id][] = $subSubRES_symbol_value ;
 			}
-			
-			$subRes_selectId_group_arr_arrSymbolValue[$select_id] = $subRes_group_arr_arrSymbolValue ;
 		}
 	}
 	
@@ -2235,6 +2232,10 @@ function paracrm_queries_process_queryHelp_getGroupHash( $record_glob, $fields_g
 			$src_code = $field_group['sql_file_code'] ;
 			$src_field = $field_group['sql_file_field_code'] ;
 			$date_value = $record_glob[$src_code][$src_field] ;
+			if( $date_value=='0000-00-00 00:00:00' ) {
+				// ERR : Non-relevant date => no group(s)
+				return array() ;
+			}
 			switch( $field_group['group_date_type'] )
 			{
 				case 'DAY' :
