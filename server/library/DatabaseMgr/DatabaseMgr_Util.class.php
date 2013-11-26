@@ -136,6 +136,9 @@ class DatabaseMgr_Util {
 					{
 						$query.= " NOT NULL" ;
 					}
+					if( $desc_field_model[4] && $desc_field_model[4] != 'NULL' ) {
+						$query.= " DEFAULT '{$desc_field_model[4]}'" ;
+					}
 					if( $after_field )
 					{
 						$query.= " AFTER `$after_field`" ;
@@ -159,6 +162,9 @@ class DatabaseMgr_Util {
 					else
 					{
 						$query.= " NULL" ;
+					}
+					if( $desc_field_model[4] && $desc_field_model[4] != 'NULL' ) {
+						$query.= " DEFAULT '{$desc_field_model[4]}'" ;
 					}
 					if( strtolower($desc_field_model[5]) == 'auto_increment' )
 					{
@@ -426,6 +432,9 @@ class DatabaseMgr_Util {
 					{
 						$query.= " NOT NULL" ;
 					}
+					if( $desc_field_model[4] && $desc_field_model[4] != 'NULL' ) {
+						$query.= " DEFAULT '{$desc_field_model[4]}'" ;
+					}
 					if( $after_field )
 					{
 						$query.= " AFTER `$after_field`" ;
@@ -449,6 +458,9 @@ class DatabaseMgr_Util {
 					else
 					{
 						$query.= " NULL" ;
+					}
+					if( $desc_field_model[4] && $desc_field_model[4] != 'NULL' ) {
+						$query.= " DEFAULT '{$desc_field_model[4]}'" ;
 					}
 					
 					$_opDB->query($query) ;
