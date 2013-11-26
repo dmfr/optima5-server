@@ -629,7 +629,7 @@ function paracrm_queries_process_qmerge($arr_saisie, $debug=FALSE)
 						}
 					}
 				
-					$cellValues[$symbol_id] = paracrm_queries_process_lookupValue($RESqueries[$query_id],$queryGroupDesc) ; 
+					$cellValues[$symbol_id] = paracrm_queries_process_lookupValue($RESqueries[$query_id], $selectfield_idx, $queryGroupDesc) ; 
 					
 					continue ;
 				}
@@ -654,7 +654,7 @@ function paracrm_queries_process_qmerge($arr_saisie, $debug=FALSE)
 						}
 					}
 					
-					$cellValues[$symbol_id][] = paracrm_queries_process_lookupValue($RESqueries[$query_id],$queryGroupDesc) ;  ;
+					$cellValues[$symbol_id][] = paracrm_queries_process_lookupValue($RESqueries[$query_id], $selectfield_idx, $queryGroupDesc) ;  ;
 				}
 			}
 			
@@ -775,7 +775,7 @@ function paracrm_queries_process_qmerge($arr_saisie, $debug=FALSE)
 					'RES_selectId_infos'=>$RES_selectId_infos) ;
 }
 
-function paracrm_queries_process_lookupValue( &$RES, $group_desc ) {
+function paracrm_queries_process_lookupValue( &$RES, $select_id, $group_desc ) {
 	ksort($group_desc) ;
 	if( !isset($RES['RES_groupHash_groupKey']) ) {
 		echo "WARN" ;
@@ -787,15 +787,15 @@ function paracrm_queries_process_lookupValue( &$RES, $group_desc ) {
 	
 	if( $key_id === FALSE )
 	{
-		return $RES['RES_nullValue'] ;
+		return $RES['RES_selectId_nullValue'][$select_id] ;
 	}
-	elseif( !isset($RES['RES_groupKey_value'][$key_id]) )
+	elseif( !isset($RES['RES_groupKey_selectId_value'][$key_id][$select_id]) )
 	{
-		return $RES['RES_nullValue'] ;
+		return $RES['RES_selectId_nullValue'][$select_id] ;
 	}
 	else
 	{
-		return $RES['RES_groupKey_value'][$key_id] ;
+		return $RES['RES_groupKey_selectId_value'][$key_id][$select_id] ;
 	}
 }
 
