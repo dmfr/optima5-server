@@ -146,18 +146,27 @@ function paracrm_queries_process_qmerge($arr_saisie, $debug=FALSE)
 	
 	
 	if( $debug ) {
-		echo "Qmerge 1b: merging wheres..." ;
+		echo "Qmerge 1b: merging wheres & groupExtrapolate..." ;
 	}
 	foreach( $arr_saisie['fields_mwhere'] as $field_mwhere ) {
 		foreach( $field_mwhere['query_fields'] as $query_field )
 		{
 			$target_query_id = $query_field['query_id'] ;
 			$target_query_wherefield_idx = $query_field['query_wherefield_idx'] ;
-			
+			$target_query_groupfield_idx = $query_field['query_groupfield_idx'] ;
 		
-			foreach( $field_mwhere as $mkey => $mvalue ) {
-				if( strpos($mkey,'condition_') === 0 ) {
-					$arr_queryId_arrSaisieQuery[$target_query_id]['fields_where'][$target_query_wherefield_idx][$mkey] = $mvalue ;
+			if( $target_query_wherefield_idx != -1 ) {
+				foreach( $field_mwhere as $mkey => $mvalue ) {
+					if( strpos($mkey,'condition_') === 0 ) {
+						$arr_queryId_arrSaisieQuery[$target_query_id]['fields_where'][$target_query_wherefield_idx][$mkey] = $mvalue ;
+					}
+				}
+			}
+			if( $target_query_groupfield_idx != -1 ) {
+				foreach( $field_mwhere as $mkey => $mvalue ) {
+					if( strpos($mkey,'extrapolate_') === 0 ) {
+						$arr_queryId_arrSaisieQuery[$target_query_id]['fields_group'][$target_query_groupfield_idx][$mkey] = $mvalue ;
+					}
 				}
 			}
 		}

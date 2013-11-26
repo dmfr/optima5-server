@@ -392,6 +392,11 @@ function paracrm_queries_mergerTransaction_loadFields( &$arr_saisie , $qmerge_id
 				$arr[$mkey]='' ;
 			}
 		}
+		foreach( array('extrapolate_src_date_from','extrapolate_calc_date_from','extrapolate_calc_date_to') as $mkey ) {
+			if( $arr[$mkey] == '0000-00-00' ) {
+				$arr[$mkey]='' ;
+			}
+		}
 		$arr_saisie['fields_mwhere'][] = $arr ;
 	}
 	
@@ -475,6 +480,9 @@ function paracrm_queries_mergerTransaction_saveFields( &$arr_saisie , $qmerge_id
 	$mwhere[] = 'condition_bible_mode' ;
 	$mwhere[] = 'condition_bible_treenodes' ;
 	$mwhere[] = 'condition_bible_entries' ;
+	$mwhere[] = 'extrapolate_src_date_from' ;
+	$mwhere[] = 'extrapolate_calc_date_from' ;
+	$mwhere[] = 'extrapolate_calc_date_to' ;
 	foreach( $arr_saisie['fields_mwhere'] as $field_mwhere )
 	{
 		$cnt++ ;
@@ -493,6 +501,7 @@ function paracrm_queries_mergerTransaction_saveFields( &$arr_saisie , $qmerge_id
 		$link = array() ;
 		$link[] = 'query_id' ;
 		$link[] = 'query_wherefield_idx' ;
+		$link[] = 'query_groupfield_idx' ;
 		foreach( $field_mwhere['query_fields'] as $field_link )
 		{
 			$scnt++ ;

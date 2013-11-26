@@ -4,7 +4,7 @@ class DatabaseMgr_Sdomain {
 	private $_opDB ;
 	private $domain_id ;
 	
-	private static $dbVersion = 9 ;
+	private static $dbVersion = 10 ;
 	
 	public function __construct( $domain_id ) {
 		$this->_opDB = $GLOBALS['_opDB'] ;
@@ -331,6 +331,9 @@ CREATE TABLE `qmerge_field_mwhere` (
   `condition_bible_mode` varchar(50) NOT NULL,
   `condition_bible_treenodes` varchar(500) NOT NULL,
   `condition_bible_entries` varchar(500) NOT NULL,
+  `extrapolate_src_date_from` date NOT NULL,
+  `extrapolate_calc_date_from` date NOT NULL,
+  `extrapolate_calc_date_to` date NOT NULL,
   PRIMARY KEY (`qmerge_id`,`qmerge_fieldmwhere_ssid`)
 ) ;
 
@@ -338,8 +341,9 @@ CREATE TABLE `qmerge_field_mwhere_link` (
   `qmerge_id` int(11) NOT NULL,
   `qmerge_fieldmwhere_ssid` int(11) NOT NULL,
   `query_id` int(11) NOT NULL,
-  `query_wherefield_idx` int(11) NOT NULL,
-  PRIMARY KEY (`qmerge_id`,`qmerge_fieldmwhere_ssid`,`query_id`,`query_wherefield_idx`)
+  `query_wherefield_idx` int(11) NOT NULL DEFAULT '-1',
+  `query_groupfield_idx` int(11) NOT NULL DEFAULT '-1',
+  PRIMARY KEY (`qmerge_id`,`qmerge_fieldmwhere_ssid`,`query_id`,`query_wherefield_idx`,`query_groupfield_idx`)
 ) ;
 
 CREATE TABLE `qmerge_query` (
