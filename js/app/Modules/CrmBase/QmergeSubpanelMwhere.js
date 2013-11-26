@@ -5,7 +5,8 @@ Ext.define('QmergeMwhereTreeModel', {
 		{name: 'text', type:'string'},
 		{name: 'mfield_idx',  type: 'int'},
 		{name: 'query_id',  type: 'int'},
-		{name: 'query_wherefield_idx',  type: 'int'}
+		{name: 'query_wherefield_idx',  type: 'int'},
+		{name: 'query_groupfield_idx',  type: 'int'}
 	]
 });
 
@@ -95,7 +96,7 @@ Ext.define('Optima5.Modules.CrmBase.QmergeSubpanelMwhere' ,{
 					iconCls: 'icon-bible-delete',
 					text: 'Delete condition',
 					handler : function() {
-						me.wherefieldDel( record.get('query_id') , record.get('query_wherefield_idx') ) ;
+						me.fieldDel( record.get('query_id') , record.get('query_wherefield_idx'), record.get('query_groupfield_idx') ) ;
 						me.setFormpanelRecord(null) ;
 					},
 					scope : me
@@ -130,14 +131,24 @@ Ext.define('Optima5.Modules.CrmBase.QmergeSubpanelMwhere' ,{
 				if( Ext.getClassName(selectedRecord) != 'QmergeItemsTreeModel' ) {
 					return false ;
 				}
-				if( selectedRecord.get('query_field_type') != 'where' || selectedRecord.parentNode == null ) {
+				if( selectedRecord.parentNode == null ) {
 					return false ;
 				}
 				
-				var queryId = selectedRecord.parentNode.get('query_id') ;
-				var queryWherefieldIdx = selectedRecord.get('query_field_idx') ;
-				me.wherefieldAdd( queryId , queryWherefieldIdx ) ;
-				return true ;
+				switch( selectedRecord.get('query_field_type') ) {
+					case 'where' :
+						var queryId = selectedRecord.parentNode.get('query_id') ;
+						var queryWherefieldIdx = selectedRecord.get('query_field_idx') ;
+						me.wherefieldAdd( queryId , queryWherefieldIdx ) ;
+						return true ;
+					case 'group' :
+						var queryId = selectedRecord.parentNode.get('query_id') ;
+						var queryGroupfieldIdx = selectedRecord.get('query_field_idx') ;
+						me.groupfieldAdd( queryId , queryGroupfieldIdx ) ;
+						return true ;
+					default :
+						return false ;
+				}
 			}
 		});
 	},
@@ -178,14 +189,29 @@ Ext.define('Optima5.Modules.CrmBase.QmergeSubpanelMwhere' ,{
 				
 				var queryId = iQmergeMwhereFieldModel.get('query_id') ;
 				var queryWherefieldIdx = iQmergeMwhereFieldModel.get('query_wherefield_idx') ;
+				var queryGroupfieldIdx = iQmergeMwhereFieldModel.get('query_groupfield_idx') ;
+				var querytext, fieldtext ;
 				
-				var iQmergeQueryModel = bibleQueriesStore.getById(queryId) ;
-				var iQueryWhereModel = iQmergeQueryModel.fields_where().getAt(queryWherefieldIdx) ;
-				var queryTargetFilecode = iQmergeQueryModel.get('target_file_code') ;
-				var whereFieldcode = iQueryWhereModel.get('field_code') ;
-				
-				var querytext = iQmergeQueryModel.get('query_name') ;
-				var fieldtext = bibleFilesTreefields[queryTargetFilecode].getNodeById(whereFieldcode).get('field_text') ;
+				if( queryWherefieldIdx >= 0 ) {
+					var iQmergeQueryModel = bibleQueriesStore.getById(queryId) ;
+					var iQueryWhereModel = iQmergeQueryModel.fields_where().getAt(queryWherefieldIdx) ;
+					var queryTargetFilecode = iQmergeQueryModel.get('target_file_code') ;
+					var whereFieldcode = iQueryWhereModel.get('field_code') ;
+					
+					querytext = iQmergeQueryModel.get('query_name') ;
+					fieldtext = bibleFilesTreefields[queryTargetFilecode].getNodeById(whereFieldcode).get('field_text') ;
+				} else if( queryGroupfieldIdx >= 0 ) {
+					var iQmergeQueryModel = bibleQueriesStore.getById(queryId) ;
+					var iQueryGroupModel = iQmergeQueryModel.fields_group().getAt(queryGroupfieldIdx) ;
+					var queryTargetFilecode = iQmergeQueryModel.get('target_file_code') ;
+					var groupFieldcode = iQueryGroupModel.get('field_code') ;
+					
+					querytext = iQmergeQueryModel.get('query_name') ;
+					fieldtext = bibleFilesTreefields[queryTargetFilecode].getNodeById(groupFieldcode).get('field_text') ;
+				} else {
+					//console.log('nothing??') ;
+					return ;
+				}
 				
 				
 				nodeId++ ;
@@ -201,8 +227,14 @@ Ext.define('Optima5.Modules.CrmBase.QmergeSubpanelMwhere' ,{
 				
 			},me) ;
 			
-			var text ;
+			var text = iQmergeMwhereModel.get('mfield_type'),
+				icon = 'images/bogus.png' ;
 			switch( iQmergeMwhereModel.get('mfield_type') ) {
+				case 'extrapolate' :
+					text = '<u>Extrapolate</u>' ;
+					icon = 'images/wizard.png' ;
+					break ;
+				
 				case 'link' :
 					text = '<u>Link</u>'+' <b>'+iQmergeMwhereModel.get('mfield_linkbible')+'</b>' ;
 					break ;
@@ -211,14 +243,14 @@ Ext.define('Optima5.Modules.CrmBase.QmergeSubpanelMwhere' ,{
 					text = '<u>Date</u>' ;
 					break ;
 				
-				default : iQmergeMwhereModel.get('mfield_type') ; break ;
+				default : break ;
 			}
 			var valueRender = me.syncTreeValueRenderer( iQmergeMwhereModel ) ;
 			
 			nodeId++ ;
 			rootChildren.push({
 				expanded:true,
-				icon: 'images/bogus.png',
+				icon: icon,
 				children:iQmergeMwhereModelChildren,
 				id:nodeId,
 				text:text+': '+valueRender,
@@ -259,6 +291,25 @@ Ext.define('Optima5.Modules.CrmBase.QmergeSubpanelMwhere' ,{
 				}
 				break ;
 				
+			case 'extrapolate' :
+				if( record.get('extrapolate_src_date_from') == ''
+					|| record.get('extrapolate_calc_date_from') == ''
+					|| record.get('extrapolate_calc_date_to') == '' ) {
+					return '<b>not set</b>' ;
+				}
+				
+				var str = '' ;
+				if( record.get('extrapolate_calc_date_from') != '' )
+				{
+					str = str + record.get('extrapolate_calc_date_from') + ' < ' ;
+				}
+				str = str + '<b>X</b>' ;
+				if( record.get('extrapolate_calc_date_to') != '' )
+				{
+					str = str + ' < ' + record.get('extrapolate_calc_date_to') ;
+				}
+				return str ;
+			
 			case 'date' :
 				if( record.get('condition_date_lt') == '' && record.get('condition_date_gt') == '' ) {
 					return '<b>not set</b>' ;
@@ -338,7 +389,8 @@ Ext.define('Optima5.Modules.CrmBase.QmergeSubpanelMwhere' ,{
 		
 		var QmergeMwhereFieldModelIdx = iQmergeMwhereModel.query_fields().findBy( function(testRecord) {
 			if( testRecord.get('query_id') == queryId
-				&& testRecord.get('query_wherefield_idx') == queryWherefieldIdx ) {
+				&& testRecord.get('query_wherefield_idx') == queryWherefieldIdx
+				&& testRecord.get('query_groupfield_idx') == -1 ) {
 				
 				// already exists
 				return true ;
@@ -352,18 +404,89 @@ Ext.define('Optima5.Modules.CrmBase.QmergeSubpanelMwhere' ,{
 		
 		iQmergeMwhereModel.query_fields().insert( iQmergeMwhereModel.query_fields().getCount(), Ext.create('QmergeMwhereFieldModel',{
 			query_id: queryId,
-			query_wherefield_idx: queryWherefieldIdx
+			query_wherefield_idx: queryWherefieldIdx,
+			query_groupfield_idx: -1
 		})) ;
 		
 		me.syncTree() ;
 	},
-	wherefieldDel: function( queryId, queryWherefieldIdx ) {
+	groupfieldAdd: function( queryId, queryGroupfieldIdx ) {
+		var me = this ;
+		
+		/*
+		********** Ajout d'un WHERE(group-extrapolate) dans les critères *********
+		- chargement du modelRecord QueryGroupModel
+		
+		- store de gestion : $this->mwhereStore
+		
+		- type de GROUP => détermination d'un groupe (field_type + field_linkbible )
+		   * création ou chargement du modèle QmergeMwhereModel
+		
+		- ajout du couple (queryId+queryGroupfieldIdx ) > modelRecord QmergeMwhereFieldModel
+		******************************************************
+		*/
+		
+		var bibleQueriesStore, iQueryModel,iQueryGroupModel ;
+		if(
+			((bibleQueriesStore = me.getQmergePanel().bibleQueriesStore) == null ) ||
+			((iQueryModel = bibleQueriesStore.getById(queryId)) == null ) ||
+			((iQueryGroupModel = iQueryModel.fields_group().getAt(queryGroupfieldIdx)) == null )
+		) {
+			console.log('groupfieldAdd : fatal error') ;
+			return ;
+		}
+		
+		if( iQueryGroupModel.get('field_type') != 'date' || !(iQueryGroupModel.get('extrapolate_is_on')) ) {
+			console.log('groupfieldAdd : extrapolate only') ;
+			return ;
+		}
+		
+		var iQmergeMwhereModel = me.mwhereStore.getAt( me.mwhereStore.findBy(function(testRecord){
+			if( testRecord.get('mfield_type') == 'extrapolate' ) {
+				return true ;
+			}
+			return false ;
+		},me)) ;
+		if( iQmergeMwhereModel == null ) {
+			// création
+			var iQmergeMwhereModel = Ext.create('QmergeMwhereModel',{
+				mfield_type: 'extrapolate'
+			}) ;
+			
+			me.mwhereStore.insert( me.mwhereStore.getCount() , iQmergeMwhereModel ) ;
+		}
+		
+		var QmergeMwhereFieldModelIdx = iQmergeMwhereModel.query_fields().findBy( function(testRecord) {
+			if( testRecord.get('query_id') == queryId
+				&& testRecord.get('query_wherefield_idx') == -1 
+				&& testRecord.get('query_groupfield_idx') == queryGroupfieldIdx ) {
+				
+				// already exists
+				return true ;
+			}
+			return false ;
+		},me) ;
+		if( QmergeMwhereFieldModelIdx != -1 ) {
+			// already exists
+			return ;
+		}
+		
+		iQmergeMwhereModel.query_fields().insert( iQmergeMwhereModel.query_fields().getCount(), Ext.create('QmergeMwhereFieldModel',{
+			query_id: queryId,
+			query_wherefield_idx: -1,
+			query_groupfield_idx: queryGroupfieldIdx
+		})) ;
+		
+		me.syncTree() ;
+	},
+	fieldDel: function( queryId, queryWherefieldIdx, queryGroupfieldIdx ) {
 		var me = this ;
 		
 		Ext.Array.each( me.mwhereStore.getRange(), function(iQmergeMwhereModel) {
 			Ext.Array.each( iQmergeMwhereModel.query_fields().getRange(), function(iQmergeMwhereFieldModel) {
 				if( iQmergeMwhereFieldModel.get('query_id') == queryId
-					&& iQmergeMwhereFieldModel.get('query_wherefield_idx') == queryWherefieldIdx ) {
+					&& iQmergeMwhereFieldModel.get('query_wherefield_idx') == queryWherefieldIdx
+					&& iQmergeMwhereFieldModel.get('query_groupfield_idx') == queryGroupfieldIdx ) {
 					
 					iQmergeMwhereModel.query_fields().remove( iQmergeMwhereFieldModel ) ;
 				}
@@ -377,7 +500,7 @@ Ext.define('Optima5.Modules.CrmBase.QmergeSubpanelMwhere' ,{
 		
 		me.syncTree() ;
 	},
-			  
+	
 			  
 			  
 	setFormpanelRecord: function( record ){
@@ -394,6 +517,14 @@ Ext.define('Optima5.Modules.CrmBase.QmergeSubpanelMwhere' ,{
 		
 		var mform ;
 		switch( record.get('mfield_type') ) {
+			case 'extrapolate' :
+				mform = Ext.create('Optima5.Modules.CrmBase.QueryGroupFormDate',{
+					optimaModule: me.parentQmergePanel.optimaModule,
+					frame:true,
+					extrapolateCfgOnly:true
+				}) ;
+				break ;
+			
 			case 'link' :
 				mform = Ext.create('Optima5.Modules.CrmBase.QueryWhereFormBible',{
 					optimaModule: me.parentQmergePanel.optimaModule,
@@ -437,6 +568,10 @@ Ext.define('Optima5.Modules.CrmBase.QmergeSubpanelMwhere' ,{
 						
 					case 'condition_num_gt' :
 					case 'condition_num_lt' :
+						
+					case 'extrapolate_src_date_from' :
+					case 'extrapolate_calc_date_from' :
+					case 'extrapolate_calc_date_to' :
 						
 						break ;
 						

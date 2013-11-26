@@ -42,7 +42,8 @@ Ext.define('QmergeMwhereFieldModel', {
 	extend: 'Ext.data.Model',
 	fields: [
 		{name: 'query_id',   type: 'int'},
-		{name: 'query_wherefield_idx',   type: 'int'}
+		{name: 'query_wherefield_idx',   type: 'int'},
+		{name: 'query_groupfield_idx',   type: 'int'}
 	]
 });
 Ext.define('QmergeMwhereModel', {
@@ -58,7 +59,10 @@ Ext.define('QmergeMwhereModel', {
 		{name: 'condition_num_eq',   type: 'numeric'},
 		{name: 'condition_bible_mode',   type: 'string'},
 		{name: 'condition_bible_treenodes',   type: 'string'},
-		{name: 'condition_bible_entries',   type: 'string'}
+		{name: 'condition_bible_entries',   type: 'string'},
+		{name: 'extrapolate_src_date_from',   type: 'string'},
+		{name: 'extrapolate_calc_date_from',   type: 'string'},
+		{name: 'extrapolate_calc_date_to',   type: 'string'}
 	],
 	hasMany: [{ 
 		model: 'QmergeMwhereFieldModel',
@@ -523,6 +527,27 @@ Ext.define('Optima5.Modules.CrmBase.QmergePanel' ,{
 					query_field_type:'where',
 					query_field_idx:idx,
 					icon: 'images/bogus.png',
+					leaf:true
+				}) ;
+			},me) ;
+			Ext.Array.each( queryRecord.fields_group().getRange() , function(queryGroupRecord,idx) {
+				var queryTargetFilecode = queryRecord.get('target_file_code') ;
+				var whereFieldcode = queryGroupRecord.get('field_code') ;
+				var fieldtext = me.bibleFilesTreefields[queryTargetFilecode].getNodeById(whereFieldcode).get('field_text') ;
+				
+				// Fix : uniquement extrapolate_is_on
+				if( queryGroupRecord.get('field_type') == 'date' && queryGroupRecord.get('extrapolate_is_on') == true ) {
+				} else {
+					return ;
+				}
+				
+				nodeId++ ;
+				mqueryParamsDetails.push({
+					id:nodeId,
+					text:fieldtext,
+					query_field_type:'group',
+					query_field_idx:idx,
+					icon: 'images/wizard.png',
 					leaf:true
 				}) ;
 			},me) ;

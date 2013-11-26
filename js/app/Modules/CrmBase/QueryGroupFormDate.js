@@ -6,7 +6,8 @@ Ext.define('Optima5.Modules.CrmBase.QueryGroupFormDate' ,{
 	] ,
 			  
 	initComponent: function() {
-		var me = this ;
+		var me = this,
+			extrapolateCfgOnly = me.extrapolateCfgOnly ;
 		
 		Ext.apply( me, {
 			fieldDefaults: {
@@ -17,6 +18,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryGroupFormDate' ,{
 			items:[{
 				xtype: 'fieldset',
 				title: 'Aggregate Date Mode',
+				hidden: extrapolateCfgOnly,
 				defaultType: 'textfield',
 				defaults: {
 					anchor: '100%'
@@ -52,6 +54,8 @@ Ext.define('Optima5.Modules.CrmBase.QueryGroupFormDate' ,{
 				items: [{
 					xtype:'checkbox',
 					name:'extrapolate_is_on',
+					checked: (extrapolateCfgOnly ? true : false),
+					readOnly: extrapolateCfgOnly,
 					fieldLabel:'Extrapolate'
 				},{
 					xtype: 'datefield',
@@ -81,8 +85,9 @@ Ext.define('Optima5.Modules.CrmBase.QueryGroupFormDate' ,{
 	},
 	calcLayout: function(){
 		var me = this,
+			extrapolateCfgOnly = me.extrapolateCfgOnly,
 			form = me.getForm(),
-			extrapolate_is_on = form.findField('extrapolate_is_on').getValue(),
+			extrapolate_is_on = ( extrapolateCfgOnly ? true : form.findField('extrapolate_is_on').getValue() ),
 			field_extrapolate_src_from = form.findField('extrapolate_src_date_from'),
 			field_extrapolate_calc_from = form.findField('extrapolate_calc_date_from'),
 			field_extrapolate_calc_to = form.findField('extrapolate_calc_date_to') ;
