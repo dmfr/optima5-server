@@ -7,6 +7,7 @@ Ext.define('QueryFieldsTreeModel', {
 		{name: 'field_text_full',   type: 'string'},
 		{name: 'field_type',   type: 'string'},
 		{name: 'field_type_text',   type: 'string'},
+		{name: 'field_linktype',   type: 'string'},
 		{name: 'field_linkbible',   type: 'string'},
 		{name: 'field_linkbible_type',   type: 'string'}
 	]

@@ -137,10 +137,6 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelWhere' ,{
 				render: me.onGridRender,
 				drop: function(){
 					me.query('gridpanel')[0].getStore().sync() ;
-					var delayedLoad = new Ext.util.DelayedTask(function () {
-						console.dir( me.whereFields ) ;
-					})
-					delayedLoad.delay(250);
 				},
 				scope: me
 			},
@@ -148,10 +144,6 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelWhere' ,{
 					listeners: {
 						drop: function(){
 							me.store.sync() ;
-							var delayedLoad = new Ext.util.DelayedTask(function () {
-								console.dir( Ext.pluck(me.store.data.items, 'data') ) ;
-							})
-							delayedLoad.delay(750);
 						},
 						scope: me
 					},
