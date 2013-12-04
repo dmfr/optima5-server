@@ -15,6 +15,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 	activeCssId: null,
 	
 	chartsVisible : false,
+	chartsDisabled: false,
 			  
 	initComponent: function() {
 		var me = this ;
@@ -450,6 +451,10 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			}
 		}) ;
 		
+		if( ajaxData.disable_charts == true ) {
+			me.disableCharts() ;
+			return ;
+		}
 		/*
 		 * Query charts configuration (server-side charts cfg , if any)
 		 */
@@ -581,6 +586,13 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 		
 		return mapGroups.row_iterations ;
 	},
+	disableCharts: function() {
+		var me = this,
+			kchartBtn = me.query('toolbar')[0].child('#kchart') ;
+		kchartBtn.setVisible(false) ;
+		me.chartsVisible = false ;
+		me.setChartsVisible(false) ;
+	},
 	setChartsVisible: function(torf) {
 		/* Components to hide/show :
 		 * - main toolbar's kchart checkbox + menu items
@@ -589,7 +601,9 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 		var me = this,
 			kchartMenu = me.query('toolbar')[0].child('#kchart').menu,
 			chartTabPanel = me.child('#pCharts') ;
-			
+		
+		torf = ( me.chartsDisabled ? false : torf ) ;
+		
 		me.chartsVisible = torf ;
 		kchartMenu.items.each( function(menuitem) {
 			switch( menuitem.itemId ) {
