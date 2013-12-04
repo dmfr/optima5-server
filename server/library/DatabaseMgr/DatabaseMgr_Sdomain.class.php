@@ -4,7 +4,7 @@ class DatabaseMgr_Sdomain {
 	private $_opDB ;
 	private $domain_id ;
 	
-	private static $dbVersion = 10 ;
+	private static $dbVersion = 11 ;
 	
 	public function __construct( $domain_id ) {
 		$this->_opDB = $GLOBALS['_opDB'] ;
@@ -169,6 +169,7 @@ CREATE TABLE `input_query_src` (
   `querysrc_index` int(11) NOT NULL,
   `target_query_id` int(11) NOT NULL,
   `target_qmerge_id` int(11) NOT NULL,
+  `target_qbook_id` int(11) NOT NULL,
   `target_qweb_id` int(11) NOT NULL,
   PRIMARY KEY (`querysrc_id`)
 ) ;
@@ -277,6 +278,84 @@ CREATE TABLE `input_xpressfile` (
   `target_filecode` varchar(100) NOT NULL,
   `target_primarykey_fieldcode` varchar(100) NOT NULL,
   PRIMARY KEY (`xpressfile_id`)
+) ;
+
+CREATE TABLE `qbook` (
+  `qbook_id` int(11) NOT NULL AUTO_INCREMENT,
+  `qbook_name` varchar(100) NOT NULL,
+  `backend_file_code` varchar(100) NOT NULL,
+  PRIMARY KEY (`qbook_id`)
+) ;
+
+CREATE TABLE `qbook_inputvar` (
+  `qbook_id` int(11) NOT NULL,
+  `qbook_inputvar_ssid` int(11) NOT NULL,
+  `inputvar_lib` varchar(100) NOT NULL,
+  `inputvar_type` varchar(100) NOT NULL,
+  `inputvar_linktype` varchar(100) NOT NULL,
+  `inputvar_linkbible` varchar(100) NOT NULL,
+  `src_backend_is_on` varchar(1) NOT NULL,
+  `src_backend_file_code` varchar(100) NOT NULL,
+  `src_backend_file_field_code` varchar(100) NOT NULL,
+  PRIMARY KEY (`qbook_id`,`qbook_inputvar_ssid`)
+) ;
+
+CREATE TABLE `qbook_inputvar_date` (
+  `qbook_id` int(11) NOT NULL,
+  `qbook_inputvar_ssid` int(11) NOT NULL,
+  `date_align_is_on` varchar(1) NOT NULL,
+  `date_align_segment_type` varchar(50) NOT NULL,
+  `date_align_direction_end` varchar(1) NOT NULL,
+  `date_calc_is_on` varchar(1) NOT NULL,
+  `date_calc_segment_type` varchar(50) NOT NULL,
+  `date_calc_segment_count` int(11) NOT NULL,
+  PRIMARY KEY (`qbook_id`,`qbook_inputvar_ssid`)
+) ;
+
+CREATE TABLE `qbook_qobj` (
+  `qbook_id` int(11) NOT NULL,
+  `qbook_qobj_ssid` int(11) NOT NULL,
+  `qobj_lib` varchar(100) NOT NULL,
+  `target_q_type` varchar(50) NOT NULL,
+  `target_query_id` int(11) NOT NULL,
+  `target_qmerge_id` int(11) NOT NULL,
+  PRIMARY KEY (`qbook_id`,`qbook_qobj_ssid`)
+) ;
+
+CREATE TABLE `qbook_qobj_field` (
+  `qbook_id` int(11) NOT NULL,
+  `qbook_qobj_ssid` int(11) NOT NULL,
+  `target_query_wherefield_idx` int(11) NOT NULL DEFAULT '-1',
+  `target_qmerge_mwherefield_idx` int(11) NOT NULL DEFAULT '-1',
+  `target_subfield` varchar(100) NOT NULL,
+  `field_type` varchar(100) NOT NULL,
+  `field_linkbible` varchar(100) NOT NULL,
+  `src_inputvar_idx` int(11) NOT NULL DEFAULT '-1',
+  PRIMARY KEY (`qbook_id`,`qbook_qobj_ssid`,`target_query_wherefield_idx`,`target_qmerge_mwherefield_idx`,`target_subfield`)
+) ;
+
+CREATE TABLE `qbook_value` (
+  `qbook_id` int(11) NOT NULL,
+  `qbook_value_ssid` int(11) NOT NULL,
+  `select_lib` varchar(100) NOT NULL,
+  `math_round` int(11) NOT NULL,
+  PRIMARY KEY (`qbook_id`,`qbook_value_ssid`)
+) ;
+
+CREATE TABLE `qbook_value_symbol` (
+  `qbook_id` int(11) NOT NULL,
+  `qbook_value_ssid` int(11) NOT NULL,
+  `qbook_value_symbol_index` int(11) NOT NULL,
+  `sequence` int(11) NOT NULL,
+  `math_operation` varchar(50) NOT NULL,
+  `math_parenthese_in` varchar(1) NOT NULL,
+  `math_operand_inputvar_idx` int(11) NOT NULL DEFAULT '-1',
+  `math_operand_qobj_idx` int(11) NOT NULL DEFAULT '-1',
+  `math_operand_selectfield_idx` int(11) NOT NULL DEFAULT '-1',
+  `math_operand_mselectfield_idx` int(11) NOT NULL DEFAULT '-1',
+  `math_staticvalue` decimal(10,2) NOT NULL,
+  `math_parenthese_out` varchar(1) NOT NULL,
+  PRIMARY KEY (`qbook_id`,`qbook_value_ssid`,`qbook_value_symbol_index`)
 ) ;
 
 CREATE TABLE `qmerge` (
