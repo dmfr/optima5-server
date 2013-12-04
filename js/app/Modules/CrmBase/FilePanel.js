@@ -435,8 +435,42 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 			gridpanel.on('itemcontextmenu', function(view, record, item, index, event) {
 				// var strHeader = record.get('treenode_key')+' - '+record.get('entry_key')
 				
-				
 				gridContextMenuItems = new Array() ;
+				
+				Ext.Array.each( ajaxData.queries_qobjs, function(o) {
+					var iconPath, text,
+						qCfg = {} ;
+					Ext.apply(qCfg,{
+						qType:o.q_type,
+						queryId: o.query_id,
+						qmergeId: o.qmerge_id,
+						qbookId: o.qbook_id,
+						qwebId: o.qweb_id,
+						qsrcFilerecordId:record.get(keyfield)
+					});
+					switch( o.q_type ) {
+						case 'qbook' :
+							iconPath = 'images/op5img/ico_bookmark_16.png' ;
+							text = o.qbook_name ;
+							break ;
+						case 'qweb' :
+							iconPath = 'images/op5img/ico_planet_16.png' ;
+							text = o.qweb_name ;
+							break ;
+					}
+					gridContextMenuItems.push({
+						icon: iconPath,
+						text: text,
+						handler : function() {
+							me.openQdirect( qCfg ) ;
+						},
+						scope : me
+					});
+				},me) ;
+				if( ajaxData.queries_qobjs.length > 0 ) {
+					gridContextMenuItems.push('-') ;
+				}
+				
 				if( true ) {
 					gridContextMenuItems.push({
 						iconCls: 'icon-bible-edit',
@@ -777,6 +811,11 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 			requestAction: Optima5.Helper.getApplication().desktopGetBackendUrl(),
 			requestMethod: 'POST'
 		}) ;
+	},
+	
+	openQdirect: function( qCfg ) {
+		var me = this ;
+		me.optimaModule.createWindow(qCfg,Optima5.Modules.CrmBase.QdirectWindow) ;
 	}
 	
 });
