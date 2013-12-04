@@ -256,10 +256,9 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 					xtype: 'treecolumn'
 				}) ;
 				
-				var tabtree = Ext.create('Ext.tree.Panel',{
+				var tabgrid = Ext.create('Ext.tree.Panel',{
 					border:false,
 					cls:'op5crmbase-querygrid-'+me.optimaModule.sdomainId,
-					title:tabData.tab_title,
 					store: {
 						model: tmpModelName,
 						nodeParam: '_id',
@@ -292,74 +291,65 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 					}
 				}) ;
 				
-				tabtree.on('destroy',function(){
-					// console.log('Unregistering model '+tmpModelName) ;
-					Ext.ModelManager.unregister( tmpModelName ) ;
-				},me);
-				
-				tabtree.getView().headerCt.on('menucreate',me.onColumnsMenuCreate,me) ;
-				
-				tabitems.push(tabtree);
-				return true ;
-			}
+			} else {
 			
-			var tabstore = Ext.create('Ext.data.Store',{
-				model:tmpModelName,
-				pageSize: (tabData.data.length > 50 ? tabData.data.length : 50 ),
-				//pageSize: tabData.data.length,
-				buffered: true,
-				remoteSort: true, // this just keeps sorting from being disabled
-				data: tabData.data,
-				proxy:{
-					type:'memory'
-				},
-				
-				/* 
-				* Custom sort function that overrides the normal store sort function.
-				* Basically this pulls all the buffered data into a MixedCollection
-				* and applies the sort to that, then it puts the SORTED data back
-				* into the buffered store.               
-				*/                    
-				sort: function(sorters) {
-					var collection = new Ext.util.MixedCollection();
-					collection.addAll(this.getProxy().data);
-					collection.sort(sorters);
-					
-					this.pageMap.clear();
-					this.getProxy().data = collection.getRange();
-					this.load();
-				}
-			});
-			
-			var tabgrid = Ext.create('Ext.grid.Panel',{
-				xtype:'grid',
-				border:false,
-				cls:'op5crmbase-querygrid-'+me.optimaModule.sdomainId,
-				title:tabData.tab_title,
-				columns:columns,
-				store:tabstore,
-				/* verticalScroller: {
-					numFromEdge: 5,
-					trailingBufferZone: 10,
-					leadingBufferZone: 20
-				},*/
-				listeners: {
-					itemcontextmenu: me.onRowRightClick,
-					scope:me
-				},
-				plugins: [Ext.create('Ext.ux.ColumnAutoWidthPlugin', {allColumns:true, minAutoWidth:90, singleOnly:true})],
-				viewConfig: { 
-					//stripeRows: false,
-					listeners: {
-						beforerefresh: function(view) {
-							var gridPanel = view.up('gridpanel') ;
-							me.onBeforeGridRefresh( gridPanel ) ;
-						},
-						scope: me
+				var tabstore = Ext.create('Ext.data.Store',{
+					model:tmpModelName,
+					pageSize: (tabData.data.length > 50 ? tabData.data.length : 50 ),
+					//pageSize: tabData.data.length,
+					buffered: true,
+					remoteSort: true, // this just keeps sorting from being disabled
+					data: tabData.data,
+					proxy:{
+						type:'memory'
 					},
-					getRowClass: getRowClassFn
-				}
-			});
+					
+					/* 
+					* Custom sort function that overrides the normal store sort function.
+					* Basically this pulls all the buffered data into a MixedCollection
+					* and applies the sort to that, then it puts the SORTED data back
+					* into the buffered store.               
+					*/                    
+					sort: function(sorters) {
+						var collection = new Ext.util.MixedCollection();
+						collection.addAll(this.getProxy().data);
+						collection.sort(sorters);
+						
+						this.pageMap.clear();
+						this.getProxy().data = collection.getRange();
+						this.load();
+					}
+				});
+				
+				var tabgrid = Ext.create('Ext.grid.Panel',{
+					xtype:'grid',
+					border:false,
+					cls:'op5crmbase-querygrid-'+me.optimaModule.sdomainId,
+					columns:columns,
+					store:tabstore,
+					/* verticalScroller: {
+						numFromEdge: 5,
+						trailingBufferZone: 10,
+						leadingBufferZone: 20
+					},*/
+					listeners: {
+						itemcontextmenu: me.onRowRightClick,
+						scope:me
+					},
+					plugins: [Ext.create('Ext.ux.ColumnAutoWidthPlugin', {allColumns:true, minAutoWidth:90, singleOnly:true})],
+					viewConfig: { 
+						//stripeRows: false,
+						listeners: {
+							beforerefresh: function(view) {
+								var gridPanel = view.up('gridpanel') ;
+								me.onBeforeGridRefresh( gridPanel ) ;
+							},
+							scope: me
+						},
+						getRowClass: getRowClassFn
+					}
+				});
+			}
 			
 			tabgrid.on('destroy',function(){
 				// console.log('Unregistering model '+tmpModelName) ;
@@ -368,6 +358,42 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			
 			tabgrid.getView().headerCt.on('menucreate',me.onColumnsMenuCreate,me) ;
 			
+			if( tabData.RESchart_static ) {
+				Ext.apply(tabgrid,{
+					region:'center',
+					flex:1
+				}) ;
+				var tabitem = {
+					xtype:'panel',
+					layout:'border',
+					title:tabData.tab_title,
+					border:false,
+					isTabItem: true,
+					items:[tabgrid,{
+						xtype:'panel',
+						region:'south',
+						collapsible:true,
+						flex:1,
+						border:false,
+						split:true,
+						layout:'fit',
+						//title: 'Charts',
+						items:[{
+							xtype: 'op5crmbasequeryresultchart',
+							optimaModule: me.optimaModule,
+							ajaxBaseParams: me.ajaxBaseParams,
+							chartCfgRecord: null,
+							RESchart_static: tabData.RESchart_static
+						}]
+					}]
+				}
+				tabitems.push(tabitem);
+				return true ;
+			}
+			Ext.apply(tabgrid,{
+				title:tabData.tab_title,
+				isTabItem: true
+			}) ;
 			tabitems.push(tabgrid);
 			return true ;
 		},me) ;
@@ -664,7 +690,8 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 		
 		var me = this,
 			pResult = me.child('#pResult'),
-			tabIndex = (pResult.isXType('tabpanel') ? pResult.items.indexOf(rPanel) : 0) ,
+			rPanelUp = (rPanel.isTabItem ? rPanel : rPanel.up()) ;
+			tabIndex = (pResult.isXType('tabpanel') ? pResult.items.indexOf(rPanelUp) : 0) ,
 			mapGroups = me.ajaxResponse.tabs[tabIndex].MAP_groups,
 			rowsColorMapObj={},
 			colsColorMapObj={} ;

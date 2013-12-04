@@ -95,6 +95,12 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 		}) ;
 		this.callParent() ;
 		
+		if( me.RESchart_static ) {
+			me.buildViewCharts({
+				RESchart: me.RESchart_static
+			}) ;
+			return ;
+		}
 		me.applyTitle() ;
 		me.doViews() ;
 	},
@@ -138,7 +144,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 	getChartType: function() {
 		var me = this,
 			chartCfgRecord = me.chartCfgRecord,
-			chartType = chartCfgRecord.get('chart_type') ;
+			chartType = ( me.RESchart_static != null ? me.RESchart_static.chart_type : chartCfgRecord.get('chart_type') ) ;
 		return ( ( chartType != null && chartType != '' ) ? chartType : null ) ;
 	},
 	
