@@ -5,6 +5,7 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 		
 		'Optima5.Modules.CrmBase.DataWindow',
 		'Optima5.Modules.CrmBase.Qwindow',
+		'Optima5.Modules.CrmBase.QdirectWindow',
 		'Optima5.Modules.CrmBase.QueryTemplatePanel',
 		'Optima5.Modules.CrmBase.AuthAndroidPanel'
 	],
