@@ -423,7 +423,8 @@ function paracrm_data_getFileGrid_config( $post_data )
 	$return_data = array(
 		'auth_status'=>$arr_auth_status,
 		'define_file'=>$arr_define_file,
-		'grid_fields'=>$TAB['select_map']
+		'grid_fields'=>$TAB['select_map'],
+		'queries_qobjs'=>paracrm_queries_getForFile($post_data)
 	) ;
 	return array('success'=>true,'data'=>$return_data) ;
 }

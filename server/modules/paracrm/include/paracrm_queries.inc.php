@@ -199,6 +199,31 @@ function paracrm_queries_getToolbarData( $post_data )
 }
 
 
+function paracrm_queries_getForFile( $post_data ) {
+	global $_opDB ;
+	$file_code = $post_data['file_code'] ;
+
+	$TAB = array() ;
+	
+	// Qbook(s)
+	$query = "SELECT qbook_id,qbook_name FROM qbook WHERE backend_file_code<>'' AND backend_file_code='{$file_code}'" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$entry = array() ;
+		$entry['_sort_me'] = $arr['qbook_name'] ;
+		$entry['q_type'] = 'qbook' ;
+		$entry['qbook_id'] = $arr['qbook_id'] ;
+		$entry['qbook_name'] = $arr['qbook_name'] ;
+		$TAB[] = $entry ;
+	}
+	
+	// Sort
+	usort($TAB,create_function('$a,$b','return strcasecmp($a[\'_sort_me\'],$b[\'_sort_me\']);') ) ;
+	
+	return $TAB ;
+}
+
+
 function paracrm_queries_gridTemplate( $post_data )
 {
 	global $_opDB ;
