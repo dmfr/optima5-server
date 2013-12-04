@@ -61,6 +61,8 @@ switch( $post_data['_action'] )
 	return paracrm_queries_mergerTransaction( $post_data ) ;
 	case 'queries_qwebTransaction' :
 	return paracrm_queries_qwebTransaction( $post_data ) ;
+	case 'queries_qbookTransaction' :
+	return paracrm_queries_qbookTransaction( $post_data ) ;
 	case 'queries_gridTemplate' :
 	return paracrm_queries_gridTemplate( $post_data );
 	

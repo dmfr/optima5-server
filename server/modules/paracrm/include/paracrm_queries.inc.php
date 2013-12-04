@@ -20,14 +20,16 @@ function paracrm_queries_getToolbarData( $post_data )
 	}
 	
 	// Queries / Qmerges publiés
-	$arr_pub_query = $arr_pub_qmerge = $arr_pub_qweb = array() ;
-	$query = "SELECT target_query_id , target_qmerge_id , target_qweb_id FROM input_query_src" ;
+	$arr_pub_query = $arr_pub_qmerge = $arr_pub_qweb = $arr_pub_qbook = array() ;
+	$query = "SELECT target_query_id , target_qmerge_id , target_qbook_id , target_qweb_id FROM input_query_src" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		if( $arr['target_query_id'] > 0 ) {
 			$arr_pub_query[] = $arr['target_query_id'] ;
 		} elseif( $arr['target_qmerge_id'] > 0 ) {
 			$arr_pub_qmerge[] = $arr['target_qmerge_id'] ;
+		} elseif( $arr['target_qbook_id'] > 0 ) {
+			$arr_pub_qbook[] = $arr['target_qbook_id'] ;
 		} elseif( $arr['target_qweb_id'] > 0 ) {
 			$arr_pub_qweb[] = $arr['target_qweb_id'] ;
 		}
@@ -151,6 +153,38 @@ function paracrm_queries_getToolbarData( $post_data )
 		$TAB_qwebs[] = $arr ;
 	}
 	
+	// Qbooks
+	$query = "SELECT qbook_id as qbookId, qbook_name as text
+				FROM qbook" ;
+	$result = $_opDB->query($query) ;
+	$TAB_qbooks = array() ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$qbook_id = $arr['qbookId'] ;
+		
+		if( !Auth_Manager::getInstance()->auth_query_sdomain_action(
+			Auth_Manager::sdomain_getCurrent(),
+			'queries',
+			array( 'qbook_id' => $qbook_id ),
+			$write=false
+		)) {
+			// Permission denied
+			continue ;
+		}
+		if( !Auth_Manager::getInstance()->auth_query_sdomain_action(
+			Auth_Manager::sdomain_getCurrent(),
+			'queries',
+			array( 'qbook_id' => $qbook_id ),
+			$write=true
+		)) {
+			$arr['authReadOnly'] = TRUE ;
+		}
+		
+		if( in_array($qbook_id,$arr_pub_qbook) ) {
+			$arr['isPublished'] = TRUE ;
+		}
+		$TAB_qbooks[] = $arr ;
+	}
+	
 	$arr_auth_status = array(
 		'disableAdmin' => !Auth_Manager::getInstance()->auth_query_sdomain_admin( Auth_Manager::sdomain_getCurrent() ),
 		'readOnly' => !Auth_Manager::getInstance()->auth_query_sdomain_action(
@@ -161,7 +195,7 @@ function paracrm_queries_getToolbarData( $post_data )
 		)
 	) ;
 	
-	return array('success'=>true,'auth_status'=>$arr_auth_status,'data_filetargets'=>$TAB_filetargets,'data_queries'=>$TAB_queries,'data_qmerges'=>$TAB_qmerges,'data_qwebs'=>$TAB_qwebs) ;
+	return array('success'=>true,'auth_status'=>$arr_auth_status,'data_filetargets'=>$TAB_filetargets,'data_queries'=>$TAB_queries,'data_qmerges'=>$TAB_qmerges,'data_qbooks'=>$TAB_qbooks,'data_qwebs'=>$TAB_qwebs) ;
 }
 
 
