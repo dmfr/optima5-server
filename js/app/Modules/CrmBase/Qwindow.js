@@ -4,6 +4,7 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 		'Optima5.Modules.CrmBase.QwindowToolbar',
 		'Optima5.Modules.CrmBase.QueryPanel',
 		'Optima5.Modules.CrmBase.QmergePanel',
+		'Optima5.Modules.CrmBase.QbookPanel',
 		'Optima5.Modules.CrmBase.QsimplePanel'
 	],
 	
@@ -18,10 +19,13 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 	qmergeId:null,
 	qmergeNew:false,
 	
+	qbookId:null,
+	qbookNew:false,
+	
 	qwebId:null,
 	
 	forceQsimple: false,
-	
+		
 	getQcfg: function() {
 		var me = this ;
 		
@@ -42,6 +46,15 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 					qCfg['qmergeNew'] = true ;
 				} else {
 					qCfg['qmergeId'] = me.qmergeId ;
+				}
+				return qCfg ;
+				break ;
+			case 'qbook' :
+				qCfg['qType'] = me.qType ;
+				if( me.qbookId == null ) {
+					qCfg['qbookNew'] = true ;
+				} else {
+					qCfg['qbookId'] = me.qbookId ;
 				}
 				return qCfg ;
 				break ;
@@ -108,6 +121,35 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 								querysaved: function( success, qmergeId ) {
 									if( success ) {
 										me.onQmergeSaved(qmergeId);
+									}
+								},
+								querydelete: function( success ) {
+									if( success ) {
+										me.close();
+									}
+								},
+								scope:me
+							}
+						})]
+					}) ;
+					cfgValid = true ;
+				}
+				break ;
+				
+			case 'qbook' :
+				if( me.qbookId || me.qbookNew ) {
+					panelClass = 'Optima5.Modules.CrmBase.QbookPanel' ;
+					if( me.forceQsimple ) {
+						panelClass = 'Optima5.Modules.CrmBase.QsimplePanel' ;
+					}
+					Ext.apply(me,{
+						items:[Ext.create(panelClass,{
+							itemId:'qPanel',
+							optimaModule: me.optimaModule,
+							listeners: {
+								querysaved: function( success, qmergeId ) {
+									if( success ) {
+										me.onQbookSaved(qmergeId);
 									}
 								},
 								querydelete: function( success ) {
@@ -209,6 +251,14 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 		
 		me.configureComponents() ;
 	},
+	onQbookSaved: function( qbookId ) {
+		var me = this ;
+		me.qType = 'qbook' ;
+		me.qbookNew = false ;
+		me.qbookId = qbookId ;
+		
+		me.configureComponents() ;
+	},
 	
 	getToolbar: function() {
 		var me = this ;
@@ -219,6 +269,7 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 		switch( me.qType ) {
 			case 'query' :
 			case 'qmerge' :
+			case 'qbook' :
 			case 'qweb' :
 				return me.child('#qPanel') ;
 			default :
@@ -244,6 +295,13 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 						me.getPanel().qmergeNew() ;
 					} else if( me.qmergeId > 0 ) {
 						me.getPanel().qmergeOpen(me.qmergeId) ;
+					}
+					break ;
+				case 'qbook' :
+					if( me.qbookNew ) {
+						me.getPanel().qbookNew() ;
+					} else if( me.qbookId > 0 ) {
+						me.getPanel().qbookOpen(me.qbookId) ;
 					}
 					break ;
 				case 'qweb' :
@@ -306,6 +364,22 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 						} else if( me.qmergeId > 0 ) {
 							Ext.Array.each( ajaxData.data_qmerges, function(o) {
 								if( o.qmergeId == me.qmergeId ) {
+									winTitle = 'Q# '+o.text ;
+									if( o.isPublished ) {
+										tbarDisableSave = tbarIsPublished = true ;
+									}
+									return false ;
+								}
+							});
+						}
+						break ;
+					case 'qbook' :
+						if( me.qbookNew ) {
+							tbarIsNew = tbarDisableSave = true ;
+							winTitle = 'Q# '+'New Qbook' ;
+						} else if( me.qbookId > 0 ) {
+							Ext.Array.each( ajaxData.data_qbooks, function(o) {
+								if( o.qbookId == me.qbookId ) {
 									winTitle = 'Q# '+o.text ;
 									if( o.isPublished ) {
 										tbarDisableSave = tbarIsPublished = true ;

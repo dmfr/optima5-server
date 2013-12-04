@@ -324,6 +324,21 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 				scope: me
 			});
 		},me) ;
+		Ext.Array.each( respObj.data_qbooks , function(v) {
+			var qbookId = parseInt(v.qbookId) ;
+			
+			qMenuItems.push({
+				qbookId: qbookId,
+				isPublished: v.isPublished,
+				text: v.text,
+				icon: 'images/op5img/ico_bookmark_16.png' ,
+				cls: (v.isPublished == true)? me.clsForPublished:null,
+				handler: function(){
+					me.openQbook( qbookId, v.authReadOnly ) ;
+				},
+				scope: me
+			});
+		},me) ;
 		Ext.Array.each( respObj.data_qwebs , function(v) {
 			var qwebId = parseInt(v.qwebId) ;
 			
@@ -340,9 +355,12 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 			});
 		},me) ;
 		Ext.Array.sort( qMenuItems, function(o1,o2) {
-			if( o1.text < o2.text ) {
+			var o1text = o1.text.toLowerCase(),
+				o2text = o2.text.toLowerCase() ;
+			
+			if( o1text < o2text ) {
 				return -1 ;
-			} else if(  o1.text > o2.text ) {
+			} else if(  o1text > o2text ) {
 				return 1 ;
 			} else {
 				return 0 ;
@@ -385,6 +403,17 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 				text: 'Create Qmerge on queries' ,
 				handler : function() {
 					me.openQmergeNew() ;
+				},
+				scope : me
+			}) ;
+		}
+		// ajout du "new" Qbook
+		if( !authReadOnly && respObj.data_queries && respObj.data_queries.length > 0 ) {
+			menuItems.push({
+				icon: 'images/op5img/ico_bookmark_16.png' ,
+				text: 'Create Qbook' ,
+				handler : function() {
+					me.openQbookNew() ;
 				},
 				scope : me
 			}) ;
@@ -565,6 +594,21 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 		return me.openQwindow({
 			qType: 'qmerge',
 			qmergeId: qmergeId,
+			forceQsimple: readOnly
+		});
+	},
+	openQbookNew: function() {
+		var me = this ;
+		return me.openQwindow({
+			qType: 'qbook',
+			qbookNew: true
+		});
+	},
+	openQbook: function( qbookId, readOnly ) {
+		var me = this ;
+		return me.openQwindow({
+			qType: 'qbook',
+			qbookId: qbookId,
 			forceQsimple: readOnly
 		});
 	},
