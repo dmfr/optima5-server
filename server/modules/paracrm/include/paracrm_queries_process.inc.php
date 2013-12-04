@@ -102,6 +102,370 @@ function paracrm_queries_process_buildTrees() {
 
 
 
+function paracrm_queries_process_qbook($arr_saisie, $debug=FALSE, $src_filerecordId )
+{
+	global $_opDB ;
+	
+	/* ****************** EXEC d'1 qbook ******************
+	
+	- Constitution de toutes les variables
+	
+	- Execution de toutes les queries/qmerges
+		* recopie des paramètres
+		* stockage du RES
+
+	- Evaluation de toutes les Values
+	
+	******************************************************** */
+	
+	if( $debug ) {
+		echo "Qmerge 0: checks..." ;
+	}
+	/*
+	unset($arr_saisie['bible_files_treefields']) ;
+	unset($arr_saisie['bible_qobjs']) ;
+	print_r($arr_saisie) ;
+	*/
+	if( $arr_saisie['backend_file_code'] && !$src_filerecordId ) {
+		return NULL ;
+	} elseif( !$arr_saisie['backend_file_code'] ) {
+		unset($src_filerecordId) ;
+	}
+	if( $src_filerecordId ) {
+		$target_fileCode = $arr_saisie['backend_file_code'] ;
+		$src_filerecord_row = array() ;
+		while( TRUE ) {
+			$view_filecode = 'view_file_'.$target_fileCode ;
+			$query = "SELECT * FROM {$view_filecode} WHERE filerecord_id='{$src_filerecordId}'" ;
+			$arr = $_opDB->fetch_assoc($_opDB->query($query)) ;
+			if( $arr===FALSE ) {
+				return NULL ;
+			}
+			$src_filerecord_row[$target_fileCode] = $arr ;
+			if( $arr['filerecord_parent_id'] > 0 ) {
+				$target_fileCode = $_opDB->query_uniqueValue("SELECT file_parent_code FROM define_file WHERE file_code='{$target_fileCode}'") ;
+				$src_filerecordId = $arr['filerecord_parent_id'] ;
+				continue ;
+			}
+			break ;
+		}
+		//print_r($src_filerecord_row) ;
+	}
+	if( $debug ) {
+		echo "OK\n" ;
+	}
+	
+	if( $debug ) {
+		echo "Qmerge 1: extraction inputvars..." ;
+	}
+	$RES_inputvar = array() ;
+	$RES_inputvar_lib = array() ;
+	foreach( $arr_saisie['arr_inputvar'] as $cfg_inputvar ) {
+		if( $cfg_inputvar['src_backend_is_on'] ) {
+			$target_fileCode = ( $cfg_inputvar['src_backend_file_code'] ? $cfg_inputvar['src_backend_file_code'] : $arr_saisie['backend_file_code'] ) ;
+			$target_fileFieldCode = 'field_'.$cfg_inputvar['src_backend_file_field_code'] ;
+			if( !($val = $src_filerecord_row[$target_fileCode][$target_fileFieldCode]) ) {
+				return NULL ;
+			}
+		} elseif( $cfg_inputvar['inputvar_type'] == 'date' ) {
+			$val = date('Y-m-d H:i:s') ;
+		}
+		
+		if( $cfg_inputvar['inputvar_type'] == 'date' ) {
+			$val = date('Y-m-d',strtotime($val)) ;
+			if( $cfg_inputvar['date_align_is_on'] ) {
+				switch( $cfg_inputvar['date_align_segment_type'] ) {
+					case 'WEEK' :
+						$numericWeekDay = date('N',strtotime($val)) ;
+						if( $cfg_inputvar['date_align_direction_end'] ) {
+							$targetWeekDay = 7 ;
+						} else {
+							$targetWeekDay = 1 ;
+						}
+						$deltaWeekDay = $targetWeekDay - $numericWeekDay ;
+						if( $deltaWeekDay == 0 ) {
+							break ;
+						}
+						$deltaWeekDay = ($deltaWeekDay>0 ? '+':'-').abs($deltaWeekDay).' days' ;
+						$val = date('Y-m-d',strtotime($deltaWeekDay,strtotime($val))) ;
+						break ;
+				
+					case 'MONTH' :
+						if( $cfg_inputvar['date_align_direction_end'] ) {
+							$val = date('Y-m-t',strtotime($val)) ;
+						} else {
+							$val = date('Y-m-01',strtotime($val)) ;
+						}
+						break ;
+						
+					case 'YEAR' :
+						if( $cfg_inputvar['date_align_direction_end'] ) {
+							$val = date('Y-12-31',strtotime($val)) ;
+						} else {
+							$val = date('Y-01-01',strtotime($val)) ;
+						}
+						break ;
+						
+					default :
+						break ;
+				}
+			}
+			if( $cfg_inputvar['date_calc_is_on'] && abs($cfg_inputvar['date_calc_segment_count']) > 0 ) {
+				$sentence = ($cfg_inputvar['date_calc_segment_count']>0 ? '+':'-').abs($cfg_inputvar['date_calc_segment_count']) ;
+				$sentence.= ' ' ;
+				switch( $cfg_inputvar['date_calc_segment_type'] ) {
+					case 'DAY' :
+						$sentence.= 'days' ;
+						break ;
+					case 'WEEK' :
+						$sentence.= 'weeks' ;
+						break ;
+					case 'MONTH' :
+						$sentence.= 'months' ;
+						break ;
+					case 'YEAR' :
+						$sentence.= 'years' ;
+						break ;
+					default :
+						unset($sentence) ;
+						break ;
+				}
+				if( $sentence ) {
+					$val = date('Y-m-d',strtotime($sentence,strtotime($val))) ;
+				}
+				
+				if( $cfg_inputvar['date_calc_segment_type'] == 'MONTH'
+					&& $cfg_inputvar['date_align_is_on'] && $cfg_inputvar['date_align_direction_end'] && in_array($cfg_inputvar['date_align_segment_type'],array('MONTH','YEAR')) ) {
+					
+					// 2nd align
+					if( date('d',strtotime($val)) > 15 ) {
+						$val = date('Y-m-t',strtotime($val)) ;
+					} else {
+						$val = date('Y-m-t',strtotime('-1 month',strtotime($val))) ;
+					}
+				}
+			}
+		}
+		
+		$RES_inputvar[] = $val ;
+		$RES_inputvar_lib[] = $cfg_inputvar['inputvar_lib'] ;
+	}
+	if( $debug ) {
+		echo "OK\n" ;
+	}
+	
+	
+	if( $debug ) {
+		echo "Qmerge 2: Query/Qmerge..." ;
+	}
+	$RES_qobj = array() ;
+	$RES_qobj_lib = array() ;
+	foreach( $arr_saisie['arr_qobj'] as $cfg_qobj ) {
+		// Load de la query / qmerge
+		switch( $cfg_qobj['target_q_type'] ) {
+			case 'query' :
+				$arrSaisieQuery = array() ;
+				foreach( $arr_saisie['bible_qobjs'] as $arrSaisieQuery_test ) {
+					if( $arrSaisieQuery_test['q_type'] == 'query' && $arrSaisieQuery_test['query_id'] == $cfg_qobj['target_query_id'] ) {
+						$arrSaisieQuery = $arrSaisieQuery_test ;
+						break ;
+					}
+				}
+				$target_file_code = $arrSaisieQuery['target_file_code'] ;
+				$arrSaisieQuery['treefields_root'] = $arr_saisie['bible_files_treefields'][$target_file_code] ;
+				
+				// replace des valeurs
+				foreach( $cfg_qobj['qobj_fields'] as $cfg_field ) {
+					$src_inputvar_idx = $cfg_field['src_inputvar_idx'] ;
+					$target_query_wherefield_idx = $cfg_field['target_query_wherefield_idx'] ;
+					$mvalue = $RES_inputvar[$src_inputvar_idx] ;
+					if( $target_query_wherefield_idx != -1 ) {
+						switch( $cfg_field['field_type'] ) {
+							case 'date' :
+							case 'number' :
+								$mkey = $cfg_field['target_subfield'] ;
+								break ;
+								
+							case 'link' :
+								// TYPE DE VALEUR 'treenode ? entry ? de inputvar
+								switch( $mkey = $cfg_field['target_subfield'] ) {
+									case 'condition_bible_treenodes' :
+									case 'condition_bible_entries' :
+										$mvalue = json_encode(array($mvalue)) ;
+										break ;
+										
+									default :
+										break ;
+								}
+								break ;
+								
+							default :
+								continue 2 ;
+						}
+						$arrSaisieQuery['fields_where'][$target_query_wherefield_idx][$mkey] = $mvalue ;
+					}
+				}
+				
+				$RES_qobj[] = paracrm_queries_process_query($arrSaisieQuery) ;
+				$RES_qobj_lib[] = $cfg_qobj['qobj_lib'] ;
+				break ;
+		
+			case 'qmerge' :
+				$arrSaisieQmerge = array() ;
+				foreach( $arr_saisie['bible_qobjs'] as $arrSaisieQuery_test ) {
+					if( $arrSaisieQuery_test['q_type'] == 'qmerge' && $arrSaisieQuery_test['qmerge_id'] == $cfg_qobj['target_qmerge_id'] ) {
+						$arrSaisieQmerge = $arrSaisieQuery_test ;
+						break ;
+					}
+				}
+				$arrSaisieQmerge['bible_queries'] = $arr_saisie['bible_qobjs'] ;
+				$arrSaisieQmerge['bible_files_treefields'] = $arr_saisie['bible_files_treefields'] ;
+				
+				// replace des valeurs
+				foreach( $cfg_qobj['qobj_fields'] as $cfg_field ) {
+					$src_inputvar_idx = $cfg_field['src_inputvar_idx'] ;
+					$target_qmerge_mwherefield_idx = $cfg_field['target_qmerge_mwherefield_idx'] ;
+					$mvalue = $RES_inputvar[$src_inputvar_idx] ;
+					if( $target_qmerge_mwherefield_idx != -1 ) {
+						switch( $cfg_field['field_type'] ) {
+							case 'extrapolate' :
+							case 'date' :
+							case 'number' :
+								$mkey = $cfg_field['target_subfield'] ;
+								break ;
+								
+							case 'link' :
+								// TYPE DE VALEUR 'treenode ? entry ? de inputvar
+								switch( $mkey = $cfg_field['target_subfield'] ) {
+									case 'condition_bible_treenodes' :
+									case 'condition_bible_entries' :
+										$mvalue = json_encode(array($mvalue)) ;
+										break ;
+										
+									default :
+										break ;
+								}
+								break ;
+								
+							default :
+								continue 2 ;
+						}
+						$arrSaisieQmerge['fields_mwhere'][$target_qmerge_mwherefield_idx][$mkey] = $mvalue ;
+					}
+				}
+				
+				
+				$RES_qobj[] = paracrm_queries_process_qmerge($arrSaisieQmerge) ;
+				$RES_qobj_lib[] = $cfg_qobj['qobj_lib'] ;
+				break ;
+		}
+	}
+	if( $debug ) {
+		echo "OK\n" ;
+	}
+	
+	
+	if( $debug ) {
+		echo "Qmerge 3: Values..." ;
+	}
+	foreach( $arr_saisie['arr_value'] as $cfg_value ) {
+		$t_symbolIdx_value = array() ;
+		foreach( $cfg_value['math_expression'] as $symbol ) {
+			unset($val) ;
+			while( TRUE ){
+				if( $symbol['math_staticvalue'] != 0 ) {
+					$val = $symbol['math_staticvalue'] ;
+					break ;
+				}
+			
+				if( $symbol['math_operand_inputvar_idx'] >= 0 && is_numeric($RES_inputvar[$symbol['math_operand_inputvar_idx']]) ) {
+					$val = $RES_inputvar[$symbol['math_operand_inputvar_idx']] ;
+					break ;
+				}
+				
+				if( ($idx = $symbol['math_operand_qobj_idx']) >= 0 && isset($RES_qobj[$idx]) ) {
+					$sRES_qobj = $RES_qobj[$idx] ;
+					switch( $arr_saisie['arr_qobj'][$idx]['target_q_type'] ) {
+						case 'query' :
+							$select_id = $symbol['math_operand_selectfield_idx'] ;
+							if( count($sRES_qobj['RES_groupKey_selectId_value']) != 1 ) {
+								break 2 ;
+							}
+							$ttmp = current($sRES_qobj['RES_groupKey_selectId_value']) ;
+							$val = $ttmp[$select_id] ;
+							if( !is_numeric($val) ) {
+								$val = $sRES_qobj['RES_selectId_nullValue'][$select_id] ;
+							}
+							if( !is_numeric($val) ) {
+								$val = 0 ;
+							}
+							break ;
+							
+						case 'qmerge' :
+							$mselect_id = $symbol['math_operand_mselectfield_idx'] ;
+							if( count($sRES_qobj['RES_selectId_groupKey_value'][$mselect_id]) != 1 ) {
+								break 2 ;
+							}
+							$val = current($sRES_qobj['RES_selectId_groupKey_value'][$mselect_id]) ;
+							if( !is_numeric($val) ) {
+								$val = 0 ;
+							}
+							break ;
+						
+						default :
+							break 2 ;
+					}
+				}
+				break ;
+			}
+			if( !isset($val) ){
+				unset($t_symbolIdx_value) ;
+				break ;
+			}
+			$t_symbolIdx_value[] = $val ;
+		}
+		if( !isset($t_symbolIdx_value) ) {
+			$RES_value[] = NULL ;
+			$RES_value_lib[] = $cfg_value['select_lib'] ;
+			$RES_value_mathRound[] = $cfg_value['math_round'] ;
+			continue ;
+		}
+		
+		$eval_string = '' ;
+		foreach( $cfg_value['math_expression'] as $symbol_id => $symbol )
+		{
+			$eval_string.= $symbol['math_operation'] ;
+			
+			if( $symbol['math_parenthese_in'] )
+				$eval_string.= '(' ;
+				
+			$eval_string.= '('.$t_symbolIdx_value[$symbol_id].')' ;
+			
+			if( $symbol['math_parenthese_out'] )
+				$eval_string.= ')' ;
+		}
+		$Rval = 0 ;
+		@eval( '$Rval = ('.$eval_string.') ;' ) ;
+		
+		$RES_value[] = $Rval ;
+		$RES_value_lib[] = $cfg_value['select_lib'] ;
+		$RES_value_mathRound[] = $cfg_value['math_round'] ;
+	}
+	if( $debug ) {
+		echo "OK\n" ;
+	}
+	
+	
+	return array('RES_inputvar'=>$RES_inputvar,
+					'RES_inputvar_lib'=>$RES_inputvar_lib,
+					'RES_qobj' => $RES_qobj,
+					'RES_qobj_lib' => $RES_qobj_lib,
+					'RES_value' => $RES_value,
+					'RES_value_lib' => $RES_value_lib,
+					'RES_value_mathRound' => $RES_value_mathRound ) ;
+}
+
+
 function paracrm_queries_process_qmerge($arr_saisie, $debug=FALSE)
 {
 	global $_opDB ;
