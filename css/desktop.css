@@ -436,6 +436,14 @@
     background-image: url( ../images/op5img/ico_fullscreen_16.png ) !important;
 }
 
+.icon-move-up {
+    background-image: url( ../images/op5img/ico_arrow-up_16.png ) !important;
+}
+.icon-move-down {
+    background-image: url( ../images/op5img/ico_arrow-down_16.png ) !important;
+}
+
+
 
 .damsfieldtree-invalid {
 	border: 1px solid #FF0000 ;
