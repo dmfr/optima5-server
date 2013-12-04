@@ -144,7 +144,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			var cssClasses = [] ;
 			
 			var rowIdx = record.get('_rowIdx'),
-				color = this.colorMapObj[rowIdx] ;
+				color = ( this.colorMapObj==null ? null : this.colorMapObj[rowIdx] ) ;
 			if( color != null ) {
 				cssClasses.push('op5-crmbase-qresult-kchart-rowserie') ;
 				cssClasses.push('ux-grid-row-bk-'+color) ;
@@ -654,6 +654,9 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			mapGroups = me.ajaxResponse.tabs[tabIndex].MAP_groups,
 			rowsColorMapObj={},
 			colsColorMapObj={} ;
+		if( mapGroups == null ) {
+			return ;
+		}
 		
 		Ext.Array.each( me.ajaxResponse.tabs[tabIndex].data, function(rec) {
 			var rowIdx = rec['_rowIdx'] ,
@@ -757,6 +760,19 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 		}
 		
 		
+		var menuSeparator = menu.query('menuseparator')[1],
+			  menuItemAdd = menu.child('#chrt-btn-add'),
+			  menuItemDel = menu.child('#chrt-btn-delete'),
+			  menuItemDis = menu.child('#chrt-btn-disabled') ;
+		
+		if( !(me.chartsVisible) ) {
+			menuSeparator.setVisible(false) ;
+			menuItemAdd.setVisible(false) ;
+			menuItemDel.setVisible(false) ;
+			menuItemDis.setVisible(false) ;
+			return ;
+		}
+		
 		
 		/*
 		 * Show context items for Charts IF :
@@ -765,11 +781,6 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 		 * - only one iteration on ROWS
 		 * - charting is enabled + current chart panel != null + current chart panel compatible
 		 */
-		
-		var menuSeparator = menu.query('menuseparator')[1],
-			  menuItemAdd = menu.child('#chrt-btn-add'),
-			  menuItemDel = menu.child('#chrt-btn-delete'),
-			  menuItemDis = menu.child('#chrt-btn-disabled') ;
 		
 		var colPivot = me.getPivotForColumn(rPanel,columnDataIndex),
 			  colSelectIds = me.getSelectidsForColumn(rPanel,columnDataIndex),
@@ -846,6 +857,10 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			rPanel = rPanelView.up('tablepanel'),
 			chartPanel = me.getActiveChartPanel() ;
 			
+		if( !(me.chartsVisible) ) {
+			return ;
+		}
+		
 		var rowPivot = me.getPivotForRow(rPanel,record),
 			  rowSelectIds = me.getSelectidsForRow(rPanel,record),
 			  rowIterations = me.getIterationsForRows(rPanel) ;
