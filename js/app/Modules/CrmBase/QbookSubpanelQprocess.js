@@ -108,6 +108,24 @@ Ext.define('Optima5.Modules.CrmBase.QbookSubpanelQprocess' ,{
 							children:[]
 						}
 					},
+					viewConfig: {
+						preserveScrollOnRefresh:true,
+						listeners: {
+							beforerefresh: function(tv) {
+								if( tv.scrollStateSaved ) {
+									return ;
+								}
+								tv.saveScrollState() ;
+								tv.scrollStateSaved = true ;
+							},
+							refresh: function(tv) {
+								Ext.defer( function() {
+									tv.restoreScrollState() ;
+									tv.scrollStateSaved = false ;
+								},100) ;
+							}
+						}
+					},
 					listeners: {
 						itemclick: function( view, record, item, index, event ) {
 							if( record.getDepth() == 2 ) {
