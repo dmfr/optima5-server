@@ -361,6 +361,7 @@ function paracrm_queries_qbookTransaction_save( $post_data , &$arr_saisie )
 		$tables[] = 'qbook_qobj_field' ;
 		$tables[] = 'qbook_value' ;
 		$tables[] = 'qbook_value_symbol' ;
+		$tables[] = 'qbook_value_saveto' ;
 		foreach( $tables as $dbtab )
 		{
 			$query = "DELETE FROM $dbtab WHERE qbook_id='{$arr_saisie['qbook_id']}'" ;
@@ -441,6 +442,19 @@ function paracrm_queries_qbookTransaction_loadFields( &$arr_saisie , $qbook_id )
 			$arr['math_expression'][] = $arr_symbol ;
 		}
 	
+		$arr['saveto'] = array() ;
+		$query = "SELECT * FROM qbook_value_saveto 
+					WHERE qbook_id='$qbook_id' AND qbook_value_ssid='{$arr['qbook_value_ssid']}'
+					ORDER BY qbook_value_saveto_index" ;
+		$result2 = $_opDB->query($query) ;
+		while( ($arr_saveto = $_opDB->fetch_assoc($result2)) != FALSE )
+		{
+			unset($arr_saveto['qbook_id']) ;
+			unset($arr_saveto['qbook_value_ssid']) ;
+			unset($arr_saveto['qbook_value_saveto_index']) ;
+			$arr['saveto'][] = $arr_saveto ;
+		}
+	
 		unset($arr['qbook_id']) ;
 		unset($arr['qbook_value_ssid']) ;
 		$arr_saisie['arr_value'][] = $arr ;
@@ -467,6 +481,7 @@ function paracrm_queries_qbookTransaction_saveFields( &$arr_saisie , $qbook_id )
 	$tables[] = 'qbook_qobj_field' ;
 	$tables[] = 'qbook_value' ;
 	$tables[] = 'qbook_value_symbol' ;
+	$tables[] = 'qbook_value_saveto' ;
 	foreach( $tables as $dbtab )
 	{
 		$query = "DELETE FROM $dbtab WHERE qbook_id='$qbook_id'" ;
@@ -600,6 +615,26 @@ function paracrm_queries_qbookTransaction_saveFields( &$arr_saisie , $qbook_id )
 				$arr_ins[$s] = $field_sequence[$s] ;
 			}
 			$_opDB->insert('qbook_value_symbol',$arr_ins) ;
+		}
+		
+		
+		$scnt = 0 ;
+		$saveto = array() ;
+		$saveto[] = 'target_backend_file_code' ;
+		$saveto[] = 'target_backend_file_field_code' ;
+		foreach( $field_value['saveto'] as $field_saveto )
+		{
+			$scnt++ ;
+		
+			$arr_ins = array() ;
+			$arr_ins['qbook_id'] = $qbook_id ;
+			$arr_ins['qbook_value_ssid'] = $cnt ;
+			$arr_ins['qbook_value_saveto_index'] = $scnt ;
+			foreach( $saveto as $s )
+			{
+				$arr_ins[$s] = $field_saveto[$s] ;
+			}
+			$_opDB->insert('qbook_value_saveto',$arr_ins) ;
 		}
 	}
 
