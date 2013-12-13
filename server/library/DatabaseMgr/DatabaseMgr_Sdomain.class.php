@@ -4,7 +4,7 @@ class DatabaseMgr_Sdomain {
 	private $_opDB ;
 	private $domain_id ;
 	
-	private static $dbVersion = 11 ;
+	private static $dbVersion = 12 ;
 	
 	public function __construct( $domain_id ) {
 		$this->_opDB = $GLOBALS['_opDB'] ;
@@ -356,6 +356,15 @@ CREATE TABLE `qbook_value_symbol` (
   `math_staticvalue` decimal(10,2) NOT NULL,
   `math_parenthese_out` varchar(1) NOT NULL,
   PRIMARY KEY (`qbook_id`,`qbook_value_ssid`,`qbook_value_symbol_index`)
+) ;
+
+CREATE TABLE `qbook_value_saveto` (
+  `qbook_id` int(11) NOT NULL,
+  `qbook_value_ssid` int(11) NOT NULL,
+  `qbook_value_saveto_index` int(11) NOT NULL,
+  `target_backend_file_code` varchar(100) NOT NULL,
+  `target_backend_file_field_code` varchar(100) NOT NULL,
+  PRIMARY KEY (`qbook_id`,`qbook_value_ssid`,`qbook_value_saveto_index`)
 ) ;
 
 CREATE TABLE `qmerge` (
