@@ -141,7 +141,7 @@ Ext.define('Optima5.Modules.CrmBase.QbookSubpanelInput' ,{
 				viewConfig: {
 					plugins: {
 						ptype: 'gridviewdragdrop',
-						ddGroup: 'querywherereorder'+me.getParentId()
+						ddGroup: 'QbookInputvarReorder'+me.getParentId()
 					}
 				}
 			},{

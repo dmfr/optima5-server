@@ -93,6 +93,13 @@ Ext.define('QbookQobjModel', {
 	}
 });
 
+Ext.define('QbookValueSavetoModel', {
+	extend: 'Ext.data.Model',
+	fields: [
+		{name: 'target_backend_file_code',   type: 'string'},
+		{name: 'target_backend_file_field_code',   type: 'string'}
+	]
+});
 Ext.define('QbookValueSymbolModel', {
 	extend: 'Ext.data.Model',
 	fields: [
@@ -122,6 +129,10 @@ Ext.define('QbookValueModel', {
 		model: 'QbookValueSymbolModel',
 		name: 'math_expression',
 		associationKey: 'math_expression'
+	},{
+		model: 'QbookValueSavetoModel',
+		name: 'saveto',
+		associationKey: 'saveto'
 	}]
 });
 
@@ -423,6 +434,7 @@ Ext.define('Optima5.Modules.CrmBase.QbookPanel' ,{
 	onSelectBackendFile: function(backendFileCode) {
 		var me = this ;
 		me.backend_file_code = backendFileCode ;
+		me.fireEvent('selectbackendfile',backendFileCode) ; //relay event
 	},
 	
 	prepareSubmit: function() {

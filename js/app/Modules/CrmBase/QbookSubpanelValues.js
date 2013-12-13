@@ -10,6 +10,19 @@ Ext.define('QbookValuesTreeModel', {
 	]
 });
 
+Ext.define('QbookBackendTargetTreeModel', {
+	extend: 'Ext.data.Model',
+	idProperty: 'field_code',
+	fields: [
+		{name: 'text',  type: 'string'},
+		{name: 'backend_file_code',  type: 'string'},
+		{name: 'backend_file_field_code',   type: 'string'},
+		{name: 'backend_file_field_isDisabled',   type: 'boolean'},
+		{name: 'src_value_idx',   type: 'string'}
+	]
+});
+
+
 Ext.define('Optima5.Modules.CrmBase.QbookSubpanelValues' ,{
 	extend: 'Optima5.Modules.CrmBase.QbookSubpanel',
 			  
@@ -21,7 +34,14 @@ Ext.define('Optima5.Modules.CrmBase.QbookSubpanelValues' ,{
 	
 	
 	initComponent: function() {
-		var me = this ;
+		var me = this,
+			hasSaveto = false ;
+		
+		me.valueStore.each( function(valueRecord,valueRecordIdx) {
+			valueRecord.saveto().each( function(valueSavetoRecord) {
+				hasSaveto = true ;
+			},me) ;
+		},me) ;
 		
 		Ext.apply(this,{
 			layout: {
@@ -32,7 +52,7 @@ Ext.define('Optima5.Modules.CrmBase.QbookSubpanelValues' ,{
 				region:'west',
 				flex: 1,
 				xtype: 'treepanel',
-				itemId: 'bTree' ,
+				itemId: 'bWestTree' ,
 				title: 'Source values / Qobject values',
 				border: false,
 				collapsible:false ,
@@ -73,17 +93,216 @@ Ext.define('Optima5.Modules.CrmBase.QbookSubpanelValues' ,{
 				}),Ext.apply(me.initComponentCreateFormulaPanel(),{
 					flex:1 
 				})]
+			},{
+				region:'east',
+				flex: 1,
+				xtype: 'treepanel',
+				itemId: 'bEastTree' ,
+				title: 'Store values to backend file',
+				border: false,
+				collapsible:true ,
+				collapseDirection:'right',
+				collapseMode:'header',
+				collapsed: (!hasSaveto),
+				headerPosition:'left',
+				useArrows: true,
+				rootVisible: false,
+				store: {
+					model: 'QbookBackendTargetTreeModel',
+					root: {
+						root:true,
+						children:[]
+					}
+				},
+				listeners: {
+					itemclick: function( view, record, item, index, event ) {
+					},
+					itemcontextmenu: function(view, record, item, index, event) {
+						if( record.getDepth() < 2 ) {
+							return ;
+						}
+						while( record.getDepth() > 2 ) {
+							record = record.parentNode ;
+						}
+						if( !record.hasChildNodes() ) {
+							return ;
+						}
+						
+						var targetFileCode = record.get('backend_file_code'),
+							targetFileFieldCode = record.get('backend_file_field_code') ;
+						
+						gridContextMenuItems = new Array() ;
+						gridContextMenuItems.push({
+							iconCls: 'icon-bible-delete',
+							text: 'Unassign',
+							handler : function() {
+								me.onRemoveSaveto( targetFileCode, targetFileFieldCode ) ;
+							},
+							scope : me
+						});
+						
+						var gridContextMenu = Ext.create('Ext.menu.Menu',{
+							items : gridContextMenuItems
+						}) ;
+						
+						gridContextMenu.showAt(event.getXY());
+					},
+					scope: me
+				},
+				viewConfig: {
+					plugins: {
+						ptype: 'treeviewdragdrop',
+						ddGroup:'QbookValueToBackendField'+this.getParentId(),
+						enableDrag:false,
+						enableDrop:true,
+						appendOnly:true,
+						allowParentInsert:false,
+						containerScroll: true
+					},
+					listeners:{
+						beforedrop:function(node, data, dropRecord, dropPosition, dropHandlers){
+							if( data.records.length != 1 ) {
+								return false ;
+							}
+							var dragRecord = data.records[0] ;
+							if( Ext.getClassName(dragRecord) != 'QbookValueModel' || Ext.getClassName(dropRecord) != 'QbookBackendTargetTreeModel' ) {
+								return false ;
+							}
+							if( dropRecord.getDepth() != 2 || dropRecord.get('backend_file_field_isDisabled') ) {
+								return false ;
+							}
+							
+							dropHandlers.wait = true ;
+							
+							var targetFileCode = dropRecord.get('backend_file_code'),
+								targetFileFieldCode = dropRecord.get('backend_file_field_code') ;
+							
+							// *** Delete any "saveto" targeted at selected file field
+							me.valueStore.suspendEvents(false) ;
+							me.valueStore.each( function(valueRecord) {
+								var toDelete = [] ;
+								valueRecord.saveto().each( function(valueSavetoRecord) {
+									if( valueSavetoRecord.get('target_backend_file_code') == targetFileCode 
+										&& valueSavetoRecord.get('target_backend_file_field_code') == targetFileFieldCode
+									) {
+										toDelete.push(valueSavetoRecord) ;
+									}
+								},me) ;
+								valueRecord.saveto().remove(toDelete) ;
+							},me) ;
+							me.valueStore.resumeEvents() ;
+							
+							var valueRecord = dragRecord ;
+							var valueSavetoRecord = Ext.create('QbookValueSavetoModel',{
+								target_backend_file_code: targetFileCode,
+								target_backend_file_field_code:targetFileFieldCode
+							}) ;
+							valueRecord.saveto().insert(0,valueSavetoRecord) ;
+							valueRecord.commit() ;
+							return true ;
+						},
+						scope:this
+					}
+				}
 			}]
 		});
 		
 		this.callParent();
 		this.syncWestTree() ;
+		this.syncEastTree() ;
 		this.mon( me.inputvarStore, 'datachanged', this.syncWestTree, this ) ;
 		this.mon( me.inputvarStore, 'update', this.syncWestTree, this ) ;
 		this.mon( me.qobjStore, 'datachanged', this.syncWestTree, this ) ;
 		this.mon( me.qobjStore, 'update', this.syncWestTree, this ) ;
+		this.mon( me.valueStore, 'datachanged', this.syncEastTree, this ) ;
+		this.mon( me.valueStore, 'update', this.syncEastTree, this ) ;
+		this.mon( this.parentQbookPanel, 'selectbackendfile', this.syncEastTree, this ) ;
 	},
 	
+	syncEastTree: function() {
+		var me = this,
+			bEastTree = me.getComponent('bEastTree'),
+			backendFileCode = me.parentQbookPanel.backend_file_code ;
+		
+		if( backendFileCode == null || backendFileCode == '' 
+			|| typeof me.getQbookPanel().bibleFilesTreefields[backendFileCode] === 'undefined'
+		) {
+			console.log('none') ;
+			bEastTree.setVisible(false) ;
+			bEastTree.setRootNode({
+				root:true,
+				children:[]
+			}) ;
+			return ;
+		}
+		
+		// **** Map index  file%field => srcvalueIdx
+		var mapFilefieldValueidx = {},
+			mKey ;
+		me.valueStore.each( function(valueRecord,valueRecordIdx) {
+			valueRecord.saveto().each( function(valueSavetoRecord) {
+				mKey = valueSavetoRecord.get('target_backend_file_code')+'|'+valueSavetoRecord.get('target_backend_file_field_code') ;
+				mapFilefieldValueidx[mKey] = valueRecordIdx ;
+			},me) ;
+		},me) ;
+		
+		// *** Construction de l'arbre ****
+		var rootChildren = [] ;
+		me.getQbookPanel().bibleFilesTreefields[backendFileCode].getRootNode().eachChild( function( fileNode ) {
+			if( fileNode.get('field_code') != backendFileCode ) {
+				return ;
+			}
+			var fileFieldNodes = [] ;
+			fileNode.eachChild( function( fileFieldNode ) {
+				var valueNode = [],
+					ttmp = fileFieldNode.get('field_code').split('_field_'),
+					fileCode = ttmp[0],
+					fileFieldCode = ttmp[1],
+					mKey = fileCode+'|'+fileFieldCode ;
+				
+				if( typeof mapFilefieldValueidx[mKey] !== 'undefined' ) {
+					var valueRecordIdx = mapFilefieldValueidx[mKey],
+						valueRecord = me.valueStore.getAt(valueRecordIdx) ;
+					valueNode.push({
+						text: '<b>'+valueRecord.get('select_lib')+'</b>',
+						icon: 'images/dot_orange_16.gif',
+						backend_file_code: fileCode,
+						backend_file_field_code:fileFieldCode,
+						src_value_idx: mapFilefieldValueidx[mKey],
+						leaf: true
+					}) ;
+				}
+				
+				var text = fileFieldNode.get('field_text') ;
+				if( valueNode.length > 0 ) {
+					text = '<b><font color="red">' + text + '</font></b>' ;
+				}
+				fileFieldNodes.push({
+					text: text,
+					icon: 'images/op5img/ico_showref_listall.gif',
+					backend_file_code: fileCode,
+					backend_file_field_code:fileFieldCode,
+					backend_file_field_isDisabled: (fileFieldNode.get('field_type') != 'number'),
+					children: valueNode,
+					expanded: (valueNode.length > 0),
+					leaf: false
+				});
+			},me) ;
+			rootChildren.push({
+				text: fileNode.get('field_text'),
+				backend_file_code: fileNode.get('field_code'),
+				children: fileFieldNodes,
+				expanded: true
+			}) ;
+		},me) ;
+		
+		bEastTree.setVisible(true) ;
+		bEastTree.setRootNode({
+			root:true,
+			expanded:true,
+			children:rootChildren
+		}) ;
+	},
 	syncWestTree: function() {
 		var me = this,
 			bibleQobjsStore = me.getQbookPanel().bibleQobjsStore ;
@@ -156,7 +375,7 @@ Ext.define('Optima5.Modules.CrmBase.QbookSubpanelValues' ,{
 			}
 		},me) ;
 		
-		me.getComponent('bTree').getStore().setRootNode({
+		me.getComponent('bWestTree').getStore().setRootNode({
 			root:true,
 			text:'',
 			children:rootChildren,
@@ -210,7 +429,15 @@ Ext.define('Optima5.Modules.CrmBase.QbookSubpanelValues' ,{
 					},
 					scope: me
 				}]
-			}]
+			}],
+			viewConfig: {
+				plugins: [{
+					ptype: 'gridviewdragdrop',
+					ddGroup:'QbookValueToBackendField'+this.getParentId(),
+					enableDrag:true,
+					enableDrop:true
+				}]
+			}
 		}) ;
 		
 		grid.getSelectionModel().on('selectionchange', function(selModel, selections){
@@ -225,7 +452,12 @@ Ext.define('Optima5.Modules.CrmBase.QbookSubpanelValues' ,{
 		
 		me.formulapanel = Ext.create('Ext.panel.Panel',{
 			layout:'fit',
-			border:false
+			border:false,
+			items:[{
+				xtype:'panel',
+				border:false,
+				frame:true
+			}]
 		}) ;
 		
 		return me.formulapanel ;
@@ -473,7 +705,27 @@ Ext.define('Optima5.Modules.CrmBase.QbookSubpanelValues' ,{
 					return true;
 			}
 		});
-	}
+	},
 	
-
+	
+	onRemoveSaveto: function( targetFileCode, targetFileFieldCode ) {
+		var me = this ;
+		
+		// *** Delete any "saveto" targeted at selected file field
+		me.valueStore.each( function(valueRecord) {
+			var toDelete = [] ;
+			valueRecord.saveto().each( function(valueSavetoRecord) {
+				if( valueSavetoRecord.get('target_backend_file_code') == targetFileCode 
+					&& valueSavetoRecord.get('target_backend_file_field_code') == targetFileFieldCode
+				) {
+					toDelete.push(valueSavetoRecord) ;
+				}
+			},me) ;
+			if( toDelete.length == 0 ) {
+				return ;
+			}
+			valueRecord.saveto().remove(toDelete) ;
+			valueRecord.commit() ;
+		},me) ;
+	}
 }) ;
