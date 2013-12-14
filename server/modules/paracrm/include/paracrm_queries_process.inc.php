@@ -256,7 +256,20 @@ function paracrm_queries_process_qbook($arr_saisie, $debug=FALSE, $src_filerecor
 	
 	
 	if( $debug ) {
-		echo "Qmerge 2: Query/Qmerge..." ;
+		echo "Qmerge pre3: Values..." ;
+	}
+	foreach( $arr_saisie['arr_value'] as $cfg_value ) {
+		$RES_value[] = NULL ;
+		$RES_value_lib[] = $cfg_value['select_lib'] ;
+		$RES_value_mathRound[] = $cfg_value['math_round'] ;
+	}
+	if( $debug ) {
+		echo "OK\n" ;
+	}
+	
+	
+	if( $debug ) {
+		echo "Qmerge 2: Query/Qmerge...\n" ;
 	}
 	$RES_qobj = array() ;
 	$RES_qobj_lib = array() ;
@@ -359,16 +372,35 @@ function paracrm_queries_process_qbook($arr_saisie, $debug=FALSE, $src_filerecor
 				$RES_qobj_lib[] = $cfg_qobj['qobj_lib'] ;
 				break ;
 		}
+		
+		paracrm_queries_process_qbook_doValues( $arr_saisie, $debug, $RES_inputvar, $RES_qobj, $RES_value ) ;
 	}
 	if( $debug ) {
 		echo "OK\n" ;
 	}
 	
 	
+	return array('RES_inputvar'=>$RES_inputvar,
+					'RES_inputvar_lib'=>$RES_inputvar_lib,
+					'RES_qobj' => $RES_qobj,
+					'RES_qobj_lib' => $RES_qobj_lib,
+					'RES_value' => $RES_value,
+					'RES_value_lib' => $RES_value_lib,
+					'RES_value_mathRound' => $RES_value_mathRound ) ;
+}
+function paracrm_queries_process_qbook_doValues( $arr_saisie, $debug=FALSE, $RES_inputvar, $RES_qobj, &$RES_value ) {
+	
 	if( $debug ) {
-		echo "Qmerge 3: Values..." ;
+		echo "-- Qmerge 2-3: Values : " ;
 	}
-	foreach( $arr_saisie['arr_value'] as $cfg_value ) {
+	foreach( $arr_saisie['arr_value'] as $value_idx => $cfg_value ) {
+		if( !($RES_value[$value_idx]===NULL) ) {
+			if( $debug ) {
+				echo " " ;
+			}
+			continue ;
+		}
+		
 		$t_symbolIdx_value = array() ;
 		foreach( $cfg_value['math_expression'] as $symbol ) {
 			unset($val) ;
@@ -384,6 +416,9 @@ function paracrm_queries_process_qbook($arr_saisie, $debug=FALSE, $src_filerecor
 				}
 				
 				if( ($idx = $symbol['math_operand_qobj_idx']) >= 0 && isset($RES_qobj[$idx]) ) {
+					if( !isset($RES_qobj[$idx]) ) {
+						break ;
+					}
 					$sRES_qobj = $RES_qobj[$idx] ;
 					switch( $arr_saisie['arr_qobj'][$idx]['target_q_type'] ) {
 						case 'query' :
@@ -425,9 +460,9 @@ function paracrm_queries_process_qbook($arr_saisie, $debug=FALSE, $src_filerecor
 			$t_symbolIdx_value[] = $val ;
 		}
 		if( !isset($t_symbolIdx_value) ) {
-			$RES_value[] = NULL ;
-			$RES_value_lib[] = $cfg_value['select_lib'] ;
-			$RES_value_mathRound[] = $cfg_value['math_round'] ;
+			if( $debug ) {
+				echo "x" ;
+			}
 			continue ;
 		}
 		
@@ -447,22 +482,14 @@ function paracrm_queries_process_qbook($arr_saisie, $debug=FALSE, $src_filerecor
 		$Rval = 0 ;
 		@eval( '$Rval = ('.$eval_string.') ;' ) ;
 		
-		$RES_value[] = $Rval ;
-		$RES_value_lib[] = $cfg_value['select_lib'] ;
-		$RES_value_mathRound[] = $cfg_value['math_round'] ;
+		$RES_value[$value_idx] = $Rval ;
+		if( $debug ) {
+			echo "o" ;
+		}
 	}
 	if( $debug ) {
-		echo "OK\n" ;
+		echo " : OK\n" ;
 	}
-	
-	
-	return array('RES_inputvar'=>$RES_inputvar,
-					'RES_inputvar_lib'=>$RES_inputvar_lib,
-					'RES_qobj' => $RES_qobj,
-					'RES_qobj_lib' => $RES_qobj_lib,
-					'RES_value' => $RES_value,
-					'RES_value_lib' => $RES_value_lib,
-					'RES_value_mathRound' => $RES_value_mathRound ) ;
 }
 
 
