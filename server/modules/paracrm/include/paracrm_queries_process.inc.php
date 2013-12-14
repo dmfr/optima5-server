@@ -379,6 +379,37 @@ function paracrm_queries_process_qbook($arr_saisie, $debug=FALSE, $src_filerecor
 		echo "OK\n" ;
 	}
 	
+	if( $debug ) {
+		echo "Qmerge 3post: Values saveto..." ;
+	}
+	foreach( $arr_saisie['arr_value'] as $value_idx => $cfg_value ) {
+		if( $RES_value[$value_idx] === NULL ) {
+			continue ;
+		}
+		$Rval = $RES_value[$value_idx] ;
+		
+		foreach( $cfg_value['saveto'] as $cfg_saveto ) {
+			$target_fileCode = $cfg_saveto['target_backend_file_code'] ;
+			$target_fileFieldCode = 'field_'.$cfg_saveto['target_backend_file_field_code'] ;
+			
+			if( !isset($src_filerecord_row[$target_fileCode][$target_fileFieldCode]) ) {
+				if( $debug ) {
+					echo " oops! " ;
+				}
+				continue ;
+			}
+			
+			$src_filerecord_row[$target_fileCode][$target_fileFieldCode] = $Rval ;
+		}
+	}
+	foreach( $src_filerecord_row as $target_fileCode => $file_data ) {
+		$target_filerecordId = $file_data['filerecord_id'] ;
+		paracrm_lib_data_updateRecord_file( $target_fileCode , $file_data, $target_filerecordId ) ;
+	}
+	if( $debug ) {
+		echo "OK\n" ;
+	}
+	
 	
 	return array('RES_inputvar'=>$RES_inputvar,
 					'RES_inputvar_lib'=>$RES_inputvar_lib,
