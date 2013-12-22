@@ -269,18 +269,19 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 									}
 									
 									var entryKeys = [],
-										  msg ;
+										targetTreenode = dropRecord.get('treenode_key'),
+										msg ;
+									
 									for( var recIdx=0 ; recIdx<data.records.length ; recIdx++ ) {
 										entryKeys.push(data.records[recIdx].get('entry_key')) ;
 									}
+									
 									if( entryKeys.length == 1 ) {
 										msg = 'Assign <b>'+entryKeys[0]+'</b> to treenode <b>'+targetTreenode+'</b> ?' ;
 									} else {
 										msg = 'Assign <b>'+entryKeys.length+'</b> records to treenode <b>'+targetTreenode+'</b> ?' ;
 									}
 									
-									var targetTreenode = dropRecord.get('treenode_key') ;
-								
 									Ext.Msg.show({
 										title:'Assign treenode',
 										msg: msg ,
