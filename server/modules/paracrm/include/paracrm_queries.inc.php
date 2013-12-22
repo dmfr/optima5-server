@@ -206,7 +206,8 @@ function paracrm_queries_getForFile( $post_data ) {
 	$TAB = array() ;
 	
 	// Qbook(s)
-	$query = "SELECT qbook_id,qbook_name FROM qbook WHERE backend_file_code<>'' AND backend_file_code='{$file_code}'" ;
+	$query_base = "SELECT qbook_id FROM qbook WHERE backend_file_code<>'' AND backend_file_code='{$file_code}'" ;
+	$query = "SELECT qbook_id,qbook_name FROM qbook WHERE qbook_id IN ($query_base)" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$entry = array() ;
@@ -214,6 +215,17 @@ function paracrm_queries_getForFile( $post_data ) {
 		$entry['q_type'] = 'qbook' ;
 		$entry['qbook_id'] = $arr['qbook_id'] ;
 		$entry['qbook_name'] = $arr['qbook_name'] ;
+		$TAB[] = $entry ;
+	}
+	$query = "SELECT qbook_id,qbook_ztemplate_ssid,ztemplate_name FROM qbook_ztemplate WHERE qbook_id IN ($query_base)" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$entry = array() ;
+		$entry['_sort_me'] = $arr['ztemplate_name'] ;
+		$entry['q_type'] = 'qbook_ztemplate' ;
+		$entry['qbook_id'] = $arr['qbook_id'] ;
+		$entry['qbook_ztemplate_ssid'] = $arr['qbook_ztemplate_ssid'] ;
+		$entry['ztemplate_name'] = $arr['ztemplate_name'] ;
 		$TAB[] = $entry ;
 	}
 	

@@ -60,7 +60,11 @@ function paracrm_queries_qbookTransaction( $post_data )
 		
 		if( $post_data['_subaction'] == 'res_get' )
 		{
-			$json =  paracrm_queries_qbookTransaction_resGet( $post_data, $arr_saisie ) ;
+			if( $post_data['qbook_ztemplate_ssid'] ) {
+				$json =  paracrm_queries_qbookTransaction_resGetZtemplate( $post_data, $arr_saisie ) ;
+			} else {
+				$json =  paracrm_queries_qbookTransaction_resGet( $post_data, $arr_saisie ) ;
+			}
 		}
 		if( $post_data['_subaction'] == 'exportXLS' )
 		{
@@ -237,6 +241,158 @@ function paracrm_queries_qbookTransaction_runQuery( $post_data, &$arr_saisie, $q
 	return array('success'=>true,'query_status'=>'OK','RES_id'=>$new_RES_key,'debug'=>$RES) ;
 }
 
+function paracrm_queries_qbookTransaction_resGetZtemplate( $post_data, &$arr_saisie )
+{
+	global $_opDB ;
+	global $app_root, $server_root ;
+	
+	$transaction_id = $post_data['_transaction_id'] ;
+	$RES = $_SESSION['transactions'][$transaction_id]['arr_RES'][$post_data['RES_id']] ;
+	
+	$query = "SELECT ztemplate_resource_binary FROM qbook_ztemplate 
+				WHERE qbook_id='{$arr_saisie['qbook_id']}' AND qbook_ztemplate_ssid='{$post_data['qbook_ztemplate_ssid']}'" ;
+	$ztemplate_resource_binary = $_opDB->query_uniqueValue($query) ;
+	if( !$ztemplate_resource_binary ) {
+		return array('success'=>false) ;
+	}
+	
+	
+	$doc = new DOMDocument();
+	@$doc->loadHTML($ztemplate_resource_binary);
+	
+	$elements = $doc->getElementsByTagName('qbook-chart');
+	$i = $elements->length - 1;
+	while ($i > -1) {
+		$node_qbookChart = $elements->item($i); 
+		$i--; 
+		
+		if( !$node_qbookChart->attributes->getNamedItem('src_qobj') ) {
+			continue ;
+		}
+		$src_qobj = $node_qbookChart->attributes->getNamedItem('src_qobj')->value ;
+		if( $node_qbookChart->attributes->getNamedItem('out_width') && $node_qbookChart->attributes->getNamedItem('out_height') ) {
+			$out_width = $node_qbookChart->attributes->getNamedItem('out_width')->value ;
+			$out_height = $node_qbookChart->attributes->getNamedItem('out_height')->value ;
+		} else {
+			continue ;
+		}
+		
+		$RES_q = NULL ;
+		foreach( $RES['RES_qobj'] as $qobj_idx => $dummy ) {
+			if( $arr_saisie['arr_qobj'][$qobj_idx]['qobj_lib'] == $src_qobj ) {
+				$RES_q = $RES['RES_qobj'][$qobj_idx];
+			}
+		}
+		if( !$RES_q ) {
+			continue ;
+		}
+		
+		switch( $arr_saisie['arr_qobj'][$qobj_idx]['target_q_type'] ) {
+			case 'query' :
+				$t_chartCfg = paracrm_queries_charts_cfgLoad('query',$arr_saisie['arr_qobj'][$qobj_idx]['target_query_id']) ;
+				break ;
+				
+			case 'qmerge' :
+				$t_chartCfg = paracrm_queries_charts_cfgLoad('qmerge',$arr_saisie['arr_qobj'][$qobj_idx]['target_qmerge_id']) ;
+				break ;
+		}
+		
+		if( $t_chartCfg && count($t_chartCfg) == 1 ) {
+			$img_options = array();
+			$img_options['width'] = $out_width ;
+			$img_options['height'] = $out_height ;
+			$img_options['legend'] = ($node_qbookChart->attributes->getNamedItem('out_legend') != NULL && strtolower($node_qbookChart->attributes->getNamedItem('out_legend')->value) == 'true' ) ;
+			
+		
+			$queryResultChartModel = current($t_chartCfg) ;
+			$buffer_png = paracrm_queries_template_makeImgChart($RES_q, $queryResultChartModel, $img_options) ;
+			$buffer_png_base64 = base64_encode($buffer_png) ;
+			
+			$new_node = $doc->createElement('img') ;
+			$new_node->setAttribute('src', 'data:image/jpeg;base64,'.$buffer_png_base64);
+			
+			$node_qbookChart->parentNode->replaceChild($new_node,$node_qbookChart) ;
+		}
+	}
+	
+	
+	$elements = $doc->getElementsByTagName('qbook-table');
+	$i = $elements->length - 1;
+	while ($i > -1) {
+		$node_qbookTable = $elements->item($i); 
+		$i--; 
+		
+		if( !$node_qbookTable->attributes->getNamedItem('src_qobj') ) {
+			continue ;
+		}
+		$src_qobj = $node_qbookTable->attributes->getNamedItem('src_qobj')->value ;
+		
+		$RES_q = NULL ;
+		foreach( $RES['RES_qobj'] as $qobj_idx => $dummy ) {
+			if( $arr_saisie['arr_qobj'][$qobj_idx]['qobj_lib'] == $src_qobj ) {
+				$RES_q = $RES['RES_qobj'][$qobj_idx];
+			}
+		}
+		if( !$RES_q ) {
+			continue ;
+		}
+		
+		switch( $arr_saisie['arr_qobj'][$qobj_idx]['target_q_type'] ) {
+			case 'query' :
+				$tab = paracrm_queries_paginate_getGrid( $RES_q, 0 ) ;
+				break ;
+				
+			case 'qmerge' :
+				$tab = paracrm_queries_mpaginate_getGrid( $RES_q, 0 ) ;
+				break ;
+		}
+		
+		$html_table = paracrm_queries_template_makeTable( $tab['columns'], $tab['data'] ) ;
+		$dom_table = new DOMDocument();
+		$dom_table->loadHTML( '<?xml encoding="UTF-8"><html>'.$html_table.'</html>' ) ;
+		$node_table = $dom_table->getElementsByTagName("table")->item(0);
+		
+		$node_table = $doc->importNode($node_table,true) ;
+		
+		$node_qbookTable->parentNode->replaceChild($node_table,$node_qbookTable) ;
+	}
+	
+	$elements = $doc->getElementsByTagName('qbook-value');
+	$i = $elements->length - 1;
+	while ($i > -1) {
+		$node_qbookValue = $elements->item($i); 
+		$i--; 
+		
+		$val = '' ;
+		if( $node_qbookValue->attributes->getNamedItem('src_inputvar') ) {
+			$src_inputvar = $node_qbookValue->attributes->getNamedItem('src_inputvar')->value ;
+			foreach( $RES['RES_inputvar'] as $inputvar_idx => $inputvar ) {
+				if( $RES['RES_inputvar_lib'][$inputvar_idx] == $src_inputvar ) {
+					$val = $inputvar ;
+					break ;
+				}
+			}
+		} elseif( $node_qbookValue->attributes->getNamedItem('src_value') ) {
+			$src_value = $node_qbookValue->attributes->getNamedItem('src_value')->value ;
+			foreach( $RES['RES_value'] as $value_idx => $value ) {
+				if( $RES['RES_value_lib'][$value_idx] == $src_value ) {
+					if( $RES['RES_value_mathRound'][$value_idx] > 0 ) {
+						$value = round($value,$RES['RES_value_mathRound'][$value_idx]) ;
+					} else {
+						$value = round($value) ;
+					}
+					$val = $value ;
+					break ;
+				}
+			}
+		}
+		$new_node = $doc->createTextNode($val) ;
+		$node_qbookValue->parentNode->replaceChild($new_node,$node_qbookValue) ;
+	}
+	
+	
+	return array('success'=>true, 'html'=>$doc->saveHTML() ) ;
+}
 function paracrm_queries_qbookTransaction_resGet( $post_data, &$arr_saisie )
 {
 	$transaction_id = $post_data['_transaction_id'] ;
