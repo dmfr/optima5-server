@@ -1,4 +1,7 @@
 <html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
 	<style type="text/css">
 		body {  font-family: Arial, Helvetica, sans-serif; font-size:smaller ;  margin:4px; display:block }
 		.text-big {
@@ -43,6 +46,15 @@
 			padding-top: 3px;
 			padding-bottom: 3px;
 		}
+		.table-xsmall table {
+			width:100%;
+			color:black;
+			font-size:10px;
+			font-family:tahoma,arial,verdana,sans-serif
+		}
+		.table-xsmall td {
+			text-align: center ;
+		}
 	</style>
 	<body style='background-color:#eeeeee'><div align='center'>
 	<table cellpadding='0' cellspacing='0' align='center' style='background-color:#ffffff' width='1800'><tr><td valign='top'>
@@ -50,7 +62,7 @@
 		<table cellspacing='0' cellpadding='0' width='100%' style='background-color:#9D080E' height='80'><tr>
 <!-- 			<td style='background-color:#ffffff' width='120'>&nbsp;</td> -->
 			<td style='padding:4px ; padding-left:20px'>
-				<span class='text-big' style='color:#ffffff'>%%VAR:TITLE%%</span><br>
+				<span class='text-big' style='color:#ffffff'><qbook-value src_inputvar="IDpromo"></qbook-value></span><br>
 				<span class='text-med' style='color:#ffffff'>1-promo dashboard</span><br>
 			</td>
 			<td align='right' valign='bottom' style='padding-right:25px'></td>
@@ -84,27 +96,27 @@
 				<tr>
 					<td width='25%' align='left' style='padding:0px'><span class='text-xxsmall'>Index A : Avg during / avg before</span></td>
 					<td width='25%' align='left' style='padding:0px'><span class='text-xsmall' style='color:#5E703B'><b>Sub-range</b></span></td>
-					<td width='25%' align='center' style='padding:0px' bgcolor='#76933C'><span class='text-xxsmall' style='color:#FFFFFF'>%%IDX_A_SUBRANGE_PERCENT%%</span></td>
-					<td width='25%' align='center' style='padding:0px' bgcolor='#76933C'><span class='text-xxsmall' style='color:#FFFFFF'>%%IDX_A_SUBRANGE_VOLUME%%</span></td>
+					<td width='25%' align='center' style='padding:0px' bgcolor='#76933C'><span class='text-xxsmall' style='color:#FFFFFF'><b><qbook-value src_value="Idx A : Uplift %"></qbook-value></b>&nbsp;%</span></td>
+					<td width='25%' align='center' style='padding:0px' bgcolor='#76933C'><span class='text-xxsmall' style='color:#FFFFFF'><b><qbook-value src_value="Idx A : Uplift Vol(kg)"></qbook-value></b>&nbsp;kg</span></td>
 				</tr>
 				<tr>
 					<td width='25%' align='left' style='padding:0px'><span class='text-xsmall'>&nbsp;</span></td>
 					<td width='25%' align='left' style='padding:0px'><span class='text-xsmall'>Brand</span></td>
-					<td width='25%' align='center' style='padding:0px'><span class='text-xxsmall'>%%IDX_A_BRAND_PERCENT%%</span></td>
-					<td width='25%' align='center' style='padding:0px'><span class='text-xxsmall'>%%IDX_A_BRAND_VOLUME%%</span></td>
+					<td width='25%' align='center' style='padding:0px'><span class='text-xxsmall'><b><qbook-value src_value="Brand A : Uplift %"></qbook-value></b>&nbsp;%</span></td>
+					<td width='25%' align='center' style='padding:0px'><span class='text-xxsmall'><b><qbook-value src_value="Brand A : Uplift Vol(kg)"></qbook-value></b>&nbsp;kg</span></td>
 				</tr>
 				<tr><td colspan='4'>&nbsp;</td></tr>
 				<tr>
 					<td width='25%' align='left' style='padding:0px'><span class='text-xxsmall'>Index B : Avg after / avg before</span></td>
 					<td width='25%' align='left' style='padding:0px'><span class='text-xsmall' style='color:#5E703B'><b>Sub-range</b></span></td>
-					<td width='25%' align='center' style='padding:0px' bgcolor='#76933C'><span class='text-xxsmall' style='color:#FFFFFF'>%%IDX_B_SUBRANGE_PERCENT%%</span></td>
-					<td width='25%' align='center' style='padding:0px' bgcolor='#76933C'><span class='text-xxsmall' style='color:#FFFFFF'>%%IDX_B_SUBRANGE_VOLUME%%</span></td>
+					<td width='25%' align='center' style='padding:0px' bgcolor='#76933C'><span class='text-xxsmall' style='color:#FFFFFF'><b><qbook-value src_value="Idx B : Uplift %"></qbook-value></b>&nbsp;%</span></td>
+					<td width='25%' align='center' style='padding:0px' bgcolor='#76933C'><span class='text-xxsmall' style='color:#FFFFFF'><b><qbook-value src_value="Idx B : Uplift Vol(kg)"></qbook-value></b>&nbsp;kg</span></td>
 				</tr>
 				<tr>
 					<td width='25%' align='left' style='padding:0px'><span class='text-xsmall'>&nbsp;</span></td>
 					<td width='25%' align='left' style='padding:0px'><span class='text-xsmall'>Brand</span></td>
-					<td width='25%' align='center' style='padding:0px'><span class='text-xxsmall'>%%IDX_B_BRAND_PERCENT%%</span></td>
-					<td width='25%' align='center' style='padding:0px'><span class='text-xxsmall'>%%IDX_B_BRAND_VOLUME%%</span></td>
+					<td width='25%' align='center' style='padding:0px'><span class='text-xxsmall'><b><qbook-value src_value="Brand B : Uplift %"></qbook-value></b>&nbsp;%</span></td>
+					<td width='25%' align='center' style='padding:0px'><span class='text-xxsmall'><b><qbook-value src_value="Brand B : Uplift Vol(kg)"></qbook-value></b>&nbsp;kg</span></td>
 				</tr>
 			</table>
 		</td>
@@ -117,11 +129,11 @@
 				<tr><td colspan='2'>&nbsp;</td></tr>
 				<tr>
 					<td width='30%' style='border:1px solid gray' align='center'><span class='text-xsmall'><b>ATL</b><br>(TV, Radio, PR...)<br></span></td>
-					<td style='border:1px solid gray'><span class='text-xsmall'></span></td>
+					<td style='border:1px solid gray'><span class='text-xsmall'><qbook-value src_inputvar="Txt ATL"></qbook-value></span></td>
 				</tr>
 				<tr>
 					<td width='30%' style='border:1px solid gray' align='center'><span class='text-xsmall'><b>BTL</b><br>(Tasting, In-store couponing, distribution gain...)<br></span></td>
-					<td style='border:1px solid gray'><span class='text-xsmall'></span></td>
+					<td style='border:1px solid gray'><span class='text-xsmall'><qbook-value src_inputvar="Txt BTL"></qbook-value></span></td>
 				</tr>
 				<tr><td colspan='2'>&nbsp;</td></tr>
 				<tr>
@@ -140,12 +152,12 @@
 		</tr>
 		<tr>
 		<td width='65%' valign='top'>
-			<table cellspacing='5' cellpadding='5' width='100%'>
+			<table cellspacing='5' cellpadding='4' width='100%'>
 				<tr>
 					<td style='border:1px solid gray' align='center'><span class='text-small' style='color:#9D080E'><b>Selling-IN</b></span></td>
 				</tr>
 				<tr>
-					<td align='center' height='250' style='border:1px solid gray'><span class='text-xsmall'><b>%%IMG_SELL_IN%%</b></span></td>
+					<td align='center' height='260' style='border:1px solid gray'><span class='text-xsmall'><b>%%IMG_SELL_IN%%</b></span></td>
 				</tr>
 				<tr>
 					<td align='center' height='100' style='border:1px solid gray'><span class='text-xsmall'><b>%%TAB_SELL_IN%%</b></span></td>
@@ -153,15 +165,21 @@
 			</table>
 		</td>
 		<td width='35%' valign='top'>
-			<table cellspacing='5' cellpadding='5' width='100%'>
+			<table cellspacing='5' cellpadding='4' width='100%'>
 				<tr>
 					<td style='border:1px solid gray' align='center'><span class='text-small' style='color:#9D080E'><b>Selling-OUT</b></span></td>
 				</tr>
 				<tr>
-					<td align='center' height='250' style='border:1px solid gray'><span class='text-xsmall'><b>%%IMG_SELL_OUT%%</b></span></td>
+					<td align='center' height='260' style='border:1px solid gray'>
+						<qbook-chart src_qobj="SellOut Idx A+B" out_width='620' out_height='250'></qbook-chart>
+					</td>
 				</tr>
 				<tr>
-					<td align='center' height='100' style='border:1px solid gray'><span class='text-xsmall'><b>%%TAB_SELL_OUT%%</b></span></td>
+					<td align='center' height='100' style='border:1px solid gray'>
+						<div class='table-xsmall'>
+						<qbook-table src_qobj="SellOut Idx A+B"></qbook-table>
+						</div>
+					</td>
 				</tr>
 			</table>
 		</td>
@@ -182,16 +200,16 @@
 				</tr>
 				<tr>
 					<td align='center' style='padding:4px'><span class='text-med' style='color:#FF0000'>ROI</span></td>
-					<td align='center' style='padding:4px; border:1px solid gray'><span class='text-small'><b>%%CALC_ROI%%</b></span></td>
+					<td align='center' style='padding:4px; border:1px solid gray'><span class='text-small'><b><qbook-value src_value="ROI"></qbook-value></b>&nbsp;%</span></td>
 				</tr>
 				<tr>
 					<td align='center' style='padding:4px'><span class='text-xsmall'>Profitability (&euro;)</span></td>
-					<td align='center' style='padding:4px; border:1px solid gray'><span class='text-xsmall'>%%CALC_BENEFIT%%</span></td>
+					<td align='center' style='padding:4px; border:1px solid gray'><span class='text-xsmall'><b><qbook-value src_value="Profitability"></qbook-value></b>&nbsp;&euro;</span></td>
 				</tr>
 				<tr>
 					<td align='center' style='padding:4px'><span class='text-xsmall'>Cost (&euro;)</span></td>
-					<td align='center' style='padding:4px; border:1px solid gray'><span class='text-xsmall'>%%VAR::COST_REAL%%</span></td>
-					<td align='center' style='padding:4px; border:1px solid gray'><span class='text-xsmall'>%%VAR::COST_PREV%%</span></td>
+					<td align='center' style='padding:4px; border:1px solid gray'><span class='text-xsmall'><b><qbook-value src_value="Cost Invoice"></qbook-value></b>&nbsp;&euro;</span></td>
+					<td align='center' style='padding:4px; border:1px solid gray'><span class='text-xsmall'><b><qbook-value src_value="Cost Forecast"></qbook-value></b>&nbsp;&euro;</span></td>
 				</tr>
 			</table>
 		</td>
@@ -213,7 +231,7 @@
 					<td bgcolor='#555555' align='center'><span class='text-small' style='color:#ffffff'><b>Conclusion</b></span></td>
 				</tr>
 				<tr>
-					<td align='center' height='250' style='border:1px solid gray'><span class='text-small'><b>%%VAR:CONCLUSION%%</b></span></td>
+					<td align='center' height='250' style='border:1px solid gray'><span class='text-small'><b><qbook-value src_inputvar="Txt Comments"></qbook-value></b></span></td>
 				</tr>
 			</table>
 		</td>
