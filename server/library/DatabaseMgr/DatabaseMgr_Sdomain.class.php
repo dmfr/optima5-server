@@ -814,7 +814,7 @@ EOF;
 			{
 				case 'string' :
 				$field_name.= '_str' ;
-				$arrAssoc_dbField_fieldType[$field_name] = 'varchar(200)' ;
+				$arrAssoc_dbField_fieldType[$field_name] = 'varchar(500)' ;
 				break ;
 				
 				case 'number' :
@@ -905,7 +905,7 @@ EOF;
 			{
 				case 'string' :
 				$field_name.= '_str' ;
-				$arrAssoc_dbField_fieldType[$field_name] = 'varchar(200)' ;
+				$arrAssoc_dbField_fieldType[$field_name] = 'varchar(500)' ;
 				break ;
 				
 				case 'number' :
@@ -1018,7 +1018,7 @@ EOF;
 			{
 				case 'string' :
 				$field_name.= '_str' ;
-				$arrAssoc_dbField_fieldType[$field_name] = 'varchar(200)' ;
+				$arrAssoc_dbField_fieldType[$field_name] = 'varchar(500)' ;
 				if( $arr_field_isIndex[$field_code] ) {
 					$arr_model_keys[$field_name] = array('non_unique'=>'1','arr_columns'=>array($field_name)) ;
 				}
