@@ -174,6 +174,7 @@ Ext.define('Optima5.Modules.CrmBase.QbookSubpanelInput' ,{
 					var selectedRecord = ddSource.dragData.records[0];
 					
 					switch( selectedRecord.get('field_type') ) {
+						case 'string' :
 						case 'link' :
 						case 'date' :
 						case 'number' :

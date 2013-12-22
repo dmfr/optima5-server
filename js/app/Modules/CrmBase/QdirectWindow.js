@@ -16,6 +16,7 @@ Ext.define('Optima5.Modules.CrmBase.QdirectWindow' ,{
 	qmergeNew:false,
 	
 	qbookId:null,
+	qbookZtemplateSsid:null,
 	qbookNew:false,
 	
 	qwebId:null,
@@ -55,6 +56,7 @@ Ext.define('Optima5.Modules.CrmBase.QdirectWindow' ,{
 			case 'qweb' :
 				return 'queries_qwebTransaction' ;
 			case 'qbook' :
+			case 'qbook_ztemplate' :
 				return 'queries_qbookTransaction' ;
 			default :
 				Optima5.Helper.logError('CrmBase:QdirectWindow','Invalid config') ;
@@ -141,6 +143,12 @@ Ext.define('Optima5.Modules.CrmBase.QdirectWindow' ,{
 			_action: me.getAjaxAction(),
 			_transaction_id : qdirectTransactionId
 		});
+		if( me.qbookZtemplateSsid != null && me.qbookZtemplateSsid > 0 ) {
+			Ext.apply( baseAjaxParams, {
+				_action: me.getAjaxAction(),
+				qbook_ztemplate_ssid : me.qbookZtemplateSsid
+			});
+		}
 		
 		var queryResultPanel = Ext.create('Optima5.Modules.CrmBase.QueryResultPanel',{
 			optimaModule:me.optimaModule,

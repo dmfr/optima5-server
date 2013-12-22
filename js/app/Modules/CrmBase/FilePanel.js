@@ -445,6 +445,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 						queryId: o.query_id,
 						qmergeId: o.qmerge_id,
 						qbookId: o.qbook_id,
+						qbookZtemplateSsid: o.qbook_ztemplate_ssid,
 						qwebId: o.qweb_id,
 						qsrcFilerecordId:record.get(keyfield)
 					});
@@ -452,6 +453,10 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 						case 'qbook' :
 							iconPath = 'images/op5img/ico_bookmark_16.png' ;
 							text = o.qbook_name ;
+							break ;
+						case 'qbook_ztemplate' :
+							iconPath = 'images/op5img/ico_planet_16.png' ;
+							text = o.ztemplate_name ;
 							break ;
 						case 'qweb' :
 							iconPath = 'images/op5img/ico_planet_16.png' ;
