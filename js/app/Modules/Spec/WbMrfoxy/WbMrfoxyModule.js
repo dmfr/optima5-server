@@ -1,7 +1,7 @@
 Ext.define('Optima5.Modules.Spec.WbMrfoxy.WbMrfoxyModule', {
 	extend: 'Optima5.Module',
 	requires: [
-		'Optima5.Modules.Spec.WbMrfoxy.MainWindow'
+		'Optima5.Modules.Spec.WbMrfoxy.MainPanel'
 	],
 	
 	moduleParams: null,
@@ -11,7 +11,17 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.WbMrfoxyModule', {
 		
 		me.addEvents('op5broadcast') ;
 		
-		me.createWindow({},Optima5.Modules.Spec.WbMrfoxy.MainWindow) ;
+		me.createWindow({
+			width:800,
+			height:600,
+			resizable:true,
+			maximizable:false,
+			layout:'fit',
+			items:[Ext.create('Optima5.Modules.Spec.WbMrfoxy.MainPanel',{
+				optimaModule: me,
+				border: false
+			})]
+		}) ;
 	},
 	postCrmEvent: function( crmEvent, postParams ) {
 		this.callParent(arguments) ;

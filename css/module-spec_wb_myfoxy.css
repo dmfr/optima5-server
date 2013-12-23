@@ -13,3 +13,151 @@
 .op5-crmbase-mainwindow-admin {
 	background-image: url("../images/modules/crmbase-users-22.gif") !important;
 }
+
+.op5-spec-mrfoxy-icon-promotion {
+	background-image: url("../images/modules/mrfoxy-promotion-64.png") !important;
+}
+.op5-spec-mrfoxy-icon-headlines {
+	background-image: url("../images/modules/mrfoxy-headlines-64.png") !important;
+}
+.op5-spec-mrfoxy-icon-promostore {
+	background-image: url("../images/modules/mrfoxy-promostore-64.png") !important;
+}
+
+
+.op5-spec-mrfoxy-mainmenu {
+	background: rgb(159, 159, 159);
+	background-attachment: scroll;
+	background-clip: border-box;
+	background-image: -ms-radial-gradient(center top, #4b7e98 0%, #1a334c 100%);
+	background-image: -moz-radial-gradient(center top, #4b7e98 0%, #1a334c 100%);
+	background-image: -webkit-gradient(radial, center top, 0, center top, 900, from(rgb(75, 126, 152)), to(rgb(26, 51, 76)));
+	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#4b7e98', endColorstr='#1a334c');
+	background-origin: padding-box;
+	background-position: 0 0;
+	background-repeat: repeat;
+	background-size: 100% 100%;
+	
+	text-align:center;
+}
+
+.op5-spec-mrfoxy-mainmenu .op5-spec-mrfoxy-mainmenu-item {
+	display:block;
+	position:absolute;
+}
+.op5-spec-mrfoxy-mainmenu .op5-spec-mrfoxy-mainmenu-header {
+	background-position: 0 0;
+	background-repeat: no-repeat;
+	background-image: url("../images/modules/mrfoxy-mainmenu-logo2.png") !important;
+	display:block;
+	width: 500px;
+	height: 70px;
+	margin: 20px ;
+}
+.op5-spec-mrfoxy-mainmenu .op5-spec-mrfoxy-mainmenu-separator {
+	padding: 5px;
+	margin: 0px 5px;
+	color: rgb(204, 204, 204);
+	border-bottom: 1px solid rgb(204, 204, 204);
+	display:block;
+	text-align:left;
+	font-size: 14px;
+}
+.op5-spec-mrfoxy-mainmenu .op5-spec-mrfoxy-mainmenu-action {
+	margin: 5px;
+	padding: 5px;
+	text-align: center;
+	color: rgb(255, 255, 255);
+	text-shadow: 1px 1px rgb(0, 0, 0);
+	width: 104px;
+	height: 124px;
+	overflow: hidden;
+	cursor: pointer;
+	z-index: 1;
+	font-size: 14px;	
+}
+.op5-spec-mrfoxy-mainmenu .op5-spec-mrfoxy-mainmenu-item-over .op5-spec-mrfoxy-mainmenu-action {
+	background-color: rgb(37, 68, 93);
+	border: 1px solid rgb(221, 221, 221);
+	padding: 4px;
+	-moz-border-radius: 10px;
+	border-radius: 10px !important;
+	z-index: 2;
+}
+.op5-spec-mrfoxy-mainmenu .op5-spec-mrfoxy-mainmenu-action-icon {
+	width: 64px;
+	height: 64px;
+	margin: 10px auto;
+}
+
+
+.op5-spec-mrfoxy-promoformheader {
+	background-color: rgb(37, 68, 93);
+	border: 1px solid rgb(221, 221, 221);
+	-moz-border-radius: 10px;
+	border-radius: 10px !important;
+	z-index: 2;
+	
+	text-align: left;
+	padding: 16px 24px ;
+}
+.op5-spec-mrfoxy-promoformheader-icon {
+	position: absolute ;
+	background-image: url("../images/modules/mrfoxy-promotion-64.png") !important;
+	top:0px;
+	left:24px ;
+	width:64px ;
+	height:100% ;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+.op5-spec-mrfoxy-promoformheader-close {
+	position: absolute ;
+	background-image: url("../images/op5img/ico_cancel_small.gif") !important;
+	top:16px;
+	right:16px ;
+	width:16px ;
+	height:16px ;
+	background-position: center center;
+	background-repeat: no-repeat;
+	cursor: pointer;
+}
+.op5-spec-mrfoxy-promoformheader-title {
+	position: relative ;
+	padding-left: 96px ;
+	margin-bottom: 8px ;
+	font-size: 18px;
+	font-weight: bold;
+	color: #eeeeee ;
+}
+.op5-spec-mrfoxy-promoformheader-caption {
+	position: relative ;
+	padding-left: 112px ;
+	margin-bottom: 4px ;
+	font-size: 14px;
+	color: #ffffff ;
+}
+.op5-spec-mrfoxy-promoformheader-captiontitle {
+	position: absolute ;
+	top:0px ;
+	bottom:0px ;
+	width: 100% ;
+}
+.op5-spec-mrfoxy-promoformheader-captionbody {
+	position: relative ;
+	padding-left: 64px ;
+	font-weight: bold ;
+}
+.op5-spec-mrfoxy-promoformheader-captionicon {
+	position: absolute ;
+	left: 64px ;
+	top: 0px ;
+	width: 16px ;
+	height: 16px ;
+	background-repeat: no-repeat ;
+}
+.op5-spec-mrfoxy-promoformheader-captionicontext {
+	position: relative ;
+	padding-left: 20px ;
+}
+

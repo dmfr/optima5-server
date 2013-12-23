@@ -45,6 +45,7 @@
 	},{
 		"enabled":true,
 		"moduleId":"spec_wb_mrfoxy",
+		"backendModuleId":"crmbase",
 		"parentModuleId":"crmbase",
 		"moduleName":"(Wonderful) Mr Foxy",
 		"moduleClass":"Optima5.Modules.Spec.WbMrfoxy.WbMrfoxyModule",
