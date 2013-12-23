@@ -14,10 +14,26 @@ Ext.define('Ext.ux.dams.ColorCombo', {
 					'<div class="x-boundlist-item ux-color-combo-item ">',
 					'{' + me.displayField + '}',
 					'</div>',
-					'<div class="ux-color-combo-icon {' + me.iconClsField + '}" style="background-color:{' + me.iconColorField + '}"></div>',
+					'<div class="ux-color-combo-icon {' + me.iconClsField + '}" style="',
+					'<tpl if="this.hasIconUrlField()">',
+						'background-image: url({' + me.iconUrlField + '});',
+					'</tpl>',
+					'<tpl if="this.hasIconColorField()">',
+						'background-color:{' + me.iconColorField + '};',
+					'</tpl>',
+					'"></div>',
 					'</div>',
 				'</tpl>',
-				{ compiled: true, disableFormats: true }
+				{
+					compiled: true,
+					disableFormats: true, 
+					hasIconUrlField: function() { 
+						return (me.iconUrlField ? true : false) ;
+					},
+					hasIconColorField: function() {
+						return (me.iconColorField ? true : false) ;
+					}
+				}
 			),
 			fieldSubTpl: [
 				'<div class="ux-color-combo-wrap">',
@@ -43,6 +59,9 @@ Ext.define('Ext.ux.dams.ColorCombo', {
 		});        
 		
 		me.callParent(arguments);    
+		me.store.on('datachanged',function(){
+			me.onStoreLoadData() ;
+		},me);
 	},
 		
 	setIconCls: function() {
@@ -52,7 +71,6 @@ Ext.define('Ext.ux.dams.ColorCombo', {
 				if( this.iconColorField ) {
 					var newColor = rec.get(this.iconColorField);
 					this.iconClsEl.dom.style.backgroundColor=newColor ;
-					//this.iconClsEl.dom.style.background = "url('images/op5img/ico_cancel_small.gif') no-repeat center center" ;
 				}
 				if( this.iconClsField ) {
 					var newIconCls = rec.get(this.iconClsField);
@@ -61,6 +79,10 @@ Ext.define('Ext.ux.dams.ColorCombo', {
 					}
 					this.currentIconCls = newIconCls ;
 					this.iconClsEl.addCls( newIconCls ) ;
+				}
+				if( this.iconUrlField ) {
+					var iconUrl = rec.get(this.iconUrlField);
+					this.iconClsEl.dom.style.background="url(" + iconUrl + ") no-repeat center center" ;
 				}
 			}
 		} else {
@@ -97,5 +119,10 @@ Ext.define('Ext.ux.dams.ColorCombo', {
 	getValue: function() {
 		var me = this ;
 		return me.cachedValue ;
+	},
+	
+	onStoreLoadData: function() {
+		var me = this ;
+		me.setValue( me.cachedValue ) ;
 	}
 });
