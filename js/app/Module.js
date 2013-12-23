@@ -10,6 +10,7 @@ Ext.define('Optima5.Module',{
 	app: null,
 	
 	moduleId : '',
+	backendModuleId : '',
 	sdomainId : null,
 	moduleParams : null,
 	
@@ -191,7 +192,7 @@ Ext.define('Optima5.Module',{
 		var me = this,
 			obj = {
 				_sessionId: me.app.desktopGetSessionId(),
-				_moduleId: me.moduleId
+				_moduleId: ( ( me.backendModuleId != null && me.backendModuleId != '' ) ? me.backendModuleId : me.moduleId )
 			} ;
 		if( me.sdomainId != null ) {
 			obj['_sdomainId'] = me.sdomainId

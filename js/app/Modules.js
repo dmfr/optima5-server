@@ -22,6 +22,7 @@ Ext.define('OptimaModuleDescModel', {
 	fields: [
 		{name: 'enabled',   type: 'boolean'},
 		{name: 'moduleId',   type: 'string'},
+		{name: 'backendModuleId',   type: 'string'},
 		{name: 'parentModuleId',   type: 'string'},
 		{name: 'moduleName', type: 'string'},
 		{name: 'moduleType', type: 'string'},

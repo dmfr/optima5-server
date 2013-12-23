@@ -700,6 +700,11 @@ Ext.define('Optima5.App',{
 				return ;
 			}
 		}
+		if( moduleRecord.get('backendModuleId') != null ) {
+			Ext.apply(moduleCfg,{
+				backendModuleId: moduleRecord.get('backendModuleId')
+			}) ;
+		}
 		
 		
 		// same module already started ?
