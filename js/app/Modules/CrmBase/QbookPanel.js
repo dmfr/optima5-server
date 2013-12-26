@@ -152,14 +152,17 @@ Ext.define('Optima5.Modules.CrmBase.QbookPanel' ,{
 	transaction_id : 0 ,
 	qbook_id      : 0 ,
 	qbook_name    : '',
+
 	backend_file_code : null,
+	inputvarStore: null,
+	qobjStore: null,
+	valueStore: null,
 	
 	bibleQobjsStore: null,
 	bibleFilesTreefields: null,
 	
-	inputvarStore: null,
-	qobjStore: null,
-	valueStore: null,
+	qsrcFileCode: null,
+	qsrcFilerecordId: null,
 	
 	initComponent: function() {
 		var me = this ;
@@ -171,10 +174,52 @@ Ext.define('Optima5.Modules.CrmBase.QbookPanel' ,{
 			border: false,
 			layout: 'accordion',
 			//autoDestroy: true,
-			items:[]
+			items:[],
+			listeners: {
+				render: me.onPanelRender,
+				scope: me
+			}
 		}) ;
 		
+		me.addEvents('querysaved') ;
+		me.addEvents('backendfilerecordchange','selectbackendfile') ; // BackendFile mgmt
+		me.addEvents('qbookztemplatechange') ;  // Floating panel to load/save ztemplates
+		
 		me.callParent() ;
+	},
+	onPanelRender: function(panel) {
+		var me = this ;
+		
+		var gridPanelDropTargetEl =  panel.body.dom;
+
+		var gridPanelDropTarget = Ext.create('Ext.dd.DropTarget', gridPanelDropTargetEl, {
+			ddGroup: 'FilerecordToAnything',
+			notifyEnter: function(ddSource, e, data) {
+				//Add some flare to invite drop.
+				panel.body.mask();
+			},
+			notifyOut: function() {
+				panel.body.unmask() ;
+			},
+			notifyDrop: function(ddSource, e, data){
+				panel.body.unmask() ;
+				
+				// Reference the record (single selection) for readability
+				var dragRecord = ddSource.dragData.records[0],
+					dragRecordClass = Ext.getClassName(dragRecord) ;
+				if( dragRecordClass.indexOf('FileGrid-') != 0 ) {
+					return false ;
+				}
+				var fileCode = dragRecordClass.substr('FileGrid-'.length) ;
+				if( fileCode != me.backend_file_code ) {
+					return false ;
+				}
+				
+				me.onDropFilerecord( fileCode, dragRecord.get('filerecord_id') ) ;
+				
+				return true;
+			}
+		});
 	},
 	
 	qbookNew: function() {
@@ -435,6 +480,19 @@ Ext.define('Optima5.Modules.CrmBase.QbookPanel' ,{
 		var me = this ;
 		me.backend_file_code = backendFileCode ;
 		me.fireEvent('selectbackendfile',backendFileCode) ; //relay event
+		me.releaseFilerecord() ;
+	},
+	onDropFilerecord: function(fileCode, filerecordId) {
+		var me = this ;
+		me.qsrcFileCode = fileCode ;
+		me.qsrcFilerecordId = filerecordId ;
+		me.fireEvent('backendfilerecordchange',fileCode,filerecordId) ;
+	},
+	releaseFilerecord: function() {
+		var me = this ;
+		me.qsrcFileCode = null ;
+		me.qsrcFilerecordId = null ;
+		me.fireEvent('backendfilerecordchange',null,null) ;
 	},
 	
 	prepareSubmit: function() {
@@ -496,7 +554,11 @@ Ext.define('Optima5.Modules.CrmBase.QbookPanel' ,{
 				break ;
 				
 			case 'run' :
-				me.remoteActionSubmit( me.remoteActionRun, me ) ;
+				var runParams = {} ;
+				if( Ext.isObject(actionParam) && actionParam.qbookZtemplateSsid ) {
+					runParams['qbookZtemplateSsid'] = actionParam.qbookZtemplateSsid ;
+				}
+				me.remoteActionSubmit( me.remoteActionRun, me, runParams ) ;
 				break ;
 				
 			default :
@@ -658,7 +720,7 @@ Ext.define('Optima5.Modules.CrmBase.QbookPanel' ,{
 			scope: me
 		});
 	},
-	remoteActionRun: function() {
+	remoteActionRun: function( runParams ) {
 		var me = this ;
 		var msgbox = Ext.Msg.wait('Running query. Please Wait.');
 		
@@ -668,6 +730,16 @@ Ext.define('Optima5.Modules.CrmBase.QbookPanel' ,{
 			_transaction_id: me.transaction_id ,
 			_subaction: 'run'
 		});
+		if( me.backend_file_code != null && me.backend_file_code != '' ) {
+			if( me.qsrcFilerecordId != null ) {
+				Ext.apply(ajaxParams,{
+					qsrc_filerecord_id: me.qsrcFilerecordId
+				}) ;
+			} else {
+				Ext.Msg.alert('Missing src filerecord', 'Drag & drop filerecord to specify source file');
+				return ;
+			}
+		}
 		
 		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams ,
@@ -683,13 +755,13 @@ Ext.define('Optima5.Modules.CrmBase.QbookPanel' ,{
 				}
 				else {
 					// do something to open window
-					me.openQueryResultPanel( ajaxData.RES_id ) ;
+					me.openQueryResultPanel( ajaxData.RES_id, runParams.qbookZtemplateSsid ) ;
 				}
 			},
 			scope: me
 		});
 	},
-	openQueryResultPanel: function( resultId ) {
+	openQueryResultPanel: function( resultId, qbookZtemplateSsid ) {
 		var me = this ;
 		
 		var baseAjaxParams = new Object() ;
@@ -701,7 +773,8 @@ Ext.define('Optima5.Modules.CrmBase.QbookPanel' ,{
 		var queryResultPanel = Ext.create('Optima5.Modules.CrmBase.QueryResultPanel',{
 			optimaModule:me.optimaModule,
 			ajaxBaseParams: baseAjaxParams,
-			RES_id: resultId
+			RES_id: resultId,
+			qbook_ztemplate_ssid: qbookZtemplateSsid
 		}) ;
 		me.optimaModule.createWindow({
 			title:me.qbook_name ,

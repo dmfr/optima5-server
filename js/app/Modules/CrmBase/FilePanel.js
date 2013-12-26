@@ -420,7 +420,15 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 				store: gridstore,   // same store GridPanel is using
 				dock: 'bottom',
 				displayInfo: true
-			}]
+			}],
+			viewConfig:{
+				plugins: {
+					ddGroup: 'FilerecordToAnything',
+					ptype: 'gridviewdragdrop',
+					enableDrag: true,
+					enableDrop: false
+				}
+			}
 		}) ;
 		
 		

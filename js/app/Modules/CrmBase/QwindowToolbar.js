@@ -6,9 +6,13 @@ Ext.define('Optima5.Modules.CrmBase.QwindowToolbar',{
 	initComponent: function() {
 		var me = this ;
 		Ext.apply( this , {
+			defaults: {
+				hidden:true
+			},
 			items : [{
 				itemId: 'file',
 				text: 'File',
+				hidden:false,
 				iconCls: 'op5-crmbase-qtoolbar-file',
 				viewConfig: {forceFit: true},
 				menu: {
@@ -53,6 +57,11 @@ Ext.define('Optima5.Modules.CrmBase.QwindowToolbar',{
 				iconCls: 'op5-crmbase-qtoolbar-run',
 				handler: me.onButtonClick,
 				scope: me
+			},{
+				itemId: 'run-qbook',
+				text: 'Run Qbook',
+				iconCls: 'op5-crmbase-qtoolbar-run',
+				menu: []
 			},{
 				itemId: 'options',
 				text: 'Options',

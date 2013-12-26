@@ -30,6 +30,15 @@ Ext.define('Optima5.Modules.CrmBase.QbookSubpanelInput' ,{
 					//textCaption: '',
 					iconCls: 'op5-crmbase-waitcircle',
 					menu: []
+				},{
+					itemId: 'box-filerecordtxt',
+					xtype:'box',
+					style: {
+						color: '#f00',
+						fontWeight: 'bold',
+						padding: '0px 4px'
+					},
+					html: '&#160;'
 				}],
 				store: {
 					model: 'QueryFieldsTreeModel',
@@ -152,6 +161,9 @@ Ext.define('Optima5.Modules.CrmBase.QbookSubpanelInput' ,{
 				border:false
 			}]
 		}) ;
+		
+		// Bind events to parent panel
+		me.mon( me.getQbookPanel(), 'backendfilerecordchange', me.onPickBackendFilerecord, me );
 		
 		me.callParent() ;
 		me.initFiles() ;
@@ -290,6 +302,20 @@ Ext.define('Optima5.Modules.CrmBase.QbookSubpanelInput' ,{
 		if( !doSilent ) {
 			me.fireEvent('selectbackendfile',backendFileCode) ;
 		}
+	},
+	onPickBackendFilerecord: function( fileCode, filerecordId ) {
+		var me = this,
+			filerecordTxtBox = me.getComponent('pFieldsTree').child('toolbar').child('#box-filerecordtxt') ;
+		
+		if( filerecordId == null ) {
+			filerecordTxtBox.update('&#160;') ;
+			return ;
+		}
+		if( me.backendFileCode != fileCode ) {
+			filerecordTxtBox.update('WARN !') ;
+			return ;
+		}
+		filerecordTxtBox.update('# '+filerecordId) ;
 	},
 	
 	

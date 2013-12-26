@@ -157,6 +157,12 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 										me.close();
 									}
 								},
+								qbookztemplatechange: function() {
+									me.configureComponents(true) ;
+								},
+								backendfilerecordchange: function(qbookPanel, fileCode, filerecordId) {
+									me.setToolbarQbookBackendFilerecord(fileCode,filerecordId) ;
+								},
 								scope:me
 							}
 						})]
@@ -319,7 +325,8 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 			success: function(response) {
 				var ajaxData = Ext.decode(response.responseText),
 					winTitle,
-					tbarDisableFile=false, tbarIsNew=false, tbarDisableSave=false, tbarIsPublished=false ;
+					tbarDisableFile=false, tbarIsNew=false, tbarDisableSave=false, tbarIsPublished=false,
+					qbookArrZtemplate = null ;
 				
 				var authReadOnly=false,
 						authDisableAdmin=false;
@@ -384,6 +391,7 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 									if( o.isPublished ) {
 										tbarDisableSave = tbarIsPublished = true ;
 									}
+									qbookArrZtemplate = o.arr_ztemplate ;
 									return false ;
 								}
 							});
@@ -410,6 +418,7 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 				
 				// ** Configure toolbar **
 				var tbar = me.getToolbar() ;
+				
 				var tbarFileMenu = tbar.child('#file') ;
 				tbarFileMenu.setVisible(!tbarDisableFile && !authReadOnly) ;
 				tbarFileMenu.menu.child('#save').setVisible(!tbarIsNew);
@@ -418,6 +427,46 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 				tbarFileMenu.menu.child('#saveas').setDisabled(false);
 				tbarFileMenu.menu.child('#delete').setDisabled(!tbarIsNew);
 				tbarFileMenu.menu.child('#delete').setDisabled(tbarDisableSave);
+				
+				var tbarRunBtn = tbar.child('#run'),
+					tbarRunQbookMenu = tbar.child('#run-qbook'),
+					isQbook = (me.qType=='qbook') ;
+				tbarRunBtn.setVisible( !isQbook ) ;
+				tbarRunQbookMenu.setVisible( isQbook ) ;
+				if( isQbook ) {
+					var runQbookMenuItems = [] ;
+					if( true ) {
+						runQbookMenuItems.push({
+							itemId: 'txtBackendFilerecord',
+							text: 'No current filerecord',
+							disabled: true
+						}) ;
+						runQbookMenuItems.push('-') ;
+					}
+					runQbookMenuItems.push({
+						itemId: 'run',
+						text: 'Run Query',
+						iconCls: 'op5-crmbase-qtoolbar-run',
+						handler: tbar.onItemClick,
+						scope: tbar
+					});
+					if( qbookArrZtemplate.length > 0 ) {
+						runQbookMenuItems.push('-') ;
+						for( var i=0 ; i<qbookArrZtemplate.length ; i++ ) {
+							runQbookMenuItems.push({
+								itemId: 'run-ztemplate-'+qbookArrZtemplate[i]['qbook_ztemplate_ssid'],
+								text: qbookArrZtemplate[i]['ztemplate_name'],
+								iconCls: 'op5-crmbase-qtoolbar-ztemplate',
+								handler: tbar.onItemClick,
+								scope: tbar
+							});
+						}
+					}
+					
+					tbarRunQbookMenu.menu.removeAll() ;
+					tbarRunQbookMenu.menu.add(runQbookMenuItems) ;
+				}
+				
 				var tbarOptionsMenu = tbar.child('#options') ;
 				tbarOptionsMenu.setVisible(!tbarIsNew && !authDisableAdmin);
 				if( tbarIsPublished ) {
@@ -430,6 +479,24 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 			},
 			scope: me
 		});
+	},
+	setToolbarQbookBackendFilerecord: function( fileCode, filerecordId ) {
+		var me = this,
+			tbar = me.getToolbar(),
+			tbarRunQbookMenu = tbar.child('#run-qbook').menu,
+			backendFilerecordMenuItem = tbarRunQbookMenu.child('#txtBackendFilerecord') ;
+		
+		if( backendFilerecordMenuItem == null ) {
+			return ;
+		}
+		
+		if( filerecordId == null ) {
+			backendFilerecordMenuItem.setText( 'No current filerecord' ) ;
+			backendFilerecordMenuItem.setDisabled(true) ;
+		}
+		
+		backendFilerecordMenuItem.setText( fileCode+' :: #'+filerecordId ) ;
+		backendFilerecordMenuItem.setDisabled(false) ;
 	},
 	
 	onToolbarItemClick: function( menuId, menuItemId, input ) {
@@ -451,6 +518,16 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 				
 			case 'run' :
 				return me.getPanel().remoteAction('run') ;
+				
+			case 'run-qbook' :
+				if( menuItemId == 'run' ) {
+					return me.getPanel().remoteAction('run') ;
+				}
+				var splitMenuItemId = menuItemId.split('-') ;
+				if( splitMenuItemId.length == 3 && splitMenuItemId[1] == 'ztemplate' ) {
+					return me.getPanel().remoteAction('run',{qbookZtemplateSsid:splitMenuItemId[2]}) ;
+				}
+				return null ;
 				
 			case 'options' :
 				switch( menuItemId ) {

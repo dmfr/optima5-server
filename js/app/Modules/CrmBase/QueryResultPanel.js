@@ -26,6 +26,11 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			Ext.apply(me.ajaxBaseParams,{
 				RES_id: me.RES_id
 			});
+			if( me.qbook_ztemplate_ssid ) {
+				Ext.apply(me.ajaxBaseParams,{
+					qbook_ztemplate_ssid: me.qbook_ztemplate_ssid
+				});
+			}
 		}
 		
 		Ext.apply( me, {

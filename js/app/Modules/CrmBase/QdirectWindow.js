@@ -143,17 +143,12 @@ Ext.define('Optima5.Modules.CrmBase.QdirectWindow' ,{
 			_action: me.getAjaxAction(),
 			_transaction_id : qdirectTransactionId
 		});
-		if( me.qbookZtemplateSsid != null && me.qbookZtemplateSsid > 0 ) {
-			Ext.apply( baseAjaxParams, {
-				_action: me.getAjaxAction(),
-				qbook_ztemplate_ssid : me.qbookZtemplateSsid
-			});
-		}
 		
 		var queryResultPanel = Ext.create('Optima5.Modules.CrmBase.QueryResultPanel',{
 			optimaModule:me.optimaModule,
 			ajaxBaseParams: baseAjaxParams,
-			RES_id: qdirestResId
+			RES_id: qdirestResId,
+			qbook_ztemplate_ssid: me.qbookZtemplateSsid
 		}) ;
 		me.removeAll() ;
 		me.add(queryResultPanel) ;

@@ -165,6 +165,9 @@
 .op5-crmbase-qtoolbar-run {
 	background-image: url("../images/modules/crmbase-process-16.gif") !important;
 }
+.op5-crmbase-qtoolbar-ztemplate {
+	background-image: url("../images/modules/crmbase-planet-16.png") !important;
+}
 .op5-crmbase-qtoolbar-options {
 	background-image: url("../images/modules/crmbase-config-16.gif") !important;
 }
