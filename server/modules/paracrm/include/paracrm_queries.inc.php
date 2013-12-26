@@ -179,6 +179,13 @@ function paracrm_queries_getToolbarData( $post_data )
 			$arr['authReadOnly'] = TRUE ;
 		}
 		
+		$arr['arr_ztemplateName'] = array() ;
+		$query = "SELECT qbook_ztemplate_ssid, ztemplate_name FROM qbook_ztemplate WHERE qbook_id='$qbook_id' ORDER BY ztemplate_name" ;
+		$res2 = $_opDB->query($query) ;
+		while( ($arr2 = $_opDB->fetch_assoc($res2)) ) {
+			$arr['arr_ztemplate'][] = $arr2 ;
+		}
+		
 		if( in_array($qbook_id,$arr_pub_qbook) ) {
 			$arr['isPublished'] = TRUE ;
 		}
