@@ -33,11 +33,7 @@ Ext.define('Optima5.Modules.CrmBase.QbookSubpanelInput' ,{
 				},{
 					itemId: 'box-filerecordtxt',
 					xtype:'box',
-					style: {
-						color: '#f00',
-						fontWeight: 'bold',
-						padding: '0px 4px'
-					},
+					cls: 'op5-crmbase-qbook-srcfilerecord-box',
 					html: '&#160;'
 				}],
 				store: {
@@ -311,10 +307,12 @@ Ext.define('Optima5.Modules.CrmBase.QbookSubpanelInput' ,{
 			filerecordTxtBox.update('&#160;') ;
 			return ;
 		}
+		
 		if( me.backendFileCode != fileCode ) {
 			filerecordTxtBox.update('WARN !') ;
 			return ;
 		}
+		
 		filerecordTxtBox.update('# '+filerecordId) ;
 	},
 	

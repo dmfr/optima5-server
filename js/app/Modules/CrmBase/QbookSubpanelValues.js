@@ -227,7 +227,6 @@ Ext.define('Optima5.Modules.CrmBase.QbookSubpanelValues' ,{
 		if( backendFileCode == null || backendFileCode == '' 
 			|| typeof me.getQbookPanel().bibleFilesTreefields[backendFileCode] === 'undefined'
 		) {
-			console.log('none') ;
 			bEastTree.setVisible(false) ;
 			bEastTree.setRootNode({
 				root:true,

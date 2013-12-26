@@ -160,7 +160,7 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 								qbookztemplatechange: function() {
 									me.configureComponents(true) ;
 								},
-								backendfilerecordchange: function(qbookPanel, fileCode, filerecordId) {
+								backendfilerecordchange: function(fileCode, filerecordId) {
 									me.setToolbarQbookBackendFilerecord(fileCode,filerecordId) ;
 								},
 								scope:me
@@ -450,7 +450,7 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 						handler: tbar.onItemClick,
 						scope: tbar
 					});
-					if( qbookArrZtemplate.length > 0 ) {
+					if( qbookArrZtemplate != null && qbookArrZtemplate.length > 0 ) {
 						runQbookMenuItems.push('-') ;
 						for( var i=0 ; i<qbookArrZtemplate.length ; i++ ) {
 							runQbookMenuItems.push({
@@ -491,10 +491,13 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 		}
 		
 		if( filerecordId == null ) {
+			backendFilerecordMenuItem.removeCls('op5-crmbase-qbook-srcfilerecord-menuitem') ;
 			backendFilerecordMenuItem.setText( 'No current filerecord' ) ;
 			backendFilerecordMenuItem.setDisabled(true) ;
+			return ;
 		}
 		
+		backendFilerecordMenuItem.addCls('op5-crmbase-qbook-srcfilerecord-menuitem') ;
 		backendFilerecordMenuItem.setText( fileCode+' :: #'+filerecordId ) ;
 		backendFilerecordMenuItem.setDisabled(false) ;
 	},

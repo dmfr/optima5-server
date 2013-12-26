@@ -174,12 +174,10 @@ Ext.define('Optima5.Modules.CrmBase.QbookPanel' ,{
 			border: false,
 			layout: 'accordion',
 			//autoDestroy: true,
-			items:[],
-			listeners: {
-				render: me.onPanelRender,
-				scope: me
-			}
+			items:[]
 		}) ;
+		
+		me.on('render',me.onPanelRender,me,{single:true}) ;
 		
 		me.addEvents('querysaved') ;
 		me.addEvents('backendfilerecordchange','selectbackendfile') ; // BackendFile mgmt

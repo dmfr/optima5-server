@@ -172,6 +172,17 @@
 	background-image: url("../images/modules/crmbase-config-16.gif") !important;
 }
 
+.op5-crmbase-qbook-srcfilerecord-box {
+	padding-left: 4px ;
+	padding-right: 4px ;
+	color: #f00 ;
+	font-weight: bold ;
+}
+.op5-crmbase-qbook-srcfilerecord-menuitem .x-menu-item-text {
+	color: #f00 ;
+	font-weight: bold ;
+}
+
 .op5-crmbase-qresultwindow-icon {
 	background-image: url("../images/modules/crmbase-camera-16.png") !important;
 }
