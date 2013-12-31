@@ -168,6 +168,9 @@
 .op5-crmbase-qtoolbar-ztemplate {
 	background-image: url("../images/modules/crmbase-planet-16.png") !important;
 }
+.op5-crmbase-qtoolbar-ztemplates {
+	background-image: url("../images/modules/crmbase-bookmark-16.png") !important;
+}
 .op5-crmbase-qtoolbar-options {
 	background-image: url("../images/modules/crmbase-config-16.gif") !important;
 }
@@ -181,6 +184,19 @@
 .op5-crmbase-qbook-srcfilerecord-menuitem .x-menu-item-text {
 	color: #f00 ;
 	font-weight: bold ;
+}
+
+.op5-crmbase-qbookztemplates-new {
+	background-image: url("../images/modules/crmbase-new-16.gif") !important;
+}
+.op5-crmbase-qbookztemplate-save {
+	background-image: url("../images/modules/crmbase-save-16.gif") !important;
+}
+.op5-crmbase-qbookztemplate-dl {
+	background-image: url("../images/modules/crmbase-download-16.png") !important;
+}
+.op5-crmbase-qbookztemplate-delete {
+	background-image: url("../images/modules/crmbase-delete-16.gif") !important;
 }
 
 .op5-crmbase-qresultwindow-icon {

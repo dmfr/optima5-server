@@ -467,6 +467,9 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 					tbarRunQbookMenu.menu.add(runQbookMenuItems) ;
 				}
 				
+				var tbarZtemplatesBtn = tbar.child('#ztemplates') ;
+				tbarZtemplatesBtn.setVisible(isQbook) ;
+				
 				var tbarOptionsMenu = tbar.child('#options') ;
 				tbarOptionsMenu.setVisible(!tbarIsNew && !authDisableAdmin);
 				if( tbarIsPublished ) {
@@ -529,6 +532,12 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 				var splitMenuItemId = menuItemId.split('-') ;
 				if( splitMenuItemId.length == 3 && splitMenuItemId[1] == 'ztemplate' ) {
 					return me.getPanel().remoteAction('run',{qbookZtemplateSsid:splitMenuItemId[2]}) ;
+				}
+				return null ;
+				
+			case 'ztemplates' :
+				if( (me.qType=='qbook') && typeof me.getPanel().doZtemplates == 'function' ) {
+					me.getPanel().doZtemplates() ;
 				}
 				return null ;
 				

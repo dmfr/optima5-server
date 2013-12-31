@@ -63,6 +63,13 @@ Ext.define('Optima5.Modules.CrmBase.QwindowToolbar',{
 				iconCls: 'op5-crmbase-qtoolbar-run',
 				menu: []
 			},{
+				itemId: 'ztemplates',
+				text: 'Ztemplates',
+				iconCls: 'op5-crmbase-qtoolbar-ztemplates',
+				menu: [],
+				handler:me.onButtonClick,
+				scope: me
+			},{
 				itemId: 'options',
 				text: 'Options',
 				iconCls: 'op5-crmbase-qtoolbar-options',

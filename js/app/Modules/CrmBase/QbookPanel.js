@@ -136,6 +136,16 @@ Ext.define('QbookValueModel', {
 	}]
 });
 
+Ext.define('QbookZtemplateModel', {
+	extend: 'Ext.data.Model',
+	fields: [
+		{name: 'qbook_ztemplate_ssid',  type: 'int'},
+		{name: 'ztemplate_name',  type: 'string'},
+		{name: 'ztemplate_metadata_filename',   type: 'string'},
+		{name: 'ztemplate_metadata_date',   type: 'string'}
+	]
+});
+
 
 Ext.define('Optima5.Modules.CrmBase.QbookPanel' ,{
 	extend: 'Ext.panel.Panel',
@@ -145,7 +155,8 @@ Ext.define('Optima5.Modules.CrmBase.QbookPanel' ,{
 	requires: [
 		'Optima5.Modules.CrmBase.QbookSubpanelInput',
 		'Optima5.Modules.CrmBase.QbookSubpanelQprocess',
-		'Optima5.Modules.CrmBase.QbookSubpanelValues'
+		'Optima5.Modules.CrmBase.QbookSubpanelValues',
+		'Optima5.Modules.CrmBase.QbookZtemplatesPanel'
 	] ,
 			  
 	
@@ -527,7 +538,46 @@ Ext.define('Optima5.Modules.CrmBase.QbookPanel' ,{
 		},me) ;
 		// ----------------
 	},
-
+	
+	doZtemplates: function() {
+		var me = this ;
+		
+		// Create panel
+		if( !me.ztemplatesPanel ) {
+			me.ztemplatesPanel = Ext.create('Optima5.Modules.CrmBase.QbookZtemplatesPanel',{
+				parentQbookPanel: me,
+				width:800, // dummy initial size, for border layout to work
+				height:600, // ...
+				floating: true,
+				renderTo: me.getEl(),
+				tools: [{
+					type: 'close',
+					handler: function(e, t, p) {
+						p.ownerCt.hide();
+					}
+				}]
+			});
+			
+			me.ztemplatesPanel.mon(me,'resize', function() {
+				me.ztemplatesPanel.setSizeFromParent() ;
+			},me) ;
+		}
+		// Size + position
+		me.ztemplatesPanel.setSizeFromParent() ;
+		me.ztemplatesPanel.on('hide',function() {
+			me.getEl().unmask() ;
+			me.fireEvent('qbookztemplatechange') ;
+		},me,{single:true}) ;
+		me.getEl().mask() ;
+		
+		/*
+		me.ztemplatesPanel.setElementtabIdx( rowIdx ) ;
+		*/
+		
+		me.ztemplatesPanel.show();
+		me.ztemplatesPanel.getEl().alignTo(me.getEl(), 't-t?',[0,50]);
+	},
+	
 	
 	remoteAction: function( actionCode, actionParam ) {
 		var me = this ;
