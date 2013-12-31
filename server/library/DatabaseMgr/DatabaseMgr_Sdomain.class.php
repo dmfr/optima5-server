@@ -4,7 +4,7 @@ class DatabaseMgr_Sdomain {
 	private $_opDB ;
 	private $domain_id ;
 	
-	private static $dbVersion = 13 ;
+	private static $dbVersion = 14 ;
 	
 	public function __construct( $domain_id ) {
 		$this->_opDB = $GLOBALS['_opDB'] ;
@@ -371,6 +371,8 @@ CREATE TABLE `qbook_ztemplate` (
   `qbook_id` int(11) NOT NULL,
   `qbook_ztemplate_ssid` int(11) NOT NULL,
   `ztemplate_name` varchar(100) NOT NULL,
+  `ztemplate_metadata_filename` varchar(100) NOT NULL,
+  `ztemplate_metadata_date` datetime NOT NULL,
   `ztemplate_resource_binary` longblob NOT NULL,
   PRIMARY KEY (`qbook_id`,`qbook_ztemplate_ssid`)
 ) ;

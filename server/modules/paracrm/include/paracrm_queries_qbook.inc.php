@@ -1,6 +1,8 @@
 <?php
 function paracrm_queries_qbookTransaction( $post_data )
 {
+	global $_opDB ;
+	
 	if( $post_data['_action'] == 'queries_qbookTransaction' && $post_data['_subaction'] == 'init' )
 	{
 		// ouverture transaction
@@ -12,6 +14,8 @@ function paracrm_queries_qbookTransaction( $post_data )
 		$arr_saisie = array() ;
 		$_SESSION['transactions'][$transaction_id]['arr_saisie'] = $arr_saisie ;
 		$_SESSION['transactions'][$transaction_id]['arr_RES'] = array() ;
+		
+		$_SESSION['transactions'][$transaction_id]['tmp_ztemplateResourceBinary'] = NULL ;
 		
 		$post_data['_transaction_id'] = $transaction_id ;
 	}
@@ -56,6 +60,111 @@ function paracrm_queries_qbookTransaction( $post_data )
 			}
 		}
 		
+		
+		switch( $post_data['_subaction'] ) {
+			case 'ztplman_getZtemplatesList' :
+				$qbook_id = $arr_saisie['qbook_id'] ;
+				$query = "SELECT * FROM qbook_ztemplate
+							WHERE qbook_id='{$qbook_id}' ORDER BY ztemplate_name" ;
+				$result = $_opDB->query($query) ;
+				$tab_data = array() ;
+				while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+					unset($arr['qbook_id']) ;
+					unset($arr['ztemplate_resource_binary']) ;
+					$tab_data[] = $arr ;
+				}
+				$json = array(
+					'success'=>true,
+					'data'=>$tab_data
+				) ;
+				break ;
+			
+			case 'ztplman_dlZtemplateResource' :
+				$qbook_id = $arr_saisie['qbook_id'] ;
+				$qbook_ztemplate_ssid = $post_data['qbook_ztemplate_ssid'] ;
+				$query = "SELECT ztemplate_metadata_filename, ztemplate_resource_binary FROM qbook_ztemplate
+							WHERE qbook_id='{$qbook_id}' AND qbook_ztemplate_ssid='{$qbook_ztemplate_ssid}'" ;
+				$result = $_opDB->query($query) ;
+				$arr = $_opDB->fetch_assoc($result) ;
+				
+				$ztemplate_resource_binary = $arr['ztemplate_resource_binary'] ;
+				$filename = $arr['ztemplate_metadata_filename'] ;
+				
+				header("Content-Type: application/force-download; name=\"$filename\""); 
+				header("Content-Disposition: attachment; filename=\"$filename\""); 
+				echo $ztemplate_resource_binary ;
+				die() ;
+				break ;
+			
+			case 'ztplman_setZtemplate' :
+				$form_values = json_decode($post_data['form_values'],true) ;
+				$arr_update = array() ;
+				$arr_update['ztemplate_name'] = $form_values['ztemplate_name']  ;
+				if( $form_values['ztemplate_resource_upload'] == 'true' && $_SESSION['transactions'][$transaction_id]['tmp_ztemplateResourceBinary'] ) {
+					$arr_update['ztemplate_metadata_filename'] = $form_values['ztemplate_metadata_filename']  ;
+					$arr_update['ztemplate_metadata_date'] = $form_values['ztemplate_metadata_date']  ;
+					$arr_update['ztemplate_resource_binary'] = $_SESSION['transactions'][$transaction_id]['tmp_ztemplateResourceBinary']  ;
+					$has_upload = TRUE ;
+				}
+				switch( $post_data['edit_action'] ) {
+					case 'new' :
+						if( !$has_upload ) {
+							$json = array('success'=>false) ;
+							break 2 ;
+						}
+						$query = "SELECT max(qbook_ztemplate_ssid) FROM qbook_ztemplate WHERE qbook_id='{$arr_saisie['qbook_id']}'";
+						$arr_insert = array() ;
+						$arr_insert['qbook_id'] = $arr_saisie['qbook_id'] ;
+						$arr_insert['qbook_ztemplate_ssid'] = ($_opDB->query_uniqueValue($query) + 1) ;
+						$arr_insert += $arr_update ;
+						$_opDB->insert('qbook_ztemplate',$arr_insert) ;
+						break ;
+						
+					case 'edit' :
+						if( !$post_data['qbook_ztemplate_ssid'] ) {
+							$json = array('success'=>false) ;
+							break 2 ;
+						}
+						$arr_cond = array() ;
+						$arr_cond['qbook_id'] = $arr_saisie['qbook_id'] ;
+						$arr_cond['qbook_ztemplate_ssid'] = $post_data['qbook_ztemplate_ssid'] ;
+						$_opDB->update('qbook_ztemplate',$arr_update,$arr_cond) ;
+						break ;
+						
+					case 'delete' :
+						if( !$post_data['qbook_ztemplate_ssid'] ) {
+							$json = array('success'=>false) ;
+							break 2 ;
+						}
+						$query = "DELETE FROM qbook_ztemplate WHERE qbook_id='{$arr_saisie['qbook_id']}' AND qbook_ztemplate_ssid='{$post_data['qbook_ztemplate_ssid']}'";
+						$_opDB->query($query) ;
+						break ;
+						
+					default :
+						$json = array('success'=>false) ;
+						break 2 ;
+				}
+				
+				$json = array('success'=>true) ;
+				break ;
+			
+			case 'ztplman_uploadTmpResource' :
+				if( !$_FILES['ztemplate_resource_binary'] || !$_FILES['ztemplate_resource_binary']['tmp_name'] ) {
+					$json = array('success'=>false,'failure'=>"Failed to parse upload") ;
+					break ;
+				}
+				if( $_FILES['ztemplate_resource_binary']['type'] != 'text/html' ) {
+					$json = array('success'=>false,'failure'=>"Invalid file type ({$_FILES['ztemplate_resource_binary']['type']})") ;
+					break ;
+				}
+				$_SESSION['transactions'][$transaction_id]['tmp_ztemplateResourceBinary'] = file_get_contents($_FILES['ztemplate_resource_binary']['tmp_name']) ;
+				
+				$data = array() ;
+				$data['ztemplate_metadata_filename'] = $_FILES['ztemplate_resource_binary']['name'] ;
+				$data['ztemplate_metadata_date'] = date('Y-m-d H:i:s') ;
+				$json = array('success'=>true,'data'=>$data) ;
+				break ;
+		}
 		
 		
 		if( $post_data['_subaction'] == 'res_get' )
