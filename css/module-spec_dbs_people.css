@@ -1,0 +1,98 @@
+.op5-spec-dbspeople-icon-promotion {
+	background-image: url("../images/modules/dbspeople-rh-64.png") !important;
+}
+.op5-spec-dbspeople-icon-headlines {
+	background-image: url("../images/modules/dbspeople-real-64.png") !important;
+}
+.op5-spec-dbspeople-icon-promostore {
+	background-image: url("../images/modules/dbspeople-forecast-64.png") !important;
+}
+
+
+.op5-spec-dbspeople-mainmenu {
+	background: rgb(159, 159, 159);
+	background-attachment: scroll;
+	background-clip: border-box;
+	background-image: -ms-radial-gradient(center top, #4b7e98 0%, #1a334c 100%);
+	background-image: -moz-radial-gradient(center top, #4b7e98 0%, #1a334c 100%);
+	background-image: -webkit-gradient(radial, center top, 0, center top, 900, from(rgb(75, 126, 152)), to(rgb(26, 51, 76)));
+	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#4b7e98', endColorstr='#1a334c');
+	background-origin: padding-box;
+	background-position: 0 0;
+	background-repeat: repeat;
+	background-size: 100% 100%;
+	
+	text-align:center;
+}
+
+.op5-spec-dbspeople-mainmenu .op5-spec-dbspeople-mainmenu-item {
+	display:block;
+	position:absolute;
+}
+.op5-spec-dbspeople-mainmenu .op5-spec-dbspeople-mainmenu-header {
+	background-position: 0 0;
+	background-repeat: no-repeat;
+	background-image: url("../images/modules/dbspeople-mainmenu-logo.png") !important;
+	display:block;
+	width: 500px;
+	height: 93px;
+	margin: 20px ;
+}
+.op5-spec-dbspeople-mainmenu .op5-spec-dbspeople-mainmenu-separator {
+	padding: 5px;
+	margin: 0px 5px;
+	color: rgb(204, 204, 204);
+	border-bottom: 1px solid rgb(204, 204, 204);
+	display:block;
+	text-align:left;
+	font-size: 14px;
+}
+.op5-spec-dbspeople-mainmenu .op5-spec-dbspeople-mainmenu-action {
+	margin: 5px;
+	padding: 5px;
+	text-align: center;
+	color: rgb(255, 255, 255);
+	text-shadow: 1px 1px rgb(0, 0, 0);
+	width: 104px;
+	height: 124px;
+	overflow: hidden;
+	cursor: pointer;
+	z-index: 1;
+	font-size: 14px;	
+}
+.op5-spec-dbspeople-mainmenu .op5-spec-dbspeople-mainmenu-item-over .op5-spec-dbspeople-mainmenu-action {
+	background-color: rgb(37, 68, 93);
+	border: 1px solid rgb(221, 221, 221);
+	padding: 4px;
+	-moz-border-radius: 10px;
+	border-radius: 10px !important;
+	z-index: 2;
+}
+.op5-spec-dbspeople-mainmenu .op5-spec-dbspeople-mainmenu-action-icon {
+	width: 64px;
+	height: 64px;
+	margin: 10px auto;
+}
+
+.op5-spec-dbspeople-icon-absence {
+	background-position: center center;
+	background-repeat: no-repeat;
+	background-image: url("../images/modules/dbspeople-absence-16.png") !important;
+}
+.op5-spec-dbspeople-icon-move {
+	background-position: center center;
+	background-repeat: no-repeat;
+	background-image: url("../images/modules/dbspeople-move-16.png") !important;
+}
+.op5-spec-dbspeople-icon-role {
+	background-position: center center;
+	background-repeat: no-repeat;
+	background-image: url("../images/modules/dbspeople-role-16.png") !important;
+}
+.op5-spec-dbspeople-icon-team {
+	background-position: center center;
+	background-repeat: no-repeat;
+	background-image: url("../images/op5img/ico_kuser_16.gif") !important;
+}
+
+

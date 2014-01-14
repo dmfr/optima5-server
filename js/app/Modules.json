@@ -52,5 +52,15 @@
 		"moduleCssSrc":"module-spec_wb_myfoxy.css",
 		"moduleType":"sdomain",
 		"params": []
+	},{
+		"enabled":true,
+		"moduleId":"spec_dbs_people",
+		"backendModuleId":"crmbase",
+		"parentModuleId":"crmbase",
+		"moduleName":"(DBS) People",
+		"moduleClass":"Optima5.Modules.Spec.DbsPeople.DbsPeopleModule",
+		"moduleCssSrc":"module-spec_dbs_people.css",
+		"moduleType":"sdomain",
+		"params": []
 	}
 ]
