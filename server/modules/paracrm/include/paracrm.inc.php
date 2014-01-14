@@ -9,6 +9,7 @@ include("$server_root/modules/paracrm/include/paracrm_data_edit.inc.php") ;
 include("$server_root/modules/paracrm/include/paracrm_data_edit_bibletree.inc.php") ;
 include("$server_root/modules/paracrm/include/paracrm_data_edit_bibleentry.inc.php") ;
 include("$server_root/modules/paracrm/include/paracrm_data_edit_filerecord.inc.php") ;
+include("$server_root/modules/paracrm/include/paracrm_data_import.inc.php") ;
 
 include("$server_root/modules/paracrm/include/paracrm_queries.inc.php") ;
 include("$server_root/modules/paracrm/include/paracrm_queries_builder.inc.php") ;
