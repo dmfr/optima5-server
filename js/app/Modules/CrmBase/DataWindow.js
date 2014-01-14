@@ -4,7 +4,8 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 		'Optima5.Modules.CrmBase.DataWindowToolbar',
 		'Optima5.Modules.CrmBase.BiblePanel',
 		'Optima5.Modules.CrmBase.FilePanel',
-		'Optima5.Modules.CrmBase.DefineStorePanel'
+		'Optima5.Modules.CrmBase.DefineStorePanel',
+		'Optima5.Modules.CrmBase.DataImportPanel'
 	],
 	
 	optimaModule: null,
@@ -292,6 +293,8 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 				
 			case 'file' :
 				switch( menuItemId ) {
+					case 'importdata' :
+						return me.openDataImportPanel() ;
 					case 'export-excel' :
 						return me.getPanel().exportExcel() ;
 					case 'export-gallery' :
@@ -472,5 +475,47 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 			},
 			scope: me
 		});
+	},
+	
+	
+	openDataImportPanel: function() {
+		var me = this ;
+		
+		var setSizeFromParent = function( parentPanel, targetPanel ) {
+			targetPanel.setSize({
+				width: parentPanel.getSize().width - 20,
+				height: parentPanel.getSize().height - 60
+			}) ;
+		};
+		
+		var dataImportPanel = Ext.create('Optima5.Modules.CrmBase.DataImportPanel',{
+			parentDataWindow: me,
+			width:800, // dummy initial size, for border layout to work
+			height:600, // ...
+			floating: true,
+			renderTo: me.getEl(),
+			tools: [{
+				type: 'close',
+				handler: function(e, t, p) {
+					p.ownerCt.destroy();
+				}
+			}]
+		});
+		
+		dataImportPanel.mon(me,'resize', function() {
+			setSizeFromParent( me, dataImportPanel ) ;
+		},me) ;
+		
+		// Size + position
+		setSizeFromParent(me,dataImportPanel) ;
+		dataImportPanel.on('destroy',function() {
+			me.getEl().unmask() ;
+			// me.fireEvent('qbookztemplatechange') ;
+		},me,{single:true}) ;
+		me.getEl().mask() ;
+		
+		dataImportPanel.show();
+		dataImportPanel.getEl().alignTo(me.getEl(), 't-t?',[0,50]);
 	}
+	
 });

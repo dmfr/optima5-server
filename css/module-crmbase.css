@@ -113,6 +113,9 @@
 .op5-crmbase-datatoolbar-file {
 	background-image: url("../images/modules/crmbase-save-16.gif") !important;
 }
+.op5-crmbase-datatoolbar-file-importdata {
+	background-image: url("../images/modules/crmbase-download-16.png") !important;
+}
 .op5-crmbase-datatoolbar-file-export-excel {
 	background-image: url("../images/modules/crmbase-save-16.gif") !important;
 }
@@ -436,4 +439,32 @@ tbody.op5-crmbase-define-grid-join-tbody-separator tr {
 }
 .op5-crmbase-definelink-type-entry {
 	background-image: url("../images/modules/crmbase-listall-16.gif") !important;
+}
+
+
+.op5-crmbase-dataimport-go {
+	text-align: center ;
+}
+.op5-crmbase-dataimport-go-btn {
+	display: inline-block ;
+	
+	width: 48px ;
+	height: 48px ;
+	
+    background-repeat: no-repeat;
+    background-position: center center ;
+	 background-image: url("../images/modules/crmbase-import-32.png") !important;
+	 
+	border: 1px solid rgb(90, 90, 90);
+	padding: 4px;
+	-moz-border-radius: 10px;
+	border-radius: 10px !important;
+	z-index: 2;
+}
+.op5-crmbase-dataimport-go-over .op5-crmbase-dataimport-go-btn {
+	background-color: rgb(37, 68, 93);
+	border: 1px solid rgb(150, 150, 150);
+	-moz-border-radius: 10px;
+	border-radius: 10px !important;
+	z-index: 2;
 }

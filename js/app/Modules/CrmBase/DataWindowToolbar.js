@@ -24,6 +24,12 @@ Ext.define('Optima5.Modules.CrmBase.DataWindowToolbar' ,{
 						scope:me
 					},
 					items: [{
+						itemId: 'importdata',
+						text: 'Import data',
+						iconCls: 'op5-crmbase-datatoolbar-file-importdata'
+					},{
+						xtype: 'menuseparator'
+					},{
 						itemId: 'export-excel',
 						text: 'Excel export',
 						iconCls: 'op5-crmbase-datatoolbar-file-export-excel'
@@ -118,6 +124,11 @@ Ext.define('Optima5.Modules.CrmBase.DataWindowToolbar' ,{
 			fileMenu.setVisible(true) ;
 			fileMenu.menu.child('#export-excel').setVisible(true) ;
 			fileMenu.menu.child('#export-gallery').setVisible( ajaxData.viewmode_gallery ) ;
+		} else if( typeof ajaxData.bibleId !== 'undefined' ) {
+			fileMenu.setVisible(true) ;
+			fileMenu.menu.child('menuseparator').setVisible(false) ;
+			fileMenu.menu.child('#export-excel').setVisible(false) ;
+			fileMenu.menu.child('#export-gallery').setVisible(false) ;
 		} else {
 			fileMenu.setVisible(false) ;
 		}
