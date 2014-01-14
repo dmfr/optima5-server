@@ -20,7 +20,7 @@ Ext.define('Optima5.Ajax.Connection',{
 		 * 	_sdomainId:
 		 * }
 		 */
-		Ext.apply(options.params,me.optParams) ;
+		Ext.applyIf(options.params,me.optParams) ;
 		
 		Ext.apply(options,{
 			cacheSuccess: options.success,
