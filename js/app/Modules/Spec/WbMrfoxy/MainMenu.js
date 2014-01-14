@@ -45,9 +45,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.MainMenu',{
 			data:[
 				{type_header:true},
 				{type_separator:true, separator_label: 'Manage Promotions'},
-				{type_action:true, action_caption: 'Encode new Promotion', action_qtip:'Encode new promotion', action_sendEvent:'promo_new', action_iconCls:'op5-spec-mrfoxy-icon-promotion'},
+				{type_action:true, action_caption: 'Encode new Promotion', action_sendEvent:'promo_new', action_iconCls:'op5-spec-mrfoxy-icon-promotion'},
 				{type_action:true, action_caption: 'Headlines', action_iconCls:'op5-spec-mrfoxy-icon-headlines'},
-				{type_action:true, action_caption: 'Promotions Database', action_iconCls:'op5-spec-mrfoxy-icon-promostore'}
+				{type_action:true, action_caption: 'Promotions Database', action_sendEvent:'promo_list', action_iconCls:'op5-spec-mrfoxy-icon-promostore'}
 			]
 		}) ;
 		 

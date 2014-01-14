@@ -65,9 +65,93 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 		return headerCfg ;
 	},
 	initTabsCfg: function() {
+		var me = this ;
 		var tabsCfg = {
-			xtype:'panel',
-			frame:true
+			xtype:'form',
+			frame:true,
+			bodyPadding: 10,
+			items:[{
+				xtype:'fieldcontainer',
+				layout: {
+					type: 'hbox'
+				},
+				items:[{
+					xtype:'fieldcontainer',
+					flex: 1,
+					items:[{
+						xtype:'fieldset',
+						title: 'Scheduled date',
+						items:[{
+							xtype: 'datefield',
+							fieldLabel: 'Date start',
+							name: 'whse_txt'
+						},{
+							xtype: 'numberfield',
+							fieldLabel: 'Duration (weeks)',
+							name: 'team_txt'
+						}]
+					},{
+						xtype:'fieldset',
+						defaults: {
+							anchor: '100%',
+							labelWidth: 60
+						},
+						title: 'Products / Stores',
+						items:[{
+								xtype: 'op5crmbasebibletreepicker',
+								selectMode: 'single',
+								optimaModule: me.optimaModule,
+								bibleId: 'IRI_STORE',
+								fieldLabel: 'Stores',
+								name: 'whse_txt'
+							},{
+								xtype: 'op5crmbasebibletreepicker',
+								selectMode: 'single',
+								optimaModule: me.optimaModule,
+								bibleId: 'IRI_PROD',
+								fieldLabel: 'Product',
+								name: 'whse_txt'
+						}]
+					},{
+						xtype:'fieldset',
+						defaults: {
+							anchor: '100%',
+							labelWidth: 60
+						},
+						title: 'Promo mechanics',
+						items:[{
+								xtype: 'op5crmbasebibletreepicker',
+								selectMode: 'single',
+								optimaModule: me.optimaModule,
+								bibleId: 'PROMO_MECH',
+								fieldLabel: 'Type',
+								name: 'whse_txt'
+							},{
+								xtype: 'textfield',
+								fieldLabel: 'Details',
+								name: 'team_txt'
+						}]
+					}]
+				},{
+					xtype:'box',
+					html:'&#160;',
+					width: 24
+				},{
+					xtype:'fieldset',
+					flex: 1,
+					title: 'Financial data',
+					items:[{
+						xtype: 'numberfield',
+						fieldLabel: 'Forecast cost',
+						name: 'whse_txt'
+					},{
+						xtype:'box',
+						cls:'op5-waiting',
+						height:32,
+						margin: 10
+					}]
+				}]
+			}]
 		} ;
 		return tabsCfg ;
 	},
