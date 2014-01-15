@@ -9,7 +9,11 @@ Ext.define('QueryFieldsTreeModel', {
 		{name: 'field_type_text',   type: 'string'},
 		{name: 'field_linktype',   type: 'string'},
 		{name: 'field_linkbible',   type: 'string'},
-		{name: 'field_linkbible_type',   type: 'string'}
+		{name: 'file_code',   type: 'string'},
+		{name: 'file_field_code',   type: 'string'},
+		{name: 'bible_code',   type: 'string'},
+		{name: 'bible_type',   type: 'string'},
+		{name: 'bible_field_code',   type: 'string'}
 	]
 });
 

@@ -186,8 +186,8 @@ Ext.define('Optima5.Modules.CrmBase.QbookSubpanelInput' ,{
 						case 'link' :
 						case 'date' :
 						case 'number' :
-							if( selectedRecord.get('field_linkbible_type') != '' ) {
-								//subfield of a bible !
+							if( selectedRecord.get('bible_field_code') != '' ) {
+								//subfield of a bible ! TODO: implement support
 								return false ;
 							}
 							break ;

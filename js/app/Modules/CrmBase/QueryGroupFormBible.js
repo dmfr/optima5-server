@@ -28,7 +28,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryGroupFormBible' ,{
 					field_text: node.get('field_text')
 				};
 				
-				switch( node.get('field_linkbible_type') ) {
+				switch( node.get('bible_type') ) {
 					case 'tree' :
 						treeFields.push(occur) ;
 						break ;
