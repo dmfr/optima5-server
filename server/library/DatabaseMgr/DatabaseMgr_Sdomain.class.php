@@ -4,7 +4,7 @@ class DatabaseMgr_Sdomain {
 	private $_opDB ;
 	private $domain_id ;
 	
-	private static $dbVersion = 14 ;
+	private static $dbVersion = 15 ;
 	
 	public function __construct( $domain_id ) {
 		$this->_opDB = $GLOBALS['_opDB'] ;
@@ -625,6 +625,22 @@ CREATE TABLE `q_chart_serie_pivotdot` (
   `group_tagid` varchar(100) NOT NULL,
   `group_key` varchar(100) NOT NULL,
   PRIMARY KEY (`q_type`,`q_id`,`chart_index`,`serie_ssid`,`serie_pivotdot_ssid`)
+) ;
+
+CREATE TABLE `importmap` (
+  `importmap_id` int(11) NOT NULL AUTO_INCREMENT,
+  `csvsrc_length` int(11) NOT NULL,
+  `target_biblecode` varchar(100) NOT NULL,
+  `target_filecode` varchar(100) NOT NULL,
+  PRIMARY KEY (`importmap_id`)
+) ;
+
+CREATE TABLE `importmap_column` (
+  `importmap_id` int(11) NOT NULL,
+  `importmap_column_ssid` int(11) NOT NULL,
+  `csvsrc_headertxt` varchar(100) NOT NULL,
+  `target_fieldmapcode` varchar(100) NOT NULL,
+  PRIMARY KEY (`importmap_id`,`importmap_column_ssid`)
 ) ;
 
 EOF;
