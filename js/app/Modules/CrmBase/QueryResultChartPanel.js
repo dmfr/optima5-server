@@ -29,7 +29,9 @@ Ext.define('QueryResultChartModel', {
 	extend: 'Ext.data.Model',
 	fields: [
 		{name: 'chart_name',  type: 'string'},
-		{name: 'chart_type',   type: 'string'} // areastacked, bar, line, pie
+		{name: 'chart_type',   type: 'string'}, // areastacked, bar, line, pie
+		{name: 'tomixed_is_on',   type: 'boolean'},
+		{name: 'tomixed_axis', type:'string'}
 	],
 	hasMany: [{ 
 		model: 'QueryResultChartGrouptagModel',
@@ -122,6 +124,19 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 			default :
 				iconCls = 'op5-crmbase-qresult-warning' ;
 				break ;
+		}
+		
+		if( me.chartCfgRecord.get('tomixed_is_on') ) {
+			var tomixedLetter ;
+			switch( me.chartCfgRecord.get('tomixed_axis') ) {
+				case 'left' :
+					tomixedLetter='L' ;
+					break ;
+				case 'right' :
+					tomixedLetter='R' ;
+					break ;
+			}
+			title += '&nbsp' + '<font color="red">(' + tomixedLetter + ')</font>' ;
 		}
 		
 		me.setTitle(title) ;
@@ -271,6 +286,32 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 		}
 		if( me.isEmpty() ) {
 			chartCfgRecord.iteration_groupTags().removeAll() ;
+		}
+	},
+	
+	setTomixedCfg: function( enabled, axis ) {
+		var me = this,
+			chartCfgRecord = me.chartCfgRecord ;
+		switch( axis ) {
+			case 'left' :
+			case 'right' :
+				break ;
+			default:
+				enabled = false ;
+				axis = '' ;
+				break ;
+		}
+		chartCfgRecord.set('tomixed_is_on',enabled) ;
+		chartCfgRecord.set('tomixed_axis', (enabled ? axis : '') );
+		me.applyTitle() ;
+	},
+	getTomixedAxis: function() {
+		var me = this,
+			chartCfgRecord = me.chartCfgRecord ;
+		if( !chartCfgRecord.get('tomixed_is_on') ) {
+			return null ;
+		} else {
+			return chartCfgRecord.get('tomixed_axis') ;
 		}
 	},
 	

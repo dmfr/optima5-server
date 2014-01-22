@@ -6,7 +6,8 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 		'Ext.ux.dams.IFrameContent',
 		'Ext.ux.ColumnAutoWidthPlugin',
 		'Ext.ux.AddTabButton',
-		'Optima5.Modules.CrmBase.QueryResultChartPanel'
+		'Optima5.Modules.CrmBase.QueryResultChartPanel',
+		'Optima5.Modules.CrmBase.QueryResultMixedchartPanel'
 	],
 			  
 	ajaxBaseParams:{},
@@ -533,6 +534,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 		pCharts.add(pChartsItems) ;
 		pCharts.setActiveTab(0) ;
 		me.setChartsVisible(true);
+		me.chartsEvalMixed() ;
 	},
 	getActiveResultPanel: function() {
 		var me = this,
@@ -988,6 +990,102 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			tabIndex = tabBar.items.indexOf(tab),
 			cPanel = me.getChartPanelAtIndex(tabIndex) ;
 			
+		var menuItems ;
+		switch( cPanel.getXType() ) {
+			case 'op5crmbasequeryresultchart' :
+				menuItems = [{
+					text: 'Rename to',
+					handler: null,
+					menu: {
+						items:[{
+							xtype:'textfield' ,
+							value: tab.getText(),
+							width:150
+						},{
+							xtype:'button',
+							text:'Ok',
+							handler: function(button) {
+								var textfield = button.up('menu').query('textfield')[0],
+									textValue = textfield.getValue() ;
+								me.getChartPanelAtIndex(tabIndex).setChartName(textValue) ;
+								Ext.menu.Manager.hideAll();
+							},
+							scope:me
+						}]
+					}
+				},{
+					xtype: 'menuseparator'
+				},{
+					text: 'Area stacked',
+					itemId: 'sChartAreaStacked',
+					iconCls: 'op5-crmbase-qresult-chart-areastacked'
+				},{
+					text: 'Bar chart',
+					itemId: 'sChartBar',
+					iconCls: 'op5-crmbase-qresult-chart-bar'
+				},{
+					text: 'Line chart',
+					itemId: 'sChartLine',
+					iconCls: 'op5-crmbase-qresult-chart-line'
+				},{
+					text: 'Pie chart',
+					itemId: 'sChartPie',
+					iconCls: 'op5-crmbase-qresult-chart-pie'
+				},{
+					text: 'Pie chart (swap-series)',
+					itemId: 'sChartPieSwap',
+					iconCls: 'op5-crmbase-qresult-chart-pieswap'
+				},{
+					xtype: 'menuseparator'
+				},{
+					text: 'Remove all series',
+					itemId: 'removeSeries',
+					hidden: cPanel.isEmpty(),
+					iconCls: 'op5-crmbase-qresult-removeseries'
+				},{
+					text: 'Delete chart',
+					itemId: 'delete',
+					iconCls: 'op5-crmbase-qresult-deletechart'
+				},{
+					xtype: 'menuseparator'
+				},{
+					text: 'on Mixed chart',
+					itemId: 'mixed',
+					handler: null,
+					menu:{
+						defaults: {
+							listeners: {
+								checkchange: function(menuItem, checked) {
+									menuItem.up().items.each(function(menuItemOther) {
+										if( checked && menuItemOther != menuItem ) {
+											menuItemOther.setChecked(false) ;
+										}
+									}) ;
+									me.onTabChartMenuMixedcfgChange( tabIndex, menuItem.itemId, checked ) ;
+								},
+								scope: me
+							}
+						},
+						items: [{
+							text: 'Y-<b>left</b> serie',
+							itemId: 'cbMixedchartYleft',
+							checked: ( cPanel.getTomixedAxis() == 'left' )
+						},{
+							text: 'Y-<b>right</b> serie',
+							itemId: 'cbMixedchartYright',
+							checked: ( cPanel.getTomixedAxis() == 'right' )
+						}]
+					}
+				}] ;
+				break ;
+			case 'op5crmbasequeryresultmixedchart' :
+				menuItems = [{
+					text: 'Reset mixed series',
+					itemId: 'clearMixed',
+					iconCls: 'op5-crmbase-qresult-removeseries'
+				}] ;
+				break ;
+		}
 		/*
 		 * Builds and displays a context menu for current chart
 		 * - destroy chart
@@ -1001,60 +1099,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 				},
 				scope: me
 			},
-			items: [{
-				text: 'Rename to',
-				handler: null,
-				menu: {
-					items:[{
-						xtype:'textfield' ,
-						value: tab.getText(),
-						width:150
-					},{
-						xtype:'button',
-						text:'Ok',
-						handler: function(button) {
-							var textfield = button.up('menu').query('textfield')[0],
-								textValue = textfield.getValue() ;
-							me.getChartPanelAtIndex(tabIndex).setChartName(textValue) ;
-							Ext.menu.Manager.hideAll();
-						},
-						scope:me
-					}]
-				}
-			},{
-				xtype: 'menuseparator'
-			},{
-				text: 'Area stacked',
-				itemId: 'sChartAreaStacked',
-				iconCls: 'op5-crmbase-qresult-chart-areastacked'
-			},{
-				text: 'Bar chart',
-				itemId: 'sChartBar',
-				iconCls: 'op5-crmbase-qresult-chart-bar'
-			},{
-				text: 'Line chart',
-				itemId: 'sChartLine',
-				iconCls: 'op5-crmbase-qresult-chart-line'
-			},{
-				text: 'Pie chart',
-				itemId: 'sChartPie',
-				iconCls: 'op5-crmbase-qresult-chart-pie'
-			},{
-				text: 'Pie chart (swap-series)',
-				itemId: 'sChartPieSwap',
-				iconCls: 'op5-crmbase-qresult-chart-pieswap'
-			},{
-				xtype: 'menuseparator'
-			},{
-				text: 'Remove all series',
-				itemId: 'removeSeries',
-				hidden: cPanel.isEmpty(),
-				iconCls: 'op5-crmbase-qresult-removeseries'
-			},{
-				text: 'Delete chart',
-				itemId: 'delete',
-				iconCls: 'op5-crmbase-qresult-deletechart'
-			}],
+			items: menuItems,
 			listeners: {
 				hide: function(menu) {
 					menu.destroy() ;
@@ -1064,7 +1109,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 		event.preventDefault();
 		menu.items.each( function(menuitem) {
 			var menuItemId = menuitem.itemId,
-				cPanelType = (cPanel != null ? cPanel.getChartType() : '') ;
+				cPanelType = ((cPanel != null && cPanel.getXType()=='op5crmbasequeryresultchart') ? cPanel.getChartType() : '') ;
 			if( (menuItemId!=null) && (menuItemId.indexOf('sChart') === 0) && (cPanel != null) ) {
 				switch( menuItemId ) {
 					case 'sChartAreaStacked' :
@@ -1100,6 +1145,15 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			me.getChartPanelAtIndex(tabIndex).doEmpty() ;
 			return ;
 		}
+		if( menuItemId == 'clearMixed' ) {
+			me.child('#pCharts').items.each( function(chartPanel) {
+				if( chartPanel.getXType() == 'op5crmbasequeryresultchart' ) {
+					chartPanel.setTomixedCfg( false, null ) ;
+				}
+			});
+			me.chartsEvalMixed() ;
+			return ;
+		}
 		if( menuItemId.indexOf('sChart') === 0 ) {
 			var targetChartType = '' ;
 			switch( menuItemId ) {
@@ -1122,6 +1176,21 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			me.getChartPanelAtIndex(tabIndex).setChartType(targetChartType) ;
 			return ;
 		}
+	},
+	onTabChartMenuMixedcfgChange: function( tabIndex, menuItemId, checked ) {
+		var me = this,
+			chartPanel = me.getChartPanelAtIndex(tabIndex),
+			axis ;
+		switch( menuItemId ) {
+			case 'cbMixedchartYleft':
+				axis = 'left' ;
+				break ;
+			case 'cbMixedchartYright' :
+				axis = 'right' ;
+				break ;
+		}
+		chartPanel.setTomixedCfg(checked, axis) ;
+		me.chartsEvalMixed() ;
 	},
 	
 	onChartAddColumn: function( rPanel, colPivot, dataSelectId, color ) {
@@ -1166,7 +1235,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 	getActiveChartPanel: function() {
 		var me = this,
 			pCharts = me.child('#pCharts') ;
-		return ( me.chartsVisible ? pCharts.getActiveTab() : null ) ;
+		return ( (me.chartsVisible && pCharts.getActiveTab() && pCharts.getActiveTab().getXType()=='op5crmbasequeryresultchart') ? pCharts.getActiveTab() : null ) ;
 	},
 	getChartPanelAtIndex: function( index ) {
 		var me = this,
@@ -1257,5 +1326,41 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			},
 			scope: me
 		});
+	},
+	chartsEvalMixed: function() {
+		var me = this,
+			pCharts = me.child('#pCharts') ;
+			
+		if( !pCharts.child('op5crmbasequeryresultmixedchart') ) {
+			pCharts.insert(0,{
+				xtype:'op5crmbasequeryresultmixedchart',
+				optimaModule: me.optimaModule,
+				ajaxBaseParams: me.ajaxBaseParams,
+				title: '<font color="red">Mixed</font>',
+				hidden: true
+			}) ;
+		}
+		var pMixedchart = pCharts.child('op5crmbasequeryresultmixedchart') ;
+		
+		var arrQueryResultChartModel = [] ;
+		pCharts.items.each( function(chartPanel) {
+			if( !(chartPanel.getXType('op5crmbasequeryresultchart'))
+				|| chartPanel.chartCfgRecord == null
+				|| chartPanel.getTomixedAxis() == null
+			) {
+				return ;
+			}
+			
+			
+			var chartCfgRecord = chartPanel.chartCfgRecord ;
+			arrQueryResultChartModel.push(chartCfgRecord) ;
+		},me) ;
+		
+		if( arrQueryResultChartModel.length>0 ) {
+			pMixedchart.tab.show() ;
+		} else {
+			pMixedchart.tab.hide() ;
+		}
+		pMixedchart.pushModels( arrQueryResultChartModel ) ;
 	}
 }) ;
