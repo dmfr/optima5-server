@@ -39,6 +39,8 @@ function paracrm_queries_charts_cfgSave( $q_type, $q_id, $arr_QueryResultChartMo
 		$arr_ins['chart_index'] = ++$chart_index ;
 		$arr_ins['chart_name'] = $queryResultChartModel['chart_name'] ;
 		$arr_ins['chart_type'] = $queryResultChartModel['chart_type'] ;
+		$arr_ins['tomixed_is_on'] = $queryResultChartModel['tomixed_is_on'] ;
+		$arr_ins['tomixed_axis'] = $queryResultChartModel['tomixed_axis'] ;
 		$_opDB->insert('q_chart',$arr_ins) ;
 		
 		$iterationdot_ssid = 0 ;
@@ -222,6 +224,16 @@ function paracrm_queries_charts_getResChart( $RES, $queryResultChartModel ) {
 		$RES_seriesColor[] = '#'.$queryResultChartModelSerie['serie_color'] ;
 	}
 	
+	$RES_seriesType = array() ;
+	foreach( $queryResultChartModel['series'] as $queryResultChartModelSerie ) {
+		$RES_seriesType[] = ($queryResultChartModelSerie['serie_type'] ? $queryResultChartModelSerie['serie_type'] : $queryResultChartModel['chart_type']) ;
+	}
+	
+	$RES_seriesAxis = array() ;
+	foreach( $queryResultChartModel['series'] as $queryResultChartModelSerie ) {
+		$RES_seriesAxis[] = ($queryResultChartModelSerie['serie_axis'] ? $queryResultChartModelSerie['serie_axis'] : 'left') ;
+	}
+	
 	$RES_seriesTitle = array() ;
 	foreach( $series_arrGroupidGroupkey as $idx => $serie_arrGroupidGroupkey ) {
 		$serieTitle_arrGroupIdGroupLabel = array() ;
@@ -357,7 +369,9 @@ function paracrm_queries_charts_getResChart( $RES, $queryResultChartModel ) {
 		'stepsLabel'=> $RES_stepsLabel,
 		'iterationTitle' => $RES_iteration_title ,
 		'seriesTitle' => $RES_seriesTitle,
-		'seriesColor' => $RES_seriesColor
+		'seriesColor' => $RES_seriesColor,
+		'seriesType' => $RES_seriesType,
+		'seriesAxis' => $RES_seriesAxis
 	) ;
 }
 
