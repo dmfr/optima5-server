@@ -551,9 +551,44 @@ function paracrm_queries_qbookTransaction_resGet( $post_data, &$arr_saisie )
 				$t_chartCfg = paracrm_queries_charts_cfgLoad('qmerge',$arr_saisie['arr_qobj'][$qobj_idx]['target_qmerge_id']) ;
 				break ;
 		}
-		if( $t_chartCfg && count($t_chartCfg) == 1 ) {
-			$queryResultChartModel = current($t_chartCfg) ;
-			$tab['RESchart_static'] = paracrm_queries_charts_getResChart( $RES_q, $queryResultChartModel ) + array('chart_type'=>$queryResultChartModel['chart_type']) ;
+		if( $t_chartCfg ) {
+			if( count($t_chartCfg) == 1 ) {
+				$queryResultChartModel = current($t_chartCfg) ;
+				$tab['RESchart_static'] = paracrm_queries_charts_getResChart( $RES_q, $queryResultChartModel ) ;
+			} else {
+				unset($mixed_queryResultChartModel) ;
+				foreach( $t_chartCfg as $queryResultChartModel ) {
+					if( !$queryResultChartModel['tomixed_is_on'] ) {
+						continue ;
+					}
+					
+					if( !isset($mixed_queryResultChartModel) ) {
+						$mixed_queryResultChartModel = array() ;
+						$mixed_queryResultChartModel['series'] = array() ;
+					}
+					
+					$iteration_groupTags = array() ;
+					foreach( $queryResultChartModel['iteration_groupTags'] as $t_iteration_groupTag ) {
+						$iteration_groupTags[] = array('group_tagid'=>$t_iteration_groupTag['group_tagid']) ;
+					}
+					
+					if( !$mixed_queryResultChartModel['iteration_groupTags'] ) {
+						$mixed_queryResultChartModel['iteration_groupTags'] = $iteration_groupTags ;
+					} elseif( json_encode($mixed_queryResultChartModel['iteration_groupTags']) != json_encode($iteration_groupTags) ) {
+						unset($mixed_queryResultChartModel) ;
+						break ;
+					}
+					
+					foreach( $queryResultChartModel['series'] as $serie ) {
+						$serie['serie_type'] = $queryResultChartModel['chart_type'] ;
+						$serie['serie_axis'] = $queryResultChartModel['tomixed_axis'] ;
+						$mixed_queryResultChartModel['series'][] = $serie ;
+					}
+				}
+				if( isset($mixed_queryResultChartModel) ) {
+					$tab['RESchart_static'] = paracrm_queries_charts_getResChart( $RES_q, $mixed_queryResultChartModel ) ;
+				}
+			}
 		}
 		unset($tab['MAP_groups']) ;
 		$tabs[] = $tab ;
