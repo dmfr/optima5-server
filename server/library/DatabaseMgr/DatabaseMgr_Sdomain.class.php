@@ -4,7 +4,7 @@ class DatabaseMgr_Sdomain {
 	private $_opDB ;
 	private $domain_id ;
 	
-	private static $dbVersion = 15 ;
+	private static $dbVersion = 16 ;
 	
 	public function __construct( $domain_id ) {
 		$this->_opDB = $GLOBALS['_opDB'] ;
@@ -594,6 +594,8 @@ CREATE TABLE `q_chart` (
   `chart_index` int(11) NOT NULL,
   `chart_name` varchar(100) NOT NULL,
   `chart_type` varchar(20) NOT NULL,
+  `tomixed_is_on` varchar(1) NOT NULL,
+  `tomixed_axis` varchar(20) NOT NULL,
   PRIMARY KEY (`q_type`,`q_id`,`chart_index`)
 ) ;
 
