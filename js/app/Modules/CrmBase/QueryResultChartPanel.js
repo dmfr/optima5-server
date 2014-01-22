@@ -52,7 +52,6 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 	minChartWidth: 200,
 	
 	ajaxBaseParams:null,
-	chartCfgRecord: null,
 	
 	initComponent: function() {
 		var me = this ;
@@ -63,30 +62,6 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 			Optima5.Helper.logError('CrmBase:QueryResultChartPanel','No ajaxBaseParams ?') ;
 		}
 		
-		Ext.apply(me,{
-			header: false,
-			title: '' ,
-			iconCls:''
-		}) ;
-		
-		if( me.chartCfgRecord == null ) {
-			me.chartCfgRecord = Ext.create('QueryResultChartModel',{
-				chart_name: 'New Chart' ,
-				chart_type: null 
-			}) ;
-		}
-		
-		var onDataChangeCallback = function() {
-			me.fireEvent('serieschanged') ;
-			me.doViews() ;
-		}
-		me.chartCfgRecord.series().on({
-			clear: onDataChangeCallback,
-			datachanged: onDataChangeCallback,
-			update: onDataChangeCallback,
-			scope: me
-		},me) ;
-		
 		/* Base layout for QueryResultChartPanel */
 		Ext.apply(this,{
 			autoScroll: true,
@@ -95,269 +70,10 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 				align: 'stretch'
 			}
 		}) ;
+		
 		this.callParent() ;
-		
-		if( me.RESchart_static ) {
-			me.buildViewCharts({
-				RESchart: me.RESchart_static
-			}) ;
-			return ;
-		}
-		me.applyTitle() ;
-		me.doViews() ;
-	},
-	applyTitle: function() {
-		var me = this,
-			title, chartType, iconCls ;
-		
-		title = me.chartCfgRecord.get('chart_name') ;
-		
-		switch( chartType = me.chartCfgRecord.get('chart_type') ) {
-			case 'areastacked' :
-			case 'bar' :
-			case 'line' :
-			case 'pie':
-			case 'pieswap':
-				iconCls = 'op5-crmbase-qresult-chart-'+chartType ;
-				break ;
-				
-			default :
-				iconCls = 'op5-crmbase-qresult-warning' ;
-				break ;
-		}
-		
-		if( me.chartCfgRecord.get('tomixed_is_on') ) {
-			var tomixedLetter ;
-			switch( me.chartCfgRecord.get('tomixed_axis') ) {
-				case 'left' :
-					tomixedLetter='L' ;
-					break ;
-				case 'right' :
-					tomixedLetter='R' ;
-					break ;
-			}
-			title += '&nbsp' + '<font color="red">(' + tomixedLetter + ')</font>' ;
-		}
-		
-		me.setTitle(title) ;
-		me.setIconCls(iconCls) ;
 	},
 	
-	setChartName: function( chartName ) {
-		var me = this,
-			chartCfgRecord = me.chartCfgRecord ;
-		chartCfgRecord.set('chart_name',chartName) ;
-		me.applyTitle() ;
-	},
-	setChartType: function( chartType ) {
-		var me = this,
-			chartCfgRecord = me.chartCfgRecord ;
-		chartCfgRecord.set('chart_type',chartType) ;
-		me.applyTitle() ;
-		me.doViews() ;
-	},
-	getChartType: function() {
-		var me = this,
-			chartCfgRecord = me.chartCfgRecord,
-			chartType = ( me.RESchart_static != null ? me.RESchart_static.chart_type : chartCfgRecord.get('chart_type') ) ;
-		return ( ( chartType != null && chartType != '' ) ? chartType : null ) ;
-	},
-	
-	testChartIteration: function( arr_groupIdTag ) {
-		if( !Ext.isArray(arr_groupIdTag) || arr_groupIdTag.length == 0 ) {
-			return false ;
-		}
-		
-		var me = this,
-			chartCfgRecord = me.chartCfgRecord,
-			iterationStore = chartCfgRecord.iteration_groupTags() ;
-		if( iterationStore.getCount() == 0 ) {
-			return true ;
-		} else {
-			var iterationTest = [] ;
-			Ext.Array.each(arr_groupIdTag,function(groupIdTag) {
-				iterationTest.push({
-					group_tagid: groupIdTag
-				});
-			},me) ;
-			
-			var iteration = Ext.pluck(iterationStore.data.items,'data') ;
-			
-			if( Ext.JSON.encode(iteration) != Ext.JSON.encode(iterationTest) ) {
-				return false ;
-			}
-		}
-		return true ;
-	},
-	defineChartIteration: function( arr_groupIdTag ) {
-		var me = this,
-			chartCfgRecord = me.chartCfgRecord,
-			iterationStore = chartCfgRecord.iteration_groupTags() ;
-		if( !me.testChartIteration(arr_groupIdTag) ) {
-			return false ;
-		}
-		if( iterationStore.getCount() == 0 ) {
-			Ext.Array.each(arr_groupIdTag,function(groupIdTag) {
-				iterationStore.add( Ext.create('QueryResultChartGrouptagModel',{
-					group_tagid: groupIdTag
-				}) ) ;
-			},me) ;
-		}
-		return true ;
-	},
-	
-	searchPivot: function( arr_groupIdTag_groupKey, arr_selectIds ) {
-		var me = this,
-			chartCfgRecord = me.chartCfgRecord,
-			searchResult = null ;
-	
-		var seriePivotTest = [] ;
-		Ext.Object.each( arr_groupIdTag_groupKey, function(groupIdTag,groupKey) {
-			seriePivotTest.push({
-				group_tagid: groupIdTag,
-				group_key: groupKey
-			}) ;
-		}) ;
-		
-		chartCfgRecord.series().each( function(serie) {
-			if( !Ext.Array.contains(arr_selectIds,serie.get('data_selectid')) ) {
-				return true ;
-			}
-			var seriePivot = Ext.pluck(serie.serie_pivot().data.items,'data') ;
-			if( Ext.JSON.encode(seriePivot) == Ext.JSON.encode(seriePivotTest) ) {
-				searchResult = serie ;
-				return false 
-			}
-		},me) ;
-		return searchResult ;
-	},
-	isEmpty: function() {
-		var me = this,
-			chartCfgRecord = me.chartCfgRecord,
-			seriesStore = chartCfgRecord.series() ;
-		return ( seriesStore.getCount() == 0 ) ;
-	},
-	doEmpty: function() {
-		var me = this,
-			chartCfgRecord = me.chartCfgRecord ;
-		
-		chartCfgRecord.series().removeAll() ;
-		chartCfgRecord.iteration_groupTags().removeAll() ;
-		return ;
-	},
-	
-	getPivotColor: function(arr_groupIdTag_groupKey, arr_selectIds) {
-		var me = this,
-			searchResult = me.searchPivot( arr_groupIdTag_groupKey, arr_selectIds ) ;
-		if( searchResult != null ) {
-			return searchResult.get('serie_color') ;
-		}
-		return null ;
-	},
-	addPivot: function( serieColor, arr_groupIdTag_groupKey, dataSelectId ) {
-		var me = this,
-			chartCfgRecord = me.chartCfgRecord,
-			searchResult = me.searchPivot( arr_groupIdTag_groupKey, [dataSelectId] ) ;
-		if( searchResult != null ) {
-			searchResult.set('serie_color',serieColor) ;
-			return ;
-		}
-		var seriePivot = [] ;
-		Ext.Object.each( arr_groupIdTag_groupKey, function(groupIdTag,groupKey) {
-			seriePivot.push({
-				group_tagid: groupIdTag,
-				group_key: groupKey
-			}) ;
-		}) ;
-		chartCfgRecord.series().add( Ext.ux.dams.ModelManager.create('QueryResultChartSerieModel',{
-			serie_color: serieColor,
-			serie_pivot: seriePivot,
-			data_selectid: dataSelectId
-		}) ) ;
-	},
-	removePivot: function( arr_groupIdTag_groupKey, dataSelectId ) {
-		var me = this,
-			chartCfgRecord = me.chartCfgRecord,
-			seriesStore = chartCfgRecord.series(),
-			searchResult = me.searchPivot( arr_groupIdTag_groupKey, [dataSelectId] ) ;
-		
-		if( searchResult != null ) {
-			seriesStore.remove(searchResult) ;
-		}
-		if( me.isEmpty() ) {
-			chartCfgRecord.iteration_groupTags().removeAll() ;
-		}
-	},
-	
-	setTomixedCfg: function( enabled, axis ) {
-		var me = this,
-			chartCfgRecord = me.chartCfgRecord ;
-		switch( axis ) {
-			case 'left' :
-			case 'right' :
-				break ;
-			default:
-				enabled = false ;
-				axis = '' ;
-				break ;
-		}
-		chartCfgRecord.set('tomixed_is_on',enabled) ;
-		chartCfgRecord.set('tomixed_axis', (enabled ? axis : '') );
-		me.applyTitle() ;
-	},
-	getTomixedAxis: function() {
-		var me = this,
-			chartCfgRecord = me.chartCfgRecord ;
-		if( !chartCfgRecord.get('tomixed_is_on') ) {
-			return null ;
-		} else {
-			return chartCfgRecord.get('tomixed_axis') ;
-		}
-	},
-	
-	doViews: function() {
-		var me = this,
-			chartCfgRecord = me.chartCfgRecord,
-			getAssociatedData ;
-			
-		if( me.isEmpty() ) {
-			return me.buildViewAlert( 'Empty chart', 'No series have been defined' ) ;
-		}
-		if( me.getChartType() == null ) {
-			return me.buildViewAlert( 'Chart type not specified', 'Select a chart type/model' ) ;
-		}
-			
-		me.removeAll() ;
-		me.add({
-			xtype:'box',
-			cls:'op5-waiting',
-			flex:1
-		}) ;
-		/*
-		 * Query chart series
-		 */
-		var ajaxParams = {} ;
-		Ext.apply(ajaxParams,me.ajaxBaseParams) ;
-		Ext.apply(ajaxParams,{
-			_subaction: 'chart_tab_getSeries',
-					  
-			queryResultChartModel: Ext.JSON.encode(chartCfgRecord.getData(getAssociatedData=true))
-		});
-		me.optimaModule.getConfiguredAjaxConnection().request({
-			params: ajaxParams ,
-			success: function(response) {
-				var ajaxResponse = Ext.decode(response.responseText) ;
-				if( ajaxResponse.success != true ) {
-					return me.buildViewAlert('Unknown error','Failed to build chart. Remove all series and start over.') ;
-				}
-				if( !me.buildViewCharts( ajaxResponse ) ) {
-					return me.buildViewAlert('Unknown error','Failed to build chart. Remove all series and start over.') ;
-				}
-			},
-			scope: me
-		});
-		
-	},
 	buildViewAlert: function( title, caption ) {
 		var me = this ;
 		me.removeAll() ;
@@ -386,18 +102,371 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 			}]
 		}) ;
 	},
-	buildViewCharts: function(ajaxResponse) {
+	buildViewCharts: function(RESchart) {
 		var me = this,
-			RESchart = ajaxResponse.RESchart,
-			doSwap = false ;
-		
-		switch( me.getChartType() ) {
-			case 'pieswap' :
-				doSwap = true ;
-				break ;
-			default :
-				break ;
+			cmpCfg ;
+			
+		var types = Ext.Array.unique( RESchart.seriesType ) ;
+		if( Ext.Array.intersect( types, ['pie','pieswap'] ).length > 0 ) {
+			if( types.length == 1 ) {
+				cmpCfg = me.getCmpcfgPieCharts( RESchart, (types[0]=='pieswap') ) ;
+			} else {
+				me.buildViewAlert('Incompatible types','Incompatible chart types in mixed series.') ;
+				return true ;
+			}
+		} else {
+			cmpCfg = me.getCmpcfgGridChart( RESchart ) ;
 		}
+		
+		me.removeAll() ;
+		me.add(cmpCfg) ;
+		return true ;
+	},
+	getCmpcfgGridChart: function( RESchart ) {
+		var me = this,
+			data = [],
+			fields = [],
+			fieldsSeries = [],
+			colorSet = [],
+			titles = [],
+			i=0, j=0,
+			seriesCount=RESchart.seriesTitle.length ;
+			stepsSerieValue = RESchart.stepsSerieValue,
+			stepsLabel = RESchart.stepsLabel,
+			seriesLn=stepsSerieValue.length ;
+		
+		var fieldsSeriesLeft = [],
+			fieldsSeriesRight = [],
+			
+			areaHasLeft = false,
+			areaLeftFieldsSeries = [],
+			areaLeftColorset = [],
+			areaLeftTitles = [],
+			areaHasRight = false,
+			areaRightFieldsSeries = [],
+			areaRightColorset = [],
+			areaRightTitles = [],
+			
+			barHasLeft = false,
+			barLeftFieldsSeries = [],
+			barLeftFieldsActive = [],
+			barLeftColorset = [],
+			barLeftTitles = [],
+			barHasRight = false,
+			barRightFieldsSeries = [],
+			barRightFieldsActive = [],
+			barRightColorset = [],
+			barRightTitles = [],
+			
+			lineLeftFieldsSeries = [],
+			lineLeftColorset = [],
+			lineLeftTitles = [],
+			lineRightFieldsSeries = [],
+			lineRightColorset = [],
+			lineRightTitles = [] ;
+		
+		fields.push({name:'name',type:'string'});
+		fields.push({name:'dummy',type:''}) ;
+		for( ; i<seriesCount ; i++ ) {
+			fields.push({name:'serie'+i,type:'number'}) ;
+			
+			var fieldSerie = 'serie'+i ;
+			var color = RESchart.seriesColor[i] ;
+			
+			var strArr = [] ;
+			Ext.Object.each( RESchart.seriesTitle[i],function(k,v){
+				strArr.push(v) ;
+			});
+			var title = strArr.join(' ') ;
+			
+			switch( RESchart.seriesAxis[i] ) {
+				case 'left' :
+					fieldsSeriesLeft.push( fieldSerie );
+					break ;
+					
+				case 'right' :
+					fieldsSeriesRight.push( fieldSerie );
+					break ;
+			}
+			
+			switch( RESchart.seriesType[i] ) {
+				case 'areastacked' :
+					switch( RESchart.seriesAxis[i] ) {
+						case 'left' :
+							areaHasLeft = true ;
+							areaLeftFieldsSeries.push( fieldSerie );
+							areaLeftColorset.push( color );
+							areaLeftTitles.push( title );
+							break ;
+							
+						case 'right' :
+							areaHasRight = true ;
+							areaRightFieldsSeries.push( fieldSerie );
+							areaRightColorset.push( color );
+							areaRightTitles.push( title );
+							break ;
+					}
+					break ;
+				
+				case 'bar' :
+					switch( RESchart.seriesAxis[i] ) {
+						case 'left' :
+							barHasLeft = true ;
+							barLeftFieldsActive.push( fieldSerie );
+							barLeftFieldsSeries.push( fieldSerie );
+							barLeftColorset.push( color );
+							barLeftTitles.push( title );
+							barRightFieldsSeries.push( 'dummy' );
+							barRightColorset.push( color );
+							barRightTitles.push( title );
+							break ;
+							
+						case 'right' :
+							barHasRight = true ;
+							barLeftFieldsSeries.push( 'dummy' );
+							barLeftColorset.push( color );
+							barLeftTitles.push( title );
+							barRightFieldsActive.push( fieldSerie );
+							barRightFieldsSeries.push( fieldSerie );
+							barRightColorset.push( color );
+							barRightTitles.push( title );
+							break ;
+					}
+					break ;
+				
+				case 'line' :
+					switch( RESchart.seriesAxis[i] ) {
+						case 'left' :
+							lineLeftFieldsSeries.push( fieldSerie );
+							lineLeftColorset.push( color );
+							lineLeftTitles.push( title );
+							break ;
+							
+						case 'right' :
+							lineRightFieldsSeries.push( fieldSerie );
+							lineRightColorset.push( color );
+							lineRightTitles.push( title );
+							break ;
+					}
+					break ;
+				
+			}
+		}
+		
+		for( ; j<seriesLn ; j++ ) {
+			var strArr = [] ;
+			Ext.Object.each( stepsLabel[j],function(k,v){
+				strArr.push(v) ;
+			});
+			var obj = {
+				name:strArr.join(' '),
+				dummy: 0
+			} ;
+			for( i=0 ; i<seriesCount ; i++ ) {
+				var serieField = 'serie'+i ;
+				obj[serieField] = stepsSerieValue[j][i] ;
+			}
+			data.push(obj) ;
+		}
+		
+		var store = Ext.create('Ext.data.JsonStore',{
+			fields: fields,
+			data: data
+		}) ;
+		
+		var serieRenderer = function( sprite, record, attributes, index, store ) {
+			index = index % this.colorSet.length ;
+			Ext.apply(attributes,{
+				fill: this.colorSet[index],
+				stroke: this.colorSet[index]
+			}) ;
+			return attributes ;
+		} ;
+		
+		
+		var series = [] ;
+		if( areaHasLeft ) {
+			series.push({
+				type: 'area',
+				highlight: false,
+				axis: 'left',
+				fill: true,
+				xField: 'name',
+				yField: areaLeftFieldsSeries,
+				title: areaLeftTitles,
+				style: {
+					opacity: 1
+				},
+				getLegendColor: function(index) {
+					return this.colorSet[index] ;
+				},
+				colorSet: areaLeftColorset,
+				renderer: serieRenderer
+			}) ;
+		}
+		if( areaHasRight ) {
+			series.push({
+				type: 'area',
+				highlight: false,
+				axis: 'right',
+				fill: true,
+				xField: 'name',
+				yField: areaRightFieldsSeries,
+				title: areaRightTitles,
+				style: {
+					opacity: 1
+				},
+				getLegendColor: function(index) {
+					return this.colorSet[index] ;
+				},
+				colorSet: areaRightColorset,
+				renderer: serieRenderer
+			}) ;
+		}
+		if( barHasLeft ) {
+			series.push({
+				type: 'column',
+				highlight: false,
+				axis: 'left',
+				fill: true,
+				xField: 'name',
+				yField: barLeftFieldsSeries,
+				title: barLeftTitles,
+				showInLegend: barHasLeft,
+				getLegendColor: function(index) {
+					return this.colorSet[index] ;
+				},
+				colorSet: barLeftColorset,
+				renderer: serieRenderer
+			}) ;
+		}
+		if( barHasRight ) {
+			series.push({
+				type: 'column',
+				highlight: false,
+				axis: 'right',
+				fill: true,
+				xField: 'name',
+				yField: barRightFieldsSeries,
+				title: barRightTitles,
+				showInLegend: !barHasLeft,
+				getLegendColor: function(index) {
+					return this.colorSet[index] ;
+				},
+				colorSet: barRightColorset,
+				renderer: serieRenderer
+			}) ;
+		}
+		for( var i=0 ; i<lineLeftFieldsSeries.length ; i++ ) {
+			series.push({
+				type: 'line',
+				highlight: false,
+				markerConfig: {
+					type: 'cross',
+					size: 4,
+					radius: 4,
+					'stroke-width': 0
+				},
+				axis: 'left',
+				style: {
+					fill: lineLeftColorset[i],
+					stroke: lineLeftColorset[i],
+					'stroke-width': 3,
+					opacity: 1
+				},
+				xField: 'name',
+				yField: lineLeftFieldsSeries[i],
+				title: lineLeftTitles[i],
+				legendColor: lineLeftColorset[i],
+				getLegendColor: function(index) {
+					return this.legendColor ;
+				}
+			}) ;
+		}
+		for( var i=0 ; i<lineRightFieldsSeries.length ; i++ ) {
+			series.push({
+				type: 'line',
+				highlight: false,
+				markerConfig: {
+					type: 'cross',
+					size: 4,
+					radius: 4,
+					'stroke-width': 0
+				},
+				axis: 'left',
+				style: {
+					fill: lineRightColorset[i],
+					stroke: lineRightColorset[i],
+					'stroke-width': 3,
+					opacity: 1
+				},
+				xField: 'name',
+				yField: lineRightFieldsSeries[i],
+				title: lineRightTitles[i],
+				legendColor: lineLeftColorset[i],
+				getLegendColor: function(index) {
+					return this.legendColor ;
+				}
+			}) ;
+		}
+		
+		var axes = [],
+			gridStdCfg = {
+				odd: {
+					opacity: 1,
+					fill: '#ddd',
+					stroke: '#bbb',
+					'stroke-width': 1
+				}
+			} ;
+		if( fieldsSeriesLeft.length > 0 ) {
+			axes.push({
+				type: 'Numeric',
+				grid: true,
+				position: 'left',
+				fields: fieldsSeriesLeft,
+				//title: '#selectId',
+				grid: ( fieldsSeriesLeft.length > 0 ? gridStdCfg : null ),
+				minimum: 0,
+				adjustMinimumByMajorUnit: 0
+			}) ;
+		}
+		if( fieldsSeriesRight.length > 0 ) {
+			axes.push({
+				type: 'Numeric',
+				grid: true,
+				position: 'right',
+				fields: fieldsSeriesRight,
+				//title: '#selectId',
+				grid: ( fieldsSeriesLeft.length > 0 ? null : gridStdCfg ),
+				minimum: 0,
+				adjustMinimumByMajorUnit: 0
+			}) ;
+		}
+		axes.push({
+			type: 'Category',
+			position: 'bottom',
+			fields: ['name'],
+			//title: 'Month of the Year',
+			grid: true
+		}); 
+		
+		return {
+			xtype: 'chart',
+			flex: 1,
+			minWidth:me.minChartWidth,
+			style: 'background:#fff',
+			animate: false,
+			store: store,
+			legend: {
+				position: 'right'
+			},
+			axes: axes,
+			series: series
+		};
+	},
+	getCmpcfgPieCharts: function( RESchart, doSwap ) {
+		var me = this ;
 		
 		var data = [],
 			fields = [],
@@ -409,6 +478,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 			stepsSerieValue = RESchart.stepsSerieValue,
 			stepsLabel = RESchart.stepsLabel,
 			seriesLn=stepsSerieValue.length ;
+		
 		if( doSwap ) {
 			fields.push({name:'name',type:'string'});
 			for( ; i<seriesLn ; i++ ) {
@@ -471,197 +541,59 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 			data: data
 		}) ;
 		
-		var serieRenderer = function( sprite, record, attributes, index, store ) {
-			index = index % this.colorSet.length ;
-			Ext.apply(attributes,{
-				fill: this.colorSet[index],
-				stroke: this.colorSet[index]
-			}) ;
-			return attributes ;
-		} ;
-		
 		var chartComponents = [] ;
-		switch( me.getChartType() ) {
-			case 'areastacked' :
-			case 'bar' :
-			case 'line':
-				var series, serieType, markerConfig ;
-				switch( me.getChartType() ) {
-					case 'areastacked' :
-						series = [{
-							type: 'area',
-							highlight: false,
-							axis: 'left',
-							fill: true,
-							xField: 'name',
-							yField: fieldsSeries,
-							title: titles,
-							style: {
-								opacity: 1
-							},
-							getLegendColor: function(index) {
-								return this.colorSet[index] ;
-							},
-							colorSet: colorSet,
-							renderer: serieRenderer
-						}] ;
-						break ;
-					case 'bar' :
-						series = [{
-							type: 'column',
-							highlight: false,
-							axis: 'left',
-							fill: true,
-							xField: 'name',
-							yField: fieldsSeries,
-							title: titles,
-							getLegendColor: function(index) {
-								return this.colorSet[index] ;
-							},
-							colorSet: colorSet,
-							renderer: serieRenderer
-						}] ;
-						break ;
-					case 'line':
-						serieType = 'line' ;
-						markerConfig = {
-							type: 'cross',
-							size: 4,
-							radius: 4,
-							'stroke-width': 0
-						} ;
-						var i=0,
-							series = [] ;
-						for( ; i<fieldsSeries.length ; i++ ) {
-							series.push({
-								type: 'line',
-								highlight: false,
-								markerConfig: {
-									type: 'cross',
-									size: 4,
-									radius: 4,
-									'stroke-width': 0
-								},
-								axis: 'left',
-								style: {
-									fill: colorSet[i],
-									stroke: colorSet[i],
-									'stroke-width': 3,
-									opacity: 1
-								},
-								xField: 'name',
-								yField: fieldsSeries[i],
-								title: titles[i],
-								getLegendColor: function(index) {
-									return colorSet[i] ;
-								}
-							}) ;
-						}
-						break ;
-					default :
-						return false ;
-						break ;
-				}
-				chartComponents.push({
-					xtype: 'chart',
-					flex: 1,
-					minWidth:me.minChartWidth,
-					style: 'background:#fff',
-					animate: false,
-					store: store,
-					legend: {
-						position: 'right'
+		var i=0 ;
+		for( ; i<fieldsSeries.length ; i++ ) {
+			chartComponents.push({
+				xtype: 'titlechart',
+				flex: 1,
+				minWidth:me.minChartWidth,
+				style: 'background:#fff',
+				shadow: false,
+				animate: false,
+				store: store,
+				titleFont: 'bold 14px Arial',
+				titleLocation:'bottom',
+				title:titles[i],
+				series: [{
+					type: 'pie',
+					angleField: fieldsSeries[i],
+					highlight: false,
+					label: {
+						field: 'name',
+						display: 'over',
+						contrast: true
 					},
-					axes: [{
-						type: 'Numeric',
-						grid: true,
-						position: 'left',
-						fields: fieldsSeries,
-						//title: '#selectId',
-						grid: {
-							odd: {
-								opacity: 1,
-								fill: '#ddd',
-								stroke: '#bbb',
-								'stroke-width': 1
-							}
-						},
-						minimum: 0,
-						adjustMinimumByMajorUnit: 0
-					}, {
-						type: 'Category',
-						position: 'bottom',
-						fields: ['name'],
-						//title: 'Month of the Year',
-						grid: true
-					}],
-					series: series
-				});
-				break ;
-				
-			case 'pie' :
-			case 'pieswap' :
-				var i=0 ;
-				for( ; i<fieldsSeries.length ; i++ ) {
-					chartComponents.push({
-						xtype: 'titlechart',
-						flex: 1,
-						minWidth:me.minChartWidth,
-						style: 'background:#fff',
-						shadow: false,
-						animate: false,
-						store: store,
-						titleFont: 'bold 14px Arial',
-						titleLocation:'bottom',
-						title:titles[i],
-						series: [{
-							type: 'pie',
-							angleField: fieldsSeries[i],
-							highlight: false,
-							label: {
-								field: 'name',
-								display: 'over',
-								contrast: true
-							},
-							highlight: {
-								segment: {
-									margin: 20
-								}
-							},
-							tips: {
-								trackMouse: true,
-								width: 140,
-								height: 52,
-								dataField: fieldsSeries[i],
-								renderer: function(storeItem, item) {
-									// calculate and display percentage on hover
-									var total = 0,
-										dataField = this.dataField,
-										title = [] ;
-									
-									store.each(function(rec) {
-										total += rec.get(dataField);
-									});
-									
-									title.push( storeItem.get('name') + ':' ) ;
-									title.push( '&#160;' + 'Qty : ' + storeItem.get(dataField) ) ;
-									title.push( '&#160;' + 'Ratio : ' + Math.round(storeItem.get(dataField) / total * 100) + '%' ) ;
-									this.setTitle(title.join('<br>'));
-								}
-							},
-							colorSet: (doSwap ? colorSet : null)
-						}]
-					});
-				}
-				break ;
-			
-			default :
-				return false ;
-				break ;
+					highlight: {
+						segment: {
+							margin: 20
+						}
+					},
+					tips: {
+						trackMouse: true,
+						width: 140,
+						height: 52,
+						dataField: fieldsSeries[i],
+						renderer: function(storeItem, item) {
+							// calculate and display percentage on hover
+							var total = 0,
+								dataField = this.dataField,
+								title = [] ;
+							
+							store.each(function(rec) {
+								total += rec.get(dataField);
+							});
+							
+							title.push( storeItem.get('name') + ':' ) ;
+							title.push( '&#160;' + 'Qty : ' + storeItem.get(dataField) ) ;
+							title.push( '&#160;' + 'Ratio : ' + Math.round(storeItem.get(dataField) / total * 100) + '%' ) ;
+							this.setTitle(title.join('<br>'));
+						}
+					},
+					colorSet: (doSwap ? colorSet : null)
+				}]
+			});
 		}
-		
-		me.removeAll() ;
-		me.add(chartComponents) ;
-		return true ;
+		return chartComponents ;
 	}
 });

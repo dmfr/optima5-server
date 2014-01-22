@@ -6,8 +6,9 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 		'Ext.ux.dams.IFrameContent',
 		'Ext.ux.ColumnAutoWidthPlugin',
 		'Ext.ux.AddTabButton',
-		'Optima5.Modules.CrmBase.QueryResultChartPanel',
-		'Optima5.Modules.CrmBase.QueryResultMixedchartPanel'
+		'Optima5.Modules.CrmBase.QueryResultChartPanelStatic',
+		'Optima5.Modules.CrmBase.QueryResultChartPanelSingle',
+		'Optima5.Modules.CrmBase.QueryResultChartPanelMixed'
 	],
 			  
 	ajaxBaseParams:{},
@@ -385,10 +386,9 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 						layout:'fit',
 						//title: 'Charts',
 						items:[{
-							xtype: 'op5crmbasequeryresultchart',
+							xtype: 'op5crmbasequeryresultchartstatic',
 							optimaModule: me.optimaModule,
 							ajaxBaseParams: me.ajaxBaseParams,
-							chartCfgRecord: null,
 							RESchart_static: tabData.RESchart_static
 						}]
 					}]
@@ -448,7 +448,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 				iconCls: 'icon-add', 
 				toolTip: 'New empty chart',
 				panelConfig: {
-					xtype: 'op5crmbasequeryresultchart',
+					xtype: 'op5crmbasequeryresultchartsingle',
 					optimaModule: me.optimaModule,
 					ajaxBaseParams: me.ajaxBaseParams,
 					chartCfgRecord: null
@@ -524,7 +524,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			queryResultChartModel = arr_QueryResultChartModel[i] ;
 			
 			pChartsItems.push({
-				xtype:'op5crmbasequeryresultchart',
+				xtype:'op5crmbasequeryresultchartsingle',
 				optimaModule: me.optimaModule,
 				ajaxBaseParams: me.ajaxBaseParams,
 				chartCfgRecord: Ext.ux.dams.ModelManager.create('QueryResultChartModel',queryResultChartModel)
@@ -992,7 +992,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			
 		var menuItems ;
 		switch( cPanel.getXType() ) {
-			case 'op5crmbasequeryresultchart' :
+			case 'op5crmbasequeryresultchartsingle' :
 				menuItems = [{
 					text: 'Rename to',
 					handler: null,
@@ -1078,7 +1078,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 					}
 				}] ;
 				break ;
-			case 'op5crmbasequeryresultmixedchart' :
+			case 'op5crmbasequeryresultchartmixed' :
 				menuItems = [{
 					text: 'Reset mixed series',
 					itemId: 'clearMixed',
@@ -1109,7 +1109,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 		event.preventDefault();
 		menu.items.each( function(menuitem) {
 			var menuItemId = menuitem.itemId,
-				cPanelType = ((cPanel != null && cPanel.getXType()=='op5crmbasequeryresultchart') ? cPanel.getChartType() : '') ;
+				cPanelType = ((cPanel != null && cPanel.getXType()=='op5crmbasequeryresultchartsingle') ? cPanel.getChartType() : '') ;
 			if( (menuItemId!=null) && (menuItemId.indexOf('sChart') === 0) && (cPanel != null) ) {
 				switch( menuItemId ) {
 					case 'sChartAreaStacked' :
@@ -1147,7 +1147,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 		}
 		if( menuItemId == 'clearMixed' ) {
 			me.child('#pCharts').items.each( function(chartPanel) {
-				if( chartPanel.getXType() == 'op5crmbasequeryresultchart' ) {
+				if( chartPanel.getXType() == 'op5crmbasequeryresultchartsingle' ) {
 					chartPanel.setTomixedCfg( false, null ) ;
 				}
 			});
@@ -1235,7 +1235,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 	getActiveChartPanel: function() {
 		var me = this,
 			pCharts = me.child('#pCharts') ;
-		return ( (me.chartsVisible && pCharts.getActiveTab() && pCharts.getActiveTab().getXType()=='op5crmbasequeryresultchart') ? pCharts.getActiveTab() : null ) ;
+		return ( (me.chartsVisible && pCharts.getActiveTab() && pCharts.getActiveTab().getXType()=='op5crmbasequeryresultchartsingle') ? pCharts.getActiveTab() : null ) ;
 	},
 	getChartPanelAtIndex: function( index ) {
 		var me = this,
@@ -1331,20 +1331,20 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 		var me = this,
 			pCharts = me.child('#pCharts') ;
 			
-		if( !pCharts.child('op5crmbasequeryresultmixedchart') ) {
+		if( !pCharts.child('op5crmbasequeryresultchartmixed') ) {
 			pCharts.insert(0,{
-				xtype:'op5crmbasequeryresultmixedchart',
+				xtype:'op5crmbasequeryresultchartmixed',
 				optimaModule: me.optimaModule,
 				ajaxBaseParams: me.ajaxBaseParams,
 				title: '<font color="red">Mixed</font>',
 				hidden: true
 			}) ;
 		}
-		var pMixedchart = pCharts.child('op5crmbasequeryresultmixedchart') ;
+		var pMixedchart = pCharts.child('op5crmbasequeryresultchartmixed') ;
 		
 		var arrQueryResultChartModel = [] ;
 		pCharts.items.each( function(chartPanel) {
-			if( !(chartPanel.getXType('op5crmbasequeryresultchart'))
+			if( !(chartPanel.getXType('op5crmbasequeryresultchartsingle'))
 				|| chartPanel.chartCfgRecord == null
 				|| chartPanel.getTomixedAxis() == null
 			) {
