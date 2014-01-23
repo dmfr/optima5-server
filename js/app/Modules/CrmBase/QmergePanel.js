@@ -654,6 +654,10 @@ Ext.define('Optima5.Modules.CrmBase.QmergePanel' ,{
 						grouphash += 'DATE'+'%'+queryGroupRecord.get('group_date_type') ;
 						break ;
 						
+					case 'file' :
+						grouphash += 'FILE'+'%'+queryGroupRecord.get('field_code') ; ;
+						break ;
+						
 					default :
 						grouphash += 'UNKNOWN' ;
 						break ;
@@ -701,6 +705,10 @@ Ext.define('Optima5.Modules.CrmBase.QmergePanel' ,{
 						
 					case 'date' :
 						grouptag += 'DATE'+'%'+queryGroupRecord.get('group_date_type') ;
+						break ;
+						
+					case 'file' :
+						grouptag += 'FILE'+'%'+queryGroupRecord.get('field_code') ;
 						break ;
 						
 					default :

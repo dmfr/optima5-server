@@ -156,6 +156,9 @@ Ext.define('Optima5.Modules.CrmBase.QmergeSubpanelMselect' ,{
 						text = '<u>Date</u>'+' ('+grouptagSegments[1]+')' ;
 						break ;
 					
+					case 'FILE' :
+						text = '<u>File</u>'+' ('+grouptagSegments[1]+')' ;
+						break ;
 				}
 				
 				nodeId++ ;

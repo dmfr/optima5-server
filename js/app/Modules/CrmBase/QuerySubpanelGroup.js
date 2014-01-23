@@ -5,6 +5,8 @@ Ext.define('QueryGroupModel', {
 		{name: 'field_type',   type: 'string'},
 		{name: 'field_linkbible',   type: 'string'},
 		{name: 'display_geometry',   type: 'string'},
+		{name: 'group_file_limit_nb',   type: 'int'},
+		{name: 'group_file_display_record',   type: 'string'},
 		{name: 'group_bible_type',   type: 'string'},
 		{name: 'group_bible_tree_depth',   type: 'int'},
 		{name: 'group_bible_display_treenode',   type: 'string'},
@@ -26,7 +28,8 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelGroup' ,{
 	requires: [
 		'Optima5.Modules.CrmBase.QuerySubpanel',
 		'Optima5.Modules.CrmBase.QueryGroupFormDate',
-		'Optima5.Modules.CrmBase.QueryGroupFormBible'
+		'Optima5.Modules.CrmBase.QueryGroupFormBible',
+		'Optima5.Modules.CrmBase.QueryGroupFormFile'
 	] ,
 	
 	groupFields : [] ,
@@ -182,6 +185,7 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelGroup' ,{
 					switch( selectedRecord.get('field_type') ) {
 						case 'link' :
 						case 'date' :
+						case 'file' :
 							break ;
 						
 						default :
@@ -243,6 +247,13 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelGroup' ,{
 				}) ;
 				break ;
 				
+			case 'file' :
+				mform = Ext.create('Optima5.Modules.CrmBase.QueryGroupFormFile',{
+					fileMapNode: me.getQueryPanel().getQueryPanelTreeStore().getNodeById( record.get('field_code') ),
+					frame:true
+				}) ;
+				break ;
+				
 			default :
 				mform = Ext.create('Optima5.Modules.CrmBase.QueryGroupForm',{
 					frame:true
@@ -256,6 +267,13 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelGroup' ,{
 				// console.log( k + '    ' + v ) ;
 				
 				switch( k ) {
+					case 'group_file_limit_nb' :
+						record.set(k,v) ;
+						break ;
+					case 'group_file_display_record' :
+						record.set(k,Ext.JSON.encode(v)) ;
+						break ;
+						
 					case 'group_bible_type' :
 					case 'group_bible_tree_depth' :
 						record.set(k,v) ;
