@@ -4,7 +4,7 @@ class DatabaseMgr_Sdomain {
 	private $_opDB ;
 	private $domain_id ;
 	
-	private static $dbVersion = 16 ;
+	private static $dbVersion = 17 ;
 	
 	public function __construct( $domain_id ) {
 		$this->_opDB = $GLOBALS['_opDB'] ;
@@ -466,6 +466,8 @@ CREATE TABLE `query_field_group` (
   `field_type` varchar(100) NOT NULL,
   `field_linkbible` varchar(100) NOT NULL,
   `display_geometry` varchar(50) NOT NULL,
+  `group_file_limit_nb` int(11) NOT NULL,
+  `group_file_display_record` varchar(500) NOT NULL,
   `group_bible_type` varchar(50) NOT NULL,
   `group_bible_tree_depth` int(11) NOT NULL,
   `group_bible_display_treenode` varchar(500) NOT NULL,
