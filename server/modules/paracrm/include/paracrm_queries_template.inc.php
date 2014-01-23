@@ -82,13 +82,32 @@ function paracrm_queries_template_makeImgChart(&$RES, $queryResultChartModel, $i
 		$series_title[] = implode($ttmp) ;
 	}
 	
+	$series_axis = $RES_chart['seriesAxis'] ;
+	$series_type = $RES_chart['seriesType'] ;
+	
 	$iteration_points = array() ;
 	foreach( $RES_chart['stepsLabel'] as $ttmp ) {
 		$iteration_points[] = implode(' ',$ttmp) ;
 	}
 	$iteration_title = implode(' ',$RES_chart['iterationTitle']) ;
 	
-	if( $do_swap = in_array($queryResultChartModel['chart_type'],array('pieswap')) ) {
+	// Pie/PieSwap / Grid ? 
+	$t_types = array_values(array_unique($series_type)) ;
+	$graph_mode = NULL ;
+	if( count(array_intersect($t_types, array('pie','pieswap'))) > 0 ) {
+		if( count($t_types) == 1 ) {
+			$graph_mode = current($t_types) ; // pie / pieswap
+		} else {
+			return NULL ; // error
+		}
+	} else {
+		$graph_mode = 'grid' ;
+		if( in_array('areastacked',$t_types) ) {
+			$graph_mode = 'grid_areastacked' ;
+		}
+	}
+	
+	if( $do_swap = ($graph_mode=='pieswap') ) {
 		$new_series = array() ;
 		foreach( $series as $serie_idx => $serie ) {
 			foreach( $serie as $iteration_idx => $value ) {
@@ -116,6 +135,18 @@ function paracrm_queries_template_makeImgChart(&$RES, $queryResultChartModel, $i
 	foreach( $series as $serie_idx => $serie_points ) {
 		$MyData->addPoints($serie_points,$series_title[$serie_idx]);
 		
+		switch( $series_axis[$serie_idx] ) {
+			case 'left' :
+				$graph_hasLeft = TRUE ; 
+				$MyData->setSerieOnAxis($series_title[$serie_idx],0);
+				break ;
+				
+			case 'right' :
+				$graph_hasRight = TRUE ; 
+				$MyData->setSerieOnAxis($series_title[$serie_idx],1);
+				break ;
+		}
+		
 		$hex_color = $RES_chart['seriesColor'][$serie_idx] ;
 		$hex = str_replace("#", "", $hex_color);
 		$r = hexdec(substr($hex,0,2));
@@ -123,6 +154,13 @@ function paracrm_queries_template_makeImgChart(&$RES, $queryResultChartModel, $i
 		$b = hexdec(substr($hex,4,2));
 		$MyData->setPalette($series_title[$serie_idx],array("R"=>$r,"G"=>$g,"B"=>$b));
 	}
+	if( $graph_hasLeft ) {
+		$MyData->setAxisPosition(1,AXIS_POSITION_LEFT);
+	}
+	if( $graph_hasRight ) {
+		$MyData->setAxisPosition(1,AXIS_POSITION_RIGHT);
+	}
+	
 	//$MyData->setAxisName(0,"Hits");
 	$MyData->addPoints($iteration_points,"name");
 	$MyData->setSerieDescription("name",$iteration_title);
@@ -131,11 +169,10 @@ function paracrm_queries_template_makeImgChart(&$RES, $queryResultChartModel, $i
 	$myPicture = new pImage($img_width,$img_height,$MyData,TRUE);
 	$myPicture->setFontProperties(array("FontName"=>"$pchart_root/fonts/verdana.ttf","FontSize"=>8,"R"=>0,"G"=>0,"B"=>0));
 	
-	switch( $queryResultChartModel['chart_type'] ) {
-		case 'areastacked' :
-		case 'bar' :
-		case 'line' :
-			if( $queryResultChartModel['chart_type'] == 'areastacked' ) {
+	switch( $graph_mode ) {
+		case 'grid' :
+		case 'grid_areastacked' :
+			if( $graph_mode == 'grid_areastacked' ) {
 				$PCHART_scale_mode = SCALE_MODE_ADDALL_START0 ;
 			} else {
 				$PCHART_scale_mode = SCALE_MODE_START0 ;
@@ -145,19 +182,32 @@ function paracrm_queries_template_makeImgChart(&$RES, $queryResultChartModel, $i
 			$myPicture->drawScale(array("Mode"=>$PCHART_scale_mode,"GridR"=>200,"GridG"=>200,"GridB"=>200,"DrawSubTicks"=>TRUE,"CycleBackground"=>TRUE));
 			//$myPicture->setShadow(TRUE,array("X"=>1,"Y"=>1,"R"=>0,"G"=>0,"B"=>0,"Alpha"=>10));
 			
-			switch( $queryResultChartModel['chart_type'] ) {
-				case 'areastacked' :
-					$myPicture->drawStackedAreaChart(array("DisplayValues"=>TRUE,"DisplayColor"=>DISPLAY_AUTO,"Surrounding"=>20));
-					break ;
-				case 'bar' :
-					$myPicture->drawBarChart(array("DisplayPos"=>LABEL_POS_OUTSIDE,"DisplayValues"=>TRUE,"Rounded"=>TRUE,"Surrounding"=>30));
-					break ;
-				case 'line' :
-					$myPicture->drawLineChart(array("DisplayValues"=>TRUE,"DisplayColor"=>DISPLAY_AUTO));
-					break ;
-				default :
-					break ;
+			foreach( array('areastacked','bar','line') as $chart_type ) {
+				if( !in_array($chart_type,$series_type) ) {
+					continue ;
+				}
+				
+				foreach( $series_type as $serie_idx => $serie_type ) {
+					$MyData->setSerieDrawable($series_title[$serie_idx],($serie_type==$chart_type));
+				}
+				switch( $chart_type ) {
+					case 'areastacked' :
+						$myPicture->drawStackedAreaChart(array("DisplayValues"=>TRUE,"DisplayColor"=>DISPLAY_AUTO,"Surrounding"=>20));
+						break ;
+					case 'bar' :
+						$myPicture->drawBarChart(array("DisplayPos"=>LABEL_POS_OUTSIDE,"DisplayValues"=>TRUE,"Rounded"=>TRUE,"Surrounding"=>30));
+						break ;
+					case 'line' :
+						$myPicture->drawLineChart(array("DisplayValues"=>TRUE,"DisplayColor"=>DISPLAY_AUTO));
+						break ;
+					default :
+						break ;
+				}
+				foreach( $series_type as $serie_idx => $serie_type ) {
+					$MyData->setSerieDrawable($series_title[$serie_idx],TRUE);
+				}
 			}
+			
 			if( $img_options['legend'] ) {
 				$myPicture->drawLegend($img_width - 130,12,array("Style"=>LEGEND_NOBORDER,"Mode"=>LEGEND_VERTICAL)); 
 			}

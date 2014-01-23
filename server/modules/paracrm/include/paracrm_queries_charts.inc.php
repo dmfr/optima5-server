@@ -161,6 +161,46 @@ function paracrm_queries_charts_cfgLoad( $q_type, $q_id ) {
 }
 
 
+function paracrm_queries_charts_getMixed( $arr_QueryResultChartModel ) {
+	if( count($arr_QueryResultChartModel) == 1 ) {
+		return $queryResultChartModel = current($arr_QueryResultChartModel) ;
+	} else {
+		unset($mixed_queryResultChartModel) ;
+		foreach( $arr_QueryResultChartModel as $queryResultChartModel ) {
+			if( !$queryResultChartModel['tomixed_is_on'] ) {
+				continue ;
+			}
+			
+			if( !isset($mixed_queryResultChartModel) ) {
+				$mixed_queryResultChartModel = array() ;
+				$mixed_queryResultChartModel['series'] = array() ;
+			}
+			
+			$iteration_groupTags = array() ;
+			foreach( $queryResultChartModel['iteration_groupTags'] as $t_iteration_groupTag ) {
+				$iteration_groupTags[] = array('group_tagid'=>$t_iteration_groupTag['group_tagid']) ;
+			}
+			
+			if( !$mixed_queryResultChartModel['iteration_groupTags'] ) {
+				$mixed_queryResultChartModel['iteration_groupTags'] = $iteration_groupTags ;
+			} elseif( json_encode($mixed_queryResultChartModel['iteration_groupTags']) != json_encode($iteration_groupTags) ) {
+				unset($mixed_queryResultChartModel) ;
+				break ;
+			}
+			
+			foreach( $queryResultChartModel['series'] as $serie ) {
+				$serie['serie_type'] = $queryResultChartModel['chart_type'] ;
+				$serie['serie_axis'] = $queryResultChartModel['tomixed_axis'] ;
+				$mixed_queryResultChartModel['series'][] = $serie ;
+			}
+		}
+		if( isset($mixed_queryResultChartModel) ) {
+			return $mixed_queryResultChartModel ;
+		} else {
+			return NULL ;
+		}
+	}
+}
 
 
 function paracrm_queries_charts_getResChart( $RES, $queryResultChartModel ) {
