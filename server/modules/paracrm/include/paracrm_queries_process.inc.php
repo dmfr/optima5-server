@@ -676,6 +676,10 @@ function paracrm_queries_process_qmerge($arr_saisie, $debug=FALSE)
 				$grouphash.= 'DATE'.'%'.$field_group['group_date_type'] ;
 				break ;
 				
+				case 'file' :
+				$grouphash.= 'FILE'.'%'.$field_group['field_code'] ;
+				break ;
+				
 				default :
 				$grouphash.= 'UNKNOWN' ;
 				break ;
@@ -1602,7 +1606,39 @@ function paracrm_queries_process_query(&$arr_saisie, $debug=FALSE)
 	if( $debug ) {
 		echo "OK\n" ;
 	}
-		
+	
+	
+	if( $debug ) {
+		echo "Debug 3b2: display fields groups FILE" ;
+	}
+	$fields_group = $arr_saisie['fields_group'] ;
+	foreach( $fields_group as $field_id => &$field_group )
+	{
+		if( $field_group['field_type'] == 'file' ) {
+			foreach( json_decode($field_group['group_file_display_record'],true) as $field )
+			{
+				if( !isset($arr_indexed_treefields[$field]) 
+				|| $arr_indexed_treefields[$field]['file_code'] != $field_group['field_code']
+				|| !$arr_indexed_treefields[$field]['file_field_code'] ) {
+					continue ;
+				}
+				
+				$display_field_key = $arr_indexed_treefields[$field]['file_field_code'] ;
+			
+				$ttmp = array() ;
+				$ttmp['tfield'] = $field ;
+				$ttmp['file_code'] = $arr_indexed_treefields[$field]['file_code'] ;
+				$ttmp['file_field_code'] = $arr_indexed_treefields[$field]['file_field_code'] ;
+				
+				$field_group['group_file_display_arrFields'][$display_field_key] = $ttmp ;
+			}
+		}
+	}
+	unset($field_group) ;
+	$arr_saisie['fields_group'] = $fields_group ;
+	if( $debug ) {
+		echo "OK\n" ;
+	}
 		
 		
 	if( $debug ) {
@@ -2686,6 +2722,12 @@ function paracrm_queries_process_queryHelp_getGroupHash( $record_glob, $fields_g
 			else
 				$tab[$fieldgroup_id] = NULL ;
 		}
+		if( $field_group['field_type'] == 'file' ) {
+			$src_code = $field_group['sql_file_code'] ;
+			$src_field = 'filerecord_id' ;
+			$filerecord_id = $record_glob[$src_code][$src_field] ;
+			$tab[$fieldgroup_id] = $filerecord_id ;
+		}
 	}
 	
 	// *** Multiplication du return_tab
@@ -3059,6 +3101,19 @@ function paracrm_queries_process_labelEnum( $group_id, $field_group, $bibleCondi
 			$arr[$group_key] = array($group_key) ;
 		}
 		break ;
+		
+		case 'file' :
+		foreach( paracrm_queries_process_labelEnumFile( $group_id, $field_group['sql_file_code'], $field_group['group_file_limit_nb'] ) as $record ) {
+			$ttmp = array() ;
+			foreach( $field_group['group_file_display_arrFields'] as $display_field_key => $display_field_arrDesc )
+			{
+				$sql_field_code = 'field_'.$display_field_arrDesc['file_field_code'] ;
+				$ttmp[$display_field_key] = $record[$sql_field_code] ;
+			}
+			$filerecord_id = $record['filerecord_id'] ;
+			$arr[$filerecord_id] = $ttmp ;
+		}
+		break ;
 	}
 	
 	return $arr ;
@@ -3384,6 +3439,39 @@ function paracrm_queries_process_labelEnumBibleEntries( $bible_code, $root_treen
 	}
 	return $tab ;
 }
+
+
+function paracrm_queries_process_labelEnumFile( $group_id, $file_code, $group_file_limit_nb )
+{
+	global $_opDB ;
+	global $_groups_hashes ;
+	
+	// recherche du MIN + MAX
+	$ttmp = array() ;
+	foreach( $_groups_hashes as $hash_key => $hash_desc )
+	{
+		$ttmp[] = $hash_desc[$group_id] ;
+	}
+	rsort($ttmp) ;
+	if( $group_file_limit_nb > 0 ) {
+		array_splice($ttmp, $group_file_limit_nb);
+	}
+	sort($ttmp) ;
+	
+	$view_name = 'view_file_'.$file_code ;
+	$tab = array() ;
+	foreach( $ttmp as $filerecord_id ) {
+		$query = "SELECT * FROM $view_name WHERE filerecord_id='{$filerecord_id}'" ;
+		$result = $_opDB->query($query) ;
+		$arr = $_opDB->fetch_assoc($result);
+		if( !$arr ) {
+			continue ;
+		}
+		$tab[] = $arr ;
+	}
+	return $tab ;
+}
+
 function paracrm_queries_process_labelEnumDate( $group_id, $group_date_type, $force_values=NULL )
 {
 	global $_groups_hashes ;

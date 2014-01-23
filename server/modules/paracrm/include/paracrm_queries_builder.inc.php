@@ -639,6 +639,8 @@ function paracrm_queries_builderTransaction_saveFields( &$arr_saisie , $query_id
 	$group[] = 'field_type' ;
 	$group[] = 'field_linkbible' ;
 	$group[] = 'display_geometry' ;
+	$group[] = 'group_file_limit_nb' ;
+	$group[] = 'group_file_display_record' ;
 	$group[] = 'group_bible_type' ;
 	$group[] = 'group_bible_tree_depth' ;
 	$group[] = 'group_bible_display_treenode' ;
