@@ -50,6 +50,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 	requires: ['Ext.ux.chart.TitleChart'],
 	
 	minChartWidth: 200,
+	drawChartLegend: true,
 	
 	ajaxBaseParams:null,
 	
@@ -458,9 +459,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 			style: 'background:#fff',
 			animate: false,
 			store: store,
-			legend: {
-				position: 'right'
-			},
+			legend: ( me.drawChartLegend ? {position: 'right'} : false ),
 			axes: axes,
 			series: series
 		};
