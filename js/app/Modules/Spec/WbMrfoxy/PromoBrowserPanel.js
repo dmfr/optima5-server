@@ -2,32 +2,40 @@ Ext.define('WbMrfoxyPromoListModel', {
     extend: 'Ext.data.Model',
     fields: [
         {name: 'id', type: 'string'},
+		  {name: '_filerecord_id', type: 'int'},
         {name: 'promo_id',  type: 'string'},
         {name: 'country_code',  type: 'string'},
         {name: 'status_text',  type: 'string'},
         {name: 'status_percent',  type: 'string'},
         {name: 'status_color',  type: 'string'},
         {name: 'prod_text',  type: 'string'},
+        {name: 'prod_code',  type: 'string'},
         {name: 'store_text',   type: 'string'},
+        {name: 'store_code',   type: 'string'},
+        {name: 'mechanics_code',   type: 'string'},
+        {name: 'mechanics_text',   type: 'string'},
         {name: 'date_start',   type: 'string'},
         {name: 'date_end',   type: 'string'},
+		  {name: 'date_length_weeks', type: 'int'},
         {name: 'calc_uplift_vol',   type: 'string'},
         {name: 'calc_uplift_per',   type: 'string'},
-        {name: 'calc_roi',   type: 'string'}
+        {name: 'calc_roi',   type: 'string'},
+        {name: 'obs_atl',   type: 'string'},
+        {name: 'obs_btl',   type: 'string'},
+        {name: 'obs_comment',   type: 'string'}
      ],
 	  idgen: 'sequential'
 });
 
-Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListPanel',{
-	extend:'Ext.grid.Panel',
+Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoBrowserPanel',{
+	extend:'Ext.panel.Panel',
 	
-	requires : [
-		'Ext.ux.RowExpander'
+	requires: [
+		'Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',
+		'Optima5.Modules.Spec.WbMrfoxy.PromoCalendarSubpanel'
 	],
-	plugins: [{
-		ptype:'rowexpander',
-		rowBodyTpl : ['<div id="RowBody-{id}" ></div>']
-	}],
+	
+	viewMode: 'grid',
 	
 	initComponent: function() {
 		var me = this ;
@@ -35,7 +43,11 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListPanel',{
 		Ext.apply(me,{
 			//frame: true,
 			border: false,
-			layout:'border',
+			layout: {
+				type: 'card',
+				align: 'stretch',
+				deferredRender: true
+			},
 			tbar:[{
 				icon: 'images/op5img/ico_back_16.gif',
 				text: '<b>Back</b>',
@@ -75,110 +87,54 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListPanel',{
 						useArrows: true,
 					}]
 				}
-			}],
-			border: false,
-			store: {
-				model: 'WbMrfoxyPromoListModel',
-				autoLoad: true,
-				proxy: this.optimaModule.getConfiguredAjaxProxy({
-					extraParams : {
-						_moduleId: 'spec_wb_mrfoxy',
-						_action: 'promo_getGrid'
+			},'->',{
+				itemId: 'tbViewmode',
+				viewConfig: {forceFit: true},
+				menu: {
+					defaults: {
+						handler:function(menuitem) {
+							//console.log('ch view '+menuitem.itemId) ;
+							me.switchToView( menuitem.itemId ) ;
+						},
+						scope:me
 					},
-					reader: {
-						type: 'json',
-						root: 'data'
-					}
-				}),
-				listeners: {
-					load: function(store) {
-						//store.sort('people_name') ;
-					}
+					items: [{
+						itemId: 'grid',
+						text: 'Grid data',
+						iconCls: 'op5-crmbase-datatoolbar-view-grid'
+					},{
+						itemId: 'calendar',
+						text: 'Calendar',
+						iconCls: 'op5-crmbase-datatoolbar-view-calendar'
+					},{
+						itemId: 'editgrid',
+						text: 'Editable grid',
+						iconCls: 'op5-crmbase-datatoolbar-view-editgrid'
+					}]
 				}
-			},
-			progressRenderer: (function () {
-				return function(progress,text) {
-				};
-			})(),
-			columns: [{
-				text: '',
-				width: 24,
-				renderer: function( value, metaData, record ) {
-					var iconurl = Optima5.Modules.Spec.WbMrfoxy.HelperCache.countryGetById(record.get('country_code')).get('country_iconurl') ;
-					console.log( iconurl ) ;
-					metaData.style = 'background: url(\''+iconurl+'\') no-repeat center center';
-					return '' ;
-				}
-			},{
-				text: '<b>Promo#</b>',
-				dataIndex: 'promo_id',
-				width: 150,
-				renderer: function(v) {
-					return '<b>'+v+'</b>' ;
-				}
-			},{
-				text: 'Status',
-				width: 100,
-				renderer: function(v,m,record) {
-					var tmpProgress = record.get('status_percent') / 100 ;
-					var tmpText = record.get('status_text') ;
-						var b = new Ext.ProgressBar({height: 15, cls: 'op5-spec-mrfoxy-promolist-progress'});
-						b.updateProgress(tmpProgress,tmpText);
-						v = Ext.DomHelper.markup(b.getRenderTree());
-						b.destroy() ;
-					return v;
-				}
-			},{
-				text: 'Date start',
-				dataIndex: 'date_start',
-				width: 120,
-				renderer: function(v) {
-					return '<b>'+v+'</b>' ;
-				}
-			},{
-				text: 'Stores',
-				dataIndex: 'store_text',
-				width: 100
-			},{
-				text: 'Products',
-				dataIndex: 'prod_text',
-				width: 100
 			}],
-			listeners: {
-				itemclick: function(view,record) {
-					
-				},
-				scope: this
+			items:[{
+				xtype:'box',
+				cls:'op5-waiting',
+				itemId:'init'
 			},
-			viewConfig: {
-				listeners: {
-					expandbody: function(rowNode, record, expandbody) {
-						var targetId = 'RowBody-' + record.get('id');
-							
-							console.dir(Ext.get(targetId)) ;
-						
-                        if (Ext.getCmp(targetId + "-panel") == null) {
-                            var notesGrid = Ext.create('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel', {
-                                forceFit: true,
-                                renderTo: targetId,
-                                id: targetId + "-panel",
-										  height: 150,
-										  rowRecord: record
-                            });
-									 /*
-                            rowNode.grid = notesGrid;
-                            notesGrid.getEl().swallowEvent(['mouseover', 'mousedown', 'click', 'dblclick', 'onRowFocus']);
-                            notesGrid.fireEvent("bind", notesGrid, { id: record.get('id') });
-									*/
-                        }
-					},
-					scope: me
-				}
-			}
+				Ext.create('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
+					itemId: 'grid',
+					border: false,
+					parentBrowserPanel: me
+				})
+			,
+				Ext.create('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarSubpanel',{
+					itemId: 'calendar',
+					border: false,
+					parentBrowserPanel: me
+				})
+			]
 		});
 		
 		this.callParent() ;
 		this.loadComponents() ;
+		this.switchToView(me.viewMode) ;
 	},
 	loadComponents: function() {
 		var me = this,
@@ -226,10 +182,10 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListPanel',{
 				this.onSelectCountry() ;
 			}
 		},this) ;
-		this.onSelectCountry() ;
+		this.onSelectCountry(true) ;
 	},
 	
-	onSelectCountry: function() {
+	onSelectCountry: function(silent) {
 		var me = this,
 			tbCountry = this.query('#tbCountry')[0],
 			tbCountrySelect = this.query('#tbCountrySelect')[0] ;
@@ -239,11 +195,37 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListPanel',{
 				tbCountry.setIcon( chrec.get('country_iconurl') ) ;
 				tbCountry.setText( chrec.get('country_text') ) ;
 				
-				//TODO: apply filter
+				me.filterCountry = chrec.get('country_code') ;
+				if( !silent ) {
+					me.fireEvent('tbarselect') ;
+				}
 				
 				return false ;
 			}
 		},this);
+	},
+	
+	switchToView: function( viewId ) {
+		var me = this,
+			tbViewmode = me.child('toolbar').getComponent('tbViewmode'),
+			iconCls, text ;
+		switch( viewId ) {
+			case 'grid' :
+				text = 'List' ;
+				iconCls = 'op5-crmbase-datatoolbar-view-grid' ;
+				break ;
+			case 'calendar' :
+				text = 'Calendar' ;
+				iconCls = 'op5-crmbase-datatoolbar-view-calendar' ;
+				break ;
+			default:
+				return ;
+		}
+		me.viewMode = viewId ;
+		tbViewmode.setIconCls(iconCls) ;
+		tbViewmode.setText(text) ;
+		
+		me.getLayout().setActiveItem(viewId) ;
 	},
 	
 	handleQuit: function() {

@@ -165,3 +165,47 @@
 	line-height: inherit ;
 }
 
+.op5-spec-mrfoxy-promorow-item {
+	display:block;
+	position:relative;
+	border:1px solid rgb(255, 255, 255)
+}
+.op5-spec-mrfoxy-promorow-action {
+	position: relative ;
+	padding-left: 24px ;
+	line-height: 18px ;
+	margin-top: 2px;
+	margin-bottom: 2px;
+}
+.op5-spec-mrfoxy-promorow-item-over {
+	border: 1px solid rgb(120, 120, 120);
+	-moz-border-radius: 6px;
+	border-radius: 6px !important;
+	z-index: 2;
+}
+.op5-spec-mrfoxy-promorow-action-icon {
+	position: absolute;
+	background-image: url("../images/op5img/ico_cancel_small.gif") !important;
+	top:0px;
+	left:4px ;
+	width:16px ;
+	height:16px ;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+.op5-spec-mrfoxy-promorow-action-icon-approval {
+	background-image: url("../images/modules/mrfoxy-redflag-16.gif") !important;
+}
+.op5-spec-mrfoxy-promorow-action-icon-view {
+	background-image: url("../images/modules/crmbase-kchart-16.png") !important;
+}
+.op5-spec-mrfoxy-promorow-action-icon-download {
+	background-image: url("../images/op5img/ico_save_16.gif") !important;
+}
+.op5-spec-mrfoxy-promorow-action-icon-edit {
+	background-image: url("../images/op5img/ico_edit_small.gif") !important;
+}
+.op5-spec-mrfoxy-promorow-action-icon-delete {
+	background-image: url("../images/op5img/ico_delete_16.gif") !important;
+}
+

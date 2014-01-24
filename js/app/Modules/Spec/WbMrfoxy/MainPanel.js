@@ -5,7 +5,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.MainPanel',{
 		'Optima5.Modules.Spec.WbMrfoxy.MainMenu',
 		'Optima5.Modules.Spec.WbMrfoxy.PromoNewCfgPanel',
 		'Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',
-		'Optima5.Modules.Spec.WbMrfoxy.PromoListPanel'
+		'Optima5.Modules.Spec.WbMrfoxy.PromoBrowserPanel'
 	],
 	
 	initComponent: function() {
@@ -53,17 +53,21 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.MainPanel',{
 			case 'promo_new' :
 				return me.handleNewPromo() ;
 			case 'promo_list' :
-				return me.switchToAppPanel('Optima5.Modules.Spec.WbMrfoxy.PromoListPanel') ;
+				return me.switchToAppPanel('Optima5.Modules.Spec.WbMrfoxy.PromoBrowserPanel') ;
 			default :
 				return ;
 		}
 	},
 	
-	switchToAppPanel: function( className ) {
+	switchToAppPanel: function( className, options ) {
 		var me = this ;
-		var panel = Ext.create(className,{
+		
+		options = options || {} ;
+		Ext.apply(options,{
 			optimaModule: me.optimaModule
 		}) ;
+		
+		var panel = Ext.create(className,options) ;
 		
 		panel.on('destroy',function() {
 			me.switchToMainMenu() ;
@@ -110,7 +114,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.MainPanel',{
 		
 		var promoFormPanel = Ext.create('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 			optimaModule: me.optimaModule,
-			width: 700,
+			width: 800,
 			data: promoCfg
 		}) ;
 		promoFormPanel.on('destroy',function(p) {

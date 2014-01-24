@@ -8,7 +8,21 @@ function backend_specific( $post_data )
 switch( $post_data['_action'] )
 {
 	case 'promo_getGrid' :
-	return specDbsPeople_promo_getGrid( $post_data ) ;
+	return specWbMrfoxy_promo_getGrid( $post_data ) ;
+	
+	case 'promo_getCalendarAccounts' :
+	return specWbMrfoxy_promo_getCalendarAccounts( $post_data ) ;
+	
+	case 'promo_getSideGraph' :
+	return specWbMrfoxy_promo_getSideGraph($post_data);
+	
+	case 'promo_formEval' :
+	return specWbMrfoxy_promo_formEval($post_data);
+	case 'promo_formSubmit' :
+	return specWbMrfoxy_promo_formSubmit($post_data);
+	
+	case 'promo_delete' :
+	return specWbMrfoxy_promo_delete($post_data);
 	
 	default :
 	return NULL ;

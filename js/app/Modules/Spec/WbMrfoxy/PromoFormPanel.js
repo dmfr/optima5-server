@@ -30,9 +30,17 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 		});
 		
 		this.callParent() ;
+		if( me.promoRecord ) {
+			me.loadDataFromRecord(me.promoRecord) ;
+		}
 		if( me.data ) {
 			me.loadData(me.data) ;
 		}
+		this.evalForm() ;
+		
+		Ext.defer(function() {
+			me.renderGraph() ;
+		},1000,me) ;
 	},
 	
 	initHeaderCfg: function() {
@@ -76,19 +84,32 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 					type: 'hbox'
 				},
 				items:[{
+					xtype:'hidden',
+					name:'_filerecord_id',
+				},{
+					xtype:'hidden',
+					name:'country_code',
+				},{
+					xtype:'hidden',
+					name:'brand_code',
+				},{
 					xtype:'fieldcontainer',
-					flex: 1,
+					flex: 4,
 					items:[{
 						xtype:'fieldset',
 						title: 'Scheduled date',
 						items:[{
 							xtype: 'datefield',
 							fieldLabel: 'Date start',
-							name: 'whse_txt'
+							name: 'date_start',
+							format: 'Y-m-d',
+							allowBlank: false,
 						},{
-							xtype: 'numberfield',
-							fieldLabel: 'Duration (weeks)',
-							name: 'team_txt'
+							xtype: 'datefield',
+							fieldLabel: 'Date end',
+							name: 'date_end',
+							format: 'Y-m-d',
+							allowBlank: false,
 						}]
 					},{
 						xtype:'fieldset',
@@ -96,21 +117,54 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 							anchor: '100%',
 							labelWidth: 60
 						},
-						title: 'Products / Stores',
+						title: 'Stores',
 						items:[{
-								xtype: 'op5crmbasebibletreepicker',
-								selectMode: 'single',
-								optimaModule: me.optimaModule,
-								bibleId: 'IRI_STORE',
-								fieldLabel: 'Stores',
-								name: 'whse_txt'
-							},{
-								xtype: 'op5crmbasebibletreepicker',
-								selectMode: 'single',
-								optimaModule: me.optimaModule,
-								bibleId: 'IRI_PROD',
-								fieldLabel: 'Product',
-								name: 'whse_txt'
+							xtype: 'op5crmbasebibletreepicker',
+							allowBlank:false,
+							rootNode: ( me.data != null ? me.data.country_code : null ),
+							selectMode: 'single',
+							optimaModule: me.optimaModule,
+							bibleId: 'IRI_STORE',
+							fieldLabel: 'Stores',
+							name: 'store_code',
+							listeners: {
+								change: function() {
+									me.evalForm() ;
+								},
+								scope: me
+							}
+						},{
+							xtype: 'displayfield',
+							fieldLabel: 'Corporate',
+							name: 'store_master',
+							fieldStyle: 'font-weight: bold'
+						}]
+					},{
+						xtype:'fieldset',
+						defaults: {
+							anchor: '100%',
+							labelWidth: 60
+						},
+						title: 'Products',
+						items:[{
+							xtype: 'op5crmbasebibletreepicker',
+							allowBlank:false,
+							selectMode: 'single',
+							optimaModule: me.optimaModule,
+							bibleId: 'IRI_PROD',
+							fieldLabel: 'Products',
+							name: 'prod_code',
+							listeners: {
+								change: function() {
+									me.evalForm() ;
+								},
+								scope: me
+							}
+						},{
+							xtype: 'displayfield',
+							fieldLabel: 'Range',
+							name: 'prod_master',
+							fieldStyle: 'font-weight: bold'
 						}]
 					},{
 						xtype:'fieldset',
@@ -120,16 +174,57 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 						},
 						title: 'Promo mechanics',
 						items:[{
-								xtype: 'op5crmbasebibletreepicker',
-								selectMode: 'single',
-								optimaModule: me.optimaModule,
-								bibleId: 'PROMO_MECH',
-								fieldLabel: 'Type',
-								name: 'whse_txt'
+							xtype: 'checkbox',
+							boxLabel: 'Rewards card program',
+							name: 'mechanics_is_rewardscard',
+							listeners:{
+								change: function(){ me.calcLayout() },
+								scope:me
+							}
+						},{
+							xtype: 'op5crmbasebibletreepicker',
+							allowBlank:false,
+							selectMode: 'single',
+							optimaModule: me.optimaModule,
+							bibleId: 'PROMO_MECH',
+							fieldLabel: 'Type',
+							name: 'mechanics_code',
+							listeners:{
+								change: function(){ me.calcLayout() },
+								scope:me
+							}
+						},{
+							xtype: 'fieldcontainer',
+							layout:{
+								type: 'hbox',
+								align: 'stretch'
+							},
+							itemId: 'mechanics_mono',
+							fieldLabel: 'Discount',
+							items:[{
+								xtype:'numberfield',
+								hideTrigger:true,
+								name: 'mechanics_mono_discount',
+								width: 30
 							},{
-								xtype: 'textfield',
-								fieldLabel: 'Details',
-								name: 'team_txt'
+								xtype:'box',
+								padding:'4px 0px 0px 6px',
+								html:'<b>%</b>'
+							}]
+						},{
+							xtype: 'comboboxcached',
+							itemId: 'mechanics_multi',
+							fieldLabel: 'Details',
+							name: 'mechanics_multi_combo',
+							forceSelection: false,
+							editable: true,
+							store: {
+								fields: ['txt'],
+								data : []
+							},
+							queryMode: 'local',
+							displayField: 'txt',
+							valueField: 'txt'
 						}]
 					}]
 				},{
@@ -138,24 +233,221 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 					width: 24
 				},{
 					xtype:'fieldset',
-					flex: 1,
+					flex: 5,
 					title: 'Financial data',
 					items:[{
-						xtype: 'numberfield',
-						fieldLabel: 'Forecast cost',
-						name: 'whse_txt'
+						xtype: 'fieldcontainer',
+						layout:{
+							type: 'hbox',
+							align: 'stretch'
+						},
+						fieldLabel: 'Forecast',
+						labelWidth: 60,
+						items:[{
+							xtype:'numberfield',
+							hideTrigger:true,
+							name: 'forecast_cost',
+							width: 50,
+							minValue: 0
+						},{
+							xtype:'box',
+							html:'&#160;',
+							width: 6
+						},{
+							xtype:'combobox',
+							name:'forecast_currency',
+							width: 50,
+							forceSelection: true,
+							editable: false,
+							store: {
+								fields: ['code','lib'],
+								data : [
+									{code:'EUR', lib:'€'},
+									{code:'GBP', lib:'£'},
+									{code:'USD', lib:'$'}
+								]
+							},
+							queryMode: 'local',
+							displayField: 'lib',
+							valueField: 'code'
+						}]
 					},{
-						xtype:'box',
+						xtype:'container',
+						itemId: 'cntFinanceGraph',
 						cls:'op5-waiting',
 						height:32,
 						margin: 10
+					},{
+						xtype:'grid',
+						height:200,
+						itemId: 'gridBenchmark',
+						store: {
+							model: 'WbMrfoxyPromoListModel',
+							data:[]
+						},
+						columns: [{
+							text: '<b>Promo#</b>',
+							dataIndex: 'promo_id',
+							width: 150,
+							renderer: function(v) {
+								return ''+v+'' ;
+							}
+						},{
+							text: 'Uplift(kg)',
+							dataIndex: 'calc_uplift_vol',
+							width: 70
+						},{
+							text: 'Uplift(%)',
+							dataIndex: 'calc_uplift_per',
+							width: 70
+						},{
+							text: 'ROI',
+							dataIndex: 'calc_roi',
+							width: 70
+						}]
+					},{
+						xtype:'box',
+						html:'&#160;',
+						height: 16
 					}]
+				}]
+			}],
+			dockedItems: [{
+				xtype: 'toolbar',
+				dock: 'bottom',
+				ui: 'footer',
+				layout:{
+					pack:'center'
+				},
+				items: [{
+					xtype: 'component',
+					padding: '0px 0px 16px 0px',
+					overCls: 'op5-crmbase-dataimport-go-over',
+					renderTpl: Ext.create('Ext.XTemplate',
+						'<div class="op5-crmbase-dataimport-go">',
+						'<div class="op5-crmbase-dataimport-go-btn">',
+						'</div>',
+						'</div>',
+						{
+							compiled:true,
+							disableFormats: true
+						}
+					),
+					listeners: {
+						afterrender: function(c) {
+							c.getEl().on('click',this.handleSubmit,this) ;
+						},
+						scope: this
+					}
 				}]
 			}]
 		} ;
 		return tabsCfg ;
 	},
+	renderGraph: function() {
+		var me = this,
+			cntFinanceGraph = me.query('#cntFinanceGraph')[0] ;
+		
+		/*
+		var store = Ext.create('Ext.data.JsonStore', {
+			fields: ['year', 'comedy', 'action', 'drama', 'thriller'],
+			data: [
+               {year: 2005, comedy: 34000000, action: 23890000, drama: 18450000, thriller: 20060000},
+                {year: 2006, comedy: 56703000, action: 38900000, drama: 12650000, thriller: 21000000},
+                {year: 2007, comedy: 42100000, action: 50410000, drama: 25780000, thriller: 23040000},
+                {year: 2008, comedy: 38910000, action: 56070000, drama: 24810000, thriller: 26940000}
+					]
+		});
+
+		var chart = Ext.create('Ext.chart.Chart',{
+					xtype: 'chart',
+					animate: true,
+					shadow: true,
+					store: store,
+					legend: {
+						position: 'right'
+					},
+					axes: [{
+						type: 'Numeric',
+						position: 'bottom',
+						fields: ['comedy', 'action', 'drama', 'thriller'],
+						title: false,
+						grid: true,
+						label: {
+							renderer: function(v) {
+									return String(v).replace(/(.)00000$/, '.$1M');
+							}
+						}
+					}, {
+						type: 'Category',
+						position: 'left',
+						fields: ['year'],
+						title: false
+					}],
+					series: [{
+						type: 'bar',
+						axis: 'bottom',
+						gutter: 80,
+						xField: 'year',
+						yField: ['comedy', 'action', 'drama', 'thriller'],
+						stacked: true,
+						tips: {
+							trackMouse: true,
+							width: 65,
+							height: 28,
+							renderer: function(storeItem, item) {
+									this.setTitle(String(item.value[1] / 1000000) + 'M');
+							}
+						}
+					}]
+			});
+		cntFinanceGraph.removeCls('op5-waiting') ;
+		cntFinanceGraph.add(chart) ;
+		*/
+	},
+	calcLayout: function() {
+		var me = this ;
+			form = me.child('form').getForm() ;
+			  
+		var mechanicsCode = form.findField('mechanics_code').getValue() ;
+		me.query('#mechanics_mono')[0].setVisible( mechanicsCode=='MONO' ) ;
+		form.findField('mechanics_mono_discount').allowBlank = !(mechanicsCode=='MONO') ;
+		me.query('#mechanics_multi')[0].setVisible( mechanicsCode=='MULTI' ) ;
+		form.findField('mechanics_multi_combo').allowBlank = !(mechanicsCode=='MULTI') ;
+	},
+	evalForm: function() {
+		var me = this ;
+		me.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_wb_mrfoxy',
+				_action: 'promo_formEval',
+				data: Ext.JSON.encode(me.child('form').getForm().getValues())
+			},
+			success: function(response) {
+				var ajaxData = Ext.decode(response.responseText) ;
+				if( ajaxData.success == true ) {
+					var ajaxDataObj = ajaxData.data ;
+					if( ajaxDataObj.store_master != null ) {
+						me.child('form').getForm().findField('store_master').setValue( ajaxDataObj.store_master ) ;
+					}
+					if( ajaxDataObj.prod_master != null ) {
+						me.child('form').getForm().findField('prod_master').setValue( ajaxDataObj.prod_master ) ;
+					}
+					if( ajaxDataObj.gridBenchmark != null ) {
+						me.query('#gridBenchmark')[0].getStore().loadData( ajaxDataObj.gridBenchmark ) ;
+					}
+					if( ajaxDataObj.mechanics_multi != null ) {
+						me.child('form').getForm().findField('mechanics_multi_combo').getStore().loadData( ajaxDataObj.mechanics_multi ) ;
+					}
+				}
+			},
+			scope: me
+		}) ;
+	},
 	
+	loadDataFromRecord: function( promoRecord ) {
+		this.loadData(promoRecord.data) ;
+	},
 	loadData: function(data) {
 		var me = this ;
 		
@@ -164,19 +456,19 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 			headerCmp = me.getComponent('pHeader'),
 			headerEl = headerCmp.getEl() ;
 		if( data.header_promo_code ) {
-			headerData['title'] = data.header_promo_code ;
+			headerData['title'] = data.promo_id ;
 		} else {
 			headerData['title'] = 'New promotion' ;
 		}
-		if( data.header_countryCode ) {
-			var row = Optima5.Modules.Spec.WbMrfoxy.HelperCache.countryGetById(data.header_countryCode) ;
+		if( data.country_code ) {
+			var row = Optima5.Modules.Spec.WbMrfoxy.HelperCache.countryGetById(data.country_code) ;
 			if( row ) {
 				headerData['countryIcon'] = row.get('country_iconurl') ;
 				headerData['countryDisplay'] = row.get('country_display') ;
 			}
 		}
-		if( data.header_brandCode ) {
-			var row = Optima5.Modules.Spec.WbMrfoxy.HelperCache.brandGetById(data.header_brandCode) ;
+		if( data.brand_code ) {
+			var row = Optima5.Modules.Spec.WbMrfoxy.HelperCache.brandGetById(data.brand_code) ;
 			if( row ) {
 				headerData['brandDisplay'] = row.get('brand_display') ;
 			}
@@ -191,11 +483,16 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 			},me) ;
 		}
 		
+		var form = me.child('form').getForm() ;
+		form.setValues( data ) ;
+		
 		/*
 		var btnCloseEl = headerEl.query('div.op5-spec-mrfoxy-promoformheader-close') ;
 		console.dir(headerEl) ;
 		console.dir(btnCloseEl) ;
 		*/
+		
+		me.calcLayout() ;
 	},
 	
 	headerAttachEvent: function() {
@@ -219,6 +516,34 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 	sendAbort: function() {
 		var me = this ;
 		me.fireEvent('abort',me) ;
+	},
+	
+	handleSubmit: function() {
+		var me = this ;
+			form = me.child('form').getForm() ;
+			  
+		if( form.hasInvalidField() ) {
+			Ext.MessageBox.alert('Incomplete','Please fill all required data') ;
+			return ;
+		}
+		Ext.MessageBox.confirm('Confirmation','Encode new promotion ?', function(buttonStr) {
+			if( buttonStr=='yes' ) {
+				me.optimaModule.getConfiguredAjaxConnection().request({
+					params: {
+						_moduleId: 'spec_wb_mrfoxy',
+						_action: 'promo_formSubmit',
+						data: Ext.JSON.encode(me.child('form').getForm().getValues())
+					},
+					success: function(response) {
+						var ajaxData = Ext.decode(response.responseText) ;
+						if( ajaxData.success == true ) {
+							me.fireEvent('abort',me) ;
+						}
+					},
+					scope: me
+				}) ;
+			}
+		},me) ;
 	}
 	
 });

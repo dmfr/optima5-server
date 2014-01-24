@@ -38,7 +38,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoNewCfgPanel',{
 						fields: ['country_code','country_display','country_iconurl'],
 						data : Optima5.Modules.Spec.WbMrfoxy.HelperCache.countryGetAll()
 					},
-					
+					allowBlank: false,
 					fieldLabel: 'Country',
 					name : 'country_code',
 					itemId : 'country_code',
@@ -57,19 +57,29 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoNewCfgPanel',{
 					fieldLabel: 'Class',
 					name : 'promotion_class',
 					boxLabel: 'Official',
-					inputValue : 'PROD'
+					inputValue : 'PROD',
+					handler: function() {
+						me.calcLayout() ;
+					},
+					scope:me
 				},{
 					xtype: 'radio',
 					name : 'promotion_class',
 					boxLabel: 'Test / Competition',
-					inputValue : 'TEST'
+					inputValue : 'TEST',
+					handler: function() {
+						me.calcLayout() ;
+					},
+					scope:me
 				},{
 					xtype: 'comboboxcached',
+					hidden: true,
 					queryMode: 'local',
 					forceSelection: true,
 					editable: false,
 					displayField: 'brand_display',
 					valueField: 'brand_code',
+					allowBlank: false,
 					store: {
 						fields: ['brand_code','brand_display'],
 						data : Optima5.Modules.Spec.WbMrfoxy.HelperCache.brandGetAll()
@@ -88,14 +98,30 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoNewCfgPanel',{
 		
 		this.callParent() ;
 	},
+	calcLayout: function() {
+		var me = this,
+			form = this.getForm() ;
+		
+		if( form.getValues()['promotion_class'] == 'PROD' ) {
+			form.findField('brand_code').setValue('WONDERFUL') ;
+			form.findField('brand_code').setVisible(false) ;
+		} else {
+			form.findField('brand_code').clearValue() ;
+			form.findField('brand_code').setVisible(true) ;
+		}
+	},
 	
 	onProceed: function() {
 		var me = this,
 			form = this.getForm() ;
 			  
+		if( form.hasInvalidField() ) {
+			return ;
+		}
+			  
 		var returnObj = {
-			header_countryCode: form.findField('country_code').getValue(),
-			header_brandCode: form.findField('brand_code').getValue()
+			country_code: form.findField('country_code').getValue(),
+			brand_code: form.findField('brand_code').getValue()
 		} ;
 		
 		me.fireEvent('proceed',this,returnObj) ;
