@@ -39,6 +39,7 @@ Ext.define('Optima5.Modules.CrmBase.BibleTreePicker',{
 	
 	bibleId: '' ,
 	selectMode: 'multi',
+	rootNode: null,
 	
 	initComponent: function() {
 		var me = this ;
@@ -77,6 +78,19 @@ Ext.define('Optima5.Modules.CrmBase.BibleTreePicker',{
 			nodeParam: 'nodeKey',
 			root: dataRoot 
 		});
+		if( me.rootNode != null && this.mystore.getNodeById(me.rootNode) != null ) {
+			var clone = function(node) {
+				var result = node.copy(),
+						len = node.childNodes ? node.childNodes.length : 0,
+						i;
+				// Move child nodes across to the copy if required
+				for (i = 0; i < len; i++)
+					result.appendChild(clone(node.childNodes[i]));
+				return result;
+			};
+			var newRootNode = clone(this.mystore.getNodeById(me.rootNode)) ;
+			this.mystore.setRootNode(newRootNode) ;
+		}
 		
 		me.fireEvent('iamready') ;
 		me.isReady = true ;
