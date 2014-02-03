@@ -362,7 +362,7 @@ function paracrm_queries_charts_getResChart( $RES, $queryResultChartModel ) {
 			if( is_array($sRES_stepLabel[$groupId]) ) {
 				unset($sRES_stepLabel[$groupId]['_id']) ;
 				unset($sRES_stepLabel[$groupId]['_parent_id']) ;
-				$sRES_stepLabel[$groupId] = implode(' ',$sRES_stepLabel[$groupId]) ;
+				$sRES_stepLabel[$groupId] = implode("\n",$sRES_stepLabel[$groupId]) ;
 			}
 		}
 		$RES_stepsLabel[] = $sRES_stepLabel ;

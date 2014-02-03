@@ -87,8 +87,9 @@ function paracrm_queries_template_makeImgChart(&$RES, $queryResultChartModel, $i
 	
 	$iteration_points = array() ;
 	foreach( $RES_chart['stepsLabel'] as $ttmp ) {
-		$iteration_points[] = implode(' ',$ttmp) ;
+		$iteration_points[] = implode("\n",$ttmp) ;
 	}
+	$iteration_nbligs = substr_count(current($iteration_points),"\n") + 1 ;
 	$iteration_title = implode(' ',$RES_chart['iterationTitle']) ;
 	
 	// Pie/PieSwap / Grid ? 
@@ -178,7 +179,7 @@ function paracrm_queries_template_makeImgChart(&$RES, $queryResultChartModel, $i
 				$PCHART_scale_mode = SCALE_MODE_START0 ;
 			}
 			$width_minus = ($img_options['legend'] ? 200 : 60) ;
-			$myPicture->setGraphArea(50,10,$img_width - $width_minus,$img_height - 20 );
+			$myPicture->setGraphArea(50,10,$img_width - $width_minus,$img_height - (16 * $iteration_nbligs) );
 			$myPicture->drawScale(array("Mode"=>$PCHART_scale_mode,"GridR"=>200,"GridG"=>200,"GridB"=>200,"DrawSubTicks"=>TRUE,"CycleBackground"=>TRUE));
 			//$myPicture->setShadow(TRUE,array("X"=>1,"Y"=>1,"R"=>0,"G"=>0,"B"=>0,"Alpha"=>10));
 			

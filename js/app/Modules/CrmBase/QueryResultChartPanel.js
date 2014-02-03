@@ -260,7 +260,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 				strArr.push(v) ;
 			});
 			var obj = {
-				name:strArr.join(' '),
+				name:strArr.join("\n"),
 				dummy: 0
 			} ;
 			for( i=0 ; i<seriesCount ; i++ ) {
