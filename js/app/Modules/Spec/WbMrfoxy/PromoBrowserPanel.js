@@ -22,7 +22,8 @@ Ext.define('WbMrfoxyPromoListModel', {
         {name: 'calc_roi',   type: 'string'},
         {name: 'obs_atl',   type: 'string'},
         {name: 'obs_btl',   type: 'string'},
-        {name: 'obs_comment',   type: 'string'}
+        {name: 'obs_comment',   type: 'string'},
+        {name: 'benchmark_arr_ids', type: 'string'}
      ],
 	  idgen: 'sequential'
 });

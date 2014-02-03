@@ -133,7 +133,6 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 	},
 	fetchGraph: function() {
 		var me = this ;
-		console.log('fetch graph') ;
 		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_wb_mrfoxy',

@@ -23,6 +23,10 @@ switch( $post_data['_action'] )
 	
 	case 'promo_delete' :
 	return specWbMrfoxy_promo_delete($post_data);
+	case 'promo_assignBenchmark' :
+	return specWbMrfoxy_promo_assignBenchmark($post_data);
+	case 'promo_fetchBenchmark' :
+	return specWbMrfoxy_promo_fetchBenchmark($post_data);
 	
 	default :
 	return NULL ;

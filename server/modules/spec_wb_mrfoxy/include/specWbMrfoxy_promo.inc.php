@@ -55,8 +55,23 @@ function specWbMrfoxy_promo_getGrid( $post_data ) {
 	$forward_post['limit'] ;
 	$forward_post['file_code'] = 'WORK_PROMO' ;
 	
+	$filters = array() ;
+	if( $post_data['filter_country'] ) {
+		$filter = array() ;
+		$filter['field'] = 'WORK_PROMO_field_COUNTRY' ;
+		$filter['type'] = 'list' ;
+		$filter['value'] = array($post_data['filter_country']) ;
+		$filters[] = $filter ;
+	}
+	if( $post_data['filter_id'] && isJsonArr($post_data['filter_id']) ) {
+		$filter = array() ;
+		$filter['field'] = 'filerecord_id' ;
+		$filter['type'] = 'list' ;
+		$filter['value'] = json_decode($post_data['filter_id'],true) ;
+		$filters[] = $filter ;
+	}
 	if( isset($post_data['filter']) ) {
-		$forward_post['filter'] = array() ;
+		
 		foreach( json_decode($post_data['filter'],true) as $filter ) {
 			$paracrm_field = NULL ;
 			switch( $filter['field'] ) {
@@ -67,9 +82,12 @@ function specWbMrfoxy_promo_getGrid( $post_data ) {
 				default : continue 2 ;
 			}
 			$filter['field'] = $paracrm_field ;
-			$forward_post['filter'][] = $filter ;
+			$filters['filter'][] = $filter ;
 		}
-		$forward_post['filter'] = json_encode($forward_post['filter']) ;
+		
+	}
+	if( $filters ) {
+		$forward_post['filter'] = json_encode($filters) ;
 	}
 	
 	$ttmp = paracrm_data_getFileGrid_data( $forward_post ) ;
@@ -77,10 +95,6 @@ function specWbMrfoxy_promo_getGrid( $post_data ) {
 	
 	$TAB = array() ;
 	foreach( $paracrm_TAB as $paracrm_row ) {
-		if( $post_data['filter_country'] && $post_data['filter_country'] != $paracrm_row['WORK_PROMO_field_COUNTRY'] ) {
-			continue ;
-		}
-	
 		$row = array() ;
 		$row['_filerecord_id'] = $paracrm_row['filerecord_id'] ;
 		$row['promo_id'] = $paracrm_row['WORK_PROMO_field_PROMO_CODE'] ;
@@ -99,6 +113,7 @@ function specWbMrfoxy_promo_getGrid( $post_data ) {
 		$row['obs_atl'] = $paracrm_row['WORK_PROMO_field_OBS_ATL'] ;
 		$row['obs_btl'] = $paracrm_row['WORK_PROMO_field_OBS_BTL'] ;
 		$row['obs_comment'] = $paracrm_row['WORK_PROMO_field_OBS_COMMENT'] ;
+		$row['benchmark_arr_ids'] = $paracrm_row['WORK_PROMO_field_BENCHMARK_ARR_IDS'] ;
 		
 		// nb weeks
 		$date2 = strtotime($row['date_end']);
@@ -272,6 +287,63 @@ function specWbMrfoxy_promo_formSubmit( $post_data ) {
 	$arr_ins['field_COST_FORECAST'] = $form_data['forecast_cost'] ;
 	
 	
+	// *** Création code PROMO ID ****
+	$store_memo = '' ;
+	$store_code = $form_data['store_code'] ;
+	while(TRUE) {
+		$query = "SELECT field_STOREGROUP_MEMO, treenode_parent_key FROM view_bible_IRI_STORE_tree WHERE treenode_key='$store_code'" ;
+		$row = $_opDB->fetch_row($_opDB->query($query)) ;
+		if( $row[0] != '' ) {
+			$store_memo = $row[0] ;
+			break ;
+		}
+		if( $row[1] != '' ) {
+			$store_code = $row[1] ;
+			continue ;
+		}
+		break ;
+	}
+	
+	$prod_memo = '' ;
+	$prod_code = $form_data['prod_code'] ;
+	while(TRUE) {
+		$query = "SELECT field_PRODGROUPMEMO, treenode_parent_key FROM view_bible_IRI_PROD_tree WHERE treenode_key='$prod_code'" ;
+		$row = $_opDB->fetch_row($_opDB->query($query)) ;
+		if( $row[0] != '' ) {
+			$prod_memo = $row[0] ;
+			break ;
+		}
+		if( $row[1] != '' ) {
+			$prod_code = $row[1] ;
+			continue ;
+		}
+		break ;
+	}
+	
+	unset($promo_id) ;
+	$promo_id_base = '' ;
+	$promo_id_base.= $form_data['country_code'] ;
+	if( $store_memo ) {
+		$promo_id_base.= '-' ;
+		$promo_id_base.= $store_memo ;
+	}
+	if( $prod_memo ) {
+		$promo_id_base.= '-' ;
+		$promo_id_base.= $prod_memo ;
+	}
+	$promo_id_base.= '-'.date('Ym') ;
+	for( $i=1 ; $i<1000 ; $i++ ) {
+		$promo_id_test = $promo_id_base.'-'.int_to_strX($i,3) ;
+		$query_test = "SELECT count(*) FROM view_file_WORK_PROMO WHERE field_PROMO_CODE='$promo_id_test'" ;
+		if( $_opDB->query_uniqueValue($query_test) == 0 ) {
+			$promo_id = $promo_id_test ;
+			break ;
+		}
+	}
+	if( !isset($promo_id) ) {
+		return array('success'=>false) ;
+	}
+	$arr_ins['field_PROMO_CODE'] = $promo_id ;
 	
 	if( $form_data['_filerecord_id'] ) {
 		paracrm_lib_data_insertRecord_file( 'WORK_PROMO',$arr_ins, $form_data['_filerecord_id']) ;
@@ -279,14 +351,58 @@ function specWbMrfoxy_promo_formSubmit( $post_data ) {
 		paracrm_lib_data_insertRecord_file( 'WORK_PROMO',0,$arr_ins) ;
 	}
 	
-	
 	return array('success'=>true) ;
 }
 
 
 function specWbMrfoxy_promo_delete( $post_data ) {
-	$src_filerecordId = $post_data['filerecord_id'] ;
+	$src_filerecordId = $post_data['_filerecord_id'] ;
 	paracrm_lib_data_deleteRecord_file('WORK_PROMO',$src_filerecordId) ;
 	return array('success'=>true) ;
+}
+function specWbMrfoxy_promo_assignBenchmark( $post_data ) {
+	$target_filerecordId = $post_data['_filerecord_id'] ;
+	if( !isset($post_data['benchmark_arr_ids']) ) {
+		return array('success'=>false) ;
+	}
+	paracrm_lib_data_updateRecord_file( 'WORK_PROMO' , array('field_BENCHMARK_ARR_IDS'=>$post_data['benchmark_arr_ids']), $target_filerecordId ) ;
+	return array('success'=>true) ;
+}
+function specWbMrfoxy_promo_fetchBenchmark( $post_data ) {
+	global $_opDB ;
+	
+	$q_id = 'Benchmarking' ;
+	if( !is_numeric($q_id) ) {
+		$query = "SELECT qmerge_id FROM qmerge WHERE qmerge_name LIKE '{$q_id}'";
+		$q_id = $_opDB->query_uniqueValue($query) ;
+		if( !$q_id ) {
+			return array('success'=>false) ;
+		}
+	}
+	
+	$arr_saisie = array() ;
+	paracrm_queries_mergerTransaction_init( array('qmerge_id'=>$q_id) , $arr_saisie ) ;
+	
+	// replace conditions
+	foreach( $arr_saisie['fields_mwhere'] as &$field_mwhere ) {
+		if( $field_mwhere['mfield_type'] == 'file' && isJsonArr($post_data['benchmark_arr_ids']) ) {
+			$field_mwhere['condition_file_ids'] = $post_data['benchmark_arr_ids'] ;
+		}
+	}
+	unset($field_mwhere) ;
+	
+	// Exec requete
+	$RES = paracrm_queries_process_qmerge($arr_saisie , FALSE ) ;
+	
+	// Load charts
+	$arr_QueryResultChartModel = paracrm_queries_charts_cfgLoad( 'qmerge', $q_id ) ;
+	if( !($mixed_queryResultChartModel = paracrm_queries_charts_getMixed( $arr_QueryResultChartModel )) ) {
+		return array('success'=>false) ;
+	}
+	
+	// Fetch chart
+	$RES_chart = paracrm_queries_charts_getResChart( $RES, $mixed_queryResultChartModel );
+	
+	return array('success'=>true, 'RESchart_static'=>$RES_chart) ;
 }
 ?>
