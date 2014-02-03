@@ -405,4 +405,20 @@ function specWbMrfoxy_promo_fetchBenchmark( $post_data ) {
 	
 	return array('success'=>true, 'RESchart_static'=>$RES_chart) ;
 }
+
+function specWbMrfoxy_promo_setObsText( $post_data ) {
+	$target_filerecordId = $post_data['_filerecord_id'] ;
+	$data = json_decode($post_data['data'],true) ;
+	
+	$map = array() ;
+	$map['obs_atl'] = 'field_OBS_ATL' ;
+	$map['obs_btl'] = 'field_OBS_BTL' ;
+	$map['obs_comment'] = 'field_OBS_COMMENT' ;
+	$arr_update = array() ;
+	foreach( $map as $src => $dest ) {
+		$arr_update[$dest] = $data[$src] ;
+	}
+	paracrm_lib_data_updateRecord_file( 'WORK_PROMO' , $arr_update, $target_filerecordId ) ;
+	return array('success'=>true) ;
+}
 ?>

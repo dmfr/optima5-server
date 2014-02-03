@@ -28,6 +28,9 @@ switch( $post_data['_action'] )
 	case 'promo_fetchBenchmark' :
 	return specWbMrfoxy_promo_fetchBenchmark($post_data);
 	
+	case 'promo_setObsText' :
+	return specWbMrfoxy_promo_setObsText($post_data);
+	
 	default :
 	return NULL ;
 }

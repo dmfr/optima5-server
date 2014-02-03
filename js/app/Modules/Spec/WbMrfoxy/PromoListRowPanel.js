@@ -2,7 +2,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 	extend: 'Ext.panel.Panel',
 	
 	requires: [
-		'Optima5.Modules.Spec.WbMrfoxy.PromoApprovalPanel'
+		'Optima5.Modules.Spec.WbMrfoxy.PromoApprovalPanel',
+		'Ext.ux.dams.FieldSet'
 	],
 	
 	rowRecord: null,
@@ -77,28 +78,40 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 			},{
 				items: [{
 					xtype:'fieldcontainer',
+					itemId: 'fcDisplay',
+					hidden: false,
 					items:[{
-						xtype:'fieldset',
+						xtype:'damsfieldset',
+						iconCls: 'op5-spec-mrfoxy-promorow-fieldset-edit',
 						title: 'Text attributes',
 						items:[{
 							xtype: 'displayfield',
 							fieldLabel: 'ATL',
+							itemId: 'display_atl',
 							labelWidth: 75,
 							//fieldStyle: 'font-weight: bold',
 							value: rowRecord.get('obs_atl')
 						},{
 							xtype: 'displayfield',
 							fieldLabel: 'BTL',
+							itemId: 'display_btl',
 							labelWidth: 75,
 							//fieldStyle: 'font-weight: bold',
 							value: rowRecord.get('obs_btl')
 						},{
 							xtype: 'displayfield',
 							fieldLabel: 'Comments',
+							itemId: 'display_comment',
 							labelWidth: 75,
 							//fieldStyle: 'font-weight: bold',
 							value: rowRecord.get('obs_comment')
-						}]
+						}],
+						listeners: {
+							iconclick: function() {
+								this.beginEditTextAttributes() ;
+							},
+							scope:me 
+						}
 					},{
 						xtype:'fieldset',
 						title: 'Performance analysis',
@@ -114,6 +127,56 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 							labelWidth: 75,
 							value: rowRecord.get('calc_roi')
 						}]
+					}]
+				},{
+					xtype:'fieldcontainer',
+					itemId: 'fcEditTextAttributes',
+					hidden: false,
+					items:[{
+						xtype:'damsfieldset',
+						iconCls: 'op5-spec-mrfoxy-promorow-fieldset-cancel',
+						title: 'Text attributes',
+						defaults: {
+							grow: true,
+							growMin: 40,
+							labelWidth: 75,
+							labelAlign: 'right',
+							anchor: '100%'
+						},
+						items:[{
+							xtype: 'textareafield',
+							fieldLabel: 'ATL',
+							itemId: 'edit_atl'
+						},{
+							xtype: 'textareafield',
+							fieldLabel: 'BTL',
+							itemId: 'edit_btl'
+						},{
+							xtype: 'textareafield',
+							fieldLabel: 'Comments',
+							itemId: 'edit_comment'
+						},{
+							xtype: 'container',
+							margin: '0px 10px 4px 0px',
+							style: {
+								textAlign: 'right'
+							},
+							items: [{
+								xtype:'button',
+								width: 80,
+								text: 'Save',
+								handler: function() {
+									this.saveEditTextAttributes() ;
+								},
+								scope: me
+							}]
+						}],
+						listeners: {
+							iconclick: function() {
+								this.abortEditTextAttributes() ;
+							},
+							scope:me 
+						}
 					}]
 				}],
 				flex:1
@@ -221,6 +284,62 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 		});
 		
 		me.optimaModule.createWindow(qCfg,Optima5.Modules.CrmBase.QdirectWindow) ;
+	},
+	
+	beginEditTextAttributes: function() {
+		var me = this,
+			rowRecord = me.rowRecord,
+			fcDisplay = me.query('#fcDisplay')[0],
+			fcEditTextAttributes = me.query('#fcEditTextAttributes')[0] ;
+		
+		fcEditTextAttributes.query('#edit_atl')[0].setValue( rowRecord.get('obs_atl') ) ;
+		fcEditTextAttributes.query('#edit_btl')[0].setValue( rowRecord.get('obs_btl') ) ;
+		fcEditTextAttributes.query('#edit_comment')[0].setValue( rowRecord.get('obs_comment') ) ;
+		fcEditTextAttributes.setVisible(true) ;
+		fcDisplay.setVisible(false) ;
+	},
+	abortEditTextAttributes: function() {
+		var me = this,
+			rowRecord = me.rowRecord,
+			fcDisplay = me.query('#fcDisplay')[0],
+			fcEditTextAttributes = me.query('#fcEditTextAttributes')[0] ;
+		
+		fcEditTextAttributes.setVisible(false) ;
+		fcDisplay.setVisible(true) ;
+	},
+	saveEditTextAttributes: function() {
+		var me = this,
+			rowRecord = me.rowRecord,
+			fcDisplay = me.query('#fcDisplay')[0],
+			fcEditTextAttributes = me.query('#fcEditTextAttributes')[0] ;
+			
+		var data = {
+			obs_atl: Ext.String.trim( fcEditTextAttributes.query('#edit_atl')[0].getValue() ),
+			obs_btl: Ext.String.trim( fcEditTextAttributes.query('#edit_btl')[0].getValue() ),
+			obs_comment: Ext.String.trim( fcEditTextAttributes.query('#edit_comment')[0].getValue() )
+		};
+		
+		var ajaxParams = {
+			_moduleId: 'spec_wb_mrfoxy',
+			_action: 'promo_setObsText',
+			_filerecord_id: rowRecord.get('_filerecord_id'),
+			data: Ext.JSON.encode(data)
+		};
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams,
+			success: function(response) {
+				var ajaxData = Ext.decode(response.responseText) ;
+				if( ajaxData.success ) {
+					fcDisplay.query('#display_atl')[0].setValue( data.obs_atl ) ;
+					fcDisplay.query('#display_btl')[0].setValue( data.obs_btl ) ;
+					fcDisplay.query('#display_comment')[0].setValue( data.obs_comment ) ;
+					Ext.apply( rowRecord.data, data ) ;
+				}
+				fcEditTextAttributes.setVisible(false) ;
+				fcDisplay.setVisible(true) ;
+			},
+			scope: this
+		}) ;
 	}
 	
 }) ;

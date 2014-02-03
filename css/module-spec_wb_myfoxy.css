@@ -209,6 +209,13 @@
 	background-image: url("../images/op5img/ico_delete_16.gif") !important;
 }
 
+.op5-spec-mrfoxy-promorow-fieldset-edit {
+	background-image: url("../images/op5img/ico_edit_small.gif") !important;
+}
+.op5-spec-mrfoxy-promorow-fieldset-cancel {
+	background-image: url("../images/op5img/ico_cancel_small.gif") !important;
+}
+
 
 .op5-spec-mrfoxy-promolist-benchmark-saveicon {
 	background-image: url("../images/op5img/ico_save_16.gif") !important;

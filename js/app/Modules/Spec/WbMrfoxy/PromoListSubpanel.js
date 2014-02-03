@@ -147,7 +147,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 				plugins: [{
 					ptype:'cmprowexpander',
 					pluginId: 'rowexpander',
-					expandOnDblClick: true,
+					expandOnDblClick: false,
+					expandOnEnter: false,
 					createComponent: function(view, record, rowNode, rowIndex) {
 						return Ext.create('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel', {
 							forceFit: true,
@@ -166,12 +167,40 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 				viewConfig:{
 					plugins: [{
 						ptype: 'gridviewdragdrop',
-						enableDrag: true,
+						enableDrag: false,
 						enableDrop: false,
 						ddGroup: 'PromoToBenchmark'+me.getId()
 					}],
 					listeners: {
 						render: function(gridview) {
+							gridview.ddel = Ext.get(document.createElement('div'));
+							gridview.ddel.addCls(Ext.baseCSSPrefix + 'grid-dd-wrap');
+							Ext.create('Ext.dd.DragZone',gridview.getEl(),{
+								ddGroup: 'PromoToBenchmark'+me.getId(),
+								view: gridview,
+								getDragData: function(e) {
+									if( e.getTarget('div.x-grid-rowbody') ) {
+										// on expanded row => quit
+										return ;
+									}
+									var sourceEl = e.getTarget(this.view.getItemSelector());
+									if (sourceEl) {
+										var record = this.view.getRecord(sourceEl) ;
+										this.view.ddel.update(record.get('promo_id')) ;
+										return {
+											ddel: this.view.ddel.dom,
+											sourceEl: sourceEl,
+											repairXY: Ext.fly(sourceEl).getXY(),
+											sourceStore: this.view.store,
+											record: record
+										}
+									}
+								},
+								getRepairXY: function() {
+									return this.dragData.repairXY;
+								}
+							}) ;
+							
 							Ext.create('Ext.dd.DropZone',gridview.getEl(),{
 								ddGroup: 'BenchmarkToPromo'+me.getId(),
 								view: gridview,
@@ -278,7 +307,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 									this.view.getEl().highlight();
 								},
 								notifyDrop: function(ddSource, e, data){
-									view.getStore().add( ddSource.dragData.records ) ;
+									if( view.getStore().indexOf( ddSource.dragData.record ) == -1 ) {
+										view.getStore().add( ddSource.dragData.record ) ;
+									}
 									return true;
 								}
 							});
