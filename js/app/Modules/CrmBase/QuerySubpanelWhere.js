@@ -4,6 +4,7 @@ Ext.define('QueryWhereModel', {
 		{name: 'field_code',  type: 'string'},
 		{name: 'field_type',   type: 'string'},
 		{name: 'field_linkbible',   type: 'string'},
+		{name: 'condition_file_ids',   type: 'string'},
 		{name: 'condition_string',   type: 'string'},
 		{name: 'condition_date_lt',   type: 'string'},
 		{name: 'condition_date_gt',   type: 'string'},
@@ -128,6 +129,9 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelWhere' ,{
 							str = str + ' < ' + record.get('condition_num_lt') ;
 							return str ;
 						
+						case 'file' :
+							return '<b>to define</b>' ;
+						
 						default :
 							return value ;
 					}
@@ -202,6 +206,7 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelWhere' ,{
 						case 'link' :
 						case 'date' :
 						case 'number' :
+						case 'file' :
 							break ;
 						
 						default :
@@ -269,6 +274,14 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelWhere' ,{
 				mform = Ext.create('Optima5.Modules.CrmBase.QueryWhereFormNumber',{
 					optimaModule: me.optimaModule,
 					frame:true
+				}) ;
+				break ;
+				
+			case 'file' :
+				mform = Ext.create('Ext.panel.Panel',{
+					optimaModule: me.optimaModule,
+					frame:true,
+					loadRecord: Ext.emptyFn
 				}) ;
 				break ;
 				

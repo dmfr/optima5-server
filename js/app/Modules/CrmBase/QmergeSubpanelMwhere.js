@@ -338,6 +338,9 @@ Ext.define('Optima5.Modules.CrmBase.QmergeSubpanelMwhere' ,{
 				str = str + ' < ' + record.get('condition_num_lt') ;
 				return str ;
 			
+			case 'file' :
+				return '<b>to define</b>' ;
+			
 			default :
 				return '' ;
 		}
@@ -544,6 +547,14 @@ Ext.define('Optima5.Modules.CrmBase.QmergeSubpanelMwhere' ,{
 				mform = Ext.create('Optima5.Modules.CrmBase.QueryWhereFormNumber',{
 					optimaModule: me.parentQmergePanel.optimaModule,
 					frame:true
+				}) ;
+				break ;
+				
+			case 'file' :
+				mform = Ext.create('Ext.panel.Panel',{
+					optimaModule: me.optimaModule,
+					frame:true,
+					loadRecord: Ext.emptyFn
 				}) ;
 				break ;
 				

@@ -328,6 +328,9 @@ Ext.define('Optima5.Modules.CrmBase.QbookSubpanelQprocess' ,{
 				text += '<u>'+fieldName+'</u>' ;
 			} else {
 				switch( fieldType ) {
+					case 'file' :
+						text += '<u>File records</u>' ;
+						break ;
 					case 'date' :
 						text += '<u>Date</u>' ;
 						break ;
@@ -506,6 +509,15 @@ Ext.define('Optima5.Modules.CrmBase.QbookSubpanelQprocess' ,{
 				}) ;
 				break ;
 				
+			case 'file' :
+				mformClass = 'Optima5.Modules.CrmBase.QbookQprocessFormFile' ;
+				mform = Ext.create(mformClass,{
+					frame:true,
+					inputvarRecords: me.inputvarStore.getRange(),
+					inputvarFieldType: 'string'
+				}) ;
+				break ;
+				
 			case 'link' :
 				mformClass = 'Optima5.Modules.CrmBase.QbookQprocessFormBible';
 				mform = Ext.create(mformClass,{
@@ -572,6 +584,9 @@ Ext.define('Optima5.Modules.CrmBase.QbookSubpanelQprocess' ,{
 					break ;
 				case 'number' :
 					toCopy = ['condition_num_lt','condition_num_gt'] ;
+					break ;
+				case 'file' :
+					toCopy = ['condition_file_ids'] ;
 					break ;
 				case 'link' :
 					var srcInputvarJsId = formValues['condition_bible'],

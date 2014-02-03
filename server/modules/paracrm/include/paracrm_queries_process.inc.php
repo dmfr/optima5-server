@@ -164,8 +164,10 @@ function paracrm_queries_process_qbook($arr_saisie, $debug=FALSE, $src_filerecor
 		if( $cfg_inputvar['src_backend_is_on'] ) {
 			$target_fileCode = ( $cfg_inputvar['src_backend_file_code'] ? $cfg_inputvar['src_backend_file_code'] : $arr_saisie['backend_file_code'] ) ;
 			$target_fileFieldCode = 'field_'.$cfg_inputvar['src_backend_file_field_code'] ;
-			if( !($val = $src_filerecord_row[$target_fileCode][$target_fileFieldCode]) ) {
+			if( !isset($src_filerecord_row[$target_fileCode][$target_fileFieldCode]) ) {
 				return NULL ;
+			} else {
+				$val = $src_filerecord_row[$target_fileCode][$target_fileFieldCode] ;
 			}
 		} elseif( $cfg_inputvar['inputvar_type'] == 'date' ) {
 			$val = date('Y-m-d H:i:s') ;
@@ -294,6 +296,7 @@ function paracrm_queries_process_qbook($arr_saisie, $debug=FALSE, $src_filerecor
 					$mvalue = $RES_inputvar[$src_inputvar_idx] ;
 					if( $target_query_wherefield_idx != -1 ) {
 						switch( $cfg_field['field_type'] ) {
+							case 'file' :
 							case 'date' :
 							case 'number' :
 								$mkey = $cfg_field['target_subfield'] ;
@@ -344,6 +347,7 @@ function paracrm_queries_process_qbook($arr_saisie, $debug=FALSE, $src_filerecor
 							case 'extrapolate' :
 							case 'date' :
 							case 'number' :
+							case 'file' :
 								$mkey = $cfg_field['target_subfield'] ;
 								break ;
 								
@@ -1340,6 +1344,14 @@ function paracrm_queries_process_query(&$arr_saisie, $debug=FALSE)
 		
 		switch( $field_where['field_type'] )
 		{
+			case 'file' :
+			if( $field_where['condition_file_ids'] ) {
+				$field_where['sql_arr_select'] = json_decode($field_where['condition_file_ids'],true) ;
+			} else {
+				unset($fields_where[$field_id]) ;
+			}
+			break ;
+			
 			case 'link' :
 			if( $field_where['condition_bible_mode'] != 'SELECT' )
 				break ;
@@ -1452,7 +1464,7 @@ function paracrm_queries_process_query(&$arr_saisie, $debug=FALSE)
 	if( $debug ) {
 		echo "OK\n" ;
 	}
-	// print_r($fields_where) ;
+	//print_r($fields_where) ;
 	
 	
 	
@@ -2445,6 +2457,12 @@ function paracrm_queries_process_queryHelp_where( $record_file, $fields_where ) 
 	{
 		$file_code = $field_where['sql_file_code'] ;
 		$file_field_code = $field_where['sql_file_field_code'] ;
+		
+		if( $field_where['field_type'] == 'file' && isset($record_file[$file_code]) ) {
+			if( !in_array($record_file[$file_code]['filerecord_id'],$field_where['sql_arr_select']) ) {
+				return FALSE ;
+			}
+		}
 		
 		if( !isset($record_file[$file_code][$file_field_code]) )
 			continue ;
