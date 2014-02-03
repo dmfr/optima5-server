@@ -693,3 +693,14 @@ body {    background: none repeat scroll 0 0 #F8F8F8;}
 .x-fieldset {
 	padding:0 10px;
 }
+
+
+.x-fieldset-withicon legend {
+	line-height: 24px;
+}
+.x-fieldset-header-icon {
+	width: 24px;
+	float: left;
+	background-repeat: no-repeat;
+	background-position: center center ;
+}
