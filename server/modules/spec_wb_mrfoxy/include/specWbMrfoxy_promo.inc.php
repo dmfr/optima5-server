@@ -174,12 +174,22 @@ function specWbMrfoxy_promo_getCalendarAccounts( $post_data ) {
 }
 
 function specWbMrfoxy_promo_getSideGraph( $post_data ) {
+	global $_opDB ;
 	$src_filerecordId = $post_data['filerecord_id'] ;
+	
+	$q_id = 'SellOut Idx A+B' ;
+	if( !is_numeric($q_id) ) {
+		$query = "SELECT qbook_id FROM qbook WHERE qbook_name LIKE '{$q_id}'";
+		$q_id = $_opDB->query_uniqueValue($query) ;
+		if( !$q_id ) {
+			return array('success'=>false) ;
+		}
+	}
 	
 	$post_test = array() ;
 	$post_test['_action'] = 'queries_qbookTransaction' ;
 	$post_test['_subaction'] = 'init' ;
-	$post_test['qbook_id'] = 1 ;
+	$post_test['qbook_id'] = $q_id ;
 	$json = paracrm_queries_qbookTransaction( $post_test ) ;
 	$transaction_id = $json['transaction_id'] ;
 	
@@ -201,7 +211,7 @@ function specWbMrfoxy_promo_getSideGraph( $post_data ) {
 	$json = paracrm_queries_qbookTransaction( $post_test ) ;
 	
 	if( $json['tabs'] ) {
-		return array('success'=>true, 'RESchart_static'=>$json['tabs'][3]['RESchart_static']) ;
+		return array('success'=>true, 'RESchart_static'=>$json['tabs'][1]['RESchart_static']) ;
 	}
 	return array('success'=>false) ;
 }

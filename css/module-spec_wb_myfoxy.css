@@ -196,7 +196,10 @@
 .op5-spec-mrfoxy-promorow-action-icon-approval {
 	background-image: url("../images/modules/mrfoxy-redflag-16.gif") !important;
 }
-.op5-spec-mrfoxy-promorow-action-icon-view {
+.op5-spec-mrfoxy-promorow-action-icon-viewinternal {
+	background-image: url("../images/modules/mrfoxy-kchartpriv-16.png") !important;
+}
+.op5-spec-mrfoxy-promorow-action-icon-viewpublic {
 	background-image: url("../images/modules/crmbase-kchart-16.png") !important;
 }
 .op5-spec-mrfoxy-promorow-action-icon-download {
@@ -207,6 +210,9 @@
 }
 .op5-spec-mrfoxy-promorow-action-icon-delete {
 	background-image: url("../images/op5img/ico_delete_16.gif") !important;
+}
+.op5-spec-mrfoxy-promorow-action-icon-close {
+	background-image: url("../images/modules/mrfoxy-ok-16.gif") !important;
 }
 
 .op5-spec-mrfoxy-promorow-fieldset-edit {

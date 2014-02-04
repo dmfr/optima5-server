@@ -60,10 +60,12 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 						fields: ['actionId','actionText','actionDisabled'],
 						data:[
 							{actionId: 'approval', actionText:'Approvals', actionDisabled:!(me.rowRecord.get('status_code')=='20_WAITVALID')},
-							{actionId: 'view', actionText:'Dashboard'},
+							{actionId: 'viewinternal', actionText:'DashB intern.'},
+							{actionId: 'viewpublic', actionText:'DashB public'},
 							{actionId: 'download', actionText:'Download XLS'},
-							{actionId: 'edit', actionText:'Edit'},
-							{actionId: 'delete', actionText:'Delete'}
+							{actionId: 'edit', actionText:'Edit', actionDisabled:!(me.rowRecord.get('status_percent') < 50 )},
+							{actionId: 'delete', actionText:'Delete', actionDisabled:!(me.rowRecord.get('status_percent') < 50 )},
+							{actionId: 'close', actionText:'Finalize', actionDisabled:!(me.rowRecord.get('status_percent') == 80 )}
 						]
 					},
 					overItemCls: 'op5-spec-mrfoxy-promorow-item-over',
@@ -74,8 +76,11 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 								case 'approval' :
 									me.openApproval( event ) ;
 									break ;
-								case 'view' :
-									me.handleView() ;
+								case 'viewinternal' :
+									me.handleViewInternal() ;
+									break ;
+								case 'viewpublic' :
+									me.handleViewPublic() ;
 									break ;
 								case 'delete' :
 									me.handleDelete() ;
@@ -281,7 +286,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 			}
 		},me) ;
 	},
-	handleView: function() {
+	handleViewInternal: function() {
 		var me = this,
 			qCfg = {} ;
 		
@@ -289,6 +294,19 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 			qType:'qbook',
 			qbookId: 1,
 			qbookZtemplateSsid: 1,
+			qsrcFilerecordId:me.rowRecord.get('_filerecord_id')
+		});
+		
+		me.optimaModule.createWindow(qCfg,Optima5.Modules.CrmBase.QdirectWindow) ;
+	},
+	handleViewPublic: function() {
+		var me = this,
+			qCfg = {} ;
+		
+		Ext.apply(qCfg,{
+			qType:'qbook',
+			qbookId: 1,
+			qbookZtemplateSsid: 2,
 			qsrcFilerecordId:me.rowRecord.get('_filerecord_id')
 		});
 		
