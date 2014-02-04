@@ -5,6 +5,7 @@ Ext.define('WbMrfoxyPromoListModel', {
 		  {name: '_filerecord_id', type: 'int'},
         {name: 'promo_id',  type: 'string'},
         {name: 'country_code',  type: 'string'},
+        {name: 'status_code',  type: 'string'},
         {name: 'status_text',  type: 'string'},
         {name: 'status_percent',  type: 'string'},
         {name: 'status_color',  type: 'string'},
@@ -23,6 +24,8 @@ Ext.define('WbMrfoxyPromoListModel', {
         {name: 'obs_atl',   type: 'string'},
         {name: 'obs_btl',   type: 'string'},
         {name: 'obs_comment',   type: 'string'},
+		  {name: 'approv_dm',   type: 'boolean'},
+		  {name: 'approv_df',   type: 'boolean'},
         {name: 'benchmark_arr_ids', type: 'string'}
      ],
 	  idgen: 'sequential'

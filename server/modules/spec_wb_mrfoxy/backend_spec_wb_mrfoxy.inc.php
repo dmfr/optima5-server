@@ -30,6 +30,18 @@ switch( $post_data['_action'] )
 	
 	case 'promo_setObsText' :
 	return specWbMrfoxy_promo_setObsText($post_data);
+	case 'promo_setApproval' :
+	return specWbMrfoxy_promo_setApproval($post_data);
+	
+	
+	
+	
+	
+	
+	
+	
+	case 'auth_getTable' :
+	return specWbMrfoxy_auth_getTable($post_data);
 	
 	default :
 	return NULL ;

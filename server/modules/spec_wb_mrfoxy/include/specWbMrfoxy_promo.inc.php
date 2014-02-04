@@ -99,6 +99,7 @@ function specWbMrfoxy_promo_getGrid( $post_data ) {
 		$row['_filerecord_id'] = $paracrm_row['filerecord_id'] ;
 		$row['promo_id'] = $paracrm_row['WORK_PROMO_field_PROMO_CODE'] ;
 		$row['country_code'] = $paracrm_row['WORK_PROMO_field_COUNTRY'] ;
+		$row['status_code'] = $paracrm_row['WORK_PROMO_field_STATUS'] ;
 		$row['status_percent'] = $paracrm_row['WORK_PROMO_field_STATUS_entry_PERCENT'] ;
 		$row['status_text'] = $paracrm_row['WORK_PROMO_field_STATUS_entry_STATUS_TXT'] ;
 		$row['date_start'] = date('Y-m-d',strtotime($paracrm_row['WORK_PROMO_field_DATE_START'])) ;
@@ -113,6 +114,8 @@ function specWbMrfoxy_promo_getGrid( $post_data ) {
 		$row['obs_atl'] = $paracrm_row['WORK_PROMO_field_OBS_ATL'] ;
 		$row['obs_btl'] = $paracrm_row['WORK_PROMO_field_OBS_BTL'] ;
 		$row['obs_comment'] = $paracrm_row['WORK_PROMO_field_OBS_COMMENT'] ;
+		$row['approv_dm'] = $paracrm_row['WORK_PROMO_field_APPROV_DM'] ;
+		$row['approv_df'] = $paracrm_row['WORK_PROMO_field_APPROV_DF'] ;
 		$row['benchmark_arr_ids'] = $paracrm_row['WORK_PROMO_field_BENCHMARK_ARR_IDS'] ;
 		
 		// nb weeks
@@ -414,6 +417,20 @@ function specWbMrfoxy_promo_setObsText( $post_data ) {
 	$map['obs_atl'] = 'field_OBS_ATL' ;
 	$map['obs_btl'] = 'field_OBS_BTL' ;
 	$map['obs_comment'] = 'field_OBS_COMMENT' ;
+	$arr_update = array() ;
+	foreach( $map as $src => $dest ) {
+		$arr_update[$dest] = $data[$src] ;
+	}
+	paracrm_lib_data_updateRecord_file( 'WORK_PROMO' , $arr_update, $target_filerecordId ) ;
+	return array('success'=>true) ;
+}
+function specWbMrfoxy_promo_setApproval( $post_data ) {
+	$target_filerecordId = $post_data['_filerecord_id'] ;
+	$data = json_decode($post_data['data'],true) ;
+	
+	$map = array() ;
+	$map['approv_dm'] = 'field_APPROV_DM' ;
+	$map['approv_df'] = 'field_APPROV_DF' ;
 	$arr_update = array() ;
 	foreach( $map as $src => $dest ) {
 		$arr_update[$dest] = $data[$src] ;

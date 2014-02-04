@@ -216,6 +216,15 @@
 	background-image: url("../images/op5img/ico_cancel_small.gif") !important;
 }
 
+.op5-spec-mrfoxy-promorow-approval-disabled {
+	color: #999999;
+	padding-left: 10px;
+}
+.op5-spec-mrfoxy-promorow-approval-enabled {
+	color: black;
+	padding-left: 10px;
+}
+
 
 .op5-spec-mrfoxy-promolist-benchmark-saveicon {
 	background-image: url("../images/op5img/ico_save_16.gif") !important;

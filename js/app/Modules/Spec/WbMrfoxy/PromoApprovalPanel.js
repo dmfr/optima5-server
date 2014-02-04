@@ -9,6 +9,13 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoApprovalPanel',{
 		var me = this ;
 		me.addEvents('proceed') ;
 		
+		if( (me.optimaModule) instanceof Optima5.Module ) {} else {
+			Optima5.Helper.logError('Spec:WbMrfoxy:PromoListRowPanel','No module reference ?') ;
+		}
+		if( (me.rowRecord) instanceof WbMrfoxyPromoListModel ) {} else {
+			Optima5.Helper.logError('Spec:WbMrfoxy:PromoListRowPanel','No WbMrfoxyPromoListModel instance ?') ;
+		}
+		
 		Ext.apply(me,{
 			title: 'Approvals',
 			padding: '5px 10px',
@@ -20,10 +27,18 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoApprovalPanel',{
 			layout: 'anchor',
 			items: [{
 				xtype: 'checkbox',
-				boxLabel: 'Approved by Sales Director',
+				boxLabel: 'Approved by Marketing Director',
+				readOnly: !Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQuery( me.rowRecord.get('country_code'), 'DM' ),
+				checked: me.rowRecord.get('approv_dm'),
+				boxLabelCls: (!Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQuery( me.rowRecord.get('country_code'), 'DM' ) ? 'op5-spec-mrfoxy-promorow-approval-disabled' : 'op5-spec-mrfoxy-promorow-approval-enabled'),
+				name: 'approv_dm'
 			},{
 				xtype: 'checkbox',
 				boxLabel: 'Approved by Financial Officer',
+				readOnly: !Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQuery( me.rowRecord.get('country_code'), 'DF' ),
+				boxLabelCls: (!Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQuery( me.rowRecord.get('country_code'), 'DF' ) ? 'op5-spec-mrfoxy-promorow-approval-disabled' : 'op5-spec-mrfoxy-promorow-approval-enabled'),
+				checked: me.rowRecord.get('approv_df'),
+				name: 'approv_df'
 			}],
 			frame: true,
 			buttons: [
@@ -34,9 +49,31 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoApprovalPanel',{
 		this.callParent() ;
 	},
 	onProceed: function() {
-		var me = this ;
+		var me = this,
+			form = me.getForm() ;
+			  
+		var data = {
+			approv_dm: form.findField('approv_dm').getValue(),
+			approv_df: form.findField('approv_df').getValue()
+		};
 		
-		me.destroy() ;
+		var ajaxParams = {
+			_moduleId: 'spec_wb_mrfoxy',
+			_action: 'promo_setApproval',
+			_filerecord_id: me.rowRecord.get('_filerecord_id'),
+			data: Ext.JSON.encode(data)
+		};
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams,
+			success: function(response) {
+				var ajaxData = Ext.decode(response.responseText) ;
+				if( ajaxData.success ) {
+					Ext.apply( me.rowRecord.data, data ) ;
+					me.destroy() ;
+				}
+			},
+			scope: this
+		}) ;
 	}
 	
 	

@@ -72,6 +72,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.HelperCache',{
 			},
 			scope: me
 		});
+		
+		me.authHelperInit();
 	},
 	onCountryLoad: function(ajaxData) {
 		var me = this ;
@@ -134,5 +136,45 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.HelperCache',{
 	brandGetAll: function() {
 		var me = this ;
 		return me.brandStore.getRange() ;
+	},
+	
+	authHelperInit: function() {
+		var me = this ;
+		
+		me.authTable = [] ; // [userId@countryCode@roleCode]
+		
+		// Query Bible
+		var ajaxParams = {} ;
+		Ext.apply( ajaxParams, {
+			_moduleId: 'spec_wb_mrfoxy',
+			_action: 'auth_getTable',
+			bible_code: '_BRAND'
+		});
+		me.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams ,
+			success: function(response) {
+				var ajaxData = Ext.decode(response.responseText) ;
+				if( ajaxData.success == false ) {
+					Ext.Msg.alert('Failed', 'Unknown error');
+				}
+				else {
+					me.authTable = ajaxData.data ;
+				}
+			},
+			scope: me
+		});
+	},
+	authHelperQuery: function( countryCode, roleCode ) {
+		var me = this,
+			userId = me.optimaModule.getApp().desktopGetCfgRecord().get('login_userId').toUpperCase() ;
+			
+		if( me.optimaModule.getSdomainRecord().get('auth_has_all') ) {
+			console.log(userId+' auth_has_all') ;
+			return true ;
+		}
+		
+		userId = 'EDEWEERT'
+		
+		return Ext.Array.contains( me.authTable, userId+countryCode+roleCode ) ;
 	}
 });

@@ -11,6 +11,13 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 	initComponent: function() {
 		var me = this,
 			rowRecord = me.rowRecord ;
+			
+		if( (me.optimaModule) instanceof Optima5.Module ) {} else {
+			Optima5.Helper.logError('Spec:WbMrfoxy:PromoListRowPanel','No module reference ?') ;
+		}
+		if( (me.rowRecord) instanceof WbMrfoxyPromoListModel ) {} else {
+			Optima5.Helper.logError('Spec:WbMrfoxy:PromoListRowPanel','No WbMrfoxyPromoListModel instance ?') ;
+		}
 		
 		Ext.apply(me,{
 			border:false,
@@ -39,18 +46,20 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 					tpl: new Ext.XTemplate(
 						'<tpl for=".">',
 						'<div class="op5-spec-mrfoxy-promorow-item">',
+						'<tpl if="!actionDisabled">',
 						'<div class="op5-spec-mrfoxy-promorow-action">',
 						'{actionText}',
 						'<div class="op5-spec-mrfoxy-promorow-action-icon op5-spec-mrfoxy-promorow-action-icon-{actionId}"></div>',
 						'</div>',
+						'</tpl>',
 						'</div>',
 						'</tpl>'
 					),
 					itemSelector: 'div.op5-spec-mrfoxy-promorow-item',
 					store: {
-						fields: ['actionId','actionText'],
+						fields: ['actionId','actionText','actionDisabled'],
 						data:[
-							{actionId: 'approval', actionText:'Approvals'},
+							{actionId: 'approval', actionText:'Approvals', actionDisabled:!(me.rowRecord.get('status_code')=='20_WAITVALID')},
 							{actionId: 'view', actionText:'Dashboard'},
 							{actionId: 'download', actionText:'Download XLS'},
 							{actionId: 'edit', actionText:'Edit'},
@@ -60,6 +69,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 					overItemCls: 'op5-spec-mrfoxy-promorow-item-over',
 					listeners: {
 						itemclick: function(view,record,item,index,event) {
+							console.log(index) ;
 							switch( record.data.actionId ) {
 								case 'approval' :
 									me.openApproval( event ) ;
@@ -225,8 +235,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 	
 	openApproval: function(e) {
 		var me = this ;
-		var newPromoCfgPanel = Ext.create('Optima5.Modules.Spec.WbMrfoxy.PromoApprovalPanel',{
+		var promoApprovalPanel = Ext.create('Optima5.Modules.Spec.WbMrfoxy.PromoApprovalPanel',{
 			optimaModule: me.optimaModule,
+			rowRecord: me.rowRecord,
 			
 			floating: true,
 			renderTo: me.getEl(),
@@ -238,20 +249,18 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 			}]
 		});
 		// Size + position
-		newPromoCfgPanel.setSize({
+		promoApprovalPanel.setSize({
 			width: 300,
 			height: 120
 		}) ;
-		newPromoCfgPanel.on('proceed',function(p,promoCfg) {
-			p.destroy() ;
-			me.goPromoNew( promoCfg ) ;
-		},me,{single:true}) ;
-		newPromoCfgPanel.on('destroy',function() {
+		promoApprovalPanel.on('destroy',function() {
+			// refresh something ?
+			
 			me.getEl().unmask() ;
 		},me,{single:true}) ;
 		me.getEl().mask() ;
 		
-		newPromoCfgPanel.show();
+		promoApprovalPanel.show();
 	},
 	handleDelete: function() {
 		var me = this ;
