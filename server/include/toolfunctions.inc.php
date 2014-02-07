@@ -70,6 +70,22 @@ function epuration_char($my_str)
 }
 
 // *****************************
+
+function int_to_strX ($i, $X) {
+	$i = (int)$i ;
+	$str = "" ;
+	if ( $i >= pow(10,$X) || !(isset( $i )) )
+		$i = 0  ;
+	while ( $X > 1 )
+	{
+		$X-- ;
+		if ( $i < pow(10,$X) )
+			$str = $str."0" ;
+	}
+	$str = $str.$i ;
+	return $str ;
+}
+
 /*
 function is_date_valid( $date_sql )
 {
