@@ -68,13 +68,36 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.MainPanel',{
 		}) ;
 		
 		var panel = Ext.create(className,options) ;
-		
-		panel.on('destroy',function() {
+		panel.on('editpromo',function(promoRecord) {
+			this.handleEditPromo(promoRecord) ;
+		},this) ;
+		panel.on('quit',function() {
 			me.switchToMainMenu() ;
 		},this) ;
 		
 		this.removeAll() ;
 		this.add( panel ) ;
+	},
+	
+	handleEditPromo: function(promoRecord) {
+		var me = this ;
+		var promoFormPanel = Ext.create('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
+			optimaModule: me.optimaModule,
+			promoRecord: promoRecord,
+			width: 800
+		}) ;
+		promoFormPanel.on('saved',function(p) {
+			this.remove(p) ;
+			this.child().setVisible(true) ;
+			this.child().getLayout().getActiveItem().reload() ;
+		},me) ;
+		promoFormPanel.on('abort',function(p) {
+			this.remove(p) ;
+			this.child().setVisible(true) ;
+		},me) ;
+		
+		this.child().setVisible(false) ;
+		this.add( promoFormPanel ) ;
 	},
 	
 	handleNewPromo: function() {
@@ -117,8 +140,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.MainPanel',{
 			width: 800,
 			data: promoCfg
 		}) ;
-		promoFormPanel.on('destroy',function(p) {
-			console.log('was destroyed') ;
+		promoFormPanel.on('saved',function(p) {
+			me.switchToMainMenu() ;
 		},me) ;
 		promoFormPanel.on('abort',function(p) {
 			me.switchToMainMenu() ;

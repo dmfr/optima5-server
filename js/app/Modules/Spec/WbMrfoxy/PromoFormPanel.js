@@ -176,9 +176,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 						items:[{
 							xtype: 'checkbox',
 							boxLabel: 'Rewards card program',
-							name: 'mechanics_is_rewardscard',
+							name: 'mechanics_rewardcard',
 							listeners:{
-								change: function(){ me.calcLayout() },
+								change: function(){},
 								scope:me
 							}
 						},{
@@ -233,9 +233,25 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 					width: 24
 				},{
 					xtype:'fieldset',
+					itemId: 'fsFinance',
 					flex: 5,
 					title: 'Financial data',
 					items:[{
+						xtype: 'op5crmbasebibletreepicker',
+						allowBlank:false,
+						selectMode: 'single',
+						optimaModule: me.optimaModule,
+						bibleId: 'PROMO_PAYM',
+						fieldLabel: 'Payment',
+						labelWidth: 60,
+						anchor: '100%',
+						//name: 'mechanics_code',
+						value : 'BB',
+						listeners:{
+							//change: function(){ me.calcLayout() },
+							scope:me
+						}
+					},{
 						xtype: 'fieldcontainer',
 						layout:{
 							type: 'hbox',
@@ -246,7 +262,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 						items:[{
 							xtype:'numberfield',
 							hideTrigger:true,
-							name: 'forecast_cost',
+							name: 'cost_forecast',
 							width: 50,
 							minValue: 0
 						},{
@@ -269,7 +285,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 							},
 							queryMode: 'local',
 							displayField: 'lib',
-							valueField: 'code'
+							valueField: 'code',
+							value : 'EUR',
 						}]
 					},{
 						xtype:'container',
@@ -446,7 +463,16 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 	},
 	
 	loadDataFromRecord: function( promoRecord ) {
-		this.loadData(promoRecord.data) ;
+		var data = promoRecord.data ;
+		switch( data['mechanics_code'] ) {
+			case 'MONO' :
+				data['mechanics_mono_discount'] = Ext.String.trim(data['mechanics_detail'].substr(0,2)) ;
+				break ;
+			case 'MULTI' :
+				data['mechanics_multi_combo'] = data['mechanics_detail'] ;
+				break ;
+		}
+		this.loadData(data) ;
 	},
 	loadData: function(data) {
 		var me = this ;
@@ -455,7 +481,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 		var headerData = {},
 			headerCmp = me.getComponent('pHeader'),
 			headerEl = headerCmp.getEl() ;
-		if( data.header_promo_code ) {
+		if( data.promo_id ) {
 			headerData['title'] = data.promo_id ;
 		} else {
 			headerData['title'] = 'New promotion' ;
@@ -500,13 +526,15 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 			headerCmp = me.getComponent('pHeader'),
 			headerEl = headerCmp.getEl(),
 			btnCloseEl = Ext.get(headerEl.query('div.op5-spec-mrfoxy-promoformheader-close')[0]) ;
-		console.dir(headerEl) ;
-		console.dir(btnCloseEl) ;
 		btnCloseEl.un('click',me.onHeaderClose,me) ;
 		btnCloseEl.on('click',me.onHeaderClose,me) ;
 	},
 	onHeaderClose: function(e,t) {
 		var me = this ;
+		if( me.promoRecord ) {
+			me.sendAbort() ;
+			return ;
+		}
 		Ext.MessageBox.confirm('Abort encoding','Abort new promo definition ?', function(buttonStr) {
 			if( buttonStr=='yes' ) {
 				me.sendAbort() ;
@@ -526,18 +554,25 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 			Ext.MessageBox.alert('Incomplete','Please fill all required data') ;
 			return ;
 		}
-		Ext.MessageBox.confirm('Confirmation','Encode new promotion ?', function(buttonStr) {
+		
+		var str = 'Encode new promotion ?' ;
+		if( me.promoRecord ) {
+			str = 'Commit modifications to promo '+me.promoRecord.get('promo_id')+' ?<br>'+'Warning : This will start over approval process!' ;
+		}
+		
+		Ext.MessageBox.confirm('Confirmation',str, function(buttonStr) {
 			if( buttonStr=='yes' ) {
 				me.optimaModule.getConfiguredAjaxConnection().request({
 					params: {
 						_moduleId: 'spec_wb_mrfoxy',
 						_action: 'promo_formSubmit',
-						data: Ext.JSON.encode(me.child('form').getForm().getValues())
+						data: Ext.JSON.encode(me.child('form').getForm().getValues()),
+						_filerecord_id: (me.promoRecord ? me.promoRecord.get('_filerecord_id') : 0)
 					},
 					success: function(response) {
 						var ajaxData = Ext.decode(response.responseText) ;
 						if( ajaxData.success == true ) {
-							me.fireEvent('abort',me) ;
+							me.fireEvent('saved',me) ;
 						}
 					},
 					scope: me

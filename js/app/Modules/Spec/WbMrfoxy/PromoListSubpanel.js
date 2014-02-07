@@ -159,6 +159,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 								datachanged: function() {
 									me.reload() ;
 								},
+								editpromo: function(promoRecord) {
+									me.parentBrowserPanel.fireEvent('editpromo',promoRecord) ;
+								},
 								scope:me
 							}
 						})

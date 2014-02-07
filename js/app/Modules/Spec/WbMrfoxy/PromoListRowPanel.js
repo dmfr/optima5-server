@@ -71,7 +71,6 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 					overItemCls: 'op5-spec-mrfoxy-promorow-item-over',
 					listeners: {
 						itemclick: function(view,record,item,index,event) {
-							console.log(index) ;
 							switch( record.data.actionId ) {
 								case 'approval' :
 									me.openApproval( event ) ;
@@ -81,6 +80,12 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 									break ;
 								case 'viewpublic' :
 									me.handleViewPublic() ;
+									break ;
+								case 'download' :
+									me.handleDownload() ;
+									break ;
+								case 'edit' :
+									me.handleEdit() ;
 									break ;
 								case 'delete' :
 									me.handleDelete() ;
@@ -99,6 +104,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 						xtype:'damsfieldset',
 						iconCls: 'op5-spec-mrfoxy-promorow-fieldset-edit',
 						title: 'Text attributes',
+						defaults: {
+							margin: 2
+						},
 						items:[{
 							xtype: 'displayfield',
 							fieldLabel: 'ATL',
@@ -130,23 +138,34 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 					},{
 						xtype:'fieldset',
 						title: 'Performance analysis',
+						defaults: {
+							margin: 2
+						},
 						items:[{
 							xtype: 'displayfield',
 							fieldLabel: 'Uplift',
 							labelWidth: 75,
 							value: '<b>'+rowRecord.get('calc_uplift_vol')+'</b>&nbsp;kg&nbsp&nbsp&nbsp/&nbsp;&nbsp&nbsp'+'<b>'+rowRecord.get('calc_uplift_per')+'</b>&nbsp;%',
+							hidden: (rowRecord.get('status_percent') < 70)
 						},{
 							xtype: 'displayfield',
-							fieldLabel: 'ROI',
+							fieldLabel: 'Cost forecast',
 							fieldStyle: 'font-weight: bold',
-							labelWidth: 75,
-							value: rowRecord.get('calc_roi')
+							labelWidth: 120,
+							value: rowRecord.get('cost_forecast') + ' EUR'
+						},{
+							xtype: 'displayfield',
+							fieldLabel: 'Real Cost (invoice)',
+							fieldStyle: 'font-weight: bold',
+							labelWidth: 120,
+							value: rowRecord.get('cost_real') + ' EUR',
+							hidden: (rowRecord.get('status_percent') < 70)
 						}]
 					}]
 				},{
 					xtype:'fieldcontainer',
 					itemId: 'fcEditTextAttributes',
-					hidden: false,
+					hidden: true,
 					items:[{
 						xtype:'damsfieldset',
 						iconCls: 'op5-spec-mrfoxy-promorow-fieldset-cancel',
@@ -267,6 +286,10 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 		
 		promoApprovalPanel.show();
 	},
+	handleEdit: function() {
+		var me = this ;
+		me.fireEvent('editpromo',me.rowRecord) ;
+	},
 	handleDelete: function() {
 		var me = this ;
 		
@@ -276,7 +299,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 					params: {
 						_moduleId: 'spec_wb_mrfoxy',
 						_action: 'promo_delete',
-						filerecord_id: me.rowRecord.get('_filerecord_id')
+						_filerecord_id: me.rowRecord.get('_filerecord_id')
 					},
 					success: function(response) {
 						me.fireEvent('datachanged') ;
@@ -311,6 +334,25 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 		});
 		
 		me.optimaModule.createWindow(qCfg,Optima5.Modules.CrmBase.QdirectWindow) ;
+	},
+	handleDownload: function() {
+		var me = this,
+			rowRecord = me.rowRecord ;
+		
+		var exportParams = me.optimaModule.getConfiguredAjaxParams() ;
+		Ext.apply(exportParams,{
+			_moduleId: 'spec_wb_mrfoxy',
+			_action: 'promo_exportXLS',
+			_filerecord_id: rowRecord.get('_filerecord_id')
+		}) ;
+		
+		
+		Ext.create('Ext.ux.dams.FileDownloader',{
+			renderTo: Ext.getBody(),
+			requestParams: exportParams,
+			requestAction: Optima5.Helper.getApplication().desktopGetBackendUrl(),
+			requestMethod: 'POST'
+		}) ;
 	},
 	
 	beginEditTextAttributes: function() {

@@ -4,6 +4,7 @@ Ext.define('WbMrfoxyPromoListModel', {
         {name: 'id', type: 'string'},
 		  {name: '_filerecord_id', type: 'int'},
         {name: 'promo_id',  type: 'string'},
+        {name: 'brand_code',  type: 'string'},
         {name: 'country_code',  type: 'string'},
         {name: 'status_code',  type: 'string'},
         {name: 'status_text',  type: 'string'},
@@ -13,7 +14,9 @@ Ext.define('WbMrfoxyPromoListModel', {
         {name: 'prod_code',  type: 'string'},
         {name: 'store_text',   type: 'string'},
         {name: 'store_code',   type: 'string'},
+        {name: 'mechanics_rewardcard',   type: 'boolean'},
         {name: 'mechanics_code',   type: 'string'},
+        {name: 'mechanics_detail',   type: 'string'},
         {name: 'mechanics_text',   type: 'string'},
         {name: 'date_start',   type: 'string'},
         {name: 'date_end',   type: 'string'},
@@ -21,6 +24,8 @@ Ext.define('WbMrfoxyPromoListModel', {
         {name: 'calc_uplift_vol',   type: 'string'},
         {name: 'calc_uplift_per',   type: 'string'},
         {name: 'calc_roi',   type: 'string'},
+        {name: 'cost_forecast',   type: 'number'},
+        {name: 'cost_real',   type: 'number'},
         {name: 'obs_atl',   type: 'string'},
         {name: 'obs_btl',   type: 'string'},
         {name: 'obs_comment',   type: 'string'},
@@ -233,6 +238,6 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoBrowserPanel',{
 	},
 	
 	handleQuit: function() {
-		this.destroy() ;
+		this.fireEvent('quit') ;
 	}
 });

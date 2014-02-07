@@ -98,16 +98,24 @@ function specWbMrfoxy_promo_getGrid( $post_data ) {
 		$row = array() ;
 		$row['_filerecord_id'] = $paracrm_row['filerecord_id'] ;
 		$row['promo_id'] = $paracrm_row['WORK_PROMO_field_PROMO_CODE'] ;
+		$row['brand_code'] = $paracrm_row['WORK_PROMO_field_BRAND'] ;
 		$row['country_code'] = $paracrm_row['WORK_PROMO_field_COUNTRY'] ;
+		$row['country_text'] = $paracrm_row['WORK_PROMO_field_COUNTRY_entry_COUNTRY_NAME'] ;
 		$row['status_code'] = $paracrm_row['WORK_PROMO_field_STATUS'] ;
 		$row['status_percent'] = $paracrm_row['WORK_PROMO_field_STATUS_entry_PERCENT'] ;
 		$row['status_text'] = $paracrm_row['WORK_PROMO_field_STATUS_entry_STATUS_TXT'] ;
 		$row['date_start'] = date('Y-m-d',strtotime($paracrm_row['WORK_PROMO_field_DATE_START'])) ;
 		$row['date_end'] = date('Y-m-d',strtotime($paracrm_row['WORK_PROMO_field_DATE_END'])) ;
+		$row['store_code'] = $paracrm_row['WORK_PROMO_field_STORE'] ;
 		$row['store_text'] = $paracrm_row['WORK_PROMO_field_STORE_tree_STOREGROUP_TXT'] ;
+		$row['prod_code'] = $paracrm_row['WORK_PROMO_field_PROD'] ;
 		$row['prod_text'] = $paracrm_row['WORK_PROMO_field_PROD_tree_PRODGROUPTXT'] ;
-		$row['mechanics_code'] = $paracrm_row['WORK_PROMO_field_MECH_TYPE_tree'] ;
+		$row['mechanics_code'] = $paracrm_row['WORK_PROMO_field_MECH_TYPE'] ;
+		$row['mechanics_detail'] = $paracrm_row['WORK_PROMO_field_MECH_DETAIL'] ;
 		$row['mechanics_text'] = $paracrm_row['WORK_PROMO_field_MECH_TYPE_tree_CLASS_TXT'].' - '.$paracrm_row['WORK_PROMO_field_MECH_DETAIL'] ;
+		$row['mechanics_rewardcard'] = $paracrm_row['WORK_PROMO_field_MECH_REWARDCARD'] ;
+		$row['cost_forecast'] = $paracrm_row['WORK_PROMO_field_COST_FORECAST'] ;
+		$row['cost_real'] = $paracrm_row['WORK_PROMO_field_COST_REAL_INVOICE'] ;
 		$row['calc_uplift_vol'] = $paracrm_row['WORK_PROMO_field_CALC_UPLIFT_VOL'] ;
 		$row['calc_uplift_per'] = $paracrm_row['WORK_PROMO_field_CALC_UPLIFT_PER'] ;
 		$row['calc_roi'] = $paracrm_row['WORK_PROMO_field_CALC_ROI'] ;
@@ -278,7 +286,7 @@ function specWbMrfoxy_promo_formSubmit( $post_data ) {
 	$form_data = json_decode($post_data['data'],true) ;
 	
 	$arr_ins = array() ;
-	$arr_ins['field_PROMO_CODE'] = 'CODE/TODO' ;
+	//$arr_ins['field_PROMO_CODE'] = 'CODE/TODO' ;
 	$arr_ins['field_COUNTRY'] = $form_data['country_code'] ;
 	$arr_ins['field_STATUS'] = '10_ENCODED' ;
 	$arr_ins['field_BRAND'] = $form_data['brand_code'] ;
@@ -297,7 +305,7 @@ function specWbMrfoxy_promo_formSubmit( $post_data ) {
 			break ;
 	}
 	
-	$arr_ins['field_COST_FORECAST'] = $form_data['forecast_cost'] ;
+	$arr_ins['field_COST_FORECAST'] = $form_data['cost_forecast'] ;
 	
 	
 	// *** Création code PROMO ID ****
@@ -333,33 +341,35 @@ function specWbMrfoxy_promo_formSubmit( $post_data ) {
 		break ;
 	}
 	
-	unset($promo_id) ;
-	$promo_id_base = '' ;
-	$promo_id_base.= $form_data['country_code'] ;
-	if( $store_memo ) {
-		$promo_id_base.= '-' ;
-		$promo_id_base.= $store_memo ;
-	}
-	if( $prod_memo ) {
-		$promo_id_base.= '-' ;
-		$promo_id_base.= $prod_memo ;
-	}
-	$promo_id_base.= '-'.date('Ym') ;
-	for( $i=1 ; $i<1000 ; $i++ ) {
-		$promo_id_test = $promo_id_base.'-'.int_to_strX($i,3) ;
-		$query_test = "SELECT count(*) FROM view_file_WORK_PROMO WHERE field_PROMO_CODE='$promo_id_test'" ;
-		if( $_opDB->query_uniqueValue($query_test) == 0 ) {
-			$promo_id = $promo_id_test ;
-			break ;
+	if( !$form_data['_filerecord_id'] ) {
+		unset($promo_id) ;
+		$promo_id_base = '' ;
+		$promo_id_base.= $form_data['country_code'] ;
+		if( $store_memo ) {
+			$promo_id_base.= '-' ;
+			$promo_id_base.= $store_memo ;
 		}
+		if( $prod_memo ) {
+			$promo_id_base.= '-' ;
+			$promo_id_base.= $prod_memo ;
+		}
+		$promo_id_base.= '-'.date('Ym') ;
+		for( $i=1 ; $i<1000 ; $i++ ) {
+			$promo_id_test = $promo_id_base.'-'.int_to_strX($i,3) ;
+			$query_test = "SELECT count(*) FROM view_file_WORK_PROMO WHERE field_PROMO_CODE='$promo_id_test'" ;
+			if( $_opDB->query_uniqueValue($query_test) == 0 ) {
+				$promo_id = $promo_id_test ;
+				break ;
+			}
+		}
+		if( !isset($promo_id) ) {
+			return array('success'=>false) ;
+		}
+		$arr_ins['field_PROMO_CODE'] = $promo_id ;
 	}
-	if( !isset($promo_id) ) {
-		return array('success'=>false) ;
-	}
-	$arr_ins['field_PROMO_CODE'] = $promo_id ;
 	
 	if( $form_data['_filerecord_id'] ) {
-		paracrm_lib_data_insertRecord_file( 'WORK_PROMO',$arr_ins, $form_data['_filerecord_id']) ;
+		paracrm_lib_data_updateRecord_file( 'WORK_PROMO',$arr_ins, $form_data['_filerecord_id']) ;
 	} else {
 		paracrm_lib_data_insertRecord_file( 'WORK_PROMO',0,$arr_ins) ;
 	}
@@ -447,5 +457,56 @@ function specWbMrfoxy_promo_setApproval( $post_data ) {
 	}
 	paracrm_lib_data_updateRecord_file( 'WORK_PROMO' , $arr_update, $target_filerecordId ) ;
 	return array('success'=>true) ;
+}
+
+
+function specWbMrfoxy_promo_exportXLS( $post_data ) {
+	global $_opDB ;
+
+	$src_filerecordId = $post_data['_filerecord_id'] ;
+	$ttmp = specWbMrfoxy_promo_getGrid( array('filter_id'=>json_encode(array($src_filerecordId))) ) ;
+	if( count($ttmp['data']) != 1 ) {
+		die() ;
+	}
+	$promo_record = $ttmp['data'][0] ;
+	
+	
+	
+	
+	
+	
+	
+	$app_root = $GLOBALS['app_root'] ;
+	$resources_root=$app_root.'/resources' ;
+	$templates_dir=$resources_root.'/server/templates' ;
+	$inputFileName = $templates_dir.'/'.'WB_MRFOXY_promo_template.xls' ;
+	$objReader = PHPExcel_IOFactory::createReader('Excel5');
+	$objPHPExcel = $objReader->load($inputFileName);
+	
+	
+	$objPHPExcel->getActiveSheet()->setCellValue('C2', $promo_record['promo_id']);
+	$objPHPExcel->getActiveSheet()->setCellValue('C4', $promo_record['country_code'].' - '.$promo_record['country_text']);
+	$objPHPExcel->getActiveSheet()->setCellValue('C6', $promo_record['store_text']);
+	$objPHPExcel->getActiveSheet()->setCellValue('C8', $promo_record['prod_text']);
+	$objPHPExcel->getActiveSheet()->setCellValue('B11', $promo_record['date_start']);
+	$objPHPExcel->getActiveSheet()->setCellValue('C11', $promo_record['date_end']);
+	$objPHPExcel->getActiveSheet()->setCellValue('B14', $promo_record['mechanics_code']);
+	$objPHPExcel->getActiveSheet()->setCellValue('C14', $promo_record['mechanics_text']);
+	$objPHPExcel->getActiveSheet()->setCellValue('D14', $promo_record['cost_forecast']);
+	
+	
+	$tmpfilename = tempnam( sys_get_temp_dir(), "FOO");
+	
+	$objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
+	$objWriter->save($tmpfilename);
+	$objPHPExcel->disconnectWorksheets();
+	unset($objPHPExcel) ;
+
+	$filename = 'MrFoxy_.'.$promo_record['promo_id'].'.xls' ;
+	header("Content-Type: application/force-download; name=\"$filename\""); 
+	header("Content-Disposition: attachment; filename=\"$filename\""); 
+	readfile($tmpfilename) ;
+	unlink($tmpfilename) ;
+	die() ;
 }
 ?>

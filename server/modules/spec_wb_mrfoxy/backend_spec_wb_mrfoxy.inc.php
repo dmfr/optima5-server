@@ -34,6 +34,8 @@ switch( $post_data['_action'] )
 	return specWbMrfoxy_promo_setApproval($post_data);
 	
 	
+	case 'promo_exportXLS' :
+	return specWbMrfoxy_promo_exportXLS($post_data);
 	
 	
 	
