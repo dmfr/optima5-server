@@ -1984,6 +1984,9 @@ function paracrm_queries_process_query_iteration( $arr_saisie )
 	foreach( $arr_saisie['fields_select'] as $select_id => $field_select ) {
 	
 		$RES_group_arr_arrSymbolValue = $RES_selectId_group_arr_arrSymbolValue[$select_id] ;
+		if( !$RES_group_arr_arrSymbolValue ) {
+			continue ;
+		}
 	
 		switch( $field_select['math_func_mode'] ) {
 		
@@ -3499,6 +3502,9 @@ function paracrm_queries_process_labelEnumDate( $group_id, $group_date_type, $fo
 	foreach( $_groups_hashes as $hash_key => $hash_desc )
 	{
 		$ttmp[] = $hash_desc[$group_id] ;
+	}
+	if( !$ttmp ) {
+		return array() ;
 	}
 	
 	$keys = array() ;
