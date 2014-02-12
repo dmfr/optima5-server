@@ -4,7 +4,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.MainPanel',{
 		'Optima5.Modules.Spec.DbsPeople.HelperCache',
 		'Optima5.Modules.Spec.DbsPeople.MainMenu',
 		'Optima5.Modules.Spec.DbsPeople.RhPanel',
-		'Optima5.Modules.Spec.DbsPeople.RealPanel'
+		'Optima5.Modules.Spec.DbsPeople.RealPanel',
+		'Optima5.Modules.Spec.DbsPeople.ForecastPanel'
 	],
 	
 	initComponent: function() {
@@ -54,6 +55,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.MainPanel',{
 				return me.switchToAppPanel('Optima5.Modules.Spec.DbsPeople.RhPanel') ;
 			case 'panel_real' :
 				return me.switchToAppPanel('Optima5.Modules.Spec.DbsPeople.RealPanel') ;
+			case 'panel_forecast' :
+				return me.switchToAppPanel('Optima5.Modules.Spec.DbsPeople.ForecastPanel') ;
 			default :
 				return ;
 		}

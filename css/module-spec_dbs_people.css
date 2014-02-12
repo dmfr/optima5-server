@@ -95,4 +95,37 @@
 	background-image: url("../images/op5img/ico_kuser_16.gif") !important;
 }
 
+.op5-spec-dbspeople-realcolorinfo {
+	background: white
+}
+.op5-spec-dbspeople-realcolorinfo-item {
+	position: relative;
+	padding-left: 24px ;
+	line-height: 24px ;
+	font-size: 8pt;
+}
+.op5-spec-dbspeople-realcolorinfo-item-icon {
+	position: absolute ;
+	left: 4px ;
+	top: 4px ;
+	height: 16px;
+	width: 16px;
+	border: 1px solid #aaa ;
+}
+
+.op5-spec-dbspeople-realcolor-absent {
+	background-color: #FF6F6F ;
+}
+.op5-spec-dbspeople-realcolor-absent .x-grid-cell-inner {
+	background-color: #FF6F6F ;
+}
+.op5-spec-dbspeople-realcolor-whse {
+	background-color: #C29FFF ;
+}
+.op5-spec-dbspeople-realcolor-whse .x-grid-cell-inner {
+	background-color: #C29FFF ;
+}
+
+.op5-spec-dbspeople-balance-pos .x-grid-cell-inner { color: green; }
+.op5-spec-dbspeople-balance-neg .x-grid-cell-inner { color: red; }
 

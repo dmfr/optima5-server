@@ -12,6 +12,9 @@ switch( $post_data['_action'] )
 	case 'RH_getCfgData' :
 	return specDbsPeople_RH_getCfgData( $post_data ) ;
 	
+	case 'Real_getData' :
+	return specDbsPeople_Real_getData( $post_data ) ;
+	
 	case 'cfg_getTree' :
 	return specDbsPeople_cfg_getTree( $post_data ) ;
 	
