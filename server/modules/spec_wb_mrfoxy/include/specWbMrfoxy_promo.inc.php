@@ -231,38 +231,14 @@ function specWbMrfoxy_promo_formEval( $post_data ) {
 	
 	$form_data = json_decode($post_data['data'],true) ;
 	if( $form_data['store_code'] ) {
-		$bible_code = 'IRI_STORE' ;
-		$tree_STORE = specWbMrfoxy_lib_getBibleTree($bible_code) ;
-		
-		$node = $tree_STORE->getTree($form_data['store_code']) ;
-		while( $node->getDepth() > 2 ) {
-			$node = $node->getParent() ;
-		}
-		$treenode_key = $node->getHead() ;
-		$query = "SELECT field_STOREGROUP_TXT FROM view_bible_{$bible_code}_tree WHERE treenode_key='$treenode_key'" ;
-		$resp_data['store_master'] = $_opDB->query_uniqueValue($query) ;
-		
-		unset($node) ;
-		unset($tree_STORE) ;
+		$resp_data['store_master'] = specWbMrfoxy_tool_getStoreBrand( $form_data['store_code'] ) ;
 	} else {
 		$resp_data['store_master'] = '' ;
 	}
 	
 	$form_data = json_decode($post_data['data'],true) ;
 	if( $form_data['prod_code'] ) {
-		$bible_code = 'IRI_PROD' ;
-		$tree_PROD = specWbMrfoxy_lib_getBibleTree($bible_code) ;
-		
-		$node = $tree_PROD->getTree($form_data['prod_code']) ;
-		while( $node->getDepth() > 1 ) {
-			$node = $node->getParent() ;
-		}
-		$treenode_key = $node->getHead() ;
-		$query = "SELECT field_PRODGROUPTXT FROM view_bible_{$bible_code}_tree WHERE treenode_key='$treenode_key'" ;
-		$resp_data['prod_master'] = $_opDB->query_uniqueValue($query) ;
-		
-		unset($node) ;
-		unset($tree_PROD) ;
+		$resp_data['prod_master'] = specWbMrfoxy_tool_getProdLine( $form_data['prod_code'] ) ;
 	} else {
 		$resp_data['prod_master'] = '' ;
 	}
