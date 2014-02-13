@@ -88,6 +88,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 					name:'_filerecord_id',
 				},{
 					xtype:'hidden',
+					name:'is_prod',
+				},{
+					xtype:'hidden',
 					name:'country_code',
 				},{
 					xtype:'hidden',
@@ -104,12 +107,24 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 							name: 'date_start',
 							format: 'Y-m-d',
 							allowBlank: false,
+							listeners: {
+								change: function() {
+									me.evalForm() ;
+								},
+								scope: me
+							}
 						},{
 							xtype: 'datefield',
 							fieldLabel: 'Date end',
 							name: 'date_end',
 							format: 'Y-m-d',
 							allowBlank: false,
+							listeners: {
+								change: function() {
+									me.evalForm() ;
+								},
+								scope: me
+							}
 						}]
 					},{
 						xtype:'fieldset',
@@ -234,6 +249,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 				},{
 					xtype:'fieldset',
 					itemId: 'fsFinance',
+					hidden: true,
 					flex: 5,
 					title: 'Financial data',
 					items:[{
@@ -326,6 +342,20 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 						xtype:'box',
 						html:'&#160;',
 						height: 16
+					}]
+				},{
+					xtype:'fieldset',
+					hidden: true,
+					itemId: 'fsSimu',
+					flex: 5,
+					title: 'Financial data',
+					items:[{
+						xtype:'container',
+						itemId: 'cntSimuGraph',
+						layout:'fit',
+						cls:'op5-waiting',
+						height:300,
+						margin: 4
 					}]
 				}]
 			}],
@@ -431,14 +461,33 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 		form.findField('mechanics_mono_discount').allowBlank = !(mechanicsCode=='MONO') ;
 		me.query('#mechanics_multi')[0].setVisible( mechanicsCode=='MULTI' ) ;
 		form.findField('mechanics_multi_combo').allowBlank = !(mechanicsCode=='MULTI') ;
+			  
+		var isProd = (form.findField('is_prod').getValue()=='PROD') ;
+		me.query('#fsFinance')[0].setVisible( isProd ) ;
+		Ext.Array.each( me.query('#fsFinance')[0].query('field'), function(field){
+			field.allowBlank = !isProd ;
+		});
+		me.query('#fsSimu')[0].setVisible( !isProd ) ;
 	},
 	evalForm: function() {
-		var me = this ;
+		var me = this,
+			form = me.child('form').getForm(),
+			doSimuGraph = false ;
+		
+		if( form.findField('is_prod').getValue()=='PROD' ) {
+			doSimuGraph = true ;
+		}
+		if( doSimuGraph ) {
+			cntSimuGraph.removeAll() ;
+			me.query('#cntSimuGraph')[0].addCls('op5-waiting') ;
+		}
+		
 		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_wb_mrfoxy',
 				_action: 'promo_formEval',
-				data: Ext.JSON.encode(me.child('form').getForm().getValues())
+				data: Ext.JSON.encode(me.child('form').getForm().getValues()),
+				doSimuGraph: doSimuGraph
 			},
 			success: function(response) {
 				var ajaxData = Ext.decode(response.responseText) ;
@@ -455,6 +504,19 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 					}
 					if( ajaxDataObj.mechanics_multi != null ) {
 						me.child('form').getForm().findField('mechanics_multi_combo').getStore().loadData( ajaxDataObj.mechanics_multi ) ;
+					}
+					
+					var cntSimuGraph = me.query('#cntSimuGraph')[0] ;
+					cntSimuGraph.removeCls('op5-waiting') ;
+					if( ajaxDataObj.simu_graph ) {
+						cntSimuGraph.removeAll() ;
+						cntSimuGraph.add({
+							xtype: 'op5crmbasequeryresultchartstatic',
+							optimaModule: me.optimaModule,
+							ajaxBaseParams: {},
+							RESchart_static: ajaxDataObj.simu_graph.RESchart_static,
+							drawChartLegend: false
+						});
 					}
 				}
 			},

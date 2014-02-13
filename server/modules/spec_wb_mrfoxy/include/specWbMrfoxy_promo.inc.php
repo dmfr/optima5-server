@@ -252,6 +252,65 @@ function specWbMrfoxy_promo_formEval( $post_data ) {
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 		$resp_data['mechanics_multi'][] = array('txt'=>$arr[0]) ;
 	}
+	
+	if( $post_data['doSimuGraph'] ) {
+	while(TRUE) {
+		
+		$q_id = 'SellOut Idx A+B' ;
+		if( !is_numeric($q_id) ) {
+			$query = "SELECT qbook_id FROM qbook WHERE qbook_name LIKE '{$q_id}'";
+			$q_id = $_opDB->query_uniqueValue($query) ;
+			if( !$q_id ) {
+				break ;
+			}
+		}
+		
+		if( $form_data['date_start'] && $form_data['date_end'] 
+		&& strtotime($form_data['date_start']) < strtotime($form_data['date_end']) ) {} else {
+			break ;
+		}
+		
+		$src_filerecord_row = array() ;
+		$src_filerecord_row['WORK_PROMO'] = array() ;
+		$src_filerecord_row['WORK_PROMO']['field_BRAND'] = $form_data['brand_code'] ;
+		$src_filerecord_row['WORK_PROMO']['field_COUNTRY'] = $form_data['country_code'] ;
+		$src_filerecord_row['WORK_PROMO']['field_DATE_START'] = $form_data['date_start'] ;
+		$src_filerecord_row['WORK_PROMO']['field_DATE_END'] = $form_data['date_end'] ;
+		$src_filerecord_row['WORK_PROMO']['field_STORE'] = ($form_data['store_code'] ? $form_data['store_code'] : $form_data['country_code']) ;
+		$src_filerecord_row['WORK_PROMO']['field_PROD'] = ($form_data['prod_code'] ? $form_data['prod_code'] : '&') ;
+		
+		$post_test = array() ;
+		$post_test['_action'] = 'queries_qbookTransaction' ;
+		$post_test['_subaction'] = 'init' ;
+		$post_test['qbook_id'] = $q_id ;
+		$json = paracrm_queries_qbookTransaction( $post_test ) ;
+		$transaction_id = $json['transaction_id'] ;
+		
+		$post_test = array() ;
+		$post_test['_action'] = 'queries_qbookTransaction' ;
+		$post_test['_transaction_id'] = $transaction_id ;
+		$post_test['_subaction'] = 'run' ;
+		$post_test['qsrc_filerecord_row'] = $src_filerecord_row ;
+		$json = paracrm_queries_qbookTransaction( $post_test ) ;
+		if( !$json['success'] ) {
+			break ;
+		}
+
+		$post_test = array() ;
+		$post_test['_action'] = 'queries_qbookTransaction' ;
+		$post_test['_transaction_id'] = $transaction_id ;
+		$post_test['_subaction'] = 'res_get' ;
+		$post_test['RES_id'] = $json['RES_id'] ;
+		$json = paracrm_queries_qbookTransaction( $post_test ) ;
+		
+		if( $json['tabs'] ) {
+			$resp_data['simu_graph'] = array() ;
+			$resp_data['simu_graph']['RESchart_static'] = $json['tabs'][1]['RESchart_static'] ;
+		}
+		
+		break ;
+	}
+	}
 
 	return array('success'=>true,'data'=>$resp_data) ;
 }
@@ -264,6 +323,7 @@ function specWbMrfoxy_promo_formSubmit( $post_data ) {
 	$arr_ins = array() ;
 	//$arr_ins['field_PROMO_CODE'] = 'CODE/TODO' ;
 	$arr_ins['field_COUNTRY'] = $form_data['country_code'] ;
+	$arr_ins['field_IS_PROD'] = ($form_data['is_prod']=='PROD') ;
 	$arr_ins['field_STATUS'] = '10_ENCODED' ;
 	$arr_ins['field_BRAND'] = $form_data['brand_code'] ;
 	$arr_ins['field_DATE_START'] = $form_data['date_start'] ;
