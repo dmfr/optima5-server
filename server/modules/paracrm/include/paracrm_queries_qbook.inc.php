@@ -41,7 +41,10 @@ function paracrm_queries_qbookTransaction( $post_data )
 			if( isset($post_data['qsrc_filerecord_id']) ) {
 				$qsrc_filerecordId = $post_data['qsrc_filerecord_id'] ;
 			}
-			$json =  paracrm_queries_qbookTransaction_runQuery( $post_data , $arr_saisie, $qsrc_filerecordId ) ;
+			if( isset($post_data['qsrc_filerecord_row']) ) {
+				$qsrc_filerecord_row = $post_data['qsrc_filerecord_row'] ;
+			}
+			$json =  paracrm_queries_qbookTransaction_runQuery( $post_data , $arr_saisie, $qsrc_filerecordId, $qsrc_filerecord_row ) ;
 		}
 		if( $post_data['_subaction'] == 'submit' )
 		{
@@ -332,10 +335,10 @@ function paracrm_queries_qbookTransaction_togglePublish( $post_data , &$arr_sais
 	return array('success'=>true) ;
 }
 
-function paracrm_queries_qbookTransaction_runQuery( $post_data, &$arr_saisie, $qsrc_filerecordId=0 )
+function paracrm_queries_qbookTransaction_runQuery( $post_data, &$arr_saisie, $qsrc_filerecordId=0, $src_filerecord_row=NULL )
 {
 	usleep(500000) ;
-	$RES = paracrm_queries_process_qbook($arr_saisie , (isset($post_data['_debug'])&&$post_data['_debug']==TRUE)?true:false, $qsrc_filerecordId ) ;
+	$RES = paracrm_queries_process_qbook($arr_saisie , (isset($post_data['_debug'])&&$post_data['_debug']==TRUE)?true:false, $qsrc_filerecordId, $src_filerecord_row ) ;
 	if( !$RES )
 		return array('success'=>false,'query_status'=>'NOK') ;
 		

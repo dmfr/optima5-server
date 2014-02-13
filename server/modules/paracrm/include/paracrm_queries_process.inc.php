@@ -102,7 +102,7 @@ function paracrm_queries_process_buildTrees() {
 
 
 
-function paracrm_queries_process_qbook($arr_saisie, $debug=FALSE, $src_filerecordId )
+function paracrm_queries_process_qbook($arr_saisie, $debug=FALSE, $src_filerecordId, $src_filerecord_row=NULL )
 {
 	global $_opDB ;
 	
@@ -126,12 +126,17 @@ function paracrm_queries_process_qbook($arr_saisie, $debug=FALSE, $src_filerecor
 	unset($arr_saisie['bible_qobjs']) ;
 	print_r($arr_saisie) ;
 	*/
-	if( $arr_saisie['backend_file_code'] && !$src_filerecordId ) {
+	if( $arr_saisie['backend_file_code'] && !$src_filerecordId && !$src_filerecord_row ) {
 		return NULL ;
 	} elseif( !$arr_saisie['backend_file_code'] ) {
 		unset($src_filerecordId) ;
 	}
-	if( $src_filerecordId ) {
+	if( is_array($src_filerecord_row) ) {
+		$target_fileCode = $arr_saisie['backend_file_code'] ;
+		if( !isset($src_filerecord_row[$target_fileCode]) ) {
+			return NULL ;
+		}
+	}elseif( $src_filerecordId && !$src_filerecord_row ) {
 		$target_fileCode = $arr_saisie['backend_file_code'] ;
 		$src_filerecord_row = array() ;
 		while( TRUE ) {
