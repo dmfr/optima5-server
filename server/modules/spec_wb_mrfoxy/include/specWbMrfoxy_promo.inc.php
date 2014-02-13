@@ -63,6 +63,14 @@ function specWbMrfoxy_promo_getGrid( $post_data ) {
 		$filter['value'] = array($post_data['filter_country']) ;
 		$filters[] = $filter ;
 	}
+	if( isset($post_data['filter_isProd']) ) {
+		$filter = array() ;
+		$filter['field'] = 'WORK_PROMO_field_IS_PROD' ;
+		$filter['type'] = 'numeric' ;
+		$filter['comparison'] = 'eq' ;
+		$filter['value'] = ( $post_data['filter_isProd'] ? 1 : 0 ) ;
+		$filters[] = $filter ;
+	}
 	if( $post_data['filter_id'] && isJsonArr($post_data['filter_id']) ) {
 		$filter = array() ;
 		$filter['field'] = 'filerecord_id' ;
@@ -75,14 +83,18 @@ function specWbMrfoxy_promo_getGrid( $post_data ) {
 		foreach( json_decode($post_data['filter'],true) as $filter ) {
 			$paracrm_field = NULL ;
 			switch( $filter['field'] ) {
+				case 'brand_text' : $paracrm_field='WORK_PROMO_field_BRAND' ; break ;
 				case 'date_start' : $paracrm_field='WORK_PROMO_field_DATE_START' ; break ;
 				case 'store_text' : $paracrm_field='WORK_PROMO_field_STORE' ; break ;
 				case 'prod_text' : $paracrm_field='WORK_PROMO_field_PROD' ; break ;
 				case 'mechanics_text' : $paracrm_field='WORK_PROMO_field_MECH_TYPE' ; break ;
 				default : continue 2 ;
 			}
+			if( $post_data['filter_isProd'] && $filter['field']=='brand_text' ) {
+				continue ;
+			}
 			$filter['field'] = $paracrm_field ;
-			$filters['filter'][] = $filter ;
+			$filters[] = $filter ;
 		}
 		
 	}
@@ -99,6 +111,7 @@ function specWbMrfoxy_promo_getGrid( $post_data ) {
 		$row['_filerecord_id'] = $paracrm_row['filerecord_id'] ;
 		$row['promo_id'] = $paracrm_row['WORK_PROMO_field_PROMO_CODE'] ;
 		$row['brand_code'] = $paracrm_row['WORK_PROMO_field_BRAND'] ;
+		$row['brand_text'] = $paracrm_row['WORK_PROMO_field_BRAND_entry_BRAND_TXT'] ;
 		$row['country_code'] = $paracrm_row['WORK_PROMO_field_COUNTRY'] ;
 		$row['country_text'] = $paracrm_row['WORK_PROMO_field_COUNTRY_entry_COUNTRY_NAME'] ;
 		$row['status_code'] = $paracrm_row['WORK_PROMO_field_STATUS'] ;

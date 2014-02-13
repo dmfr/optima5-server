@@ -5,6 +5,7 @@ Ext.define('WbMrfoxyPromoListModel', {
 		  {name: '_filerecord_id', type: 'int'},
         {name: 'promo_id',  type: 'string'},
         {name: 'brand_code',  type: 'string'},
+        {name: 'brand_text',  type: 'string'},
         {name: 'country_code',  type: 'string'},
         {name: 'status_code',  type: 'string'},
         {name: 'status_text',  type: 'string'},
@@ -96,6 +97,25 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoBrowserPanel',{
 						useArrows: true,
 					}]
 				}
+			},{
+				itemId: 'tbProd',
+				icon: 'images/op5img/ico_blocs_small.gif',
+				text: 'Sites / Entrepôts',
+				menu: [{
+					text: 'Production',
+					icon: 'images/op5img/ico_blocs_small.gif',
+					handler: function() {
+						this.selectIsProd( true );
+					},
+					scope: this
+				},{
+					text: 'Test / Simulation',
+					icon: 'images/op5img/ico_blocs_small.gif',
+					handler: function() {
+						this.selectIsProd( false );
+					},
+					scope: this
+				}]
 			},'->',{
 				itemId: 'tbViewmode',
 				viewConfig: {forceFit: true},
@@ -192,6 +212,16 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoBrowserPanel',{
 			}
 		},this) ;
 		this.onSelectCountry(true) ;
+		
+		if( this._isProd != null ) {
+			this.selectIsProd(this._isProd, true) ;
+		} else {
+			this.selectIsProd(true, true) ;
+		}
+		
+		Ext.defer( function() {
+			this.fireEvent('tbarselect') ; // TODO: HACK : Use menucreate event from headerCt !!
+		},100,this) ;
 	},
 	
 	onSelectCountry: function(silent) {
@@ -213,10 +243,29 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoBrowserPanel',{
 			}
 		},this);
 	},
+	selectIsProd: function(isProd,silent) {
+		var me = this,
+			tbViewmode = me.child('toolbar').getComponent('tbViewmode'),
+			tbProd = me.child('toolbar').getComponent('tbProd'),
+			text ;
+		if( isProd ) {
+			text = 'Production' ;
+		} else {
+			text = 'Test / Simulation' ;
+		}
+		tbProd.setText('<b>'+text+'</b>') ;
+		tbViewmode.setVisible(isProd) ;
+		
+		me.filterIsProd = isProd ;
+		if( !silent ) {
+			me.fireEvent('tbarselect') ;
+		}
+	},
 	
 	switchToView: function( viewId ) {
 		var me = this,
 			tbViewmode = me.child('toolbar').getComponent('tbViewmode'),
+			tbProd = me.child('toolbar').getComponent('tbProd'),
 			iconCls, text ;
 		switch( viewId ) {
 			case 'grid' :
@@ -235,6 +284,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoBrowserPanel',{
 		tbViewmode.setText(text) ;
 		
 		me.getLayout().setActiveItem(viewId) ;
+		tbProd.setVisible(viewId=='grid') ;
 	},
 	
 	handleQuit: function() {

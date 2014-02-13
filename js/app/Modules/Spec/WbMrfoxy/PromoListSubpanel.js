@@ -26,7 +26,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 				xtype:'gridpanel',
 				store: {
 					model: 'WbMrfoxyPromoListModel',
-					autoLoad: true,
+					//autoLoad: true,
 					proxy: this.optimaModule.getConfiguredAjaxProxy({
 						extraParams : {
 							_moduleId: 'spec_wb_mrfoxy',
@@ -41,7 +41,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 						beforeload: function(store,options) {
 							options.params = options.params || {};
 							var params = {
-								filter_country: me.parentBrowserPanel.filterCountry
+								filter_country: me.parentBrowserPanel.filterCountry,
+								filter_isProd: (me.parentBrowserPanel.filterIsProd ? 1:0)
 							} ;
 							Ext.apply(options.params, params);
 						},
@@ -79,6 +80,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 						}
 					},{
 						text: 'Status',
+						isColumnStatus: true,
 						width: 100,
 						renderer: function(v,m,record) {
 							var tmpProgress = record.get('status_percent') / 100 ;
@@ -88,6 +90,18 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 								v = Ext.DomHelper.markup(b.getRenderTree());
 								b.destroy() ;
 							return v;
+						}
+					},{
+						text: 'Brand',
+						//itemId: 'columnBrand',
+						isColumnBrand: true,
+						dataIndex: 'brand_text',
+						width: 100,
+						menuDisabled:false,
+						filter: {
+							type: 'op5crmbasebibletree',
+							optimaModule: me.optimaModule,
+							bibleId: '_BRAND'
 						}
 					},{
 						text: 'Date start',
@@ -437,12 +451,20 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 		this.callParent() ;
 		
 		me.mon(me.parentBrowserPanel,'tbarselect',function(){
+			var headerCt = me.getComponent('pCenter').headerCt,
+				isProd = me.parentBrowserPanel.filterIsProd ;
+			headerCt.down('[isColumnStatus]')[isProd ? 'show' : 'hide']();
+			headerCt.down('[isColumnBrand]')[!isProd ? 'show' : 'hide']();
 			me.reload() ;
 		},me) ;
 	},
 	reload: function() {
 		this.getComponent('pCenter').getStore().load() ;
 	},
+	setIsProd: function(isProd) {
+		
+	},
+	
 	populateBenchmark: function( arrFilerecordId ) {
 		if( arrFilerecordId == null ) {
 			this.getComponent('pEast').getStore().removeAll() ;

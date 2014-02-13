@@ -317,6 +317,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarSubpanel' ,{
 		var ajaxParams = {
 			_moduleId: 'spec_wb_mrfoxy',
 			_action: 'promo_getGrid',
+			filter_isProd: 1,
 			filter: Ext.JSON.encode([{
 				type: 'date',
 				comparison: 'gt',
