@@ -440,6 +440,7 @@ function paracrm_queries_qbookTransaction_resGetZtemplate( $post_data, &$arr_sai
 		foreach( $RES['RES_qobj'] as $qobj_idx => $dummy ) {
 			if( $arr_saisie['arr_qobj'][$qobj_idx]['qobj_lib'] == $src_qobj ) {
 				$RES_q = $RES['RES_qobj'][$qobj_idx];
+				break ;
 			}
 		}
 		if( !$RES_q ) {
