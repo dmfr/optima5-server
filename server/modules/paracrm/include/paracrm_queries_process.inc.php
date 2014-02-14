@@ -450,8 +450,15 @@ function paracrm_queries_process_qbook_doValues( $arr_saisie, $debug=FALSE, $RES
 					break ;
 				}
 			
-				if( $symbol['math_operand_inputvar_idx'] >= 0 && is_numeric($RES_inputvar[$symbol['math_operand_inputvar_idx']]) ) {
+				if( $symbol['math_operand_inputvar_idx'] >= 0 ) {
 					$val = $RES_inputvar[$symbol['math_operand_inputvar_idx']] ;
+					if( !is_numeric($val) ) {
+						if( strtotime($val) ) {
+							$val = strtotime($val) / (60*60*24) ;
+						} else {
+							unset($val) ;
+						}
+					}
 					break ;
 				}
 				
