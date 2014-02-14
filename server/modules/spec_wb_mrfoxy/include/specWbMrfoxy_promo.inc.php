@@ -110,6 +110,7 @@ function specWbMrfoxy_promo_getGrid( $post_data ) {
 		$row = array() ;
 		$row['_filerecord_id'] = $paracrm_row['filerecord_id'] ;
 		$row['promo_id'] = $paracrm_row['WORK_PROMO_field_PROMO_CODE'] ;
+		$row['is_prod'] = ($paracrm_row['WORK_PROMO_field_IS_PROD'] ? 'PROD' : '') ;
 		$row['brand_code'] = $paracrm_row['WORK_PROMO_field_BRAND'] ;
 		$row['brand_text'] = $paracrm_row['WORK_PROMO_field_BRAND_entry_BRAND_TXT'] ;
 		$row['country_code'] = $paracrm_row['WORK_PROMO_field_COUNTRY'] ;
@@ -337,7 +338,7 @@ function specWbMrfoxy_promo_formSubmit( $post_data ) {
 	//$arr_ins['field_PROMO_CODE'] = 'CODE/TODO' ;
 	$arr_ins['field_COUNTRY'] = $form_data['country_code'] ;
 	$arr_ins['field_IS_PROD'] = ($form_data['is_prod']=='PROD') ;
-	$arr_ins['field_STATUS'] = '10_ENCODED' ;
+	$arr_ins['field_STATUS'] = ($form_data['_do_submit'] ? '10_ENCODED' : '00_STANDBY');
 	$arr_ins['field_BRAND'] = $form_data['brand_code'] ;
 	$arr_ins['field_DATE_START'] = $form_data['date_start'] ;
 	$arr_ins['field_DATE_END'] = $form_data['date_end'] ;

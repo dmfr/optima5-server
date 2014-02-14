@@ -4,6 +4,7 @@ Ext.define('WbMrfoxyPromoListModel', {
         {name: 'id', type: 'string'},
 		  {name: '_filerecord_id', type: 'int'},
         {name: 'promo_id',  type: 'string'},
+        {name: 'is_prod',  type: 'string'},
         {name: 'brand_code',  type: 'string'},
         {name: 'brand_text',  type: 'string'},
         {name: 'country_code',  type: 'string'},
@@ -46,6 +47,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoBrowserPanel',{
 	],
 	
 	viewMode: 'grid',
+	nbHeadlines: 0,
 	
 	initComponent: function() {
 		var me = this ;
@@ -150,6 +152,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoBrowserPanel',{
 				Ext.create('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 					itemId: 'grid',
 					border: false,
+					nbHeadlines: me.nbHeadlines,
 					parentBrowserPanel: me
 				})
 			,

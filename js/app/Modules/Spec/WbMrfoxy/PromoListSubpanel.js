@@ -450,6 +450,10 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 		
 		this.callParent() ;
 		
+		me.mon(this.getComponent('pCenter').getStore(),'load',function(store){
+			me.applyHeadlines() ;
+		},me,{single:true});
+		
 		me.mon(me.parentBrowserPanel,'tbarselect',function(){
 			var headerCt = me.getComponent('pCenter').headerCt,
 				isProd = me.parentBrowserPanel.filterIsProd ;
@@ -460,6 +464,18 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 	},
 	reload: function() {
 		this.getComponent('pCenter').getStore().load() ;
+	},
+	applyHeadlines: function() {
+		Ext.defer(function() {
+			var rowExpander = this.getComponent('pCenter').getPlugin('rowexpander'),
+				count = Math.min(this.getComponent('pCenter').getStore().getCount(),this.nbHeadlines);
+				idx = 0 ;
+			while( count > 0 ) {
+				rowExpander.toggleRow(idx) ;
+				idx++ ;
+				count-- ;
+			}
+		},100,this) ;
 	},
 	setIsProd: function(isProd) {
 		

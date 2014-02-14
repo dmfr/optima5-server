@@ -364,9 +364,15 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 				dock: 'bottom',
 				ui: 'footer',
 				layout:{
+					align: 'stretch',
 					pack:'center'
 				},
 				items: [{
+					xtype: 'checkbox',
+					padding: '0px 32px 16px 0px',
+					boxLabel: '<b>Submit promotion</b>',
+					name: '_do_submit',
+				},{
 					xtype: 'component',
 					padding: '0px 0px 16px 0px',
 					overCls: 'op5-crmbase-dataimport-go-over',
@@ -468,17 +474,21 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 			field.allowBlank = !isProd ;
 		});
 		me.query('#fsSimu')[0].setVisible( !isProd ) ;
+		
+		form.findField('_do_submit').setVisible( isProd ) ;
 	},
 	evalForm: function() {
 		var me = this,
 			form = me.child('form').getForm(),
-			doSimuGraph = false ;
+			doSimuGraph ;
 		
 		if( form.findField('is_prod').getValue()=='PROD' ) {
+			doSimuGraph = false ;
+		} else {
 			doSimuGraph = true ;
 		}
 		if( doSimuGraph ) {
-			cntSimuGraph.removeAll() ;
+			me.query('#cntSimuGraph')[0].removeAll() ;
 			me.query('#cntSimuGraph')[0].addCls('op5-waiting') ;
 		}
 		
@@ -487,7 +497,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 				_moduleId: 'spec_wb_mrfoxy',
 				_action: 'promo_formEval',
 				data: Ext.JSON.encode(me.child('form').getForm().getValues()),
-				doSimuGraph: doSimuGraph
+				doSimuGraph: (doSimuGraph ? 1:0)
 			},
 			success: function(response) {
 				var ajaxData = Ext.decode(response.responseText) ;

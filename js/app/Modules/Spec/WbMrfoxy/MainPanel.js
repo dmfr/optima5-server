@@ -52,8 +52,12 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.MainPanel',{
 		switch( actionCode ) {
 			case 'promo_new' :
 				return me.handleNewPromo() ;
+			case 'promo_headlines' :
+				return me.switchToAppPanel('Optima5.Modules.Spec.WbMrfoxy.PromoBrowserPanel',{viewMode:'grid',nbHeadlines:5}) ;
 			case 'promo_list' :
-				return me.switchToAppPanel('Optima5.Modules.Spec.WbMrfoxy.PromoBrowserPanel') ;
+				return me.switchToAppPanel('Optima5.Modules.Spec.WbMrfoxy.PromoBrowserPanel',{viewMode:'grid'}) ;
+			case 'promo_calendar' :
+				return me.switchToAppPanel('Optima5.Modules.Spec.WbMrfoxy.PromoBrowserPanel',{viewMode:'calendar'}) ;
 			default :
 				return ;
 		}
@@ -141,7 +145,11 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.MainPanel',{
 			data: promoCfg
 		}) ;
 		promoFormPanel.on('saved',function(p) {
-			me.switchToMainMenu() ;
+			if( promoCfg.is_prod == 'PROD' ) {
+				me.switchToAppPanel('Optima5.Modules.Spec.WbMrfoxy.PromoBrowserPanel',{viewMode:'grid',nbHeadlines:1,_isProd:true});
+			} else {
+				me.switchToAppPanel('Optima5.Modules.Spec.WbMrfoxy.PromoBrowserPanel',{viewMode:'grid',nbHeadlines:1,_isProd:false});
+			}
 		},me) ;
 		promoFormPanel.on('abort',function(p) {
 			me.switchToMainMenu() ;
