@@ -119,6 +119,11 @@ function paracrm_queries_mpaginate_getGridColumns( &$RES, $RES_labels_tab, &$log
 	
 		$RES_infos = $RES['RES_selectId_infos'][$select_id] ;
 		
+		if( $RES_infos['axis_x_detached'] && $RES_infos['axis_y_detached'] ) {
+			// Update 2014-02-16 : Qmerge, do not paginate full-detached selects
+			continue ;
+		}
+		
 		if( $RES_infos['axis_x_detached'] ) {
 			$logIterations_arr_arr_GroupTagId[] = array() ; // colonne détachée = iteration vide
 			
@@ -276,6 +281,11 @@ function paracrm_queries_mpaginate_getGridRows( &$RES, $RES_labels_tab, $grid_co
 	$nullY_titleColumnDataindex = $ttmp['dataIndex'] ;
 	foreach( $RES['RES_selectId_infos'] as $select_id=>$RES_infos ) {
 		if( !$RES_infos['axis_y_detached'] ) {
+			continue ;
+		}
+		
+		if( $RES_infos['axis_x_detached'] && $RES_infos['axis_y_detached'] ) {
+			// Update 2014-02-16 : Qmerge, do not paginate full-detached selects
 			continue ;
 		}
 		
