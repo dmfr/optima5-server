@@ -1653,6 +1653,7 @@ function paracrm_queries_process_query(&$arr_saisie, $debug=FALSE)
 				$ttmp['tfield'] = $field ;
 				$ttmp['file_code'] = $arr_indexed_treefields[$field]['file_code'] ;
 				$ttmp['file_field_code'] = $arr_indexed_treefields[$field]['file_field_code'] ;
+				$ttmp['field_type'] = $arr_indexed_treefields[$field]['field_type'] ;
 				
 				$field_group['group_file_display_arrFields'][$display_field_key] = $ttmp ;
 			}
@@ -3141,7 +3142,14 @@ function paracrm_queries_process_labelEnum( $group_id, $field_group, $bibleCondi
 			foreach( $field_group['group_file_display_arrFields'] as $display_field_key => $display_field_arrDesc )
 			{
 				$sql_field_code = 'field_'.$display_field_arrDesc['file_field_code'] ;
-				$ttmp[$display_field_key] = $record[$sql_field_code] ;
+				switch( $display_field_arrDesc['field_type'] ) {
+					case 'date' :
+					$ttmp[$display_field_key] = date('Y-m-d',strtotime($record[$sql_field_code])) ;
+					break ;
+					default :
+					$ttmp[$display_field_key] = $record[$sql_field_code] ;
+					break ;
+				}
 			}
 			$filerecord_id = $record['filerecord_id'] ;
 			$arr[$filerecord_id] = $ttmp ;
