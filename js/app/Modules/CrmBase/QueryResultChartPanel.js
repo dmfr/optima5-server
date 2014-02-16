@@ -394,7 +394,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultChartPanel' ,{
 					radius: 4,
 					'stroke-width': 0
 				},
-				axis: 'left',
+				axis: 'right',
 				style: {
 					fill: lineRightColorset[i],
 					stroke: lineRightColorset[i],
