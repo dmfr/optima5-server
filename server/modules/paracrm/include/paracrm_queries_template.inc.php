@@ -61,7 +61,8 @@ function paracrm_queries_template_makeImgChart(&$RES, $queryResultChartModel, $i
 		return NULL ;
 	}
 	
-	if( !($RES_chart = paracrm_queries_charts_getResChart($RES, $queryResultChartModel)) ) {
+	$RES_chart = paracrm_queries_charts_getResChart($RES, $queryResultChartModel) ;
+	if( !$RES_chart || count($RES_chart['stepsSerieValue']) == 0 ) {
 		return NULL ;
 	}
 	
