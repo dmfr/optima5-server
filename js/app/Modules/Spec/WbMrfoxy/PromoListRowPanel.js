@@ -142,6 +142,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 					},{
 						xtype:'fieldset',
 						title: 'Performance analysis',
+						hidden: !(rowRecord.get('is_prod') == 'PROD'),
 						defaults: {
 							margin: 2
 						},
@@ -156,7 +157,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 							fieldLabel: 'Cost forecast',
 							fieldStyle: 'font-weight: bold',
 							labelWidth: 120,
-							value: rowRecord.get('cost_forecast') + ' EUR'
+							value: rowRecord.get('cost_forecast') + ' EUR' + '&#160;'+'('+rowRecord.get('cost_billing_text')+')',
+							hidden: false
 						},{
 							xtype: 'displayfield',
 							fieldLabel: 'Real Cost (invoice)',

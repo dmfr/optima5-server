@@ -261,7 +261,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 						fieldLabel: 'Payment',
 						labelWidth: 60,
 						anchor: '100%',
-						//name: 'mechanics_code',
+						name: 'cost_billing',
 						value : 'BB',
 						listeners:{
 							//change: function(){ me.calcLayout() },
@@ -334,9 +334,31 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 							dataIndex: 'calc_uplift_per',
 							width: 70
 						},{
-							text: 'ROI',
-							dataIndex: 'calc_roi',
-							width: 70
+							text: 'Cost',
+							width: 70,
+							renderer: function(v,m,r) {
+								if( r.get('cost_real') > 0 ) {
+									return r.get('cost_real') ;
+								} else {
+									return r.get('cost_forecast') ;
+								}
+							}
+						},{
+							text: 'Cost/kg',
+							width: 70,
+							renderer: function(v,m,r) {
+								var cost,
+									upliftKg = r.get('calc_uplift_vol') ;
+								if( upliftKg <= 0 ) {
+									return '' ;
+								}
+								if( r.get('cost_real') > 0 ) {
+									cost = r.get('cost_real') ;
+								} else {
+									cost = r.get('cost_forecast') ;
+								}
+								return Math.round( (cost/upliftKg)*100 ) / 100 ;
+							}
 						}]
 					},{
 						xtype:'box',
@@ -348,7 +370,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 					hidden: true,
 					itemId: 'fsSimu',
 					flex: 5,
-					title: 'Financial data',
+					title: 'Selling-Out Simulation',
 					items:[{
 						xtype:'container',
 						itemId: 'cntSimuGraph',

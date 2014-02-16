@@ -128,6 +128,8 @@ function specWbMrfoxy_promo_getGrid( $post_data ) {
 		$row['mechanics_detail'] = $paracrm_row['WORK_PROMO_field_MECH_DETAIL'] ;
 		$row['mechanics_text'] = $paracrm_row['WORK_PROMO_field_MECH_TYPE_tree_CLASS_TXT'].' - '.$paracrm_row['WORK_PROMO_field_MECH_DETAIL'] ;
 		$row['mechanics_rewardcard'] = $paracrm_row['WORK_PROMO_field_MECH_REWARDCARD'] ;
+		$row['cost_billing_code'] = $paracrm_row['WORK_PROMO_field_COST_BILLING'] ;
+		$row['cost_billing_text'] = $paracrm_row['WORK_PROMO_field_COST_BILLING_tree_PAYM_TXT'] ;
 		$row['cost_forecast'] = $paracrm_row['WORK_PROMO_field_COST_FORECAST'] ;
 		$row['cost_real'] = $paracrm_row['WORK_PROMO_field_COST_REAL_INVOICE'] ;
 		$row['calc_uplift_vol'] = $paracrm_row['WORK_PROMO_field_CALC_UPLIFT_VOL'] ;

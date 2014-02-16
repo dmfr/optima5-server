@@ -74,7 +74,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 					},{
 						text: '<b>Promo#</b>',
 						dataIndex: 'promo_id',
-						width: 150,
+						width: 175,
 						renderer: function(v) {
 							return '<b>'+v+'</b>' ;
 						}

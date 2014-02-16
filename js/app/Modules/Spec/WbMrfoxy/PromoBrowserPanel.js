@@ -26,6 +26,8 @@ Ext.define('WbMrfoxyPromoListModel', {
         {name: 'calc_uplift_vol',   type: 'string'},
         {name: 'calc_uplift_per',   type: 'string'},
         {name: 'calc_roi',   type: 'string'},
+        {name: 'cost_billing_code',   type: 'string'},
+        {name: 'cost_billing_text',   type: 'string'},
         {name: 'cost_forecast',   type: 'number'},
         {name: 'cost_real',   type: 'number'},
         {name: 'obs_atl',   type: 'string'},
