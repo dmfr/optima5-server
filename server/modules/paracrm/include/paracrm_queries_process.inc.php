@@ -2734,7 +2734,7 @@ function paracrm_queries_process_queryHelp_getGroupHash( $record_glob, $fields_g
 				break ;
 			
 				case 'WEEK' :
-				$group_value = date('Y-W',strtotime($date_value)) ;
+				$group_value = date('o-W',strtotime($date_value)) ;
 				break ;
 			
 				case 'MONTH' :
@@ -3760,7 +3760,7 @@ function paracrm_queries_process_extrapolateGroup_outputDate( $date_sql, $output
 		break ;
 		
 		case 'WEEK' :
-		return date('Y-W',strtotime($date_sql)) ;
+		return date('o-W',strtotime($date_sql)) ;
 		break ;
 		
 		case 'DAY' :
