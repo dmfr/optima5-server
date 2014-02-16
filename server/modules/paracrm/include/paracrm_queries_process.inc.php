@@ -3712,7 +3712,11 @@ function paracrm_queries_process_extrapolateGroup( $extrapolate_batch, &$RES_gro
 	// **** Calcul *****
 	foreach( $LOCAL_groupKey_selectId_srcValues as $local_groupKey => $t_selectId_srcValues ) {
 		foreach( $t_selectId_srcValues as $select_id => $values ) {
-			$val = array_sum($values) / count($values) ;
+			if( count($values) > 0 ) {
+				$val = array_sum($values) / count($values) ;
+			} else {
+				$val = $RES_selectId_nullValue[$select_id] ;
+			}
 			
 			$destValues = array() ;
 			foreach( $ITERATION_calc_dates as $date_step ) {
