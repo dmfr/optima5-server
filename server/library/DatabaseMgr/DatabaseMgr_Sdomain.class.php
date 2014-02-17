@@ -4,7 +4,7 @@ class DatabaseMgr_Sdomain {
 	private $_opDB ;
 	private $domain_id ;
 	
-	private static $dbVersion = 17 ;
+	private static $dbVersion = 18 ;
 	
 	public function __construct( $domain_id ) {
 		$this->_opDB = $GLOBALS['_opDB'] ;
@@ -421,6 +421,7 @@ CREATE TABLE `qmerge_field_mwhere` (
   `qmerge_fieldmwhere_ssid` int(11) NOT NULL,
   `mfield_type` varchar(100) NOT NULL,
   `mfield_linkbible` varchar(100) NOT NULL,
+  `condition_bool` varchar(100) NOT NULL,
   `condition_string` varchar(100) NOT NULL,
   `condition_date_lt` date NOT NULL,
   `condition_date_gt` date NOT NULL,
@@ -486,6 +487,7 @@ CREATE TABLE `query_field_progress` (
   `field_code` varchar(100) NOT NULL,
   `field_type` varchar(100) NOT NULL,
   `field_linkbible` varchar(100) NOT NULL,
+  `condition_bool` varchar(100) NOT NULL,
   `condition_string` varchar(100) NOT NULL,
   `condition_date_lt` date NOT NULL,
   `condition_date_gt` date NOT NULL,
@@ -527,6 +529,7 @@ CREATE TABLE `query_field_where` (
   `field_code` varchar(100) NOT NULL,
   `field_type` varchar(100) NOT NULL,
   `field_linkbible` varchar(100) NOT NULL,
+  `condition_bool` varchar(100) NOT NULL,
   `condition_string` varchar(100) NOT NULL,
   `condition_date_lt` date NOT NULL,
   `condition_date_gt` date NOT NULL,
