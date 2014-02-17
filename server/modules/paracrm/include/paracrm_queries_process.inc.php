@@ -2564,6 +2564,24 @@ function paracrm_queries_process_queryHelp_where( $record_file, $fields_where ) 
 			break ;
 			
 			
+			case 'bool' :
+			switch( $field_where['condition_bool'] ) {
+				case 'true' :
+					if( $eval_value != 1 ) {
+						return FALSE ;
+					}
+					break ;
+				case 'false' :
+					if( $eval_value != 0 ) {
+						return FALSE ;
+					}
+					break ;
+				default :
+					break ;
+			}
+			break ;
+			
+			
 			case 'number' :
 			if( $field_where['condition_num_lt'] == 0 && $field_where['condition_num_gt'] == 0 ) {
 			}

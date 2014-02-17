@@ -222,6 +222,7 @@ Ext.define('Optima5.Modules.CrmBase.QmergeSubpanelMwhere' ,{
 					mfield_idx: -1,
 					query_id: queryId,
 					query_wherefield_idx: queryWherefieldIdx,
+					query_groupfield_idx: queryGroupfieldIdx,
 					icon: 'images/dot_orange_16.gif'
 				}) ;
 				
@@ -241,6 +242,10 @@ Ext.define('Optima5.Modules.CrmBase.QmergeSubpanelMwhere' ,{
 					
 				case 'date' :
 					text = '<u>Date</u>' ;
+					break ;
+				
+				case 'bool' :
+					text = '<u>Boolean</u>' ;
 					break ;
 				
 				default : break ;
@@ -337,6 +342,9 @@ Ext.define('Optima5.Modules.CrmBase.QmergeSubpanelMwhere' ,{
 				str = str + '<b>X</b>' ;
 				str = str + ' < ' + record.get('condition_num_lt') ;
 				return str ;
+			
+			case 'bool' :
+				return record.get('condition_bool') ;
 			
 			case 'file' :
 				return '<b>to define</b>' ;
@@ -520,6 +528,13 @@ Ext.define('Optima5.Modules.CrmBase.QmergeSubpanelMwhere' ,{
 		
 		var mform ;
 		switch( record.get('mfield_type') ) {
+			case 'bool' :
+				mform = Ext.create('Optima5.Modules.CrmBase.QueryWhereFormBoolean',{
+					optimaModule: me.optimaModule,
+					frame:true
+				}) ;
+				break ;
+				
 			case 'extrapolate' :
 				mform = Ext.create('Optima5.Modules.CrmBase.QueryGroupFormDate',{
 					optimaModule: me.parentQmergePanel.optimaModule,
@@ -583,6 +598,8 @@ Ext.define('Optima5.Modules.CrmBase.QmergeSubpanelMwhere' ,{
 					case 'extrapolate_src_date_from' :
 					case 'extrapolate_calc_date_from' :
 					case 'extrapolate_calc_date_to' :
+						
+					case 'condition_bool' :
 						
 						break ;
 						

@@ -52,6 +52,7 @@ Ext.define('QmergeMwhereModel', {
 		{name: 'mfield_type',   type: 'string'},
 		{name: 'mfield_linkbible',   type: 'string'},
 		{name: 'condition_file_ids',   type: 'string'},
+		{name: 'condition_bool',   type: 'string'},
 		{name: 'condition_string',   type: 'string'},
 		{name: 'condition_date_lt',   type: 'string'},
 		{name: 'condition_date_gt',   type: 'string'},

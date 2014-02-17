@@ -4,6 +4,7 @@ Ext.define('QueryProgressModel', {
 		{name: 'field_code',  type: 'string'},
 		{name: 'field_type',   type: 'string'},
 		{name: 'field_linkbible',   type: 'string'},
+		{name: 'condition_bool',   type: 'string'},
 		{name: 'condition_string',   type: 'string'},
 		{name: 'condition_date_lt',   type: 'string'},
 		{name: 'condition_date_gt',   type: 'string'},
@@ -25,7 +26,9 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelProgress' ,{
 	requires: [
 		'Optima5.Modules.CrmBase.QuerySubpanel',
 		'Optima5.Modules.CrmBase.QueryWhereFormBible',
-		'Optima5.Modules.CrmBase.QueryWhereFormDate'
+		'Optima5.Modules.CrmBase.QueryWhereFormDate',
+		'Optima5.Modules.CrmBase.QueryWhereFormNumber',
+		'Optima5.Modules.CrmBase.QueryWhereFormBoolean'
 	] ,
 			  
 	progressFields : [] ,
@@ -127,6 +130,9 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelProgress' ,{
 							str = str + ' < ' + record.get('condition_num_lt') ;
 							return str ;
 						
+						case 'bool' :
+							return record.get('condition_bool') ;
+						
 						default :
 							return value ;
 					}
@@ -209,6 +215,7 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelProgress' ,{
 						case 'link' :
 						case 'date' :
 						case 'number' :
+						case 'bool' :
 							break ;
 						
 						default :
@@ -257,6 +264,13 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelProgress' ,{
 		
 		var mform ;
 		switch( record.get('field_type') ) {
+			case 'bool' :
+				mform = Ext.create('Optima5.Modules.CrmBase.QueryWhereFormBoolean',{
+					optimaModule: me.optimaModule,
+					frame:true
+				}) ;
+				break ;
+				
 			case 'link' :
 				mform = Ext.create('Optima5.Modules.CrmBase.QueryWhereFormBible',{
 					bibleId: record.get('field_linkbible') ,
@@ -296,6 +310,8 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelProgress' ,{
 						
 					case 'condition_num_gt' :
 					case 'condition_num_lt' :
+						
+					case 'condition_bool' :
 						
 						break ;
 						
