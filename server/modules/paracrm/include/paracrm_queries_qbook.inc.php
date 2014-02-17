@@ -337,7 +337,6 @@ function paracrm_queries_qbookTransaction_togglePublish( $post_data , &$arr_sais
 
 function paracrm_queries_qbookTransaction_runQuery( $post_data, &$arr_saisie, $qsrc_filerecordId=0, $src_filerecord_row=NULL )
 {
-	usleep(500000) ;
 	$RES = paracrm_queries_process_qbook($arr_saisie , (isset($post_data['_debug'])&&$post_data['_debug']==TRUE)?true:false, $qsrc_filerecordId, $src_filerecord_row ) ;
 	if( !$RES )
 		return array('success'=>false,'query_status'=>'NOK') ;

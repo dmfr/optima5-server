@@ -298,9 +298,6 @@ function paracrm_queries_builderTransaction_togglePublish( $post_data , &$arr_sa
 
 function paracrm_queries_builderTransaction_runQuery( $post_data, &$arr_saisie )
 {
-	usleep(500000) ;
-	
-	
 	$RES = paracrm_queries_process_query($arr_saisie , (isset($post_data['_debug'])&&$post_data['_debug']==TRUE)?true:false ) ;
 	if( !$RES )
 		return array('success'=>false,'query_status'=>'NOK') ;

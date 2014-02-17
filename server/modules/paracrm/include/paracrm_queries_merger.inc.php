@@ -250,7 +250,6 @@ function paracrm_queries_mergerTransaction_togglePublish( $post_data , &$arr_sai
 
 function paracrm_queries_mergerTransaction_runQuery( $post_data, &$arr_saisie )
 {
-	usleep(500000) ;
 	$RES = paracrm_queries_process_qmerge($arr_saisie , (isset($post_data['_debug'])&&$post_data['_debug']==TRUE)?true:false ) ;
 	if( !$RES )
 		return array('success'=>false,'query_status'=>'NOK') ;
