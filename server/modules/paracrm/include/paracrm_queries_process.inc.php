@@ -2175,14 +2175,31 @@ function paracrm_queries_process_query_iterationDo( $arr_saisie, $iteration_chai
 	{
 		$target_fileCode = $iteration_chain[$iteration_chain_offset] ;
 		
-		switch( $arr_saisie['fields_select'][0]['iteration_mode'] )
-		{
-			case 'count' :
-			return $RES_selectId_group_arr_arrSymbolValue = paracrm_queries_process_query_doCount( $arr_saisie, $target_fileCode, $base_row, $parent_fileCode, $parent_filerecordId ) ;
+		$RES_selectId_group_arr_arrSymbolValue = array() ;
+		$doCount = $doValue = FALSE ;
+		foreach( $arr_saisie['fields_select'] as $select_id => &$dummy ) {
+			switch( $arr_saisie['fields_select'][$select_id]['iteration_mode'] ) {
+				case 'count' :
+					$doCount = TRUE ;
+					break ;
+				case 'value' :
+					$doValue = TRUE ;
+					break ;
+			}
 			
-			case 'value' :
-			return $RES_selectId_group_arr_arrSymbolValue = paracrm_queries_process_query_doValue( $arr_saisie, $target_fileCode, $base_row, $parent_fileCode, $parent_filerecordId ) ;
+			$RES_selectId_group_arr_arrSymbolValue[$select_id] = array() ;
 		}
+		
+		if( $doCount ) {
+			$ttmp = paracrm_queries_process_query_doCount( $arr_saisie, $target_fileCode, $base_row, $parent_fileCode, $parent_filerecordId ) ;
+			$RES_selectId_group_arr_arrSymbolValue = $ttmp + $RES_selectId_group_arr_arrSymbolValue ;
+		}
+		if( $doValue ) {
+			$ttmp = paracrm_queries_process_query_doValue( $arr_saisie, $target_fileCode, $base_row, $parent_fileCode, $parent_filerecordId ) ;
+			$RES_selectId_group_arr_arrSymbolValue = $ttmp + $RES_selectId_group_arr_arrSymbolValue ;
+		}
+		
+		return $RES_selectId_group_arr_arrSymbolValue ;
 	}
 	
 	
@@ -2260,6 +2277,10 @@ function paracrm_queries_process_query_doValue( $arr_saisie, $target_fileCode, $
 		// TODO: cleaner join arch (EDIT 13-11-10 : conditional join)
 		$join_done = FALSE ;
 		foreach( $arr_saisie['fields_select'] as $select_id => $field_select ) {
+			if( $field_select['iteration_mode'] != 'value' ) {
+				continue ;
+			}
+			
 			$subRES_group_symbol_value = array() ;
 			// iteration sur les symboles
 			foreach( $field_select['math_expression'] as $symbol_id => $symbol )
@@ -2346,6 +2367,9 @@ function paracrm_queries_process_query_doCount( $arr_saisie, $target_fileCode, $
 	$subRes_selectId_group_arr_arrSymbolValue = array() ; // return value
 	
 	foreach( $arr_saisie['fields_select'] as $select_id => $field_select ) {
+		if( $field_select['iteration_mode'] != 'count' ) {
+			continue ;
+		}
 		
 		$subRES_group_symbol_value = array() ;
 		// subiteration sur les symboles
