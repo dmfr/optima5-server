@@ -259,7 +259,14 @@ function specWbMrfoxy_promo_formEval( $post_data ) {
 		$resp_data['prod_master'] = '' ;
 	}
 	
-	$ttmp = specWbMrfoxy_promo_getGrid(array()) ;
+	$grid_filter = array() ;
+	if( $form_data['prod_code'] ) {
+		$grid_filter[] = array('field'=>'prod_text', 'type'=>'list', 'value'=>specWbMrfoxy_tool_getProdNodes($form_data['prod_code'])) ;
+	}
+	if( $form_data['store_code'] ) {
+		$grid_filter[] = array('field'=>'store_text', 'type'=>'list', 'value'=>specWbMrfoxy_tool_getStoreNodes($form_data['store_code'])) ;
+	}
+	$ttmp = specWbMrfoxy_promo_getGrid(array('filter_isProd'=>1, 'filter_country'=>$form_data['country_code'],'filter'=>json_encode($grid_filter))) ;
 	$resp_data['gridBenchmark'] = $ttmp['data'];
 	
 	$resp_data['mechanics_multi'] = array() ;

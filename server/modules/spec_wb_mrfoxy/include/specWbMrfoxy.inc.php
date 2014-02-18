@@ -29,6 +29,18 @@ function specWbMrfoxy_tool_getProdLine( $prod_code ) {
 	
 	return $return_value ;
 }
+function specWbMrfoxy_tool_getProdNodes( $prod_code ) {
+	global $_opDB ;
+	
+	$bible_code = 'IRI_PROD' ;
+	$tree_PROD = specWbMrfoxy_lib_getBibleTree($bible_code) ;
+	
+	$node = $tree_PROD->getTree($prod_code) ;
+	if( $node == NULL ) {
+		return null ;
+	}
+	return $node->getAllMembers() ;
+}
 function specWbMrfoxy_tool_getStoreBrand( $store_code ) {
 	global $_opDB ;
 	
@@ -53,6 +65,18 @@ function specWbMrfoxy_tool_getStoreBrand( $store_code ) {
 	unset($tree_STORE) ;
 	
 	return $return_value ;
+}
+function specWbMrfoxy_tool_getStoreNodes( $store_code ) {
+	global $_opDB ;
+	
+	$bible_code = 'IRI_STORE' ;
+	$tree_STORE = specWbMrfoxy_lib_getBibleTree($bible_code) ;
+	
+	$node = $tree_STORE->getTree($store_code) ;
+	if( $node == NULL ) {
+		return null ;
+	}
+	return $node->getAllMembers() ;
 }
 
 ?>
