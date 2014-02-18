@@ -25,8 +25,8 @@ function specWbMrfoxy_stat_performance_getResult( $post_data ) {
 		if( $field_mwhere['mfield_type'] == 'link' && $field_mwhere['mfield_linkbible'] == 'IRI_STORE' && $form_data['store_code'] ) {
 			$field_mwhere['condition_bible_treenodes'] = json_encode(array($form_data['store_code'])) ;
 		}
-		if( $field_mwhere['mfield_type'] == 'link' && $field_mwhere['mfield_linkbible'] == 'IRI_PROD' && $form_data['product_code'] ) {
-			$field_mwhere['condition_bible_treenodes'] = json_encode(array($form_data['product_code'])) ;
+		if( $field_mwhere['mfield_type'] == 'link' && $field_mwhere['mfield_linkbible'] == 'IRI_PROD' && $form_data['prod_code'] ) {
+			$field_mwhere['condition_bible_treenodes'] = json_encode(array($form_data['prod_code'])) ;
 		}
 	}
 	unset($field_mwhere) ;

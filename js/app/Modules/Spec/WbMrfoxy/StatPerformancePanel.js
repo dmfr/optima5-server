@@ -126,7 +126,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.StatPerformancePanel',{
 					optimaModule: me.optimaModule,
 					bibleId: 'IRI_PROD',
 					fieldLabel: 'Products',
-					name: 'product_code',
+					name: 'prod_code',
 					listeners: {
 						change: function() {
 							me.evalForm() ;
