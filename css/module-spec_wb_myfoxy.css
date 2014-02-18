@@ -284,3 +284,45 @@
 	border-radius: 10px !important;
 	z-index: 2;
 }
+
+
+.op5-spec-mrfoxy-statheader {
+	background-color: rgb(37, 68, 93);
+	border: 1px solid rgb(221, 221, 221);
+	-moz-border-radius: 10px;
+	border-radius: 10px !important;
+	z-index: 2;
+	
+	text-align: left;
+	padding: 16px 24px ;
+}
+.op5-spec-mrfoxy-statheader-icon {
+	position: absolute ;
+	top:0px;
+	left:24px ;
+	width:64px ;
+	height:100% ;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+.op5-spec-mrfoxy-statheader-close {
+	position: absolute ;
+	background-image: url("../images/op5img/ico_cancel_small.gif") !important;
+	top:16px;
+	right:16px ;
+	width:16px ;
+	height:16px ;
+	background-position: center center;
+	background-repeat: no-repeat;
+	cursor: pointer;
+}
+.op5-spec-mrfoxy-statheader-title {
+	position: relative ;
+	padding-left: 96px ;
+	margin-bottom: 8px ;
+	font-size: 18px;
+	font-weight: bold;
+	color: #eeeeee ;
+}
+
+

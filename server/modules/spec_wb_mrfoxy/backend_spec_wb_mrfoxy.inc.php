@@ -39,6 +39,8 @@ switch( $post_data['_action'] )
 	
 	
 	
+	case 'stat_performance_getResult' :
+	return specWbMrfoxy_stat_performance_getResult($post_data);
 	
 	
 	

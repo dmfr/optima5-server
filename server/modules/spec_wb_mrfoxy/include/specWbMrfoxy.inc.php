@@ -2,6 +2,7 @@
 
 include("$server_root/modules/spec_wb_mrfoxy/include/specWbMrfoxy_promo.inc.php") ;
 include("$server_root/modules/spec_wb_mrfoxy/include/specWbMrfoxy_auth.inc.php") ;
+include("$server_root/modules/spec_wb_mrfoxy/include/specWbMrfoxy_stat.inc.php") ;
 
 function specWbMrfoxy_tool_getProdLine( $prod_code ) {
 	global $_opDB ;
