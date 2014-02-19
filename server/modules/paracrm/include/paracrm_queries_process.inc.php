@@ -382,38 +382,7 @@ function paracrm_queries_process_qbook($arr_saisie, $debug=FALSE, $src_filerecor
 				break ;
 		}
 		
-		paracrm_queries_process_qbook_doValues( $arr_saisie, $debug, $RES_inputvar, $RES_qobj, $RES_value ) ;
-	}
-	if( $debug ) {
-		echo "OK\n" ;
-	}
-	
-	if( $debug ) {
-		echo "Qmerge 3post: Values saveto..." ;
-	}
-	foreach( $arr_saisie['arr_value'] as $value_idx => $cfg_value ) {
-		if( $RES_value[$value_idx] === NULL ) {
-			continue ;
-		}
-		$Rval = $RES_value[$value_idx] ;
-		
-		foreach( $cfg_value['saveto'] as $cfg_saveto ) {
-			$target_fileCode = $cfg_saveto['target_backend_file_code'] ;
-			$target_fileFieldCode = 'field_'.$cfg_saveto['target_backend_file_field_code'] ;
-			
-			if( !isset($src_filerecord_row[$target_fileCode][$target_fileFieldCode]) ) {
-				if( $debug ) {
-					echo " oops! " ;
-				}
-				continue ;
-			}
-			
-			$src_filerecord_row[$target_fileCode][$target_fileFieldCode] = $Rval ;
-		}
-	}
-	foreach( $src_filerecord_row as $target_fileCode => $file_data ) {
-		$target_filerecordId = $file_data['filerecord_id'] ;
-		paracrm_lib_data_updateRecord_file( $target_fileCode , $file_data, $target_filerecordId ) ;
+		paracrm_queries_process_qbook_doValues( $arr_saisie, $debug, $RES_inputvar, $RES_qobj, $RES_value, $src_filerecord_row ) ;
 	}
 	if( $debug ) {
 		echo "OK\n" ;
@@ -428,7 +397,7 @@ function paracrm_queries_process_qbook($arr_saisie, $debug=FALSE, $src_filerecor
 					'RES_value_lib' => $RES_value_lib,
 					'RES_value_mathRound' => $RES_value_mathRound ) ;
 }
-function paracrm_queries_process_qbook_doValues( $arr_saisie, $debug=FALSE, $RES_inputvar, $RES_qobj, &$RES_value ) {
+function paracrm_queries_process_qbook_doValues( $arr_saisie, $debug=FALSE, $RES_inputvar, $RES_qobj, &$RES_value, &$src_filerecord_row=NULL ) {
 	
 	if( $debug ) {
 		echo "-- Qmerge 2-3: Values : " ;
@@ -532,6 +501,28 @@ function paracrm_queries_process_qbook_doValues( $arr_saisie, $debug=FALSE, $RES
 		$RES_value[$value_idx] = $Rval ;
 		if( $debug ) {
 			echo "o" ;
+		}
+		
+		// Save TO
+		foreach( $cfg_value['saveto'] as $cfg_saveto ) {
+			$target_fileCode = $cfg_saveto['target_backend_file_code'] ;
+			$target_fileFieldCode = 'field_'.$cfg_saveto['target_backend_file_field_code'] ;
+			
+			if( !isset($src_filerecord_row[$target_fileCode][$target_fileFieldCode]) ) {
+				if( $debug ) {
+					echo " oops! " ;
+				}
+				continue ;
+			}
+			
+			// Memory save
+			$src_filerecord_row[$target_fileCode][$target_fileFieldCode] = $Rval ;
+			
+			// DB Save
+			$update_row = array() ;
+			$update_row[$target_fileFieldCode] = $Rval ;
+			$target_filerecordId = $src_filerecord_row[$target_fileCode]['filerecord_id'] ;
+			paracrm_lib_data_updateRecord_file( $target_fileCode , $update_row, $target_filerecordId ) ;
 		}
 	}
 	if( $debug ) {
