@@ -18,7 +18,7 @@ function specWbMrfoxy_auth_getTable( $post_data ) {
 		$bible_treenode_countries[$treenode_key][] = $country_code ;
 	}
 	
-	$query = "SELECT * FROM view_bible_USER_entry" ;
+	$query = "SELECT * FROM view_bible__USER_entry" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$user_code = $arr['field_USER_CODE'] ;

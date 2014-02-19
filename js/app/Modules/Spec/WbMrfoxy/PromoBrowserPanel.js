@@ -33,7 +33,7 @@ Ext.define('WbMrfoxyPromoListModel', {
         {name: 'obs_atl',   type: 'string'},
         {name: 'obs_btl',   type: 'string'},
         {name: 'obs_comment',   type: 'string'},
-		  {name: 'approv_dm',   type: 'boolean'},
+		  {name: 'approv_ds',   type: 'boolean'},
 		  {name: 'approv_df',   type: 'boolean'},
         {name: 'benchmark_arr_ids', type: 'string'}
      ],
@@ -121,6 +121,14 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoBrowserPanel',{
 					scope: this
 				}]
 			},'->',{
+				itemId: 'tbRefresh',
+				text: 'Refresh',
+				iconCls: 'op5-crmbase-datatoolbar-refresh',
+				handler:function() {
+					me.getLayout().getActiveItem().reload() ;
+				},
+				scope:me
+			},{
 				itemId: 'tbViewmode',
 				viewConfig: {forceFit: true},
 				menu: {

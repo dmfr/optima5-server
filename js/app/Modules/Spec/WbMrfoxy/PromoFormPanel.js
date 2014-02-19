@@ -103,6 +103,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 						title: 'Scheduled date',
 						items:[{
 							xtype: 'datefield',
+							startDay: 1,
 							fieldLabel: 'Date start',
 							name: 'date_start',
 							format: 'Y-m-d',
@@ -115,6 +116,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 							}
 						},{
 							xtype: 'datefield',
+							startDay: 1,
 							fieldLabel: 'Date end',
 							name: 'date_end',
 							format: 'Y-m-d',
@@ -214,7 +216,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 								type: 'hbox',
 								align: 'stretch'
 							},
-							itemId: 'mechanics_mono',
+							itemId: 'mechanics_mono_discount',
 							fieldLabel: 'Discount',
 							items:[{
 								xtype:'numberfield',
@@ -225,6 +227,24 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 								xtype:'box',
 								padding:'4px 0px 0px 6px',
 								html:'<b>%</b>'
+							}]
+						},{
+							xtype: 'fieldcontainer',
+							layout:{
+								type: 'hbox',
+								align: 'stretch'
+							},
+							itemId: 'mechanics_mono_pricecut',
+							fieldLabel: 'Discount',
+							items:[{
+								xtype:'numberfield',
+								hideTrigger:true,
+								name: 'mechanics_mono_pricecut',
+								width: 50
+							},{
+								xtype:'box',
+								padding:'4px 0px 0px 6px',
+								html:'<b>€/£/...</b>'
 							}]
 						},{
 							xtype: 'comboboxcached',
@@ -485,8 +505,10 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 			form = me.child('form').getForm() ;
 			  
 		var mechanicsCode = form.findField('mechanics_code').getValue() ;
-		me.query('#mechanics_mono')[0].setVisible( mechanicsCode=='MONO' ) ;
-		form.findField('mechanics_mono_discount').allowBlank = !(mechanicsCode=='MONO') ;
+		me.query('#mechanics_mono_discount')[0].setVisible( mechanicsCode=='MONO_DIS' ) ;
+		form.findField('mechanics_mono_discount').allowBlank = !(mechanicsCode=='MONO_DIS') ;
+		me.query('#mechanics_mono_pricecut')[0].setVisible( mechanicsCode=='MONO_CUT' ) ;
+		form.findField('mechanics_mono_pricecut').allowBlank = !(mechanicsCode=='MONO_CUT') ;
 		me.query('#mechanics_multi')[0].setVisible( mechanicsCode=='MULTI' ) ;
 		form.findField('mechanics_multi_combo').allowBlank = !(mechanicsCode=='MULTI') ;
 			  
@@ -559,8 +581,11 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 	loadDataFromRecord: function( promoRecord ) {
 		var data = promoRecord.data ;
 		switch( data['mechanics_code'] ) {
-			case 'MONO' :
+			case 'MONO_DIS' :
 				data['mechanics_mono_discount'] = Ext.String.trim(data['mechanics_detail'].substr(0,2)) ;
+				break ;
+			case 'MONO_CUT' :
+				data['mechanics_mono_pricecut'] = Ext.String.trim(data['mechanics_detail'].split(' ')[0]) ;
 				break ;
 			case 'MULTI' :
 				data['mechanics_multi_combo'] = data['mechanics_detail'] ;
@@ -650,7 +675,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 		}
 		
 		var str = 'Encode new promotion ?' ;
-		if( me.promoRecord ) {
+		if( me.promoRecord && me.promoRecord.get('status_percent') > 0 ) {
 			str = 'Commit modifications to promo '+me.promoRecord.get('promo_id')+' ?<br>'+'Warning : This will start over approval process!' ;
 		}
 		

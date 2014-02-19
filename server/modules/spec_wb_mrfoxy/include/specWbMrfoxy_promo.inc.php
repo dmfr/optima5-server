@@ -71,6 +71,14 @@ function specWbMrfoxy_promo_getGrid( $post_data ) {
 		$filter['value'] = ( $post_data['filter_isProd'] ? 1 : 0 ) ;
 		$filters[] = $filter ;
 	}
+	if( isset($post_data['filter_isDone']) && $post_data['filter_isDone'] ) {
+		$filter = array() ;
+		$filter['field'] = 'WORK_PROMO_field_STATUS' ;
+		$filter['type'] = 'string' ;
+		$filter['comparison'] = 'eq' ;
+		$filter['value'] = '99_DONE' ;
+		$filters[] = $filter ;
+	}
 	if( $post_data['filter_id'] && isJsonArr($post_data['filter_id']) ) {
 		$filter = array() ;
 		$filter['field'] = 'filerecord_id' ;
@@ -138,7 +146,7 @@ function specWbMrfoxy_promo_getGrid( $post_data ) {
 		$row['obs_atl'] = $paracrm_row['WORK_PROMO_field_OBS_ATL'] ;
 		$row['obs_btl'] = $paracrm_row['WORK_PROMO_field_OBS_BTL'] ;
 		$row['obs_comment'] = $paracrm_row['WORK_PROMO_field_OBS_COMMENT'] ;
-		$row['approv_dm'] = $paracrm_row['WORK_PROMO_field_APPROV_DM'] ;
+		$row['approv_ds'] = $paracrm_row['WORK_PROMO_field_APPROV_DS'] ;
 		$row['approv_df'] = $paracrm_row['WORK_PROMO_field_APPROV_DF'] ;
 		$row['benchmark_arr_ids'] = $paracrm_row['WORK_PROMO_field_BENCHMARK_ARR_IDS'] ;
 		
@@ -266,7 +274,7 @@ function specWbMrfoxy_promo_formEval( $post_data ) {
 	if( $form_data['store_code'] ) {
 		$grid_filter[] = array('field'=>'store_text', 'type'=>'list', 'value'=>specWbMrfoxy_tool_getStoreNodes($form_data['store_code'])) ;
 	}
-	$ttmp = specWbMrfoxy_promo_getGrid(array('filter_isProd'=>1, 'filter_country'=>$form_data['country_code'],'filter'=>json_encode($grid_filter))) ;
+	$ttmp = specWbMrfoxy_promo_getGrid(array('filter_isProd'=>1, 'filter_isDone'=>1, 'filter_country'=>$form_data['country_code'],'filter'=>json_encode($grid_filter))) ;
 	$resp_data['gridBenchmark'] = $ttmp['data'];
 	
 	$resp_data['mechanics_multi'] = array() ;
@@ -359,12 +367,19 @@ function specWbMrfoxy_promo_formSubmit( $post_data ) {
 		case 'MULTI' :
 			$arr_ins['field_MECH_DETAIL'] = $form_data['mechanics_multi_combo'] ;
 			break ;
-		case 'MONO' :
+		case 'MONO_DIS' :
 			$arr_ins['field_MECH_DETAIL'] = $form_data['mechanics_mono_discount'].' % discount' ;
+			break ;
+		case 'MONO_CUT' :
+			$arr_ins['field_MECH_DETAIL'] = $form_data['mechanics_mono_pricecut'].' €/£/$ pricecut' ;
 			break ;
 	}
 	
+	$arr_ins['field_COEF_PROFIT'] = 2 ;
+	
+	$arr_ins['field_COST_BILLING'] = $form_data['cost_billing'] ;
 	$arr_ins['field_COST_FORECAST'] = $form_data['cost_forecast'] ;
+	$arr_ins['field_COST_REAL_INVOICE'] = $form_data['cost_forecast'] ;
 	
 	
 	// *** Création code PROMO ID ****
@@ -412,7 +427,7 @@ function specWbMrfoxy_promo_formSubmit( $post_data ) {
 			$promo_id_base.= '-' ;
 			$promo_id_base.= $prod_memo ;
 		}
-		$promo_id_base.= '-'.date('Ym') ;
+		$promo_id_base.= '-'.date('Ym',strtotime($form_data['date_start'])) ;
 		for( $i=1 ; $i<1000 ; $i++ ) {
 			$promo_id_test = $promo_id_base.'-'.int_to_strX($i,3) ;
 			$query_test = "SELECT count(*) FROM view_file_WORK_PROMO WHERE field_PROMO_CODE='$promo_id_test'" ;
@@ -440,6 +455,11 @@ function specWbMrfoxy_promo_formSubmit( $post_data ) {
 function specWbMrfoxy_promo_delete( $post_data ) {
 	$src_filerecordId = $post_data['_filerecord_id'] ;
 	paracrm_lib_data_deleteRecord_file('WORK_PROMO',$src_filerecordId) ;
+	return array('success'=>true) ;
+}
+function specWbMrfoxy_promo_close( $post_data ) {
+	$target_filerecordId = $post_data['_filerecord_id'] ;
+	paracrm_lib_data_updateRecord_file( 'WORK_PROMO' , array('field_STATUS'=>'99_DONE'), $target_filerecordId ) ;
 	return array('success'=>true) ;
 }
 function specWbMrfoxy_promo_assignBenchmark( $post_data ) {
@@ -508,7 +528,7 @@ function specWbMrfoxy_promo_setApproval( $post_data ) {
 	$data = json_decode($post_data['data'],true) ;
 	
 	$map = array() ;
-	$map['approv_dm'] = 'field_APPROV_DM' ;
+	$map['approv_ds'] = 'field_APPROV_DS' ;
 	$map['approv_df'] = 'field_APPROV_DF' ;
 	$arr_update = array() ;
 	foreach( $map as $src => $dest ) {

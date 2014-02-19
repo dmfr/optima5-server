@@ -27,11 +27,11 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoApprovalPanel',{
 			layout: 'anchor',
 			items: [{
 				xtype: 'checkbox',
-				boxLabel: 'Approved by Marketing Director',
-				readOnly: !Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQuery( me.rowRecord.get('country_code'), 'DM' ),
-				checked: me.rowRecord.get('approv_dm'),
-				boxLabelCls: (!Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQuery( me.rowRecord.get('country_code'), 'DM' ) ? 'op5-spec-mrfoxy-promorow-approval-disabled' : 'op5-spec-mrfoxy-promorow-approval-enabled'),
-				name: 'approv_dm'
+				boxLabel: 'Approved by Sales Director',
+				readOnly: !Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQuery( me.rowRecord.get('country_code'), 'DS' ),
+				checked: me.rowRecord.get('approv_ds'),
+				boxLabelCls: (!Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQuery( me.rowRecord.get('country_code'), 'DS' ) ? 'op5-spec-mrfoxy-promorow-approval-disabled' : 'op5-spec-mrfoxy-promorow-approval-enabled'),
+				name: 'approv_ds'
 			},{
 				xtype: 'checkbox',
 				boxLabel: 'Approved by Financial Officer',
@@ -53,7 +53,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoApprovalPanel',{
 			form = me.getForm() ;
 			  
 		var data = {
-			approv_dm: form.findField('approv_dm').getValue(),
+			approv_ds: form.findField('approv_ds').getValue(),
 			approv_df: form.findField('approv_df').getValue()
 		};
 		

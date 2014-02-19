@@ -94,6 +94,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 								case 'delete' :
 									me.handleDelete() ;
 									break ;
+								case 'close' :
+									me.handleClose() ;
+									break ;
 							}
 						},
 						scope: me
@@ -305,6 +308,25 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 					params: {
 						_moduleId: 'spec_wb_mrfoxy',
 						_action: 'promo_delete',
+						_filerecord_id: me.rowRecord.get('_filerecord_id')
+					},
+					success: function(response) {
+						me.fireEvent('datachanged') ;
+					},
+					scope: me
+				}) ;
+			}
+		},me) ;
+	},
+	handleClose: function() {
+		var me = this ;
+		
+		Ext.MessageBox.confirm('End / Close','Finalize selected promotion ?', function(buttonStr) {
+			if( buttonStr=='yes' ) {
+				me.optimaModule.getConfiguredAjaxConnection().request({
+					params: {
+						_moduleId: 'spec_wb_mrfoxy',
+						_action: 'promo_close',
 						_filerecord_id: me.rowRecord.get('_filerecord_id')
 					},
 					success: function(response) {

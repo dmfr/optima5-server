@@ -21,6 +21,8 @@ switch( $post_data['_action'] )
 	case 'promo_formSubmit' :
 	return specWbMrfoxy_promo_formSubmit($post_data);
 	
+	case 'promo_close' :
+	return specWbMrfoxy_promo_close($post_data);
 	case 'promo_delete' :
 	return specWbMrfoxy_promo_delete($post_data);
 	case 'promo_assignBenchmark' :

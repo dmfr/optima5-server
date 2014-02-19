@@ -209,7 +209,7 @@ function handleStatusData( $row ) {
 	if( $has_ORACLE === FALSE ) {
 		$time_bound = strtotime('+2 week',strtotime($row['date_end'])) ;
 		
-		$query = "SELECT max(field_V_DATE) from view_file_ORACLE_SHIP" ;
+		$query = "SELECT max(field_DATE) from view_file_ORACLE_SHIP" ;
 		$date_cmp = $_opDB->query_uniqueValue($query) ;
 		$time_cmp = strtotime($date_cmp) ;
 		
