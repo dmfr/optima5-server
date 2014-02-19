@@ -28,6 +28,10 @@
 		"iconSrc16":"ico_firefox_16.png",
 		"iconSrc48":"ico_firefox_48.png"
 	},{
+		"iconCode":"mrfoxy",
+		"iconSrc16":"ico_mrfoxy_16.png",
+		"iconSrc48":"ico_mrfoxy_48.png"
+	},{
 		"iconCode":"dbschenker",
 		"iconSrc16":"ico_dbschenker_16.png",
 		"iconSrc48":"ico_dbschenker_48.png"
