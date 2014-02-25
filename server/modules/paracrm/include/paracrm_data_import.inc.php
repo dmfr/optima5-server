@@ -202,17 +202,25 @@ function paracrm_data_importTransaction_upload( $post_data, &$arr_saisie ) {
 	global $_opDB ;
 	
 	$arr_saisie['csvsrc_binary'] = NULL ;
-	$tmp_csvsrcBinary = file_get_contents($_FILES['csvsrc_binary']['tmp_name']) ;
-		$fp = fopen("php://temp", 'r+');
-		fputs($fp, $tmp_csvsrcBinary);
-		$map_delimiter_nbCols = array() ;
-		foreach( $arr_saisie['cfg_delimiters'] as $delimiter_code=>$delimiter_symbol ) {
-			rewind($fp);
-			$map_delimiter_nbCols[$delimiter_code] = count(fgetcsv($fp,0,$delimiter_symbol)) ;
-		}
-		arsort($map_delimiter_nbCols) ;
-		reset($map_delimiter_nbCols) ;
-		$tmp_delimiter = key($map_delimiter_nbCols) ;
+	
+	if( $obj_xml = @simplexml_load_file($_FILES['csvsrc_binary']['tmp_name']) ) {
+		var_dump( count(paracrm_data_importTransaction_upload_searchXML( $obj_xml )) ) ;
+		
+		$tmp_csvsrcBinary ;
+	} else {
+		$tmp_csvsrcBinary = file_get_contents($_FILES['csvsrc_binary']['tmp_name']) ;
+	}
+	
+	$fp = fopen("php://temp", 'r+');
+	fputs($fp, $tmp_csvsrcBinary);
+	$map_delimiter_nbCols = array() ;
+	foreach( $arr_saisie['cfg_delimiters'] as $delimiter_code=>$delimiter_symbol ) {
+		rewind($fp);
+		$map_delimiter_nbCols[$delimiter_code] = count(fgetcsv($fp,0,$delimiter_symbol)) ;
+	}
+	arsort($map_delimiter_nbCols) ;
+	reset($map_delimiter_nbCols) ;
+	$tmp_delimiter = key($map_delimiter_nbCols) ;
 		
 	$arr_saisie['csvsrc_binary'] = $tmp_csvsrcBinary ;
 	$arr_saisie['csvsrc_params']['delimiter'] = $tmp_delimiter ;
@@ -220,6 +228,21 @@ function paracrm_data_importTransaction_upload( $post_data, &$arr_saisie ) {
 	$arr_saisie['_firstUpload'] = TRUE ;
 	
 	return paracrm_data_importTransaction_getResponse( $arr_saisie ) ;
+}
+function paracrm_data_importTransaction_upload_searchXML( $obj_xml ) {
+	echo "foreaching!" ;
+	foreach( $obj_xml as $mkey => $mvalue ) {
+		if( $mkey == 'G_ONE' ) {
+			echo "dumping!" ;
+			var_dump($mvalue) ;
+		}
+		if( is_array($mvalue) ) {
+			return $mvalue ;
+		} elseif( $ret = paracrm_data_importTransaction_upload_searchXML( $mvalue ) ) {
+			return $ret ;
+		}
+	}
+	return NULL ;
 }
 function paracrm_data_importTransaction_setParams( $post_data, &$arr_saisie ) {
 	$post_params = json_decode($post_data['csvsrc_params'],true) ;
@@ -429,10 +452,129 @@ function paracrm_data_importTransaction_doCommit( $post_data, &$arr_saisie ) {
 		}
 	}
 	
-	// Do commit
-	sleep(3) ;
+	// Open file pointer
+	$delimiter = $arr_saisie['cfg_delimiters'][$arr_saisie['csvsrc_params']['delimiter']] ;
+	$fp = fopen("php://temp", 'r+');
+	fputs($fp, $arr_saisie['csvsrc_binary']);
+	rewind($fp);
+	if( $arr_saisie['csvsrc_params']['firstrow_is_header'] ) {
+		fgets($fp) ;
+	}
+	while( !feof($fp) ){
+		$arr_csv = fgetcsv($fp,0,$delimiter) ;
+		
+		$arr_ins = array() ;
+		foreach( $map_fieldCode_csvsrcIdx as $fieldCode => $sIdx ) {
+			$arr_ins[$fieldCode] = $arr_csv[$sIdx] ;
+		}
+		
+		paracrm_data_importTransaction_doCommit_processNode($arr_saisie['treefields_root'],$arr_ins) ;
+		echo "\n\n\n" ;
+	}
+	fclose($fp) ;
+	
+	
 	
 	return array('success'=>true) ;
 }
 
+function paracrm_data_importTransaction_doCommit_processNode( $treefields_node, $arr_data ) {
+	
+	if( $treefields_node['leaf'] ) {
+		echo "ERR" ;
+	}
+	
+	
+	$arr_insert_bible = $arr_insert_file = array() ;
+	foreach( $treefields_node['children'] as $directChild ) {
+		if( $directChild['leaf'] ) {
+			$field_code = $directChild['field_code'] ;
+			if( !isset($arr_data[$field_code]) ) {
+				continue ;
+			}
+			$leaf_value = $arr_data[$field_code] ;
+		
+			if( $directChild['file_code'] && $directChild['field_linkbible'] ) {
+				// mode import File : link bible
+				$bible_type = $directChild['bible_type'] ;
+				$bible_field_code = 'field_'.$directChild['bible_field_code'] ;
+				$arr_insert_bible[$bible_type][$bible_field_code] = $leaf_value ;
+				continue ;
+			}
+			
+			if( $directChild['file_code'] && $directChild['file_field_code'] ) {
+				// mode import File : file field
+				$file_field_code = 'field_'.$directChild['file_field_code'] ;
+				$arr_insert_file[$file_field_code] = $leaf_value ;
+				continue ;
+			}
+			
+			if( $directChild['bible_code'] && $directChild['bible_type'] && $directChild['bible_field_code'] ) {
+				// mode import Bible
+				$bible_type = $directChild['bible_type'] ;
+				$bible_field_code = 'field_'.$directChild['bible_field_code'] ;
+				$arr_insert_bible[$bible_type][$bible_field_code] = $leaf_value ;
+				continue ;
+			}
+			
+			continue ;
+		}
+		
+		
+		$return_value = paracrm_data_importTransaction_doCommit_processNode($directChild,$arr_data) ;
+		if( $directChild['file_code'] && !$directChild['file_field_code'] ) {
+			// File record
+			$filerecord_id = $return_value ;
+		} elseif( $directChild['file_code'] && $directChild['field_linkbible'] ) {
+			// Bible treenode_key / entry_key
+			switch( $directChild['field_linktype'] ) {
+				case 'entry' :
+					$entry_key = $return_value ;
+					break ;
+				
+				case 'tree' :
+					$treenode_key = $return_value ;
+					break ;
+			}
+		}
+	}
+	
+	
+	/*
+	**** Stockage du record ****
+	*/
+	if( $treefields_node['root'] ) {
+		return ;
+	} elseif( $treefields_node['file_code'] && $treefields_node['field_linkbible'] ) {
+		// cas tree(+entry) en 1 passe 
+		switch( $treefields_node['field_linktype'] ) {
+			case 'entry' :
+				
+				return $entry_key ;
+			
+			case 'tree' :
+			
+				return $treenode_key ;
+		}
+	} elseif( $treefields_node['bible_code'] ) {
+		switch( $treefields_node['bible_type'] ) {
+			case 'tree' :
+				
+				return $treenode_key ;
+		
+			case 'entry' :
+				
+				return $entry_key ;
+		}
+	} elseif( $treefields_node['file_code'] ) {
+		
+	}
+	
+	
+	/*
+	$head = $treefields_node ;
+	unset($head['children']) ;
+	print_r($head) ;
+	*/
+}
 ?>
