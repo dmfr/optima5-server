@@ -616,7 +616,10 @@ function specWbMrfoxy_promo_exportXLS( $post_data ) {
 	global $_opDB ;
 
 	$src_filerecordId = $post_data['_filerecord_id'] ;
-	$ttmp = specWbMrfoxy_promo_getGrid( array('filter_id'=>json_encode(array($src_filerecordId))) ) ;
+	$ttmp = specWbMrfoxy_promo_getGrid( array(
+		'_load_details'=>true,
+		'filter_id'=>json_encode(array($src_filerecordId))
+	) ) ;
 	if( count($ttmp['data']) != 1 ) {
 		die() ;
 	}
@@ -645,6 +648,26 @@ function specWbMrfoxy_promo_exportXLS( $post_data ) {
 	$objPHPExcel->getActiveSheet()->setCellValue('B14', $promo_record['mechanics_code']);
 	$objPHPExcel->getActiveSheet()->setCellValue('C14', $promo_record['mechanics_text']);
 	$objPHPExcel->getActiveSheet()->setCellValue('D14', $promo_record['cost_forecast']);
+	
+	if( $promo_record['promo_sku'] ) {
+	$lig = 17 ;
+	foreach( $promo_record['promo_sku'] as $sku_record ) {
+		if( $sku_record['promo_qty_forecast'] == 0 ) {
+			continue ;
+		}
+		$objPHPExcel->getActiveSheet()->setCellValue('B'.$lig, $sku_record['sku_code']);
+		$objPHPExcel->getActiveSheet()->setCellValue('C'.$lig, $sku_record['sku_desc']);
+		$objPHPExcel->getActiveSheet()->setCellValue('D'.$lig, $sku_record['cli_price_unit']);
+		$objPHPExcel->getActiveSheet()->setCellValue('E'.$lig, $sku_record['promo_qty_forecast']);
+		$objPHPExcel->getActiveSheet()->setCellValue('G'.$lig, (1-$sku_record['promo_price_coef']) );
+		$objPHPExcel->getActiveSheet()->setCellValue('H'.$lig, (1-$sku_record['promo_price_coef'])*$sku_record['cli_price_unit']);
+		$objPHPExcel->getActiveSheet()->setCellValue('I'.$lig, (1-$sku_record['promo_price_coef'])*$sku_record['cli_price_unit']*$sku_record['promo_qty_forecast']);
+		$lig++ ;
+		if( $lig > 21 ) {
+			break ;
+		}
+	}
+	}
 	
 	
 	$tmpfilename = tempnam( sys_get_temp_dir(), "FOO");
