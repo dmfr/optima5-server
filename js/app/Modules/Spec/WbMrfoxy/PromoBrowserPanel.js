@@ -11,7 +11,7 @@ Ext.define('WbMrfoxyPromoSkuModel', {
 	]
 }) ;
 
-Ext.define('WbMrfoxyPromoListModel', {
+Ext.define('WbMrfoxyPromoModel', {
     extend: 'Ext.data.Model',
     fields: [
         {name: 'id', type: 'string'},

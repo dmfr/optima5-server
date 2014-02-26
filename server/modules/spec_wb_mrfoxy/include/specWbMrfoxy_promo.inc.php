@@ -363,7 +363,7 @@ function specWbMrfoxy_promo_formEval( $post_data ) {
 		$post_test['RES_id'] = $json['RES_id'] ;
 		$json = paracrm_queries_qbookTransaction( $post_test ) ;
 		
-		if( $json['tabs'] ) {
+		if( $json['tabs'] && $json['tabs'][1]['RESchart_static'] ) {
 			$resp_data['simu_graph'] = array() ;
 			$resp_data['simu_graph']['RESchart_static'] = $json['tabs'][1]['RESchart_static'] ;
 		}

@@ -25,7 +25,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 				border:false,
 				xtype:'gridpanel',
 				store: {
-					model: 'WbMrfoxyPromoListModel',
+					model: 'WbMrfoxyPromoModel',
 					//autoLoad: true,
 					proxy: this.optimaModule.getConfiguredAjaxProxy({
 						extraParams : {
@@ -290,7 +290,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 				//border:false,
 				xtype:'gridpanel',
 				store: {
-					model: 'WbMrfoxyPromoListModel',
+					model: 'WbMrfoxyPromoModel',
 					data:[],
 					sorters:[{
 						property : 'promo_id',

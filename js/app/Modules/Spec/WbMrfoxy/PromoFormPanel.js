@@ -355,7 +355,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 						height:200,
 						itemId: 'gridBenchmark',
 						store: {
-							model: 'WbMrfoxyPromoListModel',
+							model: 'WbMrfoxyPromoModel',
 							data:[]
 						},
 						columns: [{

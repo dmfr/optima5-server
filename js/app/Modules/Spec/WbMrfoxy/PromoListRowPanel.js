@@ -15,8 +15,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 		if( (me.optimaModule) instanceof Optima5.Module ) {} else {
 			Optima5.Helper.logError('Spec:WbMrfoxy:PromoListRowPanel','No module reference ?') ;
 		}
-		if( (me.rowRecord) instanceof WbMrfoxyPromoListModel ) {} else {
-			Optima5.Helper.logError('Spec:WbMrfoxy:PromoListRowPanel','No WbMrfoxyPromoListModel instance ?') ;
+		if( (me.rowRecord) instanceof WbMrfoxyPromoModel ) {} else {
+			Optima5.Helper.logError('Spec:WbMrfoxy:PromoListRowPanel','No WbMrfoxyPromoModel instance ?') ;
 		}
 		
 		Ext.apply(me,{
@@ -308,7 +308,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 				me.getEl().unmask() ;
 				var ajaxData = Ext.decode(response.responseText) ;
 				if( ajaxData.success==true ) {
-					var rowDetailedRecord = Ext.ux.dams.ModelManager.create('WbMrfoxyPromoListModel',ajaxData.record) 
+					var rowDetailedRecord = Ext.ux.dams.ModelManager.create('WbMrfoxyPromoModel',ajaxData.record) 
 					me.fireEvent('editpromo',rowDetailedRecord) ;
 				}
 			},

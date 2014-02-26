@@ -10,10 +10,10 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoApprovalPanel',{
 		me.addEvents('proceed') ;
 		
 		if( (me.optimaModule) instanceof Optima5.Module ) {} else {
-			Optima5.Helper.logError('Spec:WbMrfoxy:PromoListRowPanel','No module reference ?') ;
+			Optima5.Helper.logError('Spec:WbMrfoxy:PromoApprovalPanel','No module reference ?') ;
 		}
-		if( (me.rowRecord) instanceof WbMrfoxyPromoListModel ) {} else {
-			Optima5.Helper.logError('Spec:WbMrfoxy:PromoListRowPanel','No WbMrfoxyPromoListModel instance ?') ;
+		if( (me.rowRecord) instanceof WbMrfoxyPromoModel ) {} else {
+			Optima5.Helper.logError('Spec:WbMrfoxy:PromoApprovalPanel','No WbMrfoxyPromoModel instance ?') ;
 		}
 		
 		Ext.apply(me,{
