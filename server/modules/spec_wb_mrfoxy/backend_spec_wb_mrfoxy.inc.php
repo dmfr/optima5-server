@@ -25,6 +25,8 @@ switch( $post_data['_action'] )
 	return specWbMrfoxy_promo_close($post_data);
 	case 'promo_delete' :
 	return specWbMrfoxy_promo_delete($post_data);
+	case 'promo_getRecord' :
+	return specWbMrfoxy_promo_getRecord($post_data);
 	case 'promo_assignBenchmark' :
 	return specWbMrfoxy_promo_assignBenchmark($post_data);
 	case 'promo_fetchBenchmark' :

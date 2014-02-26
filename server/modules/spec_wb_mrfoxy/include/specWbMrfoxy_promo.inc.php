@@ -165,6 +165,35 @@ function specWbMrfoxy_promo_getGrid( $post_data ) {
 		}
 		$row['store_node'] = $node_STORE->getHead() ;
 		
+		// SKUs store
+		if( $post_data['_load_details'] ) {
+			$ttmp = paracrm_data_getFileGrid_data( array(
+				'file_code'=>'WORK_PROMO_SKU',
+				'filter'=>json_encode(array(
+					array(
+						'field'=>'WORK_PROMO_id',
+						'type'=>'list',
+						'value'=>array($paracrm_row['filerecord_id'])
+					)
+				))
+			)) ;
+			$paracrm_TAB_SKU = $ttmp['data'] ;
+
+			
+			$row['promo_sku'] = array() ;
+			foreach( $paracrm_TAB_SKU as $paracrm_row_sku ) {
+				$row_sku = array() ;
+				$row_sku['sku_prodean'] = $paracrm_row_sku['WORK_PROMO_SKU_field_SKU_CODE'] ;
+				$row_sku['sku_code'] = $paracrm_row_sku['WORK_PROMO_SKU_field_SKU_CODE_entry_PROD_BRANDCODE'] ;
+				$row_sku['sku_desc'] = $paracrm_row_sku['WORK_PROMO_SKU_field_SKU_CODE_entry_PROD_TXT'] ;
+				$row_sku['sku_uom'] = '' ;
+				$row_sku['cli_price_unit'] = $paracrm_row_sku['WORK_PROMO_SKU_field_PRICE_UNIT'] ;
+				$row_sku['promo_price_coef'] = $paracrm_row_sku['WORK_PROMO_SKU_field_PRICE_COEF'] ;
+				$row_sku['promo_qty_forecast'] = $paracrm_row_sku['WORK_PROMO_SKU_field_QTY_FORECAST'] ;
+				$row['promo_sku'][] = $row_sku ;
+			}
+		}
+		
 		$TAB[] = $row ;
 	}
 	return array('success'=>true, 'data'=>$TAB, 'debug'=>$paracrm_TAB) ;
@@ -342,6 +371,28 @@ function specWbMrfoxy_promo_formEval( $post_data ) {
 		break ;
 	}
 	}
+	
+	if( $post_data['doSkuList'] && $form_data['prod_code'] ) {
+		$resp_data['list_sku'] = array() ;
+		
+		$arr_prodNodes = specWbMrfoxy_tool_getProdNodes($form_data['prod_code']) ;
+		$query = "SELECT * FROM view_bible_IRI_PROD_entry WHERE treenode_key IN ".$_opDB->makeSQLlist($arr_prodNodes) ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+			if( !$arr['field_PROD_BRANDCODE'] ) {
+				continue ;
+			}
+			if( !isJsonArr($arr['field_PROD_BRAND']) || !in_array($form_data['brand_code'],json_decode($arr['field_PROD_BRAND'],true)) ) {
+				continue ;
+			}
+			
+			$row_sku = array() ;
+			$row_sku['sku_prodean'] = $arr['entry_key'] ;
+			$row_sku['sku_code'] = $arr['field_PROD_BRANDCODE'] ;
+			$row_sku['sku_desc'] = $arr['field_PROD_TXT'] ;
+			$resp_data['list_sku'][] = $row_sku ;
+		}
+	}
 
 	return array('success'=>true,'data'=>$resp_data) ;
 }
@@ -443,9 +494,23 @@ function specWbMrfoxy_promo_formSubmit( $post_data ) {
 	}
 	
 	if( $form_data['_filerecord_id'] ) {
-		paracrm_lib_data_updateRecord_file( 'WORK_PROMO',$arr_ins, $form_data['_filerecord_id']) ;
+		$filerecord_parent_id = paracrm_lib_data_updateRecord_file( 'WORK_PROMO',$arr_ins, $form_data['_filerecord_id']) ;
 	} else {
-		paracrm_lib_data_insertRecord_file( 'WORK_PROMO',0,$arr_ins) ;
+		$filerecord_parent_id = paracrm_lib_data_insertRecord_file( 'WORK_PROMO',0,$arr_ins) ;
+	}
+	
+	foreach( paracrm_lib_data_getFileChildRecords( 'WORK_PROMO_SKU', $filerecord_parent_id ) as $sku_record ) {
+		paracrm_lib_data_deleteRecord_file('WORK_PROMO_SKU',$sku_record['filerecord_id']) ;
+	}
+	if( $form_data['is_prod']=='PROD' && is_array($form_data['promo_sku']) ) {
+		foreach( $form_data['promo_sku'] as $sku_row ) {
+			$arr_ins = array() ;
+			$arr_ins['field_SKU_CODE'] = $sku_row['sku_prodean'] ;
+			$arr_ins['field_QTY_FORECAST'] = $sku_row['promo_qty_forecast'] ;
+			$arr_ins['field_PRICE_UNIT'] = $sku_row['cli_price_unit'] ;
+			$arr_ins['field_PRICE_COEF'] = $sku_row['promo_price_coef'] ;
+			paracrm_lib_data_insertRecord_file( 'WORK_PROMO_SKU',$filerecord_parent_id,$arr_ins) ;
+		}
 	}
 	
 	return array('success'=>true) ;
@@ -461,6 +526,14 @@ function specWbMrfoxy_promo_close( $post_data ) {
 	$target_filerecordId = $post_data['_filerecord_id'] ;
 	paracrm_lib_data_updateRecord_file( 'WORK_PROMO' , array('field_STATUS'=>'99_DONE'), $target_filerecordId ) ;
 	return array('success'=>true) ;
+}
+function specWbMrfoxy_promo_getRecord( $post_data ) {
+	$target_filerecordId = $post_data['_filerecord_id'] ;
+	$ttmp = specWbMrfoxy_promo_getGrid( array('_load_details'=>true,'filter_id'=>json_encode(array($target_filerecordId))) ) ;
+	if( count($ttmp['data']) == 1 ) {
+		return array('success'=>true, 'record'=>$ttmp['data'][0]) ;
+	}
+	return array('success'=>false) ;
 }
 function specWbMrfoxy_promo_assignBenchmark( $post_data ) {
 	$target_filerecordId = $post_data['_filerecord_id'] ;

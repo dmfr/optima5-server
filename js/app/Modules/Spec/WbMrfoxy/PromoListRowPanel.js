@@ -297,7 +297,24 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 	},
 	handleEdit: function() {
 		var me = this ;
-		me.fireEvent('editpromo',me.rowRecord) ;
+		me.getEl().mask('Loading record...') ;
+		me.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_wb_mrfoxy',
+				_action: 'promo_getRecord',
+				_filerecord_id: me.rowRecord.get('_filerecord_id')
+			},
+			success: function(response) {
+				me.getEl().unmask() ;
+				var ajaxData = Ext.decode(response.responseText) ;
+				if( ajaxData.success==true ) {
+					var rowDetailedRecord = Ext.ux.dams.ModelManager.create('WbMrfoxyPromoListModel',ajaxData.record) 
+					me.fireEvent('editpromo',rowDetailedRecord) ;
+				}
+			},
+			scope: me
+		}) ;
+		
 	},
 	handleDelete: function() {
 		var me = this ;

@@ -172,6 +172,13 @@
 	position: relative ;
 	padding-left: 20px ;
 }
+.x-grid-row .op5-spec-mrfoxy-promoformlist-skucolumn {
+	font-weight: bold; 
+}
+.x-grid-row .op5-spec-mrfoxy-promoformlist-editablecolumn {
+	background-color: #BAF9CE;
+}
+
 
 .op5-spec-mrfoxy-promolist-progress .x-progress-text {
 	line-height: inherit ;

@@ -1,3 +1,16 @@
+Ext.define('WbMrfoxyPromoSkuModel', {
+	extend: 'Ext.data.Model',
+	fields: [
+		{name: 'sku_prodean',  type: 'string'},
+		{name: 'sku_code',  type: 'string'},
+		{name: 'sku_desc',  type: 'string'},
+		{name: 'sku_uom',  type: 'string'},
+		{name: 'cli_price_unit', type: 'number'},
+		{name: 'promo_price_coef', type: 'number', defaultValue: 1},
+		{name: 'promo_qty_forecast', type: 'number'}
+	]
+}) ;
+
 Ext.define('WbMrfoxyPromoListModel', {
     extend: 'Ext.data.Model',
     fields: [
@@ -37,7 +50,12 @@ Ext.define('WbMrfoxyPromoListModel', {
 		  {name: 'approv_df',   type: 'boolean'},
         {name: 'benchmark_arr_ids', type: 'string'}
      ],
-	  idgen: 'sequential'
+	  idgen: 'sequential',
+	  hasMany: [{
+			model: 'WbMrfoxyPromoSkuModel',
+			name: 'promo_sku',
+			associationKey: 'promo_sku'
+	  }]
 });
 
 Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoBrowserPanel',{

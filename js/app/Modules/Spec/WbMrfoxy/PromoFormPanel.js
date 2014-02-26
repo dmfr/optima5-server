@@ -1,6 +1,8 @@
 Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 	extend: 'Ext.panel.Panel',
 	
+	requires:['Optima5.Modules.Spec.WbMrfoxy.PromoFormSkuGridPanel'],
+	
 	initComponent: function() {
 		var me = this,
 			width = me.width ;
@@ -13,20 +15,38 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 				align:'center'
 			},
 			bodyCls: 'op5-spec-mrfoxy-mainmenu',
-			items:[
-				Ext.apply(me.initHeaderCfg(),{
-					width: width,
-					height: 125
-				}),{
-					xtype:'box',
-					html:'&#160;',
-					height: 8
-				},
-				Ext.apply(me.initTabsCfg(),{
-					width:width,
-					flex:1
-				})
-			]
+			items:[ Ext.apply(me.initHeaderCfg(),{
+				width: width,
+				height: 125
+			}),{
+				xtype:'box',
+				html:'&#160;',
+				height: 8
+			},{
+				xtype:'panel',
+				layout:'border',
+				frame:true,
+				width: width,
+				flex: 1,
+				items:[Ext.apply(me.initFormCfg(),{
+					region:'center'
+				}),Ext.create('Optima5.Modules.Spec.WbMrfoxy.PromoFormSkuGridPanel',{
+					region:'south',
+					height: 250,
+					title: 'Promotion SKUs',
+					collapsible: true,
+					collapsed: true,
+					listeners: {
+						collapse: function() {
+							this.getFormPanel().child('toolbar').setVisible(true) ;
+						},
+						expand: function() {
+							this.getFormPanel().child('toolbar').setVisible(false) ;
+						},
+						scope: this
+					}
+				})]
+			}]
 		});
 		
 		this.callParent() ;
@@ -36,7 +56,6 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 		if( me.data ) {
 			me.loadData(me.data) ;
 		}
-		this.evalForm() ;
 		
 		Ext.defer(function() {
 			me.renderGraph() ;
@@ -72,11 +91,12 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 		
 		return headerCfg ;
 	},
-	initTabsCfg: function() {
+	initFormCfg: function() {
 		var me = this ;
 		var tabsCfg = {
 			xtype:'form',
-			frame:true,
+			border: false,
+			bodyCls: 'ux-noframe-bg',
 			bodyPadding: 10,
 			items:[{
 				xtype:'fieldcontainer',
@@ -439,6 +459,12 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 		} ;
 		return tabsCfg ;
 	},
+	getFormPanel: function() {
+		return this.child('panel').child('form') ;
+	},
+	getSkuList: function() {
+		return this.child('panel').child('grid') ;
+	},
 	renderGraph: function() {
 		var me = this,
 			cntFinanceGraph = me.query('#cntFinanceGraph')[0] ;
@@ -502,7 +528,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 	},
 	calcLayout: function() {
 		var me = this ;
-			form = me.child('form').getForm() ;
+			form = me.getFormPanel().getForm() ;
 			  
 		var mechanicsCode = form.findField('mechanics_code').getValue() ;
 		me.query('#mechanics_mono_discount')[0].setVisible( mechanicsCode=='MONO_DIS' ) ;
@@ -519,17 +545,27 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 		});
 		me.query('#fsSimu')[0].setVisible( !isProd ) ;
 		
+		if( !isProd && me.getSkuList() ) {
+			me.getSkuList().destroy() ;
+		}
+		
 		form.findField('_do_submit').setVisible( isProd ) ;
 	},
 	evalForm: function() {
 		var me = this,
-			form = me.child('form').getForm(),
-			doSimuGraph ;
+			form = me.getFormPanel().getForm(),
+			doSimuGraph, doSkuList ;
+		
+		if( me.suspendEvents ) {
+			return ;
+		}
 		
 		if( form.findField('is_prod').getValue()=='PROD' ) {
 			doSimuGraph = false ;
+			doSkuList = true ;
 		} else {
 			doSimuGraph = true ;
+			doSkuList = false ;
 		}
 		if( doSimuGraph ) {
 			me.query('#cntSimuGraph')[0].removeAll() ;
@@ -540,24 +576,25 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 			params: {
 				_moduleId: 'spec_wb_mrfoxy',
 				_action: 'promo_formEval',
-				data: Ext.JSON.encode(me.child('form').getForm().getValues()),
-				doSimuGraph: (doSimuGraph ? 1:0)
+				data: Ext.JSON.encode(me.getFormPanel().getForm().getValues()),
+				doSimuGraph: (doSimuGraph ? 1:0),
+				doSkuList: (doSkuList ? 1:0)
 			},
 			success: function(response) {
 				var ajaxData = Ext.decode(response.responseText) ;
 				if( ajaxData.success == true ) {
 					var ajaxDataObj = ajaxData.data ;
 					if( ajaxDataObj.store_master != null ) {
-						me.child('form').getForm().findField('store_master').setValue( ajaxDataObj.store_master ) ;
+						me.getFormPanel().getForm().findField('store_master').setValue( ajaxDataObj.store_master ) ;
 					}
 					if( ajaxDataObj.prod_master != null ) {
-						me.child('form').getForm().findField('prod_master').setValue( ajaxDataObj.prod_master ) ;
+						me.getFormPanel().getForm().findField('prod_master').setValue( ajaxDataObj.prod_master ) ;
 					}
 					if( ajaxDataObj.gridBenchmark != null ) {
 						me.query('#gridBenchmark')[0].getStore().loadData( ajaxDataObj.gridBenchmark ) ;
 					}
 					if( ajaxDataObj.mechanics_multi != null ) {
-						me.child('form').getForm().findField('mechanics_multi_combo').getStore().loadData( ajaxDataObj.mechanics_multi ) ;
+						me.getFormPanel().getForm().findField('mechanics_multi_combo').getStore().loadData( ajaxDataObj.mechanics_multi ) ;
 					}
 					
 					var cntSimuGraph = me.query('#cntSimuGraph')[0] ;
@@ -572,6 +609,10 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 							drawChartLegend: false
 						});
 					}
+					
+					if( ajaxDataObj.list_sku && me.getSkuList() ) {
+						me.getSkuList().populateSkuList( ajaxDataObj.list_sku ) ;
+					}
 				}
 			},
 			scope: me
@@ -579,7 +620,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 	},
 	
 	loadDataFromRecord: function( promoRecord ) {
-		var data = promoRecord.data ;
+		var data = promoRecord.getData(true) ;
 		switch( data['mechanics_code'] ) {
 			case 'MONO_DIS' :
 				data['mechanics_mono_discount'] = Ext.String.trim(data['mechanics_detail'].substr(0,2)) ;
@@ -595,6 +636,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 	},
 	loadData: function(data) {
 		var me = this ;
+		me.suspendEvents = true ;
 		
 		// prepare header data
 		var headerData = {},
@@ -628,16 +670,17 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 			},me) ;
 		}
 		
-		var form = me.child('form').getForm() ;
+		var form = me.getFormPanel().getForm() ;
 		form.setValues( data ) ;
+			  
+		if( data.promo_sku && me.getSkuList() ) {
+			me.getSkuList().setSkuData(data.promo_sku) ;
+		}
 		
-		/*
-		var btnCloseEl = headerEl.query('div.op5-spec-mrfoxy-promoformheader-close') ;
-		console.dir(headerEl) ;
-		console.dir(btnCloseEl) ;
-		*/
+		me.calcLayout();
 		
-		me.calcLayout() ;
+		me.suspendEvents = false ;
+		me.evalForm() ;
 	},
 	
 	headerAttachEvent: function() {
@@ -667,7 +710,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 	
 	handleSubmit: function() {
 		var me = this ;
-			form = me.child('form').getForm() ;
+			form = me.getFormPanel().getForm() ;
 			  
 		if( form.hasInvalidField() ) {
 			Ext.MessageBox.alert('Incomplete','Please fill all required data') ;
@@ -679,13 +722,18 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 			str = 'Commit modifications to promo '+me.promoRecord.get('promo_id')+' ?<br>'+'Warning : This will start over approval process!' ;
 		}
 		
+		var data = me.getFormPanel().getForm().getValues() ;
+		if( me.getSkuList() ) {
+			data.promo_sku = me.getSkuList().getSkuData() ;
+		}
+		
 		Ext.MessageBox.confirm('Confirmation',str, function(buttonStr) {
 			if( buttonStr=='yes' ) {
 				me.optimaModule.getConfiguredAjaxConnection().request({
 					params: {
 						_moduleId: 'spec_wb_mrfoxy',
 						_action: 'promo_formSubmit',
-						data: Ext.JSON.encode(me.child('form').getForm().getValues()),
+						data: Ext.JSON.encode(data),
 						_filerecord_id: (me.promoRecord ? me.promoRecord.get('_filerecord_id') : 0)
 					},
 					success: function(response) {
