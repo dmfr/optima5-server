@@ -16,12 +16,30 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.MainPanel',{
 			layout:'fit',
 			items:[{
 				xtype:'box',
-				cls:'op5-waiting',
-				flex:1
+				cls:'op5-spec-mrfoxy-mainmenu',
+				flex:1,
+				html: '<div class="op5-spec-mrfoxy-logo"></span>' 
 			}]
 		});
 		
+		this.on('afterrender', function(){
+			Ext.defer(this.startAnimation, 500, this) ;
+		}, me) ;
+		
 		this.callParent() ;
+	},
+	startAnimation: function() {
+		var logoEl = Ext.get( Ext.DomQuery.selectNode('div.op5-spec-mrfoxy-logo') );
+		logoEl.animate({
+			duration: 1000,
+			to: {
+				opacity: 1
+			}
+		});
+		Ext.defer( this.onEndAnimation, 2000, this) ;
+	},
+	onEndAnimation: function() {
+		var me = this ;
 		
 		var helperCache = Optima5.Modules.Spec.WbMrfoxy.HelperCache ;
 		helperCache.init(me.optimaModule) ;
