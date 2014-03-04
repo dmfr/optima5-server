@@ -5,6 +5,7 @@ Ext.Loader.setConfig({
 		'Ext': './extjs/src', 
 		'Ext.ux' : './js/ux',
 		'Ext.calendar' : './js/ext/calendar',
+		'Sch' : './js/sch',
 		'Optima5' : './js/app'
 		}
 });
