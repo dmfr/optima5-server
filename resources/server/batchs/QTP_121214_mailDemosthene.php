@@ -11,8 +11,6 @@ $templates_dir=$resources_root.'/server/templates' ;
 
 
 @include_once 'PHPExcel/PHPExcel.php' ;
-@include_once 'Mail.php' ;
-@include_once 'Mail/mime.php' ;
 
 //include("$server_root/backend_checksession.inc.php") ;
 
@@ -270,23 +268,15 @@ foreach( $anims as $thisanim )
 	}
 	
 
-	$headers['From'] = $thisanim['ent_SALESNAME'].' <'.$thisanim['ent_SALESEMAIL'].'>' ;
-	$headers['To'] = implode(',',$to) ;
-	$headers['Subject'] = '[Wonderful] '.$thisanim['type'].' '.$thisanim['ent_ENSEIGNE'] ;
-
-	$mime = new Mail_mime("\r\n");
-	$mime->setTXTBody($email_text);
-	$mime->addAttachment($binarybuffer, 'application/vnd.ms-excel', date('ymd',strtotime($thisanim['date'])).'_'.$thisanim['ens'].'.xls', false, 'base64');
-
-	$mimeparams=array();
-	$mimeparams['text_encoding']="8bit";
-	$mimeparams['text_charset']="UTF-8";
-	$mimeparams['html_charset']="UTF-8"; 
-	$mimeparams['head_charset']="UTF-8"; 
-	$body = $mime->get($mimeparams);
-	$headers = $mime->headers($headers);
-	$mail_obj =& Mail::factory('smtp', array('host' => '127.0.0.1', 'port' => 25));
-	$mail_obj->send($to, $headers, $body) ;
+	$email = new Email() ;
+	$email->set_From( $thisanim['ent_SALESEMAIL'], $thisanim['ent_SALESNAME'] ) ;
+	foreach( $to as $to_email ) {
+		$email->add_Recipient( $to_email ) ;
+	}
+	$email->set_Subject( '[Wonderful] '.$thisanim['type'].' '.$thisanim['ent_ENSEIGNE'] ) ;
+	$email->set_text_body( $email_text ) ;
+	$email->attach_file( date('ymd',strtotime($thisanim['date'])).'_'.$thisanim['ens'].'.xls', $binarybuffer, 'application/vnd.ms-excel' ) ;
+	$email->send() ;
 }
 
 ?>

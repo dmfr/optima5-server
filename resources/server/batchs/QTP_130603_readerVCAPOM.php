@@ -9,8 +9,6 @@ $server_root=$app_root.'/server' ;
 
 
 @include_once 'PHPExcel/PHPExcel.php' ;
-@include_once 'Mail.php' ;
-@include_once 'Mail/mime.php' ;
 
 //include("$server_root/backend_checksession.inc.php") ;
 

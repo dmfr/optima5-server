@@ -21,7 +21,7 @@ function do_post_request($url, $data, $optional_headers = null)
   return $response;
 }
 function oscario_http_post( $post_data ) {
-	$_URL = 'http://150.251.219.1/oscario/edi.php' ;
+	$_URL = 'http://10.39.118.2/oscario/edi.php' ;
 	$_domain = 'paramountfr' ;
 	$_auth_username = 'ediMirAbv04' ;
 	$_auth_password = 'paracrm' ;
@@ -46,8 +46,6 @@ $resources_root=$app_root.'/resources' ;
 $templates_dir=$resources_root.'/server/templates' ;
 
 @include_once 'PHPExcel/PHPExcel.php' ;
-@include_once 'Mail.php' ;
-@include_once 'Mail/mime.php' ;
 
 include("$server_root/include/config.inc.php");
 include("$server_root/include/toolfunctions.inc.php");
@@ -221,26 +219,18 @@ foreach( $arr_filerecord_id as $filerecord_id ) {
 		$to[] = 'dm@mirabel-sil.com' ;
 	}
 	
-	$headers['From'] = $bible_SALES_entry['field_SALESMANNAME'].' <'.$bible_SALES_entry['field_SALESMANEMAIL'].'>' ;
-	$headers['To'] = implode(',',$to) ;
-	$headers['Subject'] = '[Wonderful] '.$file_CDE_SAISIE['field_CDE_REFOSCAR'].' '.$bible_STORE_entry['field_STORENAME'] ;
+	$email = new Email() ;
+	$email->set_From( $bible_SALES_entry['field_SALESMANEMAIL'], $bible_SALES_entry['field_SALESMANNAME'] ) ;
+	foreach( $to as $to_email ) {
+		$email->add_Recipient( $to_email ) ;
+	}
+	$email->set_Subject( '[Wonderful] '.$file_CDE_SAISIE['field_CDE_REFOSCAR'].' '.$bible_STORE_entry['field_STORENAME'] ) ;
 	if( $_errors ) {
-		$headers['Subject'] = '[Wonderful] '.'!!! CDE REJETEE !!!'.' '.$bible_STORE_entry['field_STORENAME'] ;
+		$email->set_Subject( '[Wonderful] '.'!!! CDE REJETEE !!!'.' '.$bible_STORE_entry['field_STORENAME'] ) ;
 	}
-	$mime = new Mail_mime("\r\n");
-	$mime->setTXTBody($email_text);
-	if( !$_errors ) {
-		$mime->addAttachment($binarybuffer_xlsx, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'NouveauClient'.'_'.$bible_STORE_entry['entry_key'].'.xlsx', false, 'base64');
-	}
-	$mimeparams=array();
-	$mimeparams['text_encoding']="8bit";
-	$mimeparams['text_charset']="UTF-8";
-	$mimeparams['html_charset']="UTF-8"; 
-	$mimeparams['head_charset']="UTF-8"; 
-	$body = $mime->get($mimeparams);
-	$headers = $mime->headers($headers);
-	$mail_obj =& Mail::factory('smtp', array('host' => '127.0.0.1', 'port' => 25));
-	$mail_obj->send($to, $headers, $body) ;
+	$email->set_text_body( $email_text ) ;
+	$email->attach_file( 'NouveauClient'.'_'.$bible_STORE_entry['entry_key'].'.xlsx', $binarybuffer_xlsx, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ) ;
+	$email->send() ;
 }
 
 
