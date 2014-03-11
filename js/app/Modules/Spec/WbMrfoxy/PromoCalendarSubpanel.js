@@ -2,31 +2,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarSubpanel' ,{
 	extend: 'Ext.panel.Panel',
 	
 	requires : [
-		'Ext.calendar.CalendarPanel',
-		'Ext.calendar.util.Date',
-		'Ext.calendar.data.EventModel',
-		'Ext.calendar.data.CalendarModel',
+		'Sch.All',
 		'Optima5.Modules.Spec.WbMrfoxy.PromoCalendarEventDetailView'
 	],
-	
-	rotatingColors:['#306da6','#86a723','#b6a980'],
-	
-	/**
-	* @cfg {Number} startDay
-	* The 0-based index for the day on which the calendar week begins (0=Sunday, which is the default)
-	*/
-	startDay: 0,
-	
-	// forward (ajax)config from FilePanel
-	gridCfg: null,
-	
-	// private property
-	accountIsOn: false,
-	accountsSelected: [],
-	dataCacheDateMinEnd: null,
-	dataCacheDateMaxStart: null,
-	dataCacheArray: [],
-	eventDetailPanel: null,
 	
 	initComponent: function() {
 		var me = this ;
@@ -35,279 +13,274 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarSubpanel' ,{
 		}
 		me.optimaModule = me.parentBrowserPanel.optimaModule ;
 		
-		/*
-		 * Création des stores locaux
-		 */
-		this.calendarStore = Ext.create('Ext.data.Store', {
-			model: 'Ext.calendar.data.CalendarModel',
-			data: [],
-			proxy: {
-				type: 'memory',
-				reader: {
-					type: 'json'
-				}
-			}
-		});
-		this.eventStore = Ext.create('Ext.data.Store', {
-			model: 'Ext.calendar.data.EventModel',
-			data: [],
-			proxy: {
-				type: 'memory',
-				reader: {
-					type: 'json'
+		// ** Models
+		Ext.define('WbMrfoxySchEventModel', {
+			extend: 'Sch.model.Event',
+			fields: [
+				{ name: 'ColorHex', type : 'string' },
+				{ name: 'FilerecordId', type : 'int' },
+				{ name: 'PromoId', type : 'string' }
+			]
+		}) ;
+		Ext.define('WbMrfoxySchResourceModel', {
+			extend: 'Sch.model.Resource',
+			fields: [
+				{ name: 'nodeKey', type : 'string' },
+				{ name: 'nodeText', type : 'string' }
+			]
+		}) ;
+
+		// ** Init dates
+		var startDate, endDate ;
+		if( me.startDate && me.endDate ) {
+			startDate = me.startDate ;
+			endDate = me.endDate ;
+		} else {
+			startDate = new Date() ;
+			startDate.setFullYear( startDate.getFullYear() - 1 ) ;
+			endDate = new Date() ;
+			endDate.setFullYear( endDate.getFullYear() + 1 ) ;
+		}
+		
+		// ** View preset
+		Sch.preset.Manager.registerPreset('weekMrfoxy',{
+			timeColumnWidth: 48,
+			rowHeight: 24,
+			resourceColumnWidth: 100,
+			displayDateFormat: "Y-m-d",
+			shiftUnit: "WEEK",
+			shiftIncrement: 5,
+			defaultSpan: 6,
+			timeResolution: {
+					unit: "DAY",
+					increment: 1
+			},
+			headerConfig: {
+				middle: {
+					unit: "WEEK",
+					renderer: function (c, b, a) {
+						a.align = "center";
+						return 'w.' + Ext.Date.format(c, "W")
+					}
+				},
+				top: {
+					unit: "MONTH",
+					renderer: function (c, b, a) {
+						a.align = "center";
+						return Ext.Date.format(c, "F Y")
+					}
 				}
 			}
 		});
 		
-		/*
-		 * Enumeration des bibles potentielles pour menus 2D
-		 */
-		
-		Ext.apply(me,{
-			layout: 'border',
-			title: 'Loading...',
-			titleAlign: 'center',
-			items: [{
-				itemId:'calendar-center',
-				xtype:'calendarpanel',
-				activeItem: 1,
-				eventStore: me.eventStore,
-				layout:'fit',
-				border:false,
-				region:'center',
-				showDayView:false,
-				showWeekView:false,
-				monthViewCfg: {
-					startDay: 1, // start on Monday
-					showHeader: true,
-					showWeekLinks: true,
-					showWeekNumbers: true
-				},
-				listeners: {
-					'viewchange': {
-						fn: function(p, vw, dateInfo){
-							/*
-							if(this.eventDetailPanel){
-								this.eventDetailPanel.hide();
-							}
-							*/
-							if(dateInfo){
-								// will be null when switching to the event edit form so ignore
-								this.getComponent('calendar-west').getComponent('calendar-nav-datepicker').setValue(dateInfo.activeDate);
-								this.updateTitle(dateInfo.viewStart, dateInfo.viewEnd);
-								this.onDateChange(dateInfo.viewStart, dateInfo.viewEnd);
-							}
-						},
-						scope: this
-					},
-					'eventclick': {
-						fn: me.onEventClick,
-						scope: me
-					},
-					'dayclick': {
-						fn: me.onDayClick,
-						scope: me
-					},
-					'destroy': {
-						fn: me.onCalendarDestroy,
-						scope:me
-					}
-				}
-			},{
-				itemId:'calendar-west',
-				region:'west',
-				layout:{
-					type:'vbox',
-					align: 'stretch'
-				},
-				bodyCls: 'ux-noframe-bg',
-				width: 179,
-				border: true,
-				items: [{
-					xtype: 'datepicker',
-					startDay: me.startDay,
-					itemId: 'calendar-nav-datepicker',
-					cls: 'ext-cal-nav-picker',
-					listeners: {
-						'select': {
-							fn: function(dp, dt){
-								me.getComponent('calendar-center').setStartDate(dt);
-							},
-							scope: me
+		// ** View hierarchy
+		Ext.apply( this, {
+			layout: 'fit',
+			items: Ext.create('Sch.panel.SchedulerTree',{
+				border: false,
+				//rowHeight        : 32,
+				eventStore       : Ext.create('Sch.data.EventStore', {
+					model: 'WbMrfoxySchEventModel',
+					data:[]
+				}),
+				resourceStore    : Ext.create('Sch.data.ResourceTreeStore', {
+					model: 'WbMrfoxySchResourceModel',
+					//nodeParam: 'nodeKey',
+					root: {children:[]},
+					proxy: {
+						type: 'memory' ,
+						reader: {
+							type: 'json'
 						}
 					}
-				},{
-					xtype:'grid',
-					itemId: 'calendar-nav-accounts',
-					border: false,
-					hidden: true,
-					flex:1,
-					title:'Accounts',
-					model:'CalendarModel',
-					store: me.calendarStore,
-					columns:[{
-						text: '',
-						width: 24,
-						sortable: false,
-						dataIndex: 'ColorHex',
-						menuDisabled: true,
-						renderer: function( value, metaData ) {
-							if( value != null ) {
-								// metaData.style = '' ;
-								return '<div style="height:16px ; width:16px; background-color: #' + value + '; background-image: none;">&#160;</div>' ;
-							}
-							return '&#160;' ;
-						}
-					},{
-						text: 'Account info',
-						flex: 1,
-						sortable: false,
-						dataIndex: 'Description',
-						menuDisabled: true
-					}],
-					selModel:Ext.create('Ext.selection.CheckboxModel',{
-						mode: 'MULTI',
-						checkOnly: true,
-						listeners: {
-							beforeselect:{
-								fn:me.onAccountSelect,
-								scope:me
-							},
-							beforedeselect:{
-								fn:me.onAccountDeselect,
-								scope:me
-							},
-							selectionchange:{
-								fn:me.onAccountsSelectionChange,
-								scope:me
-							}
-						}
+				}),
+				eventRenderer    : function (record,resource,meta) {
+					if (record.data.ColorHex != '') {
+						meta.style = 'background-color:#'+record.data.ColorHex ;
+					}
+					return record.get('Name');
+				},
+				useArrows        : true,
+				viewPreset       : 'weekMrfoxy',
+				startDate        : startDate,
+				endDate          : endDate,
+				multiSelect      : false,
+				layout           : { type : 'hbox', align : 'stretch' },
+				lockedGridConfig : {
+					resizeHandles : 'e',
+					resizable     : { pinned : true },
+					width         : 250
+				},
+				readOnly : true,
+				schedulerConfig  : {
+					scroll      : true,
+					columnLines : false,
+					flex        : 1
+				},
+				columnLines : false,
+				rowLines    : true,
+				columns: [{
+					xtype:'treecolumn',
+					dataIndex: 'nodeText',
+					text: 'Store Group',
+					width: 245,
+					sortable: false,
+					menuDisabled:true
+				}],
+				plugins : [
+					Ext.create("Sch.plugin.Zones", {
+						store : Ext.create('Ext.data.JsonStore', {
+							model : 'Sch.model.Range',
+							data : [{
+								StartDate : Ext.Date.clearTime( Ext.Date.add(startDate,Ext.Date.WEEK,-1) ),
+								EndDate   : Ext.Date.clearTime( Ext.Date.add( new Date(), Ext.Date.DAY, +1) ) ,
+								Cls       : 'op5-spec-mrfoxy-promosch-today'
+							}]
+						})
 					})
-				}]
-			}]
-		});
-		me.addCls('op5-crmbase-filecalendar-panel') ;
-		
-		me.callParent() ;
-		
-		me.on('activate',function() {
-			me.buildEvents();
-		},me) ;
-		
-		me.on('afterrender',function() {
-			Ext.defer(function() {
-				me.loadMask = new Ext.LoadMask( me.getComponent('calendar-center') ) ;
-				if( me.loading ) {
-					me.loadMask.show() ;
+				],
+				listeners: {
+					afterrender: function(schP) {
+						Ext.defer( function() {
+							this.scrollToday() ;
+						},100,this) ;
+					},
+					eventclick: me.onEventClick,
+					scope: this
 				}
-			},10,me);
-		},me);
+			})
+		}) ;
+		this.callParent() ;
 		
-		me.initAccounts() ;
-	},
-	initAccounts: function() {
-		var me = this ,
-			accountsGridCmp = me.getComponent('calendar-west').getComponent('calendar-nav-accounts'),
-			accountsStore = me.calendarStore ;
+		
+		me.initBible() ; // ** Init bible
+		me.fetchEvents() ;  // ** Fetch events 
+		
+		me.mon(me.parentBrowserPanel,'tbarselect',function(){
+			return ;
 			
+			var headerCt = me.getComponent('pCenter').headerCt,
+				isProd = me.parentBrowserPanel.filterIsProd ;
+			headerCt.down('[isColumnStatus]')[isProd ? 'show' : 'hide']();
+			headerCt.down('[isColumnBrand]')[!isProd ? 'show' : 'hide']();
+			me.reload() ;
+		},me) ;
+	},
+	getSchedulerTree: function() {
+		return this.items.getAt(0) ;
+	},
+	scrollToday: function() {
+		var schP = this.getSchedulerTree() ;
 		
-		me.accountIsOn = true ;
-		
+		var nowDate = new Date() ;
+		nowDate.setDate( nowDate.getDate() - (6*7) ) ; // rewind 6 weeks
+		schP.scrollToDate(nowDate, false) ;
+	},
+	
+	
+	initBible: function() {
+		var me = this ;
+			
 		
 		/*
 		 * Interro de la bible
 		 */
 		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
-				_moduleId: 'spec_wb_mrfoxy',
-				_action: 'promo_getCalendarAccounts'
+				_action : 'data_getBibleTreeOne',
+				bible_code : 'IRI_STORE'
 			},
 			success: function(response) {
-				var ajaxData = Ext.decode(response.responseText) ;
-				if( ajaxData.success == false ) {
-					return ;
+				if( Ext.decode(response.responseText).success == true ) {
+					// this.bibleId = bibleId ;
+					this.initBibleTreestore( Ext.decode(response.responseText).dataRoot ) ;
 				}
-				
-				var calendarStoreRecords = [] ;
-				var a = -1 ;
-				Ext.Array.each( ajaxData.data, function( rawRecord ) {
-					a++ ;
-					
-					calendarStoreRecords.push({
-						CalendarId: rawRecord.store_node,
-						Title: rawRecord.store_node_txt,
-						Description: rawRecord.store_node_txt,
-						ColorHex: null
-					});
-				},me) ;
-				accountsStore.loadData(calendarStoreRecords) ;
-				accountsGridCmp.setVisible(true) ;
 			},
-			scope: me
-		}) ;
+			scope: this
+		});
 	},
-	
-	
-	
-	/*
-	 * Title (from ExtJS 4.1)
-	 */
-	// The CalendarPanel itself supports the standard Panel title config, but that title
-	// only spans the calendar views.  For a title that spans the entire width of the app
-	// we added a title to the layout's outer center region that is app-specific. This code
-	// updates that outer title based on the currently-selected view range anytime the view changes.
-	updateTitle: function(startDt, endDt){
-		var p = this,
-			fmt = Ext.Date.format;
+	initBibleTreestore: function( dataRoot ) {
+		var me = this ;
 		
-		if(Ext.Date.clearTime(startDt).getTime() == Ext.Date.clearTime(endDt).getTime()){
-			p.setTitle(fmt(startDt, 'F j, Y'));
-		}
-		else if(startDt.getFullYear() == endDt.getFullYear()){
-			if(startDt.getMonth() == endDt.getMonth()){
-					p.setTitle(fmt(startDt, 'F j') + ' - ' + fmt(endDt, 'j, Y'));
-			}
-			else{
-					p.setTitle(fmt(startDt, 'F j') + ' - ' + fmt(endDt, 'F j, Y'));
-			}
-		}
-		else{
-			p.setTitle(fmt(startDt, 'F j, Y') + ' - ' + fmt(endDt, 'F j, Y'));
-		}
+		this.bibleTreestore = Ext.create('Ext.data.TreeStore', {
+			model: 'WbMrfoxySchResourceModel',
+			nodeParam: 'Id',
+			root: dataRoot 
+		});
+		
+		// suppr. "checked" parameter
+		this.bibleTreestore.getRootNode().cascadeBy( function(node) {
+			node.set('checked',null) ;
+			node.set('Id',node.get('nodeKey')) ;
+		}) ;
+		
+		this.buildBibleTree() ;
+		this.mon(this.parentBrowserPanel,'tbarselect',function(){
+			this.buildBibleTree() ;
+			this.reload() ;
+		},this) ;
 	},
+	buildBibleTree: function() {
+		var cloneFn = function(node) {
+			var result = node.copy(),
+					len = node.childNodes ? node.childNodes.length : 0,
+					i;
+			// Move child nodes across to the copy if required
+			for (i = 0; i < len; i++)
+				result.appendChild(cloneFn(node.childNodes[i]));
+			return result;
+		};
+		
+		var filterNode = this.parentBrowserPanel.filterCountry ;
+		
+		var countryChildren = [] ;
+		var dd = 0 ;
+		Ext.Array.each( Optima5.Modules.Spec.WbMrfoxy.HelperCache.countryGetAll(), function(rec) {
+			if( filterNode != null && filterNode != '' && rec.get('country_code') != filterNode ) {
+				return ;
+			}
+			dd++ ;
+			countryChildren.push({
+				leaf:false,
+				Id: rec.get('country_code'),
+				nodeKey: rec.get('country_code'),
+				nodeText: rec.get('country_display'),
+				icon: rec.get('country_iconurl'),
+				children: ( this.bibleTreestore.getNodeById( rec.get('country_code') ) != null ? cloneFn(this.bibleTreestore.getNodeById( rec.get('country_code') )).childNodes : [] ),
+				expanded: true
+			});
+		}, this) ;
+		
+		var newRootNode = {
+			root: true,
+			children: countryChildren,
+			expanded: true,
+			nodeKey:'',
+			nodeText:'<b>'+'All countries'+'</b>',
+			icon: 'images/op5img/ico_planet_small.gif'
+		};
+		
+		this.getSchedulerTree().getResourceStore().setRootNode(newRootNode) ;
+	},
+	
+	
+	
 	
 	/*
 	 * Data
 	 */
 	reload: function() {
 		var me = this ;
-		if( me.dataCacheDateMinEnd != null && me.dataCacheDateMaxStart != null ) {
-			me.fetchEvents( me.dataCacheDateMinEnd, me.dataCacheDateMaxStart ) ;
-		}
+		me.scrollToday() ;
+		me.fetchEvents() ;
 	},
-	onDateChange: function(dateStart, dateEnd) {
-		//console.dir(dateStart) ;
-		//console.dir(dateEnd) ;
-		
+	fetchEvents: function() {
 		var me = this,
+			dateStart = this.getSchedulerTree().getStart(),
+			dateEnd = this.getSchedulerTree().getEnd(),
 			dateMinEnd = Ext.Date.clearTime(dateStart),
-			dateMaxStart = Ext.Date.clearTime(dateEnd) ,
-			doLoad = false ;
+			dateMaxStart = Ext.Date.clearTime(dateEnd) ;
 			
-		if( me.dataCacheDateMinEnd == null && me.dataCacheDateMaxStart == null ) {
-			doLoad = true ;
-		} else if( me.dataCacheDateMinEnd > dateMinEnd || me.dataCacheDateMaxStart < dateMaxStart ) {
-			doLoad = true ;
-		}
-		if( doLoad ) {
-			me.fetchEvents( dateMinEnd, dateMaxStart ) ;
-		} else {
-			//me.buildEvents() ;
-		}
-		
-	},
-	fetchEvents: function( dateMinEnd, dateMaxStart ) {
-		var me = this ;
 		if( me.loadMask ) {
 			me.loadMask.show() ;
 		} else {
@@ -350,66 +323,35 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarSubpanel' ,{
 	buildEvents: function() {
 		var me = this ;
 		
-		var accountField='store_node',
+		var accountField='store_code',
 			startField='date_start',
 			endField='date_end',
-			crmFields=['store_text','prod_text','mechanics_text'] ;
+			mecaField='mechanics_detail',
+			colorField='prod_colorHex',
+			promoField='promo_id' ;
 		
-		if( me.accountIsOn ) {
-			var accountsMap = {} ;
-			for( var i=0 ; i<me.accountsSelected.length ; i++ ) {
-				var eKey = me.accountsSelected[i] ;
-				accountsMap[eKey] = me.calendarStore.getById(eKey).get('ColorHex') ;
-			}
-		}
-		
-		var eventsData = [], fileRecord, crmData, tValue ;
+		var eventsData = [], fileRecord ;
 		for( var i=0 ; i<me.dataCacheArray.length ; i++ ) {
 			fileRecord = me.dataCacheArray[i] ;
 			
-			crmData=[] ;
-			for( var j=0 ; j<crmFields.length ; j++ ) {
-				tValue = fileRecord[crmFields[j]] ;
-				if( tValue != null && tValue.length > 0 ) {
-					crmData.push(fileRecord[crmFields[j]]) ;
-				}
-			}
-			
 			var evt = {
-				id: i,
-				cid: null,
-				color_hex6: null,
-				title: crmData.join(" "),
-				start: Ext.Date.parse(fileRecord[startField], "Y-m-d", true),
-				end: Ext.Date.parse(fileRecord[endField], "Y-m-d", true),
-				done: false,
-				ad: false
+				Id: i,
+				//Name: '&#160;',
+				Name: fileRecord[mecaField],
+				StartDate: fileRecord[startField],
+				EndDate: Ext.Date.format(Ext.Date.add(Ext.Date.parse(fileRecord[endField],'Y-m-d'), Ext.Date.DAY, +1),'Y-m-d') ,
+				ResourceId: fileRecord[accountField],
+				ColorHex: fileRecord[colorField],
+				FilerecordId: fileRecord['_filerecord_id'],
+				PromoId: fileRecord[promoField]
+			} ;
+			if( evt.ColorHex != null && evt.ColorHex.charAt(0) == '#' ) {
+				evt.ColorHex = evt.ColorHex.substr(1) ;
 			}
-			console.dir(evt) ;
-			
-			if( me.accountIsOn ) {
-				var accountKey = fileRecord[accountField] ;
-				if( accountKey == null ) {
-					evt['cid'] = '' ;
-					evt['color_hex6'] = '000000' ;
-				} else if( typeof accountsMap[accountKey] === 'undefined' ) {
-					continue ;
-				} else {
-					evt['cid'] = accountKey ;
-					evt['color_hex6'] = accountsMap[accountKey] ;
-				}
-			}
-			
-			/*
-			if( colorField != null && fileRecord[colorField] ) {
-				evt['color_hex6'] = fileRecord[colorField] ;
-			}
-			*/
-			
 			eventsData.push(evt) ;
 		}
-		me.eventStore.getProxy().data = eventsData ;
-		me.eventStore.load() ;
+		
+		this.getSchedulerTree().getEventStore().loadData( eventsData ) ;
 		
 		Ext.defer(function() {
 			if( me.loadMask ) {
@@ -420,43 +362,12 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarSubpanel' ,{
 	},
 	
 	/*
-	 * Accounts listener
-	 */
-	onAccountSelect: function(selModel, selectedRecord) {
-		var me = this,
-			nbKeysSet = selModel.getCount() ;
-			colorHex6 = me.rotatingColors[( nbKeysSet % (me.rotatingColors.length) )] ;
-			
-			if( colorHex6.charAt(0) == '#' ) {
-				colorHex6 = colorHex6.substr(1) ;
-			}
-			
-		selectedRecord.set('ColorHex',colorHex6) ;
-	},
-	onAccountDeselect: function(selModel, deselectedRecord) {
-		deselectedRecord.set('ColorHex',null);
-	},
-	onAccountsSelectionChange: function(selModel, selRecords) {
-		var me = this ;
-			currentSelKeys = [] ;
-		
-		Ext.Array.each(selRecords, function( selRecord ) {
-			var eKey = selRecord.getId() ;
-			currentSelKeys.push(eKey) ;
-		});
-		
-		
-		me.accountsSelected = currentSelKeys ;
-		
-		me.buildEvents() ;
-	},
-	
-	/*
 	 * Event detail floating window
 	 */
-	onEventClick: function( calendarView, eventRecord, clickEl ) {
+	onEventClick: function( schedulerPanel, eventRecord, clickEvent ) {
 		var me = this ,
-			newEventDetailPanel ;
+			newEventDetailPanel,
+			clickEl = clickEvent.getTarget( this.getSchedulerTree().eventSelector ) ;
 			
 		if( !me.eventDetailPanel ) {
 			me.eventDetailPanel = Ext.create('Ext.Panel', {
@@ -511,11 +422,12 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarSubpanel' ,{
 			});
 		}
 		
-		var recordIdx = eventRecord.get('EventId'),
-			filerecordId = me.dataCacheArray[recordIdx]._filerecord_id,
-			title = me.dataCacheArray[recordIdx].promo_id;
+		var recordIdx = eventRecord.get('Id'),
+			filerecordId = eventRecord.get('FilerecordId'),
+			title = eventRecord.get('PromoId')
 			
 		// *** Titre ***
+		me.eventDetailPanel.clickElId = clickEl.id ;
 		me.eventDetailPanel.filerecordId = filerecordId ;
 		me.eventDetailPanel.setTitle('Promo# '+title) ;
 		
@@ -550,6 +462,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarSubpanel' ,{
 			hideIf = me.eventDetailHideIf,
 			doc = Ext.getDoc() ;
 			
+		me.getSchedulerTree().getEventSelectionModel().deselectAll() ;
+			
 		doc.un('mousewheel', hideIf, me);
 		doc.un('mouseup', hideIf, me);
 		me.stopOneClick = true ;
@@ -567,39 +481,6 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarSubpanel' ,{
 	},
 	
 	
-	/*
-	 * Day click (new events)
-	 */
-	onDayClick: function( calendarView, startDate, isAllDay ) {
-		var me = this,
-			calendarCfg = me.gridCfg.define_file.calendar_cfg,
-			startFileField = calendarCfg.eventstart_filefield,
-			endFileField = calendarCfg.eventend_filefield,
-			msg = ( Ext.Date.format(startDate,'Y-m-d') + (isAllDay ? '' : ' (at '+Ext.Date.format(startDate,'H')+':00)' ) ),
-			presets = {} ;
-
-		if( me.stopOneClick ) {
-			return ;
-		}
-			
-		if( isAllDay ) {
-			presets['field_'+startFileField] = Ext.Date.format(startDate,'Y-m-d')+' 00:00:00' ;
-		} else {
-			presets['field_'+startFileField] = Ext.Date.format(startDate,'Y-m-d H')+':00:00' ;
-			presets['field_'+endFileField] = Ext.Date.format(Ext.Date.add(startDate, Ext.Date.HOUR, 1),'Y-m-d H')+':00:00' ;
-		}
-		Ext.Msg.show({
-			title:'Create event',
-			msg: 'Create event on '+msg+' ?' ,
-			buttons: Ext.Msg.YESNO,
-			fn:function(buttonId){
-				if( buttonId == 'yes' ) {
-					me.parentFilePanel.editRecordNew(presets) ;
-				}
-			},
-			scope:me
-		}) ;
-	},
 	
 	
 	/*

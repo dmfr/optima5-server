@@ -27,6 +27,7 @@ Ext.define('WbMrfoxyPromoModel', {
         {name: 'status_color',  type: 'string'},
         {name: 'prod_text',  type: 'string'},
         {name: 'prod_code',  type: 'string'},
+        {name: 'prod_colorHex',  type: 'string'},
         {name: 'store_text',   type: 'string'},
         {name: 'store_code',   type: 'string'},
         {name: 'mechanics_rewardcard',   type: 'boolean'},
@@ -165,10 +166,6 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoBrowserPanel',{
 						itemId: 'calendar',
 						text: 'Calendar',
 						iconCls: 'op5-crmbase-datatoolbar-view-calendar'
-					},{
-						itemId: 'editgrid',
-						text: 'Editable grid',
-						iconCls: 'op5-crmbase-datatoolbar-view-editgrid'
 					}]
 				}
 			}],

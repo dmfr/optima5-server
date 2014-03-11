@@ -49,6 +49,30 @@ function specWbMrfoxy_lib_getBibleTree( $bible_code ) {
 	return $specwbmrfoxy_arr_bible_trees[$bible_code] ;
 }
 
+function specWbMrfoxy_promo_getGrid_getProdColor( $prod_code ) {
+	global $_opDB ;
+	
+	global $_cache_prodCode_prodColor ;
+	if( !isset($_cache_prodCode_prodColor[$prod_code]) ) {
+		$prod_code_current = $prod_code ;
+		while(TRUE) {
+			$prod_color = '' ;
+			$query = "SELECT field_PRODGROUPCOLOR, treenode_parent_key FROM view_bible_IRI_PROD_tree WHERE treenode_key='$prod_code_current'" ;
+			$row = $_opDB->fetch_row($_opDB->query($query)) ;
+			if( $row[0] != '' ) {
+				$prod_color = $row[0] ;
+				$_cache_prodCode_prodColor[$prod_code] = $prod_color ;
+				break ;
+			}
+			if( $row[1] != '' ) {
+				$prod_code_current = $row[1] ;
+				continue ;
+			}
+			break ;
+		}
+	}
+	return $_cache_prodCode_prodColor[$prod_code] ;
+}
 function specWbMrfoxy_promo_getGrid( $post_data ) {
 	$forward_post = array() ;
 	$forward_post['start'] ;
@@ -165,6 +189,10 @@ function specWbMrfoxy_promo_getGrid( $post_data ) {
 		}
 		$row['store_node'] = $node_STORE->getHead() ;
 		
+		// prod : color
+		$prod_code = $paracrm_row['WORK_PROMO_field_PROD'] ;
+		$row['prod_colorHex'] = specWbMrfoxy_promo_getGrid_getProdColor($prod_code) ;
+	
 		// SKUs store
 		if( $post_data['_load_details'] ) {
 			$ttmp = paracrm_data_getFileGrid_data( array(
@@ -423,6 +451,9 @@ function specWbMrfoxy_promo_formSubmit( $post_data ) {
 			break ;
 		case 'MONO_CUT' :
 			$arr_ins['field_MECH_DETAIL'] = $form_data['mechanics_mono_pricecut'].' €/£/$ pricecut' ;
+			break ;
+		case 'BOGOF' :
+			$arr_ins['field_MECH_DETAIL'] = 'BOGOF' ;
 			break ;
 	}
 	

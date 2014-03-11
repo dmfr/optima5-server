@@ -42,7 +42,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarEventDetailView',{
 		tplMapping.startField = 'date_start' ;
 		tplMapping.endField = 'date_end' ;
 		tplMapping.lengthWeeksField = 'date_length_weeks' ;
-		// tplMapping.colorField = gridField.field ;
+		tplMapping.colorField = 'prod_color' ;
 		
 		tplMapping.crmFields = [
 			{fieldLabel: 'Products', fieldSrcValue:'prod_text'},
@@ -126,13 +126,6 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarEventDetailView',{
 			crmFields:[]
 		} ;
 		
-		if( tplMapping.accountField ) {
-			var eKey = filerecord[tplMapping.accountField] ;
-			sampleTplData.headerColor = '000000' ;
-			if( this.promoPanelCalendar.calendarStore.getById(eKey) != null ) {
-				sampleTplData.headerColor = this.promoPanelCalendar.calendarStore.getById(eKey).get('ColorHex') ;
-			}
-		}
 		if( tplMapping.colorField ) {
 			sampleTplData.headerColor = filerecord[tplMapping.colorField] ;
 		}

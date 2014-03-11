@@ -193,6 +193,14 @@
 	line-height: inherit ;
 }
 
+.op5-spec-mrfoxy-promosch-today {
+	background-color: rgb(232, 232, 232) ;
+}
+
+.sch-event {
+	border-radius: 8px;
+}
+
 .op5-spec-mrfoxy-promorow-item {
 	display:block;
 	position:relative;
