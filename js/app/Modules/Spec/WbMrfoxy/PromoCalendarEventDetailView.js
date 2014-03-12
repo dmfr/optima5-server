@@ -5,6 +5,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarEventDetailView',{
 		'Ext.XTemplate'
 	],
 	
+	// private
+	promoListRowPanel: null,
+	
 	initComponent : function(){
 		this.callParent(arguments);
 		this.addEvents({
@@ -17,6 +20,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarEventDetailView',{
 		}
 		me.on('destroy',function(thisview) {
 			delete thisview.promoPanelCalendar ;
+			thisview.cleanupPromoListRowPanel() ;
 		},me) ;
 		
 		/*
@@ -43,8 +47,11 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarEventDetailView',{
 		tplMapping.endField = 'date_end' ;
 		tplMapping.lengthWeeksField = 'date_length_weeks' ;
 		tplMapping.colorField = 'prod_color' ;
+		tplMapping.progressPercent = 'status_percent' ;
+		tplMapping.progressText = 'status_text' ;
 		
 		tplMapping.crmFields = [
+			{fieldLabel: 'Stores', fieldSrcValue:'store_text'},
 			{fieldLabel: 'Products', fieldSrcValue:'prod_text'},
 			{fieldLabel: 'Mechanics', fieldSrcValue:'mechanics_text'}
 		] ;
@@ -61,35 +68,48 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarEventDetailView',{
 	getTemplate: function() {
 		if (!this.tpl) {
 			this.tpl = new Ext.XTemplate(
-				'<div class="op5-crmbase-filecalendar-eventdetail">',
+				'<div class="op5-spec-mrfoxy-schdetail">',
 					'<tpl if="headerColor">',
 						'<div class="op5-crmbase-filecalendar-eventdetail-account" style="background-color:{headerColor}">',
 							'{[ values.headerTxt != null ? values.headerTxt : "&#160;"]}',
 						'</div>',
 					'</tpl>',
 					
-					'<div class="op5-crmbase-filecalendar-eventdetail-timewrap">',
-						'<div class="op5-crmbase-filecalendar-eventdetail-timedone {[values.isDone ? "op5-crmbase-filecalendar-eventdetail-timedoneicon" : ""]}">&#160;</div>',
-						'<div style="position:relative;">',
-							'<span class="op5-crmbase-filecalendar-eventdetail-timelabel">Start:</span>',
-							'<span class="op5-crmbase-filecalendar-eventdetail-timevalue">{startTxt}</span>',
+					'<div class="op5-spec-mrfoxy-schdetail-inline">',
+						'<div class="op5-spec-mrfoxy-schdetail-inline-elem">',
+							'<div class="op5-crmbase-filecalendar-eventdetail-timewrap op5-spec-mrfoxy-schdetail-timewrap">',
+								'<div style="position:relative;">',
+									'<span class="op5-crmbase-filecalendar-eventdetail-timelabel">Start:</span>',
+									'<span class="op5-crmbase-filecalendar-eventdetail-timevalue">{startTxt}</span>',
+								'</div>',
+								'<div style="position:relative;">',
+									'<span class="op5-crmbase-filecalendar-eventdetail-timelabel">Leng:</span>',
+									'<span class="op5-crmbase-filecalendar-eventdetail-timevalue">{lengthWeeks} week(s)</span>',
+								'</div>',
+							'</div>',
 						'</div>',
-						'<div style="position:relative;">',
-							'<span class="op5-crmbase-filecalendar-eventdetail-timelabel">Leng:</span>',
-							'<span class="op5-crmbase-filecalendar-eventdetail-timevalue">{lengthWeeks} week(s)</span>',
+						
+						'<tpl if="crmFields">',
+						'<div class="op5-spec-mrfoxy-schdetail-inline-elem">',
+							'<table class="op5-spec-mrfoxy-schdetail-tbl" cellpadding="0" cellspacing="0">',
+							'<tpl for="crmFields">',
+								'<tr>',
+									'<td class="op5-spec-mrfoxy-schdetail-tdlabel">{fieldLabel}</td>',
+									'<td class="op5-spec-mrfoxy-schdetail-tdvalue">{fieldValue}</td>',
+								'</tr>',
+							'</tpl>',
+							'</table>',
+						'</div>',
+						'</tpl>',
+						
+						'<div class="op5-spec-mrfoxy-schdetail-inline-elem">',
+							'<div class="op5-spec-mrfoxy-schdetail-progress-lib">Status :</div>',
+							'<div class="op5-spec-mrfoxy-schdetail-progress">{progressMarkup}</div>',
 						'</div>',
 					'</div>',
 					
-					'<tpl if="crmFields">',
-						'<table class="op5-crmbase-filecalendar-eventdetail-tbl" cellpadding="0" cellspacing="0">',
-						'<tpl for="crmFields">',
-							'<tr>',
-								'<td class="op5-crmbase-filecalendar-eventdetail-tdlabel">{fieldLabel}</td>',
-								'<td class="op5-crmbase-filecalendar-eventdetail-tdvalue">{fieldValue}</td>',
-							'</tr>',
-						'</tpl>',
-						'</table>',
-					'</tpl>',
+					'<div class="op5-spec-mrfoxy-schdetail-rowcnt">',
+					'</div>',
 				'</div>'
 			);
 		}
@@ -103,7 +123,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarEventDetailView',{
 	},
 
 	refresh: function() {
-		if (!this.rendered) {
+		if (!this.rendered || !(this.getEl().dom) ) {
 			return;
 		}
 		if( this.evtId == null ) {
@@ -123,7 +143,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarEventDetailView',{
 			headerTxt: ( tplMapping.accountSrcValue != null ? tRenderer(filerecord,tplMapping.accountSrcValue) : null ),
 			startTxt: Ext.Date.format( Ext.Date.parse(filerecord[tplMapping.startField], "Y-m-d", true), "Y-m-d" ) ,
 			lengthWeeks: filerecord[tplMapping.lengthWeeksField] ,
-			crmFields:[]
+			crmFields:[],
+			progressMarkup: ''
 		} ;
 		
 		if( tplMapping.colorField ) {
@@ -137,13 +158,56 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarEventDetailView',{
 			}) ;
 		}
 		
+		// Progress markup
+		var tmpProgress = filerecord[tplMapping.progressPercent] / 100 ;
+		var tmpText = filerecord[tplMapping.progressText] ;
+			var b = new Ext.ProgressBar({height: 15, cls: 'op5-spec-mrfoxy-promolist-progress'});
+			b.updateProgress(tmpProgress,tmpText);
+			v = Ext.DomHelper.markup(b.getRenderTree());
+			b.destroy() ;
+		sampleTplData.progressMarkup = v ;
+		
+		// Apply template
 		this.tpl.overwrite(this.el, sampleTplData);
+		
+		/*
+		 * PromoListRowPalel
+		 * - destroy if exists
+		 * - create panel
+		 * - renderTo
+		 */
+		var promoListRowPanel = this.getPromoListRowPanel(filerecord),
+					targetEl = Ext.DomQuery.selectNode('div.op5-spec-mrfoxy-schdetail-rowcnt', this.getEl().dom);
+		promoListRowPanel.render( targetEl );
+		
 		this.fireEvent('eventdetailrendered', this, null );
 	},
 
-	getTemplateEventData: function(evt) {
-		var data = this.view.getTemplateEventData(evt);
-		data._elId = 'dtl-' + data._elId;
-		return data;
+	getPromoListRowPanel: function( filerecord ) {
+		this.cleanupPromoListRowPanel() ;
+		
+		this.promoListRowPanel = Ext.create('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel', {
+			forceFit: true,
+			height: 190,
+			rowRecord: Ext.create('WbMrfoxyPromoModel',filerecord),
+			optimaModule: this.promoPanelCalendar.optimaModule,
+			listeners:{
+				datachanged: function() {
+					this.promoPanelCalendar.reload(false) ;
+				},
+				editpromo: function(promoRecord) {
+					this.promoPanelCalendar.parentBrowserPanel.fireEvent('editpromo',promoRecord) ;
+				},
+				scope:this
+			}
+		}) ;
+		return this.promoListRowPanel ;
+	},
+	cleanupPromoListRowPanel: function() {
+		if( this.promoListRowPanel != null ) {
+			this.promoListRowPanel.destroy() ;
+			this.promoListRowPanel = null ;
+		}
 	}
+	
 }) ;

@@ -350,3 +350,50 @@
 }
 
 
+
+.op5-spec-mrfoxy-schdetail {
+	padding:2px ;
+	width: 800px;
+}
+.op5-spec-mrfoxy-schdetail-inline {
+	height: 56px;
+	width: 100% ;
+	display: inline-flex;
+	background-color: rgb(228, 232, 232);
+}
+.op5-spec-mrfoxy-schdetail-inline-elem {
+	margin: auto 5px;
+}
+.op5-spec-mrfoxy-schdetail-rowcnt {
+	width: 100%;
+	height: 190px ;
+}
+.op5-spec-mrfoxy-schdetail-timewrap {
+	min-width: 150px;
+}
+table.op5-spec-mrfoxy-schdetail-tbl {
+	margin: 0px 5px;
+	width:100%;
+	color:black;
+	font-size:11px;
+	font-family:tahoma,arial,verdana,sans-serif
+}
+table.op5-spec-mrfoxy-schdetail-tbl > tbody > tr > td.op5-spec-mrfoxy-schdetail-tdlabel {
+	 padding: 1px 0px;
+	 font-weight: bold;
+}
+table.op5-spec-mrfoxy-schdetail-tbl > tbody > tr > td.op5-spec-mrfoxy-schdetail-tdvalue {
+	 padding: 0px 0px 0px 8px;
+}
+.op5-spec-mrfoxy-schdetail-progress-lib {
+	font-weight: bold;
+	font-size:11px;
+	font-family:tahoma,arial,verdana,sans-serif ;
+	margin-bottom: 2px ;
+}
+.op5-spec-mrfoxy-schdetail-progress {
+	position: relative;
+	width: 100px;
+}
+
+

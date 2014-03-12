@@ -140,13 +140,22 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarSubpanel' ,{
 					})
 				],
 				listeners: {
-					afterrender: function(schP) {
-						Ext.defer( function() {
-							this.scrollToday() ;
-						},100,this) ;
+					'afterrender': {
+						fn: function(schP) {
+							Ext.defer( function() {
+								this.scrollToday() ;
+							},100,this) ;
+						},
+						scope:me
 					},
-					eventclick: me.onEventClick,
-					scope: this
+					'eventclick': {
+						fn: me.onEventClick,
+						scope:me
+					},
+					'destroy': {
+						fn: me.onCalendarDestroy,
+						scope:me
+					}
 				}
 			})
 		}) ;
@@ -155,16 +164,6 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarSubpanel' ,{
 		
 		me.initBible() ; // ** Init bible
 		me.fetchEvents() ;  // ** Fetch events 
-		
-		me.mon(me.parentBrowserPanel,'tbarselect',function(){
-			return ;
-			
-			var headerCt = me.getComponent('pCenter').headerCt,
-				isProd = me.parentBrowserPanel.filterIsProd ;
-			headerCt.down('[isColumnStatus]')[isProd ? 'show' : 'hide']();
-			headerCt.down('[isColumnBrand]')[!isProd ? 'show' : 'hide']();
-			me.reload() ;
-		},me) ;
 	},
 	getSchedulerTree: function() {
 		return this.items.getAt(0) ;
@@ -217,7 +216,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarSubpanel' ,{
 		this.buildBibleTree() ;
 		this.mon(this.parentBrowserPanel,'tbarselect',function(){
 			this.buildBibleTree() ;
-			this.reload() ;
+			this.reload(false) ;
 		},this) ;
 	},
 	buildBibleTree: function() {
@@ -269,9 +268,11 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarSubpanel' ,{
 	/*
 	 * Data
 	 */
-	reload: function() {
+	reload: function(scrollToday) {
 		var me = this ;
-		me.scrollToday() ;
+		if( scrollToday !== false ) {
+			me.scrollToday() ;
+		}
 		me.fetchEvents() ;
 	},
 	fetchEvents: function() {
@@ -386,35 +387,6 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarSubpanel' ,{
 					id: this.id + '-eventdetailview',
 					promoPanelCalendar: this
 				}),
-				bbar:[{
-					iconCls:'op5-crmbase-dataformwindow-icon',
-					text:'Edit',
-					handler: function(btn) {
-						var filerecordId = btn.up('panel').filerecordId ;
-						me.eventDetailPanel.hide() ;
-						me.parentFilePanel.editRecordUpdate( filerecordId ) ;
-					},
-					scope: this
-				},'->',{
-					iconCls:'op5-crmbase-qtoolbar-file-delete',
-					text:'Delete',
-					handler: function(btn) {
-						var filerecordId = btn.up('panel').filerecordId ;
-						Ext.Msg.show({
-							title:'Delete file record',
-							msg: 'Delete record '+filerecordId+' ?' ,
-							buttons: Ext.Msg.YESNO,
-							fn:function(buttonId){
-								me.eventDetailPanel.hide() ;
-								if( buttonId == 'yes' ) {
-									me.parentFilePanel.editRecordDelete( filerecordId ) ;
-								}
-							},
-							scope:me
-						});
-					},
-					scope: this
-				}],
 				listeners:{
 					hide:me.onEventDetailHide,
 					scope:me
@@ -427,7 +399,6 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarSubpanel' ,{
 			title = eventRecord.get('PromoId')
 			
 		// *** Titre ***
-		me.eventDetailPanel.clickElId = clickEl.id ;
 		me.eventDetailPanel.filerecordId = filerecordId ;
 		me.eventDetailPanel.setTitle('Promo# '+title) ;
 		
@@ -446,9 +417,6 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarSubpanel' ,{
 		p.show();
 		p.getEl().alignTo(clickEl, 'tl-bl?');
 		p.doComponentLayout() ; // Force panel to calculate fit size based on new alignTo
-		if( p.getWidth() > 400 ) {
-			p.setWidth(400) ;
-		}
 		
 		// monitor clicking and mousewheel
 		me.mon(Ext.getDoc(), {
