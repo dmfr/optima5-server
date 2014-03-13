@@ -333,12 +333,26 @@
 	position: absolute ;
 	background-image: url("../images/op5img/ico_cancel_small.gif") !important;
 	top:16px;
-	right:16px ;
+	right:20px ;
 	width:16px ;
 	height:16px ;
 	background-position: center center;
 	background-repeat: no-repeat;
 	cursor: pointer;
+}
+.op5-spec-mrfoxy-statheader-download {
+	position: absolute ;
+	background-image: url("../images/op5img/ico_save_16.gif") !important;
+	bottom:8px;
+	right:16px ;
+	width:24px ;
+	height:24px ;
+	background-position: center center;
+	background-repeat: no-repeat;
+	cursor: pointer;
+	border: 2px solid #FF8000 ;
+	border-radius: 6px ;
+	display: none ;
 }
 .op5-spec-mrfoxy-statheader-title {
 	position: relative ;
@@ -396,4 +410,78 @@ table.op5-spec-mrfoxy-schdetail-tbl > tbody > tr > td.op5-spec-mrfoxy-schdetail-
 	width: 100px;
 }
 
+
+.op5-spec-mrfoxy-statempty-cnt {
+	position: relative ;
+	width: 100%;
+	height: 100%;
+}
+.op5-spec-mrfoxy-statempty {
+	position: absolute ;
+	margin: auto;
+	top: 0 ;
+	bottom: 0 ;
+	left: 0 ;
+	right: 0 ;
+	width: 134px;
+	height: 134px;
+	padding-top: 56px;
+	background-image: url("../images/modules/crmbase-run-48.png") !important;
+	background-position: center 0 ;
+	background-repeat: no-repeat;
+	text-align: center;
+	font-style: italic ;
+	font-weight: bold ;
+}
+
+.op5-spec-mrfoxy-statresult-wrap {
+	padding: 6px
+}
+.op5-spec-mrfoxy-statresult {
+	position: relative ;
+	border: 1px solid rgb(128, 128, 128);
+	padding: 4px;
+	-moz-border-radius: 10px;
+	border-radius: 10px !important;
+	width: 100% ;
+}
+.op5-spec-mrfoxy-statresult-table {
+	margin-left: 24px ;
+}
+.op5-spec-mrfoxy-statresult-icon {
+	position: absolute ;
+	top: 0px;
+	left: 0px;
+	width: 24px;
+	height: 100% ;
+	background-position: 4px 50%;
+	background-repeat: no-repeat;
+	background-image: url("../images/modules/crmbase-calendar-16.png") !important;
+}
+table.op5-spec-mrfoxy-statresult-tbl {
+	margin: 0px 5px;
+	width:100%;
+	color:black;
+	font-size:11px;
+	font-family:tahoma,arial,verdana,sans-serif
+}
+table.op5-spec-mrfoxy-statresult-tbl > tbody > tr > td.op5-spec-mrfoxy-statresult-tdlabel {
+	 padding: 1px 0px;
+	 font-weight: bold;
+	 width: 75px ;
+}
+table.op5-spec-mrfoxy-statresult-tbl > tbody > tr > td.op5-spec-mrfoxy-statresult-tdvalue {
+	 padding: 0px 0px 0px 8px;
+}
+.op5-spec-mrfoxy-statresult-savebtn {
+	position: absolute ;
+	top: 0px;
+	right: 0px;
+	width: 24px;
+	height: 100% ;
+	background-position: 4px 50%;
+	background-repeat: no-repeat;
+	background-image: url("../images/modules/crmbase-save-16.gif") !important;
+	cursor: pointer;
+}
 

@@ -1,6 +1,10 @@
 Ext.define('Optima5.Modules.Spec.WbMrfoxy.StatPerformancePanel',{
 	extend: 'Ext.panel.Panel',
 	
+	requires:[
+		'Optima5.Modules.Spec.WbMrfoxy.StatPerformanceResultView'
+	],
+	
 	initComponent: function() {
 		var me = this,
 			width = me.width ;
@@ -22,20 +26,22 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.StatPerformancePanel',{
 					html:'&#160;',
 					height: 8
 				},
-				Ext.apply(me.initTabsCfg(),{
+				Ext.apply(me.initFormCfg(),{
 					width:width,
-					height: 90
+					height: 120
+				}),
+				Ext.apply(me.initDummyFormCfg(),{
+					width:width,
+					height: 120,
+					hidden: true
 				}),{
 					xtype:'box',
 					html:'&#160;',
 					height: 8
-				},{
-					xtype:'container',
+				},Ext.apply(me.initTabsCfg(),{
 					width: width,
-					flex:1,
-					layout:'fit',
-					itemId: 'cntQueryResult'
-				}
+					flex:1
+				})
 			]
 		});
 		
@@ -52,6 +58,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.StatPerformancePanel',{
 					'<div class="op5-spec-mrfoxy-statheader-title">{title}</div>',
 					'<div class="op5-spec-mrfoxy-statheader-icon {iconCls}"></div>',
 					'<div class="op5-spec-mrfoxy-statheader-close"></div>',
+					'<div class="op5-spec-mrfoxy-statheader-download"></div>',
 				'</div>'
 			],
 			data:{
@@ -68,10 +75,11 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.StatPerformancePanel',{
 		
 		return headerCfg ;
 	},
-	initTabsCfg: function() {
+	initFormCfg: function() {
 		var me = this ;
-		var tabsCfg = {
+		var formCfg = {
 			xtype:'form',
+			itemId:'pForm',
 			frame:true,
 			bodyPadding: '2px 10px',
 			style: "text-align:left", // HACK
@@ -79,10 +87,75 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.StatPerformancePanel',{
 				xtype:'fieldset',
 				defaults: {
 					anchor: '100%',
-					labelWidth: 60
+					labelWidth: 75
 				},
 				title: 'Query parameters',
 				items:[{
+					xtype:'fieldcontainer',
+					fieldLabel: 'Time mode',
+					itemId: 'cntTime',
+					layout: {
+						type: 'hbox'
+					},
+					items:[{
+						width: 140,
+						anchor: '',
+						xtype: 'combobox',
+						queryMode: 'local',
+						forceSelection: true,
+						editable: false,
+						displayField: 'time_text',
+						valueField: 'time_mode',
+						store: {
+							fields: ['time_mode','time_text'],
+							data : [
+								{time_mode:'FULL', time_text:'Whole year/crop'},
+								{time_mode:'TO_DATE', time_text:'Crop to Date'},
+								{time_mode:'FROM_DATE', time_text:'from Date to Crop'}
+							]
+						},
+						allowBlank: false,
+						name : 'time_mode',
+						itemId : 'time_mode',
+						value: 'FULL',
+						listeners: {
+							change: function(cb,value) {
+								var dateField = cb.up().down('datefield') ;
+								switch( value ) {
+									case 'TO_DATE' :
+									case 'FROM_DATE':
+										dateField.setVisible(true) ;
+										break ;
+									case 'FULL' :
+										dateField.setVisible(false) ;
+										break ;
+								}
+								me.evalForm() ;
+							},
+							scope: me
+						}
+					},{
+						width:4,
+						xtype:'box',
+						html:'&#160;'
+					},{
+						xtype:'datefield',
+						startDay:1,
+						format: 'Y-m-d',
+						width: 100,
+						anchor: '',
+						hidden: true,
+						value: new Date(),
+						name : 'break_date',
+						itemId : 'break_date',
+						listeners: {
+							change: function(cb,value) {
+								me.evalForm() ;
+							},
+							scope: me
+						}
+					}]
+				},{
 					xtype:'fieldcontainer',
 					fieldLabel: 'Location',
 					itemId: 'cntLocation',
@@ -136,8 +209,74 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.StatPerformancePanel',{
 				}]
 			}]
 		} ;
+		return formCfg ;
+	},
+	initDummyFormCfg: function() {
+		var me = this ;
+		var formCfg = {
+			xtype:'panel',
+			bodyCls: 'ux-noframe-bg',
+			itemId:'pDummyForm',
+			frame:true,
+			bodyPadding: '2px 10px',
+			style: "text-align:left", // HACK
+			hidden:true
+		} ;
+		return formCfg ;
+	},
+	initTabsCfg: function() {
+		var me = this ;
+		var tabsCfg = {
+			xtype:'tabpanel',
+			items:[{
+				xtype:'container',
+				title: 'Preview',
+				itemId: 'cntQueryPreview',
+				layout:'fit',
+				border: false,
+				items: this.initTabEmptyCfg()
+			}],
+			listeners: {
+				add: me.onTabChange,
+				remove: me.onTabChange,
+				tabchange: me.onTabChange,
+				scope: me,
+			  
+				/*
+				* Attach managed listener to tabBar (right click)
+				*/
+				afterlayout:{
+					fn: function(p) {
+						this.mon( p.getTabBar().el, {
+							contextmenu: this.onTabRightClick, 
+							scope: this,
+							delegate: 'div.x-tab'
+						}) ;
+					},
+					scope: this,
+					single: true
+				}
+			}
+		} ;
 		return tabsCfg ;
 	},
+	initTabEmptyCfg: function() {
+		return {
+			xtype:'component',
+			cls: 'ux-noframe-bg',
+			tpl: [
+				'<div class="op5-spec-mrfoxy-statempty-cnt">',
+					'<div class="op5-spec-mrfoxy-statempty">{caption}</div>',
+				'</div>'
+			],
+			data:{
+				caption: 'No query parameters'
+			}
+		}
+	},
+	
+	
+	
 	buildStorePicker: function() {
 		var me = this,
 			countryCode = me.child('form').getForm().getValues()['country_code'],
@@ -169,21 +308,28 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.StatPerformancePanel',{
 		var me=this,
 			headerCmp = me.getComponent('pHeader'),
 			headerEl = headerCmp.getEl(),
-			btnCloseEl = Ext.get(headerEl.query('div.op5-spec-mrfoxy-statheader-close')[0]) ;
+			btnCloseEl = Ext.get(headerEl.query('div.op5-spec-mrfoxy-statheader-close')[0]),
+			btnDownloadEl = Ext.get(headerEl.query('div.op5-spec-mrfoxy-statheader-download')[0]) ;
 		btnCloseEl.un('click',me.onHeaderClose,me) ;
 		btnCloseEl.on('click',me.onHeaderClose,me) ;
+		btnDownloadEl.un('click',me.onHeaderDownload,me) ;
+		btnDownloadEl.on('click',me.onHeaderDownload,me) ;
 	},
 	onHeaderClose: function(e,t) {
 		var me = this ;
 		me.fireEvent('quit') ;
+	},
+	onHeaderDownload: function(e,t) {
+		var me = this ;
+		me.handleDownload() ;
 	},
 	
 	evalForm: function() {
 		var me = this,
 			form = me.child('form').getForm() ;
 		
-		me.query('#cntQueryResult')[0].removeAll() ;
-		//me.query('#cntQueryResult')[0].addCls('op5-waiting') ;
+		me.query('#cntQueryPreview')[0].removeAll() ;
+		me.query('#cntQueryPreview')[0].addCls('op5-waiting') ;
 		
 		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
@@ -192,154 +338,138 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.StatPerformancePanel',{
 				data: Ext.JSON.encode(me.child('form').getForm().getValues())
 			},
 			success: function(response) {
-				//me.query('#cntQueryResult')[0].removeCls('op5-waiting') ;
+				me.query('#cntQueryPreview')[0].removeCls('op5-waiting') ;
 				var ajaxData = Ext.decode(response.responseText) ;
-				if( ajaxData.success == true && ajaxData.tabs != null ) {
-					me.query('#cntQueryResult')[0].add( me.buildResultPanel( ajaxData.tabs[0] ) ) ;
+				if( ajaxData.success != true ) {
+					return ;
+				}
+				if( ajaxData.result_tab != null ) {
+					me.installPreview( ajaxData ) ;
+				} else {
+					me.query('#cntQueryPreview')[0].add( me.initTabEmptyCfg() ) ;
 				}
 			},
 			scope: me
 		}) ;
 	},
-	buildResultPanel: function( tabData ) {
+	installPreview: function( ajaxData ) {
 		var me = this ;
-		
-		Optima5.Modules.CrmBase.QueryTemplateManager.loadStyle(me.optimaModule);
-		
-		var getRowClassFn = function(record,index) {
-			var cssClasses = [] ;
-			
-			if( record.get('detachedRow') ) {
-				cssClasses.push('op5crmbase-detachedrow') ;
+		me.query('#cntQueryPreview')[0].add( Ext.create('Optima5.Modules.Spec.WbMrfoxy.StatPerformanceResultView',{
+			optimaModule: me.optimaModule,
+			data: ajaxData,
+			modePreview: true,
+			border: false,
+			listeners: {
+				savepreview: this.savePreview,
+				scope: this
 			}
+		}) ) ;
+	},
+	savePreview: function( ajaxData ) {
+		var me = this,
+			tabpanel = me.down('tabpanel') ;
 			
-			return cssClasses.join(' ') ;
-		} ;
+		tabpanel.add( Ext.create('Optima5.Modules.Spec.WbMrfoxy.StatPerformanceResultView',{
+			optimaModule: me.optimaModule,
+			data: ajaxData,
+			title: 'Result #' + tabpanel.items.getCount(),
+			closable: true
+		}) ) ;
+	},
+	
+	onTabChange: function() {
+		if( !this.rendered ) {
+			return ;
+		}
+		var me = this,
+			tabpanel = me.down('tabpanel'),
+			headerCmp = me.getComponent('pHeader'),
+			headerEl = headerCmp.getEl(),
+			btnDownloadEl = Ext.get(headerEl.query('div.op5-spec-mrfoxy-statheader-download')[0]) ;
 		
-		var columns = [] ;
-		var fields = [{
-			name:'_rowIdx', // server-side rowIdx ( ie related to row_pivotMap )
-			type:'int'
-		},{
-			name:'_id',     // node "_id" (not used here but server available)
-			type:'string'
-		},{
-			name:'_tdCls',     // node "_id" (not used here but server available)
-			type:'string'
+		btnDownloadEl.setVisible( tabpanel.items.length > 1 ) ;
+		
+		var realForm = me.getComponent('pForm'),
+			  dummyForm = me.getComponent('pDummyForm'),
+			  isPreviewVisible = (tabpanel.getActiveTab().itemId=='cntQueryPreview') ;
+		realForm.setVisible(isPreviewVisible) ;
+		dummyForm.setVisible(!isPreviewVisible) ;
+	},
+	onTabRightClick: function(event, targetElement) {
+		var me = this,
+			tabPanel = me.down('tabpanel'),
+			tabBar = tabPanel.getTabBar()
+			tab = tabBar.getChildByElement(targetElement),
+			tabIndex = tabBar.items.indexOf(tab),
+			cPanel = tabPanel.items.getAt(tabIndex) ;
+		
+		if( cPanel.itemId == 'cntQueryPreview' ) {
+			return ;
+		}
+		var menuItems = [{
+			text: 'Rename to',
+			handler: null,
+			menu: {
+				items:[{
+					xtype:'textfield' ,
+					value: tab.getText(),
+					width:150
+				},{
+					xtype:'button',
+					text:'Ok',
+					handler: function(button) {
+						var textfield = button.up('menu').query('textfield')[0],
+							textValue = textfield.getValue() ;
+						me.down('tabpanel').items.getAt(tabIndex).setTitle(textValue) ;
+						Ext.menu.Manager.hideAll();
+					},
+					scope:me
+				}]
+			}
 		}] ;
-		Ext.Array.each(tabData.columns, function(columnDef,colIdx) {
-			if( columnDef.text_bold == true ) {
-				columnDef.text = '<b>'+columnDef.text+'</b>' ;
-			}
-			if( columnDef.text_italic == true ) {
-				columnDef.text = '<i>'+columnDef.text+'</i>' ;
-			}
-			if( columnDef.is_bold == true ) {
-				Ext.apply(columnDef,{
-					renderer: function(value,metaData,record) {
-						if( record.get('detachedRow') ) {
-							return '<i>'+value+'</i>' ;
-						} else {
-							return '<b>'+value+'</b>' ;
-						}
-					}
-				}) ;
-			}
-			else if( columnDef.detachedColumn == true ) {
-				Ext.apply(columnDef,{
-					tdCls: 'op5crmbase-detachedcolumn'
-				}) ;
-			}
-			else if( columnDef.progressColumn == true ) {
-				Ext.apply(columnDef,{
-					tdCls: 'op5crmbase-progresscolumn',
-					renderer: function(value,meta) {
-						if( value > 0 ) {
-							meta.tdCls = 'op5crmbase-progresscell-pos' ;
-							return '+ '+Math.abs(value) ;
-						} else if( value < 0 ) {
-							meta.tdCls = 'op5crmbase-progresscell-neg' ;
-							return '- '+Math.abs(value) ;
-						} else if( value==='' ) {
-							return '' ;
-						} else {
-							return '=' ;
-						}
-					}
-				}) ;
-			}
-			else {
-				Ext.apply(columnDef,{
-					tdCls: 'op5crmbase-datacolumn'
-				}) ;
-			}
-			Ext.apply(columnDef,{
-				align:''
-			});
-			if( !columnDef.invisible ) {
-				columns.push(columnDef);
-			}
-			
-			fields.push({
-				name:columnDef.dataIndex,
-				type:columnDef.dataType
-			});
-		},me);
-			
-		var tmpModelName = 'QueryResultModel-' + me.getId() ;
-		//console.log('Defining a model '+tmpModelName) ;
-		Ext.define(tmpModelName, {
-			extend: 'Ext.data.Model',
-			fields: fields
-		});
-		
-		var tabstore = Ext.create('Ext.data.Store',{
-			model:tmpModelName,
-			pageSize: (tabData.data.length > 50 ? tabData.data.length : 50 ),
-			//pageSize: tabData.data.length,
-			buffered: true,
-			remoteSort: true, // this just keeps sorting from being disabled
-			data: tabData.data,
-			proxy:{
-				type:'memory'
+		var menu = Ext.create('Ext.menu.Menu',{
+			defaults: {
+				handler: function(menuItem) {
+					me.onTabChartMenuItemClick( tabIndex, menuItem.itemId ) ;
+				},
+				scope: me
 			},
+			items: menuItems,
+			listeners: {
+				hide: function(menu) {
+					menu.destroy() ;
+				}
+			}
+		}) ;
+		menu.showAt(event.getXY());
+	},
+	
+	handleDownload: function() {
+		var me = this,
+			tabPanel = me.down('tabpanel'),
+			iterPanel ,
+			postData = [] ;
 			
-			/* 
-			* Custom sort function that overrides the normal store sort function.
-			* Basically this pulls all the buffered data into a MixedCollection
-			* and applies the sort to that, then it puts the SORTED data back
-			* into the buffered store.               
-			*/                    
-			sort: function(sorters) {
-				var collection = new Ext.util.MixedCollection();
-				collection.addAll(this.getProxy().data);
-				collection.sort(sorters);
-				
-				this.pageMap.clear();
-				this.getProxy().data = collection.getRange();
-				this.load();
+		for( var idx=0 ; idx < tabPanel.items.getCount() ; idx++ ) {
+			iterPanel = tabPanel.items.getAt(idx) ;
+			if( iterPanel.itemId == 'cntQueryPreview' || !iterPanel.getData ) {
+				continue ;
 			}
-		});
+			postData.push( iterPanel.getData() ) ;
+		}
 		
-		var tabgrid = Ext.create('Ext.grid.Panel',{
-			xtype:'grid',
-			border:false,
-			frame: true,
-			cls:'op5crmbase-querygrid-'+me.optimaModule.sdomainId,
-			columns:columns,
-			store:tabstore,
-			/* verticalScroller: {
-				numFromEdge: 5,
-				trailingBufferZone: 10,
-				leadingBufferZone: 20
-			},*/
-			plugins: [Ext.create('Ext.ux.ColumnAutoWidthPlugin', {allColumns:true, minAutoWidth:90, singleOnly:true})],
-			viewConfig: { 
-				getRowClass: getRowClassFn
-			}
-		});
-		
-		return tabgrid ;
+		var exportParams = me.optimaModule.getConfiguredAjaxParams() ;
+		Ext.apply(exportParams,{
+			_moduleId: 'spec_wb_mrfoxy',
+			_action: 'stat_exportXLS',
+			data: Ext.JSON.encode(postData)
+		}) ;
+		Ext.create('Ext.ux.dams.FileDownloader',{
+			renderTo: Ext.getBody(),
+			requestParams: exportParams,
+			requestAction: Optima5.Helper.getApplication().desktopGetBackendUrl(),
+			requestMethod: 'POST'
+		}) ;
 	}
 	
 });

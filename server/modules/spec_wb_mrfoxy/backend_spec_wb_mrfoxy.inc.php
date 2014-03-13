@@ -45,6 +45,8 @@ switch( $post_data['_action'] )
 	
 	case 'stat_performance_getResult' :
 	return specWbMrfoxy_stat_performance_getResult($post_data);
+	case 'stat_exportXLS' :
+	return specWbMrfoxy_stat_exportXLS($post_data);
 	
 	
 	
