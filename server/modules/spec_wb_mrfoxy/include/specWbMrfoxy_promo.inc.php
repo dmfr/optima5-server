@@ -176,8 +176,10 @@ function specWbMrfoxy_promo_getGrid( $post_data ) {
 		$row['obs_comment'] = $paracrm_row['WORK_PROMO_field_OBS_COMMENT'] ;
 		$row['approv_ds'] = $paracrm_row['WORK_PROMO_field_APPROV_DS'] ;
 		$row['approv_ds_ok'] = $paracrm_row['WORK_PROMO_field_APPROV_DS_OK'] ;
+		$row['approv_ds_obs'] = $paracrm_row['WORK_PROMO_field_APPROV_DS_OBS'] ;
 		$row['approv_df'] = $paracrm_row['WORK_PROMO_field_APPROV_DF'] ;
 		$row['approv_df_ok'] = $paracrm_row['WORK_PROMO_field_APPROV_DF_OK'] ;
+		$row['approv_df_obs'] = $paracrm_row['WORK_PROMO_field_APPROV_DF_OBS'] ;
 		$row['benchmark_arr_ids'] = $paracrm_row['WORK_PROMO_field_BENCHMARK_ARR_IDS'] ;
 		
 		// nb weeks
@@ -653,8 +655,10 @@ function specWbMrfoxy_promo_setApproval( $post_data ) {
 	$map = array() ;
 	$map['approv_ds'] = 'field_APPROV_DS' ;
 	$map['approv_ds_ok'] = 'field_APPROV_DS_OK' ;
+	$map['approv_ds_obs'] = 'field_APPROV_DS_OBS' ;
 	$map['approv_df'] = 'field_APPROV_DF' ;
 	$map['approv_df_ok'] = 'field_APPROV_DF_OK' ;
+	$map['approv_df_obs'] = 'field_APPROV_DF_OBS' ;
 	$arr_update = array() ;
 	foreach( $map as $src => $dest ) {
 		$arr_update[$dest] = $data[$src] ;

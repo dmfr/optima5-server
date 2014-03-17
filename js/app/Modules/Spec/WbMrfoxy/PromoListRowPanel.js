@@ -295,9 +295,10 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 		});
 		// Size + position
 		promoApprovalPanel.setSize({
-			width: 300,
+			width: 600,
 			height: 120
 		}) ;
+		
 		promoApprovalPanel.on('destroy',function() {
 			// refresh something ?
 			
@@ -306,6 +307,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 		me.getEl().mask() ;
 		
 		promoApprovalPanel.show();
+		promoApprovalPanel.getEl().alignTo(me.getEl(), 'c-c?');
 	},
 	handleEdit: function() {
 		var me = this ;
