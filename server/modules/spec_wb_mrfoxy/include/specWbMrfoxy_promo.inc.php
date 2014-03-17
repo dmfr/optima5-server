@@ -219,7 +219,7 @@ function specWbMrfoxy_promo_getGrid( $post_data ) {
 				$row_sku['sku_prodean'] = $paracrm_row_sku['WORK_PROMO_SKU_field_SKU_CODE'] ;
 				$row_sku['sku_code'] = $paracrm_row_sku['WORK_PROMO_SKU_field_SKU_CODE_entry_PROD_BRANDCODE'] ;
 				$row_sku['sku_desc'] = $paracrm_row_sku['WORK_PROMO_SKU_field_SKU_CODE_entry_PROD_TXT'] ;
-				$row_sku['sku_uom'] = '' ;
+				$row_sku['sku_uom'] = $paracrm_row_sku['WORK_PROMO_SKU_field_SKU_CODE_entry_PROD_UOM'] ;
 				$row_sku['cli_price_unit'] = $paracrm_row_sku['WORK_PROMO_SKU_field_PRICE_UNIT'] ;
 				$row_sku['promo_price_coef'] = $paracrm_row_sku['WORK_PROMO_SKU_field_PRICE_COEF'] ;
 				$row_sku['promo_qty_forecast'] = $paracrm_row_sku['WORK_PROMO_SKU_field_QTY_FORECAST'] ;
@@ -419,10 +419,20 @@ function specWbMrfoxy_promo_formEval( $post_data ) {
 				continue ;
 			}
 			
+			// Proceed to "fake join" to retrieve std prices
+			$fake_row = array() ;
+			$fake_row['WORK_PROMO_field_DATE_START'] = $form_data['date_start'] ;
+			$fake_row['WORK_PROMO_field_STORE'] = $form_data['store_code'] ;
+			$fake_row['WORK_PROMO_SKU_field_SKU_CODE'] = $arr['entry_key'] ;
+			paracrm_lib_file_joinGridRecord( 'WORK_PROMO_SKU', $fake_row ) ;
+			
+			// assemble
 			$row_sku = array() ;
 			$row_sku['sku_prodean'] = $arr['entry_key'] ;
 			$row_sku['sku_code'] = $arr['field_PROD_BRANDCODE'] ;
 			$row_sku['sku_desc'] = $arr['field_PROD_TXT'] ;
+			$row_sku['sku_uom'] = $arr['field_PROD_UOM'] ;
+			$row_sku['cli_price_unit'] = $fake_row['WORK_PROMO_SKU_field_PRICE_UNIT'] ;
 			$resp_data['list_sku'][] = $row_sku ;
 		}
 	}
@@ -546,7 +556,6 @@ function specWbMrfoxy_promo_formSubmit( $post_data ) {
 			$arr_ins = array() ;
 			$arr_ins['field_SKU_CODE'] = $sku_row['sku_prodean'] ;
 			$arr_ins['field_QTY_FORECAST'] = $sku_row['promo_qty_forecast'] ;
-			$arr_ins['field_PRICE_UNIT'] = $sku_row['cli_price_unit'] ;
 			$arr_ins['field_PRICE_COEF'] = $sku_row['promo_price_coef'] ;
 			paracrm_lib_data_insertRecord_file( 'WORK_PROMO_SKU',$filerecord_parent_id,$arr_ins) ;
 		}

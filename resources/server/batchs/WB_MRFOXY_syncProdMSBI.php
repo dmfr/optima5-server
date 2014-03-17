@@ -18,6 +18,7 @@ $_opDB->query("SET NAMES UTF8") ;
 include("$server_root/modules/paracrm/backend_paracrm.inc.php");
 
 $arr_prodEan_prodKey = array() ;
+$arr_prodKey_arrDb = array() ;
 $query = "SELECT * FROM op5_wonderful_prod_msbi.view_bible__PROD_LOG_entry" ;
 $result = $_opDB->query($query) ;
 while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
@@ -29,6 +30,8 @@ while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$arr_prodEan_arrProdKey[$prod_ean] = array() ;
 	}
 	$arr_prodEan_arrProdKey[$prod_ean][] = $arr['field_PROD_REF'] ;
+	
+	$arr_prodKey_arrDb[$arr['field_PROD_REF']] = $arr ;
 }
 
 foreach( $arr_prodEan_arrProdKey as $prod_ean => $arrProdKey ) {
@@ -37,8 +40,15 @@ foreach( $arr_prodEan_arrProdKey as $prod_ean => $arrProdKey ) {
 	}
 	$prod_key = reset($arrProdKey) ;
 	
-	$query = "UPDATE store_bible_IRI_PROD_entry SET field_PROD_BRANDCODE_str='$prod_key' WHERE entry_key='$prod_ean'" ;
-	$_opDB->query($query) ;
+	$arr_update = array() ;
+	$arr_update['field_PROD_BRANDCODE_str'] = $prod_key ;
+	$arr_update['field_PROD_TXT_str'] = $arr_prodKey_arrDb[$prod_key]['field_PROD_TXT'] ;
+	$arr_update['field_PROD_UOM_str'] = $arr_prodKey_arrDb[$prod_key]['field_UOM'] ;
+	
+	$arr_cond = array() ;
+	$arr_cond['entry_key'] = $prod_ean ;
+	
+	$_opDB->update('store_bible_IRI_PROD_entry',$arr_update,$arr_cond) ;
 }
 
 
