@@ -34,7 +34,7 @@ function do_post_request($url, $data, $optional_headers = null)
   return $response;
 }
 function oscario_http_post( $post_data, $fp=FALSE ) {
-	$_URL = 'http://150.251.219.1/oscario/edi.php' ;
+	$_URL = 'http://10.39.118.2/oscario/edi.php' ;
 	$_domain = 'paramountfr' ;
 	$_auth_username = 'ediMirAbv04' ;
 	$_auth_password = 'paracrm' ;
@@ -53,7 +53,7 @@ function oscario_http_post( $post_data, $fp=FALSE ) {
 }
 
 session_start() ;
-ini_set( 'memory_limit', '256M');
+ini_set( 'memory_limit', '512M');
 
 $app_root = dirname($_SERVER['SCRIPT_NAME']).'/../../..' ;
 $server_root=$app_root.'/server' ;
@@ -284,6 +284,7 @@ foreach( $fields as $position => $field ) {
 		case 'pcb_qte_pack' :  $target = 'field_QTE_SKU_dec' ; break ;
 		case 'eq_ut' : $target = 'field_EQ_UT_dec' ; break ;
 		case 'eq_kg' : $target = 'field_EQ_KG_dec' ; break ;
+		case 'prod_unit' : $target = 'field_UOM_str' ; break ;
 		
 		case 'prodgroup_code' : $target = '_' ; break ;
 		
