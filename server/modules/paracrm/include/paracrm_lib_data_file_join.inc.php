@@ -120,10 +120,21 @@ function paracrm_lib_file_joinPrivate_do( $file_code, $entry_field_code, $jSrcVa
 				$t_view_bible_entry = 'view_bible_'.$joinCondition['join_field_linkbible'].'_entry' ;
 				
 				switch( $joinCondition['join_field_linktype'] ) {
+					case 'entry_to_treenode' :
 					case 'treenode' :
 						$jSchemaCondition['link_values'] = array() ;
 						
-						$treenode_key = $_opDB->query_uniqueValue("SELECT treenode_key FROM {$t_view_bible_entry} WHERE entry_key='{$jSrcValue}'") ;
+						switch( $joinCondition['join_field_linktype'] ) {
+							case 'entry_to_treenode' :
+							$treenode_key = $_opDB->query_uniqueValue("SELECT treenode_key FROM {$t_view_bible_entry} WHERE entry_key='{$jSrcValue}'") ;
+							break ;
+							
+							case 'treenode' :
+							default :
+							$treenode_key = $jSrcValue ;
+							break ;
+						}
+						
 						$tidx = 0 ;
 						while( TRUE ) {
 							$tidx++ ;
@@ -313,10 +324,26 @@ function paracrm_lib_file_joinPrivate_getMap( $file_code ) {
 		
 		$arrJoinCondition['join_field_type'] = $arr_defineTarget['entry_field_type'] ;
 		if( $arr_defineTarget['entry_field_type'] == 'link' ) {
+			// Interro du field local => local linktype
+			$src_fileCode = ( $arrJoinCondition['join_local_alt_file_code'] != NULL ? $arrJoinCondition['join_local_alt_file_code'] : $file_code ) ;
+			$src_fileFieldCode = $arrJoinCondition['join_local_file_field_code'] ;
+			$query = "SELECT * FROM define_file_entry WHERE file_code='$src_fileCode' AND entry_field_code='$src_fileFieldCode'" ;
+			$res_local = $_opDB->query($query) ;
+			$arr_defineLocal = $_opDB->fetch_assoc($res_local) ;
+		
 			$arrJoinCondition['join_field_linkbible'] = $arr_defineTarget['entry_field_linkbible'] ;
 			switch( $arr_defineTarget['entry_field_linktype'] ) {
 				case 'treenode' :
-					$arrJoinCondition['join_field_linktype'] = 'treenode' ;
+					switch( $arr_defineLocal['entry_field_linktype'] ) {
+						case 'entry' :
+						$arrJoinCondition['join_field_linktype'] = 'entry_to_treenode' ;
+						break ;
+						
+						case 'treenode' :
+						default :
+						$arrJoinCondition['join_field_linktype'] = 'treenode' ;
+						break ;
+					}
 					break ;
 					
 				case 'entry' :
