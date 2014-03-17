@@ -16,29 +16,56 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoApprovalPanel',{
 			Optima5.Helper.logError('Spec:WbMrfoxy:PromoApprovalPanel','No WbMrfoxyPromoModel instance ?') ;
 		}
 		
+		var storeCfg = {
+			fields: ['color','code','text'],
+			data : [
+				{color:'', code:'_', text:'&#160;'},
+				{color:'green', code:'OK', text:'Approved'},
+				{color:'red', code:'NOK', text:'Denied'}
+			]
+		}
+		
 		Ext.apply(me,{
 			title: 'Approvals',
 			padding: '5px 10px',
 			fieldDefaults: {
 				labelAlign: 'left',
-				labelWidth: 75,
+				labelWidth: '50%',
 				anchor: '100%'
 			},
 			layout: 'anchor',
 			items: [{
-				xtype: 'checkbox',
-				boxLabel: 'Approved by Sales Director',
+				xtype: 'colorcombo',
+				queryMode: 'local',
+				forceSelection: true,
+				editable: false,
+				displayField: 'text',
+				valueField: 'code',
+				iconColorField: 'color',
+				store: storeCfg,
+				allowBlank: true,
+				name : 'approv_ds_code',
+				value: ( me.rowRecord.get('approv_ds') ? (me.rowRecord.get('approv_ds_ok') ? 'OK' : 'NOK' ) : '_' ),
+				fieldLabel: 'Sales Director',
 				readOnly: !Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQuery( me.rowRecord.get('country_code'), 'DS' ),
-				checked: me.rowRecord.get('approv_ds'),
-				boxLabelCls: (!Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQuery( me.rowRecord.get('country_code'), 'DS' ) ? 'op5-spec-mrfoxy-promorow-approval-disabled' : 'op5-spec-mrfoxy-promorow-approval-enabled'),
-				name: 'approv_ds'
 			},{
-				xtype: 'checkbox',
-				boxLabel: 'Approved by Financial Officer',
-				readOnly: !Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQuery( me.rowRecord.get('country_code'), 'DF' ),
-				boxLabelCls: (!Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQuery( me.rowRecord.get('country_code'), 'DF' ) ? 'op5-spec-mrfoxy-promorow-approval-disabled' : 'op5-spec-mrfoxy-promorow-approval-enabled'),
-				checked: me.rowRecord.get('approv_df'),
-				name: 'approv_df'
+				xtype: 'colorcombo',
+				queryMode: 'local',
+				forceSelection: true,
+				editable: false,
+				displayField: 'text',
+				valueField: 'code',
+				iconColorField: 'color',
+				store: storeCfg,
+				allowBlank: true,
+				name : 'approv_df_code',
+				value: ( me.rowRecord.get('approv_df') ? (me.rowRecord.get('approv_df_ok') ? 'OK' : 'NOK' ) : '_' ),
+				fieldLabel: 'Financial Officer',
+				readOnly: !Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQuery( me.rowRecord.get('country_code'), 'DF' )
+			},{
+				xtype:'textfield',
+				name:'obs_approval',
+				value: me.rowRecord.get('obs_approval')
 			}],
 			frame: true,
 			buttons: [
@@ -53,9 +80,25 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoApprovalPanel',{
 			form = me.getForm() ;
 			  
 		var data = {
-			approv_ds: form.findField('approv_ds').getValue(),
-			approv_df: form.findField('approv_df').getValue()
+			approv_ds: 0,
+			approv_ds_ok: 0,
+			approv_df: 0,
+			approv_df_ok: 0,
 		};
+		switch( form.findField('approv_ds_code').getValue() ) {
+			case 'OK' :
+				data.approv_ds_ok = 1 ;
+			case 'NOK' :
+				data.approv_ds = 1;
+				break ;
+		}
+		switch( form.findField('approv_df_code').getValue() ) {
+			case 'OK' :
+				data.approv_df_ok = 1 ;
+			case 'NOK' :
+				data.approv_df = 1;
+				break ;
+		}
 		
 		var ajaxParams = {
 			_moduleId: 'spec_wb_mrfoxy',

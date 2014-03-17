@@ -160,9 +160,12 @@ function specWbMrfoxy_promo_getGrid( $post_data ) {
 		$row['mechanics_detail'] = $paracrm_row['WORK_PROMO_field_MECH_DETAIL'] ;
 		$row['mechanics_text'] = $paracrm_row['WORK_PROMO_field_MECH_TYPE_tree_CLASS_TXT'].' - '.$paracrm_row['WORK_PROMO_field_MECH_DETAIL'] ;
 		$row['mechanics_rewardcard'] = $paracrm_row['WORK_PROMO_field_MECH_REWARDCARD'] ;
+		$row['currency'] = $paracrm_row['WORK_PROMO_field_CURRENCY'] ;
 		$row['cost_billing_code'] = $paracrm_row['WORK_PROMO_field_COST_BILLING'] ;
 		$row['cost_billing_text'] = $paracrm_row['WORK_PROMO_field_COST_BILLING_tree_PAYM_TXT'] ;
 		$row['cost_forecast'] = $paracrm_row['WORK_PROMO_field_COST_FORECAST'] ;
+		$row['cost_forecast_fix'] = $paracrm_row['WORK_PROMO_field_COST_FORECAST_FIX'] ;
+		$row['cost_forecast_var'] = $paracrm_row['WORK_PROMO_field_COST_FORECAST_VAR'] ;
 		$row['cost_real'] = $paracrm_row['WORK_PROMO_field_COST_REAL_INVOICE'] ;
 		$row['calc_uplift_vol'] = $paracrm_row['WORK_PROMO_field_CALC_UPLIFT_VOL'] ;
 		$row['calc_uplift_per'] = $paracrm_row['WORK_PROMO_field_CALC_UPLIFT_PER'] ;
@@ -171,7 +174,9 @@ function specWbMrfoxy_promo_getGrid( $post_data ) {
 		$row['obs_btl'] = $paracrm_row['WORK_PROMO_field_OBS_BTL'] ;
 		$row['obs_comment'] = $paracrm_row['WORK_PROMO_field_OBS_COMMENT'] ;
 		$row['approv_ds'] = $paracrm_row['WORK_PROMO_field_APPROV_DS'] ;
+		$row['approv_ds_ok'] = $paracrm_row['WORK_PROMO_field_APPROV_DS_OK'] ;
 		$row['approv_df'] = $paracrm_row['WORK_PROMO_field_APPROV_DF'] ;
+		$row['approv_df_ok'] = $paracrm_row['WORK_PROMO_field_APPROV_DF_OK'] ;
 		$row['benchmark_arr_ids'] = $paracrm_row['WORK_PROMO_field_BENCHMARK_ARR_IDS'] ;
 		
 		// nb weeks
@@ -459,8 +464,11 @@ function specWbMrfoxy_promo_formSubmit( $post_data ) {
 	
 	$arr_ins['field_COEF_PROFIT'] = 2 ;
 	
-	$arr_ins['field_COST_BILLING'] = $form_data['cost_billing'] ;
+	$arr_ins['field_CURRENCY'] = $form_data['currency'] ;
+	$arr_ins['field_COST_BILLING'] = $form_data['cost_billing_code'] ;
 	$arr_ins['field_COST_FORECAST'] = $form_data['cost_forecast'] ;
+	$arr_ins['field_COST_FORECAST_FIX'] = $form_data['cost_forecast_fix'] ;
+	$arr_ins['field_COST_FORECAST_VAR'] = $form_data['cost_forecast_var'] ;
 	$arr_ins['field_COST_REAL_INVOICE'] = $form_data['cost_forecast'] ;
 	
 	
@@ -633,7 +641,9 @@ function specWbMrfoxy_promo_setApproval( $post_data ) {
 	
 	$map = array() ;
 	$map['approv_ds'] = 'field_APPROV_DS' ;
+	$map['approv_ds_ok'] = 'field_APPROV_DS_OK' ;
 	$map['approv_df'] = 'field_APPROV_DF' ;
+	$map['approv_df_ok'] = 'field_APPROV_DF_OK' ;
 	$arr_update = array() ;
 	foreach( $map as $src => $dest ) {
 		$arr_update[$dest] = $data[$src] ;

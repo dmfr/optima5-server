@@ -14,6 +14,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormSkuGridPanel',{
 	
 	plugins: [{
 		ptype:'cellediting',
+		pluginId: 'cellediting',
 		clicksToEdit: 1
 	}],
 	
@@ -76,6 +77,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormSkuGridPanel',{
 				},{
 					text: 'Discount (%)',
 					dataIndex: 'promo_price_coef',
+					priceColumn: true,
 					width: 80,
 					renderer: function(v) {
 						return (100 - (v*100)) + ' ' + '%' ;
@@ -85,6 +87,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormSkuGridPanel',{
 				},{
 					text: 'Discount / UoM',
 					dataIndex: '',
+					priceColumn: true,
 					width: 80,
 					renderer: function(value,metaData,record) {
 						//console.log( record.get('cli_price_unit')+' '+record.get('cli_price_unit')+' '+record.get('cli_price_unit') ) ;
@@ -94,6 +97,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormSkuGridPanel',{
 				},{
 					text: 'Total Discount',
 					dataIndex: '',
+					priceColumn: true,
 					width: 120,
 					renderer: function(value,metaData,record) {
 						var stdCost = record.get('cli_price_unit') * record.get('promo_qty_forecast') ;
@@ -105,6 +109,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormSkuGridPanel',{
 		});
 		
 		this.callParent() ;
+		this.getPlugin('cellediting').on('edit',function() {
+			this.fireEvent('edit') ;
+		},this) ;
 	},
 	
 	populateSkuList: function( arrSkuList ) {
@@ -136,6 +143,25 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormSkuGridPanel',{
 				store.add( newRecord ) ;
 			}
 		}
+	},
+	
+	setPriceVisible: function( torf ) {
+		this.isPriceVisible = torf ;
+		Ext.Array.each( this.headerCt.query('[priceColumn]'), function( col ) {
+			col[torf ? 'show' : 'hide']();
+		},this) ;
+	},
+	getTotalDiscount: function() {
+		if( this.isPriceVisible ) {
+			forecastSku = 0 ;
+			this.getStore().each( function(record) {
+				var stdCost = record.get('cli_price_unit') * record.get('promo_qty_forecast') ;
+				var calcValue =  stdCost * ( 1 - record.get('promo_price_coef') ) ;
+				forecastSku += Ext.util.Format.round( calcValue, 0 ) ;
+			},this) ;
+			return forecastSku ;
+		}
+		return 0 ;
 	},
 	
 	setSkuData: function( arrRecords ) {

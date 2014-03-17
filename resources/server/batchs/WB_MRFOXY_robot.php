@@ -7,8 +7,6 @@ $resources_root=$app_root.'/resources' ;
 $templates_dir=$resources_root.'/server/templates' ;
 
 @include_once 'PHPExcel/PHPExcel.php' ;
-@include_once 'Mail.php' ;
-@include_once 'Mail/mime.php' ;
 
 include("$server_root/include/config.inc.php");
 include("$server_root/include/toolfunctions.inc.php");
@@ -39,7 +37,7 @@ function findRecipients( $country_code, $arr_roleCode ) {
 	
 	$arr_recipients = array() ;
 	foreach( $arr_userId as $userId ) {
-		$query = "SELECT field_USER_EMAIL FROM view_bible_USER_entry WHERE entry_key='{$userId}'" ;
+		$query = "SELECT field_USER_EMAIL FROM view_bible__USER_entry WHERE entry_key='{$userId}'" ;
 		$arr_recipients[] = $_opDB->query_uniqueValue($query) ;
 	}
 	return $arr_recipients ;
@@ -78,23 +76,17 @@ function getPromoDesc( $row, $include_finance=FALSE ) {
 }
 
 function mailFactory( $recipients, $subject, $body ) {
-	$headers['From'] = '"Mr Foxy, Promotion Tool" <noreply@wonderfulbrands.com>' ;
-	$headers['To'] = implode(',',$recipients) ;
-	$headers['Subject'] = '[MrFoxy] '.$subject ;
-	$mime = new Mail_mime("\r\n");
 	
 	$email_text = "Hi,\r\nThis is an automated email from Mr.Foxy\r\n{$body}\r\n\r\n\r\nDo not respond directly to this message.\r\n\r\nMrFoxy access:\r\nhttp://paracrm.kn-abbeville.fr\r\n\r\nShould you have any question or need login ID,\r\nplease contact mrfoxy@wonderfulbrands.com\r\n\r\n" ;
 	
-	$mime->setTXTBody($email_text);
-	$mimeparams=array();
-	$mimeparams['text_encoding']="8bit";
-	$mimeparams['text_charset']="UTF-8";
-	$mimeparams['html_charset']="UTF-8"; 
-	$mimeparams['head_charset']="UTF-8"; 
-	$body = $mime->get($mimeparams);
-	$headers = $mime->headers($headers);
-	$mail_obj =& Mail::factory('smtp', array('host' => '127.0.0.1', 'port' => 25));
-	$mail_obj->send($recipients, $headers, $body) ;
+	$email = new Email() ;
+	$email->set_From( 'noreply@wonderfulbrands.com', "Mr Foxy, Promotion Tool" ) ;
+	foreach( $recipients as $to_email ) {
+		$email->add_Recipient( $to_email ) ;
+	}
+	$email->set_Subject( '[MrFoxy] '.$subject ) ;
+	$email->set_text_body( $email_text ) ;
+	$email->send() ;
 }
 
 
@@ -122,12 +114,20 @@ function handleStatusNew( $row ) {
 function handleStatusValidation( $row ) {
 	if( in_array($row['status_code'],array('20_WAITVALID')) ) {} else return ;
 	
-	if( $row['approv_dm'] && $row['approv_df'] ) {} else return ;
+	if( $row['approv_ds'] && $row['approv_df'] ) {} else return ;
 	
 	// Adv status
 	$filerecord_id = $row['_filerecord_id'] ;
 	$arr_update = array() ;
-	$arr_update['field_STATUS'] = '40_SCHED' ;
+	if( $row['approv_ds_ok'] && $row['approv_df_ok'] ) {
+		$arr_update['field_STATUS'] = '40_SCHED' ;
+	} else {
+		$arr_update['field_STATUS'] = '00_REJECTED' ;
+		$arr_update['field_APPROV_DS'] = 0 ;
+		$arr_update['field_APPROV_DS_OK'] = 0 ;
+		$arr_update['field_APPROV_DF'] = 0 ;
+		$arr_update['field_APPROV_DF_OK'] = 0 ;
+	}
 	paracrm_lib_data_updateRecord_file( 'WORK_PROMO' , $arr_update, $filerecord_id ) ;
 	
 	$recipients = findRecipients($row['country_code'], array('CS','PM')) ;

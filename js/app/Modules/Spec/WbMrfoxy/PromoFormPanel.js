@@ -17,7 +17,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 			bodyCls: 'op5-spec-mrfoxy-mainmenu',
 			items:[ Ext.apply(me.initHeaderCfg(),{
 				width: width,
-				height: 125
+				height: 95
 			}),{
 				xtype:'box',
 				html:'&#160;',
@@ -29,19 +29,23 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 				width: width,
 				flex: 1,
 				items:[Ext.apply(me.initFormCfg(),{
-					region:'center'
+					region:'center',
+					flex: 2,
 				}),Ext.create('Optima5.Modules.Spec.WbMrfoxy.PromoFormSkuGridPanel',{
 					region:'south',
-					height: 250,
+					flex: 1,
 					title: 'Promotion SKUs',
 					collapsible: true,
-					collapsed: true,
+					collapsed: false,
 					listeners: {
 						collapse: function() {
-							this.getFormPanel().child('toolbar').setVisible(true) ;
+							this.calcLayout() ;
 						},
 						expand: function() {
-							this.getFormPanel().child('toolbar').setVisible(false) ;
+							this.calcLayout() ;
+						},
+						edit: function() {
+							this.forecastCalc() ;
 						},
 						scope: this
 					}
@@ -115,6 +119,12 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 				},{
 					xtype:'hidden',
 					name:'brand_code',
+				},{
+					xtype:'hidden',
+					name:'currency',
+				},{
+					xtype:'hidden',
+					name:'cost_forecast',
 				},{
 					xtype:'fieldcontainer',
 					flex: 4,
@@ -301,10 +311,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 						fieldLabel: 'Payment',
 						labelWidth: 60,
 						anchor: '100%',
-						name: 'cost_billing',
-						value : 'BB',
+						name: 'cost_billing_code',
 						listeners:{
-							//change: function(){ me.calcLayout() },
+							change: function(){ me.calcLayout() },
 							scope:me
 						}
 					},{
@@ -313,39 +322,80 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 							type: 'hbox',
 							align: 'stretch'
 						},
-						fieldLabel: 'Forecast',
-						labelWidth: 60,
+						fieldLabel: 'Forecasted cost',
+						labelStyle: 'font-style:italic',
+						labelWidth: 110,
 						items:[{
-							xtype:'numberfield',
-							hideTrigger:true,
-							name: 'cost_forecast',
-							width: 50,
-							minValue: 0
+							xtype:'displayfield',
+							name: 'cost_forecast_display',
+							fieldStyle: 'font-weight:bold'
 						},{
 							xtype:'box',
 							html:'&#160;',
 							width: 6
 						},{
-							xtype:'combobox',
-							name:'forecast_currency',
+							xtype: 'displayfield',
+							displayName: 'currency'
+						}]
+					},{
+						xtype: 'fieldcontainer',
+						layout:{
+							type: 'hbox',
+							align: 'stretch'
+						},
+						fieldLabel: 'Fixed cost',
+						itemId: 'cost_forecast_fix',
+						labelWidth: 110,
+						items:[{
+							xtype:'numberfield',
+							hideTrigger:true,
+							name: 'cost_forecast_fix',
 							width: 50,
-							forceSelection: true,
-							editable: false,
-							store: {
-								fields: ['code','lib'],
-								data : [
-									{code:'EUR', lib:'€'},
-									{code:'GBP', lib:'£'},
-									{code:'USD', lib:'$'}
-								]
-							},
-							queryMode: 'local',
-							displayField: 'lib',
-							valueField: 'code',
-							value : 'EUR',
+							minValue: 0,
+							value: 0,
+							listeners: {
+								change: function(){ me.forecastCalc() },
+								scope:me
+							}
+						},{
+							xtype:'box',
+							html:'&#160;',
+							width: 6
+						},{
+							xtype: 'displayfield',
+							displayName: 'currency'
+						}]
+					},{
+						xtype: 'fieldcontainer',
+						layout:{
+							type: 'hbox',
+							align: 'stretch'
+						},
+						fieldLabel: 'Variable cost',
+						itemId: 'cost_forecast_var',
+						labelWidth: 110,
+						items:[{
+							xtype:'numberfield',
+							hideTrigger:true,
+							name: 'cost_forecast_var',
+							width: 50,
+							minValue: 0,
+							value: 0,
+							listeners: {
+								change: function(){ me.forecastCalc() },
+								scope:me
+							}
+						},{
+							xtype:'box',
+							html:'&#160;',
+							width: 6
+						},{
+							xtype: 'displayfield',
+							displayName: 'currency'
 						}]
 					},{
 						xtype:'container',
+						hidden:true,
 						itemId: 'cntFinanceGraph',
 						cls:'op5-waiting',
 						height:32,
@@ -530,6 +580,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 		var me = this ;
 			form = me.getFormPanel().getForm() ;
 			  
+		// partie MECANIQUE / DETAIL
 		var mechanicsCode = form.findField('mechanics_code').getValue() ;
 		me.query('#mechanics_mono_discount')[0].setVisible( mechanicsCode=='MONO_DIS' ) ;
 		form.findField('mechanics_mono_discount').allowBlank = !(mechanicsCode=='MONO_DIS') ;
@@ -537,7 +588,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 		form.findField('mechanics_mono_pricecut').allowBlank = !(mechanicsCode=='MONO_CUT') ;
 		me.query('#mechanics_multi')[0].setVisible( mechanicsCode=='MULTI' ) ;
 		form.findField('mechanics_multi_combo').allowBlank = !(mechanicsCode=='MULTI') ;
-			  
+		
+		// partie FINANCE
 		var isProd = (form.findField('is_prod').getValue()=='PROD') ;
 		me.query('#fsFinance')[0].setVisible( isProd ) ;
 		Ext.Array.each( me.query('#fsFinance')[0].query('field'), function(field){
@@ -545,8 +597,25 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 		});
 		me.query('#fsSimu')[0].setVisible( !isProd ) ;
 		
+		// partie FINANCE FORECAST
+		var cost_billing_code = form.findField('cost_billing_code').getValue() ;
+		if( me.getSkuList() ) {
+			me.getSkuList().setPriceVisible( (cost_billing_code=='DIS' || cost_billing_code=='MX') ) ;
+		}
+		me.query('#cost_forecast_fix')[0].setVisible( (cost_billing_code=='DIS' || cost_billing_code=='MX' || cost_billing_code=='BB') ) ;
+		me.query('#cost_forecast_var')[0].setVisible( (cost_billing_code=='MX' || cost_billing_code=='BB') ) ;
+		
+		// volet LISTE SKU
 		if( !isProd && me.getSkuList() ) {
-			me.getSkuList().destroy() ;
+			//me.getSkuList().destroy() ;
+			me.child('panel').remove( me.getSkuList() ) ;
+		}
+		
+		// toolbar (submit)
+		if( me.getSkuList() && !(me.getSkuList().collapsed) ) {
+			me.getFormPanel().child('toolbar').setVisible(false) ;
+		} else {
+			me.getFormPanel().child('toolbar').setVisible(true) ;
 		}
 		
 		form.findField('_do_submit').setVisible( isProd ) ;
@@ -618,6 +687,25 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 			scope: me
 		}) ;
 	},
+	forecastCalc: function() {
+		var me = this,
+			values = me.getFormPanel().getForm().getValues() ;
+		
+		var total = 0,
+			cost_forecast_fix = parseInt(values.cost_forecast_fix),
+			cost_forecast_var = parseInt(values.cost_forecast_var) ;
+		if( cost_forecast_fix != NaN ) {
+			total += cost_forecast_fix ;
+		}
+		if( cost_forecast_var != NaN ) {
+			total += cost_forecast_var ;
+		}
+		if( me.getSkuList() ) {
+			total += me.getSkuList().getTotalDiscount() ;
+		}
+		me.getFormPanel().getForm().findField('cost_forecast').setValue(total) ;
+		me.getFormPanel().getForm().findField('cost_forecast_display').setValue(total) ;
+	},
 	
 	loadDataFromRecord: function( promoRecord ) {
 		var data = promoRecord.getData(true) ;
@@ -673,6 +761,12 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 		var form = me.getFormPanel().getForm() ;
 		form.setValues( data ) ;
 			  
+		Ext.Array.each( me.query('displayfield'), function(df) {
+			if( df.displayName == 'currency' ) {
+				df.setValue( data.currency ) ;
+			}
+		}) ;
+			  
 		if( data.promo_sku && me.getSkuList() ) {
 			me.getSkuList().setSkuData(data.promo_sku) ;
 		}
@@ -681,6 +775,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 		
 		me.suspendEvents = false ;
 		me.evalForm() ;
+		
+		me.forecastCalc() ;
 	},
 	
 	headerAttachEvent: function() {
