@@ -86,6 +86,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 							var tmpProgress = record.get('status_percent') / 100 ;
 							var tmpText = record.get('status_text') ;
 								var b = new Ext.ProgressBar({height: 15, cls: 'op5-spec-mrfoxy-promolist-progress'});
+								if( record.get('status_color') ) {
+									//b.setStyle(
+								}
 								b.updateProgress(tmpProgress,tmpText);
 								v = Ext.DomHelper.markup(b.getRenderTree());
 								b.destroy() ;

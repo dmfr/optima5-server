@@ -16,7 +16,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.StatPerformanceResultView',{
 					break ;
 				
 				case 'FROM_DATE' :
-					timeTxt = 'from Date ' + queryVars['break_date'] + ' to Crop ' ;
+					timeTxt = 'Crop to Go ' + queryVars['break_date'] ;
 					break ;
 				
 				default :

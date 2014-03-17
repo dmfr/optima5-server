@@ -111,7 +111,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.StatPerformancePanel',{
 							data : [
 								{time_mode:'FULL', time_text:'Whole year/crop'},
 								{time_mode:'TO_DATE', time_text:'Crop to Date'},
-								{time_mode:'FROM_DATE', time_text:'from Date to Crop'}
+								{time_mode:'FROM_DATE', time_text:'Crop to go'}
 							]
 						},
 						allowBlank: false,
