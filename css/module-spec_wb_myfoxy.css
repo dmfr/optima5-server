@@ -485,3 +485,30 @@ table.op5-spec-mrfoxy-statresult-tbl > tbody > tr > td.op5-spec-mrfoxy-statresul
 	cursor: pointer;
 }
 
+
+
+.op5-spec-mrfoxy-graphinfo {
+	height: 16px;
+}
+.op5-spec-mrfoxy-graphinfo-item {
+	float: left;
+	position: relative;
+	padding-left: 12px ;
+	line-height: 8px ;
+	font-size: 8pt;
+	margin-right: 32px;
+}
+.op5-spec-mrfoxy-graphinfo-item-icon {
+	position: absolute ;
+	left: 0px ;
+	top: 0px ;
+	height: 8px;
+	width: 8px;
+	border: 1px solid #aaa ;
+}
+.op5-spec-mrfoxy-graphinfo-baseline {
+	background-color: green ;
+}
+.op5-spec-mrfoxy-graphinfo-uplift {
+	background-color: red ;
+}

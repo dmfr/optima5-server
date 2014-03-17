@@ -3,7 +3,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 	
 	requires: [
 		'Optima5.Modules.Spec.WbMrfoxy.PromoApprovalPanel',
-		'Ext.ux.dams.FieldSet'
+		'Ext.ux.dams.FieldSet',
+		'Optima5.Modules.Spec.WbMrfoxy.GraphInfoView'
 	],
 	
 	rowRecord: null,
@@ -225,11 +226,22 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 				flex:1
 			},{
 				xtype:'container',
-				itemId: 'cntChart' ,
-				cls:'op5-waiting',
-				layout:'fit',
+				layout:{
+					type: 'vbox',
+					align: 'stretch'
+				},
 				flex:1,
-				margin: 10
+				margin: '0px 0px 0px 10px',
+				items:[{
+					xtype:'container',
+					itemId: 'cntChart' ,
+					cls:'op5-waiting',
+					layout:'fit',
+					flex:1
+				},{
+					xtype:'op5specmrfoxygraphinfo',
+					margin: 4
+				}]
 			}],
 			autoDestroy: true
 		}); 

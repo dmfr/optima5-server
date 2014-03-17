@@ -1,7 +1,10 @@
 Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 	extend: 'Ext.panel.Panel',
 	
-	requires:['Optima5.Modules.Spec.WbMrfoxy.PromoFormSkuGridPanel'],
+	requires:[
+		'Optima5.Modules.Spec.WbMrfoxy.PromoFormSkuGridPanel',
+		'Optima5.Modules.Spec.WbMrfoxy.GraphInfoView'
+	],
 	
 	initComponent: function() {
 		var me = this,
@@ -480,6 +483,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 						layout:'fit',
 						cls:'op5-waiting',
 						height:300,
+						margin: 4
+					},{
+						xtype:'op5specmrfoxygraphinfo',
 						margin: 4
 					}]
 				}]
