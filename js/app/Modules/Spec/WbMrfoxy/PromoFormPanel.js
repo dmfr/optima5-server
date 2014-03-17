@@ -134,6 +134,19 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 						items:[{
 							xtype: 'datefield',
 							startDay: 1,
+							fieldLabel: 'Supply begins',
+							name: 'date_supply',
+							format: 'Y-m-d',
+							allowBlank: false,
+							listeners: {
+								change: function() {
+									me.evalForm() ;
+								},
+								scope: me
+							}
+						},{
+							xtype: 'datefield',
+							startDay: 1,
 							fieldLabel: 'Date start',
 							name: 'date_start',
 							format: 'Y-m-d',
@@ -578,8 +591,13 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 	},
 	calcLayout: function() {
 		var me = this ;
-			form = me.getFormPanel().getForm() ;
+			form = me.getFormPanel().getForm(),
+			isProd = (form.findField('is_prod').getValue()=='PROD') ;
 			  
+		// partie DATES
+		form.findField('date_supply').setVisible( isProd ) ;
+		form.findField('date_supply').allowBlank = !(isProd) ;
+			
 		// partie MECANIQUE / DETAIL
 		var mechanicsCode = form.findField('mechanics_code').getValue() ;
 		me.query('#mechanics_mono_discount')[0].setVisible( mechanicsCode=='MONO_DIS' ) ;
@@ -590,7 +608,6 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 		form.findField('mechanics_multi_combo').allowBlank = !(mechanicsCode=='MULTI') ;
 		
 		// partie FINANCE
-		var isProd = (form.findField('is_prod').getValue()=='PROD') ;
 		me.query('#fsFinance')[0].setVisible( isProd ) ;
 		Ext.Array.each( me.query('#fsFinance')[0].query('field'), function(field){
 			field.allowBlank = !isProd ;

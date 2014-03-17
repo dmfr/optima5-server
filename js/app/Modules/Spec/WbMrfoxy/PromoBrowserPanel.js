@@ -34,6 +34,7 @@ Ext.define('WbMrfoxyPromoModel', {
         {name: 'mechanics_code',   type: 'string'},
         {name: 'mechanics_detail',   type: 'string'},
         {name: 'mechanics_text',   type: 'string'},
+        {name: 'date_supply',   type: 'string'},
         {name: 'date_start',   type: 'string'},
         {name: 'date_end',   type: 'string'},
 		  {name: 'date_length_weeks', type: 'int'},
