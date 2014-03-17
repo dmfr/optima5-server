@@ -52,7 +52,6 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.MainMenu',{
 				{type_separator:true, separator_label: 'Analysis / Queries'},
 				{type_action:true, action_caption: 'Performance Analysis', action_sendEvent:'stat_performance', action_iconCls:'op5-spec-mrfoxy-icon-statperf'},
 				{type_action:true, action_caption: 'Financial Dashboard', action_sendEvent:'stat_finance', action_iconCls:'op5-spec-mrfoxy-icon-statfinance'},
-				{type_action:true, action_caption: 'Query engine', action_sendEvent:'stat_query', action_iconCls:'op5-spec-mrfoxy-icon-statquery'},
 			]
 		}) ;
 		 
