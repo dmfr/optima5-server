@@ -82,6 +82,60 @@ function specWbMrfoxy_stat_exportXLS( $post_data ) {
 	if( !$objPHPExcel ) {
 		die() ;
 	}
+	foreach( $data as $idx => $panel ) {
+		$objPHPExcel->setActiveSheetIndex($idx);
+		$objWorksheet = $objPHPExcel->getActiveSheet();
+		
+		
+		$queryVars = $panel['query_vars'] ;
+		$header_table = array() ;
+		if( $queryVars['time_mode'] ) {
+			$timeTxt = '' ;
+			switch( $queryVars['time_mode'] ) {
+				case 'TO_DATE' :
+					$timeTxt = 'Crop to Date ' + $queryVars['break_date'] ;
+					break ;
+				
+				case 'FROM_DATE' :
+					$timeTxt = 'Crop to Go ' + $queryVars['break_date'] ;
+					break ;
+				
+				default :
+					$timeTxt = 'Whole year/crop' ;
+					break ;
+			}
+			$header_table[] = array(
+				'fieldLabel' => 'Time mode',
+				'fieldValue' => $timeTxt
+			) ;
+		}
+		if( $queryVars['store_text'] ) {
+			$header_table[] = array(
+				'fieldLabel' => 'Stores',
+				'fieldValue' => $queryVars['store_text']
+			) ;
+		} else if( $queryVars['country_text'] ) {
+			$header_table[] = array(
+				'fieldLabel' => 'Country',
+				'fieldValue' => $queryVars['country_text']
+			) ;
+		}
+		if( $queryVars['prod_text'] ) {
+			$header_table[] = array(
+				'fieldLabel' => 'Products',
+				'fieldValue' => $queryVars['prod_text']
+			) ;
+		}
+		
+		$objWorksheet->insertNewRowBefore(1, count($header_table)+1);
+		$row = 1 ;
+		foreach( $header_table as $header_row ) {
+			$objWorksheet->SetCellValue("A{$row}", $header_row['fieldLabel'] );
+			$objWorksheet->getStyle("B{$row}")->getFont()->setBold(TRUE);
+			$objWorksheet->SetCellValue("B{$row}", $header_row['fieldValue'] );
+			$row++ ;
+		}
+	}
 	
 	$tmpfilename = tempnam( sys_get_temp_dir(), "FOO");
 	$objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
