@@ -572,6 +572,22 @@ function specWbMrfoxy_promo_formSubmit( $post_data ) {
 		$arr_ins['field_PROMO_CODE'] = $promo_id ;
 	}
 	
+	// Comparable promos
+	$grid_filter = array() ;
+	if( $form_data['prod_code'] ) {
+		$grid_filter[] = array('field'=>'prod_text', 'type'=>'list', 'value'=>specWbMrfoxy_tool_getProdNodes($form_data['prod_code'])) ;
+	}
+	if( $form_data['store_code'] ) {
+		$grid_filter[] = array('field'=>'store_text', 'type'=>'list', 'value'=>specWbMrfoxy_tool_getStoreNodes($form_data['store_code'])) ;
+	}
+	$ttmp = specWbMrfoxy_promo_getGrid(array('filter_isProd'=>1, 'filter_isDone'=>1, 'filter_country'=>$form_data['country_code'],'filter'=>json_encode($grid_filter))) ;
+	$benchmark_arr_ids = array() ;
+	foreach( $ttmp['data'] as $test_row ) {
+		$benchmark_arr_ids[] = $test_row['_filerecord_id'] ;
+	}
+	$arr_ins['field_BENCHMARK_ARR_IDS'] = json_encode($benchmark_arr_ids) ;
+	
+	
 	if( $form_data['_filerecord_id'] ) {
 		$filerecord_parent_id = paracrm_lib_data_updateRecord_file( 'WORK_PROMO',$arr_ins, $form_data['_filerecord_id']) ;
 	} else {
