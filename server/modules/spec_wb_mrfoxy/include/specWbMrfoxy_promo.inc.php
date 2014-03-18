@@ -312,6 +312,32 @@ function specWbMrfoxy_promo_getSideGraph( $post_data ) {
 	}
 	return array('success'=>false) ;
 }
+function specWbMrfoxy_promo_getSideBenchmark( $post_data ) {
+	global $_opDB ;
+	$src_filerecordId = $post_data['filerecord_id'] ;
+	$ttmp = specWbMrfoxy_promo_getGrid( array(
+		'_load_details'=>true,
+		'filter_id'=>json_encode(array($src_filerecordId))
+	) ) ;
+	if( count($ttmp['data']) != 1 ) {
+		die() ;
+	}
+	$promo_record = $ttmp['data'][0] ;
+	
+	
+	
+	$grid_filter = array() ;
+	if( $promo_record['prod_code'] ) {
+		$grid_filter[] = array('field'=>'prod_text', 'type'=>'list', 'value'=>specWbMrfoxy_tool_getProdNodes($promo_record['prod_code'])) ;
+	}
+	if( $promo_record['store_code'] ) {
+		$grid_filter[] = array('field'=>'store_text', 'type'=>'list', 'value'=>specWbMrfoxy_tool_getStoreNodes($promo_record['store_code'])) ;
+	}
+	$json = specWbMrfoxy_promo_getGrid(array('filter_isProd'=>1, 'filter_isDone'=>1, 'filter_country'=>$promo_record['country_code'],'filter'=>json_encode($grid_filter))) ;
+	return $json ;
+}
+
+
 
 function specWbMrfoxy_promo_formEval( $post_data ) {
 	global $_opDB ;

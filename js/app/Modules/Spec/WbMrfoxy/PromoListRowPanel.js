@@ -240,6 +240,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 					flex:1
 				},{
 					xtype:'op5specmrfoxygraphinfo',
+					itemId: 'lgdChart' ,
+					hidden: true,
 					margin: 4
 				}]
 			}],
@@ -247,7 +249,11 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 		}); 
 		
 		this.callParent() ;
-		this.fetchGraph() ;
+		if( this.rowRecord.get('status_percent') <= 20 ) {
+			this.fetchBenchmark() ;
+		} else {
+			this.fetchGraph() ;
+		}
 	},
 	fetchGraph: function() {
 		var me = this ;
@@ -259,7 +265,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 			},
 			success: function(response) {
 				var ajaxData = Ext.decode(response.responseText),
-					cntChart = me.query('#cntChart')[0] ;
+					cntChart = me.query('#cntChart')[0],
+					lgdChart = me.query('#lgdChart')[0] ;
 				
 				cntChart.removeCls('op5-waiting') ;
 				cntChart.removeAll() ;
@@ -271,11 +278,79 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 						RESchart_static: ajaxData.RESchart_static,
 						drawChartLegend: false
 					}) ;
+					lgdChart.setVisible(true) ;
 				}
 			},
 			scope: me
 		}) ;
-		
+	},
+	fetchBenchmark: function() {
+		var me = this,
+			cntChart = me.query('#cntChart')[0] ;
+		cntChart.add({
+			xtype:'grid',
+			itemId: 'gridBenchmark',
+			store: {
+				model: 'WbMrfoxyPromoModel',
+				autoLoad: true,
+				remoteSort: true,
+				remoteFilter: true,
+				proxy: this.optimaModule.getConfiguredAjaxProxy({
+					extraParams : {
+						_moduleId: 'spec_wb_mrfoxy',
+						_action: 'promo_getSideBenchmark',
+						filerecord_id: me.rowRecord.get('_filerecord_id')
+					},
+					reader: {
+						type: 'json',
+						root: 'data',
+						totalProperty: 'total'
+					}
+				})
+			},
+			columns: [{
+				text: '<b>Promo#</b>',
+				dataIndex: 'promo_id',
+				width: 150,
+				renderer: function(v) {
+					return ''+v+'' ;
+				}
+			},{
+				text: 'Uplift(kg)',
+				dataIndex: 'calc_uplift_vol',
+				width: 70
+			},{
+				text: 'Uplift(%)',
+				dataIndex: 'calc_uplift_per',
+				width: 70
+			},{
+				text: 'Cost',
+				width: 70,
+				renderer: function(v,m,r) {
+					if( r.get('cost_real') > 0 ) {
+						return r.get('cost_real') ;
+					} else {
+						return r.get('cost_forecast') ;
+					}
+				}
+			},{
+				text: 'Cost/kg',
+				width: 70,
+				renderer: function(v,m,r) {
+					var cost,
+						upliftKg = r.get('calc_uplift_vol') ;
+					if( upliftKg <= 0 ) {
+						return '' ;
+					}
+					if( r.get('cost_real') > 0 ) {
+						cost = r.get('cost_real') ;
+					} else {
+						cost = r.get('cost_forecast') ;
+					}
+					return Math.round( (cost/upliftKg)*100 ) / 100 ;
+				}
+			}]
+		}) ;
 	},
 	
 	openApproval: function(e) {
