@@ -279,7 +279,7 @@ function paracrm_queries_paginate_getGridRow( &$RES, $RES_labels_tab, $arr_stati
 				{
 					$ref_value = $RES['RES_groupKey_selectId_value'][$group_key][$select_id] ;
 					if( is_numeric($ref_value) ) {
-						if( $RES['RES_selectId_round'] > 0 ) {
+						if( $RES['RES_selectId_round'][$select_id] > 0 ) {
 							$row[$dataIndex] = round($ref_value,$RES['RES_selectId_round'][$select_id]) ;
 						} else {
 							$row[$dataIndex] = round($ref_value) ;

@@ -380,11 +380,23 @@ function paracrm_queries_charts_getResChart( $RES, $queryResultChartModel ) {
 					$value = $RES['RES_selectId_nullValue'][$select_id] ;
 				} else {
 					$value = $RES['RES_groupKey_selectId_value'][$key_id][$select_id] ;
+					$cfg_round = $RES['RES_selectId_round'][$select_id] ;
+					if( $cfg_round > 0 ) {
+						$value = round($value,$cfg_round) ;
+					} else {
+						$value = round($value) ;
+					}
 				}
 			}
 			
 			if( isset($RES['RES_selectId_groupKey_value']) ) { // mode QMERGE
 				$value = $RES['RES_selectId_groupKey_value'][$select_id][$key_id] ;
+				$cfg_round = $RES['RES_selectId_infos'][$select_id]['math_round'] ;
+				if( $cfg_round > 0 ) {
+					$value = round($value,$cfg_round) ;
+				} else {
+					$value = round($value) ;
+				}
 			}
 			
 			$sRES_serieValue[] = $value ;
