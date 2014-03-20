@@ -16,11 +16,12 @@ Ext.define('Ext.ux.ComponentRowExpander', {
 		this.callParent(arguments) ;
 		
 		var view = grid.getView() ;
+		view.on('resize', this.onResize, this) ;
 		view.on('refresh', this.onRefresh, this);
 		view.on('expandbody', this.onExpand, this);
 		
 		grid.on('destroy', this.onDestroyGrid, this) ;
-		grid.headerCt.on('columnresize', this.onColumnResize, this) ;
+		grid.headerCt.on('columnresize', this.onResize, this) ;
 		
 		this.obj_recordId_componentId = {} ;
 	},
@@ -47,6 +48,7 @@ Ext.define('Ext.ux.ComponentRowExpander', {
 			
 			this.obj_recordId_componentId[recordId] = newComponent.getId() ;
 		}
+		this.onResize() ;
 	},
 	
 	onRefresh: function(view) {
@@ -105,7 +107,7 @@ Ext.define('Ext.ux.ComponentRowExpander', {
 		},this);
 	},
 	
-	onColumnResize: function() {
+	onResize: function() {
 		Ext.Object.each( this.obj_recordId_componentId, function( recordId, cmpId ) {
 			Ext.getCmp(cmpId).doComponentLayout();
 		}) ;
