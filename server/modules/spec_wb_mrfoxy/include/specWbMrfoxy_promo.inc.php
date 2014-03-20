@@ -307,7 +307,7 @@ function specWbMrfoxy_promo_getSideGraph( $post_data ) {
 	$post_test['RES_id'] = $json['RES_id'] ;
 	$json = paracrm_queries_qbookTransaction( $post_test ) ;
 	
-	if( $json['tabs'] ) {
+	if( $json['tabs'][1]['RESchart_static'] ) {
 		return array('success'=>true, 'RESchart_static'=>$json['tabs'][1]['RESchart_static']) ;
 	}
 	return array('success'=>false) ;

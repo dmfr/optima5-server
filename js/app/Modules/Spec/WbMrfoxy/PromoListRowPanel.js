@@ -271,6 +271,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 				cntChart.removeCls('op5-waiting') ;
 				cntChart.removeAll() ;
 				if( ajaxData.success == true ) {
+					lgdChart.setVisible(true) ;
 					cntChart.add({
 						xtype: 'op5crmbasequeryresultchartstatic',
 						optimaModule: me.optimaModule,
@@ -278,7 +279,6 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 						RESchart_static: ajaxData.RESchart_static,
 						drawChartLegend: false
 					}) ;
-					lgdChart.setVisible(true) ;
 				}
 			},
 			scope: me
@@ -287,6 +287,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 	fetchBenchmark: function() {
 		var me = this,
 			cntChart = me.query('#cntChart')[0] ;
+		cntChart.removeAll() ;
 		cntChart.add({
 			xtype:'grid',
 			itemId: 'gridBenchmark',

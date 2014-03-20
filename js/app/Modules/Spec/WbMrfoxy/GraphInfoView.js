@@ -17,7 +17,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.GraphInfoView',{
 		fields: ['iconCls', 'text'],
 		data:[
 			{iconCls: 'op5-spec-mrfoxy-graphinfo-baseline', text:'Baseline'},
-			{iconCls: 'op5-spec-mrfoxy-graphinfo-uplift', text:'Uplift'}
+			{iconCls: 'op5-spec-mrfoxy-graphinfo-uplift', text:'Real Sales'}
 		]
 	}
 });
