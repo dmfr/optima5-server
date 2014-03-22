@@ -47,8 +47,14 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 							Ext.apply(options.params, params);
 						},
 						load: function(store) {
-							//store.sort('people_name') ;
-						}
+							// why previous H4CK on PromoBrowserPanel ? : we need to make sure grid filters have been set -before- this call
+							// ... because show/hide column headers triggers headerCt getMenu() and this should not happen before FilterFeature::addEvents
+							var headerCt = me.getComponent('pCenter').headerCt,
+								isProd = me.parentBrowserPanel.filterIsProd ;
+							headerCt.down('[isColumnStatus]')[isProd ? 'show' : 'hide']();
+							headerCt.down('[isColumnBrand]')[!isProd ? 'show' : 'hide']();
+						},
+						scope: me
 					}
 				},
 				progressRenderer: (function () {
@@ -458,10 +464,6 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 		},me,{single:true});
 		
 		me.mon(me.parentBrowserPanel,'tbarselect',function(){
-			var headerCt = me.getComponent('pCenter').headerCt,
-				isProd = me.parentBrowserPanel.filterIsProd ;
-			headerCt.down('[isColumnStatus]')[isProd ? 'show' : 'hide']();
-			headerCt.down('[isColumnBrand]')[!isProd ? 'show' : 'hide']();
 			me.reload() ;
 		},me) ;
 	},

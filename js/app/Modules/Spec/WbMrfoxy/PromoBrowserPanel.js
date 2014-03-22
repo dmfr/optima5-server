@@ -255,9 +255,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoBrowserPanel',{
 			this.selectIsProd(true, true) ;
 		}
 		
-		Ext.defer( function() {
-			this.fireEvent('tbarselect') ; // TODO: HACK : Use menucreate event from headerCt !!
-		},100,this) ;
+		this.fireEvent('tbarselect') ;
 	},
 	
 	onSelectCountry: function(silent) {
