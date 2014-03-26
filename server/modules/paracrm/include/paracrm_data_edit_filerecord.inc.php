@@ -334,6 +334,9 @@ function paracrm_data_editTransaction_fileRecord_init( $post_data , &$arr_saisie
 		
 		switch( $arr['file_type'] )
 		{
+			case 'calendar' :
+				break ;
+			
 			case 'media_img' :
 				$cfg_subfile = array() ;
 				$cfg_subfile['file_code'] = $child_file_code ;
@@ -355,8 +358,7 @@ function paracrm_data_editTransaction_fileRecord_init( $post_data , &$arr_saisie
 				$TAB_subfiles[] = $cfg_subfile ;
 			break ;
 		
-			case 'grid' :
-			case '' :
+			default :
 				$cfg_subfile = array() ;
 				$cfg_subfile['file_code'] = $child_file_code ;
 				$cfg_subfile['file_lib'] = $arr['file_lib'] ;
@@ -380,7 +382,10 @@ function paracrm_data_editTransaction_fileRecord_init( $post_data , &$arr_saisie
 					$field['code'] = 'field_'.$arr_file_field['entry_field_code'] ;
 					$field['lib'] = $arr_file_field['entry_field_lib'] ;
 					$field['type'] = $arr_file_field['entry_field_type'] ;
-					$field['linkbible'] = $arr_file_field['entry_field_linkbible'] ;
+					if( $arr_file_field['entry_field_type'] == 'link' ) {
+						$field['linkbible'] = $arr_file_field['entry_field_linkbible'] ;
+						$field['linktype'] = $arr_file_field['entry_field_linktype'] ;
+					}
 					$field['is_header'] = $arr_file_field['entry_field_is_header'] ;
 					$field['is_highlight'] = $arr_file_field['entry_field_is_highlight'] ;
 					$field['is_mandatory'] = $arr_file_field['entry_field_is_mandatory'] ;
@@ -575,14 +580,17 @@ function paracrm_data_editTransaction_fileRecord_toolPrettyBible( $file_code, $d
 	
 	if( !$GLOBALS['toolPrettyFile'][$file_code] )
 	{
-		$query = "SELECT entry_field_code, entry_field_linkbible
+		$query = "SELECT entry_field_code, entry_field_linkbible, entry_field_linktype
 					FROM define_file_entry
 					WHERE file_code='$file_code' AND entry_field_type='link'" ;
 		$result = $_opDB->query($query) ;
 		$tab = array() ;
 		while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
 		{
-			$tab[$arr['entry_field_code']] = $arr['entry_field_linkbible'] ;
+			$tab[$arr['entry_field_code']] = array(
+				'linkbible' => $arr['entry_field_linkbible'],
+				'linktype' => ($arr['entry_field_linktype'] ? $arr['entry_field_linktype'] : 'entry')
+			) ;
 		}
 		$GLOBALS['toolPrettyFile'][$file_code] = $tab ;
 	}
@@ -590,11 +598,27 @@ function paracrm_data_editTransaction_fileRecord_toolPrettyBible( $file_code, $d
 	// print_r($GLOBALS['toolPrettyFile'][$file_code]) ;
 	
 	$response = array() ;
-	foreach( $GLOBALS['toolPrettyFile'][$file_code] as $entry_field_code => $entry_field_linkbible )
+	foreach( $GLOBALS['toolPrettyFile'][$file_code] as $entry_field_code => $entry_field_linkdetails )
 	{
+		$entry_field_linkbible = $entry_field_linkdetails['linkbible'] ;
+		$entry_field_linktype = $entry_field_linkdetails['linktype'] ;
 	
 		if( !$GLOBALS['toolPrettyBible'][$entry_field_linkbible] )
 		{
+			$GLOBALS['toolPrettyBible'][$entry_field_linkbible] = array() ;
+			
+			$query = "SELECT tree_field_code
+						FROM define_bible_tree
+						WHERE bible_code='$entry_field_linkbible' AND tree_field_is_header='O'
+						ORDER BY tree_field_index" ;
+			$result = $_opDB->query($query) ;
+			$tab = array() ;
+			while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
+			{
+				$tab[] = $arr['tree_field_code'] ;
+			}
+			$GLOBALS['toolPrettyBible'][$entry_field_linkbible]['tree'] = $tab ;
+			
 			$query = "SELECT entry_field_code
 						FROM define_bible_entry
 						WHERE bible_code='$entry_field_linkbible' AND entry_field_is_header='O'
@@ -605,28 +629,52 @@ function paracrm_data_editTransaction_fileRecord_toolPrettyBible( $file_code, $d
 			{
 				$tab[] = $arr['entry_field_code'] ;
 			}
-			$GLOBALS['toolPrettyBible'][$entry_field_linkbible] = $tab ;
+			$GLOBALS['toolPrettyBible'][$entry_field_linkbible]['entry'] = $tab ;
 		}
 	
 		$tfield = 'field_'.$entry_field_code ;
 		if( $data_record[$tfield] )
 		{
-			$biblerec = paracrm_lib_data_getRecord_bibleEntry( $entry_field_linkbible, $data_record[$tfield] ) ;
-			//echo $data_record[$tfield] ;
-			
-			$tarr = array() ;
-			$tarr[] = '('.$biblerec['treenode_key'].')' ;
-			foreach( $GLOBALS['toolPrettyBible'][$entry_field_linkbible] as $field )
-			{
-				$bfield = 'field_'.$field ;
-				if( $biblerec[$bfield] == $biblerec['entry_key'] )
-					$tarr[] = '<b>'.$biblerec[$bfield].'</b>' ;
-				else
-					$tarr[] = ''.$biblerec[$bfield].'' ;
+			switch( $entry_field_linktype ) {
+				case 'entry' :
+					$entry_key = $data_record[$tfield] ;
+					$biblerec = paracrm_lib_data_getRecord_bibleEntry( $entry_field_linkbible, $entry_key ) ;
+					//echo $data_record[$tfield] ;
+					
+					$tarr = array() ;
+					$tarr[] = '('.$biblerec['treenode_key'].')' ;
+					foreach( $GLOBALS['toolPrettyBible'][$entry_field_linkbible]['entry'] as $field )
+					{
+						$bfield = 'field_'.$field ;
+						if( $biblerec[$bfield] == $biblerec['entry_key'] )
+							$tarr[] = '<b>'.$biblerec[$bfield].'</b>' ;
+						else
+							$tarr[] = ''.$biblerec[$bfield].'' ;
+					}
+					
+					$dfield = 'display_'.$entry_field_code ;
+					$response[$dfield] = implode(' ',$tarr) ;
+					break ;
+				case 'treenode' :
+					$treenode_key = $data_record[$tfield] ;
+					$biblerec = paracrm_lib_data_getRecord_bibleTreenode( $entry_field_linkbible, $treenode_key ) ;
+					//echo $data_record[$tfield] ;
+					
+					$tarr = array() ;
+					$tarr[] = '('.$biblerec['treenode_key'].')' ;
+					foreach( $GLOBALS['toolPrettyBible'][$entry_field_linkbible]['tree'] as $field )
+					{
+						$bfield = 'field_'.$field ;
+						if( $biblerec[$bfield] == $biblerec['treenode_key'] )
+							$tarr[] = '<b>'.$biblerec[$bfield].'</b>' ;
+						else
+							$tarr[] = ''.$biblerec[$bfield].'' ;
+					}
+					
+					$dfield = 'display_'.$entry_field_code ;
+					$response[$dfield] = implode(' ',$tarr) ;
+					break ;
 			}
-			
-			$dfield = 'display_'.$entry_field_code ;
-			$response[$dfield] = implode(' ',$tarr) ;
 		}
 	}
 	return $response ;

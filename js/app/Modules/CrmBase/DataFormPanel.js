@@ -215,16 +215,34 @@ Ext.define('Optima5.Modules.CrmBase.DataFormPanel' ,{
 					return ;
 				
 				case 'link' :
-					Ext.apply( colCfg, {
-						flex:2,
-						type: 'string',
-						editor:{
-							xtype:'op5crmbasebiblepicker',
-							optimaModule:me.optimaModule,
-							bibleId: field.linkbible ,
-							allowBlank: !(field.is_header=='O' || field.is_mandatory=='O')
-						}
-					});
+					switch( field.linktype ) {
+						case 'treenode' :
+							Ext.apply( colCfg, {
+								flex:2,
+								type: 'string',
+								editor:{
+									xtype:'op5crmbasebibletreepicker',
+									optimaModule:me.optimaModule,
+									bibleId: field.linkbible ,
+									selectMode: 'single',
+									allowBlank: !(field.is_header=='O' || field.is_mandatory=='O')
+								}
+							});
+							break ;
+							
+						default :
+							Ext.apply( colCfg, {
+								flex:2,
+								type: 'string',
+								editor:{
+									xtype:'op5crmbasebiblepicker',
+									optimaModule:me.optimaModule,
+									bibleId: field.linkbible ,
+									allowBlank: !(field.is_header=='O' || field.is_mandatory=='O')
+								}
+							});
+							break ;
+					}
 					break ;
 					
 				case 'date' :
