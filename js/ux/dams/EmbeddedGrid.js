@@ -127,23 +127,19 @@ Ext.define('Ext.ux.dams.EmbeddedGrid',{
 		return datar ;
 	},
 			  
-	onCancelEdit : function(){
-		var isnull = false ;
-		var records = this.linkstore.getRange();
-		var model = this.modelname ;
-		for (var i = 0; i < records.length; i++) {
-			isnull = true ;
-			Ext.Object.each(records[i].data, function(k,v){
-				if( v ){
-					isnull = false ;
-				}
-			},this) ;
-			if( records[i].validate().getCount() > 0 )
-				this.linkstore.remove(records[i]) ;
+	onCancelEdit : function(editor, editObject){
+		var store = editObject.store,
+			record = editObject.record ;
+		if( record.phantom ) {
+			// Mod 2014-03 : if phantom set, remove record
+			store.remove(record) ;
 		}
 		this.linkstore.sync() ;
 	},
-	onAfterEdit: function() {
+	onAfterEdit: function(editor, editObject) {
+		var record = editObject.record ;
+		// Mod 2014-03 : now actual record, unset phantom
+		record.phantom = false ;
 		this.getView().getSelectionModel().deselectAll( true ) ;
 	},
 	
@@ -153,8 +149,13 @@ Ext.define('Ext.ux.dams.EmbeddedGrid',{
 			newRecordIndex = this.linkstore.getCount() ;
 		}
 		
-		this.linkstore.insert(newRecordIndex, Ext.create(this.modelname,newRecordValues) );
+		var newModel = Ext.create(this.modelname,newRecordValues) ;
+		
+		this.linkstore.insert(newRecordIndex, newModel );
 		this.linkstore.sync() ;
+		
+		// Mod 2014-03 : safely set "phantom" explicitly
+		newModel.phantom = false ;
 		
 		this.rowEditing.startEdit(newRecordIndex, 0);
 	},
