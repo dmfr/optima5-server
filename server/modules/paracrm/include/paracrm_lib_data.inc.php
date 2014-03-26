@@ -652,21 +652,23 @@ function paracrm_lib_data_insertRecord_file( $file_code , $filerecord_parent_id 
 			return -1 ;
 	}
 	if( is_array($arr_fieldsPrimaryKey) ) {
-		$db_table = 'store_file_'.$file_code ;
-		$query = "SELECT filerecord_id FROM {$db_table} WHERE 1" ;
+		$db_view = 'view_file_'.$file_code ;
+		$query = "SELECT filerecord_id FROM {$db_view} WHERE 1" ;
+		if( $arr['file_parent_code'] ) {
+			$query.= " AND `filerecord_parent_id` = '{$filerecord_parent_id}'" ;
+		}
 		foreach( $arr_fieldsPrimaryKey as $field_primaryKey ) {
 			$datafield = 'field_'.$field_primaryKey ;
 			if( !isset($fields[$field_primaryKey]) )
 				continue ;
-			if( !($suffix = paracrm_define_tool_getEqFieldType($fields[$field_primaryKey])) )
-				continue ;
-			$dbfield = $datafield.'_'.$suffix ;
+			$dbfield = $datafield ;
 			
 			$query.= " AND `{$dbfield}` = '{$data[$datafield]}'" ;
 		}
 		if( $primaryKey_filerecordId = $_opDB->query_uniqueValue($query) ) {
 			return paracrm_lib_data_updateRecord_file( $file_code , $data, $primaryKey_filerecordId ) ;
 		}
+		unset($db_view) ;
 	}
 	
 	
