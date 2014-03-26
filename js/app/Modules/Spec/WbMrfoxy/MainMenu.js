@@ -51,7 +51,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.MainMenu',{
 				{type_action:true, action_caption: 'Calendar', action_sendEvent:'promo_calendar', action_iconCls:'op5-spec-mrfoxy-icon-calendar'},
 				{type_separator:true, separator_label: 'Analysis / Queries'},
 				{type_action:true, action_caption: 'Performance Analysis', action_sendEvent:'stat_performance', action_iconCls:'op5-spec-mrfoxy-icon-statperf'},
-				{type_action:true, action_caption: 'Financial Dashboard', action_sendEvent:'stat_finance', action_iconCls:'op5-spec-mrfoxy-icon-statfinance'},
+				{type_action:true, action_caption: 'Budget Management', action_sendEvent:'finance_budget', action_iconCls:'op5-spec-mrfoxy-icon-statfinance'},
 			]
 		}) ;
 		 

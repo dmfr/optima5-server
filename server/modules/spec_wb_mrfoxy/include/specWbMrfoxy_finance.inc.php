@@ -1,0 +1,293 @@
+<?php
+function specWbMrfoxy_finance_getCfgCrop( $post_data ) {
+	$time = time() ;
+	$has_current = FALSE ;
+	$TAB = specWbMrfoxy_tool_getCropIntervals() ;
+	foreach( $TAB as &$row ) {
+		if( strtotime($row['date_apply']) > $time ) {
+			$row['is_preview'] = true ;
+		} elseif( !$has_current ) {
+			$row['is_current'] = $has_current = true ;
+		}
+	}
+	unset($row);
+	return array('success'=>true, 'data'=>$TAB) ;
+}
+
+function specWbMrfoxy_finance_getGrid( $post_data ) {
+	global $_opDB ;
+	
+	$filter_country = $post_data['filter_country'] ;
+	$filter_cropYear = $post_data['filter_cropYear'] ;
+	
+	// crop principal
+	$query = "SELECT * FROM view_file__CFG_CROP WHERE field_CROP_YEAR='{$filter_cropYear}'" ;
+	$result = $_opDB->query($query) ;
+	$arr_crop = $_opDB->fetch_assoc($result) ;
+	if( $arr_crop == FALSE ) {
+		return array('success'=>false) ;
+	}
+	
+	// layout revisions
+	$_layout_revisions = array() ;
+	// - interval entre crop et suivan => pour extract des revisions
+	$query = "SELECT field_DATE_APPLY FROM view_file__CFG_CROP
+		WHERE field_DATE_APPLY > '{$arr_crop['field_DATE_APPLY']}'
+		ORDER BY field_DATE_APPLY LIMIT 1" ;
+	$up_limit =  $_opDB->query_uniqueValue($query) ;
+	
+	$query = "SELECT * FROM view_file_FINANCE_REVISION WHERE field_COUNTRY='{$filter_country}' AND field_REVISION_DATE>='{$arr_crop['field_DATE_APPLY']}'" ;
+	if( $up_limit ) {
+		$query.= " AND field_REVISION_DATE < '$up_limit'" ;
+	}
+	$query.= " ORDER BY field_REVISION_DATE" ;
+	$result = $_opDB->query($query) ;
+	$is_first = TRUE ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$rows = array() ;
+		foreach( paracrm_lib_data_getFileChildRecords('FINANCE_REVISION_ROW',$arr['filerecord_id']) as $record ) {
+			$row = array() ;
+			$row['group_key'] = $record['field_GROUP_KEY'] ;
+			$row['row_key'] = ($row['group_key']=='2_STORES' ? $record['field_ROW_SPEC_STORE'] : $record['field_ROW_KEY']) ;
+			$row['value'] = $record['field_VALUE'] ;
+			$rows[] = $row ;
+		}
+		
+		$_layout_revisions[] = array(
+			'filerecord_id' => $arr['filerecord_id'],
+			'revision_id' => date('ymd',strtotime($arr['field_REVISION_DATE'])),
+			'is_crop_initial' => $is_first,
+			'revision_date' => date('Y-m-d',strtotime($arr['field_REVISION_DATE'])),
+			'is_actual' => false,
+			'is_editing' => ( $arr['field_EDIT_IS_OPEN'] ? true : false ),
+			'rows' => $rows
+		);
+		$is_first = FALSE ;
+	}
+	if( count($_layout_revisions) == 0 ) {
+		$arr_ins = array() ;
+		$arr_ins['field_COUNTRY'] = $filter_country ;
+		$arr_ins['field_REVISION_DATE'] = $arr_crop['field_DATE_APPLY'] ;
+		$arr_ins['field_EDIT_IS_OPEN'] = 1 ;
+		$filerecord_id = paracrm_lib_data_insertRecord_file( 'FINANCE_REVISION', 0, $arr_ins ) ;
+		
+		$_layout_revisions[] = array(
+			'filerecord_id' => $filerecord_id,
+			'revision_id' => date('ymd',strtotime($arr_crop['field_DATE_APPLY'])),
+			'is_crop_initial' => true,
+			'revision_date' => date('Y-m-d',strtotime($arr_crop['field_DATE_APPLY'])),
+			'is_actual' => false,
+			'is_editing' => true
+		);
+	}
+	$last_idx = count($_layout_revisions) - 1 ;
+	while( isset($_layout_revisions[$last_idx]) ) {
+		if( !$_layout_revisions[$last_idx]['is_editing'] ) {
+			$_layout_revisions[$last_idx]['is_actual'] = true ;
+			break ;
+		}
+		$last_idx-- ;
+	}
+	
+	
+	// Stores codes
+	$store_rows = array() ;
+	$bible_code = 'IRI_STORE' ;
+	$map_treenode_txt = array() ;
+	$query = "SELECT treenode_key, field_STOREGROUP_TXT FROM view_bible_{$bible_code}_tree" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$map_treenode_txt[$arr[0]] = $arr[1] ;
+	}
+	$tree_STORE = specWbMrfoxy_lib_getBibleTree('IRI_STORE') ;
+	foreach( $tree_STORE->getAllMembersForDepth(2) as $treenode_key ) {
+		if( $post_data['filter_country'] ) {
+			$node = $tree_STORE->getTree($treenode_key) ;
+			while( $node->getDepth() > 1 ) {
+				$node = $node->getParent() ;
+			}
+			if( $node->getHead() != $post_data['filter_country'] ) {
+				continue ;
+			}
+		}
+		
+		$row = array() ;
+		$row['row_key'] = $treenode_key ;
+		$row['row_text'] = $map_treenode_txt[$treenode_key] ;
+		$store_rows[] = $row ;
+	}
+
+	
+	// Groups
+	$_layout_groups = array() ;
+	$_layout_groups[] = array(
+		'group_key' => '1_BUDGET',
+		'group_text' => 'Gross budget',
+		'operation' => '+',
+		'rows' => array(
+			array(
+				'row_key' => 'budget_total',
+				'row_text'=> 'Gross budget'
+			)
+		)
+	);
+	$_layout_groups[] = array(
+		'group_key' => '2_STORES',
+		'group_text' => 'National Agreements',
+		'operation' => '-',
+		'rows' => $store_rows
+	);
+	$_layout_groups[] = array(
+		'group_key' => '3_FREEZE',
+		'group_text' => 'Freezes',
+		'operation' => '-',
+		'rows' => array(
+			array(
+				'row_key' => 'freeze',
+				'row_text'=> 'Freeze Amount'
+			)
+		)
+	);
+	$_layout_groups[] = array(
+		'group_key' => '4_CALC',
+		'group_text' => 'Promo budget',
+		'operation' => '',
+		'rows' => array(
+			array(
+				'row_key' => 'promo_total',
+				'row_text'=> 'For promotions (total)'
+			),
+			array(
+				'row_key' => 'promo_done',
+				'row_text'=> 'Done (Real cost)'
+			),
+			array(
+				'row_key' => 'promo_foreacast',
+				'row_text'=> 'Committed (Forecast)'
+			),
+			array(
+				'row_key' => 'promo_available',
+				'row_text'=> 'Available'
+			)
+		)
+	);
+	
+	
+	
+
+	return array(
+		'success'=>true,
+		'data' => array(
+			'revisions' => $_layout_revisions,
+			'groups' => $_layout_groups,
+			'stats' => array(
+				'cost_promo_done' => 25000,
+				'cost_promo_forecast' => 40000
+			)
+		)
+	) ;
+}
+
+
+function specWbMrfoxy_finance_newRevision( $post_data ) {
+	global $_opDB ;
+	
+	$filter_country = $post_data['filter_country'] ;
+	$filter_cropYear = $post_data['filter_cropYear'] ;
+	
+	// crop principal
+	$query = "SELECT * FROM view_file__CFG_CROP WHERE field_CROP_YEAR='{$filter_cropYear}'" ;
+	$result = $_opDB->query($query) ;
+	$arr_crop = $_opDB->fetch_assoc($result) ;
+	if( $arr_crop == FALSE ) {
+		return array('success'=>false) ;
+	}
+	// up_limit
+	$_layout_revisions = array() ;
+	// - interval entre crop et suivan => pour extract des revisions
+	$query = "SELECT field_DATE_APPLY FROM view_file__CFG_CROP
+		WHERE field_DATE_APPLY > '{$arr_crop['field_DATE_APPLY']}'
+		ORDER BY field_DATE_APPLY LIMIT 1" ;
+	$up_limit = $_opDB->query_uniqueValue($query) ;
+	
+	
+	$query = "SELECT * FROM view_file_FINANCE_REVISION WHERE field_COUNTRY='{$filter_country}' AND field_REVISION_DATE>='{$arr_crop['field_DATE_APPLY']}'" ;
+	if( $up_limit ) {
+		$query.= " AND field_REVISION_DATE < '$up_limit'" ;
+	}
+	$query.= " ORDER BY field_REVISION_DATE DESC LIMIT 1" ;
+	$result = $_opDB->query($query) ;
+	if( $_opDB->num_rows($result) != 1 ) {
+		return array('success'=>true) ;
+	}
+	$arr_previousR = $_opDB->fetch_assoc($result) ;
+	$down_limit = $arr_previousR['field_REVISION_DATE'] ;
+	$previousR_filerecordId = $arr_previousR['filerecord_id'] ;
+	
+	$form_data = json_decode($post_data['data'],true) ;
+	if( $form_data['revision_date']
+		&& strtotime($form_data['revision_date']) > strtotime($down_limit)
+		&& ( !$up_limit || strtotime($form_data['revision_date']) < strtotime($up_limit) ) 
+	) {} else {
+		return array('success'=>false) ;
+	}
+	
+	$arr_ins = array() ;
+	$arr_ins['field_COUNTRY'] = $filter_country ;
+	$arr_ins['field_REVISION_NAME'] = $form_data['revision_name'] ;
+	$arr_ins['field_REVISION_DATE'] = $form_data['revision_date'] ;
+	$arr_ins['field_EDIT_IS_OPEN'] = 1 ;
+	$filerecord_id = paracrm_lib_data_insertRecord_file( 'FINANCE_REVISION', 0, $arr_ins ) ;
+	
+	// Copy previous
+	foreach( paracrm_lib_data_getFileChildRecords('FINANCE_REVISION_ROW',$previousR_filerecordId) as $record ) {
+		unset($record['filerecord_id']) ;
+		paracrm_lib_data_insertRecord_file('FINANCE_REVISION_ROW',$filerecord_id,$record) ;
+	}
+	
+	return array('success'=>true) ;
+}
+function specWbMrfoxy_finance_setRevision( $post_data ) {
+	$filerecord_parent_id = $post_data['filerecord_parent_id'] ;
+	
+	if( !($revision_record = paracrm_lib_data_getRecord_file('FINANCE_REVISION',$filerecord_parent_id))
+	|| !$revision_record['field_EDIT_IS_OPEN'] ) {
+		return array('success'=>false) ;
+	}
+	
+	if( $post_data['rows'] ) {
+		$arr_filerecordId = array() ;
+		foreach( json_decode($post_data['rows'],true) as $row ) {
+			$arr_ins = array() ;
+			$arr_ins['field_GROUP_KEY'] = $row['group_key'] ;
+			$arr_ins['field_ROW_KEY'] = $row['row_key'] ;
+			if( $row['group_key'] == '2_STORES' ) {
+				$arr_ins['field_ROW_SPEC_STORE'] = $row['row_key'] ;
+			}
+			$arr_ins['field_VALUE'] = $row['value'] ;
+			$arr_filerecordId[] = paracrm_lib_data_insertRecord_file( 'FINANCE_REVISION_ROW', $filerecord_parent_id, $arr_ins ) ;
+		}
+		
+		foreach( paracrm_lib_data_getFileChildRecords('FINANCE_REVISION_ROW',$filerecord_parent_id) as $record ) {
+			if( in_array($record['filerecord_id'],$arr_filerecordId) ) {
+				continue ;
+			}
+			paracrm_lib_data_deleteRecord_file('FINANCE_REVISION_ROW',$record['filerecord_id']) ;
+		}
+	}
+	
+	switch( $post_data['_subaction'] ) {
+		case 'commit' :
+			$arr_update = array() ;
+			$arr_update['field_EDIT_IS_OPEN'] = 0 ;
+			paracrm_lib_data_updateRecord_file('FINANCE_REVISION', $arr_update, $filerecord_parent_id) ;
+			break ;
+		case 'discard' :
+			paracrm_lib_data_deleteRecord_file('FINANCE_REVISION', $filerecord_parent_id) ;
+			break ;
+	}
+	
+	return array('success'=>true) ;
+}
+
+?>

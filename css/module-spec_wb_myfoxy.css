@@ -512,3 +512,31 @@ table.op5-spec-mrfoxy-statresult-tbl > tbody > tr > td.op5-spec-mrfoxy-statresul
 .op5-spec-mrfoxy-graphinfo-uplift {
 	background-color: red ;
 }
+
+
+
+.x-grid-row .op5-spec-mrfoxy-financebudget-editcolumn {
+	background-color: #C5E5FF ;
+}
+.x-grid-row .op5-spec-mrfoxy-financebudget-actualcolumn {
+	background-color: #FFDE9F ;
+}
+.x-grid-row .op5-spec-mrfoxy-financebudget-archivecolumn {
+	color: #999999 ;
+}
+.op5-spec-mrfoxy-financebudget-promototal .x-grid-cell { 
+	font-weight: bold; 
+} 
+.op5-spec-mrfoxy-financebudget-promoavailable .x-grid-cell { 
+	font-style: italic; 
+} 
+.op5-spec-mrfoxy-financebudget-newrevisionmenu .x-btn-inner { 
+	font-weight: bold;
+	color: red;
+}
+.op5-spec-mrfoxy-financebudget-newrevisionmenu-save { 
+	background-image: url("../images/op5img/ico_save_16.gif") !important;
+}
+.op5-spec-mrfoxy-financebudget-newrevisionmenu-discard { 
+	background-image: url("../images/op5img/ico_cancel_small.gif") !important;
+}

@@ -6,7 +6,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.MainPanel',{
 		'Optima5.Modules.Spec.WbMrfoxy.PromoNewCfgPanel',
 		'Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',
 		'Optima5.Modules.Spec.WbMrfoxy.PromoBrowserPanel',
-		'Optima5.Modules.Spec.WbMrfoxy.StatPerformancePanel'
+		'Optima5.Modules.Spec.WbMrfoxy.StatPerformancePanel',
+		'Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel'
 	],
 	
 	initComponent: function() {
@@ -79,6 +80,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.MainPanel',{
 				return me.switchToAppPanel('Optima5.Modules.Spec.WbMrfoxy.PromoBrowserPanel',{viewMode:'calendar'}) ;
 			case 'stat_performance' :
 				return me.switchToAppPanel('Optima5.Modules.Spec.WbMrfoxy.StatPerformancePanel',{width: 600}) ;
+			case 'finance_budget' :
+				return me.switchToAppPanel('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{}) ;
 			default :
 				return ;
 		}

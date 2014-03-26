@@ -52,6 +52,20 @@ switch( $post_data['_action'] )
 	
 	
 	
+	
+	
+	
+	case 'finance_getCfgCrop' :
+	return specWbMrfoxy_finance_getCfgCrop($post_data) ;
+	case 'finance_getGrid' :
+	return specWbMrfoxy_finance_getGrid($post_data) ;
+	case 'finance_newRevision' :
+	return specWbMrfoxy_finance_newRevision($post_data) ;
+	case 'finance_setRevision' :
+	return specWbMrfoxy_finance_setRevision($post_data) ;
+	
+	
+	
 	case 'auth_getTable' :
 	return specWbMrfoxy_auth_getTable($post_data);
 	
