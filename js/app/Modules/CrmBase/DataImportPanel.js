@@ -145,12 +145,14 @@ Ext.define('Optima5.Modules.CrmBase.DataImportPanel' ,{
 								flex: 1,
 								html: '&#160;'
 							},{
+								itemId: 'rgTruncateMode',
+								hidden: !(me.parentDataWindow.dataType=='bible'),
 								xtype: 'radiogroup',
 								columns: 1,
 								vertical: true,
 								items:[
-									{boxLabel: 'Update if exists', name: 'ifexists_mode', inputValue: 'update', checked: true},
-									{boxLabel: 'Overwrite', name: 'ifexists_mode', inputValue: 'overwrite'}
+									{boxLabel: 'Append to bible', name: 'truncate_mode', inputValue: 'append', checked: true},
+									{boxLabel: 'Truncate before', name: 'truncate_mode', inputValue: 'truncate'}
 								]
 							},{
 								xtype: 'box',
@@ -542,7 +544,7 @@ Ext.define('Optima5.Modules.CrmBase.DataImportPanel' ,{
 			_action: 'data_importTransaction',
 			_transaction_id: me.transaction_id,
 			_subaction: 'do_commit',
-			ifexists_mode: csvForm.findField('ifexists_mode').getValue(),
+			truncate_mode: csvForm.findField('truncate_mode').getValue(),
 			map_fieldCode_csvsrcIdx: Ext.JSON.encode(map_fieldCode_csvsrcIdx)
 		});
 		
@@ -564,9 +566,7 @@ Ext.define('Optima5.Modules.CrmBase.DataImportPanel' ,{
 					if( ajaxResponse.error ) {
 						msg = ajaxResponse.error ;
 					}
-					Ext.Msg.alert('Failed', ajaxResponse.error, function() {
-						me.destroy() ;
-					});
+					Ext.Msg.alert('Failed', msg);
 				}
 			},
 			scope: this
