@@ -150,7 +150,8 @@ function specWbMrfoxy_promo_getGrid( $post_data ) {
 		$row['status_code'] = $paracrm_row['WORK_PROMO_field_STATUS'] ;
 		$row['status_percent'] = $paracrm_row['WORK_PROMO_field_STATUS_entry_PERCENT'] ;
 		$row['status_text'] = $paracrm_row['WORK_PROMO_field_STATUS_entry_STATUS_TXT'] ;
-		$row['date_supply'] = date('Y-m-d',strtotime($paracrm_row['WORK_PROMO_field_DATE_SUPPLY'])) ;
+		$row['date_supply_start'] = date('Y-m-d',strtotime($paracrm_row['WORK_PROMO_field_DATE_SUPPLY_START'])) ;
+		$row['date_supply_end'] = date('Y-m-d',strtotime($paracrm_row['WORK_PROMO_field_DATE_SUPPLY_END'])) ;
 		$row['date_start'] = date('Y-m-d',strtotime($paracrm_row['WORK_PROMO_field_DATE_START'])) ;
 		$row['date_end'] = date('Y-m-d',strtotime($paracrm_row['WORK_PROMO_field_DATE_END'])) ;
 		$row['store_code'] = $paracrm_row['WORK_PROMO_field_STORE'] ;
@@ -450,7 +451,7 @@ function specWbMrfoxy_promo_formEval( $post_data ) {
 			
 			// Proceed to "fake join" to retrieve std prices
 			$fake_row = array() ;
-			$fake_row['WORK_PROMO_field_DATE_SUPPLY'] = $form_data['date_start'] ;
+			$fake_row['WORK_PROMO_field_DATE_SUPPLY'] = $form_data['date_supply_start'] ;
 			$fake_row['WORK_PROMO_field_STORE'] = $form_data['store_code'] ;
 			$fake_row['WORK_PROMO_SKU_field_SKU_CODE'] = $arr['entry_key'] ;
 			paracrm_lib_file_joinGridRecord( 'WORK_PROMO_SKU', $fake_row ) ;
@@ -480,7 +481,8 @@ function specWbMrfoxy_promo_formSubmit( $post_data ) {
 	$arr_ins['field_IS_PROD'] = ($form_data['is_prod']=='PROD') ;
 	$arr_ins['field_STATUS'] = ($form_data['_do_submit'] ? '10_ENCODED' : '00_STANDBY');
 	$arr_ins['field_BRAND'] = $form_data['brand_code'] ;
-	$arr_ins['field_DATE_SUPPLY'] = $form_data['date_supply'] ;
+	$arr_ins['field_DATE_SUPPLY_START'] = $form_data['date_supply_start'] ;
+	$arr_ins['field_DATE_SUPPLY_END'] = $form_data['date_supply_end'] ;
 	$arr_ins['field_DATE_START'] = $form_data['date_start'] ;
 	$arr_ins['field_DATE_END'] = $form_data['date_end'] ;
 	$arr_ins['field_STORE'] = $form_data['store_code'] ;

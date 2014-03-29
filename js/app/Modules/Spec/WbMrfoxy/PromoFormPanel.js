@@ -138,7 +138,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 							xtype: 'datefield',
 							startDay: 1,
 							fieldLabel: 'Supply begins',
-							name: 'date_supply',
+							name: 'date_supply_start',
 							format: 'Y-m-d',
 							allowBlank: false,
 							listeners: {
@@ -150,7 +150,14 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 						},{
 							xtype: 'datefield',
 							startDay: 1,
-							fieldLabel: 'Date start',
+							fieldLabel: 'Supply ends',
+							name: 'date_supply_end',
+							format: 'Y-m-d',
+							allowBlank: false
+						},{
+							xtype: 'datefield',
+							startDay: 1,
+							fieldLabel: 'In-store begins',
 							name: 'date_start',
 							format: 'Y-m-d',
 							allowBlank: false,
@@ -163,7 +170,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 						},{
 							xtype: 'datefield',
 							startDay: 1,
-							fieldLabel: 'Date end',
+							fieldLabel: 'In-store ends',
 							name: 'date_end',
 							format: 'Y-m-d',
 							allowBlank: false,
@@ -601,8 +608,10 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 			isProd = (form.findField('is_prod').getValue()=='PROD') ;
 			  
 		// partie DATES
-		form.findField('date_supply').setVisible( isProd ) ;
-		form.findField('date_supply').allowBlank = !(isProd) ;
+		form.findField('date_supply_start').setVisible( isProd ) ;
+		form.findField('date_supply_start').allowBlank = !(isProd) ;
+		form.findField('date_supply_end').setVisible( isProd ) ;
+		form.findField('date_supply_end').allowBlank = !(isProd) ;
 			
 		// partie MECANIQUE / DETAIL
 		var mechanicsCode = form.findField('mechanics_code').getValue() ;
