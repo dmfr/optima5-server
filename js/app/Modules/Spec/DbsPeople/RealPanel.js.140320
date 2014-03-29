@@ -71,7 +71,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		Ext.apply(me,{
 			//frame: true,
 			border: false,
-			layout:'fit',
+			layout:'border',
 			tbar:[{
 				icon: 'images/op5img/ico_back_16.gif',
 				text: '<b>Retour menu</b>',
@@ -153,6 +153,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				}
 			}],
 			items:[{
+				region:'center',
+				flex:1,
 				border: false,
 				xtype:'component',
 				cls: 'op5-waiting'
@@ -318,7 +320,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			pageSize: (gridData.length > 50 ? gridData.length : 50 ),
 			buffered: true,
 			remoteSort: true, // this just keeps sorting from being disabled
-			//remoteGroup: true,
+			remoteGroup: true,
 			data: gridData,
 			proxy:{
 				type:'memory'
@@ -338,6 +340,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				newGroupers = me.decodeGroupers(newGroupers);
 				me.groupers.clear();
 				me.groupers.addAll(newGroupers);
+					
 				
 				var collection = new Ext.util.MixedCollection();
 				collection.addAll(this.getProxy().data);
@@ -354,6 +357,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		
 		me.removeAll() ;
 		me.add({
+			region:'center',
+			flex:1,
 			border: false,
 			xtype:'grid',
 			store: store,
