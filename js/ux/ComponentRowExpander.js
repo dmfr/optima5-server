@@ -4,7 +4,7 @@
  */
 
 Ext.define('Ext.ux.ComponentRowExpander', {
-	extend: 'Ext.ux.RowExpander',
+	extend: 'Ext.grid.plugin.RowExpander',
 
 	alias: 'plugin.cmprowexpander',
 
