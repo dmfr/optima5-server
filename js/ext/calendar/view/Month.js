@@ -292,7 +292,7 @@ Ext.define('Ext.calendar.view.Month', {
             eventGrid: this.allDayOnly ? this.allDayGrid: this.eventGrid,
             viewStart: this.viewStart,
             tpl: this.getEventTemplate(),
-            maxEventsPerDay: this.getMaxEventsPerDay(),
+            maxEventsPerDay: this.maxEventsPerDay, // HACK: DAMS
             id: this.id,
             templateDataFn: Ext.bind(this.getTemplateEventData, this),
             evtMaxCount: this.evtMaxCount,
