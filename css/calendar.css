@@ -384,7 +384,7 @@ td.ext-cal-dtitle-today div {
 /* Event cells */
 .ext-cal-ev {
     font-family:Verdana,sans-serif;
-    padding:1px 1px 0 2px;
+    padding: 0 1px 0 2px;
     vertical-align:top;
 }
 /* Event overflow more link */
@@ -400,8 +400,10 @@ td.ext-cal-dtitle-today div {
 }
 /* More view */
 .ext-cal-mvd-tbl {
-	width: 100%;
-	table-layout: fixed;
+    width: 100%;
+    table-layout: fixed;
+    border-spacing: 1;
+    border-collapse: separate;
 }
 
 .ext-cal-evt {
@@ -898,10 +900,6 @@ td.ext-cal-dtitle-today div {
  * DateRangeField styles
  *
  ******************************************/
-.ext-dt-range {
-    /* Don't double the bottom margin, use the contained fields' margin */
-    margin-bottom: 0 !important;
-}
 .ext-dt-range label {
     font-size: 12px;
 }

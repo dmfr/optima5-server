@@ -113,6 +113,10 @@ Ext.define('Ext.calendar.view.Month', {
 
     // private
     onDestroy: function() {
+        if (this.detailPanel) {
+            this.detailPanel.destroy();
+        }
+        
         Ext.destroy(this.ddSelector);
         Ext.destroy(this.dragZone);
         Ext.destroy(this.dropZone);
@@ -141,7 +145,10 @@ Ext.define('Ext.calendar.view.Month', {
 
     // private
     onResize: function() {
+        var me = this;
+        me.callParent(arguments);
         if (this.monitorResize) {
+				// HACK : DAMS, max events per day, wait for resize/render to be done
 				Ext.defer( function() {
 					this.maxEventsPerDay = this.getMaxEventsPerDay();
 					this.refresh();
@@ -229,7 +236,7 @@ Ext.define('Ext.calendar.view.Month', {
             )
             : new Ext.XTemplate(
                 '<tpl if="_renderAsAllDay">',
-                    '<div id="{_elId}" class="{_selectorCls} {_doneCls} {spanCls} ext-cal-evt ext-cal-evo" style="background-color:{_colorHex};">',
+                    '<div id="{_elId}" class="{_selectorCls} {spanCls} {_doneCls} ext-cal-evt ext-cal-evo" style="background-color:{_colorHex};">',
                         '<div class="ext-cal-evm">',
                             '<div class="ext-cal-evi">',
                 '</tpl>',
@@ -261,7 +268,6 @@ Ext.define('Ext.calendar.view.Month', {
             _elId: selector + '-' + evt._weekIndex,
             _isRecurring: evt.Recurrence && evt.Recurrence != '',
             _isReminder: evt[M.Reminder.name] && evt[M.Reminder.name] != '',
-            //Title: (evt[M.IsAllDay.name] ? '' : Ext.Date.format(evt[M.StartDate.name], 'g:ia ')) + (!title || title.length == 0 ? '(No title)' : title),
             Title: (!title || title.length == 0 ? '(No title)' : title),
             _doneCls: (evt[M.IsDone.name] ? 'ext-evt-done' : '' )
         },
@@ -286,7 +292,7 @@ Ext.define('Ext.calendar.view.Month', {
             eventGrid: this.allDayOnly ? this.allDayGrid: this.eventGrid,
             viewStart: this.viewStart,
             tpl: this.getEventTemplate(),
-            maxEventsPerDay: this.maxEventsPerDay,
+            maxEventsPerDay: this.getMaxEventsPerDay(),
             id: this.id,
             templateDataFn: Ext.bind(this.getTemplateEventData, this),
             evtMaxCount: this.evtMaxCount,
@@ -316,37 +322,68 @@ Ext.define('Ext.calendar.view.Month', {
     },
 
     // private
-    getDaySize: function(contentOnly) {
+    getDaySize : function(contentOnly){
         var box = this.el.getBox(),
-        w = box.width / this.dayCount,
-        h = box.height / this.getWeekCount();
-
-        if (contentOnly) {
-            var hd = this.el.select('.ext-cal-dtitle').first().parent('tr');
-            h = hd ? h - hd.getHeight(true) : h;
+            padding = this.getViewPadding(),
+            w = (box.width - padding.width) / this.dayCount,
+            h = (box.height - padding.height) / this.getWeekCount();
+            
+        if(contentOnly){
+            // measure last row instead of first in case text wraps in first row
+            var hd = this.el.select('.ext-cal-dtitle').last().parent('tr');
+            h = hd ? h-hd.getHeight(true) : h;
         }
-        return {
-            height: h,
-            width: w
-        };
+        return {height: h, width: w};
     },
-
+    
     // private
-    getEventHeight: function() {
+    getEventHeight : function() {
         if (!this.eventHeight) {
             var evt = this.el.select('.ext-cal-evt').first();
-            this.eventHeight = evt ? evt.parent('tr').getHeight() : 18;
+            if(evt){
+                this.eventHeight = evt.parent('td').getHeight();
+            }
+            else {
+                return 16; // no events rendered, so try setting this.eventHeight again later
+            }
         }
         return this.eventHeight;
     },
-
+    
     // private
-    getMaxEventsPerDay: function() {
+    getMaxEventsPerDay : function(){
         var dayHeight = this.getDaySize(true).height,
-            h = this.getEventHeight(),
-            max = Math.max(Math.floor((dayHeight - h) / h), 0);
-
+            eventHeight = this.getEventHeight(),
+            max = Math.max(Math.floor((dayHeight - eventHeight) / eventHeight), 0);
+        
         return max;
+    },
+    
+    // private
+    getViewPadding: function(sides) {
+        var sides = sides || 'tlbr',
+            top = sides.indexOf('t') > -1,
+            left = sides.indexOf('l') > -1,
+            right = sides.indexOf('r') > -1,
+            height = this.showHeader && top ? this.el.select('.ext-cal-hd-days-tbl').first().getHeight() : 0,
+            width = 0;
+        
+        if (this.isHeaderView) {
+            if (left) {
+                width = this.el.select('.ext-cal-gutter').first().getWidth();
+            }
+            if (right) {
+                width += this.el.select('.ext-cal-gutter-rt').first().getWidth();
+            }
+        }
+        else if (this.showWeekLinks && left) {
+            width = this.el.select('.ext-cal-week-link').first().getWidth();
+        }
+        
+        return {
+            height: height,
+            width: width
+        }
     },
 
     // private
@@ -377,7 +414,9 @@ Ext.define('Ext.calendar.view.Month', {
     onInitDrag: function() {
         this.callParent(arguments);
         
-        Ext.select(this.daySelector).removeCls(this.dayOverClass);
+        if (this.dayOverClass) {
+            Ext.select(this.daySelector).removeCls(this.dayOverClass);
+        }
         if (this.detailPanel) {
             this.detailPanel.hide();
         }
@@ -435,15 +474,6 @@ Ext.define('Ext.calendar.view.Month', {
             this.detailPanel.hide();
         }
     },
-    
-    // private
-    onDestroy: function() {
-        if (this.detailPanel) {
-            this.detailPanel.destroy();
-        }
-        
-        this.callParent(arguments);
-    },
 
     // private
     onClick: function(e, t) {
@@ -486,7 +516,7 @@ Ext.define('Ext.calendar.view.Month', {
     // private
     handleDayMouseEvent: function(e, t, type) {
         var el = e.getTarget(this.weekLinkSelector, 3, true);
-        if (el) {
+        if (el && this.weekLinkOverClass) {
             el[type == 'over' ? 'addCls': 'removeCls'](this.weekLinkOverClass);
             return;
         }

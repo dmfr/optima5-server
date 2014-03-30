@@ -257,10 +257,9 @@ Ext.define('Ext.calendar.view.DayBody', {
         data._elId = selector + (evt._weekIndex ? '-' + evt._weekIndex: '');
         data._isRecurring = evt.Recurrence && evt.Recurrence != '';
         data._isReminder = evt[M.Reminder.name] && evt[M.Reminder.name] != '';
-		  data._doneCls = evt[M.IsDone.name] ? 'ext-evt-done' : '' ;
+        data._doneCls = evt[M.IsDone.name] ? 'ext-evt-done' : '' ;
         var title = evt[M.Title.name];
-        //data.Title = (evt[M.IsAllDay.name] ? '': Ext.Date.format(evt[M.StartDate.name], 'g:ia ')) + (!title || title.length == 0 ? '(No title)': title);
-		  data.Title = (!title || title.length == 0 ? '(No title)': title) ;
+        data.Title = (!title || title.length == 0 ? '(No title)': title) ;
 
         return Ext.applyIf(data, evt);
     },
@@ -412,7 +411,7 @@ Ext.define('Ext.calendar.view.DayBody', {
             timeX = x;
 
         if (el) {
-            timeX = el.getLeft();
+            timeX = el.getX();
         }
 
         return {

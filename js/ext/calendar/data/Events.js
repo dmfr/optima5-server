@@ -20,7 +20,6 @@ Ext.define('Ext.calendar.data.Events', {
                     "end": makeDate(-10, 15),
                     "notes": "Have fun"
                 }, {
-						 "done":true,
                     "id": 1002,
                     "cid": 2,
                     "title": "Lunch with Matt",
@@ -31,7 +30,6 @@ Ext.define('Ext.calendar.data.Events', {
                     "notes": "Order the queso",
                     "rem": "15"
                 }, {
-						 "done":true,
                     "id": 1003,
                     "cid": 3,
                     "title": "Project due",
@@ -46,7 +44,6 @@ Ext.define('Ext.calendar.data.Events', {
                     "notes": "Need to get a gift",
                     "ad": true
                 }, {
-						 
                     "id": 1005,
                     "cid": 2,
                     "title": "A long one...",
@@ -62,7 +59,6 @@ Ext.define('Ext.calendar.data.Events', {
                     "ad": true,
                     "rem": "2880"
                 }, {
-						 
                     "id": 1007,
                     "cid": 1,
                     "title": "Haircut",
@@ -85,7 +81,6 @@ Ext.define('Ext.calendar.data.Events', {
                     "loc": "ABC Inc.",
                     "rem": "60"
                 }, {
-						 "done":true,
                     "id": 1010,
                     "cid": 3,
                     "title": "Jenny's final exams",
