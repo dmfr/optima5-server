@@ -1,6 +1,267 @@
 Ext.define('Sch.All',{}) ;
+/*
 
-/*  Ext Scheduler 2.1.15 Copyright(c) 2009-2013 Bryntum AB http://bryntum.com/contact http://bryntum.com/license  */
+Ext Scheduler 2.2.19
+Copyright(c) 2009-2014 Bryntum AB
+http://bryntum.com/contact
+http://bryntum.com/license
+
+*/
+Ext.define("Sch.locale.Locale", {
+    l10n: null,
+    legacyMode: true,
+    localeName: null,
+    namespaceId: null,
+    constructor: function () {
+        if (!Sch.locale.Active) {
+            Sch.locale.Active = {};
+            this.bindRequire()
+        }
+        var b = this.self.getName().split(".");
+        var a = this.localeName = b.pop();
+        this.namespaceId = b.join(".");
+        var c = Sch.locale.Active[this.namespaceId];
+        if (!(a == "En" && c && c.localeName != "En")) {
+            this.apply()
+        }
+    },
+    bindRequire: function () {
+        var a = Ext.ClassManager.triggerCreated;
+        Ext.ClassManager.triggerCreated = function (d) {
+            a.apply(this, arguments);
+            var c = Ext.ClassManager.get(d);
+            for (var b in Sch.locale.Active) {
+                Sch.locale.Active[b].apply(c)
+            }
+        }
+    },
+    apply: function (a) {
+        if (this.l10n) {
+            var h = this,
+                f, e;
+            var g = this.self.getName();
+            var d = function (l, k) {
+                k = k || Ext.ClassManager.get(l);
+                if (k && (k.activeLocaleId !== g)) {
+                    var i = h.l10n[l];
+                    if (typeof i === "function") {
+                        i(l)
+                    } else {
+                        if (k.singleton) {
+                            k.l10n = Ext.apply(k.l10n || {}, i)
+                        } else {
+                            Ext.override(k, {
+                                l10n: i
+                            })
+                        }
+                    } if (h.legacyMode) {
+                        var n;
+                        if (k.prototype) {
+                            n = k.prototype
+                        } else {
+                            if (k.singleton) {
+                                n = k
+                            }
+                        } if (n) {
+                            if (n.legacyHolderProp) {
+                                if (!n[n.legacyHolderProp]) {
+                                    n[n.legacyHolderProp] = {}
+                                }
+                                n = n[n.legacyHolderProp]
+                            }
+                            for (var m in i) {
+                                if (typeof n[m] !== "function") {
+                                    n[m] = i[m]
+                                }
+                            }
+                        }
+                    }
+                    k.activeLocaleId = g;
+                    if (k.onLocalized) {
+                        k.onLocalized()
+                    }
+                }
+            };
+            if (a) {
+                if (!Ext.isArray(a)) {
+                    a = [a]
+                }
+                var b, j;
+                for (f = 0, e = a.length; f < e; f++) {
+                    if (Ext.isObject(a[f])) {
+                        if (a[f].singleton) {
+                            j = a[f];
+                            b = Ext.getClassName(Ext.getClass(j))
+                        } else {
+                            j = Ext.getClass(a[f]);
+                            b = Ext.getClassName(j)
+                        }
+                    } else {
+                        j = null;
+                        b = "string" === typeof a[f] ? a[f] : Ext.getClassName(a[f])
+                    } if (b && b in this.l10n) {
+                        d(b, j)
+                    }
+                }
+            } else {
+                Sch.locale.Active[this.namespaceId] = this;
+                for (var c in this.l10n) {
+                    d(c)
+                }
+            }
+        }
+    }
+});
+Ext.define("Sch.locale.En", {
+    extend: "Sch.locale.Locale",
+    singleton: true,
+    l10n: {
+        "Sch.util.Date": {
+            unitNames: {
+                YEAR: {
+                    single: "year",
+                    plural: "years",
+                    abbrev: "yr"
+                },
+                QUARTER: {
+                    single: "quarter",
+                    plural: "quarters",
+                    abbrev: "q"
+                },
+                MONTH: {
+                    single: "month",
+                    plural: "months",
+                    abbrev: "mon"
+                },
+                WEEK: {
+                    single: "week",
+                    plural: "weeks",
+                    abbrev: "w"
+                },
+                DAY: {
+                    single: "day",
+                    plural: "days",
+                    abbrev: "d"
+                },
+                HOUR: {
+                    single: "hour",
+                    plural: "hours",
+                    abbrev: "h"
+                },
+                MINUTE: {
+                    single: "minute",
+                    plural: "minutes",
+                    abbrev: "min"
+                },
+                SECOND: {
+                    single: "second",
+                    plural: "seconds",
+                    abbrev: "s"
+                },
+                MILLI: {
+                    single: "ms",
+                    plural: "ms",
+                    abbrev: "ms"
+                }
+            }
+        },
+        "Sch.view.SchedulerGridView": {
+            loadingText: "Loading events..."
+        },
+        "Sch.plugin.CurrentTimeLine": {
+            tooltipText: "Current time"
+        },
+        "Sch.plugin.EventEditor": {
+            saveText: "Save",
+            deleteText: "Delete",
+            cancelText: "Cancel"
+        },
+        "Sch.plugin.SimpleEditor": {
+            newEventText: "New booking..."
+        },
+        "Sch.widget.ExportDialog": {
+            generalError: "An error occured, try again.",
+            title: "Export Settings",
+            formatFieldLabel: "Paper format",
+            orientationFieldLabel: "Orientation",
+            rangeFieldLabel: "Export range",
+            showHeaderLabel: "Add page number",
+            orientationPortraitText: "Portrait",
+            orientationLandscapeText: "Landscape",
+            completeViewText: "Complete schedule",
+            currentViewText: "Current view",
+            dateRangeText: "Date range",
+            dateRangeFromText: "Export from",
+            pickerText: "Resize column/rows to desired value",
+            dateRangeToText: "Export to",
+            exportButtonText: "Export",
+            cancelButtonText: "Cancel",
+            progressBarText: "Exporting...",
+            exportToSingleLabel: "Export as single page",
+            adjustCols: "Adjust column width",
+            adjustColsAndRows: "Adjust column width and row height",
+            specifyDateRange: "Specify date range"
+        },
+        "Sch.preset.Manager": function () {
+            var b = Sch.preset.Manager,
+                a = b.getPreset("hourAndDay");
+            if (a) {
+                a.displayDateFormat = "G:iA";
+                a.headerConfig.middle.dateFormat = "G:iA";
+                a.headerConfig.top.dateFormat = "D d/m"
+            }
+            a = b.getPreset("secondAndMinute");
+            if (a) {
+                a.displayDateFormat = "g:i:s";
+                a.headerConfig.top.dateFormat = "D, d g:iA"
+            }
+            a = b.getPreset("dayAndWeek");
+            if (a) {
+                a.displayDateFormat = "m/d h:i A";
+                a.headerConfig.middle.dateFormat = "D d M"
+            }
+            a = b.getPreset("weekAndDay");
+            if (a) {
+                a.displayDateFormat = "m/d";
+                a.headerConfig.bottom.dateFormat = "d M";
+                a.headerConfig.middle.dateFormat = "Y F d"
+            }
+            a = b.getPreset("weekAndMonth");
+            if (a) {
+                a.displayDateFormat = "m/d/Y";
+                a.headerConfig.middle.dateFormat = "m/d";
+                a.headerConfig.top.dateFormat = "m/d/Y"
+            }
+            a = b.getPreset("weekAndDayLetter");
+            if (a) {
+                a.displayDateFormat = "m/d/Y";
+                a.headerConfig.middle.dateFormat = "D d M Y"
+            }
+            a = b.getPreset("weekDateAndMonth");
+            if (a) {
+                a.displayDateFormat = "m/d/Y";
+                a.headerConfig.middle.dateFormat = "d";
+                a.headerConfig.top.dateFormat = "Y F"
+            }
+            a = b.getPreset("monthAndYear");
+            if (a) {
+                a.displayDateFormat = "m/d/Y";
+                a.headerConfig.middle.dateFormat = "M Y";
+                a.headerConfig.top.dateFormat = "Y"
+            }
+            a = b.getPreset("year");
+            if (a) {
+                a.displayDateFormat = "m/d/Y";
+                a.headerConfig.middle.dateFormat = "Y"
+            }
+            a = b.getPreset("manyYears");
+            if (a) {
+                a.displayDateFormat = "m/d/Y";
+                a.headerConfig.middle.dateFormat = "Y"
+            }
+        }
+    }
+});
 Ext.define("Sch.util.Patch", {
     target: null,
     minVersion: null,
@@ -9,6 +270,7 @@ Ext.define("Sch.util.Patch", {
     description: null,
     applyFn: null,
     ieOnly: false,
+    overrides: null,
     onClassExtended: function (a, b) {
         if (Sch.disableOverrides) {
             return
@@ -20,279 +282,193 @@ Ext.define("Sch.util.Patch", {
             if (b.applyFn) {
                 b.applyFn()
             } else {
-                b.requires[0].override(b.overrides)
+                Ext.ClassManager.get(b.target).override(b.overrides)
             }
         }
     }
 });
-Ext.define("Sch.patches.LoadMask", {
-    extend: "Sch.util.Patch",
-    requires: ["Ext.view.AbstractView"],
-    minVersion: "4.1.0b3",
-    reportURL: "http://www.sencha.com/forum/showthread.php?187700-4.1.0-B3-Ext.AbstractView-no-longer-binds-its-store-to-load-mask",
-    description: "In Ext4.1 loadmask no longer bind the store",
-    overrides: {}
-});
-Ext.define("Sch.patches.Table", {
-    extend: "Sch.util.Patch",
-    requires: ["Ext.view.Table"],
-    minVersion: "4.1.1",
-    maxVersion: "4.1.1",
-    reportURL: "http://www.sencha.com/forum/showthread.php?238026-4.1.1-Alt-row-styling-lost-after-record-update&p=874190#post874190",
-    description: "In Ext4.1.1 when record is updated, the alternate row styling is lost",
-    overrides: {
-        onUpdate: function (c, a, b, e) {
-            var d = this.store.indexOf(a);
-            this.callParent(arguments);
-            this.doStripeRows(d, d)
-        }
-    }
-});
-Ext.define("Sch.patches.TreeView", {
-    extend: "Sch.util.Patch",
-    requires: ["Ext.tree.View"],
-    maxVersion: "4.1.3",
-    applyFn: function () {
-        Ext.tree.View.addMembers({
-            providedStore: null,
-            initComponent: function () {
-                var a = this,
-                    b = a.panel.getStore();
-                if (a.initialConfig.animate === undefined) {
-                    a.animate = Ext.enableFx
-                }
-                a.store = a.providedStore || new Ext.data.NodeStore({
-                    treeStore: b,
-                    recursive: true,
-                    rootVisible: a.rootVisible
-                });
-                a.store.on({
-                    beforeexpand: a.onBeforeExpand,
-                    expand: a.onExpand,
-                    beforecollapse: a.onBeforeCollapse,
-                    collapse: a.onCollapse,
-                    write: a.onStoreWrite,
-                    datachanged: a.onStoreDataChanged,
-                    collapsestart: a.beginBulkUpdate,
-                    collapsecomplete: a.endBulkUpdate,
-                    scope: a
-                });
-                if (Ext.versions.extjs.isGreaterThanOrEqual("4.1.2")) {
-                    a.mon(b, {
-                        scope: a,
-                        beforefill: a.onBeforeFill,
-                        fillcomplete: a.onFillComplete,
-                        beforebulkremove: a.beginBulkUpdate,
-                        bulkremovecomplete: a.endBulkUpdate
-                    });
-                    if (!b.remoteSort) {
-                        a.mon(b, {
-                            scope: a,
-                            beforesort: a.onBeforeSort,
-                            sort: a.onSort
-                        })
-                    }
-                }
-                if (a.node && !a.store.node) {
-                    a.setRootNode(a.node)
-                }
-                a.animQueue = {};
-                a.animWraps = {};
-                a.addEvents("afteritemexpand", "afteritemcollapse");
-                a.callParent(arguments);
-                a.on({
-                    element: "el",
-                    scope: a,
-                    delegate: a.expanderSelector,
-                    mouseover: a.onExpanderMouseOver,
-                    mouseout: a.onExpanderMouseOut
-                });
-                a.on({
-                    element: "el",
-                    scope: a,
-                    delegate: a.checkboxSelector,
-                    click: a.onCheckboxChange
-                })
-            }
-        })
-    }
-});
-Ext.define("Sch.patches.DataOperation", {
-    extend: "Sch.util.Patch",
-    requires: ["Ext.data.Operation"],
-    reportURL: "http://www.sencha.com/forum/showthread.php?198894-4.1-Ext.data.TreeStore-CRUD-regression.",
-    description: "In Ext 4.1.0 newly created records do not get the Id returned by server applied",
-    maxVersion: "4.1.0",
-    overrides: {
-        commitRecords: function (j) {
-            var g = this,
-                h, f, a, c, b, d, e;
-            if (!g.actionSkipSyncRe.test(g.action)) {
-                a = g.records;
-                if (a && a.length) {
-                    if (a.length > 1) {
-                        if (g.action == "update" || a[0].clientIdProperty) {
-                            h = new Ext.util.MixedCollection();
-                            h.addAll(j);
-                            for (f = a.length; f--;) {
-                                b = a[f];
-                                c = h.findBy(g.matchClientRec, b);
-                                b.copyFrom(c)
-                            }
-                        } else {
-                            for (d = 0, e = a.length; d < e; ++d) {
-                                b = a[d];
-                                c = j[d];
-                                if (b && c) {
-                                    g.updateRecord(b, c)
-                                }
-                            }
-                        }
-                    } else {
-                        this.updateRecord(a[0], j[0])
-                    } if (g.actionCommitRecordsRe.test(g.action)) {
-                        for (f = a.length; f--;) {
-                            a[f].commit()
-                        }
-                    }
-                }
-            }
-        },
-        updateRecord: function (a, b) {
-            if (b && (a.phantom || a.getId() === b.getId())) {
-                a.copyFrom(b)
-            }
-        }
-    }
-});
-Ext.define("Sch.patches.TreeStore", {
-    extend: "Sch.util.Patch",
-    requires: ["Ext.data.TreeStore"],
-    description: "http://www.sencha.com/forum/showthread.php?208602-Model-s-Id-field-not-defined-after-sync-in-TreeStore-%28CRUD%29",
-    maxVersion: "4.1.0",
-    overrides: {
-        onCreateRecords: function (c) {
-            this.callParent(arguments);
-            var d = 0,
-                b = c.length,
-                a = this.tree,
-                e;
-            for (; d < b; ++d) {
-                e = c[d];
-                a.onNodeIdChanged(e, null, e.getId())
-            }
-        },
-        setRootNode: function (a, e) {
-            var d = this,
-                c = d.model,
-                b = c.prototype.idProperty;
-            a = a || {};
-            if (!a.isModel) {
-                Ext.applyIf(a, {
-                    text: "Root",
-                    allowDrag: false
-                });
-                if (a[b] === undefined) {
-                    a[b] = d.defaultRootId
-                }
-                Ext.data.NodeInterface.decorate(c);
-                a = Ext.ModelManager.create(a, c)
-            } else {
-                if (a.isModel && !a.isNode) {
-                    Ext.data.NodeInterface.decorate(c)
-                }
-            }
-            d.getProxy().getReader().buildExtractors(true);
-            d.tree.setRootNode(a);
-            if (e !== true && !a.isLoaded() && (d.autoLoad === true || a.isExpanded())) {
-                d.load({
-                    node: a
-                })
-            }
-            return a
-        }
-    }
-});
-Ext.define("Sch.view.Locking", {
-    extend: "Ext.grid.LockingView",
-    scheduleEventRelayRe: /^(schedule|event|beforeevent|afterevent|dragcreate|beforedragcreate|afterdragcreate|beforetooltipshow)/,
-    constructor: function (b) {
+Ext.define("Sch.patches.ColumnResize", {
+    override: "Sch.panel.TimelineGridPanel",
+    afterRender: function () {
         this.callParent(arguments);
-        var e = this,
-            g = [],
-            a = e.scheduleEventRelayRe,
-            f = b.normal.getView(),
-            c = f.events,
-            d;
-        for (d in c) {
-            if (c.hasOwnProperty(d) && a.test(d)) {
-                g.push(d)
+        var a = this.lockedGrid.headerCt.findPlugin("gridheaderresizer");
+        if (a) {
+            a.getConstrainRegion = function () {
+                var d = this,
+                    b = d.dragHd.el,
+                    c;
+                if (d.headerCt.forceFit) {
+                    c = d.dragHd.nextNode("gridcolumn:not([hidden]):not([isGroupHeader])");
+                    if (!d.headerInSameGrid(c)) {
+                        c = null
+                    }
+                }
+                return d.adjustConstrainRegion(Ext.util.Region.getRegion(b), 0, d.headerCt.forceFit ? (c ? c.getWidth() - d.minColWidth : 0) : d.maxColWidth - b.getWidth(), 0, d.minColWidth)
             }
         }
-        e.relayEvents(f, g)
+    }
+});
+Ext.define("Sch.patches.ColumnResizeTree", {
+    override: "Sch.panel.TimelineTreePanel",
+    afterRender: function () {
+        this.callParent(arguments);
+        var a = this.lockedGrid.headerCt.findPlugin("gridheaderresizer");
+        if (a) {
+            a.getConstrainRegion = function () {
+                var d = this,
+                    b = d.dragHd.el,
+                    c;
+                if (d.headerCt.forceFit) {
+                    c = d.dragHd.nextNode("gridcolumn:not([hidden]):not([isGroupHeader])");
+                    if (!d.headerInSameGrid(c)) {
+                        c = null
+                    }
+                }
+                return d.adjustConstrainRegion(Ext.util.Region.getRegion(b), 0, d.headerCt.forceFit ? (c ? c.getWidth() - d.minColWidth : 0) : d.maxColWidth - b.getWidth(), 0, d.minColWidth)
+            }
+        }
+    }
+});
+Ext.define("Sch.patches.ElementScroll", {
+    override: "Sch.mixin.TimelineView",
+    _onAfterRender: function () {
+        this.callParent(arguments);
+        if (Ext.versions.extjs.isLessThan("4.2.1") || Ext.versions.extjs.isGreaterThan("4.2.2")) {
+            return
+        }
+        this.el.scroll = function (i, a, c) {
+            if (!this.isScrollable()) {
+                return false
+            }
+            i = i.substr(0, 1);
+            var h = this,
+                e = h.dom,
+                g = i === "r" || i === "l" ? "left" : "top",
+                b = false,
+                d, f;
+            if (i === "r" || i === "t" || i === "u") {
+                a = -a
+            }
+            if (g === "left") {
+                d = e.scrollLeft;
+                f = h.constrainScrollLeft(d + a)
+            } else {
+                d = e.scrollTop;
+                f = h.constrainScrollTop(d + a)
+            } if (f !== d) {
+                this.scrollTo(g, f, c);
+                b = true
+            }
+            return b
+        }
+    }
+});
+Ext.define("Sch.mixin.Localizable", {
+    requires: ["Sch.locale.En"],
+    legacyMode: true,
+    activeLocaleId: "",
+    l10n: null,
+    isLocaleApplied: function () {
+        var b = (this.singleton && this.activeLocaleId) || this.self.activeLocaleId;
+        if (!b) {
+            return false
+        }
+        for (var a in Sch.locale.Active) {
+            if (b === Sch.locale.Active[a].self.getName()) {
+                return true
+            }
+        }
+        return false
     },
-    getElementFromEventRecord: function (a) {
-        return this.normal.getView().getElementFromEventRecord(a)
+    applyLocale: function () {
+        for (var a in Sch.locale.Active) {
+            Sch.locale.Active[a].apply(this.singleton ? this : this.self.getName())
+        }
     },
-    onClear: function () {
-        this.relayFn("onClear", arguments)
+    L: function () {
+        return this.localize.apply(this, arguments)
     },
-    beginBulkUpdate: function () {
-        this.relayFn("beginBulkUpdate", arguments)
-    },
-    endBulkUpdate: function () {
-        this.relayFn("endBulkUpdate", arguments)
-    },
-    refreshKeepingScroll: function () {
-        this.locked.getView().refresh();
-        this.normal.getView().refreshKeepingScroll()
+    localize: function (b, d, g) {
+        if (!this.isLocaleApplied() && !g) {
+            this.applyLocale()
+        }
+        if (this.hasOwnProperty("l10n") && this.l10n.hasOwnProperty(b) && "function" != typeof this.l10n[b]) {
+            return this.l10n[b]
+        }
+        var c = this.self && this.self.prototype;
+        if (this.legacyMode) {
+            var a = d || this.legacyHolderProp;
+            var h = a ? this[a] : this;
+            if (h && h.hasOwnProperty(b) && "function" != typeof h[b]) {
+                return h[b]
+            }
+            if (c) {
+                var e = a ? c[a] : c;
+                if (e && e.hasOwnProperty(b) && "function" != typeof e[b]) {
+                    return e[b]
+                }
+            }
+        }
+        var i = c.l10n[b];
+        if (i === null || i === undefined) {
+            var f = c && c.superclass;
+            if (f && f.localize) {
+                i = f.localize(b, d, g)
+            }
+            if (i === null || i === undefined) {
+                throw "Cannot find locale: " + b + " [" + this.self.getName() + "]"
+            }
+        }
+        return i
     }
 });
 Ext.define("Sch.tooltip.ClockTemplate", {
+    extend: "Ext.XTemplate",
     constructor: function () {
-        var h = Math.PI / 180,
-            k = Math.cos,
-            i = Math.sin,
-            l = 7,
+        var i = Math.PI / 180,
+            l = Math.cos,
+            j = Math.sin,
+            m = 7,
             c = 2,
             d = 10,
-            j = 6,
-            e = 3,
-            a = 10;
+            k = 6,
+            f = 3,
+            a = 10,
+            e = Ext.isIE && (Ext.isIE8m || Ext.isIEQuirks);
 
-        function b(m) {
-            var p = m * h,
-                n = k(p),
-                s = i(p),
-                q = j * i((90 - m) * h),
-                r = j * k((90 - m) * h),
-                t = Math.min(j, j - q),
-                o = m > 180 ? r : 0,
-                u = "progid:DXImageTransform.Microsoft.Matrix(sizingMethod='auto expand', M11 = " + n + ", M12 = " + (-s) + ", M21 = " + s + ", M22 = " + n + ")";
-            return Ext.String.format("filter:{0};-ms-filter:{0};top:{1}px;left:{2}px;", u, t + e, o + a)
+        function b(n) {
+            var q = n * i,
+                o = l(q),
+                t = j(q),
+                r = k * j((90 - n) * i),
+                s = k * l((90 - n) * i),
+                u = Math.min(k, k - r),
+                p = n > 180 ? s : 0,
+                v = "progid:DXImageTransform.Microsoft.Matrix(sizingMethod='auto expand', M11 = " + o + ", M12 = " + (-t) + ", M21 = " + t + ", M22 = " + o + ")";
+            return Ext.String.format("filter:{0};-ms-filter:{0};top:{1}px;left:{2}px;", v, u + f, p + a)
         }
 
-        function g(m) {
-            var p = m * h,
-                n = k(p),
-                s = i(p),
-                q = l * i((90 - m) * h),
-                r = l * k((90 - m) * h),
-                t = Math.min(l, l - q),
-                o = m > 180 ? r : 0,
-                u = "progid:DXImageTransform.Microsoft.Matrix(sizingMethod='auto expand', M11 = " + n + ", M12 = " + (-s) + ", M21 = " + s + ", M22 = " + n + ")";
-            return Ext.String.format("filter:{0};-ms-filter:{0};top:{1}px;left:{2}px;", u, t + c, o + d)
+        function h(n) {
+            var q = n * i,
+                o = l(q),
+                t = j(q),
+                r = m * j((90 - n) * i),
+                s = m * l((90 - n) * i),
+                u = Math.min(m, m - r),
+                p = n > 180 ? s : 0,
+                v = "progid:DXImageTransform.Microsoft.Matrix(sizingMethod='auto expand', M11 = " + o + ", M12 = " + (-t) + ", M21 = " + t + ", M22 = " + o + ")";
+            return Ext.String.format("filter:{0};-ms-filter:{0};top:{1}px;left:{2}px;", v, u + c, p + d)
         }
 
-        function f(m) {
-            return Ext.String.format("transform:rotate({0}deg);-moz-transform: rotate({0}deg);-webkit-transform: rotate({0}deg);-o-transform:rotate({0}deg);", m)
+        function g(n) {
+            return Ext.String.format("transform:rotate({0}deg);-ms-transform:rotate({0}deg);-moz-transform: rotate({0}deg);-webkit-transform: rotate({0}deg);-o-transform:rotate({0}deg);", n)
         }
-        return new Ext.XTemplate('<div class="sch-clockwrap {cls}"><div class="sch-clock"><div class="sch-hourIndicator" style="{[this.getHourStyle((values.date.getHours()%12) * 30)]}">{[Ext.Date.monthNames[values.date.getMonth()].substr(0,3)]}</div><div class="sch-minuteIndicator" style="{[this.getMinuteStyle(values.date.getMinutes() * 6)]}">{[values.date.getDate()]}</div></div><span class="sch-clock-text">{text}</span></div>', {
+        this.callParent(['<div class="sch-clockwrap {cls}"><div class="sch-clock"><div class="sch-hourIndicator" style="{[this.getHourStyle((values.date.getHours()%12) * 30)]}">{[Ext.Date.monthNames[values.date.getMonth()].substr(0,3)]}</div><div class="sch-minuteIndicator" style="{[this.getMinuteStyle(values.date.getMinutes() * 6)]}">{[values.date.getDate()]}</div></div><span class="sch-clock-text">{text}</span></div>', {
             compiled: true,
             disableFormats: true,
-            getMinuteStyle: Ext.isIE ? g : f,
-            getHourStyle: Ext.isIE ? b : f
-        })
+            getMinuteStyle: e ? h : g,
+            getHourStyle: e ? b : g
+        }])
     }
 });
 Ext.define("Sch.tooltip.Tooltip", {
@@ -311,7 +487,7 @@ Ext.define("Sch.tooltip.Tooltip", {
     shadow: false,
     frame: false,
     constructor: function (b) {
-        var a = Ext.create("Sch.tooltip.ClockTemplate");
+        var a = new Sch.tooltip.ClockTemplate();
         this.renderTo = document.body;
         this.startDate = this.endDate = new Date();
         if (!this.template) {
@@ -329,8 +505,8 @@ Ext.define("Sch.tooltip.Tooltip", {
         }
         this.callParent(arguments)
     },
-    update: function (a, e, d) {
-        if (this.startDate - a !== 0 || this.endDate - e !== 0 || this.valid !== d) {
+    update: function (a, e, d, f) {
+        if (this.startDate - a !== 0 || this.endDate - e !== 0 || this.valid !== d || f) {
             this.startDate = a;
             this.endDate = e;
             this.valid = d;
@@ -342,9 +518,9 @@ Ext.define("Sch.tooltip.Tooltip", {
             this.callParent([this.template.apply({
                 valid: d,
                 startDate: a,
+                endDate: e,
                 startText: c,
-                endText: b,
-                endDate: e
+                endText: b
             })])
         }
     },
@@ -352,6 +528,7 @@ Ext.define("Sch.tooltip.Tooltip", {
         if (!b) {
             return
         }
+        a = a || 18;
         if (Sch.util.Date.compareUnits(this.schedulerView.getTimeResolution().unit, Sch.util.Date.DAY) >= 0) {
             this.mode = "calendar";
             this.addCls("sch-day-resolution")
@@ -363,8 +540,8 @@ Ext.define("Sch.tooltip.Tooltip", {
         this.setTarget(b);
         this.callParent();
         this.alignTo(b, "bl-tl", this.mouseOffsets);
-        this.mon(Ext.getBody(), "mousemove", this.onMyMouseMove, this);
-        this.mon(Ext.getBody(), "mouseup", this.onMyMouseUp, this, {
+        this.mon(Ext.getDoc(), "mousemove", this.onMyMouseMove, this);
+        this.mon(Ext.getDoc(), "mouseup", this.onMyMouseUp, this, {
             single: true
         })
     },
@@ -372,7 +549,7 @@ Ext.define("Sch.tooltip.Tooltip", {
         this.el.alignTo(this.target, "bl-tl", this.mouseOffsets)
     },
     onMyMouseUp: function () {
-        this.mun(Ext.getBody(), "mousemove", this.onMyMouseMove, this)
+        this.mun(Ext.getDoc(), "mousemove", this.onMyMouseMove, this)
     },
     afterRender: function () {
         this.callParent(arguments);
@@ -384,56 +561,12 @@ Ext.define("Sch.tooltip.Tooltip", {
 });
 Ext.define("Sch.util.Date", {
     requires: "Ext.Date",
+    mixins: ["Sch.mixin.Localizable"],
     singleton: true,
+    stripEscapeRe: /(\\.)/g,
+    hourInfoRe: /([gGhHisucUOPZ]|MS)/,
     unitHash: null,
     unitsByName: {},
-    unitNames: {
-        YEAR: {
-            single: "year",
-            plural: "years",
-            abbrev: "yr"
-        },
-        QUARTER: {
-            single: "quarter",
-            plural: "quarters",
-            abbrev: "q"
-        },
-        MONTH: {
-            single: "month",
-            plural: "months",
-            abbrev: "mon"
-        },
-        WEEK: {
-            single: "week",
-            plural: "weeks",
-            abbrev: "w"
-        },
-        DAY: {
-            single: "day",
-            plural: "days",
-            abbrev: "d"
-        },
-        HOUR: {
-            single: "hour",
-            plural: "hours",
-            abbrev: "h"
-        },
-        MINUTE: {
-            single: "minute",
-            plural: "minutes",
-            abbrev: "min"
-        },
-        SECOND: {
-            single: "second",
-            plural: "seconds",
-            abbrev: "s"
-        },
-        MILLI: {
-            single: "ms",
-            plural: "ms",
-            abbrev: "ms"
-        }
-    },
     constructor: function () {
         var a = Ext.Date;
         var c = this.unitHash = {
@@ -449,19 +582,22 @@ Ext.define("Sch.util.Date", {
         };
         Ext.apply(this, c);
         var b = this;
-        this.units = [b.MILLI, b.SECOND, b.MINUTE, b.HOUR, b.DAY, b.WEEK, b.MONTH, b.QUARTER, b.YEAR];
-        this.setUnitNames(this.unitNames)
+        this.units = [b.MILLI, b.SECOND, b.MINUTE, b.HOUR, b.DAY, b.WEEK, b.MONTH, b.QUARTER, b.YEAR]
     },
-    setUnitNames: function (e) {
-        var d = this.unitsByName = {};
-        this.unitNames = e;
-        var b = this.unitHash;
-        for (var a in b) {
-            if (b.hasOwnProperty(a)) {
-                var c = b[a];
-                e[c] = e[a];
-                d[a] = c;
-                d[c] = c
+    onLocalized: function () {
+        this.setUnitNames(this.L("unitNames"))
+    },
+    setUnitNames: function (f, b) {
+        var e = this.unitsByName = {};
+        this.l10n.unitNames = f;
+        this._unitNames = Ext.apply({}, f);
+        var c = this.unitHash;
+        for (var a in c) {
+            if (c.hasOwnProperty(a)) {
+                var d = c[a];
+                this._unitNames[d] = this._unitNames[a];
+                e[a] = d;
+                e[d] = d
             }
         }
     },
@@ -527,44 +663,47 @@ Ext.define("Sch.util.Date", {
         }
         return f
     },
+    getUnitDurationInMs: function (a) {
+        return this.add(new Date(1, 0, 1), a, 1) - new Date(1, 0, 1)
+    },
     getMeasuringUnit: function (a) {
         if (a === this.WEEK) {
             return this.DAY
         }
         return a
     },
-    getDurationInUnit: function (d, a, c) {
+    getDurationInUnit: function (e, a, c, d) {
         var b;
         switch (c) {
         case this.YEAR:
-            b = Math.round(this.getDurationInYears(d, a));
+            b = this.getDurationInYears(e, a);
             break;
         case this.QUARTER:
-            b = Math.round(this.getDurationInMonths(d, a) / 3);
+            b = this.getDurationInMonths(e, a) / 3;
             break;
         case this.MONTH:
-            b = Math.round(this.getDurationInMonths(d, a));
+            b = this.getDurationInMonths(e, a);
             break;
         case this.WEEK:
-            b = Math.round(this.getDurationInDays(d, a)) / 7;
+            b = this.getDurationInDays(e, a) / 7;
             break;
         case this.DAY:
-            b = Math.round(this.getDurationInDays(d, a));
+            b = this.getDurationInDays(e, a);
             break;
         case this.HOUR:
-            b = Math.round(this.getDurationInHours(d, a));
+            b = this.getDurationInHours(e, a);
             break;
         case this.MINUTE:
-            b = Math.round(this.getDurationInMinutes(d, a));
+            b = this.getDurationInMinutes(e, a);
             break;
         case this.SECOND:
-            b = Math.round(this.getDurationInSeconds(d, a));
+            b = this.getDurationInSeconds(e, a);
             break;
         case this.MILLI:
-            b = Math.round(this.getDurationInMilliseconds(d, a));
+            b = this.getDurationInMilliseconds(e, a);
             break
         }
-        return b
+        return d ? b : Math.round(b)
     },
     getUnitToBaseUnitRatio: function (b, a) {
         if (b === a) {
@@ -658,8 +797,9 @@ Ext.define("Sch.util.Date", {
     getDurationInHours: function (b, a) {
         return (a - b) / 3600000
     },
-    getDurationInDays: function (b, a) {
-        return (a - b) / 86400000
+    getDurationInDays: function (c, b) {
+        var a = c.getTimezoneOffset() - b.getTimezoneOffset();
+        return (b - c + a * 60 * 1000) / 86400000
     },
     getDurationInBusinessDays: function (g, b) {
         var c = Math.round((b - g) / 86400000),
@@ -713,12 +853,21 @@ Ext.define("Sch.util.Date", {
         throw "Incorrect UnitName"
     },
     getReadableNameOfUnit: function (b, a) {
-        return this.unitNames[b][a ? "plural" : "single"]
+        if (!this.isLocaleApplied()) {
+            this.applyLocale()
+        }
+        return this._unitNames[b][a ? "plural" : "single"]
     },
     getShortNameOfUnit: function (a) {
-        return this.unitNames[a].abbrev
+        if (!this.isLocaleApplied()) {
+            this.applyLocale()
+        }
+        return this._unitNames[a].abbrev
     },
     getUnitByName: function (a) {
+        if (!this.isLocaleApplied()) {
+            this.applyLocale()
+        }
         if (!this.unitsByName[a]) {
             Ext.Error.raise("Unknown unit name: " + a)
         }
@@ -727,25 +876,37 @@ Ext.define("Sch.util.Date", {
     getNext: function (c, g, a, f) {
         var e = Ext.Date.clone(c);
         f = arguments.length < 4 ? 1 : f;
-        a = a || 1;
+        a = a == null ? 1 : a;
         switch (g) {
         case this.MILLI:
             e = this.add(c, g, a);
             break;
         case this.SECOND:
             e = this.add(c, g, a);
-            e.setMilliseconds(0);
+            if (e.getMilliseconds() > 0) {
+                e.setMilliseconds(0)
+            }
             break;
         case this.MINUTE:
             e = this.add(c, g, a);
-            e.setSeconds(0);
-            e.setMilliseconds(0);
+            if (e.getSeconds() > 0) {
+                e.setSeconds(0)
+            }
+            if (e.getMilliseconds() > 0) {
+                e.setMilliseconds(0)
+            }
             break;
         case this.HOUR:
             e = this.add(c, g, a);
-            e.setMinutes(0);
-            e.setSeconds(0);
-            e.setMilliseconds(0);
+            if (e.getMinutes() > 0) {
+                e.setMinutes(0)
+            }
+            if (e.getSeconds() > 0) {
+                e.setSeconds(0)
+            }
+            if (e.getMilliseconds() > 0) {
+                e.setMilliseconds(0)
+            }
             break;
         case this.DAY:
             var d = c.getHours() === 23 && this.add(e, this.HOUR, 1).getHours() === 1;
@@ -791,17 +952,17 @@ Ext.define("Sch.util.Date", {
     getNumberOfMsTillTheEndOfDay: function (a) {
         return this.getStartOfNextDay(a, true) - a
     },
-    getStartOfNextDay: function (b, e) {
-        var d = this.add(Ext.Date.clearTime(b, e), this.DAY, 1);
+    getStartOfNextDay: function (b, f, e) {
+        var d = this.add(e ? b : Ext.Date.clearTime(b, f), this.DAY, 1);
         if (d.getDate() == b.getDate()) {
-            var c = this.add(Ext.Date.clearTime(b, e), this.DAY, 2).getTimezoneOffset();
+            var c = this.add(Ext.Date.clearTime(b, f), this.DAY, 2).getTimezoneOffset();
             var a = b.getTimezoneOffset();
             d = this.add(d, this.MINUTE, a - c)
         }
         return d
     },
-    getEndOfPreviousDay: function (b) {
-        var a = Ext.Date.clearTime(b, true);
+    getEndOfPreviousDay: function (b, c) {
+        var a = c ? b : Ext.Date.clearTime(b, true);
         if (a - b) {
             return a
         } else {
@@ -816,14 +977,15 @@ Ext.define("Sch.util.Debug", {
     singleton: true,
     runDiagnostics: function () {
         var d;
-        var a = console;
-        if (a && a.log) {
-            d = function () {
-                a.log.apply(console, arguments)
+        var g = this;
+        var b = window.console;
+        if (b && b.log) {
+            d = function (m) {
+                b.log(m)
             }
         } else {
-            if (!window.schedulerDebugWin) {
-                window.schedulerDebugWin = new Ext.Window({
+            if (!g.schedulerDebugWin) {
+                g.schedulerDebugWin = new Ext.Window({
                     height: 400,
                     width: 500,
                     bodyStyle: "padding:10px",
@@ -831,24 +993,24 @@ Ext.define("Sch.util.Debug", {
                     autoScroll: true
                 })
             }
-            window.schedulerDebugWin.show();
-            schedulerDebugWin.update("");
-            d = function (l) {
-                schedulerDebugWin.update((schedulerDebugWin.body.dom.innerHTML || "") + l + "<br/>")
+            g.schedulerDebugWin.show();
+            g.schedulerDebugWin.update("");
+            d = function (m) {
+                g.schedulerDebugWin.update((g.schedulerDebugWin.body.dom.innerHTML || "") + m + "<br/>")
             }
         }
         var e = Ext.select(".sch-schedulerpanel");
         if (e.getCount() === 0) {
             d("No scheduler component found")
         }
-        var k = Ext.getCmp(e.elements[0].id),
-            i = k.getResourceStore(),
-            c = k.getEventStore();
+        var l = Ext.getCmp(e.elements[0].id),
+            j = l.getResourceStore(),
+            c = l.getEventStore();
         if (!c.isEventStore) {
             d("Your event store must be or extend Sch.data.EventStore")
         }
-        d("Scheduler view start: " + k.getStart() + ", end: " + k.getEnd());
-        if (!i) {
+        d("Scheduler view start: " + l.getStart() + ", end: " + l.getEnd());
+        if (!j) {
             d("No store configured");
             return
         }
@@ -856,26 +1018,26 @@ Ext.define("Sch.util.Debug", {
             d("No event store configured");
             return
         }
-        d(i.getCount() + " records in the resource store");
+        d(j.getCount() + " records in the resource store");
         d(c.getCount() + " records in the eventStore");
-        var j = c.model.prototype.idProperty;
-        var b = i.model.prototype.idProperty;
-        var h = c.model.prototype.fields.getByKey(j);
-        var f = i.model.prototype.fields.getByKey(b);
+        var k = c.model.prototype.idProperty;
+        var a = j.model.prototype.idProperty;
+        var i = c.model.prototype.fields.getByKey(k);
+        var f = j.model.prototype.fields.getByKey(a);
         if (!(c.model.prototype instanceof Sch.model.Event)) {
             d("Your event model must extend Sch.model.Event")
         }
-        if (!(i.model.prototype instanceof Sch.model.Resource)) {
-            d("Your event model must extend Sch.model.Resource")
+        if (!(j.model.prototype instanceof Sch.model.Resource)) {
+            d("Your resource model must extend Sch.model.Resource")
         }
-        if (!h) {
-            d("idProperty on the event model is incorrectly setup, value: " + j)
+        if (!i) {
+            d("idProperty on the event model is incorrectly setup, value: " + k)
         }
         if (!f) {
-            d("idProperty on the resource model is incorrectly setup, value: " + b)
+            d("idProperty on the resource model is incorrectly setup, value: " + a)
         }
-        var g = k.getSchedulingView();
-        d(g.el.select(g.eventSelector).getCount() + " events present in the DOM");
+        var h = l.getSchedulingView();
+        d(h.el.select(h.eventSelector).getCount() + " events present in the DOM");
         if (c.getCount() > 0) {
             if (!c.first().getStartDate() || !(c.first().getStartDate() instanceof Date)) {
                 d("The eventStore reader is misconfigured - The StartDate field is not setup correctly, please investigate");
@@ -889,21 +1051,24 @@ Ext.define("Sch.util.Debug", {
             }
             if (c.proxy && c.proxy.reader && c.proxy.reader.jsonData) {
                 d("Dumping jsonData to console");
-                console.dir(c.proxy.reader.jsonData)
+                console && console.dir && console.dir(c.proxy.reader.jsonData)
             }
             d("Records in the event store:");
-            c.each(function (m, l) {
-                d((l + 1) + ". " + m.startDateField + ":" + m.getStartDate() + ", " + m.endDateField + ":" + m.getEndDate() + ", " + m.resourceIdField + ":" + m.getResourceId());
-                if (!m.getStartDate()) {
-                    d(m.getStartDate())
+            c.each(function (n, m) {
+                d((m + 1) + ". " + n.startDateField + ":" + n.getStartDate() + ", " + n.endDateField + ":" + n.getEndDate() + ", " + n.resourceIdField + ":" + n.getResourceId());
+                if (!n.getStartDate()) {
+                    d(n.getStartDate())
                 }
             })
         } else {
             d("Event store has no data. Has it been loaded properly?")
-        } if (i.getCount() > 0) {
+        } if (j instanceof Ext.data.TreeStore) {
+            j = j.nodeStore
+        }
+        if (j.getCount() > 0) {
             d("Records in the resource store:");
-            i.each(function (m, l) {
-                d((l + 1) + ". " + m.idProperty + ":" + m.getId());
+            j.each(function (n, m) {
+                d((m + 1) + ". " + n.idProperty + ":" + n.getId());
                 return
             })
         } else {
@@ -913,86 +1078,44 @@ Ext.define("Sch.util.Debug", {
         d("Everything seems to be setup ok!")
     }
 });
-Ext.define("Sch.util.HeaderRenderers", {
-    singleton: true,
-    requires: ["Sch.util.Date", "Ext.XTemplate"],
-    constructor: function () {
-        var b = Ext.create("Ext.XTemplate", '<table class="sch-nested-hdr-tbl ' + Ext.baseCSSPrefix + 'column-header-text" cellpadding="0" cellspacing="0"><tr><tpl for="."><td style="width:{[100/xcount]}%" class="{cls} sch-dayheadercell-{dayOfWeek}">{text}</td></tpl></tr></table>').compile();
-        var a = Ext.create("Ext.XTemplate", '<table class="sch-nested-hdr-tbl" cellpadding="0" cellspacing="0"><tr><tpl for="."><td style="width:{[100/xcount]}%" class="{cls}">{text}</td></tpl></tr></table>').compile();
-        return {
-            quarterMinute: function (f, d, c, e) {
-                c.headerCls = "sch-nested-hdr-pad";
-                return '<table class="sch-nested-hdr-tbl" cellpadding="0" cellspacing="0"><tr><td>00</td><td>15</td><td>30</td><td>45</td></tr></table>'
-            },
-            dateCells: function (d, c, e) {
-                return function (j, g, f) {
-                    f.headerCls = "sch-nested-hdr-nopad";
-                    var i = [],
-                        h = Ext.Date.clone(j);
-                    while (h < g) {
-                        i.push({
-                            text: Ext.Date.format(h, e)
-                        });
-                        h = Sch.util.Date.add(h, d, c)
-                    }
-                    i[0].cls = "sch-nested-hdr-cell-first";
-                    i[i.length - 1].cls = "sch-nested-hdr-cell-last";
-                    return a.apply(i)
-                }
-            },
-            dateNumber: function (g, d, c) {
-                c.headerCls = "sch-nested-hdr-nopad";
-                var f = [],
-                    e = Ext.Date.clone(g);
-                while (e < d) {
-                    f.push({
-                        dayOfWeek: e.getDay(),
-                        text: e.getDate()
-                    });
-                    e = Sch.util.Date.add(e, Sch.util.Date.DAY, 1)
-                }
-                return b.apply(f)
-            },
-            dayLetter: function (g, d, c) {
-                c.headerCls = "sch-nested-hdr-nopad";
-                var f = [],
-                    e = g;
-                while (e < d) {
-                    f.push({
-                        dayOfWeek: e.getDay(),
-                        text: Ext.Date.dayNames[e.getDay()].substr(0, 1)
-                    });
-                    e = Sch.util.Date.add(e, Sch.util.Date.DAY, 1)
-                }
-                f[0].cls = "sch-nested-hdr-cell-first";
-                f[f.length - 1].cls = "sch-nested-hdr-cell-last";
-                return b.apply(f)
-            },
-            dayStartEndHours: function (e, d, c) {
-                c.headerCls = "sch-hdr-startend";
-                return Ext.String.format('<span class="sch-hdr-start">{0}</span><span class="sch-hdr-end">{1}</span>', Ext.Date.format(e, "G"), Ext.Date.format(d, "G"))
-            }
-        }
-    }
-});
 Ext.define("Sch.util.DragTracker", {
     extend: "Ext.dd.DragTracker",
     xStep: 1,
     yStep: 1,
+    constructor: function () {
+        this.callParent(arguments);
+        this.on("dragstart", function () {
+            var a = this.el;
+            a.on("scroll", this.onMouseMove, this);
+            this.on("dragend", function () {
+                a.un("scroll", this.onMouseMove, this)
+            }, this, {
+                single: true
+            })
+        })
+    },
     setXStep: function (a) {
         this.xStep = a
     },
+    startScroll: null,
     setYStep: function (a) {
         this.yStep = a
     },
     getRegion: function () {
-        var e = this.startXY,
-            d = this.getXY(),
-            b = Math.min(e[0], d[0]),
-            f = Math.min(e[1], d[1]),
-            c = Math.abs(e[0] - d[0]),
-            a = Math.abs(e[1] - d[1]);
-        return new Ext.util.Region(f, b + c, f + a, b)
+        var j = this.startXY,
+            f = this.el.getScroll(),
+            l = this.getXY(),
+            c = l[0],
+            b = l[1],
+            h = f.left - this.startScroll.left,
+            m = f.top - this.startScroll.top,
+            i = j[0] - h,
+            g = j[1] - m,
+            e = Math.min(i, c),
+            d = Math.min(g, b),
+            a = Math.abs(i - c),
+            k = Math.abs(g - b);
+        return new Ext.util.Region(d, e + a, d + k, e)
     },
     onMouseDown: function (f, d) {
         if (this.disabled || f.dragTracked) {
@@ -1016,6 +1139,7 @@ Ext.define("Sch.util.DragTracker", {
         this.dragTarget = this.delegate ? d : this.handle.dom;
         this.startXY = this.lastXY = [a, h];
         this.startRegion = Ext.fly(this.dragTarget).getRegion();
+        this.startScroll = this.el.getScroll();
         if (this.fireEvent("mousedown", this, f) === false || this.fireEvent("beforedragstart", this, f) === false || this.onBeforeStart(f) === false) {
             return
         }
@@ -1035,13 +1159,13 @@ Ext.define("Sch.util.DragTracker", {
         }
     },
     onMouseMove: function (g, f) {
-        if (this.active && Ext.isIE && !g.browserEvent.button) {
+        if (this.active && g.type === "mousemove" && Ext.isIE9m && !g.browserEvent.button) {
             g.preventDefault();
             this.onMouseUp(g);
             return
         }
         g.preventDefault();
-        var d = g.getXY(),
+        var d = g.type === "scroll" ? this.lastXY : g.getXY(),
             b = this.startXY;
         if (!this.active) {
             if (Math.max(Math.abs(b[0] - d[0]), Math.abs(b[1] - d[1])) > this.tolerance) {
@@ -1074,9 +1198,162 @@ Ext.define("Sch.util.DragTracker", {
         }
     }
 });
+Ext.define("Sch.util.ScrollManager", {
+    singleton: true,
+    vthresh: 25,
+    hthresh: 25,
+    increment: 100,
+    frequency: 500,
+    animate: true,
+    animDuration: 0.4,
+    activeEl: null,
+    scrollElRegion: null,
+    scrollProcess: {},
+    pt: null,
+    constructor: function () {
+        this.doScroll = Ext.Function.bind(this.doScroll, this)
+    },
+    triggerRefresh: function () {
+        if (this.activeEl) {
+            this.refreshElRegion();
+            this.clearScrollInterval();
+            this.onMouseMove()
+        }
+    },
+    doScroll: function () {
+        var a = this.scrollProcess,
+            b = a.el;
+        b.scroll(a.dir[0], this.increment, {
+            duration: this.animDuration,
+            callback: this.triggerRefresh,
+            scope: this
+        })
+    },
+    clearScrollInterval: function () {
+        var a = this.scrollProcess;
+        if (a.id) {
+            clearTimeout(a.id)
+        }
+        a.id = 0;
+        a.el = null;
+        a.dir = ""
+    },
+    startScrollInterval: function (b, a) {
+        if (Ext.versions.extjs.isLessThan("4.2.2")) {
+            if (a[0] === "r") {
+                a = "left"
+            } else {
+                if (a[0] === "l") {
+                    a = "right"
+                }
+            }
+        }
+        this.clearScrollInterval();
+        this.scrollProcess.el = b;
+        this.scrollProcess.dir = a;
+        this.scrollProcess.id = setTimeout(this.doScroll, this.frequency)
+    },
+    onMouseMove: function (d) {
+        var k = d ? d.getPoint() : this.pt,
+            j = k.x,
+            h = k.y,
+            f = this.scrollProcess,
+            a, b = this.activeEl,
+            i = this.scrollElRegion,
+            c = b.dom,
+            g = this;
+        this.pt = k;
+        if (i && i.contains(k) && b.isScrollable()) {
+            if (i.bottom - h <= g.vthresh && (c.scrollHeight - c.scrollTop - c.clientHeight > 0)) {
+                if (f.el != b) {
+                    this.startScrollInterval(b, "down")
+                }
+                return
+            } else {
+                if (i.right - j <= g.hthresh && (c.scrollWidth - c.scrollLeft - c.clientWidth > 0)) {
+                    if (f.el != b) {
+                        this.startScrollInterval(b, "right")
+                    }
+                    return
+                } else {
+                    if (h - i.top <= g.vthresh && b.dom.scrollTop > 0) {
+                        if (f.el != b) {
+                            this.startScrollInterval(b, "up")
+                        }
+                        return
+                    } else {
+                        if (j - i.left <= g.hthresh && b.dom.scrollLeft > 0) {
+                            if (f.el != b) {
+                                this.startScrollInterval(b, "left")
+                            }
+                            return
+                        }
+                    }
+                }
+            }
+        }
+        this.clearScrollInterval()
+    },
+    refreshElRegion: function () {
+        this.scrollElRegion = this.activeEl.getRegion()
+    },
+    register: function (a) {
+        this.activeEl = Ext.get(a);
+        this.refreshElRegion();
+        this.activeEl.on("mousemove", this.onMouseMove, this)
+    },
+    unregister: function (a) {
+        this.clearScrollInterval();
+        this.activeEl.un("mousemove", this.onMouseMove, this);
+        this.activeEl = this.scrollElRegion = null
+    }
+});
+Ext.define("Sch.preset.ViewPreset", {
+    name: null,
+    rowHeight: null,
+    timeColumnWidth: 50,
+    timeRowHeight: null,
+    timeAxisColumnWidth: null,
+    displayDateFormat: "G:i",
+    shiftUnit: "HOUR",
+    shiftIncrement: 1,
+    defaultSpan: 12,
+    timeResolution: null,
+    headerConfig: null,
+    columnLinesFor: "middle",
+    headers: null,
+    mainHeader: 0,
+    constructor: function (a) {
+        Ext.apply(this, a)
+    },
+    getHeaders: function () {
+        if (this.headers) {
+            return this.headers
+        }
+        var a = this.headerConfig;
+        this.mainHeader = a.top ? 1 : 0;
+        return this.headers = [].concat(a.top || [], a.middle || [], a.bottom || [])
+    },
+    getMainHeader: function () {
+        return this.getHeaders()[this.mainHeader]
+    },
+    getBottomHeader: function () {
+        var a = this.getHeaders();
+        return a[a.length - 1]
+    },
+    clone: function () {
+        var a = {};
+        var b = this;
+        Ext.each(["rowHeight", "timeColumnWidth", "timeRowHeight", "timeAxisColumnWidth", "displayDateFormat", "shiftUnit", "shiftIncrement", "defaultSpan", "timeResolution", "headerConfig"], function (c) {
+            a[c] = b[c]
+        });
+        return new this.self(Ext.clone(a))
+    }
+});
 Ext.define("Sch.preset.Manager", {
     extend: "Ext.util.MixedCollection",
-    requires: ["Sch.util.Date", "Sch.util.HeaderRenderers"],
+    requires: ["Sch.util.Date", "Sch.preset.ViewPreset"],
+    mixins: ["Sch.mixin.Localizable"],
     singleton: true,
     constructor: function () {
         this.callParent(arguments);
@@ -1085,49 +1362,60 @@ Ext.define("Sch.preset.Manager", {
     registerPreset: function (b, a) {
         if (a) {
             var c = a.headerConfig;
-            var d = Sch.util.Date;
-            for (var e in c) {
-                if (c.hasOwnProperty(e)) {
-                    if (d[c[e].unit]) {
-                        c[e].unit = d[c[e].unit.toUpperCase()]
+            var f = Sch.util.Date;
+            for (var g in c) {
+                if (c.hasOwnProperty(g)) {
+                    if (f[c[g].unit]) {
+                        c[g].unit = f[c[g].unit.toUpperCase()]
                     }
                 }
             }
             if (!a.timeColumnWidth) {
                 a.timeColumnWidth = 50
             }
-            if (a.timeResolution && d[a.timeResolution.unit]) {
-                a.timeResolution.unit = d[a.timeResolution.unit.toUpperCase()]
+            if (!a.rowHeight) {
+                a.rowHeight = 24
             }
-            if (a.shiftUnit && d[a.shiftUnit]) {
-                a.shiftUnit = d[a.shiftUnit.toUpperCase()]
+            var d = a.timeResolution;
+            if (d && f[d.unit]) {
+                d.unit = f[d.unit.toUpperCase()]
+            }
+            var e = a.shiftUnit;
+            if (e && f[e]) {
+                a.shiftUnit = f[e.toUpperCase()]
             }
         }
         if (this.isValidPreset(a)) {
             if (this.containsKey(b)) {
                 this.removeAtKey(b)
             }
-            this.add(b, a)
+            a.name = b;
+            this.add(b, new Sch.preset.ViewPreset(a))
         } else {
             throw "Invalid preset, please check your configuration"
         }
     },
     isValidPreset: function (a) {
-        var d = Sch.util.Date,
-            b = true,
-            c = Sch.util.Date.units;
-        for (var e in a.headerConfig) {
-            if (a.headerConfig.hasOwnProperty(e)) {
-                b = b && Ext.Array.indexOf(c, a.headerConfig[e].unit) >= 0
+        var e = Sch.util.Date,
+            c = true,
+            d = Sch.util.Date.units,
+            b = {};
+        for (var f in a.headerConfig) {
+            if (a.headerConfig.hasOwnProperty(f)) {
+                b[f] = true;
+                c = c && Ext.Array.indexOf(d, a.headerConfig[f].unit) >= 0
             }
         }
+        if (!(a.columnLinesFor in b)) {
+            a.columnLinesFor = "middle"
+        }
         if (a.timeResolution) {
-            b = b && Ext.Array.indexOf(c, a.timeResolution.unit) >= 0
+            c = c && Ext.Array.indexOf(d, a.timeResolution.unit) >= 0
         }
         if (a.shiftUnit) {
-            b = b && Ext.Array.indexOf(c, a.shiftUnit) >= 0
+            c = c && Ext.Array.indexOf(d, a.shiftUnit) >= 0
         }
-        return b
+        return c
     },
     getPreset: function (a) {
         return this.get(a)
@@ -1143,6 +1431,32 @@ Ext.define("Sch.preset.Manager", {
         }
     },
     defaultPresets: {
+        secondAndMinute: {
+            timeColumnWidth: 30,
+            rowHeight: 24,
+            resourceColumnWidth: 100,
+            displayDateFormat: "G:i:s",
+            shiftIncrement: 10,
+            shiftUnit: "MINUTE",
+            defaultSpan: 24,
+            timeResolution: {
+                unit: "SECOND",
+                increment: 5
+            },
+            headerConfig: {
+                middle: {
+                    unit: "SECOND",
+                    increment: 10,
+                    align: "center",
+                    dateFormat: "s"
+                },
+                top: {
+                    unit: "MINUTE",
+                    align: "center",
+                    dateFormat: "D, d g:iA"
+                }
+            }
+        },
         minuteAndHour: {
             timeColumnWidth: 100,
             rowHeight: 24,
@@ -1159,11 +1473,13 @@ Ext.define("Sch.preset.Manager", {
                 middle: {
                     unit: "MINUTE",
                     increment: "30",
+                    align: "center",
                     dateFormat: "i"
                 },
                 top: {
                     unit: "HOUR",
-                    dateFormat: "D, GA/m"
+                    align: "center",
+                    dateFormat: "D, gA/d"
                 }
             }
         },
@@ -1182,10 +1498,12 @@ Ext.define("Sch.preset.Manager", {
             headerConfig: {
                 middle: {
                     unit: "HOUR",
+                    align: "center",
                     dateFormat: "G:i"
                 },
                 top: {
                     unit: "DAY",
+                    align: "center",
                     dateFormat: "D d/m"
                 }
             }
@@ -1205,11 +1523,12 @@ Ext.define("Sch.preset.Manager", {
             headerConfig: {
                 middle: {
                     unit: "DAY",
+                    align: "center",
                     dateFormat: "D d M"
                 },
                 top: {
                     unit: "WEEK",
-                    dateFormat: "W M Y",
+                    align: "center",
                     renderer: function (c, b, a) {
                         return Sch.util.Date.getShortNameOfUnit("WEEK") + "." + Ext.Date.format(c, "W M Y")
                     }
@@ -1231,13 +1550,13 @@ Ext.define("Sch.preset.Manager", {
             headerConfig: {
                 bottom: {
                     unit: "DAY",
+                    align: "center",
                     increment: 1,
                     dateFormat: "d/m"
                 },
                 middle: {
                     unit: "WEEK",
-                    dateFormat: "D d M",
-                    align: "left"
+                    dateFormat: "D d M"
                 }
             }
         },
@@ -1257,12 +1576,12 @@ Ext.define("Sch.preset.Manager", {
                 middle: {
                     unit: "WEEK",
                     renderer: function (c, b, a) {
-                        a.align = "left";
                         return Ext.Date.format(c, "d M")
                     }
                 },
                 top: {
                     unit: "MONTH",
+                    align: "center",
                     dateFormat: "M Y"
                 }
             }
@@ -1282,10 +1601,12 @@ Ext.define("Sch.preset.Manager", {
             headerConfig: {
                 middle: {
                     unit: "MONTH",
+                    align: "center",
                     dateFormat: "M Y"
                 },
                 top: {
                     unit: "YEAR",
+                    align: "center",
                     dateFormat: "Y"
                 }
             }
@@ -1303,14 +1624,36 @@ Ext.define("Sch.preset.Manager", {
                 increment: 1
             },
             headerConfig: {
-                bottom: {
+                middle: {
                     unit: "QUARTER",
+                    align: "center",
                     renderer: function (c, b, a) {
                         return Ext.String.format(Sch.util.Date.getShortNameOfUnit("QUARTER").toUpperCase() + "{0}", Math.floor(c.getMonth() / 3) + 1)
                     }
                 },
+                top: {
+                    unit: "YEAR",
+                    align: "center",
+                    dateFormat: "Y"
+                }
+            }
+        },
+        manyYears: {
+            timeColumnWidth: 50,
+            rowHeight: 24,
+            resourceColumnWidth: 100,
+            displayDateFormat: "Y-m-d",
+            shiftUnit: "YEAR",
+            shiftIncrement: 1,
+            defaultSpan: 1,
+            timeResolution: {
+                unit: "YEAR",
+                increment: 1
+            },
+            headerConfig: {
                 middle: {
                     unit: "YEAR",
+                    align: "center",
                     dateFormat: "Y"
                 }
             }
@@ -1330,15 +1673,14 @@ Ext.define("Sch.preset.Manager", {
             headerConfig: {
                 bottom: {
                     unit: "DAY",
-                    increment: 1,
+                    align: "center",
                     renderer: function (a) {
                         return Ext.Date.dayNames[a.getDay()].substring(0, 1)
                     }
                 },
                 middle: {
                     unit: "WEEK",
-                    dateFormat: "D d M Y",
-                    align: "left"
+                    dateFormat: "D d M Y"
                 }
             }
         },
@@ -1357,171 +1699,373 @@ Ext.define("Sch.preset.Manager", {
             headerConfig: {
                 middle: {
                     unit: "WEEK",
+                    align: "center",
                     dateFormat: "d"
                 },
                 top: {
                     unit: "MONTH",
-                    dateFormat: "Y F",
-                    align: "left"
+                    dateFormat: "Y F"
                 }
             }
         }
     }
 });
-Ext.define("Sch.preset.ViewPreset", {});
-Ext.define("Sch.preset.ViewPresetHeaderRow", {});
-Ext.define("Sch.feature.AbstractTimeSpan", {
-    extend: "Ext.AbstractPlugin",
-    lockableScope: "normal",
-    schedulerView: null,
-    timeAxis: null,
-    containerEl: null,
-    expandToFitView: false,
-    disabled: false,
-    cls: null,
-    template: null,
-    store: null,
-    renderElementsBuffered: false,
-    renderDelay: 15,
-    constructor: function (a) {
-        this.uniqueCls = this.uniqueCls || ("sch-timespangroup-" + Ext.id());
-        Ext.apply(this, a)
-    },
-    setDisabled: function (a) {
-        if (a) {
-            this.removeElements()
-        }
-        this.disabled = a
-    },
-    getElements: function () {
-        if (this.containerEl) {
-            return this.containerEl.select("." + this.uniqueCls)
-        }
-        return null
-    },
-    removeElements: function () {
-        var a = this.getElements();
-        if (a) {
-            a.remove()
-        }
-    },
-    init: function (a) {
-        this.timeAxis = a.getTimeAxis();
-        this.schedulerView = a.getSchedulingView();
-        if (!this.store) {
-            Ext.Error.raise("Error: You must define a store for this plugin")
-        }
-        this.schedulerView.on({
-            afterrender: this.onAfterRender,
-            destroy: this.onDestroy,
-            scope: this
-        })
-    },
-    onAfterRender: function (b) {
-        var a = this.schedulerView;
-        this.containerEl = a.el;
-        a.mon(this.store, {
-            load: this.renderElements,
-            datachanged: this.renderElements,
-            clear: this.renderElements,
-            add: this.renderElements,
-            remove: this.renderElements,
-            update: this.refreshSingle,
-            scope: this
-        });
-        if (Ext.data.NodeStore && a.store instanceof Ext.data.NodeStore) {
-            if (a.animate) {} else {
-                a.mon(a.store, {
-                    expand: this.renderElements,
-                    collapse: this.renderElements,
+if (!Ext.ClassManager.get("Sch.feature.AbstractTimeSpan")) {
+    Ext.define("Sch.feature.AbstractTimeSpan", {
+        extend: "Ext.AbstractPlugin",
+        mixins: {
+            observable: "Ext.util.Observable"
+        },
+        lockableScope: "top",
+        schedulerView: null,
+        timeAxis: null,
+        containerEl: null,
+        expandToFitView: false,
+        disabled: false,
+        cls: null,
+        clsField: "Cls",
+        template: null,
+        store: null,
+        renderElementsBuffered: false,
+        renderDelay: 15,
+        refreshSizeOnItemUpdate: true,
+        _resizeTimer: null,
+        _renderTimer: null,
+        showHeaderElements: false,
+        headerTemplate: null,
+        innerHeaderTpl: null,
+        headerContainerCls: "sch-header-secondary-canvas",
+        headerContainerEl: null,
+        renderingDoneEvent: null,
+        constructor: function (a) {
+            this.uniqueCls = this.uniqueCls || ("sch-timespangroup-" + Ext.id());
+            Ext.apply(this, a);
+            this.mixins.observable.constructor.call(this);
+            this.callParent(arguments)
+        },
+        setDisabled: function (a) {
+            if (a) {
+                this.removeElements()
+            }
+            this.disabled = a
+        },
+        removeElements: function () {
+            this.removeBodyElements();
+            if (this.showHeaderElements) {
+                this.removeHeaderElements()
+            }
+        },
+        getBodyElements: function () {
+            if (this.containerEl) {
+                return this.containerEl.select("." + this.uniqueCls)
+            }
+            return null
+        },
+        getHeaderContainerEl: function () {
+            var c = this.headerContainerEl,
+                b = Ext.baseCSSPrefix,
+                a;
+            if (!c || !c.dom) {
+                if (this.schedulerView.isHorizontal()) {
+                    a = this.panel.getTimeAxisColumn().headerView.containerEl
+                } else {
+                    a = this.panel.el.down("." + b + "grid-inner-locked ." + b + "panel-body ." + b + "grid-view")
+                } if (a) {
+                    c = a.down("." + this.headerContainerCls);
+                    if (!c) {
+                        c = a.appendChild({
+                            cls: this.headerContainerCls
+                        })
+                    }
+                    this.headerContainerEl = c
+                }
+            }
+            return c
+        },
+        getHeaderElements: function () {
+            var a = this.getHeaderContainerEl();
+            if (a) {
+                return a.select("." + this.uniqueCls)
+            }
+            return null
+        },
+        removeBodyElements: function () {
+            var a = this.getBodyElements();
+            if (a) {
+                a.each(function (b) {
+                    b.destroy()
+                })
+            }
+        },
+        removeHeaderElements: function () {
+            var a = this.getHeaderElements();
+            if (a) {
+                a.each(function (b) {
+                    b.destroy()
+                })
+            }
+        },
+        getElementId: function (a) {
+            return this.uniqueCls + "-" + a.internalId
+        },
+        getHeaderElementId: function (a) {
+            return this.uniqueCls + "-header-" + a.internalId
+        },
+        getTemplateData: function (a) {
+            return this.prepareTemplateData ? this.prepareTemplateData(a) : a.data
+        },
+        getElementCls: function (a, c) {
+            var b = a.clsField || this.clsField;
+            if (!c) {
+                c = this.getTemplateData(a)
+            }
+            return this.cls + " " + this.uniqueCls + " " + (c[b] || "")
+        },
+        getHeaderElementCls: function (a, c) {
+            var b = a.clsField || this.clsField;
+            if (!c) {
+                c = this.getTemplateData(a)
+            }
+            return "sch-header-indicator " + this.uniqueCls + " " + (c[b] || "")
+        },
+        init: function (a) {
+            if (Ext.versions.touch && !a.isReady()) {
+                a.on("viewready", function () {
+                    this.init(a)
+                }, this);
+                return
+            }
+            if (Ext.isString(this.innerHeaderTpl)) {
+                this.innerHeaderTpl = new Ext.XTemplate(this.innerHeaderTpl)
+            }
+            var b = this.innerHeaderTpl;
+            if (!this.headerTemplate) {
+                this.headerTemplate = new Ext.XTemplate('<tpl for=".">', '<div id="{id}" class="{cls}" style="{side}:{position}px;">' + (b ? "{[this.renderInner(values)]}" : "") + "</div>", "</tpl>", {
+                    renderInner: function (c) {
+                        return b.apply(c)
+                    }
+                })
+            }
+            this.schedulerView = a.getSchedulingView();
+            this.panel = a;
+            this.timeAxis = a.getTimeAxis();
+            this.store = Ext.StoreManager.lookup(this.store);
+            if (!this.store) {
+                Ext.Error.raise("Error: You must define a store for this plugin")
+            }
+            if (!this.schedulerView.getEl()) {
+                this.schedulerView.on({
+                    afterrender: this.onAfterRender,
+                    scope: this
+                })
+            } else {
+                this.onAfterRender()
+            }
+            this.schedulerView.on({
+                destroy: this.onDestroy,
+                scope: this
+            })
+        },
+        onAfterRender: function (c) {
+            var a = this.schedulerView;
+            this.containerEl = a.getSecondaryCanvasEl();
+            this.storeListeners = {
+                load: this.renderElements,
+                datachanged: this.renderElements,
+                clear: this.renderElements,
+                add: this.refreshSingle,
+                remove: this.renderElements,
+                update: this.refreshSingle,
+                addrecords: this.refreshSingle,
+                removerecords: this.renderElements,
+                updaterecord: this.refreshSingle,
+                scope: this
+            };
+            this.store.on(this.storeListeners);
+            if (Ext.data.NodeStore && a.store instanceof Ext.data.NodeStore) {
+                if (a.animate) {} else {
+                    a.mon(a.store, {
+                        expand: this.renderElements,
+                        collapse: this.renderElements,
+                        scope: this
+                    })
+                }
+            }
+            a.on({
+                bufferedrefresh: this.renderElements,
+                refresh: this.renderElements,
+                itemadd: this.refreshSizeOnItemUpdate ? this.refreshSizes : this.renderElements,
+                itemremove: this.refreshSizeOnItemUpdate ? this.refreshSizes : this.renderElements,
+                itemupdate: this.refreshSizeOnItemUpdate ? this.refreshSizes : this.renderElements,
+                groupexpand: this.renderElements,
+                groupcollapse: this.renderElements,
+                columnwidthchange: this.renderElements,
+                resize: this.renderElements,
+                scope: this
+            });
+            if (a.headerCt) {
+                a.headerCt.on({
+                    add: this.renderElements,
+                    remove: this.renderElements,
                     scope: this
                 })
             }
-        }
-        a.on({
-            refresh: this.renderElements,
-            itemadd: this.renderElements,
-            itemremove: this.renderElements,
-            itemupdate: this.renderElements,
-            groupexpand: this.renderElements,
-            groupcollapse: this.renderElements,
-            columnwidthchange: this.renderElements,
-            resize: this.renderElements,
-            scope: this
-        });
-        a.headerCt.on({
-            add: this.renderElements,
-            remove: this.renderElements,
-            scope: this
-        });
-        a.ownerCt.up("panel").on({
-            viewchange: this.renderElements,
-            orientationchange: this.renderElements,
-            scope: this
-        });
-        this.renderElements()
-    },
-    renderElements: function () {
-        if (this.renderElementsBuffered || this.disabled || this.schedulerView.headerCt.getColumnCount() === 0) {
-            return
-        }
-        this.renderElementsBuffered = true;
-        Ext.Function.defer(this.renderElementsInternal, this.renderDelay, this)
-    },
-    renderElementsInternal: function () {
-        this.renderElementsBuffered = false;
-        if (this.disabled || this.schedulerView.isDestroyed || this.schedulerView.headerCt.getColumnCount() === 0) {
-            return
-        }
-        this.removeElements();
-        Ext.core.DomHelper.insertHtml("afterBegin", this.containerEl.dom, this.generateMarkup())
-    },
-    generateMarkup: function (b) {
-        var d = this.timeAxis.getStart(),
-            a = this.timeAxis.getEnd(),
-            c = this.getElementData(d, a, null, b);
-        return this.template.apply(c)
-    },
-    getElementData: function (b, a) {
-        throw "Abstract method call"
-    },
-    onDestroy: function () {
-        if (this.store.autoDestroy) {
-            this.store.destroy()
-        }
-    },
-    refreshSingle: function (c, b) {
-        var e = Ext.get(this.uniqueCls + "-" + b.internalId);
-        if (e) {
-            var g = this.timeAxis.getStart(),
-                a = this.timeAxis.getEnd(),
-                f = this.getElementData(g, a, [b])[0],
-                d = b.clsField || "Cls";
-            if (f) {
-                e.dom.className = this.cls + " " + this.uniqueCls + " " + (f[d] || "");
-                e.setTop(f.top);
-                e.setLeft(f.left);
-                e.setSize(f.width, f.height)
-            } else {
-                Ext.destroy(e)
+            this.panel.on({
+                viewchange: this.renderElements,
+                show: this.refreshSizes,
+                orientationchange: this.forceNewRenderingTimeout,
+                scope: this
+            });
+            var b = a.getRowContainerEl();
+            if (b && b.down(".sch-timetd")) {
+                this.renderElements()
             }
-        } else {
+        },
+        forceNewRenderingTimeout: function () {
+            this.renderElementsBuffered = false;
+            clearTimeout(this._renderTimer);
+            clearTimeout(this._resizeTimer);
             this.renderElements()
+        },
+        refreshSizesInternal: function () {
+            if (!this.schedulerView.isDestroyed && this.schedulerView.isHorizontal()) {
+                var a = this.schedulerView.getTimeSpanRegion(new Date(), null, this.expandToFitView);
+                this.getBodyElements().setHeight(a.bottom - a.top)
+            }
+        },
+        refreshSizes: function () {
+            clearTimeout(this._resizeTimer);
+            this._resizeTimer = Ext.Function.defer(this.refreshSizesInternal, this.renderDelay, this)
+        },
+        renderElements: function () {
+            if (this.renderElementsBuffered || this.disabled) {
+                return
+            }
+            this.renderElementsBuffered = true;
+            clearTimeout(this._renderTimer);
+            this._renderTimer = Ext.Function.defer(this.renderElementsInternal, this.renderDelay, this)
+        },
+        setElementX: function (b, a) {
+            if (this.panel.rtl) {
+                b.setRight(a)
+            } else {
+                b.setLeft(a)
+            }
+        },
+        getHeaderElementPosition: function (b) {
+            var a = this.schedulerView.getTimeAxisViewModel();
+            return Math.round(a.getPositionFromDate(b))
+        },
+        renderBodyElementsInternal: function (a) {
+            Ext.DomHelper.append(this.containerEl, this.generateMarkup(false, a))
+        },
+        getHeaderElementData: function (a, b) {
+            throw "Abstract method call"
+        },
+        renderHeaderElementsInternal: function (a) {
+            var b = this.getHeaderContainerEl();
+            if (b) {
+                Ext.DomHelper.append(b, this.generateHeaderMarkup(false, a))
+            }
+        },
+        renderElementsInternal: function () {
+            this.renderElementsBuffered = false;
+            if (this.disabled || this.schedulerView.isDestroyed) {
+                return
+            }
+            if (Ext.versions.extjs && !this.schedulerView.el.down("table")) {
+                return
+            }
+            this.removeElements();
+            this.renderBodyElementsInternal();
+            if (this.showHeaderElements) {
+                this.headerContainerEl = null;
+                this.renderHeaderElementsInternal()
+            }
+            if (this.renderingDoneEvent) {
+                this.fireEvent(this.renderingDoneEvent, this)
+            }
+        },
+        generateMarkup: function (c, b) {
+            var e = this.timeAxis.getStart(),
+                a = this.timeAxis.getEnd(),
+                d = this.getElementData(e, a, b, c);
+            return this.template.apply(d)
+        },
+        generateHeaderMarkup: function (b, a) {
+            var c = this.getHeaderElementData(a, b);
+            return this.headerTemplate.apply(c)
+        },
+        getElementData: function (d, c, a, b) {
+            throw "Abstract method call"
+        },
+        updateBodyElement: function (b) {
+            var c = Ext.get(this.getElementId(b));
+            if (c) {
+                var e = this.timeAxis.getStart(),
+                    a = this.timeAxis.getEnd(),
+                    d = this.getElementData(e, a, [b])[0];
+                if (d) {
+                    c.dom.className = d.$cls;
+                    c.setTop(d.top);
+                    this.setElementX(c, d.left);
+                    c.setSize(d.width, d.height)
+                } else {
+                    Ext.destroy(c)
+                }
+            } else {
+                this.renderBodyElementsInternal([b])
+            }
+        },
+        updateHeaderElement: function (a) {
+            var b = Ext.get(this.getHeaderElementId(a));
+            if (b) {
+                var c = this.getHeaderElementData([a])[0];
+                if (c) {
+                    b.dom.className = c.cls;
+                    if (this.schedulerView.isHorizontal()) {
+                        this.setElementX(b, c.position);
+                        b.setWidth(c.size)
+                    } else {
+                        b.setTop(c.position);
+                        b.setHeight(c.size)
+                    }
+                } else {
+                    Ext.destroy(b)
+                }
+            } else {
+                this.renderHeaderElementsInternal([a])
+            }
+        },
+        onDestroy: function () {
+            clearTimeout(this._renderTimer);
+            clearTimeout(this._resizeTimer);
+            if (this.store.autoDestroy) {
+                this.store.destroy()
+            }
+            this.store.un(this.storeListeners)
+        },
+        refreshSingle: function (b, a) {
+            Ext.each(a, this.updateBodyElement, this);
+            if (this.showHeaderElements) {
+                Ext.each(a, this.updateHeaderElement, this)
+            }
         }
-    }
-});
+    })
+}
 Ext.define("Sch.feature.DragCreator", {
-    requires: ["Ext.XTemplate", "Sch.util.Date", "Sch.util.DragTracker", "Sch.tooltip.Tooltip", "Sch.tooltip.ClockTemplate"],
+    requires: ["Ext.XTemplate", "Sch.util.Date", "Sch.util.ScrollManager", "Sch.util.DragTracker", "Sch.tooltip.Tooltip", "Sch.tooltip.ClockTemplate"],
     disabled: false,
     showHoverTip: true,
     showDragTip: true,
     dragTolerance: 2,
     validatorFn: Ext.emptyFn,
     validatorFnScope: null,
+    hoverTipTemplate: null,
     constructor: function (a) {
         Ext.apply(this, a || {});
         this.lastTime = new Date();
-        this.template = this.template || Ext.create("Ext.Template", '<div class="sch-dragcreator-proxy sch-event"><div class="sch-event-inner">&#160;</div></div>', {
+        this.template = this.template || new Ext.Template('<div class="sch-dragcreator-proxy"><div class="sch-event-inner">&#160;</div></div>', {
             compiled: true,
             disableFormats: true
         });
@@ -1542,7 +2086,10 @@ Ext.define("Sch.feature.DragCreator", {
     },
     getProxy: function () {
         if (!this.proxy) {
-            this.proxy = this.template.append(this.schedulerView.panel.el, {}, true)
+            this.proxy = this.template.append(this.schedulerView.getSecondaryCanvasEl(), {}, true);
+            this.proxy.hide = function () {
+                this.setTop(-10000)
+            }
         }
         return this.proxy
     },
@@ -1551,7 +2098,7 @@ Ext.define("Sch.feature.DragCreator", {
         if (a.disabled || this.dragging) {
             return
         }
-        if (c.getTarget("." + this.schedulerView.timeCellCls, 2)) {
+        if (c.getTarget("." + this.schedulerView.timeCellCls, 5) && !c.getTarget(this.schedulerView.eventSelector)) {
             var b = this.schedulerView.getDateFromDomEvent(c, "floor");
             if (b) {
                 if (b - this.lastTime !== 0) {
@@ -1582,8 +2129,8 @@ Ext.define("Sch.feature.DragCreator", {
     },
     onBeforeDragStart: function (d, g) {
         var b = this.schedulerView,
-            a = g.getTarget("." + b.timeCellCls, 2);
-        if (a) {
+            a = g.getTarget("." + b.timeCellCls, 5);
+        if (a && !g.getTarget(b.eventSelector)) {
             var c = b.resolveResource(a);
             var f = b.getDateFromDomEvent(g);
             if (!this.disabled && a && b.fireEvent("beforedragcreate", b, c, f, g) !== false) {
@@ -1597,88 +2144,129 @@ Ext.define("Sch.feature.DragCreator", {
         return false
     },
     onDragStart: function () {
-        var d = this,
-            b = d.schedulerView,
-            c = d.getProxy(),
-            a = d.schedulerView.snapToIncrement;
+        var c = this,
+            a = c.schedulerView,
+            b = c.getProxy();
         this.dragging = true;
         if (this.hoverTip) {
             this.hoverTip.disable()
         }
-        d.start = d.originalStart;
-        d.end = d.start;
-        if (b.getOrientation() === "horizontal") {
-            d.rowBoundaries = {
-                top: d.resourceRegion.top,
-                bottom: d.resourceRegion.bottom
+        c.start = c.originalStart;
+        c.end = c.start;
+        c.originalScroll = a.getScroll();
+        if (a.getOrientation() === "horizontal") {
+            c.rowBoundaries = {
+                top: c.resourceRegion.top,
+                bottom: c.resourceRegion.bottom
             };
-            c.setRegion({
-                top: d.rowBoundaries.top,
-                right: d.tracker.startXY[0],
-                bottom: d.rowBoundaries.bottom,
-                left: d.tracker.startXY[0]
+            b.setRegion({
+                top: c.rowBoundaries.top,
+                right: c.tracker.startXY[0],
+                bottom: c.rowBoundaries.bottom,
+                left: c.tracker.startXY[0]
             })
         } else {
-            d.rowBoundaries = {
-                left: d.resourceRegion.left,
-                right: d.resourceRegion.right
+            c.rowBoundaries = {
+                left: c.resourceRegion.left,
+                right: c.resourceRegion.right
             };
-            c.setRegion({
-                top: d.tracker.startXY[1],
-                right: d.resourceRegion.right,
-                bottom: d.tracker.startXY[1],
-                left: d.resourceRegion.left
+            b.setRegion({
+                top: c.tracker.startXY[1],
+                right: c.resourceRegion.right,
+                bottom: c.tracker.startXY[1],
+                left: c.resourceRegion.left
             })
         }
-        c.show();
-        d.schedulerView.fireEvent("dragcreatestart", d.schedulerView);
-        if (d.showDragTip) {
-            d.dragTip.enable();
-            d.dragTip.update(d.start, d.end, true);
-            d.dragTip.show(c);
-            d.dragTip.el.setStyle("visibility", "visible")
+        b.show();
+        c.schedulerView.fireEvent("dragcreatestart", c.schedulerView);
+        if (c.showDragTip) {
+            c.dragTip.enable();
+            c.dragTip.update(c.start, c.end, true);
+            c.dragTip.show(b);
+            c.dragTip.el.setStyle("visibility", "visible")
         }
+        Sch.util.ScrollManager.register(c.schedulerView.el)
     },
-    onDrag: function (f, h) {
+    onDrag: function (h, b) {
         var d = this,
-            c = d.schedulerView,
-            b = d.tracker.getRegion().constrainTo(d.resourceRegion),
-            g = c.getStartEndDatesFromRegion(b, "round");
-        if (!g) {
+            f = d.schedulerView,
+            i = d.tracker.getRegion(),
+            a = f.getStartEndDatesFromRegion(i, "round");
+        if (!a) {
             return
         }
-        d.start = g.start || d.start;
-        d.end = g.end || d.end;
-        var a = d.dateConstraints;
-        if (a) {
-            d.end = Sch.util.Date.constrain(d.end, a.start, a.end);
-            d.start = Sch.util.Date.constrain(d.start, a.start, a.end)
+        d.start = a.start || d.start;
+        d.end = a.end || d.end;
+        var j = d.dateConstraints;
+        if (j) {
+            d.end = Sch.util.Date.constrain(d.end, j.start, j.end);
+            d.start = Sch.util.Date.constrain(d.start, j.start, j.end)
         }
         d.valid = this.validatorFn.call(d.validatorFnScope || d, d.resourceRecord, d.start, d.end) !== false;
         if (d.showDragTip) {
             d.dragTip.update(d.start, d.end, d.valid)
         }
-        Ext.apply(b, d.rowBoundaries);
-        this.getProxy().setRegion(b)
+        Ext.apply(i, d.rowBoundaries);
+        var g = f.getScroll();
+        var c = this.getProxy();
+        c.setRegion(i);
+        if (f.isHorizontal()) {
+            c.setY(d.resourceRegion.top + d.originalScroll.top - g.top)
+        }
     },
-    onDragEnd: function (c, d) {
-        this.dragging = false;
-        var a = this.schedulerView;
-        if (this.showDragTip) {
-            this.dragTip.disable()
+    eventSwallower: function (a) {
+        a.stopPropagation();
+        a.preventDefault()
+    },
+    onDragEnd: function (f, g) {
+        var d = this,
+            b = d.schedulerView,
+            c = true,
+            a = g.getTarget();
+        Ext.fly(a).on("click", this.eventSwallower);
+        setTimeout(function () {
+            Ext.fly(a).un("click", this.eventSwallower)
+        }, 100);
+        d.dragging = false;
+        if (d.showDragTip) {
+            d.dragTip.disable()
         }
-        if (!this.start || !this.end || (this.end - this.start <= 0)) {
-            this.valid = false
+        if (!d.start || !d.end || (d.end - d.start <= 0)) {
+            d.valid = false
         }
-        if (this.valid) {
-            var b = Ext.create(this.schedulerView.eventStore.model);
-            b.assign(this.resourceRecord);
-            b.setStartEndDate(this.start, this.end);
-            a.fireEvent("dragcreateend", a, b, this.resourceRecord, d)
+        d.createContext = {
+            start: d.start,
+            end: d.end,
+            resourceRecord: d.resourceRecord,
+            e: g,
+            finalize: function () {
+                d.finalize.apply(d, arguments)
+            }
+        };
+        if (d.valid) {
+            c = b.fireEvent("beforedragcreatefinalize", d, d.createContext, g) !== false
+        }
+        if (c) {
+            d.finalize(d.valid)
+        }
+        Sch.util.ScrollManager.unregister(this.schedulerView.el)
+    },
+    finalize: function (a) {
+        var b = this.createContext;
+        var d = this.schedulerView;
+        if (a) {
+            var c = Ext.create(d.eventStore.model);
+            if (Ext.data.TreeStore && d.eventStore instanceof Ext.data.TreeStore) {
+                c.set("leaf", true);
+                d.eventStore.append(c)
+            }
+            c.assign(b.resourceRecord);
+            c.setStartEndDate(b.start, b.end);
+            d.fireEvent("dragcreateend", d, c, b.resourceRecord, b.e)
         } else {
             this.proxy.hide()
         }
-        this.schedulerView.fireEvent("afterdragcreate", a);
+        this.schedulerView.fireEvent("afterdragcreate", d);
         if (this.hoverTip) {
             this.hoverTip.enable()
         }
@@ -1692,47 +2280,53 @@ Ext.define("Sch.feature.DragCreator", {
     },
     dragging: false,
     setupTooltips: function () {
-        var b = this,
-            a = b.schedulerView;
-        b.tracker = new Sch.util.DragTracker({
-            el: a.el,
-            tolerance: b.dragTolerance,
+        var c = this,
+            b = c.schedulerView,
+            a = b.getSecondaryCanvasEl();
+        c.tracker = new Sch.util.DragTracker({
+            el: b.el,
+            tolerance: c.dragTolerance,
             listeners: {
-                beforedragstart: b.onBeforeDragStart,
-                dragstart: b.onDragStart,
-                drag: b.onDrag,
-                dragend: b.onDragEnd,
-                scope: b
+                mousedown: c.verifyLeftButtonPressed,
+                beforedragstart: c.onBeforeDragStart,
+                dragstart: c.onDragStart,
+                drag: c.onDrag,
+                dragend: c.onDragEnd,
+                scope: c
             }
         });
         if (this.showDragTip) {
-            this.dragTip = Ext.create("Sch.tooltip.Tooltip", {
+            this.dragTip = new Sch.tooltip.Tooltip({
                 cls: "sch-dragcreate-tip",
-                schedulerView: a,
+                renderTo: a,
+                schedulerView: b,
                 listeners: {
                     beforeshow: function () {
-                        return b.dragging
+                        return c.dragging
                     }
                 }
             })
         }
-        if (b.showHoverTip) {
-            var c = a.el;
-            b.hoverTipTemplate = b.hoverTipTemplate || Ext.create("Sch.tooltip.ClockTemplate");
-            b.hoverTip = new Ext.ToolTip(Ext.applyIf({
+        if (c.showHoverTip) {
+            var d = b.el;
+            c.hoverTipTemplate = c.hoverTipTemplate || new Sch.tooltip.ClockTemplate();
+            c.hoverTip = new Ext.ToolTip(Ext.applyIf({
                 renderTo: document.body,
-                target: c,
-                disabled: b.disabled
-            }, b.tipCfg));
-            b.hoverTip.on("beforeshow", b.tipOnBeforeShow, b);
-            a.mon(c, {
+                target: d,
+                disabled: c.disabled
+            }, c.tipCfg));
+            c.hoverTip.on("beforeshow", c.tipOnBeforeShow, c);
+            b.mon(d, {
                 mouseleave: function () {
-                    b.hoverTip.hide()
+                    c.hoverTip.hide()
                 },
-                mousemove: b.onMouseMove,
-                scope: b
+                mousemove: c.onMouseMove,
+                scope: c
             })
         }
+    },
+    verifyLeftButtonPressed: function (a, b) {
+        return b.button === 0
     },
     onSchedulerDestroy: function () {
         if (this.hoverTip) {
@@ -1753,239 +2347,79 @@ Ext.define("Sch.feature.DragCreator", {
         return !this.disabled && !this.dragging && this.lastTime !== null
     }
 });
-Ext.define("Sch.feature.DragZone", {
+Ext.define("Sch.feature.SchedulerDragZone", {
     extend: "Ext.dd.DragZone",
-    containerScroll: true,
-    onStartDrag: function () {
-        var a = this.schedulerView;
-        a.fireEvent("eventdragstart", a, this.dragData.records)
-    },
-    getDragData: function (n) {
-        var p = this.schedulerView,
-            h = n.getTarget(p.eventSelector);
-        if (h) {
-            var g = p.getSelectionModel(),
-                m = Ext.get(h),
-                c = m.is(p.eventSelector) ? h : m.up(p.eventSelector).dom,
-                o = p.getEventRecordFromDomId(c.id);
-            if (p.fireEvent("beforeeventdrag", p, o, n) === false) {
-                return null
-            }
-            var b, f = o.getStartDate(),
-                l = [o],
-                a, d = Ext.get(Ext.core.DomHelper.createDom({
-                    cls: "sch-dd-wrap",
-                    children: [{
-                        cls: "sch-dd-proxy-hd",
-                        html: "&nbsp"
-                    }]
-                }));
-            for (var j = 0, k = l.length; j < k; j++) {
-                a = p.getElementFromEventRecord(l[j]).dom.cloneNode(true);
-                a.id = Ext.id();
-                d.appendChild(a)
-            }
-            return {
-                repairXY: Ext.fly(h).getXY(),
-                ddel: d.dom,
-                sourceEventRecord: o,
-                records: l,
-                duration: o.getEndDate() - f
-            }
-        }
-        return null
-    },
-    afterRepair: function () {
-        this.dragging = false;
-        var a = this.schedulerView;
-        a.fireEvent("aftereventdrop", a)
-    },
-    getRepairXY: function () {
-        return this.dragData.repairXY
-    },
-    onDragKeyDown: function (b) {
-        var a = this.getProxy();
-        if (b.ctrlKey && (a.dropStatus === a.dropAllowed || a.dropStatus === (a.dropAllowed + " add"))) {
-            a.setStatus(a.dropAllowed + " add")
-        }
-    },
-    onDragKeyUp: function (b) {
-        if (!b.ctrlKey) {
-            var a = this.getProxy();
-            a.setStatus(a.dropStatus.replace(" add", ""))
-        }
-    },
-    onMouseDown: function () {
-        if (this.enableCopy) {
-            Ext.getBody().on({
-                keydown: this.onDragKeyDown,
-                keyup: this.onDragKeyUp,
-                scope: this
-            })
-        }
-    },
-    onMouseUp: function () {
-        var a = Ext.getBody();
-        a.un("keydown", this.onDragKeyDown, this);
-        a.un("keyup", this.onDragKeyUp, this)
-    }
-});
-Ext.define("Sch.feature.DropZone", {
-    extend: "Ext.dd.DropZone",
-    constructor: function () {
-        this.callParent(arguments);
-        var a = this.schedulerView;
-        this.proxyTpl = this.proxyTpl || new Ext.XTemplate('<span class="sch-dd-newtime">{[ this.getText(values) ]}</span>', {
-            getText: function (b) {
-                var c = a.getFormattedDate(b.StartDate);
-                if (b.Duration) {
-                    c += " - " + a.getFormattedEndDate(Sch.util.Date.add(b.StartDate, Sch.util.Date.MILLI, b.Duration), b.StartDate)
-                }
-                return c
-            }
-        })
-    },
-    validatorFn: Ext.emptyFn,
-    getTargetFromEvent: function (a) {
-        return a.getTarget("." + this.schedulerView.timeCellCls)
-    },
-    onNodeEnter: function (d, a, c, b) {
-        Ext.fly(d).addCls("sch-dd-cellover")
-    },
-    onNodeOut: function (d, a, c, b) {
-        Ext.fly(d).removeCls("sch-dd-cellover")
-    },
-    onNodeOver: function (i, a, h, g) {
-        var d = this.schedulerView,
-            c = d.getDateFromDomEvent(h, "round"),
-            f;
-        if (!c) {
-            return this.dropNotAllowed
-        }
-        this.proxyTpl.overwrite(a.proxy.el.down(".sch-dd-proxy-hd"), {
-            StartDate: c,
-            Duration: g.duration
-        });
-        var b = d.resolveResource(h.getTarget("." + d.timeCellCls));
-        if (this.validatorFn.call(this.validatorFnScope || this, g.records, b, c, g.duration, h) !== false) {
-            return this.dropAllowed + ((this.enableCopy && h.ctrlKey) ? " add" : "")
-        } else {
-            return this.dropNotAllowed
-        }
-    },
-    onNodeDrop: function (i, c, j, g) {
-        var l = this.schedulerView,
-            b = l.resolveResource(i),
-            f = l.getDateFromDomEvent(j, "round"),
-            a = false,
-            k = this.enableCopy && j.ctrlKey;
-        if (f && this.validatorFn.call(this.validatorFnScope || this, g.records, b, f, g.duration, j) !== false) {
-            var d, h = l.resourceStore.indexOf(b);
-            if (k) {
-                d = this.copyRecords(g.records, f, b, g.sourceEventRecord, h);
-                a = true
-            } else {
-                a = this.updateRecords(g.records, f, b, g.sourceEventRecord, h, g)
-            } if (a) {
-                l.getSelectionModel().deselectAll()
-            }
-            l.fireEvent("eventdrop", l, k ? d : g.records, k)
-        }
-        l.fireEvent("aftereventdrop", l);
-        return a
-    },
-    updateRecords: function (e, c, s, l, d, h) {
-        if (e.length === 1) {
-            l.beginEdit();
-            l.assign(s);
-            l.setStartDate(c);
-            l.setEndDate(Sch.util.Date.add(c, Sch.util.Date.MILLI, h.duration));
-            l.endEdit();
-            return true
-        }
-        var j = l.getStartDate(),
-            o = this.schedulerView.resourceStore,
-            q = c - j,
-            k = o.indexOf(l.getResource()),
-            n, m, f, a, p, b = o.getCount(),
-            g;
-        for (g = 0; g < e.length; g++) {
-            a = e[g];
-            m = o.indexOf(a.getResource());
-            p = m - k + d;
-            if (p < 0 || p > b) {
-                return false
-            }
-        }
-        for (g = 0; g < e.length; g++) {
-            a = e[g];
-            m = o.indexOf(a.getResource());
-            n = m - k;
-            f = o.getAt(d + n);
-            a.beginEdit();
-            a.assign(f);
-            a.setStartDate(Sch.util.Date.add(a.getStartDate(), Sch.util.Date.MILLI, q));
-            a.setEndDate(Sch.util.Date.add(a.getEndDate(), Sch.util.Date.MILLI, q));
-            a.endEdit()
-        }
-        return true
-    },
-    copyRecords: function (d, g, b, f, c) {
-        var a = d[0],
-            e = a.copy(),
-            h = f.getEndDate() - f.getStartDate();
-        e.assign(b);
-        e.setStartDate(g);
-        e.setEndDate(Sch.util.Date.add(g, Sch.util.Date.MILLI, h));
-        return [e]
-    }
-});
-Ext.define("Sch.feature.PointDragZone", {
-    extend: "Ext.dd.DragZone",
-    requires: ["Sch.tooltip.Tooltip"],
+    requires: ["Sch.tooltip.Tooltip", "Ext.dd.StatusProxy", "Ext.util.Point"],
     repairHighlight: false,
-    containerScroll: true,
+    repairHighlightColor: "transparent",
+    containerScroll: false,
     dropAllowed: "sch-dragproxy",
     dropNotAllowed: "sch-dragproxy",
-    constructor: function (b, a) {
-        this.proxy = this.proxy || Ext.create("Ext.dd.StatusProxy", {
+    showTooltip: true,
+    tip: null,
+    schedulerView: null,
+    showExactDropPosition: false,
+    enableCopy: false,
+    enableCopyKey: "SHIFT",
+    validatorFn: function (b, a, c, f, d) {
+        return true
+    },
+    validatorFnScope: null,
+    copyKeyPressed: false,
+    constructor: function (c, a) {
+        if (Ext.isIE8m && window.top !== window) {
+            Ext.dd.DragDropManager.notifyOccluded = true
+        }
+        var b = this.proxy = this.proxy || new Ext.dd.StatusProxy({
             shadow: false,
-            dropAllowed: "sch-dragproxy",
-            dropNotAllowed: "sch-dragproxy"
+            dropAllowed: this.dropAllowed,
+            dropNotAllowed: this.dropNotAllowed,
+            ensureAttachedToBody: Ext.emptyFn
         });
         this.callParent(arguments);
         this.isTarget = true;
         this.scroll = false;
         this.ignoreSelf = false;
-        Ext.dd.ScrollManager.register(this.el)
+        var d = this.schedulerView;
+        Ext.dd.ScrollManager.register(d.el);
+        d.el.appendChild(b.el);
+        if (d.rtl) {
+            b.addCls("sch-rtl")
+        }
     },
     destroy: function () {
         this.callParent(arguments);
-        Ext.dd.ScrollManager.unregister(this.el)
+        if (this.tip) {
+            this.tip.destroy()
+        }
+        Ext.dd.ScrollManager.unregister(this.schedulerView.el)
     },
-    autoOffset: function (a, e) {
-        var d = this.dragData.repairXY,
-            c = a - d[0],
-            b = e - d[1];
-        this.setDelta(c, b)
+    autoOffset: function (a, b) {
+        this.setDelta(0, 0)
     },
-    constrainTo: function (a, b) {
+    setupConstraints: function (k, d, g, e, i, f, c) {
+        this.clearTicks();
+        var a = i && f > 1 ? f : 0;
+        var h = !i && f > 1 ? f : 0;
         this.resetConstraints();
-        this.initPageX = a.left;
-        this.initPageY = a.top;
-        this.setXConstraint(a.left, a.right - (b.right - b.left), this.xTickSize);
-        this.setYConstraint(a.top, a.bottom - (b.bottom - b.top), this.yTickSize)
-    },
-    constrainToResource: function (b, c, a) {
-        this.resetConstraints();
-        this.initPageX = b.left;
-        this.initPageY = b.top;
-        if (a === "horizontal") {
-            this.setXConstraint(b.left, b.right - (c.right - c.left), this.xTickSize);
-            this.setYConstraint(c.top, c.top, this.yTickSize)
+        this.initPageX = k.left + g;
+        this.initPageY = k.top + e;
+        var b = d.right - d.left;
+        var j = d.bottom - d.top;
+        if (i) {
+            if (c) {
+                this.setXConstraint(k.left + g, k.right - b + g, a)
+            } else {
+                this.setXConstraint(k.left, k.right, a)
+            }
+            this.setYConstraint(k.top + e, k.bottom - j + e, h)
         } else {
-            this.setXConstraint(c.left, c.left, this.xTickSize);
-            this.setYConstraint(b.top, b.bottom - (c.bottom - c.top), this.yTickSize)
+            this.setXConstraint(k.left + g, k.right - b + g, a);
+            if (c) {
+                this.setYConstraint(k.top + e, k.bottom - j + e, h)
+            } else {
+                this.setYConstraint(k.top, k.bottom, h)
+            }
         }
     },
     setXConstraint: function (c, b, a) {
@@ -2010,154 +2444,290 @@ Ext.define("Sch.feature.PointDragZone", {
     },
     onDragEnter: Ext.emptyFn,
     onDragOut: Ext.emptyFn,
-    resolveStartEndDates: function (e) {
-        var a = this.dragData,
-            c, d = a.origStart,
-            b = a.origEnd;
-        if (!a.startsOutsideView) {
-            c = this.schedulerView.getStartEndDatesFromRegion(e, "round");
-            if (c) {
-                d = c.start || a.start;
-                b = Sch.util.Date.add(d, Sch.util.Date.MILLI, a.duration)
-            }
-        } else {
-            if (!a.endsOutsideView) {
-                c = this.schedulerView.getStartEndDatesFromRegion(e, "round");
-                if (c) {
-                    b = c.end || a.end;
-                    d = Sch.util.Date.add(b, Sch.util.Date.MILLI, -a.duration)
+    setVisibilityForSourceEvents: function (a) {
+        Ext.each(this.dragData.eventEls, function (b) {
+            b[a ? "show" : "hide"]()
+        })
+    },
+    onDragOver: function (h, b) {
+        this.checkShiftChange();
+        var k = this.dragData;
+        if (!k.originalHidden) {
+            this.setVisibilityForSourceEvents(false);
+            k.originalHidden = true
+        }
+        var c = k.startDate;
+        var f = k.newResource;
+        var i = this.schedulerView;
+        this.updateDragContext(h);
+        if (this.showExactDropPosition) {
+            var a = i.getDateFromCoordinate(h.getXY()[0]) - k.sourceDate;
+            var j = new Date(k.origStart - 0 + a);
+            var g = i.timeAxisViewModel.getDistanceBetweenDates(j, k.startDate);
+            if (k.startDate > i.timeAxis.getStart()) {
+                var d = this.proxy.el;
+                if (g) {
+                    d.setX(d.getX() + g)
                 }
             }
         }
-        return {
-            startDate: d,
-            endDate: b
-        }
-    },
-    onDragOver: function (c, d) {
-        var a = this.dragData;
-        if (!a.originalHidden) {
-            Ext.each(a.eventEls, function (e) {
-                e.hide()
-            });
-            a.originalHidden = true
+        if (k.startDate - c !== 0 || f !== k.newResource) {
+            this.schedulerView.fireEvent("eventdrag", this.schedulerView, k.eventRecords, k.startDate, k.newResource, k)
         }
         if (this.showTooltip) {
-            var b = this.getDragContext(c);
-            if (b) {
-                this.tip.update(b.startDate, b.endDate, b.valid)
-            }
+            this.tip.update(k.startDate, k.endDate, k.valid)
         }
     },
-    getDragContext: function (d) {
-        var a = this.dragData;
-        if (!a.refElement) {
+    getDragData: function (q) {
+        var o = this.schedulerView,
+            n = q.getTarget(o.eventSelector);
+        if (!n) {
             return
         }
-        var c = this.schedulerView,
-            f = a.refElement.getRegion();
-        var b = this.resolveStartEndDates(f);
-        b.resource = c.constrainDragToResource ? a.resourceRecord : this.resolveResource([f.left + a.offsets[0], f.top + a.offsets[1]], d);
-        if (b.resource) {
-            b.valid = this.validatorFn.call(this.validatorFnScope || this, a.eventRecords, b.resource, b.startDate, a.duration, d)
-        } else {
-            b.valid = false
-        }
-        return b
-    },
-    onStartDrag: function (b, d) {
-        var c = this.schedulerView,
-            a = this.dragData;
-        this.start = a.origStart;
-        this.end = a.origEnd;
-        c.fireEvent("eventdragstart", c, a.eventRecords)
-    },
-    startDrag: function () {
-        var b = this.callParent(arguments);
-        this.dragData.refElement = this.proxy.el.down("#sch-id-dd-ref");
-        if (this.showTooltip) {
-            var a = this.schedulerView;
-            if (!this.tip) {
-                this.tip = Ext.create("Sch.tooltip.Tooltip", {
-                    schedulerView: a,
-                    cls: "sch-dragdrop-tip"
-                })
-            }
-            this.tip.update(this.start, this.end, true);
-            this.tip.el.setStyle("visibility");
-            this.tip.show(this.dragData.refElement, this.dragData.offsets[0])
-        }
-        return b
-    },
-    getDragData: function (x) {
-        var q = this.schedulerView,
-            p = x.getTarget(q.eventSelector);
-        if (!p) {
-            return
-        }
-        var l = q.resolveEventRecord(p);
-        if (l.isDraggable() === false || q.fireEvent("beforeeventdrag", q, l, x) === false) {
+        var j = o.resolveEventRecord(n);
+        if (!j || j.isDraggable() === false || o.fireEvent("beforeeventdrag", o, j, q) === false) {
             return null
         }
-        var i = x.getXY(),
-            a = Ext.get(p),
-            y = a.getXY(),
-            k = [i[0] - y[0], i[1] - y[1]],
-            b = q.resolveResource(p),
-            m = a.getRegion(),
-            u = q.getSnapPixelAmount();
-        if (!b) {
-            throw "Resource could not be resolved for event: " + l.getId()
+        var h = q.getXY(),
+            a = Ext.get(n),
+            u = a.getXY(),
+            i = [h[0] - u[0], h[1] - u[1]],
+            l = a.getRegion();
+        var k = o.getOrientation() == "horizontal";
+        var b = o.resolveResource(n);
+        if (o.constrainDragToResource && !b) {
+            throw "Resource could not be resolved for event: " + j.getId()
         }
-        this.clearTicks();
-        if (q.constrainDragToResource) {
-            this.constrainToResource(q.getScheduleRegion(b, l), m, q.getOrientation())
-        } else {
-            this.constrainTo(q.getScheduleRegion(null, l), m)
-        } if (u >= 1) {
-            if (q.getOrientation() === "horizontal") {
-                this.setXConstraint(this.leftConstraint, this.rightConstraint, u)
-            } else {
-                this.setYConstraint(this.topConstraint, this.bottomConstraint, u)
-            }
-        }
-        var d = l.getStartDate(),
-            n = q.timeAxis,
-            j = n.getStart(),
-            h = n.getEnd(),
-            o = l.getEndDate(),
-            v = d < j,
-            r = o > h,
-            c = Ext.getBody().getScroll(),
-            g = this.getRelatedRecords(l),
-            w = [a];
+        var r = o.getDateConstraints(o.constrainDragToResource ? b : null, j);
+        this.setupConstraints(o.getScheduleRegion(o.constrainDragToResource ? b : null, j), l, i[0], i[1], k, o.getSnapPixelAmount(), Boolean(r));
+        var c = j.getStartDate(),
+            m = j.getEndDate(),
+            d = o.timeAxis,
+            g = this.getRelatedRecords(j),
+            p = [a];
         Ext.Array.each(g, function (s) {
-            var e = q.getElementFromEventRecord(s);
+            var e = o.getElementFromEventRecord(s);
             if (e) {
-                w.push(e)
+                p.push(e)
             }
         });
         var f = {
-            offsets: k,
-            eventEls: w,
-            repairXY: y,
-            eventRecords: [l].concat(g),
+            offsets: i,
+            repairXY: u,
+            prevScroll: o.getScroll(),
+            dateConstraints: r,
+            eventEls: p,
+            eventRecords: [j].concat(g),
             relatedEventRecords: g,
             resourceRecord: b,
-            origStart: d,
-            origEnd: o,
-            duration: o - d,
-            startsOutsideView: v,
-            endsOutsideView: r,
-            bodyScroll: c,
-            eventObj: x
+            sourceDate: o.getDateFromCoordinate(h[k ? 0 : 1]),
+            origStart: c,
+            origEnd: m,
+            startDate: c,
+            endDate: m,
+            timeDiff: 0,
+            startsOutsideView: c < d.getStart(),
+            endsOutsideView: m > d.getEnd(),
+            duration: m - c,
+            bodyScroll: Ext.getBody().getScroll(),
+            eventObj: q
         };
         f.ddel = this.getDragElement(a, f);
         return f
     },
+    onStartDrag: function (b, d) {
+        var c = this.schedulerView,
+            a = this.dragData;
+        a.eventEls[0].removeCls("sch-event-hover");
+        c.fireEvent("eventdragstart", c, a.eventRecords);
+        c.el.on("scroll", this.onViewElScroll, this)
+    },
+    alignElWithMouse: function (b, e, d) {
+        this.callParent(arguments);
+        var c = this.getTargetCoord(e, d),
+            a = b.dom ? b : Ext.fly(b, "_dd");
+        this.setLocalXY(a, c.x + this.deltaSetXY[0], c.y + this.deltaSetXY[1])
+    },
+    onViewElScroll: function (a, d) {
+        var e = this.proxy,
+            i = this.schedulerView,
+            g = this.dragData;
+        this.setVisibilityForSourceEvents(false);
+        var h = e.getXY();
+        var f = i.getScroll();
+        var c = [h[0] + f.left - g.prevScroll.left, h[1] + f.top - g.prevScroll.top];
+        var b = this.deltaSetXY;
+        this.deltaSetXY = [b[0] + f.left - g.prevScroll.left, b[1] + f.top - g.prevScroll.top];
+        g.prevScroll = f;
+        e.setXY(c)
+    },
+    getCopyKeyPressed: function () {
+        return Boolean(this.enableCopy && this.dragData.eventObj[this.enableCopyKey.toLowerCase() + "Key"])
+    },
+    checkShiftChange: function () {
+        var b = this.getCopyKeyPressed(),
+            a = this.dragData;
+        if (b !== this.copyKeyPressed) {
+            this.copyKeyPressed = b;
+            if (b) {
+                a.refElements.addCls("sch-event-copy");
+                this.setVisibilityForSourceEvents(true)
+            } else {
+                a.refElements.removeCls("sch-event-copy");
+                this.setVisibilityForSourceEvents(false)
+            }
+        }
+    },
+    onKey: function (a) {
+        if (a.getKey() === a[this.enableCopyKey]) {
+            this.checkShiftChange()
+        }
+    },
+    startDrag: function () {
+        if (this.enableCopy) {
+            Ext.EventManager.on(document, "keydown", this.onKey, this);
+            Ext.EventManager.on(document, "keyup", this.onKey, this)
+        }
+        var c = this.callParent(arguments);
+        var b = this.dragData;
+        b.refElement = this.proxy.el.down("#sch-id-dd-ref");
+        b.refElements = this.proxy.el.select(".sch-event");
+        b.refElement.removeCls("sch-event-hover");
+        if (this.showTooltip) {
+            var a = this.schedulerView;
+            if (!this.tip) {
+                this.tip = new Sch.tooltip.Tooltip({
+                    schedulerView: a,
+                    cls: "sch-dragdrop-tip",
+                    renderTo: document.body
+                })
+            }
+            this.tip.update(b.origStart, b.origEnd, true);
+            this.tip.el.setStyle("visibility");
+            this.tip.show(b.refElement, b.offsets[0])
+        }
+        this.copyKeyPressed = this.getCopyKeyPressed();
+        if (this.copyKeyPressed) {
+            b.refElements.addCls("sch-event-copy");
+            b.originalHidden = true
+        }
+        return c
+    },
+    endDrag: function () {
+        if (this.enableCopy) {
+            Ext.EventManager.un(document, "keydown", this.onKey, this);
+            Ext.EventManager.un(document, "keyup", this.onKey, this)
+        }
+        this.callParent(arguments)
+    },
+    updateRecords: function (b) {
+        var g = this,
+            i = g.schedulerView,
+            k = i.resourceStore,
+            d = b.newResource,
+            l = b.eventRecords[0],
+            m = [],
+            j = this.getCopyKeyPressed(),
+            c = i.eventStore;
+        if (j) {
+            l = l.copy();
+            m.push(l)
+        }
+        var f = b.resourceRecord;
+        l.beginEdit();
+        if (d !== f) {
+            l.unassign(f);
+            l.assign(d)
+        }
+        l.setStartDate(b.startDate, true, c.skipWeekendsDuringDragDrop);
+        l.endEdit();
+        var a = b.timeDiff,
+            n = Ext.data.TreeStore && k instanceof Ext.data.TreeStore;
+        var h = n ? i.store : k;
+        var e = h.indexOf(f) - h.indexOf(d);
+        Ext.each(b.relatedEventRecords, function (p) {
+            var q = p.getResource(null, c);
+            if (j) {
+                p = p.copy();
+                m.push(p)
+            }
+            p.beginEdit();
+            p.shift(Ext.Date.MILLI, a);
+            var o = h.indexOf(q) - e;
+            if (o < 0) {
+                o = 0
+            }
+            if (o >= h.getCount()) {
+                o = h.getCount() - 1
+            }
+            p.setResource(h.getAt(o));
+            p.endEdit()
+        });
+        if (m.length) {
+            c.add(m)
+        }
+        i.fireEvent("eventdrop", i, b.eventRecords, j)
+    },
+    isValidDrop: function (a, b, c) {
+        if (a !== b && c.isAssignedTo(b)) {
+            return false
+        }
+        return true
+    },
+    resolveResource: function (g, f) {
+        var c = this.proxy.el.dom;
+        var h = this.dragData.bodyScroll;
+        c.style.display = "none";
+        var d = document.elementFromPoint(g[0] - h.left, g[1] - h.top);
+        if (Ext.isIE8 && f && f.browserEvent.synthetic) {
+            d = document.elementFromPoint(g[0] - h.left, g[1] - h.top)
+        }
+        c.style.display = "block";
+        if (!d) {
+            return null
+        }
+        var a = this.schedulerView;
+        if (!d.className.match(a.timeCellCls)) {
+            var b = Ext.fly(d).up("." + a.timeCellCls);
+            if (b) {
+                d = b.dom
+            } else {
+                return null
+            }
+        }
+        return a.resolveResource(d)
+    },
+    updateDragContext: function (g) {
+        var a = this.dragData,
+            f = g.getXY();
+        if (!a.refElement) {
+            return
+        }
+        var d = this.schedulerView,
+            h = a.refElement.getRegion();
+        if (d.timeAxis.isContinuous()) {
+            if ((d.isHorizontal() && this.minX < f[0] && f[0] < this.maxX) || (d.isVertical() && this.minY < f[1] && f[1] < this.maxY)) {
+                var b = d.getDateFromCoordinate(g.getXY()[d.getOrientation() == "horizontal" ? 0 : 1]);
+                a.timeDiff = b - a.sourceDate;
+                a.startDate = d.timeAxis.roundDate(new Date(a.origStart - 0 + a.timeDiff), d.snapRelativeToEventStartDate ? a.origStart : false);
+                a.endDate = new Date(a.startDate - 0 + a.duration)
+            }
+        } else {
+            var c = this.resolveStartEndDates(h);
+            a.startDate = c.startDate;
+            a.endDate = c.endDate;
+            a.timeDiff = a.startDate - a.origStart
+        }
+        a.newResource = d.constrainDragToResource ? a.resourceRecord : this.resolveResource([h.left + a.offsets[0], h.top + a.offsets[1]], g);
+        if (a.newResource) {
+            a.valid = this.validatorFn.call(this.validatorFnScope || this, a.eventRecords, a.newResource, a.startDate, a.duration, g)
+        } else {
+            a.valid = false
+        }
+    },
     getRelatedRecords: function (c) {
         var b = this.schedulerView;
-        var d = b.panel.up("tablepanel").getEventSelectionModel();
+        var d = b.selModel;
         var a = [];
         if (d.selected.getCount() > 1) {
             d.selected.each(function (e) {
@@ -2168,226 +2738,189 @@ Ext.define("Sch.feature.PointDragZone", {
         }
         return a
     },
-    getDragElement: function (a, e) {
-        var c = this.schedulerView;
-        var d = e.eventEls;
-        var f;
-        if (d.length > 1) {
-            var b = Ext.get(Ext.core.DomHelper.createDom({
+    getDragElement: function (b, e) {
+        var c = e.eventEls;
+        var g;
+        var a = e.offsets[0];
+        var f = e.offsets[1];
+        if (c.length > 1) {
+            var d = Ext.core.DomHelper.createDom({
                 tag: "div",
                 cls: "sch-dd-wrap",
                 style: {
                     overflow: "visible"
                 }
-            }));
-            Ext.Array.each(d, function (h) {
-                f = h.dom.cloneNode(true);
-                if (h.dom === a.dom) {
-                    f.id = "sch-id-dd-ref"
-                } else {
-                    f.id = Ext.id()
-                }
-                b.appendChild(f);
-                var g = h.getOffsetsTo(a);
-                Ext.fly(f).setStyle({
-                    left: g[0] + "px",
-                    top: g[1] + "px"
+            });
+            Ext.Array.each(c, function (i) {
+                g = i.dom.cloneNode(true);
+                g.id = i.dom === b.dom ? "sch-id-dd-ref" : Ext.id();
+                d.appendChild(g);
+                var h = i.getOffsetsTo(b);
+                Ext.fly(g).setStyle({
+                    left: h[0] - a + "px",
+                    top: h[1] - f + "px"
                 })
             });
-            return b.dom
+            return d
         } else {
-            f = a.dom.cloneNode(true);
-            f.id = "sch-id-dd-ref";
-            f.style.left = 0;
-            f.style.top = 0;
-            return f
+            g = b.dom.cloneNode(true);
+            g.id = "sch-id-dd-ref";
+            g.style.left = -a + "px";
+            g.style.top = -f + "px";
+            return g
         }
     },
-    onDragDrop: function (k, c) {
-        var m = this,
-            q = m.schedulerView,
-            n = q.resourceStore,
-            l = m.cachedTarget || Ext.dd.DragDropMgr.getDDById(c),
-            i = m.dragData,
-            d = m.getDragContext(k),
-            o = false;
-        if (d && d.valid && d.startDate && d.endDate && this.isValidDrop(i.resourceRecord, d.resource, i.relatedEventRecords)) {
-            var h = i.eventRecords[0],
-                b = d.startDate,
-                f = i.relatedEventRecords,
-                a = b - i.origStart,
-                g = d.resource;
-            o = (d.startDate - i.origStart) !== 0 || g !== i.resourceRecord;
-            h.beginEdit();
-            if (g !== i.resourceRecord) {
-                h.unassign(i.resourceRecord);
-                h.assign(g)
+    onDragDrop: function (h, i) {
+        this.updateDragContext(h);
+        var d = this,
+            b = d.schedulerView,
+            g = d.cachedTarget || Ext.dd.DragDropMgr.getDDById(i),
+            f = d.dragData,
+            a = false,
+            c = true;
+        f.ddCallbackArgs = [g, h, i];
+        if (f.valid && f.startDate && f.endDate) {
+            f.finalize = function () {
+                d.finalize.apply(d, arguments)
+            };
+            c = b.fireEvent("beforeeventdropfinalize", d, f, h) !== false;
+            if (c && d.isValidDrop(f.resourceRecord, f.newResource, f.eventRecords[0])) {
+                a = (f.startDate - f.origStart) !== 0 || f.newResource !== f.resourceRecord
             }
-            h.setStartDate(d.startDate, true, q.eventStore.skipWeekendsDuringDragDrop);
-            h.endEdit();
-            var j;
-            var p = Ext.data.TreeStore && n instanceof Ext.data.TreeStore;
-            if (p) {
-                j = q.indexOf(i.resourceRecord) - q.indexOf(g)
-            } else {
-                j = n.indexOf(i.resourceRecord) - n.indexOf(g)
-            }
-            Ext.each(f, function (r) {
-                r.shift(Ext.Date.MILLI, a);
-                if (p) {
-                    var e = q.store.indexOf(r.getResource()) - j;
-                    r.setResource(q.store.getAt(e))
-                } else {
-                    r.setResource(n.getAt(n.indexOf(r.getResource()) - j))
-                }
+        }
+        if (c) {
+            d.finalize(f.valid && a)
+        }
+        b.el.un("scroll", d.onViewElScroll, d)
+    },
+    finalize: function (c) {
+        var e = this,
+            b = e.schedulerView,
+            f = e.dragData;
+        if (e.tip) {
+            e.tip.hide()
+        }
+        if (c) {
+            var a, d = function () {
+                    a = true
+                };
+            b.on("itemupdate", d, null, {
+                single: true
             });
-            q.fireEvent("eventdrop", q, [h].concat(f), false)
-        }
-        if (m.tip) {
-            m.tip.hide()
-        }
-        if (d && d.valid && o) {
-            if (Ext.isIE9) {
-                m.proxy.el.setStyle("visibility", "hidden");
-                Ext.Function.defer(m.onValidDrop, 10, m, [l, k, c])
+            e.updateRecords(f);
+            b.un("itemupdate", d, null, {
+                single: true
+            });
+            if (!a) {
+                e.onInvalidDrop.apply(e, f.ddCallbackArgs)
             } else {
-                m.onValidDrop(l, k, c)
+                if (Ext.isIE9) {
+                    e.proxy.el.setStyle("visibility", "hidden");
+                    Ext.Function.defer(e.onValidDrop, 10, e, f.ddCallbackArgs)
+                } else {
+                    e.onValidDrop.apply(e, f.ddCallbackArgs)
+                }
+                b.fireEvent("aftereventdrop", b, f.eventRecords)
             }
-            q.fireEvent("aftereventdrop", q)
         } else {
-            this.onInvalidDrop(l, k, c)
+            e.onInvalidDrop.apply(e, f.ddCallbackArgs)
         }
     },
-    isValidDrop: function (e, b, c) {
-        if (e === b || c.length === 0) {
-            return true
+    onInvalidDrop: function (d, c, f) {
+        if (Ext.isIE && !c) {
+            c = d;
+            d = d.getTarget() || document.body
         }
-        var f = this,
-            j = f.schedulerView,
-            a = true,
-            d, g = j.resourceStore,
-            h, i = Ext.data.TreeStore && g instanceof Ext.data.TreeStore;
-        if (i) {
-            d = j.indexOf(e) - j.indexOf(b)
-        } else {
-            d = g.indexOf(e) - g.indexOf(b)
-        }
-        Ext.each(c, function (k) {
-            if (i) {
-                h = j.store.indexOf(e) - d;
-                if (h < 0 || h >= j.store.getCount()) {
-                    a = false;
-                    return false
-                }
-            } else {
-                h = g.indexOf(e) - d;
-                if (h < 0 || h >= g.getCount()) {
-                    a = false;
-                    return false
-                }
-            }
-        });
-        return a
-    },
-    onInvalidDrop: function () {
-        var a = this.schedulerView;
         if (this.tip) {
             this.tip.hide()
         }
-        Ext.each(this.dragData.eventEls, function (b) {
-            b.show()
-        });
-        this.callParent(arguments);
-        a.fireEvent("aftereventdrop", a)
+        this.setVisibilityForSourceEvents(true);
+        var a = this.schedulerView,
+            b = this.callParent([d, c, f]);
+        a.fireEvent("aftereventdrop", a, this.dragData.eventRecords);
+        return b
     },
-    resolveResource: function (f, d) {
-        var b = this.proxy.el.dom;
-        b.style.display = "none";
-        var c = document.elementFromPoint(f[0] - this.dragData.bodyScroll.left, f[1] - this.dragData.bodyScroll.top);
-        if (Ext.isIE8 && d && d.browserEvent.synthetic) {
-            c = document.elementFromPoint(f[0] - this.dragData.bodyScroll.left, f[1] - this.dragData.bodyScroll.top)
-        }
-        b.style.display = "block";
-        if (!c) {
-            return null
-        }
-        if (!c.className.match(this.schedulerView.timeCellCls)) {
-            var a = Ext.fly(c).up("." + this.schedulerView.timeCellCls);
-            if (a) {
-                c = a.dom;
-                return this.schedulerView.resolveResource(c)
+    resolveStartEndDates: function (f) {
+        var a = this.dragData,
+            c, e = a.origStart,
+            b = a.origEnd;
+        var d = Sch.util.Date;
+        if (!a.startsOutsideView) {
+            c = this.schedulerView.getStartEndDatesFromRegion(f, "round");
+            if (c) {
+                e = c.start || a.startDate;
+                b = d.add(e, d.MILLI, a.duration)
             }
-            return null
+        } else {
+            if (!a.endsOutsideView) {
+                c = this.schedulerView.getStartEndDatesFromRegion(f, "round");
+                if (c) {
+                    b = c.end || a.endDate;
+                    e = d.add(b, d.MILLI, -a.duration)
+                }
+            }
         }
-        return this.schedulerView.resolveResource(c)
+        return {
+            startDate: e,
+            endDate: b
+        }
     }
 });
 Ext.define("Sch.feature.DragDrop", {
-    requires: ["Ext.XTemplate", "Sch.feature.PointDragZone", "Sch.feature.DragZone", "Sch.feature.DropZone"],
+    requires: ["Ext.XTemplate", "Sch.feature.SchedulerDragZone"],
     validatorFn: function (b, a, c, f, d) {
         return true
     },
-    enableCopy: false,
-    useDragProxy: false,
-    showTooltip: true,
-    constructor: function (c, a) {
+    validatorFnScope: null,
+    dragConfig: null,
+    eventDragZone: null,
+    constructor: function (d, a) {
         Ext.apply(this, a);
-        this.schedulerView = c;
+        this.schedulerView = d;
         var b = !! document.elementFromPoint;
-        if (!this.useDragProxy && !this.dragConfig.useDragProxy && b) {
+        if (b) {
             this.initProxyLessDD()
         } else {
-            this.initProxyDD()
+            if (typeof console !== "undefined") {
+                var e = console;
+                e.log("WARNING: Your browser does not support document.elementFromPoint required for the Drag drop feature")
+            }
         }
         this.schedulerView.on("destroy", this.cleanUp, this);
         this.callParent([a])
     },
     cleanUp: function () {
-        if (this.schedulerView.dragZone) {
-            this.schedulerView.dragZone.destroy()
+        var a = this.schedulerView;
+        if (a.eventDragZone) {
+            a.eventDragZone.destroy()
         }
-        if (this.schedulerView.dropZone) {
-            this.schedulerView.dropZone.destroy()
-        }
-        if (this.tip) {
-            this.tip.destroy()
+        if (a.dropZone) {
+            a.dropZone.destroy()
         }
     },
     initProxyLessDD: function () {
         var a = this.schedulerView;
-        a.dragZone = Ext.create("Sch.feature.PointDragZone", a.el, Ext.apply({
+        a.eventDragZone = new Sch.feature.SchedulerDragZone(a.ownerCt.el, Ext.apply({
             ddGroup: a.id,
             schedulerView: a,
-            enableCopy: this.enableCopy,
-            validatorFn: this.validatorFn,
-            validatorFnScope: this.validatorFnScope,
-            showTooltip: this.showTooltip
-        }, this.dragConfig))
-    },
-    initProxyDD: function () {
-        var b = this.schedulerView,
-            a = b.el;
-        b.dragZone = Ext.create("Sch.feature.DragZone", a, Ext.apply({
-            ddGroup: b.id,
-            schedulerView: b,
-            enableCopy: this.enableCopy
-        }, this.dragConfig));
-        b.dropZone = Ext.create("Sch.feature.DropZone", a, Ext.apply({
-            ddGroup: b.id,
-            schedulerView: b,
-            enableCopy: this.enableCopy,
             validatorFn: this.validatorFn,
             validatorFnScope: this.validatorFnScope
-        }, this.dropConfig))
+        }, this.dragConfig))
     }
 });
 Ext.define("Sch.feature.ResizeZone", {
     extend: "Ext.util.Observable",
-    requires: ["Ext.resizer.Resizer", "Sch.tooltip.Tooltip"],
+    requires: ["Ext.resizer.Resizer", "Sch.tooltip.Tooltip", "Sch.util.ScrollManager"],
     showTooltip: true,
+    showExactResizePosition: false,
     validatorFn: Ext.emptyFn,
     validatorFnScope: null,
+    schedulerView: null,
     origEl: null,
+    handlePos: null,
+    eventRec: null,
+    tip: null,
+    startScroll: null,
     constructor: function (a) {
         Ext.apply(this, a);
         var b = this.schedulerView;
@@ -2403,17 +2936,16 @@ Ext.define("Sch.feature.ResizeZone", {
         });
         this.callParent(arguments)
     },
-    onMouseDown: function (g, a) {
+    onMouseDown: function (f, a) {
         var b = this.schedulerView;
-        var f = this.eventRec = b.resolveEventRecord(a);
-        var c = this.getHandlePosition(a);
-        var d = f.isResizable();
-        if (d === false || typeof d === "string" && !a.className.match(d)) {
+        var d = this.eventRec = b.resolveEventRecord(a);
+        var c = d.isResizable();
+        if (f.button !== 0 || (c === false || typeof c === "string" && !a.className.match(c))) {
             return
         }
-        this.eventRec = f;
-        this.handlePos = c;
-        this.origEl = Ext.get(g.getTarget(".sch-event"));
+        this.eventRec = d;
+        this.handlePos = this.getHandlePosition(a);
+        this.origEl = Ext.get(f.getTarget(".sch-event"));
         b.el.on({
             mousemove: this.onMouseMove,
             scope: this,
@@ -2428,87 +2960,156 @@ Ext.define("Sch.feature.ResizeZone", {
             single: true
         })
     },
-    onMouseMove: function (f, a) {
+    onMouseMove: function (g, a) {
         var b = this.schedulerView;
-        var d = this.eventRec;
-        if (!d || b.fireEvent("beforeeventresize", b, d, f) === false) {
+        var f = this.eventRec;
+        var d = this.handlePos;
+        if (!f || b.fireEvent("beforeeventresize", b, f, g) === false) {
             return
         }
         delete this.eventRec;
-        f.stopEvent();
-        var c = this.handlePos;
-        this.resizer = this.createResizer(this.origEl, d, c, f, a);
-        this.resizer.resizeTracker.onMouseDown(f, this.resizer[c].dom);
+        g.stopEvent();
+        this.resizer = this.createResizer(this.origEl, f, d, g, a);
+        var c = this.resizer.resizeTracker;
         if (this.showTooltip) {
             if (!this.tip) {
                 this.tip = Ext.create("Sch.tooltip.Tooltip", {
                     schedulerView: b,
+                    renderTo: b.getSecondaryCanvasEl(),
                     cls: "sch-resize-tip"
                 })
             }
-            this.tip.update(d.getStartDate(), d.getEndDate(), true);
+            this.tip.update(f.getStartDate(), f.getEndDate(), true);
             this.tip.show(this.origEl)
         }
-        b.fireEvent("eventresizestart", b, d)
+        c.onMouseDown(g, this.resizer[d].dom);
+        c.onMouseMove(g, this.resizer[d].dom);
+        b.fireEvent("eventresizestart", b, f);
+        b.el.on("scroll", this.onViewElScroll, this)
     },
-    getHandlePosition: function (a) {
+    getHandlePosition: function (b) {
+        var a = b.className.match("start");
         if (this.schedulerView.getOrientation() === "horizontal") {
-            return a.className.match("start") ? "west" : "east"
+            if (this.schedulerView.rtl) {
+                return a ? "east" : "west"
+            }
+            return a ? "west" : "east"
         } else {
-            return a.className.match("start") ? "north" : "south"
+            return a ? "north" : "south"
         }
     },
-    createResizer: function (c, f, b) {
-        var j = this.schedulerView,
-            e = j.resolveResource(c),
-            g = j.getSnapPixelAmount(),
-            i = j.getScheduleRegion(e, f),
-            a = j.getDateConstraints(e, f),
-            d = {
-                target: c,
-                dateConstraints: a,
-                resourceRecord: e,
+    createResizer: function (c, f, p) {
+        var m = this.schedulerView,
+            t = this,
+            b = m.getElementFromEventRecord(f),
+            g = m.resolveResource(c),
+            r = m.getSnapPixelAmount(),
+            o = m.getScheduleRegion(g, f),
+            q = m.getDateConstraints(g, f),
+            n = c.getHeight,
+            h = (m.rtl && p[0] === "e") || (!m.rtl && p[0] === "w") || p[0] === "n",
+            i = m.getOrientation() === "vertical",
+            e = {
+                otherEdgeX: h ? b.getRight() : b.getLeft(),
+                target: b,
+                isStart: h,
+                dateConstraints: q,
+                resourceRecord: g,
                 eventRecord: f,
-                handles: b.substring(0, 1),
-                minHeight: c.getHeight(),
-                constrainTo: i,
+                handles: p[0],
+                minHeight: n,
+                constrainTo: o,
                 listeners: {
                     resizedrag: this.partialResize,
                     resize: this.afterResize,
                     scope: this
                 }
             };
-        if (j.getOrientation() === "vertical") {
-            if (g > 0) {
-                Ext.apply(d, {
-                    minHeight: g,
-                    heightIncrement: g
+        var d = c.id;
+        var k = "_" + d;
+        c.id = c.dom.id = k;
+        Ext.cache[k] = Ext.cache[d];
+        if (i) {
+            if (r > 0) {
+                var j = c.getWidth();
+                Ext.apply(e, {
+                    minHeight: r,
+                    minWidth: j,
+                    maxWidth: j,
+                    heightIncrement: r
                 })
             }
         } else {
-            if (g > 0) {
-                Ext.apply(d, {
-                    minWidth: g,
-                    widthIncrement: g
+            if (r > 0) {
+                Ext.apply(e, {
+                    minWidth: r,
+                    maxHeight: n,
+                    widthIncrement: r
                 })
             }
         }
-        var h = Ext.create("Ext.resizer.Resizer", d);
+        var l = new Ext.resizer.Resizer(e);
+        if (l.resizeTracker) {
+            l.resizeTracker.tolerance = -1;
+            var a = l.resizeTracker.updateDimensions;
+            l.resizeTracker.updateDimensions = function (u) {
+                if (!Ext.isWebKit || u.getTarget(".sch-timelineview")) {
+                    var s;
+                    if (i) {
+                        s = m.el.getScroll().top - t.startScroll.top;
+                        l.resizeTracker.minHeight = e.minHeight - Math.abs(s)
+                    } else {
+                        s = m.el.getScroll().left - t.startScroll.left;
+                        l.resizeTracker.minWidth = e.minWidth - Math.abs(s)
+                    }
+                    a.apply(this, arguments)
+                }
+            };
+            l.resizeTracker.resize = function (s) {
+                var u;
+                if (i) {
+                    u = m.el.getScroll().top - t.startScroll.top;
+                    if (p[0] === "s") {
+                        s.y -= u
+                    }
+                    s.height += Math.abs(u)
+                } else {
+                    u = m.el.getScroll().left - t.startScroll.left;
+                    if (p[0] === "e") {
+                        s.x -= u
+                    }
+                    s.width += Math.abs(u)
+                }
+                Ext.resizer.ResizeTracker.prototype.resize.apply(this, arguments)
+            }
+        }
         c.setStyle("z-index", parseInt(c.getStyle("z-index"), 10) + 1);
-        return h
+        Sch.util.ScrollManager.register(m.el);
+        this.startScroll = m.el.getScroll();
+        return l
     },
     getStartEndDates: function (f) {
         var e = this.resizer,
             c = e.el,
             d = this.schedulerView,
-            b = e.handles[0] === "w" || e.handles[0] === "n",
+            b = e.isStart,
             g, a;
         if (b) {
             a = e.eventRecord.getEndDate();
-            g = d.getDateFromXY([c.getLeft(), c.getTop()], "round")
+            if (d.snapRelativeToEventStartDate) {
+                g = d.getDateFromXY([d.rtl ? c.getRight() : c.getLeft() + 1, c.getTop()]);
+                g = d.timeAxis.roundDate(g, e.eventRecord.getStartDate())
+            } else {
+                g = d.getDateFromXY([d.rtl ? c.getRight() : c.getLeft() + 1, c.getTop()], "round")
+            }
         } else {
             g = e.eventRecord.getStartDate();
-            a = d.getDateFromXY([c.getRight(), c.getBottom()], "round")
+            if (d.snapRelativeToEventStartDate) {
+                a = d.getDateFromXY([d.rtl ? c.getLeft() : c.getRight(), c.getBottom()]);
+                a = d.timeAxis.roundDate(a, e.eventRecord.getEndDate())
+            } else {
+                a = d.getDateFromXY([d.rtl ? c.getLeft() : c.getRight(), c.getBottom()], "round")
+            }
         } if (e.dateConstraints) {
             g = Sch.util.Date.constrain(g, e.dateConstraints.start, e.dateConstraints.end);
             a = Sch.util.Date.constrain(a, e.dateConstraints.start, e.dateConstraints.end)
@@ -2518,40 +3119,105 @@ Ext.define("Sch.feature.ResizeZone", {
             end: a
         }
     },
-    partialResize: function (b, d, h, g) {
-        var j = this.schedulerView,
-            i = this.getStartEndDates(g.getXY()),
-            c = i.start,
-            f = i.end;
-        if (!c || !f || ((b.start - c === 0) && (b.end - f === 0))) {
-            return
+    partialResize: function (b, g, m, l) {
+        var p = this.schedulerView,
+            o = l.type === "scroll" ? this.resizer.resizeTracker.lastXY : l.getXY(),
+            n = this.getStartEndDates(o),
+            f = n.start,
+            h = n.end,
+            j = b.eventRecord;
+        if (p.isHorizontal()) {
+            b.target.el.setY(this.resizer.constrainTo.top - p.getScroll().top + this.startScroll.top)
         }
-        var a = this.validatorFn.call(this.validatorFnScope || this, b.resourceRecord, b.eventRecord, c, f) !== false;
-        b.end = f;
-        b.start = c;
-        j.fireEvent("eventpartialresize", j, b.eventRecord, c, f, b.el);
         if (this.showTooltip) {
-            this.tip.update(c, f, a)
+            var a = this.validatorFn.call(this.validatorFnScope || this, b.resourceRecord, j, f, h) !== false;
+            this.tip.update(f, h, a)
         }
+        if (this.showExactResizePosition) {
+            var k = b.target.el,
+                d;
+            if (b.isStart) {
+                d = p.timeAxisViewModel.getDistanceBetweenDates(f, j.getEndDate());
+                k.setWidth(d);
+                var c = p.getDateFromCoordinate(b.otherEdgeX - Math.min(g, b.maxWidth)) || f;
+                var i = p.timeAxisViewModel.getDistanceBetweenDates(c, f);
+                k.setX(k.getX() + i)
+            } else {
+                d = p.timeAxisViewModel.getDistanceBetweenDates(j.getStartDate(), h);
+                k.setWidth(d)
+            }
+        } else {
+            if (!f || !h || ((b.start - f === 0) && (b.end - h === 0))) {
+                return
+            }
+        }
+        b.end = h;
+        b.start = f;
+        p.fireEvent("eventpartialresize", p, j, f, h, b.el)
     },
-    afterResize: function (a, k, f, g) {
+    onViewElScroll: function (b, a) {
+        this.resizer.resizeTracker.onDrag.apply(this.resizer.resizeTracker, arguments);
+        this.partialResize(this.resizer, 0, 0, b)
+    },
+    afterResize: function (a, m, f, g) {
+        var j = this,
+            i = a.resourceRecord,
+            k = a.eventRecord,
+            d = k.getStartDate(),
+            p = k.getEndDate(),
+            b = a.start || d,
+            c = a.end || p,
+            o = j.schedulerView,
+            n = false,
+            l = true;
+        Sch.util.ScrollManager.unregister(o.el);
+        o.el.un("scroll", this.onViewElScroll, this);
         if (this.showTooltip) {
             this.tip.hide()
         }
-        var i = a.resourceRecord,
-            j = a.eventRecord,
-            d = j.getStartDate(),
-            m = j.getEndDate(),
-            b = a.start || d,
-            c = a.end || m,
-            l = this.schedulerView;
-        if (b && c && (c - b > 0) && ((b - d !== 0) || (c - m !== 0)) && this.validatorFn.call(this.validatorFnScope || this, i, j, b, c, g) !== false) {
-            j.setStartEndDate(b, c, l.eventStore.skipWeekendsDuringDragDrop)
+        delete Ext.cache[a.el.id];
+        a.el.id = a.el.dom.id = a.el.id.substr(1);
+        j.resizeContext = {
+            resourceRecord: a.resourceRecord,
+            eventRecord: k,
+            start: b,
+            end: c,
+            finalize: function () {
+                j.finalize.apply(j, arguments)
+            }
+        };
+        if (b && c && (c - b > 0) && ((b - d !== 0) || (c - p !== 0)) && j.validatorFn.call(j.validatorFnScope || j, i, k, b, c, g) !== false) {
+            l = o.fireEvent("beforeeventresizefinalize", j, j.resizeContext, g) !== false;
+            n = true
         } else {
-            l.refreshKeepingScroll()
+            o.repaintEventsForResource(i)
+        } if (l) {
+            j.finalize(n)
+        }
+    },
+    finalize: function (a) {
+        var b = this.schedulerView;
+        var d = this.resizeContext;
+        var c = false;
+        d.eventRecord.store.on("update", function () {
+            c = true
+        }, null, {
+            single: true
+        });
+        if (a) {
+            if (this.resizer.isStart) {
+                d.eventRecord.setStartDate(d.start, false, b.eventStore.skipWeekendsDuringDragDrop)
+            } else {
+                d.eventRecord.setEndDate(d.end, false, b.eventStore.skipWeekendsDuringDragDrop)
+            } if (!c) {
+                b.repaintEventsForResource(d.resourceRecord)
+            }
+        } else {
+            b.repaintEventsForResource(d.resourceRecord)
         }
         this.resizer.destroy();
-        l.fireEvent("eventresizeend", l, j)
+        b.fireEvent("eventresizeend", b, d.eventRecord);
+        this.resizeContext = null
     },
     cleanUp: function () {
         if (this.tip) {
@@ -2559,44 +3225,274 @@ Ext.define("Sch.feature.ResizeZone", {
         }
     }
 });
-Ext.define("Sch.feature.Scheduling", {
-    extend: "Ext.grid.feature.Feature",
-    alias: "feature.scheduling",
-    getMetaRowTplFragments: function () {
-        return {
-            embedRowAttr: function () {
-                return 'style="height:{rowHeight}px"'
+Ext.define("Sch.eventlayout.Horizontal", {
+    timeAxisViewModel: null,
+    view: null,
+    nbrOfBandsByResource: null,
+    constructor: function (a) {
+        Ext.apply(this, a);
+        this.nbrOfBandsByResource = {}
+    },
+    clearCache: function (a) {
+        if (a) {
+            delete this.nbrOfBandsByResource[a.internalId]
+        } else {
+            this.nbrOfBandsByResource = {}
+        }
+    },
+    getNumberOfBands: function (b, c) {
+        if (!this.view.dynamicRowHeight) {
+            return 1
+        }
+        var a = this.nbrOfBandsByResource;
+        if (a.hasOwnProperty(b.internalId)) {
+            return a[b.internalId]
+        }
+        return this.calculateNumberOfBands(b, c)
+    },
+    getRowHeight: function (b, c) {
+        var a = this.view;
+        var d = this.getNumberOfBands(b, c);
+        return (d * this.timeAxisViewModel.rowHeightHorizontal) - ((d - 1) * a.barMargin)
+    },
+    calculateNumberOfBands: function (e, g) {
+        var f = [];
+        g = g || this.view.eventStore.getEventsForResource(e);
+        var d = this.view.timeAxis;
+        for (var b = 0; b < g.length; b++) {
+            var c = g[b];
+            var h = c.getStartDate();
+            var a = c.getEndDate();
+            if (h && a && d.timeSpanInAxis(h, a)) {
+                f[f.length] = {
+                    start: h,
+                    end: a
+                }
             }
+        }
+        return this.applyLayout(f, e)
+    },
+    applyLayout: function (a, b) {
+        var c = a.slice();
+        c.sort(this.sortEvents);
+        return this.nbrOfBandsByResource[b.internalId] = this.layoutEventsInBands(0, c)
+    },
+    sortEvents: function (e, d) {
+        var c = (e.start - d.start === 0);
+        if (c) {
+            return e.end > d.end ? -1 : 1
+        } else {
+            return (e.start < d.start) ? -1 : 1
+        }
+    },
+    layoutEventsInBands: function (e, b) {
+        var a = this.view;
+        do {
+            var d = b[0],
+                c = e === 0 ? a.barMargin : (e * this.timeAxisViewModel.rowHeightHorizontal - (e - 1) * a.barMargin);
+            if (c >= a.cellBottomBorderWidth) {
+                c -= a.cellBottomBorderWidth
+            }
+            while (d) {
+                d.top = c;
+                Ext.Array.remove(b, d);
+                d = this.findClosestSuccessor(d, b)
+            }
+            e++
+        } while (b.length > 0);
+        return e
+    },
+    findClosestSuccessor: function (g, e) {
+        var c = Infinity,
+            f, a = g.end,
+            h;
+        for (var d = 0, b = e.length; d < b; d++) {
+            h = e[d].start - a;
+            if (h >= 0 && h < c) {
+                f = e[d];
+                c = h
+            }
+        }
+        return f
+    }
+});
+Ext.define("Sch.eventlayout.Vertical", {
+    requires: ["Sch.util.Date"],
+    constructor: function (a) {
+        Ext.apply(this, a)
+    },
+    applyLayout: function (a, f) {
+        if (a.length === 0) {
+            return
+        }
+        a.sort(this.sortEvents);
+        var d, c, k = this.view,
+            m = Sch.util.Date,
+            o = 1,
+            s, b, h = f - (2 * k.barMargin),
+            e, r;
+        for (var t = 0, q = a.length; t < q; t++) {
+            e = a[t];
+            d = e.start;
+            c = e.end;
+            b = this.findStartSlot(a, e);
+            var u = this.getCluster(a, t);
+            if (u.length > 1) {
+                e.left = b.start;
+                e.width = b.end - b.start;
+                r = 1;
+                while (r < (u.length - 1) && u[r + 1].start - e.start === 0) {
+                    r++
+                }
+                var p = this.findStartSlot(a, u[r]);
+                if (p && p.start < 0.8) {
+                    u = u.slice(0, r)
+                }
+            }
+            var g = u.length,
+                n = (b.end - b.start) / g;
+            for (r = 0; r < g; r++) {
+                u[r].width = n;
+                u[r].left = b.start + (r * n)
+            }
+            t += g - 1
+        }
+        for (t = 0, q = a.length; t < q; t++) {
+            a[t].width = a[t].width * h;
+            a[t].left = k.barMargin + (a[t].left * h)
+        }
+    },
+    findStartSlot: function (c, d) {
+        var a = this.getPriorOverlappingEvents(c, d),
+            b;
+        if (a.length === 0) {
+            return {
+                start: 0,
+                end: 1
+            }
+        }
+        for (b = 0; b < a.length; b++) {
+            if (b === 0 && a[0].left > 0) {
+                return {
+                    start: 0,
+                    end: a[0].left
+                }
+            } else {
+                if (a[b].left + a[b].width < (b < a.length - 1 ? a[b + 1].left : 1)) {
+                    return {
+                        start: a[b].left + a[b].width,
+                        end: b < a.length - 1 ? a[b + 1].left : 1
+                    }
+                }
+            }
+        }
+        return false
+    },
+    getPriorOverlappingEvents: function (e, f) {
+        var g = Sch.util.Date,
+            h = f.start,
+            b = f.end,
+            c = [];
+        for (var d = 0, a = Ext.Array.indexOf(e, f); d < a; d++) {
+            if (g.intersectSpans(h, b, e[d].start, e[d].end)) {
+                c.push(e[d])
+            }
+        }
+        c.sort(this.sortOverlappers);
+        return c
+    },
+    sortOverlappers: function (b, a) {
+        return b.left < a.left ? -1 : 1
+    },
+    getCluster: function (e, g) {
+        if (g >= e.length - 1) {
+            return [e[g]]
+        }
+        var c = [e[g]],
+            h = e[g].start,
+            b = e[g].end,
+            a = e.length,
+            f = Sch.util.Date,
+            d = g + 1;
+        while (d < a && f.intersectSpans(h, b, e[d].start, e[d].end)) {
+            c.push(e[d]);
+            h = f.max(h, e[d].start);
+            b = f.min(e[d].end, b);
+            d++
+        }
+        return c
+    },
+    sortEvents: function (e, d) {
+        var c = (e.start - d.start === 0);
+        if (c) {
+            return e.end > d.end ? -1 : 1
+        } else {
+            return (e.start < d.start) ? -1 : 1
         }
     }
 });
-Ext.define("Sch.column.Time", {
+Ext.define("Sch.column.Summary", {
     extend: "Ext.grid.column.Column",
-    alias: "timecolumn",
-    draggable: false,
-    groupable: false,
-    hideable: false,
+    alias: ["widget.summarycolumn", "plugin.scheduler_summarycolumn"],
+    mixins: ["Ext.AbstractPlugin"],
+    alternateClassName: "Sch.plugin.SummaryColumn",
+    init: Ext.emptyFn,
+    lockableScope: "top",
+    showPercent: false,
+    nbrDecimals: 1,
     sortable: false,
     fixed: true,
-    align: "center",
-    tdCls: "sch-timetd",
     menuDisabled: true,
-    initComponent: function () {
-        this.addEvents("timeheaderdblclick");
-        this.enableBubble("timeheaderdblclick");
-        this.callParent()
+    width: 80,
+    dataIndex: "_sch_not_used",
+    timeAxis: null,
+    eventStore: null,
+    constructor: function (a) {
+        this.scope = this;
+        this.callParent(arguments)
     },
-    initRenderData: function () {
-        var a = this;
-        a.renderData.headerCls = a.renderData.headerCls || a.headerCls;
-        return a.callParent(arguments)
-    },
-    onElDblClick: function (b, a) {
+    beforeRender: function () {
         this.callParent(arguments);
-        this.fireEvent("timeheaderdblclick", this, this.startDate, this.endDate, b)
+        var a = this.up("tablepanel[lockable=true]");
+        this.timeAxis = a.getTimeAxis();
+        a.lockedGridDependsOnSchedule = true;
+        this.eventStore = a.getEventStore()
+    },
+    renderer: function (j, a, g) {
+        var h = this.timeAxis,
+            e = this.eventStore,
+            f = h.getStart(),
+            i = h.getEnd(),
+            c = 0,
+            b = this.calculate(e.getEventsForResource(g), f, i);
+        if (b <= 0) {
+            return ""
+        }
+        if (this.showPercent) {
+            var d = Sch.util.Date.getDurationInMinutes(f, i);
+            return (Math.round((b * 100) / d)) + " %"
+        } else {
+            if (b > 1440) {
+                return (b / 1440).toFixed(this.nbrDecimals) + " " + Sch.util.Date.getShortNameOfUnit("DAY")
+            }
+            if (b >= 30) {
+                return (b / 60).toFixed(this.nbrDecimals) + " " + Sch.util.Date.getShortNameOfUnit("HOUR")
+            }
+            return b + " " + Sch.util.Date.getShortNameOfUnit("MINUTE")
+        }
+    },
+    calculate: function (c, g, d) {
+        var e = 0,
+            b, a, f = Sch.util.Date;
+        Ext.each(c, function (h) {
+            b = h.getStartDate();
+            a = h.getEndDate();
+            if (f.intersectSpans(g, d, b, a)) {
+                e += f.getDurationInMinutes(f.max(b, g), f.min(a, d))
+            }
+        });
+        return e
     }
-}, function () {
-    Sch.column.Time.prototype.renderTpl = Sch.column.Time.prototype.renderTpl.replace("column-header-inner", "column-header-inner sch-timeheader {headerCls}")
 });
 Ext.define("Sch.column.Resource", {
     extend: "Ext.grid.Column",
@@ -2606,568 +3502,560 @@ Ext.define("Sch.column.Resource", {
     menuDisabled: true,
     hideable: false,
     sortable: false,
-    initComponent: function () {
-        this.callParent(arguments);
-        this.minWidth = undefined
-    }
+    locked: false,
+    lockable: false,
+    draggable: false,
+    enableLocking: false,
+    tdCls: "sch-timetd",
+    model: null
 });
-Ext.define("Sch.column.timeAxis.Horizontal", {
-    extend: "Ext.grid.column.Column",
-    alias: "widget.timeaxiscolumn",
-    requires: ["Ext.Date", "Ext.XTemplate", "Sch.column.Time", "Sch.preset.Manager"],
-    cls: "sch-timeaxiscolumn",
-    timeAxis: null,
-    renderTpl: '<div id="{id}-titleEl" class="' + Ext.baseCSSPrefix + 'column-header-inner"><span id="{id}-textEl" style="display:none" class="' + Ext.baseCSSPrefix + 'column-header-text"></span><tpl if="topHeaderCells">{topHeaderCells}</tpl><tpl if="middleHeaderCells">{middleHeaderCells}</tpl></div>{%this.renderContainer(out,values)%}',
-    headerRowTpl: '<table border="0" cellspacing="0" cellpadding="0" style="{tstyle}" class="sch-header-row sch-header-row-{position}"><thead><tr>{cells}</tr></thead></table>',
-    headerCellTpl: '<tpl for="."><td class="sch-column-header x-column-header {headerCls}" style="position : static; text-align: {align}; {style}" tabIndex="0" id="{headerId}" headerPosition="{position}" headerIndex="{index}"><div class="x-column-header-inner">{header}</div></td></tpl>',
-    columnConfig: {},
-    timeCellRenderer: null,
-    timeCellRendererScope: null,
-    columnWidth: null,
-    previousWidth: null,
-    previousHeight: null,
-    initComponent: function () {
-        if (!(this.headerRowTpl instanceof Ext.Template)) {
-            this.headerRowTpl = Ext.create("Ext.XTemplate", this.headerRowTpl)
-        }
-        if (!(this.headerCellTpl instanceof Ext.Template)) {
-            this.headerCellTpl = Ext.create("Ext.XTemplate", this.headerCellTpl)
-        }
-        this.columns = [{}];
-        this.addEvents("timeheaderdblclick", "timeaxiscolumnreconfigured");
-        this.enableBubble("timeheaderdblclick");
-        this.stubForResizer = new Ext.Component({
-            isOnLeftEdge: function () {
-                return false
-            },
-            isOnRightEdge: function () {
-                return false
-            },
-            el: {
-                dom: {
-                    style: {}
-                }
+if (!Ext.ClassManager.get("Sch.view.model.TimeAxis")) {
+    Ext.define("Sch.view.model.TimeAxis", {
+        extend: "Ext.util.Observable",
+        requires: ["Ext.Date", "Sch.util.Date", "Sch.preset.Manager"],
+        timeAxis: null,
+        availableWidth: 0,
+        tickWidth: 100,
+        snapToIncrement: false,
+        forceFit: false,
+        headerConfig: null,
+        headers: null,
+        mainHeader: 0,
+        timeAxisColumnWidth: null,
+        resourceColumnWidth: null,
+        timeColumnWidth: null,
+        rowHeightHorizontal: null,
+        rowHeightVertical: null,
+        orientation: "horizontal",
+        suppressFit: false,
+        refCount: 0,
+        columnConfig: {},
+        viewPreset: null,
+        columnLinesFor: "middle",
+        constructor: function (a) {
+            var c = this;
+            Ext.apply(this, a);
+            if (this.viewPreset) {
+                var b = Sch.preset.Manager.getPreset(this.viewPreset);
+                b && this.consumeViewPreset(b)
             }
-        });
-        this.callParent(arguments);
-        this.onTimeAxisReconfigure();
-        this.mon(this.timeAxis, "reconfigure", this.onTimeAxisReconfigure, this)
-    },
-    getSchedulingView: function () {
-        return this.getOwnerHeaderCt().view
-    },
-    onTimeAxisReconfigure: function () {
-        var e = this.timeAxis,
-            d = e.preset.timeColumnWidth,
-            f = this.rendered && this.getSchedulingView(),
-            g = e.headerConfig,
-            b = e.getStart(),
-            c = e.getEnd(),
-            h = {
-                renderer: this.timeColumnRenderer,
-                scope: this,
-                width: this.rendered ? f.calculateTimeColumnWidth(d) : d
-            };
-        delete this.previousWidth;
-        delete this.previousHeight;
-        var j = this.columnConfig = this.createColumns(this.timeAxis, g, h);
-        Ext.suspendLayouts();
-        this.removeAll();
-        if (this.rendered) {
-            var a = this.el.child(".x-column-header-inner");
-            a.select("table").remove();
-            var i = this.initRenderData();
-            if (j.top) {
-                Ext.core.DomHelper.append(a, i.topHeaderCells)
+            c.addEvents("update");
+            c.timeAxis.on("reconfigure", c.onTimeAxisReconfigure, c);
+            this.callParent(arguments)
+        },
+        destroy: function () {
+            this.timeAxis.un("reconfigure", this.onTimeAxisReconfigure, this)
+        },
+        onTimeAxisReconfigure: function (b, a, c) {
+            if (!c) {
+                this.update()
             }
-            if (j.middle) {
-                Ext.core.DomHelper.append(a, i.middleHeaderCells)
-            }
-            if (!j.top && !j.middle) {
-                this.addCls("sch-header-single-row")
+        },
+        reconfigure: function (a) {
+            this.headers = null;
+            Ext.apply(this, a);
+            if (this.orientation == "horizontal") {
+                this.setTickWidth(this.timeColumnWidth)
             } else {
-                this.removeCls("sch-header-single-row")
+                this.setTickWidth(this.rowHeightVertical)
             }
-        }
-        Ext.resumeLayouts();
-        this.add(j.bottom);
-        if (this.rendered) {
-            if (this.fireEvent("timeaxiscolumnreconfigured", this) !== false) {
-                f.refresh()
+            this.fireEvent("reconfigure", this)
+        },
+        getColumnConfig: function () {
+            return this.columnConfig
+        },
+        update: function (d, b) {
+            var e = this.timeAxis,
+                c = this.headerConfig;
+            this.availableWidth = Math.max(d || this.availableWidth, 0);
+            if (!Ext.isNumber(this.availableWidth)) {
+                throw "Invalid available width provided to Sch.view.model.TimeAxis"
             }
-        }
-    },
-    beforeRender: function () {
-        var a = this.columnConfig;
-        if (!a.middle && !a.top) {
-            this.addCls("sch-header-single-row")
-        }
-        this.callParent(arguments)
-    },
-    timeColumnRenderer: function (i, e, f, l, d, c, k) {
-        var a = "";
-        if (Ext.isIE) {
-            e.style += ";z-index:" + (this.items.getCount() - d)
-        }
-        if (this.timeCellRenderer) {
-            var h = this.timeAxis,
-                b = h.getAt(d),
-                g = b.start,
-                j = b.end;
-            a = this.timeCellRenderer.call(this.timeCellRendererScope || this, e, f, l, d, c, g, j)
-        }
-        return a
-    },
-    initRenderData: function () {
-        var a = this.columnConfig;
-        var c = a.top ? this.headerRowTpl.apply({
-            cells: this.headerCellTpl.apply(a.top),
-            position: "top",
-            tstyle: "border-top : 0; width : 100px"
-        }) : "";
-        var b = a.middle ? this.headerRowTpl.apply({
-            cells: this.headerCellTpl.apply(a.middle),
-            position: "middle",
-            tstyle: a.top ? "width : 100px" : "border-top : 0; width : 100px"
-        }) : "";
-        return Ext.apply(this.callParent(arguments), {
-            topHeaderCells: c,
-            middleHeaderCells: b
-        })
-    },
-    defaultRenderer: function (c, b, a) {
-        return Ext.Date.format(c, a)
-    },
-    createColumns: function (f, d, g) {
-        if (!f || !d) {
-            throw "Invalid parameters passed to createColumns"
-        }
-        var c = [],
-            a = d.bottom || d.middle,
-            h, e = this;
-        f.forEachInterval(d.bottom ? "bottom" : "middle", function (l, j, k) {
-            h = {
-                align: a.align || "center",
-                headerCls: "",
-                startDate: l,
-                endDate: j
-            };
-            if (a.renderer) {
-                h.header = a.renderer.call(a.scope || e, l, j, h, k)
-            } else {
-                h.header = e.defaultRenderer(l, j, a.dateFormat)
+            if (this.forceFit && this.availableWidth <= 0) {
+                return
             }
-            c[c.length] = Ext.create("Sch.column.Time", Ext.apply(h, g))
-        });
-        var b = this.createHeaderRows(f, d);
-        return {
-            bottom: c,
-            middle: b.middle,
-            top: b.top
-        }
-    },
-    createHeaderRows: function (e, c) {
-        var d = {};
-        if (c.top) {
-            var a;
-            if (c.top.cellGenerator) {
-                a = c.top.cellGenerator.call(this, e.getStart(), e.getEnd())
-            } else {
-                a = this.createHeaderRow(e, c.top)
-            }
-            d.top = this.processHeaderRow(a, "top")
-        }
-        if (c.bottom) {
-            var b;
-            if (c.middle.cellGenerator) {
-                b = c.middle.cellGenerator.call(this, e.getStart(), e.getEnd())
-            } else {
-                b = this.createHeaderRow(e, c.middle)
-            }
-            d.middle = this.processHeaderRow(b, "middle")
-        }
-        return d
-    },
-    processHeaderRow: function (c, a) {
-        var b = this;
-        Ext.each(c, function (d, e) {
-            d.index = e;
-            d.position = a;
-            d.headerId = b.stubForResizer.id
-        });
-        return c
-    },
-    createHeaderRow: function (e, k) {
-        var n = [],
-            l, a = e.getStart(),
-            c = e.getEnd(),
-            m = c - a,
-            j = [],
-            b = a,
-            d = 0,
-            f, g = k.align || "center",
-            h;
-        while (b < c) {
-            h = Sch.util.Date.min(e.getNext(b, k.unit, k.increment || 1), c);
-            l = {
-                align: g,
-                start: b,
-                end: h,
-                headerCls: ""
-            };
-            if (k.renderer) {
-                l.header = k.renderer.call(k.scope || this, b, h, l, d)
-            } else {
-                l.header = this.defaultRenderer(b, h, k.dateFormat, l, d)
-            }
-            n.push(l);
-            b = h;
-            d++
-        }
-        return n
-    },
-    afterLayout: function () {
-        delete this.columnWidth;
-        this.callParent(arguments);
-        var b = this.getWidth();
-        var g = this.getHeight();
-        if (b === this.previousWidth && g === this.previousHeight) {
-            return
-        }
-        this.previousWidth = b;
-        this.previousHeight = g;
-        var i = this.columnConfig;
-        var e = this;
-        var c = this.el;
-        var f = i.top;
-        var d = 0;
-        var a = 0;
-        if (f) {
-            c.select(".sch-header-row-top").setWidth(this.lastBox.width);
-            c.select(".sch-header-row-top td").each(function (l, m, j) {
-                var k = e.getHeaderGroupCellWidth(f[j].start, f[j].end);
-                l.setVisibilityMode(Ext.Element.DISPLAY);
-                if (k) {
-                    d += k;
-                    l.show();
-                    l.setWidth(k)
+            this.columnConfig = {};
+            for (var f in c) {
+                if (c[f].cellGenerator) {
+                    this.columnConfig[f] = c[f].cellGenerator.call(this, e.getStart(), e.getEnd())
                 } else {
-                    l.hide()
+                    this.columnConfig[f] = this.createHeaderRow(f, c[f])
                 }
+            }
+            var a = this.calculateTickWidth(this.getTickWidth());
+            if (!Ext.isNumber(a) || a <= 0) {
+                throw "Invalid column width calculated in Sch.view.model.TimeAxis"
+            }
+            this.updateTickWidth(a);
+            if (!b) {
+                this.fireEvent("update", this)
+            }
+        },
+        createHeaderRow: function (a, d) {
+            var c = [],
+                e = this,
+                f = d.align,
+                b = Ext.Date.clearTime(new Date());
+            e.forEachInterval(a, function (k, g, h) {
+                var j = {
+                    align: f,
+                    start: k,
+                    end: g,
+                    headerCls: ""
+                };
+                if (d.renderer) {
+                    j.header = d.renderer.call(d.scope || e, k, g, j, h)
+                } else {
+                    j.header = Ext.Date.format(k, d.dateFormat)
+                } if (d.unit === Sch.util.Date.DAY && (!d.increment || d.increment === 1)) {
+                    j.headerCls += " sch-dayheadercell-" + k.getDay();
+                    if (Ext.Date.clearTime(k, true) - b === 0) {
+                        j.headerCls += " sch-dayheadercell-today"
+                    }
+                }
+                c.push(j)
+            });
+            return c
+        },
+        getDistanceBetweenDates: function (b, a) {
+            return Math.round(this.getPositionFromDate(a) - this.getPositionFromDate(b))
+        },
+        getPositionFromDate: function (a) {
+            var c = -1,
+                b = this.timeAxis.getTickFromDate(a);
+            if (b >= 0) {
+                c = Math.round(this.tickWidth * (b - this.timeAxis.visibleTickStart))
+            }
+            return c
+        },
+        getDateFromPosition: function (a, d) {
+            var c = a / this.getTickWidth() + this.timeAxis.visibleTickStart,
+                b = this.timeAxis.getCount();
+            if (c < 0 || c > b) {
+                return null
+            }
+            return this.timeAxis.getDateFromTick(c, d)
+        },
+        getSingleUnitInPixels: function (a) {
+            return Sch.util.Date.getUnitToBaseUnitRatio(this.timeAxis.getUnit(), a) * this.tickWidth / this.timeAxis.increment
+        },
+        getSnapPixelAmount: function () {
+            if (this.snapToIncrement) {
+                var a = this.timeAxis.getResolution();
+                return (a.increment || 1) * this.getSingleUnitInPixels(a.unit)
+            } else {
+                return 1
+            }
+        },
+        getTickWidth: function () {
+            return this.tickWidth
+        },
+        setTickWidth: function (b, a) {
+            this.updateTickWidth(b);
+            this.update(null, a)
+        },
+        updateTickWidth: function (a) {
+            this.tickWidth = a;
+            if (this.orientation == "horizontal") {
+                this.timeColumnWidth = a
+            } else {
+                this.rowHeightVertical = a
+            }
+        },
+        getTotalWidth: function () {
+            return Math.round(this.tickWidth * this.timeAxis.getVisibleTickTimeSpan())
+        },
+        calculateTickWidth: function (d) {
+            var j = this.forceFit;
+            var g = this.timeAxis;
+            var b = 0,
+                f = g.getUnit(),
+                i = Number.MAX_VALUE,
+                c = Sch.util.Date;
+            if (this.snapToIncrement) {
+                var e = g.getResolution();
+                i = c.getUnitToBaseUnitRatio(f, e.unit) * e.increment
+            } else {
+                var h = c.getMeasuringUnit(f);
+                i = Math.min(i, c.getUnitToBaseUnitRatio(f, h))
+            }
+            var a = Math[j ? "floor" : "round"](this.getAvailableWidth() / g.getVisibleTickTimeSpan());
+            if (!this.suppressFit) {
+                b = (j || d < a) ? a : d;
+                if (i > 0 && (!j || i < 1)) {
+                    b = Math.round(Math.max(1, Math[j ? "floor" : "round"](i * b)) / i)
+                }
+            } else {
+                b = d
+            }
+            return b
+        },
+        getAvailableWidth: function () {
+            return this.availableWidth
+        },
+        setAvailableWidth: function (a) {
+            this.availableWidth = Math.max(0, a);
+            var b = this.calculateTickWidth(this.tickWidth);
+            if (b !== this.tickWidth) {
+                this.setTickWidth(b)
+            }
+        },
+        fitToAvailableWidth: function (a) {
+            var b = Math.floor(this.availableWidth / this.timeAxis.getVisibleTickTimeSpan());
+            this.setTickWidth(b, a)
+        },
+        setForceFit: function (a) {
+            if (a !== this.forceFit) {
+                this.forceFit = a;
+                this.update()
+            }
+        },
+        setSnapToIncrement: function (a) {
+            if (a !== this.snapToIncrement) {
+                this.snapToIncrement = a;
+                this.update()
+            }
+        },
+        getViewRowHeight: function () {
+            var a = this.orientation == "horizontal" ? this.rowHeightHorizontal : this.rowHeightVertical;
+            if (!a) {
+                throw "rowHeight info not available"
+            }
+            return a
+        },
+        setViewRowHeight: function (c, a) {
+            var d = this.orientation === "horizontal";
+            var b = "rowHeight" + Ext.String.capitalize(this.orientation);
+            if (this[b] != c) {
+                this[b] = c;
+                if (d) {
+                    if (!a) {
+                        this.fireEvent("update", this)
+                    }
+                } else {
+                    this.setTickWidth(c, a)
+                }
+            }
+        },
+        setViewColumnWidth: function (b, a) {
+            if (this.orientation === "horizontal") {
+                this.setTickWidth(b, a)
+            } else {
+                this.resourceColumnWidth = b
+            }
+        },
+        getHeaders: function () {
+            if (this.headers) {
+                return this.headers
+            }
+            var a = this.headerConfig;
+            this.mainHeader = a.top ? 1 : 0;
+            return this.headers = [].concat(a.top || [], a.middle || [], a.bottom || [])
+        },
+        getMainHeader: function () {
+            return this.getHeaders()[this.mainHeader]
+        },
+        getBottomHeader: function () {
+            var a = this.getHeaders();
+            return a[a.length - 1]
+        },
+        forEachInterval: function (b, a, d) {
+            d = d || this;
+            var c = this.headerConfig;
+            if (!c) {
+                return
+            }
+            if (b === "top" || (b === "middle" && c.bottom)) {
+                var e = c[b];
+                this.timeAxis.forEachAuxInterval(e.unit, e.increment, a, d)
+            } else {
+                this.timeAxis.each(function (g, f) {
+                    return a.call(d, g.data.start, g.data.end, f)
+                })
+            }
+        },
+        forEachMainInterval: function (a, b) {
+            this.forEachInterval("middle", a, b)
+        },
+        consumeViewPreset: function (a) {
+            this.headers = null;
+            var b = this.orientation == "horizontal";
+            Ext.apply(this, {
+                headerConfig: a.headerConfig,
+                columnLinesFor: a.columnLinesFor || "middle",
+                rowHeightHorizontal: a.rowHeight,
+                tickWidth: b ? a.timeColumnWidth : a.timeRowHeight || a.timeColumnWidth || 60,
+                timeColumnWidth: a.timeColumnWidth,
+                rowHeightVertical: a.timeRowHeight || a.timeColumnWidth || 60,
+                timeAxisColumnWidth: a.timeAxisColumnWidth,
+                resourceColumnWidth: a.resourceColumnWidth || 100
             })
         }
-        var h = i.middle;
-        if (h) {
-            c.select(".sch-header-row-middle").setWidth(this.lastBox.width);
-            c.select(".sch-header-row-middle td").each(function (l, m, j) {
-                var k = e.getHeaderGroupCellWidth(h[j].start, h[j].end);
-                l.setVisibilityMode(Ext.Element.DISPLAY);
-                if (k) {
-                    a += k;
-                    l.show();
-                    l.setWidth(k)
-                } else {
-                    l.hide()
-                }
-            })
-        }
-    },
-    getHeaderGroupCellWidth: function (h, b) {
-        var e = this.timeAxis.unit,
-            d = this.timeAxis.increment,
-            c, g = Sch.util.Date.getMeasuringUnit(e),
-            a = Sch.util.Date.getDurationInUnit(h, b, g),
-            f = this.getSchedulingView();
-        if (this.timeAxis.isContinuous()) {
-            c = a * f.getSingleUnitInPixels(g)
-        } else {
-            c = f.getXYFromDate(b)[0] - f.getXYFromDate(h)[0]
-        }
-        return c
-    },
-    onElDblClick: function (d, f) {
-        this.callParent(arguments);
-        var e = d.getTarget(".sch-column-header");
-        if (e) {
-            var a = Ext.fly(e).getAttribute("headerPosition"),
-                b = Ext.fly(e).getAttribute("headerIndex"),
-                c = this.columnConfig[a][b];
-            this.fireEvent("timeheaderdblclick", this, c.start, c.end, d)
-        }
-    },
-    getTimeColumnWidth: function () {
-        if (this.columnWidth === null) {
-            this.columnWidth = this.items.get(0).getWidth()
-        }
-        return this.columnWidth
-    },
-    setTimeColumnWidth: function (a) {
-        this.suspendEvents();
-        this.items.each(function (b) {
-            b.setWidth(a)
-        });
-        this.resumeEvents()
-    }
-});
-Ext.define("Sch.column.timeAxis.HorizontalSingle", {
-    extend: "Sch.column.Time",
-    alias: "widget.singletimeaxiscolumn",
-    requires: ["Ext.Date", "Ext.XTemplate", "Sch.preset.Manager"],
-    cls: "sch-simple-timeaxis",
-    timeAxis: null,
+    })
+}
+Ext.define("Sch.view.HorizontalTimeAxis", {
+    extend: "Ext.util.Observable",
+    requires: ["Ext.XTemplate"],
     trackHeaderOver: true,
-    compactCellWidthThreshold: 16,
-    renderTpl: '<div id="{id}-titleEl" class="' + Ext.baseCSSPrefix + 'column-header-inner"><span id="{id}-textEl" style="display:none" class="' + Ext.baseCSSPrefix + 'column-header-text"></span><tpl if="topHeaderCells">{topHeaderCells}</tpl><tpl if="middleHeaderCells">{middleHeaderCells}</tpl><tpl if="bottomHeaderCells">{bottomHeaderCells}</tpl></div>{%this.renderContainer(out,values)%}',
-    headerRowTpl: '<table border="0" cellspacing="0" cellpadding="0" style="{tstyle}" class="sch-header-row sch-header-row-{position}"><thead><tr><tpl for="cells"><td class="sch-column-header x-column-header {headerCls}" style="position : static; text-align: {align}; {style}" tabIndex="0" id="{headerId}" headerPosition="{parent.position}" headerIndex="{[xindex-1]}"><div class="sch-simple-timeheader">{header}</div></td></tpl></tr></thead></table>',
-    columnConfig: {},
-    columnWidth: null,
-    nbrTimeColumns: null,
-    initComponent: function () {
-        this.tdCls += " sch-singletimetd";
-        if (!(this.headerRowTpl instanceof Ext.Template)) {
-            this.headerRowTpl = Ext.create("Ext.XTemplate", this.headerRowTpl)
+    compactCellWidthThreshold: 15,
+    baseCls: "sch-column-header",
+    tableCls: "sch-header-row",
+    headerHtmlRowTpl: '<table border="0" cellspacing="0" cellpadding="0" style="width: {totalWidth}px; {tstyle}" class="{{tableCls}} sch-header-row-{position} {cls}"><thead><tr><tpl for="cells"><td class="{{baseCls}} {headerCls}" style="position : static; text-align: {align}; width: {width}px; {style}" tabIndex="0"headerPosition="{parent.position}" headerIndex="{[xindex-1]}"><div class="sch-simple-timeheader">{header}</div></td></tpl></tr></thead></table>',
+    model: null,
+    hoverCls: "",
+    containerEl: null,
+    height: null,
+    constructor: function (d) {
+        var e = this;
+        var b = !! Ext.versions.touch;
+        var a = b ? "tap" : "click";
+        Ext.apply(this, d);
+        e.callParent(arguments);
+        e.model.on({
+            update: e.onModelUpdate,
+            scope: e
+        });
+        this.addEvents("refresh");
+        e.containerEl = Ext.get(e.containerEl);
+        if (!(e.headerHtmlRowTpl instanceof Ext.Template)) {
+            e.headerHtmlRowTpl = e.headerHtmlRowTpl.replace("{{baseCls}}", this.baseCls).replace("{{tableCls}}", this.tableCls);
+            e.headerHtmlRowTpl = new Ext.XTemplate(e.headerHtmlRowTpl)
         }
-        this.addEvents("timeheaderdblclick", "timeaxiscolumnreconfigured");
-        this.enableBubble("timeheaderdblclick");
-        this.callParent(arguments);
-        this.onTimeAxisReconfigure();
-        this.mon(this.timeAxis, "reconfigure", this.onTimeAxisReconfigure, this);
-        this.on("resize", this.refreshHeaderSizes, this);
-        this.ownHoverCls = this.hoverCls;
-        this.hoverCls = ""
-    },
-    getSchedulingView: function () {
-        return this.getOwnerHeaderCt().view
-    },
-    onTimeAxisReconfigure: function () {
-        var h = this.timeAxis,
-            g = h.preset.timeColumnWidth,
-            j = this.rendered && this.getSchedulingView(),
-            l = h.headerConfig,
-            c = h.getStart(),
-            f = h.getEnd(),
-            d = this.rendered ? j.calculateTimeColumnWidth(g) : g;
-        var o = this.columnConfig = this.createHeaderRows(l);
-        var a = o.bottom || o.middle;
-        if (this.rendered) {
-            var e;
-            var b = this.el.child(".x-column-header-inner");
-            var i = b.dom;
-            var k = i.style.display;
-            var m = i.parentNode;
-            i.style.display = "none";
-            m.removeChild(i);
-            i.innerHTML = "";
-            var n = this.initRenderData();
-            if (o.top) {
-                e = Ext.core.DomHelper.append(b, n.topHeaderCells);
-                this.refreshHeaderRow("top", e)
-            }
-            if (o.middle) {
-                e = Ext.core.DomHelper.append(b, n.middleHeaderCells);
-                this.refreshHeaderRow("middle", e)
-            }
-            if (o.bottom) {
-                e = Ext.core.DomHelper.append(b, n.bottomHeaderCells);
-                this.refreshHeaderRow("bottom", e)
-            }
-            if (!o.top && !o.middle) {
-                this.addCls("sch-header-single-row")
-            } else {
-                this.removeCls("sch-header-single-row")
-            }
-            m.appendChild(i);
-            i.style.display = k;
-            if (d !== this.columnWidth || this.nbrTimeColumns !== a.length) {
-                this.nbrTimeColumns = a.length;
-                this.setTimeColumnWidth(d)
-            }
-            if (this.fireEvent("timeaxiscolumnreconfigured", this) !== false) {
-                j.refreshKeepingResourceScroll(true)
-            }
+        if (e.trackHeaderOver && e.hoverCls) {
+            e.containerEl.on({
+                mousemove: e.highlightCell,
+                delegate: ".sch-column-header",
+                scope: e
+            });
+            e.containerEl.on({
+                mouseleave: e.clearHighlight,
+                scope: e
+            })
+        }
+        var c = {
+            scope: this,
+            delegate: ".sch-column-header"
+        };
+        if (b) {
+            c.tap = this.onElClick("tap");
+            c.doubletap = this.onElClick("doubletap");
+            this.addEvents("timeheadertap", "timeheaderdoubletap")
         } else {
-            if (d !== this.columnWidth || this.nbrTimeColumns !== a.length) {
-                this.nbrTimeColumns = a.length;
-                this.setTimeColumnWidth(d)
-            }
+            c.click = this.onElClick("click");
+            c.dblclick = this.onElClick("dblclick");
+            c.contextmenu = this.onElClick("contextmenu");
+            this.addEvents("timeheaderclick", "timeheaderdblclick", "timeheadercontextmenu")
+        }
+        e._listenerCfg = c;
+        if (e.containerEl) {
+            e.containerEl.on(c)
         }
     },
-    beforeRender: function () {
-        var b = this,
-            a = this.columnConfig;
-        if (!a.middle && !a.top) {
-            b.addCls("sch-header-single-row")
-        }
-        b.callParent(arguments)
-    },
-    afterRender: function () {
+    destroy: function () {
         var a = this;
-        if (this.trackHeaderOver) {
-            a.el.on({
+        if (a.containerEl) {
+            a.containerEl.un(a._listenerCfg);
+            a.containerEl.un({
                 mousemove: a.highlightCell,
-                delegate: "div.sch-simple-timeheader",
+                delegate: ".sch-simple-timeheader",
                 scope: a
             });
-            a.el.on({
+            a.containerEl.un({
                 mouseleave: a.clearHighlight,
                 scope: a
             })
         }
-        a.callParent(arguments)
-    },
-    initRenderData: function () {
-        var a = this.columnConfig;
-        var c = a.top ? this.headerRowTpl.apply({
-            cells: a.top,
-            position: "top",
-            tstyle: "border-top : 0; width : 100px"
-        }) : "";
-        var b = a.middle ? this.headerRowTpl.apply({
-            cells: a.middle,
-            position: "middle",
-            tstyle: a.top ? "width : 100px" : "border-top : 0; width : 100px"
-        }) : "";
-        var d = a.bottom ? this.headerRowTpl.apply({
-            cells: a.bottom,
-            position: "bottom",
-            tstyle: "width : 100px"
-        }) : "";
-        return Ext.apply(this.callParent(arguments), {
-            topHeaderCells: c,
-            middleHeaderCells: b,
-            bottomHeaderCells: d
+        a.model.un({
+            update: a.onModelUpdate,
+            scope: a
         })
     },
-    defaultRenderer: function (c, b, a) {
-        return Ext.Date.format(c, a)
+    onModelUpdate: function () {
+        this.render()
     },
-    createHeaderRows: function (a) {
-        var b = {};
-        for (var c in a) {
-            if (a[c].cellGenerator) {
-                b[c] = a[c].cellGenerator.call(this, this.timeAxis.getStart(), this.timeAxis.getEnd())
-            } else {
-                b[c] = this.createHeaderRow(c, a[c])
-            }
+    getHTML: function (e, h, d) {
+        var i = this.model.getColumnConfig();
+        var g = this.model.getTotalWidth();
+        var c = Ext.Object.getKeys(i).length;
+        var b = this.height ? this.height / c : 0;
+        var f = "";
+        var a;
+        if (i.top) {
+            this.embedCellWidths(i.top);
+            f += this.headerHtmlRowTpl.apply({
+                totalWidth: g,
+                cells: i.top,
+                position: "top",
+                tstyle: "border-top : 0;" + (b ? "height:" + b + "px" : "")
+            })
         }
-        return b
-    },
-    createHeaderRow: function (a, c) {
-        var b = [],
-            d = this,
-            f, e = c.align || "center";
-        this.timeAxis.forEachInterval(a, function (j, g, h) {
-            f = {
-                align: e,
-                start: j,
-                end: g,
-                headerCls: ""
-            };
-            if (c.renderer) {
-                f.header = c.renderer.call(c.scope || d, j, g, f, h)
-            } else {
-                f.header = d.defaultRenderer(j, g, c.dateFormat, f, h)
-            } if (c.unit === Sch.util.Date.DAY && (!c.increment || c.increment === 1)) {
-                f.headerCls += " sch-dayheadercell-" + j.getDay()
-            }
-            b.push(f)
-        });
-        return b
-    },
-    afterLayout: function () {
-        this.callParent(arguments);
-        this.refreshHeaderSizes()
-    },
-    refreshHeaderSizes: function () {
-        var a = this.columnConfig;
-        if (a.top) {
-            this.refreshHeaderRow("top")
+        if (i.middle) {
+            this.embedCellWidths(i.middle);
+            f += this.headerHtmlRowTpl.apply({
+                totalWidth: g,
+                cells: i.middle,
+                position: "middle",
+                tstyle: (i.top ? "" : "border-top : 0;") + (b ? "height:" + b + "px" : ""),
+                cls: !i.bottom && this.model.getTickWidth() <= this.compactCellWidthThreshold ? "sch-header-row-compact" : ""
+            })
         }
-        if (a.middle) {
-            this.refreshHeaderRow("middle")
+        if (i.bottom) {
+            this.embedCellWidths(i.bottom);
+            f += this.headerHtmlRowTpl.apply({
+                totalWidth: g,
+                cells: i.bottom,
+                position: "bottom",
+                tstyle: (b ? "height:" + b + "px" : ""),
+                cls: this.model.getTickWidth() <= this.compactCellWidthThreshold ? "sch-header-row-compact" : ""
+            })
         }
-        if (a.bottom) {
-            this.refreshHeaderRow("bottom")
+        return f + '<div class="sch-header-secondary-canvas"></div>'
+    },
+    render: function () {
+        if (!this.containerEl) {
+            return
         }
-    },
-    refreshHeaderRow: function (a, b) {
-        var e = this.el;
-        var f = this.columnConfig[a];
-        var d = this;
-        var c;
-        var g = a === "bottom" || (a === "middle" && !this.columnConfig.bottom);
-        b = b || e.down(".sch-header-row-" + a, true);
-        Ext.fly(b).setWidth(d.getTotalWidth());
-        Ext.fly(b).select(" thead > tr > td").each(function (i, j, h) {
-            c = g ? d.columnWidth : d.getHeaderGroupCellWidth(f[h].start, f[h].end);
-            i.setVisibilityMode(Ext.Element.DISPLAY);
-            if (c) {
-                if (Ext.isSafari && Ext.isMac) {
-                    c -= 2
-                }
-                i.show();
-                i.setWidth(c - (Ext.chromeVersion === 19 ? (h ? 1 : 0) : 0))
-            } else {
-                i.hide()
-            }
-        });
-        if (a === "bottom") {
-            if (c < this.compactCellWidthThreshold) {
-                Ext.fly(b).addCls("sch-header-row-compact")
-            } else {
-                Ext.fly(b).removeCls("sch-header-row-compact")
-            }
-        }
-    },
-    getHeaderGroupCellWidth: function (c, a) {
-        var b = this.getSchedulingView();
-        return b.getXYFromDate(a)[0] - b.getXYFromDate(c)[0]
-    },
-    onElDblClick: function (d, f) {
-        var e = d.getTarget(".sch-column-header");
-        if (e) {
-            var a = Ext.fly(e).getAttribute("headerPosition"),
-                b = Ext.fly(e).getAttribute("headerIndex"),
-                c = this.columnConfig[a][b];
-            this.fireEvent("timeheaderdblclick", this, c.start, c.end, d)
-        }
-    },
-    getTimeColumnWidth: function () {
-        if (this.columnWidth === null) {
-            this.columnWidth = this.getWidth() / this.nbrTimeColumns
-        }
-        return this.columnWidth
-    },
-    setTimeColumnWidth: function (a) {
-        this.columnWidth = a;
-        if (this.rendered) {
-            Ext.suspendLayouts();
-            this.setWidth(a * this.nbrTimeColumns);
-            Ext.resumeLayouts();
-            this.refreshHeaderSizes();
-            this.ownerCt.updateLayout()
+        var e = this.containerEl,
+            f = e.dom,
+            d = f.style.display,
+            a = this.model.getColumnConfig(),
+            b = f.parentNode;
+        f.style.display = "none";
+        b.removeChild(f);
+        var c = this.getHTML();
+        f.innerHTML = c;
+        if (!a.top && !a.middle) {
+            this.containerEl.addCls("sch-header-single-row")
         } else {
-            this.setWidth(a * this.nbrTimeColumns)
+            this.containerEl.removeCls("sch-header-single-row")
+        }
+        b && b.appendChild(f);
+        f.style.display = d;
+        this.fireEvent("refresh", this)
+    },
+    embedCellWidths: function (b) {
+        var e = (Ext.isIE7 || Ext.isSafari) ? 1 : 0;
+        for (var c = 0; c < b.length; c++) {
+            var a = b[c];
+            var d = this.model.getDistanceBetweenDates(a.start, a.end);
+            if (d) {
+                a.width = d - (c ? e : 0)
+            } else {
+                a.width = 0;
+                a.style = "display: none"
+            }
         }
     },
-    getTotalWidth: function () {
-        return this.columnWidth * this.nbrTimeColumns
+    onElClick: function (a) {
+        return function (e, f) {
+            f = e.delegatedTarget || f;
+            var b = Ext.fly(f).getAttribute("headerPosition"),
+                c = Ext.fly(f).getAttribute("headerIndex"),
+                d = this.model.getColumnConfig()[b][c];
+            this.fireEvent("timeheader" + a, this, d.start, d.end, e)
+        }
     },
     highlightCell: function (c, a) {
         var b = this;
         if (a !== b.highlightedCell) {
             b.clearHighlight();
             b.highlightedCell = a;
-            Ext.fly(a).addCls(b.ownHoverCls)
+            Ext.fly(a).addCls(b.hoverCls)
         }
     },
     clearHighlight: function () {
         var b = this,
             a = b.highlightedCell;
         if (a) {
-            Ext.fly(a).removeCls(b.ownHoverCls);
+            Ext.fly(a).removeCls(b.hoverCls);
             delete b.highlightedCell
         }
+    }
+});
+Ext.define("Sch.column.timeAxis.Horizontal", {
+    extend: "Ext.grid.column.Column",
+    alias: "widget.timeaxiscolumn",
+    draggable: false,
+    groupable: false,
+    hideable: false,
+    sortable: false,
+    fixed: true,
+    menuDisabled: true,
+    cls: "sch-simple-timeaxis",
+    tdCls: "sch-timetd",
+    enableLocking: false,
+    requires: ["Sch.view.HorizontalTimeAxis"],
+    timeAxisViewModel: null,
+    headerView: null,
+    hoverCls: "",
+    ownHoverCls: "sch-column-header-over",
+    trackHeaderOver: true,
+    compactCellWidthThreshold: 20,
+    initComponent: function () {
+        this.callParent(arguments)
+    },
+    afterRender: function () {
+        var a = this;
+        a.headerView = new Sch.view.HorizontalTimeAxis({
+            model: a.timeAxisViewModel,
+            containerEl: a.titleEl,
+            hoverCls: a.ownHoverCls,
+            trackHeaderOver: a.trackHeaderOver,
+            compactCellWidthThreshold: a.compactCellWidthThreshold
+        });
+        a.headerView.on("refresh", a.onTimeAxisViewRefresh, a);
+        a.ownerCt.on("afterlayout", function () {
+            a.mon(a.ownerCt, "resize", a.onHeaderContainerResize, a);
+            if (this.getWidth() > 0) {
+                if (a.getAvailableWidthForSchedule() === a.timeAxisViewModel.getAvailableWidth()) {
+                    a.headerView.render()
+                } else {
+                    a.timeAxisViewModel.update(a.getAvailableWidthForSchedule())
+                }
+                a.setWidth(a.timeAxisViewModel.getTotalWidth())
+            }
+        }, null, {
+            single: true
+        });
+        this.enableBubble("timeheaderclick", "timeheaderdblclick", "timeheadercontextmenu");
+        a.relayEvents(a.headerView, ["timeheaderclick", "timeheaderdblclick", "timeheadercontextmenu"]);
+        a.callParent(arguments)
+    },
+    initRenderData: function () {
+        var a = this;
+        a.renderData.headerCls = a.renderData.headerCls || a.headerCls;
+        return a.callParent(arguments)
+    },
+    destroy: function () {
+        if (this.headerView) {
+            this.headerView.destroy()
+        }
+        this.callParent(arguments)
+    },
+    onTimeAxisViewRefresh: function () {
+        this.headerView.un("refresh", this.onTimeAxisViewRefresh, this);
+        this.setWidth(this.timeAxisViewModel.getTotalWidth());
+        this.headerView.on("refresh", this.onTimeAxisViewRefresh, this)
+    },
+    getAvailableWidthForSchedule: function () {
+        var c = this.ownerCt.getWidth();
+        var a = this.ownerCt.items;
+        for (var b = 1; b < a.length; b++) {
+            c -= a.get(b).getWidth()
+        }
+        return c - Ext.getScrollbarSize().width - 1
+    },
+    onResize: function () {
+        this.callParent(arguments);
+        this.timeAxisViewModel.setAvailableWidth(this.getAvailableWidthForSchedule())
+    },
+    onHeaderContainerResize: function () {
+        this.timeAxisViewModel.setAvailableWidth(this.getAvailableWidthForSchedule());
+        this.headerView.render()
+    },
+    refresh: function () {
+        this.timeAxisViewModel.update(null, true);
+        this.headerView.render()
     }
 });
 Ext.define("Sch.column.timeAxis.Vertical", {
@@ -3179,685 +4067,223 @@ Ext.define("Sch.column.timeAxis.Vertical", {
     hideable: false,
     sortable: false,
     menuDisabled: true,
-    dataIndex: "start",
     timeAxis: null,
+    timeAxisViewModel: null,
+    cellTopBorderWidth: null,
+    cellBottomBorderWidth: null,
+    totalBorderWidth: null,
+    enableLocking: false,
+    locked: true,
     initComponent: function () {
         this.callParent(arguments);
         this.tdCls = (this.tdCls || "") + " sch-verticaltimeaxis-cell";
-        this.scope = this
+        this.scope = this;
+        this.totalBorderWidth = this.cellTopBorderWidth + this.cellBottomBorderWidth
     },
-    renderer: function (b, a, c) {
-        var d = this.timeAxis.headerConfig,
-            e = d.bottom || d.middle;
-        if (e.renderer) {
-            return e.renderer.call(e.scope || this, b, c.data.end, a, 0)
+    afterRender: function () {
+        this.callParent(arguments);
+        var a = this.up("panel");
+        a.getView().on("resize", this.onContainerResize, this)
+    },
+    onContainerResize: function (c, b, a) {
+        this.timeAxisViewModel.update(a - 21)
+    },
+    renderer: function (d, b, a, e) {
+        var c = this.timeAxisViewModel.getBottomHeader();
+        b.style = "height:" + (this.timeAxisViewModel.getTickWidth() - this.totalBorderWidth) + "px";
+        if (c.renderer) {
+            return c.renderer.call(c.scope || this, a.data.start, a.data.end, b, e)
         } else {
-            return Ext.Date.format(b, e.dateFormat)
+            return Ext.Date.format(a.data.start, c.dateFormat)
         }
     }
 });
 Ext.define("Sch.mixin.Lockable", {
-    extend: "Ext.grid.Lockable",
-    requires: ["Sch.column.timeAxis.Horizontal", "Sch.column.timeAxis.HorizontalSingle"],
-    findEditingPlugin: function () {
-        var b = this.plugins || [];
-        var c = this;
-        var a;
-        Ext.each(b, function (e, d) {
-            if (Ext.grid.plugin && Ext.grid.plugin.CellEditing && e instanceof Ext.grid.plugin.CellEditing) {
-                a = e;
-                Ext.Array.remove(b, e);
-                return false
-            }
-        });
-        return a
-    },
-    processSchedulerPlugins: function () {
-        var e = [];
-        var d = [];
-        var g = [];
-        var a = this.plugins || [];
-        var c = this;
-        for (var b = a.length - 1; b >= 0; b--) {
-            var f = a[b];
-            if (f.lockableScope) {
-                switch (f.lockableScope) {
-                case "top":
-                    g.push(f);
-                    break;
-                case "locked":
-                    e.push(f);
-                    break;
-                case "normal":
-                    d.push(f);
-                    break
-                }
-                Ext.Array.remove(a, f)
-            }
-        }
-        if (e.length > 0) {
-            c.lockedGridConfig.plugins = (c.lockedGridConfig.plugins || []).concat(e)
-        }
-        if (d.length > 0) {
-            c.normalGridConfig.plugins = (c.normalGridConfig.plugins || []).concat(d)
-        }
-        c.topPlugins = g
-    },
+    extend: "Ext.grid.locking.Lockable",
+    useSpacer: true,
+    syncRowHeight: false,
+    horizontalScrollForced: false,
     injectLockable: function () {
-        var d = this.findEditingPlugin();
-        var k = this;
-        var g = Ext.data.TreeStore && k.store instanceof Ext.data.TreeStore;
-        var m = k.store.buffered;
-        var c = k.getEventSelectionModel ? k.getEventSelectionModel() : k.getSelectionModel();
-        k.lockedGridConfig = Ext.apply({}, k.lockedGridConfig || {});
-        k.normalGridConfig = Ext.apply({}, k.schedulerConfig || k.normalGridConfig || {});
-        var a = k.lockedGridConfig,
-            j = k.normalGridConfig;
-        Ext.applyIf(k.lockedGridConfig, {
-            xtype: k.lockedXType,
-            id: k.id + "_locked",
-            enableLocking: false,
-            lockable: false,
+        var j = this;
+        var h = Ext.data.TreeStore && j.store instanceof Ext.data.TreeStore;
+        var c = j.getEventSelectionModel ? j.getEventSelectionModel() : j.getSelectionModel();
+        j.lockedGridConfig = Ext.apply({}, j.lockedGridConfig || {});
+        j.normalGridConfig = Ext.apply({}, j.schedulerConfig || j.normalGridConfig || {});
+        if (j.lockedXType) {
+            j.lockedGridConfig.xtype = j.lockedXType
+        }
+        if (j.normalXType) {
+            j.normalGridConfig.xtype = j.normalXType
+        }
+        var a = j.lockedGridConfig,
+            i = j.normalGridConfig;
+        Ext.applyIf(j.lockedGridConfig, {
             useArrows: true,
-            columnLines: k.columnLines,
-            rowLines: k.rowLines,
-            stateful: k.stateful,
-            delayScroll: function () {
-                if (this.rendered) {
-                    return this.self.prototype.delayScroll.apply(this, arguments)
-                }
-            },
+            trackMouseOver: false,
             split: true,
             animCollapse: false,
             collapseDirection: "left",
             region: "west"
         });
-        if (d) {
-            k.lockedGridConfig.plugins = (k.lockedGridConfig.plugins || []).concat(d)
-        }
-        k.processSchedulerPlugins();
-        Ext.applyIf(k.normalGridConfig, {
-            xtype: k.normalXType,
-            enableLocking: false,
-            lockable: false,
-            viewType: k.viewType,
+        Ext.applyIf(j.normalGridConfig, {
+            viewType: j.viewType,
             layout: "fit",
             sortableColumns: false,
             enableColumnMove: false,
             enableColumnResize: false,
             enableColumnHide: false,
+            getSchedulingView: function () {
+                var m = typeof console !== "undefined" ? console : false;
+                if (m && m.log) {
+                    m.log('getSchedulingView is deprecated on the inner grid panel. Instead use getView on the "normal" subgrid.')
+                }
+                return this.getView()
+            },
             selModel: c,
-            eventSelModel: c,
-            _top: k,
-            orientation: k.orientation,
-            viewPreset: k.viewPreset,
-            timeAxis: k.timeAxis,
-            columnLines: k.columnLines,
-            rowLines: k.rowLines,
             collapseDirection: "right",
             animCollapse: false,
             region: "center"
         });
-        k.bothCfgCopy = k.bothCfgCopy || (Ext.grid.Panel && Ext.grid.Panel.prototype.bothCfgCopy) || ["invalidateScrollerOnRefresh", "hideHeaders", "enableColumnHide", "enableColumnMove", "enableColumnResize", "sortableColumns"];
-        if (k.orientation === "vertical") {
-            a.store = j.store = k.timeAxis.tickStore;
-            k.mon(k.resourceStore, {
-                clear: k.refreshResourceColumns,
-                datachanged: k.refreshResourceColumns,
-                update: k.refreshResourceColumns,
-                load: k.refreshResourceColumns,
-                scope: k
-            })
+        if (j.orientation === "vertical") {
+            a.store = i.store = j.timeAxis
         }
         if (a.width) {
-            k.syncLockedWidth = Ext.emptyFn;
+            j.syncLockedWidth = Ext.emptyFn;
             a.scroll = "horizontal";
             a.scrollerOwner = true
         }
-        if (k.resourceStore) {
-            j.resourceStore = k.resourceStore
+        var e = j.lockedViewConfig = j.lockedViewConfig || {};
+        var k = j.normalViewConfig = j.normalViewConfig || {};
+        if (h) {
+            var g = Ext.tree.View.prototype.onUpdate;
+            e.onUpdate = function () {
+                this.refreshSize = function () {
+                    var n = this,
+                        m = n.getBodySelector();
+                    if (m) {
+                        n.body.attach(n.el.child(m, true))
+                    }
+                };
+                Ext.suspendLayouts();
+                g.apply(this, arguments);
+                Ext.resumeLayouts();
+                this.refreshSize = Ext.tree.View.prototype.refreshSize
+            };
+            e.store = k.store = j.store.nodeStore
         }
-        if (k.eventStore) {
-            j.eventStore = k.eventStore
-        }
-        if (k.dependencyStore) {
-            j.dependencyStore = k.dependencyStore
-        }
-        var e = k.lockedViewConfig = k.lockedViewConfig || {};
-        var l = k.normalViewConfig = k.normalViewConfig || {};
-        if (g && m && Ext.getScrollbarSize().width === 0) {
-            k.lockedGridConfig.scroll = "horizontal"
-        }
-        if (m) {
-            e.preserveScrollOnRefresh = true
-        }
-        e.enableAnimations = k.normalViewConfig.enableAnimations = false;
-        if (g) {
-            if (Ext.versions.extjs.isLessThan("4.1.3")) {
-                k.normalViewConfig.providedStore = e.providedStore = k.store.nodeStore
-            } else {
-                k.normalViewConfig.store = e.store = k.store.nodeStore
-            }
-            k.overrideNodeStore(k.store.nodeStore)
-        }
-        var f = k.layout;
+        var f = j.layout;
+        var d = a.width;
         this.callParent(arguments);
-        if (k.topPlugins) {
-            k.plugins = k.topPlugins
-        }
-        if (a.width) {
-            k.lockedGrid.setWidth(a.width);
-            k.normalGrid.getView().addCls("sch-timeline-horizontal-scroll");
-            k.lockedGrid.getView().addCls("sch-locked-horizontal-scroll")
-        } else {
-            if (k.normalGrid.collapsed) {
-                k.normalGrid.collapsed = false;
-                k.normalGrid.view.on("boxready", function () {
-                    k.normalGrid.collapse()
-                }, k, {
-                    delay: 10
-                })
+        this.on("afterrender", function () {
+            var m = this.lockedGrid.headerCt.showMenuBy;
+            this.lockedGrid.headerCt.showMenuBy = function () {
+                m.apply(this, arguments);
+                j.showMenuBy.apply(this, arguments)
             }
+        });
+        var l = j.lockedGrid.getView();
+        var b = j.normalGrid.getView();
+        this.patchViews();
+        if (d || f === "border") {
+            if (d) {
+                j.lockedGrid.setWidth(d)
+            }
+            b.addCls("sch-timeline-horizontal-scroll");
+            l.addCls("sch-locked-horizontal-scroll");
+            j.horizontalScrollForced = true
         }
-        var n = k.lockedGrid.getView();
-        var b = k.normalGrid.getView();
-        var h;
-        if (m) {
-            h = k.normalGrid.verticalScroller;
-            n.on("render", this.onLockedViewRender, this);
-            this.fixPagingScroller(h);
-            if (Ext.getVersion("extjs").isLessThan("4.1.1")) {
-                if (Ext.getScrollbarSize().width > 0) {
-                    n.on({
-                        scroll: {
-                            fn: k.onLockedViewScroll,
-                            element: "el",
-                            scope: k
-                        }
-                    })
-                }
+        if (j.normalGrid.collapsed) {
+            j.normalGrid.collapsed = false;
+            b.on("boxready", function () {
+                j.normalGrid.collapse()
+            }, j, {
+                delay: 10
+            })
+        }
+        if (j.lockedGrid.collapsed) {
+            if (l.bufferedRenderer) {
+                l.bufferedRenderer.disabled = true
             }
         }
         if (Ext.getScrollbarSize().width === 0) {
-            n.addCls("sch-ganttpanel-force-locked-scroll")
+            l.addCls("sch-ganttpanel-force-locked-scroll")
         }
-        if (g) {
+        if (h) {
             this.setupLockableTree()
         }
-        if (!b.deferInitialRefresh) {
-            var i = b.onRender;
-            b.onRender = function () {
-                this.doFirstRefresh = function () {};
-                i.apply(this, arguments);
-                delete this.doFirstRefresh
-            }
-        }
-        if (m) {
-            b.el = {
-                un: function () {}
-            };
-            h.bindView(b);
-            b.un("refresh", h.self.prototype.onViewRefresh, h);
-            delete b.el
-        }
-        k.view.clearListeners();
-        n.on({
-            refresh: k.updateSpacer,
-            scope: k
-        });
-        if (!Ext.grid.Lockable.prototype.updateSpacer) {
-            b.on({
-                refresh: k.updateSpacer,
-                scope: k
-            })
-        }
-        k.view = Ext.create("Sch.view.Locking", {
-            locked: k.lockedGrid,
-            normal: k.normalGrid,
-            panel: k
-        });
-        if (k.syncRowHeight) {
-            n.on("refresh", this.onLockedViewRefresh, this);
-            if (g) {
-                k.mon(k.store, {
-                    beforeload: function () {
-                        n.un({
-                            itemadd: k.onViewItemAdd,
-                            scope: k
-                        });
-                        b.un({
-                            itemadd: k.onViewItemAdd,
-                            scope: k
-                        })
-                    },
-                    load: function () {
-                        n.un({
-                            itemadd: k.onViewItemAdd,
-                            scope: k
-                        });
-                        b.un({
-                            itemadd: k.onViewItemAdd,
-                            scope: k
-                        });
-                        k.prepareFullRowHeightSync();
-                        k.syncRowHeights()
-                    }
-                });
-                k.normalGrid.on("afteritemexpand", k.afterNormalGridItemExpand, k)
-            }
-            n.on({
-                itemadd: k.onViewItemAdd,
-                scope: k
-            });
-            b.on({
-                itemadd: k.onViewItemAdd,
-                itemupdate: k.onNormalViewItemUpdate,
-                groupexpand: k.onNormalViewGroupExpand,
-                scope: k
-            });
-            if (Ext.isIE9 && Ext.isStrict) {
-                k.onNormalViewItemUpdate = function (o, p, r) {
-                    r = r.dom ? r.dom : r;
-                    if (k.lockedGridDependsOnSchedule) {
-                        var q = k.lockedGrid.getView();
-                        q.suspendEvents();
-                        q.onUpdate(k.lockedGrid.store, o);
-                        q.resumeEvents()
-                    }
-                    var s = k.normalGrid.getView().getNode(p);
-                    s.style.height = r.style.height;
-                    k.normalHeights[p] = r.style.height;
-                    k.syncRowHeights()
-                }
-            }
+        if (j.useSpacer) {
+            b.on("refresh", j.updateSpacer, j);
+            l.on("refresh", j.updateSpacer, j)
         }
         if (f !== "fit") {
-            k.layout = f
+            j.layout = f
         }
-        k.normalGrid.on({
-            collapse: k.onNormalGridCollapse,
-            expand: k.onNormalGridExpand,
-            scope: k
-        });
-        k.lockedGrid.on({
-            collapse: k.onLockedGridCollapse,
-            scope: k
-        });
-        if (this.lockedGrid.view.store !== this.normalGrid.view.store) {
+        if (l.store !== b.store) {
             Ext.Error.raise("Sch.mixin.Lockable setup failed, not sharing store between the two views")
         }
-    },
-    onLockedGridCollapse: function () {
-        if (this.normalGrid.collapsed) {
-            this.normalGrid.expand()
+        if (b.bufferedRenderer) {
+            this.lockedGrid.on("expand", function () {
+                l.el.dom.scrollTop = b.el.dom.scrollTop
+            });
+            this.patchSubGrid(this.lockedGrid, true);
+            this.patchSubGrid(this.normalGrid, false);
+            this.patchBufferedRenderingPlugin(b.bufferedRenderer);
+            this.patchBufferedRenderingPlugin(l.bufferedRenderer)
         }
-    },
-    onNormalGridCollapse: function () {
-        var a = this;
-        if (!a.normalGrid.reExpander) {
-            a.normalGrid.reExpander = a.normalGrid.placeholder
-        }
-        if (!a.lockedGrid.rendered) {
-            a.lockedGrid.on("render", a.onNormalGridCollapse, a, {
-                delay: 1
-            })
-        } else {
-            a.lastLockedWidth = a.lockedGrid.getWidth();
-            a.lockedGrid.setWidth(a.getWidth() - 35);
-            if (a.lockedGrid.collapsed) {
-                a.lockedGrid.expand()
-            }
-            a.addCls("sch-normalgrid-collapsed")
-        }
-    },
-    onNormalGridExpand: function () {
-        this.removeCls("sch-normalgrid-collapsed");
-        this.lockedGrid.setWidth(this.lastLockedWidth)
-    },
-    fixPagingScroller: function (a) {
-        var b = a.onViewRefresh;
-        a.onViewRefresh = function () {
-            var j = this,
-                l = j.store,
-                i, k = j.view,
-                o = k.el,
-                p = o.dom,
-                r, n, h, q = k.table.dom,
-                m, g;
-            if (j.focusOnRefresh) {
-                o.focus();
-                j.focusOnRefresh = false
-            }
-            j.disabled = true;
-            var f = l.getCount() === l.getTotalCount();
-            j.stretcher.setHeight(i = j.getScrollHeight());
-            g = p.scrollTop;
-            j.isScrollRefresh = (g > 0);
-            if (j.scrollProportion !== undefined) {
-                j.setTablePosition("absolute");
-                j.setTableTop((j.scrollProportion && j.tableStart > 0 ? (i * j.scrollProportion) - (q.offsetHeight * j.scrollProportion) : 0) + "px")
-            } else {
-                j.setTablePosition("absolute");
-                j.setTableTop((m = (j.tableStart || 0) * j.rowHeight) + "px");
-                if (j.scrollOffset) {
-                    r = k.getNodes();
-                    n = -o.getOffsetsTo(r[j.commonRecordIndex])[1];
-                    h = n - j.scrollOffset;
-                    j.position = (p.scrollTop += h)
-                } else {
-                    if ((m > g) || ((m + q.offsetHeight) < g + p.clientHeight)) {
-                        if (!(f && !m)) {
-                            j.lastScrollDirection = -1;
-                            j.position = p.scrollTop = m
-                        }
-                    }
-                }
-            }
-            j.disabled = false
-        };
-        a.setViewTableStyle = function (f, h, g) {
-            if (f.table.dom) {
-                f.table.dom.style[h] = g
-            }
-            f = f.lockingPartner;
-            if (f) {
-                if (f.table.dom) {
-                    f.table.dom.style[h] = g
-                }
-            }
-        };
-        var d = a.view.lockingPartner;
-        if (d) {
-            var e = a.onLockRefresh;
-            var c = function (f) {
-                if (f.table.dom) {
-                    e.apply(this, arguments)
-                }
-            };
-            d.un("refresh", e, a);
-            d.on("refresh", c, a);
-            a.onLockRefresh = c
-        }
-        a.view.un("render", a.onViewRender, a);
-        a.onViewRender = function () {
-            var g = this,
-                f = g.view.el;
-            f.setStyle("position", "relative");
-            g.stretcher = f.createChild({
-                style: {
-                    position: "absolute",
-                    width: "1px",
-                    height: 0,
-                    top: 0,
-                    left: 0
-                }
-            }, f.dom.firstChild)
-        };
-        a.view.on("render", a.onViewRender, a);
-        if (Ext.getVersion("extjs").isLessThan("4.1.3")) {
-            a.scrollTo = function (m, g, p, r) {
-                var j = this,
-                    l = j.view,
-                    q = l.el.dom,
-                    n = j.store,
-                    k = n.getTotalCount(),
-                    i, f, h, o;
-                m = Math.min(Math.max(m, 0), k - 1);
-                i = Math.max(Math.min(m - ((j.leadingBufferZone + j.trailingBufferZone) / 2), k - j.viewSize + 1), 0);
-                o = i * j.rowHeight;
-                f = i + j.viewSize - 1;
-                j.lastScrollDirection = undefined;
-                j.disabled = true;
-                n.guaranteeRange(i, f, function () {
-                    h = n.pageMap.getRange(m, m)[0];
-                    l.table.dom.style.top = o + "px";
-                    q.scrollTop = o = Math.min(Math.max(0, o - l.table.getOffsetsTo(l.getNode(h))[1]), q.scrollHeight - q.clientHeight);
-                    if (Ext.isIE) {
-                        q.scrollTop = o
-                    }
-                    j.disabled = false;
-                    if (g) {
-                        j.grid.selModel.select(h)
-                    }
-                    if (p) {
-                        p.call(r || j, m, h)
-                    }
-                })
-            }
-        }
-    },
-    onLockedViewScroll: function () {
-        if (this.store.buffered) {
-            var a = this.normalGrid.getView().el;
-            if (!a || !a.child("table", true)) {
-                return
-            }
-        }
-        return this.callParent(arguments)
-    },
-    onNormalViewScroll: function () {
-        if (this.store.buffered) {
-            var a = this.lockedGrid.getView().el;
-            if (!a || !a.child("table", true)) {
-                return
-            }
-        }
-        return this.callParent(arguments)
+        this.patchSyncHorizontalScroll(this.lockedGrid);
+        this.patchSyncHorizontalScroll(this.normalGrid);
+        this.delayReordererPlugin(this.lockedGrid);
+        this.delayReordererPlugin(this.normalGrid);
+        this.fixHeaderResizer(this.lockedGrid);
+        this.fixHeaderResizer(this.normalGrid)
     },
     setupLockableTree: function () {
-        var h = this;
-        var i = h.store.buffered;
-        var c = h.getView();
-        var l = h.lockedGrid.getView();
-        var d = h.normalGrid.getView();
-        var j = d.store;
-        var b = h.store;
-        var e = Sch.mixin.FilterableTreeView.prototype;
-        l.initTreeFiltering = e.initTreeFiltering;
-        l.onFilterChangeStart = e.onFilterChangeStart;
-        l.onFilterChangeEnd = e.onFilterChangeEnd;
-        l.onFilterCleared = e.onFilterCleared;
-        l.onFilterSet = e.onFilterSet;
-        l.initTreeFiltering();
-        if (i) {
-            b.on("nodestore-datachange-end", function () {
-                if (d.rendered) {
-                    h.onNormalViewScroll()
-                }
-            })
-        } else {
-            this.mon(b, {
-                "root-fill-start": function () {
-                    j.suspendEvents()
-                },
-                "root-fill-end": function () {
-                    j.resumeEvents();
-                    c.refresh()
-                }
-            })
-        }
-        this.mon(b, "filter", function (n, m) {
-            j.filter.apply(j, m);
-            c.refresh()
-        });
-        this.mon(b, "clearfilter", function (m) {
-            j.clearFilter();
-            c.refresh()
-        });
-        var g = h.normalGrid.verticalScroller;
-        if (i && g) {
-            var a = g.onGuaranteedRange;
-            g.onGuaranteedRange = function () {
-                a.apply(this, arguments);
-                Ext.suspendLayouts();
-                c.refresh();
-                Ext.resumeLayouts()
-            }
-        }
-        var k = l.onAdd;
-        var f = l.onRemove;
-        l.onAdd = function () {
-            Ext.suspendLayouts();
-            k.apply(this, arguments);
-            Ext.resumeLayouts()
-        };
-        l.onRemove = function () {
-            Ext.suspendLayouts();
-            f.apply(this, arguments);
-            Ext.resumeLayouts()
-        }
-    },
-    onNormalViewItemUpdate: function (a, b, d) {
-        d = d.dom ? d.dom : d;
-        if (this.lockedGridDependsOnSchedule) {
-            var c = this.lockedGrid.getView();
-            c.suspendEvents();
-            c.onUpdate(this.lockedGrid.store, a);
-            c.resumeEvents()
-        }
-        var f = this.normalGrid.getView().getNode(b);
-        var e = f.style.height !== d.style.height;
-        f.style.height = d.style.height;
-        this.normalHeights[b] = d.style.height;
-        this.syncRowHeights(e)
-    },
-    afterNormalGridItemExpand: function (a) {
         var c = this;
-        var b = c.getSchedulingView();
-        a.cascadeBy(function (f) {
-            if (f !== a) {
-                var e = b.getNode(f);
-                if (e) {
-                    var d = b.indexOf(e);
-                    c.normalHeights[d] = e.style.height
+        var b = c.lockedGrid.getView();
+        var a = Sch.mixin.FilterableTreeView.prototype;
+        b.initTreeFiltering = a.initTreeFiltering;
+        b.onFilterChangeStart = a.onFilterChangeStart;
+        b.onFilterChangeEnd = a.onFilterChangeEnd;
+        b.onFilterCleared = a.onFilterCleared;
+        b.onFilterSet = a.onFilterSet;
+        b.initTreeFiltering()
+    },
+    patchSyncHorizontalScroll: function (a) {
+        a.scrollTask = new Ext.util.DelayedTask(function (d, b) {
+            var c = this.getScrollTarget().el;
+            if (c) {
+                this.syncHorizontalScroll(c.dom.scrollLeft, b)
+            }
+        }, a)
+    },
+    delayReordererPlugin: function (b) {
+        var c = b.headerCt;
+        var a = c.reorderer;
+        if (a) {
+            c.un("render", a.onHeaderCtRender, a);
+            c.on("render", function () {
+                if (!c.isDestroyed) {
+                    a.onHeaderCtRender()
                 }
-            }
-        });
-        c.syncRowHeights(true)
-    },
-    onViewItemAdd: function (c, d, b) {
-        var e = this.normalGrid.getView();
-        var f = this.lockedGrid.getView();
-        if (e.getNodes().length !== f.getNodes().length) {
-            return
+            }, a, {
+                single: true,
+                delay: 10
+            })
         }
-        var a = this.normalHeights;
-        Ext.each(c, function (h, g) {
-            var i = e.getNode(h);
-            if (i) {
-                a[i.viewIndex] = i.style.height
-            }
-        });
-        this.syncRowHeights()
     },
-    processColumns: function (b) {
-        var a = this.callParent(arguments);
-        var c = [];
-        Ext.each(b, function (d) {
-            if (d.position == "right") {
-                d.processed = true;
-                if (!Ext.isNumber(d.width)) {
-                    Ext.Error.raise('"Right" columns must have a fixed width')
+    fixHeaderResizer: function (a) {
+        var c = a.headerCt;
+        var d = c.resizer;
+        if (d) {
+            var b = d.onBeforeStart;
+            d.onBeforeStart = function () {
+                if (this.activeHd && this.activeHd.isDestroyed) {
+                    return false
                 }
-                c.push(d);
-                Ext.Array.remove(a.locked.items, d);
-                a.lockedWidth -= d.width
+                return b.apply(this, arguments)
             }
-        });
-        if (this.orientation === "horizontal") {
-            a.normal.items = [{
-                xtype: this.lightWeight ? "singletimeaxiscolumn" : "timeaxiscolumn",
-                timeAxis: this.timeAxis,
-                timeCellRenderer: this.timeCellRenderer,
-                timeCellRendererScope: this.timeCellRendererScope,
-                trackHeaderOver: this.trackHeaderOver
-            }].concat(c)
-        } else {
-            a.locked.items = [Ext.apply({
-                xtype: "verticaltimeaxis",
-                width: 100,
-                timeAxis: this.timeAxis
-            }, this.timeAxisColumnCfg || {})];
-            a.lockedWidth = a.locked.items[0].width
-        }
-        return a
-    },
-    prepareFullRowHeightSync: function () {
-        var g = this,
-            h = g.normalGrid.getView(),
-            j = g.lockedGrid.getView();
-        if (!h.rendered || !j.rendered) {
-            return
-        }
-        var a = h.el,
-            d = j.el,
-            f = a.query(h.getItemSelector()),
-            b = d.query(j.getItemSelector()),
-            e = f.length,
-            c = 0;
-        g.lockedHeights = [];
-        g.normalHeights = [];
-        if (b.length !== e) {
-            return
-        }
-        for (; c < e; c++) {
-            g.normalHeights[c] = f[c].style.height
         }
     },
-    onLockedViewRefresh: function () {
-        this.prepareFullRowHeightSync();
-        this.syncRowHeights()
-    },
-    onNormalViewRefresh: function () {
-        var a = this.lockedGrid.getView();
-        if (this.lockedGridDependsOnSchedule) {
-            a.un("refresh", this.onLockedViewRefresh, this);
-            this.lockedGrid.getView().refresh();
-            a.on("refresh", this.onLockedViewRefresh, this)
-        }
-        this.prepareFullRowHeightSync();
-        this.syncRowHeights()
-    },
-    syncRowHeights: function (b) {
-        if (!this.lockedGrid.getView().rendered || !this.normalGrid.getView().rendered) {
-            return
-        }
-        var j = this,
-            c = j.lockedHeights,
-            k = j.normalHeights,
-            a = [],
-            h = c.length || k.length,
-            f = 0,
-            l, d, e, g;
-        if (c.length || k.length) {
-            l = j.lockedGrid.getView();
-            d = j.normalGrid.getView();
-            e = l.el.query(l.getItemSelector());
-            g = d.el.query(d.getItemSelector());
-            if (g.length !== e.length) {
-                return
-            }
-            for (; f < h; f++) {
-                if (e[f] && k[f]) {
-                    e[f].style.height = k[f]
-                }
-            }
-            j.lockedHeights = [];
-            j.normalHeights = []
-        }
-        if (b !== false) {
-            j.updateSpacer()
-        }
-    },
-    getMenuItems: function () {
-        if (Ext.versions.extjs.isGreaterThanOrEqual("4.1.2")) {
-            return this.callParent(arguments)
-        }
-        return function () {
-            return Ext.grid.header.Container.prototype.getMenuItems.apply(this, arguments)
-        }
-    },
-    applyColumnsState: Ext.emptyFn,
     updateSpacer: function () {
         var g = this.lockedGrid.getView();
         var e = this.normalGrid.getView();
@@ -3875,194 +4301,283 @@ Ext.define("Sch.mixin.Lockable", {
             if (f.spacerEl) {
                 f.spacerEl.style.height = h
             } else {
-                var a;
-                if (this.store.buffered) {
-                    a = f.normalGrid.verticalScroller.stretcher.item(0).dom.parentNode === c.dom ? f.normalGrid.verticalScroller.stretcher.item(0) : f.normalGrid.verticalScroller.stretcher.item(1)
-                } else {
-                    a = c
-                }
+                var a = c;
                 Ext.core.DomHelper.append(a, {
                     id: b,
-                    cls: this.store.buffered ? "sch-locked-buffered-spacer" : "",
                     style: "height: " + h
                 })
             }
         }
     },
-    onLockedViewRender: function () {
-        var e = this.normalGrid;
-        if (!this.lockedStretcher) {
-            var c = this.lockedGrid.getView().el;
-            var a = this.lockedStretcher = c.createChild({
-                cls: "x-stretcher",
-                style: {
-                    position: "absolute",
-                    width: "1px",
-                    height: 0,
-                    top: 0,
-                    left: 0
-                }
-            }, c.dom.firstChild)
-        }
-        if (!e.rendered) {
-            e.getView().on("render", this.onLockedViewRender, this);
-            return
-        }
-        var d = this;
-        setTimeout(function () {
-            var f = e.getView().el;
-            if (f && f.dom) {
-                e.getView().el.un("scroll", d.onNormalViewScroll, d);
-                e.getView().el.on("scroll", d.onNormalViewScroll, d)
-            }
-        }, 0);
-        var b = e.verticalScroller;
-        b.stretcher.addCls("x-stretcher");
-        b.stretcher = new Ext.dom.CompositeElement([this.lockedStretcher, b.stretcher])
-    },
-    onNormalViewGroupExpand: function () {
-        this.prepareFullRowHeightSync();
-        this.syncRowHeights()
-    },
-    overrideNodeStore: function (c) {
-        var a = c.onNodeCollapse;
-        var b = c.onNodeExpand;
-        c.onNodeCollapse = function () {
-            Ext.suspendLayouts();
-            a.apply(this, arguments);
-            Ext.resumeLayouts()
-        };
-        c.onNodeExpand = function () {
-            Ext.suspendLayouts();
-            b.apply(this, arguments);
-            Ext.resumeLayouts()
-        }
-    }
-});
-Ext.define("Sch.model.Customizable", {
-    extend: "Ext.data.Model",
-    customizableFields: null,
-    onClassExtended: function (b, d, a) {
-        var c = a.onBeforeCreated;
-        a.onBeforeCreated = function (f, k) {
-            c.call(this, f, k);
-            var j = f.prototype;
-            if (!j.customizableFields) {
-                return
-            }
-            j.customizableFields = (f.superclass.customizableFields || []).concat(j.customizableFields);
-            var g = j.customizableFields;
-            var i = {};
-            Ext.Array.each(g, function (l) {
-                if (typeof l == "string") {
-                    l = {
-                        name: l
-                    }
-                }
-                i[l.name] = l
-            });
-            var e = j.fields;
-            var h = [];
-            e.each(function (l) {
-                if (l.isCustomizableField) {
-                    h.push(l)
-                }
-            });
-            e.removeAll(h);
-            Ext.Object.each(i, function (l, o) {
-                o.isCustomizableField = true;
-                var p = o.name;
-                var t = p === "Id" ? "idProperty" : p.charAt(0).toLowerCase() + p.substr(1) + "Field";
-                var q = j[t];
-                var s = q || p;
-                if (e.containsKey(s)) {
-                    e.getByKey(s).isCustomizableField = true;
-                    g.push(new Ext.data.Field(Ext.applyIf({
-                        name: p,
-                        isCustomizableField: true
-                    }, e.getByKey(s))))
-                } else {
-                    e.add(new Ext.data.Field(Ext.applyIf({
-                        name: s,
-                        isCustomizableField: true
-                    }, o)))
-                }
-                var n = Ext.String.capitalize(p);
-                if (n != "Id") {
-                    var r = "get" + n;
-                    var m = "set" + n;
-                    if (!j[r] || j[r].__getterFor__ && j[r].__getterFor__ != s) {
-                        j[r] = function () {
-                            return this.data[s]
-                        };
-                        j[r].__getterFor__ = s
-                    }
-                    if (!j[m] || j[m].__setterFor__ && j[m].__setterFor__ != s) {
-                        j[m] = function (u) {
-                            return this.set(s, u)
-                        };
-                        j[m].__setterFor__ = s
-                    }
-                }
-            })
-        }
-    },
-    set: function (c, b) {
-        if (arguments.length === 2) {
-            this.previous = this.previous || {};
-            var a = this.get(c);
-            if (a !== b) {
-                this.previous[c] = a
-            }
-        }
-        this.callParent(arguments)
-    },
-    afterEdit: function () {
+    onLockedViewScroll: function () {
         this.callParent(arguments);
-        delete this.previous
+        var a = this.lockedGrid.getView().bufferedRenderer;
+        if (a) {
+            a.onViewScroll()
+        }
     },
-    reject: function () {
-        var b = this,
-            a = b.modified,
-            c;
-        b.previous = b.previous || {};
-        for (c in a) {
-            if (a.hasOwnProperty(c)) {
-                if (typeof a[c] != "function") {
-                    b.previous[c] = b.get(c)
+    onNormalViewScroll: function () {
+        this.callParent(arguments);
+        var a = this.normalGrid.getView().bufferedRenderer;
+        if (a) {
+            a.onViewScroll()
+        }
+    },
+    patchSubGrid: function (f, h) {
+        var d = f.getView();
+        var g = d.bufferedRenderer;
+        f.on({
+            collapse: function () {
+                g.disabled = true
+            },
+            expand: function () {
+                g.disabled = false
+            }
+        });
+        var e = d.collectData;
+        d.collectData = function () {
+            var j = e.apply(this, arguments);
+            var i = j.tableStyle;
+            if (i && i[i.length - 1] != "x") {
+                j.tableStyle += "px"
+            }
+            return j
+        };
+        var c = Ext.data.TreeStore && this.store instanceof Ext.data.TreeStore;
+        if (!h && c) {
+            var b = d.onRemove;
+            d.onRemove = function () {
+                var i = this;
+                if (i.rendered && i.bufferedRenderer) {
+                    i.refreshView()
+                } else {
+                    b.apply(this, arguments)
                 }
             }
         }
-        b.callParent(arguments);
-        delete b.previous
-    }
-});
-Ext.define("Sch.patches.Model", {
-    extend: "Sch.util.Patch",
-    requires: "Sch.model.Customizable",
-    reportURL: "http://www.sencha.com/forum/showthread.php?198250-4.1-Ext.data.Model-regression",
-    description: "In Ext 4.1 Models cannot be subclassed",
-    maxVersion: "4.1.0",
-    applyFn: function () {
-        try {
-            Ext.define("Sch.foo", {
-                extend: "Ext.data.Model",
-                fields: ["a"]
+        var a = d.onAdd;
+        d.onAdd = function () {
+            var i = this;
+            if (i.rendered && i.bufferedRenderer) {
+                i.refreshView()
+            } else {
+                a.apply(this, arguments)
+            }
+        };
+        d.bindStore(null);
+        d.bindStore(c ? this.store.nodeStore : this.resourceStore)
+    },
+    afterLockedViewLayout: function () {
+        if (!this.horizontalScrollForced) {
+            return this.callParent(arguments)
+        }
+    },
+    patchBufferedRenderingPlugin: function (c) {
+        c.variableRowHeight = true;
+        if (Ext.getVersion("extjs").isLessThan("4.2.1.883")) {
+            c.view.on("afterrender", function () {
+                c.view.el.un("scroll", c.onViewScroll, c)
+            }, this, {
+                single: true,
+                delay: 1
             });
-            Ext.define("Sch.foo.Sub", {
-                extend: "Sch.foo",
-                fields: ["a"]
-            })
-        } catch (a) {
-            Ext.data.Types.AUTO.convert = function (b) {
-                return b
+            var b = c.stretchView;
+            c.stretchView = function (e, d) {
+                var g = this,
+                    f = (g.store.buffered ? g.store.getTotalCount() : g.store.getCount());
+                if (f && (g.view.all.endIndex === f - 1)) {
+                    d = g.bodyTop + e.body.dom.offsetHeight
+                }
+                b.apply(this, [e, d])
+            }
+        } else {
+            var a = c.enable;
+            c.enable = function () {
+                if (c.grid.collapsed) {
+                    return
+                }
+                return a.apply(this, arguments)
+            }
+        }
+    },
+    showMenuBy: function (b, f) {
+        var e = this.getMenu(),
+            c = e.down("#unlockItem"),
+            d = e.down("#lockItem"),
+            a = c.prev();
+        a.hide();
+        c.hide();
+        d.hide()
+    },
+    patchViews: function () {
+        if (Ext.isIE) {
+            var e = this.getSelectionModel();
+            var h = this;
+            var g = h.lockedGrid.view;
+            var f = h.normalGrid.view;
+            var a = e.processSelection;
+            var d = Ext.getVersion("extjs").isLessThan("4.2.2.1144") ? "mousedown" : "click";
+            var c = g.doFocus ? "doFocus" : "focus";
+            e.processSelection = function (k, j, m, l, o) {
+                var i, n;
+                if (o.type == d) {
+                    i = g.scrollRowIntoView;
+                    n = g[c];
+                    g.scrollRowIntoView = f.scrollRowIntoView = Ext.emptyFn;
+                    g[c] = f[c] = Ext.emptyFn
+                }
+                a.apply(this, arguments);
+                if (o.type == d) {
+                    g.scrollRowIntoView = f.scrollRowIntoView = i;
+                    g[c] = f[c] = n;
+                    g.el.focus()
+                }
+            };
+            var b = f.onRowFocus;
+            f.onRowFocus = function (j, i, k) {
+                b.call(this, j, i, true)
+            };
+            if (Ext.tree && Ext.tree.plugin && Ext.tree.plugin.TreeViewDragDrop) {
+                g.on("afterrender", function () {
+                    Ext.each(g.plugins, function (i) {
+                        if (i instanceof Ext.tree.plugin.TreeViewDragDrop) {
+                            var j = g[c];
+                            i.dragZone.view.un("itemmousedown", i.dragZone.onItemMouseDown, i.dragZone);
+                            i.dragZone.view.on("itemmousedown", function () {
+                                g[c] = Ext.emptyFn;
+                                if (g.editingPlugin) {
+                                    g.editingPlugin.completeEdit()
+                                }
+                                i.dragZone.onItemMouseDown.apply(i.dragZone, arguments);
+                                g[c] = j
+                            });
+                            return false
+                        }
+                    })
+                }, null, {
+                    delay: 100
+                })
             }
         }
     }
 });
+if (!Ext.ClassManager.get("Sch.model.Customizable")) {
+    Ext.define("Sch.model.Customizable", {
+        extend: "Ext.data.Model",
+        idProperty: null,
+        customizableFields: null,
+        previous: null,
+        onClassExtended: function (b, d, a) {
+            var c = a.onBeforeCreated;
+            a.onBeforeCreated = function (f, k) {
+                c.apply(this, arguments);
+                var j = f.prototype;
+                if (!j.customizableFields) {
+                    return
+                }
+                j.customizableFields = (f.superclass.customizableFields || []).concat(j.customizableFields);
+                var g = j.customizableFields;
+                var i = {};
+                Ext.Array.each(g, function (l) {
+                    if (typeof l == "string") {
+                        l = {
+                            name: l
+                        }
+                    }
+                    i[l.name] = l
+                });
+                var e = j.fields;
+                var h = [];
+                e.each(function (l) {
+                    if (l.isCustomizableField) {
+                        h.push(l)
+                    }
+                });
+                e.removeAll(h);
+                Ext.Object.each(i, function (l, o) {
+                    o.isCustomizableField = true;
+                    var p = o.name || o.getName();
+                    var t = p === "Id" ? "idProperty" : p.charAt(0).toLowerCase() + p.substr(1) + "Field";
+                    var q = j[t];
+                    var s = q || p;
+                    if (e.containsKey(s)) {
+                        e.getByKey(s).isCustomizableField = true;
+                        g.push(new Ext.data.Field(Ext.applyIf({
+                            name: p,
+                            isCustomizableField: true
+                        }, e.getByKey(s))))
+                    } else {
+                        e.add(new Ext.data.Field(Ext.applyIf({
+                            name: s,
+                            isCustomizableField: true
+                        }, o)))
+                    }
+                    var n = Ext.String.capitalize(p);
+                    if (n != "Id") {
+                        var r = "get" + n;
+                        var m = "set" + n;
+                        if (!j[r] || j[r].__getterFor__ && j[r].__getterFor__ != s) {
+                            j[r] = function () {
+                                return this.data[s]
+                            };
+                            j[r].__getterFor__ = s
+                        }
+                        if (!j[m] || j[m].__setterFor__ && j[m].__setterFor__ != s) {
+                            j[m] = function (u) {
+                                return this.set(s, u)
+                            };
+                            j[m].__setterFor__ = s
+                        }
+                    }
+                })
+            }
+        },
+        set: function (d, b) {
+            var a;
+            this.previous = this.previous || {};
+            if (arguments.length > 1) {
+                a = this.get(d);
+                if (a !== b) {
+                    this.previous[d] = a
+                }
+            } else {
+                for (var c in d) {
+                    a = this.get(c);
+                    if (a !== d[c]) {
+                        this.previous[c] = a
+                    }
+                }
+            }
+            this.callParent(arguments)
+        },
+        afterEdit: function () {
+            this.callParent(arguments);
+            delete this.previous
+        },
+        reject: function () {
+            var b = this,
+                a = b.modified,
+                c;
+            b.previous = b.previous || {};
+            for (c in a) {
+                if (a.hasOwnProperty(c)) {
+                    if (typeof a[c] != "function") {
+                        b.previous[c] = b.get(c)
+                    }
+                }
+            }
+            b.callParent(arguments);
+            delete b.previous
+        }
+    })
+}
 Ext.define("Sch.model.Range", {
     extend: "Sch.model.Customizable",
-    requires: ["Sch.util.Date", "Sch.patches.DataOperation"],
+    requires: ["Sch.util.Date"],
+    idProperty: "Id",
+    config: Ext.versions.touch ? {
+        idProperty: "Id"
+    } : null,
     startDateField: "StartDate",
     endDateField: "EndDate",
     nameField: "Name",
@@ -4098,11 +4613,12 @@ Ext.define("Sch.model.Range", {
             this.setStartDate(Sch.util.Date.add(b, Sch.util.Date.MILLI, -(c - a)))
         }
     },
-    setStartEndDate: function (b, a) {
-        this.beginEdit();
-        this.set(this.startDateField, b);
+    setStartEndDate: function (c, a) {
+        var b = !this.editing;
+        b && this.beginEdit();
+        this.set(this.startDateField, c);
         this.set(this.endDateField, a);
-        this.endEdit()
+        b && this.endEdit()
     },
     getDates: function () {
         var c = [],
@@ -4128,9 +4644,13 @@ Ext.define("Sch.model.Range", {
         this.setStartEndDate(Sch.util.Date.add(this.getStartDate(), b, a), Sch.util.Date.add(this.getEndDate(), b, a))
     }
 });
+Ext.define("Sch.model.TimeAxisTick", {
+    extend: "Sch.model.Range",
+    startDateField: "start",
+    endDateField: "end"
+});
 Ext.define("Sch.model.Event", {
     extend: "Sch.model.Range",
-    idProperty: "Id",
     customizableFields: [{
         name: "Id"
     }, {
@@ -4148,16 +4668,16 @@ Ext.define("Sch.model.Event", {
     resourceIdField: "ResourceId",
     draggableField: "Draggable",
     resizableField: "Resizable",
-    getResource: function (b) {
-        if (this.stores.length > 0) {
-            var a = this.stores[0].resourceStore;
-            b = b || this.get(this.resourceIdField);
+    getResource: function (c, b) {
+        if (this.stores && this.stores.length > 0) {
+            var a = (b || this.stores[0]).resourceStore;
+            c = c || this.get(this.resourceIdField);
             if (Ext.data.TreeStore && a instanceof Ext.data.TreeStore) {
-                return a.getNodeById(b) || a.getRootNode().findChildBy(function (c) {
-                    return c.internalId === b
+                return a.getNodeById(c) || a.getRootNode().findChildBy(function (d) {
+                    return d.internalId === c
                 })
             } else {
-                return a.getById(b) || a.data.map[b]
+                return a.getById(c) || a.data.map[c]
             }
         }
         return null
@@ -4171,6 +4691,9 @@ Ext.define("Sch.model.Event", {
     unassign: function (a) {},
     isDraggable: function () {
         return this.getDraggable()
+    },
+    isAssignedTo: function (a) {
+        return this.getResource() === a
     },
     isResizable: function () {
         return this.getResizable()
@@ -4194,37 +4717,45 @@ Ext.define("Sch.model.Event", {
             }
         }
     },
-    getResources: function () {
-        var a = this.getResource();
-        return a ? [a] : []
+    getResources: function (a) {
+        var b = this.getResource(null, a);
+        return b ? [b] : []
     }
 });
-Ext.define("Sch.model.Resource", {
-    extend: "Sch.model.Customizable",
-    idProperty: "Id",
-    nameField: "Name",
-    customizableFields: ["Id", {
-        name: "Name",
-        type: "string"
-    }],
-    getEventStore: function () {
-        return this.stores[0] && this.stores[0].eventStore || this.parentNode && this.parentNode.getEventStore()
-    },
-    getEvents: function (d) {
-        var c = [],
-            e, f = this.getId() || this.internalId;
-        d = d || this.getEventStore();
-        for (var b = 0, a = d.getCount(); b < a; b++) {
-            e = d.getAt(b);
-            if (e.data[e.resourceIdField] === f) {
-                c.push(e)
+if (!Ext.ClassManager.get("Sch.model.Resource")) {
+    Ext.define("Sch.model.Resource", {
+        extend: "Sch.model.Customizable",
+        idProperty: "Id",
+        config: Ext.versions.touch ? {
+            idProperty: "Id"
+        } : null,
+        nameField: "Name",
+        customizableFields: ["Id", {
+            name: "Name",
+            type: "string"
+        }],
+        getEventStore: function () {
+            return this.stores[0] && this.stores[0].eventStore || this.parentNode && this.parentNode.getEventStore()
+        },
+        getEvents: function (d) {
+            var c = [],
+                e, f = this.getId() || this.internalId;
+            d = d || this.getEventStore();
+            for (var b = 0, a = d.getCount(); b < a; b++) {
+                e = d.getAt(b);
+                if (e.data[e.resourceIdField] === f) {
+                    c.push(e)
+                }
             }
+            return c
         }
-        return c
-    }
-});
+    })
+}
 Ext.define("Sch.data.mixin.EventStore", {
     model: "Sch.model.Event",
+    config: {
+        model: "Sch.model.Event"
+    },
     requires: ["Sch.util.Date"],
     isEventStore: true,
     setResourceStore: function (a) {
@@ -4271,8 +4802,8 @@ Ext.define("Sch.data.mixin.EventStore", {
     isDateRangeAvailable: function (f, a, b, d) {
         var c = true,
             e = Sch.util.Date;
-        this.each(function (g) {
-            if (e.intersectSpans(f, a, g.getStartDate(), g.getEndDate()) && d === g.getResource() && (!b || b !== g)) {
+        this.forEachScheduledEvent(function (h, g, i) {
+            if (e.intersectSpans(f, a, g, i) && d === h.getResource() && (!b || b !== h)) {
                 c = false;
                 return false
             }
@@ -4294,6 +4825,15 @@ Ext.define("Sch.data.mixin.EventStore", {
                 return f && e && (f - d >= 0) && (b - e >= 0)
             })
         }
+    },
+    forEachScheduledEvent: function (b, a) {
+        this.each(function (e) {
+            var d = e.getStartDate(),
+                c = e.getEndDate();
+            if (d && c) {
+                return b.call(a || this, e, d, c)
+            }
+        }, this)
     },
     getTotalTimeSpan: function () {
         var a = new Date(9999, 0, 1),
@@ -4325,29 +4865,38 @@ Ext.define("Sch.data.mixin.EventStore", {
         }
         return c
     },
-    getClosestSuccessor: function (g, e) {
-        var c = Infinity,
-            a = g.getEnd(),
-            f, h;
-        e = e || this.getRange();
-        for (var d = 0, b = e.length; d < b; d++) {
-            h = e[d].getStart() - a;
-            if (h >= 0 && h < c) {
-                f = e[d];
-                c = h
-            }
-        }
-        return f
+    append: function (a) {
+        throw "Must be implemented by consuming class"
+    },
+    getModel: function () {
+        return this.model
     }
 });
 Ext.define("Sch.data.EventStore", {
     extend: "Ext.data.Store",
+    model: "Sch.model.Event",
+    config: {
+        model: "Sch.model.Event"
+    },
     mixins: ["Sch.data.mixin.EventStore"],
+    constructor: function () {
+        this.callParent(arguments);
+        if (this.getModel() !== Sch.model.Event && !(this.getModel().prototype instanceof Sch.model.Event)) {
+            throw "The model for the EventStore must subclass Sch.model.Event"
+        }
+    },
     getByInternalId: function (a) {
         return this.data.getByKey(a)
+    },
+    append: function (a) {
+        this.add(a)
     }
 });
-Ext.define("Sch.data.mixin.ResourceStore", {});
+Ext.define("Sch.data.mixin.ResourceStore", {
+    getModel: function () {
+        return this.model
+    }
+});
 Ext.define("Sch.data.FilterableNodeStore", {
     extend: "Ext.data.NodeStore",
     onNodeExpand: function (f, d, c) {
@@ -4359,6 +4908,75 @@ Ext.define("Sch.data.FilterableNodeStore", {
             }
         }
         return this.callParent([f, b, c])
+    },
+    onNodeCollapse: function (e, c, b, h, d) {
+        var f = this;
+        var g = this.data;
+        var a = g.contains;
+        g.contains = function () {
+            var m, l, o;
+            var k = f.indexOf(e) + 1;
+            var n = false;
+            for (var j = 0; j < c.length; j++) {
+                if (!c[j].hidden && a.call(this, c[j])) {
+                    m = e;
+                    while (m.parentNode) {
+                        l = m;
+                        do {
+                            l = l.nextSibling
+                        } while (l && l.hidden);
+                        if (l) {
+                            n = true;
+                            o = f.indexOf(l);
+                            break
+                        } else {
+                            m = m.parentNode
+                        }
+                    }
+                    if (!n) {
+                        o = f.getCount()
+                    }
+                    f.removeAt(k, o - k);
+                    break
+                }
+            }
+            return false
+        };
+        this.callParent(arguments);
+        g.contains = a
+    },
+    onNodeAppend: function (d, f, b) {
+        var e = this,
+            a, c;
+        if (e.isVisible(f)) {
+            if (b === 0) {
+                a = d
+            } else {
+                c = f;
+                do {
+                    c = c.previousSibling
+                } while (c && c.hidden);
+                if (!c) {
+                    a = d
+                } else {
+                    while (c.isExpanded() && c.lastChild) {
+                        c = c.lastChild
+                    }
+                    a = c
+                }
+            }
+            e.insert(e.indexOf(a) + 1, f);
+            if (!f.isLeaf() && f.isExpanded()) {
+                if (f.isLoaded()) {
+                    e.onNodeExpand(f, f.childNodes, true)
+                } else {
+                    if (!e.treeStore.fillCount) {
+                        f.set("expanded", false);
+                        f.expand()
+                    }
+                }
+            }
+        }
     }
 });
 Ext.define("Sch.data.mixin.FilterableTreeStore", {
@@ -4366,6 +4984,7 @@ Ext.define("Sch.data.mixin.FilterableTreeStore", {
     nodeStoreClassName: "Sch.data.FilterableNodeStore",
     nodeStore: null,
     isFilteredFlag: false,
+    lastTreeFilter: null,
     initTreeFiltering: function () {
         if (!this.nodeStore) {
             this.nodeStore = this.createNodeStore(this)
@@ -4385,6 +5004,7 @@ Ext.define("Sch.data.mixin.FilterableTreeStore", {
         }
         this.refreshNodeStoreContent();
         this.isFilteredFlag = false;
+        this.lastTreeFilter = null;
         this.fireEvent("filter-clear", this)
     },
     refreshNodeStoreContent: function (f) {
@@ -4418,36 +5038,36 @@ Ext.define("Sch.data.mixin.FilterableTreeStore", {
         this.fireEvent("nodestore-datachange-end", this)
     },
     getIndexInTotalDataset: function (b) {
-        var a = this.getRootNode();
-        index = -1;
-        var d = this.rootVisible;
-        if (!d && b == a) {
+        var a = this.getRootNode(),
+            d = -1;
+        var e = this.rootVisible;
+        if (!e && b == a) {
             return -1
         }
-        var c = function (g) {
-            if (g.isHidden && g.isHidden() || g.hidden || g.data.hidden) {
-                if (g == b) {
+        var c = function (h) {
+            if (h.isHidden && h.isHidden() || h.hidden || h.data.hidden) {
+                if (h == b) {
                     return false
                 }
             }
-            if (d || g != a) {
-                index++
+            if (e || h != a) {
+                d++
             }
-            if (g == b) {
+            if (h == b) {
                 return false
             }
-            if (!g.data.leaf && g.isExpanded()) {
-                var h = g.childNodes,
-                    f = h.length;
-                for (var e = 0; e < f; e++) {
-                    if (c(h[e]) === false) {
+            if (!h.data.leaf && h.isExpanded()) {
+                var i = h.childNodes,
+                    g = i.length;
+                for (var f = 0; f < g; f++) {
+                    if (c(i[f]) === false) {
                         return false
                     }
                 }
             }
         };
         c(a);
-        return index
+        return d
     },
     isTreeFiltered: function () {
         return this.isFilteredFlag
@@ -4459,7 +5079,9 @@ Ext.define("Sch.data.mixin.FilterableTreeStore", {
             g = s.filter
         } else {
             g = s;
-            s = {}
+            s = {
+                filter: g
+            }
         }
         this.fireEvent("nodestore-datachange-start", this);
         s = s || {};
@@ -4555,6 +5177,7 @@ Ext.define("Sch.data.mixin.FilterableTreeStore", {
             n.fireEvent("clear", n)
         }
         this.isFilteredFlag = true;
+        this.lastTreeFilter = s;
         this.fireEvent("nodestore-datachange-end", this);
         this.fireEvent("filter-set", this)
     },
@@ -4574,165 +5197,177 @@ Ext.define("Sch.data.mixin.FilterableTreeStore", {
             a.hidden = a.data.hidden = false
         });
         this.refreshNodeStoreContent()
-    }
-});
-Ext.define("Sch.data.mixin.BufferableTreeStore", {
-    viewSize: 50,
-    buffered: false,
-    rangeStart: null,
-    rangeEnd: null,
-    initTreeBuffering: function () {
-        if (!this.buffered) {
-            return
-        }
-        var b = this;
-        var a = {
-            append: this.updateBufferedNodeStore,
-            insert: this.updateBufferedNodeStore,
-            remove: this.updateBufferedNodeStore,
-            move: this.updateBufferedNodeStore,
-            expand: this.updateBufferedNodeStore,
-            collapse: this.updateBufferedNodeStore,
-            sort: this.updateBufferedNodeStore,
-            scope: this,
-            buffer: 1
-        };
-        this.on(a);
-        this.on("root-fill-start", function () {
-            b.nodeStore.suspendEvents();
-            b.un(a);
-            b.nodeStore.setNode()
-        });
-        this.on("root-fill-end", function () {
-            b.nodeStore.resumeEvents();
-            b.on(a);
-            this.updateBufferedNodeStore()
-        })
     },
-    updateBufferedNodeStore: function () {
-        this.refreshNodeStoreContent(true)
-    },
-    loadDataInNodeStore: function (a) {
-        if (!this.buffered) {
-            return false
-        }
-        var b = this.nodeStore;
-        b.totalCount = a.length;
-        if (!a.length) {
-            b.removeAll()
-        }
-        b.cachePage(a, 1);
-        this.guaranteeRange(this.rangeStart || 0, this.rangeEnd || this.viewSize || 50);
-        return true
-    },
-    guaranteeRange: function (e, d) {
-        var b = this.viewSize || 50;
-        var f = this.nodeStore;
-        var a = f.getTotalCount();
-        if (a) {
-            var c = d - e + 1;
-            if (c < b && a >= c) {
-                d = e + b - 1
+    inheritables: function () {
+        return {
+            load: function () {
+                var a = this.getRootNode();
+                if (a) {
+                    var b = this.nodeStore;
+                    var c = a.removeAll;
+                    a.removeAll = function () {
+                        c.apply(this, arguments);
+                        b && b.fireEvent("clear", b);
+                        delete a.removeAll
+                    }
+                }
+                this.callParent(arguments);
+                if (a) {
+                    delete a.removeAll
+                }
             }
-            if (d >= a) {
-                e = a - (d - e);
-                d = a - 1;
-                e = Math.max(0, e)
-            }
-            f.guaranteeRange(e, d)
         }
-    },
-    createNodeStore: function (a) {
-        var b = Ext.create(this.nodeStoreClassName || "Ext.data.NodeStore", {
-            treeStore: a,
-            recursive: true,
-            rootVisible: this.rootVisible,
-            buffered: a.buffered,
-            purgePageCount: 0,
-            pageSize: 10000000000
-        });
-        if (a.buffered) {
-            this.mon(b, "guaranteedrange", function (d, e, c) {
-                this.rangeStart = e;
-                this.rangeEnd = c
-            }, this)
-        }
-        return b
     }
 });
 Ext.define("Sch.data.ResourceStore", {
     extend: "Ext.data.Store",
     model: "Sch.model.Resource",
-    mixins: ["Sch.data.mixin.ResourceStore"]
+    config: {
+        model: "Sch.model.Resource"
+    },
+    mixins: ["Sch.data.mixin.ResourceStore"],
+    constructor: function () {
+        this.callParent(arguments);
+        if (this.getModel() !== Sch.model.Resource && !(this.getModel().prototype instanceof Sch.model.Resource)) {
+            throw "The model for the ResourceStore must subclass Sch.model.Resource"
+        }
+    }
 });
 Ext.define("Sch.data.ResourceTreeStore", {
     extend: "Ext.data.TreeStore",
     model: "Sch.model.Resource",
-    mixins: ["Sch.data.mixin.ResourceStore", "Sch.data.mixin.BufferableTreeStore", "Sch.data.mixin.FilterableTreeStore"],
+    mixins: ["Sch.data.mixin.ResourceStore", "Sch.data.mixin.FilterableTreeStore"],
     constructor: function () {
         this.callParent(arguments);
-        this.initTreeFiltering()
-    }
-});
-Ext.define("Sch.data.TimeAxis", {
-    extend: "Ext.util.Observable",
-    requires: ["Ext.data.JsonStore", "Sch.util.Date"],
-    continuous: true,
-    autoAdjust: true,
-    constructor: function (a) {
-        Ext.apply(this, a);
-        this.originalContinuous = this.continuous;
-        this.addEvents("beforereconfigure", "reconfigure");
-        this.tickStore = new Ext.data.JsonStore({
-            fields: ["start", "end"]
-        });
-        this.tickStore.on("datachanged", function () {
-            this.fireEvent("reconfigure", this)
-        }, this);
-        this.callParent(arguments)
-    },
-    reconfigure: function (a) {
-        Ext.apply(this, a);
-        var c = this.tickStore,
-            b = this.generateTicks(this.start, this.end, this.unit, this.increment || 1, this.mainUnit);
-        if (this.fireEvent("beforereconfigure", this, this.start, this.end) !== false) {
-            c.suspendEvents(true);
-            c.loadData(b);
-            if (c.getCount() === 0) {
-                Ext.Error.raise("Invalid time axis configuration or filter, please check your input data.")
-            }
-            c.resumeEvents()
+        this.initTreeFiltering();
+        if (this.getModel() !== Sch.model.Resource && !(this.getModel().prototype instanceof Sch.model.Resource)) {
+            throw "The model for the ResourceTreeStore must subclass Sch.model.Resource"
         }
     },
-    setTimeSpan: function (b, a) {
-        this.reconfigure({
-            start: b,
-            end: a
-        })
+    setRootNode: function () {
+        this.isSettingRoot = true;
+        var a = this.callParent(arguments);
+        this.isSettingRoot = false;
+        return a
+    }
+}, function () {
+    this.override(Sch.data.mixin.FilterableTreeStore.prototype.inheritables() || {})
+});
+Ext.define("Sch.data.TimeAxis", {
+    extend: "Ext.data.JsonStore",
+    requires: ["Sch.util.Date", "Sch.model.TimeAxisTick"],
+    model: "Sch.model.TimeAxisTick",
+    continuous: true,
+    originalContinuous: null,
+    autoAdjust: true,
+    unit: null,
+    increment: null,
+    resolutionUnit: null,
+    resolutionIncrement: null,
+    weekStartDay: null,
+    mainUnit: null,
+    shiftUnit: null,
+    shiftIncrement: 1,
+    defaultSpan: 1,
+    isConfigured: false,
+    adjustedStart: null,
+    adjustedEnd: null,
+    visibleTickStart: null,
+    visibleTickEnd: null,
+    constructor: function (a) {
+        var b = this;
+        if (b.setModel) {
+            b.setModel(b.model)
+        }
+        b.originalContinuous = b.continuous;
+        b.callParent(arguments);
+        b.addEvents("beforereconfigure", "reconfigure");
+        b.on(Ext.versions.touch ? "refresh" : "datachanged", function (c, d, e) {
+            b.fireEvent("reconfigure", b, d, e)
+        });
+        if (a && b.start) {
+            b.reconfigure(a)
+        }
+    },
+    reconfigure: function (e, a) {
+        this.isConfigured = true;
+        Ext.apply(this, e);
+        var m = this.getAdjustedDates(e.start, e.end, true);
+        var l = this.getAdjustedDates(e.start, e.end);
+        var b = l.start;
+        var f = l.end;
+        if (this.fireEvent("beforereconfigure", this, b, f) !== false) {
+            var j = this.unit;
+            var k = this.increment || 1;
+            var i = this.generateTicks(b, f, j, k, this.mainUnit);
+            var d = Ext.Object.getKeys(e).length;
+            var g = (d === 1 && "start" in e) || (d === 2 && "start" in e && "end" in e);
+            this.removeAll(true);
+            this.suspendEvents();
+            this.add(i);
+            if (this.getCount() === 0) {
+                Ext.Error.raise("Invalid time axis configuration or filter, please check your input data.")
+            }
+            this.resumeEvents();
+            var c = Sch.util.Date;
+            var h = i.length;
+            if (this.isContinuous()) {
+                this.adjustedStart = m.start;
+                this.adjustedEnd = c.getNext(h > 1 ? i[h - 1].start : m.start, j, k)
+            } else {
+                this.adjustedStart = this.getStart();
+                this.adjustedEnd = this.getEnd()
+            }
+            do {
+                this.visibleTickStart = (this.getStart() - this.adjustedStart) / (c.getUnitDurationInMs(j) * k);
+                if (this.visibleTickStart >= 1) {
+                    this.adjustedStart = c.getNext(this.adjustedStart, j, 1)
+                }
+            } while (this.visibleTickStart >= 1);
+            do {
+                this.visibleTickEnd = h - (this.adjustedEnd - this.getEnd()) / (c.getUnitDurationInMs(j) * k);
+                if (h - this.visibleTickEnd >= 1) {
+                    this.adjustedEnd = c.getNext(this.adjustedEnd, j, -1)
+                }
+            } while (h - this.visibleTickEnd >= 1);
+            this.fireEvent("datachanged", this, !g, a);
+            this.fireEvent("refresh", this, !g, a)
+        }
+    },
+    setTimeSpan: function (c, a) {
+        var b = this.getAdjustedDates(c, a);
+        c = b.start;
+        a = b.end;
+        if (this.getStart() - c !== 0 || this.getEnd() - a !== 0) {
+            this.reconfigure({
+                start: c,
+                end: a
+            })
+        }
     },
     filterBy: function (b, a) {
         this.continuous = false;
         a = a || this;
-        var c = this.tickStore;
-        c.clearFilter(true);
-        c.suspendEvents(true);
-        c.filter([{
-            filterFn: function (e, d) {
-                return b.call(a, e.data, d)
+        this.clearFilter(true);
+        this.suspendEvents(true);
+        this.filter([{
+            filterFn: function (d, c) {
+                return b.call(a, d.data, c)
             }
         }]);
-        if (c.getCount() === 0) {
-            Ext.Error.raise("Invalid time axis filter - no columns passed through the filter. Please check your filter method.");
-            this.clearFilter()
+        if (this.getCount() === 0) {
+            this.clearFilter();
+            this.resumeEvents();
+            Ext.Error.raise("Invalid time axis filter - no ticks passed through the filter. Please check your filter method.")
         }
-        c.resumeEvents()
+        this.resumeEvents()
     },
     isContinuous: function () {
-        return this.continuous && !this.tickStore.isFiltered()
+        return this.continuous && !this.isFiltered()
     },
     clearFilter: function () {
         this.continuous = this.originalContinuous;
-        this.tickStore.clearFilter()
+        this.callParent(arguments)
     },
     generateTicks: function (a, d, g, i) {
         var h = [],
@@ -4740,12 +5375,14 @@ Ext.define("Sch.data.TimeAxis", {
             e = 0;
         g = g || this.unit;
         i = i || this.increment;
-        if (this.autoAdjust) {
-            a = this.floorDate(a || this.getStart(), false);
-            d = this.ceilDate(d || b.add(a, this.mainUnit, this.defaultSpan), false)
-        }
+        var j = this.getAdjustedDates(a, d);
+        a = j.start;
+        d = j.end;
         while (a < d) {
             f = this.getNext(a, g, i);
+            if (!this.autoAdjust && f > d) {
+                f = d
+            }
             if (g === b.HOUR && i > 1 && h.length > 0 && e === 0) {
                 var c = h[h.length - 1];
                 e = ((c.start.getHours() + i) % 24) - c.end.getHours();
@@ -4761,66 +5398,190 @@ Ext.define("Sch.data.TimeAxis", {
         }
         return h
     },
-    getTickFromDate: function (c) {
-        if (this.getStart() > c || this.getEnd() < c) {
+    getVisibleTickTimeSpan: function () {
+        return this.isContinuous() ? this.visibleTickEnd - this.visibleTickStart : this.getCount()
+    },
+    getAdjustedDates: function (c, b, a) {
+        c = c || this.getStart();
+        b = b || Sch.util.Date.add(c, this.mainUnit, this.defaultSpan);
+        return this.autoAdjust || a ? {
+            start: this.floorDate(c, false, this.mainUnit, 1),
+            end: this.ceilDate(b, false, this.mainUnit, 1)
+        } : {
+            start: c,
+            end: b
+        }
+    },
+    getTickFromDate: function (d) {
+        var j = this.data.items;
+        var h = j.length - 1;
+        if (d < j[0].data.start || d > j[h].data.end) {
             return -1
         }
-        var f = this.tickStore.getRange(),
-            e, a, d, b;
-        for (d = 0, b = f.length; d < b; d++) {
-            a = f[d].data.end;
-            if (c <= a) {
-                e = f[d].data.start;
-                return d + (c > e ? (c - e) / (a - e) : 0)
+        var f, g, b;
+        if (this.isContinuous()) {
+            if (d - j[0].data.start === 0) {
+                return this.visibleTickStart
+            }
+            if (d - j[h].data.end === 0) {
+                return this.visibleTickEnd
+            }
+            var k = this.adjustedStart;
+            var a = this.adjustedEnd;
+            var c = Math.floor(j.length * (d - k) / (a - k));
+            if (c > h) {
+                c = h
+            }
+            g = c === 0 ? k : j[c].data.start;
+            b = c == h ? a : j[c].data.end;
+            f = c + (d - g) / (b - g);
+            if (f < this.visibleTickStart || f > this.visibleTickEnd) {
+                return -1
+            }
+            return f
+        } else {
+            for (var e = 0; e <= h; e++) {
+                b = j[e].data.end;
+                if (d <= b) {
+                    g = j[e].data.start;
+                    f = e + (d > g ? (d - g) / (b - g) : 0);
+                    return f
+                }
             }
         }
         return -1
     },
-    getDateFromTick: function (d, f) {
-        var g = this.tickStore.getCount();
-        if (d === g) {
+    getDateFromTick: function (e, i) {
+        if (e === this.visibleTickEnd) {
             return this.getEnd()
         }
-        var a = Math.floor(d),
-            e = d - a,
-            c = this.getAt(a);
-        var b = Sch.util.Date.add(c.start, Sch.util.Date.MILLI, e * (c.end - c.start));
-        if (f) {
-            b = this[f + "Date"](b)
+        var b = Math.floor(e),
+            g = e - b,
+            h = this.getAt(b);
+        if (!h) {
+            return null
         }
-        return b
-    },
-    getAt: function (a) {
-        return this.tickStore.getAt(a).data
-    },
-    getCount: function () {
-        return this.tickStore.getCount()
+        var f = h.data;
+        var a = b === 0 ? this.adjustedStart : f.start;
+        var d = (b == this.getCount() - 1) && this.isContinuous() ? this.adjustedEnd : f.end;
+        var c = Sch.util.Date.add(a, Sch.util.Date.MILLI, g * (d - a));
+        if (i) {
+            c = this[i + "Date"](c)
+        }
+        return c
     },
     getTicks: function () {
         var a = [];
-        this.tickStore.each(function (b) {
+        this.each(function (b) {
             a.push(b.data)
         });
         return a
     },
     getStart: function () {
-        var a = this.tickStore.first();
+        var a = this.first();
         if (a) {
-            return Ext.Date.clone(a.data.start)
+            return new Date(a.data.start)
         }
         return null
     },
     getEnd: function () {
-        var a = this.tickStore.last();
+        var a = this.last();
         if (a) {
-            return Ext.Date.clone(a.data.end)
+            return new Date(a.data.end)
         }
         return null
     },
-    roundDate: function (r) {
+    floorDate: function (e, g, h, a) {
+        g = g !== false;
+        var c = Ext.Date.clone(e),
+            d = g ? this.getStart() : null,
+            k = a || this.resolutionIncrement,
+            j;
+        if (h) {
+            j = h
+        } else {
+            j = g ? this.resolutionUnit : this.mainUnit
+        }
+        var b = Sch.util.Date;
+        var f = function (m, l) {
+            return Math.floor(m / l) * l
+        };
+        switch (j) {
+        case b.MILLI:
+            if (g) {
+                c = b.add(d, b.MILLI, f(b.getDurationInMilliseconds(d, c), k))
+            }
+            break;
+        case b.SECOND:
+            if (g) {
+                c = b.add(d, b.MILLI, f(b.getDurationInSeconds(d, c), k) * 1000)
+            } else {
+                c.setMilliseconds(0);
+                c.setSeconds(f(c.getSeconds(), k))
+            }
+            break;
+        case b.MINUTE:
+            if (g) {
+                c = b.add(d, b.SECOND, f(b.getDurationInMinutes(d, c), k) * 60)
+            } else {
+                c.setMinutes(f(c.getMinutes(), k));
+                c.setSeconds(0);
+                c.setMilliseconds(0)
+            }
+            break;
+        case b.HOUR:
+            if (g) {
+                c = b.add(d, b.MINUTE, f(b.getDurationInHours(this.getStart(), c), k) * 60)
+            } else {
+                c.setMinutes(0);
+                c.setSeconds(0);
+                c.setMilliseconds(0);
+                c.setHours(f(c.getHours(), k))
+            }
+            break;
+        case b.DAY:
+            if (g) {
+                c = b.add(d, b.DAY, f(b.getDurationInDays(d, c), k))
+            } else {
+                Ext.Date.clearTime(c);
+                c.setDate(f(c.getDate() - 1, k) + 1)
+            }
+            break;
+        case b.WEEK:
+            var i = c.getDay();
+            Ext.Date.clearTime(c);
+            if (i !== this.weekStartDay) {
+                c = b.add(c, b.DAY, -(i > this.weekStartDay ? (i - this.weekStartDay) : (7 - i - this.weekStartDay)))
+            }
+            break;
+        case b.MONTH:
+            if (g) {
+                c = b.add(d, b.MONTH, f(b.getDurationInMonths(d, c), k))
+            } else {
+                Ext.Date.clearTime(c);
+                c.setDate(1);
+                c.setMonth(f(c.getMonth(), k))
+            }
+            break;
+        case b.QUARTER:
+            Ext.Date.clearTime(c);
+            c.setDate(1);
+            c = b.add(c, b.MONTH, -(c.getMonth() % 3));
+            break;
+        case b.YEAR:
+            if (g) {
+                c = b.add(d, b.YEAR, f(b.getDurationInYears(d, c), k))
+            } else {
+                c = new Date(f(e.getFullYear() - 1, k) + 1, 0, 1)
+            }
+            break
+        }
+        return c
+    },
+    roundDate: function (r, b) {
         var l = Ext.Date.clone(r),
-            b = this.getStart(),
             s = this.resolutionIncrement;
+        b = b || this.getStart();
         switch (this.resolutionUnit) {
         case Sch.util.Date.MILLI:
             var e = Sch.util.Date.getDurationInMilliseconds(b, l),
@@ -4838,7 +5599,7 @@ Ext.define("Sch.data.TimeAxis", {
             l = Sch.util.Date.add(b, Sch.util.Date.SECOND, a * 60);
             break;
         case Sch.util.Date.HOUR:
-            var m = Sch.util.Date.getDurationInHours(this.getStart(), l),
+            var m = Sch.util.Date.getDurationInHours(b, l),
                 j = Math.round(m / s) * s;
             l = Sch.util.Date.add(b, Sch.util.Date.MINUTE, j * 60);
             break;
@@ -4879,98 +5640,6 @@ Ext.define("Sch.data.TimeAxis", {
         }
         return l
     },
-    floorDate: function (t, d, v) {
-        d = d !== false;
-        var n = Ext.Date.clone(t),
-            b = d ? this.getStart() : null,
-            u = this.resolutionIncrement,
-            k;
-        if (v) {
-            k = v
-        } else {
-            k = d ? this.resolutionUnit : this.mainUnit
-        }
-        switch (k) {
-        case Sch.util.Date.MILLI:
-            if (d) {
-                var f = Sch.util.Date.getDurationInMilliseconds(b, n),
-                    e = Math.floor(f / u) * u;
-                n = Sch.util.Date.add(b, Sch.util.Date.MILLI, e)
-            }
-            break;
-        case Sch.util.Date.SECOND:
-            if (d) {
-                var j = Sch.util.Date.getDurationInSeconds(b, n),
-                    s = Math.floor(j / u) * u;
-                n = Sch.util.Date.add(b, Sch.util.Date.MILLI, s * 1000)
-            } else {
-                n.setMilliseconds(0)
-            }
-            break;
-        case Sch.util.Date.MINUTE:
-            if (d) {
-                var p = Sch.util.Date.getDurationInMinutes(b, n),
-                    a = Math.floor(p / u) * u;
-                n = Sch.util.Date.add(b, Sch.util.Date.SECOND, a * 60)
-            } else {
-                n.setSeconds(0);
-                n.setMilliseconds(0)
-            }
-            break;
-        case Sch.util.Date.HOUR:
-            if (d) {
-                var o = Sch.util.Date.getDurationInHours(this.getStart(), n),
-                    l = Math.floor(o / u) * u;
-                n = Sch.util.Date.add(b, Sch.util.Date.MINUTE, l * 60)
-            } else {
-                n.setMinutes(0);
-                n.setSeconds(0);
-                n.setMilliseconds(0)
-            }
-            break;
-        case Sch.util.Date.DAY:
-            if (d) {
-                var c = Sch.util.Date.getDurationInDays(b, n),
-                    g = Math.floor(c / u) * u;
-                n = Sch.util.Date.add(b, Sch.util.Date.DAY, g)
-            } else {
-                Ext.Date.clearTime(n)
-            }
-            break;
-        case Sch.util.Date.WEEK:
-            var r = n.getDay();
-            Ext.Date.clearTime(n);
-            if (r !== this.weekStartDay) {
-                n = Sch.util.Date.add(n, Sch.util.Date.DAY, -(r > this.weekStartDay ? (r - this.weekStartDay) : (7 - r - this.weekStartDay)))
-            }
-            break;
-        case Sch.util.Date.MONTH:
-            if (d) {
-                var q = Sch.util.Date.getDurationInMonths(b, n),
-                    i = Math.floor(q / u) * u;
-                n = Sch.util.Date.add(b, Sch.util.Date.MONTH, i)
-            } else {
-                Ext.Date.clearTime(n);
-                n.setDate(1)
-            }
-            break;
-        case Sch.util.Date.QUARTER:
-            Ext.Date.clearTime(n);
-            n.setDate(1);
-            n = Sch.util.Date.add(n, Sch.util.Date.MONTH, -(n.getMonth() % 3));
-            break;
-        case Sch.util.Date.YEAR:
-            if (d) {
-                var m = Sch.util.Date.getDurationInYears(b, n),
-                    h = Math.floor(m / u) * u;
-                n = Sch.util.Date.add(b, Sch.util.Date.YEAR, h)
-            } else {
-                n = new Date(t.getFullYear(), 0, 1)
-            }
-            break
-        }
-        return n
-    },
     ceilDate: function (c, b, f) {
         var e = Ext.Date.clone(c);
         b = b !== false;
@@ -4983,8 +5652,13 @@ Ext.define("Sch.data.TimeAxis", {
             d = b ? this.resolutionUnit : this.mainUnit
         }
         switch (d) {
-        case Sch.util.Date.DAY:
+        case Sch.util.Date.HOUR:
             if (e.getMinutes() > 0 || e.getSeconds() > 0 || e.getMilliseconds() > 0) {
+                g = true
+            }
+            break;
+        case Sch.util.Date.DAY:
+            if (e.getHours() > 0 || e.getMinutes() > 0 || e.getSeconds() > 0 || e.getMilliseconds() > 0) {
                 g = true
             }
             break;
@@ -5002,13 +5676,13 @@ Ext.define("Sch.data.TimeAxis", {
             break;
         case Sch.util.Date.QUARTER:
             Ext.Date.clearTime(e);
-            if (e.getMonth() % 3 !== 0) {
+            if (e.getMonth() % 3 !== 0 || (e.getMonth() % 3 === 0 && e.getDate() !== 1)) {
                 g = true
             }
             break;
         case Sch.util.Date.YEAR:
             Ext.Date.clearTime(e);
-            if (e.getMonth() !== 0 && e.getDate() !== 1) {
+            if (e.getMonth() !== 0 || e.getDate() !== 1) {
                 g = true
             }
             break;
@@ -5034,6 +5708,9 @@ Ext.define("Sch.data.TimeAxis", {
         this.resolutionUnit = b;
         this.resolutionIncrement = a || 1
     },
+    shift: function (a, b) {
+        this.setTimeSpan(Sch.util.Date.add(this.getStart(), b, a), Sch.util.Date.add(this.getEnd(), b, a))
+    },
     shiftNext: function (a) {
         a = a || this.getShiftIncrement();
         var b = this.getShiftUnit();
@@ -5045,7 +5722,7 @@ Ext.define("Sch.data.TimeAxis", {
         this.setTimeSpan(Sch.util.Date.add(this.getStart(), b, a), Sch.util.Date.add(this.getEnd(), b, a))
     },
     getShiftUnit: function () {
-        return this.shiftUnit || this.getMainUnit()
+        return this.shiftUnit || this.mainUnit
     },
     getShiftIncrement: function () {
         return this.shiftIncrement || 1
@@ -5056,678 +5733,505 @@ Ext.define("Sch.data.TimeAxis", {
     getIncrement: function () {
         return this.increment
     },
+    dateInAxis: function (a) {
+        return Sch.util.Date.betweenLesser(a, this.getStart(), this.getEnd())
+    },
     timeSpanInAxis: function (b, a) {
-        if (this.continuous) {
+        if (this.isContinuous()) {
             return Sch.util.Date.intersectSpans(b, a, this.getStart(), this.getEnd())
         } else {
             return (b < this.getStart() && a > this.getEnd()) || this.getTickFromDate(b) !== this.getTickFromDate(a)
         }
     },
-    forEachInterval: function (b, a, c) {
-        c = c || this;
-        if (b === "top" || (b === "middle" && this.headerConfig.bottom)) {
-            this.forEachAuxInterval(b, a, c)
-        } else {
-            this.tickStore.each(function (e, d) {
-                return a.call(c, e.data.start, e.data.end, d)
-            })
-        }
-    },
-    forEachMainInterval: function (a, b) {
-        this.forEachInterval("middle", a, b)
-    },
-    forEachAuxInterval: function (b, a, f) {
+    forEachAuxInterval: function (h, b, a, f) {
         f = f || this;
         var c = this.getEnd(),
             g = this.getStart(),
             e = 0,
             d;
+        if (g > c) {
+            throw "Invalid time axis configuration"
+        }
         while (g < c) {
-            d = Sch.util.Date.min(this.getNext(g, this.headerConfig[b].unit, this.headerConfig[b].increment || 1), c);
+            d = Sch.util.Date.min(this.getNext(g, h, b || 1), c);
             a.call(f, g, d, e);
             g = d;
             e++
         }
+    },
+    consumeViewPreset: function (a) {
+        Ext.apply(this, {
+            unit: a.getBottomHeader().unit,
+            increment: a.getBottomHeader().increment || 1,
+            resolutionUnit: a.timeResolution.unit,
+            resolutionIncrement: a.timeResolution.increment,
+            mainUnit: a.getMainHeader().unit,
+            shiftUnit: a.shiftUnit,
+            shiftIncrement: a.shiftIncrement || 1,
+            defaultSpan: a.defaultSpan || 1
+        })
     }
 });
 Ext.define("Sch.view.Horizontal", {
-    props: {
-        translateToScheduleCoordinate: function (a) {
-            return a - this.el.getX() + this.el.getScroll().left
-        },
-        translateToPageCoordinate: function (a) {
-            return a + this.el.getX() - this.el.getScroll().left
-        },
-        getDateFromXY: function (h, f, e) {
-            var b, a = e ? h[0] : this.translateToScheduleCoordinate(h[0]),
-                d = a / this.getActualTimeColumnWidth(),
-                c = this.timeAxis.getCount();
-            if (d < 0 || d > c) {
-                b = null
-            } else {
-                var g = d - this.resolveColumnIndex(a);
-                if (g > 2 && d >= c) {
-                    return null
-                }
-                b = this.timeAxis.getDateFromTick(d, f)
+    requires: ["Ext.util.Region", "Ext.Element", "Sch.util.Date"],
+    view: null,
+    constructor: function (a) {
+        Ext.apply(this, a)
+    },
+    translateToScheduleCoordinate: function (a) {
+        var b = this.view;
+        if (b.rtl) {
+            return b.getTimeAxisColumn().getEl().getRight() - a
+        }
+        return a - b.getEl().getX() + b.getScroll().left
+    },
+    translateToPageCoordinate: function (a) {
+        var b = this.view;
+        return a + b.getEl().getX() - b.getScroll().left
+    },
+    getEventRenderData: function (a, b, c) {
+        var h = b || a.getStartDate(),
+            g = c || a.getEndDate() || h,
+            j = this.view,
+            f = j.timeAxis.getStart(),
+            k = j.timeAxis.getEnd(),
+            i = Math,
+            e = j.getXFromDate(Sch.util.Date.max(h, f)),
+            l = j.getXFromDate(Sch.util.Date.min(g, k)),
+            d = {};
+        if (this.view.rtl) {
+            d.right = i.min(e, l)
+        } else {
+            d.left = i.min(e, l)
+        }
+        d.width = i.max(1, i.abs(l - e)) - j.eventBorderWidth;
+        if (j.managedEventSizing) {
+            d.top = i.max(0, (j.barMargin - ((Ext.isIE && !Ext.isStrict) ? 0 : j.eventBorderWidth - j.cellTopBorderWidth)));
+            d.height = j.timeAxisViewModel.rowHeightHorizontal - (2 * j.barMargin) - j.eventBorderWidth
+        }
+        d.start = h;
+        d.end = g;
+        d.startsOutsideView = h < f;
+        d.endsOutsideView = g > k;
+        return d
+    },
+    getScheduleRegion: function (e, g) {
+        var c = Ext.Element.prototype.getRegion ? "getRegion" : "getPageBox",
+            j = this.view,
+            i = e ? Ext.fly(j.getRowNode(e))[c]() : j.getTableRegion(),
+            f = j.timeAxis.getStart(),
+            l = j.timeAxis.getEnd(),
+            b = j.getDateConstraints(e, g) || {
+                start: f,
+                end: l
+            }, d = this.translateToPageCoordinate(j.getXFromDate(Sch.util.Date.max(f, b.start))),
+            k = this.translateToPageCoordinate(j.getXFromDate(Sch.util.Date.min(l, b.end))),
+            h = i.top + j.barMargin,
+            a = i.bottom - j.barMargin - j.eventBorderWidth;
+        return new Ext.util.Region(h, Math.max(d, k), a, Math.min(d, k))
+    },
+    getResourceRegion: function (j, e, i) {
+        var m = this.view,
+            d = m.getRowNode(j),
+            f = Ext.fly(d).getOffsetsTo(m.getEl()),
+            k = m.timeAxis.getStart(),
+            o = m.timeAxis.getEnd(),
+            c = e ? Sch.util.Date.max(k, e) : k,
+            g = i ? Sch.util.Date.min(o, i) : o,
+            h = m.getXFromDate(c),
+            n = m.getXFromDate(g),
+            l = f[1] + m.cellTopBorderWidth,
+            a = f[1] + Ext.fly(d).getHeight() - m.cellBottomBorderWidth;
+        if (!Ext.versions.touch) {
+            var b = m.getScroll();
+            l += b.top;
+            a += b.top
+        }
+        return new Ext.util.Region(l, Math.max(h, n), a, Math.min(h, n))
+    },
+    columnRenderer: function (d, q, k, n, p) {
+        var o = this.view;
+        var b = o.eventStore.getEventsForResource(k);
+        if (b.length === 0) {
+            return
+        }
+        var h = o.timeAxis,
+            m = [],
+            g, e;
+        for (g = 0, e = b.length; g < e; g++) {
+            var a = b[g],
+                c = a.getStartDate(),
+                f = a.getEndDate();
+            if (c && f && h.timeSpanInAxis(c, f)) {
+                m[m.length] = o.generateTplData(a, k, n)
             }
-            return b
-        },
-        getXYFromDate: function (b, d) {
-            var a, c = this.timeAxis.getTickFromDate(b);
-            if (c >= 0) {
-                a = this.getActualTimeColumnWidth() * c
-            }
-            if (d === false) {
-                a = this.translateToPageCoordinate(a)
-            }
-            return [Math.round(a), 0]
-        },
-        getEventBox: function (e, b) {
-            var a = Math.floor(this.getXYFromDate(e)[0]),
-                c = Math.floor(this.getXYFromDate(b)[0]),
-                d = Math;
-            if (this.managedEventSizing) {
-                return {
-                    top: Math.max(0, (this.barMargin - (Ext.isIE && !Ext.isStrict) ? 0 : this.eventBorderWidth - this.cellBorderWidth)),
-                    left: d.min(a, c),
-                    width: d.max(1, d.abs(a - c) - this.eventBorderWidth),
-                    height: this.rowHeight - (2 * this.barMargin) - this.eventBorderWidth
-                }
-            }
+        }
+        if (o.dynamicRowHeight) {
+            var j = o.eventLayout.horizontal;
+            j.applyLayout(m, k);
+            q.rowHeight = j.getRowHeight(k, b)
+        }
+        return o.eventTpl.apply(m)
+    },
+    resolveResource: function (b) {
+        var a = this.view;
+        var c = a.findRowByChild(b);
+        if (c) {
+            return a.getRecordForRowNode(c)
+        }
+        return null
+    },
+    getTimeSpanRegion: function (b, h, g) {
+        var d = this.view,
+            c = d.getXFromDate(b),
+            e = h ? d.getXFromDate(h) : c,
+            a, f;
+        f = d.getTableRegion();
+        if (g) {
+            a = Math.max(f ? f.bottom - f.top : 0, d.getEl().dom.clientHeight)
+        } else {
+            a = f ? f.bottom - f.top : 0
+        }
+        return new Ext.util.Region(0, Math.max(c, e), a, Math.min(c, e))
+    },
+    getStartEndDatesFromRegion: function (g, d, c) {
+        var b = this.view;
+        var f = b.rtl;
+        var a = b.getDateFromCoordinate(f ? g.right : g.left, d),
+            e = b.getDateFromCoordinate(f ? g.left : g.right, d);
+        if (a && e || c && (a || e)) {
             return {
-                left: d.min(a, c),
-                width: d.max(1, d.abs(a - c))
+                start: a,
+                end: e
             }
-        },
-        layoutEvents: function (a) {
-            var c = Ext.Array.clone(a);
-            c.sort(this.sortEvents);
-            var b = this.layoutEventsInBands(0, c);
-            return b
-        },
-        layoutEventsInBands: function (d, a) {
-            var c = a[0],
-                b = d === 0 ? this.barMargin : (d * this.rowHeight - ((d - 1) * this.barMargin));
-            if (b >= this.cellBorderWidth) {
-                b -= this.cellBorderWidth
+        }
+        return null
+    },
+    onEventAdd: function (n, m) {
+        var h = this.view;
+        var e = {};
+        for (var g = 0, c = m.length; g < c; g++) {
+            var a = m[g].getResources(h.eventStore);
+            for (var f = 0, d = a.length; f < d; f++) {
+                var b = a[f];
+                e[b.getId()] = b
             }
-            while (c) {
-                c.top = b;
-                Ext.Array.remove(a, c);
-                c = this.findClosestSuccessor(c, a)
+        }
+        Ext.Object.each(e, function (j, i) {
+            h.repaintEventsForResource(i)
+        })
+    },
+    onEventRemove: function (k, e) {
+        var h = this.view;
+        var j = this.resourceStore;
+        var f = Ext.tree && Ext.tree.View && h instanceof Ext.tree.View;
+        if (!Ext.isArray(e)) {
+            e = [e]
+        }
+        var g = function (i) {
+            if (h.store.indexOf(i) >= 0) {
+                h.repaintEventsForResource(i)
             }
-            d++;
-            if (a.length > 0) {
-                return this.layoutEventsInBands(d, a)
+        };
+        for (var d = 0; d < e.length; d++) {
+            var a = e[d].getResources(h.eventStore);
+            if (a.length > 1) {
+                Ext.each(a, g, this)
             } else {
-                return d
-            }
-        },
-        getScheduleRegion: function (d, f) {
-            var h = d ? Ext.fly(this.getNodeByRecord(d)).getRegion() : this.el.down(".x-grid-table").getRegion(),
-                e = this.timeAxis.getStart(),
-                j = this.timeAxis.getEnd(),
-                b = this.getDateConstraints(d, f) || {
-                    start: e,
-                    end: j
-                }, c = this.translateToPageCoordinate(this.getXYFromDate(b.start)[0]),
-                i = this.translateToPageCoordinate(this.getXYFromDate(b.end)[0]) - this.eventBorderWidth,
-                g = h.top + this.barMargin,
-                a = h.bottom - this.barMargin - this.eventBorderWidth;
-            return new Ext.util.Region(g, Math.max(c, i), a, Math.min(c, i))
-        },
-        getResourceRegion: function (h, d, g) {
-            var k = Ext.fly(this.getNodeByRecord(h)).getRegion(),
-                i = this.timeAxis.getStart(),
-                n = this.timeAxis.getEnd(),
-                c = d ? Sch.util.Date.max(i, d) : i,
-                e = g ? Sch.util.Date.min(n, g) : n,
-                f = this.getXYFromDate(c)[0],
-                m = this.getXYFromDate(e)[0] - this.eventBorderWidth,
-                l = this.el.getTop(),
-                b = this.el.getScroll(),
-                j = k.top + 1 - l + b.top,
-                a = k.bottom - 1 - l + b.top;
-            return new Ext.util.Region(j, Math.max(f, m), a, Math.min(f, m))
-        },
-        collectRowData: function (g, p, o) {
-            var c = this.eventStore.getEventsForResource(p);
-            if (c.length === 0 || this.headerCt.getColumnCount() === 0) {
-                g.rowHeight = this.rowHeight;
-                return g
-            }
-            var a = Sch.util.Date,
-                m = this.timeAxis,
-                n = m.getStart(),
-                r = m.getEnd(),
-                k = [],
-                j, f;
-            for (j = 0, f = c.length; j < f; j++) {
-                var b = c[j],
-                    d = b.getStartDate(),
-                    h = b.getEndDate();
-                if (d && h && m.timeSpanInAxis(d, h)) {
-                    var q = this.generateTplData(b, n, r, p, o);
-                    k[k.length] = q
-                }
-            }
-            var e = 1;
-            if (this.dynamicRowHeight) {
-                e = this.layoutEvents(k)
-            }
-            g.rowHeight = (e * this.rowHeight) - ((e - 1) * this.barMargin);
-            g[this.getFirstTimeColumn().id] += "&#160;" + this.eventTpl.apply(k);
-            return g
-        },
-        resolveResource: function (a) {
-            var b = this.findItemByChild(a);
-            if (b) {
-                return this.getRecord(b)
-            }
-            return null
-        },
-        getTimeSpanRegion: function (b, h, g) {
-            var d = this.getXYFromDate(b)[0],
-                f = this.getXYFromDate(h || b)[0],
-                a, c;
-            if (this.store.buffered) {
-                var e;
-                if (this.panel.verticalScroller.stretcher instanceof Ext.CompositeElement) {
-                    e = this.panel.verticalScroller.stretcher.first()
-                } else {
-                    e = this.el.down(".x-stretcher")
-                } if (e.dom.clientHeight) {
-                    c = e
-                }
-            }
-            if (!c) {
-                c = this.el.down(".x-grid-table")
-            }
-            if (g) {
-                a = Math.max(c ? c.dom.clientHeight : 0, this.el.dom.clientHeight)
-            } else {
-                a = c ? c.dom.clientHeight : 0
-            }
-            return new Ext.util.Region(0, Math.max(d, f), a, Math.min(d, f))
-        },
-        getStartEndDatesFromRegion: function (c, b) {
-            var a = this.getDateFromXY([c.left, 0], b),
-                d = this.getDateFromXY([c.right, 0], b);
-            if (d && a) {
-                return {
-                    start: Sch.util.Date.min(a, d),
-                    end: Sch.util.Date.max(a, d)
-                }
-            } else {
-                return null
-            }
-        },
-        onEventAdd: function (m, h) {
-            var e = {};
-            for (var g = 0, c = h.length; g < c; g++) {
-                var a = h[g].getResources();
-                for (var f = 0, d = a.length; f < d; f++) {
-                    var b = a[f];
-                    e[b.getId()] = b
-                }
-            }
-            Ext.Object.each(e, function (j, i) {
-                this.onUpdate(this.resourceStore, i)
-            }, this)
-        },
-        onEventRemove: function (e, b) {
-            var h = b.getResources();
-            var f = this.resourceStore;
-            var a = Ext.tree.View && this instanceof Ext.tree.View;
-            var d = function (i) {
-                if (a && this.store.indexOf(i)) {
-                    this.onUpdate(this.store, i)
-                } else {
-                    if (f.indexOf(i) >= 0) {
-                        this.onUpdate(f, i)
+                var b = h.getEventNodeByRecord(e[d]);
+                if (b) {
+                    var c = h.resolveResource(b);
+                    if (Ext.Element.prototype.fadeOut) {
+                        Ext.get(b).fadeOut({
+                            callback: function () {
+                                g(c)
+                            }
+                        })
+                    } else {
+                        Ext.Anim.run(Ext.get(b), "fade", {
+                            out: true,
+                            duration: 500,
+                            after: function () {
+                                g(c)
+                            },
+                            autoClear: false
+                        })
                     }
                 }
-            };
-            if (h.length > 1) {
-                Ext.each(h, d, this)
-            } else {
-                var c = this.getElementFromEventRecord(b);
-                if (c) {
-                    var g = this.resolveResource(c);
-                    c.fadeOut({
-                        callback: function () {
-                            d.call(this, g)
-                        },
-                        scope: this
-                    })
-                }
             }
-        },
-        onEventUpdate: function (b, c, a) {
-            var d = c.previous;
-            if (d && d[c.resourceIdField]) {
-                var e = c.getResource(d[c.resourceIdField]);
-                if (e) {
-                    this.onUpdate(this.resourceStore, e)
-                }
+        }
+    },
+    onEventUpdate: function (c, d, b) {
+        var e = d.previous;
+        var a = this.view;
+        if (e && e[d.resourceIdField]) {
+            var f = d.getResource(e[d.resourceIdField], a.eventStore);
+            if (f) {
+                a.repaintEventsForResource(f, true)
             }
-            var f = c.getResources();
-            Ext.each(f, function (g) {
-                this.onUpdate(this.resourceStore, g)
-            }, this)
-        },
-        getSingleTickInPixels: function () {
-            return this.getActualTimeColumnWidth()
-        },
-        getColumnWidth: function () {
-            if (this.getTimeAxisColumn()) {
-                return this.getTimeAxisColumn().getTimeColumnWidth()
-            }
-        },
-        setColumnWidth: function (b, a) {
-            if (this.getTimeAxisColumn()) {
-                this.getTimeAxisColumn().setTimeColumnWidth(b);
-                if (!a) {
-                    this.refreshKeepingScroll()
-                }
-            }
-            this.fireEvent("columnwidthchange", this, b)
-        },
-        getVisibleDateRange: function () {
-            if (!this.rendered) {
-                return null
-            }
-            var c = this.getEl().getScroll(),
-                b = this.panel.getStart(),
-                f = this.panel.getEnd(),
-                e = this.getWidth(),
-                d = this.getEl().down(".x-grid-table").dom,
-                a = d.clientWidth;
-            if (a < e) {
-                return {
-                    startDate: b,
-                    endDate: f
-                }
-            }
+        }
+        var g = d.getResources(a.eventStore);
+        Ext.each(g, function (h) {
+            a.repaintEventsForResource(h, true)
+        })
+    },
+    setColumnWidth: function (c, b) {
+        var a = this.view;
+        a.getTimeAxisViewModel().setViewColumnWidth(c, b);
+        a.fireEvent("columnwidthchange", a, c)
+    },
+    getVisibleDateRange: function () {
+        var d = this.view;
+        if (!d.getEl()) {
+            return null
+        }
+        var c = d.getTableRegion(),
+            b = d.timeAxis.getStart(),
+            f = d.timeAxis.getEnd(),
+            e = d.getWidth();
+        if ((c.right - c.left) < e) {
             return {
-                startDate: this.getDateFromXY([c.left, 0], null, true),
-                endDate: this.getDateFromXY([Math.min(c.left + e, a), 0], null, true)
+                startDate: b,
+                endDate: f
             }
+        }
+        var a = d.getScroll();
+        return {
+            startDate: d.getDateFromCoordinate(a.left, null, true),
+            endDate: d.getDateFromCoordinate(a.left + e, null, true)
         }
     }
 });
 Ext.define("Sch.view.Vertical", {
-    props: {
-        translateToScheduleCoordinate: function (a) {
-            return a - this.el.getY() + this.el.getScroll().top
-        },
-        translateToPageCoordinate: function (c) {
-            var b = this.el,
-                a = b.getScroll();
-            return c + b.getY() - a.top
-        },
-        getDateFromXY: function (f, e, d) {
-            var b, g = d ? f[1] : this.translateToScheduleCoordinate(f[1]);
-            var c = g / this.rowHeight,
-                a = this.timeAxis.getCount();
-            if (c < 0 || c > a) {
-                b = null
-            } else {
-                b = this.timeAxis.getDateFromTick(c, e)
+    view: null,
+    constructor: function (a) {
+        Ext.apply(this, a)
+    },
+    translateToScheduleCoordinate: function (b) {
+        var a = this.view;
+        return b - a.getEl().getY() + a.getScroll().top
+    },
+    translateToPageCoordinate: function (d) {
+        var b = this.view;
+        var c = b.getEl(),
+            a = c.getScroll();
+        return d + c.getY() - a.top
+    },
+    getEventRenderData: function (a) {
+        var g = a.getStartDate(),
+            f = a.getEndDate(),
+            i = this.view,
+            e = i.timeAxis.getStart(),
+            j = i.timeAxis.getEnd(),
+            h = Math,
+            d = h.floor(i.getCoordinateFromDate(Sch.util.Date.max(g, e))),
+            k = h.floor(i.getCoordinateFromDate(Sch.util.Date.min(f, j))),
+            c = this.getResourceColumnWidth(a.getResource(), i.eventStore),
+            b;
+        b = {
+            top: h.max(0, h.min(d, k) - i.eventBorderWidth),
+            height: h.max(1, h.abs(d - k))
+        };
+        if (i.managedEventSizing) {
+            b.left = i.barMargin;
+            b.width = c - (2 * i.barMargin) - i.eventBorderWidth
+        }
+        b.start = g;
+        b.end = f;
+        b.startsOutsideView = g < e;
+        b.endsOutsideView = f > j;
+        return b
+    },
+    getScheduleRegion: function (d, f) {
+        var h = this.view,
+            g = d ? Ext.fly(h.getScheduleCell(0, h.resourceStore.indexOf(d))).getRegion() : h.getTableRegion(),
+            e = h.timeAxis.getStart(),
+            k = h.timeAxis.getEnd(),
+            a = h.getDateConstraints(d, f) || {
+                start: e,
+                end: k
+            }, c = this.translateToPageCoordinate(h.getCoordinateFromDate(Sch.util.Date.max(e, a.start))),
+            j = this.translateToPageCoordinate(h.getCoordinateFromDate(Sch.util.Date.min(k, a.end))),
+            b = g.left + h.barMargin,
+            i = (d ? (g.left + this.getResourceColumnWidth(d)) : g.right) - h.barMargin;
+        return new Ext.util.Region(Math.min(c, j), i, Math.max(c, j), b)
+    },
+    getResourceColumnWidth: function (a) {
+        return this.view.resourceColumnWidth
+    },
+    getResourceRegion: function (h, b, g) {
+        var j = this.view,
+            e = j.resourceStore.indexOf(h) * this.getResourceColumnWidth(h),
+            i = j.timeAxis.getStart(),
+            m = j.timeAxis.getEnd(),
+            a = b ? Sch.util.Date.max(i, b) : i,
+            d = g ? Sch.util.Date.min(m, g) : m,
+            f = Math.max(0, j.getCoordinateFromDate(a) - j.cellTopBorderWidth),
+            l = j.getCoordinateFromDate(d) - j.cellTopBorderWidth,
+            c = e + j.cellBorderWidth,
+            k = e + this.getResourceColumnWidth(h) - j.cellBorderWidth;
+        return new Ext.util.Region(Math.min(f, l), k, Math.max(f, l), c)
+    },
+    columnRenderer: function (f, r, m, o, q) {
+        var p = this.view;
+        var e = "";
+        if (o === 0) {
+            var a = Sch.util.Date,
+                k = p.timeAxis,
+                n, c, j, g;
+            n = [];
+            c = p.eventStore.getEventsForResource(m);
+            for (j = 0, g = c.length; j < g; j++) {
+                var b = c[j],
+                    d = b.getStartDate(),
+                    h = b.getEndDate();
+                if (d && h && k.timeSpanInAxis(d, h)) {
+                    n.push(p.generateTplData(b, m, q))
+                }
             }
-            return b
-        },
-        getXYFromDate: function (a, c) {
-            var d = -1,
-                b = this.timeAxis.getTickFromDate(a);
+            p.eventLayout.vertical.applyLayout(n, this.getResourceColumnWidth(m));
+            e = "&#160;" + p.eventTpl.apply(n);
+            if (Ext.isIE) {
+                r.tdAttr = 'style="z-index:1000"'
+            }
+        }
+        if (q % 2 === 1) {
+            r.tdCls = (r.tdCls || "") + " " + p.altColCls;
+            r.cellCls = (r.cellCls || "") + " " + p.altColCls
+        }
+        return e
+    },
+    resolveResource: function (c) {
+        var a = this.view;
+        c = Ext.fly(c).is(a.timeCellSelector) ? c : Ext.fly(c).up(a.timeCellSelector);
+        if (c) {
+            var d = c.dom ? c.dom : c;
+            var b = Ext.Array.indexOf(Array.prototype.slice.call(d.parentNode.children), d);
             if (b >= 0) {
-                d = this.rowHeight * b
+                return a.resourceStore.getAt(b)
             }
-            if (c === false) {
-                d = this.translateToPageCoordinate(d)
-            }
-            return [0, Math.round(d)]
-        },
-        getEventBox: function (e, b) {
-            var a = Math.floor(this.getXYFromDate(e)[1]),
-                c = Math.floor(this.getXYFromDate(b)[1]),
-                d = Math;
-            if (this.managedEventSizing) {
-                return {
-                    left: this.barMargin,
-                    width: this.panel.resourceColumnWidth - (2 * this.barMargin) - this.eventBorderWidth,
-                    top: d.max(0, d.min(a, c) - this.eventBorderWidth),
-                    height: d.max(1, d.abs(a - c))
-                }
-            }
-            return {
-                top: d.min(a, c),
-                height: d.max(1, d.abs(a - c))
-            }
-        },
-        getScheduleRegion: function (d, f) {
-            var g = d ? Ext.fly(this.getCellByPosition({
-                column: this.resourceStore.indexOf(d),
-                row: 0
-            })).getRegion() : this.el.down(".x-grid-table").getRegion(),
-                e = this.timeAxis.getStart(),
-                j = this.timeAxis.getEnd(),
-                a = this.getDateConstraints(d, f) || {
-                    start: e,
-                    end: j
-                }, c = this.translateToPageCoordinate(this.getXYFromDate(Sch.util.Date.min(e, a.start))[1]),
-                i = this.translateToPageCoordinate(this.getXYFromDate(Sch.util.Date.max(j, a.end))[1]),
-                b = g.left + this.barMargin,
-                h = (d ? (g.left + this.panel.resourceColumnWidth) : g.right) - this.barMargin;
-            return new Ext.util.Region(Math.min(c, i), h, Math.max(c, i), b)
-        },
-        getResourceRegion: function (h, b, g) {
-            var d = this.resourceStore.indexOf(h) * this.panel.resourceColumnWidth,
-                i = this.timeAxis.getStart(),
-                l = this.timeAxis.getEnd(),
-                a = b ? Sch.util.Date.max(i, b) : i,
-                e = g ? Sch.util.Date.min(l, g) : l,
-                f = this.getXYFromDate(a)[1],
-                k = this.getXYFromDate(e)[1],
-                c = d + this.barMargin + this.cellBorderWidth,
-                j = d + this.panel.resourceColumnWidth - this.barMargin - this.cellBorderWidth;
-            return new Ext.util.Region(Math.min(f, k), j, Math.max(f, k), c)
-        },
-        layoutEvents: function (r) {
-            if (r.length === 0) {
-                return
-            }
-            r.sort(this.sortEvents);
-            var b, d, a = Sch.util.Date,
-                q = 1,
-                o, n, g = this.panel.resourceColumnWidth - (2 * this.barMargin),
-                k, e;
-            for (var f = 0, c = r.length; f < c; f++) {
-                k = r[f];
-                b = k.start;
-                d = k.end;
-                n = this.findStartSlot(r, k);
-                var m = this.getCluster(r, f);
-                if (m.length > 1) {
-                    k.left = n.start;
-                    k.width = n.end - n.start;
-                    e = 1;
-                    while (e < (m.length - 1) && m[e + 1].start - k.start === 0) {
-                        e++
-                    }
-                    var p = this.findStartSlot(r, m[e]);
-                    if (p && p.start < 0.8) {
-                        m = m.slice(0, e)
-                    }
-                }
-                var h = m.length,
-                    s = (n.end - n.start) / h;
-                for (e = 0; e < h; e++) {
-                    m[e].width = s;
-                    m[e].left = n.start + (e * s)
-                }
-                f += h - 1
-            }
-            for (f = 0, c = r.length; f < c; f++) {
-                r[f].width = r[f].width * g;
-                r[f].left = this.barMargin + (r[f].left * g)
-            }
-        },
-        findStartSlot: function (o, c) {
-            var b = Sch.util.Date,
-                d = c.start,
-                g = c.end,
-                e = 0,
-                f, n = 0,
-                h, m, a = Ext.Array.indexOf(o, c),
-                l = this.getPriorOverlappingEvents(o, c),
-                k;
-            if (l.length === 0) {
-                return {
-                    start: 0,
-                    end: 1
-                }
-            }
-            for (k = 0; k < l.length; k++) {
-                if (k === 0 && l[0].left > 0) {
-                    return {
-                        start: 0,
-                        end: l[0].left
-                    }
-                } else {
-                    if (l[k].left + l[k].width < (k < l.length - 1 ? l[k + 1].left : 1)) {
-                        return {
-                            start: l[k].left + l[k].width,
-                            end: k < l.length - 1 ? l[k + 1].left : 1
-                        }
-                    }
-                }
-            }
-            return false
-        },
-        getPriorOverlappingEvents: function (e, f) {
-            var g = Sch.util.Date,
-                h = f.start,
-                b = f.end,
-                c = [];
-            for (var d = 0, a = Ext.Array.indexOf(e, f); d < a; d++) {
-                if (g.intersectSpans(h, b, e[d].start, e[d].end)) {
-                    c.push(e[d])
-                }
-            }
-            c.sort(function (j, i) {
-                return j.left < i.left ? -1 : 1
-            });
-            return c
-        },
-        getCluster: function (e, g) {
-            if (g >= e.length - 1) {
-                return [e[g]]
-            }
-            var c = [e[g]],
-                b = e.length,
-                h = e[g].start,
-                a = e[g].end,
-                f = Sch.util.Date,
-                d = g + 1;
-            while (d < b && f.intersectSpans(h, a, e[d].start, e[d].end)) {
-                c.push(e[d]);
-                h = f.max(h, e[d].start);
-                a = f.min(e[d].end, a);
-                d++
-            }
-            return c
-        },
-        collectRowData: function (j, b, m) {
-            if (m === 0) {
-                var n = Sch.util.Date,
-                    k = this.timeAxis,
-                    f = k.getStart(),
-                    e = k.getEnd(),
-                    q = [],
-                    o = this.headerCt.getColumnCount(),
-                    h, a, g, t, u, r;
-                for (var p = 0; p < o; p++) {
-                    t = this.getHeaderAtIndex(p);
-                    a = [];
-                    h = this.resourceStore.getAt(p);
-                    g = this.eventStore.getEventsForResource(h);
-                    for (u = 0, r = g.length; u < r; u++) {
-                        var s = g[u],
-                            d = s.getStartDate(),
-                            c = s.getEndDate();
-                        if (d && c && k.timeSpanInAxis(d, c)) {
-                            a.push(this.generateTplData(s, f, e, h, p))
-                        }
-                    }
-                    this.layoutEvents(a);
-                    j[t.id] += "&#160;" + this.eventTpl.apply(a)
-                }
-            }
-            j.rowHeight = this.rowHeight;
-            if (Ext.isIE7 && Ext.isStrict) {
-                j.rowHeight -= 2
-            }
-            return j
-        },
-        resolveResource: function (a) {
-            a = Ext.fly(a).is(this.cellSelector) ? a : Ext.fly(a).up(this.cellSelector);
-            if (a) {
-                var b = this.getHeaderByCell(a.dom ? a.dom : a);
-                if (b) {
-                    return this.resourceStore.getAt(this.headerCt.getHeaderIndex(b))
-                }
-            }
-            return null
-        },
-        onEventUpdate: function (b, c) {
-            this.renderSingle(c);
-            var d = c.previous;
-            var a = c.getResource();
-            if (d && d[c.resourceIdField]) {
-                var e = c.getResource(d[c.resourceIdField]);
+        }
+        return null
+    },
+    onEventUpdate: function (b, c) {
+        this.renderSingle.call(this, c);
+        var a = this.view;
+        var d = c.previous;
+        if (d && d[c.resourceIdField]) {
+            var e = c.getResource(d[c.resourceIdField], a.eventStore);
+            this.relayoutRenderedEvents(e)
+        }
+        this.relayoutRenderedEvents(c.getResource(null, a.eventStore));
+        if (a.getSelectionModel().isSelected(c)) {
+            a.onEventSelect(c, true)
+        }
+    },
+    onEventAdd: function (b, c) {
+        var a = this.view;
+        if (c.length === 1) {
+            this.renderSingle(c[0]);
+            this.relayoutRenderedEvents(c[0].getResource(null, a.eventStore))
+        } else {
+            a.repaintAllEvents()
+        }
+    },
+    onEventRemove: function (b, c) {
+        var a = this.view;
+        if (c.length === 1) {
+            this.relayoutRenderedEvents(this.getResourceByEventRecord(c[0]))
+        } else {
+            a.repaintAllEvents()
+        }
+    },
+    relayoutRenderedEvents: function (h) {
+        var g = [],
+            b = this.view,
+            d, a, f, e, c = b.eventStore.getEventsForResource(h);
+        if (c.length > 0) {
+            for (d = 0, a = c.length; d < a; d++) {
+                f = c[d];
+                e = b.getEventNodeByRecord(f);
                 if (e) {
-                    this.relayoutRenderedEvents(e)
-                }
-            }
-            if (a) {
-                this.relayoutRenderedEvents(a)
-            }
-        },
-        onEventAdd: function (a, b) {
-            if (b.length === 1) {
-                this.renderSingle(b[0]);
-                this.relayoutRenderedEvents(b[0].getResource())
-            } else {
-                this.onUpdate(this.store, this.store.first())
-            }
-        },
-        onEventRemove: function (a, b) {
-            if (b.length === 1) {
-                this.relayoutRenderedEvents(this.getResourceByEventRecord(b[0]))
-            } else {
-                this.onUpdate(this.store, this.store.first())
-            }
-        },
-        relayoutRenderedEvents: function (g) {
-            var f = [],
-                c, a, e, d, b = this.eventStore.getEventsForResource(g);
-            if (b.length > 0) {
-                for (c = 0, a = b.length; c < a; c++) {
-                    e = b[c];
-                    d = this.getEventNodeByRecord(e);
-                    if (d) {
-                        f.push({
-                            start: e.getStartDate(),
-                            end: e.getEndDate(),
-                            id: d.id
-                        })
-                    }
-                }
-                this.layoutEvents(f);
-                for (c = 0; c < f.length; c++) {
-                    e = f[c];
-                    Ext.fly(e.id).setStyle({
-                        left: e.left + "px",
-                        width: e.width + "px"
+                    g.push({
+                        start: f.getStartDate(),
+                        end: f.getEndDate(),
+                        id: e.id
                     })
                 }
             }
-        },
-        renderSingle: function (c) {
-            var f = c.getResource();
-            var b = this.getEventNodeByRecord(c);
-            var e = this.resourceStore.indexOf(f);
-            if (b) {
-                Ext.fly(b).remove()
+            b.eventLayout.vertical.applyLayout(g, this.getResourceColumnWidth(h));
+            for (d = 0; d < g.length; d++) {
+                f = g[d];
+                Ext.fly(f.id).setStyle({
+                    left: f.left + "px",
+                    width: f.width + "px"
+                })
             }
-            if (e < 0) {
-                return
-            }
-            var a = this.getCell(this.store.getAt(0), this.headerCt.getHeaderAtIndex(e)).first();
-            var d = this.generateTplData(c, this.timeAxis.getStart(), this.timeAxis.getEnd(), f, e);
-            this.eventTpl.append(a, [d])
-        },
-        getTimeSpanRegion: function (b, f) {
-            var a = this.getXYFromDate(b)[1],
-                e = this.getXYFromDate(f || b)[1],
-                c = this.el.down(".x-grid-table"),
-                d = (c || this.el).dom.clientWidth;
-            return new Ext.util.Region(Math.min(a, e), d, Math.max(a, e), 0)
-        },
-        getStartEndDatesFromRegion: function (c, b) {
-            var a = this.getDateFromXY([0, c.top], b),
-                d = this.getDateFromXY([0, c.bottom], b);
-            if (top && d) {
-                return {
-                    start: Sch.util.Date.min(a, d),
-                    end: Sch.util.Date.max(a, d)
-                }
-            } else {
-                return null
-            }
-        },
-        getSingleTickInPixels: function () {
-            return this.rowHeight
-        },
-        timeColumnRenderer: function (l, d, h, n, c, b) {
-            var a = "";
-            if (this.timeCellRenderer) {
-                var i = this.timeAxis,
-                    g = i.getAt(n),
-                    f = g.start,
-                    j = g.end,
-                    k = this.resourceStore,
-                    e = k.getAt(c);
-                a = this.timeCellRenderer.call(this.timeCellRendererScope || this, d, e, n, c, k, f, j)
-            }
-            if (Ext.isIE) {
-                d.tdAttr = 'style="z-index:' + (this.store.getCount() - n) + '"'
-            }
-            if (c % 2 === 1) {
-                d.tdCls += " " + this.altColCls
-            }
-            return a
-        },
-        setColumnWidth: function (b, a) {
-            if (this.panel) {
-                this.panel.resourceColumnWidth = b
-            }
-            var c = this.headerCt;
-            c.suspendLayout = true;
-            c.items.each(function (d) {
-                if (d.rendered) {
-                    d.minWidth = undefined;
-                    d.setWidth(b)
-                }
-            });
-            c.suspendLayout = false;
-            c.doLayout();
-            if (!a) {
-                this.refresh()
-            }
-            this.fireEvent("columnwidthchange", this, b)
-        },
-        getVisibleDateRange: function () {
-            if (!this.rendered) {
-                return null
-            }
-            var c = this.getEl().getScroll(),
-                b = this.panel.getStart(),
-                e = this.panel.getEnd(),
-                a = this.getHeight();
-            var d = Ext.query(".x-grid-table", this.getEl().dom)[0];
-            if (d.clientHeight < a) {
-                return {
-                    startDate: b,
-                    endDate: e
-                }
-            }
+        }
+    },
+    renderSingle: function (d) {
+        var a = this.view;
+        var g = d.getResource(null, a.eventStore);
+        var c = a.getEventNodeByRecord(d);
+        var f = a.resourceStore.indexOf(g);
+        if (c) {
+            Ext.fly(c).destroy()
+        }
+        var b = Ext.fly(a.getScheduleCell(0, f));
+        if (!b) {
+            return
+        }
+        var e = a.generateTplData(d, g, f);
+        if (!Ext.versions.touch) {
+            b = b.first()
+        }
+        a.eventTpl.append(b, [e])
+    },
+    getTimeSpanRegion: function (b, g) {
+        var d = this.view,
+            a = d.getCoordinateFromDate(b),
+            f = g ? d.getCoordinateFromDate(g) : a,
+            c = d.getTableRegion(),
+            e = c ? c.right - c.left : d.getEl().dom.clientWidth;
+        return new Ext.util.Region(Math.min(a, f), e, Math.max(a, f), 0)
+    },
+    getStartEndDatesFromRegion: function (d, c, b) {
+        var a = this.view.getDateFromCoordinate(d.top, c),
+            e = this.view.getDateFromCoordinate(d.bottom, c);
+        if (a && e) {
             return {
-                startDate: this.getDateFromXY([0, c.top], null, true),
-                endDate: this.getDateFromXY([0, c.top + a], null, true)
+                start: Sch.util.Date.min(a, e),
+                end: Sch.util.Date.max(a, e)
             }
+        } else {
+            return null
+        }
+    },
+    setColumnWidth: function (c, b) {
+        var a = this.view;
+        a.resourceColumnWidth = c;
+        a.getTimeAxisViewModel().setViewColumnWidth(c, b);
+        a.fireEvent("columnwidthchange", a, c)
+    },
+    getVisibleDateRange: function () {
+        var e = this.view;
+        if (!e.rendered) {
+            return null
+        }
+        var c = e.getScroll(),
+            b = e.getHeight(),
+            d = e.getTableRegion(),
+            f = e.timeAxis.getEnd();
+        if (d.bottom - d.top < b) {
+            var a = e.timeAxis.getStart();
+            return {
+                startDate: a,
+                endDate: f
+            }
+        }
+        return {
+            startDate: e.getDateFromCoordinate(c.top, null, true),
+            endDate: e.getDateFromCoordinate(c.top + b, null, true) || f
         }
     }
 });
@@ -5736,12 +6240,11 @@ Ext.define("Sch.selection.EventModel", {
     alias: "selection.eventmodel",
     requires: ["Ext.util.KeyNav"],
     deselectOnContainerClick: true,
+    selectedOnMouseDown: false,
+    onVetoUIEvent: Ext.emptyFn,
     constructor: function (a) {
         this.addEvents("beforedeselect", "beforeselect", "deselect", "select");
         this.callParent(arguments)
-    },
-    bindStore: function (a, b) {
-        this.callParent([this.view.getEventStore(), b])
     },
     bindComponent: function (a) {
         var b = this,
@@ -5753,15 +6256,25 @@ Ext.define("Sch.selection.EventModel", {
         b.bindStore(a.getEventStore());
         a.on({
             eventclick: b.onEventClick,
-            itemclick: b.onItemClick,
+            eventmousedown: b.onEventMouseDown,
+            itemmousedown: b.onItemMouseDown,
             scope: this
         });
         a.on(c)
     },
-    onEventClick: function (b, a, c) {
-        this.selectWithEvent(a, c)
+    onEventMouseDown: function (b, a, c) {
+        this.selectedOnMouseDown = null;
+        if (!this.isSelected(a)) {
+            this.selectedOnMouseDown = a;
+            this.selectWithEvent(a, c)
+        }
     },
-    onItemClick: function () {
+    onEventClick: function (b, a, c) {
+        if (!this.selectedOnMouseDown) {
+            this.selectWithEvent(a, c)
+        }
+    },
+    onItemMouseDown: function () {
         if (this.deselectOnContainerClick) {
             this.deselectAll()
         }
@@ -5782,7 +6295,7 @@ Ext.define("Sch.selection.EventModel", {
             }
         }
     },
-    selectRange: function () {},
+    selectRange: Ext.emptyFn,
     selectNode: function (c, d, a) {
         var b = this.view.resolveEventRecord(c);
         if (b) {
@@ -5794,10 +6307,19 @@ Ext.define("Sch.selection.EventModel", {
         if (b) {
             this.deselect(b, a)
         }
+    },
+    storeHasSelected: function (a) {
+        var b = this.store;
+        if (a.hasId() && b.getByInternalId(a.internalId)) {
+            return true
+        }
+        return this.callParent(arguments)
     }
 });
 Ext.define("Sch.plugin.Printable", {
     extend: "Ext.AbstractPlugin",
+    alias: "plugin.scheduler_printable",
+    requires: ["Ext.XTemplate"],
     lockableScope: "top",
     docType: "<!DOCTYPE HTML>",
     beforePrint: Ext.emptyFn,
@@ -5812,12 +6334,12 @@ Ext.define("Sch.plugin.Printable", {
         this.scheduler = a;
         a.print = Ext.Function.bind(this.print, this)
     },
-    mainTpl: new Ext.XTemplate('{docType}<html class="x-border-box {htmlClasses}"><head><meta content="text/html; charset=UTF-8" http-equiv="Content-Type" /><title>{title}</title>{styles}</head><body class="sch-print-body {bodyClasses}"><div class="sch-print-ct {componentClasses}" style="width:{totalWidth}px"><div class="sch-print-headerbg" style="border-left-width:{totalWidth}px;height:{headerHeight}px;"></div><div class="sch-print-header-wrap">{[this.printLockedHeader(values)]}{[this.printNormalHeader(values)]}</div>{[this.printLockedGrid(values)]}{[this.printNormalGrid(values)]}</div><script type="text/javascript">{setupScript}<\/script></body></html>', {
+    mainTpl: new Ext.XTemplate('{docType}<html class="' + Ext.baseCSSPrefix + 'border-box {htmlClasses}"><head><meta content="text/html; charset=UTF-8" http-equiv="Content-Type" /><title>{title}</title>{styles}</head><body class="sch-print-body {bodyClasses}"><div class="sch-print-ct {componentClasses}" style="width:{totalWidth}px"><div class="sch-print-headerbg" style="border-left-width:{totalWidth}px;height:{headerHeight}px;"></div><div class="sch-print-header-wrap">{[this.printLockedHeader(values)]}{[this.printNormalHeader(values)]}</div>{[this.printLockedGrid(values)]}{[this.printNormalGrid(values)]}</div><script type="text/javascript">{setupScript}<\/script></body></html>', {
         printLockedHeader: function (a) {
             var b = "";
             if (a.lockedGrid) {
                 b += '<div style="left:-' + a.lockedScroll + "px;margin-right:-" + a.lockedScroll + "px;width:" + (a.lockedWidth + a.lockedScroll) + 'px"';
-                b += 'class="sch-print-lockedheader x-grid-header-ct x-grid-header-ct-default x-docked x-docked-top x-grid-header-ct-docked-top x-grid-header-ct-default-docked-top x-box-layout-ct x-docked-noborder-top x-docked-noborder-right x-docked-noborder-left">';
+                b += 'class="sch-print-lockedheader ' + a.lockedGrid.headerCt.el.dom.className + '">';
                 b += a.lockedHeader;
                 b += "</div>"
             }
@@ -5826,7 +6348,7 @@ Ext.define("Sch.plugin.Printable", {
         printNormalHeader: function (a) {
             var b = "";
             if (a.normalGrid) {
-                b += '<div style="left:' + (a.lockedGrid ? a.lockedWidth : "0") + "px;width:" + a.normalWidth + 'px;" class="sch-print-normalheader x-grid-header-ct x-grid-header-ct-default x-docked x-docked-top x-grid-header-ct-docked-top x-grid-header-ct-default-docked-top x-box-layout-ct x-docked-noborder-top x-docked-noborder-right x-docked-noborder-left">';
+                b += '<div style="left:' + (a.lockedGrid ? a.lockedWidth : "0") + "px;width:" + a.normalWidth + 'px;" class="sch-print-normalheader ' + a.normalGrid.headerCt.el.dom.className + '">';
                 b += '<div style="margin-left:-' + a.normalScroll + 'px">' + a.normalHeader + "</div>";
                 b += "</div>"
             }
@@ -5835,7 +6357,7 @@ Ext.define("Sch.plugin.Printable", {
         printLockedGrid: function (a) {
             var b = "";
             if (a.lockedGrid) {
-                b += '<div id="lockedRowsCt" style="left:-' + a.lockedScroll + "px;margin-right:-" + a.lockedScroll + "px;width:" + (a.lockedWidth + a.lockedScroll) + "px;top:" + a.headerHeight + 'px;" class="sch-print-locked-rows-ct ' + a.innerLockedClasses + ' x-grid-inner-locked">';
+                b += '<div id="lockedRowsCt" style="left:-' + a.lockedScroll + "px;margin-right:-" + a.lockedScroll + "px;width:" + (a.lockedWidth + a.lockedScroll) + "px;top:" + a.headerHeight + 'px;" class="sch-print-locked-rows-ct ' + a.innerLockedClasses + " " + Ext.baseCSSPrefix + 'grid-inner-locked">';
                 b += a.lockedRows;
                 b += "</div>"
             }
@@ -5851,55 +6373,59 @@ Ext.define("Sch.plugin.Printable", {
             return b
         }
     }),
-    getGridContent: function (m) {
-        var l = m.normalGrid,
-            e = m.lockedGrid,
-            n = e.getView(),
-            f = l.getView(),
-            i, d, k, h, j, b, g;
-        this.beforePrint(m);
-        if (e.collapsed && !l.collapsed) {
-            b = e.getWidth() + l.getWidth()
+    getGridContent: function (n) {
+        var m = n.normalGrid,
+            e = n.lockedGrid,
+            o = e.getView(),
+            g = m.getView(),
+            j, d, l, i, k, b, h;
+        this.beforePrint(n);
+        if (e.collapsed && !m.collapsed) {
+            b = e.getWidth() + m.getWidth()
         } else {
-            b = l.getWidth();
-            g = e.getWidth()
+            b = m.getWidth();
+            h = e.getWidth()
         }
-        var c = n.store.getRange();
-        d = n.tpl.apply(n.collectData(c, 0));
-        k = f.tpl.apply(f.collectData(c, 0));
-        h = n.el.getScroll().left;
-        j = f.el.getScroll().left;
+        var c = o.store.getRange();
+        d = o.tpl.apply(o.collectData(c, 0));
+        l = g.tpl.apply(g.collectData(c, 0));
+        i = o.el.getScroll().left;
+        k = g.el.getScroll().left;
         var a = document.createElement("div");
         a.innerHTML = d;
-        e.headerCt.items.each(function (p, o) {
-            if (p.isHidden()) {
-                Ext.fly(a).down("th:nth-child(" + (o + 1) + ")").setWidth(0)
-            }
-        });
-        d = a.innerHTML;
-        if (Sch.feature && Sch.feature.AbstractTimeSpan) {
-            Ext.each((m.normalGrid.plugins || []).concat(m.columnLinesFeature || []), function (o) {
-                if (o instanceof Sch.feature.AbstractTimeSpan) {
-                    k = o.generateMarkup(true) + k
+        a.firstChild.style.width = o.el.dom.style.width;
+        if (Ext.versions.extjs.isLessThan("4.2.1")) {
+            e.headerCt.items.each(function (q, p) {
+                if (q.isHidden()) {
+                    Ext.fly(a).down("colgroup:nth-child(" + (p + 1) + ") col").setWidth(0)
                 }
             })
         }
-        this.afterPrint(m);
+        d = a.innerHTML;
+        if (Sch.feature && Sch.feature.AbstractTimeSpan) {
+            var f = (n.plugins || []).concat(n.normalGrid.plugins || []).concat(n.columnLinesFeature || []);
+            Ext.each(f, function (p) {
+                if (p instanceof Sch.feature.AbstractTimeSpan && p.generateMarkup) {
+                    l = p.generateMarkup(true) + l
+                }
+            })
+        }
+        this.afterPrint(n);
         return {
-            normalHeader: l.headerCt.el.dom.innerHTML,
+            normalHeader: m.headerCt.el.dom.innerHTML,
             lockedHeader: e.headerCt.el.dom.innerHTML,
-            lockedGrid: !e.collapsed,
-            normalGrid: !l.collapsed,
+            lockedGrid: e.collapsed ? false : e,
+            normalGrid: m.collapsed ? false : m,
             lockedRows: d,
-            normalRows: k,
-            lockedScroll: h,
-            normalScroll: j,
-            lockedWidth: g,
+            normalRows: l,
+            lockedScroll: i,
+            normalScroll: k,
+            lockedWidth: h - (Ext.isWebKit ? 1 : 0),
             normalWidth: b,
-            headerHeight: l.headerCt.getHeight(),
+            headerHeight: m.headerCt.getHeight(),
             innerLockedClasses: e.view.el.dom.className,
-            innerNormalClasses: l.view.el.dom.className + (this.fakeBackgroundColor ? " sch-print-fake-background" : ""),
-            width: m.getWidth()
+            innerNormalClasses: m.view.el.dom.className + (this.fakeBackgroundColor ? " sch-print-fake-background" : ""),
+            width: n.getWidth()
         }
     },
     getStylesheets: function () {
@@ -5909,7 +6435,7 @@ Ext.define("Sch.plugin.Printable", {
         var g = this.scheduler;
         if (!(this.mainTpl instanceof Ext.Template)) {
             var a = 22;
-            this.mainTpl = Ext.create("Ext.XTemplate", this.mainTpl, {
+            this.mainTpl = new Ext.XTemplate(this.mainTpl, {
                 compiled: true,
                 disableFormats: true
             })
@@ -5928,52 +6454,61 @@ Ext.define("Sch.plugin.Printable", {
             c = this.mainTpl.apply(Ext.apply({
                 waitText: this.waitText,
                 docType: this.docType,
-                htmlClasses: "",
+                htmlClasses: Ext.getBody().parent().dom.className,
                 bodyClasses: Ext.getBody().dom.className,
                 componentClasses: g.el.dom.className,
                 title: (g.title || ""),
                 styles: b,
                 totalWidth: g.getWidth(),
-                setupScript: "(" + this.setupScript.toString() + ")();"
+                setupScript: ("window.onload = function(){ (" + this.setupScript.toString() + ")(" + g.syncRowHeight + ", " + this.autoPrintAndClose + ", " + Ext.isChrome + ", " + Ext.isIE + "); };")
             }, f));
         var d = window.open("", "printgrid");
+        if (!d || !d.document) {
+            return false
+        }
         this.printWindow = d;
         d.document.write(c);
-        d.document.close();
-        if (this.autoPrintAndClose) {
-            d.print();
-            if (!Ext.isChrome) {
-                d.close()
-            }
-        }
+        d.document.close()
     },
-    setupScript: function () {
-        var f = document.getElementById("lockedRowsCt"),
-            d = document.getElementById("normalRowsCt"),
-            b = f && f.getElementsByTagName("tr"),
-            a = d && d.getElementsByTagName("tr"),
-            e = a && b ? a.length : 0,
-            c = 0;
-        for (; c < e; c++) {
-            b[c].style.height = a[c].style.height
+    setupScript: function (e, a, d, b) {
+        var c = function () {
+            if (e) {
+                var f = document.getElementById("lockedRowsCt"),
+                    o = document.getElementById("normalRowsCt"),
+                    g = f && f.getElementsByTagName("tr"),
+                    m = o && o.getElementsByTagName("tr"),
+                    k = m && g ? m.length : 0;
+                for (var j = 0; j < k; j++) {
+                    var h = m[j].clientHeight;
+                    var l = g[j].clientHeight;
+                    var n = Math.max(h, l) + "px";
+                    g[j].style.height = m[j].style.height = n
+                }
+            }
+            document._loaded = true;
+            if (a) {
+                window.print();
+                if (!d) {
+                    window.close()
+                }
+            }
+        };
+        if (b) {
+            setTimeout(c, 0)
+        } else {
+            c()
         }
     }
 });
 Ext.define("Sch.plugin.Export", {
     extend: "Ext.util.Observable",
     alternateClassName: "Sch.plugin.PdfExport",
+    alias: "plugin.scheduler_export",
     mixins: ["Ext.AbstractPlugin"],
+    requires: ["Ext.XTemplate"],
     lockableScope: "top",
     printServer: undefined,
-    tpl: new Ext.XTemplate('<!DOCTYPE html><html class="x-border-box {htmlClasses}"><head><meta content="text/html; charset=UTF-8" http-equiv="Content-Type" /><title>{column}/{row}</title>{styles}</head><body class="x-webkit sch-export {bodyClasses}">{[this.showHeader(values)]}<div class="{componentClasses}" style="height:{bodyHeight}px; width:{totalWidth}px; position: relative !important">{HTML}</div></body></html>', {
-        disableFormats: true,
-        showHeader: function (a) {
-            if (a.showHeader) {
-                return '<div class="sch-export-header" style="width:' + a.totalWidth + 'px"><h2>' + a.column + "/" + a.row + "</h2></div>"
-            }
-            return ""
-        }
-    }),
+    tpl: null,
     exportDialogClassName: "Sch.widget.ExportDialog",
     exportDialogConfig: {},
     defaultConfig: {
@@ -5983,6 +6518,7 @@ Ext.define("Sch.plugin.Export", {
         showHeader: true,
         singlePageExport: false
     },
+    expandAllBeforeExport: false,
     pageSizes: {
         A5: {
             width: 5.8,
@@ -5999,9 +6535,15 @@ Ext.define("Sch.plugin.Export", {
         Letter: {
             width: 8.5,
             height: 11
+        },
+        Legal: {
+            width: 8.5,
+            height: 14
         }
     },
     openAfterExport: true,
+    beforeExport: Ext.emptyFn,
+    afterExport: Ext.emptyFn,
     fileFormat: "pdf",
     DPI: 72,
     constructor: function (a) {
@@ -6014,7 +6556,12 @@ Ext.define("Sch.plugin.Export", {
                 }
             })
         }
-        this.callParent(arguments);
+        this.callParent([a]);
+        if (!this.tpl) {
+            this.tpl = new Ext.XTemplate('<!DOCTYPE html><html class="' + Ext.baseCSSPrefix + 'border-box {htmlClasses}"><head><meta content="text/html; charset=UTF-8" http-equiv="Content-Type" /><title>{column}/{row}</title>{styles}</head><body class="' + Ext.baseCSSPrefix + 'webkit sch-export {bodyClasses}"><tpl if="showHeader"><div class="sch-export-header" style="width:{totalWidth}px"><h2>{column}/{row}</h2></div></tpl><div class="{componentClasses}" style="height:{bodyHeight}px; width:{totalWidth}px; position: relative !important">{HTML}</div></body></html>', {
+                disableFormats: true
+            })
+        }
         this.addEvents("hidedialogwindow", "showdialogerror", "updateprogressbar");
         this.setFileFormat(this.fileFormat)
     },
@@ -6047,8 +6594,8 @@ Ext.define("Sch.plugin.Export", {
             exportDialogConfig: Ext.apply({
                 startDate: b.scheduler.getStart(),
                 endDate: b.scheduler.getEnd(),
-                rowHeight: a.rowHeight,
-                columnWidth: a.getSingleTickInPixels(),
+                rowHeight: a.timeAxisViewModel.getViewRowHeight(),
+                columnWidth: a.timeAxisViewModel.getTickWidth(),
                 defaultConfig: b.defaultConfig
             }, b.exportDialogConfig)
         });
@@ -6057,17 +6604,21 @@ Ext.define("Sch.plugin.Export", {
     },
     saveRestoreData: function () {
         var b = this.scheduler,
-            a = b.getSchedulingView();
+            a = b.getSchedulingView(),
+            c = b.normalGrid,
+            d = b.lockedGrid;
         this.restoreSettings = {
             width: b.getWidth(),
             height: b.getHeight(),
-            rowHeight: a.rowHeight,
-            columnWidth: a.getSingleTickInPixels(),
+            rowHeight: a.timeAxisViewModel.getViewRowHeight(),
+            columnWidth: a.timeAxisViewModel.getTickWidth(),
             startDate: b.getStart(),
             endDate: b.getEnd(),
-            normalWidth: b.normalGrid.getWidth(),
-            normalLeft: b.normalGrid.getEl().getStyle("left"),
-            lockedWidth: b.lockedGrid.getWidth()
+            normalWidth: c.getWidth(),
+            normalLeft: c.getEl().getStyle("left"),
+            lockedWidth: d.getWidth(),
+            lockedCollapse: d.collapsed,
+            normalCollapse: c.collapsed
         }
     },
     getStylesheets: function () {
@@ -6082,178 +6633,231 @@ Ext.define("Sch.plugin.Export", {
         b = a.dom.innerHTML + "";
         return b
     },
-    doExport: function (k, h, m) {
+    doExport: function (n, j, q) {
         this.mask();
-        var B = this,
-            l = B.scheduler,
-            n = l.getSchedulingView(),
-            j = B.getStylesheets(),
-            z = k || B.defaultConfig,
-            o = l.normalGrid,
-            u = o.headerCt.getHeight();
-        if (!B.restoreSettings) {
-            B.saveRestoreData()
+        var K = this,
+            p = K.scheduler,
+            r = p.getSchedulingView(),
+            m = K.getStylesheets(),
+            I = n || K.defaultConfig,
+            s = p.normalGrid,
+            F = p.lockedGrid,
+            A = s.headerCt.getHeight();
+        K.saveRestoreData();
+        s.expand();
+        F.expand();
+        K.fireEvent("updateprogressbar", 0.1);
+        if (this.expandAllBeforeExport && p.expandAll) {
+            p.expandAll()
         }
-        B.fireEvent("updateprogressbar", 0.1);
-        if (l.expandAll) {
-            l.expandAll()
-        }
-        var A = l.timeAxis.getTicks(),
-            p = n.getSingleTickInPixels(),
-            w, d, f;
-        if (!z.singlePageExport) {
-            if (z.orientation === "landscape") {
-                w = B.pageSizes[z.format].height * B.DPI;
-                f = B.pageSizes[z.format].width * B.DPI
+        var J = p.timeAxis.getTicks(),
+            t = r.timeAxisViewModel.getTickWidth(),
+            D, e, g;
+        if (!I.singlePageExport) {
+            if (I.orientation === "landscape") {
+                D = K.pageSizes[I.format].height * K.DPI;
+                g = K.pageSizes[I.format].width * K.DPI
             } else {
-                w = B.pageSizes[z.format].width * B.DPI;
-                f = B.pageSizes[z.format].height * B.DPI
+                D = K.pageSizes[I.format].width * K.DPI;
+                g = K.pageSizes[I.format].height * K.DPI
             }
-            var y = 41;
-            d = Math.floor(f) - u - (z.showHeader ? y : 0)
+            var H = 41;
+            e = Math.floor(g) - A - (I.showHeader ? H : 0)
         }
-        if (z.range !== "complete") {
-            var c, a, i, b, s;
-            if (z.range === "date") {
-                c = new Date(z.dateFrom);
-                a = new Date(z.dateTo);
-                if (Sch.util.Date.getDurationInDays(c, a < 1)) {
-                    a = Sch.util.Date.add(a, Sch.util.Date.DAY, 1);
-                    a = Sch.util.Date.constrain(a, l.getStart(), l.getEnd())
+        r.timeAxisViewModel.suppressFit = true;
+        var E = 0;
+        var k = 0;
+        if (I.range !== "complete") {
+            var d, b;
+            switch (I.range) {
+            case "date":
+                d = new Date(I.dateFrom);
+                b = new Date(I.dateTo);
+                if (Sch.util.Date.getDurationInDays(d, b) < 1) {
+                    b = Sch.util.Date.add(b, Sch.util.Date.DAY, 1)
                 }
-            } else {
-                if (z.range === "current") {
-                    i = n.getVisibleDateRange();
-                    c = i.startDate;
-                    a = i.endDate
+                d = Sch.util.Date.constrain(d, p.getStart(), p.getEnd());
+                b = Sch.util.Date.constrain(b, p.getStart(), p.getEnd());
+                break;
+            case "current":
+                var L = r.getVisibleDateRange();
+                d = L.startDate;
+                b = L.endDate || r.timeAxis.getEnd();
+                if (I.cellSize) {
+                    t = I.cellSize[0];
+                    if (I.cellSize.length > 1) {
+                        r.setRowHeight(I.cellSize[1])
+                    }
                 }
+                break
             }
-            b = Math.floor(n.timeAxis.getTickFromDate(c));
-            s = Math.floor(n.timeAxis.getTickFromDate(a));
-            A = A.filter(function (D, C) {
-                return C >= b && C <= s
-            });
-            l.setTimeSpan(c, a)
-        }
-        var v, t;
-        if (!z.singlePageExport) {
-            l.setWidth(w);
-            l.setTimeColumnWidth(p);
-            var g = B.calculatePages(z, A, p, w, d),
-                x = {
-                    ticks: A,
-                    printHeight: d,
-                    paperWidth: w,
-                    headerHeight: u,
-                    styles: j,
-                    config: z
-                };
-            t = B.getExportJsonHtml(g, x);
-            v = z.format
-        } else {
-            t = B.getExportJsonHtml(null, {
-                styles: j,
-                config: z,
-                timeColumnWidth: p,
-                ticks: A
-            });
-            var e = B.getRealSize(),
-                r = Ext.Number.toFixed(e.width / B.DPI, 1),
-                q = Ext.Number.toFixed(e.height / B.DPI, 1);
-            v = r + "in*" + q + "in"
-        }
-        B.fireEvent("updateprogressbar", 0.4);
-        if (B.printServer) {
-            Ext.Ajax.request({
-                type: "POST",
-                url: B.printServer,
-                params: {
-                    html: {
-                        array: t
-                    },
-                    format: v,
-                    orientation: z.orientation,
-                    range: z.range,
-                    fileFormat: B.fileFormat
-                },
-                success: function (C) {
-                    B.onSuccess(C, h, m)
-                },
-                failure: function (C) {
-                    B.onFailure(C, m)
-                },
-                scope: B
+            p.setTimeSpan(d, b);
+            var c = Math.floor(r.timeAxis.getTickFromDate(d));
+            var x = Math.floor(r.timeAxis.getTickFromDate(b));
+            J = p.timeAxis.getTicks();
+            J = Ext.Array.filter(J, function (i, a) {
+                if (a < c) {
+                    E++;
+                    return false
+                } else {
+                    if (a > x) {
+                        k++;
+                        return false
+                    }
+                }
+                return true
             })
-        } else {
-            throw "Server url not defined !"
         }
-        B.restorePanel()
+        this.beforeExport(p, J);
+        var C, z, h;
+        if (!I.singlePageExport) {
+            p.setWidth(D);
+            p.setTimeColumnWidth(t);
+            r.timeAxisViewModel.setTickWidth(t);
+            h = K.calculatePages(I, J, t, D, e);
+            z = K.getExportJsonHtml(h, {
+                styles: m,
+                config: I,
+                ticks: J,
+                skippedColsBefore: E,
+                skippedColsAfter: k,
+                printHeight: e,
+                paperWidth: D,
+                headerHeight: A
+            });
+            C = I.format
+        } else {
+            z = K.getExportJsonHtml(null, {
+                styles: m,
+                config: I,
+                ticks: J,
+                skippedColsBefore: E,
+                skippedColsAfter: k,
+                timeColumnWidth: t
+            });
+            var f = K.getRealSize(),
+                v = Ext.Number.toFixed(f.width / K.DPI, 1),
+                u = Ext.Number.toFixed(f.height / K.DPI, 1);
+            C = v + "in*" + u + "in"
+        }
+        K.fireEvent("updateprogressbar", 0.4);
+        if (K.printServer) {
+            if (!K.debug && !K.test) {
+                Ext.Ajax.request({
+                    type: "POST",
+                    url: K.printServer,
+                    timeout: 60000,
+                    params: Ext.apply({
+                        html: {
+                            array: z
+                        },
+                        startDate: p.getStartDate(),
+                        endDate: p.getEndDate(),
+                        format: C,
+                        orientation: I.orientation,
+                        range: I.range,
+                        fileFormat: K.fileFormat
+                    }, this.getParameters()),
+                    success: function (a) {
+                        K.onSuccess(a, j, q)
+                    },
+                    failure: function (a) {
+                        K.onFailure(a, q)
+                    },
+                    scope: K
+                })
+            } else {
+                if (K.debug) {
+                    var o, G = Ext.JSON.decode(z);
+                    for (var B = 0, y = G.length; B < y; B++) {
+                        o = window.open();
+                        o.document.write(G[B].html);
+                        o.document.close()
+                    }
+                }
+            }
+        } else {
+            throw "Print server URL is not defined, please specify printServer config"
+        }
+        r.timeAxisViewModel.suppressFit = false;
+        K.restorePanel();
+        this.afterExport(p);
+        if (K.test) {
+            return {
+                htmlArray: Ext.JSON.decode(z),
+                calculatedPages: h
+            }
+        }
+    },
+    getParameters: function () {
+        return {}
     },
     getRealSize: function () {
         var c = this.scheduler,
             b = c.normalGrid.headerCt.getHeight(),
-            a = (b + c.lockedGrid.getView().getEl().down(".x-grid-table").getHeight()),
-            d = (c.lockedGrid.headerCt.getEl().first().getWidth() + c.normalGrid.body.select(".x-grid-table").first().getWidth());
+            a = (b + c.lockedGrid.getView().getEl().down("." + Ext.baseCSSPrefix + "grid-table").getHeight()),
+            d = (c.lockedGrid.headerCt.getEl().first().getWidth() + c.normalGrid.body.select("." + Ext.baseCSSPrefix + "grid-table").first().getWidth());
         return {
             width: d,
             height: a
         }
     },
-    calculatePages: function (t, u, k, r, b) {
-        var v = this,
-            j = v.scheduler,
-            s = j.lockedGrid,
-            c = j.getSchedulingView().rowHeight,
-            w = s.headerCt,
-            q = w.getEl().first().getWidth(),
-            i = null,
-            l = 0;
-        if (q > s.getWidth()) {
+    calculatePages: function (r, s, j, p, b) {
+        var t = this,
+            i = t.scheduler,
+            q = i.lockedGrid,
+            c = i.getSchedulingView().timeAxisViewModel.getViewRowHeight(),
+            u = q.headerCt,
+            o = u.getEl().first().getWidth(),
+            h = null,
+            k = 0;
+        if (o > q.getWidth()) {
             var g = 0,
                 d = 0,
-                o = 0,
-                p = false,
+                m = 0,
+                n = false,
                 e;
-            i = [];
-            s.headerCt.items.each(function (A, y, x) {
-                e = A.width;
-                if (!o || o + e < r) {
-                    o += e;
-                    if (y === x - 1) {
-                        p = true;
-                        var z = r - o;
-                        l = Math.floor(z / k)
+            h = [];
+            q.headerCt.items.each(function (y, w, v) {
+                e = y.width;
+                if (!m || m + e < p) {
+                    m += e;
+                    if (w === v - 1) {
+                        n = true;
+                        var x = p - m;
+                        k = Math.floor(x / j)
                     }
                 } else {
-                    p = true
-                } if (p) {
-                    d = y;
-                    i.push({
+                    n = true
+                } if (n) {
+                    d = w;
+                    h.push({
                         firstColumnIdx: g,
                         lastColumnIdx: d,
-                        totalColumnsWidth: o || e
+                        totalColumnsWidth: m || e
                     });
                     g = d + 1;
-                    o = 0
+                    m = 0
                 }
             })
         } else {
-            l = Math.floor((r - q) / k)
+            k = Math.floor((p - o) / j)
         }
-        var n = Math.floor(r / k),
-            a = Math.ceil((u.length - l) / n) + 1,
-            h = j.getSchedulingView().store.getCount(),
-            f = Math.floor(b / c),
-            m = Math.ceil(h / f);
+        var l = Math.floor(p / j),
+            a = Math.ceil((s.length - k) / l),
+            f = Math.floor(b / c);
+        if (!h || a === 0) {
+            a += 1
+        }
         return {
-            columnsAmountLocked: l,
-            columnsAmountNormal: n,
-            lockedColumnPages: i,
+            columnsAmountLocked: k,
+            columnsAmountNormal: l,
+            lockedColumnPages: h,
             rowsAmount: f,
-            rowPages: m,
+            rowPages: Math.ceil(i.getSchedulingView().store.getCount() / f),
             columnPages: a,
-            timeColumnWidth: k,
-            lockedGridWidth: q,
+            timeColumnWidth: j,
+            lockedGridWidth: o,
             rowHeight: c,
             panelHTML: {}
         }
@@ -6262,7 +6866,7 @@ Ext.define("Sch.plugin.Export", {
         var H = this,
             n = H.scheduler,
             y = [],
-            v = new RegExp(/x-ie\d?|x-gecko/g),
+            v = new RegExp(Ext.baseCSSPrefix + "ie\\d?|" + Ext.baseCSSPrefix + "gecko", "g"),
             B = Ext.getBody().dom.className.replace(v, ""),
             q = n.el.dom.className,
             m = E.styles,
@@ -6270,7 +6874,7 @@ Ext.define("Sch.plugin.Export", {
             G = E.ticks,
             o, d, e, p, r;
         if (Ext.isIE) {
-            B += " x-ie-export"
+            B += " sch-ie-export"
         }
         n.timeAxis.autoAdjust = false;
         if (!F.singlePageExport) {
@@ -6283,14 +6887,17 @@ Ext.define("Sch.plugin.Export", {
                 C = E.paperWidth,
                 c = E.printHeight,
                 z = E.headerHeight,
-                j, b, g;
+                j = null,
+                b, g;
             r = f.timeColumnWidth;
             o = f.panelHTML;
+            o.skippedColsBefore = E.skippedColsBefore;
+            o.skippedColsAfter = E.skippedColsAfter;
             if (l) {
                 g = l.length;
                 a += g
             }
-            for (var A = 0; A < a; A += 1) {
+            for (var A = 0; A < a; A++) {
                 if (l && A < g) {
                     if (A === g - 1 && s !== 0) {
                         n.normalGrid.show();
@@ -6304,17 +6911,18 @@ Ext.define("Sch.plugin.Export", {
                     this.hideLockedColumns(D.firstColumnIdx, D.lastColumnIdx);
                     n.lockedGrid.setWidth(D.totalColumnsWidth + 1)
                 } else {
-                    this.showLockedColumns();
                     if (A === 0) {
+                        this.showLockedColumns();
                         if (s !== 0) {
                             n.normalGrid.show()
                         }
-                        j = Ext.Number.constrain((s - 1), 0, (G.length - 1));
+                        j = Ext.Number.constrain(s - 1, 0, G.length - 1);
                         n.setTimeSpan(G[0].start, G[j].end)
                     } else {
+                        n.lockedGrid.hide();
                         n.normalGrid.show();
-                        if (!b) {
-                            b = n.lockedGrid.hide()
+                        if (j === null) {
+                            j = -1
                         }
                         if (G[j + u]) {
                             n.setTimeSpan(G[j + 1].start, G[j + u].end);
@@ -6324,7 +6932,8 @@ Ext.define("Sch.plugin.Export", {
                         }
                     }
                 }
-                n.setTimeColumnWidth(r);
+                n.setTimeColumnWidth(r, true);
+                n.getSchedulingView().timeAxisViewModel.setTickWidth(r);
                 for (var x = 0; x < t; x += 1) {
                     H.hideRows(h, x);
                     o.dom = n.body.dom.innerHTML;
@@ -6356,11 +6965,15 @@ Ext.define("Sch.plugin.Export", {
             n.setTimeSpan(G[0].start, G[G.length - 1].end);
             n.lockedGrid.setWidth(n.lockedGrid.headerCt.getEl().first().getWidth());
             n.setTimeColumnWidth(r);
+            n.getSchedulingView().timeAxisViewModel.setTickWidth(r);
             var w = H.getRealSize();
             Ext.apply(o, {
                 dom: n.body.dom.innerHTML,
                 column: 1,
-                row: 1
+                row: 1,
+                timeColumnWidth: E.timeColumnWidth,
+                skippedColsBefore: E.skippedColsBefore,
+                skippedColsAfter: E.skippedColsAfter
             });
             d = H.resizePanelHTML(o);
             p = H.tpl.apply(Ext.apply({
@@ -6381,68 +6994,80 @@ Ext.define("Sch.plugin.Export", {
         return Ext.JSON.encode(y)
     },
     resizePanelHTML: function (f) {
-        var j = Ext.get(Ext.core.DomHelper.createDom({
+        var k = Ext.get(Ext.core.DomHelper.createDom({
             tag: "div",
             html: f.dom
         })),
-            i = this.scheduler,
-            d = i.lockedGrid,
-            h = i.normalGrid,
-            e, b;
+            j = this.scheduler,
+            d = j.lockedGrid,
+            i = j.normalGrid,
+            g, e, b;
         if (Ext.isIE6 || Ext.isIE7 || Ext.isIEQuirks) {
-            var g = document.createDocumentFragment(),
+            var h = document.createDocumentFragment(),
                 a, c;
-            if (g.getElementById) {
+            if (h.getElementById) {
                 a = "getElementById";
                 c = ""
             } else {
                 a = "querySelector";
                 c = "#"
             }
-            g.appendChild(j.dom);
-            e = [g[a](c + i.id + "-targetEl"), g[a](c + i.id + "-innerCt"), g[a](c + d.id), g[a](c + d.body.id), g[a](c + d.body.child(".x-grid-view").id)];
-            b = [g[a](c + h.id), g[a](c + h.headerCt.id), g[a](c + h.body.id), g[a](c + h.getView().id)];
-            Ext.Array.each(e, function (k) {
-                if (k !== null) {
-                    k.style.height = "100%";
-                    k.style.width = "100%"
+            h.appendChild(k.dom);
+            g = d.view.el;
+            e = [h[a](c + j.id + "-targetEl"), h[a](c + j.id + "-innerCt"), h[a](c + d.id), h[a](c + d.body.id), h[a](c + g.id)];
+            b = [h[a](c + i.id), h[a](c + i.headerCt.id), h[a](c + i.body.id), h[a](c + i.getView().id)];
+            Ext.Array.each(e, function (l) {
+                if (l !== null) {
+                    l.style.height = "100%";
+                    l.style.width = "100%"
                 }
             });
-            Ext.Array.each(b, function (l, k) {
-                if (l !== null) {
-                    if (k === 1) {
-                        l.style.width = "100%"
+            Ext.Array.each(b, function (m, l) {
+                if (m !== null) {
+                    if (l === 1) {
+                        m.style.width = "100%"
                     } else {
-                        l.style.height = "100%";
-                        l.style.width = "100%"
+                        m.style.height = "100%";
+                        m.style.width = "100%"
                     }
                 }
             });
-            j.dom.innerHTML = g.firstChild.innerHTML
+            k.dom.innerHTML = h.firstChild.innerHTML
         } else {
-            e = [j.select("#" + i.id + "-targetEl").first(), j.select("#" + i.id + "-innerCt").first(), j.select("#" + d.id).first(), j.select("#" + d.body.id).first(), j.select("#" + d.body.child(".x-grid-view").id).first()];
-            b = [j.select("#" + h.id).first(), j.select("#" + h.headerCt.id).first(), j.select("#" + h.body.id).first(), j.select("#" + h.getView().id).first()];
-            Ext.Array.each(e, function (l, k) {
-                if (l) {
-                    l.setHeight("100%");
-                    k !== 3 && l.setWidth("100%")
+            g = d.view.el;
+            e = [k.select("#" + j.id + "-targetEl").first(), k.select("#" + j.id + "-innerCt").first(), k.select("#" + d.id).first(), k.select("#" + d.body.id).first(), k.select("#" + g.id)];
+            b = [k.select("#" + i.id).first(), k.select("#" + i.headerCt.id).first(), k.select("#" + i.body.id).first(), k.select("#" + i.getView().id).first()];
+            Ext.Array.each(e, function (m, l) {
+                if (m) {
+                    m.setHeight("100%");
+                    if (l !== 3 && l !== 2) {
+                        m.setWidth("100%")
+                    }
                 }
             });
-            Ext.Array.each(b, function (l, k) {
-                if (k === 1) {
-                    l.setWidth("100%")
+            Ext.Array.each(b, function (m, l) {
+                if (l === 1) {
+                    m.setWidth("100%")
                 } else {
-                    l.applyStyles({
+                    m.applyStyles({
                         height: "100%",
                         width: "100%"
                     })
                 }
             })
         }
-        return j
+        return k
     },
     getWin: function () {
         return this.win || null
+    },
+    hideDialogWindow: function (a) {
+        var b = this;
+        b.fireEvent("hidedialogwindow", a);
+        b.unmask();
+        if (b.openAfterExport) {
+            window.open(a.url, "ExportedPanel")
+        }
     },
     onSuccess: function (c, h, b) {
         var d = this,
@@ -6454,17 +7079,13 @@ Ext.define("Sch.plugin.Export", {
             this.onFailure(c, b);
             return
         }
-        d.fireEvent("updateprogressbar", 1);
+        d.fireEvent("updateprogressbar", 1, a);
         if (a.success) {
             setTimeout(function () {
-                d.fireEvent("hidedialogwindow");
-                d.unmask();
-                if (d.openAfterExport) {
-                    window.open(a.url, "ExportedPanel")
-                }
+                d.hideDialogWindow(a)
             }, g ? g.hideTime : 3000)
         } else {
-            d.fireEvent("showdialogerror", g, a.msg);
+            d.fireEvent("showdialogerror", g, a.msg, a);
             d.unmask()
         } if (h) {
             h.call(this, c)
@@ -6472,38 +7093,33 @@ Ext.define("Sch.plugin.Export", {
     },
     onFailure: function (b, a) {
         var c = this.getWin(),
-            d = b.statusText;
+            d = b.status === 200 ? b.responseText : b.statusText;
         this.fireEvent("showdialogerror", c, d);
         this.unmask();
         if (a) {
             a.call(this, b)
         }
     },
-    hideRows: function (d, f) {
-        var c = this.scheduler.lockedGrid.getEl().select(".x-grid-row"),
-            a = this.scheduler.normalGrid.getEl().select(".x-grid-row"),
-            g = d * f,
-            b = g + d;
-        for (var e = 0; e < a.elements.length; e += 1) {
-            if (e < g || e >= b) {
-                c.elements[e].className += " sch-none";
-                a.elements[e].className += " sch-none"
+    hideRows: function (e, g) {
+        var d = this.scheduler.lockedGrid.view.getNodes(),
+            a = this.scheduler.normalGrid.view.getNodes(),
+            h = e * g,
+            c = h + e;
+        for (var f = 0, b = a.length; f < b; f++) {
+            if (f < h || f >= c) {
+                d[f].className += " sch-none";
+                a[f].className += " sch-none"
             }
         }
     },
     showRows: function () {
-        var b = this.scheduler.lockedGrid.getEl().select(".x-grid-row"),
-            a = this.scheduler.normalGrid.getEl().select(".x-grid-row");
-        b.each(function (c) {
-            c.removeCls("sch-none")
-        });
-        a.each(function (c) {
-            c.removeCls("sch-none")
+        this.scheduler.getEl().select(this.scheduler.getSchedulingView().getItemSelector()).each(function (a) {
+            a.removeCls("sch-none")
         })
     },
     hideLockedColumns: function (c, e) {
         var d = this.scheduler.lockedGrid.headerCt.items.items;
-        for (var b = 0, a = d.length; b < a; b += 1) {
+        for (var b = 0, a = d.length; b < a; b++) {
             if (b < c || b > e) {
                 d[b].hide()
             }
@@ -6532,7 +7148,13 @@ Ext.define("Sch.plugin.Export", {
         b.lockedGrid.show();
         b.normalGrid.setWidth(a.normalWidth);
         b.normalGrid.getEl().setStyle("left", a.normalLeft);
-        b.lockedGrid.setWidth(a.lockedWidth)
+        b.lockedGrid.setWidth(a.lockedWidth);
+        if (a.lockedCollapse) {
+            b.lockedGrid.collapse()
+        }
+        if (a.normalCollapse) {
+            b.normalGrid.collapse()
+        }
     },
     destroy: function () {
         if (this.win) {
@@ -6542,45 +7164,83 @@ Ext.define("Sch.plugin.Export", {
 });
 Ext.define("Sch.plugin.Lines", {
     extend: "Sch.feature.AbstractTimeSpan",
+    alias: "plugin.scheduler_lines",
     cls: "sch-timeline",
     showTip: true,
     innerTpl: null,
-    init: function (b) {
-        this.callParent(arguments);
-        var a = this.schedulerView;
+    prepareTemplateData: null,
+    side: null,
+    init: function (a) {
         if (Ext.isString(this.innerTpl)) {
             this.innerTpl = new Ext.XTemplate(this.innerTpl)
         }
-        var c = this.innerTpl;
+        this.side = a.rtl ? "right" : "left";
+        var b = this.innerTpl;
         if (!this.template) {
-            this.template = new Ext.XTemplate('<tpl for=".">', '<div id="' + this.uniqueCls + '-{id}"' + (this.showTip ? 'title="{[this.getTipText(values)]}" ' : "") + 'class="' + this.cls + " " + this.uniqueCls + ' {Cls}" style="left:{left}px;top:{top}px;height:{height}px;width:{width}px">' + (c ? "{[this.renderInner(values)]}" : "") + "</div>", "</tpl>", {
-                getTipText: function (d) {
-                    return a.getFormattedDate(d.Date) + " " + (d.Text || "")
+            this.template = new Ext.XTemplate('<tpl for=".">', '<div id="{id}" ' + (this.showTip ? 'title="{[this.getTipText(values)]}" ' : "") + 'class="{$cls}" style="' + this.side + ':{left}px;top:{top}px;height:{height}px;width:{width}px">' + (b ? "{[this.renderInner(values)]}" : "") + "</div>", "</tpl>", {
+                getTipText: function (c) {
+                    return a.getSchedulingView().getFormattedDate(c.Date) + " " + (c.Text || "")
                 },
-                renderInner: function (d) {
-                    return c.apply(d)
+                renderInner: function (c) {
+                    return b.apply(c)
                 }
             })
         }
+        this.callParent(arguments)
     },
-    getElementData: function (j, m, c) {
-        var n = this.store,
-            h = this.schedulerView,
-            e = c || n.getRange(),
+    getElementData: function (m, q, c) {
+        var t = this.store,
+            j = this.schedulerView,
+            p = j.isHorizontal(),
+            f = c || t.getRange(),
+            h = [],
+            r, a, o = j.getTimeSpanRegion(m, null, this.expandToFitView),
+            k, b, e;
+        if (Ext.versions.touch) {
+            r = "100%"
+        } else {
+            r = p ? o.bottom - o.top : 1
+        }
+        a = p ? 1 : o.right - o.left;
+        for (var g = 0, d = f.length; g < d; g++) {
+            k = f[g];
+            b = k.get("Date");
+            if (b && Sch.util.Date.betweenLesser(b, m, q)) {
+                var n = j.getCoordinateFromDate(b);
+                e = Ext.apply({}, this.getTemplateData(k));
+                e.id = this.getElementId(k);
+                e.$cls = this.getElementCls(k, e);
+                e.width = a;
+                e.height = r;
+                if (p) {
+                    e.left = n
+                } else {
+                    e.top = n
+                }
+                h.push(e)
+            }
+        }
+        return h
+    },
+    getHeaderElementData: function (c) {
+        var a = this.timeAxis.getStart(),
+            k = this.timeAxis.getEnd(),
+            m = this.schedulerView.isHorizontal(),
             g = [],
-            a, b, k;
-        for (var f = 0, d = e.length; f < d; f++) {
-            a = e[f];
-            b = a.get("Date");
-            if (b && Sch.util.Date.betweenLesser(b, j, m)) {
-                k = h.getTimeSpanRegion(b, null, this.expandToFitView);
-                g[g.length] = Ext.apply({
-                    id: a.internalId,
-                    left: k.left,
-                    top: k.top,
-                    width: 1,
-                    height: k.bottom - k.top
-                }, a.data)
+            h, b, j, e;
+        c = c || this.store.getRange();
+        for (var f = 0, d = c.length; f < d; f++) {
+            h = c[f];
+            b = h.get("Date");
+            if (b && Sch.util.Date.betweenLesser(b, a, k)) {
+                j = this.getHeaderElementPosition(b);
+                e = this.getTemplateData(h);
+                g.push(Ext.apply({
+                    id: this.getHeaderElementId(h),
+                    side: m ? this.side : "top",
+                    cls: this.getHeaderElementCls(h, e),
+                    position: j
+                }, e))
             }
         }
         return g
@@ -6588,36 +7248,40 @@ Ext.define("Sch.plugin.Lines", {
 });
 Ext.define("Sch.plugin.CurrentTimeLine", {
     extend: "Sch.plugin.Lines",
-    tooltipText: "Current time",
+    alias: "plugin.scheduler_currenttimeline",
+    mixins: ["Sch.mixin.Localizable"],
+    requires: ["Ext.data.JsonStore"],
     updateInterval: 60000,
+    showHeaderElements: true,
     autoUpdate: true,
     expandToFitView: true,
+    timer: null,
     init: function (c) {
-        var b = Ext.create("Ext.data.JsonStore", {
+        if (Ext.getVersion("touch")) {
+            this.showHeaderElements = false
+        }
+        var b = new Ext.data.JsonStore({
             fields: ["Date", "Cls", "Text"],
             data: [{
                 Date: new Date(),
                 Cls: "sch-todayLine",
-                Text: this.tooltipText
+                Text: this.L("tooltipText")
             }]
         });
         var a = b.first();
         if (this.autoUpdate) {
-            this.runner = Ext.create("Ext.util.TaskRunner");
-            this.runner.start({
-                run: function () {
-                    a.set("Date", new Date())
-                },
-                interval: this.updateInterval
-            })
+            this.timer = setInterval(function () {
+                a.set("Date", new Date())
+            }, this.updateInterval)
         }
         c.on("destroy", this.onHostDestroy, this);
         this.store = b;
         this.callParent(arguments)
     },
     onHostDestroy: function () {
-        if (this.runner) {
-            this.runner.stopAll()
+        if (this.timer) {
+            clearInterval(this.timer);
+            this.timer = null
         }
         if (this.store.autoDestroy) {
             this.store.destroy()
@@ -6626,8 +7290,16 @@ Ext.define("Sch.plugin.CurrentTimeLine", {
 });
 Ext.define("Sch.plugin.DragSelector", {
     extend: "Sch.util.DragTracker",
+    alias: "plugin.scheduler_dragselector",
     mixins: ["Ext.AbstractPlugin"],
-    lockableScope: "normal",
+    requires: ["Sch.util.ScrollManager"],
+    lockableScope: "top",
+    scheduler: null,
+    schedulerView: null,
+    eventData: null,
+    sm: null,
+    proxy: null,
+    bodyRegion: null,
     constructor: function (a) {
         a = a || {};
         Ext.applyIf(a, {
@@ -6644,20 +7316,18 @@ Ext.define("Sch.plugin.DragSelector", {
             destroy: this.onSchedulerDestroy,
             scope: this
         });
+        a.getSchedulingView().on({
+            afterrender: this.onSchedulingViewRender,
+            scope: this
+        });
         this.scheduler = a
     },
     onBeforeStart: function (a) {
-        return a.ctrlKey
+        return !a.getTarget(".sch-event") && a.ctrlKey
     },
     onStart: function (b) {
         var c = this.schedulerView;
-        if (!this.proxy) {
-            this.proxy = c.el.createChild({
-                cls: "sch-drag-selector x-view-selector"
-            })
-        } else {
-            this.proxy.show()
-        }
+        this.proxy.show();
         this.bodyRegion = c.getScheduleRegion();
         var a = [];
         c.getEventNodes().each(function (d) {
@@ -6665,9 +7335,10 @@ Ext.define("Sch.plugin.DragSelector", {
                 region: d.getRegion(),
                 node: d.dom
             }
-        }, this);
+        });
         this.eventData = a;
-        this.sm.deselectAll()
+        this.sm.deselectAll();
+        Sch.util.ScrollManager.register(c.el)
     },
     onDrag: function (h) {
         var j = this.sm,
@@ -6693,26 +7364,31 @@ Ext.define("Sch.plugin.DragSelector", {
         if (this.proxy) {
             this.proxy.setDisplayed(false)
         }
+        Sch.util.ScrollManager.unregister(this.schedulerView.el)
     },
     onSchedulerRender: function (a) {
         this.sm = a.getEventSelectionModel();
         this.schedulerView = a.getSchedulingView();
-        this.initEl(a.el)
+        this.initEl(this.schedulerView.el)
+    },
+    onSchedulingViewRender: function () {
+        this.proxy = this.scheduler.getSchedulingView().el.createChild({
+            cls: "sch-drag-selector"
+        })
     },
     onSchedulerDestroy: function () {
-        Ext.destroy(this.proxy);
+        if (this.proxy) {
+            Ext.destroy(this.proxy)
+        }
         this.destroy()
     }
 });
 Ext.define("Sch.plugin.EventEditor", {
-    extend: "Ext.form.FormPanel",
-    mixins: ["Ext.AbstractPlugin"],
-    alias: "widget.eventeditor",
+    extend: "Ext.form.Panel",
+    mixins: ["Ext.AbstractPlugin", "Sch.mixin.Localizable"],
+    alias: ["widget.eventeditor", "plugin.scheduler_eventeditor"],
     lockableScope: "normal",
-    requires: ["Sch.util.Date"],
-    saveText: "Save",
-    deleteText: "Delete",
-    cancelText: "Cancel",
+    requires: ["Sch.util.Date", "Ext.form.Label"],
     hideOnBlur: true,
     startDateField: null,
     startTimeField: null,
@@ -6734,12 +7410,13 @@ Ext.define("Sch.plugin.EventEditor", {
     hidden: true,
     collapsed: true,
     currentForm: null,
-    scheduler: null,
     schedulerView: null,
+    resourceRecord: null,
     preventHeader: true,
     floating: true,
     hideMode: "offsets",
     ignoreCls: "sch-event-editor-ignore-click",
+    readOnly: false,
     layout: {
         type: "vbox",
         align: "stretch"
@@ -6759,6 +7436,7 @@ Ext.define("Sch.plugin.EventEditor", {
         Ext.apply(this, {
             fbar: this.buttons || this.buildButtons(),
             items: [{
+                    xtype: "container",
                     layout: "hbox",
                     height: 35,
                     border: false,
@@ -6775,9 +7453,8 @@ Ext.define("Sch.plugin.EventEditor", {
     },
     init: function (a) {
         this.ownerCt = a;
-        this.scheduler = a;
-        this.schedulerView = a.getSchedulingView();
-        this.eventStore = a.getEventStore();
+        this.schedulerView = a.getView();
+        this.eventStore = this.schedulerView.getEventStore();
         this.schedulerView.on({
             afterrender: this.onSchedulerRender,
             destroy: this.onSchedulerDestroy,
@@ -6795,85 +7472,94 @@ Ext.define("Sch.plugin.EventEditor", {
             this.mon(Ext.getDoc(), "mousedown", this.onMouseDown, this)
         }
     },
-    show: function (b, f) {
-        if (this.deleteButton) {
-            this.deleteButton.setVisible(this.eventStore.indexOf(b) >= 0)
+    show: function (g, i) {
+        var h = this.schedulerView.isReadOnly();
+        if (h !== this.readOnly) {
+            Ext.Array.each(this.query("field"), function (j) {
+                j.setReadOnly(h)
+            });
+            this.saveButton.setVisible(!h);
+            this.deleteButton.setVisible(!h);
+            this.readOnly = h
         }
-        this.eventRecord = b;
-        this.durationField.setValue(Sch.util.Date.getDurationInUnit(b.getStartDate(), b.getEndDate(), this.durationUnit));
-        var a = b.getStartDate();
-        this.startDateField.setValue(a);
-        this.startTimeField.setValue(a);
-        var d = this.scheduler.up("[floating=true]");
-        if (d) {
-            this.getEl().setZIndex(d.getEl().getZIndex() + 1);
-            d.addCls(this.ignoreCls)
+        if (this.deleteButton) {
+            this.deleteButton.setVisible(!h && this.eventStore.indexOf(g) >= 0)
+        }
+        this.eventRecord = g;
+        this.durationField.setValue(Sch.util.Date.getDurationInUnit(g.getStartDate(), g.getEndDate(), this.durationUnit));
+        var e = g.getStartDate();
+        this.startDateField.setValue(e);
+        this.startTimeField.setValue(e);
+        var f = this.schedulerView.up("[floating=true]");
+        if (f) {
+            this.getEl().setZIndex(f.getEl().getZIndex() + 1);
+            f.addCls(this.ignoreCls)
         }
         this.callParent();
-        f = f || this.schedulerView.getElementFromEventRecord(b);
-        this.alignTo(f, this.scheduler.orientation == "horizontal" ? "bl" : "tl-tr", this.getConstrainOffsets(f));
+        i = i || this.schedulerView.getElementFromEventRecord(g);
+        this.alignTo(i, this.schedulerView.getOrientation() == "horizontal" ? "bl" : "tl-tr", this.getConstrainOffsets(i));
         this.expand(!this.constrain);
         if (this.constrain) {
             this.doConstrain(Ext.util.Region.getRegion(Ext.getBody()))
         }
-        var g, e = b.get("EventType");
-        if (e && this.dynamicForm) {
-            var h = this.items.getAt(1),
-                c = h.query("> component[EventType=" + e + "]");
-            if (!c.length) {
-                throw "Can't find form for EventType=" + e
+        var c, d = g.get("EventType");
+        if (d && this.dynamicForm) {
+            var b = this.items.getAt(1),
+                a = b.query("> component[EventType=" + d + "]");
+            if (!a.length) {
+                throw "Can't find form for EventType=" + d
             }
-            if (!h.getLayout().setActiveItem) {
+            if (!b.getLayout().setActiveItem) {
                 throw "Can't switch active component in the 'fieldsPanel'"
             }
-            g = c[0];
-            if (!(g instanceof Ext.form.Panel)) {
+            c = a[0];
+            if (!(c instanceof Ext.form.Panel)) {
                 throw "Each child component of 'fieldsPanel' should be a 'form'"
             }
-            h.getLayout().setActiveItem(g)
+            b.getLayout().setActiveItem(c)
         } else {
-            g = this
+            c = this
         }
-        this.currentForm = g;
-        g.getForm().loadRecord(b)
+        this.currentForm = c;
+        c.getForm().loadRecord(g)
     },
     getConstrainOffsets: function (a) {
         return [0, 0]
     },
     onSaveClick: function () {
-        var d = this,
-            g = d.eventRecord,
+        var e = this,
+            h = e.eventRecord,
             a = this.currentForm.getForm();
-        if (a.isValid() && this.fireEvent("beforeeventsave", this, g) !== false) {
-            var c = d.startDateField.getValue(),
-                h, b = d.startTimeField.getValue(),
-                f = d.durationField.getValue();
-            if (c && f >= 0) {
+        if (a.isValid() && this.fireEvent("beforeeventsave", this, h) !== false) {
+            var c = e.startDateField.getValue(),
+                i, b = e.startTimeField.getValue(),
+                g = e.durationField.getValue();
+            if (c && g >= 0) {
                 if (b) {
                     Sch.util.Date.copyTimeValues(c, b)
                 }
-                h = Sch.util.Date.add(c, this.durationUnit, f)
+                i = Sch.util.Date.add(c, this.durationUnit, g)
             } else {
                 return
             }
-            var e = g.getResource() || this.resourceRecord;
-            if (!this.schedulerView.allowOverlap && !this.schedulerView.isDateRangeAvailable(c, h, g, e)) {
+            var d = h.getResources(this.eventStore);
+            var f = (d.length > 0 && d[0]) || this.resourceRecord;
+            if (!this.schedulerView.allowOverlap && !this.schedulerView.isDateRangeAvailable(c, i, h, f)) {
                 return
             }
-            g.beginEdit();
-            var i = g.endEdit;
-            g.endEdit = Ext.emptyFn;
-            a.updateRecord(g);
-            g.endEdit = i;
-            g.setStartDate(c);
-            g.setEndDate(h);
-            g.endEdit();
+            h.beginEdit();
+            var j = h.endEdit;
+            h.endEdit = Ext.emptyFn;
+            a.updateRecord(h);
+            h.endEdit = j;
+            h.setStartEndDate(c, i);
+            h.endEdit();
             if (this.eventStore.indexOf(this.eventRecord) < 0) {
-                if (this.schedulerView.fireEvent("beforeeventadd", this.schedulerView, g) !== false) {
-                    this.eventStore.add(g)
+                if (this.schedulerView.fireEvent("beforeeventadd", this.schedulerView, h) !== false) {
+                    this.eventStore.append(h)
                 }
             }
-            d.collapse(null, true)
+            e.collapse(null, true)
         }
     },
     onDeleteClick: function () {
@@ -6887,17 +7573,17 @@ Ext.define("Sch.plugin.EventEditor", {
     },
     buildButtons: function () {
         this.saveButton = new Ext.Button({
-            text: this.saveText,
+            text: this.L("saveText"),
             scope: this,
             handler: this.onSaveClick
         });
         this.deleteButton = new Ext.Button({
-            text: this.deleteText,
+            text: this.L("deleteText"),
             scope: this,
             handler: this.onDeleteClick
         });
         this.cancelButton = new Ext.Button({
-            text: this.cancelText,
+            text: this.L("cancelText"),
             scope: this,
             handler: this.onCancelClick
         });
@@ -6912,7 +7598,6 @@ Ext.define("Sch.plugin.EventEditor", {
         this.startDateField.getPicker().addCls(this.ignoreCls);
         this.startTimeField = new Ext.form.field.Time(Ext.apply({
             width: 70,
-            style: "margin-left : 5px",
             allowBlank: false,
             format: this.timeFormat
         }, this.timeConfig || {}));
@@ -6921,12 +7606,10 @@ Ext.define("Sch.plugin.EventEditor", {
             width: 45,
             value: 0,
             minValue: 0,
-            allowNegative: false,
-            style: "margin-left : 15px"
+            allowNegative: false
         }, this.durationConfig || {}));
-        this.durationLabel = Ext.create("Ext.form.Label", {
-            text: this.getDurationText(),
-            style: "margin-left : 5px"
+        this.durationLabel = new Ext.form.Label({
+            text: this.getDurationText()
         });
         return [this.startDateField, this.startTimeField, this.durationField, this.durationLabel]
     },
@@ -6934,7 +7617,7 @@ Ext.define("Sch.plugin.EventEditor", {
         this.show(a)
     },
     onMouseDown: function (a) {
-        if (this.collapsed || a.within(this.getEl()) || a.getTarget("." + this.ignoreCls, 9)) {
+        if (this.collapsed || a.within(this.getEl()) || a.getTarget("." + this.ignoreCls, 9) || a.getTarget(this.schedulerView.eventSelector)) {
             return
         }
         this.collapse()
@@ -6971,7 +7654,8 @@ Ext.define("Sch.plugin.EventEditor", {
 Ext.define("Sch.plugin.EventTools", {
     extend: "Ext.Container",
     mixins: ["Ext.AbstractPlugin"],
-    lockableScope: "normal",
+    lockableScope: "top",
+    alias: "plugin.scheduler_eventtools",
     hideDelay: 500,
     align: "right",
     defaults: {
@@ -6982,8 +7666,7 @@ Ext.define("Sch.plugin.EventTools", {
         height: 20,
         visibleFn: Ext.emptyFn
     },
-    fadeOutTimer: null,
-    lastTarget: null,
+    hideTimer: null,
     lastPosition: null,
     cachedSize: null,
     offset: {
@@ -6993,12 +7676,13 @@ Ext.define("Sch.plugin.EventTools", {
     autoRender: true,
     floating: true,
     hideMode: "offsets",
+    hidden: true,
     getRecord: function () {
         return this.record
     },
     init: function (a) {
         if (!this.items) {
-            throw "Must define items property for this plugin to function correctly"
+            throw "Must define an items property for this plugin to function correctly"
         }
         this.addCls("sch-event-tools");
         this.scheduler = a;
@@ -7020,49 +7704,60 @@ Ext.define("Sch.plugin.EventTools", {
             scope: this
         })
     },
-    onEventMouseEnter: function (f, a, e) {
-        if (!this.rendered) {
-            this.doAutoRender();
-            this.hide()
-        }
-        var d = e.getTarget(f.eventSelector);
-        var c = Ext.fly(d).getBox();
-        this.lastTarget = d;
+    onEventMouseEnter: function (g, a, f) {
+        var c = false;
+        var h;
         this.record = a;
-        this.items.each(function (g) {
-            g.setVisible(g.visibleFn(a) !== false)
+        this.items.each(function (i) {
+            h = i.visibleFn(a) !== false;
+            i.setVisible(h);
+            if (h) {
+                c = true
+            }
         }, this);
+        if (!c) {
+            return
+        }
+        if (!this.rendered) {
+            this.doAutoRender()
+        }
+        var e = f.getTarget(g.eventSelector);
+        var d = Ext.fly(e).getBox();
         this.doLayout();
         var b = this.getSize();
-        this.lastPosition = [e.getXY()[0] - (b.width / 2), c.y - b.height - this.offset.y];
+        this.lastPosition = [f.getXY()[0] - (b.width / 2), d.y - b.height - this.offset.y];
         this.onContainerMouseEnter()
     },
     onContainerMouseEnter: function () {
-        window.clearTimeout(this.fadeOutTimer);
+        window.clearTimeout(this.hideTimer);
         this.setPosition.apply(this, this.lastPosition);
-        this.el.fadeIn()
+        this.show()
     },
     onContainerMouseLeave: function () {
-        window.clearTimeout(this.fadeOutTimer);
-        this.fadeOutTimer = Ext.defer(this.el.fadeOut, this.hideDelay, this.el)
+        window.clearTimeout(this.hideTimer);
+        this.hideTimer = Ext.defer(this.hide, this.hideDelay, this)
     },
     onOperationStart: function () {
         this.scheduler.un("eventmouseenter", this.onEventMouseEnter, this);
-        window.clearTimeout(this.fadeOutTimer);
+        window.clearTimeout(this.hideTimer);
         this.hide()
-    },
-    hide: function () {
-        this.el.hide()
     },
     onOperationEnd: function () {
         this.scheduler.on("eventmouseenter", this.onEventMouseEnter, this)
     }
 });
 Ext.define("Sch.plugin.Pan", {
-    alias: "plugin.pan",
     extend: "Ext.AbstractPlugin",
-    lockableScope: "normal",
+    alias: "plugin.scheduler_pan",
+    lockableScope: "top",
     enableVerticalPan: true,
+    statics: {
+        KEY_SHIFT: 1,
+        KEY_CTRL: 2,
+        KEY_ALT: 4,
+        KEY_ALL: 7
+    },
+    disableOnKey: 0,
     panel: null,
     constructor: function (a) {
         Ext.apply(this, a)
@@ -7075,16 +7770,21 @@ Ext.define("Sch.plugin.Pan", {
     onRender: function (a) {
         this.view.el.on("mousedown", this.onMouseDown, this)
     },
-    onMouseDown: function (b, a) {
-        if (b.getTarget("." + this.view.timeCellCls, 10) && !b.getTarget(this.view.eventSelector)) {
-            this.mouseX = b.getPageX();
-            this.mouseY = b.getPageY();
+    onMouseDown: function (d, c) {
+        var b = this.self,
+            a = this.disableOnKey;
+        if ((d.shiftKey && (a & b.KEY_SHIFT)) || (d.ctrlKey && (a & b.KEY_CTRL)) || (d.altKey && (a & b.KEY_ALT))) {
+            return
+        }
+        if (d.getTarget("." + this.view.timeCellCls, 10) && !d.getTarget(this.view.eventSelector)) {
+            this.mouseX = d.getPageX();
+            this.mouseY = d.getPageY();
             Ext.getBody().on("mousemove", this.onMouseMove, this);
             Ext.getDoc().on("mouseup", this.onMouseUp, this);
             if (Ext.isIE || Ext.isGecko) {
                 Ext.getBody().on("mouseenter", this.onMouseUp, this)
             }
-            b.stopEvent()
+            d.stopEvent()
         }
     },
     onMouseMove: function (d) {
@@ -7110,11 +7810,12 @@ Ext.define("Sch.plugin.Pan", {
 });
 Ext.define("Sch.plugin.SimpleEditor", {
     extend: "Ext.Editor",
-    mixins: ["Ext.AbstractPlugin"],
-    lockableScope: "normal",
+    alias: "plugin.scheduler_simpleeditor",
+    requires: ["Ext.form.TextField"],
+    mixins: ["Ext.AbstractPlugin", "Sch.mixin.Localizable"],
+    lockableScope: "top",
     cls: "sch-simpleeditor",
     allowBlur: false,
-    newEventText: "New booking...",
     delegate: ".sch-event-inner",
     dataIndex: null,
     completeOnEnter: true,
@@ -7124,11 +7825,11 @@ Ext.define("Sch.plugin.SimpleEditor", {
     autoSize: {
         width: "boundEl"
     },
-    constructor: function (a) {
-        a = a || {};
-        a.field = a.field || Ext.create("Ext.form.TextField", {
+    initComponent: function () {
+        this.field = this.field || {
+            xtype: "textfield",
             selectOnFocus: true
-        });
+        };
         this.callParent(arguments)
     },
     init: function (a) {
@@ -7145,14 +7846,14 @@ Ext.define("Sch.plugin.SimpleEditor", {
     },
     onSchedulerRender: function (a) {
         this.on({
-            startedit: this.onBeforeEdit,
+            startedit: this.onStartEdit,
             complete: function (e, f, d) {
                 var b = this.record;
                 var c = this.scheduler.eventStore;
                 b.set(this.dataIndex, f);
                 if (c.indexOf(b) < 0) {
                     if (this.scheduler.fireEvent("beforeeventadd", this.scheduler, b) !== false) {
-                        c.add(b)
+                        c.append(b)
                     }
                 }
                 this.onAfterEdit()
@@ -7167,13 +7868,15 @@ Ext.define("Sch.plugin.SimpleEditor", {
         });
         a.on({
             eventdblclick: function (b, c, d) {
-                this.edit(c)
+                if (!a.isReadOnly()) {
+                    this.edit(c)
+                }
             },
             dragcreateend: this.onDragCreateEnd,
             scope: this
         })
     },
-    onBeforeEdit: function () {
+    onStartEdit: function () {
         if (!this.allowBlur) {
             Ext.getBody().on("mousedown", this.onMouseDown, this);
             this.scheduler.on("eventmousedown", function () {
@@ -7200,119 +7903,158 @@ Ext.define("Sch.plugin.SimpleEditor", {
         }
         this.scheduler.onEventCreated(a);
         if (a.get(this.dataIndex) === "") {
-            a.set(this.dataIndex, this.newEventText)
+            a.set(this.dataIndex, this.L("newEventText"))
         }
         this.edit(a, this.dragProxyEl)
     }
 });
-Ext.define("Sch.plugin.SummaryColumn", {
-    extend: "Ext.grid.column.Column",
-    mixins: ["Ext.AbstractPlugin"],
-    lockableScope: "top",
-    alias: "widget.summarycolumn",
-    showPercent: false,
-    nbrDecimals: 1,
-    sortable: false,
-    fixed: true,
-    menuDisabled: true,
-    width: 80,
-    dataIndex: "_sch_not_used",
-    constructor: function (a) {
-        this.scope = this;
-        this.callParent(arguments)
-    },
-    init: function (a) {
-        if (!("eventStore" in a)) {
-            return
-        }
-        this.scheduler = a;
-        this.scheduler.lockedGridDependsOnSchedule = true;
-        this.eventStore = a.eventStore
-    },
-    renderer: function (j, a, f) {
-        var h = this.scheduler,
-            k = this.eventStore,
-            e = h.getStart(),
-            i = h.getEnd(),
-            c = 0,
-            b = this.calculate(f.getEvents(), e, i);
-        if (b <= 0) {
-            return ""
-        }
-        if (this.showPercent) {
-            var d = Sch.util.Date.getDurationInMinutes(e, i);
-            return (Math.round((b * 100) / d)) + " %"
-        } else {
-            if (b > 1440) {
-                return (b / 1440).toFixed(this.nbrDecimals) + " " + Sch.util.Date.getShortNameOfUnit("DAY")
-            }
-            if (b >= 30) {
-                return (b / 60).toFixed(this.nbrDecimals) + " " + Sch.util.Date.getShortNameOfUnit("HOUR")
-            }
-            return b + " " + Sch.util.Date.getShortNameOfUnit("MINUTE")
-        }
-    },
-    calculate: function (c, g, d) {
-        var e = 0,
-            b, a, f = Sch.util.Date;
-        Ext.each(c, function (h) {
-            b = h.getStartDate();
-            a = h.getEndDate();
-            if (f.intersectSpans(g, d, b, a)) {
-                e += f.getDurationInMinutes(f.max(b, g), f.min(a, d))
-            }
-        });
-        return e
-    }
-});
 Ext.define("Sch.plugin.Zones", {
     extend: "Sch.feature.AbstractTimeSpan",
-    innerTpl: null,
+    alias: "plugin.scheduler_zones",
     requires: ["Sch.model.Range"],
+    innerTpl: null,
     cls: "sch-zone",
+    side: null,
     init: function (a) {
         if (Ext.isString(this.innerTpl)) {
             this.innerTpl = new Ext.XTemplate(this.innerTpl)
         }
+        this.side = a.rtl ? "right" : "left";
         var b = this.innerTpl;
         if (!this.template) {
-            this.template = new Ext.XTemplate('<tpl for="."><div id="' + this.uniqueCls + '-{id}" class="' + this.cls + " " + this.uniqueCls + ' {Cls}" style="left:{left}px;top:{top}px;height:{height}px;width:{width}px;{style}">' + (b ? "{[this.renderInner(values)]}" : "") + "</div></tpl>", {
+            this.template = new Ext.XTemplate('<tpl for="."><div id="{id}" class="{$cls}" style="' + this.side + ':{left}px;top:{top}px;height:{height}px;width:{width}px;{style}">' + (b ? "{[this.renderInner(values)]}" : "") + "</div></tpl>", {
                 renderInner: function (c) {
                     return b.apply(c)
                 }
             })
         }
+        if (Ext.isString(this.innerHeaderTpl)) {
+            this.innerHeaderTpl = new Ext.XTemplate(this.innerHeaderTpl)
+        }
         this.callParent(arguments)
     },
-    getElementData: function (k, o, d, p) {
-        var q = this.store,
-            j = this.schedulerView,
-            f = d || q.getRange(),
-            h = [],
-            a, n, c, m;
-        for (var g = 0, e = f.length; g < e; g++) {
-            a = f[g];
-            n = a.getStartDate();
-            c = a.getEndDate();
-            if (n && c && Sch.util.Date.intersectSpans(n, c, k, o)) {
-                m = j.getTimeSpanRegion(Sch.util.Date.max(n, k), Sch.util.Date.min(c, o), this.expandToFitView);
-                var b = m.right - m.left;
-                h[h.length] = Ext.apply({
-                    id: a.internalId,
-                    left: m.left,
-                    top: m.top,
-                    width: p ? 0 : b,
-                    height: m.bottom - m.top,
-                    style: p ? ("border-left-width:" + b + "px") : "",
-                    Cls: a.getCls()
-                }, a.data)
+    getElementData: function (h, d, r, f) {
+        var g = this.schedulerView,
+            s = [],
+            c = g.getTimeSpanRegion(h, d, this.expandToFitView),
+            k = this.schedulerView.isHorizontal(),
+            b, m, a, j, n, e;
+        r = r || this.store.getRange();
+        for (var q = 0, p = r.length; q < p; q++) {
+            b = r[q];
+            m = b.getStartDate();
+            a = b.getEndDate();
+            e = this.getTemplateData(b);
+            if (m && a && Sch.util.Date.intersectSpans(m, a, h, d)) {
+                var t = g.getCoordinateFromDate(Sch.util.Date.max(m, h));
+                var o = g.getCoordinateFromDate(Sch.util.Date.min(a, d));
+                j = Ext.apply({}, e);
+                j.id = this.getElementId(b);
+                j.$cls = this.getElementCls(b, e);
+                if (k) {
+                    j.left = t;
+                    j.top = c.top;
+                    j.width = f ? 0 : o - t;
+                    j.height = c.bottom - c.top;
+                    j.style = f ? ("border-left-width:" + (o - t) + "px") : ""
+                } else {
+                    j.left = c.left;
+                    j.top = t;
+                    j.height = f ? 0 : o - t;
+                    j.width = c.right - c.left;
+                    j.style = f ? ("border-top-width:" + (o - t) + "px") : ""
+                }
+                s.push(j)
             }
         }
-        return h
+        return s
+    },
+    getHeaderElementId: function (b, a) {
+        return this.callParent([b]) + (a ? "-start" : "-end")
+    },
+    getHeaderElementCls: function (b, d, a) {
+        var c = b.clsField || this.clsField;
+        if (!d) {
+            d = this.getTemplateData(b)
+        }
+        return "sch-header-indicator sch-header-indicator-" + (a ? "start " : "end ") + this.uniqueCls + " " + (d[c] || "")
+    },
+    getZoneHeaderElementData: function (b, h, f, a) {
+        var c = a ? f.getStartDate() : f.getEndDate(),
+            e = null,
+            g, i, d;
+        if (c && Sch.util.Date.betweenLesser(c, b, h)) {
+            g = this.getHeaderElementPosition(c);
+            i = this.schedulerView.isHorizontal();
+            d = this.getTemplateData(f);
+            e = Ext.apply({
+                id: this.getHeaderElementId(f, a),
+                cls: this.getHeaderElementCls(f, d, a),
+                isStart: a,
+                side: i ? this.side : "top",
+                position: g
+            }, d)
+        }
+        return e
+    },
+    getHeaderElementData: function (b) {
+        var a = this.timeAxis.getStart(),
+            h = this.timeAxis.getEnd(),
+            e = [],
+            g, d, j;
+        b = b || this.store.getRange();
+        for (var f = 0, c = b.length; f < c; f++) {
+            g = b[f];
+            d = this.getZoneHeaderElementData(a, h, g, true);
+            if (d) {
+                e.push(d)
+            }
+            j = this.getZoneHeaderElementData(a, h, g, false);
+            if (j) {
+                e.push(j)
+            }
+        }
+        return e
+    },
+    updateZoneHeaderElement: function (a, b) {
+        a.dom.className = b.cls;
+        if (this.schedulerView.isHorizontal()) {
+            this.setElementX(a, b.position)
+        } else {
+            a.setTop(b.position)
+        }
+    },
+    updateHeaderElement: function (c) {
+        var a = this.timeAxis.getStart(),
+            g = this.timeAxis.getEnd(),
+            f = Ext.get(this.getHeaderElementId(c, true)),
+            e = Ext.get(this.getHeaderElementId(c, false)),
+            d = this.getZoneHeaderElementData(a, g, c, true),
+            b = this.getZoneHeaderElementData(a, g, c, false);
+        if (!(f && b) || !(e && b)) {
+            Ext.destroy(f, e);
+            this.renderHeaderElementsInternal([c])
+        } else {
+            if (f) {
+                if (!d) {
+                    Ext.destroy(f)
+                } else {
+                    this.updateZoneHeaderElement(f, d)
+                }
+            }
+            if (e) {
+                if (!b) {
+                    Ext.destroy(e)
+                } else {
+                    this.updateZoneHeaderElement(e, b)
+                }
+            }
+        }
     }
 });
 Ext.define("Sch.plugin.TimeGap", {
     extend: "Sch.plugin.Zones",
+    alias: "plugin.scheduler_timegap",
     getZoneCls: Ext.emptyFn,
     init: function (a) {
         this.store = new Ext.data.JsonStore({
@@ -7370,10 +8112,38 @@ Ext.define("Sch.plugin.TimeGap", {
 });
 Ext.define("Sch.plugin.TreeCellEditing", {
     extend: "Ext.grid.plugin.CellEditing",
+    alias: "plugin.scheduler_treecellediting",
+    lockableScope: "locked",
     init: function (a) {
         this._grid = a;
         this.on("beforeedit", this.checkReadOnly, this);
         this.callParent(arguments)
+    },
+    bindPositionFixer: function () {
+        Ext.on({
+            afterlayout: this.fixEditorPosition,
+            scope: this
+        })
+    },
+    unbindPositionFixer: function () {
+        Ext.un({
+            afterlayout: this.fixEditorPosition,
+            scope: this
+        })
+    },
+    fixEditorPosition: function (a) {
+        var b = this.getActiveEditor();
+        if (b) {
+            var d = this.getEditingContext(this.context.record, this.context.column);
+            if (d) {
+                this.context.row = d.row;
+                this.context.rowIdx = d.rowIdx;
+                b.boundEl = this.getCell(d.record, d.column);
+                b.realign();
+                var c = this._grid.getView();
+                c.focusedRow = c.getNode(d.rowIdx)
+            }
+        }
     },
     checkReadOnly: function () {
         var a = this._grid;
@@ -7382,183 +8152,238 @@ Ext.define("Sch.plugin.TreeCellEditing", {
         }
         return !a.isReadOnly()
     },
-    startEditByClick: function (c, a, h, b, g, d, f) {
-        if (f.getTarget(c.expanderSelector)) {
-            return
-        }
-        this.callParent(arguments)
+    startEdit: function (a, c, b) {
+        this._grid.suspendLayouts();
+        var d = this.callParent(arguments);
+        this._grid.resumeLayouts();
+        return d
     },
-    startEdit: function (a, f) {
-        if (!a || !f) {
-            return
-        }
-        var d = this,
-            b = d.getEditor(a, f),
-            e = a.get(f.dataIndex),
-            c = d.getEditingContext(a, f);
-        a = c.record;
-        f = c.column;
-        d.completeEdit();
-        e = a.get(f.dataIndex);
-        if (f && !f.getEditor(a)) {
-            return false
-        }
-        if (b) {
-            c.originalValue = c.value = e;
-            if (d.beforeEdit(c) === false || d.fireEvent("beforeedit", c) === false || c.cancel) {
-                return false
-            }
-            d.context = c;
-            d.setActiveEditor(b);
-            d.setActiveRecord(a);
-            d.setActiveColumn(f);
-            d.grid.view.focusCell({
-                column: c.colIdx,
-                row: c.rowIdx
-            });
-            d.editTask.delay(15, d.showEditor, d, [b, c, c.value])
-        } else {
-            d.grid.getView().getEl(f).focus((Ext.isWebKit || Ext.isIE) ? 10 : false)
-        }
-    },
-    showEditor: function (b, c, g) {
+    onEditComplete: function (c, f, b) {
         var e = this,
-            a = c.record,
-            f = c.column,
-            h = e.grid.getSelectionModel(),
-            d = h.getCurrentPosition && h.getCurrentPosition();
-        e.context = c;
-        e.setActiveEditor(b);
-        e.setActiveRecord(a);
-        e.setActiveColumn(f);
-        if (h.selectByPosition && (!d || d.column !== c.colIdx || d.row !== c.rowIdx)) {
-            h.selectByPosition({
-                row: c.rowIdx,
-                column: c.colIdx
-            })
-        }
-        b.startEdit(e.getCell(a, f), g, c);
-        e.editing = true;
-        e.scroll = e.view.el.getScroll()
-    },
-    getEditingContext: function (e, c) {
-        var f = this,
-            a = f.grid,
-            i = a.store,
-            b, d, g = a.getView(),
-            h;
-        if (Ext.isNumber(e)) {
-            b = e;
-            e = i.getAt(b)
-        } else {
-            if (i instanceof Ext.data.Store) {
-                b = i.indexOf(e)
-            } else {
-                b = g.indexOf(g.getNode(e))
+            a, d;
+        if (c.field.applyChanges) {
+            a = c.field.task || e.context.record;
+            d = true;
+            a.set = function () {
+                delete a.set;
+                d = false;
+                c.field.applyChanges(a)
             }
-        } if (Ext.isNumber(c)) {
-            d = c;
-            c = a.headerCt.getHeaderAtIndex(d)
-        } else {
-            d = c.getIndex()
         }
-        h = e.get(c.dataIndex);
-        return {
-            grid: a,
-            record: e,
-            field: c.dataIndex,
-            value: h,
-            row: g.getNode(b),
-            column: c,
-            rowIdx: b,
-            colIdx: d
+        this.callParent(arguments);
+        if (d) {
+            delete a.set
         }
+        this.unbindPositionFixer()
     },
-    startEditByPosition: function (a) {
-        var f = this,
-            d = f.grid,
-            h = d.getSelectionModel(),
-            b = f.view,
-            e = this.view.getNode(a.row),
-            g = d.headerCt.getHeaderAtIndex(a.column),
-            c = b.getRecord(e);
-        if (h.selectByPosition) {
-            h.selectByPosition(a)
+    showEditor: function (a, b, c) {
+        var g = this.grid.getSelectionModel();
+        var f = g.selectByPosition;
+        if (Ext.getVersion("extjs").isLessThan("4.2.2.1144")) {
+            g.selectByPosition = Ext.emptyFn
         }
-        f.startEdit(c, g)
-    },
-    onEditComplete: function (c, g, b) {
-        var f = this,
-            d = f.grid,
-            e = f.getActiveColumn(),
-            h = d.getSelectionModel(),
-            a;
+        var e = a.field;
+        if (e && e.setSuppressTaskUpdate) {
+            e.setSuppressTaskUpdate(true)
+        }
+        var d = a.startEdit;
+        a.startEdit = function () {
+            a.startEdit = d;
+            a.startEdit.apply(a, arguments);
+            if (e && e.setSuppressTaskUpdate) {
+                e.setSuppressTaskUpdate(false)
+            }
+        };
         if (e) {
-            a = f.context.record;
-            f.setActiveEditor(null);
-            f.setActiveColumn(null);
-            f.setActiveRecord(null);
-            if (!f.validateEdit()) {
-                return
+            if (e.setTask) {
+                e.setTask(b.record);
+                c = b.value = b.originalValue = e.getValue()
+            } else {
+                if (!b.column.dataIndex && b.value === undefined) {
+                    c = b.value = e.getDisplayValue(b.record)
+                }
             }
-            if (!f.context.doNotUpdateRecord && !a.isEqual(g, b)) {
-                a.set(e.dataIndex, g)
-            }
-            if (h.setCurrentPosition) {
-                h.setCurrentPosition(h.getCurrentPosition())
-            }
-            d.getView().getEl(e).focus();
-            f.context.value = g;
-            f.fireEvent("edit", f, f.context)
         }
+        if (Ext.isIE8m && Ext.getVersion("extjs").toString() === "4.2.2.1144") {
+            Ext.EventObject.type = "click"
+        }
+        this.callParent([a, b, c]);
+        if (Ext.getVersion("extjs").isLessThan("4.2.2.1144")) {
+            g.selectByPosition = f
+        }
+        this.bindPositionFixer()
     },
-    onSpecialKey: function (a, f, d) {
-        if (!Ext.versions.extjs.equals("4.1.2.381")) {
-            return this.callParent(arguments)
-        }
-        var c = this,
-            b = this.grid,
-            g;
-        if (d.getKey() === d.TAB) {
-            d.stopEvent();
-            if (a) {
-                a.onEditorTab(d)
-            }
-            g = b.getSelectionModel();
-            if (g.onEditorTab) {
-                return g.onEditorTab(b === c.grid ? c : c.lockingPartner, d)
-            }
-        }
+    cancelEdit: function () {
+        this.callParent(arguments);
+        this.unbindPositionFixer()
     }
 });
 Ext.define("Sch.plugin.ResourceZones", {
     extend: "Sch.plugin.Zones",
+    alias: "plugin.scheduler_resourcezones",
+    innerTpl: null,
     store: null,
     cls: "sch-resourcezone",
-    getElementData: function (e, h, a) {
-        var g = this.store,
-            f = this.schedulerView,
-            d = [],
-            i, b, c;
-        if (f.getNodes().length > 0) {
-            Ext.each(a || g.getRange(), function (j) {
-                var k = j.getResource();
-                i = j.getStartDate();
-                b = j.getEndDate();
-                if (k && (f.resourceStore.indexOf ? f.resourceStore : f.store).indexOf(k) >= 0 && Sch.util.Date.intersectSpans(i, b, e, h)) {
-                    c = f.getResourceRegion(k, i, b);
-                    d[d.length] = Ext.apply({
-                        id: j.internalId,
-                        left: c.left,
-                        top: c.top,
-                        width: c.right - c.left,
-                        height: c.bottom - c.top,
-                        Cls: j.getCls()
-                    }, j.data)
+    init: function (a) {
+        this.uniqueCls = this.uniqueCls || ("sch-timespangroup-" + Ext.id());
+        this.scheduler = a;
+        a.on("destroy", this.onSchedulerDestroy, this);
+        a.registerRenderer(this.renderer, this);
+        if (Ext.isString(this.innerTpl)) {
+            this.innerTpl = new Ext.XTemplate(this.innerTpl)
+        }
+        var b = this.innerTpl;
+        if (!this.template) {
+            this.template = new Ext.XTemplate('<tpl for="."><div id="' + this.uniqueCls + '-{id}" class="' + this.cls + " " + this.uniqueCls + ' {Cls}" style="' + (a.rtl ? "right" : "left") + ':{start}px;width:{width}px;top:{start}px;height:{width}px;{style}">' + (b ? "{[this.renderInner(values)]}" : "") + "</div></tpl>", {
+                renderInner: function (c) {
+                    return b.apply(c)
                 }
             })
         }
-        return d
+        this.storeListeners = {
+            load: this.fullRefresh,
+            datachanged: this.fullRefresh,
+            clear: this.fullRefresh,
+            add: this.fullRefresh,
+            remove: this.fullRefresh,
+            update: this.refreshSingle,
+            addrecords: this.fullRefresh,
+            removerecords: this.fullRefresh,
+            updaterecord: this.refreshSingle,
+            scope: this
+        };
+        this.store.on(this.storeListeners)
+    },
+    onSchedulerDestroy: function () {
+        this.store.un(this.storeListeners)
+    },
+    fullRefresh: function () {
+        this.scheduler.getSchedulingView().refresh()
+    },
+    renderer: function (c, b, a, d) {
+        if (this.scheduler.getOrientation() === "horizontal" || d === 0) {
+            return this.renderZones(a)
+        }
+        return ""
+    },
+    renderZones: function (f) {
+        var a = this.store,
+            c = this.scheduler,
+            h = c.timeAxis.getStart(),
+            b = c.timeAxis.getEnd(),
+            e = [],
+            d, g;
+        a.each(function (i) {
+            d = i.getStartDate();
+            g = i.getEndDate();
+            if (i.getResource(null, c.eventStore) === f && d && g && Sch.util.Date.intersectSpans(d, g, h, b)) {
+                var k = c.getSchedulingView()[c.getOrientation()].getEventRenderData(i);
+                var l, j;
+                if (c.getOrientation() === "horizontal") {
+                    l = c.rtl ? k.right : k.left;
+                    j = k.width
+                } else {
+                    l = k.top;
+                    j = k.height
+                }
+                e[e.length] = Ext.apply({
+                    id: i.internalId,
+                    start: l,
+                    width: j,
+                    Cls: i.getCls()
+                }, i.data)
+            }
+        });
+        return this.template.apply(e)
+    },
+    refreshSingle: function (i, g) {
+        var c = Ext.get(this.uniqueCls + "-" + g.internalId);
+        if (c) {
+            var e = this.scheduler,
+                f = e.timeAxis.getStart(),
+                j = e.timeAxis.getEnd();
+            var b = Sch.util.Date.max(f, g.getStartDate()),
+                d = Sch.util.Date.min(j, g.getEndDate()),
+                k = g.getCls();
+            var h = e.getSchedulingView().getCoordinateFromDate(b);
+            var a = e.getSchedulingView().getCoordinateFromDate(d) - h;
+            c.dom.className = this.cls + " " + this.uniqueCls + " " + (k || "");
+            c.setStyle({
+                left: h + "px",
+                top: h + "px",
+                height: a + "px",
+                width: a + "px"
+            })
+        }
+    }
+});
+Ext.define("Sch.plugin.HeaderZoom", {
+    extend: "Sch.util.DragTracker",
+    mixins: ["Ext.AbstractPlugin"],
+    alias: "plugin.scheduler_headerzoom",
+    lockableScope: "top",
+    scheduler: null,
+    proxy: null,
+    headerRegion: null,
+    init: function (a) {
+        a.on({
+            destroy: this.onSchedulerDestroy,
+            scope: this
+        });
+        this.scheduler = a;
+        this.onOrientationChange();
+        a.on("orientationchange", this.onOrientationChange, this)
+    },
+    onOrientationChange: function () {
+        var a = this.scheduler.down("timeaxiscolumn");
+        if (a) {
+            if (a.rendered) {
+                this.onTimeAxisColumnRender(a)
+            } else {
+                a.on({
+                    afterrender: this.onTimeAxisColumnRender,
+                    scope: this
+                })
+            }
+        }
+    },
+    onTimeAxisColumnRender: function (a) {
+        this.proxy = a.el.createChild({
+            cls: "sch-drag-selector"
+        });
+        this.initEl(a.el)
+    },
+    onStart: function (a) {
+        this.proxy.show();
+        this.headerRegion = this.scheduler.normalGrid.headerCt.getRegion()
+    },
+    onDrag: function (b) {
+        var c = this.headerRegion;
+        var a = this.getRegion().constrainTo(c);
+        a.top = c.top;
+        a.bottom = c.bottom;
+        this.proxy.setRegion(a)
+    },
+    onEnd: function (g) {
+        if (this.proxy) {
+            this.proxy.setDisplayed(false);
+            var b = this.scheduler;
+            var d = b.timeAxis;
+            var f = this.getRegion();
+            var c = b.getSchedulingView().timeAxisViewModel.getBottomHeader().unit;
+            var a = b.getSchedulingView().getStartEndDatesFromRegion(f);
+            b.zoomToSpan({
+                start: d.floorDate(a.start, false, c, 1),
+                end: d.ceilDate(a.end, false, c, 1)
+            })
+        }
+    },
+    onSchedulerDestroy: function () {
+        if (this.proxy) {
+            Ext.destroy(this.proxy);
+            this.proxy = null
+        }
+        this.destroy()
     }
 });
 Ext.define("Sch.widget.ResizePicker", {
@@ -7716,11 +8541,14 @@ Ext.define("Sch.widget.ResizePicker", {
         this.setValueText(a)
     },
     getValues: function () {
-        var a = this.vertical.getValue();
-        if (this.verticalCfg.reverse) {
-            a = this.verticalCfg.maxValue - a + this.verticalCfg.minValue
+        if (!this.verticalCfg.disabled) {
+            var a = this.vertical.getValue();
+            if (this.verticalCfg.reverse) {
+                a = this.verticalCfg.maxValue - a + this.verticalCfg.minValue
+            }
+            return [this.horizontal.getValue(), a]
         }
-        return [this.horizontal.getValue(), a]
+        return [this.horizontal.getValue()]
     },
     onSliderChange: function () {
         this.fireEvent("change", this, this.getValues());
@@ -7738,22 +8566,28 @@ Ext.define("Sch.widget.ResizePicker", {
 });
 Ext.define("Sch.widget.ExportDialogForm", {
     extend: "Ext.form.Panel",
-    requires: ["Ext.ProgressBar", "Sch.widget.ResizePicker"],
+    requires: ["Ext.data.Store", "Ext.ProgressBar", "Ext.form.field.ComboBox", "Ext.form.field.Date", "Ext.form.FieldContainer", "Ext.form.field.Checkbox", "Sch.widget.ResizePicker"],
     border: false,
     bodyPadding: "10 10 0 10",
     autoHeight: true,
     initComponent: function () {
         var a = this;
+        if (Ext.getVersion("extjs").isLessThan("4.2.1")) {
+            if (typeof Ext.tip !== "undefined" && Ext.tip.Tip && Ext.tip.Tip.prototype.minWidth != "auto") {
+                Ext.tip.Tip.prototype.minWidth = "auto"
+            }
+        }
         a.createFields();
         Ext.apply(this, {
             fieldDefaults: {
-                labelAlign: "top",
-                labelWidth: 100,
-                anchor: "90%"
+                labelAlign: "left",
+                labelWidth: 120,
+                anchor: "99%"
             },
-            items: [a.rangeField, a.resizePicker, a.dateFromField, a.dateToField, a.showHeaderField, a.exportToSingleField, a.formatField, a.orientationField, a.progressBar || a.createProgressBar()]
+            items: [a.rangeField, a.resizerHolder, a.datesHolder, a.showHeaderField, a.exportToSingleField, a.formatField, a.orientationField, a.progressBar || a.createProgressBar()]
         });
         a.callParent(arguments);
+        a.onRangeChange(null, a.dialogConfig.defaultConfig.range);
         a.on({
             hideprogressbar: a.hideProgressBar,
             showprogressbar: a.showProgressBar,
@@ -7761,11 +8595,29 @@ Ext.define("Sch.widget.ExportDialogForm", {
             scope: a
         })
     },
+    isValid: function () {
+        var a = this;
+        if (a.rangeField.getValue() === "date") {
+            return a.dateFromField.isValid() && a.dateToField.isValid()
+        }
+        return true
+    },
+    getValues: function (e, c, d, b) {
+        var a = this.callParent(arguments);
+        var f = this.resizePicker.getValues();
+        if (!e) {
+            a.cellSize = f
+        } else {
+            a += "&cellSize[0]=" + f[0] + "&cellSize[1]=" + f[1]
+        }
+        return a
+    },
     createFields: function () {
         var d = this,
-            a = d.dialogConfig;
+            a = d.dialogConfig,
+            f = '<table class="sch-fieldcontainer-label-wrap"><td width="1" class="sch-fieldcontainer-label">',
+            e = '<td><div class="sch-fieldcontainer-separator"></div></table>';
         d.rangeField = new Ext.form.field.ComboBox({
-            xtype: "combo",
             value: a.defaultConfig.range,
             triggerAction: "all",
             cls: "sch-export-dialog-range",
@@ -7776,7 +8628,7 @@ Ext.define("Sch.widget.ExportDialogForm", {
             queryMode: "local",
             displayField: "name",
             valueField: "value",
-            store: Ext.create("Ext.data.Store", {
+            store: new Ext.data.Store({
                 fields: ["name", "value"],
                 data: [{
                     name: a.completeViewText,
@@ -7796,53 +8648,67 @@ Ext.define("Sch.widget.ExportDialogForm", {
         });
         d.resizePicker = new Sch.widget.ResizePicker({
             dialogConfig: a,
+            margin: "10 20"
+        });
+        d.resizerHolder = new Ext.form.FieldContainer({
+            fieldLabel: a.scrollerDisabled ? a.adjustCols : a.adjustColsAndRows,
+            labelAlign: "top",
             hidden: true,
-            padding: "0 0 5 0"
+            labelSeparator: "",
+            beforeLabelTextTpl: f,
+            afterLabelTextTpl: e,
+            layout: "vbox",
+            defaults: {
+                flex: 1,
+                allowBlank: false
+            },
+            items: [d.resizePicker]
         });
         d.dateFromField = new Ext.form.field.Date({
             fieldLabel: a.dateRangeFromText,
-            labelAlign: "left",
-            labelWidth: 80,
             baseBodyCls: "sch-exportdialogform-date",
-            padding: "10 0 5 0",
             name: "dateFrom",
             format: a.dateRangeFormat || Ext.Date.defaultFormat,
-            hidden: true,
             allowBlank: false,
             maxValue: a.endDate,
             minValue: a.startDate,
-            value: a.startDate,
-            validator: function (e) {
-                return Ext.Date.parse(e, this.format) >= new Date(a.startDate)
-            }
+            value: a.startDate
         });
         d.dateToField = new Ext.form.field.Date({
             fieldLabel: a.dateRangeToText,
-            labelAlign: "left",
-            labelWidth: 80,
             name: "dateTo",
             format: a.dateRangeFormat || Ext.Date.defaultFormat,
             baseBodyCls: "sch-exportdialogform-date",
-            hidden: true,
             allowBlank: false,
             maxValue: a.endDate,
             minValue: a.startDate,
-            value: a.endDate,
-            validator: function (e) {
-                return Ext.Date.parse(e, this.format) <= new Date(a.endDate)
-            }
+            value: a.endDate
+        });
+        d.datesHolder = new Ext.form.FieldContainer({
+            fieldLabel: a.specifyDateRange,
+            labelAlign: "top",
+            hidden: true,
+            labelSeparator: "",
+            beforeLabelTextTpl: f,
+            afterLabelTextTpl: e,
+            layout: "vbox",
+            defaults: {
+                flex: 1,
+                allowBlank: false
+            },
+            items: [d.dateFromField, d.dateToField]
         });
         d.showHeaderField = new Ext.form.field.Checkbox({
             xtype: "checkboxfield",
-            fieldLabel: d.dialogConfig.showHeaderLabel,
+            boxLabel: d.dialogConfig.showHeaderLabel,
             name: "showHeader",
-            checked: (a.defaultConfig.showHeaderLabel ? true : false)
+            checked: !! a.defaultConfig.showHeaderLabel
         });
         d.exportToSingleField = new Ext.form.field.Checkbox({
             xtype: "checkboxfield",
-            fieldLabel: d.dialogConfig.exportToSingleLabel,
+            boxLabel: d.dialogConfig.exportToSingleLabel,
             name: "singlePageExport",
-            checked: (a.defaultConfig.singlePageExport ? true : false)
+            checked: !! a.defaultConfig.singlePageExport
         });
         d.formatField = new Ext.form.field.ComboBox({
             value: a.defaultConfig.format,
@@ -7852,7 +8718,7 @@ Ext.define("Sch.widget.ExportDialogForm", {
             fieldLabel: a.formatFieldLabel,
             name: "format",
             queryMode: "local",
-            store: ["A5", "A4", "A3", "Letter"]
+            store: ["A5", "A4", "A3", "Letter", "Legal"]
         });
         var c = a.defaultConfig.orientation === "portrait" ? 'class="sch-none"' : "",
             b = a.defaultConfig.orientation === "landscape" ? 'class="sch-none"' : "";
@@ -7868,7 +8734,7 @@ Ext.define("Sch.widget.ExportDialogForm", {
             displayField: "name",
             valueField: "value",
             queryMode: "local",
-            store: Ext.create("Ext.data.Store", {
+            store: new Ext.data.Store({
                 fields: ["name", "value"],
                 data: [{
                     name: a.orientationPortraitText,
@@ -7879,8 +8745,8 @@ Ext.define("Sch.widget.ExportDialogForm", {
                 }]
             }),
             listeners: {
-                change: function (f, e) {
-                    switch (e) {
+                change: function (h, g) {
+                    switch (g) {
                     case "landscape":
                         Ext.fly("sch-exportdialog-imagePortrait").toggleCls("sch-none");
                         Ext.fly("sch-exportdialog-imageLandscape").toggleCls("sch-none");
@@ -7899,25 +8765,22 @@ Ext.define("Sch.widget.ExportDialogForm", {
             text: this.config.progressBarText,
             animate: true,
             hidden: true,
-            id: "print-widget-progressbar"
+            margin: "4px 0 10px 0"
         })
     },
     onRangeChange: function (b, a) {
         switch (a) {
         case "complete":
-            this.dateFromField.hide();
-            this.dateToField.hide();
-            this.resizePicker.hide();
+            this.datesHolder.hide();
+            this.resizerHolder.hide();
             break;
         case "date":
-            this.dateFromField.show();
-            this.dateToField.show();
-            this.resizePicker.hide();
+            this.datesHolder.show();
+            this.resizerHolder.hide();
             break;
         case "current":
-            this.dateFromField.hide();
-            this.dateToField.hide();
-            this.resizePicker.show();
+            this.datesHolder.hide();
+            this.resizerHolder.show();
             this.resizePicker.expand(true);
             break
         }
@@ -7941,57 +8804,47 @@ Ext.define("Sch.widget.ExportDialogForm", {
 Ext.define("Sch.widget.ExportDialog", {
     alternateClassName: "Sch.widget.PdfExportDialog",
     extend: "Ext.window.Window",
+    requires: ["Sch.widget.ExportDialogForm"],
+    mixins: ["Sch.mixin.Localizable"],
     alias: "widget.exportdialog",
     modal: false,
-    width: 240,
+    width: 350,
     cls: "sch-exportdialog",
     frame: false,
     layout: "fit",
-    draggable: false,
+    draggable: true,
     padding: 0,
     plugin: null,
     buttonsPanel: null,
     buttonsPanelScope: null,
     progressBar: null,
-    generalError: "An error occured, try again.",
-    title: "Export Settings",
-    formatFieldLabel: "Paper format",
-    orientationFieldLabel: "Orientation",
-    rangeFieldLabel: "Export range",
-    showHeaderLabel: "Add page number",
-    exportToSingleLabel: "Export as single page",
-    orientationPortraitText: "Portrait",
-    orientationLandscapeText: "Landscape",
-    completeViewText: "Complete schedule",
-    currentViewText: "Current view",
-    dateRangeText: "Date range",
-    dateRangeFromText: "Export from",
-    pickerText: "Resize column/rows to desired value",
-    dateRangeToText: "Export to",
-    exportButtonText: "Export",
-    cancelButtonText: "Cancel",
-    progressBarText: "Exporting...",
     dateRangeFormat: "",
-    requires: ["Sch.widget.ExportDialogForm"],
     constructor: function (a) {
         Ext.apply(this, a.exportDialogConfig);
+        Ext.Array.forEach(["generalError", "title", "formatFieldLabel", "orientationFieldLabel", "rangeFieldLabel", "showHeaderLabel", "orientationPortraitText", "orientationLandscapeText", "completeViewText", "currentViewText", "dateRangeText", "dateRangeFromText", "pickerText", "dateRangeToText", "exportButtonText", "cancelButtonText", "progressBarText", "exportToSingleLabel"], function (b) {
+            if (b in a) {
+                this[b] = a[b]
+            }
+        }, this);
+        this.title = this.L("title");
         this.config = Ext.apply({
-            progressBarText: this.progressBarText,
-            cancelButtonText: this.cancelButtonText,
-            exportButtonText: this.exportButtonText,
-            dateRangeToText: this.dateRangeToText,
-            pickerText: this.pickerText,
-            dateRangeFromText: this.dateRangeFromText,
-            dateRangeText: this.dateRangeText,
-            currentViewText: this.currentViewText,
-            formatFieldLabel: this.formatFieldLabel,
-            orientationFieldLabel: this.orientationFieldLabel,
-            rangeFieldLabel: this.rangeFieldLabel,
-            showHeaderLabel: this.showHeaderLabel,
-            exportToSingleLabel: this.exportToSingleLabel,
-            orientationPortraitText: this.orientationPortraitText,
-            orientationLandscapeText: this.orientationLandscapeText,
-            completeViewText: this.completeViewText,
+            progressBarText: this.L("progressBarText"),
+            dateRangeToText: this.L("dateRangeToText"),
+            pickerText: this.L("pickerText"),
+            dateRangeFromText: this.L("dateRangeFromText"),
+            dateRangeText: this.L("dateRangeText"),
+            currentViewText: this.L("currentViewText"),
+            formatFieldLabel: this.L("formatFieldLabel"),
+            orientationFieldLabel: this.L("orientationFieldLabel"),
+            rangeFieldLabel: this.L("rangeFieldLabel"),
+            showHeaderLabel: this.L("showHeaderLabel"),
+            exportToSingleLabel: this.L("exportToSingleLabel"),
+            orientationPortraitText: this.L("orientationPortraitText"),
+            orientationLandscapeText: this.L("orientationLandscapeText"),
+            completeViewText: this.L("completeViewText"),
+            adjustCols: this.L("adjustCols"),
+            adjustColsAndRows: this.L("adjustColsAndRows"),
+            specifyDateRange: this.L("specifyDateRange"),
             dateRangeFormat: this.dateRangeFormat,
             defaultConfig: this.defaultConfig
         }, a.exportDialogConfig);
@@ -8007,8 +8860,9 @@ Ext.define("Sch.widget.ExportDialog", {
                 },
                 scope: this
             };
+        b.form = b.buildForm(b.config);
         Ext.apply(this, {
-            items: [b.form = b.buildForm(b.config)],
+            items: b.form,
             fbar: b.buildButtons(b.buttonsPanelScope || b)
         });
         b.callParent(arguments);
@@ -8016,17 +8870,6 @@ Ext.define("Sch.widget.ExportDialog", {
     },
     afterRender: function () {
         var a = this;
-        a.on("changecomplete", function (c, b) {
-            a.plugin.scheduler.setTimeColumnWidth(b[0], true);
-            if (!a.config.scrollerDisabled) {
-                if (a.form.resizePicker.verticalCfg.reverse) {
-                    var d = b[1];
-                    a.plugin.scheduler.getSchedulingView().setRowHeight(d)
-                } else {
-                    a.plugin.scheduler.getSchedulingView().setRowHeight(b[1])
-                }
-            }
-        });
         a.relayEvents(a.form.resizePicker, ["change", "changecomplete", "select"]);
         a.form.relayEvents(a, ["updateprogressbar", "hideprogressbar", "showprogressbar"]);
         a.callParent(arguments)
@@ -8035,20 +8878,18 @@ Ext.define("Sch.widget.ExportDialog", {
         return [{
             xtype: "button",
             scale: "medium",
-            text: this.exportButtonText,
+            text: this.L("exportButtonText"),
             handler: function () {
-                var c = this.form.getForm();
-                if (c.isValid()) {
-                    var b = c.getValues();
+                if (this.form.isValid()) {
                     this.fireEvent("showprogressbar");
-                    this.plugin.doExport(b)
+                    this.plugin.doExport(this.form.getValues())
                 }
             },
             scope: a
         }, {
             xtype: "button",
             scale: "medium",
-            text: this.cancelButtonText,
+            text: this.L("cancelButtonText"),
             handler: function () {
                 this.destroy()
             },
@@ -8063,272 +8904,120 @@ Ext.define("Sch.widget.ExportDialog", {
     },
     showError: function (b, a) {
         var c = b,
-            d = a || c.generalError;
+            d = a || c.L("generalError");
         c.fireEvent("hideprogressbar");
-        alert(d)
+        Ext.Msg.alert("", d)
     }
 });
 Ext.define("Sch.feature.ColumnLines", {
     extend: "Sch.plugin.Lines",
+    requires: ["Ext.data.JsonStore"],
     cls: "sch-column-line",
     showTip: false,
-    requires: ["Ext.data.Store"],
-    init: function (b) {
-        this.timeAxis = b.getTimeAxis();
-        this.store = Ext.create("Ext.data.JsonStore", {
-            model: Ext.define("Sch.model.TimeLine", {
-                extend: "Ext.data.Model",
-                fields: ["start", {
-                    name: "Date",
-                    convert: function (d, c) {
-                        return c.data.start
-                    }
-                }]
-            }),
-            data: b.getOrientation() === "horizontal" ? this.getData() : []
+    timeAxisViewModel: null,
+    renderingDoneEvent: "columnlinessynced",
+    init: function (a) {
+        this.timeAxis = a.getTimeAxis();
+        this.timeAxisViewModel = a.timeAxisViewModel;
+        this.panel = a;
+        this.store = new Ext.data.JsonStore({
+            fields: ["Date"]
         });
+        this.store.loadData = this.store.loadData || this.store.setData;
         this.callParent(arguments);
-        var a = this.schedulerView;
-        a.timeAxis.on("reconfigure", this.populate, this)
+        a.on({
+            orientationchange: this.populate,
+            destroy: this.onHostDestroy,
+            scope: this
+        });
+        this.timeAxisViewModel.on("update", this.populate, this);
+        this.populate()
+    },
+    onHostDestroy: function () {
+        this.timeAxisViewModel.un("update", this.populate, this)
     },
     populate: function () {
-        var a = this.schedulerView;
-        var b = a.getOrientation() === "horizontal" && a.store.getCount() > 0;
-        this.store.removeAll(b);
-        if (b) {
-            this.store.add(this.getData())
-        }
+        this.store.loadData(this.getData())
     },
     getElementData: function () {
         var a = this.schedulerView;
-        if (a.getOrientation() === "horizontal" && a.store.getCount() > 0) {
+        if (a.isHorizontal() && a.store.getCount() > 0) {
             return this.callParent(arguments)
         }
         return []
     },
     getData: function () {
-        var a = [];
-        this.timeAxis.forEachMainInterval(function (d, b, c) {
-            if (c > 0) {
-                a.push({
-                    start: d
-                })
-            }
-        });
-        a.push({
-            start: this.timeAxis.getEnd()
-        });
-        return a
-    }
-});
-Ext.define("Sch.mixin.TimelineView", {
-    requires: ["Sch.column.Time", "Sch.data.TimeAxis"],
-    orientation: "horizontal",
-    overScheduledEventClass: "sch-event-hover",
-    selectedEventCls: "sch-event-selected",
-    altColCls: "sch-col-alt",
-    timeCellCls: "sch-timetd",
-    timeCellSelector: ".sch-timetd",
-    ScheduleEventMap: {
-        click: "Click",
-        mousedown: "MouseDown",
-        mouseup: "MouseUp",
-        dblclick: "DblClick",
-        contextmenu: "ContextMenu",
-        keydown: "KeyDown",
-        keyup: "KeyUp"
-    },
-    suppressFitCheck: 0,
-    forceFit: false,
-    inheritables: function () {
-        return {
-            cellBorderWidth: 1,
-            initComponent: function () {
-                this.setOrientation(this.panel._top.orientation || this.orientation);
-                this.addEvents("beforetooltipshow", "scheduleclick", "scheduledblclick", "schedulecontextmenu", "columnwidthchange");
-                this.enableBubble("columnwidthchange");
-                var a = {}, c = Sch.util.Date;
-                a[c.DAY] = a[c.WEEK] = a[c.MONTH] = a[c.QUARTER] = a[c.YEAR] = null;
-                Ext.applyIf(this, {
-                    eventPrefix: this.id + "-",
-                    largeUnits: a
-                });
-                this.callParent(arguments);
-                if (this.orientation === "horizontal") {
-                    this.getTimeAxisColumn().on("timeaxiscolumnreconfigured", this.checkHorizontalFit, this)
-                }
-                var b = this.panel._top;
-                Ext.apply(this, {
-                    eventRendererScope: b.eventRendererScope,
-                    eventRenderer: b.eventRenderer,
-                    eventBorderWidth: b.eventBorderWidth,
-                    timeAxis: b.timeAxis,
-                    dndValidatorFn: b.dndValidatorFn || Ext.emptyFn,
-                    resizeValidatorFn: b.resizeValidatorFn || Ext.emptyFn,
-                    createValidatorFn: b.createValidatorFn || Ext.emptyFn,
-                    tooltipTpl: b.tooltipTpl,
-                    validatorFnScope: b.validatorFnScope || this,
-                    snapToIncrement: b.snapToIncrement,
-                    timeCellRenderer: b.timeCellRenderer,
-                    timeCellRendererScope: b.timeCellRendererScope,
-                    readOnly: b.readOnly,
-                    eventResizeHandles: b.eventResizeHandles,
-                    enableEventDragDrop: b.enableEventDragDrop,
-                    enableDragCreation: b.enableDragCreation,
-                    dragConfig: b.dragConfig,
-                    dropConfig: b.dropConfig,
-                    resizeConfig: b.resizeConfig,
-                    createConfig: b.createConfig,
-                    tipCfg: b.tipCfg,
-                    orientation: b.orientation,
-                    getDateConstraints: b.getDateConstraints || Ext.emptyFn
-                });
-                if (this.emptyText) {
-                    this.emptyText = '<span class="sch-empty-text">' + this.emptyText + "</span>"
-                }
-            },
-            onDestroy: function () {
-                if (this.tip) {
-                    this.tip.destroy()
-                }
-                this.callParent(arguments)
-            },
-            afterComponentLayout: function () {
-                this.callParent(arguments);
-                var b = this.getWidth();
-                var a = this.getHeight();
-                if (b === this.__prevWidth && a === this.__prevHeight) {
-                    return
-                }
-                this.__prevWidth = b;
-                this.__prevHeight = a;
-                if (!this.lockable && !this.suppressFitCheck) {
-                    this.checkHorizontalFit()
-                }
-            },
-            beforeRender: function () {
-                this.callParent(arguments);
-                this.addCls("sch-timelineview");
-                if (this.readOnly) {
-                    this.addCls(this._cmpCls + "-readonly")
-                }
-            },
-            afterRender: function () {
-                this.callParent(arguments);
-                if (this.overScheduledEventClass) {
-                    this.mon(this.el, {
-                        mouseover: this.onMouseOver,
-                        mouseout: this.onMouseOut,
-                        delegate: this.eventSelector,
-                        scope: this
+        var b = this.panel,
+            g = [];
+        if (b.isHorizontal()) {
+            var h = this.timeAxisViewModel;
+            var e = h.columnLinesFor;
+            var f = !! (h.headerConfig && h.headerConfig[e].cellGenerator);
+            if (f) {
+                var c = h.getColumnConfig()[e];
+                for (var d = 1, a = c.length; d < a; d++) {
+                    g.push({
+                        Date: c[d].start
                     })
-                }
-                if (this.tooltipTpl) {
-                    this.el.on("mousemove", this.setupTooltip, this, {
-                        single: true
-                    })
-                }
-                this.setupTimeCellEvents()
-            },
-            processUIEvent: function (f) {
-                var c = this,
-                    a = f.getTarget(this.eventSelector),
-                    d = c.ScheduleEventMap,
-                    b = f.type,
-                    g = false;
-                if (a && b in d) {
-                    this.fireEvent(this.scheduledEventName + b, this, this.resolveEventRecord(a), f);
-                    g = !(this.panel.getSelectionModel() instanceof Ext.selection.RowModel)
-                }
-                if (!g) {
-                    this.callParent(arguments)
-                }
-            },
-            refresh: function () {
-                this.fixedNodes = 0;
-                this.callParent(arguments)
-            },
-            clearViewEl: function () {
-                var c = this,
-                    b = c.getTargetEl();
-                b.down("table").remove();
-                if (this.emptyText) {
-                    var a = b.down(".sch-empty-text");
-                    if (a) {
-                        a.remove()
-                    }
-                }
-            },
-            onMouseOver: function (b, a) {
-                if (a !== this.lastItem) {
-                    this.lastItem = a;
-                    Ext.fly(a).addCls(this.overScheduledEventClass);
-                    this.fireEvent("eventmouseenter", this, this.resolveEventRecord(a), b)
-                }
-            },
-            onMouseOut: function (b, a) {
-                if (this.lastItem) {
-                    if (!b.within(this.lastItem, true, true)) {
-                        Ext.fly(this.lastItem).removeCls(this.overScheduledEventClass);
-                        this.fireEvent("eventmouseleave", this, this.resolveEventRecord(this.lastItem), b);
-                        delete this.lastItem
-                    }
-                }
-            },
-            highlightItem: function (b) {
-                if (b) {
-                    var a = this;
-                    a.clearHighlight();
-                    a.highlightedItem = b;
-                    Ext.fly(b).addCls(a.overItemCls)
-                }
-            },
-            shouldUpdateCell: function () {
-                return true
-            }
-        }
-    },
-    hasRightColumns: function () {
-        return this.headerCt.items.getCount() > 1
-    },
-    checkHorizontalFit: function () {
-        if (this.orientation === "horizontal") {
-            var a = this.getActualTimeColumnWidth();
-            var c = this.getFittingColumnWidth();
-            if (this.forceFit) {
-                if (c != a) {
-                    this.fitColumns()
                 }
             } else {
-                if (this.snapToIncrement) {
-                    var b = this.calculateTimeColumnWidth(a);
-                    if (b > 0 && b !== a) {
-                        this.setColumnWidth(b)
+                h.forEachInterval(e, function (l, j, k) {
+                    if (k > 0) {
+                        g.push({
+                            Date: l
+                        })
                     }
-                } else {
-                    if (a < c) {
-                        this.fitColumns()
-                    }
-                }
+                })
             }
         }
+        return g
+    }
+});
+Ext.define("Sch.mixin.AbstractTimelineView", {
+    requires: ["Sch.data.TimeAxis", "Sch.view.Horizontal"],
+    selectedEventCls: "sch-event-selected",
+    readOnly: false,
+    horizontalViewClass: "Sch.view.Horizontal",
+    timeCellCls: "sch-timetd",
+    timeCellSelector: ".sch-timetd",
+    eventBorderWidth: 1,
+    timeAxis: null,
+    timeAxisViewModel: null,
+    eventPrefix: null,
+    rowHeight: null,
+    orientation: "horizontal",
+    altColCls: "sch-col-alt",
+    horizontal: null,
+    vertical: null,
+    secondaryCanvasEl: null,
+    panel: null,
+    displayDateFormat: null,
+    el: null,
+    _initializeTimelineView: function () {
+        if (this.horizontalViewClass) {
+            this.horizontal = Ext.create(this.horizontalViewClass, {
+                view: this
+            })
+        }
+        if (this.verticalViewClass) {
+            this.vertical = Ext.create(this.verticalViewClass, {
+                view: this
+            })
+        }
+        this.eventPrefix = (this.eventPrefix || this.getId()) + "-"
     },
-    getTimeAxisColumn: function () {
-        return this.headerCt.items.get(0)
-    },
-    getFirstTimeColumn: function () {
-        return this.headerCt.getGridColumns()[0]
+    getTimeAxisViewModel: function () {
+        return this.timeAxisViewModel
     },
     getFormattedDate: function (a) {
         return Ext.Date.format(a, this.getDisplayDateFormat())
     },
-    getFormattedEndDate: function (d, a) {
-        var b = this.timeAxis,
-            c = b.getResolution().unit;
-        if (c in this.largeUnits && d.getHours() === 0 && d.getMinutes() === 0 && !(d.getYear() === a.getYear() && d.getMonth() === a.getMonth() && d.getDate() === a.getDate())) {
-            d = Sch.util.Date.add(d, Sch.util.Date.DAY, -1)
+    getFormattedEndDate: function (c, a) {
+        var b = this.getDisplayDateFormat();
+        if (c.getHours() === 0 && c.getMinutes() === 0 && !(c.getYear() === a.getYear() && c.getMonth() === a.getMonth() && c.getDate() === a.getDate()) && !Sch.util.Date.hourInfoRe.test(b.replace(Sch.util.Date.stripEscapeRe, ""))) {
+            c = Sch.util.Date.add(c, Sch.util.Date.DAY, -1)
         }
-        return Ext.Date.format(d, this.getDisplayDateFormat())
+        return Ext.Date.format(c, b)
     },
     getDisplayDateFormat: function () {
         return this.displayDateFormat
@@ -8336,110 +9025,12 @@ Ext.define("Sch.mixin.TimelineView", {
     setDisplayDateFormat: function (a) {
         this.displayDateFormat = a
     },
-    getSingleUnitInPixels: function (a) {
-        return Sch.util.Date.getUnitToBaseUnitRatio(this.timeAxis.getUnit(), a) * this.getSingleTickInPixels() / this.timeAxis.getIncrement()
-    },
-    getSingleTickInPixels: function () {
-        throw "Must be implemented by horizontal/vertical"
-    },
-    scrollEventIntoView: function (f, c, a, j, k) {
-        k = k || this;
-        var h = this;
-        var d = this.panel._top.store;
-        var i = function (l) {
-            l.scrollIntoView(h.el, true, a);
-            if (c) {
-                if (typeof c === "boolean") {
-                    l.highlight()
-                } else {
-                    l.highlight(null, c)
-                }
-            }
-            j && j.call(k)
-        };
-        var e = Ext.data && Ext.data.TreeStore && d instanceof Ext.data.TreeStore && !f.isVisible();
-        if (e) {
-            f.bubble(function (l) {
-                l.expand()
-            })
-        }
-        var b = this.getOuterElementFromEventRecord(f);
-        if (b) {
-            i(b)
-        } else {
-            var g = this.panel.verticalScroller;
-            if (d.buffered && g) {
-                Ext.Function.defer(function () {
-                    g.scrollTo(d.getIndexInTotalDataset(f), false, function () {
-                        var l = h.getOuterElementFromEventRecord(f);
-                        if (l) {
-                            i(l)
-                        }
-                    })
-                }, e ? 10 : 0)
-            }
-        }
-    },
-    calculateTimeColumnWidth: function (e) {
-        if (!this.panel.rendered) {
-            return e
-        }
-        var h = this.forceFit;
-        var b = 0,
-            d = this.timeAxis.getUnit(),
-            k = this.timeAxis.getCount(),
-            g = Number.MAX_VALUE;
-        if (this.snapToIncrement) {
-            var i = this.timeAxis.getResolution(),
-                j = i.unit,
-                c = i.increment;
-            g = Sch.util.Date.getUnitToBaseUnitRatio(d, j) * c
-        }
-        var f = Sch.util.Date.getMeasuringUnit(d);
-        g = Math.min(g, Sch.util.Date.getUnitToBaseUnitRatio(d, f));
-        var a = Math.floor(this.getAvailableWidthForSchedule() / k);
-        b = (h || e < a) ? a : e;
-        if (g > 0 && (!h || g < 1)) {
-            b = Math.round(Math.max(1, Math[h ? "floor" : "round"](g * b)) / g)
-        }
-        return b
-    },
-    getFittingColumnWidth: function () {
-        var a = Math.floor(this.getAvailableWidthForSchedule() / this.timeAxis.getCount());
-        return this.calculateTimeColumnWidth(a)
-    },
     fitColumns: function (b) {
-        var a = 0;
         if (this.orientation === "horizontal") {
-            a = this.getFittingColumnWidth()
+            this.getTimeAxisViewModel().fitToAvailableWidth(b)
         } else {
-            a = Math.floor((this.panel.getWidth() - Ext.getScrollbarSize().width - 1) / this.headerCt.getColumnCount())
-        }
-        this.setColumnWidth(a, b)
-    },
-    getAvailableWidthForSchedule: function () {
-        var c = (this.lastBox && this.lastBox.width) || this.getWidth();
-        var a = this.headerCt.items.items;
-        for (var b = 1; b < a.length; b++) {
-            c -= a[b].getWidth()
-        }
-        return c - Ext.getScrollbarSize().width - 1
-    },
-    getRightColumnsWidth: function () {
-        var c = 0;
-        var a = this.headerCt.items.items;
-        for (var b = 1; b < a.length; b++) {
-            c += a[b].getWidth()
-        }
-        return c
-    },
-    fixRightColumnsPositions: function () {
-        var a = this.headerCt.items.items;
-        var c = a[0].getWidth();
-        for (var b = 1; b < a.length; b++) {
-            var d = a[b];
-            d.el.setLeft(c);
-            c += d.getWidth()
+            var a = Math.floor((this.panel.getWidth() - Ext.getScrollbarSize().width - 1) / this.headerCt.getColumnCount());
+            this.setColumnWidth(a, b)
         }
     },
     getElementFromEventRecord: function (a) {
@@ -8448,48 +9039,18 @@ Ext.define("Sch.mixin.TimelineView", {
     getEventNodeByRecord: function (a) {
         return document.getElementById(this.eventPrefix + a.internalId)
     },
-    getOuterElementFromEventRecord: function (a) {
-        return Ext.get(this.eventPrefix + a.internalId)
+    getEventNodesByRecord: function (a) {
+        return this.el.select("[id=" + this.eventPrefix + a.internalId + "]")
     },
-    resolveColumnIndex: function (a) {
-        return Math.floor(a / this.getActualTimeColumnWidth())
-    },
-    getStartEndDatesFromRegion: function (b, a) {
-        throw "Must be implemented by horizontal/vertical"
-    },
-    setupTooltip: function () {
-        var b = this,
-            a = Ext.apply({
-                renderTo: Ext.getBody(),
-                delegate: b.eventSelector,
-                target: b.el,
-                anchor: "b"
-            }, b.tipCfg);
-        b.tip = Ext.create("Ext.ToolTip", a);
-        b.tip.on({
-            beforeshow: function (d) {
-                if (!d.triggerElement || !d.triggerElement.id) {
-                    return false
-                }
-                var c = this.resolveEventRecord(d.triggerElement);
-                if (!c || this.fireEvent("beforetooltipshow", this, c) === false) {
-                    return false
-                }
-                d.update(this.tooltipTpl.apply(this.getDataForTooltipTpl(c)));
-                return true
-            },
-            scope: this
-        })
-    },
-    getDataForTooltipTpl: function (a) {
-        return a.data
+    getStartEndDatesFromRegion: function (c, b, a) {
+        return this[this.orientation].getStartEndDatesFromRegion(c, b, a)
     },
     getTimeResolution: function () {
         return this.timeAxis.getResolution()
     },
     setTimeResolution: function (b, a) {
         this.timeAxis.setResolution(b, a);
-        if (this.snapToIncrement) {
+        if (this.getTimeAxisViewModel().snapToIncrement) {
             this.refreshKeepingScroll()
         }
     },
@@ -8499,37 +9060,14 @@ Ext.define("Sch.mixin.TimelineView", {
     getDateFromDomEvent: function (b, a) {
         return this.getDateFromXY(b.getXY(), a)
     },
-    handleScheduleEvent: function (c) {
-        var b = c.getTarget("." + this.timeCellCls, 2);
-        if (b) {
-            var a = this.getDateFromDomEvent(c, "floor");
-            this.fireEvent("schedule" + c.type, this, a, this.indexOf(this.findItemByChild(b)), c)
-        }
-    },
-    setupTimeCellEvents: function () {
-        this.mon(this.el, {
-            click: this.handleScheduleEvent,
-            dblclick: this.handleScheduleEvent,
-            contextmenu: this.handleScheduleEvent,
-            scope: this
-        }, this)
-    },
     getSnapPixelAmount: function () {
-        if (this.snapToIncrement) {
-            var a = this.timeAxis.getResolution();
-            return (a.increment || 1) * this.getSingleUnitInPixels(a.unit)
-        } else {
-            return 1
-        }
+        return this.getTimeAxisViewModel().getSnapPixelAmount()
     },
-    getActualTimeColumnWidth: function () {
-        return this.headerCt.items.get(0).getTimeColumnWidth()
+    getTimeColumnWidth: function () {
+        return this.getTimeAxisViewModel().getTickWidth()
     },
     setSnapEnabled: function (a) {
-        this.snapToIncrement = a;
-        if (a) {
-            this.refreshKeepingScroll()
-        }
+        this.getTimeAxisViewModel().setSnapToIncrement(a)
     },
     setReadOnly: function (a) {
         this.readOnly = a;
@@ -8540,31 +9078,71 @@ Ext.define("Sch.mixin.TimelineView", {
     },
     setOrientation: function (a) {
         this.orientation = a;
-        Ext.apply(this, Sch.view[Ext.String.capitalize(a)].prototype.props)
+        this.timeAxisViewModel.orientation = a
     },
     getOrientation: function () {
         return this.orientation
     },
-    translateToScheduleCoordinate: function (a) {
-        throw "Abstract method call!"
+    isHorizontal: function () {
+        return this.getOrientation() === "horizontal"
     },
-    translateToPageCoordinate: function (a) {
-        throw "Abstract method call!"
+    isVertical: function () {
+        return !this.isHorizontal()
     },
     getDateFromXY: function (c, b, a) {
-        throw "Abstract method call!"
+        return this.getDateFromCoordinate(this.orientation === "horizontal" ? c[0] : c[1], b, a)
     },
-    getXYFromDate: function (a, b) {
-        throw "Abstract method call!"
+    getDateFromCoordinate: function (c, b, a) {
+        if (!a) {
+            c = this[this.orientation].translateToScheduleCoordinate(c)
+        }
+        return this.timeAxisViewModel.getDateFromPosition(c, b)
+    },
+    getDateFromX: function (a, b) {
+        return this.getDateFromCoordinate(a, b)
+    },
+    getDateFromY: function (b, a) {
+        return this.getDateFromCoordinate(b, a)
+    },
+    getCoordinateFromDate: function (a, b) {
+        var c = this.timeAxisViewModel.getPositionFromDate(a);
+        if (b === false) {
+            c = this[this.orientation].translateToPageCoordinate(c)
+        }
+        return Math.round(c)
+    },
+    getXFromDate: function (a, b) {
+        return this.getCoordinateFromDate(a, b)
+    },
+    getYFromDate: function (a, b) {
+        return this.getCoordinateFromDate(a, b)
+    },
+    getTimeSpanDistance: function (a, b) {
+        return this.timeAxisViewModel.getDistanceBetweenDates(a, b)
     },
     getTimeSpanRegion: function (a, b) {
-        throw "Abstract method call!"
+        return this[this.orientation].getTimeSpanRegion(a, b)
     },
-    getStart: function () {
-        return this.timeAxis.getStart()
+    getScheduleRegion: function (b, a) {
+        return this[this.orientation].getScheduleRegion(b, a)
     },
-    getEnd: function () {
-        return this.timeAxis.getEnd()
+    getTableRegion: function () {
+        throw "Abstract method call"
+    },
+    getRowNode: function (a) {
+        throw "Abstract method call"
+    },
+    getRecordForRowNode: function (a) {
+        throw "Abstract method call"
+    },
+    getVisibleDateRange: function () {
+        return this[this.orientation].getVisibleDateRange()
+    },
+    setColumnWidth: function (b, a) {
+        this[this.orientation].setColumnWidth(b, a)
+    },
+    findRowByChild: function (a) {
+        throw "Abstract method call"
     },
     setBarMargin: function (b, a) {
         this.barMargin = b;
@@ -8572,249 +9150,575 @@ Ext.define("Sch.mixin.TimelineView", {
             this.refreshKeepingScroll()
         }
     },
+    getRowHeight: function () {
+        return this.timeAxisViewModel.getViewRowHeight()
+    },
     setRowHeight: function (a, b) {
-        this.rowHeight = a || 24;
-        if (this.rendered && !b) {
-            this.refreshKeepingScroll()
-        }
+        this.timeAxisViewModel.setViewRowHeight(a, b)
     },
-    refreshKeepingScroll: function (a) {
-        this.saveScrollState();
-        if (this.lightRefresh) {
-            this.lightRefresh()
-        } else {
-            this.refresh()
-        }
-        this.restoreScrollState()
+    refreshKeepingScroll: function () {
+        throw "Abstract method call"
     },
-    refreshKeepingResourceScroll: function (c) {
-        var d = this.el.dom,
-            b = d.scrollTop,
-            a = d.scrollLeft;
-        if (this.lightRefresh) {
-            this.lightRefresh()
-        } else {
-            this.refresh()
-        } if (this.getOrientation() === "horizontal") {
-            d.scrollTop = b
-        } else {
-            d.scrollLeft = a
-        }
+    scrollVerticallyTo: function (b, a) {
+        throw "Abstract method call"
     },
-    lightRefresh: function () {
-        var a = this.refreshSize;
-        Ext.suspendLayouts();
-        this.refreshSize = Ext.emptyFn;
-        this.refresh();
-        this.refreshSize = a;
-        Ext.resumeLayouts()
-    }
-}, function () {
-    Ext.apply(Sch, {
-        VERSION: "2.1.15"
-    })
+    scrollHorizontallyTo: function (a, b) {
+        throw "Abstract method call"
+    },
+    getVerticalScroll: function () {
+        throw "Abstract method call"
+    },
+    getHorizontalScroll: function () {
+        throw "Abstract method call"
+    },
+    getEl: Ext.emptyFn,
+    getSecondaryCanvasEl: function () {
+        if (!this.rendered) {
+            throw "Calling this method too early"
+        }
+        if (!this.secondaryCanvasEl) {
+            this.secondaryCanvasEl = this.getEl().createChild({
+                cls: "sch-secondary-canvas"
+            })
+        }
+        return this.secondaryCanvasEl
+    },
+    getScroll: function () {
+        throw "Abstract method call"
+    },
+    getOuterEl: function () {
+        return this.getEl()
+    },
+    getRowContainerEl: function () {
+        return this.getEl()
+    },
+    getScheduleCell: function (b, a) {
+        return this.getCellByPosition({
+            row: b,
+            column: a
+        })
+    },
+    getScrollEventSource: function () {
+        return this.getEl()
+    },
+    getViewportHeight: function () {
+        return this.getEl().getHeight()
+    },
+    getViewportWidth: function () {
+        return this.getEl().getWidth()
+    },
+    getDateConstraints: Ext.emptyFn
 });
-Ext.define("Sch.view.TimelineGridView", {
-    extend: "Ext.grid.View",
-    mixins: ["Sch.mixin.TimelineView"]
-}, function () {
-    this.override(Sch.mixin.TimelineView.prototype.inheritables() || {})
+Ext.apply(Sch, {
+    VERSION: "2.2.19"
 });
-Ext.define("Sch.mixin.SchedulerView", {
-    uses: ["Sch.tooltip.Tooltip"],
-    requires: ["Sch.feature.DragCreator", "Sch.feature.DragDrop", "Sch.feature.ResizeZone", "Sch.feature.Scheduling", "Sch.column.Resource", "Sch.view.Horizontal", "Sch.view.Vertical"],
-    _cmpCls: "sch-schedulerview",
-    scheduledEventName: "event",
-    barMargin: 1,
-    eventResizeHandles: "end",
-    allowOverlap: true,
-    constrainDragToResource: false,
-    readOnly: false,
-    dynamicRowHeight: true,
-    managedEventSizing: true,
-    eventAnimations: true,
-    eventSelector: ".sch-event",
-    eventTpl: ['<tpl for=".">', '<div unselectable="on" id="{{evt-prefix}}{id}" style="left:{left}px;top:{top}px;height:{height}px;width:{width}px;{style}" class="sch-event x-unselectable {internalCls} {cls}">', '<div unselectable="on" class="sch-event-inner {iconCls}">', "{body}", "</div>", "</div>", "</tpl>"],
-    dndValidatorFn: function (b, a, c, f, d) {
-        return true
+Ext.define("Sch.mixin.TimelineView", {
+    extend: "Sch.mixin.AbstractTimelineView",
+    requires: ["Sch.patches.ElementScroll", "Ext.tip.ToolTip"],
+    overScheduledEventClass: "sch-event-hover",
+    ScheduleEventMap: {
+        click: "Click",
+        mousedown: "MouseDown",
+        mouseup: "MouseUp",
+        dblclick: "DblClick",
+        contextmenu: "ContextMenu",
+        keydown: "KeyDown",
+        keyup: "KeyUp"
     },
-    resizeValidatorFn: function (c, b, a, f, d) {
-        return true
-    },
-    createValidatorFn: function (b, a, d, c) {
-        return true
+    preventOverCls: false,
+    _initializeTimelineView: function () {
+        this.callParent(arguments);
+        this.on("destroy", this._onDestroy, this);
+        this.on("afterrender", this._onAfterRender, this);
+        this.setOrientation(this.orientation);
+        this.addEvents("beforetooltipshow", "columnwidthchange");
+        this.enableBubble("columnwidthchange");
+        this.addCls("sch-timelineview");
+        if (this.readOnly) {
+            this.addCls(this._cmpCls + "-readonly")
+        }
+        this.addCls(this._cmpCls);
+        if (this.eventAnimations) {
+            this.addCls("sch-animations-enabled")
+        }
     },
     inheritables: function () {
         return {
-            loadingText: "Loading events...",
-            trackOver: false,
-            overItemCls: "",
-            initComponent: function () {
-                this.addEvents("eventclick", "eventmousedown", "eventmouseup", "eventdblclick", "eventcontextmenu", "eventmouseenter", "eventmouseout", "beforeeventresize", "eventresizestart", "eventpartialresize", "eventresizeend", "beforeeventdrag", "eventdragstart", "eventdrop", "aftereventdrop", "beforedragcreate", "dragcreatestart", "dragcreateend", "afterdragcreate", "beforeeventadd");
-                this.callParent(arguments);
-                var a = this.panel._top;
-                Ext.apply(this, {
-                    eventStore: a.eventStore,
-                    resourceStore: a.resourceStore,
-                    eventBodyTemplate: a.eventBodyTemplate,
-                    eventTpl: a.eventTpl || this.eventTpl,
-                    eventBarTextField: a.eventBarTextField || a.eventStore.model.prototype.nameField,
-                    allowOverlap: a.allowOverlap,
-                    eventBarIconClsField: a.eventBarIconClsField,
-                    onEventCreated: a.onEventCreated || Ext.emptyFn,
-                    constrainDragToResource: a.constrainDragToResource
-                });
-                var c = this;
-                if (Ext.isArray(c.eventTpl)) {
-                    var e = Ext.Array.clone(c.eventTpl),
-                        b = '<div class="sch-resizable-handle sch-resizable-handle-{0}"></div>';
-                    if (this.eventResizeHandles === "start" || this.eventResizeHandles === "both") {
-                        e.splice(2, 0, Ext.String.format(b, "start"))
-                    }
-                    if (this.eventResizeHandles === "end" || this.eventResizeHandles === "both") {
-                        e.splice(2, 0, Ext.String.format(b, "end"))
-                    }
-                    var d = e.join("").replace("{{evt-prefix}}", this.eventPrefix);
-                    c.eventTpl = Ext.create("Ext.XTemplate", d)
+            processUIEvent: function (d) {
+                var a = d.getTarget(this.eventSelector),
+                    c = this.ScheduleEventMap,
+                    b = d.type,
+                    f = false;
+                if (a && b in c) {
+                    this.fireEvent(this.scheduledEventName + b, this, this.resolveEventRecord(a), d);
+                    f = !(this.getSelectionModel() instanceof Ext.selection.RowModel)
                 }
-            },
-            setReadOnly: function (a) {
-                if (this.dragCreator) {
-                    this.dragCreator.setDisabled(a)
+                if (!f) {
+                    return this.callParent(arguments)
                 }
-                this.callParent(arguments)
-            },
-            prepareData: function (c, a, b) {
-                var d = this.callParent(arguments);
-                d = this.collectRowData(d, b, a);
-                return d
-            },
-            initFeatures: function () {
-                this.features = this.features || [];
-                this.features.push({
-                    ftype: "scheduling"
-                });
-                this.callParent(arguments)
-            },
-            beforeRender: function () {
-                this.callParent(arguments);
-                this.addCls(this._cmpCls);
-                if (this.eventAnimations) {
-                    this.addCls("sch-animations-enabled")
-                }
-            },
-            afterRender: function () {
-                this.callParent(arguments);
-                this.bindEventStore(this.eventStore, true);
-                this.setupEventListeners();
-                this.configureFunctionality();
-                var a = this.headerCt.resizer;
-                if (a) {
-                    a.doResize = Ext.Function.createSequence(a.doResize, this.afterHeaderResized, this)
-                }
-            },
-            onDestroy: function () {
-                this.bindEventStore(null);
-                this.callParent(arguments)
             }
         }
     },
-    getRowHeight: function () {
-        return this.rowHeight
-    },
-    translateToScheduleCoordinate: function (a) {
-        throw "Must be defined by horizontal/vertical class"
-    },
-    getEventBox: function (b, a) {
-        throw "Must be defined by horizontal/vertical class"
-    },
-    generateTplData: function (a, d, k, f, e) {
-        var b = a.getStartDate(),
-            c = a.getEndDate(),
-            g = this.getEventBox(Sch.util.Date.max(b, d), Sch.util.Date.min(c, k)),
-            j = a.getCls(),
-            h;
-        j += " sch-event-resizable-" + a.getResizable();
-        if (a.dirty) {
-            j += " sch-dirty "
+    _onDestroy: function () {
+        if (this.tip) {
+            this.tip.destroy()
         }
-        if (c > k) {
-            j += " sch-event-endsoutside "
+    },
+    _onAfterRender: function () {
+        if (this.overScheduledEventClass) {
+            this.setMouseOverEnabled(true)
         }
-        if (b < d) {
-            j += " sch-event-startsoutside "
+        if (this.tooltipTpl) {
+            this.el.on("mousemove", this.setupTooltip, this, {
+                single: true
+            })
         }
-        if (c - b === 0) {
-            j += " sch-event-milestone"
+        var c = this.bufferedRenderer;
+        if (c) {
+            this.patchBufferedRenderingPlugin(c);
+            this.patchBufferedRenderingPlugin(this.lockingPartner.bufferedRenderer)
+        }
+        this.on("bufferedrefresh", this.onBufferedRefresh, this, {
+            buffer: 10
+        });
+        this.setupTimeCellEvents();
+        var b = this.getSecondaryCanvasEl();
+        if (b.getStyle("position").toLowerCase() !== "absolute") {
+            var a = Ext.Msg || window;
+            a.alert("ERROR: The CSS file for the Bryntum component has not been loaded.")
+        }
+    },
+    patchBufferedRenderingPlugin: function (c) {
+        var b = this;
+        var a = c.setBodyTop;
+        c.setBodyTop = function (d, e) {
+            if (d < 0) {
+                d = 0
+            }
+            var f = a.apply(this, arguments);
+            b.fireEvent("bufferedrefresh", this);
+            return f
+        }
+    },
+    onBufferedRefresh: function () {
+        this.getSecondaryCanvasEl().dom.style.top = this.body.dom.style.top
+    },
+    setMouseOverEnabled: function (a) {
+        this[a ? "mon" : "mun"](this.el, {
+            mouseover: this.onEventMouseOver,
+            mouseout: this.onEventMouseOut,
+            delegate: this.eventSelector,
+            scope: this
+        })
+    },
+    onEventMouseOver: function (c, a) {
+        if (a !== this.lastItem && !this.preventOverCls) {
+            this.lastItem = a;
+            Ext.fly(a).addCls(this.overScheduledEventClass);
+            var b = this.resolveEventRecord(a);
+            if (b) {
+                this.fireEvent("eventmouseenter", this, b, c)
+            }
+        }
+    },
+    onEventMouseOut: function (b, a) {
+        if (this.lastItem) {
+            if (!b.within(this.lastItem, true, true)) {
+                Ext.fly(this.lastItem).removeCls(this.overScheduledEventClass);
+                this.fireEvent("eventmouseleave", this, this.resolveEventRecord(this.lastItem), b);
+                delete this.lastItem
+            }
+        }
+    },
+    highlightItem: function (b) {
+        if (b) {
+            var a = this;
+            a.clearHighlight();
+            a.highlightedItem = b;
+            Ext.fly(b).addCls(a.overItemCls)
+        }
+    },
+    setupTooltip: function () {
+        var b = this,
+            a = Ext.apply({
+                renderTo: Ext.getBody(),
+                delegate: b.eventSelector,
+                target: b.el,
+                anchor: "b",
+                rtl: b.rtl,
+                show: function () {
+                    Ext.ToolTip.prototype.show.apply(this, arguments);
+                    if (this.triggerElement && b.getOrientation() === "horizontal") {
+                        this.setX(this.targetXY[0] - 10);
+                        this.setY(Ext.fly(this.triggerElement).getY() - this.getHeight() - 10)
+                    }
+                }
+            }, b.tipCfg);
+        b.tip = new Ext.ToolTip(a);
+        b.tip.on({
+            beforeshow: function (d) {
+                if (!d.triggerElement || !d.triggerElement.id) {
+                    return false
+                }
+                var c = this.resolveEventRecord(d.triggerElement);
+                if (!c || this.fireEvent("beforetooltipshow", this, c) === false) {
+                    return false
+                }
+                d.update(this.tooltipTpl.apply(this.getDataForTooltipTpl(c)))
+            },
+            scope: this
+        })
+    },
+    getTimeAxisColumn: function () {
+        if (!this.timeAxisColumn) {
+            this.timeAxisColumn = this.headerCt.down("timeaxiscolumn")
+        }
+        return this.timeAxisColumn
+    },
+    getDataForTooltipTpl: function (a) {
+        return Ext.apply({
+            _record: a
+        }, a.data)
+    },
+    refreshKeepingScroll: function () {
+        Ext.suspendLayouts();
+        this.saveScrollState();
+        this.refresh();
+        if (this.up("tablepanel[lockable=true]").lockedGridDependsOnSchedule) {
+            this.lockingPartner.refresh()
+        }
+        if (this.scrollState.left !== 0 || this.scrollState.top !== 0 || this.infiniteScroll) {
+            this.restoreScrollState()
+        }
+        Ext.resumeLayouts(true)
+    },
+    setupTimeCellEvents: function () {
+        this.mon(this.el, {
+            click: this.handleScheduleEvent,
+            dblclick: this.handleScheduleEvent,
+            contextmenu: this.handleScheduleEvent,
+            scope: this
+        })
+    },
+    getTableRegion: function () {
+        var a = this.el.down("." + Ext.baseCSSPrefix + "grid-table");
+        return (a || this.el).getRegion()
+    },
+    getRowNode: function (a) {
+        return this.getNodeByRecord(a)
+    },
+    findRowByChild: function (a) {
+        return this.findItemByChild(a)
+    },
+    getRecordForRowNode: function (a) {
+        return this.getRecord(a)
+    },
+    refreshKeepingResourceScroll: function () {
+        var a = this.getScroll();
+        this.refresh();
+        if (this.getOrientation() === "horizontal") {
+            this.scrollVerticallyTo(a.top)
+        } else {
+            this.scrollHorizontallyTo(a.left)
+        }
+    },
+    scrollHorizontallyTo: function (a, b) {
+        var c = this.getEl();
+        if (c) {
+            c.scrollTo("left", Math.max(0, a), b)
+        }
+    },
+    scrollVerticallyTo: function (c, a) {
+        var b = this.getEl();
+        if (b) {
+            b.scrollTo("top", Math.max(0, c), a)
+        }
+    },
+    getVerticalScroll: function () {
+        var a = this.getEl();
+        return a.getScroll().top
+    },
+    getHorizontalScroll: function () {
+        var a = this.getEl();
+        return a.getScroll().left
+    },
+    getScroll: function () {
+        var a = this.getEl().getScroll();
+        return {
+            top: a.top,
+            left: a.left
+        }
+    },
+    getXYFromDate: function () {
+        var a = this.getCoordinateFromDate.apply(this, arguments);
+        return this.orientation === "horizontal" ? [a, 0] : [0, a]
+    },
+    handleScheduleEvent: function (a) {},
+    scrollElementIntoView: function (b, k, p, f, e) {
+        var a = 20,
+            o = b.dom,
+            h = b.getOffsetsTo(k = Ext.getDom(k) || Ext.getBody().dom),
+            d = h[0] + k.scrollLeft,
+            l = h[1] + k.scrollTop,
+            i = l + o.offsetHeight,
+            q = d + o.offsetWidth,
+            m = k.clientHeight,
+            g = parseInt(k.scrollTop, 10),
+            r = parseInt(k.scrollLeft, 10),
+            n = g + m,
+            j = r + k.clientWidth,
+            c;
+        if (e) {
+            if (f) {
+                f = Ext.apply({
+                    listeners: {
+                        afteranimate: function () {
+                            b.scrollChildFly.attach(o).highlight()
+                        }
+                    }
+                }, f)
+            } else {
+                b.scrollChildFly.attach(o).highlight()
+            }
+        }
+        if (o.offsetHeight > m || l < g) {
+            c = l - a
+        } else {
+            if (i > n) {
+                c = i - m + a
+            }
+        } if (c != null) {
+            b.scrollChildFly.attach(k).scrollTo("top", c, f)
+        }
+        if (p !== false) {
+            c = null;
+            if (o.offsetWidth > k.clientWidth || d < r) {
+                c = d - a
+            } else {
+                if (q > j) {
+                    c = q - k.clientWidth + a
+                }
+            } if (c != null) {
+                b.scrollChildFly.attach(k).scrollTo("left", c, f)
+            }
+        }
+        return b
+    }
+});
+Ext.define("Sch.view.TimelineGridView", {
+    extend: "Ext.grid.View",
+    mixins: ["Sch.mixin.TimelineView"],
+    infiniteScroll: false,
+    bufferCoef: 5,
+    bufferThreshold: 0.2,
+    cachedScrollLeftDate: null,
+    boxIsReady: false,
+    ignoreNextHorizontalScroll: false,
+    constructor: function (a) {
+        this.callParent(arguments);
+        if (this.infiniteScroll) {
+            this.on("afterrender", this.setupInfiniteScroll, this, {
+                single: true
+            })
+        }
+    },
+    setupInfiniteScroll: function () {
+        var b = this.panel.ownerCt;
+        this.cachedScrollLeftDate = b.startDate || this.timeAxis.getStart();
+        var a = this;
+        b.calculateOptimalDateRange = function (d, c, g, e) {
+            if (e) {
+                return e
+            }
+            var f = Sch.preset.Manager.getPreset(g.preset);
+            return a.calculateInfiniteScrollingDateRange(d, f.getBottomHeader().unit, g.increment, g.width)
+        };
+        this.el.on("scroll", this.onHorizontalScroll, this);
+        this.on("resize", this.onSelfResize, this)
+    },
+    onHorizontalScroll: function () {
+        if (this.ignoreNextHorizontalScroll || this.cachedScrollLeftDate) {
+            this.ignoreNextHorizontalScroll = false;
+            return
+        }
+        var d = this.el.dom,
+            c = this.getWidth(),
+            b = c * this.bufferThreshold * this.bufferCoef;
+        if ((d.scrollWidth - d.scrollLeft - c < b) || d.scrollLeft < b) {
+            var a = Ext.dd.ScrollManager;
+            this.shiftToDate(this.getDateFromCoordinate(d.scrollLeft, null, true));
+            if (a.proc && a.proc.el === this.el) {
+                this.el.stopAnimation()
+            }
+        }
+    },
+    refresh: function () {
+        this.callParent(arguments);
+        if (this.infiniteScroll && !this.scrollStateSaved && this.boxIsReady) {
+            this.restoreScrollLeftDate()
+        }
+    },
+    onSelfResize: function (c, d, a, b, e) {
+        this.boxIsReady = true;
+        if (d != b) {
+            this.shiftToDate(this.cachedScrollLeftDate || this.timeAxis.getStart(), this.cachedScrollCentered)
+        }
+    },
+    restoreScrollLeftDate: function () {
+        if (this.cachedScrollLeftDate && this.boxIsReady) {
+            this.ignoreNextHorizontalScroll = true;
+            this.scrollToDate(this.cachedScrollLeftDate);
+            this.cachedScrollLeftDate = null
+        }
+    },
+    scrollToDate: function (a) {
+        this.cachedScrollLeftDate = a;
+        if (this.cachedScrollCentered) {
+            this.panel.ownerCt.scrollToDateCentered(a)
+        } else {
+            this.panel.ownerCt.scrollToDate(a)
+        }
+        var b = this.el.dom.scrollLeft;
+        this.panel.scrollLeftPos = b;
+        this.headerCt.el.dom.scrollLeft = b
+    },
+    saveScrollState: function () {
+        this.scrollStateSaved = this.boxIsReady;
+        this.callParent(arguments)
+    },
+    restoreScrollState: function () {
+        this.scrollStateSaved = false;
+        if (this.infiniteScroll && this.cachedScrollLeftDate) {
+            this.restoreScrollLeftDate();
+            this.el.dom.scrollTop = this.scrollState.top;
+            return
+        }
+        this.callParent(arguments)
+    },
+    calculateInfiniteScrollingDateRange: function (e, f, b, a) {
+        var g = this.timeAxis;
+        var d = this.getWidth();
+        a = a || this.timeAxisViewModel.getTickWidth();
+        b = b || g.increment || 1;
+        f = f || g.unit;
+        var h = Sch.util.Date;
+        var c = Math.ceil(d * this.bufferCoef / a);
+        return {
+            start: g.floorDate(h.add(e, f, -c * b), false, f, b),
+            end: g.ceilDate(h.add(e, f, Math.ceil((d / a + c) * b)), false, f, b)
+        }
+    },
+    shiftToDate: function (b, c) {
+        var a = this.calculateInfiniteScrollingDateRange(b);
+        this.cachedScrollLeftDate = b;
+        this.cachedScrollCentered = c;
+        this.timeAxis.setTimeSpan(a.start, a.end)
+    },
+    destroy: function () {
+        if (this.infiniteScroll && this.rendered) {
+            this.el.un("scroll", this.onHorizontalScroll, this)
+        }
+        this.callParent(arguments)
+    }
+}, function () {
+    this.override(Sch.mixin.TimelineView.prototype.inheritables() || {})
+});
+Ext.define("Sch.mixin.AbstractSchedulerView", {
+    requires: ["Sch.eventlayout.Horizontal", "Sch.view.Vertical", "Sch.eventlayout.Vertical"],
+    _cmpCls: "sch-schedulerview",
+    scheduledEventName: "event",
+    barMargin: 1,
+    constrainDragToResource: false,
+    allowOverlap: null,
+    readOnly: null,
+    dynamicRowHeight: true,
+    managedEventSizing: true,
+    eventAnimations: true,
+    horizontalLayoutCls: "Sch.eventlayout.Horizontal",
+    verticalLayoutCls: "Sch.eventlayout.Vertical",
+    eventCls: "sch-event",
+    verticalViewClass: "Sch.view.Vertical",
+    eventTpl: ['<tpl for=".">', '<div unselectable="on" id="{{evt-prefix}}{id}" style="right:{right}px;left:{left}px;top:{top}px;height:{height}px;width:{width}px;{style}" class="sch-event ' + Ext.baseCSSPrefix + 'unselectable {internalCls} {cls}">', '<div unselectable="on" class="sch-event-inner {iconCls}">', "{body}", "</div>", "</div>", "</tpl>"],
+    eventStore: null,
+    resourceStore: null,
+    eventLayout: null,
+    _initializeSchedulerView: function () {
+        var a = Ext.ClassManager.get(this.horizontalLayoutCls);
+        var b = Ext.ClassManager.get(this.verticalLayoutCls);
+        this.eventSelector = "." + this.eventCls;
+        this.eventLayout = {};
+        if (a) {
+            this.eventLayout.horizontal = new a({
+                view: this,
+                timeAxisViewModel: this.timeAxisViewModel
+            })
+        }
+        if (b) {
+            this.eventLayout.vertical = new b({
+                view: this,
+                timeAxisViewModel: this.timeAxisViewModel
+            })
+        }
+        this.store = this.store || this.resourceStore;
+        this.resourceStore = this.resourceStore || this.store
+    },
+    generateTplData: function (d, c, g) {
+        var f = this[this.orientation].getEventRenderData(d),
+            h = d.getStartDate(),
+            b = d.getEndDate(),
+            a = d.getCls() || "";
+        a += " sch-event-resizable-" + d.getResizable();
+        if (d.dirty) {
+            a += " sch-dirty "
+        }
+        if (f.endsOutsideView) {
+            a += " sch-event-endsoutside "
+        }
+        if (f.startsOutsideView) {
+            a += " sch-event-startsoutside "
         }
         if (this.eventBarIconClsField) {
-            j += " sch-event-withicon "
+            a += " sch-event-withicon "
         }
-        if (a.isDraggable() === false) {
-            j += " sch-event-fixed "
+        if (d.isDraggable() === false) {
+            a += " sch-event-fixed "
         }
-        if (c - b === 0) {
-            j += " sch-event-milestone "
+        if (b - h === 0) {
+            a += " sch-event-milestone "
         }
-        h = Ext.apply(g, {
-            id: a.internalId,
-            internalCls: j,
-            start: b,
-            end: c,
-            iconCls: a.data[this.eventBarIconClsField] || ""
-        });
+        f.id = d.internalId;
+        f.internalCls = a;
+        f.start = h;
+        f.end = b;
+        f.iconCls = d.data[this.eventBarIconClsField] || "";
         if (this.eventRenderer) {
-            var i = this.eventRenderer.call(this.eventRendererScope || this, a, f, h, e);
-            if (Ext.isObject(i) && this.eventBodyTemplate) {
-                h.body = this.eventBodyTemplate.apply(i)
+            var e = this.eventRenderer.call(this.eventRendererScope || this, d, c, f, g);
+            if (Ext.isObject(e) && this.eventBodyTemplate) {
+                f.body = this.eventBodyTemplate.apply(e)
             } else {
-                h.body = i
+                f.body = e
             }
         } else {
             if (this.eventBodyTemplate) {
-                h.body = this.eventBodyTemplate.apply(a.data)
+                f.body = this.eventBodyTemplate.apply(d.data)
             } else {
                 if (this.eventBarTextField) {
-                    h.body = a.data[this.eventBarTextField]
+                    f.body = d.data[this.eventBarTextField] || ""
                 }
-            }
-        }
-        return h
-    },
-    sortEvents: function (e, d) {
-        var c = (e.start - d.start === 0);
-        if (c) {
-            return e.end > d.end ? -1 : 1
-        } else {
-            return (e.start < d.start) ? -1 : 1
-        }
-    },
-    layoutEvents: function (a) {
-        throw "Must be defined by horizontal/vertical class"
-    },
-    findClosestSuccessor: function (g, e) {
-        var c = Infinity,
-            f, a = g.end,
-            h;
-        for (var d = 0, b = e.length; d < b; d++) {
-            h = e[d].start - a;
-            if (h >= 0 && h < c) {
-                f = e[d];
-                c = h
             }
         }
         return f
     },
     resolveResource: function (a) {
-        throw "Must be defined by horizontal/vertical class"
+        return this[this.orientation].resolveResource(a)
     },
-    getScheduleRegion: function (b, a) {
-        throw "Must be defined by horizontal/vertical class"
+    getResourceRegion: function (b, a, c) {
+        return this[this.orientation].getResourceRegion(b, a, c)
     },
-    resolveEventRecord: function (b) {
-        var a = Ext.get(b);
-        if (!a.is(this.eventSelector)) {
-            a = a.up(this.eventSelector)
+    resolveEventRecord: function (a) {
+        a = a.dom ? a.dom : a;
+        if (!(Ext.fly(a).hasCls(this.eventCls))) {
+            a = Ext.fly(a).up(this.eventSelector)
         }
         return this.getEventRecordFromDomId(a.id)
     },
@@ -8825,38 +9729,6 @@ Ext.define("Sch.mixin.SchedulerView", {
         var a = this.getEventIdFromDomNodeId(b);
         return this.eventStore.getByInternalId(a)
     },
-    configureFunctionality: function () {
-        var a = this.validatorFnScope || this;
-        if (this.eventResizeHandles !== "none" && Sch.feature.ResizeZone) {
-            this.resizePlug = Ext.create("Sch.feature.ResizeZone", Ext.applyIf({
-                schedulerView: this,
-                validatorFn: function (d, c, b, e) {
-                    return (this.allowOverlap || this.isDateRangeAvailable(b, e, c, d)) && this.resizeValidatorFn.apply(a, arguments) !== false
-                },
-                validatorFnScope: this
-            }, this.resizeConfig || {}))
-        }
-        if (this.enableEventDragDrop !== false && Sch.feature.DragDrop) {
-            this.dragdropPlug = Ext.create("Sch.feature.DragDrop", this, {
-                validatorFn: function (c, b, d, g, f) {
-                    return (this.allowOverlap || this.isDateRangeAvailable(d, Sch.util.Date.add(d, Sch.util.Date.MILLI, g), c[0], b)) && this.dndValidatorFn.apply(a, arguments) !== false
-                },
-                validatorFnScope: this,
-                dragConfig: this.dragConfig || {},
-                dropConfig: this.dropConfig || {}
-            })
-        }
-        if (this.enableDragCreation !== false && Sch.feature.DragCreator) {
-            this.dragCreator = Ext.create("Sch.feature.DragCreator", Ext.applyIf({
-                schedulerView: this,
-                disabled: this.readOnly,
-                validatorFn: function (c, b, d) {
-                    return (this.allowOverlap || this.isDateRangeAvailable(b, d, null, c)) && this.createValidatorFn.apply(a, arguments) !== false
-                },
-                validatorFnScope: this
-            }, this.createConfig || {}))
-        }
-    },
     isDateRangeAvailable: function (d, a, b, c) {
         return this.eventStore.isDateRangeAvailable(d, a, b, c)
     },
@@ -8866,7 +9738,309 @@ Ext.define("Sch.mixin.SchedulerView", {
         return this.eventStore.getEventsInTimeSpan(b, a)
     },
     getEventNodes: function () {
-        return this.el.select(this.eventSelector)
+        return this.getEl().select(this.eventSelector)
+    },
+    onEventCreated: function (a) {},
+    getEventStore: function () {
+        return this.eventStore
+    },
+    registerEventEditor: function (a) {
+        this.eventEditor = a
+    },
+    getEventEditor: function () {
+        return this.eventEditor
+    },
+    onEventUpdate: function (b, c, a) {
+        this[this.orientation].onEventUpdate(b, c, a)
+    },
+    onEventAdd: function (a, b) {
+        this[this.orientation].onEventAdd(a, b)
+    },
+    onEventRemove: function (a, b) {
+        this[this.orientation].onEventRemove(a, b)
+    },
+    bindEventStore: function (c, b) {
+        var d = this;
+        var a = {
+            scope: d,
+            refresh: d.onEventDataRefresh,
+            addrecords: d.onEventAdd,
+            updaterecord: d.onEventUpdate,
+            removerecords: d.onEventRemove,
+            add: d.onEventAdd,
+            update: d.onEventUpdate,
+            remove: d.onEventRemove
+        };
+        if (!Ext.versions.touch) {
+            a.clear = d.onEventDataRefresh
+        }
+        if (!b && d.eventStore) {
+            d.eventStore.setResourceStore(null);
+            if (c !== d.eventStore && d.eventStore.autoDestroy) {
+                d.eventStore.destroy()
+            } else {
+                if (d.mun) {
+                    d.mun(d.eventStore, a)
+                } else {
+                    d.eventStore.un(a)
+                }
+            } if (!c) {
+                if (d.loadMask && d.loadMask.bindStore) {
+                    d.loadMask.bindStore(null)
+                }
+                d.eventStore = null
+            }
+        }
+        if (c) {
+            c = Ext.data.StoreManager.lookup(c);
+            if (d.mon) {
+                d.mon(c, a)
+            } else {
+                c.on(a)
+            } if (d.loadMask && d.loadMask.bindStore) {
+                d.loadMask.bindStore(c)
+            }
+            d.eventStore = c;
+            c.setResourceStore(d.resourceStore)
+        }
+        if (c && !b) {
+            d.refresh()
+        }
+    },
+    onEventDataRefresh: function () {
+        this.refreshKeepingScroll()
+    },
+    onEventSelect: function (a) {
+        var b = this.getEventNodesByRecord(a);
+        if (b) {
+            b.addCls(this.selectedEventCls)
+        }
+    },
+    onEventDeselect: function (a) {
+        var b = this.getEventNodesByRecord(a);
+        if (b) {
+            b.removeCls(this.selectedEventCls)
+        }
+    },
+    refresh: function () {
+        throw "Abstract method call"
+    },
+    repaintEventsForResource: function (a) {
+        throw "Abstract method call"
+    },
+    repaintAllEvents: function () {
+        this.refreshKeepingScroll()
+    },
+    scrollEventIntoView: function (j, e, a, n, o) {
+        o = o || this;
+        var k = this;
+        var l = function (p) {
+            if (Ext.versions.extjs) {
+                k.up("panel").scrollTask.cancel();
+                k.scrollElementIntoView(p, k.el, true, a)
+            } else {
+                p.scrollIntoView(k.el, true, a)
+            } if (e) {
+                if (typeof e === "boolean") {
+                    p.highlight()
+                } else {
+                    p.highlight(null, e)
+                }
+            }
+            n && n.call(o)
+        };
+        if (Ext.data.TreeStore && this.resourceStore instanceof Ext.data.TreeStore) {
+            var d = j.getResources(k.eventStore);
+            if (d.length > 0 && !d[0].isVisible()) {
+                d[0].bubble(function (p) {
+                    p.expand()
+                })
+            }
+        }
+        var i = this.timeAxis;
+        var c = j.getStartDate();
+        var h = j.getEndDate();
+        if (!i.dateInAxis(c) || !i.dateInAxis(h)) {
+            var g = i.getEnd() - i.getStart();
+            i.setTimeSpan(new Date(c.getTime() - g / 2), new Date(h.getTime() + g / 2))
+        }
+        var b = this.getElementFromEventRecord(j);
+        if (b) {
+            l(b)
+        } else {
+            if (this.bufferedRenderer) {
+                var m = this.resourceStore;
+                var f = j.getResource(null, k.eventStore);
+                Ext.Function.defer(function () {
+                    var p = m.getIndexInTotalDataset ? m.getIndexInTotalDataset(f) : m.indexOf(f);
+                    this.bufferedRenderer.scrollTo(p, false, function () {
+                        var q = k.getElementFromEventRecord(j);
+                        if (q) {
+                            l(q)
+                        }
+                    })
+                }, 10, this)
+            }
+        }
+    }
+});
+Ext.define("Sch.mixin.SchedulerView", {
+    extend: "Sch.mixin.AbstractSchedulerView",
+    requires: ["Sch.tooltip.Tooltip", "Sch.feature.DragCreator", "Sch.feature.DragDrop", "Sch.feature.ResizeZone", "Sch.column.Resource", "Ext.XTemplate"],
+    eventResizeHandles: "end",
+    dndValidatorFn: Ext.emptyFn,
+    resizeValidatorFn: Ext.emptyFn,
+    createValidatorFn: Ext.emptyFn,
+    _initializeSchedulerView: function () {
+        this.callParent(arguments);
+        this.on("destroy", this._destroy, this);
+        this.on("afterrender", this._afterRender, this);
+        this.trackOver = false;
+        this.addEvents("eventclick", "eventmousedown", "eventmouseup", "eventdblclick", "eventcontextmenu", "eventmouseenter", "eventmouseout", "beforeeventresize", "eventresizestart", "eventpartialresize", "beforeeventresizefinalize", "eventresizeend", "beforeeventdrag", "eventdragstart", "beforeeventdropfinalize", "eventdrop", "aftereventdrop", "beforedragcreate", "dragcreatestart", "beforedragcreatefinalize", "dragcreateend", "afterdragcreate", "beforeeventadd", "scheduleclick", "scheduledblclick", "schedulecontextmenu");
+        var c = this;
+        if (!this.eventPrefix) {
+            throw "eventPrefix missing"
+        }
+        if (Ext.isArray(c.eventTpl)) {
+            var d = Ext.Array.clone(c.eventTpl),
+                b = '<div class="sch-resizable-handle sch-resizable-handle-{0}"></div>';
+            var a = this.eventResizeHandles;
+            if (a === "start" || a === "both") {
+                d.splice(2, 0, Ext.String.format(b, "start"))
+            }
+            if (a === "end" || a === "both") {
+                d.splice(2, 0, Ext.String.format(b, "end"))
+            }
+            c.eventTpl = new Ext.XTemplate(d.join("").replace("{{evt-prefix}}", this.eventPrefix))
+        }
+    },
+    inheritables: function () {
+        return {
+            loadingText: "Loading events...",
+            overItemCls: "",
+            setReadOnly: function (a) {
+                if (this.dragCreator) {
+                    this.dragCreator.setDisabled(a)
+                }
+                this.callParent(arguments)
+            },
+            repaintEventsForResource: function (e, d) {
+                var b = this.orientation === "horizontal" ? this.store.indexOf(e) : 0;
+                if (this.orientation === "horizontal") {
+                    this.eventLayout.horizontal.clearCache(e)
+                }
+                if (b >= 0) {
+                    this.refreshNode(b);
+                    this.lockingPartner.refreshNode(b);
+                    if (d) {
+                        var a = this.getSelectionModel();
+                        var c = e.getEvents();
+                        Ext.each(c, function (f) {
+                            if (a.isSelected(f)) {
+                                this.onEventSelect(f, true)
+                            }
+                        }, this)
+                    }
+                }
+            },
+            repaintAllEvents: function () {
+                if (this.orientation === "horizontal") {
+                    this.refresh()
+                } else {
+                    this.refreshNode(0)
+                }
+            },
+            handleScheduleEvent: function (f) {
+                var i = f.getTarget("." + this.timeCellCls, 2);
+                if (i) {
+                    var j = this.getDateFromDomEvent(f, "floor");
+                    var g = this.findRowByChild(i);
+                    var d = this.indexOf(g);
+                    var a;
+                    if (this.orientation == "horizontal") {
+                        a = this.getRecordForRowNode(g)
+                    } else {
+                        var b = f.getTarget(this.timeCellSelector, 5);
+                        if (b) {
+                            var h = typeof b.cellIndex == "number" ? b.cellIndex : b.getAttribute("data-cellIndex");
+                            var c = this.headerCt.getGridColumns()[h];
+                            a = c && c.model
+                        }
+                    }
+                    this.fireEvent("schedule" + f.type, this, j, d, a, f)
+                }
+            },
+            onEventDataRefresh: function () {
+                this.clearRowHeightCache();
+                this.callParent(arguments)
+            },
+            onUnbindStore: function (a) {
+                a.un({
+                    refresh: this.clearRowHeightCache,
+                    clear: this.clearRowHeightCache,
+                    load: this.clearRowHeightCache,
+                    scope: this
+                });
+                this.callParent(arguments)
+            },
+            bindStore: function (a) {
+                a && a.on({
+                    refresh: this.clearRowHeightCache,
+                    clear: this.clearRowHeightCache,
+                    load: this.clearRowHeightCache,
+                    scope: this
+                });
+                this.callParent(arguments)
+            }
+        }
+    },
+    _afterRender: function () {
+        this.bindEventStore(this.eventStore, true);
+        this.setupEventListeners();
+        this.configureFunctionality();
+        var a = this.headerCt.resizer;
+        if (a) {
+            a.doResize = Ext.Function.createSequence(a.doResize, this.afterHeaderResized, this)
+        }
+    },
+    _destroy: function () {
+        this.bindEventStore(null)
+    },
+    clearRowHeightCache: function () {
+        if (this.orientation === "horizontal") {
+            this.eventLayout.horizontal.clearCache()
+        }
+    },
+    configureFunctionality: function () {
+        var a = this.validatorFnScope || this;
+        if (this.eventResizeHandles !== "none" && Sch.feature.ResizeZone) {
+            this.resizePlug = new Sch.feature.ResizeZone(Ext.applyIf({
+                schedulerView: this,
+                validatorFn: function (d, c, b, e) {
+                    return (this.allowOverlap || this.isDateRangeAvailable(b, e, c, d)) && this.resizeValidatorFn.apply(a, arguments) !== false
+                },
+                validatorFnScope: this
+            }, this.resizeConfig || {}))
+        }
+        if (this.enableEventDragDrop !== false && Sch.feature.DragDrop) {
+            this.dragdropPlug = new Sch.feature.DragDrop(this, {
+                validatorFn: function (c, b, d, e) {
+                    return (this.allowOverlap || this.isDateRangeAvailable(d, Sch.util.Date.add(d, Sch.util.Date.MILLI, e), c[0], b)) && this.dndValidatorFn.apply(a, arguments) !== false
+                },
+                validatorFnScope: this,
+                dragConfig: this.dragConfig || {}
+            })
+        }
+        if (this.enableDragCreation !== false && Sch.feature.DragCreator) {
+            this.dragCreator = new Sch.feature.DragCreator(Ext.applyIf({
+                schedulerView: this,
+                disabled: this.readOnly,
+                validatorFn: function (c, b, d) {
+                    return (this.allowOverlap || this.isDateRangeAvailable(b, d, null, c)) && this.createValidatorFn.apply(a, arguments) !== false
+                },
+                validatorFnScope: this
+            }, this.createConfig || {}))
+        }
     },
     onBeforeDragDrop: function (a, c, b) {
         return !this.readOnly && !b.getTarget().className.match("sch-resizable-handle")
@@ -8879,6 +10053,9 @@ Ext.define("Sch.mixin.SchedulerView", {
             this.tip.hide();
             this.tip.disable()
         }
+        if (this.overScheduledEventClass) {
+            this.setMouseOverEnabled(false)
+        }
     },
     onDragDropEnd: function () {
         if (this.dragCreator) {
@@ -8887,44 +10064,44 @@ Ext.define("Sch.mixin.SchedulerView", {
         if (this.tip) {
             this.tip.enable()
         }
+        if (this.overScheduledEventClass) {
+            this.setMouseOverEnabled(true)
+        }
     },
     onBeforeDragCreate: function (b, c, a, d) {
         return !this.readOnly && !d.ctrlKey
     },
     onDragCreateStart: function () {
-        if (this.overClass) {
-            var a = this.getView().mainBody;
-            this.mun(a, "mouseover", this.onMouseOver, this);
-            this.mun(a, "mouseout", this.onMouseOut, this)
+        if (this.overScheduledEventClass) {
+            this.setMouseOverEnabled(false)
         }
         if (this.tip) {
             this.tip.hide();
             this.tip.disable()
         }
     },
-    onDragCreateEnd: function (b, a, c) {
-        if (!this.eventEditor) {
+    onDragCreateEnd: function (b, a) {
+        if (!this.getEventEditor()) {
             if (this.fireEvent("beforeeventadd", this, a) !== false) {
                 this.onEventCreated(a);
-                this.eventStore.add(a)
+                this.eventStore.append(a)
             }
             this.dragCreator.getProxy().hide()
+        }
+        if (this.overScheduledEventClass) {
+            this.setMouseOverEnabled(true)
         }
     },
     onEventCreated: function (a) {},
     onAfterDragCreate: function () {
-        if (this.overClass) {
-            this.mon(this.getView().mainBody, {
-                mouseover: this.onMouseOver,
-                mouseout: this.onMouseOut,
-                scope: this
-            })
+        if (this.overScheduledEventClass) {
+            this.setMouseOverEnabled(true)
         }
         if (this.tip) {
             this.tip.enable()
         }
     },
-    onBeforeResize: function (a, c, b) {
+    onBeforeResize: function () {
         return !this.readOnly
     },
     onResizeStart: function () {
@@ -8944,15 +10121,6 @@ Ext.define("Sch.mixin.SchedulerView", {
             this.dragCreator.setDisabled(false)
         }
     },
-    getEventStore: function () {
-        return this.eventStore
-    },
-    registerEventEditor: function (a) {
-        this.eventEditor = a
-    },
-    getEventEditor: function () {
-        return this.eventEditor
-    },
     setupEventListeners: function () {
         this.on({
             beforeeventdrag: this.onBeforeDragDrop,
@@ -8968,57 +10136,6 @@ Ext.define("Sch.mixin.SchedulerView", {
             scope: this
         })
     },
-    _onEventUpdate: function (b, c, a) {
-        if (a !== Ext.data.Model.COMMIT) {
-            this.onEventUpdate.apply(this, arguments)
-        }
-    },
-    _onEventAdd: function (a, b) {
-        this.onEventAdd.apply(this, arguments)
-    },
-    _onEventRemove: function (a, b) {
-        this.onEventRemove.apply(this, arguments)
-    },
-    bindEventStore: function (b, a) {
-        var d = this;
-        var c = {
-            scope: d,
-            refresh: d.onEventDataRefresh,
-            add: d._onEventAdd,
-            remove: d._onEventRemove,
-            update: d._onEventUpdate,
-            clear: d.refresh
-        };
-        if (Ext.ClassManager.isCreated("Ext.data.TreeStore") && (b || d.eventStore) instanceof Ext.data.TreeStore) {
-            c.load = d.onEventDataRefresh
-        }
-        if (!a && d.eventStore) {
-            if (b !== d.eventStore && d.eventStore.autoDestroy) {
-                d.eventStore.destroy()
-            } else {
-                d.mun(d.eventStore, c)
-            } if (!b) {
-                if (d.loadMask && d.loadMask.bindStore) {
-                    d.loadMask.bindStore(null)
-                }
-                d.eventStore = null
-            }
-        }
-        if (b) {
-            b = Ext.data.StoreManager.lookup(b);
-            d.mon(b, c);
-            if (d.loadMask && d.loadMask.bindStore) {
-                d.loadMask.bindStore(b)
-            }
-        }
-        d.eventStore = b;
-        if (b && !a) {
-            d.refresh()
-        }
-    },
-    onEventDataRefresh: function () {
-        this.refreshKeepingScroll()
-    },
     afterHeaderResized: function () {
         var b = this.headerCt.resizer;
         if (b && b.dragHd instanceof Sch.column.Resource) {
@@ -9026,29 +10143,37 @@ Ext.define("Sch.mixin.SchedulerView", {
             this.setColumnWidth(a)
         }
     },
-    onEventSelect: function (a) {
-        var b = this.getEventNodeByRecord(a);
-        if (b) {
-            Ext.fly(b).addCls(this.selectedEventCls)
-        }
-    },
-    onEventDeselect: function (a) {
-        var b = this.getEventNodeByRecord(a);
-        if (b) {
-            Ext.fly(b).removeCls(this.selectedEventCls)
-        }
+    columnRenderer: function (e, c, a, d, b) {
+        return this[this.orientation].columnRenderer(e, c, a, d, b)
     }
 });
 Ext.define("Sch.view.SchedulerGridView", {
     extend: "Sch.view.TimelineGridView",
-    mixins: ["Sch.mixin.SchedulerView"],
-    alias: "widget.schedulergridview",
-    alternateClassName: "Sch.HorizontalSchedulerView"
+    mixins: ["Sch.mixin.SchedulerView", "Sch.mixin.Localizable"],
+    alias: "widget.schedulergridview"
 }, function () {
     this.override(Sch.mixin.SchedulerView.prototype.inheritables() || {})
 });
 Ext.define("Sch.mixin.Zoomable", {
     zoomLevels: [{
+        width: 80,
+        increment: 5,
+        resolution: 1,
+        preset: "manyYears",
+        resolutionUnit: "YEAR"
+    }, {
+        width: 40,
+        increment: 1,
+        resolution: 1,
+        preset: "manyYears",
+        resolutionUnit: "YEAR"
+    }, {
+        width: 80,
+        increment: 1,
+        resolution: 1,
+        preset: "manyYears",
+        resolutionUnit: "YEAR"
+    }, {
         width: 30,
         increment: 1,
         resolution: 1,
@@ -9162,10 +10287,31 @@ Ext.define("Sch.mixin.Zoomable", {
         increment: 5,
         resolution: 5,
         preset: "minuteAndHour"
+    }, {
+        width: 50,
+        increment: 2,
+        resolution: 1,
+        preset: "minuteAndHour"
+    }, {
+        width: 30,
+        increment: 10,
+        resolution: 5,
+        preset: "secondAndMinute"
+    }, {
+        width: 60,
+        increment: 10,
+        resolution: 5,
+        preset: "secondAndMinute"
+    }, {
+        width: 130,
+        increment: 5,
+        resolution: 5,
+        preset: "secondAndMinute"
     }],
     minZoomLevel: null,
     maxZoomLevel: null,
     visibleZoomFactor: 5,
+    zoomKeepsOriginalTimespan: false,
     cachedCenterDate: null,
     isFirstZoom: true,
     isZooming: false,
@@ -9175,35 +10321,41 @@ Ext.define("Sch.mixin.Zoomable", {
         this.setMaxZoomLevel(this.maxZoomLevel !== null ? this.maxZoomLevel : this.zoomLevels.length - 1);
         this.on("viewchange", this.clearCenterDateCache, this)
     },
-    getZoomLevelUnit: function (b) {
-        var a = Sch.preset.Manager.getPreset(b.preset).headerConfig;
-        return a.bottom ? a.bottom.unit : a.middle.unit
+    getZoomLevelUnit: function (a) {
+        return Sch.preset.Manager.getPreset(a.preset).getBottomHeader().unit
     },
-    getMilliSecondsPerPixelForZoomLevel: function (b) {
-        var a = Sch.util.Date;
-        return Math.round((a.add(new Date(1, 0, 1), this.getZoomLevelUnit(b), b.increment) - new Date(1, 0, 1)) / b.width)
+    getMilliSecondsPerPixelForZoomLevel: function (c, a) {
+        var b = Sch.util.Date;
+        return Math.round((b.add(new Date(1, 0, 1), this.getZoomLevelUnit(c), c.increment) - new Date(1, 0, 1)) / (a ? c.width : c.actualWidth || c.width))
     },
-    presetToZoomLevel: function (e) {
-        var d = Sch.preset.Manager.getPreset(e);
-        var c = d.headerConfig;
-        var a = c.bottom;
-        var b = c.middle;
+    presetToZoomLevel: function (b) {
+        var a = Sch.preset.Manager.getPreset(b);
         return {
-            preset: e,
-            increment: (a ? a.increment : b.increment) || 1,
-            resolution: d.timeResolution.increment,
-            resolutionUnit: d.timeResolution.unit,
-            width: d.timeColumnWidth
+            preset: b,
+            increment: a.getBottomHeader().increment || 1,
+            resolution: a.timeResolution.increment,
+            resolutionUnit: a.timeResolution.unit,
+            width: a.timeColumnWidth
         }
     },
+    zoomLevelToPreset: function (c) {
+        var b = Sch.preset.Manager.getPreset(c.preset).clone();
+        var a = b.getBottomHeader();
+        a.increment = c.increment;
+        b.timeColumnWidth = c.width;
+        if (c.resolutionUnit || c.resolution) {
+            b.timeResolution = {
+                unit: c.resolutionUnit || b.timeResolution.unit || a.unit,
+                increment: c.resolution || b.timeResolution.increment || 1
+            }
+        }
+        return b
+    },
     calculateCurrentZoomLevel: function () {
-        var d = this.presetToZoomLevel(this.viewPreset);
-        var c = this.timeAxis.headerConfig;
-        var a = c.bottom;
-        var b = c.middle;
-        d.width = this.timeAxis.preset.timeColumnWidth;
-        d.increment = (a ? a.increment : b.increment) || 1;
-        return d
+        var a = this.presetToZoomLevel(this.viewPreset);
+        a.width = this.timeAxisViewModel.timeColumnWidth;
+        a.increment = this.timeAxisViewModel.getBottomHeader().increment || 1;
+        return a
     },
     getCurrentZoomLevelIndex: function () {
         var f = this.calculateCurrentZoomLevel();
@@ -9248,68 +10400,123 @@ Ext.define("Sch.mixin.Zoomable", {
     clearCenterDateCache: function () {
         this.cachedCenterDate = null
     },
-    zoomToLevel: function (b) {
+    zoomToLevel: function (b, r, e) {
         b = Ext.Number.constrain(b, this.minZoomLevel, this.maxZoomLevel);
-        var n = this.calculateCurrentZoomLevel();
-        var d = this.getMilliSecondsPerPixelForZoomLevel(n);
-        var i = this.zoomLevels[b];
-        var a = this.getMilliSecondsPerPixelForZoomLevel(i);
-        if (d == a) {
+        e = e || {};
+        var q = this.calculateCurrentZoomLevel();
+        var d = this.getMilliSecondsPerPixelForZoomLevel(q);
+        var l = this.zoomLevels[b];
+        var a = this.getMilliSecondsPerPixelForZoomLevel(l);
+        if (d == a && !r) {
             return null
         }
-        var p = this;
-        var j = this.getSchedulingView();
-        var f = j.getEl();
+        var t = this;
+        var m = this.getSchedulingView();
+        var h = m.getOuterEl();
+        var s = m.getScrollEventSource();
         if (this.isFirstZoom) {
             this.isFirstZoom = false;
-            f.on("scroll", this.clearCenterDateCache, this)
+            s.on("scroll", this.clearCenterDateCache, this)
         }
-        var h = this.orientation == "vertical";
-        var e = this.getViewportCenterDateCached();
-        var k = h ? f.getHeight() : f.getWidth();
-        var l = Ext.clone(Sch.preset.Manager.getPreset(i.preset));
-        var o = this.calculateOptimalDateRange(e, k, i);
-        var c = l.headerConfig;
-        var g = c.bottom;
-        var r = c.middle;
-        l[h ? "rowHeight" : "timeColumnWidth"] = i.width;
-        if (g) {
-            g.increment = i.increment
-        } else {
-            r.increment = i.increment
-        }
+        var i = this.orientation == "vertical";
+        var g = r ? new Date((r.start.getTime() + r.end.getTime()) / 2) : this.getViewportCenterDateCached();
+        var n = i ? h.getHeight() : h.getWidth();
+        var o = Sch.preset.Manager.getPreset(l.preset).clone();
+        var p = o.getBottomHeader();
+        var f = Boolean(r);
+        r = this.calculateOptimalDateRange(g, n, l, r);
+        o[i ? "timeRowHeight" : "timeColumnWidth"] = e.customWidth || l.width;
+        p.increment = l.increment;
         this.isZooming = true;
-        this.viewPreset = i.preset;
-        var m = g ? g.unit : r.unit;
-        this.timeAxis.reconfigure({
-            preset: l,
-            headerConfig: c,
-            unit: m,
-            increment: i.increment,
-            resolutionUnit: Sch.util.Date.getUnitByName(i.resolutionUnit || m),
-            resolutionIncrement: i.resolution,
-            weekStartDay: this.weekStartDay,
-            mainUnit: r.unit,
-            shiftUnit: l.shiftUnit,
-            shiftIncrement: l.shiftIncrement || 1,
-            defaultSpan: l.defaultSpan || 1,
-            start: o.startDate || this.getStart(),
-            end: o.endDate || this.getEnd()
-        });
-        var q = j.getXYFromDate(e, true);
-        f.on("scroll", function () {
-            p.cachedCenterDate = e
+        this.viewPreset = l.preset;
+        var c = this.timeAxis;
+        o.increment = l.increment;
+        o.resolutionUnit = Sch.util.Date.getUnitByName(l.resolutionUnit || p.unit);
+        o.resolutionIncrement = l.resolution;
+        this.switchViewPreset(o, r.start || this.getStart(), r.end || this.getEnd(), false, true);
+        l.actualWidth = this.timeAxisViewModel.getTickWidth();
+        if (f) {
+            g = e.centerDate || new Date((c.getStart().getTime() + c.getEnd().getTime()) / 2)
+        }
+        s.on("scroll", function () {
+            t.cachedCenterDate = g
         }, this, {
             single: true
         });
-        if (h) {
-            f.scrollTo("top", q[1] - k / 2)
+        if (i) {
+            var j = m.getYFromDate(g, true);
+            m.scrollVerticallyTo(j - n / 2)
         } else {
-            f.scrollTo("left", q[0] - k / 2)
+            var k = m.getXFromDate(g, true);
+            m.scrollHorizontallyTo(k - n / 2)
         }
-        p.isZooming = false;
+        t.isZooming = false;
         this.fireEvent("zoomchange", this, b);
         return b
+    },
+    zoomToSpan: function (r, u) {
+        if (r.start && r.end && r.start < r.end) {
+            var g = r.start,
+                d = r.end,
+                e = u && u.adjustStart >= 0 && u.adjustEnd >= 0;
+            if (e) {
+                g = Sch.util.Date.add(g, this.timeAxis.mainUnit, -u.adjustStart);
+                d = Sch.util.Date.add(d, this.timeAxis.mainUnit, u.adjustEnd)
+            }
+            var a = this.getSchedulingView().getTimeAxisViewModel().getAvailableWidth();
+            var m = Math.floor(this.getCurrentZoomLevelIndex());
+            if (m == -1) {
+                m = 0
+            }
+            var v = this.zoomLevels;
+            var o, b = d - g,
+                j = this.getMilliSecondsPerPixelForZoomLevel(v[m], true),
+                l = b / j > a ? -1 : 1,
+                f = m + l;
+            var p, q, h = null;
+            while (f >= 0 && f <= v.length - 1) {
+                p = v[f];
+                var s = b / this.getMilliSecondsPerPixelForZoomLevel(p, true);
+                if (l == -1) {
+                    if (s <= a) {
+                        h = f;
+                        break
+                    }
+                } else {
+                    if (s <= a) {
+                        if (m !== f - l) {
+                            h = f
+                        }
+                    } else {
+                        break
+                    }
+                }
+                f += l
+            }
+            h = h !== null ? h : f - l;
+            p = v[h];
+            var c = Sch.preset.Manager.getPreset(p.preset).getBottomHeader().unit;
+            var t = Sch.util.Date.getDurationInUnit(g, d, c) / p.increment;
+            if (t === 0) {
+                return
+            }
+            var i = Math.floor(a / t);
+            var k = new Date((g.getTime() + d.getTime()) / 2);
+            var n;
+            if (e) {
+                n = {
+                    start: g,
+                    end: d
+                }
+            } else {
+                n = this.calculateOptimalDateRange(k, a, p)
+            }
+            return this.zoomToLevel(h, n, {
+                customWidth: i,
+                centerDate: k
+            })
+        }
+        return null
     },
     zoomIn: function (a) {
         a = a || 1;
@@ -9333,150 +10540,109 @@ Ext.define("Sch.mixin.Zoomable", {
     zoomOutFull: function () {
         return this.zoomToLevel(this.minZoomLevel)
     },
-    calculateOptimalDateRange: function (c, h, e) {
+    calculateOptimalDateRange: function (c, i, e, l) {
+        if (l) {
+            return l
+        }
+        var h = this.timeAxis;
+        if (this.zoomKeepsOriginalTimespan) {
+            return {
+                start: h.getStart(),
+                end: h.getEnd()
+            }
+        }
         var b = Sch.util.Date;
-        var i = Sch.preset.Manager.getPreset(e.preset).headerConfig;
-        var f = i.top ? i.top.unit : i.middle.unit;
-        var j = this.getZoomLevelUnit(e);
-        var d = Math.ceil(h / e.width * e.increment * this.visibleZoomFactor / 2);
-        var a = b.add(c, j, -d);
-        var g = b.add(c, j, d);
+        var j = Sch.preset.Manager.getPreset(e.preset).headerConfig;
+        var f = j.top ? j.top.unit : j.middle.unit;
+        var k = this.getZoomLevelUnit(e);
+        var d = Math.ceil(i / e.width * e.increment * this.visibleZoomFactor / 2);
+        var a = b.add(c, k, -d);
+        var g = b.add(c, k, d);
         return {
-            startDate: this.timeAxis.floorDate(a, false, f),
-            endDate: this.timeAxis.ceilDate(g, false, f)
+            start: h.floorDate(a, false, k, e.increment),
+            end: h.ceilDate(g, false, k, e.increment)
         }
     }
 });
-Ext.define("Sch.mixin.TimelinePanel", {
-    requires: ["Sch.util.Patch", "Sch.patches.LoadMask", "Sch.patches.Model", "Sch.patches.Table", "Sch.data.TimeAxis", "Sch.feature.ColumnLines", "Sch.view.Locking", "Sch.preset.Manager"],
-    mixins: ["Sch.mixin.Zoomable", "Sch.mixin.Lockable"],
+Ext.define("Sch.mixin.AbstractTimelinePanel", {
+    requires: ["Sch.data.TimeAxis", "Sch.view.model.TimeAxis", "Sch.feature.ColumnLines", "Sch.preset.Manager"],
+    mixins: ["Sch.mixin.Zoomable"],
     orientation: "horizontal",
     weekStartDay: 1,
     snapToIncrement: false,
     readOnly: false,
+    forceFit: false,
     eventResizeHandles: "both",
+    timeAxis: null,
+    autoAdjustTimeAxis: true,
+    timeAxisViewModel: null,
     viewPreset: "weekAndDay",
     trackHeaderOver: true,
     startDate: null,
     endDate: null,
+    columnLines: true,
+    getDateConstraints: Ext.emptyFn,
+    snapRelativeToEventStartDate: false,
+    trackMouseOver: false,
+    readRowHeightFromPreset: true,
     eventBorderWidth: 1,
-    tooltipTpl: null,
-    tipCfg: {
-        cls: "sch-tip",
-        showDelay: 1000,
-        hideDelay: 0,
-        autoHide: true,
-        anchor: "b"
+    getOrientation: function () {
+        return this.orientation
     },
-    lightWeight: true,
-    timeCellRenderer: null,
-    timeCellRendererScope: null,
-    inheritables: function () {
-        return {
-            columnLines: true,
-            enableColumnMove: false,
-            enableLocking: true,
-            lockable: true,
-            lockedXType: null,
-            normalXType: null,
-            initComponent: function () {
-                this.lightWeight = this.lightWeight && !this.timeCellRenderer;
-                this.addEvents("timeheaderdblclick", "beforeviewchange", "viewchange");
-                if (!this.timeAxis) {
-                    this.timeAxis = Ext.create("Sch.data.TimeAxis")
-                }
-                if (!this.columns && !this.colModel) {
-                    this.columns = []
-                }
-                this.timeAxis.on("reconfigure", this.onTimeAxisReconfigure, this);
-                if (this.enableLocking) {
-                    var b = 0,
-                        a = this.columns.length,
-                        c;
-                    for (; b < a; ++b) {
-                        c = this.columns[b];
-                        if (c.locked !== false) {
-                            c.locked = true
-                        }
-                        c.lockable = false
-                    }
-                    this.switchViewPreset(this.viewPreset, this.startDate || this.timeAxis.getStart(), this.endDate || this.timeAxis.getEnd(), true)
-                }
-                this.callParent(arguments);
-                if (this.lockable) {
-                    this.applyViewSettings(this.timeAxis.preset);
-                    if (!this.viewPreset) {
-                        throw "You must define a valid view preset object. See Sch.preset.Manager class for reference"
-                    }
-                    if (this.lightWeight && this.columnLines) {
-                        this.columnLinesFeature = new Sch.feature.ColumnLines();
-                        this.columnLinesFeature.init(this)
-                    }
-                }
-                this.initializeZooming();
-                this.relayEvents(this.getView(), ["beforetooltipshow", "scheduleclick", "scheduledblclick", "schedulecontextmenu"])
-            },
-            getState: function () {
-                var a = this,
-                    b = a.callParent(arguments);
-                Ext.apply(b, {
-                    viewPreset: a.viewPreset,
-                    startDate: a.getStart(),
-                    endDate: a.getEnd(),
-                    zoomMinLevel: a.zoomMinLevel,
-                    zoomMaxLevel: a.zoomMaxLevel,
-                    currentZoomLevel: a.currentZoomLevel
-                });
-                return b
-            },
-            getOrientation: function () {
-                return this.orientation
-            },
-            applyState: function (b) {
-                var a = this;
-                a.callParent(arguments);
-                if (b && b.viewPreset) {
-                    a.switchViewPreset(b.viewPreset, b.startDate, b.endDate)
-                }
-                if (b && b.currentZoomLevel) {
-                    a.zoomToLevel(b.currentZoomLevel)
-                }
-            },
-            beforeRender: function () {
-                this.callParent(arguments);
-                if (this.lockable) {
-                    this.addCls("sch-" + this.orientation)
-                }
-            },
-            afterRender: function () {
-                this.callParent(arguments);
-                if (this.lockable) {
-                    this.lockedGrid.on("itemdblclick", function (d, c, e, g, f) {
-                        if (this.orientation == "vertical" && c) {
-                            this.fireEvent("timeheaderdblclick", this, c.get("start"), c.get("end"), g, f)
-                        }
-                    }, this)
-                } else {
-                    var b = this.headerCt;
-                    if (b && b.reorderer && b.reorderer.dropZone) {
-                        var a = b.reorderer.dropZone;
-                        a.positionIndicator = Ext.Function.createSequence(a.positionIndicator, function () {
-                            this.valid = false
-                        })
-                    }
-                }
-            },
-            delayScroll: function () {
-                var a = this.getScrollTarget().el;
-                if (a) {
-                    this.scrollTask.delay(10, function () {
-                        if (a.dom) {
-                            this.syncHorizontalScroll(a.dom.scrollLeft)
-                        }
-                    }, this)
-                }
-            }
+    isHorizontal: function () {
+        return this.getOrientation() === "horizontal"
+    },
+    isVertical: function () {
+        return !this.isHorizontal()
+    },
+    cellBorderWidth: 1,
+    cellTopBorderWidth: 1,
+    cellBottomBorderWidth: 1,
+    renderers: null,
+    _initializeTimelinePanel: function () {
+        var b = this.viewPreset && Sch.preset.Manager.getPreset(this.viewPreset);
+        if (!b) {
+            throw "You must define a valid view preset object. See Sch.preset.Manager class for reference"
         }
+        this.initializeZooming();
+        this.renderers = [];
+        this.readRowHeightFromPreset = !this.rowHeight;
+        if (!this.timeAxis) {
+            this.timeAxis = new Sch.data.TimeAxis({
+                autoAdjust: this.autoAdjustTimeAxis
+            })
+        }
+        if (!this.timeAxisViewModel || !(this.timeAxisViewModel instanceof Sch.view.model.TimeAxis)) {
+            var a = Ext.apply({
+                orientation: this.orientation,
+                snapToIncrement: this.snapToIncrement,
+                forceFit: this.forceFit,
+                timeAxis: this.timeAxis
+            }, this.timeAxisViewModel || {});
+            this.timeAxisViewModel = new Sch.view.model.TimeAxis(a)
+        }
+        this.timeAxisViewModel.on("update", this.onTimeAxisViewModelUpdate, this);
+        this.timeAxisViewModel.refCount++;
+        this.on("destroy", this.onPanelDestroyed, this);
+        this.addCls(["sch-timelinepanel", "sch-" + this.orientation])
+    },
+    onTimeAxisViewModelUpdate: function () {
+        var a = this.getSchedulingView();
+        if (a && a.viewReady) {
+            a.refreshKeepingScroll();
+            this.fireEvent("viewchange", this)
+        }
+    },
+    onPanelDestroyed: function () {
+        var a = this.timeAxisViewModel;
+        a.un("update", this.onTimeAxisViewModelUpdate, this);
+        a.refCount--;
+        if (a.refCount <= 0) {
+            a.destroy()
+        }
+    },
+    getSchedulingView: function () {
+        throw "Abstract method call"
     },
     setReadOnly: function (a) {
         this.getSchedulingView().setReadOnly(a)
@@ -9484,87 +10650,86 @@ Ext.define("Sch.mixin.TimelinePanel", {
     isReadOnly: function () {
         return this.getSchedulingView().isReadOnly()
     },
-    switchViewPreset: function (d, a, f, b) {
-        if (this.fireEvent("beforeviewchange", this, d, a, f) !== false) {
-            if (Ext.isString(d)) {
-                this.viewPreset = d;
-                d = Sch.preset.Manager.getPreset(d)
+    switchViewPreset: function (i, a, d, f, b) {
+        var e = this.timeAxis;
+        if (this.fireEvent("beforeviewchange", this, i, a, d) !== false) {
+            var h = this.getOrientation() === "horizontal";
+            if (Ext.isString(i)) {
+                this.viewPreset = i;
+                i = Sch.preset.Manager.getPreset(i)
             }
-            if (!d) {
+            if (!i) {
                 throw "View preset not found"
             }
-            var e = d.headerConfig;
-            var c = {
-                unit: e.bottom ? e.bottom.unit : e.middle.unit,
-                increment: (e.bottom ? e.bottom.increment : e.middle.increment) || 1,
-                resolutionUnit: d.timeResolution.unit,
-                resolutionIncrement: d.timeResolution.increment,
-                weekStartDay: this.weekStartDay,
-                mainUnit: e.middle.unit,
-                shiftUnit: d.shiftUnit,
-                headerConfig: d.headerConfig,
-                shiftIncrement: d.shiftIncrement || 1,
-                preset: d,
-                defaultSpan: d.defaultSpan || 1
-            };
-            if (b) {
-                if (this.timeAxis.getCount() === 0 || a) {
-                    c.start = a || new Date();
-                    c.end = f
+            if (!(f && e.isConfigured)) {
+                var c = {
+                    weekStartDay: this.weekStartDay
+                };
+                if (f) {
+                    if (e.getCount() === 0 || a) {
+                        c.start = a || new Date()
+                    }
+                } else {
+                    c.start = a || e.getStart()
                 }
-            } else {
-                c.start = a || this.timeAxis.getStart();
-                c.end = f
-            } if (!b) {
-                this.applyViewSettings(d)
+                c.end = d;
+                e.consumeViewPreset(i);
+                e.reconfigure(c, true);
+                this.timeAxisViewModel.reconfigure({
+                    headerConfig: i.headerConfig,
+                    columnLinesFor: i.columnLinesFor || "middle",
+                    rowHeightHorizontal: this.readRowHeightFromPreset ? i.rowHeight : this.rowHeight,
+                    tickWidth: h ? i.timeColumnWidth : i.timeRowHeight || i.timeColumnWidth || 60,
+                    timeColumnWidth: i.timeColumnWidth,
+                    rowHeightVertical: i.timeRowHeight || i.timeColumnWidth || 60,
+                    timeAxisColumnWidth: i.timeAxisColumnWidth,
+                    resourceColumnWidth: this.resourceColumnWidth || i.resourceColumnWidth || 100
+                })
             }
-            this.timeAxis.reconfigure(c)
-        }
-    },
-    applyViewSettings: function (b) {
-        var a = this.getSchedulingView();
-        a.setDisplayDateFormat(b.displayDateFormat);
-        if (this.orientation === "horizontal") {
-            a.setRowHeight(this.rowHeight || b.rowHeight, true)
+            var g = this.getSchedulingView();
+            g.setDisplayDateFormat(i.displayDateFormat);
+            if (!h) {
+                g.setColumnWidth(this.resourceColumnWidth || i.resourceColumnWidth || 100, true)
+            }
+            if (!b) {
+                if (h) {
+                    g.scrollHorizontallyTo(0)
+                } else {
+                    g.scrollVerticallyTo(0)
+                }
+            }
         }
     },
     getStart: function () {
+        return this.getStartDate()
+    },
+    getStartDate: function () {
         return this.timeAxis.getStart()
     },
     getEnd: function () {
+        return this.getEndDate()
+    },
+    getEndDate: function () {
         return this.timeAxis.getEnd()
     },
-    getViewportCenterDate: function () {
-        var b = this.getSchedulingView(),
-            c = b.getEl(),
-            a = c.getScroll(),
-            d;
-        if (this.orientation === "vertical") {
-            d = [0, a.top + c.getHeight() / 2]
-        } else {
-            d = [a.left + c.getWidth() / 2, 0]
-        }
-        return b.getDateFromXY(d, null, true)
-    },
     setTimeColumnWidth: function (b, a) {
-        this.getSchedulingView().setColumnWidth(b, a)
+        this.timeAxisViewModel.setTickWidth(b, a)
     },
-    onTimeAxisReconfigure: function () {
-        this.fireEvent("viewchange", this);
-        if (this.stateful && this.lockedGrid) {
-            this.saveState()
-        }
+    getTimeColumnWidth: function () {
+        return this.timeAxisViewModel.getTickWidth()
     },
-    getColumnsState: function () {
-        var b = this,
-            a = b.lockedGrid.headerCt.getColumnsState();
-        return a
+    getRowHeight: function () {
+        return this.timeAxisViewModel.getViewRowHeight()
     },
     shiftNext: function (a) {
-        this.timeAxis.shiftNext(a)
+        this.suspendLayouts && this.suspendLayouts();
+        this.timeAxis.shiftNext(a);
+        this.suspendLayouts && this.resumeLayouts(true)
     },
     shiftPrevious: function (a) {
-        this.timeAxis.shiftPrevious(a)
+        this.suspendLayouts && this.suspendLayouts();
+        this.timeAxis.shiftPrevious(a);
+        this.suspendLayouts && this.resumeLayouts(true)
     },
     goToNow: function () {
         this.setTimeSpan(new Date())
@@ -9583,169 +10748,462 @@ Ext.define("Sch.mixin.TimelinePanel", {
     getTimeAxis: function () {
         return this.timeAxis
     },
-    getResourceByEventRecord: function (a) {
-        return a.getResource()
-    },
     scrollToDate: function (c, b) {
-        var a = this.getSchedulingView(),
-            d = a.getXYFromDate(c, true);
-        if (this.orientation == "horizontal") {
-            a.getEl().scrollTo("left", Math.max(0, d[0]), b)
+        var a = this.getSchedulingView();
+        var d = a.getCoordinateFromDate(c, true);
+        this.scrollToCoordinate(d, c, b, false)
+    },
+    scrollToDateCentered: function (c, b) {
+        var a = this.getSchedulingView();
+        var e = 0;
+        if (this.orientation === "horizontal") {
+            e = a.getBox().width / 2
         } else {
-            a.getEl().scrollTo("top", Math.max(0, d[1]), b)
+            e = a.getBox().height / 2
         }
+        var d = Math.round(a.getCoordinateFromDate(c, true) - e);
+        this.scrollToCoordinate(d, c, b, true)
     },
-    getSchedulingView: function () {
-        return this.lockable ? this.normalGrid.getView() : this.getView()
+    scrollToCoordinate: function (g, e, d, c) {
+        var b = this.getSchedulingView();
+        var f = this;
+        if (g < 0) {
+            if (this.infiniteScroll) {
+                b.shiftToDate(e, c)
+            } else {
+                var a = (this.timeAxis.getEnd() - this.timeAxis.getStart()) / 2;
+                this.setTimeSpan(new Date(e.getTime() - a), new Date(e.getTime() + a));
+                if (c) {
+                    f.scrollToDateCentered(e, d)
+                } else {
+                    f.scrollToDate(e, d)
+                }
+            }
+            return
+        }
+        if (this.orientation === "horizontal") {
+            b.scrollHorizontallyTo(g, d)
+        } else {
+            b.scrollVerticallyTo(g, d)
+        }
+        b.fireEvent("scroll", this, g)
     },
-    setOrientation: function (a) {
-        this.removeCls("sch-" + this.orientation);
-        this.addCls("sch-" + a);
-        this.orientation = a
+    getViewportCenterDate: function () {
+        var b = this.getSchedulingView(),
+            a = b.getScroll(),
+            c;
+        if (this.getOrientation() === "vertical") {
+            c = [0, a.top + b.getViewportHeight() / 2]
+        } else {
+            c = [a.left + b.getViewportWidth() / 2, 0]
+        }
+        return b.getDateFromXY(c, null, true)
+    },
+    addCls: function () {
+        throw "Abstract method call"
+    },
+    removeCls: function () {
+        throw "Abstract method call"
+    },
+    registerRenderer: function (b, a) {
+        this.renderers.push({
+            fn: b,
+            scope: a
+        })
+    },
+    deregisterRenderer: function (b, a) {
+        Ext.each(this.renderers, function (c, d) {
+            if (b === c) {
+                Ext.Array.removeAt(this.renderers, d);
+                return false
+            }
+        })
     }
 });
-Ext.define("Sch.mixin.SchedulerPanel", {
-    requires: ["Sch.view.SchedulerGridView", "Sch.model.Event", "Sch.model.Resource", "Sch.data.EventStore", "Sch.data.ResourceStore", "Sch.selection.EventModel", "Sch.plugin.ResourceZones", "Sch.util.Date", "Sch.column.timeAxis.Vertical"],
-    resourceColumnWidth: null,
+if (!Ext.ClassManager.get("Sch.mixin.TimelinePanel")) {
+    Ext.define("Sch.mixin.TimelinePanel", {
+        extend: "Sch.mixin.AbstractTimelinePanel",
+        requires: ["Sch.util.Patch", "Sch.column.timeAxis.Horizontal", "Sch.preset.Manager"],
+        mixins: ["Sch.mixin.Zoomable", "Sch.mixin.Lockable"],
+        bufferCoef: 5,
+        bufferThreshold: 0.2,
+        infiniteScroll: false,
+        waitingForAutoTimeSpan: false,
+        columnLinesFeature: null,
+        tipCfg: {
+            cls: "sch-tip",
+            showDelay: 1000,
+            hideDelay: 0,
+            autoHide: true,
+            anchor: "b"
+        },
+        inheritables: function () {
+            return {
+                columnLines: true,
+                enableLocking: true,
+                lockable: true,
+                initComponent: function () {
+                    if (this.partnerTimelinePanel) {
+                        this.timeAxisViewModel = this.partnerTimelinePanel.timeAxisViewModel;
+                        this.timeAxis = this.partnerTimelinePanel.getTimeAxis();
+                        this.startDate = this.timeAxis.getStart();
+                        this.endDate = this.timeAxis.getEnd()
+                    }
+                    if (this.viewConfig && this.viewConfig.forceFit) {
+                        this.forceFit = true
+                    }
+                    if (Ext.versions.extjs.isGreaterThanOrEqual("4.2.1")) {
+                        this.cellTopBorderWidth = 0
+                    }
+                    this._initializeTimelinePanel();
+                    this.configureColumns();
+                    var c = this.normalViewConfig = this.normalViewConfig || {};
+                    var e = this.getId();
+                    Ext.apply(this.normalViewConfig, {
+                        id: e + "-timelineview",
+                        eventPrefix: this.autoGenId ? null : e,
+                        timeAxisViewModel: this.timeAxisViewModel,
+                        eventBorderWidth: this.eventBorderWidth,
+                        timeAxis: this.timeAxis,
+                        readOnly: this.readOnly,
+                        orientation: this.orientation,
+                        rtl: this.rtl,
+                        cellBorderWidth: this.cellBorderWidth,
+                        cellTopBorderWidth: this.cellTopBorderWidth,
+                        cellBottomBorderWidth: this.cellBottomBorderWidth,
+                        infiniteScroll: this.infiniteScroll,
+                        bufferCoef: this.bufferCoef,
+                        bufferThreshold: this.bufferThreshold
+                    });
+                    Ext.Array.forEach(["eventRendererScope", "eventRenderer", "dndValidatorFn", "resizeValidatorFn", "createValidatorFn", "tooltipTpl", "validatorFnScope", "eventResizeHandles", "enableEventDragDrop", "enableDragCreation", "resizeConfig", "createConfig", "tipCfg", "getDateConstraints"], function (f) {
+                        if (f in this) {
+                            c[f] = this[f]
+                        }
+                    }, this);
+                    this.mon(this.timeAxis, "reconfigure", this.onMyTimeAxisReconfigure, this);
+                    this.addEvents("timeheaderclick", "timeheaderdblclick", "timeheadercontextmenu", "beforeviewchange", "viewchange");
+                    this.callParent(arguments);
+                    this.switchViewPreset(this.viewPreset, this.startDate || this.timeAxis.getStart(), this.endDate || this.timeAxis.getEnd(), true);
+                    if (!this.startDate) {
+                        var a = this.getTimeSpanDefiningStore();
+                        if (Ext.data.TreeStore && a instanceof Ext.data.TreeStore ? a.getRootNode().childNodes.length : a.getCount()) {
+                            var d = a.getTotalTimeSpan();
+                            this.setTimeSpan(d.start || new Date(), d.end)
+                        } else {
+                            this.bindAutoTimeSpanListeners()
+                        }
+                    }
+                    var b = this.columnLines;
+                    if (b) {
+                        this.columnLinesFeature = new Sch.feature.ColumnLines(Ext.isObject(b) ? b : undefined);
+                        this.columnLinesFeature.init(this);
+                        this.columnLines = true
+                    }
+                    this.relayEvents(this.getSchedulingView(), ["beforetooltipshow"]);
+                    this.on("afterrender", this.__onAfterRender, this);
+                    this.on("zoomchange", function () {
+                        this.normalGrid.scrollTask.cancel()
+                    })
+                },
+                getState: function () {
+                    var a = this,
+                        b = a.callParent(arguments);
+                    Ext.apply(b, {
+                        viewPreset: a.viewPreset,
+                        startDate: a.getStart(),
+                        endDate: a.getEnd(),
+                        zoomMinLevel: a.zoomMinLevel,
+                        zoomMaxLevel: a.zoomMaxLevel,
+                        currentZoomLevel: a.currentZoomLevel
+                    });
+                    return b
+                },
+                applyState: function (b) {
+                    var a = this;
+                    a.callParent(arguments);
+                    if (b && b.viewPreset) {
+                        a.switchViewPreset(b.viewPreset, b.startDate, b.endDate)
+                    }
+                    if (b && b.currentZoomLevel) {
+                        a.zoomToLevel(b.currentZoomLevel)
+                    }
+                },
+                setTimeSpan: function () {
+                    if (this.waitingForAutoTimeSpan) {
+                        this.unbindAutoTimeSpanListeners()
+                    }
+                    this.callParent(arguments);
+                    if (!this.normalGrid.getView().viewReady) {
+                        this.getView().refresh()
+                    }
+                }
+            }
+        },
+        bindAutoTimeSpanListeners: function () {
+            var a = this.getTimeSpanDefiningStore();
+            this.waitingForAutoTimeSpan = true;
+            this.normalGrid.getView().on("beforerefresh", this.refreshStopper, this);
+            this.lockedGrid.getView().on("beforerefresh", this.refreshStopper, this);
+            this.mon(a, "load", this.applyStartEndDatesFromStore, this);
+            if (Ext.data.TreeStore && a instanceof Ext.data.TreeStore) {
+                this.mon(a, "rootchange", this.applyStartEndDatesFromStore, this);
+                this.mon(a.tree, "append", this.applyStartEndDatesAfterTreeAppend, this)
+            } else {
+                this.mon(a, "add", this.applyStartEndDatesFromStore, this)
+            }
+        },
+        refreshStopper: function (a) {
+            return a.store.getCount() === 0
+        },
+        getTimeSpanDefiningStore: function () {
+            throw "Abstract method called"
+        },
+        unbindAutoTimeSpanListeners: function () {
+            this.waitingForAutoTimeSpan = false;
+            var a = this.getTimeSpanDefiningStore();
+            this.normalGrid.getView().un("beforerefresh", this.refreshStopper, this);
+            this.lockedGrid.getView().un("beforerefresh", this.refreshStopper, this);
+            a.un("load", this.applyStartEndDatesFromStore, this);
+            if (Ext.data.TreeStore && a instanceof Ext.data.TreeStore) {
+                a.un("rootchange", this.applyStartEndDatesFromStore, this);
+                a.tree.un("append", this.applyStartEndDatesAfterTreeAppend, this)
+            } else {
+                a.un("add", this.applyStartEndDatesFromStore, this)
+            }
+        },
+        applyStartEndDatesAfterTreeAppend: function () {
+            var a = this.getTimeSpanDefiningStore();
+            if (!a.isSettingRoot) {
+                this.applyStartEndDatesFromStore()
+            }
+        },
+        applyStartEndDatesFromStore: function () {
+            var a = this.getTimeSpanDefiningStore();
+            var b = a.getTotalTimeSpan();
+            var c = this.lockedGridDependsOnSchedule;
+            this.lockedGridDependsOnSchedule = true;
+            this.setTimeSpan(b.start || new Date(), b.end);
+            this.lockedGridDependsOnSchedule = c
+        },
+        onMyTimeAxisReconfigure: function (a) {
+            if (this.stateful && this.rendered) {
+                this.saveState()
+            }
+        },
+        onLockedGridItemDblClick: function (b, a, c, e, d) {
+            if (this.orientation === "vertical" && a) {
+                this.fireEvent("timeheaderdblclick", this, a.get("start"), a.get("end"), e, d)
+            }
+        },
+        getSchedulingView: function () {
+            return this.normalGrid.getView()
+        },
+        getTimeAxisColumn: function () {
+            if (!this.timeAxisColumn) {
+                this.timeAxisColumn = this.down("timeaxiscolumn")
+            }
+            return this.timeAxisColumn
+        },
+        configureColumns: function () {
+            var a = this.columns || [];
+            if (a.items) {
+                a = a.items
+            } else {
+                a = this.columns = a.slice()
+            }
+            var c = [];
+            var b = [];
+            Ext.Array.each(a, function (d) {
+                if (d.position === "right") {
+                    if (!Ext.isNumber(d.width)) {
+                        Ext.Error.raise('"Right" columns must have a fixed width')
+                    }
+                    d.locked = false;
+                    b.push(d)
+                } else {
+                    d.locked = true;
+                    c.push(d)
+                }
+                d.lockable = false
+            });
+            Ext.Array.erase(a, 0, a.length);
+            Ext.Array.insert(a, 0, c.concat({
+                xtype: "timeaxiscolumn",
+                timeAxisViewModel: this.timeAxisViewModel,
+                trackHeaderOver: this.trackHeaderOver,
+                renderer: this.mainRenderer,
+                scope: this
+            }).concat(b));
+            this.horizontalColumns = Ext.Array.clone(a);
+            this.verticalColumns = [Ext.apply({
+                xtype: "verticaltimeaxis",
+                width: 100,
+                timeAxis: this.timeAxis,
+                timeAxisViewModel: this.timeAxisViewModel,
+                cellTopBorderWidth: this.cellTopBorderWidth,
+                cellBottomBorderWidth: this.cellBottomBorderWidth
+            }, this.timeAxisColumnCfg || {})];
+            if (this.orientation === "vertical") {
+                this.columns = this.verticalColumns;
+                this.store = this.timeAxis;
+                this.on("beforerender", this.refreshResourceColumns, this)
+            }
+        },
+        mainRenderer: function (b, m, g, j, l) {
+            var c = this.renderers,
+                k = this.orientation === "horizontal",
+                d = k ? g : this.resourceStore.getAt(l),
+                a = "&nbsp;";
+            m.rowHeight = null;
+            for (var e = 0; e < c.length; e++) {
+                a += c[e].fn.call(c[e].scope || this, b, m, d, j, l) || ""
+            }
+            if (this.variableRowHeight) {
+                var h = this.getSchedulingView();
+                var f = this.timeAxisViewModel.getViewRowHeight();
+                m.style = "height:" + ((m.rowHeight || f) - h.cellTopBorderWidth - h.cellBottomBorderWidth) + "px"
+            }
+            return a
+        },
+        __onAfterRender: function () {
+            var a = this;
+            a.normalGrid.on({
+                collapse: a.onNormalGridCollapse,
+                expand: a.onNormalGridExpand,
+                scope: a
+            });
+            a.lockedGrid.on({
+                collapse: a.onLockedGridCollapse,
+                itemdblclick: a.onLockedGridItemDblClick,
+                scope: a
+            });
+            if (a.lockedGridDependsOnSchedule) {
+                a.normalGrid.getView().on("itemupdate", a.onNormalViewItemUpdate, a)
+            }
+            if (this.partnerTimelinePanel) {
+                if (this.partnerTimelinePanel.rendered) {
+                    this.setupPartnerTimelinePanel()
+                } else {
+                    this.partnerTimelinePanel.on("afterrender", this.setupPartnerTimelinePanel, this)
+                }
+            }
+        },
+        onLockedGridCollapse: function () {
+            if (this.normalGrid.collapsed) {
+                this.normalGrid.expand()
+            }
+        },
+        onNormalGridCollapse: function () {
+            var a = this;
+            if (!a.normalGrid.reExpander) {
+                a.normalGrid.reExpander = a.normalGrid.placeholder
+            }
+            if (!a.lockedGrid.rendered) {
+                a.lockedGrid.on("render", a.onNormalGridCollapse, a, {
+                    delay: 1
+                })
+            } else {
+                a.lockedGrid.flex = 1;
+                a.lockedGrid.doLayout();
+                if (a.lockedGrid.collapsed) {
+                    a.lockedGrid.expand()
+                }
+                a.addCls("sch-normalgrid-collapsed")
+            }
+        },
+        onNormalGridExpand: function () {
+            this.removeCls("sch-normalgrid-collapsed");
+            delete this.lockedGrid.flex;
+            this.lockedGrid.doLayout()
+        },
+        onNormalViewItemUpdate: function (a, b, d) {
+            if (this.lockedGridDependsOnSchedule) {
+                var c = this.lockedGrid.getView();
+                c.suspendEvents();
+                c.refreshNode(b);
+                c.resumeEvents()
+            }
+        },
+        setupPartnerTimelinePanel: function () {
+            var f = this.partnerTimelinePanel;
+            var d = f.down("splitter");
+            var c = this.down("splitter");
+            if (d) {
+                d.on("dragend", function () {
+                    this.lockedGrid.setWidth(f.lockedGrid.getWidth())
+                }, this)
+            }
+            if (c) {
+                c.on("dragend", function () {
+                    f.lockedGrid.setWidth(this.lockedGrid.getWidth())
+                }, this)
+            }
+            var b = f.isVisible() ? f.lockedGrid.getWidth() : f.lockedGrid.width;
+            this.lockedGrid.setWidth(b);
+            var a = f.getSchedulingView().getEl(),
+                e = this.getSchedulingView().getEl();
+            f.mon(e, "scroll", function (h, g) {
+                a.scrollTo("left", g.scrollLeft)
+            });
+            this.mon(a, "scroll", function (h, g) {
+                e.scrollTo("left", g.scrollLeft)
+            });
+            this.on("viewchange", function () {
+                f.viewPreset = this.viewPreset
+            }, this);
+            f.on("viewchange", function () {
+                this.viewPreset = f.viewPreset
+            }, this)
+        }
+    }, function () {
+        var a = "4.2.1";
+        Ext.apply(Sch, {
+            VERSION: "2.2.19"
+        });
+        if (Ext.versions.extjs.isLessThan(a)) {
+            alert("The Ext JS version you are using needs to be updated to at least " + a)
+        }
+    })
+}
+Ext.define("Sch.mixin.AbstractSchedulerPanel", {
+    requires: ["Sch.model.Event", "Sch.model.Resource", "Sch.data.EventStore", "Sch.data.ResourceStore", "Sch.util.Date"],
     eventBarIconClsField: "",
-    eventSelModelType: "eventmodel",
-    eventSelModel: null,
     enableEventDragDrop: true,
-    enableDragCreation: true,
-    dragConfig: null,
-    dropConfig: null,
-    eventBarTextField: null,
+    resourceColumnClass: "Sch.column.Resource",
+    resourceColumnWidth: null,
     allowOverlap: true,
     startParamName: "startDate",
     endParamName: "endDate",
     passStartEndParameters: false,
+    variableRowHeight: true,
     eventRenderer: null,
     eventRendererScope: null,
     eventStore: null,
     resourceStore: null,
-    eventTpl: null,
-    eventBodyTemplate: null,
-    resourceZones: null,
-    componentCls: "sch-schedulerpanel",
-    lockedGridDependsOnSchedule: false,
+    onEventCreated: function (a) {},
     initStores: function () {
-        var b = this.resourceStore;
-        if (!b) {
+        var a = this.resourceStore || this.store;
+        if (!a) {
             Ext.Error.raise("You must specify a resourceStore config")
         }
         if (!this.eventStore) {
             Ext.Error.raise("You must specify an eventStore config")
         }
+        this.store = Ext.StoreManager.lookup(a);
+        this.resourceStore = this.store;
         this.eventStore = Ext.StoreManager.lookup(this.eventStore);
-        this.resourceStore = Ext.StoreManager.lookup(b);
         if (!this.eventStore.isEventStore) {
-            Ext.Error.raise("Your eventStore should be a Sch.data.EventStore (or consume the Sch.data.mixin.EventStore)")
+            Ext.Error.raise("Your eventStore should be a subclass of Sch.data.EventStore (or consume the EventStore mixin)")
         }
-        Ext.applyIf(this, {
-            store: b,
-            resourceStore: b
-        });
         this.resourceStore.eventStore = this.eventStore;
-        this.eventStore.setResourceStore(this.resourceStore);
-        if (this.lockable) {
-            if (this.resourceZones) {
-                this.plugins = this.plugins || [];
-                var a = Ext.StoreManager.lookup(this.resourceZones);
-                a.setResourceStore(this.resourceStore);
-                this.resourceZonesPlug = Ext.create("Sch.plugin.ResourceZones", {
-                    store: a
-                });
-                this.plugins.push(this.resourceZonesPlug)
-            }
-            if (this.passStartEndParameters) {
-                this.eventStore.on("beforeload", this.applyStartEndParameters, this)
-            }
+        if (this.passStartEndParameters) {
+            this.eventStore.on("beforeload", this.applyStartEndParameters, this)
         }
     },
-    inheritables: function () {
-        return {
-            initComponent: function () {
-                this.initStores();
-                if (this.eventBodyTemplate && Ext.isString(this.eventBodyTemplate)) {
-                    this.eventBodyTemplate = Ext.create("Ext.XTemplate", this.eventBodyTemplate)
-                }
-                this.callParent(arguments);
-                this.relayEvents(this.getView(), ["eventclick", "eventmousedown", "eventmouseup", "eventdblclick", "eventcontextmenu", "eventmouseenter", "eventmouseleave", "beforeeventresize", "eventresizestart", "eventpartialresize", "eventresizeend", "beforeeventdrag", "eventdragstart", "eventdrop", "aftereventdrop", "beforedragcreate", "dragcreatestart", "dragcreateend", "afterdragcreate", "beforeeventadd"]);
-                this.addEvents("orientationchange")
-            },
-            setOrientation: function (a, d) {
-                if (a === this.orientation && !d) {
-                    return
-                }
-                this.callParent(arguments);
-                var c = this,
-                    f = c.normalGrid,
-                    h = c.lockedGrid,
-                    g = c.getSchedulingView(),
-                    b = f.headerCt;
-                g.setOrientation(a);
-                b.suspendLayouts();
-                b.items.each(function (i) {
-                    b.remove(i)
-                });
-                b.resumeLayouts();
-                if (a === "horizontal") {
-                    c.mun(c.resourceStore, {
-                        clear: c.refreshResourceColumns,
-                        datachanged: c.refreshResourceColumns,
-                        load: c.refreshResourceColumns,
-                        scope: c
-                    });
-                    g.suspendEvents();
-                    g.setRowHeight(c.rowHeight || c.timeAxis.preset.rowHeight, true);
-                    g.suppressFitCheck++;
-                    c.reconfigureLockable(c.resourceStore, c.columns);
-                    g.suppressFitCheck--;
-                    g.resumeEvents();
-                    g.setColumnWidth(c.timeAxis.preset.timeColumnWidth || 60, true);
-                    g.checkHorizontalFit();
-                    g.getTimeAxisColumn().on({
-                        timeaxiscolumnreconfigured: g.checkHorizontalFit,
-                        scope: g
-                    })
-                } else {
-                    g.setRowHeight(c.timeAxis.preset.timeColumnWidth || 60, true);
-                    g.setColumnWidth(c.timeAxis.preset.resourceColumnWidth || 100, true);
-                    c.mon(c.resourceStore, {
-                        clear: c.refreshResourceColumns,
-                        datachanged: c.refreshResourceColumns,
-                        load: c.refreshResourceColumns,
-                        scope: c
-                    });
-                    var e = c.processColumns(c.columns);
-                    c.reconfigureLockable(c.timeAxis.tickStore, e.locked.items);
-                    f.reconfigure(c.timeAxis.tickStore, c.createResourceColumns())
-                }
-                f.view.refresh();
-                h.view.refresh();
-                this.fireEvent("orientationchange", this, a)
-            },
-            applyViewSettings: function (c) {
-                this.callParent(arguments);
-                var b = this.getSchedulingView(),
-                    a;
-                if (this.orientation === "horizontal") {
-                    a = this.rowHeight = this.rowHeight || c.rowHeight
-                } else {
-                    a = this.timeColumnWidth = this.timeColumnWidth || c.timeColumnWidth || 60;
-                    b.setColumnWidth(c.resourceColumnWidth || 100, true)
-                }
-                b.setRowHeight(a, true)
-            },
-            afterRender: function () {
-                this.callParent(arguments);
-                if (this.lockable && this.lockedGridDependsOnSchedule) {
-                    if (!this.syncRowHeight) {
-                        this.normalGrid.getView().on("refresh", this.onNormalViewRefresh, this);
-                        this.normalGrid.getView().on("itemupdate", this.onNormalViewItemUpdate, this)
-                    }
-                }
-            }
+    _initializeSchedulerPanel: function () {
+        this.initStores();
+        if (this.eventBodyTemplate && Ext.isString(this.eventBodyTemplate)) {
+            this.eventBodyTemplate = new Ext.XTemplate(this.eventBodyTemplate)
         }
     },
     getResourceStore: function () {
@@ -9753,6 +11211,130 @@ Ext.define("Sch.mixin.SchedulerPanel", {
     },
     getEventStore: function () {
         return this.eventStore
+    },
+    applyStartEndParameters: function (b, a) {
+        a.params = a.params || {};
+        a.params[this.startParamName] = this.getStart();
+        a.params[this.endParamName] = this.getEnd()
+    },
+    createResourceColumns: function (b) {
+        var a = [];
+        var c = this;
+        this.resourceStore.each(function (d) {
+            a.push(Ext.create(c.resourceColumnClass, {
+                renderer: c.mainRenderer,
+                scope: c,
+                width: b || 100,
+                text: d.getName(),
+                model: d
+            }))
+        });
+        return a
+    }
+});
+Ext.define("Sch.mixin.SchedulerPanel", {
+    extend: "Sch.mixin.AbstractSchedulerPanel",
+    requires: ["Sch.view.SchedulerGridView", "Sch.selection.EventModel", "Sch.plugin.ResourceZones", "Sch.column.timeAxis.Vertical"],
+    eventSelModelType: "eventmodel",
+    eventSelModel: null,
+    enableEventDragDrop: true,
+    enableDragCreation: true,
+    dragConfig: null,
+    resourceZones: null,
+    resourceZonesConfig: null,
+    componentCls: "sch-schedulerpanel",
+    lockedGridDependsOnSchedule: true,
+    verticalListeners: null,
+    inheritables: function () {
+        return {
+            initComponent: function () {
+                var b = this.normalViewConfig = this.normalViewConfig || {};
+                this._initializeSchedulerPanel();
+                this.verticalListeners = {
+                    clear: this.refreshResourceColumns,
+                    datachanged: this.refreshResourceColumns,
+                    update: this.refreshResourceColumns,
+                    load: this.refreshResourceColumns,
+                    scope: this
+                };
+                Ext.apply(b, {
+                    eventStore: this.eventStore,
+                    resourceStore: this.resourceStore,
+                    eventBarTextField: this.eventBarTextField || this.eventStore.model.prototype.nameField
+                });
+                Ext.Array.forEach(["barMargin", "eventBodyTemplate", "eventTpl", "allowOverlap", "dragConfig", "eventBarIconClsField", "onEventCreated", "constrainDragToResource", "snapRelativeToEventStartDate"], function (e) {
+                    if (e in this) {
+                        b[e] = this[e]
+                    }
+                }, this);
+                if (this.orientation === "vertical") {
+                    this.mon(this.resourceStore, this.verticalListeners)
+                }
+                this.callParent(arguments);
+                var d = this.lockedGrid.getView();
+                var c = this.getSchedulingView();
+                this.registerRenderer(c.columnRenderer, c);
+                if (this.resourceZones) {
+                    var a = Ext.StoreManager.lookup(this.resourceZones);
+                    a.setResourceStore(this.resourceStore);
+                    this.resourceZonesPlug = new Sch.plugin.ResourceZones(Ext.apply({
+                        store: a
+                    }, this.resourceZonesConfig));
+                    this.resourceZonesPlug.init(this)
+                }
+                c.on("columnwidthchange", this.onColWidthChange, this);
+                this.relayEvents(this.getSchedulingView(), ["eventclick", "eventmousedown", "eventmouseup", "eventdblclick", "eventcontextmenu", "eventmouseenter", "eventmouseleave", "beforeeventresize", "eventresizestart", "eventpartialresize", "beforeeventresizefinalize", "eventresizeend", "beforeeventdrag", "eventdragstart", "eventdrag", "beforeeventdropfinalize", "eventdrop", "aftereventdrop", "beforedragcreate", "dragcreatestart", "beforedragcreatefinalize", "dragcreateend", "afterdragcreate", "beforeeventadd", "scheduleclick", "scheduledblclick", "schedulecontextmenu"]);
+                this.addEvents("orientationchange");
+                if (!this.syncRowHeight) {
+                    this.enableRowHeightInjection(d, c)
+                }
+            },
+            afterRender: function () {
+                this.callParent(arguments);
+                this.getSchedulingView().on({
+                    itemmousedown: this.onScheduleRowMouseDown,
+                    eventmousedown: this.onScheduleEventBarMouseDown,
+                    eventdragstart: this.doSuspendLayouts,
+                    aftereventdrop: this.doResumeLayouts,
+                    eventresizestart: this.doSuspendLayouts,
+                    eventresizeend: this.doResumeLayouts,
+                    scope: this
+                })
+            },
+            getTimeSpanDefiningStore: function () {
+                return this.eventStore
+            }
+        }
+    },
+    doSuspendLayouts: function () {
+        this.lockedGrid.suspendLayouts();
+        this.normalGrid.suspendLayouts()
+    },
+    doResumeLayouts: function () {
+        this.lockedGrid.resumeLayouts();
+        this.normalGrid.resumeLayouts()
+    },
+    onColWidthChange: function (a, b) {
+        if (this.getOrientation() === "vertical") {
+            this.resourceColumnWidth = b;
+            this.refreshResourceColumns()
+        }
+    },
+    enableRowHeightInjection: function (a, c) {
+        var b = new Ext.XTemplate("{%", "this.processCellValues(values);", "this.nextTpl.applyOut(values, out, parent);", "%}", {
+            priority: 1,
+            processCellValues: function (e) {
+                if (c.orientation === "horizontal") {
+                    var f = c.eventLayout.horizontal;
+                    var g = e.record;
+                    var d = f.getRowHeight(g) - c.cellTopBorderWidth - c.cellBottomBorderWidth;
+                    e.style = (e.style || "") + ";height:" + d + "px;"
+                }
+            }
+        });
+        a.addCellTpl(b);
+        a.store.un("refresh", a.onDataRefresh, a);
+        a.store.on("refresh", a.onDataRefresh, a)
     },
     getEventSelectionModel: function () {
         if (this.eventSelModel && this.eventSelModel.events) {
@@ -9786,39 +11368,56 @@ Ext.define("Sch.mixin.SchedulerPanel", {
         }
         return a
     },
-    applyStartEndParameters: function (b, a) {
-        a.params = a.params || {};
-        a.params[this.startParamName] = this.getStart();
-        a.params[this.endParamName] = this.getEnd()
-    },
     refreshResourceColumns: function () {
-        var a = this.normalGrid.headerCt;
-        if (a.getColumnCount() > 0) {
-            a.removeAll()
-        }
-        a.add(this.createResourceColumns());
-        this.getView().refresh()
+        var a = this.resourceColumnWidth || this.timeAxisViewModel.resourceColumnWidth;
+        this.normalGrid.reconfigure(null, this.createResourceColumns(a))
     },
-    createResourceColumns: function () {
-        var b = [],
-            a = this.getSchedulingView();
-        var c = this;
-        this.resourceStore.each(function (d) {
-            b.push(Ext.create("Sch.column.Resource", {
-                tdCls: a.timeCellCls,
-                renderer: a.timeColumnRenderer,
-                scope: a,
-                width: c.resourceColumnWidth || c.timeAxis.preset.resourceColumnWidth || 100,
-                text: d.getName()
-            }))
-        });
-        return b
+    setOrientation: function (a, d) {
+        if (a === this.orientation && !d) {
+            return
+        }
+        this.removeCls("sch-" + this.orientation);
+        this.addCls("sch-" + a);
+        this.orientation = a;
+        var c = this,
+            e = c.normalGrid,
+            f = c.getSchedulingView(),
+            b = e.headerCt;
+        f.setOrientation(a);
+        Ext.suspendLayouts();
+        b.removeAll(true);
+        Ext.resumeLayouts();
+        if (a === "horizontal") {
+            c.mun(c.resourceStore, c.verticalListeners);
+            f.setRowHeight(c.rowHeight || c.timeAxisViewModel.rowHeight, true);
+            c.reconfigure(c.resourceStore, c.horizontalColumns)
+        } else {
+            c.mon(c.resourceStore, c.verticalListeners);
+            c.reconfigure(c.timeAxis, c.verticalColumns.concat(c.createResourceColumns(c.resourceColumnWidth || c.timeAxisViewModel.resourceColumnWidth)));
+            f.setColumnWidth(c.timeAxisViewModel.resourceColumnWidth || 100, true)
+        }
+        this.fireEvent("orientationchange", this, a)
+    },
+    onScheduleRowMouseDown: function (a, c) {
+        var b = this.lockedGrid.getSelectionModel();
+        if (this.getOrientation() === "horizontal" && Ext.selection.RowModel && b instanceof Ext.selection.RowModel) {
+            b.select(c)
+        }
+    },
+    onScheduleEventBarMouseDown: function (a, d, f) {
+        var c = this.normalGrid.view;
+        var b = c.getRecord(c.findRowByChild(f.getTarget()));
+        this.onScheduleRowMouseDown(a, b)
     }
 });
 Ext.define("Sch.mixin.FilterableTreeView", {
+    prevBlockRefresh: null,
     initTreeFiltering: function () {
         var a = function () {
             var b = this.up("tablepanel").store;
+            if (b instanceof Ext.data.NodeStore) {
+                b = this.up("tablepanel[lockable=true]").store
+            }
             this.mon(b, "nodestore-datachange-start", this.onFilterChangeStart, this);
             this.mon(b, "nodestore-datachange-end", this.onFilterChangeEnd, this);
             this.mon(b, "filter-clear", this.onFilterCleared, this);
@@ -9833,10 +11432,13 @@ Ext.define("Sch.mixin.FilterableTreeView", {
         }
     },
     onFilterChangeStart: function () {
+        this.prevBlockRefresh = this.blockRefresh;
+        this.blockRefresh = true;
         Ext.suspendLayouts()
     },
     onFilterChangeEnd: function () {
-        Ext.resumeLayouts()
+        Ext.resumeLayouts(true);
+        this.blockRefresh = this.prevBlockRefresh
     },
     onFilterCleared: function () {
         delete this.toggle;
@@ -9853,90 +11455,43 @@ Ext.define("Sch.mixin.FilterableTreeView", {
         }
     }
 });
-Ext.define("Sch.view.TimelineTreeView", {
-    extend: "Ext.tree.View",
-    mixins: ["Sch.mixin.TimelineView", "Sch.mixin.FilterableTreeView"],
-    requires: ["Sch.patches.TreeView"],
-    cellBorderWidth: 0,
-    constructor: function () {
-        this.callParent(arguments);
-        this.initTreeFiltering()
-    }
-}, function () {
-    this.override(Sch.mixin.TimelineView.prototype.inheritables() || {})
-});
-Ext.define("Sch.view.SchedulerTreeView", {
-    extend: "Sch.view.TimelineTreeView",
-    alias: "widget.schedulertreeview",
-    mixins: ["Sch.mixin.SchedulerView"]
-}, function () {
-    this.override(Sch.mixin.SchedulerView.prototype.inheritables() || {})
-});
 Ext.define("Sch.panel.TimelineGridPanel", {
     extend: "Ext.grid.Panel",
-    mixins: ["Sch.mixin.TimelinePanel"]
-}, function () {
-    this.override(Sch.mixin.TimelinePanel.prototype.inheritables() || {})
-});
-Ext.define("Sch.panel.TimelineTreePanel", {
-    extend: "Ext.tree.Panel",
-    requires: ["Ext.data.TreeStore"],
     mixins: ["Sch.mixin.TimelinePanel"],
-    useArrows: true,
-    rootVisible: false,
-    constructor: function (a) {
-        a = a || {};
-        a.animate = false;
-        this.callParent(arguments)
-    },
+    subGridXType: "gridpanel",
+    requires: ["Sch.patches.ColumnResize"],
     initComponent: function () {
         this.callParent(arguments);
-        if (this.lockable && this.lockedGrid.headerCt.query("treecolumn").length === 0) {
-            Ext.Error.raise("You must define an Ext.tree.Column (or use xtype : 'treecolumn').")
-        }
-    },
-    onRootChange: function (a) {
-        if (!this.lockable) {
-            this.callParent(arguments)
-        }
-    },
-    bindStore: function (b) {
-        this.callParent(arguments);
-        if (Ext.getVersion("extjs").isGreaterThanOrEqual("4.1.2")) {
-            var c = this,
-                a = c.getView();
-            if (b.buffered && c.verticalScroll) {
-                c.verticalScroller = new Ext.grid.PagingScroller(Ext.apply({
-                    panel: c,
-                    store: b,
-                    view: c.view
-                }, c.initialConfig.verticalScroller))
-            }
-            if (b && b.buffered) {
-                a.preserveScrollOnRefresh = true
-            } else {
-                if (c.invalidateScrollerOnRefresh !== undefined) {
-                    a.preserveScrollOnRefresh = !c.invalidateScrollerOnRefresh
-                }
-            }
-        }
+        this.getSchedulingView()._initializeTimelineView()
     }
 }, function () {
     this.override(Sch.mixin.TimelinePanel.prototype.inheritables() || {})
 });
+if (!Ext.ClassManager.get("Sch.panel.TimelineTreePanel")) {
+    Ext.define("Sch.panel.TimelineTreePanel", {
+        extend: "Ext.tree.Panel",
+        requires: ["Ext.grid.Panel", "Ext.data.TreeStore", "Sch.mixin.FilterableTreeView", "Sch.patches.ColumnResizeTree"],
+        mixins: ["Sch.mixin.TimelinePanel"],
+        useArrows: true,
+        rootVisible: false,
+        lockedXType: "treepanel",
+        initComponent: function () {
+            this.callParent(arguments);
+            this.getSchedulingView()._initializeTimelineView()
+        }
+    }, function () {
+        this.override(Sch.mixin.TimelinePanel.prototype.inheritables() || {})
+    })
+}
 Ext.define("Sch.panel.SchedulerGrid", {
     extend: "Sch.panel.TimelineGridPanel",
     mixins: ["Sch.mixin.SchedulerPanel"],
     alias: ["widget.schedulergrid", "widget.schedulerpanel"],
     alternateClassName: "Sch.SchedulerPanel",
     viewType: "schedulergridview",
-    lockedXType: "gridpanel",
-    normalXType: "schedulergrid",
-    onRender: function () {
+    initComponent: function () {
         this.callParent(arguments);
-        if (this.lockable && this.orientation === "vertical") {
-            this.refreshResourceColumns(true)
-        }
+        this.getSchedulingView()._initializeSchedulerView()
     }
 }, function () {
     this.override(Sch.mixin.SchedulerPanel.prototype.inheritables() || {})
@@ -9945,10 +11500,7 @@ Ext.define("Sch.panel.SchedulerTree", {
     extend: "Sch.panel.TimelineTreePanel",
     mixins: ["Sch.mixin.SchedulerPanel"],
     alias: ["widget.schedulertree"],
-    requires: ["Sch.view.SchedulerTreeView"],
-    lockedXType: "treepanel",
-    normalXType: "schedulertree",
-    viewType: "schedulertreeview",
+    viewType: "schedulergridview",
     setOrientation: function (a) {
         if (a == "vertical") {
             Ext.Error.raise("Sch.panel.SchedulerTree does not support vertical orientation")
@@ -9956,9 +11508,7 @@ Ext.define("Sch.panel.SchedulerTree", {
     },
     initComponent: function () {
         this.callParent(arguments);
-        if (!this.lockable && (this.resourceStore instanceof Ext.data.TreeStore)) {
-            this.getView().store.eventStore = this.eventStore
-        }
+        this.getSchedulingView()._initializeSchedulerView()
     }
 }, function () {
     this.override(Sch.mixin.SchedulerPanel.prototype.inheritables() || {})
