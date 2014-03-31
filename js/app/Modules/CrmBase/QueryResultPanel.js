@@ -299,51 +299,27 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 				}) ;
 				
 			} else {
-			
-				var tabstore = Ext.create('Ext.data.Store',{
-					model:tmpModelName,
-					pageSize: (tabData.data.length > 50 ? tabData.data.length : 50 ),
-					//pageSize: tabData.data.length,
-					buffered: true,
-					remoteSort: true, // this just keeps sorting from being disabled
-					data: tabData.data,
-					proxy:{
-						type:'memory'
-					},
-					
-					/* 
-					* Custom sort function that overrides the normal store sort function.
-					* Basically this pulls all the buffered data into a MixedCollection
-					* and applies the sort to that, then it puts the SORTED data back
-					* into the buffered store.               
-					*/                    
-					sort: function(sorters) {
-						var collection = new Ext.util.MixedCollection();
-						collection.addAll(this.getProxy().data);
-						collection.sort(sorters);
-						
-						this.pageMap.clear();
-						this.getProxy().data = collection.getRange();
-						this.load();
-					}
-				});
-				
 				var tabgrid = Ext.create('Ext.grid.Panel',{
 					xtype:'grid',
 					border:false,
 					cls:'op5crmbase-querygrid-'+me.optimaModule.sdomainId,
 					columns:columns,
-					store:tabstore,
-					/* verticalScroller: {
-						numFromEdge: 5,
-						trailingBufferZone: 10,
-						leadingBufferZone: 20
-					},*/
+					store:{
+						model:tmpModelName,
+						data: tabData.data,
+						proxy:{
+							type:'memory'
+						}
+					},
 					listeners: {
 						itemcontextmenu: me.onRowRightClick,
 						scope:me
 					},
-					plugins: [Ext.create('Ext.ux.ColumnAutoWidthPlugin', {allColumns:true, minAutoWidth:90, singleOnly:true})],
+					plugins: [
+						Ext.create('Ext.ux.ColumnAutoWidthPlugin', {allColumns:true, minAutoWidth:90, singleOnly:true}),
+					{
+						ptype: 'bufferedrenderer'
+					}],
 					viewConfig: { 
 						//stripeRows: false,
 						listeners: {
@@ -753,10 +729,8 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 				col.removeCls('op5-crmbase-qresult-kchart-colserie') ;
 			}
 		},me) ;
-		rPanel.getView().setNewTemplate();
 		
 		// ajust CSS styles to highlight selected series
-		// console.dir(arguments) ;
 		var cssBlob = '' ;
 		Ext.Object.each( rowsColorMapObj, function(k,v) {
 			cssBlob += ".ux-grid-row-bk-"+v+" .x-grid-cell { background-color: #"+v+" !important ; }\r\n" ;
