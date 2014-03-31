@@ -707,3 +707,13 @@ body {    background: none repeat scroll 0 0 #F8F8F8;}
 	background-repeat: no-repeat;
 	background-position: center center ;
 }
+
+/* RowBody defaults (to ux.RowExpander Ext 4.1) */
+.x-grid-rowbody {
+	padding: 0px;
+}
+
+/* Progress text defaults (to Ext 4.1) */
+.x-progress .x-progress-text {
+	padding: 0px 5px;
+}
