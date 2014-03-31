@@ -13,7 +13,7 @@ Ext.define('AuthGroupActionsTreeModel', {
 });
 
 Ext.define('Optima5.Modules.Admin.AuthGroupFormCheckColumn',{
-	extend: 'Ext.ux.CheckColumn',
+	extend: 'Ext.grid.column.Check',
 	
 	renderer: function(value, metaData, record) {
 		if( record.isRoot() ) {
@@ -197,7 +197,6 @@ Ext.define('Optima5.Modules.Admin.AuthGroupForm' ,{
 					scope:me
 				}
 			}),Ext.create('Optima5.Modules.Admin.AuthGroupFormCheckColumn',{
-				xtype:'checkcolumn',
 				width:50,
 				text: '<b>Write</b>',
 				sortable: false,
