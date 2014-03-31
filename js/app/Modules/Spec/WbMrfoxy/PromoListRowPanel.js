@@ -113,7 +113,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 						iconCls: 'op5-spec-mrfoxy-promorow-fieldset-edit',
 						title: 'Text attributes',
 						defaults: {
-							margin: 2
+							margin: 2,
+							fieldBodyCls: '' // Otherwise height would be set at 22px
 						},
 						items:[{
 							xtype: 'displayfield',
@@ -148,7 +149,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 						title: 'Performance analysis',
 						hidden: !(rowRecord.get('is_prod') == 'PROD'),
 						defaults: {
-							margin: 2
+							margin: 2,
+							fieldBodyCls: '' // Otherwise height would be set at 22px
 						},
 						items:[{
 							xtype: 'displayfield',

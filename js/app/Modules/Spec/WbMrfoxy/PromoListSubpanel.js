@@ -26,7 +26,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 				xtype:'gridpanel',
 				store: {
 					model: 'WbMrfoxyPromoModel',
-					//autoLoad: true,
+					autoLoad: false,
 					proxy: this.optimaModule.getConfiguredAjaxProxy({
 						extraParams : {
 							_moduleId: 'spec_wb_mrfoxy',
@@ -464,7 +464,12 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 		},me,{single:true});
 		
 		me.mon(me.parentBrowserPanel,'tbarselect',function(){
-			me.reload() ;
+			if( me.rendered ) {
+				me.reload() ;
+			} else {
+				// Wait for render to trigger reload & columns reconfigure
+				me.on('afterrender', function() { me.reload(); }, me) ;
+			}
 		},me) ;
 	},
 	reload: function() {
@@ -472,11 +477,20 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 	},
 	applyHeadlines: function() {
 		Ext.defer(function() {
-			var rowExpander = this.getComponent('pCenter').getPlugin('rowexpander'),
-				count = Math.min(this.getComponent('pCenter').getStore().getCount(),this.nbHeadlines);
-				idx = 0 ;
+			var grid = this.getComponent('pCenter'),
+				view = grid.getView(),
+				rowExpander = grid.getPlugin('rowexpander'),
+				store = grid.getStore(),
+				count = Math.min(store.getCount(),this.nbHeadlines),
+				idx = 0,
+				node, record ;
 			while( count > 0 ) {
-				rowExpander.toggleRow(idx) ;
+				node = view.getNode(idx) ;
+				if( node == null ) {
+					break ;
+				}
+				record = view.getRecord(node) ;
+				rowExpander.toggleRow(idx,record) ;
 				idx++ ;
 				count-- ;
 			}
