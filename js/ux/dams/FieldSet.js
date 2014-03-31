@@ -15,8 +15,11 @@ Ext.define('Ext.ux.dams.FieldSet',{
                 baseCls: me.baseCls + '-header',
                 id: me.id + '-legend',
                 autoEl: 'legend',
+                ariaRole: null,
+                ariaLabelledBy: '.' + me.baseCls + '-header-text',
                 items: items,
                 ownerCt: me,
+                shrinkWrap: true,
                 ownerLayout: me.componentLayout
             };
 

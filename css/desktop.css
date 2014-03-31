@@ -695,10 +695,11 @@ body {    background: none repeat scroll 0 0 #F8F8F8;}
 }
 
 
-.x-fieldset-withicon legend {
+.x-fieldset-withicon .x-fieldset-header-text {
 	line-height: 24px;
 }
-.x-fieldset-header-icon {
+.x-fieldset-withicon .x-fieldset-header-icon {
+	height: 24px;
 	width: 24px;
 	float: left;
 	background-repeat: no-repeat;
