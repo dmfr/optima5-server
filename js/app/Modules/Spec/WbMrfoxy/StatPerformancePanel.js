@@ -250,7 +250,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.StatPerformancePanel',{
 						this.mon( p.getTabBar().el, {
 							contextmenu: this.onTabRightClick, 
 							scope: this,
-							delegate: 'div.x-tab'
+							delegate: 'a.x-tab'
 						}) ;
 					},
 					scope: this,

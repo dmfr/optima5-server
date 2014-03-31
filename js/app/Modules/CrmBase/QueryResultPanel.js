@@ -474,7 +474,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 						this.mon( p.getTabBar().el, {
 							contextmenu: this.onTabChartRightClick, 
 							scope: this,
-							delegate: 'div.x-tab'
+							delegate: 'a.x-tab'
 						}) ;
 					},
 					scope: this,
