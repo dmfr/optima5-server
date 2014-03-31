@@ -1,20 +1,4 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
- * @class Ext.ux.grid.filter.NumericFilter
- * @extends Ext.ux.grid.filter.Filter
  * Filters using an Ext.ux.grid.menu.RangeMenu.
  * <p><b><u>Example Usage:</u></b></p>
  * <pre><code>
@@ -35,7 +19,7 @@ Ext.define('Ext.ux.grid.filter.NumericFilter', {
     uses: ['Ext.form.field.Number'],
 
     /**
-     * @private @override
+     * @private
      * Creates the Menu for this filter.
      * @param {Object} config Filter configuration
      * @return {Ext.menu.Menu}
@@ -67,7 +51,6 @@ Ext.define('Ext.ux.grid.filter.NumericFilter', {
     },
 
     /**
-     * @private
      * Template method that is to return <tt>true</tt> if the filter
      * has enough configuration information to be activated.
      * @return {Boolean}
@@ -127,4 +110,3 @@ Ext.define('Ext.ux.grid.filter.NumericFilter', {
         return true;
     }
 });
-
