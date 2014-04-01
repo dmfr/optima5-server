@@ -20,7 +20,6 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 			items:[{
 				region:'center',
 				itemId: 'pCenter',
-				flex:3,
 				layout:'fit',
 				border:false,
 				xtype:'gridpanel',
@@ -290,7 +289,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 			},{
 				region:'east',
 				itemId: 'pEast',
-				flex:1,
+				width: 200,
 				layout:'fit',
 				collapsible: true,
 				collapsed: true,
