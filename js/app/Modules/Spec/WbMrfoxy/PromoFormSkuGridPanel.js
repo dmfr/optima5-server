@@ -53,42 +53,54 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormSkuGridPanel',{
 					dataIndex: 'sku_desc',
 					width: 200
 				},{
+					text: 'Price',
+					dataIndex: 'cli_price_unit',
+					width: 60,
+					align: 'right'
+				},{
+					text: 'Qty',
+					dataIndex: 'promo_qty_forecast',
+					width: 60,
+					tdCls: 'op5-spec-mrfoxy-promoformlist-editablecolumn',
+					align: 'right',
+					editor:{
+						xtype:'numberfield',
+						hideTrigger:true,
+						cls: 'op5-spec-mrfoxy-promoformlist-editor-rightalign'
+					}
+				},{
 					text: 'UoM',
 					dataIndex: 'sku_uom',
-					width: 50
+					width: 45,
+					align: 'left'
 				},{
-					text: 'Cust. Price',
-					dataIndex: 'cli_price_unit',
-					width: 80,
+					text: 'nb.Cases',
+					dataIndex: 'promo_qty_forecast_pcb',
+					width: 60,
+					align: 'right',
 					tdCls: 'op5-spec-mrfoxy-promoformlist-editablecolumn',
 					editor:{
 						xtype:'numberfield',
-						hideTrigger:true
+						hideTrigger:true,
+						cls: 'op5-spec-mrfoxy-promoformlist-editor-rightalign'
 					}
 				},{
-					text: 'Expect Qty',
-					dataIndex: 'promo_qty_forecast',
-					width: 80,
-					tdCls: 'op5-spec-mrfoxy-promoformlist-editablecolumn',
-					editor:{
-						xtype:'numberfield',
-						hideTrigger:true
-					}
-				},{
-					text: 'Discount (%)',
+					text: 'Discount',
 					dataIndex: 'promo_price_coef',
 					priceColumn: true,
-					width: 80,
+					width: 65,
+					align: 'right',
 					renderer: function(v) {
 						return (100 - (v*100)) + ' ' + '%' ;
 					},
 					tdCls: 'op5-spec-mrfoxy-promoformlist-editablecolumn',
-					editor:Ext.create('Optima5.Modules.Spec.WbMrfoxy.PromoFormSkuGridPanelCoefField',{ hideTrigger:true, keyNavEnabled:false, mouseWheelEnabled:false})
+					editor:Ext.create('Optima5.Modules.Spec.WbMrfoxy.PromoFormSkuGridPanelCoefField',{ cls: 'op5-spec-mrfoxy-promoformlist-editor-rightalign', hideTrigger:true, keyNavEnabled:false, mouseWheelEnabled:false})
 				},{
-					text: 'Discount / UoM',
+					text: 'Discount/UoM',
 					dataIndex: '',
 					priceColumn: true,
 					width: 80,
+					align: 'right',
 					renderer: function(value,metaData,record) {
 						//console.log( record.get('cli_price_unit')+' '+record.get('cli_price_unit')+' '+record.get('cli_price_unit') ) ;
 						var calcValue = record.get('cli_price_unit') - (record.get('cli_price_unit') * record.get('promo_price_coef')) ;
@@ -98,18 +110,21 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormSkuGridPanel',{
 					text: 'Total Discount',
 					dataIndex: '',
 					priceColumn: true,
-					width: 120,
+					width: 100,
+					align: 'right',
 					renderer: function(value,metaData,record) {
 						var stdCost = record.get('cli_price_unit') * record.get('promo_qty_forecast') ;
 						var calcValue =  stdCost * ( 1 - record.get('promo_price_coef') ) ;
 						return Ext.util.Format.round( calcValue, 0 ) ;
-					}
+					},
+					tdCls: 'op5-spec-mrfoxy-promoformlist-totalcolumn',
 				}]
 			}
 		});
 		
 		this.callParent() ;
-		this.getPlugin('cellediting').on('edit',function() {
+		this.getPlugin('cellediting').on('edit',function(editor, editObject) {
+			this.calcQtyPcb(editObject.record,editObject.field) ;
 			this.fireEvent('edit') ;
 		},this) ;
 	},
@@ -166,8 +181,35 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormSkuGridPanel',{
 	
 	setSkuData: function( arrRecords ) {
 		this.getStore().loadRawData(arrRecords) ;
+		this.calcQtyPcb() ;
 	},
 	getSkuData: function() {
 		return Ext.pluck( this.getStore().data.items, 'data' ) ;
+	},
+	
+	calcQtyPcb: function(record,field) {
+		if( record == null ) {
+			this.getStore().each( function(record) {
+				if( record.get('sku_pcb') == 0 ) {
+					return ;
+				}
+				record.set('promo_qty_forecast_pcb', record.get('promo_qty_forecast') / record.get('sku_pcb')) ;
+			}) ;
+			return ;
+		}
+		
+		if( record.get('sku_pcb') == 0 ) {
+			return ;
+		}
+		switch( field ) {
+			case 'promo_qty_forecast_pcb' :
+				record.set('promo_qty_forecast', record.get('promo_qty_forecast_pcb') * record.get('sku_pcb')) ;
+				break ;
+			case 'promo_qty_forecast' :
+				var qtyPcb = Math.floor( record.get('promo_qty_forecast') / record.get('sku_pcb') ) ;
+				record.set('promo_qty_forecast', qtyPcb * record.get('sku_pcb')) ;
+				record.set('promo_qty_forecast_pcb', qtyPcb ) ;
+				break ;
+		}
 	}
 }) ;

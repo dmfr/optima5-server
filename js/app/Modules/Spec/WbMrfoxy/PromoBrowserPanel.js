@@ -5,9 +5,11 @@ Ext.define('WbMrfoxyPromoSkuModel', {
 		{name: 'sku_code',  type: 'string'},
 		{name: 'sku_desc',  type: 'string'},
 		{name: 'sku_uom',  type: 'string'},
+		{name: 'sku_pcb',  type: 'number'},
 		{name: 'cli_price_unit', type: 'number'},
 		{name: 'promo_price_coef', type: 'number', defaultValue: 1},
-		{name: 'promo_qty_forecast', type: 'number'}
+		{name: 'promo_qty_forecast', type: 'number'},
+		{name: 'promo_qty_forecast_pcb', type: 'number'}
 	]
 }) ;
 

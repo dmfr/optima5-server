@@ -190,6 +190,12 @@
 .x-grid-row .op5-spec-mrfoxy-promoformlist-editablecolumn {
 	background-color: #BAF9CE;
 }
+.x-grid-row .op5-spec-mrfoxy-promoformlist-totalcolumn {
+	font-weight: bold;
+}
+.op5-spec-mrfoxy-promoformlist-editor-rightalign input {
+	text-align: right;
+}
 
 
 .op5-spec-mrfoxy-promolist-progress .x-progress-text {

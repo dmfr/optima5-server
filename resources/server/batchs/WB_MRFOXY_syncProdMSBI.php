@@ -31,6 +31,10 @@ while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 	}
 	$arr_prodEan_arrProdKey[$prod_ean][] = $arr['field_PROD_REF'] ;
 	
+	if( $arr['field_UOM'] == 'SCH' ) {
+		$arr['field_UOM'] = 'BAG' ;
+	}
+	
 	$arr_prodKey_arrDb[$arr['field_PROD_REF']] = $arr ;
 }
 
@@ -44,6 +48,7 @@ foreach( $arr_prodEan_arrProdKey as $prod_ean => $arrProdKey ) {
 	$arr_update['field_PROD_BRANDCODE_str'] = $prod_key ;
 	$arr_update['field_PROD_TXT_str'] = $arr_prodKey_arrDb[$prod_key]['field_PROD_TXT'] ;
 	$arr_update['field_PROD_UOM_str'] = $arr_prodKey_arrDb[$prod_key]['field_UOM'] ;
+	$arr_update['field_PROD_PCB_dec'] = $arr_prodKey_arrDb[$prod_key]['field_QTE_SKU'] ;
 	
 	$arr_cond = array() ;
 	$arr_cond['entry_key'] = $prod_ean ;

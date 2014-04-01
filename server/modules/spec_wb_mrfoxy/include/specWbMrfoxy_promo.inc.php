@@ -224,6 +224,7 @@ function specWbMrfoxy_promo_getGrid( $post_data ) {
 				$row_sku['sku_code'] = $paracrm_row_sku['WORK_PROMO_SKU_field_SKU_CODE_entry_PROD_BRANDCODE'] ;
 				$row_sku['sku_desc'] = $paracrm_row_sku['WORK_PROMO_SKU_field_SKU_CODE_entry_PROD_TXT'] ;
 				$row_sku['sku_uom'] = $paracrm_row_sku['WORK_PROMO_SKU_field_SKU_CODE_entry_PROD_UOM'] ;
+				$row_sku['sku_pcb'] = $paracrm_row_sku['WORK_PROMO_SKU_field_SKU_CODE_entry_PROD_PCB'] ;
 				$row_sku['cli_price_unit'] = $paracrm_row_sku['WORK_PROMO_SKU_field_PRICE_UNIT'] ;
 				$row_sku['promo_price_coef'] = $paracrm_row_sku['WORK_PROMO_SKU_field_PRICE_COEF'] ;
 				$row_sku['promo_qty_forecast'] = $paracrm_row_sku['WORK_PROMO_SKU_field_QTY_FORECAST'] ;
@@ -462,6 +463,7 @@ function specWbMrfoxy_promo_formEval( $post_data ) {
 			$row_sku['sku_code'] = $arr['field_PROD_BRANDCODE'] ;
 			$row_sku['sku_desc'] = $arr['field_PROD_TXT'] ;
 			$row_sku['sku_uom'] = $arr['field_PROD_UOM'] ;
+			$row_sku['sku_pcb'] = $arr['field_PROD_PCB'] ;
 			$row_sku['cli_price_unit'] = $fake_row['WORK_PROMO_SKU_field_PRICE_UNIT'] ;
 			$resp_data['list_sku'][] = $row_sku ;
 		}
