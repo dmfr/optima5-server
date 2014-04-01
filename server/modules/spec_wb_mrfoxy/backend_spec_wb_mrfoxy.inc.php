@@ -63,6 +63,8 @@ switch( $post_data['_action'] )
 	return specWbMrfoxy_finance_newRevision($post_data) ;
 	case 'finance_setRevision' :
 	return specWbMrfoxy_finance_setRevision($post_data) ;
+	case 'finance_exportXLS' :
+	return specWbMrfoxy_finance_exportXLS($post_data) ;
 	
 	
 	

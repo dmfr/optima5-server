@@ -290,4 +290,36 @@ function specWbMrfoxy_finance_setRevision( $post_data ) {
 	return array('success'=>true) ;
 }
 
+
+
+function specWbMrfoxy_finance_exportXLS( $post_data ) {
+	global $_opDB ;
+	
+	
+	$objPHPExcel = new PHPExcel() ;
+	$objPHPExcel->getDefaultStyle()->getFont()->setName('Arial');
+	$objPHPExcel->getDefaultStyle()->getFont()->setSize( 10 );
+	$objPHPExcel->createSheet(0) ;
+	$objPHPExcel->setActiveSheetIndex(0);
+	$obj_sheet = $objPHPExcel->getActiveSheet() ;
+	$obj_sheet->setTitle('2013') ;
+	
+	
+	
+	$tmpfilename = tempnam( sys_get_temp_dir(), "FOO");
+	
+	$objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
+	$objWriter->save($tmpfilename);
+	$objPHPExcel->disconnectWorksheets();
+	unset($objPHPExcel) ;
+
+	$filename = 'WB_MRFOXY_budget'.'.xls' ;
+	header("Content-Type: application/force-download; name=\"$filename\""); 
+	header("Content-Disposition: attachment; filename=\"$filename\""); 
+	readfile($tmpfilename) ;
+	unlink($tmpfilename) ;
+	die() ;
+}
+
+
 ?>

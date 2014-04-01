@@ -158,7 +158,13 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 						this.handleNewRevisionEnd( doSave = false ) ;
 					},
 					scope: this
-				}]
+				}],
+			},{
+				itemId: 'tbExport',
+				icon: 'images/op5img/ico_save_16.gif',
+				text: 'Export XLS' ,
+				handler: this.handleDownload,
+				scope: this
 			}],
 			items:[{
 				xtype:'box',
@@ -396,7 +402,11 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 							xtype: 'numberfield',
 							hideTrigger:true
 						},
-						tdCls: 'op5-spec-mrfoxy-financebudget-editcolumn'
+						tdCls: 'op5-spec-mrfoxy-financebudget-editcolumn',
+						summaryType: 'sum',
+						summaryRenderer: function(value){
+								return value;
+						}
 					}]
 				} ;
 				if( actualDataIndex != null ) {
@@ -520,7 +530,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 				}
 			}],
 			features: [{
-				ftype: 'grouping',
+				ftype: 'groupingsummary',
 				groupHeaderTpl: '{[(values.rows.length > 0 ? values.rows[0].data.group_text : "")]}',
 				collapsible: false,
 				enableNoGroups: false,
@@ -552,6 +562,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 		if( editObject.record.get('operation') == '' ) {
 			return false ;
 		}
+		if( editObject.record.get('group_key') == '2_STORES' ){
+			this.openStoreDetails(editObject.grid.getView().getCell( editObject.record, editObject.column )) ;
+		}
 	},
 	onGridAfterEdit: function(editor, editObject) {
 		var filerecordId = editObject.column.filerecordId,
@@ -571,6 +584,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 		}) ;
 		
 		this.doCalc() ;
+		this.closeStoreDetails() ;
 	},
 	collectRevisionValues: function( revisionId ) {
 		var store = this.down('grid').getStore(),
@@ -672,14 +686,17 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 	
 	updateToolbar: function() {
 		var ajaxData = this.ajaxData,
+			tbExport = this.down('#tbExport'),
 			tbNewBegin = this.down('#tbNewBegin'),
 			tbNewEnd = this.down('#tbNewEnd'),
 			tbNewEndBtnDiscard = tbNewEnd.menu.down('#btnDiscard') ;
 		if( ajaxData == null ) {
+			tbExport.setVisible(false) ;
 			tbNewBegin.setVisible(false) ;
 			tbNewEnd.setVisible(false) ;
 			return ;
 		}
+		tbExport.setVisible(true) ;
 		
 		var isEditing = isInitial = false ;
 		Ext.Array.each( ajaxData.revisions, function(revision) {
@@ -820,5 +837,78 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 	},
 	handleQuit: function() {
 		this.fireEvent('quit') ;
+	},
+	handleDownload: function() {
+		var me = this ;
+		
+		var exportParams = me.optimaModule.getConfiguredAjaxParams() ;
+		Ext.apply(exportParams,{
+			_moduleId: 'spec_wb_mrfoxy',
+			_action: 'finance_exportXLS',
+			data: Ext.JSON.encode([])
+		}) ;
+		Ext.create('Ext.ux.dams.FileDownloader',{
+			renderTo: Ext.getBody(),
+			requestParams: exportParams,
+			requestAction: Optima5.Helper.getApplication().desktopGetBackendUrl(),
+			requestMethod: 'POST'
+		}) ;
+	},
+	
+	
+	
+	
+	openStoreDetails: function(el) {
+		var me = this ;
+		console.dir(el) ;
+		
+		var newPromoCfgPanel = Ext.create('Ext.grid.Panel',{
+			store:{
+				fields:[
+					{name:'lib', type:'string'},
+					{name:'amount', type:'number'}
+				],
+				data:[
+					{lib:'Reason 1', amount:1500},
+					{lib:'Reason 2', amount:780},
+				]
+			},
+			columns:[{
+				flex:2,
+				dataIndex:'lib',
+				text:'Agreement'
+			},{
+				flex:1,
+				dataIndex:'amount',
+				text:'Amount'
+			}],
+			frame: true,
+			
+			floating: true,
+			renderTo: me.getEl()
+		});
+		
+		// Size + position
+		newPromoCfgPanel.setSize({
+			width: 400,
+			height: 150
+		}) ;
+		/*
+		newPromoCfgPanel.on('destroy',function() {
+			me.getEl().unmask() ;
+		},me,{single:true}) ;
+		me.getEl().mask() ;
+		*/
+		
+		newPromoCfgPanel.show();
+		newPromoCfgPanel.getEl().alignTo(el, 't-b?');
+		
+		me.newPromoCfgPanel = newPromoCfgPanel ;
+	},
+	closeStoreDetails: function() {
+		var me = this ;
+		if( me.newPromoCfgPanel ) {
+			me.newPromoCfgPanel.destroy() ;
+		}
 	}
 });
