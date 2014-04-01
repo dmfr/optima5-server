@@ -172,6 +172,7 @@ function specWbMrfoxy_promo_getGrid( $post_data ) {
 		$row['calc_uplift_vol'] = $paracrm_row['WORK_PROMO_field_CALC_UPLIFT_VOL'] ;
 		$row['calc_uplift_per'] = $paracrm_row['WORK_PROMO_field_CALC_UPLIFT_PER'] ;
 		$row['calc_roi'] = $paracrm_row['WORK_PROMO_field_CALC_ROI'] ;
+		$row['calc_nb_displays'] = $paracrm_row['WORK_PROMO_field_CALC_NB_DISPLAYS'] ;
 		$row['obs_atl'] = $paracrm_row['WORK_PROMO_field_OBS_ATL'] ;
 		$row['obs_btl'] = $paracrm_row['WORK_PROMO_field_OBS_BTL'] ;
 		$row['obs_comment'] = $paracrm_row['WORK_PROMO_field_OBS_COMMENT'] ;

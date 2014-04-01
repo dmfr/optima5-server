@@ -128,7 +128,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 							itemId: 'display_btl',
 							labelWidth: 75,
 							//fieldStyle: 'font-weight: bold',
-							value: rowRecord.get('obs_btl')
+							value: rowRecord.get('obs_btl'),
+							hidden: true
 						},{
 							xtype: 'displayfield',
 							fieldLabel: 'Comments',
@@ -155,6 +156,12 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 							fieldLabel: 'Uplift',
 							labelWidth: 75,
 							value: '<b>'+rowRecord.get('calc_uplift_vol')+'</b>&nbsp;kg&nbsp&nbsp&nbsp/&nbsp;&nbsp&nbsp'+'<b>'+rowRecord.get('calc_uplift_per')+'</b>&nbsp;%',
+							hidden: (rowRecord.get('status_percent') < 70)
+						},{
+							xtype: 'displayfield',
+							fieldLabel: 'Nb displays on sale',
+							labelWidth: 120,
+							value: '<b>'+rowRecord.get('calc_nb_displays')+'</b>',
 							hidden: (rowRecord.get('status_percent') < 70)
 						},{
 							xtype: 'displayfield',
