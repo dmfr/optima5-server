@@ -228,6 +228,7 @@ Ext.define('Optima5.Modules.CrmBase.BibleMemoryPicker',{
 			store: me.myStore,
 			columns: me.myColumns,
 			height: 150,
+			width: 200,
 			renderTo: Ext.getBody(),
 			floating: true,
 			hidden: true,

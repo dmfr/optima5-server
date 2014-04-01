@@ -125,6 +125,7 @@ Ext.define('Optima5.Modules.CrmBase.BibleTreePicker',{
 			rootVisible: true,
 			useArrows: true,
 			height: 200,
+			width: 200,
 			renderTo: Ext.getBody(),
 			floating: true,
 			hidden: true,
