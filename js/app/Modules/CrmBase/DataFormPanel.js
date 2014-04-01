@@ -343,7 +343,10 @@ Ext.define('Optima5.Modules.CrmBase.DataFormPanel' ,{
 		var me = this ;
 		
 		if( !me.saveMask ) {
-			me.saveMask = Ext.create('Ext.LoadMask',me,{msg:'Saving...'}) ;
+			me.saveMask = Ext.create('Ext.LoadMask',{
+				msg:'Saving...',
+				target:me
+			});
 		}
 		me.query('>toolbar')[0].setDisabled(true) ;
 		me.saveMask.show() ;

@@ -74,7 +74,10 @@ Ext.define('Optima5.Modules.Admin.AuthGroupForm' ,{
 		
 		// console.dir( me.query('combobox') ) ;
 		me.on('afterrender',function() {
-			me.loadMask = new Ext.LoadMask(me, {msg:'Loading...'});
+			me.loadMask = Ext.create('Ext.LoadMask',{
+				msg:'Loading...',
+				target: me
+			});
 			me.loadMask.show() ;
 		},me) ;
 		me.on('destroy',function() {
@@ -398,7 +401,10 @@ Ext.define('Optima5.Modules.Admin.AuthGroupForm' ,{
 			actions = [] ,
 			rootNode = me.getComponent('mTree').getRootNode() ;
 			
-		me.loadMask = new Ext.LoadMask(me, {msg:'Saving...'});
+		me.loadMask = Ext.create('Ext.LoadMask',{
+			msg:'Saving...',
+			target: me
+		});
 		me.loadMask.show() ;
 		
 		var values = me.getComponent('mForm').getValues() ;
@@ -477,7 +483,10 @@ Ext.define('Optima5.Modules.Admin.AuthGroupForm' ,{
 		}
 		Ext.Msg.confirm('Delete','Delete group ?',function(btn){
 			if( btn == 'yes' ) {
-				me.loadMask = new Ext.LoadMask(me, {msg:'Deleting...'});
+				me.loadMask = Ext.create('Ext.LoadMask',{
+					msg:'Deleting...',
+					target: me
+				});
 				me.loadMask.show() ;
 				
 				me.optimaModule.getConfiguredAjaxConnection().request({

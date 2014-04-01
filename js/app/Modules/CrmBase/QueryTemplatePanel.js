@@ -336,7 +336,10 @@ Ext.define('Optima5.Modules.CrmBase.QueryTemplatePanel' ,{
 	saveMaskSet: function( trueOfFalse ) {
 		var me = this ;
 		if( !me.saveMask ) {
-			me.saveMask = Ext.create('Ext.LoadMask',me,{msg:'Wait...'}) ;
+			me.saveMask = Ext.create('Ext.LoadMask',{
+				target: me,
+				msg:'Wait...'
+			}) ;
 		}
 		if( trueOfFalse === true ) {
 			me.saveMask.show() ;

@@ -316,14 +316,20 @@ Ext.define('Optima5.Modules.CrmBase.QmergePanel' ,{
 		var me = this ;
 		me.loading = true ;
 		if( me.rendered ) {
-			me.loadMask = new Ext.LoadMask(me,{msg:"Please wait..."}) ;
+			me.loadMask = Ext.create('Ext.LoadMask',{
+				target: me,
+				msg:"Please wait..."
+			}) ;
 			me.loadMask.show() ;
 		} else {
 			me.on('afterrender',function(p) {
 				if( p.loading ) {
 					return ;
 				}
-				p.loadMask = new Ext.LoadMask(p,{msg:"Please wait..."}) ;
+				p.loadMask = Ext.create('Ext.LoadMask',{
+					target: p,
+					msg:"Please wait..."
+				}) ;
 				p.loadMask.show() ;
 			},me,{single:true}) ;
 		}

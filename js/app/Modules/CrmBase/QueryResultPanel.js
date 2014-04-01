@@ -1254,7 +1254,10 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			arr_QueryResultChartModel: Ext.JSON.encode(arr_QueryResultChartModel)
 		});
 		
-		me.loadMask = new Ext.LoadMask(me, {msg:'Saving charts'});
+		me.loadMask = Ext.create('Ext.LoadMask',{
+			msg:'Saving charts',
+			target: me
+		});
 		me.loadMask.show() ;
 		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams ,
@@ -1283,7 +1286,10 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			arr_QueryResultChartModel: null
 		});
 		
-		me.loadMask = new Ext.LoadMask(me, {msg:'Discarding charts'});
+		me.loadMask = Ext.create('Ext.LoadMask',{
+			msg:'Discarding charts',
+			target: me
+		});
 		me.loadMask.show() ;
 		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams ,

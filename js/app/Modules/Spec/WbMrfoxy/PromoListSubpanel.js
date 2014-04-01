@@ -507,7 +507,10 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 			return ;
 		}
 		
-		var loadmask = new Ext.LoadMask(this, {msg:"Please wait..."});
+		var loadmask = Ext.create('Ext.LoadMask',{
+			target: this,
+			msg:"Please wait..."
+		});
 		loadmask.show() ;
 		var ajaxParams = {
 			_moduleId: 'spec_wb_mrfoxy',
