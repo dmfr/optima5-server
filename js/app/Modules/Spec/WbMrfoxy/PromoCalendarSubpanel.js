@@ -235,7 +235,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarSubpanel' ,{
 				nodeKey: rec.get('country_code'),
 				nodeText: rec.get('country_display'),
 				icon: rec.get('country_iconurl'),
-				children: ( this.bibleTreestore.getNodeById( rec.get('country_code') ) != null ? this.bibleTreestore.getNodeById( rec.get('country_code') ).copy(null,true).childNodes : [] ),
+				children: ( this.bibleTreestore.getNodeById( rec.get('country_code') ) != null ? this.bibleTreestore.getNodeById( rec.get('country_code') ).childNodes : [] ),
 				expanded: true
 			});
 		}, this) ;
