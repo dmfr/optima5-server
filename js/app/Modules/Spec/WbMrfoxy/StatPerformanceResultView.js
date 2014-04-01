@@ -119,18 +119,19 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.StatPerformanceResultView',{
 		}] ;
 		Ext.Array.each(tabData.columns, function(columnDef,colIdx) {
 			if( columnDef.text_bold == true ) {
-				columnDef.text = '<b>'+columnDef.text+'</b>' ;
+				columnDef.text = ''+columnDef.text+'' ;
+				columnDef.style = 'font-weight:bold' ;
 			}
 			if( columnDef.text_italic == true ) {
-				columnDef.text = '<i>'+columnDef.text+'</i>' ;
+				columnDef.text = ''+columnDef.text+'' ;
 			}
 			if( columnDef.is_bold == true ) {
 				Ext.apply(columnDef,{
 					renderer: function(value,metaData,record) {
 						if( record.get('detachedRow') ) {
-							return '<i>'+value+'</i>' ;
+							return ''+value+'' ;
 						} else {
-							return '<b>'+value+'</b>' ;
+							return ''+value+'' ;
 						}
 					}
 				}) ;
