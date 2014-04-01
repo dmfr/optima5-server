@@ -40,6 +40,22 @@ Ext.onReady(function () {
 		}
 	});
 	
+	/*
+	 * From Ext 4.2 , Ext.view.Table monitors all DOM events to fire 'uievent'
+	 *  If a view.Table is nested in a higher view.Table (ComponentRowExpander...),
+	 *  this would cause higher view.Table to select nested cell as e.getTarget(cellselector) result
+	 *  => check selected cell has actually a header in current grid before continuing
+	 */
+	Ext.view.Table.override( {
+		processItemEvent: function(record, row, rowIndex, e) {
+			var cell = e.getTarget(this.getCellSelector(), row) ;
+			if( cell && this.getHeaderByCell(cell) == null ) {
+				return false;
+			}
+			this.callOverridden(arguments) ;
+		}
+	}) ;
+	
 	
 	/*
 	Désactiver le click droit
