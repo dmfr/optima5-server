@@ -56,6 +56,48 @@ Ext.onReady(function () {
 		}
 	}) ;
 	
+	/*
+	 * From Ext 4.2...
+	 * Ext.grid.plugin.Editing (parent of RowEditing) checks that an editor has been defined on clicked cell (to start editing row)
+	 * => restore Ext 4.1 behavior (startEdit whether editor is defined or not)
+	 */
+	Ext.grid.plugin.RowEditing.override( {
+		onCellClick: function(view, cell, colIdx, record, row, rowIdx, e) {
+			// Make sure that the column has an editor.  In the case of CheckboxModel,
+			// calling startEdit doesn't make sense when the checkbox is clicked.
+			// Also, cancel editing if the element that was clicked was a tree expander.
+			var expanderSelector = view.expanderSelector,
+				// Use getColumnManager() in this context because colIdx includes hidden columns.
+				columnHeader = view.ownerCt.getColumnManager().getHeaderAtIndex(colIdx),
+				editor = columnHeader.getEditor(record);
+			
+			if ( !expanderSelector || !e.getTarget(expanderSelector)) {
+				this.startEdit(record, columnHeader);
+			}
+		}
+	}) ;
+	
+	/*
+	 * Ext 4.1 : Ext.grid.RowEditor "layouts" itself on every startEdit
+	 * From Ext 4.2, Ext.grid.RowEditor monitors columns on trigger components layout on add/remove/resize/move... BUT misses column::setEditor()
+	 * => force syncAllFieldWidths() on every startEdit
+	 */
+	Ext.grid.RowEditor.override( {
+		onShow: function() {
+			var me = this;
+			
+			me.callParent(arguments);
+			if (true) {
+				me.suspendLayouts();
+				me.syncAllFieldWidths();
+				me.resumeLayouts(true);
+			}
+			delete me.needsSyncFieldWidths;
+			
+			me.reposition();
+		}
+	});
+	
 	
 	/*
 	Désactiver le click droit
