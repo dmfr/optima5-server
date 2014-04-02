@@ -418,11 +418,20 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 						}]
 					},{
 						xtype:'container',
-						hidden:true,
-						itemId: 'cntFinanceGraph',
-						cls:'op5-waiting',
-						height:32,
-						margin: 10
+						hidden:false,
+						items:[{
+							xtype: 'panel',
+							height: 100,
+							layout: 'fit',
+							itemId: 'cntFinanceGraph',
+							items: [{
+								xtype:'box',
+								cls:'op5-waiting'
+							}]
+						},{
+							xtype:'op5specmrfoxygraphinfobis',
+							padding: '2px 4px 10px 4px'
+						}]
 					},{
 						xtype:'grid',
 						height:200,
@@ -545,62 +554,48 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 		var me = this,
 			cntFinanceGraph = me.query('#cntFinanceGraph')[0] ;
 		
-		/*
-		var store = Ext.create('Ext.data.JsonStore', {
-			fields: ['year', 'comedy', 'action', 'drama', 'thriller'],
-			data: [
-               {year: 2005, comedy: 34000000, action: 23890000, drama: 18450000, thriller: 20060000},
-                {year: 2006, comedy: 56703000, action: 38900000, drama: 12650000, thriller: 21000000},
-                {year: 2007, comedy: 42100000, action: 50410000, drama: 25780000, thriller: 23040000},
-                {year: 2008, comedy: 38910000, action: 56070000, drama: 24810000, thriller: 26940000}
-					]
-		});
-
-		var chart = Ext.create('Ext.chart.Chart',{
-					xtype: 'chart',
-					animate: true,
-					shadow: true,
-					store: store,
-					legend: {
-						position: 'right'
-					},
-					axes: [{
-						type: 'Numeric',
-						position: 'bottom',
-						fields: ['comedy', 'action', 'drama', 'thriller'],
-						title: false,
-						grid: true,
-						label: {
-							renderer: function(v) {
-									return String(v).replace(/(.)00000$/, '.$1M');
-							}
-						}
-					}, {
-						type: 'Category',
-						position: 'left',
-						fields: ['year'],
-						title: false
-					}],
-					series: [{
-						type: 'bar',
-						axis: 'bottom',
-						gutter: 80,
-						xField: 'year',
-						yField: ['comedy', 'action', 'drama', 'thriller'],
-						stacked: true,
-						tips: {
-							trackMouse: true,
-							width: 65,
-							height: 28,
-							renderer: function(storeItem, item) {
-									this.setTitle(String(item.value[1] / 1000000) + 'M');
-							}
-						}
-					}]
-			});
-		cntFinanceGraph.removeCls('op5-waiting') ;
-		cntFinanceGraph.add(chart) ;
-		*/
+		var chartCfg = {
+			xtype: 'chart',
+			animate: true,
+			shadow: true,
+			store: {
+				fields: ['year', 'free', 'reserved', 'done'],
+				data: [
+							{year: 2008, free: 38910, reserved: 56070, done: 24810}
+						]
+			},
+			axes: [{
+				type: 'Numeric',
+				position: 'bottom',
+				fields: ['free', 'reserved', 'done'],
+				title: false,
+				grid: true,
+				label: {
+					renderer: function(v) {
+							return String(v).replace(/000$/, 'K');
+					}
+				},
+				roundToDecimal: false
+			}],
+			series: [{
+				type: 'bar',
+				axis: 'bottom',
+				gutter: 80,
+				xField: 'year',
+				yField: ['free', 'reserved', 'done'],
+				stacked: true,
+				tips: {
+					trackMouse: true,
+					width: 125,
+					height: 28,
+					renderer: function(storeItem, item) {
+							this.setTitle(item.yField + ': ' + String(item.value[1] / 1) + ' €');
+					}
+				}
+			}]
+		};
+		cntFinanceGraph.removeAll() ;
+		cntFinanceGraph.add(chartCfg) ;
 	},
 	calcLayout: function() {
 		var me = this ;

@@ -522,6 +522,16 @@ table.op5-spec-mrfoxy-statresult-tbl > tbody > tr > td.op5-spec-mrfoxy-statresul
 	background-color: red ;
 }
 
+.op5-spec-mrfoxy-graphinfobis-free {
+	background-color: #94AE0A ;
+}
+.op5-spec-mrfoxy-graphinfobis-reserved {
+	background-color: #115FA6 ;
+}
+.op5-spec-mrfoxy-graphinfobis-done {
+	background-color: #A61120 ;
+}
+
 
 
 .x-grid-row .op5-spec-mrfoxy-financebudget-editcolumn {
