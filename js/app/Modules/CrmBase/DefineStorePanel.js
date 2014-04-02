@@ -327,7 +327,11 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 				ftype: 'rowbody',
 				getAdditionalData: function(data, rowIndex, record, orig) {
 					if( record.get('entry_field_type') != 'join' ) {
-						return this.callParent(arguments) ;
+						return {
+							rowBodyCls: null,
+							rowBodyColspan: null,
+							rowBody: null
+						};
 					}
 					
 					
@@ -798,7 +802,7 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 		if( fieldType == 'join' ) {
 			var buttonTpl = Ext.apply({},fieldTypeColumn.buttonTpl) ;
 			Ext.apply(buttonTpl,{
-				rowIdx: editEvent.rowIdx,
+				rowIdx: editEvent.store.indexOf(editEvent.record),
 				handler: function(btn) {
 					me.onClickJoinCfg(btn.rowIdx) ;
 				},
@@ -885,8 +889,12 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 		
 		// Create panel
 		if( !me.joinPanel ) {
+			var tabpanelSize = tabpanel.getSize() ;
 			me.joinPanel = Ext.create('Optima5.Modules.CrmBase.DefineStoreFieldJoinPanel',{
 				defineStorePanel: me,
+				
+				width: tabpanelSize.width,
+				height: tabpanelSize.height,
 				
 				floating: true,
 				renderTo: me.getEl(),
