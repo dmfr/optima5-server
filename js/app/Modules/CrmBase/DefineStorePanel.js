@@ -399,6 +399,9 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 						rowBody: rowbody
 					};
 				}
+			},{
+				ftype: 'rowwrap',
+				lockableScope: 'normal'
 			}]
 		});
 		
