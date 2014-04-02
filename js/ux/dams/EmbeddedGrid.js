@@ -113,6 +113,10 @@ Ext.define('Ext.ux.dams.EmbeddedGrid',{
 			records = [],
 			i = 0;
 		for (; i < ln; i++) {
+			// Mod 2014-03 : assign ID if not set, to set existing record as NOT phantom
+			if( !(tabData[i].id) ) {
+				tabData[i]['id'] = i+1 ;
+			}
 			records.push(Ext.create(this.modelname, tabData[i]));
 		}
 		this.linkstore.loadData(records) ;
@@ -155,7 +159,7 @@ Ext.define('Ext.ux.dams.EmbeddedGrid',{
 		this.linkstore.sync() ;
 		
 		// Mod 2014-03 : safely set "phantom" explicitly
-		newModel.phantom = false ;
+		newModel.phantom = true ;
 		
 		this.rowEditing.startEdit(newRecordIndex, 0);
 	},
