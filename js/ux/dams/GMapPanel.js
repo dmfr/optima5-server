@@ -4,11 +4,6 @@ Ext.define('Ext.ux.dams.GMapPanel', {
 			  
 	initComponent : function(){
 		this.callParent(arguments) ;
-		
-		var me = this ;
-		this.on('resize',function(me,w,h) {
-			me.onResize(w,h) ;
-		},me); 
 	},
 			  
 	setZoom : function( zoom ) {
