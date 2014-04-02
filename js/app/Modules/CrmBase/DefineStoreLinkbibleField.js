@@ -23,8 +23,8 @@ Ext.define('Optima5.Modules.CrmBase.DefineStoreLinkbibleField', {
 		this.linkTypeCombo = this.query()[0];
 		this.linkBibleCombo = this.query()[1];
 		
-		me.mon( this.linkTypeCombo, 'change', me.onChange, me ) ;
-		me.mon( this.linkBibleCombo, 'change', me.onChange, me ) ;
+		me.mon( this.linkTypeCombo, 'change', me.onSubfieldChange, me ) ;
+		me.mon( this.linkBibleCombo, 'change', me.onSubfieldChange, me ) ;
 		
 		me.initField();
 	},
@@ -61,15 +61,51 @@ Ext.define('Optima5.Modules.CrmBase.DefineStoreLinkbibleField', {
 	},
 	
 	getValue: function() {
-		return 'link' ;
+		var linkValuesObj = this.getLinkValues() ;
+		return linkValuesObj.linkType + '%' + linkValuesObj.linkBibleCode ;
 	},
 	setValue: Ext.emptyFn,
 	
-	onChange: function() {
-		var me = this ;
-		me.fireEvent('change','link','') ;
+	onSubfieldChange: function() {
+		this.checkChange() ;
 	},
 	
+	getErrors: function() {
+		var me = this ,
+		allowBlank = false ;
+		
+		if( !allowBlank ) {
+			if( this.linkTypeCombo.getValue() == null || this.linkTypeCombo.getValue() == '' ) {
+						return [me.invalidMsg] ;
+			}
+			if( this.linkBibleCombo.getValue() == null || this.linkBibleCombo.getValue() == '' ) {
+						return [me.invalidMsg] ;
+			}
+		}
+		return [] ;
+	},
+	isValid : function() {
+		var me = this,
+			disabled = me.disabled,
+			validate = me.forceValidation || !disabled;
+			
+		
+		return validate ? me.validateValue() : disabled;
+	},
+	validateValue: function() {
+		var me = this,
+			errors = me.getErrors(),
+			isValid = Ext.isEmpty(errors);
+		if (!me.preventMark) {
+			if (isValid) {
+					me.clearInvalid();
+			} else {
+					me.markInvalid(errors);
+			}
+		}
+
+		return isValid;
+	},
 	markInvalid: function(errors) {
 		if( this.linkTypeCombo ) {
 			this.linkTypeCombo.markInvalid(errors) ;
@@ -85,39 +121,6 @@ Ext.define('Optima5.Modules.CrmBase.DefineStoreLinkbibleField', {
 		if( this.linkBibleCombo ) {
 			this.linkBibleCombo.clearInvalid() ;
 		}
-	},
-	
-	getErrors: function(value) {
-		var me = this ,
-		allowBlank = false ;
-		
-		if( !allowBlank ) {
-			if( this.linkTypeCombo.getValue() == null || this.linkTypeCombo.getValue() == '' ) {
-				return [me.invalidMsg] ;
-			}
-			if( this.linkBibleCombo.getValue() == null || this.linkBibleCombo.getValue() == '' ) {
-				return [me.invalidMsg] ;
-			}
-		}
-		return [] ;
-	},
-	validateValue: function(value) {
-		var me = this,
-				errors = me.getErrors(value),
-				isValid = Ext.isEmpty(errors);
-		if (!me.preventMark) {
-				if (isValid) {
-					me.clearInvalid();
-				} else {
-					me.markInvalid(errors);
-				}
-		}
-		
-		return isValid;
-	},
-	isValid : function() {
-		var me = this;
-		return me.disabled || me.validateValue(me.getValue());
 	},
 	 
 	getLinkValues: function() {
