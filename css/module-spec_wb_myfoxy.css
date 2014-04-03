@@ -372,11 +372,17 @@
 .op5-spec-mrfoxy-schdetail-inline {
 	height: 56px;
 	width: 100% ;
-	display: inline-flex;
 	background-color: rgb(228, 232, 232);
+}
+.op5-spec-mrfoxy-schdetail-inline-tbl {
+	display: table;
+	height: 56px;
 }
 .op5-spec-mrfoxy-schdetail-inline-elem {
 	margin: auto 5px;
+	padding: 0px 16px;
+	display: table-cell;
+	vertical-align: middle;
 }
 .op5-spec-mrfoxy-schdetail-rowcnt {
 	width: 100%;
@@ -387,7 +393,6 @@
 }
 table.op5-spec-mrfoxy-schdetail-tbl {
 	margin: 0px 5px;
-	width:100%;
 	color:black;
 	font-size:11px;
 	font-family:tahoma,arial,verdana,sans-serif
