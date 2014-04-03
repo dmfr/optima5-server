@@ -186,7 +186,7 @@ Ext.define('Optima5.Modules.Admin.AuthGroupForm' ,{
 				dataIndex: 'text',
 				menuDisabled: true,
 				listeners:{
-					checkchange: me.onTreeCheck,
+					checkchange: me.onCheckChange,
 					scope:me
 				}
 			},Ext.create('Optima5.Modules.Admin.AuthGroupFormCheckColumn',{
@@ -196,7 +196,7 @@ Ext.define('Optima5.Modules.Admin.AuthGroupForm' ,{
 				dataIndex: 'auth_has_read',
 				menuDisabled: true,
 				listeners:{
-					checkchange: me.onTreeCheck,
+					checkchange: me.onCheckChange,
 					scope:me
 				}
 			}),Ext.create('Optima5.Modules.Admin.AuthGroupFormCheckColumn',{
@@ -206,7 +206,7 @@ Ext.define('Optima5.Modules.Admin.AuthGroupForm' ,{
 				dataIndex: 'auth_has_write',
 				menuDisabled: true,
 				listeners:{
-					checkchange: me.onTreeCheck,
+					checkchange: me.onCheckChange,
 					scope:me
 				}
 			})]
@@ -344,10 +344,17 @@ Ext.define('Optima5.Modules.Admin.AuthGroupForm' ,{
 		
 		me.doLayout() ;
 	},
+	onCheckChange: function( header, rowIdx ) {
+		var treegrid = header.up('panel'),
+			treeview = treegrid.getView(),
+			treeviewnode = treeview.getNode( rowIdx ),
+			nodeRecord = treeview.getRecord( treeviewnode ) ;
+		this.onTreeCheck( header, nodeRecord ) ;
+	},
 	onTreeCheck: function( columnDefinition, nodeRecord ) {
 		var me = this,
 			dataIndex = ( Ext.isObject(columnDefinition) ? columnDefinition.dataIndex : columnDefinition ) ;
-		
+			
 		// traitement specifique auth_has_write
 		if( dataIndex == 'auth_has_write' ) {
 			// si read pas mis, on ejecte le write
