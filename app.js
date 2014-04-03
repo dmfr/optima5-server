@@ -41,157 +41,63 @@ Ext.onReady(function () {
 	});
 	
 	/*
-	TreeViewDragDrop : containerScroll 
-	*/
-	Ext.tree.plugin.TreeViewDragDrop.override( {
-		onViewRender : function(view) {
+	 * From Ext 4.2 , Ext.view.Table monitors all DOM events to fire 'uievent'
+	 *  If a view.Table is nested in a higher view.Table (ComponentRowExpander...),
+	 *  this would cause higher view.Table to select nested cell as e.getTarget(cellselector) result
+	 *  => check selected cell has actually a header in current grid before continuing
+	 */
+	Ext.view.Table.override( {
+		processItemEvent: function(record, row, rowIndex, e) {
+			var cell = e.getTarget(this.getCellSelector(), row) ;
+			if( cell && this.getHeaderByCell(cell) == null ) {
+				return false;
+			}
+			this.callOverridden(arguments) ;
+		}
+	}) ;
+	
+	/*
+	 * From Ext 4.2...
+	 * Ext.grid.plugin.Editing (parent of RowEditing) checks that an editor has been defined on clicked cell (to start editing row)
+	 * => restore Ext 4.1 behavior (startEdit whether editor is defined or not)
+	 */
+	Ext.grid.plugin.RowEditing.override( {
+		onCellClick: function(view, cell, colIdx, record, row, rowIdx, e) {
+			// Make sure that the column has an editor.  In the case of CheckboxModel,
+			// calling startEdit doesn't make sense when the checkbox is clicked.
+			// Also, cancel editing if the element that was clicked was a tree expander.
+			var expanderSelector = view.expanderSelector,
+				// Use getColumnManager() in this context because colIdx includes hidden columns.
+				columnHeader = view.ownerCt.getColumnManager().getHeaderAtIndex(colIdx),
+				editor = columnHeader.getEditor(record);
+			
+			if ( !expanderSelector || !e.getTarget(expanderSelector)) {
+				this.startEdit(record, columnHeader);
+			}
+		}
+	}) ;
+	
+	/*
+	 * Ext 4.1 : Ext.grid.RowEditor "layouts" itself on every startEdit
+	 * From Ext 4.2, Ext.grid.RowEditor monitors columns on trigger components layout on add/remove/resize/move... BUT misses column::setEditor()
+	 * => force syncAllFieldWidths() on every startEdit
+	 */
+	Ext.grid.RowEditor.override( {
+		onShow: function() {
 			var me = this;
 			
-			if (me.enableDrag) {
-					me.dragZone = new Ext.tree.ViewDragZone({
-						view: view,
-						ddGroup: me.dragGroup || me.ddGroup,
-						dragText: me.dragText,
-						repairHighlightColor: me.nodeHighlightColor,
-						repairHighlight: me.nodeHighlightOnRepair
-					});
+			me.callParent(arguments);
+			if (true) {
+				me.suspendLayouts();
+				me.syncAllFieldWidths();
+				me.resumeLayouts(true);
 			}
+			delete me.needsSyncFieldWidths;
 			
-			if (me.enableDrop) {
-				me.dropZone = new Ext.tree.ViewDropZone({
-					view: view,
-					ddGroup: me.dropGroup || me.ddGroup,
-					allowContainerDrops: me.allowContainerDrops,
-					appendOnly: me.appendOnly,
-					allowParentInserts: me.allowParentInserts,
-					expandDelay: me.expandDelay,
-					dropHighlightColor: me.nodeHighlightColor,
-					dropHighlight: me.nodeHighlightOnDrop,
-					containerScroll: me.containerScroll
-				});
-			}
+			me.reposition();
 		}
 	});
 	
-	/*
-	 * Bug EXTJSIV-4601
-	 * http://www.sencha.com/forum/showthread.php?158328-Possible-bug-in-TreeStore-ExtJs-4.0.7-(setRootNode-registerNode-includeChildren)
-	 */
-	Ext.data.Tree.override( {
-    setRootNode : function(node) {
-        var me = this;
-
-        me.root = node;
-
-        if (me.fireEvent('beforeappend', null, node) !== false) {
-            node.set('root', true);
-            node.updateInfo();
-            // root node should never be phantom or dirty, so commit it
-            node.commit();
-
-            node.on({
-                scope: me,
-                insert: me.onNodeInsert,
-                append: me.onNodeAppend,
-                remove: me.onNodeRemove
-            });
-
-            me.relayEvents(node, [
-                /**
-                 * @event append
-                 * @inheritdoc Ext.data.NodeInterface#append
-                 */
-                "append",
-
-                /**
-                 * @event remove
-                 * @inheritdoc Ext.data.NodeInterface#remove
-                 */
-                "remove",
-
-                /**
-                 * @event move
-                 * @inheritdoc Ext.data.NodeInterface#move
-                 */
-                "move",
-
-                /**
-                 * @event insert
-                 * @inheritdoc Ext.data.NodeInterface#insert
-                 */
-                "insert",
-
-                /**
-                 * @event beforeappend
-                 * @inheritdoc Ext.data.NodeInterface#beforeappend
-                 */
-                "beforeappend",
-
-                /**
-                 * @event beforeremove
-                 * @inheritdoc Ext.data.NodeInterface#beforeremove
-                 */
-                "beforeremove",
-
-                /**
-                 * @event beforemove
-                 * @inheritdoc Ext.data.NodeInterface#beforemove
-                 */
-                "beforemove",
-
-                /**
-                 * @event beforeinsert
-                 * @inheritdoc Ext.data.NodeInterface#beforeinsert
-                 */
-                "beforeinsert",
-
-                /**
-                 * @event expand
-                 * @inheritdoc Ext.data.NodeInterface#expand
-                 */
-                "expand",
-
-                /**
-                 * @event collapse
-                 * @inheritdoc Ext.data.NodeInterface#collapse
-                 */
-                "collapse",
-
-                /**
-                 * @event beforeexpand
-                 * @inheritdoc Ext.data.NodeInterface#beforeexpand
-                 */
-                "beforeexpand",
-
-                /**
-                 * @event beforecollapse
-                 * @inheritdoc Ext.data.NodeInterface#beforecollapse
-                 */
-                "beforecollapse" ,
-
-                /**
-                 * @event sort
-                 * @inheritdoc Ext.data.NodeInterface#event-sort
-                 */
-                "sort",
-
-                /**
-                 * @event rootchange
-                 * Fires whenever the root node is changed in the tree.
-                 * @param {Ext.data.Model} root The new root
-                 */
-                "rootchange"
-            ]);
-
-            me.nodeHash = {};
-            me.registerNode(node,true);
-            me.fireEvent('append', null, node);
-            me.fireEvent('rootchange', node);
-        }
-
-        return node;
-    }
-	}) ;
 	
 	/*
 	Désactiver le click droit

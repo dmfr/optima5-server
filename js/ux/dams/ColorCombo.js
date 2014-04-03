@@ -62,7 +62,7 @@ Ext.define('Ext.ux.dams.ColorCombo', {
 		});        
 		
 		me.callParent(arguments);    
-		me.store.on('datachanged',function(){
+		me.mon( me.store, 'datachanged',function(){
 			me.onStoreLoadData() ;
 		},me);
 	},

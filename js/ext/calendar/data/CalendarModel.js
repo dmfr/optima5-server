@@ -34,6 +34,14 @@ Ext.define('Ext.calendar.data.CalendarModel', {
             for(var i = 0, len = fields.length; i < len; i++){
                 proto.fields.add(Ext.create('Ext.data.Field', fields[i]));
             }
+            
+            // HACK : ExtJS 4.2, need to search for idProperty and attach idField if found
+				proto.fields.each( function(field) {
+					if( field.name == proto.idProperty ) {
+						proto.idField = field ;
+					}
+				});
+            
             return Data.CalendarModel;
         }
     }

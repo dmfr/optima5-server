@@ -147,17 +147,16 @@ Ext.define('Ext.ux.chart.TitleChart', {
         var me = this,
             sprite;
         
+        // Sprite is going to be created after Chart is rendered,
+        // therefore Surface should be available already
         sprite = new Ext.draw.Sprite({
+            surface: me.surface,
             type: 'text',
             text: me.title,
             font: me.titleFont,
             x:    0,            // Coordinates will be adjusted after
             y:    0             // placing Sprite on Surface
         });
-        
-        // Sprite is going to be created after Chart is rendered,
-        // therefore Surface should be available already
-        me.surface.add(sprite);
         
         // Draw the Sprite momentarily and then hide it again quickly.
         sprite.redraw();

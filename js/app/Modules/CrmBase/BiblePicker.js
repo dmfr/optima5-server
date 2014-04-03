@@ -215,6 +215,7 @@ Ext.define('Optima5.Modules.CrmBase.BiblePicker',{
 			store: me.myStore,
 			columns: me.myColumns,
 			height: 200,
+			width: 200,
 			renderTo: Ext.getBody(),
 			floating: true,
 			hidden: true,

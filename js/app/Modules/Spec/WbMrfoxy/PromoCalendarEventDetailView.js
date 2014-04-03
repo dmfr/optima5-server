@@ -76,6 +76,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarEventDetailView',{
 					'</tpl>',
 					
 					'<div class="op5-spec-mrfoxy-schdetail-inline">',
+					'<div class="op5-spec-mrfoxy-schdetail-inline-tbl">',
 						'<div class="op5-spec-mrfoxy-schdetail-inline-elem">',
 							'<div class="op5-crmbase-filecalendar-eventdetail-timewrap op5-spec-mrfoxy-schdetail-timewrap">',
 								'<div style="position:relative;">',
@@ -106,6 +107,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarEventDetailView',{
 							'<div class="op5-spec-mrfoxy-schdetail-progress-lib">Status :</div>',
 							'<div class="op5-spec-mrfoxy-schdetail-progress">{progressMarkup}</div>',
 						'</div>',
+					'</div>',
 					'</div>',
 					
 					'<div class="op5-spec-mrfoxy-schdetail-rowcnt">',

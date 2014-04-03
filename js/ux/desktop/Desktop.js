@@ -1,17 +1,3 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /*!
  * Ext JS Library 4.0
  * Copyright(c) 2006-2011 Sencha Inc.
@@ -92,8 +78,6 @@ Ext.define('Ext.ux.desktop.Desktop', {
     taskbarConfig: null,
 
     windowMenu: null,
-			  
-	//wallpaper : "poeut" ,
 
     initComponent: function () {
         var me = this;
@@ -112,27 +96,12 @@ Ext.define('Ext.ux.desktop.Desktop', {
             me.createDataView()
         ];
 
-        /*
-        me.on('afterrender',function() {
-			  Ext.create('Ext.ux.window.Notification', {
-												title: 'Notification',
-												position: 'br',
-												manager: 'instructions',
-												cls: 'ux-notification-light',
-												html: 'Using bounceOut/easeIn animation effect.',
-												autoHideDelay: 2000,
-												slideInDuration: 200,
-												slideBackDuration: 200
-											}).show();
-        }); 
-        */
         me.callParent();
 
         me.shortcutsView = me.items.getAt(1);
         me.shortcutsView.on('itemclick', me.onShortcutItemClick, me);
 
         var wallpaper = me.wallpaper;
-		  //alert(wallpaper) ;
         me.wallpaper = me.items.getAt(0);
         if (wallpaper) {
             me.setWallpaper(wallpaper, me.wallpaperStretch);
@@ -254,7 +223,9 @@ Ext.define('Ext.ux.desktop.Desktop', {
     },
 
     onWindowMenuHide: function (menu) {
-        menu.theWin = null;
+        Ext.defer(function() {
+            menu.theWin = null;
+        }, 1);
     },
 
     onWindowMenuMaximize: function () {
@@ -466,4 +437,3 @@ Ext.define('Ext.ux.desktop.Desktop', {
         me.taskbar.setActiveButton(activeWindow && activeWindow.taskButton);
     }
 });
-

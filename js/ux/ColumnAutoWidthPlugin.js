@@ -1,3 +1,8 @@
+/*
+http://www.sencha.com/forum/archive/index.php/t-144000.html?s=4ef5633eba73b88e4b2d1d3f5aa13d6a
+http://dnorman.github.io/ExtJS-Patches/example/ColumnAutoWidthPlugin.html
+*/
+
 (function(){
     
 var squishCls = Ext.id(null,'colAutoWidth');
@@ -152,16 +157,11 @@ Ext.define('Ext.ux.ColumnAutoWidthPlugin', {
             // console.log('ColumnAutoWidthPlugin','autofy column resizers took', 0-start + (start = new Date().getTime()), 'ms');
             
             Ext.each(resizeCols, function(col){
-                var els = me.getColumnResizers(col), newWidth = 0;
-                
-                if( col.el ) newWidth = Ext.num(col.el.dom.scrollWidth,0);
-                
-                Ext.each(els, function(el) {
-                    newWidth = Math.max(el.scrollWidth, newWidth); // scrollwidth should be cheaper
-                });
+                var newWidth = view.getMaxContentWidth( col )
                 
                 newWidth = Math.max( newWidth , col.minAutoWidth || me.minAutoWidth );
                 if( col.maxAutoWidth ) newWidth = Math.min(col.maxAutoWidth, newWidth );
+                newWidth += 3 ; // HACK : to be sure...
                 
                 if( newWidth == col.width ){
                     //

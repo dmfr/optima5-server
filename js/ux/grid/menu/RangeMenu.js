@@ -1,20 +1,4 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
- * @class Ext.ux.grid.menu.RangeMenu
- * @extends Ext.menu.Menu
  * Custom implementation of {@link Ext.menu.Menu} that has preconfigured items for entering numeric
  * range comparison values: less-than, greater-than, and equal-to. This is used internally
  * by {@link Ext.ux.grid.filter.NumericFilter} to create its menu.
@@ -62,17 +46,17 @@ fields : {
      */
 
     /**
-     * @cfg {Object} iconCls
-     * The iconCls to be applied to each comparator field item.
+     * @cfg {Object} itemIconCls
+     * The itemIconCls to be applied to each comparator field item.
      * Defaults to:<pre>
-iconCls : {
+itemIconCls : {
     gt : 'ux-rangemenu-gt',
     lt : 'ux-rangemenu-lt',
     eq : 'ux-rangemenu-eq'
 }
      * </pre>
      */
-    iconCls : {
+    itemIconCls : {
         gt : 'ux-rangemenu-gt',
         lt : 'ux-rangemenu-lt',
         eq : 'ux-rangemenu-eq'
@@ -120,6 +104,7 @@ menuItemCfgs : {
      */
     menuItems : ['lt', 'gt', '-', 'eq'],
 
+    plain: true,
 
     constructor : function (config) {
         var me = this,
@@ -148,12 +133,8 @@ menuItemCfgs : {
                 cfg = {
                     itemId: 'range-' + item,
                     enableKeyEvents: true,
-                    hideLabel: false,
-                    fieldLabel: me.iconTpl.apply({
-                        cls: me.iconCls[item] || 'no-icon',
-                        text: me.fieldLabels[item] || '',
-                        src: Ext.BLANK_IMAGE_URL
-                    }),
+                    hideEmptyLabel: false,
+                    labelCls: 'ux-rangemenu-icon ' + me.itemIconCls[item],
                     labelSeparator: '',
                     labelWidth: 29,
                     listeners: {
@@ -161,9 +142,7 @@ menuItemCfgs : {
                         change: me.onInputChange,
                         keyup: me.onInputKeyUp,
                         el: {
-                            click: function(e) {
-                                e.stopPropagation();
-                            }
+                            click: this.stopFn
                         }
                     },
                     activate: Ext.emptyFn,
@@ -182,6 +161,10 @@ menuItemCfgs : {
             me.add(item);
         }
     },
+    
+    stopFn: function(e) {
+        e.stopPropagation();
+    },
 
     /**
      * @private
@@ -196,11 +179,16 @@ menuItemCfgs : {
      * @return {String} The value of this filter
      */
     getValue : function () {
-        var result = {}, key, field;
-        for (key in this.fields) {
-            field = this.fields[key];
-            if (field.isValid() && field.getValue() !== null) {
-                result[key] = field.getValue();
+        var result = {},
+            fields = this.fields, 
+            key, field;
+            
+        for (key in fields) {
+            if (fields.hasOwnProperty(key)) {
+                field = fields[key];
+                if (field.isValid() && field.getValue() !== null) {
+                    result[key] = field.getValue();
+                }
             }
         }
         return result;
@@ -211,11 +199,23 @@ menuItemCfgs : {
      * @param {Object} data The data to assign to this menu
      */	
     setValue : function (data) {
-        var key;
-        for (key in this.fields) {
-            this.fields[key].setValue(key in data ? data[key] : '');
+        var me = this,
+            fields = me.fields,
+            key,
+            field;
+
+        for (key in fields) {
+            if (fields.hasOwnProperty(key)) {
+                // Prevent field's change event from tiggering a Store filter. The final upate event will do that
+                field =fields[key];
+                field.suspendEvents();
+                field.setValue(key in data ? data[key] : '');
+                field.resumeEvents();
+            }
         }
-        this.fireEvent('update', this);
+
+        // Trigger the filering of the Store
+        me.fireEvent('update', me);
     },
 
     /**  
@@ -257,15 +257,4 @@ menuItemCfgs : {
         // restart the timer
         this.updateTask.delay(this.updateBuffer);
     }
-}, function() {
-
-    /**
-     * @cfg {Ext.XTemplate} iconTpl
-     * A template for generating the label for each field in the menu
-     */
-    this.prototype.iconTpl = Ext.create('Ext.XTemplate',
-        '<img src="{src}" alt="{text}" class="' + Ext.baseCSSPrefix + 'menu-item-icon ux-rangemenu-icon {cls}" />'
-    );
-
 });
-

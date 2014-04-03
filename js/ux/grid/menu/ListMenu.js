@@ -1,26 +1,16 @@
-/*
-
-This file is part of Ext JS 4
-
-Copyright (c) 2011 Sencha Inc
-
-Contact:  http://www.sencha.com/contact
-
-GNU General Public License Usage
-This file may be used under the terms of the GNU General Public License version 3.0 as published by the Free Software Foundation and appearing in the file LICENSE included in the packaging of this file.  Please review the following information to ensure the GNU General Public License version 3.0 requirements will be met: http://www.gnu.org/copyleft/gpl.html.
-
-If you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.
-
-*/
 /**
- * @class Ext.ux.grid.menu.ListMenu
- * @extends Ext.menu.Menu
  * This is a supporting class for {@link Ext.ux.grid.filter.ListFilter}.
  * Although not listed as configuration options for this class, this class
  * also accepts all configuration options from {@link Ext.ux.grid.filter.ListFilter}.
  */
 Ext.define('Ext.ux.grid.menu.ListMenu', {
     extend: 'Ext.menu.Menu',
+    
+    /**
+     * @cfg {String} idField
+     * Defaults to 'id'.
+     */
+    idField :  'id',
 
     /**
      * @cfg {String} labelField
@@ -44,9 +34,14 @@ Ext.define('Ext.ux.grid.menu.ListMenu', {
      */
     single : false,
 
-    constructor : function (cfg) {
-        this.selected = [];
-        this.addEvents(
+    plain: true,
+
+    constructor: function (cfg) {
+        var me = this,
+            gridStore;
+            
+        me.selected = [];
+        me.addEvents(
             /**
              * @event checkchange
              * Fires when there is a change in checked items from this list
@@ -56,39 +51,38 @@ Ext.define('Ext.ux.grid.menu.ListMenu', {
             'checkchange'
         );
 
-        this.callParent([cfg = cfg || {}]);
+        me.callParent(arguments);
 
-        if(!cfg.store && cfg.options){
-            var options = [];
-            for(var i=0, len=cfg.options.length; i<len; i++){
-                var value = cfg.options[i];
-                switch(Ext.type(value)){
-                    case 'array':  options.push(value); break;
-                    case 'object': options.push([value.id, value[this.labelField]]); break;
-                    case 'string': options.push([value, value]); break;
-                }
-            }
+        gridStore = me.grid.store;
 
-            this.store = Ext.create('Ext.data.ArrayStore', {
-                fields: ['id', this.labelField],
-                data:   options,
-                listeners: {
-                    'load': this.onLoad,
-                    scope:  this
-                }
+        if (me.store) {
+            me.add({
+                text: me.loadingText,
+                iconCls: 'loading-indicator'
             });
-            this.loaded = true;
+            me.store.on('load', me.onLoad, me);
+
+        // A ListMenu which is completely unconfigured acquires its store from the unique values of its field in the store.
+        // If there are no records in the grid store, then we know it's async and we need to listen for its 'load' event.
+        } else if (gridStore.data.length) {
+            me.createMenuStore();
         } else {
-            this.add({text: this.loadingText, iconCls: 'loading-indicator'});
-            this.store.on('load', this.onLoad, this);
+            gridStore.on('load', me.createMenuStore, me, {single: true});
         }
     },
 
     destroy : function () {
-        if (this.store) {
-            this.store.destroyStore();
+        var me = this,
+            store = me.store;
+            
+        if (store) {
+            if (me.autoStore) {
+                store.destroyStore();
+            } else {
+                store.un('unload', me.onLoad, me);
+            }
         }
-        this.callParent();
+        me.callParent();
     },
 
     /**
@@ -99,52 +93,76 @@ Ext.define('Ext.ux.grid.menu.ListMenu', {
      * thus recalculate the width and potentially hang the menu from the left.
      */
     show : function () {
-        var lastArgs = null;
-        return function(){
-            if(arguments.length === 0){
-                this.callParent(lastArgs);
-            } else {
-                lastArgs = arguments;
-                if (this.loadOnShow && !this.loaded) {
-                    this.store.load();
-                }
-                this.callParent(arguments);
-            }
-        };
-    }(),
+        var me = this;
+        if (me.loadOnShow && !me.loaded && !me.store.loading) {
+            me.store.load();
+        }
+        me.callParent();
+    },
 
     /** @private */
-    onLoad : function (store, records) {
+    onLoad: function (store, records) {
         var me = this,
-            visible = me.isVisible(),
-            gid, item, itemValue, i, len;
+            gid, itemValue, i, len,
+            listeners = {
+                checkchange: me.checkChange,
+                scope: me
+            };
 
-        me.hide(false);
-
+        Ext.suspendLayouts();
         me.removeAll(true);
-
         gid = me.single ? Ext.id() : null;
         for (i = 0, len = records.length; i < len; i++) {
-            itemValue = records[i].get('id');
-            item = Ext.create('Ext.menu.CheckItem', {
+            itemValue = records[i].get(me.idField);
+            me.add(Ext.create('Ext.menu.CheckItem', {
                 text: records[i].get(me.labelField),
                 group: gid,
                 checked: Ext.Array.contains(me.selected, itemValue),
                 hideOnClick: false,
-                value: itemValue
-            });
-
-            item.on('checkchange', me.checkChange, me);
-
-            me.add(item);
+                value: itemValue,
+                listeners: listeners
+            }));
         }
 
         me.loaded = true;
-
-        if (visible) {
-            me.show();
-        }
+        Ext.resumeLayouts(true);
         me.fireEvent('load', me, records);
+    },
+
+    createMenuStore: function () {
+        var me = this,
+            options = [],
+            i, len, value;
+
+        me.options = me.grid.store.collect(me.dataIndex, false, true);
+
+        for (i = 0, len = me.options.length; i < len; i++) {
+            value = me.options[i];
+            switch (Ext.type(value)) {
+                case 'array': 
+                    options.push(value);
+                    break;
+                case 'object':
+                    options.push([value[me.idField], value[me.labelField]]);
+                    break;
+                default:
+                    if (value != null) {
+                        options.push([value, value]);
+                    }
+            }
+        }
+
+        me.store = Ext.create('Ext.data.ArrayStore', {
+            fields: [me.idField, me.labelField],
+            data:   options,
+            listeners: {
+                load: me.onLoad,
+                scope:  me
+            }
+        });
+
+        me.loaded = true;
+        me.autoStore = true;
     },
 
     /**
@@ -167,7 +185,7 @@ Ext.define('Ext.ux.grid.menu.ListMenu', {
                         item.setChecked(true, true);
                     }
                 }
-            }, this);
+            });
         }
     },
 
@@ -182,10 +200,9 @@ Ext.define('Ext.ux.grid.menu.ListMenu', {
             if (item.checked) {
                 value.push(item.value);
             }
-        },this);
+        });
         this.selected = value;
 
         this.fireEvent('checkchange', item, checked);
     }
 });
-

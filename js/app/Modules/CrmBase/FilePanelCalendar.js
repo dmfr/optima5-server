@@ -210,7 +210,10 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 		
 		me.on('afterrender',function() {
 			Ext.defer(function() {
-				me.loadMask = new Ext.LoadMask( me.getComponent('calendar-center') ) ;
+				me.loadMask = Ext.create('Ext.LoadMask',{
+					target: me.getComponent('calendar-center'),
+					msg: 'Please wait'
+				});
 				if( me.loading ) {
 					me.loadMask.show() ;
 				}

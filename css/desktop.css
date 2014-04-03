@@ -218,7 +218,9 @@
  **/
 
 .ux-rangemenu-icon {
-    margin-top: 0;
+    display: block;
+    height: 16px;
+    background: no-repeat 5px center;
 }
 
 .ux-rangemenu-gt {
@@ -576,25 +578,6 @@ div.thumb-wrap:hover span.title{
 }
 
 
-.ux-notification-window .x-window-body {
-	text-align: center;
-	padding: 15px 5px 15px 5px;
-	width: 200px;
-}
-.ux-notification-light .x-window-header {
-	background-color: transparent;
-}
-body .ux-notification-light {
-	background-image: url('../images/fader.png');
-}
-.ux-notification-light .x-window-body {
-	text-align: center;
-	padding: 15px 5px 18px 5px;
-	width: 200px;
-	background-color: transparent;
-	border: 0px solid white;
-}
-
 
 .x-grid-checkheader {
     height: 14px;
@@ -695,12 +678,23 @@ body {    background: none repeat scroll 0 0 #F8F8F8;}
 }
 
 
-.x-fieldset-withicon legend {
+.x-fieldset-withicon .x-fieldset-header-text {
 	line-height: 24px;
 }
-.x-fieldset-header-icon {
+.x-fieldset-withicon .x-fieldset-header-icon {
+	height: 24px;
 	width: 24px;
 	float: left;
 	background-repeat: no-repeat;
 	background-position: center center ;
+}
+
+/* RowBody defaults (to ux.RowExpander Ext 4.1) */
+.x-grid-rowbody {
+	padding: 0px;
+}
+
+/* Progress text defaults (to Ext 4.1) */
+.x-progress .x-progress-text {
+	padding: 0px 5px;
 }

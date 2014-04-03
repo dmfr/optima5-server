@@ -48,19 +48,6 @@ Ext.define('Ext.ux.AddTabButton', {
                 closable: false, 
                 scope: me 
             }); 
-
-            // fix the tab margin and padding 
-            me.btn.on('render', function(){ 
-                if(me.iconCls && !me.forceText){ 
-                    var style; 
-                    if(me.tabPanel.tabPosition == 'top'){ 
-                        style = 'margin: 0 0 3px 0; padding: 0'; 
-                    } else if(me.tabPanel.tabPosition == 'bottom'){ 
-                        style = 'margin: 3px 0 0 0; padding: 0'; 
-                    } 
-                    me.btn.btnWrap.applyStyles(style); 
-                } 
-            }); 
         } 
     }, 
 

@@ -40,7 +40,10 @@ Ext.define('Optima5.Modules.CrmBase.QdirectWindow' ,{
 		}) ;
 		me.callParent() ;
 		
-		me.loadMask = new Ext.LoadMask(me, {msg:'Loading query items'});
+		me.loadMask = Ext.create('Ext.LoadMask',{
+			target: me,
+			msg:'Loading query items'
+		}) ;
 		me.on('afterrender', function() {
 			me.loadMask.show() ;
 			me.startRequestChain() ;

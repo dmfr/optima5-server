@@ -220,16 +220,6 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarSubpanel' ,{
 		},this) ;
 	},
 	buildBibleTree: function() {
-		var cloneFn = function(node) {
-			var result = node.copy(),
-					len = node.childNodes ? node.childNodes.length : 0,
-					i;
-			// Move child nodes across to the copy if required
-			for (i = 0; i < len; i++)
-				result.appendChild(cloneFn(node.childNodes[i]));
-			return result;
-		};
-		
 		var filterNode = this.parentBrowserPanel.filterCountry ;
 		
 		var countryChildren = [] ;
@@ -245,7 +235,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarSubpanel' ,{
 				nodeKey: rec.get('country_code'),
 				nodeText: rec.get('country_display'),
 				icon: rec.get('country_iconurl'),
-				children: ( this.bibleTreestore.getNodeById( rec.get('country_code') ) != null ? cloneFn(this.bibleTreestore.getNodeById( rec.get('country_code') )).childNodes : [] ),
+				children: ( this.bibleTreestore.getNodeById( rec.get('country_code') ) != null ? this.bibleTreestore.getNodeById( rec.get('country_code') ).childNodes : [] ),
 				expanded: true
 			});
 		}, this) ;

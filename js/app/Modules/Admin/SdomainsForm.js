@@ -674,7 +674,10 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 			}
 		}
 		
-		me.loadMask = new Ext.LoadMask(me.getComponent('mFormAttributes'), {msg:'Saving...'});
+		me.loadMask = Ext.create('Ext.LoadMask',{
+			target: me.getComponent('mFormAttributes'),
+			msg:'Saving...'
+		});
 		me.loadMask.show() ;
 		
 		var values = me.getComponent('mFormAttributes').getValues() ;
@@ -741,7 +744,10 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 			_action: action
 		} ;
 		
-		me.loadMask = new Ext.LoadMask(me.getComponent('mCardDelete'), {msg:'Deleting...'});
+		me.loadMask = Ext.create('Ext.LoadMask',{
+			target: me.getComponent('mCardDelete'),
+			msg:'Deleting...'
+		});
 		me.loadMask.show() ;
 		
 		me.optimaModule.getConfiguredAjaxConnection().request({

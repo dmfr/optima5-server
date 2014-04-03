@@ -160,7 +160,10 @@ Ext.define('Optima5.Modules.Admin.AuthUserForm' ,{
 	saveRecord: function() {
 		var me=this ;
 			
-		me.loadMask = new Ext.LoadMask(me, {msg:'Saving...'});
+		me.loadMask = Ext.create('Ext.LoadMask',{
+			msg:'Saving...',
+			target: me
+		});
 		me.loadMask.show() ;
 		
 		var values = me.getComponent('mForm').getValues() ;
@@ -207,7 +210,10 @@ Ext.define('Optima5.Modules.Admin.AuthUserForm' ,{
 		}
 		Ext.Msg.confirm('Delete','Delete user ?',function(btn){
 			if( btn == 'yes' ) {
-				me.loadMask = new Ext.LoadMask(me, {msg:'Deleting...'});
+				me.loadMask = Ext.create('Ext.LoadMask',{
+					msg:'Deleting...',
+					target: me
+				});
 				me.loadMask.show() ;
 				
 				me.optimaModule.getConfiguredAjaxConnection().request({

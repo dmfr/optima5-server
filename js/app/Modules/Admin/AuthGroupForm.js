@@ -13,7 +13,7 @@ Ext.define('AuthGroupActionsTreeModel', {
 });
 
 Ext.define('Optima5.Modules.Admin.AuthGroupFormCheckColumn',{
-	extend: 'Ext.ux.CheckColumn',
+	extend: 'Ext.grid.column.Check',
 	
 	renderer: function(value, metaData, record) {
 		if( record.isRoot() ) {
@@ -74,7 +74,10 @@ Ext.define('Optima5.Modules.Admin.AuthGroupForm' ,{
 		
 		// console.dir( me.query('combobox') ) ;
 		me.on('afterrender',function() {
-			me.loadMask = new Ext.LoadMask(me, {msg:'Loading...'});
+			me.loadMask = Ext.create('Ext.LoadMask',{
+				msg:'Loading...',
+				target: me
+			});
 			me.loadMask.show() ;
 		},me) ;
 		me.on('destroy',function() {
@@ -183,7 +186,7 @@ Ext.define('Optima5.Modules.Admin.AuthGroupForm' ,{
 				dataIndex: 'text',
 				menuDisabled: true,
 				listeners:{
-					checkchange: me.onTreeCheck,
+					checkchange: me.onCheckChange,
 					scope:me
 				}
 			},Ext.create('Optima5.Modules.Admin.AuthGroupFormCheckColumn',{
@@ -193,18 +196,17 @@ Ext.define('Optima5.Modules.Admin.AuthGroupForm' ,{
 				dataIndex: 'auth_has_read',
 				menuDisabled: true,
 				listeners:{
-					checkchange: me.onTreeCheck,
+					checkchange: me.onCheckChange,
 					scope:me
 				}
 			}),Ext.create('Optima5.Modules.Admin.AuthGroupFormCheckColumn',{
-				xtype:'checkcolumn',
 				width:50,
 				text: '<b>Write</b>',
 				sortable: false,
 				dataIndex: 'auth_has_write',
 				menuDisabled: true,
 				listeners:{
-					checkchange: me.onTreeCheck,
+					checkchange: me.onCheckChange,
 					scope:me
 				}
 			})]
@@ -342,10 +344,17 @@ Ext.define('Optima5.Modules.Admin.AuthGroupForm' ,{
 		
 		me.doLayout() ;
 	},
+	onCheckChange: function( header, rowIdx ) {
+		var treegrid = header.up('panel'),
+			treeview = treegrid.getView(),
+			treeviewnode = treeview.getNode( rowIdx ),
+			nodeRecord = treeview.getRecord( treeviewnode ) ;
+		this.onTreeCheck( header, nodeRecord ) ;
+	},
 	onTreeCheck: function( columnDefinition, nodeRecord ) {
 		var me = this,
 			dataIndex = ( Ext.isObject(columnDefinition) ? columnDefinition.dataIndex : columnDefinition ) ;
-		
+			
 		// traitement specifique auth_has_write
 		if( dataIndex == 'auth_has_write' ) {
 			// si read pas mis, on ejecte le write
@@ -399,7 +408,10 @@ Ext.define('Optima5.Modules.Admin.AuthGroupForm' ,{
 			actions = [] ,
 			rootNode = me.getComponent('mTree').getRootNode() ;
 			
-		me.loadMask = new Ext.LoadMask(me, {msg:'Saving...'});
+		me.loadMask = Ext.create('Ext.LoadMask',{
+			msg:'Saving...',
+			target: me
+		});
 		me.loadMask.show() ;
 		
 		var values = me.getComponent('mForm').getValues() ;
@@ -478,7 +490,10 @@ Ext.define('Optima5.Modules.Admin.AuthGroupForm' ,{
 		}
 		Ext.Msg.confirm('Delete','Delete group ?',function(btn){
 			if( btn == 'yes' ) {
-				me.loadMask = new Ext.LoadMask(me, {msg:'Deleting...'});
+				me.loadMask = Ext.create('Ext.LoadMask',{
+					msg:'Deleting...',
+					target: me
+				});
 				me.loadMask.show() ;
 				
 				me.optimaModule.getConfiguredAjaxConnection().request({
