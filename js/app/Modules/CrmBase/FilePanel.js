@@ -435,8 +435,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 		var me = this ;
 		if( !noActions ){
 			gridpanel.on('itemdblclick', function( view, record, item, index, event ) {
-				var selRecords = this.gridpanel.getSelectionModel().getSelection() ;
-				me.editRecordUpdate( selRecords[0].get(keyfield) ) ;
+				me.editRecordUpdate( record.get(keyfield) ) ;
 				//console.log( keyfield + ' is ' + selRecords[0].get(keyfield) ) ;
 			},me) ;
 			

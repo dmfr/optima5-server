@@ -151,9 +151,7 @@ Ext.define('Optima5.Modules.CrmBase.QwebSubpanelQwhere' ,{
 			}]
 		}) ;
 		me.grid.on('itemclick', function( view, record, item, index, event ) {
-			var selRecords = me.grid.getSelectionModel().getSelection() ;
-			var selRecord = selRecords[0] ;
-			me.setFormpanelRecord( selRecord ) ;
+			me.setFormpanelRecord( record ) ;
 		},me) ;
 		me.grid.on('itemcontextmenu', function(view, record, item, index, event) {
 			// var strHeader = record.get('treenode_key')+' - '+record.get('entry_key')

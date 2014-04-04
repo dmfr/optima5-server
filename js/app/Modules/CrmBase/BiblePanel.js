@@ -331,10 +331,7 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 		
 		var me = this ;
 		treegrid.on('itemclick', function( view, record, item, index, event ) {
-			var selRecords = this.treegrid.getSelectionModel().getSelection() ;
-			//console.log( selRecords[0].get('treenode_key') ) ;
-			//console.log( record.get('treenode_key') ) ;
-			this.filterGridByTreenode( selRecords[0].get('treenode_key') ) ;
+			this.filterGridByTreenode( record.get('treenode_key') ) ;
 		},me) ;
 		
 		treegrid.on('itemcontextmenu', function(view, record, item, index, event) {
@@ -549,8 +546,7 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 		
 		var me = this ;
 		gridpanel.on('itemdblclick', function( view, record, item, index, event ) {
-			var selRecords = this.gridpanel.getSelectionModel().getSelection() ;
-			me.editEntryUpdate( selRecords[0].get('entry_key') ) ;
+			me.editEntryUpdate( record.get('entry_key') ) ;
 		},me) ;
 		
 		gridpanel.on('itemcontextmenu', function(view, record, item, index, event) {
