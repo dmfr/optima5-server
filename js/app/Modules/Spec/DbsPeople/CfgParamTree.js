@@ -64,6 +64,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.CfgParamTree',{
 		},this);
 		
 		this.getView().on('checkchange',function(rec,check){
+			var doFireCheckchange = false ;
 			if( !check ) {
 				this.getRootNode().cascadeBy(function(chrec){
 					if( chrec==rec ) {
@@ -76,11 +77,20 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.CfgParamTree',{
 						chrec.set('checked',false) ;
 					}
 				},this);
-				this.onCheckChange() ;
+				doFireCheckchange = true ;
+			}
+			if( rec == this.getRootNode() ) {
+				this.value = null ;
+			} else {
+				this.value = rec.getId() ;
+			}
+			
+			if( doFireCheckchange ) {
+				this.fireEvent('change',this.value) ;
 			}
 		},this) ;
 	},
-	onCheckChange: function() {
-		
+	getValue: function() {
+		return this.value ;
 	}
 }) ;

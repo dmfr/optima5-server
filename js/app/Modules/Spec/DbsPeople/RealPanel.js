@@ -31,7 +31,11 @@ Ext.define('DbsPeopleRhRealDayModel', {
 Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 	extend:'Ext.panel.Panel',
 	
-	requires:['Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel'],
+	requires:[
+		'Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',
+		'Optima5.Modules.Spec.DbsPeople.CfgParamSiteButton',
+		'Optima5.Modules.Spec.DbsPeople.CfgParamTeamButton'
+	],
 	
 	dateStart: null,
 	dateEnd: null,
@@ -52,14 +56,19 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		});
 		
 		me.baseColumns = [{
+			locked: true,
 			text: 'Entrepôt',
 			dataIndex: 'whse_txt',
-			width: 180
+			width: 180,
+			groupable: true
 		},{
+			locked: true,
 			text: 'Equipe',
 			dataIndex: 'team_txt',
-			width: 100
+			width: 100,
+			groupable: true
 		},{
+			locked: true,
 			text: '<b>Nom complet</b>',
 			dataIndex: 'people_name',
 			width: 200,
@@ -74,38 +83,34 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			layout:'fit',
 			tbar:[{
 				icon: 'images/op5img/ico_back_16.gif',
-				text: '<b>Retour menu</b>',
+				text: '<u>Retour menu</u>',
 				handler: function(){
 					this.handleQuit() ;
 				},
 				scope: this
 			},{
 				xtype: 'tbseparator'
-			},{
-				icon: 'images/op5img/ico_blocs_small.gif',
-				text: 'Sites / Entrepôts',
-				menu: {
-					xtype:'menu',
-					items:[Ext.create('Optima5.Modules.Spec.DbsPeople.CfgParamTree',{
-						optimaModule: me.optimaModule,
-						cfgParam_id: 'whse',
-						width:250,
-						height:300
-					})]
+			},Ext.create('Optima5.Modules.Spec.DbsPeople.CfgParamSiteButton',{
+				optimaModule: this.optimaModule,
+				listeners: {
+					change: {
+						fn: function() {
+							this.doLoad() ;
+						},
+						scope: this
+					}
 				}
-			},{
-				icon: 'images/op5img/ico_kuser_16.gif',
-				text: 'Equipes',
-				menu: {
-					xtype:'menu',
-					items:[Ext.create('Optima5.Modules.Spec.DbsPeople.CfgParamTree',{
-						optimaModule: me.optimaModule,
-						cfgParam_id: 'team',
-						width:250,
-						height:300
-					})]
+			}),Ext.create('Optima5.Modules.Spec.DbsPeople.CfgParamTeamButton',{
+				optimaModule: this.optimaModule,
+				listeners: {
+					change: {
+						fn: function() {
+							this.doLoad() ;
+						},
+						scope: this
+					}
 				}
-			},'->',{
+			}),'->',{
 				icon: 'images/op5img/ico_calendar_16.png',
 				text: 'Choix Semaine',
 				menu: Ext.create('Ext.menu.DatePicker',{
@@ -216,8 +221,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		var first = date.getDate() - date.getDay() + 1; // First day is the day of the month - the day of the week
 		var last = first + 4; // last day is the first day + 6
 		
-		me.dateStart = new Date(date.setDate(first));
-		me.dateEnd = new Date(date.setDate(last));
+		me.dateStart = new Date(Ext.clone(date).setDate(first));
+		me.dateEnd = new Date(Ext.clone(date).setDate(last));
 		
 		me.doLoad() ;
 	},
@@ -306,6 +311,19 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			}) ;
 		}
 		
+		var columnDefaults = {
+			menuDisabled: false,
+			draggable: false,
+			sortable: false,
+			hideable: false,
+			resizable: false,
+			groupable: false,
+			lockable: false
+		} ;
+		Ext.Array.each( columns, function(column) {
+			Ext.applyIf( column, columnDefaults ) ;
+		}) ;
+		
 		Ext.define( modelName, {
 			extend: 'Ext.data.Model',
 			idProperty: 'rowHash',
@@ -315,38 +333,10 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		var gridData = this.buildGridData() ;
 		var store = Ext.create('Ext.data.Store',{
 			model: modelName,
-			pageSize: (gridData.length > 50 ? gridData.length : 50 ),
-			buffered: true,
-			remoteSort: true, // this just keeps sorting from being disabled
-			//remoteGroup: true,
 			data: gridData,
+			groupField: 'whse_txt',
 			proxy:{
 				type:'memory'
-			},
-			sort: function(sorters) {
-				var collection = new Ext.util.MixedCollection();
-				collection.addAll(this.getProxy().data);
-				collection.sort(sorters);
-				
-				this.pageMap.clear();
-				this.getProxy().data = collection.getRange();
-				this.load();
-			},
-			group: function(groupers) {
-				var me = this,
-					newGroupers = groupers ;
-				newGroupers = me.decodeGroupers(newGroupers);
-				me.groupers.clear();
-				me.groupers.addAll(newGroupers);
-				
-				var collection = new Ext.util.MixedCollection();
-				collection.addAll(this.getProxy().data);
-				collection.sort(groupers);
-				this.pageMap.clear();
-				this.getProxy().data = collection.getRange();
-				this.load();
-				
-				this.fireGroupChange() ;
 			}
 		}) ;
 		//me.child('grid').reconfigure(store,columns) ;
@@ -357,11 +347,26 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			border: false,
 			xtype:'grid',
 			store: store,
-			plugins: [me.cellEditing],
+			enableLocking: true,
+			plugins: [{
+				ptype:'cellediting',
+				clicksToEdit: 1,
+				listeners: {
+					beforeedit: me.onGridBeforeEdit,
+					edit: me.onGridAfterEdit,
+					scope: me
+				},
+				lockableScope: 'normal'
+			},{
+				ptype: 'bufferedrenderer',
+				lockableScope: 'both'
+			}],
 			features: [{
 				groupHeaderTpl: '{name}',
-				ftype: 'groupingsummary',
-				hideGroupedHeader: true
+				ftype: 'grouping',
+				hideGroupedHeader: true,
+				enableGroupingMenu: false,
+				enableNoGroups: false
 			}],
 			columns: columns,
 			listeners: {
@@ -533,6 +538,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 	},
 	
 	onGridBeforeEdit: function( editor, editEvent ) {
+		console.log( 'test') ;
 		var gridRecord = editEvent.record,
 			column = editEvent.column,
 			colIdx = editEvent.colIdx,
@@ -549,7 +555,10 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		}
 		
 		var editorField = editEvent.column.getEditor() ;
+		console.dir( editorField ) ;
 		if( editorField && editorField.ROLE ) {
+			console.log('pushing') ;
+			console.dir( this.devCfgData.ROLE ) ;
 			editorField.getStore().loadData( this.devCfgData.ROLE ) ;
 			editorField.on('select',function() {
 				editor.completeEdit() ;

@@ -129,3 +129,6 @@
 .op5-spec-dbspeople-balance-pos .x-grid-cell-inner { color: green; }
 .op5-spec-dbspeople-balance-neg .x-grid-cell-inner { color: red; }
 
+.op5-spec-dbspeople-cfgparambtn-bold .x-btn-inner {
+	font-weight: bold ;
+}
