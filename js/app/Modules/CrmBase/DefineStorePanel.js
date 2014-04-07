@@ -520,6 +520,7 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 				items: formitems
 			},{
 				xtype:'tabpanel' ,
+				deferredRender: false,
 				flex: 3,
 				//frame: true,
 				activeTab: 0,
@@ -1002,15 +1003,10 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 			}
 		}
 		
-		var elementTab = this.query('> tabpanel')[0].child('#elementtab') ;
+		var elementTab = this.query('> tabpanel')[0].child('#elementtab'),
 			primarykeyCol = elementTab.query('#primaryKeyColumn')[0] ;
 		if( primarykeyCol ){
-			if( showPrimarykeyCol ) {
-				primarykeyCol.show();
-			}
-			else {
-				primarykeyCol.hide();
-			}
+			primarykeyCol[showPrimarykeyCol ? 'show' : 'hide']();
 		}
 	},
 			  
