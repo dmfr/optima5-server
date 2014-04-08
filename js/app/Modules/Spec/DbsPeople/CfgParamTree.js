@@ -1,8 +1,10 @@
 Ext.define('DbsPeopleCfgParamTreeModel', {
     extend: 'Ext.data.Model',
-	 idProperty: 'nodeKey',
+	 idProperty: 'nodeId',
     fields: [
-        {name: 'nodeKey',  type: 'string'},
+        {name: 'nodeId',  type: 'string'},
+		  {name: 'nodeType', type: 'string'},
+		  {name: 'nodeKey',  type: 'string'},
         {name: 'nodeText',   type: 'string'}
      ]
 });
@@ -92,5 +94,15 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.CfgParamTree',{
 	},
 	getValue: function() {
 		return this.value ;
+	},
+	getNode: function() {
+		if( this.value == null ) {
+			return null ;
+		}
+		var storeNode = this.getStore().getNodeById( this.value ) ;
+		if( storeNode == null ) {
+			return null ;
+		}
+		return storeNode.data ;
 	}
 }) ;

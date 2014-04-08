@@ -1,12 +1,3 @@
-Ext.define('DbsPeopleTreeModel', {
-    extend: 'Ext.data.Model',
-	 idProperty: 'nodeKey',
-    fields: [
-        {name: 'nodeKey',  type: 'string'},
-        {name: 'nodeText',   type: 'string'}
-     ]
-});
-
 Ext.define('Optima5.Modules.Spec.DbsPeople.DbsPeopleModule', {
 	extend: 'Optima5.Module',
 	requires: [

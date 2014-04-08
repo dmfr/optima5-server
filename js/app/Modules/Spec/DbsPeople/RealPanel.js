@@ -435,8 +435,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 	doLoad: function() {
 		this.showLoadmask() ;
 		
-		var filter_site = this.down('#btnSite').getValue(),
-			filter_team = this.down('#btnTeam').getValue() ;
+		var filter_site = this.down('#btnSite').getNode(),
+			filter_team = this.down('#btnTeam').getNode() ;
 		
 		var params = {
 			_moduleId: 'spec_dbs_people',
@@ -447,10 +447,12 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			date_end: Ext.Date.format( this.dateEnd, 'Y-m-d' )
 		}) ;
 		if( filter_site != null ) {
-			params['filter_site'] = filter_site ;
+			params['filter_site_type'] = filter_site.nodeType ;
+			params['filter_site_key'] = filter_site.nodeKey ;
 		}
 		if( filter_team != null ) {
-			params['filter_team'] = filter_team ;
+			params['filter_team_type'] = filter_team.nodeType ;
+			params['filter_team_key'] = filter_team.nodeKey ;
 		}
 		
 		this.optimaModule.getConfiguredAjaxConnection().request({
@@ -486,8 +488,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		
 		var grid = me.child('grid'),
 			store = grid.getStore(),
-			filter_site = me.down('#btnSite').getValue(),
-			filter_team = me.down('#btnTeam').getValue() ;
+			filter_site = me.down('#btnSite').getNode(),
+			filter_team = me.down('#btnTeam').getNode() ;
 		// inject inline data
 		store.loadRawData( me.buildGridData() ) ;
 		// cfg columns + groups

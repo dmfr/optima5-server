@@ -31,7 +31,9 @@ function specDbsPeople_cfg_getTree( $post_data ) {
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
 	{
 		$record = array() ;
-		$record['nodeKey'] = 't_'.$arr['treenode_key'] ;
+		$record['nodeId'] = 't_'.$arr['treenode_key'] ;
+		$record['nodeType'] = 'treenode' ;
+		$record['nodeKey'] = $arr['treenode_key'] ;
 		$record['nodeText'] = $arr[$field_txt_treenode] ;
 	
 		$tab_parentkey_nodes[$arr['treenode_parent_key']][$arr['treenode_key']] = $record ;
@@ -41,7 +43,9 @@ function specDbsPeople_cfg_getTree( $post_data ) {
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
 	{
 		$record = array() ;
-		$record['nodeKey'] = 'e_'.$arr['entry_key'] ;
+		$record['nodeId'] = 'e_'.$arr['entry_key'] ;
+		$record['nodeType'] = 'entry' ;
+		$record['nodeKey'] = $arr['entry_key'] ;
 		$record['nodeText'] = $arr[$field_txt_entry] ;
 	
 		$tab_parentkey_nodes[$arr['treenode_key']][] = $record ;
@@ -74,6 +78,7 @@ function specDbsPeople_cfg_getTree( $post_data ) {
 	return array(
 		'success'=>true,
 		'dataRoot'=>array(
+			'nodeId'=>'',
 			'nodeKey'=>'',
 			'nodeText'=>'<b>Toutes valeurs</b>',
 			'expanded'=>true,

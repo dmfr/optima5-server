@@ -39,9 +39,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.CfgParamButton' ,{
 		
 		this.fireEvent('change',selectedValue) ;
 	},
-	getValue: function() {
+	getNode: function() {
 		var cfgParamTree = this.menu.down('treepanel'),
-			selectedValue = cfgParamTree.getValue() ;
+			selectedValue = cfgParamTree.getNode() ;
 		return selectedValue ;
 	}
 }) ;
