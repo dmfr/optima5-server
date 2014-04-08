@@ -3,6 +3,11 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.HelperCache',{
 		observable: 'Ext.util.Observable'
 	},
 	
+	DayNamesIntl: {
+		EN: Ext.Date.dayNames,
+		FR: ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi']
+	},
+	
 	singleton:true,
 	
 	countryStore: null,

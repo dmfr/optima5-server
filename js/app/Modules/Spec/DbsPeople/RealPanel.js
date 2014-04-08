@@ -200,7 +200,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		
 		// configuration GRID
 		var first = date.getDate() - date.getDay() + 1; // First day is the day of the month - the day of the week
-		var last = first + 4; // last day is the first day + 6
+		var last = first + 6; // last day is the first day + 6
 		
 		me.dateStart = new Date(Ext.clone(date).setDate(first));
 		me.dateEnd = new Date(Ext.clone(date).setDate(last));
@@ -261,12 +261,13 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			]) ;
 			
 			columns.push({
-				text: 'Jour '+dStr,
+				text: Optima5.Modules.Spec.DbsPeople.HelperCache.DayNamesIntl.FR[d.getDay()] + ' ' + Ext.Date.format(d,'d/m'),
 				columns: [{
 					text: 'Role',
 					dataIndex: 'd_'+dStr+'_roleCode',
 					dateHash: 'd_'+dStr,
-					width:100,
+					width: 60,
+					align: 'center',
 					editor: {
 						ROLE: true,
 						xtype: 'combobox',
@@ -274,6 +275,12 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 						forceSelection: true,
 						editable: false,
 						displayField: 'text',
+						displayTpl: [
+							'<tpl for=".">',
+								'{[typeof values === "string" ? values : values["id"]]}',
+								'<tpl if="xindex < xcount">' + ',' + '</tpl>',
+							'</tpl>'
+						],
 						valueField: 'id',
 						store: {
 							fields: ['id','text'],
@@ -604,7 +611,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 	},
 	
 	onGridBeforeEdit: function( editor, editEvent ) {
-		console.log( 'test') ;
 		var gridRecord = editEvent.record,
 			column = editEvent.column,
 			colIdx = editEvent.colIdx,
@@ -623,8 +629,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		var editorField = editEvent.column.getEditor() ;
 		console.dir( editorField ) ;
 		if( editorField && editorField.ROLE ) {
-			console.log('pushing') ;
-			console.dir( this.devCfgData.ROLE ) ;
 			editorField.getStore().loadData( this.devCfgData.ROLE ) ;
 			editorField.on('select',function() {
 				editor.completeEdit() ;
