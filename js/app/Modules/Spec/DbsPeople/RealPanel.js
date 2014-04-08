@@ -55,27 +55,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			}
 		});
 		
-		me.baseColumns = [{
-			locked: true,
-			text: 'Entrepôt',
-			dataIndex: 'whse_txt',
-			width: 180,
-			groupable: true
-		},{
-			locked: true,
-			text: 'Equipe',
-			dataIndex: 'team_txt',
-			width: 100,
-			groupable: true
-		},{
-			locked: true,
-			text: '<b>Nom complet</b>',
-			dataIndex: 'people_name',
-			width: 200,
-			renderer: function(v) {
-				return '<b>'+v+'</b>' ;
-			}
-		}] ;
 		
 		Ext.apply(me,{
 			//frame: true,
@@ -91,6 +70,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			},{
 				xtype: 'tbseparator'
 			},Ext.create('Optima5.Modules.Spec.DbsPeople.CfgParamSiteButton',{
+				itemId: 'btnSite',
 				optimaModule: this.optimaModule,
 				listeners: {
 					change: {
@@ -101,6 +81,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 					}
 				}
 			}),Ext.create('Optima5.Modules.Spec.DbsPeople.CfgParamTeamButton',{
+				itemId: 'btnTeam',
 				optimaModule: this.optimaModule,
 				listeners: {
 					change: {
@@ -165,9 +146,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		});
 		
 		this.callParent() ;
-		this.startLoading() ;
+		this.startPanel() ;
 	},
-	startLoading: function() {
+	startPanel: function() {
 		var me = this ;
 		
 		this.optimaModule.getConfiguredAjaxConnection().request({
@@ -224,6 +205,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		me.dateStart = new Date(Ext.clone(date).setDate(first));
 		me.dateEnd = new Date(Ext.clone(date).setDate(last));
 		
+		me.doGridConfigure() ;
 		me.doLoad() ;
 	},
 	doGridConfigure: function() {
@@ -239,13 +221,35 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		var modelFields = [
         {name: 'isWhseAlt',  type: 'boolean'},
         {name: 'rowHash',  type: 'string'},
+        {name: 'whse_code',  type: 'string'},
         {name: 'whse_txt',  type: 'string'},
+        {name: 'team_code',  type: 'string'},
         {name: 'team_txt',  type: 'string'},
         {name: 'people_name',   type: 'string'},
         {name: 'people_techid',   type: 'string'}
 		] ;
-		var columns = Ext.clone(me.baseColumns) ;
 		
+		var columns = [{
+			locked: true,
+			text: 'Entrepôt',
+			dataIndex: 'whse_txt',
+			width: 180,
+			groupable: true
+		},{
+			locked: true,
+			text: 'Equipe',
+			dataIndex: 'team_txt',
+			width: 100,
+			groupable: true
+		},{
+			locked: true,
+			text: '<b>Nom complet</b>',
+			dataIndex: 'people_name',
+			width: 200,
+			renderer: function(v) {
+				return '<b>'+v+'</b>' ;
+			}
+		}] ;
 		for( var d = dateStart ; d <= dateEnd ; d.setDate( d.getDate() + 1 ) ) {
 			var dStr = Ext.Date.format(d,'Ymd') ;
 			modelFields = modelFields.concat([
@@ -330,23 +334,18 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			fields: modelFields
 		}) ;
 		
-		var gridData = this.buildGridData() ;
-		var store = Ext.create('Ext.data.Store',{
-			model: modelName,
-			data: gridData,
-			groupField: 'whse_txt',
-			proxy:{
-				type:'memory'
-			}
-		}) ;
-		//me.child('grid').reconfigure(store,columns) ;
-		
 		
 		me.removeAll() ;
 		me.add({
 			border: false,
 			xtype:'grid',
-			store: store,
+			store: {
+				model: modelName,
+				data: [],
+				proxy:{
+					type:'memory'
+				}
+			},
 			enableLocking: true,
 			plugins: [{
 				ptype:'cellediting',
@@ -362,11 +361,29 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				lockableScope: 'both'
 			}],
 			features: [{
-				groupHeaderTpl: '{name}',
+				//groupHeaderTpl: '{name}',
 				ftype: 'grouping',
 				hideGroupedHeader: true,
 				enableGroupingMenu: false,
-				enableNoGroups: false
+				enableNoGroups: false,
+				groupHeaderTpl:Ext.create('Ext.XTemplate',
+					'<div>{[this.renderer(values)]}</div>',
+					{
+						renderer: function(values) {
+							if( values.rows.length == 0 ) {
+								return '' ;
+							}
+							switch( values.columnName ) {
+								case 'whse_code' :
+									return values.rows[0].data.whse_txt ;
+								case 'team_code' :
+									return values.rows[0].data.team_txt ;
+								default :
+									return '' ;
+							}
+						}
+					}
+				)
 			}],
 			columns: columns,
 			listeners: {
@@ -394,17 +411,47 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		}) ;
 	},
 	
+	showLoadmask: function() {
+		if( this.rendered ) {
+			this.doShowLoadmask() ;
+		} else {
+			this.on('afterrender',this.doShowLoadmask,this,{single:true}) ;
+		}
+	},
+	doShowLoadmask: function() {
+		this.loadMask = Ext.create('Ext.LoadMask',{
+			target: this,
+			msg:"Please wait..."
+		}).show();
+	},
+	hideLoadmask: function() {
+		this.un('afterrender',this.doShowLoadmask,this) ;
+		if( this.loadMask ) {
+			this.loadMask.destroy() ;
+			this.loadMask = null ;
+		}
+	},
+	
 	doLoad: function() {
-		var me = this ;
+		this.showLoadmask() ;
+		
+		var filter_site = this.down('#btnSite').getValue(),
+			filter_team = this.down('#btnTeam').getValue() ;
 		
 		var params = {
 			_moduleId: 'spec_dbs_people',
 			_action: 'Real_getData'
 		};
 		Ext.apply( params, {
-			date_start: Ext.Date.format( me.dateStart, 'Y-m-d' ),
-			date_end: Ext.Date.format( me.dateEnd, 'Y-m-d' )
+			date_start: Ext.Date.format( this.dateStart, 'Y-m-d' ),
+			date_end: Ext.Date.format( this.dateEnd, 'Y-m-d' )
 		}) ;
+		if( filter_site != null ) {
+			params['filter_site'] = filter_site ;
+		}
+		if( filter_team != null ) {
+			params['filter_team'] = filter_team ;
+		}
 		
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: params,
@@ -416,7 +463,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		var me = this,
 			remoteDataMap = {} ;
 			
-		console.dir('begin load') ;
 		var ajaxData = Ext.JSON.decode(response.responseText).data ;
 	
 		var record, dateSql, rowHash, dateHash ;
@@ -438,9 +484,28 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		me.remoteData = ajaxData ;
 		me.remoteDataMap = remoteDataMap ;
 		
-		console.dir('done load') ;
-		console.dir(me.remoteData) ;
-		me.doGridConfigure() ;
+		var grid = me.child('grid'),
+			store = grid.getStore(),
+			filter_site = me.down('#btnSite').getValue(),
+			filter_team = me.down('#btnTeam').getValue() ;
+		// inject inline data
+		store.loadRawData( me.buildGridData() ) ;
+		// cfg columns + groups
+		grid.headerCt.down('[dataIndex="whse_txt"]').setVisible( filter_site==null ) ;
+		grid.headerCt.down('[dataIndex="team_txt"]').setVisible( filter_team==null ) ;
+		
+		store.sort('people_name','ASC') ;
+		store.clearGrouping() ;
+		if( filter_site==null ) {
+			store.group( 'whse_code', 'ASC' ) ;
+			grid.headerCt.down('[dataIndex="whse_txt"]').setVisible( false ) ;
+		} else if( filter_team==null ) {
+			store.group( 'team_code', 'ASC' ) ;
+			grid.headerCt.down('[dataIndex="team_txt"]').setVisible( false ) ;
+		}
+		
+		// Drop loadmask
+		this.hideLoadmask();
 	},
 	
 	
@@ -449,7 +514,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		if( me.remoteData == null ) {
 			return ;
 		}
-		console.log('build grid data') ;
 		
 		var obj_peopleId_objPeopleInfo = {} ;
 		var obj_peopleId_objDateSlices = {} ;
@@ -480,7 +544,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			obj_peopleId_objDateSlices[rowHash]['columns'][dateHash] = record.slices ;
 		} ;
 		
-		//console.dir(obj_peopleId_objDateSlices) ;
 		var gridData = [] ;
 		var gridRow, teamCode, whseCode, peopleId, peopleInfo ;
 		var slices, slice, gridRoles, gridLength, isWhseAlt ;
@@ -494,7 +557,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			gridRow = {} ;
 			gridRow['rowHash'] = rowHash ;
 			gridRow['isWhseAlt'] = isWhseAlt ;
+			gridRow['team_code'] = teamCode ;
 			gridRow['team_txt'] = this.helperGetTeamTxt( teamCode ) ;
+			gridRow['whse_code'] = whseCode ;
 			gridRow['whse_txt'] = this.helperGetWhseTxt( whseCode ) ;
 			gridRow['people_id'] = peopleId ;
 			gridRow['people_name'] = peopleInfo['people_name'] ;
@@ -532,8 +597,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			
 			gridData.push(gridRow) ;
 		}
-		console.log('build done') ;
-		//me.child('grid').getStore().loadRawData(gridData) ;
+
 		return gridData ;
 	},
 	

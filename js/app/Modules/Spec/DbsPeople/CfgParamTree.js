@@ -12,7 +12,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.CfgParamTree',{
 	
 	optimaModule: null,
 	cfgParam_id: '',
-	value: '',
+	value: null,
 	
 	initComponent: function() {
 		var me = this ;
