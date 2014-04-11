@@ -564,6 +564,9 @@ table.op5-spec-mrfoxy-statresult-tbl > tbody > tr > td.op5-spec-mrfoxy-statresul
 .op5-spec-mrfoxy-financebudget-newrevisionmenu-discard { 
 	background-image: url("../images/op5img/ico_cancel_small.gif") !important;
 }
+.op5-spec-mrfoxy-financebudget-celldetails { 
+	border: 2px solid red !important;
+} 
 .op5-spec-mrfoxy-financebudget-celltotal .x-grid-cell-inner { 
 	font-weight: bold; 
 	font-size: 12px;

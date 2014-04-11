@@ -14,7 +14,8 @@ Ext.define('WbMrfoxyFinanceGridGroupRowModel', {
 	extend: 'Ext.data.Model',
 	fields: [
 		{name: 'row_key', type: 'string'},
-		{name: 'row_text', type: 'string'}
+		{name: 'row_text', type: 'string'},
+		{name: 'row_sub_txt', type: 'string'}
 	]
 }) ;
 Ext.define('WbMrfoxyFinanceGridGroupModel', {
@@ -24,6 +25,7 @@ Ext.define('WbMrfoxyFinanceGridGroupModel', {
 		{name: 'group_text', type: 'string'},
 		{name: 'operation', type: 'string'},
 		{name: 'has_total', type: 'boolean'},
+		{name: 'has_sub_txt', type: 'boolean'}
 	],
 	hasMany: [{
 		model: 'WbMrfoxyFinanceGridGroupRowModel',
@@ -348,6 +350,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 			{name: 'group_key', type:'string'},
 			{name: 'group_text', type:'string'},
 			{name: 'has_total', type:'boolean'},
+			{name: 'has_sub_txt', type:'boolean'},
 			{name: 'operation', type:'string'},
 			{name: 'row_key', type:'string'},
 			{name: 'row_text', type:'string'}
@@ -355,7 +358,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 		Ext.Array.each( ajaxData.revisions, function(revision) {
 			var revisionId = 'r_'+revision.revision_id ;
 			revisionIds.push( revisionId) ;
-			fields.push( {name: revisionId, type:'number', useNull:true} );
+			fields.push( {name: revisionId + '_value', type:'number', useNull:true} );
+			fields.push( {name: revisionId + '_arr', type:'auto', useNull:true} );
 			if( revision.is_actual ) {
 				actualDataIndex = revisionId
 			}
@@ -397,7 +401,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 					columns: [{
 						text: 'Edit values',
 						filerecordId: revision.filerecord_id,
-						dataIndex: revisionId,
+						revisionId: revisionId,
+						dataIndex: revisionId + '_value',
 						dataIsEditing: true,
 						editor: {
 							xtype: 'numberfield',
@@ -429,7 +434,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 								editDataIndex = header.editDataIndex,
 								actualDataIndex = header.actualDataIndex ;
 								
-							var value = record.get(editDataIndex) - record.get(actualDataIndex) ;
+							var value = record.get(editDataIndex+'_value') - record.get(actualDataIndex+'_value') ;
 							
 							if( value > 0 ) {
 								metaData.tdCls = 'op5-spec-dbspeople-balance-pos' ;
@@ -453,7 +458,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 					initColumn = {
 						text: 'Initial crop '+me.filterCropYear,
 						filerecordId: revision.filerecord_id,
-						dataIndex: revisionId,
+						dataIndex: revisionId + '_value',
+						revisionId: revisionId,
 						dataIsActual: revision.is_actual,
 						tdCls: (revision.is_actual ? 'op5-spec-mrfoxy-financebudget-actualcolumn' : 'op5-spec-mrfoxy-financebudget-archivecolumn')
 					} ;
@@ -461,7 +467,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 					revisionColumn.columns.push({
 						text: 'on '+revision.revision_date,
 						filerecordId: revision.filerecord_id,
-						dataIndex: revisionId,
+						dataIndex: revisionId + '_value',
+						revisionId: revisionId,
 						dataIsActual: revision.is_actual,
 						tdCls: (revision.is_actual ? 'op5-spec-mrfoxy-financebudget-actualcolumn' : 'op5-spec-mrfoxy-financebudget-archivecolumn')
 					});
@@ -480,14 +487,24 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 		
 		
 		var data = [],
-			cache = {} ;
+			cache_value = {},
+			cache_arr = {} ;
 		Ext.Array.each( ajaxData.revisions, function(revision) {
 			Ext.Array.each( revision.rows, function(row) {
 				var revisionId = 'r_'+revision.revision_id ;
 				var groupKey = row.group_key ;
 				var rowKey = row.row_key ;
+				var rowValue = parseFloat(row.value) ;
 				var hashStr = revisionId+'%'+groupKey+'%'+rowKey ;
-				cache[hashStr] = row.value ;
+				if( typeof cache_value[hashStr] === 'undefined' ) {
+					cache_value[hashStr] = 0 ;
+					cache_arr[hashStr] = [] ;
+				}
+				cache_value[hashStr] += rowValue ;
+				cache_arr[hashStr].push({
+					row_sub_txt: row.row_sub_txt,
+					value: rowValue
+				});
 			});
 		});
 		Ext.Array.each( ajaxData.groups, function(group) {
@@ -495,22 +512,29 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 				model = {
 					group_key: group.group_key,
 					group_text: group.group_text,
+					has_sub_txt: group.has_sub_txt,
 					has_total: group.has_total,
 					operation: group.operation,
 					row_key: row.row_key,
 					row_text: row.row_text,
 				};
 				for( var i=0 ; i<revisionIds.length ; i++ ) {
-					var revisionId = revisionIds[i] ;
+					var revisionId = revisionIds[i],
+						revisionKey ;
 					
 					// lookup in cache for value
 					var groupKey = group.group_key ;
 					var rowKey = row.row_key ;
 					var hashStr = revisionId+'%'+groupKey+'%'+rowKey ;
-					if( cache[hashStr] != null ) {
-						model[revisionId] = cache[hashStr] ;
+
+					var revisionKey = revisionId + '_arr' ;
+					model[revisionKey] = cache_arr[hashStr] ;
+						
+					var revisionKey = revisionId + '_value' ;
+					if( cache_value[hashStr] != null ) {
+						model[revisionKey] = cache_value[hashStr] ;
 					} else {
-						model[revisionId] = 0 ;
+						model[revisionKey] = 0 ;
 					}
 				}
 				data.push(model) ;
@@ -572,32 +596,50 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 		this.updateToolbar() ;
 	},
 	onGridBeforeEdit: function(editor, editObject) {
+		var cellEl = editObject.grid.getView().getCell( editObject.record, editObject.column ) ;
+		if( this.rowDetailsPanel && this.rowDetailsPanel.parentCell == cellEl ) {
+			return false ;
+		}
+		this.closeRowDetails() ;
+		
 		if( editObject.record.get('operation') == '' ) {
 			return false ;
 		}
-		if( editObject.record.get('group_key') == '2_STORES' ){
-			this.openStoreDetails(editObject.grid.getView().getCell( editObject.record, editObject.column )) ;
+		if( editObject.record.get('has_sub_txt') ){
+			this.openRowDetails( editObject.record, editObject.column ) ;
+			return false ;
 		}
+		
+		//regular edit
+		return true ;
 	},
 	onGridAfterEdit: function(editor, editObject) {
 		var filerecordId = editObject.column.filerecordId,
 			revisionId = editObject.column.dataIndex,
 			rows = this.collectRevisionValues(revisionId) ;
 		
+		this.saveRevisionValues() ;
+		this.doCalc() ;
+		this.closeRowDetails() ;
+	},
+	saveRevisionValues: function() {
+		var grid = this.down('grid'),
+			column = grid.headerCt.down('[dataIsEditing]'),
+			revisionId = column.revisionId,
+			filerecordId = column.filerecordId,
+			saveRows = this.collectRevisionValues(revisionId) ;
+		
 		var ajaxParams = {
 			_moduleId: 'spec_wb_mrfoxy',
 			_action: 'finance_setRevision',
 			filerecord_parent_id: filerecordId,
-			rows: Ext.JSON.encode(rows)
+			rows: Ext.JSON.encode(saveRows)
 		};
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams,
 			success: Ext.emptyFn,
 			scope: this
 		}) ;
-		
-		this.doCalc() ;
-		this.closeStoreDetails() ;
 	},
 	collectRevisionValues: function( revisionId ) {
 		var store = this.down('grid').getStore(),
@@ -610,11 +652,22 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 				default :
 					return ;
 			}
-			rows.push({
-				group_key: record.get('group_key'),
-				row_key: record.get('row_key'),
-				value: record.get(revisionId)
-			}) ;
+			if( record.get('has_sub_txt') ) {
+				Ext.Array.each( record.get(revisionId + '_arr'), function( subRow ) {
+					rows.push({
+						group_key: record.get('group_key'),
+						row_key: record.get('row_key'),
+						row_sub_txt: subRow.row_sub_txt,
+						value: subRow.value
+					}) ;
+				}) ;
+			} else {
+				rows.push({
+					group_key: record.get('group_key'),
+					row_key: record.get('row_key'),
+					value: record.get(revisionId + '_value')
+				}) ;
+			}
 		});
 		return rows ;
 	},
@@ -637,17 +690,18 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 				return ;
 			}
 			for( var i=0 ; i<revisionIds.length ; i++ ) {
-				var revisionId = revisionIds[i] ;
-				if( record.get(revisionId) == null ) {
-					record.set(revisionId,0) ;
+				var revisionId = revisionIds[i],
+					revisionKey = revisionId+'_value' ;
+				if( record.get(revisionKey) == null ) {
+					record.set(revisionKey,0) ;
 					record.commit();
 				}
 				switch( record.get('operation') ) {
 					case '+' :
-						calcByRevisionId[revisionId] += record.get(revisionId) ;
+						calcByRevisionId[revisionId] += record.get(revisionKey) ;
 						break ;
 					case '-' :
-						calcByRevisionId[revisionId] -= record.get(revisionId) ;
+						calcByRevisionId[revisionId] -= record.get(revisionKey) ;
 						break ;
 				}
 			}
@@ -657,17 +711,18 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 			if( record.get('group_key') == '4_CALC' ) {
 				for_loop:
 				for( var i=0 ; i<revisionIds.length ; i++ ) {
-					var revisionId = revisionIds[i] ;
+					var revisionId = revisionIds[i],
+						revisionKey = revisionId+'_value' ;
 					var calcValueTotal = calcByRevisionId[revisionId] ;
 					var calcValue ;
-					var header = headerCt.down('[dataIndex="'+revisionId+'"]') ;
+					var header = headerCt.down('[dataIndex="'+revisionKey+'"]') ;
 				
 					switch( record.get('row_key') ) {
 						case 'promo_done' :
 						case 'promo_foreacast' :
 						case 'promo_available' :
 							if( header.dataIsEditing || header.dataIsActual ) {} else {
-								record.set(revisionId, null) ;
+								record.set(revisionKey, null) ;
 								continue for_loop ;
 							}
 							break ;
@@ -689,7 +744,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 							calcValue = null ;
 							break ;
 					}
-					record.set(revisionId, calcValue) ;
+					record.set(revisionKey, calcValue) ;
 				}
 				record.commit() ;
 			}
@@ -727,7 +782,10 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 	handleNewRevision: function() {
 		var me = this ;
 		
-		var newPromoCfgPanel = Ext.create('Ext.form.Panel',{
+		var newRevisionPanel = Ext.create('Ext.form.Panel',{
+			width: 400,
+			height: 150,
+			
 			title: 'Define new budget revision',
 			padding: '5px 10px',
 			fieldDefaults: {
@@ -773,17 +831,13 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 		});
 		
 		// Size + position
-		newPromoCfgPanel.setSize({
-			width: 400,
-			height: 150
-		}) ;
-		newPromoCfgPanel.on('destroy',function() {
+		newRevisionPanel.on('destroy',function() {
 			me.getEl().unmask() ;
 		},me,{single:true}) ;
 		me.getEl().mask() ;
 		
-		newPromoCfgPanel.show();
-		newPromoCfgPanel.getEl().alignTo(me.getEl(), 'c-c?');
+		newRevisionPanel.show();
+		newRevisionPanel.getEl().alignTo(me.getEl(), 'c-c?');
 	},
 	onNewRevisionSubmit: function( formPanel ) {
 		var form = formPanel.getForm() ;
@@ -871,57 +925,89 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 	
 	
 	
-	openStoreDetails: function(el) {
-		var me = this ;
-		console.dir(el) ;
+	openRowDetails: function(gridRecord, gridColumn) {
+		var me = this,
+			grid = this.down('grid'),
+			cellEl = grid.getView().getCell( gridRecord, gridColumn ),
+			revisionId = gridColumn.revisionId,
+			subArr = gridRecord.get( revisionId + '_arr' );
 		
-		var newPromoCfgPanel = Ext.create('Ext.grid.Panel',{
-			store:{
-				fields:[
-					{name:'lib', type:'string'},
-					{name:'amount', type:'number'}
-				],
-				data:[
-					{lib:'Reason 1', amount:1500},
-					{lib:'Reason 2', amount:780},
-				]
-			},
+			
+		cellEl.addCls('op5-spec-mrfoxy-financebudget-celldetails') ;
+		
+		var rowDetailsPanel = Ext.create('Ext.ux.dams.EmbeddedGrid',{
+			width: 400,
+			height: 200,
+			
+			data: subArr,
 			columns:[{
 				flex:2,
-				dataIndex:'lib',
-				text:'Agreement'
+				dataIndex:'row_sub_txt',
+				type: 'string',
+				text:'Agreement',
+				editor: {xtype:'textfield'}
 			},{
 				flex:1,
-				dataIndex:'amount',
-				text:'Amount'
+				dataIndex:'value',
+				type: 'number',
+				text:'Amount',
+				editor: {
+					xtype: 'numberfield',
+					hideTrigger:true
+				}
 			}],
 			frame: true,
 			
+			parentCell: cellEl,
+			parentRecord: gridRecord,
+			revisionId: revisionId,
+			
 			floating: true,
-			renderTo: me.getEl()
+			renderTo: me.getEl(),
+			tools: [{
+				type: 'close',
+				handler: function(e, t, p) {
+					p.ownerCt.destroy();
+				}
+			}],
+			
+			listeners: {
+				beforedestroy: function(p) {
+					var editorArr = p.getData(),
+						editorValue = 0 ;
+					Ext.Array.each( editorArr, function(lig) {
+						editorValue += lig.value ;
+					});
+					
+					p.parentRecord.set( p.revisionId + '_arr', editorArr ) ;
+					p.parentRecord.set( p.revisionId + '_value', editorValue ) ;
+					
+					p.parentCell.removeCls('op5-spec-mrfoxy-financebudget-celldetails') ;
+				},
+				destroy: function() {
+					this.saveRevisionValues() ;
+				},
+				scope: me
+			}
 		});
 		
-		// Size + position
-		newPromoCfgPanel.setSize({
-			width: 400,
-			height: 150
-		}) ;
 		/*
-		newPromoCfgPanel.on('destroy',function() {
+		rowDetailsPanel.on('destroy',function() {
 			me.getEl().unmask() ;
 		},me,{single:true}) ;
 		me.getEl().mask() ;
 		*/
 		
-		newPromoCfgPanel.show();
-		newPromoCfgPanel.getEl().alignTo(el, 't-b?');
+		rowDetailsPanel.show();
+		rowDetailsPanel.getEl().alignTo(cellEl, 't-b?');
 		
-		me.newPromoCfgPanel = newPromoCfgPanel ;
+		me.rowDetailsPanel = rowDetailsPanel ;
 	},
-	closeStoreDetails: function() {
+	closeRowDetails: function() {
 		var me = this ;
-		if( me.newPromoCfgPanel ) {
-			me.newPromoCfgPanel.destroy() ;
+		if( me.rowDetailsPanel ) {
+			me.rowDetailsPanel.destroy() ;
+			me.rowDetailsPanel = null ;
 		}
 	}
 });

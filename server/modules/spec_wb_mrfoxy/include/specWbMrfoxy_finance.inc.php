@@ -49,6 +49,7 @@ function specWbMrfoxy_finance_getGrid( $post_data ) {
 			$row = array() ;
 			$row['group_key'] = $record['field_GROUP_KEY'] ;
 			$row['row_key'] = ($row['group_key']=='2_STORES' ? $record['field_ROW_SPEC_STORE'] : $record['field_ROW_KEY']) ;
+			$row['row_sub_txt'] = $record['field_ROW_SUB_TXT'] ;
 			$row['value'] = $record['field_VALUE'] ;
 			$rows[] = $row ;
 		}
@@ -136,6 +137,7 @@ function specWbMrfoxy_finance_getGrid( $post_data ) {
 		'group_text' => 'National Agreements',
 		'operation' => '-',
 		'rows' => $store_rows,
+		'has_sub_txt' => true,
 		'has_total' => true
 	);
 	$_layout_groups[] = array(
@@ -265,6 +267,7 @@ function specWbMrfoxy_finance_setRevision( $post_data ) {
 			if( $row['group_key'] == '2_STORES' ) {
 				$arr_ins['field_ROW_SPEC_STORE'] = $row['row_key'] ;
 			}
+			$arr_ins['field_ROW_SUB_TXT'] = ( $row['row_sub_txt'] != NULL ? $row['row_sub_txt'] : '' );
 			$arr_ins['field_VALUE'] = $row['value'] ;
 			$arr_filerecordId[] = paracrm_lib_data_insertRecord_file( 'FINANCE_REVISION_ROW', $filerecord_parent_id, $arr_ins ) ;
 		}
