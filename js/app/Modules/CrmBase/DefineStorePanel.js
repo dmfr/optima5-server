@@ -877,6 +877,7 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 		
 		switch( formField.getXType() ) {
 			case fieldTypeColumn.linkbibleTpl.xtype :
+				editEvent.record.set(fieldTypeColumnKey, 'link') ;
 				editEvent.record.set(fieldLinktypeColumnKey, formField.getLinkValues().linkType) ;
 				editEvent.record.set(fieldLinkbibleColumnKey, formField.getLinkValues().linkBibleCode) ;
 				break ;
