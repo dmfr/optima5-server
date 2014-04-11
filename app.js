@@ -41,6 +41,40 @@ Ext.onReady(function () {
 	});
 	
 	/*
+	 * Hide grouping summary if empty
+	 */
+	Ext.grid.feature.GroupingSummary.override({
+		outputSummaryRecord: function(summaryRecord, contextValues, out) {
+			var view = contextValues.view,
+					columns = contextValues.columns || view.headerCt.getVisibleGridColumns(),
+					colCount = columns.length, i, column,
+					isNull = true ;
+			for (i = 0; i < colCount; i++) {
+					column = columns[i];
+				if (!column.summaryType) {
+					continue ;
+				}
+				if( !column.dataIndex || summaryRecord.get(column.dataIndex) == null ) {
+					continue ;
+				}
+				isNull = false ;
+			}
+			
+			if( isNull ) {
+				return ;
+			}
+			this.callOverridden(arguments) ;
+		}
+	}) ;
+	
+	
+	
+	
+	
+	
+	
+	
+	/*
 	 * From Ext 4.2 , Ext.view.Table monitors all DOM events to fire 'uievent'
 	 *  If a view.Table is nested in a higher view.Table (ComponentRowExpander...),
 	 *  this would cause higher view.Table to select nested cell as e.getTarget(cellselector) result

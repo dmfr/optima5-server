@@ -347,6 +347,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 		var fields = [
 			{name: 'group_key', type:'string'},
 			{name: 'group_text', type:'string'},
+			{name: 'has_total', type:'boolean'},
 			{name: 'operation', type:'string'},
 			{name: 'row_key', type:'string'},
 			{name: 'row_text', type:'string'}
@@ -403,9 +404,20 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 							hideTrigger:true
 						},
 						tdCls: 'op5-spec-mrfoxy-financebudget-editcolumn',
-						summaryType: 'sum',
-						summaryRenderer: function(value){
-								return value;
+						summaryType: function(records,field) {
+							if( !(records[0].data.has_total) ) {
+								return ;
+							}
+							var sum=0, rec ;
+							for( var i=0; i<records.length ; i++ ) {
+								rec = records[i] ;
+								sum += rec.data[field] ;
+							}
+							return sum ;
+						},
+						summaryRenderer: function(value, meta, record) {
+							meta.tdCls += ' op5-spec-mrfoxy-financebudget-celltotal' ;
+							return value ;
 						}
 					}]
 				} ;
@@ -483,6 +495,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 				model = {
 					group_key: group.group_key,
 					group_text: group.group_text,
+					has_total: group.has_total,
 					operation: group.operation,
 					row_key: row.row_key,
 					row_text: row.row_text,

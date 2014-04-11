@@ -135,7 +135,8 @@ function specWbMrfoxy_finance_getGrid( $post_data ) {
 		'group_key' => '2_STORES',
 		'group_text' => 'National Agreements',
 		'operation' => '-',
-		'rows' => $store_rows
+		'rows' => $store_rows,
+		'has_total' => true
 	);
 	$_layout_groups[] = array(
 		'group_key' => '3_FREEZE',
