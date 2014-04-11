@@ -240,7 +240,7 @@ Ext.define('Optima5.Modules.CrmBase.DefineStoreFieldJoinPanel' ,{
 			defineForm = me.defineStorePanel.query('form')[0].getForm(),
 			parentCombo = defineForm.findField('store_parent_code'),
 			parentFileCode = ( parentCombo.getValue() != '' ? parentCombo.getValue() : null ),
-			parentFileName = parentCombo.getStore().findRecord('fileCode',parentFileCode).data.fileLib ;
+			parentFileName = ( parentFileCode ? parentCombo.getStore().findRecord('fileCode',parentFileCode).data.fileLib : null ) ;
 			
 		// Current File has parent ?
 		if( parentFileCode != null ) {
