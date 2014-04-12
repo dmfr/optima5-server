@@ -167,7 +167,6 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelSelect' ,{
 				width: 40 ,
 				editor : {
 					xtype: 'combobox',
-					name: 'condition_bible_mode',
 					forceSelection: true,
 					editable: false,
 					store: {
