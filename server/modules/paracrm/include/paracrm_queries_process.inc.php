@@ -3008,7 +3008,18 @@ function paracrm_queries_process_labels_withTabs( $arr_saisie, $groupId_forTab )
 				$tarr = array() ;
 				foreach( json_decode($field_where['condition_bible_treenodes'],true) as $treenode_key )
 					$tarr[] = $treenode_key ;
-				$tabBibleConditions[] = $tarr ;
+				$tabBibleConditions[] = array('treenodes'=>$tarr) ;
+			}
+			if( $field_where['field_type'] == 'link'
+				&& $field_where['field_code'] == $field_group_tab['field_code']
+				&& $field_where['condition_bible_mode'] == 'SELECT' && $field_where['condition_bible_entries'] )
+			{
+				if( !isJsonArr($field_where['condition_bible_entries']) ) {
+					$entry_key = $field_where['condition_bible_entries'] ;
+					$tabBibleConditions[] = array('entries'=>array($entry_key)) ;
+				} elseif( count($entries = json_decode($field_where['condition_bible_entries'],true)) > 0 )  {
+					$tabBibleConditions[] = array('entries'=>$entries) ;
+				}
 			}
 		}
 	foreach( paracrm_queries_process_labelEnum( $group_id, $field_group_tab, $tabBibleConditions ) as $bible_key => $cells_display )
@@ -3040,7 +3051,7 @@ function paracrm_queries_process_labels_withTabs( $arr_saisie, $groupId_forTab )
 				
 				$tarr = array() ;
 				$tarr[] = $bible_key ;
-				$bibleConditions[] = $tarr ;
+				$bibleConditions[] = array('treenodes'=>$tarr) ;
 			
 			}
 			foreach( $arr_saisie['fields_where'] as $field_where )
@@ -3053,7 +3064,18 @@ function paracrm_queries_process_labels_withTabs( $arr_saisie, $groupId_forTab )
 					$tarr = array() ;
 					foreach( json_decode($field_where['condition_bible_treenodes'],true) as $treenode_key )
 						$tarr[] = $treenode_key ;
-					$bibleConditions[] = $tarr ;
+					$bibleConditions[] = array('treenodes'=>$tarr) ;
+				}
+				if( $field_where['field_type'] == 'link'
+					&& $field_where['field_code'] == $field_group['field_code']
+					&& $field_where['condition_bible_mode'] == 'SELECT' && $field_where['condition_bible_entries'] )
+				{
+					if( !isJsonArr($field_where['condition_bible_entries']) ) {
+						$entry_key = $field_where['condition_bible_entries'] ;
+						$bibleConditions[] = array('entries'=>array($entry_key)) ;
+					} elseif( count($entries = json_decode($field_where['condition_bible_entries'],true)) > 0 )  {
+						$bibleConditions[] = array('entries'=>$entries) ;
+					}
 				}
 				
 				if( $field_where['field_type'] == 'link' && $field_group['field_type'] == 'link'
@@ -3125,7 +3147,18 @@ function paracrm_queries_process_labels_noTab( $arr_saisie )
 					$tarr = array() ;
 					foreach( json_decode($field_where['condition_bible_treenodes'],true) as $treenode_key )
 						$tarr[] = $treenode_key ;
-					$bibleConditions[] = $tarr ;
+					$bibleConditions[] = array('treenodes'=>$tarr) ;
+				}
+				if( $field_where['field_type'] == 'link'
+					&& $field_where['field_code'] == $field_group['field_code']
+					&& $field_where['condition_bible_mode'] == 'SELECT' && $field_where['condition_bible_entries'] )
+				{
+					if( !isJsonArr($field_where['condition_bible_entries']) ) {
+						$entry_key = $field_where['condition_bible_entries'] ;
+						$bibleConditions[] = array('entries'=>array($entry_key)) ;
+					} elseif( count($entries = json_decode($field_where['condition_bible_treenodes'],true)) > 0 )  {
+						$bibleConditions[] = array('entries'=>$entries) ;
+					}
 				}
 				
 				if( $field_where['field_type'] == 'link' && $field_group['field_type'] == 'link'
@@ -3352,14 +3385,25 @@ function paracrm_queries_process_labelEnumBible_getTreeviewNodes( $bible_code, $
 	{
 		foreach( $bibleConditions as $bibleCondition )
 		{
-			$treenodes = array() ;
-			foreach( $bibleCondition as $condition_treenode )
-			{
-				if( $root_tree->getTree($condition_treenode) )
-					$treenodes = array_merge($treenodes,$root_tree->getTree($condition_treenode)->getAllMembers()) ;
+			if( $bibleCondition['treenodes'] ) {
+				$treenodes = array() ;
+				foreach( $bibleCondition['treenodes'] as $condition_treenode )
+				{
+					if( $root_tree->getTree($condition_treenode) )
+						$treenodes = array_merge($treenodes,$root_tree->getTree($condition_treenode)->getAllMembers()) ;
+				}
+				$arr_treenodes[] = $treenodes ;
 			}
-				
-			$arr_treenodes[] = $treenodes ;
+			if( $bibleCondition['entries'] ) {
+				$treenodes = array() ;
+				foreach( $bibleCondition['entries'] as $condition_entry )
+				{
+					$query = "SELECT treenode_key FROM ".'view_bible_'.$bible_code.'_entry'." where entry_key={$condition_entry}" ;
+					$condition_entry_treenodeKey = $_opDB->query_uniqueValue($query) ;
+					$treenodes[] = $condition_entry_treenodeKey ;
+				}
+				$arr_treenodes[] = $treenodes ;
+			}
 		}
 	}
 	
@@ -3512,14 +3556,25 @@ function paracrm_queries_process_labelEnumBibleTreenodes( $bible_code, $root_tre
 	{
 		foreach( $bibleConditions as $bibleCondition )
 		{
-			$treenodes = array() ;
-			foreach( $bibleCondition as $condition_treenode )
-			{
-				if( $root_tree->getTree($condition_treenode) )
-					$treenodes = array_merge($treenodes,$root_tree->getTree($condition_treenode)->getAllMembers()) ;
+			if( $bibleCondition['treenodes'] ) {
+				$treenodes = array() ;
+				foreach( $bibleCondition['treenodes'] as $condition_treenode )
+				{
+					if( $root_tree->getTree($condition_treenode) )
+						$treenodes = array_merge($treenodes,$root_tree->getTree($condition_treenode)->getAllMembers()) ;
+				}
+				$arr_treenodes[] = $treenodes ;
 			}
-				
-			$arr_treenodes[] = $treenodes ;
+			if( $bibleCondition['entries'] ) {
+				$treenodes = array() ;
+				foreach( $bibleCondition['entries'] as $condition_entry )
+				{
+					$query = "SELECT treenode_key FROM ".'view_bible_'.$bible_code.'_entry'." where entry_key={$condition_entry}" ;
+					$condition_entry_treenodeKey = $_opDB->query_uniqueValue($query) ;
+					$treenodes[] = $condition_entry_treenodeKey ;
+				}
+				$arr_treenodes[] = $treenodes ;
+			}
 		}
 	}
 	
@@ -3562,18 +3617,19 @@ function paracrm_queries_process_labelEnumBibleEntries( $bible_code, $root_treen
 		
 		foreach( $bibleConditions as $bibleCondition )
 		{
-			$treenodes = array() ;
-			foreach( $bibleCondition as $condition_treenode )
-			{
-				if( $root_tree->getTree($condition_treenode) )
-					$treenodes = array_merge($treenodes,$root_tree->getTree($condition_treenode)->getAllMembers()) ;
+			if( $bibleCondition['treenodes'] ) {
+				$treenodes = array() ;
+				foreach( $bibleCondition['treenodes'] as $condition_treenode )
+				{
+					if( $root_tree->getTree($condition_treenode) )
+						$treenodes = array_merge($treenodes,$root_tree->getTree($condition_treenode)->getAllMembers()) ;
+				}
+				$query_treenode.= " AND t.treenode_key IN ".$_opDB->makeSQLlist($treenodes) ;
 			}
-				
-			$query_treenode.= " AND t.treenode_key IN ".$_opDB->makeSQLlist($treenodes) ;
 		}
 	}
 	
-	// ******* foreignLinks ********
+	// ******* foreignLinks ( + bibleConditions )********
 	$query_entries = "" ;
 	if( $foreignLinks )
 	{
@@ -3584,6 +3640,15 @@ function paracrm_queries_process_labelEnumBibleEntries( $bible_code, $root_treen
 		
 		if( $entries ) {
 			$query_entries = " AND e.entry_key IN ".$_opDB->makeSQLlist($entries) ;
+		}
+	}
+	if( $bibleConditions && count($bibleConditions)>0 )
+	{
+		foreach( $bibleConditions as $bibleCondition )
+		{
+			if( $bibleCondition['entries'] ) {
+				$query_entries = " AND e.entry_key IN ".$_opDB->makeSQLlist($bibleCondition['entries']) ;
+			}
 		}
 	}
 	
