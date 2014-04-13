@@ -1400,6 +1400,7 @@ function paracrm_queries_process_query(&$arr_saisie, $debug=FALSE)
 		
 		}
 	}
+	unset($field_where) ;
 	$arr_saisie['fields_where'] = $fields_where ;
 
 	$fields_progress = $arr_saisie['fields_progress'] ;
@@ -1462,6 +1463,7 @@ function paracrm_queries_process_query(&$arr_saisie, $debug=FALSE)
 			break ;
 		}
 	}
+	unset($field_progress) ;
 	}
 	$arr_saisie['fields_progress'] = $fields_progress ;
 	if( $debug ) {
@@ -1499,6 +1501,7 @@ function paracrm_queries_process_query(&$arr_saisie, $debug=FALSE)
 		$field_group['sql_linktype'] = $arr_indexed_treefields[$tfield]['field_linktype'] ;
 		$field_group['sql_bible_code'] = $arr_indexed_treefields[$tfield]['bible_code'] ;
 	}
+	unset($field_group) ;
 	$arr_saisie['fields_group'] = $fields_group ;
 	if( $debug ) {
 		echo "OK\n" ;
@@ -1719,6 +1722,7 @@ function paracrm_queries_process_query(&$arr_saisie, $debug=FALSE)
 			
 			return NULL ;
 		}
+		unset($symbol) ;
 		if( $is_counts && !$is_values ) {
 			$field_select['iteration_mode'] = 'count' ;
 		}
@@ -1735,6 +1739,56 @@ function paracrm_queries_process_query(&$arr_saisie, $debug=FALSE)
 	$arr_saisie['fields_select'] = $fields_select ;
 	if( $debug ) {
 		echo "OK\n" ;
+	}
+	
+	
+	
+	if( $debug ) {
+		echo "Debug 3d: preprocess for JOINS :" ;
+		// Determine if join needed for WHERE , for SELECT
+	}
+	$arr_saisie['join_for_file'] = array() ;
+	
+	$arr_saisie['join_for_where'] = FALSE ;
+	foreach( $arr_saisie['fields_where'] as $field_where ) {
+		$file_code = $field_where['sql_file_code'] ;
+		$file_field_code = substr($field_where['sql_file_field_code'],6) ;
+		$jMap = paracrm_lib_file_joinPrivate_getMap( $file_code ) ;
+		if( isset($jMap[$file_field_code]) ) {
+			$arr_saisie['join_for_file'][$file_code] = TRUE ;
+			$arr_saisie['join_for_where'] = TRUE ;
+		}
+	}
+	if( $debug ) { echo " Where:".($arr_saisie['join_for_where'] ? 'true' : 'false') ; }
+	
+	$arr_saisie['join_for_group'] = FALSE ;
+	foreach( $arr_saisie['fields_group'] as $field_group ) {
+		$file_code = $field_group['sql_file_code'] ;
+		$file_field_code = substr($field_group['sql_file_field_code'],6) ;
+		$jMap = paracrm_lib_file_joinPrivate_getMap( $file_code ) ;
+		if( isset($jMap[$file_field_code]) ) {
+			$arr_saisie['join_for_file'][$file_code] = TRUE ;
+			$arr_saisie['join_for_group'] = TRUE ;
+		}
+	}
+	if( $debug ) { echo " Group:".($arr_saisie['join_for_group'] ? 'true' : 'false') ; }
+	
+	$arr_saisie['join_for_select'] = FALSE ;
+	foreach( $arr_saisie['fields_select'] as $field_select ) {
+		foreach( $field_select['math_expression'] as $symbol_id => $symbol ) {
+			$file_code = $symbol['sql_file_code'] ;
+			$file_field_code = substr($symbol['sql_file_field_code'],6) ;
+			$jMap = paracrm_lib_file_joinPrivate_getMap( $file_code ) ;
+			if( isset($jMap[$file_field_code]) ) {
+				$arr_saisie['join_for_file'][$file_code] = TRUE ;
+				$arr_saisie['join_for_select'] = TRUE ;
+			}
+		}
+	}
+	if( $debug ) { echo " Select:".($arr_saisie['join_for_select'] ? 'true' : 'false') ; }
+	
+	if( $debug ) {
+		echo " OK\n" ;
 	}
 	
 	
@@ -2205,7 +2259,9 @@ function paracrm_queries_process_query_iterationDo( $arr_saisie, $iteration_chai
 	{
 		$row = array() ;
 		$row[$target_fileCode] = $arr ;
-		paracrm_lib_file_joinQueryRecord($target_fileCode,$row) ;
+		if( $arr_saisie['join_for_file'][$target_fileCode] ) {
+			paracrm_lib_file_joinQueryRecord($target_fileCode,$row) ;
+		}
 		
 		// application des conditions
 		if( !paracrm_queries_process_queryHelp_where( $row, $arr_saisie['fields_where'] ) )
@@ -2256,7 +2312,9 @@ function paracrm_queries_process_query_doValue( $arr_saisie, $target_fileCode, $
 		$row_group = array() ;
 		$row_group = $base_row ;
 		$row_group[$target_fileCode] = $arr2 ;
-		paracrm_lib_file_joinQueryRecord($target_fileCode,$row_group) ;
+		if( $arr_saisie['join_for_file'][$target_fileCode] ) {
+			paracrm_lib_file_joinQueryRecord($target_fileCode,$row_group) ;
+		}
 		
 		// application des conditions
 		$row_child = array() ;
@@ -2266,7 +2324,7 @@ function paracrm_queries_process_query_doValue( $arr_saisie, $target_fileCode, $
 		
 		$arr_groupKeyId = paracrm_queries_process_queryHelp_group( $row_group, $arr_saisie['fields_group'] ) ;
 		
-		// TODO: cleaner join arch (EDIT 13-11-10 : conditional join)
+		// TODO: cleaner join arch (EDIT 14-04-13 : conditional join)
 		$join_done = FALSE ;
 		foreach( $arr_saisie['fields_select'] as $select_id => $field_select ) {
 			if( $field_select['iteration_mode'] != 'value' ) {
@@ -2436,7 +2494,9 @@ function paracrm_queries_process_query_doCount( $arr_saisie, $target_fileCode, $
 					$row_group = array() ;
 					$row_group = $base_row ;
 					$row_group[$target_fileCode] = $arr2 ;
-					paracrm_lib_file_joinQueryRecord($target_fileCode,$row_group) ;
+					if( $arr_saisie['join_for_file'][$target_fileCode] ) {
+						paracrm_lib_file_joinQueryRecord($target_fileCode,$row_group) ;
+					}
 					
 					// application des conditions
 					$row_child = array() ;
