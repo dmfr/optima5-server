@@ -141,6 +141,19 @@ function paracrm_lib_file_mapFile( $file_code, $is_called=FALSE )
 			if( $arr['entry_field_type'] == '_label' ) {
 				continue ;
 			}
+			if( $arr['entry_field_type'] == 'join' ) {
+				$jMap = paracrm_lib_file_joinPrivate_getMap( $file_code ) ;
+				$jMapNode = $jMap[$arr['entry_field_code']] ;
+				if( !$jMapNode ) {
+					continue ;
+				}
+				
+				$arr['entry_field_type'] = $jMapNode['join_select_file_field_type'] ;
+				if( $arr['entry_field_type'] == 'link' ) {
+					$arr['entry_field_linktype'] = $jMapNode['join_select_file_field_linktype'] ;
+					$arr['entry_field_linkbible'] = $jMapNode['join_select_file_field_linkbible'] ;
+				}
+			}
 			if( $arr['entry_field_type'] == 'link' ) {
 				// Champ link "brut" :
 				//  - process join
@@ -186,13 +199,13 @@ function paracrm_lib_file_mapFile( $file_code, $is_called=FALSE )
 			
 				continue ;
 			}
+			
 		
 			switch( $arr['entry_field_type'] ) {
 				case 'date' :
 				case 'string' :
 				case 'bool' :
 				case 'number' :
-				case 'join' :
 					break ;
 					
 				default :

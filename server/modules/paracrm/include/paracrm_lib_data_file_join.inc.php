@@ -8,6 +8,9 @@ $GLOBALS['cache_joinMap'][$file_code][$field_code] ;
 $GLOBALS['cache_joinRes'] = array() ;
 $GLOBALS['cache_joinRes'][$file_code][$field_code][$jSrcValues_hash] ;
 
+$GLOBALS['cache_joinToBible'] = array() ;
+$GLOBALS['cache_joinToBible'][$file_code][$field_code][$jRes] ;
+
 
 function paracrm_lib_file_joinGridRecord( $file_code, &$record_row ) {
 	global $_opDB ;
@@ -30,6 +33,55 @@ function paracrm_lib_file_joinGridRecord( $file_code, &$record_row ) {
 		}
 		$jRes = paracrm_lib_file_joinPrivate_do( $file_code, $entry_field_code, $jSrcValues ) ;
 		$record_row[$mkey] = $jRes ;
+		
+		// Expand to bible fields @TODO:really expensive, find cleaner...
+		if( $jMapNode['join_select_file_field_type'] == 'link' ) {
+			
+			// Lookup cache ? build
+			if( !isset($GLOBALS['cache_joinToBible'][$file_code][$entry_field_code][$jRes]) ) {
+				$record_row_bible = array() ;
+				
+				$bible_code = $jMapNode['join_select_file_field_linkbible'] ;
+				
+				if( $jMapNode['join_select_file_field_linktype'] == 'entry' ) {
+					$entry_key = $jRes ;
+					$entry_record = paracrm_lib_data_getRecord_bibleEntry( $bible_code, $entry_key ) ;
+					if( $entry_record ) {
+					foreach( $entry_record as $bkey => $bvalue ) {
+						if( strpos($bkey,'field_') === 0 ) {
+							$mkey_b = $mkey.'_entry_'.substr($bkey,6) ;
+							$record_row_bible[$mkey_b] = $bvalue ;
+						}
+					}
+					}
+					$treenode_key = $entry_record['treenode_key'] ;
+				} else {
+					$treenode_key = $jRes ;
+				}
+				
+				if( true ) { //tree
+					$tree_record = paracrm_lib_data_getRecord_bibleTreenode( $bible_code, $treenode_key ) ;
+					if( $tree_record ) {
+					foreach( $tree_record as $bkey => $bvalue ) {
+						if( strpos($bkey,'field_') === 0 ) {
+							$mkey_b = $mkey.'_tree_'.substr($bkey,6) ;
+							$record_row_bible[$mkey_b] = $bvalue ;
+						}
+					}
+					}
+				}
+				
+				// store in cache
+				$GLOBALS['cache_joinToBible'][$file_code][$entry_field_code][$jRes] = $record_row_bible ;
+			} else {
+				// find in cache
+				$record_row_bible = $GLOBALS['cache_joinToBible'][$file_code][$entry_field_code][$jRes] ;
+			}
+			
+			foreach( $record_row_bible as $mkey_b => $bvalue ) {
+				$record_row[$mkey_b] = $bvalue ;
+			}
+		}
 	}
 }
 function paracrm_lib_file_joinQueryRecord( $file_code, &$record_row ) {
@@ -298,6 +350,17 @@ function paracrm_lib_file_joinPrivate_getMap( $file_code ) {
 		unset($arrJoin['file_code']) ;
 		unset($arrJoin['entry_field_code']) ;
 		$arrJoin['join_map'] = array() ;
+		
+		$target_fileCode = $arrJoin['join_target_file_code'] ;
+		$select_fileFieldCode = $arrJoin['join_select_file_field_code'] ;
+		$query = "SELECT * FROM define_file_entry WHERE file_code='$target_fileCode' AND entry_field_code='$select_fileFieldCode'" ;
+		$res_select = $_opDB->query($query) ;
+		$arr_defineSelect = $_opDB->fetch_assoc($res_select) ;
+		$arrJoin['join_select_file_field_type'] = $arr_defineSelect['entry_field_type'] ;
+		if( $arr_defineSelect['entry_field_type'] == 'link' ) {
+			$arrJoin['join_select_file_field_linktype'] = $arr_defineSelect['entry_field_linktype'] ;
+			$arrJoin['join_select_file_field_linkbible'] = $arr_defineSelect['entry_field_linkbible'] ;
+		}
 		
 		$GLOBALS['cache_joinMap'][$file_code][$entry_field_code] = $arrJoin ;
 	}

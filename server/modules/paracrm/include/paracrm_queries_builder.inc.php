@@ -406,7 +406,10 @@ function paracrm_queries_builderTransaction_getTreeFields( &$arr_saisie )
 		
 		if( $field['link_bible'] )
 		{
-			if( !$field['is_raw_link'] ) {
+			if( $field['is_raw_link'] ) {
+				$TAB_file_fields[$file_code][$file_field] = array() ;
+				$TAB_file_fields[$file_code][$file_field][] = $field['field'] ;
+			} else {
 				$TAB_file_fields[$file_code][$file_field][] = $field['field'] ;
 			}
 		}
@@ -438,22 +441,17 @@ function paracrm_queries_builderTransaction_getTreeFields( &$arr_saisie )
 		$json_file['children'] = array() ;
 		foreach( $arr1 as $field_code => $mvalue )
 		{
-			$query = "SELECT entry_field_lib FROM define_file_entry
-						WHERE file_code='$file_code' AND entry_field_code='$field_code'" ;
-			$entry_field_lib = $_opDB->query_uniqueValue($query);
-		
 			if( is_array($mvalue) )
 			{
-				$query = "SELECT entry_field_linktype,entry_field_linkbible FROM define_file_entry
-							WHERE file_code='$file_code' AND entry_field_code='$field_code'" ;
-				$tarr = $_opDB->fetch_row($_opDB->query($query)) ;
-				$linktype = ( $tarr[0] ? $tarr[0] : 'entry' ) ;
-				$linkbible = $tarr[1] ;
+				$raw_bible_field = reset($mvalue) ;
+				$selectmap = $arr_indexed_selectmap[$raw_bible_field] ;
+				$linktype = ( $selectmap['link_type'] ? $selectmap['link_type'] : 'entry' ) ;
+				$linkbible = $selectmap['link_bible'] ;
 			
 				$json_field_bible = array() ;
 				$json_field_bible['field_code'] = $file_code.'_field_'.$field_code ;
-				$json_field_bible['field_text'] = $entry_field_lib ;
-				$json_field_bible['field_text_full'] = $entry_field_lib ;
+				$json_field_bible['field_text'] = $selectmap['file_field_lib'] ;
+				$json_field_bible['field_text_full'] = $selectmap['file_field_lib'] ;
 				$json_field_bible['field_type'] = 'link' ;
 				$json_field_bible['field_type_text'] = 'Link '.$linkbible ;
 				$json_field_bible['field_linktype'] = $linktype ;
@@ -464,9 +462,13 @@ function paracrm_queries_builderTransaction_getTreeFields( &$arr_saisie )
 				$json_field_bible['leaf'] = false ;
 				$json_field_bible['expanded'] = true ;
 				$json_field_bible['children'] = array() ;
+				reset($mvalue) ;
 				foreach($mvalue as $bible_field)
 				{
 					$selectmap = $arr_indexed_selectmap[$bible_field] ;
+					if( $selectmap['is_raw_link'] ) {
+						continue ;
+					}
 				
 					$field = array() ;
 					$field['leaf'] = true ;
