@@ -274,7 +274,7 @@ function paracrm_queries_mergerTransaction_resGet( $post_data )
 	foreach( $RES['RES_labels'] as $tab_id => $dummy )
 	{
 		$tab = array() ;
-		$tab['tab_title'] = $dummy['tab_title'] ;
+		$tab['tab_title'] = ( $dummy['tab_title_isDummy'] ? '' : $dummy['tab_title'] ) ; ;
 		$tab['cfg_doTreeview'] = ($RES['RES_titles']['cfg_doTreeview'] == TRUE) ;
 		$tab = $tab + paracrm_queries_mpaginate_getGrid( $RES, $tab_id ) ;
 		

@@ -760,6 +760,7 @@ function paracrm_queries_process_qmerge($arr_saisie, $debug=FALSE)
 		}
 		else {
 			$RES_labels[$tabidx]['tab_title'] = preg_replace("/[^a-zA-Z0-9\s]/", "", $arr_saisie['qmerge_name']) ;
+			$RES_labels[$tabidx]['tab_title_isDummy'] = true ;
 		}
 		
 		
@@ -3128,6 +3129,7 @@ function paracrm_queries_process_labels_noTab( $arr_saisie )
 		$subRES_tab['map_selectId_lib'] = $map_selectId_lib ;
 		
 		$subRES_tab['tab_title'] = implode(' + ',array_values($map_selectId_lib)) ;
+		$subRES_tab['tab_title_isDummy'] = true ;
 	
 		$subRES_tab['arr_grid-x'] = array() ;
 		$subRES_tab['arr_grid-y'] = array() ;

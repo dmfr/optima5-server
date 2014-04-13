@@ -381,7 +381,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 		},me) ;
 		
 		var pResult ;
-		if( tabitems.length==1 ) {
+		if( tabitems.length==1 && ( tabitems[0].title=='' || tabitems[0].title=='' ) ) {
 			pResult = tabitems[0] ;
 			delete(pResult['title']) ;
 		} else {
