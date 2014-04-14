@@ -3,7 +3,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 	
 	requires:[
 		'Optima5.Modules.Spec.WbMrfoxy.PromoFormSkuGridPanel',
-		'Optima5.Modules.Spec.WbMrfoxy.GraphInfoView'
+		'Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetBar'
 	],
 	
 	initComponent: function() {
@@ -63,10 +63,6 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 		if( me.data ) {
 			me.loadData(me.data) ;
 		}
-		
-		Ext.defer(function() {
-			me.renderGraph() ;
-		},1000,me) ;
 	},
 	
 	initHeaderCfg: function() {
@@ -417,21 +413,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 							displayName: 'currency'
 						}]
 					},{
-						xtype:'container',
-						hidden:false,
-						items:[{
-							xtype: 'panel',
-							height: 100,
-							layout: 'fit',
-							itemId: 'cntFinanceGraph',
-							items: [{
-								xtype:'box',
-								cls:'op5-waiting'
-							}]
-						},{
-							xtype:'op5specmrfoxygraphinfobis',
-							padding: '2px 4px 10px 4px'
-						}]
+						xtype:'op5specmrfoxybudgetbar',
+						optimaModule: me.optimaModule,
+						height: 100
 					},{
 						xtype:'grid',
 						height:200,
@@ -550,53 +534,6 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 	getSkuList: function() {
 		return this.child('panel').child('grid') ;
 	},
-	renderGraph: function() {
-		var me = this,
-			cntFinanceGraph = me.query('#cntFinanceGraph')[0] ;
-		
-		var chartCfg = {
-			xtype: 'chart',
-			animate: true,
-			shadow: true,
-			store: {
-				fields: ['year', 'free', 'reserved', 'done'],
-				data: [
-							{year: 2008, free: 38910, reserved: 56070, done: 24810}
-						]
-			},
-			axes: [{
-				type: 'Numeric',
-				position: 'bottom',
-				fields: ['free', 'reserved', 'done'],
-				title: false,
-				grid: true,
-				label: {
-					renderer: function(v) {
-							return String(v).replace(/000$/, 'K');
-					}
-				},
-				roundToDecimal: false
-			}],
-			series: [{
-				type: 'bar',
-				axis: 'bottom',
-				gutter: 80,
-				xField: 'year',
-				yField: ['free', 'reserved', 'done'],
-				stacked: true,
-				tips: {
-					trackMouse: true,
-					width: 125,
-					height: 28,
-					renderer: function(storeItem, item) {
-							this.setTitle(item.yField + ': ' + String(item.value[1] / 1) + ' €');
-					}
-				}
-			}]
-		};
-		cntFinanceGraph.removeAll() ;
-		cntFinanceGraph.add(chartCfg) ;
-	},
 	calcLayout: function() {
 		var me = this ;
 			form = me.getFormPanel().getForm(),
@@ -650,7 +587,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 	evalForm: function() {
 		var me = this,
 			form = me.getFormPanel().getForm(),
-			doSimuGraph, doSkuList ;
+			formValues = form.getValues(),
+			doSimuGraph, doSkuList, doFinanceBudgetBar ;
 		
 		if( me.suspendEvents ) {
 			return ;
@@ -659,20 +597,24 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 		if( form.findField('is_prod').getValue()=='PROD' ) {
 			doSimuGraph = false ;
 			doSkuList = true ;
+			doFinanceBudgetBar = true ;
 		} else {
 			doSimuGraph = true ;
 			doSkuList = false ;
+			doFinanceBudgetBar = false ;
 		}
 		if( doSimuGraph ) {
 			me.query('#cntSimuGraph')[0].removeAll() ;
 			me.query('#cntSimuGraph')[0].addCls('op5-waiting') ;
 		}
 		
+		
+		
 		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_wb_mrfoxy',
 				_action: 'promo_formEval',
-				data: Ext.JSON.encode(me.getFormPanel().getForm().getValues()),
+				data: Ext.JSON.encode(formValues),
 				doSimuGraph: (doSimuGraph ? 1:0),
 				doSkuList: (doSkuList ? 1:0)
 			},
@@ -713,6 +655,13 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 			},
 			scope: me
 		}) ;
+		
+		if( doFinanceBudgetBar && !Ext.isEmpty(formValues.country_code) && !Ext.isEmpty(formValues.date_start) ) {
+			me.down('op5specmrfoxybudgetbar').setData({
+				crop_year: formValues.date_start,
+				country_code: formValues.country_code
+			});
+		}
 	},
 	forecastCalc: function() {
 		var me = this,
@@ -732,6 +681,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 		}
 		me.getFormPanel().getForm().findField('cost_forecast').setValue(total) ;
 		me.getFormPanel().getForm().findField('cost_forecast_display').setValue(total) ;
+		me.down('op5specmrfoxybudgetbar').setVariableCost(total) ;
 	},
 	
 	loadDataFromRecord: function( promoRecord ) {

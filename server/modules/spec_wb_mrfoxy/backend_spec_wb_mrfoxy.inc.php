@@ -66,6 +66,9 @@ switch( $post_data['_action'] )
 	case 'finance_exportXLS' :
 	return specWbMrfoxy_finance_exportXLS($post_data) ;
 	
+	case 'finance_getBudgetBar' :
+	return specWbMrfoxy_finance_getBudgetBar($post_data) ;
+	
 	
 	
 	case 'auth_getTable' :

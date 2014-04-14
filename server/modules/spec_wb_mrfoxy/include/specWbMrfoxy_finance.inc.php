@@ -383,4 +383,72 @@ function specWbMrfoxy_finance_buildCache() {
 }
 
 
+
+
+
+
+
+
+
+function specWbMrfoxy_finance_getBudgetBar( $post_data )  {
+	global $_opDB ;
+	
+	$data_countryCode = $post_data['data_countryCode'] ;
+	$data_cropYear = $post_data['data_cropYear'] ;
+	
+	//sleep(2) ;
+	
+	if( $data_cropYear = date('Y-m-d',strtotime($data_cropYear)) ) {
+		$query = "SELECT field_CROP_YEAR FROM view_file__CFG_CROP WHERE field_DATE_APPLY<='$data_cropYear' ORDER BY field_DATE_APPLY DESC LIMIT 1" ;
+		$data_cropYear = $_opDB->query_uniqueValue($query) ;
+	}
+	if( !paracrm_lib_data_getRecord_bibleEntry('_CROP',$data_cropYear) ) {
+		return array('success'=>false) ;
+	}
+	
+	
+	
+	
+	// Init QMerge
+	
+	$q_id = 'Finance::Budget bars' ;
+	if( !is_numeric($q_id) ) {
+		$query = "SELECT qmerge_id FROM qmerge WHERE qmerge_name LIKE '{$q_id}'";
+		$q_id = $_opDB->query_uniqueValue($query) ;
+		if( !$q_id ) {
+			return array('success'=>false) ;
+		}
+	}
+	
+	$arr_saisie = array() ;
+	paracrm_queries_mergerTransaction_init( array('qmerge_id'=>$q_id) , $arr_saisie ) ;
+	
+	// replace conditions
+	foreach( $arr_saisie['fields_mwhere'] as &$field_mwhere ) {
+		if( $field_mwhere['mfield_type'] == 'link' && $field_mwhere['mfield_linkbible'] == '_COUNTRY' ) {
+			$field_mwhere['condition_bible_mode'] = 'SELECT' ;
+			$field_mwhere['condition_bible_entries'] = $data_countryCode ;
+		}
+		if( $field_mwhere['mfield_type'] == 'link' && $field_mwhere['mfield_linkbible'] == '_CROP' ) {
+			$field_mwhere['condition_bible_mode'] = 'SELECT' ;
+			$field_mwhere['condition_bible_entries'] = $data_cropYear ;
+		}
+	}
+	unset($field_mwhere) ;
+	
+	// Exec requete
+	$RES = paracrm_queries_process_qmerge($arr_saisie , FALSE ) ;
+	
+	$DATA = array() ;
+	foreach( $RES['RES_selectId_groupKey_value'] as $select_id => $arr_groupKey_value ) {
+		if( count($arr_groupKey_value) != 1 ) {
+			return array('success'=>false) ;
+		}
+		$DATA[$RES['RES_selectId_infos'][$select_id]['select_lib']] = reset($arr_groupKey_value) ;
+	}
+	
+	
+	return array('success'=>true, 'data'=>$DATA) ;
+}
+
 ?>
