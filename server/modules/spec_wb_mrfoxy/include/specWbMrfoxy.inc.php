@@ -96,7 +96,6 @@ function specWbMrfoxy_tool_getCropIntervals() {
 	$TAB = array() ;
 	foreach( $paracrm_TAB as $paracrm_row ) {
 		$row = array() ;
-		$row['crop_title'] = $paracrm_row['_CFG_CROP_field_CROP_TITLE'] ;
 		$row['crop_year'] = $paracrm_row['_CFG_CROP_field_CROP_YEAR'] ;
 		$row['date_apply'] = date('Y-m-d',strtotime($paracrm_row['_CFG_CROP_field_DATE_APPLY'])) ;
 		$TAB[] = $row ;

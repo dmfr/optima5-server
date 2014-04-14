@@ -1,7 +1,6 @@
 Ext.define('WbMrfoxyFinanceCfgCropModel', {
     extend: 'Ext.data.Model',
     fields: [
-        {name: 'crop_title', type: 'string'},
         {name: 'crop_year', type: 'string'},
         {name: 'date_apply', type: 'string'},
 		  {name: 'is_current', type: 'boolean'},
@@ -258,7 +257,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 		Ext.Array.each( storeCfgCrop.getRange(), function(cropRecord) {
 			var cropData = cropRecord.data ;
 			var key = cropData.crop_year ;
-			var text = cropData.crop_title ;
+			var text = cropData.crop_year ;
 			if( cropData.is_preview ) {
 				text+= ' ' + '(<i>preview</i>)' ;
 			} else if( cropData.is_current ) {

@@ -291,6 +291,7 @@ function specWbMrfoxy_finance_setRevision( $post_data ) {
 			break ;
 	}
 	
+	specWbMrfoxy_finance_buildCache() ;
 	return array('success'=>true) ;
 }
 
@@ -323,6 +324,62 @@ function specWbMrfoxy_finance_exportXLS( $post_data ) {
 	readfile($tmpfilename) ;
 	unlink($tmpfilename) ;
 	die() ;
+}
+
+
+
+
+function specWbMrfoxy_finance_buildCache() {
+	global $_opDB ;
+	
+	$operations = array() ;
+	$operations['1_BUDGET'] = '+' ;
+	$operations['2_STORES'] = '-' ;
+	$operations['3_FREEZE'] = '-' ;
+	
+	$arr_filerecordId_calcValue = array() ;
+	
+	$query = "SELECT * FROM view_file_FINANCE_REVISION_ROW" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$filerecord_parent_id = $arr['filerecord_parent_id'] ;
+		
+		$group_key_field = 'field_GROUP_KEY' ;
+		$group_key = $arr[$group_key_field] ;
+		$operation = $operations[$group_key] ;
+		
+		$value_field = 'field_VALUE' ;
+		$value = $arr[$value_field] ;
+		
+		if( !isset($arr_filerecordId_calcValue[$filerecord_parent_id]) ) {
+			$arr_filerecordId_calcValue[$filerecord_parent_id] = 0 ;
+		}
+		switch( $operation ) {
+			case '+' :
+				$arr_filerecordId_calcValue[$filerecord_parent_id] += $value ;
+				break ;
+			case '-' :
+				$arr_filerecordId_calcValue[$filerecord_parent_id] -= $value ;
+				break ;
+			default :
+				break ;
+		}
+	}
+	
+	$query = "SELECT * FROM view_file_FINANCE_REVISION" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$filerecord_id = $arr['filerecord_id'] ;
+		if( isset($arr_filerecordId_calcValue[$filerecord_id]) ) {
+			$value = $arr_filerecordId_calcValue[$filerecord_id] ;
+		} else {
+			$value = 0 ;
+		}
+		
+		$arr_update = array() ;
+		$arr_update['field_CALC_PROMO_BUDGET'] = $value ;
+		paracrm_lib_data_updateRecord_file('FINANCE_REVISION', $arr_update, $filerecord_id) ;
+	}
 }
 
 
