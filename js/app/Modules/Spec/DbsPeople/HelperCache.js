@@ -10,12 +10,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.HelperCache',{
 	
 	singleton:true,
 	
-	countryStore: null,
-	brandStore: null,
-	
+	cfgStores: null,
 	isReady: false,
-	nbLoaded: 0,
-	nbToLoad: 0,
 	
 	constructor: function(config) {
 		//build store
@@ -33,17 +29,12 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.HelperCache',{
 	},
 	startLoading: function() {
 		var me = this ;
-			me.isReady = true ;
-			me.fireEvent('ready') ;
-		return ;
 		
-		me.nbToLoad = 2 ;
-		
-		// Query Bible
+		// Query CFG
 		var ajaxParams = {} ;
 		Ext.apply( ajaxParams, {
-			_action: 'data_getBibleGrid',
-			bible_code: '_COUNTRY'
+			_moduleId: 'spec_dbs_people',
+			_action: 'cfg_getCfgBibles',
 		});
 		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams ,
@@ -54,93 +45,43 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.HelperCache',{
 				}
 				else {
 					// do something to open window
-					me.onCountryLoad( ajaxData ) ;
-				}
-			},
-			scope: me
-		});
-		
-		// Query Bible
-		var ajaxParams = {} ;
-		Ext.apply( ajaxParams, {
-			_action: 'data_getBibleGrid',
-			bible_code: '_BRAND'
-		});
-		me.optimaModule.getConfiguredAjaxConnection().request({
-			params: ajaxParams ,
-			success: function(response) {
-				var ajaxData = Ext.decode(response.responseText) ;
-				if( ajaxData.success == false ) {
-					Ext.Msg.alert('Failed', 'Unknown error');
-				}
-				else {
-					// do something to open window
-					me.onBrandLoad( ajaxData ) ;
+					me.onLoad( ajaxData ) ;
 				}
 			},
 			scope: me
 		});
 	},
-	onCountryLoad: function(ajaxData) {
+	onLoad: function(ajaxData) {
 		var me = this ;
 		
-		// Populate store
-		var data = [] ;
-		Ext.Array.each( ajaxData.data, function(row) {
-			data.push({
-				id: row['field_COUNTRY_CODE'],
-				country_code: row['field_COUNTRY_CODE'],
-				country_display: row['field_COUNTRY_CODE'] + ' - ' + row['field_COUNTRY_NAME'],
-				country_iconurl : row['field_COUNTRY_ICONURL']
-			});
+		me.cfgStores = {} ;
+		// Populate stores
+		Ext.Object.each( ajaxData.data, function(type,data) {
+			me.cfgStores[type] = Ext.create('Ext.data.Store',{
+				fields: ['id','text'],
+				data : data
+			}) ;
 		},me) ;
-		me.countryStore = Ext.create('Ext.data.Store',{
-			fields: ['id','country_code','country_display','country_iconurl'],
-			data : data
-		}) ;
-		me.onLoad() ;
-	},
-	onBrandLoad: function(ajaxData) {
-		var me = this ;
 		
-		// Populate store
-		var data = [] ;
-		Ext.Array.each( ajaxData.data, function(row) {
-			data.push({
-				id: row['field_BRAND_CODE'],
-				brand_code: row['field_BRAND_CODE'],
-				brand_display: row['field_BRAND_TXT']
-			});
-		},me) ;
-		me.brandStore = Ext.create('Ext.data.Store',{
-			fields: ['id','brand_code','brand_display'],
-			data : data
-		}) ;
-		me.onLoad() ;
-	},
-	onLoad: function() {
-		var me = this ;
-		me.nbLoaded++ ;
-		if( me.nbToLoad == me.nbLoaded ) {
-			me.isReady = true ;
-			me.fireEvent('ready') ;
-		}
+		me.isReady = true ;
+		me.fireEvent('ready') ;
 	},
 	
-	countryGetById: function( countryCode ) {
-		var me = this ;
-		return me.countryStore.getById(countryCode) ;
+	forTypeGetById: function( type, xCode ) {
+		var me = this,
+			record = me.cfgStores[type].getById(xCode),
+			undefinedData = {
+				id:'_',
+				text:'Non défini'
+			};
+		return ( record==null ? undefinedData : record.data ) ;
 	},
-	countryGetAll: function() {
+	forTypeGetStore: function( type ) {
 		var me = this ;
-		return me.countryStore.getRange() ;
+		return me.cfgStores[type] ;
 	},
-	brandGetById: function( brandCode ) {
+	forTypeGetAll: function( type ) {
 		var me = this ;
-		return me.brandStore.getById(brandCode) ;
-	},
-	brandGetAll: function() {
-		var me = this ;
-		return me.brandStore.getRange() ;
+		return Ext.pluck( me.cfgStores[type].getRange(), 'data' ) ;
 	}
 });

@@ -150,49 +150,18 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 	},
 	startPanel: function() {
 		var me = this ;
-		
-		this.optimaModule.getConfiguredAjaxConnection().request({
-			params: {
-				_moduleId: 'spec_dbs_people',
-				_action: 'RH_getCfgData',
-				cfgParam_id: this.cfgParam_id
-			},
-			success: function(response) {
-				var jsonResponse = Ext.decode(response.responseText) ;
-				if( jsonResponse.success == false ) {
-					Ext.Msg.alert('Failed', 'Failed');
-				}
-				else {
-					this.devCfgData = jsonResponse.data ;
-					
-					var arr, indexedData ;
-					this.cfgData = {} ;
-					for( prop in jsonResponse.data ) {
-						arr = jsonResponse.data[prop] ;
-						indexedData = {} ;
-						for( var idx = 0 ; idx < arr.length ; idx++ ) {
-							indexedData[arr[idx].id] = arr[idx].text ;
-						}
-						this.cfgData[prop] = indexedData ;
-					}
-				}
-			},
-			scope: this
-		});
-		
 		me.onDateSet( new Date() ) ;
-		
 		return ;
 	},
 	
 	helperGetRoleTxt: function( roleCode ) {
-		return this.cfgData['ROLE'][roleCode] ;
+		return Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetById("ROLE",roleCode).text ;
 	},
 	helperGetWhseTxt: function( whseCode ) {
-		return this.cfgData['WHSE'][whseCode] ;
+		return Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetById("WHSE",whseCode).text ;
 	},
 	helperGetTeamTxt: function( teamCode ) {
-		return this.cfgData['TEAM'][teamCode] ;
+		return Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetById("TEAM",teamCode).text ;
 	},
 	
 	onDateSet: function( date ) {
@@ -629,7 +598,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		var editorField = editEvent.column.getEditor() ;
 		console.dir( editorField ) ;
 		if( editorField && editorField.ROLE ) {
-			editorField.getStore().loadData( this.devCfgData.ROLE ) ;
+			editorField.getStore().loadData( Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll("ROLE") ) ;
 			editorField.on('select',function() {
 				editor.completeEdit() ;
 			},this,{single:true});

@@ -1,13 +1,46 @@
-Ext.define('DbsPeopleRhPanelModel', {
-    extend: 'Ext.data.Model',
-    fields: [
-        {name: 'whse_txt',  type: 'string'},
-        {name: 'team_txt',  type: 'string'},
-        {name: 'role_txt',  type: 'string'},
-        {name: 'people_name',   type: 'string'},
-        {name: 'people_techid',   type: 'string'},
-        {name: 'nextEvent_txt',   type: 'string'}
-     ]
+Ext.define('DbsPeopleRhPeopleModel', {
+	extend: 'Ext.data.Model',
+	idProperty: 'people_code',
+	fields: [
+		{name: 'people_id', type:'string'},
+		{name: 'status_out',  type: 'boolean'},
+		{name: 'status_undefined',  type: 'boolean'},
+		{name: 'status_incident',  type: 'boolean'},
+		{name: 'whse_code',  type: 'string'},
+		{
+			name: 'whse_txt',
+			type: 'string',
+			convert: function(v, record) {
+				v = record.data.whse_code ;
+				return Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetById("WHSE",v).text ;
+			}
+		},
+		{name: 'team_code',  type: 'string'},
+		{
+			name: 'team_txt',
+			type: 'string',
+			convert: function(v, record) {
+				v = record.data.team_code ;
+				return Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetById("TEAM",v).text ;
+			}
+		},
+		{name: 'role_code',  type: 'string'},
+		{
+			name: 'role_txt',
+			type: 'string',
+			convert: function(v, record) {
+				v = record.data.role_code ;
+				return Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetById("ROLE",v).text ;
+			}
+		},
+		{name: 'people_code',   type: 'string'},
+		{name: 'people_name',   type: 'string'},
+		{name: 'people_techid',   type: 'string'},
+		{name: 'nextEvent_type',   type: 'string'},
+		{name: 'nextEvent_dateStart',   type: 'string'},
+		{name: 'nextEvent_dateEnd',   type: 'string'},
+		{name: 'nextEvent_xCode',   type: 'string'}
+	]
 });
 
 Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
@@ -46,18 +79,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 						height:300
 					})]
 				}
-			},{
-				icon: 'images/op5img/ico_kuser_16.gif',
-				text: 'Equipes',
-				menu: {
-					xtype:'menu',
-					items:[Ext.create('Optima5.Modules.Spec.DbsPeople.CfgParamTree',{
-						optimaModule: me.optimaModule,
-						cfgParam_id: 'team',
-						width:250,
-						height:300
-					})]
-				}
 			},'->',{
 				icon: 'images/modules/admin-user-16.png',
 				text: 'New People',
@@ -69,7 +90,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 				border: false,
 				xtype:'grid',
 				store: {
-					model: 'DbsPeopleRhPanelModel',
+					model: 'DbsPeopleRhPeopleModel',
 					autoLoad: true,
 					proxy: this.optimaModule.getConfiguredAjaxProxy({
 						extraParams : {
@@ -81,30 +102,42 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 							root: 'data'
 						}
 					}),
-					groupField: 'whse_txt',
+					groupField: 'whse_code',
 					listeners: {
 						load: function(store) {
 							store.sort('people_name') ;
 						}
 					}
 				},
+				plugins: [{
+					ptype: 'bufferedrenderer'
+				}],
 				features: [{
-					groupHeaderTpl: '{name}',
-					ftype: 'groupingsummary',
+					groupHeaderTpl: '{[(values.rows.length > 0 ? values.rows[0].data.whse_txt : "")]}',
+					ftype: 'grouping',
 					hideGroupedHeader: true
 				}],
 				columns: [{
 					text: 'Entrepôt',
-					dataIndex: 'whse_txt',
-					width: 180
+					dataIndex: 'whse_code',
+					width: 100,
+					renderer: function(v,metaData,record) {
+						return record.data.whse_txt ;
+					}
 				},{
 					text: 'Equipe',
-					dataIndex: 'team_txt',
-					width: 100
+					dataIndex: 'team_code',
+					width: 100,
+					renderer: function(v,metaData,record) {
+						return record.data.team_txt ;
+					}
 				},{
 					text: 'Rôle',
-					dataIndex: 'role_txt',
-					width: 100
+					dataIndex: 'role_code',
+					width: 100,
+					renderer: function(v,metaData,record) {
+						return record.data.role_txt ;
+					}
 				},{
 					text: '<b>Nom complet</b>',
 					dataIndex: 'people_name',
@@ -118,7 +151,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 					width: 65
 				},{
 					text: 'Next Event',
-					dataIndex: 'nextEvent_txt',
+					//dataIndex: 'nextEvent_txt',
 					width: 300
 				}],
 				listeners: {
@@ -162,7 +195,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 		eastpanel.removeAll();
 		eastpanel.add(Ext.create('Optima5.Modules.Spec.DbsPeople.RhFormPanel',{
 			optimaModule: me.optimaModule,
-			devRecord: peopleRecord
+			peopleRecord: peopleRecord
 		}));
 		eastpanel._empty = false ;
 		eastpanel.setTitle('Modification: '+peopleRecord.get('people_name')) ;

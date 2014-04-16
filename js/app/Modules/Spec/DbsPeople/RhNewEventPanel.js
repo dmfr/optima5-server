@@ -20,11 +20,20 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhNewEventPanel',{
 			bodyPadding: 10,
 			bodyCls: 'ux-noframe-bg',
 			cls:'ux-noframe-bg',
-			buttons: [
-				{ text: 'Enregistrer' }
-			],
+			buttons: [{
+				text: 'Enregistrer',
+				handler: function(){
+					if( !this.isValid() ) {
+						Ext.MessageBox.alert('Incomplete','Please fill all required data') ;
+						return ;
+					}
+					this.fireEvent('neweventsubmit',this,this.getValues()) ;
+				},
+				scope: me
+			}],
 			items:[{
 				xtype: 'colorcombo',
+				allowBlank: false,
 				queryMode: 'local',
 				forceSelection: true,
 				editable: false,
@@ -46,8 +55,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhNewEventPanel',{
 				listeners: {
 					change:function(cmb, newValue) {
 						me.getComponent('event_details').setVisible(true) ;
-						me.getComponent('event_details').getComponent('event_type').clearValue() ;
-						me.getComponent('event_details').getComponent('event_type').getStore().loadData( me.devCfgData[newValue] ) ;
+						me.getComponent('event_details').getComponent('x_code').clearValue() ;
+						me.getComponent('event_details').getComponent('x_code').getStore().loadData( Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll(newValue) ) ;
 					},
 					scope:me
 				}
@@ -61,13 +70,20 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhNewEventPanel',{
 					boxLabel: 'Permanent / définitif ?',
 					listeners: {
 						change:function(cmb, newValue) {
-							me.getComponent('event_details').getComponent('date_end').setVisible(!newValue) ;
+							var dateEndField = me.getComponent('event_details').getComponent('date_end') ;
+							dateEndField.setVisible(!newValue) ;
+							dateEndField.allowBlank = newValue ;
+							if( newValue ) {
+								dateEndField.reset() ;
+							}
 						},
 						scope:me
 					}
 				},{
 					xtype: 'datefield',
+					allowBlank: false,
 					format: 'd/m/Y',
+					submitFormat: 'Y-m-d',
 					fieldLabel: 'Début',
 					name: 'date_start',
 					itemId: 'date_start',
@@ -75,7 +91,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhNewEventPanel',{
 					width: 170
 				},{
 					xtype: 'datefield',
+					allowBlank: false,
 					format: 'd/m/Y',
+					submitFormat: 'Y-m-d',
 					fieldLabel: 'Fin',
 					name: 'date_end',
 					itemId: 'date_end',
@@ -83,6 +101,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhNewEventPanel',{
 					width: 170
 				},{
 					xtype: 'combobox',
+					allowBlank: false,
 					queryMode: 'local',
 					forceSelection: true,
 					editable: false,
@@ -93,31 +112,11 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhNewEventPanel',{
 						data : []
 					},
 					fieldLabel: 'Affecté à',
-					name : 'event_type',
-					itemId : 'event_type'
+					name : 'x_code',
+					itemId : 'x_code'
 				}]
 			}]
 		});
 		me.callParent() ;
-		me.startLoading() ;
-	},
-	startLoading: function() {
-		this.optimaModule.getConfiguredAjaxConnection().request({
-			params: {
-				_moduleId: 'spec_dbs_people',
-				_action: 'RH_getCfgData',
-				cfgParam_id: this.cfgParam_id
-			},
-			success: function(response) {
-				var jsonResponse = Ext.decode(response.responseText) ;
-				if( jsonResponse.success == false ) {
-					Ext.Msg.alert('Failed', 'Failed');
-				}
-				else {
-					this.devCfgData = jsonResponse.data ;
-				}
-			},
-			scope: this
-		});
 	}
 });

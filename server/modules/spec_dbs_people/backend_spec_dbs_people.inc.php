@@ -9,14 +9,18 @@ switch( $post_data['_action'] )
 {
 	case 'RH_getGrid' :
 	return specDbsPeople_RH_getGrid( $post_data ) ;
-	case 'RH_getCfgData' :
-	return specDbsPeople_RH_getCfgData( $post_data ) ;
+	case 'RH_getPeopleEvents' :
+	return specDbsPeople_RH_getPeopleEvents( $post_data ) ;
+	case 'RH_editPeopleEvent' :
+	return specDbsPeople_RH_editPeopleEvent( $post_data ) ;
 	
 	case 'Real_getData' :
 	return specDbsPeople_Real_getData( $post_data ) ;
 	
 	case 'cfg_getTree' :
 	return specDbsPeople_cfg_getTree( $post_data ) ;
+	case 'cfg_getCfgBibles' :
+	return specDbsPeople_cfg_getCfgBibles( $post_data ) ;
 	
 	
 	default :
