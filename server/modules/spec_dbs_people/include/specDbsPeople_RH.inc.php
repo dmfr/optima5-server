@@ -2,10 +2,22 @@
 
 function specDbsPeople_RH_getGrid($post_data) {
 	global $_opDB ;
+	if( isset($post_data['filter_peopleCode']) ) {
+		$people_code = $post_data['filter_peopleCode'] ;
+	}
+	
+	if( !$people_code ) {
+		paracrm_lib_file_joinPrivate_buildCache('PEOPLEDAY') ;
+	}
 	
 	$TAB = array() ;
 	$query = "SELECT * FROM view_bible_RH_PEOPLE_tree t, view_bible_RH_PEOPLE_entry e
-					WHERE t.treenode_key=e.treenode_key ORDER BY e.field_PPL_FULLNAME" ;
+					WHERE t.treenode_key=e.treenode_key" ;
+	if( $people_code ) {
+		$query.= " AND e.entry_key='{$people_code}'" ;
+	}
+	$query.= " ORDER BY e.field_PPL_FULLNAME" ;
+	
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$row = array() ;
@@ -14,9 +26,19 @@ function specDbsPeople_RH_getGrid($post_data) {
 		$row['people_techid'] = $arr['field_PPL_TECHID'] ;
 		
 		// Fake JOIN on PEOPLEDAY file to retrieve current attributes
-		$row['whse_code'] = '_' ;
-		$row['team_code'] = '_' ;
-		$row['role_code'] = '_' ;
+		$fake_row = array() ;
+		$fake_row['PEOPLEDAY']['field_DATE'] = date('Y-m-d') ;
+		$fake_row['PEOPLEDAY']['field_PPL_CODE'] = $arr['entry_key'] ;
+		paracrm_lib_file_joinQueryRecord( 'PEOPLEDAY', $fake_row ) ;
+		
+		$join_map = array() ;
+		$join_map['field_STD_WHSE'] = 'whse_code' ;
+		$join_map['field_STD_TEAM'] = 'team_code' ;
+		$join_map['field_STD_ROLE'] = 'role_code' ;
+		foreach( $join_map as $src => $dest ) {
+			$val = $fake_row['PEOPLEDAY'][$src] ;
+			$row[$dest] = ( $val != NULL ? $val : '_' ) ;
+		}
 		
 		// Next events
 		

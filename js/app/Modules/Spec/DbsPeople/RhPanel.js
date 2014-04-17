@@ -103,14 +103,14 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 						}
 					}),
 					groupField: 'whse_code',
-					listeners: {
-						load: function(store) {
-							store.sort('people_name') ;
-						}
-					}
+					sorters: [{
+						property: 'people_name',
+						direction: 'ASC'
+					}]
 				},
 				plugins: [{
-					ptype: 'bufferedrenderer'
+					ptype: 'bufferedrenderer',
+					pluginId: 'bufferedRender'
 				}],
 				features: [{
 					groupHeaderTpl: '{[(values.rows.length > 0 ? values.rows[0].data.whse_txt : "")]}',
@@ -159,6 +159,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 						this.setFormRecord(record) ;
 					},
 					scope: this
+				},
+				viewConfig: {
+					preserveScrollOnRefresh: true
 				}
 			},{
 				region:'east',
@@ -195,11 +198,53 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 		eastpanel.removeAll();
 		eastpanel.add(Ext.create('Optima5.Modules.Spec.DbsPeople.RhFormPanel',{
 			optimaModule: me.optimaModule,
-			peopleRecord: peopleRecord
+			peopleRecord: peopleRecord,
+			listeners: {
+				change: function(rhFormPanel) {
+					var peopleCode = rhFormPanel.peopleCode ;
+					this.reload( peopleCode ) ;
+				},
+				scope:me
+			}
 		}));
 		eastpanel._empty = false ;
 		eastpanel.setTitle('Modification: '+peopleRecord.get('people_name')) ;
 		eastpanel.expand() ;
+	},
+	
+	reload: function( peopleCode ) {
+		if( !Ext.isEmpty(peopleCode) ) {
+			this.optimaModule.getConfiguredAjaxConnection().request({
+				params: {
+					_moduleId: 'spec_dbs_people',
+					_action: 'RH_getGrid',
+					filter_peopleCode: peopleCode
+				},
+				success: function( response ) {
+					var ajaxData = Ext.JSON.decode(response.responseText).data,
+						peopleRecordData = ajaxData[0] ;
+					this.replaceRecord( peopleRecordData.people_code, peopleRecordData ) ;
+				},
+				scope: this
+			});
+			return ;
+		}
+		this.down('grid').getStore().load() ;
+	},
+	replaceRecord: function( peopleCode, peopleRecordData ) {
+		var store = this.down('grid').getStore(),
+			record = store.getById(peopleCode),
+			newRecord = Ext.create('DbsPeopleRhPeopleModel',peopleRecordData) ;
+		if( record != null ) {
+			record.set(newRecord.data) ;
+			record.commit() ;
+		}
+		
+		var eastpanel = this.getComponent('mRhFormContainer'),
+			eastpanelForm = eastpanel.down('panel') ;
+		if( eastpanelForm != null && eastpanelForm.peopleCode == peopleCode ) {
+			eastpanelForm.setPeopleRecord( newRecord ) ;
+		}
 	},
 	
 	handleQuit: function() {

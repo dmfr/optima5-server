@@ -280,6 +280,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhFormPanel',{
 					return ;
 				}
 				this.reloadEvents() ;
+				this.fireEvent('change',this) ;
 			},
 			scope: this
 		}) ;
@@ -290,7 +291,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhFormPanel',{
 			return ;
 		}
 		
-		Ext.MessageBox.confirm('End / Close','Finalize selected promotion ?', function(buttonStr) {
+		Ext.MessageBox.confirm('Delete','Delete selected event ?', function(buttonStr) {
 			if( buttonStr!='yes' ) {
 				return ;
 			}
@@ -311,6 +312,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhFormPanel',{
 						return ;
 					}
 					this.reloadEvents() ;
+					this.fireEvent('change',this) ;
 				},
 				scope: this
 			}) ;
