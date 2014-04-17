@@ -105,11 +105,186 @@ function paracrm_lib_file_joinQueryRecord( $file_code, &$record_row ) {
 			$src_mkey_field = 'field_'.$src_fileFieldCode ;
 			$jSrcValues[] = $record_row[$src_mkey_file][$src_mkey_field] ;
 		}
-		$jRes = paracrm_lib_file_joinPrivate_do( $file_code, $entry_field_code, $jSrcValues ) ;
+		if( $GLOBALS['cache_joinPrebuilt'][$file_code][$entry_field_code] ) {
+			$jRes = paracrm_lib_file_joinPrivate_doForCache( $file_code, $entry_field_code, $jSrcValues ) ;
+		} else {
+			$jRes = paracrm_lib_file_joinPrivate_do( $file_code, $entry_field_code, $jSrcValues ) ;
+		}
 		$record_row[$mkey_file][$mkey_field] = $jRes ;
 	}
 }
 
+
+function paracrm_lib_file_joinPrivate_buildCache_combineIdxNotedValues( $src_indexed, $pos=0 ) {
+	reset( $src_indexed ) ;
+	for( $i=0 ; $i<$pos ; $i++ )
+	{
+		next( $src_indexed ) ;
+	}
+	$idx = key($src_indexed) ;
+	
+	$tab = array() ;
+	foreach( current($src_indexed) as $ttmp )
+	{
+		list($val,$note) = $ttmp ;
+		$arr = array() ;
+		$arr[$idx] = $val ;
+		if( $pos + 1 == count($src_indexed) )
+			$tab[] = array($arr,$note) ;
+		else
+		{
+			foreach( paracrm_lib_file_joinPrivate_buildCache_combineIdxNotedValues( $src_indexed, $pos+1 ) as $ttmp )
+			{
+				list($sub_arr,$sub_note) = $ttmp ;
+				$sub_arr = $arr + $sub_arr ;
+				$tab[] = array($sub_arr,$sub_note+$note) ;
+			}
+		}
+	}
+	return $tab ;
+}
+function paracrm_lib_file_joinPrivate_buildCache( $file_code, $entry_field_code=NULL ) {
+	global $_opDB ;
+	
+	$jMap = paracrm_lib_file_joinPrivate_getMap($file_code) ;
+	if( $entry_field_code === NULL ) {
+		foreach( $jMap as $entry_field_code => $jMapNode ) {
+			paracrm_lib_file_joinPrivate_buildCache( $file_code, $entry_field_code ) ;
+		}
+		return ;
+	}
+	$jMapNode = $jMap[$entry_field_code] ;
+	
+	// quel fichier de destination ?
+	//    quel champ de destination ?
+	$target_view = 'view_file_'.$jMapNode['join_target_file_code'] ;
+	$select_field = 'field_'.$jMapNode['join_select_file_field_code'] ;
+	$jMapConditions = $jMapNode['join_map'] ;
+	
+	$TAB_hash_results = array() ;
+	
+	$query = "SELECT * FROM {$target_view}" ;
+	$result = $_opDB->query($query) ;
+	while( ($arrDB = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$jSelect_result = $arrDB[$select_field] ;
+	
+		$jSrc_idx_notedValues = array() ; 
+		foreach( $jMapConditions as $idx => $joinCondition ) {
+			$target_field = 'field_'.$joinCondition['join_target_file_field_code'] ;
+			$jSrcValue = $arrDB[$target_field] ;
+			
+			$jSrcCondition_notedValues = array() ;
+			switch( $joinCondition['join_field_type'] ) {
+				case 'date' :
+					$timestamp = strtotime($jSrcValue) ;
+					if( $timestamp === FALSE ) {
+						$timestamp = -1 ;
+					}
+					$jSrcCondition_notedValues[] = array($timestamp,'0') ;
+					break ;
+				case 'link' :
+					switch( $joinCondition['join_field_linktype'] ) {
+						case 'entry' :
+							$jSrcCondition_notedValues[] = array($jSrcValue,'0') ;
+							break ;
+						default : // @TODO: other linktypes not yet supported (should use GenericTree and place notes
+							return ;
+					}
+					break ;
+				default :
+					$jSrcCondition_notedValues[] = array($jSrcValue,'0') ;
+			}
+			$jSrc_idx_notedValues[] = $jSrcCondition_notedValues ;
+		}
+		
+		// Array combination
+		$jSrc_notedIdxvalues = paracrm_lib_file_joinPrivate_buildCache_combineIdxNotedValues($jSrc_idx_notedValues) ;
+		$jSrc_notedHashes = array() ;
+		foreach( $jSrc_notedIdxvalues as $jSrc_notedIdxvalue ) {
+			list($jSrc_idxvalue,$note) = $jSrc_notedIdxvalue ;
+			$jSrc_notedHashes[] = array( implode('@@',$jSrc_idxvalue), $note ) ;
+		}
+		
+		foreach( $jSrc_notedHashes as $jSrc_notedHash ) {
+			list($jSrc_hash,$note) = $jSrc_notedHash ;
+			if( !isset($TAB_hash_results[$jSrc_hash]) ) {
+				$TAB_hash_results[$jSrc_hash] = array() ;
+			}
+			$TAB_hash_results[$jSrc_hash][] = array('value'=>$jSelect_result,'note'=>$note) ;
+		}
+	}
+	
+	$sort_func = create_function('$a,$b','return ($a[\'note\'] - $b[\'note\']) ;') ;
+	foreach( $TAB_hash_results as $jSrc_hash => $arr_notedValues ) {
+		uasort($arr_notedValues,$sort_func) ;
+		$winner = reset($arr_notedValues) ;
+		$jVal = $winner['value'] ;
+		$GLOBALS['cache_joinRes'][$file_code][$entry_field_code][$jSrc_hash] = $jVal ;
+	}
+	
+	//print_r($GLOBALS['cache_joinRes'][$file_code][$entry_field_code]) ;
+	
+	$GLOBALS['cache_joinPrebuilt'][$file_code][$entry_field_code] = TRUE ;
+}
+
+
+
+function paracrm_lib_file_joinPrivate_doForCache_combineIdxValues( $src_indexed, $pos=0 ) {
+	reset( $src_indexed ) ;
+	for( $i=0 ; $i<$pos ; $i++ )
+	{
+		next( $src_indexed ) ;
+	}
+	$idx = key($src_indexed) ;
+	
+	$tab = array() ;
+	foreach( current($src_indexed) as $val )
+	{
+		$arr = array() ;
+		$arr[$idx] = $val ;
+		if( $pos + 1 == count($src_indexed) )
+			$tab[] = $arr ;
+		else
+		{
+			foreach( paracrm_lib_file_joinPrivate_doForCache_combineIdxValues( $src_indexed, $pos+1 ) as $sub_arr )
+			{
+				$sub_arr = $arr + $sub_arr ;
+				$tab[] = $sub_arr ;
+			}
+		}
+	}
+	return $tab ;
+}
+function paracrm_lib_file_joinPrivate_doForCache( $file_code, $entry_field_code, $jSrcValues ) {
+	$jMap = paracrm_lib_file_joinPrivate_getMap($file_code) ;
+	$jMapNode = $jMap[$entry_field_code] ;
+	//foreach( $jMap['join_map'] as $joinSequence )
+	
+	if( count($jSrcValues) != count($jMapNode['join_map']) ) {
+		return NULL ;
+	}
+	
+	$jSrcValues_arrHash = array() ;
+	foreach( $jMapNode['join_map'] as $idx => $joinCondition ) {
+		$jSrcValue = $jSrcValues[$idx] ;
+		switch( $joinCondition['join_field_type'] ) {
+			case 'date' :
+				$jSrcValues_arrHash[] = paracrm_lib_file_joinTool_findInfLevels( strtotime($jSrcValue), $joinCondition['join_field_arrLevels'] ) ;
+				break ;
+			default :
+				$jSrcValues_arrHash[] = array($jSrcValue) ;
+				break ;
+		}
+	}
+	foreach( paracrm_lib_file_joinPrivate_doForCache_combineIdxValues($jSrcValues_arrHash) as $jSrcValues_arrHash ) {
+		$jSrcValues_hash = implode('@@',$jSrcValues_arrHash) ;
+		$jVal = $GLOBALS['cache_joinRes'][$file_code][$entry_field_code][$jSrcValues_hash] ;
+		if( isset($jVal) ) {
+			return $jVal ;
+		}
+	}
+	return NULL ;
+}
 function paracrm_lib_file_joinPrivate_do( $file_code, $entry_field_code, $jSrcValues ) {
 	global $_opDB ;
 
@@ -312,7 +487,7 @@ function paracrm_lib_file_joinPrivate_do( $file_code, $entry_field_code, $jSrcVa
 		
 		$jVal = $winner['value'] ;
 	} else {
-		$jVal = 0 ;
+		$jVal = NULL ;
 	}
 	
 	$GLOBALS['cache_joinRes'][$file_code][$entry_field_code][$jSrcValues_hash] = $jVal ;
@@ -471,6 +646,17 @@ function paracrm_lib_file_joinTool_findInfLevel( $value, $arr_levels ) {
 	}
 	
 	return $arr_levels[$idx_min] ;
+}
+function paracrm_lib_file_joinTool_findInfLevels( $value, $arr_levels ) {
+	$inf_levels = array() ;
+	$inf_levels[] = -1 ;
+	foreach( $arr_levels as $level ) {
+		if( $level > $value ) {
+			break ;
+		}
+		$inf_levels[] = $level ;
+	}
+	return array_reverse($inf_levels) ;
 }
 
 ?>
