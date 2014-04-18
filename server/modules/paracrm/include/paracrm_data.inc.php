@@ -547,6 +547,9 @@ function paracrm_data_getFileGrid_data( $post_data )
 	$TAB_json = array() ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
 	{
+		if( $TAB['file_parent_code'] ) {
+			paracrm_lib_file_joinGridRecord( $TAB['file_parent_code'], $arr ) ;
+		}
 		paracrm_lib_file_joinGridRecord( $file_code, $arr ) ;
 		$TAB_json[] = $arr ;
 	}

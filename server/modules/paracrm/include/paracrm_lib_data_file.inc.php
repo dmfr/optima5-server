@@ -32,6 +32,9 @@ function paracrm_lib_file_access( $file_code, $sql_calc_found_rows=FALSE )
 	$return['sql_query_base'] = $sql_query ;
 	$return['select_map'] = $TAB['grid_map'] ;
 	$return['sql_selectfields'] = $TAB['sql_selectfields'] ;
+	if( $TAB['file_parent_code'] ) {
+		$return['file_parent_code'] = $TAB['file_parent_code'] ;
+	}
 	return $return ;
 }
 
@@ -76,6 +79,7 @@ function paracrm_lib_file_mapFile( $file_code, $is_called=FALSE )
 	$arr = $_opDB->fetch_assoc($result) ;
 	if( $arr['file_parent_code'] )
 	{
+		$file_parent_code = $arr['file_parent_code'] ;
 		$TAB = paracrm_lib_file_mapFile( $arr['file_parent_code'], $t_is_called=TRUE ) ;
 		$sql_selectfields = array_merge($sql_selectfields,$TAB['sql_selectfields']) ;
 		$sql_join[] = array( $TAB['sql_from'][0][0], $TAB['sql_from'][0][1], $TAB['sql_from'][0][1].'.filerecord_id' , $sql_from[0][1].'.filerecord_parent_id' ) ;
@@ -235,13 +239,16 @@ function paracrm_lib_file_mapFile( $file_code, $is_called=FALSE )
 	// enum de tous les champs, link LEFT OUTER JOIN BIBLE
 	
 	
-	return array('sql_selectfields'=>$sql_selectfields,
-					'sql_from'=>$sql_from,
-					'sql_join'=>$sql_join,
-					'sql_leftjoin'=>$sql_leftjoin,
-					'sql_where'=>$sql_where,
-					'grid_map'=>$grid_map
-					);
+	return array(
+		'file_code'=>$file_code,
+		'file_parent_code'=>$file_parent_code,
+		'sql_selectfields'=>$sql_selectfields,
+		'sql_from'=>$sql_from,
+		'sql_join'=>$sql_join,
+		'sql_leftjoin'=>$sql_leftjoin,
+		'sql_where'=>$sql_where,
+		'grid_map'=>$grid_map
+	);
 }
 function paracrm_lib_file_mapBibleEntry( $bible_code, $remote_table, $remote_field, $remote_field_lib=NULL )
 {
