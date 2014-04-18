@@ -1,31 +1,72 @@
-Ext.define('DbsPeopleRhRealDaySliceModel',{
+Ext.define('DbsPeoplePeopledayWorkModel',{
 	extend: 'Ext.data.Model',
 	fields: [
 		{name: 'role_code', type:'string'},
-		{name: 'length_hours', type:'int'},
-		{name: 'whse_is_alt', type:'boolean'},
-		{name: 'whse_code', type:'string'}
+		{name: 'role_length', type:'number'},
+		{name: 'alt_whse_code', type:'string'}
 	]
 }) ;
-Ext.define('DbsPeopleRhRealDayModel', {
+Ext.define('DbsPeoplePeopledayAbsModel',{
 	extend: 'Ext.data.Model',
 	fields: [
+		{name: 'abs_code', type:'string'},
+		{name: 'abs_length', type:'number'}
+	]
+}) ;
+Ext.define('DbsPeoplePeopledayModel', {
+	extend: 'Ext.data.Model',
+	fields: [
+		{name: 'status_isVirtual',  type: 'boolean'},
 		{name: 'date_sql',  type: 'string'},
-		{name: 'people_id',  type: 'string'},
+		{name: 'people_code',  type: 'string'},
 		{name: 'people_name',   type: 'string'},
 		{name: 'people_techid',   type: 'string'},
-		{name: 'team_code',   type: 'string'},
-		{name: 'whse_code',   type: 'string'},
-		{name: 'whse_is_alt',   type: 'boolean'},
-		{name: 'missing', type:'boolean'}
+		{name: 'std_team_code',   type: 'string'},
+		{name: 'std_whse_code',   type: 'string'},
+		{name: 'std_role_code',   type: 'string'},
+		{name: 'std_abs_code',   type: 'string'},
+		{name: 'std_contract_code',   type: 'string'},
+		{name: 'std_daylength',   type: 'number'}
 	],
 	hasMany: [{
-		model: 'DbsPeopleRhRealDaySliceModel',
-		name: 'slices',
-		associationKey: 'slices'
+		model: 'DbsPeoplePeopledayWorkModel',
+		name: 'works',
+		associationKey: 'works'
+	},{
+		model: 'DbsPeoplePeopledayAbsModel',
+		name: 'abs',
+		associationKey: 'abs'
 	}]
 }) ;
 
+
+Ext.define('DbsPeopleRealRowModel', {
+	extend: 'Ext.data.Model',
+	fields: [
+		{name: 'whse_code',  type: 'string'},
+		{name: 'whse_isAlt', type:'boolean'},
+		{
+			name: 'whse_txt',
+			type: 'string',
+			convert: function(v, record) {
+				v = record.data.whse_code ;
+				return Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetById("WHSE",v).text ;
+			}
+		},
+		{name: 'team_code',  type: 'string'},
+		{
+			name: 'team_txt',
+			type: 'string',
+			convert: function(v, record) {
+				v = record.data.team_code ;
+				return Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetById("TEAM",v).text ;
+			}
+		},
+		{name: 'people_code',   type: 'string'},
+		{name: 'people_name',   type: 'string'},
+		{name: 'people_techid',   type: 'string'}
+	]
+});
 
 
 Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
@@ -39,6 +80,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 	
 	dateStart: null,
 	dateEnd: null,
+	
+	peopledayStore: null,
 	
 	remoteData: null ,
 	cfgData: null,
@@ -187,17 +230,46 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			Ext.ModelManager.unregister(Ext.ModelManager.getModel(modelName)) ;
 		}
 		
-		var modelFields = [
-        {name: 'isWhseAlt',  type: 'boolean'},
-        {name: 'rowHash',  type: 'string'},
-        {name: 'whse_code',  type: 'string'},
-        {name: 'whse_txt',  type: 'string'},
-        {name: 'team_code',  type: 'string'},
-        {name: 'team_txt',  type: 'string'},
-        {name: 'people_name',   type: 'string'},
-        {name: 'people_techid',   type: 'string'}
-		] ;
+		var roleRenderer = function(value, metaData, record, rowIndex, colIndex) {
+			var dateSql = this.headerCt.getHeaderAtIndex(colIndex).dateSql,
+				peopleCode = record.data.people_code,
+				peopledayId = peopleCode+'@'+dateSql,
+				peopledayRecord = me.peopledayStore.getById(peopledayId) ;
+			if( peopledayRecord == null ) {
+				return '' ;
+			}
+			if( peopledayRecord.data.status_isVirtual == true ) {
+				metaData.tdCls = 'op5-spec-dbspeople-realcell-virtual' ;
+				return peopledayRecord.data.std_role_code ;
+			}
+			
+			var rolesArr = [] ;
+			peopledayRecord.works().each( function(workRecord) {
+				rolesArr.push( workRecord.data.role_code ) ;
+			}) ;
+			return rolesArr.join('+') ;
+		};
+		var lengthRenderer = function(value, metaData, record, rowIndex, colIndex) {
+			var dateSql = this.headerCt.getHeaderAtIndex(colIndex).dateSql,
+				peopleCode = record.data.people_code,
+				peopledayId = peopleCode+'@'+dateSql,
+				peopledayRecord = me.peopledayStore.getById(peopledayId) ;
+			if( peopledayRecord == null ) {
+				return '' ;
+			}
+			if( peopledayRecord.data.status_isVirtual == true ) {
+				metaData.tdCls = 'op5-spec-dbspeople-realcell-virtual' ;
+				return peopledayRecord.data.std_daylength ;
+			}
+			
+			var workLength = [] ;
+			peopledayRecord.works().each( function(workRecord) {
+				workLength += workRecord.data.role_length ;
+			}) ;
+			return workLength ;
+		};
 		
+		var pushModelfields = [] ;
 		var columns = [{
 			locked: true,
 			text: 'Entrepôt',
@@ -220,21 +292,20 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			}
 		}] ;
 		for( var d = dateStart ; d <= dateEnd ; d.setDate( d.getDate() + 1 ) ) {
-			var dStr = Ext.Date.format(d,'Ymd') ;
-			modelFields = modelFields.concat([
-				{ name:'d_'+dStr+'_roleCode', type:'string' },
-				{ name:'d_'+dStr+'_lengthHours', type:'string' },
-				{ name:'d_'+dStr+'_isAbs', type:'boolean' },
-				{ name:'d_'+dStr+'_isWhseAlt', type:'boolean' },
-				{ name:'d_'+dStr+'_altText', type:'string' }
-			]) ;
+			var dStr = Ext.Date.format(d,'Ymd'),
+				dSql = Ext.Date.format(d,'Y-m-d');
+			
+			pushModelfields.push({ name:'d_'+dStr, type:'string' }) ;
 			
 			columns.push({
 				text: Optima5.Modules.Spec.DbsPeople.HelperCache.DayNamesIntl.FR[d.getDay()] + ' ' + Ext.Date.format(d,'d/m'),
+				dateSqlHead: dSql,
 				columns: [{
 					text: 'Role',
-					dataIndex: 'd_'+dStr+'_roleCode',
+					menuDisabled: true,
+					dataIndex: 'd_'+dStr,
 					dateHash: 'd_'+dStr,
+					dateSql: dSql,
 					width: 60,
 					align: 'center',
 					editor: {
@@ -257,36 +328,16 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 						},
 						matchFieldWidth: false
 					},
-					renderer: function( value, metaData, record, rowIndex, colIndex ) {
-						var dateHash = this.headerCt.getHeaderAtIndex(colIndex).dateHash ;
-						if( record.get(dateHash+'_isAbs') == true ) {
-							metaData.tdCls = 'op5-spec-dbspeople-realcolor-absent' ;
-							return 'Absent' ;
-						}
-						if( record.get(dateHash+'_isWhseAlt') == true ) {
-							metaData.tdCls = 'op5-spec-dbspeople-realcolor-whse' ;
-						}
-						
-						return value ;
-					}
+					renderer: roleRenderer
 				},{
 					text: 'Tmp',
-					dataIndex: 'd_'+dStr+'_lengthHours',
+					menuDisabled: true,
+					dataIndex: 'd_'+dStr,
 					dateHash: 'd_'+dStr,
+					dateSql: dSql,
 					width:50,
 					editor: {xtype: 'numberfield' },
-					renderer: function( value, metaData, record, rowIndex, colIndex ) {
-						var dateHash = this.headerCt.getHeaderAtIndex(colIndex).dateHash ;
-						if( record.get(dateHash+'_isAbs') == true ) {
-							metaData.tdCls = 'op5-spec-dbspeople-realcolor-absent' ;
-							return '' ;
-						}
-						if( record.get(dateHash+'_isWhseAlt') == true ) {
-							metaData.tdCls = 'op5-spec-dbspeople-realcolor-whse' ;
-						}
-						
-						return value ;
-					}
+					renderer: lengthRenderer
 				}]
 			}) ;
 		}
@@ -304,19 +355,13 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			Ext.applyIf( column, columnDefaults ) ;
 		}) ;
 		
-		Ext.define( modelName, {
-			extend: 'Ext.data.Model',
-			idProperty: 'rowHash',
-			fields: modelFields
-		}) ;
-		
 		
 		me.removeAll() ;
 		me.add({
 			border: false,
 			xtype:'grid',
 			store: {
-				model: modelName,
+				model: 'DbsPeopleRealRowModel',
 				data: [],
 				proxy:{
 					type:'memory'
@@ -363,6 +408,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			}],
 			columns: columns,
 			listeners: {
+				afterlayout: function( gridpanel ) {
+					gridpanel.headerCt.on('menucreate',me.onColumnsMenuCreate,me) ;
+				},
 				itemcontextmenu: function( gridview, record, node, index, e ) {
 					var cellNode = e.getTarget(gridview.cellSelector);
 					
@@ -386,6 +434,44 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			}
 		}) ;
 	},
+	
+	onColumnsMenuCreate: function( headerCt, menu ) {
+		var me = this;
+		if( true ) {
+			menu.add('-') ;
+			menu.add({
+				itemId: 'real-open',
+				iconCls: 'op5-crmbase-qresult-warning',
+				text: 'Ouverture Jour',
+				handler: function(menuitem) {
+					this.handleActionOpenDay( menuitem.up('menu').activeHeader.dateSqlHead ) ;
+				},
+				scope: this
+			});
+			menu.add({
+				itemId: 'real-valid-ceq',
+				iconCls: 'op5-crmbase-qresult-kchart-add' ,
+				text: 'Valid Chef d\'équipe',
+				handler: null
+			});
+			menu.add({
+				itemId: 'real-valid-rh',
+				iconCls: 'op5-crmbase-qresult-kchart-remove' ,
+				text: 'Valid RH',
+				handler: null
+			});
+		}
+		menu.on('beforeshow', me.onColumnsMenuBeforeShow, me);
+	},
+	onColumnsMenuBeforeShow: function( menu ) {
+		var me = this,
+			colCfg = menu.activeHeader.colCfg;
+		menu.down('#real-open').setVisible( colCfg.enable_open ) ;
+		menu.down('#real-valid-ceq').setVisible( colCfg.enable_valid_ceq ) ;
+		menu.down('#real-valid-rh').setVisible( colCfg.enable_valid_rh ) ;
+	},
+			
+	
 	
 	showLoadmask: function() {
 		if( this.rendered ) {
@@ -441,33 +527,27 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		var me = this,
 			remoteDataMap = {} ;
 			
-		var ajaxData = Ext.JSON.decode(response.responseText).data ;
-	
-		var record, dateSql, rowHash, dateHash ;
-		for( var idx=0 ; idx < ajaxData.length ; idx++ ) {
-			record = ajaxData[idx] ;
-			dateSql = record.date_sql ;
+		var jsonResponse = Ext.JSON.decode(response.responseText) ;
+		
+		var grid = me.child('grid') ;
+		Ext.Object.each( jsonResponse.columns, function( dSql, colCfg ) {
+			grid.headerCt.down('[dateSqlHead="'+dSql+'"]').colCfg = colCfg ;
+		},this) ;
 			
-			rowHash = record.whse_code + '@' + record.team_code + '@' + record.people_id ;
-			dateHash = 'd_' + dateSql.substr(0,4) + dateSql.substr(5,2) + dateSql.substr(8,2) ;
-			
-			record['rowHash'] = rowHash ;
-			record['dateHash'] = dateHash ;
-			
-			if( typeof remoteDataMap[rowHash] === 'undefined' ) {
-				remoteDataMap[rowHash] = {} ;
+		this.peopledayStore = Ext.create('Ext.data.Store',{
+			model: 'DbsPeoplePeopledayModel',
+			data: jsonResponse.data,
+			proxy:{
+				type:'memory'
 			}
-			remoteDataMap[rowHash][dateHash] = idx ;
-		}
-		me.remoteData = ajaxData ;
-		me.remoteDataMap = remoteDataMap ;
+		}) ;
 		
 		var grid = me.child('grid'),
 			store = grid.getStore(),
 			filter_site = me.down('#btnSite').getNode(),
 			filter_team = me.down('#btnTeam').getNode() ;
 		// inject inline data
-		store.loadRawData( me.buildGridData() ) ;
+		store.loadRawData( jsonResponse.rows ) ;
 		// cfg columns + groups
 		grid.headerCt.down('[dataIndex="whse_txt"]').setVisible( filter_site==null ) ;
 		grid.headerCt.down('[dataIndex="team_txt"]').setVisible( filter_team==null ) ;
@@ -486,8 +566,10 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		this.hideLoadmask();
 	},
 	
-	
 	buildGridData: function() {
+		
+	},
+	buildGridDataOLD: function() {
 		var me = this ;
 		if( me.remoteData == null ) {
 			return ;
@@ -695,6 +777,34 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		realAdvancedPanel.show();
 		realAdvancedPanel.getEl().alignTo(htmlNode, 'c-t?',[0,50]);
 	},
+	
+	
+	handleActionOpenDay: function( dSql ) {
+		Ext.MessageBox.confirm('Open day','Delete selected day '+dSql+' ?', function(buttonStr) {
+			if( buttonStr!='yes' ) {
+				return ;
+			}
+			
+			this.showLoadmask() ;
+		
+			var ajaxParams = {
+				_moduleId: 'spec_dbs_people',
+				_action: 'Real_openDay',
+				_subaction: 'delete',
+				date_toOpen: dSql
+			};
+			this.optimaModule.getConfiguredAjaxConnection().request({
+				params: ajaxParams,
+				success: function(response) {
+					this.hideLoadmask() ;
+					this.doLoad() ;
+				},
+				scope: this
+			}) ;
+			
+		},this) ;
+	},
+	
 	
 	handleQuit: function() {
 		this.destroy() ;
