@@ -32,6 +32,7 @@ function specDbsPeople_RH_getGrid($post_data) {
 		paracrm_lib_file_joinQueryRecord( 'PEOPLEDAY', $fake_row ) ;
 		
 		$join_map = array() ;
+		$join_map['field_STD_CONTRACT'] = 'contract_code' ;
 		$join_map['field_STD_WHSE'] = 'whse_code' ;
 		$join_map['field_STD_TEAM'] = 'team_code' ;
 		$join_map['field_STD_ROLE'] = 'role_code' ;
@@ -50,7 +51,7 @@ function specDbsPeople_RH_getGrid($post_data) {
 }
 
 function specDbsPeople_RH_getEventTypesMap() {
-	$ttmp = array('ROLE','WHSE','TEAM','ABS') ;
+	$ttmp = array('ROLE','WHSE','TEAM','ABS','CONTRACT') ;
 	
 	$map_file_field = array() ;
 	foreach( $ttmp as $mkey ) {

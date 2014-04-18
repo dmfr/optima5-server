@@ -94,6 +94,11 @@
 	background-repeat: no-repeat;
 	background-image: url("../images/op5img/ico_kuser_16.gif") !important;
 }
+.op5-spec-dbspeople-icon-contrat {
+	background-position: center center;
+	background-repeat: no-repeat;
+	background-image: url("../images/modules/dbspeople-contrat-16.png") !important;
+}
 
 .op5-spec-dbspeople-realcolorinfo {
 	background: white

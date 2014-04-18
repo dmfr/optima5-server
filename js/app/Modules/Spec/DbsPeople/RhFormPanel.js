@@ -52,13 +52,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhFormPanel',{
 					anchor: '',
 					width: 140
 				},{
-					xtype:'op5crmbasebibletreepicker',
-					bibleId: 'RH_PEOPLE',
-					fieldLabel: 'Contrat',
-					value: 'CDI',
-					selectMode: 'single',
-					optimaModule: me.optimaModule
-				},{
 					xtype:'fieldset',
 					title: 'Situation actuelle (instant T)',
 					defaults: {
@@ -66,6 +59,11 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhFormPanel',{
 						fieldBodyCls: '' // Otherwise height would be set at 22px
 					},
 					items:[{
+						xtype: 'displayfield',
+						fieldLabel: 'Contrat',
+						fieldStyle: 'font-weight: bold',
+						name: 'contract_txt'
+					},{
 						xtype: 'displayfield',
 						fieldLabel: 'Entrepôt',
 						fieldStyle: 'font-weight: bold',
@@ -137,6 +135,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhFormPanel',{
 								case 'ABS' :
 									value = 'op5-spec-dbspeople-icon-absence' ;
 									break ;
+								case 'CONTRACT' :
+									value = 'op5-spec-dbspeople-icon-contrat' ;
+									break ;
 									
 								default :
 									return value ;
@@ -158,6 +159,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhFormPanel',{
 									break ;
 								case 'ROLE' :
 									str += '<b>Role</b>:&#160;' ;
+									break ;
+								case 'CONTRACT' :
+									str += '<b>Contrat</b>:&#160;' ;
 									break ;
 								case 'ABS' :
 									str += '' ;

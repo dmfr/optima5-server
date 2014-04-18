@@ -43,6 +43,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhNewEventPanel',{
 				store: {
 					fields: ['eventType_code','eventType_txt','eventType_iconCls'],
 					data : [
+						{eventType_code:'CONTRACT',eventType_txt:'Contrat',eventType_iconCls:'op5-spec-dbspeople-icon-contrat'},
 						{eventType_code:'ABS',eventType_txt:'Absence',eventType_iconCls:'op5-spec-dbspeople-icon-absence'},
 						{eventType_code:'TEAM',eventType_txt:'Chgmt Equipe',eventType_iconCls:'op5-spec-dbspeople-icon-team'},
 						{eventType_code:'ROLE',eventType_txt:'Chgmt Rôle',eventType_iconCls:'op5-spec-dbspeople-icon-role'},

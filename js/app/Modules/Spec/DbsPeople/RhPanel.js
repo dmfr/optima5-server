@@ -6,6 +6,15 @@ Ext.define('DbsPeopleRhPeopleModel', {
 		{name: 'status_out',  type: 'boolean'},
 		{name: 'status_undefined',  type: 'boolean'},
 		{name: 'status_incident',  type: 'boolean'},
+		{name: 'contract_code',  type: 'string'},
+		{
+			name: 'contract_txt',
+			type: 'string',
+			convert: function(v, record) {
+				v = record.data.contract_code ;
+				return Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetById("CONTRACT",v).text ;
+			}
+		},
 		{name: 'whse_code',  type: 'string'},
 		{
 			name: 'whse_txt',

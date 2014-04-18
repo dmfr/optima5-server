@@ -119,11 +119,18 @@ function specDbsPeople_cfg_getCfgBibles() {
 	
 	$TAB = array() ;
 	
+	$query = "SELECT field_CONTRACT_CODE, field_CONTRACT_TXT FROM view_bible_CFG_CONTRACT_entry ORDER BY field_CONTRACT_CODE " ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$TAB['CONTRACT'][] = array('id'=>$arr[0],'text'=>$arr[1]) ;
+	}
+	
 	$query = "SELECT field_ROLE_CODE, field_ROLE_TXT FROM view_bible_CFG_ROLE_entry ORDER BY field_ROLE_CODE " ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 		$TAB['ROLE'][] = array('id'=>$arr[0],'text'=>$arr[1]) ;
 	}
+	
 	$query = "SELECT field_ABS_CODE, field_ABS_TXT FROM view_bible_CFG_ABS_entry ORDER BY field_ABS_CODE" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
@@ -145,5 +152,28 @@ function specDbsPeople_cfg_getCfgBibles() {
 	return array('success'=>true, 'data'=>$TAB) ;
 }
 
+function specDbsPeople_tool_getContracts() {
+	global $_opDB ;
+	
+	$TAB = array() ;
+	$query = "SELECT * FROM view_bible_CFG_CONTRACT_entry" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$contract_code = $arr['field_CONTRACT_CODE'] ;
+		
+		$std_dayson = array() ;
+		foreach( json_decode($arr['field_STD_DAYSON'],true) as $ISO8601_day ) {
+			$std_dayson[$ISO8601_day] = TRUE ;
+		}
+		
+		$TAB[$contract_code] = array(
+			'contract_code' => $contract_code,
+			'contract_txt' => $arr['field_CONTRACT_TXT'],
+			'std_dayson' => $std_dayson,
+			'std_daylength' => $arr['field_STD_DAYLENGTH']
+		);
+	}
+	return $TAB ;
+}
 
 ?>
