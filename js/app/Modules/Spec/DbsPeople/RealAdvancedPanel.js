@@ -29,8 +29,13 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 			gridWhse = me.gridRecord.get('whse_code'),
 			stdWhse = me.peopledayRecord.get('std_whse_code'),
 			altWhse = ( stdWhse != gridWhse ? gridWhse : null ),
+			absMode, absCode,
 			slices = Ext.pluck( me.peopledayRecord.works().getRange(), 'data' ),
 			slice ;
+		if( me.peopledayRecord.abs().getCount() > 0 ) {
+			absMode = true ;
+			absCode = me.peopledayRecord.abs().getAt(0).data.abs_code ;
+		}
 		for( var idx=0 ; idx<slices.length ; idx++ ) {
 			slice = slices[idx] ;
 			
@@ -104,13 +109,45 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 					},
 					items: [{
 						xtype:'checkbox',
+						itemId: 'absCheckbox',
 						boxLabel: 'Absent',
 						hidden: altWhse,
-						checked: false
+						checked: absMode,
+						listeners: {
+							change: function() {
+								this.calcLayout() ;
+							},
+							scope: this
+						}
 					}]
 				}]
 			},{
+				xtype:'form',
+				flex:1,
+				bodyPadding: 5,
+				bodyCls: 'ux-noframe-bg',
+				itemId: 'absPanel',
+				hidden: true,
+				items: [{
+					xtype:'combobox',
+					matchFieldWidth:false,
+					listConfig:{width:200},
+					forceSelection:true,
+					allowBlank:false,
+					editable:false,
+					queryMode: 'local',
+					displayField: 'text',
+					valueField: 'id',
+					fieldLabel: 'Motif',
+					value: absCode,
+					store: {
+						fields:['id','text'],
+						data: Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll("ABS")
+					}
+				}]
+			},{
 				xtype:'grid',
+				itemId: 'slicesPanel',
 				flex:1,
 				columns:[{
 					text:'Type',
@@ -277,18 +314,17 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 		});
 		
 		this.callParent() ;
+		this.calcLayout() ;
 	},
 	calcLayout: function() {
 		var me = this,
-			form = this.getForm() ;
+			absCheckbox = this.down('#absCheckbox'),
+			absPanel = this.down('#absPanel'),
+			slicesPanel = this.down('#slicesPanel') ;
+		
+		absPanel.setVisible(absCheckbox.getValue()) ;
+		slicesPanel.setVisible(!absCheckbox.getValue()) ;
 		return ;
-		if( form.getValues()['promotion_class'] == 'PROD' ) {
-			form.findField('brand_code').setValue('WONDERFUL') ;
-			form.findField('brand_code').setVisible(false) ;
-		} else {
-			form.findField('brand_code').clearValue() ;
-			form.findField('brand_code').setVisible(true) ;
-		}
 	},
 	
 	onBtnAdd: function( tClass ) {
@@ -326,8 +362,12 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 			
 		} else if( this.query('checkbox')[0].getValue() == true ) {
 			// Mode absence
-			
+			var absCode = this.down('#absPanel').down('combobox').getValue() ;
+			me.peopledayRecord.abs().removeAll() ;
+			me.peopledayRecord.works().removeAll() ;
+			me.peopledayRecord.abs().add({abs_code:absCode, abs_length:me.peopledayRecord.data.std_daylength}) ;
 		} else {
+			me.peopledayRecord.abs().removeAll() ;
 			me.peopledayRecord.works().removeAll() ;
 			if( this.child('grid').getStore().getCount() == 0 ) {
 				me.peopledayRecord.works().add({role_code:me.peopledayRecord.data.std_role_code, role_length:me.peopledayRecord.data.std_daylength}) ;

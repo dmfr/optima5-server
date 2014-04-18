@@ -250,6 +250,15 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				return peopledayRecord.data.std_role_code ;
 			}
 			
+			if( peopledayRecord.abs().getCount() > 0 ) {
+				var absCode = peopledayRecord.abs().getAt(0).data.abs_code ;
+				if( absCode != peopledayRecord.data.std_abs_code ) {
+					metaData.tdCls += ' op5-spec-dbspeople-realcolor-absent' ;
+				} else {
+					metaData.tdCls += ' op5-spec-dbspeople-realcell-absent' ;
+				}
+				return (absCode!=null ? absCode : '') ;
+			}
 			
 			var rolesArr = [] ;
 			peopledayRecord.works().each( function(workRecord) {
@@ -263,6 +272,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				}
 				rolesArr.push( workRecord.data.role_code ) ;
 			}) ;
+			if( rolesArr.length > 1 || ( rolesArr[0] != '@' && rolesArr[0] != peopledayRecord.data.std_role_code ) ) {
+				metaData.tdCls += ' op5-spec-dbspeople-realcell-diff' ;
+			}
 			return rolesArr.join('+') ;
 		};
 		var lengthRenderer = function(value, metaData, record, rowIndex, colIndex) {
@@ -284,6 +296,16 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				return peopledayRecord.data.std_daylength ;
 			}
 			
+			if( peopledayRecord.abs().getCount() > 0 ) {
+				var absCode = peopledayRecord.abs().getAt(0).data.abs_code ;
+				if( absCode != peopledayRecord.data.std_abs_code ) {
+					metaData.tdCls += ' op5-spec-dbspeople-realcolor-absent' ;
+				} else {
+					metaData.tdCls += ' op5-spec-dbspeople-realcell-absent' ;
+				}
+				return '' ;
+			}
+			
 			var workLength = 0 ;
 			peopledayRecord.works().each( function(workRecord) {
 				if( rowIsAltWhse && workRecord.data.alt_whse_code != rowWhseCode ) {
@@ -294,6 +316,15 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				}
 				workLength += workRecord.data.role_length ;
 			}) ;
+			
+			if( !rowIsAltWhse && workLength != peopledayRecord.data.std_daylength ) {
+				if( workLength > peopledayRecord.data.std_daylength ) {
+					metaData.tdCls += ' op5-spec-dbspeople-balance-pos' ;
+				} else {
+					metaData.tdCls += ' op5-spec-dbspeople-balance-neg' ;
+				}
+			}
+			
 			return workLength ;
 		};
 		
@@ -418,7 +449,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				lockableScope: 'normal'
 			},{
 				ptype: 'bufferedrenderer',
-				lockableScope: 'both'
+				lockableScope: 'both',
+				synchronousRender: true
 			}],
 			features: [{
 				//groupHeaderTpl: '{name}',
@@ -570,7 +602,11 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		
 		var grid = me.child('grid') ;
 		Ext.Object.each( jsonResponse.columns, function( dSql, colCfg ) {
-			grid.headerCt.down('[dateSqlHead="'+dSql+'"]').colCfg = colCfg ;
+			var column = grid.headerCt.down('[dateSqlHead="'+dSql+'"]') ;
+			column.colCfg = colCfg ;
+			Ext.Array.each( column.query('gridcolumn'), function(subCol) {
+				subCol.tdCls = ( colCfg.status_isOpen ? 'op5-spec-dbspeople-realcolor-open':'') ;
+			}) ;
 		},this) ;
 			
 		this.peopledayStore = Ext.create('Ext.data.Store',{

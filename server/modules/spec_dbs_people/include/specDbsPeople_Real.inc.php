@@ -207,6 +207,9 @@ function specDbsPeople_Real_getData( $post_data ) {
 			$TAB_columns[$sql_date]['enable_valid_ceq'] = FALSE ;
 			$TAB_columns[$sql_date]['enable_valid_rh'] = FALSE ;
 		}
+		if( $TAB_columns[$sql_date]['enable_valid_ceq'] || $TAB_columns[$sql_date]['enable_valid_rh'] ) {
+			$TAB_columns[$sql_date]['status_isOpen'] = TRUE ;
+		}
 	}
 
 	return array('success'=>true, 'data'=>$TAB_data, 'rows'=>array_values($TAB_rows), 'columns'=>$TAB_columns) ;
