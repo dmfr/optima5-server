@@ -18,6 +18,8 @@ switch( $post_data['_action'] )
 	return specDbsPeople_Real_getData( $post_data ) ;
 	case 'Real_openDay' :
 	return specDbsPeople_Real_openDay( $post_data ) ;
+	case 'Real_saveRecord' :
+	return specDbsPeople_Real_saveRecord( $post_data ) ;
 	
 	case 'cfg_getTree' :
 	return specDbsPeople_cfg_getTree( $post_data ) ;

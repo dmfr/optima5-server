@@ -21,27 +21,41 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 		if( (me.parentRealPanel) instanceof Optima5.Modules.Spec.DbsPeople.RealPanel ) {} else {
 			Optima5.Helper.logError('Spec:DbsPeople:RealAdvancedPanel','No parent reference ?') ;
 		}
-		if( (me.remoteDataRecord) ) {} else {
-			Optima5.Helper.logError('Spec:DbsPeople:RealAdvancedPanel','No remoteDataRecord instance ?') ;
+		if( (me.peopledayRecord) ) {} else {
+			Optima5.Helper.logError('Spec:DbsPeople:RealAdvancedPanel','No peopledayRecord instance ?') ;
 		}
 		
 		var storeData = [],
-			slices = me.remoteDataRecord.slices,
+			gridWhse = me.gridRecord.get('whse_code'),
+			stdWhse = me.peopledayRecord.get('std_whse_code'),
+			altWhse = ( stdWhse != gridWhse ? gridWhse : null ),
+			slices = Ext.pluck( me.peopledayRecord.works().getRange(), 'data' ),
 			slice ;
 		for( var idx=0 ; idx<slices.length ; idx++ ) {
 			slice = slices[idx] ;
 			
-			if( slice.whse_is_alt ) {
+			if( altWhse != null ) {
+				if( slice.alt_whse_code==altWhse ) {
+					storeData.push({
+						class:'ROLE',
+						code:slice.role_code,
+						length_hours: slice.role_length
+					});
+				}
+				continue ;
+			}
+			
+			if( slice.alt_whse_code ) {
 				storeData.push({
 					class:'WHSE',
-					code:slice.whse_code,
-					length_hours: slice.length_hours
+					code:slice.alt_whse_code,
+					length_hours: slice.role_length
 				});
 			} else {
 				storeData.push({
 					class:'ROLE',
 					code:slice.role_code,
-					length_hours: slice.length_hours
+					length_hours: slice.role_length
 				});
 			}
 		}
@@ -71,11 +85,11 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 					items: [{
 						xtype:'displayfield',
 						fieldLabel: 'Nom',
-						value: '<b>' + me.remoteDataRecord.people_name + '</b>'
+						value: '<b>' + me.peopledayRecord.get('people_name') + '</b>'
 					},{
 						xtype:'displayfield',
 						fieldLabel: 'Date',
-						value: '<b>' + Ext.Date.format( Ext.Date.parse(me.remoteDataRecord.date_sql,'Y-m-d'), 'd/m/Y') + '</b>'
+						value: '<b>' + Ext.Date.format( Ext.Date.parse(me.peopledayRecord.get('date_sql'),'Y-m-d'), 'd/m/Y') + '</b>'
 					}]
 				},{
 					xtype:'fieldcontainer',
@@ -91,6 +105,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 					items: [{
 						xtype:'checkbox',
 						boxLabel: 'Absent',
+						hidden: altWhse,
 						checked: false
 					}]
 				}]
@@ -211,11 +226,11 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 							switch( record.get('class') ) {
 								case 'ROLE' :
 									columns[0].getEditor().update({iconCls:'op5-spec-dbspeople-icon-role'}) ;
-									columns[1].getEditor().getStore().loadData( me.parentRealPanel.devCfgData.ROLE ) ;
+									columns[1].getEditor().getStore().loadData( Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll("ROLE") ) ;
 									break ;
 								case 'WHSE' :
 									columns[0].getEditor().update({iconCls:'op5-spec-dbspeople-icon-move'}) ;
-									columns[1].getEditor().getStore().loadData( me.parentRealPanel.devCfgData.WHSE ) ;
+									columns[1].getEditor().getStore().loadData( Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll("WHSE") ) ;
 									break ;
 							}
 						},
@@ -227,6 +242,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 				}],
 				dockedItems: [{
 					xtype: 'toolbar',
+					hidden: altWhse,
 					items: [{
 						itemId: 'add',
 						text: 'Add',
@@ -300,27 +316,34 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 	
 	doSave: function() {
 		var me = this ;
-		// Store back !!
-		if( this.query('checkbox')[0].getValue() == true ) {
-			console.log('absent!') ;
-			me.remoteDataRecord.missing = true ;
-			me.remoteDataRecord.slices = [] ;
+			
+		var gridWhse = me.gridRecord.get('whse_code'),
+			stdWhse = me.peopledayRecord.get('std_whse_code'),
+			altWhse = ( stdWhse != gridWhse ? gridWhse : null );
+			
+		if( altWhse != null ) {
+			// Mode autre warehouse
+			
+		} else if( this.query('checkbox')[0].getValue() == true ) {
+			// Mode absence
+			
 		} else {
-			me.remoteDataRecord.missing = false ;
+			me.peopledayRecord.works().removeAll() ;
 			if( this.child('grid').getStore().getCount() == 0 ) {
-				me.remoteDataRecord.slices = [{role_code:me.remoteDataRecord.std_role_code, length_hours:me.remoteDataRecord.std_length_hours}] ;
+				me.peopledayRecord.works().add({role_code:me.peopledayRecord.data.std_role_code, role_length:me.peopledayRecord.data.std_daylength}) ;
 			} else {
 				var slices = [] ;
 				this.child('grid').getStore().each( function(rec){
 					switch( rec.get('class') ) {
 						case 'ROLE' :
-							slices.push({role_code:rec.get('code'), length_hours:rec.get('length_hours')}) ;
+							slices.push({role_code:rec.get('code'), role_length:rec.get('length_hours')}) ;
 							break ;
 						case 'WHSE' :
-							slices.push({whse_is_alt:true, whse_code:rec.get('code'), length_hours:rec.get('length_hours')}) ;
+							slices.push({alt_whse_code:rec.get('code'), role_code:me.peopledayRecord.data.std_role_code, role_length:rec.get('length_hours')}) ;
+							break ;
 					}
 				}) ;
-				me.remoteDataRecord.slices = slices ;
+				me.peopledayRecord.works().add(slices) ;
 			}
 		}
 	}

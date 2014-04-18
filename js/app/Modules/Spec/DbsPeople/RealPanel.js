@@ -64,7 +64,8 @@ Ext.define('DbsPeopleRealRowModel', {
 		},
 		{name: 'people_code',   type: 'string'},
 		{name: 'people_name',   type: 'string'},
-		{name: 'people_techid',   type: 'string'}
+		{name: 'people_techid',   type: 'string'},
+		{name: 'dummy',   type: 'string'}
 	]
 });
 
@@ -231,6 +232,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		}
 		
 		var roleRenderer = function(value, metaData, record, rowIndex, colIndex) {
+			var rowWhseCode = record.get('whse_code'),
+				rowIsAltWhse = record.get('whse_isAlt') ;
+				
 			var dateSql = this.headerCt.getHeaderAtIndex(colIndex).dateSql,
 				peopleCode = record.data.people_code,
 				peopledayId = peopleCode+'@'+dateSql,
@@ -239,17 +243,32 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				return '' ;
 			}
 			if( peopledayRecord.data.status_isVirtual == true ) {
-				metaData.tdCls = 'op5-spec-dbspeople-realcell-virtual' ;
+				if( rowIsAltWhse ) {
+					return '' ;
+				}
+				metaData.tdCls += ' op5-spec-dbspeople-realcell-virtual' ;
 				return peopledayRecord.data.std_role_code ;
 			}
 			
+			
 			var rolesArr = [] ;
 			peopledayRecord.works().each( function(workRecord) {
+				if( rowIsAltWhse && workRecord.data.alt_whse_code != rowWhseCode ) {
+					return ;
+				}
+				if( workRecord.data.alt_whse_code && !rowIsAltWhse ) {
+					rolesArr.push('@') ;
+					metaData.tdCls += ' op5-spec-dbspeople-realcolor-whse' ;
+					return ;
+				}
 				rolesArr.push( workRecord.data.role_code ) ;
 			}) ;
 			return rolesArr.join('+') ;
 		};
 		var lengthRenderer = function(value, metaData, record, rowIndex, colIndex) {
+			var rowWhseCode = record.get('whse_code'),
+				rowIsAltWhse = record.get('whse_isAlt') ;
+				
 			var dateSql = this.headerCt.getHeaderAtIndex(colIndex).dateSql,
 				peopleCode = record.data.people_code,
 				peopledayId = peopleCode+'@'+dateSql,
@@ -258,12 +277,21 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				return '' ;
 			}
 			if( peopledayRecord.data.status_isVirtual == true ) {
-				metaData.tdCls = 'op5-spec-dbspeople-realcell-virtual' ;
+				if( rowIsAltWhse ) {
+					return '' ;
+				}
+				metaData.tdCls += ' op5-spec-dbspeople-realcell-virtual' ;
 				return peopledayRecord.data.std_daylength ;
 			}
 			
-			var workLength = [] ;
+			var workLength = 0 ;
 			peopledayRecord.works().each( function(workRecord) {
+				if( rowIsAltWhse && workRecord.data.alt_whse_code != rowWhseCode ) {
+					return ;
+				}
+				if( workRecord.data.alt_whse_code && !rowIsAltWhse ) {
+					metaData.tdCls += ' op5-spec-dbspeople-realcolor-whse' ;
+				}
 				workLength += workRecord.data.role_length ;
 			}) ;
 			return workLength ;
@@ -295,7 +323,18 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			var dStr = Ext.Date.format(d,'Ymd'),
 				dSql = Ext.Date.format(d,'Y-m-d');
 			
-			pushModelfields.push({ name:'d_'+dStr, type:'string' }) ;
+			pushModelfields.push({
+				name:'d_'+dStr,
+				type:'string'
+			}) ;
+			pushModelfields.push({
+				name:'d_'+dStr+'_role',
+				type:'string'
+			}) ;
+			pushModelfields.push({
+				name:'d_'+dStr+'_tmp',
+				type:'string'
+			}) ;
 			
 			columns.push({
 				text: Optima5.Modules.Spec.DbsPeople.HelperCache.DayNamesIntl.FR[d.getDay()] + ' ' + Ext.Date.format(d,'d/m'),
@@ -303,7 +342,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				columns: [{
 					text: 'Role',
 					menuDisabled: true,
-					dataIndex: 'd_'+dStr,
+					//dataIndex: 'd_'+dStr+'_role',
 					dateHash: 'd_'+dStr,
 					dateSql: dSql,
 					width: 60,
@@ -332,7 +371,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				},{
 					text: 'Tmp',
 					menuDisabled: true,
-					dataIndex: 'd_'+dStr,
+					//dataIndex: 'd_'+dStr+'_tmp',
 					dateHash: 'd_'+dStr,
 					dateSql: dSql,
 					width:50,
@@ -416,18 +455,18 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 					
 					var gridRecord = record,
 						column = gridview.getHeaderByCell(cellNode),
-						rowHash = gridRecord.get('rowHash'),
-						dateHash = column.dateHash,
-						remoteDataIdx = this.remoteDataMap[rowHash][dateHash],
-						remoteDataRecord = this.remoteData[remoteDataIdx] ;
+						dateSql = column.dateSql,
+						peopleCode = gridRecord.data.people_code,
+						peopledayId = peopleCode+'@'+dateSql,
+						peopledayRecord = this.peopledayStore.getById(peopledayId) ;
 					
-					me.openAdvanced( remoteDataRecord, cellNode ) ;
+					me.openAdvanced( peopledayRecord, gridRecord, cellNode ) ;
 				},
 				scope: me
 			},
 			viewConfig: {
 				getRowClass: function(record) {
-					if( record.get('isWhseAlt') ) {
+					if( record.get('whse_isAlt') ) {
 						return 'op5-spec-dbspeople-realcolor-whse' ;
 					}
 				}
@@ -566,152 +605,89 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		this.hideLoadmask();
 	},
 	
-	buildGridData: function() {
-		
-	},
-	buildGridDataOLD: function() {
-		var me = this ;
-		if( me.remoteData == null ) {
-			return ;
-		}
-		
-		var obj_peopleId_objPeopleInfo = {} ;
-		var obj_peopleId_objDateSlices = {} ;
-		var record, rowHash, dateHash ;
-		for( var idx=0 ; idx < me.remoteData.length ; idx++ ) {
-			record = me.remoteData[idx] ;
-			rowHash = record.rowHash ;
-			dateHash = record.dateHash ;
-			
-			var peopleId = record.people_id ;
-			if( typeof obj_peopleId_objPeopleInfo[peopleId] === 'undefined' ) {
-				obj_peopleId_objPeopleInfo[peopleId] = {
-					people_id: peopleId,
-					people_name: record.people_name, 
-					people_techid: record.people_techid
-				};
-			}
-			
-			if( typeof obj_peopleId_objDateSlices[rowHash] === 'undefined' ) {
-				obj_peopleId_objDateSlices[rowHash] = {} ;
-				obj_peopleId_objDateSlices[rowHash]['rowHash'] = rowHash ;
-				obj_peopleId_objDateSlices[rowHash]['people_id'] = peopleId ;
-				obj_peopleId_objDateSlices[rowHash]['team_code'] = record.team_code ;
-				obj_peopleId_objDateSlices[rowHash]['whse_code'] = record.whse_code ;
-				obj_peopleId_objDateSlices[rowHash]['isWhseAlt'] = (record.alt_whse_code == true) ;
-				obj_peopleId_objDateSlices[rowHash]['columns'] = {} ;
-			}
-			obj_peopleId_objDateSlices[rowHash]['columns'][dateHash] = record.slices ;
-		} ;
-		
-		var gridData = [] ;
-		var gridRow, teamCode, whseCode, peopleId, peopleInfo ;
-		var slices, slice, gridRoles, gridLength, isWhseAlt ;
-		for( rowHash in obj_peopleId_objDateSlices ) {
-			peopleId = obj_peopleId_objDateSlices[rowHash]['people_id'] ;
-			teamCode = obj_peopleId_objDateSlices[rowHash]['team_code'] ;
-			whseCode = obj_peopleId_objDateSlices[rowHash]['whse_code'] ;
-			isWhseAlt = obj_peopleId_objDateSlices[rowHash]['isWhseAlt'] ;
-			peopleInfo = obj_peopleId_objPeopleInfo[peopleId] ;
-			
-			gridRow = {} ;
-			gridRow['rowHash'] = rowHash ;
-			gridRow['isWhseAlt'] = isWhseAlt ;
-			gridRow['team_code'] = teamCode ;
-			gridRow['team_txt'] = this.helperGetTeamTxt( teamCode ) ;
-			gridRow['whse_code'] = whseCode ;
-			gridRow['whse_txt'] = this.helperGetWhseTxt( whseCode ) ;
-			gridRow['people_id'] = peopleId ;
-			gridRow['people_name'] = peopleInfo['people_name'] ;
-			gridRow['people_techid'] = peopleInfo['people_techid'] ;
-			
-			for( dateHash in obj_peopleId_objDateSlices[rowHash]['columns'] ) {
-				slices = obj_peopleId_objDateSlices[rowHash]['columns'][dateHash] ;
-				
-				gridRoles = [] ;
-				gridLength = 0 ;
-				isWhseAlt = false ;
-				for( var idx=0 ; idx < slices.length ; idx++ ) {
-					slice = slices[idx] ;
-					if( slice.length_hours <= 0 ) {
-						continue ;
-					}
-					gridLength += slice.length_hours ;
-					if( slice.role_code ) {
-						gridRoles.push( slice.role_code ) ;
-					} else if( slice.whse_is_alt ) {
-						gridRoles.push( slice.whse_code ) ;
-						isWhseAlt = true ;
-					}
-				}
-				
-				var lengthKey = dateHash+'_lengthHours',
-					roleKey =  dateHash+'_roleCode',
-					isWhseAltKey =  dateHash+'_isWhseAlt' ;
-				
-				
-				gridRow[roleKey] = gridRoles.join('+') ;
-				gridRow[lengthKey] = gridLength ;
-				gridRow[isWhseAltKey] = isWhseAlt ;
-			}
-			
-			gridData.push(gridRow) ;
-		}
-
-		return gridData ;
-	},
 	
 	onGridBeforeEdit: function( editor, editEvent ) {
 		var gridRecord = editEvent.record,
 			column = editEvent.column,
 			colIdx = editEvent.colIdx,
-			rowHash = gridRecord.get('rowHash'),
-			dateHash = column.dateHash,
-			remoteDataIdx = this.remoteDataMap[rowHash][dateHash],
-			remoteDataRecord = this.remoteData[remoteDataIdx] ;
+			dateSql = column.dateSql,
+			peopleCode = gridRecord.data.people_code,
+			peopledayId = peopleCode+'@'+dateSql,
+			peopledayRecord = this.peopledayStore.getById(peopledayId),
+			peopledayWorkRecords = peopledayRecord.works().getRange() ;
 		
-		if( remoteDataRecord.slices.length != 1 || remoteDataRecord.slices[0].whse_is_alt ) {
+			
+		if( peopledayRecord.data.status_isVirtual == true ) {
+			return false ;
+		}
+		if( peopledayWorkRecords.length != 1 || !Ext.isEmpty(peopledayWorkRecords[0].data.alt_whse_code) ) {
 			var cellNode = Ext.DomQuery.select( '.x-grid-cell', editEvent.row )[colIdx] ;
 			console.dir(cellNode) ;
-			this.openAdvanced( remoteDataRecord, cellNode ) ;
+			this.openAdvanced( peopledayRecord, gridRecord, cellNode ) ;
 			return false ;
 		}
 		
+		var peopledayWorkData = peopledayWorkRecords[0].data ;
+		
 		var editorField = editEvent.column.getEditor() ;
-		console.dir( editorField ) ;
-		if( editorField && editorField.ROLE ) {
-			editorField.getStore().loadData( Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll("ROLE") ) ;
-			editorField.on('select',function() {
-				editor.completeEdit() ;
-			},this,{single:true});
+		switch( editorField.getXType() ) {
+			case 'combobox' :
+				editorField.getStore().loadData( Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll("ROLE") ) ;
+				editorField.setValue( peopledayWorkData.role_code ) ;
+				editorField.on('select',function() {
+					editor.completeEdit() ;
+				},this,{single:true});
+				break ;
+			case 'numberfield' :
+				editorField.setValue( peopledayWorkData.role_length ) ;
+				break ;
+				
+			default :
+				return false ;
 		}
 	},
 	onGridAfterEdit: function( editor, editEvent ) {
 		var gridRecord = editEvent.record,
 			column = editEvent.column,
-			rowHash = gridRecord.get('rowHash'),
-			dateHash = column.dateHash,
-			remoteDataIdx = this.remoteDataMap[rowHash][dateHash],
-			remoteDataRecord = this.remoteData[remoteDataIdx] ;
-			
-		var lengthKey = dateHash+'_lengthHours',
-			roleKey =  dateHash+'_roleCode' ;
+			colIdx = editEvent.colIdx,
+			dateSql = column.dateSql,
+			peopleCode = gridRecord.data.people_code,
+			peopledayId = peopleCode+'@'+dateSql,
+			peopledayRecord = this.peopledayStore.getById(peopledayId),
+			peopledayWorkRecords = peopledayRecord.works().getRange() ;
+		if( peopledayRecord.data.status_isVirtual == true ) {
+			return false ;
+		}
+		if( peopledayWorkRecords.length != 1 || !Ext.isEmpty(peopledayWorkRecords[0].data.alt_whse_code) ) {
+			return false ;
+		}
 		
-		// Store back slice into remoteData
-		remoteDataRecord.slices = [{
-			role_code: gridRecord.get(roleKey),
-			length_hours: gridRecord.get(lengthKey)
-		}] ;
-			
-		console.dir(remoteDataRecord) ;
+		var peopledayWorkRecord = peopledayWorkRecords[0] ;
+		var editorField = editEvent.column.getEditor() ;
+		switch( editorField.getXType() ) {
+			case 'combobox' :
+				peopledayWorkRecord.set('role_code',editorField.getValue()) ;
+				break ;
+			case 'numberfield' :
+				peopledayWorkRecord.set('role_length',editorField.getValue()) ;
+				break ;
+				
+			default :
+				return false ;
+		}
+		
+		gridRecord.set( 'dummy', null );
+		gridRecord.commit() ;
+		this.remoteSavePeopledayRecord( peopledayRecord ) ;
 	},
 	
-	openAdvanced: function( remoteDataRecord, htmlNode ) {
+	openAdvanced: function( remoteDataRecord, gridRecord, htmlNode ) {
 		var me = this ;
 		
 		var realAdvancedPanel = Ext.create('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 			parentRealPanel: me,
-			remoteDataRecord: remoteDataRecord,
+			gridRecord: gridRecord,
+			peopledayRecord: remoteDataRecord,
 			width:800, // dummy initial size, for border layout to work
 			height:600, // ...
 			floating: true,
@@ -720,46 +696,15 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				type: 'close',
 				handler: function(e, t, p) {
 					p.ownerCt.doSave() ;
-					if( p.ownerCt.remoteDataRecord ) {
-						var remoteDataRecord = p.ownerCt.remoteDataRecord ;
-						var slices = remoteDataRecord.slices ;
-						
-						var rowHash = remoteDataRecord.rowHash ;
-						var dateHash = remoteDataRecord.dateHash ;
-						
-						var gridRoles = [] ;
-						var gridLength = 0 ;
-						var isWhseAlt = false ;
-						for( var idx=0 ; idx < slices.length ; idx++ ) {
-							slice = slices[idx] ;
-							if( slice.length_hours <= 0 ) {
-								continue ;
-							}
-							gridLength += slice.length_hours ;
-							if( slice.role_code ) {
-								gridRoles.push( slice.role_code ) ;
-							} else if( slice.whse_is_alt ) {
-								gridRoles.push( slice.whse_code ) ;
-								isWhseAlt = true ;
-							}
-						}
-						
-						var lengthKey = dateHash+'_lengthHours',
-							roleKey =  dateHash+'_roleCode',
-							isAbsKey =  dateHash+'_isAbs',
-							isWhseAltKey =  dateHash+'_isWhseAlt' ;
-							
-						var updateObj = {} ;
-						updateObj[roleKey] = gridRoles.join('+') ;
-						updateObj[lengthKey] = gridLength ;
-						updateObj[isAbsKey] = remoteDataRecord.missing ;
-						updateObj[isWhseAltKey] = isWhseAlt ;
-						console.dir(updateObj) ;
-						
-						me.child('grid').getStore().getById(rowHash).set(updateObj) ;
-					}
+					
+					p.ownerCt.gridRecord.set( 'dummy', null );
+					p.ownerCt.gridRecord.commit() ;
+					
+					this.remoteSavePeopledayRecord( p.ownerCt.peopledayRecord ) ;
+
 					p.ownerCt.destroy();
-				}
+				},
+				scope: this
 			}]
 		});
 		
@@ -790,7 +735,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			var ajaxParams = {
 				_moduleId: 'spec_dbs_people',
 				_action: 'Real_openDay',
-				_subaction: 'delete',
 				date_toOpen: dSql
 			};
 			this.optimaModule.getConfiguredAjaxConnection().request({
@@ -803,6 +747,24 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			}) ;
 			
 		},this) ;
+	},
+	
+	
+	remoteSavePeopledayRecord: function( peopledayRecord ) {
+		var ajaxParams = {
+			_moduleId: 'spec_dbs_people',
+			_action: 'Real_saveRecord',
+			data: Ext.JSON.encode( peopledayRecord.getData(true) )
+		};
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams,
+			success: function(response) {
+				if( Ext.JSON.decode(response.responseText).success != true ) {
+					
+				}
+			},
+			scope: this
+		}) ;
 	},
 	
 	

@@ -126,6 +126,22 @@ function specDbsPeople_Real_getData( $post_data ) {
 		$buildTAB[$cur_date][$people_code]['works'][] = $work ;
 	}
 	
+	$query = "SELECT pd.field_PPL_CODE , DATE(pd.field_DATE) AS date_DATE , pda.*
+				FROM view_file_PEOPLEDAY pd , view_file_PEOPLEDAY_ABS pda
+				WHERE pd.filerecord_id = pda.filerecord_parent_id
+				AND pd.field_DATE BETWEEN '{$post_data['date_start']}' AND '{$post_data['date_end']}'" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$cur_date = $arr['date_DATE'] ;
+		$people_code = $arr['field_PPL_CODE'] ;
+	
+		$abs = array(
+			'abs_code' => $arr['field_ABS_CODE'],
+			'abs_length' => $arr['field_ABS_LENGTH']
+		) ;
+		$buildTAB[$cur_date][$people_code]['abs'][] = $abs ;
+	}
+	
 	
 	$TAB_data = array() ;
 	$TAB_rows = array() ;
@@ -161,6 +177,30 @@ function specDbsPeople_Real_getData( $post_data ) {
 			}
 			if( !$peopleday_record['status_isValidRh'] ) {
 				$TAB_columns[$sql_date]['enable_valid_rh'] = TRUE ;
+			}
+			
+			$alt_whse_codes = array() ;
+			if( $peopleday_record['works'] ) {
+				foreach( $peopleday_record['works'] as $work ) {
+					if( $work['alt_whse_code'] && !in_array($work['alt_whse_code'],$alt_whse_codes) ) {
+						$alt_whse_codes[] = $work['alt_whse_code'] ;
+					}
+				}
+			}
+			foreach( $alt_whse_codes as $alt_whse_code ) {
+				$std_rowHash = $alt_whse_code.'%'.$peopleday_record['std_team_code'].'%'.$peopleday_record['people_code'] ;
+				if( !isset($TAB_rows[$std_rowHash]) ) {
+					$row = array() ;
+					$row['id'] = $std_rowHash ;
+					$row['whse_code'] = $alt_whse_code ;
+					$row['whse_isAlt'] = TRUE ;
+					$row['team_code'] = $peopleday_record['std_team_code'] ;
+					$copy = array('people_code','people_name','people_techid') ;
+					foreach( $copy as $mkey ) {
+						$row[$mkey] = $peopleday_record[$mkey] ;
+					}
+					$TAB_rows[$std_rowHash] = $row ;
+				}
 			}
 		}
 		if( $TAB_columns[$sql_date]['enable_open'] ) {
@@ -199,6 +239,41 @@ function specDbsPeople_Real_openDay( $post_data ) {
 		$arr_ins['field_ROLE_LENGTH'] = $peopleday_record['std_daylength'] ;
 		paracrm_lib_data_insertRecord_file( 'PEOPLEDAY_WORK', $filerecord_id , $arr_ins ) ;
 	}
+	return array('success'=>true) ;
+}
+
+
+function specDbsPeople_Real_saveRecord( $post_data ) {
+	global $_opDB ;
+	$record_data = json_decode($post_data['data'],true) ;
+	
+	$people_code = $record_data['people_code'] ;
+	$date_sql = $record_data['date_sql'] ;
+	$query = "SELECT filerecord_id FROM view_file_PEOPLEDAY
+				WHERE field_DATE='{$date_sql}' AND field_PPL_CODE='{$people_code}'" ;
+	$filerecord_id = $_opDB->query_uniqueValue($query) ;
+	
+	foreach( paracrm_lib_data_getFileChildRecords('PEOPLEDAY_WORK',$filerecord_id) as $child_record ) {
+		paracrm_lib_data_deleteRecord_file('PEOPLEDAY_WORK',$child_record['filerecord_id']) ;
+	}
+	foreach( paracrm_lib_data_getFileChildRecords('PEOPLEDAY_ABS',$filerecord_id) as $child_record ) {
+		paracrm_lib_data_deleteRecord_file('PEOPLEDAY_ABS',$child_record['filerecord_id']) ;
+	}
+	
+	foreach( $record_data['works'] as $work ) {
+		$arr_ins = array() ;
+		$arr_ins['field_ROLE_CODE'] = $work['role_code'] ;
+		$arr_ins['field_ROLE_LENGTH'] = $work['role_length'] ;
+		$arr_ins['field_ALT_WHSE_CODE'] = $work['alt_whse_code'] ;
+		paracrm_lib_data_insertRecord_file( 'PEOPLEDAY_WORK', $filerecord_id, $arr_ins ) ;
+	}
+	foreach( $record_data['abs'] as $abs ) {
+		$arr_ins = array() ;
+		$arr_ins['field_ABS_CODE'] = $abs['abs_code'] ;
+		$arr_ins['field_ABS_LENGTH'] = $abs['abs_length'] ;
+		paracrm_lib_data_insertRecord_file( 'PEOPLEDAY_ABS', $filerecord_id, $arr_ins ) ;
+	}
+	
 	return array('success'=>true) ;
 }
 
