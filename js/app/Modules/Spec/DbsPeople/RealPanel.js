@@ -614,6 +614,17 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			data: jsonResponse.data,
 			proxy:{
 				type:'memory'
+			},
+			getById: function(id) { //HACK
+				return this.idMap[id];
+			},
+			listeners:{
+				load: function(store,records,successful) {
+					store.idMap = {};
+					Ext.Array.forEach(records, function(record) {
+						store.idMap[record.getId()] = record;
+					});
+				}
 			}
 		}) ;
 		
