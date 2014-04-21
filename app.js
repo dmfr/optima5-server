@@ -132,6 +132,29 @@ Ext.onReady(function () {
 		}
 	});
 	
+	/*
+	 * [4.2.1 GA] GridView preserveScrollOnRefresh doesn't work if any row is focused
+	 * http://www.sencha.com/forum/showthread.php?269364
+	 * http://www.sencha.com/forum/showthread.php?274002-preserveScrollOnRefresh-is-not-working-when-using-bufferedrenderer+
+	 */
+	Ext.view.Table.override( {
+		refresh: function() {
+			this.callOverridden() ;
+			
+			var me = this ;
+			if (me.rendered && me.bufferedRenderer && me.preserveScrollOnRefresh) {
+				me.el.dom.scrollTop = me._ws_lastScrollPosition;
+				me.bufferedRenderer.onViewScroll(null, me.el);
+			}
+		},
+		onViewScroll: function(e, t) {
+			this.callOverridden(arguments);
+			
+			this._ws_lastScrollPosition = t.scrollTop;
+		},
+	});
+	
+	
 	
 	/*
 	Désactiver le click droit
