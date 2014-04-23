@@ -2306,7 +2306,7 @@ function paracrm_queries_process_query_doValue( $arr_saisie, $target_fileCode, $
 	
 	// iteration principale
 	$view_filecode = 'view_file_'.$target_fileCode ;
-	$query2 = "SELECT * FROM $view_filecode WHERE filerecord_parent_id='{$parent_filerecordId}'".paracrm_queries_process_queryHelp_getWhereSqlPrefilter($target_fileCode, $arr_saisie['fields_where']) ;
+	$query2 = "SELECT * FROM $view_filecode WHERE filerecord_parent_id='{$parent_filerecordId}'".paracrm_queries_process_queryHelp_getWhereSqlPrefilter($target_fileCode, $arr_saisie['fields_where'])." ORDER BY filerecord_id DESC" ;
 	$result2 = $_opDB->query($query2);
 	while( ($arr2 = $_opDB->fetch_assoc($result2)) != FALSE )
 	{
@@ -2488,7 +2488,7 @@ function paracrm_queries_process_query_doCount( $arr_saisie, $target_fileCode, $
 			{
 				// iteration principale
 				$view_filecode = 'view_file_'.$target_fileCode ;
-				$query2 = "SELECT * FROM $view_filecode WHERE filerecord_parent_id='{$parent_filerecordId}'".paracrm_queries_process_queryHelp_getWhereSqlPrefilter($target_fileCode, $arr_saisie['fields_where']) ;
+				$query2 = "SELECT * FROM $view_filecode WHERE filerecord_parent_id='{$parent_filerecordId}'".paracrm_queries_process_queryHelp_getWhereSqlPrefilter($target_fileCode, $arr_saisie['fields_where'])." ORDER BY filerecord_id DESC" ;
 				$result2 = $_opDB->query($query2);
 				while( ($arr2 = $_opDB->fetch_assoc($result2)) != FALSE )
 				{
