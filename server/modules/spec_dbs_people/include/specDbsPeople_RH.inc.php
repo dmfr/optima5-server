@@ -41,8 +41,14 @@ function specDbsPeople_RH_getGrid($post_data) {
 			$row[$dest] = ( $val != NULL ? $val : '_' ) ;
 		}
 		
-		// Next events
+		// Next event
 		
+		
+		// All events ?
+		if( $post_data['_load_events'] ) {
+			$json = specDbsPeople_RH_getPeopleEvents( array('people_code'=>$arr['entry_key']) ) ;
+			$row['events'] = $json['data'] ;
+		}
 		
 		$TAB[] = $row ;
 	}
@@ -91,72 +97,81 @@ function specDbsPeople_RH_getPeopleEvents($post_data) {
 	
 	return array('success'=>true, 'data'=>$TAB) ;
 }
-function specDbsPeople_RH_editPeopleEvent( $post_data ) {
-	switch( $post_data['_subaction'] ) {
-		case 'new' :
-			$filerecord_id = specDbsPeople_RH_editPeopleEvent_new( $post_data['people_code'], json_decode($post_data['data'],true) ) ;
-			$success = ($filerecord_id >0) ;
-			break ;
-			
-		case 'delete' :
-			$success = specDbsPeople_RH_editPeopleEvent_delete( $post_data['people_code'], $post_data['event_id'] ) ;
-			break ;
-			
-		default :
-			$success = false ;
-			break ;
-	}
-	if( $success ) {
-		specDbsPeople_RH_resyncPeopleEvents($post_data['people_code']) ;
-	}
-	return array('success'=>$success) ;
-}
-function specDbsPeople_RH_editPeopleEvent_new( $people_code, $data ) {
+
+
+
+function specDbsPeople_RH_setPeople( $post_data ) {
 	global $_opDB ;
 	$map_file_field = specDbsPeople_RH_getEventTypesMap() ;
 	
-	$event_type = $data['event_type'] ;
-	if( !isset($map_file_field[$event_type]) ) {
-		return 0 ;
-	}
-	$type_desc = $map_file_field[$event_type] ;
-	$file_code = $type_desc['file_code'] ;
-	$file_field_code = $type_desc['file_field_code'] ;
-	if( !paracrm_lib_data_getRecord_bibleEntry('RH_PEOPLE',$people_code) ) {
-		return 0 ;
-	}
+	$event_data = json_decode($post_data['data'],true) ;
+	$people_code = ( !$post_data['_is_new'] ? $post_data['people_code'] : preg_replace("/[^A-Z0-9\s]/", "", strtoupper($event_data['people_name'])) ) ;
 	
 	$arr_ins = array() ;
 	$arr_ins['field_PPL_CODE'] = $people_code ;
-	$arr_ins['field_DATE_APPLY'] = $data['date_start'] ;
-	$arr_ins[$file_field_code] = $data['x_code'] ;
-	$arr_ins['field_TMP_IS_ON'] = ($data['date_end'] != '') ;
-	$arr_ins['field_TMP_DATE_END'] = $data['date_end'];
-	$arr_ins['field_TMP_IS_END'] = 0 ;
-	$filerecord_id = paracrm_lib_data_insertRecord_file( $file_code, 0, $arr_ins );
+	$arr_ins['field_PPL_FULLNAME'] = $event_data['people_name'] ;
+	$arr_ins['field_PPL_TECHID'] = $event_data['people_techid'] ;
+	if( $post_data['_is_new'] ) {
+		$ret = paracrm_lib_data_insertRecord_bibleEntry( 'RH_PEOPLE', $people_code, 'RH_PEOPLE', $arr_ins ) ;
+	} else {
+		$ret = paracrm_lib_data_updateRecord_bibleEntry( 'RH_PEOPLE', $people_code, $arr_ins ) ;
+	}
+	if( $ret != 0 ) {
+		return array('success'=>false) ;
+	}
 	
-	return $filerecord_id ;
-}
-function specDbsPeople_RH_editPeopleEvent_delete( $people_code, $event_id ) {
-	global $_opDB ;
-	$map_file_field = specDbsPeople_RH_getEventTypesMap() ;
+	if( !$post_data['_is_new'] ) {
+		// suppr. events
+		$existing_events_ids = array() ;
+		foreach( $event_data['events'] as $event ) {
+			if( $event['event_id'] > 0 ) {
+				$existing_events_ids[] = $event['event_id'] ;
+			}
+		}
 	
-	$done = FALSE ;
-	foreach( $map_file_field as $type => $type_desc ) {
-		$file_code = $type_desc['file_code'] ;
-		if( !($file_record = paracrm_lib_data_getRecord_file( $file_code, $event_id )) ) {
+		$json = specDbsPeople_RH_getPeopleEvents( array('people_code'=>$people_code) ) ;
+		foreach( $json['data'] as $event ) {
+			$event_id = $event['event_id'] ;
+			$event_type = $event['event_type'] ;
+			if( !in_array($event_id,$existing_events_ids) ) {
+				$file_code = $map_file_field[$event_type]['file_code'] ;
+				if( $file_code ) {
+					paracrm_lib_data_deleteRecord_file( $file_code, $event_id ) ;
+				}
+			}
+		}
+	}
+	foreach( $event_data['events'] as $event ) {
+		if( $event['event_id'] > 0 ) {
 			continue ;
 		}
-		if( $file_record['field_PPL_CODE'] != $people_code ) {
-			break ;
+		
+		$event_type = $event['event_type'] ;
+		$type_desc = $map_file_field[$event_type] ;
+		if( !$type_desc ) {
+			continue ;
 		}
-		paracrm_lib_data_deleteRecord_file( $file_code, $event_id ) ;
-		$done = TRUE ;
-		break ;
+		$file_code = $type_desc['file_code'] ;
+		$file_field_code = $type_desc['file_field_code'] ;
+		
+		$arr_ins = array() ;
+		$arr_ins['field_PPL_CODE'] = $people_code ;
+		$arr_ins['field_DATE_APPLY'] = $event['date_start'] ;
+		$arr_ins[$file_field_code] = $event['x_code'] ;
+		$arr_ins['field_TMP_IS_ON'] = ($event['date_end'] != '') ;
+		$arr_ins['field_TMP_DATE_END'] = $event['date_end'];
+		$arr_ins['field_TMP_IS_END'] = 0 ;
+		
+		if( $event['event_id'] > 0 ) {
+			// paracrm_lib_data_updateRecord_file( $file_code, $arr_ins, $event_id['event_id'] );
+		} else {
+			paracrm_lib_data_insertRecord_file( $file_code, 0, $arr_ins );
+		}
 	}
-	return $done ;
+	specDbsPeople_RH_resyncPeopleEvents($people_code) ;
+	
+	return array('success'=>true) ;
 }
-
 
 function specDbsPeople_RH_resyncPeopleEvents( $people_code ) {
 	global $_opDB ;

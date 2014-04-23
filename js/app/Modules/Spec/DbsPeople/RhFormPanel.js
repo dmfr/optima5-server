@@ -1,15 +1,3 @@
-Ext.define('DbsPeopleRhPeopleEventModel', {
-    extend: 'Ext.data.Model',
-	 idProperty: 'event_id',
-    fields: [
-        {name: 'event_id',   type: 'int'},
-        {name: 'event_type',   type: 'string'},
-        {name: 'x_code',   type: 'string'},
-        {name: 'date_start',   type: 'date'},
-        {name: 'date_end',   type: 'date', useNull:true}
-     ]
-});
-
 Ext.define('Optima5.Modules.Spec.DbsPeople.RhFormPanel',{
 	extend: 'Ext.panel.Panel',
 	requires: [
@@ -23,11 +11,21 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhFormPanel',{
 	
 	initComponent: function() {
 		var me = this ;
+		me.addEvents('saved') ;
+		
 		Ext.apply(me,{
 			layout: {
 				type: 'vbox',
 				align: 'stretch'
 			},
+			tbar:[{
+				iconCls:'op5-sdomains-menu-submit',
+				text:'Save',
+				handler: function() {
+					me.handleSave() ;
+				},
+				scope:me
+			}],
 			items:[{
 				height: 190,
 				xtype: 'form',
@@ -83,6 +81,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhFormPanel',{
 			},{
 				flex:1,
 				xtype:'grid',
+				frame: false,
+				border: false,
 				title: 'Carnet de l\'employé',
 				tbar: [{
 					itemId: 'add',
@@ -101,7 +101,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhFormPanel',{
 					handler: function(btn) {
 						var selectedRecord = btn.up('grid').getView().getSelectionModel().getSelection()[0];
 						if( selectedRecord ) {
-							this.handleEventDelete( selectedRecord.data ) ;
+							this.handleEventDelete( selectedRecord ) ;
 						}
 					},
 					scope: this
@@ -192,17 +192,10 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhFormPanel',{
 				store: {
 					autoload: false,
 					model: 'DbsPeopleRhPeopleEventModel',
-					proxy: this.optimaModule.getConfiguredAjaxProxy({
-						extraParams : {
-							_moduleId: 'spec_dbs_people',
-							_action: 'RH_getPeopleEvents',
-							people_code: null
-						},
-						reader: {
-							type: 'json',
-							root: 'data'
-						}
-					}),
+					data: [],
+					proxy:{
+						type:'memory'
+					},
 					sorters:[{
 						property: 'date_start',
 						direction: 'DESC'
@@ -225,8 +218,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhFormPanel',{
 	setPeopleRecord: function( peopleRecord ) {
 		this.peopleCode = peopleRecord.getId() ;
 		this.child('form').loadRecord(peopleRecord) ;
-		this.child('grid').getStore().getProxy().setExtraParam('people_code',peopleRecord.getId()) ;
-		this.child('grid').getStore().load() ;
+		this.child('grid').getStore().loadData(peopleRecord.events().getRange()) ;
 	},
 	openNewEvent: function() {
 		var me = this,
@@ -268,62 +260,43 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhFormPanel',{
 	
 	
 	handleEventNew: function( eventData ) {
+		var store = this.down('grid').getStore() ;
+		store.add(eventData) ;
+	},
+	handleEventDelete: function( eventRecord ) {
+		var store = this.down('grid').getStore() ;
+		Ext.MessageBox.confirm('Delete','Delete selected event ?', function(buttonStr) {
+			store.remove(eventRecord) ; 
+		},this) ;
+	},
+	
+	handleSave: function() {
+		var recordData = {} ;
+		
+		var form = this.down('form') ;
+		Ext.apply(recordData, form.getValues()) ;
+		
+		var grid = this.down('grid') ;
+		recordData['events'] = Ext.pluck( grid.getStore().getRange() , 'data' ) ;
+		
 		var ajaxParams = {
 			_moduleId: 'spec_dbs_people',
-			_action: 'RH_editPeopleEvent',
-			_subaction: 'new',
-			people_code: this.peopleCode,
-			data: Ext.JSON.encode(eventData)
-		};
+			_action: 'RH_setPeople',
+			_is_new: ( this.peopleCode == null ? 1 : 0 ),
+			people_code: ( this.peopleCode != null ? this.peopleCode : '' ),
+			data: Ext.JSON.encode(recordData)
+		} ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams,
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
 				if( ajaxResponse.success == false ) {
-					Ext.MessageBox.alert('Problem','Event not created !') ;
+					Ext.MessageBox.alert('Problem','Event not saved !') ;
 					return ;
 				}
-				this.reloadEvents() ;
-				this.fireEvent('change',this) ;
+				this.fireEvent('saved',this) ;
 			},
 			scope: this
 		}) ;
-	},
-	handleEventDelete: function( eventData ) {
-		var eventId = eventData.event_id ;
-		if( Ext.isEmpty(eventId) || eventId == 0 ) {
-			return ;
-		}
-		
-		Ext.MessageBox.confirm('Delete','Delete selected event ?', function(buttonStr) {
-			if( buttonStr!='yes' ) {
-				return ;
-			}
-		
-			var ajaxParams = {
-				_moduleId: 'spec_dbs_people',
-				_action: 'RH_editPeopleEvent',
-				_subaction: 'delete',
-				people_code: this.peopleCode,
-				event_id: eventId
-			};
-			this.optimaModule.getConfiguredAjaxConnection().request({
-				params: ajaxParams,
-				success: function(response) {
-					var ajaxResponse = Ext.decode(response.responseText) ;
-					if( ajaxResponse.success == false ) {
-						Ext.MessageBox.alert('Problem','Cannot delete event') ;
-						return ;
-					}
-					this.reloadEvents() ;
-					this.fireEvent('change',this) ;
-				},
-				scope: this
-			}) ;
-			
-		},this) ;
-	},
-	reloadEvents: function() {
-		this.child('grid').getStore().load() ;
 	}
 }) ;

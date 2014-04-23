@@ -1,8 +1,18 @@
+Ext.define('DbsPeopleRhPeopleEventModel', {
+	extend: 'Ext.data.Model',
+	idProperty: 'event_id',
+	fields: [
+		{name: 'event_id',   type: 'int'},
+		{name: 'event_type',   type: 'string'},
+		{name: 'x_code',   type: 'string'},
+		{name: 'date_start',   type: 'date'},
+		{name: 'date_end',   type: 'date', useNull:true}
+	]
+});
 Ext.define('DbsPeopleRhPeopleModel', {
 	extend: 'Ext.data.Model',
 	idProperty: 'people_code',
 	fields: [
-		{name: 'people_id', type:'string'},
 		{name: 'status_out',  type: 'boolean'},
 		{name: 'status_undefined',  type: 'boolean'},
 		{name: 'status_incident',  type: 'boolean'},
@@ -49,7 +59,12 @@ Ext.define('DbsPeopleRhPeopleModel', {
 		{name: 'nextEvent_dateStart',   type: 'string'},
 		{name: 'nextEvent_dateEnd',   type: 'string'},
 		{name: 'nextEvent_xCode',   type: 'string'}
-	]
+	],
+	hasMany: [{
+		model: 'DbsPeopleRhPeopleEventModel',
+		name: 'events',
+		associationKey: 'events'
+	}]
 });
 
 Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
@@ -91,7 +106,10 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 			},'->',{
 				icon: 'images/modules/admin-user-16.png',
 				text: 'New People',
-				handler: Ext.emptyFn
+				handler: function() {
+					this.onNewPeople() ;
+				},
+				scope: this
 			}],
 			items:[{
 				region:'center',
@@ -165,7 +183,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 				}],
 				listeners: {
 					itemclick: function(view,record) {
-						this.setFormRecord(record) ;
+						this.loadFormRecord(record.getId()) ;
 					},
 					scope: this
 				},
@@ -195,6 +213,35 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 		this.callParent() ;
 	},
 	
+	onNewPeople: function() {
+		var newPeopleRecord = Ext.ux.dams.ModelManager.create('DbsPeopleRhPeopleModel',{}) ;
+		this.setFormRecord(newPeopleRecord) ;
+	},
+	
+	loadFormRecord: function( peopleCode ) {
+		this.getEl().mask('Loading record...') ;
+		
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_people',
+				_action: 'RH_getGrid',
+				_load_events: 1,
+				filter_peopleCode: peopleCode
+			},
+			callback: function() {
+				this.getEl().unmask() ;
+			},
+			success: function( response ) {
+				var json = Ext.JSON.decode(response.responseText),
+					peopleRecordData = (json.success ? json.data[0] : null) ;
+				if( peopleRecordData ) {
+					var peopleRecord = Ext.ux.dams.ModelManager.create('DbsPeopleRhPeopleModel',peopleRecordData);
+					this.setFormRecord( peopleRecord ) ;
+				}
+			},
+			scope: this
+		});
+	},
 	setFormRecord: function(peopleRecord) {
 		var me = this,
 			eastpanel = me.getComponent('mRhFormContainer') ;
@@ -204,56 +251,34 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 			eastpanel.removeAll() ;
 			return ;
 		}
+		
+		var title ;
+		if( peopleRecord.getId() == null ) {
+			title = 'Création People' ;
+		} else {
+			title = 'Modification: '+peopleRecord.get('people_name') ;
+		}
+		
 		eastpanel.removeAll();
 		eastpanel.add(Ext.create('Optima5.Modules.Spec.DbsPeople.RhFormPanel',{
+			border: false,
 			optimaModule: me.optimaModule,
 			peopleRecord: peopleRecord,
 			listeners: {
-				change: function(rhFormPanel) {
-					var peopleCode = rhFormPanel.peopleCode ;
-					this.reload( peopleCode ) ;
+				saved: function(rhFormPanel) {
+					this.setFormRecord(null);
+					this.reload() ;
 				},
 				scope:me
 			}
 		}));
 		eastpanel._empty = false ;
-		eastpanel.setTitle('Modification: '+peopleRecord.get('people_name')) ;
+		eastpanel.setTitle(title) ;
 		eastpanel.expand() ;
 	},
 	
-	reload: function( peopleCode ) {
-		if( !Ext.isEmpty(peopleCode) ) {
-			this.optimaModule.getConfiguredAjaxConnection().request({
-				params: {
-					_moduleId: 'spec_dbs_people',
-					_action: 'RH_getGrid',
-					filter_peopleCode: peopleCode
-				},
-				success: function( response ) {
-					var ajaxData = Ext.JSON.decode(response.responseText).data,
-						peopleRecordData = ajaxData[0] ;
-					this.replaceRecord( peopleRecordData.people_code, peopleRecordData ) ;
-				},
-				scope: this
-			});
-			return ;
-		}
+	reload: function() {
 		this.down('grid').getStore().load() ;
-	},
-	replaceRecord: function( peopleCode, peopleRecordData ) {
-		var store = this.down('grid').getStore(),
-			record = store.getById(peopleCode),
-			newRecord = Ext.create('DbsPeopleRhPeopleModel',peopleRecordData) ;
-		if( record != null ) {
-			record.set(newRecord.data) ;
-			record.commit() ;
-		}
-		
-		var eastpanel = this.getComponent('mRhFormContainer'),
-			eastpanelForm = eastpanel.down('panel') ;
-		if( eastpanelForm != null && eastpanelForm.peopleCode == peopleCode ) {
-			eastpanelForm.setPeopleRecord( newRecord ) ;
-		}
 	},
 	
 	handleQuit: function() {
