@@ -32,3 +32,43 @@ Store Notepad (epicerie / FL / jus frais) :
 - Import data on file (UIs)
 
 
+
+
+
+2014-04-29 : BI STATS / SALES
+Layout de type Mr.Foxy
+
+******************** Bouton Budget (cfg des budgets) ****************
+- Budget : CROP + PAYS + CLIENT
+- Niveau détail :
+* ss enseigne (détail STORES)
+* produit logistique
+- Auto découpe à la semaine selon barres d'ajustement
+
+- Superposer budget X au réel des années X-n
+
+
+
+
+
+
+
+
+
+******************** Bouton DASHBOARD ********************
+* Daily sales
+	- vente du mois ( 01 => x ) vs Budget
+	
+	
+	
+	
+
+******************** Bouton FORECAST ********************
+- Ajuster les semaines à venir
+- Mutation prévu > réalisé
+
+
+
+
+
+- Bouton QUERY : type bilan performances
