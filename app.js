@@ -154,6 +154,20 @@ Ext.onReady(function () {
 		},
 	});
 	
+	/*
+	 * Ext 4.2.2 : Ext.data.Model fails to keep internalId on copy
+	 * => explicitly set newId
+	 */
+	Ext.data.Model.override({
+		copy : function(newId) {
+			var me = this;
+			if( !(newId || newId === 0) && me.idProperty && me.raw.hasOwnProperty(me.idProperty) ) {
+				newId = me.internalId ;
+			}
+			return new me.self(me.raw, newId, null, Ext.apply({}, me[me.persistenceProperty]));
+		}
+	});
+	
 	
 	
 	/*

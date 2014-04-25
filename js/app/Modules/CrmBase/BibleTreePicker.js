@@ -75,11 +75,10 @@ Ext.define('Optima5.Modules.CrmBase.BibleTreePicker',{
 		
 		this.mystore = Ext.create('Ext.data.TreeStore', {
 			model: 'BibleTreePickerModel',
-			nodeParam: 'nodeKey',
 			root: dataRoot 
 		});
 		if( me.rootNode != null && this.mystore.getNodeById(me.rootNode) != null ) {
-			var newRootNode = this.mystore.getNodeById(me.rootNode) ;
+			var newRootNode = this.mystore.getNodeById(me.rootNode).copy(undefined,true)  ;
 			this.mystore.setRootNode(newRootNode) ;
 		}
 		
