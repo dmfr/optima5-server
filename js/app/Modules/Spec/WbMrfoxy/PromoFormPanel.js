@@ -3,7 +3,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 	
 	requires:[
 		'Optima5.Modules.Spec.WbMrfoxy.PromoFormSkuGridPanel',
-		'Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetBar'
+		'Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetBar',
+		'Optima5.Modules.Spec.WbMrfoxy.BenchmarkGridEmpty'
 	],
 	
 	initComponent: function() {
@@ -345,9 +346,15 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 						labelStyle: 'font-style:italic',
 						labelWidth: 110,
 						items:[{
-							xtype:'displayfield',
+							xtype: 'displayfield',
 							name: 'cost_forecast_display',
-							fieldStyle: 'font-weight:bold'
+							fieldStyle: 'font-weight:bold',
+							valueToRaw: function(v) {
+								if( isNaN(v) ) {
+									return '-' ;
+								}
+								return Ext.util.Format.number(v,'0,0') ;
+							}
 						},{
 							xtype:'box',
 							html:'&#160;',
@@ -416,57 +423,10 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 						xtype:'op5specmrfoxybudgetbar',
 						optimaModule: me.optimaModule,
 						height: 100
-					},{
-						xtype:'grid',
-						height:200,
+					},Ext.create('Optima5.Modules.Spec.WbMrfoxy.BenchmarkGridEmpty',{
 						itemId: 'gridBenchmark',
-						store: {
-							model: 'WbMrfoxyPromoModel',
-							data:[]
-						},
-						columns: [{
-							text: '<b>Promo#</b>',
-							dataIndex: 'promo_id',
-							width: 150,
-							renderer: function(v) {
-								return ''+v+'' ;
-							}
-						},{
-							text: 'Uplift(kg)',
-							dataIndex: 'calc_uplift_vol',
-							width: 70
-						},{
-							text: 'Uplift(%)',
-							dataIndex: 'calc_uplift_per',
-							width: 70
-						},{
-							text: 'Cost',
-							width: 70,
-							renderer: function(v,m,r) {
-								if( r.get('cost_real') > 0 ) {
-									return r.get('cost_real') ;
-								} else {
-									return r.get('cost_forecast') ;
-								}
-							}
-						},{
-							text: 'Cost/kg',
-							width: 70,
-							renderer: function(v,m,r) {
-								var cost,
-									upliftKg = r.get('calc_uplift_vol') ;
-								if( upliftKg <= 0 ) {
-									return '' ;
-								}
-								if( r.get('cost_real') > 0 ) {
-									cost = r.get('cost_real') ;
-								} else {
-									cost = r.get('cost_forecast') ;
-								}
-								return Math.round( (cost/upliftKg)*100 ) / 100 ;
-							}
-						}]
-					},{
+						height:200
+					}),{
 						xtype:'box',
 						html:'&#160;',
 						height: 16
@@ -495,17 +455,16 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 				dock: 'bottom',
 				ui: 'footer',
 				layout:{
-					align: 'stretch',
-					pack:'center'
+					pack: 'center'
 				},
 				items: [{
 					xtype: 'checkbox',
-					padding: '0px 32px 16px 0px',
+					padding: '0px 32px 0px 0px',
 					boxLabel: '<b>Submit promotion</b>',
 					name: '_do_submit',
 				},{
 					xtype: 'component',
-					padding: '0px 0px 16px 0px',
+					padding: '4px 0px',
 					overCls: 'op5-crmbase-dataimport-go-over',
 					renderTpl: Ext.create('Ext.XTemplate',
 						'<div class="op5-crmbase-dataimport-go">',

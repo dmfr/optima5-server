@@ -56,7 +56,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormSkuGridPanel',{
 					text: 'Price',
 					dataIndex: 'cli_price_unit',
 					width: 60,
-					align: 'right'
+					align: 'right',
+					xtype: 'numbercolumn',
+					format: '0.000'
 				},{
 					text: 'Qty',
 					dataIndex: 'promo_qty_forecast',
@@ -97,25 +99,23 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormSkuGridPanel',{
 					editor:Ext.create('Optima5.Modules.Spec.WbMrfoxy.PromoFormSkuGridPanelCoefField',{ cls: 'op5-spec-mrfoxy-promoformlist-editor-rightalign', hideTrigger:true, keyNavEnabled:false, mouseWheelEnabled:false})
 				},{
 					text: 'Discount/UoM',
-					dataIndex: '',
 					priceColumn: true,
 					width: 80,
 					align: 'right',
 					renderer: function(value,metaData,record) {
 						//console.log( record.get('cli_price_unit')+' '+record.get('cli_price_unit')+' '+record.get('cli_price_unit') ) ;
 						var calcValue = record.get('cli_price_unit') - (record.get('cli_price_unit') * record.get('promo_price_coef')) ;
-						return Ext.util.Format.round( calcValue, 3 ) ;
+						return Ext.util.Format.number( calcValue, '0,0.00' ) ;
 					}
 				},{
 					text: 'Total Discount',
-					dataIndex: '',
 					priceColumn: true,
 					width: 100,
 					align: 'right',
 					renderer: function(value,metaData,record) {
 						var stdCost = record.get('cli_price_unit') * record.get('promo_qty_forecast') ;
 						var calcValue =  stdCost * ( 1 - record.get('promo_price_coef') ) ;
-						return Ext.util.Format.round( calcValue, 0 ) ;
+						return Ext.util.Format.number( calcValue, '0,0' ) ;
 					},
 					tdCls: 'op5-spec-mrfoxy-promoformlist-totalcolumn',
 				}]

@@ -399,6 +399,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 					}),
 					columns: [{
 						text: 'Edit values',
+						align: 'right',
+						xtype: 'numbercolumn',
+						format: '0,000',
 						filerecordId: revision.filerecord_id,
 						revisionId: revisionId,
 						dataIndex: revisionId + '_value',
@@ -456,6 +459,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 				if( revision.is_crop_initial ) {
 					initColumn = {
 						text: 'Initial crop '+me.filterCropYear,
+						align: 'right',
+						xtype: 'numbercolumn',
+						format: '0,000',
 						filerecordId: revision.filerecord_id,
 						dataIndex: revisionId + '_value',
 						revisionId: revisionId,
@@ -465,6 +471,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 				} else {
 					revisionColumn.columns.push({
 						text: 'on '+revision.revision_date,
+						align: 'right',
+						xtype: 'numbercolumn',
+						format: '0,000',
 						filerecordId: revision.filerecord_id,
 						dataIndex: revisionId + '_value',
 						revisionId: revisionId,
@@ -883,7 +892,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 			return ;
 		}
 		var filerecordId = column.filerecordId,
-			revisionId = column.dataIndex,
+			revisionId = column.revisionId,
 			rows = this.collectRevisionValues(revisionId) ;
 			
 		var ajaxParams = {

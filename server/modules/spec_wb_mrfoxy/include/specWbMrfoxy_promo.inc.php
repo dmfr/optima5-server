@@ -453,10 +453,11 @@ function specWbMrfoxy_promo_formEval( $post_data ) {
 			
 			// Proceed to "fake join" to retrieve std prices
 			$fake_row = array() ;
-			$fake_row['WORK_PROMO_field_DATE_SUPPLY_START'] = $form_data['date_supply_start'] ;
-			$fake_row['WORK_PROMO_field_STORE'] = $form_data['store_code'] ;
-			$fake_row['WORK_PROMO_SKU_field_SKU_CODE'] = $arr['entry_key'] ;
-			paracrm_lib_file_joinGridRecord( 'WORK_PROMO_SKU', $fake_row ) ;
+			$fake_row['WORK_PROMO']['field_DATE_SUPPLY_START'] = $form_data['date_supply_start'] ;
+			$fake_row['WORK_PROMO']['field_STORE'] = $form_data['store_code'] ;
+			$fake_row['WORK_PROMO_SKU']['field_SKU_CODE'] = $arr['entry_key'] ;
+			paracrm_lib_file_joinQueryRecord( 'WORK_PROMO_SKU', $fake_row ) ;
+			$join_priceUnit = $fake_row['WORK_PROMO_SKU']['field_PRICE_UNIT'] ;
 			
 			// assemble
 			$row_sku = array() ;
@@ -465,7 +466,7 @@ function specWbMrfoxy_promo_formEval( $post_data ) {
 			$row_sku['sku_desc'] = $arr['field_PROD_TXT'] ;
 			$row_sku['sku_uom'] = $arr['field_PROD_UOM'] ;
 			$row_sku['sku_pcb'] = $arr['field_PROD_PCB'] ;
-			$row_sku['cli_price_unit'] = $fake_row['WORK_PROMO_SKU_field_PRICE_UNIT'] ;
+			$row_sku['cli_price_unit'] = $join_priceUnit ;
 			$resp_data['list_sku'][] = $row_sku ;
 		}
 	}

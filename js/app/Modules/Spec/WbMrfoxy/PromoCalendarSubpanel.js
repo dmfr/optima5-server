@@ -132,7 +132,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarSubpanel' ,{
 						store : Ext.create('Ext.data.JsonStore', {
 							model : 'Sch.model.Range',
 							data : [{
-								StartDate : Ext.Date.clearTime( Ext.Date.add(startDate,Ext.Date.WEEK,-1) ),
+								StartDate : Ext.Date.clearTime( Ext.Date.add(startDate,Ext.Date.DAY,-7) ),
 								EndDate   : Ext.Date.clearTime( Ext.Date.add( new Date(), Ext.Date.DAY, +1) ) ,
 								Cls       : 'op5-spec-mrfoxy-promosch-today'
 							}]
@@ -144,7 +144,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarSubpanel' ,{
 						fn: function(schP) {
 							Ext.defer( function() {
 								this.scrollToday() ;
-							},100,this) ;
+							},200,this) ;
 						},
 						scope:me
 					},
