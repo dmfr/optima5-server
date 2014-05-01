@@ -104,5 +104,27 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.CfgParamTree',{
 			return null ;
 		}
 		return storeNode.data ;
+	},
+	getLeafNodesKey: function() {
+		if( this.value == null ) {
+			return null ;
+		}
+		var storeNode = this.getStore().getNodeById( this.value ) ;
+		if( storeNode == null ) {
+			return null ;
+		}
+		
+		var leafs ;
+		if( storeNode.isLeaf() ) {
+			leafs = [storeNode.data.nodeKey] ;
+		} else {
+			leafs = [] ;
+			storeNode.cascadeBy(function(node) {
+				if( node.isLeaf() ) {
+					leafs.push(node.data.nodeKey) ;
+				}
+			});
+		}
+		return leafs ;
 	}
 }) ;

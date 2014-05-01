@@ -5,6 +5,12 @@ function specDbsPeople_Real_getData( $post_data ) {
 	if( isset($post_data['filter_peopleCode']) ) {
 		$filter_peopleCode = $post_data['filter_peopleCode'] ;
 	}
+	if( isset($post_data['filter_site_entries']) ) {
+		$filter_arrSites = json_decode($post_data['filter_site_entries'],true) ;
+	}
+	if( isset($post_data['filter_team_entries']) ) {
+		$filter_arrTeams = json_decode($post_data['filter_team_entries'],true) ;
+	}
 	
 	$sql_dates = array() ;
 	$cur_date = date('Y-m-d',strtotime($post_data['date_start'])) ;
@@ -211,7 +217,30 @@ function specDbsPeople_Real_getData( $post_data ) {
 			$TAB_columns[$sql_date]['status_isOpen'] = TRUE ;
 		}
 	}
-
+	
+	// Filter ROWS @TODO: use prefilter on cfgFiles before join
+	$has_filters = FALSE ;
+	if( $filter_arrSites || $filter_arrTeams ) {
+		$has_filters = TRUE ;
+	}
+	if( $has_filters ) {
+		$new_TAB_rows = array() ;
+		foreach( $TAB_rows as $idx => $row ) {
+			if( $filter_arrSites && !in_array($row['whse_code'],$filter_arrSites) ) {
+				continue ;
+			}
+			if( $filter_arrTeams && !in_array($row['team_code'],$filter_arrTeams) ) {
+				continue ;
+			}
+			$new_TAB_rows[] = $row ;
+		}
+		$TAB_rows = $new_TAB_rows ;
+	}
+	
+	
+	// TODO Filter ROWS, remove orphans (use no-show peopleCode)
+	
+	
 	return array('success'=>true, 'data'=>$TAB_data, 'rows'=>array_values($TAB_rows), 'columns'=>$TAB_columns) ;
 }
 

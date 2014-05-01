@@ -91,19 +91,18 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 				scope: this
 			},{
 				xtype: 'tbseparator'
-			},{
-				icon: 'images/op5img/ico_blocs_small.gif',
-				text: 'Sites / Entrepôts',
-				menu: {
-					xtype:'menu',
-					items:[Ext.create('Optima5.Modules.Spec.DbsPeople.CfgParamTree',{
-						optimaModule: me.optimaModule,
-						cfgParam_id: 'whse',
-						width:250,
-						height:300
-					})]
+			},Ext.create('Optima5.Modules.Spec.DbsPeople.CfgParamSiteButton',{
+				itemId: 'btnSite',
+				optimaModule: this.optimaModule,
+				listeners: {
+					change: {
+						fn: function() {
+							this.reload() ;
+						},
+						scope: this
+					}
 				}
-			},'->',{
+			}),'->',{
 				icon: 'images/modules/admin-user-16.png',
 				text: 'New People',
 				handler: function() {
@@ -133,7 +132,12 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 					sorters: [{
 						property: 'people_name',
 						direction: 'ASC'
-					}]
+					}],
+					listeners: {
+						beforeload: me.onBeforeLoad,
+						load: me.onLoad,
+						scope: me
+					}
 				},
 				plugins: [{
 					ptype: 'bufferedrenderer',
@@ -279,6 +283,19 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 	
 	reload: function() {
 		this.down('grid').getStore().load() ;
+	},
+	onBeforeLoad: function(store,options) {
+		var filterSiteBtn = this.down('#btnSite') ;
+		
+		options.params = options.params || {};
+		var addParams = {} ;
+		if( filterSiteBtn.getNode() != null ) {
+			addParams['filter_site_entries'] = Ext.JSON.encode( filterSiteBtn.getLeafNodesKey() ) ;
+		}
+		Ext.apply(options.params, addParams);
+	},
+	onLoad: function(store) {
+		
 	},
 	
 	handleQuit: function() {

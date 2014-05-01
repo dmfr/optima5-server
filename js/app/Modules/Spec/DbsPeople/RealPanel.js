@@ -591,8 +591,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		this.autoRefreshTask.cancel() ;
 		this.showLoadmask() ;
 		
-		var filter_site = this.down('#btnSite').getNode(),
-			filter_team = this.down('#btnTeam').getNode() ;
+		var filterSiteBtn = this.down('#btnSite'),
+			filterTeamBtn = this.down('#btnTeam') ;
 		
 		var params = {
 			_moduleId: 'spec_dbs_people',
@@ -602,13 +602,11 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			date_start: Ext.Date.format( this.dateStart, 'Y-m-d' ),
 			date_end: Ext.Date.format( this.dateEnd, 'Y-m-d' )
 		}) ;
-		if( filter_site != null ) {
-			params['filter_site_type'] = filter_site.nodeType ;
-			params['filter_site_key'] = filter_site.nodeKey ;
+		if( filterSiteBtn.getNode() != null ) {
+			params['filter_site_entries'] = Ext.JSON.encode( filterSiteBtn.getLeafNodesKey() ) ;
 		}
-		if( filter_team != null ) {
-			params['filter_team_type'] = filter_team.nodeType ;
-			params['filter_team_key'] = filter_team.nodeKey ;
+		if( filterTeamBtn.getNode() != null ) {
+			params['filter_team_entries'] = Ext.JSON.encode( filterTeamBtn.getLeafNodesKey() ) ;
 		}
 		
 		this.optimaModule.getConfiguredAjaxConnection().request({

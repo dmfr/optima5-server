@@ -5,6 +5,12 @@ function specDbsPeople_RH_getGrid($post_data) {
 	if( isset($post_data['filter_peopleCode']) ) {
 		$people_code = $post_data['filter_peopleCode'] ;
 	}
+	if( isset($post_data['filter_site_entries']) ) {
+		$filter_arrSites = json_decode($post_data['filter_site_entries'],true) ;
+	}
+	if( isset($post_data['filter_team_entries']) ) {
+		$filter_arrTeams = json_decode($post_data['filter_team_entries'],true) ;
+	}
 	
 	if( !$people_code ) {
 		paracrm_lib_file_joinPrivate_buildCache('PEOPLEDAY') ;
@@ -52,7 +58,26 @@ function specDbsPeople_RH_getGrid($post_data) {
 		
 		$TAB[] = $row ;
 	}
-
+	
+	// Filter ROWS
+	$has_filters = FALSE ;
+	if( $filter_arrSites || $filter_arrTeams ) {
+		$has_filters = TRUE ;
+	}
+	if( $has_filters && !$people_code ) {
+		$new_TAB = array() ;
+		foreach( $TAB as $idx => $row ) {
+			if( $filter_arrSites && !in_array($row['whse_code'],$filter_arrSites) ) {
+				continue ;
+			}
+			if( $filter_arrTeams && !in_array($row['team_code'],$filter_arrTeams) ) {
+				continue ;
+			}
+			$new_TAB[] = $row ;
+		}
+		$TAB = $new_TAB ;
+	}
+	
 	return array('success'=>true, 'data'=>$TAB) ;
 }
 

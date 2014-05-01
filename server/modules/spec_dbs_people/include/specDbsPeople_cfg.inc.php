@@ -102,7 +102,7 @@ function specDbsPeople_cfg_getTree_call( $tab_parentkey_nodes, $treenode_parent_
 		}
 		else
 		{
-			$record['leaf'] = true ;
+			$record['leaf'] = ( $record['nodeType'] == 'entry' ) ;
 			$record['children'] = array() ;
 		}
 		$TAB_json[] = $record ;
