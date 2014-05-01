@@ -1,6 +1,7 @@
 Ext.define('DbsPeopleRhRealAdvModel',{
 	extend: 'Ext.data.Model',
 	fields:[
+		{name:'readonly', type:'boolean'},
 		{name:'class', type:'string'},
 		{name:'code', type:'string'},
 		{name:'length_hours', type:'int'}
@@ -16,7 +17,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 
 	initComponent: function() {
 		var me = this ;
-		me.addEvents('proceed') ;
 		
 		if( (me.parentRealPanel) instanceof Optima5.Modules.Spec.DbsPeople.RealPanel ) {} else {
 			Optima5.Helper.logError('Spec:DbsPeople:RealAdvancedPanel','No parent reference ?') ;
@@ -25,45 +25,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 			Optima5.Helper.logError('Spec:DbsPeople:RealAdvancedPanel','No peopledayRecord instance ?') ;
 		}
 		
-		var storeData = [],
-			gridWhse = me.gridRecord.get('whse_code'),
-			stdWhse = me.peopledayRecord.get('std_whse_code'),
-			altWhse = ( stdWhse != gridWhse ? gridWhse : null ),
-			absMode, absCode,
-			slices = Ext.pluck( me.peopledayRecord.works().getRange(), 'data' ),
-			slice ;
-		if( me.peopledayRecord.abs().getCount() > 0 ) {
-			absMode = true ;
-			absCode = me.peopledayRecord.abs().getAt(0).data.abs_code ;
-		}
-		for( var idx=0 ; idx<slices.length ; idx++ ) {
-			slice = slices[idx] ;
-			
-			if( altWhse != null ) {
-				if( slice.alt_whse_code==altWhse ) {
-					storeData.push({
-						class:'ROLE',
-						code:slice.role_code,
-						length_hours: slice.role_length
-					});
-				}
-				continue ;
-			}
-			
-			if( slice.alt_whse_code ) {
-				storeData.push({
-					class:'WHSE',
-					code:slice.alt_whse_code,
-					length_hours: slice.role_length
-				});
-			} else {
-				storeData.push({
-					class:'ROLE',
-					code:slice.role_code,
-					length_hours: slice.role_length
-				});
-			}
-		}
 		
 		Ext.apply(me,{
 			layout: {
@@ -111,8 +72,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 						xtype:'checkbox',
 						itemId: 'absCheckbox',
 						boxLabel: 'Absent',
-						hidden: altWhse,
-						checked: absMode,
 						listeners: {
 							change: function() {
 								this.calcLayout() ;
@@ -130,6 +89,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 				hidden: true,
 				items: [{
 					xtype:'combobox',
+					itemId: 'absCombobox',
 					matchFieldWidth:false,
 					listConfig:{width:200},
 					forceSelection:true,
@@ -139,7 +99,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 					displayField: 'text',
 					valueField: 'id',
 					fieldLabel: 'Motif',
-					value: absCode,
 					store: {
 						fields:['id','text'],
 						data: Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll("ABS")
@@ -214,7 +173,13 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 					dataIndex: 'length_hours',
 					width: 50,
 					editor:{
-						xtype: 'numberfield'
+						xtype: 'numberfield',
+						validator: function(v) {
+							if( Ext.isEmpty(v) ) {
+								return false ;
+							}
+							return ( v > 0 ) ;
+						}
 					},
 					renderer: function( value ) {
 						if( value > 0 ) {
@@ -224,7 +189,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 				}],
 				store: {
 					model:'DbsPeopleRhRealAdvModel',
-					data: storeData,
+					data: [],
 					proxy: Ext.create('Ext.data.proxy.Memory',{
 						updateOperation: function(operation, callback, scope) {
 							operation.setCompleted();
@@ -260,6 +225,10 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 								record = editEvent.record,
 								columns = grid.child('headercontainer').query('gridcolumn') ;
 							
+							if( record.get('readonly') == true ) {
+								return false ;
+							}
+								
 							switch( record.get('class') ) {
 								case 'ROLE' :
 									columns[0].getEditor().update({iconCls:'op5-spec-dbspeople-icon-role'}) ;
@@ -272,19 +241,20 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 							}
 						},
 						edit: function(editor,editEvent) {
-							
+							var grid = editEvent.grid,
+								store = grid.getStore() ;
 						},
 						scope:me
 					}
 				}],
 				dockedItems: [{
 					xtype: 'toolbar',
-					hidden: altWhse,
 					items: [{
 						itemId: 'add',
 						text: 'Add',
 						iconCls: 'icon-add',
 						menu: [{
+							itemId: 'btnItemRole',
 							iconCls: 'op5-spec-dbspeople-icon-role',
 							text: 'Rôle',
 							handler: function(btn) {
@@ -292,6 +262,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 							},
 							scope: this
 						},{
+							itemId: 'btnItemMove',
 							iconCls: 'op5-spec-dbspeople-icon-move',
 							text: 'Transfert',
 							handler: function(btn) {
@@ -314,7 +285,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 		});
 		
 		this.callParent() ;
-		this.calcLayout() ;
+		this.doLoad() ;
 	},
 	calcLayout: function() {
 		var me = this,
@@ -350,6 +321,74 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 		}
 	},
 	
+	
+	doLoad: function() {
+		var me = this,
+			absCheckbox = this.down('#absCheckbox'),
+			absCombobox = this.down('#absCombobox'),
+			slicesPanel = this.down('#slicesPanel'),
+			toolbar = this.down('toolbar'),
+			btnItemMove = toolbar.down('#btnItemMove'),
+			btnItemRole = toolbar.down('#btnItemRole') ;
+		
+		var storeData = [],
+			gridWhse = me.gridRecord.get('whse_code'),
+			stdWhse = me.peopledayRecord.get('std_whse_code'),
+			altWhse = ( stdWhse != gridWhse ? gridWhse : null ),
+			absMode, absCode,
+			slices = Ext.pluck( me.peopledayRecord.works().getRange(), 'data' ),
+			slice ;
+		if( me.peopledayRecord.abs().getCount() > 0 ) {
+			absMode = true ;
+			absCode = me.peopledayRecord.abs().getAt(0).data.abs_code ;
+		}
+		
+		var altWhsesObj = {} ;
+		for( var idx=0 ; idx<slices.length ; idx++ ) {
+			slice = slices[idx] ;
+			
+			if( altWhse != null ) {
+				if( slice.alt_whse_code==altWhse ) {
+					storeData.push({
+						class:'ROLE',
+						code:slice.role_code,
+						length_hours: slice.role_length
+					});
+				}
+				continue ;
+			}
+			
+			if( !Ext.isEmpty(slice.alt_whse_code) ) {
+				if( typeof altWhsesObj[slice.alt_whse_code] === 'undefined' ) {
+					altWhsesObj[slice.alt_whse_code] = 0 ;
+				}
+				altWhsesObj[slice.alt_whse_code] += slice.role_length ;
+				continue ;
+			}
+			storeData.push({
+				class:'ROLE',
+				code:slice.role_code,
+				length_hours: slice.role_length
+			});
+		}
+		Ext.Object.each( altWhsesObj, function( altWhseCode, length ) {
+			storeData.push({
+				readonly: true,
+				class:'WHSE',
+				code:altWhseCode,
+				length_hours: length
+			});
+		}) ;
+		
+		// Set UI
+		absCheckbox.setVisible( altWhse==null ) ;
+		absCheckbox.setValue( absMode ) ;
+		absCombobox.setValue( absCode ) ;
+		slicesPanel.getStore().loadRawData( storeData ) ;
+		btnItemRole.setVisible(true);
+		btnItemMove.setVisible( altWhse==null );
+		me.calcLayout() ;
+	},
 	doSave: function() {
 		var me = this ;
 			
@@ -357,33 +396,88 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 			stdWhse = me.peopledayRecord.get('std_whse_code'),
 			altWhse = ( stdWhse != gridWhse ? gridWhse : null );
 			
-		if( altWhse != null ) {
-			// Mode autre warehouse
+		var recordWorksStore = me.peopledayRecord.works(),
+			recordAbsStore = me.peopledayRecord.abs() ;
 			
-		} else if( this.query('checkbox')[0].getValue() == true ) {
-			// Mode absence
-			var absCode = this.down('#absPanel').down('combobox').getValue() ;
-			me.peopledayRecord.abs().removeAll() ;
-			me.peopledayRecord.works().removeAll() ;
-			me.peopledayRecord.abs().add({abs_code:absCode, abs_length:me.peopledayRecord.data.std_daylength}) ;
-		} else {
-			me.peopledayRecord.abs().removeAll() ;
-			me.peopledayRecord.works().removeAll() ;
-			if( this.child('grid').getStore().getCount() == 0 ) {
-				me.peopledayRecord.works().add({role_code:me.peopledayRecord.data.std_role_code, role_length:me.peopledayRecord.data.std_daylength}) ;
+		var localStore = this.child('grid').getStore() ;
+			
+		if( altWhse != null ) { // ****** Mode autre warehouse *********
+			recordAbsStore.removeAll() ;
+			
+			// Remove all "this" warehouse works
+			var worksTodelete = [] ;
+			recordWorksStore.each( function(workRecord) {
+				if( !Ext.isEmpty(workRecord.get('alt_whse_code')) && (workRecord.get('alt_whse_code') == altWhse) ) {
+					worksTodelete.push(workRecord) ;
+				}
+			}) ;
+			recordWorksStore.remove(worksTodelete) ;
+			
+			// Store work slices
+			if( localStore.getCount() == 0 ) {
+				recordWorksStore.add({
+					alt_whse_code: altWhse,
+					role_code: me.peopledayRecord.data.std_role_code,
+					role_length: me.peopledayRecord.data.std_daylength
+				}) ;
 			} else {
 				var slices = [] ;
-				this.child('grid').getStore().each( function(rec){
+				localStore.each( function(rec){
+					if( rec.get('class') != 'ROLE' ) {
+						return ;
+					}
+					slices.push({
+						alt_whse_code: altWhse,
+						role_code:rec.get('code'),
+						role_length:rec.get('length_hours')
+					}) ;
+				}) ;
+				recordWorksStore.add(slices) ;
+			}
+		} else if( this.query('checkbox')[0].getValue() == true ) {  // ********* Mode absence *********
+			var absCode = this.down('#absPanel').down('combobox').getValue() ;
+			recordWorksStore.removeAll() ;
+			recordAbsStore.removeAll() ;
+			recordAbsStore.add({abs_code:absCode, abs_length:me.peopledayRecord.data.std_daylength}) ;
+			
+		} else { // ********* Mode standard (master) *********
+			recordAbsStore.removeAll() ;
+			if( localStore.getCount() == 0 ) {
+				recordWorksStore.removeAll() ;
+				recordWorksStore.add({
+					role_code:me.peopledayRecord.data.std_role_code,
+					role_length:me.peopledayRecord.data.std_daylength
+				}) ;
+			} else {
+				var worksTodelete = [] ;
+				
+				var slices = [], keepAltWhses = false ;
+				localStore.each( function(rec){
 					switch( rec.get('class') ) {
 						case 'ROLE' :
 							slices.push({role_code:rec.get('code'), role_length:rec.get('length_hours')}) ;
 							break ;
 						case 'WHSE' :
+							if( rec.get('readonly') ) {
+								keepAltWhses = true ;
+								break ;
+							}
 							slices.push({alt_whse_code:rec.get('code'), role_code:me.peopledayRecord.data.std_role_code, role_length:rec.get('length_hours')}) ;
 							break ;
 					}
 				}) ;
-				me.peopledayRecord.works().add(slices) ;
+				if( keepAltWhses ) {
+					recordWorksStore.each( function(workRecord) {
+						if( !Ext.isEmpty(workRecord.get('alt_whse_code')) ) {
+							return ;
+						}
+						worksTodelete.push(workRecord) ;
+					}) ;
+					recordWorksStore.remove(worksTodelete) ;
+				} else {
+					recordWorksStore.removeAll() ;
+				}
+				recordWorksStore.add(slices) ;
 			}
 		}
 	}

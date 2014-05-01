@@ -694,7 +694,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		}
 		if( peopledayWorkRecords.length != 1 || !Ext.isEmpty(peopledayWorkRecords[0].data.alt_whse_code) ) {
 			var cellNode = Ext.DomQuery.select( '.x-grid-cell', editEvent.row )[colIdx] ;
-			console.dir(cellNode) ;
 			this.openAdvanced( peopledayRecord, gridRecord, cellNode ) ;
 			return false ;
 		}
