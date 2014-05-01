@@ -168,29 +168,17 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 							hidden: (rowRecord.get('status_percent') < 70)
 						},{
 							xtype: 'displayfield',
-							valueToRaw: function(v) {
-								if( isNaN(v) ) {
-									return '-' ;
-								}
-								return Ext.util.Format.number(v,'0,0') ;
-							},
 							fieldLabel: 'Cost forecast',
 							fieldStyle: 'font-weight: bold',
 							labelWidth: 120,
-							value: rowRecord.get('cost_forecast') + ' EUR' + '&#160;'+'('+rowRecord.get('cost_billing_text')+')',
+							value: Ext.util.Format.number(rowRecord.get('cost_forecast'),'0,0') + ' EUR' + '&#160;'+'('+rowRecord.get('cost_billing_text')+')',
 							hidden: false
 						},{
 							xtype: 'displayfield',
-							valueToRaw: function(v) {
-								if( isNaN(v) ) {
-									return '-' ;
-								}
-								return Ext.util.Format.number(v,'0,0') ;
-							},
 							fieldLabel: 'Real Cost (invoice)',
 							fieldStyle: 'font-weight: bold',
 							labelWidth: 120,
-							value: rowRecord.get('cost_real') + ' EUR',
+							value: Ext.util.Format.number(rowRecord.get('cost_real'),'0,0') + ' EUR',
 							hidden: (rowRecord.get('status_percent') < 70)
 						}]
 					}]
