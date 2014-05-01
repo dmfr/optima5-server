@@ -1,5 +1,6 @@
 Ext.define('WbMrfoxyPromoSkuModel', {
 	extend: 'Ext.data.Model',
+	idProperty: 'sku_prodean',
 	fields: [
 		{name: 'sku_prodean',  type: 'string'},
 		{name: 'sku_code',  type: 'string'},

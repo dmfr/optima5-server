@@ -15,7 +15,12 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormSkuGridPanel',{
 	plugins: [{
 		ptype:'cellediting',
 		pluginId: 'cellediting',
-		clicksToEdit: 1
+		clicksToEdit: 1,
+		listeners: {
+			edit: function(editor,e) {
+				e.record.commit() ;
+			}
+		}
 	}],
 	
 	initComponent: function() {
@@ -132,8 +137,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormSkuGridPanel',{
 	populateSkuList: function( arrSkuList ) {
 		var me = this,
 			store = me.getStore(),
-			arrCodesIn = [],
-			arrCodesStore = [] ;
+			arrCodesIn = [] ;
 			
 		for( var idx=0 ; idx < arrSkuList.length ; idx++ ) {
 			var skuRow = arrSkuList[idx] ;
@@ -145,17 +149,19 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormSkuGridPanel',{
 		Ext.Array.each( store.getRange(), function(storeRecord) {
 			if( !Ext.Array.contains( arrCodesIn, storeRecord.data.sku_prodean ) ) {
 				recordsToRemove.push( storeRecord ) ;
-			} else {
-				arrCodesStore.push( storeRecord.data.sku_prodean ) ;
 			}
 		},me) ;
 		store.remove( recordsToRemove ) ;
 		
 		for( var idx=0 ; idx < arrSkuList.length ; idx++ ) {
-			var skuRow = arrSkuList[idx] ;
-			if( !Ext.Array.contains( arrCodesStore, skuRow.sku_prodean ) ) {
+			var skuRow = arrSkuList[idx],
+				existingRecord = store.getById( skuRow.sku_prodean ) ;
+			if( existingRecord == null ) {
 				var newRecord = Ext.create('WbMrfoxyPromoSkuModel',skuRow) ;
 				store.add( newRecord ) ;
+			} else {
+				existingRecord.set(skuRow) ;
+				existingRecord.commit() ;
 			}
 		}
 	},
@@ -194,6 +200,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormSkuGridPanel',{
 					return ;
 				}
 				record.set('promo_qty_forecast_pcb', record.get('promo_qty_forecast') / record.get('sku_pcb')) ;
+				record.commit() ;
 			}) ;
 			return ;
 		}
@@ -211,5 +218,6 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormSkuGridPanel',{
 				record.set('promo_qty_forecast_pcb', qtyPcb ) ;
 				break ;
 		}
+		record.commit() ;
 	}
 }) ;
