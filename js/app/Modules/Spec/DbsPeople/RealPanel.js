@@ -84,21 +84,12 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 	
 	peopledayStore: null,
 	
-	remoteData: null ,
-	cfgData: null,
+	autoRefreshDelay: (5*60*1000),
+	autoRefreshTask: null,
+	autoRefreshAfterEdit: false,
 	
 	initComponent: function() {
 		var me = this ;
-		
-		me.cellEditing = Ext.create('Ext.grid.plugin.CellEditing', {
-			clicksToEdit: 1,
-			listeners: {
-				beforeedit: me.onGridBeforeEdit,
-				edit: me.onGridAfterEdit,
-				scope: me
-			}
-		});
-		
 		
 		Ext.apply(me,{
 			//frame: true,
@@ -136,6 +127,13 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 					}
 				}
 			}),'->',{
+				iconCls: 'op5-crmbase-datatoolbar-refresh',
+				text: 'Refresh',
+				handler: function() {
+					this.doLoad() ;
+				},
+				scope: this
+			},{
 				icon: 'images/op5img/ico_calendar_16.png',
 				text: 'Choix Semaine',
 				menu: Ext.create('Ext.menu.DatePicker',{
@@ -194,6 +192,17 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 	},
 	startPanel: function() {
 		var me = this ;
+		
+		this.autoRefreshTask = new Ext.util.DelayedTask( function(){
+			if( this.isDestroyed ) { // private check
+				return ;
+			}
+			var executed = this.doLoadIf() ;
+			if( !executed ) {
+				this.autoRefreshAfterEdit = true ;
+			}
+		},this);
+		
 		me.onDateSet( new Date() ) ;
 		return ;
 	},
@@ -212,7 +221,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		var me = this ;
 		
 		// configuration GRID
-		var first = date.getDate() - date.getDay() + 1; // First day is the day of the month - the day of the week
+		var first = date.getDate() - ( date.getDay() > 0 ? date.getDay() : 7 ) + 1; // First day is the day of the month - the day of the week
 		var last = first + 6; // last day is the first day + 6
 		
 		me.dateStart = new Date(Ext.clone(date).setDate(first));
@@ -439,7 +448,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			},
 			enableLocking: true,
 			plugins: [{
-				ptype:'cellediting',
+				ptype: 'cellediting',
+				pluginId: 'cellediting',
 				clicksToEdit: 1,
 				listeners: {
 					beforeedit: me.onGridBeforeEdit,
@@ -497,6 +507,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				scope: me
 			},
 			viewConfig: {
+				preserveScrollOnRefresh: true,
 				getRowClass: function(record) {
 					if( record.get('whse_isAlt') ) {
 						return 'op5-spec-dbspeople-realcolor-whse' ;
@@ -565,7 +576,19 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		}
 	},
 	
+	doLoadIf: function() {
+		var grid = this.child('grid'),
+			normalGrid = grid.normalGrid, // lockedGrid private property
+			cellediting = normalGrid.getPlugin('cellediting') ;
+		if( cellediting.editing || this.realAdvancedPanel != null ) {
+			// some editing currently
+			return false ;
+		}
+		this.doLoad() ;
+		return true ;
+	},
 	doLoad: function() {
+		this.autoRefreshTask.cancel() ;
 		this.showLoadmask() ;
 		
 		var filter_site = this.down('#btnSite').getNode(),
@@ -595,8 +618,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		});
 	},
 	onLoadResponse: function(response) {
-		var me = this,
-			remoteDataMap = {} ;
+		var me = this ;
 			
 		var jsonResponse = Ext.JSON.decode(response.responseText) ;
 		
@@ -650,6 +672,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		
 		// Drop loadmask
 		this.hideLoadmask();
+		
+		// Setup autoRefresh task
+		this.autoRefreshTask.delay( this.autoRefreshDelay ) ;
 	},
 	
 	
@@ -728,13 +753,13 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		this.remoteSavePeopledayRecord( peopledayRecord ) ;
 	},
 	
-	openAdvanced: function( remoteDataRecord, gridRecord, htmlNode ) {
+	openAdvanced: function( peopledayRecord, gridRecord, htmlNode ) {
 		var me = this ;
 		
 		var realAdvancedPanel = Ext.create('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 			parentRealPanel: me,
 			gridRecord: gridRecord,
-			peopledayRecord: remoteDataRecord,
+			peopledayRecord: peopledayRecord,
 			width:800, // dummy initial size, for border layout to work
 			height:600, // ...
 			floating: true,
@@ -762,12 +787,13 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		}) ;
 		realAdvancedPanel.on('destroy',function() {
 			me.getEl().unmask() ;
-			// me.fireEvent('qbookztemplatechange') ;
+			me.realAdvancedPanel = null ;
 		},me,{single:true}) ;
 		me.getEl().mask() ;
 		
 		realAdvancedPanel.show();
 		realAdvancedPanel.getEl().alignTo(htmlNode, 'c-t?',[0,50]);
+		me.realAdvancedPanel = realAdvancedPanel ;
 	},
 	
 	
@@ -809,9 +835,16 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				if( Ext.JSON.decode(response.responseText).success != true ) {
 					
 				}
+				this.onAfterSave() ;
 			},
 			scope: this
 		}) ;
+	},
+	onAfterSave: function() {
+		if( this.autoRefreshAfterEdit ) {
+			this.autoRefreshAfterEdit = false ;
+			this.doLoad() ;
+		}
 	},
 	
 	
