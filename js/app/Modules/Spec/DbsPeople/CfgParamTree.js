@@ -35,7 +35,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.CfgParamTree',{
 			},
 			displayField: 'nodeText',
 			rootVisible: true,
-			useArrows: true,
+			useArrows: true
 		});
 		this.callParent() ;
 		me.startLoading() ;

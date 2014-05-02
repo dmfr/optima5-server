@@ -2,7 +2,7 @@ Ext.define('DbsPeopleRhRealAdvModel',{
 	extend: 'Ext.data.Model',
 	fields:[
 		{name:'readonly', type:'boolean'},
-		{name:'class', type:'string'},
+		{name:'classe', type:'string'},
 		{name:'code', type:'string'},
 		{name:'length_hours', type:'int'}
 	]
@@ -46,7 +46,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 						labelAlign: 'left',
 						labelWidth: 50,
 						anchor: '100%',
-						margin: 1,
+						margin: 1
 					},
 					items: [{
 						xtype:'displayfield',
@@ -66,7 +66,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 						labelAlign: 'left',
 						labelWidth: 50,
 						anchor: '100%',
-						margin: 1,
+						margin: 1
 					},
 					items: [{
 						xtype:'checkbox',
@@ -152,11 +152,11 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 				flex:1,
 				columns:[{
 					text:'Type',
-					dataIndex: 'class',
+					dataIndex: 'classe',
 					width: 50,
 					renderer: function( value, metaData, record ) {
 						//return value ;
-						switch( record.get('class') ) {
+						switch( record.get('classe') ) {
 							case 'ROLE' :
 								metaData.tdCls = 'op5-spec-dbspeople-icon-role' ;
 								break ;
@@ -198,7 +198,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 					},
 					renderer: function( value, metaData, record ) {
 						//return value ;
-						switch( record.get('class') ) {
+						switch( record.get('classe') ) {
 							case 'ROLE' :
 								return me.parentRealPanel.helperGetRoleTxt( value ) ;
 								break ;
@@ -271,7 +271,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 								return false ;
 							}
 								
-							switch( record.get('class') ) {
+							switch( record.get('classe') ) {
 								case 'ROLE' :
 									columns[0].getEditor().update({iconCls:'op5-spec-dbspeople-icon-role'}) ;
 									columns[1].getEditor().getStore().loadData( Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll("ROLE") ) ;
@@ -354,7 +354,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 		
 		var newRecordIndex = 0 ;
 		
-		store.insert(newRecordIndex, Ext.create('DbsPeopleRhRealAdvModel',{class:tClass} ) );
+		store.insert(newRecordIndex, Ext.create('DbsPeopleRhRealAdvModel',{classe:tClass}) );
 		store.sync() ;
 		
 		grid.getPlugin('rowediting').startEdit(newRecordIndex, 0);
@@ -399,7 +399,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 			if( altWhse != null ) {
 				if( slice.alt_whse_code==altWhse ) {
 					storeData.push({
-						class:'ROLE',
+						classe:'ROLE',
 						code:slice.role_code,
 						length_hours: slice.role_length
 					});
@@ -415,7 +415,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 				continue ;
 			}
 			storeData.push({
-				class:'ROLE',
+				classe:'ROLE',
 				code:slice.role_code,
 				length_hours: slice.role_length
 			});
@@ -423,7 +423,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 		Ext.Object.each( altWhsesObj, function( altWhseCode, length ) {
 			storeData.push({
 				readonly: true,
-				class:'WHSE',
+				classe:'WHSE',
 				code:altWhseCode,
 				length_hours: length
 			});
@@ -472,7 +472,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 			} else {
 				var slices = [] ;
 				localStore.each( function(rec){
-					if( rec.get('class') != 'ROLE' ) {
+					if( rec.get('classe') != 'ROLE' ) {
 						return ;
 					}
 					slices.push({
@@ -504,7 +504,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 				
 				var slices = [], keepAltWhses = false ;
 				localStore.each( function(rec){
-					switch( rec.get('class') ) {
+					switch( rec.get('classe') ) {
 						case 'ROLE' :
 							slices.push({role_code:rec.get('code'), role_length:rec.get('length_hours')}) ;
 							break ;

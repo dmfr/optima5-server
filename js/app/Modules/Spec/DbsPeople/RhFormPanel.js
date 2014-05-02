@@ -75,7 +75,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhFormPanel',{
 						xtype: 'displayfield',
 						fieldLabel: 'Role',
 						fieldStyle: 'font-weight: bold',
-						name: 'role_txt',
+						name: 'role_txt'
 					}]
 				}]
 			},{

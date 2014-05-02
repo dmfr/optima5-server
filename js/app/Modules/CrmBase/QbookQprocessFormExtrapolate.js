@@ -32,7 +32,7 @@ Ext.define('Optima5.Modules.CrmBase.QbookQprocessFormExtrapolate' ,{
 					store: this.comboboxGetStoreCfg(),
 					queryMode: 'local',
 					displayField: this.comboboxGetStoreDisplayField(),
-					valueField: this.comboboxGetStoreValueField(),
+					valueField: this.comboboxGetStoreValueField()
 				},{
 					xtype: 'combobox',
 					fieldLabel: 'Output from',
@@ -43,7 +43,7 @@ Ext.define('Optima5.Modules.CrmBase.QbookQprocessFormExtrapolate' ,{
 					store: this.comboboxGetStoreCfg(),
 					queryMode: 'local',
 					displayField: this.comboboxGetStoreDisplayField(),
-					valueField: this.comboboxGetStoreValueField(),
+					valueField: this.comboboxGetStoreValueField()
 				},{
 					xtype: 'combobox',
 					fieldLabel: 'Output to',
@@ -54,7 +54,7 @@ Ext.define('Optima5.Modules.CrmBase.QbookQprocessFormExtrapolate' ,{
 					store: this.comboboxGetStoreCfg(),
 					queryMode: 'local',
 					displayField: this.comboboxGetStoreDisplayField(),
-					valueField: this.comboboxGetStoreValueField(),
+					valueField: this.comboboxGetStoreValueField()
 				}]
 			}]
 		}) ;

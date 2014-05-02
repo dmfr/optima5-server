@@ -34,7 +34,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 				flex: 1,
 				items:[Ext.apply(me.initFormCfg(),{
 					region:'center',
-					flex: 2,
+					flex: 2
 				}),Ext.create('Optima5.Modules.Spec.WbMrfoxy.PromoFormSkuGridPanel',{
 					region:'south',
 					flex: 1,
@@ -109,22 +109,22 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 				},
 				items:[{
 					xtype:'hidden',
-					name:'_filerecord_id',
+					name:'_filerecord_id'
 				},{
 					xtype:'hidden',
-					name:'is_prod',
+					name:'is_prod'
 				},{
 					xtype:'hidden',
-					name:'country_code',
+					name:'country_code'
 				},{
 					xtype:'hidden',
-					name:'brand_code',
+					name:'brand_code'
 				},{
 					xtype:'hidden',
-					name:'currency',
+					name:'currency'
 				},{
 					xtype:'hidden',
-					name:'cost_forecast',
+					name:'cost_forecast'
 				},{
 					xtype:'fieldcontainer',
 					flex: 4,
@@ -461,7 +461,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 					xtype: 'checkbox',
 					padding: '0px 32px 0px 0px',
 					boxLabel: '<b>Submit promotion</b>',
-					name: '_do_submit',
+					name: '_do_submit'
 				},{
 					xtype: 'component',
 					padding: '4px 0px',

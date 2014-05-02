@@ -52,7 +52,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.MainMenu',{
 				{type_separator:true, separator_label: 'Analysis / Queries'},
 				{type_action:true, action_caption: 'Performance Analysis', action_sendEvent:'stat_performance', action_iconCls:'op5-spec-mrfoxy-icon-statperf'},
 				{type_action:true, action_caption: 'Budget Management', action_sendEvent:'finance_budget', action_iconCls:'op5-spec-mrfoxy-icon-budget'},
-				{type_action:true, action_caption: 'Finance Analysis', action_iconCls:'op5-spec-mrfoxy-icon-statfinance'},
+				{type_action:true, action_caption: 'Finance Analysis', action_iconCls:'op5-spec-mrfoxy-icon-statfinance'}
 			]
 		}) ;
 		 
@@ -63,7 +63,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.MainMenu',{
 			overItemCls: 'op5-spec-mrfoxy-mainmenu-item-over',
 			store: itemsStore,
 			stateId: "mainmenu",
-			stateful: true,
+			stateful: true
 		}) ;
 		
 		this.addEvents('actionclick') ;

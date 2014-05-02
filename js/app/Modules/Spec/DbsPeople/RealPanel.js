@@ -75,6 +75,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 	
 	requires:[
 		'Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',
+		'Optima5.Modules.Spec.DbsPeople.RealVirtualPanel',
 		'Optima5.Modules.Spec.DbsPeople.CfgParamSiteButton',
 		'Optima5.Modules.Spec.DbsPeople.CfgParamTeamButton'
 	],
@@ -171,7 +172,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 								{iconCls: 'op5-spec-dbspeople-realcolor-role', text:'Modif. Rôle'},
 								{iconCls: 'op5-spec-dbspeople-realcolor-duree', text:'Modif. Durée'},
 								{iconCls: 'op5-spec-dbspeople-realcolor-absent', text:'Absence'},
-								{iconCls: 'op5-spec-dbspeople-realcolor-whse', text:'Transfert'},
+								{iconCls: 'op5-spec-dbspeople-realcolor-whse', text:'Transfert'}
 							]
 						},
 						//frame: true,
@@ -803,7 +804,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		// Size + position
 		realAdvancedPanel.setSize({
 			width: 300,
-			height: 250
+			height: 300
 		}) ;
 		realAdvancedPanel.on('destroy',function() {
 			me.getEl().unmask() ;

@@ -382,7 +382,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 										var iconEl = Ext.DomQuery.selectNode('div.op5-spec-mrfoxy-benchmarkassign-go-btn', c.getEl().dom);
 										Ext.create('Ext.dd.DragSource', iconEl, {
 											view: iconEl,
-											ddGroup: 'BenchmarkToPromo'+me.getId(),
+											ddGroup: 'BenchmarkToPromo'+me.getId()
 										}) ;
 									},
 									destroy: function() {
@@ -403,7 +403,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 								),
 								renderData: {
 									text: 'Drag icon to assign benchmark'
-								},
+								}
 							}],
 							
 							floating: true,

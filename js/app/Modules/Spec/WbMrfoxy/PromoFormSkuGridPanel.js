@@ -52,7 +52,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormSkuGridPanel',{
 					text: 'SKU',
 					dataIndex: 'sku_code',
 					width: 90,
-					tdCls: 'op5-spec-mrfoxy-promoformlist-skucolumn',
+					tdCls: 'op5-spec-mrfoxy-promoformlist-skucolumn'
 				},{
 					text: 'Item description',
 					dataIndex: 'sku_desc',
@@ -122,7 +122,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormSkuGridPanel',{
 						var calcValue =  stdCost * ( 1 - record.get('promo_price_coef') ) ;
 						return Ext.util.Format.number( calcValue, '0,0' ) ;
 					},
-					tdCls: 'op5-spec-mrfoxy-promoformlist-totalcolumn',
+					tdCls: 'op5-spec-mrfoxy-promoformlist-totalcolumn'
 				}]
 			}
 		});

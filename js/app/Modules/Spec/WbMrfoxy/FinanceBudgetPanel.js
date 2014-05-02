@@ -105,7 +105,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 						},
 						displayField: 'country_text',
 						rootVisible: true,
-						useArrows: true,
+						useArrows: true
 					}]
 				}
 			},{
@@ -159,7 +159,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 						this.handleNewRevisionEnd( doSave = false ) ;
 					},
 					scope: this
-				}],
+				}]
 			},{
 				itemId: 'tbExport',
 				icon: 'images/op5img/ico_save_16.gif',
@@ -395,7 +395,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 				editingColumn = {
 					text: ( revision.is_crop_initial ? 'Initial crop '+me.filterCropYear : 'Build revision ' + revision.revision_date ),
 					defaults: Ext.apply( Ext.clone(colDefaults),{
-						width: 100,
+						width: 100
 					}),
 					columns: [{
 						text: 'Edit values',
@@ -524,7 +524,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 					has_total: group.has_total,
 					operation: group.operation,
 					row_key: row.row_key,
-					row_text: row.row_text,
+					row_text: row.row_text
 				};
 				for( var i=0 ; i<revisionIds.length ; i++ ) {
 					var revisionId = revisionIds[i],
@@ -806,7 +806,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 				fieldLabel: 'Revision Title',
 				xtype: 'textfield',
 				allowBlank: false,
-				name: 'revision_name',
+				name: 'revision_name'
 			},{
 				fieldLabel: 'Application date',
 				xtype: 'datefield',
@@ -815,7 +815,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 				startDay: 1,
 				width: 250,
 				allowBlank: false,
-				name: 'revision_date',
+				name: 'revision_date'
 			}],
 			frame: true,
 			buttons: [{
@@ -835,7 +835,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 				handler: function(e, t, p) {
 					p.ownerCt.destroy();
 				}
-			}],
+			}]
 		});
 		
 		// Size + position

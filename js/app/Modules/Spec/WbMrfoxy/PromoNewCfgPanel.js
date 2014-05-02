@@ -41,7 +41,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoNewCfgPanel',{
 					allowBlank: false,
 					fieldLabel: 'Country',
 					name : 'country_code',
-					itemId : 'country_code',
+					itemId : 'country_code'
 				}]
 			},{
 				xtype: 'fieldset',
@@ -87,7 +87,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoNewCfgPanel',{
 					
 					fieldLabel: 'Brand',
 					name : 'brand_code',
-					itemId : 'brand_code',
+					itemId : 'brand_code'
 				}]
 			}],
 			frame: true,

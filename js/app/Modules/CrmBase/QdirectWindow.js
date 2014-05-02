@@ -110,7 +110,7 @@ Ext.define('Optima5.Modules.CrmBase.QdirectWindow' ,{
 		Ext.apply( ajaxParams, {
 			_action: me.getAjaxAction(),
 			_transaction_id: qdirectTransactionId ,
-			_subaction: 'run',
+			_subaction: 'run'
 		});
 		if( me.qsrcFilerecordId != null ) {
 			Ext.apply(ajaxParams,{

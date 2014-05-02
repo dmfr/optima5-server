@@ -47,7 +47,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.MainMenu',{
 				{type_separator:true, separator_label: 'Manage Promotions'},
 				{type_action:true, action_caption: 'Gestion RH', action_sendEvent:'panel_rh', action_iconCls:'op5-spec-dbspeople-icon-promotion'},
 				{type_action:true, action_caption: 'Vue chef d\'équipe', action_sendEvent:'panel_real', action_iconCls:'op5-spec-dbspeople-icon-headlines'},
-				{type_action:true, action_caption: 'Forecast Activité(s)', action_sendEvent:'panel_forecast',action_iconCls:'op5-spec-dbspeople-icon-promostore'},
+				{type_action:true, action_caption: 'Forecast Activité(s)', action_sendEvent:'panel_forecast',action_iconCls:'op5-spec-dbspeople-icon-promostore'}
 											 /*
 				{type_separator:true, separator_label: 'Bibles / Dictionnaires'},
 				{type_action:true, action_caption: 'Entrepôts', action_iconCls:'op5-spec-dbspeople-icon-headlines'},
@@ -63,7 +63,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.MainMenu',{
 			overItemCls: 'op5-spec-dbspeople-mainmenu-item-over',
 			store: itemsStore,
 			stateId: "mainmenu",
-			stateful: true,
+			stateful: true
 		}) ;
 		
 		this.addEvents('actionclick') ;

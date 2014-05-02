@@ -23,7 +23,7 @@ Ext.define('Optima5.Modules.CrmBase.QbookQprocessForm' ,{
 					this.getForm().reset() ;
 				},
 				scope: this
-			}],
+			}]
 		});
 		
 		this.callParent() ;

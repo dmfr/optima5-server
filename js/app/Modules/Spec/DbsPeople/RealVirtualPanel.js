@@ -37,7 +37,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealVirtualPanel',{
 						labelAlign: 'left',
 						labelWidth: 50,
 						anchor: '100%',
-						margin: 1,
+						margin: 1
 					},
 					items: [{
 						xtype:'displayfield',
@@ -57,7 +57,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealVirtualPanel',{
 						labelAlign: 'left',
 						labelWidth: 50,
 						anchor: '100%',
-						margin: 1,
+						margin: 1
 					},
 					items: [{
 						xtype:'checkbox',
@@ -85,7 +85,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealVirtualPanel',{
 				defaults: {
 					labelAlign: 'left',
 					labelWidth: 70,
-					anchor: '100%',
+					anchor: '100%'
 				},
 				items: [{
 					xtype:'combobox',

@@ -232,11 +232,11 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 				}],
 				columns: [{
 					text: 'Type',
-					dataIndex: 'time_type',
+					dataIndex: 'time_type'
 				},{
 					text: 'Période',
 					dataIndex: 'time_txt',
-					width: 120,
+					width: 120
 				},{
 					text: 'Capacité',
 					defaults: {
@@ -244,16 +244,16 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 					},
 					columns: [{
 						text: 'Colis',
-						dataIndex: 'rh_colis',
+						dataIndex: 'rh_colis'
 					},{
 						text: 'Pals I/O',
-						dataIndex: 'rh_pals',
+						dataIndex: 'rh_pals'
 					},{
 						text: 'Quai',
-						dataIndex: 'rh_quai',
+						dataIndex: 'rh_quai'
 					},{
 						text: 'Table',
-						dataIndex: 'rh_table',
+						dataIndex: 'rh_table'
 					}]
 				},{
 					text: 'Forecast',
@@ -262,16 +262,16 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 					},
 					columns: [{
 						text: 'Colis',
-						dataIndex: 'forecast_colis',
+						dataIndex: 'forecast_colis'
 					},{
 						text: 'Pals I/O',
-						dataIndex: 'forecast_pals',
+						dataIndex: 'forecast_pals'
 					},{
 						text: 'Camions',
-						dataIndex: 'forecast_quai',
+						dataIndex: 'forecast_quai'
 					},{
 						text: 'Table',
-						dataIndex: 'forecast_table',
+						dataIndex: 'forecast_table'
 					}]
 				},{
 					text: '<b>Besoins / Excédent</b>',
@@ -293,16 +293,16 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 					},
 					columns: [{
 						text: 'Prep',
-						dataIndex: 'balance_colis',
+						dataIndex: 'balance_colis'
 					},{
 						text: 'Cariste',
-						dataIndex: 'balance_pals',
+						dataIndex: 'balance_pals'
 					},{
 						text: 'AgentQ',
-						dataIndex: 'balance_quai',
+						dataIndex: 'balance_quai'
 					},{
 						text: 'Table',
-						dataIndex: 'balance_table',
+						dataIndex: 'balance_table'
 					}]
 				}]
 			}]

@@ -323,7 +323,7 @@ Ext.define('Optima5.Modules.CrmBase.QbookSubpanelValues' ,{
 			expanded:true,
 			children:inputvarsChildren,
 			icon: 'images/op5img/ico_showref_listall.gif',
-			text: '<u>Input/source variables</u>',
+			text: '<u>Input/source variables</u>'
 		}) ;
 		
 		me.qobjStore.each( function(qobjRecord) {

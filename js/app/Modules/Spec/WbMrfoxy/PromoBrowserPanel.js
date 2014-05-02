@@ -130,7 +130,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoBrowserPanel',{
 						},
 						displayField: 'country_text',
 						rootVisible: true,
-						useArrows: true,
+						useArrows: true
 					}]
 				}
 			},{

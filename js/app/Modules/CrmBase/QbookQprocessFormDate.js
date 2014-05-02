@@ -32,7 +32,7 @@ Ext.define('Optima5.Modules.CrmBase.QbookQprocessFormDate' ,{
 					store: this.comboboxGetStoreCfg(),
 					queryMode: 'local',
 					displayField: this.comboboxGetStoreDisplayField(),
-					valueField: this.comboboxGetStoreValueField(),
+					valueField: this.comboboxGetStoreValueField()
 				},{
 					xtype: 'combobox',
 					fieldLabel: 'Before',
@@ -43,7 +43,7 @@ Ext.define('Optima5.Modules.CrmBase.QbookQprocessFormDate' ,{
 					store: this.comboboxGetStoreCfg(),
 					queryMode: 'local',
 					displayField: this.comboboxGetStoreDisplayField(),
-					valueField: this.comboboxGetStoreValueField(),
+					valueField: this.comboboxGetStoreValueField()
 				}]
 			}]
 		}) ;

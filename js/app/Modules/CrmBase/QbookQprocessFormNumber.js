@@ -32,7 +32,7 @@ Ext.define('Optima5.Modules.CrmBase.QbookQprocessFormNumber' ,{
 					store: this.comboboxGetStoreCfg(),
 					queryMode: 'local',
 					displayField: this.comboboxGetStoreDisplayField(),
-					valueField: this.comboboxGetStoreValueField(),
+					valueField: this.comboboxGetStoreValueField()
 				},{
 					xtype: 'combobox',
 					fieldLabel: 'Max',
@@ -43,7 +43,7 @@ Ext.define('Optima5.Modules.CrmBase.QbookQprocessFormNumber' ,{
 					store: this.comboboxGetStoreCfg(),
 					queryMode: 'local',
 					displayField: this.comboboxGetStoreDisplayField(),
-					valueField: this.comboboxGetStoreValueField(),
+					valueField: this.comboboxGetStoreValueField()
 				}]
 			}]
 		}) ;

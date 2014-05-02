@@ -48,7 +48,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.MainPanel',{
 	},
 	onActionClick: function( actionCode ) {
 		var me = this ;
-		console.log("Action: "+actionCode) ;
+		//console.log("Action: "+actionCode) ;
 		
 		switch( actionCode ) {
 			case 'panel_rh' :

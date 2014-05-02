@@ -151,7 +151,7 @@ Ext.onReady(function () {
 			this.callOverridden(arguments);
 			
 			this._ws_lastScrollPosition = t.scrollTop;
-		},
+		}
 	});
 	
 	/*
