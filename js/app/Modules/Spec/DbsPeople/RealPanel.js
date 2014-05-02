@@ -256,6 +256,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 					return '' ;
 				}
 				metaData.tdCls += ' op5-spec-dbspeople-realcell-virtual' ;
+				if( peopledayRecord.data.std_daylength == 0 ) {
+					return '' ;
+				}
 				return peopledayRecord.data.std_role_code ;
 			}
 			
@@ -302,6 +305,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 					return '' ;
 				}
 				metaData.tdCls += ' op5-spec-dbspeople-realcell-virtual' ;
+				if( peopledayRecord.data.std_daylength == 0 ) {
+					return '' ;
+				}
 				return peopledayRecord.data.std_daylength ;
 			}
 			
@@ -334,6 +340,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				}
 			}
 			
+			if( workLength==0 && peopledayRecord.data.std_daylength == 0 ) {
+				return '' ;
+			}
 			return workLength ;
 		};
 		
@@ -501,6 +510,11 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 						peopleCode = gridRecord.data.people_code,
 						peopledayId = peopleCode+'@'+dateSql,
 						peopledayRecord = this.peopledayStore.getById(peopledayId) ;
+						
+					if( peopledayRecord.data.status_isVirtual == true ) {
+						me.openVirtual( peopledayRecord, gridRecord, cellNode ) ;
+						return ;
+					}
 					
 					me.openAdvanced( peopledayRecord, gridRecord, cellNode ) ;
 				},
@@ -751,9 +765,15 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 	},
 	
 	openAdvanced: function( peopledayRecord, gridRecord, htmlNode ) {
+		this.openPopup( 'Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel', peopledayRecord, gridRecord, htmlNode ) ;
+	},
+	openVirtual: function( peopledayRecord, gridRecord, htmlNode ) {
+		this.openPopup( 'Optima5.Modules.Spec.DbsPeople.RealVirtualPanel', peopledayRecord, gridRecord, htmlNode ) ;
+	},
+	openPopup: function( className, peopledayRecord, gridRecord, htmlNode ) {
 		var me = this ;
 		
-		var realAdvancedPanel = Ext.create('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
+		var realAdvancedPanel = Ext.create(className,{
 			parentRealPanel: me,
 			gridRecord: gridRecord,
 			peopledayRecord: peopledayRecord,
@@ -764,13 +784,16 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			tools: [{
 				type: 'close',
 				handler: function(e, t, p) {
-					p.ownerCt.doSave() ;
+					var needFullRefresh = p.ownerCt.doSave() ;
 					
 					p.ownerCt.gridRecord.set( 'dummy', null );
 					p.ownerCt.gridRecord.commit() ;
 					
+					if( needFullRefresh ) {
+						this.autoRefreshAfterEdit = true ;
+					}
 					this.remoteSavePeopledayRecord( p.ownerCt.peopledayRecord ) ;
-
+					
 					p.ownerCt.destroy();
 				},
 				scope: this

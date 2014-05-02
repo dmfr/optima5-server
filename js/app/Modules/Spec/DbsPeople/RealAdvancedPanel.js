@@ -87,6 +87,10 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 				bodyCls: 'ux-noframe-bg',
 				itemId: 'absPanel',
 				hidden: true,
+				frame: true,
+				border: true,
+				margin: '4px',
+				title: 'Réservé au service RH',
 				items: [{
 					xtype:'combobox',
 					itemId: 'absCombobox',
@@ -99,10 +103,48 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 					displayField: 'text',
 					valueField: 'id',
 					fieldLabel: 'Motif',
+					name: 'rh_abs_code' ,
 					store: {
 						fields:['id','text'],
 						data: Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll("ABS")
 					}
+				},{
+					xtype: 'fieldset',
+					title: 'Validation RH',
+					defaults: {
+						labelAlign: 'left',
+						labelWidth: 70,
+						anchor: '100%'
+					},
+					items:[{
+						xtype:'checkbox',
+						name: 'rh_abs_is_on' ,
+						boxLabel: 'Absent',
+						listeners: {
+							change: function() {
+								this.calcLayout() ;
+							},
+							scope: this
+						}
+					},{
+						xtype: 'datefield',
+						allowBlank: false,
+						format: 'd/m/Y',
+						submitFormat: 'Y-m-d',
+						fieldLabel: 'Début',
+						name: 'rh_abs_date_start',
+						anchor: '',
+						width: 170
+					},{
+						xtype: 'datefield',
+						allowBlank: false,
+						format: 'd/m/Y',
+						submitFormat: 'Y-m-d',
+						fieldLabel: 'Fin',
+						name: 'rh_abs_date_end',
+						anchor: '',
+						width: 170
+					}]
 				}]
 			},{
 				xtype:'grid',
@@ -295,6 +337,13 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 		
 		absPanel.setVisible(absCheckbox.getValue()) ;
 		slicesPanel.setVisible(!absCheckbox.getValue()) ;
+		
+		var rhAbsIsOn = absPanel.getForm().findField('rh_abs_is_on'),
+			rhAbsDateStart = absPanel.getForm().findField('rh_abs_date_start'),
+			rhAbsDateEnd = absPanel.getForm().findField('rh_abs_date_end') ;
+		rhAbsDateStart.setVisible(rhAbsIsOn.getValue());
+		rhAbsDateEnd.setVisible(rhAbsIsOn.getValue());
+		
 		return ;
 	},
 	
@@ -381,7 +430,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 		}) ;
 		
 		// Set UI
-		absCheckbox.setVisible( altWhse==null ) ;
+		absCheckbox.setVisible( altWhse==null && me.peopledayRecord.data.std_daylength > 0 ) ;
 		absCheckbox.setValue( absMode ) ;
 		absCombobox.setValue( absCode ) ;
 		slicesPanel.getStore().loadRawData( storeData ) ;
@@ -444,10 +493,12 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 			recordAbsStore.removeAll() ;
 			if( localStore.getCount() == 0 ) {
 				recordWorksStore.removeAll() ;
-				recordWorksStore.add({
-					role_code:me.peopledayRecord.data.std_role_code,
-					role_length:me.peopledayRecord.data.std_daylength
-				}) ;
+				if( me.peopledayRecord.data.std_daylength > 0 ) {
+					recordWorksStore.add({
+						role_code:me.peopledayRecord.data.std_role_code,
+						role_length:me.peopledayRecord.data.std_daylength
+					}) ;
+				}
 			} else {
 				var worksTodelete = [] ;
 				
@@ -480,7 +531,15 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 				recordWorksStore.add(slices) ;
 			}
 		}
+		
+		this.rhAbsSave() ;
+	},
+	rhAbsLoad: function() {
+		
+	},
+	rhAbsSave: function() {
+		var rhAbsValues = this.down('#absPanel').getValues() ;
+		//console.dir(rhAbsValues) ;
 	}
-	
 	
 });

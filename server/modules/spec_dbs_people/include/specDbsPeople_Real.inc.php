@@ -88,9 +88,10 @@ function specDbsPeople_Real_getData( $post_data ) {
 			}
 			
 			if( !$cfg_contract['std_dayson'][$ISO8601_day] ) {
-				continue ;
+				$row['std_daylength'] = 0 ;
+			} else {
+				$row['std_daylength'] = $cfg_contract['std_daylength'] ;
 			}
-			$row['std_daylength'] = $cfg_contract['std_daylength'] ;
 			
 			$buildTAB[$cur_date][$people_code] = $row ;
 		}
@@ -257,6 +258,10 @@ function specDbsPeople_Real_openDay( $post_data ) {
 		$arr_ins['field_DATE'] = $peopleday_record['date_sql'] ;
 		$arr_ins['field_PPL_CODE'] = $peopleday_record['people_code'] ;
 		$filerecord_id = paracrm_lib_data_insertRecord_file( 'PEOPLEDAY', 0 , $arr_ins ) ;
+		
+		if( $peopleday_record['std_daylength'] == 0 ) {
+			continue ;
+		}
 		
 		if( $peopleday_record['std_abs_code'] != '_IN' ) {
 			$arr_ins = array() ;
