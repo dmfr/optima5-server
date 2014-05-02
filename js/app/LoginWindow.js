@@ -94,6 +94,12 @@ Ext.define('Optima5.LoginWindow',{
 		me.probeAutoLogin() ;
 	},
 	probeAutoLogin: function() {
+		var isIPAddress = function(v) {
+			return /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(v);
+		} ;
+		if( !isIPAddress(window.location.hostname) ) {
+			return ;
+		}
 		/*
 		 * Optional /DEV
 		 * + /DEV.autologin.json :
