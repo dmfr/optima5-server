@@ -144,7 +144,10 @@ Ext.onReady(function () {
 			var me = this ;
 			if (me.rendered && me.bufferedRenderer && me.preserveScrollOnRefresh) {
 				me.el.dom.scrollTop = me._ws_lastScrollPosition;
-				me.bufferedRenderer.onViewScroll(null, me.el);
+				if( me.bufferedRenderer.lockingPartner && !me.bufferedRenderer.lockingPartner.view.rendered ) {
+				} else {
+					me.bufferedRenderer.onViewScroll(null, me.el);
+				}
 			}
 		},
 		onViewScroll: function(e, t) {
