@@ -54,6 +54,16 @@
 		"params": []
 	},{
 		"enabled":true,
+		"moduleId":"spec_wb_budget",
+		"backendModuleId":"crmbase",
+		"parentModuleId":"crmbase",
+		"moduleName":"(Wonderful) Budget",
+		"moduleClass":"Optima5.Modules.Spec.WbBudget.WbBudgetModule",
+		"moduleCssSrc":"module-spec_wb_budget.css",
+		"moduleType":"sdomain",
+		"params": []
+	},{
+		"enabled":true,
 		"moduleId":"spec_dbs_people",
 		"backendModuleId":"crmbase",
 		"parentModuleId":"crmbase",
