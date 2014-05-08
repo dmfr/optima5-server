@@ -105,7 +105,12 @@
 	color: #777777 ;
 }
 .op5-spec-dbspeople-realcell-absent {
-	color: red ;
+	color: #E50000 ;
+	font-weight: bold;
+}
+.op5-spec-dbspeople-realcell-absplanning {
+	color: #E5026C ;
+	font-weight: bold;
 }
 .op5-spec-dbspeople-realcell-diff {
 	color: #BF8E10 ;
@@ -132,10 +137,10 @@
 	border: 1px solid #aaa ;
 }
 
-.op5-spec-dbspeople-realcolor-absent {
+.op5-spec-dbspeople-realcolor-anomalie {
 	background-color: #FF6F6F !important;
 }
-.op5-spec-dbspeople-realcolor-absent .x-grid-cell-inner {
+.op5-spec-dbspeople-realcolor-anomalie .x-grid-cell-inner {
 	background-color: #FF6F6F !important;
 }
 .op5-spec-dbspeople-realcolor-whse {
@@ -151,8 +156,14 @@
 	background-color: #CDFFCF ;
 }
 
-.op5-spec-dbspeople-balance-pos .x-grid-cell-inner { color: green; }
-.op5-spec-dbspeople-balance-neg .x-grid-cell-inner { color: red; }
+.op5-spec-dbspeople-balance-pos .x-grid-cell-inner { 
+	color: #008000 ;
+	font-weight: bold;
+}
+.op5-spec-dbspeople-balance-neg .x-grid-cell-inner { 
+	color: #E50000 ;
+	font-weight: bold;
+}
 
 .op5-spec-dbspeople-cfgparambtn-bold .x-btn-inner {
 	font-weight: bold ;

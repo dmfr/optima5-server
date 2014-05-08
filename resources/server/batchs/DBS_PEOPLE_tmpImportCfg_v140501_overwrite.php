@@ -55,7 +55,7 @@ while( !feof($handle) ) {
 	$arr_ins = array() ;
 	$arr_ins['field_DATE_APPLY'] = '2000-01-01' ;
 	$arr_ins['field_PPL_CODE'] = $people_code ;
-	$arr_ins['field_ABS_CODE'] = '_IN' ;
+	$arr_ins['field_ABS_CODE'] = '_' ;
 	paracrm_lib_data_insertRecord_file( 'RH_ABS', 0, $arr_ins );
 	
 	

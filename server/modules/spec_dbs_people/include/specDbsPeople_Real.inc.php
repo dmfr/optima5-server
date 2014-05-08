@@ -259,15 +259,15 @@ function specDbsPeople_Real_openDay( $post_data ) {
 		$arr_ins['field_PPL_CODE'] = $peopleday_record['people_code'] ;
 		$filerecord_id = paracrm_lib_data_insertRecord_file( 'PEOPLEDAY', 0 , $arr_ins ) ;
 		
-		if( $peopleday_record['std_daylength'] == 0 ) {
-			continue ;
-		}
-		
-		if( $peopleday_record['std_abs_code'] != '_IN' ) {
+		if( $peopleday_record['std_abs_code'] != '_' ) {
 			$arr_ins = array() ;
 			$arr_ins['field_ABS_CODE'] = $peopleday_record['std_abs_code'] ;
 			$arr_ins['field_ABS_LENGTH'] = $peopleday_record['std_daylength'] ;
 			paracrm_lib_data_insertRecord_file( 'PEOPLEDAY_ABS', $filerecord_id , $arr_ins ) ;
+			continue ;
+		}
+		
+		if( $peopleday_record['std_daylength'] == 0 ) {
 			continue ;
 		}
 		
@@ -289,6 +289,13 @@ function specDbsPeople_Real_saveRecord( $post_data ) {
 	$query = "SELECT filerecord_id FROM view_file_PEOPLEDAY
 				WHERE field_DATE='{$date_sql}' AND field_PPL_CODE='{$people_code}'" ;
 	$filerecord_id = $_opDB->query_uniqueValue($query) ;
+	if( !$filerecord_id ) {
+		return array('success'=>false) ;
+	}
+	
+	$arr_update = array() ;
+	$arr_update['field_REAL_IS_ABS'] = $record_data['real_is_abs'] ;
+	paracrm_lib_data_updateRecord_file( 'PEOPLEDAY' , $arr_update, $filerecord_id ) ;
 	
 	foreach( paracrm_lib_data_getFileChildRecords('PEOPLEDAY_WORK',$filerecord_id) as $child_record ) {
 		paracrm_lib_data_deleteRecord_file('PEOPLEDAY_WORK',$child_record['filerecord_id']) ;

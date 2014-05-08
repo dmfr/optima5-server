@@ -14,6 +14,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 		'Ext.ux.dams.ColorCombo',
 		'Ext.ux.dams.ComboBoxCached'
 	],
+	
+	editDisabled: null,
 
 	initComponent: function() {
 		var me = this ;
@@ -27,6 +29,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 		
 		
 		Ext.apply(me,{
+			bodyCls: 'ux-noframe-bg',
 			layout: {
 				type:'vbox',
 				align:'stretch'
@@ -109,6 +112,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 						data: Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll("ABS")
 					}
 				},{
+					hidden: true, // TODO: tmp hide on-the-fly RH abs
 					xtype: 'fieldset',
 					title: 'Validation RH',
 					defaults: {
@@ -160,6 +164,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 							case 'ROLE' :
 								metaData.tdCls = 'op5-spec-dbspeople-icon-role' ;
 								break ;
+							case 'ABS' :
+								metaData.tdCls = 'op5-spec-dbspeople-icon-absence' ;
+								break ;
 							case 'WHSE' :
 								metaData.tdCls = 'op5-spec-dbspeople-icon-move' ;
 								break ;
@@ -178,7 +185,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 						]
 					}
 				},{
-					text:'Role/Warehouse',
+					text:'Role/Site/Abs',
 					dataIndex: 'code',
 					flex: 1,
 					editor:{
@@ -202,6 +209,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 							case 'ROLE' :
 								return me.parentRealPanel.helperGetRoleTxt( value ) ;
 								break ;
+							case 'ABS' :
+								return me.parentRealPanel.helperGetAbsTxt( value ) ;
+								break ;
 							case 'WHSE' :
 								return me.parentRealPanel.helperGetWhseTxt( value ) ;
 								break ;
@@ -216,11 +226,12 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 					width: 50,
 					editor:{
 						xtype: 'numberfield',
+						minValue: 0,
 						validator: function(v) {
 							if( Ext.isEmpty(v) ) {
 								return false ;
 							}
-							return ( v > 0 ) ;
+							return ( v >= 0 ) ;
 						}
 					},
 					renderer: function( value ) {
@@ -276,6 +287,10 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 									columns[0].getEditor().update({iconCls:'op5-spec-dbspeople-icon-role'}) ;
 									columns[1].getEditor().getStore().loadData( Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll("ROLE") ) ;
 									break ;
+								case 'ABS' :
+									columns[0].getEditor().update({iconCls:'op5-spec-dbspeople-icon-absence'}) ;
+									columns[1].getEditor().getStore().loadData( Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll("ABS") ) ;
+									break ;
 								case 'WHSE' :
 									columns[0].getEditor().update({iconCls:'op5-spec-dbspeople-icon-move'}) ;
 									columns[1].getEditor().getStore().loadData( Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll("WHSE") ) ;
@@ -301,6 +316,14 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 							text: 'Rôle',
 							handler: function(btn) {
 								this.onBtnAdd('ROLE') ;
+							},
+							scope: this
+						},{
+							itemId: 'btnItemAbs',
+							iconCls: 'op5-spec-dbspeople-icon-absence',
+							text: 'Absence',
+							handler: function(btn) {
+								this.onBtnAdd('ABS') ;
 							},
 							scope: this
 						},{
@@ -334,6 +357,12 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 			absCheckbox = this.down('#absCheckbox'),
 			absPanel = this.down('#absPanel'),
 			slicesPanel = this.down('#slicesPanel') ;
+			
+		if( me.editDisabled ) {
+			absPanel.setVisible(false) ;
+			slicesPanel.setVisible(false) ;
+			return ;
+		}
 		
 		absPanel.setVisible(absCheckbox.getValue()) ;
 		slicesPanel.setVisible(!absCheckbox.getValue()) ;
@@ -351,10 +380,19 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 		var me = this,
 			grid = me.child('grid'),
 			store = grid.getStore() ;
+			
+		// done 14-05-07 : durée restante standard
+		var newRecordData = {
+			classe:tClass
+		};
+		var remainLength = me.peopledayRecord.data.std_daylength - store.sum('length_hours') ;
+		if( remainLength > 0 ) {
+			newRecordData['length_hours'] = remainLength ;
+		}
 		
 		var newRecordIndex = 0 ;
 		
-		store.insert(newRecordIndex, Ext.create('DbsPeopleRhRealAdvModel',{classe:tClass}) );
+		store.insert(newRecordIndex, Ext.create('DbsPeopleRhRealAdvModel',newRecordData) );
 		store.sync() ;
 		
 		grid.getPlugin('rowediting').startEdit(newRecordIndex, 0);
@@ -378,23 +416,30 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 			slicesPanel = this.down('#slicesPanel'),
 			toolbar = this.down('toolbar'),
 			btnItemMove = toolbar.down('#btnItemMove'),
-			btnItemRole = toolbar.down('#btnItemRole') ;
+			btnItemRole = toolbar.down('#btnItemRole'),
+			btnItemAbs  = toolbar.down('#btnItemAbs') ;
 		
 		var storeData = [],
 			gridWhse = me.gridRecord.get('whse_code'),
 			stdWhse = me.peopledayRecord.get('std_whse_code'),
 			altWhse = ( stdWhse != gridWhse ? gridWhse : null ),
 			absMode, absCode,
-			slices = Ext.pluck( me.peopledayRecord.works().getRange(), 'data' ),
+			worksSlices = Ext.pluck( me.peopledayRecord.works().getRange(), 'data' ),
+			absSlices = Ext.pluck( me.peopledayRecord.abs().getRange(), 'data' ),
 			slice ;
-		if( me.peopledayRecord.abs().getCount() > 0 ) {
+			
+		
+		if( me.peopledayRecord.get('real_is_abs') ) {
 			absMode = true ;
-			absCode = me.peopledayRecord.abs().getAt(0).data.abs_code ;
+			if( me.peopledayRecord.abs().getCount() > 0 ) {
+				absCode = me.peopledayRecord.abs().getAt(0).data.abs_code ;
+			}
 		}
 		
+		
 		var altWhsesObj = {} ;
-		for( var idx=0 ; idx<slices.length ; idx++ ) {
-			slice = slices[idx] ;
+		for( var idx=0 ; idx<worksSlices.length ; idx++ ) {
+			slice = worksSlices[idx] ;
 			
 			if( altWhse != null ) {
 				if( slice.alt_whse_code==altWhse ) {
@@ -429,12 +474,34 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 			});
 		}) ;
 		
+		for( var idx=0 ; idx<absSlices.length ; idx++ ) {
+			slice = absSlices[idx] ;
+			
+			if( altWhse != null ) {
+				continue ;
+			}
+			
+			storeData.push({
+				classe:'ABS',
+				code:slice.abs_code,
+				length_hours: slice.abs_length
+			});
+		}
+		
+		// done 14-05-07 : altWhse + vide => mode désactivé, aucun changement
+		if( altWhse != null && storeData.length == 0 ) {
+			me.editDisabled = true ;
+		} else {
+			me.editDisabled = false ;
+		}
+		
 		// Set UI
 		absCheckbox.setVisible( altWhse==null && me.peopledayRecord.data.std_daylength > 0 ) ;
 		absCheckbox.setValue( absMode ) ;
 		absCombobox.setValue( absCode ) ;
 		slicesPanel.getStore().loadRawData( storeData ) ;
 		btnItemRole.setVisible(true);
+		btnItemAbs.setVisible( altWhse==null );
 		btnItemMove.setVisible( altWhse==null );
 		me.calcLayout() ;
 	},
@@ -448,9 +515,15 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 		var recordWorksStore = me.peopledayRecord.works(),
 			recordAbsStore = me.peopledayRecord.abs() ;
 			
-		var localStore = this.child('grid').getStore() ;
+		var localGrid = this.child('grid'),
+			localStore = localGrid.getStore() ;
 			
 		if( altWhse != null ) { // ****** Mode autre warehouse *********
+			if( me.editDisabled ) {
+				// done 14-05-07 : mode désactivé, aucun changement
+				return ;
+			}
+			
 			recordAbsStore.removeAll() ;
 			
 			// Remove all "this" warehouse works
@@ -484,16 +557,27 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 				recordWorksStore.add(slices) ;
 			}
 		} else if( this.query('checkbox')[0].getValue() == true ) {  // ********* Mode absence *********
+			me.peopledayRecord.set('real_is_abs',true) ;
+			
 			var absCode = this.down('#absPanel').down('combobox').getValue() ;
 			recordWorksStore.removeAll() ;
 			recordAbsStore.removeAll() ;
-			recordAbsStore.add({abs_code:absCode, abs_length:me.peopledayRecord.data.std_daylength}) ;
+			if( !Ext.isEmpty(absCode) ) {
+				recordAbsStore.add({abs_code:absCode, abs_length:me.peopledayRecord.data.std_daylength}) ;
+			}
 			
 		} else { // ********* Mode standard (master) *********
+			me.peopledayRecord.set('real_is_abs',false) ;
+			
 			recordAbsStore.removeAll() ;
 			if( localStore.getCount() == 0 ) {
 				recordWorksStore.removeAll() ;
-				if( me.peopledayRecord.data.std_daylength > 0 ) {
+				if( me.peopledayRecord.data.std_abs_code.charAt(0) != '_' ) {
+					recordAbsStore.add({
+						abs_code:me.peopledayRecord.data.std_abs_code,
+						abs_length:me.peopledayRecord.data.std_daylength
+					}) ;
+				} else if( me.peopledayRecord.data.std_daylength > 0 ) {
 					recordWorksStore.add({
 						role_code:me.peopledayRecord.data.std_role_code,
 						role_length:me.peopledayRecord.data.std_daylength
@@ -501,19 +585,22 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 				}
 			} else {
 				var worksTodelete = [] ;
-				
-				var slices = [], keepAltWhses = false ;
+				var worksSlices = [], keepAltWhses = false ;
+				var absSlices = [] ;
 				localStore.each( function(rec){
 					switch( rec.get('classe') ) {
 						case 'ROLE' :
-							slices.push({role_code:rec.get('code'), role_length:rec.get('length_hours')}) ;
+							worksSlices.push({role_code:rec.get('code'), role_length:rec.get('length_hours')}) ;
+							break ;
+						case 'ABS' :
+							absSlices.push({abs_code:rec.get('code'), abs_length:rec.get('length_hours')}) ;
 							break ;
 						case 'WHSE' :
 							if( rec.get('readonly') ) {
 								keepAltWhses = true ;
 								break ;
 							}
-							slices.push({alt_whse_code:rec.get('code'), role_code:me.peopledayRecord.data.std_role_code, role_length:rec.get('length_hours')}) ;
+							worksSlices.push({alt_whse_code:rec.get('code'), role_code:me.peopledayRecord.data.std_role_code, role_length:rec.get('length_hours')}) ;
 							break ;
 					}
 				}) ;
@@ -528,18 +615,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 				} else {
 					recordWorksStore.removeAll() ;
 				}
-				recordWorksStore.add(slices) ;
+				recordWorksStore.add(worksSlices) ;
+				recordAbsStore.add(absSlices) ;
 			}
 		}
-		
-		this.rhAbsSave() ;
-	},
-	rhAbsLoad: function() {
-		
-	},
-	rhAbsSave: function() {
-		var rhAbsValues = this.down('#absPanel').getValues() ;
-		//console.dir(rhAbsValues) ;
-	}
-	
+	}	
 });
