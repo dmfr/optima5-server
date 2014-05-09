@@ -321,4 +321,147 @@ function specDbsPeople_Real_saveRecord( $post_data ) {
 	return array('success'=>true) ;
 }
 
+
+
+
+
+
+function specDbsPeople_Real_RhAbsLoad( $post_data ) {
+	usleep(500000);
+	global $_opDB ;
+	
+	$people_code = $post_data['people_code'] ;
+	$date_sql = $post_data['date_sql'] ;
+	
+	$query = "SELECT * FROM view_file_RH_ABS WHERE field_PPL_CODE='$people_code' AND field_TMP_IS_ON='1'
+				AND field_DATE_APPLY<='$date_sql' AND field_TMP_DATE_END>='$date_sql'
+				LIMIT 1" ;
+	$result = $_opDB->query($query) ;
+	if( $arr = $_opDB->fetch_assoc($result) ) {
+		$formData = array(
+			'rh_abs_is_on' => true,
+			'rh_abs_code' => $arr['field_ABS_CODE'],
+			'rh_abs_date_start' => date('Y-m-d',strtotime($arr['field_DATE_APPLY'])),
+			'rh_abs_date_end' => date('Y-m-d',strtotime($arr['field_TMP_DATE_END']))
+		) ;
+	} else {
+		$formData = array(
+			'rh_abs_date_start' => date('Y-m-d',strtotime($date_sql))
+		) ;
+	}
+	
+	return array('success'=>true, 'formData'=>$formData) ;
+}
+function specDbsPeople_Real_RhAbsSave( $post_data ) {
+	usleep(500000);
+	global $_opDB ;
+	
+	// Extract data
+	$people_code = $post_data['people_code'] ;
+	$form_data = json_decode($post_data['formData'],true) ;
+	$abs_is_on = ( $form_data['rh_abs_is_on'] == 'on' ) ;
+	$abs_code = $form_data['rh_abs_code'] ;
+	$abs_date_start = $form_data['rh_abs_date_start'] ;
+	$abs_date_end = $form_data['rh_abs_date_end'] ;
+	
+	if( $abs_is_on ) {
+		if( !$abs_code || !$abs_date_start || !$abs_date_end || !(strtotime($abs_date_start) < strtotime($abs_date_end)) ) {
+			return array('success'=>false ) ;
+		}
+	}
+	
+	$query = "SELECT filerecord_id FROM view_file_RH_ABS WHERE field_PPL_CODE='$people_code' AND field_TMP_IS_ON='1'
+				AND field_DATE_APPLY<='$abs_date_end' AND field_TMP_DATE_END>='$abs_date_start'
+				LIMIT 1" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$filerecord_id = $arr[0] ;
+		paracrm_lib_data_deleteRecord_file( 'RH_ABS', $filerecord_id ) ;
+	}
+	
+	if( $abs_is_on ) {
+		$arr_ins = array();
+		$arr_ins['field_PPL_CODE'] = $people_code ;
+		$arr_ins['field_DATE_APPLY'] = $abs_date_start ;
+		$arr_ins['field_ABS_CODE'] = $abs_code ;
+		$arr_ins['field_TMP_IS_ON'] = 1 ;
+		$arr_ins['field_TMP_DATE_END'] = $abs_date_end;
+		$arr_ins['field_TMP_IS_END'] = 0 ;
+		paracrm_lib_data_insertRecord_file( 'RH_ABS', 0, $arr_ins );
+	}
+	
+	specDbsPeople_RH_resyncPeopleEvents($people_code) ;
+	
+	return array('success'=>true) ;
+}
+function specDbsPeople_Real_RhAbsDownload( $post_data ) {
+	usleep(500000);
+	global $_opDB ;
+	
+	// Extract data
+	$people_code = $post_data['people_code'] ;
+	$form_data = json_decode($post_data['formData'],true) ;
+	$abs_code = $form_data['rh_abs_code'] ;
+	$abs_date_start = $form_data['rh_abs_date_start'] ;
+	$abs_date_end = $form_data['rh_abs_date_end'] ;
+	
+	if( !$abs_code || !$abs_date_start || !$abs_date_end || !(strtotime($abs_date_start) < strtotime($abs_date_end)) ) {
+		return array('success'=>false ) ;
+	}
+	
+	$ttmp = specDbsPeople_RH_getGrid( array('filter_peopleCode'=>$people_code) ) ;
+	$people_record = $ttmp['data'][0] ;
+	if( !$people_record ) {
+		return array('success'=>false) ;
+	}
+	$std_whse_code = $people_record['whse_code'] ;
+	$std_whse_txt = $_opDB->query_uniqueValue("SELECT field_WHSE_TXT FROM view_bible_CFG_WHSE_entry WHERE entry_key='{$std_whse_code}'") ;
+	$std_team_code = $people_record['team_code'] ;
+	$std_team_txt = $_opDB->query_uniqueValue("SELECT field_TEAM_TXT FROM view_bible_CFG_TEAM_entry WHERE entry_key='{$std_team_code}'") ;
+	
+	$abs_txt = $_opDB->query_uniqueValue("SELECT field_ABS_TXT FROM view_bible_CFG_ABS_entry WHERE entry_key='{$abs_code}'") ;
+	
+	
+	$VALUES = array() ;
+	$VALUES['people_name'] = $people_record['people_name'] ;
+	$VALUES['whse_txt'] = $std_whse_txt ;
+	$VALUES['team_txt'] = $std_team_txt ;
+	$VALUES['abs_txt'] = $abs_txt ;
+	$VALUES['abs_date_start'] = date('d/m/Y',strtotime($abs_date_start)) ;
+	$VALUES['abs_date_end'] = date('d/m/Y',strtotime($abs_date_end)) ;
+	
+	
+	$app_root = $GLOBALS['app_root'] ;
+	$resources_root=$app_root.'/resources' ;
+	$templates_dir=$resources_root.'/server/templates' ;
+	$inputFileName = $templates_dir.'/'.'DBS_PEOPLE_demande_conge.html' ;
+	$inputBinary = file_get_contents($inputFileName) ;
+	
+	//echo $inputFileName ;
+	$doc = new DOMDocument();
+	@$doc->loadHTML($inputBinary);
+	
+	$elements = $doc->getElementsByTagName('qbook-value');
+	$i = $elements->length - 1;
+	while ($i > -1) {
+		$node_qbookValue = $elements->item($i); 
+		$i--; 
+		
+		$val = '' ;
+		if( $node_qbookValue->attributes->getNamedItem('src_inputvar') ) {
+			$src_inputvar = $node_qbookValue->attributes->getNamedItem('src_inputvar')->value ;
+			foreach( $VALUES as $mkey => $mvalue ) {
+				if( $mkey == $src_inputvar ) {
+					$val = $mvalue ;
+					break ;
+				}
+			}
+		}
+		$new_node = $doc->createTextNode($val) ;
+		$node_qbookValue->parentNode->replaceChild($new_node,$node_qbookValue) ;
+	}
+	
+	return array('success'=>true, 'html'=>$doc->saveHTML() ) ;
+}
+
 ?>

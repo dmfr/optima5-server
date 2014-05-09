@@ -19,6 +19,14 @@ switch( $post_data['_action'] )
 	case 'Real_saveRecord' :
 	return specDbsPeople_Real_saveRecord( $post_data ) ;
 	
+	case 'Real_RhAbsLoad' :
+	return specDbsPeople_Real_RhAbsLoad( $post_data ) ;
+	case 'Real_RhAbsSave' :
+	return specDbsPeople_Real_RhAbsSave( $post_data ) ;
+	case 'Real_RhAbsDownload' :
+	return specDbsPeople_Real_RhAbsDownload( $post_data ) ;
+	
+	
 	case 'cfg_getTree' :
 	return specDbsPeople_cfg_getTree( $post_data ) ;
 	case 'cfg_getCfgBibles' :

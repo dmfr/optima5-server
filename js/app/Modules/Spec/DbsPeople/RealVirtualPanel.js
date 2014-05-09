@@ -1,10 +1,12 @@
 Ext.define('Optima5.Modules.Spec.DbsPeople.RealVirtualPanel',{
-	extend:'Ext.panel.Panel',
+	extend:'Ext.form.Panel',
 	requires:[
 		'Ext.ux.dams.ColorCombo',
 		'Ext.ux.dams.ComboBoxCached'
 	],
-
+	
+	saveOnDestroy: false,
+	
 	initComponent: function() {
 		var me = this ;
 		
@@ -18,70 +20,36 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealVirtualPanel',{
 		
 		Ext.apply(me,{
 			bodyCls: 'ux-noframe-bg',
+			bodyPadding: 5,
+			title: 'Absence / Congé planifié',
 			layout: {
-				type:'vbox',
-				align:'stretch'
+				type:'anchor'
 			},
 			items: [{
-				xtype: 'form',
-				border: false,
-				height: 60,
-				bodyPadding: 5,
-				bodyCls: 'ux-noframe-bg',
-				layout:'hbox',
-				items:[{
-					xtype:'fieldcontainer',
-					flex: 3,
-					layout: 'anchor',
-					defaults: {
-						labelAlign: 'left',
-						labelWidth: 50,
-						anchor: '100%',
-						margin: 1
-					},
-					items: [{
-						xtype:'displayfield',
-						fieldLabel: 'Nom',
-						value: '<b>' + me.peopledayRecord.get('people_name') + '</b>'
-					},{
-						xtype:'displayfield',
-						fieldLabel: 'Date',
-						value: '<b>' + Ext.Date.format( Ext.Date.parse(me.peopledayRecord.get('date_sql'),'Y-m-d'), 'd/m/Y') + '</b>'
-					}]
+				xtype:'fieldcontainer',
+				layout: 'anchor',
+				defaults: {
+					labelAlign: 'left',
+					labelWidth: 50,
+					anchor: '100%',
+					margin: 1
+				},
+				items: [{
+					xtype:'displayfield',
+					fieldLabel: 'Nom',
+					value: '<b>' + me.peopledayRecord.get('people_name') + '</b>'
 				},{
-					xtype:'fieldcontainer',
-					flex: 1,
-					margin: 10,
-					layout: 'anchor',
-					defaults: {
-						labelAlign: 'left',
-						labelWidth: 50,
-						anchor: '100%',
-						margin: 1
-					},
-					items: [{
-						xtype:'checkbox',
-						itemId: 'absCheckbox',
-						boxLabel: 'Absent',
-						listeners: {
-							change: function() {
-								this.calcLayout() ;
-							},
-							scope: this
-						}
-					}]
+					xtype:'displayfield',
+					fieldLabel: 'Date',
+					value: '<b>' + Ext.Date.format( Ext.Date.parse(me.peopledayRecord.get('date_sql'),'Y-m-d'), 'd/m/Y') + '</b>'
 				}]
 			},{
-				xtype:'form',
-				flex:1,
-				bodyPadding: 5,
-				bodyCls: 'ux-noframe-bg',
+				xtype:'fieldset',
 				itemId: 'absPanel',
-				hidden: true,
-				frame: true,
-				border: true,
+				checkboxToggle: true,
+				checkboxName: 'rh_abs_is_on',
+				collapsed: true,
 				margin: '4px',
-				title: 'Absence / Congé planifié',
 				defaults: {
 					labelAlign: 'left',
 					labelWidth: 70,
@@ -122,36 +90,175 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealVirtualPanel',{
 					name: 'rh_abs_date_end',
 					anchor: '',
 					width: 170
+				},{
+					xtype: 'container',
+					style: {
+						textAlign:'center'
+					},
+					padding: '4px 0px',
+					items:[{
+						xtype: 'component',
+						style: {
+							display: 'inline'
+						},
+						overCls: 'op5-crmbase-dataimport-go-over',
+						renderTpl: Ext.create('Ext.XTemplate',
+							'<div class="op5-crmbase-dataimport-go-btn">',
+							'</div>',
+							{
+								compiled:true,
+								disableFormats: true
+							}
+						),
+						listeners: {
+							afterrender: function(c) {
+								c.getEl().on('click',function(){
+									this.rhAbsDownload();
+								},this) ;
+							},
+							scope: this
+						}
+					}]
 				}]
 			}]
 		});
 		
 		this.callParent() ;
-	},
-	calcLayout: function() {
-		var me = this,
-			absCheckbox = this.down('#absCheckbox'),
-			absPanel = this.down('#absPanel') ;
 		
-		absPanel.setVisible(absCheckbox.getValue()) ;
-		
-		return ;
+		this.getForm().getFields().each(function(field) {
+			field.on('change',function(field){
+				me.saveOnDestroy = true ;
+			},me) ;
+		},me) ;
+		this.on('beforedestroy',function(formpanel) {
+			if( formpanel.saveOnDestroy ) {
+				formpanel.saveOnDestroy = false ;
+				formpanel.rhAbsSave() ;
+				return false ;
+			}
+			return true ;
+		}) ;
+		this.on('afterrender',function(formpanel) {
+			Ext.defer(function() {
+				formpanel.rhAbsLoad() ;
+			},100);
+		}) ;
 	},
-	doSave: function() {
-		this.rhAbsSave() ;
-	},
+	
+	doSave: Ext.emptyFn,
+	
 	rhAbsLoad: function() {
+		this.showLoadmask() ;
 		
+		this.parentRealPanel.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_people',
+				_action: 'Real_RhAbsLoad',
+				date_sql: this.peopledayRecord.get('date_sql'),
+				people_code: this.peopledayRecord.get('people_code')
+			},
+			success: function(response) {
+				var jsonResponse = Ext.JSON.decode(response.responseText) ;
+				if( jsonResponse.success == true ) {
+					this.getForm().setValues(jsonResponse.formData) ;
+					this.saveOnDestroy = false ;
+				} else {
+					this.destroy() ;
+				}
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
 	},
 	rhAbsSave: function() {
-		var rhAbsValues = this.down('#absPanel').getValues(),
-			absCheckbox = this.down('#absCheckbox') ;
+		this.showLoadmask() ;
 		
-		Ext.apply(rhAbsValues,{
-			rh_abs_is_on: absCheckbox.getValue()
+		var formValues = this.getForm().getValues() ;
+		// AJAX : .........
+		this.parentRealPanel.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_people',
+				_action: 'Real_RhAbsSave',
+				people_code: this.peopledayRecord.get('people_code'),
+				formData: Ext.JSON.encode(formValues)
+			},
+			success: function(response) {
+				var jsonResponse = Ext.JSON.decode(response.responseText) ;
+				if( jsonResponse.success != true ) {
+					Ext.MessageBox.alert('Problem','Données saisies non valides') ;
+				} else {
+					this.parentRealPanel.autoRefreshAfterEdit = true ;
+					this.destroy() ;
+				}
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
 		}) ;
+	},
+	rhAbsDownload: function() {
+		this.showLoadmask() ;
 		
-		//console.dir(rhAbsValues) ;
-	}
+		var formValues = this.getForm().getValues() ;
+		// AJAX : .........
+		this.parentRealPanel.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_people',
+				_action: 'Real_RhAbsDownload',
+				people_code: this.peopledayRecord.get('people_code'),
+				formData: Ext.JSON.encode(formValues)
+			},
+			success: function(response) {
+				var jsonResponse = Ext.JSON.decode(response.responseText) ;
+				if( jsonResponse.success == true ) {
+					this.rhAbsDownloadOpen( jsonResponse.html ) ;
+				} else {
+					Ext.MessageBox.alert('Problem','Données saisies non valides') ;
+				}
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+	},
+	rhAbsDownloadOpen: function( pageHtml ) {
+		this.parentRealPanel.optimaModule.createWindow({
+			width:850,
+			height:700,
+			iconCls: 'op5-crmbase-qresultwindow-icon',
+			animCollapse:false,
+			border: false,
+			layout:'fit',
+			title: 'Demande Congé',
+			items:[Ext.create('Ext.ux.dams.IFrameContent',{
+				content:pageHtml
+			})]
+		}); 
+	},
 	
+	showLoadmask: function() {
+		if( this.rendered ) {
+			this.doShowLoadmask() ;
+		} else {
+			this.on('afterrender',this.doShowLoadmask,this,{single:true}) ;
+		}
+	},
+	doShowLoadmask: function() {
+		this.show() ; // HACK?
+		this.loadMask = Ext.create('Ext.LoadMask',{
+			target: this,
+			msg:"Please wait..."
+		}).show();
+	},
+	hideLoadmask: function() {
+		this.un('afterrender',this.doShowLoadmask,this) ;
+		if( this.loadMask ) {
+			this.loadMask.destroy() ;
+			this.loadMask = null ;
+		}
+	},
 });

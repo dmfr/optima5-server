@@ -818,15 +818,12 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				type: 'close',
 				handler: function(e, t, p) {
 					var needFullRefresh = p.ownerCt.doSave() ;
-					
-					p.ownerCt.gridRecord.set( 'dummy', null );
-					p.ownerCt.gridRecord.commit() ;
-					
 					if( needFullRefresh ) {
 						this.autoRefreshAfterEdit = true ;
 					}
-					this.remoteSavePeopledayRecord( p.ownerCt.peopledayRecord ) ;
 					
+					p.ownerCt.gridRecord.set( 'dummy', null );
+					p.ownerCt.gridRecord.commit() ;
 					p.ownerCt.destroy();
 				},
 				scope: this
@@ -838,7 +835,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			width: 300,
 			height: 300
 		}) ;
-		realAdvancedPanel.on('destroy',function() {
+		realAdvancedPanel.on('destroy',function(realAdvancedPanel) {
+			this.remoteSavePeopledayRecord( realAdvancedPanel.peopledayRecord ) ;
 			me.getEl().unmask() ;
 			me.realAdvancedPanel = null ;
 		},me,{single:true}) ;
@@ -878,6 +876,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 	
 	remoteSavePeopledayRecord: function( peopledayRecord ) {
 		if( peopledayRecord.get('status_isVirtual') ) {
+			this.onAfterSave() ;
 			return ;
 		}
 		
