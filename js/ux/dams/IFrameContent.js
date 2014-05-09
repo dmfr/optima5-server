@@ -14,7 +14,7 @@ Ext.define('Ext.ux.dams.IFrameContent', {
 	extend: 'Ext.Component',
 
 	renderTpl: [
-		'<iframe id="{id}-iframe" width="100%" height="100%" frameborder="0"></iframe>'
+		'<iframe src="about:blank" id="{id}-iframe" width="100%" height="100%" frameborder="0"></iframe>'
 	],
 
 	initComponent: function () {
@@ -43,7 +43,7 @@ Ext.define('Ext.ux.dams.IFrameContent', {
 				if( me.content ) {
 					doc.open() ;
 					doc.write(me.content) ;
-					doc.write() ;
+					doc.close();
 				}
 				Ext.EventManager.removeAll(doc);
 				Ext.EventManager.on(doc, {
@@ -76,7 +76,7 @@ Ext.define('Ext.ux.dams.IFrameContent', {
 			win = me.getWin(),
 			doc = null;
 		try {
-			doc =  win.contentDocument || me.iframeEl.dom.contentDocument || window.frames[this.dom.name].document ||  win.document;
+			doc =  win.document;
 			return doc ;
 		} catch (ex) {
 			return null;
@@ -125,7 +125,7 @@ Ext.define('Ext.ux.dams.IFrameContent', {
 		if (doc) {
 			doc.open() ;
 			doc.write(content) ;
-			doc.write() ;
+			doc.close() ;
 		}
 	}
 });
