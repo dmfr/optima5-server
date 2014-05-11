@@ -235,8 +235,23 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealVirtualPanel',{
 			layout:'fit',
 			title: 'Demande Congé',
 			items:[Ext.create('Ext.ux.dams.IFrameContent',{
+				itemId: 'uxIFrame',
 				content:pageHtml
-			})]
+			})],
+			tbar:[{
+				icon: 'images/op5img/ico_print_16.png',
+				text: 'Print',
+				handler: function(btn) {
+					var uxIFrame = btn.up('window').down('#uxIFrame'),
+						uxIFrameWindows = uxIFrame.getWin() ;
+					if( uxIFrameWindows == null ) {
+						Ext.MessageBox.alert('Problem','Printing disabled !') ;
+						return ;
+					}
+					uxIFrameWindows.print() ;
+				},
+				scope: this
+			}]
 		}); 
 	},
 	
@@ -260,5 +275,5 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealVirtualPanel',{
 			this.loadMask.destroy() ;
 			this.loadMask = null ;
 		}
-	},
+	}
 });
