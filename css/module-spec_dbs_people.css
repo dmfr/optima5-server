@@ -115,6 +115,16 @@
 	background-position: center center;
 	background-repeat: no-repeat;
 }
+.op5-spec-dbspeople-icon-actionday-reopen {
+	background-image: url("../images/op5img/ico_reload_small.gif") !important;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+.op5-spec-dbspeople-icon-actionday-delete {
+	background-image: url("../images/op5img/ico_delete_16.gif") !important;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
 
 .op5-spec-dbspeople-realcell-virtual {
 	color: #777777 ;

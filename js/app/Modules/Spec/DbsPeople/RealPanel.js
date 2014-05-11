@@ -615,6 +615,24 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				},
 				scope: this
 			});
+			menu.add({
+				itemId: 'real-reopen',
+				iconCls: 'op5-spec-dbspeople-icon-actionday-reopen' ,
+				text: 'Réouverture',
+				handler: function(menuitem) {
+					this.handleActionDay( 'reopen', menuitem.up('menu').activeHeader.dateSqlHead ) ;
+				},
+				scope: this
+			});
+			menu.add({
+				itemId: 'real-delete',
+				iconCls: 'op5-spec-dbspeople-icon-actionday-delete' ,
+				text: 'Supprimer',
+				handler: function(menuitem) {
+					this.handleActionDay( 'delete', menuitem.up('menu').activeHeader.dateSqlHead ) ;
+				},
+				scope: this
+			});
 		}
 		menu.on('beforeshow', me.onColumnsMenuBeforeShow, me);
 	},
@@ -624,8 +642,10 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		menu.down('#real-open').setVisible( colCfg && colCfg.enable_open ) ;
 		menu.down('#real-valid-ceq').setVisible( colCfg && colCfg.enable_valid_ceq ) ;
 		menu.down('#real-valid-rh').setVisible( colCfg && colCfg.enable_valid_rh ) ;
+		menu.down('#real-reopen').setVisible( colCfg && !colCfg.enable_open && !colCfg.enable_valid_ceq && !colCfg.enable_valid_rh ) ;
+		menu.down('#real-delete').setVisible( colCfg ) ;
 	},
-			
+	
 	
 	
 	showLoadmask: function() {
@@ -884,20 +904,37 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			case 'valid_rh' :
 				txt = 'Validation' ;
 				break ;
+			case 'reopen' :
+				txt = 'Reprendre la saisie pour' ;
+				break ;
+			case 'delete' :
+				txt = 'ATTENTION ! Supprimer toutes données pour' ;
+				break ;
+			default: 
+				break ;
 		}
-		Ext.MessageBox.confirm('Action on day', txt + ' jour '+dSql+' ?', function(buttonStr) {
+		Ext.MessageBox.confirm('Day Action', txt + ' jour '+dSql+' ?', function(buttonStr) {
 			if( buttonStr!='yes' ) {
 				return ;
 			}
 			
 			this.showLoadmask() ;
-		
+			
+			var filterSiteBtn = this.down('#btnSite'),
+				filterTeamBtn = this.down('#btnTeam') ;
+			
 			var ajaxParams = {
 				_moduleId: 'spec_dbs_people',
 				_action: 'Real_actionDay',
 				_subaction: actionDay,
 				date_toOpen: dSql
 			};
+			if( filterSiteBtn.getNode() != null ) {
+				ajaxParams['filter_site_entries'] = Ext.JSON.encode( filterSiteBtn.getLeafNodesKey() ) ;
+			}
+			if( filterTeamBtn.getNode() != null ) {
+				ajaxParams['filter_team_entries'] = Ext.JSON.encode( filterTeamBtn.getLeafNodesKey() ) ;
+			}
 			this.optimaModule.getConfiguredAjaxConnection().request({
 				params: ajaxParams,
 				success: function(response) {

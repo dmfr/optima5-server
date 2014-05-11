@@ -298,6 +298,18 @@ function specDbsPeople_Real_actionDay( $post_data ) {
 			}
 			break ;
 			
+		case 'reopen' :
+			foreach( $arr_peopledayRecords as $peopleday_record ) {
+				specDbsPeople_Real_actionDay_lib_reopen($peopleday_record) ;
+			}
+			break ;
+		
+		case 'delete' :
+			foreach( $arr_peopledayRecords as $peopleday_record ) {
+				specDbsPeople_Real_actionDay_lib_delete($peopleday_record) ;
+			}
+			break ;
+		
 		default :
 			return array('success'=>false) ;
 	}
@@ -383,6 +395,41 @@ function specDbsPeople_Real_actionDay_lib_valid_rh( $peopleday_record, $test_mod
 	$arr_update['field_VALID_RH'] = 1 ;
 	paracrm_lib_data_updateRecord_file( 'PEOPLEDAY' , $arr_update, $peopleday_record['filerecord_id'] ) ;
 	
+	return TRUE ;
+}
+function specDbsPeople_Real_actionDay_lib_reopen( $peopleday_record, $test_mode=FALSE ) {
+	if( $peopleday_record['status_isVirtual'] ) {
+		return FALSE ;
+	}
+	
+	$total_duration = 0 ;
+	foreach( $peopleday_record['works'] as $slice ) {
+		$total_duration += $slice['role_length'] ;
+	}
+	foreach( $peopleday_record['abs'] as $slice ) {
+		$total_duration += $slice['abs_length'] ;
+	}
+	if( $total_duration < $peopleday_record['std_daylength'] ) {
+		return FALSE ;
+	}
+	
+	if( $test_mode ) {
+		return TRUE ;
+	}
+	
+	$arr_update = array() ;
+	$arr_update['field_VALID_CEQ'] = 0 ;
+	$arr_update['field_VALID_RH'] = 0 ;
+	paracrm_lib_data_updateRecord_file( 'PEOPLEDAY' , $arr_update, $peopleday_record['filerecord_id'] ) ;
+	
+	return TRUE ;
+}
+function specDbsPeople_Real_actionDay_lib_delete( $peopleday_record, $test_mode=FALSE ) {
+	if( $peopleday_record['status_isVirtual'] ) {
+		return TRUE ;
+	}
+	
+	paracrm_lib_data_deleteRecord_file( 'PEOPLEDAY', $peopleday_record['filerecord_id'] ) ;
 	return TRUE ;
 }
 
