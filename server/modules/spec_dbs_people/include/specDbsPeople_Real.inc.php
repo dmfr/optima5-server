@@ -111,6 +111,7 @@ function specDbsPeople_Real_getData( $post_data ) {
 		$buildTAB[$cur_date][$people_code]['status_isVirtual'] = FALSE ;
 		$buildTAB[$cur_date][$people_code]['status_isValidCeq'] = $arr['field_VALID_CEQ'] ;
 		$buildTAB[$cur_date][$people_code]['status_isValidRh'] = $arr['field_VALID_RH'] ;
+		$buildTAB[$cur_date][$people_code]['filerecord_id'] = $arr['filerecord_id'] ;
 		
 		$buildTAB[$cur_date][$people_code]['works'] = array() ;
 		$buildTAB[$cur_date][$people_code]['abs'] = array() ;
@@ -179,10 +180,10 @@ function specDbsPeople_Real_getData( $post_data ) {
 			if( $peopleday_record['status_isVirtual'] ) {
 				$TAB_columns[$sql_date]['enable_open'] = TRUE ;
 			}
-			if( !$peopleday_record['status_isValidCeq'] ) {
+			if( !$peopleday_record['status_isVirtual'] && !$peopleday_record['status_isValidCeq'] ) {
 				$TAB_columns[$sql_date]['enable_valid_ceq'] = TRUE ;
 			}
-			if( !$peopleday_record['status_isValidRh'] ) {
+			if( !$peopleday_record['status_isVirtual'] && !$peopleday_record['status_isValidRh'] ) {
 				$TAB_columns[$sql_date]['enable_valid_rh'] = TRUE ;
 			}
 			
@@ -214,9 +215,6 @@ function specDbsPeople_Real_getData( $post_data ) {
 			$TAB_columns[$sql_date]['enable_valid_ceq'] = FALSE ;
 			$TAB_columns[$sql_date]['enable_valid_rh'] = FALSE ;
 		}
-		if( $TAB_columns[$sql_date]['enable_valid_ceq'] || $TAB_columns[$sql_date]['enable_valid_rh'] ) {
-			$TAB_columns[$sql_date]['status_isOpen'] = TRUE ;
-		}
 	}
 	
 	// Filter ROWS @TODO: use prefilter on cfgFiles before join
@@ -246,37 +244,146 @@ function specDbsPeople_Real_getData( $post_data ) {
 }
 
 
-function specDbsPeople_Real_openDay( $post_data ) {
+function specDbsPeople_Real_actionDay( $post_data ) {
+	// Decode filters (to enforce)
+	if( isset($post_data['filter_site_entries']) ) {
+		$filter_arrSites = json_decode($post_data['filter_site_entries'],true) ;
+	}
+	if( isset($post_data['filter_team_entries']) ) {
+		$filter_arrTeams = json_decode($post_data['filter_team_entries'],true) ;
+	}
+	
+	$arr_peopledayRecords = array() ;
+	
+	// Day condition
 	$post_data['date_start'] = $post_data['date_end'] = $post_data['date_toOpen'] ;
 	$json = specDbsPeople_Real_getData( $post_data ) ;
 	foreach( $json['data'] as $peopleday_record ) {
-		if( !$peopleday_record['status_isVirtual'] ) {
+		// Enforce whse/team filters, in case of mutation ...
+		if( isset($filter_arrSites) && !in_array($peopleday_record['std_whse_code'],$filter_arrSites) ) {
 			continue ;
 		}
-		
-		$arr_ins = array() ;
-		$arr_ins['field_DATE'] = $peopleday_record['date_sql'] ;
-		$arr_ins['field_PPL_CODE'] = $peopleday_record['people_code'] ;
-		$filerecord_id = paracrm_lib_data_insertRecord_file( 'PEOPLEDAY', 0 , $arr_ins ) ;
-		
-		if( $peopleday_record['std_abs_code'] != '_' ) {
-			$arr_ins = array() ;
-			$arr_ins['field_ABS_CODE'] = $peopleday_record['std_abs_code'] ;
-			$arr_ins['field_ABS_LENGTH'] = $peopleday_record['std_daylength'] ;
-			paracrm_lib_data_insertRecord_file( 'PEOPLEDAY_ABS', $filerecord_id , $arr_ins ) ;
+		if( isset($filter_arrTeams) && !in_array($peopleday_record['std_team_code'],$filter_arrTeams) ) {
 			continue ;
 		}
+		// ...done
 		
-		if( $peopleday_record['std_daylength'] == 0 ) {
-			continue ;
-		}
-		
-		$arr_ins = array() ;
-		$arr_ins['field_ROLE_CODE'] = $peopleday_record['std_role_code'] ;
-		$arr_ins['field_ROLE_LENGTH'] = $peopleday_record['std_daylength'] ;
-		paracrm_lib_data_insertRecord_file( 'PEOPLEDAY_WORK', $filerecord_id , $arr_ins ) ;
+		$arr_peopledayRecords[] = $peopleday_record ;
 	}
-	return array('success'=>true) ;
+	
+	switch( $post_data['_subaction'] ) {
+		case 'open' :
+			foreach( $arr_peopledayRecords as $peopleday_record ) {
+				specDbsPeople_Real_actionDay_lib_open($peopleday_record) ;
+			}
+			break ;
+		
+		case 'valid_ceq' :
+		case 'valid_rh' :
+			switch( $post_data['_subaction'] ) {
+				case 'valid_ceq' :
+					$method = 'specDbsPeople_Real_actionDay_lib_valid_ceq' ;
+					break ;
+				case 'valid_rh' :
+					$method = 'specDbsPeople_Real_actionDay_lib_valid_rh' ;
+					break ;
+			}
+			foreach( $arr_peopledayRecords as $peopleday_record ) {
+				if( !call_user_func($method,$peopleday_record,$test=TRUE) ) {
+					return array('success'=>false) ;
+				}
+			}
+			foreach( $arr_peopledayRecords as $peopleday_record ) {
+				call_user_func($method,$peopleday_record) ;
+			}
+			break ;
+			
+		default :
+			return array('success'=>false) ;
+	}
+	
+	
+	return array('success'=>true, 'done'=>true) ;
+}
+function specDbsPeople_Real_actionDay_lib_open( $peopleday_record, $test_mode=FALSE ) {
+	if( !$peopleday_record['status_isVirtual'] ) {
+		return TRUE ;
+	}
+	if( $test_mode ) {
+		return TRUE ;
+	}
+	
+	$arr_ins = array() ;
+	$arr_ins['field_DATE'] = $peopleday_record['date_sql'] ;
+	$arr_ins['field_PPL_CODE'] = $peopleday_record['people_code'] ;
+	$filerecord_id = paracrm_lib_data_insertRecord_file( 'PEOPLEDAY', 0 , $arr_ins ) ;
+	
+	if( $peopleday_record['std_abs_code'] != '_' ) {
+		$arr_ins = array() ;
+		$arr_ins['field_ABS_CODE'] = $peopleday_record['std_abs_code'] ;
+		$arr_ins['field_ABS_LENGTH'] = $peopleday_record['std_daylength'] ;
+		paracrm_lib_data_insertRecord_file( 'PEOPLEDAY_ABS', $filerecord_id , $arr_ins ) ;
+		return TRUE ;
+	}
+	
+	if( $peopleday_record['std_daylength'] == 0 ) {
+		return TRUE ;
+	}
+	
+	$arr_ins = array() ;
+	$arr_ins['field_ROLE_CODE'] = $peopleday_record['std_role_code'] ;
+	$arr_ins['field_ROLE_LENGTH'] = $peopleday_record['std_daylength'] ;
+	paracrm_lib_data_insertRecord_file( 'PEOPLEDAY_WORK', $filerecord_id , $arr_ins ) ;
+	
+	return TRUE ;
+}
+function specDbsPeople_Real_actionDay_lib_valid_ceq( $peopleday_record, $test_mode=FALSE ) {
+	if( $peopleday_record['status_isVirtual'] ) {
+		return FALSE ;
+	}
+	if( $peopleday_record['status_isValidCeq'] ) {
+		return TRUE ;
+	}
+	
+	if( $test_mode ) {
+		return TRUE ;
+	}
+	
+	$arr_update = array() ;
+	$arr_update['field_VALID_CEQ'] = 1 ;
+	paracrm_lib_data_updateRecord_file( 'PEOPLEDAY' , $arr_update, $peopleday_record['filerecord_id'] ) ;
+	
+	return TRUE ;
+}
+function specDbsPeople_Real_actionDay_lib_valid_rh( $peopleday_record, $test_mode=FALSE ) {
+	if( $peopleday_record['status_isVirtual'] ) {
+		return FALSE ;
+	}
+	if( $peopleday_record['status_isValidRh'] ) {
+		return TRUE ;
+	}
+	
+	$total_duration = 0 ;
+	foreach( $peopleday_record['works'] as $slice ) {
+		$total_duration += $slice['role_length'] ;
+	}
+	foreach( $peopleday_record['abs'] as $slice ) {
+		$total_duration += $slice['abs_length'] ;
+	}
+	if( $total_duration < $peopleday_record['std_daylength'] ) {
+		return FALSE ;
+	}
+	
+	if( $test_mode ) {
+		return TRUE ;
+	}
+	
+	$arr_update = array() ;
+	$arr_update['field_VALID_CEQ'] = 1 ;
+	$arr_update['field_VALID_RH'] = 1 ;
+	paracrm_lib_data_updateRecord_file( 'PEOPLEDAY' , $arr_update, $peopleday_record['filerecord_id'] ) ;
+	
+	return TRUE ;
 }
 
 

@@ -17,6 +17,8 @@ Ext.define('DbsPeoplePeopledayModel', {
 	extend: 'Ext.data.Model',
 	fields: [
 		{name: 'status_isVirtual',  type: 'boolean'},
+		{name: 'status_isValidCeq',  type: 'boolean'},
+		{name: 'status_isValidRh',  type: 'boolean'},
 		{name: 'date_sql',  type: 'string'},
 		{name: 'people_code',  type: 'string'},
 		{name: 'people_name',   type: 'string'},
@@ -245,6 +247,19 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			Ext.ModelManager.unregister(Ext.ModelManager.getModel(modelName)) ;
 		}
 		
+		var getStatusTdCls = function( peopledayRecord ) {
+			if( peopledayRecord.data.status_isVirtual == true ) {
+				return 'op5-spec-dbspeople-realcell-virtual' ;
+			}
+			if( !peopledayRecord.data.status_isValidCeq && !peopledayRecord.data.status_isValidRh ) {
+				return 'op5-spec-dbspeople-realcolor-open' ;
+			}
+			if( !peopledayRecord.data.status_isValidRh ) {
+				return 'op5-spec-dbspeople-realcolor-openrh' ;
+			}
+			return '' ;
+		} ;
+		
 		var roleRenderer = function(value, metaData, record, rowIndex, colIndex) {
 			var rowWhseCode = record.get('whse_code'),
 				rowIsAltWhse = record.get('whse_isAlt') ;
@@ -256,16 +271,18 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			if( peopledayRecord == null ) {
 				return '' ;
 			}
+			
+			metaData.tdCls += getStatusTdCls(peopledayRecord) ;
+			
 			if( peopledayRecord.data.status_isVirtual == true ) {
 				if( rowIsAltWhse ) {
 					return '' ;
 				}
-				metaData.tdCls += ' op5-spec-dbspeople-realcell-virtual' ;
 				if( peopledayRecord.data.std_daylength == 0 ) {
 					return '' ;
 				}
 				if( !Ext.isEmpty(peopledayRecord.data.std_abs_code) && peopledayRecord.data.std_abs_code.charAt(0) != '_' ) {
-					metaData.tdCls += ' op5-spec-dbspeople-realcell-absent' ;
+					metaData.tdCls += ' op5-spec-dbspeople-realcell-absplanning' ;
 					return peopledayRecord.data.std_abs_code ;
 				}
 				return peopledayRecord.data.std_role_code ;
@@ -321,11 +338,13 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			if( peopledayRecord == null ) {
 				return '' ;
 			}
+			
+			metaData.tdCls += getStatusTdCls(peopledayRecord) ;
+			
 			if( peopledayRecord.data.status_isVirtual == true ) {
 				if( rowIsAltWhse ) {
 					return '' ;
 				}
-				metaData.tdCls += ' op5-spec-dbspeople-realcell-virtual' ;
 				if( peopledayRecord.data.std_daylength == 0 ) {
 					return '' ;
 				}
@@ -543,12 +562,13 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 						peopleCode = gridRecord.data.people_code,
 						peopledayId = peopleCode+'@'+dateSql,
 						peopledayRecord = this.peopledayStore.getById(peopledayId) ;
-						
+					if( peopledayRecord == null ) {
+						return ;
+					}
 					if( peopledayRecord.data.status_isVirtual == true ) {
 						me.openVirtual( peopledayRecord, gridRecord, cellNode ) ;
 						return ;
 					}
-					
 					me.openAdvanced( peopledayRecord, gridRecord, cellNode ) ;
 				},
 				scope: me
@@ -570,24 +590,30 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			menu.add('-') ;
 			menu.add({
 				itemId: 'real-open',
-				iconCls: 'op5-crmbase-qresult-warning',
+				iconCls: 'op5-spec-dbspeople-icon-actionday-open',
 				text: 'Ouverture Jour',
 				handler: function(menuitem) {
-					this.handleActionOpenDay( menuitem.up('menu').activeHeader.dateSqlHead ) ;
+					this.handleActionDay( 'open', menuitem.up('menu').activeHeader.dateSqlHead ) ;
 				},
 				scope: this
 			});
 			menu.add({
 				itemId: 'real-valid-ceq',
-				iconCls: 'op5-crmbase-qresult-kchart-add' ,
+				iconCls: 'op5-spec-dbspeople-icon-actionday-validceq' ,
 				text: 'Valid Chef d\'équipe',
-				handler: null
+				handler: function(menuitem) {
+					this.handleActionDay( 'valid_ceq', menuitem.up('menu').activeHeader.dateSqlHead ) ;
+				},
+				scope: this
 			});
 			menu.add({
 				itemId: 'real-valid-rh',
-				iconCls: 'op5-crmbase-qresult-kchart-remove' ,
+				iconCls: 'op5-spec-dbspeople-icon-actionday-validrh' ,
 				text: 'Valid RH',
-				handler: null
+				handler: function(menuitem) {
+					this.handleActionDay( 'valid_rh', menuitem.up('menu').activeHeader.dateSqlHead ) ;
+				},
+				scope: this
 			});
 		}
 		menu.on('beforeshow', me.onColumnsMenuBeforeShow, me);
@@ -848,8 +874,18 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 	},
 	
 	
-	handleActionOpenDay: function( dSql ) {
-		Ext.MessageBox.confirm('Open day','Delete selected day '+dSql+' ?', function(buttonStr) {
+	handleActionDay: function( actionDay, dSql ) {
+		var txt ;
+		switch( actionDay ) {
+			case 'open' :
+				txt = 'Ouverture' ;
+				break ;
+			case 'valid_ceq':
+			case 'valid_rh' :
+				txt = 'Validation' ;
+				break ;
+		}
+		Ext.MessageBox.confirm('Action on day', txt + ' jour '+dSql+' ?', function(buttonStr) {
 			if( buttonStr!='yes' ) {
 				return ;
 			}
@@ -858,13 +894,18 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		
 			var ajaxParams = {
 				_moduleId: 'spec_dbs_people',
-				_action: 'Real_openDay',
+				_action: 'Real_actionDay',
+				_subaction: actionDay,
 				date_toOpen: dSql
 			};
 			this.optimaModule.getConfiguredAjaxConnection().request({
 				params: ajaxParams,
 				success: function(response) {
 					this.hideLoadmask() ;
+					if( Ext.JSON.decode(response.responseText).success != true ) {
+						Ext.MessageBox.alert('Problem','Impossible de valider le statut, veuillez compléter les anomalies.') ;
+						return ;
+					}
 					this.doLoad() ;
 				},
 				scope: this

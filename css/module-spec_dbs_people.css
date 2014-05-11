@@ -100,6 +100,21 @@
 	background-image: url("../images/modules/dbspeople-contrat-16.png") !important;
 }
 
+.op5-spec-dbspeople-icon-actionday-open {
+	background-image: url("../images/modules/dbspeople-open-16.gif") !important;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+.op5-spec-dbspeople-icon-actionday-validceq {
+	background-image: url("../images/modules/dbspeople-validceq-16.gif") !important;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+.op5-spec-dbspeople-icon-actionday-validrh {
+	background-image: url("../images/modules/dbspeople-validrh-16.gif") !important;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
 
 .op5-spec-dbspeople-realcell-virtual {
 	color: #777777 ;
@@ -149,11 +164,11 @@
 .op5-spec-dbspeople-realcolor-whse .x-grid-cell-inner {
 	background-color: #C29FFF !important;
 }
-.op5-spec-dbspeople-realcolor-open {
-	background-color: #CDFFCF ;
-}
 .op5-spec-dbspeople-realcolor-open .x-grid-cell-inner {
 	background-color: #CDFFCF ;
+}
+.op5-spec-dbspeople-realcolor-openrh .x-grid-cell-inner {
+	background-color: #ABD0FF ;
 }
 
 .op5-spec-dbspeople-balance-pos .x-grid-cell-inner { 

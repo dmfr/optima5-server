@@ -12,10 +12,11 @@ switch( $post_data['_action'] )
 	case 'RH_setPeople' :
 	return specDbsPeople_RH_setPeople( $post_data ) ;
 	
+	
 	case 'Real_getData' :
 	return specDbsPeople_Real_getData( $post_data ) ;
-	case 'Real_openDay' :
-	return specDbsPeople_Real_openDay( $post_data ) ;
+	case 'Real_actionDay' :
+	return specDbsPeople_Real_actionDay( $post_data ) ;
 	case 'Real_saveRecord' :
 	return specDbsPeople_Real_saveRecord( $post_data ) ;
 	
