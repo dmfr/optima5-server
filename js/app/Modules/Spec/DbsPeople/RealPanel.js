@@ -262,13 +262,20 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		
 		var roleRenderer = function(value, metaData, record, rowIndex, colIndex) {
 			var rowWhseCode = record.get('whse_code'),
-				rowIsAltWhse = record.get('whse_isAlt') ;
+				rowIsAltWhse = record.get('whse_isAlt'),
+				rowTeamCode = record.get('team_code') ;
 				
 			var dateSql = this.headerCt.getHeaderAtIndex(colIndex).dateSql,
 				peopleCode = record.data.people_code,
 				peopledayId = peopleCode+'@'+dateSql,
 				peopledayRecord = me.peopledayStore.getById(peopledayId) ;
 			if( peopledayRecord == null ) {
+				return '' ;
+			}
+			if( !rowIsAltWhse && peopledayRecord.data.std_whse_code != rowWhseCode ) {
+				return '' ;
+			}
+			if( peopledayRecord.data.std_team_code != rowTeamCode ) {
 				return '' ;
 			}
 			
@@ -303,10 +310,12 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				if( rowIsAltWhse && workRecord.data.alt_whse_code != rowWhseCode ) {
 					return ;
 				}
-				if( workRecord.data.alt_whse_code && !rowIsAltWhse && !rolesHasAltWhse ) {
-					rolesHasAltWhse = true ;
-					rolesArr.push('@') ;
-					metaData.tdCls += ' op5-spec-dbspeople-realcolor-whse' ;
+				if( workRecord.data.alt_whse_code && !rowIsAltWhse ) {
+					if( !rolesHasAltWhse ) {
+						rolesHasAltWhse = true ;
+						rolesArr.push('@') ;
+						metaData.tdCls += ' op5-spec-dbspeople-realcolor-whse' ;
+					}
 					return ;
 				}
 				if( workRecord.data.role_code != peopledayRecord.data.std_role_code ) {
@@ -329,13 +338,20 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		
 		var lengthRenderer = function(value, metaData, record, rowIndex, colIndex) {
 			var rowWhseCode = record.get('whse_code'),
-				rowIsAltWhse = record.get('whse_isAlt') ;
+				rowIsAltWhse = record.get('whse_isAlt'),
+				rowTeamCode = record.get('team_code') ;
 				
 			var dateSql = this.headerCt.getHeaderAtIndex(colIndex).dateSql,
 				peopleCode = record.data.people_code,
 				peopledayId = peopleCode+'@'+dateSql,
 				peopledayRecord = me.peopledayStore.getById(peopledayId) ;
 			if( peopledayRecord == null ) {
+				return '' ;
+			}
+			if( !rowIsAltWhse && peopledayRecord.data.std_whse_code != rowWhseCode ) {
+				return '' ;
+			}
+			if( peopledayRecord.data.std_team_code != rowTeamCode ) {
 				return '' ;
 			}
 			
@@ -357,13 +373,16 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			
 			var hasAltWhse = false ;
 			
-			var workLength = 0 ;
+			var workLength = 0,
+				altWhseLength = 0 ;
 			peopledayRecord.works().each( function(workRecord) {
 				if( rowIsAltWhse && workRecord.data.alt_whse_code != rowWhseCode ) {
 					return ;
 				}
 				if( workRecord.data.alt_whse_code && !rowIsAltWhse ) {
 					hasAltWhse = true ;
+					altWhseLength += workRecord.data.role_length ;
+					return ;
 				}
 				workLength += workRecord.data.role_length ;
 			}) ;
@@ -374,10 +393,10 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			}) ;
 			
 			
-			if( !rowIsAltWhse && workLength != peopledayRecord.data.std_daylength ) {
-				if( (workLength + absLength) < peopledayRecord.data.std_daylength ) {
+			if( !rowIsAltWhse && (workLength+altWhseLength) != peopledayRecord.data.std_daylength ) {
+				if( (workLength + absLength + altWhseLength) < peopledayRecord.data.std_daylength ) {
 					metaData.tdCls += ' op5-spec-dbspeople-realcolor-anomalie' ;
-				} else if( workLength < peopledayRecord.data.std_daylength ) {
+				} else if( (workLength + altWhseLength) < peopledayRecord.data.std_daylength ) {
 					metaData.tdCls += ' op5-spec-dbspeople-balance-neg' ;
 				} else {
 					metaData.tdCls += ' op5-spec-dbspeople-balance-pos' ;

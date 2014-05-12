@@ -154,6 +154,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 				xtype:'grid',
 				itemId: 'slicesPanel',
 				flex:1,
+				_totalLength: 0,
 				columns:[{
 					text:'Type',
 					dataIndex: 'classe',
@@ -282,6 +283,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 								return false ;
 							}
 								
+							columns[1].getEditor().setValue(null) ;  // HACK? Set value to null before switching stores
 							switch( record.get('classe') ) {
 								case 'ROLE' :
 									columns[0].getEditor().update({iconCls:'op5-spec-dbspeople-icon-role'}) ;
@@ -385,7 +387,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 		var newRecordData = {
 			classe:tClass
 		};
-		var remainLength = me.peopledayRecord.data.std_daylength - store.sum('length_hours') ;
+		var remainLength = grid._totalLength - store.sum('length_hours') ;
 		if( remainLength > 0 ) {
 			newRecordData['length_hours'] = remainLength ;
 		}
@@ -437,7 +439,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 		}
 		
 		
-		var altWhsesObj = {} ;
+		var altWhsesObj = {} , altDuration = 0 ;
 		for( var idx=0 ; idx<worksSlices.length ; idx++ ) {
 			slice = worksSlices[idx] ;
 			
@@ -448,6 +450,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 						code:slice.role_code,
 						length_hours: slice.role_length
 					});
+					altDuration += slice.role_length ;
 				}
 				continue ;
 			}
@@ -493,6 +496,13 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 			me.editDisabled = true ;
 		} else {
 			me.editDisabled = false ;
+		}
+		
+		// done 14-05-12 : total std duration
+		if( altWhse == null ) {
+			slicesPanel._totalLength = me.peopledayRecord.data.std_daylength ;
+		} else {
+			slicesPanel._totalLength = altDuration ;
 		}
 		
 		// Set UI
