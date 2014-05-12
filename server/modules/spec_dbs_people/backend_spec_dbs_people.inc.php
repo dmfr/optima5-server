@@ -17,6 +17,8 @@ switch( $post_data['_action'] )
 	return specDbsPeople_Real_getData( $post_data ) ;
 	case 'Real_actionDay' :
 	return specDbsPeople_Real_actionDay( $post_data ) ;
+	case 'Real_exceptionDaySet' :
+	return specDbsPeople_Real_exceptionDaySet( $post_data ) ;
 	case 'Real_saveRecord' :
 	return specDbsPeople_Real_saveRecord( $post_data ) ;
 	

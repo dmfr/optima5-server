@@ -272,18 +272,18 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				return '' ;
 			}
 			
-			metaData.tdCls += getStatusTdCls(peopledayRecord) ;
+			metaData.tdCls += ' ' + getStatusTdCls(peopledayRecord) ;
 			
 			if( peopledayRecord.data.status_isVirtual == true ) {
 				if( rowIsAltWhse ) {
 					return '' ;
 				}
-				if( peopledayRecord.data.std_daylength == 0 ) {
-					return '' ;
-				}
 				if( !Ext.isEmpty(peopledayRecord.data.std_abs_code) && peopledayRecord.data.std_abs_code.charAt(0) != '_' ) {
 					metaData.tdCls += ' op5-spec-dbspeople-realcell-absplanning' ;
 					return peopledayRecord.data.std_abs_code ;
+				}
+				if( peopledayRecord.data.std_daylength == 0 ) {
+					return '' ;
 				}
 				return peopledayRecord.data.std_role_code ;
 			}
@@ -339,7 +339,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				return '' ;
 			}
 			
-			metaData.tdCls += getStatusTdCls(peopledayRecord) ;
+			metaData.tdCls += ' ' + getStatusTdCls(peopledayRecord) ;
 			
 			if( peopledayRecord.data.status_isVirtual == true ) {
 				if( rowIsAltWhse ) {
@@ -633,6 +633,19 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				},
 				scope: this
 			});
+			menu.add({
+				xtype: 'menucheckitem',
+				itemId: 'real-checkbox-exceptionday',
+				checked: false ,
+				text: 'Exception jour',
+				handler: Ext.emptyFn,
+				listeners: {
+					checkchange: function( menuitem, checked ) {
+						this.handleExceptionDay( menuitem.up('menu').activeHeader.dateSqlHead, checked ) ;
+					},
+					scope: this
+				}
+			});
 		}
 		menu.on('beforeshow', me.onColumnsMenuBeforeShow, me);
 	},
@@ -644,6 +657,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		menu.down('#real-valid-rh').setVisible( colCfg && colCfg.enable_valid_rh ) ;
 		menu.down('#real-reopen').setVisible( colCfg && !colCfg.enable_open && !colCfg.enable_valid_ceq && !colCfg.enable_valid_rh ) ;
 		menu.down('#real-delete').setVisible( colCfg ) ;
+		menu.down('#real-checkbox-exceptionday').setVisible( colCfg && colCfg.status_virtual ) ;
+		menu.down('#real-checkbox-exceptionday').setChecked( colCfg && colCfg.status_exceptionDay, true ) ;
 	},
 	
 	
@@ -718,7 +733,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			var column = grid.headerCt.down('[dateSqlHead="'+dSql+'"]') ;
 			column.colCfg = colCfg ;
 			Ext.Array.each( column.query('gridcolumn'), function(subCol) {
-				subCol.tdCls = ( colCfg.status_isOpen ? 'op5-spec-dbspeople-realcolor-open':'') ;
+				subCol.tdCls = '' ;
+				subCol.tdCls += ( colCfg.status_exceptionDay ? ' '+'op5-spec-dbspeople-realcolor-exceptionday' : '') ;
 			}) ;
 		},this) ;
 			
@@ -950,8 +966,28 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			
 		},this) ;
 	},
-	
-	
+	handleExceptionDay: function( dSql, trueOrFalse ) {
+		this.showLoadmask() ;
+		
+		var ajaxParams = {
+			_moduleId: 'spec_dbs_people',
+			_action: 'Real_exceptionDaySet',
+			exception_is_on: ( trueOrFalse ? 1:0 ),
+			date_sql: dSql
+		};
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams,
+			success: function(response) {
+				this.hideLoadmask() ;
+				if( Ext.JSON.decode(response.responseText).success != true ) {
+					Ext.MessageBox.alert('Problem','Impossible de changer le statut.') ;
+					return ;
+				}
+				this.doLoad() ;
+			},
+			scope: this
+		}) ;
+	},
 	remoteSavePeopledayRecord: function( peopledayRecord ) {
 		if( peopledayRecord.get('status_isVirtual') ) {
 			this.onAfterSave() ;

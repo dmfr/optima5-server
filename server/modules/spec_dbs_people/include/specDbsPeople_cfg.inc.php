@@ -176,4 +176,22 @@ function specDbsPeople_tool_getContracts() {
 	return $TAB ;
 }
 
+function specDbsPeople_tool_getExceptionDays($sql_dates) {
+	global $_opDB ;
+	
+	$arr_days = array() ;
+	foreach( $sql_dates as $sql_date ) {
+		$arr_days[$sql_date] = FALSE ;
+	}
+	
+	$query = "SELECT DATE(field_DATE_EXCEPTION) FROM view_file_CFG_EXCEPTION_DAY
+			WHERE field_EXCEPTION_IS_ON='1' AND DATE(field_DATE_EXCEPTION) IN ".$_opDB->makeSQLlist($sql_dates) ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$sql_date = $arr[0] ;
+		$arr_days[$sql_date] = TRUE ;
+	}
+	return $arr_days ;
+}
+
 ?>

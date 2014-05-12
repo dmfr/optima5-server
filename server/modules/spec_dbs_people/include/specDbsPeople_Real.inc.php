@@ -32,6 +32,7 @@ function specDbsPeople_Real_getData( $post_data ) {
 		paracrm_lib_file_joinPrivate_buildCache('PEOPLEDAY') ;
 	}
 	$cfg_contracts = specDbsPeople_tool_getContracts() ;
+	$cfg_arrDatesException = specDbsPeople_tool_getExceptionDays($sql_dates) ;
 	
 	
 	/*
@@ -87,7 +88,7 @@ function specDbsPeople_Real_getData( $post_data ) {
 				continue ;
 			}
 			
-			if( !$cfg_contract['std_dayson'][$ISO8601_day] ) {
+			if( !$cfg_contract['std_dayson'][$ISO8601_day] || $cfg_arrDatesException[$cur_date] ) {
 				$row['std_daylength'] = 0 ;
 			} else {
 				$row['std_daylength'] = $cfg_contract['std_daylength'] ;
@@ -158,7 +159,9 @@ function specDbsPeople_Real_getData( $post_data ) {
 		$TAB_columns[$sql_date] = array(
 			'enable_open' => false,
 			'enable_valid_ceq' => false,
-			'enable_valid_rh' => false
+			'enable_valid_rh' => false,
+			'status_virtual' => true,
+			'status_exceptionDay' => $cfg_arrDatesException[$sql_date]
 		);
 		foreach( $arr1 as $people_code => $peopleday_record ) {
 			$peopleday_record['id'] = $people_code.'@'.$sql_date ;
@@ -179,6 +182,8 @@ function specDbsPeople_Real_getData( $post_data ) {
 			
 			if( $peopleday_record['status_isVirtual'] ) {
 				$TAB_columns[$sql_date]['enable_open'] = TRUE ;
+			} else {
+				$TAB_columns[$sql_date]['status_virtual'] = FALSE ;
 			}
 			if( !$peopleday_record['status_isVirtual'] && !$peopleday_record['status_isValidCeq'] ) {
 				$TAB_columns[$sql_date]['enable_valid_ceq'] = TRUE ;
@@ -431,6 +436,22 @@ function specDbsPeople_Real_actionDay_lib_delete( $peopleday_record, $test_mode=
 	
 	paracrm_lib_data_deleteRecord_file( 'PEOPLEDAY', $peopleday_record['filerecord_id'] ) ;
 	return TRUE ;
+}
+
+function specDbsPeople_Real_exceptionDaySet( $post_data ) {
+	global $_opDB ;
+	$date_sql = $post_data['date_sql'] ;
+	
+	$query_test = "SELECT count(*) FROM view_file_PEOPLEDAY pd WHERE pd.field_DATE='{$date_sql}'" ;
+	if( $_opDB->query_uniqueValue($query_test) > 0 ) {
+		return array('success'=>false) ;
+	}
+				
+	$arr_ins = array() ;
+	$arr_ins['field_DATE_EXCEPTION'] = $date_sql ;
+	$arr_ins['field_EXCEPTION_IS_ON'] = $post_data['exception_is_on'] ;
+	paracrm_lib_data_insertRecord_file( 'CFG_EXCEPTION_DAY' , 0, $arr_ins ) ;
+	return array('success'=>true) ;
 }
 
 

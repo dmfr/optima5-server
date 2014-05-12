@@ -180,6 +180,18 @@
 .op5-spec-dbspeople-realcolor-openrh .x-grid-cell-inner {
 	background-color: #ABD0FF ;
 }
+.op5-spec-dbspeople-realcolor-exceptionday .x-grid-cell-inner {
+	background-size: 20px 20px;
+	background-image:
+		-webkit-repeating-linear-gradient(-45deg, #9EC49F, #9EC49F 1px, transparent 1px, transparent 14px);
+	background-image:
+		-moz-repeating-linear-gradient(-45deg, #9EC49F, #9EC49F 1px, transparent 1px, transparent 14px);
+	background-image:
+		-o-repeating-linear-gradient(-45deg, #9EC49F, #9EC49F 1px, transparent 1px, transparent 14px);
+	background-image:
+		repeating-linear-gradient(-45deg, #9EC49F, #9EC49F 1px, transparent 1px, transparent 14px);
+}
+
 
 .op5-spec-dbspeople-balance-pos .x-grid-cell-inner { 
 	color: #008000 ;
