@@ -7,7 +7,8 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 		'Optima5.Modules.CrmBase.Qwindow',
 		'Optima5.Modules.CrmBase.QdirectWindow',
 		'Optima5.Modules.CrmBase.QueryTemplatePanel',
-		'Optima5.Modules.CrmBase.AuthAndroidPanel'
+		'Optima5.Modules.CrmBase.AuthAndroidPanel',
+		'Optima5.Modules.CrmBase.AuthDelegateForm'
 	],
 	
 	clsForPublished: 'op5-crmbase-published',
@@ -74,10 +75,12 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 						xtype: 'menu',
 						plain: true,
 						items: [{
-							text: 'ParaCRM accounts',
+							text: 'Delegate accounts',
 							iconCls: 'op5-crmbase-mainwindow-admin-authaccounts',
 							handler : function(){
-							}
+								this.openAuth('AuthDelegate') ;
+							},
+							scope: this
 						},{
 							text: 'Android devices',
 							iconCls: 'op5-crmbase-mainwindow-admin-authandroid',
@@ -561,6 +564,34 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 					iconCls: 'op5-crmbase-authandroidwindow-icon',
 					itemId: 'auth-android-window',
 					items:[Ext.create('Optima5.Modules.CrmBase.AuthAndroidPanel',{
+						optimaModule: me.optimaModule
+					})]
+				}) ;
+				break ;
+			
+			case 'AuthDelegate' :
+				// recherche d'une fenetre deja ouverte
+				var doOpen = true ;
+				me.optimaModule.eachWindow(function(win){
+					if( win.itemId == 'auth-delegate-window' ) {
+						win.show() ;
+						win.focus() ;
+						doOpen = false ;
+						return false ;
+					}
+				},me) ;
+				
+				if( !doOpen ) {
+					return ;
+				}
+				
+				var win = me.optimaModule.createWindow({
+					width: 400,
+					height: 200,
+					title: 'Delegate accounts',
+					iconCls: 'op5-crmbase-authdelegatewindow-icon',
+					itemId: 'auth-delegate-window',
+					items:[Ext.create('Optima5.Modules.CrmBase.AuthDelegateForm',{
 						optimaModule: me.optimaModule
 					})]
 				}) ;
