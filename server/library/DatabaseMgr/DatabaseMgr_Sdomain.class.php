@@ -4,7 +4,7 @@ class DatabaseMgr_Sdomain {
 	private $_opDB ;
 	private $domain_id ;
 	
-	private static $dbVersion = 18 ;
+	private static $dbVersion = 19 ;
 	
 	public function __construct( $domain_id ) {
 		$this->_opDB = $GLOBALS['_opDB'] ;
@@ -32,6 +32,15 @@ CREATE TABLE `auth_android` (
   `ping_version` int(11) NOT NULL,
   PRIMARY KEY (`authandroid_id`),
   UNIQUE KEY `device_android_id` (`device_android_id`)
+) ;
+
+CREATE TABLE `auth_delegate` (
+  `zero_id` int(11) NOT NULL,
+  `authdelegate_is_on` varchar(1) NOT NULL,
+  `authdelegate_bible_code` varchar(100) NOT NULL,
+  `authdelegate_user_bible_field_code` varchar(100) NOT NULL,
+  `authdelegate_pass_bible_field_code` varchar(100) NOT NULL,
+  PRIMARY KEY (`zero_id`)
 ) ;
 
 CREATE TABLE `define_bible` (
