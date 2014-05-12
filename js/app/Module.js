@@ -52,6 +52,8 @@ Ext.define('Optima5.Module',{
 		
 		me.app = moduleCfg.app ;
 		me.moduleId = moduleCfg.moduleId ;
+		me.moduleHeadId = moduleCfg.moduleHeadId ;
+		
 		me.moduleParams = moduleParams ;
 		
 		me.windows = new Ext.util.MixedCollection();
@@ -186,6 +188,10 @@ Ext.define('Optima5.Module',{
 	getSdomainRecord: function() {
 		var me = this ;
 		return me.getApp().desktopGetCfgRecord().sdomains().getById(me.sdomainId) ;
+	},
+	getModuleDescRecord: function() {
+		var me = this ;
+		return Optima5.Helper.getModulesLib().modulesGetById(me.moduleHeadId||me.moduleId) ;
 	},
 	
 	getConfiguredAjaxParams: function() {

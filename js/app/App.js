@@ -321,6 +321,7 @@ Ext.define('Optima5.App',{
 							iconCls: iconsLib.iconGetCls16('admin'),
 							handler : me.onModuleItemClick,
 							moduleExecRecord : Ext.ux.dams.ModelManager.create('OptimaModuleExecModel',{
+								moduleHeadId: moduleDescRecord.get('moduleId'),
 								moduleId: iterModuleDescRecord.get('moduleId'),
 								params:[
 									{paramCode:'sdomain_id',paramValue:sdomainRecord.get('sdomain_id')}
@@ -667,6 +668,7 @@ Ext.define('Optima5.App',{
 		
 		var moduleCfg = {
 			moduleId: moduleExecRecord.get('moduleId'),
+			moduleHeadId: ( moduleExecRecord.get('moduleHeadId') || moduleExecRecord.get('moduleId') ),
 			moduleParams: {}
 		}
 		Ext.Array.each( moduleExecRecord.params().getRange(), function(moduleParamRecord) {

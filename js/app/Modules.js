@@ -42,7 +42,8 @@ Ext.define('OptimaModuleExecModel', {
 	extend: 'Ext.data.Model',
 	idProperty: 'moduleId',
 	fields: [
-		{name: 'moduleId',   type: 'string'}
+		{name: 'moduleId',   type: 'string'},
+		{name: 'moduleHeadId',   type: 'string'}
 	],
 	hasMany: [{
 		model: 'OptimaModuleParamValueModel',
