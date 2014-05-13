@@ -16,6 +16,10 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.CfgParamButton' ,{
 								this.onChange() ;
 							},
 							scope: this
+						},
+						load: {
+							fn: this.onAfterLoad,
+							scope: this
 						}
 					}
 				})]
@@ -48,5 +52,13 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.CfgParamButton' ,{
 		var cfgParamTree = this.menu.down('treepanel'),
 			retValue = cfgParamTree.getLeafNodesKey() ;
 		return retValue ;
-	}
+	},
+	
+	onAfterLoad: function() {
+		if( !Optima5.Modules.Spec.DbsPeople.HelperCache.authHelperHasAll() ) {
+			this.doAuthCleanup() ;
+		}
+		this.fireEvent('ready',this) ;
+	},
+	doAuthCleanup: function() {}
 }) ;

@@ -135,6 +135,12 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 							this.doLoad() ;
 						},
 						scope: this
+					},
+					ready: {
+						fn: function() {
+							this.onPreInit() ;
+						},
+						scope: this
 					}
 				}
 			}),Ext.create('Optima5.Modules.Spec.DbsPeople.CfgParamTeamButton',{
@@ -144,6 +150,12 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 					change: {
 						fn: function() {
 							this.doLoad() ;
+						},
+						scope: this
+					},
+					ready: {
+						fn: function() {
+							this.onPreInit() ;
 						},
 						scope: this
 					}
@@ -208,9 +220,16 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				cls: 'op5-waiting'
 			}]
 		});
-		
+		this.preInit = 2 ;
 		this.callParent() ;
-		this.startPanel() ;
+	},
+	onPreInit: function() {
+		var me = this ;
+		me.preInit-- ;
+		if( me.preInit == 0 ) {
+			me.isReady=true ;
+			me.startPanel() ;
+		}
 	},
 	startPanel: function() {
 		var me = this ;
@@ -789,6 +808,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		return true ;
 	},
 	doLoad: function() {
+		if( !this.isReady ) {
+			return ;
+		}
 		this.autoRefreshTask.cancel() ;
 		this.showLoadmask() ;
 		

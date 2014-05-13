@@ -16,6 +16,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.CfgParamTree',{
 	optimaModule: null,
 	cfgParam_id: '',
 	value: null,
+	forceValue: false,
 	
 	initComponent: function() {
 		var me = this ;
@@ -56,13 +57,18 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.CfgParamTree',{
 				else {
 					this.getStore().setRootNode(jsonResponse.dataRoot) ;
 					this.onAfterLoad() ;
+					this.fireEvent('load',this) ;
 				}
 			},
 			scope: this
 		});
 	},
 	onAfterLoad: function() {
-		this.getStore().getRootNode().cascadeBy(function(node) {
+		this.getRootNode().cascadeBy(function(node) {
+			if( node.isRoot() && this.value==null ) {
+				node.set('checked',true) ;
+				return ;
+			}
 			node.set('checked', (node.getId()==this.value) );
 		},this);
 		
@@ -96,21 +102,24 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.CfgParamTree',{
 	getValue: function() {
 		return this.value ;
 	},
-	getNode: function() {
+	getCheckedNode: function() {
+		var storeNode ;
 		if( this.value == null ) {
-			return null ;
+			storeNode = (this.forceValue ? this.getRootNode() : null) ;
+		} else {
+			storeNode = this.getStore().getNodeById( this.value ) ;
 		}
-		var storeNode = this.getStore().getNodeById( this.value ) ;
+		return storeNode ;
+	},
+	getNode: function() {
+		var storeNode = this.getCheckedNode() ;
 		if( storeNode == null ) {
 			return null ;
 		}
 		return storeNode.data ;
 	},
 	getLeafNodesKey: function() {
-		if( this.value == null ) {
-			return null ;
-		}
-		var storeNode = this.getStore().getNodeById( this.value ) ;
+		var storeNode = this.getCheckedNode() ;
 		if( storeNode == null ) {
 			return null ;
 		}
@@ -127,5 +136,25 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.CfgParamTree',{
 			});
 		}
 		return leafs ;
-	}
+	},
+	
+	autoAdvance: function() {
+		var setValue ;
+		this.getRootNode().cascadeBy( function(node) {
+			if( node.childNodes.length > 1 ) {
+				return false ;
+			}
+			setValue = node.getId() ;
+			if( !node.get('expandable') ) {
+				return false ;
+			}
+		}) ;
+		if( setValue != null ) {
+			this.value = setValue ;
+			this.getRootNode().cascadeBy(function(node) {
+				node.set('checked', (node.getId()==this.value) );
+			},this);
+			this.fireEvent('change',this.value) ;
+		}
+	},
 }) ;
