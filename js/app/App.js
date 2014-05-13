@@ -34,6 +34,7 @@ Ext.define('OptimaDesktopCfgModel',{
 	extend: 'Ext.data.Model',
 	fields: [
 		{name: 'session_id',  type:'string'},
+		{name: 'delegate_mode',    type:'boolean'},
 		{name: 'dev_mode',    type:'boolean'},
 		{name: 'auth_is_admin',    type:'boolean'},
 		{name: 'auth_is_root',    type:'boolean'},
@@ -483,11 +484,13 @@ Ext.define('Optima5.App',{
 		
 		me.moduleInstances = new Ext.util.MixedCollection();
 		
-		me.desktop = new Optima5.Desktop(me.desktopBuildCfg());
+		if( !me.desktopCfgRecord.get('delegate_mode') ) {
+			me.desktop = new Optima5.Desktop(me.desktopBuildCfg());
+		}
 		
 		me.viewport = new Ext.container.Viewport({
 			layout: 'fit',
-			items: [ me.desktop ],
+			items: ( !me.desktopCfgRecord.get('delegate_mode') ? [ me.desktop ] : [] ),
 			cls: me.desktopCfgRecord.get('dev_mode') ? 'op5-viewport-devborder':''
 		});
 		
@@ -504,6 +507,28 @@ Ext.define('Optima5.App',{
 		
 		me.isReady = true;
 		me.fireEvent('ready', me);
+		
+		// ** Delegate mode : launch module
+		if( me.desktopCfgRecord.get('delegate_mode') && me.desktopCfgRecord.sdomains().getCount() == 1 ) {
+			var sdomainRecord = me.desktopCfgRecord.sdomains().getAt(0) ;
+			var moduleExecRecord = Ext.ux.dams.ModelManager.create('OptimaModuleExecModel',{
+				moduleId: sdomainRecord.get('module_id'),
+				params:[
+					{paramCode:'sdomain_id',paramValue:sdomainRecord.get('sdomain_id')},
+					{paramCode:'doRawAccess',paramValue:true}
+				]
+			}) ;
+			
+			var moduleCfg = {
+				moduleId: moduleExecRecord.get('moduleId'),
+				moduleHeadId: ( moduleExecRecord.get('moduleHeadId') || moduleExecRecord.get('moduleId') ),
+				moduleParams: {}
+			}
+			Ext.Array.each( moduleExecRecord.params().getRange(), function(moduleParamRecord) {
+				moduleCfg.moduleParams[moduleParamRecord.get('paramCode')] = moduleParamRecord.get('paramValue') ;
+			}) ;
+			me.moduleLaunch(moduleCfg) ;
+		}
 	},
 	getDesktop: function() {
 		var me = this ;
@@ -571,6 +596,9 @@ Ext.define('Optima5.App',{
 	setWallpaper : function(wallpId, isStretch){
 		var me = this ;
 		
+		if( me.desktop == null ) {
+			return ;
+		}
 		if( me.desktopCfgRecord == null ) {
 			me.desktop.setWallpaper( '' , false ) ;
 		}

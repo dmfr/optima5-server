@@ -98,10 +98,39 @@ Ext.define('Optima5.Module',{
 			iconCls: iconCls
 		}) ;
 		
-		var win = me.app.getDesktop().createWindow(config,cls) ;
-		win.on('boxready',function(twin) {
-			me.app.alignNewWindow(twin) ;
-		},me,{single:true}) ;
+		if( me.app.getDesktop() == null ) {
+			// standalone / fullscreen mode (delegate)
+			var fullscreenViewport = Ext.ComponentQuery.query('viewport')[0] ;
+			if( fullscreenViewport.items.getCount() == 0 ) {
+				var panel, cfg = Ext.apply(config || {}, {
+					width: null,
+					height: null,
+					title: '',
+					icon: '',
+					iconCls: ''
+				});
+				cls = cls || Ext.panel.Panel;
+				panel = fullscreenViewport.add(new cls(cfg));
+				
+				me.fireEvent('modulestart',me) ;
+				
+				me.windows.add(panel) ; // HACK
+				return ;
+			} else {
+				var win, cfg = Ext.applyIf(config || {}, {
+					stateful: false,
+					isWindow: true,
+					constrainHeader: true
+				});
+				cls = cls || Ext.window.Window;
+				win = fullscreenViewport.add(new cls(cfg));
+			}
+		} else {
+			var win = me.app.getDesktop().createWindow(config,cls) ;
+			win.on('boxready',function(twin) {
+				me.app.alignNewWindow(twin) ;
+			},me,{single:true}) ;
+		}
 		
 		var fireStart = false ;
 		if( me.windows.getCount() == 0 ) {
@@ -227,5 +256,4 @@ Ext.define('Optima5.Module',{
 		delete me.app ;
 		me.fireEvent('modulestop',me) ;
 	}
- 
 });
