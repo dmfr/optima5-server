@@ -24,9 +24,14 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.HelperCache',{
 		me.optimaModule = optimaModule ;
 		
 		Ext.defer(function() {
+			me.libCount = 2 ;
+			
 			me.startLoading() ;
+			me.authHelperInit() ;
 		},1000,me) ;
 	},
+	
+	
 	startLoading: function() {
 		var me = this ;
 		
@@ -63,8 +68,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.HelperCache',{
 			}) ;
 		},me) ;
 		
-		me.isReady = true ;
-		me.fireEvent('ready') ;
+		me.onLibLoad() ;
 	},
 	
 	forTypeGetById: function( type, xCode ) {
@@ -83,5 +87,78 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.HelperCache',{
 	forTypeGetAll: function( type ) {
 		var me = this ;
 		return Ext.pluck( me.cfgStores[type].getRange(), 'data' ) ;
+	},
+	
+	
+	authHelperInit: function() {
+		var me = this ;
+		
+		me.authPages = {} ; // userId => [pages]
+		me.authNodes = [] ; // [userId@whseCode@teamCode]
+		
+		// Query Bible
+		var ajaxParams = {} ;
+		Ext.apply( ajaxParams, {
+			_moduleId: 'spec_dbs_people',
+			_action: 'auth_getTable',
+		});
+		me.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams ,
+			success: function(response) {
+				var ajaxData = Ext.decode(response.responseText) ;
+				if( ajaxData.success == false ) {
+					Ext.Msg.alert('Failed', 'Unknown error');
+				}
+				else {
+					me.authPage = ajaxData.authPage ;
+					me.authWhse = ajaxData.authWhse ;
+					me.authTeam = ajaxData.authTeam ;
+				}
+			},
+			callback: function() {
+				me.onLibLoad() ;
+			},
+			scope: me
+		});
+	},
+	authHelperHasAll: function() {
+		var me = this ;
+		if( me.optimaModule.getSdomainRecord().get('auth_has_all') ) {
+			return true ;
+		}
+		return false ;
+	},
+	authHelperQueryPage: function( pageCode ) {
+		var me = this ;
+			
+		if( me.optimaModule.getSdomainRecord().get('auth_has_all') ) {
+			return true ;
+		}
+		return ( !Ext.isEmpty(me.authPage) && Ext.Array.contains( me.authPage, pageCode ) ) ;
+	},
+	authHelperQueryWhse: function( whseCode ) {
+		var me = this ;
+			
+		if( me.optimaModule.getSdomainRecord().get('auth_has_all') ) {
+			return true ;
+		}
+		return ( !Ext.isEmpty(me.authWhse) && Ext.Array.contains( me.authWhse, whseCode ) ) ;
+	},
+	authHelperQueryTeam: function( teamCode ) {
+		var me = this ;
+			
+		if( me.optimaModule.getSdomainRecord().get('auth_has_all') ) {
+			return true ;
+		}
+		return ( !Ext.isEmpty(me.authTeam) && Ext.Array.contains( me.authTeam, teamCode ) ) ;
+	},
+	
+	onLibLoad: function() {
+		var me = this ;
+		me.libCount-- ;
+		if( me.libCount == 0 ) {
+			me.isReady=true ;
+			me.fireEvent('ready') ;
+		}
 	}
 });

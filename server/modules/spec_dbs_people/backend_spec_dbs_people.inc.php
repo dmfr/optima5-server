@@ -36,6 +36,10 @@ switch( $post_data['_action'] )
 	return specDbsPeople_cfg_getCfgBibles( $post_data ) ;
 	
 	
+	case 'auth_getTable' :
+	return specDbsPeople_auth_getTable( $post_data ) ;
+	
+	
 	default :
 	return NULL ;
 }

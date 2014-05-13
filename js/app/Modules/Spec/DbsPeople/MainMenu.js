@@ -1,6 +1,7 @@
 Ext.define('DbsPeopleMenuItemModel',{
 	extend: 'Ext.data.Model',
 	fields: [
+		{name: 'item_disabled',  type: 'boolean'},
 		{name: 'type_header',  type: 'boolean'},
 		{name: 'type_separator',   type: 'boolean'},
 		{name: 'type_action',   type: 'boolean'},
@@ -20,6 +21,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.MainMenu',{
 	initComponent: function() {
 		 var viewItemTpl = new Ext.XTemplate(
 			'<tpl for=".">',
+			'<tpl if="!item_disabled">',
 			'<div class="op5-spec-dbspeople-mainmenu-item">',
 				'<tpl if="type_header">',
 					'<div class="op5-spec-dbspeople-mainmenu-header"></div>',
@@ -37,23 +39,41 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.MainMenu',{
 					'</div>',
 				'</tpl>',
 			'</div>',
+			'</tpl>',
+			'<tpl if="item_disabled">',
+				'<div class="op5-spec-dbspeople-mainmenu-item" style="display:none">',
+				'&#160;',
+				'</div>',
+			'</tpl>',
 			'</tpl>'
 		);
 		 
 		var itemsStore = Ext.create('Ext.data.Store',{
-			model:'MrFoxyMenuItemModel',
-			data:[
-				{type_header:true},
-				{type_separator:true, separator_label: 'Manage Promotions'},
-				{type_action:true, action_caption: 'Gestion RH', action_sendEvent:'panel_rh', action_iconCls:'op5-spec-dbspeople-icon-promotion'},
-				{type_action:true, action_caption: 'Vue chef d\'équipe', action_sendEvent:'panel_real', action_iconCls:'op5-spec-dbspeople-icon-headlines'},
-				{type_action:true, action_caption: 'Forecast Activité(s)', action_sendEvent:'panel_forecast',action_iconCls:'op5-spec-dbspeople-icon-promostore'}
-											 /*
-				{type_separator:true, separator_label: 'Bibles / Dictionnaires'},
-				{type_action:true, action_caption: 'Entrepôts', action_iconCls:'op5-spec-dbspeople-icon-headlines'},
-				{type_action:true, action_caption: 'Equipes', action_iconCls:'op5-spec-dbspeople-icon-headlines'},
-				{type_action:true, action_caption: 'Rôles', action_iconCls:'op5-spec-dbspeople-icon-promostore'}*/
-			]
+			model:'DbsPeopleMenuItemModel',
+			data:[{
+				type_header:true
+			},{
+				type_separator:true,
+				separator_label: 'DBS People'
+			},{
+				type_action:true,
+				action_caption: 'Gestion RH',
+				action_sendEvent:'panel_rh',
+				action_iconCls:'op5-spec-dbspeople-icon-promotion',
+				item_disabled: !Optima5.Modules.Spec.DbsPeople.HelperCache.authHelperQueryPage('RH')
+			},{
+				type_action:true,
+				action_caption: 'Vue chef d\'équipe',
+				action_sendEvent:'panel_real',
+				action_iconCls:'op5-spec-dbspeople-icon-headlines',
+				item_disabled: !Optima5.Modules.Spec.DbsPeople.HelperCache.authHelperQueryPage('CEQ')
+			},{
+				type_action:true,
+				action_caption: 'Forecast Activité(s)',
+				action_sendEvent:'panel_forecast',
+				action_iconCls:'op5-spec-dbspeople-icon-promostore',
+				item_disabled: !Optima5.Modules.Spec.DbsPeople.HelperCache.authHelperQueryPage('FC')
+			}]
 		}) ;
 		 
 		Ext.apply(this,{
