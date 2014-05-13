@@ -695,7 +695,7 @@ Ext.define('Optima5.Modules.Spec.WbBudget.BudgetBuildPanel',{
 			plugins: [{
 				ptype: 'bufferedrenderer',
 				leadingBufferZone: 1,
-				trailingBufferZone: 1,
+				trailingBufferZone: 1
 				//numFromEdge: 1
 			},{
 				ptype: 'cellediting',

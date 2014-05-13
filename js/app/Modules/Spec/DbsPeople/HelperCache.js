@@ -100,7 +100,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.HelperCache',{
 		var ajaxParams = {} ;
 		Ext.apply( ajaxParams, {
 			_moduleId: 'spec_dbs_people',
-			_action: 'auth_getTable',
+			_action: 'auth_getTable'
 		});
 		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams ,

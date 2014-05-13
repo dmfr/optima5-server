@@ -70,7 +70,7 @@ Ext.define('Optima5.Modules.CrmBase.AuthDelegateForm' ,{
 			bodyCls: 'ux-noframe-bg',
 			bodyPadding: 5,
 			defaults: {
-				anchor: '100%',
+				anchor: '100%'
 			},
 			items:[{
 				xtype:'fieldset',
@@ -79,7 +79,7 @@ Ext.define('Optima5.Modules.CrmBase.AuthDelegateForm' ,{
 				checkboxName: 'authdelegate_is_on',
 				defaults: {
 					anchor: '100%',
-					labelWidth: 100,
+					labelWidth: 100
 				},
 				items: [{
 					xtype: 'comboboxcached',

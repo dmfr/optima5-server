@@ -156,5 +156,5 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.CfgParamTree',{
 			},this);
 			this.fireEvent('change',this.value) ;
 		}
-	},
+	}
 }) ;
