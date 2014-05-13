@@ -180,6 +180,10 @@ if( $_POST['_action'] == 'login' )
 		$_SESSION['login_data']['login_password'] = $_POST['password'] ;
 		$_SESSION['login_data']['login_user'] = $login_user ;
 		$_SESSION['login_data']['login_domain'] = $login_domain ;
+		if( $delegate_userId && $delegate_sdomainId ) {
+			$_SESSION['login_data']['delegate_userId'] = $delegate_userId ;
+			$_SESSION['login_data']['delegate_sdomainId'] = $delegate_sdomainId ;
+		}
 		$_SESSION['login_data']['userstr'] = strtolower($userstr) ;
 		$_SESSION['login_data']['mysql_db'] = $mysql_db ;
 		$_SESSION['login_data']['time_access'] = time() ;
