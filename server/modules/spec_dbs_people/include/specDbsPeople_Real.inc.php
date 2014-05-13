@@ -173,6 +173,8 @@ function specDbsPeople_Real_getData( $post_data ) {
 				$row['id'] = $std_rowHash ;
 				$row['whse_code'] = $peopleday_record['std_whse_code'] ;
 				$row['team_code'] = $peopleday_record['std_team_code'] ;
+				$row['contract_code'] = $peopleday_record['std_contract_code'] ;
+				$row['std_role_code'] = $peopleday_record['std_role_code'] ;
 				$copy = array('people_code','people_name','people_techid') ;
 				foreach( $copy as $mkey ) {
 					$row[$mkey] = $peopleday_record[$mkey] ;
@@ -208,6 +210,8 @@ function specDbsPeople_Real_getData( $post_data ) {
 					$row['whse_code'] = $alt_whse_code ;
 					$row['whse_isAlt'] = TRUE ;
 					$row['team_code'] = $peopleday_record['std_team_code'] ;
+					$row['contract_code'] = $peopleday_record['std_contract_code'] ;
+					$row['std_role_code'] = $peopleday_record['std_role_code'] ;
 					$copy = array('people_code','people_name','people_techid') ;
 					foreach( $copy as $mkey ) {
 						$row[$mkey] = $peopleday_record[$mkey] ;
@@ -540,7 +544,7 @@ function specDbsPeople_Real_RhAbsSave( $post_data ) {
 	$abs_date_end = $form_data['rh_abs_date_end'] ;
 	
 	if( $abs_is_on ) {
-		if( !$abs_code || !$abs_date_start || !$abs_date_end || !(strtotime($abs_date_start) < strtotime($abs_date_end)) ) {
+		if( !$abs_code || !$abs_date_start || !$abs_date_end || !(strtotime($abs_date_start) <= strtotime($abs_date_end)) ) {
 			return array('success'=>false ) ;
 		}
 	}
@@ -580,7 +584,7 @@ function specDbsPeople_Real_RhAbsDownload( $post_data ) {
 	$abs_date_start = $form_data['rh_abs_date_start'] ;
 	$abs_date_end = $form_data['rh_abs_date_end'] ;
 	
-	if( !$abs_code || !$abs_date_start || !$abs_date_end || !(strtotime($abs_date_start) < strtotime($abs_date_end)) ) {
+	if( !$abs_code || !$abs_date_start || !$abs_date_end || !(strtotime($abs_date_start) <= strtotime($abs_date_end)) ) {
 		return array('success'=>false ) ;
 	}
 	

@@ -14,7 +14,7 @@ function specDbsPeople_cfg_getTree( $post_data ) {
 			
 		case 'team' :
 			$bible_code = 'CFG_TEAM' ;
-			$field_txt_treenode = 'field_TEAM' ;
+			$field_txt_treenode = 'field_TEAM_TXT' ;
 			$field_txt_entry = 'field_TEAM_TXT' ;
 			break ;
 			
@@ -97,7 +97,16 @@ function specDbsPeople_cfg_getTree_call( $tab_parentkey_nodes, $treenode_parent_
 	{
 		if( $child_tab = specDbsPeople_cfg_getTree_call( $tab_parentkey_nodes, $treenode_key ) )
 		{
-			$record['expanded'] = true ;
+			$leaf_only = TRUE ;
+			foreach( $child_tab as $node ) {
+				if( !$node['leaf'] ) {
+					$leaf_only = FALSE ;
+				}
+			}
+			$record['expanded'] = !$leaf_only ;
+			$record['expandable'] = !$leaf_only ;
+			$record['leaf_only'] = $leaf_only ;
+			$record['icon'] = ($leaf_only ? 'images/op5img/ico_leaf_small.gif' : '') ;
 			$record['children'] = $child_tab ;
 		}
 		else

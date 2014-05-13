@@ -65,6 +65,24 @@ Ext.define('DbsPeopleRealRowModel', {
 				return Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetById("TEAM",v).text ;
 			}
 		},
+		{name: 'contract_code',  type: 'string'},
+		{
+			name: 'contract_txt',
+			type: 'string',
+			convert: function(v, record) {
+				v = record.data.contract_code ;
+				return Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetById("CONTRACT",v).text ;
+			}
+		},
+		{name: 'std_role_code',  type: 'string'},
+		{
+			name: 'std_role_txt',
+			type: 'string',
+			convert: function(v, record) {
+				v = record.data.std_role_code ;
+				return Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetById("ROLE",v).text ;
+			}
+		},
 		{name: 'people_code',   type: 'string'},
 		{name: 'people_name',   type: 'string'},
 		{name: 'people_techid',   type: 'string'},
@@ -423,13 +441,25 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			text: 'Entrepôt',
 			dataIndex: 'whse_txt',
 			width: 180,
-			groupable: true
+			_groupBy: 'whse_code'
 		},{
 			locked: true,
 			text: 'Equipe',
 			dataIndex: 'team_txt',
 			width: 100,
-			groupable: true
+			_groupBy: 'team_code'
+		},{
+			locked: true,
+			text: 'Contrat',
+			dataIndex: 'contract_txt',
+			width: 80,
+			_groupBy: 'contract_code'
+		},{
+			locked: true,
+			text: 'FuncStd',
+			dataIndex: 'std_role_code',
+			width: 60,
+			_groupBy: 'std_role_code'
 		},{
 			locked: true,
 			text: '<b>Nom complet</b>',
@@ -512,6 +542,10 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		} ;
 		Ext.Array.each( columns, function(column) {
 			Ext.applyIf( column, columnDefaults ) ;
+			if( !Ext.isEmpty(column['_groupBy']) ) {
+				// false groupable to enable columnMenu
+				column['groupable'] = true ;
+			}
 		}) ;
 		
 		
@@ -524,6 +558,10 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				data: [],
 				proxy:{
 					type:'memory'
+				},
+				listeners: {
+					groupchange: me.onGridGroupChange,
+					scope: this
 				}
 			},
 			enableLocking: true,
@@ -545,7 +583,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			features: [{
 				//groupHeaderTpl: '{name}',
 				ftype: 'grouping',
-				hideGroupedHeader: true,
+				hideGroupedHeader: false,
 				enableGroupingMenu: false,
 				enableNoGroups: false,
 				groupHeaderTpl:Ext.create('Ext.XTemplate',
@@ -555,12 +593,17 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 							if( values.rows.length == 0 ) {
 								return '' ;
 							}
-							switch( values.columnName ) {
+							switch( values.groupField ) {
 								case 'whse_code' :
 									return values.rows[0].data.whse_txt ;
 								case 'team_code' :
 									return values.rows[0].data.team_txt ;
+								case 'contract_code' :
+									return values.rows[0].data.contract_txt ;
+								case 'std_role_code' :
+									return values.rows[0].data.std_role_txt ;
 								default :
+									console.log( values.columnName ) ;
 									return '' ;
 							}
 						}
@@ -606,7 +649,15 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 	onColumnsMenuCreate: function( headerCt, menu ) {
 		var me = this;
 		if( true ) {
-			menu.add('-') ;
+			menu.add({
+				itemId: 'grid-groupby',
+				icon: 'images/op5img/ico_groupby_16.png',
+				text: 'Group By',
+				handler: function(menuitem) {
+					this.onColumnGroupBy( menuitem.up('menu').activeHeader._groupBy ) ;
+				},
+				scope: this
+			});
 			menu.add({
 				itemId: 'real-open',
 				iconCls: 'op5-spec-dbspeople-icon-actionday-open',
@@ -671,6 +722,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 	onColumnsMenuBeforeShow: function( menu ) {
 		var me = this,
 			colCfg = menu.activeHeader.colCfg;
+		menu.down('#grid-groupby').setVisible( !Ext.isEmpty(menu.activeHeader._groupBy) ) ;
+		menu.down('menuseparator').setVisible( colCfg ) ;
 		menu.down('#real-open').setVisible( colCfg && colCfg.enable_open ) ;
 		menu.down('#real-valid-ceq').setVisible( colCfg && colCfg.enable_valid_ceq ) ;
 		menu.down('#real-valid-rh').setVisible( colCfg && colCfg.enable_valid_rh ) ;
@@ -678,6 +731,27 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		menu.down('#real-delete').setVisible( colCfg ) ;
 		menu.down('#real-checkbox-exceptionday').setVisible( colCfg && colCfg.status_virtual ) ;
 		menu.down('#real-checkbox-exceptionday').setChecked( colCfg && colCfg.status_exceptionDay, true ) ;
+	},
+	onColumnGroupBy: function( groupField ) {
+		var grid = this.child('grid'),
+			store = grid.getStore() ;
+		store.group( groupField, 'ASC' ) ;
+	},
+	onGridGroupChange: function( gridStore, groupers ) {
+		var grid = this.child('grid'),
+			 groupFields = [] ;
+		groupers.each( function(grouper) {
+			groupFields.push(grouper.property) ;
+		}) ;
+		Ext.Array.each( grid.headerCt.query('[_groupBy]'), function(col) {
+			if( col._alwaysHidden ) {
+				col.hide() ;
+			} else if( Ext.Array.contains(groupFields , col._groupBy) ) {
+				col.hide() ;
+			} else {
+				col.show() ;
+			}
+		}) ;
 	},
 	
 	
@@ -782,18 +856,18 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			filter_team = me.down('#btnTeam').getNode() ;
 		// inject inline data
 		store.loadRawData( jsonResponse.rows ) ;
-		// cfg columns + groups
-		grid.headerCt.down('[dataIndex="whse_txt"]').setVisible( filter_site==null ) ;
-		grid.headerCt.down('[dataIndex="team_txt"]').setVisible( filter_team==null ) ;
-		
 		store.sort('people_name','ASC') ;
-		store.clearGrouping() ;
-		if( filter_site==null ) {
+		
+		// cfg columns + groups
+		grid.headerCt.down('[dataIndex="whse_txt"]')._alwaysHidden = (filter_site && filter_site.leaf_only) ;
+		grid.headerCt.down('[dataIndex="team_txt"]')._alwaysHidden = (filter_team && filter_team.leaf_only) ;
+		
+		if( filter_site==null || !filter_site.leaf_only ) {
 			store.group( 'whse_code', 'ASC' ) ;
-			grid.headerCt.down('[dataIndex="whse_txt"]').setVisible( false ) ;
-		} else if( filter_team==null ) {
+		} else if( filter_team==null || !filter_team.leaf_only ) {
 			store.group( 'team_code', 'ASC' ) ;
-			grid.headerCt.down('[dataIndex="team_txt"]').setVisible( false ) ;
+		} else {
+			store.clearGrouping() ;
 		}
 		
 		// Drop loadmask

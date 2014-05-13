@@ -5,7 +5,8 @@ Ext.define('DbsPeopleCfgParamTreeModel', {
         {name: 'nodeId',  type: 'string'},
 		  {name: 'nodeType', type: 'string'},
 		  {name: 'nodeKey',  type: 'string'},
-        {name: 'nodeText',   type: 'string'}
+        {name: 'nodeText',   type: 'string'},
+		  {name: 'leaf_only', type:'boolean'}
      ]
 });
 
