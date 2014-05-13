@@ -107,7 +107,9 @@ Ext.define('Optima5.Module',{
 					height: null,
 					title: '',
 					icon: '',
-					iconCls: ''
+					iconCls: '',
+					border: false,
+					resizable: false
 				});
 				cls = cls || Ext.panel.Panel;
 				panel = fullscreenViewport.add(new cls(cfg));
