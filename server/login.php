@@ -77,7 +77,54 @@ if( $_POST['_action'] == 'login' )
 	$_opDB = new mysql_DB( );
 	$_opDB->connect_mysql_nocheck( $mysql_host, $mysql_db, $mysql_user, $mysql_pass );
 	
-	if( $login_user == 'root' ) {
+	if( count($ttmp=explode(':',$login_user)) == 2 ) {
+		// Mode delegate
+		$delegate_sdomainId = $ttmp[1] ;
+		$delegate_userId = $ttmp[0] ;
+		$delegate_pass = $_POST['login_password'] ;
+		
+		while( TRUE ) {
+			$t = new DatabaseMgr_Base() ;
+			$domain_id = $t->dbCurrent_getDomainId() ;
+			
+			// Sdomain ?
+			$t = new DatabaseMgr_Sdomain($domain_id) ;
+			if( !$t->sdomainDb_exists($delegate_sdomainId) ) {
+				break ;
+			}
+			
+			$sdomain_db = DatabaseMgr_Base::getBaseDb( $domain_id ).'_'.strtolower($delegate_sdomainId) ;
+			
+			// Delegate config ?
+			$query = "SELECT * FROM {$sdomain_db}.auth_delegate WHERE zero_id='0'" ;
+			$result = $_opDB->query($query) ;
+			$arrCfg_delegate = $_opDB->fetch_assoc($result) ;
+			
+			if( !$arrCfg_delegate || $arrCfg_delegate['authdelegate_is_on'] != 1 ) {
+				break ;
+			}
+			$authdelegate_bible_code = $arrCfg_delegate['authdelegate_bible_code'] ;
+			$authdelegate_user_bible_field_code = $arrCfg_delegate['authdelegate_user_bible_field_code'] ;
+			$authdelegate_pass_bible_field_code = $arrCfg_delegate['authdelegate_pass_bible_field_code'] ;
+			
+			// Login OK ?
+			$query = "SELECT field_{$authdelegate_pass_bible_field_code}
+						FROM {$sdomain_db}.view_bible_{$authdelegate_bible_code}_entry
+						WHERE UPPER(field_{$authdelegate_user_bible_field_code}) = UPPER('{$delegate_userId}')" ;
+			$candidate_password = $_opDB->query_uniqueValue($query) ;
+			if( !$candidate_password || $candidate_password != $delegate_pass ) {
+				break ;
+			}
+		
+			$OK = TRUE ;
+			break ;
+		}
+		if( !$OK ) {
+			die(json_encode(array('done' => FALSE,'errors'=>array("Login failed for delegate <b>$delegate_sdomainId</b> on <b>$login_domain</b>"),'mysql_db'=>$mysql_db))) ;
+		}
+		$auth_class = 'U' ;
+		
+	} elseif( $login_user == 'root' ) {
 		if( defined('AUTH_ROOT_PASSWORD_PLAIN') && AUTH_ROOT_PASSWORD_PLAIN != ''
 		&& AUTH_ROOT_PASSWORD_PLAIN == $_POST['login_password'] ) {
 			

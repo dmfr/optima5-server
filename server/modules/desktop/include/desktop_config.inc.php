@@ -9,6 +9,11 @@ function desktop_config_getRecord($post_data) {
 	
 	$session_id = $_SESSION['login_data']['session_id'] ;
 	$user_id = $_SESSION['login_data']['login_user'] ;
+	if( count($ttmp=explode(':',$user_id)) == 2 ) {
+		$delegate_sdomainId = $ttmp[1] ;
+		$delegate_userId = $ttmp[0] ;
+		return desktop_config_getRecord_forDelegate($delegate_userId,$delegate_sdomainId) ;
+	}
 	
 	$login_userName = $_opDB->query_uniqueValue("SELECT user_fullname FROM auth_user WHERE user_id='$user_id'") ;
 	$login_domainName = $_opDB->query_uniqueValue("SELECT domain_name FROM domain WHERE zero_id='0'") ;
@@ -99,6 +104,60 @@ function desktop_config_getRecord($post_data) {
 			
 			'wallpaper_id' => $wallpaper_id,
 			'wallpaper_isStretch' => $wallpaper_isStretch
+		),
+		'success'=>true
+	);
+}
+
+function desktop_config_getRecord_forDelegate($user_id, $sdomain_id) {
+	global $_opDB ;
+	
+	if( !isset($_SESSION['login_data']) ) {
+		return array('success'=>false) ;
+	}
+	
+	$session_id = $_SESSION['login_data']['session_id'] ;
+	$user_id = $_SESSION['login_data']['login_user'] ;
+	
+	$login_domainName = $_opDB->query_uniqueValue("SELECT domain_name FROM domain WHERE zero_id='0'") ;
+	
+	$t = new DatabaseMgr_Base() ;
+	$db_needUpdate = $t->baseDb_needUpdate( DatabaseMgr_Base::dbCurrent_getDomainId() ) ;
+	
+	// *** Annonces des Sdomains ouverts ***
+	$arr_sdomains = array() ;
+	$query = "SELECT * FROM sdomain WHERE sdomain_id='{$sdomain_id}'" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$sdomain_id = $arr['sdomain_id'] ;
+		
+		$dmgr_sdomain = new DatabaseMgr_Sdomain( DatabaseMgr_Base::dbCurrent_getDomainId() ) ;
+		if( $dmgr_sdomain->sdomainDb_needUpdate($sdomain_id) ) {
+			break ;
+		}
+		
+		$arr['auth_has_all'] = FALSE ;
+		$arr['auth_arrOpenActions'] = array() ;
+		
+		$arr_sdomains[] = $arr ;
+	}
+	
+	return array(
+		'desktop_config'=>array(
+			'session_id' => $_SESSION['login_data']['session_id'],
+			'dev_mode' => $GLOBALS['__OPTIMA_TEST'],
+			'delegate_mode' => TRUE,
+			'auth_is_admin' => FALSE,
+			'auth_is_root' => FALSE,
+			'login_str' => $_SESSION['login_data']['userstr'],
+			'login_userId' => $_SESSION['login_data']['login_user'],
+			'login_userName' => '',
+			'login_domainName' => $login_domainName,
+			'db_needUpdate' => FALSE,
+			
+			'sdomains' => $arr_sdomains,
+			
+			'shortcuts' => array(),
 		),
 		'success'=>true
 	);
