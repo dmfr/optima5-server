@@ -102,4 +102,101 @@ class GenericTree {
 	}
 }
 
+class GenericObjTree {
+
+	public $head ;
+	public $head_obj ;
+	
+	public $arr_leafs ;
+	
+	public $parent_GenericTree ;
+	
+	public $tab_locate ;
+	
+	public function __construct( $head, $head_obj ) {
+		$this->arr_leafs = new GenericArr() ;
+		$this->tab_locate = new GenericArr() ;
+	
+		$this->head = $head ;
+		$this->head_obj = $head_obj ;
+		
+		$this->depth = 0 ;
+		
+		$this->tab_locate->put( $head , $this ) ;
+	}
+	public function addLeaf( $leaf, $leaf_obj ) {
+		$node = new GenericObjTree( $leaf, $leaf_obj ) ;
+		$this->arr_leafs->add( $node ) ;
+		$node->parent_GenericTree = $this ;
+		$node->depth = $this->depth + 1 ;
+		$node->tab_locate = $this->tab_locate ;
+		$this->tab_locate->put( $leaf , $node ) ;
+		return $node ;
+	}
+	public function getTree( $elem ) {
+		return $this->tab_locate->getValue( $elem ) ;
+	}
+	public function getLeafs() {
+		return $this->arr_leafs->getArr() ;
+	}
+	public function getParent() {
+		return $this->parent_GenericTree ;
+	}
+	public function getHead() {
+		return $this->head ;
+	}
+	public function getHeadObj() {
+		return $this->head_obj ;
+	}
+	public function getDepth() {
+		return $this->depth ;
+	}
+	
+	public function getAllMembers() {
+		$arr = array() ;
+		$arr[] = $this->head ;
+		foreach( $this->arr_leafs->getArr() as $leaf )
+		{
+			$arr = array_merge($arr,$leaf->getAllMembers()) ;
+		}
+		return $arr ;
+	}
+	public function getAllObjMembers() {
+		$arr = array() ;
+		$arr[] = $this->head_obj ;
+		foreach( $this->arr_leafs->getArr() as $leaf )
+		{
+			$arr = array_merge($arr,$leaf->getAllObjMembers()) ;
+		}
+		return $arr ;
+	}
+	public function getAllMembersForDepth($depth) {
+		$arr = array() ;
+		if( $depth == $this->depth )
+			$arr[] = $this->head ;
+		else
+		{
+			foreach( $this->arr_leafs->getArr() as $leaf )
+			{
+				$arr = array_merge($arr,$leaf->getAllMembersForDepth($depth)) ;
+			}
+		}
+		return $arr ;
+	}
+	
+	
+	public function printTree($increment=0) {
+		$s = "";
+		$inc = "";
+		for ($i = 0; $i < $increment; $i++) {
+			$inc = $inc." ";
+		}
+		$s.= $inc.$this->getHead();
+		foreach($this->getLeafs() as $child) {
+			$s.= "\n".$child->printTree($increment + 2);
+		}
+		return $s;
+	}
+}
+
 ?>
