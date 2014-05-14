@@ -203,7 +203,7 @@ function specDbsPeople_Real_getData( $post_data ) {
 				}
 			}
 			foreach( $alt_whse_codes as $alt_whse_code ) {
-				$std_rowHash = $alt_whse_code.'%'.$peopleday_record['std_team_code'].'%'.$peopleday_record['people_code'] ;
+				$std_rowHash = '@'.$alt_whse_code.'%'.$peopleday_record['std_team_code'].'%'.$peopleday_record['people_code'] ;
 				if( !isset($TAB_rows[$std_rowHash]) ) {
 					$row = array() ;
 					$row['id'] = $std_rowHash ;
