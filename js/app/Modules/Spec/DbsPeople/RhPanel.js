@@ -299,6 +299,19 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 	},
 	
 	handleQuit: function() {
+		var eastpanel = this.getComponent('mRhFormContainer') ;
+		if( eastpanel.collapsed ) {
+			this.doQuit() ;
+			return ;
+		}
+		Ext.MessageBox.confirm('Confirmation','Edition profil people non terminée. Quitter ?', function(buttonStr) {
+			if( buttonStr!='yes' ) {
+				return ;
+			}
+			this.doQuit() ;
+		}, this);
+	},
+	doQuit: function() {
 		this.destroy() ;
 	}
 });
