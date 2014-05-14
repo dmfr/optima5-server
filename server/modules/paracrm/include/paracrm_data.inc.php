@@ -380,11 +380,11 @@ function paracrm_data_getBibleGrid_filterNode( $treenode_key, $TAB_parentNode_ar
 
 
 
-function paracrm_data_getFileGrid_config( $post_data )
+function paracrm_data_getFileGrid_config( $post_data, $auth_bypass=FALSE )
 {
 	global $_opDB ;
 	
-	if( !Auth_Manager::getInstance()->auth_query_sdomain_action(
+	if( !$auth_bypass && !Auth_Manager::getInstance()->auth_query_sdomain_action(
 		Auth_Manager::sdomain_getCurrent(),
 		'files',
 		array('file_code'=>paracrm_define_tool_fileGetParentCode($post_data['file_code'])),
@@ -428,11 +428,11 @@ function paracrm_data_getFileGrid_config( $post_data )
 	) ;
 	return array('success'=>true,'data'=>$return_data) ;
 }
-function paracrm_data_getFileGrid_data( $post_data )
+function paracrm_data_getFileGrid_data( $post_data, $auth_bypass=FALSE )
 {
 	global $_opDB ;
 	
-	if( !Auth_Manager::getInstance()->auth_query_sdomain_action(
+	if( !$auth_bypass && !Auth_Manager::getInstance()->auth_query_sdomain_action(
 		Auth_Manager::sdomain_getCurrent(),
 		'files',
 		array('file_code'=>paracrm_define_tool_fileGetParentCode($post_data['file_code'])),
@@ -555,11 +555,18 @@ function paracrm_data_getFileGrid_data( $post_data )
 	}
 	return array('success'=>true,'data'=>$TAB_json,'total'=>$nb_rows) ;
 }
-function paracrm_data_getFileGrid_raw( $post_data )
+function paracrm_data_getFileGrid_raw( $post_data, $auth_bypass=FALSE )
 {
 	global $_opDB ;
 	
-	// echo "pouet" ;
+	if( !$auth_bypass && !Auth_Manager::getInstance()->auth_query_sdomain_action(
+		Auth_Manager::sdomain_getCurrent(),
+		'files',
+		array('file_code'=>paracrm_define_tool_fileGetParentCode($post_data['file_code'])),
+		$write=false
+	)) {
+			return Auth_Manager::auth_getDenialResponse() ;
+	}
 	
 	$view_name = "view_file_".$post_data['file_code'] ;
 	$query = "SELECT * FROM $view_name WHERE 1" ;
@@ -653,8 +660,17 @@ function paracrm_data_getFileGrid_raw( $post_data )
 
 
 
-function paracrm_data_setFileGrid_raw( $post_data ) {
+function paracrm_data_setFileGrid_raw( $post_data, $auth_bypass=FALSE ) {
 	global $_opDB ;
+	
+	if( !$auth_bypass && !Auth_Manager::getInstance()->auth_query_sdomain_action(
+		Auth_Manager::sdomain_getCurrent(),
+		'files',
+		array('file_code'=>paracrm_define_tool_fileGetParentCode($post_data['file_code'])),
+		$write=false
+	)) {
+			return Auth_Manager::auth_getDenialResponse() ;
+	}
 	
 	$filerecord_id = $post_data['filerecord_id'] ;
 	$file_code = $post_data['file_code'] ;
@@ -678,9 +694,9 @@ function paracrm_data_setFileGrid_raw( $post_data ) {
 
 
 
-function paracrm_data_getFileGrid_exportXLS( $post_data )
+function paracrm_data_getFileGrid_exportXLS( $post_data, $auth_bypass=FALSE )
 {
-	if( !Auth_Manager::getInstance()->auth_query_sdomain_action(
+	if( !$auth_bypass && !Auth_Manager::getInstance()->auth_query_sdomain_action(
 		Auth_Manager::sdomain_getCurrent(),
 		'files',
 		array('file_code'=>paracrm_define_tool_fileGetParentCode($post_data['file_code'])),
@@ -767,9 +783,9 @@ function paracrm_data_getFileGrid_exportXLS( $post_data )
 	unlink($tmpfilename) ;
 	die() ;
 }
-function paracrm_data_getFileGrid_exportGallery( $post_data )
+function paracrm_data_getFileGrid_exportGallery( $post_data, $auth_bypass=FALSE )
 {
-	if( !Auth_Manager::getInstance()->auth_query_sdomain_action(
+	if( !$auth_bypass && !Auth_Manager::getInstance()->auth_query_sdomain_action(
 		Auth_Manager::sdomain_getCurrent(),
 		'files',
 		array('file_code'=>paracrm_define_tool_fileGetParentCode($post_data['file_code'])),
