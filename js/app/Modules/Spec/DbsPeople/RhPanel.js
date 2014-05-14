@@ -5,8 +5,8 @@ Ext.define('DbsPeopleRhPeopleEventModel', {
 		{name: 'event_id',   type: 'int'},
 		{name: 'event_type',   type: 'string'},
 		{name: 'x_code',   type: 'string'},
-		{name: 'date_start',   type: 'date'},
-		{name: 'date_end',   type: 'date', useNull:true}
+		{name: 'date_start',   type: 'date', dateFormat:'Y-m-d'},
+		{name: 'date_end',   type: 'date', dateFormat:'Y-m-d', useNull:true}
 	]
 });
 Ext.define('DbsPeopleRhPeopleModel', {

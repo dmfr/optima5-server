@@ -114,8 +114,8 @@ function specDbsPeople_RH_getPeopleEvents($post_data) {
 				'event_id' => $arr['filerecord_id'],
 				'event_type' => $type,
 				'x_code' => $arr[$type_desc['file_field_code']],
-				'date_start' => $arr['field_DATE_APPLY'],
-				'date_end' => ( $arr['field_TMP_IS_ON'] ? $arr['field_TMP_DATE_END'] : null )
+				'date_start' => date('Y-m-d',strtotime($arr['field_DATE_APPLY'])),
+				'date_end' => ( $arr['field_TMP_IS_ON'] ? date('Y-m-d',strtotime($arr['field_TMP_DATE_END'])) : null )
 			);
 		}
 	}
