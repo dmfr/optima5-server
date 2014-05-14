@@ -34,8 +34,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.HelperCache',{
 		// Query Bible
 		var ajaxParams = {} ;
 		Ext.apply( ajaxParams, {
-			_action: 'data_getBibleGrid',
-			bible_code: '_COUNTRY'
+			_moduleId: 'spec_wb_mrfoxy',
+			_action: 'cfg_getBibleCountry'
 		});
 		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams ,
@@ -55,8 +55,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.HelperCache',{
 		// Query Bible
 		var ajaxParams = {} ;
 		Ext.apply( ajaxParams, {
-			_action: 'data_getBibleGrid',
-			bible_code: '_BRAND'
+			_moduleId: 'spec_wb_mrfoxy',
+			_action: 'cfg_getBibleBrand'
 		});
 		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams ,
@@ -141,14 +141,11 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.HelperCache',{
 	authHelperInit: function() {
 		var me = this ;
 		
-		me.authTable = [] ; // [userId@countryCode@roleCode]
-		
 		// Query Bible
 		var ajaxParams = {} ;
 		Ext.apply( ajaxParams, {
 			_moduleId: 'spec_wb_mrfoxy',
-			_action: 'auth_getTable',
-			bible_code: '_BRAND'
+			_action: 'auth_getRoles'
 		});
 		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams ,
@@ -158,23 +155,18 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.HelperCache',{
 					Ext.Msg.alert('Failed', 'Unknown error');
 				}
 				else {
-					me.authTable = ajaxData.data ;
+					me.authRoles = ajaxData.data ;
 				}
 			},
 			scope: me
 		});
 	},
-	authHelperQuery: function( countryCode, roleCode ) {
-		var me = this,
-			userId = me.optimaModule.getApp().desktopGetCfgRecord().get('login_userId').toUpperCase() ;
+	authHelperQueryRole: function( roleCode ) {
+		var me = this ;
 			
 		if( me.optimaModule.getSdomainRecord().get('auth_has_all') ) {
-			console.log(userId+' auth_has_all') ;
 			return true ;
 		}
-		
-		userId = 'EDEWEERT'
-		
-		return Ext.Array.contains( me.authTable, userId+countryCode+roleCode ) ;
+		return Ext.Array.contains( me.authRoles, roleCode ) ;
 	}
 });

@@ -54,13 +54,13 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoApprovalPanel',{
 					allowBlank: true,
 					name : 'approv_ds_code',
 					value: ( me.rowRecord.get('approv_ds') ? (me.rowRecord.get('approv_ds_ok') ? 'OK' : 'NOK' ) : '_' ),
-					readOnly: !Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQuery( me.rowRecord.get('country_code'), 'DS' )
+					readOnly: !Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole('DS')
 				},{
 					xtype: 'textfield',
 					flex: 1,
 					name: 'approv_ds_obs',
 					value: me.rowRecord.get('approv_ds_obs'),
-					readOnly: !Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQuery( me.rowRecord.get('country_code'), 'DS' )
+					readOnly: !Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole('DS')
 				}]
 			},{
 				xtype: 'fieldcontainer',
@@ -82,13 +82,13 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoApprovalPanel',{
 					allowBlank: true,
 					name : 'approv_df_code',
 					value: ( me.rowRecord.get('approv_df') ? (me.rowRecord.get('approv_df_ok') ? 'OK' : 'NOK' ) : '_' ),
-					readOnly: !Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQuery( me.rowRecord.get('country_code'), 'DF' )
+					readOnly: !Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole('DF')
 				},{
 					xtype: 'textfield',
 					flex: 1,
 					name: 'approv_df_obs',
 					value: me.rowRecord.get('approv_df_obs'),
-					readOnly: !Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQuery( me.rowRecord.get('country_code'), 'DF' )
+					readOnly: !Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole('DF')
 				}]
 			}],
 			frame: true,

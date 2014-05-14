@@ -90,7 +90,7 @@ function specWbMrfoxy_tool_getCropIntervals() {
 	$forward_post['limit'] ;
 	$forward_post['file_code'] = $file_code ;
 	$forward_post['sort'] = json_encode(array(array('property'=>'_CFG_CROP_field_CROP_YEAR', 'direction'=>'DESC'))) ;
-	$ttmp = paracrm_data_getFileGrid_data( $forward_post ) ;
+	$ttmp = paracrm_data_getFileGrid_data( $forward_post, $auth_bypass=TRUE ) ;
 	$paracrm_TAB = $ttmp['data'] ;
 	
 	$TAB = array() ;
@@ -103,5 +103,77 @@ function specWbMrfoxy_tool_getCropIntervals() {
 	return $TAB ;
 }
 
+
+function specWbMrfoxy_lib_getBibleTree( $bible_code ) {
+	global $_opDB ;
+	global $specwbmrfoxy_arr_bible_trees ;
+
+	if( !$specwbmrfoxy_arr_bible_trees[$bible_code] ) {
+		$query = "SELECT treenode_key, treenode_parent_key FROM store_bible_{$bible_code}_tree ORDER BY treenode_key" ;
+		$result = $_opDB->query($query) ;
+		$raw_records = array() ;
+		while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
+		{
+			$record = array() ;
+			$record['treenode_key'] = $arr['treenode_key'] ;
+			$record['treenode_parent_key'] = $arr['treenode_parent_key'] ;
+			$raw_records[] = $record ;
+		}
+		
+		$tree = new GenericTree("&") ;
+		do {
+			$nb_pushed_this_pass = 0 ;
+			foreach( $raw_records as $mid => $record )
+			{
+				if( $record['treenode_parent_key'] == '' )
+					$record['treenode_parent_key'] = '&' ;
+				if( $record['treenode_key'] == '' )
+					continue ;
+			
+				$treenode_parent_key = $record['treenode_parent_key'] ;
+				$treenode_key = $record['treenode_key'] ;
+				
+				if( $tree->getTree( $treenode_parent_key ) != NULL )
+				{
+					$parent_node = $tree->getTree( $treenode_parent_key ) ;
+					$parent_node->addLeaf( $treenode_key ) ;
+					unset($raw_records[$mid]) ;
+					
+					$nb_pushed_this_pass++ ;
+					$nb_pushed++ ;
+				}
+				if( count($raw_records) == 0 )
+					break ;
+			}
+		}
+		while( $nb_pushed_this_pass > 0 ) ;
+		$specwbmrfoxy_arr_bible_trees[$bible_code] = $tree ;
+	}
+	
+	return $specwbmrfoxy_arr_bible_trees[$bible_code] ;
+}
+
+
+function specWbMrfoxy_cfg_getBibleCountry() {
+	$ttmp = paracrm_data_getBibleGrid( array('bible_code'=>'_COUNTRY') ) ;
+	if( !is_array($arr_countries = specWbMrfoxy_auth_lib_getCountries()) ) {
+		return $ttmp ;
+	}
+	
+	$data = array() ;
+	foreach( $ttmp['data'] as $row ) {
+		if( !in_array($row['entry_key'],$arr_countries) ) {
+			continue ;
+		}
+		$data[] = $row ;
+	}
+	return array('success'=>true, 'data'=>$data) ;
+}
+function specWbMrfoxy_cfg_getBibleBrand() {
+	$ttmp = paracrm_data_getBibleGrid( array('bible_code'=>'_BRAND') ) ;
+	if( TRUE ) {
+		return $ttmp ;
+	}
+}
 
 ?>

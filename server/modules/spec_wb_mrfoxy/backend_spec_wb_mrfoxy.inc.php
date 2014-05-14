@@ -7,6 +7,12 @@ function backend_specific( $post_data )
 {
 switch( $post_data['_action'] )
 {
+	case 'cfg_getBibleBrand' :
+	return specWbMrfoxy_cfg_getBibleBrand() ;
+	case 'cfg_getBibleCountry' :
+	return specWbMrfoxy_cfg_getBibleCountry() ;
+	
+	
 	case 'promo_getGrid' :
 	return specWbMrfoxy_promo_getGrid( $post_data ) ;
 	
@@ -71,8 +77,8 @@ switch( $post_data['_action'] )
 	
 	
 	
-	case 'auth_getTable' :
-	return specWbMrfoxy_auth_getTable($post_data);
+	case 'auth_getRoles' :
+	return specWbMrfoxy_auth_getRoles();
 	
 	default :
 	return NULL ;
