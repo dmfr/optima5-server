@@ -152,9 +152,9 @@ function specDbsPeople_Real_getData( $post_data ) {
 	}
 	
 	
+	// Build rows
 	$TAB_data = array() ;
 	$TAB_rows = array() ;
-	$TAB_columns = array() ;
 	foreach( $buildTAB as $sql_date => $arr1 ) {
 		$TAB_columns[$sql_date] = array(
 			'enable_open' => false,
@@ -182,17 +182,6 @@ function specDbsPeople_Real_getData( $post_data ) {
 				$TAB_rows[$std_rowHash] = $row ;
 			}
 			
-			if( $peopleday_record['status_isVirtual'] ) {
-				$TAB_columns[$sql_date]['enable_open'] = TRUE ;
-			} else {
-				$TAB_columns[$sql_date]['status_virtual'] = FALSE ;
-			}
-			if( !$peopleday_record['status_isVirtual'] && !$peopleday_record['status_isValidCeq'] ) {
-				$TAB_columns[$sql_date]['enable_valid_ceq'] = TRUE ;
-			}
-			if( !$peopleday_record['status_isVirtual'] && !$peopleday_record['status_isValidRh'] ) {
-				$TAB_columns[$sql_date]['enable_valid_rh'] = TRUE ;
-			}
 			
 			$alt_whse_codes = array() ;
 			if( $peopleday_record['works'] ) {
@@ -220,11 +209,45 @@ function specDbsPeople_Real_getData( $post_data ) {
 				}
 			}
 		}
+	}
+	
+	
+	// Build columns
+	$TAB_columns = array() ;
+	foreach( $buildTAB as $sql_date => $arr1 ) {
+		$TAB_columns[$sql_date] = array(
+			'enable_open' => false,
+			'enable_valid_ceq' => false,
+			'enable_valid_rh' => false,
+			'status_virtual' => true,
+			'status_exceptionDay' => $cfg_arrDatesException[$sql_date]
+		);
+		foreach( $arr1 as $people_code => $peopleday_record ) {
+			if( $filter_arrSites && !in_array($peopleday_record['std_whse_code'],$filter_arrSites) ) {
+				continue ;
+			}
+			if( $filter_arrTeams && !in_array($peopleday_record['std_team_code'],$filter_arrTeams) ) {
+				continue ;
+			}
+			
+			if( $peopleday_record['status_isVirtual'] ) {
+				$TAB_columns[$sql_date]['enable_open'] = TRUE ;
+			} else {
+				$TAB_columns[$sql_date]['status_virtual'] = FALSE ;
+			}
+			if( !$peopleday_record['status_isVirtual'] && !$peopleday_record['status_isValidCeq'] ) {
+				$TAB_columns[$sql_date]['enable_valid_ceq'] = TRUE ;
+			}
+			if( !$peopleday_record['status_isVirtual'] && !$peopleday_record['status_isValidRh'] ) {
+				$TAB_columns[$sql_date]['enable_valid_rh'] = TRUE ;
+			}
+		}
 		if( $TAB_columns[$sql_date]['enable_open'] ) {
 			$TAB_columns[$sql_date]['enable_valid_ceq'] = FALSE ;
 			$TAB_columns[$sql_date]['enable_valid_rh'] = FALSE ;
 		}
 	}
+	
 	
 	// Filter ROWS @TODO: use prefilter on cfgFiles before join
 	$has_filters = FALSE ;
