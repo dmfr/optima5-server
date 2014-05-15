@@ -908,13 +908,14 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			peopleCode = gridRecord.data.people_code,
 			peopledayId = peopleCode+'@'+dateSql,
 			peopledayRecord = this.peopledayStore.getById(peopledayId),
-			peopledayWorkRecords = peopledayRecord.works().getRange() ;
+			peopledayWorkRecords = peopledayRecord.works().getRange(),
+			peopledayAbsRecords = peopledayRecord.abs().getRange() ;
 		
 			
 		if( peopledayRecord.data.status_isVirtual == true ) {
 			return false ;
 		}
-		if( peopledayWorkRecords.length != 1 || !Ext.isEmpty(peopledayWorkRecords[0].data.alt_whse_code) ) {
+		if( !(peopledayWorkRecords.length==1 && peopledayAbsRecords.length==0) || !Ext.isEmpty(peopledayWorkRecords[0].data.alt_whse_code) ) {
 			var cellNode = Ext.DomQuery.select( '.x-grid-cell', editEvent.row )[colIdx] ;
 			this.openAdvanced( peopledayRecord, gridRecord, cellNode ) ;
 			return false ;
