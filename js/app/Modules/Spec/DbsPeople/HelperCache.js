@@ -116,7 +116,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.HelperCache',{
 				}
 				
 				me.onLibLoad() ;
-			}
+			},
 			scope: me
 		});
 	},
