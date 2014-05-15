@@ -100,16 +100,36 @@ Ext.define('Optima5.Module',{
 		
 		if( me.app.getDesktop() == null ) {
 			// standalone / fullscreen mode (delegate)
+			var desktopGetCfgRecord = me.app.desktopGetCfgRecord(),
+				login_userId = desktopGetCfgRecord.get('login_userId'),
+				delegate_userId = login_userId.split(':')[0],
+				delegate_sdomainTxt = desktopGetCfgRecord.sdomains().getById(me.sdomainId).get('sdomain_name'),
+				login_domainName = desktopGetCfgRecord.get('login_domainName') ;
+			
+			var titleTxt = [
+				'User : '+delegate_userId,
+				'App : '+delegate_sdomainTxt,
+				'Domain : '+login_domainName
+			];
+			titleTxt = titleTxt.join('&#160;&#160;/&#160;&#160;') ;
+			
 			var fullscreenViewport = Ext.ComponentQuery.query('viewport')[0] ;
 			if( fullscreenViewport.items.getCount() == 0 ) {
 				var panel, cfg = Ext.apply(config || {}, {
 					width: null,
 					height: null,
-					title: '',
 					icon: '',
-					iconCls: '',
+					iconCls: iconCls,
 					border: false,
-					resizable: false
+					resizable: false,
+					title: titleTxt,
+					tools: [{
+						type: 'close',
+						handler: function(e, t, p) {
+							me.app.onLogout();
+						},
+						scope: this
+					}]
 				});
 				cls = cls || Ext.panel.Panel;
 				panel = fullscreenViewport.add(new cls(cfg));

@@ -175,6 +175,8 @@ Ext.define('Optima5.LoginWindow',{
 			},
 			success: function(response) {
 				if( Ext.decode(response.responseText).done == false ) {
+					Ext.getBody().unmask() ;
+					
 					if( Ext.decode(response.responseText).errors )
 						var mstr = Ext.decode(response.responseText).errors.join('\n') ;
 					else

@@ -304,8 +304,7 @@ Ext.define('Optima5.App',{
 						moduleExecRecord : Ext.ux.dams.ModelManager.create('OptimaModuleExecModel',{
 							moduleId: sdomainRecord.get('module_id'),
 							params:[
-								{paramCode:'sdomain_id',paramValue:sdomainRecord.get('sdomain_id')},
-								{paramCode:'doRawAccess',paramValue:true}
+								{paramCode:'sdomain_id',paramValue:sdomainRecord.get('sdomain_id')}
 							]
 						}),
 						scope: me
@@ -475,8 +474,10 @@ Ext.define('Optima5.App',{
 		
 		/*hide the gear*/
 		var el = Ext.get("loading");
-		el.hide();
-		el.remove();
+		if( el != null ) {
+			el.hide();
+			el.remove();
+		}
 		
 		if (me.useQuickTips) {
 			Ext.QuickTips.init();
@@ -498,7 +499,7 @@ Ext.define('Optima5.App',{
 			me.desktopCfgRecord.get('wallpaper_id') ? me.desktopCfgRecord.get('wallpaper_isStretch') : true
 		) ;
 		
-		Ext.EventManager.on(window, 'beforeunload', me.onUnload, me);
+		window.onbeforeunload = this.onUnload ;
 		
 		/*hide mask (if any)*/
 		Ext.defer(function(){
@@ -514,8 +515,7 @@ Ext.define('Optima5.App',{
 			var moduleExecRecord = Ext.ux.dams.ModelManager.create('OptimaModuleExecModel',{
 				moduleId: sdomainRecord.get('module_id'),
 				params:[
-					{paramCode:'sdomain_id',paramValue:sdomainRecord.get('sdomain_id')},
-					{paramCode:'doRawAccess',paramValue:true}
+					{paramCode:'sdomain_id',paramValue:sdomainRecord.get('sdomain_id')}
 				]
 			}) ;
 			
@@ -621,7 +621,7 @@ Ext.define('Optima5.App',{
 		var nbOpen = 0 ;
 		if( zmgr = this.desktop.getDesktopZIndexManager() ) {
 			zmgr.eachBottomUp(function(win) {
-				if( win.isWindow && !(win instanceof Ext.window.MessageBox) ) {
+				if( win.isWindow && !(win.id.substr(-6,6)=='-ghost') && !(win instanceof Ext.window.MessageBox) ) {
 					nbOpen++ ;
 				}
 			});
@@ -667,10 +667,7 @@ Ext.define('Optima5.App',{
 		}
 	},
 	onUnload : function(e) {
-		console.log('Catching beforeunload') ;
-		if (this.fireEvent('beforeunload', this) === false) {
-			e.stopEvent();
-		}
+		return "Application running.\nLog out before closing window/page." ;
 	},
 	
 	onModuleItemClick: function( item ) {
@@ -883,10 +880,22 @@ Ext.define('Optima5.App',{
 						me.desktop.destroy() ;
 						me.viewport.destroy() ;
 						me.desktop = me.viewport = me.desktopCfgRecord = null ;
+						me.delayReboot() ;
+						window.onbeforeunload = null ;
 					},
 					scope:me
 				}
 			});
+		} else {
+			me.viewport.removeCls('op5-viewport-devborder');
+			me.eachModuleInstance( function(moduleInstance) {
+				moduleInstance.eachWindow( function(window) {
+					window.destroy() ;
+				},me);
+			},me) ;
+			me.viewport.destroy() ;
+			
+			me.delayReboot() ;
 		}
 		
 		var el = Ext.get("standby");
@@ -898,5 +907,14 @@ Ext.define('Optima5.App',{
 				opacity: 1
 			}
 		});
+	},
+	
+	delayReboot: function() {
+		Ext.defer( function() {
+			var el = Ext.get("standby");
+			el.hide();
+			
+			this.startLogin() ;
+		},2000,this) ;
 	}
 });
