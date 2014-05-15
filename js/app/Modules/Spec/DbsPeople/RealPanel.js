@@ -650,6 +650,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 						me.openVirtual( peopledayRecord, gridRecord, cellNode ) ;
 						return ;
 					}
+					if( !me.hasPermissionToEdit( peopledayRecord ) ) {
+						return ;
+					}
 					me.openAdvanced( peopledayRecord, gridRecord, cellNode ) ;
 				},
 				scope: me
@@ -740,15 +743,16 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 	},
 	onColumnsMenuBeforeShow: function( menu ) {
 		var me = this,
+			HelperCache = Optima5.Modules.Spec.DbsPeople.HelperCache,
 			colCfg = menu.activeHeader.colCfg;
 		menu.down('#grid-groupby').setVisible( !Ext.isEmpty(menu.activeHeader._groupBy) ) ;
 		menu.down('menuseparator').setVisible( colCfg ) ;
-		menu.down('#real-open').setVisible( colCfg && colCfg.enable_open ) ;
-		menu.down('#real-valid-ceq').setVisible( colCfg && colCfg.enable_valid_ceq ) ;
-		menu.down('#real-valid-rh').setVisible( colCfg && colCfg.enable_valid_rh ) ;
-		menu.down('#real-reopen').setVisible( colCfg && !colCfg.enable_open && !colCfg.enable_valid_ceq && !colCfg.enable_valid_rh ) ;
-		menu.down('#real-delete').setVisible( colCfg ) ;
-		menu.down('#real-checkbox-exceptionday').setVisible( colCfg && colCfg.status_virtual ) ;
+		menu.down('#real-open').setVisible( colCfg && colCfg.enable_open && HelperCache.authHelperQueryPage('CEQ') ) ;
+		menu.down('#real-valid-ceq').setVisible( colCfg && colCfg.enable_valid_ceq && HelperCache.authHelperQueryPage('CEQ') ) ;
+		menu.down('#real-valid-rh').setVisible( colCfg && colCfg.enable_valid_rh && HelperCache.authHelperQueryPage('RH') ) ;
+		menu.down('#real-reopen').setVisible( colCfg && !colCfg.enable_open && !colCfg.enable_valid_ceq && !colCfg.enable_valid_rh && HelperCache.authHelperQueryPage('ADMIN') ) ;
+		menu.down('#real-delete').setVisible( colCfg && HelperCache.authHelperQueryPage('ADMIN') ) ;
+		menu.down('#real-checkbox-exceptionday').setVisible( colCfg && colCfg.status_virtual && HelperCache.authHelperQueryPage('RH') ) ;
 		menu.down('#real-checkbox-exceptionday').setChecked( colCfg && colCfg.status_exceptionDay, true ) ;
 	},
 	onColumnGroupBy: function( groupField ) {
@@ -915,6 +919,11 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		if( peopledayRecord.data.status_isVirtual == true ) {
 			return false ;
 		}
+		
+		if( !me.hasPermissionToEdit( peopledayRecord ) ) {
+			return ;
+		}
+		
 		if( !(peopledayWorkRecords.length==1 && peopledayAbsRecords.length==0) || !Ext.isEmpty(peopledayWorkRecords[0].data.alt_whse_code) ) {
 			var cellNode = Ext.DomQuery.select( '.x-grid-cell', editEvent.row )[colIdx] ;
 			this.openAdvanced( peopledayRecord, gridRecord, cellNode ) ;
@@ -973,6 +982,24 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		gridRecord.set( 'dummy', null );
 		gridRecord.commit() ;
 		this.remoteSavePeopledayRecord( peopledayRecord ) ;
+	},
+	
+	hasPermissionToEdit: function( peopledayRecord ) {
+		var HelperCache = Optima5.Modules.Spec.DbsPeople.HelperCache ;
+		if( peopledayRecord.get('status_isValidRh') ) {
+			if( HelperCache.authHelperQueryPage('ADMIN') ) {
+				return true ;
+			}
+		} else if( peopledayRecord.get('status_isValidCeq') ) {
+			if( HelperCache.authHelperQueryPage('RH') ) {
+				return true ;
+			}
+		} else {
+			if( HelperCache.authHelperQueryPage('CEQ') ) {
+				return true ;
+			}
+		}
+		return false ;
 	},
 	
 	openAdvanced: function( peopledayRecord, gridRecord, htmlNode ) {

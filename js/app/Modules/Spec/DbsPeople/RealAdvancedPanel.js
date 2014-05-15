@@ -368,7 +368,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 			return ;
 		}
 		
-		absPanel.setVisible(absCheckbox.getValue()) ;
+		absPanel.setVisible(absCheckbox.getValue() && Optima5.Modules.Spec.DbsPeople.HelperCache.authHelperQueryPage('RH')) ;
 		slicesPanel.setVisible(!absCheckbox.getValue()) ;
 		
 		var rhAbsIsOn = absPanel.getForm().findField('rh_abs_is_on'),

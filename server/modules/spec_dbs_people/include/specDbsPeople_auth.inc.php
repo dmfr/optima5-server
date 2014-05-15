@@ -51,6 +51,10 @@ function specDbsPeople_auth_getTable( $post_data ) {
 	$authPage = array() ;
 	$user_class = $arr['treenode_key'] ;
 	switch( $user_class ) {
+		case 'ADMIN' :
+			$authPage = array('ADMIN','RH','CEQ') ;
+			break ;
+		
 		case 'RH' :
 			$authPage = array('RH','CEQ') ;
 			break ;
