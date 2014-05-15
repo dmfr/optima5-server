@@ -423,12 +423,13 @@ function specDbsPeople_Real_actionDay_lib_valid_evalRecord( $peopleday_record ) 
 	}
 	
 	if( ($abs_length + $work_length) < $peopleday_record['std_daylength'] ) {
+		$whole = $peopleday_record['real_is_abs'] ;
 		$exceptions[] = array(
 			'exception_type' => 'duration_less',
 			'people_name' => $peopleday_record['people_name'],
-			'exception_txt' => ($peopleday_record['std_daylength'] - ($abs_length + $work_length)).' h manquante(s)' ,
+			'exception_txt' => ($whole ? 'Anomalie déclarée' : ($peopleday_record['std_daylength'] - ($abs_length + $work_length)).' h manquante(s)') ,
 			'ceq_show' => true,
-			'ceq_error' => true,
+			'ceq_error' => !$whole,
 			'rh_show' => true,
 			'rh_error' => true
 		);

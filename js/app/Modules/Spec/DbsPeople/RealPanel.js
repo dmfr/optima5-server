@@ -920,8 +920,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			return false ;
 		}
 		
-		if( !me.hasPermissionToEdit( peopledayRecord ) ) {
-			return ;
+		if( !this.hasPermissionToEdit( peopledayRecord ) ) {
+			return false ;
 		}
 		
 		if( !(peopledayWorkRecords.length==1 && peopledayAbsRecords.length==0) || !Ext.isEmpty(peopledayWorkRecords[0].data.alt_whse_code) ) {
@@ -1061,7 +1061,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				break ;
 			case 'valid_ceq':
 			case 'valid_rh' :
-				txt = 'Validation' ;
+				txt = null ;
 				break ;
 			case 'reopen' :
 				txt = 'Reprendre la saisie pour' ;
@@ -1072,52 +1072,57 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			default: 
 				break ;
 		}
+		if( txt==null ) {
+			this.doActionDay(actionDay,dSql) ;
+			return ;
+		}
 		Ext.MessageBox.confirm('Day Action', txt + ' jour '+dSql+' ?', function(buttonStr) {
 			if( buttonStr!='yes' ) {
 				return ;
 			}
-			
-			this.showLoadmask() ;
-			
-			var filterSiteBtn = this.down('#btnSite'),
-				filterTeamBtn = this.down('#btnTeam') ;
-			
-			var ajaxParams = {
-				_moduleId: 'spec_dbs_people',
-				_action: 'Real_actionDay',
-				_subaction: actionDay,
-				date_sql: dSql
-			};
-			if( filterSiteBtn.getNode() != null ) {
-				ajaxParams['filter_site_entries'] = Ext.JSON.encode( filterSiteBtn.getLeafNodesKey() ) ;
-			}
-			ajaxParams['filter_site_txt'] = filterSiteBtn.getText() ;
-			if( filterTeamBtn.getNode() != null ) {
-				ajaxParams['filter_team_entries'] = Ext.JSON.encode( filterTeamBtn.getLeafNodesKey() ) ;
-			}
-			ajaxParams['filter_team_txt'] = filterTeamBtn.getText() ;
-			this.optimaModule.getConfiguredAjaxConnection().request({
-				params: ajaxParams,
-				success: function(response) {
-					this.hideLoadmask() ;
-					if( Ext.JSON.decode(response.responseText).success != true ) {
-						Ext.MessageBox.alert('Erreur','Impossible de valider le statut.') ;
-						return ;
-					}
-					switch( actionDay ) {
-						case 'valid_ceq':
-						case 'valid_rh' :
-							this.openValidConfirm(ajaxParams, Ext.JSON.decode(response.responseText)) ;
-							break ;
-						default :
-							this.doLoad() ;
-							break ;
-					}
-				},
-				scope: this
-			}) ;
-			
+			this.doActionDay(actionDay,dSql) ;
 		},this) ;
+	},
+	doActionDay: function( actionDay, dSql ) {
+		this.showLoadmask() ;
+		
+		var filterSiteBtn = this.down('#btnSite'),
+			filterTeamBtn = this.down('#btnTeam') ;
+		
+		var ajaxParams = {
+			_moduleId: 'spec_dbs_people',
+			_action: 'Real_actionDay',
+			_subaction: actionDay,
+			date_sql: dSql
+		};
+		if( filterSiteBtn.getNode() != null ) {
+			ajaxParams['filter_site_entries'] = Ext.JSON.encode( filterSiteBtn.getLeafNodesKey() ) ;
+		}
+		ajaxParams['filter_site_txt'] = filterSiteBtn.getText() ;
+		if( filterTeamBtn.getNode() != null ) {
+			ajaxParams['filter_team_entries'] = Ext.JSON.encode( filterTeamBtn.getLeafNodesKey() ) ;
+		}
+		ajaxParams['filter_team_txt'] = filterTeamBtn.getText() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams,
+			success: function(response) {
+				this.hideLoadmask() ;
+				if( Ext.JSON.decode(response.responseText).success != true ) {
+					Ext.MessageBox.alert('Erreur','Impossible de valider le statut.') ;
+					return ;
+				}
+				switch( actionDay ) {
+					case 'valid_ceq':
+					case 'valid_rh' :
+						this.openValidConfirm(ajaxParams, Ext.JSON.decode(response.responseText)) ;
+						break ;
+					default :
+						this.doLoad() ;
+						break ;
+				}
+			},
+			scope: this
+		}) ;
 	},
 	openValidConfirm: function( postParams, jsonResponse ) {
 		
