@@ -265,7 +265,7 @@ function specDbsPeople_Real_actionDay( $post_data ) {
 	$arr_peopledayRecords = array() ;
 	
 	// Day condition
-	$post_data['date_start'] = $post_data['date_end'] = $post_data['date_toOpen'] ;
+	$post_data['date_start'] = $post_data['date_end'] = $post_data['date_sql'] ;
 	$json = specDbsPeople_Real_getData( $post_data ) ;
 	foreach( $json['data'] as $peopleday_record ) {
 		// Enforce whse/team filters, in case of mutation ...
@@ -289,16 +289,30 @@ function specDbsPeople_Real_actionDay( $post_data ) {
 		
 		case 'valid_ceq' :
 		case 'valid_rh' :
+			$exception_rows = array() ;
+			foreach( $arr_peopledayRecords as $peopleday_record ) {
+				$arr_exceptions = specDbsPeople_Real_actionDay_lib_valid_evalRecord($peopleday_record) ;
+				$exception_rows = array_merge($exception_rows,$arr_exceptions) ;
+			}
+			if( !$post_data['_do_valid'] ) {
+				return array(
+					'success' => true,
+					'people_count' => count($arr_peopledayRecords),
+					'exception_rows' => $exception_rows
+				);
+			}
 			switch( $post_data['_subaction'] ) {
 				case 'valid_ceq' :
 					$method = 'specDbsPeople_Real_actionDay_lib_valid_ceq' ;
+					$error_key = 'ceq_error' ;
 					break ;
 				case 'valid_rh' :
 					$method = 'specDbsPeople_Real_actionDay_lib_valid_rh' ;
+					$error_key = 'rh_error' ;
 					break ;
 			}
-			foreach( $arr_peopledayRecords as $peopleday_record ) {
-				if( !call_user_func($method,$peopleday_record,$test=TRUE) ) {
+			foreach( $exception_rows as $exception ) {
+				if( $exception[$error_key] ) {
 					return array('success'=>false) ;
 				}
 			}
@@ -337,6 +351,7 @@ function specDbsPeople_Real_actionDay_lib_open( $peopleday_record, $test_mode=FA
 	$arr_ins = array() ;
 	$arr_ins['field_DATE'] = $peopleday_record['date_sql'] ;
 	$arr_ins['field_PPL_CODE'] = $peopleday_record['people_code'] ;
+	$arr_ins['field_STD_DAYLENGTH'] = $peopleday_record['std_daylength'] ;
 	$filerecord_id = paracrm_lib_data_insertRecord_file( 'PEOPLEDAY', 0 , $arr_ins ) ;
 	
 	if( $peopleday_record['std_abs_code'] != '_' ) {
@@ -357,6 +372,88 @@ function specDbsPeople_Real_actionDay_lib_open( $peopleday_record, $test_mode=FA
 	paracrm_lib_data_insertRecord_file( 'PEOPLEDAY_WORK', $filerecord_id , $arr_ins ) ;
 	
 	return TRUE ;
+}
+function specDbsPeople_Real_actionDay_lib_valid_evalRecord( $peopleday_record ) {
+	$exceptions = array() ;
+	
+	$work_length = $abs_length = $altRole_length = $altWhse_length = 0 ;
+	$alt_whses = array() ;
+	$alt_roles = array() ;
+	$alt_abs = array() ;
+	foreach( $peopleday_record['works'] as $work ) {
+		$work_length += $work['role_length'] ;
+		if( $work['role_code'] != $peopleday_record['std_role_code'] && !in_array($work['role_code'],$alt_roles) ) {
+			$alt_roles[] = $work['role_code'] ;
+			$altRole_length += $work['role_length'] ;
+		}
+		if( $work['alt_whse_code'] && !in_array($work['alt_whse_code'],$alt_whses) ) {
+			$alt_whses[] = $work['alt_whse_code'] ;
+			$altWhse_length += $work['role_length'] ;
+		}
+	}
+	foreach( $peopleday_record['abs'] as $abs ) {
+		$abs_length += $abs['abs_length'] ;
+		if( substr($peopleday_record['std_abs_code'],0,1) == '_' && !in_array($abs['abs_code'],$alt_abs) ) {
+			$alt_abs[] = $abs['abs_code'] ;
+		}
+	}
+	
+	if( ($abs_length + $work_length) < $peopleday_record['std_daylength'] ) {
+		$exceptions[] = array(
+			'exception_type' => 'duration_less',
+			'people_name' => $peopleday_record['people_name'],
+			'exception_txt' => ($peopleday_record['std_daylength'] - ($abs_length + $work_length)).' h manquante(s)' ,
+			'ceq_show' => true,
+			'ceq_error' => true,
+			'rh_show' => true,
+			'rh_error' => true
+		);
+	}
+	if( ($abs_length + $work_length) > $peopleday_record['std_daylength'] ) {
+		$exceptions[] = array(
+			'exception_type' => 'duration_more',
+			'people_name' => $peopleday_record['people_name'],
+			'exception_txt' => (($abs_length + $work_length) - $peopleday_record['std_daylength']).' h surplus' ,
+			'ceq_show' => true,
+			'ceq_error' => false,
+			'rh_show' => true,
+			'rh_error' => false
+		);
+	}
+	if( $alt_abs ) {
+		$exceptions[] = array(
+			'exception_type' => 'abs',
+			'people_name' => $peopleday_record['people_name'],
+			'exception_txt' => 'Absences : '.$abs_length.' h ( '.implode('+',$alt_abs).')' ,
+			'ceq_show' => true,
+			'ceq_error' => false,
+			'rh_show' => true,
+			'rh_error' => false
+		);
+	}
+	if( $alt_whses ) {
+		$exceptions[] = array(
+			'exception_type' => 'alt_whse',
+			'people_name' => $peopleday_record['people_name'],
+			'exception_txt' => 'Mutations : '.$altWhse_length.' h ( '.implode('+',$alt_whses).')' ,
+			'ceq_show' => true,
+			'ceq_error' => false,
+			'rh_show' => false,
+			'rh_error' => false
+		);
+	}
+	if( $alt_roles ) {
+		$exceptions[] = array(
+			'exception_type' => 'alt_role',
+			'people_name' => $peopleday_record['people_name'],
+			'exception_txt' => 'Rôles : '.$altRole_length.' h ( '.implode('+',$alt_roles).')' ,
+			'ceq_show' => true,
+			'ceq_error' => false,
+			'rh_show' => false,
+			'rh_error' => false
+		);
+	}
+	return $exceptions ;
 }
 function specDbsPeople_Real_actionDay_lib_valid_ceq( $peopleday_record, $test_mode=FALSE ) {
 	if( $peopleday_record['status_isVirtual'] ) {

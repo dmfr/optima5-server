@@ -98,7 +98,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		'Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',
 		'Optima5.Modules.Spec.DbsPeople.RealVirtualPanel',
 		'Optima5.Modules.Spec.DbsPeople.CfgParamSiteButton',
-		'Optima5.Modules.Spec.DbsPeople.CfgParamTeamButton'
+		'Optima5.Modules.Spec.DbsPeople.CfgParamTeamButton',
+		'Optima5.Modules.Spec.DbsPeople.RealConfirmPanel'
 	],
 	
 	dateStart: null,
@@ -622,7 +623,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 								case 'std_role_code' :
 									return values.rows[0].data.std_role_txt ;
 								default :
-									console.log( values.columnName ) ;
 									return '' ;
 							}
 						}
@@ -1058,28 +1058,93 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				_moduleId: 'spec_dbs_people',
 				_action: 'Real_actionDay',
 				_subaction: actionDay,
-				date_toOpen: dSql
+				date_sql: dSql
 			};
 			if( filterSiteBtn.getNode() != null ) {
 				ajaxParams['filter_site_entries'] = Ext.JSON.encode( filterSiteBtn.getLeafNodesKey() ) ;
 			}
+			ajaxParams['filter_site_txt'] = filterSiteBtn.getText() ;
 			if( filterTeamBtn.getNode() != null ) {
 				ajaxParams['filter_team_entries'] = Ext.JSON.encode( filterTeamBtn.getLeafNodesKey() ) ;
 			}
+			ajaxParams['filter_team_txt'] = filterTeamBtn.getText() ;
 			this.optimaModule.getConfiguredAjaxConnection().request({
 				params: ajaxParams,
 				success: function(response) {
 					this.hideLoadmask() ;
 					if( Ext.JSON.decode(response.responseText).success != true ) {
-						Ext.MessageBox.alert('Problem','Impossible de valider le statut, veuillez compléter les anomalies.') ;
+						Ext.MessageBox.alert('Erreur','Impossible de valider le statut.') ;
 						return ;
 					}
-					this.doLoad() ;
+					switch( actionDay ) {
+						case 'valid_ceq':
+						case 'valid_rh' :
+							this.openValidConfirm(ajaxParams, Ext.JSON.decode(response.responseText)) ;
+							break ;
+						default :
+							this.doLoad() ;
+							break ;
+					}
 				},
 				scope: this
 			}) ;
 			
 		},this) ;
+	},
+	openValidConfirm: function( postParams, jsonResponse ) {
+		
+		var validConfirmPanel = Ext.create('Optima5.Modules.Spec.DbsPeople.RealConfirmPanel',{
+			parentRealPanel: this,
+			width:600, // dummy initial size, for border layout to work
+			height:null, // ...
+			floating: true,
+			renderTo: this.getEl(),
+			tools: [{
+				type: 'close',
+				handler: function(e, t, p) {
+					p.ownerCt.destroy();
+				},
+				scope: this
+			}],
+			data: {
+				actionDay: postParams._subaction,
+				date_sql: postParams.date_sql,
+				filter_site_txt: postParams.filter_site_txt,
+				filter_team_txt: postParams.filter_team_txt,
+				people_count: jsonResponse.people_count,
+				exception_rows: jsonResponse.exception_rows
+			}
+		});
+		
+		validConfirmPanel.on('destroy',function(validConfirmPanel) {
+			this.getEl().unmask() ;
+		},this,{single:true}) ;
+		
+		validConfirmPanel.on('submit',function(validConfirmPanel) {
+			validConfirmPanel.getEl().mask('Validating...') ;
+			this.optimaModule.getConfiguredAjaxConnection().request({
+				params: Ext.merge(postParams,{
+					_do_valid: 1
+				}),
+				callback: function() {
+					validConfirmPanel.getEl().unmask ;
+				},
+				success: function(response) {
+					if( Ext.JSON.decode(response.responseText).success != true ) {
+						Ext.MessageBox.alert('Problem','Impossible de valider le statut, veuillez vérifier les anomalies.') ;
+						return ;
+					}
+					validConfirmPanel.destroy() ;
+					this.doLoad() ;
+				},
+				scope: this
+			}) ;
+		},this) ;
+		
+		this.getEl().mask() ;
+		
+		validConfirmPanel.show();
+		validConfirmPanel.getEl().alignTo(this.getEl(), 'c-c?');
 	},
 	handleExceptionDay: function( dSql, trueOrFalse ) {
 		this.showLoadmask() ;

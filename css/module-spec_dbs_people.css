@@ -205,3 +205,73 @@
 .op5-spec-dbspeople-cfgparambtn-bold .x-btn-inner {
 	font-weight: bold ;
 }
+
+
+.op5-spec-dbspeople-realvalidhdr {
+	padding: 0px 2px ;
+	height: 56px;
+	width: 100% ;
+}
+.op5-spec-dbspeople-realvalidhdr-inline-tbl {
+	display: table;
+	height: 56px;
+}
+.op5-spec-dbspeople-realvalidhdr-inline-elem {
+	margin: auto 5px;
+	padding: 0px 16px;
+	display: table-cell;
+	vertical-align: middle;
+}
+.op5-spec-dbspeople-realvalidhdr-icon {
+	width: 56px ;
+	background-position: center ;
+	background-repeat: no-repeat ;
+	background-image: url("../images/modules/dbspeople-ok-48.png") !important;
+}
+table.op5-spec-dbspeople-realvalidhdr-tbl {
+	margin: 0px 5px;
+	color:black;
+	font-size:12px;
+	font-family:tahoma,arial,verdana,sans-serif
+}
+table.op5-spec-dbspeople-realvalidhdr-tbl > tbody > tr > td.op5-spec-dbspeople-realvalidhdr-tdlabel {
+	 padding: 0px 0px;
+	 font-weight: bold;
+}
+table.op5-spec-dbspeople-realvalidhdr-tbl > tbody > tr > td.op5-spec-dbspeople-realvalidhdr-tdvalue {
+	 padding: 0px 0px 0px 8px;
+}
+.op5-spec-dbspeople-realvalidhdr-exception {
+	color: #E50000 ;
+	font-weight: bold;
+}
+
+.op5-spec-dbspeople-realvalidgrid-tdcolor .x-grid-cell-inner {
+	line-height: 8px;
+	margin: 2px;
+}
+.op5-spec-dbspeople-realvalidgrid-tdcolor-durationless .x-grid-cell-inner {
+	background-color: #E50000 !important;
+}
+.op5-spec-dbspeople-realvalidgrid-tdcolor-durationmore .x-grid-cell-inner {
+	background-color: #008000 !important;
+}
+.op5-spec-dbspeople-realvalidgrid-tdcolor-abs .x-grid-cell-inner {
+	background-color: #E50000 !important;
+}
+.op5-spec-dbspeople-realvalidgrid-tdcolor-altwhse .x-grid-cell-inner {
+	background-color: #C29FFF !important;
+}
+.op5-spec-dbspeople-realvalidgrid-tdcolor-altrole .x-grid-cell-inner {
+	background-color: #BF8E10 !important;
+}
+
+.op5-spec-dbspeople-realvalidgrid-error .x-grid-cell {
+	background-color: #FF5252 !important;
+}
+.op5-spec-dbspeople-realvalidgrid-error .x-grid-cell-inner {
+	background-color: #FF5252 !important;
+}
+.op5-spec-dbspeople-realvalidgrid-error .x-grid-cell-inner-checkcolumn {
+	display: none;
+}
