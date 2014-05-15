@@ -112,6 +112,7 @@ function specDbsPeople_Real_getData( $post_data ) {
 		$buildTAB[$cur_date][$people_code]['status_isVirtual'] = FALSE ;
 		$buildTAB[$cur_date][$people_code]['status_isValidCeq'] = $arr['field_VALID_CEQ'] ;
 		$buildTAB[$cur_date][$people_code]['status_isValidRh'] = $arr['field_VALID_RH'] ;
+		$buildTAB[$cur_date][$people_code]['real_is_abs'] = $arr['field_REAL_IS_ABS'] ;
 		$buildTAB[$cur_date][$people_code]['filerecord_id'] = $arr['filerecord_id'] ;
 		
 		$buildTAB[$cur_date][$people_code]['works'] = array() ;

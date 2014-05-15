@@ -1048,7 +1048,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		me.getEl().mask() ;
 		
 		realAdvancedPanel.show();
-		realAdvancedPanel.getEl().alignTo(htmlNode, 'c-t?',[0,50]);
+		realAdvancedPanel.getEl().alignTo(htmlNode, 'c-t?',[0,60]);
 		me.realAdvancedPanel = realAdvancedPanel ;
 	},
 	
