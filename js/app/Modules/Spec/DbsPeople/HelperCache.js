@@ -114,10 +114,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.HelperCache',{
 					me.authWhse = ajaxData.authWhse ;
 					me.authTeam = ajaxData.authTeam ;
 				}
-			},
-			callback: function() {
+				
 				me.onLibLoad() ;
-			},
+			}
 			scope: me
 		});
 	},
