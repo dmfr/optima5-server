@@ -133,7 +133,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				listeners: {
 					change: {
 						fn: function() {
-							this.doLoad() ;
+							this.doLoad(true) ;
 						},
 						scope: this
 					},
@@ -150,7 +150,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				listeners: {
 					change: {
 						fn: function() {
-							this.doLoad() ;
+							this.doLoad(true) ;
 						},
 						scope: this
 					},
@@ -273,7 +273,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		me.dateEnd = new Date(Ext.clone(date).setDate(last));
 		
 		me.doGridConfigure() ;
-		me.doLoad() ;
+		me.doLoad(true) ;
 	},
 	doGridConfigure: function() {
 		var me = this,
@@ -811,7 +811,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		this.doLoad() ;
 		return true ;
 	},
-	doLoad: function() {
+	doLoad: function(filterChanged) {
 		if( !this.isReady ) {
 			return ;
 		}
@@ -838,11 +838,13 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: params,
-			success: this.onLoadResponse,
+			success: function(response) {
+				this.onLoadResponse(response, filterChanged) ;
+			},
 			scope: this
 		});
 	},
-	onLoadResponse: function(response) {
+	onLoadResponse: function(response, filterChanged) {
 		var me = this ;
 			
 		var jsonResponse = Ext.JSON.decode(response.responseText) ;
@@ -888,12 +890,14 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		grid.headerCt.down('[dataIndex="whse_txt"]')._alwaysHidden = (filter_site && filter_site.leaf_only) ;
 		grid.headerCt.down('[dataIndex="team_txt"]')._alwaysHidden = (filter_team && filter_team.leaf_only) ;
 		
-		if( filter_site==null || !filter_site.leaf_only ) {
-			store.group( 'whse_code', 'ASC' ) ;
-		} else if( filter_team==null || !filter_team.leaf_only ) {
-			store.group( 'team_code', 'ASC' ) ;
-		} else {
-			store.clearGrouping() ;
+		if( filterChanged ) {
+			if( filter_site==null || !filter_site.leaf_only ) {
+				store.group( 'whse_code', 'ASC' ) ;
+			} else if( filter_team==null || !filter_team.leaf_only ) {
+				store.group( 'team_code', 'ASC' ) ;
+			} else {
+				store.clearGrouping() ;
+			}
 		}
 		
 		// Drop loadmask
