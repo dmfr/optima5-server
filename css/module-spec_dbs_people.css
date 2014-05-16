@@ -162,6 +162,12 @@
 	border: 1px solid #aaa ;
 }
 
+.op5-spec-dbspeople-realcolor-role {
+	background-color: #BF8E10 !important;
+}
+.op5-spec-dbspeople-realcolor-role .x-grid-cell-inner {
+	background-color: #BF8E10 !important;
+}
 .op5-spec-dbspeople-realcolor-anomalie {
 	background-color: #FF6F6F !important;
 }
@@ -174,8 +180,14 @@
 .op5-spec-dbspeople-realcolor-whse .x-grid-cell-inner {
 	background-color: #C29FFF !important;
 }
+.op5-spec-dbspeople-realcolor-open {
+	background-color: #CDFFCF ;
+}
 .op5-spec-dbspeople-realcolor-open .x-grid-cell-inner {
 	background-color: #CDFFCF ;
+}
+.op5-spec-dbspeople-realcolor-openrh {
+	background-color: #ABD0FF ;
 }
 .op5-spec-dbspeople-realcolor-openrh .x-grid-cell-inner {
 	background-color: #ABD0FF ;

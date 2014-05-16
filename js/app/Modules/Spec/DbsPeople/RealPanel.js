@@ -202,16 +202,17 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 						store: {
 							fields: ['iconCls', 'text'],
 							data:[
-								{iconCls: '', text:'Conforme'},
+								{iconCls: 'op5-spec-dbspeople-realcolor-open', text:'Etat : Ouvert Chef Equipe'},
+								{iconCls: 'op5-spec-dbspeople-realcolor-openrh', text:'Etat : Ouvert RH'},
+								{iconCls: '', text:'Etat : clôture'},
 								{iconCls: 'op5-spec-dbspeople-realcolor-role', text:'Modif. Rôle'},
-								{iconCls: 'op5-spec-dbspeople-realcolor-duree', text:'Modif. Durée'},
 								{iconCls: 'op5-spec-dbspeople-realcolor-anomalie', text:'Absence'},
 								{iconCls: 'op5-spec-dbspeople-realcolor-whse', text:'Transfert'}
 							]
 						},
 						//frame: true,
-						width:100,
-						height:300
+						width:200,
+						height:200
 					}]
 				}
 			}],
