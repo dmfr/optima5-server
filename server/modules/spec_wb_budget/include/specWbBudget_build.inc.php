@@ -43,7 +43,7 @@ function specWbBudget_budgetbuild_getGrid( $post_data ) {
 
 	return array(
 		'success'=>true,
-		'prod_tree_root' => specWbBudget_budgetbuild_privGetProdsDataroot(),
+		'prod_tree_root' => specWbBudget_tool_getProdsDataroot(),
 		'columns' => $columns
 	) ;
 }
@@ -51,89 +51,6 @@ function specWbBudget_budgetbuild_getGrid( $post_data ) {
 
 
 
-
-function specWbBudget_budgetbuild_privGetProdsDataroot() {
-	global $_opDB ;
-	
-	$force_db = "op5_wonderful_prod_msbi" ;
-	$bible_code = '_PROD_LOG' ;
-	$field_txt_treenode = 'field_PRODGROUP_NAME' ;
-	$field_txt_entry = 'field_PROD_TXT' ;
-	
-	$view_name_tree = $force_db.'.'.'view_bible_'.$bible_code.'_tree' ;
-	$view_name_entry = $force_db.'.'.'view_bible_'.$bible_code.'_entry' ;
-	
-	$tab_parentkey_nodes = array() ;
-	$query = "SELECT * FROM $view_name_tree" ;
-	$result = $_opDB->query($query);
-	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
-	{
-		$record = array() ;
-		$record['id'] = 't_'.$arr['treenode_key'] ;
-		$record['prod_is_sku'] = FALSE ;
-		$record['prod_code'] = $arr['treenode_key'] ;
-		$record['prod_text'] = $arr[$field_txt_treenode] ;
-	
-		$tab_parentkey_nodes[$arr['treenode_parent_key']][$arr['treenode_key']] = $record ;
-	}
-	$query = "SELECT * FROM $view_name_entry" ;
-	$result = $_opDB->query($query);
-	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
-	{
-		$record = array() ;
-		$record['id'] = 'e_'.$arr['entry_key'] ;
-		$record['prod_is_sku'] = TRUE ;
-		$record['prod_code'] = $arr['entry_key'] ;
-		$record['prod_text'] = $arr[$field_txt_entry] ;
-		
-		if( $arr['treenode_key'] == NULL ) {
-			continue ;
-		}
-	
-		$tab_parentkey_nodes[$arr['treenode_key']][] = $record ;
-	}
-	
-	foreach( $tab_parentkey_nodes as $treenode_parent_key => $arr1 )
-	{
-		foreach( $arr1 as $treenode_key => $record )
-		{
-			$tab_parentkey_nodes[$treenode_parent_key][$treenode_key] = $record ;
-		}
-		ksort($tab_parentkey_nodes[$treenode_parent_key]) ;
-	}
-	
-	$TAB_json = specWbBudget_budgetbuild_privGetProds_call( $tab_parentkey_nodes, '' ) ;
-	return array(
-		'id'=>'root',
-		'prod_code'=>'&',
-		'prod_text'=>'',
-		'expanded'=>true,
-		'children'=>$TAB_json
-	) ;
-}
-function specWbBudget_budgetbuild_privGetProds_call( $tab_parentkey_nodes, $treenode_parent_key )
-{
-	global $_opDB ;
-	
-	$TAB_json = array() ;
-	if( !$tab_parentkey_nodes[$treenode_parent_key] )
-		return array() ;
-	foreach( $tab_parentkey_nodes[$treenode_parent_key] as $treenode_key => $record )
-	{
-		if( $child_tab = specWbBudget_budgetbuild_privGetProds_call( $tab_parentkey_nodes, $treenode_key ) )
-		{
-			$record['expanded'] = true ;
-			$record['children'] = $child_tab ;
-		}
-		else
-		{
-			$record['leaf'] = ( $record['prod_is_sku'] ) ;
-			$record['children'] = array() ;
-		}
-		$TAB_json[] = $record ;
-	}
-	return $TAB_json ;
-}
 
 
 

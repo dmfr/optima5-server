@@ -32,7 +32,6 @@ Ext.define('WbBudgetRowModel', {
 	extend: 'Ext.data.Model',
 	idProperty: 'date_sql',
 	fields: [
-		{name: 'row_is_spec_coef',  type: 'boolean'},
 		{name: 'row_is_prod',  type: 'boolean'},
 		{name: 'row_sku_idx', type:'int', useNull: true},
 		{name: 'prod_code',   type: 'string'},
@@ -54,55 +53,6 @@ Ext.define('WbBudgetRecordModel', {
 		{name: 'real_qty',   type: 'number'}
 	]
 });
-
-
-/* Unused model */
-Ext.define('WbMrfoxyFinanceGridGroupRowModel', {
-	extend: 'Ext.data.Model',
-	fields: [
-		{name: 'row_key', type: 'string'},
-		{name: 'row_text', type: 'string'},
-		{name: 'row_sub_txt', type: 'string'}
-	]
-}) ;
-Ext.define('WbMrfoxyFinanceGridGroupModel', {
-	extend: 'Ext.data.Model',
-	fields: [
-		{name: 'group_key', type: 'string'},
-		{name: 'group_text', type: 'string'},
-		{name: 'operation', type: 'string'},
-		{name: 'has_total', type: 'boolean'},
-		{name: 'has_sub_txt', type: 'boolean'}
-	],
-	hasMany: [{
-		model: 'WbMrfoxyFinanceGridGroupRowModel',
-		name: 'rows',
-		associationKey: 'rows'
-	}]
-}) ;
-
-/* Unused model */
-Ext.define('WbMrfoxyFinanceGridRevisionRowModel', {
-	extend: 'Ext.data.Model',
-	fields: []
-}) ;
-Ext.define('WbMrfoxyFinanceGridRevisionModel', {
-	extend: 'Ext.data.Model',
-	fields: [
-		{name: 'filerecord_id', type: 'int'},
-		{name: 'revision_id', type: 'string'},
-		{name: 'is_crop_initial', type: 'string'},
-		{name: 'revision_date', type: 'string'},
-		{name: 'is_actual', type: 'boolean'},
-		{name: 'is_editing', type: 'boolean'}
-	],
-	hasMany: [{
-		model: 'WbMrfoxyFinanceGridRevisionRowModel',
-		name: 'rows',
-		associationKey: 'rows'
-	}]
-}) ;
-
 
 
 Ext.define('Optima5.Modules.Spec.WbBudget.BudgetBuildPanel',{
@@ -525,7 +475,6 @@ Ext.define('Optima5.Modules.Spec.WbBudget.BudgetBuildPanel',{
 		var actualDataIndex = null ;
 		var revisionIds = [] ;
 		var fields = [
-			{name: 'row_is_spec_coef',  type: 'boolean'},
 			{name: 'row_is_prod',  type: 'boolean'},
 			{name: 'row_sku_idx', type:'int', useNull: true},
 			{name: 'prod_code',   type: 'string'},
@@ -560,11 +509,6 @@ Ext.define('Optima5.Modules.Spec.WbBudget.BudgetBuildPanel',{
 				if( node.get('row_is_prod') && !node.get('prod_is_sku') ) {
 					metaData.tdCls += ' ' + 'op5-spec-wbbudget-build-treecell-bold' ;
 				}
-				if( node.get('row_is_spec_coef') ) {
-					metaData.tdCls += ' ' + 'op5-spec-wbbudget-build-treecell-bold' ;
-					value = 'Week/Year weight' ;
-				}
-				
 				return value ;
 			}
 		},{
@@ -631,18 +575,7 @@ Ext.define('Optima5.Modules.Spec.WbBudget.BudgetBuildPanel',{
 		
 		var treepanelStore = Ext.create('Ext.data.TreeStore',{
 			model: tmpModelName,
-			root: {
-				root: true,
-				expanded: true,
-				children: [{
-					id: 'spec_coef',
-					row_is_spec_coef: true,
-					icon: 'images/icons/ico_calc_16.png',
-					leaf: true
-				},
-					ajaxData.prod_tree_root
-				]
-			},
+			root: ajaxData.prod_tree_root,
 			proxy: {
 				type: 'memory' ,
 				reader: {
@@ -689,7 +622,7 @@ Ext.define('Optima5.Modules.Spec.WbBudget.BudgetBuildPanel',{
 			xtype:'treepanel',
 			animate: false,
 			useArrows: true,
-			rootVisible: false,
+			rootVisible: true,
 			cls: 'op5-spec-wbbudget-build-tree',
 			store: treepanelStore,
 			plugins: [{
@@ -741,178 +674,8 @@ Ext.define('Optima5.Modules.Spec.WbBudget.BudgetBuildPanel',{
 	},
 	onGridAfterEdit: function(editor, editObject) {
 	},
-	saveRevisionValues: function() {
-	},
-	collectRevisionValues: function( revisionId ) {
-	},
 	
-	doCalc: function() {
-		var me = this,
-			ajaxData = me.ajaxData,
-			grid = me.down('grid'),
-			headerCt = grid.headerCt,
-			revisionIds = grid.revisionIds,
-			calcByRevisionId = {} ;
-		
-		for( var i=0 ; i<revisionIds.length ; i++ ) {
-			var revisionId = revisionIds[i] ;
-			calcByRevisionId[revisionId] = 0 ;
-		}
-		
-		grid.getStore().each( function(record) {
-			if( record.get('group_key') == '4_CALC' ) {
-				return ;
-			}
-			for( var i=0 ; i<revisionIds.length ; i++ ) {
-				var revisionId = revisionIds[i],
-					revisionKey = revisionId+'_value' ;
-				if( record.get(revisionKey) == null ) {
-					record.set(revisionKey,0) ;
-					record.commit();
-				}
-				switch( record.get('operation') ) {
-					case '+' :
-						calcByRevisionId[revisionId] += record.get(revisionKey) ;
-						break ;
-					case '-' :
-						calcByRevisionId[revisionId] -= record.get(revisionKey) ;
-						break ;
-				}
-			}
-		}) ;
-		
-		grid.getStore().each( function(record) {
-			if( record.get('group_key') == '4_CALC' ) {
-				for_loop:
-				for( var i=0 ; i<revisionIds.length ; i++ ) {
-					var revisionId = revisionIds[i],
-						revisionKey = revisionId+'_value' ;
-					var calcValueTotal = calcByRevisionId[revisionId] ;
-					var calcValue ;
-					var header = headerCt.down('[dataIndex="'+revisionKey+'"]') ;
-				
-					switch( record.get('row_key') ) {
-						case 'promo_done' :
-						case 'promo_foreacast' :
-						case 'promo_available' :
-							if( header.dataIsEditing || header.dataIsActual ) {} else {
-								record.set(revisionKey, null) ;
-								continue for_loop ;
-							}
-							break ;
-					}
-					switch( record.get('row_key') ) {
-						case 'promo_total' :
-							calcValue = calcValueTotal ;
-							break ;
-						case 'promo_done' :
-							calcValue = ajaxData.stats.cost_promo_done ;
-							break ;
-						case 'promo_foreacast' :
-							calcValue = ajaxData.stats.cost_promo_forecast ;
-							break ;
-						case 'promo_available' :
-							calcValue = calcValueTotal - (ajaxData.stats.cost_promo_done + ajaxData.stats.cost_promo_forecast) ;
-							break ;
-						default :
-							calcValue = null ;
-							break ;
-					}
-					record.set(revisionKey, calcValue) ;
-				}
-				record.commit() ;
-			}
-		}) ;
-	},
-	
-	
-	
-	
-	
-	
-	openRowDetails: function(gridRecord, gridColumn) {
-		var me = this,
-			grid = this.down('grid'),
-			cellEl = grid.getView().getCell( gridRecord, gridColumn ),
-			revisionId = gridColumn.revisionId,
-			subArr = gridRecord.get( revisionId + '_arr' );
-		
-			
-		cellEl.addCls('op5-spec-mrfoxy-financebudget-celldetails') ;
-		
-		var rowDetailsPanel = Ext.create('Ext.ux.dams.EmbeddedGrid',{
-			width: 400,
-			height: 200,
-			
-			data: subArr,
-			columns:[{
-				flex:2,
-				dataIndex:'row_sub_txt',
-				type: 'string',
-				text:'Agreement',
-				editor: {xtype:'textfield'}
-			},{
-				flex:1,
-				dataIndex:'value',
-				type: 'number',
-				text:'Amount',
-				editor: {
-					xtype: 'numberfield',
-					hideTrigger:true
-				}
-			}],
-			frame: true,
-			
-			parentCell: cellEl,
-			parentRecord: gridRecord,
-			revisionId: revisionId,
-			
-			floating: true,
-			renderTo: me.getEl(),
-			tools: [{
-				type: 'close',
-				handler: function(e, t, p) {
-					p.ownerCt.destroy();
-				}
-			}],
-			
-			listeners: {
-				beforedestroy: function(p) {
-					var editorArr = p.getData(),
-						editorValue = 0 ;
-					Ext.Array.each( editorArr, function(lig) {
-						editorValue += lig.value ;
-					});
-					
-					p.parentRecord.set( p.revisionId + '_arr', editorArr ) ;
-					p.parentRecord.set( p.revisionId + '_value', editorValue ) ;
-					
-					p.parentCell.removeCls('op5-spec-mrfoxy-financebudget-celldetails') ;
-				},
-				destroy: function() {
-					this.saveRevisionValues() ;
-				},
-				scope: me
-			}
-		});
-		
-		/*
-		rowDetailsPanel.on('destroy',function() {
-			me.getEl().unmask() ;
-		},me,{single:true}) ;
-		me.getEl().mask() ;
-		*/
-		
-		rowDetailsPanel.show();
-		rowDetailsPanel.getEl().alignTo(cellEl, 't-b?');
-		
-		me.rowDetailsPanel = rowDetailsPanel ;
-	},
-	closeRowDetails: function() {
-		var me = this ;
-		if( me.rowDetailsPanel ) {
-			me.rowDetailsPanel.destroy() ;
-			me.rowDetailsPanel = null ;
-		}
+	handleQuit: function() {
+		this.destroy() ;
 	}
 });
