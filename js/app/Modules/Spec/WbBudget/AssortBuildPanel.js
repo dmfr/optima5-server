@@ -1,25 +1,12 @@
-Ext.define('WbBudgetCfgStoresModel', {
-    extend: 'Ext.data.Model',
-    idProperty: 'store_code',
-    fields: [
-        {name: 'store_code',  type: 'string', mapping: 'nodeKey' },
-        {name: 'store_text',   type: 'string', mapping: 'nodeText'}
-     ]
-});
-
-
-
-Ext.define('WbBudgetColumnModel', {
+Ext.define('WbBudgetAssortColumnModel', {
 	extend: 'Ext.data.Model',
-	idProperty: 'date_sql',
+	idProperty: 'store_code',
 	fields: [
-		{name: 'date_sql',  type: 'string'},
-		{name: 'week_text',   type: 'string'},
-		{name: 'date_sql_start',   type: 'string'},
-		{name: 'date_sql_end',   type: 'string'}
+		{name: 'store_code',  type: 'string'},
+		{name: 'store_text',   type: 'string'}
 	]
 });
-Ext.define('WbBudgetRowModel', {
+Ext.define('WbBudgetAssortRowModel', {
 	extend: 'Ext.data.Model',
 	idProperty: 'date_sql',
 	fields: [
@@ -27,26 +14,34 @@ Ext.define('WbBudgetRowModel', {
 		{name: 'row_sku_idx', type:'int', useNull: true},
 		{name: 'prod_code',   type: 'string'},
 		{name: 'prod_text',   type: 'string'},
-		{name: 'prod_is_sku',   type: 'boolean'},
-		{name: 'subrow_is_forecast',   type: 'boolean'},
-		{name: 'subrow_is_real',   type: 'boolean'},
-		{name: 'subrow_is_delta',   type: 'boolean'}
+		{name: 'prod_is_sku',   type: 'boolean'}
 	]
 });
-Ext.define('WbBudgetRecordModel', {
+
+
+Ext.define('WbBudgetAssortProdModel', {
 	extend: 'Ext.data.Model',
-	idProperty: 'date_sql',
+	idProperty: 'prod_code',
 	fields: [
-		{name: 'date_sql',  type: 'string'},
-		{name: 'store_code',   type: 'string'},
 		{name: 'prod_code',   type: 'string'},
-		{name: 'forecast_qty',   type: 'number'},
-		{name: 'real_qty',   type: 'number'}
+		{name: 'assort_is_on',   type: 'boolean'}
 	]
+});
+Ext.define('WbBudgetAssortModel', {
+	extend: 'Ext.data.Model',
+	fields: [
+		{name: 'crop_year',  type: 'string'},
+		{name: 'store_code',   type: 'string'}
+	],
+	hasMany: [{
+		model: 'WbBudgetAssortProdModel',
+		name: 'prods',
+		associationKey: 'prods'
+	}]
 });
 
 
-Ext.define('Optima5.Modules.Spec.WbBudget.BudgetBuildPanel',{
+Ext.define('Optima5.Modules.Spec.WbBudget.AssortBuildPanel',{
 	extend: 'Ext.panel.Panel',
 	
 	initComponent: function(){
@@ -122,67 +117,11 @@ Ext.define('Optima5.Modules.Spec.WbBudget.BudgetBuildPanel',{
 						useArrows: true
 					}]
 				}
-			},{
-				itemId: 'tbStores',
-				icon: 'images/op5img/ico_blocs_small.gif',
-				defaultText: 'Stores Selection',
-				menu: {
-					xtype:'menu',
-					items:[{
-						xtype: 'treepanel',
-						itemId: 'tbStoresSelect',
-						width:250,
-						height:300,
-						store: {
-							fields: [
-								{name: 'store_code', type: 'string'},
-								{name: 'store_text', type: 'string'}
-							],
-							root: {children:[]},
-							proxy: {
-								type: 'memory' ,
-								reader: {
-									type: 'json'
-								}
-							}
-						},
-						displayField: 'store_text',
-						rootVisible: true,
-						useArrows: true
-					}]
-				}
 			},'->',{
-				itemId: 'tbReadonly',
-				icon: 'images/op5img/ico_lock_small.gif',
-				text: 'ReadOnly'
-			},{
-				itemId: 'tbEdit',
-				icon: 'images/op5img/ico_new_16.gif',
-				text: 'Current edit' ,
-				cls: 'op5-spec-wbbudget-financebudget-newrevisionmenu',
-				menu: [{
-					iconCls: 'op5-spec-wbbudget-financebudget-newrevisionmenu-save',
-					text: 'Commit revision' ,
-					handler: function() {
-						var doSave ;
-						this.handleNewRevisionEnd( doSave = true ) ;
-					},
-					scope: this
-				},{
-					itemId: 'btnDiscard',
-					iconCls: 'op5-spec-wbbudget-financebudget-newrevisionmenu-discard',
-					text: 'Discard' ,
-					handler: function() {
-						var doSave ;
-						this.handleNewRevisionEnd( doSave = false ) ;
-					},
-					scope: this
-				}]
-			},{
-				itemId: 'tbExport',
+				itemId: 'tbSave',
 				icon: 'images/op5img/ico_save_16.gif',
-				text: 'Export XLS' ,
-				handler: this.handleDownload,
+				text: 'Save Crop' ,
+				handler: this.handleSave,
 				scope: this
 			}],
 			items:[{
@@ -201,8 +140,7 @@ Ext.define('Optima5.Modules.Spec.WbBudget.BudgetBuildPanel',{
 	},
 	loadComponents: function() {
 		var me = this,
-			tbCountrySelect = this.query('#tbCountrySelect')[0],
-			tbStoresSelect = this.query('#tbStoresSelect')[0] ;
+			tbCountrySelect = this.query('#tbCountrySelect')[0] ;
 		
 		countryChildren = [] ;
 		Ext.Array.each( Optima5.Modules.Spec.WbBudget.HelperCache.countryGetAll(), function(rec) {
@@ -268,50 +206,6 @@ Ext.define('Optima5.Modules.Spec.WbBudget.BudgetBuildPanel',{
 				scope: this
 			}
 		}) ;
-		
-		
-		// Load stores => server
-		var ajaxParams = {} ;
-		Ext.apply( ajaxParams, {
-			_action: 'data_getBibleTreeOne',
-			bible_code: 'IRI_STORE'
-		});
-		me.optimaModule.getConfiguredAjaxConnection().request({
-			params: ajaxParams ,
-			success: function(response) {
-				var ajaxData = Ext.decode(response.responseText) ;
-				if( ajaxData.success == false ) {
-					Ext.Msg.alert('Failed', 'Unknown error');
-				}
-				else {
-					this.storeCfgStores = Ext.create('Ext.data.TreeStore', {
-						model: 'WbBudgetCfgStoresModel',
-						root: ajaxData.dataRoot 
-					});
-				}
-			},
-			scope: me
-		});
-		tbStoresSelect.getView().on('checkchange',function(rec,check){
-			var rootNode = rec ;
-			while( !rootNode.isRoot() ) {
-				rootNode = rootNode.parentNode ;
-			}
-			if( !check ) {
-				rootNode.cascadeBy(function(chrec){
-					if( chrec==rec ) {
-						chrec.set('checked',true) ;
-					}
-				},this);
-			} else {
-				rootNode.cascadeBy(function(chrec){
-					if( chrec != rec ) {
-						chrec.set('checked',false) ;
-					}
-				},this);
-				this.onSelectStores() ;
-			}
-		},this) ;
 	},
 	loadComponentsOnStoreCropLoad: function( storeCfgCrop ) {
 		var menuitems = [],
@@ -339,10 +233,6 @@ Ext.define('Optima5.Modules.Spec.WbBudget.BudgetBuildPanel',{
 			this.onSelectCropYear() ;
 		}
 	},
-	loadComponentsOnStoreStoresLoad: function( treeStore ) {
-		//console.log('done') ;
-		console.dir( treeStore.getNodeById('FR') ) ;
-	},
 	
 	onSelectCountry: function(silent) {
 		var me = this,
@@ -355,48 +245,6 @@ Ext.define('Optima5.Modules.Spec.WbBudget.BudgetBuildPanel',{
 				tbCountry.setText( chrec.get('country_text') ) ;
 				
 				me.filterCountry = chrec.get('country_code') ;
-				return false ;
-			}
-		},this);
-		
-		
-		
-		
-		var tbStores = this.query('#tbStores')[0],
-			tbStoresSelect = this.query('#tbStoresSelect')[0] ;
-		this.filterStores = null ;
-		tbStores.setText( tbStores.defaultText ) ;
-		if( this.filterCountry ) {
-			tbStores.setVisible(true) ;
-			var storeCfgStores = this.storeCfgStores,
-				storesRootForCountry = storeCfgStores.getNodeById(this.filterCountry),
-				tbStoresSelectStore = tbStoresSelect.getStore() ;
-			if( storesRootForCountry == null ) {
-				tbStoresSelectStore.setRootNode( null ) ;
-			} else {
-				tbStoresSelectStore.setRootNode( storesRootForCountry.copy(undefined,true) ) ;
-			}
-		} else {
-			tbStores.setVisible(false) ;
-		}
-		
-		if( !silent ) {
-			me.fireEvent('tbarselect') ;
-		}
-	},
-	onSelectStores: function(silent) {
-		var me = this,
-			tbStores = this.query('#tbStores')[0],
-			tbStoresSelect = this.query('#tbStoresSelect')[0] ;
-		
-		tbStores.setText( tbStores.defaultText ) ;
-		tbStoresSelect.getRootNode().cascadeBy(function(chrec){
-			if( chrec.get('checked') ) {
-				//tbStores.setIcon( chrec.get('country_iconurl') ) ;
-				tbStores.setText( chrec.get('store_text') ) ;
-				
-				me.filterStores = chrec.get('store_code') ;
-				
 				return false ;
 			}
 		},this);
@@ -419,7 +267,7 @@ Ext.define('Optima5.Modules.Spec.WbBudget.BudgetBuildPanel',{
 	
 	onTbarSelect: function() {
 		this.disablePanel() ;
-		if( this.filterCountry && this.filterCropYear && this.filterStores ) {
+		if( this.filterCountry && this.filterCropYear ) {
 			this.startLoading() ;
 		}
 	},
@@ -434,9 +282,8 @@ Ext.define('Optima5.Modules.Spec.WbBudget.BudgetBuildPanel',{
 	startLoading: function() {
 		var ajaxParams = {
 			_moduleId: 'spec_wb_budget',
-			_action: 'budgetbuild_getGrid',
+			_action: 'assortbuild_getGrid',
 			filter_country: this.filterCountry,
-			filter_stores: this.filterStores,
 			filter_cropYear: this.filterCropYear
 		};
 		this.optimaModule.getConfiguredAjaxConnection().request({
@@ -470,14 +317,10 @@ Ext.define('Optima5.Modules.Spec.WbBudget.BudgetBuildPanel',{
 			{name: 'row_sku_idx', type:'int', useNull: true},
 			{name: 'prod_code',   type: 'string'},
 			{name: 'prod_text',   type: 'string'},
-			{name: 'prod_is_sku',   type: 'boolean'},
-			{name: 'subrow_is_forecast',   type: 'boolean'},
-			{name: 'subrow_is_real',   type: 'boolean'},
-			{name: 'subrow_is_delta',   type: 'boolean'}
+			{name: 'prod_is_sku',   type: 'boolean'}
 		];
-		fields.push( {name: 'value_'+'TOTAL', type:'number'} );
-		Ext.Array.each( ajaxData.columns, function(coldef,colidx) {
-			fields.push( {name: 'value_'+colidx, type:'number'} );
+		Ext.Array.each( ajaxData.store_nodes, function(coldef,colidx) {
+			fields.push( {name: 'value_'+colidx, type:'boolean'} );
 		}) ;
 		Ext.define(tmpModelName, {
 			extend: 'Ext.data.Model',
@@ -520,34 +363,17 @@ Ext.define('Optima5.Modules.Spec.WbBudget.BudgetBuildPanel',{
 				
 				return value ;
 			}
-		},{
-			locked:true,
-			text: '<b>Total</b>',
-			dataIndex: 'value_TOTAL',
-			width: 75,
-			//resizable: true,
-			tdCls: 'op5-spec-wbbudget-build-treecell-value' ,
-			align: 'right',
-			editor:{
-				xtype:'numberfield',
-				hideTrigger:true,
-				cls: 'op5-spec-wbbudget-build-editor-rightalign'
-			}
 		}] ;
-		Ext.Array.each( ajaxData.columns, function(coldef,colidx) {
+		Ext.Array.each( ajaxData.store_nodes, function(coldef,colidx) {
 			columns.push({
+				xtype: 'checkcolumn',
 				locked:false,
-				text: 'S <b>'+coldef.week_text+'</b><br>'+coldef.date_sql_start+'<br>'+coldef.date_sql_end,
+				text: coldef.store_text.split(' ').join('<br>') + '<br>',
 				dataIndex: 'value_'+colidx,
-				dateSql: coldef.date_sql,
+				storeCode: coldef.store_code,
 				width: 75,
 				tdCls: 'op5-spec-wbbudget-build-treecell-value' ,
-				align: 'right',
-				editor:{
-					xtype:'numberfield',
-					hideTrigger:true,
-					cls: 'op5-spec-wbbudget-build-editor-rightalign'
-				}
+				align: 'center'
 			});
 		}) ;
 		var columnDefaults = {
@@ -582,25 +408,8 @@ Ext.define('Optima5.Modules.Spec.WbBudget.BudgetBuildPanel',{
 			}
 			node.data.row_is_prod = true ;
 			if( node.data.prod_is_sku ) {
-				
-				// TODO: set forecast values
-				
-				// TODO: set real values
-				
-				
 				row_sku_idx++ ;
 				node.set('row_sku_idx',row_sku_idx) ;
-				node.set('subrow_is_forecast',true) ;
-				node.set('leaf',false) ;
-				node.appendChild([{
-					subrow_is_real: true,
-					leaf: true,
-					iconCls: 'treenode-no-icon'
-				},{
-					subrow_is_delta: true,
-					leaf: true,
-					iconCls: 'treenode-no-icon'
-				}]) ;
 				node.data.icon = 'images/op5img/ico_leaf_small.gif' ;
 			} else {
 				//console.dir(node) ;
@@ -621,14 +430,6 @@ Ext.define('Optima5.Modules.Spec.WbBudget.BudgetBuildPanel',{
 				leadingBufferZone: 1,
 				trailingBufferZone: 1
 				//numFromEdge: 1
-			},{
-				ptype: 'cellediting',
-				clicksToEdit: 1,
-				listeners: {
-					beforeedit: this.onGridBeforeEdit,
-					edit: this.onGridAfterEdit,
-					scope: this
-				}
 			}],
 			columns: columns,
 			viewConfig: {
@@ -640,9 +441,6 @@ Ext.define('Optima5.Modules.Spec.WbBudget.BudgetBuildPanel',{
 					var row_sku_idx = node.get('row_sku_idx') || ( node.parentNode ? node.parentNode.get('row_sku_idx') : null ) ;
 					if( row_sku_idx != null ) {
 						var rowClass = '' ;
-						if( node.data.subrow_is_forecast ) {
-							rowClass += ' ' + 'op5-spec-wbbudget-build-treerow-forecast' ;
-						}
 						rowClass += ' ' + ( row_sku_idx % 2 == 0 ? 'op5-spec-wbbudget-build-treerow-odd' : 'op5-spec-wbbudget-build-treerow-even' ) ;
 						return rowClass ;
 					}
@@ -654,16 +452,6 @@ Ext.define('Optima5.Modules.Spec.WbBudget.BudgetBuildPanel',{
 		this.add( treepanel ) ;
 		//this.doCalc() ;
 		//this.updateToolbar() ;
-	},
-	onGridBeforeEdit: function(editor, editObject) {
-		if( !editObject.record.get('subrow_is_forecast') ) {
-			return false ;
-		}
-		
-		//regular edit
-		return true ;
-	},
-	onGridAfterEdit: function(editor, editObject) {
 	},
 	
 	handleQuit: function() {

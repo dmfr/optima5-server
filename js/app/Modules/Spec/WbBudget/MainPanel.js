@@ -3,7 +3,8 @@ Ext.define('Optima5.Modules.Spec.WbBudget.MainPanel',{
 	requires:[
 		'Optima5.Modules.Spec.WbBudget.HelperCache',
 		'Optima5.Modules.Spec.WbBudget.MainMenu',
-		'Optima5.Modules.Spec.WbBudget.BudgetBuildPanel'
+		'Optima5.Modules.Spec.WbBudget.BudgetBuildPanel',
+		'Optima5.Modules.Spec.WbBudget.AssortBuildPanel'
 	],
 	
 	initComponent: function() {
@@ -66,6 +67,8 @@ Ext.define('Optima5.Modules.Spec.WbBudget.MainPanel',{
 		//console.log("Action: "+actionCode) ;
 		
 		switch( actionCode ) {
+			case 'assort_build' :
+				return me.switchToAppPanel('Optima5.Modules.Spec.WbBudget.AssortBuildPanel',{}) ;
 			case 'budget_build' :
 				return me.switchToAppPanel('Optima5.Modules.Spec.WbBudget.BudgetBuildPanel',{}) ;
 			default :
@@ -82,10 +85,7 @@ Ext.define('Optima5.Modules.Spec.WbBudget.MainPanel',{
 		}) ;
 		
 		var panel = Ext.create(className,options) ;
-		panel.on('editpromo',function(promoRecord) {
-			this.handleEditPromo(promoRecord) ;
-		},this) ;
-		panel.on('quit',function() {
+		panel.on('destroy',function() {
 			me.switchToMainMenu() ;
 		},this) ;
 		

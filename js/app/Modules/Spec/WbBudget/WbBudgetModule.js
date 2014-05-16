@@ -1,3 +1,14 @@
+Ext.define('WbBudgetCfgCropModel', {
+    extend: 'Ext.data.Model',
+    fields: [
+        {name: 'crop_year', type: 'string'},
+        {name: 'date_apply', type: 'string'},
+		  {name: 'is_current', type: 'boolean'},
+		  {name: 'is_preview', type: 'boolean'}
+    ]
+}) ;
+
+
 Ext.define('Optima5.Modules.Spec.WbBudget.WbBudgetModule', {
 	extend: 'Optima5.Module',
 	requires: [

@@ -45,7 +45,8 @@ Ext.define('Optima5.Modules.Spec.WbBudget.MainMenu',{
 			data:[
 				{type_header:true},
 				{type_separator:true, separator_label: 'Budget Management'},
-				{type_action:true, action_caption: 'Budget Builder', action_sendEvent:'budget_build', action_iconCls:'op5-spec-wbbudget-icon-budget'}
+				{type_action:true, action_caption: 'Budget Builder', action_sendEvent:'budget_build', action_iconCls:'op5-spec-wbbudget-icon-budget'},
+				{type_action:true, action_caption: 'Assortiment', action_sendEvent:'assort_build', action_iconCls:'op5-spec-wbbudget-icon-assort'}
 			]
 		}) ;
 		 
