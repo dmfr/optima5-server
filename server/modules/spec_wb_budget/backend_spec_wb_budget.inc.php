@@ -12,6 +12,8 @@ switch( $post_data['_action'] )
 	
 	case 'assortbuild_getGrid' :
 	return specWbBudget_assortbuild_getGrid( $post_data ) ;
+	case 'assortbuild_setRecords' :
+	return specWbBudget_assortbuild_setRecords( $post_data ) ;
 	
 	default :
 	return NULL ;

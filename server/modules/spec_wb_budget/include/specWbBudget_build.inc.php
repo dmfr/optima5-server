@@ -40,10 +40,59 @@ function specWbBudget_budgetbuild_getGrid( $post_data ) {
 		);
 		$cursor = strtotime('+7 days',$cursor) ;
 	}
+	
+	
+	
+	
+	// ********* FILTERS **************
+	$filter_storeParent = $post_data['filter_country'] ;
+	
+	$store_nodes = array() ;
+	$storeNode_codes = array() ;
+	$query = "SELECT * FROM view_bible_IRI_STORE_tree 
+			WHERE treenode_parent_key='$filter_storeParent' 
+			ORDER BY treenode_key" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$store_code = $arr['treenode_key'] ;
+		$storeNode_codes[] = $store_code ;
+	}
+	
+	
+	$filter_store = $post_data['filter_stores'] ;
+	$parent_store = $filter_store ;
+	while( true ) {
+		if( in_array($parent_store,$storeNode_codes) ) {
+			break ;
+		}
+		$query = "SELECT treenode_parent_key FROM view_bible_IRI_STORE_tree WHERE treenode_key='{$parent_store}'";
+		$parent_store = $_opDB->query_uniqueValue($query) ;
+		if( $parent_store == NULL ) {
+			break ;
+		}
+	}
+	if( $parent_store == NULL ) {
+		return array('success'=>false) ;
+	}
+	
+	$assort_prods = array() ;
+	$query = "SELECT ap.* FROM view_file_ASSORT_PROD ap
+			JOIN view_file_ASSORT a ON a.filerecord_id = ap.filerecord_parent_id
+		WHERE a.field_CROP_YEAR='{$filter_cropYear}' AND a.field_STOREGROUP_CODE='{$parent_store}'" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		if( $arr['field_ASSORT_IS_ON'] ) {
+			$assort_prods[] = $arr['field_PROD_CODE'] ;
+		}
+	}
+	
+	
+	
 
 	return array(
 		'success'=>true,
 		'prod_tree_root' => specWbBudget_tool_getProdsDataroot(),
+		'assort_prods' => $assort_prods,
 		'columns' => $columns
 	) ;
 }

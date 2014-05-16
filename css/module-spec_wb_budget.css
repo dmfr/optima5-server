@@ -136,3 +136,10 @@
 {
     display : none !important;
 }
+
+.op5-spec-wbbudget-assort-cell-nocheckcolumn .x-grid-cell-inner-checkcolumn {
+	
+}
+.op5-spec-wbbudget-assort-cell-nocheckcolumn .x-grid-cell-inner-checkcolumn img {
+	opacity: 0 ;
+}

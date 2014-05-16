@@ -44,6 +44,9 @@ Ext.define('WbBudgetAssortModel', {
 Ext.define('Optima5.Modules.Spec.WbBudget.AssortBuildPanel',{
 	extend: 'Ext.panel.Panel',
 	
+	_ps_storeNodes: null,
+	_ps_recordsObj: null, // prod_code > store_code > boolean
+	
 	initComponent: function(){
 		Ext.apply(this,{
 			//frame: true,
@@ -307,8 +310,9 @@ Ext.define('Optima5.Modules.Spec.WbBudget.AssortBuildPanel',{
 			return ;
 		}
 		
-		var tmpModelName = 'WbBudgetRowModel-' + this.getId() ;
 		
+		// model name
+		var tmpModelName = 'WbAssortRowModel-' + this.getId() ;
 		// model
 		var actualDataIndex = null ;
 		var revisionIds = [] ;
@@ -320,12 +324,62 @@ Ext.define('Optima5.Modules.Spec.WbBudget.AssortBuildPanel',{
 			{name: 'prod_is_sku',   type: 'boolean'}
 		];
 		Ext.Array.each( ajaxData.store_nodes, function(coldef,colidx) {
-			fields.push( {name: 'value_'+colidx, type:'boolean'} );
+			fields.push( {name: 'value_'+colidx, type:'boolean', useNull:true} );
 		}) ;
 		Ext.define(tmpModelName, {
 			extend: 'Ext.data.Model',
 			fields: fields
 		});
+		
+		
+		
+		// build TreeStore
+		me.treepanelStore = Ext.create('Ext.data.TreeStore',{
+			model: tmpModelName,
+			root: ajaxData.prod_tree_root,
+			proxy: {
+				type: 'memory' ,
+				reader: {
+					type: 'json'
+				}
+			}
+		}) ;
+		
+		
+		
+		// build pseudo-stores
+		me._ps_storeNodes = ajaxData.store_nodes ;
+		
+		me._ps_recordsObj = {} ;
+		var colidx, coldef, colcount = me._ps_storeNodes.length ;
+		me.treepanelStore.getRootNode().cascadeBy( function(node) {
+			if( !node.data.prod_is_sku ) {
+				return ;
+			}
+			var prod_code = node.data.prod_code ;
+			me._ps_recordsObj[prod_code] = {} ;
+			for( colidx=0 ; colidx<colcount ; colidx++ ) {
+				coldef = me._ps_storeNodes[colidx] ;
+				
+				me._ps_recordsObj[prod_code][coldef.store_code] = false ;
+			}
+		}) ;
+		
+		Ext.Array.each( ajaxData.records, function(assortRecord) {
+			var store_code = assortRecord.store_code ;
+			Ext.Array.each( assortRecord.prods, function( assortProdRecord ) {
+				var prod_code = assortProdRecord.prod_code ;
+				if( typeof me._ps_recordsObj[prod_code][store_code] === 'undefined' ) {
+					return ;
+				}
+				me._ps_recordsObj[prod_code][store_code] = ( assortProdRecord.assort_is_on == 1 ? true : false ) ;
+			}) ;
+		}) ;
+		
+		console.dir(me._ps_recordsObj) ;
+		
+		
+		
 		
 		
 		var columns = [{
@@ -373,9 +427,31 @@ Ext.define('Optima5.Modules.Spec.WbBudget.AssortBuildPanel',{
 				storeCode: coldef.store_code,
 				width: 75,
 				tdCls: 'op5-spec-wbbudget-build-treecell-value' ,
-				align: 'center'
+				align: 'center',
+				listeners: {
+					checkchange: function(checkCol, rowIdx, checked) {
+						var treepanel = checkCol.up('treepanel'),
+							view = treepanel.getView(),
+							viewNode = view.getNode(rowIdx),
+							record = view.getRecord(viewNode) ;
+						var dataIndex = checkCol.dataIndex,
+							storeCode = checkCol.storeCode,
+							prodCode = record.get('prod_code') ;
+						if( !record.get('prod_is_sku') ) {
+							console.log(dataIndex) ;
+							record.set(dataIndex,null) ;
+							return ;
+						}
+						
+						// DONE: save in pseudo store
+						if( typeof this._ps_recordsObj[prodCode][storeCode] !== 'undefined' ) {
+							this._ps_recordsObj[prodCode][storeCode] = record.get(dataIndex) ;
+						}
+					},
+					scope: this
+				}
 			});
-		}) ;
+		},this) ;
 		var columnDefaults = {
 			menuDisabled: true,
 			draggable: false,
@@ -390,17 +466,8 @@ Ext.define('Optima5.Modules.Spec.WbBudget.AssortBuildPanel',{
 		}) ;
 
 		
-		var treepanelStore = Ext.create('Ext.data.TreeStore',{
-			model: tmpModelName,
-			root: ajaxData.prod_tree_root,
-			proxy: {
-				type: 'memory' ,
-				reader: {
-					type: 'json'
-				}
-			}
-		}) ;
-		treepanelStoreRoot = treepanelStore.getRootNode() ;
+		// Customize prod treeStore for display
+		treepanelStoreRoot = me.treepanelStore.getRootNode() ;
 		var row_sku_idx = 0 ;
 		treepanelStoreRoot.cascadeBy(function(node) {
 			if( node.data.row_is_spec_coef ) {
@@ -420,11 +487,12 @@ Ext.define('Optima5.Modules.Spec.WbBudget.AssortBuildPanel',{
 		var treepanel = {
 			border: false,
 			xtype:'treepanel',
+			itemId: 'pTree',
 			animate: false,
 			useArrows: true,
 			rootVisible: true,
 			cls: 'op5-spec-wbbudget-build-tree',
-			store: treepanelStore,
+			store: me.treepanelStore,
 			plugins: [{
 				ptype: 'bufferedrenderer',
 				leadingBufferZone: 1,
@@ -434,16 +502,21 @@ Ext.define('Optima5.Modules.Spec.WbBudget.AssortBuildPanel',{
 			columns: columns,
 			viewConfig: {
 				getRowClass: function(node) {
-					if( node.get('row_is_spec_coef') ) {
-						return 'op5-spec-wbbudget-build-treerow-coefs' ;
+					if( !node.get('prod_is_sku') ) {
+						return 'op5-spec-wbbudget-assort-cell-nocheckcolumn' ;
 					}
-					
 					var row_sku_idx = node.get('row_sku_idx') || ( node.parentNode ? node.parentNode.get('row_sku_idx') : null ) ;
 					if( row_sku_idx != null ) {
 						var rowClass = '' ;
 						rowClass += ' ' + ( row_sku_idx % 2 == 0 ? 'op5-spec-wbbudget-build-treerow-odd' : 'op5-spec-wbbudget-build-treerow-even' ) ;
 						return rowClass ;
 					}
+				},
+				listeners: {
+					beforerefresh: function(treeview) {
+						this.treeviewAdapter() ;
+					},
+					scope: this
 				}
 			}
 		} ;
@@ -452,6 +525,115 @@ Ext.define('Optima5.Modules.Spec.WbBudget.AssortBuildPanel',{
 		this.add( treepanel ) ;
 		//this.doCalc() ;
 		//this.updateToolbar() ;
+	},
+	treeviewAdapter: function() {
+		var me = this ;
+		
+		var colidx, coldef, colcount = this._ps_storeNodes.length ;
+		
+		this.treepanelStore.getRootNode().cascadeBy( function(node) {
+			if( !node.data.prod_is_sku ) {
+				return ;
+			}
+			var prod_code = node.data.prod_code ;
+			for( colidx=0 ; colidx<colcount ; colidx++ ) {
+				coldef = this._ps_storeNodes[colidx] ;
+				var dataIndex = 'value_'+colidx ;
+				
+				if( typeof this._ps_recordsObj[prod_code][coldef.store_code] === 'undefined' ) {
+					//console.log( prod_code + ' ' + coldef.store_code ) ;
+				}
+				
+				node.set(dataIndex, this._ps_recordsObj[prod_code][coldef.store_code]) ;
+			}
+			node.commit() ;
+		},this);
+		
+	},
+	
+	
+	
+	
+	
+	showLoadmask: function() {
+		if( this.rendered ) {
+			this.doShowLoadmask() ;
+		} else {
+			this.on('afterrender',this.doShowLoadmask,this,{single:true}) ;
+		}
+	},
+	doShowLoadmask: function() {
+		this.loadMask = Ext.create('Ext.LoadMask',{
+			target: this,
+			msg:"Please wait..."
+		}).show();
+	},
+	hideLoadmask: function() {
+		this.un('afterrender',this.doShowLoadmask,this) ;
+		if( this.loadMask ) {
+			this.loadMask.destroy() ;
+			this.loadMask = null ;
+		}
+	},
+	
+	
+	
+	
+	
+	handleSave: function() {
+		//rebuild records
+		var assortRecords = [] ;
+		
+		var tmpObj = {} ;
+		Ext.Object.each( this._ps_recordsObj, function( prodCode, obj1 ) {
+			Ext.Object.each( obj1, function( storeCode, checked ) {
+				if( typeof tmpObj[storeCode] === 'undefined' ) {
+					tmpObj[storeCode] = {} ;
+				}
+				tmpObj[storeCode][prodCode] = checked ;
+			}) ;
+		}) ;
+		
+		var assortRecords = [] ;
+		Ext.Object.each( tmpObj, function( storeCode, obj1 ) {
+			var assortRecord = {
+				crop_year: this.filterCropYear,
+				store_code: storeCode,
+				prods: []
+			} ;
+			Ext.Object.each( obj1, function( prodCode, checked ) {
+				if( typeof tmpObj[storeCode] === 'undefined' ) {
+					tmpObj[storeCode] = {} ;
+				}
+				assortRecord.prods.push({
+					prod_code: prodCode,
+					assort_is_on: checked
+				}) ;
+			}) ;
+			assortRecords.push(assortRecord) ;
+		},this) ;
+		
+		console.dir( assortRecords ) ;
+		
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_wb_budget',
+				_action: 'assortbuild_setRecords',
+				records: Ext.JSON.encode(assortRecords)
+			},
+			success: function(response) {
+				this.hideLoadmask() ;
+				if( Ext.JSON.decode(response.responseText).success != true ) {
+					Ext.MessageBox.alert('Erreur','Impossible de valider le statut.') ;
+					return ;
+				}
+				this.treepanelStore.getRootNode().cascadeBy( function(node) {
+					node.commit() ;
+				}) ;
+			},
+			scope: this
+		}) ;
 	},
 	
 	handleQuit: function() {

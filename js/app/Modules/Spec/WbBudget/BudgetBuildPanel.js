@@ -576,12 +576,19 @@ Ext.define('Optima5.Modules.Spec.WbBudget.BudgetBuildPanel',{
 		}) ;
 		treepanelStoreRoot = treepanelStore.getRootNode() ;
 		var row_sku_idx = 0 ;
+		var nodesToRemove = [] ;
 		treepanelStoreRoot.cascadeBy(function(node) {
 			if( node.data.row_is_spec_coef ) {
 				return ;
 			}
 			node.data.row_is_prod = true ;
 			if( node.data.prod_is_sku ) {
+				var prodCode = node.data.prod_code ;
+				if( !Ext.Array.contains(ajaxData.assort_prods,prodCode) ) {
+					nodesToRemove.push(node) ;
+					return false ;
+				}
+				
 				
 				// TODO: set forecast values
 				
@@ -605,6 +612,19 @@ Ext.define('Optima5.Modules.Spec.WbBudget.BudgetBuildPanel',{
 			} else {
 				//console.dir(node) ;
 				node.data.iconCls = 'treenode-no-icon' ;
+			}
+		}) ;
+		Ext.Array.each( nodesToRemove, function(node) {
+			while(true) {
+				parentNode = node.parentNode ;
+				node.remove() ;
+				node = parentNode ;
+				if( node == null ){
+					break ;
+				}
+				if( node.hasChildNodes() ) {
+					break ;
+				}
 			}
 		}) ;
 		
