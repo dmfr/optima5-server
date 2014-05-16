@@ -98,7 +98,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 					xtype:'combobox',
 					itemId: 'absCombobox',
 					matchFieldWidth:false,
-					listConfig:{width:200},
+					listConfig:{width:250},
 					forceSelection:true,
 					allowBlank:false,
 					editable:false,
@@ -194,7 +194,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 					editor:{
 						xtype:'combobox',
 						matchFieldWidth:false,
-						listConfig:{width:200},
+						listConfig:{width:250},
 						forceSelection:true,
 						allowBlank:false,
 						editable:false,
