@@ -53,6 +53,7 @@ Ext.define('WbMrfoxyPromoModel', {
         {name: 'cost_forecast_fix',   type: 'number'},
         {name: 'cost_forecast_var',   type: 'number'},
         {name: 'cost_real',   type: 'number'},
+        {name: 'cost_real_is_calc',   type: 'boolean'},
         {name: 'obs_atl',   type: 'string'},
         {name: 'obs_btl',   type: 'string'},
         {name: 'obs_comment',   type: 'string'},
@@ -176,6 +177,10 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoBrowserPanel',{
 						text: 'Grid data',
 						iconCls: 'op5-crmbase-datatoolbar-view-grid'
 					},{
+						itemId: 'accruals',
+						text: 'Accruals',
+						iconCls: 'op5-spec-mrfoxy-icon-toolbar-accruals'
+					},{
 						itemId: 'calendar',
 						text: 'Calendar',
 						iconCls: 'op5-crmbase-datatoolbar-view-calendar'
@@ -191,6 +196,12 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoBrowserPanel',{
 					itemId: 'grid',
 					border: false,
 					nbHeadlines: me.nbHeadlines,
+					parentBrowserPanel: me
+				})
+			,
+				Ext.create('Optima5.Modules.Spec.WbMrfoxy.PromoAccrualsSubpanel',{
+					itemId: 'accruals',
+					border: false,
 					parentBrowserPanel: me
 				})
 			,
@@ -314,6 +325,10 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoBrowserPanel',{
 			case 'calendar' :
 				text = 'Calendar' ;
 				iconCls = 'op5-crmbase-datatoolbar-view-calendar' ;
+				break ;
+			case 'accruals' :
+				text = 'Accruals' ;
+				iconCls = 'op5-spec-mrfoxy-icon-toolbar-accruals' ;
 				break ;
 			default:
 				return ;
