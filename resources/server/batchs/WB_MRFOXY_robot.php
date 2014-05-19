@@ -120,7 +120,7 @@ function handleStatusValidation( $row ) {
 	$filerecord_id = $row['_filerecord_id'] ;
 	$arr_update = array() ;
 	if( $row['approv_ds_ok'] && $row['approv_df_ok'] ) {
-		$arr_update['field_STATUS'] = '40_SCHED' ;
+		$arr_update['field_STATUS'] = '30_SCHED' ;
 	} else {
 		$arr_update['field_STATUS'] = '00_REJECTED' ;
 		$arr_update['field_APPROV_DS'] = 0 ;
@@ -142,8 +142,31 @@ function handleStatusValidation( $row ) {
 	
 	mailFactory( $recipients, $subject, $body ) ;
 }
+function handleStatusAppro( $row ) {
+	if( in_array($row['status_code'],array('30_SCHED')) ) {} else return ;
+
+	if( time() >= strtotime($row['date_supply_start']) ) {} else return ;
+	
+	// Adv status
+	$filerecord_id = $row['_filerecord_id'] ;
+	$arr_update = array() ;
+	$arr_update['field_STATUS'] = '40_APPRO' ;
+	paracrm_lib_data_updateRecord_file( 'WORK_PROMO' , $arr_update, $filerecord_id ) ;
+	
+	$recipients = findRecipients($row['country_code'], array('CS','PM')) ;
+	
+	$subject = '# '.$row['promo_id'].' : Appro begins' ;
+	
+	$body.= "Notification : Promotion # {$row['promo_id']} begins\r\n" ;
+	$body.= "\r\n" ;
+	$body.= "Find below details of current promotion:\r\n" ;
+	$body.= "\r\n" ;
+	$body.= getPromoDesc($row) ;
+	
+	mailFactory( $recipients, $subject, $body ) ;
+}
 function handleStatusBegin( $row ) {
-	if( in_array($row['status_code'],array('40_SCHED')) ) {} else return ;
+	if( in_array($row['status_code'],array('30_SCHED','40_APPRO')) ) {} else return ;
 
 	if( time() >= strtotime($row['date_start']) ) {} else return ;
 	
