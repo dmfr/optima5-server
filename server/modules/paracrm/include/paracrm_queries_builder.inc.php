@@ -484,6 +484,7 @@ function paracrm_queries_builderTransaction_getTreeFields( &$arr_saisie )
 					$field['bible_code'] = $linkbible ;
 					$field['bible_type'] = $selectmap['link_bible_type'] ;
 					$field['bible_field_code'] = $selectmap['link_bible_field'] ;
+					$field['bible_field_iskey'] = $selectmap['link_bible_is_key'] ;
 					$json_field_bible['children'][] = $field ;
 				}
 				

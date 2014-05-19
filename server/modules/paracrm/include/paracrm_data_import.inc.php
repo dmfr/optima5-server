@@ -144,6 +144,7 @@ function paracrm_data_importTransaction_init( $post_data, &$arr_saisie ) {
 				$field['bible_code'] = $bible_code ;
 				$field['bible_type'] = 'tree' ;
 				$field['bible_field_code'] = $arr['tree_field_code'] ;
+				$field['bible_field_iskey'] = ($arr['entry_field_is_key']=='O')?true:false ;
 				$field['leaf'] = true ;
 				$arr_tree_fields[] = $field ;
 			}
@@ -170,6 +171,7 @@ function paracrm_data_importTransaction_init( $post_data, &$arr_saisie ) {
 				$field['bible_code'] = $bible_code ;
 				$field['bible_type'] = 'entry' ;
 				$field['bible_field_code'] = $arr['entry_field_code'] ;
+				$field['bible_field_iskey'] = ($arr['entry_field_is_key']=='O')?true:false ;
 				$field['leaf'] = true ;
 				$arr_entry_fields[] = $field ;
 			}
@@ -401,7 +403,10 @@ function paracrm_data_importTransaction_doCommit( $post_data, &$arr_saisie ) {
 					if( !isset($tarr_bibleCode_tOrF[$bible_code]) ) {
 						$tarr_bibleCode_tOrF[$bible_code] = FALSE ;
 					}
-					if( $field_dico['bible_type'] == 'entry' ) {
+					if( $field_dico['bible_type'] == 'entry' && $field_dico['field_linktype'] == 'entry' ) {
+						$tarr_bibleCode_tOrF[$bible_code] = TRUE ;
+					}
+					if( $field_dico['bible_type'] == 'tree' && $field_dico['field_linktype'] == 'treenode' ) {
 						$tarr_bibleCode_tOrF[$bible_code] = TRUE ;
 					}
 				}
@@ -463,118 +468,245 @@ function paracrm_data_importTransaction_doCommit( $post_data, &$arr_saisie ) {
 	while( !feof($fp) ){
 		$arr_csv = fgetcsv($fp,0,$delimiter) ;
 		
-		$arr_ins = array() ;
+		$arr_srcLig = array() ;
 		foreach( $map_fieldCode_csvsrcIdx as $fieldCode => $sIdx ) {
-			$arr_ins[$fieldCode] = $arr_csv[$sIdx] ;
+			$arr_srcLig[$fieldCode] = $arr_csv[$sIdx] ;
 		}
 		
-		paracrm_data_importTransaction_doCommit_processNode($arr_saisie['treefields_root'],$arr_ins) ;
-		echo "\n\n\n" ;
+		paracrm_data_importTransaction_doCommit_processNode($arr_saisie['treefields_root'],$arr_srcLig) ;
 	}
 	fclose($fp) ;
-	
-	
 	
 	return array('success'=>true) ;
 }
 
-function paracrm_data_importTransaction_doCommit_processNode( $treefields_node, $arr_data ) {
-	
-	if( $treefields_node['leaf'] ) {
-		echo "ERR" ;
+
+function paracrm_data_importTransaction_doCommit_processNode( $treefields_node, $arr_srcLig ) {
+	if( !$treefields_node['root'] ) {
+		return ;
 	}
-	
-	
-	$arr_insert_bible = $arr_insert_file = array() ;
+	$filerecord_id = 0 ;
+	$treenode_key = '' ;
 	foreach( $treefields_node['children'] as $directChild ) {
-		if( $directChild['leaf'] ) {
-			$field_code = $directChild['field_code'] ;
-			if( !isset($arr_data[$field_code]) ) {
-				continue ;
+		if( isset($directChild['file_code']) ) {
+			$filerecord_id = paracrm_data_importTransaction_doCommit_processNode_file( $directChild, $arr_srcLig, $filerecord_id );
+			continue ;
+		}
+		if( isset($directChild['bible_code']) ) {
+			$arr_return = paracrm_data_importTransaction_doCommit_processNode_bible( $directChild, $arr_srcLig, $treenode_key );
+			if( isset($arr_return['treenode_key']) ) {
+				$treenode_key = $arr_return['treenode_key'] ;
 			}
-			$leaf_value = $arr_data[$field_code] ;
-		
-			if( $directChild['file_code'] && $directChild['field_linkbible'] ) {
-				// mode import File : link bible
-				$bible_type = $directChild['bible_type'] ;
-				$bible_field_code = 'field_'.$directChild['bible_field_code'] ;
-				$arr_insert_bible[$bible_type][$bible_field_code] = $leaf_value ;
-				continue ;
+			continue ;
+		}
+		echo "??pN??" ;
+	}
+}
+function paracrm_data_importTransaction_doCommit_processNode_file( $treefields_node, $arr_srcLig, $filerecord_parent_id=0 ) {
+	if( $treefields_node['leaf'] ) {
+		return NULL ;
+	}
+	if( !$treefields_node['file_code'] ) {
+		return NULL ;
+	}
+	$file_code = $treefields_node['file_code'] ;
+	
+	foreach( $treefields_node['children'] as $directChild ) {
+		$field = $directChild['field_code'] ;
+		$file_field_code = $directChild['file_field_code'] ;
+		if( $directChild['field_linktype'] && $directChild['field_linkbible'] ) {
+			$arr_return = paracrm_data_importTransaction_doCommit_processNode_bible( $directChild, $arr_srcLig ) ;
+			switch( $directChild['field_linktype'] ) {
+				case 'treenode' :
+					$value = $arr_return['treenode_key'] ;
+					break ;
+				case 'entry' :
+					$value = $arr_return['entry_key'] ;
+					break ;
 			}
-			
-			if( $directChild['file_code'] && $directChild['file_field_code'] ) {
-				// mode import File : file field
-				$file_field_code = 'field_'.$directChild['file_field_code'] ;
-				$arr_insert_file[$file_field_code] = $leaf_value ;
-				continue ;
-			}
-			
-			if( $directChild['bible_code'] && $directChild['bible_type'] && $directChild['bible_field_code'] ) {
-				// mode import Bible
-				$bible_type = $directChild['bible_type'] ;
-				$bible_field_code = 'field_'.$directChild['bible_field_code'] ;
-				$arr_insert_bible[$bible_type][$bible_field_code] = $leaf_value ;
-				continue ;
-			}
-			
+			$arr_insert_file[$file_field_code] = $value ;
 			continue ;
 		}
 		
-		
-		$return_value = paracrm_data_importTransaction_doCommit_processNode($directChild,$arr_data) ;
-		if( $directChild['file_code'] && !$directChild['file_field_code'] ) {
-			// File record
-			$filerecord_id = $return_value ;
-		} elseif( $directChild['file_code'] && $directChild['field_linkbible'] ) {
-			// Bible treenode_key / entry_key
-			switch( $directChild['field_linktype'] ) {
-				case 'entry' :
-					$entry_key = $return_value ;
-					break ;
-				
-				case 'tree' :
-					$treenode_key = $return_value ;
-					break ;
-			}
+		if( !$directChild['leaf'] ) {
+			echo "??pN_f??" ;
+			continue ;
 		}
+		
+		switch( $directChild['field_type'] ) {
+			case 'date' :
+				$leaf_value = date('Y-m-d H:i:s',strtotime($arr_srcLig[$field])) ;
+				break ;
+				
+			default :
+				$leaf_value = $arr_srcLig[$field] ;
+				break ;	
+		}
+		$arr_insert_file[$file_field_code] = $leaf_value ;
 	}
 	
-	
-	/*
-	**** Stockage du record ****
-	*/
-	if( $treefields_node['root'] ) {
-		return ;
-	} elseif( $treefields_node['file_code'] && $treefields_node['field_linkbible'] ) {
-		// cas tree(+entry) en 1 passe 
-		switch( $treefields_node['field_linktype'] ) {
-			case 'entry' :
-				
-				return $entry_key ;
-			
-			case 'tree' :
-			
-				return $treenode_key ;
-		}
-	} elseif( $treefields_node['bible_code'] ) {
-		switch( $treefields_node['bible_type'] ) {
-			case 'tree' :
-				
-				return $treenode_key ;
-		
-			case 'entry' :
-				
-				return $entry_key ;
-		}
-	} elseif( $treefields_node['file_code'] ) {
-		
+	$arr_ins = array() ;
+	foreach( $arr_insert_file as $file_field_code => $value ) {
+		$mkey = 'field_'.$file_field_code ;
+		$arr_ins[$mkey] = $value ;
 	}
-	
-	
-	/*
-	$head = $treefields_node ;
-	unset($head['children']) ;
-	print_r($head) ;
-	*/
+	return paracrm_lib_data_insertRecord_file( $file_code , $filerecord_parent_id , $arr_ins ) ;
 }
+function paracrm_data_importTransaction_doCommit_processNode_bible( $treefields_node, $arr_srcLig, $treenode_parent_key='' ) {
+	if( $treefields_node['leaf'] ) {
+		return NULL ;
+	}
+	if( !$treefields_node['bible_code'] ) {
+		return NULL ;
+	}
+	$bible_code = $treefields_node['bible_code'] ;
+	
+	// separation des champs tree - entry
+	 // => appel func
+	$has_treenode = $has_entry = FALSE ;
+	$indexed_fields_tree = array() ;
+	$indexed_fields_entry = array() ;
+	foreach( $treefields_node['children'] as $directChild ) {
+		$field = $directChild['field_code'] ;
+		switch( $directChild['bible_type'] ) {
+			case 'tree' :
+				$indexed_fields_tree[$field] = $directChild ;
+				if( isset($arr_srcLig[$field]) ) {
+					$has_treenode = TRUE ;
+				}
+				break ;
+			case 'entry' :
+				$indexed_fields_entry[$field] = $directChild ;
+				if( isset($arr_srcLig[$field]) ) {
+					$has_entry = TRUE ;
+				}
+				break ;
+			default :
+				echo "??pN_b??" ;
+				break ;
+		}
+	}
+	
+	$arr_return = array() ;
+	if( $has_treenode ) {
+		$arr_return['treenode_key'] = paracrm_data_importTransaction_doCommit_insertBibleTreenode($bible_code, $treenode_parent_key, $indexed_fields_tree,$arr_srcLig) ;
+	}
+	if( $has_entry ) {
+		$treenode_key = ( isset($arr_return['treenode_key']) ? $arr_return['treenode_key'] : $treenode_parent_key ) ;
+		$arr_return['entry_key'] = paracrm_data_importTransaction_doCommit_insertBibleEntry($bible_code, $treenode_key, $indexed_fields_entry, $arr_srcLig) ;
+	}
+	return $arr_return ;
+}
+function paracrm_data_importTransaction_doCommit_insertBibleTreenode( $bible_code, $treenode_parent_key, $indexed_fields, $arr_srcLig ) {
+	$key_field = NULL ;
+	$key_value = NULL ;
+	
+	foreach( $indexed_fields as $t_fielddesc ) {
+		$field = $t_fielddesc['field_code'] ;
+		if( $t_fielddesc['bible_field_iskey'] ) {
+			$key_field = $t_fielddesc['bible_field_code'] ;
+		}
+		if( !$arr_srcLig[$field] ) {
+			continue ;
+		}
+		if( $t_fielddesc['bible_field_iskey'] ) {
+			$key_value = $arr_srcLig[$field] ;
+		}
+		
+		$bible_field_code = $t_fielddesc['bible_field_code'] ;
+		$arr_insert_bible[$bible_field_code] = $arr_srcLig[$field] ;
+	}
+	
+	if( $key_value===NULL ) {
+		if( count($arr_insert_bible) == 0 ) {
+			return ;
+		}
+		// Guess key
+		$view = 'view_bible_'.$bible_code.'_tree' ;
+		$query = "SELECT treenode_key FROM $view WHERE 1" ;
+		foreach( $arr_insert_bible as $bible_field_code => $mvalue ) {
+			$query.= " AND field_{$bible_field_code}='{$mvalue}'" ;
+		}
+		$treenode_key = $_opDB->query_uniqueValue($query) ;
+		if( !$treenode_key ) {
+			$treenode_key = md5(implode('+',$arr_insert_bible)) ;
+		}
+		$arr_insert_bible[$key_field] = $treenode_key ;
+	} else {
+		$treenode_key = $key_value ;
+	}
+	
+	$arr_ins = array() ;
+	foreach( $arr_insert_bible as $bible_field_code => $value ) {
+		$mkey = 'field_'.$bible_field_code ;
+		$arr_ins[$mkey] = $value ;
+	}
+	
+	if( paracrm_lib_data_getRecord_bibleTreenode( $bible_code, $treenode_key ) ) {
+		paracrm_lib_data_updateRecord_bibleTreenode( $bible_code, $treenode_key, $arr_ins );
+		if( $treenode_parent_key ) {
+			paracrm_lib_data_bibleAssignParentTreenode( $bible_code, $treenode_key, $treenode_parent_key ) ;
+		}
+	} else {
+		paracrm_lib_data_insertRecord_bibleTreenode( $bible_code, $treenode_key, $treenode_parent_key, $arr_ins ) ;
+	}
+	return $treenode_key ;
+}
+function paracrm_data_importTransaction_doCommit_insertBibleEntry( $bible_code, $treenode_key, $indexed_fields, $arr_srcLig ) {
+	$key_field = NULL ;
+	$key_value = NULL ;
+	
+	foreach( $indexed_fields as $t_fielddesc ) {
+		$field = $t_fielddesc['field_code'] ;
+		if( $t_fielddesc['bible_field_iskey'] ) {
+			$key_field = $t_fielddesc['bible_field_code'] ;
+		}
+		if( !$arr_srcLig[$field] ) {
+			continue ;
+		}
+		if( $t_fielddesc['bible_field_iskey'] ) {
+			$key_value = $arr_srcLig[$field] ;
+		}
+		
+		$bible_field_code = $t_fielddesc['bible_field_code'] ;
+		$arr_insert_bible[$bible_field_code] = $arr_srcLig[$field] ;
+	}
+	
+	if( $key_value===NULL ) {
+		if( count($arr_insert_bible) == 0 ) {
+			return ;
+		}
+		// Guess key
+		$view = 'view_bible_'.$bible_code.'_entry' ;
+		$query = "SELECT entry_key FROM $view WHERE 1" ;
+		foreach( $arr_insert_bible as $bible_field_code => $mvalue ) {
+			$query.= " AND field_{$bible_field_code}='{$mvalue}'" ;
+		}
+		$entry_key = $_opDB->query_uniqueValue($query) ;
+		if( !$entry_key ) {
+			$entry_key = md5(implode('+',$arr_insert_bible)) ;
+		}
+		$arr_insert_bible[$key_field] = $entry_key ;
+	} else {
+		$entry_key = $key_value ;
+	}
+	
+	$arr_ins = array() ;
+	foreach( $arr_insert_bible as $bible_field_code => $value ) {
+		$mkey = 'field_'.$bible_field_code ;
+		$arr_ins[$mkey] = $value ;
+	}
+	
+	if( paracrm_lib_data_getRecord_bibleEntry( $bible_code, $entry_key ) ) {
+		paracrm_lib_data_updateRecord_bibleEntry( $bible_code, $entry_key, $arr_ins );
+		if( $treenode_key ) {
+			paracrm_lib_data_bibleAssignTreenode( $bible_code, $entry_key, $treenode_key ) ;
+		}
+	} else {
+		paracrm_lib_data_insertRecord_bibleEntry( $bible_code, $entry_key, $treenode_key, $arr_ins );
+	}
+	return $entry_key ;
+}
+
+
 ?>

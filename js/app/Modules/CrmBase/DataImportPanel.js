@@ -550,6 +550,7 @@ Ext.define('Optima5.Modules.CrmBase.DataImportPanel' ,{
 		
 		var msgbox = Ext.Msg.wait('Import in progress...');
 		me.optimaModule.getConfiguredAjaxConnection().request({
+			timeout: (300 * 1000),
 			params: ajaxParams ,
 			success: function( response ) {
 				msgbox.close();
@@ -557,8 +558,8 @@ Ext.define('Optima5.Modules.CrmBase.DataImportPanel' ,{
 				if( ajaxResponse.success ) {
 					me.optimaModule.postCrmEvent('datachange',{
 						dataType: me.parentDataWindow.dataType,
-						bibleId: me.parentDataWindow.fileId,
-						fileId: me.parentDataWindow.bibleId
+						bibleId: me.parentDataWindow.bibleId,
+						fileId: me.parentDataWindow.fileId
 					});
 					me.destroy() ;
 				} else {

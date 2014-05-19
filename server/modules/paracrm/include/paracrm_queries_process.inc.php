@@ -2952,7 +2952,7 @@ function paracrm_queries_process_linearTreefields( $arr_node )
 			$row['field_linktype'] = $arr_node['field_linktype'] ;
 			$row['field_linkbible'] = $arr_node['field_linkbible'] ;
 		}
-		foreach( array('file_code','file_field_code','bible_code','bible_type','bible_field_code') as $mkey )
+		foreach( array('file_code','file_field_code','bible_code','bible_type','bible_field_code','bible_field_iskey') as $mkey )
 			$row[$mkey] = $arr_node[$mkey] ;
 		$tab[$arr_node['field_code']] = $row ;
 	}
