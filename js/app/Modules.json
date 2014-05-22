@@ -64,6 +64,16 @@
 		"params": []
 	},{
 		"enabled":true,
+		"moduleId":"spec_wb_sales",
+		"backendModuleId":"crmbase",
+		"parentModuleId":"crmbase",
+		"moduleName":"(Wonderful) Sales",
+		"moduleClass":"Optima5.Modules.Spec.WbSales.WbSalesModule",
+		"moduleCssSrc":"module-spec_wb_sales.css",
+		"moduleType":"sdomain",
+		"params": []
+	},{
+		"enabled":true,
 		"moduleId":"spec_dbs_people",
 		"backendModuleId":"crmbase",
 		"parentModuleId":"crmbase",
