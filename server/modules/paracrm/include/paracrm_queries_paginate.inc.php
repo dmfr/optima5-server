@@ -381,16 +381,23 @@ function paracrm_queries_paginate_getGroupKey( &$RES, $group_desc )
 
 function paracrm_queries_paginate_buildTree( $grid_data ) {
 	// sort/index all nodes per parent
-	$arr_parentId_nodes = array() ;
+	$arr_id_parentId = array() ;
+	$arr_parentIds_root = array() ;
 	foreach( $grid_data as $grid_row ) {
+		$arr_parentIds_root[$grid_row['_parent_id']] = true ;
+	}
+	foreach( $grid_data as $grid_row ) {
+		unset($arr_parentIds_root[$grid_row['_id']]) ;
+		
 		$row_parent_id = $grid_row['_parent_id'] ;
 		if( !isset($arr_parentId_nodes[$row_parent_id]) ) {
 			$arr_parentId_nodes[$row_parent_id] = array() ;
 		}
 		$arr_parentId_nodes[$row_parent_id][] = $grid_row ;
 	}
+	$first_parent = ( count($arr_parentIds_root) == 1 ? key($arr_parentIds_root) : '' ) ;
 
-	return array('expanded'=>TRUE,'children'=>paracrm_queries_paginate_buildTree_call($arr_parentId_nodes,'')) ;
+	return array('expanded'=>TRUE,'children'=>paracrm_queries_paginate_buildTree_call($arr_parentId_nodes,$first_parent)) ;
 }
 function paracrm_queries_paginate_buildTree_call( $arr_parentId_nodes, $parent_id ) {
 	$arr = array() ;

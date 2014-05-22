@@ -2220,7 +2220,7 @@ function paracrm_queries_process_query_iterationDo( $arr_saisie, $iteration_chai
 		
 		$RES_selectId_group_arr_arrSymbolValue = array() ;
 		$doCount = $doValue = FALSE ;
-		foreach( $arr_saisie['fields_select'] as $select_id => &$dummy ) {
+		foreach( $arr_saisie['fields_select'] as $select_id => $dummy ) {
 			switch( $arr_saisie['fields_select'][$select_id]['iteration_mode'] ) {
 				case 'count' :
 					$doCount = TRUE ;
@@ -2325,8 +2325,6 @@ function paracrm_queries_process_query_doValue( $arr_saisie, $target_fileCode, $
 		
 		$arr_groupKeyId = paracrm_queries_process_queryHelp_group( $row_group, $arr_saisie['fields_group'] ) ;
 		
-		// TODO: cleaner join arch (EDIT 14-04-13 : conditional join)
-		$join_done = FALSE ;
 		foreach( $arr_saisie['fields_select'] as $select_id => $field_select ) {
 			if( $field_select['iteration_mode'] != 'value' ) {
 				continue ;
@@ -3023,7 +3021,7 @@ function paracrm_queries_process_labels_withTabs( $arr_saisie, $groupId_forTab )
 				}
 			}
 		}
-	foreach( paracrm_queries_process_labelEnum( $group_id, $field_group_tab, $tabBibleConditions ) as $bible_key => $cells_display )
+	foreach( paracrm_queries_process_labelEnum( $groupId_forTab, $field_group_tab, $tabBibleConditions ) as $bible_key => $cells_display )
 	{
 		$subRES_tab = array() ;
 		$subRES_tab['map_selectId_lib'] = $map_selectId_lib ;
