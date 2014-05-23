@@ -2031,30 +2031,34 @@ function paracrm_queries_process_query_iteration( $arr_saisie )
 		// new 14-05-22 : mode exclusif VALUES
 		// - mode linéaire ie. pas de chaine d'itération parent>child
 		// => 1 seule requête SQL
-		$RES_selectId_group_arr_arrSymbolValue = paracrm_queries_process_query_onePassValues( $arr_saisie ) ;
-	} else {
-		// mode classique 2012
-		// - chaine d'iteration parent > child
+		$RES_groupKeyId_selectId_value = paracrm_queries_process_query_onePassValues( $arr_saisie ) ;
+		return $RES_groupKeyId_selectId_value ;
+	} 
 	
-		$arr_chain = array() ;
-		$cur_target = $arr_saisie['target_file_code'] ;
-		while(TRUE)
-		{
-			$arr_chain[] = $cur_target ;
-			
-			$query = "SELECT file_parent_code FROM define_file WHERE file_code='$cur_target'" ;
-			$tmp = $_opDB->query_uniqueValue($query);
-			if( !$tmp )
-			{
-				break ;
-			}
-			$cur_target = $tmp ;
-			continue ;
-		}
-		$arr_chain = array_reverse($arr_chain) ;
+	
+	
+	
+	// mode classique 2012
+	// - chaine d'iteration parent > child
+	$arr_chain = array() ;
+	$cur_target = $arr_saisie['target_file_code'] ;
+	while(TRUE)
+	{
+		$arr_chain[] = $cur_target ;
 		
-		$RES_selectId_group_arr_arrSymbolValue = paracrm_queries_process_query_iterationDo( $arr_saisie, $arr_chain, 0, array(), NULL, NULL ) ;
+		$query = "SELECT file_parent_code FROM define_file WHERE file_code='$cur_target'" ;
+		$tmp = $_opDB->query_uniqueValue($query);
+		if( !$tmp )
+		{
+			break ;
+		}
+		$cur_target = $tmp ;
+		continue ;
 	}
+	$arr_chain = array_reverse($arr_chain) ;
+	
+	$RES_selectId_group_arr_arrSymbolValue = paracrm_queries_process_query_iterationDo( $arr_saisie, $arr_chain, 0, array(), NULL, NULL ) ;
+
 	
 	//$RES_group_value = array() ; // return value @OBSOLETE
 	$RES_group_selectId_value = array() ;
@@ -2237,9 +2241,10 @@ function paracrm_queries_process_query_onePassValues( $arr_saisie ) {
 	global $_opDB ;
 	global $arr_bible_trees , $arr_bible_entries, $arr_bible_treenodes ;
 	
-	// Tab resultat vide
+	// Prep Tabs resultat vide
 	foreach( $arr_saisie['fields_select'] as $select_id => $dummy ) {
-		$RES_selectId_group_arr_arrSymbolValue[$select_id] = array() ;
+		$resOUT_selectId_groupKeyId[$select_id] = array() ;
+		$resIN_selectId_groupKeyIds_symbolId[$select_id] = array() ;
 	}
 	
 	// Construction de la requête :
@@ -2296,6 +2301,8 @@ function paracrm_queries_process_query_onePassValues( $arr_saisie ) {
 	
 	$result = $_opDB->query($query) ;
 	
+	$_resCount = 0 ;
+	
 	$iter_fileCode_recordId = array() ;
 	$iter_fileCode_whereBoolean = array() ;
 	$row_group = array() ;
@@ -2329,12 +2336,14 @@ function paracrm_queries_process_query_onePassValues( $arr_saisie ) {
 		
 		$arr_groupKeyId = paracrm_queries_process_queryHelp_group( $row_group, $arr_saisie['fields_group'] ) ;
 		
+		$_resCount++ ;
+		
 		foreach( $arr_saisie['fields_select'] as $select_id => $field_select ) {
 			if( $field_select['iteration_mode'] != 'value' ) {
 				continue ;
 			}
 			
-			$subRES_group_symbol_value = array() ;
+			$subResIN_symbol_value = array() ;
 			// iteration sur les symboles
 			foreach( $field_select['math_expression'] as $symbol_id => $symbol )
 			{
@@ -2370,32 +2379,73 @@ function paracrm_queries_process_query_onePassValues( $arr_saisie ) {
 							$eval_value = $arr_bible_entries[$symbol['sql_bible_code']][$entry_key][$symbol['sql_bible_field_code']] ;
 							break ;
 					}
-					foreach( $arr_groupKeyId as $group_key_id ) {
-						$subRES_group_symbol_value[$group_key_id][$symbol_id] = $eval_value ;
-					}
+					$subResIN_symbol_value[$symbol_id] = $eval_value ;
 				}
 				else {
 					// field of cursor file record : standard
-					foreach( $arr_groupKeyId as $group_key_id ) {
-						$subRES_group_symbol_value[$group_key_id][$symbol_id] = $row_group[$file_code][$file_field_code] ;
-					}
+					$subResIN_symbol_value[$symbol_id] = $row_group[$file_code][$file_field_code] ;
 				}
 			}
 			
-			foreach( $subRES_group_symbol_value as $group_key_id => $subSubRES_symbol_value )
-			{
-				/* En mode VALUE :
-					Pour chaque groupe on retourne plusieurs valeurs (principe de l'empilage valeurs)
-					l'opération est effectuée une seule fois par groupe à la fin
-				*/
-				if( !isset($RES_selectId_group_arr_arrSymbolValue[$select_id][$group_key_id]) )
-					$RES_selectId_group_arr_arrSymbolValue[$select_id][$group_key_id] = array() ;
-				$RES_selectId_group_arr_arrSymbolValue[$select_id][$group_key_id][] = $subSubRES_symbol_value ;
+			
+			if( $field_select['math_func_mode'] == 'IN' ) {
+				foreach( $arr_groupKeyId as $group_key_id ) {
+					foreach( $subResIN_symbol_value as $symbol_id => $value ) {
+						paracrm_queries_process_queryHelp_bankResValue( 
+							$field_select['math_func_group'],
+							$resIN_selectId_groupKeyIds_symbolId[$select_id][$group_key_id][$symbol_id],
+							$value
+						);
+					}
+				}
+			} else {
+				$subResOUT_value = paracrm_queries_process_queryHelp_evalMathExpression( $field_select['math_expression'], $subResIN_symbol_value ) ;
+				if( $subResOUT_value===FALSE ) {
+					continue ;
+				}
+				
+				foreach( $arr_groupKeyId as $group_key_id ) {
+					paracrm_queries_process_queryHelp_bankResValue( 
+						$field_select['math_func_group'],
+						$resOUT_selectId_groupKeyId[$select_id][$group_key_id],
+						$subResOUT_value
+					);
+				}
 			}
 		}
 	}
 	
-	return $RES_selectId_group_arr_arrSymbolValue ;
+	
+	$RES_groupKeyId_selectId_value = array() ;
+	foreach( $arr_saisie['fields_select'] as $select_id => $field_select ) {
+		if( $field_select['math_func_mode'] == 'IN' ) {
+			foreach( $resIN_selectId_groupKeyIds_symbolId[$select_id] as $group_key_id => $subResIN_symbol_value ) {
+				if( $field_select['math_func_group'] == 'AVG' ) {
+					foreach( $subResIN_symbol_value as $symbol_id => $value ) {
+						$subResIN_symbol_value[$symbol_id] = $value / $_resCount ;
+					}
+				}
+				$eval_value = paracrm_queries_process_queryHelp_evalMathExpression( $field_select['math_expression'], $subResIN_symbol_value ) ;
+				if( !($eval_value===FALSE) ) {
+					$RES_groupKeyId_selectId_value[$group_key_id][$select_id] = $eval_value ;
+				}
+			}
+		} else {
+			foreach( $resOUT_selectId_groupKeyId[$select_id] as $group_key_id => $subResOUT_value ) {
+				switch( $field_select['math_func_group'] )
+				{
+					case 'AVG' :
+						$RES_groupKeyId_selectId_value[$group_key_id][$select_id] = $subResOUT_value / $_resCount ;
+						break ;
+					default :
+						$RES_groupKeyId_selectId_value[$group_key_id][$select_id] = $subResOUT_value ;
+						break ;
+				}
+			}
+		}
+	}
+	
+	return $RES_groupKeyId_selectId_value ;
 }
 
 function paracrm_queries_process_query_iterationDo( $arr_saisie, $iteration_chain, $iteration_chain_offset, $base_row, $parent_fileCode, $parent_filerecordId )
@@ -2711,6 +2761,56 @@ function paracrm_queries_process_query_doCount( $arr_saisie, $target_fileCode, $
 	}
 	
 	return $subRes_selectId_group_arr_arrSymbolValue ;
+}
+
+function paracrm_queries_process_queryHelp_evalMathExpression( $math_expression, $arr_symbolId_value ) {
+	$eval_expression = '' ;
+	foreach( $math_expression as $symbol_id => $symbol )
+	{
+		$eval_expression.= $symbol['math_operation'] ;
+		
+		if( $symbol['math_parenthese_in'] )
+			$eval_expression.= '(' ;
+			
+		if( $symbol['math_staticvalue'] != 0 )
+			$value = (float)($symbol['math_staticvalue']) ;
+		elseif( isset($arr_symbolId_value[$symbol_id]) )
+			$value = $arr_symbolId_value[$symbol_id] ;
+		else
+			$value = 0 ;
+		$eval_expression.= $value ;
+		
+		if( $symbol['math_parenthese_out'] )
+			$eval_expression.= ')' ;
+	}
+	@eval( '$eval_value = ('.$eval_expression.') ;' ) ;
+	return $eval_value ;
+}
+function paracrm_queries_process_queryHelp_bankResValue( $math_func, &$sum_value, $new_value ) {
+	switch( $math_func ) {
+		case 'AVG' :
+		case 'SUM' :
+			$sum_value += $new_value ;
+			break ;
+		
+		case 'MIN':
+		case 'MAX':
+			if( $sum_value === NULL ) {
+				$sum_value = $new_value ;
+			} else {
+				if( $field_select['math_func_group'] == 'MIN' ) {
+					$sum_value = min($sum_value,$new_value) ;
+				}
+				if( $field_select['math_func_group'] == 'MAX' ) {
+					$sum_value = max($sum_value,$new_value) ;
+				}
+			}
+			break ;
+		
+		default :
+			$sum_value = NULL ;
+			break ;
+	}
 }
 
 function paracrm_queries_process_queryHelp_getWhereSqlPrefilter( $target_fileCode, $fields_where, $sqlTableAlias=NULL ) {
