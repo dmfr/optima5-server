@@ -2013,26 +2013,48 @@ function paracrm_queries_process_query_iteration( $arr_saisie )
 	// => remise à zéro du cache WHERE
 	$GLOBALS['cache_queryWhereUnique'] = array() ;
 
-	// trouver la chaine d'iteration
-	$arr_chain = array() ;
-	$cur_target = $arr_saisie['target_file_code'] ;
-	while(TRUE)
-	{
-		$arr_chain[] = $cur_target ;
-		
-		$query = "SELECT file_parent_code FROM define_file WHERE file_code='$cur_target'" ;
-		$tmp = $_opDB->query_uniqueValue($query);
-		if( !$tmp )
-		{
-			break ;
+	
+	// Mode de calcul COUNT / VALUE
+	$doCount = $doValue = FALSE ;
+	foreach( $arr_saisie['fields_select'] as $select_id => &$dummy ) {
+		switch( $arr_saisie['fields_select'][$select_id]['iteration_mode'] ) {
+			case 'count' :
+				$doCount = TRUE ;
+				break ;
+			case 'value' :
+				$doValue = TRUE ;
+				break ;
 		}
-		$cur_target = $tmp ;
-		continue ;
 	}
-	$arr_chain = array_reverse($arr_chain) ;
 	
+	if( $doValue && !$doCount ) {
+		// new 14-05-22 : mode exclusif VALUES
+		// - mode linéaire ie. pas de chaine d'itération parent>child
+		// => 1 seule requête SQL
+		$RES_selectId_group_arr_arrSymbolValue = paracrm_queries_process_query_onePassValues( $arr_saisie ) ;
+	} else {
+		// mode classique 2012
+		// - chaine d'iteration parent > child
 	
-	$RES_selectId_group_arr_arrSymbolValue = paracrm_queries_process_query_iterationDo( $arr_saisie, $arr_chain, 0, array(), NULL, NULL ) ;
+		$arr_chain = array() ;
+		$cur_target = $arr_saisie['target_file_code'] ;
+		while(TRUE)
+		{
+			$arr_chain[] = $cur_target ;
+			
+			$query = "SELECT file_parent_code FROM define_file WHERE file_code='$cur_target'" ;
+			$tmp = $_opDB->query_uniqueValue($query);
+			if( !$tmp )
+			{
+				break ;
+			}
+			$cur_target = $tmp ;
+			continue ;
+		}
+		$arr_chain = array_reverse($arr_chain) ;
+		
+		$RES_selectId_group_arr_arrSymbolValue = paracrm_queries_process_query_iterationDo( $arr_saisie, $arr_chain, 0, array(), NULL, NULL ) ;
+	}
 	
 	//$RES_group_value = array() ; // return value @OBSOLETE
 	$RES_group_selectId_value = array() ;
@@ -2210,6 +2232,172 @@ function paracrm_queries_process_query_iteration( $arr_saisie )
 	}
 	return $RES_group_selectId_value ;
 }
+
+function paracrm_queries_process_query_onePassValues( $arr_saisie ) {
+	global $_opDB ;
+	global $arr_bible_trees , $arr_bible_entries, $arr_bible_treenodes ;
+	
+	// Tab resultat vide
+	foreach( $arr_saisie['fields_select'] as $select_id => $dummy ) {
+		$RES_selectId_group_arr_arrSymbolValue[$select_id] = array() ;
+	}
+	
+	// Construction de la requête :
+	$target_file_code = $arr_saisie['target_file_code'] ;
+	
+	$t_sqlView = "view_file_{$target_file_code}" ;
+	$t_sqlViewFields = $_opDB->table_fields( $t_sqlView ) ;
+	$sqlQ_select = "SELECT t0.*" ;
+	$sqlQ_from = "FROM {$t_sqlView} t0" ;
+	$sqlQ_orderReverse = array("t0.filerecord_id") ;
+	$selectMap = array() ;
+	$selectMap[$target_file_code] = array(
+		'file_code' => $target_file_code ,
+		'select_offset' => 0 ,
+		'sql_prefix' => 't0' ,
+		'sql_fields' => $t_sqlViewFields
+	);
+	$next_offset = count($t_sqlViewFields) ;
+	$previousIdx = 0 ;
+	$previousFilecode = $target_file_code ;
+	while(TRUE) {
+		$query = "SELECT file_parent_code FROM define_file WHERE file_code='$previousFilecode'" ;
+		if( !($parent_fileCode = $_opDB->query_uniqueValue($query)) ) {
+			break ;
+		}
+		$parentIdx = $previousIdx + 1 ;
+		
+		$t_sqlView = "view_file_{$parent_fileCode}" ;
+		$t_sqlViewFields = $_opDB->table_fields( $t_sqlView ) ;
+		
+		$sqlQ_select.= ",t{$parentIdx}.*" ;
+		$sqlQ_from.= " "."JOIN {$t_sqlView} t{$parentIdx} ON t{$parentIdx}.filerecord_id = t{$previousIdx}.filerecord_parent_id" ;
+		$sqlQ_orderReverse[] = "t{$parentIdx}.filerecord_id" ;
+		$selectMap[$parent_fileCode] = array(
+			'file_code' => $parent_fileCode ,
+			'select_offset' => $next_offset ,
+			'sql_prefix' => "t{$parentIdx}" ,
+			'sql_fields' => $t_sqlViewFields
+		);
+		$next_offset += count($t_sqlViewFields) ;
+		
+		$previousIdx = $parentIdx ;
+		$previousFilecode = $parent_fileCode ;
+	}
+	
+	$arr_fileCodes_reverse = array() ;
+	$query = $sqlQ_select." ".$sqlQ_from." WHERE 1" ;
+	foreach( $selectMap as $tTable ) {
+		$query.= paracrm_queries_process_queryHelp_getWhereSqlPrefilter( $tTable['file_code'], $arr_saisie['fields_where'], $tTable['sql_prefix'] ) ;
+		$arr_fileCodes_reverse[] = $tTable['file_code'] ;
+	}
+	$query.= " ORDER BY ".implode(',',array_reverse($sqlQ_orderReverse)) ;
+	$selectMap_onOrder = array_reverse($selectMap,true) ;
+	
+	$result = $_opDB->query($query) ;
+	
+	$iter_fileCode_recordId = array() ;
+	$iter_fileCode_whereBoolean = array() ;
+	$row_group = array() ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		foreach( $selectMap_onOrder as $file_code => $tTable ) {
+			$current_filerecordId = $arr[$tTable['select_offset']] ;
+			if( $current_filerecordId != $iter_fileCode_recordId[$file_code] ) {
+				$subRow = array() ;
+				$offset = $tTable['select_offset'] ;
+				foreach( $tTable['sql_fields'] as $sql_field ) {
+					$subRow[$sql_field] = $arr[$offset] ;
+					$offset++ ;
+				}
+				
+				$row_group[$file_code] = $subRow ;
+				$iter_fileCode_recordId[$file_code] = $current_filerecordId ;
+				
+				if( $arr_saisie['join_for_file'][$file_code] ) {
+					paracrm_lib_file_joinQueryRecord($file_code,$row_group) ;
+				}
+				
+				// application des conditions
+				$base_row = array() ;
+				$base_row[$file_code] = $subRow ;
+				$iter_fileCode_whereBoolean[$file_code] = paracrm_queries_process_queryHelp_where( $base_row, $arr_saisie['fields_where'] ) ;
+			}
+			if( !$iter_fileCode_whereBoolean[$file_code] ) {
+				continue 2 ;
+			}
+		}
+		
+		$arr_groupKeyId = paracrm_queries_process_queryHelp_group( $row_group, $arr_saisie['fields_group'] ) ;
+		
+		foreach( $arr_saisie['fields_select'] as $select_id => $field_select ) {
+			if( $field_select['iteration_mode'] != 'value' ) {
+				continue ;
+			}
+			
+			$subRES_group_symbol_value = array() ;
+			// iteration sur les symboles
+			foreach( $field_select['math_expression'] as $symbol_id => $symbol )
+			{
+				if( $symbol['math_staticvalue'] != 0 )
+					continue ;
+			
+				$file_code = $symbol['sql_file_code'] ;
+				$file_field_code = $symbol['sql_file_field_code'] ;
+				
+				if( $symbol['sql_bible_code'] && $symbol['sql_bible_field_code'] ) {
+					switch( $symbol['sql_linktype'] ) {
+						case 'entry' :
+						$entry_key = $row_group[$file_code][$file_field_code] ;
+						$treenode_key = $arr_bible_entries[$symbol['sql_bible_code']][$entry_key]['treenode_key'] ;
+						break ;
+						
+						case 'treenode' :
+						$entry_key = NULL ;
+						$treenode_key = $row_group[$file_code][$file_field_code] ;
+						break ;
+						
+						default :
+						$entry_key = $treenode_key = NULL ;
+						break ;
+					}
+					// field of bible record
+					$eval_value = NULL ;
+					switch( $symbol['sql_bible_type'] ) {
+						case 'tree' :
+							$eval_value = $arr_bible_treenodes[$symbol['sql_bible_code']][$treenode_key][$symbol['sql_bible_field_code']] ;
+							break ;
+						case 'entry' :
+							$eval_value = $arr_bible_entries[$symbol['sql_bible_code']][$entry_key][$symbol['sql_bible_field_code']] ;
+							break ;
+					}
+					foreach( $arr_groupKeyId as $group_key_id ) {
+						$subRES_group_symbol_value[$group_key_id][$symbol_id] = $eval_value ;
+					}
+				}
+				else {
+					// field of cursor file record : standard
+					foreach( $arr_groupKeyId as $group_key_id ) {
+						$subRES_group_symbol_value[$group_key_id][$symbol_id] = $row_group[$file_code][$file_field_code] ;
+					}
+				}
+			}
+			
+			foreach( $subRES_group_symbol_value as $group_key_id => $subSubRES_symbol_value )
+			{
+				/* En mode VALUE :
+					Pour chaque groupe on retourne plusieurs valeurs (principe de l'empilage valeurs)
+					l'opération est effectuée une seule fois par groupe à la fin
+				*/
+				if( !isset($RES_selectId_group_arr_arrSymbolValue[$select_id][$group_key_id]) )
+					$RES_selectId_group_arr_arrSymbolValue[$select_id][$group_key_id] = array() ;
+				$RES_selectId_group_arr_arrSymbolValue[$select_id][$group_key_id][] = $subSubRES_symbol_value ;
+			}
+		}
+	}
+	
+	return $RES_selectId_group_arr_arrSymbolValue ;
+}
+
 function paracrm_queries_process_query_iterationDo( $arr_saisie, $iteration_chain, $iteration_chain_offset, $base_row, $parent_fileCode, $parent_filerecordId )
 {
 	global $_opDB ;
@@ -2337,13 +2525,6 @@ function paracrm_queries_process_query_doValue( $arr_saisie, $target_fileCode, $
 				if( $symbol['math_staticvalue'] != 0 )
 					continue ;
 			
-				if( $symbol['sql_file_code'] != $target_fileCode )
-					return array() ;
-				if( !$symbol['sql_file_field_code'] )
-					return array() ;
-				if( $symbol['sql_bible_code'] && !$symbol['sql_bible_field_code'] )
-					return array() ;
-					
 				$file_code = $symbol['sql_file_code'] ;
 				$file_field_code = $symbol['sql_file_field_code'] ;
 				
@@ -2532,7 +2713,12 @@ function paracrm_queries_process_query_doCount( $arr_saisie, $target_fileCode, $
 	return $subRes_selectId_group_arr_arrSymbolValue ;
 }
 
-function paracrm_queries_process_queryHelp_getWhereSqlPrefilter( $target_fileCode, $fields_where ) {
+function paracrm_queries_process_queryHelp_getWhereSqlPrefilter( $target_fileCode, $fields_where, $sqlTableAlias=NULL ) {
+	$sqlPrefix = '' ;
+	if( $sqlTableAlias ) {
+		$sqlPrefix = $sqlTableAlias."." ;
+	}
+	
 	$where_clause = "" ;
 	foreach( $fields_where as $where_id => $field_where )
 	{
@@ -2549,21 +2735,21 @@ function paracrm_queries_process_queryHelp_getWhereSqlPrefilter( $target_fileCod
 			case 'date' :
 			if( $field_where['condition_date_gt'] != '' )
 			{
-				$where_clause.= " AND DATE({$file_field_code}) >= '{$field_where['condition_date_gt']}'" ;
+				$where_clause.= " AND DATE({$sqlPrefix}{$file_field_code}) >= '{$field_where['condition_date_gt']}'" ;
 			}
 			if( $field_where['condition_date_lt'] != '' )
 			{
-				$where_clause.= " AND DATE({$file_field_code}) <= '{$field_where['condition_date_lt']}'" ;
+				$where_clause.= " AND DATE({$sqlPrefix}{$file_field_code}) <= '{$field_where['condition_date_lt']}'" ;
 			}
 			break ;
 			
 			case 'bool' :
 			switch( $field_where['condition_bool'] ) {
 				case 'true' :
-					$where_clause.= " AND {$file_field_code} = '1'" ;
+					$where_clause.= " AND {$sqlPrefix}{$file_field_code} = '1'" ;
 					break ;
 				case 'false' :
-					$where_clause.= " AND {$file_field_code} = '0'" ;
+					$where_clause.= " AND {$sqlPrefix}{$file_field_code} = '0'" ;
 					break ;
 				default :
 					break ;
@@ -2573,11 +2759,11 @@ function paracrm_queries_process_queryHelp_getWhereSqlPrefilter( $target_fileCod
 			case 'number' :
 			if( $field_where['condition_num_gt'] != '' )
 			{
-				$where_clause.= " AND {$file_field_code} >= '{$field_where['condition_num_gt']}'" ;
+				$where_clause.= " AND {$sqlPrefix}{$file_field_code} >= '{$field_where['condition_num_gt']}'" ;
 			}
 			if( $field_where['condition_num_lt'] != '' )
 			{
-				$where_clause.= " AND {$file_field_code} <= '{$field_where['condition_num_lt']}'" ;
+				$where_clause.= " AND {$sqlPrefix}{$file_field_code} <= '{$field_where['condition_num_lt']}'" ;
 			}
 			break ;
 		}
