@@ -2827,11 +2827,44 @@ function paracrm_queries_process_queryHelp_getWhereSqlPrefilter( $target_fileCod
 		if( $file_code != $target_fileCode ) {
 			continue ;
 		}
-		if( $field_where['sql_bible_code'] || $field_where['sql_bible_field_code'] ) {
+		if( $field_where['sql_bible_code'] && $field_where['sql_bible_field_code'] ) {
+			// Condition on linked bible inner-field => can't stat with SQL
 			continue ;
 		}
 		
 		switch( $field_where['field_type'] ) {
+			case 'link' :
+			if( $field_where['condition_bible_mode'] != 'SELECT' ) {
+				break ;
+			}
+			if( !$field_where['sql_arr_select'] || !$field_where['sql_bible_code'] ) {
+				break ;
+			}
+			$sql_list_select = $GLOBALS['_opDB']->makeSQLlist($field_where['sql_arr_select']) ;
+			switch( $field_where['condition_bible_store'] ) {
+				case 'tree' :
+					switch( $field_where['sql_linktype'] ) {
+						case 'treenode' :
+							$where_clause.= " AND {$sqlPrefix}{$file_field_code} IN {$sql_list_select}" ;
+							break ;
+						case 'entry' :
+							$t_view_entry = "view_bible_{$field_where['sql_bible_code']}_entry" ;
+							$where_clause.= " AND {$sqlPrefix}{$file_field_code} IN (SELECT entry_key FROM {$t_view_entry} WHERE treenode_key IN {$sql_list_select})" ;
+							break ;
+					}
+					break ;
+				case 'entry' :
+					switch( $field_where['sql_linktype'] ) {
+						case 'entry' :
+							$where_clause.= " AND {$sqlPrefix}{$file_field_code} IN {$sql_list_select}" ;
+							break ;
+					}
+					break ;
+				default ;
+					break ;
+			}
+			break ;
+		
 			case 'date' :
 			if( $field_where['condition_date_gt'] != '' )
 			{
@@ -2937,11 +2970,20 @@ function paracrm_queries_process_queryHelp_where( $record_file, $fields_where ) 
 					
 					case 'tree' :
 					// recherche du treenode associé
-					$eval_value_entry = $eval_value ;
-					if( $GLOBALS['arr_bible_entries'][$bible_code][$eval_value_entry] ) {
-						$eval_value_tree = $GLOBALS['arr_bible_entries'][$bible_code][$eval_value_entry]['treenode_key'] ;
-					} else {
-						$eval_value_tree = $eval_value_entry ;
+					switch( $field_where['sql_linktype'] ) {
+						case 'entry' :
+						$eval_value_entry = $eval_value ;
+						$eval_value_tree = $arr_bible_entries[$field_where['sql_bible_code']][$eval_value_entry]['treenode_key'] ;
+						break ;
+						
+						case 'treenode' :
+						$eval_value_entry = NULL ;
+						$eval_value_tree = $eval_value ;
+						break ;
+						
+						default :
+						$eval_value_entry = $eval_value_tree = NULL ;
+						break ;
 					}
 					if( !in_array($eval_value_tree,$field_where['sql_arr_select']) )
 						return FALSE ;
