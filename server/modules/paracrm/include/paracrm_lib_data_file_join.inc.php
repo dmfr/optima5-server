@@ -110,6 +110,9 @@ function paracrm_lib_file_joinQueryRecord( $file_code, &$record_row ) {
 		} else {
 			$jRes = paracrm_lib_file_joinPrivate_do( $file_code, $entry_field_code, $jSrcValues ) ;
 		}
+		if( $jRes === NULL ) {
+			continue ;
+		}
 		$record_row[$mkey_file][$mkey_field] = $jRes ;
 	}
 }

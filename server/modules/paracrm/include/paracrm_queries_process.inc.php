@@ -137,9 +137,11 @@ function paracrm_queries_process_qbook($arr_saisie, $debug=FALSE, $src_filerecor
 			return NULL ;
 		}
 	}elseif( $src_filerecordId && !$src_filerecord_row ) {
+		$arr_fileCodes = array() ;
 		$target_fileCode = $arr_saisie['backend_file_code'] ;
 		$src_filerecord_row = array() ;
 		while( TRUE ) {
+			$arr_fileCodes[] = $target_fileCode ;
 			$view_filecode = 'view_file_'.$target_fileCode ;
 			$query = "SELECT * FROM {$view_filecode} WHERE filerecord_id='{$src_filerecordId}'" ;
 			$arr = $_opDB->fetch_assoc($_opDB->query($query)) ;
@@ -155,6 +157,9 @@ function paracrm_queries_process_qbook($arr_saisie, $debug=FALSE, $src_filerecor
 			break ;
 		}
 		//print_r($src_filerecord_row) ;
+		foreach( $arr_fileCodes as $file_code ) {
+			paracrm_lib_file_joinQueryRecord($file_code,$src_filerecord_row) ;
+		}
 	}
 	if( $debug ) {
 		echo "OK\n" ;
