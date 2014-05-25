@@ -187,7 +187,12 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 								return ;
 							}
 							var treeContextMenu = Ext.create('Ext.menu.Menu',{
-								items : treeContextMenuItems
+								items : treeContextMenuItems,
+								listeners: {
+									hide: function(menu) {
+										menu.destroy() ;
+									}
+								}
 							}) ;
 							treeContextMenu.showAt(event.getXY());
 						},
@@ -273,7 +278,12 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 								return ;
 							}
 							var treeContextMenu = Ext.create('Ext.menu.Menu',{
-								items : treeContextMenuItems
+								items : treeContextMenuItems,
+								listeners: {
+									hide: function(menu) {
+										menu.destroy() ;
+									}
+								}
 							}) ;
 							treeContextMenu.showAt(event.getXY());
 						},

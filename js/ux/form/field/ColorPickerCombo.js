@@ -52,6 +52,9 @@ Ext.define('Ext.ux.form.field.ColorPickerCombo', {
 			var colourMenu = Ext.create('Ext.menu.ColorPicker', {
 					value: initialColor,
 					listeners: {
+						hide: function(picker) {
+							picker.destroy() ;
+						},
 						select: function (picker, color) {
 							me.setValue(color);
 							me.fireEvent('select', me, color);

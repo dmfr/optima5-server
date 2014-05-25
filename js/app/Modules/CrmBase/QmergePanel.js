@@ -226,7 +226,12 @@ Ext.define('Optima5.Modules.CrmBase.QmergePanel' ,{
 							}
 							
 							var treeContextMenu = Ext.create('Ext.menu.Menu',{
-								items : treeContextMenuItems
+								items : treeContextMenuItems,
+								listeners: {
+									hide: function(menu) {
+										menu.destroy() ;
+									}
+								}
 							}) ;
 							
 							treeContextMenu.showAt(event.getXY());

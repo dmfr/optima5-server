@@ -384,7 +384,12 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 			};
 			
 			var treeContextMenu = Ext.create('Ext.menu.Menu',{
-				items : treeContextMenuItems
+				items : treeContextMenuItems,
+				listeners: {
+					hide: function(menu) {
+						menu.destroy() ;
+					}
+				}
 			}) ;
 			
 			treeContextMenu.showAt(event.getXY());
@@ -605,7 +610,12 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 			}
 			
 			var gridContextMenu = Ext.create('Ext.menu.Menu',{
-				items : gridContextMenuItems
+				items : gridContextMenuItems,
+				listeners: {
+					hide: function(menu) {
+						menu.destroy() ;
+					}
+				}
 			}) ;
 			
 			gridContextMenu.showAt(event.getXY());

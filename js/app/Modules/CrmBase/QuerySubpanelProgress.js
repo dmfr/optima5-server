@@ -185,7 +185,12 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelProgress' ,{
 			}
 			
 			var gridContextMenu = Ext.create('Ext.menu.Menu',{
-				items : gridContextMenuItems
+				items : gridContextMenuItems,
+				listeners: {
+					hide: function(menu) {
+						menu.destroy() ;
+					}
+				}
 			}) ;
 			
 			gridContextMenu.showAt(event.getXY());

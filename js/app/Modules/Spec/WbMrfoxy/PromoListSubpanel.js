@@ -197,9 +197,15 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 						ddGroup: 'PromoToBenchmark'+me.getId()
 					}],
 					listeners: {
+						destroy: function(gridview) {
+							if( gridview.ddel ) {
+								gridview.ddel.destroy() ;
+							}
+						},
 						render: function(gridview) {
 							gridview.ddel = Ext.get(document.createElement('div'));
 							gridview.ddel.addCls(Ext.baseCSSPrefix + 'grid-dd-wrap');
+							
 							Ext.create('Ext.dd.DragZone',gridview.getEl(),{
 								ddGroup: 'PromoToBenchmark'+me.getId(),
 								view: gridview,

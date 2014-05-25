@@ -527,7 +527,12 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 				}
 				
 				var gridContextMenu = Ext.create('Ext.menu.Menu',{
-					items : gridContextMenuItems
+					items : gridContextMenuItems,
+					listeners: {
+						hide: function(menu) {
+							menu.destroy() ;
+						}
+					}
 				}) ;
 				
 				gridContextMenu.showAt(event.getXY());
@@ -547,7 +552,12 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 				}
 				
 				var gridContextMenu = Ext.create('Ext.menu.Menu',{
-					items : gridContextMenuItems
+					items : gridContextMenuItems,
+					listeners: {
+						hide: function(menu) {
+							menu.destroy() ;
+						}
+					}
 				}) ;
 				
 				if( gridContextMenuItems.length > 0 ) {

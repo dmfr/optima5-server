@@ -116,7 +116,12 @@ Ext.define('Optima5.Modules.CrmBase.DataFormPanelGallery',{
 							}
 							
 							var contextMenu = Ext.create('Ext.menu.Menu',{
-								items : contextMenuItems
+								items : contextMenuItems,
+								listeners: {
+									hide: function(menu) {
+										menu.destroy() ;
+									}
+								}
 							}) ;
 							
 							contextMenu.showAt(event.getXY());

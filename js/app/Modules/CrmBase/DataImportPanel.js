@@ -453,7 +453,13 @@ Ext.define('Optima5.Modules.CrmBase.DataImportPanel' ,{
 					data: ajaxData.grid_data
 				}
 			}) ;
+			csvGrid.child('headercontainer').on('destroy',function(csvGridHeaderView) {
+				if( csvGridHeaderView.ddel ) {
+					csvGridHeaderView.ddel.destroy() ;
+				}
+			}) ;
 			csvGrid.child('headercontainer').on('render',function(csvGridHeaderView) {
+				csvGridHeaderView.ddel = Ext.get(document.createElement('div'));
 				csvGridHeaderView.dragZone = Ext.create('Ext.dd.DragZone',csvGridHeaderView.getEl(), {
 					ddGroup: 'DataImportDD-'+me.getId(),
 					view: csvGridHeaderView,
@@ -466,15 +472,14 @@ Ext.define('Optima5.Modules.CrmBase.DataImportPanel' ,{
 					getDragData: function(e) {
 						var header = e.getTarget('.'+this.colHeaderCls),
 							headerCmp,
-							ddel;
+							ddel = this.view.ddel ;
 
 						if (header) {
 							headerCmp = Ext.getCmp(header.id);
-							ddel = document.createElement('div');
-							ddel.innerHTML = Ext.getCmp(header.id).text;
+							ddel.dom.innerHTML = Ext.getCmp(header.id).text;
 							return {
 								records:[],
-								ddel: ddel,
+								ddel: ddel.dom,
 								header: headerCmp,
 								colIdx: this.view.getHeaderIndex(headerCmp)
 							};
@@ -550,7 +555,7 @@ Ext.define('Optima5.Modules.CrmBase.DataImportPanel' ,{
 		
 		var msgbox = Ext.Msg.wait('Import in progress...');
 		me.optimaModule.getConfiguredAjaxConnection().request({
-			timeout: (300 * 1000),
+			timeout: (10 * 60 * 1000),
 			params: ajaxParams ,
 			success: function( response ) {
 				msgbox.close();
