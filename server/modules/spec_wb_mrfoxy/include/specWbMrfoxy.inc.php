@@ -170,10 +170,12 @@ function specWbMrfoxy_cfg_getBibleCountry() {
 	return array('success'=>true, 'data'=>$data) ;
 }
 function specWbMrfoxy_cfg_getBibleBrand() {
-	$ttmp = paracrm_data_getBibleGrid( array('bible_code'=>'_BRAND') ) ;
-	if( TRUE ) {
-		return $ttmp ;
+	$ttmp = paracrm_data_getBibleTree( array('bible_code'=>'_BRAND') ) ;
+	$data = array() ;
+	foreach( $ttmp['children'] as $treenode ) {
+		$data[] = $treenode ;
 	}
+	return array('success'=>true, 'data'=>$data) ;
 }
 
 ?>

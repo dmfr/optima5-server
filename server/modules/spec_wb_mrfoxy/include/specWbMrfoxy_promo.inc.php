@@ -101,7 +101,7 @@ function specWbMrfoxy_promo_getGrid( $post_data ) {
 		$row['promo_id'] = $paracrm_row['WORK_PROMO_field_PROMO_CODE'] ;
 		$row['is_prod'] = ($paracrm_row['WORK_PROMO_field_IS_PROD'] ? 'PROD' : '') ;
 		$row['brand_code'] = $paracrm_row['WORK_PROMO_field_BRAND'] ;
-		$row['brand_text'] = $paracrm_row['WORK_PROMO_field_BRAND_entry_BRAND_TXT'] ;
+		$row['brand_text'] = $paracrm_row['WORK_PROMO_field_BRAND_tree_BRANDGROUP_TXT'] ;
 		$row['country_code'] = $paracrm_row['WORK_PROMO_field_COUNTRY'] ;
 		$row['country_text'] = $paracrm_row['WORK_PROMO_field_COUNTRY_entry_COUNTRY_NAME'] ;
 		$row['status_code'] = $paracrm_row['WORK_PROMO_field_STATUS'] ;
@@ -258,6 +258,7 @@ function specWbMrfoxy_promo_getSideGraph( $post_data ) {
 	$post_test['qsrc_filerecord_id'] = $src_filerecordId ;
 	$json = paracrm_queries_qbookTransaction( $post_test ) ;
 	if( !$json['success'] ) {
+		unset($_SESSION['transactions'][$transaction_id]) ;
 		return array('success'=>false) ;
 	}
 
@@ -267,6 +268,8 @@ function specWbMrfoxy_promo_getSideGraph( $post_data ) {
 	$post_test['_subaction'] = 'res_get' ;
 	$post_test['RES_id'] = $json['RES_id'] ;
 	$json = paracrm_queries_qbookTransaction( $post_test ) ;
+	
+	unset($_SESSION['transactions'][$transaction_id]) ;
 	
 	if( $json['tabs'][1]['RESchart_static'] ) {
 		return array('success'=>true, 'RESchart_static'=>$json['tabs'][1]['RESchart_static']) ;
@@ -376,6 +379,7 @@ function specWbMrfoxy_promo_formEval( $post_data ) {
 		$post_test['qsrc_filerecord_row'] = $src_filerecord_row ;
 		$json = paracrm_queries_qbookTransaction( $post_test ) ;
 		if( !$json['success'] ) {
+			unset($_SESSION['transactions'][$transaction_id]) ;
 			break ;
 		}
 
@@ -385,6 +389,8 @@ function specWbMrfoxy_promo_formEval( $post_data ) {
 		$post_test['_subaction'] = 'res_get' ;
 		$post_test['RES_id'] = $json['RES_id'] ;
 		$json = paracrm_queries_qbookTransaction( $post_test ) ;
+		
+		unset($_SESSION['transactions'][$transaction_id]) ;
 		
 		if( $json['tabs'] && $json['tabs'][1]['RESchart_static'] ) {
 			$resp_data['simu_graph'] = array() ;
@@ -466,14 +472,11 @@ function specWbMrfoxy_promo_formSubmit( $post_data ) {
 			break ;
 	}
 	
-	$arr_ins['field_COEF_PROFIT'] = 2 ;
-	
 	$arr_ins['field_CURRENCY'] = $form_data['currency'] ;
 	$arr_ins['field_COST_BILLING'] = $form_data['cost_billing_code'] ;
 	$arr_ins['field_COST_FORECAST'] = $form_data['cost_forecast'] ;
 	$arr_ins['field_COST_FORECAST_FIX'] = $form_data['cost_forecast_fix'] ;
 	$arr_ins['field_COST_FORECAST_VAR'] = $form_data['cost_forecast_var'] ;
-	$arr_ins['field_COST_REAL_INVOICE'] = $form_data['cost_forecast'] ;
 	
 	
 	// *** Création code PROMO ID ****
@@ -614,7 +617,9 @@ function specWbMrfoxy_promo_fetchBenchmark( $post_data ) {
 	}
 	
 	$arr_saisie = array() ;
-	paracrm_queries_mergerTransaction_init( array('qmerge_id'=>$q_id) , $arr_saisie ) ;
+	$json = paracrm_queries_mergerTransaction_init( array('qmerge_id'=>$q_id) , $arr_saisie ) ;
+	$transaction_id = $json['transaction_id'] ;
+	unset($_SESSION['transactions'][$transaction_id]) ;
 	
 	// replace conditions
 	foreach( $arr_saisie['fields_mwhere'] as &$field_mwhere ) {

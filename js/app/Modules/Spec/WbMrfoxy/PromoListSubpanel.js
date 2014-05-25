@@ -470,6 +470,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 		
 		me.mon(me.parentBrowserPanel,'tbarselect',function(){
 			if( me.rendered ) {
+				me.getComponent('pCenter').filters.clearFilters() ;
 				me.reload() ;
 			} else {
 				// Wait for render to trigger reload & columns reconfigure

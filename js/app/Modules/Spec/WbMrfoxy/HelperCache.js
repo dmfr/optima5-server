@@ -101,9 +101,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.HelperCache',{
 		var data = [] ;
 		Ext.Array.each( ajaxData.data, function(row) {
 			data.push({
-				id: row['field_BRAND_CODE'],
-				brand_code: row['field_BRAND_CODE'],
-				brand_display: row['field_BRAND_TXT']
+				id: row['field_BRANDGROUP'],
+				brand_code: row['field_BRANDGROUP'],
+				brand_display: row['field_BRANDGROUP_TXT']
 			});
 		},me) ;
 		me.brandStore = Ext.create('Ext.data.Store',{

@@ -78,6 +78,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoBrowserPanel',{
 	
 	requires: [
 		'Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',
+		'Optima5.Modules.Spec.WbMrfoxy.PromoAccrualsSubpanel',
 		'Optima5.Modules.Spec.WbMrfoxy.PromoCalendarSubpanel'
 	],
 	
