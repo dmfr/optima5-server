@@ -4,7 +4,7 @@ class DatabaseMgr_Sdomain {
 	private $_opDB ;
 	private $domain_id ;
 	
-	private static $dbVersion = 19 ;
+	private static $dbVersion = 20 ;
 	
 	public function __construct( $domain_id ) {
 		$this->_opDB = $GLOBALS['_opDB'] ;
@@ -655,7 +655,7 @@ CREATE TABLE `importmap_column` (
   `importmap_id` int(11) NOT NULL,
   `importmap_column_ssid` int(11) NOT NULL,
   `csvsrc_headertxt` varchar(100) NOT NULL,
-  `target_fieldmapcode` varchar(100) NOT NULL,
+  `target_fieldmapcode` varchar(500) NOT NULL,
   PRIMARY KEY (`importmap_id`,`importmap_column_ssid`)
 ) ;
 
