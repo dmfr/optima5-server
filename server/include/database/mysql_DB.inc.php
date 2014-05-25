@@ -88,7 +88,6 @@ class MySQL_DB {
 	}
 
 	function query( $query ) {
-		$query."<br>" ;
 		$this->nb_queries++ ;
 		switch ($this->type_de_base) {
 			case "MySQL" :
@@ -108,6 +107,17 @@ class MySQL_DB {
 
 			case "PostgreSQL" :
 			return pg_query( $this->connection, $query );
+			break ;
+		}
+	}
+	function escape_string( $query ) {
+		switch ($this->type_de_base) {
+			case "MySQL" :
+			return mysql_real_escape_string( $query, $this->connection ) ;
+			break;
+
+			case "PostgreSQL" :
+			return $query ;
 			break ;
 		}
 	}
