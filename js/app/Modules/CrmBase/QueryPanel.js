@@ -443,5 +443,14 @@ Ext.define('Optima5.Modules.CrmBase.QueryPanel' ,{
 				destroyedpanel.up('window').close() ;
 			}
 		});
+	},
+	onDestroy: function() {
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_action: 'queries_builderTransaction',
+				_transaction_id: this.transaction_id ,
+				_subaction: 'end'
+			}
+		}) ;
 	}
 });
