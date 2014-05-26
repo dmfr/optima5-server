@@ -92,6 +92,7 @@ function specDbsPeople_Real_getData( $post_data ) {
 				$row['std_daylength'] = 0 ;
 			} else {
 				$row['std_daylength'] = $cfg_contract['std_daylength'] ;
+				$row['std_daylength_max'] = $cfg_contract['std_daylength_max'] ;
 			}
 			
 			$buildTAB[$cur_date][$people_code] = $row ;
@@ -378,15 +379,15 @@ function specDbsPeople_Real_actionDay_lib_open( $peopleday_record, $test_mode=FA
 	$arr_ins['field_STD_DAYLENGTH'] = $peopleday_record['std_daylength'] ;
 	$filerecord_id = paracrm_lib_data_insertRecord_file( 'PEOPLEDAY', 0 , $arr_ins ) ;
 	
+	if( $peopleday_record['std_daylength'] == 0 ) {
+		return TRUE ;
+	}
+	
 	if( $peopleday_record['std_abs_code'] != '_' ) {
 		$arr_ins = array() ;
 		$arr_ins['field_ABS_CODE'] = $peopleday_record['std_abs_code'] ;
 		$arr_ins['field_ABS_LENGTH'] = $peopleday_record['std_daylength'] ;
 		paracrm_lib_data_insertRecord_file( 'PEOPLEDAY_ABS', $filerecord_id , $arr_ins ) ;
-		return TRUE ;
-	}
-	
-	if( $peopleday_record['std_daylength'] == 0 ) {
 		return TRUE ;
 	}
 	

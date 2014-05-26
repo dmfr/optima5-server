@@ -140,10 +140,18 @@ function specDbsPeople_cfg_getCfgBibles() {
 		$TAB['ROLE'][] = array('id'=>$arr[0],'text'=>$arr[0].' - '.$arr[1]) ;
 	}
 	
-	$query = "SELECT field_ABS_CODE, field_ABS_TXT FROM view_bible_CFG_ABS_entry ORDER BY field_ABS_CODE" ;
+	$query = "SELECT field_ABS_CODE, field_ABS_TXT, treenode_key FROM view_bible_CFG_ABS_entry ORDER BY field_ABS_CODE" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
-		$TAB['ABS'][] = array('id'=>$arr[0],'text'=>$arr[0].' - '.$arr[1]) ;
+		$treenode_key = $arr[2] ;
+		if( in_array($treenode_key,array('STD')) ) {
+			continue ;
+		}
+		$auth_class = '' ;
+		if( in_array($treenode_key,array('ADMIN','RH','CEQ')) ) {
+			$auth_class = $treenode_key ;
+		}
+		$TAB['ABS'][] = array('id'=>$arr[0],'text'=>$arr[0].' - '.$arr[1],'auth_class'=>$auth_class) ;
 	}
 	
 	$query = "SELECT field_WHSE_CODE, field_WHSE_TXT FROM view_bible_CFG_WHSE_entry ORDER BY field_WHSE_TXT" ;
@@ -179,7 +187,8 @@ function specDbsPeople_tool_getContracts() {
 			'contract_code' => $contract_code,
 			'contract_txt' => $arr['field_CONTRACT_TXT'],
 			'std_dayson' => $std_dayson,
-			'std_daylength' => $arr['field_STD_DAYLENGTH']
+			'std_daylength' => $arr['field_STD_DAYLENGTH'],
+			'std_daylength_max' => $arr['field_STD_DAYLENGTH_MAX']
 		);
 	}
 	return $TAB ;

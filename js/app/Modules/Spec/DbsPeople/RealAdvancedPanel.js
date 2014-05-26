@@ -4,7 +4,7 @@ Ext.define('DbsPeopleRhRealAdvModel',{
 		{name:'readonly', type:'boolean'},
 		{name:'classe', type:'string'},
 		{name:'code', type:'string'},
-		{name:'length_hours', type:'int'}
+		{name:'length_hours', type:'number'}
 	]
 }) ;
 
@@ -63,7 +63,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 				},{
 					xtype:'fieldcontainer',
 					flex: 1,
-					margin: 10,
+					margin: 5,
 					layout: 'anchor',
 					defaults: {
 						labelAlign: 'left',
@@ -81,6 +81,26 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 							},
 							scope: this
 						}
+					},{
+						xtype:'container',
+						itemId: 'absForward',
+						style:{textAlign:'center'},
+						padding: "0 6px 6px 0",
+						items:[{
+							xtype: 'button',
+							padding: '0 0px',
+							text: 'Planning Abs',
+							handler: function() {
+								this.elXY = this.getEl().getXY() ;
+								
+								this.doSave() ;
+								this.gridRecord.set( 'dummy', null );
+								this.gridRecord.commit() ;
+								this.parentRealPanel.openVirtualAfterPopup = true ;
+								this.destroy() ;
+							},
+							scope: me
+						}]
 					}]
 				}]
 			},{
@@ -197,12 +217,14 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 						listConfig:{width:250},
 						forceSelection:true,
 						allowBlank:false,
-						editable:false,
+						editable:true,
+						typeAhead:true,
+						selectOnFocus: true,
 						queryMode: 'local',
 						displayField: 'text',
 						valueField: 'id',
 						store: {
-							fields:['id','text'],
+							fields:['id','text','auth_class'],
 							data: []
 						}
 					},
@@ -293,7 +315,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 									break ;
 								case 'ABS' :
 									columns[0].getEditor().update({iconCls:'op5-spec-dbspeople-icon-absence'}) ;
-									columns[1].getEditor().getStore().loadData( Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll("ABS") ) ;
+									columns[1].getEditor().getStore().loadData( Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll("ABS",true) ) ;
 									break ;
 								case 'WHSE' :
 									columns[0].getEditor().update({iconCls:'op5-spec-dbspeople-icon-move'}) ;
@@ -359,6 +381,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 	calcLayout: function() {
 		var me = this,
 			absCheckbox = this.down('#absCheckbox'),
+			absForward = this.down('#absForward'),
 			absPanel = this.down('#absPanel'),
 			slicesPanel = this.down('#slicesPanel') ;
 			
@@ -368,6 +391,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 			return ;
 		}
 		
+		absForward.setVisible(absCheckbox.getValue()) ;
 		absPanel.setVisible(absCheckbox.getValue() && Optima5.Modules.Spec.DbsPeople.HelperCache.authHelperQueryPage('RH')) ;
 		slicesPanel.setVisible(!absCheckbox.getValue()) ;
 		
@@ -517,6 +541,39 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 		btnItemMove.setVisible( altWhse==null );
 		me.calcLayout() ;
 	},
+	doCheckBeforeSave: function() {
+		var me = this ;
+		
+		var peopledayRecord = me.peopledayRecord ;
+		
+		var localGrid = this.child('grid'),
+			localStore = localGrid.getStore() ;
+			
+		if( localStore.getCount() == 0 ) {
+			// tjr OK
+			return ;
+		}
+			
+		var isInvalid = false ;
+		localStore.each( function(rec){
+			if( Ext.isEmpty(rec.get('code')) || rec.get('length_hours') == 0 ) {
+				isInvalid = true ;
+			}
+		}) ;
+		if( isInvalid ) {
+			return 'Saisie rôles/heures incomplète' ;
+		}
+		
+		var totalLength = false ;
+		localStore.each( function(rec){
+			totalLength += rec.get('length_hours') ;
+		}) ;
+		if( totalLength > peopledayRecord.data.std_daylength_max ) {
+			return 'Nb heures dépassé ('+peopledayRecord.data.std_daylength_max+'h max.)' ;
+		}
+		
+		return null ;
+	},
 	doSave: function() {
 		var me = this ;
 			
@@ -529,7 +586,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 			
 		var localGrid = this.child('grid'),
 			localStore = localGrid.getStore() ;
-			
+		
+		
 		if( altWhse != null ) { // ****** Mode autre warehouse *********
 			if( me.editDisabled ) {
 				// done 14-05-07 : mode désactivé, aucun changement

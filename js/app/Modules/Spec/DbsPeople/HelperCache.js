@@ -22,6 +22,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.HelperCache',{
 	init: function(optimaModule) {
 		var me = this ;
 		me.optimaModule = optimaModule ;
+		me.isReady = false ;
 		
 		Ext.defer(function() {
 			me.libCount = 2 ;
@@ -63,7 +64,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.HelperCache',{
 		// Populate stores
 		Ext.Object.each( ajaxData.data, function(type,data) {
 			me.cfgStores[type] = Ext.create('Ext.data.Store',{
-				fields: ['id','text'],
+				fields: ['id','text','auth_class'],
 				data : data
 			}) ;
 		},me) ;
@@ -84,9 +85,21 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.HelperCache',{
 		var me = this ;
 		return me.cfgStores[type] ;
 	},
-	forTypeGetAll: function( type ) {
-		var me = this ;
-		return Ext.pluck( me.cfgStores[type].getRange(), 'data' ) ;
+	forTypeGetAll: function( type, authCheck ) {
+		var me = this,
+			store = me.cfgStores[type] ;
+		if( authCheck ) {
+			store.filterBy( function(rec) {
+				var recAuthClass = rec.get('auth_class') ;
+				if( Ext.isEmpty(recAuthClass) ) {
+					return true ;
+				}
+				return Optima5.Modules.Spec.DbsPeople.HelperCache.authHelperQueryPage(recAuthClass) ;
+			}) ;
+		}
+		var returnData = Ext.pluck( me.cfgStores[type].getRange(), 'data' ) ;
+		store.clearFilter(true) ;
+		return returnData ;
 	},
 	
 	

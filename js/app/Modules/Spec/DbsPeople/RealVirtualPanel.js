@@ -147,6 +147,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealVirtualPanel',{
 		}) ;
 	},
 	
+	doCheckBeforeSave: Ext.emptyFn,
 	doSave: Ext.emptyFn,
 	
 	rhAbsLoad: function() {

@@ -29,6 +29,7 @@ Ext.define('DbsPeoplePeopledayModel', {
 		{name: 'std_abs_code',   type: 'string'},
 		{name: 'std_contract_code',   type: 'string'},
 		{name: 'std_daylength',   type: 'number'},
+		{name: 'std_daylength_max',   type: 'number'},
 		{name: 'real_is_abs',   type: 'boolean'}
 	],
 	hasMany: [{
@@ -324,12 +325,12 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				if( rowIsAltWhse ) {
 					return '' ;
 				}
+				if( peopledayRecord.data.std_daylength == 0 ) {
+					return '' ;
+				}
 				if( !Ext.isEmpty(peopledayRecord.data.std_abs_code) && peopledayRecord.data.std_abs_code.charAt(0) != '_' ) {
 					metaData.tdCls += ' op5-spec-dbspeople-realcell-absplanning' ;
 					return peopledayRecord.data.std_abs_code ;
-				}
-				if( peopledayRecord.data.std_daylength == 0 ) {
-					return '' ;
 				}
 				return peopledayRecord.data.std_role_code ;
 			}
@@ -522,8 +523,11 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 						ROLE: true,
 						xtype: 'combobox',
 						queryMode: 'local',
+						allowBlank:false,
 						forceSelection: true,
-						editable: false,
+						editable: true,
+						typeAhead: true,
+						selectOnFocus: true,
 						displayField: 'text',
 						displayTpl: [
 							'<tpl for=".">',
@@ -947,6 +951,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				},this,{single:true});
 				break ;
 			case 'numberfield' :
+				editorField.setMaxValue( peopledayRecord.data.std_daylength_max ) ;
 				editorField.setValue( peopledayWorkData.role_length ) ;
 				break ;
 				
@@ -1015,6 +1020,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 	},
 	openPopup: function( className, peopledayRecord, gridRecord, htmlNode ) {
 		var me = this ;
+		me.openVirtualAfterPopup = false ;
 		
 		var realAdvancedPanel = Ext.create(className,{
 			parentRealPanel: me,
@@ -1023,14 +1029,17 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			width:800, // dummy initial size, for border layout to work
 			height:600, // ...
 			floating: true,
-			renderTo: me.getEl(),
+			renderTo: me.up('viewport').getEl(),
 			tools: [{
 				type: 'close',
 				handler: function(e, t, p) {
-					var needFullRefresh = p.ownerCt.doSave() ;
-					if( needFullRefresh ) {
-						this.autoRefreshAfterEdit = true ;
+					var checkResult = p.ownerCt.doCheckBeforeSave() ;
+					if( !Ext.isEmpty(checkResult) ) {
+						Ext.MessageBox.alert('Erreur',checkResult) ;
+						return ;
 					}
+					
+					p.ownerCt.doSave() ;
 					
 					p.ownerCt.gridRecord.set( 'dummy', null );
 					p.ownerCt.gridRecord.commit() ;
@@ -1049,11 +1058,19 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			this.remoteSavePeopledayRecord( realAdvancedPanel.peopledayRecord ) ;
 			me.getEl().unmask() ;
 			me.realAdvancedPanel = null ;
+			
+			if( me.openVirtualAfterPopup ) {
+				me.openVirtual( realAdvancedPanel.peopledayRecord, realAdvancedPanel.gridRecord, realAdvancedPanel.elXY ) ;
+			}
 		},me,{single:true}) ;
 		me.getEl().mask() ;
 		
 		realAdvancedPanel.show();
-		realAdvancedPanel.getEl().alignTo(htmlNode, 'c-t?',[0,60]);
+		if( Ext.isArray(htmlNode) ) {
+			realAdvancedPanel.getEl().setXY(htmlNode) ;
+		} else {
+			realAdvancedPanel.getEl().alignTo(htmlNode, 'c-t?',[0,60]);
+		}
 		me.realAdvancedPanel = realAdvancedPanel ;
 	},
 	
