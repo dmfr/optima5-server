@@ -236,8 +236,6 @@ class DatabaseMgr_Util {
 					$query.= " DROP" ;
 					if( $existing_key_name == 'PRIMARY' )
 						$query.= " PRIMARY KEY" ;
-					elseif( $existing_key['non_unique'] == '0' )
-						$query.= " INDEX `$existing_key_name`" ;
 					else
 						$query.= " INDEX `$existing_key_name`" ;
 							
@@ -271,8 +269,6 @@ class DatabaseMgr_Util {
 						$query.= " DROP" ;
 						if( $model_key_name == 'PRIMARY' )
 							$query.= " PRIMARY KEY" ;
-						elseif( $existing_key['non_unique'] == '0' )
-							$query.= " INDEX `$model_key_name`" ;
 						else
 							$query.= " INDEX `$model_key_name`" ;
 						$query.= "," ;
@@ -496,8 +492,6 @@ class DatabaseMgr_Util {
 					$query.= " DROP" ;
 					if( $existing_key_name == 'PRIMARY' )
 						$query.= " PRIMARY KEY" ;
-					elseif( $existing_key['non_unique'] == '0' )
-						$query.= " UNIQUE `$existing_key_name`" ;
 					else
 						$query.= " INDEX `$existing_key_name`" ;
 							
@@ -531,8 +525,6 @@ class DatabaseMgr_Util {
 						$query.= " DROP" ;
 						if( $model_key_name == 'PRIMARY' )
 							$query.= " PRIMARY KEY" ;
-						elseif( $existing_key['non_unique'] == '0' )
-							$query.= " UNIQUE `$model_key_name`" ;
 						else
 							$query.= " INDEX `$model_key_name`" ;
 						$query.= "," ;

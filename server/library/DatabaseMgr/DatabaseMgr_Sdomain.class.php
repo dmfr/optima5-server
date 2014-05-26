@@ -1023,6 +1023,8 @@ EOF;
 		
 			case 'file_primarykey' :
 			$_mode_primaryKey = TRUE ;
+			$arr_field_isPrimaryKey = array() ;
+			$primaryKey_arrColumns = array() ;
 			default :
 			$arr_field_type = array() ;
 			$arr_field_isIndex = array() ;
@@ -1032,8 +1034,10 @@ EOF;
 			while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
 			{
 				$arr_field_type[$arr['entry_field_code']] = $arr['entry_field_type'] ;
-				
-				$arr_field_isIndex[$arr['entry_field_code']] = ( ($arr['entry_field_is_header'] == 'O') || ($_mode_primaryKey && ($arr['entry_field_is_primarykey'] == 'O')) ) ;
+				$arr_field_isIndex[$arr['entry_field_code']] = ($arr['entry_field_is_header'] == 'O') ;
+				if( $_mode_primaryKey ) {
+					$arr_field_isPrimaryKey[$arr['entry_field_code']] = ($arr['entry_field_is_primarykey'] == 'O') ;
+				}
 			}
 			break ;
 		}
@@ -1065,11 +1069,17 @@ EOF;
 				if( $arr_field_isIndex[$field_code] ) {
 					$arr_model_keys[$field_name] = array('non_unique'=>'1','arr_columns'=>array($field_name)) ;
 				}
+				if( $_mode_primaryKey && $arr_field_isPrimaryKey[$field_code] ) {
+					$primaryKey_arrColumns = NULL ;
+				}
 				break ;
 				
 				case 'number' :
 				$field_name.= '_dec' ;
 				$arrAssoc_dbField_fieldType[$field_name] = 'decimal(10,2)' ;
+				if( $_mode_primaryKey && $arr_field_isPrimaryKey[$field_code] ) {
+					$arrAssoc_dbField_fieldType[$field_name] = 'int(11)' ;
+				}
 				break ;
 				
 				case 'bool' :
@@ -1087,7 +1097,7 @@ EOF;
 				
 				case 'link' :
 				$field_name.= '_str' ;
-				$arrAssoc_dbField_fieldType[$field_name] = 'varchar(500)' ;
+				$arrAssoc_dbField_fieldType[$field_name] = 'varchar(104)' ;
 				if( TRUE ) {
 					$arr_model_keys[$field_name] = array('non_unique'=>'1','arr_columns'=>array($field_name)) ;
 				}
@@ -1102,6 +1112,13 @@ EOF;
 			}
 			$field_crm = 'field_'.$field_code ;
 			$arrAssoc_crmField_dbField[$field_crm] = $field_name ;
+			
+			if( $_mode_primaryKey && $arr_field_isPrimaryKey[$field_code] && is_array($primaryKey_arrColumns) ) {
+				$primaryKey_arrColumns[] = $field_name ;
+			}
+		}
+		if( $_mode_primaryKey && is_array($primaryKey_arrColumns) && count($primaryKey_arrColumns) > 0 ) {
+			$arr_model_keys['CRM_PRIMARY'] = array('non_unique'=>'1','arr_columns'=>$primaryKey_arrColumns) ;
 		}
 		
 		DatabaseMgr_Util::syncTableStructure( $sdomain_db , $db_table , $arrAssoc_dbField_fieldType , $arr_model_keys ) ;
