@@ -102,7 +102,7 @@ function paracrm_queries_process_buildTrees() {
 
 
 
-function paracrm_queries_process_qbook($arr_saisie, $debug=FALSE, $src_filerecordId, $src_filerecord_row=NULL )
+function paracrm_queries_process_qbook($arr_saisie, $debug=FALSE, $src_filerecordId=NULL, $src_filerecord_row=NULL )
 {
 	global $_opDB ;
 	

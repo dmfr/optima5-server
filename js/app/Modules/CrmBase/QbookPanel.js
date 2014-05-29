@@ -316,6 +316,7 @@ Ext.define('Optima5.Modules.CrmBase.QbookPanel' ,{
 		var me = this ;
 		
 		me.transaction_id = ajaxResponse.transaction_id ;
+		me.fireEvent('qtransactionopen',this,me.transaction_id) ;
 		if( ajaxResponse.qbook_id && ajaxResponse.qbook_id > 0 ) {
 			me.qbook_id = ajaxResponse.qbook_id ;
 			me.qbook_name =  ajaxResponse.qbook_name ;
@@ -809,41 +810,11 @@ Ext.define('Optima5.Modules.CrmBase.QbookPanel' ,{
 				}
 				else {
 					// do something to open window
-					me.openQueryResultPanel( ajaxData.RES_id, runParams.qbookZtemplateSsid ) ;
+					//me.openQueryResultPanel( ajaxData.RES_id, runParams.qbookZtemplateSsid ) ;
+					me.fireEvent( 'qresultready', this, me.transaction_id, ajaxData.RES_id, runParams.qbookZtemplateSsid ) ;
 				}
 			},
 			scope: me
-		});
-	},
-	openQueryResultPanel: function( resultId, qbookZtemplateSsid ) {
-		var me = this ;
-		
-		var baseAjaxParams = new Object() ;
-		Ext.apply( baseAjaxParams, {
-			_action: 'queries_qbookTransaction',
-			_transaction_id : me.transaction_id
-		});
-		
-		var queryResultPanel = Ext.create('Optima5.Modules.CrmBase.QueryResultPanel',{
-			optimaModule:me.optimaModule,
-			ajaxBaseParams: baseAjaxParams,
-			RES_id: resultId,
-			qbook_ztemplate_ssid: qbookZtemplateSsid
-		}) ;
-		me.optimaModule.createWindow({
-			title:me.qbook_name ,
-			width:800,
-			height:600,
-			iconCls: 'op5-crmbase-qresultwindow-icon',
-			animCollapse:false,
-			border: false,
-			items: [ queryResultPanel ]
-		}) ;
-		
-		queryResultPanel.on('beforedestroy',function(destroyedpanel){
-			if( destroyedpanel.up('window') ) {
-				destroyedpanel.up('window').close() ;
-			}
 		});
 	}
 }) ;

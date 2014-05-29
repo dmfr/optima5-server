@@ -437,6 +437,16 @@ Ext.define('Optima5.Modules.CrmBase.DataFormPanel' ,{
 			},
 			scope: this
 		});
-	}
+	},
 	
+	onDestroy: function() {
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_action: 'data_editTransaction',
+				_transaction_id: this.transactionID ,
+				_subaction: 'end'
+			}
+		}) ;
+		this.callParent() ;
+	}
 });

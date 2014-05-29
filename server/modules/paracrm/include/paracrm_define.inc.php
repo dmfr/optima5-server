@@ -677,6 +677,12 @@ function paracrm_define_manageTransaction( $post_data )
 		// OK save
 		return paracrm_define_manageTransaction_apply($arr_saisie, $apply=TRUE) ;
 	}
+	
+	if( $post_data['_subaction'] == 'end' )
+	{
+		unset($_SESSION['transactions'][$transaction_id]) ;
+		return array('success'=>true) ;
+	}
 }
 function paracrm_define_manageTransaction_apply($arr_saisie, $apply=FALSE)
 {

@@ -81,6 +81,12 @@ function paracrm_data_editTransaction( $post_data )
 		
 		// print_r($arr_saisie) ;
 		
+		if( $post_data['_subaction'] == 'end' )
+		{
+			unset($_SESSION['transactions'][$transaction_id]) ;
+			return array('success'=>true) ;
+		}
+		
 		if( is_array($arr_saisie) )
 		{
 			$_SESSION['transactions'][$transaction_id]['arr_saisie'] = $arr_saisie ;

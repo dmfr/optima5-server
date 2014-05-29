@@ -1139,6 +1139,16 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 			},
 			scope: this
 		});
-	}
+	},
 	
+	onDestroy: function() {
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_action: 'define_manageTransaction',
+				_transaction_id: this.transactionID,
+				_subaction: 'end'
+			}
+		}) ;
+		this.callParent() ;
+	}
 });

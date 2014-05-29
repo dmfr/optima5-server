@@ -183,7 +183,12 @@ function paracrm_queries_qbookTransaction( $post_data )
 			$json =  paracrm_queries_qbookTransaction_exportXLS( $post_data , $arr_saisie ) ;
 		}
 		
-
+		if( $post_data['_subaction'] == 'end' )
+		{
+			unset($_SESSION['transactions'][$transaction_id]) ;
+			return array('success'=>true) ;
+		}
+		
 		if( is_array($arr_saisie) )
 		{
 			$_SESSION['transactions'][$transaction_id]['arr_saisie'] = $arr_saisie ;

@@ -114,6 +114,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryPanel' ,{
 		me.removeAll();
 		
 		me.transaction_id = ajaxParams.transaction_id ;
+		me.fireEvent('qtransactionopen',this,me.transaction_id) ;
 		if( ajaxParams.query_id && ajaxParams.query_id > 0 ) {
 			me.query_id = ajaxParams.query_id ;
 			me.query_name =  ajaxParams.query_name ;
@@ -407,50 +408,10 @@ Ext.define('Optima5.Modules.CrmBase.QueryPanel' ,{
 					}
 				}
 				else {
-					// do something to open window
-					me.openQueryResultPanel( ajaxData.RES_id ) ;
+					me.fireEvent( 'qresultready', this, me.transaction_id, ajaxData.RES_id ) ;
 				}
 			},
 			scope: me
 		});
-	},
-	openQueryResultPanel: function( resultId ) {
-		var me = this ;
-		
-		var baseAjaxParams = new Object() ;
-		Ext.apply( baseAjaxParams, {
-			_action: 'queries_builderTransaction',
-			_transaction_id : me.transaction_id
-		});
-		
-		var queryResultPanel = Ext.create('Optima5.Modules.CrmBase.QueryResultPanel',{
-			optimaModule:me.optimaModule,
-			ajaxBaseParams: baseAjaxParams,
-			RES_id: resultId
-		}) ;
-		me.optimaModule.createWindow({
-			title:me.query_name ,
-			width:800,
-			height:600,
-			iconCls: 'op5-crmbase-qresultwindow-icon',
-			animCollapse:false,
-			border: false,
-			items: [ queryResultPanel ]
-		}) ;
-		
-		queryResultPanel.on('beforedestroy',function(destroyedpanel){
-			if( destroyedpanel.up('window') ) {
-				destroyedpanel.up('window').close() ;
-			}
-		});
-	},
-	onDestroy: function() {
-		this.optimaModule.getConfiguredAjaxConnection().request({
-			params: {
-				_action: 'queries_builderTransaction',
-				_transaction_id: this.transaction_id ,
-				_subaction: 'end'
-			}
-		}) ;
 	}
 });

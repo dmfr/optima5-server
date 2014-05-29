@@ -71,7 +71,12 @@ function paracrm_queries_qwebTransaction( $post_data )
 				break ;
 		}
 		
-
+		if( $post_data['_subaction'] == 'end' )
+		{
+			unset($_SESSION['transactions'][$transaction_id]) ;
+			return array('success'=>true) ;
+		}
+		
 		if( is_array($arr_saisie) )
 		{
 			$_SESSION['transactions'][$transaction_id]['arr_saisie'] = $arr_saisie ;

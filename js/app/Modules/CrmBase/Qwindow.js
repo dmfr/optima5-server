@@ -26,6 +26,9 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 	
 	forceQsimple: false,
 		
+	transaction_id: null,
+	qresultWindows: null,
+		
 	getQcfg: function() {
 		var me = this ;
 		
@@ -68,12 +71,31 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 				break ;
 		}
 	},
+	getAjaxAction: function() {
+		var me = this ;
+		switch( me.qType ) {
+			case 'query' :
+				return 'queries_builderTransaction' ;
+			case 'qmerge':
+				return 'queries_mergerTransaction' ;
+			case 'qweb' :
+				return 'queries_qwebTransaction' ;
+			case 'qbook' :
+			case 'qbook_ztemplate' :
+				return 'queries_qbookTransaction' ;
+			default :
+				Optima5.Helper.logError('CrmBase:Qwindow','Invalid config') ;
+				break ;
+		}
+	},
 	
 	initComponent: function() {
 		var me = this ;
 		if( (me.optimaModule) instanceof Optima5.Module ) {} else {
 			Optima5.Helper.logError('CrmBase:Qwindow','No module reference ?') ;
 		}
+		
+		me.qresultWindows = new Ext.util.MixedCollection();
 		
 		var cfgValid = false,
 			panelClass ;
@@ -216,6 +238,15 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 				}) ;
 				break ;
 		}
+		me.items[0].on('qtransactionopen',function(qpanel, transactionId) {
+			me.onTransactionOpen(transactionId) ;
+		},me) ;
+		me.items[0].on('qresultready',function(qpanel, transactionId, RES_id, qbook_ztemplate_ssid) {
+			if( transactionId != me.transaction_id ) {
+				return ;
+			}
+			me.onResultReady(RES_id, qbook_ztemplate_ssid) ;
+		},me) ;
 		
 		me.on('show', function() {
 			// configure panel + load data
@@ -550,5 +581,93 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 				}
 				break ;
 		}
+	},
+	
+	
+	onTransactionOpen: function( transactionId ) {
+		if( this.transaction_id != null ) {
+			this.doCleanup() ;
+		}
+		this.transaction_id = transactionId ;
+	},
+	onResultReady: function( RES_id, qbook_ztemplate_ssid ) {
+		var me = this ;
+		
+		var baseAjaxParams = new Object() ;
+		Ext.apply( baseAjaxParams, {
+			_action: 'queries_builderTransaction',
+			_transaction_id : me.transaction_id
+		});
+		var queryResultPanel = Ext.create('Optima5.Modules.CrmBase.QueryResultPanel',{
+			optimaModule:me.optimaModule,
+			ajaxBaseParams: {
+				_action: me.getAjaxAction(),
+				_transaction_id : me.transaction_id
+			},
+			RES_id: RES_id,
+			qbook_ztemplate_ssid: qbook_ztemplate_ssid
+		}) ;
+		
+		var windowTitle = '' ;
+		switch( me.qType ) {
+			case 'query' :
+				windowTitle = me.getPanel().query_name ;
+				break ;
+			case 'qmerge' :
+				windowTitle = me.getPanel().qmerge_name ;
+				break ;
+			case 'qweb' :
+				windowTitle = me.getPanel().qweb_name ;
+				break ;
+			case 'qbook' :
+				windowTitle = me.getPanel().qbook_name ;
+				break ;
+		}
+		var windowCfg = {
+			title:windowTitle ,
+			width:800,
+			height:600,
+			iconCls: 'op5-crmbase-qresultwindow-icon',
+			animCollapse:false,
+			border: false,
+			items: [ queryResultPanel ]
+		} ;
+		if( me.qType=='qweb' ) {
+			Ext.apply(windowCfg,{
+				width:925,
+				height:700
+			}) ;
+		}
+		Ext.apply(windowCfg,{
+			listeners: {
+				destroy: function(win) {
+					me.qresultWindows.remove(win) ;
+				},
+				scope: me
+			}
+		}) ;
+		
+		var win = me.optimaModule.createWindow(windowCfg) ;
+		me.qresultWindows.add(win) ;
+	},
+	doCleanup: function() {
+		// close result windows
+		this.qresultWindows.each( function(win) {
+			win.destroy() ;
+		}) ;
+		
+		// end transaction
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_action: this.getAjaxAction(),
+				_transaction_id: this.transaction_id ,
+				_subaction: 'end'
+			}
+		});
+	},
+	
+	onDestroy: function() {
+		this.doCleanup() ;
+		this.callParent() ;
 	}
 });

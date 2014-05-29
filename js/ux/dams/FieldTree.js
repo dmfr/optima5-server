@@ -32,6 +32,7 @@ Ext.define('Ext.ux.dams.FieldTree',{
 		if( this.mytree ) {
 			this.mytree.destroy() ;
 		}
+		this.callParent();
 	},
 			  
 	afterRender: function() {

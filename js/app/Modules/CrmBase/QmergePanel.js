@@ -351,6 +351,7 @@ Ext.define('Optima5.Modules.CrmBase.QmergePanel' ,{
 		var me = this ;
 		
 		me.transaction_id = ajaxResponse.transaction_id ;
+		me.fireEvent('qtransactionopen',this,me.transaction_id) ;
 		if( ajaxResponse.qmerge_id && ajaxResponse.qmerge_id > 0 ) {
 			me.qmerge_id = ajaxResponse.qmerge_id ;
 			me.qmerge_name =  ajaxResponse.qmerge_name ;
@@ -1058,41 +1059,10 @@ Ext.define('Optima5.Modules.CrmBase.QmergePanel' ,{
 					}
 				}
 				else {
-					// do something to open window
-					me.openQueryResultPanel( ajaxData.RES_id ) ;
+					me.fireEvent( 'qresultready', this, me.transaction_id, ajaxData.RES_id ) ;
 				}
 			},
 			scope: me
-		});
-	},
-	openQueryResultPanel: function( resultId ) {
-		var me = this ;
-		
-		var baseAjaxParams = new Object() ;
-		Ext.apply( baseAjaxParams, {
-			_action: 'queries_mergerTransaction',
-			_transaction_id : me.transaction_id
-		});
-		
-		var queryResultPanel = Ext.create('Optima5.Modules.CrmBase.QueryResultPanel',{
-			optimaModule:me.optimaModule,
-			ajaxBaseParams: baseAjaxParams,
-			RES_id: resultId
-		}) ;
-		me.optimaModule.createWindow({
-			title:me.qmerge_name ,
-			width:800,
-			height:600,
-			iconCls: 'op5-crmbase-qresultwindow-icon',
-			animCollapse:false,
-			border: false,
-			items: [ queryResultPanel ]
-		}) ;
-		
-		queryResultPanel.on('beforedestroy',function(destroyedpanel){
-			if( destroyedpanel.up('window') ) {
-				destroyedpanel.up('window').close() ;
-			}
 		});
 	}
 });

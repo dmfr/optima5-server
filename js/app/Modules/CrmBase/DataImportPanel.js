@@ -577,5 +577,16 @@ Ext.define('Optima5.Modules.CrmBase.DataImportPanel' ,{
 			},
 			scope: this
 		});
+	},
+	
+	onDestroy: function() {
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_action: 'data_importTransaction',
+				_transaction_id: this.transaction_id ,
+				_subaction: 'end'
+			}
+		}) ;
+		this.callParent() ;
 	}
 }) ;

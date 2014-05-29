@@ -155,5 +155,20 @@ Ext.define('Optima5.Modules.CrmBase.QdirectWindow' ,{
 		}) ;
 		me.removeAll() ;
 		me.add(queryResultPanel) ;
+		
+		me.requestChainEnd(qdirectTransactionId) ;
+	},
+	requestChainEnd: function(qdirectTransactionId) {
+		var me = this ;
+		
+		var ajaxParams = new Object() ;
+		Ext.apply( ajaxParams, {
+			_action: me.getAjaxAction(),
+			_transaction_id: qdirectTransactionId ,
+			_subaction: 'end'
+		});
+		me.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams
+		});
 	}
 });
