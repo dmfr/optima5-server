@@ -3386,6 +3386,21 @@ function paracrm_queries_process_labels_withTabs( $arr_saisie, $groupId_forTab )
 				$bibleConditions[] = array('treenodes'=>$tarr) ;
 			
 			}
+			if( $field_groupTab['field_type'] == 'link' && $field_group['field_type'] == 'link' 
+				&& $field_groupTab['field_linkbible'] != $field_group['field_linkbible'] )
+			{
+				switch( $field_groupTab['group_bible_type'] ) {
+					case 'TREE' :
+						$record_key = substr($subRES_tab['group_key'],2) ; // groupKey for bible is <t>_<id>
+						$foreignLinks[$field_groupTab['field_linkbible']] = array('record_type'=>'treenode', 'record_key'=>$record_key) ;
+						break ;
+						
+					case 'ENTRY' :
+						$record_key = substr($subRES_tab['group_key'],2) ; // groupKey for bible is <e>_<id>
+						$foreignLinks[$field_groupTab['field_linkbible']] = array('record_type'=>'entry', 'record_key'=>$record_key) ;
+						break ;
+				}
+			}
 			foreach( $arr_saisie['fields_where'] as $field_where )
 			{
 				if( $field_where['field_type'] == 'link'
@@ -3419,7 +3434,7 @@ function paracrm_queries_process_labels_withTabs( $arr_saisie, $groupId_forTab )
 					// Ex : seulement les mags STORE du chef secteur SALES sélectionné
 					if( !isJsonArr($field_where['condition_bible_entries']) ) {
 						$entry_key = $field_where['condition_bible_entries'] ;
-						$foreignLinks[$field_where['field_linkbible']] = $entry_key ;
+						$foreignLinks[$field_where['field_linkbible']] = array('record_type'=>'entry', 'record_key'=>$entry_key) ;
 					}
 				}
 			}
@@ -3503,7 +3518,7 @@ function paracrm_queries_process_labels_noTab( $arr_saisie )
 					// Ex : seulement les mags STORE du chef secteur SALES sélectionné
 					if( !isJsonArr($field_where['condition_bible_entries']) ) {
 						$entry_key = $field_where['condition_bible_entries'] ;
-						$foreignLinks[$field_where['field_linkbible']] = $entry_key ;
+						$foreignLinks[$field_where['field_linkbible']] = array('record_type'=>'entry', 'record_key'=>$entry_key) ;
 					}
 				}
 			}
@@ -3708,9 +3723,7 @@ function paracrm_queries_process_labelEnumBible_getTreeviewNodes( $bible_code, $
 			}
 		}
 		
-		if( $treenodes ) {
-			$arr_treenodes[] = array_keys($treenodes) ;
-		}
+		$arr_treenodes[] = array_keys($treenodes) ;
 	}
 	// ****** bibleConditions ******
 	// - condition treenode sur meme bible
@@ -3879,9 +3892,7 @@ function paracrm_queries_process_labelEnumBibleTreenodes( $bible_code, $root_tre
 			}
 		}
 		
-		if( $treenodes ) {
-			$arr_treenodes[] = array_keys($treenodes) ;
-		}
+		$arr_treenodes[] = array_keys($treenodes) ;
 	}
 	// ****** bibleConditions ******
 	// - condition treenode sur meme bible
@@ -3971,9 +3982,7 @@ function paracrm_queries_process_labelEnumBibleEntries( $bible_code, $root_treen
 			$entries[] = $arr_row['entry_key'] ;
 		}
 		
-		if( $entries ) {
-			$query_entries = " AND e.entry_key IN ".$_opDB->makeSQLlist($entries) ;
-		}
+		$query_entries = " AND e.entry_key IN ".$_opDB->makeSQLlist($entries) ;
 	}
 	if( $bibleConditions && count($bibleConditions)>0 )
 	{
