@@ -100,6 +100,11 @@
 	background-image: url("../images/modules/dbspeople-contrat-16.png") !important;
 }
 
+.op5-spec-dbspeople-icon-actionday-summary {
+	background-image: url("../images/modules/dbspeople-summary-16.png") !important;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
 .op5-spec-dbspeople-icon-actionday-open {
 	background-image: url("../images/modules/dbspeople-open-16.gif") !important;
 	background-position: center center;
@@ -205,15 +210,6 @@
 }
 
 
-.op5-spec-dbspeople-realsum-title .x-grid-cell-inner {
-	font-style: italic;
-}
-.op5-spec-dbspeople-realsum-value .x-grid-cell-inner {
-	font-weight: bold;
-	font-size: 12px;
-}
-
-
 .op5-spec-dbspeople-balance-pos .x-grid-cell-inner { 
 	color: #008000 ;
 	font-weight: bold;
@@ -265,6 +261,13 @@ table.op5-spec-dbspeople-realvalidhdr-tbl > tbody > tr > td.op5-spec-dbspeople-r
 .op5-spec-dbspeople-realvalidhdr-exception {
 	color: #E50000 ;
 	font-weight: bold;
+}
+
+.op5-spec-dbspeople-realsummaryhdr-icon {
+	width: 56px ;
+	background-position: center ;
+	background-repeat: no-repeat ;
+	background-image: url("../images/modules/dbspeople-summary-48.png") !important;
 }
 
 .op5-spec-dbspeople-realvalidgrid-tdcolor .x-grid-cell-inner {

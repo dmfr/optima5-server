@@ -101,7 +101,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		'Optima5.Modules.Spec.DbsPeople.RealVirtualPanel',
 		'Optima5.Modules.Spec.DbsPeople.CfgParamSiteButton',
 		'Optima5.Modules.Spec.DbsPeople.CfgParamTeamButton',
-		'Optima5.Modules.Spec.DbsPeople.RealConfirmPanel'
+		'Optima5.Modules.Spec.DbsPeople.RealConfirmPanel',
+		'Optima5.Modules.Spec.DbsPeople.RealSummaryPanel'
 	],
 	
 	dateStart: null,
@@ -409,10 +410,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			width: 200,
 			renderer: function(v) {
 				return '<b>'+v+'</b>' ;
-			},
-			summaryType: 'count',
-			summaryRenderer: function(v) {
-				return 'Total heures :' ;
 			}
 		}] ;
 		for( var d = dateStart ; d <= dateEnd ; d.setDate( d.getDate() + 1 ) ) {
@@ -472,32 +469,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 					dateSql: dSql,
 					width:50,
 					editor: {xtype: 'numberfield', minValue: 0 },
-					renderer: lengthRenderer,
-					summaryType: function(rows, dataIndex) {
-						var sum = 0,
-							rowsLn = rows.length,
-							row, obj ;
-						for( var i=0 ; i<rowsLn ; i++ ) {
-							row = rows[i] ;
-							obj = row.get(dataIndex) ;
-							if( Ext.isEmpty(obj) ) {
-								continue ;
-							}
-							if( obj.statusIsVirtual ) {
-								sum += obj.stdValue ;
-							} else {
-								sum += obj.value ;
-							}
-						}
-						return sum ;
-					},
-					summaryRenderer: function(value,metaData) {
-						metaData.tdCls += ' op5-spec-dbspeople-realsum-value' ;
-						if( value == 0 ) {
-							return '' ;
-						}
-						return value ;
-					}
+					renderer: lengthRenderer
 				}]
 			}) ;
 		}
@@ -564,8 +536,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				synchronousRender: true
 			}],
 			features: [{
-				//groupHeaderTpl: '{name}',
-				ftype: 'groupingsummary',
+				ftype: 'grouping',
 				hideGroupedHeader: false,
 				enableGroupingMenu: false,
 				enableNoGroups: false,
@@ -644,6 +615,15 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				scope: this
 			});
 			menu.add({
+				itemId: 'grid-summary',
+				iconCls: 'op5-spec-dbspeople-icon-actionday-summary',
+				text: 'Compteurs ETP',
+				handler: function(menuitem,e) {
+					this.openSummary( menuitem.up('menu').activeHeader.dateSqlHead ) ;
+				},
+				scope: this
+			});
+			menu.add({
 				itemId: 'real-open',
 				iconCls: 'op5-spec-dbspeople-icon-actionday-open',
 				text: 'Ouverture Jour',
@@ -709,6 +689,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			HelperCache = Optima5.Modules.Spec.DbsPeople.HelperCache,
 			colCfg = menu.activeHeader.colCfg;
 		menu.down('#grid-groupby').setVisible( !Ext.isEmpty(menu.activeHeader._groupBy) ) ;
+		menu.down('#grid-summary').setVisible( colCfg ) ;
 		menu.down('menuseparator').setVisible( colCfg ) ;
 		menu.down('#real-open').setVisible( colCfg && colCfg.enable_open && HelperCache.authHelperQueryPage('CEQ') ) ;
 		menu.down('#real-valid-ceq').setVisible( colCfg && colCfg.enable_valid_ceq && HelperCache.authHelperQueryPage('CEQ') ) ;
@@ -1293,6 +1274,96 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			realAdvancedPanel.getEl().alignTo(htmlNode, 'c-t?',[0,60]);
 		}
 		me.realAdvancedPanel = realAdvancedPanel ;
+	},
+	
+	
+	openSummary: function( dSql ) {
+		// Filtres en cours
+		var filterBtn_site = this.down('#btnSite'),
+			filterBtn_team = this.down('#btnTeam'),
+			filter_whses = ( filterBtn_site.getNode()==null ? null : filterBtn_site.getLeafNodesKey() ),
+			filter_teams = ( filterBtn_team.getNode()==null ? null : filterBtn_team.getLeafNodesKey() ) ;
+		
+		this.getEl().mask() ;
+		
+		var objRoleDuration = {} ;
+		var addDuration = function(roleCode,roleLength) {
+			if( !objRoleDuration.hasOwnProperty(roleCode) ) {
+				objRoleDuration[roleCode] = 0 ;
+			}
+			objRoleDuration[roleCode] += roleLength ;
+		}
+		
+		this.peopledayStore.each( function(peopledayRecord) {
+			if( peopledayRecord.get('date_sql') != dSql ) {
+				return ;
+			}
+			if( peopledayRecord.get('status_isVirtual') ) {
+				if( peopledayRecord.data.std_abs_code.charAt(0) != '_' ) {
+					return ;
+				}
+				if( filter_whses && !Ext.Array.contains(filter_whses,peopledayRecord.data.std_whse_code) ) {
+					return ;
+				}
+				if( filter_teams && !Ext.Array.contains(filter_teams,peopledayRecord.data.std_team_code) ) {
+					return ;
+				}
+				addDuration( peopledayRecord.data.std_role_code, peopledayRecord.data.std_daylength ) ;
+			}
+			peopledayRecord.works().each( function(peopledayWorkRecord) {
+				if( filter_whses ) {
+					if( Ext.isEmpty(peopledayWorkRecord.data.alt_whse_code) ) {
+						if( !Ext.Array.contains(filter_whses,peopledayRecord.data.std_whse_code) ) {
+							return ;
+						}
+					} else {
+						if( !Ext.Array.contains(filter_whses,peopledayWorkRecord.data.alt_whse_code) ) {
+							return ;
+						}
+					}
+				}
+				if( filter_teams && !Ext.Array.contains(filter_teams,peopledayRecord.data.std_team_code) ) {
+					return ;
+				}
+				addDuration( peopledayWorkRecord.data.role_code, peopledayWorkRecord.data.role_length ) ;
+			});
+		}) ;
+		
+		var summaryRows = [] ;
+		Ext.Object.each( objRoleDuration, function(roleCode, roleDuration) {
+			summaryRows.push({
+				role_code: roleCode,
+				role_sum_duration: roleDuration
+			});
+		}) ;
+			
+		var summaryPanel = Ext.create('Optima5.Modules.Spec.DbsPeople.RealSummaryPanel',{
+			parentRealPanel: this,
+			width:350, // dummy initial size, for border layout to work
+			height:null, // ...
+			floating: true,
+			renderTo: this.getEl(),
+			tools: [{
+				type: 'close',
+				handler: function(e, t, p) {
+					p.ownerCt.destroy();
+				},
+				scope: this
+			}],
+			data: {
+				date_sql: dSql,
+				filter_site_txt: (filter_whses ? filterBtn_site.getText() : null),
+				filter_team_txt: (filter_teams ? filterBtn_team.getText() : null),
+				summary_rows: summaryRows
+			}
+		});
+		
+		summaryPanel.on('destroy',function(summaryPanel) {
+			this.getEl().unmask() ;
+		},this,{single:true}) ;
+		
+		summaryPanel.show();
+		summaryPanel.getEl().alignTo(this.getEl(), 'c-c?');
 	},
 	
 	
