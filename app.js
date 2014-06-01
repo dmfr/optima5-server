@@ -144,10 +144,9 @@ Ext.onReady(function () {
 			var me = this ;
 			if (me.rendered && me.bufferedRenderer && me.preserveScrollOnRefresh) {
 				me.el.dom.scrollTop = me._ws_lastScrollPosition;
-				if( me.bufferedRenderer.lockingPartner && !me.bufferedRenderer.lockingPartner.view.rendered ) {
-				} else {
+				Ext.defer( function() { // HACK : rendered late sometimes
 					me.bufferedRenderer.onViewScroll(null, me.el);
-				}
+				},10,me) ;
 			}
 		},
 		onViewScroll: function(e, t) {
