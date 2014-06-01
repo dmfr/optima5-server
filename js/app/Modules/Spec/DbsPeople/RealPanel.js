@@ -47,6 +47,7 @@ Ext.define('DbsPeoplePeopledayModel', {
 Ext.define('DbsPeopleRealRowModel', {
 	extend: 'Ext.data.Model',
 	fields: [
+		{name: '_visible', type:'boolean'},
 		{name: 'whse_code',  type: 'string'},
 		{name: 'whse_isAlt', type:'boolean'},
 		{
@@ -247,6 +248,11 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			}
 		},this);
 		
+		this.tmpModelName = 'DbsPeopleRealRowModel-' + this.getId() ;
+		this.on('destroy',function(p) {
+			Ext.ux.dams.ModelManager.unregister( p.tmpModelName ) ;
+		}) ;
+		
 		me.onDateSet( new Date() ) ;
 		return ;
 	},
@@ -279,183 +285,97 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 	},
 	doGridConfigure: function() {
 		var me = this,
-			modelName = 'RealPanel-Grid-' + me.getId(),
 			dateStart = Ext.clone(me.dateStart),
 			dateEnd = Ext.clone(me.dateEnd) ;
 			
-		if( Ext.ModelManager.getModel(modelName) != null ) {
-			Ext.ModelManager.unregister(Ext.ModelManager.getModel(modelName)) ;
+		var getStatusTdCls = function( statusStr ) {
+			switch( statusStr ) {
+				case 'virtual' :
+					return 'op5-spec-dbspeople-realcell-virtual' ;
+				case 'open' :
+					return 'op5-spec-dbspeople-realcolor-open' ;
+				case 'openrh' :
+					return 'op5-spec-dbspeople-realcolor-openrh' ;
+				case 'closed' :
+					return '' ;
+			}
 		}
 		
-		var getStatusTdCls = function( peopledayRecord ) {
-			if( peopledayRecord.data.status_isVirtual == true ) {
-				return 'op5-spec-dbspeople-realcell-virtual' ;
-			}
-			if( !peopledayRecord.data.status_isValidCeq && !peopledayRecord.data.status_isValidRh ) {
-				return 'op5-spec-dbspeople-realcolor-open' ;
-			}
-			if( !peopledayRecord.data.status_isValidRh ) {
-				return 'op5-spec-dbspeople-realcolor-openrh' ;
-			}
-			return '' ;
-		} ;
-		
-		var roleRenderer = function(value, metaData, record, rowIndex, colIndex) {
-			var rowWhseCode = record.get('whse_code'),
-				rowIsAltWhse = record.get('whse_isAlt'),
-				rowTeamCode = record.get('team_code') ;
-				
-			var dateSql = this.headerCt.getHeaderAtIndex(colIndex).dateSql,
-				peopleCode = record.data.people_code,
-				peopledayId = peopleCode+'@'+dateSql,
-				peopledayRecord = me.peopledayStore.getById(peopledayId) ;
-			if( peopledayRecord == null ) {
-				return '' ;
-			}
-			if( !rowIsAltWhse && peopledayRecord.data.std_whse_code != rowWhseCode ) {
-				return '' ;
-			}
-			if( peopledayRecord.data.std_team_code != rowTeamCode ) {
+		var roleRenderer = function(value, metaData, record) {
+			if( Ext.isEmpty(value) ) {
 				return '' ;
 			}
 			
-			metaData.tdCls += ' ' + getStatusTdCls(peopledayRecord) ;
+			metaData.tdCls += ' ' + getStatusTdCls(value.statusStr) ;
 			
-			if( peopledayRecord.data.status_isVirtual == true ) {
-				if( rowIsAltWhse ) {
+			if( value.statusIsVirtual ) {
+				if( value.stdEmpty ) {
 					return '' ;
 				}
-				if( peopledayRecord.data.std_daylength == 0 ) {
-					return '' ;
-				}
-				if( !Ext.isEmpty(peopledayRecord.data.std_abs_code) && peopledayRecord.data.std_abs_code.charAt(0) != '_' ) {
+				if( value.stdAbs != null ) {
 					metaData.tdCls += ' op5-spec-dbspeople-realcell-absplanning' ;
-					return peopledayRecord.data.std_abs_code ;
-				}
-				return peopledayRecord.data.std_role_code ;
-			}
-			
-			var worksStore = peopledayRecord.works(),
-				absStore = peopledayRecord.abs() ;
-			if( worksStore.getCount() == 0 && absStore.getCount() == 0 ) {
-				if( peopledayRecord.data.std_daylength > 0 ) {
-					metaData.tdCls += ' op5-spec-dbspeople-realcolor-anomalie' ;
-				}
-				return '' ;
-			}
-			
-			var rolesArr = [],
-				rolesHasAltWhse = false ;
-			worksStore.each( function(workRecord) {
-				if( rowIsAltWhse && workRecord.data.alt_whse_code != rowWhseCode ) {
-					return ;
-				}
-				if( workRecord.data.alt_whse_code && !rowIsAltWhse ) {
-					if( !rolesHasAltWhse ) {
-						rolesHasAltWhse = true ;
-						rolesArr.push('@') ;
-						metaData.tdCls += ' op5-spec-dbspeople-realcolor-whse' ;
-					}
-					return ;
-				}
-				if( workRecord.data.role_code != peopledayRecord.data.std_role_code ) {
-					rolesArr.push( '<span class="op5-spec-dbspeople-realcell-diff">' + workRecord.data.role_code + '</span>' ) ;
-					return ;
-				}
-				rolesArr.push( workRecord.data.role_code ) ;
-			}) ;
-			var stdAbsCode = peopledayRecord.data.std_abs_code ;
-			absStore.each( function(absRecord) {
-				if( rowIsAltWhse ) {
-					return ;
-				}
-				var cls = (absRecord.data.abs_code == stdAbsCode ? 'op5-spec-dbspeople-realcell-absplanning' : 'op5-spec-dbspeople-realcell-absent') ;
-				rolesArr.push( '<span class="'+cls+'">' + absRecord.data.abs_code + '</span>' ) ;
-			}) ;
-			
-			return rolesArr.join('+') ;
-		};
-		
-		var lengthRenderer = function(value, metaData, record, rowIndex, colIndex) {
-			var rowWhseCode = record.get('whse_code'),
-				rowIsAltWhse = record.get('whse_isAlt'),
-				rowTeamCode = record.get('team_code') ;
-				
-			var dateSql = this.headerCt.getHeaderAtIndex(colIndex).dateSql,
-				peopleCode = record.data.people_code,
-				peopledayId = peopleCode+'@'+dateSql,
-				peopledayRecord = me.peopledayStore.getById(peopledayId) ;
-			if( peopledayRecord == null ) {
-				return '' ;
-			}
-			if( !rowIsAltWhse && peopledayRecord.data.std_whse_code != rowWhseCode ) {
-				return '' ;
-			}
-			if( peopledayRecord.data.std_team_code != rowTeamCode ) {
-				return '' ;
-			}
-			
-			metaData.tdCls += ' ' + getStatusTdCls(peopledayRecord) ;
-			
-			if( peopledayRecord.data.status_isVirtual == true ) {
-				if( rowIsAltWhse ) {
-					return '' ;
-				}
-				if( peopledayRecord.data.std_daylength == 0 ) {
-					return '' ;
-				}
-				if( !Ext.isEmpty(peopledayRecord.data.std_abs_code) && peopledayRecord.data.std_abs_code.charAt(0) != '_' ) {
-					return '' ;
-				}
-				return peopledayRecord.data.std_daylength ;
-			}
-			
-			
-			var hasAltWhse = false ;
-			
-			var workLength = 0,
-				altWhseLength = 0 ;
-			peopledayRecord.works().each( function(workRecord) {
-				if( rowIsAltWhse && workRecord.data.alt_whse_code != rowWhseCode ) {
-					return ;
-				}
-				if( workRecord.data.alt_whse_code && !rowIsAltWhse ) {
-					hasAltWhse = true ;
-					altWhseLength += workRecord.data.role_length ;
-					return ;
-				}
-				workLength += workRecord.data.role_length ;
-			}) ;
-			
-			var absLength = 0 ;
-			peopledayRecord.abs().each( function(absRecord) {
-				absLength += absRecord.data.abs_length ;
-			}) ;
-			
-			
-			if( !rowIsAltWhse && (workLength+altWhseLength) != peopledayRecord.data.std_daylength ) {
-				if( (workLength + absLength + altWhseLength) < peopledayRecord.data.std_daylength ) {
-					metaData.tdCls += ' op5-spec-dbspeople-realcolor-anomalie' ;
-				} else if( (workLength + altWhseLength) < peopledayRecord.data.std_daylength ) {
-					metaData.tdCls += ' op5-spec-dbspeople-balance-neg' ;
+					return value.stdAbs ;
 				} else {
-					metaData.tdCls += ' op5-spec-dbspeople-balance-pos' ;
+					return value.stdRole ;
 				}
-			} else if( hasAltWhse ) {
+			}
+			
+			var rolesStr = [] ;
+			if( value.hasAlt ) {
+				rolesStr.push('@') ;
 				metaData.tdCls += ' op5-spec-dbspeople-realcolor-whse' ;
 			}
+			if( value.roles ) {
+				var roles=value.roles, rolesLn=roles.length, role ;
+				for( var i=0 ; i<rolesLn ; i++ ) {
+					role = roles[i] ;
+					if( role != value.stdRole ) {
+						rolesStr.push( '<span class="op5-spec-dbspeople-realcell-diff">' + role + '</span>' ) ;
+					} else {
+						rolesStr.push( role ) ;
+					}
+				}
+			}
+			if( value.abs ) {
+				var abs=value.abs, absLn=abs.length, ab ;
+				for( var i=0 ; i<absLn ; i++ ) {
+					ab = abs[i] ;
+					var cls = (ab == value.stdAbs ? 'op5-spec-dbspeople-realcell-absplanning' : 'op5-spec-dbspeople-realcell-absent') ;
+					rolesStr.push( '<span class="'+cls+'">' + ab + '</span>' ) ;
+				}
+			}
+			if( rolesStr.length == 0 && !value.stdEmpty ) {
+				metaData.tdCls += ' op5-spec-dbspeople-realcolor-anomalie' ;
+			}
+			return rolesStr.join('+') ;
+		}
+		
+		var lengthRenderer = function(value, metaData, record) {
+			if( Ext.isEmpty(value) ) {
+				return '' ;
+			}
 			
-			if( workLength==0 && peopledayRecord.data.std_daylength == 0 ) {
+			metaData.tdCls += ' ' + getStatusTdCls(value.statusStr) ;
+			
+			if( value.statusIsVirtual ) {
+				return ( value.stdValue > 0 ? value.stdValue : '' ) ;
+			}
+			
+			if( value.stdValue ) {
+				if( value.totalValue < value.stdValue ) {
+					metaData.tdCls += ' op5-spec-dbspeople-realcolor-anomalie' ;
+				} else if( value.workValue < value.stdValue ) {
+					metaData.tdCls += ' op5-spec-dbspeople-balance-neg' ;
+				} else if( value.workValue > value.stdValue ) {
+					metaData.tdCls += ' op5-spec-dbspeople-balance-pos' ;
+				}
+			}
+			
+			if( value.stdValue==0 && value.workValue==0 ) {
 				return '' ;
 			}
-			if( workLength==0 && (!Ext.isEmpty(peopledayRecord.data.std_abs_code) && peopledayRecord.data.std_abs_code.charAt(0) != '_') ) {
-				return '' ;
-			}
-			if( workLength==0 && rowIsAltWhse ) {
-				return '' ;
-			}
-			return workLength ;
-		};
+			return value.value ;
+		}
 		
 		var pushModelfields = [] ;
 		var columns = [{
@@ -489,6 +409,10 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			width: 200,
 			renderer: function(v) {
 				return '<b>'+v+'</b>' ;
+			},
+			summaryType: 'count',
+			summaryRenderer: function(v) {
+				return 'Total heures :' ;
 			}
 		}] ;
 		for( var d = dateStart ; d <= dateEnd ; d.setDate( d.getDate() + 1 ) ) {
@@ -496,25 +420,22 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				dSql = Ext.Date.format(d,'Y-m-d');
 			
 			pushModelfields.push({
-				name:'d_'+dStr,
-				type:'string'
-			}) ;
-			pushModelfields.push({
 				name:'d_'+dStr+'_role',
-				type:'string'
+				type:'auto'
 			}) ;
 			pushModelfields.push({
 				name:'d_'+dStr+'_tmp',
-				type:'string'
+				type:'auto'
 			}) ;
 			
 			columns.push({
 				text: Optima5.Modules.Spec.DbsPeople.HelperCache.DayNamesIntl.FR[d.getDay()] + ' ' + Ext.Date.format(d,'d/m'),
 				dateSqlHead: dSql,
+				dateStrHead: dStr,
 				columns: [{
 					text: 'Role',
 					menuDisabled: true,
-					//dataIndex: 'd_'+dStr+'_role',
+					dataIndex: 'd_'+dStr+'_role',
 					dateHash: 'd_'+dStr,
 					dateSql: dSql,
 					width: 60,
@@ -546,15 +467,45 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				},{
 					text: 'Tmp',
 					menuDisabled: true,
-					//dataIndex: 'd_'+dStr+'_tmp',
+					dataIndex: 'd_'+dStr+'_tmp',
 					dateHash: 'd_'+dStr,
 					dateSql: dSql,
 					width:50,
 					editor: {xtype: 'numberfield', minValue: 0 },
-					renderer: lengthRenderer
+					renderer: lengthRenderer,
+					summaryType: function(rows, dataIndex) {
+						var sum = 0,
+							rowsLn = rows.length,
+							row, obj ;
+						for( var i=0 ; i<rowsLn ; i++ ) {
+							row = rows[i] ;
+							obj = row.get(dataIndex) ;
+							if( Ext.isEmpty(obj) ) {
+								continue ;
+							}
+							if( obj.statusIsVirtual ) {
+								sum += obj.stdValue ;
+							} else {
+								sum += obj.value ;
+							}
+						}
+						return sum ;
+					},
+					summaryRenderer: function(value,metaData) {
+						metaData.tdCls += ' op5-spec-dbspeople-realsum-value' ;
+						if( value == 0 ) {
+							return '' ;
+						}
+						return value ;
+					}
 				}]
 			}) ;
 		}
+		
+		Ext.define(this.tmpModelName, {
+			extend: 'DbsPeopleRealRowModel',
+			fields: pushModelfields
+		});
 		
 		var columnDefaults = {
 			menuDisabled: false,
@@ -573,14 +524,21 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			}
 		}) ;
 		
-		
 		me.removeAll() ;
 		me.add({
 			border: false,
 			xtype:'grid',
 			store: {
-				model: 'DbsPeopleRealRowModel',
+				model: this.tmpModelName,
 				data: [],
+				sorters: [{
+					property: 'people_name',
+					direction: 'ASC'
+				}],
+				filters: [{
+					property: '_visible',
+					value: true
+				}],
 				proxy:{
 					type:'memory'
 				},
@@ -596,7 +554,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				clicksToEdit: 1,
 				listeners: {
 					beforeedit: me.onGridBeforeEdit,
-					edit: me.onGridAfterEdit,
+					validateedit: me.onGridAfterEdit,
 					scope: me
 				},
 				lockableScope: 'normal'
@@ -607,7 +565,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			}],
 			features: [{
 				//groupHeaderTpl: '{name}',
-				ftype: 'grouping',
+				ftype: 'groupingsummary',
 				hideGroupedHeader: false,
 				enableGroupingMenu: false,
 				enableNoGroups: false,
@@ -780,6 +738,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				col.show() ;
 			}
 		}) ;
+		grid.getView().refresh() ; // HACK
 	},
 	
 	
@@ -792,6 +751,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		}
 	},
 	doShowLoadmask: function() {
+		if( this.loadMask ) {
+			return ;
+		}
 		this.loadMask = Ext.create('Ext.LoadMask',{
 			target: this,
 			msg:"Please wait..."
@@ -850,11 +812,29 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		});
 	},
 	onLoadResponse: function(response, filterChanged) {
-		var me = this ;
-			
-		var jsonResponse = Ext.JSON.decode(response.responseText) ;
+		var me = this,
+			jsonResponse = Ext.JSON.decode(response.responseText) ;
 		
 		var grid = me.child('grid') ;
+			store = grid.getStore(),
+			filter_site = me.down('#btnSite').getNode(),
+			filter_team = me.down('#btnTeam').getNode() ;
+			
+		// Cfg columns visibility + groups according to current filters
+		grid.headerCt.down('[dataIndex="whse_txt"]')._alwaysHidden = (filter_site && filter_site.leaf_only) ;
+		grid.headerCt.down('[dataIndex="team_txt"]')._alwaysHidden = (filter_team && filter_team.leaf_only) ;
+		if( filterChanged ) {
+			store.removeAll() ; // To avoid sorting/grouping obsolete records
+			if( filter_site==null || !filter_site.leaf_only ) {
+				store.group( 'whse_code', 'ASC' ) ;
+			} else if( filter_team==null || !filter_team.leaf_only ) {
+				store.group( 'team_code', 'ASC' ) ;
+			} else {
+				store.clearGrouping() ;
+			}
+		}
+		
+		// Set "exception day" style
 		Ext.Object.each( jsonResponse.columns, function( dSql, colCfg ) {
 			var column = grid.headerCt.down('[dateSqlHead="'+dSql+'"]') ;
 			column.colCfg = colCfg ;
@@ -863,7 +843,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				subCol.tdCls += ( colCfg.status_exceptionDay ? ' '+'op5-spec-dbspeople-realcolor-exceptionday' : '') ;
 			}) ;
 		},this) ;
-			
+		
+		// peopledayStore + adapter (re)init
 		this.peopledayStore = Ext.create('Ext.data.Store',{
 			model: 'DbsPeoplePeopledayModel',
 			data: jsonResponse.data,
@@ -882,34 +863,271 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				}
 			}
 		}) ;
-		
-		var grid = me.child('grid'),
-			store = grid.getStore(),
-			filter_site = me.down('#btnSite').getNode(),
-			filter_team = me.down('#btnTeam').getNode() ;
-		// inject inline data
-		store.loadRawData( jsonResponse.rows ) ;
-		store.sort('people_name','ASC') ;
-		
-		// cfg columns + groups
-		grid.headerCt.down('[dataIndex="whse_txt"]')._alwaysHidden = (filter_site && filter_site.leaf_only) ;
-		grid.headerCt.down('[dataIndex="team_txt"]')._alwaysHidden = (filter_team && filter_team.leaf_only) ;
-		
-		if( filterChanged ) {
-			if( filter_site==null || !filter_site.leaf_only ) {
-				store.group( 'whse_code', 'ASC' ) ;
-			} else if( filter_team==null || !filter_team.leaf_only ) {
-				store.group( 'team_code', 'ASC' ) ;
-			} else {
-				store.clearGrouping() ;
-			}
-		}
+		this.gridAdapterInit() ;
+		store.group() ;
 		
 		// Drop loadmask
 		this.hideLoadmask();
 		
 		// Setup autoRefresh task
 		this.autoRefreshTask.delay( this.autoRefreshDelay ) ;
+	},
+	
+	gridAdapterInit: function() {
+		var grid = this.child('grid'),
+			store = grid.getStore(),
+			dateMap = this.gridAdapterGetDateMap(),
+			gridData = {} ;
+		
+		this.peopledayStore.each( function(peopledayRecord) {
+			this.gridAdapterPopulateForPeopledayRecord( gridData, peopledayRecord, dateMap ) ;
+		},this) ;
+		
+		gridData = this.gridAdapterGridFilter(gridData) ;
+		
+		store.loadRawData( gridData ) ;
+	},
+	gridAdapterUpdatePeopledayRecord: function(peopledayRecord) {
+		var grid = this.child('grid'),
+			 store = grid.getStore(),
+			 dateMap = this.gridAdapterGetDateMap() ;
+			
+		// mise à zero de toutes les 'cases' concernées par ce record (people + date)
+		var dateSql = peopledayRecord.get('date_sql'),
+			dateStr = dateMap[dateSql] ;
+		if( dateStr == null ) {
+			return ; // hors champ
+		}
+		var roleKey = 'd_'+dateStr+'_role',
+			durationKey = 'd_'+dateStr+'_tmp',
+			nullObj = {},
+			gridRecordsToDelete = [] ;
+		nullObj[roleKey] = '' ;
+		nullObj[durationKey] = '' ;
+		store.data.each( function(gridRec) {
+			if( gridRec.get('people_code') != peopledayRecord.get('people_code') ) {
+				return ;
+			}
+			
+			gridRec.set(nullObj) ;
+			gridRec.commit() ;
+			
+			// Is gridRow empty ?
+			var isGridRowEmpty = true ;
+			Ext.Object.each( dateMap, function(dateSql,dateStr) {
+				var roleKey = 'd_'+dateStr+'_role',
+					durationKey = 'd_'+dateStr+'_tmp' ;
+				if( !Ext.isEmpty(gridRec.get(roleKey)) || !Ext.isEmpty(gridRec.get(durationKey)) ) {
+					isGridRowEmpty = false ;
+				}
+			}) ;
+			if( isGridRowEmpty || gridRec.get('whse_code') != peopledayRecord.get('std_whse_code') ) {
+				gridRecordsToDelete.push(gridRec) ;
+			}
+		}) ;
+		if( gridRecordsToDelete.length > 0 ) {
+			store.remove(gridRecordsToDelete) ;
+		}
+		
+		// construction d'une grid data partielle
+		var gridData = {}
+		this.gridAdapterPopulateForPeopledayRecord( gridData, peopledayRecord, dateMap ) ;
+		
+		gridData = this.gridAdapterGridFilter(gridData) ;
+		
+		// fusion avec le store existant
+		Ext.Array.each( gridData, function( gridDataRow ) {
+			var gridDataRowId = gridDataRow.id ;
+			// row record exists ?
+			var gridRec = store.getById( gridDataRowId ) ;
+			if( gridRec != null ) {
+				gridRec.set(gridDataRow) ;
+				gridRec.commit() ;
+			} else {
+				store.add(gridDataRow) ;
+			}
+		}) ;
+		
+		if( gridData.length > 1 ) { // more than 1 => alt warehouses and possible inserts
+			store.filter() ;
+			grid.getView().refresh() ; //HACK
+		}
+	},
+	gridAdapterGridFilter: function( gridData ) {
+		var filterBtn_site = this.down('#btnSite'),
+			filterBtn_team = this.down('#btnTeam'),
+			filter_whses = ( filterBtn_site.getNode()==null ? null : filterBtn_site.getLeafNodesKey() ),
+			filter_teams = ( filterBtn_team.getNode()==null ? null : filterBtn_team.getLeafNodesKey() ) ;
+		
+		var filterFn = function(rec) {
+		}
+		
+		if( Ext.isObject(gridData) ) {
+			var gridData = Ext.Object.getValues(gridData) ;
+		}
+		var gridDataRow, gridDataLn = gridData.length, visible ;
+		for( var i=0 ; i<gridDataLn ; i++ ) {
+			gridDataRow = gridData[i] ;
+			
+			visible = true ;
+			if( filter_whses && !Ext.Array.contains(filter_whses,gridDataRow.whse_code) ) {
+				visible = false ;
+			}
+			if( filter_teams && !Ext.Array.contains(filter_teams,gridDataRow.team_code) ) {
+				visible = false ;
+			}
+			
+			gridDataRow._visible = visible ;
+		}
+		return gridData ;
+	},
+	gridAdapterPopulateForPeopledayRecord: function( gridData, peopledayRecord, dateMap ) {
+		if( dateMap == null ) {
+			dateMap = this.gridAdapterGetDateMap() ;
+		}
+		var dateSql = peopledayRecord.get('date_sql'),
+			dateStr = dateMap[dateSql] ;
+		if( dateStr == null ) {
+			return ; // hors champ
+		}
+		
+		var stdWhseCode = peopledayRecord.data.std_whse_code,
+			stdTeamCode = peopledayRecord.data.std_team_code,
+			stdRoleCode = peopledayRecord.data.std_role_code,
+			stdAbsCode = peopledayRecord.data.std_abs_code,
+			stdContractCode = peopledayRecord.data.std_contract_code,
+			stdDayLength = peopledayRecord.data.std_daylength,
+			peopleCode = peopledayRecord.data.people_code ;
+		
+		var altWhsesSegments = null,
+			workDuration = 0,
+			absDuration = 0,
+			statusIsVirtual = false,
+			statusStr = '',
+			segments = {
+				roles:[],
+				abs:[],
+				roles_duration:0
+			} ;
+		
+		if( peopledayRecord.data.status_isVirtual == true ) {
+			statusIsVirtual = true ;
+			statusStr = 'virtual' ;
+		}
+		else if( !peopledayRecord.data.status_isValidCeq && !peopledayRecord.data.status_isValidRh ) {
+			statusStr = 'open' ;
+		}
+		else if( !peopledayRecord.data.status_isValidRh ) {
+			statusStr = 'openrh' ;
+		}
+		else {
+			statusStr = '' ;
+		}
+		
+		if( stdAbsCode.charAt(0) == '_' ) {
+			stdAbsCode = null ;
+		}
+		
+		peopledayRecord.works().each( function(workRecord) {
+			workDuration += workRecord.data.role_length ;
+			if( !Ext.isEmpty(workRecord.data.alt_whse_code) ) {
+				var altWhseCode = workRecord.data.alt_whse_code ;
+				if( altWhsesSegments == null ) {
+					altWhsesSegments = {} ;
+				}
+				if( !altWhsesSegments.hasOwnProperty(altWhseCode) ) {
+					altWhsesSegments[altWhseCode] = {
+						roles:[],
+						roles_duration:0
+					};
+				}
+				altWhsesSegments[altWhseCode].roles.push(workRecord.data.role_code) ;
+				altWhsesSegments[altWhseCode].roles_duration += workRecord.data.role_length ;
+				return ;
+			}
+			segments.roles.push(workRecord.data.role_code) ;
+			segments.roles_duration += workRecord.data.role_length ;
+		}) ;
+		peopledayRecord.abs().each( function(absRecord) {
+			absDuration += absRecord.data.abs_length ;
+			segments.abs.push(absRecord.data.abs_code) ;
+		}) ;
+		
+		
+		var roleKey = 'd_'+dateStr+'_role',
+			durationKey = 'd_'+dateStr+'_tmp' ;
+			
+		var gridDataRowId = stdWhseCode+'%'+stdTeamCode+'%'+peopleCode ;
+		if( !gridData.hasOwnProperty(gridDataRowId) ) {
+			gridData[gridDataRowId] = {
+				id: gridDataRowId,
+				whse_code: stdWhseCode,
+				whse_isAlt: false,
+				team_code: stdTeamCode,
+				contract_code: stdContractCode,
+				std_role_code: stdRoleCode,
+				people_code: peopledayRecord.data.people_code,
+				people_name: peopledayRecord.data.people_name,
+				people_techid: peopledayRecord.data.people_techid
+			} ;
+		}
+		var gridDataRow = gridData[gridDataRowId] ;
+		gridDataRow[roleKey] = {
+			statusStr: statusStr,
+			statusIsVirtual: statusIsVirtual,
+			roles: segments.roles,
+			abs: segments.abs,
+			stdRole: stdRoleCode,
+			stdAbs: stdAbsCode,
+			stdEmpty: (stdDayLength == 0),
+			hasAlt: (altWhsesSegments != null)
+		} ;
+		gridDataRow[durationKey] = {
+			statusStr: statusStr,
+			statusIsVirtual: statusIsVirtual,
+			value: segments.roles_duration,
+			workValue: workDuration,
+			totalValue: (workDuration + absDuration),
+			stdValue: ( stdAbsCode == null ? stdDayLength : 0 )
+		} ;
+		
+		if( altWhsesSegments == null ) {
+			return ;
+		}
+		Ext.Object.each( altWhsesSegments, function( altWhseCode, segments ) {
+			var gridDataRowId = '@'+altWhseCode+'%'+stdTeamCode+'%'+peopleCode ;
+			if( !gridData.hasOwnProperty(gridDataRowId) ) {
+				gridData[gridDataRowId] = {
+					id: gridDataRowId,
+					whse_code: altWhseCode,
+					whse_isAlt: true,
+					team_code: stdTeamCode,
+					contract_code: stdContractCode,
+					std_role_code: stdRoleCode,
+					people_code: peopledayRecord.data.people_code,
+					people_name: peopledayRecord.data.people_name,
+					people_techid: peopledayRecord.data.people_techid
+				} ;
+			}
+			var gridDataRow = gridData[gridDataRowId] ;
+			gridDataRow[roleKey] = {
+				roles: segments.roles,
+				stdRole: stdRoleCode,
+				stdEmpty: true
+			} ;
+			gridDataRow[durationKey] = {
+				value: segments.roles_duration
+			} ;
+		}) ;
+	},
+	gridAdapterGetDateMap: function() {
+		var grid = this.child('grid'),
+			dateCols = grid.headerCt.query('[dateSqlHead]'),
+			dateMap = {} ;
+		Ext.Array.each( dateCols, function(dateCol) {
+			dateMap[dateCol.dateSqlHead] = dateCol.dateStrHead ;
+		}) ;
+		return dateMap ;
 	},
 	
 	
@@ -944,15 +1162,20 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		var editorField = editEvent.column.getEditor() ;
 		switch( editorField.getXType() ) {
 			case 'combobox' :
-				editorField.getStore().loadData( Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll("ROLE") ) ;
-				editorField.setValue( peopledayWorkData.role_code ) ;
+				editorField.on('focus',function(editorField) {
+					editorField.getStore().loadData( Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll("ROLE") ) ;
+					editorField.setValue(peopledayWorkData.role_code) ;
+					editorField.focusInput() ;
+				},this,{single:true}) ;
 				editorField.on('select',function() {
 					editor.completeEdit() ;
 				},this,{single:true});
 				break ;
 			case 'numberfield' :
-				editorField.setMaxValue( peopledayRecord.data.std_daylength_max ) ;
-				editorField.setValue( peopledayWorkData.role_length ) ;
+				editorField.on('focus',function(editorField) {
+					editorField.setMaxValue( peopledayRecord.data.std_daylength_max ) ;
+					editorField.setValue(peopledayWorkData.role_length) ;
+				},this,{single:true}) ;
 				break ;
 				
 			default :
@@ -989,9 +1212,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				return false ;
 		}
 		
-		gridRecord.set( 'dummy', null );
-		gridRecord.commit() ;
+		this.gridAdapterUpdatePeopledayRecord( peopledayRecord ) ;
 		this.remoteSavePeopledayRecord( peopledayRecord ) ;
+		return false ;
 	},
 	
 	hasPermissionToEdit: function( peopledayRecord ) {
@@ -1040,9 +1263,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 					}
 					
 					p.ownerCt.doSave() ;
-					
-					p.ownerCt.gridRecord.set( 'dummy', null );
-					p.ownerCt.gridRecord.commit() ;
 					p.ownerCt.destroy();
 				},
 				scope: this
@@ -1055,6 +1275,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			height: 300
 		}) ;
 		realAdvancedPanel.on('destroy',function(realAdvancedPanel) {
+			this.gridAdapterUpdatePeopledayRecord( realAdvancedPanel.peopledayRecord ) ;
 			this.remoteSavePeopledayRecord( realAdvancedPanel.peopledayRecord ) ;
 			me.getEl().unmask() ;
 			me.realAdvancedPanel = null ;
