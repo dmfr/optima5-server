@@ -46,6 +46,11 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.StatPerformanceResultView',{
 			}) ;
 		}
 		
+		this.tmpModelName = 'StatPerformanceResultModel-' + this.getId() ;
+		this.on('destroy',function(p) {
+			Ext.ux.dams.ModelManager.unregister( p.tmpModelName ) ;
+		}) ;
+		
 		Ext.apply(this,{
 			layout: {
 				type:'vbox',
@@ -177,9 +182,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.StatPerformanceResultView',{
 			});
 		},me);
 			
-		var tmpModelName = 'QueryResultModel-' + me.getId() ;
-		//console.log('Defining a model '+tmpModelName) ;
-		Ext.define(tmpModelName, {
+		Ext.define(this.tmpModelName, {
 			extend: 'Ext.data.Model',
 			fields: fields
 		});
@@ -192,7 +195,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.StatPerformanceResultView',{
 			cls:'op5crmbase-querygrid-'+me.optimaModule.sdomainId,
 			columns:columns,
 			store:{
-				model:tmpModelName,
+				model:this.tmpModelName,
 				data: tabData.data,
 				proxy:{
 					type:'memory'

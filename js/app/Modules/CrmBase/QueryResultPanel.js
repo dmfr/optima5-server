@@ -266,6 +266,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 				var tabgrid = Ext.create('Ext.tree.Panel',{
 					border:false,
 					cls:'op5crmbase-querygrid-'+me.optimaModule.sdomainId,
+					tmpModelName: tmpModelName,
 					store: {
 						model: tmpModelName,
 						nodeParam: '_id',
@@ -304,6 +305,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 					border:false,
 					cls:'op5crmbase-querygrid-'+me.optimaModule.sdomainId,
 					columns:columns,
+					tmpModelName: tmpModelName,
 					store:{
 						model:tmpModelName,
 						data: tabData.data,
@@ -334,9 +336,8 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 				});
 			}
 			
-			tabgrid.on('destroy',function(){
-				// console.log('Unregistering model '+tmpModelName) ;
-				Ext.ModelManager.unregister( tmpModelName ) ;
+			tabgrid.on('destroy',function(tabgrid){
+				Ext.ux.dams.ModelManager.unregister( tabgrid.tmpModelName ) ;
 			},me);
 			
 			tabgrid.getView().headerCt.on('menucreate',me.onColumnsMenuCreate,me) ;

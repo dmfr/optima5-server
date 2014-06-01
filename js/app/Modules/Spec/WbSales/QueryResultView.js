@@ -41,6 +41,11 @@ Ext.define('Optima5.Modules.Spec.WbSales.QueryResultView',{
 			}) ;
 		}
 		
+		this.tmpModelName = 'WbSalesQueryResultModel-' + this.getId() ;
+		this.on('destroy',function(p) {
+			Ext.ux.dams.ModelManager.unregister( p.tmpModelName ) ;
+		}) ;
+		
 		Ext.apply(this,{
 			layout: {
 				type:'vbox',
@@ -191,9 +196,7 @@ Ext.define('Optima5.Modules.Spec.WbSales.QueryResultView',{
 			});
 		},me);
 			
-		var tmpModelName = 'QueryResultModel-' + me.getId() ;
-		//console.log('Defining a model '+tmpModelName) ;
-		Ext.define(tmpModelName, {
+		Ext.define(this.tmpModelName, {
 			extend: 'Ext.data.Model',
 			fields: fields
 		});
@@ -207,7 +210,7 @@ Ext.define('Optima5.Modules.Spec.WbSales.QueryResultView',{
 			flex: 1,
 			cls:'op5crmbase-querygrid-'+me.optimaModule.sdomainId,
 			store: {
-				model: tmpModelName,
+				model: this.tmpModelName,
 				nodeParam: '_id',
 				folderSort: true,
 				root: tabData.data_root,

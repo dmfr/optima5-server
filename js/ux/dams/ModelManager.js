@@ -18,6 +18,10 @@ Ext.define('Ext.ux.dams.ModelManager',{
 			});
 			
 			return isArray ? tmpStore.getRange() : tmpStore.getAt(0) ;
+		},
+		unregister: function(modelName) {
+			Ext.ModelManager.unregisterType(modelName) ;
+			Ext.undefine(modelName) ;
 		}
 	}
 });

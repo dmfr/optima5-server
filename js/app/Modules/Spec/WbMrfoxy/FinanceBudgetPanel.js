@@ -178,6 +178,11 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 			}
 		});
 		
+		this.tmpModelName = 'FinanceBudgetGridModel-' + this.getId() ;
+		this.on('destroy',function(p) {
+			Ext.ux.dams.ModelManager.unregister( p.tmpModelName ) ;
+		}) ;
+		
 		this.callParent() ;
 		this.updateToolbar() ;
 		this.loadComponents() ;
@@ -340,8 +345,6 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 			this.updateToolbar() ;
 		}
 		
-		var tmpModelName = 'FinanceBudgetModel-' + this.getId() ;
-		
 		// model
 		var actualDataIndex = null ;
 		var revisionIds = [] ;
@@ -363,7 +366,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 				actualDataIndex = revisionId
 			}
 		}) ;
-		Ext.define(tmpModelName, {
+		Ext.define(this.tmpModelName, {
 			extend: 'Ext.data.Model',
 			fields: fields
 		});
@@ -555,7 +558,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 			border: false,
 			xtype:'grid',
 			store: {
-				model: tmpModelName,
+				model: this.tmpModelName,
 				data: data,
 				groupField: 'group_key',
 				proxy: {
