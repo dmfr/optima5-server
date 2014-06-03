@@ -4,7 +4,7 @@ class DatabaseMgr_Sdomain {
 	private $_opDB ;
 	private $domain_id ;
 	
-	private static $dbVersion = 20 ;
+	private static $dbVersion = 21 ;
 	
 	public function __construct( $domain_id ) {
 		$this->_opDB = $GLOBALS['_opDB'] ;
@@ -362,7 +362,7 @@ CREATE TABLE `qbook_value_symbol` (
   `math_operand_qobj_idx` int(11) NOT NULL DEFAULT '-1',
   `math_operand_selectfield_idx` int(11) NOT NULL DEFAULT '-1',
   `math_operand_mselectfield_idx` int(11) NOT NULL DEFAULT '-1',
-  `math_staticvalue` decimal(10,2) NOT NULL,
+  `math_staticvalue` decimal(10,3) NOT NULL,
   `math_parenthese_out` varchar(1) NOT NULL,
   PRIMARY KEY (`qbook_id`,`qbook_value_ssid`,`qbook_value_symbol_index`)
 ) ;
@@ -420,7 +420,7 @@ CREATE TABLE `qmerge_field_mselect_symbol` (
   `math_parenthese_in` varchar(1) NOT NULL,
   `math_operand_query_id` int(11) NOT NULL,
   `math_operand_selectfield_idx` int(11) NOT NULL,
-  `math_staticvalue` decimal(10,2) NOT NULL,
+  `math_staticvalue` decimal(10,3) NOT NULL,
   `math_parenthese_out` varchar(1) NOT NULL,
   PRIMARY KEY (`qmerge_id`,`qmerge_fieldmselect_ssid`,`qmerge_fieldmselect_symbol_index`)
 ) ;
@@ -434,9 +434,9 @@ CREATE TABLE `qmerge_field_mwhere` (
   `condition_string` varchar(100) NOT NULL,
   `condition_date_lt` date NOT NULL,
   `condition_date_gt` date NOT NULL,
-  `condition_num_lt` decimal(10,2) NOT NULL,
-  `condition_num_gt` decimal(10,2) NOT NULL,
-  `condition_num_eq` decimal(10,2) NOT NULL,
+  `condition_num_lt` decimal(10,3) NOT NULL,
+  `condition_num_gt` decimal(10,3) NOT NULL,
+  `condition_num_eq` decimal(10,3) NOT NULL,
   `condition_bible_mode` varchar(50) NOT NULL,
   `condition_bible_treenodes` varchar(500) NOT NULL,
   `condition_bible_entries` varchar(500) NOT NULL,
@@ -500,9 +500,9 @@ CREATE TABLE `query_field_progress` (
   `condition_string` varchar(100) NOT NULL,
   `condition_date_lt` date NOT NULL,
   `condition_date_gt` date NOT NULL,
-  `condition_num_lt` decimal(10,2) NOT NULL,
-  `condition_num_gt` decimal(10,2) NOT NULL,
-  `condition_num_eq` decimal(10,2) NOT NULL,
+  `condition_num_lt` decimal(10,3) NOT NULL,
+  `condition_num_gt` decimal(10,3) NOT NULL,
+  `condition_num_eq` decimal(10,3) NOT NULL,
   `condition_bible_mode` varchar(50) NOT NULL,
   `condition_bible_treenodes` varchar(500) NOT NULL,
   `condition_bible_entries` varchar(500) NOT NULL,
@@ -527,7 +527,7 @@ CREATE TABLE `query_field_select_symbol` (
   `math_operation` varchar(50) NOT NULL,
   `math_parenthese_in` varchar(1) NOT NULL,
   `math_fieldoperand` varchar(100) NOT NULL,
-  `math_staticvalue` decimal(10,2) NOT NULL,
+  `math_staticvalue` decimal(10,3) NOT NULL,
   `math_parenthese_out` varchar(1) NOT NULL,
   PRIMARY KEY (`query_id`,`query_fieldselect_ssid`,`query_fieldselect_symbol_index`)
 ) ;
@@ -542,9 +542,9 @@ CREATE TABLE `query_field_where` (
   `condition_string` varchar(100) NOT NULL,
   `condition_date_lt` date NOT NULL,
   `condition_date_gt` date NOT NULL,
-  `condition_num_lt` decimal(10,2) NOT NULL,
-  `condition_num_gt` decimal(10,2) NOT NULL,
-  `condition_num_eq` decimal(10,2) NOT NULL,
+  `condition_num_lt` decimal(10,3) NOT NULL,
+  `condition_num_gt` decimal(10,3) NOT NULL,
+  `condition_num_eq` decimal(10,3) NOT NULL,
   `condition_bible_mode` varchar(50) NOT NULL,
   `condition_bible_treenodes` varchar(500) NOT NULL,
   `condition_bible_entries` varchar(500) NOT NULL,
@@ -862,7 +862,7 @@ EOF;
 				
 				case 'number' :
 				$field_name.= '_dec' ;
-				$arrAssoc_dbField_fieldType[$field_name] = 'decimal(10,2)' ;
+				$arrAssoc_dbField_fieldType[$field_name] = 'decimal(10,3)' ;
 				break ;
 				
 				case 'bool' :
@@ -953,7 +953,7 @@ EOF;
 				
 				case 'number' :
 				$field_name.= '_dec' ;
-				$arrAssoc_dbField_fieldType[$field_name] = 'decimal(10,2)' ;
+				$arrAssoc_dbField_fieldType[$field_name] = 'decimal(10,3)' ;
 				break ;
 				
 				case 'bool' :
@@ -1076,7 +1076,7 @@ EOF;
 				
 				case 'number' :
 				$field_name.= '_dec' ;
-				$arrAssoc_dbField_fieldType[$field_name] = 'decimal(10,2)' ;
+				$arrAssoc_dbField_fieldType[$field_name] = 'decimal(10,3)' ;
 				if( $_mode_primaryKey && $arr_field_isPrimaryKey[$field_code] ) {
 					$arrAssoc_dbField_fieldType[$field_name] = 'int(11)' ;
 				}
