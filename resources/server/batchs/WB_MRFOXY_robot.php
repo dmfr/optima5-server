@@ -21,8 +21,7 @@ include("$server_root/modules/spec_wb_mrfoxy/backend_spec_wb_mrfoxy.inc.php");
 
 
 
-$ttmp = specWbMrfoxy_auth_getTable(array()) ;
-$authTable = $ttmp['data'] ;
+$authTable = specWbMrfoxy_auth_lib_getTable(array()) ;
 function findRecipients( $country_code, $arr_roleCode ) {
 	global $_opDB ;
 	global $authTable ;
@@ -38,7 +37,9 @@ function findRecipients( $country_code, $arr_roleCode ) {
 	$arr_recipients = array() ;
 	foreach( $arr_userId as $userId ) {
 		$query = "SELECT field_USER_EMAIL FROM view_bible__USER_entry WHERE entry_key='{$userId}'" ;
-		$arr_recipients[] = $_opDB->query_uniqueValue($query) ;
+		if( ($email = $_opDB->query_uniqueValue($query)) && !in_array($email,$arr_recipients) ) {
+			$arr_recipients[] = $email ;
+		}
 	}
 	return $arr_recipients ;
 }
