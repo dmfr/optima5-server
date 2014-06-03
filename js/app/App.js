@@ -881,7 +881,6 @@ Ext.define('Optima5.App',{
 						me.viewport.destroy() ;
 						me.desktop = me.viewport = me.desktopCfgRecord = null ;
 						me.delayReboot() ;
-						window.onbeforeunload = null ;
 					},
 					scope:me
 				}
@@ -897,6 +896,8 @@ Ext.define('Optima5.App',{
 			
 			me.delayReboot() ;
 		}
+		
+		window.onbeforeunload = null ;
 		
 		var el = Ext.get("standby");
 		el.setOpacity(0);
