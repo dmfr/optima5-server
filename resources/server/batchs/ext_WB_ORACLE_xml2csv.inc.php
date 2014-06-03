@@ -81,16 +81,18 @@ function ext_WB_ORACLE_xml2csv( $xml_root_tags, $handle_in, $handle_out ) {
 				}
 			}
 			
-			
-			if( $obj_xmlRow->QTY_INV != 0 ) {
-				$qty_value = $obj_xmlRow->QTY_INV ;
-				$price_value = $obj_xmlRow->SELL_PRICE ;
-			} elseif( $obj_xmlRow->QTY_CRED > 0 ) {
-				$qty_value = (-1 * $obj_xmlRow->QTY_CRED) ;
-				$price_value = (-1 * $obj_xmlRow->SELL_PRICE) ;
-			} elseif( $obj_xmlRow->QTY_CRED < 0 ) {
-				$qty_value = $obj_xmlRow->QTY_CRED ;
-				$price_value = $obj_xmlRow->SELL_PRICE ;
+			$QTY_INV = (float)$obj_xmlRow->QTY_INV ;
+			$QTY_CRED = (float)$obj_xmlRow->QTY_CRED ;
+			$SELL_PRICE = (float)$obj_xmlRow->SELL_PRICE ;
+			if( $QTY_INV != 0 ) {
+				$qty_value = $QTY_INV ;
+				$price_value = $SELL_PRICE ;
+			} elseif( $QTY_CRED > 0 ) {
+				$qty_value = (-1 * $QTY_CRED) ;
+				$price_value = (-1 * $SELL_PRICE) ;
+			} elseif( $QTY_CRED < 0 ) {
+				$qty_value = $QTY_CRED ;
+				$price_value = $SELL_PRICE ;
 			} else {
 				continue ;
 			}
