@@ -106,7 +106,14 @@ function paracrm_data_editTransaction_bibleEntry( $post_data , &$arr_saisie )
 			{
 				case 'string' :
 				case 'number' :
-				$form_item['xtype'] = 'textfield' ;
+				switch( $arr['entry_field_type'] ) {
+					case 'string' :
+						$form_item['xtype'] = 'textfield' ;
+						break ;
+					case 'number' :
+						$form_item['xtype'] = 'numberfield' ;
+						break ;
+				}
 				$form_item['name'] = 'field_'.$arr['entry_field_code'] ;
 				$form_item['fieldLabel'] = $arr['entry_field_lib'] ;
 				if( $arr['entry_field_is_key'] == 'O' )

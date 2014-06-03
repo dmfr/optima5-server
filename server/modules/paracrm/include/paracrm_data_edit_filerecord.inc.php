@@ -250,7 +250,14 @@ function paracrm_data_editTransaction_fileRecord_init( $post_data , &$arr_saisie
 				$field['xtype'] = 'colorpickercombo' ;
 				break ;
 			}
-			$field['xtype'] = 'textfield' ;
+			switch( $arr['entry_field_type'] ) {
+				case 'string' :
+					$field['xtype'] = 'textfield' ;
+					break ;
+				case 'number' :
+					$field['xtype'] = 'numberfield' ;
+					break ;
+			}
 			break ;
 			
 			case 'bool' :

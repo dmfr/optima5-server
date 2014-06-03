@@ -93,7 +93,14 @@ function paracrm_data_editTransaction_bibleTree( $post_data , &$arr_saisie )
 			{
 				case 'string' :
 				case 'number' :
-				$form_item['xtype'] = 'textfield' ;
+				switch( $arr['tree_field_type'] ) {
+					case 'string' :
+						$form_item['xtype'] = 'textfield' ;
+						break ;
+					case 'number' :
+						$form_item['xtype'] = 'numberfield' ;
+						break ;
+				}
 				$form_item['name'] = 'field_'.$arr['tree_field_code'] ;
 				$form_item['fieldLabel'] = $arr['tree_field_lib'] ;
 				if( $arr['tree_field_is_key'] == 'O' )
