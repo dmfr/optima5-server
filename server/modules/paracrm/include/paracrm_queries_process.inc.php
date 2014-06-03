@@ -2306,7 +2306,7 @@ function paracrm_queries_process_query_onePassValues( $arr_saisie ) {
 	
 	$result = $_opDB->query($query) ;
 	
-	$_resCount = 0 ;
+	$_map_groupKey_resCount = array() ;
 	
 	$iter_fileCode_recordId = array() ;
 	$iter_fileCode_whereBoolean = array() ;
@@ -2340,8 +2340,9 @@ function paracrm_queries_process_query_onePassValues( $arr_saisie ) {
 		}
 		
 		$arr_groupKeyId = paracrm_queries_process_queryHelp_group( $row_group, $arr_saisie['fields_group'] ) ;
-		
-		$_resCount++ ;
+		foreach( $arr_groupKeyId as $group_key_id ) {
+			$_map_groupKey_resCount[$group_key_id]++ ;
+		}
 		
 		foreach( $arr_saisie['fields_select'] as $select_id => $field_select ) {
 			if( $field_select['iteration_mode'] != 'value' ) {
@@ -2427,7 +2428,7 @@ function paracrm_queries_process_query_onePassValues( $arr_saisie ) {
 			foreach( $resIN_selectId_groupKeyIds_symbolId[$select_id] as $group_key_id => $subResIN_symbol_value ) {
 				if( $field_select['math_func_group'] == 'AVG' ) {
 					foreach( $subResIN_symbol_value as $symbol_id => $value ) {
-						$subResIN_symbol_value[$symbol_id] = $value / $_resCount ;
+						$subResIN_symbol_value[$symbol_id] = $value / $_map_groupKey_resCount[$group_key_id] ;
 					}
 				}
 				$eval_value = paracrm_queries_process_queryHelp_evalMathExpression( $field_select['math_expression'], $subResIN_symbol_value ) ;
@@ -2440,7 +2441,7 @@ function paracrm_queries_process_query_onePassValues( $arr_saisie ) {
 				switch( $field_select['math_func_group'] )
 				{
 					case 'AVG' :
-						$RES_groupKeyId_selectId_value[$group_key_id][$select_id] = $subResOUT_value / $_resCount ;
+						$RES_groupKeyId_selectId_value[$group_key_id][$select_id] = $subResOUT_value / $_map_groupKey_resCount[$group_key_id] ;
 						break ;
 					default :
 						$RES_groupKeyId_selectId_value[$group_key_id][$select_id] = $subResOUT_value ;
@@ -2769,6 +2770,9 @@ function paracrm_queries_process_query_doCount( $arr_saisie, $target_fileCode, $
 }
 
 function paracrm_queries_process_queryHelp_evalMathExpression( $math_expression, $arr_symbolId_value ) {
+	if( count($math_expression) == 1 && count($arr_symbolId_value) == 1 ) {
+		return reset($arr_symbolId_value) ;
+	}
 	$eval_expression = '' ;
 	foreach( $math_expression as $symbol_id => $symbol )
 	{
@@ -2803,10 +2807,10 @@ function paracrm_queries_process_queryHelp_bankResValue( $math_func, &$sum_value
 			if( $sum_value === NULL ) {
 				$sum_value = $new_value ;
 			} else {
-				if( $field_select['math_func_group'] == 'MIN' ) {
+				if( $math_func == 'MIN' ) {
 					$sum_value = min($sum_value,$new_value) ;
 				}
-				if( $field_select['math_func_group'] == 'MAX' ) {
+				if( $math_func == 'MAX' ) {
 					$sum_value = max($sum_value,$new_value) ;
 				}
 			}
