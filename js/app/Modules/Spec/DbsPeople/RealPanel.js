@@ -1180,13 +1180,22 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		}
 		
 		var peopledayWorkRecord = peopledayWorkRecords[0] ;
-		var editorField = editEvent.column.getEditor() ;
+		var editorField = editEvent.column.getEditor(),
+			editorValue ;
 		switch( editorField.getXType() ) {
 			case 'combobox' :
-				peopledayWorkRecord.set('role_code',editorField.getValue()) ;
+				editorValue = editorField.getValue() ;
+				if( Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetById("ROLE",editorValue) == null ) {
+					return false ;
+				}
+				peopledayWorkRecord.set('role_code',editorValue) ;
 				break ;
 			case 'numberfield' :
-				peopledayWorkRecord.set('role_length',editorField.getValue()) ;
+				editorValue = editorField.getValue() ;
+				if( !Ext.isNumeric(editorValue) ) {
+					return false ;
+				}
+				peopledayWorkRecord.set('role_length',editorValue) ;
 				break ;
 				
 			default :
@@ -1342,6 +1351,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			width:350, // dummy initial size, for border layout to work
 			height:null, // ...
 			floating: true,
+			draggable: true,
+			resizable: true,
 			renderTo: this.getEl(),
 			tools: [{
 				type: 'close',
@@ -1445,6 +1456,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			width:600, // dummy initial size, for border layout to work
 			height:null, // ...
 			floating: true,
+			draggable: true,
+			resizable: true,
 			renderTo: this.getEl(),
 			tools: [{
 				type: 'close',

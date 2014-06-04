@@ -144,9 +144,6 @@ function specDbsPeople_cfg_getCfgBibles() {
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 		$treenode_key = $arr[2] ;
-		if( in_array($treenode_key,array('STD')) ) {
-			continue ;
-		}
 		$auth_class = '' ;
 		if( in_array($treenode_key,array('ADMIN','RH','CEQ')) ) {
 			$auth_class = $treenode_key ;

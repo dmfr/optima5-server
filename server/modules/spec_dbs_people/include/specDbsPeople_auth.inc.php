@@ -30,11 +30,11 @@ function specDbsPeople_auth_getTable( $post_data ) {
 	}
 	
 	$bibleJsTree_whse = specDbsPeople_auth_lib_getJsTree( 'WHSE' ) ;
-	$bibleTree_whse = new GenericObjTree('&',array()) ;
+	$bibleTree_whse = new GenericObjTree('t_&',array()) ;
 	specDbsPeople_auth_lib_buildTree( $bibleTree_whse, $bibleJsTree_whse['children'] ) ;
 	
 	$bibleJsTree_team = specDbsPeople_auth_lib_getJsTree( 'TEAM' ) ;
-	$bibleTree_team = new GenericObjTree('&',array()) ;
+	$bibleTree_team = new GenericObjTree('t_&',array()) ;
 	specDbsPeople_auth_lib_buildTree( $bibleTree_team, $bibleJsTree_team['children'] ) ;
 	
 	
