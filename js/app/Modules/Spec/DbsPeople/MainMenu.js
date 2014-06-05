@@ -54,25 +54,35 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.MainMenu',{
 				type_header:true
 			},{
 				type_separator:true,
-				separator_label: 'DBS People'
+				separator_label: 'DBS People : Gestion des heures'
 			},{
 				type_action:true,
 				action_caption: 'Gestion RH',
 				action_sendEvent:'panel_rh',
-				action_iconCls:'op5-spec-dbspeople-icon-promotion',
+				action_iconCls:'op5-spec-dbspeople-icon-rh',
 				item_disabled: !Optima5.Modules.Spec.DbsPeople.HelperCache.authHelperQueryPage('RH')
 			},{
 				type_action:true,
 				action_caption: 'Vue chef d\'équipe',
 				action_sendEvent:'panel_real',
-				action_iconCls:'op5-spec-dbspeople-icon-headlines',
+				action_iconCls:'op5-spec-dbspeople-icon-real',
 				item_disabled: !Optima5.Modules.Spec.DbsPeople.HelperCache.authHelperQueryPage('CEQ')
+			},{
+				type_action:true,
+				action_caption: 'Requêtes',
+				action_sendEvent:'panel_query',
+				action_iconCls:'op5-spec-dbspeople-icon-query',
+				item_disabled: !Optima5.Modules.Spec.DbsPeople.HelperCache.authHelperQueryPage('RH')
+			},{
+				type_separator:true,
+				separator_label: 'DBS People : Forecast',
+				item_disabled: !Optima5.Modules.Spec.DbsPeople.HelperCache.authHelperQueryPage('ADMIN')
 			},{
 				type_action:true,
 				action_caption: 'Forecast Activité(s)',
 				action_sendEvent:'panel_forecast',
-				action_iconCls:'op5-spec-dbspeople-icon-promostore',
-				item_disabled: !Optima5.Modules.Spec.DbsPeople.HelperCache.authHelperQueryPage('FC')
+				action_iconCls:'op5-spec-dbspeople-icon-forecast',
+				item_disabled: !Optima5.Modules.Spec.DbsPeople.HelperCache.authHelperQueryPage('ADMIN')
 			}]
 		}) ;
 		 

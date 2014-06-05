@@ -1,11 +1,14 @@
-.op5-spec-dbspeople-icon-promotion {
+.op5-spec-dbspeople-icon-rh {
 	background-image: url("../images/modules/dbspeople-rh-64.png") !important;
 }
-.op5-spec-dbspeople-icon-headlines {
+.op5-spec-dbspeople-icon-real {
 	background-image: url("../images/modules/dbspeople-real-64.png") !important;
 }
-.op5-spec-dbspeople-icon-promostore {
+.op5-spec-dbspeople-icon-forecast {
 	background-image: url("../images/modules/dbspeople-forecast-64.png") !important;
+}
+.op5-spec-dbspeople-icon-query {
+	background-image: url("../images/modules/dbspeople-query-64.png") !important;
 }
 
 

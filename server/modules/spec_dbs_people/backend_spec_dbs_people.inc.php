@@ -38,6 +38,14 @@ switch( $post_data['_action'] )
 	return specDbsPeople_cfg_getPeopleCalcAttributes( $post_data ) ;
 	
 	
+	case 'query_getLibrary' :
+	return specDbsPeople_query_getLibrary( $post_data ) ;
+	case 'query_getResult' :
+	return specDbsPeople_query_getResult( $post_data ) ;
+	case 'query_exportXLS' :
+	return specDbsPeople_query_exportXLS( $post_data ) ;
+	
+	
 	case 'auth_getTable' :
 	return specDbsPeople_auth_getTable( $post_data ) ;
 	

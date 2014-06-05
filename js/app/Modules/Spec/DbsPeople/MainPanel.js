@@ -5,7 +5,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.MainPanel',{
 		'Optima5.Modules.Spec.DbsPeople.MainMenu',
 		'Optima5.Modules.Spec.DbsPeople.RhPanel',
 		'Optima5.Modules.Spec.DbsPeople.RealPanel',
-		'Optima5.Modules.Spec.DbsPeople.ForecastPanel'
+		'Optima5.Modules.Spec.DbsPeople.ForecastPanel',
+		'Optima5.Modules.Spec.DbsPeople.QueryPanel'
 	],
 	
 	initComponent: function() {
@@ -55,24 +56,23 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.MainPanel',{
 				return me.switchToAppPanel('Optima5.Modules.Spec.DbsPeople.RhPanel') ;
 			case 'panel_real' :
 				return me.switchToAppPanel('Optima5.Modules.Spec.DbsPeople.RealPanel') ;
+			case 'panel_query' :
+				return me.switchToAppPanel('Optima5.Modules.Spec.DbsPeople.QueryPanel',{width: 800}) ;
 			case 'panel_forecast' :
 				return me.switchToAppPanel('Optima5.Modules.Spec.DbsPeople.ForecastPanel') ;
 			default :
 				return ;
 		}
 	},
-	switchToAppPanel: function( className ) {
+	switchToAppPanel: function( className, options ) {
 		var me = this ;
-		var panel = Ext.create(className,{
-			optimaModule: me.optimaModule,
-			listeners: {
-				backtomenu: function( panel ) {
-					console.log('back to main menu') ;
-				},
-				scope: me
-			}
+		
+		options = options || {} ;
+		Ext.apply(options,{
+			optimaModule: me.optimaModule
 		}) ;
 		
+		var panel = Ext.create(className,options) ;
 		panel.on('destroy',function() {
 			me.switchToMainMenu() ;
 		},this) ;
