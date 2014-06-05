@@ -872,7 +872,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		var grid = this.child('grid'),
 			 store = grid.getStore(),
 			 dateMap = this.gridAdapterGetDateMap() ;
-			
+		
+		store.suspendEvents() ; // HACK: suspendingEvents on bufferedgrid'store is dangerous
+		
 		// mise à zero de toutes les 'cases' concernées par ce record (people + date)
 		var dateSql = peopledayRecord.get('date_sql'),
 			dateStr = dateMap[dateSql] ;
@@ -882,7 +884,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		var roleKey = 'd_'+dateStr+'_role',
 			durationKey = 'd_'+dateStr+'_tmp',
 			nullObj = {},
-			gridRecordsToDelete = [] ;
+			gridRecordIdsToDelete = [] ;
 		nullObj[roleKey] = '' ;
 		nullObj[durationKey] = '' ;
 		store.data.each( function(gridRec) {
@@ -902,13 +904,10 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 					isGridRowEmpty = false ;
 				}
 			}) ;
-			if( isGridRowEmpty || gridRec.get('whse_code') != peopledayRecord.get('std_whse_code') ) {
-				gridRecordsToDelete.push(gridRec) ;
+			if( isGridRowEmpty && gridRec.get('whse_code') != peopledayRecord.get('std_whse_code') ) {
+				gridRecordIdsToDelete[gridRec.getId()] = true ;
 			}
 		}) ;
-		if( gridRecordsToDelete.length > 0 ) {
-			store.remove(gridRecordsToDelete) ;
-		}
 		
 		// construction d'une grid data partielle
 		var gridData = {}
@@ -916,23 +915,43 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		
 		gridData = this.gridAdapterGridFilter(gridData) ;
 		
+		var gridRecordsToAdd = [] ;
 		// fusion avec le store existant
 		Ext.Array.each( gridData, function( gridDataRow ) {
 			var gridDataRowId = gridDataRow.id ;
 			// row record exists ?
 			var gridRec = store.getById( gridDataRowId ) ;
 			if( gridRec != null ) {
+				gridRecordIdsToDelete[gridRec.getId()] = false ;
 				gridRec.set(gridDataRow) ;
 				gridRec.commit() ;
 			} else {
-				store.add(gridDataRow) ;
+				gridRecordsToAdd.push(gridDataRow) ;
 			}
 		}) ;
 		
-		if( gridData.length > 1 ) { // more than 1 => alt warehouses and possible inserts
-			store.filter() ;
-			grid.getView().refresh() ; //HACK
+		store.resumeEvents() ; // HACK: need to resume -BEFORE- add/remove record(s)
+		
+		if( gridRecordsToAdd.length > 0 ) {
+			store.add(gridRecordsToAdd) ;
 		}
+		var gridRecordsToDelete = [] ;
+		Ext.Object.each( gridRecordIdsToDelete, function(gridDataRowId,tOrF) {
+			if( tOrF ) {
+				var gridRec = store.getById(gridDataRowId) ;
+				if( gridRec != null ) {
+					gridRecordsToDelete.push(gridRec) ;
+				}
+			}
+		}) ;
+		if( gridRecordsToDelete.length > 0 ) {
+			store.remove(gridRecordsToDelete) ;
+		}
+		
+		if( gridRecordsToAdd.length > 0 ) { // more than 1 => alt warehouses and possible inserts
+			store.filter() ;
+		}
+		grid.getView().refresh() ; //HACK
 	},
 	gridAdapterGridFilter: function( gridData ) {
 		var filterBtn_site = this.down('#btnSite'),
@@ -1242,7 +1261,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			width:800, // dummy initial size, for border layout to work
 			height:600, // ...
 			floating: true,
-			renderTo: me.up('viewport').getEl(),
+			draggable: true,
+			renderTo: me.up('[isMainWindow]').getEl(),
 			tools: [{
 				type: 'close',
 				handler: function(e, t, p) {
@@ -1280,7 +1300,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		if( Ext.isArray(htmlNode) ) {
 			realAdvancedPanel.getEl().setXY(htmlNode) ;
 		} else {
-			realAdvancedPanel.getEl().alignTo(htmlNode, 'c-t?',[0,60]);
+			realAdvancedPanel.getEl().alignTo(htmlNode, 'c-t?');
 		}
 		me.realAdvancedPanel = realAdvancedPanel ;
 	},
