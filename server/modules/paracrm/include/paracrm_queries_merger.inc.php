@@ -349,9 +349,6 @@ function paracrm_queries_mergerTransaction_save( $post_data , &$arr_saisie )
 			$_opDB->query($query) ;
 		}
 		
-		$transaction_id = $post_data['_transaction_id'] ;
-		unset($_SESSION['transactions'][$transaction_id]) ;
-		
 		return array('success'=>true) ;
 	}
 }

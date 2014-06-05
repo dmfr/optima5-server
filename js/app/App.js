@@ -845,6 +845,9 @@ Ext.define('Optima5.App',{
 	},
 	doLogout: function() {
 		var me = this ;
+		if( me.desktop && !me.forceCloseAllWindows() ) {
+			return ;
+		}
 		Ext.Ajax.request({
 			url: 'server/login.php',
 			params: {
@@ -865,9 +868,6 @@ Ext.define('Optima5.App',{
 			animDuration = doAnimate? 500 : 0 ;
 		
 		if( me.desktop ) {
-			if( !me.forceCloseAllWindows() ) {
-				return ;
-			}
 			me.viewport.removeCls('op5-viewport-devborder');
 			
 			me.desktop.animate({
