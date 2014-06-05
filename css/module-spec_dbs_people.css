@@ -270,6 +270,13 @@ table.op5-spec-dbspeople-realvalidhdr-tbl > tbody > tr > td.op5-spec-dbspeople-r
 	background-image: url("../images/modules/dbspeople-summary-48.png") !important;
 }
 
+.op5-spec-dbspeople-rhcalcattributehdr-icon {
+	width: 72px ;
+	background-position: center ;
+	background-repeat: no-repeat ;
+	background-image: url("../images/modules/dbspeople-calcattribute-64.png") !important;
+}
+
 .op5-spec-dbspeople-realvalidgrid-tdcolor .x-grid-cell-inner {
 	line-height: 8px;
 	margin: 2px;

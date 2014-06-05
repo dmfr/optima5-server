@@ -176,8 +176,10 @@ function specDbsPeople_tool_getContracts() {
 		$contract_code = $arr['field_CONTRACT_CODE'] ;
 		
 		$std_dayson = array() ;
-		foreach( json_decode($arr['field_STD_DAYSON'],true) as $ISO8601_day ) {
-			$std_dayson[$ISO8601_day] = TRUE ;
+		if( $arr['field_STD_DAYSON'] ) {
+			foreach( json_decode($arr['field_STD_DAYSON'],true) as $ISO8601_day ) {
+				$std_dayson[$ISO8601_day] = TRUE ;
+			}
 		}
 		
 		$TAB[$contract_code] = array(
@@ -185,7 +187,9 @@ function specDbsPeople_tool_getContracts() {
 			'contract_txt' => $arr['field_CONTRACT_TXT'],
 			'std_dayson' => $std_dayson,
 			'std_daylength' => $arr['field_STD_DAYLENGTH'],
-			'std_daylength_max' => $arr['field_STD_DAYLENGTH_MAX']
+			'std_daylength_max' => $arr['field_STD_DAYLENGTH_MAX'],
+			'mod_week_std' => $arr['field_MOD_WEEK_STD'],
+			'mod_week_max' => $arr['field_MOD_WEEK_MAX']
 		);
 	}
 	return $TAB ;
@@ -207,6 +211,26 @@ function specDbsPeople_tool_getExceptionDays($sql_dates) {
 		$arr_days[$sql_date] = TRUE ;
 	}
 	return $arr_days ;
+}
+
+
+
+
+
+function specDbsPeople_cfg_getPeopleCalcAttributes() {
+	$TAB = array() ;
+	
+	$TAB[] = array(
+		'peopleCalcAttribute' => 'CP',
+		'text' => 'Solde CP'
+	);
+	
+	$TAB[] = array(
+		'peopleCalcAttribute' => 'MOD',
+		'text' => 'Modul.'
+	);
+	
+	return array('success'=>true, 'data'=>$TAB) ;
 }
 
 ?>

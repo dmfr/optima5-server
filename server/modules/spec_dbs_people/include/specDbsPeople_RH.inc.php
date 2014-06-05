@@ -3,7 +3,7 @@
 function specDbsPeople_RH_getGrid($post_data) {
 	global $_opDB ;
 	if( isset($post_data['filter_peopleCode']) ) {
-		$people_code = $post_data['filter_peopleCode'] ;
+		$filter_peopleCode = $post_data['filter_peopleCode'] ;
 	}
 	if( isset($post_data['filter_site_entries']) ) {
 		$filter_arrSites = json_decode($post_data['filter_site_entries'],true) ;
@@ -19,13 +19,15 @@ function specDbsPeople_RH_getGrid($post_data) {
 	$TAB = array() ;
 	$query = "SELECT * FROM view_bible_RH_PEOPLE_tree t, view_bible_RH_PEOPLE_entry e
 					WHERE t.treenode_key=e.treenode_key" ;
-	if( $people_code ) {
-		$query.= " AND e.entry_key='{$people_code}'" ;
+	if( $filter_peopleCode ) {
+		$query.= " AND e.entry_key='{$filter_peopleCode}'" ;
 	}
 	$query.= " ORDER BY e.field_PPL_FULLNAME" ;
 	
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$people_code = $arr['entry_key'] ;
+		
 		$row = array() ;
 		$row['people_code'] = $arr['entry_key'] ;
 		$row['people_name'] = $arr['field_PPL_FULLNAME'] ;
@@ -56,7 +58,10 @@ function specDbsPeople_RH_getGrid($post_data) {
 			$row['events'] = $json['data'] ;
 		}
 		
-		$TAB[] = $row ;
+		// calc attributes placeholder
+		$row['calc_attributes'] = array() ;
+		
+		$TAB[$people_code] = $row ;
 	}
 	
 	// Filter ROWS
@@ -64,7 +69,7 @@ function specDbsPeople_RH_getGrid($post_data) {
 	if( $filter_arrSites || $filter_arrTeams ) {
 		$has_filters = TRUE ;
 	}
-	if( $has_filters && !$people_code ) {
+	if( $has_filters && !$filter_peopleCode ) {
 		$new_TAB = array() ;
 		foreach( $TAB as $idx => $row ) {
 			if( $filter_arrSites && !in_array($row['whse_code'],$filter_arrSites) ) {
@@ -73,12 +78,24 @@ function specDbsPeople_RH_getGrid($post_data) {
 			if( $filter_arrTeams && !in_array($row['team_code'],$filter_arrTeams) ) {
 				continue ;
 			}
-			$new_TAB[] = $row ;
+			$new_TAB[$idx] = $row ;
 		}
 		$TAB = $new_TAB ;
 	}
 	
-	return array('success'=>true, 'data'=>$TAB) ;
+	// Load calc attributes
+	if( $post_data['_load_calcAttributes'] ) {
+		$ttmp = specDbsPeople_cfg_getPeopleCalcAttributes() ;
+		foreach( $ttmp['data'] as $peopleCalcAttribute_definition ) {
+			$peopleCalcAttribute = $peopleCalcAttribute_definition['peopleCalcAttribute'] ;
+			$peopleCalcAttribute_TAB = specDbsPeople_lib_calc_getCalcAttributeRecords( $peopleCalcAttribute ) ;
+			foreach( $peopleCalcAttribute_TAB as $people_code => $peopleCalcAttribute_record ) {
+				$TAB[$people_code]['calc_attributes'][] = $peopleCalcAttribute_record ;
+			}
+		}
+	}
+	
+	return array('success'=>true, 'data'=>array_values($TAB)) ;
 }
 
 function specDbsPeople_RH_getEventTypesMap() {
@@ -130,7 +147,7 @@ function specDbsPeople_RH_setPeople( $post_data ) {
 	$map_file_field = specDbsPeople_RH_getEventTypesMap() ;
 	
 	$event_data = json_decode($post_data['data'],true) ;
-	$people_code = ( !$post_data['_is_new'] ? $post_data['people_code'] : preg_replace("/[^A-Z0-9\s]/", "", strtoupper($event_data['people_name'])) ) ;
+	$people_code = ( !$post_data['_is_new'] ? $post_data['people_code'] : preg_replace("/[^A-Z0-9]/", "", strtoupper($event_data['people_name'])) ) ;
 	
 	$arr_ins = array() ;
 	$arr_ins['field_PPL_CODE'] = $people_code ;
