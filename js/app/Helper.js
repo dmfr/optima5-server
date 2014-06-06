@@ -85,7 +85,7 @@ Ext.define('Optima5.Helper',{
 	getIconsLib: function() {
 		var me = this ;
 		return me.iconsLib ;
-	}
+	},
 	
 	/*
 	getAjaxConnection: function( cmp ) {
@@ -117,4 +117,37 @@ Ext.define('Optima5.Helper',{
 		return null;
 	}
 	*/
+	
+	floatInsideParent: function( floatingCmp ) {
+		if( this.floatInsideParentSet(floatingCmp) && floatingCmp.isComponent ) {
+			floatingCmp.on('move',this.floatInsideParentSet) ;
+		}
+	},
+	floatInsideParentSet: function( floatingEl ) {
+		var floatingXY, floatingLocalXY, floatingSize, parentSize, offset = [0,0] ;
+		
+		floatingEl = Ext.get(floatingEl.el || floatingEl);
+		if( !floatingEl || !floatingEl.dom ) {
+			return false ;
+		}
+		parentEl = Ext.get( floatingEl.dom.offsetParent ) ;
+		if( !parentEl || !parentEl.dom ) {
+			return false ;
+		}
+		
+		floatingXY = floatingEl.getXY() ;
+		floatingLocalXY = floatingEl.getLocalXY() ;
+		floatingSize = [floatingEl.getWidth(),floatingEl.getHeight()] ;
+		parentSize = [parentEl.getWidth(),parentEl.getHeight()] ;
+		
+		offset[0] += ( floatingLocalXY[0] < 0 ? -floatingLocalXY[0] : 0 ) ;
+		offset[1] += ( floatingLocalXY[1] < 0 ? -floatingLocalXY[1] : 0 ) ;
+		offset[0] += ( floatingLocalXY[0]+floatingSize[0] > parentSize[0] ? parentSize[0] - (floatingLocalXY[0]+floatingSize[0]) : 0 ) ;
+		offset[1] += ( floatingLocalXY[1]+floatingSize[1] > parentSize[1] ? parentSize[1] - (floatingLocalXY[1]+floatingSize[1]) : 0 ) ;
+		if( offset[0]==0 && offset[1]==0 ) {
+			return true ;
+		}
+		floatingEl.setXY( [floatingXY[0]+offset[0],floatingXY[1]+offset[1]] ) ;
+		return true ;
+	}
 });
