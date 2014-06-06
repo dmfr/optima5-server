@@ -1262,7 +1262,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			height:600, // ...
 			floating: true,
 			draggable: true,
-			renderTo: me.up('[isMainWindow]').getEl(),
+			renderTo: me.getEl(),
 			tools: [{
 				type: 'close',
 				handler: function(e, t, p) {
@@ -1302,6 +1302,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		} else {
 			realAdvancedPanel.getEl().alignTo(htmlNode, 'c-t?');
 		}
+		Optima5.Helper.floatInsideParent( realAdvancedPanel ) ;
+		
 		me.realAdvancedPanel = realAdvancedPanel ;
 	},
 	
