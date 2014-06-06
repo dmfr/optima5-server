@@ -259,6 +259,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 			} else if( v > 0 ) {
 				metaData.tdCls += ' op5-spec-dbspeople-balance-pos' ;
 			}
+			if( v != 0 ) {
+				metaData.tdCls += ' op5-spec-dbspeople-balance-big' ;
+			}
 			return v ;
 		} ;
 		

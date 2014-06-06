@@ -38,12 +38,14 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhCalcAttributePanel',{
 						align: 'center',
 						text: 'J/h',
 						width: 80,
-						renderer: function(v) {
+						renderer: function(v,metaData) {
 							if( v > 0 ) {
 								v = '+' + Math.abs(v).toString() ;
+								metaData.tdCls += ' op5-spec-dbspeople-balance-pos' ;
 							} 
 							if( v < 0 ) {
 								v = '-' + Math.abs(v).toString() ;
+								metaData.tdCls += ' op5-spec-dbspeople-balance-neg' ;
 							}
 							return '<b>'+v+'</b>' ;
 						}

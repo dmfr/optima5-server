@@ -221,6 +221,9 @@
 	color: #E50000 ;
 	font-weight: bold;
 }
+.op5-spec-dbspeople-balance-big .x-grid-cell-inner { 
+	font-size: 13px;
+}
 
 .op5-spec-dbspeople-cfgparambtn-bold .x-btn-inner {
 	font-weight: bold ;
