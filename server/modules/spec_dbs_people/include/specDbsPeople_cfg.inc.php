@@ -180,6 +180,8 @@ function specDbsPeople_tool_getContracts() {
 			foreach( json_decode($arr['field_STD_DAYSON'],true) as $ISO8601_day ) {
 				$std_dayson[$ISO8601_day] = TRUE ;
 			}
+		} elseif( $arr['field_STD_DAYLENGTH']==0 && $arr['field_STD_DAYLENGTH_MAX']==0 ) {
+			continue ;
 		}
 		
 		$TAB[$contract_code] = array(
