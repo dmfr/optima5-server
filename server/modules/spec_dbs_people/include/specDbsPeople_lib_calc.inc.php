@@ -224,7 +224,7 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_CP() {
 				$rows[] = array(
 					'row_date' => $pivot_dateSql,
 					'row_text' => $cat,
-					'row_value' => (-1 * $nb)
+					'row_value' => round((-1 * $nb),1)
 				);
 			}
 		}
@@ -232,7 +232,7 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_CP() {
 		$TAB_peopleCode_record[$people_code] = array(
 			'people_calc_attribute' => 'CP',
 			'calc_date' => date('Y-m-d'),
-			'calc_value' => (float)$val,
+			'calc_value' => round((float)$val,1),
 			'calc_unit_txt' => 'day(s)',
 			'rows' => $rows
 		);
@@ -293,12 +293,12 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_MOD() {
 				continue ;
 			}
 			
+			$nb_heures_work = min($nb_heures_work,$contract_row['mod_week_max']) ;
 			if( $nb_heures_work < $contract_row['mod_week_std'] ) {
 				$nb_heures = 0 ;
 			} else {
 				$nb_heures = $nb_heures_work - $contract_row['mod_week_std'] ;
 			}
-			$nb_heures = min($nb_heures,$contract_row['mod_week_max']) ;
 			
 			if( $nb_heures == 0 ) {
 				continue ;
@@ -345,7 +345,7 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_MOD() {
 				$rows[] = array(
 					'row_date' => $pivot_dateSql,
 					'row_text' => $cat,
-					'row_value' => $nb
+					'row_value' => round($nb,1)
 				);
 			}
 		}
@@ -353,7 +353,7 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_MOD() {
 		$TAB_peopleCode_record[$people_code] = array(
 			'people_calc_attribute' => 'MOD',
 			'calc_date' => date('Y-m-d'),
-			'calc_value' => (float)$val,
+			'calc_value' => round((float)$val,1),
 			'calc_unit_txt' => 'hour(s)',
 			'rows' => $rows
 		);

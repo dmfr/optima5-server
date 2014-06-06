@@ -88,8 +88,10 @@ function specDbsPeople_Real_getData( $post_data ) {
 				continue ;
 			}
 			
+			$row['std_daylength_contract'] = $cfg_contract['std_daylength'] ;
 			if( !$cfg_contract['std_dayson'][$ISO8601_day] || $cfg_arrDatesException[$cur_date] ) {
 				$row['std_daylength'] = 0 ;
+				$row['std_daylength_max'] = $cfg_contract['std_daylength_max'] ;
 			} else {
 				$row['std_daylength'] = $cfg_contract['std_daylength'] ;
 				$row['std_daylength_max'] = $cfg_contract['std_daylength_max'] ;

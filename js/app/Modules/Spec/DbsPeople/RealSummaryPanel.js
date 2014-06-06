@@ -13,7 +13,8 @@ Ext.define('DbsPeopleRealSummaryModel',{
 				return v ;
 			}
 		},
-		{name:'role_sum_duration', type:'number'}
+		{name:'role_sum_duration', type:'number'},
+		{name:'role_sum_days', type:'number'}
 	]
 }) ;
 
@@ -24,6 +25,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealSummaryPanel',{
 
 	initComponent: function() {
 		var me = this ;
+		var round2_renderer = function(v) {
+			return ( Math.round(v*100) / 100 );
+		} ;
 		Ext.apply( me, {
 			layout:{
 				type:'vbox',
@@ -54,11 +58,16 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealSummaryPanel',{
 						flex: 1
 					},{
 						dataIndex: 'role_sum_duration',
-						xtype: 'numbercolumn',
-						format: '0',
 						align: 'right',
 						text: 'H/hom',
-						width: 80
+						width: 60,
+						renderer: round2_renderer
+					},{
+						dataIndex: 'role_sum_days',
+						align: 'right',
+						text: 'J/hom',
+						width: 60,
+						renderer: round2_renderer
 					}]
 					
 				},

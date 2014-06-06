@@ -30,6 +30,7 @@ Ext.define('DbsPeoplePeopledayModel', {
 		{name: 'std_contract_code',   type: 'string'},
 		{name: 'std_daylength',   type: 'number'},
 		{name: 'std_daylength_max',   type: 'number'},
+		{name: 'std_daylength_contract',   type: 'number'},
 		{name: 'real_is_abs',   type: 'boolean'}
 	],
 	hasMany: [{
@@ -1317,12 +1318,15 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		
 		this.getEl().mask() ;
 		
-		var objRoleDuration = {} ;
-		var addDuration = function(roleCode,roleLength) {
+		var objRoleDuration = {},
+			objRoleDurationDays = {} ;
+		var addDuration = function(roleCode,roleLength,roleLengthDays) {
 			if( !objRoleDuration.hasOwnProperty(roleCode) ) {
 				objRoleDuration[roleCode] = 0 ;
+				objRoleDurationDays[roleCode] = 0 ;
 			}
 			objRoleDuration[roleCode] += roleLength ;
+			objRoleDurationDays[roleCode] += roleLengthDays ;
 		}
 		
 		this.peopledayStore.each( function(peopledayRecord) {
@@ -1339,7 +1343,11 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				if( filter_teams && !Ext.Array.contains(filter_teams,peopledayRecord.data.std_team_code) ) {
 					return ;
 				}
-				addDuration( peopledayRecord.data.std_role_code, peopledayRecord.data.std_daylength ) ;
+				addDuration(
+					peopledayRecord.data.std_role_code,
+					peopledayRecord.data.std_daylength,
+					1
+  				) ;
 			}
 			peopledayRecord.works().each( function(peopledayWorkRecord) {
 				if( filter_whses ) {
@@ -1356,7 +1364,11 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				if( filter_teams && !Ext.Array.contains(filter_teams,peopledayRecord.data.std_team_code) ) {
 					return ;
 				}
-				addDuration( peopledayWorkRecord.data.role_code, peopledayWorkRecord.data.role_length ) ;
+				addDuration(
+					peopledayWorkRecord.data.role_code,
+					peopledayWorkRecord.data.role_length,
+					(peopledayWorkRecord.data.role_length / peopledayRecord.data.std_daylength_contract)
+				) ;
 			});
 		}) ;
 		
@@ -1364,7 +1376,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		Ext.Object.each( objRoleDuration, function(roleCode, roleDuration) {
 			summaryRows.push({
 				role_code: roleCode,
-				role_sum_duration: roleDuration
+				role_sum_duration: roleDuration,
+				role_sum_days: objRoleDurationDays[roleCode]
 			});
 		}) ;
 			
