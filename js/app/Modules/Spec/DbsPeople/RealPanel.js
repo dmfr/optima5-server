@@ -93,6 +93,13 @@ Ext.define('DbsPeopleRealRowModel', {
 	]
 });
 
+Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanelCellEditing',{
+	extend: 'Ext.grid.plugin.CellEditing',
+	onSpecialKey: function(ed, field, e) {
+		console.dir(arguments) ;
+		e.stopEvent() ;
+	},
+});
 
 Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 	extend:'Ext.panel.Panel',
@@ -459,7 +466,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 							fields: ['id','text'],
 							data : []
 						},
-						matchFieldWidth: false
+						matchFieldWidth: false,
+						onExpand: Ext.emptyFn // HACK : prevent combo.listKeyNav from being created
 					},
 					renderer: roleRenderer
 				},{
@@ -521,8 +529,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				}
 			},
 			enableLocking: true,
-			plugins: [{
-				ptype: 'cellediting',
+			plugins: [Ext.create('Optima5.Modules.Spec.DbsPeople.RealPanelCellEditing',{
 				pluginId: 'cellediting',
 				clicksToEdit: 1,
 				listeners: {
@@ -531,7 +538,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 					scope: me
 				},
 				lockableScope: 'normal'
-			},{
+			}),{
 				ptype: 'bufferedrenderer',
 				lockableScope: 'both',
 				synchronousRender: true
@@ -998,6 +1005,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			stdAbsCode = peopledayRecord.data.std_abs_code,
 			stdContractCode = peopledayRecord.data.std_contract_code,
 			stdDayLength = peopledayRecord.data.std_daylength,
+			stdDayLengthMax = peopledayRecord.data.std_daylength_max,
 			peopleCode = peopledayRecord.data.people_code ;
 		
 		var altWhsesSegments = null,
@@ -1091,6 +1099,13 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			totalValue: (workDuration + absDuration),
 			stdValue: ( stdAbsCode == null ? stdDayLength : 0 )
 		} ;
+		if( !statusIsVirtual && segments.roles.length == 1 && segments.abs.length == 0 ) {
+			gridDataRow[roleKey]._editable = true ;
+			gridDataRow[roleKey]._editorValue = segments.roles[0] ;
+			gridDataRow[durationKey]._editable = true ;
+			gridDataRow[durationKey]._editorValue = segments.roles_duration ;
+			gridDataRow[durationKey]._editorMaxValue = stdDayLengthMax ;
+		}
 		
 		if( altWhsesSegments == null ) {
 			return ;
@@ -1131,20 +1146,20 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		return dateMap ;
 	},
 	
-	
 	onGridBeforeEdit: function( editor, editEvent ) {
 		var gridRecord = editEvent.record,
 			column = editEvent.column,
 			colIdx = editEvent.colIdx,
+			valueObj = editEvent.value,
 			dateSql = column.dateSql,
 			peopleCode = gridRecord.data.people_code,
-			peopledayId = peopleCode+'@'+dateSql,
+			peopledayId = peopleCode+'@'+dateSql ;
 			peopledayRecord = this.peopledayStore.getById(peopledayId),
 			peopledayWorkRecords = peopledayRecord.works().getRange(),
 			peopledayAbsRecords = peopledayRecord.abs().getRange() ;
 		
 			
-		if( peopledayRecord.data.status_isVirtual == true ) {
+		if( valueObj.statusIsVirtual ) {
 			return false ;
 		}
 		
@@ -1152,30 +1167,25 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			return false ;
 		}
 		
-		if( !(peopledayWorkRecords.length==1 && peopledayAbsRecords.length==0) || !Ext.isEmpty(peopledayWorkRecords[0].data.alt_whse_code) ) {
+		if( !valueObj._editable ) {
 			var cellNode = Ext.DomQuery.select( '.x-grid-cell', editEvent.row )[colIdx] ;
 			this.openAdvanced( peopledayRecord, gridRecord, cellNode ) ;
 			return false ;
 		}
-		
-		var peopledayWorkData = peopledayWorkRecords[0].data ;
 		
 		var editorField = editEvent.column.getEditor() ;
 		switch( editorField.getXType() ) {
 			case 'combobox' :
 				editorField.on('focus',function(editorField) {
 					editorField.getStore().loadData( Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll("ROLE") ) ;
-					editorField.setValue(peopledayWorkData.role_code) ;
+					editorField.setValue(valueObj._editorValue) ;
 					editorField.focusInput() ;
 				},this,{single:true}) ;
-				editorField.on('select',function() {
-					editor.completeEdit() ;
-				},this,{single:true});
 				break ;
 			case 'numberfield' :
 				editorField.on('focus',function(editorField) {
-					editorField.setMaxValue( peopledayRecord.data.std_daylength_max ) ;
-					editorField.setValue(peopledayWorkData.role_length) ;
+					editorField.setMaxValue( valueObj._editorMaxValue ) ;
+					editorField.setValue(valueObj._editorValue) ;
 				},this,{single:true}) ;
 				break ;
 				
@@ -1187,15 +1197,21 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		var gridRecord = editEvent.record,
 			column = editEvent.column,
 			colIdx = editEvent.colIdx,
+			valueObj = editEvent.originalValue,
+			newValue = editEvent.value,
 			dateSql = column.dateSql,
 			peopleCode = gridRecord.data.people_code,
 			peopledayId = peopleCode+'@'+dateSql,
 			peopledayRecord = this.peopledayStore.getById(peopledayId),
 			peopledayWorkRecords = peopledayRecord.works().getRange() ;
-		if( peopledayRecord.data.status_isVirtual == true ) {
+		if( valueObj.statusIsVirtual ) {
 			return false ;
 		}
-		if( peopledayWorkRecords.length != 1 || !Ext.isEmpty(peopledayWorkRecords[0].data.alt_whse_code) ) {
+		if( !valueObj._editable ) {
+			return false ;
+		}
+		if( valueObj._editorValue == newValue ) {
+			// Same value !
 			return false ;
 		}
 		
