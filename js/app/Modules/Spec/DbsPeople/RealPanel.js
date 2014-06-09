@@ -1221,7 +1221,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		switch( editorField.getXType() ) {
 			case 'combobox' :
 				editorValue = editorField.getValue() ;
-				if( Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetById("ROLE",editorValue) == null ) {
+				if( Ext.isEmpty(Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetById("ROLE",editorValue).id) ) {
 					return false ;
 				}
 				peopledayWorkRecord.set('role_code',editorValue) ;

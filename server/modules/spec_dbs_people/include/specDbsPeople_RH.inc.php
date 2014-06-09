@@ -90,7 +90,9 @@ function specDbsPeople_RH_getGrid($post_data) {
 			$peopleCalcAttribute = $peopleCalcAttribute_definition['peopleCalcAttribute'] ;
 			$peopleCalcAttribute_TAB = specDbsPeople_lib_calc_getCalcAttributeRecords( $peopleCalcAttribute ) ;
 			foreach( $peopleCalcAttribute_TAB as $people_code => $peopleCalcAttribute_record ) {
-				$TAB[$people_code]['calc_attributes'][] = $peopleCalcAttribute_record ;
+				if( isset($TAB[$people_code]) ) {
+					$TAB[$people_code]['calc_attributes'][] = $peopleCalcAttribute_record ;
+				}
 			}
 		}
 	}

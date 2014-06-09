@@ -95,10 +95,42 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryPanel',{
 				},
 				title: 'Query parameters',
 				items:[{
+					xtype: 'combobox',
+					width: 400,
+					name: 'querysrc_id',
+					fieldLabel: 'Requête',
+					forceSelection: true,
+					editable: false,
+					store: {
+						fields: ['querysrc_id','q_name'],
+						autoLoad: true,
+						proxy: this.optimaModule.getConfiguredAjaxProxy({
+							extraParams : {
+								_moduleId: 'spec_dbs_people',
+								_action: 'query_getLibrary'
+							},
+							reader: {
+								type: 'json',
+								root: 'data'
+							}
+						})
+					},
+					queryMode: 'local',
+					displayField: 'q_name',
+					valueField: 'querysrc_id',
+					listeners: {
+						change: function(cmb,value) {
+							var cntTime = cmb.up('form').down('#cntTime'),
+								valueIsQuery = !( value.split(':').length == 2 && value.split(':')[0] == '0' ) ;
+							cntTime.setVisible( valueIsQuery );
+						}
+					}
+				},{
 					xtype:'fieldcontainer',
 					anchor: '100%',
 					fieldLabel: 'Dates',
 					itemId: 'cntTime',
+					hidden: true,
 					layout: {
 						type: 'hbox'
 					},
@@ -126,30 +158,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryPanel',{
 						name : 'date_end',
 						itemId : 'dateEnd'
 					}]
-				},{
-					xtype: 'combobox',
-					width: 400,
-					name: 'querysrc_id',
-					fieldLabel: 'Requête',
-					forceSelection: true,
-					editable: false,
-					store: {
-						fields: ['querysrc_id','q_name'],
-						autoLoad: true,
-						proxy: this.optimaModule.getConfiguredAjaxProxy({
-							extraParams : {
-								_moduleId: 'spec_dbs_people',
-								_action: 'query_getLibrary'
-							},
-							reader: {
-								type: 'json',
-								root: 'data'
-							}
-						})
-					},
-					queryMode: 'local',
-					displayField: 'q_name',
-					valueField: 'querysrc_id'
 				}]
 			},{
 				xtype: 'component',
