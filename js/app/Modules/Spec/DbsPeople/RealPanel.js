@@ -96,9 +96,97 @@ Ext.define('DbsPeopleRealRowModel', {
 Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanelCellEditing',{
 	extend: 'Ext.grid.plugin.CellEditing',
 	onSpecialKey: function(ed, field, e) {
-		console.dir(arguments) ;
-		e.stopEvent() ;
+		switch( e.getKey() ) {
+			case e.UP :
+			case e.DOWN :
+			case e.LEFT :
+			case e.RIGHT :
+				return this.onSpecialKeyNav.apply(this,arguments) ;
+			
+			case e.TAB :
+			case e.PAGE_UP :
+			case e.PAGE_DOWN :
+				e.stopEvent() ;
+				break ;
+		}
 	},
+	onSpecialKeyNav: function(ed, field, e) {
+		e.stopEvent() ;
+		
+		var columnHeader = this.getActiveColumn(),
+			record = this.getActiveRecord(),
+			editingContext = this.getEditingContext(record,columnHeader),
+			view ;
+		if( !editingContext ) {
+			return ;
+		}
+		view = columnHeader.getOwnerHeaderCt().view ;
+		
+		var curColIdx = editingContext.colIdx,
+			curRowIdx = editingContext.rowIdx,
+			offsetCol = 0,
+			offsetRow = 0 ;
+		switch( e.getKey() ) {
+			case e.UP :
+				offsetRow-- ;
+				break ;
+			case e.DOWN :
+				offsetRow++ ;
+				break ;
+			case e.LEFT :
+				offsetCol-- ;
+				break ;
+			case e.RIGHT :
+				offsetCol++ ;
+				break ;
+		}
+		var nbTries = 4, node, columnHeader, record, valueObj ;
+		while( nbTries > 0 ) {
+			nbTries-- ;
+			
+			curColIdx += offsetCol ;
+			curRowIdx += offsetRow ;
+			if( curColIdx < 0 || curRowIdx < 0 ) {
+				break ;
+			}
+			
+			node = view.getNode(curRowIdx) ;
+			if( !node ) {
+				break ;
+			}
+			record = view.getRecord(node) ;
+			valueObj = record.get(columnHeader.dataIndex) ;
+			if( !valueObj ) {
+				break ;
+			}
+			
+			columnHeader = this.grid.getColumnManager().getHeaderAtIndex(curColIdx) ;
+			if( !columnHeader ) {
+				break ;
+			}
+			
+			if( !valueObj._editable ) {
+				valueObj = null ;
+				continue ;
+			}
+			
+			break ;
+		}
+		
+		// completeEdit
+		this.completeEdit() ;
+		
+		if( !valueObj ) {
+			return ;
+		}
+		// start new edit
+		this.startEdit(record, columnHeader) ;
+	},
+	getEditor: function(record, column) {
+		var editor = this.callParent(arguments) ;
+		editor.completeOnEnter = false ;
+		return editor ;
+	}
 });
 
 Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
@@ -467,6 +555,16 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 							data : []
 						},
 						matchFieldWidth: false,
+						listeners: {
+							focus: {
+								fn: function(cmb) {
+									if(cmb.keyNav) {
+										cmb.keyNav.disable() ;  //HACK : destroy combo.keyNav from being created
+									}
+								},
+								single: true
+							}
+						},
 						onExpand: Ext.emptyFn // HACK : prevent combo.listKeyNav from being created
 					},
 					renderer: roleRenderer
@@ -477,7 +575,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 					dateHash: 'd_'+dStr,
 					dateSql: dSql,
 					width:50,
-					editor: {xtype: 'numberfield', minValue: 0 },
+					editor: { xtype: 'numberfield', minValue: 0, keyNavEnabled: false },
 					renderer: lengthRenderer
 				}]
 			}) ;
