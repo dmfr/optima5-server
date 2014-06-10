@@ -398,6 +398,25 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			}
 		}
 		
+		var comboboxData = [] ;
+		Ext.Array.each( Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll("ROLE"), function(roleRec) {
+			comboboxData.push({
+				id: 'ROLE:'+roleRec.id,
+				shortText: roleRec.id,
+				text: roleRec.text
+			});
+		}) ;
+		Ext.Array.each( Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll("ABS",true), function(absRec) {
+			if( absRec.id.charAt(0) == '_' ) {
+				return ;
+			}
+			comboboxData.push({
+				id: 'ABS:'+absRec.id,
+				shortText: absRec.id,
+				text: 'ABS-'+absRec.text
+			});
+		}) ;
+		
 		var roleRenderer = function(value, metaData, record) {
 			if( Ext.isEmpty(value) ) {
 				return '' ;
@@ -545,14 +564,14 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 						displayField: 'text',
 						displayTpl: [
 							'<tpl for=".">',
-								'{[typeof values === "string" ? values : values["id"]]}',
+								'{[typeof values === "string" ? values : values["shortText"]]}',
 								'<tpl if="xindex < xcount">' + ',' + '</tpl>',
 							'</tpl>'
 						],
 						valueField: 'id',
 						store: {
-							fields: ['id','text'],
-							data : []
+							fields: ['id','shortText','text'],
+							data : comboboxData
 						},
 						matchFieldWidth: false,
 						listeners: {
@@ -1199,10 +1218,14 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		} ;
 		if( !statusIsVirtual && segments.roles.length == 1 && segments.abs.length == 0 ) {
 			gridDataRow[roleKey]._editable = true ;
-			gridDataRow[roleKey]._editorValue = segments.roles[0] ;
+			gridDataRow[roleKey]._editorValue = 'ROLE:'+segments.roles[0] ;
 			gridDataRow[durationKey]._editable = true ;
 			gridDataRow[durationKey]._editorValue = segments.roles_duration ;
 			gridDataRow[durationKey]._editorMaxValue = stdDayLengthMax ;
+		}
+		if( !statusIsVirtual && segments.roles.length == 0 && segments.abs.length == 1 ) {
+			gridDataRow[roleKey]._editable = true ;
+			gridDataRow[roleKey]._editorValue = 'ABS:'+segments.abs[0] ;
 		}
 		
 		if( altWhsesSegments == null ) {
@@ -1275,7 +1298,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		switch( editorField.getXType() ) {
 			case 'combobox' :
 				editorField.on('focus',function(editorField) {
-					editorField.getStore().loadData( Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll("ROLE") ) ;
 					editorField.setValue(valueObj._editorValue) ;
 					editorField.focusInput() ;
 				},this,{single:true}) ;
@@ -1301,7 +1323,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			peopleCode = gridRecord.data.people_code,
 			peopledayId = peopleCode+'@'+dateSql,
 			peopledayRecord = this.peopledayStore.getById(peopledayId),
-			peopledayWorkRecords = peopledayRecord.works().getRange() ;
+			peopledayWorkStore = peopledayRecord.works(),
+			peopledayAbsStore = peopledayRecord.abs() ;
 		if( valueObj.statusIsVirtual ) {
 			return false ;
 		}
@@ -1313,23 +1336,56 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			return false ;
 		}
 		
-		var peopledayWorkRecord = peopledayWorkRecords[0] ;
 		var editorField = editEvent.column.getEditor(),
 			editorValue ;
 		switch( editorField.getXType() ) {
 			case 'combobox' :
 				editorValue = editorField.getValue() ;
-				if( Ext.isEmpty(Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetById("ROLE",editorValue).id) ) {
-					return false ;
+				switch( editorValue.split(':')[0] ) {
+					case 'ABS' :
+						var absCode = editorValue.split(':')[1] ;
+						if( Ext.isEmpty(Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetById("ABS",absCode).id) ) {
+							return false ;
+						}
+						// delete all + create record
+						peopledayWorkStore.removeAll() ;
+						peopledayAbsStore.removeAll() ;
+						peopledayAbsStore.add({
+							abs_code: absCode,
+							abs_length: peopledayRecord.data.std_daylength
+						}) ;
+						break ;
+						
+					case 'ROLE' :
+						var roleCode = editorValue.split(':')[1] ;
+						if( Ext.isEmpty(Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetById("ROLE",roleCode).id) ) {
+							return false ;
+						}
+						if( peopledayWorkStore.getCount() == 1 && peopledayAbsStore.getCount() == 0 ) {
+							// mode simple
+							peopledayWorkStore.getAt(0).set('role_code',roleCode) ;
+						} else {
+							// delete all + create record
+							peopledayAbsStore.removeAll() ;
+							peopledayWorkStore.removeAll() ;
+							peopledayWorkStore.add({
+								role_code: roleCode,
+								role_length: peopledayRecord.data.std_daylength
+							}) ;
+						}
+						break ;
 				}
-				peopledayWorkRecord.set('role_code',editorValue) ;
 				break ;
+				
 			case 'numberfield' :
 				editorValue = editorField.getValue() ;
 				if( !Ext.isNumeric(editorValue) ) {
 					return false ;
 				}
-				peopledayWorkRecord.set('role_length',editorValue) ;
+				if( !(peopledayWorkStore.getCount() == 1 && peopledayAbsStore.getCount() == 0) ) {
+					return false ;
+				}
+				peopledayWorkStore.getAt(0).set('role_length',editorValue) ;
 				break ;
 				
 			default :
