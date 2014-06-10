@@ -256,6 +256,7 @@ function paracrm_data_editTransaction_fileRecord_init( $post_data , &$arr_saisie
 					break ;
 				case 'number' :
 					$field['xtype'] = 'numberfield' ;
+					$field['decimalPrecision'] = 3 ;
 					break ;
 			}
 			break ;

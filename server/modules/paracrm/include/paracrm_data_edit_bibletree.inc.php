@@ -99,6 +99,7 @@ function paracrm_data_editTransaction_bibleTree( $post_data , &$arr_saisie )
 						break ;
 					case 'number' :
 						$form_item['xtype'] = 'numberfield' ;
+						$form_item['decimalPrecision'] = 3 ;
 						break ;
 				}
 				$form_item['name'] = 'field_'.$arr['tree_field_code'] ;
