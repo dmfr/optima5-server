@@ -23,6 +23,8 @@ function ext_WB_ORACLE_xml2csv( $xml_root_tags, $handle_in, $handle_out ) {
 		return TRUE ;
 	}
 	
+	$map_item_pcb = array() ;
+	
 	while($reader->read())
 	{
 		if($reader->nodeType == XMLReader::ELEMENT && $reader->name == 'G_ONE')
@@ -55,29 +57,31 @@ function ext_WB_ORACLE_xml2csv( $xml_root_tags, $handle_in, $handle_out ) {
 			// Probe PCB
 			$item_number = (string)$obj_xmlRow->ITEM_NUMBER ;
 			$item_desc = (string)$obj_xmlRow->DESCRIPTION ;
-			if( strpos($item_desc,'pk') !== FALSE ) {
-				$start_char = strpos($item_desc,'pk') ;
-				$length = 0 ;
-				while( is_numeric(substr($item_desc,$start_char-1,1)) ) {
-					$start_char-- ;
-					$length++ ;
-				}
-				if( $length == 0 ) {
-					continue ;
-				}
-				$pcb = substr($item_desc,$start_char,$length) ;
-				$map_item_pcb[$item_number] = $pcb ;
-			} elseif( strpos($item_desc,'*') !== FALSE ) {
-				$length = strpos($item_desc,'*') ;
-				$pcb = substr($item_desc,0,$length) ;
-				if( is_numeric($pcb) ) {
+			if( !isset($map_item_pcb[$item_number]) ) {
+				if( strpos($item_desc,'pk') !== FALSE ) {
+					$start_char = strpos($item_desc,'pk') ;
+					$length = 0 ;
+					while( is_numeric(substr($item_desc,$start_char-1,1)) ) {
+						$start_char-- ;
+						$length++ ;
+					}
+					if( $length == 0 ) {
+						continue ;
+					}
+					$pcb = substr($item_desc,$start_char,$length) ;
 					$map_item_pcb[$item_number] = $pcb ;
-				}
-			} elseif( strpos($item_desc,'/') !== FALSE ) {
-				$length = strpos($item_desc,'/') ;
-				$pcb = substr($item_desc,0,$length) ;
-				if( is_numeric($pcb) ) {
-					$map_item_pcb[$item_number] = $pcb ;
+				} elseif( strpos($item_desc,'*') !== FALSE ) {
+					$length = strpos($item_desc,'*') ;
+					$pcb = substr($item_desc,0,$length) ;
+					if( is_numeric($pcb) ) {
+						$map_item_pcb[$item_number] = $pcb ;
+					}
+				} elseif( strpos($item_desc,'/') !== FALSE ) {
+					$length = strpos($item_desc,'/') ;
+					$pcb = substr($item_desc,0,$length) ;
+					if( is_numeric($pcb) ) {
+						$map_item_pcb[$item_number] = $pcb ;
+					}
 				}
 			}
 			
@@ -94,7 +98,8 @@ function ext_WB_ORACLE_xml2csv( $xml_root_tags, $handle_in, $handle_out ) {
 				$qty_value = $QTY_CRED ;
 				$price_value = $SELL_PRICE ;
 			} else {
-				continue ;
+				$qty_value = 0 ;
+				$price_value = $SELL_PRICE ;
 			}
 			
 			
@@ -113,7 +118,7 @@ function ext_WB_ORACLE_xml2csv( $xml_root_tags, $handle_in, $handle_out ) {
 								if( !($pcb = $map_item_pcb[$item_key]) ) {
 									// echo "!PCB errr! $item_key + ".(string)$obj_xmlRow->DESCRIPTION."\n" ;
 									//$_ERROR = TRUE ;
-									continue 4 ;
+									$pcb = 1 ;
 								}
 								$value = $qty_value * $pcb ;
 								break ;
@@ -130,7 +135,7 @@ function ext_WB_ORACLE_xml2csv( $xml_root_tags, $handle_in, $handle_out ) {
 								if( !($pcb = $map_item_pcb[$item_key]) ) {
 									// echo "!PCB errr! $item_key + ".(string)$obj_xmlRow->DESCRIPTION."\n" ;
 									//$_ERROR = TRUE ;
-									continue 4 ;
+									$pcb = 1 ;
 								}
 								$value = $price_value / $pcb ;
 								break ;
