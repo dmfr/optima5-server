@@ -2,18 +2,6 @@
 $app_root='..' ;
 $server_root='.' ;
 
-if( $_POST )
-{
-	$data = print_r($_POST,TRUE) ;
-	$filename = "/var/log/apache2/android_".time().'_'.strlen($data).'.txt' ;
-	file_put_contents($filename,$data) ;
-}
-else
-{
-	$filename = "/var/log/apache2/android_".time().'_0.txt' ;
-	file_put_contents($filename,"No data") ;
-}
-
 if( $_SERVER['PATH_INFO'] && strlen($_SERVER['PATH_INFO']) > 1 ) {
 	$_PATH_INFO = explode('/',$_SERVER['PATH_INFO']) ;
 	if( count($_PATH_INFO) != 3 ) {
