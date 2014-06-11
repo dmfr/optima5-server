@@ -1,4 +1,5 @@
 <?php
+$GLOBALS['debug_evalSqlInnerQueries'] = FALSE ;
 
 function paracrm_queries_process_buildTrees() {
 	
@@ -2858,7 +2859,12 @@ function paracrm_queries_process_queryHelp_getWhereSqlPrefilter( $target_fileCod
 							break ;
 						case 'entry' :
 							$t_view_entry = "view_bible_{$field_where['sql_bible_code']}_entry" ;
-							$where_clause.= " AND {$sqlPrefix}{$file_field_code} IN (SELECT entry_key FROM {$t_view_entry} WHERE treenode_key IN {$sql_list_select})" ;
+							$t_inside_query = "SELECT entry_key FROM {$t_view_entry} WHERE treenode_key IN {$sql_list_select}" ;
+							if( $GLOBALS['debug_evalSqlInnerQueries'] ) {
+								$where_clause.= " AND {$sqlPrefix}{$file_field_code} IN ".$GLOBALS['_opDB']->query_makeSQLlist($t_inside_query) ;
+							} else {
+								$where_clause.= " AND {$sqlPrefix}{$file_field_code} IN ($t_inside_query)" ;
+							}
 							break ;
 					}
 					break ;
