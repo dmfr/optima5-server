@@ -140,6 +140,10 @@ function specWbMrfoxy_promo_getGrid( $post_data ) {
 		$row['approv_df'] = $paracrm_row['WORK_PROMO_field_APPROV_DF'] ;
 		$row['approv_df_ok'] = $paracrm_row['WORK_PROMO_field_APPROV_DF_OK'] ;
 		$row['approv_df_obs'] = $paracrm_row['WORK_PROMO_field_APPROV_DF_OBS'] ;
+		$row['baseline_in_force'] = $paracrm_row['WORK_PROMO_field_BASELINE_IN_FORCE'] ;
+		$row['baseline_in_value'] = $paracrm_row['WORK_PROMO_field_BASELINE_IN_VALUE'] ;
+		$row['baseline_out_force'] = $paracrm_row['WORK_PROMO_field_BASELINE_OUT_FORCE'] ;
+		$row['baseline_out_value'] = $paracrm_row['WORK_PROMO_field_BASELINE_OUT_VALUE'] ;
 		$row['benchmark_arr_ids'] = $paracrm_row['WORK_PROMO_field_BENCHMARK_ARR_IDS'] ;
 		
 		// nb weeks
@@ -677,6 +681,19 @@ function specWbMrfoxy_promo_setApproval( $post_data ) {
 	foreach( $map as $src => $dest ) {
 		$arr_update[$dest] = $data[$src] ;
 	}
+	paracrm_lib_data_updateRecord_file( 'WORK_PROMO' , $arr_update, $target_filerecordId ) ;
+	return array('success'=>true) ;
+}
+function specWbMrfoxy_promo_setBaseline( $post_data ) {
+	$target_filerecordId = $post_data['_filerecord_id'] ;
+	$data = json_decode($post_data['data'],true) ;
+	
+	$arr_update = array() ;
+	$arr_update['field_BASELINE_IN_FORCE'] = ($data['baseline_in_force'] != NULL) ;
+	$arr_update['field_BASELINE_IN_VALUE'] = $data['baseline_in_value'] ;
+	$arr_update['field_BASELINE_OUT_FORCE'] = ($data['baseline_out_force'] != NULL) ;
+	$arr_update['field_BASELINE_OUT_VALUE'] = $data['baseline_out_value'] ;
+	
 	paracrm_lib_data_updateRecord_file( 'WORK_PROMO' , $arr_update, $target_filerecordId ) ;
 	return array('success'=>true) ;
 }

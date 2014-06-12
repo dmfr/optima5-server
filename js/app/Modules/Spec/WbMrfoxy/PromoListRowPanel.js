@@ -3,6 +3,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 	
 	requires: [
 		'Optima5.Modules.Spec.WbMrfoxy.PromoApprovalPanel',
+		'Optima5.Modules.Spec.WbMrfoxy.PromoBaselinePanel',
 		'Ext.ux.dams.FieldSet',
 		'Optima5.Modules.Spec.WbMrfoxy.GraphInfoView',
 		'Optima5.Modules.Spec.WbMrfoxy.BenchmarkGridEmpty'
@@ -66,6 +67,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 						fields: ['actionId','actionText','actionDisabled'],
 						data:[
 							{actionId: 'approval', actionText:'Approvals', actionDisabled:!(me.rowRecord.get('status_code')=='20_WAITVALID')},
+							{actionId: 'baseline', actionText:'BaselineCfg', actionDisabled:!(me.rowRecord.get('status_percent') >= 60 )},
 							{actionId: 'viewinternal', actionText:'DashB intern.'},
 							{actionId: 'viewpublic', actionText:'DashB public'},
 							{actionId: 'download', actionText:'Download XLS'},
@@ -80,6 +82,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 							switch( record.data.actionId ) {
 								case 'approval' :
 									me.openApproval( event ) ;
+									break ;
+								case 'baseline' :
+									me.openBaseline( event ) ;
 									break ;
 								case 'viewinternal' :
 									me.handleViewInternal() ;
@@ -259,6 +264,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 		}); 
 		
 		this.callParent() ;
+		this.fetchItems() ;
+	},
+	fetchItems: function() {
 		if( this.rowRecord.get('status_percent') <= 70 ) {
 			this.fetchBenchmark() ;
 		} else {
@@ -324,10 +332,19 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 	},
 	
 	openApproval: function(e) {
+		this.openPopup(e,'Optima5.Modules.Spec.WbMrfoxy.PromoApprovalPanel',[600,120]) ;
+	},
+	openBaseline: function(e) {
+		this.openPopup(e,'Optima5.Modules.Spec.WbMrfoxy.PromoBaselinePanel',[500,120]) ;
+	},
+	openPopup: function(e,className,dimensions) {
 		var me = this ;
-		var promoApprovalPanel = Ext.create('Optima5.Modules.Spec.WbMrfoxy.PromoApprovalPanel',{
+		var promoApprovalPanel = Ext.create(className,{
 			optimaModule: me.optimaModule,
 			rowRecord: me.rowRecord,
+			
+			width:dimensions[0],
+			height:dimensions[1],
 			
 			floating: true,
 			renderTo: me.getEl(),
@@ -338,16 +355,11 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 				}
 			}]
 		});
-		// Size + position
-		promoApprovalPanel.setSize({
-			width: 600,
-			height: 120
-		}) ;
 		
 		promoApprovalPanel.on('destroy',function() {
-			// refresh something ?
-			
 			me.getEl().unmask() ;
+			// refresh something ?
+			me.fetchItems() ;
 		},me,{single:true}) ;
 		me.getEl().mask() ;
 		

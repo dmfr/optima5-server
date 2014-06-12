@@ -44,6 +44,8 @@ switch( $post_data['_action'] )
 	return specWbMrfoxy_promo_setObsText($post_data);
 	case 'promo_setApproval' :
 	return specWbMrfoxy_promo_setApproval($post_data);
+	case 'promo_setBaseline' :
+	return specWbMrfoxy_promo_setBaseline($post_data);
 	
 	
 	case 'promo_exportXLS' :

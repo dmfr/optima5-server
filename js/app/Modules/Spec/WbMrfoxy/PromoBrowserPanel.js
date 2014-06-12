@@ -63,6 +63,10 @@ Ext.define('WbMrfoxyPromoModel', {
 		  {name: 'approv_df',   type: 'boolean'},
 		  {name: 'approv_df_ok',   type: 'boolean'},
 		  {name: 'approv_df_obs',   type: 'string'},
+		  {name: 'baseline_in_force',   type: 'boolean'},
+		  {name: 'baseline_in_value',   type: 'number'},
+		  {name: 'baseline_out_force',   type: 'boolean'},
+		  {name: 'baseline_out_value',   type: 'number'},
         {name: 'benchmark_arr_ids', type: 'string'}
      ],
 	  idgen: 'sequential',
