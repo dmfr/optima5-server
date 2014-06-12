@@ -23,6 +23,9 @@ Ext.define('Optima5.Modules.CrmBase.QdirectWindow' ,{
 	
 	qsrcFilerecordId: null,
 	
+	transaction_id: null,
+	RES_id: null,
+	
 	initComponent: function() {
 		var me = this ;
 		
@@ -97,19 +100,19 @@ Ext.define('Optima5.Modules.CrmBase.QdirectWindow' ,{
 					me.setTitle(me.optimaModule.getWindowTitle( ajaxData[titleProperty] )) ;
 				}
 				
-				var qdirectTransactionId = ajaxData.transaction_id ;
-				me.requestChainRun( qdirectTransactionId ) ;
+				me.transaction_id = ajaxData.transaction_id ;
+				me.requestChainRun() ;
 			},
 			scope: this
 		});
 	},
-	requestChainRun: function(qdirectTransactionId) {
+	requestChainRun: function() {
 		var me = this ;
 		
 		var ajaxParams = new Object() ;
 		Ext.apply( ajaxParams, {
 			_action: me.getAjaxAction(),
-			_transaction_id: qdirectTransactionId ,
+			_transaction_id: me.transaction_id,
 			_subaction: 'run'
 		});
 		if( me.qsrcFilerecordId != null ) {
@@ -131,44 +134,43 @@ Ext.define('Optima5.Modules.CrmBase.QdirectWindow' ,{
 					return ;
 				}
 				
-				var qdirectResId = ajaxData.RES_id ;
-				me.requestChainGet( qdirectTransactionId, qdirectResId ) ;
+				me.RES_id = ajaxData.RES_id ;
+				me.requestChainGet() ;
 			},
 			scope: this
 		});
 	},
-	requestChainGet: function(qdirectTransactionId, qdirestResId) {
+	requestChainGet: function() {
 		var me = this ;
 		me.loadMask.hide() ;
 		
 		var baseAjaxParams = new Object() ;
 		Ext.apply( baseAjaxParams, {
 			_action: me.getAjaxAction(),
-			_transaction_id : qdirectTransactionId
+			_transaction_id: me.transaction_id,
 		});
 		
 		var queryResultPanel = Ext.create('Optima5.Modules.CrmBase.QueryResultPanel',{
 			optimaModule:me.optimaModule,
 			ajaxBaseParams: baseAjaxParams,
-			RES_id: qdirestResId,
+			RES_id: me.RES_id,
 			qbook_ztemplate_ssid: me.qbookZtemplateSsid
 		}) ;
 		me.removeAll() ;
 		me.add(queryResultPanel) ;
-		
-		me.requestChainEnd(qdirectTransactionId) ;
 	},
-	requestChainEnd: function(qdirectTransactionId) {
+	
+	onDestroy: function() {
 		var me = this ;
 		
 		var ajaxParams = new Object() ;
 		Ext.apply( ajaxParams, {
 			_action: me.getAjaxAction(),
-			_transaction_id: qdirectTransactionId ,
+			_transaction_id: me.transaction_id,
 			_subaction: 'end'
 		});
 		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams
 		});
-	}
+	}	
 });

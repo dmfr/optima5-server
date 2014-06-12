@@ -55,6 +55,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 					scope:me
 				},{
 					itemId: 'kchart',
+					hidden: true,
 					text: 'Charts/Graphs',
 					iconCls: 'op5-crmbase-qresultmenu-kchart',
 					menu:[{
@@ -464,6 +465,9 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			me.disableCharts() ;
 			return ;
 		}
+		
+		var kchartBtn = me.query('toolbar')[0].child('#kchart') ;
+		kchartBtn.setVisible(true) ;
 		/*
 		 * Query charts configuration (server-side charts cfg , if any)
 		 */
