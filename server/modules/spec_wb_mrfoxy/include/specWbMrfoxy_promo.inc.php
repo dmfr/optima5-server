@@ -422,6 +422,9 @@ function specWbMrfoxy_promo_formEval( $post_data ) {
 			$fake_row['WORK_PROMO_SKU']['field_SKU_CODE'] = $arr['entry_key'] ;
 			paracrm_lib_file_joinQueryRecord( 'WORK_PROMO_SKU', $fake_row ) ;
 			$join_priceUnit = $fake_row['WORK_PROMO_SKU']['field_PRICE_UNIT'] ;
+			if( $join_priceUnit <= 0 ) {
+				continue ;
+			}
 			
 			// assemble
 			$row_sku = array() ;
