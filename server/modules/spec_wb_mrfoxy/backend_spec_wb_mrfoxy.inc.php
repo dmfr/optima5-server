@@ -69,8 +69,6 @@ switch( $post_data['_action'] )
 	return specWbMrfoxy_finance_newRevision($post_data) ;
 	case 'finance_setRevision' :
 	return specWbMrfoxy_finance_setRevision($post_data) ;
-	case 'finance_exportXLS' :
-	return specWbMrfoxy_finance_exportXLS($post_data) ;
 	
 	case 'finance_getBudgetBar' :
 	return specWbMrfoxy_finance_getBudgetBar($post_data) ;
@@ -79,6 +77,11 @@ switch( $post_data['_action'] )
 	
 	case 'auth_getRoles' :
 	return specWbMrfoxy_auth_getRoles();
+	
+	
+	
+	case 'xls_getTableExport' :
+	return specWbMrfoxy_xls_getTableExport($post_data);
 	
 	default :
 	return NULL ;

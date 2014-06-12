@@ -966,16 +966,19 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 		var me = this,
 			grid = me.down('grid'),
 			store = grid.getStore(),
-			xlsHeader, xlsColumns, xlsData,
-			tbCropYear = this.query('#tbCropYear')[0],
-			tbCountry = this.query('#tbCountry')[0] ;
+			xlsHeader, xlsColumns, xlsData, xlsFilename,
+			filter_cropYear = me.filterCropYear,
+			filter_country = me.filterCountry ;
+			
+			
+		xlsFilename = 'WB_MRFOXY_budget_'+filter_cropYear+'_'+filter_country+'.xlsx' ;
 		
 		xlsHeader = [{
 			fieldLabel: 'Crop Year',
-			fieldValue: tbCropYear.cropYear
+			fieldValue: filter_cropYear
 		},{
 			fieldLabel: 'Country',
-			fieldValue: tbCountry.getText()
+			fieldValue: filter_country
 		}];
 		
 		xlsColumns = [] ;
@@ -995,11 +998,12 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 		var exportParams = me.optimaModule.getConfiguredAjaxParams() ;
 		Ext.apply(exportParams,{
 			_moduleId: 'spec_wb_mrfoxy',
-			_action: 'finance_exportXLS',
+			_action: 'xls_getTableExport',
 			data: Ext.JSON.encode({
 				xlsHeader: xlsHeader,
 				xlsColumns: xlsColumns,
-				xlsData: xlsData
+				xlsData: xlsData,
+				xlsFilename: xlsFilename
 			})
 		}) ;
 		Ext.create('Ext.ux.dams.FileDownloader',{
