@@ -159,7 +159,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 						this.handleNewRevisionEnd( doSave = false ) ;
 					},
 					scope: this
-				}]
+				}],
+				disabled: true
 			},{
 				itemId: 'tbExport',
 				icon: 'images/op5img/ico_save_16.gif',
@@ -400,6 +401,10 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 					defaults: Ext.apply( Ext.clone(colDefaults),{
 						width: 100
 					}),
+					isEditingColumn: true,
+					menuDisabled: false,
+					groupable: true, // false groupable to enable columnMenu
+					cls: 'ux-filtered-column',
 					columns: [{
 						text: 'Edit values',
 						align: 'right',
@@ -589,6 +594,11 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 				items: columns
 			},
 			revisionIds: revisionIds,
+			listeners: {
+				afterlayout: function( gridpanel ) {
+					gridpanel.headerCt.on('menucreate',me.onColumnsMenuCreate,me) ;
+				}
+			},
 			viewConfig: {
 				getRowClass: function(record) {
 					if( record.get('group_key') == '4_CALC' && record.get('row_key') == 'promo_total' ) {
@@ -605,6 +615,41 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 		this.add( grid ) ;
 		this.doCalc() ;
 		this.updateToolbar() ;
+	},
+	onColumnsMenuCreate: function( headerCt, menu ) {
+		var me = this;
+		if( true ) {
+			menu.add([{
+				xtype:'menuseparator'
+			},{
+				itemId: 'btnSave',
+				iconCls: 'op5-spec-mrfoxy-financebudget-newrevisionmenu-save',
+				text: 'Commit revision' ,
+				handler: function() {
+					var doSave ;
+					this.handleNewRevisionEnd( doSave = true ) ;
+				},
+				scope: this
+			},{
+				itemId: 'btnDiscard',
+				iconCls: 'op5-spec-mrfoxy-financebudget-newrevisionmenu-discard',
+				text: 'Discard' ,
+				handler: function() {
+					var doSave ;
+					this.handleNewRevisionEnd( doSave = false ) ;
+				},
+				scope: this
+			}]);
+		}
+		menu.on('beforeshow', me.onColumnsMenuBeforeShow, me);
+	},
+	onColumnsMenuBeforeShow: function( menu ) {
+		var me = this,
+			columnHeader = menu.activeHeader,
+			isEditingColumn = columnHeader.isEditingColumn ;
+		menu.down('menuseparator').setVisible( isEditingColumn ) ;
+		menu.down('#btnSave').setVisible( isEditingColumn ) ;
+		menu.down('#btnDiscard').setVisible( isEditingColumn ) ;
 	},
 	onGridBeforeEdit: function(editor, editObject) {
 		var cellEl = editObject.grid.getView().getCell( editObject.record, editObject.column ) ;
