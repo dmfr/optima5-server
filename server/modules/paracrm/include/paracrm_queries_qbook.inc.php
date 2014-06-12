@@ -170,17 +170,16 @@ function paracrm_queries_qbookTransaction( $post_data )
 		}
 		
 		
-		if( $post_data['_subaction'] == 'res_get' )
+		if( $post_data['_subaction'] == 'res_get' || $post_data['_subaction'] == 'exportXLS' )
 		{
 			if( $post_data['qbook_ztemplate_ssid'] ) {
 				$json =  paracrm_queries_qbookTransaction_resGetZtemplate( $post_data, $arr_saisie ) ;
 			} else {
 				$json =  paracrm_queries_qbookTransaction_resGet( $post_data, $arr_saisie ) ;
 			}
-		}
-		if( $post_data['_subaction'] == 'exportXLS' )
-		{
-			$json =  paracrm_queries_qbookTransaction_exportXLS( $post_data , $arr_saisie ) ;
+			if( $post_data['_subaction'] == 'exportXLS' ) {
+				paracrm_queries_qbookTransaction_exportJson( $json, $arr_saisie ) ;
+			}
 		}
 		
 		if( $post_data['_subaction'] == 'end' )
@@ -505,7 +504,7 @@ function paracrm_queries_qbookTransaction_resGetZtemplate( $post_data, &$arr_sai
 	}
 	
 	
-	return array('success'=>true, 'html'=>$doc->saveHTML() ) ;
+	return array('success'=>true, 'disable_charts'=>true, 'html'=>$doc->saveHTML() ) ;
 }
 function paracrm_queries_qbookTransaction_resGet( $post_data, &$arr_saisie )
 {
@@ -909,44 +908,46 @@ function paracrm_queries_qbookTransaction_saveFields( &$arr_saisie , $qbook_id )
 	return array('success'=>true,'qbook_id'=>$qbook_id) ;
 }
 
-function paracrm_queries_qbookTransaction_exportXLS( $post_data, &$arr_saisie )
+function paracrm_queries_qbookTransaction_exportJson( $output_json, $arr_saisie=NULL )
 {
-	if( !class_exists('PHPExcel') )
-		return NULL ;
-	
-	$transaction_id = $post_data['_transaction_id'] ;
-	$RES = $_SESSION['transactions'][$transaction_id]['arr_RES'][$post_data['RES_id']] ;
-	
-	$workbook_tab_grid = array() ;
-	foreach( $RES['RES_labels'] as $tab_id => $dummy )
-	{
-		$tab = array() ;
-		$tab['tab_title'] = $dummy['tab_title'] ;
-		$workbook_tab_grid[$tab_id] = $tab + paracrm_queries_mpaginate_getGrid( $RES, $tab_id ) ;
-	}
-	
-	$objPHPExcel = paracrm_queries_xls_build( $workbook_tab_grid ) ;
-	if( !$objPHPExcel ) {
+	if( !$output_json['success'] ) {
 		die() ;
 	}
 	
-	$tmpfilename = tempnam( sys_get_temp_dir(), "FOO");
-	$objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
-	$objWriter->save($tmpfilename);
-	$objPHPExcel->disconnectWorksheets();
-	unset($objPHPExcel) ;
-	
 	$qbook_name = "unnamed" ;
-	if( $arr_saisie['qbook_name'] ) {
+	if( $arr_saisie && $arr_saisie['qbook_name'] ) {
 		$qbook_name = $arr_saisie['qbook_name'] ;
 	}
 	$qbook_name=str_replace(' ','_',preg_replace("/[^a-zA-Z0-9\s]/", "", $qbook_name)) ;
 	
-	$filename = 'OP5report_Qbook_'.$qbook_name.'_'.time().'.xlsx' ;
-	header("Content-Type: application/force-download; name=\"$filename\""); 
-	header("Content-Disposition: attachment; filename=\"$filename\""); 
-	readfile($tmpfilename) ;
-	unlink($tmpfilename) ;
+	if( $output_json['html'] ) {
+		$filename = 'OP5report_Qbook_'.$qbook_name.'_'.time().'.html' ;
+		header("Content-Type: application/force-download; name=\"$filename\""); 
+		header("Content-Disposition: attachment; filename=\"$filename\""); 
+		echo $output_json['html'] ;
+		die() ;
+	}
+	
+	if( $output_json['tabs'] ) {
+		$objPHPExcel = paracrm_queries_xls_build( $output_json['tabs'] ) ;
+		if( !$objPHPExcel ) {
+			die() ;
+		}
+		
+		$tmpfilename = tempnam( sys_get_temp_dir(), "FOO");
+		$objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+		$objWriter->save($tmpfilename);
+		$objPHPExcel->disconnectWorksheets();
+		unset($objPHPExcel) ;
+		
+		$filename = 'OP5report_Qbook_'.$qbook_name.'_'.time().'.xlsx' ;
+		header("Content-Type: application/force-download; name=\"$filename\""); 
+		header("Content-Disposition: attachment; filename=\"$filename\""); 
+		readfile($tmpfilename) ;
+		unlink($tmpfilename) ;
+		die() ;
+	}
+	
 	die() ;
 }
 
