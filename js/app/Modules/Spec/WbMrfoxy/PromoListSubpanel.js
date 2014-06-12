@@ -622,5 +622,109 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 			},
 			scope: me
 		}) ;
+	},
+	
+	handleDownload: function() {
+		var me = this,
+			grid = me.down('grid'),
+			store = grid.getStore(),
+			xlsColumns, xlsData ;
+		
+		xlsColumns = [] ;
+		
+		xlsColumns.push({
+			dataIndex: 'country_code',
+			text: 'Country'
+		},{
+			dataIndex: 'promo_id',
+			text: 'Promo Key'
+		}) ;
+		
+		if( me.parentBrowserPanel.filterIsProd ) {
+			xlsColumns.push({
+				dataIndex: 'status_percent',
+				text: 'Completion(%)'
+			},{
+				dataIndex: 'status_text',
+				text: 'Status'
+			}) ;
+		} else {
+			xlsColumns.push({
+				dataIndex: 'brand_text',
+				text: 'Brand'
+			}) ;
+		}
+		
+		xlsColumns.push({
+			dataIndex: 'date_supply_start',
+			text: 'Supply starts'
+		},{
+			dataIndex: 'date_supply_end',
+			text: 'Supply ends'
+		},{
+			dataIndex: 'date_start',
+			text: 'In store starts'
+		},{
+			dataIndex: 'date_end',
+			text: 'In store ends'
+		},{
+			dataIndex: 'store_text',
+			text: 'Stores'
+		},{
+			dataIndex: 'prod_text',
+			text: 'Products'
+		},{
+			dataIndex: 'mechanics_text',
+			text: 'Promo mechanics'
+		},{
+			dataIndex: 'cost_billing_text',
+			text: 'Billing mode'
+		},{
+			dataIndex: 'cost_forecast',
+			text: 'Forecasted cost'
+		},{
+			dataIndex: 'cost_real',
+			text: 'Real cost'
+		},{
+			dataIndex: 'calc_uplift_vol',
+			text: 'Uplift (kg)'
+		},{
+			dataIndex: 'calc_uplift_per',
+			text: 'Uplift (%)'
+		},{
+			dataIndex: 'calc_roi',
+			text: 'ROI (%)'
+		},{
+			dataIndex: 'calc_nb_displays',
+			text: 'Nb displays in store'
+		},{
+			dataIndex: 'obs_atl',
+			text: 'ATL'
+		},{
+			dataIndex: 'obs_btl',
+			text: 'BTL'
+		},{
+			dataIndex: 'obs_comment',
+			text: 'Comments'
+		}) ;
+		
+		xlsData = Ext.pluck( store.getRange(), 'data' ) ;
+		
+		var exportParams = me.optimaModule.getConfiguredAjaxParams() ;
+		Ext.apply(exportParams,{
+			_moduleId: 'spec_wb_mrfoxy',
+			_action: 'xls_getTableExport',
+			data: Ext.JSON.encode({
+				xlsColumns: xlsColumns,
+				xlsData: xlsData,
+				xlsFilename: 'WB_MRFOXY_promoGrid.xlsx'
+			})
+		}) ;
+		Ext.create('Ext.ux.dams.FileDownloader',{
+			renderTo: Ext.getBody(),
+			requestParams: exportParams,
+			requestAction: Optima5.Helper.getApplication().desktopGetBackendUrl(),
+			requestMethod: 'POST'
+		}) ;
 	}
 });

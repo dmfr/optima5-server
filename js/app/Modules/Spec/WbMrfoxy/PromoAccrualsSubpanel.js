@@ -113,6 +113,13 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoAccrualsSubpanel',{
 							return '<b>'+v+'</b>' ;
 						}
 					},{
+						text: 'Month',
+						dataIndex: 'date_month',
+						width: 60,
+						renderer: function(v) {
+							return '<b>'+v+'</b>' ;
+						}
+					},{
 						text: 'Stores',
 						dataIndex: 'store_text',
 						width: 100,
@@ -133,16 +140,11 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoAccrualsSubpanel',{
 							bibleId: 'IRI_PROD'
 						}
 					},{
-						text: 'Mechanics',
-						dataIndex: 'mechanics_text',
-						width: 250,
+						text: 'Billing',
+						dataIndex: 'cost_billing_text',
+						width: 150,
 						hidden: true,
-						menuDisabled:false,
-						filter: {
-							type: 'op5crmbasebibletree',
-							optimaModule: me.optimaModule,
-							bibleId: 'PROMO_MECH'
-						}
+						menuDisabled:false
 					},{
 						text: '<b>Acr:</b> Forecast',
 						width: 100,
@@ -201,5 +203,97 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoAccrualsSubpanel',{
 	},
 	setIsProd: function(isProd) {
 		
+	},
+	
+	handleDownload: function() {
+		var me = this,
+			grid = me.down('grid'),
+			store = grid.getStore(),
+			xlsColumns, xlsData ;
+		
+		xlsColumns = [] ;
+		
+		xlsColumns.push({
+			dataIndex: 'country_code',
+			text: 'Country'
+		},{
+			dataIndex: 'promo_id',
+			text: 'Promo Key'
+		}) ;
+		
+		if( me.parentBrowserPanel.filterIsProd ) {
+			xlsColumns.push({
+				dataIndex: 'status_percent',
+				text: 'Completion(%)'
+			},{
+				dataIndex: 'status_text',
+				text: 'Status'
+			}) ;
+		} else {
+			xlsColumns.push({
+				dataIndex: 'brand_text',
+				text: 'Brand'
+			}) ;
+		}
+		
+		xlsColumns.push({
+			dataIndex: 'date_supply_start',
+			text: 'Supply starts'
+		},{
+			dataIndex: 'date_supply_end',
+			text: 'Supply ends'
+		},{
+			dataIndex: 'date_start',
+			text: 'In store starts'
+		},{
+			dataIndex: 'date_end',
+			text: 'In store ends'
+		},{
+			dataIndex: 'date_month',
+			text: 'Month'
+		},{
+			dataIndex: 'store_text',
+			text: 'Stores'
+		},{
+			dataIndex: 'prod_text',
+			text: 'Products'
+		},{
+			dataIndex: 'cost_billing_text',
+			text: 'Billing mode'
+		},{
+			dataIndex: 'cost_forecast',
+			text: 'Forecasted cost'
+		},{
+			dataIndex: 'cost_real',
+			text: 'Real cost'
+		},{
+			dataIndex: 'cost_accruals',
+			text: 'F - R'
+		}) ;
+		
+		xlsData = Ext.pluck( store.getRange(), 'data' ) ;
+		Ext.Array.each(xlsData,function(dataRow) {
+			dataRow['cost_accruals'] = 0 ;
+			if( !dataRow.cost_real_is_calc ) {
+				dataRow['cost_accruals'] = dataRow['cost_forecast']-dataRow['cost_real'] ;
+			}
+		});
+		
+		var exportParams = me.optimaModule.getConfiguredAjaxParams() ;
+		Ext.apply(exportParams,{
+			_moduleId: 'spec_wb_mrfoxy',
+			_action: 'xls_getTableExport',
+			data: Ext.JSON.encode({
+				xlsColumns: xlsColumns,
+				xlsData: xlsData,
+				xlsFilename: 'WB_MRFOXY_promoAccruals.xlsx'
+			})
+		}) ;
+		Ext.create('Ext.ux.dams.FileDownloader',{
+			renderTo: Ext.getBody(),
+			requestParams: exportParams,
+			requestAction: Optima5.Helper.getApplication().desktopGetBackendUrl(),
+			requestMethod: 'POST'
+		}) ;
 	}
 });

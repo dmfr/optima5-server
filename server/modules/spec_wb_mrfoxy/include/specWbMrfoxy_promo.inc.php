@@ -150,7 +150,10 @@ function specWbMrfoxy_promo_getGrid( $post_data ) {
 		$date2 = strtotime($row['date_end']);
 		$date1 = strtotime($row['date_start']);
 		$datediff = $date2 - $date1;
-		$row['date_length_weeks'] = ceil($datediff/(60*60*24*7));		
+		$row['date_length_weeks'] = ceil($datediff/(60*60*24*7));
+		
+		// month
+		$row['date_month'] = date('Y-m',strtotime($paracrm_row['WORK_PROMO_field_DATE_START'])) ;
 		
 		// store : enseigne
 		$treenode_key = $paracrm_row['WORK_PROMO_field_STORE_tree_STOREGROUP'] ;

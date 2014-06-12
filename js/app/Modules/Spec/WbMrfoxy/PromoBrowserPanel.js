@@ -42,6 +42,7 @@ Ext.define('WbMrfoxyPromoModel', {
         {name: 'date_start',   type: 'string'},
         {name: 'date_end',   type: 'string'},
 		  {name: 'date_length_weeks', type: 'int'},
+		  {name: 'date_month', type: 'string'},
         {name: 'calc_uplift_vol',   type: 'string'},
         {name: 'calc_uplift_per',   type: 'string'},
         {name: 'calc_roi',   type: 'string'},
@@ -189,6 +190,15 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoBrowserPanel',{
 						itemId: 'calendar',
 						text: 'Calendar',
 						iconCls: 'op5-crmbase-datatoolbar-view-calendar'
+					},{
+						xtype: 'menuseparator'
+					},{
+						itemId: 'xlsExport',
+						text: 'Export XLS',
+						icon: 'images/op5img/ico_save_16.gif',
+						handler: function() {
+							me.switchViewDownload() ;
+						}
 					}]
 				}
 			}],
@@ -321,7 +331,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoBrowserPanel',{
 		var me = this,
 			tbViewmode = me.child('toolbar').getComponent('tbViewmode'),
 			tbProd = me.child('toolbar').getComponent('tbProd'),
-			iconCls, text ;
+			iconCls, text,
+			disableExport = false ;
 		switch( viewId ) {
 			case 'grid' :
 				text = 'List' ;
@@ -330,6 +341,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoBrowserPanel',{
 			case 'calendar' :
 				text = 'Calendar' ;
 				iconCls = 'op5-crmbase-datatoolbar-view-calendar' ;
+				disableExport = true ;
 				break ;
 			case 'accruals' :
 				text = 'Accruals' ;
@@ -342,8 +354,18 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoBrowserPanel',{
 		tbViewmode.setIconCls(iconCls) ;
 		tbViewmode.setText(text) ;
 		
+		tbViewmode.down('menuseparator').setVisible( !disableExport );
+		tbViewmode.down('#xlsExport').setVisible( !disableExport );
+		
 		me.getLayout().setActiveItem(viewId) ;
 		tbProd.setVisible(viewId=='grid') ;
+	},
+	switchViewDownload: function() {
+		var me = this,
+			activeSubpanel = me.getLayout().getActiveItem() ;
+		if( activeSubpanel.handleDownload ) {
+			activeSubpanel.handleDownload() ;
+		}
 	},
 	
 	handleQuit: function() {
