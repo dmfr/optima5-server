@@ -459,6 +459,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 							}
 							return '' ;
 						},
+						dataIsEditingDiff: true,
 						editDataIndex: revisionId,
 						actualDataIndex: actualDataIndex
 					});
@@ -962,13 +963,44 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 		this.fireEvent('quit') ;
 	},
 	handleDownload: function() {
-		var me = this ;
+		var me = this,
+			grid = me.down('grid'),
+			store = grid.getStore(),
+			xlsHeader, xlsColumns, xlsData,
+			tbCropYear = this.query('#tbCropYear')[0],
+			tbCountry = this.query('#tbCountry')[0] ;
+		
+		xlsHeader = [{
+			fieldLabel: 'Crop Year',
+			fieldValue: tbCropYear.cropYear
+		},{
+			fieldLabel: 'Country',
+			fieldValue: tbCountry.getText()
+		}];
+		
+		xlsColumns = [] ;
+		Ext.Array.each( grid.headerCt.getVisibleGridColumns(), function(columnHeader) {
+			if( columnHeader.dataIsEditing || columnHeader.dataIsEditingDiff ) {
+				return ;
+			}
+			xlsColumns.push({
+				dataIndex: columnHeader.dataIndex,
+				text: columnHeader.text,
+				isBold: !Ext.isEmpty(columnHeader.revisionId)
+			});
+		}) ;
+		
+		xlsData = Ext.pluck( store.getRange(), 'data' ) ;
 		
 		var exportParams = me.optimaModule.getConfiguredAjaxParams() ;
 		Ext.apply(exportParams,{
 			_moduleId: 'spec_wb_mrfoxy',
 			_action: 'finance_exportXLS',
-			data: Ext.JSON.encode([])
+			data: Ext.JSON.encode({
+				xlsHeader: xlsHeader,
+				xlsColumns: xlsColumns,
+				xlsData: xlsData
+			})
 		}) ;
 		Ext.create('Ext.ux.dams.FileDownloader',{
 			renderTo: Ext.getBody(),
