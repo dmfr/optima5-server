@@ -598,6 +598,11 @@ function specWbMrfoxy_promo_close( $post_data ) {
 	paracrm_lib_data_updateRecord_file( 'WORK_PROMO' , array('field_STATUS'=>'99_DONE'), $target_filerecordId ) ;
 	return array('success'=>true) ;
 }
+function specWbMrfoxy_promo_csack( $post_data ) {
+	$target_filerecordId = $post_data['_filerecord_id'] ;
+	paracrm_lib_data_updateRecord_file( 'WORK_PROMO' , array('field_STATUS'=>'30_SCHED'), $target_filerecordId ) ;
+	return array('success'=>true) ;
+}
 function specWbMrfoxy_promo_getRecord( $post_data ) {
 	$target_filerecordId = $post_data['_filerecord_id'] ;
 	$ttmp = specWbMrfoxy_promo_getGrid( array('_load_details'=>true,'filter_id'=>json_encode(array($target_filerecordId))) ) ;

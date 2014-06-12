@@ -68,6 +68,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 						data:[
 							{actionId: 'approval', actionText:'Approvals', actionDisabled:!(me.rowRecord.get('status_code')=='20_WAITVALID')},
 							{actionId: 'baseline', actionText:'BaselineCfg', actionDisabled:!(me.rowRecord.get('status_percent') >= 60 )},
+							{actionId: 'csack', actionText:'CS Acknowledge', actionDisabled:!(me.rowRecord.get('status_code')=='25_APPROVED')},
 							{actionId: 'viewinternal', actionText:'DashB intern.'},
 							{actionId: 'viewpublic', actionText:'DashB public'},
 							{actionId: 'download', actionText:'Download XLS'},
@@ -85,6 +86,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 									break ;
 								case 'baseline' :
 									me.openBaseline( event ) ;
+									break ;
+								case 'csack' :
+									me.handleCsAck() ;
 									break ;
 								case 'viewinternal' :
 									me.handleViewInternal() ;
@@ -396,6 +400,25 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 					params: {
 						_moduleId: 'spec_wb_mrfoxy',
 						_action: 'promo_delete',
+						_filerecord_id: me.rowRecord.get('_filerecord_id')
+					},
+					success: function(response) {
+						me.fireEvent('datachanged') ;
+					},
+					scope: me
+				}) ;
+			}
+		},me) ;
+	},
+	handleCsAck: function() {
+		var me = this ;
+		
+		Ext.MessageBox.confirm('Confirmation','Customer service acknowledging ?', function(buttonStr) {
+			if( buttonStr=='yes' ) {
+				me.optimaModule.getConfiguredAjaxConnection().request({
+					params: {
+						_moduleId: 'spec_wb_mrfoxy',
+						_action: 'promo_csack',
 						_filerecord_id: me.rowRecord.get('_filerecord_id')
 					},
 					success: function(response) {

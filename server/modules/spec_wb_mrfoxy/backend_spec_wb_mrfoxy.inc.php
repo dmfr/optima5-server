@@ -31,6 +31,8 @@ switch( $post_data['_action'] )
 	
 	case 'promo_close' :
 	return specWbMrfoxy_promo_close($post_data);
+	case 'promo_csack' :
+	return specWbMrfoxy_promo_csack($post_data);
 	case 'promo_delete' :
 	return specWbMrfoxy_promo_delete($post_data);
 	case 'promo_getRecord' :
