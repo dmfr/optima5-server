@@ -54,13 +54,12 @@ function paracrm_queries_qwebTransaction( $post_data )
 		
 		
 		
-		if( $post_data['_subaction'] == 'res_get' )
+		if( $post_data['_subaction'] == 'res_get' || $post_data['_subaction'] == 'exportXLS' )
 		{
 			$json =  paracrm_queries_qwebTransaction_resGet( $post_data ) ;
-		}
-		if( $post_data['_subaction'] == 'exportXLS' )
-		{
-			$json =  paracrm_queries_qwebTransaction_exportXLS( $post_data, $arr_saisie ) ;
+			if( $post_data['_subaction'] == 'exportXLS' ) {
+				paracrm_queries_qwebTransaction_exportJson( $json, $arr_saisie ) ;
+			}
 		}
 		
 		switch( $post_data['_subaction'] ) {
@@ -467,6 +466,29 @@ function paracrm_queries_qweb_getQresultObjs( $q_type, $q_id, $arr_where_conditi
 		$objs[] = $obj ;
 	}
 	return $objs ;
+}
+
+function paracrm_queries_qwebTransaction_exportJson( $output_json, $arr_saisie=NULL )
+{
+	if( !$output_json['success'] ) {
+		die() ;
+	}
+	
+	$qweb_name = "unnamed" ;
+	if( $arr_saisie && $arr_saisie['qweb_name'] ) {
+		$qweb_name = $arr_saisie['qweb_name'] ;
+	}
+	$qweb_name=str_replace(' ','_',preg_replace("/[^a-zA-Z0-9\s]/", "", $qweb_name)) ;
+	
+	if( $output_json['html'] ) {
+		$filename = 'OP5report_Qweb_'.$qweb_name.'_'.time().'.html' ;
+		header("Content-Type: application/force-download; name=\"$filename\""); 
+		header("Content-Disposition: attachment; filename=\"$filename\""); 
+		echo $output_json['html'] ;
+		die() ;
+	}
+	
+	die() ;
 }
 
 ?>
