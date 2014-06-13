@@ -2332,7 +2332,7 @@ function paracrm_queries_process_query_onePassValues( $arr_saisie ) {
 				
 				// application des conditions
 				$base_row = array() ;
-				$base_row[$file_code] = $subRow ;
+				$base_row[$file_code] = $row_group[$file_code] ;
 				$iter_fileCode_whereBoolean[$file_code] = paracrm_queries_process_queryHelp_where( $base_row, $arr_saisie['fields_where'] ) ;
 			}
 			if( !$iter_fileCode_whereBoolean[$file_code] ) {
@@ -2829,12 +2829,20 @@ function paracrm_queries_process_queryHelp_getWhereSqlPrefilter( $target_fileCod
 		$sqlPrefix = $sqlTableAlias."." ;
 	}
 	
+	// Join map (to skip CRM joined field)
+	$jMap = paracrm_lib_file_joinPrivate_getMap( $target_fileCode ) ;
+	
 	$where_clause = "" ;
 	foreach( $fields_where as $where_id => $field_where )
 	{
 		$file_code = $field_where['sql_file_code'] ;
-		$file_field_code = $field_where['sql_file_field_code'] ;
+		$file_field_code = substr($field_where['sql_file_field_code'],6) ;
+		$sql_file_field_code = $field_where['sql_file_field_code'] ;
 		if( $file_code != $target_fileCode ) {
+			continue ;
+		}
+		if( isset($jMap[$file_field_code]) ) {
+			// Condition on CRM joined field => can't stat with SQL, will filter later
 			continue ;
 		}
 		if( $field_where['sql_bible_code'] && $field_where['sql_bible_field_code'] ) {
@@ -2855,15 +2863,15 @@ function paracrm_queries_process_queryHelp_getWhereSqlPrefilter( $target_fileCod
 				case 'tree' :
 					switch( $field_where['sql_linktype'] ) {
 						case 'treenode' :
-							$where_clause.= " AND {$sqlPrefix}{$file_field_code} IN {$sql_list_select}" ;
+							$where_clause.= " AND {$sqlPrefix}{$sql_file_field_code} IN {$sql_list_select}" ;
 							break ;
 						case 'entry' :
 							$t_view_entry = "view_bible_{$field_where['sql_bible_code']}_entry" ;
 							$t_inside_query = "SELECT entry_key FROM {$t_view_entry} WHERE treenode_key IN {$sql_list_select}" ;
 							if( $GLOBALS['debug_evalSqlInnerQueries'] ) {
-								$where_clause.= " AND {$sqlPrefix}{$file_field_code} IN ".$GLOBALS['_opDB']->query_makeSQLlist($t_inside_query) ;
+								$where_clause.= " AND {$sqlPrefix}{$sql_file_field_code} IN ".$GLOBALS['_opDB']->query_makeSQLlist($t_inside_query) ;
 							} else {
-								$where_clause.= " AND {$sqlPrefix}{$file_field_code} IN ($t_inside_query)" ;
+								$where_clause.= " AND {$sqlPrefix}{$sql_file_field_code} IN ($t_inside_query)" ;
 							}
 							break ;
 					}
@@ -2871,7 +2879,7 @@ function paracrm_queries_process_queryHelp_getWhereSqlPrefilter( $target_fileCod
 				case 'entry' :
 					switch( $field_where['sql_linktype'] ) {
 						case 'entry' :
-							$where_clause.= " AND {$sqlPrefix}{$file_field_code} IN {$sql_list_select}" ;
+							$where_clause.= " AND {$sqlPrefix}{$sql_file_field_code} IN {$sql_list_select}" ;
 							break ;
 					}
 					break ;
@@ -2883,21 +2891,21 @@ function paracrm_queries_process_queryHelp_getWhereSqlPrefilter( $target_fileCod
 			case 'date' :
 			if( $field_where['condition_date_gt'] != '' )
 			{
-				$where_clause.= " AND DATE({$sqlPrefix}{$file_field_code}) >= '{$field_where['condition_date_gt']}'" ;
+				$where_clause.= " AND DATE({$sqlPrefix}{$sql_file_field_code}) >= '{$field_where['condition_date_gt']}'" ;
 			}
 			if( $field_where['condition_date_lt'] != '' )
 			{
-				$where_clause.= " AND DATE({$sqlPrefix}{$file_field_code}) <= '{$field_where['condition_date_lt']}'" ;
+				$where_clause.= " AND DATE({$sqlPrefix}{$sql_file_field_code}) <= '{$field_where['condition_date_lt']}'" ;
 			}
 			break ;
 			
 			case 'bool' :
 			switch( $field_where['condition_bool'] ) {
 				case 'true' :
-					$where_clause.= " AND {$sqlPrefix}{$file_field_code} = '1'" ;
+					$where_clause.= " AND {$sqlPrefix}{$sql_file_field_code} = '1'" ;
 					break ;
 				case 'false' :
-					$where_clause.= " AND {$sqlPrefix}{$file_field_code} = '0'" ;
+					$where_clause.= " AND {$sqlPrefix}{$sql_file_field_code} = '0'" ;
 					break ;
 				default :
 					break ;
@@ -2907,11 +2915,11 @@ function paracrm_queries_process_queryHelp_getWhereSqlPrefilter( $target_fileCod
 			case 'number' :
 			if( $field_where['condition_num_gt'] != '' )
 			{
-				$where_clause.= " AND {$sqlPrefix}{$file_field_code} >= '{$field_where['condition_num_gt']}'" ;
+				$where_clause.= " AND {$sqlPrefix}{$sql_file_field_code} >= '{$field_where['condition_num_gt']}'" ;
 			}
 			if( $field_where['condition_num_lt'] != '' )
 			{
-				$where_clause.= " AND {$sqlPrefix}{$file_field_code} <= '{$field_where['condition_num_lt']}'" ;
+				$where_clause.= " AND {$sqlPrefix}{$sql_file_field_code} <= '{$field_where['condition_num_lt']}'" ;
 			}
 			break ;
 		}
