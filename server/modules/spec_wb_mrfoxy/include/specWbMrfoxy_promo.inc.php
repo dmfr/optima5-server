@@ -526,23 +526,13 @@ function specWbMrfoxy_promo_formSubmit( $post_data ) {
 		unset($promo_id) ;
 		$promo_id_base = '' ;
 		$promo_id_base.= $form_data['country_code'] ;
-		if( $store_memo ) {
-			$promo_id_base.= '-' ;
-			$promo_id_base.= $store_memo ;
-		}
-		if( $prod_memo ) {
-			$promo_id_base.= '-' ;
-			$promo_id_base.= $prod_memo ;
-		}
-		$promo_id_base.= '-'.date('Ym',strtotime($form_data['date_start'])) ;
-		for( $i=1 ; $i<1000 ; $i++ ) {
-			$promo_id_test = $promo_id_base.'-'.int_to_strX($i,3) ;
-			$query_test = "SELECT count(*) FROM view_file_WORK_PROMO WHERE field_PROMO_CODE='$promo_id_test'" ;
-			if( $_opDB->query_uniqueValue($query_test) == 0 ) {
-				$promo_id = $promo_id_test ;
-				break ;
-			}
-		}
+		$promo_id_base.= ' ' ;
+		$promo_id_base.= ($store_memo ? $store_memo : 'XXXX') ;
+		$promo_id_base.= ' ' ;
+		$promo_id_base.= ($prod_memo  ? $prod_memo  : 'XXXX') ;
+		$promo_id_base.= ' ' ;
+		$promo_id_base.= date('Y-m-d',strtotime($form_data['date_supply_start'])) ;
+		$promo_id = $promo_id_base ;
 		if( !isset($promo_id) ) {
 			return array('success'=>false) ;
 		}
