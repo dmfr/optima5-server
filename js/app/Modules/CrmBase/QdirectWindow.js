@@ -147,7 +147,7 @@ Ext.define('Optima5.Modules.CrmBase.QdirectWindow' ,{
 		var baseAjaxParams = new Object() ;
 		Ext.apply( baseAjaxParams, {
 			_action: me.getAjaxAction(),
-			_transaction_id: me.transaction_id,
+			_transaction_id: me.transaction_id
 		});
 		
 		var queryResultPanel = Ext.create('Optima5.Modules.CrmBase.QueryResultPanel',{
