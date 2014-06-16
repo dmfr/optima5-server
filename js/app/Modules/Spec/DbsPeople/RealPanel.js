@@ -116,11 +116,17 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanelCellEditing',{
 		var columnHeader = this.getActiveColumn(),
 			record = this.getActiveRecord(),
 			editingContext = this.getEditingContext(record,columnHeader),
-			view ;
+			view,
+			editorField ;
 		if( !editingContext ) {
 			return ;
 		}
 		view = columnHeader.getOwnerHeaderCt().view ;
+		
+		editorField = columnHeader.getEditor() ;
+		if( editorField && editorField.listKeyNav && editorField.listKeyNav.map.isEnabled() ) {
+			return ; // HACK : using BoundListKeyNav private property
+		}
 		
 		var curColIdx = editingContext.colIdx,
 			curRowIdx = editingContext.rowIdx,
@@ -583,8 +589,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 								},
 								single: true
 							}
-						},
-						onExpand: Ext.emptyFn // HACK : prevent combo.listKeyNav from being created
+						}
 					},
 					renderer: roleRenderer
 				},{
