@@ -8,6 +8,69 @@ Ext.define('DbsPeopleRhRealAdvModel',{
 	]
 }) ;
 
+
+Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanelRowEditor',{
+	extend: 'Ext.grid.RowEditor',
+	initKeyNav: function() {
+		var me = this,
+			plugin = me.editingPlugin;
+
+		me.keyNav = new Ext.util.KeyNav(me.el, {
+			enter: plugin.onEnterKey,
+			esc: plugin.onEscKey,
+			tab: plugin.onSpecialKey,
+			left: plugin.onDirectionKey,
+			right: plugin.onDirectionKey,
+			scope: plugin
+		});
+	},
+}) ;
+Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanelRowEditing',{
+	extend: 'Ext.grid.plugin.RowEditing',
+	initEditor: function() {
+		return editor = new Optima5.Modules.Spec.DbsPeople.RealAdvancedPanelRowEditor(this.initEditorConfig());
+	},
+	onSpecialKey: function(e) {
+		e.stopEvent() ;
+	},
+	onDirectionKey: function(e) {
+		e.stopEvent() ;
+		var me = this,
+			context = me.context,
+			curColIdx, offsetCol,
+			offsetCol,
+			columnHeader ;
+		if( !context ) {
+			return ;
+		}
+		
+		curColIdx = context.colIdx ;
+		columnHeader = me.grid.getTopLevelVisibleColumnManager().getHeaderAtIndex(curColIdx);
+		editorField = columnHeader.getEditor() ;
+		if( editorField && editorField.listKeyNav && editorField.listKeyNav.map.isEnabled() ) {
+			return ; // HACK : using BoundListKeyNav private property
+		}
+		
+		offsetCol = 0 ;
+		switch( e.getKey() ) {
+			case e.LEFT :
+				offsetCol-- ;
+				break ;
+			case e.RIGHT :
+				offsetCol++ ;
+				break ;
+		}
+		columnHeader = me.grid.getTopLevelVisibleColumnManager().getHeaderAtIndex(curColIdx+offsetCol);
+		editorField = columnHeader.getEditor() ;
+		if( !columnHeader || !editorField ) {
+			return ;
+		}
+		context.column = columnHeader ;
+		context.colIdx = curColIdx+offsetCol ;
+		me.getEditor().focusContextCell() ;
+	}
+});
+
 Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 	extend:'Ext.panel.Panel',
 	requires:[
@@ -228,6 +291,16 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 						store: {
 							fields:['id','text','auth_class'],
 							data: []
+						},
+						listeners: {
+							focus: {
+								fn: function(cmb) {
+									if(cmb.keyNav) {
+										cmb.keyNav.disable() ;  //HACK : destroy combo.keyNav from being created
+									}
+								},
+								single: true
+							}
 						}
 					},
 					renderer: function( value, metaData, record ) {
@@ -286,8 +359,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 						scope: me
 					}
 				},
-				plugins: [{
-					ptype:'rowediting',
+				plugins: [Ext.create('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanelRowEditing',{
 					pluginId: 'rowediting',
 					listeners: {
 						canceledit: function(editor,editEvent) {
@@ -331,7 +403,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 						},
 						scope:me
 					}
-				}],
+				})],
 				dockedItems: [{
 					xtype: 'toolbar',
 					items: [{
@@ -425,7 +497,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 		store.insert(newRecordIndex, Ext.create('DbsPeopleRhRealAdvModel',newRecordData) );
 		store.sync() ;
 		
-		grid.getPlugin('rowediting').startEdit(newRecordIndex, 0);
+		grid.getPlugin('rowediting').startEdit(newRecordIndex, 1);
 	},
 	onBtnDelete: function() {
 		var me = this,
