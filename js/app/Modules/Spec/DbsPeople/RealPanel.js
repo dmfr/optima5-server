@@ -29,6 +29,7 @@ Ext.define('DbsPeoplePeopledayModel', {
 		{name: 'std_abs_code',   type: 'string'},
 		{name: 'std_contract_code',   type: 'string'},
 		{name: 'std_daylength',   type: 'number'},
+		{name: 'std_daylength_min',   type: 'number'},
 		{name: 'std_daylength_max',   type: 'number'},
 		{name: 'std_daylength_contract',   type: 'number'},
 		{name: 'real_is_abs',   type: 'boolean'}
@@ -484,7 +485,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			}
 			
 			if( value.stdValue ) {
-				if( value.totalValue < value.stdValue ) {
+				if( value.totalValue < value.minValue ) {
 					metaData.tdCls += ' op5-spec-dbspeople-realcolor-anomalie' ;
 				} else if( value.workValue < value.stdValue ) {
 					metaData.tdCls += ' op5-spec-dbspeople-balance-neg' ;
@@ -1127,6 +1128,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			stdAbsCode = peopledayRecord.data.std_abs_code,
 			stdContractCode = peopledayRecord.data.std_contract_code,
 			stdDayLength = peopledayRecord.data.std_daylength,
+			stdDayLengthMin = peopledayRecord.data.std_daylength_min,
 			stdDayLengthMax = peopledayRecord.data.std_daylength_max,
 			peopleCode = peopledayRecord.data.people_code ;
 		
@@ -1219,7 +1221,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			value: segments.roles_duration,
 			workValue: workDuration,
 			totalValue: (workDuration + absDuration),
-			stdValue: ( stdAbsCode == null ? stdDayLength : 0 )
+			stdValue: ( stdAbsCode == null ? stdDayLength : 0 ),
+			minValue: ( stdAbsCode == null ? stdDayLengthMin : 0 )
 		} ;
 		if( !statusIsVirtual && segments.roles.length == 1 && segments.abs.length == 0 ) {
 			gridDataRow[roleKey]._editable = true ;

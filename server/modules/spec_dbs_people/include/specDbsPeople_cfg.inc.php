@@ -189,6 +189,7 @@ function specDbsPeople_tool_getContracts() {
 			'contract_txt' => $arr['field_CONTRACT_TXT'],
 			'std_dayson' => $std_dayson,
 			'std_daylength' => $arr['field_STD_DAYLENGTH'],
+			'std_daylength_min' => $arr['field_STD_DAYLENGTH_MIN'],
 			'std_daylength_max' => $arr['field_STD_DAYLENGTH_MAX'],
 			'mod_week_std' => $arr['field_MOD_WEEK_STD'],
 			'mod_week_max' => $arr['field_MOD_WEEK_MAX']

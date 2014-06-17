@@ -90,9 +90,11 @@ function specDbsPeople_Real_getData( $post_data ) {
 			
 			$row['std_daylength_contract'] = $cfg_contract['std_daylength'] ;
 			if( !$cfg_contract['std_dayson'][$ISO8601_day] || $cfg_arrDatesException[$cur_date] ) {
+				$row['std_daylength_min'] = 0 ;
 				$row['std_daylength'] = 0 ;
 				$row['std_daylength_max'] = $cfg_contract['std_daylength_max'] ;
 			} else {
+				$row['std_daylength_min'] = $cfg_contract['std_daylength_min'] ;
 				$row['std_daylength'] = $cfg_contract['std_daylength'] ;
 				$row['std_daylength_max'] = $cfg_contract['std_daylength_max'] ;
 			}
@@ -425,12 +427,12 @@ function specDbsPeople_Real_actionDay_lib_valid_evalRecord( $peopleday_record ) 
 		}
 	}
 	
-	if( ($abs_length + $work_length) < $peopleday_record['std_daylength'] ) {
+	if( ($abs_length + $work_length) < $peopleday_record['std_daylength_min'] ) {
 		$whole = $peopleday_record['real_is_abs'] ;
 		$exceptions[] = array(
 			'exception_type' => 'duration_less',
 			'people_name' => $peopleday_record['people_name'],
-			'exception_txt' => ($whole ? 'Anomalie déclarée' : ($peopleday_record['std_daylength'] - ($abs_length + $work_length)).' h manquante(s)') ,
+			'exception_txt' => ($whole ? 'Anomalie déclarée' : ($peopleday_record['std_daylength_min'] - ($abs_length + $work_length)).' h manquante(s)') ,
 			'ceq_show' => true,
 			'ceq_error' => !$whole,
 			'rh_show' => true,
