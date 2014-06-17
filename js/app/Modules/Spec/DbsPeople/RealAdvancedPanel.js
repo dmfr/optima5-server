@@ -23,7 +23,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanelRowEditor',{
 			right: plugin.onDirectionKey,
 			scope: plugin
 		});
-	},
+	}
 }) ;
 Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanelRowEditing',{
 	extend: 'Ext.grid.plugin.RowEditing',
