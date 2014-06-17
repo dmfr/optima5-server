@@ -28,7 +28,8 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelProgress' ,{
 		'Optima5.Modules.CrmBase.QueryWhereFormBible',
 		'Optima5.Modules.CrmBase.QueryWhereFormDate',
 		'Optima5.Modules.CrmBase.QueryWhereFormNumber',
-		'Optima5.Modules.CrmBase.QueryWhereFormBoolean'
+		'Optima5.Modules.CrmBase.QueryWhereFormBoolean',
+		'Optima5.Modules.CrmBase.QueryWhereFormForcevalue'
 	] ,
 			  
 	progressFields : [] ,
@@ -77,7 +78,14 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelProgress' ,{
 				flex:1,
 				dataIndex: 'field_code',
 				renderer: function( value, metaData, record ) {
-					return me.getQueryPanel().getQueryPanelTreeStore().getNodeById(record.get('field_code')).get('field_text_full') ;
+					if( record.get('field_type') == 'forcevalue' ) {
+						return '<b>'+'(debug) Static value'+'</b>' ;
+					}
+					if( record.get('field_code') ) {
+						var queryFieldsTreeRecord = me.getQueryPanel().getQueryPanelTreeStore().getNodeById(record.get('field_code')) ;
+						return (queryFieldsTreeRecord ? queryFieldsTreeRecord.get('field_text_full') : '?') ;
+					}
+					return '?' ;
 				}
 			},{
 				header: 'Clause',
@@ -133,6 +141,12 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelProgress' ,{
 						case 'bool' :
 							return record.get('condition_bool') ;
 						
+						case 'forcevalue' :
+							if( !record.get('condition_forcevalue_isset') ) {
+								return '<b>not set</b>' ;
+							}
+							return record.get('condition_forcevalue_value') ;
+						
 						default :
 							return value ;
 					}
@@ -179,6 +193,34 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelProgress' ,{
 					handler : function() {
 						me.setFormpanelRecord(null) ;
 						me.store.remove(record) ;
+					},
+					scope : me
+				});
+			}
+			
+			var gridContextMenu = Ext.create('Ext.menu.Menu',{
+				items : gridContextMenuItems,
+				listeners: {
+					hide: function(menu) {
+						menu.destroy() ;
+					}
+				}
+			}) ;
+			
+			gridContextMenu.showAt(event.getXY());
+		},me) ;
+		me.grid.on('containercontextmenu', function(view, event) {
+			// var strHeader = record.get('treenode_key')+' - '+record.get('entry_key')
+			gridContextMenuItems = new Array() ;
+			if( true ) {
+				gridContextMenuItems.push({
+					iconCls: 'icon-bible-edit',
+					text: 'Insert debug static value',
+					handler : function() {
+						var newRecord = Ext.create('QueryWhereModel',{
+							field_type:'forcevalue',
+						}) ;
+						me.store.insert( 0, newRecord );
 					},
 					scope : me
 				});
@@ -293,6 +335,13 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelProgress' ,{
 				}) ;
 				break ;
 				
+			case 'forcevalue' :
+				mform = Ext.create('Optima5.Modules.CrmBase.QueryWhereFormForcevalue',{
+					optimaModule: me.optimaModule,
+					frame:true
+				}) ;
+				break ;
+				
 			default :
 				mform = Ext.create('Optima5.Modules.CrmBase.QueryWhereForm',{
 					frame:true
@@ -316,10 +365,25 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelProgress' ,{
 						
 					case 'condition_bool' :
 						
+					case 'condition_forcevalue_isset' :
+					case 'condition_forcevalue_value' :
+						
 						break ;
 						
 					default :
 						return ;
+				}
+				if( k=='condition_forcevalue_isset' ) {
+					switch( v ) {
+						case 'true' :
+							v=true ;
+							break ;
+						case 'false' :
+							v=false;
+							break ;
+						default :
+							return ;
+					}
 				}
 				record.set(k,v) ;
 			},me) ;

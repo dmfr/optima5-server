@@ -39,7 +39,9 @@ Ext.define('Optima5.Modules.CrmBase.QbookSubpanelQprocess' ,{
 		'Optima5.Modules.CrmBase.QbookQprocessFormExtrapolate',
 		'Optima5.Modules.CrmBase.QbookQprocessFormDate',
 		'Optima5.Modules.CrmBase.QbookQprocessFormNumber',
-		'Optima5.Modules.CrmBase.QbookQprocessFormBible'
+		'Optima5.Modules.CrmBase.QbookQprocessFormBible',
+		'Optima5.Modules.CrmBase.QbookQprocessFormFile',
+		'Optima5.Modules.CrmBase.QbookQprocessFormForcevalue'
 	],
 	
 	initComponent: function() {
@@ -348,6 +350,9 @@ Ext.define('Optima5.Modules.CrmBase.QbookSubpanelQprocess' ,{
 					case 'number' :
 						text += '<u>Number</u>' ;
 						break ;
+					case 'forcevalue' :
+						text += '<u>(debug) Static value</u>' ;
+						break ;
 				}
 			}
 			if( qobjFieldRecords == null || qobjFieldRecords.length == 0 ) {
@@ -533,6 +538,14 @@ Ext.define('Optima5.Modules.CrmBase.QbookSubpanelQprocess' ,{
 				}) ;
 				break ;
 				
+			case 'forcevalue' :
+				mformClass = 'Optima5.Modules.CrmBase.QbookQprocessFormForcevalue';
+				mform = Ext.create(mformClass,{
+					frame:true,
+					inputvarRecords: me.inputvarStore.getRange()
+				}) ;
+				break ;
+				
 			default :
 				mformClass = 'Optima5.Modules.CrmBase.QbookQprocessForm';
 				mform = Ext.create(mformClass,{
@@ -581,6 +594,9 @@ Ext.define('Optima5.Modules.CrmBase.QbookSubpanelQprocess' ,{
 			var toCopy,
 				formValues = mform.getForm().getValues() ;
 			switch( qbookQobjTreeRecord.get('field_type') ) {
+				case 'forcevalue' :
+					toCopy = ['condition_forcevalue_isset','condition_forcevalue_value'] ;
+					break ;
 				case 'extrapolate' :
 					toCopy = ['extrapolate_calc_date_from','extrapolate_calc_date_to','extrapolate_src_date_from'] ;
 					break ;

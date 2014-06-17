@@ -310,6 +310,7 @@ function paracrm_queries_process_qbook($arr_saisie, $debug=FALSE, $src_filerecor
 							case 'file' :
 							case 'date' :
 							case 'number' :
+							case 'forcevalue' :
 								$mkey = $cfg_field['target_subfield'] ;
 								break ;
 								
@@ -359,6 +360,7 @@ function paracrm_queries_process_qbook($arr_saisie, $debug=FALSE, $src_filerecor
 							case 'date' :
 							case 'number' :
 							case 'file' :
+							case 'forcevalue' :
 								$mkey = $cfg_field['target_subfield'] ;
 								break ;
 								
@@ -1878,6 +1880,7 @@ function paracrm_queries_process_query(&$arr_saisie, $debug=FALSE)
 	}
 	$RES_groupKey_selectId_value = array() ;
 	$RES_groupKey_selectId_value = paracrm_queries_process_query_iteration( $arr_saisie ) ;
+	paracrm_queries_process_query_debugForceValue( $RES_groupKey_selectId_value, $arr_saisie['fields_where'] ) ;
 	
 	$RES_progress_groupKey_selectId_value = array() ;
 	if( $arr_saisie['fields_progress'] ) {
@@ -1889,6 +1892,7 @@ function paracrm_queries_process_query(&$arr_saisie, $debug=FALSE)
 			
 			// execution d'une requete alternative
 			$RES_alt_progress = paracrm_queries_process_query_iteration( $arr_saisie_copy ) ;
+			paracrm_queries_process_query_debugForceValue( $RES_alt_progress, $arr_saisie_copy['fields_where'] ) ;
 			$RES_progress_groupKey_selectId_value[] = $RES_alt_progress ;
 		}
 	}
@@ -2011,6 +2015,24 @@ function paracrm_queries_process_query(&$arr_saisie, $debug=FALSE)
 					'RES_progress'=>$RES_progress_0,
 					'RES_groupKey_isExtrapolate'=>$RES_groupKey_isExtrapolate) ;
 }
+function paracrm_queries_process_query_debugForceValue( &$RES_groupKey_selectId_value, $fields_where ) {
+	// 2014-06: queryWhere forcevalue
+	$_debug_forceValue = NULL ;
+	foreach( $fields_where as $field_where ) {
+		if( $field_where['field_type'] == 'forcevalue' && $field_where['condition_forcevalue_isset'] ) {
+			$_debug_forceValue = $field_where['condition_forcevalue_value'] ;
+		}
+	}
+	if( !($_debug_forceValue===NULL) ) {
+		foreach( $RES_groupKey_selectId_value as &$subRes_selectId_value ) {
+			foreach( $subRes_selectId_value as &$value ) {
+				$value = $_debug_forceValue ;
+			}
+			unset($value) ;
+		}
+		unset($subRes_selectId_value) ;
+	}
+}
 function paracrm_queries_process_query_iteration( $arr_saisie )
 {
 	global $_opDB ;
@@ -2064,7 +2086,7 @@ function paracrm_queries_process_query_iteration( $arr_saisie )
 	$arr_chain = array_reverse($arr_chain) ;
 	
 	$RES_selectId_group_arr_arrSymbolValue = paracrm_queries_process_query_iterationDo( $arr_saisie, $arr_chain, 0, array(), NULL, NULL ) ;
-
+	
 	
 	//$RES_group_value = array() ; // return value @OBSOLETE
 	$RES_group_selectId_value = array() ;

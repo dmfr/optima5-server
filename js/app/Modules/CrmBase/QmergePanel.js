@@ -52,6 +52,8 @@ Ext.define('QmergeMwhereModel', {
 		{name: 'mfield_type',   type: 'string'},
 		{name: 'mfield_linkbible',   type: 'string'},
 		{name: 'condition_file_ids',   type: 'string'},
+		{name: 'condition_forcevalue_isset',   type: 'boolean'},
+		{name: 'condition_forcevalue_value',   type: 'number'},
 		{name: 'condition_bool',   type: 'string'},
 		{name: 'condition_string',   type: 'string'},
 		{name: 'condition_date_lt',   type: 'string'},
@@ -527,7 +529,11 @@ Ext.define('Optima5.Modules.CrmBase.QmergePanel' ,{
 			Ext.Array.each( queryRecord.fields_where().getRange() , function(queryWhereRecord,idx) {
 				var queryTargetFilecode = queryRecord.get('target_file_code') ;
 				var whereFieldcode = queryWhereRecord.get('field_code') ;
-				var fieldtext = me.bibleFilesTreefields[queryTargetFilecode].getNodeById(whereFieldcode).get('field_text') ;
+				var fieldtext = ( !Ext.isEmpty(whereFieldcode) ? me.bibleFilesTreefields[queryTargetFilecode].getNodeById(whereFieldcode).get('field_text') : '' ) ;
+				
+				if( queryWhereRecord.get('field_type') == 'forcevalue' ) {
+					fieldtext = '(debug) Static value' ;
+				}
 				
 				// Fix : exclusion des conditions BIble / SINGLE
 				if( queryWhereRecord.get('field_type') == 'link' && queryWhereRecord.get('condition_bible_mode') == 'SINGLE' ) {

@@ -610,6 +610,8 @@ function paracrm_queries_builderTransaction_saveFields( &$arr_saisie , $query_id
 	$where[] = 'field_code' ;
 	$where[] = 'field_type' ;
 	$where[] = 'field_linkbible' ;
+	$where[] = 'condition_forcevalue_isset' ;
+	$where[] = 'condition_forcevalue_value' ;
 	$where[] = 'condition_bool' ;
 	$where[] = 'condition_string' ;
 	$where[] = 'condition_date_lt' ;
@@ -719,6 +721,8 @@ function paracrm_queries_builderTransaction_saveFields( &$arr_saisie , $query_id
 	$progress[] = 'field_code' ;
 	$progress[] = 'field_type' ;
 	$progress[] = 'field_linkbible' ;
+	$progress[] = 'condition_forcevalue_isset' ;
+	$progress[] = 'condition_forcevalue_value' ;
 	$progress[] = 'condition_bool' ;
 	$progress[] = 'condition_string' ;
 	$progress[] = 'condition_date_lt' ;

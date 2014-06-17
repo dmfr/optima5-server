@@ -204,7 +204,10 @@ Ext.define('Optima5.Modules.CrmBase.QmergeSubpanelMwhere' ,{
 					var whereFieldcode = iQueryWhereModel.get('field_code') ;
 					
 					querytext = iQmergeQueryModel.get('query_name') ;
-					fieldtext = bibleFilesTreefields[queryTargetFilecode].getNodeById(whereFieldcode).get('field_text') ;
+					fieldtext = ( !Ext.isEmpty(whereFieldcode) ? bibleFilesTreefields[queryTargetFilecode].getNodeById(whereFieldcode).get('field_text') : '' ) ;
+					if( iQueryWhereModel.get('field_type') == 'forcevalue' ) {
+						fieldtext = '(debug) Static value' ;
+					}
 				} else if( queryGroupfieldIdx >= 0 ) {
 					var iQmergeQueryModel = bibleQueriesStore.getById(queryId) ;
 					var iQueryGroupModel = iQmergeQueryModel.fields_group().getAt(queryGroupfieldIdx) ;
@@ -212,7 +215,7 @@ Ext.define('Optima5.Modules.CrmBase.QmergeSubpanelMwhere' ,{
 					var groupFieldcode = iQueryGroupModel.get('field_code') ;
 					
 					querytext = iQmergeQueryModel.get('query_name') ;
-					fieldtext = bibleFilesTreefields[queryTargetFilecode].getNodeById(groupFieldcode).get('field_text') ;
+					fieldtext = ( !Ext.isEmpty(groupFieldcode) ? bibleFilesTreefields[queryTargetFilecode].getNodeById(groupFieldcode).get('field_text') : '' ) ;
 				} else {
 					//console.log('nothing??') ;
 					return ;
@@ -251,6 +254,10 @@ Ext.define('Optima5.Modules.CrmBase.QmergeSubpanelMwhere' ,{
 				
 				case 'bool' :
 					text = '<u>Boolean</u>' ;
+					break ;
+					
+				case 'forcevalue' :
+					text = '<u>(debug) Static value</u>' ;
 					break ;
 				
 				default : break ;
@@ -353,6 +360,12 @@ Ext.define('Optima5.Modules.CrmBase.QmergeSubpanelMwhere' ,{
 			
 			case 'file' :
 				return '<b>to define</b>' ;
+			
+			case 'forcevalue' :
+				if( !record.get('condition_forcevalue_isset') ) {
+					return '<b>off</b>' ;
+				}
+				return record.get('condition_forcevalue_value') ;
 			
 			default :
 				return '' ;
@@ -578,6 +591,13 @@ Ext.define('Optima5.Modules.CrmBase.QmergeSubpanelMwhere' ,{
 				}) ;
 				break ;
 				
+			case 'forcevalue' :
+				mform = Ext.create('Optima5.Modules.CrmBase.QueryWhereFormForcevalue',{
+					optimaModule: me.optimaModule,
+					frame:true
+				}) ;
+				break ;
+				
 			default :
 				mform = Ext.create('Optima5.Modules.CrmBase.QueryWhereForm',{
 					optimaModule: me.parentQmergePanel.optimaModule,
@@ -606,10 +626,25 @@ Ext.define('Optima5.Modules.CrmBase.QmergeSubpanelMwhere' ,{
 						
 					case 'condition_bool' :
 						
+					case 'condition_forcevalue_isset' :
+					case 'condition_forcevalue_value' :
+						
 						break ;
 						
 					default :
 						return ;
+				}
+				if( k=='condition_forcevalue_isset' ) {
+					switch( v ) {
+						case 'true' :
+							v=true ;
+							break ;
+						case 'false' :
+							v=false;
+							break ;
+						default :
+							return ;
+					}
 				}
 				record.set(k,v) ;
 			},me) ;

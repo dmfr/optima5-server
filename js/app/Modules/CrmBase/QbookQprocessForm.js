@@ -36,15 +36,20 @@ Ext.define('Optima5.Modules.CrmBase.QbookQprocessForm' ,{
 		},me) ;
 	},
 	
-	comboboxGetStoreCfg: function() {
+	comboboxGetStoreCfg: function(inputvarFieldType) {
 		var data = [] ;
 		Ext.Array.each( this.inputvarRecords, function(inputvarRecord) {
-			if( this.inputvarFieldType != null 
+			if( inputvarFieldType !== undefined
+				&& inputvarRecord.get('inputvar_type') != inputvarFieldType ) {
+				
+				return ;
+			} else if( this.inputvarFieldType != null 
 				&& this.inputvarFieldType != '' 
 				&& inputvarRecord.get('inputvar_type') != this.inputvarFieldType ) {
 				
 				return ;
 			}
+			
 			if( this.inputvarFieldLinkbible != null 
 				&& this.inputvarFieldLinkbible != '' 
 				&& inputvarRecord.get('inputvar_linkbible') != this.inputvarFieldLinkbible ) {

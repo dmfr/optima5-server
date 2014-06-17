@@ -471,6 +471,8 @@ function paracrm_queries_mergerTransaction_saveFields( &$arr_saisie , $qmerge_id
 	$mwhere = array() ;
 	$mwhere[] = 'mfield_type' ;
 	$mwhere[] = 'mfield_linkbible' ;
+	$mwhere[] = 'condition_forcevalue_isset' ;
+	$mwhere[] = 'condition_forcevalue_value' ;
 	$mwhere[] = 'condition_bool' ;
 	$mwhere[] = 'condition_string' ;
 	$mwhere[] = 'condition_date_lt' ;
