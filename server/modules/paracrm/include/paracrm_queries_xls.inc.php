@@ -55,7 +55,7 @@ function paracrm_queries_xls_build( $workbook_tab_grid , $numberFormat_round=FAL
 			$objPHPExcel->createSheet($nul) ;
 		$objPHPExcel->setActiveSheetIndex($nul);
 		$obj_sheet = $objPHPExcel->getActiveSheet() ;
-		$obj_sheet->setTitle($tab['tab_title']) ;
+		$obj_sheet->setTitle( preg_replace("/[^a-zA-Z0-9\s]/", "", $tab['tab_title']) ) ;
 		
 		
 		$row_data_min = 2 ;
