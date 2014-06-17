@@ -72,7 +72,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealVirtualPanel',{
 					name: 'rh_abs_code' ,
 					store: {
 						fields:['id','text'],
-						data: Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll("ABS")
+						data: Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll("ABS",false)
 					}
 				},{
 					xtype: 'datefield',

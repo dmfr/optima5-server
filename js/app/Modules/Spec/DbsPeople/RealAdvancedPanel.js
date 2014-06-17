@@ -194,7 +194,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 					name: 'rh_abs_code' ,
 					store: {
 						fields:['id','text'],
-						data: Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll("ABS")
+						data: Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll("ABS",true)
 					}
 				},{
 					hidden: true, // TODO: tmp hide on-the-fly RH abs

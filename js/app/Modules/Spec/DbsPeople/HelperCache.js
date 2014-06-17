@@ -88,8 +88,14 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.HelperCache',{
 	forTypeGetAll: function( type, authCheck ) {
 		var me = this,
 			store = me.cfgStores[type] ;
-		if( authCheck ) {
+		if( authCheck !== undefined ) {
 			store.filterBy( function(rec) {
+				if( rec.get('id').charAt(0) == '_' ) {
+					return false ;
+				}
+				if( authCheck == false ) {
+					return true ;
+				}
 				var recAuthClass = rec.get('auth_class') ;
 				if( Ext.isEmpty(recAuthClass) ) {
 					return true ;
