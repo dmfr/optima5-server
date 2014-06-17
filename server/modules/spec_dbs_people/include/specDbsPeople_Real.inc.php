@@ -477,7 +477,7 @@ function specDbsPeople_Real_actionDay_lib_valid_evalRecord( $peopleday_record ) 
 			'exception_type' => 'alt_role',
 			'people_name' => $peopleday_record['people_name'],
 			'exception_txt' => 'Rôles : '.$altRole_length.' h ( '.implode('+',$alt_roles).')' ,
-			'ceq_show' => true,
+			'ceq_show' => false,
 			'ceq_error' => false,
 			'rh_show' => false,
 			'rh_error' => false
