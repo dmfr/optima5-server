@@ -72,7 +72,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 			xtype:'component',
 			cls: 'op5-spec-mrfoxy-promoformheader',
 			tpl: [
-				'<div class="op5-spec-mrfoxy-promoformheader-wrap">',
+				'<div class="op5-spec-mrfoxy-promoformheader-wrap" style="position:relative">',
 					'<div class="op5-spec-mrfoxy-promoformheader-title">{title}</div>',
 					'<div class="op5-spec-mrfoxy-promoformheader-caption">',
 						'<span class="op5-spec-mrfoxy-promoformheader-captiontitle">Country</span>',
@@ -88,7 +88,20 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 						'</span>',
 					'</div>',
 					'<div class="op5-spec-mrfoxy-promoformheader-icon"></div>',
-					'<div class="op5-spec-mrfoxy-promoformheader-close"></div>',
+					'<div class="op5-spec-mrfoxy-promoformheader-actions">',
+						'<tpl if="action_submit">',
+						'<div class="op5-spec-mrfoxy-promoformheader-action-btn op5-spec-mrfoxy-promoformheader-action-btn-submit">',
+						'</div>',
+						'</tpl>',
+						'<tpl if="action_save">',
+						'<div class="op5-spec-mrfoxy-promoformheader-action-btn op5-spec-mrfoxy-promoformheader-action-btn-save">',
+						'</div>',
+						'</tpl>',
+						'<tpl if="action_close">',
+						'<div class="op5-spec-mrfoxy-promoformheader-action-btn op5-spec-mrfoxy-promoformheader-action-btn-close">',
+						'</div>',
+						'</tpl>',
+					'</div>',
 				'</div>'
 			]
 		} ;
@@ -449,40 +462,6 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 						margin: 4
 					}]
 				}]
-			}],
-			dockedItems: [{
-				xtype: 'toolbar',
-				dock: 'bottom',
-				ui: 'footer',
-				layout:{
-					pack: 'center'
-				},
-				items: [{
-					xtype: 'checkbox',
-					padding: '0px 32px 0px 0px',
-					boxLabel: '<b>Submit promotion</b>',
-					name: '_do_submit'
-				},{
-					xtype: 'component',
-					padding: '4px 0px',
-					overCls: 'op5-crmbase-dataimport-go-over',
-					renderTpl: Ext.create('Ext.XTemplate',
-						'<div class="op5-crmbase-dataimport-go">',
-						'<div class="op5-crmbase-dataimport-go-btn">',
-						'</div>',
-						'</div>',
-						{
-							compiled:true,
-							disableFormats: true
-						}
-					),
-					listeners: {
-						afterrender: function(c) {
-							c.getEl().on('click',this.handleSubmit,this) ;
-						},
-						scope: this
-					}
-				}]
 			}]
 		} ;
 		return tabsCfg ;
@@ -534,14 +513,12 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 			me.child('panel').remove( me.getSkuList() ) ;
 		}
 		
-		// toolbar (submit)
-		if( me.getSkuList() && !(me.getSkuList().collapsed) ) {
-			me.getFormPanel().child('toolbar').setVisible(false) ;
-		} else {
-			me.getFormPanel().child('toolbar').setVisible(true) ;
+		// bouton SUBMIT > pour validation
+		var headerCmp = me.getComponent('pHeader'),
+			headerEl = headerCmp.getEl() ;
+		if( headerEl ) {
+			headerEl.down('.op5-spec-mrfoxy-promoformheader-action-btn-submit').setVisible( isProd ) ;
 		}
-		
-		form.findField('_do_submit').setVisible( isProd ) ;
 	},
 	evalForm: function() {
 		var me = this,
@@ -664,8 +641,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 		
 		// prepare header data
 		var headerData = {},
-			headerCmp = me.getComponent('pHeader'),
-			headerEl = headerCmp.getEl() ;
+			headerCmp = me.getComponent('pHeader') ;
 		if( data.promo_id ) {
 			headerData['title'] = data.promo_id ;
 		} else {
@@ -684,13 +660,15 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 				headerData['brandDisplay'] = row.get('brand_display') ;
 			}
 		}
+		headerData['action_submit'] = ( Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole('PM') && data.is_prod ) ;
+		headerData['action_save'] = ( Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole('PM') ) ;
+		headerData['action_close'] = true ;
 		headerCmp.update(headerData) ;
-		
 		if( headerCmp.rendered ) {
-			me.headerAttachEvent() ;
+			me.headerAttachEvents() ;
 		} else {
 			headerCmp.on('afterrender',function() {
-				me.headerAttachEvent() ;
+				me.headerAttachEvents() ;
 			},me) ;
 		}
 		
@@ -715,13 +693,26 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 		me.forecastCalc() ;
 	},
 	
-	headerAttachEvent: function() {
+	headerAttachEvents: function() {
 		var me=this,
 			headerCmp = me.getComponent('pHeader'),
 			headerEl = headerCmp.getEl(),
-			btnCloseEl = Ext.get(headerEl.query('div.op5-spec-mrfoxy-promoformheader-close')[0]) ;
-		btnCloseEl.un('click',me.onHeaderClose,me) ;
-		btnCloseEl.on('click',me.onHeaderClose,me) ;
+			btnCloseEl = headerEl.down('.op5-spec-mrfoxy-promoformheader-action-btn-close'),
+			btnSaveEl = headerEl.down('.op5-spec-mrfoxy-promoformheader-action-btn-save'),
+			btnSubmitEl = headerEl.down('.op5-spec-mrfoxy-promoformheader-action-btn-submit') ;
+		
+		if( btnCloseEl ) {
+			btnCloseEl.un('click',me.onHeaderClose,me) ;
+			btnCloseEl.on('click',me.onHeaderClose,me) ;
+		}
+		if( btnSaveEl ) {
+			btnSaveEl.un('click',me.onHeaderSave,me) ;
+			btnSaveEl.on('click',me.onHeaderSave,me) ;
+		}
+		if( btnSubmitEl ) {
+			btnSubmitEl.un('click',me.onHeaderSubmit,me) ;
+			btnSubmitEl.on('click',me.onHeaderSubmit,me) ;
+		}
 	},
 	onHeaderClose: function(e,t) {
 		var me = this ;
@@ -740,7 +731,13 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 		me.fireEvent('abort',me) ;
 	},
 	
-	handleSubmit: function() {
+	onHeaderSave: function() {
+		this.handleSubmit(false) ;
+	},
+	onHeaderSubmit: function() {
+		this.handleSubmit(true) ;
+	},
+	handleSubmit: function(doSubmit) {
 		var me = this ;
 			form = me.getFormPanel().getForm() ;
 			  
@@ -757,6 +754,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 		var data = me.getFormPanel().getForm().getValues() ;
 		if( me.getSkuList() ) {
 			data.promo_sku = me.getSkuList().getSkuData() ;
+		}
+		if( doSubmit ) {
+			data['_do_submit'] = 'true' ;
 		}
 		
 		Ext.MessageBox.confirm('Confirmation',str, function(buttonStr) {
