@@ -216,7 +216,7 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelWhere' ,{
 					text: 'Insert debug static value',
 					handler : function() {
 						var newRecord = Ext.create('QueryWhereModel',{
-							field_type:'forcevalue',
+							field_type:'forcevalue'
 						}) ;
 						me.store.insert( 0, newRecord );
 					},
