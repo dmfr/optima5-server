@@ -49,7 +49,7 @@
 		"parentModuleId":"crmbase",
 		"moduleName":"(Wonderful) Mr Foxy",
 		"moduleClass":"Optima5.Modules.Spec.WbMrfoxy.WbMrfoxyModule",
-		"moduleCssSrc":"module-spec_wb_myfoxy.css",
+		"moduleCssSrc":"module-spec_wb_mrfoxy.css",
 		"moduleType":"sdomain",
 		"params": []
 	},{
