@@ -218,6 +218,9 @@ ob_end_clean() ;
 ob_start() ;
 ?>
 <html>
+<head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
 	<style type="text/css">
 		body {  font-family: Arial, Helvetica, sans-serif; font-size:smaller ;  margin:4px; display:block }
 		.text-big {
