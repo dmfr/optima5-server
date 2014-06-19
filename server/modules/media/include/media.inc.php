@@ -1,6 +1,7 @@
 <?php
 
 include("$server_root/modules/media/include/media_img.inc.php") ;
+include("$server_root/modules/media/include/media_pdf.inc.php") ;
 
 function media_contextOpen( $module_name )
 {
