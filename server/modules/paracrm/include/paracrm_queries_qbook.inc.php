@@ -921,6 +921,13 @@ function paracrm_queries_qbookTransaction_exportJson( $output_json, $arr_saisie=
 	$qbook_name=str_replace(' ','_',preg_replace("/[^a-zA-Z0-9\s]/", "", $qbook_name)) ;
 	
 	if( $output_json['html'] ) {
+		if( $output_pdf = media_pdf_html2pdf($output_json['html']) ) {
+			$filename = 'OP5report_Qbook_'.$qbook_name.'_'.time().'.pdf' ;
+			header("Content-Type: application/force-download; name=\"$filename\""); 
+			header("Content-Disposition: attachment; filename=\"$filename\""); 
+			echo $output_pdf ;
+			die() ;
+		}
 		$filename = 'OP5report_Qbook_'.$qbook_name.'_'.time().'.html' ;
 		header("Content-Type: application/force-download; name=\"$filename\""); 
 		header("Content-Disposition: attachment; filename=\"$filename\""); 
