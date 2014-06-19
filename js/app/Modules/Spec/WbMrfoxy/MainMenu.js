@@ -46,13 +46,11 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.MainMenu',{
 				{type_header:true},
 				{type_separator:true, separator_label: 'Manage Promotions'},
 				{type_action:true, action_caption: 'Encode new Promotion', action_sendEvent:'promo_new', action_iconCls:'op5-spec-mrfoxy-icon-promotion'},
-				{type_action:true, action_caption: 'Headlines', action_sendEvent:'promo_headlines', action_iconCls:'op5-spec-mrfoxy-icon-headlines'},
 				{type_action:true, action_caption: 'Promotions Database', action_sendEvent:'promo_list', action_iconCls:'op5-spec-mrfoxy-icon-promostore'},
 				{type_action:true, action_caption: 'Calendar', action_sendEvent:'promo_calendar', action_iconCls:'op5-spec-mrfoxy-icon-calendar'},
 				{type_separator:true, separator_label: 'Analysis / Queries'},
 				{type_action:true, action_caption: 'Performance Analysis', action_sendEvent:'stat_performance', action_iconCls:'op5-spec-mrfoxy-icon-statperf'},
-				{type_action:true, action_caption: 'Budget Management', action_sendEvent:'finance_budget', action_iconCls:'op5-spec-mrfoxy-icon-budget'},
-				{type_action:true, action_caption: 'Finance Analysis', action_iconCls:'op5-spec-mrfoxy-icon-statfinance'}
+				{type_action:true, action_caption: 'Budget Management', action_sendEvent:'finance_budget', action_iconCls:'op5-spec-mrfoxy-icon-budget'}
 			]
 		}) ;
 		 
