@@ -80,6 +80,28 @@ function specWbMrfoxy_tool_getStoreNodes( $store_code ) {
 	}
 	return $node->getAllMembers() ;
 }
+function specWbMrfoxy_tool_getBrandEntries( $brand_code ) {
+	global $_opDB ;
+	
+	$bible_code = '_BRAND' ;
+	$tree_BRAND = specWbMrfoxy_lib_getBibleTree($bible_code) ;
+	
+	$node = $tree_BRAND->getTree($brand_code) ;
+	if( $node == NULL ) {
+		return null ;
+	}
+	$brand_nodes = $node->getAllMembers() ;
+	
+	$ttmp = paracrm_data_getBibleGrid( array('bible_code'=>'_BRAND') ) ;
+	$entries = array() ;
+	foreach( $ttmp['data'] as $row ) {
+		if( !in_array($row['treenode_key'],$brand_nodes) ) {
+			continue ;
+		}
+		$entries[] = $row['entry_key'] ;
+	}
+	return $entries ;
+}
 
 
 function specWbMrfoxy_tool_getCropIntervals() {

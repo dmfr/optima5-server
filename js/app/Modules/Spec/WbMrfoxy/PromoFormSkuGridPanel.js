@@ -46,7 +46,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormSkuGridPanel',{
 					draggable: false,
 					sortable: false,
 					hideable: false,
-					resizable: false
+					resizable: true
 				},
 				items:[{
 					text: 'SKU',

@@ -412,13 +412,14 @@ function specWbMrfoxy_promo_formEval( $post_data ) {
 		$resp_data['list_sku'] = array() ;
 		
 		$arr_prodNodes = specWbMrfoxy_tool_getProdNodes($form_data['prod_code']) ;
+		$arr_brandEntries = specWbMrfoxy_tool_getBrandEntries($form_data['brand_code']) ;
 		$query = "SELECT * FROM view_bible_IRI_PROD_entry WHERE treenode_key IN ".$_opDB->makeSQLlist($arr_prodNodes) ;
 		$result = $_opDB->query($query) ;
 		while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 			if( !$arr['field_PROD_BRANDCODE'] ) {
 				continue ;
 			}
-			if( !isJsonArr($arr['field_PROD_BRAND']) || !in_array($form_data['brand_code'],json_decode($arr['field_PROD_BRAND'],true)) ) {
+			if( !isJsonArr($arr['field_PROD_BRAND']) || count(array_intersect($arr_brandEntries,json_decode($arr['field_PROD_BRAND'],true))) == 0 ) {
 				continue ;
 			}
 			
@@ -522,7 +523,7 @@ function specWbMrfoxy_promo_formSubmit( $post_data ) {
 		break ;
 	}
 	
-	if( !$form_data['_filerecord_id'] ) {
+	if( TRUE ) {
 		unset($promo_id) ;
 		$promo_id_base = '' ;
 		$promo_id_base.= $form_data['country_code'] ;
