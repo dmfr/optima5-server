@@ -201,7 +201,7 @@ function specDbsPeople_RH_setPeople( $post_data ) {
 		$arr_ins = array() ;
 		$arr_ins['field_PPL_CODE'] = $people_code ;
 		$arr_ins['field_DATE_APPLY'] = $event['date_start'] ;
-		$arr_ins['field_DATE_DURATION'] = ($event['date_end'] != '' ? (strtotime($event['date_end'])-strtotime($event['date_start'])) / (24*60*60) : 0) ;
+		$arr_ins['field_DATE_DURATION'] = ($event['date_end'] != '' ? (strtotime($event['date_end'])-strtotime($event['date_start'])) / (24*60*60) + 1 : 0) ;
 		$arr_ins[$file_field_code] = $event['x_code'] ;
 		$arr_ins['field_TMP_IS_ON'] = ($event['date_end'] != '') ;
 		$arr_ins['field_TMP_DATE_END'] = $event['date_end'];

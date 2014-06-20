@@ -115,6 +115,8 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords( $people_calc_attribute 
 	return array() ;
 }
 function specDbsPeople_lib_calc_getCalcAttributeRecords_CP() {
+	paracrm_lib_file_joinPrivate_buildCache('PEOPLEDAY') ;
+	$cfg_contracts = specDbsPeople_tool_getContracts() ;
 	/*
 	array(
 		'people_calc_attribute' => $people_calc_attribute,
@@ -159,6 +161,14 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_CP() {
 	$TAB_peopleCode_record = array() ;
 	
 	foreach( $RES_quota as $people_code => $values_quota ) {
+		// Fake JOIN on PEOPLEDAY file to retrieve current attributes
+		$fake_row = array() ;
+		$fake_row['PEOPLEDAY']['field_DATE'] = date('Y-m-d') ;
+		$fake_row['PEOPLEDAY']['field_PPL_CODE'] = $people_code ;
+		paracrm_lib_file_joinQueryRecord( 'PEOPLEDAY', $fake_row ) ;
+		$contract_code = $fake_row['PEOPLEDAY']['field_STD_CONTRACT'] ;
+		$contract_row = $cfg_contracts[$contract_code] ;
+		
 		$val = $values_quota['CP:SetQuota'] ;
 		$min_date = date('Y-m-d', strtotime($values_quota['CP:SetDate'])) ;
 		
@@ -187,6 +197,10 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_CP() {
 				continue ;
 			}
 			if( $RES_realDays_row[$date_sql] ) {
+				continue ;
+			}
+			$ISO8601_day = date('N',strtotime($date_sql)) ;
+			if( !$contract_row['std_dayson'][$ISO8601_day] ) {
 				continue ;
 			}
 			
