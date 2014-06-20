@@ -134,9 +134,11 @@ function specDbsPeople_Real_getData( $post_data ) {
 		$people_code = $arr['field_PPL_CODE'] ;
 	
 		$work = array(
+			'filerecord_id' => $arr['filerecord_id'],
 			'role_code' => $arr['field_ROLE_CODE'],
 			'role_length' => $arr['field_ROLE_LENGTH'],
-			'alt_whse_code' => $arr['field_ALT_WHSE_CODE']
+			'alt_whse_code' => $arr['field_ALT_WHSE_CODE'],
+			'status_isValidCeq' => $arr['field_VALID_CEQ']
 		) ;
 		$buildTAB[$cur_date][$people_code]['works'][] = $work ;
 	}
@@ -151,6 +153,7 @@ function specDbsPeople_Real_getData( $post_data ) {
 		$people_code = $arr['field_PPL_CODE'] ;
 	
 		$abs = array(
+			'filerecord_id' => $arr['filerecord_id'],
 			'abs_code' => $arr['field_ABS_CODE'],
 			'abs_length' => $arr['field_ABS_LENGTH']
 		) ;
@@ -299,7 +302,9 @@ function specDbsPeople_Real_actionDay( $post_data ) {
 	foreach( $json['data'] as $peopleday_record ) {
 		// Enforce whse/team filters, in case of mutation ...
 		if( isset($filter_arrSites) && !in_array($peopleday_record['std_whse_code'],$filter_arrSites) ) {
-			continue ;
+			if( !in_array($post_data['_subaction'],array('valid_ceq','valid_rh')) ) {
+				continue ;
+			}
 		}
 		if( isset($filter_arrTeams) && !in_array($peopleday_record['std_team_code'],$filter_arrTeams) ) {
 			continue ;
@@ -320,7 +325,7 @@ function specDbsPeople_Real_actionDay( $post_data ) {
 		case 'valid_rh' :
 			$exception_rows = array() ;
 			foreach( $arr_peopledayRecords as $peopleday_record ) {
-				$arr_exceptions = specDbsPeople_Real_actionDay_lib_valid_evalRecord($peopleday_record) ;
+				$arr_exceptions = specDbsPeople_Real_actionDay_lib_valid_evalRecord($peopleday_record,$filter_arrSites) ;
 				$exception_rows = array_merge($exception_rows,$arr_exceptions) ;
 			}
 			if( !$post_data['_do_valid'] ) {
@@ -346,7 +351,7 @@ function specDbsPeople_Real_actionDay( $post_data ) {
 				}
 			}
 			foreach( $arr_peopledayRecords as $peopleday_record ) {
-				call_user_func($method,$peopleday_record) ;
+				call_user_func($method,$peopleday_record,$filter_arrSites) ;
 			}
 			break ;
 			
@@ -369,14 +374,10 @@ function specDbsPeople_Real_actionDay( $post_data ) {
 	
 	return array('success'=>true, 'done'=>true) ;
 }
-function specDbsPeople_Real_actionDay_lib_open( $peopleday_record, $test_mode=FALSE ) {
+function specDbsPeople_Real_actionDay_lib_open( $peopleday_record ) {
 	if( !$peopleday_record['status_isVirtual'] ) {
 		return TRUE ;
 	}
-	if( $test_mode ) {
-		return TRUE ;
-	}
-	
 	$arr_ins = array() ;
 	$arr_ins['field_DATE'] = $peopleday_record['date_sql'] ;
 	$arr_ins['field_PPL_CODE'] = $peopleday_record['people_code'] ;
@@ -402,7 +403,11 @@ function specDbsPeople_Real_actionDay_lib_open( $peopleday_record, $test_mode=FA
 	
 	return TRUE ;
 }
-function specDbsPeople_Real_actionDay_lib_valid_evalRecord( $peopleday_record ) {
+function specDbsPeople_Real_actionDay_lib_valid_evalRecord( $peopleday_record, $filter_arrSites=NULL ) {
+	if( is_array($filter_arrSites) && !in_array($peopleday_record['std_whse_code'],$filter_arrSites) ) {
+		return array() ;
+	}
+	
 	$exceptions = array() ;
 	
 	$work_length = $abs_length = $altRole_length = $altWhse_length = 0 ;
@@ -485,7 +490,7 @@ function specDbsPeople_Real_actionDay_lib_valid_evalRecord( $peopleday_record ) 
 	}
 	return $exceptions ;
 }
-function specDbsPeople_Real_actionDay_lib_valid_ceq( $peopleday_record, $test_mode=FALSE ) {
+function specDbsPeople_Real_actionDay_lib_valid_ceq( $peopleday_record, $filter_arrSites=NULL ) {
 	if( $peopleday_record['status_isVirtual'] ) {
 		return FALSE ;
 	}
@@ -493,7 +498,31 @@ function specDbsPeople_Real_actionDay_lib_valid_ceq( $peopleday_record, $test_mo
 		return TRUE ;
 	}
 	
-	if( $test_mode ) {
+	$all_works_valid = TRUE ;
+	if( count($peopleday_record['works']) == 0 ) {
+		if( is_array($filter_arrSites) && !in_array($peopleday_record['std_whse_code'],$filter_arrSites) ) {
+			$all_works_valid = FALSE ;
+		}
+	}
+	foreach( $peopleday_record['works'] as $slice ) {
+		if( $slice['status_isValidCeq'] ) {
+			continue ;
+		}
+		if( is_array($filter_arrSites) ) {
+			if( $slice['alt_whse_code'] && !in_array($slice['alt_whse_code'],$filter_arrSites) ) {
+				$all_works_valid = FALSE ;
+				continue ;
+			}
+			if( !$slice['alt_whse_code'] && !in_array($peopleday_record['std_whse_code'],$filter_arrSites) ) {
+				$all_works_valid = FALSE ;
+				continue ;
+			}
+		}
+		$arr_update = array() ;
+		$arr_update['field_VALID_CEQ'] = 1 ;
+		paracrm_lib_data_updateRecord_file( 'PEOPLEDAY_WORK' , $arr_update, $slice['filerecord_id'] ) ;
+	}
+	if( !$all_works_valid ) {
 		return TRUE ;
 	}
 	
@@ -503,12 +532,15 @@ function specDbsPeople_Real_actionDay_lib_valid_ceq( $peopleday_record, $test_mo
 	
 	return TRUE ;
 }
-function specDbsPeople_Real_actionDay_lib_valid_rh( $peopleday_record, $test_mode=FALSE ) {
+function specDbsPeople_Real_actionDay_lib_valid_rh( $peopleday_record, $filter_arrSites=NULL ) {
 	if( $peopleday_record['status_isVirtual'] ) {
 		return FALSE ;
 	}
 	if( $peopleday_record['status_isValidRh'] ) {
 		return TRUE ;
+	}
+	if( is_array($filter_arrSites) && !in_array($peopleday_record['std_whse_code'],$filter_arrSites) ) {
+		return ;
 	}
 	
 	$total_duration = 0 ;
@@ -520,10 +552,6 @@ function specDbsPeople_Real_actionDay_lib_valid_rh( $peopleday_record, $test_mod
 	}
 	if( $total_duration < $peopleday_record['std_daylength'] ) {
 		return FALSE ;
-	}
-	
-	if( $test_mode ) {
-		return TRUE ;
 	}
 	
 	$arr_update = array() ;
@@ -533,7 +561,7 @@ function specDbsPeople_Real_actionDay_lib_valid_rh( $peopleday_record, $test_mod
 	
 	return TRUE ;
 }
-function specDbsPeople_Real_actionDay_lib_reopen( $peopleday_record, $test_mode=FALSE ) {
+function specDbsPeople_Real_actionDay_lib_reopen( $peopleday_record ) {
 	if( $peopleday_record['status_isVirtual'] ) {
 		return FALSE ;
 	}
@@ -549,10 +577,6 @@ function specDbsPeople_Real_actionDay_lib_reopen( $peopleday_record, $test_mode=
 		return FALSE ;
 	}
 	
-	if( $test_mode ) {
-		return TRUE ;
-	}
-	
 	$arr_update = array() ;
 	$arr_update['field_VALID_CEQ'] = 0 ;
 	$arr_update['field_VALID_RH'] = 0 ;
@@ -560,7 +584,7 @@ function specDbsPeople_Real_actionDay_lib_reopen( $peopleday_record, $test_mode=
 	
 	return TRUE ;
 }
-function specDbsPeople_Real_actionDay_lib_delete( $peopleday_record, $test_mode=FALSE ) {
+function specDbsPeople_Real_actionDay_lib_delete( $peopleday_record ) {
 	if( $peopleday_record['status_isVirtual'] ) {
 		return TRUE ;
 	}
