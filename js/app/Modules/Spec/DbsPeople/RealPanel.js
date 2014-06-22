@@ -23,6 +23,7 @@ Ext.define('DbsPeoplePeopledayModel', {
 		{name: 'people_code',  type: 'string'},
 		{name: 'people_name',   type: 'string'},
 		{name: 'people_techid',   type: 'string'},
+		{name: 'people_txtitm',   type: 'string'},
 		{name: 'std_team_code',   type: 'string'},
 		{name: 'std_whse_code',   type: 'string'},
 		{name: 'std_role_code',   type: 'string'},
@@ -526,10 +527,19 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			text: 'Contrat',
 			dataIndex: 'contract_txt',
 			width: 80,
-			_groupBy: 'contract_code'
+			_groupBy: 'contract_code',
+			hideable: true
 		},{
 			locked: true,
-			text: 'FuncStd',
+			text: 'Interim',
+			dataIndex: 'people_txtitm',
+			width: 80,
+			_groupBy: 'people_txtitm',
+			hideable: true,
+			hidden: true
+		},{
+			locked: true,
+			text: 'RôleStd',
 			dataIndex: 'std_role_code',
 			width: 60,
 			_groupBy: 'std_role_code'
@@ -695,6 +705,12 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 									return values.rows[0].data.contract_txt ;
 								case 'std_role_code' :
 									return values.rows[0].data.std_role_txt ;
+								case 'people_txtitm' :
+									var value = values.rows[0].data.people_txtitm ;
+									if( Ext.isEmpty(value) ) {
+										return '(Pas de donnée)' ;
+									}
+									return value ;
 								default :
 									return '' ;
 							}
@@ -850,6 +866,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			groupFields.push(grouper.property) ;
 		}) ;
 		Ext.Array.each( grid.headerCt.query('[_groupBy]'), function(col) {
+			if( col.hideable ) {
+				return ;
+			}
 			if( col._alwaysHidden ) {
 				col.hide() ;
 			} else if( Ext.Array.contains(groupFields , col._groupBy) ) {
@@ -1209,7 +1228,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				std_role_code: stdRoleCode,
 				people_code: peopledayRecord.data.people_code,
 				people_name: peopledayRecord.data.people_name,
-				people_techid: peopledayRecord.data.people_techid
+				people_techid: peopledayRecord.data.people_techid,
+				people_txtitm: peopledayRecord.data.people_txtitm
 			} ;
 		}
 		var gridDataRow = gridData[gridDataRowId] ;
@@ -1259,7 +1279,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 					std_role_code: stdRoleCode,
 					people_code: peopledayRecord.data.people_code,
 					people_name: peopledayRecord.data.people_name,
-					people_techid: peopledayRecord.data.people_techid
+					people_techid: peopledayRecord.data.people_techid,
+					people_txtitm: peopledayRecord.data.people_txtitm
 				} ;
 			}
 			var gridDataRow = gridData[gridDataRowId] ;

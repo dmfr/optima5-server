@@ -230,6 +230,21 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 				return record.data.team_txt ;
 			}
 		},{
+			text: 'Contrat',
+			dataIndex: 'contract_code',
+			width: 100,
+			renderer: function(v,metaData,record) {
+				return record.data.contract_txt ;
+			},
+			hideable: true,
+			hidden: true
+		},{
+			text: 'Interim',
+			dataIndex: 'people_txtitm',
+			width: 100,
+			hideable: true,
+			hidden: true
+		},{
 			text: 'Rôle',
 			dataIndex: 'role_code',
 			width: 100,
@@ -295,6 +310,23 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 			extend: 'DbsPeopleRhPeopleModel',
 			fields: addFields
 		});
+		
+		var columnDefaults = {
+			menuDisabled: false,
+			draggable: false,
+			sortable: false,
+			hideable: false,
+			resizable: false,
+			groupable: false,
+			lockable: false
+		} ;
+		Ext.Array.each( columns, function(column) {
+			Ext.applyIf( column, columnDefaults ) ;
+			if( !Ext.isEmpty(column['_groupBy']) ) {
+				// false groupable to enable columnMenu
+				column['groupable'] = true ;
+			}
+		}) ;
 		
 		var gridCfg = {
 			xtype:'grid',
