@@ -59,14 +59,26 @@ while( !feof($handle) ) {
 	paracrm_lib_data_insertRecord_file( 'RH_ABS', 0, $arr_ins );
 	
 	
+	$contract_txt = utf8_encode(trim($arr_csv[8])) ;
+	switch( $contract_txt ) {
+		case 'WE_EMP' :
+			$contract_txt = 'WEEKEND_EMP' ;
+			break ;
+		case 'WE_AM' :
+			$contract_txt = 'WEEKEND_AM' ;
+			break ;
+	}
 	$arr_ins = array() ;
 	$arr_ins['field_DATE_APPLY'] = '2000-01-01' ;
 	$arr_ins['field_PPL_CODE'] = $people_code ;
-	$arr_ins['field_CONTRACT_CODE'] = ( strpos($arr_csv[1],'WE') === FALSE ? 'SEMAINE_EMP' : 'WEEKEND_12' ) ;
+	$arr_ins['field_CONTRACT_CODE'] = $contract_txt ;
 	paracrm_lib_data_insertRecord_file( 'RH_CONTRACT', 0, $arr_ins );
 	
 	
-	$role_txt = utf8_encode($arr_csv[2]) ;
+	$role_txt = utf8_encode(trim($arr_csv[2])) ;
+	if( $role_txt == 'Cariste Recompil' ) {
+		$role_txt = 'Recompil' ;
+	}
 	$query = "SELECT entry_key FROM view_bible_CFG_ROLE_entry WHERE field_ROLE_TXT='{$role_txt}'" ;
 	$role_code = $_opDB->query_uniqueValue($query) ;
 	if( $role_code ) {
