@@ -79,6 +79,7 @@ Ext.define('DbsPeopleRhPeopleModel', {
 		{name: 'people_code',   type: 'string'},
 		{name: 'people_name',   type: 'string'},
 		{name: 'people_techid',   type: 'string'},
+		{name: 'people_txtitm',   type: 'string'},
 		{name: 'nextEvent_type',   type: 'string'},
 		{name: 'nextEvent_dateStart',   type: 'string'},
 		{name: 'nextEvent_dateEnd',   type: 'string'},

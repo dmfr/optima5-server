@@ -60,6 +60,7 @@ function specDbsPeople_Real_getData( $post_data ) {
 			$row['people_code'] = $arr['entry_key'] ;
 			$row['people_name'] = $arr['field_PPL_FULLNAME'] ;
 			$row['people_techid'] = $arr['field_PPL_TECHID'] ;
+			$row['people_txtitm'] = $arr['field_PPL_TXTITM'] ;
 			
 			// Fake JOIN on PEOPLEDAY file to retrieve current attributes
 			$fake_row = array() ;
@@ -184,7 +185,7 @@ function specDbsPeople_Real_getData( $post_data ) {
 				$row['team_code'] = $peopleday_record['std_team_code'] ;
 				$row['contract_code'] = $peopleday_record['std_contract_code'] ;
 				$row['std_role_code'] = $peopleday_record['std_role_code'] ;
-				$copy = array('people_code','people_name','people_techid') ;
+				$copy = array('people_code','people_name','people_techid','people_txtitm') ;
 				foreach( $copy as $mkey ) {
 					$row[$mkey] = $peopleday_record[$mkey] ;
 				}
@@ -210,7 +211,7 @@ function specDbsPeople_Real_getData( $post_data ) {
 					$row['team_code'] = $peopleday_record['std_team_code'] ;
 					$row['contract_code'] = $peopleday_record['std_contract_code'] ;
 					$row['std_role_code'] = $peopleday_record['std_role_code'] ;
-					$copy = array('people_code','people_name','people_techid') ;
+					$copy = array('people_code','people_name','people_techid','people_txtitm') ;
 					foreach( $copy as $mkey ) {
 						$row[$mkey] = $peopleday_record[$mkey] ;
 					}

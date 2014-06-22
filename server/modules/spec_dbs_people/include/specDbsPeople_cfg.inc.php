@@ -165,6 +165,20 @@ function specDbsPeople_cfg_getCfgBibles() {
 	
 	return array('success'=>true, 'data'=>$TAB) ;
 }
+function specDbsPeople_cfg_getTmpTxtitm() {
+	$json = paracrm_data_getFileGrid_data(array('file_code'=>'TMP_TXTITM'),true) ;
+	$arr_txtitm = array() ;
+	foreach( $json['data'] as $row ) {
+		$arr_txtitm[] = $row['TMP_TXTITM_field_TXTITM'] ;
+	}
+	sort($arr_txtitm,SORT_STRING);
+	
+	$TAB = array() ;
+	foreach( $arr_txtitm as $txtitm ) {
+		$TAB[] = array('txtitm'=>$txtitm) ;
+	}
+	return array('success'=>true, 'data'=>$TAB) ;
+}
 
 function specDbsPeople_tool_getContracts() {
 	global $_opDB ;

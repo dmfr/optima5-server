@@ -90,6 +90,7 @@ Ext.define('DbsPeopleRealRowModel', {
 		{name: 'people_code',   type: 'string'},
 		{name: 'people_name',   type: 'string'},
 		{name: 'people_techid',   type: 'string'},
+		{name: 'people_txtitm',   type: 'string'},
 		{name: 'dummy',   type: 'string'}
 	]
 });

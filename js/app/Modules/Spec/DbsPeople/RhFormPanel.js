@@ -27,7 +27,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhFormPanel',{
 				scope:me
 			}],
 			items:[{
-				height: 190,
+				height: 200,
 				xtype: 'form',
 				layout: 'anchor',
 				fieldDefaults: {
@@ -49,6 +49,34 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhFormPanel',{
 					name: 'people_techid',
 					anchor: '',
 					width: 140
+				},{
+					xtype:'combobox',
+					fieldLabel: 'Interim',
+					matchFieldWidth:false,
+					listConfig:{width:250},
+					forceSelection:false,
+					allowBlank:true,
+					editable:true,
+					typeAhead:true,
+					selectOnFocus: true,
+					queryMode: 'local',
+					displayField: 'txtitm',
+					valueField: 'txtitm',
+					name: 'people_txtitm' ,
+					store: {
+						fields:['txtitm'],
+						autoLoad: true,
+						proxy: this.optimaModule.getConfiguredAjaxProxy({
+							extraParams : {
+								_moduleId: 'spec_dbs_people',
+								_action: 'cfg_getTmpTxtitm'
+							},
+							reader: {
+								type: 'json',
+								root: 'data'
+							}
+						})
+					}
 				},{
 					xtype:'fieldset',
 					title: 'Situation actuelle (instant T)',

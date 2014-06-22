@@ -32,6 +32,7 @@ function specDbsPeople_RH_getGrid($post_data) {
 		$row['people_code'] = $arr['entry_key'] ;
 		$row['people_name'] = $arr['field_PPL_FULLNAME'] ;
 		$row['people_techid'] = $arr['field_PPL_TECHID'] ;
+		$row['people_txtitm'] = $arr['field_PPL_TXTITM'] ;
 		
 		// Fake JOIN on PEOPLEDAY file to retrieve current attributes
 		$fake_row = array() ;
@@ -155,6 +156,7 @@ function specDbsPeople_RH_setPeople( $post_data ) {
 	$arr_ins['field_PPL_CODE'] = $people_code ;
 	$arr_ins['field_PPL_FULLNAME'] = $event_data['people_name'] ;
 	$arr_ins['field_PPL_TECHID'] = $event_data['people_techid'] ;
+	$arr_ins['field_PPL_TXTITM'] = $event_data['people_txtitm'] ;
 	if( $post_data['_is_new'] ) {
 		$ret = paracrm_lib_data_insertRecord_bibleEntry( 'RH_PEOPLE', $people_code, 'RH_PEOPLE', $arr_ins ) ;
 	} else {
