@@ -713,7 +713,6 @@ function specDbsPeople_Real_RhAbsSave( $post_data ) {
 		$arr_ins = array();
 		$arr_ins['field_PPL_CODE'] = $people_code ;
 		$arr_ins['field_DATE_APPLY'] = $abs_date_start ;
-		$arr_ins['field_DATE_DURATION'] = (strtotime($abs_date_end)-strtotime($abs_date_start)) / (24*60*60) ;
 		$arr_ins['field_ABS_CODE'] = $abs_code ;
 		$arr_ins['field_TMP_IS_ON'] = 1 ;
 		$arr_ins['field_TMP_DATE_END'] = $abs_date_end;

@@ -201,7 +201,6 @@ function specDbsPeople_RH_setPeople( $post_data ) {
 		$arr_ins = array() ;
 		$arr_ins['field_PPL_CODE'] = $people_code ;
 		$arr_ins['field_DATE_APPLY'] = $event['date_start'] ;
-		$arr_ins['field_DATE_DURATION'] = ($event['date_end'] != '' ? (strtotime($event['date_end'])-strtotime($event['date_start'])) / (24*60*60) + 1 : 0) ;
 		$arr_ins[$file_field_code] = $event['x_code'] ;
 		$arr_ins['field_TMP_IS_ON'] = ($event['date_end'] != '') ;
 		$arr_ins['field_TMP_DATE_END'] = $event['date_end'];
@@ -244,8 +243,23 @@ function specDbsPeople_RH_resyncPeopleEvents( $people_code ) {
 		foreach( $to_delete as $filerecord_id => $dummy ) {
 			paracrm_lib_data_deleteRecord_file( $file_code, $filerecord_id ) ;
 		}
+		
+		$query = "UPDATE {$view_file}
+					SET field_DATE_DURATION=IF(field_TMP_IS_ON='1',DATEDIFF(field_TMP_DATE_END,field_DATE_APPLY)+1,0)
+					WHERE field_PPL_CODE='{$people_code}' AND field_TMP_IS_END='1'" ;
+		$_opDB->query($query) ;
+		
 		foreach( $to_sync as $filerecord_id => $ttmp ) {
 			list($date_start,$date_end) = $ttmp ;
+			
+			// Fix 2014-06-21 : if an event begins the same day this one ends => no need to set a "tmp-rollback"
+			$tmp_date_apply_forEnd = date('Y-m-d',strtotime('+1 day',strtotime($date_end))) ;
+			$query_test = "SELECT filerecord_id FROM {$view_file} WHERE field_PPL_CODE='{$people_code}' AND field_DATE_APPLY='{$tmp_date_apply_forEnd}'" ;
+			$result_test = $_opDB->query($query_test) ;
+			if( $_opDB->num_rows($result_test) == 1 ) {
+				continue ;
+			}
+			
 			$query = "SELECT {$file_field_code} FROM {$view_file} 
 					WHERE field_PPL_CODE='{$people_code}' AND field_DATE_APPLY<'$date_start'
 					AND ( field_TMP_IS_ON='0' OR field_TMP_DATE_END>'$date_end' )
@@ -254,7 +268,7 @@ function specDbsPeople_RH_resyncPeopleEvents( $people_code ) {
 			
 			$arr_ins = array() ;
 			$arr_ins['field_PPL_CODE'] = $people_code ;
-			$arr_ins['field_DATE_APPLY'] = date('Y-m-d',strtotime('+1 day',strtotime($date_end))) ;
+			$arr_ins['field_DATE_APPLY'] = $tmp_date_apply_forEnd ;
 			$arr_ins[$file_field_code] = $xCode ;
 			$arr_ins['field_TMP_IS_ON'] = 1 ;
 			$arr_ins['field_TMP_IS_END'] = 1 ;

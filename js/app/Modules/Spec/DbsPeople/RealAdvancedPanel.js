@@ -176,7 +176,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 				frame: true,
 				border: true,
 				margin: '4px',
-				title: 'Réservé au service RH',
+				title: 'Motif absence',
 				items: [{
 					xtype:'combobox',
 					itemId: 'absCombobox',
@@ -466,7 +466,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 		}
 		
 		absForward.setVisible(absCheckbox.getValue()) ;
-		absPanel.setVisible(absCheckbox.getValue() && Optima5.Modules.Spec.DbsPeople.HelperCache.authHelperQueryPage('RH')) ;
+		absPanel.setVisible(absCheckbox.getValue()) ;
 		slicesPanel.setVisible(!absCheckbox.getValue()) ;
 		
 		var rhAbsIsOn = absPanel.getForm().findField('rh_abs_is_on'),
