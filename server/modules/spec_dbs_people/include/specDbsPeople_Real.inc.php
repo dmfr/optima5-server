@@ -417,12 +417,16 @@ function specDbsPeople_Real_actionDay_lib_valid_evalRecord( $peopleday_record, $
 	$alt_abs = array() ;
 	foreach( $peopleday_record['works'] as $work ) {
 		$work_length += $work['role_length'] ;
-		if( $work['role_code'] != $peopleday_record['std_role_code'] && !in_array($work['role_code'],$alt_roles) ) {
-			$alt_roles[] = $work['role_code'] ;
+		if( $work['role_code'] != $peopleday_record['std_role_code'] ) {
+			if( !in_array($work['role_code'],$alt_roles) ) {
+				$alt_roles[] = $work['role_code'] ;
+			}
 			$altRole_length += $work['role_length'] ;
 		}
-		if( $work['alt_whse_code'] && !in_array($work['alt_whse_code'],$alt_whses) ) {
-			$alt_whses[] = $work['alt_whse_code'] ;
+		if( $work['alt_whse_code'] ) {
+			if( !in_array($work['alt_whse_code'],$alt_whses) ) {
+				$alt_whses[] = $work['alt_whse_code'] ;
+			}
 			$altWhse_length += $work['role_length'] ;
 		}
 	}
