@@ -564,6 +564,14 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 					if( ajaxDataObj.prod_master != null ) {
 						me.getFormPanel().getForm().findField('prod_master').setValue( ajaxDataObj.prod_master ) ;
 					}
+					if( ajaxDataObj.currency != null ) {
+						me.getFormPanel().getForm().findField('currency').setValue( ajaxDataObj.currency ) ;
+						Ext.Array.each( me.query('displayfield'), function(df) {
+							if( df.displayName == 'currency' ) {
+								df.setValue( ajaxDataObj.currency ) ;
+							}
+						}) ;
+					}
 					if( ajaxDataObj.gridBenchmark != null ) {
 						me.query('#gridBenchmark')[0].getStore().loadData( ajaxDataObj.gridBenchmark ) ;
 					}
@@ -674,12 +682,6 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 		
 		var form = me.getFormPanel().getForm() ;
 		form.setValues( data ) ;
-			  
-		Ext.Array.each( me.query('displayfield'), function(df) {
-			if( df.displayName == 'currency' ) {
-				df.setValue( data.currency ) ;
-			}
-		}) ;
 			  
 		if( data.promo_sku && me.getSkuList() ) {
 			me.getSkuList().setSkuData(data.promo_sku) ;

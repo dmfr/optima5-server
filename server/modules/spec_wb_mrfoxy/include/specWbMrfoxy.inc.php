@@ -102,6 +102,20 @@ function specWbMrfoxy_tool_getBrandEntries( $brand_code ) {
 	}
 	return $entries ;
 }
+function specWbMrfoxy_tool_getCountryCurrency( $country_code ) {
+	global $_opDB ;
+	
+	$bible_code = '_COUNTRY' ;
+	$query = "SELECT field_COUNTRY_CURRENCY FROM view_bible_{$bible_code}_entry WHERE entry_key='$country_code'" ;
+	$currency_json = $_opDB->query_uniqueValue($query) ;
+	if( isJsonArr($currency_json) ) {
+		$arr_currency = json_decode($currency_json,true) ;
+		if( count($arr_currency) == 1 ) {
+			return reset($arr_currency) ;
+		}
+	}
+	return NULL ;
+}
 
 
 function specWbMrfoxy_tool_getCropIntervals() {

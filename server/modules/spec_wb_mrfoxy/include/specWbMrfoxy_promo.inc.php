@@ -313,20 +313,23 @@ function specWbMrfoxy_promo_getSideBenchmark( $post_data ) {
 function specWbMrfoxy_promo_formEval( $post_data ) {
 	global $_opDB ;
 	
+	$form_data = json_decode($post_data['data'],true) ;
 	$resp_data = array() ;
 	
-	$form_data = json_decode($post_data['data'],true) ;
 	if( $form_data['store_code'] ) {
 		$resp_data['store_master'] = specWbMrfoxy_tool_getStoreBrand( $form_data['store_code'] ) ;
 	} else {
 		$resp_data['store_master'] = '' ;
 	}
 	
-	$form_data = json_decode($post_data['data'],true) ;
 	if( $form_data['prod_code'] ) {
 		$resp_data['prod_master'] = specWbMrfoxy_tool_getProdLine( $form_data['prod_code'] ) ;
 	} else {
 		$resp_data['prod_master'] = '' ;
+	}
+	
+	if( $form_data['country_code'] ) {
+		$resp_data['currency'] = specWbMrfoxy_tool_getCountryCurrency( $form_data['country_code'] ) ;
 	}
 	
 	$grid_filter = array() ;

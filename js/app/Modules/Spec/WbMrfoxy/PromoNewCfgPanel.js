@@ -122,8 +122,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoNewCfgPanel',{
 		var returnObj = {
 			is_prod: (form.getValues()['promotion_class'] == 'PROD' ? 'PROD':''),
 			country_code: form.findField('country_code').getValue(),
-			brand_code: form.findField('brand_code').getValue(),
-			currency: 'EUR'
+			brand_code: form.findField('brand_code').getValue()
 		} ;
 		
 		me.fireEvent('proceed',this,returnObj) ;

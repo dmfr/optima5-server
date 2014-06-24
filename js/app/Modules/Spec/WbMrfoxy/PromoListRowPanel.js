@@ -167,7 +167,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 							xtype: 'displayfield',
 							fieldLabel: 'Uplift',
 							labelWidth: 75,
-							value: '<b>'+rowRecord.get('calc_uplift_vol')+'</b>&nbsp;kg&nbsp&nbsp&nbsp/&nbsp;&nbsp&nbsp'+'<b>'+rowRecord.get('calc_uplift_per')+'</b>&nbsp;%',
+							value: '<b>'+Ext.util.Format.number( rowRecord.get('calc_uplift_vol'),'0' )+'</b>&nbsp;kg&nbsp&nbsp&nbsp/&nbsp;&nbsp&nbsp'+'<b>'+Ext.util.Format.number( rowRecord.get('calc_uplift_per'), '0.00' )+'</b>&nbsp;%',
 							hidden: (rowRecord.get('status_percent') < 70)
 						},{
 							xtype: 'displayfield',
@@ -180,14 +180,14 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 							fieldLabel: 'Cost forecast',
 							fieldStyle: 'font-weight: bold',
 							labelWidth: 120,
-							value: Ext.util.Format.number(rowRecord.get('cost_forecast'),'0,0') + ' EUR' + '&#160;'+'('+rowRecord.get('cost_billing_text')+')',
+							value: Ext.util.Format.number(rowRecord.get('cost_forecast'),'0,0') + ' ' + rowRecord.get('currency') + '&#160;'+'('+rowRecord.get('cost_billing_text')+')',
 							hidden: false
 						},{
 							xtype: 'displayfield',
 							fieldLabel: 'Real Cost (invoice)',
 							fieldStyle: 'font-weight: bold',
 							labelWidth: 120,
-							value: Ext.util.Format.number(rowRecord.get('cost_real'),'0,0') + ' EUR',
+							value: Ext.util.Format.number(rowRecord.get('cost_real'),'0,0') + ' ' + rowRecord.get('currency'),
 							hidden: (rowRecord.get('status_percent') < 70)
 						}]
 					}]
