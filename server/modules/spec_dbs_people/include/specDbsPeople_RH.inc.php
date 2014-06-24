@@ -248,7 +248,7 @@ function specDbsPeople_RH_resyncPeopleEvents( $people_code ) {
 		
 		$query = "UPDATE {$view_file}
 					SET field_DATE_DURATION=IF(field_TMP_IS_ON='1',DATEDIFF(field_TMP_DATE_END,field_DATE_APPLY)+1,0)
-					WHERE field_PPL_CODE='{$people_code}' AND field_TMP_IS_END='1'" ;
+					WHERE field_PPL_CODE='{$people_code}' AND field_TMP_IS_END='0'" ;
 		$_opDB->query($query) ;
 		
 		foreach( $to_sync as $filerecord_id => $ttmp ) {
