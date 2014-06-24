@@ -21,6 +21,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.HelperCache',{
 	init: function(optimaModule) {
 		var me = this ;
 		me.optimaModule = optimaModule ;
+		me.isReady = false ;
 		
 		Ext.defer(function() {
 			me.startLoading() ;
@@ -29,7 +30,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.HelperCache',{
 	startLoading: function() {
 		var me = this ;
 		
-		me.nbToLoad = 2 ;
+		me.nbLoaded = 0 ;
+		me.nbToLoad = 3 ;
 		
 		// Query Bible
 		var ajaxParams = {} ;
@@ -73,7 +75,26 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.HelperCache',{
 			scope: me
 		});
 		
-		me.authHelperInit();
+		// Query Auth
+		var ajaxParams = {} ;
+		Ext.apply( ajaxParams, {
+			_moduleId: 'spec_wb_mrfoxy',
+			_action: 'auth_getRoles'
+		});
+		me.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams ,
+			success: function(response) {
+				var ajaxData = Ext.decode(response.responseText) ;
+				if( ajaxData.success == false ) {
+					Ext.Msg.alert('Failed', 'Unknown error');
+				}
+				else {
+					me.authRoles = ajaxData.data ;
+					me.onLoad() ;
+				}
+			},
+			scope: me
+		});
 	},
 	onCountryLoad: function(ajaxData) {
 		var me = this ;
@@ -138,34 +159,20 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.HelperCache',{
 		return me.brandStore.getRange() ;
 	},
 	
-	authHelperInit: function() {
-		var me = this ;
-		
-		// Query Bible
-		var ajaxParams = {} ;
-		Ext.apply( ajaxParams, {
-			_moduleId: 'spec_wb_mrfoxy',
-			_action: 'auth_getRoles'
-		});
-		me.optimaModule.getConfiguredAjaxConnection().request({
-			params: ajaxParams ,
-			success: function(response) {
-				var ajaxData = Ext.decode(response.responseText) ;
-				if( ajaxData.success == false ) {
-					Ext.Msg.alert('Failed', 'Unknown error');
-				}
-				else {
-					me.authRoles = ajaxData.data ;
-				}
-			},
-			scope: me
-		});
-	},
 	authHelperQueryRole: function( roleCode ) {
 		var me = this ;
 			
 		if( me.optimaModule.getSdomainRecord().get('auth_has_all') ) {
 			return true ;
+		}
+		if( Ext.isArray(roleCode) ) {
+			var roles = roleCode ;
+			Ext.Array.each(roles, function(roleCode) {
+				if( Ext.Array.contains( me.authRoles, roleCode ) ) {
+					return true ;
+				}
+			}) ;
+			return false ;
 		}
 		return Ext.Array.contains( me.authRoles, roleCode ) ;
 	}

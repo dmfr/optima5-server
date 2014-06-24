@@ -668,8 +668,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 				headerData['brandDisplay'] = row.get('brand_display') ;
 			}
 		}
-		headerData['action_submit'] = ( Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole('PM') && data.is_prod ) ;
-		headerData['action_save'] = ( Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole('PM') ) ;
+		headerData['action_submit'] = ( Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole(['ADM','SM']) && data.is_prod ) ;
+		headerData['action_save'] = ( Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole(['ADM','SM']) ) ;
 		headerData['action_close'] = true ;
 		headerCmp.update(headerData) ;
 		if( headerCmp.rendered ) {

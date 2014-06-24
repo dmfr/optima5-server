@@ -65,17 +65,40 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 					itemSelector: 'div.op5-spec-mrfoxy-promorow-item',
 					store: {
 						fields: ['actionId','actionText','actionDisabled'],
-						data:[
-							{actionId: 'approval', actionText:'Approvals', actionDisabled:!(me.rowRecord.get('status_code')=='20_WAITVALID')},
-							{actionId: 'baseline', actionText:'BaselineCfg', actionDisabled:!(me.rowRecord.get('status_percent') >= 60 )},
-							{actionId: 'csack', actionText:'CS Acknowledge', actionDisabled:!(me.rowRecord.get('status_code')=='25_APPROVED')},
-							{actionId: 'viewinternal', actionText:'DashB intern.'},
-							{actionId: 'viewpublic', actionText:'DashB public'},
-							{actionId: 'download', actionText:'Download XLS'},
-							{actionId: 'edit', actionText:'Edit', actionDisabled:!(me.rowRecord.get('status_percent') < 50 )},
-							{actionId: 'delete', actionText:'Delete', actionDisabled:!(me.rowRecord.get('status_percent') < 50 )},
-							{actionId: 'close', actionText:'Finalize', actionDisabled:!(me.rowRecord.get('status_percent') == 80 )}
-						]
+						data:[{
+							actionId: 'approval',
+							actionText:'Approvals',
+							actionDisabled:!(me.rowRecord.get('status_code')=='20_WAITVALID')
+						},{
+							actionId: 'baseline',
+							actionText:'BaselineCfg',
+							actionDisabled:!( me.rowRecord.get('status_percent') >= 60 && Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole(['ADM']) )
+						},{
+							actionId: 'csack',
+							actionText:'CS Acknowledge',
+							actionDisabled:!( me.rowRecord.get('status_code')=='25_APPROVED' && Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole(['ADM','CS']) )
+						},{
+							actionId: 'viewinternal',
+							actionText:'DashB intern.'
+						},{
+							actionId: 'viewpublic',
+							actionText:'DashB public'
+						},{
+							actionId: 'download',
+							actionText:'Download XLS'
+						},{
+							actionId: 'edit',
+							actionText:'Edit',
+							actionDisabled:!( me.rowRecord.get('status_percent') < 50 && Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole(['ADM','SM']) )
+						},{
+							actionId: 'delete',
+							actionText:'Delete',
+							actionDisabled:!( me.rowRecord.get('status_percent') < 50 && Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole(['ADM','SM']) )
+						},{
+							actionId: 'close',
+							actionText:'Finalize',
+							actionDisabled:!( me.rowRecord.get('status_percent') == 80 && Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole(['ADM']) )
+						}]
 					},
 					overItemCls: 'op5-spec-mrfoxy-promorow-item-over',
 					listeners: {
