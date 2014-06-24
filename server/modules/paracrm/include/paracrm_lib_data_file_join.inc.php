@@ -31,7 +31,11 @@ function paracrm_lib_file_joinGridRecord( $file_code, &$record_row ) {
 			$src_mkey = $src_fileCode.'_field_'.$src_fileFieldCode ;
 			$jSrcValues[] = $record_row[$src_mkey] ;
 		}
-		$jRes = paracrm_lib_file_joinPrivate_do( $file_code, $entry_field_code, $jSrcValues ) ;
+		if( $GLOBALS['cache_joinPrebuilt'][$file_code][$entry_field_code] ) {
+			$jRes = paracrm_lib_file_joinPrivate_doForCache( $file_code, $entry_field_code, $jSrcValues ) ;
+		} else {
+			$jRes = paracrm_lib_file_joinPrivate_do( $file_code, $entry_field_code, $jSrcValues ) ;
+		}
 		$record_row[$mkey] = $jRes ;
 		
 		// Expand to bible fields @TODO:really expensive, find cleaner...
