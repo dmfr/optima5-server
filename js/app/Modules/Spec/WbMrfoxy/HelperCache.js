@@ -166,13 +166,14 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.HelperCache',{
 			return true ;
 		}
 		if( Ext.isArray(roleCode) ) {
-			var roles = roleCode ;
+			var roles = roleCode,
+				passed = false ;
 			Ext.Array.each(roles, function(roleCode) {
 				if( Ext.Array.contains( me.authRoles, roleCode ) ) {
-					return true ;
+					passed = true ;
 				}
 			}) ;
-			return false ;
+			return passed ;
 		}
 		return Ext.Array.contains( me.authRoles, roleCode ) ;
 	}
