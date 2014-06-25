@@ -152,15 +152,18 @@ function specDbsPeople_RH_setPeople( $post_data ) {
 	$event_data = json_decode($post_data['data'],true) ;
 	$people_code = ( !$post_data['_is_new'] ? $post_data['people_code'] : preg_replace("/[^A-Z0-9]/", "", strtoupper($event_data['people_name'])) ) ;
 	
+	$treenode_key = ( trim($event_data['people_txtitm'])==NULL ? 'RH_PEOPLE' : 'RH_INTERIM' ) ;
+	
 	$arr_ins = array() ;
 	$arr_ins['field_PPL_CODE'] = $people_code ;
 	$arr_ins['field_PPL_FULLNAME'] = $event_data['people_name'] ;
 	$arr_ins['field_PPL_TECHID'] = $event_data['people_techid'] ;
 	$arr_ins['field_PPL_TXTITM'] = $event_data['people_txtitm'] ;
 	if( $post_data['_is_new'] ) {
-		$ret = paracrm_lib_data_insertRecord_bibleEntry( 'RH_PEOPLE', $people_code, 'RH_PEOPLE', $arr_ins ) ;
+		$ret = paracrm_lib_data_insertRecord_bibleEntry( 'RH_PEOPLE', $people_code, $treenode_key, $arr_ins ) ;
 	} else {
 		$ret = paracrm_lib_data_updateRecord_bibleEntry( 'RH_PEOPLE', $people_code, $arr_ins ) ;
+		paracrm_lib_data_bibleAssignTreenode( 'RH_PEOPLE', $people_code, $treenode_key ) ;
 	}
 	if( $ret != 0 ) {
 		return array('success'=>false) ;
