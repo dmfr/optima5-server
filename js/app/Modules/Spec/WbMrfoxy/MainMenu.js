@@ -84,7 +84,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.MainMenu',{
 				action_caption: 'Budget Management',
 				action_sendEvent:'finance_budget',
 				action_iconCls:'op5-spec-mrfoxy-icon-budget',
-				item_disabled: !Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole(['ADM','TF','SM'])
+				item_disabled: !Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole(['ADM','TF','SM','DF','DS'])
 			}]
 		}) ;
 		 

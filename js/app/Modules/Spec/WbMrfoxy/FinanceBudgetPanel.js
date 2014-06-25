@@ -137,7 +137,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 				text: 'New revision...' ,
 				handler: this.handleNewRevision,
 				scope: this,
-				hidden: !Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole(['ADM','SM'])
+				hidden: !Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole(['ADM','SM','DF','DS'])
 			},{
 				itemId: 'tbNewEnd',
 				icon: 'images/op5img/ico_new_16.gif',
@@ -162,7 +162,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 					scope: this
 				}],
 				disabled: true,
-				hidden: !Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole(['ADM','SM'])
+				hidden: !Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole(['ADM','SM','DF','DS'])
 			},{
 				itemId: 'tbExport',
 				icon: 'images/op5img/ico_save_16.gif',

@@ -186,7 +186,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoBrowserPanel',{
 						itemId: 'accruals',
 						text: 'Accruals',
 						iconCls: 'op5-spec-mrfoxy-icon-toolbar-accruals',
-						hidden: !Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole(['ADM','TF','SM'])
+						hidden: !Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole(['ADM','TF','DF'])
 					},{
 						itemId: 'calendar',
 						text: 'Calendar',
