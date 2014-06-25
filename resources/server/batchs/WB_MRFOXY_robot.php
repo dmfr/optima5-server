@@ -78,7 +78,7 @@ function getPromoDesc( $row, $include_finance=FALSE ) {
 
 function mailFactory( $recipients, $subject, $body ) {
 	
-	$email_text = "Hi,\r\nThis is an automated email from Mr.Foxy\r\n{$body}\r\n\r\n\r\nDo not respond directly to this message.\r\n\r\nMrFoxy access:\r\nhttp://paracrm.kn-abbeville.fr\r\n\r\nShould you have any question or need login ID,\r\nplease contact mrfoxy@wonderfulbrands.com\r\n\r\n" ;
+	$email_text = "Hi,\r\nThis is an automated email from Mr.Foxy\r\n{$body}\r\n\r\n\r\nDo not respond directly to this message.\r\n\r\nMrFoxy access:\r\nhttp://mrfoxy.eu\r\n\r\nShould you have any question or need login ID,\r\nplease contact mrfoxy@wonderfulbrands.com\r\n\r\n" ;
 	
 	$email = new Email() ;
 	$email->set_From( 'noreply@wonderfulbrands.com', "Mr Foxy, Promotion Tool" ) ;
@@ -100,7 +100,7 @@ function handleStatusNew( $row ) {
 	$arr_update['field_STATUS'] = '20_WAITVALID' ;
 	paracrm_lib_data_updateRecord_file( 'WORK_PROMO' , $arr_update, $filerecord_id ) ;
 	
-	$recipients = findRecipients($row['country_code'], array('PM','DM','DF')) ;
+	$recipients = findRecipients($row['country_code'], array('SM','DM','DF')) ;
 	
 	$subject = '# '.$row['promo_id'].' : Validation required' ;
 	
@@ -121,7 +121,7 @@ function handleStatusValidation( $row ) {
 	$filerecord_id = $row['_filerecord_id'] ;
 	$arr_update = array() ;
 	if( $row['approv_ds_ok'] && $row['approv_df_ok'] ) {
-		$arr_update['field_STATUS'] = '30_SCHED' ;
+		$arr_update['field_STATUS'] = '25_APPROVED' ;
 	} else {
 		$arr_update['field_STATUS'] = '00_REJECTED' ;
 		$arr_update['field_APPROV_DS'] = 0 ;
@@ -131,7 +131,7 @@ function handleStatusValidation( $row ) {
 	}
 	paracrm_lib_data_updateRecord_file( 'WORK_PROMO' , $arr_update, $filerecord_id ) ;
 	
-	$recipients = findRecipients($row['country_code'], array('CS','PM')) ;
+	$recipients = findRecipients($row['country_code'], array('CS','SM')) ;
 	
 	$subject = '# '.$row['promo_id'].' : Scheduled' ;
 	
@@ -154,7 +154,7 @@ function handleStatusAppro( $row ) {
 	$arr_update['field_STATUS'] = '40_APPRO' ;
 	paracrm_lib_data_updateRecord_file( 'WORK_PROMO' , $arr_update, $filerecord_id ) ;
 	
-	$recipients = findRecipients($row['country_code'], array('CS','PM')) ;
+	$recipients = findRecipients($row['country_code'], array('CS','SM')) ;
 	
 	$subject = '# '.$row['promo_id'].' : Appro begins' ;
 	
@@ -177,7 +177,7 @@ function handleStatusBegin( $row ) {
 	$arr_update['field_STATUS'] = '50_CURRENT' ;
 	paracrm_lib_data_updateRecord_file( 'WORK_PROMO' , $arr_update, $filerecord_id ) ;
 	
-	$recipients = findRecipients($row['country_code'], array('CS','PM')) ;
+	$recipients = findRecipients($row['country_code'], array('CS','SM')) ;
 	
 	$subject = '# '.$row['promo_id'].' : Active' ;
 	
@@ -200,7 +200,7 @@ function handleStatusEnd( $row ) {
 	$arr_update['field_STATUS'] = '60_DONE' ;
 	paracrm_lib_data_updateRecord_file( 'WORK_PROMO' , $arr_update, $filerecord_id ) ;
 	
-	$recipients = findRecipients($row['country_code'], array('CS','PM')) ;
+	$recipients = findRecipients($row['country_code'], array('CS','SM')) ;
 	
 	$subject = '# '.$row['promo_id'].' : Finished' ;
 	
@@ -233,7 +233,7 @@ function handleStatusData( $row ) {
 	if( $has_ORACLE === FALSE ) {
 		$time_bound = strtotime('+2 week',strtotime($row['date_end'])) ;
 		
-		$query = "SELECT max(field_DATE) from view_file_ORACLE_SHIP" ;
+		$query = "SELECT max(field_DATE) from view_file_ORACLE_SALES" ;
 		$date_cmp = $_opDB->query_uniqueValue($query) ;
 		$time_cmp = strtotime($date_cmp) ;
 		
@@ -278,7 +278,7 @@ function handleStatusData( $row ) {
 	$arr_update['field_STATUS'] = $new_status ;
 	paracrm_lib_data_updateRecord_file( 'WORK_PROMO' , $arr_update, $filerecord_id ) ;
 	
-	$recipients = findRecipients($row['country_code'], array('PM')) ;
+	$recipients = findRecipients($row['country_code'], array('SM')) ;
 	
 	$subject = '# '.$row['promo_id'].' : Data available' ;
 	
