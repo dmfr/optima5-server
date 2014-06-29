@@ -207,7 +207,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		'Optima5.Modules.Spec.DbsPeople.CfgParamSiteButton',
 		'Optima5.Modules.Spec.DbsPeople.CfgParamTeamButton',
 		'Optima5.Modules.Spec.DbsPeople.RealConfirmPanel',
-		'Optima5.Modules.Spec.DbsPeople.RealSummaryPanel'
+		'Optima5.Modules.Spec.DbsPeople.RealSummaryPanel',
+		'Optima5.Modules.Spec.DbsPeople.RealDayPrintTable'
 	],
 	
 	dateStart: null,
@@ -274,13 +275,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				text: 'Refresh',
 				handler: function() {
 					this.doLoad() ;
-				},
-				scope: this
-			},{
-				icon: 'images/op5img/ico_print_16.png',
-				text: 'Print',
-				handler: function(btn) {
-					this.handlePrintPanel() ;
 				},
 				scope: this
 			},{
@@ -770,6 +764,15 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				scope: this
 			});
 			menu.add({
+				icon: 'images/op5img/ico_print_16.png',
+				itemId: 'grid-print',
+				text: 'Print',
+				handler: function(menuitem) {
+					this.handlePrintPanel( menuitem.up('menu').activeHeader.dateSqlHead ) ;
+				},
+				scope: this
+			});
+			menu.add({
 				itemId: 'grid-summary',
 				iconCls: 'op5-spec-dbspeople-icon-actionday-summary',
 				text: 'Compteurs ETP',
@@ -844,6 +847,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			HelperCache = Optima5.Modules.Spec.DbsPeople.HelperCache,
 			colCfg = menu.activeHeader.colCfg;
 		menu.down('#grid-groupby').setVisible( !Ext.isEmpty(menu.activeHeader._groupBy) ) ;
+		menu.down('#grid-print').setVisible( colCfg ) ;
 		menu.down('#grid-summary').setVisible( colCfg ) ;
 		menu.down('menuseparator').setVisible( colCfg ) ;
 		menu.down('#real-open').setVisible( colCfg && colCfg.enable_open && HelperCache.authHelperQueryPage('CEQ') ) ;
@@ -1802,26 +1806,31 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 	/*
 	 * Borrowed from http://druckit.wordpress.com/2014/02/15/ext-js-4-printing-the-contents-of-an-ext-panel/
 	 */
-	handlePrintPanel: function() {
+	handlePrintPanel: function( dSql ) {
+		if( this.printFrame ) {
+			this.printFrame.destroy() ;
+			this.printFrame = null ;
+		}
+		
 		var pnl = this.down('grid') ;
 		
 		// instantiate hidden iframe
-		var iFrameId = "printerFrame";
-		var printFrame = Ext.get(iFrameId);
-
-		if (printFrame == null) {
-				printFrame = Ext.getBody().appendChild({
-					id: iFrameId,
-					tag: 'iframe',
-					cls: 'x-hidden',
-					style: {
-						display: "none"
-					}
-				});
-		}
-
-		var cw = printFrame.dom.contentWindow;
-
+		var printFrame = Ext.getBody().appendChild({
+			tag: 'iframe',
+			cls: 'x-hidden',
+			style: {
+				display: "none"
+			}
+		}),
+		printFrameCw = printFrame.dom.contentWindow ;
+		
+		var realDayPrintTable = new Optima5.Modules.Spec.DbsPeople.RealDayPrintTable({
+			dateSql: dSql,
+			columns: pnl.headerCt.getGridColumns(),
+			store: pnl.getStore()
+		}),
+		realDayPrintTableMarkup = Ext.DomHelper.markup( realDayPrintTable.getRenderTree() ) ;
+		
 		// instantiate application stylesheets in the hidden iframe
 		var stylesheets = "";
 		for (var i = 0; i < document.styleSheets.length; i++) {
@@ -1839,28 +1848,44 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 
 		// get the contents of the panel and remove hardcoded overflow properties
 		var markup = pnl.getEl().dom.innerHTML;
+		var markup = Ext.DomHelper.markup( realDayPrintTable.getRenderTree() ) ;
 		while (markup.indexOf('overflow: auto;') >= 0) {
-				markup = markup.replace('overflow: auto;', '');
+			markup = markup.replace('overflow: auto;', '');
 		}
 
-		var str = Ext.String.format('<html><head>{0}</head><body>{1}</body></html>',stylesheets,markup);
+		var str = Ext.String.format('<html><head>{0}</head><body>{1}</body></html>',stylesheets,realDayPrintTableMarkup);
+		
+		/*
+		this.optimaModule.createWindow({
+			items: Ext.create('Ext.ux.dams.IFrameContent',{
+				content: str
+			})
+		}); 
+		return ;
+		*/
 		
 		// output to the iframe
-		cw.document.open();
-		cw.document.write(str);
-		cw.document.close();
+		printFrameCw.document.open();
+		printFrameCw.document.write(str);
+		printFrameCw.document.close();
 
 		// remove style attrib that has hardcoded height property
-		cw.document.getElementsByTagName('DIV')[0].removeAttribute('style');
+		printFrameCw.document.getElementsByTagName('DIV')[0].removeAttribute('style');
 
 		// print the iframe
-		cw.print();
+		printFrameCw.print();
 
-		// destroy the iframe
-		Ext.fly(iFrameId).destroy();
+		// destroy the iframe ... LATER
+		this.printFrame = printFrame ;
 	},
 	
 	handleQuit: function() {
 		this.destroy() ;
+	},
+	
+	onDestroy: function() {
+		if( this.printFrame ) {
+			this.printFrame.destroy() ;
+		}
 	}
 });

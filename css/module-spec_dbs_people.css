@@ -312,3 +312,10 @@ table.op5-spec-dbspeople-realvalidhdr-tbl > tbody > tr > td.op5-spec-dbspeople-r
 .op5-spec-dbspeople-realvalidgrid-error .x-grid-cell-inner-checkcolumn {
 	display: none;
 }
+
+
+.op5-spec-dbspeople-printheader-title {
+	padding-left: 16px 0px ;
+	font-size: 18px;
+	font-weight: bold;
+}
