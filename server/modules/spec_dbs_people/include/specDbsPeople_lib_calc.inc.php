@@ -105,6 +105,78 @@ function specDbsPeople_lib_calc_tool_runQuery( $q_id, $where_params=NULL ) {
 	return $GRID ;
 }
 
+
+function specDbsPeople_lib_calc_getInterimNC( $date_start, $date_end ) {
+	$RES_max = specDbsPeople_lib_calc_tool_runQuery( 'ITM_NC:PlanningMax' ) ;
+	$durationMax = 0 ;
+	foreach( $RES_max as $people_code => $values_max ) {
+		foreach( $values_max as $people_max ) {
+			if( $people_max > $durationMax ) {
+				$durationMax = $people_max ;
+			}
+		}
+	}
+	if( $durationMax >= 1 ) {
+		$date_start = date('Y-m-d',strtotime('-'.($durationMax - 1).' days',strtotime($date_start))) ;
+	}
+	
+	// Config + autres requêtes
+	$where_params = array() ;
+	$where_params['condition_date_gt'] = $date_start ;
+	$where_params['condition_date_lt'] = $date_end ;
+	$RES_planning = specDbsPeople_lib_calc_tool_runQuery( 'ITM_NC:Planning', $where_params ) ;
+	$RES_real = specDbsPeople_lib_calc_tool_runQuery( 'ITM_NC:Real', $where_params ) ;
+	
+	// Walk planning to dispatch 1day=X to Xdays=1
+	foreach( $RES_planning as $people_code => &$RES_planning_ROW ) {
+		$balance = 0 ;
+		foreach( $RES_planning_ROW as $date_sql => &$nb ) {
+			if( $nb > 0 ) {
+				$balance += ($nb - 1) ;
+				$nb = 1 ;
+			} elseif( $balance > 0 ) {
+				$nb++ ;
+				$balance-- ;
+			}
+		}
+		unset($nb) ;
+	}
+	unset($RES_planning_ROW) ;
+	
+	$TAB_peopleCode_arrDatesNC = array() ;
+	
+	foreach( $RES_planning as $people_code => $values_planning ) {
+		if( !isset($TAB_peopleCode_arrDatesNC[$people_code]) ) {
+			$TAB_peopleCode_arrDatesNC[$people_code] = array() ;
+		}
+		foreach( $values_planning as $date_sql => $nb ) {
+			if( !isset($TAB_peopleCode_arrDatesNC[$people_code][$date_sql]) ) {
+				$TAB_peopleCode_arrDatesNC[$people_code][$date_sql] = FALSE ;
+			}
+			if( $nb > 0 ) {
+				$TAB_peopleCode_arrDatesNC[$people_code][$date_sql] = TRUE ;
+			}
+		}
+	}
+	foreach( $RES_real as $people_code => $values_real ) {
+		if( !isset($TAB_peopleCode_arrDatesNC[$people_code]) ) {
+			$TAB_peopleCode_arrDatesNC[$people_code] = array() ;
+		}
+		foreach( $values_real as $date_sql => $nb ) {
+			if( !isset($TAB_peopleCode_arrDatesNC[$people_code][$date_sql]) ) {
+				$TAB_peopleCode_arrDatesNC[$people_code][$date_sql] = FALSE ;
+			}
+			if( $nb > 0 ) {
+				$TAB_peopleCode_arrDatesNC[$people_code][$date_sql] = TRUE ;
+			}
+		}
+	}
+	
+	return $TAB_peopleCode_arrDatesNC ;
+}
+
+
+
 function specDbsPeople_lib_calc_getCalcAttributeRecords( $people_calc_attribute ) {
 	switch( $people_calc_attribute ) {
 		case 'CP' :

@@ -102,7 +102,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryPanel',{
 					forceSelection: true,
 					editable: false,
 					store: {
-						fields: ['querysrc_id','q_name'],
+						fields: ['querysrc_id','q_name','params_hidden'],
 						autoLoad: true,
 						proxy: this.optimaModule.getConfiguredAjaxProxy({
 							extraParams : {
@@ -121,8 +121,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryPanel',{
 					listeners: {
 						change: function(cmb,value) {
 							var cntTime = cmb.up('form').down('#cntTime'),
-								valueIsQuery = !( value.split(':').length == 2 && value.split(':')[0] == '0' ) ;
-							cntTime.setVisible( valueIsQuery );
+								paramsHidden = cmb.getStore().findRecord('querysrc_id',value).get('params_hidden') ;
+							cntTime.setVisible( !paramsHidden );
 						}
 					}
 				},{

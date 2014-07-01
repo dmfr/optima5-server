@@ -5,7 +5,8 @@ function specDbsPeople_query_getLibrary() {
 	
 	$TAB = array() ;
 	
-	$TAB[] = array('querysrc_id'=>'0:RH', 'q_name'=>'RH : Base People') ;
+	$TAB[] = array('querysrc_id'=>'0:RH', 'q_name'=>'RH : Base People', 'params_hidden'=>true ) ;
+	$TAB[] = array('querysrc_id'=>'0:ITM_NC', 'q_name'=>'Interim : NC') ;
 	
 	$query = "SELECT input_query_src.querysrc_id , query.query_name AS q_name  FROM input_query_src 
 				JOIN query ON query.query_id = input_query_src.target_query_id" ;
@@ -32,6 +33,9 @@ function specDbsPeople_query_getTableResult( $post_data ) {
 	switch( $ttmp[1] ) {
 		case 'RH' :
 			return specDbsPeople_query_getTableResult_RH() ;
+			break ;
+		case 'ITM_NC' :
+			return specDbsPeople_query_getTableResult_ITMNC($form_data['date_start'],$form_data['date_end']) ;
 			break ;
 	}
 }
@@ -94,6 +98,76 @@ function specDbsPeople_query_getTableResult_RH() {
 		'result_tab'=>array('columns'=>$RET_columns,'data'=>$RET_data)
 	) ;
 }
+
+function specDbsPeople_query_getTableResult_ITMNC( $date_start, $date_end ) {
+	$ttmp = specDbsPeople_cfg_getCfgBibles() ;
+	$cfg_bibles = $ttmp['data'] ;
+	$cfg_bibles_idText = array() ;
+	foreach( $cfg_bibles as $bible_code => $cfg_bible ) {
+		$cfg_bibles_idText[$bible_code] = array() ;
+		foreach( $cfg_bible as $row ) {
+			$cfg_bibles_idText[$bible_code][$row['id']] = $row['text'] ;
+		}
+	}
+	
+	$json = specDbsPeople_RH_getGrid( array('_load_calcAttributes'=>false) ) ;
+	$data = $json['data'] ;
+	
+	$TAB_peopleCode_arrDatesNC = specDbsPeople_lib_calc_getInterimNC( $date_start, $date_end ) ;
+	
+	$cols = array() ;
+	$cols[] = 'whse_txt' ;
+	$cols[] = 'team_txt' ;
+	$cols[] = 'role_txt' ;
+	$cols[] = 'contract_txt' ;
+	$cols[] = 'people_txtitm' ;
+	$cols[] = 'people_code' ;
+	$cols[] = 'people_name' ;
+	$cols[] = 'people_techid' ;
+	$arr_dates = array() ;
+	$cur_date = date('Y-m-d',strtotime($date_start)) ;
+	while( strtotime($cur_date) <= strtotime($date_end) ) {
+		//$col_key = 'date_'.date('Ymd',strtotime($cur_date)) ;
+		$col_key = $cur_date ;
+		$cols[] = $col_key ;
+		$cur_date = date('Y-m-d',strtotime('+1 day',strtotime($cur_date))) ;
+		$arr_dates[$cur_date] = $col_key ;
+	}
+	
+	$RET_columns = array() ;
+	foreach( $cols as $col ) {
+		$RET_columns[] = array('dataIndex'=>$col,'dataType'=>'string','text'=>$col) ;
+	}
+	
+	$RET_data = array() ;
+	foreach( $data as $data_row ) {
+		$people_code = $data_row['people_code'] ;
+		if( !isset($TAB_peopleCode_arrDatesNC[$people_code]) ) {
+			continue ;
+		}
+		
+		$data_row['whse_txt'] = $cfg_bibles_idText['WHSE'][$data_row['whse_code']] ;
+		$data_row['team_txt'] = $cfg_bibles_idText['TEAM'][$data_row['team_code']] ;
+		$data_row['role_txt'] = $cfg_bibles_idText['ROLE'][$data_row['role_code']] ;
+		$data_row['contract_txt'] = $cfg_bibles_idText['CONTRACT'][$data_row['contract_code']] ;
+		
+		foreach( $arr_dates as $date_sql=>$col_key ) {
+			$data_row[$col_key] = ( $TAB_peopleCode_arrDatesNC[$people_code][$date_sql] ? 'X' : '' ) ;
+		}
+		
+		$RET_data[] = $data_row ;
+	}
+
+	return array(
+		'success'=>true,
+		'query_vars'=>array('q_name'=>'Interim : NC'),
+		'result_tab'=>array('columns'=>$RET_columns,'data'=>$RET_data)
+	) ;
+}
+
+
+
+
 
 function specDbsPeople_query_getQueryResult( $post_data ) {
 	global $_opDB ;
