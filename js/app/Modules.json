@@ -61,6 +61,8 @@
 		"moduleClass":"Optima5.Modules.Spec.WbBudget.WbBudgetModule",
 		"moduleCssSrc":"module-spec_wb_budget.css",
 		"moduleType":"sdomain",
+		"loginIcon":"ico_mrfoxy_128.png",
+		"loginUrl":"mrfoxy.eu",
 		"params": []
 	},{
 		"enabled":true,
