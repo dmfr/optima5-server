@@ -29,7 +29,9 @@ Ext.define('OptimaModuleDescModel', {
 		{name: 'moduleClass', type: 'string'},
 		{name: 'moduleCssSrc', type: 'string'},
 		{name: 'iconCode', type: 'string'},
-		{name: 'allowMultipleInstances', type: 'boolean'}
+		{name: 'allowMultipleInstances', type: 'boolean'},
+		{name: 'loginIcon', type: 'string'},
+		{name: 'loginUrl', type: 'string'}
 	],
 	hasMany: [{
 		model: 'OptimaModuleParamDescModel',

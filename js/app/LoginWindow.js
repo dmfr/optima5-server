@@ -27,7 +27,8 @@ Ext.define('Optima5.LoginWindow',{
 				region: 'west',
 				xtype:'container',
 				width:155,
-				cls:'op5-login-west'
+				cls:'op5-login-west',
+				itemId:'iconCtn'
 				/*
 				style:{
 					background:"url('images/AquaSafari_logo.png') no-repeat center center"
@@ -90,8 +91,29 @@ Ext.define('Optima5.LoginWindow',{
 		this.callParent() ;
 		
 		me.on('beforedestroy',me.onBeforeDestroy,me) ;
-		
+		me.on('afterrender',function() {
+			this.probeUrl() ;
+		},me) ;
 		me.probeAutoLogin() ;
+	},
+	probeUrl: function() {
+		var modulesLib = Optima5.Helper.getModulesLib(),
+			modules = modulesLib.modulesGetAll(),
+			hostname = window.location.hostname,
+			loginIcon,
+			loginEl = this.down('#iconCtn').getEl() ;
+		
+		Ext.Array.each( modules, function(moduleRecord) {
+			if( moduleRecord.get('loginUrl') == hostname ) {
+				loginIcon = moduleRecord.get('loginIcon') ;
+				return false ;
+			}
+		}) ;
+		if( !Ext.isEmpty(loginIcon) ) {
+			// CSS replace
+			loginEl.removeCls('op5-login-west') ;
+			loginEl.dom.style.background = "url('images/icons/" + loginIcon + "') no-repeat center center" ;
+		}
 	},
 	probeAutoLogin: function() {
 		var isIPAddress = function(v) {
