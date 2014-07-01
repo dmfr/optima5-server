@@ -59,7 +59,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoAccrualsSubpanel',{
 						draggable: false,
 						sortable: true,
 						hideable: false,
-						resizable: false
+						resizable: true
 					},
 					items:[{
 						text: '',
@@ -142,8 +142,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoAccrualsSubpanel',{
 					},{
 						text: 'Billing',
 						dataIndex: 'cost_billing_text',
-						width: 150,
-						hidden: true,
+						width: 75,
 						menuDisabled:false
 					},{
 						text: '<b>Acr:</b> Forecast',

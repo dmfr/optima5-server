@@ -66,7 +66,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 						draggable: false,
 						sortable: true,
 						hideable: false,
-						resizable: false
+						resizable: true
 					},
 					items:[{
 						text: '',
@@ -126,7 +126,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 					},{
 						text: 'weeks',
 						dataIndex: 'date_length_weeks',
-						width: 45,
+						width: 50,
 						renderer: function(v) {
 							return '<b>'+v+'</b>' ;
 						}
