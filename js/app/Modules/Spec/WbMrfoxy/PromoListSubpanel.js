@@ -151,6 +151,11 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 							bibleId: 'IRI_PROD'
 						}
 					},{
+						text: 'Billing',
+						dataIndex: 'cost_billing_text',
+						width: 75,
+						menuDisabled:false
+					},{
 						text: 'Mechanics',
 						dataIndex: 'mechanics_text',
 						width: 250,
