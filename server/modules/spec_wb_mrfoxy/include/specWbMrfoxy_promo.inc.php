@@ -672,6 +672,11 @@ function specWbMrfoxy_promo_setApproval( $post_data ) {
 	$target_filerecordId = $post_data['_filerecord_id'] ;
 	$data = json_decode($post_data['data'],true) ;
 	
+	$current_row = paracrm_lib_data_getRecord_file('WORK_PROMO',$target_filerecordId) ;
+	if( !$current_row ) {
+		return array('success'=>false) ;
+	}
+	
 	$map = array() ;
 	$map['approv_ds'] = 'field_APPROV_DS' ;
 	$map['approv_ds_ok'] = 'field_APPROV_DS_OK' ;
@@ -684,7 +689,15 @@ function specWbMrfoxy_promo_setApproval( $post_data ) {
 		$arr_update[$dest] = $data[$src] ;
 	}
 	paracrm_lib_data_updateRecord_file( 'WORK_PROMO' , $arr_update, $target_filerecordId ) ;
-	return array('success'=>true) ;
+	
+	$summary = array() ;
+	if( !$current_row['field_APPROV_DS'] && $arr_update['field_APPROV_DS'] ) {
+		$summary['approv_ds'] = $data['approv_ds_ok'] ;
+	}
+	if( !$current_row['field_APPROV_DF'] && $arr_update['field_APPROV_DF'] ) {
+		$summary['approv_df'] = $data['approv_df_ok'] ;
+	}
+	return array( 'success'=>true, 'summary'=>$summary ) ;
 }
 function specWbMrfoxy_promo_setBaseline( $post_data ) {
 	$target_filerecordId = $post_data['_filerecord_id'] ;

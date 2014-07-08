@@ -17,6 +17,11 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormSkuGridPanel',{
 		pluginId: 'cellediting',
 		clicksToEdit: 1,
 		listeners: {
+			beforeedit: function(editor,e) {
+				if( editor.disabled ) {
+					return false ;
+				}
+			},
 			edit: function(editor,e) {
 				e.record.commit() ;
 			}
@@ -191,6 +196,10 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormSkuGridPanel',{
 	},
 	getSkuData: function() {
 		return Ext.pluck( this.getStore().data.items, 'data' ) ;
+	},
+	
+	setReadOnly: function( readOnly ) {
+		this.getPlugin('cellediting')[readOnly ? 'disable':'enable']() ;
 	},
 	
 	calcQtyPcb: function(record,field) {

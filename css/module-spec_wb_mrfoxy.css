@@ -213,6 +213,12 @@
 .op5-spec-mrfoxy-promoformheader-action-btn:hover {
 	background-color: rgb(200, 200, 200);
 }
+.op5-spec-mrfoxy-promoformheader-action-btn-approval {
+	background-image: url("../images/modules/mrfoxy-promoformapproval-32.png") !important;
+}
+.op5-spec-mrfoxy-promoformheader-action-btn-approvalblink {
+	background-color: #DF4600 ;
+}
 .op5-spec-mrfoxy-promoformheader-action-btn-submit {
 	background-image: url("../images/modules/mrfoxy-promoformsubmit-32.png") !important;
 }
@@ -319,6 +325,9 @@
 .op5-spec-mrfoxy-promorow-approval-enabled {
 	color: black;
 	padding-left: 10px;
+}
+.op5-spec-mrfoxy-promorow-approval-blink {
+	background-color: #FFD83B ;
 }
 
 
@@ -618,4 +627,43 @@ table.op5-spec-mrfoxy-statresult-tbl > tbody > tr > td.op5-spec-mrfoxy-statresul
 .op5-spec-mrfoxy-financebudget-celltotal .x-grid-cell-inner { 
 	font-weight: bold; 
 	font-size: 12px;
-} 
+}
+
+.op5-spec-mrfoxy-promoapprovalsummary-wrap {
+	position: relative ;
+}
+.op5-spec-mrfoxy-promoapprovalsummary-icon {
+	position: absolute ;
+	background-image: url("../images/modules/mrfoxy-ok-64.png") !important;
+	top:0px;
+	left:0px ;
+	width:64px ;
+	height:100% ;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+.op5-spec-mrfoxy-promoapprovalsummary-title {
+	position: relative ;
+	padding-left: 96px ;
+	margin-bottom: 8px ;
+	font-size: 18px;
+	font-weight: bold;
+}
+.op5-spec-mrfoxy-promoapprovalsummary-caption {
+	position: relative ;
+	padding-left: 112px ;
+	margin-bottom: 4px ;
+	font-size: 14px;
+}
+.op5-spec-mrfoxy-promoapprovalsummary-captiontitle {
+	position: absolute ;
+	top:0px ;
+	bottom:0px ;
+	width: 100% ;
+}
+.op5-spec-mrfoxy-promoapprovalsummary-captionbody {
+	position: relative ;
+	padding-left: 128px ;
+	font-weight: bold ;
+}
+

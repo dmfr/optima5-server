@@ -89,6 +89,10 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 					'</div>',
 					'<div class="op5-spec-mrfoxy-promoformheader-icon"></div>',
 					'<div class="op5-spec-mrfoxy-promoformheader-actions">',
+						'<tpl if="action_approval">',
+						"<div class=\"op5-spec-mrfoxy-promoformheader-action-btn op5-spec-mrfoxy-promoformheader-action-btn-approval {[values.action_approvalblink ? 'op5-spec-mrfoxy-promoformheader-action-btn-approvalblink' : '']}\">",
+						'</div>',
+						'</tpl>',
 						'<tpl if="action_submit">',
 						'<div class="op5-spec-mrfoxy-promoformheader-action-btn op5-spec-mrfoxy-promoformheader-action-btn-submit">',
 						'</div>',
@@ -668,9 +672,15 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 				headerData['brandDisplay'] = row.get('brand_display') ;
 			}
 		}
+		headerData['action_approval'] = Optima5.Modules.Spec.WbMrfoxy.PromoApprovalPanel.static_approvalIsOn(me.promoRecord) ;
+		headerData['action_approvalblink'] = Optima5.Modules.Spec.WbMrfoxy.PromoApprovalPanel.static_approvalIsBlink(me.promoRecord) ;
 		headerData['action_submit'] = ( Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole(['ADM','SM']) && data.is_prod ) ;
 		headerData['action_save'] = ( Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole(['ADM','SM']) ) ;
 		headerData['action_close'] = true ;
+		if( me.promoRecord && me.promoRecord.get('status_percent') >= 30 ) {
+			headerData['action_submit'] = false ;
+			headerData['action_save'] = false ;
+		}
 		headerCmp.update(headerData) ;
 		if( headerCmp.rendered ) {
 			me.headerAttachEvents() ;
@@ -687,6 +697,16 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 			me.getSkuList().setSkuData(data.promo_sku) ;
 		}
 		
+		// *** Set form to readonly ***
+		var readOnly = false ;
+		if( !headerData['action_save'] ) {
+			readOnly = true ;
+		}
+		form.getFields().each(function(field) {
+			field.setReadOnly( readOnly ) ;
+		}) ;
+		me.getSkuList().setReadOnly( readOnly ) ;
+		
 		me.calcLayout();
 		
 		me.suspendEvents = false ;
@@ -701,7 +721,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 			headerEl = headerCmp.getEl(),
 			btnCloseEl = headerEl.down('.op5-spec-mrfoxy-promoformheader-action-btn-close'),
 			btnSaveEl = headerEl.down('.op5-spec-mrfoxy-promoformheader-action-btn-save'),
-			btnSubmitEl = headerEl.down('.op5-spec-mrfoxy-promoformheader-action-btn-submit') ;
+			btnSubmitEl = headerEl.down('.op5-spec-mrfoxy-promoformheader-action-btn-submit'),
+			btnApprovalEl = headerEl.down('.op5-spec-mrfoxy-promoformheader-action-btn-approval') ;
 		
 		if( btnCloseEl ) {
 			btnCloseEl.un('click',me.onHeaderClose,me) ;
@@ -714,6 +735,10 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 		if( btnSubmitEl ) {
 			btnSubmitEl.un('click',me.onHeaderSubmit,me) ;
 			btnSubmitEl.on('click',me.onHeaderSubmit,me) ;
+		}
+		if( btnApprovalEl ) {
+			btnApprovalEl.un('click',me.onHeaderApproval,me) ;
+			btnApprovalEl.on('click',me.onHeaderApproval,me) ;
 		}
 	},
 	onHeaderClose: function(e,t) {
@@ -780,6 +805,43 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 				}) ;
 			}
 		},me) ;
-	}
+	},
 	
+	onHeaderApproval: function() {
+		var me = this,
+			promoRecord = me.promoRecord ;
+		
+		if( Ext.isEmpty(promoRecord) ) {
+			return ;
+		}
+		
+		var promoApprovalPanel = Ext.create('Optima5.Modules.Spec.WbMrfoxy.PromoApprovalPanel',{
+			optimaModule: me.optimaModule,
+			rowRecord: promoRecord,
+			
+			width:600,
+			height:120,
+			
+			floating: true,
+			renderTo: me.getEl(),
+			tools: [{
+				type: 'close',
+				handler: function(e, t, p) {
+					p.ownerCt.destroy();
+				}
+			}]
+		});
+		promoApprovalPanel.on('saved',function() {
+			me.fireEvent('saved',me) ;
+		},me,{single:true}) ;
+		promoApprovalPanel.on('destroy',function() {
+			if( me.getEl() ) {
+				me.getEl().unmask() ;
+			}
+		},me,{single:true}) ;
+		me.getEl().mask() ;
+		
+		promoApprovalPanel.show();
+		promoApprovalPanel.getEl().alignTo(me.getEl(), 'c-c?');
+	}
 });

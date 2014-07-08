@@ -195,6 +195,11 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 					}
 				}],
 				viewConfig:{
+					getRowClass: function(record) {
+						if( Optima5.Modules.Spec.WbMrfoxy.PromoApprovalPanel.static_approvalIsBlink(record) ) {
+							return 'op5-spec-mrfoxy-promorow-approval-blink' ;
+						}
+					},
 					plugins: [{
 						ptype: 'gridviewdragdrop',
 						enableDrag: false,

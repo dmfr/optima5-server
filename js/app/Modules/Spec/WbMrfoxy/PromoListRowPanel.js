@@ -68,7 +68,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 						data:[{
 							actionId: 'approval',
 							actionText:'Approvals',
-							actionDisabled:!(me.rowRecord.get('status_code')=='20_WAITVALID')
+							actionDisabled:!Optima5.Modules.Spec.WbMrfoxy.PromoApprovalPanel.static_approvalIsBlink(me.rowRecord)
 						},{
 							actionId: 'baseline',
 							actionText:'BaselineCfg',
@@ -88,8 +88,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 							actionText:'Download XLS'
 						},{
 							actionId: 'edit',
-							actionText:'Edit',
-							actionDisabled:!( me.rowRecord.get('status_percent') < 50 && Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole(['ADM','SM']) )
+							actionText:'Edit/View'
 						},{
 							actionId: 'delete',
 							actionText:'Delete',
@@ -105,7 +104,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 						itemclick: function(view,record,item,index,event) {
 							switch( record.data.actionId ) {
 								case 'approval' :
-									me.openApproval( event ) ;
+									me.handleEdit() ;
 									break ;
 								case 'baseline' :
 									me.openBaseline( event ) ;
@@ -358,9 +357,6 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 		cntChart.add(benchmarkGrid) ;
 	},
 	
-	openApproval: function(e) {
-		this.openPopup(e,'Optima5.Modules.Spec.WbMrfoxy.PromoApprovalPanel',[600,120]) ;
-	},
 	openBaseline: function(e) {
 		this.openPopup(e,'Optima5.Modules.Spec.WbMrfoxy.PromoBaselinePanel',[500,120]) ;
 	},
