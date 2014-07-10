@@ -206,6 +206,27 @@ Ext.onReady(function () {
 	
 	
 	/*
+	 * Bug by myself
+	 * If records are filtered, and are filtering an entire group,
+	 * updating one of these records make update fails.
+	 * See RealPanel::gridAdapterUpdatePeopledayRecord
+	 * TODO: build a test case
+	 */
+	Ext.data.Store.override({
+		updateGroupsOnUpdate: function(record, modifiedFieldNames) {
+			var me = this,
+				groupName = me.getGroupString(record),
+				groups = me.groups,
+				group = groups.getByKey(groupName) ;
+			if( group == null ) {
+				return ;
+			}
+			this.callOverridden(arguments);
+		}
+	});
+	
+	
+	/*
 	Désactiver le click droit
 	*/
 	Ext.getBody().on('contextmenu', Ext.emptyFn, null, {preventDefault: true});
