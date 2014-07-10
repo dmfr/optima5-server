@@ -259,12 +259,13 @@ function specDbsPeople_Real_getData( $post_data ) {
 	}
 	
 	
-	// Filter ROWS @TODO: use prefilter on cfgFiles before join
+	// Process filters
 	$has_filters = FALSE ;
 	if( $filter_arrSites || $filter_arrTeams ) {
 		$has_filters = TRUE ;
 	}
 	if( $has_filters ) {
+		// Filter ROWS @TODO(maybe): use prefilter on cfgFiles before join
 		$new_TAB_rows = array() ;
 		foreach( $TAB_rows as $idx => $row ) {
 			if( $filter_arrSites && !in_array($row['whse_code'],$filter_arrSites) ) {
@@ -276,10 +277,31 @@ function specDbsPeople_Real_getData( $post_data ) {
 			$new_TAB_rows[] = $row ;
 		}
 		$TAB_rows = $new_TAB_rows ;
+		
+		// TODO Filter DATA/RECORDS, remove orphans (use no-show peopleCode)
+		$new_TAB_data = array() ;
+		foreach( $TAB_data as $peopleday_record ) {
+			$whses = array($peopleday_record['std_whse_code']) ;
+			if( $peopleday_record['works'] ) {
+				foreach( $peopleday_record['works'] as $work ) {
+					if( $work['alt_whse_code'] && !in_array($work['alt_whse_code'],$whses) ) {
+						$whses[] = $work['alt_whse_code'] ;
+					}
+				}
+			}
+			$teams = array($peopleday_record['std_team_code']) ;
+			
+			if( $filter_arrSites && !array_intersect($whses,$filter_arrSites) ) {
+				continue ;
+			}
+			if( $filter_arrTeams && !array_intersect($teams,$filter_arrTeams) ) {
+				continue ;
+			}
+			
+			$new_TAB_data[] = $peopleday_record ;
+		}
+		$TAB_data = $new_TAB_data ;
 	}
-	
-	
-	// TODO Filter ROWS, remove orphans (use no-show peopleCode)
 	
 	
 	return array('success'=>true, 'data'=>$TAB_data, 'rows'=>array_values($TAB_rows), 'columns'=>$TAB_columns) ;
