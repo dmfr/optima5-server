@@ -175,7 +175,12 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryResultView',{
 					type:'memory'
 				}
 			},
-			plugins: [Ext.create('Ext.ux.ColumnAutoWidthPlugin', {allColumns:true, minAutoWidth:90, singleOnly:true})]
+			plugins: [Ext.create('Ext.ux.ColumnAutoWidthPlugin', {
+				allColumns: true,
+				minAutoWidth: 90,
+				singleOnly: true,
+				suspendAutoSize: (columns.length > 20)
+			})]
 		});
 		
 		return tabgrid ;

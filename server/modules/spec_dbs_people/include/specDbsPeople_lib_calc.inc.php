@@ -89,13 +89,13 @@ function specDbsPeople_lib_calc_tool_runQuery( $q_id, $where_params=NULL ) {
 				$groupHash = implode('@@',$groupDesc) ;
 				$key_id = $RES['RES_groupHash_groupKey'][$groupHash] ;
 				
-				$ROW[$date] = ($key_id ? reset($RES['RES_groupKey_selectId_value'][$key_id]) : NULL ) ;
+				$ROW[$date] = ( ($key_id && $RES['RES_groupKey_selectId_value'][$key_id]) ? reset($RES['RES_groupKey_selectId_value'][$key_id]) : reset($RES['RES_selectId_nullValue']) ) ;
 			}
 		} else {
 			$groupHash = $group_id_key ;
 			$key_id = $RES['RES_groupHash_groupKey'][$groupHash] ;
 			foreach( $selectMap as $select_id => $select_lib ) {
-				$ROW[$select_lib] = ($key_id ? $RES['RES_groupKey_selectId_value'][$key_id][$select_id] : NULL) ;
+				$ROW[$select_lib] = ( ($key_id && $RES['RES_groupKey_selectId_value'][$key_id]) ? $RES['RES_groupKey_selectId_value'][$key_id][$select_id] : $RES['RES_selectId_nullValue'][$select_id] ) ;
 			}
 		}
 		

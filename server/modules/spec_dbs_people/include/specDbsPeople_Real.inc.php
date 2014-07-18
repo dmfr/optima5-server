@@ -133,6 +133,9 @@ function specDbsPeople_Real_getData( $post_data ) {
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$cur_date = $arr['date_DATE'] ;
 		$people_code = $arr['field_PPL_CODE'] ;
+		if( !isset($buildTAB[$cur_date][$people_code]) ) {
+			continue ;
+		}
 	
 		$work = array(
 			'filerecord_id' => $arr['filerecord_id'],
@@ -152,6 +155,9 @@ function specDbsPeople_Real_getData( $post_data ) {
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$cur_date = $arr['date_DATE'] ;
 		$people_code = $arr['field_PPL_CODE'] ;
+		if( !isset($buildTAB[$cur_date][$people_code]) ) {
+			continue ;
+		}
 	
 		$abs = array(
 			'filerecord_id' => $arr['filerecord_id'],
