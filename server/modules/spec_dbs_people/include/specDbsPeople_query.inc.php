@@ -6,6 +6,7 @@ function specDbsPeople_query_getLibrary() {
 	$TAB = array() ;
 	
 	$TAB[] = array('querysrc_id'=>'0:RH', 'q_name'=>'RH : Base People', 'params_hidden'=>true ) ;
+	$TAB[] = array('querysrc_id'=>'0:CEQ_GRID', 'q_name'=>'CEQ : Vue people/dates') ;
 	$TAB[] = array('querysrc_id'=>'0:ITM_NC', 'q_name'=>'Interim : NC') ;
 	
 	$query = "SELECT input_query_src.querysrc_id , query.query_name AS q_name  FROM input_query_src 
@@ -33,6 +34,9 @@ function specDbsPeople_query_getTableResult( $post_data ) {
 	switch( $ttmp[1] ) {
 		case 'RH' :
 			return specDbsPeople_query_getTableResult_RH() ;
+			break ;
+		case 'CEQ_GRID' :
+			return specDbsPeople_query_getTableResult_CEQGRID($form_data['date_start'],$form_data['date_end']) ;
 			break ;
 		case 'ITM_NC' :
 			return specDbsPeople_query_getTableResult_ITMNC($form_data['date_start'],$form_data['date_end']) ;
@@ -95,6 +99,129 @@ function specDbsPeople_query_getTableResult_RH() {
 	return array(
 		'success'=>true,
 		'query_vars'=>array('q_name'=>'RH : Base People'),
+		'result_tab'=>array('columns'=>$RET_columns,'data'=>$RET_data)
+	) ;
+}
+
+function specDbsPeople_query_getTableResult_CEQGRID( $date_start, $date_end ) {
+	$ttmp = specDbsPeople_cfg_getCfgBibles() ;
+	$cfg_bibles = $ttmp['data'] ;
+	$cfg_bibles_idText = array() ;
+	foreach( $cfg_bibles as $bible_code => $cfg_bible ) {
+		$cfg_bibles_idText[$bible_code] = array() ;
+		foreach( $cfg_bible as $row ) {
+			$cfg_bibles_idText[$bible_code][$row['id']] = $row['text'] ;
+		}
+	}
+	
+	$ttmp = specDbsPeople_cfg_getPeopleCalcAttributes() ;
+	$cfg_calcAttributes = $ttmp['data'] ;
+	
+	$json = specDbsPeople_Real_getData( array('date_start'=>$date_start, 'date_end'=>$date_end) ) ;
+	
+	$cols = array() ;
+	$cols[] = 'whse_txt' ;
+	$cols[] = 'team_txt' ;
+	$cols[] = 'std_role_txt' ;
+	$cols[] = 'contract_txt' ;
+	$cols[] = 'people_code' ;
+	$cols[] = 'people_name' ;
+	$cols[] = 'people_techid' ;
+	$arr_dates = array() ;
+	$cur_date = date('Y-m-d',strtotime($date_start)) ;
+	while( strtotime($cur_date) <= strtotime($date_end) ) {
+		//$col_key = 'date_'.date('Ymd',strtotime($cur_date)) ;
+		$col_key = $cur_date ;
+		$cols[] = $col_key.'/Role' ;
+		$cols[] = $col_key.'/Durée' ;
+		$cur_date = date('Y-m-d',strtotime('+1 day',strtotime($cur_date))) ;
+		$arr_dates[$cur_date] = $col_key ;
+	}
+	
+	$STORE_data = array() ;
+	foreach( $json['data'] as $record ) {
+		$STORE_data[$record['id']] = $record ;
+	}
+	
+	$RET_columns = array() ;
+	foreach( $cols as $col ) {
+		$RET_columns[] = array('dataIndex'=>$col,'dataType'=>'string','text'=>$col) ;
+	}
+	
+	$RET_data = array() ;
+	usort($json['rows'],create_function('$r1,$r2','return strcmp($r1["people_name"],$r2["people_name"]);')) ;
+	foreach( $json['rows'] as $data_row ) {
+		$data_row['whse_txt'] = $cfg_bibles_idText['WHSE'][$data_row['whse_code']] ;
+		$data_row['team_txt'] = $cfg_bibles_idText['TEAM'][$data_row['team_code']] ;
+		$data_row['std_role_txt'] = $data_row['std_role_code'] ;
+		$data_row['contract_txt'] = $cfg_bibles_idText['CONTRACT'][$data_row['contract_code']] ;
+		
+		foreach( $arr_dates as $date_sql ) {
+			// retrieve record
+			$id = $data_row['people_code'].'@'.$date_sql ;
+			$record = $STORE_data[$id] ;
+			if( !$record ) {
+				continue ;
+			}
+			//print_r($record) ;
+			
+			$role_key = $date_sql.'/Role' ;
+			$duration_key = $date_sql.'/Durée' ;
+			
+			$data_row[$role_key] = NULL ;
+			$data_row[$duration_key] = 0 ;
+			
+			if( $record['status_isVirtual'] ) {
+				if( $record['std_abs_code'][0] == '_' ) {
+					$data_row[$role_key] = $record['std_role_code'] ;
+					$data_row[$duration_key] += $record['std_daylength'] ;
+				} else {
+					$data_row[$role_key] = $record['std_abs_code'] ;
+					$data_row[$duration_key] = '' ;
+				}
+				continue ;
+			}
+			
+			$data_row[$role_key] = array() ;
+			if( $record['std_whse_code'] != $data_row['whse_code'] ) {
+				// mode ALT whse
+				foreach( $record['works'] as $work ) {
+					if( $work['alt_whse_code'] == $data_row['whse_code'] ) {
+						$data_row[$role_key][] = $work['role_code'] ;
+						$data_row[$duration_key] += $work['role_length'] ;
+					}
+				}
+				if( $data_row[$duration_key] == 0 ) {
+					$data_row[$duration_key] = '' ;
+				}
+			} else {
+				// mode std
+				foreach( $record['works'] as $work ) {
+					if( $work['alt_whse_code'] ) {
+						if( !in_array('@',$data_row[$role_key]) ) {
+							$data_row[$role_key][] = '@' ;
+						}
+						continue ;
+					}
+					$data_row[$role_key][] = $work['role_code'] ;
+					$data_row[$duration_key] += $work['role_length'] ;
+				}
+				foreach( $record['abs'] as $abs ) {
+					$data_row[$role_key][] = $abs['abs_code'] ;
+				}
+				if( $record['std_abs_code'][0] != '_' && $data_row[$duration_key] == 0 ) {
+					$data_row[$duration_key] = '' ;
+				}
+			}
+			$data_row[$role_key] = implode('+',$data_row[$role_key]) ;
+		}
+		
+		$RET_data[] = $data_row ;
+	}
+
+	return array(
+		'success'=>true,
+		'query_vars'=>array('q_name'=>'CEQ : Vue people/dates'),
 		'result_tab'=>array('columns'=>$RET_columns,'data'=>$RET_data)
 	) ;
 }
