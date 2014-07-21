@@ -180,7 +180,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryResultView',{
 				minAutoWidth: 90,
 				singleOnly: true,
 				suspendAutoSize: (columns.length > 20)
-			})]
+			}),{
+				ptype: 'bufferedrenderer'
+			}]
 		});
 		
 		return tabgrid ;
