@@ -35,10 +35,11 @@
 		"allowMultipleInstances":false,
 		"params": [{"paramCode":"note_uri"}]
 	},{
-		"enabled":false,
+		"enabled":true,
 		"moduleId":"settings",
 		"moduleName":"Settings",
 		"moduleClass":"Optima5.Modules.Settings.SettingsModule",
+		"moduleCssSrc":"module-settings.css",
 		"moduleType":"settings",
 		"iconCode":"settings",
 		"params": []
