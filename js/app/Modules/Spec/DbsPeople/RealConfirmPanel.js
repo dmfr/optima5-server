@@ -102,7 +102,16 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealConfirmPanel',{
 		this.callParent() ;
 		
 		if( this.data ) {
-			this.down('#pHeader').update(this.data) ;
+			var headerCmp = this.down('#pHeader') ;
+			headerCmp.update(this.data) ;
+			if( headerCmp.rendered ) {
+				me.headerAttachEvents() ;
+			} else {
+				headerCmp.on('afterrender',function() {
+					me.headerAttachEvents() ;
+				},me) ;
+			}
+			
 			if( !Ext.isEmpty(this.data.exception_rows) ) {
 				this.down('grid').setVisible(true) ;
 				this.down('grid').getStore().loadData( this.data.exception_rows ) ;
@@ -118,6 +127,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealConfirmPanel',{
 						record.set('_error',true) ;
 					}
 				},this) ;
+				this.down('grid').headerCt.down('[dataIndex="checked"]').setVisible( this.data.actionDay=='valid_ceq' ) ;
 				if( disableBtn ) {
 					this.down('#btnSubmit').setVisible(false) ;
 				}
@@ -168,29 +178,126 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealConfirmPanel',{
 							'<tpl if="exception_rows">',
 							'<tr>',
 								'<td class="op5-spec-dbspeople-realvalidhdr-tdlabel">Nb exceptions :</td>',
-								'<td class="op5-spec-dbspeople-realvalidhdr-tdvalue op5-spec-dbspeople-realvalidhdr-exception">{[values.exception_rows.length]}</td>',
+								'<td class="op5-spec-dbspeople-realvalidhdr-tdvalue op5-spec-dbspeople-realvalidhdr-exception">{[this.getExceptionsCount(values)]}</td>',
 							'</tr>',
 							'</tpl>',
 							'</table>',
 						'</div>',
 					'</div>',
-				'</div>'
+			  
+					'<div class="op5-spec-mrfoxy-promoformheader-actions">',
+						'<tpl if="this.isValidRh(values)">',
+						'<div class="op5-spec-mrfoxy-promoformheader-action-btn op5-spec-mrfoxy-promoformheader-action-btn-save">',
+						'</div>',
+						'</tpl>',
+					'</div>',
+				'</div>',
+				{
+					disableFormats: true,
+					getExceptionsCount: function( values ) {
+						var cnt = 0 ;
+						Ext.Array.each( values.exception_rows, function(exception_row) {
+							switch( values.actionDay ) {
+								case 'valid_ceq' :
+									if( !exception_row.ceq_show ) {
+										return ;
+									}
+									break ;
+								case 'valid_rh' :
+									if( !exception_row.rh_show ) {
+										return ;
+									}
+									break ;
+							}
+							cnt++ ;
+						}) ;
+						return cnt ;
+					},
+					isValidRh: function( values ) {
+						return (values.actionDay=='valid_rh') ;
+					}
+				}
 			]
 		} ;
 		
 		return headerCfg ;
 	},
+	headerAttachEvents: function() {
+		var me=this,
+			headerCmp = me.getComponent('pHeader'),
+			headerEl = headerCmp.getEl(),
+			btnSaveEl = headerEl.down('.op5-spec-mrfoxy-promoformheader-action-btn-save') ;
+		
+		if( btnSaveEl ) {
+			btnSaveEl.un('click',me.onExport,me) ;
+			btnSaveEl.on('click',me.onExport,me) ;
+		}
+	},
+	
 	onSubmit: function() {
-		var allChecked = true ;
-		this.down('grid').getStore().each( function(rec) {
-			if( !rec.get('checked') ) {
-				allChecked = false ;
+		if( this.down('grid').headerCt.down('[dataIndex="checked"]').isVisible() ) {
+			var allChecked = true ;
+			this.down('grid').getStore().each( function(rec) {
+				if( !rec.get('checked') ) {
+					allChecked = false ;
+				}
+			}) ;
+			if( !allChecked ) {
+				Ext.MessageBox.alert('Confirmation','Veuillez valider toutes les exceptions') ;
+				return ;
 			}
-		}) ;
-		if( !allChecked ) {
-			Ext.MessageBox.alert('Confirmation','Veuillez valider toutes les exceptions') ;
-			return ;
 		}
 		this.fireEvent('submit',this) ;
+	},
+	onExport: function() {
+		var exportParams = this.parentRealPanel.optimaModule.getConfiguredAjaxParams() ;
+		Ext.apply(exportParams,{
+			_moduleId: 'spec_dbs_people',
+			_action: 'query_exportXLS',
+			data: Ext.JSON.encode([this.getExportData()])
+		}) ;
+		Ext.create('Ext.ux.dams.FileDownloader',{
+			renderTo: Ext.getBody(),
+			requestParams: exportParams,
+			requestAction: Optima5.Helper.getApplication().desktopGetBackendUrl(),
+			requestMethod: 'POST'
+		}) ;
+	},
+	getExportData: function() {
+		var queryVars = {
+			q_name:'Validation RH / Exceptions',
+			fields: [{
+				fieldLabel: 'Date',
+				fieldValue: this.data.date_sql
+			},{
+				fieldLabel: 'Entrepôt',
+				fieldValue: this.data.filter_site_txt
+			},{
+				fieldLabel: 'Equipe',
+				fieldValue: this.data.filter_team_txt
+			}]
+		},
+		columns=[],
+		data= Ext.Array.pluck( this.down('grid').getStore().getRange(), 'data' ) ;
+		
+		Ext.Object.each({
+			people_name: 'People Nom',
+			exception_type: 'Type exception',
+			exception_txt: 'Détail'
+		}, function(mkey,mtxt){
+			columns.push({
+				dataIndex: mkey,
+				dataType: 'string',
+				text: mtxt
+			});
+		});
+		
+		return {
+			query_vars: queryVars,
+			result_tab: {
+				columns: columns,
+				data: data
+			}
+		};
 	}
 }) ;

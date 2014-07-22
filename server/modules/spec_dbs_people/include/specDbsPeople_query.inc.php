@@ -510,6 +510,14 @@ function specDbsPeople_query_exportXLS( $post_data ) {
 				'fieldValue' => $queryVars['date_start'].' >> '.$queryVars['date_end']
 			) ;
 		}
+		if( $queryVars['fields'] ) {
+			foreach( $queryVars['fields'] as $queryVarsField ) {
+				$header_table[] = array(
+					'fieldLabel' => $queryVarsField['fieldLabel'],
+					'fieldValue' => $queryVarsField['fieldValue']
+				) ;
+			}
+		}
 		
 		$objWorksheet->insertNewRowBefore(1, count($header_table)+1);
 		$row = 1 ;
