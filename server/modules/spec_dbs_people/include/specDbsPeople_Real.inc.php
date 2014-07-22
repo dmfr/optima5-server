@@ -583,7 +583,7 @@ function specDbsPeople_Real_actionDay_lib_valid_rh( $peopleday_record, $filter_a
 	foreach( $peopleday_record['abs'] as $slice ) {
 		$total_duration += $slice['abs_length'] ;
 	}
-	if( $total_duration < $peopleday_record['std_daylength'] ) {
+	if( $total_duration < $peopleday_record['std_daylength_min'] ) {
 		return FALSE ;
 	}
 	

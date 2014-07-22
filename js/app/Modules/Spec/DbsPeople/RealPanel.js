@@ -1733,7 +1733,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 					_do_valid: 1
 				}),
 				callback: function() {
-					validConfirmPanel.getEl().unmask ;
+					validConfirmPanel.getEl().unmask() ;
 				},
 				success: function(response) {
 					if( Ext.JSON.decode(response.responseText).success != true ) {
