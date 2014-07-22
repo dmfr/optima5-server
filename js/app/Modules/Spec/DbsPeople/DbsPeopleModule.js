@@ -15,7 +15,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.DbsPeopleModule', {
 			width:800,
 			height:600,
 			resizable:true,
-			maximizable:false,
 			layout:'fit',
 			items:[Ext.create('Optima5.Modules.Spec.DbsPeople.MainPanel',{
 				optimaModule: me,
