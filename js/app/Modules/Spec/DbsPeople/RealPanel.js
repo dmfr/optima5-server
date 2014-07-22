@@ -977,15 +977,17 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			}
 		}
 		
-		// Set "exception day" style
+		// Set "exception day" + "Alert Due" style
 		Ext.Object.each( jsonResponse.columns, function( dSql, colCfg ) {
 			var column = grid.headerCt.down('[dateSqlHead="'+dSql+'"]') ;
 			column.colCfg = colCfg ;
+			column[colCfg.status_alertDue ? 'addCls':'removeCls']('op5-spec-dbspeople-realcolor-alertdue') ;
 			Ext.Array.each( column.query('gridcolumn'), function(subCol) {
 				subCol.tdCls = '' ;
 				subCol.tdCls += ( colCfg.status_exceptionDay ? ' '+'op5-spec-dbspeople-realcolor-exceptionday' : '') ;
 			}) ;
 		},this) ;
+		
 		
 		// peopledayStore + adapter (re)init
 		this.peopledayStore = Ext.create('Ext.data.Store',{

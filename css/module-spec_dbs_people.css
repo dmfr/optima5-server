@@ -211,6 +211,18 @@
 	background-image:
 		repeating-linear-gradient(-45deg, #9EC49F, #9EC49F 1px, transparent 1px, transparent 14px);
 }
+.op5-spec-dbspeople-realcolor-alertdue > .x-column-header-inner {
+	font-weight: bold ;
+	background-size: 20px 20px;
+	background-image:
+		-webkit-repeating-linear-gradient(-45deg, #FF6769, #FF6769 5px, transparent 1px, transparent 14px);
+	background-image:
+		-moz-repeating-linear-gradient(-45deg, #FF6769, #FF6769 5px, transparent 1px, transparent 14px);
+	background-image:
+		-o-repeating-linear-gradient(-45deg, #FF6769, #FF6769 5px, transparent 1px, transparent 14px);
+	background-image:
+		repeating-linear-gradient(-45deg, #FF6769, #FF6769 5px, transparent 1px, transparent 14px);
+}
 
 
 .op5-spec-dbspeople-balance-pos .x-grid-cell-inner { 

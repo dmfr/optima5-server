@@ -172,13 +172,6 @@ function specDbsPeople_Real_getData( $post_data ) {
 	$TAB_data = array() ;
 	$TAB_rows = array() ;
 	foreach( $buildTAB as $sql_date => $arr1 ) {
-		$TAB_columns[$sql_date] = array(
-			'enable_open' => false,
-			'enable_valid_ceq' => false,
-			'enable_valid_rh' => false,
-			'status_virtual' => true,
-			'status_exceptionDay' => $cfg_arrDatesException[$sql_date]
-		);
 		foreach( $arr1 as $people_code => $peopleday_record ) {
 			$peopleday_record['id'] = $people_code.'@'.$sql_date ;
 			$TAB_data[] = $peopleday_record ;
@@ -230,13 +223,15 @@ function specDbsPeople_Real_getData( $post_data ) {
 	
 	// Build columns
 	$TAB_columns = array() ;
+	$now = strtotime(date('Y-m-d')) ;
 	foreach( $buildTAB as $sql_date => $arr1 ) {
 		$TAB_columns[$sql_date] = array(
 			'enable_open' => false,
 			'enable_valid_ceq' => false,
 			'enable_valid_rh' => false,
 			'status_virtual' => true,
-			'status_exceptionDay' => $cfg_arrDatesException[$sql_date]
+			'status_exceptionDay' => $cfg_arrDatesException[$sql_date],
+			'status_alertDue' => false
 		);
 		foreach( $arr1 as $people_code => $peopleday_record ) {
 			if( $filter_arrSites && !in_array($peopleday_record['std_whse_code'],$filter_arrSites) ) {
@@ -256,6 +251,11 @@ function specDbsPeople_Real_getData( $post_data ) {
 			}
 			if( !$peopleday_record['status_isVirtual'] && !$peopleday_record['status_isValidRh'] ) {
 				$TAB_columns[$sql_date]['enable_valid_rh'] = TRUE ;
+			}
+		}
+		if( (($now - strtotime($sql_date)) / (3600*24)) > 1 ) {
+			if( $TAB_columns[$sql_date]['enable_valid_ceq'] || $TAB_columns[$sql_date]['enable_valid_rh'] ) {
+				$TAB_columns[$sql_date]['status_alertDue'] = TRUE ;
 			}
 		}
 		if( $TAB_columns[$sql_date]['enable_open'] ) {
