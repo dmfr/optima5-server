@@ -17,10 +17,11 @@ function specWbMrfoxy_stat_performance_getResult( $post_data ) {
 	paracrm_queries_mergerTransaction_init( array('qmerge_id'=>$q_id) , $arr_saisie ) ;
 	
 	// replace conditions
+	$fileCondition_idx = NULL ;
 	$query_vars = array() ;
 	$query_vars['time_mode'] = $form_data['time_mode'] ;
 	$query_vars['break_date'] = $form_data['break_date'] ;
-	foreach( $arr_saisie['fields_mwhere'] as &$field_mwhere ) {
+	foreach( $arr_saisie['fields_mwhere'] as $idx => &$field_mwhere ) {
 		//print_r($field_mwhere) ;
 		if( $field_mwhere['mfield_type'] == 'link' && $field_mwhere['mfield_linkbible'] == '_COUNTRY' && $form_data['country_code'] ) {
 			$field_mwhere['condition_bible_entries'] = $form_data['country_code'] ;
@@ -37,8 +38,69 @@ function specWbMrfoxy_stat_performance_getResult( $post_data ) {
 			$query_vars['prod_code'] = $form_data['prod_code'] ;
 			$query_vars['prod_text'] = $_opDB->query_uniqueValue("SELECT field_PRODGROUPTXT FROM view_bible_IRI_PROD_tree WHERE treenode_key='{$form_data['prod_code']}'") ;
 		}
+		if( $field_mwhere['mfield_type'] == 'file' ) {
+			$fileCondition_idx = $idx ;
+		}
 	}
 	unset($field_mwhere) ;
+	if( $fileCondition_idx !== NULL ) {
+		switch( $query_vars['time_mode'] ) {
+			case 'TO_DATE' :
+			case 'FROM_DATE' :
+				// HACK? classif de toutes les promo
+				
+					// Load every CROP details + "middle date" boundary
+					$arr_cropYear_data = array() ;
+					$ttmp = paracrm_data_getFileGrid_data( array('file_code'=>'_CFG_CROP'), $auth_bypass=TRUE ) ;
+					foreach( $ttmp['data'] as $data_row ) {
+						$time_apply = strtotime( $data_row['_CFG_CROP_field_DATE_APPLY'] ) ;
+						$target_time = strtotime( date('Y',$time_apply).'-'.date('m',strtotime($query_vars['break_date'])).'-'.date('d',strtotime($query_vars['break_date'])) ) ;
+						if( $target_time < $time_apply ) {
+							$target_time = strtotime('+1 year',$target_time) ;
+						}
+						
+						$cropYear = $data_row['_CFG_CROP_field_CROP_YEAR'] ;
+						$arr_cropYear_data[$cropYear] = array(
+							'date_apply' => date('Y-m-d', $time_apply),
+							'date_break' => date('Y-m-d', $target_time)
+						); 
+					}
+					
+					// Classify all promos
+					$arr_TODATE_ids = array() ;
+					$arr_FROMDATE_ids = array() ;
+					$ttmp = specWbMrfoxy_promo_getGrid( array('filter_isProd'=>true) ) ;
+					foreach( $ttmp['data'] as $promo_row ) {
+						$cropYear_code = $promo_row['cropYear_code'] ;
+						$cropYear_infos = $arr_cropYear_data[$cropYear_code] ;
+						if( !$cropYear_infos ) {
+							continue ;
+						}
+						if( $promo_row['date_start'] > $cropYear_infos['date_break'] ) {
+							$arr_FROMDATE_ids[] = $promo_row['_filerecord_id'] ;
+						}
+						if( $promo_row['date_start'] <= $cropYear_infos['date_break'] ) {
+							$arr_TODATE_ids[] = $promo_row['_filerecord_id'] ;
+						}
+					}
+					
+					switch( $query_vars['time_mode'] ) {
+						case 'TO_DATE' :
+							$arr_filerecord_ids = $arr_TODATE_ids ;
+							break ;
+						case 'FROM_DATE' :
+							$arr_filerecord_ids = $arr_FROMDATE_ids ;
+							break ;
+					}
+					
+				$arr_saisie['fields_mwhere'][$fileCondition_idx]['condition_file_ids'] = json_encode( $arr_filerecord_ids ) ;
+				break ;
+			
+			default :
+				unset($arr_saisie['fields_mwhere'][$fileCondition_idx]) ;
+				break ;
+		}
+	}
 	
 	// Exec requete
 	$RES = paracrm_queries_process_qmerge($arr_saisie , FALSE ) ;

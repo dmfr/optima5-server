@@ -107,6 +107,7 @@ function specWbMrfoxy_promo_getGrid( $post_data ) {
 		$row['status_code'] = $paracrm_row['WORK_PROMO_field_STATUS'] ;
 		$row['status_percent'] = $paracrm_row['WORK_PROMO_field_STATUS_entry_PERCENT'] ;
 		$row['status_text'] = $paracrm_row['WORK_PROMO_field_STATUS_entry_STATUS_TXT'] ;
+		$row['cropYear_code'] = $paracrm_row['WORK_PROMO_field_DATE_CROP'] ;
 		$row['date_supply_start'] = date('Y-m-d',strtotime($paracrm_row['WORK_PROMO_field_DATE_SUPPLY_START'])) ;
 		$row['date_supply_end'] = date('Y-m-d',strtotime($paracrm_row['WORK_PROMO_field_DATE_SUPPLY_END'])) ;
 		$row['date_start'] = date('Y-m-d',strtotime($paracrm_row['WORK_PROMO_field_DATE_START'])) ;
