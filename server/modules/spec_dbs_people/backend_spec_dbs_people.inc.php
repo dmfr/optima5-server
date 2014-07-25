@@ -46,6 +46,8 @@ switch( $post_data['_action'] )
 	return specDbsPeople_query_getResult( $post_data ) ;
 	case 'query_exportXLS' :
 	return specDbsPeople_query_exportXLS( $post_data ) ;
+	case 'query_getResultXLS' :
+	return specDbsPeople_query_getResultXLS( $post_data ) ;
 	
 	
 	case 'auth_getTable' :

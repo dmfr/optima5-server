@@ -240,7 +240,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryPanel',{
 	},
 	onHeaderDownload: function(e,t) {
 		var me = this ;
-		me.handleDownload() ;
+		me.handleDownloadFast() ;
 	},
 	
 	handleSubmit: function() {
@@ -284,7 +284,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryPanel',{
 			modePreview: true,
 			border: false,
 			listeners: {
-				savepreview: this.handleDownload,
+				savepreview: this.handleDownloadFast,
 				scope: this
 			}
 		}) ) ;
@@ -309,6 +309,22 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryPanel',{
 			_moduleId: 'spec_dbs_people',
 			_action: 'query_exportXLS',
 			data: Ext.JSON.encode(postData)
+		}) ;
+		Ext.create('Ext.ux.dams.FileDownloader',{
+			renderTo: Ext.getBody(),
+			requestParams: exportParams,
+			requestAction: Optima5.Helper.getApplication().desktopGetBackendUrl(),
+			requestMethod: 'POST'
+		}) ;
+	},
+	handleDownloadFast: function() {
+		var me = this ;
+		
+		var exportParams = me.optimaModule.getConfiguredAjaxParams() ;
+		Ext.apply(exportParams,{
+			_moduleId: 'spec_dbs_people',
+			_action: 'query_getResultXLS',
+			data: Ext.JSON.encode(me.child('form').getForm().getValues())
 		}) ;
 		Ext.create('Ext.ux.dams.FileDownloader',{
 			renderTo: Ext.getBody(),

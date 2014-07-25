@@ -665,4 +665,9 @@ function specDbsPeople_query_exportXLS( $post_data ) {
 	unlink($tmpfilename) ;
 	die() ;
 }
+
+
+function specDbsPeople_query_getResultXLS( $post_data ) {
+	specDbsPeople_query_exportXLS( array('data'=>json_encode(array( specDbsPeople_query_getResult($post_data) ))) ) ;
+}
 ?>
