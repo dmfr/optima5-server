@@ -42,7 +42,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.GraphInfoViewBis',{
 			{iconCls: 'op5-spec-mrfoxy-graphinfobis-done', text:'Actual'},
 			{iconCls: 'op5-spec-mrfoxy-graphinfobis-reserved', text:'Committed'},
 			{iconCls: 'op5-spec-mrfoxy-graphinfobis-this', text:'This promo'},
-			{iconCls: 'op5-spec-mrfoxy-graphinfobis-free', text:'Free'}
+			{iconCls: 'op5-spec-mrfoxy-graphinfobis-free', text:'Free'},
+			{iconCls: 'op5-spec-mrfoxy-graphinfobis-over', text:'OverBudget'}
 		]
 	}
 });

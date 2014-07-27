@@ -86,7 +86,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetBar',{
 			animate: true,
 			shadow: false,
 			store: {
-				fields: ['year', 'Actual', 'Committed', 'ThisPromo', 'Free'],
+				fields: ['year', 'Actual', 'Committed', 'ThisPromo', 'Free', 'Over'],
 				data: [
 					this.getRecord()
 				]
@@ -94,7 +94,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetBar',{
 			axes: [{
 				type: 'Numeric',
 				position: 'bottom',
-				fields: ['Actual', 'Committed', 'ThisPromo', 'Free'],
+				fields: ['Actual', 'Committed', 'ThisPromo', 'Free', 'Over'],
 				title: false,
 				grid: true,
 				label: {
@@ -109,8 +109,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetBar',{
 				axis: 'bottom',
 				gutter: 80,
 				xField: 'year',
-				yField: ['Actual', 'Committed', 'ThisPromo', 'Free'],
-				colorSet: ['#A61120','#115FA6','#9314A6','#94AE0A'],
+				yField: ['Actual', 'Committed', 'ThisPromo', 'Free', 'Over'],
+				colorSet: ['#A61120','#115FA6','#9314A6','#94AE0A','#FF0000'],
 				renderer: serieRenderer,
 				getLegendColor: function(index) {
 					return this.colorSet[index] ;
@@ -141,9 +141,11 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetBar',{
 		if( Ext.isEmpty(this.render_graphData) ){
 			return {year: this.data_cropYear} ;
 		}
+		var calcFree = this.render_graphData.FREE - this.render_variableCost ;
 		return {
 			year: this.data_cropYear,
-			Free: this.render_graphData.FREE - this.render_variableCost,
+			Over: ( calcFree < 0 ? (-1 * calcFree) : 0 ),
+			Free: ( calcFree > 0 ? calcFree : 0 ),
 			ThisPromo: this.render_variableCost,
 			Committed: this.render_graphData.COMMIT,
 			Actual: this.render_graphData.ACTUAL

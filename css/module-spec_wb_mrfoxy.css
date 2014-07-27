@@ -564,7 +564,7 @@ table.op5-spec-mrfoxy-statresult-tbl > tbody > tr > td.op5-spec-mrfoxy-statresul
 	padding-left: 12px ;
 	line-height: 8px ;
 	font-size: 8pt;
-	margin-right: 32px;
+	margin-right: 16px;
 }
 .op5-spec-mrfoxy-graphinfo-item-icon {
 	position: absolute ;
@@ -581,6 +581,9 @@ table.op5-spec-mrfoxy-statresult-tbl > tbody > tr > td.op5-spec-mrfoxy-statresul
 	background-color: red ;
 }
 
+.op5-spec-mrfoxy-graphinfobis-over {
+	background-color: #FF0000 ;
+}
 .op5-spec-mrfoxy-graphinfobis-free {
 	background-color: #94AE0A ;
 }
