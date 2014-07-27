@@ -236,9 +236,12 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarSubpanel' ,{
 				nodeText: rec.get('country_display'),
 				icon: rec.get('country_iconurl'),
 				children: ( this.bibleTreestore.getNodeById( rec.get('country_code') ) != null ? this.bibleTreestore.getNodeById( rec.get('country_code') ).copy(undefined,true).childNodes : [] ),
-				expanded: true
+				expanded: false
 			});
 		}, this) ;
+		if( countryChildren.length == 1 ) {
+			countryChildren[0].expanded = true ;
+		}
 		
 		var newRootNode = {
 			root: true,
