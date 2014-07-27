@@ -99,7 +99,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormSkuGridPanel',{
 				},{
 					text: 'Discount',
 					dataIndex: 'promo_price_coef',
-					priceColumn: true,
+					priceDiscountColumn: true,
 					width: 65,
 					align: 'right',
 					renderer: function(v) {
@@ -108,13 +108,24 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormSkuGridPanel',{
 					tdCls: 'op5-spec-mrfoxy-promoformlist-editablecolumn',
 					editor:Ext.create('Optima5.Modules.Spec.WbMrfoxy.PromoFormSkuGridPanelCoefField',{ cls: 'op5-spec-mrfoxy-promoformlist-editor-rightalign', hideTrigger:true, keyNavEnabled:false, mouseWheelEnabled:false})
 				},{
+					text: 'PriceCut',
+					dataIndex: 'promo_price_cut',
+					priceCutColumn: true,
+					width: 65,
+					align: 'right',
+					renderer: function(v) {
+						return Ext.util.Format.number( v, '0,0.00' ) ;
+					},
+					tdCls: 'op5-spec-mrfoxy-promoformlist-editablecolumn',
+					editor:Ext.create('Ext.form.field.Number',{ cls: 'op5-spec-mrfoxy-promoformlist-editor-rightalign', hideTrigger:true, keyNavEnabled:false, mouseWheelEnabled:false})
+				},{
 					text: 'Discount/UoM',
 					priceColumn: true,
 					width: 80,
 					align: 'right',
 					renderer: function(value,metaData,record) {
 						//console.log( record.get('cli_price_unit')+' '+record.get('cli_price_unit')+' '+record.get('cli_price_unit') ) ;
-						var calcValue = record.get('cli_price_unit') - (record.get('cli_price_unit') * record.get('promo_price_coef')) ;
+						var calcValue = record.get('cli_price_unit') - (record.get('cli_price_unit') * record.get('promo_price_coef')) + record.get('promo_price_cut') ;
 						return Ext.util.Format.number( calcValue, '0,0.00' ) ;
 					}
 				},{
@@ -124,7 +135,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormSkuGridPanel',{
 					align: 'right',
 					renderer: function(value,metaData,record) {
 						var stdCost = record.get('cli_price_unit') * record.get('promo_qty_forecast') ;
-						var calcValue =  stdCost * ( 1 - record.get('promo_price_coef') ) ;
+						var calcValue =  stdCost * ( 1 - record.get('promo_price_coef') ) + ( record.get('promo_qty_forecast') * record.get('promo_price_cut') ) ;
 						return Ext.util.Format.number( calcValue, '0,0' ) ;
 					},
 					tdCls: 'op5-spec-mrfoxy-promoformlist-totalcolumn'
@@ -171,23 +182,31 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormSkuGridPanel',{
 		}
 	},
 	
-	setPriceVisible: function( torf ) {
-		this.isPriceVisible = torf ;
-		Ext.Array.each( this.headerCt.query('[priceColumn]'), function( col ) {
+	setPriceDiscountVisible: function( torf ) {
+		this.isPriceDiscountVisible = torf ;
+		Ext.Array.each( this.headerCt.query('[priceDiscountColumn]'), function( col ) {
+			col[torf ? 'show' : 'hide']();
+		},this) ;
+	},
+	setPriceCutVisible: function( torf ) {
+		this.isPriceCutVisible = torf ;
+		Ext.Array.each( this.headerCt.query('[priceCutColumn]'), function( col ) {
 			col[torf ? 'show' : 'hide']();
 		},this) ;
 	},
 	getTotalDiscount: function() {
-		if( this.isPriceVisible ) {
-			forecastSku = 0 ;
-			this.getStore().each( function(record) {
+		forecastSku = 0 ;
+		this.getStore().each( function(record) {
+			if( this.isPriceDiscountVisible ) {
 				var stdCost = record.get('cli_price_unit') * record.get('promo_qty_forecast') ;
 				var calcValue =  stdCost * ( 1 - record.get('promo_price_coef') ) ;
 				forecastSku += Ext.util.Format.round( calcValue, 0 ) ;
-			},this) ;
-			return forecastSku ;
-		}
-		return 0 ;
+			}
+			if( this.setPriceCutVisible ) {
+				forecastSku += record.get('promo_price_cut') * record.get('promo_qty_forecast') ; ;
+			}
+		},this) ;
+		return forecastSku ;
 	},
 	
 	setSkuData: function( arrRecords ) {

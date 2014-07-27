@@ -193,6 +193,7 @@ function specWbMrfoxy_promo_getGrid( $post_data ) {
 				$row_sku['sku_uom'] = $paracrm_row_sku['WORK_PROMO_SKU_field_SKU_CODE_entry_PROD_UOM'] ;
 				$row_sku['sku_pcb'] = $paracrm_row_sku['WORK_PROMO_SKU_field_SKU_CODE_entry_PROD_PCB'] ;
 				$row_sku['cli_price_unit'] = $paracrm_row_sku['WORK_PROMO_SKU_field_PRICE_UNIT'] ;
+				$row_sku['promo_price_cut'] = $paracrm_row_sku['WORK_PROMO_SKU_field_PRICE_UNIT_CUT'] ;
 				$row_sku['promo_price_coef'] = $paracrm_row_sku['WORK_PROMO_SKU_field_PRICE_COEF'] ;
 				$row_sku['promo_qty_forecast'] = $paracrm_row_sku['WORK_PROMO_SKU_field_QTY_FORECAST'] ;
 				$row['promo_sku'][] = $row_sku ;
@@ -575,6 +576,7 @@ function specWbMrfoxy_promo_formSubmit( $post_data ) {
 			$arr_ins['field_SKU_CODE'] = $sku_row['sku_prodean'] ;
 			$arr_ins['field_QTY_FORECAST'] = $sku_row['promo_qty_forecast'] ;
 			$arr_ins['field_PRICE_COEF'] = $sku_row['promo_price_coef'] ;
+			$arr_ins['field_PRICE_UNIT_CUT'] = $sku_row['promo_price_cut'] ;
 			paracrm_lib_data_insertRecord_file( 'WORK_PROMO_SKU',$filerecord_parent_id,$arr_ins) ;
 		}
 	}

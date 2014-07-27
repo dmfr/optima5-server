@@ -506,9 +506,10 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 		// partie FINANCE FORECAST
 		var cost_billing_code = form.findField('cost_billing_code').getValue() ;
 		if( me.getSkuList() ) {
-			me.getSkuList().setPriceVisible( (cost_billing_code=='DIS' || cost_billing_code=='MX') ) ;
+			me.getSkuList().setPriceDiscountVisible( (cost_billing_code=='DIS' || cost_billing_code=='MX') ) ;
+			me.getSkuList().setPriceCutVisible( (cost_billing_code=='CUT') ) ;
 		}
-		me.query('#cost_forecast_fix')[0].setVisible( (cost_billing_code=='DIS' || cost_billing_code=='MX' || cost_billing_code=='BB') ) ;
+		me.query('#cost_forecast_fix')[0].setVisible( (cost_billing_code=='CUT' || cost_billing_code=='DIS' || cost_billing_code=='MX' || cost_billing_code=='BB') ) ;
 		me.query('#cost_forecast_var')[0].setVisible( (cost_billing_code=='MX' || cost_billing_code=='BB') ) ;
 		
 		// volet LISTE SKU
