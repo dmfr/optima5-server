@@ -203,6 +203,15 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 					break ;
 			}
 			
+			var boolrenderer = function(value) {
+				if( value==1 ) {
+					return '<b>X</b>' ;
+				}
+				else {
+					return '' ;
+				}
+			}
+		
 			var columnObject = new Object();
 			Ext.apply(columnObject,{
             text: v.tree_field_lib,
@@ -214,6 +223,11 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 			if( v.tree_field_is_key ){
 				Ext.apply(columnObject,{
 					xtype: 'treecolumn'
+				}) ;
+			}
+			if( v.tree_field_type == 'bool' ) {
+				Ext.apply(columnObject,{
+					renderer: boolrenderer
 				}) ;
 			}
 			if( v.tree_field_type == 'link' ) {
