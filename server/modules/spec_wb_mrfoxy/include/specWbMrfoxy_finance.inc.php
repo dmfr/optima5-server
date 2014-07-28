@@ -175,17 +175,20 @@ function specWbMrfoxy_finance_getGrid( $post_data ) {
 		)
 	);
 	
+	$json_budgetbar = specWbMrfoxy_finance_getBudgetBar( array(
+		'data_countryCode' => $filter_country,
+		'data_cropYear' => $filter_cropYear
+	) ) ;
+	$data_budgetbar = $json_budgetbar['data'] ;
 	
-	
-
 	return array(
 		'success'=>true,
 		'data' => array(
 			'revisions' => $_layout_revisions,
 			'groups' => $_layout_groups,
 			'stats' => array(
-				'cost_promo_done' => 25000,
-				'cost_promo_forecast' => 40000
+				'cost_promo_done' => $data_budgetbar['ACTUAL'],
+				'cost_promo_forecast' => $data_budgetbar['COMMIT']
 			)
 		)
 	) ;
