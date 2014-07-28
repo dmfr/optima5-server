@@ -66,10 +66,15 @@ function specWbMrfoxy_promo_getGrid( $post_data ) {
 		foreach( json_decode($post_data['filter'],true) as $filter ) {
 			$paracrm_field = NULL ;
 			switch( $filter['field'] ) {
+				case 'status_code' : $paracrm_field='WORK_PROMO_field_STATUS' ; break ;
 				case 'brand_text' : $paracrm_field='WORK_PROMO_field_BRAND' ; break ;
+				case 'date_supply_start' : $paracrm_field='WORK_PROMO_field_DATE_SUPPLY_START' ; break ;
+				case 'date_supply_end' : $paracrm_field='WORK_PROMO_field_DATE_SUPPLY_END' ; break ;
 				case 'date_start' : $paracrm_field='WORK_PROMO_field_DATE_START' ; break ;
+				case 'date_end' : $paracrm_field='WORK_PROMO_field_DATE_END' ; break ;
 				case 'store_text' : $paracrm_field='WORK_PROMO_field_STORE' ; break ;
 				case 'prod_text' : $paracrm_field='WORK_PROMO_field_PROD' ; break ;
+				case 'cost_billing_text' : $paracrm_field='WORK_PROMO_field_COST_BILLING' ; break ;
 				case 'mechanics_text' : $paracrm_field='WORK_PROMO_field_MECH_TYPE' ; break ;
 				default : continue 2 ;
 			}
@@ -121,6 +126,7 @@ function specWbMrfoxy_promo_getGrid( $post_data ) {
 		$row['mechanics_text'] = $paracrm_row['WORK_PROMO_field_MECH_TYPE_tree_CLASS_TXT'].' - '.$paracrm_row['WORK_PROMO_field_MECH_DETAIL'] ;
 		$row['mechanics_rewardcard'] = $paracrm_row['WORK_PROMO_field_MECH_REWARDCARD'] ;
 		$row['currency'] = $paracrm_row['WORK_PROMO_field_CURRENCY'] ;
+		$row['currency_symbol'] = $paracrm_row['WORK_PROMO_field_CURRENCY_tree_CURRENCY_SIGN'] ;
 		$row['cost_billing_code'] = $paracrm_row['WORK_PROMO_field_COST_BILLING'] ;
 		$row['cost_billing_text'] = $paracrm_row['WORK_PROMO_field_COST_BILLING_tree_PAYM_TXT'] ;
 		$row['cost_forecast'] = $paracrm_row['WORK_PROMO_field_COST_FORECAST'] ;

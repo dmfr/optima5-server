@@ -98,6 +98,13 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 								v = Ext.DomHelper.markup(b.getRenderTree());
 								b.destroy() ;
 							return v;
+						},
+						menuDisabled:false,
+						dataIndex: 'status_code',
+						filter: {
+							type: 'op5crmbasebible',
+							optimaModule: me.optimaModule,
+							bibleId: 'PROMO_STATUS'
 						}
 					},{
 						text: 'Brand',
@@ -112,6 +119,34 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 							bibleId: '_BRAND'
 						}
 					},{
+						text: 'Supply start',
+						dataIndex: 'date_supply_start',
+						width: 80,
+						renderer: function(v) {
+							return '<b>'+v+'</b>' ;
+						},
+						menuDisabled:false,
+						hidden: true,
+						hideable: true,
+						filter: {
+							type: 'date',
+							dateFormat: 'Y-m-d'
+						}
+					},{
+						text: 'Supply end',
+						dataIndex: 'date_supply_end',
+						width: 80,
+						renderer: function(v) {
+							return '<b>'+v+'</b>' ;
+						},
+						menuDisabled:false,
+						hidden: true,
+						hideable: true,
+						filter: {
+							type: 'date',
+							dateFormat: 'Y-m-d'
+						}
+					},{
 						text: 'Date start',
 						dataIndex: 'date_start',
 						width: 80,
@@ -119,6 +154,20 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 							return '<b>'+v+'</b>' ;
 						},
 						menuDisabled:false,
+						filter: {
+							type: 'date',
+							dateFormat: 'Y-m-d'
+						}
+					},{
+						text: 'Date end',
+						dataIndex: 'date_end',
+						width: 80,
+						renderer: function(v) {
+							return '<b>'+v+'</b>' ;
+						},
+						menuDisabled:false,
+						hidden: true,
+						hideable: true,
 						filter: {
 							type: 'date',
 							dateFormat: 'Y-m-d'
@@ -154,17 +203,77 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 						text: 'Billing',
 						dataIndex: 'cost_billing_text',
 						width: 75,
-						menuDisabled:false
+						menuDisabled:false,
+						filter: {
+							type: 'op5crmbasebibletree',
+							optimaModule: me.optimaModule,
+							bibleId: 'PROMO_PAYM'
+						}
 					},{
 						text: 'Mechanics',
 						dataIndex: 'mechanics_text',
-						width: 250,
+						width: 230,
 						menuDisabled:false,
 						filter: {
 							type: 'op5crmbasebibletree',
 							optimaModule: me.optimaModule,
 							bibleId: 'PROMO_MECH'
 						}
+					},{
+						dataIndex: 'cost_forecast',
+						text: 'Forecast',
+						width: 75,
+						align: 'right',
+						renderer: function(value,metaData,record) {
+							return Ext.util.Format.number( value, '0,0' ) + ' ' + record.get('currency_symbol') ;
+						},
+						menuDisabled:false,
+						hidden: true,
+						hideable: true
+					},{
+						dataIndex: 'cost_real',
+						text: 'Real Cost',
+						width: 75,
+						align: 'right',
+						renderer: function(value,metaData,record) {
+							return Ext.util.Format.number( value, '0,0' ) + ' ' + record.get('currency_symbol') ;
+						},
+						menuDisabled:false,
+						hidden: true,
+						hideable: true
+					},{
+						dataIndex: 'calc_uplift_vol',
+						text: 'Uplift(kg)',
+						width: 75,
+						align: 'right',
+						renderer: function(v) {
+							return Ext.util.Format.number( v, '0,0' ) + ' kg' ;
+						},
+						menuDisabled:false,
+						hidden: true,
+						hideable: true
+					},{
+						dataIndex: 'calc_uplift_per',
+						text: 'Uplift(%)',
+						width: 75,
+						align: 'right',
+						renderer: function(v) {
+							return Ext.util.Format.number( v, '0.00' ) + ' %' ;
+						},
+						menuDisabled:false,
+						hidden: true,
+						hideable: true
+					},{
+						dataIndex: 'calc_roi',
+						text: 'ROI (%)',
+						width: 75,
+						align: 'right',
+						renderer: function(v) {
+							return Ext.util.Format.number( v, '0.00' ) + ' %' ;
+						},
+						menuDisabled:false,
+						hidden: true,
+						hideable: true
 					}]
 				},
 				features: [{
