@@ -966,6 +966,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 	},
 	handleDownload: function() {
 		var me = this,
+			ajaxData = me.ajaxData,
 			grid = me.down('grid'),
 			store = grid.getStore(),
 			xlsHeader, xlsSheetGrid, xlsSheetNADetails,
@@ -1006,13 +1007,92 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 		xlsSheetGrid.xlsData = Ext.pluck( store.getRange(), 'data' ) ;
 		
 		
+		var groupKey = null,
+			mapRowKeyTxt = {},
+			map_RowKey_values = {},
+			revisionDate = null,
+			xlsData = [] ;
+		Ext.Array.each( ajaxData.groups, function(group) {
+			if( group.has_sub_txt ) {
+				groupKey = group.group_key ;
+				Ext.Array.each( group.rows, function(groupRow) {
+					mapRowKeyTxt[groupRow.row_key] = groupRow.row_text ;
+				}) ;
+				return false ;
+			}
+		}) ;
+		Ext.Array.each( ajaxData.revisions, function(revision) {
+			if( revision.is_actual ) {
+				revisionDate = revision.revision_date ;
+				Ext.Array.each( revision.rows, function(revisionRow) {
+					if( revisionRow.group_key != groupKey ) {
+						return ;
+					}
+					if( !map_RowKey_values.hasOwnProperty(revisionRow.row_key) ) {
+						map_RowKey_values[revisionRow.row_key] = [] ;
+					}
+					map_RowKey_values[revisionRow.row_key].push({
+						row_sub_txt: revisionRow.row_sub_txt,
+						value: parseInt(revisionRow.value)
+					});
+				}) ;
+				return false ;
+			}
+		}) ;
+		var map_RowKey_values_keys = Object.keys( map_RowKey_values ),
+			map_RowKey_values_keysLn = map_RowKey_values_keys.length,
+			rowKey, values, isFirst ;
+		map_RowKey_values_keys.sort();
+		for( var i=0 ; i<map_RowKey_values_keysLn ; i++ ) {
+			rowKey = map_RowKey_values_keys[i] ;
+			values = map_RowKey_values[rowKey] ;
+			isFirst = true ;
+			Ext.Array.each( values, function( rowValue ) {
+				xlsData.push({
+					row_text: ( isFirst ? mapRowKeyTxt[rowKey] : '' ),
+					row_sub_txt: rowValue.row_sub_txt,
+					value: rowValue.value,
+				}) ;
+				isFirst = false ;
+			});
+		} ;
+		
+		xlsSheetNADetails = {
+			xlsTitle: 'NA_Details',
+			xlsHeader: [{
+				fieldLabel: 'Crop Year',
+				fieldValue: filter_cropYear
+			},{
+				fieldLabel: 'Country',
+				fieldValue: filter_country
+			},{
+				fieldLabel: 'Revision Date',
+				fieldValue: revisionDate
+			}],
+			xlsColumns: [{
+				dataIndex: 'row_text',
+				text: 'Store Group',
+				isBold: true
+			},{
+				dataIndex: 'row_sub_txt',
+				text: 'Agreement',
+				isBold: false
+			},{
+				dataIndex: 'value',
+				text: 'Amount',
+				isBold: false
+			}],
+			xlsData: xlsData
+		}
+		
+		
 		var exportParams = me.optimaModule.getConfiguredAjaxParams() ;
 		Ext.apply(exportParams,{
 			_moduleId: 'spec_wb_mrfoxy',
 			_action: 'xls_getTableExport',
 			data: Ext.JSON.encode({
 				xlsFilename: xlsFilename,
-				xlsSheets: [xlsSheetGrid]
+				xlsSheets: [xlsSheetGrid, xlsSheetNADetails]
 			})
 		}) ;
 		Ext.create('Ext.ux.dams.FileDownloader',{
