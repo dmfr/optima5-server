@@ -283,9 +283,12 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoAccrualsSubpanel',{
 			_moduleId: 'spec_wb_mrfoxy',
 			_action: 'xls_getTableExport',
 			data: Ext.JSON.encode({
-				xlsColumns: xlsColumns,
-				xlsData: xlsData,
-				xlsFilename: 'WB_MRFOXY_promoAccruals.xlsx'
+				xlsFilename: 'WB_MRFOXY_promoAccruals.xlsx',
+				xlsSheets: [{
+					xlsTitle: 'Accruals',
+					xlsColumns: xlsColumns,
+					xlsData: xlsData
+				}]
 			})
 		}) ;
 		Ext.create('Ext.ux.dams.FileDownloader',{

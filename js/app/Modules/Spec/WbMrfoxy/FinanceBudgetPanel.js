@@ -968,14 +968,22 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 		var me = this,
 			grid = me.down('grid'),
 			store = grid.getStore(),
-			xlsHeader, xlsColumns, xlsData, xlsFilename,
+			xlsHeader, xlsSheetGrid, xlsSheetNADetails,
 			filter_cropYear = me.filterCropYear,
 			filter_country = me.filterCountry ;
 			
 			
 		xlsFilename = 'WB_MRFOXY_budget_'+filter_cropYear+'_'+filter_country+'.xlsx' ;
 		
-		xlsHeader = [{
+		
+		xlsSheetGrid = {
+			xlsTitle: 'Budget',
+			xlsHeader: null,
+			xlsColumns: null,
+			xlsData: null
+		} ;
+		
+		xlsSheetGrid.xlsHeader = [{
 			fieldLabel: 'Crop Year',
 			fieldValue: filter_cropYear
 		},{
@@ -983,29 +991,28 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 			fieldValue: filter_country
 		}];
 		
-		xlsColumns = [] ;
+		xlsSheetGrid.xlsColumns = [] ;
 		Ext.Array.each( grid.headerCt.getVisibleGridColumns(), function(columnHeader) {
 			if( columnHeader.dataIsEditing || columnHeader.dataIsEditingDiff ) {
 				return ;
 			}
-			xlsColumns.push({
+			xlsSheetGrid.xlsColumns.push({
 				dataIndex: columnHeader.dataIndex,
 				text: columnHeader.text,
 				isBold: !Ext.isEmpty(columnHeader.revisionId)
 			});
 		}) ;
 		
-		xlsData = Ext.pluck( store.getRange(), 'data' ) ;
+		xlsSheetGrid.xlsData = Ext.pluck( store.getRange(), 'data' ) ;
+		
 		
 		var exportParams = me.optimaModule.getConfiguredAjaxParams() ;
 		Ext.apply(exportParams,{
 			_moduleId: 'spec_wb_mrfoxy',
 			_action: 'xls_getTableExport',
 			data: Ext.JSON.encode({
-				xlsHeader: xlsHeader,
-				xlsColumns: xlsColumns,
-				xlsData: xlsData,
-				xlsFilename: xlsFilename
+				xlsFilename: xlsFilename,
+				xlsSheets: [xlsSheetGrid]
 			})
 		}) ;
 		Ext.create('Ext.ux.dams.FileDownloader',{

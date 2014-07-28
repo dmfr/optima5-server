@@ -725,9 +725,12 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 			_moduleId: 'spec_wb_mrfoxy',
 			_action: 'xls_getTableExport',
 			data: Ext.JSON.encode({
-				xlsColumns: xlsColumns,
-				xlsData: xlsData,
-				xlsFilename: 'WB_MRFOXY_promoGrid.xlsx'
+				xlsFilename: 'WB_MRFOXY_promoGrid.xlsx',
+				xlsSheets: [{
+					xlsTitle: 'PromoList',
+					xlsColumns: xlsColumns,
+					xlsData: xlsData
+				}]
 			})
 		}) ;
 		Ext.create('Ext.ux.dams.FileDownloader',{
