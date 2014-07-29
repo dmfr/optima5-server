@@ -1051,7 +1051,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 				xlsData.push({
 					row_text: ( isFirst ? mapRowKeyTxt[rowKey] : '' ),
 					row_sub_txt: rowValue.row_sub_txt,
-					value: rowValue.value,
+					value: rowValue.value
 				}) ;
 				isFirst = false ;
 			});
