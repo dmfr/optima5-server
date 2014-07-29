@@ -22,8 +22,8 @@ function specWbMrfoxy_xls_getTableExport( $post_data ) {
 	foreach( $data['xlsSheets'] as $data_sheet ) {
 		$idx++ ;
 		$objWorksheet = $objPHPExcel->getSheet($idx);
-		if( isset($data['xlsHeader']) ) {
-			$header_table = $data['xlsHeader'] ;
+		if( isset($data_sheet['xlsHeader']) ) {
+			$header_table = $data_sheet['xlsHeader'] ;
 			$objWorksheet->insertNewRowBefore(1, count($header_table)+1);
 			$row = 1 ;
 			foreach( $header_table as $header_row ) {
