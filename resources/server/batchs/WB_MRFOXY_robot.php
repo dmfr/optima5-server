@@ -121,7 +121,7 @@ function handleStatusValidation( $row ) {
 	$filerecord_id = $row['_filerecord_id'] ;
 	$arr_update = array() ;
 	if( $row['approv_ds_ok'] && $row['approv_df_ok'] ) {
-		$arr_update['field_STATUS'] = '25_APPROVED' ;
+		$arr_update['field_STATUS'] = ( $row['cost_billing__csHold'] ? '25_APPROVED' : '30_SCHED' ) ;
 	} else {
 		$arr_update['field_STATUS'] = '00_REJECTED' ;
 		$arr_update['field_APPROV_DS'] = 0 ;
@@ -258,8 +258,11 @@ function handleStatusData( $row ) {
 		$has_IRI = TRUE ;
 	}
 	
-	if( $has_ORACLE == TRUE && $has_IRI == TRUE ) {
+	if( $has_ORACLE == TRUE && ( $has_IRI == TRUE || !$row['country__hasIri'] ) ) {
 		$new_status = '80_DATA_OK' ;
+		if( $row['cost_billing__autoclose'] ) {
+			$new_status = '99_DONE' ;
+		}
 	} elseif( $has_ORACLE == TRUE ) {
 		$new_status = '70_ORACLE' ;
 	} elseif( $has_IRI == TRUE ) {

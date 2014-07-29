@@ -109,6 +109,7 @@ function specWbMrfoxy_promo_getGrid( $post_data ) {
 		$row['brand_text'] = $paracrm_row['WORK_PROMO_field_BRAND_tree_BRANDGROUP_TXT'] ;
 		$row['country_code'] = $paracrm_row['WORK_PROMO_field_COUNTRY'] ;
 		$row['country_text'] = $paracrm_row['WORK_PROMO_field_COUNTRY_entry_COUNTRY_NAME'] ;
+		$row['country__hasIri'] = $paracrm_row['WORK_PROMO_field_COUNTRY_entry_IRI_IS_ON'] ;
 		$row['status_code'] = $paracrm_row['WORK_PROMO_field_STATUS'] ;
 		$row['status_percent'] = $paracrm_row['WORK_PROMO_field_STATUS_entry_PERCENT'] ;
 		$row['status_text'] = $paracrm_row['WORK_PROMO_field_STATUS_entry_STATUS_TXT'] ;
@@ -129,6 +130,8 @@ function specWbMrfoxy_promo_getGrid( $post_data ) {
 		$row['currency_symbol'] = $paracrm_row['WORK_PROMO_field_CURRENCY_tree_CURRENCY_SIGN'] ;
 		$row['cost_billing_code'] = $paracrm_row['WORK_PROMO_field_COST_BILLING'] ;
 		$row['cost_billing_text'] = $paracrm_row['WORK_PROMO_field_COST_BILLING_tree_PAYM_TXT'] ;
+		$row['cost_billing__csHold'] = $paracrm_row['WORK_PROMO_field_COST_BILLING_tree_CSHOLD_IS_ON'] ;
+		$row['cost_billing__autoclose'] = $paracrm_row['WORK_PROMO_field_COST_BILLING_tree_AUTOCLOSE_IS_ON'] ;
 		$row['cost_forecast'] = $paracrm_row['WORK_PROMO_field_COST_FORECAST'] ;
 		$row['cost_forecast_fix'] = $paracrm_row['WORK_PROMO_field_COST_FORECAST_FIX'] ;
 		$row['cost_forecast_var'] = $paracrm_row['WORK_PROMO_field_COST_FORECAST_VAR'] ;
