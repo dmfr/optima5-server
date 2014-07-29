@@ -15,7 +15,6 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.WbMrfoxyModule', {
 			width:800,
 			height:600,
 			resizable:true,
-			maximizable:false,
 			layout:'fit',
 			items:[Ext.create('Optima5.Modules.Spec.WbMrfoxy.MainPanel',{
 				optimaModule: me,
