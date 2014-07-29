@@ -77,8 +77,7 @@ function getPromoDesc( $row, $include_finance=FALSE ) {
 }
 
 function mailFactory( $recipients, $subject, $body ) {
-	
-	$email_text = "Hi,\r\nThis is an automated email from Mr.Foxy\r\n{$body}\r\n\r\n\r\nDo not respond directly to this message.\r\n\r\nMrFoxy access:\r\nhttp://mrfoxy.eu\r\n\r\nShould you have any question or need login ID,\r\nplease contact mrfoxy@wonderfulbrands.com\r\n\r\n" ;
+	$email_text = "{$body}\r\n\r\n\r\nDo not respond directly to this message.\r\n\r\nMrFoxy access:\r\nhttp://mrfoxy.eu\r\n\r\nShould you have any question or need login ID,\r\nplease contact mrfoxy@wonderfulbrands.com\r\n\r\n" ;
 	
 	$email = new Email() ;
 	$email->set_From( 'noreply@wonderfulbrands.com', "Mr Foxy, Promotion Tool" ) ;
@@ -88,6 +87,40 @@ function mailFactory( $recipients, $subject, $body ) {
 	$email->set_Subject( '[MrFoxy] '.$subject ) ;
 	$email->set_text_body( $email_text ) ;
 	$email->send() ;
+}
+
+function runPromoQbook( $src_filerecordId ) {
+	global $_opDB ;
+	
+	$q_id = '1-promo book' ;
+	if( !is_numeric($q_id) ) {
+		$query = "SELECT qbook_id FROM qbook WHERE qbook_name LIKE '{$q_id}'";
+		$q_id = $_opDB->query_uniqueValue($query) ;
+		if( !$q_id ) {
+			return false ;
+		}
+	}
+	
+	$post_test = array() ;
+	$post_test['_action'] = 'queries_qbookTransaction' ;
+	$post_test['_subaction'] = 'init' ;
+	$post_test['qbook_id'] = $q_id ;
+	$json = paracrm_queries_qbookTransaction( $post_test ) ;
+	$transaction_id = $json['transaction_id'] ;
+	
+	$post_test = array() ;
+	$post_test['_action'] = 'queries_qbookTransaction' ;
+	$post_test['_transaction_id'] = $transaction_id ;
+	$post_test['_subaction'] = 'run' ;
+	$post_test['qsrc_filerecord_id'] = $src_filerecordId ;
+	$json = paracrm_queries_qbookTransaction( $post_test ) ;
+	if( !$json['success'] ) {
+		unset($_SESSION['transactions'][$transaction_id]) ;
+		return false ;
+	}
+	
+	unset($_SESSION['transactions'][$transaction_id]) ;
+	return true ;
 }
 
 
@@ -104,6 +137,7 @@ function handleStatusNew( $row ) {
 	
 	$subject = '# '.$row['promo_id'].' : Validation request' ;
 	
+	$body = '' ;
 	$body.= "Dear Sales Director,\r\n" ;
 	$body.= "A new promotion has been encoded.\r\n" ;
 	$body.= "Please connect to mr foxy for validation.\r\n" ;
@@ -115,7 +149,7 @@ function handleStatusNew( $row ) {
 	mailFactory( $recipients, $subject, $body ) ;
 }
 function handleStatusValidation( $row ) {
-	if( in_array($row['status_code'],array('20_WAITVALID')) ) {} else return ;
+	if( in_array($row['status_code'],array('20_WAITVALID','25_APPROVED')) ) {} else return ;
 	
 	if( $row['approv_ds'] && $row['approv_df'] ) {} else return ;
 	
@@ -131,6 +165,9 @@ function handleStatusValidation( $row ) {
 		$arr_update['field_APPROV_DF'] = 0 ;
 		$arr_update['field_APPROV_DF_OK'] = 0 ;
 	}
+	if( $arr_update['field_STATUS'] == $row['status_code'] ) {
+		return ;
+	}
 	paracrm_lib_data_updateRecord_file( 'WORK_PROMO' , $arr_update, $filerecord_id ) ;
 	
 	
@@ -141,8 +178,9 @@ function handleStatusValidation( $row ) {
 		
 		$subject = '# '.$row['promo_id'].' : Promotion '.$txt ;
 		
+		$body = '' ;
 		$body.= "Dear Sales Manager,\r\n" ;
-		$body.= "The promotion # {$row['promo_id']} has been {$txt}.\r\n" ;.
+		$body.= "The promotion # {$row['promo_id']} has been {$txt}.\r\n" ;
 		$body.= "\r\n" ;
 		$body.= "DS statement : {$row['approv_ds_obs']}\r\n" ;
 		$body.= "DF statement : {$row['approv_df_obs']}\r\n" ;
@@ -159,6 +197,7 @@ function handleStatusValidation( $row ) {
 		
 		$subject = '# '.$row['promo_id'].' : Acknowledgment request' ;
 		
+		$body = '' ;
 		$body.= "Dear Customer service,\r\n" ;
 		$body.= "The sales director has validated promotion # {$row['promo_id']}\r\n" ;
 		$body.= "Please connect to Mr Foxy to indicate that it has been treated.\r\n" ;
@@ -185,6 +224,7 @@ function handleStatusBegin( $row ) {
 	
 	$subject = '# '.$row['promo_id'].' : Active' ;
 	
+	$body = '' ;
 	$body.= "Notification : Promotion # {$row['promo_id']} has begun.\r\n" ;
 	$body.= "\r\n" ;
 	$body.= "Find below details of current promotion:\r\n" ;
@@ -206,6 +246,8 @@ function handleStatusData( $row ) {
 			break ;
 		case '70_ORACLE' :
 			$has_IRI = FALSE ;
+			break ;
+		case '80_DATA_OK' :
 			break ;
 		default :
 			return ;
@@ -252,6 +294,9 @@ function handleStatusData( $row ) {
 		$new_status = '60_DONE' ;
 	}
 	
+	// Run promobook !
+	runPromoQbook( $row['_filerecord_id'] ) ;
+	
 	if( $new_status == $row['status_code'] ) {
 		return ;
 	}
@@ -261,18 +306,6 @@ function handleStatusData( $row ) {
 	$arr_update = array() ;
 	$arr_update['field_STATUS'] = $new_status ;
 	paracrm_lib_data_updateRecord_file( 'WORK_PROMO' , $arr_update, $filerecord_id ) ;
-	
-	$recipients = findRecipients($row['country_code'], array('SM')) ;
-	
-	$subject = '# '.$row['promo_id'].' : Data available' ;
-	
-	$body.= "Notification : Promotion # {$row['promo_id']} analysis data available, ".($new_status=='80_DATA_OK'?'complete':'partial').".\r\n" ;
-	$body.= "\r\n" ;
-	$body.= "Find below details of current promotion:\r\n" ;
-	$body.= "\r\n" ;
-	$body.= getPromoDesc($row) ;
-	
-	mailFactory( $recipients, $subject, $body ) ;
 }
 function handleStatusClose( $row ) {
 	if( in_array($row['status_code'],array('90_END')) ) {} else return ;
@@ -287,6 +320,7 @@ function handleStatusClose( $row ) {
 	
 	$subject = '# '.$row['promo_id'].' : Analysis available' ;
 	
+	$body = '' ;
 	$body.= "Dear user,\r\n" ;
 	$body.= "The analysis and feedback for promotion # {$row['promo_id']} is available.\r\n" ;
 	$body.= "\r\n" ;
@@ -315,5 +349,13 @@ foreach( $ttmp['data'] as $row ) {
 	handleStatusClose( $row ) ;
 }
 
+exit ;
+
+// HACK !! Calc all
+$query = "SELECT filerecord_id FROM view_file_WORK_PROMO" ;
+$result = $_opDB->query($query) ;
+while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+	runPromoQbook( $arr[0] ) ;
+}
 
 ?>
