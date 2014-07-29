@@ -51,7 +51,7 @@ function specWbMrfoxy_promo_getGrid( $post_data ) {
 		$filter['field'] = 'WORK_PROMO_field_STATUS' ;
 		$filter['type'] = 'string' ;
 		$filter['comparison'] = 'eq' ;
-		$filter['value'] = '99_DONE' ;
+		$filter['value'] = '99_CLOSED' ;
 		$filters[] = $filter ;
 	}
 	if( $post_data['filter_id'] && isJsonArr($post_data['filter_id']) ) {
@@ -601,7 +601,7 @@ function specWbMrfoxy_promo_delete( $post_data ) {
 }
 function specWbMrfoxy_promo_close( $post_data ) {
 	$target_filerecordId = $post_data['_filerecord_id'] ;
-	paracrm_lib_data_updateRecord_file( 'WORK_PROMO' , array('field_STATUS'=>'99_DONE'), $target_filerecordId ) ;
+	paracrm_lib_data_updateRecord_file( 'WORK_PROMO' , array('field_STATUS'=>'90_END'), $target_filerecordId ) ;
 	return array('success'=>true) ;
 }
 function specWbMrfoxy_promo_csack( $post_data ) {

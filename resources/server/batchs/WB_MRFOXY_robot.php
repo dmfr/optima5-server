@@ -100,11 +100,13 @@ function handleStatusNew( $row ) {
 	$arr_update['field_STATUS'] = '20_WAITVALID' ;
 	paracrm_lib_data_updateRecord_file( 'WORK_PROMO' , $arr_update, $filerecord_id ) ;
 	
-	$recipients = findRecipients($row['country_code'], array('SM','DM','DF')) ;
+	$recipients = findRecipients($row['country_code'], array('DS','DF')) ;
 	
-	$subject = '# '.$row['promo_id'].' : Validation required' ;
+	$subject = '# '.$row['promo_id'].' : Validation request' ;
 	
-	$body.= "Action required : Approval from Finance & Marketing directors\r\n" ;
+	$body.= "Dear Sales Director,\r\n" ;
+	$body.= "A new promotion has been encoded.\r\n" ;
+	$body.= "Please connect to mr foxy for validation.\r\n" ;
 	$body.= "\r\n" ;
 	$body.= "Find below details of encoded promotion:\r\n" ;
 	$body.= "\r\n" ;
@@ -131,40 +133,42 @@ function handleStatusValidation( $row ) {
 	}
 	paracrm_lib_data_updateRecord_file( 'WORK_PROMO' , $arr_update, $filerecord_id ) ;
 	
-	$recipients = findRecipients($row['country_code'], array('CS','SM')) ;
 	
-	$subject = '# '.$row['promo_id'].' : Scheduled' ;
+	if( TRUE ) {
+		$txt = ( $row['approv_ds_ok'] && $row['approv_df_ok'] ? 'validated' : 'refused' ) ;
+		
+		$recipients = findRecipients($row['country_code'], array('SM')) ;
+		
+		$subject = '# '.$row['promo_id'].' : Promotion '.$txt ;
+		
+		$body.= "Dear Sales Manager,\r\n" ;
+		$body.= "The promotion # {$row['promo_id']} has been {$txt}.\r\n" ;.
+		$body.= "\r\n" ;
+		$body.= "DS statement : {$row['approv_ds_obs']}\r\n" ;
+		$body.= "DF statement : {$row['approv_df_obs']}\r\n" ;
+		$body.= "\r\n" ;
+		$body.= "Find below details of promotion:\r\n" ;
+		$body.= "\r\n" ;
+		$body.= getPromoDesc($row) ;
+		
+		mailFactory( $recipients, $subject, $body ) ;
+	}
 	
-	$body.= "Notification : Promotion # {$row['promo_id']} approved\r\n" ;
-	$body.= "\r\n" ;
-	$body.= "Find below details of scheduled promotion:\r\n" ;
-	$body.= "\r\n" ;
-	$body.= getPromoDesc($row) ;
-	
-	mailFactory( $recipients, $subject, $body ) ;
-}
-function handleStatusAppro( $row ) {
-	if( in_array($row['status_code'],array('30_SCHED')) ) {} else return ;
-
-	if( time() >= strtotime($row['date_supply_start']) ) {} else return ;
-	
-	// Adv status
-	$filerecord_id = $row['_filerecord_id'] ;
-	$arr_update = array() ;
-	$arr_update['field_STATUS'] = '40_APPRO' ;
-	paracrm_lib_data_updateRecord_file( 'WORK_PROMO' , $arr_update, $filerecord_id ) ;
-	
-	$recipients = findRecipients($row['country_code'], array('CS','SM')) ;
-	
-	$subject = '# '.$row['promo_id'].' : Appro begins' ;
-	
-	$body.= "Notification : Promotion # {$row['promo_id']} begins\r\n" ;
-	$body.= "\r\n" ;
-	$body.= "Find below details of current promotion:\r\n" ;
-	$body.= "\r\n" ;
-	$body.= getPromoDesc($row) ;
-	
-	mailFactory( $recipients, $subject, $body ) ;
+	if( $row['cost_billing__csHold'] ) {
+		$recipients = findRecipients($row['country_code'], array('CS')) ;
+		
+		$subject = '# '.$row['promo_id'].' : Acknowledgment request' ;
+		
+		$body.= "Dear Customer service,\r\n" ;
+		$body.= "The sales director has validated promotion # {$row['promo_id']}\r\n" ;
+		$body.= "Please connect to Mr Foxy to indicate that it has been treated.\r\n" ;
+		$body.= "\r\n" ;
+		$body.= "Find below details of promotion:\r\n" ;
+		$body.= "\r\n" ;
+		$body.= getPromoDesc($row) ;
+		
+		mailFactory( $recipients, $subject, $body ) ;
+	}
 }
 function handleStatusBegin( $row ) {
 	if( in_array($row['status_code'],array('30_SCHED','40_APPRO')) ) {} else return ;
@@ -181,30 +185,7 @@ function handleStatusBegin( $row ) {
 	
 	$subject = '# '.$row['promo_id'].' : Active' ;
 	
-	$body.= "Notification : Promotion # {$row['promo_id']} begins\r\n" ;
-	$body.= "\r\n" ;
-	$body.= "Find below details of current promotion:\r\n" ;
-	$body.= "\r\n" ;
-	$body.= getPromoDesc($row) ;
-	
-	mailFactory( $recipients, $subject, $body ) ;
-}
-function handleStatusEnd( $row ) {
-	if( in_array($row['status_code'],array('50_CURRENT')) ) {} else return ;
-
-	if( time() > strtotime($row['date_end']) ) {} else return ;
-	
-	// Adv status
-	$filerecord_id = $row['_filerecord_id'] ;
-	$arr_update = array() ;
-	$arr_update['field_STATUS'] = '60_DONE' ;
-	paracrm_lib_data_updateRecord_file( 'WORK_PROMO' , $arr_update, $filerecord_id ) ;
-	
-	$recipients = findRecipients($row['country_code'], array('CS','SM')) ;
-	
-	$subject = '# '.$row['promo_id'].' : Finished' ;
-	
-	$body.= "Notification : Promotion # {$row['promo_id']} has finished\r\n" ;
+	$body.= "Notification : Promotion # {$row['promo_id']} has begun.\r\n" ;
 	$body.= "\r\n" ;
 	$body.= "Find below details of current promotion:\r\n" ;
 	$body.= "\r\n" ;
@@ -261,7 +242,7 @@ function handleStatusData( $row ) {
 	if( $has_ORACLE == TRUE && ( $has_IRI == TRUE || !$row['country__hasIri'] ) ) {
 		$new_status = '80_DATA_OK' ;
 		if( $row['cost_billing__autoclose'] ) {
-			$new_status = '99_DONE' ;
+			$new_status = '90_END' ;
 		}
 	} elseif( $has_ORACLE == TRUE ) {
 		$new_status = '70_ORACLE' ;
@@ -293,11 +274,33 @@ function handleStatusData( $row ) {
 	
 	mailFactory( $recipients, $subject, $body ) ;
 }
+function handleStatusClose( $row ) {
+	if( in_array($row['status_code'],array('90_END')) ) {} else return ;
+	
+	// Adv status
+	$filerecord_id = $row['_filerecord_id'] ;
+	$arr_update = array() ;
+	$arr_update['field_STATUS'] = '99_CLOSED' ;
+	paracrm_lib_data_updateRecord_file( 'WORK_PROMO' , $arr_update, $filerecord_id ) ;
+	
+	$recipients = findRecipients($row['country_code'], array('TM','SM','DS')) ;
+	
+	$subject = '# '.$row['promo_id'].' : Analysis available' ;
+	
+	$body.= "Dear user,\r\n" ;
+	$body.= "The analysis and feedback for promotion # {$row['promo_id']} is available.\r\n" ;
+	$body.= "\r\n" ;
+	$body.= "Find below details of current promotion:\r\n" ;
+	$body.= "\r\n" ;
+	$body.= getPromoDesc($row) ;
+	
+	mailFactory( $recipients, $subject, $body ) ;
+}
 
 
 
 $arr_filerecordId = array() ;
-$query = "SELECT filerecord_id FROM view_file_WORK_PROMO WHERE field_STATUS<>'99_DONE'" ;
+$query = "SELECT filerecord_id FROM view_file_WORK_PROMO WHERE field_STATUS<>'99_CLOSED'" ;
 $result = $_opDB->query($query) ;
 while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 	$arr_filerecordId[] = $arr[0] ;
@@ -308,8 +311,8 @@ foreach( $ttmp['data'] as $row ) {
 	handleStatusNew( $row ) ;
 	handleStatusValidation( $row ) ;
 	handleStatusBegin( $row ) ;
-	handleStatusEnd( $row ) ;
 	handleStatusData( $row ) ;
+	handleStatusClose( $row ) ;
 }
 
 
