@@ -72,7 +72,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 						},{
 							actionId: 'baseline',
 							actionText:'BaselineCfg',
-							actionDisabled:!( me.rowRecord.get('status_percent') >= 60 && Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole(['ADM']) )
+							actionDisabled:!( me.rowRecord.get('status_percent') >= 60 && Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole(['ADM','TM']) )
 						},{
 							actionId: 'csack',
 							actionText:'CS Acknowledge',
@@ -142,7 +142,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 					hidden: false,
 					items:[{
 						xtype:'damsfieldset',
-						iconCls: 'op5-spec-mrfoxy-promorow-fieldset-edit',
+						iconCls: ( Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole(['ADM','TM']) ? 'op5-spec-mrfoxy-promorow-fieldset-edit' : null ),
 						title: 'Text attributes',
 						defaults: {
 							margin: 2,

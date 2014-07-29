@@ -47,7 +47,7 @@ Ext.define('Ext.ux.dams.FieldSet',{
                 id    : me.id + '-legendIcon'
             };
 
-        if (true) {
+        if (me.iconCls) {
             cfg.listeners = {
                 el : {
                     scope : me,
