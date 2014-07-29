@@ -294,7 +294,7 @@ Ext.define('Optima5.Modules.CrmBase.QbookSubpanelInput' ,{
 		},me) ;
 		
 		if( me.getQbookPanel().bibleFilesTreefields[backendFileCode] ) {
-			pFieldsTree.getStore().setRootNode(me.getQbookPanel().bibleFilesTreefields[backendFileCode].getRootNode()) ;
+			pFieldsTree.getStore().setRootNode(me.getQbookPanel().bibleFilesTreefields[backendFileCode].getRootNode().copy(undefined,true)) ;
 			me.child('#pGrid').getView().refresh() ; // Needed to render field Descs properly
 		} else {
 			pFieldsTree.setRootNode({children:[]}) ;
