@@ -144,7 +144,7 @@ function specWbMrfoxy_promo_getGrid( $post_data ) {
 		$row['cost_forecast_fix'] = $paracrm_row['WORK_PROMO_field_COST_FORECAST_FIX'] ;
 		$row['cost_forecast_var'] = $paracrm_row['WORK_PROMO_field_COST_FORECAST_VAR'] ;
 		$row['cost_real'] = $paracrm_row['WORK_PROMO_field_COST_REAL_VALUE'] ;
-		$row['cost_real_is_calc'] = $paracrm_row['WORK_PROMO_field_COST_REAL_IS_CALC'] ;
+		$row['cost_real_is_calc'] = ( $paracrm_row['WORK_PROMO_field_STATUS_tree_STATUS_GROUP'] == '99_CLOSED' ) ;
 		$row['calc_uplift_vol'] = $paracrm_row['WORK_PROMO_field_CALC_UPLIFT_VOL'] ;
 		$row['calc_uplift_per'] = $paracrm_row['WORK_PROMO_field_CALC_UPLIFT_PER'] ;
 		$row['calc_roi'] = $paracrm_row['WORK_PROMO_field_CALC_ROI'] ;

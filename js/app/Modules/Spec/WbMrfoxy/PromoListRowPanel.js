@@ -72,7 +72,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 						},{
 							actionId: 'baseline',
 							actionText:'BaselineCfg',
-							actionDisabled:!( me.rowRecord.get('status_percent') >= 60 && Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole(['ADM','TM']) )
+							actionDisabled:!( me.rowRecord.get('status_percent') >= 80 && Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole(['ADM','TM']) )
 						},{
 							actionId: 'csack',
 							actionText:'CS Acknowledge',
@@ -190,13 +190,13 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 							fieldLabel: 'Uplift',
 							labelWidth: 75,
 							value: '<b>'+Ext.util.Format.number( rowRecord.get('calc_uplift_vol'),'0' )+'</b>&nbsp;kg&nbsp&nbsp&nbsp/&nbsp;&nbsp&nbsp'+'<b>'+Ext.util.Format.number( rowRecord.get('calc_uplift_per'), '0.00' )+'</b>&nbsp;%',
-							hidden: (rowRecord.get('status_percent') < 70)
+							hidden: (rowRecord.get('status_percent') < 80)
 						},{
 							xtype: 'displayfield',
 							fieldLabel: 'Nb displays on sale',
 							labelWidth: 120,
 							value: '<b>'+rowRecord.get('calc_nb_displays')+'</b>',
-							hidden: (rowRecord.get('status_percent') < 70)
+							hidden: (rowRecord.get('status_percent') < 80)
 						},{
 							xtype: 'displayfield',
 							fieldLabel: 'Cost forecast',
@@ -210,7 +210,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 							fieldStyle: 'font-weight: bold',
 							labelWidth: 120,
 							value: Ext.util.Format.number(rowRecord.get('cost_real'),'0,0') + ' ' + rowRecord.get('currency'),
-							hidden: (rowRecord.get('status_percent') < 70)
+							hidden: !rowRecord.get('cost_real_is_calc')
 						}]
 					}]
 				},{
@@ -293,7 +293,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 		this.fetchItems() ;
 	},
 	fetchItems: function() {
-		if( this.rowRecord.get('status_percent') <= 70 ) {
+		if( this.rowRecord.get('status_percent') < 80 ) {
 			this.fetchBenchmark() ;
 		} else {
 			this.fetchGraph() ;
