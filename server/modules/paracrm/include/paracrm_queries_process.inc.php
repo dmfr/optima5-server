@@ -447,7 +447,7 @@ function paracrm_queries_process_qbook_doValues( $arr_saisie, $debug=FALSE, $RES
 					switch( $arr_saisie['arr_qobj'][$idx]['target_q_type'] ) {
 						case 'query' :
 							$select_id = $symbol['math_operand_selectfield_idx'] ;
-							if( count($sRES_qobj['RES_groupKey_selectId_value']) != 1 ) {
+							if( count($sRES_qobj['RES_groupKey_selectId_value']) > 1 ) {
 								break 2 ;
 							}
 							$ttmp = current($sRES_qobj['RES_groupKey_selectId_value']) ;
@@ -462,7 +462,7 @@ function paracrm_queries_process_qbook_doValues( $arr_saisie, $debug=FALSE, $RES
 							
 						case 'qmerge' :
 							$mselect_id = $symbol['math_operand_mselectfield_idx'] ;
-							if( count($sRES_qobj['RES_selectId_groupKey_value'][$mselect_id]) != 1 ) {
+							if( count($sRES_qobj['RES_selectId_groupKey_value'][$mselect_id]) > 1 ) {
 								break 2 ;
 							}
 							$val = current($sRES_qobj['RES_selectId_groupKey_value'][$mselect_id]) ;
