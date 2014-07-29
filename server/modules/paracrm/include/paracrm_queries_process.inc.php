@@ -2282,7 +2282,7 @@ function paracrm_queries_process_query_onePassValues( $arr_saisie ) {
 	$t_sqlViewFields = $_opDB->table_fields( $t_sqlView ) ;
 	$sqlQ_select = "SELECT t0.*" ;
 	$sqlQ_from = "FROM {$t_sqlView} t0" ;
-	$sqlQ_orderReverse = array("t0.filerecord_id") ;
+	$sqlQ_orderReverse = array("t0.filerecord_id DESC") ;
 	$selectMap = array() ;
 	$selectMap[$target_file_code] = array(
 		'file_code' => $target_file_code ,
