@@ -95,8 +95,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 							actionDisabled:!( me.rowRecord.get('status_percent') < 50 && Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole(['ADM','SM']) )
 						},{
 							actionId: 'close',
-							actionText:'Finalize',
-							actionDisabled:!( me.rowRecord.get('status_percent') == 80 && Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole(['ADM']) )
+							actionText:'Close',
+							actionDisabled:!( me.rowRecord.get('status_percent') == 80 && Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole(['ADM','SM']) )
 						}]
 					},
 					overItemCls: 'op5-spec-mrfoxy-promorow-item-over',

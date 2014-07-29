@@ -46,6 +46,14 @@ function specWbMrfoxy_promo_getGrid( $post_data ) {
 		$filter['value'] = ( $post_data['filter_isProd'] ? 1 : 0 ) ;
 		$filters[] = $filter ;
 	}
+	if( isset($post_data['filter_isBenchmarkEligible']) && $post_data['filter_isBenchmarkEligible'] ) {
+		$filter = array() ;
+		$filter['field'] = 'WORK_PROMO_field_STATUS_entry_PERCENT' ;
+		$filter['type'] = 'numeric' ;
+		$filter['comparison'] = 'gt' ;
+		$filter['value'] = 79 ;
+		$filters[] = $filter ;
+	}
 	if( isset($post_data['filter_isDone']) && $post_data['filter_isDone'] ) {
 		$filter = array() ;
 		$filter['field'] = 'WORK_PROMO_field_STATUS' ;
@@ -315,7 +323,7 @@ function specWbMrfoxy_promo_getSideBenchmark( $post_data ) {
 	if( $promo_record['store_code'] ) {
 		$grid_filter[] = array('field'=>'store_text', 'type'=>'list', 'value'=>specWbMrfoxy_tool_getStoreNodes($promo_record['store_code'])) ;
 	}
-	$json = specWbMrfoxy_promo_getGrid(array('filter_isProd'=>1, 'filter_isDone'=>1, 'filter_country'=>$promo_record['country_code'],'filter'=>json_encode($grid_filter))) ;
+	$json = specWbMrfoxy_promo_getGrid(array('filter_isProd'=>1, 'filter_isBenchmarkEligible'=>1, 'filter_country'=>$promo_record['country_code'],'filter'=>json_encode($grid_filter))) ;
 	return $json ;
 }
 
@@ -350,7 +358,7 @@ function specWbMrfoxy_promo_formEval( $post_data ) {
 	if( $form_data['store_code'] ) {
 		$grid_filter[] = array('field'=>'store_text', 'type'=>'list', 'value'=>specWbMrfoxy_tool_getStoreNodes($form_data['store_code'])) ;
 	}
-	$ttmp = specWbMrfoxy_promo_getGrid(array('filter_isProd'=>1, 'filter_isDone'=>1, 'filter_country'=>$form_data['country_code'],'filter'=>json_encode($grid_filter))) ;
+	$ttmp = specWbMrfoxy_promo_getGrid(array('filter_isProd'=>1, 'filter_isBenchmarkEligible'=>1, 'filter_country'=>$form_data['country_code'],'filter'=>json_encode($grid_filter))) ;
 	$resp_data['gridBenchmark'] = $ttmp['data'];
 	
 	$resp_data['mechanics_multi'] = array() ;
@@ -562,7 +570,7 @@ function specWbMrfoxy_promo_formSubmit( $post_data ) {
 	if( $form_data['store_code'] ) {
 		$grid_filter[] = array('field'=>'store_text', 'type'=>'list', 'value'=>specWbMrfoxy_tool_getStoreNodes($form_data['store_code'])) ;
 	}
-	$ttmp = specWbMrfoxy_promo_getGrid(array('filter_isProd'=>1, 'filter_isDone'=>1, 'filter_country'=>$form_data['country_code'],'filter'=>json_encode($grid_filter))) ;
+	$ttmp = specWbMrfoxy_promo_getGrid(array('filter_isProd'=>1, 'filter_isBenchmarkEligible'=>1, 'filter_country'=>$form_data['country_code'],'filter'=>json_encode($grid_filter))) ;
 	$benchmark_arr_ids = array() ;
 	foreach( $ttmp['data'] as $test_row ) {
 		$benchmark_arr_ids[] = $test_row['_filerecord_id'] ;
