@@ -31,6 +31,12 @@ function paracrm_queries_xls_build( $workbook_tab_grid , $numberFormat_round=FAL
 			)
 		);
 
+		$style_group = array(                  
+			'fill' => array(
+				'type' => PHPExcel_Style_Fill::FILL_SOLID,
+				'color' => array('rgb'=>substr('#00D563',1,6)),
+			)
+		);
 	}
 	// ***********************************
 
@@ -58,14 +64,41 @@ function paracrm_queries_xls_build( $workbook_tab_grid , $numberFormat_round=FAL
 		$obj_sheet->setTitle( preg_replace("/[^a-zA-Z0-9\s]/", "", $tab['tab_title']) ) ;
 		
 		
-		$row_data_min = 2 ;
-		$row_data_max = count($tab['data']) + 1 ;
+		// -------- Eval groups ----------------
+		$group_dataIndex = $group_currentValue = NULL ;
+		$group_count = 0 ;
+		foreach( $tab['columns'] as $col ) {
+			if( $col['isGroup'] ) {
+				if( $group_dataIndex === NULL ) {
+					$group_dataIndex = $col['dataIndex'] ;
+				}
+				continue ;
+			}
+		}
+		foreach( $tab['data'] as $record ) {
+			if( $group_dataIndex && $group_currentValue != $record[$group_dataIndex] ) {
+				$group_count++ ;
+				
+				$group_currentValue = $record[$group_dataIndex] ;
+			}
+		}
+		$group_currentValue = NULL ;
+		// -----------------------------
 		
+		$row_data_min = 2 ;
+		$row_data_max = count($tab['data']) + $group_count + 1 ;
 		
 		$row = 1 ;
 		$cell_min = $cell = 'A' ;
 		
 		foreach( $tab['columns'] as $col ) {
+			if( $col['isGroup'] ) {
+				if( $group_dataIndex === NULL ) {
+					$group_dataIndex = $col['dataIndex'] ;
+				}
+				continue ;
+			}
+			
 			if( $col['invisible'] ) {
 				continue ;
 			}
@@ -131,9 +164,21 @@ function paracrm_queries_xls_build( $workbook_tab_grid , $numberFormat_round=FAL
 		
 		
 		foreach( $tab['data'] as $record ) {
+			if( $group_dataIndex && $group_currentValue != $record[$group_dataIndex] ) {
+				$row++ ;
+				$cell = 'A' ;
+				
+				$group_currentValue = $record[$group_dataIndex] ;
+				$obj_sheet->SetCellValue("{$cell}{$row}", $group_currentValue );
+				$obj_sheet->getStyle("{$cell_min}{$row}:{$cell_max}{$row}")->applyFromArray( $style_group );
+			}
+			
 			$row++ ;
 			$cell = 'A' ;
 			foreach( $tab['columns'] as $col ) {
+				if( $col['isGroup'] ) {
+					continue ;
+				}
 				if( $col['invisible'] ) {
 					continue ;
 				}
