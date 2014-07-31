@@ -35,6 +35,8 @@ function specWbMrfoxy_xls_getTableExport( $post_data ) {
 		}
 	}
 	
+	$objPHPExcel->setActiveSheetIndex(0);
+	
 	$tmpfilename = tempnam( sys_get_temp_dir(), "FOO");
 	$objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
 	$objWriter->save($tmpfilename);

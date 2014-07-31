@@ -382,6 +382,12 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 			resizable: false
 		};
 		var columns = [{
+			text: 'Group',
+			dataIndex: 'group_text',
+			hidden: true,
+			width: 150,
+			_groupColumn: true // only for XLS export
+		},{
 			text: 'Cost item',
 			dataIndex: 'row_text',
 			width: 150
@@ -993,14 +999,14 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 		}];
 		
 		xlsSheetGrid.xlsColumns = [] ;
-		Ext.Array.each( grid.headerCt.getVisibleGridColumns(), function(columnHeader) {
+		Ext.Array.each( grid.headerCt.getGridColumns(), function(columnHeader) {
 			if( columnHeader.dataIsEditing || columnHeader.dataIsEditingDiff ) {
 				return ;
 			}
 			xlsSheetGrid.xlsColumns.push({
 				dataIndex: columnHeader.dataIndex,
 				text: columnHeader.text,
-				isBold: !Ext.isEmpty(columnHeader.revisionId)
+				isGroup: ( columnHeader._groupColumn == true )
 			});
 		}) ;
 		
@@ -1072,15 +1078,13 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 			xlsColumns: [{
 				dataIndex: 'row_text',
 				text: 'Store Group',
-				isBold: true
+				isGroup: true
 			},{
 				dataIndex: 'row_sub_txt',
-				text: 'Agreement',
-				isBold: false
+				text: 'Agreement'
 			},{
 				dataIndex: 'value',
-				text: 'Amount',
-				isBold: false
+				text: 'Amount'
 			}],
 			xlsData: xlsData
 		}
