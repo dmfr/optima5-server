@@ -4,7 +4,7 @@ class DatabaseMgr_Sdomain {
 	private $_opDB ;
 	private $domain_id ;
 	
-	private static $dbVersion = 22 ;
+	private static $dbVersion = 23 ;
 	
 	public function __construct( $domain_id ) {
 		$this->_opDB = $GLOBALS['_opDB'] ;
@@ -306,6 +306,8 @@ CREATE TABLE `qbook_inputvar` (
   `src_backend_is_on` varchar(1) NOT NULL,
   `src_backend_file_code` varchar(100) NOT NULL,
   `src_backend_file_field_code` varchar(100) NOT NULL,
+  `src_backend_bible_type` varchar(100) NOT NULL,
+  `src_backend_bible_field_code` varchar(100) NOT NULL,
   PRIMARY KEY (`qbook_id`,`qbook_inputvar_ssid`)
 ) ;
 
