@@ -499,6 +499,9 @@ function paracrm_queries_qbookTransaction_resGetZtemplate( $post_data, &$arr_sai
 				}
 			}
 		}
+		if( !$val && $node_qbookValue->attributes->getNamedItem('value_ifempty') ) {
+			$val = $node_qbookValue->attributes->getNamedItem('value_ifempty')->value ;
+		}
 		$new_node = $doc->createTextNode($val) ;
 		$node_qbookValue->parentNode->replaceChild($new_node,$node_qbookValue) ;
 	}
