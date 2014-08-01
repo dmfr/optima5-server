@@ -764,6 +764,8 @@ function paracrm_queries_qbookTransaction_saveFields( &$arr_saisie , $qbook_id )
 	$inputvar[] = 'src_backend_is_on' ;
 	$inputvar[] = 'src_backend_file_code' ;
 	$inputvar[] = 'src_backend_file_field_code' ;
+	$inputvar[] = 'src_backend_bible_type' ;
+	$inputvar[] = 'src_backend_bible_field_code' ;
 	$inputvar_date = array() ;
 	$inputvar_date[] = 'date_align_is_on' ;
 	$inputvar_date[] = 'date_align_segment_type' ;

@@ -93,6 +93,15 @@ Ext.define('Optima5.Modules.CrmBase.QbookSubpanelInput' ,{
 								treeRecord = me.child('#pFieldsTree').getStore().getNodeById(fieldCode),
 								fieldText = (treeRecord != null ? treeRecord.get('field_text') : fieldCode ) ;
 							text += fieldText ;
+							if( !Ext.isEmpty(record.get('src_backend_bible_type')) && !Ext.isEmpty(record.get('src_backend_bible_field_code')) ) {
+								fieldCode += '_' + record.get('src_backend_bible_type') + '_' + record.get('src_backend_bible_field_code') ;
+								treeRecord = me.child('#pFieldsTree').getStore().getNodeById(fieldCode) ;
+								if( treeRecord ) {
+									text += ' :: ' + treeRecord.get('field_text') ;
+								} else {
+									text += ' :: ' + '???' ;
+								}
+							}
 						} else if( record.get('inputvar_type') == 'date' ) {
 							text += '<i>Current date</i>' ;
 						}
@@ -193,8 +202,7 @@ Ext.define('Optima5.Modules.CrmBase.QbookSubpanelInput' ,{
 						case 'number' :
 						case 'bool' :
 							if( selectedRecord.get('bible_field_code') != '' ) {
-								//subfield of a bible ! TODO: implement support
-								return false ;
+								//subfield of a bible ! DONE: implement support
 							}
 							break ;
 						
@@ -208,8 +216,10 @@ Ext.define('Optima5.Modules.CrmBase.QbookSubpanelInput' ,{
 						inputvar_linktype: selectedRecord.get('field_linktype'),
 						inputvar_linkbible: selectedRecord.get('field_linkbible'),
 						src_backend_is_on: true,
-						src_backend_file_code: selectedRecord.get('field_code').split('_field_')[0],
-						src_backend_file_field_code:selectedRecord.get('field_code').split('_field_')[1]
+						src_backend_file_code: selectedRecord.get('file_code'),
+						src_backend_file_field_code: selectedRecord.get('file_field_code'),
+						src_backend_bible_type: selectedRecord.get('bible_type'),
+						src_backend_bible_field_code: selectedRecord.get('bible_field_code')
 					}) ;
 					
 					me.inputvarStore.insert( me.inputvarStore.getCount(), newRecord );

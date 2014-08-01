@@ -179,6 +179,36 @@ function paracrm_queries_process_qbook($arr_saisie, $debug=FALSE, $src_filerecor
 				return NULL ;
 			} else {
 				$val = $src_filerecord_row[$target_fileCode][$target_fileFieldCode] ;
+				if( $cfg_inputvar['inputvar_linktype'] && $cfg_inputvar['src_backend_bible_type'] && $cfg_inputvar['src_backend_bible_field_code'] ) {
+					switch( $cfg_inputvar['inputvar_linktype'] ) {
+						case 'treenode' :
+							$val_entryKey = NULL ;
+							$val_bibleEntry = NULL ;
+							$val_treenodeKey = $val ;
+							$val_bibleTreenode = paracrm_lib_data_getRecord_bibleTreenode( $cfg_inputvar['inputvar_linkbible'], $val_treenodeKey ) ;
+							break ;
+						case 'entry' :
+							$val_entryKey = $val ;
+							$val_bibleEntry = paracrm_lib_data_getRecord_bibleEntry( $cfg_inputvar['inputvar_linkbible'], $val_entryKey ) ;
+							$val_treenodeKey = $val_bibleEntry['treenode_key'] ;
+							$val_bibleTreenode = paracrm_lib_data_getRecord_bibleTreenode( $cfg_inputvar['inputvar_linkbible'], $val_treenodeKey ) ;
+							break ;
+					}
+					switch( $cfg_inputvar['src_backend_bible_type'] ) {
+						case 'tree' :
+							$bible_field_code = 'field_'.$cfg_inputvar['src_backend_bible_field_code'] ;
+							if( isset($val_bibleTreenode[$bible_field_code]) ) {
+								$val = $val_bibleTreenode[$bible_field_code] ;
+							}
+							break ;
+						case 'entry' :
+							$bible_field_code = 'field_'.$cfg_inputvar['src_backend_bible_field_code'] ;
+							if( isset($val_bibleEntry[$bible_field_code]) ) {
+								$val = $val_bibleEntry[$bible_field_code] ;
+							}
+							break ;
+					}
+				}
 			}
 		} elseif( $cfg_inputvar['inputvar_type'] == 'date' ) {
 			$val = date('Y-m-d H:i:s') ;

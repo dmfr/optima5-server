@@ -47,6 +47,8 @@ Ext.define('QbookInputvarModel', {
 		{name: 'src_backend_is_on',   type: 'boolean'},
 		{name: 'src_backend_file_code',   type: 'string'},
 		{name: 'src_backend_file_field_code',   type: 'string'},
+		{name: 'src_backend_bible_type',   type: 'string'},
+		{name: 'src_backend_bible_field_code',   type: 'string'},
 		{name: 'date_align_is_on',   type: 'boolean'},
 		{name: 'date_align_segment_type',   type: 'string'},
 		{name: 'date_align_direction_end',   type: 'boolean'},
