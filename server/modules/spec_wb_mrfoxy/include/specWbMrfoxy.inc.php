@@ -139,6 +139,45 @@ function specWbMrfoxy_tool_getCropIntervals() {
 	}
 	return $TAB ;
 }
+function specWbMrfoxy_tool_getCurrencies() {
+	global $_opDB ;
+	
+	// Current currency changes
+	$arr_currencyCode_eqUSD = array() ;
+	$q_id = 'Currency::Change' ;
+	if( !is_numeric($q_id) ) {
+		$query = "SELECT query_id FROM query WHERE query_name LIKE '{$q_id}'";
+		$q_id = $_opDB->query_uniqueValue($query) ;
+		if( $q_id ) {
+			$arr_saisie = array() ;
+			paracrm_queries_builderTransaction_init( array('query_id'=>$q_id) , $arr_saisie ) ;
+			$RES = paracrm_queries_process_query($arr_saisie , FALSE ) ;
+			foreach( $RES['RES_groupKey_groupDesc'] as $group_key => $group_desc ) {
+				$bible_key = substr( current($group_desc) , 2 ) ;
+				$value = current($RES['RES_groupKey_selectId_value'][$group_key]) ;
+				$arr_currencyCode_eqUSD[$bible_key] = $value ;
+			}
+		}
+	}
+	
+	$bible_code = '_CURRENCY' ;
+	$forward_post = array() ;
+	$forward_post['bible_code'] = $bible_code ;
+	$ttmp = paracrm_data_getBibleTree( $forward_post, $auth_bypass=TRUE ) ;
+	$paracrm_TREE = $ttmp ;
+	
+	$TAB = array() ;
+	foreach( $paracrm_TREE['children'] as $paracrm_row ) {
+		$currency_code = $paracrm_row['field_CURRENCY_CODE'] ;
+		$row = array() ;
+		$row['currency_code'] = $paracrm_row['field_CURRENCY_CODE'] ;
+		$row['currency_sign'] = $paracrm_row['field_CURRENCY_SIGN'] ;
+		$row['currency_text'] = $paracrm_row['field_CURRENCY_TEXT'] ;
+		$row['eq_USD'] = ( isset($arr_currencyCode_eqUSD[$currency_code]) ? $arr_currencyCode_eqUSD[$currency_code] : 1 ) ;
+		$TAB[] = $row ;
+	}
+	return $TAB ;
+}
 
 
 function specWbMrfoxy_lib_getBibleTree( $bible_code ) {

@@ -1,10 +1,22 @@
 Ext.define('WbMrfoxyFinanceCfgCropModel', {
     extend: 'Ext.data.Model',
+	 idProperty: 'crop_year',
     fields: [
         {name: 'crop_year', type: 'string'},
         {name: 'date_apply', type: 'string'},
 		  {name: 'is_current', type: 'boolean'},
 		  {name: 'is_preview', type: 'boolean'}
+    ]
+}) ;
+
+Ext.define('WbMrfoxyFinanceCfgCurrencyModel', {
+    extend: 'Ext.data.Model',
+	 idProperty: 'currency_code',
+    fields: [
+        {name: 'currency_code', type: 'string'},
+        {name: 'currency_sign', type: 'string'},
+		  {name: 'currency_text', type: 'string'},
+		  {name: 'eq_USD', type: 'number'}
     ]
 }) ;
 
@@ -115,7 +127,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 				menu: {
 					listeners: {
 						click: function(menu, item) {
-							if( item.cropYear != null && (menu.ownerButton) instanceof Ext.button.Button ) {
+							if( item && item.cropYear != null && (menu.ownerButton) instanceof Ext.button.Button ) {
 								menu.ownerButton.cropYear = item.cropYear ;
 								this.onSelectCropYear() ;
 							}
@@ -127,6 +139,30 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 				listeners: {
 					render: function(button) {
 						if( button.cropYear == null ) {
+							button.setText( button.baseText ) ;
+						}
+					}
+				}
+			},{
+				itemId: 'tbCurrency',
+				iconCls: 'op5-spec-mrfoxy-financebudget-currency',
+				baseText: 'Currency',
+				hidden: true,
+				menu: {
+					listeners: {
+						click: function(menu, item) {
+							if( item && item.currencyCode != null && (menu.ownerButton) instanceof Ext.button.Button ) {
+								menu.ownerButton.currencyCode = item.currencyCode ;
+								this.onSelectCurrency() ;
+							}
+						},
+						scope: this
+					},
+					items:[]
+				},
+				listeners: {
+					render: function(button) {
+						if( button.currencyCode == null ) {
 							button.setText( button.baseText ) ;
 						}
 					}
@@ -258,6 +294,27 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 				scope: this
 			}
 		}) ;
+		
+		
+		// Load crop years => server
+		this.storeCurrency = Ext.create('Ext.data.Store',{
+			model: 'WbMrfoxyFinanceCfgCurrencyModel',
+			autoLoad: true,
+			proxy: this.optimaModule.getConfiguredAjaxProxy({
+				extraParams : {
+					_moduleId: 'spec_wb_mrfoxy',
+					_action: 'finance_getCfgCurrency'
+				},
+				reader: {
+					type: 'json',
+					root: 'data'
+				}
+			}),
+			listeners: {
+				load: this.loadComponentsOnStoreCurrencyLoad,
+				scope: this
+			}
+		}) ;
 	},
 	loadComponentsOnStoreCropLoad: function( storeCfgCrop ) {
 		var menuitems = [],
@@ -284,6 +341,21 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 			this.down('#tbCropYear').cropYear = currentCropYear ;
 			this.onSelectCropYear() ;
 		}
+	},
+	loadComponentsOnStoreCurrencyLoad: function( storeCfgCurrency ) {
+		var menuitems = [],
+			currentCurrency ;
+		Ext.Array.each( storeCfgCurrency.getRange(), function(currencyRecord) {
+			var currencyData = currencyRecord.data ;
+			var key = currencyData.currency_code ;
+			var text = '<b>' + currencyData.currency_sign + '</b>' + ' / ' + currencyData.currency_code ;
+			menuitems.push({
+				text: text,
+				currencyCode: key
+			}) ;
+		}) ;
+		this.down('#tbCurrency').menu.removeAll() ;
+		this.down('#tbCurrency').menu.add( menuitems ) ;
 	},
 	
 	onSelectCountry: function(silent) {
@@ -315,6 +387,23 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 			me.fireEvent('tbarselect') ;
 		}
 	},
+	onSelectCurrency: function(silent) {
+		var tbCurrency = this.query('#tbCurrency')[0],
+			ajaxData = this.ajaxData ;
+		if( !ajaxData ) {
+			this.convertCurrency = null ;
+			this.updateToolbar() ;
+			return ;
+		}
+		var nativeCurrency = ajaxData.params.currency_code,
+			selectCurrency = tbCurrency.currencyCode ;
+		if( nativeCurrency == selectCurrency ) {
+			this.convertCurrency = null ;
+		} else {
+			this.convertCurrency = selectCurrency ;
+		}
+		this.onLoad(this.ajaxData) ; // Recycle ajaxData
+	},
 	
 	onTbarSelect: function() {
 		if( this.filterCountry && this.filterCropYear ) {
@@ -322,6 +411,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 		}
 	},
 	startLoading: function() {
+		// Reset alternate currency :
+		this.convertCurrency = null ;
+		
 		var ajaxParams = {
 			_moduleId: 'spec_wb_mrfoxy',
 			_action: 'finance_getGrid',
@@ -348,6 +440,14 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 			this.updateToolbar() ;
 		}
 		
+		// Currency
+		var stdCurrencyCode = ajaxData.params.currency_code,
+			stdCurrencyEqUSD = ( this.storeCurrency.getById(stdCurrencyCode) ? this.storeCurrency.getById(stdCurrencyCode).get('eq_USD') : 1 ),
+			activeCurrencyCode = this.convertCurrency || ajaxData.params.currency_code,
+			activeCurrencySign = ( this.storeCurrency.getById(activeCurrencyCode) ? this.storeCurrency.getById(activeCurrencyCode).get('currency_sign') : null ),
+			activeCurrencyEqUSD = ( this.storeCurrency.getById(activeCurrencyCode) ? this.storeCurrency.getById(activeCurrencyCode).get('eq_USD') : 1 ),
+			convertCurrencyCoef = (stdCurrencyEqUSD / activeCurrencyEqUSD) ;
+		
 		// model
 		var actualDataIndex = null ;
 		var revisionIds = [] ;
@@ -373,6 +473,10 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 			extend: 'Ext.data.Model',
 			fields: fields
 		});
+		
+		var amountRenderer = function( v ) {
+			return Ext.util.Format.number( v, '0,0' ) + ( this.currencySign ? ' ' + this.currencySign : '' ) ;
+		} ;
 		
 		var colDefaults = {
 			menuDisabled: true,
@@ -416,8 +520,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 					columns: [{
 						text: 'Edit values',
 						align: 'right',
-						xtype: 'numbercolumn',
-						format: '0,000',
+						renderer: amountRenderer,
 						filerecordId: revision.filerecord_id,
 						revisionId: revisionId,
 						dataIndex: revisionId + '_value',
@@ -477,8 +580,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 					initColumn = {
 						text: 'Initial crop '+me.filterCropYear,
 						align: 'right',
-						xtype: 'numbercolumn',
-						format: '0,000',
+						renderer: amountRenderer,
 						filerecordId: revision.filerecord_id,
 						dataIndex: revisionId + '_value',
 						revisionId: revisionId,
@@ -489,8 +591,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 					revisionColumn.columns.push({
 						text: 'on '+revision.revision_date,
 						align: 'right',
-						xtype: 'numbercolumn',
-						format: '0,000',
+						renderer: amountRenderer,
 						filerecordId: revision.filerecord_id,
 						dataIndex: revisionId + '_value',
 						revisionId: revisionId,
@@ -525,10 +626,10 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 					cache_value[hashStr] = 0 ;
 					cache_arr[hashStr] = [] ;
 				}
-				cache_value[hashStr] += rowValue ;
+				cache_value[hashStr] += Ext.util.Format.round( rowValue * convertCurrencyCoef, 3 ) ;
 				cache_arr[hashStr].push({
 					row_sub_txt: row.row_sub_txt,
-					value: rowValue
+					value: Ext.util.Format.round( rowValue * convertCurrencyCoef, 3 )
 				});
 			});
 		});
@@ -603,6 +704,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 				items: columns
 			},
 			revisionIds: revisionIds,
+			currencySign: activeCurrencySign,
 			listeners: {
 				afterlayout: function( gridpanel ) {
 					gridpanel.headerCt.on('menucreate',me.onColumnsMenuCreate,me) ;
@@ -819,6 +921,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 	
 	updateToolbar: function() {
 		var ajaxData = this.ajaxData,
+			tbCurrency = this.down('#tbCurrency'),
 			tbExport = this.down('#tbExport'),
 			tbNewBegin = this.down('#tbNewBegin'),
 			tbNewEnd = this.down('#tbNewEnd'),
@@ -840,9 +943,23 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 				}
 			}
 		}) ;
-		tbNewBegin.setVisible(!isEditing) ;
+		tbNewBegin.setVisible(!isEditing && (this.convertCurrency==null)) ;
 		tbNewEnd.setVisible(isEditing) ;
 		tbNewEndBtnDiscard.setVisible(!isInitial) ;
+		
+		if( isEditing ) {
+			tbCurrency.setVisible(false) ;
+		} else {
+			tbCurrency.setVisible(false) ;
+			var currencyCode = this.convertCurrency || ajaxData.params.currency_code ;
+			tbCurrency.menu.items.each(function(menuitem) {
+				if( menuitem.currencyCode == currencyCode ) {
+					tbCurrency.setText( menuitem.text ) ;
+					tbCurrency[this.convertCurrency ? 'addCls':'removeCls']('op5-spec-mrfoxy-financebudget-currency-altbtn') ;
+					tbCurrency.setVisible(true) ;
+				}
+			},this) ;
+		}
 	},
 	handleNewRevision: function() {
 		var me = this ;
@@ -977,7 +1094,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 			store = grid.getStore(),
 			xlsHeader, xlsSheetGrid, xlsSheetNADetails,
 			filter_cropYear = me.filterCropYear,
-			filter_country = me.filterCountry ;
+			filter_country = me.filterCountry,
+			activeCurrencyCode = this.convertCurrency || ajaxData.params.currency_code ;
 			
 			
 		xlsFilename = 'WB_MRFOXY_budget_'+filter_cropYear+'_'+filter_country+'.xlsx' ;
@@ -996,6 +1114,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 		},{
 			fieldLabel: 'Country',
 			fieldValue: filter_country
+		},{
+			fieldLabel: 'Currency',
+			fieldValue: activeCurrencyCode
 		}];
 		
 		xlsSheetGrid.xlsColumns = [] ;
@@ -1071,6 +1192,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 			},{
 				fieldLabel: 'Country',
 				fieldValue: filter_country
+			},{
+				fieldLabel: 'Currency',
+				fieldValue: activeCurrencyCode
 			},{
 				fieldLabel: 'Revision Date',
 				fieldValue: revisionDate

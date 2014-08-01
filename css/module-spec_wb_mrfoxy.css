@@ -598,7 +598,13 @@ table.op5-spec-mrfoxy-statresult-tbl > tbody > tr > td.op5-spec-mrfoxy-statresul
 }
 
 
-
+.op5-spec-mrfoxy-financebudget-currency {
+	background-image: url("../images/modules/mrfoxy-currency-16.png") !important;
+}
+.op5-spec-mrfoxy-financebudget-currency-altbtn .x-btn-inner {
+	font-weight: bold;
+	color: red;
+}
 .x-grid-row .op5-spec-mrfoxy-financebudget-editcolumn {
 	background-color: #C5E5FF ;
 }

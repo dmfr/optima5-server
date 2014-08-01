@@ -13,6 +13,12 @@ function specWbMrfoxy_finance_getCfgCrop( $post_data ) {
 	unset($row);
 	return array('success'=>true, 'data'=>$TAB) ;
 }
+function specWbMrfoxy_finance_getCfgCurrency( $post_data ) {
+	$time = time() ;
+	$has_current = FALSE ;
+	$TAB = specWbMrfoxy_tool_getCurrencies() ;
+	return array('success'=>true, 'data'=>$TAB) ;
+}
 
 function specWbMrfoxy_finance_getGrid( $post_data ) {
 	global $_opDB ;
@@ -27,6 +33,13 @@ function specWbMrfoxy_finance_getGrid( $post_data ) {
 	if( $arr_crop == FALSE ) {
 		return array('success'=>false) ;
 	}
+	
+	// initial params
+	$_in_params = array(
+		'crop_year' => $filter_cropYear,
+		'country_code' => $filter_country,
+		'currency_code' => specWbMrfoxy_tool_getCountryCurrency( $filter_country )
+	);
 	
 	// layout revisions
 	$_layout_revisions = array() ;
@@ -184,6 +197,7 @@ function specWbMrfoxy_finance_getGrid( $post_data ) {
 	return array(
 		'success'=>true,
 		'data' => array(
+			'params' => $_in_params,
 			'revisions' => $_layout_revisions,
 			'groups' => $_layout_groups,
 			'stats' => array(
