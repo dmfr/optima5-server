@@ -472,6 +472,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 			qCfg = {} ;
 		
 		Ext.apply(qCfg,{
+			maximized: true,
+			
 			qType:'qbook',
 			qbookId: 1,
 			qbookZtemplateSsid: 1,
@@ -485,6 +487,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 			qCfg = {} ;
 		
 		Ext.apply(qCfg,{
+			maximized: true,
+			
 			qType:'qbook',
 			qbookId: 1,
 			qbookZtemplateSsid: 2,
