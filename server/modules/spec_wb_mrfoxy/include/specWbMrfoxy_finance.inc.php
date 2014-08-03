@@ -383,7 +383,7 @@ function specWbMrfoxy_finance_getBudgetBar( $post_data )  {
 	
 	//sleep(2) ;
 	
-	if( $data_cropYear = date('Y-m-d',strtotime($data_cropYear)) ) {
+	if( $data_cropYear == date('Y-m-d',strtotime($data_cropYear)) ) {
 		$query = "SELECT field_CROP_YEAR FROM view_file__CFG_CROP WHERE field_DATE_APPLY<='$data_cropYear' ORDER BY field_DATE_APPLY DESC LIMIT 1" ;
 		$data_cropYear = $_opDB->query_uniqueValue($query) ;
 	}
