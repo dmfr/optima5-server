@@ -172,33 +172,13 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 				icon: 'images/op5img/ico_new_16.gif',
 				text: 'New revision...' ,
 				handler: this.handleNewRevision,
-				scope: this,
-				hidden: !Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole(['ADM','SM','DF','DS'])
+				scope: this
 			},{
 				itemId: 'tbNewEnd',
 				icon: 'images/op5img/ico_new_16.gif',
 				text: 'New revision' ,
 				cls: 'op5-spec-mrfoxy-financebudget-newrevisionmenu',
-				menu: [{
-					iconCls: 'op5-spec-mrfoxy-financebudget-newrevisionmenu-save',
-					text: 'Commit revision' ,
-					handler: function() {
-						var doSave ;
-						this.handleNewRevisionEnd( doSave = true ) ;
-					},
-					scope: this
-				},{
-					itemId: 'btnDiscard',
-					iconCls: 'op5-spec-mrfoxy-financebudget-newrevisionmenu-discard',
-					text: 'Discard' ,
-					handler: function() {
-						var doSave ;
-						this.handleNewRevisionEnd( doSave = false ) ;
-					},
-					scope: this
-				}],
-				disabled: true,
-				hidden: !Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole(['ADM','SM','DF','DS'])
+				disabled: true
 			},{
 				itemId: 'tbExport',
 				icon: 'images/op5img/ico_save_16.gif',
@@ -514,6 +494,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 						width: 100
 					}),
 					isEditingColumn: true,
+					isInitialEdit: (revision.is_crop_initial),
 					menuDisabled: false,
 					groupable: true, // false groupable to enable columnMenu
 					cls: 'ux-filtered-column',
@@ -757,10 +738,11 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 	onColumnsMenuBeforeShow: function( menu ) {
 		var me = this,
 			columnHeader = menu.activeHeader,
-			isEditingColumn = columnHeader.isEditingColumn ;
+			isEditingColumn = columnHeader.isEditingColumn,
+			isInitialEdit = columnHeader.isInitialEdit ;
 		menu.down('menuseparator').setVisible( isEditingColumn ) ;
 		menu.down('#btnSave').setVisible( isEditingColumn ) ;
-		menu.down('#btnDiscard').setVisible( isEditingColumn ) ;
+		menu.down('#btnDiscard').setVisible( isEditingColumn && !isInitialEdit ) ;
 	},
 	onGridBeforeEdit: function(editor, editObject) {
 		var cellEl = editObject.grid.getView().getCell( editObject.record, editObject.column ) ;
@@ -768,6 +750,11 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 			return false ;
 		}
 		this.closeRowDetails() ;
+		
+		if( editObject.record.get('group_key') == '1_BUDGET' && !Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole(['ADM','DF','TF']) ) {
+			Ext.MessageBox.alert('Not authorized','Encoding total budget is restricted to:<br>- Finance Director<br>- Finance Team<br>') ;
+			return false ;
+		}
 		
 		if( editObject.record.get('operation') == '' ) {
 			return false ;
@@ -924,8 +911,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 			tbCurrency = this.down('#tbCurrency'),
 			tbExport = this.down('#tbExport'),
 			tbNewBegin = this.down('#tbNewBegin'),
-			tbNewEnd = this.down('#tbNewEnd'),
-			tbNewEndBtnDiscard = tbNewEnd.menu.down('#btnDiscard') ;
+			tbNewEnd = this.down('#tbNewEnd') ;
 		if( ajaxData == null ) {
 			tbExport.setVisible(false) ;
 			tbNewBegin.setVisible(false) ;
@@ -945,7 +931,6 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 		}) ;
 		tbNewBegin.setVisible(!isEditing && (this.convertCurrency==null)) ;
 		tbNewEnd.setVisible(isEditing) ;
-		tbNewEndBtnDiscard.setVisible(!isInitial) ;
 		
 		if( isEditing ) {
 			tbCurrency.setVisible(false) ;
@@ -963,6 +948,11 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 	},
 	handleNewRevision: function() {
 		var me = this ;
+		
+		if( !Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole(['ADM','SM','DF','TF']) ) {
+			Ext.MessageBox.alert('Not authorized','Create new revision is restricted to:<br>- Country Sales Manager<br>- Finance Director<br>- Finance Team<br>') ;
+			return ;
+		}
 		
 		var newRevisionPanel = Ext.create('Ext.form.Panel',{
 			width: 400,
@@ -1049,6 +1039,10 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 	},
 	handleNewRevisionEnd: function( doSave, confirmed ) {
 		if( doSave == null ) {
+			return ;
+		}
+		if( doSave && !Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole(['ADM','SM','DF']) ) {
+			Ext.MessageBox.alert('Not authorized','Commit revision is restricted to:<br>- Country Sales Manager<br>- Finance Director<br>') ;
 			return ;
 		}
 		if( doSave && !confirmed ) {
