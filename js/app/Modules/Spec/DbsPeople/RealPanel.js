@@ -850,7 +850,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		menu.down('#grid-print').setVisible( colCfg ) ;
 		menu.down('#grid-summary').setVisible( colCfg ) ;
 		menu.down('menuseparator').setVisible( colCfg ) ;
-		menu.down('#real-open').setVisible( colCfg && colCfg.enable_open && HelperCache.authHelperQueryPage('CEQ') ) ;
+		menu.down('#real-open').setVisible( colCfg && colCfg.enable_open && !colCfg.status_earlyLocked && HelperCache.authHelperQueryPage('CEQ') ) ;
 		menu.down('#real-valid-ceq').setVisible( colCfg && colCfg.enable_valid_ceq && HelperCache.authHelperQueryPage('CEQ') ) ;
 		menu.down('#real-valid-rh').setVisible( colCfg && colCfg.enable_valid_rh && HelperCache.authHelperQueryPage('RH') ) ;
 		menu.down('#real-reopen').setVisible( colCfg && !colCfg.enable_open && !colCfg.enable_valid_ceq && !colCfg.enable_valid_rh && HelperCache.authHelperQueryPage('ADMIN') ) ;

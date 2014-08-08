@@ -258,6 +258,10 @@ function specDbsPeople_Real_getData( $post_data ) {
 				$TAB_columns[$sql_date]['status_alertDue'] = TRUE ;
 			}
 		}
+		if( ((strtotime($sql_date) - $now) / (3600*24)) > 1 ) {
+			// UPDATE 14-08-08 : lock for > 1 day
+			$TAB_columns[$sql_date]['status_earlyLocked'] = TRUE ;
+		}
 		if( $TAB_columns[$sql_date]['enable_open'] ) {
 			$TAB_columns[$sql_date]['enable_valid_ceq'] = FALSE ;
 			$TAB_columns[$sql_date]['enable_valid_rh'] = FALSE ;
