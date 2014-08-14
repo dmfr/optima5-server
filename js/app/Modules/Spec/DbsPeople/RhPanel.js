@@ -129,7 +129,32 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 				listeners: {
 					change: {
 						fn: function() {
-							this.reload() ;
+							var filterChanged = true ;
+							this.reload(filterChanged) ;
+						},
+						scope: this
+					},
+					ready: {
+						fn: function() {
+							this.onPreInit() ;
+						},
+						scope: this
+					}
+				}
+			}),Ext.create('Optima5.Modules.Spec.DbsPeople.CfgParamTeamButton',{
+				itemId: 'btnTeam',
+				optimaModule: this.optimaModule,
+				listeners: {
+					change: {
+						fn: function() {
+							var filterChanged = true ;
+							this.reload(filterChanged) ;
+						},
+						scope: this
+					},
+					ready: {
+						fn: function() {
+							this.onPreInit() ;
 						},
 						scope: this
 					}
@@ -177,14 +202,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 			Ext.ux.dams.ModelManager.unregister( p.tmpModelName ) ;
 		}) ;
 		
+		this.preInit = 3 ;
 		this.callParent() ;
-		this.startPanel() ;
-	},
-	
-	
-	startPanel: function() {
-		var me = this ;
-		me.cfgToLoad = 1 ;
 		
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
@@ -192,7 +211,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 				_action: 'cfg_getPeopleCalcAttributes'
 			},
 			callback: function() {
-				this.onConfigureLoad() ;
+				this.onPreInit() ;
 			},
 			success: function( response ) {
 				var json = Ext.JSON.decode(response.responseText),
@@ -202,13 +221,19 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 			scope: this
 		});
 	},
-	onConfigureLoad: function() {
+	onPreInit: function() {
 		var me = this ;
-		me.cfgToLoad-- ;
-		if( me.cfgToLoad == 0 ) {
+		me.preInit-- ;
+		if( me.preInit == 0 ) {
 			me.isReady=true ;
-			me.doGridConfigure() ;
+			me.startPanel() ;
 		}
+	},
+	
+	
+	startPanel: function() {
+		var me = this ;
+		me.doGridConfigure() ;
 	},
 	doGridConfigure: function() {
 		var me = this,
@@ -217,47 +242,41 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 		//console.dir(grid.columns) ;
 		var columns = [{
 			text: 'Entrepôt',
-			dataIndex: 'whse_code',
+			dataIndex: 'whse_txt',
 			width: 100,
-			renderer: function(v,metaData,record) {
-				return record.data.whse_txt ;
-			}
+			_groupBy: 'whse_code'
 		},{
 			text: 'Equipe',
-			dataIndex: 'team_code',
+			dataIndex: 'team_txt',
 			width: 100,
-			renderer: function(v,metaData,record) {
-				return record.data.team_txt ;
-			}
+			_groupBy: 'team_code'
 		},{
 			text: 'Contrat',
-			dataIndex: 'contract_code',
+			dataIndex: 'contract_txt',
 			width: 100,
-			renderer: function(v,metaData,record) {
-				return record.data.contract_txt ;
-			},
+			_groupBy: 'contract_code',
 			hideable: true,
 			hidden: true
 		},{
 			text: 'Interim',
 			dataIndex: 'people_txtitm',
 			width: 100,
+			_groupBy: 'people_txtitm',
 			hideable: true,
 			hidden: true
 		},{
 			text: 'Rôle',
-			dataIndex: 'role_code',
+			dataIndex: 'role_txt',
 			width: 100,
-			renderer: function(v,metaData,record) {
-				return record.data.role_txt ;
-			}
+			_groupBy: 'role_code'
 		},{
 			text: '<b>Nom complet</b>',
 			dataIndex: 'people_name',
 			width: 200,
 			renderer: function(v) {
 				return '<b>'+v+'</b>' ;
-			}
+			},
+			sortable: true
 		},{
 			text: 'Tech ID',
 			dataIndex: 'people_techid',
@@ -290,7 +309,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 				align: 'center',
 				text: peopleCalcAttr.text,
 				dataIndex: 'calc_' + peopleCalcAttr.peopleCalcAttribute,
-				renderer: calcAttributeRenderer
+				renderer: calcAttributeRenderer,
+				sortable: true
 			});
 			addFields.push({
 				_peopleCalcAttribute: peopleCalcAttr.peopleCalcAttribute,
@@ -334,6 +354,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 			store: {
 				model: this.tmpModelName,
 				autoLoad: true,
+				_onLoadFilterChanged: true,
 				proxy: this.optimaModule.getConfiguredAjaxProxy({
 					extraParams : {
 						_moduleId: 'spec_dbs_people',
@@ -345,7 +366,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 						root: 'data'
 					}
 				}),
-				groupField: 'whse_code',
 				sorters: [{
 					property: 'people_name',
 					direction: 'ASC'
@@ -353,6 +373,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 				listeners: {
 					beforeload: me.onBeforeLoad,
 					load: me.onLoad,
+					groupchange: me.onGridGroupChange,
 					scope: me
 				}
 			},
@@ -361,12 +382,44 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 				pluginId: 'bufferedRender'
 			}],
 			features: [{
-				groupHeaderTpl: '{[(values.rows.length > 0 ? values.rows[0].data.whse_txt : "")]}',
 				ftype: 'grouping',
-				hideGroupedHeader: true
+				hideGroupedHeader: false,
+				enableGroupingMenu: false,
+				enableNoGroups: false,
+				groupHeaderTpl:Ext.create('Ext.XTemplate',
+					'<div>{[this.renderer(values)]}</div>',
+					{
+						renderer: function(values) {
+							if( values.rows.length == 0 ) {
+								return '' ;
+							}
+							switch( values.groupField ) {
+								case 'whse_code' :
+									return values.rows[0].data.whse_txt ;
+								case 'team_code' :
+									return values.rows[0].data.team_txt ;
+								case 'contract_code' :
+									return values.rows[0].data.contract_txt ;
+								case 'std_role_code' :
+									return values.rows[0].data.std_role_txt ;
+								case 'people_txtitm' :
+									var value = values.rows[0].data.people_txtitm ;
+									if( Ext.isEmpty(value) ) {
+										return '(Pas de donnée)' ;
+									}
+									return value ;
+								default :
+									return '' ;
+							}
+						}
+					}
+				)
 			}],
 			columns: columns,
 			listeners: {
+				afterlayout: function( gridpanel ) {
+					gridpanel.headerCt.on('menucreate',me.onColumnsMenuCreate,me) ;
+				},
 				itemclick: this.onItemClick,
 				scope: this
 			},
@@ -379,32 +432,84 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 		gridCnt.removeAll() ;
 		gridCnt.add( gridCfg ) ;
 	},
-	reload: function() {
+	onColumnsMenuCreate: function( headerCt, menu ) {
+		var me = this;
+		
+		menu.add({
+			itemId: 'grid-groupby',
+			icon: 'images/op5img/ico_groupby_16.png',
+			text: 'Group By',
+			handler: function(menuitem) {
+				this.onColumnGroupBy( menuitem.up('menu').activeHeader._groupBy ) ;
+			},
+			scope: this
+		},{
+			itemId: 'grid-cleargroups',
+			icon: 'images/op5img/ico_groupclear_16.png',
+			text: 'Clear Groups',
+			handler: function(menuitem) {
+				this.onColumnGroupBy( null ) ;
+			},
+			scope: this
+		});
+		menu.on('beforeshow', me.onColumnsMenuBeforeShow, me);
+	},
+	onColumnsMenuBeforeShow: function( menu ) {
+		var me = this,
+			HelperCache = Optima5.Modules.Spec.DbsPeople.HelperCache,
+			colCfg = menu.activeHeader.colCfg;
+		menu.down('#grid-groupby').setVisible( !Ext.isEmpty(menu.activeHeader._groupBy) ) ;
+	},
+	
+	reload: function(filterChanged) {
 		if( !this.isReady ) {
 			return ;
 		}
+		this.down('grid').getStore()._onLoadFilterChanged = filterChanged ;
 		this.down('grid').getStore().load() ;
 	},
 	onBeforeLoad: function(store,options) {
-		var filterSiteBtn = this.down('#btnSite') ;
+		var filterSiteBtn = this.down('#btnSite'),
+			filterTeamBtn = this.down('#btnTeam') ;
 		
 		options.params = options.params || {};
 		var addParams = {} ;
 		if( filterSiteBtn.getNode() != null ) {
 			addParams['filter_site_entries'] = Ext.JSON.encode( filterSiteBtn.getLeafNodesKey() ) ;
 		}
+		if( filterSiteBtn.getNode() != null ) {
+			addParams['filter_team_entries'] = Ext.JSON.encode( filterTeamBtn.getLeafNodesKey() ) ;
+		}
 		Ext.apply(options.params, addParams);
 	},
 	onLoad: function(store) {
+		var grid = this.down('grid') ;
+			store = grid.getStore(),
+			filter_site = this.down('#btnSite').getNode(),
+			filter_team = this.down('#btnTeam').getNode() ;
+			
+		// Rearrange visibility + groups
+		grid.headerCt.down('[dataIndex="whse_txt"]')._alwaysHidden = (filter_site && filter_site.leaf_only) ;
+		grid.headerCt.down('[dataIndex="team_txt"]')._alwaysHidden = (filter_team && filter_team.leaf_only) ;
+		if( store._onLoadFilterChanged ) {
+			if( filter_site==null || !filter_site.leaf_only ) {
+				store.group( 'whse_code', 'ASC' ) ;
+			} else if( filter_team==null || !filter_team.leaf_only ) {
+				store.group( 'team_code', 'ASC' ) ;
+			} else {
+				store.clearGrouping() ;
+			}
+		}
+		store._onLoadFilterChanged = false ;
+		
+		// Restore calc attributes
+		store.suspendEvents();
 		var map_peopleCalcAttribute_fieldName = {}
 		Ext.Array.each( store.model.getFields(), function(field) {
 			if( field._peopleCalcAttribute != null ) {
 				map_peopleCalcAttribute_fieldName[field._peopleCalcAttribute] = field.name ;
 			}
 		}) ;
-		
-		// Restore calc attributes
-		store.suspendEvents();
 		store.each( function(record) {
 			//console.dir(record) ;
 			var peopleCalcAttribute, fieldName ;
@@ -421,6 +526,35 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 		});
 		store.resumeEvents() ;
 		this.down('grid').getView().refresh() ;
+	},
+	onColumnGroupBy: function( groupField ) {
+		var grid = this.down('grid'),
+			store = grid.getStore() ;
+		if( groupField == null ) {
+			store.clearGrouping() ;
+		} else {
+			store.group( groupField, 'ASC' ) ;
+		}
+	},
+	onGridGroupChange: function( gridStore, groupers ) {
+		var grid = this.down('grid'),
+			 groupFields = [] ;
+		groupers.each( function(grouper) {
+			groupFields.push(grouper.property) ;
+		}) ;
+		Ext.Array.each( grid.headerCt.query('[_groupBy]'), function(col) {
+			if( col.hideable ) {
+				return ;
+			}
+			if( col._alwaysHidden ) {
+				col.hide() ;
+			} else if( Ext.Array.contains(groupFields , col._groupBy) ) {
+				col.hide() ;
+			} else {
+				col.show() ;
+			}
+		}) ;
+		grid.getView().refresh() ; // HACK
 	},
 	
 	
