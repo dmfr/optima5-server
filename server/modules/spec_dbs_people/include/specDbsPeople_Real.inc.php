@@ -253,8 +253,8 @@ function specDbsPeople_Real_getData( $post_data ) {
 				$TAB_columns[$sql_date]['enable_valid_rh'] = TRUE ;
 			}
 		}
-		if( (($now - strtotime($sql_date)) / (3600*24)) > 1 ) {
-			if( $TAB_columns[$sql_date]['enable_valid_ceq'] || $TAB_columns[$sql_date]['enable_valid_rh'] ) {
+		if( (($now - strtotime($sql_date)) / (3600*24)) > 1 && !$TAB_columns[$sql_date]['status_virtual'] ) {
+			if( $TAB_columns[$sql_date]['enable_open'] || $TAB_columns[$sql_date]['enable_valid_ceq'] || $TAB_columns[$sql_date]['enable_valid_rh'] ) {
 				$TAB_columns[$sql_date]['status_alertDue'] = TRUE ;
 			}
 		}
@@ -358,6 +358,18 @@ function specDbsPeople_Real_actionDay( $post_data ) {
 		case 'valid_rh' :
 			$exception_rows = array() ;
 			foreach( $arr_peopledayRecords as $peopleday_record ) {
+				switch( $post_data['_subaction'] ) {
+					case 'valid_ceq' :
+						if( $peopleday_record['status_isValidCeq'] ) {
+							continue 2 ;
+						}
+						break ;
+					case 'valid_rh' :
+						if( $peopleday_record['status_isValidRh'] ) {
+							continue 2 ;
+						}
+						break ;
+				}
 				$arr_exceptions = specDbsPeople_Real_actionDay_lib_valid_evalRecord($peopleday_record,$filter_arrSites) ;
 				$exception_rows = array_merge($exception_rows,$arr_exceptions) ;
 			}
