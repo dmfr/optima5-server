@@ -134,6 +134,23 @@
 	background-repeat: no-repeat;
 }
 
+
+
+.op5-spec-dbspeople-rhcolor-undefined {
+	background-color: #BF8E10 !important;
+}
+.op5-spec-dbspeople-rhcolor-undefined .x-grid-cell-inner {
+	background-color: #BF8E10 !important;
+}
+.op5-spec-dbspeople-rhcolor-out {
+	background-color: #888888 !important;
+}
+.op5-spec-dbspeople-rhcolor-out .x-grid-cell-inner {
+	background-color: #888888 !important;
+}
+
+
+
 .op5-spec-dbspeople-realcell-virtual {
 	color: #777777 ;
 }

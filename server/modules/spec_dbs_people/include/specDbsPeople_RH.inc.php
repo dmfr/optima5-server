@@ -2,6 +2,8 @@
 
 function specDbsPeople_RH_getGrid($post_data) {
 	global $_opDB ;
+	$cfg_contracts = specDbsPeople_tool_getContracts() ;
+	
 	if( isset($post_data['filter_peopleCode']) ) {
 		$filter_peopleCode = $post_data['filter_peopleCode'] ;
 	}
@@ -14,6 +16,20 @@ function specDbsPeople_RH_getGrid($post_data) {
 	
 	if( !$people_code ) {
 		paracrm_lib_file_joinPrivate_buildCache('PEOPLEDAY') ;
+		
+		$arr_type_definedPeople = array() ;
+		$map_file_field = specDbsPeople_RH_getEventTypesMap() ;
+		foreach( $map_file_field as $type => $type_desc ) {
+			$arr_type_definedPeople[$type] = array() ;
+			
+			$view_file = 'view_file_'.$type_desc['file_code'] ;
+			$query = "SELECT distinct field_PPL_CODE FROM {$view_file}" ;
+			$result = $_opDB->query($query) ;
+			while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+				$people_code = $arr[0] ;
+				$arr_type_definedPeople[$type][$people_code] = TRUE ;
+			}
+		}
 	}
 	
 	$TAB = array() ;
@@ -52,6 +68,17 @@ function specDbsPeople_RH_getGrid($post_data) {
 		
 		// Next event
 		
+		// Status:Undefined
+		foreach( specDbsPeople_RH_getEventTypesMap() as $type => $dummy ) {
+			if( isset($arr_type_definedPeople[$type]) && !$arr_type_definedPeople[$type][$people_code] ) {
+				$row['status_undefined'] = TRUE ;
+			}
+		}
+		
+		// Status:Out
+		if( $row['contract_code'] && !isset($cfg_contracts[$row['contract_code']]) ) {
+			$row['status_out'] = TRUE ;
+		}
 		
 		// All events ?
 		if( $post_data['_load_events'] ) {

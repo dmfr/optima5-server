@@ -336,7 +336,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 			draggable: false,
 			sortable: false,
 			hideable: false,
-			resizable: false,
+			resizable: true,
 			groupable: false,
 			lockable: false
 		} ;
@@ -424,7 +424,15 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 				scope: this
 			},
 			viewConfig: {
-				preserveScrollOnRefresh: true
+				preserveScrollOnRefresh: true,
+				getRowClass: function(record) {
+					if( record.get('status_undefined') ) {
+						return 'op5-spec-dbspeople-rhcolor-undefined' ;
+					}
+					if( record.get('status_out') ) {
+						return 'op5-spec-dbspeople-rhcolor-out' ;
+					}
+				}
 			}
 		} ;
 		
