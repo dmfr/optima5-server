@@ -1,14 +1,7 @@
 <?php
 
 function ext_WB_ORACLE_xml2csv_SALES( $handle_in, $handle_out ) {
-	return ext_WB_ORACLE_xml2csv( array('XXWBEFOXYEXPSALES'), $handle_in, $handle_out ) ;
-}
-
-function ext_WB_ORACLE_xml2csv_PURCHASE( $handle_in, $handle_out ) {
-	return ext_WB_ORACLE_xml2csv( array('WBEFOXYEXPPURCH'), $handle_in, $handle_out ) ;
-}
-
-function ext_WB_ORACLE_xml2csv( $xml_root_tags, $handle_in, $handle_out ) {
+	$xml_root_tag = 'XXWBEFOXYEXPSALES' ;
 	
 	$tmpfilepath = tempnam(sys_get_temp_dir(),'op5') ;
 	$handle_priv = fopen($tmpfilepath,'wb') ;
@@ -19,7 +12,7 @@ function ext_WB_ORACLE_xml2csv( $xml_root_tags, $handle_in, $handle_out ) {
 	$reader->open($tmpfilepath);
 	unlink($tmpfilepath) ;
 	$reader->read() ;
-	if( $reader->nodeType != XMLReader::ELEMENT || !in_array($reader->name,$xml_root_tags) ) {
+	if( ($reader->nodeType != XMLReader::ELEMENT) || ($reader->name != $xml_root_tag) ) {
 		return TRUE ;
 	}
 	
@@ -158,6 +151,88 @@ function ext_WB_ORACLE_xml2csv( $xml_root_tags, $handle_in, $handle_out ) {
 					case 'CUST_NAME' :
 					case 'DESCRIPTION' :
 						$value = html_entity_decode($obj_xmlRow->$mkey, ENT_COMPAT | ENT_HTML401, "UTF-8" ) ;
+						break ;
+						
+					default :
+						$value = $obj_xmlRow->$mkey ;
+						break ;
+				}
+				
+				$csv_row[] = $value ;
+			}
+			
+			fputcsv( $handle_out, $csv_row ) ;
+		}
+	}
+	
+	if( $_ERROR ) {
+		return FALSE ;
+	}
+	return TRUE ;
+}
+
+function ext_WB_ORACLE_xml2csv_PURCHASE( $handle_in, $handle_out ) {
+	$xml_root_tag = 'WBEFOXYEXPPURCH' ;
+	
+	$tmpfilepath = tempnam(sys_get_temp_dir(),'op5') ;
+	$handle_priv = fopen($tmpfilepath,'wb') ;
+	stream_copy_to_stream($handle_in,$handle_priv);
+	fclose($handle_priv) ;
+	
+	$reader = new XMLReader();
+	$reader->open($tmpfilepath);
+	unlink($tmpfilepath) ;
+	$reader->read() ;
+	if( ($reader->nodeType != XMLReader::ELEMENT) || ($reader->name != $xml_root_tag) ) {
+		return TRUE ;
+	}
+	
+	$map_item_pcb = array() ;
+	
+	while($reader->read())
+	{
+		if($reader->nodeType == XMLReader::ELEMENT && $reader->name == 'G_ONE')
+		{
+			$doc = new DOMDocument('1.0', 'UTF-8');
+			$obj_xmlRow = simplexml_import_dom($doc->importNode($reader->expand(),true));
+			
+			if( !isset($csvMap_key_idx) ) {
+				$csvMap_key_idx = array() ;
+				foreach( array('BRAND') as $mkey ) {
+					if( !isset($csvMap_key_idx[$mkey]) ) {
+						$csvMap_key_idx[$mkey] = count($csvMap_key_idx) ;
+					}
+				}
+				foreach( array('INVOICE_NUM','LINE_NUMBER','LINE_NUMBER_INDEX') as $mkey ) {
+					if( !isset($csvMap_key_idx[$mkey]) ) {
+						$csvMap_key_idx[$mkey] = count($csvMap_key_idx) ;
+					}
+				}
+				foreach( $obj_xmlRow as $mkey => $mvalue ) {
+					if( !isset($csvMap_key_idx[$mkey]) ) {
+						$csvMap_key_idx[$mkey] = count($csvMap_key_idx) ;
+					}
+				}
+				fputcsv( $handle_out, array_keys($csvMap_key_idx) ) ;
+			}
+			
+			// Reglage de l'index
+			$row_primaryKey = $obj_xmlRow->INVOICE_NUM.'::'.$obj_xmlRow->LINE_NUMBER ;
+			if( !isset($cur_primaryKey) || $cur_primaryKey != $row_primaryKey ) {
+				$cur_primaryKey = $row_primaryKey ;
+				$cur_primaryKeyIndex = 0 ;
+			}
+			$cur_primaryKeyIndex++ ;
+			
+			$csv_row = array() ;
+			foreach( $csvMap_key_idx as $mkey => $idx ) {
+				switch( $mkey ) {
+					case 'BRAND' :
+						$value = 'WONDERFUL' ;
+						break ;
+						
+					case 'LINE_NUMBER_INDEX' :
+						$value = $cur_primaryKeyIndex ;
 						break ;
 						
 					default :
