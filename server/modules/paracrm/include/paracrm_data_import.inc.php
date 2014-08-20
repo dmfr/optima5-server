@@ -221,6 +221,11 @@ function paracrm_data_importTransaction_getResponse( &$arr_saisie ) {
 			$data['map_fieldCode_csvsrcIdx'] = paracrm_lib_dataImport_getMapping($importmap_id) ;
 			$arr_saisie['csvsrc_params']['firstrow_is_header'] = TRUE ;
 		}
+		elseif( $importmap_id = paracrm_lib_dataImport_probeMappingId($arr_saisie['data_type'],$store_code, $arr_saisie['csvsrc_arrHeadertxt'], $strict_mode=FALSE) ) {
+			$arr_saisie['importmap_id'] = NULL ;
+			$data['map_fieldCode_csvsrcIdx'] = paracrm_lib_dataImport_getMapping($importmap_id) ;
+			$arr_saisie['csvsrc_params']['firstrow_is_header'] = TRUE ;
+		}
 	}
 	
 	// ****** Paginate *******
