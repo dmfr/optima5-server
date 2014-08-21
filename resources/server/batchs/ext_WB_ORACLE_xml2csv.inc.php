@@ -253,5 +253,93 @@ function ext_WB_ORACLE_xml2csv_PURCHASE( $handle_in, $handle_out ) {
 	return TRUE ;
 }
 
+function ext_WB_ORACLE_xml2csv_ITEMS( $handle_in, $handle_out ) {
+	$xml_root_tag = 'XXWBEFOXYEXPITEMS' ;
+	
+	$tmpfilepath = tempnam(sys_get_temp_dir(),'op5') ;
+	$handle_priv = fopen($tmpfilepath,'wb') ;
+	stream_copy_to_stream($handle_in,$handle_priv);
+	fclose($handle_priv) ;
+	
+	$reader = new XMLReader();
+	$reader->open($tmpfilepath);
+	unlink($tmpfilepath) ;
+	$reader->read() ;
+	if( ($reader->nodeType != XMLReader::ELEMENT) || ($reader->name != $xml_root_tag) ) {
+		return TRUE ;
+	}
+	
+	$map_item_pcb = array() ;
+	
+	while($reader->read())
+	{
+		if($reader->nodeType == XMLReader::ELEMENT && $reader->name == 'G_ONE')
+		{
+			$doc = new DOMDocument('1.0', 'UTF-8');
+			$obj_xmlRow = simplexml_import_dom($doc->importNode($reader->expand(),true));
+			
+			if( !isset($csvMap_key_idx) ) {
+				$csvMap_key_idx = array() ;
+				foreach( array('BRAND') as $mkey ) {
+					if( !isset($csvMap_key_idx[$mkey]) ) {
+						$csvMap_key_idx[$mkey] = count($csvMap_key_idx) ;
+					}
+				}
+				foreach( $obj_xmlRow as $mkey => $mvalue ) {
+					if( !isset($csvMap_key_idx[$mkey]) ) {
+						$csvMap_key_idx[$mkey] = count($csvMap_key_idx) ;
+					}
+				}
+				foreach( array('OUT_KG','OUT_UOM','OUT_PCB','OUT_ISBOX') as $mkey ) {
+					if( !isset($csvMap_key_idx[$mkey]) ) {
+						$csvMap_key_idx[$mkey] = count($csvMap_key_idx) ;
+					}
+				}
+				fputcsv( $handle_out, array_keys($csvMap_key_idx) ) ;
+			}
+			
+			$csv_row = array() ;
+			foreach( $csvMap_key_idx as $mkey => $idx ) {
+				switch( $mkey ) {
+					case 'BRAND' :
+						$value = 'WONDERFUL' ;
+						break ;
+					
+					
+					case 'OUT_KG' :
+						$base_kg = round((float)$obj_xmlRow->KG_PER_EA,3) ;
+						$value = ( trim($obj_xmlRow->EAN_DISPLAY) != '' ? ($base_kg * (int)$obj_xmlRow->EA_PER_CS) : $base_kg ) ;
+						break ;
+						
+					case 'OUT_UOM' :
+						$value = ( trim($obj_xmlRow->EAN_DISPLAY) != '' ? 'BIN' : 'EA' ) ;
+						break ;
+						
+					case 'OUT_PCB' :
+						$value = ( trim($obj_xmlRow->EAN_DISPLAY) != '' ? 1 : (int)$obj_xmlRow->EA_PER_CS ) ;
+						break ;
+						
+					case 'OUT_ISBOX' :
+						$value = ( trim($obj_xmlRow->EAN_DISPLAY) != '' ? 1 : 0 ) ;
+						break ;
+					
+					
+					default :
+						$value = $obj_xmlRow->$mkey ;
+						break ;
+				}
+				
+				$csv_row[] = $value ;
+			}
+			
+			fputcsv( $handle_out, $csv_row ) ;
+		}
+	}
+	
+	if( $_ERROR ) {
+		return FALSE ;
+	}
+	return TRUE ;
+}
 
 ?>
