@@ -342,4 +342,70 @@ function ext_WB_ORACLE_xml2csv_ITEMS( $handle_in, $handle_out ) {
 	return TRUE ;
 }
 
+function ext_WB_ORACLE_xml2csv_PRICES( $handle_in, $handle_out ) {
+	$xml_root_tag = 'XXWBEFOXYEXPSALESPRICES' ;
+	
+	$tmpfilepath = tempnam(sys_get_temp_dir(),'op5') ;
+	$handle_priv = fopen($tmpfilepath,'wb') ;
+	stream_copy_to_stream($handle_in,$handle_priv);
+	fclose($handle_priv) ;
+	
+	$reader = new XMLReader();
+	$reader->open($tmpfilepath);
+	unlink($tmpfilepath) ;
+	$reader->read() ;
+	if( ($reader->nodeType != XMLReader::ELEMENT) || ($reader->name != $xml_root_tag) ) {
+		return TRUE ;
+	}
+	
+	$map_item_pcb = array() ;
+	
+	while($reader->read())
+	{
+		if($reader->nodeType == XMLReader::ELEMENT && $reader->name == 'G_ONE')
+		{
+			$doc = new DOMDocument('1.0', 'UTF-8');
+			$obj_xmlRow = simplexml_import_dom($doc->importNode($reader->expand(),true));
+			
+			if( !isset($csvMap_key_idx) ) {
+				$csvMap_key_idx = array() ;
+				foreach( array('BRAND') as $mkey ) {
+					if( !isset($csvMap_key_idx[$mkey]) ) {
+						$csvMap_key_idx[$mkey] = count($csvMap_key_idx) ;
+					}
+				}
+				foreach( $obj_xmlRow as $mkey => $mvalue ) {
+					if( !isset($csvMap_key_idx[$mkey]) ) {
+						$csvMap_key_idx[$mkey] = count($csvMap_key_idx) ;
+					}
+				}
+				fputcsv( $handle_out, array_keys($csvMap_key_idx) ) ;
+			}
+			
+			$csv_row = array() ;
+			foreach( $csvMap_key_idx as $mkey => $idx ) {
+				switch( $mkey ) {
+					case 'BRAND' :
+						$value = 'WONDERFUL' ;
+						break ;
+					
+					
+					default :
+						$value = $obj_xmlRow->$mkey ;
+						break ;
+				}
+				
+				$csv_row[] = $value ;
+			}
+			
+			fputcsv( $handle_out, $csv_row ) ;
+		}
+	}
+	
+	if( $_ERROR ) {
+		return FALSE ;
+	}
+	return TRUE ;
+}
+
 ?>
