@@ -1,6 +1,8 @@
 <?php
 
 function paracrm_lib_dataImport_getTreefieldsRoot( $data_type,$store_code ) {
+	global $_opDB ;
+	
 	switch( $data_type ) {
 		case 'file' :
 			$file_code = $store_code ;
