@@ -138,21 +138,27 @@ function paracrm_lib_dataImport_probeMappingId( $data_type,$store_code, $csvsrc_
 	}
 	return NULL ;
 }
-function paracrm_lib_dataImport_getMapping( $importmap_id ) {
+function paracrm_lib_dataImport_getMapping( $importmap_id, $csvsrc_arrHeaderTxt=NULL ) {
 	global $_opDB ;
 	
-	$test_arrHeadertxt = $test_arrTargetfieldmapcode = array() ;
+	$map_csvHeaderTxt_arrTargetfieldmapcode = array() ;
 	$query = "SELECT csvsrc_headertxt, target_fieldmapcode FROM importmap_column WHERE importmap_id='$importmap_id' ORDER BY importmap_column_ssid" ;
 	$res = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_row($res)) != FALSE ) {
-		$test_arrHeadertxt[] = $arr[0] ;
-		$test_arrTargetfieldmapcode[] = $arr[1] ;
+		$map_csvHeaderTxt_arrTargetfieldmapcode[$arr[0]] = $arr[1] ;
 	}
 	
+	$cur_csvsrcIdx = -1 ;
 	$map_fieldCode_csvsrcIdx = array() ;
-	foreach( $test_arrTargetfieldmapcode as $i => $arrTargetfieldmapcode ) {
+	foreach( $map_csvHeaderTxt_arrTargetfieldmapcode as $csvHeaderTxt => $arrTargetfieldmapcode ) {
+		$cur_csvsrcIdx++ ;
 		foreach( json_decode($arrTargetfieldmapcode,true) as $target_fieldmapcode ) {
-			$map_fieldCode_csvsrcIdx[$target_fieldmapcode] = $i ;
+			if( is_array($csvsrc_arrHeaderTxt) ) {
+				$idx = array_search($csvHeaderTxt,$csvsrc_arrHeaderTxt) ;
+				$map_fieldCode_csvsrcIdx[$target_fieldmapcode] = $idx ;
+			} else {
+				$map_fieldCode_csvsrcIdx[$target_fieldmapcode] = $cur_csvsrcIdx ;
+			}
 		}
 	}
 	return $map_fieldCode_csvsrcIdx ;
@@ -184,10 +190,13 @@ function paracrm_lib_dataImport_commit_processHandle( $data_type,$store_code, $h
 	}
 	
 	
-	if( !($import_id = paracrm_lib_dataImport_probeMappingId($data_type,$store_code, $csvsrc_arrHeadertxt, $strict_mode=FALSE)) ) {
+	if( $importmap_id = paracrm_lib_dataImport_probeMappingId($data_type,$store_code, $csvsrc_arrHeadertxt) ) {
+		$map_fieldCode_csvsrcIdx = paracrm_lib_dataImport_getMapping($importmap_id) ;
+	} elseif( $importmap_id = paracrm_lib_dataImport_probeMappingId($data_type,$store_code, $csvsrc_arrHeadertxt, $strict_mode=FALSE) ) {
+		$map_fieldCode_csvsrcIdx = paracrm_lib_dataImport_getMapping($importmap_id, $csvsrc_arrHeadertxt) ;
+	} else {
 		return FALSE ;
 	}
-	$map_fieldCode_csvsrcIdx = paracrm_lib_dataImport_getMapping($import_id) ;
 	
 	
 	$treefields_root = paracrm_lib_dataImport_getTreefieldsRoot( $data_type,$store_code ) ;
