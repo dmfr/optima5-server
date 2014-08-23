@@ -41,38 +41,48 @@ if( $_IN_conn_ftp ) {
 }
 
 
-ftp_chdir($_IN_conn_ftp,$_IN_ftp_dir."/SALES") ;
-if( $tlist = ftp_nlist($_IN_conn_ftp,'.') ) {
-	if( !in_array('history',$tlist) ) {
-		ftp_mkdir($_IN_conn_ftp,'history') ;
-	}
-	foreach( $tlist as $filename )
-	{
-		if( ftp_size($_IN_conn_ftp, $filename) < 0 || in_array($filename,array('.','..','history')) )
-			continue ;
-			
-		echo " Proc: ".$filename." ..." ;
-		
-		$handle_in = tmpfile() ;
-		ftp_fget( $_IN_conn_ftp, $handle_in, $filename, FTP_BINARY );
-		fseek($handle_in,0) ;
-		$ret_value = paracrm_lib_dataImport_commit_processHandle( 'file', 'ORACLE_SALES_LINE', $handle_in ) ;
-		fclose($handle_in) ;
-		
-		// try to detect timeout ?
-		if( ftp_nlist($_IN_conn_ftp,'.') === FALSE ) {
-			$_IN_conn_ftp = connect_IN_ftp() ;
-			ftp_chdir($_IN_conn_ftp,$_IN_ftp_dir."/SALES") ;
+$map_ftpDir_crmArr = array(
+	'ITEMS' => array('bible','IRI_PROD'),
+	'SALES' => array('file','ORACLE_SALES_LINE'),
+	'PURCHASE' => array('file','ORACLE_PURCHASE')
+);
+
+foreach( $map_ftpDir_crmArr as $ftpDir => $crmArr ) {
+	ftp_chdir($_IN_conn_ftp,$_IN_ftp_dir."/".$ftpDir) ;
+	if( $tlist = ftp_nlist($_IN_conn_ftp,'.') ) {
+		if( !in_array('history',$tlist) ) {
+			ftp_mkdir($_IN_conn_ftp,'history') ;
 		}
-		
-		if( $ret_value ) {
-			echo " OK\n" ;
-			ftp_rename( $_IN_conn_ftp, $filename, 'history/'.$filename ) ;
-		} else {
-			echo " failed\n" ;
+		foreach( $tlist as $filename )
+		{
+			if( ftp_size($_IN_conn_ftp, $filename) < 0 || in_array($filename,array('.','..','history')) )
+				continue ;
+				
+			echo " Proc: ".$filename." ..." ;
+			
+			$handle_in = tmpfile() ;
+			ftp_fget( $_IN_conn_ftp, $handle_in, $filename, FTP_BINARY );
+			fseek($handle_in,0) ;
+			$ret_value = paracrm_lib_dataImport_commit_processHandle( $crmArr[0], $crmArr[1], $handle_in ) ;
+			fclose($handle_in) ;
+			
+			// try to detect timeout ?
+			if( ftp_nlist($_IN_conn_ftp,'.') === FALSE ) {
+				$_IN_conn_ftp = connect_IN_ftp() ;
+				ftp_chdir($_IN_conn_ftp,$_IN_ftp_dir."/".$ftpDir) ;
+			}
+			
+			if( $ret_value ) {
+				echo " OK\n" ;
+				ftp_rename( $_IN_conn_ftp, $filename, 'history/'.$filename ) ;
+			} else {
+				echo " failed\n" ;
+			}
 		}
 	}
 }
+
+
 ftp_close($_IN_conn_ftp) ;
 
 
