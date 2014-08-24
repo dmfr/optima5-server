@@ -177,16 +177,19 @@ function specDbsPeople_lib_calc_getInterimNC( $date_start, $date_end ) {
 
 
 
-function specDbsPeople_lib_calc_getCalcAttributeRecords( $people_calc_attribute ) {
+function specDbsPeople_lib_calc_getCalcAttributeRecords( $people_calc_attribute, $at_date_sql=NULL ) {
+	if( $at_date_sql == NULL ) {
+		$at_date_sql = date('Y-m-d') ;
+	}
 	switch( $people_calc_attribute ) {
 		case 'CP' :
-			return specDbsPeople_lib_calc_getCalcAttributeRecords_CP() ;
+			return specDbsPeople_lib_calc_getCalcAttributeRecords_CP($at_date_sql) ;
 		case 'MOD' :
-			return specDbsPeople_lib_calc_getCalcAttributeRecords_MOD() ;
+			return specDbsPeople_lib_calc_getCalcAttributeRecords_MOD($at_date_sql) ;
 	}
 	return array() ;
 }
-function specDbsPeople_lib_calc_getCalcAttributeRecords_CP() {
+function specDbsPeople_lib_calc_getCalcAttributeRecords_CP( $at_date_sql ) {
 	paracrm_lib_file_joinPrivate_buildCache('PEOPLEDAY') ;
 	$cfg_contracts = specDbsPeople_tool_getContracts() ;
 	/*
@@ -196,7 +199,9 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_CP() {
 		'calc_value' => $calc_value
 	);
 	*/
-	$RES_quota = specDbsPeople_lib_calc_tool_runQuery( 'CP:Quota' ) ;
+	$where_params = array() ;
+	$where_params['condition_date_lt'] = $at_date_sql ;
+	$RES_quota = specDbsPeople_lib_calc_tool_runQuery( 'CP:Quota', $where_params ) ;
 	
 	// recherche de la date MIN dans $RES_quota
 	$min_date = NULL ;
@@ -209,6 +214,7 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_CP() {
 	}
 	
 	// Config + autres requêtes
+	$where_params = array() ;
 	$where_params['condition_date_gt'] = $min_date ;
 	$RES_realDays = specDbsPeople_lib_calc_tool_runQuery( 'CP:RealDays', $where_params ) ;
 	$RES_realAbs = specDbsPeople_lib_calc_tool_runQuery( 'CP:RealAbs', $where_params ) ;
@@ -243,12 +249,16 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_CP() {
 		
 		$val = $values_quota['CP:SetQuota'] ;
 		$min_date = date('Y-m-d', strtotime($values_quota['CP:SetDate'])) ;
+		$max_date = $at_date_sql ;
 		
 		$arr_log = array() ;
 		
 		$cur_pivot = NULL ;
 		foreach( $RES_realAbs[$people_code] as $date_sql => $nb_abs ) {
 			if( $date_sql < $min_date ) {
+				continue ;
+			}
+			if( $date_sql > $max_date ) {
 				continue ;
 			}
 			
@@ -266,6 +276,9 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_CP() {
 		$RES_realDays_row = $RES_realDays[$people_code] ;
 		foreach( $RES_planning[$people_code] as $date_sql => $nb_abs ) {
 			if( $date_sql < $min_date ) {
+				continue ;
+			}
+			if( $date_sql > $max_date ) {
 				continue ;
 			}
 			if( $RES_realDays_row[$date_sql] ) {
@@ -327,7 +340,7 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_CP() {
 	return $TAB_peopleCode_record ;
 }
 
-function specDbsPeople_lib_calc_getCalcAttributeRecords_MOD() {
+function specDbsPeople_lib_calc_getCalcAttributeRecords_MOD( $at_date_sql ) {
 	paracrm_lib_file_joinPrivate_buildCache('PEOPLEDAY') ;
 	$cfg_contracts = specDbsPeople_tool_getContracts() ;
 	/*
@@ -337,7 +350,9 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_MOD() {
 		'calc_value' => $calc_value
 	);
 	*/
-	$RES_quota = specDbsPeople_lib_calc_tool_runQuery( 'MOD:Quota' ) ;
+	$where_params = array() ;
+	$where_params['condition_date_lt'] = $at_date_sql ;
+	$RES_quota = specDbsPeople_lib_calc_tool_runQuery( 'MOD:Quota', $where_params ) ;
 	
 	// recherche de la date MIN dans $RES_quota
 	$min_date = NULL ;
@@ -350,6 +365,7 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_MOD() {
 	}
 	
 	// Config + autres requêtes
+	$where_params = array() ;
 	$where_params['condition_date_gt'] = $min_date ;
 	$RES_realDuration = specDbsPeople_lib_calc_tool_runQuery( 'MOD:RealDuration', $where_params ) ;
 	$RES_minus = specDbsPeople_lib_calc_tool_runQuery( 'MOD:minus', $where_params ) ;
@@ -361,6 +377,8 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_MOD() {
 		$val = $values_quota['MOD:SetQuota'] ;
 		$min_date = date('Y-m-d', strtotime($values_quota['MOD:SetDate'])) ;
 		$min_week = date('o-W', strtotime($values_quota['MOD:SetDate'])) ;
+		$max_date = $at_date_sql ;
+		$max_week = date('o-W', strtotime($at_date_sql)) ;
 		
 		// Fake JOIN on PEOPLEDAY file to retrieve current attributes
 		$fake_row = array() ;
@@ -376,6 +394,9 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_MOD() {
 		$cur_pivot = NULL ;
 		foreach( $RES_realDuration[$people_code] as $week_sql => $nb_heures_work ) {
 			if( $week_sql < $min_week ) {
+				continue ;
+			}
+			if( $week_sql > $max_week ) {
 				continue ;
 			}
 			
@@ -396,6 +417,9 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_MOD() {
 		$RES_realDays_row = $RES_realDays[$people_code] ;
 		foreach( $RES_minus[$people_code] as $week_sql => $nb_heures ) {
 			if( $week_sql < $min_week ) {
+				continue ;
+			}
+			if( $week_sql > $max_week ) {
 				continue ;
 			}
 			

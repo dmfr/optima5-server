@@ -5,11 +5,13 @@ function specDbsPeople_query_getLibrary() {
 	
 	$TAB = array() ;
 	
-	$TAB[] = array('querysrc_id'=>'0:RH', 'q_name'=>'RH : Base People', 'params_hidden'=>true ) ;
-	$TAB[] = array('querysrc_id'=>'0:CEQ_GRID', 'q_name'=>'CEQ : Vue people/dates') ;
-	$TAB[] = array('querysrc_id'=>'0:CEQ_OLD', 'q_name'=>'CEQ : Extract (1ère version)') ;
-	$TAB[] = array('querysrc_id'=>'0:CEQ_LIST', 'q_name'=>'CEQ : Extract lignes') ;
-	$TAB[] = array('querysrc_id'=>'0:ITM_NC', 'q_name'=>'Interim : NC') ;
+	$TAB[] = array('querysrc_id'=>'0:RH', 'q_name'=>'RH : Base People') ;
+	$TAB[] = array('querysrc_id'=>'0:RH_CNT_SUM', 'q_name'=>'RH : Compteurs à date', 'enable_date_at'=>true ) ;
+	$TAB[] = array('querysrc_id'=>'0:RH_CNT_DET', 'q_name'=>'RH : Détail compteurs', 'enable_date_at'=>true ) ;
+	$TAB[] = array('querysrc_id'=>'0:CEQ_GRID', 'q_name'=>'CEQ : Vue people/dates', 'enable_date_interval'=>true ) ;
+	$TAB[] = array('querysrc_id'=>'0:CEQ_OLD', 'q_name'=>'CEQ : Extract (1ère version)', 'enable_date_interval'=>true ) ;
+	$TAB[] = array('querysrc_id'=>'0:CEQ_LIST', 'q_name'=>'CEQ : Extract lignes', 'enable_date_interval'=>true ) ;
+	$TAB[] = array('querysrc_id'=>'0:ITM_NC', 'q_name'=>'Interim : NC', 'enable_date_interval'=>true ) ;
 	
 	$query = "SELECT input_query_src.querysrc_id , query.query_name AS q_name  FROM input_query_src 
 				JOIN query ON query.query_id = input_query_src.target_query_id" ;
@@ -37,6 +39,12 @@ function specDbsPeople_query_getTableResult( $post_data ) {
 		case 'RH' :
 			return specDbsPeople_query_getTableResult_RH() ;
 			break ;
+		case 'RH_CNT_SUM' :
+			return specDbsPeople_query_getTableResult_RHCNTSUM($form_data['date_at']) ;
+			break ;
+		case 'RH_CNT_DET' :
+			return specDbsPeople_query_getTableResult_RHCNTDET($form_data['date_at']) ;
+			break ;
 		case 'CEQ_GRID' :
 			return specDbsPeople_query_getTableResult_CEQGRID($form_data['date_start'],$form_data['date_end']) ;
 			break ;
@@ -63,10 +71,54 @@ function specDbsPeople_query_getTableResult_RH() {
 		}
 	}
 	
+	$json = specDbsPeople_RH_getGrid( array() ) ;
+	$data = $json['data'] ;
+	
+	$cols = array() ;
+	$cols[] = 'whse_txt' ;
+	$cols[] = 'team_txt' ;
+	$cols[] = 'role_txt' ;
+	$cols[] = 'contract_txt' ;
+	$cols[] = 'people_code' ;
+	$cols[] = 'people_name' ;
+	$cols[] = 'people_techid' ;
+	
+	$RET_columns = array() ;
+	foreach( $cols as $col ) {
+		$RET_columns[] = array('dataIndex'=>$col,'dataType'=>'string','text'=>$col) ;
+	}
+	
+	$RET_data = array() ;
+	foreach( $data as $data_row ) {
+		$data_row['whse_txt'] = $cfg_bibles_idText['WHSE'][$data_row['whse_code']] ;
+		$data_row['team_txt'] = $cfg_bibles_idText['TEAM'][$data_row['team_code']] ;
+		$data_row['role_txt'] = $cfg_bibles_idText['ROLE'][$data_row['role_code']] ;
+		$data_row['contract_txt'] = $cfg_bibles_idText['CONTRACT'][$data_row['contract_code']] ;
+		$RET_data[] = $data_row ;
+	}
+
+	return array(
+		'success'=>true,
+		'query_vars'=>array('q_name'=>'RH : Base People'),
+		'result_tab'=>array('columns'=>$RET_columns,'data'=>$RET_data)
+	) ;
+}
+
+function specDbsPeople_query_getTableResult_RHCNTSUM($at_date_sql) {
+	$ttmp = specDbsPeople_cfg_getCfgBibles() ;
+	$cfg_bibles = $ttmp['data'] ;
+	$cfg_bibles_idText = array() ;
+	foreach( $cfg_bibles as $bible_code => $cfg_bible ) {
+		$cfg_bibles_idText[$bible_code] = array() ;
+		foreach( $cfg_bible as $row ) {
+			$cfg_bibles_idText[$bible_code][$row['id']] = $row['text'] ;
+		}
+	}
+	
 	$ttmp = specDbsPeople_cfg_getPeopleCalcAttributes() ;
 	$cfg_calcAttributes = $ttmp['data'] ;
 	
-	$json = specDbsPeople_RH_getGrid( array('_load_calcAttributes'=>true) ) ;
+	$json = specDbsPeople_RH_getGrid( array('_load_calcAttributes'=>true, '_load_calcAttributes_atDateSql'=>$at_date_sql) ) ;
 	$data = $json['data'] ;
 	
 	$cols = array() ;
@@ -106,7 +158,70 @@ function specDbsPeople_query_getTableResult_RH() {
 
 	return array(
 		'success'=>true,
-		'query_vars'=>array('q_name'=>'RH : Base People'),
+		'query_vars'=>array('q_name'=>'RH : Compteurs à date','date_at'=>$at_date_sql),
+		'result_tab'=>array('columns'=>$RET_columns,'data'=>$RET_data)
+	) ;
+}
+
+function specDbsPeople_query_getTableResult_RHCNTDET($at_date_sql) {
+	$ttmp = specDbsPeople_cfg_getCfgBibles() ;
+	$cfg_bibles = $ttmp['data'] ;
+	$cfg_bibles_idText = array() ;
+	foreach( $cfg_bibles as $bible_code => $cfg_bible ) {
+		$cfg_bibles_idText[$bible_code] = array() ;
+		foreach( $cfg_bible as $row ) {
+			$cfg_bibles_idText[$bible_code][$row['id']] = $row['text'] ;
+		}
+	}
+	
+	$ttmp = specDbsPeople_cfg_getPeopleCalcAttributes() ;
+	$cfg_calcAttributes = $ttmp['data'] ;
+	
+	$json = specDbsPeople_RH_getGrid( array('_load_calcAttributes'=>true, '_load_calcAttributes_atDateSql'=>$at_date_sql) ) ;
+	$data = $json['data'] ;
+	
+	$cols = array() ;
+	$cols[] = 'whse_txt' ;
+	$cols[] = 'team_txt' ;
+	$cols[] = 'role_txt' ;
+	$cols[] = 'contract_txt' ;
+	$cols[] = 'people_code' ;
+	$cols[] = 'people_name' ;
+	$cols[] = 'people_techid' ;
+	$cols[] = 'cnt_type' ;
+	$cols[] = 'cnt_date' ;
+	$cols[] = 'cnt_operation' ;
+	$cols[] = 'cnt_value' ;
+	
+	$RET_columns = array() ;
+	foreach( $cols as $col ) {
+		$RET_columns[] = array('dataIndex'=>$col,'dataType'=>'string','text'=>$col) ;
+	}
+	
+	$RET_data = array() ;
+	foreach( $data as $base_row ) {
+		$base_row['whse_txt'] = $cfg_bibles_idText['WHSE'][$base_row['whse_code']] ;
+		$base_row['team_txt'] = $cfg_bibles_idText['TEAM'][$base_row['team_code']] ;
+		$base_row['role_txt'] = $cfg_bibles_idText['ROLE'][$base_row['role_code']] ;
+		$base_row['contract_txt'] = $cfg_bibles_idText['CONTRACT'][$base_row['contract_code']] ;
+		
+		foreach( $base_row['calc_attributes'] as $peopleCalcAttributeRecord ) {
+			foreach( array_reverse($peopleCalcAttributeRecord['rows']) as $peopleCalcAttributeRecord_row ) {
+				$data_row = $base_row ;
+				
+				$data_row['cnt_type'] = $peopleCalcAttributeRecord['people_calc_attribute'] ;
+				$data_row['cnt_date'] = $peopleCalcAttributeRecord_row['row_date'] ;
+				$data_row['cnt_operation'] = $peopleCalcAttributeRecord_row['row_text'] ;
+				$data_row['cnt_value'] = $peopleCalcAttributeRecord_row['row_value'] ;
+				
+				$RET_data[] = $data_row ;
+			}
+		}
+	}
+
+	return array(
+		'success'=>true,
+		'query_vars'=>array('q_name'=>'RH : Détail compteurs','date_at'=>$at_date_sql),
 		'result_tab'=>array('columns'=>$RET_columns,'data'=>$RET_data)
 	) ;
 }
@@ -229,7 +344,7 @@ function specDbsPeople_query_getTableResult_CEQGRID( $date_start, $date_end ) {
 
 	return array(
 		'success'=>true,
-		'query_vars'=>array('q_name'=>'CEQ : Vue people/dates'),
+		'query_vars'=>array('q_name'=>'CEQ : Vue people/dates','date_start'=>$date_start,'date_end'=>$date_end),
 		'result_tab'=>array('columns'=>$RET_columns,'data'=>$RET_data)
 	) ;
 }
@@ -324,7 +439,7 @@ function specDbsPeople_query_getTableResult_CEQOLD( $date_start, $date_end ) {
 
 	return array(
 		'success'=>true,
-		'query_vars'=>array('q_name'=>'CEQ : Extract (1ère version)'),
+		'query_vars'=>array('q_name'=>'CEQ : Extract (1ère version)','date_start'=>$date_start,'date_end'=>$date_end),
 		'result_tab'=>array('columns'=>$RET_columns,'data'=>$RET_data)
 	) ;
 }
@@ -440,7 +555,7 @@ function specDbsPeople_query_getTableResult_CEQLIST( $date_start, $date_end ) {
 
 	return array(
 		'success'=>true,
-		'query_vars'=>array('q_name'=>'CEQ : Extract lignes'),
+		'query_vars'=>array('q_name'=>'CEQ : Extract lignes','date_start'=>$date_start,'date_end'=>$date_end),
 		'result_tab'=>array('columns'=>$RET_columns,'data'=>$RET_data)
 	) ;
 }
@@ -528,7 +643,7 @@ function specDbsPeople_query_getTableResult_ITMNC( $date_start, $date_end ) {
 
 	return array(
 		'success'=>true,
-		'query_vars'=>array('q_name'=>'Interim : NC'),
+		'query_vars'=>array('q_name'=>'Interim : NC','date_start'=>$date_start,'date_end'=>$date_end),
 		'result_tab'=>array('columns'=>$RET_columns,'data'=>$RET_data)
 	) ;
 }

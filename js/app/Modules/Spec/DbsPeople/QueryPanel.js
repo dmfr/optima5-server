@@ -102,7 +102,12 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryPanel',{
 					forceSelection: true,
 					editable: false,
 					store: {
-						fields: ['querysrc_id','q_name','params_hidden'],
+						fields: [
+							{name: 'querysrc_id', type: 'string'},
+							{name: 'q_name', type: 'string'},
+							{name: 'enable_date_at', type: 'boolean'},
+							{name: 'enable_date_interval', type: 'boolean'}
+						],
 						autoLoad: true,
 						proxy: this.optimaModule.getConfiguredAjaxProxy({
 							extraParams : {
@@ -120,16 +125,21 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryPanel',{
 					valueField: 'querysrc_id',
 					listeners: {
 						change: function(cmb,value) {
-							var cntTime = cmb.up('form').down('#cntTime'),
-								paramsHidden = cmb.getStore().findRecord('querysrc_id',value).get('params_hidden') ;
-							cntTime.setVisible( !paramsHidden );
+							var cntDateInterval = cmb.up('form').down('#cntDateInterval'),
+								cntDateAt = cmb.up('form').down('#cntDateAt'),
+								querysrcRecord = cmb.getStore().findRecord('querysrc_id',value),
+								enableDateInterval = querysrcRecord.get('enable_date_interval'),
+								enableDateAt = querysrcRecord.get('enable_date_at') ;
+							
+							cntDateInterval.setVisible( enableDateInterval );
+							cntDateAt.setVisible( enableDateAt );
 						}
 					}
 				},{
 					xtype:'fieldcontainer',
 					anchor: '100%',
 					fieldLabel: 'Dates',
-					itemId: 'cntTime',
+					itemId: 'cntDateInterval',
 					hidden: true,
 					layout: {
 						type: 'hbox'
@@ -157,6 +167,25 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryPanel',{
 						value: new Date(),
 						name : 'date_end',
 						itemId : 'dateEnd'
+					}]
+				},{
+					xtype:'fieldcontainer',
+					anchor: '100%',
+					fieldLabel: 'At date',
+					itemId: 'cntDateAt',
+					hidden: true,
+					layout: {
+						type: 'hbox'
+					},
+					items:[{
+						xtype:'datefield',
+						startDay:1,
+						format: 'Y-m-d',
+						width: 100,
+						anchor: '',
+						value: new Date(),
+						name : 'date_at',
+						itemId : 'dateAt'
 					}]
 				}]
 			},{

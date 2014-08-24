@@ -8,16 +8,22 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryResultView',{
 			tableRows: []
 		} ;
 		var queryVars = this.data.query_vars ;
+		tplData.tableRows.push({
+			fieldLabel: 'Requête',
+			fieldValue: queryVars['q_name']
+		}) ;
+		if( !Ext.isEmpty(queryVars['date_at']) ) {
+			tplData.tableRows.push({
+				fieldLabel: 'Date',
+				fieldValue: queryVars['date_at']
+			}) ;
+		}
 		if( !Ext.isEmpty(queryVars['date_start']) && !Ext.isEmpty(queryVars['date_end']) ) {
 			tplData.tableRows.push({
 				fieldLabel: 'Dates',
 				fieldValue: queryVars['date_start'] + ' >> ' + queryVars['date_end']
 			}) ;
 		}
-		tplData.tableRows.push({
-			fieldLabel: 'Requête',
-			fieldValue: queryVars['q_name']
-		}) ;
 		
 		
 		this.tmpModelName = 'DbsPeopleQueryResultModel-' + this.getId() ;
