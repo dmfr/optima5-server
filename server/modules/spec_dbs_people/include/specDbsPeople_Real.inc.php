@@ -47,7 +47,7 @@ function specDbsPeople_Real_getData( $post_data ) {
 	
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
-		$people_code = $arr['field_PPL_CODE'] ;
+		$people_code = $arr['entry_key'] ;
 		
 		reset($sql_dates_days) ;
 		foreach( $sql_dates as $cur_date ) {
