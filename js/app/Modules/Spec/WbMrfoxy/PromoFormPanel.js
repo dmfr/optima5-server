@@ -274,7 +274,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 							fieldLabel: 'Type',
 							name: 'mechanics_code',
 							listeners:{
-								change: function(){ me.calcLayout() },
+								change: function(){ me.calcLayout(); },
 								scope:me
 							}
 						},{
@@ -350,7 +350,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 						anchor: '100%',
 						name: 'cost_billing_code',
 						listeners:{
-							change: function(){ me.calcLayout() },
+							change: function(){ me.calcLayout(); me.forecastCalc(); },
 							scope:me
 						}
 					},{
@@ -397,7 +397,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 							minValue: 0,
 							value: 0,
 							listeners: {
-								change: function(){ me.forecastCalc() },
+								change: function(){ me.forecastCalc(); },
 								scope:me
 							}
 						},{
@@ -425,7 +425,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 							minValue: 0,
 							value: 0,
 							listeners: {
-								change: function(){ me.forecastCalc() },
+								change: function(){ me.forecastCalc(); },
 								scope:me
 							}
 						},{
@@ -619,10 +619,10 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 		var total = 0,
 			cost_forecast_fix = parseInt(values.cost_forecast_fix),
 			cost_forecast_var = parseInt(values.cost_forecast_var) ;
-		if( cost_forecast_fix != NaN ) {
+		if( me.query('#cost_forecast_fix')[0].isVisible() && cost_forecast_fix != NaN ) {
 			total += cost_forecast_fix ;
 		}
-		if( cost_forecast_var != NaN ) {
+		if( me.query('#cost_forecast_var')[0].isVisible() && cost_forecast_var != NaN ) {
 			total += cost_forecast_var ;
 		}
 		if( me.getSkuList() ) {
@@ -780,6 +780,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 		}
 		
 		var data = me.getFormPanel().getForm().getValues() ;
+		data.cost_forecast_fix = ( me.query('#cost_forecast_fix')[0].isVisible() ? data.cost_forecast_fix : 0 ) ;
+		data.cost_forecast_var = ( me.query('#cost_forecast_var')[0].isVisible() ? data.cost_forecast_var : 0 ) ;
 		if( me.getSkuList() ) {
 			data.promo_sku = me.getSkuList().getSkuData() ;
 		}

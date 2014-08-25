@@ -202,8 +202,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormSkuGridPanel',{
 				var calcValue =  stdCost * ( 1 - record.get('promo_price_coef') ) ;
 				forecastSku += Ext.util.Format.round( calcValue, 0 ) ;
 			}
-			if( this.setPriceCutVisible ) {
-				forecastSku += record.get('promo_price_cut') * record.get('promo_qty_forecast') ; ;
+			if( this.isPriceCutVisible ) {
+				var calcValue = record.get('promo_price_cut') * record.get('promo_qty_forecast') ;
+				forecastSku += Ext.util.Format.round( calcValue, 0 ) ;
 			}
 		},this) ;
 		return forecastSku ;
@@ -214,7 +215,12 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormSkuGridPanel',{
 		this.calcQtyPcb() ;
 	},
 	getSkuData: function() {
-		return Ext.pluck( this.getStore().data.items, 'data' ) ;
+		var sku_data = Ext.pluck( this.getStore().data.items, 'data' ) ;
+		Ext.Array.each( sku_data, function(sku_data_row) {
+			sku_data_row.promo_price_coef = (this.isPriceDiscountVisible ? sku_data_row.promo_price_coef : 1) ;
+			sku_data_row.promo_price_cut = (this.isPriceCutVisible ? sku_data_row.promo_price_cut : 0) ;
+		},this) ;
+		return sku_data ;
 	},
 	
 	setReadOnly: function( readOnly ) {
