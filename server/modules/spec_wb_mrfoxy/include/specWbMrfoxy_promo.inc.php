@@ -767,8 +767,8 @@ function specWbMrfoxy_promo_exportXLS( $post_data ) {
 	$objPHPExcel->getActiveSheet()->setCellValue('C8', $promo_record['prod_text']);
 	$objPHPExcel->getActiveSheet()->setCellValue('B11', $promo_record['date_start']);
 	$objPHPExcel->getActiveSheet()->setCellValue('C11', $promo_record['date_end']);
-	$objPHPExcel->getActiveSheet()->setCellValue('B14', $promo_record['mechanics_code']);
-	$objPHPExcel->getActiveSheet()->setCellValue('C14', $promo_record['mechanics_text']);
+	$objPHPExcel->getActiveSheet()->setCellValue('B14', $promo_record['cost_billing_code']);
+	$objPHPExcel->getActiveSheet()->setCellValue('C14', $promo_record['cost_billing_text']);
 	$objPHPExcel->getActiveSheet()->setCellValue('D14', $promo_record['cost_forecast']);
 	
 	if( $promo_record['promo_sku'] ) {
@@ -777,18 +777,33 @@ function specWbMrfoxy_promo_exportXLS( $post_data ) {
 		if( $sku_record['promo_qty_forecast'] == 0 ) {
 			continue ;
 		}
+		$discount_per_unit = (1-$sku_record['promo_price_coef'])*$sku_record['cli_price_unit'] + $sku_record['promo_price_cut'] ;
 		$objPHPExcel->getActiveSheet()->setCellValue('B'.$lig, $sku_record['sku_code']);
 		$objPHPExcel->getActiveSheet()->setCellValue('C'.$lig, $sku_record['sku_desc']);
 		$objPHPExcel->getActiveSheet()->setCellValue('D'.$lig, $sku_record['cli_price_unit']);
 		$objPHPExcel->getActiveSheet()->setCellValue('E'.$lig, $sku_record['promo_qty_forecast']);
 		$objPHPExcel->getActiveSheet()->setCellValue('G'.$lig, (1-$sku_record['promo_price_coef']) );
-		$objPHPExcel->getActiveSheet()->setCellValue('H'.$lig, (1-$sku_record['promo_price_coef'])*$sku_record['cli_price_unit']);
-		$objPHPExcel->getActiveSheet()->setCellValue('I'.$lig, (1-$sku_record['promo_price_coef'])*$sku_record['cli_price_unit']*$sku_record['promo_qty_forecast']);
+		$objPHPExcel->getActiveSheet()->setCellValue('H'.$lig, $discount_per_unit);
+		$objPHPExcel->getActiveSheet()->setCellValue('I'.$lig, ($discount_per_unit * $sku_record['promo_qty_forecast']) );
 		$lig++ ;
 		if( $lig > 21 ) {
 			break ;
 		}
 	}
+	}
+	if( $promo_record['cost_forecast_var'] > 0 ) {
+		$lig = 21 ;
+		$objPHPExcel->getActiveSheet()->setCellValue('B'.$lig, '');
+		$objPHPExcel->getActiveSheet()->setCellValue('C'.$lig, '');
+		$objPHPExcel->getActiveSheet()->setCellValue('D'.$lig, '');
+		$objPHPExcel->getActiveSheet()->setCellValue('E'.$lig, '');
+		$objPHPExcel->getActiveSheet()->setCellValue('G'.$lig, '');
+		$objPHPExcel->getActiveSheet()->setCellValue('H'.$lig, '');
+		$objPHPExcel->getActiveSheet()->setCellValue('I'.$lig, $promo_record['cost_forecast_var']);
+	}
+	if( $promo_record['cost_forecast_fix'] > 0 ) {
+		$lig = 25 ;
+		$objPHPExcel->getActiveSheet()->setCellValue('I'.$lig, $promo_record['cost_forecast_fix']);
 	}
 	
 	
