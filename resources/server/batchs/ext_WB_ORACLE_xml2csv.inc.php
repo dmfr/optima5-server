@@ -377,9 +377,19 @@ function ext_WB_ORACLE_xml2csv_PRICES( $handle_in, $handle_out ) {
 				foreach( $obj_xmlRow as $mkey => $mvalue ) {
 					if( !isset($csvMap_key_idx[$mkey]) ) {
 						$csvMap_key_idx[$mkey] = count($csvMap_key_idx) ;
+						if( $mkey=='ACCOUNT_NUMBER' ) {
+							$csvMap_key_idx['ACCOUNT_NUMBER_treenode'] = count($csvMap_key_idx) ;
+						}
 					}
 				}
 				fputcsv( $handle_out, array_keys($csvMap_key_idx) ) ;
+			}
+			
+			if( $obj_xmlRow->START_DATE_ACTIVE == '' ) {
+				continue ;
+			}
+			if( $obj_xmlRow->END_DATE_ACTIVE != '' ) {
+				continue ;
 			}
 			
 			$csv_row = array() ;
