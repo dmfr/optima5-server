@@ -16,6 +16,7 @@ $_opDB->connect_mysql( $mysql_host, $mysql_db, $mysql_user, $mysql_pass );
 $_opDB->query("SET NAMES UTF8") ;
 
 include("$server_root/modules/paracrm/backend_paracrm.inc.php");
+include("WB_MRFOXY_ORACLE_ftp_procPRICES.inc.php");
 
 $_IN_ftp_ip = getenv('FTP_IP') ;
 $_IN_ftp_user = getenv('FTP_USER') ;
@@ -44,7 +45,8 @@ if( $_IN_conn_ftp ) {
 $map_ftpDir_crmArr = array(
 	'ITEMS' => array('bible','IRI_PROD'),
 	'SALES' => array('file','ORACLE_SALES_LINE'),
-	'PURCHASE' => array('file','ORACLE_PURCHASE')
+	'PURCHASE' => array('file','ORACLE_PURCHASE'),
+	'PRICES' => array('file','_STD_PRICE')
 );
 
 foreach( $map_ftpDir_crmArr as $ftpDir => $crmArr ) {
@@ -63,6 +65,13 @@ foreach( $map_ftpDir_crmArr as $ftpDir => $crmArr ) {
 			$handle_in = tmpfile() ;
 			ftp_fget( $_IN_conn_ftp, $handle_in, $filename, FTP_BINARY );
 			fseek($handle_in,0) ;
+			if( $ftpDir=='PRICES' ) {
+				$handle_out = tmpfile() ;
+				WB_MRFOXY_ORACLE_ftp_procPRICES($handle_in,$handle_out) ;
+				fclose($handle_in) ;
+				fseek($handle_out,0) ;
+				$handle_in = $handle_out ;
+			}
 			$ret_value = paracrm_lib_dataImport_commit_processHandle( $crmArr[0], $crmArr[1], $handle_in ) ;
 			fclose($handle_in) ;
 			
