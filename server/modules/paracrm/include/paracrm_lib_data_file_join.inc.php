@@ -381,6 +381,7 @@ function paracrm_lib_file_joinPrivate_do( $file_code, $entry_field_code, $jSrcVa
 							}
 							$treenode_key = $treenode_parent_key ;
 						}
+						$jSchemaCondition['link_values']['&'] = ($tidx + 1) ;
 						$jSchemaCondition['link_values'][''] = ($tidx + 10) ;
 						break ;
 						
