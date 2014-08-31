@@ -1,0 +1,3 @@
+- Report du dernier commentaire sur le pavé Observation du RDV event
+
+- RDV jour+horaire
