@@ -58,9 +58,9 @@ Ext.define('QmergeMwhereModel', {
 		{name: 'condition_string',   type: 'string'},
 		{name: 'condition_date_lt',   type: 'string'},
 		{name: 'condition_date_gt',   type: 'string'},
-		{name: 'condition_num_lt',   type: 'numeric'},
-		{name: 'condition_num_gt',   type: 'numeric'},
-		{name: 'condition_num_eq',   type: 'numeric'},
+		{name: 'condition_num_lt',   type: 'number'},
+		{name: 'condition_num_gt',   type: 'number'},
+		{name: 'condition_num_eq',   type: 'number'},
 		{name: 'condition_bible_mode',   type: 'string'},
 		{name: 'condition_bible_treenodes',   type: 'string'},
 		{name: 'condition_bible_entries',   type: 'string'},
@@ -83,7 +83,7 @@ Ext.define('QmergeMselectFormulasymbolModel', {
 		{name: 'math_parenthese_in',   type: 'boolean'},
 		{name: 'math_operand_query_id',   type: 'int'},
 		{name: 'math_operand_selectfield_idx',   type: 'int'},
-		{name: 'math_staticvalue',   type: 'numeric'},
+		{name: 'math_staticvalue',   type: 'number'},
 		{name: 'math_parenthese_out',   type: 'boolean'}
 	]
 });
@@ -100,7 +100,7 @@ Ext.define('QmergeMselectModel', {
 		{name: 'select_lib',  type: 'string'},
 		{name: 'math_func_mode', type: 'string'},
 		{name: 'math_func_group', type: 'string'},
-		{name: 'math_round', type: 'numeric'}
+		{name: 'math_round', type: 'number'}
 	],
 	validations: [
 		{type: 'length',    field: 'select_lib',     min: 1},

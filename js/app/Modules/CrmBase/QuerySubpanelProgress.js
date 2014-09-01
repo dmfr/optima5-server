@@ -8,9 +8,9 @@ Ext.define('QueryProgressModel', {
 		{name: 'condition_string',   type: 'string'},
 		{name: 'condition_date_lt',   type: 'string'},
 		{name: 'condition_date_gt',   type: 'string'},
-		{name: 'condition_num_lt',   type: 'numeric'},
-		{name: 'condition_num_gt',   type: 'numeric'},
-		{name: 'condition_num_eq',   type: 'numeric'},
+		{name: 'condition_num_lt',   type: 'number'},
+		{name: 'condition_num_gt',   type: 'number'},
+		{name: 'condition_num_eq',   type: 'number'},
 		{name: 'condition_bible_mode',   type: 'string'},
 		{name: 'condition_bible_treenodes',   type: 'string'},
 		{name: 'condition_bible_entries',   type: 'string'}

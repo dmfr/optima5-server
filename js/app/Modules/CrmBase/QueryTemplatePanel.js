@@ -1,9 +1,9 @@
 Ext.define('QueryTemplateDemoModel', {
 	extend: 'Ext.data.Model',
 	fields: [
-		{name: 'col1',  type: 'numeric'},
-		{name: 'col2',  type: 'numeric'},
-		{name: 'col3',  type: 'numeric'}
+		{name: 'col1',  type: 'number'},
+		{name: 'col2',  type: 'number'},
+		{name: 'col3',  type: 'number'}
 	],
 	idProperty:'color_key'
 });

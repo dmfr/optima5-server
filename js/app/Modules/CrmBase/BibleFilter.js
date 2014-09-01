@@ -84,7 +84,7 @@ Ext.define('Optima5.Modules.CrmBase.BibleFilter', {
 			
 			switch( v.entry_field_type )
 			{
-				case 'numeric' :
+				case 'number' :
 				case 'date' :
 					var fieldType = v.entry_field_type ;
 					break ;

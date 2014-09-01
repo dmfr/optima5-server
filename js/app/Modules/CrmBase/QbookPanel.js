@@ -114,7 +114,7 @@ Ext.define('QbookValueSymbolModel', {
 		{name: 'math_operand_qobj_jsId',   type: 'auto'},
 		{name: 'math_operand_selectfield_idx',   type: 'int'},
 		{name: 'math_operand_mselectfield_idx',   type: 'int'},
-		{name: 'math_staticvalue',   type: 'numeric'},
+		{name: 'math_staticvalue',   type: 'number'},
 		{name: 'math_parenthese_out',   type: 'boolean'}
 	]
 });
@@ -122,7 +122,7 @@ Ext.define('QbookValueModel', {
 	extend: 'Ext.data.Model',
 	fields: [
 		{name: 'select_lib',  type: 'string'},
-		{name: 'math_round', type: 'numeric'}
+		{name: 'math_round', type: 'number'}
 	],
 	validations: [
 		{type: 'length',    field: 'select_lib',     min: 1},

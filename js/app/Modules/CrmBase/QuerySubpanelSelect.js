@@ -6,7 +6,7 @@ Ext.define('QuerySelectFormulasymbolModel', {
 		{name: 'math_operation',   type: 'string'},
 		{name: 'math_parenthese_in',   type: 'boolean'},
 		{name: 'math_fieldoperand',   type: 'string'},
-		{name: 'math_staticvalue',   type: 'numeric'},
+		{name: 'math_staticvalue',   type: 'number'},
 		{name: 'math_parenthese_out',   type: 'boolean'}
 	]
 });
@@ -16,7 +16,7 @@ Ext.define('QuerySelectModel', {
 		{name: 'select_lib',  type: 'string'},
 		{name: 'math_func_mode', type: 'string'},
 		{name: 'math_func_group', type: 'string'},
-		{name: 'math_round', type: 'numeric'}
+		{name: 'math_round', type: 'number'}
 	],
 	validations: [
 		{type: 'length',    field: 'select_lib',     min: 1},
