@@ -1,4 +1,4 @@
-Ext.define('Optima5.Modules.CrmBase.QbookQprocessFormNumber' ,{
+Ext.define('Optima5.Modules.CrmBase.QbookQprocessFormString' ,{
 	extend: 'Optima5.Modules.CrmBase.QbookQprocessForm',
 			  
 	requires: [
@@ -16,7 +16,7 @@ Ext.define('Optima5.Modules.CrmBase.QbookQprocessFormNumber' ,{
 			layout: 'anchor',
 			items:[{
 				xtype: 'fieldset',
-				title: 'Numeric condition',
+				title: 'String condition',
 				defaultType: 'textfield',
 				defaults: {
 					anchor: '100%'
@@ -24,19 +24,8 @@ Ext.define('Optima5.Modules.CrmBase.QbookQprocessFormNumber' ,{
 				layout: 'anchor',
 				items: [{
 					xtype: 'combobox',
-					fieldLabel: 'Min',
-					name: 'condition_num_gt',
-					forceSelection: true,
-					editable: false,
-					multiSelect: false,
-					store: this.comboboxGetStoreCfg(),
-					queryMode: 'local',
-					displayField: this.comboboxGetStoreDisplayField(),
-					valueField: this.comboboxGetStoreValueField()
-				},{
-					xtype: 'combobox',
-					fieldLabel: 'Max',
-					name: 'condition_num_lt',
+					fieldLabel: 'Equals',
+					name: 'condition_string',
 					forceSelection: true,
 					editable: false,
 					multiSelect: false,

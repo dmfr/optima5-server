@@ -8,11 +8,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryWhereForm' ,{
 		labelAlign: 'left',
 		labelWidth: 75
 	},
-	items:[{
-		xtype:'textfield',
-		name:'field_code',
-		fieldLabel:'Sodsk'
-	}],
+	items:[],
 
 			  
 	initComponent: function() {

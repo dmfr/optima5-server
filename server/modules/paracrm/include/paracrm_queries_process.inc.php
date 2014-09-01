@@ -339,6 +339,7 @@ function paracrm_queries_process_qbook($arr_saisie, $debug=FALSE, $src_filerecor
 						switch( $cfg_field['field_type'] ) {
 							case 'file' :
 							case 'date' :
+							case 'string' :
 							case 'number' :
 							case 'forcevalue' :
 								$mkey = $cfg_field['target_subfield'] ;
@@ -388,6 +389,7 @@ function paracrm_queries_process_qbook($arr_saisie, $debug=FALSE, $src_filerecor
 						switch( $cfg_field['field_type'] ) {
 							case 'extrapolate' :
 							case 'date' :
+							case 'string' :
 							case 'number' :
 							case 'file' :
 							case 'forcevalue' :
@@ -2964,11 +2966,16 @@ function paracrm_queries_process_queryHelp_getWhereSqlPrefilter( $target_fileCod
 			}
 			break ;
 			
+			case 'string' :
+			$where_clause.= " AND {$sqlPrefix}{$sql_file_field_code} = '".$GLOBALS['_opDB']->escape_string($field_where['condition_string'])."'" ;
+			break ;
+			
 			case 'number' :
 			if( $field_where['condition_num_gt'] != '' )
 			{
 				$where_clause.= " AND {$sqlPrefix}{$sql_file_field_code} >= '{$field_where['condition_num_gt']}'" ;
 			}
+
 			if( $field_where['condition_num_lt'] != '' )
 			{
 				$where_clause.= " AND {$sqlPrefix}{$sql_file_field_code} <= '{$field_where['condition_num_lt']}'" ;
@@ -3088,6 +3095,13 @@ function paracrm_queries_process_queryHelp_where( $record_file, $fields_where ) 
 			{
 				if( strtotime($eval_value) >= strtotime('+1 day',strtotime($field_where['condition_date_lt'])) )
 					return FALSE ;
+			}
+			break ;
+			
+			
+			case 'string' :
+			if( $field_where['condition_string'] != $eval_value ) {
+				return FALSE ;
 			}
 			break ;
 			

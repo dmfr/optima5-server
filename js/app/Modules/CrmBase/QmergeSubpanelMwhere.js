@@ -252,6 +252,10 @@ Ext.define('Optima5.Modules.CrmBase.QmergeSubpanelMwhere' ,{
 					text = '<u>Date</u>' ;
 					break ;
 				
+				case 'string' :
+					text = '<u>String</u>' ;
+					break ;
+				
 				case 'bool' :
 					text = '<u>Boolean</u>' ;
 					break ;
@@ -576,6 +580,13 @@ Ext.define('Optima5.Modules.CrmBase.QmergeSubpanelMwhere' ,{
 				}) ;
 				break ;
 				
+			case 'string' :
+				mform = Ext.create('Optima5.Modules.CrmBase.QueryWhereFormString',{
+					optimaModule: me.parentQmergePanel.optimaModule,
+					frame:true
+				}) ;
+				break ;
+				
 			case 'number' :
 				mform = Ext.create('Optima5.Modules.CrmBase.QueryWhereFormNumber',{
 					optimaModule: me.parentQmergePanel.optimaModule,
@@ -625,6 +636,8 @@ Ext.define('Optima5.Modules.CrmBase.QmergeSubpanelMwhere' ,{
 					case 'extrapolate_calc_date_to' :
 						
 					case 'condition_bool' :
+						
+					case 'condition_string' :
 						
 					case 'condition_forcevalue_isset' :
 					case 'condition_forcevalue_value' :

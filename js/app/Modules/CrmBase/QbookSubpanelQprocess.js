@@ -39,6 +39,7 @@ Ext.define('Optima5.Modules.CrmBase.QbookSubpanelQprocess' ,{
 		'Optima5.Modules.CrmBase.QbookQprocessFormExtrapolate',
 		'Optima5.Modules.CrmBase.QbookQprocessFormDate',
 		'Optima5.Modules.CrmBase.QbookQprocessFormNumber',
+		'Optima5.Modules.CrmBase.QbookQprocessFormString',
 		'Optima5.Modules.CrmBase.QbookQprocessFormBible',
 		'Optima5.Modules.CrmBase.QbookQprocessFormFile',
 		'Optima5.Modules.CrmBase.QbookQprocessFormForcevalue'
@@ -341,6 +342,9 @@ Ext.define('Optima5.Modules.CrmBase.QbookSubpanelQprocess' ,{
 					case 'date' :
 						text += '<u>Date</u>' ;
 						break ;
+					case 'string' :
+						text += '<u>String</u>' ;
+						break ;
 					case 'link' :
 						text += '<u>Link <b>'+fieldLinkBible+'</b></u>' ;
 						break ;
@@ -510,6 +514,15 @@ Ext.define('Optima5.Modules.CrmBase.QbookSubpanelQprocess' ,{
 				}) ;
 				break ;
 				
+			case 'string' :
+				mformClass = 'Optima5.Modules.CrmBase.QbookQprocessFormString' ;
+				mform = Ext.create(mformClass,{
+					frame:true,
+					inputvarRecords: me.inputvarStore.getRange(),
+					inputvarFieldType: 'string'
+				}) ;
+				break ;
+				
 			case 'number' :
 				mformClass = 'Optima5.Modules.CrmBase.QbookQprocessFormNumber' ;
 				mform = Ext.create(mformClass,{
@@ -602,6 +615,9 @@ Ext.define('Optima5.Modules.CrmBase.QbookSubpanelQprocess' ,{
 					break ;
 				case 'date' :
 					toCopy = ['condition_date_lt','condition_date_gt'] ;
+					break ;
+				case 'string' :
+					toCopy = ['condition_string'] ;
 					break ;
 				case 'number' :
 					toCopy = ['condition_num_lt','condition_num_gt'] ;

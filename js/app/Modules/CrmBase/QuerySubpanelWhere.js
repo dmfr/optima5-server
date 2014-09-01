@@ -30,6 +30,7 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelWhere' ,{
 		'Optima5.Modules.CrmBase.QuerySubpanel',
 		'Optima5.Modules.CrmBase.QueryWhereFormBible',
 		'Optima5.Modules.CrmBase.QueryWhereFormDate',
+		'Optima5.Modules.CrmBase.QueryWhereFormString',
 		'Optima5.Modules.CrmBase.QueryWhereFormNumber',
 		'Optima5.Modules.CrmBase.QueryWhereFormBoolean',
 		'Optima5.Modules.CrmBase.QueryWhereFormForcevalue'
@@ -257,6 +258,7 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelWhere' ,{
 					switch( selectedRecord.get('field_type') ) {
 						case 'link' :
 						case 'date' :
+						case 'string' :
 						case 'number' :
 						case 'file' :
 						case 'bool' :
@@ -330,6 +332,13 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelWhere' ,{
 				}) ;
 				break ;
 				
+			case 'string' :
+				mform = Ext.create('Optima5.Modules.CrmBase.QueryWhereFormString',{
+					optimaModule: me.optimaModule,
+					frame:true
+				}) ;
+				break ;
+				
 			case 'number' :
 				mform = Ext.create('Optima5.Modules.CrmBase.QueryWhereFormNumber',{
 					optimaModule: me.optimaModule,
@@ -375,6 +384,8 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelWhere' ,{
 					case 'condition_num_lt' :
 						
 					case 'condition_bool' :
+						
+					case 'condition_string' :
 						
 					case 'condition_forcevalue_isset' :
 					case 'condition_forcevalue_value' :

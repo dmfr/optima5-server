@@ -1,4 +1,4 @@
-Ext.define('Optima5.Modules.CrmBase.QueryWhereFormBoolean' ,{
+Ext.define('Optima5.Modules.CrmBase.QueryWhereFormString' ,{
 	extend: 'Optima5.Modules.CrmBase.QueryWhereForm',
 			  
 	requires: [
@@ -13,7 +13,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryWhereFormBoolean' ,{
 		Ext.apply(me,{
 			fieldDefaults: {
 				labelAlign: 'left',
-				labelWidth: 75
+				labelWidth: 60
 			},
 			layout: 'anchor',
 			items:[{
@@ -25,16 +25,9 @@ Ext.define('Optima5.Modules.CrmBase.QueryWhereFormBoolean' ,{
 				},
 				layout: 'anchor',
 				items: [{
-					xtype: 'radiogroup',
-					//fieldLabel: 'Boolean value',
-					// Arrange radio buttons into two columns, distributed vertically
-					columns: 1,
-					vertical: true,
-					items: [
-						{ boxLabel: '<i>no condition</i>', name: 'condition_bool', inputValue: '' },
-						{ boxLabel: 'True', name: 'condition_bool', inputValue: 'true'},
-						{ boxLabel: 'False', name: 'condition_bool', inputValue: 'false' }
-					]
+					xtype:'textfield',
+					name:'condition_string',
+					fieldLabel:'Equals'
 				}]
 			}]
 		});
