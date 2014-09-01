@@ -385,9 +385,6 @@ function ext_WB_ORACLE_xml2csv_PRICES( $handle_in, $handle_out ) {
 				fputcsv( $handle_out, array_keys($csvMap_key_idx) ) ;
 			}
 			
-			if( $obj_xmlRow->START_DATE_ACTIVE == '' ) {
-				continue ;
-			}
 			if( $obj_xmlRow->END_DATE_ACTIVE != '' ) {
 				continue ;
 			}
@@ -399,6 +396,12 @@ function ext_WB_ORACLE_xml2csv_PRICES( $handle_in, $handle_out ) {
 						$value = 'WONDERFUL' ;
 						break ;
 					
+					case 'START_DATE_ACTIVE' :
+						$value = $obj_xmlRow->$mkey ;
+						if( $value == '' ) {
+							$value = '2000-01-01' ;
+						}
+						break ;
 					
 					default :
 						$value = $obj_xmlRow->$mkey ;
