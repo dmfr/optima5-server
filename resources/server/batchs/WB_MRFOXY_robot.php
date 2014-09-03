@@ -209,6 +209,17 @@ function handleStatusValidation( $row ) {
 		mailFactory( $recipients, $subject, $body ) ;
 	}
 }
+function handleStatusAppro( $row ) {
+	if( in_array($row['status_code'],array('30_SCHED')) ) {} else return ;
+
+	if( time() >= strtotime($row['date_supply_start']) ) {} else return ;
+	
+	// Adv status
+	$filerecord_id = $row['_filerecord_id'] ;
+	$arr_update = array() ;
+	$arr_update['field_STATUS'] = '40_APPRO' ;
+	paracrm_lib_data_updateRecord_file( 'WORK_PROMO' , $arr_update, $filerecord_id ) ;
+}
 function handleStatusBegin( $row ) {
 	if( in_array($row['status_code'],array('30_SCHED','40_APPRO')) ) {} else return ;
 
@@ -232,6 +243,17 @@ function handleStatusBegin( $row ) {
 	$body.= getPromoDesc($row) ;
 	
 	mailFactory( $recipients, $subject, $body ) ;
+}
+function handleStatusEnd( $row ) {
+	if( in_array($row['status_code'],array('50_CURRENT')) ) {} else return ;
+
+	if( time() > strtotime($row['date_end']) ) {} else return ;
+	
+	// Adv status
+	$filerecord_id = $row['_filerecord_id'] ;
+	$arr_update = array() ;
+	$arr_update['field_STATUS'] = '60_DONE' ;
+	paracrm_lib_data_updateRecord_file( 'WORK_PROMO' , $arr_update, $filerecord_id ) ;
 }
 function handleStatusData( $row ) {
 	global $_opDB ;
@@ -344,7 +366,9 @@ $ttmp = specWbMrfoxy_promo_getGrid( array('filter_id'=>json_encode($arr_filereco
 foreach( $ttmp['data'] as $row ) {
 	handleStatusNew( $row ) ;
 	handleStatusValidation( $row ) ;
+	handleStatusAppro( $row ) ;
 	handleStatusBegin( $row ) ;
+	handleStatusEnd( $row ) ;
 	handleStatusData( $row ) ;
 	handleStatusClose( $row ) ;
 }
