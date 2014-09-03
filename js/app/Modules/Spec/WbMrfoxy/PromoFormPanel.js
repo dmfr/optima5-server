@@ -619,10 +619,10 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 		var total = 0,
 			cost_forecast_fix = parseInt(values.cost_forecast_fix),
 			cost_forecast_var = parseInt(values.cost_forecast_var) ;
-		if( me.query('#cost_forecast_fix')[0].isVisible() && cost_forecast_fix != NaN ) {
+		if( !(me.query('#cost_forecast_fix')[0].hidden) && cost_forecast_fix != NaN ) {
 			total += cost_forecast_fix ;
 		}
-		if( me.query('#cost_forecast_var')[0].isVisible() && cost_forecast_var != NaN ) {
+		if( !(me.query('#cost_forecast_var')[0].hidden) && cost_forecast_var != NaN ) {
 			total += cost_forecast_var ;
 		}
 		if( me.getSkuList() ) {
@@ -780,8 +780,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 		}
 		
 		var data = me.getFormPanel().getForm().getValues() ;
-		data.cost_forecast_fix = ( me.query('#cost_forecast_fix')[0].isVisible() ? data.cost_forecast_fix : 0 ) ;
-		data.cost_forecast_var = ( me.query('#cost_forecast_var')[0].isVisible() ? data.cost_forecast_var : 0 ) ;
+		data.cost_forecast_fix = ( !(me.query('#cost_forecast_fix')[0].hidden) ? data.cost_forecast_fix : 0 ) ;
+		data.cost_forecast_var = ( !(me.query('#cost_forecast_var')[0].hidden) ? data.cost_forecast_var : 0 ) ;
 		if( me.getSkuList() ) {
 			data.promo_sku = me.getSkuList().getSkuData() ;
 		}
