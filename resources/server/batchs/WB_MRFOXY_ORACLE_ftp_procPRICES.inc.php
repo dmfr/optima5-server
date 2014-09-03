@@ -2,6 +2,9 @@
 
 function WB_MRFOXY_ORACLE_ftp_procPRICES( $handle_in, $handle_out ) {
 	$header = fgetcsv($handle_in) ;
+	if( !$header ) {
+		return ;
+	}
 	$ACCOUNT_NUMBER_idx = array_search('ACCOUNT_NUMBER',$header) ;
 	$ACCOUNT_NUMBER_treenode_idx = array_search('ACCOUNT_NUMBER_treenode',$header) ;
 	$ITEM_NO_idx = array_search('ITEM_NO',$header) ;
