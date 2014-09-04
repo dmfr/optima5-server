@@ -21,6 +21,15 @@ include("$server_root/modules/spec_wb_mrfoxy/backend_spec_wb_mrfoxy.inc.php");
 
 
 
+if( $GLOBALS['__OPTIMA_TEST'] && !getenv('OPTIMA_TEST_EMAIL') ) {
+	fwrite(STDERR, "OPTIMA test mode : Should specify OPTIMA_TEST_EMAIL\n");
+	exit ;
+} else {
+	$GLOBALS['__OPTIMA_TEST_EMAIL'] = getenv('OPTIMA_TEST_EMAIL') ;
+}
+
+
+
 $authTable = specWbMrfoxy_auth_lib_getTable(array()) ;
 function findRecipients( $country_code, $arr_roleCode ) {
 	global $_opDB ;
@@ -45,7 +54,7 @@ function findRecipients( $country_code, $arr_roleCode ) {
 }
 
 
-function getPromoDesc( $row, $include_finance=FALSE ) {
+function getPromoDesc( $row, $include_finance=TRUE ) {
 	global $_opDB ;
 	
 	$txt = '' ;
@@ -64,14 +73,17 @@ function getPromoDesc( $row, $include_finance=FALSE ) {
 	$txt.= " StoreBrand : ".specWbMrfoxy_tool_getStoreBrand($row['store_code'])."\r\n" ;
 	if( $include_finance ) {
 		$txt.= "\r\n" ;
-		$txt.= " Cost(Estm) : ".$row['cost_forecast']." ".$row['cost_currency']."\r\n" ;
+		$txt.= " Mechanics  : ".$row['cost_billing_text']."\r\n" ;
+		$txt.= " Cost(Estm) : ".(float)$row['cost_forecast']." ".$row['currency']."\r\n" ;
 	}
-	$txt.= "\r\n" ;
-	$obs_comment = '' ;
-	foreach( preg_split('/$\R?^/m', $row['obs_comment']) as $line ) {
-		$obs_comment.= $line."\r\n              " ;
+	if( trim($row['obs_comment']) != '' ) {
+		$txt.= "\r\n" ;
+		$obs_comment = '' ;
+		foreach( preg_split('/$\R?^/m', $row['obs_comment']) as $line ) {
+			$obs_comment.= $line."\r\n              " ;
+		}
+		$txt.= " Comments   : ".trim($obs_comment)."\r\n" ;
 	}
-	$txt.= " Comments   : ".trim($obs_comment)."\r\n" ;
 	
 	return $txt ;
 }
@@ -79,12 +91,16 @@ function getPromoDesc( $row, $include_finance=FALSE ) {
 function mailFactory( $recipients, $subject, $body ) {
 	$email_text = "{$body}\r\n\r\n\r\nDo not respond directly to this message.\r\n\r\nMrFoxy access:\r\nhttp://mrfoxy.eu\r\n\r\nShould you have any question or need login ID,\r\nplease contact mrfoxy@wonderfulbrands.com\r\n\r\n" ;
 	
+	if( $GLOBALS['__OPTIMA_TEST'] ) {
+		$recipients = array($GLOBALS['__OPTIMA_TEST_EMAIL']) ;
+	}
+	
 	$email = new Email() ;
 	$email->set_From( 'noreply@wonderfulbrands.com', "Mr Foxy, Promotion Tool" ) ;
 	foreach( $recipients as $to_email ) {
 		$email->add_Recipient( $to_email ) ;
 	}
-	$email->set_Subject( '[MrFoxy] '.$subject ) ;
+	$email->set_Subject( $subject ) ;
 	$email->set_text_body( $email_text ) ;
 	$email->send() ;
 }
@@ -135,7 +151,7 @@ function handleStatusNew( $row ) {
 	
 	$recipients = findRecipients($row['country_code'], array('DS','DF')) ;
 	
-	$subject = '# '.$row['promo_id'].' : Validation request' ;
+	$subject = 'Validation request'.', # '.$row['promo_id'] ;
 	
 	$body = '' ;
 	$body.= "Dear Sales Director,\r\n" ;
@@ -176,7 +192,7 @@ function handleStatusValidation( $row ) {
 		
 		$recipients = findRecipients($row['country_code'], array('SM')) ;
 		
-		$subject = '# '.$row['promo_id'].' : Promotion '.$txt ;
+		$subject = "Promotion {$txt}".', # '.$row['promo_id'] ;
 		
 		$body = '' ;
 		$body.= "Dear Sales Manager,\r\n" ;
@@ -233,7 +249,7 @@ function handleStatusBegin( $row ) {
 	
 	$recipients = findRecipients($row['country_code'], array('CS','SM')) ;
 	
-	$subject = '# '.$row['promo_id'].' : Active' ;
+	$subject = 'Promo begins'.', # '.$row['promo_id'] ;
 	
 	$body = '' ;
 	$body.= "Notification : Promotion # {$row['promo_id']} has begun.\r\n" ;
@@ -340,7 +356,7 @@ function handleStatusClose( $row ) {
 	
 	$recipients = findRecipients($row['country_code'], array('TM','SM','DS')) ;
 	
-	$subject = '# '.$row['promo_id'].' : Analysis available' ;
+	$subject = 'Analysis available'.', # '.$row['promo_id'] ;
 	
 	$body = '' ;
 	$body.= "Dear user,\r\n" ;
