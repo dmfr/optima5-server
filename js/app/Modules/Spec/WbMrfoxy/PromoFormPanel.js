@@ -678,9 +678,12 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 		headerData['action_submit'] = ( Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole(['ADM','SM']) && data.is_prod ) ;
 		headerData['action_save'] = ( Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole(['ADM','SM']) ) ;
 		headerData['action_close'] = true ;
-		if( me.promoRecord && me.promoRecord.get('status_percent') >= 30 ) {
+		if( me.promoRecord && me.promoRecord.get('status_percent') > 30 ) {
 			headerData['action_submit'] = false ;
 			headerData['action_save'] = false ;
+		}
+		if( Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole(['ADM']) ) {
+			headerData['action_save'] = true ;
 		}
 		headerCmp.update(headerData) ;
 		if( headerCmp.rendered ) {
@@ -787,6 +790,11 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 		}
 		if( doSubmit ) {
 			data['_do_submit'] = 'true' ;
+		}
+		
+		if( me.promoRecord && Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole(['ADM']) ) {
+			str = 'Save with status unchanged (Admin) ?' ;
+			data['_do_bypass'] = 'true' ;
 		}
 		
 		Ext.MessageBox.confirm('Confirmation',str, function(buttonStr) {

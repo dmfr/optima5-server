@@ -522,7 +522,9 @@ function specWbMrfoxy_promo_formSubmit( $post_data ) {
 	//$arr_ins['field_PROMO_CODE'] = 'CODE/TODO' ;
 	$arr_ins['field_COUNTRY'] = $form_data['country_code'] ;
 	$arr_ins['field_IS_PROD'] = ($form_data['is_prod']=='PROD') ;
-	$arr_ins['field_STATUS'] = ($form_data['_do_submit'] ? '10_ENCODED' : '00_STANDBY');
+	if( !$form_data['_do_bypass'] ) {
+		$arr_ins['field_STATUS'] = ($form_data['_do_submit'] ? '10_ENCODED' : '00_STANDBY');
+	}
 	$arr_ins['field_BRAND'] = $form_data['brand_code'] ;
 	$arr_ins['field_DATE_SUPPLY_START'] = $form_data['date_supply_start'] ;
 	$arr_ins['field_DATE_SUPPLY_END'] = $form_data['date_supply_end'] ;
