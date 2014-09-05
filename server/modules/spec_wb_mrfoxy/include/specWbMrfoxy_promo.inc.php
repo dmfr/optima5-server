@@ -326,7 +326,49 @@ function specWbMrfoxy_promo_getSideBenchmark( $post_data ) {
 	$json = specWbMrfoxy_promo_getGrid(array('filter_isProd'=>1, 'filter_isBenchmarkEligible'=>1, 'filter_country'=>$promo_record['country_code'],'filter'=>json_encode($grid_filter))) ;
 	return $json ;
 }
-
+function specWbMrfoxy_promo_getSideBillback( $post_data ) {
+	global $_opDB ;
+	$src_filerecordId = $post_data['filerecord_id'] ;
+	
+	$ttmp = specWbMrfoxy_promo_getGrid( array(
+		'_load_details'=>true,
+		'filter_id'=>json_encode(array($src_filerecordId))
+	) ) ;
+	if( count($ttmp['data']) != 1 ) {
+		die() ;
+	}
+	$promo_record = $ttmp['data'][0] ;
+	
+	$forward_post = array() ;
+	$forward_post['start'] ;
+	$forward_post['limit'] ;
+	$forward_post['file_code'] = 'ORACLE_PURCHASE' ;
+		$filter = array() ;
+		$filter['field'] = 'ORACLE_PURCHASE_field_PROMO_CODE' ;
+		$filter['type'] = 'string' ;
+		$filter['value'] = $promo_record['promo_id'] ;
+		$filters[] = $filter ;
+	$forward_post['filter'] = json_encode(array($filter)) ;
+		$sorter = array() ;
+		$sorter['property'] = 'ORACLE_PURCHASE_field_DATE' ;
+		$sorter['direction'] = 'DESC' ;
+	$forward_post['sort'] = json_encode(array($sorter)) ;
+	
+	$ttmp = paracrm_data_getFileGrid_data( $forward_post, $auth_bypass=TRUE ) ;
+	$paracrm_TAB = $ttmp['data'] ;
+	
+	$TAB = array() ;
+	foreach( $paracrm_TAB as $paracrm_row ) {
+		$row = array() ;
+		$row['purchase_id'] = $paracrm_row['ORACLE_PURCHASE_field_ID'].'-'.$paracrm_row['ORACLE_PURCHASE_field_LINE_ID'].'-'.$paracrm_row['ORACLE_PURCHASE_field_LINE_IDX'] ;
+		$row['purchase_date'] = date('Y-m-d',strtotime($paracrm_row['ORACLE_PURCHASE_field_DATE'])) ;
+		$row['purchase_desc'] = $paracrm_row['ORACLE_PURCHASE_field_DESCRIPTION'] ;
+		$row['purchase_amount'] = $paracrm_row['ORACLE_PURCHASE_field_AMOUNT_VALUE'] ;
+		$TAB[] = $row ;
+	}
+	
+	return array('success'=>true, 'data'=>$TAB) ;
+}
 
 
 function specWbMrfoxy_promo_formEval( $post_data ) {

@@ -23,6 +23,8 @@ switch( $post_data['_action'] )
 	return specWbMrfoxy_promo_getSideGraph($post_data);
 	case 'promo_getSideBenchmark' :
 	return specWbMrfoxy_promo_getSideBenchmark($post_data);
+	case 'promo_getSideBillback' :
+	return specWbMrfoxy_promo_getSideBillback($post_data);
 	
 	case 'promo_formEval' :
 	return specWbMrfoxy_promo_formEval($post_data);

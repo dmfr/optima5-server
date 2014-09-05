@@ -74,6 +74,10 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 							actionText:'BaselineCfg',
 							actionDisabled:!( me.rowRecord.get('status_percent') >= 80 && Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole(['ADM','TM']) )
 						},{
+							actionId: 'billback',
+							actionText:'Billback Invcs',
+							actionDisabled:!( me.rowRecord.get('status_percent') >= 80 && Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole(['ADM','TM']) )
+						},{
 							actionId: 'csack',
 							actionText:'CS Acknowledge',
 							actionDisabled:!( me.rowRecord.get('status_code')=='25_APPROVED' && Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole(['ADM','CS']) )
@@ -111,6 +115,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 									break ;
 								case 'csack' :
 									me.handleCsAck() ;
+									break ;
+								case 'billback' :
+									me.openBillback( event ) ;
 									break ;
 								case 'viewinternal' :
 									me.handleViewInternal() ;
@@ -359,6 +366,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 	
 	openBaseline: function(e) {
 		this.openPopup(e,'Optima5.Modules.Spec.WbMrfoxy.PromoBaselinePanel',[500,120]) ;
+	},
+	openBillback: function(e) {
+		this.openPopup(e,'Optima5.Modules.Spec.WbMrfoxy.PromoBillbackGrid',[600,150]) ;
 	},
 	openPopup: function(e,className,dimensions) {
 		var me = this ;

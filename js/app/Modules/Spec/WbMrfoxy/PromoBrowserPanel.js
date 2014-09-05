@@ -80,6 +80,16 @@ Ext.define('WbMrfoxyPromoModel', {
 	  }]
 });
 
+Ext.define('WbMrfoxyPurchaseModel',{
+	extend: 'Ext.data.Model',
+	fields: [
+		{name: 'purchase_id', type: 'string'},
+		{name: 'purchase_date', type: 'string'},
+		{name: 'purchase_desc',  type: 'string'},
+		{name: 'purchase_amount',  type: 'number'}
+	]
+});
+
 Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoBrowserPanel',{
 	extend:'Ext.panel.Panel',
 	
