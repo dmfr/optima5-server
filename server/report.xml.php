@@ -44,37 +44,120 @@ if( $my_sdomain ) {
 
 if( !$TAB ) {
 	header("HTTP/1.0 404 Not Found");
+	exit ;
 }
 if( !$TAB['success'] ) {
 	header("HTTP/1.0 500 Internal Server Error");
+	exit ;
 }
 
 if( $TAB['tabs'] ) {
 	$tabs = $TAB['tabs'] ;
 } elseif( $TAB['result_tab'] ) {
+	$TAB['result_tab']['tab_title'] = 'querygrid' ;
 	$tabs = array($TAB['result_tab']) ;
 } else {
 	header("HTTP/1.0 404 Not Found");
+	exit ;
 }
 
-$oXMLWriter = new XMLWriter;
-$oXMLWriter->openMemory();
-$oXMLWriter->setIndent(true);
-$oXMLWriter->startDocument('1.0', 'UTF-8');
-$oXMLWriter->startElement("BOOK");
-foreach( $tabs as $result_tab ) {
-	$oXMLWriter->startElement("TAB");
-	foreach( $result_tab['data'] as $data_row ) {
-		$oXMLWriter->startElement("ROW");
-		foreach( $result_tab['columns'] as $column ) {
-			$oXMLWriter->writeElement($column['dataIndex'], $data_row[$column['dataIndex']]);
+switch( strtolower($_SERVER['PATH_INFO']) ) {
+	case '/xsd' :
+		$oXMLWriter = new XMLWriter;
+		$oXMLWriter->openMemory();
+		$oXMLWriter->setIndent(true);
+		$oXMLWriter->startDocument('1.0', 'UTF-8');
+			$oXMLWriter->startElement("xs:schema");
+				$oXMLWriter->writeAttribute("xmlns:xs","http://www.w3.org/2001/XMLSchema");
+				$oXMLWriter->writeAttribute("elementFormDefault","qualified");
+				$oXMLWriter->writeAttribute("attributeFormDefault","unqualified");
+				
+			$oXMLWriter->startElement("xs:element");
+				$oXMLWriter->writeAttribute("name","queryview");
+			$oXMLWriter->startElement("xs:complexType");
+			$oXMLWriter->startElement("xs:sequence");
+			
+			foreach( $tabs as $result_tab ) {
+				$tab_title = preg_replace("/[^a-zA-Z0-9\s]/", "", $result_tab['tab_title']) ;
+				$oXMLWriter->startElement("xs:element");
+					$oXMLWriter->writeAttribute("name",$tab_title);
+				$oXMLWriter->startElement("xs:complexType");
+				$oXMLWriter->startElement("xs:sequence");
+				
+				$oXMLWriter->startElement("xs:element");
+					$oXMLWriter->writeAttribute("name",'row');
+					$oXMLWriter->writeAttribute("maxOccurs","unbounded");
+				$oXMLWriter->startElement("xs:complexType");
+				$oXMLWriter->startElement("xs:sequence");
+				foreach( $result_tab['columns'] as $column ) {
+					switch( $column['dataType'] ) {
+						case 'number' :
+							$datatype = 'xs:float' ;
+							break ;
+							
+						case 'date' :
+							$datatype = 'xs:date' ;
+							break ;
+						
+						case 'string' :
+						default :
+							$datatype = 'xs:string' ;
+							break ;
+					}
+				
+					$oXMLWriter->startElement("xs:element");
+						$oXMLWriter->writeAttribute("name",$column['dataIndex']);
+						$oXMLWriter->writeAttribute("type",$datatype);
+					$oXMLWriter->endElement();
+				}
+				$oXMLWriter->endElement();
+				$oXMLWriter->endElement();
+				$oXMLWriter->endElement();
+				
+				$oXMLWriter->endElement();
+				$oXMLWriter->endElement();
+				$oXMLWriter->endElement();
+			}
+			
+			$oXMLWriter->endElement();
+			$oXMLWriter->endElement();
+			$oXMLWriter->endElement();
+			
+			$oXMLWriter->endElement();
+		$oXMLWriter->endDocument() ;
+		break ;
+	
+	
+	case '/xml' :
+	case '/' :
+	case '' :
+		$oXMLWriter = new XMLWriter;
+		$oXMLWriter->openMemory();
+		$oXMLWriter->setIndent(true);
+		$oXMLWriter->startDocument('1.0', 'UTF-8');
+		$oXMLWriter->startElement("queryview");
+		foreach( $tabs as $result_tab ) {
+			$tab_title = preg_replace("/[^a-zA-Z0-9\s]/", "", $result_tab['tab_title']) ;
+			$oXMLWriter->startElement($tab_title);
+			foreach( $result_tab['data'] as $data_row ) {
+				$oXMLWriter->startElement("row");
+				foreach( $result_tab['columns'] as $column ) {
+					$oXMLWriter->writeElement($column['dataIndex'], $data_row[$column['dataIndex']]);
+				}
+				$oXMLWriter->endElement() ;
+			}
+			$oXMLWriter->endElement() ;
 		}
 		$oXMLWriter->endElement() ;
-	}
-	$oXMLWriter->endElement() ;
+		$oXMLWriter->endDocument() ;
+		
+		break ;
+	
+	
+	default :
+		header("HTTP/1.0 500 Internal Server Error");
+		exit ;
 }
-$oXMLWriter->endElement() ;
-$oXMLWriter->endDocument() ;
 
 header('Content-Type: application/xml; charset=utf-8');
 print $oXMLWriter->outputMemory();
