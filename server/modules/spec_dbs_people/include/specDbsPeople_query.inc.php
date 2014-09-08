@@ -493,7 +493,24 @@ function specDbsPeople_query_getTableResult_CEQLIST( $date_start, $date_end ) {
 	$cols[] = 'ABS_length' ;
 	$RET_columns = array() ;
 	foreach( $cols as $col ) {
-		$RET_columns[] = array('dataIndex'=>$col,'dataType'=>'string','text'=>$col) ;
+		switch( $col ) {
+			case 'date_sql' :
+				$dataType = 'date' ;
+				break ;
+				
+			case 'std_daylength_min' :
+			case 'std_daylength' :
+			case 'std_daylength_max' :
+			case 'ROLE_length' :
+			case 'ABS_length' :
+				$dataType = 'number' ;
+				break ;
+				
+			default :
+				$dataType = 'string' ;
+				break ;
+		}
+		$RET_columns[] = array('dataIndex'=>$col,'dataType'=>$dataType,'text'=>$col) ;
 	}
 	
 	$RET_data = array() ;
