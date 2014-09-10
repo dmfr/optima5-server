@@ -54,42 +54,9 @@ function findRecipients( $country_code, $arr_roleCode ) {
 }
 
 
-function getPromoDesc( $row, $include_finance=TRUE ) {
-	global $_opDB ;
-	
-	$txt = '' ;
-	$txt.= "Promotion # : ".$row['promo_id']."\r\n" ;
-	$txt.= "\r\n" ;
-	$txt.= " Start date : ".date('d/m/Y', strtotime($row['date_start']))."\r\n" ;
-	$txt.= "  -   ends  : ".date('d/m/Y', strtotime($row['date_end']))."\r\n" ;
-	$txt.= "  - length  : ".$row['date_length_weeks']." week(s)\r\n" ;
-	$txt.= "\r\n" ;
-	$txt.= " Mechanics  : ".$row['mechanics_text']."\r\n" ;
-	$txt.= "\r\n" ;
-	$txt.= " Products   : ".$row['prod_text']."\r\n" ;
-	$txt.= " Prod. Line : ".specWbMrfoxy_tool_getProdLine($row['prod_code'])."\r\n" ;
-	$txt.= "\r\n" ;
-	$txt.= " Stores     : ".$row['store_text']."\r\n" ;
-	$txt.= " StoreBrand : ".specWbMrfoxy_tool_getStoreBrand($row['store_code'])."\r\n" ;
-	if( $include_finance ) {
-		$txt.= "\r\n" ;
-		$txt.= " Mechanics  : ".$row['cost_billing_text']."\r\n" ;
-		$txt.= " Cost(Estm) : ".(float)$row['cost_forecast']." ".$row['currency']."\r\n" ;
-	}
-	if( trim($row['obs_comment']) != '' ) {
-		$txt.= "\r\n" ;
-		$obs_comment = '' ;
-		foreach( preg_split('/$\R?^/m', $row['obs_comment']) as $line ) {
-			$obs_comment.= $line."\r\n              " ;
-		}
-		$txt.= " Comments   : ".trim($obs_comment)."\r\n" ;
-	}
-	
-	return $txt ;
-}
 
 function mailFactory( $recipients, $subject, $body ) {
-	$email_text = "{$body}\r\n\r\n\r\nDo not respond directly to this message.\r\n\r\nMrFoxy access:\r\nhttp://mrfoxy.eu\r\n\r\nShould you have any question or need login ID,\r\nplease contact mrfoxy@wonderfulbrands.com\r\n\r\n" ;
+	//$email_text = "{$body}\r\n\r\n\r\nDo not respond directly to this message.\r\n\r\nMrFoxy access:\r\nhttp://mrfoxy.eu\r\n\r\nShould you have any question or need login ID,\r\nplease contact mrfoxy@wonderfulbrands.com\r\n\r\n" ;
 	
 	if( $GLOBALS['__OPTIMA_TEST'] ) {
 		$recipients = array($GLOBALS['__OPTIMA_TEST_EMAIL']) ;
@@ -101,9 +68,137 @@ function mailFactory( $recipients, $subject, $body ) {
 		$email->add_Recipient( $to_email ) ;
 	}
 	$email->set_Subject( $subject ) ;
-	$email->set_text_body( $email_text ) ;
+	$email->set_HTML_body( $body ) ;
 	$email->send() ;
 }
+function getHtmlBody_getInnerTable( $rows ) {
+	$src = '' ;
+	$src.= '<table>' ;
+	foreach( $rows as $row ) {
+		if( $row===NULL ) {
+			$src.= "<tr><td height='5'/></tr>" ;
+			continue ;
+		}
+		$src.= "\r\n" ;
+		$src.= "<tr>" ;
+			$src.= "<td align='right'>{$row[0]}</td>" ;
+			$src.= "<td>&nbsp;&nbsp;</td>" ;
+			$src.= "<td align='left'><b>{$row[1]}</b></td>" ;
+		$src.= "</tr>" ;
+	}
+	$src.= '</table>' ;
+	return $src ;
+}
+function getHtmlBody( $promo_row, $body_text ) {
+	$templates_dir = $GLOBALS['templates_dir'] ;
+	
+	$header_src = "\r\n" ;
+	$header_src.= "<table><tr>" ;
+		$logo_base64 = base64_encode( file_get_contents($templates_dir.'/'.'WB_MRFOXY_email_logo.png') ) ;
+		$header_src.= "<td width='128' align='center'>" ;
+		$header_src.= "<img src=\"data:image/png;base64,$logo_base64\"/>" ;
+		$header_src.= "</td>" ;
+		
+		$header_src.= "<td>" ;
+		$header_src.= "\r\n<span class='text-small' style='color:#000000;'><b><i>".'Mr Foxy email notice for :'."</i></b></span><br>" ;
+		$header_src.= "\r\n<span class='text-mid' style='color:#550000; padding:0px 10px;'><b>".$promo_row['promo_id']."</b></span><br>" ;
+		$header_src.= "</td>" ;
+	$header_src.= "</tr></table>" ;
+	
+	
+	$desc_src = "\r\n" ;
+	$desc_src.= '<table><tr>' ;
+	$desc_src.= '<tr>' ;
+	$desc_src.= '<td>' ;
+		$desc_rows = array() ;
+		$desc_rows[] = array('Start date',date('d/m/Y', strtotime($promo_row['date_start']))) ;
+		$desc_rows[] = array('ends',date('d/m/Y', strtotime($promo_row['date_end']))) ;
+		$desc_rows[] = array('length',$promo_row['date_length_weeks']." week(s)") ;
+		$desc_rows[] = NULL ;
+		$desc_rows[] = NULL ;
+		$desc_rows[] = array('Billing',$promo_row['cost_billing_text']) ;
+		$desc_rows[] = array('Cost(Estimate)',(float)$promo_row['cost_forecast']." ".$promo_row['currency']) ;
+		$desc_src.= getHtmlBody_getInnerTable( $desc_rows ) ;
+	$desc_src.= "</td>" ;
+	$desc_src.= "<td>&nbsp;&nbsp;</td>" ;
+	$desc_src.= "<td>" ;
+		$desc_rows = array() ;
+		$desc_rows[] = array('Mechanics',$promo_row['mechanics_text']) ;
+		$desc_rows[] = NULL ;
+		$desc_rows[] = array('Products',$promo_row['prod_text']) ;
+		$desc_rows[] = array('Product Line',specWbMrfoxy_tool_getProdLine($promo_row['prod_code'])) ;
+		$desc_rows[] = NULL ;
+		$desc_rows[] = array('Stores',$promo_row['store_text']) ;
+		$desc_rows[] = array('Store Brand',specWbMrfoxy_tool_getStoreBrand($promo_row['store_code'])) ;
+		$desc_src.= getHtmlBody_getInnerTable( $desc_rows ) ;
+	$desc_src.= "</td>" ;
+	$desc_src.= "</tr>" ;
+	if( trim($promo_row['obs_comment']) != '' ) {
+		$obs_comment = '' ;
+		foreach( preg_split('/$\R?^/m', $promo_row['obs_comment']) as $line ) {
+			$obs_comment.= $line."<br>" ;
+		}
+		
+		
+		$desc_src.= '<tr><td colspan="3">' ;
+			$desc_rows = array() ;
+			$desc_rows[] = array('Comments',trim($obs_comment)) ;
+			$desc_src.= getHtmlBody_getInnerTable( $desc_rows ) ;
+		$desc_src.= "</td></tr>" ;
+	}
+	$desc_src.= "</table>" ;
+	
+	
+	$text_src = "\r\n" ;
+	$text_src.= '<div class="text-xsmall">' ;
+	foreach( preg_split('/$\R?^/m', $body_text) as $line ) {
+		$text_src.= "\r\n".$line."<br>" ;
+	}
+	$text_src.= '</div>' ;
+	
+	
+	$footer_src = "\r\n" ;
+	$footer_src.= '<div class="text-xxsmall">' ;
+		$footer_src.= 'Do not respond directly to this message.<br>';
+		$footer_src.= 'MrFoxy access : <a href="http://mrfoxy.eu">http://mrfoxy.eu</a><br>';
+		$footer_src.= 'Should you have any question or need login ID, please contact <b>mrfoxy@wonderfulbrands.com</b><br>';
+	$footer_src.= '</div>' ;
+	
+	
+	$body_src = "\r\n" ;
+	$body_src.= '<div>' ;
+		$body_src.= $header_src ;
+		$body_src.= "<hr>" ;
+		$body_src.= $text_src ;
+		$body_src.= $desc_src ;
+		$body_src.= "<hr>" ;
+		$body_src.= $footer_src ;
+	$body_src.= "</div>" ;
+	
+	
+	$template_resource_binary = file_get_contents($templates_dir.'/'.'WB_MRFOXY_email_template.html') ;
+	$doc = new DOMDocument();
+	@$doc->loadHTML($template_resource_binary);
+	$elements = $doc->getElementsByTagName('email-body');
+	$i = $elements->length - 1;
+	while ($i > -1) {
+		$node_emailBody = $elements->item($i);
+		$i--;
+		
+		$dom_div = new DOMDocument();
+		$dom_div->loadHTML( '<?xml encoding="UTF-8"><html>'.$body_src.'</html>' ) ;
+		$node_div = $dom_div->getElementsByTagName("div")->item(0);
+		
+		$node_div = $doc->importNode($node_div,true) ;
+		
+		$node_emailBody->parentNode->replaceChild($node_div,$node_emailBody) ;
+	}
+	return $doc->saveHTML() ;
+}
+function sendHtmlEmail( $recipients, $promo_row, $subject_text, $body_text ) {
+	mailFactory( $recipients, $subject_text, getHtmlBody($promo_row,$body_text) ) ;
+}
+
 
 function runPromoQbook( $src_filerecordId ) {
 	global $_opDB ;
@@ -158,11 +253,8 @@ function handleStatusNew( $row ) {
 	$body.= "A new promotion has been encoded.\r\n" ;
 	$body.= "Please connect to mr foxy for validation.\r\n" ;
 	$body.= "\r\n" ;
-	$body.= "Find below details of encoded promotion:\r\n" ;
-	$body.= "\r\n" ;
-	$body.= getPromoDesc($row) ;
 	
-	mailFactory( $recipients, $subject, $body ) ;
+	sendHtmlEmail( $recipients, $row, $subject, $body ) ;
 }
 function handleStatusValidation( $row ) {
 	if( in_array($row['status_code'],array('20_WAITVALID','25_APPROVED')) ) {} else return ;
@@ -198,14 +290,15 @@ function handleStatusValidation( $row ) {
 		$body.= "Dear Sales Manager,\r\n" ;
 		$body.= "The promotion # {$row['promo_id']} has been {$txt}.\r\n" ;
 		$body.= "\r\n" ;
-		$body.= "DS statement : {$row['approv_ds_obs']}\r\n" ;
-		$body.= "DF statement : {$row['approv_df_obs']}\r\n" ;
+		if( $row['approv_ds_obs'] ) {
+			$body.= "DS statement : {$row['approv_ds_obs']}\r\n" ;
+		}
+		if( $row['approv_df_obs'] ) {
+			$body.= "DF statement : {$row['approv_df_obs']}\r\n" ;
+		}
 		$body.= "\r\n" ;
-		$body.= "Find below details of promotion:\r\n" ;
-		$body.= "\r\n" ;
-		$body.= getPromoDesc($row) ;
 		
-		mailFactory( $recipients, $subject, $body ) ;
+		sendHtmlEmail( $recipients, $row, $subject, $body ) ;
 	}
 	
 	if( $row['cost_billing__csHold'] ) {
@@ -218,11 +311,8 @@ function handleStatusValidation( $row ) {
 		$body.= "The sales director has validated promotion # {$row['promo_id']}\r\n" ;
 		$body.= "Please connect to Mr Foxy to indicate that it has been treated.\r\n" ;
 		$body.= "\r\n" ;
-		$body.= "Find below details of promotion:\r\n" ;
-		$body.= "\r\n" ;
-		$body.= getPromoDesc($row) ;
 		
-		mailFactory( $recipients, $subject, $body ) ;
+		sendHtmlEmail( $recipients, $row, $subject, $body ) ;
 	}
 }
 function handleStatusAppro( $row ) {
@@ -254,11 +344,8 @@ function handleStatusBegin( $row ) {
 	$body = '' ;
 	$body.= "Notification : Promotion # {$row['promo_id']} has begun.\r\n" ;
 	$body.= "\r\n" ;
-	$body.= "Find below details of current promotion:\r\n" ;
-	$body.= "\r\n" ;
-	$body.= getPromoDesc($row) ;
 	
-	mailFactory( $recipients, $subject, $body ) ;
+	sendHtmlEmail( $recipients, $row, $subject, $body ) ;
 }
 function handleStatusEnd( $row ) {
 	if( in_array($row['status_code'],array('50_CURRENT')) ) {} else return ;
@@ -362,11 +449,8 @@ function handleStatusClose( $row ) {
 	$body.= "Dear user,\r\n" ;
 	$body.= "The analysis and feedback for promotion # {$row['promo_id']} is available.\r\n" ;
 	$body.= "\r\n" ;
-	$body.= "Find below details of current promotion:\r\n" ;
-	$body.= "\r\n" ;
-	$body.= getPromoDesc($row) ;
 	
-	mailFactory( $recipients, $subject, $body ) ;
+	sendHtmlEmail( $recipients, $row, $subject, $body ) ;
 }
 
 
