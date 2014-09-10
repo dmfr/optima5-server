@@ -3,7 +3,7 @@
 
 class Email {
 
-	private $str_From = "nobody@kuehne-nagel.com" ;
+	private $str_From = "nobody@nodomain.com" ;
 	private $str_Subject ;
 	private $arr_recipients = array() ;
 
@@ -87,30 +87,17 @@ class Email {
 			$mail->addAddress($recipient);
 		}
 		
-		$mail->WordWrap = 72 ;
+		$mail->WordWrap = 70 ;
 		foreach( $this->arrAttachments as $attachment ) {
 			$mail->addStringAttachment($attachment['binary'], $attachment['filename'], 'base64', $attachment['type'] );
 		}
 		
 		if( $this->IsHTML )
 		{
-			$email_src = '<html>' ;
-			$email_src.= EMAIL_HEAD_STR ;
-			$email_src.= "<body>" ;
-			if( $this->str_commentaire != NULL )
-			{
-				$textarea = $this->str_commentaire ;
-				$email_src.= "<table bgcolor='#cccccc' cellspacing='2' cellpadding='2'>";
-					$email_src.= "<tr>" ;
-					$email_src.= "<td width='600'>$textarea</td></tr>" ;
-				$email_src.= "</table>";
-				$email_src.= "<br>" ;
-			}
-			$email_src.= $this->str_main_body ;
-			$email_src.= "</body></html>" ;
-			
+			$email_src = $this->str_main_body ;
 			$mail->isHTML(true);
 			$mail->Body = $email_src ;
+			$mail->AltBody = strip_tags($email_src) ;
 		}
 		else {
 			$email_src = $this->str_main_body ;
