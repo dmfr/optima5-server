@@ -385,10 +385,6 @@ function ext_WB_ORACLE_xml2csv_PRICES( $handle_in, $handle_out ) {
 				fputcsv( $handle_out, array_keys($csvMap_key_idx) ) ;
 			}
 			
-			if( $obj_xmlRow->END_DATE_ACTIVE != '' ) {
-				continue ;
-			}
-			
 			$csv_row = array() ;
 			foreach( $csvMap_key_idx as $mkey => $idx ) {
 				switch( $mkey ) {
