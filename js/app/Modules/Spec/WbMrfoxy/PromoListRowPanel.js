@@ -4,6 +4,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 	requires: [
 		'Optima5.Modules.Spec.WbMrfoxy.PromoApprovalPanel',
 		'Optima5.Modules.Spec.WbMrfoxy.PromoBaselinePanel',
+		'Optima5.Modules.Spec.WbMrfoxy.PromoBillbackGrid',
 		'Ext.ux.dams.FieldSet',
 		'Optima5.Modules.Spec.WbMrfoxy.GraphInfoView',
 		'Optima5.Modules.Spec.WbMrfoxy.BenchmarkGridEmpty'
@@ -76,7 +77,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 						},{
 							actionId: 'billback',
 							actionText:'Billback Invcs',
-							actionDisabled:!( me.rowRecord.get('status_percent') >= 80 && !me.rowRecord.get('cost_billing__autoclose') && Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole(['ADM','TM']) )
+							actionDisabled:!( me.rowRecord.get('status_percent') >= 80 && !me.rowRecord.get('cost_billing__autoclose') )
 						},{
 							actionId: 'csack',
 							actionText:'CS Acknowledge',
@@ -111,13 +112,13 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 									me.handleEdit() ;
 									break ;
 								case 'baseline' :
-									me.openBaseline( event ) ;
+									me.openBaseline() ;
 									break ;
 								case 'csack' :
 									me.handleCsAck() ;
 									break ;
 								case 'billback' :
-									me.openBillback( event ) ;
+									me.openBillback() ;
 									break ;
 								case 'viewinternal' :
 									me.handleViewInternal() ;
@@ -364,13 +365,13 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 		cntChart.add(benchmarkGrid) ;
 	},
 	
-	openBaseline: function(e) {
-		this.openPopup(e,'Optima5.Modules.Spec.WbMrfoxy.PromoBaselinePanel',[500,120]) ;
+	openBaseline: function() {
+		this.openPopup('Optima5.Modules.Spec.WbMrfoxy.PromoBaselinePanel',[500,120]) ;
 	},
-	openBillback: function(e) {
-		this.openPopup(e,'Optima5.Modules.Spec.WbMrfoxy.PromoBillbackGrid',[600,150]) ;
+	openBillback: function() {
+		this.openPopup('Optima5.Modules.Spec.WbMrfoxy.PromoBillbackGrid',[600,150]) ;
 	},
-	openPopup: function(e,className,dimensions) {
+	openPopup: function(className,dimensions) {
 		var me = this ;
 		var promoApprovalPanel = Ext.create(className,{
 			optimaModule: me.optimaModule,

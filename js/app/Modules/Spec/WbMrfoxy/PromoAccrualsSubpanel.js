@@ -3,7 +3,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoAccrualsSubpanel',{
 	
 	requires : [
 		'Ext.ux.ComponentRowExpander',
-		'Ext.ux.grid.FiltersFeature'
+		'Ext.ux.grid.FiltersFeature',
+		'Optima5.Modules.Spec.WbMrfoxy.PromoBillbackGrid'
 	],
 	
 	initComponent: function() {
@@ -182,7 +183,35 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoAccrualsSubpanel',{
 				features: [{
 					ftype: 'filters',
 					encode: true
-				}]
+				}],
+				listeners: {
+					itemclick: function(view, record, item, index, event) {
+						var contextMenuItems = new Array() ;
+						if( !record.get('cost_billing__autoclose') ) {
+							contextMenuItems.push({
+								iconCls: 'op5-spec-mrfoxy-promorow-action-icon-billback',
+								text: 'Billback Invcs',
+								handler : function() {
+									this.openBillback( record, event ) ;
+								},
+								scope : this
+							});
+						}
+						if( contextMenuItems.length == 0 ) {
+							return ;
+						}
+						var treeContextMenu = Ext.create('Ext.menu.Menu',{
+							items : contextMenuItems,
+							listeners: {
+								hide: function(menu) {
+									menu.destroy() ;
+								}
+							}
+						}) ;
+						treeContextMenu.showAt(event.getXY());
+					},
+					scope:me
+				}
 			}]
 		}); 
 		
@@ -202,6 +231,37 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoAccrualsSubpanel',{
 	},
 	setIsProd: function(isProd) {
 		
+	},
+	
+	openBillback: function(record) {
+		this.openPopup(record,'Optima5.Modules.Spec.WbMrfoxy.PromoBillbackGrid',[600,250]) ;
+	},
+	openPopup: function(record,className,dimensions) {
+		var me = this ;
+		var promoApprovalPanel = Ext.create(className,{
+			optimaModule: me.optimaModule,
+			rowRecord: record,
+			
+			width:dimensions[0],
+			height:dimensions[1],
+			
+			floating: true,
+			renderTo: me.getEl(),
+			tools: [{
+				type: 'close',
+				handler: function(e, t, p) {
+					p.ownerCt.destroy();
+				}
+			}]
+		});
+		
+		promoApprovalPanel.on('destroy',function() {
+			me.getEl().unmask() ;
+		},me,{single:true}) ;
+		me.getEl().mask() ;
+		
+		promoApprovalPanel.show();
+		promoApprovalPanel.getEl().alignTo(me.getEl(), 'c-c?');
 	},
 	
 	handleDownload: function() {
