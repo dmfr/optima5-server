@@ -148,7 +148,7 @@ Ext.define('Optima5.Modules.CrmBase.QbookSubpanelQprocess' ,{
 								isLast = (qobjRecordIdx == (me.qobjStore.getCount()-1)),
 								isFirst = (qobjRecordIdx==0) ;
 							
-							gridContextMenuItems = new Array() ;
+							var gridContextMenuItems = new Array() ;
 							gridContextMenuItems.push({
 								text: 'Rename as',
 								handler: null,

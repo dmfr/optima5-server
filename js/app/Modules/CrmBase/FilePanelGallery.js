@@ -51,7 +51,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelGallery',{
 						fn:function(view, record, item, index, event) {
 							//console.log('okokokok') ;
 							
-							contextMenuItems = new Array() ;
+							var contextMenuItems = new Array() ;
 							contextMenuItems.push({
 								iconCls: 'icon-fullscreen',
 								text: 'Show photo',

@@ -442,7 +442,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 			gridpanel.on('itemcontextmenu', function(view, record, item, index, event) {
 				// var strHeader = record.get('treenode_key')+' - '+record.get('entry_key')
 				
-				gridContextMenuItems = new Array() ;
+				var gridContextMenuItems = new Array() ;
 				
 				Ext.Array.each( ajaxData.queries_qobjs, function(o) {
 					var iconPath, text,
@@ -539,7 +539,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 			},me) ;
 			
 			gridpanel.on('containercontextmenu',function(view,event) {
-				gridContextMenuItems = new Array() ;
+				var gridContextMenuItems = new Array() ;
 				if( !noNew && !authReadOnly ) {
 					gridContextMenuItems.push({
 						iconCls: 'icon-bible-new',

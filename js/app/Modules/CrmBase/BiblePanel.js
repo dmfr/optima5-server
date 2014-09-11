@@ -350,7 +350,7 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 		
 		treegrid.on('itemcontextmenu', function(view, record, item, index, event) {
 			
-			treeContextMenuItems = new Array() ;
+			var treeContextMenuItems = new Array() ;
 			if( !authReadOnly ) {
 				var mytext = 'New root node' ;
 				if( record.get('treenode_key') != '&' )

@@ -148,7 +148,7 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 					},
 					listeners: {
 						itemclick: function(view, record, item, index, event) {
-							treeContextMenuItems = new Array() ;
+							var treeContextMenuItems = new Array() ;
 							switch( record.get('_type') ) {
 								case 'user' :
 									record.expand() ;
@@ -239,7 +239,7 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 					},
 					listeners: {
 						itemclick: function(view, record, item, index, event) {
-							treeContextMenuItems = new Array() ;
+							var treeContextMenuItems = new Array() ;
 							switch( record.get('_type') ) {
 								case 'group' :
 									record.expand() ;

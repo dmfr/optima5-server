@@ -52,7 +52,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelEditGrid',{
 			}],
 			listeners: {
 				itemcontextmenu: function(view, record, item, index, event) {
-					gridContextMenuItems = new Array() ;
+					var gridContextMenuItems = new Array() ;
 					if( true || !authReadOnly ) {
 						gridContextMenuItems.push({
 							iconCls: 'icon-bible-delete',

@@ -212,7 +212,7 @@ Ext.define('Optima5.Modules.CrmBase.QmergePanel' ,{
 					},
 					listeners: {
 						itemcontextmenu: function(view, record, item, index, event) {
-							treeContextMenuItems = new Array() ;
+							var treeContextMenuItems = new Array() ;
 							if( record.get('query_id') > 0 ) {
 								treeContextMenuItems.push({
 									iconCls: 'icon-bible-delete',

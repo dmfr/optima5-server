@@ -131,7 +131,7 @@ Ext.define('Optima5.Modules.CrmBase.QbookSubpanelValues' ,{
 						var targetFileCode = record.get('backend_file_code'),
 							targetFileFieldCode = record.get('backend_file_field_code') ;
 						
-						gridContextMenuItems = new Array() ;
+						var gridContextMenuItems = new Array() ;
 						gridContextMenuItems.push({
 							iconCls: 'icon-bible-delete',
 							text: 'Unassign',

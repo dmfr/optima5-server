@@ -90,7 +90,7 @@ Ext.define('Optima5.Modules.CrmBase.QmergeSubpanelMwhere' ,{
 		},me) ;
 		tree.on('itemcontextmenu', function(view, record, item, index, event) {
 			// var strHeader = record.get('treenode_key')+' - '+record.get('entry_key')
-			gridContextMenuItems = new Array() ;
+			var gridContextMenuItems = new Array() ;
 			if( record.isLeaf() ) {
 				gridContextMenuItems.push({
 					iconCls: 'icon-bible-delete',
