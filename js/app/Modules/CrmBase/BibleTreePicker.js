@@ -278,7 +278,8 @@ Ext.define('Optima5.Modules.CrmBase.BibleTreePicker',{
 	setRawValueApplyPretty: function() {
 		var me = this ;
 		
-		var mvalue = me.myValue ;
+		var mvalue = me.myValue,
+			valueNode ;
 		
 		if( !mvalue || mvalue.length == 0 ) {
 			me.divicon.removeCls('biblepicker-iconimg-oktree') ;
@@ -288,9 +289,10 @@ Ext.define('Optima5.Modules.CrmBase.BibleTreePicker',{
 		}
 		
 		if( mvalue.length == 1 ) {
+			valueNode = this.mystore.getNodeById(mvalue[0]) ;
 			me.divicon.removeCls('biblepicker-iconimg-nok') ;
 			me.divicon.addCls('biblepicker-iconimg-oktree') ;
-			me.divtext.dom.innerHTML = this.mystore.getNodeById(mvalue[0]).get('nodeText') ;
+			me.divtext.dom.innerHTML = ( !Ext.isEmpty(valueNode) ? valueNode.get('nodeText') : '???' ) ;
 			return ;
 		}
 		
