@@ -52,6 +52,8 @@ Ext.define('WbMrfoxyPromoModel', {
 		  {name: 'currency_symbol',   type: 'string'},
         {name: 'cost_billing_code',   type: 'string'},
         {name: 'cost_billing_text',   type: 'string'},
+        {name: 'cost_billing__csHold',   type: 'boolean'},
+        {name: 'cost_billing__autoclose',   type: 'boolean'},
         {name: 'cost_forecast',   type: 'number'},
         {name: 'cost_forecast_fix',   type: 'number'},
         {name: 'cost_forecast_var',   type: 'number'},

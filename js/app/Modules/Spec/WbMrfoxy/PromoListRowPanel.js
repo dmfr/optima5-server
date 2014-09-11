@@ -76,7 +76,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 						},{
 							actionId: 'billback',
 							actionText:'Billback Invcs',
-							actionDisabled:!( me.rowRecord.get('status_percent') >= 80 && Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole(['ADM','TM']) )
+							actionDisabled:!( me.rowRecord.get('status_percent') >= 80 && !me.rowRecord.get('cost_billing__autoclose') && Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole(['ADM','TM']) )
 						},{
 							actionId: 'csack',
 							actionText:'CS Acknowledge',
