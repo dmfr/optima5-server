@@ -598,7 +598,7 @@ function specWbMrfoxy_promo_formSubmit( $post_data ) {
 		$promo_id_base.= ' ' ;
 		$promo_id_base.= ($prod_memo  ? $prod_memo  : 'XXXX') ;
 		$promo_id_base.= ' ' ;
-		$promo_id_base.= date('Y-m-d',strtotime($form_data['date_supply_start'])) ;
+		$promo_id_base.= date('Y-m-W',strtotime($form_data['date_supply_start'])) ;
 		$promo_id = $promo_id_base ;
 		if( !isset($promo_id) ) {
 			return array('success'=>false) ;
