@@ -19,6 +19,7 @@ $_opDB->query("SET NAMES UTF8") ;
 
 include("$server_root/modules/spec_wb_mrfoxy/backend_spec_wb_mrfoxy.inc.php");
 include("WB_MRFOXY_ORACLE_ftp_procPRICES.inc.php");
+include("WB_MRFOXY_ORACLE_ftp_procSALES.inc.php");
 
 $_IN_ftp_ip = getenv('FTP_IP') ;
 $_IN_ftp_user = getenv('FTP_USER') ;
@@ -73,6 +74,13 @@ foreach( $map_ftpDir_crmArr as $ftpDir => $crmArr ) {
 			if( $ftpDir=='PRICES' ) {
 				$handle_out = tmpfile() ;
 				WB_MRFOXY_ORACLE_ftp_procPRICES($handle_in,$handle_out) ;
+				fclose($handle_in) ;
+				fseek($handle_out,0) ;
+				$handle_in = $handle_out ;
+			}
+			if( $ftpDir=='SALES' ) {
+				$handle_out = tmpfile() ;
+				WB_MRFOXY_ORACLE_ftp_procSALES($handle_in,$handle_out) ;
 				fclose($handle_in) ;
 				fseek($handle_out,0) ;
 				$handle_in = $handle_out ;

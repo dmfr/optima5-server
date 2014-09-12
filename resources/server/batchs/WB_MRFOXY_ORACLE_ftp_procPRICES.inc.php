@@ -14,6 +14,9 @@ function WB_MRFOXY_ORACLE_ftp_procPRICES( $handle_in, $handle_out ) {
 	
 	while( !feof($handle_in) ) {
 		$arr_csv = fgetcsv($handle_in) ;
+		if( !$arr_csv ) {
+			continue ;
+		}
 		
 		$STORE_entryKey = $arr_csv[$ACCOUNT_NUMBER_idx] ;
 		$STORE_entryRecord = paracrm_lib_data_getRecord_bibleEntry('IRI_STORE',$STORE_entryKey) ;
