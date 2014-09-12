@@ -16,8 +16,6 @@ function ext_WB_ORACLE_xml2csv_SALES( $handle_in, $handle_out ) {
 		return TRUE ;
 	}
 	
-	$map_item_pcb = array() ;
-	
 	while($reader->read())
 	{
 		if($reader->nodeType == XMLReader::ELEMENT && $reader->name == 'G_ONE')
@@ -38,7 +36,7 @@ function ext_WB_ORACLE_xml2csv_SALES( $handle_in, $handle_out ) {
 					}
 				}
 				if( isset($csvMap_key_idx['QTY_INV']) || isset($csvMap_key_idx['QTY_CRED']) ) {
-					foreach( array('QTY','PRICE') as $mkey ) {
+					foreach( array('QTY','PRICE','DESCRIPTION_TAG') as $mkey ) {
 						if( !isset($csvMap_key_idx[$mkey]) ) {
 							$csvMap_key_idx[$mkey] = count($csvMap_key_idx) ;
 						}
@@ -47,36 +45,6 @@ function ext_WB_ORACLE_xml2csv_SALES( $handle_in, $handle_out ) {
 				fputcsv( $handle_out, array_keys($csvMap_key_idx) ) ;
 			}
 			
-			// Probe PCB
-			$item_number = (string)$obj_xmlRow->ITEM_NUMBER ;
-			$item_desc = (string)$obj_xmlRow->DESCRIPTION ;
-			if( !isset($map_item_pcb[$item_number]) ) {
-				if( strpos($item_desc,'pk') !== FALSE ) {
-					$start_char = strpos($item_desc,'pk') ;
-					$length = 0 ;
-					while( is_numeric(substr($item_desc,$start_char-1,1)) ) {
-						$start_char-- ;
-						$length++ ;
-					}
-					if( $length == 0 ) {
-						continue ;
-					}
-					$pcb = substr($item_desc,$start_char,$length) ;
-					$map_item_pcb[$item_number] = $pcb ;
-				} elseif( strpos($item_desc,'*') !== FALSE ) {
-					$length = strpos($item_desc,'*') ;
-					$pcb = substr($item_desc,0,$length) ;
-					if( is_numeric($pcb) ) {
-						$map_item_pcb[$item_number] = $pcb ;
-					}
-				} elseif( strpos($item_desc,'/') !== FALSE ) {
-					$length = strpos($item_desc,'/') ;
-					$pcb = substr($item_desc,0,$length) ;
-					if( is_numeric($pcb) ) {
-						$map_item_pcb[$item_number] = $pcb ;
-					}
-				}
-			}
 			
 			$QTY_INV = (float)$obj_xmlRow->QTY_INV ;
 			$QTY_CRED = (float)$obj_xmlRow->QTY_CRED ;
@@ -105,49 +73,25 @@ function ext_WB_ORACLE_xml2csv_SALES( $handle_in, $handle_out ) {
 						break ;
 						
 					case 'QTY' :
-						switch( $obj_xmlRow->UOM ) {
-							case 'CS' :
-								$item_key = (string)$obj_xmlRow->ITEM_NUMBER ;
-								if( !($pcb = $map_item_pcb[$item_key]) ) {
-									// echo "!PCB errr! $item_key + ".(string)$obj_xmlRow->DESCRIPTION."\n" ;
-									//$_ERROR = TRUE ;
-									$pcb = 1 ;
-								}
-								$value = $qty_value * $pcb ;
-								break ;
-							default : 
-								$value = $qty_value ;
-								break ;
-						}
+						$value = $qty_value ;
 						break ;
 					
 					case 'PRICE' :
-						switch( $obj_xmlRow->UOM ) {
-							case 'CS' :
-								$item_key = (string)$obj_xmlRow->ITEM_NUMBER ;
-								if( !($pcb = $map_item_pcb[$item_key]) ) {
-									// echo "!PCB errr! $item_key + ".(string)$obj_xmlRow->DESCRIPTION."\n" ;
-									//$_ERROR = TRUE ;
-									$pcb = 1 ;
-								}
-								$value = $price_value / $pcb ;
-								break ;
-							default : 
-								$value = $price_value ;
-								break ;
+						$value = $price_value ;
+						break ;
+						
+					case 'DESCRIPTION_TAG' :
+						$value = '' ;
+					
+						$desc = html_entity_decode($obj_xmlRow->DESCRIPTION, ENT_COMPAT | ENT_HTML401, "UTF-8" ) ;
+						$ttmp = explode('.',$desc) ;
+						$desc = $ttmp[0] ;
+						$desc_words = explode(' ',$desc) ;
+						if( strlen(reset($desc_words)) == 2 && strlen(end($desc_words)) == 10 ) {
+							$value = 'PROMO' ;
 						}
 						break ;
 					
-					case 'UOM' :
-						switch( $obj_xmlRow->UOM ) {
-							case 'CS' :
-								$value = 'EA' ;
-								break ;
-							default :
-								$value = $obj_xmlRow->$mkey ;
-						}
-						break ;
-						
 					case 'CUST_NAME' :
 					case 'DESCRIPTION' :
 						$value = html_entity_decode($obj_xmlRow->$mkey, ENT_COMPAT | ENT_HTML401, "UTF-8" ) ;
