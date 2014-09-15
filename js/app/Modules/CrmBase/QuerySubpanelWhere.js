@@ -145,6 +145,9 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelWhere' ,{
 						case 'bool' :
 							return record.get('condition_bool') ;
 						
+						case 'string' :
+							return record.get('condition_string') ;
+						
 						case 'file' :
 							return '<b>to define</b>' ;
 						
