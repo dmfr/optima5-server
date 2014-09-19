@@ -34,8 +34,8 @@ switch( $post_data['_action'] )
 	return specDbsPeople_cfg_getTree( $post_data ) ;
 	case 'cfg_getCfgBibles' :
 	return specDbsPeople_cfg_getCfgBibles( $post_data ) ;
-	case 'cfg_getTmpTxtitm' :
-	return specDbsPeople_cfg_getTmpTxtitm() ;
+	case 'cfg_getPeopleFields' :
+	return specDbsPeople_cfg_getPeopleFields( $post_data ) ;
 	case 'cfg_getPeopleCalcAttributes' :
 	return specDbsPeople_cfg_getPeopleCalcAttributes( $post_data ) ;
 	

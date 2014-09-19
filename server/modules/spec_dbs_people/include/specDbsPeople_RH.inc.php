@@ -47,8 +47,7 @@ function specDbsPeople_RH_getGrid($post_data) {
 		$row = array() ;
 		$row['people_code'] = $arr['entry_key'] ;
 		$row['people_name'] = $arr['field_PPL_FULLNAME'] ;
-		$row['people_techid'] = $arr['field_PPL_TECHID'] ;
-		$row['people_txtitm'] = $arr['field_PPL_TXTITM'] ;
+		specDbsPeople_lib_peopleFields_populateRow( $row, $arr ) ;
 		
 		// Fake JOIN on PEOPLEDAY file to retrieve current attributes
 		$fake_row = array() ;
@@ -184,13 +183,21 @@ function specDbsPeople_RH_setPeople( $post_data ) {
 	$event_data = json_decode($post_data['data'],true) ;
 	$people_code = ( !$post_data['_is_new'] ? $post_data['people_code'] : preg_replace("/[^A-Z0-9]/", "", strtoupper($event_data['people_name'])) ) ;
 	
-	$treenode_key = ( trim($event_data['people_txtitm'])==NULL ? 'RH_PEOPLE' : 'RH_INTERIM' ) ;
+	$treenode_key = ( (trim($event_data['field_PPL_INTERIM'])==NULL || json_decode($event_data['field_PPL_INTERIM'],true)==NULL) ? 'RH_PEOPLE' : 'RH_INTERIM' ) ;
 	
 	$arr_ins = array() ;
 	$arr_ins['field_PPL_CODE'] = $people_code ;
 	$arr_ins['field_PPL_FULLNAME'] = $event_data['people_name'] ;
-	$arr_ins['field_PPL_TECHID'] = $event_data['people_techid'] ;
-	$arr_ins['field_PPL_TXTITM'] = $event_data['people_txtitm'] ;
+	foreach( specDbsPeople_lib_peopleFields_getPeopleFields() as $peopleField ) {
+		$mkey = $peopleField['field'] ;
+		$value = $event_data[$mkey] ;
+		if( $peopleField['type'] == 'link' && $peopleField['link_type'] == 'treenode' ) {
+			if( $value != '' && !isJsonArr($value) ) {
+				$value = json_encode(array($value)) ;
+			}
+		}
+		$arr_ins[$mkey] = $value ;
+	}
 	if( $post_data['_is_new'] ) {
 		$ret = paracrm_lib_data_insertRecord_bibleEntry( 'RH_PEOPLE', $people_code, $treenode_key, $arr_ins ) ;
 	} else {

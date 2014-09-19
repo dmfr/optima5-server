@@ -78,8 +78,6 @@ Ext.define('DbsPeopleRhPeopleModel', {
 		},
 		{name: 'people_code',   type: 'string'},
 		{name: 'people_name',   type: 'string'},
-		{name: 'people_techid',   type: 'string'},
-		{name: 'people_txtitm',   type: 'string'},
 		{name: 'nextEvent_type',   type: 'string'},
 		{name: 'nextEvent_dateStart',   type: 'string'},
 		{name: 'nextEvent_dateEnd',   type: 'string'},
@@ -239,6 +237,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 		var me = this,
 			gridCnt = me.down('#mRhGridContainer') ;
 			
+		var addModelFields = [] ;
+			
 		//console.dir(grid.columns) ;
 		var columns = [{
 			text: 'Entrepôt',
@@ -254,16 +254,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 			text: 'Contrat',
 			dataIndex: 'contract_txt',
 			width: 100,
-			_groupBy: 'contract_code',
-			hideable: true,
-			hidden: true
-		},{
-			text: 'Interim',
-			dataIndex: 'people_txtitm',
-			width: 100,
-			_groupBy: 'people_txtitm',
-			hideable: true,
-			hidden: true
+			_groupBy: 'contract_code'
 		},{
 			text: 'Rôle',
 			dataIndex: 'role_txt',
@@ -277,17 +268,42 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 				return '<b>'+v+'</b>' ;
 			},
 			sortable: true
-		},{
-			text: 'Tech ID',
-			dataIndex: 'people_techid',
-			width: 65
-		},{
-			text: 'Next Event',
-			hidden: true,
-			//dataIndex: 'nextEvent_txt',
-			width: 300
 		}] ;
 		
+		Ext.Array.each( Optima5.Modules.Spec.DbsPeople.HelperCache.getPeopleFields(), function( peopleField ) {
+			var fieldColumn = {
+				text: peopleField.text,
+				dataIndex: peopleField.field,
+				_groupBy: peopleField.field,
+				hideable: true,
+				hidden: !peopleField.is_highlight,
+				width: 100
+			} ;
+			if( peopleField.type=='link' ) {
+				Ext.apply(fieldColumn,{
+					renderer: function(v) {
+						return v.text ;
+					}
+				}) ;
+			}
+			columns.push(fieldColumn) ;
+			
+			var fieldType ;
+			switch( peopleField.type ) {
+				case 'link' :
+					fieldType='auto' ;
+					break ;
+				default:
+					fieldType='string' ;
+					break ;
+			}
+			addModelFields.push({
+				name: peopleField.field,
+				type: fieldType
+			});
+		}) ;
+		
+		var peopleCalcColumns = [] ;
 		var calcAttributeRenderer = function(v,metaData) {
 			if( v < 0 ) {
 				metaData.tdCls += ' op5-spec-dbspeople-balance-neg' ;
@@ -299,9 +315,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 			}
 			return v ;
 		} ;
-		
-		var addFields = [] ;
-		var peopleCalcColumns = [] ;
 		Ext.Array.each(this.cfgPeopleCalcAttributes, function(peopleCalcAttr) {
 			peopleCalcColumns.push({
 				_peopleCalcAttribute: peopleCalcAttr.peopleCalcAttribute,
@@ -312,7 +325,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 				renderer: calcAttributeRenderer,
 				sortable: true
 			});
-			addFields.push({
+			addModelFields.push({
 				_peopleCalcAttribute: peopleCalcAttr.peopleCalcAttribute,
 				name: 'calc_' + peopleCalcAttr.peopleCalcAttribute,
 				type: 'number',
@@ -328,7 +341,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 		
 		Ext.define(this.tmpModelName,{
 			extend: 'DbsPeopleRhPeopleModel',
-			fields: addFields
+			fields: addModelFields
 		});
 		
 		var columnDefaults = {
@@ -402,13 +415,24 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 									return values.rows[0].data.contract_txt ;
 								case 'std_role_code' :
 									return values.rows[0].data.std_role_txt ;
-								case 'people_txtitm' :
-									var value = values.rows[0].data.people_txtitm ;
-									if( Ext.isEmpty(value) ) {
-										return '(Pas de donnée)' ;
-									}
-									return value ;
 								default :
+									var peopleField = Optima5.Modules.Spec.DbsPeople.HelperCache.getPeopleField(values.groupField) ;
+									if( peopleField != null ) {
+										var value = values.rows[0].data[peopleField.field],
+											returnText ;
+										switch( peopleField.type ) {
+											case 'link' :
+												returnText = value.text ;
+												break ;
+											default :
+												returnText = value ;
+												break ;
+										}
+										if( Ext.isEmpty(returnText) ) {
+											return '(Pas de donnée)' ;
+										}
+										return returnText ;
+									}
 									return '' ;
 							}
 						}
@@ -598,7 +622,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 				var json = Ext.JSON.decode(response.responseText),
 					peopleRecordData = (json.success ? json.data[0] : null) ;
 				if( peopleRecordData ) {
-					var peopleRecord = Ext.ux.dams.ModelManager.create('DbsPeopleRhPeopleModel',peopleRecordData);
+					var peopleRecord = Ext.ux.dams.ModelManager.create(this.tmpModelName,peopleRecordData);
 					this.setFormRecord( peopleRecord ) ;
 				}
 			},

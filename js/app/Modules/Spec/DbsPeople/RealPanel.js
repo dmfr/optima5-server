@@ -21,9 +21,8 @@ Ext.define('DbsPeoplePeopledayModel', {
 		{name: 'status_isValidRh',  type: 'boolean'},
 		{name: 'date_sql',  type: 'string'},
 		{name: 'people_code',  type: 'string'},
-		{name: 'people_name',   type: 'string'},
-		{name: 'people_techid',   type: 'string'},
-		{name: 'people_txtitm',   type: 'string'},
+		{name: 'people_name',  type: 'string'},
+		{name: 'fields',   type: 'auto'},
 		{name: 'std_team_code',   type: 'string'},
 		{name: 'std_whse_code',   type: 'string'},
 		{name: 'std_role_code',   type: 'string'},
@@ -90,8 +89,6 @@ Ext.define('DbsPeopleRealRowModel', {
 		},
 		{name: 'people_code',   type: 'string'},
 		{name: 'people_name',   type: 'string'},
-		{name: 'people_techid',   type: 'string'},
-		{name: 'people_txtitm',   type: 'string'},
 		{name: 'dummy',   type: 'string'}
 	]
 });
@@ -525,14 +522,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			hideable: true
 		},{
 			locked: true,
-			text: 'Interim',
-			dataIndex: 'people_txtitm',
-			width: 80,
-			_groupBy: 'people_txtitm',
-			hideable: true,
-			hidden: true
-		},{
-			locked: true,
 			text: 'RôleStd',
 			dataIndex: 'std_role_code',
 			width: 60,
@@ -546,6 +535,39 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				return '<b>'+v+'</b>' ;
 			}
 		}] ;
+		Ext.Array.each( Optima5.Modules.Spec.DbsPeople.HelperCache.getPeopleFields(), function( peopleField ) {
+			var fieldColumn = {
+				locked: true,
+				text: peopleField.text,
+				dataIndex: peopleField.field,
+				_groupBy: peopleField.field,
+				hideable: true,
+				hidden: true,
+				width: 100
+			} ;
+			if( peopleField.type=='link' ) {
+				Ext.apply(fieldColumn,{
+					renderer: function(v) {
+						return v.text ;
+					}
+				}) ;
+			}
+			columns.push(fieldColumn) ;
+			
+			var fieldType ;
+			switch( peopleField.type ) {
+				case 'link' :
+					fieldType='auto' ;
+					break ;
+				default:
+					fieldType='string' ;
+					break ;
+			}
+			pushModelfields.push({
+				name: peopleField.field,
+				type: fieldType
+			});
+		}) ;
 		for( var d = dateStart ; d <= dateEnd ; d.setDate( d.getDate() + 1 ) ) {
 			var dStr = Ext.Date.format(d,'Ymd'),
 				dSql = Ext.Date.format(d,'Y-m-d');
@@ -675,6 +697,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				lockableScope: 'normal'
 			}),{
 				ptype: 'bufferedrenderer',
+				pluginId: 'bufferedRenderer',
 				lockableScope: 'both',
 				synchronousRender: true
 			}],
@@ -699,13 +722,24 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 									return values.rows[0].data.contract_txt ;
 								case 'std_role_code' :
 									return values.rows[0].data.std_role_txt ;
-								case 'people_txtitm' :
-									var value = values.rows[0].data.people_txtitm ;
-									if( Ext.isEmpty(value) ) {
-										return '(Pas de donnée)' ;
-									}
-									return value ;
 								default :
+									var peopleField = Optima5.Modules.Spec.DbsPeople.HelperCache.getPeopleField(values.groupField) ;
+									if( peopleField != null ) {
+										var value = values.rows[0].data[peopleField.field],
+											returnText ;
+										switch( peopleField.type ) {
+											case 'link' :
+												returnText = value.text ;
+												break ;
+											default :
+												returnText = value ;
+												break ;
+										}
+										if( Ext.isEmpty(returnText) ) {
+											return '(Pas de donnée)' ;
+										}
+										return returnText ;
+									}
 									return '' ;
 							}
 						}
@@ -716,6 +750,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			listeners: {
 				afterlayout: function( gridpanel ) {
 					gridpanel.headerCt.on('menucreate',me.onColumnsMenuCreate,me) ;
+					gridpanel.headerCt.on('columnschanged',me.onColumnsChanged,me) ;
 				},
 				itemcontextmenu: function( gridview, record, node, index, e ) {
 					var cellNode = e.getTarget(gridview.cellSelector);
@@ -858,9 +893,19 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		menu.down('#real-checkbox-exceptionday').setVisible( colCfg && colCfg.status_virtual && HelperCache.authHelperQueryPage('RH') ) ;
 		menu.down('#real-checkbox-exceptionday').setChecked( colCfg && colCfg.status_exceptionDay, true ) ;
 	},
+	onColumnsChanged: function() {
+		var grid = this.child('grid'),
+			store = grid.getStore() ;
+		if( store.getCount() == 0 ) {
+			return ;
+		}
+		grid.getView().refresh() ; // HACK
+	},
 	onColumnGroupBy: function( groupField ) {
 		var grid = this.child('grid'),
 			store = grid.getStore() ;
+		grid.normalGrid.getPlugin('bufferedRenderer').scrollTo(0) ;
+		grid.lockedGrid.getPlugin('bufferedRenderer').scrollTo(0) ;
 		store.group( groupField, 'ASC' ) ;
 	},
 	onGridGroupChange: function( gridStore, groupers ) {
@@ -1225,7 +1270,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			
 		var gridDataRowId = stdWhseCode+'%'+stdTeamCode+'%'+peopleCode ;
 		if( !gridData.hasOwnProperty(gridDataRowId) ) {
-			gridData[gridDataRowId] = {
+			gridData[gridDataRowId] = Ext.apply({
 				id: gridDataRowId,
 				whse_code: stdWhseCode,
 				whse_isAlt: false,
@@ -1233,10 +1278,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				contract_code: stdContractCode,
 				std_role_code: stdRoleCode,
 				people_code: peopledayRecord.data.people_code,
-				people_name: peopledayRecord.data.people_name,
-				people_techid: peopledayRecord.data.people_techid,
-				people_txtitm: peopledayRecord.data.people_txtitm
-			} ;
+				people_name: peopledayRecord.data.people_name
+			},peopledayRecord.data.fields) ;
 		}
 		var gridDataRow = gridData[gridDataRowId] ;
 		gridDataRow[roleKey] = {
@@ -1276,7 +1319,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		Ext.Object.each( altWhsesSegments, function( altWhseCode, segments ) {
 			var gridDataRowId = '@'+altWhseCode+'%'+stdTeamCode+'%'+peopleCode ;
 			if( !gridData.hasOwnProperty(gridDataRowId) ) {
-				gridData[gridDataRowId] = {
+				gridData[gridDataRowId] = Ext.apply({
 					id: gridDataRowId,
 					whse_code: altWhseCode,
 					whse_isAlt: true,
@@ -1284,10 +1327,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 					contract_code: stdContractCode,
 					std_role_code: stdRoleCode,
 					people_code: peopledayRecord.data.people_code,
-					people_name: peopledayRecord.data.people_name,
-					people_techid: peopledayRecord.data.people_techid,
-					people_txtitm: peopledayRecord.data.people_txtitm
-				} ;
+					people_name: peopledayRecord.data.people_name
+				},peopledayRecord.data.fields) ;
 			}
 			var gridDataRow = gridData[gridDataRowId] ;
 			gridDataRow[roleKey] = {

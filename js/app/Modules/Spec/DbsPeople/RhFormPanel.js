@@ -13,9 +13,81 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhFormPanel',{
 		var me = this ;
 		me.addEvents('saved') ;
 		
+		var formItems = [{
+			xtype:'textfield',
+			fieldLabel: 'Full name',
+			name: 'people_name'
+		}];
+		Ext.Array.each( Optima5.Modules.Spec.DbsPeople.HelperCache.getPeopleFields(), function(peopleField) {
+			var addItem = null ;
+			switch( peopleField.type ) {
+				case 'link' :
+					var biblePickerXtype = '' ;
+					switch( peopleField.link_type ) {
+						case 'treenode' :
+							biblePickerXtype = 'op5crmbasebibletreepicker' ;
+							break ;
+							
+						case 'entry' :
+							biblePickerXtype = 'op5crmbasebiblepicker' ;
+							break ;
+					}
+					if( Ext.isEmpty(biblePickerXtype) ) {
+						return ;
+					}
+					addItem = {
+						xtype:biblePickerXtype,
+						selectMode: 'multi',
+						optimaModule: this.optimaModule,
+						bibleId: peopleField.link_bible,
+						fieldLabel: peopleField.text,
+						name: peopleField.field
+					};
+					break ;
+					
+				default :
+					addItem = {
+						xtype:'textfield',
+						fieldLabel: peopleField.text,
+						name: peopleField.field
+					};
+					break ;
+			}
+			formItems.push(addItem) ;
+		},this) ;
+		formItems.push({
+			xtype:'fieldset',
+			title: 'Situation actuelle (instant T)',
+			defaults: {
+				margin: 2,
+				fieldBodyCls: '' // Otherwise height would be set at 22px
+			},
+			items:[{
+				xtype: 'displayfield',
+				fieldLabel: 'Contrat',
+				fieldStyle: 'font-weight: bold',
+				name: 'contract_txt'
+			},{
+				xtype: 'displayfield',
+				fieldLabel: 'Entrepôt',
+				fieldStyle: 'font-weight: bold',
+				name: 'whse_txt'
+			},{
+				xtype: 'displayfield',
+				fieldLabel: 'Equipe',
+				fieldStyle: 'font-weight: bold',
+				name: 'team_txt'
+			},{
+				xtype: 'displayfield',
+				fieldLabel: 'Role',
+				fieldStyle: 'font-weight: bold',
+				name: 'role_txt'
+			}]
+		}) ;
+		
 		Ext.apply(me,{
 			layout: {
-				type: 'vbox',
+				type: 'border',
 				align: 'stretch'
 			},
 			tbar:[{
@@ -27,7 +99,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhFormPanel',{
 				scope:me
 			}],
 			items:[{
-				height: 200,
+				region: 'center',
+				flex: 2,
 				xtype: 'form',
 				layout: 'anchor',
 				fieldDefaults: {
@@ -37,77 +110,14 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhFormPanel',{
 				},
 				frame:false,
 				border: false,
+				autoScroll: true,
 				bodyPadding: 10,
 				bodyCls: 'ux-noframe-bg',
-				items:[{
-					xtype:'textfield',
-					fieldLabel: 'Full name',
-					name: 'people_name'
-				},{
-					xtype:'textfield',
-					fieldLabel: 'Tech ID.',
-					name: 'people_techid',
-					anchor: '',
-					width: 140
-				},{
-					xtype:'combobox',
-					fieldLabel: 'Interim',
-					matchFieldWidth:false,
-					listConfig:{width:250},
-					forceSelection:false,
-					allowBlank:true,
-					editable:true,
-					typeAhead:true,
-					selectOnFocus: true,
-					queryMode: 'local',
-					displayField: 'txtitm',
-					valueField: 'txtitm',
-					name: 'people_txtitm' ,
-					store: {
-						fields:['txtitm'],
-						autoLoad: true,
-						proxy: this.optimaModule.getConfiguredAjaxProxy({
-							extraParams : {
-								_moduleId: 'spec_dbs_people',
-								_action: 'cfg_getTmpTxtitm'
-							},
-							reader: {
-								type: 'json',
-								root: 'data'
-							}
-						})
-					}
-				},{
-					xtype:'fieldset',
-					title: 'Situation actuelle (instant T)',
-					defaults: {
-						margin: 2,
-						fieldBodyCls: '' // Otherwise height would be set at 22px
-					},
-					items:[{
-						xtype: 'displayfield',
-						fieldLabel: 'Contrat',
-						fieldStyle: 'font-weight: bold',
-						name: 'contract_txt'
-					},{
-						xtype: 'displayfield',
-						fieldLabel: 'Entrepôt',
-						fieldStyle: 'font-weight: bold',
-						name: 'whse_txt'
-					},{
-						xtype: 'displayfield',
-						fieldLabel: 'Equipe',
-						fieldStyle: 'font-weight: bold',
-						name: 'team_txt'
-					},{
-						xtype: 'displayfield',
-						fieldLabel: 'Role',
-						fieldStyle: 'font-weight: bold',
-						name: 'role_txt'
-					}]
-				}]
+				items: formItems
 			},{
-				flex:1,
+				region: 'south',
+				flex: 3,
+				collapsible: true,
 				xtype:'grid',
 				frame: false,
 				border: false,
@@ -244,8 +254,17 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhFormPanel',{
 		}
 	},
 	setPeopleRecord: function( peopleRecord ) {
+		console.dir(peopleRecord) ;
 		this.peopleCode = peopleRecord.getId() ;
-		this.child('form').loadRecord(peopleRecord) ;
+		
+		var recordData = peopleRecord.getData() ;
+		console.dir(recordData) ;
+		Ext.Array.each( Optima5.Modules.Spec.DbsPeople.HelperCache.getPeopleFields(), function( peopleField ) {
+			if( peopleField.type=='link' && Ext.isObject(recordData[peopleField.field]) ) {
+				recordData[peopleField.field] = recordData[peopleField.field].id ;
+			}
+		}) ;
+		this.child('form').getForm().setValues(recordData) ;
 		this.child('grid').getStore().loadData(peopleRecord.events().getRange()) ;
 	},
 	openNewEvent: function() {

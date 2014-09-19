@@ -1,3 +1,16 @@
+Ext.define('DbsPeopleFieldModel', {
+	extend: 'Ext.data.Model',
+	idProperty: 'field',
+	fields: [
+		{name: 'field', type: 'string'},
+		{name: 'text',  type: 'string'},
+		{name: 'type',  type: 'string'},
+		{name: 'link_type',  type: 'string'},
+		{name: 'link_bible',  type: 'string'},
+		{name: 'is_highlight',  type: 'boolean'}
+	]
+});
+
 Ext.define('Optima5.Modules.Spec.DbsPeople.HelperCache',{
 	mixins: {
 		observable: 'Ext.util.Observable'
@@ -11,6 +24,13 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.HelperCache',{
 	singleton:true,
 	
 	cfgStores: null,
+	
+	authPage: null,
+	authWhse: null,
+	authTeam: null,
+	
+	peopleFieldsStore: null,
+	
 	isReady: false,
 	
 	constructor: function(config) {
@@ -25,10 +45,11 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.HelperCache',{
 		me.isReady = false ;
 		
 		Ext.defer(function() {
-			me.libCount = 2 ;
+			me.libCount = 3 ;
 			
 			me.startLoading() ;
 			me.authHelperInit() ;
+			me.fetchPeopleFields() ;
 		},1000,me) ;
 	},
 	
@@ -169,6 +190,46 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.HelperCache',{
 			return true ;
 		}
 		return ( !Ext.isEmpty(me.authTeam) && Ext.Array.contains( me.authTeam, teamCode ) ) ;
+	},
+	
+	fetchPeopleFields: function() {
+		// Query Bible
+		var ajaxParams = {} ;
+		Ext.apply( ajaxParams, {
+			_moduleId: 'spec_dbs_people',
+			_action: 'cfg_getPeopleFields'
+		});
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams ,
+			success: function(response) {
+				var ajaxData = Ext.decode(response.responseText) ;
+				if( ajaxData.success == false ) {
+					Ext.Msg.alert('Failed', 'Unknown error');
+				}
+				else {
+					this.onLoadPeopleFields( ajaxData ) ;
+				}
+			},
+			scope: this
+		});
+	},
+	onLoadPeopleFields: function( ajaxData ) {
+		this.peopleFieldsStore = Ext.create('Ext.data.Store',{
+			model: 'DbsPeopleFieldModel',
+			data : ajaxData.data
+		}) ;
+		
+		this.onLibLoad() ;
+	},
+	getPeopleFields: function() {
+		return Ext.pluck( this.peopleFieldsStore.getRange(), 'data' ) ;
+	},
+	getPeopleField: function(peopleFieldCode) {
+		var peopleFieldRecord = this.peopleFieldsStore.getById(peopleFieldCode) ;
+		if( peopleFieldRecord ) {
+			return peopleFieldRecord.data ;
+		}
+		return null ;
 	},
 	
 	onLibLoad: function() {
