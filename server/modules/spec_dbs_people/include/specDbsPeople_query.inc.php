@@ -74,14 +74,26 @@ function specDbsPeople_query_getTableResult_RH() {
 	$json = specDbsPeople_RH_getGrid( array() ) ;
 	$data = $json['data'] ;
 	
-	$cols = array() ;
+	$cols = $cols_toDecode = array() ;
 	$cols[] = 'whse_txt' ;
 	$cols[] = 'team_txt' ;
 	$cols[] = 'role_txt' ;
 	$cols[] = 'contract_txt' ;
 	$cols[] = 'people_code' ;
 	$cols[] = 'people_name' ;
-	$cols[] = 'people_techid' ;
+	foreach( specDbsPeople_lib_peopleFields_getPeopleFields() as $peopleField ) {
+		$cols[] = $peopleField['field'] ;
+		if( $peopleField['type'] == 'link' ) {
+			$cols_toDecode[] = $peopleField['field'] ;
+		}
+	}
+	foreach( $data as &$row ) {
+		foreach( $cols_toDecode as $col ) {
+			if( is_array($row[$col]) ) {
+				$row[$col] = $row[$col]['text'] ;
+			}
+		}
+	}
 	
 	$RET_columns = array() ;
 	foreach( $cols as $col ) {
@@ -121,14 +133,19 @@ function specDbsPeople_query_getTableResult_RHCNTSUM($at_date_sql) {
 	$json = specDbsPeople_RH_getGrid( array('_load_calcAttributes'=>true, '_load_calcAttributes_atDateSql'=>$at_date_sql) ) ;
 	$data = $json['data'] ;
 	
-	$cols = array() ;
+	$cols = $cols_toDecode = array() ;
 	$cols[] = 'whse_txt' ;
 	$cols[] = 'team_txt' ;
 	$cols[] = 'role_txt' ;
 	$cols[] = 'contract_txt' ;
 	$cols[] = 'people_code' ;
 	$cols[] = 'people_name' ;
-	$cols[] = 'people_techid' ;
+	foreach( specDbsPeople_lib_peopleFields_getPeopleFields() as $peopleField ) {
+		$cols[] = $peopleField['field'] ;
+		if( $peopleField['type'] == 'link' ) {
+			$cols_toDecode[] = $peopleField['field'] ;
+		}
+	}
 	foreach( $cfg_calcAttributes as $peopleCalcAttribute_definition ) {
 		$peopleCalcAttribute = $peopleCalcAttribute_definition['peopleCalcAttribute'] ;
 		$cols[] = 'calc_'.$peopleCalcAttribute ;
@@ -141,6 +158,11 @@ function specDbsPeople_query_getTableResult_RHCNTSUM($at_date_sql) {
 	
 	$RET_data = array() ;
 	foreach( $data as $data_row ) {
+		foreach( $cols_toDecode as $col ) {
+			if( is_array($data_row[$col]) ) {
+				$data_row[$col] = $data_row[$col]['text'] ;
+			}
+		}
 		$data_row['whse_txt'] = $cfg_bibles_idText['WHSE'][$data_row['whse_code']] ;
 		$data_row['team_txt'] = $cfg_bibles_idText['TEAM'][$data_row['team_code']] ;
 		$data_row['role_txt'] = $cfg_bibles_idText['ROLE'][$data_row['role_code']] ;
@@ -180,14 +202,19 @@ function specDbsPeople_query_getTableResult_RHCNTDET($at_date_sql) {
 	$json = specDbsPeople_RH_getGrid( array('_load_calcAttributes'=>true, '_load_calcAttributes_atDateSql'=>$at_date_sql) ) ;
 	$data = $json['data'] ;
 	
-	$cols = array() ;
+	$cols = $cols_toDecode = array() ;
 	$cols[] = 'whse_txt' ;
 	$cols[] = 'team_txt' ;
 	$cols[] = 'role_txt' ;
 	$cols[] = 'contract_txt' ;
 	$cols[] = 'people_code' ;
 	$cols[] = 'people_name' ;
-	$cols[] = 'people_techid' ;
+	foreach( specDbsPeople_lib_peopleFields_getPeopleFields() as $peopleField ) {
+		$cols[] = $peopleField['field'] ;
+		if( $peopleField['type'] == 'link' ) {
+			$cols_toDecode[] = $peopleField['field'] ;
+		}
+	}
 	$cols[] = 'cnt_type' ;
 	$cols[] = 'cnt_date' ;
 	$cols[] = 'cnt_operation' ;
@@ -200,6 +227,11 @@ function specDbsPeople_query_getTableResult_RHCNTDET($at_date_sql) {
 	
 	$RET_data = array() ;
 	foreach( $data as $base_row ) {
+		foreach( $cols_toDecode as $col ) {
+			if( is_array($base_row[$col]) ) {
+				$base_row[$col] = $base_row[$col]['text'] ;
+			}
+		}
 		$base_row['whse_txt'] = $cfg_bibles_idText['WHSE'][$base_row['whse_code']] ;
 		$base_row['team_txt'] = $cfg_bibles_idText['TEAM'][$base_row['team_code']] ;
 		$base_row['role_txt'] = $cfg_bibles_idText['ROLE'][$base_row['role_code']] ;
@@ -242,14 +274,19 @@ function specDbsPeople_query_getTableResult_CEQGRID( $date_start, $date_end ) {
 	
 	$json = specDbsPeople_Real_getData( array('date_start'=>$date_start, 'date_end'=>$date_end) ) ;
 	
-	$cols = array() ;
+	$cols = $cols_toDecode = array() ;
 	$cols[] = 'whse_txt' ;
 	$cols[] = 'team_txt' ;
 	$cols[] = 'std_role_txt' ;
 	$cols[] = 'contract_txt' ;
 	$cols[] = 'people_code' ;
 	$cols[] = 'people_name' ;
-	$cols[] = 'people_techid' ;
+	foreach( specDbsPeople_lib_peopleFields_getPeopleFields() as $peopleField ) {
+		$cols[] = $peopleField['field'] ;
+		if( $peopleField['type'] == 'link' ) {
+			$cols_toDecode[] = $peopleField['field'] ;
+		}
+	}
 	$arr_dates = array() ;
 	$cur_date = date('Y-m-d',strtotime($date_start)) ;
 	while( strtotime($cur_date) <= strtotime($date_end) ) {
@@ -274,6 +311,12 @@ function specDbsPeople_query_getTableResult_CEQGRID( $date_start, $date_end ) {
 	$RET_data = array() ;
 	usort($json['rows'],create_function('$r1,$r2','return strcmp($r1["people_name"],$r2["people_name"]);')) ;
 	foreach( $json['rows'] as $data_row ) {
+		foreach( $cols_toDecode as $col ) {
+			if( is_array($data_row[$col]) ) {
+				$data_row[$col] = $data_row[$col]['text'] ;
+			}
+		}
+	
 		$data_row['whse_txt'] = $cfg_bibles_idText['WHSE'][$data_row['whse_code']] ;
 		$data_row['team_txt'] = $cfg_bibles_idText['TEAM'][$data_row['team_code']] ;
 		$data_row['std_role_txt'] = $data_row['std_role_code'] ;
@@ -373,7 +416,6 @@ function specDbsPeople_query_getTableResult_CEQOLD( $date_start, $date_end ) {
 	$cols[] = 'contract_txt' ;
 	$cols[] = 'people_code' ;
 	$cols[] = 'people_name' ;
-	$cols[] = 'people_techid' ;
 	$cols[] = 'is_real' ;
 	$cols[] = 'ROLE_code' ;
 	$cols[] = 'ROLE_length' ;
@@ -394,7 +436,6 @@ function specDbsPeople_query_getTableResult_CEQOLD( $date_start, $date_end ) {
 		$RET_data_row_base['contract_code'] = $record['std_contract_code'] ;
 		$RET_data_row_base['people_code'] = $record['people_code'] ;
 		$RET_data_row_base['people_name'] = $record['people_name'] ;
-		$RET_data_row_base['people_techid'] = $record['people_techid'] ;
 		
 		if( $record['status_isVirtual'] ) {
 			if( $record['std_daylength'] == 0 ) {
@@ -465,7 +506,7 @@ function specDbsPeople_query_getTableResult_CEQLIST( $date_start, $date_end ) {
 	
 	$json = specDbsPeople_Real_getData( array('date_start'=>$date_start, 'date_end'=>$date_end) ) ;
 	
-	$cols = array() ;
+	$cols = $cols_toCopy = $cols_toDecode = array() ;
 	$cols[] = 'date_sql' ;
 	$cols[] = 'std_whse_code' ;
 	$cols[] = 'std_whse_txt' ;
@@ -475,10 +516,16 @@ function specDbsPeople_query_getTableResult_CEQLIST( $date_start, $date_end ) {
 	$cols[] = 'std_role_txt' ;
 	$cols[] = 'std_contract_code' ;
 	$cols[] = 'std_contract_txt' ;
-	$cols[] = 'people_txtitm' ;
 	$cols[] = 'people_code' ;
 	$cols[] = 'people_name' ;
-	$cols[] = 'people_techid' ;
+	foreach( specDbsPeople_lib_peopleFields_getPeopleFields() as $peopleField ) {
+		$cols[] = $peopleField['field'] ;
+		if( $peopleField['type'] == 'link' ) {
+			$cols_toDecode[] = $peopleField['field'] ;
+		} else {
+			$cols_toCopy[] = $peopleField['field'] ;
+		}
+	}
 	$cols[] = 'std_daylength_min' ;
 	$cols[] = 'std_daylength' ;
 	$cols[] = 'std_daylength_max' ;
@@ -521,10 +568,18 @@ function specDbsPeople_query_getTableResult_CEQLIST( $date_start, $date_end ) {
 		$RET_data_row_base['std_team_code'] = $record['std_team_code'] ;
 		$RET_data_row_base['std_role_code'] = $record['std_role_code'] ;
 		$RET_data_row_base['std_contract_code'] = $record['std_contract_code'] ;
-		$RET_data_row_base['people_txtitm'] = $record['people_txtitm'] ;
 		$RET_data_row_base['people_code'] = $record['people_code'] ;
 		$RET_data_row_base['people_name'] = $record['people_name'] ;
-		$RET_data_row_base['people_techid'] = $record['people_techid'] ;
+		foreach( $cols_toCopy as $col ) {
+			if( isset($record['fields'][$col]) ) {
+				$RET_data_row_base[$col] = $record['fields'][$col] ;
+			}
+		}
+		foreach( $cols_toDecode as $col ) {
+			if( is_array($record['fields'][$col]) ) {
+				$RET_data_row_base[$col] = $record['fields'][$col]['text'] ;
+			}
+		}
 		$RET_data_row_base['std_daylength_min'] = (float)$record['std_daylength_min'] ;
 		$RET_data_row_base['std_daylength'] = (float)$record['std_daylength'] ;
 		$RET_data_row_base['std_daylength_max'] = (float)$record['std_daylength_max'] ;
@@ -615,15 +670,19 @@ function specDbsPeople_query_getTableResult_ITMNC( $date_start, $date_end ) {
 	
 	$TAB_peopleCode_arrDatesNC = specDbsPeople_lib_calc_getInterimNC( $date_start, $date_end ) ;
 	
-	$cols = array() ;
+	$cols = $cols_toDecode = array() ;
 	$cols[] = 'whse_txt' ;
 	$cols[] = 'team_txt' ;
 	$cols[] = 'role_txt' ;
 	$cols[] = 'contract_txt' ;
-	$cols[] = 'people_txtitm' ;
 	$cols[] = 'people_code' ;
 	$cols[] = 'people_name' ;
-	$cols[] = 'people_techid' ;
+	foreach( specDbsPeople_lib_peopleFields_getPeopleFields() as $peopleField ) {
+		$cols[] = $peopleField['field'] ;
+		if( $peopleField['type'] == 'link' ) {
+			$cols_toDecode[] = $peopleField['field'] ;
+		}
+	}
 	$arr_dates = array() ;
 	$cur_date = date('Y-m-d',strtotime($date_start)) ;
 	while( strtotime($cur_date) <= strtotime($date_end) ) {
@@ -644,6 +703,12 @@ function specDbsPeople_query_getTableResult_ITMNC( $date_start, $date_end ) {
 		$people_code = $data_row['people_code'] ;
 		if( !isset($TAB_peopleCode_arrDatesNC[$people_code]) ) {
 			continue ;
+		}
+		
+		foreach( $cols_toDecode as $col ) {
+			if( is_array($data_row[$col]) ) {
+				$data_row[$col] = $data_row[$col]['text'] ;
+			}
 		}
 		
 		$data_row['whse_txt'] = $cfg_bibles_idText['WHSE'][$data_row['whse_code']] ;
