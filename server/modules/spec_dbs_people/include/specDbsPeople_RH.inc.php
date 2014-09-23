@@ -115,7 +115,7 @@ function specDbsPeople_RH_getGrid($post_data) {
 		$ttmp = specDbsPeople_cfg_getPeopleCalcAttributes() ;
 		foreach( $ttmp['data'] as $peopleCalcAttribute_definition ) {
 			if( !isset($post_data['_load_calcAttributes_atDateSql']) ) {
-				$at_date_sql = date('Y-m-d') ;
+				$at_date_sql = NULL ;
 			} else {
 				$at_date_sql = $post_data['_load_calcAttributes_atDateSql'] ;
 			}
