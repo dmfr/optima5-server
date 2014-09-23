@@ -806,6 +806,12 @@ function specDbsPeople_Real_RhAbsDownload( $post_data ) {
 	
 	$abs_txt = $_opDB->query_uniqueValue("SELECT field_ABS_TXT FROM view_bible_CFG_ABS_entry WHERE entry_key='{$abs_code}'") ;
 	
+	$duration_days = (strtotime($abs_date_end) - strtotime($abs_date_start)) / (24*60*60) ;
+	
+	$ttmp = specDbsPeople_lib_calc_getCalcAttributeRecords_CP( date('Y-m-d',strtotime('-1 day',strtotime($abs_date_start))) ) ;
+	$calc_quota_start = $ttmp[$people_code]['calc_value'] ;
+	$calc_quota_end = $calc_quota_start - ($duration_days + 1) ;
+	
 	
 	$VALUES = array() ;
 	$VALUES['people_name'] = $people_record['people_name'] ;
@@ -814,6 +820,8 @@ function specDbsPeople_Real_RhAbsDownload( $post_data ) {
 	$VALUES['abs_txt'] = $abs_txt ;
 	$VALUES['abs_date_start'] = date('d/m/Y',strtotime($abs_date_start)) ;
 	$VALUES['abs_date_end'] = date('d/m/Y',strtotime($abs_date_end)) ;
+	$VALUES['calc_quota_start'] = $calc_quota_start ;
+	$VALUES['calc_quota_end'] = $calc_quota_end ;
 	
 	
 	$app_root = $GLOBALS['app_root'] ;
