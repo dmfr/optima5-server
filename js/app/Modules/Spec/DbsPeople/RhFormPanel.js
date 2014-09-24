@@ -136,6 +136,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhFormPanel',{
 					text: 'Delete',
 					iconCls: 'icon-delete',
 					disabled: true,
+					hidden: !(Optima5.Modules.Spec.DbsPeople.HelperCache.authHelperHasAll()),
 					handler: function(btn) {
 						var selectedRecord = btn.up('grid').getView().getSelectionModel().getSelection()[0];
 						if( selectedRecord ) {
@@ -254,11 +255,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhFormPanel',{
 		}
 	},
 	setPeopleRecord: function( peopleRecord ) {
-		console.dir(peopleRecord) ;
 		this.peopleCode = peopleRecord.getId() ;
 		
 		var recordData = peopleRecord.getData() ;
-		console.dir(recordData) ;
 		Ext.Array.each( Optima5.Modules.Spec.DbsPeople.HelperCache.getPeopleFields(), function( peopleField ) {
 			if( peopleField.type=='link' && Ext.isObject(recordData[peopleField.field]) ) {
 				recordData[peopleField.field] = recordData[peopleField.field].id ;
