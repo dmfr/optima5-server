@@ -738,7 +738,6 @@ function specDbsPeople_Real_RhAbsLoad( $post_data ) {
 	return array('success'=>true, 'formData'=>$formData) ;
 }
 function specDbsPeople_Real_RhAbsSave( $post_data ) {
-	usleep(500000);
 	global $_opDB ;
 	
 	// Extract data
@@ -780,17 +779,21 @@ function specDbsPeople_Real_RhAbsSave( $post_data ) {
 	return array('success'=>true) ;
 }
 function specDbsPeople_Real_RhAbsDownload( $post_data ) {
-	usleep(500000);
 	global $_opDB ;
 	
 	// Extract data
 	$people_code = $post_data['people_code'] ;
 	$form_data = json_decode($post_data['formData'],true) ;
+	$abs_is_on = ( $form_data['rh_abs_is_on'] == 'on' ) ;
 	$abs_code = $form_data['rh_abs_code'] ;
 	$abs_date_start = $form_data['rh_abs_date_start'] ;
 	$abs_date_end = $form_data['rh_abs_date_end'] ;
 	
-	if( !$abs_code || !$abs_date_start || !$abs_date_end || !(strtotime($abs_date_start) <= strtotime($abs_date_end)) ) {
+	if( !$abs_is_on ) {
+		return array('success'=>false ) ;
+	}
+	$json_save = specDbsPeople_Real_RhAbsSave( $post_data ) ;
+	if( !$json_save['success'] ) {
 		return array('success'=>false ) ;
 	}
 	
