@@ -108,6 +108,15 @@ function specDbsPeople_lib_peopleFields_populateRow( &$js_row, $db_row=NULL ) {
 				) ;
 				break ;
 				
+			case 'date' :
+				$db_value = $db_row[$field_code] ;
+				if( !($db_value=='0000-00-00' || $db_value=='0000-00-00 00:00:00') ) {
+					$js_row[$field_code] = date('Y-m-d',strtotime($db_value)) ;
+				} else {
+					$js_row[$field_code] = '' ;
+				}
+				break ;
+				
 			default :
 				$js_row[$field_code] = $db_row[$field_code] ;
 				break ;

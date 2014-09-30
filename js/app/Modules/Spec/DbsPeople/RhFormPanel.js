@@ -45,6 +45,37 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhFormPanel',{
 					};
 					break ;
 					
+				case 'date' :
+					addItem = {
+						xtype:'datefield',
+						format: 'Y-m-d',
+						anchor: '',
+						width: 200,
+						fieldLabel: peopleField.text,
+						name: peopleField.field
+					};
+					break ;
+					
+				case 'number' :
+					addItem = {
+						xtype:'numberfield',
+						anchor: '',
+						width: 200,
+						fieldLabel: peopleField.text,
+						name: peopleField.field
+					};
+					break ;
+					
+				case 'bool' :
+					addItem = {
+						xtype:'checkboxfield',
+						inputValue: 1,
+						uncheckedValue: 0,
+						fieldLabel: peopleField.text,
+						name: peopleField.field
+					};
+					break ;
+					
 				default :
 					addItem = {
 						xtype:'textfield',

@@ -286,12 +286,33 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 					}
 				}) ;
 			}
+			if( peopleField.type=='bool' ) {
+				Ext.apply(fieldColumn,{
+					align: 'center',
+					renderer: function(value) {
+						if( value==1 ) {
+							return '<b>X</b>' ;
+						}
+						else {
+							return '' ;
+						}
+					}
+				}) ;
+			}
+			if( peopleField.type=='number' ) {
+				Ext.apply(fieldColumn,{
+					align: 'center'
+				}) ;
+			}
 			columns.push(fieldColumn) ;
 			
 			var fieldType ;
 			switch( peopleField.type ) {
 				case 'link' :
 					fieldType='auto' ;
+					break ;
+				case 'number' :
+					fieldType='number' ;
 					break ;
 				default:
 					fieldType='string' ;
