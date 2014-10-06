@@ -9,6 +9,10 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryResultView',{
 		} ;
 		var queryVars = this.data.query_vars ;
 		tplData.tableRows.push({
+			fieldLabel: 'URL data',
+			fieldValue: queryVars['q_urldata']
+		}) ;
+		tplData.tableRows.push({
 			fieldLabel: 'Requête',
 			fieldValue: queryVars['q_name']
 		}) ;

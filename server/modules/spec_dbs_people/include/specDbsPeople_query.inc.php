@@ -37,27 +37,59 @@ function specDbsPeople_query_getTableResult( $post_data ) {
 	$ttmp = explode(':',$form_data['querysrc_id']) ;
 	switch( $ttmp[1] ) {
 		case 'RH' :
-			return specDbsPeople_query_getTableResult_RH() ;
+			$result_tab = specDbsPeople_query_getTableResult_RH() ;
 			break ;
 		case 'RH_CNT_SUM' :
-			return specDbsPeople_query_getTableResult_RHCNTSUM($form_data['date_at']) ;
+			$result_tab = specDbsPeople_query_getTableResult_RHCNTSUM($form_data['date_at']) ;
 			break ;
 		case 'RH_CNT_DET' :
-			return specDbsPeople_query_getTableResult_RHCNTDET($form_data['date_at']) ;
+			$result_tab = specDbsPeople_query_getTableResult_RHCNTDET($form_data['date_at']) ;
 			break ;
 		case 'CEQ_GRID' :
-			return specDbsPeople_query_getTableResult_CEQGRID($form_data['date_start'],$form_data['date_end']) ;
+			$result_tab = specDbsPeople_query_getTableResult_CEQGRID($form_data['date_start'],$form_data['date_end']) ;
 			break ;
 		case 'CEQ_OLD' :
-			return specDbsPeople_query_getTableResult_CEQOLD($form_data['date_start'],$form_data['date_end']) ;
+			$result_tab = specDbsPeople_query_getTableResult_CEQOLD($form_data['date_start'],$form_data['date_end']) ;
 			break ;
 		case 'CEQ_LIST' :
-			return specDbsPeople_query_getTableResult_CEQLIST($form_data['date_start'],$form_data['date_end']) ;
+			$result_tab = specDbsPeople_query_getTableResult_CEQLIST($form_data['date_start'],$form_data['date_end']) ;
 			break ;
 		case 'ITM_NC' :
-			return specDbsPeople_query_getTableResult_ITMNC($form_data['date_start'],$form_data['date_end']) ;
+			$result_tab = specDbsPeople_query_getTableResult_ITMNC($form_data['date_start'],$form_data['date_end']) ;
 			break ;
+		default :
+			return array('success'=>false) ;
 	}
+	
+	$json = specDbsPeople_query_getLibrary() ;
+	$query_desc = $query_vars = NULL ;
+	foreach( $json['data'] as $iter_queryDesc ) {
+		if( $form_data['querysrc_id'] == $iter_queryDesc['querysrc_id'] ) {
+			$query_desc = $iter_queryDesc ;
+		}
+	}
+	if( $query_desc ) {
+		$query_vars = array() ;
+		$query_vars['q_name'] = $query_desc['q_name'] ;
+		if( $query_desc['enable_date_at'] ) {
+			$query_vars['date_at'] = $form_data['date_at'] ;
+		} else {
+			unset($form_data['date_at']) ;
+		}
+		if( $query_desc['enable_date_interval'] ) {
+			$query_vars['date_start'] = $form_data['date_start'] ;
+			$query_vars['date_end'] = $form_data['date_end'] ;
+		} else {
+			unset($form_data['date_start']) ;
+			unset($form_data['date_end']) ;
+		}
+		$query_vars['q_urldata'] = json_encode($form_data) ;
+	}
+	return array(
+		'success' => true,
+		'query_vars' => $query_vars,
+		'result_tab' => $result_tab
+	) ;
 }
 
 function specDbsPeople_query_getTableResult_RH() {
@@ -109,11 +141,7 @@ function specDbsPeople_query_getTableResult_RH() {
 		$RET_data[] = $data_row ;
 	}
 
-	return array(
-		'success'=>true,
-		'query_vars'=>array('q_name'=>'RH : Base People'),
-		'result_tab'=>array('columns'=>$RET_columns,'data'=>$RET_data)
-	) ;
+	return array('columns'=>$RET_columns,'data'=>$RET_data) ;
 }
 
 function specDbsPeople_query_getTableResult_RHCNTSUM($at_date_sql) {
@@ -178,11 +206,7 @@ function specDbsPeople_query_getTableResult_RHCNTSUM($at_date_sql) {
 		$RET_data[] = $data_row ;
 	}
 
-	return array(
-		'success'=>true,
-		'query_vars'=>array('q_name'=>'RH : Compteurs à date','date_at'=>$at_date_sql),
-		'result_tab'=>array('columns'=>$RET_columns,'data'=>$RET_data)
-	) ;
+	return array('columns'=>$RET_columns,'data'=>$RET_data) ;
 }
 
 function specDbsPeople_query_getTableResult_RHCNTDET($at_date_sql) {
@@ -251,11 +275,7 @@ function specDbsPeople_query_getTableResult_RHCNTDET($at_date_sql) {
 		}
 	}
 
-	return array(
-		'success'=>true,
-		'query_vars'=>array('q_name'=>'RH : Détail compteurs','date_at'=>$at_date_sql),
-		'result_tab'=>array('columns'=>$RET_columns,'data'=>$RET_data)
-	) ;
+	return array('columns'=>$RET_columns,'data'=>$RET_data) ;
 }
 
 function specDbsPeople_query_getTableResult_CEQGRID( $date_start, $date_end ) {
@@ -385,11 +405,7 @@ function specDbsPeople_query_getTableResult_CEQGRID( $date_start, $date_end ) {
 		$RET_data[] = $data_row ;
 	}
 
-	return array(
-		'success'=>true,
-		'query_vars'=>array('q_name'=>'CEQ : Vue people/dates','date_start'=>$date_start,'date_end'=>$date_end),
-		'result_tab'=>array('columns'=>$RET_columns,'data'=>$RET_data)
-	) ;
+	return array('columns'=>$RET_columns,'data'=>$RET_data) ;
 }
 
 function specDbsPeople_query_getTableResult_CEQOLD( $date_start, $date_end ) {
@@ -478,11 +494,7 @@ function specDbsPeople_query_getTableResult_CEQOLD( $date_start, $date_end ) {
 	
 	usort($RET_data,'specDbsPeople_query_getTableResult_CEQLIST_sort') ;
 
-	return array(
-		'success'=>true,
-		'query_vars'=>array('q_name'=>'CEQ : Extract (1ère version)','date_start'=>$date_start,'date_end'=>$date_end),
-		'result_tab'=>array('columns'=>$RET_columns,'data'=>$RET_data)
-	) ;
+	return array('columns'=>$RET_columns,'data'=>$RET_data) ;
 }
 function specDbsPeople_query_getTableResult_CEQOLD_makeRow( &$data_row, $cfg_bibles_idText ) {
 	$data_row['whse_txt'] = $cfg_bibles_idText['WHSE'][$data_row['whse_code']] ;
@@ -625,11 +637,7 @@ function specDbsPeople_query_getTableResult_CEQLIST( $date_start, $date_end ) {
 	
 	usort($RET_data,'specDbsPeople_query_getTableResult_CEQLIST_sort') ;
 
-	return array(
-		'success'=>true,
-		'query_vars'=>array('q_name'=>'CEQ : Extract lignes','date_start'=>$date_start,'date_end'=>$date_end),
-		'result_tab'=>array('columns'=>$RET_columns,'data'=>$RET_data)
-	) ;
+	return array('columns'=>$RET_columns,'data'=>$RET_data) ;
 }
 function specDbsPeople_query_getTableResult_CEQLIST_makeRow( &$data_row, $cfg_bibles_idText ) {
 	$data_row['std_whse_txt'] = $cfg_bibles_idText['WHSE'][$data_row['std_whse_code']] ;
@@ -723,11 +731,7 @@ function specDbsPeople_query_getTableResult_ITMNC( $date_start, $date_end ) {
 		$RET_data[] = $data_row ;
 	}
 
-	return array(
-		'success'=>true,
-		'query_vars'=>array('q_name'=>'Interim : NC','date_start'=>$date_start,'date_end'=>$date_end),
-		'result_tab'=>array('columns'=>$RET_columns,'data'=>$RET_data)
-	) ;
+	return array('columns'=>$RET_columns,'data'=>$RET_data) ;
 }
 
 
