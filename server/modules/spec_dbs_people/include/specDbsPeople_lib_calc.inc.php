@@ -444,7 +444,10 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_MOD( $at_date_sql ) {
 		);
 		foreach( $arr_log as $pivot_dateSql => $tarr1 ) {
 			$ttmp = explode('-',$pivot_dateSql) ;
-			$pivot_dateSql = $ttmp[0].' - sem '.$ttmp[1] ;
+			$pivot_dateSql_week = $ttmp[0].'W'.$ttmp[1] ;
+			$pivot_dateSql_timestampMonday = strtotime($pivot_dateSql_week) ;
+			$pivot_dateSql_timestampSunday = strtotime('+6 days',$pivot_dateSql_timestampMonday) ;
+			$pivot_dateSql_dateSunday = date('Y-m-d',$pivot_dateSql_timestampSunday) ;
 			foreach( $tarr1 as $cat => $nb ) {
 				switch( $cat ) {
 					case 'plus' :
@@ -458,7 +461,7 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_MOD( $at_date_sql ) {
 						break ;
 				}
 				$rows[] = array(
-					'row_date' => $pivot_dateSql,
+					'row_date' => $pivot_dateSql_dateSunday,
 					'row_text' => $cat,
 					'row_value' => round($nb,1)
 				);
