@@ -140,8 +140,9 @@ function specWbMrfoxy_promo_getGrid( $post_data ) {
 		$row['cost_billing_text'] = $paracrm_row['WORK_PROMO_field_COST_BILLING_tree_PAYM_TXT'] ;
 		$row['cost_billing__csHold'] = $paracrm_row['WORK_PROMO_field_COST_BILLING_tree_CSHOLD_IS_ON'] ;
 		$row['cost_billing__autoclose'] = $paracrm_row['WORK_PROMO_field_COST_BILLING_tree_AUTOCLOSE_IS_ON'] ;
+		$row['cost_static_billback'] = $paracrm_row['WORK_PROMO_field_COST_STATIC_BB'] ;
+		$row['cost_static_discount'] = $paracrm_row['WORK_PROMO_field_COST_STATIC_DIS'] ;
 		$row['cost_forecast'] = $paracrm_row['WORK_PROMO_field_COST_FORECAST'] ;
-		$row['cost_forecast_fix'] = $paracrm_row['WORK_PROMO_field_COST_FORECAST_FIX'] ;
 		$row['cost_forecast_var'] = $paracrm_row['WORK_PROMO_field_COST_FORECAST_VAR'] ;
 		$row['cost_real'] = $paracrm_row['WORK_PROMO_field_COST_REAL_VALUE'] ;
 		$row['cost_real_is_calc'] = ( $paracrm_row['WORK_PROMO_field_STATUS_tree_STATUS_GROUP'] == '99_CLOSED' ) ;
@@ -551,8 +552,9 @@ function specWbMrfoxy_promo_formSubmit( $post_data ) {
 	
 	$arr_ins['field_CURRENCY'] = $form_data['currency'] ;
 	$arr_ins['field_COST_BILLING'] = $form_data['cost_billing_code'] ;
+	$arr_ins['field_COST_STATIC_BB'] = $form_data['cost_static_billback'] ;
+	$arr_ins['field_COST_STATIC_DIS'] = $form_data['cost_static_discount'] ;
 	$arr_ins['field_COST_FORECAST'] = $form_data['cost_forecast'] ;
-	$arr_ins['field_COST_FORECAST_FIX'] = $form_data['cost_forecast_fix'] ;
 	$arr_ins['field_COST_FORECAST_VAR'] = $form_data['cost_forecast_var'] ;
 	
 	
@@ -845,9 +847,9 @@ function specWbMrfoxy_promo_exportXLS( $post_data ) {
 		$objPHPExcel->getActiveSheet()->setCellValue('H'.$lig, '');
 		$objPHPExcel->getActiveSheet()->setCellValue('I'.$lig, $promo_record['cost_forecast_var']);
 	}
-	if( $promo_record['cost_forecast_fix'] > 0 ) {
+	if( ($cost_static = $promo_record['cost_static_billback']+$promo_record['cost_static_discount']) > 0 ) {
 		$lig = 25 ;
-		$objPHPExcel->getActiveSheet()->setCellValue('I'.$lig, $promo_record['cost_forecast_fix']);
+		$objPHPExcel->getActiveSheet()->setCellValue('I'.$lig, $cost_static);
 	}
 	
 	

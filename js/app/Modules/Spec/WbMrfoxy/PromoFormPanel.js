@@ -387,12 +387,40 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 							align: 'stretch'
 						},
 						fieldLabel: 'Fixed cost',
-						itemId: 'cost_forecast_fix',
+						itemId: 'cost_static_billback',
 						labelWidth: 110,
 						items:[{
 							xtype:'numberfield',
 							hideTrigger:true,
-							name: 'cost_forecast_fix',
+							name: 'cost_static_billback',
+							width: 50,
+							minValue: 0,
+							value: 0,
+							listeners: {
+								change: function(){ me.forecastCalc(); },
+								scope:me
+							}
+						},{
+							xtype:'box',
+							html:'&#160;',
+							width: 6
+						},{
+							xtype: 'displayfield',
+							displayName: 'currency'
+						}]
+					},{
+						xtype: 'fieldcontainer',
+						layout:{
+							type: 'hbox',
+							align: 'stretch'
+						},
+						fieldLabel: 'Fixed cost',
+						itemId: 'cost_static_discount',
+						labelWidth: 110,
+						items:[{
+							xtype:'numberfield',
+							hideTrigger:true,
+							name: 'cost_static_discount',
 							width: 50,
 							minValue: 0,
 							value: 0,
@@ -509,7 +537,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 			me.getSkuList().setPriceDiscountVisible( (cost_billing_code=='DIS' || cost_billing_code=='MX') ) ;
 			me.getSkuList().setPriceCutVisible( (cost_billing_code=='CUT') ) ;
 		}
-		me.query('#cost_forecast_fix')[0].setVisible( (cost_billing_code=='CUT' || cost_billing_code=='DIS' || cost_billing_code=='MX' || cost_billing_code=='BB') ) ;
+		me.query('#cost_static_billback')[0].setVisible( (cost_billing_code=='MX' || cost_billing_code=='BB') ) ;
+		me.query('#cost_static_discount')[0].setVisible( (cost_billing_code=='CUT' || cost_billing_code=='DIS') ) ;
 		me.query('#cost_forecast_var')[0].setVisible( (cost_billing_code=='MX' || cost_billing_code=='BB') ) ;
 		
 		// volet LISTE SKU
@@ -617,10 +646,14 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 			values = me.getFormPanel().getForm().getValues() ;
 		
 		var total = 0,
-			cost_forecast_fix = parseInt(values.cost_forecast_fix),
+			cost_static_billback = parseInt(values.cost_static_billback),
+			cost_static_discount = parseInt(values.cost_static_discount),
 			cost_forecast_var = parseInt(values.cost_forecast_var) ;
-		if( !(me.query('#cost_forecast_fix')[0].hidden) && cost_forecast_fix != NaN ) {
-			total += cost_forecast_fix ;
+		if( !(me.query('#cost_static_billback')[0].hidden) && cost_static_billback != NaN ) {
+			total += cost_static_billback ;
+		}
+		if( !(me.query('#cost_static_discount')[0].hidden) && cost_static_discount != NaN ) {
+			total += cost_static_discount ;
 		}
 		if( !(me.query('#cost_forecast_var')[0].hidden) && cost_forecast_var != NaN ) {
 			total += cost_forecast_var ;
@@ -783,7 +816,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 		}
 		
 		var data = me.getFormPanel().getForm().getValues() ;
-		data.cost_forecast_fix = ( !(me.query('#cost_forecast_fix')[0].hidden) ? data.cost_forecast_fix : 0 ) ;
+		data.cost_static_billback = ( !(me.query('#cost_static_billback')[0].hidden) ? data.cost_static_billback : 0 ) ;
+		data.cost_static_discount = ( !(me.query('#cost_static_discount')[0].hidden) ? data.cost_static_discount : 0 ) ;
 		data.cost_forecast_var = ( !(me.query('#cost_forecast_var')[0].hidden) ? data.cost_forecast_var : 0 ) ;
 		if( me.getSkuList() ) {
 			data.promo_sku = me.getSkuList().getSkuData() ;
