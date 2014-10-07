@@ -455,9 +455,24 @@ function specDbsPeople_Real_actionDay_lib_open( $peopleday_record ) {
 	return TRUE ;
 }
 function specDbsPeople_Real_actionDay_lib_valid_evalRecord( $peopleday_record, $filter_arrSites=NULL ) {
+	if( !$GLOBALS['cache_specDbsPeople_Real_virtualRoles'] ) {
+		global $_opDB ;
+		
+		$virtualRoles = array() ;
+		
+		$query = "SELECT field_ROLE_CODE FROM view_bible_CFG_ROLE_entry WHERE field_IS_VIRTUAL='1'" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$virtualRoles[] = $arr[0] ;
+		}
+		$GLOBALS['cache_specDbsPeople_Real_virtualRoles'] = $virtualRoles ;
+	}
+	
 	if( is_array($filter_arrSites) && !in_array($peopleday_record['std_whse_code'],$filter_arrSites) ) {
 		return array() ;
 	}
+	
+	$_cache_virtualRoles = $GLOBALS['cache_specDbsPeople_Real_virtualRoles'] ;
 	
 	$exceptions = array() ;
 	
@@ -465,8 +480,14 @@ function specDbsPeople_Real_actionDay_lib_valid_evalRecord( $peopleday_record, $
 	$alt_whses = array() ;
 	$alt_roles = array() ;
 	$alt_abs = array() ;
+	$virtual_roles = array() ;
 	foreach( $peopleday_record['works'] as $work ) {
 		$work_length += $work['role_length'] ;
+		if( in_array($work['role_code'],$_cache_virtualRoles) ) {
+			if( !in_array($work['role_code'],$virtual_roles) ) {
+				$virtual_roles[] = $work['role_code'] ;
+			}
+		}
 		if( $work['role_code'] != $peopleday_record['std_role_code'] ) {
 			if( !in_array($work['role_code'],$alt_roles) ) {
 				$alt_roles[] = $work['role_code'] ;
@@ -528,6 +549,17 @@ function specDbsPeople_Real_actionDay_lib_valid_evalRecord( $peopleday_record, $
 			'exception_txt' => 'Mutations : '.$altWhse_length.' h ( '.implode('+',$alt_whses).')' ,
 			'ceq_show' => true,
 			'ceq_error' => false,
+			'rh_show' => false,
+			'rh_error' => false
+		);
+	}
+	if( $virtual_roles ) {
+		$exceptions[] = array(
+			'exception_type' => 'virtual_role',
+			'people_name' => $peopleday_record['people_name'],
+			'exception_txt' => 'Rôles à changer : '.implode('+',$virtual_roles).'' ,
+			'ceq_show' => true,
+			'ceq_error' => true,
 			'rh_show' => false,
 			'rh_error' => false
 		);

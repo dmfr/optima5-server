@@ -134,10 +134,10 @@ function specDbsPeople_cfg_getCfgBibles() {
 		$TAB['CONTRACT'][] = array('id'=>$arr[0],'text'=>$arr[1]) ;
 	}
 	
-	$query = "SELECT field_ROLE_CODE, field_ROLE_TXT FROM view_bible_CFG_ROLE_entry ORDER BY field_ROLE_CODE " ;
+	$query = "SELECT field_ROLE_CODE, field_ROLE_TXT, field_IS_VIRTUAL FROM view_bible_CFG_ROLE_entry ORDER BY field_ROLE_CODE " ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
-		$TAB['ROLE'][] = array('id'=>$arr[0],'text'=>$arr[0].' - '.$arr[1]) ;
+		$TAB['ROLE'][] = array('id'=>$arr[0],'text'=>$arr[0].' - '.$arr[1],'is_virtual'=>($arr[2]==1)) ;
 	}
 	
 	$query = "SELECT field_ABS_CODE, field_ABS_TXT, treenode_key FROM view_bible_CFG_ABS_entry ORDER BY field_ABS_CODE" ;

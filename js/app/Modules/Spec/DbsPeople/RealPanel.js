@@ -424,7 +424,13 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			});
 		}) ;
 		
-		var roleRenderer = function(value, metaData, record) {
+		var virtualRoles = [] ;
+		Ext.Array.each( Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll("ROLE"), function(roleDesc) {
+			if( roleDesc.is_virtual ) {
+				virtualRoles.push(roleDesc.id) ;
+			}
+		}) ;
+		var roleRenderer = function(value, metaData, record, rowIndex, colIndex) {
 			if( Ext.isEmpty(value) ) {
 				return '' ;
 			}
@@ -454,6 +460,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 					role = roles[i] ;
 					if( role != value.stdRole ) {
 						rolesStr.push( '<span class="op5-spec-dbspeople-realcell-diff">' + role + '</span>' ) ;
+					} else if( Ext.Array.contains(virtualRoles,role) ) {
+						rolesStr.push( '<span class="op5-spec-dbspeople-realcell-rolevirtual">' + role + '</span>' ) ;
 					} else {
 						rolesStr.push( role ) ;
 					}
@@ -473,7 +481,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			return rolesStr.join('+') ;
 		}
 		
-		var lengthRenderer = function(value, metaData, record) {
+		var lengthRenderer = function(value, metaData, record, rowIndex, colIndex) {
 			if( Ext.isEmpty(value) ) {
 				return '' ;
 			}
