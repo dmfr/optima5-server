@@ -217,6 +217,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 	autoRefreshTask: null,
 	autoRefreshAfterEdit: false,
 	
+	modifiedCells: null,
+	
 	initComponent: function() {
 		var me = this ;
 		
@@ -392,6 +394,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			dateStart = Ext.clone(me.dateStart),
 			dateEnd = Ext.clone(me.dateEnd) ;
 			
+		me.modifiedCells = {} ;
+			
 		var getStatusTdCls = function( statusStr ) {
 			switch( statusStr ) {
 				case 'virtual' :
@@ -403,6 +407,13 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				case 'closed' :
 					return '' ;
 			}
+		}
+		var getStatusTdClsForModified = function( rowId, colIdx ) {
+			var modifiedCells = me.modifiedCells ;
+			if( modifiedCells[rowId] && modifiedCells[rowId][colIdx] ) {
+				return 'op5-spec-dbspeople-realcolor-dirty' ;
+			}
+			return '' ;
 		}
 		
 		var comboboxData = [] ;
@@ -435,7 +446,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				return '' ;
 			}
 			
-			metaData.tdCls += ' ' + getStatusTdCls(value.statusStr) ;
+			metaData.tdCls += ' ' + getStatusTdCls(value.statusStr) + ' ' + getStatusTdClsForModified(record.getId(),colIndex) ;
 			
 			if( value.statusIsVirtual ) {
 				if( value.stdEmpty ) {
@@ -486,7 +497,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				return '' ;
 			}
 			
-			metaData.tdCls += ' ' + getStatusTdCls(value.statusStr) ;
+			metaData.tdCls += ' ' + getStatusTdCls(value.statusStr) + ' ' + getStatusTdClsForModified(record.getId(),colIndex) ;
 			
 			if( value.statusIsVirtual ) {
 				return ( value.stdValue > 0 ? value.stdValue : '' ) ;
@@ -765,6 +776,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 					
 					var gridRecord = record,
 						column = gridview.getHeaderByCell(cellNode),
+						colIdx = gridview.ownerCt.getVisibleColumnManager().getHeaderIndex(column),
 						dateSql = column.dateSql,
 						peopleCode = gridRecord.data.people_code,
 						peopledayId = peopleCode+'@'+dateSql,
@@ -779,6 +791,10 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 					if( !me.hasPermissionToEdit( peopledayRecord ) ) {
 						return ;
 					}
+					
+					// Modif 2014-09 : modified cells
+					this.tagModifiedCell(gridRecord.getId(),colIdx) ;
+					
 					me.openAdvanced( peopledayRecord, gridRecord, cellNode ) ;
 				},
 				scope: me
@@ -1359,6 +1375,17 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		return dateMap ;
 	},
 	
+	tagModifiedCell: function( rowId, colIdx ) {
+		var objModifiedCells = this.modifiedCells ;
+			
+		if( !objModifiedCells.hasOwnProperty(rowId) ) {
+			objModifiedCells[rowId] = {} ;
+		}
+		if( !objModifiedCells[rowId].hasOwnProperty(colIdx) ) {
+			objModifiedCells[rowId][colIdx] = true ;
+		}
+	},
+	
 	onGridBeforeEdit: function( editor, editEvent ) {
 		var gridRecord = editEvent.record,
 			column = editEvent.column,
@@ -1379,6 +1406,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		if( !this.hasPermissionToEdit( peopledayRecord ) ) {
 			return false ;
 		}
+		
+		// Modif 2014-09 : modified cells
+		this.tagModifiedCell(gridRecord.getId(),colIdx) ;
 		
 		if( !valueObj._editable ) {
 			var cellNode = Ext.DomQuery.select( '.x-grid-cell', editEvent.row )[colIdx] ;
@@ -1425,6 +1455,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		}
 		if( valueObj._editorValue == newValue ) {
 			// Same value !
+			gridRecord.commit() ;
 			return false ;
 		}
 		
