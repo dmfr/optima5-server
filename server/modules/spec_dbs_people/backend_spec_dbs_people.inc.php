@@ -8,6 +8,7 @@ function backend_specific( $post_data )
 switch( $post_data['_action'] )
 {
 	case 'RH_getGrid' :
+	session_write_close() ;
 	return specDbsPeople_RH_getGrid( $post_data ) ;
 	case 'RH_setPeople' :
 	return specDbsPeople_RH_setPeople( $post_data ) ;

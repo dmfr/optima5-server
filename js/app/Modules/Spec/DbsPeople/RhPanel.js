@@ -393,7 +393,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 					extraParams : {
 						_moduleId: 'spec_dbs_people',
 						_action: 'RH_getGrid',
-						_load_calcAttributes: 1
+						_load_calcAttributes: 0 // UPDATE 2014-09 : fetch calcAttributes
 					},
 					reader: {
 						type: 'json',
@@ -522,6 +522,10 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 		this.down('grid').getStore().load() ;
 	},
 	onBeforeLoad: function(store,options) {
+		if( this.asyncConnectionForCalcAttributes ) {
+			this.asyncConnectionForCalcAttributes.abort() ;
+		}
+		
 		var filterSiteBtn = this.down('#btnSite'),
 			filterTeamBtn = this.down('#btnTeam') ;
 		
@@ -556,29 +560,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 		store._onLoadFilterChanged = false ;
 		
 		// Restore calc attributes
-		store.suspendEvents();
-		var map_peopleCalcAttribute_fieldName = {}
-		Ext.Array.each( store.model.getFields(), function(field) {
-			if( field._peopleCalcAttribute != null ) {
-				map_peopleCalcAttribute_fieldName[field._peopleCalcAttribute] = field.name ;
-			}
-		}) ;
-		store.each( function(record) {
-			//console.dir(record) ;
-			var peopleCalcAttribute, fieldName ;
-			for( peopleCalcAttribute in map_peopleCalcAttribute_fieldName ) {
-				fieldName = map_peopleCalcAttribute_fieldName[peopleCalcAttribute] ;
-				peopleCalcRecord = record.calc_attributes().findRecord('people_calc_attribute',peopleCalcAttribute) ;
-				
-				if( peopleCalcRecord == null ) {
-					continue ;
-				}
-				record.set(fieldName,peopleCalcRecord.get('calc_value')) ;
-			}
-			record.commit() ;
-		});
-		store.resumeEvents() ;
-		this.down('grid').getView().refresh() ;
+		this.fetchCalcAttributes() ;
 	},
 	onColumnGroupBy: function( groupField ) {
 		var grid = this.down('grid'),
@@ -610,6 +592,64 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 		grid.getView().refresh() ; // HACK
 	},
 	
+	fetchCalcAttributes: function() {
+		this.asyncConnectionForCalcAttributes = this.optimaModule.getConfiguredAjaxConnection() ;
+		this.asyncConnectionForCalcAttributes.request({
+			params: {
+				_moduleId: 'spec_dbs_people',
+				_action: 'RH_getGrid',
+				_load_calcAttributes: 1
+			},
+			success: function( response ) {
+				var json = Ext.JSON.decode(response.responseText) ;
+				if( json.success ) {
+					this.onLoadCalcAttributes(json.data) ;
+				}
+			},
+			scope: this
+		});
+	},
+	onLoadCalcAttributes: function(ajaxData) {
+		var grid = this.down('grid') ;
+			gridStore = grid.getStore() ;
+			
+		var altStore = Ext.create('Ext.data.Store',{
+			model: this.tmpModelName,
+			data: ajaxData,
+			proxy: {
+				type: 'memory'
+			}
+		}) ;
+			
+		gridStore.suspendEvents();
+		var map_peopleCalcAttribute_fieldName = {};
+		Ext.Array.each( gridStore.model.getFields(), function(field) {
+			if( field._peopleCalcAttribute != null ) {
+				map_peopleCalcAttribute_fieldName[field._peopleCalcAttribute] = field.name ;
+			}
+		}) ;
+		gridStore.each( function(record) {
+			// Get altRecord in altStore
+			var altRecord = altStore.getById(record.getId()) ;
+			if( !altRecord ) {
+				return ;
+			}
+			
+			var peopleCalcAttribute, fieldName ;
+			for( peopleCalcAttribute in map_peopleCalcAttribute_fieldName ) {
+				fieldName = map_peopleCalcAttribute_fieldName[peopleCalcAttribute] ;
+				peopleCalcRecord = altRecord.calc_attributes().findRecord('people_calc_attribute',peopleCalcAttribute) ;
+				
+				if( peopleCalcRecord == null ) {
+					continue ;
+				}
+				record.set(fieldName,peopleCalcRecord.get('calc_value')) ;
+			}
+			record.commit() ;
+		});
+		gridStore.resumeEvents() ;
+		this.down('grid').getView().refresh() ;
+	},
 	
 	onNewPeople: function() {
 		var newPeopleRecord = Ext.ux.dams.ModelManager.create('DbsPeopleRhPeopleModel',{}) ;
@@ -725,5 +765,10 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 	},
 	doQuit: function() {
 		this.destroy() ;
+	},
+	onDestroy: function() {
+		if( this.asyncConnectionForCalcAttributes ) {
+			this.asyncConnectionForCalcAttributes.abort() ;
+		}
 	}
 });
