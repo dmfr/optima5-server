@@ -49,19 +49,31 @@ function specDbsPeople_auth_getTable( $post_data ) {
 	}
 	
 	$authPage = array() ;
-	$user_class = $arr['treenode_key'] ;
-	switch( $user_class ) {
-		case 'ADMIN' :
-			$authPage = array('ADMIN','RH','CEQ') ;
-			break ;
-		
-		case 'RH' :
-			$authPage = array('RH','CEQ') ;
-			break ;
-		
-		case 'CEQ' :
-			$authPage = array('CEQ') ;
-			break ;
+	if( isJsonArr($arr['field_LINK_USERGROUP']) ) {
+	foreach( json_decode($arr['field_LINK_USERGROUP'],true) as $auth_treenode ) {
+		switch( $auth_treenode ) {
+			case 'ADMIN' :
+				$newPages = array('ADMIN','RH','CEQ') ;
+				break ;
+			
+			case 'RH' :
+				$newPages = array('RH','CEQ') ;
+				break ;
+			
+			case 'CEQ' :
+				$newPages = array('CEQ') ;
+				break ;
+			
+			default :
+				$newPages = array() ;
+				break ;
+		}
+		foreach( $newPages as $page ) {
+			if( !in_array($page,$authPage) ) {
+				$authPage[] = $page ;
+			}
+		}
+	}
 	}
 	
 	$arr_whse = array() ;
