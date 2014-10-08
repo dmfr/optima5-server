@@ -30,6 +30,9 @@ Ext.define('Optima5.Ajax.Connection',{
 		
 		Ext.apply(options,{
 			callback: function(options,success,result) {
+				if( result.request.aborted ) {
+					return ;
+				}
 				if( success==true ) {
 					var jsonData, jSuccess=false ;
 					try{
