@@ -314,8 +314,8 @@ function specDbsPeople_query_getTableResult_CEQGRID( $date_start, $date_end ) {
 		$col_key = $cur_date ;
 		$cols[] = $col_key.'/Role' ;
 		$cols[] = $col_key.'/Durée' ;
-		$cur_date = date('Y-m-d',strtotime('+1 day',strtotime($cur_date))) ;
 		$arr_dates[$cur_date] = $col_key ;
+		$cur_date = date('Y-m-d',strtotime('+1 day',strtotime($cur_date))) ;
 	}
 	
 	$STORE_data = array() ;
@@ -697,8 +697,8 @@ function specDbsPeople_query_getTableResult_ITMNC( $date_start, $date_end ) {
 		//$col_key = 'date_'.date('Ymd',strtotime($cur_date)) ;
 		$col_key = $cur_date ;
 		$cols[] = $col_key ;
-		$cur_date = date('Y-m-d',strtotime('+1 day',strtotime($cur_date))) ;
 		$arr_dates[$cur_date] = $col_key ;
+		$cur_date = date('Y-m-d',strtotime('+1 day',strtotime($cur_date))) ;
 	}
 	
 	$RET_columns = array() ;
