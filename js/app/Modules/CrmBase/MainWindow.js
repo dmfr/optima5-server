@@ -8,7 +8,7 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 		'Optima5.Modules.CrmBase.QdirectWindow',
 		'Optima5.Modules.CrmBase.QueryTemplatePanel',
 		'Optima5.Modules.CrmBase.AuthAndroidPanel',
-		'Optima5.Modules.CrmBase.AuthDelegateForm'
+		'Optima5.Modules.CrmBase.AuthDelegatePanel'
 	],
 	
 	clsForPublished: 'op5-crmbase-published',
@@ -586,12 +586,13 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 				}
 				
 				var win = me.optimaModule.createWindow({
-					width: 400,
-					height: 200,
+					width: 500,
+					height: 300,
 					title: 'Delegate accounts',
 					iconCls: 'op5-crmbase-authdelegatewindow-icon',
 					itemId: 'auth-delegate-window',
-					items:[Ext.create('Optima5.Modules.CrmBase.AuthDelegateForm',{
+					items:[Ext.create('Optima5.Modules.CrmBase.AuthDelegatePanel',{
+						border: false,
 						optimaModule: me.optimaModule
 					})]
 				}) ;

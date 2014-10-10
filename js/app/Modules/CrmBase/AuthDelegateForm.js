@@ -29,8 +29,12 @@ Ext.define('AuthDelegateBibleModel', {
 	],
 	hasMany: [{
 		model: 'AuthDelegateBibleFieldModel',
-		name: 'bible_fields',
-		associationKey: 'bible_fields'
+		name: 'bible_tree_fields',
+		associationKey: 'bible_tree_fields'
+	},{
+		model: 'AuthDelegateBibleFieldModel',
+		name: 'bible_entry_fields',
+		associationKey: 'bible_entry_fields'
 	}]
 });
 
@@ -66,7 +70,6 @@ Ext.define('Optima5.Modules.CrmBase.AuthDelegateForm' ,{
 		
 		Ext.apply(me,{
 			padding: 5,
-			border: false,
 			bodyCls: 'ux-noframe-bg',
 			bodyPadding: 5,
 			defaults: {
@@ -122,6 +125,33 @@ Ext.define('Optima5.Modules.CrmBase.AuthDelegateForm' ,{
 						model: 'AuthDelegateBibleFieldModel',
 						data: []
 					}
+				},{
+					xtype: 'fieldset',
+					itemId: 'authdelegate_acl',
+					flex:1,
+					checkboxToggle: true,
+					checkboxName: 'authdelegate_acl_is_on',
+					title: 'Use ACL (IP address)',
+					defaults: {
+						anchor: '100%',
+						labelWidth: 90
+					},
+					items:[{
+						xtype: 'comboboxcached',
+						name: 'authdelegate_acl_bible_field_code',
+						fieldLabel: 'IP ACL field',
+						labelAlign: 'right',
+						forceSelection:true,
+						allowBlank:false,
+						editable:false,
+						queryMode: 'local',
+						displayField: 'field_desc',
+						valueField: 'field_code',
+						store: {
+							model: 'AuthDelegateBibleFieldModel',
+							data: []
+						}
+					}]
 				}]
 			}],
 			buttons:[{
@@ -133,6 +163,7 @@ Ext.define('Optima5.Modules.CrmBase.AuthDelegateForm' ,{
 			}]
 		});
 		
+		this.addEvents('saved') ;
 		this.callParent() ;
 		this.getForm().getFields().each(function(field) {
 			field.on('change',function(){
@@ -153,20 +184,26 @@ Ext.define('Optima5.Modules.CrmBase.AuthDelegateForm' ,{
 			bibleRecord = this.biblesStore.getById(bibleCode),
 			userCombo = form.findField('authdelegate_user_bible_field_code'),
 			passCombo = form.findField('authdelegate_pass_bible_field_code'),
-			storeToSet, storeData,
+			aclField = this.down('#authdelegate_acl'),
+			aclCombo = form.findField('authdelegate_acl_bible_field_code'),
+			storeToSet, storeDataEntry, storeDataTree,
 			doShow ;
 		if( Ext.isEmpty(bibleRecord) ) {
-			storeData = [] ;
+			storeDataEntry = storeDataTree = [] ;
 			doShow = false ;
 		} else {
-			storeToSet = bibleRecord.bible_fields() ;
-			storeData = Ext.pluck( storeToSet.getRange(), 'data' ) ;
+			storeToSet = bibleRecord.bible_entry_fields() ;
+			storeDataEntry = Ext.pluck( storeToSet.getRange(), 'data' ) ;
+			storeToSet = bibleRecord.bible_tree_fields() ;
+			storeDataTree = Ext.pluck( storeToSet.getRange(), 'data' ) ;
 			doShow = true ;
 		}
 		userCombo.setVisible(doShow) ;
-		userCombo.getStore().loadRawData(storeData) ;
+		userCombo.getStore().loadRawData(storeDataEntry) ;
 		passCombo.setVisible(doShow) ;
-		passCombo.getStore().loadRawData(storeData) ;
+		passCombo.getStore().loadRawData(storeDataEntry) ;
+		aclField.setVisible(doShow) ;
+		aclCombo.getStore().loadRawData(storeDataTree) ;
 	},
 	
 	doLoad: function() {
@@ -210,7 +247,7 @@ Ext.define('Optima5.Modules.CrmBase.AuthDelegateForm' ,{
 			success: function(response) {
 				var jsonResponse = Ext.JSON.decode(response.responseText) ;
 				if( jsonResponse.success == true ) {
-					this.up('window').destroy() ;
+					this.fireEvent('saved',this) ;
 				} else {
 					Ext.MessageBox.alert('Problem','Invalid / incomplete') ;
 				}

@@ -72,6 +72,7 @@ function op5_login_test( $userstr, $password ) {
 			// Sdomain ?
 			$t = new DatabaseMgr_Sdomain($domain_id) ;
 			if( !$t->sdomainDb_exists($delegate_sdomainId) ) {
+				$FAIL = 'SDOMAIN' ;
 				break ;
 			}
 			
@@ -83,11 +84,14 @@ function op5_login_test( $userstr, $password ) {
 			$arrCfg_delegate = $GLOBALS['_opDB']->fetch_assoc($result) ;
 			
 			if( !$arrCfg_delegate || $arrCfg_delegate['authdelegate_is_on'] != 1 ) {
+				$FAIL = 'SDOMAIN' ;
 				break ;
 			}
 			$authdelegate_bible_code = $arrCfg_delegate['authdelegate_bible_code'] ;
 			$authdelegate_user_bible_field_code = $arrCfg_delegate['authdelegate_user_bible_field_code'] ;
 			$authdelegate_pass_bible_field_code = $arrCfg_delegate['authdelegate_pass_bible_field_code'] ;
+			$authdelegate_acl_is_on = $arrCfg_delegate['authdelegate_acl_is_on'] ;
+			$authdelegate_acl_bible_field_code = $arrCfg_delegate['authdelegate_acl_bible_field_code'] ;
 			
 			// Login OK ?
 			$query = "SELECT field_{$authdelegate_pass_bible_field_code}
@@ -95,14 +99,64 @@ function op5_login_test( $userstr, $password ) {
 						WHERE UPPER(field_{$authdelegate_user_bible_field_code}) = UPPER('{$delegate_userId}')" ;
 			$candidate_password = $GLOBALS['_opDB']->query_uniqueValue($query) ;
 			if( !$candidate_password || $candidate_password != $delegate_pass ) {
+				$FAIL = 'USERPASS' ;
 				break ;
 			}
-		
+			
+			if( $authdelegate_acl_is_on ) {
+				$query = "SELECT field_{$authdelegate_acl_bible_field_code}
+							FROM {$sdomain_db}.view_bible_{$authdelegate_bible_code}_tree t, {$sdomain_db}.view_bible_{$authdelegate_bible_code}_entry e
+							WHERE t.treenode_key = e.treenode_key AND UPPER(e.field_{$authdelegate_user_bible_field_code}) = UPPER('{$delegate_userId}')" ;
+				$list_ips = $GLOBALS['_opDB']->query_uniqueValue($query) ;
+				if( $list_ips != NULL ) {
+					$ACL_OK = FALSE ;
+					foreach( explode(',',$list_ips) as $ip ) {
+						if( fnmatch($ip,$_SERVER['REMOTE_ADDR']) ) {
+							$ACL_OK = TRUE ;
+							break ;
+						}
+					}
+					if( !$ACL_OK ) {
+						$FAIL = 'IP' ;
+						break ;
+					}
+				}
+			}
+			
 			$OK = TRUE ;
 			break ;
 		}
+		
+		// Log
+		$arr_ins = array() ;
+		$arr_ins['authdelegate_log_timestamp'] = time() ;
+		$arr_ins['authdelegate_log_user'] = $delegate_userId ;
+		$arr_ins['authdelegate_log_ipaddr'] = $_SERVER['REMOTE_ADDR'] ;
+		$arr_ins['authdelegate_log_failcode'] = ( $OK ? '' : $FAIL ) ;
+		if( $sdomain_db ) {
+			$GLOBALS['_opDB']->insert($sdomain_db.'.'.'auth_delegate_log',$arr_ins) ;
+		}
+		
 		if( !$OK ) {
-			return array('done' => FALSE,'errors'=>array("Login failed for delegate <b>$delegate_sdomainId</b> on <b>$login_domain</b>"),'mysql_db'=>$GLOBALS['mysql_db']) ;
+			$errors = array() ;
+			$msg = "Login failed for delegate <b>$delegate_sdomainId</b> on <b>$login_domain</b>" ;
+			switch( $FAIL ) {
+				case 'IP' :
+					$msg.=  "<br>Reason: IP address not authorized" ;
+					break ;
+					
+				case 'SDOMAIN' :
+					$msg.=  "<br>Reason: Invalid Sdomain" ;
+					break ;
+					
+				case 'USERPASS' :
+					$msg.=  "<br>Reason: Invalid user/password" ;
+					break ;
+					
+				default :
+					break ;
+			}
+			return array('done' => FALSE,'errors'=>array($msg),'mysql_db'=>$GLOBALS['mysql_db']) ;
 		}
 		$auth_class = 'U' ;
 		

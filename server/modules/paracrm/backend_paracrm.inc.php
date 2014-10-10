@@ -80,6 +80,8 @@ switch( $post_data['_action'] )
 	return paracrm_auth_delegate_getConfig( $post_data ) ;
 	case 'auth_delegate_setConfig' :
 	return paracrm_auth_delegate_setConfig( $post_data ) ;
+	case 'auth_delegate_getLog' :
+	return paracrm_auth_delegate_getLog( $post_data ) ;
 	
 	
 	
