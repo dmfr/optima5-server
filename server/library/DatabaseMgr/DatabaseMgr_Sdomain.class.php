@@ -4,7 +4,7 @@ class DatabaseMgr_Sdomain {
 	private $_opDB ;
 	private $domain_id ;
 	
-	private static $dbVersion = 23 ;
+	private static $dbVersion = 24 ;
 	
 	public function __construct( $domain_id ) {
 		$this->_opDB = $GLOBALS['_opDB'] ;
@@ -40,7 +40,18 @@ CREATE TABLE `auth_delegate` (
   `authdelegate_bible_code` varchar(100) NOT NULL,
   `authdelegate_user_bible_field_code` varchar(100) NOT NULL,
   `authdelegate_pass_bible_field_code` varchar(100) NOT NULL,
+  `authdelegate_acl_is_on` varchar(1) NOT NULL,
+  `authdelegate_acl_bible_field_code` varchar(100) NOT NULL,
   PRIMARY KEY (`zero_id`)
+) ;
+
+CREATE TABLE `auth_delegate_log` (
+  `authdelegate_log_id` int(11) NOT NULL AUTO_INCREMENT,
+  `authdelegate_log_timestamp` int(11) NOT NULL,
+  `authdelegate_log_user` varchar(100) NOT NULL,
+  `authdelegate_log_ipaddr` varchar(100) NOT NULL,
+  `authdelegate_log_failcode` varchar(100) NOT NULL,
+  PRIMARY KEY (`authdelegate_log_id`)
 ) ;
 
 CREATE TABLE `define_bible` (
