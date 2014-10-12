@@ -192,7 +192,9 @@ function specDbsPeople_tool_getContracts() {
 			'std_daylength_min' => $arr['field_STD_DAYLENGTH_MIN'],
 			'std_daylength_max' => $arr['field_STD_DAYLENGTH_MAX'],
 			'mod_week_std' => $arr['field_MOD_WEEK_STD'],
-			'mod_week_max' => $arr['field_MOD_WEEK_MAX']
+			'mod_week_max' => $arr['field_MOD_WEEK_MAX'],
+			'rc_month_floor' => $arr['field_RC_MONTH_FLOOR'],
+			'rc_ratio' => $arr['field_RC_RATIO']
 		);
 	}
 	return $TAB ;
@@ -236,6 +238,11 @@ function specDbsPeople_cfg_getPeopleCalcAttributes() {
 	$TAB[] = array(
 		'peopleCalcAttribute' => 'MOD',
 		'text' => 'Modul.'
+	);
+	
+	$TAB[] = array(
+		'peopleCalcAttribute' => 'RC',
+		'text' => 'ReposComp.'
 	);
 	
 	return array('success'=>true, 'data'=>$TAB) ;

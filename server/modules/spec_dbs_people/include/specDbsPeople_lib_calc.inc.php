@@ -185,6 +185,8 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords( $people_calc_attribute,
 			return specDbsPeople_lib_calc_getCalcAttributeRecords_MOD($at_date_sql) ;
 		case 'RTT' :
 			return specDbsPeople_lib_calc_getCalcAttributeRecords_RTT($at_date_sql) ;
+		case 'RC' :
+			return specDbsPeople_lib_calc_getCalcAttributeRecords_RC($at_date_sql) ;
 	}
 	return array() ;
 }
@@ -627,6 +629,141 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_MOD( $at_date_sql ) {
 		
 		$TAB_peopleCode_record[$people_code] = array(
 			'people_calc_attribute' => 'MOD',
+			'calc_date' => $at_date_sql,
+			'calc_value' => round((float)$val,1),
+			'calc_unit_txt' => 'hour(s)',
+			'rows' => $rows
+		);
+	}
+	
+	return $TAB_peopleCode_record ;
+}
+
+function specDbsPeople_lib_calc_getCalcAttributeRecords_RC( $at_date_sql ) {
+	paracrm_lib_file_joinPrivate_buildCache('PEOPLEDAY') ;
+	$cfg_contracts = specDbsPeople_tool_getContracts() ;
+	/*
+	array(
+		'people_calc_attribute' => $people_calc_attribute,
+		'calc_date' => date('Y-m-d'),
+		'calc_value' => $calc_value
+	);
+	*/
+	if( $at_date_sql != NULL ) {
+		$where_params = array() ;
+		$where_params['condition_date_lt'] = $at_date_sql ;
+	}
+	$RES_quota = specDbsPeople_lib_calc_tool_runQuery( 'RC:Quota', $where_params ) ;
+	
+	// recherche de la date MIN dans $RES_quota
+	$min_date = NULL ;
+	foreach( $RES_quota as $people_code => $values_quota ) {
+		if( $min_date===NULL ) {
+			$min_date = $values_quota['RC:SetDate'] ;
+		} elseif( $values_quota['RC:SetDate'] ) {
+			$min_date = min($min_date,$values_quota['RC:SetDate']) ;
+		}
+	}
+	
+	// Config + autres requêtes
+	$where_params = array() ;
+	$where_params['condition_date_gt'] = $min_date ;
+	$RES_realDuration = specDbsPeople_lib_calc_tool_runQuery( 'RC:RealDuration', $where_params ) ;
+	$RES_minus = specDbsPeople_lib_calc_tool_runQuery( 'RC:minus', $where_params ) ;
+	
+	
+	$TAB_peopleCode_record = array() ;
+	
+	foreach( $RES_quota as $people_code => $values_quota ) {
+		$val = $values_quota['RC:SetQuota'] ;
+		$min_date = date('Y-m-d', strtotime($values_quota['RC:SetDate'])) ;
+		if( $at_date_sql != NULL ) {
+			$max_date = $at_date_sql ;
+		}
+		
+		// Fake JOIN on PEOPLEDAY file to retrieve current attributes
+		$fake_row = array() ;
+		$fake_row['PEOPLEDAY']['field_DATE'] = date('Y-m-d') ;
+		$fake_row['PEOPLEDAY']['field_PPL_CODE'] = $people_code ;
+		paracrm_lib_file_joinQueryRecord( 'PEOPLEDAY', $fake_row ) ;
+		$contract_code = $fake_row['PEOPLEDAY']['field_STD_CONTRACT'] ;
+		$contract_row = $cfg_contracts[$contract_code] ;
+		
+		
+		$arr_log = array() ;
+		
+		$cur_pivot = NULL ;
+		foreach( $RES_realDuration[$people_code] as $month_sql => $nb_heures_work ) {
+			$date_sql_firstDay = $month_sql.'-01' ;
+			$nbDaysOfMonth = date('t',strtotime($date_sql_firstDay)) ;
+			$date_sql = $month_sql.'-'.$nbDaysOfMonth ;
+			if( $date_sql < $min_date ) {
+				continue ;
+			}
+			if( isset($max_date) && $date_sql >= $max_date ) {
+				continue ;
+			}
+			
+			if( $contract_row['rc_month_floor'] <= 0 || $nb_heures_work < $contract_row['rc_month_floor'] ) {
+				$nb_heures = 0 ;
+			} else {
+				$nb_heures = $nb_heures_work * $contract_row['rc_ratio'] ;
+			}
+			
+			if( $nb_heures == 0 ) {
+				continue ;
+			}
+			
+			$arr_log[$date_sql]['plus'] += $nb_heures ;
+			$val += $nb_heures ;
+		}
+		$RES_realDays_row = $RES_realDays[$people_code] ;
+		foreach( $RES_minus[$people_code] as $date_sql => $nb_heures ) {
+			if( $date_sql < $min_date ) {
+				continue ;
+			}
+			if( isset($max_date) && $date_sql > $max_date ) {
+				continue ;
+			}
+			
+			if( $nb_heures == 0 ) {
+				continue ;
+			}
+			
+			$arr_log[$date_sql]['minus'] -= $nb_heures ;
+			$val -= $nb_heures ;
+		}
+		
+		$rows = array() ;
+		$rows[] = array(
+			'row_date' => $min_date,
+			'row_text' => 'Solde initialisé',
+			'row_value' => $values_quota['RC:SetQuota']
+		);
+		foreach( $arr_log as $pivot_dateSql => $tarr1 ) {
+			$ttmp = explode('-',$pivot_dateSql) ;
+			foreach( $tarr1 as $cat => $nb ) {
+				switch( $cat ) {
+					case 'plus' :
+						$cat = 'Gain RC' ;
+						break ;
+					case 'minus' :
+						$cat = 'Recupération' ;
+						break ;
+					default :
+						$cat = 'Inconnu ?' ;
+						break ;
+				}
+				$rows[] = array(
+					'row_date' => $pivot_dateSql,
+					'row_text' => $cat,
+					'row_value' => round($nb,1)
+				);
+			}
+		}
+		
+		$TAB_peopleCode_record[$people_code] = array(
+			'people_calc_attribute' => 'RC',
 			'calc_date' => $at_date_sql,
 			'calc_value' => round((float)$val,1),
 			'calc_unit_txt' => 'hour(s)',
