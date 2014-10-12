@@ -32,6 +32,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhCalcAttributesPanel',{
 			});
 			
 			attributePanels.push( Ext.create('Optima5.Modules.Spec.DbsPeople.RhCalcAttributePanel',{
+				itemId: peopleCalcAttributeData.people_calc_attribute,
 				title: peopleCalcAttributeData.people_calc_attribute,
 				data: peopleCalcAttributeData
 			}));
@@ -40,7 +41,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhCalcAttributesPanel',{
 		this.removeAll() ;
 		if( attributePanels.length > 0 ) {
 			this.add(attributePanels) ;
-			this.setActiveTab(0) ;
+			this.setActiveTab(this.activePeopleCalcAttribute) ;
 		}
 	}
 }) ;

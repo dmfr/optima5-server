@@ -629,6 +629,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 			}
 		}) ;
 		gridStore.each( function(record) {
+			var recordCalcAttributesStore = record.calc_attributes() ;
+			recordCalcAttributesStore.removeAll() ;
+			
 			// Get altRecord in altStore
 			var altRecord = altStore.getById(record.getId()) ;
 			if( !altRecord ) {
@@ -644,6 +647,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 					continue ;
 				}
 				record.set(fieldName,peopleCalcRecord.get('calc_value')) ;
+				recordCalcAttributesStore.add( peopleCalcRecord ) ;
 			}
 			record.commit() ;
 		});
@@ -659,7 +663,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 		var cellNode = e.getTarget( view.getCellSelector() ),
 			cellColumn = view.getHeaderByCell( cellNode ) ;
 		if( !Ext.isEmpty(cellColumn._peopleCalcAttribute) ) {
-			this.setCalcDetails( record ) ;
+			this.setCalcDetails( record, cellColumn._peopleCalcAttribute ) ;
 			return ;
 		}
 		
@@ -725,10 +729,10 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 		eastpanel.expand() ;
 	},
 	
-	setCalcDetails: function( peopleRecord ) {
+	setCalcDetails: function( peopleRecord, activePeopleCalcAttribute ) {
 		var me = this,
 			eastpanel = me.getComponent('mRhFormContainer') ;
-		if( peopleRecord == null ) {
+		if( peopleRecord == null || peopleRecord.calc_attributes().count() == 0 ) {
 			eastpanel._empty = true ;
 			eastpanel.collapse() ;
 			eastpanel.removeAll() ;
@@ -742,7 +746,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 			border: false,
 			optimaModule: me.optimaModule,
 			cfgPeopleCalcAttributes: me.cfgPeopleCalcAttributes,
-			peopleRecord: peopleRecord
+			peopleRecord: peopleRecord,
+			activePeopleCalcAttribute: activePeopleCalcAttribute
 		}));
 		eastpanel._empty = false ;
 		eastpanel.setTitle(title) ;
