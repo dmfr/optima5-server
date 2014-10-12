@@ -229,6 +229,11 @@ function specDbsPeople_cfg_getPeopleCalcAttributes() {
 	);
 	
 	$TAB[] = array(
+		'peopleCalcAttribute' => 'RTT',
+		'text' => 'RTT'
+	);
+	
+	$TAB[] = array(
 		'peopleCalcAttribute' => 'MOD',
 		'text' => 'Modul.'
 	);

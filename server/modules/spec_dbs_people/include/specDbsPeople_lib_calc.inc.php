@@ -183,6 +183,8 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords( $people_calc_attribute,
 			return specDbsPeople_lib_calc_getCalcAttributeRecords_CP($at_date_sql) ;
 		case 'MOD' :
 			return specDbsPeople_lib_calc_getCalcAttributeRecords_MOD($at_date_sql) ;
+		case 'RTT' :
+			return specDbsPeople_lib_calc_getCalcAttributeRecords_RTT($at_date_sql) ;
 	}
 	return array() ;
 }
@@ -331,6 +333,161 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_CP( $at_date_sql ) {
 		
 		$TAB_peopleCode_record[$people_code] = array(
 			'people_calc_attribute' => 'CP',
+			'calc_date' => $at_date_sql,
+			'calc_value' => round((float)$val,1),
+			'calc_unit_txt' => 'day(s)',
+			'rows' => $rows
+		);
+	}
+	
+	return $TAB_peopleCode_record ;
+}
+
+function specDbsPeople_lib_calc_getCalcAttributeRecords_RTT( $at_date_sql ) {
+	paracrm_lib_file_joinPrivate_buildCache('PEOPLEDAY') ;
+	$cfg_contracts = specDbsPeople_tool_getContracts() ;
+	/*
+	array(
+		'people_calc_attribute' => $people_calc_attribute,
+		'calc_date' => date('Y-m-d'),
+		'calc_value' => $calc_value
+	);
+	*/
+	if( $at_date_sql != NULL ) {
+		$where_params = array() ;
+		$where_params['condition_date_lt'] = $at_date_sql ;
+	}
+	$RES_quota = specDbsPeople_lib_calc_tool_runQuery( 'RTT:Quota', $where_params ) ;
+	
+	// recherche de la date MIN dans $RES_quota
+	$min_date = NULL ;
+	foreach( $RES_quota as $people_code => $values_quota ) {
+		if( $min_date===NULL ) {
+			$min_date = $values_quota['RTT:SetDate'] ;
+		} elseif( $values_quota['RTT:SetDate'] ) {
+			$min_date = min($min_date,$values_quota['RTT:SetDate']) ;
+		}
+	}
+	
+	// Config + autres requêtes
+	$where_params = array() ;
+	$where_params['condition_date_gt'] = $min_date ;
+	$RES_realDays = specDbsPeople_lib_calc_tool_runQuery( 'RTT:RealDays', $where_params ) ;
+	$RES_realAbs = specDbsPeople_lib_calc_tool_runQuery( 'RTT:RealAbs', $where_params ) ;
+	$RES_planning = specDbsPeople_lib_calc_tool_runQuery( 'RTT:Planning', $where_params ) ;
+	
+	// Walk planning to dispatch 1day=X to Xdays=1
+	foreach( $RES_planning as $people_code => &$RES_planning_ROW ) {
+		$balance = 0 ;
+		foreach( $RES_planning_ROW as $date_sql => &$nb ) {
+			if( $nb > 0 ) {
+				$balance += ($nb - 1) ;
+				$nb = 1 ;
+			} elseif( $balance > 0 ) {
+				$nb++ ;
+				$balance-- ;
+			}
+		}
+		unset($nb) ;
+	}
+	unset($RES_planning_ROW) ;
+	
+	$TAB_peopleCode_record = array() ;
+	
+	foreach( $RES_quota as $people_code => $values_quota ) {
+		// Fake JOIN on PEOPLEDAY file to retrieve current attributes
+		$fake_row = array() ;
+		$fake_row['PEOPLEDAY']['field_DATE'] = date('Y-m-d') ;
+		$fake_row['PEOPLEDAY']['field_PPL_CODE'] = $people_code ;
+		paracrm_lib_file_joinQueryRecord( 'PEOPLEDAY', $fake_row ) ;
+		$contract_code = $fake_row['PEOPLEDAY']['field_STD_CONTRACT'] ;
+		$contract_row = $cfg_contracts[$contract_code] ;
+		
+		$val = $values_quota['RTT:SetQuota'] ;
+		$min_date = date('Y-m-d', strtotime($values_quota['RTT:SetDate'])) ;
+		if( $at_date_sql != NULL  ) {
+			$max_date = $at_date_sql ;
+		}
+		
+		$arr_log = array() ;
+		
+		$cur_pivot = NULL ;
+		foreach( $RES_realAbs[$people_code] as $date_sql => $nb_abs ) {
+			if( $date_sql < $min_date ) {
+				continue ;
+			}
+			if( isset($max_date) && $date_sql > $max_date ) {
+				continue ;
+			}
+			
+			if( $nb_abs == 0 ) {
+				$cur_pivot = NULL ;
+				continue ;
+			}
+			if( $cur_pivot===NULL ) {
+				$cur_pivot = $date_sql ;
+			}
+			
+			$arr_log[$cur_pivot]['real'] += $nb_abs ;
+			$val -= $nb_abs ;
+		}
+		$RES_realDays_row = $RES_realDays[$people_code] ;
+		foreach( $RES_planning[$people_code] as $date_sql => $nb_abs ) {
+			if( $date_sql < $min_date ) {
+				continue ;
+			}
+			if( isset($max_date) && $date_sql > $max_date ) {
+				continue ;
+			}
+			if( $RES_realDays_row[$date_sql] ) {
+				continue ;
+			}
+			$ISO8601_day = date('N',strtotime($date_sql)) ;
+			if( !$contract_row['std_dayson'][$ISO8601_day] ) {
+				continue ;
+			}
+			
+			if( $nb_abs == 0 ) {
+				$cur_pivot = NULL ;
+				continue ;
+			}
+			if( $cur_pivot===NULL ) {
+				$cur_pivot = $date_sql ;
+			}
+			
+			$arr_log[$cur_pivot]['planning'] += $nb_abs ;
+			$val -= $nb_abs ;
+		}
+		
+		$rows = array() ;
+		$rows[] = array(
+			'row_date' => $min_date,
+			'row_text' => 'Solde initialisé',
+			'row_value' => $values_quota['RTT:SetQuota']
+		);
+		foreach( $arr_log as $pivot_dateSql => $tarr1 ) {
+			foreach( $tarr1 as $cat => $nb ) {
+				switch( $cat ) {
+					case 'planning' :
+						$cat = 'RTT planifié ('.$nb.' jours)' ;
+						break ;
+					case 'real' :
+						$cat = 'Congé payé : '.$nb.' jours' ;
+						break ;
+					default :
+						$cat = 'Inconnu ?' ;
+						break ;
+				}
+				$rows[] = array(
+					'row_date' => $pivot_dateSql,
+					'row_text' => $cat,
+					'row_value' => round((-1 * $nb),1)
+				);
+			}
+		}
+		
+		$TAB_peopleCode_record[$people_code] = array(
+			'people_calc_attribute' => 'RTT',
 			'calc_date' => $at_date_sql,
 			'calc_value' => round((float)$val,1),
 			'calc_unit_txt' => 'day(s)',
