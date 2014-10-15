@@ -338,6 +338,7 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_CP( $at_date_sql ) {
 			'calc_date' => $at_date_sql,
 			'calc_value' => round((float)$val,1),
 			'calc_unit_txt' => 'day(s)',
+			'calc_unit_short' => 'j',
 			'rows' => $rows
 		);
 	}
@@ -493,6 +494,7 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_RTT( $at_date_sql ) {
 			'calc_date' => $at_date_sql,
 			'calc_value' => round((float)$val,1),
 			'calc_unit_txt' => 'day(s)',
+			'calc_unit_short' => 'j',
 			'rows' => $rows
 		);
 	}
@@ -632,6 +634,7 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_MOD( $at_date_sql ) {
 			'calc_date' => $at_date_sql,
 			'calc_value' => round((float)$val,1),
 			'calc_unit_txt' => 'hour(s)',
+			'calc_unit_short' => 'h',
 			'rows' => $rows
 		);
 	}
@@ -767,6 +770,7 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_RC( $at_date_sql ) {
 			'calc_date' => $at_date_sql,
 			'calc_value' => round((float)$val,1),
 			'calc_unit_txt' => 'hour(s)',
+			'calc_unit_short' => 'h',
 			'rows' => $rows
 		);
 	}
