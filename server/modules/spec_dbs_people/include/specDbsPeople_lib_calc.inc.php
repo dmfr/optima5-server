@@ -193,6 +193,7 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords( $people_calc_attribute,
 function specDbsPeople_lib_calc_getCalcAttributeRecords_CP( $at_date_sql ) {
 	paracrm_lib_file_joinPrivate_buildCache('PEOPLEDAY') ;
 	$cfg_contracts = specDbsPeople_tool_getContracts() ;
+	$cfg_exceptionDays = specDbsPeople_tool_getExceptionDays() ;
 	/*
 	array(
 		'people_calc_attribute' => $people_calc_attribute,
@@ -293,6 +294,9 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_CP( $at_date_sql ) {
 			if( !$contract_row['std_dayson'][$ISO8601_day] ) {
 				continue ;
 			}
+			if( $cfg_exceptionDays[$date_sql] ) {
+				continue ;
+			}
 			
 			if( $nb_abs == 0 ) {
 				$cur_pivot = NULL ;
@@ -349,6 +353,7 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_CP( $at_date_sql ) {
 function specDbsPeople_lib_calc_getCalcAttributeRecords_RTT( $at_date_sql ) {
 	paracrm_lib_file_joinPrivate_buildCache('PEOPLEDAY') ;
 	$cfg_contracts = specDbsPeople_tool_getContracts() ;
+	$cfg_exceptionDays = specDbsPeople_tool_getExceptionDays() ;
 	/*
 	array(
 		'people_calc_attribute' => $people_calc_attribute,
@@ -447,6 +452,9 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_RTT( $at_date_sql ) {
 			}
 			$ISO8601_day = date('N',strtotime($date_sql)) ;
 			if( !$contract_row['std_dayson'][$ISO8601_day] ) {
+				continue ;
+			}
+			if( $cfg_exceptionDays[$date_sql] ) {
 				continue ;
 			}
 			
