@@ -105,6 +105,13 @@ function specDbsPeople_lib_calc_tool_runQuery( $q_id, $where_params=NULL ) {
 	return $GRID ;
 }
 
+function specDbsPeople_lib_calc_getRealDays() {
+	if( $GLOBALS['cache_specDbsPeople_lib_calc']['realDays'] ) {
+		return $GLOBALS['cache_specDbsPeople_lib_calc']['realDays'] ;
+	}
+	return $GLOBALS['cache_specDbsPeople_lib_calc']['realDays'] = specDbsPeople_lib_calc_tool_runQuery( 'Common:RealDays' ) ;
+}
+
 
 function specDbsPeople_lib_calc_getInterimNC( $date_start, $date_end ) {
 	$RES_max = specDbsPeople_lib_calc_tool_runQuery( 'ITM_NC:PlanningMax' ) ;
@@ -218,9 +225,9 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_CP( $at_date_sql ) {
 	}
 	
 	// Config + autres requêtes
+	$RES_realDays = specDbsPeople_lib_calc_getRealDays() ;
 	$where_params = array() ;
 	$where_params['condition_date_gt'] = $min_date ;
-	$RES_realDays = specDbsPeople_lib_calc_tool_runQuery( 'CP:RealDays', $where_params ) ;
 	$RES_realAbs = specDbsPeople_lib_calc_tool_runQuery( 'CP:RealAbs', $where_params ) ;
 	$RES_planning = specDbsPeople_lib_calc_tool_runQuery( 'CP:Planning', $where_params ) ;
 	
@@ -378,9 +385,9 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_RTT( $at_date_sql ) {
 	}
 	
 	// Config + autres requêtes
+	$RES_realDays = specDbsPeople_lib_calc_getRealDays() ;
 	$where_params = array() ;
 	$where_params['condition_date_gt'] = $min_date ;
-	$RES_realDays = specDbsPeople_lib_calc_tool_runQuery( 'RTT:RealDays', $where_params ) ;
 	$RES_realAbs = specDbsPeople_lib_calc_tool_runQuery( 'RTT:RealAbs', $where_params ) ;
 	$RES_planning = specDbsPeople_lib_calc_tool_runQuery( 'RTT:Planning', $where_params ) ;
 	
@@ -483,7 +490,7 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_RTT( $at_date_sql ) {
 						$cat = 'RTT planifié ('.$nb.' jours)' ;
 						break ;
 					case 'real' :
-						$cat = 'Congé payé : '.$nb.' jours' ;
+						$cat = 'RTT effectué : '.$nb.' jours' ;
 						break ;
 					default :
 						$cat = 'Inconnu ?' ;
@@ -537,11 +544,28 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_MOD( $at_date_sql ) {
 	}
 	
 	// Config + autres requêtes
+	$RES_realDays = specDbsPeople_lib_calc_getRealDays() ;
 	$where_params = array() ;
 	$where_params['condition_date_gt'] = $min_date ;
 	$RES_realDuration = specDbsPeople_lib_calc_tool_runQuery( 'MOD:RealDuration', $where_params ) ;
-	$RES_minus = specDbsPeople_lib_calc_tool_runQuery( 'MOD:minus', $where_params ) ;
+	$RES_minus = specDbsPeople_lib_calc_tool_runQuery( 'MOD:Minus', $where_params ) ;
+	$RES_planning = specDbsPeople_lib_calc_tool_runQuery( 'MOD:Planning', $where_params ) ;
 	
+	// Walk planning to dispatch 1day=X to Xdays=1
+	foreach( $RES_planning as $people_code => &$RES_planning_ROW ) {
+		$balance = 0 ;
+		foreach( $RES_planning_ROW as $date_sql => &$nb ) {
+			if( $nb > 0 ) {
+				$balance += ($nb - 1) ;
+				$nb = 1 ;
+			} elseif( $balance > 0 ) {
+				$nb++ ;
+				$balance-- ;
+			}
+		}
+		unset($nb) ;
+	}
+	unset($RES_planning_ROW) ;
 	
 	$TAB_peopleCode_record = array() ;
 	
@@ -588,12 +612,12 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_MOD( $at_date_sql ) {
 			$arr_log[$week_sql]['plus'] += $nb_heures ;
 			$val += $nb_heures ;
 		}
-		$RES_realDays_row = $RES_realDays[$people_code] ;
-		foreach( $RES_minus[$people_code] as $week_sql => $nb_heures ) {
-			if( $week_sql < $min_week ) {
+		
+		foreach( $RES_minus[$people_code] as $date_sql => $nb_heures ) {
+			if( $date_sql < $min_date ) {
 				continue ;
 			}
-			if( isset($max_week) && $week_sql > $max_week ) {
+			if( isset($max_date) && $date_sql > $max_date ) {
 				continue ;
 			}
 			
@@ -601,8 +625,36 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_MOD( $at_date_sql ) {
 				continue ;
 			}
 			
+			$week_sql = date('o-W', strtotime($date_sql)) ;
 			$arr_log[$week_sql]['minus'] -= $nb_heures ;
 			$val -= $nb_heures ;
+		}
+		$RES_realDays_row = $RES_realDays[$people_code] ;
+		foreach( $RES_planning[$people_code] as $date_sql => $nb_abs ) {
+			if( $date_sql < $min_date ) {
+				continue ;
+			}
+			if( isset($max_date) && $date_sql > $max_date ) {
+				continue ;
+			}
+			
+			if( $RES_realDays_row[$date_sql] ) {
+				continue ;
+			}
+			$ISO8601_day = date('N',strtotime($date_sql)) ;
+			if( !$contract_row['std_dayson'][$ISO8601_day] ) {
+				continue ;
+			}
+			if( $cfg_exceptionDays[$date_sql] ) {
+				continue ;
+			}
+			
+			if( $nb_abs == 0 ) {
+				continue ;
+			}
+			$week_sql = date('o-W', strtotime($date_sql)) ;
+			$arr_log[$week_sql]['planning'] -= ($nb_abs * $contract_row['std_daylength']) ;
+			$val -= $nb_abs ;
 		}
 		
 		$rows = array() ;
@@ -623,7 +675,10 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_MOD( $at_date_sql ) {
 						$cat = 'Gain modulation' ;
 						break ;
 					case 'minus' :
-						$cat = 'Recupération' ;
+						$cat = 'MOD récupéré' ;
+						break ;
+					case 'planning' :
+						$cat = 'MOD prévu' ;
 						break ;
 					default :
 						$cat = 'Inconnu ?' ;
@@ -677,11 +732,28 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_RC( $at_date_sql ) {
 	}
 	
 	// Config + autres requêtes
+	$RES_realDays = specDbsPeople_lib_calc_getRealDays() ;
 	$where_params = array() ;
 	$where_params['condition_date_gt'] = $min_date ;
 	$RES_realDuration = specDbsPeople_lib_calc_tool_runQuery( 'RC:RealDuration', $where_params ) ;
-	$RES_minus = specDbsPeople_lib_calc_tool_runQuery( 'RC:minus', $where_params ) ;
+	$RES_minus = specDbsPeople_lib_calc_tool_runQuery( 'RC:Minus', $where_params ) ;
+	$RES_planning = specDbsPeople_lib_calc_tool_runQuery( 'RC:Planning', $where_params ) ;
 	
+	// Walk planning to dispatch 1day=X to Xdays=1
+	foreach( $RES_planning as $people_code => &$RES_planning_ROW ) {
+		$balance = 0 ;
+		foreach( $RES_planning_ROW as $date_sql => &$nb ) {
+			if( $nb > 0 ) {
+				$balance += ($nb - 1) ;
+				$nb = 1 ;
+			} elseif( $balance > 0 ) {
+				$nb++ ;
+				$balance-- ;
+			}
+		}
+		unset($nb) ;
+	}
+	unset($RES_planning_ROW) ;
 	
 	$TAB_peopleCode_record = array() ;
 	
@@ -728,7 +800,7 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_RC( $at_date_sql ) {
 			$arr_log[$date_sql]['plus'] += $nb_heures ;
 			$val += $nb_heures ;
 		}
-		$RES_realDays_row = $RES_realDays[$people_code] ;
+		
 		foreach( $RES_minus[$people_code] as $date_sql => $nb_heures ) {
 			if( $date_sql < $min_date ) {
 				continue ;
@@ -743,6 +815,31 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_RC( $at_date_sql ) {
 			
 			$arr_log[$date_sql]['minus'] -= $nb_heures ;
 			$val -= $nb_heures ;
+		}
+		$RES_realDays_row = $RES_realDays[$people_code] ;
+		foreach( $RES_planning[$people_code] as $date_sql => $nb_abs ) {
+			if( $date_sql < $min_date ) {
+				continue ;
+			}
+			if( isset($max_date) && $date_sql > $max_date ) {
+				continue ;
+			}
+			if( $RES_realDays_row[$date_sql] ) {
+				continue ;
+			}
+			$ISO8601_day = date('N',strtotime($date_sql)) ;
+			if( !$contract_row['std_dayson'][$ISO8601_day] ) {
+				continue ;
+			}
+			if( $cfg_exceptionDays[$date_sql] ) {
+				continue ;
+			}
+			
+			if( $nb_abs == 0 ) {
+				continue ;
+			}
+			$arr_log[$date_sql]['planning'] -= ($nb_abs * $contract_row['std_daylength']) ;
+			$val -= ($nb_abs * $contract_row['std_daylength']) ;
 		}
 		
 		$rows = array() ;
@@ -759,7 +856,10 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_RC( $at_date_sql ) {
 						$cat = 'Gain RC' ;
 						break ;
 					case 'minus' :
-						$cat = 'Recupération' ;
+						$cat = 'RC récupéré' ;
+						break ;
+					case 'planning' :
+						$cat = 'RC prévu' ;
 						break ;
 					default :
 						$cat = 'Inconnu ?' ;
