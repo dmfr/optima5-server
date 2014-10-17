@@ -200,6 +200,30 @@ function specDbsPeople_tool_getContracts() {
 	return $TAB ;
 }
 
+function specDbsPeople_tool_getRealDays_forPeople() {
+	global $_opDB ;
+	
+	$query = "SELECT field_DATE, field_PPL_CODE FROM view_file_PEOPLEDAY" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$sql_date = $arr[0] ;
+		$people_code = $arr[1] ;
+		$tab_realDays[$people_code][$sql_date] = TRUE ;
+	}
+	return $tab_realDays ;
+}
+function specDbsPeople_tool_getRealDays_forDate() {
+	global $_opDB ;
+	
+	$query = "SELECT field_DATE, field_PPL_CODE FROM view_file_PEOPLEDAY" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$sql_date = $arr[0] ;
+		$people_code = $arr[1] ;
+		$tab_realDays[$sql_date][$people_code] = TRUE ;
+	}
+	return $tab_realDays ;
+}
 function specDbsPeople_tool_getExceptionDays($sql_dates=NULL) {
 	global $_opDB ;
 	

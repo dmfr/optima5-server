@@ -109,7 +109,7 @@ function specDbsPeople_lib_calc_getRealDays() {
 	if( $GLOBALS['cache_specDbsPeople_lib_calc']['realDays'] ) {
 		return $GLOBALS['cache_specDbsPeople_lib_calc']['realDays'] ;
 	}
-	return $GLOBALS['cache_specDbsPeople_lib_calc']['realDays'] = specDbsPeople_lib_calc_tool_runQuery( 'Common:RealDays' ) ;
+	return $GLOBALS['cache_specDbsPeople_lib_calc']['realDays'] = specDbsPeople_tool_getRealDays_forPeople() ;
 }
 
 
