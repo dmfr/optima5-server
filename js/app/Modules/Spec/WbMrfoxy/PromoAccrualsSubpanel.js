@@ -153,7 +153,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoAccrualsSubpanel',{
 						tdCls: 'op5-spec-mrfoxy-financebudget-celltotal',
 						align: 'right',
 						xtype: 'numbercolumn',
-						format: '0,0'
+						renderer: function(v,m,record) {
+							return v + ' ' + record.get('currency_symbol') ;
+						}
 					},{
 						text: '<b>Acc:</b> Received',
 						width: 100,
@@ -162,7 +164,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoAccrualsSubpanel',{
 						tdCls: 'op5-spec-mrfoxy-financebudget-celltotal',
 						align: 'right',
 						xtype: 'numbercolumn',
-						format: '0,0'
+						renderer: function(v,m,record) {
+							return v + ' ' + record.get('currency_symbol') ;
+						}
 					},{
 						text: '<b>Acr:</b> <b>A-B</b>',
 						width: 100,
@@ -176,8 +180,14 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoAccrualsSubpanel',{
 								return 0 ;
 							}
 							var calcValue = record.get('cost_forecast') - record.get('cost_real') ;
-							return Ext.util.Format.number( calcValue, '0,0' ) ;
+							return Ext.util.Format.number( calcValue, '0,0' ) + ' ' + record.get('currency_symbol') ;
 						}
+					},{
+						text: 'Currency',
+						dataIndex: 'currency',
+						width: 75,
+						align: 'right',
+						menuDisabled:false
 					}]
 				},
 				features: [{

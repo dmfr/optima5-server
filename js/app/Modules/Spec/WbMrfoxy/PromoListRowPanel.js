@@ -210,14 +210,14 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 							fieldLabel: 'Cost forecast',
 							fieldStyle: 'font-weight: bold',
 							labelWidth: 120,
-							value: Ext.util.Format.number(rowRecord.get('cost_forecast'),'0,0') + ' ' + rowRecord.get('currency') + '&#160;'+'('+rowRecord.get('cost_billing_text')+')',
+							value: Ext.util.Format.number(rowRecord.get('cost_forecast'),'0,0') + ' ' + rowRecord.get('currency_symbol') + '&#160;'+'('+rowRecord.get('cost_billing_text')+')',
 							hidden: false
 						},{
 							xtype: 'displayfield',
 							fieldLabel: 'Real Cost (invoice)',
 							fieldStyle: 'font-weight: bold',
 							labelWidth: 120,
-							value: Ext.util.Format.number(rowRecord.get('cost_real'),'0,0') + ' ' + rowRecord.get('currency'),
+							value: Ext.util.Format.number(rowRecord.get('cost_real'),'0,0') + ' ' + rowRecord.get('currency_symbol'),
 							hidden: !rowRecord.get('cost_real_is_calc')
 						}]
 					}]
