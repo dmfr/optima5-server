@@ -314,7 +314,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 								html:'<b>€/£/...</b>'
 							}]
 						},{
-							xtype: 'comboboxcached',
+							xtype: 'combobox',
 							itemId: 'mechanics_multi',
 							fieldLabel: 'Details',
 							name: 'mechanics_multi_combo',

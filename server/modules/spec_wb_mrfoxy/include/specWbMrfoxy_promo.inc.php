@@ -558,6 +558,19 @@ function specWbMrfoxy_promo_formSubmit( $post_data ) {
 	$arr_ins['field_COST_FORECAST_VAR'] = $form_data['cost_forecast_var'] ;
 	
 	
+	// *** Enregistrement mecanique ***
+	if( $form_data['mechanics_code'] == 'MULTI' && $form_data['mechanics_multi_combo'] ) {
+		$mechanics_multi = $form_data['mechanics_multi_combo'] ;
+		$query = "SELECT count(*) FROM view_bible_PROMO_MECH_entry WHERE treenode_key='MULTI' AND field_DETAILS_TXT='$mechanics_multi'" ;
+		if( $_opDB->query_uniqueValue($query) == 0 ) {
+			$data = array() ;
+			$data['field_DETAILS'] = $entry_key = str_replace(' ','_',strtoupper($mechanics_multi)) ;
+			$data['field_DETAILS_TXT'] = $mechanics_multi ;
+			paracrm_lib_data_insertRecord_bibleEntry( 'PROMO_MECH', $entry_key, 'MULTI', $data ) ;
+		}
+	}
+	
+	
 	// *** Création code PROMO ID ****
 	$store_memo = '' ;
 	$store_code = $form_data['store_code'] ;
