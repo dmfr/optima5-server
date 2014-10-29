@@ -557,6 +557,8 @@ function specWbMrfoxy_promo_formSubmit( $post_data ) {
 	$arr_ins['field_COST_FORECAST'] = $form_data['cost_forecast'] ;
 	$arr_ins['field_COST_FORECAST_VAR'] = $form_data['cost_forecast_var'] ;
 	
+	$arr_ins['field_OBS_COMMENT'] = $form_data['obs_comment'] ;
+	
 	
 	// *** Enregistrement mecanique ***
 	if( $form_data['mechanics_code'] == 'MULTI' && $form_data['mechanics_multi_combo'] ) {

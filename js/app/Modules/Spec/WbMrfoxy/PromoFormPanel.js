@@ -328,6 +328,17 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 							displayField: 'txt',
 							valueField: 'txt'
 						}]
+					},{
+						xtype:'fieldset',
+						defaults: {
+							anchor: '100%',
+							labelWidth: 60
+						},
+						title: 'Comment / Free text',
+						items:[{
+							xtype: 'textfield',
+							name:'obs_comment'
+						}]
 					}]
 				},{
 					xtype:'box',
