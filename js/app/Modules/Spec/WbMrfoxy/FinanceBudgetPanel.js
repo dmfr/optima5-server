@@ -565,6 +565,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 						filerecordId: revision.filerecord_id,
 						dataIndex: revisionId + '_value',
 						revisionId: revisionId,
+						isInitialEdit: true,
 						dataIsActual: revision.is_actual,
 						tdCls: (revision.is_actual ? 'op5-spec-mrfoxy-financebudget-actualcolumn' : 'op5-spec-mrfoxy-financebudget-archivecolumn')
 					} ;
@@ -689,7 +690,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 			listeners: {
 				afterlayout: function( gridpanel ) {
 					gridpanel.headerCt.on('menucreate',me.onColumnsMenuCreate,me) ;
-				}
+				},
+				itemclick: this.onItemClick,
+				scope: this
 			},
 			viewConfig: {
 				getRowClass: function(record) {
@@ -776,10 +779,26 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 		this.doCalc() ;
 		this.closeRowDetails() ;
 	},
+	onItemClick: function( view, record, itemNode, index, e ) {
+		var headerCt = view.ownerCt.headerCt,
+			cellNode = e.getTarget( view.getCellSelector() ),
+			cellColumn = view.getHeaderByCell( cellNode ),
+			isEditing = !Ext.isEmpty(headerCt.down('[dataIsEditing]')) ;
+		if( isEditing ) {
+			return ;
+		}
+		if( record.get('has_sub_txt') ) {
+			this.openRowDetails( record, cellColumn ) ;
+		}
+	},
+	
 	saveRevisionValues: function() {
 		var grid = this.down('grid'),
-			column = grid.headerCt.down('[dataIsEditing]'),
-			revisionId = column.revisionId,
+			column = grid.headerCt.down('[dataIsEditing]') ;
+		if( column == null ) {
+			return ;
+		}
+		var revisionId = column.revisionId,
 			filerecordId = column.filerecordId,
 			saveRows = this.collectRevisionValues(revisionId) ;
 		
@@ -1242,6 +1261,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 			width: 400,
 			height: 200,
 			
+			title: (gridColumn.isInitialEdit ? gridColumn.text : 'Revision '+gridColumn.text) + ' : ' + gridRecord.get('row_text'),
+			
+			readOnly: Ext.isEmpty(gridColumn.dataIsEditing),
 			data: subArr,
 			columns:[{
 				flex:2,
