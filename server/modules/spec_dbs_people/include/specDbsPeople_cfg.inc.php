@@ -203,7 +203,7 @@ function specDbsPeople_tool_getContracts() {
 function specDbsPeople_tool_getRealDays_forPeople() {
 	global $_opDB ;
 	
-	$query = "SELECT field_DATE, field_PPL_CODE FROM view_file_PEOPLEDAY" ;
+	$query = "SELECT DATE(field_DATE), field_PPL_CODE FROM view_file_PEOPLEDAY" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 		$sql_date = $arr[0] ;
@@ -215,7 +215,7 @@ function specDbsPeople_tool_getRealDays_forPeople() {
 function specDbsPeople_tool_getRealDays_forDate() {
 	global $_opDB ;
 	
-	$query = "SELECT field_DATE, field_PPL_CODE FROM view_file_PEOPLEDAY" ;
+	$query = "SELECT DATE(field_DATE), field_PPL_CODE FROM view_file_PEOPLEDAY" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 		$sql_date = $arr[0] ;
