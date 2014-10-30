@@ -547,9 +547,31 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_MOD( $at_date_sql ) {
 	$RES_realDays = specDbsPeople_lib_calc_getRealDays() ;
 	$where_params = array() ;
 	$where_params['condition_date_gt'] = $min_date ;
-	$RES_realDuration = specDbsPeople_lib_calc_tool_runQuery( 'MOD:RealDuration', $where_params ) ;
+	$RES_realRole = specDbsPeople_lib_calc_tool_runQuery( 'MOD:RealRole', $where_params ) ;
+	$RES_realAbs = specDbsPeople_lib_calc_tool_runQuery( 'MOD:RealAbs', $where_params ) ;
 	$RES_minus = specDbsPeople_lib_calc_tool_runQuery( 'MOD:Minus', $where_params ) ;
 	$RES_planning = specDbsPeople_lib_calc_tool_runQuery( 'MOD:Planning', $where_params ) ;
+	
+	$RES_realDuration = array() ;
+	foreach( $RES_quota as $people_code => $values_quota ) {
+		$RES_realDuration[$people_code] = array() ;
+	}
+	foreach( $RES_realRole as $people_code => $tarr ) {
+		foreach( $tarr as $week_sql => $cnt ) {
+			if( !isset($RES_realDuration[$people_code][$week_sql]) ) {
+				$RES_realDuration[$people_code][$week_sql] = 0 ;
+			}
+			$RES_realDuration[$people_code][$week_sql] += $cnt ;
+		}
+	}
+	foreach( $RES_realAbs as $people_code => $tarr ) {
+		foreach( $tarr as $week_sql => $cnt ) {
+			if( !isset($RES_realDuration[$people_code][$week_sql]) ) {
+				$RES_realDuration[$people_code][$week_sql] = 0 ;
+			}
+			$RES_realDuration[$people_code][$week_sql] += $cnt ;
+		}
+	}
 	
 	// Walk planning to dispatch 1day=X to Xdays=1
 	foreach( $RES_planning as $people_code => &$RES_planning_ROW ) {
@@ -598,8 +620,8 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_MOD( $at_date_sql ) {
 				continue ;
 			}
 			
-			$nb_heures_work = min($nb_heures_work,$contract_row['mod_week_max']) ;
-			if( $nb_heures_work < $contract_row['mod_week_std'] ) {
+			$nb_heures_work = min($nb_heures_work,$contract_row['mod_week_max']+$RES_realAbs[$people_code][$week_sql]) ;
+			if( $contract_row['mod_week_std'] <= 0 || $nb_heures_work < $contract_row['mod_week_std'] ) {
 				$nb_heures = 0 ;
 			} else {
 				$nb_heures = $nb_heures_work - $contract_row['mod_week_std'] ;
