@@ -436,4 +436,166 @@ function specWbMrfoxy_finance_getBudgetBar( $post_data )  {
 	return array('success'=>true, 'data'=>$DATA) ;
 }
 
+
+function specWbMrfoxy_finance_getNationalAgreements( $post_data )  {
+	global $_opDB ;
+	
+	$date_today = date('Y-m-d') ;
+	
+	// ******* Currencies ***********
+	$TAB_currencies = array() ;
+	foreach( specWbMrfoxy_tool_getCurrencies() as $currency_desc ) {
+		$currency_code = $currency_desc['currency_code'] ;
+		$TAB_currencies[$currency_code] = $currency_desc ;
+	}
+	
+	// ******* Which revisions ? **********
+	$TAB = array() ;
+	$forward_post = array() ;
+	$forward_post['start'] ;
+	$forward_post['limit'] ;
+	$forward_post['file_code'] = 'FINANCE_REVISION' ;
+	$ttmp = paracrm_data_getFileGrid_data( $forward_post, $auth_bypass=TRUE ) ;
+	$paracrm_TAB = $ttmp['data'] ;
+	foreach( $paracrm_TAB as $paracrm_row ) {
+		if( $paracrm_row['FINANCE_REVISION_field_EDIT_IS_OPEN'] ) {
+			continue ;
+		}
+		
+		$crop_year = $paracrm_row['FINANCE_REVISION_field_CROP_YEAR'] ;
+		$country_code = $paracrm_row['FINANCE_REVISION_field_COUNTRY'] ;
+		
+		if( !isset($TAB[$country_code][$crop_year]) ) {
+			$TAB[$country_code][$crop_year] = array() ;
+		}
+		$TAB[$country_code][$crop_year][] = $paracrm_row['filerecord_id'] ;
+	}
+	$filerecord_ids = array() ;
+	foreach( $TAB as $country_code => $tarr ) {
+		foreach( $tarr as $crop_year => $ttmp ) {
+			$filerecord_ids[] = max($ttmp) ;
+		}
+	}
+	
+	// **** All crops ********
+	$crop_year_dates = array() ;
+	$TAB = specWbMrfoxy_tool_getCropIntervals() ;
+	foreach($TAB as $crop_desc) {
+		$crop_year = $crop_desc['crop_year'] ;
+		$date_apply = $crop_desc['date_apply'] ;
+		
+		$crop_year_dates[$crop_year] = array() ;
+		for( $i=0 ; $i<12 ; $i++ ) {
+			$crop_year_dates[$crop_year][] = $date_apply ;
+			$date_apply = date('Y-m-d',strtotime('+1 month',strtotime($date_apply))) ;
+		}
+	}
+	
+	
+	
+	$forward_post = array() ;
+	$forward_post['start'] ;
+	$forward_post['limit'] ;
+	$forward_post['file_code'] = 'FINANCE_REVISION_ROW' ;
+	
+	$filters = array() ;
+	if( TRUE ) {
+		$filter = array() ;
+		$filter['field'] = 'FINANCE_REVISION_ROW_field_GROUP_KEY' ;
+		$filter['type'] = 'string' ;
+		$filter['value'] = '2_STORES' ;
+		$filters[] = $filter ;
+	}
+	if( TRUE ) {
+		$filter = array() ;
+		$filter['field'] = 'FINANCE_REVISION_id' ;
+		$filter['type'] = 'list' ;
+		$filter['value'] = $filerecord_ids ;
+		$filters[] = $filter ;
+	}
+	if( $post_data['filter_country'] ) {
+		$filter = array() ;
+		$filter['field'] = 'FINANCE_REVISION_field_COUNTRY' ;
+		$filter['type'] = 'list' ;
+		$filter['value'] = array($post_data['filter_country']) ;
+		$filters[] = $filter ;
+	}
+	if( isset($post_data['filter']) ) {
+		
+		foreach( json_decode($post_data['filter'],true) as $filter ) {
+			$paracrm_field = NULL ;
+			switch( $filter['field'] ) {
+				case 'date_month' :
+				case 'date_apply' :
+					switch( $filter['comparison'] ) {
+						case 'gt' :
+							$date_min = $filter['value'] ;
+							break ;
+						case 'lt' :
+							$date_max = $filter['value'] ;
+							break ;
+					}
+					continue 2 ;
+			
+				case 'store_text' : $paracrm_field='FINANCE_REVISION_ROW_field_ROW_SPEC_STORE' ; break ;
+				default : continue 2 ;
+			}
+			$filter['field'] = $paracrm_field ;
+			$filters[] = $filter ;
+		}
+		
+	}
+	if( $filters ) {
+		$forward_post['filter'] = json_encode($filters) ;
+	}
+	
+	$ttmp = paracrm_data_getFileGrid_data( $forward_post, $auth_bypass=TRUE ) ;
+	$paracrm_TAB = $ttmp['data'] ;
+	
+	$auth_arrCountries = specWbMrfoxy_auth_lib_getCountries() ;
+	
+	$TAB = array() ;
+	foreach( $paracrm_TAB as $paracrm_row ) {
+		if( is_array($auth_arrCountries) && !in_array($paracrm_row['FINANCE_REVISION_field_COUNTRY'],$auth_arrCountries) ) {
+			continue ;
+		}
+		
+		if( $paracrm_row['FINANCE_REVISION_ROW_field_VALUE'] == 0 ) {
+			continue ;
+		}
+		
+		$crop_year = $paracrm_row['FINANCE_REVISION_field_CROP_YEAR'] ;
+		$crop_decoupe = $crop_year_dates[$crop_year] ;
+		
+		if( $arr_currencies = json_decode($paracrm_row['FINANCE_REVISION_field_COUNTRY_entry_COUNTRY_CURRENCY'],true) ) {
+			$currency_code = reset($arr_currencies) ;
+		}
+		$currency_desc = $TAB_currencies[$currency_code] ;
+		
+		foreach( $crop_decoupe as $date_apply ) {
+			if( ($date_min && $date_apply<$date_min)  ||  ($date_max && $date_apply>$date_max) ) {
+				continue ;
+			}
+			
+			$status = ($date_today >= $date_apply) ;
+		
+			$row = array() ;
+			$row['country_code'] = $paracrm_row['FINANCE_REVISION_field_COUNTRY'] ;
+			$row['cropYear_code'] = $paracrm_row['FINANCE_REVISION_field_CROP_YEAR'] ;
+			$row['date_apply'] = $date_apply ;
+			$row['date_month'] = substr($date_apply,0,7) ;
+			$row['currency'] = $currency_code ;
+			$row['currency_symbol'] = $currency_desc['currency_sign'] ;
+			$row['store_code'] = $paracrm_row['FINANCE_REVISION_ROW_field_ROW_SPEC_STORE_tree_STOREGROUP'] ;
+			$row['store_text'] = $paracrm_row['FINANCE_REVISION_ROW_field_ROW_SPEC_STORE_tree_STOREGROUP_TXT'] ;
+			$row['nagreement_txt'] = $paracrm_row['FINANCE_REVISION_ROW_field_ROW_SUB_TXT'] ;
+			$row['amount_forecast'] = round($paracrm_row['FINANCE_REVISION_ROW_field_VALUE'] / count($crop_decoupe));
+			$row['amount_real'] = ($status ? $row['amount_forecast'] : 0) ;
+			$row['status_isReal'] = $status ;
+			$TAB[] = $row ;
+		}
+	}
+	return array('success'=>true, 'data'=>$TAB, 'debug'=>$paracrm_TAB) ;
+}
+
 ?>

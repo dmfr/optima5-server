@@ -81,6 +81,9 @@ switch( $post_data['_action'] )
 	case 'finance_getBudgetBar' :
 	return specWbMrfoxy_finance_getBudgetBar($post_data) ;
 	
+	case 'finance_getNationalAgreements' :
+	return specWbMrfoxy_finance_getNationalAgreements($post_data) ;
+	
 	
 	
 	case 'auth_getRoles' :

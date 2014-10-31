@@ -99,6 +99,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoBrowserPanel',{
 	requires: [
 		'Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',
 		'Optima5.Modules.Spec.WbMrfoxy.PromoAccrualsSubpanel',
+		'Optima5.Modules.Spec.WbMrfoxy.PromoNAgreementsSubpanel',
 		'Optima5.Modules.Spec.WbMrfoxy.PromoCalendarSubpanel'
 	],
 	
@@ -198,14 +199,19 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoBrowserPanel',{
 						text: 'Grid data',
 						iconCls: 'op5-crmbase-datatoolbar-view-grid'
 					},{
+						itemId: 'calendar',
+						text: 'Calendar',
+						iconCls: 'op5-crmbase-datatoolbar-view-calendar'
+					},{
 						itemId: 'accruals',
 						text: 'Accruals',
 						iconCls: 'op5-spec-mrfoxy-icon-toolbar-accruals',
 						hidden: !Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole(['ADM','TF','DF'])
 					},{
-						itemId: 'calendar',
-						text: 'Calendar',
-						iconCls: 'op5-crmbase-datatoolbar-view-calendar'
+						itemId: 'nagreements',
+						text: 'NationalAgreements',
+						iconCls: 'op5-spec-mrfoxy-icon-toolbar-nagreements',
+						hidden: !Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole(['ADM','TF','DF'])
 					},{
 						xtype: 'menuseparator'
 					},{
@@ -232,6 +238,12 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoBrowserPanel',{
 			,
 				Ext.create('Optima5.Modules.Spec.WbMrfoxy.PromoAccrualsSubpanel',{
 					itemId: 'accruals',
+					border: false,
+					parentBrowserPanel: me
+				})
+			,
+				Ext.create('Optima5.Modules.Spec.WbMrfoxy.PromoNAgreementsSubpanel',{
+					itemId: 'nagreements',
 					border: false,
 					parentBrowserPanel: me
 				})
@@ -362,6 +374,10 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoBrowserPanel',{
 			case 'accruals' :
 				text = 'Accruals' ;
 				iconCls = 'op5-spec-mrfoxy-icon-toolbar-accruals' ;
+				break ;
+			case 'nagreements' :
+				text = 'NationalAgreements' ;
+				iconCls = 'op5-spec-mrfoxy-icon-toolbar-nagreements' ;
 				break ;
 			default:
 				return ;

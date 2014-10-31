@@ -154,7 +154,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoAccrualsSubpanel',{
 						align: 'right',
 						xtype: 'numbercolumn',
 						renderer: function(v,m,record) {
-							return v + ' ' + record.get('currency_symbol') ;
+							return Ext.util.Format.number( v, '0,0' ) + ' ' + record.get('currency_symbol') ;
 						}
 					},{
 						text: '<b>Acc:</b> Received',
@@ -165,7 +165,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoAccrualsSubpanel',{
 						align: 'right',
 						xtype: 'numbercolumn',
 						renderer: function(v,m,record) {
-							return v + ' ' + record.get('currency_symbol') ;
+							return Ext.util.Format.number( v, '0,0' ) + ' ' + record.get('currency_symbol') ;
 						}
 					},{
 						text: '<b>Acr:</b> <b>A-B</b>',
@@ -338,6 +338,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoAccrualsSubpanel',{
 		},{
 			dataIndex: 'cost_accruals',
 			text: 'F - R'
+		},{
+			dataIndex: 'currency',
+			text: 'Currency'
 		}) ;
 		
 		xlsData = Ext.pluck( store.getRange(), 'data' ) ;
