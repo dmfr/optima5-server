@@ -3,8 +3,6 @@ Ext.define('WbMrfoxyNAgreementModel', {
 	fields: [
 		{name: 'country_code', type: 'string'},
 		{name: 'cropYear_code', type: 'string'},
-		{name: 'date_apply', type: 'date'},
-		{name: 'date_month', type: 'string'},
 		{name: 'currency', type: 'string'},
 		{name: 'currency_symbol', type: 'string'},
 		{name: 'store_code', type: 'string'},
@@ -54,7 +52,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoNAgreementsSubpanel',{
 						}
 					}),
 					sorters: [{
-						property: 'date_apply',
+						property: 'cropYear_code',
 						direction: 'DESC'
 					}],
 					listeners: {
@@ -93,18 +91,15 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoNAgreementsSubpanel',{
 					},{
 						text: '<b>CropY</b>',
 						dataIndex: 'cropYear_code',
-						width: 50,
+						width: 90,
 						renderer: function(v) {
 							return '<b>'+v+'</b>' ;
-						}
-					},{
-						text: 'Date',
-						dataIndex: 'date_month',
-						width: 120,
+						},
 						menuDisabled:false,
 						filter: {
-							type: 'date',
-							dateFormat: 'Y-m-d'
+							type: 'op5crmbasebible',
+							optimaModule: me.optimaModule,
+							bibleId: '_CROP'
 						}
 					},{
 						text: 'Stores',
