@@ -20,12 +20,22 @@ Ext.define('WbMrfoxyFinanceCfgCurrencyModel', {
     ]
 }) ;
 
+Ext.define('WbMrfoxyFinanceCfgProdtagModel', {
+    extend: 'Ext.data.Model',
+	 idProperty: 'prodtag',
+    fields: [
+        {name: 'prodtag', type: 'string'},
+        {name: 'prodtag_txt', type: 'string'}
+    ]
+}) ;
+
 /* Unused model */
 Ext.define('WbMrfoxyFinanceGridGroupRowModel', {
 	extend: 'Ext.data.Model',
 	fields: [
 		{name: 'row_key', type: 'string'},
 		{name: 'row_text', type: 'string'},
+		{name: 'row_sub_prodtag', type: 'string'},
 		{name: 'row_sub_txt', type: 'string'}
 	]
 }) ;
@@ -294,6 +304,23 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 				load: this.loadComponentsOnStoreCurrencyLoad,
 				scope: this
 			}
+		}) ;
+		
+		
+		// Load crop years => server
+		this.storeProdtag = Ext.create('Ext.data.Store',{
+			model: 'WbMrfoxyFinanceCfgProdtagModel',
+			autoLoad: true,
+			proxy: this.optimaModule.getConfiguredAjaxProxy({
+				extraParams : {
+					_moduleId: 'spec_wb_mrfoxy',
+					_action: 'finance_getCfgProdtag'
+				},
+				reader: {
+					type: 'json',
+					root: 'data'
+				}
+			})
 		}) ;
 	},
 	loadComponentsOnStoreCropLoad: function( storeCfgCrop ) {
@@ -610,6 +637,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 				}
 				cache_value[hashStr] += Ext.util.Format.round( rowValue * convertCurrencyCoef, 3 ) ;
 				cache_arr[hashStr].push({
+					row_sub_prodtag: row.row_sub_prodtag,
 					row_sub_txt: row.row_sub_txt,
 					value: Ext.util.Format.round( rowValue * convertCurrencyCoef, 3 )
 				});
@@ -830,6 +858,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 					rows.push({
 						group_key: record.get('group_key'),
 						row_key: record.get('row_key'),
+						row_sub_prodtag: subRow.row_sub_prodtag,
 						row_sub_txt: subRow.row_sub_txt,
 						value: subRow.value
 					}) ;
@@ -1172,6 +1201,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 						map_RowKey_values[revisionRow.row_key] = [] ;
 					}
 					map_RowKey_values[revisionRow.row_key].push({
+						row_sub_prodtag: revisionRow.row_sub_prodtag,
 						row_sub_txt: revisionRow.row_sub_txt,
 						value: parseInt(revisionRow.value)
 					});
@@ -1190,11 +1220,13 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 			Ext.Array.each( values, function( rowValue ) {
 				xlsData.push({
 					row_text: ( isFirst ? mapRowKeyTxt[rowKey] : '' ),
+					row_sub_prodtag: rowValue.row_sub_prodtag,
+					row_sub_prodtag_txt: (this.storeProdtag.getById(rowValue.row_sub_prodtag) ? this.storeProdtag.getById(rowValue.row_sub_prodtag).get('prodtag_txt') : rowValue.row_sub_prodtag ),
 					row_sub_txt: rowValue.row_sub_txt,
 					value: rowValue.value
 				}) ;
 				isFirst = false ;
-			});
+			},this);
 		} ;
 		
 		xlsSheetNADetails = {
@@ -1216,6 +1248,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 				dataIndex: 'row_text',
 				text: 'Store Group',
 				isGroup: true
+			},{
+				dataIndex: 'row_sub_prodtag_txt',
+				text: 'ProdTag'
 			},{
 				dataIndex: 'row_sub_txt',
 				text: 'Agreement'
@@ -1258,7 +1293,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 		cellEl.addCls('op5-spec-mrfoxy-financebudget-celldetails') ;
 		
 		var rowDetailsPanel = Ext.create('Ext.ux.dams.EmbeddedGrid',{
-			width: 400,
+			width: 500,
 			height: 200,
 			
 			title: (gridColumn.isInitialEdit ? gridColumn.text : 'Revision '+gridColumn.text) + ' : ' + gridRecord.get('row_text'),
@@ -1266,6 +1301,23 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 			readOnly: Ext.isEmpty(gridColumn.dataIsEditing),
 			data: subArr,
 			columns:[{
+				flex:1,
+				dataIndex:'row_sub_prodtag',
+				type: 'string',
+				text:'ProdTag',
+				editor: {
+					xtype:'op5crmbasebibletreepicker',
+					optimaModule: this.optimaModule,
+					bibleId: '_PRODTAG',
+					selectMode: 'single',
+					matchFieldWidth: false
+				},
+				renderer: function(v) {
+					var storeProdtag = me.storeProdtag,
+						prodtagTxt = (storeProdtag.getById(v) ? storeProdtag.getById(v).get('prodtag_txt') : null ) ;
+					return (prodtagTxt != null ? v + ' - ' + prodtagTxt : v) ; 
+				}
+			},{
 				flex:2,
 				dataIndex:'row_sub_txt',
 				type: 'string',

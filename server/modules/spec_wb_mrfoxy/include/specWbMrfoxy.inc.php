@@ -178,6 +178,26 @@ function specWbMrfoxy_tool_getCurrencies() {
 	}
 	return $TAB ;
 }
+function specWbMrfoxy_tool_getProdtags() {
+	global $_opDB ;
+	
+	$bible_code = '_PRODTAG' ;
+	$forward_post = array() ;
+	$forward_post['bible_code'] = $bible_code ;
+	$ttmp = paracrm_data_getBibleTree( $forward_post, $auth_bypass=TRUE ) ;
+	$paracrm_TREE = $ttmp ;
+	
+	$TAB = array() ;
+	foreach( $paracrm_TREE['children'] as $paracrm_row ) {
+		$prodtag = $paracrm_row['field_PRODTAG'] ;
+		$row = array() ;
+		$row['prodtag'] = $paracrm_row['field_PRODTAG'] ;
+		$row['prodtag_txt'] = $paracrm_row['field_PRODTAG_TXT'] ;
+		
+		$TAB[] = $row ;
+	}
+	return $TAB ;
+}
 
 
 function specWbMrfoxy_lib_getBibleTree( $bible_code ) {

@@ -19,6 +19,12 @@ function specWbMrfoxy_finance_getCfgCurrency( $post_data ) {
 	$TAB = specWbMrfoxy_tool_getCurrencies() ;
 	return array('success'=>true, 'data'=>$TAB) ;
 }
+function specWbMrfoxy_finance_getCfgProdtag( $post_data ) {
+	$time = time() ;
+	$has_current = FALSE ;
+	$TAB = specWbMrfoxy_tool_getProdtags() ;
+	return array('success'=>true, 'data'=>$TAB) ;
+}
 
 function specWbMrfoxy_finance_getGrid( $post_data ) {
 	global $_opDB ;
@@ -62,6 +68,7 @@ function specWbMrfoxy_finance_getGrid( $post_data ) {
 			$row = array() ;
 			$row['group_key'] = $record['field_GROUP_KEY'] ;
 			$row['row_key'] = ($row['group_key']=='2_STORES' ? $record['field_ROW_SPEC_STORE'] : $record['field_ROW_KEY']) ;
+			$row['row_sub_prodtag'] = $record['field_ROW_SUB_PRODTAG'] ;
 			$row['row_sub_txt'] = $record['field_ROW_SUB_TXT'] ;
 			$row['value'] = $record['field_VALUE'] ;
 			$rows[] = $row ;
@@ -284,6 +291,7 @@ function specWbMrfoxy_finance_setRevision( $post_data ) {
 			if( $row['group_key'] == '2_STORES' ) {
 				$arr_ins['field_ROW_SPEC_STORE'] = $row['row_key'] ;
 			}
+			$arr_ins['field_ROW_SUB_PRODTAG'] = ( $row['row_sub_prodtag'] != NULL ? $row['row_sub_prodtag'] : '' );
 			$arr_ins['field_ROW_SUB_TXT'] = ( $row['row_sub_txt'] != NULL ? $row['row_sub_txt'] : '' );
 			$arr_ins['field_VALUE'] = $row['value'] ;
 			$arr_filerecordId[] = paracrm_lib_data_insertRecord_file( 'FINANCE_REVISION_ROW', $filerecord_parent_id, $arr_ins ) ;
@@ -530,6 +538,7 @@ function specWbMrfoxy_finance_getNationalAgreements( $post_data )  {
 					continue 2 ;
 				
 				case 'store_text' : $paracrm_field='FINANCE_REVISION_ROW_field_ROW_SPEC_STORE' ; break ;
+				case 'nagreement_prodtag' : $paracrm_field='FINANCE_REVISION_ROW_field_ROW_SUB_PRODTAG' ; break ;
 				
 				default : continue 2 ;
 			}
@@ -583,6 +592,7 @@ function specWbMrfoxy_finance_getNationalAgreements( $post_data )  {
 		$row['currency_symbol'] = $currency_desc['currency_sign'] ;
 		$row['store_code'] = $paracrm_row['FINANCE_REVISION_ROW_field_ROW_SPEC_STORE_tree_STOREGROUP'] ;
 		$row['store_text'] = $paracrm_row['FINANCE_REVISION_ROW_field_ROW_SPEC_STORE_tree_STOREGROUP_TXT'] ;
+		$row['nagreement_prodtag'] = $paracrm_row['FINANCE_REVISION_ROW_field_ROW_SUB_PRODTAG_tree_PRODTAG_TXT'] ;
 		$row['nagreement_txt'] = $paracrm_row['FINANCE_REVISION_ROW_field_ROW_SUB_TXT'] ;
 		$row['amount_forecast'] = $paracrm_row['FINANCE_REVISION_ROW_field_VALUE'];
 		$row['amount_real'] = $amount_real ;

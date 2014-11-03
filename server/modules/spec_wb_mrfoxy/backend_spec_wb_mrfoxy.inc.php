@@ -71,6 +71,8 @@ switch( $post_data['_action'] )
 	return specWbMrfoxy_finance_getCfgCrop($post_data) ;
 	case 'finance_getCfgCurrency' :
 	return specWbMrfoxy_finance_getCfgCurrency($post_data) ;
+	case 'finance_getCfgProdtag' :
+	return specWbMrfoxy_finance_getCfgProdtag($post_data) ;
 	case 'finance_getGrid' :
 	return specWbMrfoxy_finance_getGrid($post_data) ;
 	case 'finance_newRevision' :

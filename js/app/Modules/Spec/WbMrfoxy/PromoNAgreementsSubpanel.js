@@ -7,6 +7,7 @@ Ext.define('WbMrfoxyNAgreementModel', {
 		{name: 'currency_symbol', type: 'string'},
 		{name: 'store_code', type: 'string'},
 		{name: 'store_text', type: 'string'},
+		{name: 'nagreement_prodtag', type: 'string'},
 		{name: 'nagreement_txt', type: 'string'},
 		{name: 'amount_forecast', type: 'number'},
 		{name: 'amount_real', type: 'number'},
@@ -100,6 +101,16 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoNAgreementsSubpanel',{
 							type: 'op5crmbasebible',
 							optimaModule: me.optimaModule,
 							bibleId: '_CROP'
+						}
+					},{
+						text: 'ProdTag',
+						dataIndex: 'nagreement_prodtag',
+						width: 100,
+						menuDisabled:false,
+						filter: {
+							type: 'op5crmbasebibletree',
+							optimaModule: me.optimaModule,
+							bibleId: '_PRODTAG'
 						}
 					},{
 						text: 'Stores',
@@ -200,8 +211,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoNAgreementsSubpanel',{
 			dataIndex: 'cropYear_code',
 			text: 'Crop year'
 		},{
-			dataIndex: 'date_month',
-			text: 'Month'
+			dataIndex: 'nagreement_prodtag',
+			text: 'ProdTag'
 		},{
 			dataIndex: 'store_text',
 			text: 'Stores'
