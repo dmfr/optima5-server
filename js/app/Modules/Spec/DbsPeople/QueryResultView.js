@@ -95,6 +95,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryResultView',{
 			return cssClasses.join(' ') ;
 		} ;
 		
+		var daterenderer = Ext.util.Format.dateRenderer('Y-m-d');
+		
 		var columns = [] ;
 		var fields = [{
 			name:'_rowIdx', // server-side rowIdx ( ie related to row_pivotMap )
@@ -151,6 +153,11 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryResultView',{
 			else {
 				Ext.apply(columnDef,{
 					tdCls: 'op5crmbase-datacolumn'
+				}) ;
+			}
+			if( columnDef.dataType == 'date' ) {
+				Ext.apply(columnDef,{
+					renderer: daterenderer
 				}) ;
 			}
 			Ext.apply(columnDef,{

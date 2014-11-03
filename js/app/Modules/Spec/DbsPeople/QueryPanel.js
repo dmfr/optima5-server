@@ -2,7 +2,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryPanel',{
 	extend: 'Ext.panel.Panel',
 	
 	requires:[
-		'Optima5.Modules.Spec.DbsPeople.QueryResultView'
+		'Optima5.Modules.Spec.DbsPeople.QueryResultView',
+		'Optima5.Modules.Spec.DbsPeople.CfgParamSiteField',
+		'Optima5.Modules.Spec.DbsPeople.CfgParamTeamField'
 	],
 	
 	initComponent: function() {
@@ -28,7 +30,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryPanel',{
 				},
 				Ext.apply(me.initFormCfg(),{
 					width:width,
-					height: 100
+					height: 120
 				}),
 				Ext.apply(me.initDummyFormCfg(),{
 					width:width,
@@ -89,9 +91,10 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryPanel',{
 			},
 			items:[{
 				flex: 1,
+				height: 100,
 				xtype:'fieldset',
 				defaults: {
-					labelWidth: 75
+					labelWidth: 90
 				},
 				title: 'Query parameters',
 				items:[{
@@ -106,7 +109,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryPanel',{
 							{name: 'querysrc_id', type: 'string'},
 							{name: 'q_name', type: 'string'},
 							{name: 'enable_date_at', type: 'boolean'},
-							{name: 'enable_date_interval', type: 'boolean'}
+							{name: 'enable_date_interval', type: 'boolean'},
+							{name: 'enable_filters', type: 'boolean'}
 						],
 						autoLoad: true,
 						proxy: this.optimaModule.getConfiguredAjaxProxy({
@@ -127,14 +131,44 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryPanel',{
 						change: function(cmb,value) {
 							var cntDateInterval = cmb.up('form').down('#cntDateInterval'),
 								cntDateAt = cmb.up('form').down('#cntDateAt'),
+								cntFilters = cmb.up('form').down('#cntFilters'),
 								querysrcRecord = cmb.getStore().findRecord('querysrc_id',value),
 								enableDateInterval = querysrcRecord.get('enable_date_interval'),
-								enableDateAt = querysrcRecord.get('enable_date_at') ;
+								enableDateAt = querysrcRecord.get('enable_date_at'),
+								enableFilters = querysrcRecord.get('enable_filters') ;
 							
 							cntDateInterval.setVisible( enableDateInterval );
 							cntDateAt.setVisible( enableDateAt );
+							cntFilters.setVisible( enableFilters );
 						}
 					}
+				},{
+					xtype:'fieldcontainer',
+					anchor: '100%',
+					fieldLabel: 'Site / Equipe',
+					itemId: 'cntFilters',
+					hidden: true,
+					layout: {
+						type: 'hbox'
+					},
+					items:[Ext.create('Optima5.Modules.Spec.DbsPeople.CfgParamSiteField',{
+						optimaModule: this.optimaModule,
+						width: 250,
+						anchor: '',
+						submitValue: false,
+						itemId : 'filterSite'
+					}),{
+						width:16,
+						itemId : 'filtersSeparator',
+						xtype:'box',
+						html:'&#160'
+					},Ext.create('Optima5.Modules.Spec.DbsPeople.CfgParamTeamField',{
+						optimaModule: this.optimaModule,
+						width: 250,
+						anchor: '',
+						submitValue: false,
+						itemId : 'filterTeam'
+					})]
 				},{
 					xtype:'fieldcontainer',
 					anchor: '100%',
@@ -281,11 +315,21 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryPanel',{
 		
 		var msgbox = Ext.Msg.wait('Running query. Please Wait.');
 		
+		var formValues = me.child('form').getForm().getValues(),
+			filterSite = me.down('#filterSite'),
+			filterTeam = me.down('#filterTeam') ;
+		if( filterSite.getValue() ) {
+			formValues['filter_site_entries'] = filterSite.getLeafNodesKey() ;
+		}
+		if( filterTeam.getValue() ) {
+			formValues['filter_team_entries'] = filterTeam.getLeafNodesKey() ;
+		}
+		
 		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_dbs_people',
 				_action: 'query_getResult',
-				data: Ext.JSON.encode(me.child('form').getForm().getValues())
+				data: Ext.JSON.encode( formValues )
 			},
 			success: function(response) {
 				me.query('#cntQueryPreview')[0].removeCls('op5-waiting') ;

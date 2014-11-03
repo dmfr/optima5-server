@@ -12,6 +12,10 @@ function specDbsPeople_query_getLibrary() {
 	$TAB[] = array('querysrc_id'=>'0:CEQ_OLD', 'q_name'=>'CEQ : Extract (1ère version)', 'enable_date_interval'=>true ) ;
 	$TAB[] = array('querysrc_id'=>'0:CEQ_LIST', 'q_name'=>'CEQ : Extract lignes', 'enable_date_interval'=>true ) ;
 	$TAB[] = array('querysrc_id'=>'0:ITM_NC', 'q_name'=>'Interim : NC', 'enable_date_interval'=>true ) ;
+	foreach( $TAB as &$querydesc ) {
+		$querydesc['enable_filters'] = TRUE ;
+	}
+	unset($querydesc) ;
 	
 	$query = "SELECT input_query_src.querysrc_id , query.query_name AS q_name  FROM input_query_src 
 				JOIN query ON query.query_id = input_query_src.target_query_id" ;
@@ -34,28 +38,38 @@ function specDbsPeople_query_getResult( $post_data ) {
 
 function specDbsPeople_query_getTableResult( $post_data ) {
 	$form_data = json_decode($post_data['data'],true) ;
+	
+	// filters
+	$filters = array() ;
+	if( $form_data['filter_site_entries'] ) {
+		$filters['filter_site_entries'] = json_encode($form_data['filter_site_entries']) ;
+	}
+	if( $form_data['filter_team_entries'] ) {
+		$filters['filter_team_entries'] = json_encode($form_data['filter_team_entries']) ;
+	}
+	
 	$ttmp = explode(':',$form_data['querysrc_id']) ;
 	switch( $ttmp[1] ) {
 		case 'RH' :
-			$result_tab = specDbsPeople_query_getTableResult_RH() ;
+			$result_tab = specDbsPeople_query_getTableResult_RH($filters) ;
 			break ;
 		case 'RH_CNT_SUM' :
-			$result_tab = specDbsPeople_query_getTableResult_RHCNTSUM($form_data['date_at']) ;
+			$result_tab = specDbsPeople_query_getTableResult_RHCNTSUM($form_data['date_at'],$filters) ;
 			break ;
 		case 'RH_CNT_DET' :
-			$result_tab = specDbsPeople_query_getTableResult_RHCNTDET($form_data['date_at']) ;
+			$result_tab = specDbsPeople_query_getTableResult_RHCNTDET($form_data['date_at'],$filters) ;
 			break ;
 		case 'CEQ_GRID' :
-			$result_tab = specDbsPeople_query_getTableResult_CEQGRID($form_data['date_start'],$form_data['date_end']) ;
+			$result_tab = specDbsPeople_query_getTableResult_CEQGRID($form_data['date_start'],$form_data['date_end'],$filters) ;
 			break ;
 		case 'CEQ_OLD' :
-			$result_tab = specDbsPeople_query_getTableResult_CEQOLD($form_data['date_start'],$form_data['date_end']) ;
+			$result_tab = specDbsPeople_query_getTableResult_CEQOLD($form_data['date_start'],$form_data['date_end'],$filters) ;
 			break ;
 		case 'CEQ_LIST' :
-			$result_tab = specDbsPeople_query_getTableResult_CEQLIST($form_data['date_start'],$form_data['date_end']) ;
+			$result_tab = specDbsPeople_query_getTableResult_CEQLIST($form_data['date_start'],$form_data['date_end'],$filters) ;
 			break ;
 		case 'ITM_NC' :
-			$result_tab = specDbsPeople_query_getTableResult_ITMNC($form_data['date_start'],$form_data['date_end']) ;
+			$result_tab = specDbsPeople_query_getTableResult_ITMNC($form_data['date_start'],$form_data['date_end'],$filters) ;
 			break ;
 		default :
 			return array('success'=>false) ;
@@ -92,7 +106,7 @@ function specDbsPeople_query_getTableResult( $post_data ) {
 	) ;
 }
 
-function specDbsPeople_query_getTableResult_RH() {
+function specDbsPeople_query_getTableResult_RH($filters=NULL) {
 	$ttmp = specDbsPeople_cfg_getCfgBibles() ;
 	$cfg_bibles = $ttmp['data'] ;
 	$cfg_bibles_idText = array() ;
@@ -103,7 +117,7 @@ function specDbsPeople_query_getTableResult_RH() {
 		}
 	}
 	
-	$json = specDbsPeople_RH_getGrid( array() ) ;
+	$json = specDbsPeople_RH_getGrid( ($filters ? $filters : array()) ) ;
 	$data = $json['data'] ;
 	
 	$cols = $cols_toDecode = array() ;
@@ -144,7 +158,7 @@ function specDbsPeople_query_getTableResult_RH() {
 	return array('columns'=>$RET_columns,'data'=>$RET_data) ;
 }
 
-function specDbsPeople_query_getTableResult_RHCNTSUM($at_date_sql) {
+function specDbsPeople_query_getTableResult_RHCNTSUM($at_date_sql, $filters=NULL) {
 	$ttmp = specDbsPeople_cfg_getCfgBibles() ;
 	$cfg_bibles = $ttmp['data'] ;
 	$cfg_bibles_idText = array() ;
@@ -158,7 +172,13 @@ function specDbsPeople_query_getTableResult_RHCNTSUM($at_date_sql) {
 	$ttmp = specDbsPeople_cfg_getPeopleCalcAttributes() ;
 	$cfg_calcAttributes = $ttmp['data'] ;
 	
-	$json = specDbsPeople_RH_getGrid( array('_load_calcAttributes'=>true, '_load_calcAttributes_atDateSql'=>$at_date_sql) ) ;
+	$post_data = array() ;
+	$post_data['_load_calcAttributes'] = true ;
+	$post_data['_load_calcAttributes_atDateSql'] = $at_date_sql ;
+	if( $filters ) {
+		$post_data += $filters ;
+	}
+	$json = specDbsPeople_RH_getGrid( $post_data ) ;
 	$data = $json['data'] ;
 	
 	$cols = $cols_toDecode = array() ;
@@ -209,7 +229,7 @@ function specDbsPeople_query_getTableResult_RHCNTSUM($at_date_sql) {
 	return array('columns'=>$RET_columns,'data'=>$RET_data) ;
 }
 
-function specDbsPeople_query_getTableResult_RHCNTDET($at_date_sql) {
+function specDbsPeople_query_getTableResult_RHCNTDET($at_date_sql, $filters=NULL) {
 	$ttmp = specDbsPeople_cfg_getCfgBibles() ;
 	$cfg_bibles = $ttmp['data'] ;
 	$cfg_bibles_idText = array() ;
@@ -223,7 +243,13 @@ function specDbsPeople_query_getTableResult_RHCNTDET($at_date_sql) {
 	$ttmp = specDbsPeople_cfg_getPeopleCalcAttributes() ;
 	$cfg_calcAttributes = $ttmp['data'] ;
 	
-	$json = specDbsPeople_RH_getGrid( array('_load_calcAttributes'=>true, '_load_calcAttributes_atDateSql'=>$at_date_sql) ) ;
+	$post_data = array() ;
+	$post_data['_load_calcAttributes'] = true ;
+	$post_data['_load_calcAttributes_atDateSql'] = $at_date_sql ;
+	if( $filters ) {
+		$post_data += $filters ;
+	}
+	$json = specDbsPeople_RH_getGrid( $post_data ) ;
 	$data = $json['data'] ;
 	
 	$cols = $cols_toDecode = array() ;
@@ -278,7 +304,7 @@ function specDbsPeople_query_getTableResult_RHCNTDET($at_date_sql) {
 	return array('columns'=>$RET_columns,'data'=>$RET_data) ;
 }
 
-function specDbsPeople_query_getTableResult_CEQGRID( $date_start, $date_end ) {
+function specDbsPeople_query_getTableResult_CEQGRID( $date_start, $date_end, $filters=NULL ) {
 	$ttmp = specDbsPeople_cfg_getCfgBibles() ;
 	$cfg_bibles = $ttmp['data'] ;
 	$cfg_bibles_idText = array() ;
@@ -292,7 +318,13 @@ function specDbsPeople_query_getTableResult_CEQGRID( $date_start, $date_end ) {
 	$ttmp = specDbsPeople_cfg_getPeopleCalcAttributes() ;
 	$cfg_calcAttributes = $ttmp['data'] ;
 	
-	$json = specDbsPeople_Real_getData( array('date_start'=>$date_start, 'date_end'=>$date_end) ) ;
+	$post_data = array() ;
+	$post_data['date_start'] = $date_start ;
+	$post_data['date_end'] = $date_end ;
+	if( $filters ) {
+		$post_data += $filters ;
+	}
+	$json = specDbsPeople_Real_getData( $post_data ) ;
 	
 	$cols = $cols_toDecode = array() ;
 	$cols[] = 'whse_txt' ;
@@ -408,7 +440,7 @@ function specDbsPeople_query_getTableResult_CEQGRID( $date_start, $date_end ) {
 	return array('columns'=>$RET_columns,'data'=>$RET_data) ;
 }
 
-function specDbsPeople_query_getTableResult_CEQOLD( $date_start, $date_end ) {
+function specDbsPeople_query_getTableResult_CEQOLD( $date_start, $date_end, $filters=NULL ) {
 	$ttmp = specDbsPeople_cfg_getCfgBibles() ;
 	$cfg_bibles = $ttmp['data'] ;
 	$cfg_bibles_idText = array() ;
@@ -422,7 +454,13 @@ function specDbsPeople_query_getTableResult_CEQOLD( $date_start, $date_end ) {
 	$ttmp = specDbsPeople_cfg_getPeopleCalcAttributes() ;
 	$cfg_calcAttributes = $ttmp['data'] ;
 	
-	$json = specDbsPeople_Real_getData( array('date_start'=>$date_start, 'date_end'=>$date_end) ) ;
+	$post_data = array() ;
+	$post_data['date_start'] = $date_start ;
+	$post_data['date_end'] = $date_end ;
+	if( $filters ) {
+		$post_data += $filters ;
+	}
+	$json = specDbsPeople_Real_getData( $post_data ) ;
 	
 	$cols = array() ;
 	$cols[] = 'date_sql' ;
@@ -502,7 +540,7 @@ function specDbsPeople_query_getTableResult_CEQOLD_makeRow( &$data_row, $cfg_bib
 	$data_row['std_role_txt'] = $cfg_bibles_idText['ROLE'][$data_row['std_role_code']] ;
 	$data_row['contract_txt'] = $cfg_bibles_idText['CONTRACT'][$data_row['contract_code']] ;
 }
-function specDbsPeople_query_getTableResult_CEQLIST( $date_start, $date_end ) {
+function specDbsPeople_query_getTableResult_CEQLIST( $date_start, $date_end, $filters=NULL ) {
 	$ttmp = specDbsPeople_cfg_getCfgBibles() ;
 	$cfg_bibles = $ttmp['data'] ;
 	$cfg_bibles_idText = array() ;
@@ -516,7 +554,13 @@ function specDbsPeople_query_getTableResult_CEQLIST( $date_start, $date_end ) {
 	$ttmp = specDbsPeople_cfg_getPeopleCalcAttributes() ;
 	$cfg_calcAttributes = $ttmp['data'] ;
 	
-	$json = specDbsPeople_Real_getData( array('date_start'=>$date_start, 'date_end'=>$date_end) ) ;
+	$post_data = array() ;
+	$post_data['date_start'] = $date_start ;
+	$post_data['date_end'] = $date_end ;
+	if( $filters ) {
+		$post_data += $filters ;
+	}
+	$json = specDbsPeople_Real_getData( $post_data ) ;
 	
 	$cols = $cols_toCopy = $cols_toDecode = array() ;
 	$cols[] = 'date_sql' ;
@@ -662,7 +706,7 @@ function specDbsPeople_query_getTableResult_CEQLIST_sort( $dataRow_1, $dataRow_2
 	return 0 ;
 }
 
-function specDbsPeople_query_getTableResult_ITMNC( $date_start, $date_end ) {
+function specDbsPeople_query_getTableResult_ITMNC( $date_start, $date_end, $filters=NULL ) {
 	$ttmp = specDbsPeople_cfg_getCfgBibles() ;
 	$cfg_bibles = $ttmp['data'] ;
 	$cfg_bibles_idText = array() ;
@@ -673,7 +717,12 @@ function specDbsPeople_query_getTableResult_ITMNC( $date_start, $date_end ) {
 		}
 	}
 	
-	$json = specDbsPeople_RH_getGrid( array('_load_calcAttributes'=>false) ) ;
+	$post_data = array() ;
+	$post_data['_load_calcAttributes'] = false ;
+	if( $filters ) {
+		$post_data += $filters ;
+	}
+	$json = specDbsPeople_RH_getGrid( $post_data ) ;
 	$data = $json['data'] ;
 	
 	$TAB_peopleCode_arrDatesNC = specDbsPeople_lib_calc_getInterimNC( $date_start, $date_end ) ;
