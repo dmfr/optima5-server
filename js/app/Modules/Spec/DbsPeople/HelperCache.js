@@ -85,7 +85,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.HelperCache',{
 		// Populate stores
 		Ext.Object.each( ajaxData.data, function(type,data) {
 			me.cfgStores[type] = Ext.create('Ext.data.Store',{
-				fields: ['id','text','auth_class','is_virtual'],
+				fields: ['id','text','auth_class','is_virtual','halfDay_open'],
 				data : data
 			}) ;
 		},me) ;

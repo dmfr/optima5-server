@@ -95,6 +95,10 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealVirtualPanel',{
 					anchor: '',
 					width: 170
 				},{
+					xtype: 'checkboxfield',
+					fieldLabel: '1/2 journée',
+					name: 'rh_abs_half_day'
+				},{
 					xtype: 'container',
 					style: {
 						textAlign:'center'
@@ -131,7 +135,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealVirtualPanel',{
 		
 		this.getForm().getFields().each(function(field) {
 			field.on('change',function(field){
-				me.saveOnDestroy = true ;
+				this.evalForm();
 			},me) ;
 		},me) ;
 		this.on('beforedestroy',function(formpanel) {
@@ -147,6 +151,22 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealVirtualPanel',{
 				formpanel.rhAbsLoad() ;
 			},100);
 		}) ;
+	},
+	evalForm: function() {
+		var me = this ;
+		me.saveOnDestroy = true ;
+		
+		var form=this.getForm(),
+			absCode = form.findField('rh_abs_code').getValue(),
+			absData = Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetById("ABS",absCode),
+			startField = form.findField('rh_abs_date_start'),
+			endField = form.findField('rh_abs_date_end'),
+			halfDayCb = form.findField('rh_abs_half_day') ;
+		
+		var sameDay = ( !Ext.isEmpty(startField.getRawValue()) && startField.getRawValue() == endField.getRawValue() ),
+			absHalfDayOpen = (absData && absData.halfDay_open) ;
+		
+		halfDayCb.setVisible(sameDay && absHalfDayOpen) ;
 	},
 	
 	doCheckBeforeSave: Ext.emptyFn,
@@ -166,6 +186,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealVirtualPanel',{
 				var jsonResponse = Ext.JSON.decode(response.responseText) ;
 				if( jsonResponse.success == true ) {
 					this.getForm().setValues(jsonResponse.formData) ;
+					this.evalForm() ;
 					this.saveOnDestroy = false ;
 				} else {
 					this.destroy() ;

@@ -440,11 +440,20 @@ function specDbsPeople_Real_actionDay_lib_open( $peopleday_record ) {
 	}
 	
 	if( $peopleday_record['std_abs_code'] != '_' ) {
+		$ttmp = explode(':',$peopleday_record['std_abs_code']) ;
+		$abs_code = $ttmp[0] ;
+		if( $ttmp[1] == '2' ) {
+			$abs_halfDay = TRUE ;
+			$peopleday_record['std_daylength'] = $peopleday_record['std_daylength'] / 2 ;
+		}
+	
 		$arr_ins = array() ;
-		$arr_ins['field_ABS_CODE'] = $peopleday_record['std_abs_code'] ;
+		$arr_ins['field_ABS_CODE'] = $abs_code ;
 		$arr_ins['field_ABS_LENGTH'] = $peopleday_record['std_daylength'] ;
 		paracrm_lib_data_insertRecord_file( 'PEOPLEDAY_ABS', $filerecord_id , $arr_ins ) ;
-		return TRUE ;
+		if( !$abs_halfDay ) {
+			return TRUE ;
+		}
 	}
 	
 	$arr_ins = array() ;
@@ -755,11 +764,17 @@ function specDbsPeople_Real_RhAbsLoad( $post_data ) {
 				LIMIT 1" ;
 	$result = $_opDB->query($query) ;
 	if( $arr = $_opDB->fetch_assoc($result) ) {
+		$ttmp = explode(':',$arr['field_ABS_CODE']) ;
+		$abs_code = $ttmp[0] ;
+		if( $ttmp[1] == '2' ) {
+			$rh_abs_half_day = true ;
+		}
 		$formData = array(
 			'rh_abs_is_on' => true,
-			'rh_abs_code' => $arr['field_ABS_CODE'],
+			'rh_abs_code' => $abs_code,
 			'rh_abs_date_start' => date('Y-m-d',strtotime($arr['field_DATE_APPLY'])),
-			'rh_abs_date_end' => date('Y-m-d',strtotime($arr['field_TMP_DATE_END']))
+			'rh_abs_date_end' => date('Y-m-d',strtotime($arr['field_TMP_DATE_END'])),
+			'rh_abs_half_day' => $rh_abs_half_day
 		) ;
 	} else {
 		$formData = array(
@@ -779,6 +794,9 @@ function specDbsPeople_Real_RhAbsSave( $post_data ) {
 	$abs_code = $form_data['rh_abs_code'] ;
 	$abs_date_start = $form_data['rh_abs_date_start'] ;
 	$abs_date_end = $form_data['rh_abs_date_end'] ;
+	if( $form_data['rh_abs_half_day'] == 'on' ) {
+		$abs_code.= ':2' ;
+	}
 	
 	if( $abs_is_on ) {
 		if( !$abs_code || !$abs_date_start || !$abs_date_end || !(strtotime($abs_date_start) <= strtotime($abs_date_end)) ) {

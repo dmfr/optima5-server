@@ -717,15 +717,24 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 			if( localStore.getCount() == 0 ) {
 				recordWorksStore.removeAll() ;
 				if( me.peopledayRecord.data.std_daylength > 0 ) {
-					if( me.peopledayRecord.data.std_abs_code.charAt(0) != '_' ) {
+					var stdDayLength = me.peopledayRecord.data.std_daylength,
+						stdAbsCode = me.peopledayRecord.data.std_abs_code,
+						stdAbsHalfDay = false ;
+					if( stdAbsCode.split(':')[1] == '2' ) {
+						stdAbsHalfDay = true ;
+						stdDayLength = stdDayLength / 2 ;
+					}
+					
+					if( stdAbsCode.charAt(0) != '_' ) {
 						recordAbsStore.add({
-							abs_code:me.peopledayRecord.data.std_abs_code,
-							abs_length:me.peopledayRecord.data.std_daylength
+							abs_code:stdAbsCode.split(':')[0],
+							abs_length:stdDayLength
 						}) ;
-					} else {
+					} 
+					if( stdAbsCode.charAt(0) == '_' || stdAbsHalfDay ) {
 						recordWorksStore.add({
 							role_code:me.peopledayRecord.data.std_role_code,
-							role_length:me.peopledayRecord.data.std_daylength
+							role_length:stdDayLength
 						}) ;
 					}
 				}

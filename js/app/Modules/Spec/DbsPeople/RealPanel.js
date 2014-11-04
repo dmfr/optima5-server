@@ -1228,6 +1228,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			stdTeamCode = peopledayRecord.data.std_team_code,
 			stdRoleCode = peopledayRecord.data.std_role_code,
 			stdAbsCode = peopledayRecord.data.std_abs_code,
+			stdAbsHalfDay = false,
 			stdContractCode = peopledayRecord.data.std_contract_code,
 			stdDayLength = peopledayRecord.data.std_daylength,
 			stdDayLengthMin = peopledayRecord.data.std_daylength_min,
@@ -1261,6 +1262,11 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		
 		if( stdAbsCode.charAt(0) == '_' ) {
 			stdAbsCode = null ;
+		} else {
+			if( stdAbsCode.split(':')[1] == '2' ) {
+				stdAbsHalfDay = true ;
+				stdDayLength = stdDayLength / 2 ;
+			}
 		}
 		
 		peopledayRecord.works().each( function(workRecord) {
@@ -1322,7 +1328,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			value: segments.roles_duration,
 			workValue: workDuration,
 			totalValue: (workDuration + absDuration),
-			stdValue: ( stdAbsCode == null ? stdDayLength : 0 ),
+			stdValue: ( (stdAbsCode == null || stdAbsHalfDay) ? stdDayLength : 0 ),
 			minValue: ( stdAbsCode == null ? stdDayLengthMin : 0 )
 		} ;
 		if( !statusIsVirtual && segments.roles.length == 1 && segments.abs.length == 0 ) {
@@ -1627,7 +1633,17 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				return ;
 			}
 			if( peopledayRecord.get('status_isVirtual') ) {
-				if( peopledayRecord.data.std_abs_code.charAt(0) != '_' ) {
+				var stdDayLength = peopledayRecord.data.std_daylength,
+					stdDayDay = (stdDayLength > 0 ? 1 : 0),
+					stdAbsCode = peopledayRecord.data.std_abs_code,
+					stdAbsHalfDay = false ;
+				if( stdAbsCode.split(':')[1] == '2' ) {
+					stdAbsHalfDay = true ;
+					stdDayLength = stdDayLength / 2 ;
+					stdDayDay = stdDayDay / 2 ;
+				}
+			
+				if( stdAbsCode.charAt(0) != '_' && !stdAbsHalfDay ) {
 					return ;
 				}
 				if( filter_whses && !Ext.Array.contains(filter_whses,peopledayRecord.data.std_whse_code) ) {
@@ -1638,8 +1654,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				}
 				addDuration(
 					peopledayRecord.data.std_role_code,
-					peopledayRecord.data.std_daylength,
-					1
+					stdDayLength,
+					stdDayDay
   				) ;
 			}
 			peopledayRecord.works().each( function(peopledayWorkRecord) {

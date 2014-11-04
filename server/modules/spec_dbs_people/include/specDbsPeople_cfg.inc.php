@@ -140,15 +140,31 @@ function specDbsPeople_cfg_getCfgBibles() {
 		$TAB['ROLE'][] = array('id'=>$arr[0],'text'=>$arr[0].' - '.$arr[1],'is_virtual'=>($arr[2]==1)) ;
 	}
 	
+	$halfDay_ABS = array() ;
+	$query = "SELECT field_ABS_CODE FROM view_bible_CFG_ABS_entry ORDER BY field_ABS_CODE" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$ttmp = explode(':',$arr[0]) ;
+		$abs_code = $ttmp[0] ;
+		if( count($ttmp) == 2 && $ttmp[1] == '2' ) {
+			$halfDay_ABS[$abs_code] = TRUE ;
+		}
+	}
 	$query = "SELECT field_ABS_CODE, field_ABS_TXT, treenode_key FROM view_bible_CFG_ABS_entry ORDER BY field_ABS_CODE" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$ttmp = explode(':',$arr[0]) ;
+		if( count($ttmp) > 1 ) {
+			continue ;
+		}
+		$abs_code = $ttmp[0] ;
+		
 		$treenode_key = $arr[2] ;
 		$auth_class = '' ;
 		if( in_array($treenode_key,array('ADMIN','RH','CEQ')) ) {
 			$auth_class = $treenode_key ;
 		}
-		$TAB['ABS'][] = array('id'=>$arr[0],'text'=>$arr[0].' - '.$arr[1],'auth_class'=>$auth_class) ;
+		$TAB['ABS'][] = array('id'=>$arr[0],'text'=>$arr[0].' - '.$arr[1],'auth_class'=>$auth_class,'halfDay_open'=>($halfDay_ABS[$abs_code]==TRUE)) ;
 	}
 	
 	$query = "SELECT field_WHSE_CODE, field_WHSE_TXT FROM view_bible_CFG_WHSE_entry ORDER BY field_WHSE_TXT" ;
