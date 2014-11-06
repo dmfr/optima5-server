@@ -1,6 +1,7 @@
 Ext.define('DbsPeoplePeopledayWorkModel',{
 	extend: 'Ext.data.Model',
 	fields: [
+		{name: 'cli_code', type:'string'},
 		{name: 'role_code', type:'string'},
 		{name: 'role_length', type:'number'},
 		{name: 'alt_whse_code', type:'string'}
@@ -374,6 +375,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 	},
 	helperGetAbsTxt: function( absCode ) {
 		return Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetById("ABS",absCode).text ;
+	},
+	helperGetCliTxt: function( cliCode ) {
+		return Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetById("CLI",cliCode).text ;
 	},
 	
 	onDateSet: function( date ) {
@@ -1545,12 +1549,13 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 	},
 	
 	openAdvanced: function( peopledayRecord, gridRecord, htmlNode ) {
-		this.openPopup( 'Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel', peopledayRecord, gridRecord, htmlNode ) ;
+		var widthLarge = !Optima5.Modules.Spec.DbsPeople.HelperCache.links_cli_isSilent( gridRecord.get('whse_code') ) ;
+		this.openPopup( 'Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel', peopledayRecord, gridRecord, htmlNode, widthLarge ) ;
 	},
 	openVirtual: function( peopledayRecord, gridRecord, htmlNode ) {
 		this.openPopup( 'Optima5.Modules.Spec.DbsPeople.RealVirtualPanel', peopledayRecord, gridRecord, htmlNode ) ;
 	},
-	openPopup: function( className, peopledayRecord, gridRecord, htmlNode ) {
+	openPopup: function( className, peopledayRecord, gridRecord, htmlNode, widthLarge ) {
 		var me = this ;
 		me.openVirtualAfterPopup = false ;
 		
@@ -1581,7 +1586,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		
 		// Size + position
 		realAdvancedPanel.setSize({
-			width: 300,
+			width: (widthLarge ? 420 : 300),
 			height: 300
 		}) ;
 		realAdvancedPanel.on('destroy',function(realAdvancedPanel) {

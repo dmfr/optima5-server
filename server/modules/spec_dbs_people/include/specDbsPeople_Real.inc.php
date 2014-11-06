@@ -139,6 +139,7 @@ function specDbsPeople_Real_getData( $post_data ) {
 	
 		$work = array(
 			'filerecord_id' => $arr['filerecord_id'],
+			'cli_code' => $arr['field_CLI_CODE'],
 			'role_code' => $arr['field_ROLE_CODE'],
 			'role_length' => $arr['field_ROLE_LENGTH'],
 			'alt_whse_code' => $arr['field_ALT_WHSE_CODE'],
@@ -426,6 +427,13 @@ function specDbsPeople_Real_actionDay( $post_data ) {
 	return array('success'=>true, 'done'=>true) ;
 }
 function specDbsPeople_Real_actionDay_lib_open( $peopleday_record ) {
+	if( !$GLOBALS['cache_specDbsPeople_Real_cfgLinks'] ) {
+		$ttmp = specDbsPeople_cfg_getLinks() ;
+		$GLOBALS['cache_specDbsPeople_Real_cfgLinks'] = $ttmp['data'] ;
+	}
+	
+	
+	
 	if( !$peopleday_record['status_isVirtual'] ) {
 		return TRUE ;
 	}
@@ -456,7 +464,14 @@ function specDbsPeople_Real_actionDay_lib_open( $peopleday_record ) {
 		}
 	}
 	
+	$default_cliCode = '' ;
+	if( count($ttmp = $GLOBALS['cache_specDbsPeople_Real_cfgLinks']['obj_whse_arrCliCodes'][$peopleday_record['std_whse_code']]) == 1 ) {
+		$default_cliCode = reset($ttmp) ;
+	} else {
+		$default_cliCode = $GLOBALS['cache_specDbsPeople_Real_cfgLinks']['obj_whse_defaultCliCode'][$peopleday_record['std_whse_code']] ;
+	}
 	$arr_ins = array() ;
+	$arr_ins['field_CLI_CODE'] = $default_cliCode ;
 	$arr_ins['field_ROLE_CODE'] = $peopleday_record['std_role_code'] ;
 	$arr_ins['field_ROLE_LENGTH'] = $peopleday_record['std_daylength'] ;
 	paracrm_lib_data_insertRecord_file( 'PEOPLEDAY_WORK', $filerecord_id , $arr_ins ) ;
@@ -732,6 +747,7 @@ function specDbsPeople_Real_saveRecord( $post_data ) {
 	
 	foreach( $record_data['works'] as $work ) {
 		$arr_ins = array() ;
+		$arr_ins['field_CLI_CODE'] = $work['cli_code'] ;
 		$arr_ins['field_ROLE_CODE'] = $work['role_code'] ;
 		$arr_ins['field_ROLE_LENGTH'] = $work['role_length'] ;
 		$arr_ins['field_ALT_WHSE_CODE'] = $work['alt_whse_code'] ;

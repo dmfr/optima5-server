@@ -4,7 +4,8 @@ Ext.define('DbsPeopleRhRealAdvModel',{
 		{name:'readonly', type:'boolean'},
 		{name:'classe', type:'string'},
 		{name:'code', type:'string'},
-		{name:'length_hours', type:'number'}
+		{name:'length_hours', type:'number'},
+		{name:'cli_code', type:'string'}
 	]
 }) ;
 
@@ -273,9 +274,57 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 						]
 					}
 				},{
+					text:'Client',
+					dataIndex: 'cli_code',
+					flex: 1,
+					editorTpl:{
+						xtype:'combobox',
+						matchFieldWidth:false,
+						listConfig:{width:250},
+						forceSelection:true,
+						allowBlank:false,
+						editable:true,
+						typeAhead:true,
+						selectOnFocus: true,
+						queryMode: 'local',
+						displayField: 'text',
+						valueField: 'id',
+						store: {
+							fields:['id','text'],
+							data: Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll("CLI")
+						},
+						listeners: {
+							focus: {
+								fn: function(cmb) {
+									if(cmb.keyNav) {
+										cmb.keyNav.disable() ;  //HACK : destroy combo.keyNav from being created
+									}
+								},
+								single: true
+							}
+						}
+					},
+					renderer: function( value, metaData, record ) {
+						//return value ;
+						switch( record.get('classe') ) {
+							case 'ROLE' :
+								return me.parentRealPanel.helperGetCliTxt( value ) ;
+								break ;
+							case 'ABS' :
+								return '' ;
+								break ;
+							case 'WHSE' :
+								return '' ;
+								break ;
+							default :
+								return value ;
+						}
+						return '' ;
+					}
+				},{
 					text:'Role/Site/Abs',
 					dataIndex: 'code',
-					flex: 1,
+					flex: 2,
 					editor:{
 						xtype:'combobox',
 						matchFieldWidth:false,
@@ -381,19 +430,24 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 								return false ;
 							}
 								
-							columns[1].getEditor().setValue(null) ;  // HACK? Set value to null before switching stores
+							columns[2].getEditor().setValue(null) ;  // HACK? Set value to null before switching stores
 							switch( record.get('classe') ) {
 								case 'ROLE' :
 									columns[0].getEditor().update({iconCls:'op5-spec-dbspeople-icon-role'}) ;
-									columns[1].getEditor().getStore().loadData( Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll("ROLE") ) ;
+									if( columns[1].isVisible() ) {
+										columns[1].setEditor(columns[1].editorTpl);
+									}
+									columns[2].getEditor().getStore().loadData( Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll("ROLE") ) ;
 									break ;
 								case 'ABS' :
 									columns[0].getEditor().update({iconCls:'op5-spec-dbspeople-icon-absence'}) ;
-									columns[1].getEditor().getStore().loadData( Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll("ABS",true) ) ;
+									columns[1].setEditor(null);
+									columns[2].getEditor().getStore().loadData( Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll("ABS",true) ) ;
 									break ;
 								case 'WHSE' :
 									columns[0].getEditor().update({iconCls:'op5-spec-dbspeople-icon-move'}) ;
-									columns[1].getEditor().getStore().loadData( Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll("WHSE") ) ;
+									columns[1].setEditor(null);
+									columns[2].getEditor().getStore().loadData( Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll("WHSE") ) ;
 									break ;
 							}
 						},
@@ -485,7 +539,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 			
 		// done 14-05-07 : durée restante standard
 		var newRecordData = {
-			classe:tClass
+			classe:tClass,
+			cli_code: Optima5.Modules.Spec.DbsPeople.HelperCache.links_cli_getDefaultForWhse( me.gridRecord.get('whse_code') )
 		};
 		var remainLength = grid._totalLength - store.sum('length_hours') ;
 		if( remainLength > 0 ) {
@@ -538,6 +593,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 			}
 		}
 		
+		var grid = me.child('grid'),
+			columns = grid.child('headercontainer').query('gridcolumn') ;
+		columns[1].setVisible( !Optima5.Modules.Spec.DbsPeople.HelperCache.links_cli_isSilent( me.gridRecord.get('whse_code') ) ) ;
 		
 		var altWhsesObj = {} , altDuration = 0 ;
 		for( var idx=0 ; idx<worksSlices.length ; idx++ ) {
@@ -547,6 +605,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 				if( slice.alt_whse_code==altWhse ) {
 					storeData.push({
 						classe:'ROLE',
+						cli_code:slice.cli_code,
 						code:slice.role_code,
 						length_hours: slice.role_length
 					});
@@ -564,6 +623,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 			}
 			storeData.push({
 				classe:'ROLE',
+				cli_code:slice.cli_code,
 				code:slice.role_code,
 				length_hours: slice.role_length
 			});
@@ -683,6 +743,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 			if( localStore.getCount() == 0 ) {
 				recordWorksStore.add({
 					alt_whse_code: altWhse,
+					role_code: Optima5.Modules.Spec.DbsPeople.HelperCache.links_cli_getDefaultForWhse( altWhse ),
 					role_code: me.peopledayRecord.data.std_role_code,
 					role_length: me.peopledayRecord.data.std_daylength
 				}) ;
@@ -694,6 +755,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 					}
 					slices.push({
 						alt_whse_code: altWhse,
+						cli_code:rec.get('cli_code'),
 						role_code:rec.get('code'),
 						role_length:rec.get('length_hours')
 					}) ;
@@ -733,6 +795,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 					} 
 					if( stdAbsCode.charAt(0) == '_' || stdAbsHalfDay ) {
 						recordWorksStore.add({
+							cli_code: Optima5.Modules.Spec.DbsPeople.HelperCache.links_cli_getDefaultForWhse( me.gridRecord.get('whse_code') ),
 							role_code:me.peopledayRecord.data.std_role_code,
 							role_length:stdDayLength
 						}) ;
@@ -745,7 +808,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 				localStore.each( function(rec){
 					switch( rec.get('classe') ) {
 						case 'ROLE' :
-							worksSlices.push({role_code:rec.get('code'), role_length:rec.get('length_hours')}) ;
+							worksSlices.push({cli_code:rec.get('cli_code'), role_code:rec.get('code'), role_length:rec.get('length_hours')}) ;
 							break ;
 						case 'ABS' :
 							absSlices.push({abs_code:rec.get('code'), abs_length:rec.get('length_hours')}) ;
