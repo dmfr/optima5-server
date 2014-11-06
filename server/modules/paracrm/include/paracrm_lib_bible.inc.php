@@ -314,7 +314,7 @@ function paracrm_lib_bible_tree_getParent( $bible_code, $treenode_key )
 
 
 
-function paracrm_lib_bible_queryBible( $bible_code, $mForeignRecords )
+function paracrm_lib_bible_queryBible( $bible_code, $mForeignRecords, $doQueryTreenodes=FALSE )
 {
 	paracrm_lib_bible_buildRelationships() ;
 	global $_opDB ;
@@ -325,6 +325,9 @@ function paracrm_lib_bible_queryBible( $bible_code, $mForeignRecords )
 	$view_name_e = 'view_bible_'.$bible_code.'_entry' ;
 	$query = "SELECT e.* FROM $view_name_e e , $view_name_t t WHERE t.treenode_key=e.treenode_key" ;
 	//$query.= " AND bible_code='$bible_code'" ;
+	if( $doQueryTreenodes ) {
+		$query = "SELECT t.* FROM $view_name_t t WHERE 1" ;
+	}
 	foreach( $mForeignRecords as $foreign_bibleCode => $foreign_record )
 	{
 		$foreignBibleView = 'view_bible_'.$foreign_bibleCode.'_entry' ;
@@ -355,6 +358,7 @@ function paracrm_lib_bible_queryBible( $bible_code, $mForeignRecords )
 	
 	
 		// condition locale ?  ex: req STORE (condition SALES)
+		if( !$doQueryTreenodes ) {
 		if( $tfield = array_search( $foreignRecord['bible_code'], $GLOBALS['cache_bibleHelper']['mapForeignLinks'][$local_bibleCode] ) )
 		{
 			$ttmp = explode('%',$tfield) ;
@@ -364,6 +368,7 @@ function paracrm_lib_bible_queryBible( $bible_code, $mForeignRecords )
 			$localTargetField['link_bible'] = $foreignRecord['bible_code'] ;
 		
 			$query.= paracrm_lib_bible_queryBible_getConditionLocal($local_bibleCode,$localTargetField,$foreignRecord) ;
+		}
 		}
 		
 		
@@ -426,7 +431,7 @@ function paracrm_lib_bible_queryBible_getConditionForeign($localBible,$foreignTa
 	if( $foreignTargetField['link_bible'] != $localBible )
 		return NULL ;
 
-	$sb.= ' AND e.treenode_key IN (' ;
+	$sb.= ' AND t.treenode_key IN (' ;
 		switch( $foreignTargetField['record_type'] )
 		{
 			case 'tree' :
