@@ -39,6 +39,8 @@ switch( $post_data['_action'] )
 	return specDbsPeople_cfg_getPeopleFields( $post_data ) ;
 	case 'cfg_getPeopleCalcAttributes' :
 	return specDbsPeople_cfg_getPeopleCalcAttributes( $post_data ) ;
+	case 'cfg_getLinks' :
+	return specDbsPeople_cfg_getLinks( $post_data ) ;
 	
 	
 	case 'query_getLibrary' :

@@ -24,6 +24,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.HelperCache',{
 	singleton:true,
 	
 	cfgStores: null,
+	cfgObj_whse_arrCliCodes: null,
+	cfgObj_whse_defaultCliCode: null,
 	
 	authPage: null,
 	authWhse: null,
@@ -45,11 +47,12 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.HelperCache',{
 		me.isReady = false ;
 		
 		Ext.defer(function() {
-			me.libCount = 3 ;
+			me.libCount = 4 ;
 			
 			me.startLoading() ;
 			me.authHelperInit() ;
 			me.fetchPeopleFields() ;
+			me.fetchLinks() ;
 		},1000,me) ;
 	},
 	
@@ -230,6 +233,54 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.HelperCache',{
 			return peopleFieldRecord.data ;
 		}
 		return null ;
+	},
+	
+	fetchLinks: function() {
+		var ajaxParams = {} ;
+		Ext.apply( ajaxParams, {
+			_moduleId: 'spec_dbs_people',
+			_action: 'cfg_getLinks'
+		});
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams ,
+			success: function(response) {
+				var ajaxData = Ext.decode(response.responseText) ;
+				if( ajaxData.success == false ) {
+					Ext.Msg.alert('Failed', 'Unknown error');
+				}
+				else {
+					this.onLoadLinks( ajaxData ) ;
+				}
+			},
+			scope: this
+		});
+	},
+	onLoadLinks: function( ajaxData ) {
+		this.cfgObj_whse_arrCliCodes = ajaxData.data.obj_whse_arrCliCodes ;
+		this.cfgObj_whse_defaultCliCode = ajaxData.data.obj_whse_defaultCliCode ;
+		
+		this.onLibLoad() ;
+	},
+	links_cli_isSilent: function( whseCode ) {
+		if( !this.cfgObj_whse_arrCliCodes[whseCode] || this.cfgObj_whse_arrCliCodes[whseCode].length <= 1 ) {
+			return true ;
+		}
+		return false ;
+	},
+	links_cli_getDefaultForWhse: function( whseCode ) {
+		if( Ext.isEmpty(this.cfgObj_whse_arrCliCodes[whseCode]) ) {
+			return '' ;
+		}
+		if( this.cfgObj_whse_arrCliCodes[whseCode].length == 1 ) {
+			return this.cfgObj_whse_arrCliCodes[whseCode][0] ;
+		}
+		if( !Ext.isEmpty(this.cfgObj_whse_defaultCliCode[whseCode]) ) {
+			return this.cfgObj_whse_defaultCliCode[whseCode] ;
+		}
+		return null ;
+	},
+	links_cli_getForWhse: function( whseCode ) {
+		return Ext.clone(this.cfgObj_whse_arrCliCodes[whseCode]) || [] ;
 	},
 	
 	onLibLoad: function() {

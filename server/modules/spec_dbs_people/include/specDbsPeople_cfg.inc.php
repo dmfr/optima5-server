@@ -179,6 +179,12 @@ function specDbsPeople_cfg_getCfgBibles() {
 		$TAB['TEAM'][] = array('id'=>$arr[0],'text'=>$arr[1]) ;
 	}
 	
+	$query = "SELECT field_CLI_CODE, field_CLI_NAME FROM view_bible_CFG_CLI_tree ORDER BY field_CLI_NAME" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$TAB['CLI'][] = array('id'=>$arr[0],'text'=>$arr[1]) ;
+	}
+	
 	return array('success'=>true, 'data'=>$TAB) ;
 }
 
@@ -304,6 +310,53 @@ function specDbsPeople_cfg_getPeopleFields() {
 		return array('success'=>false) ;
 	}
 	return array('success'=>true, 'data'=>$return_fields) ;
+}
+
+
+
+
+
+
+function specDbsPeople_cfg_getLinks() {
+	global $_opDB ;
+	
+	$obj_whse_arrCliCodes = array() ;
+	$obj_whse_defaultCliCode = array() ;
+	
+	$query = "SELECT entry_key, treenode_key FROM view_bible_CFG_WHSE_entry" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$whse_entryKey = $arr[0] ;
+		$whse_treenodeKey = $arr[1] ;
+		
+		$whse_links = paracrm_lib_bible_queryBible(
+			'CFG_CLI',
+			array(
+				'CFG_WHSE' => array(
+					'record_type' => 'treenode',
+					'record_key' => $whse_treenodeKey
+				)
+			),
+			TRUE
+		) ;
+		
+		$whse_arrCliCodes = array() ;
+		foreach( $whse_links as $whse_linkRow ) {
+			$whse_arrCliCodes[] = $whse_linkRow['treenode_key'] ;
+			if( $whse_linkRow['field_IS_DEFAULT'] ) {
+				$obj_whse_defaultCliCode[$whse_entryKey] = $whse_linkRow['treenode_key'] ;
+			}
+		}
+		$obj_whse_arrCliCodes[$whse_entryKey] = $whse_arrCliCodes ;
+	}
+	
+	return array(
+		'success' => true,
+		'data' => array(
+			'obj_whse_arrCliCodes' => $obj_whse_arrCliCodes,
+			'obj_whse_defaultCliCode' => $obj_whse_defaultCliCode
+		)
+	);
 }
 
 ?>
