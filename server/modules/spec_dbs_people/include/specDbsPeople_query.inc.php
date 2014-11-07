@@ -588,6 +588,8 @@ function specDbsPeople_query_getTableResult_CEQLIST( $date_start, $date_end, $fi
 	$cols[] = 'is_real' ;
 	$cols[] = 'ROLE_alt_whse_code' ;
 	$cols[] = 'ROLE_alt_whse_txt' ;
+	$cols[] = 'ROLE_CLI_code' ;
+	$cols[] = 'ROLE_CLI_txt' ;
 	$cols[] = 'ROLE_code' ;
 	$cols[] = 'ROLE_txt' ;
 	$cols[] = 'ROLE_length' ;
@@ -662,6 +664,7 @@ function specDbsPeople_query_getTableResult_CEQLIST( $date_start, $date_end, $fi
 		$RET_data_row_base['is_real'] = 'X' ;
 		foreach( $record['works'] as $record_work ) {
 			$RET_data_row = $RET_data_row_base ;
+			$RET_data_row['ROLE_CLI_code'] = $record_work['cli_code'] ;
 			$RET_data_row['ROLE_code'] = $record_work['role_code'] ;
 			$RET_data_row['ROLE_length'] = (float)$record_work['role_length'] ;
 			if( $record_work['alt_whse_code'] ) {
@@ -689,6 +692,7 @@ function specDbsPeople_query_getTableResult_CEQLIST_makeRow( &$data_row, $cfg_bi
 	$data_row['std_role_txt'] = ( $data_row['std_role_code'] ? substr($cfg_bibles_idText['ROLE'][$data_row['std_role_code']],strlen($data_row['std_role_code'])+3) : '' ) ;
 	$data_row['std_contract_txt'] = $cfg_bibles_idText['CONTRACT'][$data_row['std_contract_code']] ;
 	$data_row['ROLE_alt_whse_txt'] = $cfg_bibles_idText['WHSE'][$data_row['ROLE_alt_whse_code']] ;
+	$data_row['ROLE_CLI_txt'] = ( $data_row['ROLE_CLI_code'] ? $cfg_bibles_idText['CLI'][$data_row['ROLE_CLI_code']] : '' ) ;
 	$data_row['ROLE_txt'] = ( $data_row['ROLE_code'] ? substr($cfg_bibles_idText['ROLE'][$data_row['ROLE_code']],strlen($data_row['ROLE_code'])+3) : '' ) ;
 	$data_row['ABS_txt'] = ( $data_row['ABS_code'] ? substr($cfg_bibles_idText['ABS'][$data_row['ABS_code']],strlen($data_row['ABS_code'])+3) : '' ) ;
 }
