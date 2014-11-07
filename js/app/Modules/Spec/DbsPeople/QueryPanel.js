@@ -393,11 +393,21 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryPanel',{
 	handleDownloadFast: function() {
 		var me = this ;
 		
+		var formValues = me.child('form').getForm().getValues(),
+			filterSite = me.down('#filterSite'),
+			filterTeam = me.down('#filterTeam') ;
+		if( filterSite.getValue() ) {
+			formValues['filter_site_entries'] = filterSite.getLeafNodesKey() ;
+		}
+		if( filterTeam.getValue() ) {
+			formValues['filter_team_entries'] = filterTeam.getLeafNodesKey() ;
+		}
+		
 		var exportParams = me.optimaModule.getConfiguredAjaxParams() ;
 		Ext.apply(exportParams,{
 			_moduleId: 'spec_dbs_people',
 			_action: 'query_getResultXLS',
-			data: Ext.JSON.encode(me.child('form').getForm().getValues())
+			data: Ext.JSON.encode( formValues )
 		}) ;
 		Ext.create('Ext.ux.dams.FileDownloader',{
 			renderTo: Ext.getBody(),
