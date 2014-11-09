@@ -139,23 +139,29 @@ function specDbsPeople_lib_calc_getInterimNC( $date_start, $date_end ) {
 		$balance = 0 ;
 		foreach( $RES_planning_ROW as $date_sql => &$nb ) {
 			if( $nb > 0 ) {
-				$balance += ($nb - 1) ;
-				$nb = 1 ;
+				$delta = min($nb,1) ;
+				
+				$balance += ($nb - $delta) ;
+				$nb = $delta ;
 			} elseif( $balance > 0 ) {
-				$nb++ ;
-				$balance-- ;
+				$delta = min($balance,1) ;
+				
+				$nb += $delta ;
+				$balance -= $delta ;
 			}
 		}
 		unset($nb) ;
 		
 		// Reliquat !
 		while( $balance > 0 ) {
-			$balance-- ;
+			$delta = min($balance,1) ;
+		
+			$balance -= $delta ;
 			$date_sql = date('Y-m-d',strtotime('+1 day',strtotime($date_sql))) ;
 			if( !isset($RES_planning_ROW[$date_sql]) ) {
 				$RES_planning_ROW[$date_sql] = 0 ;
 			}
-			$RES_planning_ROW[$date_sql] += 1 ;
+			$RES_planning_ROW[$date_sql] += $delta ;
 		}
 	}
 	unset($RES_planning_ROW) ;
@@ -246,23 +252,29 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_CP( $at_date_sql ) {
 		$balance = 0 ;
 		foreach( $RES_planning_ROW as $date_sql => &$nb ) {
 			if( $nb > 0 ) {
-				$balance += ($nb - 1) ;
-				$nb = 1 ;
+				$delta = min($nb,1) ;
+				
+				$balance += ($nb - $delta) ;
+				$nb = $delta ;
 			} elseif( $balance > 0 ) {
-				$nb++ ;
-				$balance-- ;
+				$delta = min($balance,1) ;
+				
+				$nb += $delta ;
+				$balance -= $delta ;
 			}
 		}
 		unset($nb) ;
 		
 		// Reliquat !
 		while( $balance > 0 ) {
-			$balance-- ;
+			$delta = min($balance,1) ;
+		
+			$balance -= $delta ;
 			$date_sql = date('Y-m-d',strtotime('+1 day',strtotime($date_sql))) ;
 			if( !isset($RES_planning_ROW[$date_sql]) ) {
 				$RES_planning_ROW[$date_sql] = 0 ;
 			}
-			$RES_planning_ROW[$date_sql] += 1 ;
+			$RES_planning_ROW[$date_sql] += $delta ;
 		}
 	}
 	unset($RES_planning_ROW) ;
@@ -416,23 +428,29 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_RTT( $at_date_sql ) {
 		$balance = 0 ;
 		foreach( $RES_planning_ROW as $date_sql => &$nb ) {
 			if( $nb > 0 ) {
-				$balance += ($nb - 1) ;
-				$nb = 1 ;
+				$delta = min($nb,1) ;
+				
+				$balance += ($nb - $delta) ;
+				$nb = $delta ;
 			} elseif( $balance > 0 ) {
-				$nb++ ;
-				$balance-- ;
+				$delta = min($balance,1) ;
+				
+				$nb += $delta ;
+				$balance -= $delta ;
 			}
 		}
 		unset($nb) ;
 		
 		// Reliquat !
 		while( $balance > 0 ) {
-			$balance-- ;
+			$delta = min($balance,1) ;
+		
+			$balance -= $delta ;
 			$date_sql = date('Y-m-d',strtotime('+1 day',strtotime($date_sql))) ;
 			if( !isset($RES_planning_ROW[$date_sql]) ) {
 				$RES_planning_ROW[$date_sql] = 0 ;
 			}
-			$RES_planning_ROW[$date_sql] += 1 ;
+			$RES_planning_ROW[$date_sql] += $delta ;
 		}
 	}
 	unset($RES_planning_ROW) ;
@@ -608,23 +626,29 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_MOD( $at_date_sql ) {
 		$balance = 0 ;
 		foreach( $RES_planning_ROW as $date_sql => &$nb ) {
 			if( $nb > 0 ) {
-				$balance += ($nb - 1) ;
-				$nb = 1 ;
+				$delta = min($nb,1) ;
+				
+				$balance += ($nb - $delta) ;
+				$nb = $delta ;
 			} elseif( $balance > 0 ) {
-				$nb++ ;
-				$balance-- ;
+				$delta = min($balance,1) ;
+				
+				$nb += $delta ;
+				$balance -= $delta ;
 			}
 		}
 		unset($nb) ;
 		
 		// Reliquat !
 		while( $balance > 0 ) {
-			$balance-- ;
+			$delta = min($balance,1) ;
+		
+			$balance -= $delta ;
 			$date_sql = date('Y-m-d',strtotime('+1 day',strtotime($date_sql))) ;
 			if( !isset($RES_planning_ROW[$date_sql]) ) {
 				$RES_planning_ROW[$date_sql] = 0 ;
 			}
-			$RES_planning_ROW[$date_sql] += 1 ;
+			$RES_planning_ROW[$date_sql] += $delta ;
 		}
 	}
 	unset($RES_planning_ROW) ;
@@ -806,23 +830,29 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_RC( $at_date_sql ) {
 		$balance = 0 ;
 		foreach( $RES_planning_ROW as $date_sql => &$nb ) {
 			if( $nb > 0 ) {
-				$balance += ($nb - 1) ;
-				$nb = 1 ;
+				$delta = min($nb,1) ;
+				
+				$balance += ($nb - $delta) ;
+				$nb = $delta ;
 			} elseif( $balance > 0 ) {
-				$nb++ ;
-				$balance-- ;
+				$delta = min($balance,1) ;
+				
+				$nb += $delta ;
+				$balance -= $delta ;
 			}
 		}
 		unset($nb) ;
 		
 		// Reliquat !
 		while( $balance > 0 ) {
-			$balance-- ;
+			$delta = min($balance,1) ;
+		
+			$balance -= $delta ;
 			$date_sql = date('Y-m-d',strtotime('+1 day',strtotime($date_sql))) ;
 			if( !isset($RES_planning_ROW[$date_sql]) ) {
 				$RES_planning_ROW[$date_sql] = 0 ;
 			}
-			$RES_planning_ROW[$date_sql] += 1 ;
+			$RES_planning_ROW[$date_sql] += $delta ;
 		}
 	}
 	unset($RES_planning_ROW) ;
