@@ -131,6 +131,28 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.HelperCache',{
 		store.clearFilter(true) ;
 		return returnData ;
 	},
+	forTypeGetAll_linkWhse: function( type, whseCode ) {
+		var data = this.forTypeGetAll(type,true),
+			returnData = [],
+			arrCliCodes ;
+		Ext.Array.each( data, function(dataRow) {
+			switch( type ) {
+				case 'CLI' :
+					if( arrCliCodes == null ) {
+						arrCliCodes = this.links_cli_getForWhse(whseCode) ;
+					}
+					if( !Ext.Array.contains( arrCliCodes, dataRow.id ) ) {
+						return ;
+					}
+					break ;
+					
+				default :
+					break ;
+			}
+			returnData.push(dataRow) ;
+		},this);
+		return returnData ;
+	},
 	
 	
 	authHelperInit: function() {

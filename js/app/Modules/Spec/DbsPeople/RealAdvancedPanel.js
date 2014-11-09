@@ -436,16 +436,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 									columns[0].getEditor().update({iconCls:'op5-spec-dbspeople-icon-role'}) ;
 									if( columns[1].isVisible() ) {
 										columns[1].setEditor(columns[1].editorTpl);
-										
-										var dataCli = [] ;
-										var arrCliCodes = Optima5.Modules.Spec.DbsPeople.HelperCache.links_cli_getForWhse( this.gridRecord.get('whse_code') ) ;
-										Ext.Array.each( Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll("CLI"), function(row) {
-											if( !Ext.Array.contains( arrCliCodes, row.id ) ) {
-												return ;
-											}
-											dataCli.push(row) ;
-										}) ;
-										columns[1].getEditor().getStore().loadData(dataCli) ;
+										columns[1].getEditor().getStore().loadData( Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll_linkWhse( "CLI", this.gridRecord.get('whse_code') ) ) ;
 									}
 									columns[2].getEditor().getStore().loadData( Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll("ROLE") ) ;
 									break ;
