@@ -3519,6 +3519,8 @@ function paracrm_queries_process_labels_withTabs( $arr_saisie, $groupId_forTab )
 					if( !isJsonArr($field_where['condition_bible_entries']) ) {
 						$entry_key = $field_where['condition_bible_entries'] ;
 						$foreignLinks[$field_where['field_linkbible']] = array('record_type'=>'entry', 'record_key'=>$entry_key) ;
+					} elseif( count($entries = json_decode($field_where['condition_bible_entries'],true)) == 1 )  {
+						$foreignLinks[$field_where['field_linkbible']] = array('record_type'=>'entry', 'record_key'=>reset($entries)) ;
 					}
 				}
 			}
@@ -3603,6 +3605,8 @@ function paracrm_queries_process_labels_noTab( $arr_saisie )
 					if( !isJsonArr($field_where['condition_bible_entries']) ) {
 						$entry_key = $field_where['condition_bible_entries'] ;
 						$foreignLinks[$field_where['field_linkbible']] = array('record_type'=>'entry', 'record_key'=>$entry_key) ;
+					} elseif( count($entries = json_decode($field_where['condition_bible_entries'],true)) == 1 )  {
+						$foreignLinks[$field_where['field_linkbible']] = array('record_type'=>'entry', 'record_key'=>reset($entries)) ;
 					}
 				}
 			}

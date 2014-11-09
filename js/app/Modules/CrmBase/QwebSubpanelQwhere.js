@@ -105,11 +105,11 @@ Ext.define('Optima5.Modules.CrmBase.QwebSubpanelQwhere' ,{
 									return '<i>Unique / Last occurence</i>' ;
 								
 								case 'SELECT' :
-									if( record.get('condition_bible_entries') ) {
-										return record.get('condition_bible_entries') ;
+									if( record.get('condition_bible_entries') && Ext.JSON.decode( record.get('condition_bible_entries') ).length > 0 ) {
+										return '<b>E:</b>' + '&#160;' + Ext.JSON.decode( record.get('condition_bible_entries') ).join(' ') ;
 									}
-									if( record.get('condition_bible_treenodes') ) {
-										return Ext.JSON.decode( record.get('condition_bible_treenodes') ).join(' ') ;
+									if( record.get('condition_bible_treenodes') && Ext.JSON.decode( record.get('condition_bible_treenodes') ).length > 0 ) {
+										return '<b>T:</b>' + '&#160;' + Ext.JSON.decode( record.get('condition_bible_treenodes') ).join(' ') ;
 									}
 								default :
 									return '<b>not set</b>' ;

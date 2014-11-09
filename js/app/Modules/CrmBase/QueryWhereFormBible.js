@@ -58,6 +58,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryWhereFormBible' ,{
 					bibleId:me.bibleId
 				}, {
 					xtype: 'op5crmbasebiblepicker',
+					selectMode: 'multi',
 					optimaModule: me.optimaModule,
 					name:'condition_bible_entries',
 					bibleId:me.bibleId
