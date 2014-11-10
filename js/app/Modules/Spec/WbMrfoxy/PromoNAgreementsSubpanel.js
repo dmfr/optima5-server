@@ -2,6 +2,7 @@ Ext.define('WbMrfoxyNAgreementModel', {
 	extend: 'Ext.data.Model',
 	fields: [
 		{name: 'country_code', type: 'string'},
+		{name: 'nagreement_id', type: 'string'},
 		{name: 'cropYear_code', type: 'string'},
 		{name: 'currency', type: 'string'},
 		{name: 'currency_symbol', type: 'string'},
@@ -90,9 +91,16 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoNAgreementsSubpanel',{
 							return '' ;
 						}
 					},{
+						text: '<b>NA #</b>',
+						dataIndex: 'nagreement_id',
+						width: 125,
+						renderer: function(v) {
+							return '<b>'+v+'</b>' ;
+						}
+					},{
 						text: '<b>CropY</b>',
 						dataIndex: 'cropYear_code',
-						width: 90,
+						width: 80,
 						renderer: function(v) {
 							return '<b>'+v+'</b>' ;
 						},
@@ -125,7 +133,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoNAgreementsSubpanel',{
 					},{
 						text: 'Agreement Desc',
 						dataIndex: 'nagreement_txt',
-						width: 300
+						width: 250
 					},{
 						text: '<b>Acr:</b> Forecast',
 						width: 100,

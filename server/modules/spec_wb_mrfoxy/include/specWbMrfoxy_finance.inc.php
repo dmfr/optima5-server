@@ -585,8 +585,18 @@ function specWbMrfoxy_finance_getNationalAgreements( $post_data )  {
 			}
 		}
 	
+		$nagreement_id = '' ;
+		$nagreement_id.= $paracrm_row['FINANCE_REVISION_field_COUNTRY'] ;
+		$nagreement_id.= ' ' ;
+		$nagreement_id.= ($paracrm_row['FINANCE_REVISION_ROW_field_ROW_SPEC_STORE_tree_STOREGROUP_MEMO'] ? $paracrm_row['FINANCE_REVISION_ROW_field_ROW_SPEC_STORE_tree_STOREGROUP_MEMO'] : 'XXXX') ;
+		$nagreement_id.= ' ' ;
+		$nagreement_id.= ($paracrm_row['FINANCE_REVISION_ROW_field_ROW_SUB_PRODTAG_tree_PRODTAG'] ? $paracrm_row['FINANCE_REVISION_ROW_field_ROW_SUB_PRODTAG_tree_PRODTAG'] : '??') ;
+		$nagreement_id.= ' ' ;
+		$nagreement_id.= $paracrm_row['FINANCE_REVISION_field_CROP_YEAR'] ;
+		
 		$row = array() ;
 		$row['country_code'] = $paracrm_row['FINANCE_REVISION_field_COUNTRY'] ;
+		$row['nagreement_id'] = $nagreement_id ;
 		$row['cropYear_code'] = $paracrm_row['FINANCE_REVISION_field_CROP_YEAR'] ;
 		$row['currency'] = $currency_code ;
 		$row['currency_symbol'] = $currency_desc['currency_sign'] ;
