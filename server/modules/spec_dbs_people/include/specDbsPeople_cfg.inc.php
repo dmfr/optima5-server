@@ -323,13 +323,15 @@ function specDbsPeople_cfg_getLinks() {
 	$obj_whse_arrCliCodes = array() ;
 	$obj_whse_defaultCliCode = array() ;
 	
+	$obj_whse_arrRoleCodes = array() ;
+	
 	$query = "SELECT entry_key, treenode_key FROM view_bible_CFG_WHSE_entry" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 		$whse_entryKey = $arr[0] ;
 		$whse_treenodeKey = $arr[1] ;
 		
-		$whse_links = paracrm_lib_bible_queryBible(
+		$cli_links = paracrm_lib_bible_queryBible(
 			'CFG_CLI',
 			array(
 				'CFG_WHSE' => array(
@@ -337,24 +339,41 @@ function specDbsPeople_cfg_getLinks() {
 					'record_key' => $whse_treenodeKey
 				)
 			),
-			TRUE
+			$return_treenodes=TRUE
 		) ;
-		
 		$whse_arrCliCodes = array() ;
-		foreach( $whse_links as $whse_linkRow ) {
-			$whse_arrCliCodes[] = $whse_linkRow['treenode_key'] ;
-			if( $whse_linkRow['field_IS_DEFAULT'] ) {
-				$obj_whse_defaultCliCode[$whse_entryKey] = $whse_linkRow['treenode_key'] ;
+		foreach( $cli_links as $cli_linkRow ) {
+			$whse_arrCliCodes[] = $cli_linkRow['treenode_key'] ;
+			if( $cli_linkRow['field_IS_DEFAULT'] ) {
+				$obj_whse_defaultCliCode[$whse_entryKey] = $cli_linkRow['treenode_key'] ;
 			}
 		}
 		$obj_whse_arrCliCodes[$whse_entryKey] = $whse_arrCliCodes ;
+		
+		$role_links = paracrm_lib_bible_queryBible(
+			'CFG_ROLE',
+			array(
+				'CFG_WHSE' => array(
+					'record_type' => 'treenode',
+					'record_key' => $whse_treenodeKey
+				)
+			),
+			$return_treenodes=FALSE
+		) ;
+		$whse_arrRoleCodes = array() ;
+		foreach( $role_links as $role_linkRow ) {
+			$whse_arrRoleCodes[] = $role_linkRow['entry_key'] ;
+		}
+		$obj_whse_arrRoleCodes[$whse_entryKey] = $whse_arrRoleCodes ;
 	}
 	
 	return array(
 		'success' => true,
 		'data' => array(
 			'obj_whse_arrCliCodes' => $obj_whse_arrCliCodes,
-			'obj_whse_defaultCliCode' => $obj_whse_defaultCliCode
+			'obj_whse_defaultCliCode' => $obj_whse_defaultCliCode,
+			
+			'obj_whse_arrRoleCodes' => $obj_whse_arrRoleCodes
 		)
 	);
 }

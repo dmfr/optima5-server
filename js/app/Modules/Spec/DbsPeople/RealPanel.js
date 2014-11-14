@@ -420,25 +420,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			return '' ;
 		}
 		
-		var comboboxData = [] ;
-		Ext.Array.each( Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll("ROLE"), function(roleRec) {
-			comboboxData.push({
-				id: 'ROLE:'+roleRec.id,
-				shortText: roleRec.id,
-				text: roleRec.text
-			});
-		}) ;
-		Ext.Array.each( Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll("ABS",true), function(absRec) {
-			if( absRec.id.charAt(0) == '_' ) {
-				return ;
-			}
-			comboboxData.push({
-				id: 'ABS:'+absRec.id,
-				shortText: absRec.id,
-				text: 'ABS-'+absRec.text
-			});
-		}) ;
-		
 		var virtualRoles = [] ;
 		Ext.Array.each( Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll("ROLE"), function(roleDesc) {
 			if( roleDesc.is_virtual ) {
@@ -635,7 +616,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 						valueField: 'id',
 						store: {
 							fields: ['id','shortText','text'],
-							data : comboboxData
+							data : []
 						},
 						matchFieldWidth: false,
 						listeners: {
@@ -1427,6 +1408,28 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		}
 		
 		var editorField = editEvent.column.getEditor() ;
+		if( editorField.ROLE ) {
+			var comboboxData = [],
+				gridWhse = gridRecord.get('whse_code') ;
+			Ext.Array.each( Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll_linkWhse("ROLE",gridWhse), function(roleRec) {
+				comboboxData.push({
+					id: 'ROLE:'+roleRec.id,
+					shortText: roleRec.id,
+					text: roleRec.text
+				});
+			}) ;
+			Ext.Array.each( Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll("ABS",true), function(absRec) {
+				if( absRec.id.charAt(0) == '_' ) {
+					return ;
+				}
+				comboboxData.push({
+					id: 'ABS:'+absRec.id,
+					shortText: absRec.id,
+					text: 'ABS-'+absRec.text
+				});
+			}) ;
+			editorField.getStore().loadData(comboboxData) ;
+		}
 		switch( editorField.getXType() ) {
 			case 'combobox' :
 				editorField.on('focus',function(editorField) {

@@ -438,7 +438,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 										columns[1].setEditor(columns[1].editorTpl);
 										columns[1].getEditor().getStore().loadData( Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll_linkWhse( "CLI", this.gridRecord.get('whse_code') ) ) ;
 									}
-									columns[2].getEditor().getStore().loadData( Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll("ROLE") ) ;
+									columns[2].getEditor().getStore().loadData( Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll_linkWhse("ROLE", this.gridRecord.get('whse_code')) ) ;
 									break ;
 								case 'ABS' :
 									columns[0].getEditor().update({iconCls:'op5-spec-dbspeople-icon-absence'}) ;
