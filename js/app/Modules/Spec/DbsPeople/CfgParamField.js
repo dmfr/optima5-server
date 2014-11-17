@@ -39,8 +39,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.CfgParamField',{
 		
 		this.on('afterrender',this.displayValue,this) ;
 		
-		this.callParent() ;
-		
 		this.cfgParamTree = Ext.create('Optima5.Modules.Spec.DbsPeople.CfgParamTree',{
 			renderTo: Ext.getBody(),
 			floating: true,
@@ -66,9 +64,11 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.CfgParamField',{
 				}
 			}
 		});
+		
+		this.callParent() ;
 	},
 	onAfterLoad: function() {
-		if( !Optima5.Modules.Spec.DbsPeople.HelperCache.authHelperHasAll() ) {
+		if( !Optima5.Modules.Spec.DbsPeople.HelperCache.authHelperHasAll() && !this.noAuthCheck ) {
 			this.doAuthCleanup() ;
 		}
 		this.isReady = true ;
@@ -112,15 +112,26 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.CfgParamField',{
 	onChange: function() {
 		var cfgParamTree = this.cfgParamTree,
 			selectedValue = cfgParamTree.getValue() ;
+			
+		this.value = selectedValue ;
 		this.fireEvent('change',selectedValue,this.oldValue) ;
 		this.oldValue = selectedValue ;
 		
 		this.displayValue() ;
 	},
 	displayValue: function() {
+		if( !this.rendered ) {
+			this.on('afterrender',function(){
+				this.displayValue();
+			},this,{
+				single:true
+			}) ;
+			return ;
+		}
+		
 		var cfgParamTree = this.cfgParamTree,
 			selectedValue = cfgParamTree.getValue() ;
-		if( selectedValue == null ) {
+		if( Ext.isEmpty(selectedValue) ) {
 			this.divicon.removeCls('biblepicker-iconimg-oktree') ;
 			this.divicon.addCls('biblepicker-iconimg-nok') ;
 			this.divtext.dom.innerHTML = this.cfgParam_emptyDisplayText ;
@@ -131,21 +142,28 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.CfgParamField',{
 		}
 	},
 	
-	// TODO: accept setRawValue / setValue
-	setValue: function() {
+	setRawValue: function(value) {
+		this.value = value ;
 		
-	},
-	setRawValue: function() {
-		
-	},
-		
-	getValue: function() {
+		if( !this.isReady ) {
+			this.on('ready',function(){
+				this.setRawValue(value);
+			},this,{
+				single:true
+			}) ;
+			return ;
+		}
 		var cfgParamTree = this.cfgParamTree ;
-		return cfgParamTree.getNode() ;
+		cfgParamTree.setValue(value,true) ;
 	},
+	
 	getRawValue: function() {
-		var cfgParamTree = this.cfgParamTree ;
-		return cfgParamTree.getValue() || '' ;
+		return this.value || '' ;
+	},
+	getNode: function() {
+		var cfgParamTree = this.cfgParamTree,
+			retValue = cfgParamTree.getNode() ;
+		return retValue ;
 	},
 	getLeafNodesKey: function() {
 		var cfgParamTree = this.cfgParamTree,

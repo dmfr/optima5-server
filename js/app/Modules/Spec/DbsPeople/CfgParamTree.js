@@ -138,6 +138,27 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.CfgParamTree',{
 		return leafs ;
 	},
 	
+	setValue: function( nodeId, silent ) {
+		if( !Ext.isEmpty(nodeId) && this.getStore().getNodeById(nodeId) == null ) {
+			return ;
+		}
+		
+		this.value = nodeId ;
+		if( this.value == null ) {
+			this.getRootNode().cascadeBy(function(node) {
+				node.set('checked', node.isRoot());
+			},this) ;
+		} else {
+			this.getRootNode().cascadeBy(function(node) {
+				node.set('checked', (node.getId()==this.value) );
+			},this);
+		}
+		
+		if( silent === undefined || !silent ) {
+			this.fireEvent('change',this.value) ;
+		}
+	},
+	
 	autoAdvance: function() {
 		var setValue ;
 		this.getRootNode().cascadeBy( function(node) {
@@ -150,11 +171,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.CfgParamTree',{
 			}
 		}) ;
 		if( setValue != null ) {
-			this.value = setValue ;
-			this.getRootNode().cascadeBy(function(node) {
-				node.set('checked', (node.getId()==this.value) );
-			},this);
-			this.fireEvent('change',this.value) ;
+			this.setValue(setValue) ;
 		}
 	}
 }) ;

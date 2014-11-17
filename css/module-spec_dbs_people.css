@@ -268,6 +268,13 @@
 }
 
 
+.op5-spec-dbspeople-realsummary-box {
+	background-position: center ;
+	background-repeat: no-repeat ;
+	background-image: url("../images/modules/dbspeople-summary-48.png") !important;
+}
+
+
 .op5-spec-dbspeople-realvalidhdr {
 	padding: 0px 2px ;
 	height: 56px;
@@ -305,13 +312,6 @@ table.op5-spec-dbspeople-realvalidhdr-tbl > tbody > tr > td.op5-spec-dbspeople-r
 .op5-spec-dbspeople-realvalidhdr-exception {
 	color: #E50000 ;
 	font-weight: bold;
-}
-
-.op5-spec-dbspeople-realsummaryhdr-icon {
-	width: 56px ;
-	background-position: center ;
-	background-repeat: no-repeat ;
-	background-image: url("../images/modules/dbspeople-summary-48.png") !important;
 }
 
 .op5-spec-dbspeople-rhcalcattributehdr-icon {

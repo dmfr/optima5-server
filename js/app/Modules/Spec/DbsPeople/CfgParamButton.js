@@ -43,6 +43,11 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.CfgParamButton' ,{
 		
 		this.fireEvent('change',selectedValue) ;
 	},
+	getValue: function() {
+		var cfgParamTree = this.menu.down('treepanel'),
+			selectedValue = cfgParamTree.getValue() ;
+		return selectedValue ;
+	},
 	getNode: function() {
 		var cfgParamTree = this.menu.down('treepanel'),
 			selectedValue = cfgParamTree.getNode() ;
@@ -55,7 +60,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.CfgParamButton' ,{
 	},
 	
 	onAfterLoad: function() {
-		if( !Optima5.Modules.Spec.DbsPeople.HelperCache.authHelperHasAll() ) {
+		if( !Optima5.Modules.Spec.DbsPeople.HelperCache.authHelperHasAll() && !this.noAuthCheck ) {
 			this.doAuthCleanup() ;
 		}
 		this.fireEvent('ready',this) ;

@@ -1617,90 +1617,24 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 	
 	
 	openSummary: function( dSql ) {
+		// ***** Clone records ******
+		var peopledayRecordsData = [] ;
+		this.peopledayStore.each( function(peopledayRecord) {
+			peopledayRecordsData.push(peopledayRecord.getData(true)) ;
+		}) ;
+		
+		this.getEl().mask() ;
+		
 		// Filtres en cours
 		var filterBtn_site = this.down('#btnSite'),
 			filterBtn_team = this.down('#btnTeam'),
 			filter_whses = ( filterBtn_site.getNode()==null ? null : filterBtn_site.getLeafNodesKey() ),
 			filter_teams = ( filterBtn_team.getNode()==null ? null : filterBtn_team.getLeafNodesKey() ) ;
 		
-		this.getEl().mask() ;
-		
-		var objRoleDuration = {},
-			objRoleDurationDays = {} ;
-		var addDuration = function(roleCode,roleLength,roleLengthDays) {
-			if( !objRoleDuration.hasOwnProperty(roleCode) ) {
-				objRoleDuration[roleCode] = 0 ;
-				objRoleDurationDays[roleCode] = 0 ;
-			}
-			objRoleDuration[roleCode] += roleLength ;
-			objRoleDurationDays[roleCode] += roleLengthDays ;
-		}
-		
-		this.peopledayStore.each( function(peopledayRecord) {
-			if( peopledayRecord.get('date_sql') != dSql ) {
-				return ;
-			}
-			if( peopledayRecord.get('status_isVirtual') ) {
-				var stdDayLength = peopledayRecord.data.std_daylength,
-					stdDayDay = (stdDayLength > 0 ? 1 : 0),
-					stdAbsCode = peopledayRecord.data.std_abs_code,
-					stdAbsHalfDay = false ;
-				if( stdAbsCode.split(':')[1] == '2' ) {
-					stdAbsHalfDay = true ;
-					stdDayLength = stdDayLength / 2 ;
-					stdDayDay = stdDayDay / 2 ;
-				}
-			
-				if( stdAbsCode.charAt(0) != '_' && !stdAbsHalfDay ) {
-					return ;
-				}
-				if( filter_whses && !Ext.Array.contains(filter_whses,peopledayRecord.data.std_whse_code) ) {
-					return ;
-				}
-				if( filter_teams && !Ext.Array.contains(filter_teams,peopledayRecord.data.std_team_code) ) {
-					return ;
-				}
-				addDuration(
-					peopledayRecord.data.std_role_code,
-					stdDayLength,
-					stdDayDay
-  				) ;
-			}
-			peopledayRecord.works().each( function(peopledayWorkRecord) {
-				if( filter_whses ) {
-					if( Ext.isEmpty(peopledayWorkRecord.data.alt_whse_code) ) {
-						if( !Ext.Array.contains(filter_whses,peopledayRecord.data.std_whse_code) ) {
-							return ;
-						}
-					} else {
-						if( !Ext.Array.contains(filter_whses,peopledayWorkRecord.data.alt_whse_code) ) {
-							return ;
-						}
-					}
-				}
-				if( filter_teams && !Ext.Array.contains(filter_teams,peopledayRecord.data.std_team_code) ) {
-					return ;
-				}
-				addDuration(
-					peopledayWorkRecord.data.role_code,
-					peopledayWorkRecord.data.role_length,
-					(peopledayWorkRecord.data.role_length / peopledayRecord.data.std_daylength_contract)
-				) ;
-			});
-		}) ;
-		
-		var summaryRows = [] ;
-		Ext.Object.each( objRoleDuration, function(roleCode, roleDuration) {
-			summaryRows.push({
-				role_code: roleCode,
-				role_sum_duration: roleDuration,
-				role_sum_days: objRoleDurationDays[roleCode]
-			});
-		}) ;
-			
+		// Open panel
 		var summaryPanel = Ext.create('Optima5.Modules.Spec.DbsPeople.RealSummaryPanel',{
-			parentRealPanel: this,
-			width:350, // dummy initial size, for border layout to work
+			optimaModule: this.optimaModule,
+			width:400, // dummy initial size, for border layout to work
 			height:null, // ...
 			floating: true,
 			draggable: true,
@@ -1715,9 +1649,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			}],
 			data: {
 				date_sql: dSql,
-				filter_site_txt: (filter_whses ? filterBtn_site.getText() : null),
-				filter_team_txt: (filter_teams ? filterBtn_team.getText() : null),
-				summary_rows: summaryRows
+				filter_site: (filter_whses ? filterBtn_site.getValue() : null),
+				filter_team: (filter_teams ? filterBtn_team.getValue() : null),
+				peopledayRecordsData: peopledayRecordsData
 			}
 		});
 		
