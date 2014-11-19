@@ -311,7 +311,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 						store: {
 							fields: ['iconCls', 'text'],
 							data:[
-								{iconCls: 'op5-spec-dbspeople-realcolor-open', text:'Etat : Ouvert Chef Equipe'},
+								{iconCls: 'op5-spec-dbspeople-realcolor-open', text:'Etat : Ouvert Exploitation'},
 								{iconCls: 'op5-spec-dbspeople-realcolor-openrh', text:'Etat : Ouvert RH'},
 								{iconCls: '', text:'Etat : clôture'},
 								{iconCls: 'op5-spec-dbspeople-realcolor-role', text:'Modif. Rôle'},
@@ -837,7 +837,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			menu.add({
 				itemId: 'real-valid-ceq',
 				iconCls: 'op5-spec-dbspeople-icon-actionday-validceq' ,
-				text: 'Valid Chef d\'équipe',
+				text: 'Valid Exploitation',
 				handler: function(menuitem) {
 					this.handleActionDay( 'valid_ceq', menuitem.up('menu').activeHeader.dateSqlHead ) ;
 				},
