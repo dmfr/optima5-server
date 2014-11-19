@@ -55,9 +55,48 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhNewEventPanel',{
 				itemId : 'event_type',
 				listeners: {
 					change:function(cmb, newValue) {
+						var loadData = [],
+							availablesWhses, availableRoles ;
+						Ext.Array.each( Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll(newValue), function(dataRow) {
+							switch( newValue ) {
+								case 'WHSE' :
+									if( availablesWhses==null ) {
+										availablesWhses = [] ;
+										Ext.Array.each( Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll('WHSE'), function(whseRow) {
+											if( !Optima5.Modules.Spec.DbsPeople.HelperCache.authHelperQueryWhse(whseRow.id) ) {
+												return ;
+											}
+											availablesWhses.push(whseRow.id) ;
+										}) ;
+									}
+									if( !Ext.Array.contains( availablesWhses, dataRow.id ) ) {
+										return ;
+									}
+									break ;
+								case 'ROLE' :
+									if( availableRoles==null ) {
+										availableRoles = [] ;
+										Ext.Array.each( Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll('WHSE'), function(whseRow) {
+											if( !Optima5.Modules.Spec.DbsPeople.HelperCache.authHelperQueryWhse(whseRow.id) ) {
+												return ;
+											}
+											availableRoles.push( Optima5.Modules.Spec.DbsPeople.HelperCache.links_role_getForWhse(whseRow.id) ) ;
+										}) ;
+										availableRoles = Ext.Array.union.apply(null,availableRoles) ;
+									}
+									if( !Ext.Array.contains( availableRoles, dataRow.id ) ) {
+										return ;
+									}
+									break ;
+								default:
+									break ;
+							}
+							loadData.push(dataRow) ;
+						});
+						
 						me.getComponent('event_details').setVisible(true) ;
 						me.getComponent('event_details').getComponent('x_code').clearValue() ;
-						me.getComponent('event_details').getComponent('x_code').getStore().loadData( Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll(newValue) ) ;
+						me.getComponent('event_details').getComponent('x_code').getStore().loadData( loadData ) ;
 					},
 					scope:me
 				}
