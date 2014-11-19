@@ -14,6 +14,9 @@ function specDbsPeople_query_getLibrary() {
 	$TAB[] = array('querysrc_id'=>'0:ITM_NC', 'q_name'=>'Interim : NC', 'enable_date_interval'=>true ) ;
 	foreach( $TAB as &$querydesc ) {
 		$querydesc['enable_filters'] = TRUE ;
+		if( $querydesc['querysrc_id'] == '0:CEQ_LIST' ) {
+			$querydesc['enable_filters_cli'] = TRUE ;
+		}
 	}
 	unset($querydesc) ;
 	
@@ -46,6 +49,9 @@ function specDbsPeople_query_getTableResult( $post_data ) {
 	}
 	if( $form_data['filter_team_entries'] ) {
 		$filters['filter_team_entries'] = json_encode($form_data['filter_team_entries']) ;
+	}
+	if( $form_data['filter_cli_code'] ) {
+		$filters['filter_cli_code'] = $form_data['filter_cli_code'] ;
 	}
 	
 	$ttmp = explode(':',$form_data['querysrc_id']) ;
@@ -680,6 +686,18 @@ function specDbsPeople_query_getTableResult_CEQLIST( $date_start, $date_end, $fi
 			specDbsPeople_query_getTableResult_CEQLIST_makeRow($RET_data_row,$cfg_bibles_idText) ;
 			$RET_data[] = $RET_data_row ;
 		}
+	}
+	
+	if( $filters['filter_cli_code'] != NULL ) {
+		$filter_cli_code = $filters['filter_cli_code'] ;
+		$RET_data_new = array() ;
+		foreach( $RET_data as $RET_data_row ) {
+			if( $filter_cli_code != $RET_data_row['ROLE_CLI_code'] ) {
+				continue ;
+			}
+			$RET_data_new[] = $RET_data_row ;
+		}
+		$RET_data = $RET_data_new ;
 	}
 	
 	usort($RET_data,'specDbsPeople_query_getTableResult_CEQLIST_sort') ;

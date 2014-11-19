@@ -289,6 +289,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.HelperCache',{
 	},
 	onLoadLinks: function( ajaxData ) {
 		this.cfgObj_whse_arrCliCodes = ajaxData.data.obj_whse_arrCliCodes ;
+		this.cfgObj_whseTreenode_arrCliCodes = ajaxData.data.obj_whseTreenode_arrCliCodes ;
 		this.cfgObj_whse_defaultCliCode = ajaxData.data.obj_whse_defaultCliCode ;
 		
 		this.cfgObj_whse_arrRoleCodes = ajaxData.data.obj_whse_arrRoleCodes ;
@@ -315,6 +316,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.HelperCache',{
 	},
 	links_cli_getForWhse: function( whseCode ) {
 		return Ext.clone(this.cfgObj_whse_arrCliCodes[whseCode]) || [] ;
+	},
+	links_cli_getForWhseTreenode: function( whseTreenodeCode ) {
+		return Ext.clone(this.cfgObj_whseTreenode_arrCliCodes[whseTreenodeCode]) || [] ;
 	},
 	links_role_getForWhse: function( whseCode ) {
 		return Ext.clone(this.cfgObj_whse_arrRoleCodes[whseCode]) || [] ;

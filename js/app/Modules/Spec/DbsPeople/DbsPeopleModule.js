@@ -12,7 +12,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.DbsPeopleModule', {
 		me.addEvents('op5broadcast') ;
 		
 		me.createWindow({
-			width:800,
+			width:1024,
 			height:600,
 			resizable:true,
 			layout:'fit',

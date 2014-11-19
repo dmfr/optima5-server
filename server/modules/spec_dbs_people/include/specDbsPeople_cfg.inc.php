@@ -367,10 +367,37 @@ function specDbsPeople_cfg_getLinks() {
 		$obj_whse_arrRoleCodes[$whse_entryKey] = $whse_arrRoleCodes ;
 	}
 	
+	
+	$obj_whseTreenode_arrCliCodes = array() ;
+	$query = "SELECT treenode_key FROM view_bible_CFG_WHSE_tree" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$whse_treenodeKey = $arr[0] ;
+		
+		$cli_links = paracrm_lib_bible_queryBible(
+			'CFG_CLI',
+			array(
+				'CFG_WHSE' => array(
+					'record_type' => 'treenode',
+					'record_key' => $whse_treenodeKey
+				)
+			),
+			$return_treenodes=TRUE
+		) ;
+		$whseTreenode_arrCliCodes = array() ;
+		foreach( $cli_links as $cli_linkRow ) {
+			$whseTreenode_arrCliCodes[] = $cli_linkRow['treenode_key'] ;
+		}
+		$obj_whseTreenode_arrCliCodes[$whse_treenodeKey] = $whseTreenode_arrCliCodes ;
+	}
+	
+	
+	
 	return array(
 		'success' => true,
 		'data' => array(
 			'obj_whse_arrCliCodes' => $obj_whse_arrCliCodes,
+			'obj_whseTreenode_arrCliCodes' => $obj_whseTreenode_arrCliCodes,
 			'obj_whse_defaultCliCode' => $obj_whse_defaultCliCode,
 			
 			'obj_whse_arrRoleCodes' => $obj_whse_arrRoleCodes

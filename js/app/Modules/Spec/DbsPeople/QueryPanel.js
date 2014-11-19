@@ -110,7 +110,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryPanel',{
 							{name: 'q_name', type: 'string'},
 							{name: 'enable_date_at', type: 'boolean'},
 							{name: 'enable_date_interval', type: 'boolean'},
-							{name: 'enable_filters', type: 'boolean'}
+							{name: 'enable_filters', type: 'boolean'},
+							{name: 'enable_filters_cli', type: 'boolean'}
 						],
 						autoLoad: true,
 						proxy: this.optimaModule.getConfiguredAjaxProxy({
@@ -132,15 +133,21 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryPanel',{
 							var cntDateInterval = cmb.up('form').down('#cntDateInterval'),
 								cntDateAt = cmb.up('form').down('#cntDateAt'),
 								cntFilters = cmb.up('form').down('#cntFilters'),
+								cmbFilterCli = cntFilters.down('#filterCli'),
 								querysrcRecord = cmb.getStore().findRecord('querysrc_id',value),
 								enableDateInterval = querysrcRecord.get('enable_date_interval'),
 								enableDateAt = querysrcRecord.get('enable_date_at'),
-								enableFilters = querysrcRecord.get('enable_filters') ;
+								enableFilters = querysrcRecord.get('enable_filters'),
+								enableFiltersCli = querysrcRecord.get('enable_filters_cli') ;
 							
 							cntDateInterval.setVisible( enableDateInterval );
 							cntDateAt.setVisible( enableDateAt );
 							cntFilters.setVisible( enableFilters );
-						}
+							
+							cmbFilterCli.setVisible( enableFiltersCli );
+							cntFilters.populateFilterCli() ;
+						},
+						scope: this
 					}
 				},{
 					xtype:'fieldcontainer',
@@ -156,10 +163,15 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryPanel',{
 						width: 250,
 						anchor: '',
 						submitValue: false,
-						itemId : 'filterSite'
+						itemId : 'filterSite',
+						listeners: {
+							change: function(cmb) {
+								var cnt = cmb.up() ;
+								cnt.populateFilterCli() ;
+							}
+						}
 					}),{
-						width:16,
-						itemId : 'filtersSeparator',
+						width:8,
 						xtype:'box',
 						html:'&#160'
 					},Ext.create('Optima5.Modules.Spec.DbsPeople.CfgParamTeamField',{
@@ -168,7 +180,56 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryPanel',{
 						anchor: '',
 						submitValue: false,
 						itemId : 'filterTeam'
-					})]
+					}),{
+						width:8,
+						xtype:'box',
+						html:'&#160'
+					},{
+						xtype:'combobox',
+						width: 200,
+						forceSelection:true,
+						allowBlank:true,
+						editable:false,
+						queryMode: 'local',
+						displayField: 'text',
+						valueField: 'id',
+						itemId: 'filterCli',
+						hidden: true,
+						store: {
+							fields:['id','text'],
+							data: []
+						}
+					}],
+					populateFilterCli: function() {
+						var filterSite = this.down('#filterSite'),
+							filterCli = this.down('#filterCli') ;
+							
+						var filterSiteNode, arrCliCodes ;
+						if( (filterSiteNode = filterSite.getNode()) != null ) {
+							switch( filterSiteNode.nodeType ) {
+								case 'treenode' :
+									arrCliCodes = Optima5.Modules.Spec.DbsPeople.HelperCache.links_cli_getForWhseTreenode(filterSiteNode.nodeKey) ;
+									break ;
+								case 'entry' :
+									arrCliCodes = Optima5.Modules.Spec.DbsPeople.HelperCache.links_cli_getForWhse(filterSiteNode.nodeKey) ;
+									break ;
+							}
+						}
+						
+						var data = Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll("CLI",true),
+							returnData = [] ;
+						returnData.push({id:'', text:'- Tous clients -'}) ;
+						Ext.Array.each( data, function(dataRow) {
+							if( arrCliCodes != null && !Ext.Array.contains( arrCliCodes, dataRow.id ) ) {
+								return ;
+							}
+							returnData.push(dataRow) ;
+						},this);
+						
+						filterCli.setValue(null) ;
+						filterCli.getStore().loadData(returnData) ;
+						filterCli.setValue('') ;
+					}
 				},{
 					xtype:'fieldcontainer',
 					anchor: '100%',
@@ -317,12 +378,16 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryPanel',{
 		
 		var formValues = me.child('form').getForm().getValues(),
 			filterSite = me.down('#filterSite'),
-			filterTeam = me.down('#filterTeam') ;
+			filterTeam = me.down('#filterTeam'),
+			filterCli = me.down('#filterCli') ;
 		if( filterSite.getValue() ) {
 			formValues['filter_site_entries'] = filterSite.getLeafNodesKey() ;
 		}
 		if( filterTeam.getValue() ) {
 			formValues['filter_team_entries'] = filterTeam.getLeafNodesKey() ;
+		}
+		if( filterCli.isVisible() && !Ext.isEmpty(filterCli.getValue()) ) {
+			formValues['filter_cli_code'] = filterCli.getValue() ;
 		}
 		
 		me.optimaModule.getConfiguredAjaxConnection().request({

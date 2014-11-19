@@ -114,7 +114,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.CfgParamField',{
 			selectedValue = cfgParamTree.getValue() ;
 			
 		this.value = selectedValue ;
-		this.fireEvent('change',selectedValue,this.oldValue) ;
+		this.fireEvent('change',this,selectedValue,this.oldValue) ;
 		this.oldValue = selectedValue ;
 		
 		this.displayValue() ;

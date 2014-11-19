@@ -57,7 +57,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.MainPanel',{
 			case 'panel_real' :
 				return me.switchToAppPanel('Optima5.Modules.Spec.DbsPeople.RealPanel') ;
 			case 'panel_query' :
-				return me.switchToAppPanel('Optima5.Modules.Spec.DbsPeople.QueryPanel',{width: 800}) ;
+				return me.switchToAppPanel('Optima5.Modules.Spec.DbsPeople.QueryPanel',{width: 996}) ;
 			case 'panel_forecast' :
 				return me.switchToAppPanel('Optima5.Modules.Spec.DbsPeople.ForecastPanel') ;
 			default :
