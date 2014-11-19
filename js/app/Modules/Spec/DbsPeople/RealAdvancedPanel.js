@@ -448,7 +448,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 								case 'WHSE' :
 									columns[0].getEditor().update({iconCls:'op5-spec-dbspeople-icon-move'}) ;
 									columns[1].setEditor(null);
-									columns[2].getEditor().getStore().loadData( Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll("WHSE") ) ;
+									columns[2].getEditor().getStore().loadData( Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetAll_linkWhse("WHSE", this.gridRecord.get('whse_code')) ) ;
 									break ;
 							}
 						},

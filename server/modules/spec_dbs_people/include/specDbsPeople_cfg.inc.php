@@ -391,6 +391,75 @@ function specDbsPeople_cfg_getLinks() {
 		$obj_whseTreenode_arrCliCodes[$whse_treenodeKey] = $whseTreenode_arrCliCodes ;
 	}
 	
+	$raw_records = array() ;
+	$query = "SELECT treenode_key, treenode_parent_key FROM store_bible_CFG_WHSE_tree ORDER BY treenode_key" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
+	{
+		$record = array() ;
+		$record['key'] = 'T:'.$arr['treenode_key'] ;
+		$record['parent_key'] = 'T:'.$arr['treenode_parent_key'] ;
+		$raw_records[] = $record ;
+	}
+	$query = "SELECT entry_key, treenode_key FROM store_bible_CFG_WHSE_entry ORDER BY entry_key" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
+	{
+		$record = array() ;
+		$record['key'] = 'E:'.$arr['entry_key'] ;
+		$record['parent_key'] = 'T:'.$arr['treenode_key'] ;
+		$raw_records[] = $record ;
+	}
+	$tree_WHSE = new GenericTree("&") ;
+	do {
+		$nb_pushed_this_pass = 0 ;
+		foreach( $raw_records as $mid => $record )
+		{
+			if( $record['parent_key'] == 'T:' )
+				$record['parent_key'] = '&' ;
+			if( $record['key'] == '' )
+				continue ;
+		
+			$parent_key = $record['parent_key'] ;
+			$key = $record['key'] ;
+			
+			if( $tree_WHSE->getTree( $parent_key ) != NULL )
+			{
+				$parent_node = $tree_WHSE->getTree( $parent_key ) ;
+				$parent_node->addLeaf( $key ) ;
+				unset($raw_records[$mid]) ;
+				
+				$nb_pushed_this_pass++ ;
+				$nb_pushed++ ;
+			}
+			if( count($raw_records) == 0 )
+				break ;
+		}
+	}
+	while( $nb_pushed_this_pass > 0 ) ;
+	
+	$obj_whse_arrTransfertWhses = array() ;
+	$query = "SELECT entry_key, treenode_key FROM view_bible_CFG_WHSE_entry" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$whse_entryKey = $arr[0] ;
+		
+		$node = $tree_WHSE->getTree('E:'.$whse_entryKey) ;
+		if( $node == NULL ) {
+			continue ;
+		}
+		while( $node->getDepth() > 1 ) {
+			$node = $node->getParent() ;
+		}
+		$arr_leafs = array() ;
+		foreach( $node->getAllMembers() as $nodeKey ) {
+			if( substr($nodeKey,0,2) == 'E:' ) {
+				$arr_leafs[] = substr($nodeKey,2) ;
+			}
+		}
+		$obj_whse_arrTransfertWhses[$whse_entryKey] = $arr_leafs ;
+	}
+	
 	
 	
 	return array(
@@ -400,7 +469,9 @@ function specDbsPeople_cfg_getLinks() {
 			'obj_whseTreenode_arrCliCodes' => $obj_whseTreenode_arrCliCodes,
 			'obj_whse_defaultCliCode' => $obj_whse_defaultCliCode,
 			
-			'obj_whse_arrRoleCodes' => $obj_whse_arrRoleCodes
+			'obj_whse_arrRoleCodes' => $obj_whse_arrRoleCodes,
+			
+			'obj_whse_arrTransfertWhses' => $obj_whse_arrTransfertWhses
 		)
 	);
 }

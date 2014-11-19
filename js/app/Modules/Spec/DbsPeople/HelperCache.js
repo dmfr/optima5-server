@@ -25,8 +25,10 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.HelperCache',{
 	
 	cfgStores: null,
 	cfgObj_whse_arrCliCodes: null,
+	cfgObj_whseTreenode_arrCliCodes: null,
 	cfgObj_whse_defaultCliCode: null,
 	cfgObj_whse_arrRoleCodes: null,
+	cfgObj_whse_arrTransfertWhses: null,
 	
 	authPage: null,
 	authWhse: null,
@@ -135,7 +137,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.HelperCache',{
 	forTypeGetAll_linkWhse: function( type, whseCode ) {
 		var data = this.forTypeGetAll(type,true),
 			returnData = [],
-			arrCliCodes, arrRoleCodes ;
+			arrCliCodes, arrRoleCodes, arrTransfertWhses ;
 		Ext.Array.each( data, function(dataRow) {
 			switch( type ) {
 				case 'CLI' :
@@ -152,6 +154,15 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.HelperCache',{
 						arrRoleCodes = this.links_role_getForWhse(whseCode) ;
 					}
 					if( !Ext.Array.contains( arrRoleCodes, dataRow.id ) ) {
+						return ;
+					}
+					break ;
+					
+				case 'WHSE' :
+					if( arrTransfertWhses == null ) {
+						arrTransfertWhses = this.links_transfertWhse_getForWhse(whseCode) ;
+					}
+					if( whseCode==dataRow.id || !Ext.Array.contains( arrTransfertWhses, dataRow.id ) ) {
 						return ;
 					}
 					break ;
@@ -294,6 +305,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.HelperCache',{
 		
 		this.cfgObj_whse_arrRoleCodes = ajaxData.data.obj_whse_arrRoleCodes ;
 		
+		this.cfgObj_whse_arrTransfertWhses = ajaxData.data.obj_whse_arrTransfertWhses ;
+		
 		this.onLibLoad() ;
 	},
 	links_cli_isSilent: function( whseCode ) {
@@ -322,6 +335,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.HelperCache',{
 	},
 	links_role_getForWhse: function( whseCode ) {
 		return Ext.clone(this.cfgObj_whse_arrRoleCodes[whseCode]) || [] ;
+	},
+	links_transfertWhse_getForWhse: function( whseCode ) {
+		return Ext.clone(this.cfgObj_whse_arrTransfertWhses[whseCode]) || [] ;
 	},
 	
 	onLibLoad: function() {
