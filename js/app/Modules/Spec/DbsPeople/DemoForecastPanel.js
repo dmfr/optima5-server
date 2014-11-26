@@ -1,4 +1,4 @@
-Ext.define('DbsPeopleForecastModel', {
+Ext.define('DbsPeopleDemoForecastModel', {
     extend: 'Ext.data.Model',
     fields: [
         {name: 'time_type',  type: 'string'},
@@ -19,7 +19,7 @@ Ext.define('DbsPeopleForecastModel', {
 });
 
 
-Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
+Ext.define('Optima5.Modules.Spec.DbsPeople.DemoForecastPanel',{
 	extend:'Ext.panel.Panel',
 	
 	requires:['Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel'],
@@ -82,7 +82,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 					expandOnDblClick: false,
 					expandOnEnter: false,
 					createComponent: function(view, record, rowNode, rowIndex) {
-						return Ext.create('Optima5.Modules.Spec.DbsPeople.ForecastRowPanel', {
+						return Ext.create('Optima5.Modules.Spec.DbsPeople.DemoForecastRowPanel', {
 							forceFit: true,
 							height: 190,
 							rowRecord: record,
@@ -101,7 +101,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 				}],
 				store: {
 					groupField:'time_type',
-					model: 'DbsPeopleForecastModel',
+					model: 'DbsPeopleDemoForecastModel',
 					data:[{
 						time_type: 'Journées',
 						time_txt: 'Mer. 12/02/2014',

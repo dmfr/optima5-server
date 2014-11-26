@@ -1,4 +1,4 @@
-Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastRowPanel',{
+Ext.define('Optima5.Modules.Spec.DbsPeople.DemoForecastRowPanel',{
 	extend: 'Ext.panel.Panel',
 	
 	requires: [
