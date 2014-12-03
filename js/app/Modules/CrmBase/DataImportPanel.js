@@ -145,14 +145,24 @@ Ext.define('Optima5.Modules.CrmBase.DataImportPanel' ,{
 								flex: 1,
 								html: '&#160;'
 							},{
-								itemId: 'rgTruncateMode',
+								itemId: 'rgBibleTruncateMode',
 								hidden: !(me.parentDataWindow.dataType=='bible'),
 								xtype: 'radiogroup',
 								columns: 1,
 								vertical: true,
 								items:[
-									{boxLabel: 'Append to bible', name: 'truncate_mode', inputValue: 'append', checked: true},
-									{boxLabel: 'Truncate before', name: 'truncate_mode', inputValue: 'truncate'}
+									{boxLabel: 'Append to bible', name: 'bible_truncate_mode', inputValue: 'append', checked: true},
+									{boxLabel: 'Truncate before', name: 'bible_truncate_mode', inputValue: 'truncate'}
+								]
+							},{
+								itemId: 'rgFileOverwriteMode',
+								hidden: !(me.parentDataWindow.dataType=='file'),
+								xtype: 'radiogroup',
+								columns: 1,
+								vertical: true,
+								items:[
+									{boxLabel: 'Overwrite primaryKeys', name: 'file_truncate_mode', inputValue: 'overwrite', checked: true},
+									{boxLabel: 'Ignore if exists', name: 'file_truncate_mode', inputValue: 'ignore'}
 								]
 							},{
 								xtype: 'box',
@@ -498,7 +508,19 @@ Ext.define('Optima5.Modules.CrmBase.DataImportPanel' ,{
 		if( ajaxData.csvsrc_params ) {
 			csvForm.getComponent('fsBuffer').setVisible(true) ;
 			me.suspendOnParamsChange = true ;
-			csvForm.getForm().setValues(ajaxData.csvsrc_params) ;
+			var formValues = ajaxData.csvsrc_params ;
+			if( !Ext.isEmpty(formValues.truncate_mode) ) {
+				switch( me.parentDataWindow.dataType ) {
+					case 'bible' :
+						formValues['bible_truncate_mode'] = formValues.truncate_mode ;
+						break ;
+						
+					case 'file' :
+						formValues['file_truncate_mode'] = formValues.truncate_mode ;
+						break ;
+				}
+			}
+			csvForm.getForm().setValues(formValues) ;
 			me.suspendOnParamsChange = false ;
 		}
 		
@@ -543,13 +565,23 @@ Ext.define('Optima5.Modules.CrmBase.DataImportPanel' ,{
 				map_fieldCode_csvsrcIdx[nodeFieldcode] = node.get('csvsrc_idx') ;
 			}
 		}) ;
-			
+		
+		var truncateMode = '' ;
+		switch( me.parentDataWindow.dataType ) {
+			case 'bible' :
+				truncateMode = csvForm.getValues().bible_truncate_mode ;
+				break ;
+				
+			case 'file' :
+				truncateMode = csvForm.getValues().file_truncate_mode ;
+				break ;
+		}
 		var ajaxParams = new Object() ;
 		Ext.apply( ajaxParams, {
 			_action: 'data_importTransaction',
 			_transaction_id: me.transaction_id,
 			_subaction: 'do_commit',
-			truncate_mode: csvForm.findField('truncate_mode').getValue(),
+			truncate_mode: truncateMode,
 			map_fieldCode_csvsrcIdx: Ext.JSON.encode(map_fieldCode_csvsrcIdx)
 		});
 		

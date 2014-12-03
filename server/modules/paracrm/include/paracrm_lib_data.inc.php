@@ -597,7 +597,7 @@ function paracrm_lib_data_bibleAssignParentTreenode( $bible_code, $treenode_key,
 
 
 
-function paracrm_lib_data_insertRecord_file( $file_code , $filerecord_parent_id , $data )
+function paracrm_lib_data_insertRecord_file( $file_code , $filerecord_parent_id , $data, $ignore_ifExists=FALSE )
 {
 	global $_opDB ;
 	
@@ -666,6 +666,9 @@ function paracrm_lib_data_insertRecord_file( $file_code , $filerecord_parent_id 
 			$query.= " AND `{$dbfield}` = '{$data[$datafield]}'" ;
 		}
 		if( $primaryKey_filerecordId = $_opDB->query_uniqueValue($query) ) {
+			if( $ignore_ifExists ) {
+				return $primaryKey_filerecordId ;
+			}
 			return paracrm_lib_data_updateRecord_file( $file_code , $data, $primaryKey_filerecordId ) ;
 		}
 		unset($db_view) ;

@@ -165,6 +165,12 @@ function paracrm_lib_dataImport_getMapping( $importmap_id, $csvsrc_arrHeaderTxt=
 	}
 	return $map_fieldCode_csvsrcIdx ;
 }
+function paracrm_lib_dataImport_getTruncateMode( $importmap_id ) {
+	global $_opDB ;
+	
+	$query = "SELECT truncate_mode FROM importmap WHERE importmap_id='$importmap_id'" ;
+	return $_opDB->query_uniqueValue($query) ;
+}
 
 
 
@@ -194,8 +200,10 @@ function paracrm_lib_dataImport_commit_processHandle( $data_type,$store_code, $h
 	
 	if( $importmap_id = paracrm_lib_dataImport_probeMappingId($data_type,$store_code, $csvsrc_arrHeadertxt) ) {
 		$map_fieldCode_csvsrcIdx = paracrm_lib_dataImport_getMapping($importmap_id) ;
+		$truncate_mode = paracrm_lib_dataImport_getTruncateMode($importmap_id) ;
 	} elseif( $importmap_id = paracrm_lib_dataImport_probeMappingId($data_type,$store_code, $csvsrc_arrHeadertxt, $strict_mode=FALSE) ) {
 		$map_fieldCode_csvsrcIdx = paracrm_lib_dataImport_getMapping($importmap_id, $csvsrc_arrHeadertxt) ;
+		$truncate_mode = paracrm_lib_dataImport_getTruncateMode($importmap_id) ;
 	} else {
 		return FALSE ;
 	}
@@ -215,14 +223,14 @@ function paracrm_lib_dataImport_commit_processHandle( $data_type,$store_code, $h
 			$arr_srcLig[$fieldCode] = $arr_csv[$sIdx] ;
 		}
 		
-		paracrm_lib_dataImport_commit_processNode($treefields_root,$arr_srcLig) ;
+		paracrm_lib_dataImport_commit_processNode($treefields_root,$arr_srcLig,$truncate_mode) ;
 	}
 	
 	
 	return TRUE ;
 }
 
-function paracrm_lib_dataImport_commit_processNode( $treefields_node, $arr_srcLig ) {
+function paracrm_lib_dataImport_commit_processNode( $treefields_node, $arr_srcLig, $truncate_mode=NULL ) {
 	if( !$treefields_node['root'] ) {
 		return ;
 	}
@@ -230,7 +238,7 @@ function paracrm_lib_dataImport_commit_processNode( $treefields_node, $arr_srcLi
 	$treenode_key = '' ;
 	foreach( $treefields_node['children'] as $directChild ) {
 		if( isset($directChild['file_code']) ) {
-			$filerecord_id = paracrm_lib_dataImport_commit_processNode_file( $directChild, $arr_srcLig, $filerecord_id );
+			$filerecord_id = paracrm_lib_dataImport_commit_processNode_file( $directChild, $arr_srcLig, $filerecord_id, $truncate_mode );
 			continue ;
 		}
 		if( isset($directChild['bible_code']) ) {
@@ -243,7 +251,7 @@ function paracrm_lib_dataImport_commit_processNode( $treefields_node, $arr_srcLi
 		echo "??pN??" ;
 	}
 }
-function paracrm_lib_dataImport_commit_processNode_file( $treefields_node, $arr_srcLig, $filerecord_parent_id=0 ) {
+function paracrm_lib_dataImport_commit_processNode_file( $treefields_node, $arr_srcLig, $filerecord_parent_id=0, $truncate_mode=NULL ) {
 	if( $treefields_node['leaf'] ) {
 		return NULL ;
 	}
@@ -291,7 +299,7 @@ function paracrm_lib_dataImport_commit_processNode_file( $treefields_node, $arr_
 		$mkey = 'field_'.$file_field_code ;
 		$arr_ins[$mkey] = $value ;
 	}
-	return paracrm_lib_data_insertRecord_file( $file_code , $filerecord_parent_id , $arr_ins ) ;
+	return paracrm_lib_data_insertRecord_file( $file_code , $filerecord_parent_id , $arr_ins, $ignore_ifExists=($truncate_mode=='ignore') ) ;
 }
 function paracrm_lib_dataImport_commit_processNode_bible( $treefields_node, $arr_srcLig, $treenode_parent_key='' ) {
 	if( $treefields_node['leaf'] ) {

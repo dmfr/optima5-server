@@ -220,11 +220,13 @@ function paracrm_data_importTransaction_getResponse( &$arr_saisie ) {
 			$arr_saisie['importmap_id'] = $importmap_id ;
 			$data['map_fieldCode_csvsrcIdx'] = paracrm_lib_dataImport_getMapping($importmap_id) ;
 			$arr_saisie['csvsrc_params']['firstrow_is_header'] = TRUE ;
+			$arr_saisie['csvsrc_params']['truncate_mode'] = paracrm_lib_dataImport_getTruncateMode($importmap_id) ;
 		}
 		elseif( $importmap_id = paracrm_lib_dataImport_probeMappingId($arr_saisie['data_type'],$store_code, $arr_saisie['csvsrc_arrHeadertxt'], $strict_mode=FALSE) ) {
 			$arr_saisie['importmap_id'] = NULL ;
 			$data['map_fieldCode_csvsrcIdx'] = paracrm_lib_dataImport_getMapping($importmap_id, $arr_saisie['csvsrc_arrHeadertxt']) ;
 			$arr_saisie['csvsrc_params']['firstrow_is_header'] = TRUE ;
+			$arr_saisie['csvsrc_params']['truncate_mode'] = paracrm_lib_dataImport_getTruncateMode($importmap_id) ;
 		}
 	}
 	
@@ -293,6 +295,7 @@ function paracrm_data_importTransaction_doCommit( $post_data, &$arr_saisie ) {
 	
 	// Get mapping
 	$map_fieldCode_csvsrcIdx = json_decode($post_data['map_fieldCode_csvsrcIdx'],true) ;
+	$truncate_mode = $post_data['truncate_mode'] ;
 	
 	// Validate mapping
 	$validation_error = NULL ;
@@ -347,6 +350,7 @@ function paracrm_data_importTransaction_doCommit( $post_data, &$arr_saisie ) {
 		$arr_update['csvsrc_length'] = $arr_saisie['csvsrc_length'] ;
 		$arr_update['target_biblecode'] = ($arr_saisie['data_type']=='bible' ? $arr_saisie['bible_code'] : '') ;
 		$arr_update['target_filecode'] = ($arr_saisie['data_type']=='file' ? $arr_saisie['file_code'] : '') ;
+		$arr_update['truncate_mode'] = $truncate_mode ;
 		$_opDB->update('importmap',$arr_update,$arr_cond) ;
 		
 		$query = "DELETE FROM importmap_column WHERE importmap_id='{$arr_saisie['importmap_id']}'" ;
@@ -385,7 +389,7 @@ function paracrm_data_importTransaction_doCommit( $post_data, &$arr_saisie ) {
 			$arr_srcLig[$fieldCode] = $arr_csv[$sIdx] ;
 		}
 		
-		paracrm_lib_dataImport_commit_processNode($arr_saisie['treefields_root'],$arr_srcLig) ;
+		paracrm_lib_dataImport_commit_processNode($arr_saisie['treefields_root'], $arr_srcLig, $truncate_mode) ;
 	}
 	fclose($fp) ;
 	
