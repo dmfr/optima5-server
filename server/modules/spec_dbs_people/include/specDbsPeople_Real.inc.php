@@ -881,6 +881,9 @@ function specDbsPeople_Real_RhAbsDownload( $post_data ) {
 			$calc_quota_start = $ttmp[$people_code]['calc_value'] ;
 			$ttmp = specDbsPeople_lib_calc_getCalcAttributeRecords_CP( date('Y-m-d',strtotime($abs_date_end)) ) ;
 			$calc_quota_end = $ttmp[$people_code]['calc_value'] ;
+			$ttmp = specDbsPeople_lib_calc_getCalcAttributeRecords_CP(NULL) ;
+			$calc_quota_total = $ttmp[$people_code]['calc_value'] ;
+			$calc_quota_duration = $calc_quota_end - $calc_quota_start ;
 			$calc_unit = $ttmp[$people_code]['calc_unit_short'] ;
 			break ;
 		case 'RTT' :
@@ -888,10 +891,12 @@ function specDbsPeople_Real_RhAbsDownload( $post_data ) {
 			$calc_quota_start = $ttmp[$people_code]['calc_value'] ;
 			$ttmp = specDbsPeople_lib_calc_getCalcAttributeRecords_RTT( date('Y-m-d',strtotime($abs_date_end)) ) ;
 			$calc_quota_end = $ttmp[$people_code]['calc_value'] ;
+			$ttmp = specDbsPeople_lib_calc_getCalcAttributeRecords_RTT(NULL) ;
+			$calc_quota_total = $ttmp[$people_code]['calc_value'] ;
+			$calc_quota_duration = $calc_quota_end - $calc_quota_start ;
 			$calc_unit = $ttmp[$people_code]['calc_unit_short'] ;
 			break ;
 		default :
-			$calc_quota_start = $calc_quota_end = 'N/A' ;
 			$calc_unit = '' ;
 			break ;
 	}
@@ -904,8 +909,14 @@ function specDbsPeople_Real_RhAbsDownload( $post_data ) {
 	$VALUES['abs_txt'] = $abs_txt ;
 	$VALUES['abs_date_start'] = date('d/m/Y',strtotime($abs_date_start)) ;
 	$VALUES['abs_date_end'] = date('d/m/Y',strtotime($abs_date_end)) ;
-	$VALUES['calc_quota_start'] = $calc_quota_start ;
-	$VALUES['calc_quota_end'] = $calc_quota_end ;
+	$VALUES['calc_quota_start'] = 'N/A' ;
+	$VALUES['calc_quota_proj'] = 'N/A' ;
+	$VALUES['calc_quota_projEnd'] = 'N/A' ;
+	if( isset($calc_quota_start) && isset($calc_quota_total) && isset($calc_quota_duration) ) {
+		$VALUES['calc_quota_start'] = $calc_quota_start ;
+		$VALUES['calc_quota_proj'] = $calc_quota_total - $calc_quota_duration ;
+		$VALUES['calc_quota_projEnd'] = $calc_quota_total ;
+	}
 	$VALUES['calc_unit'] = $calc_unit ;
 	
 	
