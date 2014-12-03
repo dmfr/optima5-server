@@ -4,7 +4,7 @@ class DatabaseMgr_Sdomain {
 	private $_opDB ;
 	private $domain_id ;
 	
-	private static $dbVersion = 24 ;
+	private static $dbVersion = 25 ;
 	
 	public function __construct( $domain_id ) {
 		$this->_opDB = $GLOBALS['_opDB'] ;
@@ -667,6 +667,7 @@ CREATE TABLE `importmap` (
   `csvsrc_length` int(11) NOT NULL,
   `target_biblecode` varchar(100) NOT NULL,
   `target_filecode` varchar(100) NOT NULL,
+  `truncate_mode` varchar(100) NOT NULL,
   PRIMARY KEY (`importmap_id`)
 ) ;
 
