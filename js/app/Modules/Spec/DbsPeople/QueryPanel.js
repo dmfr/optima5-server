@@ -380,12 +380,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryPanel',{
 			filterSite = me.down('#filterSite'),
 			filterTeam = me.down('#filterTeam'),
 			filterCli = me.down('#filterCli') ;
-		if( filterSite.getValue() ) {
-			formValues['filter_site_entries'] = filterSite.getLeafNodesKey() ;
-		}
-		if( filterTeam.getValue() ) {
-			formValues['filter_team_entries'] = filterTeam.getLeafNodesKey() ;
-		}
+		formValues['filter_site_entries'] = filterSite.getLeafNodesKey() ;
+		formValues['filter_team_entries'] = filterTeam.getLeafNodesKey() ;
 		if( filterCli.isVisible() && !Ext.isEmpty(filterCli.getValue()) ) {
 			formValues['filter_cli_code'] = filterCli.getValue() ;
 		}

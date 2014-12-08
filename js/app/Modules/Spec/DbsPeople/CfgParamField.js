@@ -155,6 +155,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.CfgParamField',{
 		}
 		var cfgParamTree = this.cfgParamTree ;
 		cfgParamTree.setValue(value,true) ;
+		if( Ext.isEmpty(value) ) {
+			cfgParamTree.autoAdvance() ;
+		}
 	},
 	
 	getRawValue: function() {

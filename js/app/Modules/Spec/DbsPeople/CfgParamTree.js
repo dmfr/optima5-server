@@ -165,7 +165,12 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.CfgParamTree',{
 			if( node.childNodes.length > 1 ) {
 				return false ;
 			}
-			setValue = (node.isRoot() ? null : node.getId()) ;
+			if( node.childNodes.length == 1 ) {
+				var uniqueChildNode = node.childNodes[0] ;
+				if( !uniqueChildNode.isLeaf() ) {
+					setValue = uniqueChildNode.getId() ;
+				}
+			}
 			if( !node.get('expandable') ) {
 				return false ;
 			}
