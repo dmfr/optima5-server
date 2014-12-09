@@ -214,10 +214,10 @@ Ext.define('Optima5.Modules.CrmBase.BiblePicker',{
 				me.applyPrettyValue(fakeRecords) ;
 				break ;
 			case 'single' :
-				if( mvalue == null || mvalue == '' ) {
+				if( Ext.isEmpty(record) ) {
 					me.myValue = [] ;
 				} else {
-					me.myValue = [mvalue] ;
+					me.myValue = [record.get('entry_key')] ;
 				}
 				me.applyPrettyValue([record]) ;
 				break ;
