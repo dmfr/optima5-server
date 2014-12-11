@@ -61,6 +61,7 @@ Ext.define('WbMrfoxyPromoModel', {
         {name: 'cost_forecast_var',   type: 'number'},
         {name: 'cost_real',   type: 'number'},
         {name: 'cost_real_is_calc',   type: 'boolean'},
+        {name: 'obs_shortshelflife',   type: 'boolean'},
         {name: 'obs_atl',   type: 'string'},
         {name: 'obs_btl',   type: 'string'},
         {name: 'obs_comment',   type: 'string'},

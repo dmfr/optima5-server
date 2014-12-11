@@ -141,6 +141,16 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoAccrualsSubpanel',{
 							bibleId: 'IRI_PROD'
 						}
 					},{
+						text: 'SSL',
+						dataIndex: 'obs_shortshelflife',
+						width: 50,
+						renderer: function(v,metaData) {
+							if( v ) {
+								metaData.style += ';font-weight:bold;'
+								return 'X' ;
+							}
+						}
+					},{
 						text: 'Billing',
 						dataIndex: 'cost_billing_text',
 						width: 75,
@@ -326,6 +336,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoAccrualsSubpanel',{
 		},{
 			dataIndex: 'prod_text',
 			text: 'Products'
+		},{
+			dataIndex: 'obs_shortshelflife',
+			text: 'Short Shelf Life'
 		},{
 			dataIndex: 'cost_billing_text',
 			text: 'Billing mode'

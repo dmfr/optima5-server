@@ -150,6 +150,7 @@ function specWbMrfoxy_promo_getGrid( $post_data ) {
 		$row['calc_uplift_per'] = $paracrm_row['WORK_PROMO_field_CALC_UPLIFT_PER'] ;
 		$row['calc_roi'] = $paracrm_row['WORK_PROMO_field_CALC_ROI'] ;
 		$row['calc_nb_displays'] = $paracrm_row['WORK_PROMO_field_CALC_NB_DISPLAYS'] ;
+		$row['obs_shortshelflife'] = $paracrm_row['WORK_PROMO_field_OBS_SHORTLIFE'] ;
 		$row['obs_atl'] = $paracrm_row['WORK_PROMO_field_OBS_ATL'] ;
 		$row['obs_btl'] = $paracrm_row['WORK_PROMO_field_OBS_BTL'] ;
 		$row['obs_comment'] = $paracrm_row['WORK_PROMO_field_OBS_COMMENT'] ;
@@ -536,6 +537,7 @@ function specWbMrfoxy_promo_formSubmit( $post_data ) {
 	$arr_ins['field_STORE'] = $form_data['store_code'] ;
 	$arr_ins['field_PROD'] = $form_data['prod_code'] ;
 	
+	$arr_ins['field_MECH_REWARDCARD'] = ($form_data['mechanics_rewardcard']!=null) ;
 	$arr_ins['field_MECH_TYPE'] = $form_data['mechanics_code'] ;
 	switch( $form_data['mechanics_code'] ) {
 		case 'MULTI' :
@@ -559,6 +561,7 @@ function specWbMrfoxy_promo_formSubmit( $post_data ) {
 	$arr_ins['field_COST_FORECAST'] = $form_data['cost_forecast'] ;
 	$arr_ins['field_COST_FORECAST_VAR'] = $form_data['cost_forecast_var'] ;
 	
+	$arr_ins['field_OBS_SHORTLIFE'] = ($form_data['obs_shortshelflife']!=null) ;
 	$arr_ins['field_OBS_COMMENT'] = $form_data['obs_comment'] ;
 	
 	

@@ -329,6 +329,14 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 							valueField: 'txt'
 						}]
 					},{
+						xtype: 'checkbox',
+						boxLabel: 'Short shelf life',
+						name: 'obs_shortshelflife',
+						listeners:{
+							change: function(){},
+							scope:me
+						}
+					},{
 						xtype:'fieldset',
 						defaults: {
 							anchor: '100%',
