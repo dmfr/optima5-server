@@ -12,7 +12,15 @@ Ext.define('WbMrfoxyNAgreementModel', {
 		{name: 'nagreement_txt', type: 'string'},
 		{name: 'amount_forecast', type: 'number'},
 		{name: 'amount_real', type: 'number'},
-		{name: 'status_isReal', type: 'boolean'}
+		{name: 'status_isReal', type: 'boolean'},
+		{
+			name: 'group_key',
+			type: 'string',
+			convert: function(v, record) {
+				v = record.data.cropYear_code+'@@@'+record.data.country_code ;
+				return v ;
+			}
+		}
 	]
 });
 
@@ -55,6 +63,10 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoNAgreementsSubpanel',{
 					}),
 					sorters: [{
 						property: 'cropYear_code',
+						direction: 'DESC'
+					}],
+					groupers: [{
+						property: 'group_key',
 						direction: 'DESC'
 					}],
 					listeners: {
@@ -182,6 +194,29 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoNAgreementsSubpanel',{
 				features: [{
 					ftype: 'filters',
 					encode: true
+				},{
+					ftype: 'grouping',
+					hideGroupedHeader: false,
+					enableGroupingMenu: false,
+					enableNoGroups: false,
+					groupHeaderTpl:Ext.create('Ext.XTemplate',
+						'<div>{[this.renderer(values)]}</div>',
+						{
+							renderer: function(values) {
+								if( values.rows.length == 0 ) {
+									return '' ;
+								}
+								switch( values.groupField ) {
+									case 'group_key' :
+										var groupKeySplit = values.rows[0].data.group_key.split('@@@') ;
+										if( groupKeySplit.length != 2 ) {
+											return 'Unknown' ;
+										}
+										return 'Crop : <b>'+groupKeySplit[0]+'</b> - Country : <b>'+groupKeySplit[1]+'</b>' ;
+								}
+							}
+						}
+					)
 				}]
 			}]
 		}); 
