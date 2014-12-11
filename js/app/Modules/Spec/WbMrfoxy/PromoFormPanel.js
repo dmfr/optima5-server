@@ -390,6 +390,34 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 						},{
 							xtype: 'displayfield',
 							displayName: 'currency'
+						},{
+							xtype:'box',
+							html:'&#160;',
+							width: 36
+						},{
+							xtype: 'displayfield',
+							value: 'Volume:'
+						},{
+							xtype:'box',
+							html:'&#160;',
+							width: 6
+						},{
+							xtype: 'displayfield',
+							name: 'volume_forecast_display',
+							fieldStyle: 'font-weight:bold',
+							valueToRaw: function(v) {
+								if( isNaN(v) ) {
+									return '-' ;
+								}
+								return Ext.util.Format.number(v,'0,0') ;
+							}
+						},{
+							xtype:'box',
+							html:'&#160;',
+							width: 6
+						},{
+							xtype: 'displayfield',
+							value: 'kg / lit'
 						}]
 					},{
 						xtype: 'fieldcontainer',
@@ -675,6 +703,13 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 		me.getFormPanel().getForm().findField('cost_forecast').setValue(total) ;
 		me.getFormPanel().getForm().findField('cost_forecast_display').setValue(total) ;
 		me.down('op5specmrfoxybudgetbar').setVariableCost(total) ;
+		
+		if( me.getSkuList() ) {
+			volume = me.getSkuList().getTotalVolume() ;
+		} else {
+			volume = 0 ;
+		}
+		me.getFormPanel().getForm().findField('volume_forecast_display').setValue(volume) ;
 	},
 	
 	loadDataFromRecord: function( promoRecord ) {

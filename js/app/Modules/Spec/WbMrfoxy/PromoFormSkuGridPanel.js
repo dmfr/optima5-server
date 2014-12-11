@@ -209,6 +209,13 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormSkuGridPanel',{
 		},this) ;
 		return forecastSku ;
 	},
+	getTotalVolume: function() {
+		volumeSku = 0 ;
+		this.getStore().each( function(record) {
+			volumeSku += record.get('sku_volume') * record.get('promo_qty_forecast') ;
+		},this) ;
+		return volumeSku ;
+	},
 	
 	setSkuData: function( arrRecords ) {
 		this.getStore().loadRawData(arrRecords) ;
