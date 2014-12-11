@@ -185,6 +185,12 @@ function specDbsPeople_cfg_getCfgBibles() {
 		$TAB['CLI'][] = array('id'=>$arr[0],'text'=>$arr[1]) ;
 	}
 	
+	$query = "SELECT field_UO_CODE, field_UO_TXT FROM view_bible_CFG_UO_entry ORDER BY field_UO_TXT" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$TAB['UO'][] = array('id'=>$arr[0],'text'=>$arr[1]) ;
+	}
+	
 	return array('success'=>true, 'data'=>$TAB) ;
 }
 

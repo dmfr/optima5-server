@@ -57,6 +57,14 @@ switch( $post_data['_action'] )
 	return specDbsPeople_auth_getTable( $post_data ) ;
 	
 	
+	case 'Forecast_setCfgWhse' :
+	return specDbsPeople_Forecast_setCfgWhse( $post_data ) ;
+	case 'Forecast_buildResources' :
+	return specDbsPeople_Forecast_buildResources( $post_data ) ;
+	case 'Forecast_getWeeks' :
+	return specDbsPeople_Forecast_getWeeks( $post_data ) ;
+	
+	
 	default :
 	return NULL ;
 }
