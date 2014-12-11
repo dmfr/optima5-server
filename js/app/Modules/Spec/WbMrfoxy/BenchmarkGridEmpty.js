@@ -67,6 +67,22 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.BenchmarkGridEmpty',{
 						v = Math.round( (cost/upliftKg)*100 ) / 100 ;
 						return Ext.util.Format.number(v,'0,0.00') ;
 					}
+				},{
+					text: 'Mechanics',
+					dataIndex: 'mechanics_text',
+					width: 150
+				},{
+					text: 'BaseIN',
+					dataIndex: 'baseline_in_value',
+					align: 'right',
+					width: 70,
+					format: '0.00'
+				},{
+					text: 'BaseOUT',
+					dataIndex: 'baseline_out_value',
+					align: 'right',
+					width: 70,
+					format: '0.00'
 				}]
 			}
 		});
