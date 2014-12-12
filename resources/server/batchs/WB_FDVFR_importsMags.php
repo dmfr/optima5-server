@@ -94,6 +94,7 @@ while( !feof($handle) )
 	$arr_mag['field_STOREADR'] = $arr_csv[10] ;
 	$arr_mag['field_STORECP'] = $arr_csv[9] ;
 	$arr_mag['field_STOREVILLE'] = $arr_csv[8] ;
+	$arr_mag['field_TOREPORT'] = $arr_csv[17] ;
 	/*
 	$res = FALSE ;
 	$GMap = new GMaps($google_key);
@@ -177,7 +178,15 @@ foreach($tab_entries as $arr_entry )
 	{
 		if( !(strpos($mkey,'field_') === 0) )
 			continue ;
-		$mkey.= '_str' ; 
+		switch( $mkey ) {
+			case 'field_TOREPORT' :
+				$mkey.= '_int' ; 
+				break ;
+		
+			default :
+				$mkey.= '_str' ; 
+				break ;
+		}
 		$arr_ins[$mkey] = $mvalue ;
 	}
 	foreach( $arr_entry as $mkey=>$mvalue )
