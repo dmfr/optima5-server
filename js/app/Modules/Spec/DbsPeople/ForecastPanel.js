@@ -32,6 +32,13 @@ Ext.define('DbsPeopleForecastUoVolumeModel', {
 		{name: 'uo_qty_unit', type: 'int'}
 	]
 });
+Ext.define('DbsPeopleForecastWeekCoefModel', {
+	extend: 'Ext.data.Model',
+	fields: [
+		{name: 'weekday_date',  type: 'string'},
+		{name: 'weekday_coef', type: 'int'}
+	]
+});
 Ext.define('DbsPeopleForecastWeekModel', {
 	extend: 'Ext.data.Model',
 	fields: [
@@ -46,6 +53,10 @@ Ext.define('DbsPeopleForecastWeekModel', {
 		model: 'DbsPeopleForecastUoVolumeModel',
 		name: 'week_volumes',
 		associationKey: 'week_volumes'
+	},{
+		model: 'DbsPeopleForecastWeekCoefModel',
+		name: 'week_coefs',
+		associationKey: 'week_coefs'
 	}]
 });
 
@@ -54,6 +65,8 @@ Ext.define('DbsPeopleForecastRowModel', {
 	idProperty: 'id',
 	fields: [
 		{name: 'id',  type: 'string'},
+		{name: '_hidden', type:'boolean'},
+		{name: '_editable', type:'boolean'},
 		{name: 'group_id',  type: 'string'},
 		{name: 'role_code',  type: 'string'},
 		{
@@ -170,19 +183,19 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 			},{
 				itemId: 'tbSettings',
 				hidden: true,
-				iconCls: 'op5-crmbase-datatoolbar-view-grid',
+				icon: 'images/op5img/ico_config_small.gif',
 				viewConfig: {forceFit: true},
 				menu: {
 					items: [{
 						text: 'Importation RealPeople',
-						iconCls: 'op5-crmbase-datatoolbar-view-grid',
+						icon: 'images/op5img/ico_dataadd_16.gif',
 						handler:function(menuitem) {
 							this.sendBuildResources() ;
 						},
 						scope: this
 					},{
 						text: 'Config. UO / whse',
-						iconCls: 'op5-crmbase-datatoolbar-view-grid',
+						icon: 'images/op5img/ico_blocs_small.gif',
 						handler:function(menuitem) {
 							this.openCfgWhse() ;
 						},
@@ -402,6 +415,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 		this.hideLoadmask();
 	},
 	doGridConfigure: function() {
+		var me = this ;
+		
 		var pushModelfields = [] ;
 		var columns = [{
 			locked: true,
@@ -417,6 +432,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 			dataIndex: 'uo_code',
 			renderer: function(v,metaData,record) {
 				switch( record.get('group_id') ) {
+					case '0_WEEKCOEFS' :
+						return '<i>Coefficient jour</i>' ;
 					case '1_FCAST_UO' :
 					case '2_CAPACITY_UO' :
 						return record.get('uo_txt') ;
@@ -460,6 +477,10 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 			store: {
 				model: this.tmpModelName,
 				data: [],
+				filters: [{
+					property: '_hidden',
+					value: false
+				}],
 				sorters: [{
 					property: 'role_code',
 					direction: 'ASC'
@@ -502,6 +523,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 								case 'group_id' :
 									var groupId = values.rows[0].data.group_id ;
 									switch( groupId ) {
+										case '0_WEEKCOEFS' :
+											return 'Répartition sur semaine' ;
 										case '1_FCAST_UO' :
 											return 'Forecast (UOs)' ;
 										case '2_CAPACITY_UO' :
@@ -523,47 +546,51 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 			viewConfig: {
 				preserveScrollOnRefresh: true,
 				getRowClass: function(record) {
-					switch( record.get('group_id') ) {
-						case '1_FCAST_UO' :
-							return 'op5-spec-dbspeople-realcolor-whse' ;
-						case '2_CAPACITY_UO' :
-						case '3_BALANCE_ROLES' :
-							break ;
+					if( record.get('_editable') ) {
+						return 'op5-spec-dbspeople-realcolor-open' ;
 					}
 				}
 			}
 		}) ;
 	},
+	gridValueRenderer: function(v,metaData,record) {
+		switch( record.get('group_id') ) {
+			case '0_WEEKCOEFS' :
+				return v.day_coef ;
+			
+			case '1_FCAST_UO' :
+				if( v.uo_qty_unit == null ) {
+					return '' ;
+				}
+				return Math.round(v.uo_qty_unit)
+			case '2_CAPACITY_UO' :
+				metaData.style += '; font-weight:bold;'
+				if( v.uo_qty_unit == null ) {
+					return '' ;
+				}
+				return Math.round(v.uo_qty_unit) ;
+				
+			case '3_BALANCE_ROLES' :
+				if( Ext.isEmpty(v) ) {
+					return '' ;
+				}
+				metaData.style += '; font-weight:bold;'
+				if( v.role_qty_people == 0 ) {
+					return '=' ;
+				}
+				var sign ;
+				if( v.role_qty_people > 0 ) {
+					metaData.tdCls += ' op5-spec-dbspeople-balance-neg' ;
+					sign = '+' ;
+				} else {
+					metaData.tdCls += ' op5-spec-dbspeople-balance-pos' ;
+					sign = '-' ;
+				}
+				return sign + ' ' + Ext.util.Format.number( Math.abs(v.role_qty_people), '0.00' ) ;
+		}
+	},
 	doGridConfigurePushWeeklist: function(pushModelfields, pushColumns) {
 		var dateCur = this.getDateStart() ;
-		
-		var valueRenderer = function(v,metaData,record) {
-			switch( record.get('group_id') ) {
-				case '1_FCAST_UO' :
-					return v.uo_qty_unit ;
-				case '2_CAPACITY_UO' :
-					//metaData.style += '; font-weight:bold;'
-					return v.uo_qty_unit ;
-					
-				case '3_BALANCE_ROLES' :
-					if( Ext.isEmpty(v) ) {
-						return '' ;
-					}
-					metaData.style += '; font-weight:bold;'
-					if( v.role_qty_people == 0 ) {
-						return '=' ;
-					}
-					var sign ;
-					if( v.role_qty_people > 0 ) {
-						metaData.tdCls += ' op5-spec-dbspeople-balance-neg' ;
-						sign = '+' ;
-					} else {
-						metaData.tdCls += ' op5-spec-dbspeople-balance-pos' ;
-						sign = '-' ;
-					}
-					return sign + ' ' + Ext.util.Format.number( Math.abs(v.role_qty_people), '0.00' ) ;
-			}
-		} ;
 		
 		for( var idx = 0 ; idx <= this.weekCount ; idx++ ) {
 			if( idx > 0 ) {
@@ -575,7 +602,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 				text = 'Sem ' + Ext.Date.format(dateCur,'W / o') ;
 			
 			pushModelfields.push({
-				name:'d_'+dStr,
+				name:'w_'+dStr,
 				type:'auto'
 			}) ;
 			
@@ -583,23 +610,26 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 				width: 100,
 				align: 'center',
 				text: text,
+				dateSqlWeek: dSql,
 				dateSql: dSql,
 				dateStr: dStr,
-				dataIndex: 'd_'+dStr,
+				dataIndex: 'w_'+dStr,
 				editor: { xtype: 'numberfield', minValue: 0, keyNavEnabled: false },
-				renderer: valueRenderer
+				renderer: this.gridValueRenderer
 			}) ;
 		}
 	},
 	doGridConfigurePushWeekdetail: function(pushModelfields, pushColumns) {
 		var dateCur = this.getDateStart() ;
-		for( var idx = 0 ; idx <= 7 ; idx++ ) {
+		var dateWeek = this.getDateStart() ;
+		for( var idx = 0 ; idx < 7 ; idx++ ) {
 			if( idx > 0 ) {
 				dateCur.setDate( dateCur.getDate() + 1 ) ;
 			}
 			
 			var dStr = Ext.Date.format(dateCur,'Ymd'),
 				dSql = Ext.Date.format(dateCur,'Y-m-d'),
+				dateSqlWeek = Ext.Date.format(dateWeek,'Y-m-d'),
 				text = Optima5.Modules.Spec.DbsPeople.HelperCache.DayNamesIntl.FR[dateCur.getDay()] + ' ' + Ext.Date.format(dateCur,'d/m') ;
 			
 			pushModelfields.push({
@@ -611,9 +641,12 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 				width: 100,
 				align: 'center',
 				text: text,
+				dateSqlWeek: dateSqlWeek,
 				dateSql: dSql,
 				dateStr: dStr,
-				
+				dataIndex: 'd_'+dStr,
+				editor: { xtype: 'numberfield', minValue: 0, keyNavEnabled: false },
+				renderer: this.gridValueRenderer
 			}) ;
 		}
 	},
@@ -622,11 +655,20 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 		var grid = this.child('grid'),
 			store = grid.getStore() ;
 			
+		var baseData = [];
+		
+		baseData.push({
+			_hidden: (this.viewMode != 'weekdetail'),
+			_editable: (this.viewMode == 'weekdetail'),
+			id: '0_WEEKCOEFS',
+			group_id: '0_WEEKCOEFS'
+		});
+		
 		// Create base records  1_FCAST_UO / 2_CAPACITY_UO / 3_BALANCE_ROLE
-		var baseData = [],
-			availableRoles = [];
+		var availableRoles = [];
 		Ext.Array.each( this.forecastCfgUoStore.getRange(), function(uoRecord) {
 			baseData.push({
+				_editable: (this.viewMode == 'weeklist'),
 				id: '1_FCAST_UO+'+uoRecord.get('uo_code'),
 				group_id: '1_FCAST_UO',
 				uo_code: uoRecord.get('uo_code')
@@ -651,7 +693,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 					role_code: roleCode
 				});
 			});
-		}) ;
+		},this) ;
 		
 		var gridData = {},
 			dateMap = this.gridAdapterGetDateMap() ;
@@ -690,6 +732,16 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 		grid.getView().refresh() ; //HACK
 	},
 	gridAdapterPopulateForForecastWeekRecord: function(gridData, forecastWeekRecord, dateMap) {
+		switch( this.viewMode ) {
+			case 'weeklist' :
+				return this.gridAdapterPopulateWeeklistForForecastWeekRecord(gridData, forecastWeekRecord, dateMap) ;
+			case 'weekdetail' :
+				return this.gridAdapterPopulateWeekdetailForForecastWeekRecord(gridData, forecastWeekRecord, dateMap) ;
+			default :
+				return ;
+		}
+	},
+	gridAdapterPopulateWeeklistForForecastWeekRecord: function(gridData, forecastWeekRecord, dateMap) {
 		if( dateMap == null ) {
 			dateMap = this.gridAdapterGetDateMap() ;
 		}
@@ -698,7 +750,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 		if( dateStr == null ) {
 			return ;
 		}
-		var columnKey = 'd_'+dateStr ;
+		var columnKeyWeek = 'w_'+dateStr ;
 		
 		var balanceByUo = {} ;
 		
@@ -710,7 +762,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 			if( !gridData.hasOwnProperty(rowId) ) {
 				gridData[rowId] = {} ;
 			}
-			gridData[rowId][columnKey] = {
+			gridData[rowId][columnKeyWeek] = {
 				uo_qty_unit: null,
 				_editorValue: 0
 			} ;
@@ -723,7 +775,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 			if( !gridData.hasOwnProperty(rowId) ) {
 				gridData[rowId] = {} ;
 			}
-			gridData[rowId][columnKey] = {
+			gridData[rowId][columnKeyWeek] = {
 				uo_qty_unit: ( qtyUnit <= 0 ? null : qtyUnit ),
 				_editorValue: ( qtyUnit <= 0 ? 0 : qtyUnit ),
 			} ;
@@ -741,7 +793,10 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 			Ext.Array.each( forecastWeekRecord.day_resources().getRange(), function(dayrsrcRecord) {
 				var roleCode = dayrsrcRecord.get('rsrc_role_code'),
 					qtyHour = dayrsrcRecord.get('rsrc_qty_hour') ;
-				obj_roleCode_qtyHour[roleCode] = qtyHour ;
+				if( !obj_roleCode_qtyHour.hasOwnProperty(roleCode) ) {
+					obj_roleCode_qtyHour[roleCode] = 0 ;
+				}
+				obj_roleCode_qtyHour[roleCode] += qtyHour ;
 			}) ;
 		Ext.Array.each( this.forecastCfgUoStore.getRange(), function(uoRecord) {
 			var uoCode = uoRecord.get('uo_code'),
@@ -765,7 +820,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 			if( !gridData.hasOwnProperty(rowId) ) {
 				gridData[rowId] = {} ;
 			}
-			gridData[rowId][columnKey] = {
+			gridData[rowId][columnKeyWeek] = {
 				uo_qty_unit: capacityUnit
 			} ;
 			
@@ -795,9 +850,156 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 			if( !gridData.hasOwnProperty(rowId) ) {
 				gridData[rowId] = {} ;
 			}
-			gridData[rowId][columnKey] = {
+			gridData[rowId][columnKeyWeek] = {
 				role_qty_hour: qtyHour,
 				role_qty_people: qtyHour / 35
+			} ;
+		});
+	},
+	gridAdapterPopulateWeekdetailForForecastWeekRecord: function(gridData, forecastWeekRecord, dateMap) {
+		Ext.Object.each( dateMap, function(dateSql,dateStr) {
+			this.gridAdapterPopulateWeekdetailDayForForecastWeekRecord(gridData, forecastWeekRecord, dateMap, dateSql) ;
+		},this);
+	},
+	gridAdapterPopulateWeekdetailDayForForecastWeekRecord: function(gridData, forecastWeekRecord, dateMap, dateSql) {
+		if( dateMap == null ) {
+			dateMap = this.gridAdapterGetDateMap() ;
+		}
+		var dateSql = dateSql,
+			dateStr = dateMap[dateSql] ;
+		if( dateStr == null ) {
+			return ;
+		}
+		var columnKeyDay = 'd_'+dateStr ;
+		
+		var balanceByUo = {} ;
+		
+		// 0 - COEFS
+		var dayCoef, totalCoefs = 0 ;
+		Ext.Array.each( forecastWeekRecord.week_coefs().getRange(), function(weekcoefRecord) {
+			var iterCoef = weekcoefRecord.get('weekday_coef') ;
+			if( Ext.isEmpty(iterCoef) ) {
+				iterCoef = 100 ;
+			}
+			totalCoefs += iterCoef ;
+			if( weekcoefRecord.get('weekday_date') == dateSql ) {
+				dayCoef = iterCoef ;
+			}
+		}) ;
+		if( Ext.isEmpty(dayCoef) ) {
+			dayCoef = 100 ;
+		}
+		var rowId = '0_WEEKCOEFS' ;
+		if( !gridData.hasOwnProperty(rowId) ) {
+			gridData[rowId] = {} ;
+		}
+		gridData[rowId][columnKeyDay] = {
+			day_coef: dayCoef,
+			_editorValue: dayCoef
+		} ;
+		
+		// 1 - FORECAST UO
+		Ext.Array.each( this.forecastCfgUoStore.getRange(), function(uoRecord) {
+			var uoCode = uoRecord.get('uo_code'),
+				rowId = '1_FCAST_UO+'+uoCode ;
+				
+			if( !gridData.hasOwnProperty(rowId) ) {
+				gridData[rowId] = {} ;
+			}
+			gridData[rowId][columnKeyDay] = {
+				uo_qty_unit: null
+			} ;
+		}) ;
+		Ext.Array.each( forecastWeekRecord.week_volumes().getRange(), function(uoRecord) {
+			var uoCode = uoRecord.get('uo_code'),
+				qtyUnit = uoRecord.get('uo_qty_unit'),
+				rowId = '1_FCAST_UO+'+uoCode ;
+				
+			qtyUnit = (qtyUnit * dayCoef / totalCoefs) ;
+			
+			if( !gridData.hasOwnProperty(rowId) ) {
+				gridData[rowId] = {} ;
+			}
+			gridData[rowId][columnKeyDay] = {
+				uo_qty_unit: ( qtyUnit <= 0 ? null : qtyUnit )
+			} ;
+			
+			
+			if( !balanceByUo.hasOwnProperty(uoCode) ) {
+				balanceByUo[uoCode] = 0 ;
+			}
+			balanceByUo[uoCode] -= qtyUnit ;
+		}) ;
+		
+		// 2 - CALC CAPACITY
+			// total resources
+			var obj_roleCode_qtyHour = {} ;
+			Ext.Array.each( forecastWeekRecord.day_resources().getRange(), function(dayrsrcRecord) {
+				if( dayrsrcRecord.get('rsrc_date') != dateSql ) {
+					return ;
+				}
+				var roleCode = dayrsrcRecord.get('rsrc_role_code'),
+					qtyHour = dayrsrcRecord.get('rsrc_qty_hour') ;
+				if( !obj_roleCode_qtyHour.hasOwnProperty(roleCode) ) {
+					obj_roleCode_qtyHour[roleCode] = 0 ;
+				}
+				obj_roleCode_qtyHour[roleCode] += qtyHour ;
+			}) ;
+		Ext.Array.each( this.forecastCfgUoStore.getRange(), function(uoRecord) {
+			var uoCode = uoRecord.get('uo_code'),
+				rowId = '2_CAPACITY_UO+'+uoCode ;
+				
+			var available = [], capacityUnit = 0 ;
+			Ext.Array.each( uoRecord.roles().getRange(), function(uoRoleRecord) {
+				var roleCode = uoRoleRecord.get('role_code'),
+					roleHRate = uoRoleRecord.get('role_hRate') ;
+				if( !obj_roleCode_qtyHour.hasOwnProperty(roleCode) ) {
+					available = null ;
+					return false ;
+				}
+				available.push( roleHRate * obj_roleCode_qtyHour[roleCode] ) ;
+			}) ;
+			if( available == null ) {
+				capacityUnit = 0 ;
+			} else {
+				capacityUnit = Ext.Array.min(available) ;
+			}
+			if( !gridData.hasOwnProperty(rowId) ) {
+				gridData[rowId] = {} ;
+			}
+			gridData[rowId][columnKeyDay] = {
+				uo_qty_unit: capacityUnit
+			} ;
+			
+			if( !balanceByUo.hasOwnProperty(uoCode) ) {
+				balanceByUo[uoCode] = 0 ;
+			}
+			balanceByUo[uoCode] += capacityUnit ;
+		}) ;
+		
+		// 3 - BALANCE
+		var balanceByRole = {} ;
+		Ext.Array.each( this.forecastCfgUoStore.getRange(), function(uoRecord) {
+			var uoCode = uoRecord.get('uo_code'),
+				balanceQtyUnit = balanceByUo[uoCode] ;
+			
+			Ext.Array.each( uoRecord.roles().getRange(), function(uoRoleRecord) {
+				var roleCode = uoRoleRecord.get('role_code'),
+					roleHRate = uoRoleRecord.get('role_hRate') ;
+				if( !balanceByRole.hasOwnProperty(roleCode) ) {
+					balanceByRole[roleCode] = 0 ;
+				}
+				balanceByRole[roleCode] += balanceQtyUnit / roleHRate ;
+			}) ;
+		}) ;
+		Ext.Object.each( balanceByRole , function(roleCode,qtyHour) {
+			var rowId = '3_BALANCE_ROLES+'+roleCode ;
+			if( !gridData.hasOwnProperty(rowId) ) {
+				gridData[rowId] = {} ;
+			}
+			gridData[rowId][columnKeyDay] = {
+				role_qty_hour: qtyHour,
+				role_qty_people: qtyHour / 7
 			} ;
 		});
 	},
@@ -817,8 +1019,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 			colIdx = editEvent.colIdx,
 			valueObj = editEvent.value,
 			dateSql = column.dateSql,
+			dateSqlWeek = column.dateSqlWeek,
 			whseCode = this.whseCode,
-			forecastWeekId = dateSql+'@'+whseCode ;
+			forecastWeekId = dateSqlWeek+'@'+whseCode ;
 			forecastWeekRecord = this.forecastWeekStore.getById(forecastWeekId) ;
 			
 		if( !valueObj.hasOwnProperty('_editorValue') ) {
@@ -847,8 +1050,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 			valueObj = editEvent.originalValue,
 			newValue = editEvent.value,
 			dateSql = column.dateSql,
+			dateSqlWeek = column.dateSqlWeek,
 			whseCode = this.whseCode,
-			forecastWeekId = dateSql+'@'+whseCode ;
+			forecastWeekId = dateSqlWeek+'@'+whseCode ;
 			forecastWeekRecord = this.forecastWeekStore.getById(forecastWeekId) ;
 		if( !valueObj.hasOwnProperty('_editorValue') ) {
 			return false ;
@@ -859,9 +1063,18 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 			return false ;
 		}
 		
+		console.log(dateSqlWeek) ;
+		
 		var editorField = editEvent.column.getEditor(),
 			editorValue = editorField.getValue() ;
 		switch( gridRecord.get('group_id') ) {
+			case '0_WEEKCOEFS' :
+				var forecastWeekDayCoefRecord = forecastWeekRecord.week_coefs().findRecord('weekday_date',dateSql) ;
+				if( forecastWeekDayCoefRecord != null ) {
+					forecastWeekDayCoefRecord.set('weekday_coef',editorValue) ;
+				}
+				break ;
+				
 			case '1_FCAST_UO' :
 				var uoCode = gridRecord.get('uo_code'),
 					forecastWeekUoRecord = forecastWeekRecord.week_volumes().findRecord('uo_code',uoCode) ;

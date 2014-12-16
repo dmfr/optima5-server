@@ -200,12 +200,21 @@ function specDbsPeople_Forecast_getWeeks( $post_data ) {
 	
 	$arr_weekRecords = array() ;
 	foreach( $arr_weekDate_filerecordId as $date_week => $filerecord_id ) {
+		//TODO : Fake weekday coefs
+		$week_coefs = array() ;
+		for( $a=0 ; $a<7 ; $a++ ) {
+			$week_coefs[] = array(
+				'weekday_date' => date('Y-m-d',strtotime('+'.$a.' days',strtotime($date_week))),
+				'weekday_coef' => ( $a >= 5 ? 15 : 100 )
+			) ;
+		}
 		$arr_weekRecords[$filerecord_id] = array(
 			'id' => $date_week.'@'.$whse_code,
 			'whse_code' => $whse_code,
 			'week_date' => $date_week,
 			'day_resources' => array(),
-			'week_volumes' => array()
+			'week_volumes' => array(),
+			'week_coefs' => $week_coefs
 		);
 	}
 	
@@ -217,7 +226,7 @@ function specDbsPeople_Forecast_getWeeks( $post_data ) {
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$filerecord_id = $arr['_week_filerecordId'] ;
 		$dayrsrcRecord = array(
-			'rsrc_date' => $arr['field_DAY_DATE'],
+			'rsrc_date' => date('Y-m-d', strtotime($arr['field_DAY_DATE'])),
 			'rsrc_role_code' => $arr['field_ROLE_CODE'],
 			'rsrc_qty_hour' => $arr['field_QTY_HOUR']
 		) ;
