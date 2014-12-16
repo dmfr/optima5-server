@@ -63,7 +63,8 @@ switch( $post_data['_action'] )
 	return specDbsPeople_Forecast_buildResources( $post_data ) ;
 	case 'Forecast_getWeeks' :
 	return specDbsPeople_Forecast_getWeeks( $post_data ) ;
-	
+	case 'Forecast_saveWeekRecord' :
+	return specDbsPeople_Forecast_saveWeekRecord( $post_data ) ;
 	
 	default :
 	return NULL ;

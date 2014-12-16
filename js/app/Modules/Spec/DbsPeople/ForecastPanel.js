@@ -51,7 +51,10 @@ Ext.define('DbsPeopleForecastWeekModel', {
 
 Ext.define('DbsPeopleForecastRowModel', {
 	extend: 'Ext.data.Model',
+	idProperty: 'id',
 	fields: [
+		{name: 'id',  type: 'string'},
+		{name: 'group_id',  type: 'string'},
 		{name: 'role_code',  type: 'string'},
 		{
 			name: 'role_txt',
@@ -66,10 +69,11 @@ Ext.define('DbsPeopleForecastRowModel', {
 			name: 'uo_txt',
 			type: 'string',
 			convert: function(v, record) {
-				v = record.data.role_code ;
-				return Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetById("ROLE",v).text ;
+				v = record.data.uo_code ;
+				return Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetById("UO",v).text ;
 			}
 		},
+		{name: 'dummy',   type: 'string'}
 	]
 });
 
@@ -85,7 +89,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 	viewMode: 'weeklist',
 	weekCount: 25,
 	
-	forecastCfgWhseStore: null,
+	forecastCfgUoStore: null,
 	forecastWeekStore: null,
 	
 	initComponent: function() {
@@ -171,7 +175,11 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 				menu: {
 					items: [{
 						text: 'Importation RealPeople',
-						iconCls: 'op5-crmbase-datatoolbar-view-grid'
+						iconCls: 'op5-crmbase-datatoolbar-view-grid',
+						handler:function(menuitem) {
+							this.sendBuildResources() ;
+						},
+						scope: this
 					},{
 						text: 'Config. UO / whse',
 						iconCls: 'op5-crmbase-datatoolbar-view-grid',
@@ -270,6 +278,17 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 		tbSettings.setVisible(doActivate) ;
 		
 	},
+	getDateStart: function() {
+		var dateCur = Ext.clone(this.dateBase) ;
+		switch( this.viewMode ) {
+			case 'weeklist' :
+				dateCur.setDate( dateCur.getDate() - 7 ) ;
+				break ;
+			default :
+				break ;
+		}
+		return dateCur ;
+	},
 	
 	
 	
@@ -317,8 +336,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 		};
 		Ext.apply( params, {
 			whse_code: this.whseCode,
-			date_base_sql: Ext.Date.format( this.dateBase, 'Y-m-d' ),
-			date_count: this.weekCount
+			date_start_sql: Ext.Date.format( this.getDateStart(), 'Y-m-d' ),
+			date_count: ( this.viewMode=='weeklist' ? this.weekCount : 1 )
 		}) ;
 		
 		this.optimaModule.getConfiguredAjaxConnection().request({
@@ -340,10 +359,550 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 		var me = this,
 			jsonResponse = Ext.JSON.decode(response.responseText) ;
 		
+		// Init stores
+		this.forecastCfgUoStore = Ext.create('Ext.data.Store',{
+			model: 'DbsPeopleForecastCfgUo',
+			data: jsonResponse.data.cfg_uo,
+			proxy: {
+				type: 'memory' ,
+				reader: {
+					type: 'json'
+				}
+			}
+		});
+		this.forecastWeekStore = Ext.create('Ext.data.Store',{
+			model: 'DbsPeopleForecastWeekModel',
+			data: jsonResponse.data.weeks,
+			proxy: {
+				type: 'memory' ,
+				reader: {
+					type: 'json'
+				}
+			},
+			getById: function(id) { //HACK
+				return this.idMap[id];
+			},
+			listeners:{
+				load: function(store,records,successful) {
+					store.idMap = {};
+					Ext.Array.forEach(records, function(record) {
+						store.idMap[record.getId()] = record;
+					});
+				}
+			}
+		});
 		
+		// Create grid
+		this.doGridConfigure() ;
+		
+		// Create records
+		this.gridAdapterInit() ;
 		
 		// Drop loadmask
 		this.hideLoadmask();
+	},
+	doGridConfigure: function() {
+		var pushModelfields = [] ;
+		var columns = [{
+			locked: true,
+			groupable: true,
+			hidden: true,
+			text: 'Group key',
+			dataIndex: 'group_id',
+			width: 180
+		},{
+			locked: true,
+			text: 'UO / Role',
+			width: 180,
+			dataIndex: 'uo_code',
+			renderer: function(v,metaData,record) {
+				switch( record.get('group_id') ) {
+					case '1_FCAST_UO' :
+					case '2_CAPACITY_UO' :
+						return record.get('uo_txt') ;
+					case '3_BALANCE_ROLES' :
+						return record.get('role_txt') ;
+				}
+			}
+		}] ;
+		
+		switch( this.viewMode ) {
+			case 'weeklist' :
+				this.doGridConfigurePushWeeklist(pushModelfields,columns) ;
+				break ;
+			case 'weekdetail' :
+				this.doGridConfigurePushWeekdetail(pushModelfields,columns) ;
+				break ;
+		}
+		
+		Ext.define(this.tmpModelName, {
+			extend: 'DbsPeopleForecastRowModel',
+			fields: pushModelfields
+		});
+		
+		var columnDefaults = {
+			menuDisabled: false,
+			draggable: false,
+			sortable: false,
+			hideable: false,
+			resizable: false,
+			groupable: false,
+			lockable: false
+		} ;
+		Ext.Array.each( columns, function(column) {
+			Ext.applyIf( column, columnDefaults ) ;
+		}) ;
+		
+		this.removeAll() ;
+		this.add({
+			border: false,
+			xtype:'grid',
+			store: {
+				model: this.tmpModelName,
+				data: [],
+				sorters: [{
+					property: 'role_code',
+					direction: 'ASC'
+				},{
+					property: 'uo_code',
+					direction: 'ASC'
+				}],
+				groupers: [{
+					property: 'group_id',
+					direction: 'ASC'
+				}],
+				proxy:{
+					type:'memory'
+				}
+			},
+			enableLocking: true,
+			plugins: [Ext.create('Ext.grid.plugin.CellEditing',{
+				pluginId: 'cellediting',
+				clicksToEdit: 1,
+				listeners: {
+					beforeedit: this.onGridBeforeEdit,
+					validateedit: this.onGridAfterEdit,
+					scope: this
+				},
+				lockableScope: 'normal'
+			})],
+			features: [{
+				ftype: 'grouping',
+				hideGroupedHeader: false,
+				enableGroupingMenu: false,
+				enableNoGroups: false,
+				groupHeaderTpl:Ext.create('Ext.XTemplate',
+					'<div>{[this.renderer(values)]}</div>',
+					{
+						renderer: function(values) {
+							if( values.rows.length == 0 ) {
+								return '' ;
+							}
+							switch( values.groupField ) {
+								case 'group_id' :
+									var groupId = values.rows[0].data.group_id ;
+									switch( groupId ) {
+										case '1_FCAST_UO' :
+											return 'Forecast (UOs)' ;
+										case '2_CAPACITY_UO' :
+											return 'Capacité (UOs)' ;
+										case '3_BALANCE_ROLES' :
+											return 'Balance / Besoins' ;
+										default :
+											return '???' ;
+									}
+									break ;
+								default :
+									return '???' ;
+							}
+						}
+					}
+				)
+			}],
+			columns: columns,
+			viewConfig: {
+				preserveScrollOnRefresh: true,
+				getRowClass: function(record) {
+					switch( record.get('group_id') ) {
+						case '1_FCAST_UO' :
+							return 'op5-spec-dbspeople-realcolor-whse' ;
+						case '2_CAPACITY_UO' :
+						case '3_BALANCE_ROLES' :
+							break ;
+					}
+				}
+			}
+		}) ;
+	},
+	doGridConfigurePushWeeklist: function(pushModelfields, pushColumns) {
+		var dateCur = this.getDateStart() ;
+		
+		var valueRenderer = function(v,metaData,record) {
+			switch( record.get('group_id') ) {
+				case '1_FCAST_UO' :
+					return v.uo_qty_unit ;
+				case '2_CAPACITY_UO' :
+					//metaData.style += '; font-weight:bold;'
+					return v.uo_qty_unit ;
+					
+				case '3_BALANCE_ROLES' :
+					if( Ext.isEmpty(v) ) {
+						return '' ;
+					}
+					metaData.style += '; font-weight:bold;'
+					if( v.role_qty_people == 0 ) {
+						return '=' ;
+					}
+					var sign ;
+					if( v.role_qty_people > 0 ) {
+						metaData.tdCls += ' op5-spec-dbspeople-balance-neg' ;
+						sign = '+' ;
+					} else {
+						metaData.tdCls += ' op5-spec-dbspeople-balance-pos' ;
+						sign = '-' ;
+					}
+					return sign + ' ' + Ext.util.Format.number( Math.abs(v.role_qty_people), '0.00' ) ;
+			}
+		} ;
+		
+		for( var idx = 0 ; idx <= this.weekCount ; idx++ ) {
+			if( idx > 0 ) {
+				dateCur.setDate( dateCur.getDate() + 7 ) ;
+			}
+			
+			var dStr = Ext.Date.format(dateCur,'Ymd'),
+				dSql = Ext.Date.format(dateCur,'Y-m-d'),
+				text = 'Sem ' + Ext.Date.format(dateCur,'W / o') ;
+			
+			pushModelfields.push({
+				name:'d_'+dStr,
+				type:'auto'
+			}) ;
+			
+			pushColumns.push({
+				width: 100,
+				align: 'center',
+				text: text,
+				dateSql: dSql,
+				dateStr: dStr,
+				dataIndex: 'd_'+dStr,
+				editor: { xtype: 'numberfield', minValue: 0, keyNavEnabled: false },
+				renderer: valueRenderer
+			}) ;
+		}
+	},
+	doGridConfigurePushWeekdetail: function(pushModelfields, pushColumns) {
+		var dateCur = this.getDateStart() ;
+		for( var idx = 0 ; idx <= 7 ; idx++ ) {
+			if( idx > 0 ) {
+				dateCur.setDate( dateCur.getDate() + 1 ) ;
+			}
+			
+			var dStr = Ext.Date.format(dateCur,'Ymd'),
+				dSql = Ext.Date.format(dateCur,'Y-m-d'),
+				text = Optima5.Modules.Spec.DbsPeople.HelperCache.DayNamesIntl.FR[dateCur.getDay()] + ' ' + Ext.Date.format(dateCur,'d/m') ;
+			
+			pushModelfields.push({
+				name:'d_'+dStr,
+				type:'auto'
+			}) ;
+			
+			pushColumns.push({
+				width: 100,
+				align: 'center',
+				text: text,
+				dateSql: dSql,
+				dateStr: dStr,
+				
+			}) ;
+		}
+	},
+	
+	gridAdapterInit: function() {
+		var grid = this.child('grid'),
+			store = grid.getStore() ;
+			
+		// Create base records  1_FCAST_UO / 2_CAPACITY_UO / 3_BALANCE_ROLE
+		var baseData = [],
+			availableRoles = [];
+		Ext.Array.each( this.forecastCfgUoStore.getRange(), function(uoRecord) {
+			baseData.push({
+				id: '1_FCAST_UO+'+uoRecord.get('uo_code'),
+				group_id: '1_FCAST_UO',
+				uo_code: uoRecord.get('uo_code')
+			});
+			baseData.push({
+				id: '2_CAPACITY_UO+'+uoRecord.get('uo_code'),
+				group_id: '2_CAPACITY_UO',
+				uo_code: uoRecord.get('uo_code')
+			});
+			var roleCode ;
+			Ext.Array.each( uoRecord.roles().getRange(), function(roleRecord) {
+				roleCode = roleRecord.get('role_code') ;
+				if( !Ext.Array.contains(availableRoles,roleCode) ) {
+					availableRoles.push(roleCode) ;
+				}
+			});
+			Ext.Array.sort(availableRoles) ;
+			Ext.Array.each(availableRoles, function(roleCode) {
+				baseData.push({
+					id: '3_BALANCE_ROLES+'+roleCode,
+					group_id: '3_BALANCE_ROLES',
+					role_code: roleCode
+				});
+			});
+		}) ;
+		
+		var gridData = {},
+			dateMap = this.gridAdapterGetDateMap() ;
+		
+		Ext.Array.each( this.forecastWeekStore.getRange(), function(forecastWeekRecord) {
+			this.gridAdapterPopulateForForecastWeekRecord(gridData, forecastWeekRecord, dateMap) ;
+		},this) ;
+		Ext.Array.each( baseData, function(gridRow) {
+			var rowId = gridRow.id ;
+			if( gridData.hasOwnProperty(rowId) ) {
+				Ext.apply( gridRow, gridData[rowId] ) ;
+			}
+		});
+		
+		store.loadData(baseData) ;
+	},
+	gridAdapterUpdateForecastWeekRecord: function(forecastWeekRecord) {
+		var grid = this.child('grid'),
+			 store = grid.getStore(),
+			 dateMap = this.gridAdapterGetDateMap() ;
+			 
+		var gridData = {} ;
+		this.gridAdapterPopulateForForecastWeekRecord(gridData, forecastWeekRecord, dateMap) ;
+		
+		store.suspendEvents() ; // HACK: suspendingEvents on bufferedgrid'store is dangerous
+		Ext.Object.each( gridData, function(rowId, rowData) {
+			var rowRecord = store.getById(rowId) ;
+			if( rowRecord == null ) {
+				return ;
+			}
+			rowRecord.set(rowData) ;
+			rowRecord.commit() ;
+		});
+		
+		store.resumeEvents() ; // HACK: need to resume -BEFORE- add/remove record(s)
+		grid.getView().refresh() ; //HACK
+	},
+	gridAdapterPopulateForForecastWeekRecord: function(gridData, forecastWeekRecord, dateMap) {
+		if( dateMap == null ) {
+			dateMap = this.gridAdapterGetDateMap() ;
+		}
+		var dateSql = forecastWeekRecord.get('week_date'),
+			dateStr = dateMap[dateSql] ;
+		if( dateStr == null ) {
+			return ;
+		}
+		var columnKey = 'd_'+dateStr ;
+		
+		var balanceByUo = {} ;
+		
+		// 1 - FORECAST UO
+		Ext.Array.each( this.forecastCfgUoStore.getRange(), function(uoRecord) {
+			var uoCode = uoRecord.get('uo_code'),
+				rowId = '1_FCAST_UO+'+uoCode ;
+				
+			if( !gridData.hasOwnProperty(rowId) ) {
+				gridData[rowId] = {} ;
+			}
+			gridData[rowId][columnKey] = {
+				uo_qty_unit: null,
+				_editorValue: 0
+			} ;
+		}) ;
+		Ext.Array.each( forecastWeekRecord.week_volumes().getRange(), function(uoRecord) {
+			var uoCode = uoRecord.get('uo_code'),
+				qtyUnit = uoRecord.get('uo_qty_unit'),
+				rowId = '1_FCAST_UO+'+uoCode ;
+			
+			if( !gridData.hasOwnProperty(rowId) ) {
+				gridData[rowId] = {} ;
+			}
+			gridData[rowId][columnKey] = {
+				uo_qty_unit: ( qtyUnit <= 0 ? null : qtyUnit ),
+				_editorValue: ( qtyUnit <= 0 ? 0 : qtyUnit ),
+			} ;
+			
+			
+			if( !balanceByUo.hasOwnProperty(uoCode) ) {
+				balanceByUo[uoCode] = 0 ;
+			}
+			balanceByUo[uoCode] -= qtyUnit ;
+		}) ;
+		
+		// 2 - CALC CAPACITY
+			// total resources
+			var obj_roleCode_qtyHour = {} ;
+			Ext.Array.each( forecastWeekRecord.day_resources().getRange(), function(dayrsrcRecord) {
+				var roleCode = dayrsrcRecord.get('rsrc_role_code'),
+					qtyHour = dayrsrcRecord.get('rsrc_qty_hour') ;
+				obj_roleCode_qtyHour[roleCode] = qtyHour ;
+			}) ;
+		Ext.Array.each( this.forecastCfgUoStore.getRange(), function(uoRecord) {
+			var uoCode = uoRecord.get('uo_code'),
+				rowId = '2_CAPACITY_UO+'+uoCode ;
+				
+			var available = [], capacityUnit = 0 ;
+			Ext.Array.each( uoRecord.roles().getRange(), function(uoRoleRecord) {
+				var roleCode = uoRoleRecord.get('role_code'),
+					roleHRate = uoRoleRecord.get('role_hRate') ;
+				if( !obj_roleCode_qtyHour.hasOwnProperty(roleCode) ) {
+					available = null ;
+					return false ;
+				}
+				available.push( roleHRate * obj_roleCode_qtyHour[roleCode] ) ;
+			}) ;
+			if( available == null ) {
+				capacityUnit = 0 ;
+			} else {
+				capacityUnit = Ext.Array.min(available) ;
+			}
+			if( !gridData.hasOwnProperty(rowId) ) {
+				gridData[rowId] = {} ;
+			}
+			gridData[rowId][columnKey] = {
+				uo_qty_unit: capacityUnit
+			} ;
+			
+			if( !balanceByUo.hasOwnProperty(uoCode) ) {
+				balanceByUo[uoCode] = 0 ;
+			}
+			balanceByUo[uoCode] += capacityUnit ;
+		}) ;
+		
+		// 3 - BALANCE
+		var balanceByRole = {} ;
+		Ext.Array.each( this.forecastCfgUoStore.getRange(), function(uoRecord) {
+			var uoCode = uoRecord.get('uo_code'),
+				balanceQtyUnit = balanceByUo[uoCode] ;
+			
+			Ext.Array.each( uoRecord.roles().getRange(), function(uoRoleRecord) {
+				var roleCode = uoRoleRecord.get('role_code'),
+					roleHRate = uoRoleRecord.get('role_hRate') ;
+				if( !balanceByRole.hasOwnProperty(roleCode) ) {
+					balanceByRole[roleCode] = 0 ;
+				}
+				balanceByRole[roleCode] += balanceQtyUnit / roleHRate ;
+			}) ;
+		}) ;
+		Ext.Object.each( balanceByRole , function(roleCode,qtyHour) {
+			var rowId = '3_BALANCE_ROLES+'+roleCode ;
+			if( !gridData.hasOwnProperty(rowId) ) {
+				gridData[rowId] = {} ;
+			}
+			gridData[rowId][columnKey] = {
+				role_qty_hour: qtyHour,
+				role_qty_people: qtyHour / 35
+			} ;
+		});
+	},
+	gridAdapterGetDateMap: function() {
+		var grid = this.child('grid'),
+			dateCols = grid.headerCt.query('[dateSql]'),
+			dateMap = {} ;
+		Ext.Array.each( dateCols, function(dateCol) {
+			dateMap[dateCol.dateSql] = dateCol.dateStr ;
+		}) ;
+		return dateMap ;
+	},
+	
+	onGridBeforeEdit: function( editor, editEvent ) {
+		var gridRecord = editEvent.record,
+			column = editEvent.column,
+			colIdx = editEvent.colIdx,
+			valueObj = editEvent.value,
+			dateSql = column.dateSql,
+			whseCode = this.whseCode,
+			forecastWeekId = dateSql+'@'+whseCode ;
+			forecastWeekRecord = this.forecastWeekStore.getById(forecastWeekId) ;
+			
+		if( !valueObj.hasOwnProperty('_editorValue') ) {
+			return false ;
+		}
+		
+		// Modif 2014-09 : modified cells
+		    //this.tagModifiedCell(gridRecord.getId(),colIdx) ;
+		
+		var editorField = editEvent.column.getEditor() ;
+		switch( editorField.getXType() ) {
+			case 'numberfield' :
+				editorField.on('focus',function(editorField) {
+					editorField.setValue(valueObj._editorValue) ;
+				},this,{single:true}) ;
+				break ;
+				
+			default :
+				return false ;
+		}
+	},
+	onGridAfterEdit: function( editor, editEvent ) {
+		var gridRecord = editEvent.record,
+			column = editEvent.column,
+			colIdx = editEvent.colIdx,
+			valueObj = editEvent.originalValue,
+			newValue = editEvent.value,
+			dateSql = column.dateSql,
+			whseCode = this.whseCode,
+			forecastWeekId = dateSql+'@'+whseCode ;
+			forecastWeekRecord = this.forecastWeekStore.getById(forecastWeekId) ;
+		if( !valueObj.hasOwnProperty('_editorValue') ) {
+			return false ;
+		}
+		if( valueObj._editorValue == newValue ) {
+			// Same value !
+			gridRecord.commit() ;
+			return false ;
+		}
+		
+		var editorField = editEvent.column.getEditor(),
+			editorValue = editorField.getValue() ;
+		switch( gridRecord.get('group_id') ) {
+			case '1_FCAST_UO' :
+				var uoCode = gridRecord.get('uo_code'),
+					forecastWeekUoRecord = forecastWeekRecord.week_volumes().findRecord('uo_code',uoCode) ;
+				if( forecastWeekUoRecord != null ) {
+					forecastWeekUoRecord.set('uo_qty_unit',editorValue) ;
+				} else {
+					forecastWeekRecord.week_volumes().add({
+						uo_code: uoCode,
+						uo_qty_unit: editorValue
+					}) ;
+				}
+				break ;
+				
+			default :
+				return false ;
+		}
+		
+		this.gridAdapterUpdateForecastWeekRecord( forecastWeekRecord ) ;
+		this.remoteSaveForecastWeekRecord( forecastWeekRecord ) ;
+		return false ;
+	},
+	
+	remoteSaveForecastWeekRecord: function( forecastWeekRecord ) {
+		var ajaxParams = {
+			_moduleId: 'spec_dbs_people',
+			_action: 'Forecast_saveWeekRecord',
+			data: Ext.JSON.encode( forecastWeekRecord.getData(true) )
+		};
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams,
+			success: function(response) {
+				if( Ext.JSON.decode(response.responseText).success != true ) {
+					Ext.MessageBox.alert('Problem','Edit not saved !') ;
+				}
+				this.onAfterSave() ;
+			},
+			scope: this
+		}) ;
+	},
+	onAfterSave: function() {
+		
 	},
 	
 	openCfgWhse: function() {
@@ -379,12 +938,34 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 		setSizeFromParent(me,cfgWhsePanel) ;
 		cfgWhsePanel.on('destroy',function() {
 			me.getEl().unmask() ;
-			// me.fireEvent('qbookztemplatechange') ;
+			me.doLoad() ;
 		},me,{single:true}) ;
 		me.getEl().mask() ;
 		
 		cfgWhsePanel.show();
 		cfgWhsePanel.getEl().alignTo(me.getEl(), 't-t?',[0,50]);
+	},
+	sendBuildResources: function() {
+		this.showLoadmask() ;
+		
+		var params = {
+			_moduleId: 'spec_dbs_people',
+			_action: 'Forecast_buildResources'
+		};
+		Ext.apply( params, {
+			whse_code: this.whseCode,
+			date_start_sql: Ext.Date.format( this.getDateStart(), 'Y-m-d' ),
+			date_count: ( this.viewMode=='weeklist' ? this.weekCount : 1 )
+		}) ;
+		
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: params,
+			success: function(response) {
+				this.doLoad() ;
+			},
+			scope: this,
+			timeout: (300 * 1000)
+		});
 	},
 	
 	handleQuit: function() {

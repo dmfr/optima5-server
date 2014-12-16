@@ -360,6 +360,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastCfgWhsePanel',{
 	},
 	
 	doSave: function() {
+		this.getEl().mask('Saving...');
+		
 		var definitionTreePanel = this.down('#tpDefinition'),
 			uoData = [] ;
 		Ext.Array.each( definitionTreePanel.getRootNode().childNodes, function(uoNode) {
@@ -394,6 +396,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastCfgWhsePanel',{
 		});
 	},
 	onSaved: function() {
+		this.getEl().unmask() ;
+		
 		this.destroy() ;
 	},
 	onBeforeDestroy: function() {
