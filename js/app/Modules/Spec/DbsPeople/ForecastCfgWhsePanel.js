@@ -98,7 +98,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastCfgWhsePanel',{
 						ptype: 'treeviewdragdrop',
 						enableDrag: true,
 						enableDrop: false,
-						ddGroup: 'DD-'+this.getId(),
+						ddGroup: 'DD-'+this.getId()
 					}
 				}
 			},{

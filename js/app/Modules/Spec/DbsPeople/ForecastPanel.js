@@ -777,7 +777,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 			}
 			gridData[rowId][columnKeyWeek] = {
 				uo_qty_unit: ( qtyUnit <= 0 ? null : qtyUnit ),
-				_editorValue: ( qtyUnit <= 0 ? 0 : qtyUnit ),
+				_editorValue: ( qtyUnit <= 0 ? 0 : qtyUnit )
 			} ;
 			
 			
