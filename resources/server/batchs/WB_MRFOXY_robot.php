@@ -107,11 +107,14 @@ function getHtmlBody( $promo_row, $body_text ) {
 	
 	
 	$desc_src = "\r\n" ;
-	$desc_src.= '<table><tr>' ;
+	$desc_src.= '<table>' ;
 	$desc_src.= '<tr>' ;
 	$desc_src.= '<td>' ;
 		$desc_rows = array() ;
-		$desc_rows[] = array('Start date',date('d/m/Y', strtotime($promo_row['date_start']))) ;
+		$desc_rows[] = array('Supply starts',date('d/m/Y', strtotime($promo_row['date_supply_start']))) ;
+		$desc_rows[] = array('ends',date('d/m/Y', strtotime($promo_row['date_supply_end']))) ;
+		$desc_rows[] = NULL ;
+		$desc_rows[] = array('In-store starts',date('d/m/Y', strtotime($promo_row['date_start']))) ;
 		$desc_rows[] = array('ends',date('d/m/Y', strtotime($promo_row['date_end']))) ;
 		$desc_rows[] = array('length',$promo_row['date_length_weeks']." week(s)") ;
 		$desc_rows[] = NULL ;
