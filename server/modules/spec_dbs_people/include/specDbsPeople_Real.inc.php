@@ -875,6 +875,17 @@ function specDbsPeople_Real_RhAbsDownload( $post_data ) {
 	
 	$abs_txt = $_opDB->query_uniqueValue("SELECT field_ABS_TXT FROM view_bible_CFG_ABS_entry WHERE entry_key='{$abs_code}'") ;
 	
+	$whse_treenode = $_opDB->query_uniqueValue("SELECT treenode_key FROM view_bible_CFG_WHSE_entry WHERE entry_key='{$std_whse_code}'") ;
+	$whse_treenode_txt = '' ;
+	while( TRUE ) {
+		$whse_treenode_parent = $_opDB->query_uniqueValue("SELECT treenode_parent_key FROM view_bible_CFG_WHSE_tree WHERE treenode_key='{$whse_treenode}'") ;
+		if( in_array($whse_treenode_parent,array('','&')) ) {
+			$whse_treenode_txt = $_opDB->query_uniqueValue("SELECT field_SITE_TXT FROM view_bible_CFG_WHSE_tree WHERE treenode_key='{$whse_treenode}'") ;
+			break ;
+		}
+		$whse_treenode = $whse_treenode_parent ;
+	}
+	
 	switch( $abs_code ) {
 		case 'CP' :
 			$ttmp = specDbsPeople_lib_calc_getCalcAttributeRecords_CP( date('Y-m-d',strtotime('-1 day',strtotime($abs_date_start))) ) ;
@@ -903,15 +914,16 @@ function specDbsPeople_Real_RhAbsDownload( $post_data ) {
 	
 	
 	$VALUES = array() ;
+	$VALUES['site_txt'] = $whse_treenode_txt ;
 	$VALUES['people_name'] = $people_record['people_name'] ;
 	$VALUES['whse_txt'] = $std_whse_txt ;
 	$VALUES['team_txt'] = $std_team_txt ;
 	$VALUES['abs_txt'] = $abs_txt ;
 	$VALUES['abs_date_start'] = date('d/m/Y',strtotime($abs_date_start)) ;
 	$VALUES['abs_date_end'] = date('d/m/Y',strtotime($abs_date_end)) ;
-	$VALUES['calc_quota_start'] = 'N/A' ;
-	$VALUES['calc_quota_proj'] = 'N/A' ;
-	$VALUES['calc_quota_projEnd'] = 'N/A' ;
+	$VALUES['calc_quota_start'] = '' ;
+	$VALUES['calc_quota_proj'] = '' ;
+	$VALUES['calc_quota_projEnd'] = '' ;
 	if( isset($calc_quota_start) && isset($calc_quota_total) && isset($calc_quota_duration) ) {
 		$VALUES['calc_quota_start'] = $calc_quota_start ;
 		$VALUES['calc_quota_proj'] = $calc_quota_total - $calc_quota_duration ;
@@ -923,7 +935,7 @@ function specDbsPeople_Real_RhAbsDownload( $post_data ) {
 	$app_root = $GLOBALS['app_root'] ;
 	$resources_root=$app_root.'/resources' ;
 	$templates_dir=$resources_root.'/server/templates' ;
-	$inputFileName = $templates_dir.'/'.'DBS_PEOPLE_demande_conge.html' ;
+	$inputFileName = $templates_dir.'/'.'DBS_PEOPLE_demande_absence.html' ;
 	$inputBinary = file_get_contents($inputFileName) ;
 	
 	//echo $inputFileName ;
