@@ -740,7 +740,7 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_MOD( $at_date_sql ) {
 			}
 			$week_sql = date('o-W', strtotime($date_sql)) ;
 			$arr_log[$week_sql]['planning'] -= ($nb_abs * $contract_row['std_daylength']) ;
-			$val -= $nb_abs ;
+			$val -= ($nb_abs * $contract_row['std_daylength']) ;
 		}
 		
 		$rows = array() ;

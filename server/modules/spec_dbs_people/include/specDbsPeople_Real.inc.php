@@ -907,6 +907,26 @@ function specDbsPeople_Real_RhAbsDownload( $post_data ) {
 			$calc_quota_duration = $calc_quota_end - $calc_quota_start ;
 			$calc_unit = $ttmp[$people_code]['calc_unit_short'] ;
 			break ;
+		case 'RH' :
+			$ttmp = specDbsPeople_lib_calc_getCalcAttributeRecords_MOD( date('Y-m-d',strtotime('-1 day',strtotime($abs_date_start))) ) ;
+			$calc_quota_start = $ttmp[$people_code]['calc_value'] ;
+			$ttmp = specDbsPeople_lib_calc_getCalcAttributeRecords_MOD( date('Y-m-d',strtotime($abs_date_end)) ) ;
+			$calc_quota_end = $ttmp[$people_code]['calc_value'] ;
+			$ttmp = specDbsPeople_lib_calc_getCalcAttributeRecords_MOD(NULL) ;
+			$calc_quota_total = $ttmp[$people_code]['calc_value'] ;
+			$calc_quota_duration = $calc_quota_end - $calc_quota_start ;
+			$calc_unit = $ttmp[$people_code]['calc_unit_short'] ;
+			break ;
+		case 'RC' :
+			$ttmp = specDbsPeople_lib_calc_getCalcAttributeRecords_RC( date('Y-m-d',strtotime('-1 day',strtotime($abs_date_start))) ) ;
+			$calc_quota_start = $ttmp[$people_code]['calc_value'] ;
+			$ttmp = specDbsPeople_lib_calc_getCalcAttributeRecords_RC( date('Y-m-d',strtotime($abs_date_end)) ) ;
+			$calc_quota_end = $ttmp[$people_code]['calc_value'] ;
+			$ttmp = specDbsPeople_lib_calc_getCalcAttributeRecords_RC(NULL) ;
+			$calc_quota_total = $ttmp[$people_code]['calc_value'] ;
+			$calc_quota_duration = $calc_quota_end - $calc_quota_start ;
+			$calc_unit = $ttmp[$people_code]['calc_unit_short'] ;
+			break ;
 		default :
 			$calc_unit = '' ;
 			break ;
