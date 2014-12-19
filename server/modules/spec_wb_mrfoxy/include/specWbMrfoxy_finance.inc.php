@@ -70,6 +70,7 @@ function specWbMrfoxy_finance_getGrid( $post_data ) {
 			$row['row_key'] = ($row['group_key']=='2_STORES' ? $record['field_ROW_SPEC_STORE'] : $record['field_ROW_KEY']) ;
 			$row['row_sub_prodtag'] = $record['field_ROW_SUB_PRODTAG'] ;
 			$row['row_sub_txt'] = $record['field_ROW_SUB_TXT'] ;
+			$row['value_obj'] = $record['field_VALUE_OBJ'] ;
 			$row['value'] = $record['field_VALUE'] ;
 			$rows[] = $row ;
 		}
@@ -293,6 +294,7 @@ function specWbMrfoxy_finance_setRevision( $post_data ) {
 			}
 			$arr_ins['field_ROW_SUB_PRODTAG'] = ( $row['row_sub_prodtag'] != NULL ? $row['row_sub_prodtag'] : '' );
 			$arr_ins['field_ROW_SUB_TXT'] = ( $row['row_sub_txt'] != NULL ? $row['row_sub_txt'] : '' );
+			$arr_ins['field_VALUE_OBJ'] = $row['value_obj'] ;
 			$arr_ins['field_VALUE'] = $row['value'] ;
 			$arr_filerecordId[] = paracrm_lib_data_insertRecord_file( 'FINANCE_REVISION_ROW', $filerecord_parent_id, $arr_ins ) ;
 		}
