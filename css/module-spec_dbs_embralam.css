@@ -1,0 +1,10 @@
+.op5-spec-dbsembralam-stock-avail .x-grid-cell-inner {
+	background: url('../images/op5img/ico_greendot.gif') no-repeat center center ;
+}
+.op5-spec-dbsembralam-stock-notavail .x-grid-cell-inner {
+	background: url('../images/op5img/ico_reddot.gif') no-repeat center center ;
+}
+
+.op5-spec-dbsembralam-stock-disabled .x-grid-cell-inner {
+	background-color: #cccccc !important;
+}

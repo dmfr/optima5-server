@@ -85,5 +85,15 @@
 		"moduleCssSrc":"module-spec_dbs_people.css",
 		"moduleType":"sdomain",
 		"params": []
+	},{
+		"enabled":true,
+		"moduleId":"spec_dbs_embralam",
+		"backendModuleId":"crmbase",
+		"parentModuleId":"crmbase",
+		"moduleName":"(DBS) EmbraLAM",
+		"moduleClass":"Optima5.Modules.Spec.DbsEmbralam.DbsEmbralamModule",
+		"moduleCssSrc":"module-spec_dbs_embralam.css",
+		"moduleType":"sdomain",
+		"params": []
 	}
 ]
