@@ -251,6 +251,16 @@
 }
 
 
++.op5-spec-dbspeople-realsum-title .x-grid-cell-inner {
+	font-style: italic;
+}
+.op5-spec-dbspeople-realsum-value .x-grid-cell-inner {
+	font-weight: bold;
+	font-size: 12px;
+	color: #496A5D;
+}
+
+
 .op5-spec-dbspeople-balance-pos .x-grid-cell-inner { 
 	color: #008000 ;
 	font-weight: bold;

@@ -537,6 +537,10 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			width: 200,
 			renderer: function(v) {
 				return '<b>'+v+'</b>' ;
+			},
+			summaryType: 'count',
+			summaryRenderer: function(v) {
+				return 'Total heures :' ;
 			}
 		}] ;
 		Ext.Array.each( Optima5.Modules.Spec.DbsPeople.HelperCache.getPeopleFields(), function( peopleField ) {
@@ -639,7 +643,32 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 					dateSql: dSql,
 					width:50,
 					editor: { xtype: 'numberfield', minValue: 0, keyNavEnabled: false },
-					renderer: lengthRenderer
+					renderer: lengthRenderer,
+					summaryType: function(rows, dataIndex) {
+						var sum = 0,
+						rowsLn = rows.length,
+						row, obj ;
+						for( var i=0 ; i<rowsLn ; i++ ) {
+						row = rows[i] ;
+						obj = row.get(dataIndex) ;
+						if( Ext.isEmpty(obj) ) {
+						continue ;
+						}
+						if( obj.statusIsVirtual ) {
+						sum += obj.stdValue ;
+						} else {
+						sum += obj.value ;
+						}
+						}
+						return sum ;
+					},
+					summaryRenderer: function(value,metaData) {
+						metaData.tdCls += ' op5-spec-dbspeople-realsum-value' ;
+						if( value == 0 ) {
+						return '' ;
+						}
+						return value ;
+					}
 				}]
 			}) ;
 		}
@@ -706,7 +735,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				synchronousRender: true
 			}],
 			features: [{
-				ftype: 'grouping',
+				ftype: 'groupingsummary',
 				hideGroupedHeader: false,
 				enableGroupingMenu: false,
 				enableNoGroups: false,
