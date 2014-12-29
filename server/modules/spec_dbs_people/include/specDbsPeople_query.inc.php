@@ -45,11 +45,20 @@ function specDbsPeople_query_getTableResult( $post_data ) {
 	
 	// filters
 	$filters = array() ;
+	if( $form_data['filter_site'] ) {
+		$filters['filter_site_entries'] = json_encode($form_data['filter_site']) ;
+	}
 	if( $form_data['filter_site_entries'] ) {
 		$filters['filter_site_entries'] = json_encode($form_data['filter_site_entries']) ;
 	}
+	if( $form_data['filter_team'] ) {
+		$filters['filter_team_entries'] = json_encode($form_data['filter_team']) ;
+	}
 	if( $form_data['filter_team_entries'] ) {
 		$filters['filter_team_entries'] = json_encode($form_data['filter_team_entries']) ;
+	}
+	if( $form_data['filter_cli'] ) {
+		$filters['filter_cli_code'] = $form_data['filter_cli'] ;
 	}
 	if( $form_data['filter_cli_code'] ) {
 		$filters['filter_cli_code'] = $form_data['filter_cli_code'] ;
