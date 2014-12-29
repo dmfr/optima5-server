@@ -107,7 +107,33 @@ function specDbsPeople_query_getTableResult( $post_data ) {
 			unset($form_data['date_start']) ;
 			unset($form_data['date_end']) ;
 		}
-		$query_vars['q_urldata'] = json_encode($form_data) ;
+		//$query_vars['q_urldata'] = json_encode($form_data) ;
+		
+		$request = array() ;
+		foreach( $post_data as $mkey => $mvalue ) {
+			if( in_array($mkey,array('_moduleId','_sessionId','data')) ) {
+				continue ;
+			}
+			if( is_array(json_decode($mvalue,true)) ) {
+				continue ;
+			}
+			$request[$mkey] = $mvalue ;
+		}
+		foreach( $form_data as $json_mkey => $json_mvalue ) {
+			$mkey = 'data' ;
+			if( !$json_mvalue ) {
+					continue ;
+				}
+			$request[$mkey.':'.$json_mkey] = ( is_array($json_mvalue) ? json_encode($json_mvalue) : $json_mvalue ) ;
+		}
+		$q_urldata = '' ;
+		foreach( $request as $mkey => $mvalue ) {
+			if( $q_urldata ) {
+				$q_urldata.= '&' ;
+			}
+			$q_urldata.= $mkey.'='.$mvalue ;
+		}
+		$query_vars['q_urldata'] = $q_urldata ;
 	}
 	return array(
 		'success' => true,

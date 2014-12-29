@@ -21,6 +21,16 @@ $_opDB = new mysql_DB( );
 $_opDB->connect_mysql( $mysql_host, $login_result['mysql_db'], $mysql_user, $mysql_pass );
 $_opDB->query("SET NAMES UTF8") ;
 
+// ************************
+$query = "SELECT module_id FROM sdomain WHERE sdomain_id='{$_REQUEST['_sdomainId']}'" ;
+$result = $_opDB->query($query) ;
+if( $_opDB->num_rows($result) != 1 ) {
+	//header("HTTP/1.0 404 Not Found");
+	die() ;
+}
+$arr = $_opDB->fetch_row($result) ;
+$_REQUEST['_moduleId'] = $arr[0] ;
+// ************************
 $my_module = $_REQUEST['_moduleId'] ;
 if( !$my_module ) {
 	header("HTTP/1.0 404 Not Found");
@@ -35,6 +45,19 @@ $my_sdomain = $_REQUEST['_sdomainId'] ;
 if( $my_sdomain ) {
 	$_opDB->select_db( $login_result['mysql_db'].'_'.$my_sdomain) ;
 }
+
+// ******** Rewrite inner-JSON *************
+$pseudo_json = array() ;
+foreach( $_REQUEST as $mkey => $mvalue ) {
+	$ttmp = explode(':',$mkey) ;
+	if( count($ttmp)==2 ) {
+		$pseudo_json[$ttmp[0]][$ttmp[1]] = (isJsonArr($mvalue) ? json_decode($mvalue) : $mvalue) ;
+	}
+}
+foreach( $pseudo_json as $form_name => $inner_json ) {
+	$_REQUEST[$form_name] = json_encode($inner_json) ;
+}
+// *****************************************
 
 $TAB = backend_specific( $_REQUEST ) ;
 

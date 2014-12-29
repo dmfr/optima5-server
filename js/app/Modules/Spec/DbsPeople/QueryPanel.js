@@ -187,13 +187,15 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryPanel',{
 					},{
 						xtype:'combobox',
 						width: 200,
+						anchor: '',
+						submitValue: false,
+						itemId: 'filterCli',
 						forceSelection:true,
 						allowBlank:true,
 						editable:false,
 						queryMode: 'local',
 						displayField: 'text',
 						valueField: 'id',
-						itemId: 'filterCli',
 						hidden: true,
 						store: {
 							fields:['id','text'],
@@ -456,12 +458,12 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryPanel',{
 		
 		var formValues = me.child('form').getForm().getValues(),
 			filterSite = me.down('#filterSite'),
-			filterTeam = me.down('#filterTeam') ;
-		if( filterSite.getValue() ) {
-			formValues['filter_site_entries'] = filterSite.getLeafNodesKey() ;
-		}
-		if( filterTeam.getValue() ) {
-			formValues['filter_team_entries'] = filterTeam.getLeafNodesKey() ;
+			filterTeam = me.down('#filterTeam'),
+			filterCli = me.down('#filterCli') ;
+		formValues['filter_site_entries'] = filterSite.getLeafNodesKey() ;
+		formValues['filter_team_entries'] = filterTeam.getLeafNodesKey() ;
+		if( filterCli.isVisible() && !Ext.isEmpty(filterCli.getValue()) ) {
+			formValues['filter_cli_code'] = filterCli.getValue() ;
 		}
 		
 		var exportParams = me.optimaModule.getConfiguredAjaxParams() ;
