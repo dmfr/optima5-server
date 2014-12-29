@@ -7,6 +7,7 @@ function specDbsPeople_query_getLibrary() {
 	
 	$TAB[] = array('querysrc_id'=>'0:RH', 'q_name'=>'RH : Base People') ;
 	$TAB[] = array('querysrc_id'=>'0:RH_CNT_SUM', 'q_name'=>'RH : Compteurs à date', 'enable_date_at'=>true ) ;
+	$TAB[] = array('querysrc_id'=>'0:RH_CNT_PROJ', 'q_name'=>'RH : Compteurs date + projection', 'enable_date_at'=>true ) ;
 	$TAB[] = array('querysrc_id'=>'0:RH_CNT_DET', 'q_name'=>'RH : Détail compteurs', 'enable_date_at'=>true ) ;
 	$TAB[] = array('querysrc_id'=>'0:CEQ_GRID', 'q_name'=>'CEQ : Vue people/dates', 'enable_date_interval'=>true ) ;
 	$TAB[] = array('querysrc_id'=>'0:CEQ_OLD', 'q_name'=>'CEQ : Extract (1ère version)', 'enable_date_interval'=>true ) ;
@@ -61,6 +62,9 @@ function specDbsPeople_query_getTableResult( $post_data ) {
 			break ;
 		case 'RH_CNT_SUM' :
 			$result_tab = specDbsPeople_query_getTableResult_RHCNTSUM($form_data['date_at'],$filters) ;
+			break ;
+		case 'RH_CNT_PROJ' :
+			$result_tab = specDbsPeople_query_getTableResult_RHCNTPROJ($form_data['date_at'],$filters) ;
 			break ;
 		case 'RH_CNT_DET' :
 			$result_tab = specDbsPeople_query_getTableResult_RHCNTDET($form_data['date_at'],$filters) ;
@@ -304,6 +308,95 @@ function specDbsPeople_query_getTableResult_RHCNTDET($at_date_sql, $filters=NULL
 				
 				$RET_data[] = $data_row ;
 			}
+		}
+	}
+
+	return array('columns'=>$RET_columns,'data'=>$RET_data) ;
+}
+
+function specDbsPeople_query_getTableResult_RHCNTPROJ($at_date_sql, $filters=NULL) {
+	$ttmp = specDbsPeople_cfg_getCfgBibles() ;
+	$cfg_bibles = $ttmp['data'] ;
+	$cfg_bibles_idText = array() ;
+	foreach( $cfg_bibles as $bible_code => $cfg_bible ) {
+		$cfg_bibles_idText[$bible_code] = array() ;
+		foreach( $cfg_bible as $row ) {
+			$cfg_bibles_idText[$bible_code][$row['id']] = $row['text'] ;
+		}
+	}
+	
+	$ttmp = specDbsPeople_cfg_getPeopleCalcAttributes() ;
+	$cfg_calcAttributes = $ttmp['data'] ;
+	$CALC_atDate = $CALC_noDate = array() ;
+	foreach( $cfg_calcAttributes as $peopleCalcAttribute_definition ) {
+		if( !$peopleCalcAttribute_definition['calcUnit_day'] ) {
+			continue ;
+		}
+		$peopleCalcAttribute = $peopleCalcAttribute_definition['peopleCalcAttribute'] ;
+		
+		$CALC_atDate[$peopleCalcAttribute] = specDbsPeople_lib_calc_getCalcAttributeRecords( $peopleCalcAttribute, $at_date_sql ) ;
+		$CALC_noDate[$peopleCalcAttribute] = specDbsPeople_lib_calc_getCalcAttributeRecords( $peopleCalcAttribute ) ;
+	}
+	
+	$post_data = array() ;
+	$post_data['_load_calcAttributes'] = false ;
+	if( $filters ) {
+		$post_data += $filters ;
+	}
+	$json = specDbsPeople_RH_getGrid( $post_data ) ;
+	$data = $json['data'] ;
+	
+	$cols = $cols_toDecode = array() ;
+	$cols[] = 'whse_txt' ;
+	$cols[] = 'team_txt' ;
+	$cols[] = 'role_txt' ;
+	$cols[] = 'contract_txt' ;
+	$cols[] = 'people_code' ;
+	$cols[] = 'people_name' ;
+	foreach( specDbsPeople_lib_peopleFields_getPeopleFields() as $peopleField ) {
+		$cols[] = $peopleField['field'] ;
+		if( $peopleField['type'] == 'link' ) {
+			$cols_toDecode[] = $peopleField['field'] ;
+		}
+	}
+	$cols[] = 'cnt_type' ;
+	$cols[] = 'cnt_valeur_'.$at_date_sql ;
+	$cols[] = 'cnt_next' ;
+	$cols[] = 'cnt_valeur_PROJ' ;
+	
+	$RET_columns = array() ;
+	foreach( $cols as $col ) {
+		$RET_columns[] = array('dataIndex'=>$col,'dataType'=>'string','text'=>$col) ;
+	}
+	
+	$RET_data = array() ;
+	foreach( $data as $base_row ) {
+		$people_code = $base_row['people_code'] ;
+		
+		foreach( $cols_toDecode as $col ) {
+			if( is_array($base_row[$col]) ) {
+				$base_row[$col] = $base_row[$col]['text'] ;
+			}
+		}
+		$base_row['whse_txt'] = $cfg_bibles_idText['WHSE'][$base_row['whse_code']] ;
+		$base_row['team_txt'] = $cfg_bibles_idText['TEAM'][$base_row['team_code']] ;
+		$base_row['role_txt'] = $cfg_bibles_idText['ROLE'][$base_row['role_code']] ;
+		$base_row['contract_txt'] = $cfg_bibles_idText['CONTRACT'][$base_row['contract_code']] ;
+		
+		foreach( $cfg_calcAttributes as $peopleCalcAttribute_definition ) {
+			$peopleCalcAttribute = $peopleCalcAttribute_definition['peopleCalcAttribute'] ;
+			if( !isset($CALC_atDate[$peopleCalcAttribute]) || !isset($CALC_noDate[$peopleCalcAttribute]) ) {
+				continue ;
+			}
+			$peopleValue_atDate = ( isset($CALC_atDate[$peopleCalcAttribute][$people_code]) ? $CALC_atDate[$peopleCalcAttribute][$people_code]['calc_value'] : 0 ) ;
+			$peopleValue_noDate = ( isset($CALC_noDate[$peopleCalcAttribute][$people_code]) ? $CALC_noDate[$peopleCalcAttribute][$people_code]['calc_value'] : 0 ) ;
+			
+			$data_row = $base_row ;
+			$data_row['cnt_type'] = $peopleCalcAttribute ;
+			$data_row['cnt_valeur_'.$at_date_sql] = $peopleValue_atDate ;
+			$data_row['cnt_next'] = $peopleValue_atDate - $peopleValue_noDate ;
+			$data_row['cnt_valeur_PROJ'] = $peopleValue_noDate ;
+			$RET_data[] = $data_row ;
 		}
 	}
 

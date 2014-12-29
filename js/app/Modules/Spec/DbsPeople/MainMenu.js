@@ -72,7 +72,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.MainMenu',{
 				action_caption: 'Requêtes',
 				action_sendEvent:'panel_query',
 				action_iconCls:'op5-spec-dbspeople-icon-query',
-				item_disabled: !Optima5.Modules.Spec.DbsPeople.HelperCache.authHelperQueryPage('RH')
+				item_disabled: !Optima5.Modules.Spec.DbsPeople.HelperCache.authHelperQueryPage('CEQ')
 			},{
 				type_separator:true,
 				separator_label: 'DBS People : Forecast',
