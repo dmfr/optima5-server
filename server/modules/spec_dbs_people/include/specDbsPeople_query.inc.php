@@ -1007,41 +1007,6 @@ function specDbsPeople_query_exportXLS( $post_data ) {
 	if( !$objPHPExcel ) {
 		die() ;
 	}
-	foreach( $data as $idx => $panel ) {
-		$objPHPExcel->setActiveSheetIndex($idx);
-		$objWorksheet = $objPHPExcel->getActiveSheet();
-		
-		
-		$queryVars = $panel['query_vars'] ;
-		$header_table = array() ;
-			$header_table[] = array(
-				'fieldLabel' => 'Titre',
-				'fieldValue' => $queryVars['q_name']
-			) ;
-		if( $queryVars['date_start'] && $queryVars['date_end'] ) {
-			$header_table[] = array(
-				'fieldLabel' => 'Dates',
-				'fieldValue' => $queryVars['date_start'].' >> '.$queryVars['date_end']
-			) ;
-		}
-		if( $queryVars['fields'] ) {
-			foreach( $queryVars['fields'] as $queryVarsField ) {
-				$header_table[] = array(
-					'fieldLabel' => $queryVarsField['fieldLabel'],
-					'fieldValue' => $queryVarsField['fieldValue']
-				) ;
-			}
-		}
-		
-		$objWorksheet->insertNewRowBefore(1, count($header_table)+1);
-		$row = 1 ;
-		foreach( $header_table as $header_row ) {
-			$objWorksheet->SetCellValue("A{$row}", $header_row['fieldLabel'] );
-			$objWorksheet->getStyle("B{$row}")->getFont()->setBold(TRUE);
-			$objWorksheet->SetCellValue("B{$row}", $header_row['fieldValue'] );
-			$row++ ;
-		}
-	}
 	
 	$tmpfilename = tempnam( sys_get_temp_dir(), "FOO");
 	$objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
