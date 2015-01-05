@@ -269,6 +269,7 @@ function handleStatusValidation( $row ) {
 	$arr_update = array() ;
 	if( $row['approv_ds_ok'] && $row['approv_df_ok'] ) {
 		$arr_update['field_STATUS'] = ( $row['cost_billing__csHold'] ? '25_APPROVED' : '30_SCHED' ) ;
+		$arr_update['field_SYSDATE_OPEN'] = date('Y-m-d') ;
 	} else {
 		$arr_update['field_STATUS'] = '00_REJECTED' ;
 		$arr_update['field_APPROV_DS'] = 0 ;
@@ -442,6 +443,7 @@ function handleStatusClose( $row ) {
 	$filerecord_id = $row['_filerecord_id'] ;
 	$arr_update = array() ;
 	$arr_update['field_STATUS'] = '99_CLOSED' ;
+	$arr_update['field_SYSDATE_CLOSED'] = date('Y-m-d') ;
 	paracrm_lib_data_updateRecord_file( 'WORK_PROMO' , $arr_update, $filerecord_id ) ;
 	
 	$recipients = findRecipients($row['country_code'], array('TM','SM','DS')) ;

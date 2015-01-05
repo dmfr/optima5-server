@@ -38,6 +38,13 @@ function specWbMrfoxy_promo_getGrid( $post_data ) {
 		$filter['value'] = array($post_data['filter_country']) ;
 		$filters[] = $filter ;
 	}
+	if( $post_data['filter_cropYear'] ) {
+		$filter = array() ;
+		$filter['field'] = 'WORK_PROMO_field_DATE_CROP' ;
+		$filter['type'] = 'list' ;
+		$filter['value'] = array($post_data['filter_cropYear']) ;
+		$filters[] = $filter ;
+	}
 	if( isset($post_data['filter_isProd']) ) {
 		$filter = array() ;
 		$filter['field'] = 'WORK_PROMO_field_IS_PROD' ;
@@ -122,6 +129,8 @@ function specWbMrfoxy_promo_getGrid( $post_data ) {
 		$row['status_percent'] = $paracrm_row['WORK_PROMO_field_STATUS_entry_PERCENT'] ;
 		$row['status_text'] = $paracrm_row['WORK_PROMO_field_STATUS_entry_STATUS_TXT'] ;
 		$row['cropYear_code'] = $paracrm_row['WORK_PROMO_field_DATE_CROP'] ;
+		$row['sysdate_open'] = (($row['status_percent'] >= 25) ? date('Y-m-d',strtotime($paracrm_row['WORK_PROMO_field_SYSDATE_OPEN'])) : NULL) ;
+		$row['sysdate_closed'] = (($row['status_percent'] >= 99) ? date('Y-m-d',strtotime($paracrm_row['WORK_PROMO_field_SYSDATE_CLOSED'])) : NULL) ;
 		$row['date_supply_start'] = date('Y-m-d',strtotime($paracrm_row['WORK_PROMO_field_DATE_SUPPLY_START'])) ;
 		$row['date_supply_end'] = date('Y-m-d',strtotime($paracrm_row['WORK_PROMO_field_DATE_SUPPLY_END'])) ;
 		$row['date_start'] = date('Y-m-d',strtotime($paracrm_row['WORK_PROMO_field_DATE_START'])) ;
