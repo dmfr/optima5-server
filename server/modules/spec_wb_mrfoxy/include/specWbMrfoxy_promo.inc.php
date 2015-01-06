@@ -39,11 +39,7 @@ function specWbMrfoxy_promo_getGrid( $post_data ) {
 		$filters[] = $filter ;
 	}
 	if( $post_data['filter_cropYear'] ) {
-		$filter = array() ;
-		$filter['field'] = 'WORK_PROMO_field_DATE_CROP' ;
-		$filter['type'] = 'list' ;
-		$filter['value'] = array($post_data['filter_cropYear']) ;
-		$filters[] = $filter ;
+		// post-filtering : needs JOIN
 	}
 	if( isset($post_data['filter_isProd']) ) {
 		$filter = array() ;
@@ -113,6 +109,9 @@ function specWbMrfoxy_promo_getGrid( $post_data ) {
 	$TAB = array() ;
 	foreach( $paracrm_TAB as $paracrm_row ) {
 		if( is_array($auth_arrCountries) && !in_array($paracrm_row['WORK_PROMO_field_COUNTRY'],$auth_arrCountries) ) {
+			continue ;
+		}
+		if( $post_data['filter_cropYear'] && $paracrm_row['WORK_PROMO_field_DATE_CROP'] != $post_data['filter_cropYear'] ) {
 			continue ;
 		}
 		
