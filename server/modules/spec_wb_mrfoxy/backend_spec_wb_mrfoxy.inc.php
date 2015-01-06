@@ -95,6 +95,8 @@ switch( $post_data['_action'] )
 	
 	case 'xls_getTableExport' :
 	return specWbMrfoxy_xls_getTableExport($post_data);
+	case 'xls_getFinanceDashboard' :
+	return specWbMrfoxy_xls_getFinanceDashboard($post_data);
 	
 	default :
 	return NULL ;

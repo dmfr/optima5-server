@@ -338,9 +338,18 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 			},{
 				itemId: 'tbExport',
 				icon: 'images/op5img/ico_save_16.gif',
-				text: 'Export XLS' ,
-				handler: this.handleDownload,
-				scope: this
+				text: 'Download' ,
+				menu: [{
+					icon: 'images/op5img/ico_save_16.gif',
+					text: 'Current config as XLS' ,
+					handler: this.handleDownloadCfg,
+					scope: this
+				},{
+					icon: 'images/modules/crmbase-chart-bar-16.png',
+					text: 'Promo Budget dashboard' ,
+					handler: this.handleDownloadDashboard,
+					scope: this
+				}]
 			}],
 			items:[{
 				xtype:'box',
@@ -1277,7 +1286,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 	handleQuit: function() {
 		this.fireEvent('quit') ;
 	},
-	handleDownload: function() {
+	handleDownloadCfg: function() {
 		var me = this,
 			ajaxData = me.ajaxData,
 			grid = me.down('grid'),
@@ -1426,8 +1435,34 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 			requestMethod: 'POST'
 		}) ;
 	},
+	handleDownloadDashboard: function() {
+		var me = this,
+			ajaxData = me.ajaxData,
+			grid = me.down('grid'),
+			store = grid.getStore(),
+			xlsHeader, xlsSheetGrid, xlsSheetNADetails,
+			filter_cropYear = me.filterCropYear,
+			filter_country = me.filterCountry,
+			activeCurrencyCode = this.convertCurrency || ajaxData.params.currency_code ;
+			
+			
+		var xlsFilename = 'WB_MRFOXY_financeDashboard_'+filter_cropYear+'_'+filter_country+'.xlsx' ;
 	
-	
+		var exportParams = me.optimaModule.getConfiguredAjaxParams() ;
+		Ext.apply(exportParams,{
+			_moduleId: 'spec_wb_mrfoxy',
+			_action: 'xls_getFinanceDashboard',
+			filter_country: this.filterCountry,
+			filter_cropYear: this.filterCropYear,
+			xlsFilename: xlsFilename
+		}) ;
+		Ext.create('Ext.ux.dams.FileDownloader',{
+			renderTo: Ext.getBody(),
+			requestParams: exportParams,
+			requestAction: Optima5.Helper.getApplication().desktopGetBackendUrl(),
+			requestMethod: 'POST'
+		}) ;
+	},
 	
 	
 	openRowDetails: function(gridRecord, gridColumn) {
