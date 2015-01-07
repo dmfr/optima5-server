@@ -65,7 +65,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.CfgParamTree',{
 	},
 	onAfterLoad: function() {
 		this.getRootNode().cascadeBy(function(node) {
-			if( node.isRoot() && this.value==null ) {
+			if( node.isRoot() && Ext.isEmpty(this.value) ) {
 				node.set('checked',true) ;
 				return ;
 			}
@@ -104,7 +104,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.CfgParamTree',{
 	},
 	getCheckedNode: function() {
 		var storeNode ;
-		if( this.value == null ) {
+		if( Ext.isEmpty(this.value) ) {
 			storeNode = (this.forceValue ? this.getRootNode() : null) ;
 		} else {
 			storeNode = this.getStore().getNodeById( this.value ) ;
