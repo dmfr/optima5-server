@@ -46,7 +46,7 @@ function substr_mklig( $ligne, $text, $offset, $length, $right_align=FALSE )
 // *****************************
 
 function isJsonArr($string) {
-	if( !is_array(json_decode($string)) ) {
+	if( !is_array(json_decode($string,true)) ) {
 		return false ;
 	}
 	return (json_last_error() == JSON_ERROR_NONE);
