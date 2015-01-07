@@ -109,10 +109,14 @@ function specDbsPeople_cfg_getTree_call( $tab_parentkey_nodes, $treenode_parent_
 			$record['icon'] = ($leaf_only ? 'images/op5img/ico_leaf_small.gif' : '') ;
 			$record['children'] = $child_tab ;
 		}
+		elseif( $record['nodeType'] == 'entry' )
+		{
+			$record['leaf'] = TRUE ;
+			$record['children'] = array() ;
+		}
 		else
 		{
-			$record['leaf'] = ( $record['nodeType'] == 'entry' ) ;
-			$record['children'] = array() ;
+			continue ;
 		}
 		$TAB_json[] = $record ;
 	}
