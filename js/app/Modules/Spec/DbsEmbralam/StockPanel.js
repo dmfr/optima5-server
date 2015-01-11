@@ -20,9 +20,6 @@ Ext.define('DbsEmbralamStockGridModel',{
 		{name: 'pos_bay', type:'string'},
 		{name: 'pos_level', type:'string'},
 		{name: 'pos_bin', type:'string'},
-		{name: 'atr_type', type:'string'},
-		{name: 'atr_classe', type:'string'},
-		{name: 'atr_bu', type:'string'},
 		{name: 'inv_prod', type:'string'},
 		{name: 'inv_batch', type:'string'},
 		{name: 'inv_qty', type:'number', useNull:true}
@@ -33,6 +30,32 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.StockPanel',{
 	extend:'Ext.panel.Panel',
 	
 	initComponent: function() {
+		this.tmpGridModelName = 'DbsEmbralamStockGridModel-' + this.getId() ;
+		this.on('destroy',function(p) {
+			Ext.ux.dams.ModelManager.unregister( p.tmpGridModelName ) ;
+		}) ;
+		
+		var pushModelfields = [], atrColumns = [] ;
+		Ext.Array.each( Optima5.Modules.Spec.DbsEmbralam.HelperCache.getStockAttributes(), function( stockAttribute ) {
+			var fieldColumn = {
+				locked: true,
+				text: stockAttribute.atr_txt,
+				dataIndex: stockAttribute.mkey,
+				width: 75
+			} ;
+			atrColumns.push(fieldColumn) ;
+			
+			pushModelfields.push({
+				name: stockAttribute.mkey,
+				type: 'string'
+			});
+		}) ;
+		
+		Ext.define(this.tmpGridModelName, {
+			extend: 'DbsEmbralamStockGridModel',
+			fields: pushModelfields
+		});
+		
 		Ext.apply(this, {
 			layout: 'border',
 			items: [{
@@ -102,13 +125,19 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.StockPanel',{
 							text: 'Allée',
 							width: 50
 						}]
+					},
+					listeners: {
+						selectionchange: function() {
+							this.doGridReload();
+						},
+						scope: this
 					}
 				},{
 					border: false,
 					flex:1,
 					xtype:'gridpanel',
 					store: {
-						model: 'DbsEmbralamStockGridModel',
+						model: this.tmpGridModelName,
 						autoLoad: true,
 						proxy: this.optimaModule.getConfiguredAjaxProxy({
 							extraParams : {
@@ -121,7 +150,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.StockPanel',{
 							}
 						}),
 						listeners: {
-							beforeload: Ext.emptyFn,
+							beforeload: this.onGridBeforeLoad,
 							load: Ext.emptyFn,
 							scope: this
 						}
@@ -170,19 +199,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.StockPanel',{
 							}]
 						},{
 							text: 'Attributs',
-							columns: [{
-								dataIndex: 'atr_type',
-								text: 'Type',
-								width: 75
-							},{
-								dataIndex: 'atr_classe',
-								text: 'Classe',
-								width: 75
-							},{
-								dataIndex: 'atr_bu',
-								text: 'BU',
-								width: 75
-							}]
+							columns: atrColumns
 						},{
 							text: 'Attributs',
 							columns: [{
@@ -240,6 +257,22 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.StockPanel',{
 		});
 		this.callParent() ;
 	},
+	doGridReload: function() {
+		var gridpanel = this.down('gridpanel') ;
+		gridpanel.getStore().load() ;
+	},
+	onGridBeforeLoad: function(store,options) {
+		var treepanel = this.down('treepanel') ;
+			selectedNodes = treepanel.getView().getSelectionModel().getSelection() ;
+		
+		options.params = options.params || {};
+		if( selectedNodes.length == 1 && !(selectedNodes[0].isRoot()) ) {
+			var params = {
+				filter_treenodeKey: selectedNodes[0].getId()
+			} ;
+		}
+		Ext.apply(options.params, params);
+	},
 	onItemClick: function( view, record, itemNode, index, e ) {
 		var cellNode = e.getTarget( view.getCellSelector() ),
 			cellColumn = view.getHeaderByCell( cellNode ) ;
@@ -256,6 +289,18 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.StockPanel',{
 			return ;
 		}
 		
+		var atrFields = [] ;
+		Ext.Array.each( Optima5.Modules.Spec.DbsEmbralam.HelperCache.getStockAttributes(), function( stockAttribute ) {
+			var atrField = {
+				xtype:'op5crmbasebibletreepicker',
+				selectMode: 'single',
+				optimaModule: this.optimaModule,
+				bibleId: stockAttribute.bible_code,
+				fieldLabel: stockAttribute.atr_txt,
+				name: stockAttribute.mkey
+			} ;
+			atrFields.push(atrField) ;
+		}, this) ;
 		var eastPanelCfg = {
 			xtype: 'panel',
 			layout: {
@@ -300,28 +345,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.StockPanel',{
 					defaults: {
 						labelWidth: 100
 					},
-					items:[{
-						xtype:'op5crmbasebibletreepicker',
-						selectMode: 'single',
-						optimaModule: this.optimaModule,
-						bibleId: 'ATR_TYPE',
-						fieldLabel: 'Type Bin(s)',
-						name: 'atr_type'
-					},{
-						xtype:'op5crmbasebibletreepicker',
-						selectMode: 'single',
-						optimaModule: this.optimaModule,
-						bibleId: 'ATR_CLASSE',
-						fieldLabel: 'Classe',
-						name: 'atr_classe'
-					},{
-						xtype:'op5crmbasebibletreepicker',
-						selectMode: 'single',
-						optimaModule: this.optimaModule,
-						bibleId: 'ATR_BU',
-						fieldLabel: 'BusinessUnit',
-						name: 'atr_bu'
-					}]
+					items: atrFields
 				}]
 			},{
 				region: 'south',

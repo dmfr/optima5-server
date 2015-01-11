@@ -7,6 +7,9 @@ function backend_specific( $post_data )
 {
 switch( $post_data['_action'] )
 {
+	case 'cfg_getStockAttributes' :
+	return specDbsEmbralam_cfg_getStockAttributes( $post_data ) ;
+
 	case 'stock_getGrid' :
 	return specDbsPeople_stock_getGrid( $post_data ) ;
 	case 'prods_getGrid' :

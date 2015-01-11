@@ -1,4 +1,9 @@
 <?php
+include("$server_root/modules/spec_dbs_embralam/include/specDbsEmbralam_lib_stockAttributes.inc.php") ;
+
+include("$server_root/modules/spec_dbs_embralam/include/specDbsEmbralam_cfg.inc.php") ;
+
+
 function specDbsPeople_stock_getGrid($post_data) {
 	global $_opDB ;
 	
@@ -6,7 +11,7 @@ function specDbsPeople_stock_getGrid($post_data) {
 	
 	$query = "SELECT * FROM view_bible_STOCK_entry stk
 				LEFT OUTER JOIN view_file_INV inv ON inv.field_ADR_ID = stk.entry_key
-				ORDER BY stk.entry_key LIMIT 50000" ;
+				ORDER BY stk.entry_key LIMIT 10000" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$row = array() ;
@@ -19,15 +24,23 @@ function specDbsPeople_stock_getGrid($post_data) {
 		$row['pos_level'] = $arr['field_POS_LEVEL'] ;
 		$row['pos_bin'] = $arr['field_POS_BIN'] ;
 		
-		$row['atr_type'] = reset(json_decode($arr['field_ATR_TYPE'])) ;
-		$row['atr_classe'] = reset(json_decode($arr['field_ATR_CLASSE'])) ;
-		$row['atr_bu'] = reset(json_decode($arr['field_ATR_BU'])) ;
+		$status = TRUE ;
+		foreach( specDbsEmbralam_lib_stockAttributes_getStockAttributes() as $stockAttribute_obj ) {
+			$mkey = $stockAttribute_obj['mkey'] ;
+			$STOCK_fieldcode = $stockAttribute_obj['STOCK_fieldcode'] ;
+			
+			$ttmp = ($arr[$STOCK_fieldcode] ? json_decode($arr[$STOCK_fieldcode]) : array()) ;
+			$row[$mkey] = (string)reset($ttmp) ;
+			if( !$row[$mkey] ) {
+				$status = FALSE ;
+			}
+		}
 		
 		$row['inv_prod'] = $arr['field_PROD_ID'] ;
 		$row['inv_batch'] = $arr['field_BATCH_CODE'] ;
 		$row['inv_qty'] = ( $arr['field_PROD_ID'] ? $arr['field_QTY_AVAIL'] : null ) ;
 		
-		$row['status'] = ( $row['atr_type'] ? true : false ) ;
+		$row['status'] = $status ;
 		
 		$tab_DATA[] = $row ;
 	}
@@ -40,16 +53,21 @@ function specDbsPeople_prods_getGrid($post_data) {
 	$tab_DATA = array() ;
 	
 	$query = "SELECT * FROM view_bible_PROD_entry prod
-				ORDER BY prod.entry_key LIMIT 50000" ;
+				ORDER BY prod.entry_key LIMIT 10000" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$row = array() ;
 		
 		$row['prod_id'] = $arr['entry_key'] ;
 		$row['prod_txt'] = $arr['field_PROD_TXT'] ;
-		$row['atr_type'] = ($arr['field_ATR_TYPE'] ? reset(json_decode($arr['field_ATR_TYPE'])) : '' ) ;
-		$row['atr_classe'] = reset(json_decode($arr['field_ATR_CLASSE'])) ;
-		$row['atr_bu'] = reset(json_decode($arr['field_ATR_BU'])) ;
+		
+		foreach( specDbsEmbralam_lib_stockAttributes_getStockAttributes() as $stockAttribute_obj ) {
+			$mkey = $stockAttribute_obj['mkey'] ;
+			$PROD_fieldcode = $stockAttribute_obj['PROD_fieldcode'] ;
+			
+			$ttmp = ($arr[$PROD_fieldcode] ? json_decode($arr[$PROD_fieldcode]) : array()) ;
+			$row[$mkey] = (string)reset($ttmp) ;
+		}
 		
 		$tab_DATA[] = $row ;
 	}
