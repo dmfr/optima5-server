@@ -364,9 +364,6 @@ function specDbsPeople_query_getTableResult_RHCNTPROJ($at_date_sql, $filters=NUL
 	$cfg_calcAttributes = $ttmp['data'] ;
 	$CALC_atDate = $CALC_noDate = array() ;
 	foreach( $cfg_calcAttributes as $peopleCalcAttribute_definition ) {
-		if( !$peopleCalcAttribute_definition['calcUnit_day'] ) {
-			continue ;
-		}
 		$peopleCalcAttribute = $peopleCalcAttribute_definition['peopleCalcAttribute'] ;
 		
 		$CALC_atDate[$peopleCalcAttribute] = specDbsPeople_lib_calc_getCalcAttributeRecords( $peopleCalcAttribute, $at_date_sql ) ;
@@ -398,6 +395,8 @@ function specDbsPeople_query_getTableResult_RHCNTPROJ($at_date_sql, $filters=NUL
 	$cols[] = 'cnt_valeur_'.$at_date_sql ;
 	$cols[] = 'cnt_next' ;
 	$cols[] = 'cnt_valeur_PROJ' ;
+	$cols[] = 'cnt_unit_short' ;
+	$cols[] = 'cnt_unit_txt' ;
 	
 	$RET_columns = array() ;
 	foreach( $cols as $col ) {
@@ -425,12 +424,16 @@ function specDbsPeople_query_getTableResult_RHCNTPROJ($at_date_sql, $filters=NUL
 			}
 			$peopleValue_atDate = ( isset($CALC_atDate[$peopleCalcAttribute][$people_code]) ? $CALC_atDate[$peopleCalcAttribute][$people_code]['calc_value'] : 0 ) ;
 			$peopleValue_noDate = ( isset($CALC_noDate[$peopleCalcAttribute][$people_code]) ? $CALC_noDate[$peopleCalcAttribute][$people_code]['calc_value'] : 0 ) ;
+			$peopleValue_unitTxt = $CALC_noDate[$peopleCalcAttribute][$people_code]['calc_unit_txt'] ;
+			$peopleValue_unitShort = $CALC_noDate[$peopleCalcAttribute][$people_code]['calc_unit_short'] ;
 			
 			$data_row = $base_row ;
 			$data_row['cnt_type'] = $peopleCalcAttribute ;
 			$data_row['cnt_valeur_'.$at_date_sql] = $peopleValue_atDate ;
 			$data_row['cnt_next'] = $peopleValue_atDate - $peopleValue_noDate ;
 			$data_row['cnt_valeur_PROJ'] = $peopleValue_noDate ;
+			$data_row['cnt_unit_short'] = strtoupper($peopleValue_unitShort) ;
+			$data_row['cnt_unit_txt'] = $peopleValue_unitTxt ;
 			$RET_data[] = $data_row ;
 		}
 	}

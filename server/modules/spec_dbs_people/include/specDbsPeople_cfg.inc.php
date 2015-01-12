@@ -288,26 +288,22 @@ function specDbsPeople_cfg_getPeopleCalcAttributes() {
 	
 	$TAB[] = array(
 		'peopleCalcAttribute' => 'CP',
-		'text' => 'Solde CP',
-		'calcUnit_day' => true
+		'text' => 'Solde CP'
 	);
 	
 	$TAB[] = array(
 		'peopleCalcAttribute' => 'RTT',
-		'text' => 'RTT',
-		'calcUnit_day' => true
+		'text' => 'RTT'
 	);
 	
 	$TAB[] = array(
 		'peopleCalcAttribute' => 'MOD',
-		'text' => 'Modul.',
-		'calcUnit_hour' => true
+		'text' => 'Modul.'
 	);
 	
 	$TAB[] = array(
 		'peopleCalcAttribute' => 'RC',
-		'text' => 'ReposComp.',
-		'calcUnit_hour' => true
+		'text' => 'ReposComp.'
 	);
 	
 	return array('success'=>true, 'data'=>$TAB) ;
