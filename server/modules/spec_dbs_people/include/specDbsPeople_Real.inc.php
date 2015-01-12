@@ -241,10 +241,10 @@ function specDbsPeople_Real_getData( $post_data ) {
 			'status_alertDue' => false
 		);
 		foreach( $arr1 as $people_code => $peopleday_record ) {
-			if( $filter_arrSites && !in_array($peopleday_record['std_whse_code'],$filter_arrSites) ) {
+			if( is_array($filter_arrSites) && !in_array($peopleday_record['std_whse_code'],$filter_arrSites) ) {
 				continue ;
 			}
-			if( $filter_arrTeams && !in_array($peopleday_record['std_team_code'],$filter_arrTeams) ) {
+			if( is_array($filter_arrTeams) && !in_array($peopleday_record['std_team_code'],$filter_arrTeams) ) {
 				continue ;
 			}
 			
@@ -278,17 +278,17 @@ function specDbsPeople_Real_getData( $post_data ) {
 	
 	// Process filters
 	$has_filters = FALSE ;
-	if( $filter_arrSites || $filter_arrTeams ) {
+	if( is_array($filter_arrSites) || is_array($filter_arrTeams) ) {
 		$has_filters = TRUE ;
 	}
 	if( $has_filters ) {
 		// Filter ROWS @TODO(maybe): use prefilter on cfgFiles before join
 		$new_TAB_rows = array() ;
 		foreach( $TAB_rows as $idx => $row ) {
-			if( $filter_arrSites && !in_array($row['whse_code'],$filter_arrSites) ) {
+			if( is_array($filter_arrSites) && !in_array($row['whse_code'],$filter_arrSites) ) {
 				continue ;
 			}
-			if( $filter_arrTeams && !in_array($row['team_code'],$filter_arrTeams) ) {
+			if( is_array($filter_arrTeams) && !in_array($row['team_code'],$filter_arrTeams) ) {
 				continue ;
 			}
 			$new_TAB_rows[] = $row ;
@@ -308,10 +308,10 @@ function specDbsPeople_Real_getData( $post_data ) {
 			}
 			$teams = array($peopleday_record['std_team_code']) ;
 			
-			if( $filter_arrSites && !array_intersect($whses,$filter_arrSites) ) {
+			if( is_array($filter_arrSites) && !array_intersect($whses,$filter_arrSites) ) {
 				continue ;
 			}
-			if( $filter_arrTeams && !array_intersect($teams,$filter_arrTeams) ) {
+			if( is_array($filter_arrTeams) && !array_intersect($teams,$filter_arrTeams) ) {
 				continue ;
 			}
 			

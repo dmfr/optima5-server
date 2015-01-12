@@ -93,16 +93,16 @@ function specDbsPeople_RH_getGrid($post_data) {
 	
 	// Filter ROWS
 	$has_filters = FALSE ;
-	if( $filter_arrSites || $filter_arrTeams ) {
+	if( is_array($filter_arrSites) || is_array($filter_arrTeams) ) {
 		$has_filters = TRUE ;
 	}
 	if( $has_filters && !$filter_peopleCode ) {
 		$new_TAB = array() ;
 		foreach( $TAB as $idx => $row ) {
-			if( $filter_arrSites && !in_array($row['whse_code'],$filter_arrSites) ) {
+			if( is_array($filter_arrSites) && !in_array($row['whse_code'],$filter_arrSites) ) {
 				continue ;
 			}
-			if( $filter_arrTeams && !in_array($row['team_code'],$filter_arrTeams) ) {
+			if( is_array($filter_arrTeams) && !in_array($row['team_code'],$filter_arrTeams) ) {
 				continue ;
 			}
 			$new_TAB[$idx] = $row ;
