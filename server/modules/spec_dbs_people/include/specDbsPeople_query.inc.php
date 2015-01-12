@@ -45,24 +45,37 @@ function specDbsPeople_query_getTableResult( $post_data ) {
 	
 	// filters
 	$filters = array() ;
-	if( $form_data['filter_site'] ) {
-		$filters['filter_site_entries'] = json_encode($form_data['filter_site']) ;
-	}
+	
 	if( $form_data['filter_site_entries'] ) {
 		$filters['filter_site_entries'] = json_encode($form_data['filter_site_entries']) ;
+	} elseif( $form_data['filter_site_treenodes'] ) {
+		$filter_site_entries = array() ;
+		foreach( $form_data['filter_site_treenodes'] as $site_treenode ) {
+			$filter_site_entries = array_merge($filter_site_entries,specDbsPeople_query_toolGetAllMembers('CFG_WHSE',$site_treenode)) ;
+		}
+		$filters['filter_site_entries'] = json_encode($filter_site_entries);
+	} elseif( $form_data['filter_site'] ) {
+		$filters['filter_site_entries'] = json_encode($form_data['filter_site']) ;
 	}
-	if( $form_data['filter_team'] ) {
-		$filters['filter_team_entries'] = json_encode($form_data['filter_team']) ;
-	}
+	
 	if( $form_data['filter_team_entries'] ) {
 		$filters['filter_team_entries'] = json_encode($form_data['filter_team_entries']) ;
+	} elseif( $form_data['filter_team_treenodes'] ) {
+		$filter_team_entries = array() ;
+		foreach( $form_data['filter_team_treenodes'] as $team_treenode ) {
+			$filter_team_entries = array_merge($filter_team_entries,specDbsPeople_query_toolGetAllMembers('CFG_TEAM',$team_treenode)) ;
+		}
+		$filters['filter_team_entries'] = json_encode($filter_team_entries);
+	} elseif( $form_data['filter_team'] ) {
+		$filters['filter_team_entries'] = json_encode($form_data['filter_team']) ;
 	}
-	if( $form_data['filter_cli'] ) {
-		$filters['filter_cli_code'] = $form_data['filter_cli'] ;
-	}
+	
 	if( $form_data['filter_cli_code'] ) {
 		$filters['filter_cli_code'] = $form_data['filter_cli_code'] ;
+	} elseif( $form_data['filter_cli'] ) {
+		$filters['filter_cli_code'] = $form_data['filter_cli'] ;
 	}
+	
 	
 	$ttmp = explode(':',$form_data['querysrc_id']) ;
 	switch( $ttmp[1] ) {
@@ -1037,5 +1050,74 @@ function specDbsPeople_query_exportXLS( $post_data ) {
 
 function specDbsPeople_query_getResultXLS( $post_data ) {
 	specDbsPeople_query_exportXLS( array('data'=>json_encode(array( specDbsPeople_query_getResult($post_data) ))) ) ;
+}
+
+
+
+
+
+function specDbsPeople_query_toolGetAllMembers( $bible_code, $treenode_key ) {
+	global $_opDB ;
+	$store_bible_tree = "store_bible_{$bible_code}_tree" ;
+	$store_bible_entry = "store_bible_{$bible_code}_entry" ;
+
+	$raw_records = array() ;
+	$query = "SELECT treenode_key, treenode_parent_key FROM {$store_bible_tree} ORDER BY treenode_key" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
+	{
+		$record = array() ;
+		$record['key'] = 'T:'.$arr['treenode_key'] ;
+		$record['parent_key'] = 'T:'.$arr['treenode_parent_key'] ;
+		$raw_records[] = $record ;
+	}
+	$query = "SELECT entry_key, treenode_key FROM {$store_bible_entry} ORDER BY entry_key" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
+	{
+		$record = array() ;
+		$record['key'] = 'E:'.$arr['entry_key'] ;
+		$record['parent_key'] = 'T:'.$arr['treenode_key'] ;
+		$raw_records[] = $record ;
+	}
+	$tree = new GenericTree("&") ;
+	do {
+		$nb_pushed_this_pass = 0 ;
+		foreach( $raw_records as $mid => $record )
+		{
+			if( $record['parent_key'] == 'T:' )
+				$record['parent_key'] = '&' ;
+			if( $record['key'] == '' )
+				continue ;
+		
+			$parent_key = $record['parent_key'] ;
+			$key = $record['key'] ;
+			
+			if( $tree->getTree( $parent_key ) != NULL )
+			{
+				$parent_node = $tree->getTree( $parent_key ) ;
+				$parent_node->addLeaf( $key ) ;
+				unset($raw_records[$mid]) ;
+				
+				$nb_pushed_this_pass++ ;
+				$nb_pushed++ ;
+			}
+			if( count($raw_records) == 0 )
+				break ;
+		}
+	}
+	while( $nb_pushed_this_pass > 0 ) ;
+	
+	$entries = array() ;
+	$obj_treenode = $tree->getTree( 'T:'.$treenode_key ) ;
+	if( !$obj_treenode ) {
+		return $entries ;
+	}
+	foreach( $obj_treenode->getAllMembers() as $key ) {
+		if( strpos($key,'E:') === 0 ) {
+			$entries[] = substr($key,2) ;
+		}
+	}
+	return $entries ;
 }
 ?>
