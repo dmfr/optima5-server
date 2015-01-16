@@ -568,6 +568,7 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_RTT( $at_date_sql ) {
 function specDbsPeople_lib_calc_getCalcAttributeRecords_MOD( $at_date_sql ) {
 	paracrm_lib_file_joinPrivate_buildCache('PEOPLEDAY') ;
 	$cfg_contracts = specDbsPeople_tool_getContracts() ;
+	$cfg_exceptionDays = specDbsPeople_tool_getExceptionDays() ;
 	/*
 	array(
 		'people_calc_attribute' => $people_calc_attribute,
@@ -675,7 +676,17 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_MOD( $at_date_sql ) {
 		
 		$arr_log = array() ;
 		
-		$cur_pivot = NULL ;
+		// Inclusion forcée des jours fériés
+		foreach( $cfg_exceptionDays as $date_sql => $torf ) {
+			if( !$torf ) {
+				continue ;
+			}
+			if( !$RES_realDays[$people_code][$date_sql] ) {
+				continue ;
+			}
+			$week_sql = date('o-W',strtotime($date_sql)) ;
+			$RES_realDuration[$people_code][$week_sql] += $contract_row['std_daylength'] ;
+		}
 		foreach( $RES_realDuration[$people_code] as $week_sql => $nb_heures_work ) {
 			if( $week_sql < $min_week ) {
 				continue ;
@@ -794,6 +805,7 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_MOD( $at_date_sql ) {
 function specDbsPeople_lib_calc_getCalcAttributeRecords_RC( $at_date_sql ) {
 	paracrm_lib_file_joinPrivate_buildCache('PEOPLEDAY') ;
 	$cfg_contracts = specDbsPeople_tool_getContracts() ;
+	$cfg_exceptionDays = specDbsPeople_tool_getExceptionDays() ;
 	/*
 	array(
 		'people_calc_attribute' => $people_calc_attribute,
@@ -877,7 +889,17 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_RC( $at_date_sql ) {
 		
 		$arr_log = array() ;
 		
-		$cur_pivot = NULL ;
+		// Inclusion forcée des jours fériés
+		foreach( $cfg_exceptionDays as $date_sql => $torf ) {
+			if( !$torf ) {
+				continue ;
+			}
+			if( !$RES_realDays[$people_code][$date_sql] ) {
+				continue ;
+			}
+			$month_sql = date('Y-m',strtotime($date_sql)) ;
+			$RES_realDuration[$people_code][$month_sql] += $contract_row['std_daylength'] ;
+		}
 		foreach( $RES_realDuration[$people_code] as $month_sql => $nb_heures_work ) {
 			$date_sql_firstDay = $month_sql.'-01' ;
 			$nbDaysOfMonth = date('t',strtotime($date_sql_firstDay)) ;
