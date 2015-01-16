@@ -1,7 +1,9 @@
 <?php
 include("$server_root/modules/spec_dbs_embralam/include/specDbsEmbralam_lib_stockAttributes.inc.php") ;
+include("$server_root/modules/spec_dbs_embralam/include/specDbsEmbralam_lib_proc.inc.php") ;
 
 include("$server_root/modules/spec_dbs_embralam/include/specDbsEmbralam_cfg.inc.php") ;
+include("$server_root/modules/spec_dbs_embralam/include/specDbsEmbralam_live.inc.php") ;
 
 
 function specDbsPeople_stock_getGrid($post_data) {
@@ -52,8 +54,18 @@ function specDbsPeople_prods_getGrid($post_data) {
 	
 	$tab_DATA = array() ;
 	
-	$query = "SELECT * FROM view_bible_PROD_entry prod
-				ORDER BY prod.entry_key LIMIT 10000" ;
+	$query = "SELECT * FROM view_bible_PROD_entry prod" ;
+	if( isset($post_data['entry_key']) ) {
+		$query.= " WHERE entry_key = '{$post_data['entry_key']}'" ;
+	} elseif ( isset($post_data['filter']) ) {
+		$query.= " WHERE entry_key LIKE '{$post_data['filter']}%'" ;
+	}
+	$query.= " ORDER BY prod.entry_key" ;
+	if( !isset($post_data['filter']) ) {
+		$query.= " LIMIT 10000" ;
+	} else {
+		$query.= " LIMIT 100" ;
+	}
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$row = array() ;

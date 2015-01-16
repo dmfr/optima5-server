@@ -8,3 +8,24 @@
 .op5-spec-dbsembralam-stock-disabled .x-grid-cell-inner {
 	background-color: #cccccc !important;
 }
+
+
+.op5-spec-embralam-liveadr-adr {
+	font-size: 18px ;
+	padding-bottom: 6px ;
+}
+.op5-spec-embralam-liveadr-adrtxt {
+	font-size: 24px ;
+	font-weight: bold ;
+}
+.op5-spec-embralam-liveadr-caption {
+	background: url('../images/op5img/ico_info_small.gif') no-repeat 4px center ;
+	line-height: 20px ;
+}
+.op5-spec-embralam-liveadr-captiontxt {
+	padding-left: 24px ;
+}
+.op5-spec-embralam-liveadr-captionwarning {
+	color: #cc0000 ;
+	font-weight: bold ;
+}

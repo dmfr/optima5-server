@@ -9,6 +9,15 @@ switch( $post_data['_action'] )
 {
 	case 'cfg_getStockAttributes' :
 	return specDbsEmbralam_cfg_getStockAttributes( $post_data ) ;
+	
+	case 'live_goAdr' :
+	return specDbsEmbralam_live_goAdr( $post_data ) ;
+	case 'live_loadMvt' :
+	return specDbsEmbralam_live_loadMvt( $post_data ) ;
+	case 'live_deleteMvt' :
+	return specDbsEmbralam_live_deleteMvt( $post_data ) ;
+	case 'live_getGrid' :
+	return specDbsEmbralam_live_getGrid( $post_data ) ;
 
 	case 'stock_getGrid' :
 	return specDbsPeople_stock_getGrid( $post_data ) ;
