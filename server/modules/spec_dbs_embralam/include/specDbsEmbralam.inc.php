@@ -13,7 +13,11 @@ function specDbsPeople_stock_getGrid($post_data) {
 	
 	$query = "SELECT * FROM view_bible_STOCK_entry stk
 				LEFT OUTER JOIN view_file_INV inv ON inv.field_ADR_ID = stk.entry_key
-				ORDER BY stk.entry_key LIMIT 10000" ;
+				WHERE 1" ;
+	if( $post_data['filter_treenodeKey'] && ($arr_treenodes = paracrm_data_getBibleTreeBranch( 'STOCK', $post_data['filter_treenodeKey'] )) ) {
+		$query.= " AND treenode_key IN ".$_opDB->makeSQLlist($arr_treenodes) ;
+	}
+	$query.= " ORDER BY stk.entry_key LIMIT 10000" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$row = array() ;

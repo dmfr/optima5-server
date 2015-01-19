@@ -229,7 +229,15 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.StockPanel',{
 							if( !record.get('status') ) {
 								return 'op5-spec-dbsembralam-stock-disabled' ;
 							}
-						}
+						},
+						listeners: {
+							beforerefresh: function(view) {
+								view.isRefreshing = true ;
+							},
+							refresh: function(view) {
+								view.isRefreshing = false ;
+							}
+						},
 					},
 					listeners: {
 						itemclick: this.onItemClick,
@@ -256,7 +264,32 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.StockPanel',{
 			}]
 		});
 		this.callParent() ;
+		this.mon(this.optimaModule,'op5broadcast',this.onCrmeventBroadcast,this) ;
+		this.on('beforedeactivate', function() {
+			// HACK !!!
+			if( this.down('gridpanel').getStore().loading || this.down('gridpanel').getView().isRefreshing ) {
+				console.log('prevent deactivate') ;
+				return false ;
+			}
+		},this) ;
 	},
+	onCrmeventBroadcast: function(crmEvent, eventParams) {
+		switch( crmEvent ) {
+			case 'datachange' :
+				this.onDataChange() ;
+				break ;
+			default: break ;
+		}
+	},
+	onDataChange: function() {
+		if( this.isVisible() ) {
+			this.setFormRecord(null) ;
+			this.doGridReload() ;
+		} else {
+			this.on('activate',function(){this.onDataChange();}, this, {single:true}) ;
+		}
+	},
+	
 	doGridReload: function() {
 		var gridpanel = this.down('gridpanel') ;
 		gridpanel.getStore().load() ;

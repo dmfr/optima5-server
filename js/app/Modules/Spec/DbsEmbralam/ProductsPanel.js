@@ -116,6 +116,17 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.ProductsPanel',{
 						pluginId: 'bufferedRenderer',
 						synchronousRender: true
 					}],
+					viewConfig: {
+						preserveScrollOnRefresh: true,
+						listeners: {
+							beforerefresh: function(view) {
+								view.isRefreshing = true ;
+							},
+							refresh: function(view) {
+								view.isRefreshing = false ;
+							}
+						},
+					},
 					listeners: {
 						itemclick: this.onItemClick,
 						scope: this
@@ -141,7 +152,32 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.ProductsPanel',{
 			}]
 		});
 		this.callParent() ;
+		this.mon(this.optimaModule,'op5broadcast',this.onCrmeventBroadcast,this) ;
+		this.on('beforedeactivate', function() {
+			// HACK !!!
+			if( this.down('gridpanel').getStore().loading || this.down('gridpanel').getView().isRefreshing ) {
+				console.log('prevent deactivate') ;
+				return false ;
+			}
+		},this) ;
 	},
+	onCrmeventBroadcast: function(crmEvent, eventParams) {
+		switch( crmEvent ) {
+			case 'datachange' :
+				this.onDataChange() ;
+				break ;
+			default: break ;
+		}
+	},
+	onDataChange: function() {
+		if( this.isVisible() ) {
+			this.setFormRecord(null) ;
+			this.down('gridpanel').getStore().load() ;
+		} else {
+			this.on('activate',function(){this.onDataChange();}, this, {single:true}) ;
+		}
+	},
+	
 	onItemClick: function( view, record, itemNode, index, e ) {
 		var cellNode = e.getTarget( view.getCellSelector() ),
 			cellColumn = view.getHeaderByCell( cellNode ) ;
