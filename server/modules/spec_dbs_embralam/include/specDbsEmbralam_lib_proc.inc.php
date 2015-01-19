@@ -58,7 +58,43 @@ function specDbsEmbralam_lib_proc_findAdr( $mvt_obj, $stockAttributes_obj, $excl
 			
 			$arr = $_opDB->fetch_assoc($result) ;
 			$adr_id = $arr['field_ADR_ID'] ;
+			
+			break ;
 		}
+		
+		
+		// 2ème cas : position libre correspondant aux critères
+		// 3ème cas : position libre sans les critères facultatifs
+		for( $i=1 ; $i>=0 ; $i-- ) {
+			$doCheckAttributes = ($i==1) ;
+			
+			$attributesToCheck = array() ;
+			foreach( specDbsEmbralam_lib_stockAttributes_getStockAttributes() as $stockAttribute_obj ) {
+				$mkey = $stockAttribute_obj['mkey'] ;
+				$STOCK_fieldcode = $stockAttribute_obj['STOCK_fieldcode'] ;
+				
+				if( ($doCheckAttributes || !$stockAttribute_obj['cfg_is_optional']) && $stockAttributes_obj[$mkey] ) {
+					$attributesToCheck[$STOCK_fieldcode] = $stockAttributes_obj[$mkey] ;
+				}
+			}
+			
+			$query = "SELECT stk.* FROM view_bible_STOCK_entry stk
+						LEFT OUTER JOIN view_file_INV inv ON inv.field_ADR_ID = stk.entry_key
+						WHERE inv.filerecord_id IS NULL" ;
+			foreach( $attributesToCheck as $STOCK_fieldcode => $neededValue ) {
+				$query.= " AND stk.{$STOCK_fieldcode}='".mysql_real_escape_string(json_encode(array($neededValue)))."'" ;
+			}
+			$query.= " ORDER BY stk.field_PRIO_IDX LIMIT 1" ;
+			$result = $_opDB->query($query) ;
+			while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+				$status = 'OK_NEW' ;
+				$adr_id = $arr['entry_key'] ;
+				
+				break 3 ;
+			}
+		}
+		
+		
 	
 		break ;
 	}

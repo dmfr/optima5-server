@@ -338,7 +338,12 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.LivePanel',{
 		this.onLiveResponse(null) ;
 	},
 	onCrmeventBroadcast: function(crmEvent, eventParams) {
-		this.child('grid').getStore().load() ;
+		switch( crmEvent ) {
+			case 'datachange' :
+				this.child('grid').getStore().load() ;
+				break ;
+			default: break ;
+		}
 	},
 	
 	onSelectProd: function(prodCode) {
@@ -595,6 +600,13 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.LivePanel',{
 				this.onLiveResponse(null) ;
 				break ;
 			case 'btnRedo' :
+				var form = this.down('form').getForm(),
+					formValues = form.getValues(),
+					currentMvtId = formValues['mvt_id'] ;
+				if( Ext.isEmpty(currentMvtId) || !(currentMvtId > 0) ) {
+					Ext.Msg.alert('Error','MVT_ID non trouvé') ;
+					return ;
+				}
 				this.submitAdr() ;
 				break ;
 			case 'btnDelete' :
