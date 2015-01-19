@@ -237,7 +237,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.StockPanel',{
 							refresh: function(view) {
 								view.isRefreshing = false ;
 							}
-						},
+						}
 					},
 					listeners: {
 						itemclick: this.onItemClick,

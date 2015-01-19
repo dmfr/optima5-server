@@ -413,7 +413,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.LivePanel',{
 			mvt_obj: {
 				prod_id: formValues.prod_id,
 				batch: formValues.batch,
-				mvt_qty: formValues.mvt_qty,
+				mvt_qty: formValues.mvt_qty
 			}
 		}) ;
 		if( fsAttributes.isVisible() ) {
@@ -422,7 +422,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.LivePanel',{
 				stockAttributes_obj[stockAttribute.mkey] = formValues[stockAttribute.mkey] ;
 			}) ;
 			Ext.apply(returnObj, {
-				stockAttributes_obj: stockAttributes_obj,
+				stockAttributes_obj: stockAttributes_obj
 			}) ;
 		}
 		
