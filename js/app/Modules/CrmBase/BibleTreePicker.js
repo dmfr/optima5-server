@@ -135,19 +135,6 @@ Ext.define('Optima5.Modules.CrmBase.BibleTreePicker',{
 		
 		
 		if( me.selectMode == 'multi' ) {
-			treepanel.getRootNode().cascadeBy(function(rec){
-				if( Ext.Array.contains( me.myValue , rec.get('nodeKey') ) ) {
-					rec.set('checked',true) ;
-					rec.cascadeBy(function(childrec){
-						childrec.set('checked',true) ;
-					},this) ;
-					return false ;
-				}
-				else {
-					rec.set('checked',false) ;
-				}
-			},this) ;
-			
 			treepanel.getView().on('checkchange',function(rec,check){
 				rec.cascadeBy(function(chrec){
 					chrec.set('checked',check) ;
@@ -164,15 +151,6 @@ Ext.define('Optima5.Modules.CrmBase.BibleTreePicker',{
 		}
 		
 		if( me.selectMode == 'single' ) {
-			treepanel.getRootNode().cascadeBy(function(rec){
-				if( Ext.Array.contains( me.myValue , rec.get('nodeKey') ) ) {
-					rec.set('checked',true) ;
-				}
-				else {
-					rec.set('checked',false) ;
-				}
-			},this) ;
-			
 			treepanel.getView().on('checkchange',function(rec,check){
 				if( !check ) {
 					treepanel.getRootNode().cascadeBy(function(chrec){
@@ -185,8 +163,39 @@ Ext.define('Optima5.Modules.CrmBase.BibleTreePicker',{
 						}
 					},this);
 				}
-				
 				me.onCheckChange() ;
+			},this) ;
+		}
+		
+		return treepanel ;
+	},
+	getPicker: function() {
+		var me = this,
+			treepanel = this.callParent() ;
+		
+		if( me.selectMode == 'multi' ) {
+			treepanel.getRootNode().cascadeBy(function(rec){
+				if( Ext.Array.contains( me.myValue , rec.get('nodeKey') ) ) {
+					rec.set('checked',true) ;
+					rec.cascadeBy(function(childrec){
+						childrec.set('checked',true) ;
+					},this) ;
+					return false ;
+				}
+				else {
+					rec.set('checked',false) ;
+				}
+			},this) ;
+		}
+		
+		if( me.selectMode == 'single' ) {
+			treepanel.getRootNode().cascadeBy(function(rec){
+				if( Ext.Array.contains( me.myValue , rec.get('nodeKey') ) ) {
+					rec.set('checked',true) ;
+				}
+				else {
+					rec.set('checked',false) ;
+				}
 			},this) ;
 		}
 		
