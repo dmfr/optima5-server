@@ -156,7 +156,6 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.ProductsPanel',{
 		this.on('beforedeactivate', function() {
 			// HACK !!!
 			if( this.down('gridpanel').getStore().loading || this.down('gridpanel').getView().isRefreshing ) {
-				console.log('prevent deactivate') ;
 				return false ;
 			}
 		},this) ;
@@ -258,10 +257,108 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.ProductsPanel',{
 					},
 					items: atrFields
 				}]
+			},{
+				region: 'south',
+				flex: 1,
+				xtype: 'tabpanel',
+				items: [{
+					title: 'Inventory',
+					icon: 'images/op5img/ico_blocs_small.gif',
+					xtype: 'grid',
+					store: {
+						model: 'DbsEmbralamStockGridModel',
+						autoLoad: false,
+						proxy: this.optimaModule.getConfiguredAjaxProxy({
+							extraParams : {
+								_moduleId: 'spec_dbs_embralam',
+								_action: 'prods_getStockGrid'
+							},
+							reader: {
+								type: 'json',
+								root: 'data'
+							}
+						}),
+						sorters:[{
+							property : 'adr_id',
+							direction: 'ASC'
+						}]
+					},
+					columns: [{
+						dataIndex: 'adr_id',
+						text: 'Adr.ID',
+						width: 80
+					},{
+						dataIndex: 'inv_prod',
+						text: 'Article',
+						width: 90
+					},{
+						dataIndex: 'inv_batch',
+						text: 'BatchCode',
+						width: 100
+					},{
+						dataIndex: 'inv_qty',
+						text: 'Qty disp',
+						align: 'right',
+						width: 60
+					}]
+				},{
+					title: 'History',
+					icon: 'images/op5img/ico_wait_small.gif',
+					xtype: 'grid',
+					store: {
+						model: 'DbsEmbralamMovementModel',
+						autoLoad: false,
+						proxy: this.optimaModule.getConfiguredAjaxProxy({
+							extraParams : {
+								_moduleId: 'spec_dbs_embralam',
+								_action: 'prods_getMvtsGrid'
+							},
+							reader: {
+								type: 'json',
+								root: 'data'
+							}
+						}),
+						sorters:[{
+							property : 'mvt_id',
+							direction: 'DESC'
+						}]
+					},
+					columns: [{
+						xtype: 'datecolumn',
+						format:'d/m H:i',
+						dataIndex: 'mvt_date',
+						text: 'Date',
+						width: 80
+					},{
+						dataIndex: 'prod_id',
+						text: 'Article',
+						width: 90
+					},{
+						dataIndex: 'batch',
+						text: 'BatchCode',
+						width: 100
+					},{
+						dataIndex: 'mvt_qty',
+						text: 'Qty disp',
+						align: 'right',
+						width: 60,
+						renderer: function(v,metaData,record) {
+							var sign ;
+							if( v > 0 ) {
+								metaData.tdCls += ' op5-spec-dbspeople-balance-pos' ;
+								sign = '+' ;
+							} else {
+								metaData.tdCls += ' op5-spec-dbspeople-balance-neg' ;
+								sign = '-' ;
+							}
+							return sign + ' ' + v ;
+						}
+					}]
+				}]
 			}]
 		};
 		
-		var title = 'Adresse <b>'+record.get('adr_id')+'</b>' ;
+		var title = 'Article <b>'+record.get('prod_id')+'</b>' ;
 		
 		eastpanel.removeAll();
 		eastpanel.add(eastPanelCfg);
@@ -270,7 +367,49 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.ProductsPanel',{
 		eastpanel.expand() ;
 		
 		var eastInnerPanel = eastpanel.child('panel'),
-			adrForm = eastInnerPanel.child('form') ;
-		adrForm.loadRecord(record) ;
+			prodForm = eastInnerPanel.child('form') ;
+		eastInnerPanel._prod_id = record.get('prod_id') ;
+		prodForm.getForm().findField('prod_id').setReadOnly(true) ;
+		prodForm.loadRecord(record) ;
+		Ext.Array.each( eastInnerPanel.query('grid'), function(gridPanel) {
+			gridPanel.getStore().load({
+				params: {
+					prod_id: record.get('prod_id')
+				}
+			}) ;
+		});
+	},
+	handleSave: function() {
+		var me = this,
+			eastpanel = me.getComponent('mProdsFormContainer'),
+			eastInnerPanel = eastpanel.child('panel') ;
+		if( eastInnerPanel == null ) {
+			return ;
+		}
+		
+		var prodForm = eastInnerPanel.child('form') ;
+			
+		var formData = {} ;
+		Ext.apply( formData, prodForm.getValues() ) ;
+		var ajaxParams = {
+			_moduleId: 'spec_dbs_embralam',
+			_action: 'prods_setRecord',
+			_is_new: ( eastInnerPanel._prod_id == null ? 1 : 0 ),
+			prod_id: ( eastInnerPanel._prod_id != null ? eastInnerPanel._prod_id : '' ),
+			data: Ext.JSON.encode(formData)
+		} ;
+		
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams,
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Erreur',ajaxResponse.error) ;
+					return ;
+				}
+				this.optimaModule.postCrmEvent('datachange') ;
+			},
+			scope: this
+		}) ;
 	}
 });

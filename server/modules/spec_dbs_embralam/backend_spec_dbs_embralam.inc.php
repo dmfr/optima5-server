@@ -20,9 +20,20 @@ switch( $post_data['_action'] )
 	return specDbsEmbralam_live_getGrid( $post_data ) ;
 
 	case 'stock_getGrid' :
-	return specDbsPeople_stock_getGrid( $post_data ) ;
+	return specDbsEmbralam_stock_getGrid( $post_data ) ;
+	case 'stock_getMvts' :
+	return specDbsEmbralam_stock_getMvts( $post_data ) ;
+	case 'stock_setRecord' :
+	return specDbsEmbralam_stock_setRecord( $post_data ) ;
+	
 	case 'prods_getGrid' :
-	return specDbsPeople_prods_getGrid( $post_data ) ;
+	return specDbsEmbralam_prods_getGrid( $post_data ) ;
+	case 'prods_getMvtsGrid' :
+	return specDbsEmbralam_prods_getMvtsGrid( $post_data ) ;
+	case 'prods_getStockGrid' :
+	return specDbsEmbralam_prods_getStockGrid( $post_data ) ;
+	case 'prods_setRecord' :
+	return specDbsEmbralam_prods_setRecord( $post_data ) ;
 	
 	default :
 	return NULL ;

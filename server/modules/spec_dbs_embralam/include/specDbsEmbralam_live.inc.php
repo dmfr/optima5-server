@@ -41,7 +41,7 @@ function specDbsEmbralam_live_goAdr( $post_data ) {
 	if( !paracrm_lib_data_getRecord_bibleEntry('PROD',$form_data['mvt_obj']['prod_id']) ) {
 		$arr_ins = array() ;
 		$arr_ins['field_PROD_ID'] = $form_data['mvt_obj']['prod_id'] ;
-		$arr_ins['field_PROD_TXT'] = 'EmbraLAM '.date('Y-m-d') ;
+		$arr_ins['field_PROD_TXT'] = 'ELAM '.date('Y-m-d') ;
 		foreach( specDbsEmbralam_lib_stockAttributes_getStockAttributes() as $stockAttribute ) {
 			$mkey = $stockAttribute['mkey'] ;
 			$PROD_fieldkey = $stockAttribute['PROD_fieldcode'] ;

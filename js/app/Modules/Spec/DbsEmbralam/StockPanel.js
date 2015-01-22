@@ -14,7 +14,7 @@ Ext.define('DbsEmbralamStockGridModel',{
 	idProperty: 'adr_id',
 	fields: [
 		{name: 'status', type:'boolean'},
-		{name: 'adr_id', type:'string'},
+		{name: 'adr_id', type:'string', useNull:true},
 		{name: 'pos_zone', type:'string'},
 		{name: 'pos_row', type:'string'},
 		{name: 'pos_bay', type:'string'},
@@ -157,7 +157,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.StockPanel',{
 					},
 					columns: {
 						defaults: {
-							menuDisabled: false,
+							menuDisabled: true,
 							draggable: false,
 							sortable: false,
 							hideable: false,
@@ -205,11 +205,11 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.StockPanel',{
 							columns: [{
 								dataIndex: 'inv_prod',
 								text: 'Article',
-								width: 75
+								width: 100
 							},{
 								dataIndex: 'inv_batch',
 								text: 'BatchCode',
-								width: 75
+								width: 100
 							},{
 								dataIndex: 'inv_qty',
 								text: 'Qty disp',
@@ -268,7 +268,6 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.StockPanel',{
 		this.on('beforedeactivate', function() {
 			// HACK !!!
 			if( this.down('gridpanel').getStore().loading || this.down('gridpanel').getView().isRefreshing ) {
-				console.log('prevent deactivate') ;
 				return false ;
 			}
 		},this) ;
@@ -411,11 +410,22 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.StockPanel',{
 							optimaModule: this.optimaModule,
 							bibleId: 'PROD',
 							fieldLabel: 'Article',
-							name: 'inv_prod'
+							name: 'inv_prod',
+							listeners: {
+								change: function(prodField) {
+									var formPanel = prodField.up('form') ;
+									Ext.Array.each( formPanel.query('field'), function(formField) {
+										if( formField != prodField ) {
+											formField.reset() ;
+										}
+									}) ;
+								}
+							}
 						},{
 							xtype:'textfield',
 							fieldLabel: 'Batch code',
-							name: 'inv_batch'
+							name: 'inv_batch',
+							fieldStyle: 'text-transform:uppercase;'
 						},{
 							xtype:'numberfield',
 							fieldLabel: 'Qty Avail',
@@ -427,21 +437,37 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.StockPanel',{
 				},{
 					title: 'History',
 					icon: 'images/op5img/ico_wait_small.gif',
-					xtype: 'gridpanel',
+					xtype: 'grid',
 					store: {
-						fields: ['mvt_date','inv_prod','inv_batch','mvt_qty'],
-						data: []
+						model: 'DbsEmbralamMovementModel',
+						autoLoad: false,
+						proxy: this.optimaModule.getConfiguredAjaxProxy({
+							extraParams : {
+								_moduleId: 'spec_dbs_embralam',
+								_action: 'stock_getMvts'
+							},
+							reader: {
+								type: 'json',
+								root: 'data'
+							}
+						}),
+						sorters:[{
+							property : 'mvt_id',
+							direction: 'DESC'
+						}]
 					},
 					columns: [{
+						xtype: 'datecolumn',
+						format:'d/m H:i',
 						dataIndex: 'mvt_date',
 						text: 'Date',
 						width: 80
 					},{
-						dataIndex: 'inv_prod',
+						dataIndex: 'prod_id',
 						text: 'Article',
 						width: 90
 					},{
-						dataIndex: 'inv_batch',
+						dataIndex: 'batch',
 						text: 'BatchCode',
 						width: 100
 					},{
@@ -477,17 +503,48 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.StockPanel',{
 			adrForm = eastInnerPanel.child('form'),
 			adrInventory = eastInnerPanel.child('tabpanel').child('form') ;
 			adrMvts = eastInnerPanel.child('tabpanel').child('grid') ;
+		eastInnerPanel._adr_id = record.get('adr_id') ;
 		adrForm.loadRecord(record) ;
 		adrInventory.loadRecord(record) ;
-		
-		if( !Ext.isEmpty( record.get('inv_prod') ) ) {
-			var fakeRecord = {
-				mvt_date: '22/11/2014',
-				inv_prod: record.get('inv_prod'),
-				inv_batch: record.get('inv_batch'),
-				mvt_qty: record.get('inv_qty')
-			} ;
-			adrMvts.getStore().loadData([fakeRecord]) ;
+		adrMvts.getStore().load({
+			params: {
+				adr_id: record.get('adr_id')
+			}
+		}) ;
+	},
+	handleSave: function() {
+		var me = this,
+			eastpanel = me.getComponent('mStockFormContainer'),
+			eastInnerPanel = eastpanel.child('panel') ;
+		if( eastInnerPanel == null ) {
+			return ;
 		}
+		
+		var adrForm = eastInnerPanel.child('form'),
+			adrInventory = eastInnerPanel.child('tabpanel').child('form') ;
+			
+		var formData = {} ;
+		Ext.apply( formData, adrForm.getValues() ) ;
+		Ext.apply( formData, adrInventory.getValues() ) ;
+		var ajaxParams = {
+			_moduleId: 'spec_dbs_embralam',
+			_action: 'stock_setRecord',
+			_is_new: ( eastInnerPanel._adr_id == null ? 1 : 0 ),
+			adr_id: ( eastInnerPanel._adr_id != null ? eastInnerPanel._adr_id : '' ),
+			data: Ext.JSON.encode(formData)
+		} ;
+		
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams,
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Erreur',ajaxResponse.error) ;
+					return ;
+				}
+				this.optimaModule.postCrmEvent('datachange') ;
+			},
+			scope: this
+		}) ;
 	}
 });
