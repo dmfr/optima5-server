@@ -110,7 +110,7 @@ function specDbsEmbralam_prods_setRecord( $post_data ) {
 			$arr_ins[$PROD_fieldcode] = json_encode(array($atr_value)) ;
 		}
 	}
-	if( $post_data['is_new'] ) {
+	if( $post_data['_is_new'] ) {
 		$arr_ins['field_PROD_ID'] = $form_data['prod_id'] ;
 		$arr_ins['field_PROD_TXT'] = $form_data['prod_txt'] ;
 		$entry_key = $arr_ins['field_PROD_ID'] ;

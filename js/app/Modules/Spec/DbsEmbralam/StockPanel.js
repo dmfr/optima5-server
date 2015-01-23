@@ -69,7 +69,9 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.StockPanel',{
 				},
 				tbar:[{
 					icon:'images/op5img/ico_new_16.gif',
-					text:'Création adresse(s)'
+					text:'Création adresse(s)',
+					handler: function() { this.handleNew() },
+					scope: this
 				},{
 					icon:'images/op5img/ico_print_16.png',
 					text:'Impression Inventaires'
@@ -364,12 +366,53 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.StockPanel',{
 				bodyCls: 'ux-noframe-bg',
 				items: [{
 					xtype:'fieldset',
+					itemId: 'fsPositionDisplay',
 					title: 'Position',
 					items:[{
 						xtype: 'displayfield',
 						fieldLabel: 'Adresse',
 						fieldStyle: 'font-weight: bold',
 						name: 'adr_id'
+					}]
+				},{
+					xtype:'fieldset',
+					itemId: 'fsPositionEdit',
+					title: 'Position',
+					defaults: {
+						labelWidth: 75,
+						fieldStyle: 'text-transform:uppercase;',
+						anchor: ''
+					},
+					items:[{
+						xtype: 'textfield',
+						fieldLabel: 'Adresse',
+						name: 'adr_id',
+						width: 175
+					},{
+						xtype: 'textfield',
+						fieldLabel: 'Allée',
+						name: 'pos_row',
+						width: 125
+					},{
+						xtype: 'textfield',
+						fieldLabel: 'Pos.',
+						name: 'pos_bay',
+						width: 125
+					},{
+						xtype: 'textfield',
+						fieldLabel: 'Niveau',
+						name: 'pos_level',
+						width: 125
+					},{
+						xtype: 'textfield',
+						fieldLabel: 'Profond.',
+						name: 'pos_depth',
+						width: 125
+					},{
+						xtype: 'textfield',
+						fieldLabel: 'Case',
+						name: 'pos_bin',
+						width: 125
 					}]
 				},{
 					xtype:'fieldset',
@@ -491,7 +534,11 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.StockPanel',{
 			}]
 		};
 		
-		var title = 'Adresse <b>'+record.get('adr_id')+'</b>' ;
+		if( record.get('adr_id') != null ) {
+			var title = 'Adresse <b>'+record.get('adr_id')+'</b>' ;
+		} else {
+			var title = 'Création Adresse' ;
+		}
 		
 		eastpanel.removeAll();
 		eastpanel.add(eastPanelCfg);
@@ -504,13 +551,27 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.StockPanel',{
 			adrInventory = eastInnerPanel.child('tabpanel').child('form') ;
 			adrMvts = eastInnerPanel.child('tabpanel').child('grid') ;
 		eastInnerPanel._adr_id = record.get('adr_id') ;
-		adrForm.loadRecord(record) ;
-		adrInventory.loadRecord(record) ;
-		adrMvts.getStore().load({
-			params: {
-				adr_id: record.get('adr_id')
-			}
-		}) ;
+		if( record.get('adr_id') == null ) {
+			var toRemove = adrForm.child('#fsPositionDisplay') ;
+			toRemove.up().remove(toRemove) ;
+			
+			eastInnerPanel.down('tabpanel').setVisible(false) ;
+		} else {
+			var toRemove = adrForm.child('#fsPositionEdit') ;
+			toRemove.up().remove(toRemove) ;
+			
+			adrForm.loadRecord(record) ;
+			adrInventory.loadRecord(record) ;
+			adrMvts.getStore().load({
+				params: {
+					adr_id: record.get('adr_id')
+				}
+			}) ;
+		}
+	},
+	handleNew: function() {
+		var newStockRecord = Ext.ux.dams.ModelManager.create(this.tmpGridModelName,{}) ;
+		this.setFormRecord(newStockRecord) ;
 	},
 	handleSave: function() {
 		var me = this,
@@ -539,6 +600,10 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.StockPanel',{
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
 				if( ajaxResponse.success == false ) {
+					if( ajaxResponse.formErrors ) {
+						adrForm.getForm().markInvalid( ajaxResponse.formErrors ) ;
+						return ;
+					}
 					Ext.MessageBox.alert('Erreur',ajaxResponse.error) ;
 					return ;
 				}

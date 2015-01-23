@@ -50,7 +50,9 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.ProductsPanel',{
 				},
 				tbar:[{
 					icon:'images/op5img/ico_new_16.gif',
-					text:'Création Article'
+					text:'Création Article',
+					handler: function() { this.handleNew() },
+					scope: this
 				}],
 				items: [{
 					border: false,
@@ -369,15 +371,23 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.ProductsPanel',{
 		var eastInnerPanel = eastpanel.child('panel'),
 			prodForm = eastInnerPanel.child('form') ;
 		eastInnerPanel._prod_id = record.get('prod_id') ;
-		prodForm.getForm().findField('prod_id').setReadOnly(true) ;
-		prodForm.loadRecord(record) ;
-		Ext.Array.each( eastInnerPanel.query('grid'), function(gridPanel) {
-			gridPanel.getStore().load({
-				params: {
-					prod_id: record.get('prod_id')
-				}
-			}) ;
-		});
+		if( record.get('prod_id') == null ) {
+			eastInnerPanel.down('tabpanel').setVisible(false) ;
+		} else {
+			prodForm.getForm().findField('prod_id').setReadOnly( true ) ;
+			prodForm.loadRecord(record) ;
+			Ext.Array.each( eastInnerPanel.query('grid'), function(gridPanel) {
+				gridPanel.getStore().load({
+					params: {
+						prod_id: record.get('prod_id')
+					}
+				}) ;
+			});
+		}
+	},
+	handleNew: function() {
+		var newProdRecord = Ext.ux.dams.ModelManager.create(this.tmpModelName,{}) ;
+		this.setFormRecord(newProdRecord) ;
 	},
 	handleSave: function() {
 		var me = this,
@@ -404,6 +414,10 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.ProductsPanel',{
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
 				if( ajaxResponse.success == false ) {
+					if( ajaxResponse.formErrors ) {
+						prodForm.getForm().markInvalid( ajaxResponse.formErrors ) ;
+						return ;
+					}
 					Ext.MessageBox.alert('Erreur',ajaxResponse.error) ;
 					return ;
 				}

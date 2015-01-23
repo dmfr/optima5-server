@@ -81,6 +81,10 @@ function specDbsEmbralam_stock_setRecord( $post_data ) {
 	global $_opDB ;
 
 	$form_data = json_decode($post_data['data'],true) ;
+	foreach( $form_data as $mkey => &$mvalue ) {
+		$mvalue = trim($mvalue) ;
+	}
+	unset($mvalue) ;
 
 	$arr_ins = array() ;
 	foreach( specDbsEmbralam_lib_stockAttributes_getStockAttributes() as $stockAttribute_obj ) {
@@ -92,17 +96,37 @@ function specDbsEmbralam_stock_setRecord( $post_data ) {
 			$arr_ins[$STOCK_fieldcode] = json_encode(array($atr_value)) ;
 		}
 	}
-	if( $post_data['is_new'] ) {
-		$treenode_key ;
-		if( !paracrm_lib_data_getRecord_bibleTreenode('STOCK',$treenode_key) ) {
-			
+	if( $post_data['_is_new'] ) {
+		$check = array('pos_row'=>3,'pos_bay'=>1,'pos_level'=>2,'pos_depth'=>1) ;
+		$errors = array() ;
+		foreach( $check as $mkey => $length ) {
+			if( strlen($form_data[$mkey]) != $length || (is_numeric($form_data[$mkey]) != ($length > 1)) ) {
+				$errors[$mkey] = 'Position manquante' ;
+			}
+		}
+		if( $errors ) {
+			return array('success'=>false, 'formErrors'=>$errors) ;
 		}
 		
-		$arr_ins['field_POS_BAY'] ;
-		$arr_ins['field_POS_LEVEL'] ;
-		$arr_ins['field_POS_BIN'] ;
+		$concat = array('pos_row','pos_bay','pos_level','pos_depth','pos_bin') ;
+		$str = '' ;
+		foreach( $concat as $mkey ) {
+			$str.= $form_data[$mkey] ;
+		}
+		if( $str != $form_data['adr_id'] ) {
+			return array('success'=>false, 'formErrors'=>array('adr_id'=>'Structure incohérente')) ;
+		}
+	
+		$treenode_key = $form_data['pos_row'] ;
+		if( !paracrm_lib_data_getRecord_bibleTreenode('STOCK',$treenode_key) ) {
+			return array('success'=>false, 'error'=>'Allée non définie') ;
+		}
 		
-		$arr_ins['field_ADR_ID'] ;
+		$arr_ins['field_POS_BAY'] = $form_data['pos_bay'] ;
+		$arr_ins['field_POS_LEVEL'] = $form_data['pos_level'] ;
+		$arr_ins['field_POS_BIN'] = $form_data['pos_bin'] ;
+		
+		$arr_ins['field_ADR_ID'] = $form_data['adr_id'] ;
 		$entry_key = $arr_ins['field_ADR_ID'] ;
 		
 		if( paracrm_lib_data_getRecord_bibleEntry('STOCK',$entry_key) ) {
