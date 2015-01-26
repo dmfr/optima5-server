@@ -895,4 +895,63 @@ function specWbMrfoxy_promo_exportXLS( $post_data ) {
 	unlink($tmpfilename) ;
 	die() ;
 }
+
+
+
+function specWbMrfoxy_promo_getAttachments( $post_data ) {
+	$target_filerecordId = $post_data['_filerecord_id'] ;
+	$forward_post = array() ;
+	$forward_post['start'] ;
+	$forward_post['limit'] ;
+	$forward_post['file_code'] = 'WORK_PROMO_ATTACH' ;
+	$forward_post['filter'] = json_encode(array(
+		array(
+			'type' => 'list',
+			'field' => 'WORK_PROMO_id',
+			'value' => array( $target_filerecordId )
+		)
+	)) ;
+	$ttmp = paracrm_data_getFileGrid_data( $forward_post, $auth_bypass=TRUE ) ;
+	$paracrm_TAB = $ttmp['data'] ;
+	$TAB = array() ;
+	foreach( $paracrm_TAB as $paracrm_row ) {
+		$TAB[] = array('filerecord_id'=>$paracrm_row['WORK_PROMO_ATTACH_id']) ;
+	}
+	return array('success'=>true, 'data'=>$TAB) ;
+}
+function specWbMrfoxy_promo_uploadAttachment($post_data) {
+	$target_filerecordId = $post_data['_filerecord_id'] ;
+	
+	usleep(500000) ;
+	media_contextOpen( $_POST['_sdomainId'] ) ;
+	$media_id = media_img_processUploaded( $_FILES['photo-filename']['tmp_name'] ) ;
+	media_contextClose() ;
+	if( !$media_id ) {
+		return array('success'=>false) ;
+	}
+	
+	$newrecord = array() ;
+	$newrecord['media_title'] = $_FILES['photo-filename']['name'] ;
+	$newrecord['media_date'] = date('Y-m-d H:i:s') ;
+	$newrecord['media_mimetype'] = 'image/jpeg' ;
+	$img_filerecordId = paracrm_lib_data_insertRecord_file( 'WORK_PROMO_ATTACH',$target_filerecordId,$arr_ins) ;
+	
+	media_contextOpen( $_POST['_sdomainId'] ) ;
+	media_img_move( $media_id , $img_filerecordId ) ;
+	media_contextClose() ;
+	
+	return array('success'=>true) ;
+}
+function specWbMrfoxy_promo_deleteAttachment($post_data) {
+	$attach_filerecordId = $post_data['filerecord_id'] ;
+	
+	media_contextOpen( $_POST['_sdomainId'] ) ;
+	media_img_delete( $attach_filerecordId ) ;
+	media_contextClose() ;
+	
+	paracrm_lib_data_deleteRecord_file('WORK_PROMO_ATTACH',$attach_filerecordId) ;
+
+	return array('success'=>true) ;
+}
+
 ?>

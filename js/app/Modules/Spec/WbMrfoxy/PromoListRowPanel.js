@@ -5,6 +5,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 		'Optima5.Modules.Spec.WbMrfoxy.PromoApprovalPanel',
 		'Optima5.Modules.Spec.WbMrfoxy.PromoBaselinePanel',
 		'Optima5.Modules.Spec.WbMrfoxy.PromoBillbackGrid',
+		'Optima5.Modules.Spec.WbMrfoxy.PromoAttachmentsDataview',
 		'Ext.ux.dams.FieldSet',
 		'Optima5.Modules.Spec.WbMrfoxy.GraphInfoView',
 		'Optima5.Modules.Spec.WbMrfoxy.BenchmarkGridEmpty'
@@ -102,6 +103,10 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 							actionId: 'close',
 							actionText:'Close',
 							actionDisabled:!( me.rowRecord.get('status_percent') == 80 && Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole(['ADM','SM']) )
+						},{
+							actionId: 'attachments',
+							actionText:'Attachments',
+							actionDisabled:!( true )
 						}]
 					},
 					overItemCls: 'op5-spec-mrfoxy-promorow-item-over',
@@ -137,6 +142,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 									break ;
 								case 'close' :
 									me.handleClose() ;
+									break ;
+								case 'attachments' :
+									me.openAttachments() ;
 									break ;
 							}
 						},
@@ -370,6 +378,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 	},
 	openBillback: function() {
 		this.openPopup('Optima5.Modules.Spec.WbMrfoxy.PromoBillbackGrid',[600,150]) ;
+	},
+	openAttachments: function() {
+		this.openPopup('Optima5.Modules.Spec.WbMrfoxy.PromoAttachmentsDataview',[600,180]) ;
 	},
 	openPopup: function(className,dimensions) {
 		var me = this ;

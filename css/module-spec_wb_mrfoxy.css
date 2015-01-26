@@ -313,6 +313,9 @@
 .op5-spec-mrfoxy-promorow-action-icon-close {
 	background-image: url("../images/modules/mrfoxy-ok-16.gif") !important;
 }
+.op5-spec-mrfoxy-promorow-action-icon-attachments {
+	background-image: url("../images/modules/mrfoxy-attachment-16.png") !important;
+}
 
 .op5-spec-mrfoxy-promorow-fieldset-edit {
 	background-image: url("../images/op5img/ico_edit_small.gif") !important;

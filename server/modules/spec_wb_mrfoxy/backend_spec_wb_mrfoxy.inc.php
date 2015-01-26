@@ -51,6 +51,13 @@ switch( $post_data['_action'] )
 	case 'promo_setBaseline' :
 	return specWbMrfoxy_promo_setBaseline($post_data);
 	
+	case 'promo_getAttachments' :
+	return specWbMrfoxy_promo_getAttachments($post_data);
+	case 'promo_uploadAttachment' :
+	return specWbMrfoxy_promo_uploadAttachment($post_data);
+	case 'promo_deleteAttachment' :
+	return specWbMrfoxy_promo_deleteAttachment($post_data);
+	
 	
 	case 'promo_exportXLS' :
 	return specWbMrfoxy_promo_exportXLS($post_data);
