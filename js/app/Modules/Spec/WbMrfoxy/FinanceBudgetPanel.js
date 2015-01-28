@@ -751,8 +751,15 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 		Ext.Array.each( ajaxData.revisions, function(revision) {
 			var revisionId = 'r_'+revision.revision_id ;
 			if( revision.is_editing ) {
+				var validBtn = Ext.create('Ext.button.Button',{
+					iconCls: 'op5-spec-mrfoxy-financebudget-newrevisionmenu-save',
+					text: 'Commit revision'
+				});
+				var buttonMarkup = Ext.DomHelper.markup(validBtn.getRenderTree());
+				validBtn.destroy() ;
+				
 				editingColumn = {
-					text: ( revision.is_crop_initial ? 'Initial crop '+me.filterCropYear : 'Build revision ' + revision.revision_date ),
+					text: ( revision.is_crop_initial ? 'Initial crop '+me.filterCropYear : 'Build revision ' + revision.revision_date ) + '<div align="center">' + buttonMarkup + '</div>',
 					defaults: Ext.apply( Ext.clone(colDefaults),{
 						width: 100
 					}),
@@ -789,7 +796,17 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 							meta.tdCls += ' op5-spec-mrfoxy-financebudget-celltotal' ;
 							return value ;
 						}
-					}]
+					}],
+					listeners: {
+						// attach event listener to buttonMarkup
+						afterrender: function(editingColumn) {
+							editingColumn.mon( editingColumn.getEl().down('.x-btn'), 'click', function() {
+								var doSave ;
+								this.handleNewRevisionEnd( doSave = true ) ;
+							}, this) ;
+						},
+						scope: this
+					}
 				} ;
 				if( actualDataIndex != null ) {
 					editingColumn.columns.push({
@@ -845,7 +862,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 					});
 				}
 			}
-		}) ;
+		},this) ;
 		if( initColumn != null ) {
 			columns.push(initColumn) ;
 		}
