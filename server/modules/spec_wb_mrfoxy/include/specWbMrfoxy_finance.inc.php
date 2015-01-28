@@ -447,7 +447,7 @@ function specWbMrfoxy_finance_getBudgetBar( $post_data )  {
 }
 
 
-function specWbMrfoxy_finance_getNationalAgreements( $post_data )  {
+function specWbMrfoxy_finance_getNationalAgreements( $post_data ) {
 	global $_opDB ;
 	
 	$date_today = date('Y-m-d') ;
@@ -559,6 +559,7 @@ function specWbMrfoxy_finance_getNationalAgreements( $post_data )  {
 	$auth_arrCountries = specWbMrfoxy_auth_lib_getCountries() ;
 	
 	$TAB = array() ;
+	$nagreement_ids = array() ;
 	foreach( $paracrm_TAB as $paracrm_row ) {
 		if( is_array($auth_arrCountries) && !in_array($paracrm_row['FINANCE_REVISION_field_COUNTRY'],$auth_arrCountries) ) {
 			continue ;
@@ -587,14 +588,29 @@ function specWbMrfoxy_finance_getNationalAgreements( $post_data )  {
 			}
 		}
 	
-		$nagreement_id = '' ;
-		$nagreement_id.= $paracrm_row['FINANCE_REVISION_field_COUNTRY'] ;
-		$nagreement_id.= ' ' ;
-		$nagreement_id.= ($paracrm_row['FINANCE_REVISION_ROW_field_ROW_SPEC_STORE_tree_STOREGROUP_MEMO'] ? $paracrm_row['FINANCE_REVISION_ROW_field_ROW_SPEC_STORE_tree_STOREGROUP_MEMO'] : 'XXXX') ;
-		$nagreement_id.= ' ' ;
-		$nagreement_id.= ($paracrm_row['FINANCE_REVISION_ROW_field_ROW_SUB_PRODTAG_tree_PRODTAG'] ? $paracrm_row['FINANCE_REVISION_ROW_field_ROW_SUB_PRODTAG_tree_PRODTAG'] : '??') ;
-		$nagreement_id.= ' ' ;
-		$nagreement_id.= $paracrm_row['FINANCE_REVISION_field_CROP_YEAR'] ;
+		$nagreement_id_base = '' ;
+		$nagreement_id_base.= $paracrm_row['FINANCE_REVISION_field_COUNTRY'] ;
+		$nagreement_id_base.= ' ' ;
+		$nagreement_id_base.= ($paracrm_row['FINANCE_REVISION_ROW_field_ROW_SPEC_STORE_tree_STOREGROUP_MEMO'] ? $paracrm_row['FINANCE_REVISION_ROW_field_ROW_SPEC_STORE_tree_STOREGROUP_MEMO'] : 'XXXX') ;
+		$nagreement_id_base.= ' ' ;
+		$nagreement_id_base.= ($paracrm_row['FINANCE_REVISION_ROW_field_ROW_SUB_PRODTAG_tree_PRODTAG'] ? $paracrm_row['FINANCE_REVISION_ROW_field_ROW_SUB_PRODTAG_tree_PRODTAG'] : '??') ;
+		$nagreement_id_base.= ' ' ;
+		$nagreement_id_base.= $paracrm_row['FINANCE_REVISION_field_CROP_YEAR'] ;
+		
+		$suffix = '' ;
+		$nagreement_id = $nagreement_id_base ;
+		while(true) {
+			if( !in_array($nagreement_id,$nagreement_ids) ) {
+				$nagreement_ids[] = $nagreement_id ;
+				break ;
+			}
+			if( $suffix == '' ) {
+				$suffix = 'B' ;
+			} else {
+				$suffix++ ;
+			}
+			$nagreement_id = $nagreement_id_base.' '.$suffix ;
+		}
 		
 		$row = array() ;
 		$row['country_code'] = $paracrm_row['FINANCE_REVISION_field_COUNTRY'] ;
