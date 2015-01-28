@@ -88,7 +88,6 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.WbMrfoxyFinanceRevisionRowValueField',
 	layout: 'hbox',
 	combineErrors: true,
 	msgTarget :'side',
-	invalidMsg : 'Link-to-bible incomplete',
 	allowBlank: true,
 
 	displayCurrency: null,
@@ -109,11 +108,14 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.WbMrfoxyFinanceRevisionRowValueField',
 		me.callParent();
 		
 		var queryCmps = this.query() ;
-		this.fieldAmount = queryCmps[0];
-		this.fieldAmountLegend = queryCmps[1];
+		this.fieldMode = queryCmps[0];
+		this.fieldModeSpacer = queryCmps[1] ;
 		this.fieldPercent = queryCmps[2];
 		this.fieldPercentLegend = queryCmps[3];
+		this.fieldAmount = queryCmps[4];
+		this.fieldAmountLegend = queryCmps[5];
 		
+		me.mon( this.fieldMode, 'change', me.onSubfieldChange, me ) ;
 		me.mon( this.fieldAmount, 'change', me.onSubfieldChange, me ) ;
 		me.mon( this.fieldPercent, 'change', me.onSubfieldChange, me ) ;
 		
@@ -121,80 +123,153 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.WbMrfoxyFinanceRevisionRowValueField',
 		if( me.currencySign != null ) {
 			me.setCurrencySign(me.currencySign) ;
 		}
-		me.fieldPercentLegend.update('%') ;
+		me.fieldPercentLegend.update('&#160;%&#160;of&#160;') ;
 	},
 	
 	//@private
 	buildField: function(){
 		this.items = [{
-			xtype: 'numberfield',
+			xtype: 'combobox',
 			width: 75,
-			hideTrigger:true
+			isFormField: true,
+			forceSelection:true,
+			editable:false,
+			queryMode: 'local',
+			displayField: 'txt',
+			valueField: 'id',
+			store: {
+				fields: ['id','txt'],
+				data: [
+					{id: '', txt:'-select-'},
+					{id: 'static', txt:'Fix.Cost'},
+					{id: 'percent', txt:'% of Rev'},
+				]
+			},
+			matchFieldWidth:false,
+			listConfig: {width:200}
 		},{
 			xtype: 'box',
 			width: 16,
 			html:'&#160;'
 		},{
 			xtype: 'numberfield',
-			flex: 1,
+			isFormField: true,
+			width: 35,
 			hideTrigger:true
 		},{
 			xtype: 'box',
 			width: 35,
-			html:'%'
+			html:'&#160;'
+		},{
+			xtype: 'numberfield',
+			isFormField: true,
+			width: 60,
+			hideTrigger:true
+		},{
+			xtype: 'box',
+			width: 16,
+			html:'&#160;'
 		}]
+	},
+	doFieldsLayout: function() {
+		switch( this.fieldMode.getValue() ) {
+			case 'static' :
+				this.fieldAmount.setVisible(true) ;
+				this.fieldAmountLegend.setVisible(true) ;
+				this.fieldPercent.setVisible(false) ;
+				this.fieldPercentLegend.setVisible(false) ;
+				break ;
+			case 'percent' :
+				this.fieldAmount.setVisible(true) ;
+				this.fieldAmountLegend.setVisible(true) ;
+				this.fieldPercent.setVisible(true) ;
+				this.fieldPercentLegend.setVisible(true) ;
+				break ;
+			default :
+				this.fieldAmount.setVisible(false) ;
+				this.fieldAmountLegend.setVisible(false) ;
+				this.fieldPercent.setVisible(false) ;
+				this.fieldPercentLegend.setVisible(false) ;
+				break ;
+		}
 	},
 	
 	setCurrencySign: function( sign ) {
-		this.fieldAmountLegend.update(sign) ;
+		this.fieldAmountLegend.update('&#160;' + sign) ;
 	},
 	
-	onSubfieldChange: function() {
+	onSubfieldChange: function(field) {
+		if( field == this.fieldMode ) {
+			this.doFieldsLayout() ;
+		}
 		this.checkChange() ;
 	},
 	
 	getErrors: function() {
+		return Ext.Object.getValues( this.getErrorsObj() ) ;
+	},
+	getErrorsObj: function() {
 		var me = this ,
 		allowBlank = false ;
 		
+		var errors = {} ;
 		if( !allowBlank ) {
-			if( Ext.isEmpty( this.fieldAmount.getValue() ) ) {
-				return [me.invalidMsg] ;
+			if( Ext.isEmpty( this.fieldMode.getValue() ) ) {
+				return {fieldMode: 'Select mode'} ;
+			}
+			switch( this.fieldMode.getValue() ) {
+				case 'percent' :
+					if( Ext.isEmpty( this.fieldPercent.getValue() ) ) {
+						Ext.apply(errors, {fieldPercent: 'Specify percentage'}) ;
+					}
+					if( Ext.isEmpty( this.fieldAmount.getValue() ) ) {
+						Ext.apply(errors, {fieldAmount: 'Specify budgeted revenue'}) ;
+					}
+					break ;
+				case 'static' :
+					if( Ext.isEmpty( this.fieldAmount.getValue() ) ) {
+						Ext.apply(errors, {fieldAmount: 'Specify amount'}) ;
+					}
+					break ;
 			}
 		}
-		return [] ;
+		return errors ;
 	},
 	isValid : function() {
 		var me = this,
-			disabled = me.disabled,
-			validate = me.forceValidation || !disabled;
-			
-		
+				disabled = me.disabled,
+				validate = me.forceValidation || !disabled;
 		return validate ? me.validateValue() : disabled;
 	},
 	validateValue: function() {
 		var me = this,
-			errors = me.getErrors(),
-			isValid = Ext.isEmpty(errors);
+				errors = me.getErrors(),
+				isValid = Ext.isEmpty(errors);
 		if (!me.preventMark) {
 			if (isValid) {
-					me.clearInvalid();
+				me.clearInvalid();
 			} else {
-					me.markInvalid(errors);
+				me.markInvalid(me.getErrorsObj());
 			}
 		}
 
 		return isValid;
 	},
 	markInvalid: function(errors) {
-		if( this.fieldAmount ) {
-			this.fieldAmount.markInvalid(errors) ;
+		if( errors['fieldMode'] && this.fieldMode ) {
+			this.fieldMode.markInvalid([errors['fieldMode']]) ;
 		}
-		if( this.fieldPercent ) {
-			this.fieldPercent.markInvalid(errors) ;
+		if( errors['fieldAmount'] && this.fieldAmount ) {
+			this.fieldAmount.markInvalid([errors['fieldAmount']]) ;
+		}
+		if( errors['fieldPercent'] && this.fieldPercent ) {
+			this.fieldPercent.markInvalid([errors['fieldPercent']]) ;
 		}
 	},
 	clearInvalid: function() {
+		if( this.fieldMode ) {
+			this.fieldMode.clearInvalid() ;
+		}
 		if( this.fieldAmount ) {
 			this.fieldAmount.clearInvalid() ;
 		}
@@ -205,6 +280,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.WbMrfoxyFinanceRevisionRowValueField',
 	 
 	getValue: function() {
 		var valueObj = {
+			mode: this.fieldMode.getValue(),
 			amount: this.fieldAmount.getValue(),
 			percent: this.fieldPercent.getValue()
 		};
@@ -213,14 +289,19 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.WbMrfoxyFinanceRevisionRowValueField',
 	},
 	setValue: function( jsonValue ) {
 		if( Ext.isEmpty(jsonValue) ) {
+			this.fieldMode.setValue(null);
 			this.fieldAmount.setValue(null);
 			this.fieldPercent.setValue(null);
+			this.doFieldsLayout() ;
 			return ;
 		}
 		
 		var valueObj = Ext.JSON.decode(jsonValue) ;
+		this.fieldMode.setValue(valueObj.mode);
 		this.fieldAmount.setValue(valueObj.amount);
 		this.fieldPercent.setValue(valueObj.percent);
+		this.doFieldsLayout() ;
+		this.checkChange() ;
 	}
 });
 
@@ -791,11 +872,21 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 					cache_arr[hashStr] = [] ;
 				}
 				cache_value[hashStr] += Ext.util.Format.round( rowValue * convertCurrencyCoef, 3 ) ;
+				
+				var valueObj = (!Ext.isEmpty(row.value_obj) ? Ext.JSON.decode(row.value_obj) : null)
+				if( Ext.isEmpty(valueObj) ) {
+					valueObj = {} ;
+					valueObj['mode'] = 'static' ;
+					valueObj['amount'] = rowValue ;
+				} else if( Ext.isEmpty(valueObj.mode) ) {
+					valueObj['mode'] = ( Ext.isEmpty(valueObj.percent) ? 'static' : 'percent' ) ;
+				}
+				
 				cache_arr[hashStr].push({
 					row_sub_prodtag: row.row_sub_prodtag,
 					row_sub_txt: row.row_sub_txt,
 					value: Ext.util.Format.round( rowValue * convertCurrencyCoef, 3 ),
-					value_obj: ( !Ext.isEmpty(row.value_obj) ? row.value_obj : Ext.JSON.encode({amount:rowValue}) )
+					value_obj: Ext.JSON.encode(valueObj)
 				});
 			});
 		});
@@ -1476,7 +1567,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 		cellEl.addCls('op5-spec-mrfoxy-financebudget-celldetails') ;
 		
 		var rowDetailsPanel = Ext.create('Ext.ux.dams.EmbeddedGrid',{
-			width: 550,
+			width: 650,
 			height: 200,
 			
 			title: (gridColumn.isInitialEdit ? gridColumn.text : 'Revision '+gridColumn.text) + ' : ' + gridRecord.get('row_text'),
@@ -1507,7 +1598,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 				text:'Agreement',
 				editor: {xtype:'textfield'}
 			},{
-				flex:2,
+				flex:4,
 				dataIndex:'value_obj',
 				type: 'string',
 				text:'Amount',
@@ -1517,10 +1608,14 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 				}),
 				renderer: function(v) {
 					var valueObj = Ext.JSON.decode(v) ;
-					if( Ext.isEmpty(valueObj.percent) ) {
-						return valueObj.amount + ' ' + this.currencySign ;
+					switch( valueObj.mode ) {
+						case 'percent' :
+							return valueObj.percent + ' % ( ' + valueObj.amount + ' ' + this.currencySign + ' )' ;
+						case 'static' :
+							return valueObj.amount + ' ' + this.currencySign ;
+						default :
+							return '' ;
 					}
-					return valueObj.percent + ' % ( ' + valueObj.amount + ' ' + this.currencySign + ' )' ;
 				}
 			},{
 				flex:0,
@@ -1570,12 +1665,16 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 				var editRecord = editEvent.record,
 					valueObj = Ext.JSON.decode(editEvent.newValues.value_obj),
 					value = null ;
-				if( Ext.isEmpty(valueObj.amount) ) {
-					value = 0 ;
-				} else if( Ext.isEmpty(valueObj.percent) ) {
-					value = valueObj.amount ;
-				} else {
-					value = Ext.util.Format.round( valueObj.amount * valueObj.percent / 100, 0 )
+				switch( valueObj.mode ) {
+					case 'percent' :
+						value = Ext.util.Format.round( valueObj.amount * valueObj.percent / 100, 0 )
+						break ;
+					case 'static' :
+						value = valueObj.amount ;
+						break ;
+					default :
+						value = 0 ;
+						break ;
 				}
 				editRecord.set('value',value) ;
 				editRecord.commit() ;
