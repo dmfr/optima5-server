@@ -685,6 +685,10 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_MOD( $at_date_sql ) {
 				continue ;
 			}
 			$week_sql = date('o-W',strtotime($date_sql)) ;
+			$ISO8601_day = date('N',strtotime($date_sql)) ;
+			if( !$contract_row['std_dayson'][$ISO8601_day] ) {
+				continue ;
+			}
 			$RES_realDuration[$people_code][$week_sql] += $contract_row['std_daylength'] ;
 		}
 		foreach( $RES_realDuration[$people_code] as $week_sql => $nb_heures_work ) {
@@ -898,6 +902,10 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_RC( $at_date_sql ) {
 				continue ;
 			}
 			$month_sql = date('Y-m',strtotime($date_sql)) ;
+			$ISO8601_day = date('N',strtotime($date_sql)) ;
+			if( !$contract_row['std_dayson'][$ISO8601_day] ) {
+				continue ;
+			}
 			$RES_realDuration[$people_code][$month_sql] += $contract_row['std_daylength'] ;
 		}
 		foreach( $RES_realDuration[$people_code] as $month_sql => $nb_heures_work ) {
