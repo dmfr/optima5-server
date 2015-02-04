@@ -192,6 +192,39 @@ function paracrm_define_togglePublish( $post_data ) {
 }
 
 
+function paracrm_define_truncate( $post_data ) {
+	global $_opDB ;
+	
+	if( !Auth_Manager::getInstance()->auth_query_sdomain_admin( Auth_Manager::sdomain_getCurrent() ) ) {
+		return Auth_Manager::auth_getDenialResponse() ;
+	}
+	
+	$data_type = $post_data['data_type'] ;
+	$bible_code = $post_data['bible_code'] ;
+	$file_code = $post_data['file_code'] ;
+	
+	switch( $data_type )
+	{
+		case 'bible' :
+		$t = new DatabaseMgr_Sdomain( DatabaseMgr_Base::dbCurrent_getDomainId() );
+		$t->sdomainDefine_truncateBible( DatabaseMgr_Sdomain::dbCurrent_getSdomainId(), $bible_code ) ;
+		return array('success'=>true) ;
+		break ;
+		
+		
+		case 'file' :
+		$t = new DatabaseMgr_Sdomain( DatabaseMgr_Base::dbCurrent_getDomainId() );
+		$query = "SELECT file_code FROM define_file WHERE file_parent_code='{$file_code}' AND file_parent_code<>''" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$child_fileCode = $arr[0] ;
+			$t->sdomainDefine_truncateFile( DatabaseMgr_Sdomain::dbCurrent_getSdomainId(), $child_fileCode ) ;
+		}
+		$t->sdomainDefine_truncateFile( DatabaseMgr_Sdomain::dbCurrent_getSdomainId(), $file_code ) ;
+		return array('success'=>true) ;
+		break ;
+	}
+}
 function paracrm_define_drop( $post_data ) {
 	global $_opDB ;
 	

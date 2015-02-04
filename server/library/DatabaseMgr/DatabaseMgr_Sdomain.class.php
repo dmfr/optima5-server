@@ -1169,6 +1169,28 @@ EOF;
 		
 		return array($db_table , $arrAssoc_dbField_fieldType , $arr_model_keys, $arrAssoc_crmField_dbField) ;
 	}
+	public function sdomainDefine_truncateBible( $sdomain_id , $bible_code ) {
+		$_opDB = $this->_opDB ;
+		$sdomain_db = $this->getSdomainDb( $sdomain_id ) ;
+		
+		$table_name = 'store_bible_'.$file_code.'_entry' ;
+		$query = "TRUNCATE TABLE {$sdomain_db}.{$table_name}" ;
+		$_opDB->query($query) ;
+		$table_name = 'store_bible_'.$file_code.'_tree' ;
+		$query = "TRUNCATE TABLE {$sdomain_db}.{$table_name}" ;
+		$_opDB->query($query) ;
+	}
+	public function sdomainDefine_truncateFile( $sdomain_id , $file_code ) {
+		$_opDB = $this->_opDB ;
+		$sdomain_db = $this->getSdomainDb( $sdomain_id ) ;
+		
+		$table_name = 'store_file_'.$file_code ;
+		$query = "TRUNCATE TABLE {$sdomain_db}.{$table_name}" ;
+		$_opDB->query($query) ;
+		
+		$query = "UPDATE {$sdomain_db}.store_file SET sync_is_deleted='O',sync_timestamp='0' WHERE file_code='$file_code'" ;
+		$_opDB->query($query) ;
+	}
 	public function sdomainDefine_dropBible( $sdomain_id , $bible_code ) {
 		$_opDB = $this->_opDB ;
 		$sdomain_db = $this->getSdomainDb( $sdomain_id ) ;

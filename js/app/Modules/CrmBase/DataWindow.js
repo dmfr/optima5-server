@@ -158,6 +158,7 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 	},
 	onReload: function() {
 		var me = this ;
+		me.getToolbar().enableTruncateStore( !me.getPanel().isEmpty() ) ;
 		me.getToolbar().enableDropStore( me.getPanel().isEmpty() ) ;
 	},
 	onFileViewChanged: function(viewId) {
@@ -323,6 +324,8 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 						return me.storeTogglePublish( checked ) ;
 					case 'definestore' :
 						return me.openDefineWindow( false ) ;
+					case 'truncatestore' :
+						return me.handleTruncateStore() ;
 					case 'dropstore' :
 						return me.handleDeleteStore() ;
 					default : break ;
@@ -356,6 +359,43 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 			break ;
 		}
 	},
+	handleTruncateStore: function() {
+		var me = this,
+			msg ;
+		
+		msg = "Truncate(delete all) " ;
+		switch( this.dataType ) {
+			case 'bible' :
+				msg+= ' bible ' + this.bibleId ;
+				break ;
+			case 'file' :
+				msg+= ' file ' + this.fileId ;
+				break ;
+			default :
+				return ;
+		}
+		msg+= ' and all associated data ?\nType \'YES\' to confirm.' ;
+		
+		Ext.Msg.show({
+			title:'Truncate store',
+			msg: msg ,
+			icon: Ext.Msg.WARNING,
+			buttons: Ext.Msg.YESNO,
+			prompt: true,
+			fn:function(buttonId,text){
+				switch( buttonId ) {
+					case 'yes':
+						if( text.toUpperCase() == 'YES' ) {
+							me.doTruncateStore() ;
+						} else {
+							Ext.Msg.alert('Abort','Not confirmed') ;
+						}
+						break ;
+				}
+			},
+			scope:me
+		}) ;
+	},
 	handleDeleteStore: function() {
 		var me = this,
 			msg ;
@@ -374,7 +414,7 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 		msg+= ' and all associated data ?' ;
 		
 		Ext.Msg.show({
-			title:'Delete file record',
+			title:'Drop store',
 			msg: msg ,
 			icon: Ext.Msg.WARNING,
 			buttons: Ext.Msg.YESNO,
@@ -387,6 +427,51 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 			},
 			scope:me
 		}) ;
+	},
+	doTruncateStore: function() {
+		var me = this ;
+		
+		var ajaxParams = {
+			_action : 'define_truncate'
+		};
+		switch( this.dataType )
+		{
+			case 'bible' :
+				Ext.apply( ajaxParams, {
+					data_type: 'bible',
+					bible_code : this.bibleId
+				}) ;
+			break ;
+			
+			case 'file' :
+				Ext.apply( ajaxParams, {
+					data_type: 'file',
+					file_code : this.fileId
+				}) ;
+			break ;
+			
+			default:
+				Ext.Msg.alert('Status', 'Shouldnt happen !!!');
+				return ;
+			break ;
+		}
+		
+		me.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams,
+			success: function(response) {
+				if( Ext.decode(response.responseText).success == false ) {
+					Ext.Msg.alert('Failed', 'Failed');
+				}
+				else {
+					me.optimaModule.postCrmEvent('definechange',{
+						dataType:me.dataType,
+						bibleId:me.bibleId,
+						fileId:me.fileId
+					}) ;
+				}
+			},
+			scope: me
+		});
 	},
 	doDeleteStore: function() {
 		var me = this ;

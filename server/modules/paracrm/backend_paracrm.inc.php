@@ -13,6 +13,8 @@ switch( $post_data['_action'] )
 	return paracrm_define_manageTransaction( $post_data );
 	case 'define_togglePublish' :
 	return paracrm_define_togglePublish( $post_data );
+	case 'define_truncate' :
+	return paracrm_define_truncate( $post_data );
 	case 'define_drop' :
 	return paracrm_define_drop( $post_data );
 	
