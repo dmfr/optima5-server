@@ -604,18 +604,9 @@ function paracrm_lib_data_insertRecord_file( $file_code , $filerecord_parent_id 
 	
 	//chargement des champs
 	$query = "SELECT file_type FROM define_file WHERE file_code='$file_code'" ;
-	switch( $_opDB->query_uniqueValue($query) )
+	$file_type = $_opDB->query_uniqueValue($query) ;
+	switch( $file_type )
 	{
-		case 'media_img' :
-		$fields = array() ;
-		$arr_media = array() ;
-		foreach( $_opDB->table_fields('define_media') as $field )
-		{
-			$tfield = 'media_'.$field ;
-			$arr_media[] = $tfield ;
-		}
-		break ;
-	
 		case 'file_primarykey' :
 		$arr_fieldsPrimaryKey = array() ;
 		default :
@@ -631,6 +622,14 @@ function paracrm_lib_data_insertRecord_file( $file_code , $filerecord_parent_id 
 			}
 		}
 		break ;
+	}
+	if( $file_type == 'media_img' ) {
+		$arr_media = array() ;
+		foreach( $_opDB->table_fields('define_media') as $field )
+		{
+			$tfield = 'media_'.$field ;
+			$arr_media[] = $tfield ;
+		}
 	}
 	
 	
@@ -728,19 +727,9 @@ function paracrm_lib_data_updateRecord_file( $file_code , $data, $filerecord_id 
 	
 	//chargement des champs
 	$query = "SELECT file_type FROM define_file WHERE file_code='$file_code'" ;
-	switch( $_opDB->query_uniqueValue($query) )
+	$file_type = $_opDB->query_uniqueValue($query) ;
+	switch( $file_type )
 	{
-		case 'media_img' :
-		$fields = array() ;
-		// $arr_media_define = array() ;
-		$arr_media = array() ;
-		foreach( $_opDB->table_fields('define_media') as $field )
-		{
-			$tfield = 'media_'.$field ;
-			$arr_media[] = $tfield ;
-		}
-		break ;
-	
 		default :
 		$fields = array() ;
 		$arr_media = array() ;
@@ -751,6 +740,14 @@ function paracrm_lib_data_updateRecord_file( $file_code , $data, $filerecord_id 
 			$fields[$arr['entry_field_code']] = $arr['entry_field_type'] ;
 		}
 		break ;
+	}
+	if( $file_type == 'media_img' ) {
+		$arr_media = array() ;
+		foreach( $_opDB->table_fields('define_media') as $field )
+		{
+			$tfield = 'media_'.$field ;
+			$arr_media[] = $tfield ;
+		}
 	}
 	
 	$query = "SELECT * FROM define_file WHERE file_code='$file_code'" ;

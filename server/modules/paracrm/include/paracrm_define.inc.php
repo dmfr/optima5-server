@@ -859,9 +859,11 @@ function paracrm_define_manageTransaction_applyFile($arr_saisie, $apply)
 		if( !$arr_saisie['arr_ent'][$field] )
 			$errors_form[$field] = 'Invalid' ;
 	}
+	$file_code = $arr_saisie['arr_ent']['store_code'] ;
+	$file_type = $arr_saisie['arr_ent']['store_type'] ;
 	
 	$empty_definition = FALSE ;
-	if( isset($arr_saisie['tab_entryFields']) && count($arr_saisie['tab_entryFields']) == 0 )
+	if( isset($arr_saisie['tab_entryFields']) && count($arr_saisie['tab_entryFields']) == 0 && $file_type != 'media_img' )
 		$empty_definition = TRUE ;
 		
 	$key_conflict = FALSE ;
@@ -881,8 +883,6 @@ function paracrm_define_manageTransaction_applyFile($arr_saisie, $apply)
 	if( !$apply || !$response['success'] )
 		return $response ;
 	
-	
-	$file_code = $arr_saisie['arr_ent']['store_code'] ;
 	
 	$query = "DELETE FROM define_file WHERE file_code='$file_code'" ;
 	$_opDB->query($query) ;

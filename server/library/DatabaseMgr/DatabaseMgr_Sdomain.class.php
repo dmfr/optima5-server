@@ -1033,14 +1033,9 @@ EOF;
 		}
 		//chargement des champs
 		$query = "SELECT file_type FROM {$sdomain_db}.define_file WHERE file_code='$file_code'" ;
-		switch( $_opDB->query_uniqueValue($query) )
+		$file_type = $_opDB->query_uniqueValue($query) ;
+		switch( $file_type )
 		{
-			case 'media_img' :
-			$arr_field_type = array() ;
-			// $arr_media_define = array() ;
-			$arr_media_define = $_opDB->table_fields($sdomain_db.'.'.'define_media') ;
-			break ;
-		
 			case 'file_primarykey' :
 			$_mode_primaryKey = TRUE ;
 			$arr_field_isPrimaryKey = array() ;
@@ -1060,6 +1055,9 @@ EOF;
 				}
 			}
 			break ;
+		}
+		if( $file_type == 'media_img' ) {
+			$arr_media_define = $_opDB->table_fields($sdomain_db.'.'.'define_media') ;
 		}
 		
 		

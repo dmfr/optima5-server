@@ -86,7 +86,7 @@ function paracrm_lib_file_mapFile( $file_code, $is_called=FALSE )
 		$sql_leftjoin = array_merge($sql_leftjoin,$TAB['sql_leftjoin']) ;
 		$grid_map = array_merge($grid_map,$TAB['grid_map']) ;
 	}
-	
+	$file_type = $arr['file_type'] ;
 	
 	
 	$sql_selectfields[] = array($file_code.'.'.'filerecord_id' , $myprefix.'id') ;
@@ -114,9 +114,102 @@ function paracrm_lib_file_mapFile( $file_code, $is_called=FALSE )
 		}
 	}
 	
-	switch( $arr['file_type'] )
+	$query = "SELECT cfgcal.color_filefield FROM define_file f , define_file_cfg_calendar cfgcal
+				WHERE f.file_code='$file_code' AND f.file_code=cfgcal.file_code AND cfgcal.color_is_fixed='O'" ;
+	$color_field = $_opDB->query_uniqueValue($query) ;
+	$query = "SELECT * FROM define_file_entry WHERE file_code='$file_code' ORDER BY entry_field_index" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
 	{
-		case 'media_img' :
+		if( $arr['entry_field_type'] == '_label' ) {
+			continue ;
+		}
+		if( $arr['entry_field_type'] == 'join' ) {
+			$jMap = paracrm_lib_file_joinPrivate_getMap( $file_code ) ;
+			$jMapNode = $jMap[$arr['entry_field_code']] ;
+			if( !$jMapNode ) {
+				continue ;
+			}
+			
+			$arr['entry_field_type'] = $jMapNode['join_select_file_field_type'] ;
+			if( $arr['entry_field_type'] == 'link' ) {
+				$arr['entry_field_linktype'] = $jMapNode['join_select_file_field_linktype'] ;
+				$arr['entry_field_linkbible'] = $jMapNode['join_select_file_field_linkbible'] ;
+			}
+		}
+		if( $arr['entry_field_type'] == 'link' ) {
+			// Champ link "brut" :
+			//  - process join
+			//  - EditGrid
+			$sql_selectfields[] = array($file_code.'.'.'field_'.$arr['entry_field_code'],$myprefix.'field_'.$arr['entry_field_code']) ;
+			$grid_cell = array() ;
+			$grid_cell['field'] = $myprefix.'field_'.$arr['entry_field_code'] ;
+			$grid_cell['type'] = ( $color_field && ($color_field == $arr['entry_field_code']) ) ? 'color' : $arr['entry_field_type'] ;
+			$grid_cell['text'] = $arr['entry_field_lib'] ;
+			$grid_cell['file_code'] = $file_code ;
+			$grid_cell['file_field'] = $arr['entry_field_code'] ;
+			$grid_cell['file_field_lib'] = $arr['entry_field_lib'] ;
+			$grid_cell['is_display'] = true ;
+			$grid_cell['is_raw_link'] = true ;
+			$grid_cell['link_bible'] = $arr['entry_field_linkbible'] ;
+			$grid_cell['link_type'] = $arr['entry_field_linktype'] ;
+			
+			$grid_map[] = $grid_cell ;
+		
+			switch( $arr['entry_field_linktype'] ) {
+				case 'treenode' :
+					$TAB = paracrm_lib_file_mapBibleTreenode( 
+						$bible_code=$arr['entry_field_linkbible'], 
+						$remote_table=$file_code, 
+						$remote_field=('field_'.$arr['entry_field_code']), 
+						$remote_field_lib=$arr['entry_field_lib']
+					) ;
+				break ;
+				
+				case 'entry' :
+				default :
+					$TAB = paracrm_lib_file_mapBibleEntry( 
+						$bible_code=$arr['entry_field_linkbible'], 
+						$remote_table=$file_code, 
+						$remote_field=('field_'.$arr['entry_field_code']), 
+						$remote_field_lib=$arr['entry_field_lib']
+					) ;
+					break ;
+			}
+			$sql_selectfields = array_merge($sql_selectfields,$TAB['sql_selectfields']) ;
+			$sql_leftjoin = array_merge($sql_leftjoin,$TAB['sql_leftjoin']) ;
+			$grid_map = array_merge($grid_map,$TAB['grid_map']) ;
+		
+			continue ;
+		}
+		
+	
+		switch( $arr['entry_field_type'] ) {
+			case 'date' :
+			case 'string' :
+			case 'bool' :
+			case 'number' :
+				break ;
+				
+			default :
+				continue 2 ;
+		}
+	
+		$sql_selectfields[] = array($file_code.'.'.'field_'.$arr['entry_field_code'],$myprefix.'field_'.$arr['entry_field_code']) ;
+		$grid_cell = array() ;
+		$grid_cell['field'] = $myprefix.'field_'.$arr['entry_field_code'] ;
+		$grid_cell['type'] = ( $color_field && ($color_field == $arr['entry_field_code']) ) ? 'color' : $arr['entry_field_type'] ;
+		$grid_cell['text'] = $arr['entry_field_lib'] ;
+		$grid_cell['file_code'] = $file_code ;
+		$grid_cell['file_field'] = $arr['entry_field_code'] ;
+		$grid_cell['file_field_lib'] = $arr['entry_field_lib'] ;
+		$grid_cell['is_display'] = true ;
+		$grid_cell['is_header'] = ( $arr['entry_field_is_header'] == 'O' );
+		$grid_cell['is_highlight'] = ( $arr['entry_field_is_highlight'] == 'O' );
+		$grid_map[] = $grid_cell ;
+	}
+	
+	if( $file_type == 'media_img' ) {
 		foreach( $_opDB->table_fields('define_media') as $field )
 		{
 			$tfield = 'media_'.$field ;
@@ -131,105 +224,6 @@ function paracrm_lib_file_mapFile( $file_code, $is_called=FALSE )
 			$grid_cell['is_display'] = true ;
 			$grid_map[] = $grid_cell ;
 		}
-		break ;
-	
-	
-		default :
-		$query = "SELECT cfgcal.color_filefield FROM define_file f , define_file_cfg_calendar cfgcal
-					WHERE f.file_code='$file_code' AND f.file_code=cfgcal.file_code AND cfgcal.color_is_fixed='O'" ;
-		$color_field = $_opDB->query_uniqueValue($query) ;
-		$query = "SELECT * FROM define_file_entry WHERE file_code='$file_code' ORDER BY entry_field_index" ;
-		$result = $_opDB->query($query) ;
-		while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
-		{
-			if( $arr['entry_field_type'] == '_label' ) {
-				continue ;
-			}
-			if( $arr['entry_field_type'] == 'join' ) {
-				$jMap = paracrm_lib_file_joinPrivate_getMap( $file_code ) ;
-				$jMapNode = $jMap[$arr['entry_field_code']] ;
-				if( !$jMapNode ) {
-					continue ;
-				}
-				
-				$arr['entry_field_type'] = $jMapNode['join_select_file_field_type'] ;
-				if( $arr['entry_field_type'] == 'link' ) {
-					$arr['entry_field_linktype'] = $jMapNode['join_select_file_field_linktype'] ;
-					$arr['entry_field_linkbible'] = $jMapNode['join_select_file_field_linkbible'] ;
-				}
-			}
-			if( $arr['entry_field_type'] == 'link' ) {
-				// Champ link "brut" :
-				//  - process join
-				//  - EditGrid
-				$sql_selectfields[] = array($file_code.'.'.'field_'.$arr['entry_field_code'],$myprefix.'field_'.$arr['entry_field_code']) ;
-				$grid_cell = array() ;
-				$grid_cell['field'] = $myprefix.'field_'.$arr['entry_field_code'] ;
-				$grid_cell['type'] = ( $color_field && ($color_field == $arr['entry_field_code']) ) ? 'color' : $arr['entry_field_type'] ;
-				$grid_cell['text'] = $arr['entry_field_lib'] ;
-				$grid_cell['file_code'] = $file_code ;
-				$grid_cell['file_field'] = $arr['entry_field_code'] ;
-				$grid_cell['file_field_lib'] = $arr['entry_field_lib'] ;
-				$grid_cell['is_display'] = true ;
-				$grid_cell['is_raw_link'] = true ;
-				$grid_cell['link_bible'] = $arr['entry_field_linkbible'] ;
-				$grid_cell['link_type'] = $arr['entry_field_linktype'] ;
-				
-				$grid_map[] = $grid_cell ;
-			
-				switch( $arr['entry_field_linktype'] ) {
-					case 'treenode' :
-						$TAB = paracrm_lib_file_mapBibleTreenode( 
-							$bible_code=$arr['entry_field_linkbible'], 
-							$remote_table=$file_code, 
-							$remote_field=('field_'.$arr['entry_field_code']), 
-							$remote_field_lib=$arr['entry_field_lib']
-						) ;
-					break ;
-					
-					case 'entry' :
-					default :
-						$TAB = paracrm_lib_file_mapBibleEntry( 
-							$bible_code=$arr['entry_field_linkbible'], 
-							$remote_table=$file_code, 
-							$remote_field=('field_'.$arr['entry_field_code']), 
-							$remote_field_lib=$arr['entry_field_lib']
-						) ;
-						break ;
-				}
-				$sql_selectfields = array_merge($sql_selectfields,$TAB['sql_selectfields']) ;
-				$sql_leftjoin = array_merge($sql_leftjoin,$TAB['sql_leftjoin']) ;
-				$grid_map = array_merge($grid_map,$TAB['grid_map']) ;
-			
-				continue ;
-			}
-			
-		
-			switch( $arr['entry_field_type'] ) {
-				case 'date' :
-				case 'string' :
-				case 'bool' :
-				case 'number' :
-					break ;
-					
-				default :
-					continue 2 ;
-			}
-		
-			$sql_selectfields[] = array($file_code.'.'.'field_'.$arr['entry_field_code'],$myprefix.'field_'.$arr['entry_field_code']) ;
-			$grid_cell = array() ;
-			$grid_cell['field'] = $myprefix.'field_'.$arr['entry_field_code'] ;
-			$grid_cell['type'] = ( $color_field && ($color_field == $arr['entry_field_code']) ) ? 'color' : $arr['entry_field_type'] ;
-			$grid_cell['text'] = $arr['entry_field_lib'] ;
-			$grid_cell['file_code'] = $file_code ;
-			$grid_cell['file_field'] = $arr['entry_field_code'] ;
-			$grid_cell['file_field_lib'] = $arr['entry_field_lib'] ;
-			$grid_cell['is_display'] = true ;
-			$grid_cell['is_header'] = ( $arr['entry_field_is_header'] == 'O' );
-			$grid_cell['is_highlight'] = ( $arr['entry_field_is_highlight'] == 'O' );
-			$grid_map[] = $grid_cell ;
-		}
-		break ;
 	}
 
 

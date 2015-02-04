@@ -954,7 +954,7 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 			if( formitem.name==='store_type' ) {
 				switch( formitem.getValue() ) {
 					case 'media_img' :
-						hideFieldsets = true ;
+						hideFieldsets = false ;
 						hideGmap = true ;
 						showPrimarykeyCol = false ;
 						showCalendarTab = false ;
