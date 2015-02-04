@@ -34,7 +34,7 @@ function paracrm_lib_dataImport_getTreefieldsRoot( $data_type,$store_code ) {
 				$field['bible_code'] = $bible_code ;
 				$field['bible_type'] = 'tree' ;
 				$field['bible_field_code'] = $arr['tree_field_code'] ;
-				$field['bible_field_iskey'] = ($arr['entry_field_is_key']=='O')?true:false ;
+				$field['bible_field_iskey'] = ($arr['tree_field_is_key']=='O')?true:false ;
 				$field['leaf'] = true ;
 				$arr_tree_fields[] = $field ;
 			}
@@ -365,8 +365,10 @@ function paracrm_lib_dataImport_commit_insertBibleTreenode( $bible_code, $treeno
 		
 		if( $t_fielddesc['bible_field_iskey'] || $t_fielddesc['field_type'] == 'link' ) {
 			$value = strtoupper(trim($value)) ;
-			$value = str_replace(' ','_',$value) ;
-			$value = preg_replace("/[^a-zA-Z0-9_]/", "",$value) ;
+			if( $t_fielddesc['bible_field_iskey'] ) {
+				$value = str_replace(' ','_',$value) ;
+				$value = preg_replace("/[^a-zA-Z0-9_]/", "",$value) ;
+			}
 		}
 		
 		$bible_field_code = $t_fielddesc['bible_field_code'] ;
@@ -433,8 +435,10 @@ function paracrm_lib_dataImport_commit_insertBibleEntry( $bible_code, $treenode_
 		
 		if( $t_fielddesc['bible_field_iskey'] || $t_fielddesc['field_type'] == 'link' ) {
 			$value = strtoupper(trim($value)) ;
-			$value = str_replace(' ','_',$value) ;
-			$value = preg_replace("/[^a-zA-Z0-9_]/", "",$value) ;
+			if( $t_fielddesc['bible_field_iskey'] ) {
+				$value = str_replace(' ','_',$value) ;
+				$value = preg_replace("/[^a-zA-Z0-9_]/", "",$value) ;
+			}
 		}
 		
 		$bible_field_code = $t_fielddesc['bible_field_code'] ;

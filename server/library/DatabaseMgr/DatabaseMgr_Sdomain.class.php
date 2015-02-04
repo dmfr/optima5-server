@@ -1173,10 +1173,10 @@ EOF;
 		$_opDB = $this->_opDB ;
 		$sdomain_db = $this->getSdomainDb( $sdomain_id ) ;
 		
-		$table_name = 'store_bible_'.$file_code.'_entry' ;
+		$table_name = 'store_bible_'.$bible_code.'_entry' ;
 		$query = "TRUNCATE TABLE {$sdomain_db}.{$table_name}" ;
 		$_opDB->query($query) ;
-		$table_name = 'store_bible_'.$file_code.'_tree' ;
+		$table_name = 'store_bible_'.$bible_code.'_tree' ;
 		$query = "TRUNCATE TABLE {$sdomain_db}.{$table_name}" ;
 		$_opDB->query($query) ;
 	}
