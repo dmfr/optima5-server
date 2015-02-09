@@ -90,7 +90,7 @@ function op5_login_test( $userstr, $password ) {
 			$authdelegate_bible_code = $arrCfg_delegate['authdelegate_bible_code'] ;
 			$authdelegate_user_bible_field_code = $arrCfg_delegate['authdelegate_user_bible_field_code'] ;
 			$authdelegate_pass_bible_field_code = $arrCfg_delegate['authdelegate_pass_bible_field_code'] ;
-			$authdelegate_acl_is_on = $arrCfg_delegate['authdelegate_acl_is_on'] ;
+			$authdelegate_acl_is_on = ($arrCfg_delegate['authdelegate_acl_is_on']=='O') ;
 			$authdelegate_acl_bible_field_code = $arrCfg_delegate['authdelegate_acl_bible_field_code'] ;
 			
 			// Login OK ?
