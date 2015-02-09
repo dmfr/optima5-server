@@ -686,7 +686,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 		});
 	},
 	onEventDetailHide: function( p ) {
-		var me = this ;
+		var me = this,
 			hideIf = me.eventDetailHideIf,
 			doc = Ext.getDoc() ;
 			
