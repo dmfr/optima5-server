@@ -59,6 +59,17 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.LivePanel',{
 				bodyPadding: 15,
 				layout:'anchor',
 				items:[{
+					height: 72,
+					xtype: 'component',
+					tpl: [
+						'<div class="op5-spec-embralam-livelogo">',
+							'<span>{title}</span>',
+							'<div class="op5-spec-embralam-livelogo-left"></div>',
+							'<div class="op5-spec-embralam-livelogo-right"></div>',
+						'</div>'
+					],
+					data: {title: '&#160;'}
+				},{
 					xtype: 'container',
 					layout: {
 						type: 'hbox',

@@ -29,3 +29,27 @@
 	color: #cc0000 ;
 	font-weight: bold ;
 }
+
+
+.op5-spec-embralam-livelogo {
+	text-align: center;
+	line-height: 40px;
+	font-size: 24px;
+	font-weight: bold ;
+}
+.op5-spec-embralam-livelogo-left {
+	width: 128px;
+	height: 64px;
+	float: left;
+	background-image: url("../images/modules/dbsembralam-logoleft.png") !important;
+	background-position: center center ;
+	background-repeat: no-repeat;
+}
+.op5-spec-embralam-livelogo-right {
+	width: 256px;
+	height: 64px;
+	float: right;
+	background-image: url("../images/modules/dbsembralam-logoright.png") !important;
+	background-position: center center ;
+	background-repeat: no-repeat;
+}
