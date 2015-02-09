@@ -213,6 +213,13 @@ Ext.define('Optima5.App',{
 		var me = this ;
 		return me.desktopCfgRecord ;
 	},
+	desktopGetCfgIsDev: function() {
+		var me = this ;
+		if( me.desktopCfgRecord ) {
+			return me.desktopCfgRecord.get('dev_mode') ;
+		}
+		return null ;
+	},
 	desktopBoot: function(sessionId) {
 		var me = this ;
 		
