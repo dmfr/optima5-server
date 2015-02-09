@@ -100,6 +100,17 @@ switch( $post_data['_action'] )
 	
 	
 	
+	case 'attachments_cfgGetTypes' :
+	return specWbMrfoxy_attachments_cfgGetTypes() ;
+	case 'attachments_getList' :
+	return specWbMrfoxy_attachments_getList($post_data);
+	case 'attachments_upload' :
+	return specWbMrfoxy_attachments_upload($post_data);
+	case 'attachments_delete' :
+	return specWbMrfoxy_attachments_delete($post_data);
+	
+	
+	
 	case 'xls_getTableExport' :
 	return specWbMrfoxy_xls_getTableExport($post_data);
 	case 'xls_getFinanceDashboard' :

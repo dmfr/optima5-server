@@ -12,8 +12,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.WbMrfoxyModule', {
 		me.addEvents('op5broadcast') ;
 		
 		me.createWindow({
-			width:800,
-			height:600,
+			width:900,
+			height:640,
 			resizable:true,
 			layout:'fit',
 			items:[Ext.create('Optima5.Modules.Spec.WbMrfoxy.MainPanel',{

@@ -106,11 +106,12 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.HelperCache',{
 				id: row['field_COUNTRY_CODE'],
 				country_code: row['field_COUNTRY_CODE'],
 				country_display: row['field_COUNTRY_CODE'] + ' - ' + row['field_COUNTRY_NAME'],
-				country_iconurl : row['field_COUNTRY_ICONURL']
+				country_iconurl : row['field_COUNTRY_ICONURL'],
+				country_currency: (Ext.JSON.decode(row['field_COUNTRY_CURRENCY'],true) ? Ext.JSON.decode(row['field_COUNTRY_CURRENCY'])[0] : '?')
 			});
 		},me) ;
 		me.countryStore = Ext.create('Ext.data.Store',{
-			fields: ['id','country_code','country_display','country_iconurl'],
+			fields: ['id','country_code','country_display','country_iconurl','country_currency'],
 			data : data
 		}) ;
 		me.onLoad() ;

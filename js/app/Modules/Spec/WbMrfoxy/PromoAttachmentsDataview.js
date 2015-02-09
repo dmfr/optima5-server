@@ -1,4 +1,4 @@
-Ext.define('WbMrfoxyAttachmentModel',{
+Ext.define('WbMrfoxyPromoAttachmentModel',{
 	extend: 'Ext.data.Model',
 	fields: [
 		{name: 'filerecord_id',  type: 'int'}
@@ -58,7 +58,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoAttachmentsDataview',{
 				store: {
 					autoLoad: true,
 					autoSync: false,
-					model: 'WbMrfoxyAttachmentModel',
+					model: 'WbMrfoxyPromoAttachmentModel',
 					proxy: me.optimaModule.getConfiguredAjaxProxy({
 						extraParams : {
 							_moduleId: 'spec_wb_mrfoxy',

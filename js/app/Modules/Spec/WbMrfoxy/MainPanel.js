@@ -7,7 +7,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.MainPanel',{
 		'Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',
 		'Optima5.Modules.Spec.WbMrfoxy.PromoBrowserPanel',
 		'Optima5.Modules.Spec.WbMrfoxy.StatPerformancePanel',
-		'Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel'
+		'Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',
+		'Optima5.Modules.Spec.WbMrfoxy.AttachmentsPanel'
 	],
 	
 	initComponent: function() {
@@ -55,6 +56,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.MainPanel',{
 	switchToMainMenu: function() {
 		var me = this ;
 		var mainMenuView = Ext.create('Optima5.Modules.Spec.WbMrfoxy.MainMenu',{
+			optimaModule: this.optimaModule,
 			listeners: {
 				actionclick: function( view, actionCode ) {
 					me.onActionClick(actionCode) ;
@@ -82,6 +84,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.MainPanel',{
 				return me.switchToAppPanel('Optima5.Modules.Spec.WbMrfoxy.StatPerformancePanel',{width: 600}) ;
 			case 'finance_budget' :
 				return me.switchToAppPanel('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{}) ;
+			case 'attachments_upload' :
+				return me.switchToAppPanel('Optima5.Modules.Spec.WbMrfoxy.AttachmentsPanel',{}) ;
 			default :
 				return ;
 		}

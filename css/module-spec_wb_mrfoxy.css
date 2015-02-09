@@ -35,6 +35,9 @@
 .op5-spec-mrfoxy-icon-statquery {
 	background-image: url("../images/modules/mrfoxy-query-64.png") !important;
 }
+.op5-spec-mrfoxy-icon-attachments {
+	background-image: url("../images/modules/mrfoxy-attachment-64.png") !important;
+}
 
 .op5-spec-mrfoxy-icon-toolbar-accruals {
 	background-image: url("../images/op5img/ico_groupby_16.png") !important;
@@ -680,5 +683,20 @@ table.op5-spec-mrfoxy-statresult-tbl > tbody > tr > td.op5-spec-mrfoxy-statresul
 	position: relative ;
 	padding-left: 128px ;
 	font-weight: bold ;
+}
+
+.op5-spec-mrfoxy-attachments-separator {
+	padding: 5px;
+	margin: 0px 5px;
+	color: rgb(50, 50, 50);
+	border-bottom: 1px solid rgb(100, 100, 100);
+	display:block;
+	text-align:left;
+	font-size: 14px;
+	
+	padding-left: 28px;
+	
+	background-position: 4 center;
+	background-repeat: no-repeat;
 }
 

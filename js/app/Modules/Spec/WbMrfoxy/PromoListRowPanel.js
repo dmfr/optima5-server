@@ -106,7 +106,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 						},{
 							actionId: 'attachments',
 							actionText:'Attachments',
-							actionDisabled:( true )
+							actionDisabled:( !this.optimaModule.getApp().desktopGetCfgIsDev() )
 						}]
 					},
 					overItemCls: 'op5-spec-mrfoxy-promorow-item-over',
