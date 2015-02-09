@@ -9,6 +9,8 @@ switch( $post_data['_action'] )
 {
 	case 'cfg_getStockAttributes' :
 	return specDbsEmbralam_cfg_getStockAttributes( $post_data ) ;
+	case 'cfg_getAuth' :
+	return specDbsEmbralam_cfg_getAuth( $post_data ) ;
 	
 	case 'live_goAdr' :
 	return specDbsEmbralam_live_goAdr( $post_data ) ;

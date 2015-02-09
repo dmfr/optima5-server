@@ -25,12 +25,31 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.MainPanel',{
 		if( helperCache.isReady ) {
 			this.startComponent() ;
 		} else {
-			this.mon(helperCache,'ready',function() {
-				this.startComponent() ;
+			this.mon(helperCache,'ready',function(helperCache) {
+				if( helperCache.authHelperQueryPage('ADMIN') ) {
+					this.startComponentAdmin() ;
+				} else {
+					this.startComponentStd() ;
+				}
 			},this,{single:true}) ;
 		}
 	},
-	startComponent: function() {
+	startComponentStd: function() {
+		this.removeAll() ;
+		this.add({
+			xtype: 'tabpanel',
+			tabPosition: 'left',
+			items:[
+				Ext.create('Optima5.Modules.Spec.DbsEmbralam.LivePanel',{
+					title: '<b>Live Adressage</b>',
+					icon: 'images/op5img/ico_dataadd_16.gif',
+					
+					optimaModule: this.optimaModule
+				})
+			]
+		});
+	},
+	startComponentAdmin: function() {
 		this.removeAll() ;
 		this.add({
 			xtype: 'tabpanel',
