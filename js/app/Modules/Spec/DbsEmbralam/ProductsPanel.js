@@ -332,6 +332,10 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.ProductsPanel',{
 						text: 'Date',
 						width: 80
 					},{
+						dataIndex: 'adr_id',
+						text: 'Adr.ID',
+						width: 80
+					},{
 						dataIndex: 'prod_id',
 						text: 'Article',
 						width: 90
