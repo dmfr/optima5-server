@@ -48,9 +48,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.MainPanel',{
 		if( helperCache.isReady ) {
 			this.switchToMainMenu() ;
 		} else {
-			helperCache.on('ready',function() {
+			this.mon(helperCache,'ready',function() {
 				this.switchToMainMenu() ;
-			},me) ;
+			},me,{single:true}) ;
 		}
 	},
 	switchToMainMenu: function() {
