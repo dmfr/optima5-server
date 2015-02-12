@@ -157,11 +157,23 @@ function specDbsPeople_query_getTableResult( $post_data ) {
 		}
 		$query_vars['q_urldata'] = $q_urldata ;
 	}
-	return array(
+	
+	$response = array(
 		'success' => true,
 		'query_vars' => $query_vars,
 		'result_tab' => $result_tab
 	) ;
+	if( $do_warningDate = TRUE ) {
+		if( $query_desc['enable_date_at'] ) {
+			$wd_dateEnd = $form_data['date_at'] ;
+		}
+		if( $query_desc['enable_date_interval'] ) {
+			$wd_dateStart = $form_data['date_start'] ;
+			$wd_dateEnd = $form_data['date_end'] ;
+		}
+		$response['warning_date'] = specDbsPeople_query_toolCheckPending($wd_dateStart,$wd_dateEnd,$filters) ;
+	}
+	return $response ;
 }
 
 function specDbsPeople_query_getTableResult_RH($filters=NULL) {
@@ -1054,8 +1066,61 @@ function specDbsPeople_query_getResultXLS( $post_data ) {
 
 
 
-
-
+function specDbsPeople_query_toolCheckPending( $wd_dateStart, $wd_dateEnd, $filters=NULL ) {
+	global $_opDB ;
+	$limit_dateFloor = date('Y-m-d',strtotime('-2 months')) ;
+	if( TRUE ) {
+		paracrm_lib_file_joinPrivate_buildCache('PEOPLEDAY') ;
+		if( isset($filters['filter_site_entries']) ) {
+			$filters['filter_site_entries'] = json_decode($filters['filter_site_entries'],true) ;
+		}
+		if( isset($filters['filter_team_entries']) ) {
+			$filters['filter_team_entries'] = json_decode($filters['filter_team_entries'],true) ;
+		}
+	}
+	
+	$join_map = array() ;
+	$join_map['field_STD_CONTRACT'] = 'std_contract_code' ;
+	$join_map['field_STD_WHSE'] = 'std_whse_code' ;
+	$join_map['field_STD_TEAM'] = 'std_team_code' ;
+	$join_map['field_STD_ROLE'] = 'std_role_code' ;
+	$join_map['field_STD_ABS'] = 'std_abs_code' ;
+	
+	$query = "SELECT * from view_file_PEOPLEDAY pd WHERE pd.field_VALID_RH='0'" ;
+	if( isset($limit_dateFloor) ) {
+		$query.= " AND DATE(pd.field_DATE)>='{$limit_dateFloor}'" ;
+	}
+	if( $wd_dateStart != NULL ) {
+		$query.= " AND DATE(pd.field_DATE)>='{$wd_dateStart}'" ;
+	}
+	if( $wd_dateEnd != NULL ) {
+		$query.= " AND DATE(pd.field_DATE)<='{$wd_dateEnd}'" ;
+	}
+	$query.= " ORDER BY pd.field_DATE DESC" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$row = array() ;
+		$row['PEOPLEDAY'] = $arr ;
+		paracrm_lib_file_joinQueryRecord( 'PEOPLEDAY', $row ) ;
+		foreach( $join_map as $src => $dest ) {
+			$fake_row[$dest] = $row['PEOPLEDAY'][$src] ;
+			if( !$fake_row[$dest] ) {
+				continue 2 ;
+			}
+		}
+		
+		if( isset($filters['filter_site_entries']) && !in_array($fake_row['std_whse_code'],$filters['filter_site_entries']) ) {
+			continue ;
+		}
+		if( isset($filters['filter_team_entries']) && !in_array($fake_row['std_team_code'],$filters['filter_team_entries']) ) {
+			continue ;
+		}
+		
+		return TRUE ;
+	}
+	
+	return FALSE ;
+}
 function specDbsPeople_query_toolGetAllMembers( $bible_code, $treenode_key ) {
 	global $_opDB ;
 	$store_bible_tree = "store_bible_{$bible_code}_tree" ;

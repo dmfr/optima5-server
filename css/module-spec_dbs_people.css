@@ -362,6 +362,18 @@ table.op5-spec-dbspeople-realvalidhdr-tbl > tbody > tr > td.op5-spec-dbspeople-r
 }
 
 
+.op5-spec-dbspeople-query-warning {
+	padding-left: 20px;
+	
+	color: red;
+	font-weight: bold;
+	
+	background-position: 0 center;
+	background-repeat: no-repeat;
+	background-image: url("../images/modules/crmbase-warning-16.png") !important;
+}
+
+
 .op5-spec-dbspeople-printheader-title {
 	padding-left: 16px 0px ;
 	font-size: 18px;

@@ -98,57 +98,79 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryPanel',{
 				},
 				title: 'Query parameters',
 				items:[{
-					xtype: 'combobox',
-					width: 400,
-					name: 'querysrc_id',
+					xtype:'fieldcontainer',
+					anchor: '100%',
 					fieldLabel: 'Requête',
-					forceSelection: true,
-					editable: false,
-					store: {
-						fields: [
-							{name: 'querysrc_id', type: 'string'},
-							{name: 'q_name', type: 'string'},
-							{name: 'enable_date_at', type: 'boolean'},
-							{name: 'enable_date_interval', type: 'boolean'},
-							{name: 'enable_filters', type: 'boolean'},
-							{name: 'enable_filters_cli', type: 'boolean'}
-						],
-						autoLoad: true,
-						proxy: this.optimaModule.getConfiguredAjaxProxy({
-							extraParams : {
-								_moduleId: 'spec_dbs_people',
-								_action: 'query_getLibrary'
-							},
-							reader: {
-								type: 'json',
-								root: 'data'
-							}
-						})
+					itemId: 'cntQueryId',
+					layout: {
+						type: 'hbox',
+						align: 'middle'
 					},
-					queryMode: 'local',
-					displayField: 'q_name',
-					valueField: 'querysrc_id',
-					listeners: {
-						change: function(cmb,value) {
-							var cntDateInterval = cmb.up('form').down('#cntDateInterval'),
-								cntDateAt = cmb.up('form').down('#cntDateAt'),
-								cntFilters = cmb.up('form').down('#cntFilters'),
-								cmbFilterCli = cntFilters.down('#filterCli'),
-								querysrcRecord = cmb.getStore().findRecord('querysrc_id',value),
-								enableDateInterval = querysrcRecord.get('enable_date_interval'),
-								enableDateAt = querysrcRecord.get('enable_date_at'),
-								enableFilters = querysrcRecord.get('enable_filters'),
-								enableFiltersCli = querysrcRecord.get('enable_filters_cli') ;
-							
-							cntDateInterval.setVisible( enableDateInterval );
-							cntDateAt.setVisible( enableDateAt );
-							cntFilters.setVisible( enableFilters );
-							
-							cmbFilterCli.setVisible( enableFiltersCli );
-							cntFilters.populateFilterCli() ;
+					items: [{
+						xtype: 'combobox',
+						width: 310,
+						name: 'querysrc_id',
+						forceSelection: true,
+						editable: false,
+						store: {
+							fields: [
+								{name: 'querysrc_id', type: 'string'},
+								{name: 'q_name', type: 'string'},
+								{name: 'enable_date_at', type: 'boolean'},
+								{name: 'enable_date_interval', type: 'boolean'},
+								{name: 'enable_filters', type: 'boolean'},
+								{name: 'enable_filters_cli', type: 'boolean'}
+							],
+							autoLoad: true,
+							proxy: this.optimaModule.getConfiguredAjaxProxy({
+								extraParams : {
+									_moduleId: 'spec_dbs_people',
+									_action: 'query_getLibrary'
+								},
+								reader: {
+									type: 'json',
+									root: 'data'
+								}
+							})
 						},
-						scope: this
-					}
+						queryMode: 'local',
+						displayField: 'q_name',
+						valueField: 'querysrc_id',
+						listeners: {
+							change: function(cmb,value) {
+								var cntDateInterval = cmb.up('form').down('#cntDateInterval'),
+									cntDateAt = cmb.up('form').down('#cntDateAt'),
+									cntFilters = cmb.up('form').down('#cntFilters'),
+									cmbFilterCli = cntFilters.down('#filterCli'),
+									querysrcRecord = cmb.getStore().findRecord('querysrc_id',value),
+									enableDateInterval = querysrcRecord.get('enable_date_interval'),
+									enableDateAt = querysrcRecord.get('enable_date_at'),
+									enableFilters = querysrcRecord.get('enable_filters'),
+									enableFiltersCli = querysrcRecord.get('enable_filters_cli') ;
+								
+								cntDateInterval.setVisible( enableDateInterval );
+								cntDateAt.setVisible( enableDateAt );
+								cntFilters.setVisible( enableFilters );
+								
+								cmbFilterCli.setVisible( enableFiltersCli );
+								cntFilters.populateFilterCli() ;
+							},
+							scope: this
+						}
+					},{
+						xtype: 'component',
+						itemId: 'cmpWarnings',
+						padding: '0px 0px 0px 16px',
+						tpl: [
+							'<tpl if="warnings">',
+								'<div class="op5-spec-dbspeople-query-warning">',
+								'<tpl for="warnings">',
+									'{warning_txt}<br>',
+								'</tpl>',
+								'</div>',
+							'</tpl>'
+						]
+					}]
 				},{
 					xtype:'fieldcontainer',
 					anchor: '100%',
@@ -424,6 +446,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryPanel',{
 				scope: this
 			}
 		}) ) ;
+		
+		var warningObjUpdate = ( ajaxData.warning_date ? {warnings: [{warning_txt: 'Attention ! Date(s) sélectionnée(s) incluant tranches non clôturées'}]} : {} ) ;
+		this.down('#pForm').down('#cmpWarnings').update( warningObjUpdate ) ;
 	},
 	
 	handleDownload: function() {
