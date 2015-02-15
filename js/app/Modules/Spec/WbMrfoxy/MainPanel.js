@@ -85,7 +85,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.MainPanel',{
 			case 'finance_budget' :
 				return me.switchToAppPanel('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{}) ;
 			case 'attachments_upload' :
-				return me.switchToAppPanel('Optima5.Modules.Spec.WbMrfoxy.AttachmentsPanel',{}) ;
+				//return me.switchToAppPanel('Optima5.Modules.Spec.WbMrfoxy.AttachmentsPanel',{}) ;
+				return me.openAttachments() ;
 			default :
 				return ;
 		}
@@ -185,5 +186,31 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.MainPanel',{
 		
 		this.removeAll() ;
 		this.add( promoFormPanel ) ;
+	},
+	openAttachments: function() {
+		if( this._attachmentsWindow ) {
+			// focus
+			
+			return ;
+		}
+		
+		this._attachmentsWindow = this.optimaModule.createWindow({
+			title: 'Upload attachments',
+			width:800,
+			height:600,
+			resizable:true,
+			layout:'fit',
+			items:[Ext.create('Optima5.Modules.Spec.WbMrfoxy.AttachmentsPanel',{
+				optimaModule: this.optimaModule,
+				border: false
+			})],
+			listeners: {
+				destroy: function(w) {
+					this._attachmentsWindow = null ;
+				},
+				scope: this
+			}
+		}) ;
+		this._attachmentsWindow.show() ;
 	}
 }) ;

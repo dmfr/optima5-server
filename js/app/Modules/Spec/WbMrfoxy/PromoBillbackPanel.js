@@ -1,5 +1,5 @@
-Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoAttachmentsDataview',{
-	extend:'Ext.panel.Panel',
+Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoBillbackPanel',{
+	extend:'Ext.tab.Panel',
 	requires:[],
 
 	initComponent: function() {
@@ -13,29 +13,91 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoAttachmentsDataview',{
 			Optima5.Helper.logError('Spec:WbMrfoxy:PromoBaselinePanel','No WbMrfoxyPromoModel instance ?') ;
 		}
 		
-		Ext.apply(me,{
-			title: 'Attachments',
-			headerPosition: 'left',
-			layout: 'fit',
-			items:[{
-				xtype: 'dataview',
-				store: {
-					autoLoad: true,
-					autoSync: false,
-					model: 'WbMrfoxyAttachmentModel',
-					proxy: me.optimaModule.getConfiguredAjaxProxy({
-						extraParams : {
-							_moduleId: 'spec_wb_mrfoxy',
-							_action: 'promo_getAttachments',
-							promo_filerecordId: me.rowRecord.get('_filerecord_id'),
-							doc_type: 'PROMO_ACK'
-						},
-						reader: {
-							type: 'json',
-							root: 'data'
-						}
-					})
+		this.store = Ext.create('Ext.data.Store',{
+			autoLoad: true,
+			autoSync: false,
+			model: 'WbMrfoxyAttachmentModel',
+			proxy: me.optimaModule.getConfiguredAjaxProxy({
+				extraParams : {
+					_moduleId: 'spec_wb_mrfoxy',
+					_action: 'promo_getAttachments',
+					promo_filerecordId: me.rowRecord.get('_filerecord_id'),
+					doc_type: 'PROMO_INVOICE'
 				},
+				reader: {
+					type: 'json',
+					root: 'data'
+				}
+			})
+		}) ;
+		
+		Ext.apply(me,{
+			title: 'Billback Invoices',
+			headerPosition: 'left',
+			tabPosition: 'left',
+			items:[{
+				title: 'Grid',
+				xtype: 'grid',
+				frame: true,
+				border: true,
+				store: this.store,
+				columns: {
+					items: [{
+						text: 'Date',
+						dataIndex: 'doc_date',
+						width: 100
+					},{
+						text: 'Description',
+						dataIndex: 'invoice_txt',
+						width: 300
+					},{
+						text: 'Amount',
+						dataIndex: 'invoice_amount',
+						align: 'right',
+						width: 90,
+						renderer: function(value,metaData,record) {
+							return '<b>'+Ext.util.Format.number( value, '0,0' )+'</b>' + ' ' + me.rowRecord.get('currency_symbol') ;
+						}
+					}]
+				},
+				listeners: {
+					itemcontextmenu: {
+						fn:function(view, record, item, index, event) {
+							//console.log('okokokok') ;
+							
+							var contextMenuItems = new Array() ;
+							contextMenuItems.push({
+								iconCls: 'icon-bible-delete',
+								text: 'Discard invoice',
+								handler : function() {
+									me.discardItem(record.get('filerecord_id')) ;
+								},
+								scope : me
+							});
+							
+							var contextMenu = Ext.create('Ext.menu.Menu',{
+								items : contextMenuItems,
+								listeners: {
+									hide: function(menu) {
+										menu.destroy() ;
+									}
+								}
+							}) ;
+							
+							contextMenu.showAt(event.getXY());
+							
+						},
+						scope:me
+					},
+					render: {
+						fn: this.onDataviewRender,
+						scope: this
+					}
+				}
+			},{
+				title: 'Gallery',
+				xtype: 'dataview',
+				store: this.store,
 				//frame: true,
 				//autoScroll:true,
 				tpl:[
@@ -45,6 +107,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoAttachmentsDataview',{
 							'<a href="#">',
 								'<img src="{thumb_url}"/>',
 							'</a>',
+							'<div>{thumb_caption}</div>',
 						'</div>',
 					'</tpl>'
 				],
@@ -60,7 +123,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoAttachmentsDataview',{
 					
 					Ext.apply(data, {
 						thumb_date: data.doc_date,
-						thumb_url: 'server/backend_media.php?' + Ext.Object.toQueryString(getParams)
+						thumb_url: 'server/backend_media.php?' + Ext.Object.toQueryString(getParams),
+						thumb_caption: Ext.util.Format.number(data.invoice_amount,'0,0') + '&#160;' + me.rowRecord.get('currency_symbol')
 					});
 					return data;
 				},
@@ -117,21 +181,28 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoAttachmentsDataview',{
 						},
 						scope:me
 					},
-					render: { 
+					render: {
 						fn: this.onDataviewRender,
-						scope: me
+						scope: this
 					}
 				}
 			}]
 		});
-		
 		this.callParent() ;
 	},
-	onDataviewRender: function(view) {
-		var me = this ;
+	onDataviewRender: function(obj) {
+		var me = this,
+			viewDropTargetObj, viewDropTargetEl ;
 		
-		var viewDropTargetEl =  view.getEl();
-
+		if( obj.body ) {
+			// DAMS: For grids, real body view is at obj.body
+			viewDropTargetObj = obj.body ;
+			viewDropTargetEl = obj.body.dom ;
+		} else {
+			viewDropTargetObj = obj.getEl() ;
+			viewDropTargetEl = obj.getEl().dom ;
+		}
+		
 		var viewDropTarget = Ext.create('Ext.dd.DropTarget', viewDropTargetEl, {
 			ddGroup: 'AttachmentDD'+me.optimaModule.sdomainId,
 			notifyEnter: function(ddSource, e, data) {
@@ -140,8 +211,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoAttachmentsDataview',{
 					return ;
 				}
 				//Add some flare to invite drop.
-				view.getEl().stopAnimation();
-				view.getEl().highlight();
+				viewDropTargetObj.stopAnimation();
+				viewDropTargetObj.highlight();
 				this.dropStatus = (me.validateRecord(selectedRecord) ? this.dropAllowed : this.dropNotAllowed) ;
 				return  ;
 			},
@@ -165,7 +236,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoAttachmentsDataview',{
 		if( attachmentRecord.get('country_code') != this.rowRecord.get('country_code') ) {
 			return false ;
 		}
-		if( attachmentRecord.get('doc_type') != 'PROMO_ACK' ) {
+		if( attachmentRecord.get('doc_type') != 'PROMO_INVOICE' ) {
 			return false ;
 		}
 		return true ;

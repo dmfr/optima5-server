@@ -42,6 +42,76 @@ Ext.define('WbMrfoxyAttachmentModel',{
 		}
 	]
 }) ;
+
+Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentsDataview',{
+	extend: 'Ext.view.View',
+	mixins: {
+		draggable   : 'Ext.ux.DataviewDraggable'
+	},
+	store: {
+		model: 'WbMrfoxyAttachmentDataviewModel',
+		proxy: {
+			type: 'memory' ,
+			reader: {
+				type: 'json'
+			}
+		}
+	},
+	//frame: true,
+	//autoScroll:true,
+	tpl:[
+		'<tpl for=".">',
+			'<tpl if="type_separator">',
+				'<div class="x-clear"></div>',
+				'<div class="op5-spec-mrfoxy-attachments-separator"',
+				'<tpl if="separator_iconurl">',
+					' style="background-image:url({separator_iconurl})"',
+				'</tpl>',
+				'>{separator_txt}</div>',
+				'<div class="op5-spec-mrfoxy-attachments-item" style="display:none"></div>',
+			"</tpl>",
+		
+			'<tpl if="type_media">',
+				'<div class="op5-spec-mrfoxy-attachments-item thumb-box">',
+						'<div>{thumb_date}</div>',
+						'<a href="#">',
+							'<img src="{thumb_url}"/>',
+						'</a>',
+						'<div>{thumb_caption}</div>',
+				'</div>',
+			'</tpl>',
+		'</tpl>'
+	],
+	trackOver: true,
+	itemSelector: 'div.op5-spec-mrfoxy-attachments-item',
+	prepareData: function(data) {
+		var getParams = this.optimaModule.getConfiguredAjaxParams() ;
+		Ext.apply( getParams, {
+			media_id: data.filerecord_id,
+			thumb: true
+		});
+		
+		Ext.apply(data, {
+			thumb_date: data.filerecord_date,
+			thumb_url: 'server/backend_media.php?' + Ext.Object.toQueryString(getParams),
+			thumb_caption: data.filerecord_caption
+		});
+		return data;
+	},
+	
+	initComponent: function() {
+		this.mixins.draggable.init(this, {
+				ddConfig: {
+					ddGroup: 'AttachmentDD'+this.optimaModule.sdomainId
+				},
+				ghostTpl: this.tpl
+		});
+		
+		this.callParent();
+	}
+}) ;
+
+
 Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentsPanel',{
 	extend:'Ext.panel.Panel',
 	requires:[],
@@ -55,7 +125,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentsPanel',{
 		
 		Ext.apply(this,{
 			border: false,
+			layout:'fit',
 			tbar:[{
+				itemId: 'tbQuit',
 				icon: 'images/op5img/ico_back_16.gif',
 				text: '<b>Back</b>',
 				handler: function(){
@@ -111,70 +183,53 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentsPanel',{
 				},
 				scope:this
 			}],
-			items:[{
+			items:[ Ext.create('Optima5.Modules.Spec.WbMrfoxy.AttachmentsDataview',{
 				itemId: 'dvGallery',
-				xtype: 'dataview',
-				store: {
-					model: 'WbMrfoxyAttachmentDataviewModel',
-					proxy: {
-						type: 'memory' ,
-						reader: {
-							type: 'json'
-						}
-					}
-				},
-				//frame: true,
-				//autoScroll:true,
-				tpl:[
-					'<tpl for=".">',
-						'<tpl if="type_separator">',
-							'<div class="x-clear"></div>',
-							'<div class="op5-spec-mrfoxy-attachments-separator"',
-							'<tpl if="separator_iconurl">',
-								' style="background-image:url({separator_iconurl})"',
-							'</tpl>',
-							'>{separator_txt}</div>',
-							'<div class="op5-spec-mrfoxy-attachments-item" style="display:none"></div>',
-						"</tpl>",
-					
-						'<tpl if="type_media">',
-							'<div class="op5-spec-mrfoxy-attachments-item thumb-box">',
-									'<div>{thumb_date}</div>',
-									'<a href="#">',
-										'<img src="{thumb_url}"/>',
-									'</a>',
-									'<div>{thumb_caption}</div>',
-							'</div>',
-						'</tpl>',
-					'</tpl>'
-				],
-				trackOver: true,
-				itemSelector: 'div.op5-spec-mrfoxy-attachments-item',
 				optimaModule: this.optimaModule,
-				prepareData: function(data) {
-					var getParams = this.optimaModule.getConfiguredAjaxParams() ;
-					Ext.apply( getParams, {
-						media_id: data.filerecord_id,
-						thumb: true
-					});
-					
-					Ext.apply(data, {
-						thumb_date: data.filerecord_date,
-						thumb_url: 'server/backend_media.php?' + Ext.Object.toQueryString(getParams),
-						thumb_caption: data.filerecord_caption
-					});
-					return data;
-				},
 				listeners: {
 					itemclick: this.onItemClick,
 					itemcontextmenu: this.onItemClick,
+					afterrender: function(p) {
+						// See : http://stackoverflow.com/questions/14502492/add-listener-to-all-elements-with-a-given-class
+						p.getEl().on('dragstart',function(e,elem) {
+							console.dir(elem) ;
+							e.stopEvent();
+						},this,{delegate:'img'});
+					},
+					/*
+					refresh: function(p) {
+						Ext.Array.each( p.getNodes(), function(node) {
+							var imgEl = Ext.get(node).down('img') ;
+							if( !imgEl ) {
+								return ;
+							}
+							imgEl.on('dragstart',function(e) {
+								e.stopEvent() ;
+							}) ;
+						}) ;
+					},
+					*/
+					dragdata: function(p,dragData) {
+						var selectedRecord = dragData.records[0];
+						if( selectedRecord ) {
+							var filerecordId = selectedRecord.get('filerecord_id') ;
+							var attachmentRecord = this.attachmentsStore.getById(filerecordId)
+							dragData.records = [attachmentRecord] ;
+						}
+					},
 					scope: this
 				}
-			}]
+			})]
 		});
 		
 		this.callParent() ;
 		this.loadComponents() ;
+		
+		this.on('afterrender',function(p) {
+			p.child('toolbar').child('#tbQuit').setVisible( !( p.up() instanceof Ext.window.Window ) ) ;
+		}) ;
+		
+		this.mon(this.optimaModule,'op5broadcast',this.onCrmeventBroadcast,this) ;
 	},
 	loadComponents: function() {
 		var me = this,
@@ -247,6 +302,17 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentsPanel',{
 		
 		this.doToolbar() ;
 		// this.doLoad() ;
+	},
+	onCrmeventBroadcast: function(crmEvent, eventParams) {
+		switch( crmEvent ) {
+			case 'attachmentschange' :
+				this.onDataChange() ;
+				break ;
+			default: break ;
+		}
+	},
+	onDataChange: function() {
+		this.doLoad() ;
 	},
 	
 	onSelectCountry: function(silent) {

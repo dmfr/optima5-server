@@ -53,10 +53,10 @@ switch( $post_data['_action'] )
 	
 	case 'promo_getAttachments' :
 	return specWbMrfoxy_promo_getAttachments($post_data);
-	case 'promo_uploadAttachment' :
-	return specWbMrfoxy_promo_uploadAttachment($post_data);
-	case 'promo_deleteAttachment' :
-	return specWbMrfoxy_promo_deleteAttachment($post_data);
+	case 'promo_associateAttachment' :
+	return specWbMrfoxy_promo_associateAttachment($post_data);
+	case 'promo_discardAttachment' :
+	return specWbMrfoxy_promo_discardAttachment($post_data);
 	
 	
 	case 'promo_exportXLS' :

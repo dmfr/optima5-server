@@ -23,6 +23,19 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.WbMrfoxyModule', {
 		}) ;
 	},
 	postCrmEvent: function( crmEvent, postParams ) {
-		this.callParent(arguments) ;
+		var me = this ;
+		if( typeof postParams === 'undefined' ) {
+			postParams = {} ;
+		}
+		
+		var eventParams = {} ;
+		switch( crmEvent ) {
+			case 'attachmentschange' :
+				break ;
+			
+			default :
+				return ;
+		}
+		me.fireEvent('op5broadcast',crmEvent,eventParams) ;
 	}
 });

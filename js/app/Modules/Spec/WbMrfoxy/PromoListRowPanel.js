@@ -6,6 +6,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 		'Optima5.Modules.Spec.WbMrfoxy.PromoBaselinePanel',
 		'Optima5.Modules.Spec.WbMrfoxy.PromoBillbackGrid',
 		'Optima5.Modules.Spec.WbMrfoxy.PromoAttachmentsDataview',
+		'Optima5.Modules.Spec.WbMrfoxy.PromoBillbackPanel',
 		'Ext.ux.dams.FieldSet',
 		'Optima5.Modules.Spec.WbMrfoxy.GraphInfoView',
 		'Optima5.Modules.Spec.WbMrfoxy.BenchmarkGridEmpty'
@@ -68,6 +69,10 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 					store: {
 						fields: ['actionId','actionText','actionDisabled'],
 						data:[{
+							actionId: 'attachments',
+							actionText:'Attachments',
+							actionDisabled:( !this.optimaModule.getApp().desktopGetCfgIsDev() )
+						},{
 							actionId: 'approval',
 							actionText:'Approvals',
 							actionDisabled:!Optima5.Modules.Spec.WbMrfoxy.PromoApprovalPanel.static_approvalIsBlink(me.rowRecord)
@@ -78,7 +83,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 						},{
 							actionId: 'billback',
 							actionText:'Billback Invcs',
-							actionDisabled:!( me.rowRecord.get('status_percent') >= 80 && !me.rowRecord.get('cost_billing__autoclose') )
+							actionDisabled:!( me.rowRecord.get('status_percent') >= 60 && !me.rowRecord.get('cost_billing__autoclose') )
 						},{
 							actionId: 'csack',
 							actionText:'CS Acknowledge',
@@ -103,10 +108,6 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 							actionId: 'close',
 							actionText:'Close',
 							actionDisabled:!( me.rowRecord.get('status_percent') == 80 && Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole(['ADM','SM']) )
-						},{
-							actionId: 'attachments',
-							actionText:'Attachments',
-							actionDisabled:( !this.optimaModule.getApp().desktopGetCfgIsDev() )
 						}]
 					},
 					overItemCls: 'op5-spec-mrfoxy-promorow-item-over',
@@ -377,6 +378,10 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 		this.openPopup('Optima5.Modules.Spec.WbMrfoxy.PromoBaselinePanel',[500,120]) ;
 	},
 	openBillback: function() {
+		if( this.optimaModule.getApp().desktopGetCfgIsDev() ) {
+			this.openPopup('Optima5.Modules.Spec.WbMrfoxy.PromoBillbackPanel',[700,180]) ;
+			return ;
+		}
 		this.openPopup('Optima5.Modules.Spec.WbMrfoxy.PromoBillbackGrid',[600,150]) ;
 	},
 	openAttachments: function() {

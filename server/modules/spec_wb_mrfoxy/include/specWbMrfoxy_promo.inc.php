@@ -899,7 +899,9 @@ function specWbMrfoxy_promo_exportXLS( $post_data ) {
 
 
 function specWbMrfoxy_promo_getAttachments( $post_data ) {
-	$target_filerecordId = $post_data['_filerecord_id'] ;
+	$promo_filerecordId = $post_data['promo_filerecordId'] ;
+	$doc_type = $post_data['doc_type'] ;
+	
 	$forward_post = array() ;
 	$forward_post['start'] ;
 	$forward_post['limit'] ;
@@ -908,49 +910,63 @@ function specWbMrfoxy_promo_getAttachments( $post_data ) {
 		array(
 			'type' => 'list',
 			'field' => 'WORK_PROMO_id',
-			'value' => array( $target_filerecordId )
+			'value' => array( $promo_filerecordId )
+		),
+		array(
+			'type' => 'list',
+			'field' => 'WORK_PROMO_ATTACH_field_TYPE',
+			'value' => array( $doc_type )
 		)
 	)) ;
 	$ttmp = paracrm_data_getFileGrid_data( $forward_post, $auth_bypass=TRUE ) ;
 	$paracrm_TAB = $ttmp['data'] ;
 	$TAB = array() ;
 	foreach( $paracrm_TAB as $paracrm_row ) {
-		$TAB[] = array('filerecord_id'=>$paracrm_row['WORK_PROMO_ATTACH_id']) ;
+		$TAB[] = array(
+			'filerecord_id'=>$paracrm_row['WORK_PROMO_ATTACH_id'],
+			'country_code' => $paracrm_row['WORK_PROMO_ATTACH_field_COUNTRY'],
+			'doc_date' => date('Y-m-d',strtotime($paracrm_row['WORK_PROMO_ATTACH_field_DATE'])),
+			'doc_type' => $paracrm_row['WORK_PROMO_ATTACH_field_TYPE'],
+			'invoice_txt' => $paracrm_row['WORK_PROMO_ATTACH_field_INVOICE_TXT'],
+			'invoice_amount' => $paracrm_row['WORK_PROMO_ATTACH_field_INVOICE_AMOUNT']
+		) ;
 	}
-	return array('success'=>true, 'data'=>$TAB) ;
+	return array('success'=>true, 'data'=>$TAB, 'debug'=>$paracrm_TAB) ;
 }
-function specWbMrfoxy_promo_uploadAttachment($post_data) {
-	$target_filerecordId = $post_data['_filerecord_id'] ;
+
+function specWbMrfoxy_promo_associateAttachment($post_data) {
+	$attach_filerecordId = $post_data['attach_filerecordId'] ;
+	$promo_filerecordId = $post_data['promo_filerecordId'] ;
 	
-	usleep(500000) ;
-	media_contextOpen( $_POST['_sdomainId'] ) ;
-	$media_id = media_img_processUploaded( $_FILES['photo-filename']['tmp_name'] ) ;
-	media_contextClose() ;
-	if( !$media_id ) {
+	$record = paracrm_lib_data_getRecord_file('WORK_ATTACH',$attach_filerecordId) ;
+	if( !$record ) {
 		return array('success'=>false) ;
 	}
-	
-	$newrecord = array() ;
-	$newrecord['media_title'] = $_FILES['photo-filename']['name'] ;
-	$newrecord['media_date'] = date('Y-m-d H:i:s') ;
-	$newrecord['media_mimetype'] = 'image/jpeg' ;
-	$img_filerecordId = paracrm_lib_data_insertRecord_file( 'WORK_PROMO_ATTACH',$target_filerecordId,$arr_ins) ;
+	$img_filerecordId = paracrm_lib_data_insertRecord_file( 'WORK_PROMO_ATTACH',$promo_filerecordId,$record) ;
 	
 	media_contextOpen( $_POST['_sdomainId'] ) ;
-	media_img_move( $media_id , $img_filerecordId ) ;
+	media_img_move( $attach_filerecordId , $img_filerecordId ) ;
 	media_contextClose() ;
+	
+	paracrm_lib_data_deleteRecord_file('WORK_ATTACH',$attach_filerecordId) ;
 	
 	return array('success'=>true) ;
 }
-function specWbMrfoxy_promo_deleteAttachment($post_data) {
-	$attach_filerecordId = $post_data['filerecord_id'] ;
+function specWbMrfoxy_promo_discardAttachment($post_data) {
+	$attach_filerecordId = $post_data['attach_filerecordId'] ;
+	
+	$record = paracrm_lib_data_getRecord_file('WORK_PROMO_ATTACH',$attach_filerecordId) ;
+	if( !$record ) {
+		return array('success'=>false) ;
+	}
+	$img_filerecordId = paracrm_lib_data_insertRecord_file( 'WORK_ATTACH',0,$record) ;
 	
 	media_contextOpen( $_POST['_sdomainId'] ) ;
-	media_img_delete( $attach_filerecordId ) ;
+	media_img_move( $attach_filerecordId , $img_filerecordId ) ;
 	media_contextClose() ;
 	
 	paracrm_lib_data_deleteRecord_file('WORK_PROMO_ATTACH',$attach_filerecordId) ;
-
+	
 	return array('success'=>true) ;
 }
 
