@@ -28,7 +28,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoNAgreementsSubpanel',{
 	extend:'Ext.panel.Panel',
 	
 	requires : [
-		'Ext.ux.grid.FiltersFeature'
+		'Ext.ux.grid.FiltersFeature',
+		'Ext.ux.ComponentRowExpander',
+		'Optima5.Modules.Spec.WbMrfoxy.PromoNAgreementsRowPanel'
 	],
 	
 	initComponent: function() {
@@ -217,7 +219,27 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoNAgreementsSubpanel',{
 							}
 						}
 					)
-				}]
+				}],
+				plugins: (this.optimaModule.getApp().desktopGetCfgIsDev() ? [{
+					ptype:'cmprowexpander',
+					pluginId: 'rowexpander',
+					expandOnDblClick: false,
+					expandOnEnter: false,
+					createComponent: function(view, record, rowNode, rowIndex) {
+						return Ext.create('Optima5.Modules.Spec.WbMrfoxy.PromoNAgreementsRowPanel', {
+							forceFit: true,
+							height: 190,
+							rowRecord: record,
+							optimaModule: me.optimaModule,
+							listeners:{
+								datachanged: function() {
+									me.reload() ;
+								},
+								scope:me
+							}
+						})
+					}
+				}]:[])
 			}]
 		}); 
 		

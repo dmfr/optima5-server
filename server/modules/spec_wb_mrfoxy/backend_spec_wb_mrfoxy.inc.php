@@ -93,6 +93,13 @@ switch( $post_data['_action'] )
 	case 'finance_getNationalAgreements' :
 	return specWbMrfoxy_finance_getNationalAgreements($post_data) ;
 	
+	case 'finance_NAattach_getAttachments' :
+	return specWbMrfoxy_finance_NAattach_getAttachments($post_data) ;
+	case 'finance_NAattach_associateAttachment' :
+	return specWbMrfoxy_finance_NAattach_associateAttachment($post_data) ;
+	case 'finance_NAattach_discardAttachment' :
+	return specWbMrfoxy_finance_NAattach_discardAttachment($post_data) ;
+	
 	
 	
 	case 'auth_getRoles' :
