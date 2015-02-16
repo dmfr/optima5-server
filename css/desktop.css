@@ -452,7 +452,7 @@
 }
 
 .thumb-box  {
-    float: left;
+    display: inline-block;
     width: 200px;
     padding: 5px;
     text-align: center;
