@@ -774,6 +774,10 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentsPanel',{
 						xtype:'displayfield',
 						name: 'invoice_currency',
 						padding: '0px 10px'
+					},{
+						xtype:'displayfield',
+						value: '(Excl. VAT)',
+						padding: '0px 10px'
 					}]
 				}]
 			}],

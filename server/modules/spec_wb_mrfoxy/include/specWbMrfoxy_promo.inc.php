@@ -839,8 +839,8 @@ function specWbMrfoxy_promo_exportXLS( $post_data ) {
 	$objPHPExcel->getActiveSheet()->setCellValue('C4', $promo_record['country_code'].' - '.$promo_record['country_text']);
 	$objPHPExcel->getActiveSheet()->setCellValue('C6', $promo_record['store_text']);
 	$objPHPExcel->getActiveSheet()->setCellValue('C8', $promo_record['prod_text']);
-	$objPHPExcel->getActiveSheet()->setCellValue('B11', $promo_record['date_start']);
-	$objPHPExcel->getActiveSheet()->setCellValue('C11', $promo_record['date_end']);
+	$objPHPExcel->getActiveSheet()->setCellValue('B11', $promo_record['date_supply_start']);
+	$objPHPExcel->getActiveSheet()->setCellValue('C11', $promo_record['date_supply_end']);
 	$objPHPExcel->getActiveSheet()->setCellValue('B14', $promo_record['cost_billing_code']);
 	$objPHPExcel->getActiveSheet()->setCellValue('C14', $promo_record['cost_billing_text']);
 	$objPHPExcel->getActiveSheet()->setCellValue('D14', $promo_record['cost_forecast']);
