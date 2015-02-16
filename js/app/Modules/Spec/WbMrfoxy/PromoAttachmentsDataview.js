@@ -38,6 +38,10 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoAttachmentsDataview',{
 				},
 				//frame: true,
 				//autoScroll:true,
+				overflowX: 'auto',
+				style: {
+					whiteSpace: 'nowrap'
+				},
 				tpl:[
 					'<tpl for=".">',
 						'<div class="op5-spec-mrfoxy-attachments-item thumb-box">',

@@ -184,6 +184,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentsPanel',{
 				scope:this
 			}],
 			items:[ Ext.create('Optima5.Modules.Spec.WbMrfoxy.AttachmentsDataview',{
+				overflowY: 'auto',
 				itemId: 'dvGallery',
 				optimaModule: this.optimaModule,
 				listeners: {
