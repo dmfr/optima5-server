@@ -133,8 +133,7 @@ function specWbMrfoxy_xls_getFinanceDashboard($post_data) {
 		foreach( $promoGrid_data as $promo_row ) {
 			if( $promo_row['sysdate_closed'] != NULL && strtotime($promo_row['sysdate_closed']) <= $time_iteration ) {
 				$thisIteration_actual += $promo_row['cost_real'] ;
-			}
-			if( $promo_row['sysdate_open'] != NULL && strtotime($promo_row['sysdate_open']) <= $time_iteration ) {
+			} elseif( $promo_row['sysdate_open'] != NULL && strtotime($promo_row['sysdate_open']) <= $time_iteration ) {
 				if( strtotime($promo_row['date_supply_start']) <= $time_iteration ) {
 					$thisIteration_committedPast += $promo_row['cost_forecast'] ;
 				} else {
@@ -155,7 +154,35 @@ function specWbMrfoxy_xls_getFinanceDashboard($post_data) {
 		$date_iteration = date('Y-m-d',strtotime('+1 month',strtotime($date_iteration))) ;
 	}
 	
-	//print_r($TAB_data) ;
+	$RES_revenue = specWbMrfoxy_tool_runQuery("RevenueMonth",array('condition_date_gt'=>$crop_dateInitial)) ;
+	if( isset($RES_revenue[$post_data['filter_country']]) ) {
+		$RES_countryRevenue = $RES_revenue[$post_data['filter_country']] ;
+		
+		$date_iteration = date('Y-m-d',strtotime($crop_dateInitial)) ;
+		for( $i=0 ; $i<12 ; $i++ ) {
+			$month_iteration = date('Y-m',strtotime($date_iteration)) ;
+			
+			if( $month_iteration <= date('Y-m') ) {
+				$TAB_data[$date_iteration]['ACTUAL_REV'] = 0 ;
+				$TAB_data[$date_iteration]['ACTUAL_REV']+= ( isset($RES_countryRevenue[$month_iteration]) ? $RES_countryRevenue[$month_iteration] : 0 ) ;
+				$TAB_data[$date_iteration]['ACTUAL_REV']+= ( isset($TAB_data[$previous_iteration]['ACTUAL_REV']) ? $TAB_data[$previous_iteration]['ACTUAL_REV'] : 0 ) ;
+			}
+			
+			$TAB_data[$date_iteration]['BUDGET_REV'] = 0 ;
+			
+			if( !isset($TAB_data[$date_iteration]['ACTUAL_REV']) ) {
+				$TAB_data[$date_iteration]['PERCENT'] = '' ;
+			} elseif( $TAB_data[$date_iteration]['BUDGET_REV'] == 0 ) {
+				$TAB_data[$date_iteration]['PERCENT'] = '∞' ;
+			} else {
+				$TAB_data[$date_iteration]['PERCENT'] = round( ($TAB_data[$date_iteration]['ACTUAL_REV'] / $TAB_data[$date_iteration]['BUDGET_REV']) * 100 ) ;
+			}
+		
+			$previous_iteration = $date_iteration ;
+			$date_iteration = date('Y-m-d',strtotime('+1 month',strtotime($date_iteration))) ;
+		}
+	}
+	
 	
 	
 	
@@ -171,6 +198,12 @@ function specWbMrfoxy_xls_getFinanceDashboard($post_data) {
 		'fill' => array(
 			'type' => PHPExcel_Style_Fill::FILL_SOLID,
 			'color' => array('rgb'=>'DCE6F2'),
+		)
+	);
+	$style_budget = array(                  
+		'fill' => array(
+			'type' => PHPExcel_Style_Fill::FILL_SOLID,
+			'color' => array('rgb'=>'EBF1DE'),
 		)
 	);
 	
@@ -220,6 +253,9 @@ function specWbMrfoxy_xls_getFinanceDashboard($post_data) {
 				$obj_sheet->SetCellValueExplicit($col.$row, $value, PHPExcel_Cell_DataType::TYPE_STRING);
 			} else {
 				$value = $iteration_row[$row_key] ;
+				if( is_numeric($value) ) {
+					$value = round($value) ;
+				}
 				$obj_sheet->SetCellValue($col.$row, $value);
 			}
 			
@@ -232,6 +268,47 @@ function specWbMrfoxy_xls_getFinanceDashboard($post_data) {
 		$startCol = ( $row_title ? 'B' : 'C' ) ;
 		if( $row_key != '_key' ) {
 			$obj_sheet->getStyle("{$startCol}{$row}:{$last_col}{$row}")->applyFromArray($style_data);
+		}
+		$obj_sheet->getStyle("{$startCol}{$row}:{$last_col}{$row}")->getBorders()->getAllBorders()->setBorderStyle(PHPExcel_Style_Border::BORDER_THIN);
+		
+		$row++ ;
+	}
+	
+	$rows = array('_key','BUDGET_REV','ACTUAL_REV','PERCENT') ;
+	$rows_title = array('','Budgeted revenue','Actual revenue','% Realization');
+	$row = '12' ;
+	foreach( $rows as $idx => $row_key ) {
+		if( !$row_key ) {
+			$obj_sheet->getRowDimension($row)->setRowHeight(5);
+			$row++ ;
+			continue ;
+		}
+		
+		$col = 'B' ;
+		if( $row_title = $rows_title[$idx] ) {
+			$obj_sheet->SetCellValue($col.$row, $row_title);
+		}
+		$col++ ;
+	
+		$forChart_nbAxis = 0 ;
+		foreach( $TAB_data as $date_iteration => $iteration_row ) {
+			if( $row_key == '_key' ) {
+				$value = date('M-y',strtotime($date_iteration)) ;
+				$obj_sheet->SetCellValueExplicit($col.$row, $value, PHPExcel_Cell_DataType::TYPE_STRING);
+			} else {
+				$value = $iteration_row[$row_key] ;
+				$obj_sheet->SetCellValue($col.$row, $value);
+			}
+			
+			$last_col = $col ;
+			
+			$col++ ;
+			$forChart_nbAxis++ ;
+		}
+		
+		$startCol = ( $row_title ? 'B' : 'C' ) ;
+		if( $row_key != '_key' ) {
+			$obj_sheet->getStyle("{$startCol}{$row}:{$last_col}{$row}")->applyFromArray($style_budget);
 		}
 		$obj_sheet->getStyle("{$startCol}{$row}:{$last_col}{$row}")->getBorders()->getAllBorders()->setBorderStyle(PHPExcel_Style_Border::BORDER_THIN);
 		
@@ -309,7 +386,7 @@ function specWbMrfoxy_xls_getFinanceDashboard($post_data) {
 		);
 
 		//	Set the position where the chart should appear in the worksheet
-		$chart->setTopLeftPosition("B12");
+		$chart->setTopLeftPosition("B16");
 		$chart->setBottomRightPosition("{$forChart_data_endCol}32");
 
 		//	Add the chart to the worksheet

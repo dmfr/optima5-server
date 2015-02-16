@@ -275,4 +275,113 @@ function specWbMrfoxy_cfg_getBibleBrand() {
 	return array('success'=>true, 'data'=>$data) ;
 }
 
+
+
+
+
+function specWbMrfoxy_tool_runQuery( $q_id, $where_params=NULL ) {
+	global $_opDB ;
+	
+	if( !is_numeric($q_id) ) {
+		$query = "SELECT query_id FROM query WHERE query_name LIKE '{$q_id}'";
+		$q_id = $_opDB->query_uniqueValue($query) ;
+		if( !$q_id ) {
+			return NULL ;
+		}
+	}
+	
+	$arr_saisie = array() ;
+	paracrm_queries_builderTransaction_init( array('query_id'=>$q_id) , $arr_saisie ) ;
+	
+	foreach( $arr_saisie['fields_where'] as &$field_where ) {
+		foreach( $field_where as $mkey => $mvalue ) {
+			if( isset($where_params[$mkey]) ) {
+				$field_where[$mkey] = $where_params[$mkey] ;
+			}
+		}
+		unset($field_where) ;
+	}
+	
+	$RES = paracrm_queries_process_query($arr_saisie , FALSE ) ;
+	// mise en cache de la table de l'annuaire $RES_groupKey_groupDesc
+	if( !isset($RES['RES_groupHash_groupKey']) ) {
+		//echo "begin...";
+		$RES_groupHash_groupKey = array() ;
+		foreach( $RES['RES_groupKey_groupDesc'] as $key_id => $group_desc )
+		{
+			ksort($group_desc) ;
+			$group_hash = implode('@@',$group_desc) ;
+			$RES_groupHash_groupKey[$group_hash] = $key_id ;
+		}
+		//echo "end  ".count($RES_groupHash_groupKey)." \n" ;
+		$RES['RES_groupHash_groupKey'] = $RES_groupHash_groupKey ;
+	}
+	
+	// Isolation du groupe 'PEOPLE'
+	$link_groupId = NULL ;
+	$link_groupMap = NULL ;
+	foreach( $arr_saisie['fields_group'] as $group_id => $field_group ) {
+		if( $field_group['field_type'] == 'link' ) {
+			$link_groupId = $group_id ;
+			break ;
+		}
+	}
+	if( $link_groupId===NULL || !isset($RES['RES_labels'][0]['arr_grid-y'][$link_groupId]) ) {
+		return NULL ;
+	}
+	$link_groupMap = array() ;
+	foreach( $RES['RES_labels'][0]['arr_grid-y'][$link_groupId] as $mkey => $dummy ) {
+		$link_groupMap[$mkey] = substr($mkey,2) ;
+	}
+	
+	if( count($RES['RES_labels'][0]['arr_grid-x']) == 0 ) {
+		$date_isOn = FALSE ;
+		$date_groupId = NULL ;
+		$date_groupMap = NULL ;
+	} elseif( count($RES['RES_labels'][0]['arr_grid-x']) == 1 ) {
+		$date_isOn = TRUE ;
+		$date_groupId = key($RES['RES_labels'][0]['arr_grid-x']) ;
+		if( $arr_saisie['fields_group'][$date_groupId]['field_type'] != 'date' ) {
+			return NULL ;
+		}
+		$date_groupMap = array() ;
+		foreach( $RES['RES_labels'][0]['arr_grid-x'][$date_groupId] as $mkey => $dummy ) {
+			$date_groupMap[$mkey] = $mkey ;
+		}
+	} else {
+		// More than 2 groups ?
+		return NULL ;
+	}
+	
+	
+	$selectMap = $RES['RES_titles']['fields_select'] ;
+	
+	$GRID = array() ;
+	foreach( $link_groupMap as $group_id_key => $link_code ) {
+		$ROW = array() ;
+		if( $date_isOn ) {
+			foreach( $date_groupMap as $date => $dummy ) {
+				$groupDesc = array() ;
+				$groupDesc[$link_groupId] = $group_id_key ;
+				$groupDesc[$date_groupId] = $date ;
+				ksort($groupDesc) ;
+				$groupHash = implode('@@',$groupDesc) ;
+				$key_id = $RES['RES_groupHash_groupKey'][$groupHash] ;
+				
+				$ROW[$date] = ( ($key_id && $RES['RES_groupKey_selectId_value'][$key_id]) ? reset($RES['RES_groupKey_selectId_value'][$key_id]) : reset($RES['RES_selectId_nullValue']) ) ;
+			}
+		} else {
+			$groupHash = $group_id_key ;
+			$key_id = $RES['RES_groupHash_groupKey'][$groupHash] ;
+			foreach( $selectMap as $select_id => $select_lib ) {
+				$ROW[$select_lib] = ( ($key_id && $RES['RES_groupKey_selectId_value'][$key_id]) ? $RES['RES_groupKey_selectId_value'][$key_id][$select_id] : $RES['RES_selectId_nullValue'][$select_id] ) ;
+			}
+		}
+		
+		$GRID[$link_code] = $ROW ;
+	}
+	
+	return $GRID ;
+}
+
 ?>
