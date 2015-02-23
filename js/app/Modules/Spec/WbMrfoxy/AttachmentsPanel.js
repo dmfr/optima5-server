@@ -114,13 +114,13 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentsDataview',{
 
 Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentsPanel',{
 	extend:'Ext.panel.Panel',
-	requires:[],
+	requires:['Optima5.Modules.Spec.WbMrfoxy.AttachmentViewerWindow'],
 
 	initComponent: function() {
 		this.addEvents('proceed') ;
 		
 		if( (this.optimaModule) instanceof Optima5.Module ) {} else {
-			Optima5.Helper.logError('Spec:WbMrfoxy:PromoBaselinePanel','No module reference ?') ;
+			Optima5.Helper.logError('Spec:WbMrfoxy:AttachmentsPanel','No module reference ?') ;
 		}
 		
 		Ext.apply(this,{
@@ -167,13 +167,37 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentsPanel',{
 					}]
 				}
 			},'->',{
-				itemId: 'tbAttach',
+				itemId: 'tbUpload',
 				iconCls: 'op5-spec-mrfoxy-promorow-action-icon-attachments',
-				text: 'Attach Img',
-				handler: function(){
-					this.handleNewAttachment() ;
-				},
-				scope: this
+				text: '<b>Upload Document</b>',
+				menu: [{
+					xtype: 'form',
+					frame: true,
+					defaults: {
+							anchor: '100%',
+							allowBlank: false,
+							msgTarget: 'side',
+							labelWidth: 50
+					},
+					//bodyPadding: '0 0 0 0',
+					items: [{
+						xtype: 'filefield',
+						width: 450,
+						emptyText: 'Select an image',
+						fieldLabel: 'Photo',
+						name: 'photo-filename',
+						buttonText: '',
+						buttonConfig: {
+							iconCls: 'upload-icon'
+						},
+						listeners: {
+							change: {
+								fn: this.doUpload,
+								scope:this
+							}
+						}
+					}]
+				}]
 			},{
 				itemId: 'tbRefresh',
 				text: 'Refresh',
@@ -337,7 +361,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentsPanel',{
 	},
 	
 	doToolbar: function() {
-		this.down('#tbAttach').setVisible( !Ext.isEmpty(this.filterCountry) ) ;
+		this.down('#tbUpload').setVisible( !Ext.isEmpty(this.filterCountry) ) ;
 	},
 	
 	
@@ -544,13 +568,6 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentsPanel',{
 					]
 				}],
 				bbar:[{
-					iconCls: 'icon-fullscreen',
-					text: 'Show photo',
-					handler : function(btn) {
-						var p = btn.up('panel') ;
-						p.fireEvent('actionshow',p) ;
-					}
-				},{
 					iconCls:'op5-crmbase-dataformwindow-icon',
 					text:'Edit',
 					handler: function(btn) {
@@ -568,10 +585,6 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentsPanel',{
 				listeners:{
 					hide: this.onItemDetailHide,
 					
-					actionshow: function(p) {
-						var filerecordId = p.filerecordId ;
-						this.showPhoto(filerecordId) ;
-					},
 					actionedit: function(p) {
 						var filerecordId = p.filerecordId ;
 						this.itemDetailPanel.hide() ;
@@ -644,217 +657,67 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentsPanel',{
 		}
 	},
 	
-	handleNewAttachment: function() {
-		var attachmentRecord = Ext.create('WbMrfoxyAttachmentModel',{
-			country_code: this.filterCountry
-		});
-		this.handleAttachment(attachmentRecord) ;
-	},
-	handleEditAttachment: function( filerecordId ) {
-		var attachmentRecord = this.attachmentsStore.getById(filerecordId) ;
-		if( attachmentRecord ) {
-			this.handleAttachment(attachmentRecord) ;
+	doUpload: function( dummyfield ) {
+		var me = this ;
+		var msg = function(title, msg) {
+			Ext.Msg.show({
+					title: title,
+					msg: msg,
+					minWidth: 200,
+					modal: true,
+					icon: Ext.Msg.INFO,
+					buttons: Ext.Msg.OK
+			});
+		};
+		var uploadform = this.down('toolbar').down('form') ;
+		var fileuploadfield = uploadform.query('> filefield')[0] ;
+		var baseForm = uploadform.getForm() ;
+		if(baseForm.isValid()){
+			var ajaxParams = me.optimaModule.getConfiguredAjaxParams() ;
+			Ext.apply( ajaxParams, {
+				_moduleId: 'spec_wb_mrfoxy',
+				_action: 'attachments_uploadfile'
+			}) ;
+			
+			var msgbox = Ext.Msg.wait('Uploading document...');
+			baseForm.submit({
+				url: Optima5.Helper.getApplication().desktopGetBackendUrl(),
+				params: ajaxParams,
+				success : function(form,action){
+					msgbox.close() ;
+					Ext.menu.Manager.hideAll();
+					var ajaxData = Ext.JSON.decode(action.response.responseText).data ;
+					this.handleNewAttachment( ajaxData.tmp_id ) ;
+				},
+				failure: function(fp, o) {
+					msgbox.close() ;
+					msg('Pouet','Error during upload') ;	
+				},
+				scope: me
+			});
 		}
 	},
-	handleAttachment: function( attachmentRecord ) {
-		var uploadForm = Ext.create('Ext.form.Panel',{
-			optimaModule: this.optimaModule,
-			width: 500,
-			height: 300,
-			floating: true,
-			renderTo: this.getEl(),
-			tools: [{
-				type: 'close',
-				handler: function(e, t, p) {
-					p.ownerCt.destroy();
-				}
-			}],
-			
-			title: 'Attachment',
-			bodyPadding: '10px 10px',
-			bodyCls: 'ux-noframe-bg',
-			cls: 'ux-noframe-bg',
-			border: false,
-			fieldDefaults: {
-				labelAlign: 'left',
-				labelWidth: 110,
-				anchor: '100%',
-				submitValue: false
-			},
-			layout: 'anchor',
-			items: [{
-				xtype:'hiddenfield',
-				name:'filerecord_id'
-			},{
-				itemId: 'fsUpload',
-				xtype:'fieldset',
-				defaults: {
-					anchor: '100%',
-					labelWidth: 75
-				},
-				title: 'Upload source',
-				items:[{
-					xtype: 'filefield',
-					submitValue: true,
-					emptyText: 'Select a file',
-					fieldLabel: 'File path',
-					name: 'photo-filename',
-					buttonText: '',
-					buttonConfig: {
-						iconCls: 'upload-icon'
-					}
-				}]
-			},{
-				xtype: 'colorcombo',
-				queryMode: 'local',
-				forceSelection: true,
-				editable: false,
-				displayField: 'country_display',
-				valueField: 'country_code',
-				iconUrlField: 'country_iconurl',
-				store: {
-					fields: ['country_code','country_display','country_iconurl','country_currency'],
-					data : Optima5.Modules.Spec.WbMrfoxy.HelperCache.countryGetAll()
-				},
-				allowBlank: false,
-				readOnly: true,
-				fieldLabel: 'Country',
-				name : 'country_code',
-				itemId : 'country_code'
-			},{
-				xtype: 'datefield',
-				fieldLabel: 'Document Date',
-				name: 'doc_date',
-				allowBlank: false,
-				format: 'Y-m-d',
-				startDay: 1,
-				anchor: '',
-				width: 230
-			},{
-				xtype: 'combobox',
-				fieldLabel: 'Attachment Type',
-				name: 'doc_type',
-				forceSelection: true,
-				allowBlank: false,
-				editable: false,
-				store: this.attachTypesStore,
-				queryMode: 'local',
-				displayField: 'attachtype_txt',
-				valueField: 'attachtype',
-				listeners:{
-					change: function(field){ field.up('form').calcLayout(); }
-				}
-			},{
-				itemId: 'fsInvoice',
-				xtype:'fieldset',
-				defaults: {
-					anchor: '100%',
-					labelWidth: 75
-				},
-				title: 'Invoices data',
-				items:[{
-					xtype: 'textfield',
-					name:'invoice_txt',
-					fieldLabel: 'Description'
-				},{
-					xtype: 'fieldcontainer',
-					layout:{
-						type: 'hbox',
-						align: 'stretch'
-					},
-					itemId: 'mechanics_mono_discount',
-					fieldLabel: 'Amount',
-					items:[{
-						xtype: 'numberfield',
-						name:'invoice_amount',
-						anchor: '',
-						width: 80,
-						minValue: 0
-					},{
-						xtype:'displayfield',
-						name: 'invoice_currency',
-						padding: '0px 10px'
-					},{
-						xtype:'displayfield',
-						value: '(Excl. VAT)',
-						padding: '0px 10px'
-					}]
-				}]
-			}],
-			buttons: [
-				{ xtype: 'button', text: 'Submit' , handler:function(btn){ btn.up('form').handleSubmit();} }
-			],
-			
-			calcLayout: function() {
-				var formPanel = this,
-					form = formPanel.getForm(),
-					formValues = form.getValues(false,false,false,true),
-					typeField = form.findField('doc_type'),
-					typeValue = typeField.getValue(),
-					isInvoice = (Ext.isEmpty(typeValue) ? false : typeField.getStore().getById(typeValue).get('is_invoice')),
-					countryField = form.findField('country_code'),
-					countryValue = countryField.getValue(),
-					countryCurrency = (Ext.isEmpty(countryValue) ? '' : countryField.getStore().getById(countryValue).get('country_currency')) ;
-				
-				formPanel.down('#fsUpload').setVisible( !(formValues.filerecord_id > 0) ) ;
-				form.findField('photo-filename').allowBlank = (formValues.filerecord_id > 0) ;
-				formPanel.down('#fsInvoice').setVisible(isInvoice) ;
-				form.findField('invoice_amount').allowBlank = !isInvoice ;
-				form.findField('invoice_currency').setValue(countryCurrency) ;
-				
-				var countryCode = formValues.country_code
-			},
-			
-			handleSubmit: function() {
-				var formPanel = this,
-					baseForm = this.getForm() ;
-				if(baseForm.isValid()){
-					var ajaxParams = this.optimaModule.getConfiguredAjaxParams(),
-						formValues = baseForm.getValues(false,false,false,true) ;
-					Ext.apply( ajaxParams, {
-						_moduleId: 'spec_wb_mrfoxy',
-						_action: 'attachments_upload',
-						data: Ext.JSON.encode(formValues)
-					}) ;
-					
-					if( !(formValues.filerecord_id > 0) ) {
-						var msgbox = Ext.Msg.wait('Uploading...') ;
-					}
-					baseForm.submit({
-						url: Optima5.Helper.getApplication().desktopGetBackendUrl(),
-						params: ajaxParams,
-						success : function(){
-							if( !Ext.isEmpty(msgbox) ) {
-								msgbox.close() ;
-							}
-							Ext.menu.Manager.hideAll();
-							this.fireEvent('submitok') ;
-							this.destroy();
-						},
-						failure: function(fp, o) {
-							if( msgbox ) {
-								msgbox.close() ;
-							}
-							Ext.Msg.alert('Error','Error during transaction') ;
-						},
-						scope: formPanel
-					});
-				}
-			}
-		});
-		uploadForm.on('submitok',function() {
+	
+	handleNewAttachment: function( tmpId ) {
+		var attachmentViewerWindow = this.createAttachmentWindow() ;
+		attachmentViewerWindow.loadTmpMedia( tmpId, this.filterCountry ) ;
+	},
+	handleEditAttachment: function( filerecordId ) {
+		var attachmentViewerWindow = this.createAttachmentWindow() ;
+		attachmentViewerWindow.loadFilerecord( filerecordId ) ;
+	},
+	createAttachmentWindow: function() {
+		attachmentViewerWindow = this.optimaModule.createWindow({
+			attachTypesStore:this.attachTypesStore,
+			hidden: true
+		},Optima5.Modules.Spec.WbMrfoxy.AttachmentViewerWindow) ;
+		attachmentViewerWindow.on('load',function() {
+			attachmentViewerWindow.show() ;
+		},this) ;
+		attachmentViewerWindow.on('submitok',function() {
 			this.doLoad() ;
 		},this) ;
-		uploadForm.on('destroy',function() {
-			this.getEl().unmask() ;
-		},this,{single:true}) ;
-		this.getEl().mask() ;
-		
-		uploadForm.loadRecord(attachmentRecord) ;
-		uploadForm.calcLayout() ;
-		
-		uploadForm.show();
-		uploadForm.getEl().alignTo(this.getEl(), 'c-c?');
+		return attachmentViewerWindow ;
 	},
 	
 	deleteItem: function( filerecordId ) {
@@ -874,76 +737,6 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentsPanel',{
 				scope: this
 			});
 		},this) ;
-	},
-			  
-	showPhoto: function( filerecordId ) {
-		var getParams = this.optimaModule.getConfiguredAjaxParams() ;
-		Ext.apply( getParams, {
-			media_id: filerecordId,
-			thumb:''
-		});
-		
-		var getParamsDownload = {} ;
-		Ext.apply( getParamsDownload, getParams ) ;
-		Ext.apply( getParamsDownload, {
-			download: true
-		});
-		
-		var getSizeParams = new Object() ;
-		Ext.apply( getSizeParams, getParams );
-		Ext.apply( getSizeParams, {
-			getsize:'true'
-		});
-		Ext.Ajax.request({
-			url: 'server/backend_media.php',
-			params: getSizeParams,
-			method:'GET',
-			success : function(response) {
-				if( Ext.decode(response.responseText).success == false ) {
-					Ext.Msg.alert('Failed', 'Failed');
-					return ;
-				}
-				var width = parseInt( Ext.decode(response.responseText).width ) ;
-				var height = parseInt( Ext.decode(response.responseText).height ) ;
-				
-				if( height > 600 ) {
-					var dispheight = ( (height * 600) / height ) ;
-					var dispwidth = ( (width * 600) / height ) ;
-				}
-				else {
-					var dispheight = height ;
-					var dispwidth = width ;
-				}
-				
-				
-				var imageviewerWindow = this.optimaModule.createWindow({
-					title:'Image Viewer',
-					width:dispwidth,
-					height:dispheight,
-					iconCls: 'op5-crmbase-dataformwindow-photo-icon',
-					animCollapse:false,
-					border: false,
-					items: [{
-						xtype:'image',
-						src: 'server/backend_media.php?' + Ext.Object.toQueryString(getParams),
-						resizable: false
-					}],
-					tbar: [{
-						iconCls: 'icon-save',
-						text: 'Download file',
-						handler: function() {
-							Ext.create('Ext.ux.dams.FileDownloader',{
-								renderTo: Ext.getBody(),
-								requestParams: getParamsDownload,
-								requestAction: 'server/backend_media.php',
-								requestMethod: 'GET'
-							}) ;
-						}
-					}]
-				}) ;
-			},
-			scope: this
-		});
 	},
 	
 	handleQuit: function() {
