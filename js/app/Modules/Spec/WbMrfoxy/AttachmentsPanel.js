@@ -426,8 +426,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentsPanel',{
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_wb_mrfoxy',
-				_action: 'attachments_getList',
-				filter_country: this.filterCountry
+				_action: 'attachments_getList'
 			},
 			success: function(response) {
 				var ajaxObj = Ext.decode(response.responseText) ;

@@ -667,6 +667,29 @@ function specWbMrfoxy_finance_NAattach_associateAttachment($post_data) {
 	$attach_filerecordId = $post_data['attach_filerecordId'] ;
 	$nagreement_id = $post_data['nagreement_id'] ;
 	
+	$attach_record = paracrm_lib_data_getRecord_file('WORK_ATTACH',$attach_filerecordId) ;
+	if( !$attach_record ) {
+		return array('success'=>false) ;
+	}
+	if( $doSendEmail=TRUE ) {
+		$ttmp = specWbMrfoxy_attachments_getList( array(
+			'filter_id'=>json_encode(array($attach_filerecordId))
+		) ) ;
+		if( count($ttmp['data']) != 1 ) {
+			die() ;
+		}
+		$attachment_row = $ttmp['data'][0] ;
+		
+		$nagreement_row = array('nagreement_id'=>$nagreement_id) ;
+		
+		$attach_filerecordId ;
+		media_contextOpen( $_POST['_sdomainId'] ) ;
+		$invoice_jpg_binary = media_img_getBinary( $attach_filerecordId ) ;
+		media_contextClose() ;
+		
+		specWbMrfoxy_attachments_lib_sendInvoiceEmail( $attachment_row, $nagreement_row, $invoice_jpg_binary ) ;
+	}
+	
 	
 	$forward_post = array() ;
 	$forward_post['start'] ;
@@ -688,13 +711,7 @@ function specWbMrfoxy_finance_NAattach_associateAttachment($post_data) {
 		$arr_ins['field_NAGREEMENT_ID'] = $nagreement_id ;
 		$nagreement_filerecordId = paracrm_lib_data_insertRecord_file('FINANCE_NA',0,$arr_ins) ;
 	}
-	
-	
-	$record = paracrm_lib_data_getRecord_file('WORK_ATTACH',$attach_filerecordId) ;
-	if( !$record ) {
-		return array('success'=>false) ;
-	}
-	$img_filerecordId = paracrm_lib_data_insertRecord_file( 'FINANCE_NA_ATTACH',$nagreement_filerecordId,$record) ;
+	$img_filerecordId = paracrm_lib_data_insertRecord_file( 'FINANCE_NA_ATTACH',$nagreement_filerecordId,$attach_record) ;
 	
 	media_contextOpen( $_POST['_sdomainId'] ) ;
 	media_img_move( $attach_filerecordId , $img_filerecordId ) ;

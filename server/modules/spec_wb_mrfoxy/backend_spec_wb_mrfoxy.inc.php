@@ -111,8 +111,6 @@ switch( $post_data['_action'] )
 	return specWbMrfoxy_attachments_cfgGetTypes() ;
 	case 'attachments_getList' :
 	return specWbMrfoxy_attachments_getList($post_data);
-	case 'attachments_getRecord' :
-	return specWbMrfoxy_attachments_getRecord($post_data);
 	case 'attachments_uploadfile' :
 	return specWbMrfoxy_attachments_uploadfile($post_data);
 	case 'attachments_setAttachment' :

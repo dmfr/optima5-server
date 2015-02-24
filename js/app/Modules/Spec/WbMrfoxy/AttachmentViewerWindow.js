@@ -257,13 +257,13 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentViewerWindow',{
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_wb_mrfoxy',
-				_action: 'attachments_getRecord',
-				filerecord_id: filerecordId
+				_action: 'attachments_getList',
+				filter_id: Ext.JSON.encode([filerecordId])
 			},
 			success: function(response) {
 				var ajaxObj = Ext.decode(response.responseText) ;
-				if( ajaxObj.success ) {
-					this.floatForm.getForm().setValues(ajaxObj.data) ;
+				if( ajaxObj.success && Ext.isArray(ajaxObj.data) && ajaxObj.data.length==1 ) {
+					this.floatForm.getForm().setValues(ajaxObj.data[0]) ;
 				}
 			},
 			scope: this

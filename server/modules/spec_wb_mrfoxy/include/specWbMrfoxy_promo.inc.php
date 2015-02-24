@@ -938,11 +938,38 @@ function specWbMrfoxy_promo_associateAttachment($post_data) {
 	$attach_filerecordId = $post_data['attach_filerecordId'] ;
 	$promo_filerecordId = $post_data['promo_filerecordId'] ;
 	
-	$record = paracrm_lib_data_getRecord_file('WORK_ATTACH',$attach_filerecordId) ;
-	if( !$record ) {
+	$attach_record = paracrm_lib_data_getRecord_file('WORK_ATTACH',$attach_filerecordId) ;
+	$promo_record = paracrm_lib_data_getRecord_file('WORK_PROMO',$promo_filerecordId) ;
+	if( !$attach_record || !$promo_record ) {
 		return array('success'=>false) ;
 	}
-	$img_filerecordId = paracrm_lib_data_insertRecord_file( 'WORK_PROMO_ATTACH',$promo_filerecordId,$record) ;
+	
+	if( $doSendEmail=TRUE ) {
+		$ttmp = specWbMrfoxy_attachments_getList( array(
+			'filter_id'=>json_encode(array($attach_filerecordId))
+		) ) ;
+		if( count($ttmp['data']) != 1 ) {
+			die() ;
+		}
+		$attachment_row = $ttmp['data'][0] ;
+		
+		$ttmp = specWbMrfoxy_promo_getGrid( array(
+			'filter_id'=>json_encode(array($promo_filerecordId))
+		) ) ;
+		if( count($ttmp['data']) != 1 ) {
+			die() ;
+		}
+		$promo_row = $ttmp['data'][0] ;
+		
+		$attach_filerecordId ;
+		media_contextOpen( $_POST['_sdomainId'] ) ;
+		$invoice_jpg_binary = media_img_getBinary( $attach_filerecordId ) ;
+		media_contextClose() ;
+		
+		specWbMrfoxy_attachments_lib_sendInvoiceEmail( $attachment_row, $promo_row, $invoice_jpg_binary ) ;
+	}
+	
+	$img_filerecordId = paracrm_lib_data_insertRecord_file( 'WORK_PROMO_ATTACH',$promo_filerecordId,$attach_record) ;
 	
 	media_contextOpen( $_POST['_sdomainId'] ) ;
 	media_img_move( $attach_filerecordId , $img_filerecordId ) ;

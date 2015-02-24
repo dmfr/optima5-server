@@ -15,18 +15,19 @@ function specWbMrfoxy_attachments_cfgGetTypes() {
 }
 
 function specWbMrfoxy_attachments_getList( $post_data ) {
-	$target_filerecordId = $post_data['_filerecord_id'] ;
 	$forward_post = array() ;
 	$forward_post['start'] ;
 	$forward_post['limit'] ;
 	$forward_post['file_code'] = 'WORK_ATTACH' ;
-	$forward_post['filter'] = json_encode(array(
-		array(
-			'type' => 'list',
-			'field' => 'WORK_PROMO_id',
-			'value' => array( $target_filerecordId )
-		)
-	)) ;
+	if( $post_data['filter_id'] ) {
+		$forward_post['filter'] = json_encode(array(
+			array(
+				'type' => 'list',
+				'field' => 'WORK_ATTACH_id',
+				'value' => json_decode($post_data['filter_id'],true)
+			)
+		)) ;
+	}
 	$ttmp = paracrm_data_getFileGrid_data( $forward_post, $auth_bypass=TRUE ) ;
 	$paracrm_TAB = $ttmp['data'] ;
 	$TAB = array() ;
@@ -41,35 +42,6 @@ function specWbMrfoxy_attachments_getList( $post_data ) {
 		) ;
 	}
 	return array('success'=>true, 'data'=>$TAB) ;
-}
-function specWbMrfoxy_attachments_getRecord( $post_data ) {
-	$target_filerecordId = $post_data['filerecord_id'] ;
-	$forward_post = array() ;
-	$forward_post['start'] ;
-	$forward_post['limit'] ;
-	$forward_post['file_code'] = 'WORK_ATTACH' ;
-	$forward_post['filter'] = json_encode(array(
-		array(
-			'type' => 'list',
-			'field' => 'WORK_ATTACH_id',
-			'value' => array( $target_filerecordId )
-		)
-	)) ;
-	$ttmp = paracrm_data_getFileGrid_data( $forward_post, $auth_bypass=TRUE ) ;
-	$paracrm_TAB = $ttmp['data'] ;
-	$record = array() ;
-	foreach( $paracrm_TAB as $paracrm_row ) {
-		$record = array(
-			'filerecord_id'=> $paracrm_row['WORK_ATTACH_id'],
-			'country_code' => $paracrm_row['WORK_ATTACH_field_COUNTRY'],
-			'doc_date' => date('Y-m-d',strtotime($paracrm_row['WORK_ATTACH_field_DATE'])),
-			'doc_type' => $paracrm_row['WORK_ATTACH_field_TYPE'],
-			'invoice_txt' => $paracrm_row['WORK_ATTACH_field_INVOICE_TXT'],
-			'invoice_amount' => $paracrm_row['WORK_ATTACH_field_INVOICE_AMOUNT']
-		) ;
-		break ;
-	}
-	return array('success'=>true, 'data'=>$record) ;
 }
 function specWbMrfoxy_attachments_uploadfile($post_data) {
 	media_contextOpen( $_POST['_sdomainId'] ) ;
@@ -125,6 +97,179 @@ function specWbMrfoxy_attachments_delete($post_data) {
 	return array('success'=>true) ;
 }
 
+
+
+
+function specWbMrfoxy_attachments_lib_sendInvoiceEmail( $attachment_row, $obj_row, $invoice_jpg_binary ) {
+	$recipients = specWbMrfoxy_attachments_lib_findRecipients($attachment_row['country_code'], array('SM','TF')) ;
+	
+	if( $obj_row['promo_id'] ) {
+		$subject = 'Invoice for Promo'.', # '.$obj_row['promo_id'] ;
+	} elseif( $obj_row['nagreement_id'] ) {
+		$subject = 'Invoice for NationalAgr.'.', # '.$obj_row['nagreement_id'] ;
+	} else {
+		$subject = 'Validated invoice' ;
+	}
+	
+	$body = '' ;
+	$body.= "Dear Team Finance,\r\n" ;
+	$body.= "A new invoice has been received.\r\n" ;
+	$body.= "This is a notification to proceed to payment.\r\n" ;
+	$body.= "\r\n" ;
+	
+	if( $invoice_jpg_binary ) {
+		$invoice_filename = 'invoice.jpg' ;
+		specWbMrfoxy_attachments_lib_sendHtmlEmail( $recipients, $attachment_row, $obj_row, $subject, $body, $invoice_filename, $invoice_jpg_binary ) ;
+	} else {
+		specWbMrfoxy_attachments_lib_sendHtmlEmail( $recipients, $attachment_row, $obj_row, $subject, $body ) ;
+	}
+}
+
+function specWbMrfoxy_attachments_lib_mailFactory( $recipients, $subject, $body, $attach_filename, $attach_binary ) {
+	//$email_text = "{$body}\r\n\r\n\r\nDo not respond directly to this message.\r\n\r\nMrFoxy access:\r\nhttp://mrfoxy.eu\r\n\r\nShould you have any question or need login ID,\r\nplease contact mrfoxy@wonderfulbrands.com\r\n\r\n" ;
+	
+	if( $GLOBALS['__OPTIMA_TEST'] ) {
+		$recipients = array($GLOBALS['__OPTIMA_TEST_EMAIL']) ;
+	}
+	
+	$email = new Email() ;
+	$email->set_From( 'noreply@wonderfulbrands.com', "Mr Foxy, Promotion Tool" ) ;
+	foreach( $recipients as $to_email ) {
+		$email->add_Recipient( $to_email ) ;
+	}
+	$email->set_Subject( $subject ) ;
+	$email->set_HTML_body( $body ) ;
+	if( $attach_filename && $attach_binary ) {
+		$email->attach_binary( $attach_filename, $attach_binary ) ;
+	}
+	$email->send() ;
+}
+function specWbMrfoxy_attachments_lib_getHtmlBody_getInnerTable( $rows ) {
+	$src = '' ;
+	$src.= '<table>' ;
+	foreach( $rows as $row ) {
+		if( $row===NULL ) {
+			$src.= "<tr><td height='5'/></tr>" ;
+			continue ;
+		}
+		$src.= "\r\n" ;
+		$src.= "<tr>" ;
+			$src.= "<td align='right'>{$row[0]}</td>" ;
+			$src.= "<td>&nbsp;&nbsp;</td>" ;
+			$src.= "<td align='left'><b>{$row[1]}</b></td>" ;
+		$src.= "</tr>" ;
+	}
+	$src.= '</table>' ;
+	return $src ;
+}
+function specWbMrfoxy_attachments_lib_getHtmlBody( $attachment_row, $obj_row, $body_text ) {
+	$templates_dir = $GLOBALS['templates_dir'] ;
+	
+	$header_src = "\r\n" ;
+	$header_src.= "<table><tr>" ;
+		$logo_base64 = base64_encode( file_get_contents($templates_dir.'/'.'WB_MRFOXY_email_logo.png') ) ;
+		$header_src.= "<td width='128' align='center'>" ;
+		$header_src.= "<img src=\"data:image/png;base64,$logo_base64\"/>" ;
+		$header_src.= "</td>" ;
+		
+		$header_src.= "<td>" ;
+		$header_src.= "\r\n<span class='text-small' style='color:#000000;'><b><i>".'Mr Foxy, validated INVOICE'."</i></b></span><br>" ;
+		$header_src.= "</td>" ;
+	$header_src.= "</tr></table>" ;
+	
+	
+	$desc_src = "\r\n" ;
+	$desc_src.= '<table>' ;
+	$desc_src.= '<tr>' ;
+	$desc_src.= '<td>' ;
+		$desc_rows = array() ;
+		$desc_rows[] = array('Invoice date',date('d/m/Y', strtotime($attachment_row['doc_date']))) ;
+		$desc_rows[] = array('Invoice Amount',(float)$attachment_row['invoice_amount'].' '.specWbMrfoxy_tool_getCountryCurrency($attachment_row['country_code'])) ;
+		$desc_rows[] = NULL ;
+		$desc_rows[] = array('Comment',$attachment_row['invoice_txt']) ;
+		$desc_rows[] = NULL ;
+		if( $obj_row['promo_id'] ) {
+			$desc_rows[] = array('Promo #',$obj_row['promo_id']) ;
+		}
+		if( $obj_row['nagreement_id'] ) {
+			$desc_rows[] = array('National Agreement #',$obj_row['nagreement_id']) ;
+		}
+		$desc_src.= specWbMrfoxy_attachments_lib_getHtmlBody_getInnerTable( $desc_rows ) ;
+	$desc_src.= "</td>" ;
+	$desc_src.= "</tr>" ;
+	$desc_src.= "</table>" ;
+	
+	
+	$text_src = "\r\n" ;
+	$text_src.= '<div class="text-xsmall">' ;
+	foreach( preg_split('/$\R?^/m', $body_text) as $line ) {
+		$text_src.= "\r\n".$line."<br>" ;
+	}
+	$text_src.= '</div>' ;
+	
+	
+	$footer_src = "\r\n" ;
+	$footer_src.= '<div class="text-xxsmall">' ;
+		$footer_src.= 'Do not respond directly to this message.<br>';
+		$footer_src.= 'MrFoxy access : <a href="http://mrfoxy.eu">http://mrfoxy.eu</a><br>';
+		$footer_src.= 'Should you have any question or need login ID, please contact <b>mrfoxy@wonderfulbrands.com</b><br>';
+	$footer_src.= '</div>' ;
+	
+	
+	$body_src = "\r\n" ;
+	$body_src.= '<div>' ;
+		$body_src.= $header_src ;
+		$body_src.= "<hr>" ;
+		$body_src.= $text_src ;
+		$body_src.= $desc_src ;
+		$body_src.= "<hr>" ;
+		$body_src.= $footer_src ;
+	$body_src.= "</div>" ;
+	
+	
+	$template_resource_binary = file_get_contents($templates_dir.'/'.'WB_MRFOXY_email_template.html') ;
+	$doc = new DOMDocument();
+	@$doc->loadHTML($template_resource_binary);
+	$elements = $doc->getElementsByTagName('email-body');
+	$i = $elements->length - 1;
+	while ($i > -1) {
+		$node_emailBody = $elements->item($i);
+		$i--;
+		
+		$dom_div = new DOMDocument();
+		$dom_div->loadHTML( '<?xml encoding="UTF-8"><html>'.$body_src.'</html>' ) ;
+		$node_div = $dom_div->getElementsByTagName("div")->item(0);
+		
+		$node_div = $doc->importNode($node_div,true) ;
+		
+		$node_emailBody->parentNode->replaceChild($node_div,$node_emailBody) ;
+	}
+	return $doc->saveHTML() ;
+}
+function specWbMrfoxy_attachments_lib_sendHtmlEmail( $recipients, $attachment_row, $obj_row, $subject_text, $body_text, $attach_filename=NULL, $attach_binary=NULL ) {
+	specWbMrfoxy_attachments_lib_mailFactory( $recipients, $subject_text, specWbMrfoxy_attachments_lib_getHtmlBody($attachment_row,$obj_row,$body_text), $attach_filename, $attach_binary ) ;
+}
+function specWbMrfoxy_attachments_lib_findRecipients( $country_code, $arr_roleCode ) {
+	global $_opDB ;
+	$authTable = specWbMrfoxy_auth_lib_getTable(array()) ;
+	
+	$arr_userId = array() ;
+	foreach( $authTable as $str ) {
+		$ttmp = explode('@',$str) ;
+		if( $ttmp[1] == $country_code && in_array($ttmp[2],$arr_roleCode) ) {
+			$arr_userId[] = $ttmp[0] ;
+		}
+	}
+	
+	$arr_recipients = array() ;
+	foreach( $arr_userId as $userId ) {
+		$query = "SELECT field_USER_EMAIL FROM view_bible__USER_entry WHERE entry_key='{$userId}'" ;
+		if( ($email = $_opDB->query_uniqueValue($query)) && !in_array($email,$arr_recipients) ) {
+			$arr_recipients[] = $email ;
+		}
+	}
+	return $arr_recipients ;
+}
 
 
 ?>

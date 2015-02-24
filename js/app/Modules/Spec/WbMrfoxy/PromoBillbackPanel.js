@@ -224,14 +224,19 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoBillbackPanel',{
 				return this.dropStatus ;
 			},
 			notifyDrop: function(ddSource, e, data){
-					// Reference the record (single selection) for readability
-					var selectedRecord = ddSource.dragData.records[0];
-					if( !me.validateRecord(selectedRecord) ) {
-						Ext.Msg.alert('Error','Incompatible (country and/or type) attachment !') ;
-						return false ;
+				// Reference the record (single selection) for readability
+				var selectedRecord = ddSource.dragData.records[0];
+				if( !me.validateRecord(selectedRecord) ) {
+					Ext.Msg.alert('Error','Incompatible (country and/or type) attachment !') ;
+					return false ;
+				}
+				Ext.Msg.confirm('Validation','Associate Invoice to promo #'+me.rowRecord.get('promo_id')+' ?', function(btn) {
+					if( btn=='yes' ) {
+						me.associateRecord(selectedRecord) ;
 					}
-					me.associateRecord(selectedRecord)
-					return true;
+				}) ;
+				
+				return true;
 			}
 		});
 	},
