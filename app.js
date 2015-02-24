@@ -227,6 +227,25 @@ Ext.onReady(function () {
 	
 	
 	/*
+	 * Désactiver le drag&drop file=>browser(open)
+	 */
+	window.ondragenter = function(e) {
+		e.dataTransfer.dropEffect = 'none';
+		e.preventDefault();
+		return false;
+	};
+	window.ondragover = function(e) {
+		e.preventDefault();
+		return false;
+	};
+	window.ondrop = function(e) {
+		return false;
+	};
+	window.ondragleave = function(e) {
+		return false;
+	};
+	
+	/*
 	Désactiver le click droit
 	*/
 	Ext.getBody().on('contextmenu', Ext.emptyFn, null, {preventDefault: true});
