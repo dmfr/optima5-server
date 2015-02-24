@@ -840,7 +840,7 @@ function paracrm_android_postBinary( $post_data )
    $tmpfilename = tempnam( sys_get_temp_dir(), "FOO");
    $res = file_put_contents( $tmpfilename , $binary ) ;
    
-   $tmp_id = media_img_processUploaded( $tmpfilename ) ;
+   $tmp_id = media_img_processUploaded( $tmpfilename, 'jpg' ) ;
    media_img_move( $tmp_id , $post_data['filerecord_id'] ) ;
    unlink($tmpfilename) ;
    

@@ -1,6 +1,6 @@
 <?php
 
-function media_img_processUploaded( $tmpfilepath )
+function media_img_processUploaded( $tmpfilepath, $src_filename=NULL )
 {
 	if( !$GLOBALS['_media_context'] )
 		return FALSE ;
@@ -17,10 +17,47 @@ function media_img_processUploaded( $tmpfilepath )
 	}
 	while( glob( $path.'/'.$tmpid.'*') ) ;
 	
-	$img_src = imagecreatefromjpeg($tmpfilepath);
+	if( function_exists('finfo_open') ) {
+		$finfo = finfo_open(FILEINFO_MIME_TYPE);
+		$mimetype = finfo_file($finfo, $tmpfilepath) ;
+	} elseif( $src_filename ) {
+		$mimetype = end(explode('.',$src_filename)) ;
+	} else {
+		return FALSE ;
+	}
+	switch($mimetype) {
+		case 'image/jpeg':
+		case 'image/jpg':
+		case 'jpeg':
+		case 'jpg':
+			$img_src = imagecreatefromjpeg($tmpfilepath);
+			break;
+		case 'image/png':
+		case 'png':
+			$img_src = imagecreatefrompng($tmpfilepath);
+			break;
+		case 'image/gif':
+		case 'gif':
+			$img_src = imagecreatefromgif($tmpfilepath);
+			break;
+		
+		case 'application/pdf':
+		case 'pdf':
+			$pdf = file_get_contents($tmpfilepath) ;
+			$jpeg = media_pdf_pdf2jpg( $pdf ) ;
+			if( !$jpeg ) {
+				return FALSE ;
+			}
+			file_put_contents( $tmpfilepath, $jpeg ) ;
+			
+			$img_src = imagecreatefromjpeg($tmpfilepath);
+			break ;
+		default :
+			return FALSE ;
+	}
+	
 	$orig_w = imagesx($img_src);
 	$orig_h = imagesy($img_src);
-	
 	if( $ttmp = media_img_getResize( $orig_w, $orig_h, $is_thumb=FALSE ) )
 	{
 		$dest_w = $ttmp[0];

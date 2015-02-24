@@ -40,4 +40,29 @@ function media_pdf_html2pdf( $html ) {
 	return $pdf ;
 }
 
+
+function media_pdf_pdf2jpg( $pdf ) {
+	$media_pdf_IMconvert_path = $GLOBALS['media_pdf_IMconvert_path'] ;
+	if( !$media_pdf_IMconvert_path || !is_executable($media_pdf_IMconvert_path) ) {
+		return NULL ;
+	}
+	
+	$img_path = tempnam( sys_get_temp_dir(), "FOO");
+	rename($img_path,$img_path.'.jpg') ;
+	$img_path.= '.jpg' ;
+	$pdf_path = tempnam( sys_get_temp_dir(), "FOO");
+	rename($pdf_path,$pdf_path.'.pdf') ;
+	$pdf_path.= '.pdf' ;
+	
+	file_put_contents( $pdf_path, $pdf ) ;
+	exec( $GLOBALS['media_pdf_IMconvert_path']." -density 150 {$pdf_path}[0] -quality 100 {$img_path}" ) ;
+	$jpeg = file_get_contents($img_path) ;
+	
+	unlink($img_path) ;
+	unlink($pdf_path) ;
+	
+	return $jpeg ;
+}
+
+
 ?>

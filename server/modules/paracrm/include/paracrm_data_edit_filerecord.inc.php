@@ -165,7 +165,7 @@ function paracrm_data_editTransaction_fileRecord( $post_data , &$arr_saisie )
 	{
 		usleep(500000) ;
 		media_contextOpen( $_POST['_sdomainId'] ) ;
-		$media_id = media_img_processUploaded( $_FILES['photo-filename']['tmp_name'] ) ;
+		$media_id = media_img_processUploaded( $_FILES['photo-filename']['tmp_name'], $_FILES['photo-filename']['name'] ) ;
 		media_contextClose() ;
 		if( !$media_id ) {
 			return array('success'=>false) ;
