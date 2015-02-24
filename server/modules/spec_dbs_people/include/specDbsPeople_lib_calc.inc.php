@@ -662,7 +662,10 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_MOD( $at_date_sql ) {
 		$min_week = date('o-W', strtotime($values_quota['MOD:SetDate'])) ;
 		if( $at_date_sql != NULL ) {
 			$max_date = $at_date_sql ;
-			$max_week = date('o-W', strtotime($at_date_sql)) ;
+			
+			// Update 2015-02 : on gagne du crédit en -FIN- de semaine
+			// 	donc max_week = semaine précédente
+			$max_week = date('o-W', strtotime('-7 days',strtotime($at_date_sql))) ;
 		}
 		
 		// Fake JOIN on PEOPLEDAY file to retrieve current attributes
