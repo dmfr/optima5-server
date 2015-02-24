@@ -73,7 +73,10 @@ function specWbMrfoxy_attachments_getRecord( $post_data ) {
 }
 function specWbMrfoxy_attachments_uploadfile($post_data) {
 	media_contextOpen( $_POST['_sdomainId'] ) ;
-	$media_id = media_img_processUploaded( $_FILES['photo-filename']['tmp_name'] ) ;
+	foreach( $_FILES as $mkey => $dummy ) {
+		$media_id = media_img_processUploaded( $_FILES[$mkey]['tmp_name'], $_FILES[$mkey]['name'] ) ;
+		break ;
+	}
 	media_contextClose() ;
 	if( !$media_id ) {
 		return array('success'=>false) ;

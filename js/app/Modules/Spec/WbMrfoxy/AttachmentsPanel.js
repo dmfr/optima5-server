@@ -114,7 +114,10 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentsDataview',{
 
 Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentsPanel',{
 	extend:'Ext.panel.Panel',
-	requires:['Optima5.Modules.Spec.WbMrfoxy.AttachmentViewerWindow'],
+	requires:[
+		'Optima5.Modules.Spec.WbMrfoxy.AttachmentViewerWindow',
+		'Ext.ux.upload.DD'
+	],
 
 	initComponent: function() {
 		this.addEvents('proceed') ;
@@ -217,9 +220,10 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentsPanel',{
 					afterrender: function(p) {
 						// See : http://stackoverflow.com/questions/14502492/add-listener-to-all-elements-with-a-given-class
 						p.getEl().on('dragstart',function(e,elem) {
-							console.dir(elem) ;
-							e.stopEvent();
+							e.stopEvent(); // Stop IMGs from being dragged (std browser behavior)
 						},this,{delegate:'img'});
+						
+						this.afterDataviewRender() ;
 					},
 					/*
 					refresh: function(p) {
@@ -256,6 +260,58 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentsPanel',{
 		
 		this.mon(this.optimaModule,'op5broadcast',this.onCrmeventBroadcast,this) ;
 	},
+	afterDataviewRender: function() {
+		var me = this ;
+		
+		var ajaxParams = me.optimaModule.getConfiguredAjaxParams() ;
+		Ext.apply( ajaxParams, {
+			_moduleId: 'spec_wb_mrfoxy',
+			_action: 'attachments_uploadfile'
+		}) ;
+		
+		me.upload = Ext.create('Ext.ux.upload.DD', {
+			dropZone: me.down('#dvGallery'),
+			directMethod: '',
+			id: me.id,
+			url: Optima5.Helper.getApplication().desktopGetBackendUrl(),
+			params: ajaxParams,
+			listeners: {
+				dragover: function (el, count) {
+					el.getEl().highlight() ;
+				},
+				dragout: function (el) {
+				},
+				drop: function (el) {
+					var files = me.upload.getTransport().getFiles();
+					if( Ext.isEmpty(me.filterCountry) ) {
+						Ext.Msg.alert('Error','Target country must be set') ;
+						files.removeAll() ;
+						return ;
+					}
+					if (files.count() > 0) {
+						me.upload.msgbox = Ext.Msg.wait('Uploading document...');
+						me.upload.upload();
+					}
+				}
+			}
+		});
+		me.upload.getTransport().on('afterupload', function (status, xmlRequest) {
+			if( me.upload.msgbox ) {
+				me.upload.msgbox.close() ;
+			}
+			if( status != 200 ) {
+				Ext.Msg.alert('Error','Upload failed') ;
+				return ;
+			}
+			var ajaxResponse = Ext.JSON.decode(xmlRequest.target.responseText) ;
+			if( !ajaxResponse.success ) {
+				Ext.Msg.alert('Error','File processing failed') ;
+				return ;
+			}
+			this.handleNewAttachment( ajaxResponse.data.tmp_id ) ;
+		},this) ;
+	},
+	
 	loadComponents: function() {
 		var me = this,
 			tbCountrySelect = this.query('#tbCountrySelect')[0] ;
