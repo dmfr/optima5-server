@@ -372,6 +372,5 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentViewerWindow',{
 			},
 			scope: this
 		});
-	},
-	
+	}
 });
