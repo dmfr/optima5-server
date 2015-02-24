@@ -2,6 +2,8 @@
 //ob_start() ;
 $app_root='..' ;
 $server_root='.' ;
+$resources_root=$app_root.'/resources' ;
+$templates_dir=$resources_root.'/server/templates' ;
 
 include("$server_root/backend_checksession.inc.php") ;
 
