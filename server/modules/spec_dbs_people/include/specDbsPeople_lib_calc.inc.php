@@ -840,7 +840,8 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_RC( $at_date_sql ) {
 	$RES_realDays = specDbsPeople_lib_calc_getRealDays() ;
 	$where_params = array() ;
 	$where_params['condition_date_gt'] = $min_date ;
-	$RES_realDuration = specDbsPeople_lib_calc_tool_runQuery( 'RC:RealDuration', $where_params ) ;
+	$RES_realDurationByMonth = specDbsPeople_lib_calc_tool_runQuery( 'RC:RealDurationByMonth', $where_params ) ;
+	$RES_realDurationByWeek = specDbsPeople_lib_calc_tool_runQuery( 'RC:RealDurationByWeek', $where_params ) ;
 	$RES_minus = specDbsPeople_lib_calc_tool_runQuery( 'RC:Minus', $where_params ) ;
 	$RES_planning = specDbsPeople_lib_calc_tool_runQuery( 'RC:Planning', $where_params ) ;
 	
@@ -881,8 +882,13 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_RC( $at_date_sql ) {
 	foreach( $RES_quota as $people_code => $values_quota ) {
 		$val = $values_quota['RC:SetQuota'] ;
 		$min_date = date('Y-m-d', strtotime($values_quota['RC:SetDate'])) ;
+		$min_week = date('o-W', strtotime($values_quota['RC:SetDate'])) ;
 		if( $at_date_sql != NULL ) {
 			$max_date = $at_date_sql ;
+			
+			// Update 2015-02 : on gagne du crédit en -FIN- de semaine
+			// 	donc max_week = semaine précédente
+			$max_week = date('o-W', strtotime('-7 days',strtotime($at_date_sql))) ;
 		}
 		
 		// Fake JOIN on PEOPLEDAY file to retrieve current attributes
@@ -904,14 +910,18 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_RC( $at_date_sql ) {
 			if( !$RES_realDays[$people_code][$date_sql] ) {
 				continue ;
 			}
-			$month_sql = date('Y-m',strtotime($date_sql)) ;
 			$ISO8601_day = date('N',strtotime($date_sql)) ;
 			if( !$contract_row['std_dayson'][$ISO8601_day] ) {
 				continue ;
 			}
-			$RES_realDuration[$people_code][$month_sql] += $contract_row['std_daylength'] ;
+			
+			$week_sql = date('o-W',strtotime($date_sql)) ;
+			$RES_realDurationByWeek[$people_code][$week_sql] += $contract_row['std_daylength'] ;
+			
+			$month_sql = date('Y-m',strtotime($date_sql)) ;
+			$RES_realDurationByMonth[$people_code][$month_sql] += $contract_row['std_daylength'] ;
 		}
-		foreach( $RES_realDuration[$people_code] as $month_sql => $nb_heures_work ) {
+		foreach( $RES_realDurationByMonth[$people_code] as $month_sql => $nb_heures_work ) {
 			$date_sql_firstDay = $month_sql.'-01' ;
 			$nbDaysOfMonth = date('t',strtotime($date_sql_firstDay)) ;
 			$date_sql = $month_sql.'-'.$nbDaysOfMonth ;
@@ -931,6 +941,32 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_RC( $at_date_sql ) {
 			if( $nb_heures == 0 ) {
 				continue ;
 			}
+			
+			$arr_log[$date_sql]['plus'] += $nb_heures ;
+			$val += $nb_heures ;
+		}
+		foreach( $RES_realDurationByWeek[$people_code] as $week_sql => $nb_heures_work ) {
+			if( $week_sql < $min_week ) {
+				continue ;
+			}
+			if( isset($max_week) && $week_sql > $max_week ) {
+				continue ;
+			}
+			
+			if( $contract_row['rc_week_floor'] <= 0 || $nb_heures_work < $contract_row['rc_week_floor'] ) {
+				$nb_heures = 0 ;
+			} else {
+				$nb_heures = ($nb_heures_work-$contract_row['rc_week_floor']) * $contract_row['rc_week_ratio_over'] ;
+			}
+			
+			if( $nb_heures == 0 ) {
+				continue ;
+			}
+			
+			$ttmp = explode('-',$week_sql) ;
+			$date = new DateTime() ;
+			$date->setISODate($ttmp[0], $ttmp[1]) ;
+			$date_sql = $date->format('Y-m-d') ;
 			
 			$arr_log[$date_sql]['plus'] += $nb_heures ;
 			$val += $nb_heures ;

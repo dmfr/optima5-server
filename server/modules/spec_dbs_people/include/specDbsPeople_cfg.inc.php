@@ -226,7 +226,9 @@ function specDbsPeople_tool_getContracts() {
 			'mod_week_std' => $arr['field_MOD_WEEK_STD'],
 			'mod_week_max' => $arr['field_MOD_WEEK_MAX'],
 			'rc_month_floor' => $arr['field_RC_MONTH_FLOOR'],
-			'rc_ratio' => $arr['field_RC_RATIO']
+			'rc_ratio' => $arr['field_RC_RATIO'],
+			'rc_week_floor' => $arr['field_RC_WEEK_FLOOR'],
+			'rc_week_ratio_over' => $arr['field_RC_WEEK_RATIO_OVER']
 		);
 	}
 	return $TAB ;
