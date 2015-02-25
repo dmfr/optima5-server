@@ -220,7 +220,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoNAgreementsSubpanel',{
 						}
 					)
 				}],
-				plugins: (this.optimaModule.getApp().desktopGetCfgIsDev() ? [{
+				plugins: [{
 					ptype:'cmprowexpander',
 					pluginId: 'rowexpander',
 					expandOnDblClick: false,
@@ -239,7 +239,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoNAgreementsSubpanel',{
 							}
 						})
 					}
-				}]:[])
+				}]
 			}]
 		}); 
 		

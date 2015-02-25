@@ -88,13 +88,13 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.MainMenu',{
 			},{
 				type_separator:true,
 				separator_label: 'Documents attachements',
-				item_disabled: !this.optimaModule.getApp().desktopGetCfgIsDev()
+				item_disabled: false
 			},{
 				type_action:true,
 				action_caption: 'Upload documents',
 				action_sendEvent:'attachments_upload',
 				action_iconCls:'op5-spec-mrfoxy-icon-attachments',
-				item_disabled: !this.optimaModule.getApp().desktopGetCfgIsDev()
+				item_disabled: false
 			},{
 			}]
 		}) ;

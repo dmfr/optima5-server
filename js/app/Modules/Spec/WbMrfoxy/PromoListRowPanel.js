@@ -71,7 +71,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 						data:[{
 							actionId: 'attachments',
 							actionText:'Attachments',
-							actionDisabled:( !this.optimaModule.getApp().desktopGetCfgIsDev() )
+							actionDisabled: false
 						},{
 							actionId: 'approval',
 							actionText:'Approvals',
@@ -378,11 +378,11 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 		this.openPopup('Optima5.Modules.Spec.WbMrfoxy.PromoBaselinePanel',[500,120]) ;
 	},
 	openBillback: function() {
-		if( this.optimaModule.getApp().desktopGetCfgIsDev() ) {
-			this.openPopup('Optima5.Modules.Spec.WbMrfoxy.PromoBillbackPanel',[700,180]) ;
+		if( false ) {
+			this.openPopup('Optima5.Modules.Spec.WbMrfoxy.PromoBillbackGrid',[600,150]) ;
 			return ;
 		}
-		this.openPopup('Optima5.Modules.Spec.WbMrfoxy.PromoBillbackGrid',[600,150]) ;
+		this.openPopup('Optima5.Modules.Spec.WbMrfoxy.PromoBillbackPanel',[700,180]) ;
 	},
 	openAttachments: function() {
 		this.openPopup('Optima5.Modules.Spec.WbMrfoxy.PromoAttachmentsDataview',[600,180]) ;
