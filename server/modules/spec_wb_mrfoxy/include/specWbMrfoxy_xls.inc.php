@@ -154,7 +154,7 @@ function specWbMrfoxy_xls_getFinanceDashboard($post_data) {
 		$date_iteration = date('Y-m-d',strtotime('+1 month',strtotime($date_iteration))) ;
 	}
 	
-	$RES_revenue = specWbMrfoxy_tool_runQuery("RevenueMonth",array('condition_date_gt'=>$crop_dateInitial)) ;
+	$RES_revenue = specWbMrfoxy_tool_runQuery("Revenue::Actual",array('condition_date_gt'=>$crop_dateInitial)) ;
 	if( isset($RES_revenue[$post_data['filter_country']]) ) {
 		$RES_countryRevenue = $RES_revenue[$post_data['filter_country']] ;
 		
