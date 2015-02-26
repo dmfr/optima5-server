@@ -230,7 +230,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoNAgreementsRowPanel',{
 					Ext.Msg.alert('Error','Incompatible (country and/or type) attachment !') ;
 					return false ;
 				}
-				Ext.Msg.confirm('Validation','Associate Invoice to NA #'+me.rowRecord.get('nagreement_id')+' ?', function(btn) {
+				Ext.Msg.confirm('Validation','Associate Invoice to NA #'+me.rowRecord.get('nagreement_id')+' ?\nNotification to finance will be sent for payment.', function(btn) {
 					if( btn=='yes' ) {
 						me.associateRecord(selectedRecord) ;
 					}

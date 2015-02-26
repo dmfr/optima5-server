@@ -70,7 +70,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 						fields: ['actionId','actionText','actionDisabled'],
 						data:[{
 							actionId: 'attachments',
-							actionText:'Attachments',
+							actionText:'Acknowledgments',
 							actionDisabled: false
 						},{
 							actionId: 'approval',
