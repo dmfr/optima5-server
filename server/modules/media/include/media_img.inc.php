@@ -52,6 +52,21 @@ function media_img_processUploaded( $tmpfilepath, $src_filename=NULL )
 			
 			$img_src = imagecreatefromjpeg($tmpfilepath);
 			break ;
+		
+		case 'application/xhtml+xml' :
+		case 'text/html' :
+		case 'html' :
+		case 'htm' :
+			$html = file_get_contents($tmpfilepath) ;
+			$jpeg = media_pdf_html2jpg( $html ) ;
+			if( !$jpeg ) {
+				return FALSE ;
+			}
+			file_put_contents( $tmpfilepath, $jpeg ) ;
+			
+			$img_src = imagecreatefromjpeg($tmpfilepath);
+			break ;
+			
 		default :
 			return FALSE ;
 	}
