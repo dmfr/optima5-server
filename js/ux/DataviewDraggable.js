@@ -118,7 +118,10 @@ Ext.define('Ext.ux.DataviewDraggable', {
                 dragData.ddel = draggable.prepareGhost(selModel.getSelection()).dom;
             }
             
-            dataview.fireEvent('dragdata',this,dragData) ; // HACK : DAMS
+            var listenersReturn = dataview.fireEvent('dragdata',this,dragData) ; // HACK : DAMS
+            if( listenersReturn === false ) {
+					return false ;
+				}
 
             return dragData;
         }
