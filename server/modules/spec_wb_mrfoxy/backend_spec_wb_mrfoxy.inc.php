@@ -117,6 +117,8 @@ switch( $post_data['_action'] )
 	return specWbMrfoxy_attachments_setAttachment($post_data);
 	case 'attachments_delete' :
 	return specWbMrfoxy_attachments_delete($post_data);
+	case 'attachments_reject' :
+	return specWbMrfoxy_attachments_reject($post_data);
 	
 	
 	

@@ -699,4 +699,7 @@ table.op5-spec-mrfoxy-statresult-tbl > tbody > tr > td.op5-spec-mrfoxy-statresul
 	background-position: 4 center;
 	background-repeat: no-repeat;
 }
+.op5-spec-mrfoxy-attachments-action-icon-blocked {
+	background-image: url("../images/modules/mrfoxy-blocked-16.png") !important;
+}
 

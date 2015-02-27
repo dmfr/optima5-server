@@ -127,6 +127,15 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentViewerWindow',{
 				},
 				title: 'Invoices data',
 				items:[{
+					xtype: 'checkboxfield',
+					name:'reject_mode',
+					hidden: true
+				},{
+					hidden: true,
+					xtype: 'checkboxfield',
+					name:'invoice_is_reject',
+					boxLabel: 'Rejected ?'
+				},{
 					xtype: 'textfield',
 					name:'invoice_txt',
 					fieldLabel: 'Description'
@@ -173,6 +182,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentViewerWindow',{
 				formPanel.down('#fsInvoice').setVisible(isInvoice) ;
 				form.findField('invoice_amount').allowBlank = !isInvoice ;
 				form.findField('invoice_currency').setValue(countryCurrency) ;
+				
+				form.findField('invoice_is_reject').setVisible( form.findField('reject_mode').getValue() ) ;
 				
 				var countryCode = formValues.country_code
 			},
@@ -263,7 +274,10 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentViewerWindow',{
 			success: function(response) {
 				var ajaxObj = Ext.decode(response.responseText) ;
 				if( ajaxObj.success && Ext.isArray(ajaxObj.data) && ajaxObj.data.length==1 ) {
-					this.floatForm.getForm().setValues(ajaxObj.data[0]) ;
+					var values = ajaxObj.data[0],
+						form = this.floatForm.getForm() ;
+					form.setValues( values ) ;
+					form.findField('reject_mode').setValue( form.findField('invoice_is_reject').getValue() ) ;
 				}
 			},
 			scope: this

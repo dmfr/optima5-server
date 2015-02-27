@@ -7,7 +7,8 @@ Ext.define('WbMrfoxyAttachmentDataviewModel',{
 		{name: 'separator_iconurl',  type: 'string'},
 		{name: 'filerecord_id',  type: 'int'},
 		{name: 'filerecord_caption',  type: 'string'},
-		{name: 'filerecord_date',  type: 'string'}
+		{name: 'filerecord_date',  type: 'string'},
+		{name: 'filerecord_blocked',  type: 'boolean'}
 	]
 }) ;
 Ext.define('WbMrfoxyAttachmentTypeModel',{
@@ -39,7 +40,8 @@ Ext.define('WbMrfoxyAttachmentModel',{
 				}
 				return '?' ;
 			}
-		}
+		},
+		{name: 'invoice_is_reject',  type: 'boolean'}
 	]
 }) ;
 
@@ -72,7 +74,11 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentsDataview',{
 			"</tpl>",
 		
 			'<tpl if="type_media">',
-				'<div class="op5-spec-mrfoxy-attachments-item thumb-box">',
+				'<div class="op5-spec-mrfoxy-attachments-item thumb-box',
+				'<tpl if="thumb_red">',
+				' thumb-box-red',
+				'</tpl>',
+				'">',
 						'<div>{thumb_date}</div>',
 						'<a href="#">',
 							'<img src="{thumb_url}"/>',
@@ -94,7 +100,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentsDataview',{
 		Ext.apply(data, {
 			thumb_date: data.filerecord_date,
 			thumb_url: 'server/backend_media.php?' + Ext.Object.toQueryString(getParams),
-			thumb_caption: data.filerecord_caption
+			thumb_caption: data.filerecord_caption,
+			thumb_red: data.filerecord_blocked
 		});
 		return data;
 	},
@@ -118,7 +125,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentsPanel',{
 		'Optima5.Modules.Spec.WbMrfoxy.AttachmentViewerWindow',
 		'Ext.ux.upload.DD'
 	],
-
+	
+	viewMode: 'inbox',
+	
 	initComponent: function() {
 		this.addEvents('proceed') ;
 		
@@ -167,6 +176,26 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentsPanel',{
 						displayField: 'country_text',
 						rootVisible: true,
 						useArrows: true
+					}]
+				}
+			},{
+				itemId: 'tbView',
+				menu: {
+					defaults: {
+						handler:function(menuitem) {
+							//console.log('ch view '+menuitem.itemId) ;
+							this.onSelectViewMode( menuitem.itemId ) ;
+						},
+						scope:this
+					},
+					items: [{
+						itemId: 'inbox',
+						text: 'Received / Pending',
+						icon: 'images/modules/crmbase-download-16.png'
+					},{
+						itemId: 'reject',
+						text: 'Rejected',
+						iconCls: 'op5-spec-mrfoxy-attachments-action-icon-blocked'
 					}]
 				}
 			},'->',{
@@ -239,6 +268,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentsPanel',{
 					},
 					*/
 					dragdata: function(p,dragData) {
+						if( this.viewMode != 'inbox' ) {
+							return false ;
+						}
 						var selectedRecord = dragData.records[0];
 						if( selectedRecord ) {
 							var filerecordId = selectedRecord.get('filerecord_id') ;
@@ -360,6 +392,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentsPanel',{
 		},this) ;
 		this.onSelectCountry(true) ;
 		
+		this.onSelectViewMode(me.viewMode, true) ;
+		
 		this.attachTypesStore = Ext.create('Ext.data.Store',{
 			autoLoad: true,
 			model: 'WbMrfoxyAttachmentTypeModel',
@@ -415,6 +449,22 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentsPanel',{
 			}
 		},this);
 	},
+	onSelectViewMode: function(viewId, silent) {
+		var tbView = this.query('#tbView')[0],
+			tbViewItem = tbView.menu.down('#'+viewId) ;
+		if( tbViewItem == null ) {
+			return ;
+		}
+		tbView.setText(tbViewItem.text) ;
+		tbView.setIcon(tbViewItem.icon) ;
+		tbView.setIconCls(tbViewItem.iconCls) ;
+		
+		this.viewMode = viewId ;
+		if( !silent ) {
+			this.doToolbar() ;
+			this.doLoad() ;
+		}
+	},
 	
 	doToolbar: function() {
 		this.down('#tbUpload').setVisible( !Ext.isEmpty(this.filterCountry) ) ;
@@ -456,13 +506,25 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentsPanel',{
 			}]
 		}) ;
 		
-		var filterCountry = this.filterCountry ;
+		var filterCountry = this.filterCountry,
+			viewMode = this.viewMode ;
 		
 		var attachTypesTxt = {}, attachTypesIsInvoice = {} ;
 		this.attachTypesStore.each( function(attachTypeRecord) {
 			attachTypesTxt[attachTypeRecord.getId()] = attachTypeRecord.get('attachtype_txt') ;
 			attachTypesIsInvoice[attachTypeRecord.getId()] = attachTypeRecord.get('is_invoice') ;
 		}) ;
+		
+		this.attachmentsStore.clearFilter(true) ;
+		switch( viewMode ) {
+			case 'inbox' :
+				this.attachmentsStore.filter("invoice_is_reject", false) ;
+				break ;
+				
+			case 'reject' :
+				this.attachmentsStore.filter("invoice_is_reject", true) ;
+				break ;
+		}
 		
 		if( Ext.isEmpty(filterCountry) ) {
 			var obj_countryCode_attachmentRecords = {} ;
@@ -501,7 +563,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentsPanel',{
 						type_media: true,
 						filerecord_id: attachmentRecord.get('filerecord_id'),
 						filerecord_date: attachmentRecord.get('doc_date'),
-						filerecord_caption: filerecordCaption
+						filerecord_caption: filerecordCaption,
+						filerecord_blocked: attachmentRecord.get('invoice_is_reject')
 					} ;
 					dataviewData.push(dataObj) ;
 				}) ;
@@ -543,7 +606,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentsPanel',{
 						type_media: true,
 						filerecord_id: attachmentRecord.get('filerecord_id'),
 						filerecord_date: attachmentRecord.get('doc_date'),
-						filerecord_caption: filerecordCaption
+						filerecord_caption: filerecordCaption,
+						filerecord_blocked: attachmentRecord.get('invoice_is_reject')
 					} ;
 					dataviewData.push(dataObj) ;
 				}) ;
@@ -629,6 +693,14 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentsPanel',{
 						var p = btn.up('panel') ;
 						p.fireEvent('actionedit',p) ;
 					}
+				},'-',{
+					itemId: 'btnReject',
+					iconCls:'op5-spec-mrfoxy-attachments-action-icon-blocked',
+					text:'Reject',
+					handler: function(btn) {
+						var p = btn.up('panel') ;
+						p.fireEvent('actionreject',p) ;
+					}
 				},'->',{
 					iconCls:'op5-crmbase-qtoolbar-file-delete',
 					text:'Delete',
@@ -648,6 +720,10 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentsPanel',{
 					actiondelete: function(p) {
 						var filerecordId = p.filerecordId ;
 						this.deleteItem(filerecordId) ;
+					},
+					actionreject: function(p) {
+						var filerecordId = p.filerecordId ;
+						this.rejectItem(filerecordId) ;
 					},
 					
 					scope: this
@@ -685,6 +761,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentsPanel',{
 		this.itemDetailPanel.child('#cmpData').update({
 			crmFields: crmFields
 		}) ;
+		this.itemDetailPanel.down('toolbar').down('#btnReject').setVisible( isInvoice && !attachmentRecord.get('invoice_is_reject') ) ;
 		this.itemDetailPanel.showAt(clickEl.getXY()) ;
 		
 		// monitor clicking and mousewheel
@@ -793,6 +870,25 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentsPanel',{
 			});
 		},this) ;
 	},
+	rejectItem: function( filerecordId ) {
+		Ext.Msg.confirm('Reject','Reject selected invoice ?\nNotification will be sent to finance team.', function(buttonStr) {
+			if( buttonStr != 'yes' ) {
+				return ;
+			}
+			this.optimaModule.getConfiguredAjaxConnection().request({
+				params: {
+					_moduleId: 'spec_wb_mrfoxy',
+					_action: 'attachments_reject',
+					filerecord_id: filerecordId
+				},
+				success : function(){
+					this.doLoad() ;
+				},
+				scope: this
+			});
+		},this) ;
+	},
+	
 	
 	handleQuit: function() {
 		this.fireEvent('quit') ;

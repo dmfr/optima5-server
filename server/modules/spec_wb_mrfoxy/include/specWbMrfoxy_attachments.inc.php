@@ -38,7 +38,8 @@ function specWbMrfoxy_attachments_getList( $post_data ) {
 			'doc_date' => date('Y-m-d',strtotime($paracrm_row['WORK_ATTACH_field_DATE'])),
 			'doc_type' => $paracrm_row['WORK_ATTACH_field_TYPE'],
 			'invoice_txt' => $paracrm_row['WORK_ATTACH_field_INVOICE_TXT'],
-			'invoice_amount' => $paracrm_row['WORK_ATTACH_field_INVOICE_AMOUNT']
+			'invoice_amount' => $paracrm_row['WORK_ATTACH_field_INVOICE_AMOUNT'],
+			'invoice_is_reject' => $paracrm_row['WORK_ATTACH_field_INVOICE_IS_REJECT']
 		) ;
 	}
 	return array('success'=>true, 'data'=>$TAB) ;
@@ -68,6 +69,7 @@ function specWbMrfoxy_attachments_setAttachment($post_data) {
 	$newrecord['field_TYPE'] = $form_data['doc_type'] ;
 	$newrecord['field_INVOICE_TXT'] = $form_data['invoice_txt'] ;
 	$newrecord['field_INVOICE_AMOUNT'] = $form_data['invoice_amount'] ;
+	$newrecord['field_INVOICE_IS_REJECT'] = $form_data['invoice_is_reject'] ;
 	if( $form_data['filerecord_id'] > 0 ) {
 		$img_filerecordId = $form_data['filerecord_id'] ;
 		paracrm_lib_data_updateRecord_file( 'WORK_ATTACH', $newrecord, $img_filerecordId ) ;
@@ -96,6 +98,31 @@ function specWbMrfoxy_attachments_delete($post_data) {
 
 	return array('success'=>true) ;
 }
+function specWbMrfoxy_attachments_reject($post_data) {
+	$attach_filerecordId = $post_data['filerecord_id'] ;
+	
+	$record = paracrm_lib_data_getRecord_file('WORK_ATTACH',$attach_filerecordId) ;
+	$record['field_INVOICE_IS_REJECT'] = 1 ;
+	paracrm_lib_data_updateRecord_file( 'WORK_ATTACH', $record, $attach_filerecordId ) ;
+	
+	if( $doSendEmail=TRUE ) {
+		$ttmp = specWbMrfoxy_attachments_getList( array(
+			'filter_id'=>json_encode(array($attach_filerecordId))
+		) ) ;
+		if( count($ttmp['data']) != 1 ) {
+			die() ;
+		}
+		$attachment_row = $ttmp['data'][0] ;
+		
+		media_contextOpen( $_POST['_sdomainId'] ) ;
+		$invoice_jpg_binary = media_img_getBinary( $attach_filerecordId ) ;
+		media_contextClose() ;
+		
+		specWbMrfoxy_attachments_lib_sendInvoiceEmail( $attachment_row, NULL, $invoice_jpg_binary ) ;
+	}
+
+	return array('success'=>true) ;
+}
 
 
 
@@ -107,15 +134,25 @@ function specWbMrfoxy_attachments_lib_sendInvoiceEmail( $attachment_row, $obj_ro
 		$subject = 'Invoice for Promo'.', # '.$obj_row['promo_id'] ;
 	} elseif( $obj_row['nagreement_id'] ) {
 		$subject = 'Invoice for NationalAgr.'.', # '.$obj_row['nagreement_id'] ;
+	} elseif( $obj_row == NULL ) {
+		$subject = 'Invoice rejected !' ;
 	} else {
-		$subject = 'Validated invoice' ;
+		$subject = 'Unknown action' ;
 	}
 	
-	$body = '' ;
-	$body.= "Dear Team Finance,\r\n" ;
-	$body.= "A new invoice has been received.\r\n" ;
-	$body.= "This is a notification to proceed to payment.\r\n" ;
-	$body.= "\r\n" ;
+	if( $obj_row == NULL ) {
+		$body = '' ;
+		$body.= "Dear Team Finance,\r\n" ;
+		$body.= "An incoming invoice has been <b>rejected</b>.\r\n" ;
+		$body.= "Please hold payment until further notice.\r\n" ;
+		$body.= "\r\n" ;
+	} else {
+		$body = '' ;
+		$body.= "Dear Team Finance,\r\n" ;
+		$body.= "A new invoice has been received.\r\n" ;
+		$body.= "This is a notification to proceed to payment.\r\n" ;
+		$body.= "\r\n" ;
+	}
 	
 	if( $invoice_jpg_binary ) {
 		$invoice_filename = 'invoice.jpg' ;
