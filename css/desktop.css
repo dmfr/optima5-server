@@ -463,6 +463,9 @@
     -moz-border-radius: .5em;
     border-radius: .5em;
 }
+.thumb-box-red  {
+    background: #FF4141 !important;
+}
 .thumb-box:hover {
     background: #999999;
     border-color: #999999;
