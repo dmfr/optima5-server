@@ -230,11 +230,16 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoNAgreementsRowPanel',{
 					Ext.Msg.alert('Error','Incompatible (country and/or type) attachment !') ;
 					return false ;
 				}
-				Ext.Msg.confirm('Validation','Associate Invoice to NA #'+me.rowRecord.get('nagreement_id')+' ?\nNotification to finance will be sent for payment.', function(btn) {
-					if( btn=='yes' ) {
-						me.associateRecord(selectedRecord) ;
+				
+				var savedMinPromptWidth = Ext.Msg.minPromptWidth ;
+				Ext.Msg.minPromptWidth = 500 ;
+				Ext.Msg.prompt('Validation','Associate Invoice to NA #'+me.rowRecord.get('nagreement_id')+' ?\nNotification to finance will be sent for payment.', function(btn, text) {
+					if( btn=='ok' ) {
+						me.associateRecord(selectedRecord, text) ;
 					}
 				}) ;
+				Ext.Msg.minPromptWidth = savedMinPromptWidth ;
+				
 				return true;
 			}
 		});
@@ -249,13 +254,14 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoNAgreementsRowPanel',{
 		}
 		return true ;
 	},
-	associateRecord: function( attachmentRecord ) {
+	associateRecord: function( attachmentRecord, invoiceTxtPlus ) {
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_wb_mrfoxy',
 				_action: 'finance_NAattach_associateAttachment',
 				attach_filerecordId: attachmentRecord.get('filerecord_id'),
-				nagreement_id: this.rowRecord.get('nagreement_id')
+				nagreement_id: this.rowRecord.get('nagreement_id'),
+				invoice_txt_plus: invoiceTxtPlus
 			},
 			success : function(){
 				this.down('dataview').getStore().load() ;

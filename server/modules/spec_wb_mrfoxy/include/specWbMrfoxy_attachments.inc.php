@@ -103,6 +103,9 @@ function specWbMrfoxy_attachments_reject($post_data) {
 	
 	$record = paracrm_lib_data_getRecord_file('WORK_ATTACH',$attach_filerecordId) ;
 	$record['field_INVOICE_IS_REJECT'] = 1 ;
+	if( $post_data['invoice_txt_plus'] ) {
+		$record['field_INVOICE_TXT'] .= ' '.$post_data['invoice_txt_plus'] ;
+	}
 	paracrm_lib_data_updateRecord_file( 'WORK_ATTACH', $record, $attach_filerecordId ) ;
 	
 	if( $doSendEmail=TRUE ) {

@@ -711,6 +711,9 @@ function specWbMrfoxy_finance_NAattach_associateAttachment($post_data) {
 		$arr_ins['field_NAGREEMENT_ID'] = $nagreement_id ;
 		$nagreement_filerecordId = paracrm_lib_data_insertRecord_file('FINANCE_NA',0,$arr_ins) ;
 	}
+	if( $post_data['invoice_txt_plus'] ) {
+		$attach_record['field_INVOICE_TXT'] .= ' '.$post_data['invoice_txt_plus'] ;
+	}
 	$img_filerecordId = paracrm_lib_data_insertRecord_file( 'FINANCE_NA_ATTACH',$nagreement_filerecordId,$attach_record) ;
 	
 	media_contextOpen( $_POST['_sdomainId'] ) ;

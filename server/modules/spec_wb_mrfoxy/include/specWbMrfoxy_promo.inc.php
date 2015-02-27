@@ -969,6 +969,9 @@ function specWbMrfoxy_promo_associateAttachment($post_data) {
 		specWbMrfoxy_attachments_lib_sendInvoiceEmail( $attachment_row, $promo_row, $invoice_jpg_binary ) ;
 	}
 	
+	if( $post_data['invoice_txt_plus'] ) {
+		$attach_record['field_INVOICE_TXT'] .= ' '.$post_data['invoice_txt_plus'] ;
+	}
 	$img_filerecordId = paracrm_lib_data_insertRecord_file( 'WORK_PROMO_ATTACH',$promo_filerecordId,$attach_record) ;
 	
 	media_contextOpen( $_POST['_sdomainId'] ) ;

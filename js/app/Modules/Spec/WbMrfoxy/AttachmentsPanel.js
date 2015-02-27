@@ -871,15 +871,22 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentsPanel',{
 		},this) ;
 	},
 	rejectItem: function( filerecordId ) {
-		Ext.Msg.confirm('Reject','Reject selected invoice ?\nNotification will be sent to finance team.', function(buttonStr) {
-			if( buttonStr != 'yes' ) {
+		var savedMinPromptWidth = Ext.Msg.minPromptWidth ;
+		Ext.Msg.minPromptWidth = 500 ;
+		Ext.Msg.prompt('Reject','Reject selected invoice ? Notification will be sent to finance team.<br>Enter comment below :', function(buttonStr, text) {
+			if( buttonStr != 'ok' ) {
+				return ;
+			}
+			if( Ext.isEmpty(text) ) {
+				Ext.Msg.alert('Missing','You must provide a reason for rejection');
 				return ;
 			}
 			this.optimaModule.getConfiguredAjaxConnection().request({
 				params: {
 					_moduleId: 'spec_wb_mrfoxy',
 					_action: 'attachments_reject',
-					filerecord_id: filerecordId
+					filerecord_id: filerecordId,
+					invoice_txt_plus: text
 				},
 				success : function(){
 					this.doLoad() ;
@@ -887,6 +894,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentsPanel',{
 				scope: this
 			});
 		},this) ;
+		Ext.Msg.minPromptWidth = savedMinPromptWidth ;
 	},
 	
 	
