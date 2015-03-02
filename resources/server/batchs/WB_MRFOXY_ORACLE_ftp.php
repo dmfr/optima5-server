@@ -49,7 +49,8 @@ $map_ftpDir_crmArr = array(
 	'ITEMS' => array('bible','IRI_PROD'),
 	'SALES' => array('file','ORACLE_SALES_LINE'),
 	'PURCHASE' => array('file','ORACLE_PURCHASE'),
-	'PRICES' => array('file','_STD_PRICE')
+	'PRICES' => array('file','_STD_PRICE'),
+	'BUDGETREVENUE' => array('file','BUDGET_REVENUE')
 );
 
 foreach( $map_ftpDir_crmArr as $ftpDir => $crmArr ) {
@@ -81,6 +82,13 @@ foreach( $map_ftpDir_crmArr as $ftpDir => $crmArr ) {
 			if( $ftpDir=='SALES' ) {
 				$handle_out = tmpfile() ;
 				WB_MRFOXY_ORACLE_ftp_procSALES($handle_in,$handle_out) ;
+				fclose($handle_in) ;
+				fseek($handle_out,0) ;
+				$handle_in = $handle_out ;
+			}
+			if( $ftpDir=='BUDGETREVENUE' ) {
+				$handle_out = tmpfile() ;
+				WB_MRFOXY_ORACLE_ftp_procBUDGETREVENUE($handle_in,$handle_out) ;
 				fclose($handle_in) ;
 				fseek($handle_out,0) ;
 				$handle_in = $handle_out ;

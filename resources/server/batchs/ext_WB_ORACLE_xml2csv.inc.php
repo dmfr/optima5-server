@@ -361,4 +361,113 @@ function ext_WB_ORACLE_xml2csv_PRICES( $handle_in, $handle_out ) {
 	return TRUE ;
 }
 
+function ext_WB_ORACLE_xml2csv_BUDGETREVENUE( $handle_in, $handle_out ) {
+	$xml_root_tag = 'PFEBUDGETREVENUE' ;
+	
+	$tmpfilepath = tempnam(sys_get_temp_dir(),'op5') ;
+	$handle_priv = fopen($tmpfilepath,'wb') ;
+	stream_copy_to_stream($handle_in,$handle_priv);
+	fclose($handle_priv) ;
+	
+	$reader = new XMLReader();
+	$reader->open($tmpfilepath);
+	unlink($tmpfilepath) ;
+	$reader->read() ;
+	while( ($reader->nodeType != XMLReader::ELEMENT) ) {
+		$reader->read() ;
+	}
+	if( ($reader->nodeType != XMLReader::ELEMENT) || ($reader->name != $xml_root_tag) ) {
+		return TRUE ;
+	}
+	
+	$DATA_CCD_dateSql_currencyCode_amount = array() ;
+	while($reader->read())
+	{
+		if($reader->nodeType == XMLReader::ELEMENT && $reader->name == 'G_CO')
+		{
+			$doc = new DOMDocument('1.0', 'UTF-8');
+			$obj_xmlRow = simplexml_import_dom($doc->importNode($reader->expand(),true));
+			
+			$thisRow_year = NULL ;
+			$thisRow_CCD = NULL ;
+			$thisRow_currencyCode = NULL ;
+			$thisRow_month_amount = array() ;
+			foreach( $obj_xmlRow as $mkey => $mvalue ) {
+				if( substr($mkey,0,1)=='A' && substr($mkey,-1,1)=='_' ) {
+					$month = substr($mkey,1,strlen($mkey)-2) ;
+					$amount = $mvalue ;
+					$thisRow_month_amount[$month] = $amount ;
+					continue ;
+				}
+				switch( $mkey ) {
+					case 'CCD' :
+						$thisRow_CCD = (string)$mvalue ;
+						break ;
+					case 'PERIOD_YEAR' :
+						$thisRow_year = (string)$mvalue ;
+						break ;
+					case 'CURRENCY_CODE' :
+						$thisRow_currencyCode = (string)$mvalue ;
+						break ;
+				}
+			}
+			if( !$thisRow_year || !$thisRow_CCD || !$thisRow_currencyCode ) {
+				continue ;
+			}
+			
+			foreach( $thisRow_month_amount as $month => $amount ) {
+				$month_sql = $thisRow_year.'-'.str_pad($month, 2, "0", STR_PAD_LEFT); ;
+				$date_sql_firstDay = $month_sql.'-01' ;
+				$nbDaysOfMonth = date('t',strtotime($date_sql_firstDay)) ;
+				$date_sql = $month_sql.'-'.$nbDaysOfMonth ;
+			
+				$DATA_CCD_dateSql_currencyCode_amount[$thisRow_CCD][$date_sql][$thisRow_currencyCode] += $amount ;
+			}
+		}
+	}
+	
+	
+	$csvMap_key_idx = array() ;
+	foreach( array('CCD','DATE','AMOUNT','CURRENCY') as $mkey ) {
+		if( !isset($csvMap_key_idx[$mkey]) ) {
+			$csvMap_key_idx[$mkey] = count($csvMap_key_idx) ;
+		}
+	}
+	fputcsv( $handle_out, array_keys($csvMap_key_idx) ) ;
+	
+	foreach( $DATA_CCD_dateSql_currencyCode_amount as $CCD => $ttmp1 ) {
+		foreach( $ttmp1 as $date_sql => $ttmp2 ) {
+			if( count($ttmp2) != 1 ) {
+				continue ;
+			}
+			foreach( $ttmp2 as $currencyCode => $amount ) {
+				$arr_csv = array() ;
+				foreach( $csvMap_key_idx as $mkey => $idx ) {
+					switch( $mkey ) {
+						case 'CCD' :
+							$arr_csv[] = $CCD ;
+							break ;
+						case 'DATE' :
+							$arr_csv[] = $date_sql ;
+							break ;
+						case 'AMOUNT' :
+							$arr_csv[] = $amount ;
+							break ;
+						case 'CURRENCY' :
+							$arr_csv[] = $currencyCode ;
+							break ;
+					}
+				}
+				fputcsv( $handle_out, $arr_csv ) ;
+			}
+		}
+	}
+	
+	
+	if( $_ERROR ) {
+		return FALSE ;
+	}
+	return TRUE ;
+}
+
 ?>
