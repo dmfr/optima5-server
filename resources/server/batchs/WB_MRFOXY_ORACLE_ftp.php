@@ -20,6 +20,7 @@ $_opDB->query("SET NAMES UTF8") ;
 include("$server_root/modules/spec_wb_mrfoxy/backend_spec_wb_mrfoxy.inc.php");
 include("WB_MRFOXY_ORACLE_ftp_procPRICES.inc.php");
 include("WB_MRFOXY_ORACLE_ftp_procSALES.inc.php");
+include("WB_MRFOXY_ORACLE_ftp_procBUDGETREVENUE.inc.php");
 
 $_IN_ftp_ip = getenv('FTP_IP') ;
 $_IN_ftp_user = getenv('FTP_USER') ;
