@@ -220,7 +220,8 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.LivePanel',{
 						width: 16
 					},{
 						xtype:'button',
-						itemId: 'btnRedo',
+						itemId: 'btnRelocate',
+						cls: 'op5-spec-embralam-liveadr-btnrelocate',
 						text: 'Autre Adr.',
 						icon: 'images/op5img/ico_reload_small.gif'
 					},{
@@ -467,6 +468,63 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.LivePanel',{
 			scope: this
 		});
 	},
+	submitRelocate: function( relocateObj ) {
+		var form = this.down('form').getForm(),
+			formValues = form.getValues(),
+			fsAttributes = this.down('#fsAttributes') ;
+		
+		if( !form.isValid() ) {
+			return ;
+		}
+		
+		var returnObj = {} ;
+		Ext.apply(returnObj, {
+			mvt_id: ((!Ext.isEmpty(formValues.mvt_id) && formValues.mvt_id > 0) ? formValues.mvt_id : null),
+			relocate_obj: {
+				check_qty: relocateObj.check_qty,
+				check_adr: relocateObj.check_adr
+			}
+		}) ;
+		if( fsAttributes.isVisible() ) {
+			var stockAttributes_obj = {} ;
+			Ext.Array.each( Optima5.Modules.Spec.DbsEmbralam.HelperCache.getStockAttributes(), function( stockAttribute ) {
+				stockAttributes_obj[stockAttribute.mkey] = formValues[stockAttribute.mkey] ;
+			}) ;
+			Ext.apply(returnObj, {
+				stockAttributes_obj: stockAttributes_obj
+			}) ;
+		}
+		
+		this.loadMask = Ext.create('Ext.LoadMask',{
+			target: this,
+			msg:"Please wait..."
+		}).show();
+		
+		var params = {
+			_moduleId: 'spec_dbs_embralam',
+			_action: 'live_goRelocate'
+		};
+		Ext.apply( params, {
+			form_data: Ext.JSON.encode(returnObj)
+		}) ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: params,
+			success: function(response) {
+				var jsonResponse = Ext.JSON.decode(response.responseText) ;
+				if( jsonResponse.success ) {
+					this.onLiveResponse(jsonResponse.data) ;
+				} else {
+					Ext.Msg.alert('Error',jsonResponse.error) ;
+				}
+			},
+			callback: function() {
+				if( this.loadMask ) {
+					this.loadMask.destroy() ;
+				}
+			},
+			scope: this
+		});
+	},
 	reloadMvt: function( mvtId ) {
 		var params = {
 			_moduleId: 'spec_dbs_embralam',
@@ -610,7 +668,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.LivePanel',{
 			case 'btnNext' :
 				this.onLiveResponse(null) ;
 				break ;
-			case 'btnRedo' :
+			case 'btnRelocate' :
 				var form = this.down('form').getForm(),
 					formValues = form.getValues(),
 					currentMvtId = formValues['mvt_id'] ;
@@ -618,7 +676,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.LivePanel',{
 					Ext.Msg.alert('Error','MVT_ID non trouvé') ;
 					return ;
 				}
-				this.submitAdr() ;
+				this.openRelocatePopup() ;
 				break ;
 			case 'btnDelete' :
 				this.handleAfterAdrActionDelete() ;
@@ -631,5 +689,75 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.LivePanel',{
 		Ext.Msg.confirm('Delete','Supprimer mouvement ?', function(btn) {
 			this.deleteMvt( mvtId ) ;
 		},this) ;
+	},
+	
+	openRelocatePopup: function() {
+		var me = this ;
+		var popupPanel = Ext.create('Ext.form.Panel',{
+			width:400,
+			height:200,
+			
+			cls: 'ux-noframe-bg',
+			
+			floating: true,
+			renderTo: me.getEl(),
+			tools: [{
+				type: 'close',
+				handler: function(e, t, p) {
+					p.ownerCt.destroy();
+				}
+			}],
+			
+			xtype: 'form',
+			border: false,
+			bodyCls: 'ux-noframe-bg',
+			bodyPadding: 8,
+			layout:'anchor',
+			fieldDefaults: {
+				labelWidth: 75
+			},
+			items:[{
+				height: 72,
+				xtype: 'component',
+				tpl: [
+					'<div class="op5-spec-embralam-liveadr-relocatebanner">',
+						'<span>{text}</span>',
+					'</div>'
+				],
+				data: {text: '<b>Déplacement d\'une adresse existante</b><br>Pour confirmer, veuillez saisir l\'adresse concernée et la quantité <u>totale</u> déplacée.'}
+			},{
+				xtype: 'textfield',
+				name: 'check_adr',
+				anchor: '',
+				width: 180,
+				fieldLabel: 'Adresse'
+			},{
+				xtype: 'numberfield',
+				name: 'check_qty',
+				anchor: '',
+				width: 150,
+				fieldLabel: 'Qté totale'
+			}],
+			buttons: [{
+				xtype: 'button',
+				text: 'Submit',
+				handler:function(btn){ 
+					var formPanel = btn.up('form'),
+						form = btn.up('form').getForm(),
+						relocateObj = form.getValues() ;
+					this.submitRelocate(relocateObj) ;
+					formPanel.destroy() ;
+				},
+				scope: this
+			}]
+		});
+		
+		popupPanel.on('destroy',function() {
+			me.getEl().unmask() ;
+		},me,{single:true}) ;
+		me.getEl().mask() ;
+		
+		popupPanel.show();
+		popupPanel.getEl().alignTo(me.getEl(), 'c-c?');
 	}
 });

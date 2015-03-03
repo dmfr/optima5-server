@@ -104,6 +104,51 @@ function specDbsEmbralam_live_buildResponse($status, $mvt_obj, $adr_id) {
 	);
 }
 
+function specDbsEmbralam_live_goRelocate( $post_data ) {
+	$form_data = json_decode($post_data['form_data'],true) ;
+	foreach( $form_data['relocate_obj'] as $mkey => &$mvalue ) {
+		$mvalue = strtoupper(trim($mvalue)) ;
+	}
+	unset($mvalue) ;
+	
+	// checks
+	$mvt_record = paracrm_lib_data_getRecord_file('MVT',$form_data['mvt_id']) ;
+	$inv_record = paracrm_lib_data_getRecord_file('INV',$mvt_record['field_INV_ID']) ;
+	if( !$mvt_record || !$inv_record 
+		|| $inv_record['field_ADR_ID'] != $form_data['relocate_obj']['check_adr'] 
+		|| $inv_record['field_QTY_AVAIL'] != $form_data['relocate_obj']['check_qty']
+	){
+		return array('success'=>false, 'debug'=>$previousMvt_obj, 'error'=>'Paramètres de vérification invalides') ;
+	}
+	
+	if( !specDbsEmbralam_lib_proc_lock_on() ) {
+		return array('success'=>false, 'error'=>'Cannot set lock. Contact Admin.') ;
+	}
+	
+	// rech ADR
+	$adr_obj = specDbsEmbralam_lib_proc_findAdr(NULL, $form_data['stockAttributes_obj'], array() ) ;
+	if( !$adr_obj['adr_id'] ) {
+		$return = array('success'=>false, 'error'=>'Pas d\'emplacement disponible.') ;
+		break ;
+	}
+	
+	// annul MVT
+	$previousMvt_obj = specDbsEmbralam_lib_proc_loadMvt( $form_data['mvt_id'] ) ;
+	specDbsEmbralam_lib_proc_deleteMvt( $form_data['mvt_id'] ) ;
+	
+	// déplacement STK
+	$query = "UPDATE view_file_INV SET field_ADR_ID='{$adr_obj['adr_id']}' WHERE filerecord_id='{$inv_record['filerecord_id']}'" ;
+	$GLOBALS['_opDB']->query($query) ;
+	
+	// recreate du MVT
+	$mvt_id = specDbsEmbralam_lib_proc_insertMvt( $previousMvt_obj, $adr_obj['adr_id'] ) ;
+	$previousMvt_obj['mvt_id'] = $mvt_id ;
+	$return = array('success'=>true, 'data'=>specDbsEmbralam_live_buildResponse($adr_obj['status'], $previousMvt_obj, $adr_obj['adr_id'])) ;
+	
+	specDbsEmbralam_lib_proc_lock_off() ;
+	
+	return $return ;
+}
 
 
 

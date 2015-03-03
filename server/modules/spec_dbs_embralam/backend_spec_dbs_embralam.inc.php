@@ -20,6 +20,8 @@ switch( $post_data['_action'] )
 	return specDbsEmbralam_live_deleteMvt( $post_data ) ;
 	case 'live_getGrid' :
 	return specDbsEmbralam_live_getGrid( $post_data ) ;
+	case 'live_goRelocate' :
+	return specDbsEmbralam_live_goRelocate( $post_data ) ;
 
 	case 'stock_getGrid' :
 	return specDbsEmbralam_stock_getGrid( $post_data ) ;

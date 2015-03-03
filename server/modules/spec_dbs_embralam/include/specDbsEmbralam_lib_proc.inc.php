@@ -47,21 +47,22 @@ function specDbsEmbralam_lib_proc_findAdr( $mvt_obj, $stockAttributes_obj, $excl
 	
 	$adr_id = NULL ;
 	while(TRUE) {
-		// 1er cas : emplacement existant
-		$query = "SELECT * FROM view_file_INV WHERE
-			field_PROD_ID='{$mvt_obj['prod_id']}' AND field_BATCH_CODE='{$mvt_obj['batch']}'" ;
-		$result = $_opDB->query($query) ;
-		if( $_opDB->num_rows($result) > 1 ) {
-			$status = 'NOK_MULTI' ;
-		} elseif( $_opDB->num_rows($result) == 1 ) {
-			$status = 'OK_ADD' ;
-			
-			$arr = $_opDB->fetch_assoc($result) ;
-			$adr_id = $arr['field_ADR_ID'] ;
-			
-			break ;
+		if( $mvt_obj ) {
+			// 1er cas : emplacement existant
+			$query = "SELECT * FROM view_file_INV WHERE
+				field_PROD_ID='{$mvt_obj['prod_id']}' AND field_BATCH_CODE='{$mvt_obj['batch']}'" ;
+			$result = $_opDB->query($query) ;
+			if( $_opDB->num_rows($result) > 1 ) {
+				$status = 'NOK_MULTI' ;
+			} elseif( $_opDB->num_rows($result) == 1 ) {
+				$status = 'OK_ADD' ;
+				
+				$arr = $_opDB->fetch_assoc($result) ;
+				$adr_id = $arr['field_ADR_ID'] ;
+				
+				break ;
+			}
 		}
-		
 		
 		// 2ème cas : position libre correspondant aux critères
 		// 3ème cas : position libre sans les critères facultatifs
