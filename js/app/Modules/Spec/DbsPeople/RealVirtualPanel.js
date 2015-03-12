@@ -135,7 +135,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealVirtualPanel',{
 		
 		this.getForm().getFields().each(function(field) {
 			field.on('change',function(field){
-				this.evalForm();
+				this.evalForm(field);
 			},me) ;
 		},me) ;
 		this.on('beforedestroy',function(formpanel) {
@@ -152,7 +152,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealVirtualPanel',{
 			},100);
 		}) ;
 	},
-	evalForm: function() {
+	evalForm: function(changedField) {
 		var me = this ;
 		me.saveOnDestroy = true ;
 		
@@ -165,6 +165,15 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealVirtualPanel',{
 		
 		var sameDay = ( !Ext.isEmpty(startField.getRawValue()) && startField.getRawValue() == endField.getRawValue() ),
 			absHalfDayOpen = (absData && absData.halfDay_open) ;
+			
+		if( startField.getValue() > endField.getValue() ) {
+			if( changedField == startField ) {
+				endField.setValue( startField.getValue() ) ;
+			}
+			if( changedField == endField ) {
+				startField.setValue( endField.getValue() ) ;
+			}
+		}
 		
 		halfDayCb.setVisible(sameDay && absHalfDayOpen) ;
 	},

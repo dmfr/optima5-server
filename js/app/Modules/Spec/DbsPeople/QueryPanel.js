@@ -271,7 +271,18 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryPanel',{
 						anchor: '',
 						value: new Date(),
 						name : 'date_start',
-						itemId : 'dateStart'
+						itemId : 'dateStart',
+						listeners: {
+							change: function(changedField){
+								var formPanel = changedField.up('form'),
+									form = formPanel.getForm(),
+									dateStart = form.findField('date_start'),
+									dateEnd = form.findField('date_end') ;
+								if( dateStart.getValue() > dateEnd.getValue() ) {
+									dateEnd.setValue( dateStart.getValue() ) ;
+								}
+							}
+						}
 					},{
 						width:16,
 						itemId : 'dateSeparator',
@@ -285,7 +296,18 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryPanel',{
 						anchor: '',
 						value: new Date(),
 						name : 'date_end',
-						itemId : 'dateEnd'
+						itemId : 'dateEnd',
+						listeners: {
+							change: function(changedField){
+								var formPanel = changedField.up('form'),
+									form = formPanel.getForm(),
+									dateStart = form.findField('date_start'),
+									dateEnd = form.findField('date_end') ;
+								if( dateStart.getValue() > dateEnd.getValue() ) {
+									dateStart.setValue( dateEnd.getValue() ) ;
+								}
+							}
+						}
 					}]
 				},{
 					xtype:'fieldcontainer',
