@@ -411,6 +411,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryPanel',{
 		}
 		
 		me.optimaModule.getConfiguredAjaxConnection().request({
+			timeout: (300 * 1000),
 			params: {
 				_moduleId: 'spec_dbs_people',
 				_action: 'query_getResult',
