@@ -708,14 +708,6 @@ function paracrm_data_getFileGrid_exportXLS( $post_data, $auth_bypass=FALSE )
 	if( !class_exists('PHPExcel') )
 		return NULL ;
 	
-	// Update 2014-06-24 : join pre-cache
-	$file_code = $post_data['file_code'] ;
-	$file_parent_code = paracrm_define_tool_fileGetParentCode($file_code) ;
-	paracrm_lib_file_joinPrivate_buildCache( $file_code ) ;
-	if( $file_code != $file_parent_code ) {
-		paracrm_lib_file_joinPrivate_buildCache( $file_parent_code ) ;
-	}
-	
 	$TAB_cfg = paracrm_data_getFileGrid_config( array('file_code'=>$post_data['file_code']) ) ;
 	$TAB_data = paracrm_data_getFileGrid_data( $post_data ) ;
 
