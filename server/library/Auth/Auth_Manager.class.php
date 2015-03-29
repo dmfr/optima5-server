@@ -34,7 +34,7 @@ class Auth_Manager {
 	*/
 	public function auth_is_admin()
 	{
-		if( !$_SESSION['login_data']['login_user'] )
+		if( !$_SESSION['login_data'] && getenv('OPTIMA_DB') )
 			return TRUE ;
 		if( $_SESSION['login_data']['auth_class'] == 'A' )
 			return TRUE ;
@@ -43,6 +43,9 @@ class Auth_Manager {
 	
 	public function auth_build_cache()
 	{
+		if( !$_SESSION['login_data'] )
+			return ;
+		
 		$this->auth_cache = array() ;
 		
 		$mysql_db = $GLOBALS['mysql_db'] ;
