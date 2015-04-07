@@ -95,5 +95,15 @@
 		"moduleCssSrc":"module-spec_dbs_embralam.css",
 		"moduleType":"sdomain",
 		"params": []
+	},{
+		"enabled":true,
+		"moduleId":"spec_dbs_embramach",
+		"backendModuleId":"crmbase",
+		"parentModuleId":"crmbase",
+		"moduleName":"(DBS) EmbraMACH",
+		"moduleClass":"Optima5.Modules.Spec.DbsEmbramach.DbsEmbramachModule",
+		"moduleCssSrc":"module-spec_dbs_embramach.css",
+		"moduleType":"sdomain",
+		"params": []
 	}
 ]

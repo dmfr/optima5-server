@@ -35,5 +35,9 @@
 		"iconCode":"dbschenker",
 		"iconSrc16":"ico_dbschenker_16.png",
 		"iconSrc48":"ico_dbschenker_48.png"
+	},{
+		"iconCode":"dashboard",
+		"iconSrc16":"ico_dashboard_16.png",
+		"iconSrc48":"ico_dashboard_48.png"
 	}
 ]
