@@ -64,6 +64,29 @@
 }
 
 
+.op5-spec-embramach-banner {
+	background-color: white;
+}
+.op5-spec-embramach-banner-logo {
+	width: 270px;
+	height: 48px;
+	background-color: white;
+	background-image: url("../images/modules/dbsembramach-logo.png") !important;
+	background-position: center center ;
+	background-repeat: no-repeat;
+}
+.op5-spec-embramach-banner-title {
+	text-align: left;
+	line-height: 40px;
+	font-size: 24px;
+	font-weight: bold ;
+	font-family: 'Droid Sans';
+	padding: 0px 16px
+}
+.op5-spec-embramach-banner-blue {
+	background-color: #010066 ;
+}
+
 
 .op5-spec-dbsembramach-icon-mach {
 	background-image: url("../images/modules/dbsembramach-dashboard-64.png") !important;

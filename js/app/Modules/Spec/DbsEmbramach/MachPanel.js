@@ -40,16 +40,16 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 			layout: 'border',
 			items: [{
 				region: 'north',
-				height: 72,
+				height: 116,
 				xtype: 'component',
 				tpl: [
-					'<div class="op5-spec-embralam-livelogo">',
-						'<span>{title}</span>',
-						'<div class="op5-spec-embralam-livelogo-left"></div>',
-						'<div class="op5-spec-embralam-livelogo-right"></div>',
+					'<div class="op5-spec-embramach-banner">',
+						'<div class="op5-spec-embramach-banner-logo"></div>',
+						'<div class="op5-spec-embramach-banner-title">{title}</div>',
+						'<div class="op5-spec-embramach-banner-blue">&#160;</div>',
 					'</div>'
 				],
-				data: {title: '&#160;'}
+				data: {title: 'MACH'}
 			},{
 				region: 'center',
 				border: false,
@@ -156,7 +156,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 						},
 						store: {
 							fields: ['name','value'],
-							data: [{name:'AOG', value:80}]
+							data: [{name:'AOG', value:1.4}]
 						},
 						insetPadding: 25,
 						flex: 1,
@@ -164,8 +164,8 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 							type: 'gauge',
 							position: 'gauge',
 							minimum: 0,
-							maximum: 240,
-							steps: 10,
+							maximum: 4,
+							steps: 4,
 							margin: 7
 						}],
 						series: [{
@@ -190,7 +190,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 						},
 						store: {
 							fields: ['name','value'],
-							data: [{name:'CRI', value:23.5}]
+							data: [{name:'CRI', value:27}]
 						},
 						insetPadding: 25,
 						flex: 1,
@@ -206,7 +206,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 							type: 'gauge',
 							field: 'value',
 							donut: 80,
-							colorSet: ['#FFB300', '#ddd']
+							colorSet: ['#FF2B2B', '#ddd']
 						}]
 					}]
 				},{
@@ -224,7 +224,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 						},
 						store: {
 							fields: ['name','value'],
-							data: [{name:'ROU', value:59}]
+							data: [{name:'ROU', value:47}]
 						},
 						insetPadding: 25,
 						flex: 1,
@@ -240,7 +240,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 							type: 'gauge',
 							field: 'value',
 							donut: 80,
-							colorSet: ['#FF2B2B', '#ddd']
+							colorSet: ['#FFB300', '#ddd']
 						}]
 					}]
 				}]
@@ -252,6 +252,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 		this.doLoad() ;
 	},
 	doLoad: function() {
+		this.showLoadmask() ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_dbs_embramach',
@@ -264,12 +265,44 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 				}
 				this.onLoad( jsonResponse ) ;
 			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
 			scope: this
 		}) ;
 	},
 	onLoad: function( jsonResponse ) {
 		var pGrid = this.down('#pGrid'),
-			pGauges = this.down('#pGauges') ;
-		pGrid.getStore().loadData( jsonResponse.data_grid ) ;
-	}
+			pGauges = this.down('#pGauges'),
+			pGridStore = pGrid.getStore() ;
+		pGridStore.loadData( jsonResponse.data_grid ) ;
+		pGridStore.clearFilter() ;
+		pGridStore.filterBy(function(record, id){
+			return Ext.Array.contains(['LBG1','LBG2','LBG3'],record.get('flow')) ;
+		}, this);
+	},
+	
+	showLoadmask: function() {
+		if( this.rendered ) {
+			this.doShowLoadmask() ;
+		} else {
+			this.on('afterrender',this.doShowLoadmask,this,{single:true}) ;
+		}
+	},
+	doShowLoadmask: function() {
+		if( this.loadMask ) {
+			return ;
+		}
+		this.loadMask = Ext.create('Ext.LoadMask',{
+			target: this,
+			msg:"Please wait..."
+		}).show();
+	},
+	hideLoadmask: function() {
+		this.un('afterrender',this.doShowLoadmask,this) ;
+		if( this.loadMask ) {
+			this.loadMask.destroy() ;
+			this.loadMask = null ;
+		}
+	},
 });
