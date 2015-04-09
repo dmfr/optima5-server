@@ -304,5 +304,5 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 			this.loadMask.destroy() ;
 			this.loadMask = null ;
 		}
-	},
+	}
 });
