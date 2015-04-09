@@ -262,12 +262,12 @@ function handleStatusNew( $row ) {
 function handleStatusValidation( $row ) {
 	if( in_array($row['status_code'],array('20_WAITVALID','25_APPROVED')) ) {} else return ;
 	
-	if( $row['approv_ds'] && $row['approv_df'] ) {} else return ;
+	if( $row['approv_ds'] && ($row['approv_df']||TRUE) ) {} else return ;
 	
 	// Adv status
 	$filerecord_id = $row['_filerecord_id'] ;
 	$arr_update = array() ;
-	if( $row['approv_ds_ok'] && $row['approv_df_ok'] ) {
+	if( $row['approv_ds_ok'] && ($row['approv_df_ok']||TRUE) ) {
 		$arr_update['field_STATUS'] = ( $row['cost_billing__csHold'] ? '25_APPROVED' : '30_SCHED' ) ;
 		$arr_update['field_SYSDATE_OPEN'] = date('Y-m-d') ;
 	} else {
@@ -284,7 +284,7 @@ function handleStatusValidation( $row ) {
 	
 	
 	if( TRUE ) {
-		$txt = ( $row['approv_ds_ok'] && $row['approv_df_ok'] ? 'validated' : 'refused' ) ;
+		$txt = ( $row['approv_ds_ok'] && ($row['approv_df_ok']||TRUE) ? 'validated' : 'refused' ) ;
 		
 		$recipients = findRecipients($row['country_code'], array('SM')) ;
 		
