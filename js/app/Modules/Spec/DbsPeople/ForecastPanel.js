@@ -99,16 +99,16 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 	
 	whseCode: null,
 	dateBase: null,
+	dateWeekdetail: null,
 	viewMode: 'weeklist',
 	weekCount: 25,
 	
 	forecastCfgUoStore: null,
 	forecastWeekStore: null,
+	nowTimestamp: 0,
 	
 	initComponent: function() {
-		var me = this ;
-		
-		Ext.apply(me,{
+		Ext.apply(this,{
 			//frame: true,
 			border: false,
 			layout:'fit',
@@ -127,7 +127,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 				listeners: {
 					change: {
 						fn: function() {
-							me.onSiteSet() ;
+							this.onSiteSet() ;
 						},
 						scope: this
 					},
@@ -158,9 +158,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 					defaults: {
 						handler:function(menuitem) {
 							//console.log('ch view '+menuitem.itemId) ;
-							me.onViewSet( menuitem.itemId ) ;
+							this.onViewSet( menuitem.itemId ) ;
 						},
-						scope:me
+						scope:this
 					},
 					items: [{
 						itemId: 'weeklist',
@@ -209,24 +209,21 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 		this.callParent() ;
 	},
 	onPreInit: function() {
-		var me = this ;
-		me.preInit-- ;
-		if( me.preInit == 0 ) {
-			me.isReady=true ;
-			me.startPanel() ;
+		this.preInit-- ;
+		if( this.preInit == 0 ) {
+			this.isReady=true ;
+			this.startPanel() ;
 		}
 	},
 	startPanel: function() {
-		var me = this ;
-		
 		this.tmpModelName = 'DbsPeopleForecastRowModel-' + this.getId() ;
 		this.on('destroy',function(p) {
 			Ext.ux.dams.ModelManager.unregister( p.tmpModelName ) ;
 		}) ;
 		
-		me.onSiteSet() ;
-		me.onDateSet( new Date() ) ;
-		me.onViewSet( me.viewMode ) ;
+		this.onSiteSet() ;
+		this.onDateSet( new Date() ) ;
+		this.onViewSet( this.viewMode ) ;
 		return ;
 	},
 	
@@ -257,45 +254,81 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 		this.doLoad() ;
 	},
 	onDateSet: function( date ) {
-		var me = this,
-			tbDate = me.child('toolbar').getComponent('tbDate') ;
+		var tbDate = this.child('toolbar').getComponent('tbDate') ;
 		
 		// configuration GRID
 		var first = date.getDate() - ( date.getDay() > 0 ? date.getDay() : 7 ) + 1; // First day is the day of the month - the day of the week
 		var last = first + 6; // last day is the first day + 6
 		
-		me.dateBase = new Date(Ext.clone(date).setDate(first));
-		//me.dateEnd = new Date(Ext.clone(date).setDate(last));
+		var dateToset = new Date(Ext.clone(date).setDate(first));
+		switch( this.viewMode ) {
+			case 'weeklist' :
+				this.dateBase = dateToset ;
+				break ;
+			case 'weekdetail' :
+				this.dateWeekdetail = dateToset ;
+				break ;
+		}
 		
-		var weekStr = 'Sem. ' + Ext.Date.format( me.dateBase, 'W / o' ) ;
-		tbDate.setText('<b>' + weekStr + '</b>') ;
-		
-		me.doLoad() ;
+		this.updateToolbar() ;
+		this.doLoad() ;
 	},
 	onViewSet: function( viewId ) {
-		var me = this,
-			tbViewmode = me.child('toolbar').getComponent('tbViewmode'),
+		var tbViewmode = this.child('toolbar').getComponent('tbViewmode'),
 			tbViewmodeItem = tbViewmode.menu.getComponent(viewId),
 			iconCls, text,
 			disableExport = false ;
 		if( tbViewmodeItem ) {
-			me.viewMode = viewId ;
+			var oldViewMode = this.viewMode ;
+			this.viewMode = viewId ;
+			if( this.viewMode == 'weekdetail' && oldViewMode != 'weekdetail' ) {
+				this.dateWeekdetail = this.dateBase ;
+			}
+		}
+		
+		this.updateToolbar() ;
+		this.doLoad() ;
+	},
+	updateToolbar: function(doActivate) {
+		var tbSettings = this.child('toolbar').getComponent('tbSettings'),
+			tbDate = this.child('toolbar').getComponent('tbDate'),
+			tbViewmode = this.child('toolbar').getComponent('tbViewmode') ;
+		
+		if( doActivate !== undefined ) {
+			tbSettings.setVisible(doActivate) ;
+		}
+		
+		// View mode
+		var tbViewmodeItem = tbViewmode.menu.getComponent(this.viewMode) ;
+		if( tbViewmodeItem ) {
 			tbViewmode.setText( '<b>' + tbViewmodeItem.text + '</b>' );
 			tbViewmode.setIconCls( tbViewmodeItem.iconCls );
 		}
 		
-		this.doLoad() ;
-	},
-	updateToolbar: function(doActivate) {
-		var tbSettings = this.child('toolbar').getComponent('tbSettings') ;
-		tbSettings.setVisible(doActivate) ;
-		
-	},
-	getDateStart: function() {
-		var dateCur = Ext.clone(this.dateBase) ;
+		// Date
+		var activeDateWeek = null ;
 		switch( this.viewMode ) {
 			case 'weeklist' :
+				activeDateWeek = this.dateBase ;
+				break ;
+			case 'weekdetail' :
+				activeDateWeek = this.dateWeekdetail ;
+				break ;
+		}
+		if( activeDateWeek ) {
+			var weekStr = 'Sem. ' + Ext.Date.format( activeDateWeek, 'W / o' ) ;
+			tbDate.setText('<b>' + weekStr + '</b>') ;
+		}
+	},
+	getDateStart: function() {
+		var dateCur ;
+		switch( this.viewMode ) {
+			case 'weeklist' :
+				dateCur = Ext.clone(this.dateBase) ;
 				dateCur.setDate( dateCur.getDate() - 7 ) ;
+				break ;
+			case 'weekdetail' :
+				dateCur = Ext.clone(this.dateWeekdetail) ;
 				break ;
 			default :
 				break ;
@@ -369,8 +402,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 		}) ;
 	},
 	onLoadResponse: function(response) {
-		var me = this,
-			jsonResponse = Ext.JSON.decode(response.responseText) ;
+		var jsonResponse = Ext.JSON.decode(response.responseText) ;
 		
 		// Init stores
 		this.forecastCfgUoStore = Ext.create('Ext.data.Store',{
@@ -404,6 +436,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 				}
 			}
 		});
+		this.nowTimestamp = jsonResponse.timestamp || (Date.now() / 1000) ; 
 		
 		// Create grid
 		this.doGridConfigure() ;
@@ -415,11 +448,10 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 		this.hideLoadmask();
 	},
 	doGridConfigure: function() {
-		var me = this ;
-		
 		var pushModelfields = [] ;
 		var columns = [{
 			locked: true,
+			menuDisabled: true,
 			groupable: true,
 			hidden: true,
 			text: 'Group key',
@@ -427,6 +459,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 			width: 180
 		},{
 			locked: true,
+			menuDisabled: true,
 			text: 'UO / Role',
 			width: 180,
 			dataIndex: 'uo_code',
@@ -463,7 +496,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 			sortable: false,
 			hideable: false,
 			resizable: false,
-			groupable: false,
+			groupable: true, // Dummy groupable, just to prevent menu from being permntly disabled
 			lockable: false
 		} ;
 		Ext.Array.each( columns, function(column) {
@@ -543,6 +576,12 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 				)
 			}],
 			columns: columns,
+			listeners: {
+				afterlayout: function( gridpanel ) {
+					gridpanel.headerCt.on('menucreate',this.onColumnsMenuCreate,this) ;
+				},
+				scope: this
+			},
 			viewConfig: {
 				preserveScrollOnRefresh: true,
 				getRowClass: function(record) {
@@ -562,7 +601,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 				if( v.uo_qty_unit == null ) {
 					return '' ;
 				}
-				return Math.round(v.uo_qty_unit)
+				return Math.round(v.uo_qty_unit) ;
 			case '2_CAPACITY_UO' :
 				metaData.style += '; font-weight:bold;'
 				if( v.uo_qty_unit == null ) {
@@ -592,6 +631,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 	doGridConfigurePushWeeklist: function(pushModelfields, pushColumns) {
 		var dateCur = this.getDateStart() ;
 		
+		var nowWeek = Ext.Date.format(new Date(this.nowTimestamp*1000),'o-W') ;
+		
 		for( var idx = 0 ; idx <= this.weekCount ; idx++ ) {
 			if( idx > 0 ) {
 				dateCur.setDate( dateCur.getDate() + 7 ) ;
@@ -599,6 +640,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 			
 			var dStr = Ext.Date.format(dateCur,'Ymd'),
 				dSql = Ext.Date.format(dateCur,'Y-m-d'),
+				weekStr = Ext.Date.format(dateCur,'o-W') ;
 				text = 'Sem ' + Ext.Date.format(dateCur,'W / o') ;
 			
 			pushModelfields.push({
@@ -614,14 +656,18 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 				dateSql: dSql,
 				dateStr: dStr,
 				dataIndex: 'w_'+dStr,
+				dateType: 'week',
 				editor: { xtype: 'numberfield', minValue: 0, keyNavEnabled: false },
-				renderer: this.gridValueRenderer
+				renderer: this.gridValueRenderer,
+				cls: ( weekStr==nowWeek ? 'op5-spec-dbspeople-forecast-column-now' : '' ),
+				tdCls: ( weekStr==nowWeek ? 'op5-spec-dbspeople-forecast-column-now' : weekStr<nowWeek ? 'op5-spec-dbspeople-forecast-column-past' : '' )
 			}) ;
 		}
 	},
 	doGridConfigurePushWeekdetail: function(pushModelfields, pushColumns) {
 		var dateCur = this.getDateStart() ;
 		var dateWeek = this.getDateStart() ;
+		var nowDay = Ext.Date.format(new Date(this.nowTimestamp*1000),'Y-m-d') ;
 		for( var idx = 0 ; idx < 7 ; idx++ ) {
 			if( idx > 0 ) {
 				dateCur.setDate( dateCur.getDate() + 1 ) ;
@@ -638,6 +684,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 			}) ;
 			
 			pushColumns.push({
+				menuDisabled: true,
 				width: 100,
 				align: 'center',
 				text: text,
@@ -645,10 +692,39 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 				dateSql: dSql,
 				dateStr: dStr,
 				dataIndex: 'd_'+dStr,
+				dateType: 'day',
 				editor: { xtype: 'numberfield', minValue: 0, keyNavEnabled: false },
-				renderer: this.gridValueRenderer
+				renderer: this.gridValueRenderer,
+				cls: ( dSql==nowDay ? 'op5-spec-dbspeople-forecast-column-now' : '' ),
+				tdCls: ( dSql==nowDay ? 'op5-spec-dbspeople-forecast-column-now' : dSql<nowDay ? 'op5-spec-dbspeople-forecast-column-past' : '' )
 			}) ;
 		}
+	},
+	onColumnsMenuCreate: function( headerCt, menu ) {
+		if( true ) {
+			menu.add({
+				itemId: 'grid-weekdetail',
+				iconCls: 'op5-crmbase-datatoolbar-view-calendar',
+				text: 'Week details',
+				handler: function(menuitem) {
+					this.onColumnWeekdetail( menuitem.up('menu').activeHeader.dateSqlWeek ) ;
+				},
+				scope: this
+			});
+		}
+		menu.on('beforeshow', this.onColumnsMenuBeforeShow, this);
+	},
+	onColumnsMenuBeforeShow: function( menu ) {
+		var HelperCache = Optima5.Modules.Spec.DbsPeople.HelperCache,
+			colCfg = menu.activeHeader.colCfg;
+		menu.down('#grid-weekdetail').setVisible( (menu.activeHeader.dateType=='week') ) ;
+	},
+	onColumnWeekdetail: function( dateSqlWeek ) {
+		this.dateWeekdetail = Ext.Date.parse(dateSqlWeek,'Y-m-d') ;
+		this.viewMode = 'weekdetail' ;
+		
+		this.updateToolbar() ;
+		this.doLoad() ;
 	},
 	
 	gridAdapterInit: function() {
@@ -1063,8 +1139,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 			return false ;
 		}
 		
-		console.log(dateSqlWeek) ;
-		
 		var editorField = editEvent.column.getEditor(),
 			editorValue = editorField.getValue() ;
 		switch( gridRecord.get('group_id') ) {
@@ -1119,8 +1193,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 	},
 	
 	openCfgWhse: function() {
-		var me = this ;
-		
 		var setSizeFromParent = function( parentPanel, targetPanel ) {
 			targetPanel.setSize({
 				width: parentPanel.getSize().width - 20,
@@ -1129,12 +1201,12 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 		};
 		
 		var cfgWhsePanel = Ext.create('Optima5.Modules.Spec.DbsPeople.ForecastCfgWhsePanel',{
-			optimaModule: me.optimaModule,
-			whseCode: me.whseCode,
+			optimaModule: this.optimaModule,
+			whseCode: this.whseCode,
 			width:800, // dummy initial size, for border layout to work
 			height:600, // ...
 			floating: true,
-			renderTo: me.getEl(),
+			renderTo: this.getEl(),
 			tools: [{
 				type: 'close',
 				handler: function(e, t, p) {
@@ -1143,20 +1215,20 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 			}]
 		});
 		
-		cfgWhsePanel.mon(me,'resize', function() {
-			setSizeFromParent( me, cfgWhsePanel ) ;
-		},me) ;
+		cfgWhsePanel.mon(this,'resize', function() {
+			setSizeFromParent( this, cfgWhsePanel ) ;
+		},this) ;
 		
 		// Size + position
-		setSizeFromParent(me,cfgWhsePanel) ;
+		setSizeFromParent(this,cfgWhsePanel) ;
 		cfgWhsePanel.on('destroy',function() {
-			me.getEl().unmask() ;
-			me.doLoad() ;
-		},me,{single:true}) ;
-		me.getEl().mask() ;
+			this.getEl().unmask() ;
+			this.doLoad() ;
+		},this,{single:true}) ;
+		this.getEl().mask() ;
 		
 		cfgWhsePanel.show();
-		cfgWhsePanel.getEl().alignTo(me.getEl(), 't-t?',[0,50]);
+		cfgWhsePanel.getEl().alignTo(this.getEl(), 't-t?',[0,50]);
 	},
 	sendBuildResources: function() {
 		this.showLoadmask() ;

@@ -379,3 +379,14 @@ table.op5-spec-dbspeople-realvalidhdr-tbl > tbody > tr > td.op5-spec-dbspeople-r
 	font-size: 18px;
 	font-weight: bold;
 }
+
+
+.op5-spec-dbspeople-forecast-column-past .x-grid-cell-inner {
+	background-color: #DDDDDD !important;
+}
+.op5-spec-dbspeople-forecast-column-now .x-grid-cell-inner {
+	background-color: #FFCC52 !important;
+}
+.op5-spec-dbspeople-forecast-column-now .x-column-header-inner {
+	background-color: #FFCC52 !important;
+}

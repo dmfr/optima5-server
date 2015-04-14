@@ -253,7 +253,8 @@ function specDbsPeople_Forecast_getWeeks( $post_data ) {
 		'data' => array(
 			'cfg_uo' => array_values($arr_uoRecords),
 			'weeks' => array_values($arr_weekRecords)
-		)
+		),
+		'timestamp' => time()
 	);
 }
 
