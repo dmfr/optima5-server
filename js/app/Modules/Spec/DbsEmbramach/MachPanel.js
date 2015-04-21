@@ -44,12 +44,19 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 				xtype: 'component',
 				tpl: [
 					'<div class="op5-spec-embramach-banner">',
-						'<div class="op5-spec-embramach-banner-logo"></div>',
-						'<div class="op5-spec-embramach-banner-title">{title}</div>',
+						'<div class="op5-spec-embramach-banner-inside">',
+						'<div class="op5-spec-embramach-banner-left">',
+							'<div class="op5-spec-embramach-banner-logo"></div>',
+							'<div class="op5-spec-embramach-banner-title">{title}</div>',
+						'</div>',
+						'<div class="op5-spec-embramach-banner-right">',
+							'<div class="op5-spec-embramach-banner-people">Charge&nbsp:&nbsp;<b><font color="red">{people_count}</font>&nbsp;personne(s)</b></div>',
+						'</div>',
+						'</div>',
 						'<div class="op5-spec-embramach-banner-blue">&#160;</div>',
 					'</div>'
 				],
-				data: {title: 'MACH'}
+				data: {title: 'MACH', people_count:0}
 			},{
 				region: 'center',
 				border: false,
@@ -129,7 +136,14 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 				}],
 				plugins: [{
 					ptype: 'bufferedrenderer'
-				}]
+				}],
+				viewConfig: {
+					getRowClass: function(record) {
+						if( !Ext.isEmpty(record.get('step_INV')) ) {
+							return 'op5-spec-dbsembramach-gridcell-done' ;
+						}
+					}
+				}
 			},{
 				region: 'east',
 				width: 200,
@@ -172,7 +186,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 							type: 'gauge',
 							field: 'value',
 							donut: 80,
-							colorSet: ['#2AFF00', '#ddd']
+							colorSet: ['#FF0000', '#ddd']
 						}]
 					}]
 				},{
@@ -206,7 +220,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 							type: 'gauge',
 							field: 'value',
 							donut: 80,
-							colorSet: ['#FF2B2B', '#ddd']
+							colorSet: ['#CCCD06', '#ddd']
 						}]
 					}]
 				},{
@@ -240,7 +254,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 							type: 'gauge',
 							field: 'value',
 							donut: 80,
-							colorSet: ['#FFB300', '#ddd']
+							colorSet: ['#164E89', '#ddd']
 						}]
 					}]
 				}]

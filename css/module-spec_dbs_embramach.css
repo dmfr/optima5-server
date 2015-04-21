@@ -67,6 +67,17 @@
 .op5-spec-embramach-banner {
 	background-color: white;
 }
+.op5-spec-embramach-banner-inside {
+	height: 88px ;
+}
+.op5-spec-embramach-banner-left {
+	float: left;
+}
+.op5-spec-embramach-banner-right {
+	float: right;
+	padding-top: 16px;
+	padding-right: 6px ;
+}
 .op5-spec-embramach-banner-logo {
 	width: 270px;
 	height: 48px;
@@ -85,6 +96,19 @@
 }
 .op5-spec-embramach-banner-blue {
 	background-color: #010066 ;
+}
+.op5-spec-embramach-banner-people {
+	width: 250px;
+	height: 56px;
+	padding-left: 56px;
+	padding-top: 16px;
+	background-image: url("../images/modules/dbsembramach-people-48.png") !important;
+	background-position: 0 center ;
+	background-repeat: no-repeat;
+	border: 1px solid gray;
+	
+	font-family: 'Droid Sans';
+	font-size: 14px;
 }
 
 
@@ -111,4 +135,8 @@
 }
 .op5-spec-dbsembramach-gridcell-red .x-grid-cell-inner { 
 	background-color: #FF2B2B;
+}
+
+.op5-spec-dbsembramach-gridcell-done .x-grid-cell {
+	background-color: #C29FFF ;
 }
