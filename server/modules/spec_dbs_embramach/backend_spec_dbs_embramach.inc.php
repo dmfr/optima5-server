@@ -7,8 +7,10 @@ function backend_specific( $post_data )
 {
 switch( $post_data['_action'] )
 {
-	case 'mach_getGrid' :
-	return specDbsEmbralam_mach_getGrid( $post_data ) ;
+	case 'mach_getGridCfg' :
+	return specDbsEmbralam_mach_getGridCfg( $post_data ) ;
+	case 'mach_getGridData' :
+	return specDbsEmbralam_mach_getGridData( $post_data ) ;
 	
 	default :
 	return NULL ;

@@ -1,15 +1,62 @@
 <?php
-function specDbsEmbralam_mach_getGrid( $post_data ) {
+function specDbsEmbralam_mach_getGridCfg( $post_data ) {
 	global $_opDB ;
 	
-	$map_stepCode_stepTxt = array() ;
-	$query = "SELECT * FROM view_bible_CDE_MILESTONE_entry" ;
+	$flow_code = $post_data['flow_code'] ;
+	
+	$map_priorityId_obj = array() ;
+	$query = "SELECT * FROM view_bible_FLOW_PRIO_entry WHERE treenode_key='$flow_code' ORDER BY field_PRIO_ID" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
-		$map_stepCode_stepTxt[$arr['field_MS_CODE']] = $arr['field_MS_TXT'] ;
+		$map_priorityId_obj[$arr['entry_key']] = array(
+			'prio_id' => $arr['field_PRIO_ID'],
+			'prio_txt' => $arr['field_PRIO_TXT'],
+			'prio_code' => $arr['field_PRIO_CODE'],
+			'prio_color' => $arr['field_PRIO_COLOR'],
+			'tat_hour' => (float)$arr['field_TAT_HOUR']
+		) ;
 	}
 	
-	$query = "SELECT * FROM view_file_CDE ORDER BY filerecord_id DESC" ;
+	$map_milestoneCode_obj = array() ;
+	$query = "SELECT * FROM view_bible_FLOW_MILESTONE_entry WHERE treenode_key='$flow_code' ORDER BY field_MILESTONE_CODE" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$map_milestoneCode_obj[$arr['entry_key']] = array(
+			'milestone_code' => $arr['field_MILESTONE_CODE'],
+			'milestone_txt' => $arr['field_MILESTONE_TXT'],
+			'step_end' => $arr['field_STEP_END'],
+			'monitor_is_on' => $arr['field_MONITOR_IS_ON'],
+			'monitor_tat_ratio' => (float)$arr['field_MONITOR_TAT_RATIO']
+		) ;
+	}
+	
+	
+	return array(
+		'success'=>true,
+		'data' => array(
+			'flow_prio' => array_values($map_priorityId_obj),
+			'flow_milestone' => array_values($map_milestoneCode_obj)
+		)
+	) ;
+}
+
+function specDbsEmbralam_mach_getGridData( $post_data ) {
+	global $_opDB ;
+	
+	$json_cfg = specDbsEmbralam_mach_getGridCfg( $post_data ) ;
+	$json_cfg_prio = array() ;
+	foreach( $json_cfg['data']['flow_prio'] as $prio_desc ) {
+		$json_cfg_prio[$prio_desc['prio_id']] = $prio_desc ;
+	}
+	
+	$map_stepCode_stepTxt = array() ;
+	$query = "SELECT * FROM view_bible_FLOW_STEP_entry" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$map_stepCode_stepTxt[$arr['field_STEP_CODE']] = $arr['field_STEP_TXT'] ;
+	}
+	
+	$query = "SELECT * FROM view_file_FLOW_PICKING ORDER BY filerecord_id DESC" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$filerecord_id = $arr['filerecord_id'] ;
@@ -28,7 +75,7 @@ function specDbsEmbralam_mach_getGrid( $post_data ) {
 		$TAB[$filerecord_id] = $row ;
 	}
 	
-	$query = "SELECT * FROM view_file_CDE_STEP" ;
+	$query = "SELECT * FROM view_file_FLOW_PICKING_STEP" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$filerecord_parent_id = $arr['filerecord_parent_id'] ;
@@ -40,96 +87,123 @@ function specDbsEmbralam_mach_getGrid( $post_data ) {
 	
 	
 	foreach( $TAB as &$row ) {
-		if( $row['obj_steps']['01_CREATE'] ) {
-			$row['step_RLS'] = array('date_sql'=>$row['obj_steps']['01_CREATE']) ;
-		}
-		if( $row['obj_steps']['03_PICK_START'] ) {
-			$start_ts = strtotime($row['obj_steps']['03_PICK_START']) ;
-			$warn_ts = $start_ts + (30*60) ;
-			$due_ts = $start_ts + (60*60) ;
-			$end_ts = strtotime($row['obj_steps']['04_ASM_END']) ;
-			if( !$row['obj_steps']['04_ASM_END'] ) {
-				$color = '' ;
-				$date_sql = date('Y-m-d H:i:s',$due_ts) ;
-			} elseif( $end_ts >= $due_ts ) {
-				$color = 'red' ;
-				$date_sql = date('Y-m-d H:i:s',$end_ts) ;
-			} elseif( $end_ts >= $warn_ts ) {
-				$color = 'orange' ;
-				$date_sql = date('Y-m-d H:i:s',$end_ts) ;
+		// priorité : temps de base
+		$thisRow_baseTAT_s = ( $json_cfg_prio[$row['priority_code']]['tat_hour'] * 3600 ) ;
+		
+		// passage en revue de toutes les étapes
+		$this_milestones = array() ;
+		$first_step = TRUE ;
+		$total_allowed_time_s = 0 ;
+		$total_spent_time_s = 0 ;
+		unset($lastStep_timestamp) ;
+		foreach( $json_cfg['data']['flow_milestone'] as $milestone_desc ) {
+			$milestone_code = $milestone_desc['milestone_code'] ;
+			$this_milestone = array() ;
+			$this_milestone['milestone_code'] = $milestone_code ;
+			if( $first_step ) {
+			
+			}
+			$step_milestone = $milestone_desc['step_end'] ;
+			if( $milestone_desc['monitor_is_on'] ) {
+				$total_allowed_time_s += $thisRow_baseTAT_s * $milestone_desc['monitor_tat_ratio'] ;
+				
+				$available_time_s = $total_allowed_time_s - $total_spent_time_s ;
+				$ETA_timestamp = $lastStep_timestamp + $available_time_s ;
+				$this_milestone['ETA_dateSql'] = date('Y-m-d H:i:s',$ETA_timestamp) ;
+				
+				if( $row['obj_steps'][$step_milestone] ) {
+					$ACTUAL_timestamp = strtotime($row['obj_steps'][$step_milestone]) ;
+					$this_milestone['ACTUAL_dateSql'] = date('Y-m-d H:i:s',$ACTUAL_timestamp) ;
+					$total_spent_time_s += ($ACTUAL_timestamp - $lastStep_timestamp) ;
+					if( $ACTUAL_timestamp > $ETA_timestamp ) {
+						$this_milestone['color'] = 'red' ;
+					} elseif( $ETA_timestamp - $ACTUAL_timestamp < (15*60) ) {
+						$this_milestone['color'] = 'orange' ;
+					} else {
+						$this_milestone['color'] = 'green' ;
+					}
+				} else {
+					$now_timestamp = time() ;
+					$this_milestone['pending'] = true ;
+					$this_milestone['pendingMonitored'] = true ;
+					if( $now_timestamp > $ETA_timestamp ) {
+						$this_milestone['color'] = 'red' ;
+					} elseif( $ETA_timestamp - $now_timestamp < (15*60) ) {
+						$this_milestone['color'] = 'orange' ;
+					} else {
+						$this_milestone['color'] = 'green' ;
+					}
+				}
 			} else {
-				$color = 'green' ;
-				$date_sql = date('Y-m-d H:i:s',$end_ts) ;
+				if( $row['obj_steps'][$step_milestone] ) {
+					$ACTUAL_timestamp = strtotime($row['obj_steps'][$step_milestone]) ;
+					$this_milestone['ACTUAL_dateSql'] = date('Y-m-d H:i:s',$ACTUAL_timestamp) ;
+					$this_milestone['color'] = 'green' ;
+				} else {
+					$this_milestone['pending'] = TRUE ;
+				}
 			}
 			
-			$row['step_PCK'] = array('date_sql'=>$date_sql, 'color'=>$color) ;
-		}
-		if( $row['obj_steps']['05_INSPECT_START'] ) {
-			$start_ts = strtotime($row['obj_steps']['05_INSPECT_START']) ;
-			$end_ts = strtotime($row['obj_steps']['06_INSPECT_END']) ;
-			if( !$row['obj_steps']['06_INSPECT_END'] ) {
-				$color = '' ;
-				$date_sql = date('Y-m-d H:i:s',$start_ts) ;
+			if( !$this_milestone['pending'] ) {
+				// cache du dernier temps pour pivot sur l'etape suivante
+				$lastStep_timestamp = strtotime($row['obj_steps'][$step_milestone]) ;
+				
+				// clear de tous les flags pending 
+				foreach( $this_milestones as &$previous_milestone ) {
+					$previous_milestone['pending'] = FALSE ;
+					$previous_milestone['pendingMonitored'] = FALSE ;
+				}
+				unset($previous_milestone) ;
 			} else {
-				$color = 'green' ;
-				$date_sql = date('Y-m-d H:i:s',$end_ts) ;
+				$has_previous_pending = FALSE ;
+				foreach( $this_milestones as &$previous_milestone ) {
+					if( $previous_milestone['pending'] ) {
+						$has_previous_pending = TRUE ;
+					}
+				}
+				unset($previous_milestone) ;
+				if( $has_previous_pending ) {
+					//continue ;
+				}
 			}
-			
-			$row['step_QI'] = array('date_sql'=>$date_sql, 'color'=>$color) ;
+			$this_milestones[$milestone_code] = $this_milestone ;
 		}
-		if( $row['obj_steps']['09_INVOICE'] ) {
-			$start_ts = strtotime($row['obj_steps']['01_CREATE']) ;
-			
-			switch( $row['priority_code'] ) {
-				case '1' :
-					$due_ts = $start_ts + (2*60*60) ;
-					break ;
-				case '2' :
-					$due_ts = $start_ts + (24*60*60) ;
-					break ;
-				case '3' :
-				default :
-					$due_ts = $start_ts + (48*60*60) ;
-					break ;
+		
+		$has_pending = FALSE ;
+		foreach( $this_milestones as $milestone_code => $this_milestone ) {
+			if( $this_milestone['pendingMonitored'] ) {
+				$has_pending = TRUE ;
 			}
-			$warn_ts = $due_ts - (30*60) ;
-			
-			$end_ts = strtotime($row['obj_steps']['09_INVOICE']) ;
-			if( !$row['obj_steps']['04_ASM_END'] ) {
-				$color = '' ;
-				$date_sql = date('Y-m-d H:i:s',$due_ts) ;
-			} elseif( $end_ts >= $due_ts ) {
-				$color = 'red' ;
-				$date_sql = date('Y-m-d H:i:s',$end_ts) ;
-			} elseif( $end_ts >= $warn_ts ) {
-				$color = 'orange' ;
-				$date_sql = date('Y-m-d H:i:s',$end_ts) ;
-			} else {
-				$color = 'green' ;
-				$date_sql = date('Y-m-d H:i:s',$end_ts) ;
-			}
-			
-			$row['step_INV'] = array('date_sql'=>$date_sql, 'color'=>$color) ;
+			$mkey = 'milestone_'.$milestone_code ;
+			$row[$mkey] = $this_milestone ;
 		}
-		if( $row['obj_steps']['10_AWB'] ) {
-				$color = 'green' ;
-				$date_sql = $row['obj_steps']['10_AWB'] ;
-			$row['step_AWB'] = array('date_sql'=>$date_sql, 'color'=>$color) ;
+		$row['status_closed'] = !$has_pending ;
+		unset($row['obj_steps']) ;
+		
+		if( $row['status_closed'] ) {
+			if( !isset($map_prioCode_spentTimesS[$row['priority_code']]) ) {
+				$map_prioCode_spentTimesS[$row['priority_code']] = array() ;
+			}
+			$map_prioCode_spentTimesS[$row['priority_code']][] = $total_spent_time_s ;
 		}
 	}
 	unset($row) ;
 	
 	
-	
+	$TAB_gauges = array() ;
+	foreach( $map_prioCode_spentTimesS as $prio_id => $spentTimesS ) {
+		if( !$spentTimesS ) {
+			continue ;
+		}
+		$TAB_gauges[$prio_id] = round( ((array_sum($spentTimesS) / count($spentTimesS)) / 3600), 1 ) ;
+	}
 	
 	
 	
 	return array(
 		'success' => true,
 		'data_grid' => array_values($TAB),
-		'data_gauge' => array(
-			
-		)
+		'data_gauges' => $TAB_gauges
 	) ;
 }
 

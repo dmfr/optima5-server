@@ -20,8 +20,8 @@ include("$server_root/modules/paracrm/backend_paracrm.inc.php");
 include("$server_root/include/GMaps.php" ) ;
 
 
-$file_code = 'CDE' ;
-$file_code_step = 'CDE_STEP' ;
+$file_code = 'FLOW_PICKING' ;
+$file_code_step = 'FLOW_PICKING_STEP' ;
 
 $map_steps = array(
 	'01_CREATE' => array(41,42),

@@ -1,4 +1,4 @@
-Ext.define('DbsEmbramachMachDeliveryModel', {
+Ext.define('DbsEmbramachMachFlowRowModel', {
     extend: 'Ext.data.Model',
     fields: [
         {name: '_filerecord_id', type: 'int'},
@@ -10,31 +10,16 @@ Ext.define('DbsEmbramachMachDeliveryModel', {
 		  {name: 'shipto_name', type: 'string'},
 		  {name: 'txt_feedback', type: 'string'},
 		  {name: 'step_txt', type: 'string'},
-		  {name: 'step_RLS', type: 'auto'},
-		  {name: 'step_PCK', type: 'auto'},
-		  {name: 'step_QI', type: 'auto'},
-		  {name: 'step_INV', type: 'auto'},
-		  {name: 'step_AWB', type: 'auto'}
+		  {name: 'status_closed', type: 'boolean'}
 	]
 });
 Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 	extend:'Ext.panel.Panel',
+	requires: ['Ext.ux.chart.series.KPIGauge', 'Ext.ux.chart.axis.KPIGauge'],
+	
+	flowCode: null,
 	
 	initComponent: function() {
-		var stepRenderer = function(vObj,metaData) {
-			if( !vObj ) {
-				return '&#160;' ;
-			}
-			switch( vObj.color ) {
-				case 'red' :
-				case 'orange' :
-				case 'green' :
-					metaData.tdCls += ' '+'op5-spec-dbsembramach-gridcell-'+vObj.color ;
-					break ;
-			}
-			return vObj.date_sql.replace(' ','<br>') ;
-		};
-		
 		Ext.apply(this,{
 			bodyCls: 'ux-noframe-bg',
 			layout: 'border',
@@ -59,218 +44,271 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 				data: {title: 'MACH', people_count:0}
 			},{
 				region: 'center',
+				xtype: 'panel',
+				layout: 'fit',
 				border: false,
-				xtype: 'grid',
-				itemId: 'pGrid',
-				bodyCls: 'op5-spec-dbsembramach-mach-grid',
-				store: {
-					model: 'DbsEmbramachMachDeliveryModel',
-					data: []
-				},
-				columns:[{
-					text: 'Picking',
-					dataIndex: 'delivery_id',
-					tdCls: 'op5-spec-dbsembramach-bigcolumn',
-					width: 110,
-					align: 'center'
-				},{
-					text: 'Priority',
-					dataIndex: 'priority_code',
-					renderer: function(v,metaData) {
-						switch( v ) {
-							case '1' :
-								return '<font color="red">AOG</font>' ;
-							case '2' :
-								return '<font color="#CCCD06">CRI</font>' ;
-							case '3' :
-								return '<font color="#164E89">ROU</font>' ;
-						}
-					},
-					width: 60,
-					align: 'center',
-					tdCls: 'op5-spec-dbsembramach-bigcolumn'
-				},{
-					text: 'Flow',
-					dataIndex: 'flow',
-					width: 60,
-					align: 'center',
-					tdCls: 'op5-spec-dbsembramach-bigcolumn'
-				},{
-					text: 'Customer',
-					dataIndex: 'shipto_name',
-					width: 130
-				},{
-					text: 'Process step',
-					dataIndex: 'step_txt',
-					width: 110
-				},{
-					text: 'RLS',
-					dataIndex: 'step_RLS',
-					renderer: stepRenderer,
-					width: 80,
-					align: 'center'
-				},{
-					text: 'PCK',
-					dataIndex: 'step_PCK',
-					renderer: stepRenderer,
-					width: 80,
-					align: 'center'
-				},{
-					text: 'QI',
-					dataIndex: 'step_QI',
-					renderer: stepRenderer,
-					width: 80,
-					align: 'center'
-				},{
-					text: 'INV',
-					dataIndex: 'step_INV',
-					renderer: stepRenderer,
-					width: 80,
-					align: 'center'
-				},{
-					text: 'AWB',
-					dataIndex: 'step_AWB',
-					renderer: stepRenderer,
-					width: 80,
-					align: 'center'
-				}],
-				plugins: [{
-					ptype: 'bufferedrenderer'
-				}],
-				viewConfig: {
-					getRowClass: function(record) {
-						if( !Ext.isEmpty(record.get('step_INV')) ) {
-							return 'op5-spec-dbsembramach-gridcell-done' ;
-						}
-					}
-				}
+				itemId: 'pCenter'
 			},{
 				region: 'east',
 				width: 200,
-				xtype: 'panel',
-				itemId: 'pGauges',
-				collapsible: true,
-				layout: {
-					type: 'vbox',
-					align: 'stretch'
-				},
-				title: 'Performance gauges',
-				items: [{
-					flex: 1,
-					xtype:'panel',
-					bodyCls: 'ux-noframe-bg',
-					title: '<font color="red">AOG performance</font>',
-					layout: 'fit',
-					items: [{
-						xtype: 'chart',
-						style: 'background:#fff',
-						animate: {
-							easing: 'bounceOut',
-							duration: 500
-						},
-						store: {
-							fields: ['name','value'],
-							data: [{name:'AOG', value:1.4}]
-						},
-						insetPadding: 25,
-						flex: 1,
-						axes: [{
-							type: 'gauge',
-							position: 'gauge',
-							minimum: 0,
-							maximum: 4,
-							steps: 4,
-							margin: 7
-						}],
-						series: [{
-							type: 'gauge',
-							field: 'value',
-							donut: 80,
-							colorSet: ['#FF0000', '#ddd']
-						}]
-					}]
-				},{
-					flex: 1,
-					xtype:'panel',
-					bodyCls: 'ux-noframe-bg',
-					title: '<font color="#CCCD06">CRITICAL performance</font>',
-					layout: 'fit',
-					items: [{
-						xtype: 'chart',
-						style: 'background:#fff',
-						animate: {
-							easing: 'bounceOut',
-							duration: 500
-						},
-						store: {
-							fields: ['name','value'],
-							data: [{name:'CRI', value:27}]
-						},
-						insetPadding: 25,
-						flex: 1,
-						axes: [{
-							type: 'gauge',
-							position: 'gauge',
-							minimum: 0,
-							maximum: 48,
-							steps: 10,
-							margin: 7
-						}],
-						series: [{
-							type: 'gauge',
-							field: 'value',
-							donut: 80,
-							colorSet: ['#CCCD06', '#ddd']
-						}]
-					}]
-				},{
-					flex: 1,
-					xtype:'panel',
-					bodyCls: 'ux-noframe-bg',
-					title: '<font color="#164E89">ROUTINE performance</font>',
-					layout: 'fit',
-					items: [{
-						xtype: 'chart',
-						style: 'background:#fff',
-						animate: {
-							easing: 'bounceOut',
-							duration: 500
-						},
-						store: {
-							fields: ['name','value'],
-							data: [{name:'ROU', value:47}]
-						},
-						insetPadding: 25,
-						flex: 1,
-						axes: [{
-							type: 'gauge',
-							position: 'gauge',
-							minimum: 0,
-							maximum: 96,
-							steps: 10,
-							margin: 7
-						}],
-						series: [{
-							type: 'gauge',
-							field: 'value',
-							donut: 80,
-							colorSet: ['#164E89', '#ddd']
-						}]
-					}]
-				}]
+				layout: 'fit',
+				itemId: 'pEast'
 			}]
 		});
 		
 		this.callParent() ;
 		
+		this.tmpModelName = 'DbsEmbramachMachFlowRowModel-' + this.getId() ;
+		this.on('destroy',function(p) {
+			Ext.ux.dams.ModelManager.unregister( p.tmpModelName ) ;
+		}) ;
+		
+		this.doConfigure() ;
+	},
+	
+	doConfigure: function() {
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_embramach',
+				_action: 'mach_getGridCfg',
+				flow_code: this.flowCode
+			},
+			success: function(response) {
+				var jsonResponse = Ext.JSON.decode(response.responseText) ;
+				if( jsonResponse.success != true ) {
+					return ;
+				}
+				this.onConfigure( jsonResponse ) ;
+			},
+			callback: function() {
+				//this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+	},
+	onConfigure: function( jsonResponse ) {
+		var pCenter = this.down('#pCenter'),
+			pEast = this.down('#pEast') ;
+			
+		var prioMap = {} ;
+		Ext.Array.each( jsonResponse.data.flow_prio, function(prio) {
+			prioMap[prio.prio_id] = prio ;
+		}) ;
+		
+		var stepRenderer = function(vObj,metaData) {
+			if( !vObj ) {
+				return '&#160;' ;
+			}
+			if( !vObj.pending && !vObj.ACTUAL_dateSql ) {
+				return '&#160;' ;
+			}
+			var dateSql ;
+			if( vObj.pending ) {
+				dateSql = vObj.ETA_dateSql ;
+			} else {
+				dateSql = vObj.ACTUAL_dateSql ;
+			}
+			switch( vObj.color ) {
+				case 'red' :
+				case 'orange' :
+				case 'green' :
+					metaData.tdCls += ' '+'op5-spec-dbsembramach-gridcell-'+vObj.color ;
+					break ;
+			}
+			if( vObj.pending ) {
+				metaData.tdCls += ' '+'op5-spec-dbsembramach-gridcell-bold' ;
+			}
+			if( Ext.isEmpty(dateSql) ) {
+				return '&#160;' ;
+			}
+			return dateSql.replace(' ','<br>') ;
+		};
+		
+		var pushModelfields = [] ;
+		var columns = [{
+			text: 'Picking',
+			dataIndex: 'delivery_id',
+			tdCls: 'op5-spec-dbsembramach-bigcolumn',
+			width: 110,
+			align: 'center'
+		},{
+			text: 'Priority',
+			dataIndex: 'priority_code',
+			renderer: function(v,metaData) {
+				var prioMap = this._prioMap ;
+				if( prioMap.hasOwnProperty(v) ) {
+					var prioData = prioMap[v] ;
+					return '<font color="' + prioData.prio_color + '">' + prioData.prio_code + '</font>' ;
+				}
+				return '?' ;
+			},
+			width: 60,
+			align: 'center',
+			tdCls: 'op5-spec-dbsembramach-bigcolumn'
+		},{
+			text: 'Flow',
+			dataIndex: 'flow',
+			width: 60,
+			align: 'center',
+			tdCls: 'op5-spec-dbsembramach-bigcolumn'
+		},{
+			text: 'Customer',
+			dataIndex: 'shipto_name',
+			width: 130
+		},{
+			text: 'Process step',
+			dataIndex: 'step_txt',
+			width: 110
+		}] ;
+		Ext.Array.each( jsonResponse.data.flow_milestone, function(milestone) {
+			pushModelfields.push({
+				name: 'milestone_'+milestone.milestone_code,
+				type: 'auto'
+			}) ;
+			columns.push({
+				text: milestone.milestone_txt,
+				dataIndex: 'milestone_'+milestone.milestone_code,
+				renderer: stepRenderer,
+				width: 80,
+				align: 'center'
+			});
+		}) ;
+		
+		Ext.define(this.tmpModelName, {
+			extend: 'DbsEmbramachMachFlowRowModel',
+			fields: pushModelfields
+		});
+		
+		var columnDefaults = {
+			menuDisabled: false,
+			draggable: false,
+			sortable: false,
+			hideable: false,
+			resizable: false,
+			groupable: false,
+			lockable: false
+		} ;
+		Ext.Array.each( columns, function(column) {
+			Ext.applyIf( column, columnDefaults ) ;
+		}) ;
+		
+		var tmpGridCfg = {
+			border: false,
+			xtype: 'grid',
+			itemId: 'pGrid',
+			bodyCls: 'op5-spec-dbsembramach-mach-grid',
+			store: {
+				model: this.tmpModelName,
+				data: []
+			},
+			columns:columns,
+			plugins: [{
+				ptype: 'bufferedrenderer'
+			}],
+			viewConfig: {
+				getRowClass: function(record) {
+					if( record.get('status_closed') ) {
+						return 'op5-spec-dbsembramach-gridcell-done' ;
+					}
+				}
+			},
+			
+			_prioMap: prioMap
+		} ;
+		
+		
+		var gaugesSubPanels = [] ;
+		Ext.Array.each( jsonResponse.data.flow_prio, function(prio) {
+			gaugesSubPanels.push( {
+				flex: 1,
+				xtype:'panel',
+				bodyCls: 'ux-noframe-bg',
+				itemId: 'gauge_'+prio.prio_id,
+				title: '<font color="'+prio.prio_color+'">'+prio.prio_txt+' performance</font>',
+				layout: 'fit',
+				items: [{
+					xtype: 'chart',
+					style: 'background:#fff',
+					animate: {
+						easing: 'elasticIn',
+						duration: 500
+					},
+					store: {
+						fields: ['value'],
+						data: [{value:0}]
+					},
+					insetPadding: 25,
+					flex: 1,
+					axes: [{
+						type: 'kpigauge',
+						position: 'left',
+						minimum: 0,
+						maximum: (prio.tat_hour * 2),
+						steps: Ext.Array.min([10,(prio.tat_hour * 2)]),
+						margin: 0,
+						label: {
+							fill: '#333',
+							font: '12px Heveltica, sans-serif'
+						}
+					}],
+					series: [{
+						type: 'kpigauge',
+						field: 'value',
+						needle: {
+							width: 6,
+							pivotFill: prio.prio_color,
+							pivotRadius: 5
+						},
+						ranges: [{
+							from: 0,
+							to: (prio.tat_hour * 0.9) ,
+							color: '#2AFF00'
+						}, {
+							from: (prio.tat_hour * 0.9) ,
+							to: prio.tat_hour,
+							color: '#FFB300'
+						}, {
+							from: prio.tat_hour,
+							to: (prio.tat_hour * 2),
+							color: '#FF2B2B'
+						}],
+						donut: 70
+					}]
+				}]
+			} );
+		}) ;
+		
+		var tmpGaugesCfg = {
+			xtype: 'panel',
+			itemId: 'pGauges',
+			border: false,
+			collapsible: true,
+			layout: {
+				type: 'vbox',
+				align: 'stretch'
+			},
+			title: 'Performance gauges',
+			items: gaugesSubPanels
+		} ;
+		
+		
+		
+		
+		pCenter.removeAll() ;
+		pCenter.add( tmpGridCfg ) ;
+		pEast.removeAll() ;
+		pEast.add( tmpGaugesCfg ) ;
 		this.doLoad() ;
 	},
+	
 	doLoad: function() {
 		this.showLoadmask() ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_dbs_embramach',
-				_action: 'mach_getGrid'
+				_action: 'mach_getGridData',
+				flow_code: this.flowCode
 			},
 			success: function(response) {
 				var jsonResponse = Ext.JSON.decode(response.responseText) ;
@@ -294,6 +332,15 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 		pGridStore.filterBy(function(record, id){
 			return Ext.Array.contains(['LBG1','LBG2','LBG3'],record.get('flow')) ;
 		}, this);
+		
+		Ext.Object.each( jsonResponse.data_gauges, function( prioId, value ) {
+			var pGauge = pGauges.down('#gauge_'+prioId) ;
+			if( pGauge == null ) {
+				return ;
+			}
+			var cGauge = pGauge.down('chart') ;
+			cGauge.getStore().loadData([{value: value}]) ;
+		}) ;
 	},
 	
 	showLoadmask: function() {

@@ -50,7 +50,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MainPanel',{
 		
 		switch( actionCode ) {
 			case 'panel_mach' :
-				return me.switchToAppPanel('Optima5.Modules.Spec.DbsEmbramach.MachPanel') ;
+				return me.switchToAppPanel('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{flowCode: 'PICKING'}) ;
 			default :
 				return ;
 		}
