@@ -104,17 +104,25 @@ function specDbsPeople_Forecast_buildResources( $post_data ) {
 			if( $peopleday_record['std_abs_code'] != '_' ) {
 				continue ;
 			}
-			$arr_dayrsrc[$peopleday_record['date_sql']][$peopleday_record['std_role_code']] += $peopleday_record['std_daylength'] ;
+			if( !isset($arr_dayrsrc[$peopleday_record['date_sql']][$peopleday_record['std_role_code']]) ) {
+				$arr_dayrsrc[$peopleday_record['date_sql']][$peopleday_record['std_role_code']] = array(
+					'qty_hour' => 0,
+					'qty_people' => 0
+				) ;
+			}
+			$arr_dayrsrc[$peopleday_record['date_sql']][$peopleday_record['std_role_code']]['qty_hour'] += $peopleday_record['std_daylength'] ;
+			$arr_dayrsrc[$peopleday_record['date_sql']][$peopleday_record['std_role_code']]['qty_people']++ ;
 		}
 		foreach( $arr_dayrsrc as $date_sql => $arr1 ) {
-			foreach( $arr1 as $role_code => $qty_hour ) {
-				if( $qty_hour == 0 ) {
+			foreach( $arr1 as $role_code => $qtys ) {
+				if( $qtys['qty_hour'] == 0 ) {
 					continue ;
 				}
 				$arr_ins = array() ;
 				$arr_ins['field_DAY_DATE'] = $date_sql ;
 				$arr_ins['field_ROLE_CODE'] = $role_code ;
-				$arr_ins['field_QTY_HOUR'] = $qty_hour ;
+				$arr_ins['field_QTY_HOUR'] = $qtys['qty_hour'] ;
+				$arr_ins['field_QTY_PEOPLE'] = $qtys['qty_people'] ;
 				$arr_new_ids[] = paracrm_lib_data_insertRecord_file('FCAST_WEEK_DAYRSRC',$filerecord_parent_id,$arr_ins) ;
 			}
 		}
@@ -228,7 +236,8 @@ function specDbsPeople_Forecast_getWeeks( $post_data ) {
 		$dayrsrcRecord = array(
 			'rsrc_date' => date('Y-m-d', strtotime($arr['field_DAY_DATE'])),
 			'rsrc_role_code' => $arr['field_ROLE_CODE'],
-			'rsrc_qty_hour' => $arr['field_QTY_HOUR']
+			'rsrc_qty_hour' => $arr['field_QTY_HOUR'],
+			'rsrc_qty_people' => $arr['field_QTY_PEOPLE']
 		) ;
 		$arr_weekRecords[$filerecord_id]['day_resources'][] = $dayrsrcRecord ;
 	}

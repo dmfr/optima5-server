@@ -7,6 +7,7 @@ Ext.define('DbsPeopleForecastCfgUoRole', {
 });
 Ext.define('DbsPeopleForecastCfgUo', {
 	extend: 'Ext.data.Model',
+	idProperty: 'uo_code',
 	fields: [
 		{name: 'uo_code',  type: 'string'}
 	],
@@ -22,7 +23,8 @@ Ext.define('DbsPeopleForecastDayResourceModel', {
 	fields: [
 		{name: 'rsrc_date',  type: 'string'},
 		{name: 'rsrc_role_code',  type: 'string'},
-		{name: 'rsrc_qty_hour', type: 'float'}
+		{name: 'rsrc_qty_hour', type: 'float'},
+		{name: 'rsrc_qty_people', type: 'int'}
 	]
 });
 Ext.define('DbsPeopleForecastUoVolumeModel', {
@@ -468,9 +470,12 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 					case '0_WEEKCOEFS' :
 						return '<i>Coefficient jour</i>' ;
 					case '1_FCAST_UO' :
-					case '2_CAPACITY_UO' :
 						return record.get('uo_txt') ;
-					case '3_BALANCE_ROLES' :
+					case '2_FCAST_ROLES_H' :
+						return record.get('role_txt') ;
+					case '3_CAPACITY_ROLES_H' :
+						return record.get('role_txt') ;
+					case '4_BALANCE_ROLES_PEOPLE' :
 						return record.get('role_txt') ;
 				}
 			}
@@ -560,10 +565,12 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 											return 'Répartition sur semaine' ;
 										case '1_FCAST_UO' :
 											return 'Forecast (UOs)' ;
-										case '2_CAPACITY_UO' :
-											return 'Capacité (UOs)' ;
-										case '3_BALANCE_ROLES' :
-											return 'Balance / Besoins' ;
+										case '2_FCAST_ROLES_H' :
+											return 'Forecast - Roles (Heures)' ;
+										case '3_CAPACITY_ROLES_H' :
+											return 'Capacité - Roles (Heures)' ;
+										case '4_BALANCE_ROLES_PEOPLE' :
+											return 'Besoins (personnes)' ;
 										default :
 											return '???' ;
 									}
@@ -602,18 +609,28 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 					return '' ;
 				}
 				return Math.round(v.uo_qty_unit) ;
-			case '2_CAPACITY_UO' :
-				metaData.style += '; font-weight:bold;'
-				if( v.uo_qty_unit == null ) {
+			
+			case '2_FCAST_ROLES_H' :
+				if( v.role_qty_h == null ) {
 					return '' ;
 				}
-				return Math.round(v.uo_qty_unit) ;
+				return Math.round(v.role_qty_h) ;
+			
+			case '3_CAPACITY_ROLES_H' :
+				metaData.style += '; font-weight:bold;'
+				if( v.role_qty_h == null ) {
+					return '' ;
+				}
+				return Math.round(v.role_qty_h) ;
 				
-			case '3_BALANCE_ROLES' :
+			case '4_BALANCE_ROLES_PEOPLE' :
 				if( Ext.isEmpty(v) ) {
 					return '' ;
 				}
 				metaData.style += '; font-weight:bold;'
+				if( isNaN(v.role_qty_people) ) {
+					return v.role_qty_people ;
+				}
 				if( v.role_qty_people == 0 ) {
 					return '=' ;
 				}
@@ -749,11 +766,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 				group_id: '1_FCAST_UO',
 				uo_code: uoRecord.get('uo_code')
 			});
-			baseData.push({
-				id: '2_CAPACITY_UO+'+uoRecord.get('uo_code'),
-				group_id: '2_CAPACITY_UO',
-				uo_code: uoRecord.get('uo_code')
-			});
 			var roleCode ;
 			Ext.Array.each( uoRecord.roles().getRange(), function(roleRecord) {
 				roleCode = roleRecord.get('role_code') ;
@@ -761,15 +773,25 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 					availableRoles.push(roleCode) ;
 				}
 			});
-			Ext.Array.sort(availableRoles) ;
-			Ext.Array.each(availableRoles, function(roleCode) {
-				baseData.push({
-					id: '3_BALANCE_ROLES+'+roleCode,
-					group_id: '3_BALANCE_ROLES',
-					role_code: roleCode
-				});
-			});
 		},this) ;
+		Ext.Array.sort(availableRoles) ;
+		Ext.Array.each(availableRoles, function(roleCode) {
+			baseData.push({
+				id: '2_FCAST_ROLES_H+'+roleCode,
+				group_id: '2_FCAST_ROLES_H',
+				role_code: roleCode
+			});
+			baseData.push({
+				id: '3_CAPACITY_ROLES_H+'+roleCode,
+				group_id: '3_CAPACITY_ROLES_H',
+				role_code: roleCode
+			});
+			baseData.push({
+				id: '4_BALANCE_ROLES_PEOPLE+'+roleCode,
+				group_id: '4_BALANCE_ROLES_PEOPLE',
+				role_code: roleCode
+			});
+		});
 		
 		var gridData = {},
 			dateMap = this.gridAdapterGetDateMap() ;
@@ -828,13 +850,12 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 		}
 		var columnKeyWeek = 'w_'+dateStr ;
 		
-		var balanceByUo = {} ;
+		var balanceByRoleH = {} ;
 		
-		// 1 - FORECAST UO
-		Ext.Array.each( this.forecastCfgUoStore.getRange(), function(uoRecord) {
-			var uoCode = uoRecord.get('uo_code'),
+		// X - valeurs par défaut
+		Ext.Array.each( this.forecastCfgUoStore.getRange(), function(cfgUoRecord) {
+			var uoCode = cfgUoRecord.get('uo_code'),
 				rowId = '1_FCAST_UO+'+uoCode ;
-				
 			if( !gridData.hasOwnProperty(rowId) ) {
 				gridData[rowId] = {} ;
 			}
@@ -842,7 +863,41 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 				uo_qty_unit: null,
 				_editorValue: 0
 			} ;
+			
+			Ext.Array.each( cfgUoRecord.roles().getRange(), function(cfgUoRoleRecord) {
+				var cfgUoRoleCode = cfgUoRoleRecord.get('role_code'),
+					rowIds = ['2_FCAST_ROLES_H+'+cfgUoRoleCode,'3_CAPACITY_ROLES_H+'+cfgUoRoleCode,'4_BALANCE_ROLES_PEOPLE+'+cfgUoRoleCode] ;
+				Ext.Array.each(rowIds, function(rowId) {
+					if( !gridData.hasOwnProperty(rowId) ) {
+						gridData[rowId] = {} ;
+					}
+					var mkey ;
+					switch( rowId ) {
+						case '2_FCAST_ROLES_H+'+cfgUoRoleCode :
+							mkey = 'role_qty_h' ;
+							mvalue = null ;
+							break ;
+						case '3_CAPACITY_ROLES_H+'+cfgUoRoleCode :
+							mkey = 'role_qty_h' ;
+							mvalue = 0 ;
+							break ;
+						case '4_BALANCE_ROLES_PEOPLE+'+cfgUoRoleCode :
+							mkey = 'role_qty_people' ;
+							mvalue = 0 ;
+							break ;
+					}
+					gridData[rowId][columnKeyWeek] = {} ;
+					gridData[rowId][columnKeyWeek][mkey] = mvalue ;
+				}) ;
+				
+				if( !balanceByRoleH.hasOwnProperty(cfgUoRoleCode) ) {
+					balanceByRoleH[cfgUoRoleCode] = 0 ;
+				}
+			});
 		}) ;
+		
+		// 1+2 - FORECAST UO + ROLES.H
+		var obj_roleCode_qtyHour = {} ;
 		Ext.Array.each( forecastWeekRecord.week_volumes().getRange(), function(uoRecord) {
 			var uoCode = uoRecord.get('uo_code'),
 				qtyUnit = uoRecord.get('uo_qty_unit'),
@@ -856,79 +911,81 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 				_editorValue: ( qtyUnit <= 0 ? 0 : qtyUnit )
 			} ;
 			
-			
-			if( !balanceByUo.hasOwnProperty(uoCode) ) {
-				balanceByUo[uoCode] = 0 ;
-			}
-			balanceByUo[uoCode] -= qtyUnit ;
-		}) ;
-		
-		// 2 - CALC CAPACITY
-			// total resources
-			var obj_roleCode_qtyHour = {} ;
-			Ext.Array.each( forecastWeekRecord.day_resources().getRange(), function(dayrsrcRecord) {
-				var roleCode = dayrsrcRecord.get('rsrc_role_code'),
-					qtyHour = dayrsrcRecord.get('rsrc_qty_hour') ;
+			Ext.Array.each( this.forecastCfgUoStore.getById(uoCode).roles().getRange(), function(uoRoleRecord) {
+				var roleCode = uoRoleRecord.get('role_code'),
+					roleHRate = uoRoleRecord.get('role_hRate'),
+					qtyHour = qtyUnit / roleHRate ;
+				
 				if( !obj_roleCode_qtyHour.hasOwnProperty(roleCode) ) {
 					obj_roleCode_qtyHour[roleCode] = 0 ;
 				}
 				obj_roleCode_qtyHour[roleCode] += qtyHour ;
-			}) ;
-		Ext.Array.each( this.forecastCfgUoStore.getRange(), function(uoRecord) {
-			var uoCode = uoRecord.get('uo_code'),
-				rowId = '2_CAPACITY_UO+'+uoCode ;
-				
-			var available = [], capacityUnit = 0 ;
-			Ext.Array.each( uoRecord.roles().getRange(), function(uoRoleRecord) {
-				var roleCode = uoRoleRecord.get('role_code'),
-					roleHRate = uoRoleRecord.get('role_hRate') ;
-				if( !obj_roleCode_qtyHour.hasOwnProperty(roleCode) ) {
-					available = null ;
-					return false ;
-				}
-				available.push( roleHRate * obj_roleCode_qtyHour[roleCode] ) ;
-			}) ;
-			if( available == null ) {
-				capacityUnit = 0 ;
-			} else {
-				capacityUnit = Ext.Array.min(available) ;
-			}
-			if( !gridData.hasOwnProperty(rowId) ) {
-				gridData[rowId] = {} ;
-			}
-			gridData[rowId][columnKeyWeek] = {
-				uo_qty_unit: capacityUnit
-			} ;
 			
-			if( !balanceByUo.hasOwnProperty(uoCode) ) {
-				balanceByUo[uoCode] = 0 ;
-			}
-			balanceByUo[uoCode] += capacityUnit ;
+				if( balanceByRoleH.hasOwnProperty(roleCode) ) {
+					balanceByRoleH[roleCode] -= qtyHour ;
+				}
+			});
+		},this) ;
+		Ext.Object.each( obj_roleCode_qtyHour, function(roleCode, qtyHour) {
+			rowId = '2_FCAST_ROLES_H+'+roleCode ;
+			gridData[rowId][columnKeyWeek] = {
+				role_qty_h: qtyHour
+			} ;
 		}) ;
 		
-		// 3 - BALANCE
-		var balanceByRole = {} ;
-		Ext.Array.each( this.forecastCfgUoStore.getRange(), function(uoRecord) {
-			var uoCode = uoRecord.get('uo_code'),
-				balanceQtyUnit = balanceByUo[uoCode] ;
+		// 3 - CALC CAPACITY/RSRC HOUR
+			// total resources
+		var obj_roleCode_qtyHour = {} ;
+		Ext.Array.each( forecastWeekRecord.day_resources().getRange(), function(dayrsrcRecord) {
+			var roleCode = dayrsrcRecord.get('rsrc_role_code'),
+				qtyHour = dayrsrcRecord.get('rsrc_qty_hour') ;
+			if( !obj_roleCode_qtyHour.hasOwnProperty(roleCode) ) {
+				obj_roleCode_qtyHour[roleCode] = 0 ;
+			}
+			obj_roleCode_qtyHour[roleCode] += qtyHour ;
 			
-			Ext.Array.each( uoRecord.roles().getRange(), function(uoRoleRecord) {
-				var roleCode = uoRoleRecord.get('role_code'),
-					roleHRate = uoRoleRecord.get('role_hRate') ;
-				if( !balanceByRole.hasOwnProperty(roleCode) ) {
-					balanceByRole[roleCode] = 0 ;
-				}
-				balanceByRole[roleCode] += balanceQtyUnit / roleHRate ;
-			}) ;
+			if( balanceByRoleH.hasOwnProperty(roleCode) ) {
+				balanceByRoleH[roleCode] += qtyHour ;
+			}
 		}) ;
-		Ext.Object.each( balanceByRole , function(roleCode,qtyHour) {
-			var rowId = '3_BALANCE_ROLES+'+roleCode ;
+		Ext.Object.each( obj_roleCode_qtyHour, function(roleCode, qtyHour) {
+			rowId = '3_CAPACITY_ROLES_H+'+roleCode ;
+			if( !gridData.hasOwnProperty(rowId) ) {
+				return ;
+			}
+			gridData[rowId][columnKeyWeek] = {
+				role_qty_h: qtyHour
+			} ;
+		}) ;
+		
+		// 4pre - CALC AVG H/week for each role
+		var map_roleCode_hoursPerPeople = {} ;
+		Ext.Array.each( forecastWeekRecord.day_resources().getRange(), function(dayrsrcRecord) {
+			var roleCode = dayrsrcRecord.get('rsrc_role_code'),
+				qtyHour = dayrsrcRecord.get('rsrc_qty_hour'),
+				qtyPeople = dayrsrcRecord.get('rsrc_qty_people') ;
+			
+			if( !map_roleCode_hoursPerPeople.hasOwnProperty(roleCode) ) {
+				map_roleCode_hoursPerPeople[roleCode] = 0 ;
+			}
+			map_roleCode_hoursPerPeople[roleCode] += (qtyHour / qtyPeople) ;
+		}) ;
+		// 4 - BALANCE
+		Ext.Object.each( balanceByRoleH , function(roleCode,qtyHour) {
+			var rowId = '4_BALANCE_ROLES_PEOPLE+'+roleCode ;
 			if( !gridData.hasOwnProperty(rowId) ) {
 				gridData[rowId] = {} ;
 			}
+			if( !map_roleCode_hoursPerPeople.hasOwnProperty(roleCode) ) {
+				gridData[rowId][columnKeyWeek] = {
+					role_qty_h: qtyHour,
+					role_qty_people: '!'
+				} ;
+				return ;
+			}
 			gridData[rowId][columnKeyWeek] = {
-				role_qty_hour: qtyHour,
-				role_qty_people: qtyHour / 35
+				role_qty_h: qtyHour,
+				role_qty_people: (qtyHour / map_roleCode_hoursPerPeople[roleCode])
 			} ;
 		});
 	},
@@ -948,7 +1005,51 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 		}
 		var columnKeyDay = 'd_'+dateStr ;
 		
-		var balanceByUo = {} ;
+		var balanceByRoleH = {} ;
+		
+		// X - valeurs par défaut
+		Ext.Array.each( this.forecastCfgUoStore.getRange(), function(cfgUoRecord) {
+			var uoCode = cfgUoRecord.get('uo_code'),
+				rowId = '1_FCAST_UO+'+uoCode ;
+			if( !gridData.hasOwnProperty(rowId) ) {
+				gridData[rowId] = {} ;
+			}
+			gridData[rowId][columnKeyDay] = {
+				uo_qty_unit: null,
+				_editorValue: 0
+			} ;
+			
+			Ext.Array.each( cfgUoRecord.roles().getRange(), function(cfgUoRoleRecord) {
+				var cfgUoRoleCode = cfgUoRoleRecord.get('role_code'),
+					rowIds = ['2_FCAST_ROLES_H+'+cfgUoRoleCode,'3_CAPACITY_ROLES_H+'+cfgUoRoleCode,'4_BALANCE_ROLES_PEOPLE+'+cfgUoRoleCode] ;
+				Ext.Array.each(rowIds, function(rowId) {
+					if( !gridData.hasOwnProperty(rowId) ) {
+						gridData[rowId] = {} ;
+					}
+					var mkey ;
+					switch( rowId ) {
+						case '2_FCAST_ROLES_H+'+cfgUoRoleCode :
+							mkey = 'role_qty_h' ;
+							mvalue = null ;
+							break ;
+						case '3_CAPACITY_ROLES_H+'+cfgUoRoleCode :
+							mkey = 'role_qty_h' ;
+							mvalue = 0 ;
+							break ;
+						case '4_BALANCE_ROLES_PEOPLE+'+cfgUoRoleCode :
+							mkey = 'role_qty_people' ;
+							mvalue = 0 ;
+							break ;
+					}
+					gridData[rowId][columnKeyDay] = {} ;
+					gridData[rowId][columnKeyDay][mkey] = mvalue ;
+				}) ;
+				
+				if( !balanceByRoleH.hasOwnProperty(cfgUoRoleCode) ) {
+					balanceByRoleH[cfgUoRoleCode] = 0 ;
+				}
+			});
+		}) ;
 		
 		// 0 - COEFS
 		var dayCoef, totalCoefs = 0 ;
@@ -974,108 +1075,104 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 			_editorValue: dayCoef
 		} ;
 		
-		// 1 - FORECAST UO
-		Ext.Array.each( this.forecastCfgUoStore.getRange(), function(uoRecord) {
-			var uoCode = uoRecord.get('uo_code'),
-				rowId = '1_FCAST_UO+'+uoCode ;
-				
-			if( !gridData.hasOwnProperty(rowId) ) {
-				gridData[rowId] = {} ;
-			}
-			gridData[rowId][columnKeyDay] = {
-				uo_qty_unit: null
-			} ;
-		}) ;
+		// 1+2 - FORECAST UO + ROLES.H
+		var obj_roleCode_qtyHour = {} ;
 		Ext.Array.each( forecastWeekRecord.week_volumes().getRange(), function(uoRecord) {
 			var uoCode = uoRecord.get('uo_code'),
 				qtyUnit = uoRecord.get('uo_qty_unit'),
 				rowId = '1_FCAST_UO+'+uoCode ;
-				
+			
 			qtyUnit = (qtyUnit * dayCoef / totalCoefs) ;
 			
 			if( !gridData.hasOwnProperty(rowId) ) {
 				gridData[rowId] = {} ;
 			}
 			gridData[rowId][columnKeyDay] = {
-				uo_qty_unit: ( qtyUnit <= 0 ? null : qtyUnit )
+				uo_qty_unit: ( qtyUnit <= 0 ? null : qtyUnit ),
+				_editorValue: ( qtyUnit <= 0 ? 0 : qtyUnit )
 			} ;
 			
-			
-			if( !balanceByUo.hasOwnProperty(uoCode) ) {
-				balanceByUo[uoCode] = 0 ;
-			}
-			balanceByUo[uoCode] -= qtyUnit ;
-		}) ;
-		
-		// 2 - CALC CAPACITY
-			// total resources
-			var obj_roleCode_qtyHour = {} ;
-			Ext.Array.each( forecastWeekRecord.day_resources().getRange(), function(dayrsrcRecord) {
-				if( dayrsrcRecord.get('rsrc_date') != dateSql ) {
-					return ;
-				}
-				var roleCode = dayrsrcRecord.get('rsrc_role_code'),
-					qtyHour = dayrsrcRecord.get('rsrc_qty_hour') ;
+			Ext.Array.each( this.forecastCfgUoStore.getById(uoCode).roles().getRange(), function(uoRoleRecord) {
+				var roleCode = uoRoleRecord.get('role_code'),
+					roleHRate = uoRoleRecord.get('role_hRate'),
+					qtyHour = qtyUnit / roleHRate ;
+				
 				if( !obj_roleCode_qtyHour.hasOwnProperty(roleCode) ) {
 					obj_roleCode_qtyHour[roleCode] = 0 ;
 				}
 				obj_roleCode_qtyHour[roleCode] += qtyHour ;
-			}) ;
-		Ext.Array.each( this.forecastCfgUoStore.getRange(), function(uoRecord) {
-			var uoCode = uoRecord.get('uo_code'),
-				rowId = '2_CAPACITY_UO+'+uoCode ;
-				
-			var available = [], capacityUnit = 0 ;
-			Ext.Array.each( uoRecord.roles().getRange(), function(uoRoleRecord) {
-				var roleCode = uoRoleRecord.get('role_code'),
-					roleHRate = uoRoleRecord.get('role_hRate') ;
-				if( !obj_roleCode_qtyHour.hasOwnProperty(roleCode) ) {
-					available = null ;
-					return false ;
-				}
-				available.push( roleHRate * obj_roleCode_qtyHour[roleCode] ) ;
-			}) ;
-			if( available == null ) {
-				capacityUnit = 0 ;
-			} else {
-				capacityUnit = Ext.Array.min(available) ;
-			}
-			if( !gridData.hasOwnProperty(rowId) ) {
-				gridData[rowId] = {} ;
-			}
-			gridData[rowId][columnKeyDay] = {
-				uo_qty_unit: capacityUnit
-			} ;
 			
-			if( !balanceByUo.hasOwnProperty(uoCode) ) {
-				balanceByUo[uoCode] = 0 ;
-			}
-			balanceByUo[uoCode] += capacityUnit ;
+				if( balanceByRoleH.hasOwnProperty(roleCode) ) {
+					balanceByRoleH[roleCode] -= qtyHour ;
+				}
+			});
+		},this) ;
+		Ext.Object.each( obj_roleCode_qtyHour, function(roleCode, qtyHour) {
+			rowId = '2_FCAST_ROLES_H+'+roleCode ;
+			gridData[rowId][columnKeyDay] = {
+				role_qty_h: qtyHour
+			} ;
 		}) ;
 		
-		// 3 - BALANCE
-		var balanceByRole = {} ;
-		Ext.Array.each( this.forecastCfgUoStore.getRange(), function(uoRecord) {
-			var uoCode = uoRecord.get('uo_code'),
-				balanceQtyUnit = balanceByUo[uoCode] ;
+		// 3 - CALC CAPACITY/RSRC HOUR
+			// total resources
+		var obj_roleCode_qtyHour = {} ;
+		Ext.Array.each( forecastWeekRecord.day_resources().getRange(), function(dayrsrcRecord) {
+			if( dayrsrcRecord.get('rsrc_date') != dateSql ) {
+				return ;
+			}
+			var roleCode = dayrsrcRecord.get('rsrc_role_code'),
+				qtyHour = dayrsrcRecord.get('rsrc_qty_hour') ;
+			if( !obj_roleCode_qtyHour.hasOwnProperty(roleCode) ) {
+				obj_roleCode_qtyHour[roleCode] = 0 ;
+			}
+			obj_roleCode_qtyHour[roleCode] += qtyHour ;
 			
-			Ext.Array.each( uoRecord.roles().getRange(), function(uoRoleRecord) {
-				var roleCode = uoRoleRecord.get('role_code'),
-					roleHRate = uoRoleRecord.get('role_hRate') ;
-				if( !balanceByRole.hasOwnProperty(roleCode) ) {
-					balanceByRole[roleCode] = 0 ;
-				}
-				balanceByRole[roleCode] += balanceQtyUnit / roleHRate ;
-			}) ;
+			if( balanceByRoleH.hasOwnProperty(roleCode) ) {
+				balanceByRoleH[roleCode] += qtyHour ;
+			}
 		}) ;
-		Ext.Object.each( balanceByRole , function(roleCode,qtyHour) {
-			var rowId = '3_BALANCE_ROLES+'+roleCode ;
+		Ext.Object.each( obj_roleCode_qtyHour, function(roleCode, qtyHour) {
+			rowId = '3_CAPACITY_ROLES_H+'+roleCode ;
+			if( !gridData.hasOwnProperty(rowId) ) {
+				return ;
+			}
+			gridData[rowId][columnKeyDay] = {
+				role_qty_h: qtyHour
+			} ;
+		}) ;
+		
+		// 4pre - CALC AVG H/day for each role
+		var map_roleCode_hoursPerPeople = {} ;
+		Ext.Array.each( forecastWeekRecord.day_resources().getRange(), function(dayrsrcRecord) {
+			if( dayrsrcRecord.get('rsrc_date') != dateSql ) {
+				return ;
+			}
+			var roleCode = dayrsrcRecord.get('rsrc_role_code'),
+				qtyHour = dayrsrcRecord.get('rsrc_qty_hour'),
+				qtyPeople = dayrsrcRecord.get('rsrc_qty_people') ;
+			
+			if( !map_roleCode_hoursPerPeople.hasOwnProperty(roleCode) ) {
+				map_roleCode_hoursPerPeople[roleCode] = 0 ;
+			}
+			map_roleCode_hoursPerPeople[roleCode] += (qtyHour / qtyPeople) ;
+		}) ;
+		// 4 - BALANCE
+		Ext.Object.each( balanceByRoleH , function(roleCode,qtyHour) {
+			var rowId = '4_BALANCE_ROLES_PEOPLE+'+roleCode ;
 			if( !gridData.hasOwnProperty(rowId) ) {
 				gridData[rowId] = {} ;
 			}
+			if( !map_roleCode_hoursPerPeople.hasOwnProperty(roleCode) ) {
+				gridData[rowId][columnKeyDay] = {
+					role_qty_h: qtyHour,
+					role_qty_people: '!'
+				} ;
+				return ;
+			}
 			gridData[rowId][columnKeyDay] = {
-				role_qty_hour: qtyHour,
-				role_qty_people: qtyHour / 7
+				role_qty_h: qtyHour,
+				role_qty_people: (qtyHour / map_roleCode_hoursPerPeople[roleCode])
 			} ;
 		});
 	},
