@@ -51,7 +51,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.DemoForecastRowPanel',{
 					xtype: 'numberfield',
 					fieldLabel: 'Table',
 					labelWidth: 70,
-					value: 1300,
+					value: 1300
 				}]
 			},{
 				xtype:'fieldset',
@@ -80,7 +80,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.DemoForecastRowPanel',{
 					xtype: 'numberfield',
 					fieldLabel: 'Table',
 					labelWidth: 70,
-					value: 712,
+					value: 712
 				}]
 			},{
 				xtype:'container',
@@ -105,7 +105,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.DemoForecastRowPanel',{
 				{name:'Colis',data1:29415,data2:28000},
 				{name:'Pals I/O',data1:27415,data2:32000},
 				{name:'Quai',data1:30015,data2:24000},
-				{name:'Table',data1:26000,data2:26100},
+				{name:'Table',data1:26000,data2:26100}
 			]
 		}) ;
 		
@@ -134,7 +134,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.DemoForecastRowPanel',{
              }, {
                 type: 'Category',
                 position: 'bottom',
-                fields: ['name'],
+                fields: ['name']
                 //title: 'Poste(s)'
             }],
             series: [{

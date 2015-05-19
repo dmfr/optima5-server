@@ -142,7 +142,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.WbMrfoxyFinanceRevisionRowValueField',
 				data: [
 					{id: '', txt:'-select-'},
 					{id: 'static', txt:'Fix.Cost'},
-					{id: 'percent', txt:'% of Rev'},
+					{id: 'percent', txt:'% of Rev'}
 				]
 			},
 			matchFieldWidth:false,

@@ -103,7 +103,7 @@ Ext.define('QmergeMselectModel', {
 		{name: 'math_round', type: 'number'}
 	],
 	validations: [
-		{type: 'length',    field: 'select_lib',     min: 1},
+		{type: 'length',    field: 'select_lib',     min: 1}
 	],
 	hasMany: [{ 
 		model: 'QmergeMselectFormulasymbolModel',

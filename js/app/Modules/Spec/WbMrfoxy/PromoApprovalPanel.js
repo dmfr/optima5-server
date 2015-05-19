@@ -175,8 +175,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoApprovalPanel',{
 						'</div>',
 						{
 							disableFormats: true,
-							getApprovalStr: function( boolean ) {
-								if( boolean ) {
+							getApprovalStr: function( booleanValue ) {
+								if( booleanValue ) {
 									return 'APPROVED' ;
 								} else {
 									return 'REJECTED' ;

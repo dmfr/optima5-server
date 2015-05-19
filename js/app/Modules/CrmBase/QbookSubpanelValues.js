@@ -503,7 +503,7 @@ Ext.define('Optima5.Modules.CrmBase.QbookSubpanelValues' ,{
 							{math_operation:'+', lib:'+'},
 							{math_operation:'-', lib:'-'},
 							{math_operation:'*', lib:'X'},
-							{math_operation:'/', lib:'/'},
+							{math_operation:'/', lib:'/'}
 						]
 					},
 					queryMode: 'local',

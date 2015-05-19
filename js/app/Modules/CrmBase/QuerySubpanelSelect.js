@@ -19,7 +19,7 @@ Ext.define('QuerySelectModel', {
 		{name: 'math_round', type: 'number'}
 	],
 	validations: [
-		{type: 'length',    field: 'select_lib',     min: 1},
+		{type: 'length',    field: 'select_lib',     min: 1}
 	],
 	hasMany: { 
 		model: 'QuerySelectFormulasymbolModel',
@@ -176,7 +176,7 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelSelect' ,{
 							{math_operation:'+', lib:'+'},
 							{math_operation:'-', lib:'-'},
 							{math_operation:'*', lib:'X'},
-							{math_operation:'/', lib:'/'},
+							{math_operation:'/', lib:'/'}
 						]
 					},
 					queryMode: 'local',
