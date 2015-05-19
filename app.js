@@ -11,6 +11,7 @@ Ext.Loader.setConfig({
 });
 Ext.require('Ext.*') ;
 Ext.require('Optima5.App');
+Ext.require('Optima5.Modules.All');
 
 var op5desktop, op5session ;
 Ext.onReady(function () {
