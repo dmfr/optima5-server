@@ -171,6 +171,18 @@ Ext.onReady(function () {
 		}
 	});
 	
+	/*
+	 * Ext 4.x + Chrome 43+ : submenus disappears
+	 */
+	Ext.menu.Menu.override({
+		onMouseLeave: function(e) {
+			if (this.disabled) {
+					return;
+			}
+			this.fireEvent('mouseleave', this, e);
+		},
+	});
+	
 	
 	
 	/*
