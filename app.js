@@ -180,7 +180,7 @@ Ext.onReady(function () {
 					return;
 			}
 			this.fireEvent('mouseleave', this, e);
-		},
+		}
 	});
 	
 	
