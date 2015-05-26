@@ -3,7 +3,8 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MainPanel',{
 	requires:[
 		'Optima5.Modules.Spec.DbsEmbramach.HelperCache',
 		'Optima5.Modules.Spec.DbsEmbramach.MainMenu',
-		'Optima5.Modules.Spec.DbsEmbramach.MachPanel'
+		'Optima5.Modules.Spec.DbsEmbramach.MachPanel',
+		'Optima5.Modules.Spec.DbsEmbramach.MachAdminPanel'
 	],
 	
 	initComponent: function() {
@@ -41,6 +42,9 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MainPanel',{
 				scope: me
 			}
 		}) ;
+		if( !this.optimaModule.getSdomainRecord().get('auth_has_all') ) {
+			return this.switchToAppPanel('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{flowCode: 'PICKING'},true) ;
+		}
 		this.removeAll() ;
 		this.add( mainMenuView ) ;
 	},
@@ -50,12 +54,12 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MainPanel',{
 		
 		switch( actionCode ) {
 			case 'panel_mach' :
-				return me.switchToAppPanel('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{flowCode: 'PICKING'}) ;
+				return me.switchToAppPanel('Optima5.Modules.Spec.DbsEmbramach.MachAdminPanel',{flowCode: 'PICKING'}) ;
 			default :
 				return ;
 		}
 	},
-	switchToAppPanel: function( className, options ) {
+	switchToAppPanel: function( className, options, noDestroy ) {
 		var me = this ;
 		
 		options = options || {} ;
@@ -64,9 +68,11 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MainPanel',{
 		}) ;
 		
 		var panel = Ext.create(className,options) ;
-		panel.on('destroy',function() {
-			me.switchToMainMenu() ;
-		},this) ;
+		if( !noDestroy ) {
+			panel.on('destroy',function() {
+				me.switchToMainMenu() ;
+			},this) ;
+		}
 		
 		this.removeAll() ;
 		this.add( panel ) ;

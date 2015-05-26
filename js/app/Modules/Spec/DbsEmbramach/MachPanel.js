@@ -62,6 +62,9 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 		this.on('destroy',function(p) {
 			Ext.ux.dams.ModelManager.unregister( p.tmpModelName ) ;
 		}) ;
+		this.on('afterrender',function(p) {
+			p.getEl().down('.op5-spec-embramach-banner-right').setVisible( this.optimaModule.getSdomainRecord().get('auth_has_all') ) ;
+		},this) ;
 		
 		this.doConfigure() ;
 	},
@@ -159,6 +162,10 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 		},{
 			text: 'Process step',
 			dataIndex: 'step_txt',
+			width: 110
+		},{
+			text: 'Feedback',
+			dataIndex: 'feedback_txt',
 			width: 110
 		}] ;
 		Ext.Array.each( jsonResponse.data.flow_milestone, function(milestone) {
