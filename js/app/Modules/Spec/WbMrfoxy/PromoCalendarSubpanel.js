@@ -2,7 +2,13 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarSubpanel' ,{
 	extend: 'Ext.panel.Panel',
 	
 	requires : [
-		'Sch.All',
+		'Sch.model.Resource',
+		'Sch.preset.Manager',
+		'Sch.panel.SchedulerTree',
+		'Sch.data.EventStore',
+		'Sch.data.ResourceTreeStore',
+		'Sch.plugin.Zones',
+		'Sch.model.Range',
 		'Optima5.Modules.Spec.WbMrfoxy.PromoCalendarEventDetailView'
 	],
 	
