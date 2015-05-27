@@ -265,4 +265,16 @@ Ext.onReady(function () {
 	
 	// onReady : bootstrap Optima app.
 	Ext.create('Optima5.App',{}) ;
+	
+	
+	// Needed by Ext.Scheduler :
+	Ext.data.Connection.override({
+		parseStatus: function (b) {
+			var a = this.callOverridden(arguments);
+			if (b === 0) {
+					a.success = true
+			}
+			return a
+		}
+	});
 });
