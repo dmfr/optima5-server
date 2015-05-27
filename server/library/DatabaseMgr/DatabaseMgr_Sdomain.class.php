@@ -1178,7 +1178,7 @@ EOF;
 		$query = "TRUNCATE TABLE {$sdomain_db}.{$table_name}" ;
 		$_opDB->query($query) ;
 	}
-	public function sdomainDefine_truncateFile( $sdomain_id , $file_code ) {
+	public function sdomainDefine_truncateFile( $sdomain_id , $file_code, $do_preserveSync=TRUE ) {
 		$_opDB = $this->_opDB ;
 		$sdomain_db = $this->getSdomainDb( $sdomain_id ) ;
 		
@@ -1186,8 +1186,13 @@ EOF;
 		$query = "TRUNCATE TABLE {$sdomain_db}.{$table_name}" ;
 		$_opDB->query($query) ;
 		
-		$query = "UPDATE {$sdomain_db}.store_file SET sync_is_deleted='O',sync_timestamp='0' WHERE file_code='$file_code'" ;
-		$_opDB->query($query) ;
+		if( $do_preserveSync ) {
+			$query = "UPDATE {$sdomain_db}.store_file SET sync_is_deleted='O',sync_timestamp='0' WHERE file_code='$file_code'" ;
+			$_opDB->query($query) ;
+		} else {
+			$query = "DELETE FROM {$sdomain_db}.store_file WHERE file_code='$file_code'" ;
+			$_opDB->query($query) ;
+		}
 	}
 	public function sdomainDefine_dropBible( $sdomain_id , $bible_code ) {
 		$_opDB = $this->_opDB ;

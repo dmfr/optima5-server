@@ -1,5 +1,16 @@
 <?php
 
+function paracrm_lib_android_authDb_hasDevices() {
+	global $_opDB ;
+	
+	$_data = array() ;
+	
+	$query = "SELECT count(*) FROM auth_android WHERE device_is_allowed='O'" ;
+	if( $_opDB->query_uniqueValue($query) > 0 ) {
+		return TRUE ;
+	}
+	return FALSE ;
+}
 function paracrm_lib_android_authDb_getList() {
 	global $_opDB ;
 	

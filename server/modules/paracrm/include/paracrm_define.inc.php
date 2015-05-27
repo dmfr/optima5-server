@@ -218,9 +218,9 @@ function paracrm_define_truncate( $post_data ) {
 		$result = $_opDB->query($query) ;
 		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 			$child_fileCode = $arr[0] ;
-			$t->sdomainDefine_truncateFile( DatabaseMgr_Sdomain::dbCurrent_getSdomainId(), $child_fileCode ) ;
+			$t->sdomainDefine_truncateFile( DatabaseMgr_Sdomain::dbCurrent_getSdomainId(), $child_fileCode, paracrm_lib_android_authDb_hasDevices() ) ;
 		}
-		$t->sdomainDefine_truncateFile( DatabaseMgr_Sdomain::dbCurrent_getSdomainId(), $file_code ) ;
+		$t->sdomainDefine_truncateFile( DatabaseMgr_Sdomain::dbCurrent_getSdomainId(), $file_code, paracrm_lib_android_authDb_hasDevices() ) ;
 		return array('success'=>true) ;
 		break ;
 	}
