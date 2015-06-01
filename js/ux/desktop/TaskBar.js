@@ -52,7 +52,7 @@ Ext.define('Ext.ux.desktop.TaskBar', {
                 menuAlign: 'bl-tl',
                 text: me.startBtnText
             },
-            me.quickStart,
+            //me.quickStart,
             {
                 xtype: 'splitter', html: '&#160;',
                 height: 14, width: 2, // TODO - there should be a CSS way here
@@ -182,6 +182,9 @@ Ext.define('Ext.ux.desktop.TaskBar', {
 
         var cmp = this.windowBar.add(config);
         cmp.toggle(true);
+        this.mon(win,'titlechange',function(p,newTitle){
+            cmp.setText(newTitle) ;
+        });
         return cmp;
     },
 
