@@ -1,6 +1,6 @@
 /*!
- * Ext JS Library 4.0
- * Copyright(c) 2006-2011 Sencha Inc.
+ * Ext JS Library
+ * Copyright(c) 2006-2014 Sencha Inc.
  * licensing@sencha.com
  * http://www.sencha.com/license
  */
@@ -39,10 +39,10 @@ Ext.define('Ext.ux.desktop.Desktop', {
     app: null,
 
     /**
-     * @cfg {Array|Store} shortcuts
+     * @cfg {Array/Ext.data.Store} shortcuts
      * The items to add to the DataView. This can be a {@link Ext.data.Store Store} or a
      * simple array. Items should minimally provide the fields in the
-     * {@link Ext.ux.desktop.ShorcutModel ShortcutModel}.
+     * {@link Ext.ux.desktop.ShortcutModel Shortcut}.
      */
     shortcuts: null,
 
@@ -57,7 +57,7 @@ Ext.define('Ext.ux.desktop.Desktop', {
     /**
      * @cfg {String} shortcutTpl
      * This XTemplate is used to render items in the DataView. If this is changed, the
-     * {@link shortcutItemSelect} will probably also need to changed.
+     * {@link #shortcutItemSelector} will probably also need to changed.
      */
     shortcutTpl: [
         '<tpl for=".">',
@@ -144,7 +144,8 @@ Ext.define('Ext.ux.desktop.Desktop', {
 
         ret.items.push(
                 { text: 'Tile', handler: me.tileWindows, scope: me, minWindows: 1 },
-                { text: 'Cascade', handler: me.cascadeWindows, scope: me, minWindows: 1 })
+                { text: 'Cascade', handler: me.cascadeWindows, scope: me, minWindows: 1 }
+        );
 
         return ret;
     },
@@ -413,12 +414,16 @@ Ext.define('Ext.ux.desktop.Desktop', {
 
     updateActiveWindow: function () {
         var me = this, activeWindow = me.getActiveWindow(), last = me.lastActiveWindow;
+        if (last && last.isDestroyed) {
+            me.lastActiveWindow = null;
+            return;
+        }
         if (activeWindow === last) {
             return;
         }
 
         if (last) {
-            if (last.el && last.el.dom) {
+            if (last.el.dom) {
                 last.addCls(me.inactiveWindowCls);
                 last.removeCls(me.activeWindowCls);
             }

@@ -1,71 +1,47 @@
-/*!
- * Ext JS Library 4.0
- * Copyright(c) 2006-2011 Sencha Inc.
+/**
+ * Ext JS Library
+ * Copyright(c) 2006-2014 Sencha Inc.
  * licensing@sencha.com
  * http://www.sencha.com/license
+ * @class Ext.ux.desktop.StartMenu
  */
-
 Ext.define('Ext.ux.desktop.StartMenu', {
-    extend: 'Ext.panel.Panel',
+    extend: 'Ext.menu.Menu',
 
-    requires: [
-        'Ext.menu.Menu',
-        'Ext.toolbar.Toolbar'
-    ],
+    // We want header styling like a Panel
+    baseCls: Ext.baseCSSPrefix + 'panel',
 
-    ariaRole: 'menu',
-
+    // Special styling within
     cls: 'x-menu ux-start-menu',
+    bodyCls: 'ux-start-menu-body',
 
     defaultAlign: 'bl-tl',
 
     iconCls: 'user',
 
-    floating: true,
+    bodyBorder: true,
 
-    shadow: true,
-
-    // We have to hardcode a width because the internal Menu cannot drive our width.
-    // This is combined with changing the align property of the menu's layout from the
-    // typical 'stretchmax' to 'stretch' which allows the the items to fill the menu
-    // area.
     width: 300,
 
     initComponent: function() {
-        var me = this, menu = me.menu;
+        var me = this;
 
-        me.menu = new Ext.menu.Menu({
-            cls: 'ux-start-menu-body',
-            border: false,
-            floating: false,
-            items: menu
-        });
-        me.menu.layout.align = 'stretch';
+        me.layout.align = 'stretch';
 
-        me.items = [me.menu];
-        me.layout = 'fit';
+        me.items = me.menu;
 
-        Ext.menu.Manager.register(me);
         me.callParent();
-        // TODO - relay menu events
 
         me.toolbar = new Ext.toolbar.Toolbar(Ext.apply({
             dock: 'right',
             cls: 'ux-start-menu-toolbar',
             vertical: true,
             width: 100,
-            listeners: {
-                add: function(tb, c) {
-                    c.on({
-                        click: function() {
-                            me.hide();
-                        }
-                    });
-                }
+            layout: {
+                align: 'stretch'
             }
         }, me.toolConfig));
 
-        me.toolbar.layout.align = 'stretch';
         me.addDocked(me.toolbar);
 
         delete me.toolItems;

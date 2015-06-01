@@ -1,6 +1,6 @@
 /*!
- * Ext JS Library 4.0
- * Copyright(c) 2006-2011 Sencha Inc.
+ * Ext JS Library
+ * Copyright(c) 2006-2014 Sencha Inc.
  * licensing@sencha.com
  * http://www.sencha.com/license
  */
@@ -52,7 +52,7 @@ Ext.define('Ext.ux.desktop.TaskBar', {
                 menuAlign: 'bl-tl',
                 text: me.startBtnText
             },
-            //me.quickStart,
+            me.quickStart,
             {
                 xtype: 'splitter', html: '&#160;',
                 height: 14, width: 2, // TODO - there should be a CSS way here
@@ -171,7 +171,7 @@ Ext.define('Ext.ux.desktop.TaskBar', {
             enableToggle: true,
             toggleGroup: 'all',
             width: 140,
-            margins: '0 2 0 3',
+            margin: '0 2 0 3',
             text: Ext.util.Format.ellipsis(win.title, 20),
             listeners: {
                 click: this.onWindowBtnClick,
@@ -182,9 +182,6 @@ Ext.define('Ext.ux.desktop.TaskBar', {
 
         var cmp = this.windowBar.add(config);
         cmp.toggle(true);
-        this.mon(win,'titlechange',function(p,newTitle){
-            cmp.setText(newTitle) ;
-        });
         return cmp;
     },
 
