@@ -12,23 +12,25 @@ Ext.define('Ext.ux.dams.Icon48Picker',{
 	alias: 'widget.damsicon48picker',
 	requires: ['Ext.XTemplate','Ext.grid.Panel'], 
 
+	childEls: ['btnEl', 'btnIconEl'],
+	inputWrapCls: '',
 	fieldSubTpl:
 		'<div id={id}>'+
-		'<button id="{cmpId}-btnEl" type="{type}" hidefocus="true" role="button" autocomplete="off" class="ux-icon48picker">' +
-			'<div id="{cmpId}-btnIconEl" class="ux-icon48picker-icon {iconCls}"></div>' +
+		'<button id="{cmpId}-btnEl" data-ref="btnEl" type="{type}" hidefocus="true" role="button" autocomplete="off" class="ux-icon48picker">' +
+			'<div id="{cmpId}-btnIconEl" data-ref="btnIconEl" class="ux-icon48picker-icon {iconCls}"></div>' +
 		'</button>' +
 		'</div>',
 	
 	isFormField: true,
 	submitValue: true,
 	hideTrigger: true,
+	matchFieldWidth: false,
 	
 	clsValue : '' ,
 	idxValue : '' ,
 	
 	initComponent: function() {
 		var me = this ;
-		me.addChildEls('btnEl','btnIconEl');
 		
 		if( Ext.isObject(me.store) ) {
 			var models = [] ;
@@ -59,13 +61,12 @@ Ext.define('Ext.ux.dams.Icon48Picker',{
 		
 		me.callParent() ;
 	},
-	
-	initTrigger: function() {
-		var me = this,
-			btnEl = me.btnEl ;
-			
+	initEvents: function() {
+		var me = this ;
+		me.callParent() ;
 		me.mon(me.btnEl, 'click', me.onTriggerClick, me);
 	},
+	
 	createPicker: function() {
 		var me = this ;
 		
