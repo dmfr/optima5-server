@@ -56,7 +56,7 @@ Ext.define('QbookInputvarModel', {
 		{name: 'date_calc_segment_type',   type: 'string'},
 		{name: 'date_calc_segment_count',   type: 'int'}
 	],
-	idgen: {
+	identifier: {
 		type: 'sequential',
 		seed: 1000,
 		prefix: 'IV_'
@@ -88,7 +88,7 @@ Ext.define('QbookQobjModel', {
 		name: 'qobj_fields',
 		associationKey: 'qobj_fields'
 	}],
-	idgen: {
+	identifier: {
 		type: 'sequential',
 		seed: 1000,
 		prefix: 'QOBJ_'
@@ -124,9 +124,9 @@ Ext.define('QbookValueModel', {
 		{name: 'select_lib',  type: 'string'},
 		{name: 'math_round', type: 'number'}
 	],
-	validations: [
-		{type: 'length',    field: 'select_lib',     min: 1}
-	],
+	validators: {
+		select_lib: { type: 'length', min: 1 }
+	},
 	hasMany: [{ 
 		model: 'QbookValueSymbolModel',
 		name: 'math_expression',

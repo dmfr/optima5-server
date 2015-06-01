@@ -7,7 +7,7 @@ Ext.define('Ext.ux.dams.EmbeddedGrid',{
 			  
 	initComponent: function(){
 		var modelfields = new Array() ;
-		var modelvalidations = new Array() ;
+		var modelvalidators = new Object() ;
 		Ext.each( ( Ext.isObject(this.columns) ? this.columns.items : this.columns ), function( v ){
 			var type = 'string' ;
 			if( v.type ) {
@@ -15,13 +15,13 @@ Ext.define('Ext.ux.dams.EmbeddedGrid',{
 			}
 			modelfields.push( { name:v.dataIndex, type:type, defaultValue:((typeof v.defaultValue === 'undefined')? '' : v.defaultValue ) } ) ;
 			if( v.editor && v.editor.allowBlank == false )
-				modelvalidations.push( {type:'length',field:v.dataIndex,min:1} ) ;
+				modelvalidators[v.dataIndex] = {type:'length',min:1} ;
 		});
 		this.modelname = this.id+'-'+'dynModel' ;
 		Ext.define(this.modelname,{
 			extend: 'Ext.data.Model',
 			fields: modelfields,
-			validations: modelvalidations
+			validators: modelvalidators
 		}) ;
 		
 		

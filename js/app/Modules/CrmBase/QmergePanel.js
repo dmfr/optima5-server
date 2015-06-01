@@ -102,9 +102,9 @@ Ext.define('QmergeMselectModel', {
 		{name: 'math_func_group', type: 'string'},
 		{name: 'math_round', type: 'number'}
 	],
-	validations: [
-		{type: 'length',    field: 'select_lib',     min: 1}
-	],
+	validators: {
+		select_lib: { type: 'length', min: 1 }
+	},
 	hasMany: [{ 
 		model: 'QmergeMselectFormulasymbolModel',
 		name: 'math_expression',
