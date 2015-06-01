@@ -1,5 +1,5 @@
 Ext.define('Ext.ux.form.field.ColorPickerCombo', {
-	extend: 'Ext.form.field.Trigger',
+	extend: 'Ext.form.field.Text',
 	requires : ['Ext.menu.ColorPicker'],
 	alias: 'widget.colorpickercombo',
 	value: '',
@@ -38,30 +38,36 @@ Ext.define('Ext.ux.form.field.ColorPickerCombo', {
 			me = this;
 
 		Ext.apply(this, Ext.apply(this.initialConfig, config));
-		this.callParent(arguments);
-
-		me.on('triggerclick', function (event) {
-			var colorTest = Ext.create('Ext.picker.Color') ;
-			var initialColor ;
-			if( Ext.Array.contains( colorTest.colors, me.value) ) {
-				initialColor = me.value ;
-			} else {
-				initialColor = null ;
-			}
-			
-			var colourMenu = Ext.create('Ext.menu.ColorPicker', {
-					value: initialColor,
-					listeners: {
-						hide: function(picker) {
-							picker.destroy() ;
-						},
-						select: function (picker, color) {
-							me.setValue(color);
-							me.fireEvent('select', me, color);
+		Ext.apply(this,{
+			triggers: {
+				arrow: {
+					cls: Ext.baseCSSPrefix + 'form-arrow-trigger',
+					handler: function(event) {
+						var colorTest = Ext.create('Ext.picker.Color') ;
+						var initialColor ;
+						if( Ext.Array.contains( colorTest.colors, me.value) ) {
+							initialColor = me.value ;
+						} else {
+							initialColor = null ;
 						}
+						
+						var colourMenu = Ext.create('Ext.menu.ColorPicker', {
+							value: initialColor,
+							listeners: {
+								hide: function(picker) {
+									picker.destroy() ;
+								},
+								select: function (picker, color) {
+									me.setValue(color);
+									me.fireEvent('select', me, color);
+								}
+							}
+						});
+						colourMenu.showAt(event.getXY());
 					}
-			});
-			colourMenu.showAt(event.getXY());
-		}, this);
+				}
+			}
+		});
+		this.callParent(arguments);
 	}
 });
