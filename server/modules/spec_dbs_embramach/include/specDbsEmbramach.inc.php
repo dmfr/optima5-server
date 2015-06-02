@@ -81,6 +81,7 @@ function specDbsEmbralam_mach_getGridData( $post_data ) {
 		$row['priority_code'] = $arr['field_PRIORITY'] ;
 		$row['shipto_code'] = $arr['field_SHIPTO_CODE'] ;
 		$row['shipto_name'] = $arr['field_SHIPTO_NAME'] ;
+		$row['feedback_txt'] = $arr['field_FEEDBACK_TXT'] ;
 		$row['obj_steps'] = array() ;
 		
 		$TAB[$filerecord_id] = $row ;
@@ -247,7 +248,7 @@ function specDbsEmbralam_mach_getGridData_sort( $row1, $row2 ) {
 
 
 function specDbsEmbralam_mach_uploadSource() {
-	paracrm_define_truncate( array('data_type'=>'file','file_code'=>'FLOW_PICKING') ) ;
+	//paracrm_define_truncate( array('data_type'=>'file','file_code'=>'FLOW_PICKING') ) ;
 	
 	$file_code = 'FLOW_PICKING' ;
 	$file_code_step = 'FLOW_PICKING_STEP' ;
@@ -271,6 +272,10 @@ function specDbsEmbralam_mach_uploadSource() {
 	while( !feof($handle) )
 	{
 		$arr_csv = fgetcsv($handle,0,'|') ;
+		if( $first && count($arr_csv)==1 && !trim($arr_csv[0],'-') ) {
+			fclose($handle) ;
+			return specDbsEmbralam_mach_uploadFeedback() ;
+		}
 		if( !$arr_csv ) {
 			continue ;
 		}
@@ -329,6 +334,33 @@ function specDbsEmbralam_mach_uploadSource() {
 		continue ;
 	}
 
+	return array('success'=>true) ;
+}
+function specDbsEmbralam_mach_uploadFeedback() {
+	global $_opDB ;
+	
+	$handle = fopen($_FILES['photo-filename']['tmp_name'],"rb") ;
+	while( !feof($handle) )
+	{
+		$arr_csv = fgetcsv($handle,0,'|') ;
+		if( count($arr_csv) < 4 ) {
+			continue ;
+		}
+		
+		$no_delivery = trim($arr_csv[1]) ;
+		$txt_feedback = utf8_encode(trim($arr_csv[count($arr_csv)-2])) ;
+		
+		$query = "SELECT filerecord_id FROM view_file_FLOW_PICKING WHERE field_DELIVERY_ID LIKE '%$no_delivery%'" ;
+		$result = $_opDB->query($query) ;
+		if( $_opDB->num_rows($result) == 1 ) {
+			$arr = $_opDB->fetch_row($result) ;
+			$filerecord_id = $arr[0] ;
+			$query = "UPDATE view_file_FLOW_PICKING SET field_FEEDBACK_TXT='$txt_feedback' WHERE filerecord_id='$filerecord_id'" ;
+			$_opDB->query($query) ;
+		}
+	}
+	fclose($handle) ;
+	
 	return array('success'=>true) ;
 }
 

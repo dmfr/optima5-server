@@ -8,7 +8,7 @@ Ext.define('DbsEmbramachMachFlowRowModel', {
 		  {name: 'flow', type: 'string'},
 		  {name: 'shipto_code', type: 'string'},
 		  {name: 'shipto_name', type: 'string'},
-		  {name: 'txt_feedback', type: 'string'},
+		  {name: 'feedback_txt', type: 'string'},
 		  {name: 'step_txt', type: 'string'},
 		  {name: 'status_closed', type: 'boolean'}
 	]
