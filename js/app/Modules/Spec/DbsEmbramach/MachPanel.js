@@ -298,12 +298,20 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 		
 		var gaugesSubPanels = [] ;
 		Ext.Array.each( jsonResponse.data.flow_prio, function(prio) {
+			var coef = 1,
+				text = '',
+				modeMinutes = false ;
+			if( prio.tat_hour < 2 ) {
+				coef = 60 ;
+				text = ' (minutes)' ;
+				modeMinutes = true ;
+			}
 			gaugesSubPanels.push( {
 				flex: 1,
 				xtype:'panel',
 				bodyCls: 'ux-noframe-bg',
 				itemId: 'gauge_'+prio.prio_id,
-				title: '<font color="'+prio.prio_color+'">'+prio.prio_txt+' performance</font>',
+				title: '<font color="'+prio.prio_color+'">'+prio.prio_txt+' performance</font>' + text,
 				layout: 'fit',
 				items: [{
 					xtype: 'chart',
@@ -316,14 +324,15 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 						fields: ['value'],
 						data: [{value:0}]
 					},
+					_modeMinutes: modeMinutes,
 					insetPadding: 25,
 					flex: 1,
 					axes: [{
 						type: 'kpigauge',
 						position: 'left',
 						minimum: 0,
-						maximum: (prio.tat_hour * 2),
-						steps: Ext.Array.min([10,(prio.tat_hour * 2)]),
+						maximum: (prio.tat_hour * coef * 2),
+						steps: Ext.Array.min([10,(prio.tat_hour * coef * 2)]),
 						margin: 0,
 						label: {
 							fill: '#333',
@@ -340,15 +349,15 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 						},
 						ranges: [{
 							from: 0,
-							to: (prio.tat_hour * 0.9) ,
+							to: (prio.tat_hour * coef * 0.9) ,
 							color: '#2AFF00'
 						}, {
-							from: (prio.tat_hour * 0.9) ,
-							to: prio.tat_hour,
+							from: (prio.tat_hour * coef * 0.9) ,
+							to: (prio.tat_hour * coef),
 							color: '#FFB300'
 						}, {
-							from: prio.tat_hour,
-							to: (prio.tat_hour * 2),
+							from: (prio.tat_hour * coef),
+							to: (prio.tat_hour * coef * 2),
 							color: '#FF2B2B'
 						}],
 						donut: 70
