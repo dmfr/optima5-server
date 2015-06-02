@@ -130,7 +130,7 @@ function specDbsEmbralam_mach_getGridData( $post_data ) {
 					if( $ACTUAL_timestamp > $ETA_timestamp ) {
 						$this_milestone['color'] = 'red' ;
 					} elseif( $ETA_timestamp - $ACTUAL_timestamp < (15*60) ) {
-						$this_milestone['color'] = 'orange' ;
+						$this_milestone['color'] = 'green' ;
 					} else {
 						$this_milestone['color'] = 'green' ;
 					}
