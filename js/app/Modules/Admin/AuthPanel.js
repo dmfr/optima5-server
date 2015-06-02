@@ -190,7 +190,7 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 								items : treeContextMenuItems,
 								listeners: {
 									hide: function(menu) {
-										menu.destroy() ;
+										Ext.defer(function(){menu.destroy();},10) ;
 									}
 								}
 							}) ;
@@ -281,7 +281,7 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 								items : treeContextMenuItems,
 								listeners: {
 									hide: function(menu) {
-										menu.destroy() ;
+										Ext.defer(function(){menu.destroy();},10) ;
 									}
 								}
 							}) ;

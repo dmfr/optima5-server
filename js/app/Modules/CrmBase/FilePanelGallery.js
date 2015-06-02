@@ -74,7 +74,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelGallery',{
 								items : contextMenuItems,
 								listeners: {
 									hide: function(menu) {
-										menu.destroy() ;
+										Ext.defer(function(){menu.destroy();},10) ;
 									}
 								}
 							}) ;

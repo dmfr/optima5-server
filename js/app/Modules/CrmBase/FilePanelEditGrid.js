@@ -67,7 +67,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelEditGrid',{
 						items : gridContextMenuItems,
 						listeners: {
 							hide: function(menu) {
-								menu.destroy() ;
+								Ext.defer(function(){menu.destroy();},10) ;
 							}
 						}
 					}) ;

@@ -437,7 +437,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.StatPerformancePanel',{
 			items: menuItems,
 			listeners: {
 				hide: function(menu) {
-					menu.destroy() ;
+					Ext.defer(function(){menu.destroy();},10) ;
 				}
 			}
 		}) ;

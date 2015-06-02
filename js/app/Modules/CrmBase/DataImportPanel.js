@@ -248,8 +248,8 @@ Ext.define('Optima5.Modules.CrmBase.DataImportPanel' ,{
 						
 						Ext.create('Ext.menu.Menu',{
 							listeners: {
-								hide: function(m) {
-									m.destroy() ;
+								hide: function(menu) {
+									Ext.defer(function(){menu.destroy();},10) ;
 								}
 							},
 							items : {

@@ -395,8 +395,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 					itemcontextmenu : function(view, record, item, index, event) {
 						Ext.create('Ext.menu.Menu',{
 							listeners: {
-								hide: function(m) {
-									m.destroy() ;
+								hide: function(menu) {
+									Ext.defer(function(){menu.destroy();},10) ;
 								}
 							},
 							items : [{
@@ -553,8 +553,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 					itemcontextmenu : function(view, record, item, index, event) {
 						Ext.create('Ext.menu.Menu',{
 							listeners: {
-								hide: function(m) {
-									m.destroy() ;
+								hide: function(menu) {
+									Ext.defer(function(){menu.destroy();},10) ;
 								}
 							},
 							items : [{

@@ -79,7 +79,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoNAgreementsRowPanel',{
 								items : contextMenuItems,
 								listeners: {
 									hide: function(menu) {
-										menu.destroy() ;
+										Ext.defer(function(){menu.destroy();},10) ;
 									}
 								}
 							}) ;
@@ -169,7 +169,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoNAgreementsRowPanel',{
 								items : contextMenuItems,
 								listeners: {
 									hide: function(menu) {
-										menu.destroy() ;
+										Ext.defer(function(){menu.destroy();},10) ;
 									}
 								}
 							}) ;

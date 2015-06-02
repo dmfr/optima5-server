@@ -204,7 +204,7 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelWhere' ,{
 				items : gridContextMenuItems,
 				listeners: {
 					hide: function(menu) {
-						menu.destroy() ;
+						Ext.defer(function(){menu.destroy();},10) ;
 					}
 				}
 			}) ;
@@ -232,7 +232,7 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelWhere' ,{
 				items : gridContextMenuItems,
 				listeners: {
 					hide: function(menu) {
-						menu.destroy() ;
+						Ext.defer(function(){menu.destroy();},10) ;
 					}
 				}
 			}) ;

@@ -231,7 +231,7 @@ Ext.define('Optima5.Modules.CrmBase.QmergePanel' ,{
 								items : treeContextMenuItems,
 								listeners: {
 									hide: function(menu) {
-										menu.destroy() ;
+										Ext.defer(function(){menu.destroy();},10) ;
 									}
 								}
 							}) ;
