@@ -11,14 +11,15 @@ Ext.define('Optima5.Modules.CrmBase.BibleTreePicker',{
 	extend:'Ext.form.field.Picker',
 	alias: 'widget.op5crmbasebibletreepicker',
 	requires: ['Ext.XTemplate','Ext.grid.Panel'], 
-
+	
+	childEls: ['divicon','divtext'],
 	fieldSubTpl: [
 		'<div id="{id}" type="{type}" ',
 			'<tpl if="size">size="{size}" </tpl>',
 			'<tpl if="tabIdx">tabIndex="{tabIdx}" </tpl>',
 			'class="{fieldCls} {typeCls}" autocomplete="off">',
-			'<span id="{cmpId}-divicon" class="biblepicker-icon">&#160;</span>',
-			'<span id="{cmpId}-divtext" class="biblepicker-text">&#160;</span>',
+			'<span id="{cmpId}-divicon" data-ref="divicon" class="biblepicker-icon">&#160;</span>',
+			'<span id="{cmpId}-divtext" data-ref="divtext" class="biblepicker-text">&#160;</span>',
 		'</div>',
 		'<div id="{cmpId}-triggerWrap" class="{triggerWrapCls}" role="presentation">',
 			'{triggerEl}',
@@ -48,7 +49,6 @@ Ext.define('Optima5.Modules.CrmBase.BibleTreePicker',{
 		}
 		
 		this.addEvents('iamready') ;
-		this.addChildEls('divicon','divtext') ;
 		this.callParent() ;
 		
 		me.optimaModule.getConfiguredAjaxConnection().request({
