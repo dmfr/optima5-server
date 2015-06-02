@@ -142,7 +142,7 @@ Ext.define('Optima5.Modules.CrmBase.BibleFilter', {
 				},
 				reader: {
 					type: 'json',
-					root: 'data',
+					rootProperty: 'data',
 					totalProperty: 'total'
 				}
 			})

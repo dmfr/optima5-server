@@ -512,7 +512,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 				},
 				reader: {
 					type: 'json',
-					root: 'data'
+					rootProperty: 'data'
 				}
 			}),
 			listeners: {
@@ -533,7 +533,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 				},
 				reader: {
 					type: 'json',
-					root: 'data'
+					rootProperty: 'data'
 				}
 			}),
 			listeners: {
@@ -554,7 +554,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 				},
 				reader: {
 					type: 'json',
-					root: 'data'
+					rootProperty: 'data'
 				}
 			})
 		}) ;

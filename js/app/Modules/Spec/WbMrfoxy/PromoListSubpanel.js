@@ -33,7 +33,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 						},
 						reader: {
 							type: 'json',
-							root: 'data'
+							rootProperty: 'data'
 						}
 					}),
 					listeners: {

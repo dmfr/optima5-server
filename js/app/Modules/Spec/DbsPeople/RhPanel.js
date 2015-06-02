@@ -397,7 +397,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 					},
 					reader: {
 						type: 'json',
-						root: 'data'
+						rootProperty: 'data'
 					}
 				}),
 				sorters: [{

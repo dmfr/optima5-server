@@ -33,7 +33,7 @@ Ext.define('Optima5.Modules.Admin.SdomainsPanel',{
 				},
 				reader: {
 					type: 'json',
-					root: 'data'
+					rootProperty: 'data'
 				}
 			}),
 			autoLoad: true

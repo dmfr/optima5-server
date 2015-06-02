@@ -134,7 +134,7 @@ Ext.define('Optima5.Modules.CrmBase.BiblePicker',{
 				},
 				reader: {
 					type: 'json',
-					root: 'data',
+					rootProperty: 'data',
 					totalProperty: 'total'
 				}
 			})
@@ -443,7 +443,7 @@ Ext.define('Optima5.Modules.CrmBase.BiblePicker',{
 				},
 				reader: {
 					type: 'json',
-					root: 'data',
+					rootProperty: 'data',
 					totalProperty: 'total'
 				}
 			}),

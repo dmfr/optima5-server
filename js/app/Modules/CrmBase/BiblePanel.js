@@ -466,7 +466,7 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 				},
 				reader: {
 					type: 'json',
-					root: 'data',
+					rootProperty: 'data',
 					totalProperty: 'total'
 				}
 			}),

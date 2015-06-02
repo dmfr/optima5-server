@@ -201,7 +201,7 @@ Ext.define('Optima5.Modules.Spec.WbBudget.AssortBuildPanel',{
 				},
 				reader: {
 					type: 'json',
-					root: 'data'
+					rootProperty: 'data'
 				}
 			}),
 			listeners: {

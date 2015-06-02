@@ -312,7 +312,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelEditGrid',{
 				},
 				reader: {
 					type: 'json',
-					root: 'data',
+					rootProperty: 'data',
 					totalProperty: 'total'
 				}
 			}),

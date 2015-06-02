@@ -32,7 +32,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoAttachmentsDataview',{
 						},
 						reader: {
 							type: 'json',
-							root: 'data'
+							rootProperty: 'data'
 						}
 					})
 				},

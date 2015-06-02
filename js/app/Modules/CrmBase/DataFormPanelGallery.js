@@ -39,7 +39,7 @@ Ext.define('Optima5.Modules.CrmBase.DataFormPanelGallery',{
 				},
 				reader: {
 					type: 'json',
-					root: 'data'
+					rootProperty: 'data'
 				}
 			})
 		}) ;

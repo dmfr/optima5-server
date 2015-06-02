@@ -232,7 +232,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 				},
 				reader: {
 					type: 'json',
-					root: 'data',
+					rootProperty: 'data',
 					totalProperty: 'total'
 				}
 			}),

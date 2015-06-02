@@ -379,7 +379,7 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 				},
 				reader: {
 					type: 'json',
-					root: 'data'
+					rootProperty: 'data'
 				}
 			}),
 			autoLoad: false
@@ -393,7 +393,7 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 				},
 				reader: {
 					type: 'json',
-					root: 'data'
+					rootProperty: 'data'
 				}
 			}),
 			autoLoad: false
@@ -407,7 +407,7 @@ Ext.define('Optima5.Modules.Admin.AuthPanel',{
 				},
 				reader: {
 					type: 'json',
-					root: 'data'
+					rootProperty: 'data'
 				}
 			}),
 			autoLoad: false

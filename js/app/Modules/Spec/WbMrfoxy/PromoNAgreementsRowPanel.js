@@ -26,7 +26,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoNAgreementsRowPanel',{
 				},
 				reader: {
 					type: 'json',
-					root: 'data'
+					rootProperty: 'data'
 				}
 			})
 		}) ;

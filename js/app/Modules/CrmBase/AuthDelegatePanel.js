@@ -41,7 +41,7 @@ Ext.define('Optima5.Modules.CrmBase.AuthDelegatePanel' ,{
 						},
 						reader: {
 							type: 'json',
-							root: 'data',
+							rootProperty: 'data',
 							totalProperty: 'total'
 						}
 					}),

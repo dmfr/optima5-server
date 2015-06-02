@@ -16,7 +16,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoBillbackGrid',{
 					},
 					reader: {
 						type: 'json',
-						root: 'data',
+						rootProperty: 'data',
 						totalProperty: 'total'
 					}
 				})

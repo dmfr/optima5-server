@@ -129,7 +129,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryPanel',{
 								},
 								reader: {
 									type: 'json',
-									root: 'data'
+									rootProperty: 'data'
 								}
 							})
 						},

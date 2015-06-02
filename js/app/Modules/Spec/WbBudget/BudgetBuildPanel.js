@@ -260,7 +260,7 @@ Ext.define('Optima5.Modules.Spec.WbBudget.BudgetBuildPanel',{
 				},
 				reader: {
 					type: 'json',
-					root: 'data'
+					rootProperty: 'data'
 				}
 			}),
 			listeners: {

@@ -138,7 +138,7 @@ Ext.define('Optima5.Modules.CrmBase.BibleMemoryPicker',{
 				},
 				reader: {
 					type: 'json',
-					root: 'data',
+					rootProperty: 'data',
 					totalProperty: 'total'
 				},
 				startParam: undefined,
