@@ -247,6 +247,8 @@ function specDbsEmbralam_mach_getGridData_sort( $row1, $row2 ) {
 
 
 function specDbsEmbralam_mach_uploadSource() {
+	paracrm_define_truncate( array('data_type'=>'file','file_code'=>'FLOW_PICKING') ) ;
+	
 	$file_code = 'FLOW_PICKING' ;
 	$file_code_step = 'FLOW_PICKING_STEP' ;
 
@@ -300,8 +302,11 @@ function specDbsEmbralam_mach_uploadSource() {
 			
 			$steps_arrRow[] = array(
 				'field_STEP' => $step_code,
-				'field_DATE' => date('Y-m-d H:i:s',$timestamp)
+				'field_DATE' => date('Y-m-d H:i:s',$timestamp + (5*60*60))
 			);
+			if( $step_code=='01_CREATE' && date('Y',$timestamp) < 2015 ) {
+				continue 2 ;
+			}
 		}
 		
 		$filerecord_id = paracrm_lib_data_insertRecord_file($file_code,0,$main_row) ;

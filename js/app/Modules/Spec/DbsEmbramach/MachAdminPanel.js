@@ -34,8 +34,8 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachAdminPanel',{
 					items: [{
 						xtype: 'filefield',
 						width: 450,
-						emptyText: 'Select an image',
-						fieldLabel: 'Photo',
+						emptyText: 'Select a file',
+						fieldLabel: 'Source',
 						name: 'photo-filename',
 						buttonText: '',
 						buttonConfig: {
