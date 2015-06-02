@@ -15,7 +15,10 @@ Ext.define('DbsEmbramachMachFlowRowModel', {
 });
 Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 	extend:'Ext.panel.Panel',
-	requires: ['Ext.ux.chart.series.KPIGauge', 'Ext.ux.chart.axis.KPIGauge'],
+	requires: [
+		'Ext.ux.chart.series.KPIGauge', 'Ext.ux.chart.axis.KPIGauge',
+		'Ext.ux.grid.FiltersFeature'
+	],
 	
 	flowCode: null,
 	
@@ -50,7 +53,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 				itemId: 'pCenter'
 			},{
 				region: 'east',
-				width: 200,
+				width: 175,
 				layout: 'fit',
 				itemId: 'pEast'
 			}]
@@ -133,8 +136,11 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 			text: 'Picking',
 			dataIndex: 'delivery_id',
 			tdCls: 'op5-spec-dbsembramach-bigcolumn',
-			width: 110,
-			align: 'center'
+			width: 130,
+			align: 'center',
+			filter: {
+				type: 'string'
+			}
 		},{
 			text: 'Priority',
 			dataIndex: 'priority_code',
@@ -148,21 +154,37 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 			},
 			width: 60,
 			align: 'center',
-			tdCls: 'op5-spec-dbsembramach-bigcolumn'
+			tdCls: 'op5-spec-dbsembramach-bigcolumn',
+			filter: {
+				type: 'op5crmbasebible',
+				optimaModule: this.optimaModule,
+				bibleId: 'FLOW_PRIO'
+			}
 		},{
 			text: 'Flow',
 			dataIndex: 'flow',
-			width: 60,
+			width: 70,
 			align: 'center',
-			tdCls: 'op5-spec-dbsembramach-bigcolumn'
+			tdCls: 'op5-spec-dbsembramach-bigcolumn',
+			filter: {
+				type: 'string'
+			}
 		},{
 			text: 'Customer',
 			dataIndex: 'shipto_name',
-			width: 130
+			width: 130,
+			filter: {
+				type: 'string'
+			}
 		},{
 			text: 'Process step',
 			dataIndex: 'step_txt',
-			width: 110
+			width: 120,
+			filter: {
+				type: 'op5crmbasebible',
+				optimaModule: this.optimaModule,
+				bibleId: 'FLOW_STEP'
+			}
 		},{
 			text: 'Feedback',
 			dataIndex: 'feedback_txt',
@@ -177,8 +199,39 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 				text: milestone.milestone_txt,
 				dataIndex: 'milestone_'+milestone.milestone_code,
 				renderer: stepRenderer,
-				width: 80,
-				align: 'center'
+				width: 90,
+				align: 'center',
+				filter: {
+					type: 'date',
+					dateFormat: 'Y-m-d'
+				},
+				doSort: function(state) {
+						var ds = this.up('grid').store;
+						var field = this.getSortParam();
+						ds.sort({
+							property: field,
+							direction: state,
+							sorterFn: function(r1, r2) {
+								var o1,o2,v1,v2 ;
+								o1 = r1.get(field);
+								o2 = r2.get(field);
+								
+								if( !Ext.isEmpty(o1.ACTUAL_dateSql) ) {
+									v1 = o1.ACTUAL_dateSql ;
+								} else {
+									v1 = o1.ETA_dateSql ;
+								}
+								if( !Ext.isEmpty(o2.ACTUAL_dateSql) ) {
+									v2 = o2.ACTUAL_dateSql ;
+								} else {
+									v2 = o2.ETA_dateSql ;
+								}
+								
+								// transform v1 and v2 here
+								return v1 > v2 ? 1 : (v1 < v2 ? -1 : 0);
+							}
+						});
+				}
 			});
 		}) ;
 		
@@ -190,7 +243,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 		var columnDefaults = {
 			menuDisabled: false,
 			draggable: false,
-			sortable: false,
+			sortable: true,
 			hideable: false,
 			resizable: false,
 			groupable: false,
@@ -213,14 +266,30 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 			plugins: [{
 				ptype: 'bufferedrenderer'
 			}],
+			features: [{
+				ftype: 'filters',
+				encode: true,
+				autoReload: false,
+				local: true,
+				applyingState: true
+			}],
+			filtersUpdate: Ext.create('Ext.util.DelayedTask', this.applyFilters, this),
 			viewConfig: {
 				getRowClass: function(record) {
 					if( record.get('status_closed') ) {
 						return 'op5-spec-dbsembramach-gridcell-done' ;
 					}
-				}
+				},
+				enableTextSelection: true
 			},
-			
+			listeners: {
+				filterupdate: function(filters) {
+					var grid = filters.getGridPanel() ;
+					grid.filtersUpdate.cancel() ;
+					grid.filtersUpdate.delay(500) ;
+				},
+				scope: this
+			},
 			_prioMap: prioMap
 		} ;
 		
@@ -334,11 +403,9 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 		var pGrid = this.down('#pGrid'),
 			pGauges = this.down('#pGauges'),
 			pGridStore = pGrid.getStore() ;
+		pGridStore.sorters.clear() ;
 		pGridStore.loadData( jsonResponse.data_grid ) ;
-		pGridStore.clearFilter() ;
-		pGridStore.filterBy(function(record, id){
-			return Ext.Array.contains(['LBG1','LBG2','LBG3'],record.get('flow')) ;
-		}, this);
+		this.applyFilters() ;
 		
 		Ext.Object.each( jsonResponse.data_gauges, function( prioId, value ) {
 			var pGauge = pGauges.down('#gauge_'+prioId) ;
@@ -346,8 +413,82 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 				return ;
 			}
 			var cGauge = pGauge.down('chart') ;
-			cGauge.getStore().loadData([{value: value}]) ;
+			cGauge.getStore().loadData([{value: (cGauge._modeMinutes ? value * 60 : value)}]) ;
 		}) ;
+	},
+	
+	applyFilters: function() {
+		var pGrid = this.down('#pGrid'),
+			pGridStore = pGrid.getStore(),
+			pGridView = pGrid.getView() ;
+		
+		pGridStore.clearFilter() ;
+		
+		
+		var filterData = pGrid.filters.getFilterData() ;
+		pGridStore.filterBy(function(record){
+			var passed = true ;
+			if( !Ext.Array.contains(['LBG1','LBG2','LBG3'],record.get('flow')) ) {
+				passed = false ;
+			}
+			if( record.get('shipto_name') == 'EMBRAER - WHSE BRU' ) {
+				passed = false ;
+			}
+			Ext.Array.each( filterData, function(filter) {
+				switch(filter.data.type) {
+					case 'list' :
+						if( !Ext.Array.contains(filter.data.value,record.get(filter.field)) ) {
+							passed = false ;
+						}
+						break ;
+						
+					case 'string' :
+						if( !record.get(filter.field).match(new RegExp(filter.data.value, "i")) ) {
+							passed = false ;
+						}
+						break ;
+						
+					case 'date' :
+						var valueObj = record.get(filter.field),
+							value ;
+						if( !Ext.isEmpty(valueObj.ACTUAL_dateSql) ) {
+							value = valueObj.ACTUAL_dateSql ;
+						} else {
+							value = valueObj.ETA_dateSql ;
+						}
+						if( !Ext.isEmpty(value) ) {
+							value = value.substr(0,10) ;
+						}
+						switch( filter.data.comparison ) {
+							case 'eq' :
+								if( !(value == filter.data.value) ) {
+									passed = false ;
+								}
+								break ;
+								
+							case 'gt' :
+								console.log(filter.data.value + '    '  +value) ;
+								if( !Ext.isEmpty(value) && !(value >= filter.data.value) ) {
+									passed = false ;
+								}
+								break ;
+								
+							case 'lt' :
+								if( Ext.isEmpty(value) ) {
+									passed = false ;
+								}
+								if( !(value <= filter.data.value) ) {
+									passed = false ;
+								}
+								break ;
+						}
+						break ;
+				}
+			}) ;
+			return passed ;
+		});
+		
+		pGridView.refresh() ;
 	},
 	
 	showLoadmask: function() {

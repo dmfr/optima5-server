@@ -12,7 +12,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.DbsEmbramachModule', {
 		me.addEvents('op5broadcast') ;
 		
 		me.createWindow({
-			width:1100,
+			width:1200,
 			height:600,
 			resizable:true,
 			layout:'fit',
