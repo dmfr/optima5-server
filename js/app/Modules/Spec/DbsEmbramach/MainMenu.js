@@ -124,7 +124,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MainMenu',{
 			headerHeight = headerBox.height,
 			headerWidth = headerBox.width,
 			headerLeft = ( viewCenter ) - ( headerWidth / 2 ) ;
-		headerEl.setLeftTop( headerLeft , currentHeight ) ;
+		headerEl.setLocalXY( headerLeft , currentHeight ) ;
 		currentHeight += headerHeight ;
 		
 		var separatorWidth = Math.min( 600, viewWidth ) ;
@@ -136,7 +136,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MainMenu',{
 			separatorBox = separatorEl.getBox() ;
 			
 			separatorEl.setWidth(separatorWidth) ;
-			separatorEl.setLeftTop( viewCenter-(separatorWidth/2) , currentHeight ) ;
+			separatorEl.setLocalXY( viewCenter-(separatorWidth/2) , currentHeight ) ;
 			
 			currentHeight += separatorBox.height ;
 			
@@ -153,7 +153,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MainMenu',{
 			for( j=0; j<arrArrItems[i].length ; j++ ) {
 				var itemEl = Ext.get(me.getNode(arrArrItems[i][j])) ;
 				// console.log( xCursor + ' ' +currentHeight ) ;
-				itemEl.setLeftTop( xCursor, currentHeight ) ;
+				itemEl.setLocalXY( xCursor, currentHeight ) ;
 				xCursor += itemEl.getBox().width ;
 				// console.dir( itemEl.getBox() ) ;
 			}
