@@ -350,10 +350,10 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 						},
 						ranges: [{
 							from: 0,
-							to: (prio.tat_hour * coef * 0.9) ,
+							to: ((prio.tat_hour-0.25) * coef) ,
 							color: '#2AFF00'
 						}, {
-							from: (prio.tat_hour * coef * 0.9) ,
+							from: ((prio.tat_hour-0.25) * coef) ,
 							to: (prio.tat_hour * coef),
 							color: '#FFB300'
 						}, {
