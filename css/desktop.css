@@ -701,3 +701,24 @@ body {    background: none repeat scroll 0 0 #F8F8F8;}
 .x-progress .x-progress-text {
 	padding: 0px 5px;
 }
+
+/**
+ * Textfield bug in chrome (5.1.1)
+ * http://stackoverflow.com/questions/30483224/extjs-5-textfield-bug-chrome
+ * https://www.sencha.com/forum/showthread.php?301227-Visual-combobox-bug-in-Chrome-43.0.2357.65-m&p=1101244&viewfull=1#post1101244
+ */
+.x-form-text {
+	display: inherit !important;
+}
+
+/**
+ * Disable view/grid NavigationModel focus
+ */
+.x-grid-item-focused {
+	border: 0px !important;
+	outline: 0px !important;
+}
+.x-view-item-focused {
+	border: 0px !important;
+	outline: 0px !important;
+}
