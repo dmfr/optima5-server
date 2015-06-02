@@ -93,8 +93,9 @@ Ext.onReady(function () {
 	/*
 	Désactiver le click droit
 	*/
-	Ext.getBody().on('contextmenu', Ext.emptyFn, null, {preventDefault: true});
-	
+	Ext.getDoc().on('contextmenu', function(ev){
+		ev.preventDefault() ;
+	}) ;
 	
 	// onReady : bootstrap Optima app.
 	Ext.create('Optima5.App',{}) ;
