@@ -136,7 +136,12 @@
 .op5-spec-dbsembramach-gridcell-red .x-grid-cell-inner { 
 	background-color: #FF2B2B;
 }
+.op5-spec-dbsembramach-gridcell-nobold .x-grid-cell-inner { 
+	border: 2px solid transparent;
+	font-weight: normal;
+}
 .op5-spec-dbsembramach-gridcell-bold .x-grid-cell-inner { 
+	border: 2px solid black;
 	font-weight: bold;
 }
 

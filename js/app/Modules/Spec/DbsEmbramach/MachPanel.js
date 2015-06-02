@@ -122,8 +122,10 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 					metaData.tdCls += ' '+'op5-spec-dbsembramach-gridcell-'+vObj.color ;
 					break ;
 			}
-			if( vObj.pending ) {
+			if( vObj.pending && !Ext.isEmpty(dateSql) ) {
 				metaData.tdCls += ' '+'op5-spec-dbsembramach-gridcell-bold' ;
+			} else {
+				metaData.tdCls += ' '+'op5-spec-dbsembramach-gridcell-nobold' ;
 			}
 			if( Ext.isEmpty(dateSql) ) {
 				return '&#160;' ;
