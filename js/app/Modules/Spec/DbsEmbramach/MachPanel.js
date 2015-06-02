@@ -130,6 +130,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 			if( Ext.isEmpty(dateSql) ) {
 				return '&#160;' ;
 			}
+			dateSql = Ext.Date.format(Ext.Date.parse(dateSql,'Y-m-d H:i:s'),'d/m/Y H:i') ;
 			return dateSql.replace(' ','<br>') ;
 		};
 		
