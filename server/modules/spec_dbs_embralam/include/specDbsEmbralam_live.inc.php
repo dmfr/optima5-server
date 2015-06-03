@@ -51,7 +51,7 @@ function specDbsEmbralam_live_goAdr( $post_data ) {
 	}
 	
 	if( !specDbsEmbralam_lib_proc_lock_on() ) {
-		return array('success'=>false, 'error'=>'Cannot set lock. Contact Admin.') ;
+		return array('success'=>false, 'error'=>'Cannot set lock. Please try again.') ;
 	}
 	while(TRUE) {
 		$adr_obj = specDbsEmbralam_lib_proc_findAdr( $form_data['mvt_obj'], $form_data['stockAttributes_obj'], array() ) ;
@@ -125,25 +125,29 @@ function specDbsEmbralam_live_goRelocate( $post_data ) {
 		return array('success'=>false, 'error'=>'Cannot set lock. Contact Admin.') ;
 	}
 	
-	// rech ADR
-	$adr_obj = specDbsEmbralam_lib_proc_findAdr(NULL, $form_data['stockAttributes_obj'], array() ) ;
-	if( !$adr_obj['adr_id'] ) {
-		$return = array('success'=>false, 'error'=>'Pas d\'emplacement disponible.') ;
+	while(TRUE) {
+		// rech ADR
+		$adr_obj = specDbsEmbralam_lib_proc_findAdr(NULL, $form_data['stockAttributes_obj'], array() ) ;
+		if( !$adr_obj['adr_id'] ) {
+			$return = array('success'=>false, 'error'=>'Pas d\'emplacement disponible.') ;
+			break ;
+		}
+		
+		// annul MVT
+		$previousMvt_obj = specDbsEmbralam_lib_proc_loadMvt( $form_data['mvt_id'] ) ;
+		specDbsEmbralam_lib_proc_deleteMvt( $form_data['mvt_id'] ) ;
+		
+		// déplacement STK
+		$query = "UPDATE view_file_INV SET field_ADR_ID='{$adr_obj['adr_id']}' WHERE filerecord_id='{$inv_record['filerecord_id']}'" ;
+		$GLOBALS['_opDB']->query($query) ;
+		
+		// recreate du MVT
+		$mvt_id = specDbsEmbralam_lib_proc_insertMvt( $previousMvt_obj, $adr_obj['adr_id'] ) ;
+		$previousMvt_obj['mvt_id'] = $mvt_id ;
+		$return = array('success'=>true, 'data'=>specDbsEmbralam_live_buildResponse($adr_obj['status'], $previousMvt_obj, $adr_obj['adr_id'])) ;
+		
 		break ;
 	}
-	
-	// annul MVT
-	$previousMvt_obj = specDbsEmbralam_lib_proc_loadMvt( $form_data['mvt_id'] ) ;
-	specDbsEmbralam_lib_proc_deleteMvt( $form_data['mvt_id'] ) ;
-	
-	// déplacement STK
-	$query = "UPDATE view_file_INV SET field_ADR_ID='{$adr_obj['adr_id']}' WHERE filerecord_id='{$inv_record['filerecord_id']}'" ;
-	$GLOBALS['_opDB']->query($query) ;
-	
-	// recreate du MVT
-	$mvt_id = specDbsEmbralam_lib_proc_insertMvt( $previousMvt_obj, $adr_obj['adr_id'] ) ;
-	$previousMvt_obj['mvt_id'] = $mvt_id ;
-	$return = array('success'=>true, 'data'=>specDbsEmbralam_live_buildResponse($adr_obj['status'], $previousMvt_obj, $adr_obj['adr_id'])) ;
 	
 	specDbsEmbralam_lib_proc_lock_off() ;
 	

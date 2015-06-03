@@ -4,7 +4,7 @@ function specDbsEmbralam_lib_proc_lock_on() {
 	global $_opDB ;
 	$file_code = 'Z_LOCK' ;
 	
-	$ttmp = paracrm_data_getFileGrid_raw(array('file_code'=>$file_code)) ;
+	$ttmp = paracrm_data_getFileGrid_raw(array('file_code'=>$file_code),$auth_bypass=TRUE) ;
 	if( $ttmp['total'] != 1 ) {
 		foreach( $ttmp['data'] as $file_row ) {
 			paracrm_lib_data_deleteRecord_file( $file_code, $file_row['filerecord_id'] ) ;
@@ -14,9 +14,14 @@ function specDbsEmbralam_lib_proc_lock_on() {
 		$lock_id = $ttmp['data'][0]['filerecord_id'] ;
 	}
 	
+	$timestamp_old = time() - 60 ;
+	$query = "UPDATE view_file_{$file_code} SET field_STATUS='0' WHERE filerecord_id='{$lock_id}' AND field_STATUS<='$timestamp_old'" ;
+	$_opDB->query($query) ;
+	
 	$try = 50 ;
 	while( $try > 0 ) {
-		$query = "UPDATE view_file_{$file_code} SET field_STATUS='1' WHERE filerecord_id='{$lock_id}' AND field_STATUS='0'" ;
+		$timestamp = time() ;
+		$query = "UPDATE view_file_{$file_code} SET field_STATUS='{$timestamp}' WHERE filerecord_id='{$lock_id}' AND field_STATUS='0'" ;
 		$result = $_opDB->query($query) ;
 		if( $_opDB->affected_rows($result) == 1 ) {
 			return TRUE ;
@@ -31,7 +36,7 @@ function specDbsEmbralam_lib_proc_lock_off() {
 	global $_opDB ;
 	$file_code = 'Z_LOCK' ;
 	
-	$ttmp = paracrm_data_getFileGrid_raw(array('file_code'=>$file_code)) ;
+	$ttmp = paracrm_data_getFileGrid_raw(array('file_code'=>$file_code),$auth_bypass=TRUE) ;
 	if( $ttmp['total'] != 1 ) {
 		return ;
 	} else {
