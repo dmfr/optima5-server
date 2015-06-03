@@ -97,13 +97,15 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.LivePanel',{
 							forceSelection:false,
 							allowBlank:false,
 							editable:true,
-							typeAhead:true,
+							typeAhead:false,
 							selectOnFocus: true,
+							selectOnTab: false,
 							queryMode: 'remote',
 							displayField: 'prod_id',
 							valueField: 'prod_id',
 							queryParam: 'filter',
 							minChars: 2,
+							fieldStyle: 'text-transform:uppercase',
 							store: {
 								model: 'DbsEmbralamProdComboboxModel',
 								proxy: this.optimaModule.getConfiguredAjaxProxy({
@@ -124,6 +126,11 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.LivePanel',{
 								},
 								select: function(cmb) {
 									this.onSelectProd(cmb.getValue()) ;
+								},
+								blur: function(cmb) {
+									if( this.getCurrentProd() == null && !Ext.isEmpty(cmb.getValue()) ) {
+										this.onSelectProd(cmb.getValue()) ;
+									}
 								},
 								scope: this
 							}
@@ -729,7 +736,9 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.LivePanel',{
 		var form = this.down('form').getForm(),
 			mvtId = form.findField('mvt_id').getValue() ;
 		Ext.Msg.confirm('Delete','Supprimer mouvement ?', function(btn) {
-			this.deleteMvt( mvtId ) ;
+			if( btn == 'yes') {
+				this.deleteMvt( mvtId ) ;
+			}
 		},this) ;
 	},
 	
