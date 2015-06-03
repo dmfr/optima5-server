@@ -89,7 +89,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.LivePanel',{
 							name: 'mvt_id'
 						},{
 							xtype: 'hidden',
-							name: 'prod_toset'
+							name: 'prod_set'
 						},{
 							xtype: 'combobox',
 							fieldLabel: 'P/N',
@@ -131,7 +131,13 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.LivePanel',{
 							xtype: 'textfield',
 							allowBlank:false,
 							fieldLabel: 'Batch',
-							name: 'batch'
+							name: 'batch',
+							listeners: {
+								change: function(cmb) {
+									this.onChangeBatch(cmb.getValue()) ;
+								},
+								scope: this
+							}
 						},{
 							xtype: 'numberfield',
 							allowBlank:false,
@@ -302,11 +308,26 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.LivePanel',{
 						direction: 'DESC'
 					}],
 					listeners: {
-						beforeload: Ext.emptyFn,
+						beforeload: function(store,options) {
+							options.params = options.params || {};
+							if( this.getCurrentProd() != null ) {
+								var params = {
+									filter_prod: this.getCurrentProd()
+								} ;
+								Ext.apply(options.params, params);
+							}
+						},
 						load: Ext.emptyFn,
 						scope: this
 					}
 				},
+				tools: [{
+					type:'refresh',
+					tooltip: 'Reload',
+					handler: function(event, toolEl, panelHeader) {
+						panelHeader.ownerCt.getStore().load() ;
+					}
+				}],
 				columns: [{
 					xtype: 'actioncolumn',
 					items: [{
@@ -362,6 +383,15 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.LivePanel',{
 		var fsAttributes = this.down('#fsAttributes'),
 			fsDummy = this.down('#fsDummy') ;
 		
+		var oldProdSet = this.down('form').getForm().findField('prod_set').getValue() ;
+		if( Ext.isEmpty(oldProdSet) ) {
+			oldProdSet = null ;
+		}
+		if( oldProdSet != prodCode ) {
+			this.down('form').getForm().findField('prod_set').setValue(prodCode) ;
+			this.down('grid').getStore().load() ;
+		}
+		
 		fsAttributes.setVisible(false) ;
 		fsDummy.setVisible(true) ;
 		if( prodCode == null ) {
@@ -408,6 +438,18 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.LivePanel',{
 		
 		fsAttributes.setVisible(true) ;
 		fsDummy.setVisible(false) ;
+	},
+	getCurrentProd: function() {
+		var prodFieldValue = this.down('form').getForm().findField('prod_set').getValue() ;
+		return (Ext.isEmpty(prodFieldValue) ? null : prodFieldValue) ;
+	},
+	
+	onChangeBatch: function(value) {
+		var gridStore = this.down('grid').getStore() ;
+		gridStore.clearFilter() ;
+		if( !Ext.isEmpty(this.down('form').getForm().findField('prod_set').getValue()) ) {
+			gridStore.filter('batch',value) ;
+		}
 	},
 	
 	submitAdr: function() {

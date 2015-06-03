@@ -157,12 +157,20 @@ function specDbsEmbralam_live_goRelocate( $post_data ) {
 
 
 
-function specDbsEmbralam_live_getGrid() {
+function specDbsEmbralam_live_getGrid($post_data) {
 	$forward_post = array() ;
 	$forward_post['start'] = 0 ;
 	$forward_post['limit'] = 50 ;
 	$forward_post['file_code'] = 'MVT' ;
 	$forward_post['sort'] = json_encode(array(array('property'=>'filerecord_id','direction'=>'DESC'))) ;
+	if( $post_data['filter_prod'] ) {
+		$filter = array() ;
+		$filter['field'] = 'MVT_field_PROD_ID' ;
+		$filter['type'] = 'list' ;
+		$filter['value'] = array($post_data['filter_prod']) ;
+		$filters = array($filter) ;
+		$forward_post['filter'] = json_encode($filters) ;
+	}
 	$ttmp = paracrm_data_getFileGrid_data( $forward_post, $auth_bypass=TRUE ) ;
 	$paracrm_TAB = $ttmp['data'] ;
 	
