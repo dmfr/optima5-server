@@ -188,6 +188,7 @@ Ext.onReady(function () {
 	/*
 	 * For IE11 : http://www.sencha.com/forum/showthread.php?281297-Ext.util.CSS.createStyleSheet-fails-in-IE11.
 	 * HACK: same in js/app/Modules.js
+	 * HACK: same in js/ux/ColumnAutoWidthPlugin.js
 	 */
 	Ext.util.CSS.createStyleSheet = function (cssText, id) {
 		var CSS = this,
