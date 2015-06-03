@@ -47,7 +47,7 @@ function specDbsEmbralam_live_goAdr( $post_data ) {
 			$PROD_fieldkey = $stockAttribute['PROD_fieldcode'] ;
 			$arr_ins[$PROD_fieldkey] = json_encode( array($form_data['stockAttributes_obj'][$mkey]) ) ;
 		}
-		paracrm_lib_data_insertRecord_bibleEntry( 'PROD', $form_data['mvt_obj']['prod_id'], 'PROD', $arr_ins ) ;
+		paracrm_lib_data_insertRecord_bibleEntry( 'PROD', $form_data['mvt_obj']['prod_id'], '', $arr_ins ) ;
 	}
 	
 	if( !specDbsEmbralam_lib_proc_lock_on() ) {
