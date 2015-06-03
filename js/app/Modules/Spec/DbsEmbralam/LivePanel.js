@@ -19,7 +19,7 @@ Ext.define('DbsEmbralamMovementModel',{
 	idProperty: 'mvt_id',
 	fields: [
 		{name: 'mvt_id', type:'int'},
-		{name: 'mvt_date', type:'date'},
+		{name: 'mvt_date', type:'date', dateFormat:'Y-m-d H:i:s'},
 		{name: 'adr_id', type:'string'},
 		{name: 'prod_id', type:'string'},
 		{name: 'batch', type:'string'},
