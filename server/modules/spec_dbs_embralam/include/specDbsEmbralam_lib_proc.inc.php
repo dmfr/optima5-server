@@ -178,6 +178,10 @@ function specDbsEmbralam_lib_proc_deleteMvt( $mvt_id ) {
 	
 	$query = "UPDATE view_file_INV SET field_QTY_AVAIL = field_QTY_AVAIL - '{$mvt_obj['mvt_qty']}' WHERE filerecord_id='{$inv_id}'" ;
 	$_opDB->query($query) ;
+	$query = "SELECT field_QTY_AVAIL FROM view_file_INV WHERE filerecord_id='{$inv_id}'" ;
+	if( $_opDB->query_uniqueValue($query) == 0 ) {
+		paracrm_lib_data_deleteRecord_file( 'INV', $inv_id ) ;
+	}
 	
 	return TRUE ;
 }
