@@ -49,6 +49,27 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.ProductsPanel',{
 					align: 'stretch'
 				},
 				tbar:[{
+					icon: 'images/op5img/ico_search_16.gif',
+					handler: function(btn) {
+						btn.up().down('#txtSearch').reset() ;
+					}
+				},{
+					xtype: 'textfield',
+					itemId: 'txtSearch',
+					width: 100,
+					listeners: {
+						change: function(field) {
+							var value = field.getValue(),
+								store = this.down('grid').getStore() ;
+							if( Ext.isEmpty(value) ) {
+								store.clearFilter() ;
+								return ;
+							}
+							store.filter('prod_id',value) ;
+						},
+						scope: this
+					}
+				},'->',{
 					icon:'images/op5img/ico_new_16.gif',
 					text:'Création Article',
 					handler: function() { this.handleNew() },
