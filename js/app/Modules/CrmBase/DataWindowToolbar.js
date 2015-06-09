@@ -181,7 +181,7 @@ Ext.define('Optima5.Modules.CrmBase.DataWindowToolbar' ,{
 		var menuItem, toolbarButton ;
 		if( item instanceof Ext.menu.Item ) {
 			menuItem = item ;
-			toolbarButton = item.up().ownerButton ;
+			toolbarButton = item.up().ownerCmp ;
 		} else if( item instanceof Ext.button.Button ) {
 			menuItem = null ;
 			toolbarButton = item ;
@@ -194,7 +194,7 @@ Ext.define('Optima5.Modules.CrmBase.DataWindowToolbar' ,{
 	},
 	onCheckItemChange: function( checkItem, checked ) {
 		var menuItem = checkItem ;
-		var toolbarButton = checkItem.up().ownerButton ;
+		var toolbarButton = checkItem.up().ownerCmp ;
 		
 		var me = this ;
 		me.fireEvent('toolbaritemclick',toolbarButton.itemId,menuItem.itemId,checked) ;

@@ -364,8 +364,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 				menu: {
 					listeners: {
 						click: function(menu, item) {
-							if( item && item.cropYear != null && (menu.ownerButton) instanceof Ext.button.Button ) {
-								menu.ownerButton.cropYear = item.cropYear ;
+							if( item && item.cropYear != null && (menu.ownerCmp) instanceof Ext.button.Button ) {
+								menu.ownerCmp.cropYear = item.cropYear ;
 								this.onSelectCropYear() ;
 							}
 						},
@@ -388,8 +388,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 				menu: {
 					listeners: {
 						click: function(menu, item) {
-							if( item && item.currencyCode != null && (menu.ownerButton) instanceof Ext.button.Button ) {
-								menu.ownerButton.currencyCode = item.currencyCode ;
+							if( item && item.currencyCode != null && (menu.ownerCmp) instanceof Ext.button.Button ) {
+								menu.ownerCmp.currencyCode = item.currencyCode ;
 								this.onSelectCurrency() ;
 							}
 						},
