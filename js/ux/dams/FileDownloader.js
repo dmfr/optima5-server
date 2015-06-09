@@ -2,12 +2,13 @@ Ext.define('Ext.ux.dams.FileDownloader',{
 	extend: 'Ext.Component',
 	alias: 'widget.filedownloader',
 	requires: ['Ext.XTemplate'], 
-
+	
+	childEls: ['dliframe','dlform'],
 	renderTpl: [
 		'<div id="{id}">',
-			  '<iframe css="display:none;visibility:hidden;height:0px;" id="{id}-dliframe" name="{id}-dliframe" frameBorder="0" width="0" height="0">' ,
+			  '<iframe css="display:none;visibility:hidden;height:0px;" id="{id}-dliframe" name="{id}-dliframe" data-ref="dliframe" frameBorder="0" width="0" height="0">' ,
 			  '</iframe>',
-			  '<form css="display:none;visibility:hidden;" method="post" id="{id}-dlform" name="{id}-dlform" target="{id}-dliframe">' ,
+			  '<form css="display:none;visibility:hidden;" method="post" id="{id}-dlform" name="{id}-dlform" data-ref="dlform" target="{id}-dliframe">' ,
 			  '</form>',
 		'</div>'
 	],
@@ -16,15 +17,12 @@ Ext.define('Ext.ux.dams.FileDownloader',{
 	stateful: false,
 	autoRender: true,
 	floating: true,
-			  
-			  
-			  
+	
 	requestAction: '',
 	requestParams: {},
 	requestMethod: 'POST',
-			  
+	
 	initComponent: function(){
-		this.addChildEls('dlform','dliframe') ;
 		this.callParent() ;
 	},
 			  

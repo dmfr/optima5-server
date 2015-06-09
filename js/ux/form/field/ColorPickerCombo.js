@@ -55,7 +55,7 @@ Ext.define('Ext.ux.form.field.ColorPickerCombo', {
 							value: initialColor,
 							listeners: {
 								hide: function(picker) {
-									picker.destroy() ;
+									Ext.defer(function(){picker.destroy();},10) ;
 								},
 								select: function (picker, color) {
 									me.setValue(color);
