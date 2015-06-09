@@ -53,8 +53,8 @@ function specDbsEmbralam_stock_getMvts($post_data) {
 	$forward_post['file_code'] = 'MVT' ;
 	$forward_post['filter'] = json_encode(array(
 		array(
-			'type' => 'list',
-			'field' => 'MVT_field_ADR_ID',
+			'operator' => 'in',
+			'property' => 'MVT_field_ADR_ID',
 			'value' => array( $post_data['adr_id'] )
 		)
 	)) ;

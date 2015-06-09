@@ -3,7 +3,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 	
 	requires : [
 		'Ext.ux.ComponentRowExpander',
-		'Ext.ux.grid.FiltersFeature',
+		'Ext.ux.grid.filters.Filters',
 		'Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel'
 	],
 	
@@ -276,11 +276,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 						hideable: true
 					}]
 				},
-				features: [{
-					ftype: 'filters',
-					encode: true
-				}],
 				plugins: [{
+					ptype: 'uxgridfilters'
+				},{
 					ptype:'cmprowexpander',
 					pluginId: 'rowexpander',
 					expandOnDblClick: false,

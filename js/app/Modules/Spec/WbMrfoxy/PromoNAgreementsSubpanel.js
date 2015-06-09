@@ -28,7 +28,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoNAgreementsSubpanel',{
 	extend:'Ext.panel.Panel',
 	
 	requires : [
-		'Ext.ux.grid.FiltersFeature',
+		'Ext.ux.grid.filters.Filters',
 		'Ext.ux.ComponentRowExpander',
 		'Optima5.Modules.Spec.WbMrfoxy.PromoNAgreementsRowPanel'
 	],
@@ -194,9 +194,6 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoNAgreementsSubpanel',{
 					}]
 				},
 				features: [{
-					ftype: 'filters',
-					encode: true
-				},{
 					ftype: 'grouping',
 					hideGroupedHeader: false,
 					enableGroupingMenu: false,
@@ -221,6 +218,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoNAgreementsSubpanel',{
 					)
 				}],
 				plugins: [{
+					ptype: 'uxgridfilters'
+				},{
 					ptype:'cmprowexpander',
 					pluginId: 'rowexpander',
 					expandOnDblClick: false,

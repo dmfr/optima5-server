@@ -7,9 +7,9 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 		'Optima5.Modules.CrmBase.FilePanelGmap',
 		'Optima5.Modules.CrmBase.FilePanelGallery',
 		'Optima5.Modules.CrmBase.FilePanelCalendar',
-		'Ext.ux.grid.FiltersFeature',
+		'Ext.ux.grid.filters.Filters',
 		'Optima5.Modules.CrmBase.BibleFilter',
-		'Optima5.Modules.CrmBase.BibleTreeFilter'
+		'Optima5.Modules.CrmBase.BibleTreeFilter',
 	],
 	
 	optimaModule: null,
@@ -220,10 +220,14 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 			extend: 'Ext.data.Model',
 			fields: modelFields
 		});
+		this.on('destroy',function(){
+			Ext.ux.dams.ModelManager.unregister( gridModelName ) ;
+		},this) ;
 		
 		var gridstore = Ext.create('Ext.data.Store', {
 			model: gridModelName,
 			remoteSort: true,
+			remoteFilter: true,
 			autoLoad: true,
 			proxy: this.optimaModule.getConfiguredAjaxProxy({
 				extraParams : {
@@ -366,8 +370,14 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 					}) ;
 				}
 				else {
+					var filterType ;
+					switch( v.type ) {
+						case 'bool' :
+							filterType = 'boolean' ;
+							break ;
+					}
 					Ext.apply(columnObject,{
-						filterable: true
+						filter: (filterType || true)
 					}) ;
 				}
 			}
@@ -390,31 +400,12 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 		},this) ;
 		
 		
-		var filtersParams = {
-			ftype: 'filters',
-			encode: true
-			// encode and local configuration options defined previously for easier reuse
-			/*
-			encode: encode, // json encode the filter query
-			local: local   // defaults to false (remote filtering)
-			*/
-
-			// Filters are most naturally placed in the column definition, but can also be
-			// added here.
-			/*
-			filters: [
-					{
-						type: 'boolean',
-						dataIndex: 'visible'
-					}
-			]*/
-		};
-		
-		
 		var gridpanel = Ext.create('Ext.grid.Panel',{
 			store: gridstore,
 			columns: gridColumns,
-			features: [ filtersParams ],
+			plugins: [{
+				ptype: 'uxgridfilters'
+			}],
 			dockedItems: [{
 				xtype: 'pagingtoolbar',
 				store: gridstore,   // same store GridPanel is using

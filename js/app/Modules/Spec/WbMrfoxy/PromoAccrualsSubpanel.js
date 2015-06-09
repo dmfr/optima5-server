@@ -3,7 +3,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoAccrualsSubpanel',{
 	
 	requires : [
 		'Ext.ux.ComponentRowExpander',
-		'Ext.ux.grid.FiltersFeature',
+		'Ext.ux.grid.filters.Filters',
 		'Optima5.Modules.Spec.WbMrfoxy.PromoBillbackGrid'
 	],
 	
@@ -200,9 +200,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoAccrualsSubpanel',{
 						menuDisabled:false
 					}]
 				},
-				features: [{
-					ftype: 'filters',
-					encode: true
+				plugins: [{
+					ptype: 'uxgridfilters'
 				}],
 				listeners: {
 					itemclick: function(view, record, item, index, event) {
