@@ -36,6 +36,6 @@ if( $my_sdomain ) {
 }
 
 //ob_end_clean() ;
-//header('Content-type: text/html');
+header('Content-type: application/json');
 die( json_encode($TAB) ) ;
 ?>
