@@ -3,18 +3,19 @@ Ext.define('Optima5.Modules.CrmBase.BibleMemoryPicker',{
 	alias: 'widget.op5crmbasebiblememorypicker',
 	requires: ['Ext.XTemplate','Ext.grid.Panel'], 
 	
+	preSubTpl: [
+		'<div id="{cmpId}-triggerWrap" data-ref="triggerWrap" class="{triggerWrapCls} {triggerWrapCls}-{ui}">',
+			'<div id={cmpId}-inputWrap data-ref="inputWrap" class="{inputWrapCls}-{ui}">'
+	],
+	
 	childEls: ['divicon','divtext'],
 	fieldSubTpl: [
 		'<div id="{id}" type="{type}" ',
 			'<tpl if="size">size="{size}" </tpl>',
 			'<tpl if="tabIdx">tabIndex="{tabIdx}" </tpl>',
-			'class="{fieldCls} {typeCls}" autocomplete="off">',
+			'class="{fieldCls} {typeCls} {typeCls}-{ui} {editableCls} {inputCls}" autocomplete="off">',
 			'<span id="{cmpId}-divicon" data-ref="divicon" class="biblepicker-icon">&#160;</span>',
 			'<span id="{cmpId}-divtext" data-ref="divtext" class="biblepicker-text">&#160;</span>',
-		'</div>',
-		'<div id="{cmpId}-triggerWrap" class="{triggerWrapCls}" role="presentation">',
-			'{triggerEl}',
-			'<div class="{clearCls}" role="presentation"></div>',
 		'</div>',
 		{
 			compiled: true,
@@ -168,10 +169,8 @@ Ext.define('Optima5.Modules.CrmBase.BibleMemoryPicker',{
 		
 		// console.log('finished') ;
 		
-		this.on('destroy',function(){
-			var model = Ext.ModelManager.getModel(this.myModelname);
-			Ext.ModelManager.unregister(model);
-			// console.log("unregister model "+this.myModelname) ;
+		this.on('destroy',function(c){
+			Ext.ux.dams.ModelManager.unregister( c.myModelname ) ;
 		},this) ;
 	},
 			
@@ -370,7 +369,11 @@ Ext.define('Optima5.Modules.CrmBase.BibleMemoryPicker',{
 		return me.myValue ;
 	},
 	getErrors: function( curvalue ) {
-		var errors = this.callParent(arguments) ;
+		var me = this,
+			errors = [] ;
+		if( Ext.isEmpty(me.myValue) && !me.allowBlank ) {
+			errors.push(me.blankText);
+		}
 		return errors;
 	}  
 });

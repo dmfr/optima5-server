@@ -224,13 +224,11 @@ Ext.define('Optima5.Modules.CrmBase.DefineStoreFieldJoinPanel' ,{
 			me.applyValues() ;
 		},me,{single:true}) ;
 		
-		me.on('beforehide',me.storeValues,me) 
+		me.on('beforehide',me.storeValues,me) ;
 		
 		// Start Ajax queries chain
-		me.buildLocalTreeDone = false ;
+		me.buildLocalTreeDone = me.buildTargetFilesDone = false ;
 		me.buildLocalTree() ;
-		
-		me.buildTargetFilesDone = false ;
 		me.buildTargetFiles() ;
 	},
 	
@@ -287,6 +285,7 @@ Ext.define('Optima5.Modules.CrmBase.DefineStoreFieldJoinPanel' ,{
 			
 			
 		var treeRootNode = {
+			expanded: true,
 			root:true,
 			children:[] 
 		};
@@ -360,8 +359,11 @@ Ext.define('Optima5.Modules.CrmBase.DefineStoreFieldJoinPanel' ,{
 					});
 				}) ;
 				
-				me.getComponent('targetPanel').child('form').getForm().findField('target_file_code').setValue(null) ;
-				me.getComponent('targetPanel').child('form').getForm().findField('target_file_code').getStore().loadData(altFiles) ;
+				var targetFileCodeCombo = me.getComponent('targetPanel').child('form').getForm().findField('target_file_code') ;
+				targetFileCodeCombo.suspendEvents() ;
+				targetFileCodeCombo.reset() ;
+				targetFileCodeCombo.resumeEvents(true) ;
+				targetFileCodeCombo.getStore().loadData(altFiles) ;
 				me.buildTargetFilesDone = true ;
 				me.onBuild() ;
 			},
@@ -390,7 +392,9 @@ Ext.define('Optima5.Modules.CrmBase.DefineStoreFieldJoinPanel' ,{
 		
 		if( targetFileCode == null ) {
 			selectFieldCodeCombo.setVisible( false );
-			selectFieldCodeCombo.setValue(null) ;
+			selectFieldCodeCombo.suspendEvents() ;
+			selectFieldCodeCombo.reset() ;
+			selectFieldCodeCombo.resumeEvents(true);
 			selectFieldCodeCombo.getStore().removeAll() ;
 			
 			mapGrid.setVisible( false );

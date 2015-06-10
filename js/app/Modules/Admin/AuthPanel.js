@@ -50,7 +50,7 @@ Ext.define('AuthTreeUsersModel', {
 	extend: 'Ext.data.Model',
 	idProperty:'id',
 	fields: [
-		{name: 'id', type:'string'}, // dummy ID as tree is built for display purposes only
+		//{name: 'id', type:'string'}, // dummy ID as tree is built for display purposes only
 		{name: 'text', type:'string'},
 		{name: '_type', type:'string'},
 		{name: 'user_id',  type: 'string'},
@@ -65,7 +65,7 @@ Ext.define('AuthTreeUsersModel', {
 Ext.define('AuthTreeGroupsModel', {
 	extend: 'Ext.data.Model',
 	fields: [
-		{name: 'id',  type: 'int'}, // dummy ID as tree is built for display purposes only
+		//{name: 'id',  type: 'int'}, // dummy ID as tree is built for display purposes only
 		{name: 'text', type:'string'},
 		{name: '_type', type:'string'},
 		{name: 'sdomain_id',  type: 'string'},

@@ -58,6 +58,12 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 		
 		this.callParent(arguments);
 		this.addEvents('load','viewchanged') ;
+		
+		this.on('destroy',function(p){
+			if( p.gridModelName ) {
+				Ext.ux.dams.ModelManager.unregister( p.gridModelName ) ;
+			}
+		},this) ;
 	},
 			  
 			  
@@ -216,13 +222,15 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 			}
 			modelFields.push( fieldObject ) ;
 		},this) ;
+		
+		if( this.gridModelName ) {
+			Ext.ux.dams.ModelManager.unregister( this.gridModelName ) ;
+		}
 		Ext.define(gridModelName, {
 			extend: 'Ext.data.Model',
 			fields: modelFields
 		});
-		this.on('destroy',function(){
-			Ext.ux.dams.ModelManager.unregister( gridModelName ) ;
-		},this) ;
+		this.gridModelName = gridModelName ;
 		
 		var gridstore = Ext.create('Ext.data.Store', {
 			model: gridModelName,

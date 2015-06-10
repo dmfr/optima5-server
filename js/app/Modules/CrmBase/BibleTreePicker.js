@@ -12,18 +12,19 @@ Ext.define('Optima5.Modules.CrmBase.BibleTreePicker',{
 	alias: 'widget.op5crmbasebibletreepicker',
 	requires: ['Ext.XTemplate','Ext.grid.Panel'], 
 	
+	preSubTpl: [
+		'<div id="{cmpId}-triggerWrap" data-ref="triggerWrap" class="{triggerWrapCls} {triggerWrapCls}-{ui}">',
+			'<div id={cmpId}-inputWrap data-ref="inputWrap" class="{inputWrapCls}-{ui}">'
+	],
+	
 	childEls: ['divicon','divtext'],
 	fieldSubTpl: [
 		'<div id="{id}" type="{type}" ',
 			'<tpl if="size">size="{size}" </tpl>',
 			'<tpl if="tabIdx">tabIndex="{tabIdx}" </tpl>',
-			'class="{fieldCls} {typeCls}" autocomplete="off">',
+			'class="{fieldCls} {typeCls} {typeCls}-{ui} {editableCls} {inputCls}" autocomplete="off">',
 			'<span id="{cmpId}-divicon" data-ref="divicon" class="biblepicker-icon">&#160;</span>',
 			'<span id="{cmpId}-divtext" data-ref="divtext" class="biblepicker-text">&#160;</span>',
-		'</div>',
-		'<div id="{cmpId}-triggerWrap" class="{triggerWrapCls}" role="presentation">',
-			'{triggerEl}',
-			'<div class="{clearCls}" role="presentation"></div>',
 		'</div>',
 		{
 			compiled: true,
@@ -323,7 +324,11 @@ Ext.define('Optima5.Modules.CrmBase.BibleTreePicker',{
 		}
 	},
 	getErrors: function( curvalue ) {
-		var errors = this.callParent(arguments) ;
+		var me = this,
+			errors = [] ; 
+		if( me.myValue.length < 1 && !me.allowBlank ) {
+			errors.push(me.blankText);
+		}
 		return errors;
 	}  
 });

@@ -14,8 +14,9 @@ Ext.define('Ext.ux.dams.IFrameContent', {
 	extend: 'Ext.Component',
 
 	renderTpl: [
-		'<iframe src="about:blank" id="{id}-iframe" width="100%" height="100%" frameborder="0"></iframe>'
+		'<iframe src="about:blank" id="{id}-iframe" data-ref="iframe" width="100%" height="100%" frameborder="0"></iframe>'
 	],
+	childEls: ['iframe'],
 
 	initComponent: function () {
 		var me = this ;
@@ -24,10 +25,6 @@ Ext.define('Ext.ux.dams.IFrameContent', {
 				'beforeload',
 				'load'
 		);
-		
-		Ext.apply(me.renderSelectors, {
-				iframeEl: 'iframe'
-		});
 		
 		me.on('afterrender',me.onAfterRender,me) ;
 		me.callParent();

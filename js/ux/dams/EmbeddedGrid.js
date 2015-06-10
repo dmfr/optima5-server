@@ -76,17 +76,19 @@ Ext.define('Ext.ux.dams.EmbeddedGrid',{
 					}]
 				}]
 			});
+		}
+		
+		this.on('destroy',function(p){
+			Ext.ux.dams.ModelManager.unregister( p.modelname ) ;
+		},this) ;
+		
+		this.callParent() ;
+		
+		if( !this.readOnly ) {
 			this.getSelectionModel().on('selectionchange', function(selModel, selections){
 				this.down('#delete').setDisabled(selections.length === 0);
 			},this);
 		}
-		
-		this.on('destroy',function(){
-			var model = Ext.ModelManager.getModel(this.modelname);
-			Ext.ModelManager.unregister(model);
-		},this) ;
-		
-		this.callParent() ;
 	},
 					 
 	testFn: function( mfield, mvalue ){
