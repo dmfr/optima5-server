@@ -860,13 +860,13 @@ function specWbMrfoxy_promo_exportXLS( $post_data ) {
 		$objPHPExcel->getActiveSheet()->setCellValue('H'.$lig, $discount_per_unit);
 		$objPHPExcel->getActiveSheet()->setCellValue('I'.$lig, ($discount_per_unit * $sku_record['promo_qty_forecast']) );
 		$lig++ ;
-		if( $lig > 21 ) {
+		if( $lig > 25 ) {
 			break ;
 		}
 	}
 	}
 	if( $promo_record['cost_forecast_var'] > 0 ) {
-		$lig = 21 ;
+		$lig = 25 ;
 		$objPHPExcel->getActiveSheet()->setCellValue('B'.$lig, '');
 		$objPHPExcel->getActiveSheet()->setCellValue('C'.$lig, '');
 		$objPHPExcel->getActiveSheet()->setCellValue('D'.$lig, '');
@@ -876,7 +876,7 @@ function specWbMrfoxy_promo_exportXLS( $post_data ) {
 		$objPHPExcel->getActiveSheet()->setCellValue('I'.$lig, $promo_record['cost_forecast_var']);
 	}
 	if( ($cost_static = $promo_record['cost_static_billback']+$promo_record['cost_static_discount']) > 0 ) {
-		$lig = 25 ;
+		$lig = 29 ;
 		$objPHPExcel->getActiveSheet()->setCellValue('I'.$lig, $cost_static);
 	}
 	
