@@ -630,7 +630,7 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 			me.optimaModule.getConfiguredAjaxConnection().request({
 				params:params,
 				success: function(response) {
-					item.setData( Ext.decode(response.responseText).data ) ;
+					item.setTabData( Ext.decode(response.responseText).data ) ;
 				},
 				scope:me
 			}) ;

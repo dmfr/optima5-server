@@ -1590,7 +1590,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 			title: (gridColumn.isInitialEdit ? gridColumn.text : 'Revision '+gridColumn.text) + ' : ' + gridRecord.get('row_text'),
 			
 			readOnly: Ext.isEmpty(gridColumn.dataIsEditing),
-			data: subArr,
+			tabData: subArr,
 			columns:[{
 				flex:2,
 				dataIndex:'row_sub_prodtag',
@@ -1659,7 +1659,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.FinanceBudgetPanel',{
 			
 			listeners: {
 				beforedestroy: function(p) {
-					var editorArr = p.getData(),
+					var editorArr = p.getTabData(),
 						editorValue = 0 ;
 					Ext.Array.each( editorArr, function(lig) {
 						editorValue += lig.value ;

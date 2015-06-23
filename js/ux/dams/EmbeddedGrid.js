@@ -9,13 +9,18 @@ Ext.define('Ext.ux.dams.EmbeddedGrid',{
 		var modelfields = new Array() ;
 		var modelvalidators = new Object() ;
 		Ext.each( ( Ext.isObject(this.columns) ? this.columns.items : this.columns ), function( v ){
-			var type = 'string' ;
-			if( v.type ) {
+			if( v.type=='hidden' ) {
+				return ;
+			}
+			if( !v.type || !Ext.ClassManager.getByAlias( Ext.data.Field.prototype.aliasPrefix + v.type ) ) {
+				type = 'string' ;
+			} else {
 				type = v.type ;
 			}
 			modelfields.push( { name:v.dataIndex, type:type, defaultValue:((typeof v.defaultValue === 'undefined')? '' : v.defaultValue ) } ) ;
-			if( v.editor && v.editor.allowBlank == false )
+			if( v.editor && v.editor.allowBlank == false ) {
 				modelvalidators[v.dataIndex] = {type:'length',min:1} ;
+			}
 		});
 		this.modelname = this.id+'-'+'dynModel' ;
 		Ext.define(this.modelname,{
@@ -30,7 +35,7 @@ Ext.define('Ext.ux.dams.EmbeddedGrid',{
 			autoLoad: true,
 			autoSync: true,
 			model: this.modelname,
-			data: this.data || [],
+			data: this.tabData || [],
 			proxy: Ext.create('Ext.data.proxy.Memory',{
 				updateOperation: function(operation, callback, scope) {
 					operation.setCompleted();
@@ -108,7 +113,7 @@ Ext.define('Ext.ux.dams.EmbeddedGrid',{
 		return s.indexOf(r[0]);
    },
 	
-	setData: function( tabData ) {
+	setTabData: function( tabData ) {
 		var ln = tabData.length,
 			records = [],
 			i = 0;
@@ -121,7 +126,7 @@ Ext.define('Ext.ux.dams.EmbeddedGrid',{
 		}
 		this.linkstore.loadData(records) ;
 	},
-	getData: function() {
+	getTabData: function() {
 		var datar = new Array();
 		var jsonDataEncode = "";
 		var records = this.linkstore.getRange();
