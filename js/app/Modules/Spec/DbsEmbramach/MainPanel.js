@@ -43,7 +43,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MainPanel',{
 			}
 		}) ;
 		if( !this.optimaModule.getSdomainRecord().get('auth_has_all') ) {
-			return this.switchToAppPanel('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{flowCode: 'PICKING'},true) ;
+			return this.switchToAppPanel('Optima5.Modules.Spec.DbsEmbramach.MachAdminPanel',{flowCode: 'PICKING'},true) ;
 		}
 		this.removeAll() ;
 		this.add( mainMenuView ) ;
@@ -64,7 +64,8 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MainPanel',{
 		
 		options = options || {} ;
 		Ext.apply(options,{
-			optimaModule: me.optimaModule
+			optimaModule: me.optimaModule,
+			noDestroy: noDestroy
 		}) ;
 		
 		var panel = Ext.create(className,options) ;

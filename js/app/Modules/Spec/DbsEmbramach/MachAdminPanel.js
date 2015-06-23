@@ -4,6 +4,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachAdminPanel',{
 	initComponent: function() {
 		Ext.apply(this,{
 			tbar:[{
+				hidden: this.noDestroy,
 				icon: 'images/op5img/ico_back_16.gif',
 				text: '<u>Retour menu</u>',
 				handler: function(){
@@ -55,7 +56,9 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachAdminPanel',{
 	},
 	
 	doQuit: function() {
-		this.destroy() ;
+		if( !this.noDestroy ) {
+			this.destroy() ;
+		}
 	},
 	doRefresh: function() {
 		this.doLoad() ;
