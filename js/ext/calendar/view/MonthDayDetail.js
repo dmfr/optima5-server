@@ -13,14 +13,6 @@ Ext.define('Ext.calendar.view.MonthDayDetail', {
         'Ext.calendar.util.Date',
         'Ext.calendar.view.AbstractCalendar'
     ],
-    
-    initComponent : function(){
-        this.callParent(arguments);
-        
-        this.addEvents({
-            eventsrendered: true
-        });
-    },
 
     afterRender: function() {
         this.tpl = this.getTemplate();
@@ -28,9 +20,9 @@ Ext.define('Ext.calendar.view.MonthDayDetail', {
         this.callParent(arguments);
 
         this.el.on({
-            'click': this.view.onClick,
-            'mouseover': this.view.onMouseOver,
-            'mouseout': this.view.onMouseOut,
+            click: this.view.onClick,
+            mouseover: this.view.onMouseOver,
+            mouseout: this.view.onMouseOut,
             scope: this.view
         });
     },

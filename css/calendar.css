@@ -703,8 +703,8 @@ td.ext-cal-dtitle-today div {
 }
 
 .ext-color-1,
-.x-ie .ext-color-1-ad,
-.x-opera .ext-color-1-ad {
+.x-ie7m .ext-color-1-ad,
+.x-opera .ext-operaLT11.ext-color-1-ad {
 	color: #306da6;
 }
 .ext-cal-day-col .ext-color-1,
@@ -724,8 +724,8 @@ td.ext-cal-dtitle-today div {
 }
 
 .ext-color-2,
-.x-ie .ext-color-2-ad,
-.x-opera .ext-color-2-ad {
+.x-ie7m .ext-color-2-ad,
+.x-opera .ext-operaLT11.ext-color-2-ad {
 	color: #86a723;
 }
 .ext-cal-day-col .ext-color-2,
@@ -744,8 +744,8 @@ td.ext-cal-dtitle-today div {
     border-color: #86a723;
 }
 .ext-color-3,
-.x-ie .ext-color-3-ad,
-.x-opera .ext-color-3-ad {
+.x-ie7m .ext-color-3-ad,
+.x-opera .ext-operaLT11.ext-color-3-ad {
     color: #b6a980;
 }
 .ext-cal-day-col .ext-color-3,
@@ -809,62 +809,6 @@ td.ext-cal-dtitle-today div {
 }
 .ext-dd-ghost-ct .ext-evt-rsz {
     display: none;
-}
-
-/*******************************************
- * 
- * Calendar navigation picker styles
- * 
- ******************************************/
-.ext-cal-nav-picker {
-    border-style: none none solid;
-    border-color: #99BBE8;
-}
-.ext-cal-nav-picker .x-datepicker-header {
-    background: #D3E1F1 url(../images/calendar/bg.gif) repeat-x;
-}
-.ext-cal-nav-picker .x-datepicker-month,
-.ext-cal-nav-picker .x-datepicker-prev,
-.ext-cal-nav-picker .x-datepicker-next {
-    background: transparent;
-}
-.ext-cal-nav-picker .x-datepicker-prev a {
-    background-image: url(../images/calendar/page-prev.gif);
-}
-.ext-cal-nav-picker .x-datepicker-next a {
-    background-image: url(../images/calendar/page-next.gif);
-}
-.ext-cal-nav-picker .x-datepicker-month {
-    padding: 3px 0;
-}
-.ext-cal-nav-picker .x-datepicker-month .x-btn-inner {
-    color: #555 !important;
-    font-weight: bold;
-    font-family: arial,tahoma,verdana,helvetica;
-}
-.ext-cal-nav-picker .x-datepicker-month .x-btn-split-right {
-    background-image: url(../images/calendar/arrow.gif) !important;
-    background-position: right 4px;
-}
-.ext-cal-nav-picker .x-datepicker-inner {
-    border-top: 1px solid #BBCCFF;
-}
-.ext-cal-nav-picker .x-datepicker-inner th {
-    background: none;
-    border-bottom: 1px solid #BBCCFF;
-}
-.ext-cal-nav-picker .x-datepicker-inner .x-datepicker-today a {
-    border-color: #BFA52F;
-    background: #FFF4BF;
-}
-.ext-cal-nav-picker .x-monthpicker {
-    border: 0;
-    border-bottom: 1px solid #99BBE8;
-    top: 0 !important;
-    left: 0 !important;
-}
-.ext-cal-nav-picker .x-datepicker-footer {
-    background: #D3E1F1 url(../images/calendar/bg.gif) repeat-x;
 }
 
 /*******************************************

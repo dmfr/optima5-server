@@ -47,11 +47,12 @@ Ext.define('Ext.calendar.form.field.DateRange', {
     timeFormat: Ext.Date.use24HourTime ? 'G:i' : 'g:i A',
     
     // private
-    fieldLayout: {
-        type: 'hbox',
-        defaultMargins: { top: 0, right: 5, bottom: 0, left: 0 }
+    fieldLayout: 'hbox',
+
+    defaults: {
+        margin: '0 5 0 0'
     },
-    
+
     // private
     initComponent: function() {
         var me = this;
@@ -208,7 +209,7 @@ Ext.define('Ext.calendar.form.field.DateRange', {
             itemId: this.id + '-allday',
             hidden: this.showTimes === false || this.showAllDay === false,
             boxLabel: this.allDayText,
-            margins: { top: 2, right: 5, bottom: 0, left: 0 },
+            margin: '2 5 0 0',
             handler: this.onAllDayChange,
             scope: this
         };
@@ -226,7 +227,7 @@ Ext.define('Ext.calendar.form.field.DateRange', {
             xtype: 'label',
             itemId: this.id + '-to-label',
             text: this.toText,
-            margins: { top: 4, right: 5, bottom: 0, left: 0 }
+            margin: '4 5 0 0'
         };
     },
     
@@ -243,7 +244,7 @@ Ext.define('Ext.calendar.form.field.DateRange', {
                     w -= el.getPadding('lr');
                 }
                 
-                el = ownerCtEl.down('.x-form-item-label')
+                el = ownerCtEl.down('.x-form-item-label');
                 if(el){
                     w -= el.getWidth() - el.getPadding('lr');
                 }

@@ -82,7 +82,6 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 				xtype:'calendarpanel',
 				activeItem: 1,
 				eventStore: me.eventStore,
-				layout:'fit',
 				border:false,
 				region:'center',
 				dayViewCfg: {
@@ -396,14 +395,12 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 			_action: 'data_getFileGrid_data',
 			file_code: fileCode,
 			filter: Ext.JSON.encode([{
-				type: 'date',
-				comparison: 'gt',
-				field: endField ,
+				operator: 'gt',
+				property: endField ,
 				value: Ext.Date.format(dateMinEnd,'Y-m-d')
 			},{
-				type: 'date',
-				comparison: 'lt',
-				field: startField ,
+				operator: 'lt',
+				property: startField ,
 				value: Ext.Date.format(dateMaxStart,'Y-m-d')
 			}])
 		};
@@ -648,7 +645,14 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 				listeners:{
 					hide:me.onEventDetailHide,
 					scope:me
-				}
+				},
+				
+				width:200,
+				height:200,
+				minWidth: 200,
+				maxWidth: 400,
+				minHeight: 200,
+				maxHeight: 400
 			});
 		}
 		
@@ -664,6 +668,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 			me.onEventDetailRendered(clickEl) ;
 		},me,{single:true}) ;
 		me.eventDetailPanel.getComponent(this.id + '-eventdetailview').update(recordIdx) ;
+		me.eventDetailPanel.getComponent(this.id + '-eventdetailview').doComponentLayout() ;
 	},
 	onEventDetailRendered: function( clickEl ) {
 		var me = this,
