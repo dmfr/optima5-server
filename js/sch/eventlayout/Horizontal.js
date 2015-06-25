@@ -1,91 +1,75 @@
 Ext.define("Sch.eventlayout.Horizontal", {
-    timeAxisViewModel: null,
-    view: null,
     nbrOfBandsByResource: null,
-    constructor: function (a) {
+    bandIndexToPxConvertFn: null,
+    bandIndexToPxConvertScope: null,
+    constructor: function(a) {
         Ext.apply(this, a);
         this.nbrOfBandsByResource = {}
     },
-    clearCache: function (a) {
+    clearCache: function(a) {
         if (a) {
             delete this.nbrOfBandsByResource[a.internalId]
         } else {
             this.nbrOfBandsByResource = {}
         }
     },
-    getNumberOfBands: function (b, c) {
-        if (!this.view.dynamicRowHeight) {
-            return 1
-        }
+    getNumberOfBands: function(c, b) {
         var a = this.nbrOfBandsByResource;
-        if (a.hasOwnProperty(b.internalId)) {
-            return a[b.internalId]
+        if (a.hasOwnProperty(c.internalId)) {
+            return a[c.internalId]
         }
-        return this.calculateNumberOfBands(b, c)
-    },
-    getRowHeight: function (b, c) {
-        var a = this.view;
-        var d = this.getNumberOfBands(b, c);
-        return (d * this.timeAxisViewModel.rowHeightHorizontal) - ((d - 1) * a.barMargin)
-    },
-    calculateNumberOfBands: function (e, g) {
-        var f = [];
-        g = g || this.view.eventStore.getEventsForResource(e);
-        var d = this.view.timeAxis;
-        for (var b = 0; b < g.length; b++) {
-            var c = g[b];
-            var h = c.getStartDate();
-            var a = c.getEndDate();
-            if (h && a && d.timeSpanInAxis(h, a)) {
-                f[f.length] = {
-                    start: h,
-                    end: a
-                }
+        var e = Ext.isFunction(b) ? b() : b;
+        var d = Ext.Array.map(e, function(f) {
+            return {
+                start: f.getStartDate(),
+                end: f.getEndDate(),
+                event: f
             }
-        }
-        return this.applyLayout(f, e)
+        });
+        return this.applyLayout(d, c)
     },
-    applyLayout: function (a, b) {
-        var c = a.slice();
-        c.sort(this.sortEvents);
-        return this.nbrOfBandsByResource[b.internalId] = this.layoutEventsInBands(0, c)
+    applyLayout: function(a, c) {
+        var d = a.slice();
+        var b = this;
+        d.sort(function(f, e) {
+            return b.sortEvents(f.event, e.event)
+        });
+        return this.nbrOfBandsByResource[c.internalId] = this.layoutEventsInBands(d)
     },
-    sortEvents: function (e, d) {
-        var c = (e.start - d.start === 0);
+    sortEvents: function(f, d) {
+        var g = f.getStartDate();
+        var e = d.getStartDate();
+        var c = (g - e === 0);
         if (c) {
-            return e.end > d.end ? -1 : 1
+            return f.getEndDate() > d.getEndDate() ? -1 : 1
         } else {
-            return (e.start < d.start) ? -1 : 1
+            return (g < e) ? -1 : 1
         }
     },
-    layoutEventsInBands: function (e, b) {
-        var a = this.view;
+    layoutEventsInBands: function(b) {
+        var a = 0;
         do {
-            var d = b[0],
-                c = e === 0 ? a.barMargin : (e * this.timeAxisViewModel.rowHeightHorizontal - (e - 1) * a.barMargin);
-            if (c >= a.cellBottomBorderWidth) {
-                c -= a.cellBottomBorderWidth
+            var c = b[0];
+            while (c) {
+                c.top = this.bandIndexToPxConvertFn.call(this.bandIndexToPxConvertScope || this, a, c.event);
+                Ext.Array.remove(b, c);
+                c = this.findClosestSuccessor(c, b)
             }
-            while (d) {
-                d.top = c;
-                Ext.Array.remove(b, d);
-                d = this.findClosestSuccessor(d, b)
-            }
-            e++
+            a++
         } while (b.length > 0);
-        return e
+        return a
     },
-    findClosestSuccessor: function (g, e) {
-        var c = Infinity,
-            f, a = g.end,
-            h;
-        for (var d = 0, b = e.length; d < b; d++) {
-            h = e[d].start - a;
-            if (h >= 0 && h < c) {
-                f = e[d];
-                c = h
+    findClosestSuccessor: function(a, j) {
+        var f = Infinity,
+            b, g = a.end,
+            h, c = a.end - a.start === 0;
+        for (var e = 0, d = j.length; e < d; e++) {
+            h = j[e].start - g;
+            if (h >= 0 && h < f && (h > 0 || j[e].end - j[e].start > 0 || !c)) {
+                b = j[e];
+                f = h
             }
         }
-        return f
+        return b
     }
 });

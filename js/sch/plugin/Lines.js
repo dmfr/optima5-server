@@ -6,7 +6,7 @@ Ext.define("Sch.plugin.Lines", {
     innerTpl: null,
     prepareTemplateData: null,
     side: null,
-    init: function (a) {
+    init: function(a) {
         if (Ext.isString(this.innerTpl)) {
             this.innerTpl = new Ext.XTemplate(this.innerTpl)
         }
@@ -14,17 +14,23 @@ Ext.define("Sch.plugin.Lines", {
         var b = this.innerTpl;
         if (!this.template) {
             this.template = new Ext.XTemplate('<tpl for=".">', '<div id="{id}" ' + (this.showTip ? 'title="{[this.getTipText(values)]}" ' : "") + 'class="{$cls}" style="' + this.side + ':{left}px;top:{top}px;height:{height}px;width:{width}px">' + (b ? "{[this.renderInner(values)]}" : "") + "</div>", "</tpl>", {
-                getTipText: function (c) {
+                getTipText: function(c) {
                     return a.getSchedulingView().getFormattedDate(c.Date) + " " + (c.Text || "")
                 },
-                renderInner: function (c) {
+                renderInner: function(c) {
                     return b.apply(c)
                 }
             })
         }
         this.callParent(arguments)
     },
-    getElementData: function (m, q, c) {
+    generateMarkup: function(b, a) {
+        return this.schedulerView.getMode() === "calendar" ? "" : this.callParent(arguments)
+    },
+    generateHeaderMarkup: function(b, a) {
+        return this.schedulerView.getMode() === "calendar" ? "" : this.callParent(arguments)
+    },
+    getElementData: function(m, q, c) {
         var t = this.store,
             j = this.schedulerView,
             p = j.isHorizontal(),
@@ -58,7 +64,7 @@ Ext.define("Sch.plugin.Lines", {
         }
         return h
     },
-    getHeaderElementData: function (c) {
+    getHeaderElementData: function(c) {
         var a = this.timeAxis.getStart(),
             k = this.timeAxis.getEnd(),
             m = this.schedulerView.isHorizontal(),
@@ -71,12 +77,13 @@ Ext.define("Sch.plugin.Lines", {
             if (b && Sch.util.Date.betweenLesser(b, a, k)) {
                 j = this.getHeaderElementPosition(b);
                 e = this.getTemplateData(h);
-                g.push(Ext.apply({
-                    id: this.getHeaderElementId(h),
+                e = Ext.apply({
                     side: m ? this.side : "top",
                     cls: this.getHeaderElementCls(h, e),
                     position: j
-                }, e))
+                }, e);
+                e.id = this.getHeaderElementId(h);
+                g.push(e)
             }
         }
         return g

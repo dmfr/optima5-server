@@ -1,11 +1,5 @@
 Ext.define("Sch.mixin.Zoomable", {
     zoomLevels: [{
-        width: 80,
-        increment: 5,
-        resolution: 1,
-        preset: "manyYears",
-        resolutionUnit: "YEAR"
-    }, {
         width: 40,
         increment: 1,
         resolution: 1,
@@ -159,20 +153,20 @@ Ext.define("Sch.mixin.Zoomable", {
     cachedCenterDate: null,
     isFirstZoom: true,
     isZooming: false,
-    initializeZooming: function () {
+    initializeZooming: function() {
         this.zoomLevels = this.zoomLevels.slice();
         this.setMinZoomLevel(this.minZoomLevel || 0);
         this.setMaxZoomLevel(this.maxZoomLevel !== null ? this.maxZoomLevel : this.zoomLevels.length - 1);
         this.on("viewchange", this.clearCenterDateCache, this)
     },
-    getZoomLevelUnit: function (a) {
+    getZoomLevelUnit: function(a) {
         return Sch.preset.Manager.getPreset(a.preset).getBottomHeader().unit
     },
-    getMilliSecondsPerPixelForZoomLevel: function (c, a) {
+    getMilliSecondsPerPixelForZoomLevel: function(c, a) {
         var b = Sch.util.Date;
         return Math.round((b.add(new Date(1, 0, 1), this.getZoomLevelUnit(c), c.increment) - new Date(1, 0, 1)) / (a ? c.width : c.actualWidth || c.width))
     },
-    presetToZoomLevel: function (b) {
+    presetToZoomLevel: function(b) {
         var a = Sch.preset.Manager.getPreset(b);
         return {
             preset: b,
@@ -182,7 +176,7 @@ Ext.define("Sch.mixin.Zoomable", {
             width: a.timeColumnWidth
         }
     },
-    zoomLevelToPreset: function (c) {
+    zoomLevelToPreset: function(c) {
         var b = Sch.preset.Manager.getPreset(c.preset).clone();
         var a = b.getBottomHeader();
         a.increment = c.increment;
@@ -195,13 +189,28 @@ Ext.define("Sch.mixin.Zoomable", {
         }
         return b
     },
-    calculateCurrentZoomLevel: function () {
-        var a = this.presetToZoomLevel(this.viewPreset);
-        a.width = this.timeAxisViewModel.timeColumnWidth;
-        a.increment = this.timeAxisViewModel.getBottomHeader().increment || 1;
-        return a
+    calculateCurrentZoomLevel: function() {
+        var g = this.presetToZoomLevel(this.viewPreset),
+            d = Number.MAX_VALUE,
+            b = this.timeAxisViewModel,
+            f = b.timeColumnWidth;
+        g.width = f;
+        g.increment = b.getBottomHeader().increment || 1;
+        for (var c = 0, a = this.zoomLevels.length; c < a; c++) {
+            var e = this.zoomLevels[c];
+            if (e.preset !== g.preset) {
+                continue
+            }
+            var h = Math.abs(e.width - f);
+            if (h < d) {
+                d = h;
+                g.actualWidth = e.actualWidth;
+                g.width = e.width
+            }
+        }
+        return g
     },
-    getCurrentZoomLevelIndex: function () {
+    getCurrentZoomLevelIndex: function() {
         var f = this.calculateCurrentZoomLevel();
         var b = this.getMilliSecondsPerPixelForZoomLevel(f);
         var e = this.zoomLevels;
@@ -223,28 +232,28 @@ Ext.define("Sch.mixin.Zoomable", {
         }
         throw "Can't find current zoom level index"
     },
-    setMaxZoomLevel: function (a) {
+    setMaxZoomLevel: function(a) {
         if (a < 0 || a >= this.zoomLevels.length) {
             throw new Error("Invalid range for `setMinZoomLevel`")
         }
         this.maxZoomLevel = a
     },
-    setMinZoomLevel: function (a) {
+    setMinZoomLevel: function(a) {
         if (a < 0 || a >= this.zoomLevels.length) {
             throw new Error("Invalid range for `setMinZoomLevel`")
         }
         this.minZoomLevel = a
     },
-    getViewportCenterDateCached: function () {
+    getViewportCenterDateCached: function() {
         if (this.cachedCenterDate) {
             return this.cachedCenterDate
         }
         return this.cachedCenterDate = this.getViewportCenterDate()
     },
-    clearCenterDateCache: function () {
+    clearCenterDateCache: function() {
         this.cachedCenterDate = null
     },
-    zoomToLevel: function (b, r, e) {
+    zoomToLevel: function(b, r, e) {
         b = Ext.Number.constrain(b, this.minZoomLevel, this.maxZoomLevel);
         e = e || {};
         var q = this.calculateCurrentZoomLevel();
@@ -258,11 +267,7 @@ Ext.define("Sch.mixin.Zoomable", {
         var m = this.getSchedulingView();
         var h = m.getOuterEl();
         var s = m.getScrollEventSource();
-        if (this.isFirstZoom) {
-            this.isFirstZoom = false;
-            s.on("scroll", this.clearCenterDateCache, this)
-        }
-        var i = this.orientation == "vertical";
+        var i = this.mode == "vertical";
         var g = r ? new Date((r.start.getTime() + r.end.getTime()) / 2) : this.getViewportCenterDateCached();
         var n = i ? h.getHeight() : h.getWidth();
         var o = Sch.preset.Manager.getPreset(l.preset).clone();
@@ -275,59 +280,84 @@ Ext.define("Sch.mixin.Zoomable", {
         this.viewPreset = l.preset;
         var c = this.timeAxis;
         o.increment = l.increment;
-        o.resolutionUnit = Sch.util.Date.getUnitByName(l.resolutionUnit || p.unit);
-        o.resolutionIncrement = l.resolution;
-        this.switchViewPreset(o, r.start || this.getStart(), r.end || this.getEnd(), false, true);
+        o.timeResolution.unit = Sch.util.Date.getUnitByName(l.resolutionUnit || o.timeResolution.unit || p.unit);
+        o.timeResolution.increment = l.resolution;
+        this.setViewPreset(o, r.start || this.getStart(), r.end || this.getEnd(), false, true);
         l.actualWidth = this.timeAxisViewModel.getTickWidth();
         if (f) {
             g = e.centerDate || new Date((c.getStart().getTime() + c.getEnd().getTime()) / 2)
         }
-        s.on("scroll", function () {
-            t.cachedCenterDate = g
-        }, this, {
-            single: true
-        });
+        var k = null,
+            j = null;
         if (i) {
-            var j = m.getYFromDate(g, true);
-            m.scrollVerticallyTo(j - n / 2)
+            j = m.getYFromDate(g, true) - n / 2;
+            s.on("scroll", function() {
+                t.cachedCenterDate = g;
+                m.scrollVerticallyTo(j);
+                this.fireEvent("zoomchange", this, b, k, j)
+            }, this, {
+                single: true
+            });
+            m.scrollVerticallyTo(j - 1);
+            m.scrollVerticallyTo(j)
         } else {
-            var k = m.getXFromDate(g, true);
-            m.scrollHorizontallyTo(k - n / 2)
+            k = m.getXFromDate(g, true) - n / 2;
+            s.on("scroll", function() {
+                t.cachedCenterDate = g;
+                m.scrollHorizontallyTo(k);
+                this.fireEvent("zoomchange", this, b, k, j)
+            }, this, {
+                single: true
+            });
+            m.scrollHorizontallyTo(k - 1);
+            m.scrollHorizontallyTo(k)
         }
         t.isZooming = false;
-        this.fireEvent("zoomchange", this, b);
         return b
     },
-    zoomToSpan: function (r, u) {
-        if (r.start && r.end && r.start < r.end) {
-            var g = r.start,
-                d = r.end,
-                e = u && u.adjustStart >= 0 && u.adjustEnd >= 0;
+    setZoomLevel: function() {
+        this.zoomToLevel.apply(this, arguments)
+    },
+    zoomToSpan: function(p, s) {
+        if (p.start && p.end && p.start < p.end) {
+            s = s || {};
+            if (s.leftMargin || s.rightMargin) {
+                s.adjustStart = 0;
+                s.adjustEnd = 0
+            }
+            Ext.applyIf(s, {
+                leftMargin: 0,
+                rightMargin: 0
+            });
+            var g = p.start,
+                d = p.end,
+                e = s.adjustStart >= 0 && s.adjustEnd >= 0;
             if (e) {
-                g = Sch.util.Date.add(g, this.timeAxis.mainUnit, -u.adjustStart);
-                d = Sch.util.Date.add(d, this.timeAxis.mainUnit, u.adjustEnd)
+                g = Sch.util.Date.add(g, this.timeAxis.mainUnit, -s.adjustStart);
+                d = Sch.util.Date.add(d, this.timeAxis.mainUnit, s.adjustEnd)
             }
             var a = this.getSchedulingView().getTimeAxisViewModel().getAvailableWidth();
             var m = Math.floor(this.getCurrentZoomLevelIndex());
             if (m == -1) {
                 m = 0
             }
-            var v = this.zoomLevels;
-            var o, b = d - g,
-                j = this.getMilliSecondsPerPixelForZoomLevel(v[m], true),
-                l = b / j > a ? -1 : 1,
+            var t = this.zoomLevels;
+            var b = d - g,
+                j = this.getMilliSecondsPerPixelForZoomLevel(t[m], true),
+                l = b / j + s.leftMargin + s.rightMargin > a ? -1 : 1,
                 f = m + l;
-            var p, q, h = null;
-            while (f >= 0 && f <= v.length - 1) {
-                p = v[f];
-                var s = b / this.getMilliSecondsPerPixelForZoomLevel(p, true);
+            var o, h = null;
+            while (f >= 0 && f <= t.length - 1) {
+                o = t[f];
+                j = this.getMilliSecondsPerPixelForZoomLevel(o, true);
+                var q = b / j + s.leftMargin + s.rightMargin;
                 if (l == -1) {
-                    if (s <= a) {
+                    if (q <= a) {
                         h = f;
                         break
                     }
                 } else {
-                    if (s <= a) {
+                    if (q <= a) {
                         if (m !== f - l) {
                             h = f
                         }
@@ -338,13 +368,17 @@ Ext.define("Sch.mixin.Zoomable", {
                 f += l
             }
             h = h !== null ? h : f - l;
-            p = v[h];
-            var c = Sch.preset.Manager.getPreset(p.preset).getBottomHeader().unit;
-            var t = Sch.util.Date.getDurationInUnit(g, d, c) / p.increment;
-            if (t === 0) {
+            o = t[h];
+            var c = Sch.preset.Manager.getPreset(o.preset).getBottomHeader().unit;
+            if (s.leftMargin || s.rightMargin) {
+                g = new Date(g.getTime() - j * s.leftMargin);
+                d = new Date(d.getTime() + j * s.rightMargin)
+            }
+            var r = Sch.util.Date.getDurationInUnit(g, d, c, true) / o.increment;
+            if (r === 0) {
                 return
             }
-            var i = Math.floor(a / t);
+            var i = Math.floor(a / r);
             var k = new Date((g.getTime() + d.getTime()) / 2);
             var n;
             if (e) {
@@ -353,7 +387,7 @@ Ext.define("Sch.mixin.Zoomable", {
                     end: d
                 }
             } else {
-                n = this.calculateOptimalDateRange(k, a, p)
+                n = this.calculateOptimalDateRange(k, a, o)
             }
             return this.zoomToLevel(h, n, {
                 customWidth: i,
@@ -362,7 +396,7 @@ Ext.define("Sch.mixin.Zoomable", {
         }
         return null
     },
-    zoomIn: function (a) {
+    zoomIn: function(a) {
         a = a || 1;
         var b = this.getCurrentZoomLevelIndex();
         if (b >= this.zoomLevels.length - 1) {
@@ -370,7 +404,7 @@ Ext.define("Sch.mixin.Zoomable", {
         }
         return this.zoomToLevel(Math.floor(b) + a)
     },
-    zoomOut: function (a) {
+    zoomOut: function(a) {
         a = a || 1;
         var b = this.getCurrentZoomLevelIndex();
         if (b <= 0) {
@@ -378,33 +412,31 @@ Ext.define("Sch.mixin.Zoomable", {
         }
         return this.zoomToLevel(Math.ceil(b) - a)
     },
-    zoomInFull: function () {
+    zoomInFull: function() {
         return this.zoomToLevel(this.maxZoomLevel)
     },
-    zoomOutFull: function () {
+    zoomOutFull: function() {
         return this.zoomToLevel(this.minZoomLevel)
     },
-    calculateOptimalDateRange: function (c, i, e, l) {
-        if (l) {
-            return l
+    calculateOptimalDateRange: function(c, h, e, j) {
+        if (j) {
+            return j
         }
-        var h = this.timeAxis;
+        var g = this.timeAxis;
         if (this.zoomKeepsOriginalTimespan) {
             return {
-                start: h.getStart(),
-                end: h.getEnd()
+                start: g.getStart(),
+                end: g.getEnd()
             }
         }
         var b = Sch.util.Date;
-        var j = Sch.preset.Manager.getPreset(e.preset).headerConfig;
-        var f = j.top ? j.top.unit : j.middle.unit;
-        var k = this.getZoomLevelUnit(e);
-        var d = Math.ceil(i / e.width * e.increment * this.visibleZoomFactor / 2);
-        var a = b.add(c, k, -d);
-        var g = b.add(c, k, d);
+        var i = this.getZoomLevelUnit(e);
+        var d = Math.ceil(h / e.width * e.increment * this.visibleZoomFactor / 2);
+        var a = b.add(c, i, -d);
+        var f = b.add(c, i, d);
         return {
-            start: h.floorDate(a, false, k, e.increment),
-            end: h.ceilDate(g, false, k, e.increment)
+            start: g.floorDate(a, false, i, e.increment),
+            end: g.ceilDate(f, false, i, e.increment)
         }
     }
 });

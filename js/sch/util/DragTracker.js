@@ -1,27 +1,58 @@
 Ext.define("Sch.util.DragTracker", {
     extend: "Ext.dd.DragTracker",
+    requires: ["Ext.util.Region"],
     xStep: 1,
     yStep: 1,
-    constructor: function () {
+    deferredActivation: 0,
+    constructor: function() {
         this.callParent(arguments);
-        this.on("dragstart", function () {
-            var a = this.el;
-            a.on("scroll", this.onMouseMove, this);
-            this.on("dragend", function () {
-                a.un("scroll", this.onMouseMove, this)
+        this.on("dragstart", function() {
+            var b = this.el;
+            var a = {
+                scroll: this.onMouseMove,
+                pinchstart: this.onMouseUp,
+                scope: this
+            };
+            b.on(a);
+            this.on("dragend", function() {
+                b.un(a)
             }, this, {
                 single: true
             })
-        })
+        });
+        this.moveListener = {
+            pinchstart: this.abortWait,
+            touchend: this.abortWait,
+            mouseup: this.abortWait,
+            mousemove: this.onMoveWhileWaiting,
+            scope: this,
+            capture: true
+        }
     },
-    setXStep: function (a) {
+    setXStep: function(a) {
         this.xStep = a
     },
     startScroll: null,
-    setYStep: function (a) {
+    deferTimer: null,
+    deferTolerance: 10,
+    moveListener: null,
+    setYStep: function(a) {
         this.yStep = a
     },
-    getRegion: function () {
+    onMoveWhileWaiting: function(d, a) {
+        var c = d.getXY();
+        var b = this.startXY;
+        if (Math.max(Math.abs(b[0] - c[0]), Math.abs(b[1] - c[1])) > this.deferTolerance) {
+            this.abortWait();
+            this.onMouseUp(d)
+        }
+    },
+    abortWait: function() {
+        clearTimeout(this.deferTimer);
+        this.deferTimer = null;
+        Ext.getDoc().un(this.moveListener)
+    },
+    getRegion: function() {
         var j = this.startXY,
             f = this.el.getScroll(),
             l = this.getXY(),
@@ -37,48 +68,29 @@ Ext.define("Sch.util.DragTracker", {
             k = Math.abs(g - b);
         return new Ext.util.Region(d, e + a, d + k, e)
     },
-    onMouseDown: function (f, d) {
-        if (this.disabled || f.dragTracked) {
+    onMouseDown: function(c, b) {
+        if (c.event.touches && c.event.touches.length > 1) {
             return
         }
-        var c = f.getXY(),
-            g, b, a = c[0],
-            h = c[1];
-        if (this.xStep > 1) {
-            g = this.el.getX();
-            a -= g;
-            a = Math.round(a / this.xStep) * this.xStep;
-            a += g
-        }
-        if (this.yStep > 1) {
-            b = this.el.getY();
-            h -= b;
-            h = Math.round(h / this.yStep) * this.yStep;
-            h += b
-        }
-        this.dragTarget = this.delegate ? d : this.handle.dom;
-        this.startXY = this.lastXY = [a, h];
-        this.startRegion = Ext.fly(this.dragTarget).getRegion();
-        this.startScroll = this.el.getScroll();
-        if (this.fireEvent("mousedown", this, f) === false || this.fireEvent("beforedragstart", this, f) === false || this.onBeforeStart(f) === false) {
+        c.stopPropagation = Ext.emptyFn;
+        this.startXY = c.getXY();
+        if (this.deferredActivation) {
+            var a = this;
+            Ext.getDoc().on(this.moveListener);
+            this.deferTimer = setTimeout(function() {
+                var d = a.deferredActivation;
+                Ext.getDoc().un(a.moveListener);
+                a.deferredActivation = false;
+                a.onMouseDown(c, b);
+                a.deferredActivation = d
+            }, this.deferredActivation);
             return
         }
-        this.mouseIsDown = true;
-        f.dragTracked = true;
-        if (this.preventDefault !== false) {
-            f.preventDefault()
-        }
-        Ext.getDoc().on({
-            scope: this,
-            mouseup: this.onMouseUp,
-            mousemove: this.onMouseMove,
-            selectstart: this.stopSelect
-        });
-        if (this.autoStart) {
-            this.timer = Ext.defer(this.triggerStart, this.autoStart === true ? 1000 : this.autoStart, this, [f])
-        }
+        this.callParent([c, b]);
+        this.lastXY = this.startXY;
+        this.startScroll = this.el.getScroll()
     },
-    onMouseMove: function (g, f) {
+    onMouseMove: function(g, f) {
         if (this.active && g.type === "mousemove" && Ext.isIE9m && !g.browserEvent.button) {
             g.preventDefault();
             this.onMouseUp(g);

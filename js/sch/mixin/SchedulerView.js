@@ -1,94 +1,107 @@
 Ext.define("Sch.mixin.SchedulerView", {
     extend: "Sch.mixin.AbstractSchedulerView",
-    requires: ["Sch.tooltip.Tooltip", "Sch.feature.DragCreator", "Sch.feature.DragDrop", "Sch.feature.ResizeZone", "Sch.column.Resource", "Ext.XTemplate"],
+    mixins: ["Sch.mixin.Localizable"],
+    requires: ["Sch.feature.DragCreator", "Sch.feature.DragDrop", "Sch.feature.ResizeZone", "Sch.column.Resource", "Sch.view.Calendar", "Ext.XTemplate"],
     eventResizeHandles: "end",
     dndValidatorFn: Ext.emptyFn,
     resizeValidatorFn: Ext.emptyFn,
     createValidatorFn: Ext.emptyFn,
-    _initializeSchedulerView: function () {
+    calendarViewClass: "Sch.view.Calendar",
+    _initializeSchedulerView: function() {
         this.callParent(arguments);
-        this.on("destroy", this._destroy, this);
-        this.on("afterrender", this._afterRender, this);
-        this.trackOver = false;
-        this.addEvents("eventclick", "eventmousedown", "eventmouseup", "eventdblclick", "eventcontextmenu", "eventmouseenter", "eventmouseout", "beforeeventresize", "eventresizestart", "eventpartialresize", "beforeeventresizefinalize", "eventresizeend", "beforeeventdrag", "eventdragstart", "beforeeventdropfinalize", "eventdrop", "aftereventdrop", "beforedragcreate", "dragcreatestart", "beforedragcreatefinalize", "dragcreateend", "afterdragcreate", "beforeeventadd", "scheduleclick", "scheduledblclick", "schedulecontextmenu");
-        var c = this;
+        this.on({
+            destroy: this._destroy,
+            afterrender: this._afterRender,
+            itemupdate: this.onRowUpdated,
+            scope: this
+        });
+        var a = this;
         if (!this.eventPrefix) {
             throw "eventPrefix missing"
         }
-        if (Ext.isArray(c.eventTpl)) {
-            var d = Ext.Array.clone(c.eventTpl),
-                b = '<div class="sch-resizable-handle sch-resizable-handle-{0}"></div>';
-            var a = this.eventResizeHandles;
-            if (a === "start" || a === "both") {
-                d.splice(2, 0, Ext.String.format(b, "start"))
-            }
-            if (a === "end" || a === "both") {
-                d.splice(2, 0, Ext.String.format(b, "end"))
-            }
-            c.eventTpl = new Ext.XTemplate(d.join("").replace("{{evt-prefix}}", this.eventPrefix))
-        }
+        a.eventTpl = a.eventTpl || Ext.create(this.eventTemplateClass, {
+            eventPrefix: this.eventPrefix,
+            resizeHandles: this.eventResizeHandles
+        })
     },
-    inheritables: function () {
+    inheritables: function() {
         return {
-            loadingText: "Loading events...",
+            loadingText: this.L("loadingText"),
             overItemCls: "",
-            setReadOnly: function (a) {
+            trackOver: false,
+            selectedItemCls: "",
+            setReadOnly: function(a) {
                 if (this.dragCreator) {
                     this.dragCreator.setDisabled(a)
                 }
                 this.callParent(arguments)
             },
-            repaintEventsForResource: function (e, d) {
-                var b = this.orientation === "horizontal" ? this.store.indexOf(e) : 0;
-                if (this.orientation === "horizontal") {
-                    this.eventLayout.horizontal.clearCache(e)
+            repaintEventsForResource: function(e, c) {
+                var d = this,
+                    g = d.getMode(),
+                    f = g === "horizontal",
+                    a = f ? d.indexOf(e) : 0;
+                if (f) {
+                    d.eventLayout.horizontal.clearCache(e)
                 }
-                if (b >= 0) {
-                    this.refreshNode(b);
-                    this.lockingPartner.refreshNode(b);
-                    if (d) {
-                        var a = this.getSelectionModel();
-                        var c = e.getEvents();
-                        Ext.each(c, function (f) {
-                            if (a.isSelected(f)) {
-                                this.onEventSelect(f, true)
-                            }
-                        }, this)
+                if (a >= 0) {
+                    Ext.suspendLayouts();
+                    if (f) {
+                        d.refreshNode(e);
+                        d.lockingPartner.refreshNode(e)
+                    } else {
+                        d.refreshNode(a);
+                        d.lockingPartner.refreshNode(a)
+                    }
+                    Ext.resumeLayouts();
+                    if (c) {
+                        var h = d.getEventSelectionModel();
+                        var b = d.eventStore.getEventsForResource(e);
+                        Ext.Array.forEach(b, function(i) {
+                            h.forEachEventRelatedSelection(i, function(j) {
+                                d.onEventBarSelect(j, true)
+                            })
+                        })
                     }
                 }
             },
-            repaintAllEvents: function () {
-                if (this.orientation === "horizontal") {
+            repaintAllEvents: function() {
+                if (this.mode === "horizontal") {
                     this.refresh()
                 } else {
                     this.refreshNode(0)
                 }
             },
-            handleScheduleEvent: function (f) {
-                var i = f.getTarget("." + this.timeCellCls, 2);
-                if (i) {
-                    var j = this.getDateFromDomEvent(f, "floor");
-                    var g = this.findRowByChild(i);
-                    var d = this.indexOf(g);
-                    var a;
-                    if (this.orientation == "horizontal") {
-                        a = this.getRecordForRowNode(g)
+            handleScheduleEvent: function(g) {
+                var a = g.getTarget("." + this.eventCls, 3),
+                    j = !a && g.getTarget("." + this.timeCellCls, 3);
+                if (j) {
+                    var k = this.getDateFromDomEvent(g, "floor");
+                    var i = this.findRowByChild(j);
+                    var f = this.indexOf(i);
+                    var b;
+                    if (this.mode == "horizontal") {
+                        b = this.getRecordForRowNode(i)
                     } else {
-                        var b = f.getTarget(this.timeCellSelector, 5);
-                        if (b) {
-                            var h = typeof b.cellIndex == "number" ? b.cellIndex : b.getAttribute("data-cellIndex");
-                            var c = this.headerCt.getGridColumns()[h];
-                            a = c && c.model
+                        var c = g.getTarget(this.timeCellSelector, 5);
+                        if (c) {
+                            var h = typeof c.cellIndex == "number" ? c.cellIndex : c.getAttribute("data-cellIndex");
+                            var d = this.headerCt.getGridColumns()[h];
+                            b = d && d.model
                         }
                     }
-                    this.fireEvent("schedule" + f.type, this, j, d, a, f)
+                    if (g.type.indexOf("pinch") >= 0) {
+                        this.fireEvent("schedule" + g.type, this, g)
+                    } else {
+                        this.fireEvent("schedule" + g.type, this, k, f, b, g)
+                    }
                 }
             },
-            onEventDataRefresh: function () {
+            onEventDataRefresh: function() {
                 this.clearRowHeightCache();
                 this.callParent(arguments)
             },
-            onUnbindStore: function (a) {
+            onUnbindStore: function(a) {
                 a.un({
                     refresh: this.clearRowHeightCache,
                     clear: this.clearRowHeightCache,
@@ -97,7 +110,7 @@ Ext.define("Sch.mixin.SchedulerView", {
                 });
                 this.callParent(arguments)
             },
-            bindStore: function (a) {
+            bindStore: function(a) {
                 a && a.on({
                     refresh: this.clearRowHeightCache,
                     clear: this.clearRowHeightCache,
@@ -108,8 +121,47 @@ Ext.define("Sch.mixin.SchedulerView", {
             }
         }
     },
-    _afterRender: function () {
+    getEventSelectionModel: function() {
+        var b = this,
+            c = b.eventSelModel,
+            a = b.eventSelModelType,
+            d;
+        if (c && c.events) {
+            return c
+        }
+        if (!c) {
+            c = {}
+        }
+        if (!a && b.eventStore.getAssignmentStore()) {
+            a = "assignmentmodel"
+        } else {
+            if (!a) {
+                a = "eventmodel"
+            }
+        }
+        d = "SINGLE";
+        if (b.simpleSelect) {
+            d = "SIMPLE"
+        } else {
+            if (b.multiSelect) {
+                d = "MULTI"
+            }
+        }
+        Ext.applyIf(c, {
+            allowDeselect: b.allowDeselect,
+            mode: d
+        });
+        if (!c.events) {
+            c = b.eventSelModel = Ext.create("selection." + a, c)
+        }
+        if (b.disableSelection) {
+            c.locked = true
+        }
+        return c
+    },
+    _afterRender: function() {
         this.bindEventStore(this.eventStore, true);
+        this.getEventSelectionModel().bindToView(this);
         this.setupEventListeners();
         this.configureFunctionality();
         var a = this.headerCt.resizer;
@@ -117,29 +169,29 @@ Ext.define("Sch.mixin.SchedulerView", {
             a.doResize = Ext.Function.createSequence(a.doResize, this.afterHeaderResized, this)
         }
     },
-    _destroy: function () {
+    _destroy: function() {
         this.bindEventStore(null)
     },
-    clearRowHeightCache: function () {
-        if (this.orientation === "horizontal") {
+    clearRowHeightCache: function() {
+        if (this.mode === "horizontal") {
             this.eventLayout.horizontal.clearCache()
         }
     },
-    configureFunctionality: function () {
+    configureFunctionality: function() {
         var a = this.validatorFnScope || this;
         if (this.eventResizeHandles !== "none" && Sch.feature.ResizeZone) {
             this.resizePlug = new Sch.feature.ResizeZone(Ext.applyIf({
                 schedulerView: this,
-                validatorFn: function (d, c, b, e) {
-                    return (this.allowOverlap || this.isDateRangeAvailable(b, e, c, d)) && this.resizeValidatorFn.apply(a, arguments) !== false
+                validatorFn: function(d, c, b, e) {
+                    return (this.allowOverlap || this.isDateRangeAvailable(b, e, c, d)) && this.resizeValidatorFn.apply(a, arguments)
                 },
                 validatorFnScope: this
             }, this.resizeConfig || {}))
         }
         if (this.enableEventDragDrop !== false && Sch.feature.DragDrop) {
             this.dragdropPlug = new Sch.feature.DragDrop(this, {
-                validatorFn: function (c, b, d, e) {
-                    return (this.allowOverlap || this.isDateRangeAvailable(d, Sch.util.Date.add(d, Sch.util.Date.MILLI, e), c[0], b)) && this.dndValidatorFn.apply(a, arguments) !== false
+                validatorFn: function(c, b, d, e) {
+                    return (this.allowOverlap || this.isDateRangeAvailable(d, Sch.util.Date.add(d, Sch.util.Date.MILLI, e), c[0], b)) && this.dndValidatorFn.apply(a, arguments)
                 },
                 validatorFnScope: this,
                 dragConfig: this.dragConfig || {}
@@ -149,17 +201,17 @@ Ext.define("Sch.mixin.SchedulerView", {
             this.dragCreator = new Sch.feature.DragCreator(Ext.applyIf({
                 schedulerView: this,
                 disabled: this.readOnly,
-                validatorFn: function (c, b, d) {
-                    return (this.allowOverlap || this.isDateRangeAvailable(b, d, null, c)) && this.createValidatorFn.apply(a, arguments) !== false
+                validatorFn: function(c, b, d) {
+                    return (this.allowOverlap || this.isDateRangeAvailable(b, d, null, c)) && this.createValidatorFn.apply(a, arguments)
                 },
                 validatorFnScope: this
             }, this.createConfig || {}))
         }
     },
-    onBeforeDragDrop: function (a, c, b) {
+    onBeforeDragDrop: function(a, c, b) {
         return !this.readOnly && !b.getTarget().className.match("sch-resizable-handle")
     },
-    onDragDropStart: function () {
+    onDragDropStart: function() {
         if (this.dragCreator) {
             this.dragCreator.setDisabled(true)
         }
@@ -171,7 +223,7 @@ Ext.define("Sch.mixin.SchedulerView", {
             this.setMouseOverEnabled(false)
         }
     },
-    onDragDropEnd: function () {
+    onDragDropEnd: function() {
         if (this.dragCreator) {
             this.dragCreator.setDisabled(false)
         }
@@ -182,10 +234,10 @@ Ext.define("Sch.mixin.SchedulerView", {
             this.setMouseOverEnabled(true)
         }
     },
-    onBeforeDragCreate: function (b, c, a, d) {
+    onBeforeDragCreate: function(b, c, a, d) {
         return !this.readOnly && !d.ctrlKey
     },
-    onDragCreateStart: function () {
+    onDragCreateStart: function() {
         if (this.overScheduledEventClass) {
             this.setMouseOverEnabled(false)
         }
@@ -193,8 +245,9 @@ Ext.define("Sch.mixin.SchedulerView", {
             this.tip.hide();
             this.tip.disable()
         }
+        this.disableViewScroller(true)
     },
-    onDragCreateEnd: function (b, a) {
+    onDragCreateEnd: function(b, a) {
         if (!this.getEventEditor()) {
             if (this.fireEvent("beforeeventadd", this, a) !== false) {
                 this.onEventCreated(a);
@@ -206,19 +259,20 @@ Ext.define("Sch.mixin.SchedulerView", {
             this.setMouseOverEnabled(true)
         }
     },
-    onEventCreated: function (a) {},
-    onAfterDragCreate: function () {
+    onEventCreated: function(a) {},
+    onAfterDragCreate: function() {
         if (this.overScheduledEventClass) {
             this.setMouseOverEnabled(true)
         }
         if (this.tip) {
             this.tip.enable()
         }
+        this.disableViewScroller(false)
     },
-    onBeforeResize: function () {
+    onBeforeResize: function() {
         return !this.readOnly
     },
-    onResizeStart: function () {
+    onResizeStart: function() {
         if (this.tip) {
             this.tip.hide();
             this.tip.disable()
@@ -226,16 +280,18 @@ Ext.define("Sch.mixin.SchedulerView", {
         if (this.dragCreator) {
             this.dragCreator.setDisabled(true)
         }
+        this.disableViewScroller(true)
     },
-    onResizeEnd: function () {
+    onResizeEnd: function() {
         if (this.tip) {
             this.tip.enable()
         }
         if (this.dragCreator) {
             this.dragCreator.setDisabled(false)
         }
+        this.disableViewScroller(false)
     },
-    setupEventListeners: function () {
+    setupEventListeners: function() {
         this.on({
             beforeeventdrag: this.onBeforeDragDrop,
             eventdragstart: this.onDragDropStart,
@@ -250,14 +306,30 @@ Ext.define("Sch.mixin.SchedulerView", {
             scope: this
         })
     },
-    afterHeaderResized: function () {
+    afterHeaderResized: function() {
         var b = this.headerCt.resizer;
-        if (b && b.dragHd instanceof Sch.column.Resource) {
-            var a = b.dragHd.getWidth();
-            this.setColumnWidth(a)
+        if (b && this.getMode() !== "horizontal") {
+            if (this.panel.forceFit) {
+                this.setColumnWidth(b.origWidth)
+            } else {
+                var a = b.dragHd.getWidth();
+                this.setColumnWidth(a)
+            }
         }
     },
-    columnRenderer: function (e, c, a, d, b) {
-        return this[this.orientation].columnRenderer(e, c, a, d, b)
+    columnRenderer: function(e, c, a, d, b) {
+        return this[this.mode].columnRenderer(e, c, a, d, b)
+    },
+    onRowUpdated: function(c) {
+        var b = this,
+            a;
+        if (b.getMode() === "horizontal" && b.hasListener("eventrepaint")) {
+            Ext.Array.forEach(c.getEvents(), function(d) {
+                a = b.getElementsFromEventRecord(d, c, null, true);
+                Ext.Array.forEach(a, function(e) {
+                    b.fireEvent("eventrepaint", b, d, e)
+                })
+            })
+        }
     }
 });

@@ -23,9 +23,8 @@ Ext.define("Sch.widget.ResizePicker", {
         maxValue: 200,
         disable: true
     },
-    initComponent: function () {
+    initComponent: function() {
         var a = this;
-        a.addEvents("change", "changecomplete", "select");
         a.horizontalCfg.value = a.dialogConfig.columnWidth;
         a.verticalCfg.value = a.dialogConfig.rowHeight;
         a.verticalCfg.disabled = a.dialogConfig.scrollerDisabled || false;
@@ -49,7 +48,7 @@ Ext.define("Sch.widget.ResizePicker", {
         }, a.horizontalCfg))];
         a.callParent(arguments)
     },
-    afterRender: function () {
+    afterRender: function() {
         var b = this;
         b.addCls("sch-ux-range-picker");
         b.valueHandle = this.body.createChild({
@@ -61,14 +60,14 @@ Ext.define("Sch.widget.ResizePicker", {
         b.valueSpan = this.valueHandle.down("span");
         var a = new Ext.dd.DD(this.valueHandle);
         Ext.apply(a, {
-            startDrag: function () {
+            startDrag: function() {
                 b.dragging = true;
                 this.constrainTo(b.body)
             },
-            onDrag: function () {
+            onDrag: function() {
                 b.onHandleDrag.apply(b, arguments)
             },
-            endDrag: function () {
+            endDrag: function() {
                 b.onHandleEndDrag.apply(b, arguments);
                 b.dragging = false
             },
@@ -78,33 +77,33 @@ Ext.define("Sch.widget.ResizePicker", {
         this.callParent(arguments);
         this.body.on("click", this.onBodyClick, this)
     },
-    onBodyClick: function (c, a) {
+    onBodyClick: function(c, a) {
         var b = [c.getXY()[0] - 8 - this.body.getX(), c.getXY()[1] - 8 - this.body.getY()];
         this.valueHandle.setLeft(Ext.Number.constrain(b[0], 0, this.getAvailableWidth()));
         this.valueHandle.setTop(Ext.Number.constrain(b[1], 0, this.getAvailableHeight()));
         this.setValues(this.getValuesFromXY([this.valueHandle.getLeft(true), this.valueHandle.getTop(true)]));
         this.onSliderChangeComplete()
     },
-    getAvailableWidth: function () {
+    getAvailableWidth: function() {
         return this.body.getWidth() - 18
     },
-    getAvailableHeight: function () {
+    getAvailableHeight: function() {
         return this.body.getHeight() - 18
     },
-    onHandleDrag: function () {
+    onHandleDrag: function() {
         this.setValues(this.getValuesFromXY([this.valueHandle.getLeft(true), this.valueHandle.getTop(true)]))
     },
-    onHandleEndDrag: function () {
+    onHandleEndDrag: function() {
         this.setValues(this.getValuesFromXY([this.valueHandle.getLeft(true), this.valueHandle.getTop(true)]))
     },
-    getValuesFromXY: function (d) {
+    getValuesFromXY: function(d) {
         var c = d[0] / this.getAvailableWidth();
         var a = d[1] / this.getAvailableHeight();
         var e = Math.round((this.horizontalCfg.maxValue - this.horizontalCfg.minValue) * c);
         var b = Math.round((this.verticalCfg.maxValue - this.verticalCfg.minValue) * a) + this.verticalCfg.minValue;
         return [e + this.horizontalCfg.minValue, b]
     },
-    getXYFromValues: function (d) {
+    getXYFromValues: function(d) {
         var b = this.horizontalCfg.maxValue - this.horizontalCfg.minValue;
         var f = this.verticalCfg.maxValue - this.verticalCfg.minValue;
         var a = Math.round((d[0] - this.horizontalCfg.minValue) * this.getAvailableWidth() / b);
@@ -112,7 +111,7 @@ Ext.define("Sch.widget.ResizePicker", {
         var e = Math.round(c * this.getAvailableHeight() / f);
         return [a, e]
     },
-    updatePosition: function () {
+    updatePosition: function() {
         var a = this.getValues();
         var b = this.getXYFromValues(a);
         this.valueHandle.setLeft(Ext.Number.constrain(b[0], 0, this.getAvailableWidth()));
@@ -124,19 +123,19 @@ Ext.define("Sch.widget.ResizePicker", {
         this.positionValueText();
         this.setValueText(a)
     },
-    positionValueText: function () {
+    positionValueText: function() {
         var a = this.valueHandle.getTop(true);
         var b = this.valueHandle.getLeft(true);
         this.valueSpan.setLeft(b > 30 ? -30 : 10);
         this.valueSpan.setTop(a > 10 ? -20 : 20)
     },
-    setValueText: function (a) {
+    setValueText: function(a) {
         if (this.verticalCfg.disabled) {
             a[1] = this.dialogConfig.rowHeight
         }
         this.valueSpan.update("[" + a.toString() + "]")
     },
-    setValues: function (a) {
+    setValues: function(a) {
         this.horizontal.setValue(a[0]);
         if (this.verticalCfg.reverse) {
             if (!this.verticalCfg.disabled) {
@@ -146,13 +145,14 @@ Ext.define("Sch.widget.ResizePicker", {
             if (!this.verticalCfg.disabled) {
                 this.vertical.setValue(a[1])
             }
-        } if (!this.dragging) {
+        }
+        if (!this.dragging) {
             this.updatePosition()
         }
         this.positionValueText();
         this.setValueText(a)
     },
-    getValues: function () {
+    getValues: function() {
         if (!this.verticalCfg.disabled) {
             var a = this.vertical.getValue();
             if (this.verticalCfg.reverse) {
@@ -162,16 +162,16 @@ Ext.define("Sch.widget.ResizePicker", {
         }
         return [this.horizontal.getValue()]
     },
-    onSliderChange: function () {
+    onSliderChange: function() {
         this.fireEvent("change", this, this.getValues());
         if (!this.dragging) {
             this.updatePosition()
         }
     },
-    onSliderChangeComplete: function () {
+    onSliderChangeComplete: function() {
         this.fireEvent("changecomplete", this, this.getValues())
     },
-    afterLayout: function () {
+    afterLayout: function() {
         this.callParent(arguments);
         this.updatePosition()
     }

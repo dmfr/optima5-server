@@ -3,7 +3,7 @@ Ext.define("Sch.locale.Locale", {
     legacyMode: true,
     localeName: null,
     namespaceId: null,
-    constructor: function () {
+    constructor: function() {
         if (!Sch.locale.Active) {
             Sch.locale.Active = {};
             this.bindRequire()
@@ -16,9 +16,9 @@ Ext.define("Sch.locale.Locale", {
             this.apply()
         }
     },
-    bindRequire: function () {
+    bindRequire: function() {
         var a = Ext.ClassManager.triggerCreated;
-        Ext.ClassManager.triggerCreated = function (d) {
+        Ext.ClassManager.triggerCreated = function(d) {
             a.apply(this, arguments);
             var c = Ext.ClassManager.get(d);
             for (var b in Sch.locale.Active) {
@@ -26,12 +26,12 @@ Ext.define("Sch.locale.Locale", {
             }
         }
     },
-    apply: function (a) {
+    apply: function(a) {
         if (this.l10n) {
             var h = this,
                 f, e;
             var g = this.self.getName();
-            var d = function (l, k) {
+            var d = function(l, k) {
                 k = k || Ext.ClassManager.get(l);
                 if (k && (k.activeLocaleId !== g)) {
                     var i = h.l10n[l];
@@ -39,13 +39,14 @@ Ext.define("Sch.locale.Locale", {
                         i(l)
                     } else {
                         if (k.singleton) {
-                            k.l10n = Ext.apply(k.l10n || {}, i)
+                            k.l10n = Ext.apply({}, i, k.prototype && k.prototype.l10n)
                         } else {
                             Ext.override(k, {
                                 l10n: i
                             })
                         }
-                    } if (h.legacyMode) {
+                    }
+                    if (h.legacyMode) {
                         var n;
                         if (k.prototype) {
                             n = k.prototype
@@ -53,7 +54,8 @@ Ext.define("Sch.locale.Locale", {
                             if (k.singleton) {
                                 n = k
                             }
-                        } if (n) {
+                        }
+                        if (n && n.legacyMode) {
                             if (n.legacyHolderProp) {
                                 if (!n[n.legacyHolderProp]) {
                                     n[n.legacyHolderProp] = {}
@@ -90,7 +92,8 @@ Ext.define("Sch.locale.Locale", {
                     } else {
                         j = null;
                         b = "string" === typeof a[f] ? a[f] : Ext.getClassName(a[f])
-                    } if (b && b in this.l10n) {
+                    }
+                    if (b && b in this.l10n) {
                         d(b, j)
                     }
                 }

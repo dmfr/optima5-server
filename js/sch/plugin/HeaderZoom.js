@@ -6,16 +6,15 @@ Ext.define("Sch.plugin.HeaderZoom", {
     scheduler: null,
     proxy: null,
     headerRegion: null,
-    init: function (a) {
-        a.on({
-            destroy: this.onSchedulerDestroy,
-            scope: this
-        });
+    init: function(a) {
         this.scheduler = a;
-        this.onOrientationChange();
-        a.on("orientationchange", this.onOrientationChange, this)
+        this.onModeChange();
+        a.on("modechange", this.onModeChange, this)
     },
-    onOrientationChange: function () {
+    onOrientationChange: function() {
+        return this.onModeChange.apply(this, arguments)
+    },
+    onModeChange: function() {
         var a = this.scheduler.down("timeaxiscolumn");
         if (a) {
             if (a.rendered) {
@@ -28,24 +27,24 @@ Ext.define("Sch.plugin.HeaderZoom", {
             }
         }
     },
-    onTimeAxisColumnRender: function (a) {
+    onTimeAxisColumnRender: function(a) {
         this.proxy = a.el.createChild({
             cls: "sch-drag-selector"
         });
         this.initEl(a.el)
     },
-    onStart: function (a) {
+    onStart: function(a) {
         this.proxy.show();
         this.headerRegion = this.scheduler.normalGrid.headerCt.getRegion()
     },
-    onDrag: function (b) {
+    onDrag: function(b) {
         var c = this.headerRegion;
         var a = this.getRegion().constrainTo(c);
         a.top = c.top;
         a.bottom = c.bottom;
-        this.proxy.setRegion(a)
+        this.proxy.setBox(a)
     },
-    onEnd: function (g) {
+    onEnd: function(g) {
         if (this.proxy) {
             this.proxy.setDisplayed(false);
             var b = this.scheduler;
@@ -59,11 +58,11 @@ Ext.define("Sch.plugin.HeaderZoom", {
             })
         }
     },
-    onSchedulerDestroy: function () {
+    destroy: function() {
         if (this.proxy) {
             Ext.destroy(this.proxy);
             this.proxy = null
         }
-        this.destroy()
+        this.callParent(arguments)
     }
 });

@@ -1,13 +1,11 @@
 Ext.define("Sch.panel.TimelineGridPanel", {
     extend: "Ext.grid.Panel",
-    mixins: ["Sch.mixin.TimelinePanel"],
+    mixins: ["Sch.mixin.Localizable", "Sch.mixin.TimelinePanel"],
     subGridXType: "gridpanel",
-    requires: ["Sch.patches.ColumnResize"],
-    initComponent: function () {
+    initComponent: function() {
         this.callParent(arguments);
         this.getSchedulingView()._initializeTimelineView()
     }
-}, function () {
+}, function() {
     this.override(Sch.mixin.TimelinePanel.prototype.inheritables() || {})
 });
-

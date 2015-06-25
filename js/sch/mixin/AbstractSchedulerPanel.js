@@ -1,9 +1,10 @@
 Ext.define("Sch.mixin.AbstractSchedulerPanel", {
-    requires: ["Sch.model.Event", "Sch.model.Resource", "Sch.data.EventStore", "Sch.data.ResourceStore", "Sch.util.Date"],
+    requires: ["Sch.model.Event", "Sch.model.Resource", "Sch.data.EventStore", "Sch.data.ResourceStore", "Sch.util.Date", "Sch.plugin.ResourceZones"],
     eventBarIconClsField: "",
     enableEventDragDrop: true,
     resourceColumnClass: "Sch.column.Resource",
     resourceColumnWidth: null,
+    calendarColumnWidth: null,
     allowOverlap: true,
     startParamName: "startDate",
     endParamName: "endDate",
@@ -13,14 +14,25 @@ Ext.define("Sch.mixin.AbstractSchedulerPanel", {
     eventRendererScope: null,
     eventStore: null,
     resourceStore: null,
-    onEventCreated: function (a) {},
-    initStores: function () {
+    onEventCreated: function(a) {},
+    resourceZones: null,
+    resourceZonesConfig: null,
+    initStores: function() {
         var a = this.resourceStore || this.store;
         if (!a) {
-            Ext.Error.raise("You must specify a resourceStore config")
+            if (this.crudManager) {
+                a = this.resourceStore = this.crudManager.getResourceStore()
+            }
+            a = a || new Sch.data.ResourceStore()
         }
         if (!this.eventStore) {
-            Ext.Error.raise("You must specify an eventStore config")
+            if (this.crudManager) {
+                this.eventStore = this.crudManager.getEventStore()
+            }
+            this.eventStore = this.eventStore || new Sch.data.EventStore();
+            if (!this.eventStore) {
+                Ext.Error.raise("You must specify an eventStore config")
+            }
         }
         this.store = Ext.StoreManager.lookup(a);
         this.resourceStore = this.store;
@@ -33,27 +45,27 @@ Ext.define("Sch.mixin.AbstractSchedulerPanel", {
             this.eventStore.on("beforeload", this.applyStartEndParameters, this)
         }
     },
-    _initializeSchedulerPanel: function () {
+    _initializeSchedulerPanel: function() {
         this.initStores();
         if (this.eventBodyTemplate && Ext.isString(this.eventBodyTemplate)) {
             this.eventBodyTemplate = new Ext.XTemplate(this.eventBodyTemplate)
         }
     },
-    getResourceStore: function () {
+    getResourceStore: function() {
         return this.resourceStore
     },
-    getEventStore: function () {
+    getEventStore: function() {
         return this.eventStore
     },
-    applyStartEndParameters: function (b, a) {
-        a.params = a.params || {};
-        a.params[this.startParamName] = this.getStart();
-        a.params[this.endParamName] = this.getEnd()
+    applyStartEndParameters: function(c, a) {
+        var b = c.getProxy();
+        b.setExtraParam(this.startParamName, this.getStart());
+        b.setExtraParam(this.endParamName, this.getEnd())
     },
-    createResourceColumns: function (b) {
+    createResourceColumns: function(b) {
         var a = [];
         var c = this;
-        this.resourceStore.each(function (d) {
+        this.resourceStore.each(function(d) {
             a.push(Ext.create(c.resourceColumnClass, {
                 renderer: c.mainRenderer,
                 scope: c,

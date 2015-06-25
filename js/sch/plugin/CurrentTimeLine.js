@@ -8,7 +8,7 @@ Ext.define("Sch.plugin.CurrentTimeLine", {
     autoUpdate: true,
     expandToFitView: true,
     timer: null,
-    init: function (c) {
+    init: function(c) {
         if (Ext.getVersion("touch")) {
             this.showHeaderElements = false
         }
@@ -22,15 +22,14 @@ Ext.define("Sch.plugin.CurrentTimeLine", {
         });
         var a = b.first();
         if (this.autoUpdate) {
-            this.timer = setInterval(function () {
+            this.timer = setInterval(function() {
                 a.set("Date", new Date())
             }, this.updateInterval)
         }
-        c.on("destroy", this.onHostDestroy, this);
         this.store = b;
         this.callParent(arguments)
     },
-    onHostDestroy: function () {
+    destroy: function() {
         if (this.timer) {
             clearInterval(this.timer);
             this.timer = null
@@ -38,5 +37,6 @@ Ext.define("Sch.plugin.CurrentTimeLine", {
         if (this.store.autoDestroy) {
             this.store.destroy()
         }
+        this.callParent(arguments)
     }
 });

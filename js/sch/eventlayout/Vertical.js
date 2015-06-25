@@ -1,13 +1,17 @@
 Ext.define("Sch.eventlayout.Vertical", {
     requires: ["Sch.util.Date"],
-    constructor: function (a) {
+    view: null,
+    constructor: function(a) {
         Ext.apply(this, a)
     },
-    applyLayout: function (a, f) {
+    applyLayout: function(a, f) {
         if (a.length === 0) {
             return
         }
-        a.sort(this.sortEvents);
+        var v = this;
+        a.sort(function(j, i) {
+            return v.sortEvents(j.event, i.event)
+        });
         var d, c, k = this.view,
             m = Sch.util.Date,
             o = 1,
@@ -44,7 +48,7 @@ Ext.define("Sch.eventlayout.Vertical", {
             a[t].left = k.barMargin + (a[t].left * h)
         }
     },
-    findStartSlot: function (c, d) {
+    findStartSlot: function(c, d) {
         var a = this.getPriorOverlappingEvents(c, d),
             b;
         if (a.length === 0) {
@@ -70,7 +74,7 @@ Ext.define("Sch.eventlayout.Vertical", {
         }
         return false
     },
-    getPriorOverlappingEvents: function (e, f) {
+    getPriorOverlappingEvents: function(e, f) {
         var g = Sch.util.Date,
             h = f.start,
             b = f.end,
@@ -83,10 +87,10 @@ Ext.define("Sch.eventlayout.Vertical", {
         c.sort(this.sortOverlappers);
         return c
     },
-    sortOverlappers: function (b, a) {
+    sortOverlappers: function(b, a) {
         return b.left < a.left ? -1 : 1
     },
-    getCluster: function (e, g) {
+    getCluster: function(e, g) {
         if (g >= e.length - 1) {
             return [e[g]]
         }
@@ -104,12 +108,16 @@ Ext.define("Sch.eventlayout.Vertical", {
         }
         return c
     },
-    sortEvents: function (e, d) {
-        var c = (e.start - d.start === 0);
+    sortEvents: function(f, d) {
+        var g = f.getStartDate(),
+            i = f.getEndDate();
+        var e = d.getStartDate(),
+            h = d.getEndDate();
+        var c = (g - e === 0);
         if (c) {
-            return e.end > d.end ? -1 : 1
+            return i > h ? -1 : 1
         } else {
-            return (e.start < d.start) ? -1 : 1
+            return (g < e) ? -1 : 1
         }
     }
 });

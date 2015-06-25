@@ -3,15 +3,18 @@ Ext.define("Sch.panel.SchedulerTree", {
     mixins: ["Sch.mixin.SchedulerPanel"],
     alias: ["widget.schedulertree"],
     viewType: "schedulergridview",
-    setOrientation: function (a) {
-        if (a == "vertical") {
-            Ext.Error.raise("Sch.panel.SchedulerTree does not support vertical orientation")
+    setOrientation: function() {
+        return this.setMode.apply(this, arguments)
+    },
+    setMode: function(a) {
+        if (a !== "horizontal") {
+            Ext.Error.raise("Sch.panel.SchedulerTree only support horizontal mode")
         }
     },
-    initComponent: function () {
+    initComponent: function() {
         this.callParent(arguments);
         this.getSchedulingView()._initializeSchedulerView()
     }
-}, function () {
+}, function() {
     this.override(Sch.mixin.SchedulerPanel.prototype.inheritables() || {})
 });

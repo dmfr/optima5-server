@@ -1,19 +1,19 @@
 Ext.define("Sch.mixin.SchedulerPanel", {
     extend: "Sch.mixin.AbstractSchedulerPanel",
-    requires: ["Sch.view.SchedulerGridView", "Sch.selection.EventModel", "Sch.plugin.ResourceZones", "Sch.column.timeAxis.Vertical"],
-    eventSelModelType: "eventmodel",
+    requires: ["Sch.view.SchedulerGridView", "Sch.selection.EventModel", "Sch.column.timeAxis.Vertical"],
+    eventSelModelType: null,
     eventSelModel: null,
     enableEventDragDrop: true,
     enableDragCreation: true,
     dragConfig: null,
-    resourceZones: null,
-    resourceZonesConfig: null,
     componentCls: "sch-schedulerpanel",
     lockedGridDependsOnSchedule: true,
     verticalListeners: null,
-    inheritables: function () {
+    horizontalLockedWidth: null,
+    inheritables: function() {
         return {
-            initComponent: function () {
+            variableRowHeight: true,
+            initComponent: function() {
                 var b = this.normalViewConfig = this.normalViewConfig || {};
                 this._initializeSchedulerPanel();
                 this.verticalListeners = {
@@ -23,20 +23,29 @@ Ext.define("Sch.mixin.SchedulerPanel", {
                     load: this.refreshResourceColumns,
                     scope: this
                 };
+                this.calendarListeners = {
+                    reconfigure: this.refreshCalendarColumns,
+                    priority: 1,
+                    scope: this
+                };
+                this.calendarViewListeners = {
+                    columnresize: this.onCalendarColumnResize,
+                    scope: this
+                };
                 Ext.apply(b, {
                     eventStore: this.eventStore,
                     resourceStore: this.resourceStore,
                     eventBarTextField: this.eventBarTextField || this.eventStore.model.prototype.nameField
                 });
-                Ext.Array.forEach(["barMargin", "eventBodyTemplate", "eventTpl", "allowOverlap", "dragConfig", "eventBarIconClsField", "onEventCreated", "constrainDragToResource", "snapRelativeToEventStartDate"], function (e) {
+                Ext.Array.forEach(["barMargin", "eventBodyTemplate", "eventTpl", "allowOverlap", "dragConfig", "eventBarIconClsField", "onEventCreated", "constrainDragToResource", "snapRelativeToEventStartDate", "eventSelModelType", "simpleSelect", "multiSelect", "allowDeselect"], function(e) {
                     if (e in this) {
                         b[e] = this[e]
                     }
                 }, this);
-                if (this.orientation === "vertical") {
+                this.callParent(arguments);
+                if (this.mode === "vertical") {
                     this.mon(this.resourceStore, this.verticalListeners)
                 }
-                this.callParent(arguments);
                 var d = this.lockedGrid.getView();
                 var c = this.getSchedulingView();
                 this.registerRenderer(c.columnRenderer, c);
@@ -49,130 +58,252 @@ Ext.define("Sch.mixin.SchedulerPanel", {
                     this.resourceZonesPlug.init(this)
                 }
                 c.on("columnwidthchange", this.onColWidthChange, this);
-                this.relayEvents(this.getSchedulingView(), ["eventclick", "eventmousedown", "eventmouseup", "eventdblclick", "eventcontextmenu", "eventmouseenter", "eventmouseleave", "beforeeventresize", "eventresizestart", "eventpartialresize", "beforeeventresizefinalize", "eventresizeend", "beforeeventdrag", "eventdragstart", "eventdrag", "beforeeventdropfinalize", "eventdrop", "aftereventdrop", "beforedragcreate", "dragcreatestart", "beforedragcreatefinalize", "dragcreateend", "afterdragcreate", "beforeeventadd", "scheduleclick", "scheduledblclick", "schedulecontextmenu"]);
-                this.addEvents("orientationchange");
+                this.relayEvents(c, ["eventclick", "eventmousedown", "eventmouseup", "eventdblclick", "eventcontextmenu", "eventmouseenter", "eventmouseleave", "eventkeydown", "eventkeyup", "beforeeventresize", "eventresizestart", "eventpartialresize", "beforeeventresizefinalize", "eventresizeend", "beforeeventdrag", "eventdragstart", "eventdrag", "beforeeventdropfinalize", "eventdrop", "aftereventdrop", "beforedragcreate", "dragcreatestart", "beforedragcreatefinalize", "dragcreateend", "afterdragcreate", "beforeeventadd"]);
                 if (!this.syncRowHeight) {
                     this.enableRowHeightInjection(d, c)
                 }
             },
-            afterRender: function () {
+            applyViewSettings: function(c, b) {
                 this.callParent(arguments);
+                var d = this.getSchedulingView(),
+                    a;
+                b = b || !this.rendered;
+                if (this.orientation === "vertical") {
+                    a = c.timeColumnWidth || 60;
+                    d.setColumnWidth(c.resourceColumnWidth || 100, true);
+                    d.setRowHeight(a, true)
+                }
+            },
+            afterRender: function() {
+                this.callParent(arguments);
+                if (this.mode === "calendar") {
+                    this.mon(this.timeAxis, this.calendarListeners);
+                    this.normalGrid.on(this.calendarViewListeners)
+                }
                 this.getSchedulingView().on({
-                    itemmousedown: this.onScheduleRowMouseDown,
-                    eventmousedown: this.onScheduleEventBarMouseDown,
                     eventdragstart: this.doSuspendLayouts,
                     aftereventdrop: this.doResumeLayouts,
                     eventresizestart: this.doSuspendLayouts,
                     eventresizeend: this.doResumeLayouts,
                     scope: this
-                })
+                });
+                this.relayEvents(this.getEventSelectionModel(), ["selectionchange", "deselect", "select"], "event")
             },
-            getTimeSpanDefiningStore: function () {
+            getTimeSpanDefiningStore: function() {
                 return this.eventStore
             }
         }
     },
-    doSuspendLayouts: function () {
+    doSuspendLayouts: function() {
+        var a = this.getSchedulingView();
+        a.infiniteScroll && a.timeAxis.on({
+            beginreconfigure: this.onBeginReconfigure,
+            endreconfigure: this.onEndReconfigure,
+            scope: this
+        });
         this.lockedGrid.suspendLayouts();
         this.normalGrid.suspendLayouts()
     },
-    doResumeLayouts: function () {
+    doResumeLayouts: function() {
+        var a = this.getSchedulingView();
+        a.infiniteScroll && a.timeAxis.un({
+            beginreconfigure: this.onBeginReconfigure,
+            endreconfigure: this.onEndReconfigure,
+            scope: this
+        });
         this.lockedGrid.resumeLayouts();
         this.normalGrid.resumeLayouts()
     },
-    onColWidthChange: function (a, b) {
-        if (this.getOrientation() === "vertical") {
-            this.resourceColumnWidth = b;
-            this.refreshResourceColumns()
+    onBeginReconfigure: function() {
+        this.normalGrid.resumeLayouts()
+    },
+    onEndReconfigure: function() {
+        this.normalGrid.suspendLayouts()
+    },
+    onColWidthChange: function(b, a) {
+        switch (this.getMode()) {
+            case "vertical":
+                this.resourceColumnWidth = a;
+                this.refreshResourceColumns();
+                break;
+            case "calendar":
+                this.calendarColumnWidth = a;
+                this.refreshCalendarColumns();
+                break
         }
     },
-    enableRowHeightInjection: function (a, c) {
-        var b = new Ext.XTemplate("{%", "this.processCellValues(values);", "this.nextTpl.applyOut(values, out, parent);", "%}", {
+    enableRowHeightInjection: function(b, d) {
+        var a = this;
+        var c = new Ext.XTemplate("{%", "this.processCellValues(values);", "this.nextTpl.applyOut(values, out, parent);", "%}", {
             priority: 1,
-            processCellValues: function (e) {
-                if (c.orientation === "horizontal") {
-                    var f = c.eventLayout.horizontal;
-                    var g = e.record;
-                    var d = f.getRowHeight(g) - c.cellTopBorderWidth - c.cellBottomBorderWidth;
-                    e.style = (e.style || "") + ";height:" + d + "px;"
+            processCellValues: function(e) {
+                if (d.mode === "horizontal") {
+                    var f = 1;
+                    if (d.dynamicRowHeight) {
+                        var i = e.record;
+                        var h = d.eventLayout.horizontal;
+                        f = h.getNumberOfBands(i, function() {
+                            return d.eventStore.filterEventsForResource(i, d.timeAxis.isRangeInAxis, d.timeAxis)
+                        })
+                    }
+                    var g = (f * a.getRowHeight()) - ((f - 1) * d.barMargin) - d.cellTopBorderWidth - d.cellBottomBorderWidth;
+                    e.style = (e.style || "") + ";height:" + g + "px;"
                 }
             }
         });
-        a.addCellTpl(b);
-        a.store.un("refresh", a.onDataRefresh, a);
-        a.store.on("refresh", a.onDataRefresh, a)
-    },
-    getEventSelectionModel: function () {
-        if (this.eventSelModel && this.eventSelModel.events) {
-            return this.eventSelModel
-        }
-        if (!this.eventSelModel) {
-            this.eventSelModel = {}
-        }
-        var a = this.eventSelModel;
-        var b = "SINGLE";
-        if (this.simpleSelect) {
-            b = "SIMPLE"
-        } else {
-            if (this.multiSelect) {
-                b = "MULTI"
-            }
-        }
-        Ext.applyIf(a, {
-            allowDeselect: this.allowDeselect,
-            mode: b
+        b.addCellTpl(c);
+        Ext.Array.forEach(b.getColumnManager().getColumns(), function(e) {
+            e.hasCustomRenderer = true
         });
-        if (!a.events) {
-            a = this.eventSelModel = Ext.create("selection." + this.eventSelModelType, a)
-        }
-        if (!a.hasRelaySetup) {
-            this.relayEvents(a, ["selectionchange", "deselect", "select"]);
-            a.hasRelaySetup = true
-        }
-        if (this.disableSelection) {
-            a.locked = true
-        }
-        return a
+        b.store.un("refresh", b.onDataRefresh, b);
+        b.store.on("refresh", b.onDataRefresh, b);
+        b.on("destroy", function() {
+            b.store.un("refresh", b.onDataRefresh, b)
+        })
     },
-    refreshResourceColumns: function () {
+    getEventSelectionModel: function() {
+        return this.getSchedulingView().getEventSelectionModel()
+    },
+    refreshResourceColumns: function() {
         var a = this.resourceColumnWidth || this.timeAxisViewModel.resourceColumnWidth;
         this.normalGrid.reconfigure(null, this.createResourceColumns(a))
     },
-    setOrientation: function (a, d) {
-        if (a === this.orientation && !d) {
+    onCalendarColumnResize: function(d, c, b) {
+        this.timeAxisViewModel.setViewColumnWidth(b, true);
+        var a = this.getSchedulingView().calendar;
+        a.repaintEventsForColumn(c, c.getIndex())
+    },
+    refreshCalendarColumns: function() {
+        var b = this.createCalendarRows();
+        var a = this.createCalendarColumns();
+        this.reconfigure(b, this.calendarColumns.concat(a))
+    },
+    setOrientation: function() {
+        this.setMode.apply(this, arguments)
+    },
+    setMode: function(d, a) {
+        if (!this.normalGrid) {
+            this.on("afterrender", function() {
+                this.setMode(d, true)
+            });
             return
         }
-        this.removeCls("sch-" + this.orientation);
-        this.addCls("sch-" + a);
-        this.orientation = a;
-        var c = this,
-            e = c.normalGrid,
-            f = c.getSchedulingView(),
-            b = e.headerCt;
-        f.setOrientation(a);
+        if (d === this.mode && !a) {
+            return
+        }
+        switch (d) {
+            case "horizontal":
+                this.addCls("sch-horizontal");
+                this.removeCls(["sch-vertical", "sch-calendar", "sch-vertical-resource"]);
+                break;
+            case "vertical":
+                this.addCls(["sch-vertical-resource", "sch-vertical"]);
+                this.removeCls(["sch-calendar", "sch-horizontal"]);
+                break;
+            case "calendar":
+                this.addCls(["sch-calendar", "sch-vertical"]);
+                this.removeCls(["sch-vertical-resource", "sch-horizontal"]);
+                break
+        }
+        this.mode = d;
+        var h = this,
+            e = function() {
+                return false
+            },
+            g = h.normalGrid,
+            i = h.lockedGrid.getView(),
+            f = h.getSchedulingView(),
+            c = g.headerCt;
+        i.on("beforerefresh", e);
+        f.on("beforerefresh", e);
+        f.blockRefresh = i.blockRefresh = true;
+        f.setMode(d);
         Ext.suspendLayouts();
-        b.removeAll(true);
+        c.removeAll(true);
         Ext.resumeLayouts();
-        if (a === "horizontal") {
-            c.mun(c.resourceStore, c.verticalListeners);
-            f.setRowHeight(c.rowHeight || c.timeAxisViewModel.rowHeight, true);
-            c.reconfigure(c.resourceStore, c.horizontalColumns)
+        if (d !== "calendar") {
+            h.timeAxis.setMode("plain");
+            h.mun(h.timeAxis, h.calendarListeners);
+            if (h._oldViewPreset) {
+                h.setViewPreset.apply(h, h._oldViewPreset);
+                delete h._oldViewPreset
+            }
         } else {
-            c.mon(c.resourceStore, c.verticalListeners);
-            c.reconfigure(c.timeAxis, c.verticalColumns.concat(c.createResourceColumns(c.resourceColumnWidth || c.timeAxisViewModel.resourceColumnWidth)));
-            f.setColumnWidth(c.timeAxisViewModel.resourceColumnWidth || 100, true)
+            h._oldViewPreset = [h.viewPreset, h.timeAxis.getStart(), h.timeAxis.getEnd()];
+            h.timeAxis.setMode("calendar");
+            h.setViewPreset(h.calendarViewPreset);
+            h.mon(h.timeAxis, h.calendarListeners)
         }
-        this.fireEvent("orientationchange", this, a)
-    },
-    onScheduleRowMouseDown: function (a, c) {
-        var b = this.lockedGrid.getSelectionModel();
-        if (this.getOrientation() === "horizontal" && Ext.selection.RowModel && b instanceof Ext.selection.RowModel) {
-            b.select(c)
+        if (d === "horizontal") {
+            h.mun(h.resourceStore, h.verticalListeners);
+            h.normalGrid.un(h.calendarViewListeners);
+            f.setRowHeight(h.rowHeight || h.timeAxisViewModel.rowHeightHorizontal, true);
+            h.reconfigure(h.resourceStore, h.horizontalColumns);
+            if (this.horizontalLockedWidth !== null) {
+                this.lockedGrid.setWidth(this.horizontalLockedWidth)
+            }
+        } else {
+            if (d === "calendar") {
+                h.mun(h.resourceStore, h.verticalListeners);
+                h.normalGrid.on(h.calendarViewListeners);
+                h.refreshCalendarColumns();
+                f.setRowHeight(h.rowHeight || h.timeAxisViewModel.rowHeightVertical, true);
+                f.setColumnWidth(h.timeAxisViewModel.calendarColumnWidth || 100, true)
+            } else {
+                h.normalGrid.un(h.calendarViewListeners);
+                var b = 0;
+                this.horizontalLockedWidth = this.lockedGrid.getWidth();
+                h.mon(h.resourceStore, h.verticalListeners);
+                h.reconfigure(h.timeAxis, h.verticalColumns.concat(h.createResourceColumns(h.resourceColumnWidth || h.timeAxisViewModel.resourceColumnWidth)));
+                Ext.Array.forEach(h.lockedGrid.query("gridcolumn"), function(j) {
+                    b += j.rendered ? j.getWidth() : j.width || 100
+                });
+                f.setColumnWidth(h.timeAxisViewModel.resourceColumnWidth || 100, true);
+                h.lockedGrid.setWidth(b)
+            }
         }
+        i.un("beforerefresh", e);
+        f.un("beforerefresh", e);
+        f.blockRefresh = i.blockRefresh = false;
+        h.getView().refresh();
+        this.fireEvent("modechange", this, d);
+        this.fireEvent("orientationchange", this, d)
     },
-    onScheduleEventBarMouseDown: function (a, d, f) {
-        var c = this.normalGrid.view;
-        var b = c.getRecord(c.findRowByChild(f.getTarget()));
-        this.onScheduleRowMouseDown(a, b)
+    createCalendarRows: function() {
+        var a = this;
+        var b = a.timeAxis.getRowTicks();
+        a.timeAxisViewModel.calendarRowsAmount = b.length;
+        return new Ext.data.Store({
+            model: "Sch.model.TimeAxisTick",
+            data: b
+        })
+    },
+    createCalendarColumns: function() {
+        var b = this;
+        var c = b.timeAxis.headerConfig.middle;
+        var a = [];
+        b.timeAxis.forEachAuxInterval(c.splitUnit, null, function(g, d, e) {
+            g.setHours(this.startTime);
+            d = new Date(g);
+            d.setHours(this.endTime);
+            var f = {
+                xtype: "weekview-day",
+                renderer: b.mainRenderer,
+                scope: b,
+                start: g,
+                end: d
+            };
+            if (c.renderer) {
+                f.text = c.renderer.call(c.scope || b, g, d, f, e, b.eventStore)
+            } else {
+                f.text = Ext.Date.format(g, c.dateFormat)
+            }
+            a.push(f)
+        });
+        return a
+    },
+    setRowHeight: function(a, b) {
+        b = b || !this.lockedGrid;
+        this.timeAxisViewModel.setViewRowHeight(a, b)
     }
 });

@@ -7,79 +7,111 @@ Ext.define("Sch.view.TimelineGridView", {
     cachedScrollLeftDate: null,
     boxIsReady: false,
     ignoreNextHorizontalScroll: false,
-    constructor: function (a) {
+    constructor: function(a) {
         this.callParent(arguments);
         if (this.infiniteScroll) {
-            this.on("afterrender", this.setupInfiniteScroll, this, {
-                single: true
-            })
+            this.on("boxready", this.setupInfiniteScroll, this)
+        }
+        if (this.timeAxisViewModel) {
+            this.relayEvents(this.timeAxisViewModel, ["columnwidthchange"])
         }
     },
-    setupInfiniteScroll: function () {
-        var b = this.panel.ownerCt;
-        this.cachedScrollLeftDate = b.startDate || this.timeAxis.getStart();
-        var a = this;
-        b.calculateOptimalDateRange = function (d, c, g, e) {
-            if (e) {
-                return e
+    indexInStore: function(a) {
+        if (a instanceof Ext.data.Model) {
+            return this.indexOf(a)
+        } else {
+            return this.indexOf(this.getRecord(a))
+        }
+    },
+    setupInfiniteScroll: function() {
+        var f = this.panel.ownerCt;
+        this.cachedScrollLeftDate = f.startDate || this.timeAxis.getStart();
+        if (Ext.supports.Touch && Ext.os.is.Windows) {
+            var a = this.panel.headerCt.scrollable;
+            var b = this.scrollable;
+            try {
+                Ext.GlobalEvents.un("idle", a.onIdle, a);
+                Ext.GlobalEvents.un("idle", b.onIdle, b)
+            } catch (d) {
+                Ext.log("Cannot unsubscribe required listener, zooming may be broken")
             }
-            var f = Sch.preset.Manager.getPreset(g.preset);
-            return a.calculateInfiniteScrollingDateRange(d, f.getBottomHeader().unit, g.increment, g.width)
+        }
+        var c = this;
+        f.calculateOptimalDateRange = function(g, e, j, h) {
+            if (h) {
+                return h
+            }
+            var i = Sch.preset.Manager.getPreset(j.preset);
+            return c.calculateInfiniteScrollingDateRange(g, i.getBottomHeader().unit, j.increment, j.width)
         };
-        this.el.on("scroll", this.onHorizontalScroll, this);
+        this.bindInfiniteScrollListeners()
+    },
+    bindInfiniteScrollListeners: function() {
+        if (this.scrollManager) {
+            this.scrollManager.scroller.on("scroll", this.onHorizontalScroll, this)
+        } else {
+            this.el.on("scroll", this.onHorizontalScroll, this)
+        }
         this.on("resize", this.onSelfResize, this)
     },
-    onHorizontalScroll: function () {
+    unbindInfiniteScrollListeners: function() {
+        if (this.scrollManager) {
+            this.scrollManager.scroller.un("scroll", this.onHorizontalScroll, this)
+        } else {
+            this.el.un("scroll", this.onHorizontalScroll, this)
+        }
+        this.un("resize", this.onSelfResize, this)
+    },
+    onHorizontalScroll: function() {
         if (this.ignoreNextHorizontalScroll || this.cachedScrollLeftDate) {
             this.ignoreNextHorizontalScroll = false;
             return
         }
-        var d = this.el.dom,
+        var e = this.el.dom,
             c = this.getWidth(),
-            b = c * this.bufferThreshold * this.bufferCoef;
-        if ((d.scrollWidth - d.scrollLeft - c < b) || d.scrollLeft < b) {
-            var a = Ext.dd.ScrollManager;
-            this.shiftToDate(this.getDateFromCoordinate(d.scrollLeft, null, true));
-            if (a.proc && a.proc.el === this.el) {
-                this.el.stopAnimation()
-            }
+            d = this.getScroll().left,
+            b = this.scrollManager ? this.scrollManager.scroller.getMaxPosition().x : e.scrollWidth,
+            a = c * this.bufferThreshold * this.bufferCoef;
+        if ((b - d - c < a) || d < a) {
+            this.shiftToDate(this.getDateFromCoordinate(d, null, true));
+            this.el.stopAnimation()
         }
     },
-    refresh: function () {
+    refresh: function() {
         this.callParent(arguments);
         if (this.infiniteScroll && !this.scrollStateSaved && this.boxIsReady) {
             this.restoreScrollLeftDate()
         }
     },
-    onSelfResize: function (c, d, a, b, e) {
+    onSelfResize: function(c, d, a, b, e) {
         this.boxIsReady = true;
-        if (d != b) {
-            this.shiftToDate(this.cachedScrollLeftDate || this.timeAxis.getStart(), this.cachedScrollCentered)
+        if (d !== b) {
+            this.shiftToDate(this.cachedScrollLeftDate || this.getVisibleDateRange().startDate, this.cachedScrollCentered)
         }
     },
-    restoreScrollLeftDate: function () {
+    restoreScrollLeftDate: function() {
         if (this.cachedScrollLeftDate && this.boxIsReady) {
             this.ignoreNextHorizontalScroll = true;
             this.scrollToDate(this.cachedScrollLeftDate);
             this.cachedScrollLeftDate = null
         }
     },
-    scrollToDate: function (a) {
+    scrollToDate: function(a) {
         this.cachedScrollLeftDate = a;
         if (this.cachedScrollCentered) {
             this.panel.ownerCt.scrollToDateCentered(a)
         } else {
             this.panel.ownerCt.scrollToDate(a)
         }
-        var b = this.el.dom.scrollLeft;
+        var b = this.getScroll().left;
         this.panel.scrollLeftPos = b;
         this.headerCt.el.dom.scrollLeft = b
     },
-    saveScrollState: function () {
+    saveScrollState: function() {
         this.scrollStateSaved = this.boxIsReady;
         this.callParent(arguments)
     },
-    restoreScrollState: function () {
+    restoreScrollState: function() {
         this.scrollStateSaved = false;
         if (this.infiniteScroll && this.cachedScrollLeftDate) {
             this.restoreScrollLeftDate();
@@ -88,7 +120,7 @@ Ext.define("Sch.view.TimelineGridView", {
         }
         this.callParent(arguments)
     },
-    calculateInfiniteScrollingDateRange: function (e, f, b, a) {
+    calculateInfiniteScrollingDateRange: function(e, f, b, a) {
         var g = this.timeAxis;
         var d = this.getWidth();
         a = a || this.timeAxisViewModel.getTickWidth();
@@ -101,18 +133,16 @@ Ext.define("Sch.view.TimelineGridView", {
             end: g.ceilDate(h.add(e, f, Math.ceil((d / a + c) * b)), false, f, b)
         }
     },
-    shiftToDate: function (b, c) {
-        var a = this.calculateInfiniteScrollingDateRange(b);
-        this.cachedScrollLeftDate = b;
-        this.cachedScrollCentered = c;
+    shiftToDate: function(c, b) {
+        var a = this.calculateInfiniteScrollingDateRange(c);
+        this.cachedScrollLeftDate = c;
+        this.cachedScrollCentered = b;
         this.timeAxis.setTimeSpan(a.start, a.end)
     },
-    destroy: function () {
+    destroy: function() {
         if (this.infiniteScroll && this.rendered) {
-            this.el.un("scroll", this.onHorizontalScroll, this)
+            this.unbindInfiniteScrollListeners()
         }
         this.callParent(arguments)
     }
-}, function () {
-    this.override(Sch.mixin.TimelineView.prototype.inheritables() || {})
 });

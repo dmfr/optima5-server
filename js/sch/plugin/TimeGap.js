@@ -1,8 +1,9 @@
 Ext.define("Sch.plugin.TimeGap", {
     extend: "Sch.plugin.Zones",
     alias: "plugin.scheduler_timegap",
+    requires: ["Ext.data.JsonStore"],
     getZoneCls: Ext.emptyFn,
-    init: function (a) {
+    init: function(a) {
         this.store = new Ext.data.JsonStore({
             model: "Sch.model.Range"
         });
@@ -19,7 +20,7 @@ Ext.define("Sch.plugin.TimeGap", {
         this.schedulerView = a.getSchedulingView();
         this.callParent(arguments)
     },
-    populateStore: function (c) {
+    populateStore: function(c) {
         var b = this.schedulerView.getEventsInView(),
             f = [],
             e = this.scheduler.getStart(),
@@ -28,7 +29,7 @@ Ext.define("Sch.plugin.TimeGap", {
             j = e,
             h, g = 0,
             a;
-        b.sortBy(function (l, k) {
+        b.sortBy(function(l, k) {
             return l.getStartDate() - k.getStartDate()
         });
         a = b.getAt(0);

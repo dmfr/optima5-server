@@ -1,7 +1,6 @@
 Ext.define("Sch.column.Resource", {
     extend: "Ext.grid.Column",
     alias: "widget.resourcecolumn",
-    cls: "sch-resourcecolumn-header",
     align: "center",
     menuDisabled: true,
     hideable: false,
@@ -10,7 +9,10 @@ Ext.define("Sch.column.Resource", {
     lockable: false,
     draggable: false,
     enableLocking: false,
-    tdCls: "sch-timetd",
-    model: null
+    model: null,
+    initComponent: function() {
+        this.tdCls = (this.tdCls || "") + " sch-timetd";
+        this.cls = (this.cls || "") + " sch-resourcecolumn-header";
+        this.callParent(arguments)
+    }
 });
-

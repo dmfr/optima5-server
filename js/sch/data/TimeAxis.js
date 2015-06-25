@@ -19,67 +19,93 @@ Ext.define("Sch.data.TimeAxis", {
     adjustedEnd: null,
     visibleTickStart: null,
     visibleTickEnd: null,
-    constructor: function (a) {
-        var b = this;
-        if (b.setModel) {
-            b.setModel(b.model)
+    presetName: null,
+    mode: "plain",
+    startTime: 0,
+    endTime: 24,
+    constructor: function(a) {
+        var c = this;
+        a = a || {};
+        if (c.setModel) {
+            c.setModel(c.model)
         }
-        b.originalContinuous = b.continuous;
-        b.callParent(arguments);
-        b.addEvents("beforereconfigure", "reconfigure");
-        b.on(Ext.versions.touch ? "refresh" : "datachanged", function (c, d, e) {
-            b.fireEvent("reconfigure", b, d, e)
+        c.setMode(a.mode || c.mode);
+        c.originalContinuous = c.continuous;
+        c.callParent(arguments);
+        c.on(Ext.versions.touch ? "refresh" : "datachanged", function(d) {
+            c.fireEvent("reconfigure", c, false)
         });
-        if (a && b.start) {
-            b.reconfigure(a)
+        c.on("endreconfigure", function(d, e) {
+            d.fireEvent("reconfigure", d, e)
+        });
+        if (a.viewPreset) {
+            var b = Sch.preset.Manager.getPreset(a.viewPreset);
+            b && c.consumeViewPreset(b)
+        }
+        if (a.start || c.start) {
+            c.reconfigure(a)
         }
     },
-    reconfigure: function (e, a) {
+    reconfigure: function(d, a) {
         this.isConfigured = true;
-        Ext.apply(this, e);
-        var m = this.getAdjustedDates(e.start, e.end, true);
-        var l = this.getAdjustedDates(e.start, e.end);
-        var b = l.start;
-        var f = l.end;
-        if (this.fireEvent("beforereconfigure", this, b, f) !== false) {
-            var j = this.unit;
-            var k = this.increment || 1;
-            var i = this.generateTicks(b, f, j, k, this.mainUnit);
-            var d = Ext.Object.getKeys(e).length;
-            var g = (d === 1 && "start" in e) || (d === 2 && "start" in e && "end" in e);
+        Ext.apply(this, d);
+        var k = this.getAdjustedDates(d.start, d.end, true);
+        var j = this.getAdjustedDates(d.start, d.end);
+        var b = j.start;
+        var e = j.end;
+        if (this.fireEvent("beforereconfigure", this, b, e) !== false) {
+            this.fireEvent("beginreconfigure", this);
+            var h = this.unit;
+            var i = this.increment || 1;
+            var g = this.generateTicks(b, e, h, i, this.mainUnit);
             this.removeAll(true);
             this.suspendEvents();
-            this.add(i);
+            this.add(g);
             if (this.getCount() === 0) {
                 Ext.Error.raise("Invalid time axis configuration or filter, please check your input data.")
             }
             this.resumeEvents();
             var c = Sch.util.Date;
-            var h = i.length;
+            var f = g.length;
             if (this.isContinuous()) {
-                this.adjustedStart = m.start;
-                this.adjustedEnd = c.getNext(h > 1 ? i[h - 1].start : m.start, j, k)
+                this.adjustedStart = k.start;
+                this.adjustedEnd = this.getNext(f > 1 ? g[f - 1].start : k.start, h, i)
             } else {
                 this.adjustedStart = this.getStart();
                 this.adjustedEnd = this.getEnd()
             }
             do {
-                this.visibleTickStart = (this.getStart() - this.adjustedStart) / (c.getUnitDurationInMs(j) * k);
+                this.visibleTickStart = (this.getStart() - this.adjustedStart) / (c.getUnitDurationInMs(h) * i);
                 if (this.visibleTickStart >= 1) {
-                    this.adjustedStart = c.getNext(this.adjustedStart, j, 1)
+                    this.adjustedStart = c.getNext(this.adjustedStart, h, i)
                 }
             } while (this.visibleTickStart >= 1);
             do {
-                this.visibleTickEnd = h - (this.adjustedEnd - this.getEnd()) / (c.getUnitDurationInMs(j) * k);
-                if (h - this.visibleTickEnd >= 1) {
-                    this.adjustedEnd = c.getNext(this.adjustedEnd, j, -1)
+                this.visibleTickEnd = f - (this.adjustedEnd - this.getEnd()) / (c.getUnitDurationInMs(h) * i);
+                if (f - this.visibleTickEnd >= 1) {
+                    this.adjustedEnd = c.getNext(this.adjustedEnd, h, -1)
                 }
-            } while (h - this.visibleTickEnd >= 1);
-            this.fireEvent("datachanged", this, !g, a);
-            this.fireEvent("refresh", this, !g, a)
+            } while (f - this.visibleTickEnd >= 1);
+            this.fireEvent("endreconfigure", this, a)
         }
     },
-    setTimeSpan: function (c, a) {
+    setMode: function(a) {
+        this.mode = a;
+        if (a === "calendar") {
+            this.generateTicksValidatorFn = function(b) {
+                if (this.startTime > 0 || this.endTime < 24) {
+                    return (b.getHours() >= this.startTime && b.getHours() < this.endTime)
+                } else {
+                    return true
+                }
+            }
+        } else {
+            this.generateTicksValidatorFn = function() {
+                return true
+            }
+        }
+    },
+    setTimeSpan: function(c, a) {
         var b = this.getAdjustedDates(c, a);
         c = b.start;
         a = b.end;
@@ -90,13 +116,13 @@ Ext.define("Sch.data.TimeAxis", {
             })
         }
     },
-    filterBy: function (b, a) {
+    filterBy: function(b, a) {
         this.continuous = false;
         a = a || this;
         this.clearFilter(true);
         this.suspendEvents(true);
         this.filter([{
-            filterFn: function (d, c) {
+            filterFn: function(d, c) {
                 return b.call(a, d.data, c)
             }
         }]);
@@ -107,14 +133,14 @@ Ext.define("Sch.data.TimeAxis", {
         }
         this.resumeEvents()
     },
-    isContinuous: function () {
+    isContinuous: function() {
         return this.continuous && !this.isFiltered()
     },
-    clearFilter: function () {
+    clearFilter: function() {
         this.continuous = this.originalContinuous;
         this.callParent(arguments)
     },
-    generateTicks: function (a, d, g, i) {
+    generateTicks: function(a, d, g, i) {
         var h = [],
             f, b = Sch.util.Date,
             e = 0;
@@ -135,7 +161,7 @@ Ext.define("Sch.data.TimeAxis", {
                     f = b.add(f, b.HOUR, e)
                 }
             }
-            h.push({
+            this.generateTicksValidatorFn(a) && h.push({
                 start: a,
                 end: f
             });
@@ -143,21 +169,49 @@ Ext.define("Sch.data.TimeAxis", {
         }
         return h
     },
-    getVisibleTickTimeSpan: function () {
+    getVisibleTickTimeSpan: function() {
         return this.isContinuous() ? this.visibleTickEnd - this.visibleTickStart : this.getCount()
     },
-    getAdjustedDates: function (c, b, a) {
-        c = c || this.getStart();
-        b = b || Sch.util.Date.add(c, this.mainUnit, this.defaultSpan);
-        return this.autoAdjust || a ? {
-            start: this.floorDate(c, false, this.mainUnit, 1),
-            end: this.ceilDate(b, false, this.mainUnit, 1)
-        } : {
-            start: c,
-            end: b
+    getAdjustedDates: function(b, e, d) {
+        var c = Sch.util.Date;
+        b = b || this.getStart();
+        e = e || c.add(b, this.mainUnit, this.defaultSpan);
+        if (this.mode === "calendar") {
+            if (this.shiftUnit === c.MONTH) {
+                var g = c.add(b, c.WEEK, 1);
+                var f = c.add(e, c.WEEK, -1);
+                if (!e) {
+                    e = this.getNext(b, this.shiftUnit, 1);
+                    e = this.ceilDate(e, false, this.shiftUnit, 1);
+                    e = this.ceilDate(e, false, this.mainUnit, 1)
+                }
+                if (g.getMonth() !== b.getMonth() && f.getMonth() !== e.getMonth()) {
+                    return {
+                        start: b,
+                        end: e
+                    }
+                }
+            }
+            var i = this.floorDate(b, false, this.shiftUnit, 1);
+            i = this.floorDate(i, false, this.mainUnit, 1);
+            var h = this.getNext(b, this.shiftUnit, 1);
+            var a = this.ceilDate(h, false, this.shiftUnit, 1);
+            a = this.ceilDate(a, false, this.mainUnit, 1);
+            return {
+                start: i,
+                end: a
+            }
+        } else {
+            return this.autoAdjust || d ? {
+                start: this.floorDate(b, false, this.autoAdjust ? this.mainUnit : this.unit, 1),
+                end: this.ceilDate(e, false, this.autoAdjust ? this.mainUnit : this.unit, 1)
+            } : {
+                start: b,
+                end: e
+            }
         }
     },
-    getTickFromDate: function (d) {
+    getTickFromDate: function(d) {
         var j = this.data.items;
         var h = j.length - 1;
         if (d < j[0].data.start || d > j[h].data.end) {
@@ -196,7 +250,7 @@ Ext.define("Sch.data.TimeAxis", {
         }
         return -1
     },
-    getDateFromTick: function (e, i) {
+    getDateFromTick: function(e, i) {
         if (e === this.visibleTickEnd) {
             return this.getEnd()
         }
@@ -215,177 +269,179 @@ Ext.define("Sch.data.TimeAxis", {
         }
         return c
     },
-    getTicks: function () {
+    getTicks: function() {
         var a = [];
-        this.each(function (b) {
+        this.each(function(b) {
             a.push(b.data)
         });
         return a
     },
-    getStart: function () {
+    getStart: function() {
         var a = this.first();
         if (a) {
             return new Date(a.data.start)
         }
         return null
     },
-    getEnd: function () {
+    getEnd: function() {
         var a = this.last();
         if (a) {
             return new Date(a.data.end)
         }
         return null
     },
-    floorDate: function (e, g, h, a) {
+    floorDate: function(e, g, h, a) {
         g = g !== false;
         var c = Ext.Date.clone(e),
             d = g ? this.getStart() : null,
-            k = a || this.resolutionIncrement,
-            j;
+            l = a || this.resolutionIncrement,
+            k;
         if (h) {
-            j = h
+            k = h
         } else {
-            j = g ? this.resolutionUnit : this.mainUnit
+            k = g ? this.resolutionUnit : this.mainUnit
         }
         var b = Sch.util.Date;
-        var f = function (m, l) {
-            return Math.floor(m / l) * l
+        var f = function(n, m) {
+            return Math.floor(n / m) * m
         };
-        switch (j) {
-        case b.MILLI:
-            if (g) {
-                c = b.add(d, b.MILLI, f(b.getDurationInMilliseconds(d, c), k))
-            }
-            break;
-        case b.SECOND:
-            if (g) {
-                c = b.add(d, b.MILLI, f(b.getDurationInSeconds(d, c), k) * 1000)
-            } else {
-                c.setMilliseconds(0);
-                c.setSeconds(f(c.getSeconds(), k))
-            }
-            break;
-        case b.MINUTE:
-            if (g) {
-                c = b.add(d, b.SECOND, f(b.getDurationInMinutes(d, c), k) * 60)
-            } else {
-                c.setMinutes(f(c.getMinutes(), k));
-                c.setSeconds(0);
-                c.setMilliseconds(0)
-            }
-            break;
-        case b.HOUR:
-            if (g) {
-                c = b.add(d, b.MINUTE, f(b.getDurationInHours(this.getStart(), c), k) * 60)
-            } else {
-                c.setMinutes(0);
-                c.setSeconds(0);
-                c.setMilliseconds(0);
-                c.setHours(f(c.getHours(), k))
-            }
-            break;
-        case b.DAY:
-            if (g) {
-                c = b.add(d, b.DAY, f(b.getDurationInDays(d, c), k))
-            } else {
-                Ext.Date.clearTime(c);
-                c.setDate(f(c.getDate() - 1, k) + 1)
-            }
-            break;
-        case b.WEEK:
-            var i = c.getDay();
-            Ext.Date.clearTime(c);
-            if (i !== this.weekStartDay) {
-                c = b.add(c, b.DAY, -(i > this.weekStartDay ? (i - this.weekStartDay) : (7 - i - this.weekStartDay)))
-            }
-            break;
-        case b.MONTH:
-            if (g) {
-                c = b.add(d, b.MONTH, f(b.getDurationInMonths(d, c), k))
-            } else {
-                Ext.Date.clearTime(c);
+        switch (k) {
+            case b.MILLI:
+                if (g) {
+                    c = b.add(d, b.MILLI, f(b.getDurationInMilliseconds(d, c), l))
+                }
+                break;
+            case b.SECOND:
+                if (g) {
+                    c = b.add(d, b.MILLI, f(b.getDurationInSeconds(d, c), l) * 1000)
+                } else {
+                    c.setMilliseconds(0);
+                    c.setSeconds(f(c.getSeconds(), l))
+                }
+                break;
+            case b.MINUTE:
+                if (g) {
+                    c = b.add(d, b.SECOND, f(b.getDurationInMinutes(d, c), l) * 60)
+                } else {
+                    c.setMinutes(f(c.getMinutes(), l));
+                    c.setSeconds(0);
+                    c.setMilliseconds(0)
+                }
+                break;
+            case b.HOUR:
+                if (g) {
+                    c = b.add(d, b.MINUTE, f(b.getDurationInHours(this.getStart(), c), l) * 60)
+                } else {
+                    c.setMinutes(0);
+                    c.setSeconds(0);
+                    c.setMilliseconds(0);
+                    c.setHours(f(c.getHours(), l))
+                }
+                break;
+            case b.DAY:
+                if (g) {
+                    c = b.add(d, b.DAY, f(b.getDurationInDays(d, c), l))
+                } else {
+                    Sch.util.Date.clearTime(c);
+                    c.setDate(f(c.getDate() - 1, l) + 1)
+                }
+                break;
+            case b.WEEK:
+                var j = c.getDay() || 7;
+                var i = this.weekStartDay || 7;
+                Sch.util.Date.clearTime(c);
+                c = b.add(c, b.DAY, j >= i ? i - j : -(7 - i + j));
+                if (c.getDay() !== i && c.getHours() === 23) {
+                    c = b.add(c, b.HOUR, 1)
+                }
+                break;
+            case b.MONTH:
+                if (g) {
+                    c = b.add(d, b.MONTH, f(b.getDurationInMonths(d, c), l))
+                } else {
+                    Sch.util.Date.clearTime(c);
+                    c.setDate(1);
+                    c.setMonth(f(c.getMonth(), l))
+                }
+                break;
+            case b.QUARTER:
+                Sch.util.Date.clearTime(c);
                 c.setDate(1);
-                c.setMonth(f(c.getMonth(), k))
-            }
-            break;
-        case b.QUARTER:
-            Ext.Date.clearTime(c);
-            c.setDate(1);
-            c = b.add(c, b.MONTH, -(c.getMonth() % 3));
-            break;
-        case b.YEAR:
-            if (g) {
-                c = b.add(d, b.YEAR, f(b.getDurationInYears(d, c), k))
-            } else {
-                c = new Date(f(e.getFullYear() - 1, k) + 1, 0, 1)
-            }
-            break
+                c = b.add(c, b.MONTH, -(c.getMonth() % 3));
+                break;
+            case b.YEAR:
+                if (g) {
+                    c = b.add(d, b.YEAR, f(b.getDurationInYears(d, c), l))
+                } else {
+                    c = new Date(f(e.getFullYear() - 1, l) + 1, 0, 1)
+                }
+                break
         }
         return c
     },
-    roundDate: function (r, b) {
+    roundDate: function(r, b) {
         var l = Ext.Date.clone(r),
             s = this.resolutionIncrement;
         b = b || this.getStart();
         switch (this.resolutionUnit) {
-        case Sch.util.Date.MILLI:
-            var e = Sch.util.Date.getDurationInMilliseconds(b, l),
-                d = Math.round(e / s) * s;
-            l = Sch.util.Date.add(b, Sch.util.Date.MILLI, d);
-            break;
-        case Sch.util.Date.SECOND:
-            var i = Sch.util.Date.getDurationInSeconds(b, l),
-                q = Math.round(i / s) * s;
-            l = Sch.util.Date.add(b, Sch.util.Date.MILLI, q * 1000);
-            break;
-        case Sch.util.Date.MINUTE:
-            var n = Sch.util.Date.getDurationInMinutes(b, l),
-                a = Math.round(n / s) * s;
-            l = Sch.util.Date.add(b, Sch.util.Date.SECOND, a * 60);
-            break;
-        case Sch.util.Date.HOUR:
-            var m = Sch.util.Date.getDurationInHours(b, l),
-                j = Math.round(m / s) * s;
-            l = Sch.util.Date.add(b, Sch.util.Date.MINUTE, j * 60);
-            break;
-        case Sch.util.Date.DAY:
-            var c = Sch.util.Date.getDurationInDays(b, l),
-                f = Math.round(c / s) * s;
-            l = Sch.util.Date.add(b, Sch.util.Date.DAY, f);
-            break;
-        case Sch.util.Date.WEEK:
-            Ext.Date.clearTime(l);
-            var o = l.getDay() - this.weekStartDay,
-                t;
-            if (o < 0) {
-                o = 7 + o
-            }
-            if (Math.round(o / 7) === 1) {
-                t = 7 - o
-            } else {
-                t = -o
-            }
-            l = Sch.util.Date.add(l, Sch.util.Date.DAY, t);
-            break;
-        case Sch.util.Date.MONTH:
-            var p = Sch.util.Date.getDurationInMonths(b, l) + (l.getDate() / Ext.Date.getDaysInMonth(l)),
-                h = Math.round(p / s) * s;
-            l = Sch.util.Date.add(b, Sch.util.Date.MONTH, h);
-            break;
-        case Sch.util.Date.QUARTER:
-            Ext.Date.clearTime(l);
-            l.setDate(1);
-            l = Sch.util.Date.add(l, Sch.util.Date.MONTH, 3 - (l.getMonth() % 3));
-            break;
-        case Sch.util.Date.YEAR:
-            var k = Sch.util.Date.getDurationInYears(b, l),
-                g = Math.round(k / s) * s;
-            l = Sch.util.Date.add(b, Sch.util.Date.YEAR, g);
-            break
+            case Sch.util.Date.MILLI:
+                var e = Sch.util.Date.getDurationInMilliseconds(b, l),
+                    d = Math.round(e / s) * s;
+                l = Sch.util.Date.add(b, Sch.util.Date.MILLI, d);
+                break;
+            case Sch.util.Date.SECOND:
+                var i = Sch.util.Date.getDurationInSeconds(b, l),
+                    q = Math.round(i / s) * s;
+                l = Sch.util.Date.add(b, Sch.util.Date.MILLI, q * 1000);
+                break;
+            case Sch.util.Date.MINUTE:
+                var n = Sch.util.Date.getDurationInMinutes(b, l),
+                    a = Math.round(n / s) * s;
+                l = Sch.util.Date.add(b, Sch.util.Date.SECOND, a * 60);
+                break;
+            case Sch.util.Date.HOUR:
+                var m = Sch.util.Date.getDurationInHours(b, l),
+                    j = Math.round(m / s) * s;
+                l = Sch.util.Date.add(b, Sch.util.Date.MINUTE, j * 60);
+                break;
+            case Sch.util.Date.DAY:
+                var c = Sch.util.Date.getDurationInDays(b, l),
+                    f = Math.round(c / s) * s;
+                l = Sch.util.Date.add(b, Sch.util.Date.DAY, f);
+                break;
+            case Sch.util.Date.WEEK:
+                Sch.util.Date.clearTime(l);
+                var o = l.getDay() - this.weekStartDay,
+                    t;
+                if (o < 0) {
+                    o = 7 + o
+                }
+                if (Math.round(o / 7) === 1) {
+                    t = 7 - o
+                } else {
+                    t = -o
+                }
+                l = Sch.util.Date.add(l, Sch.util.Date.DAY, t);
+                break;
+            case Sch.util.Date.MONTH:
+                var p = Sch.util.Date.getDurationInMonths(b, l) + (l.getDate() / Ext.Date.getDaysInMonth(l)),
+                    h = Math.round(p / s) * s;
+                l = Sch.util.Date.add(b, Sch.util.Date.MONTH, h);
+                break;
+            case Sch.util.Date.QUARTER:
+                Sch.util.Date.clearTime(l);
+                l.setDate(1);
+                l = Sch.util.Date.add(l, Sch.util.Date.MONTH, 3 - (l.getMonth() % 3));
+                break;
+            case Sch.util.Date.YEAR:
+                var k = Sch.util.Date.getDurationInYears(b, l),
+                    g = Math.round(k / s) * s;
+                l = Sch.util.Date.add(b, Sch.util.Date.YEAR, g);
+                break
         }
         return l
     },
-    ceilDate: function (c, b, f) {
+    ceilDate: function(c, b, f) {
         var e = Ext.Date.clone(c);
         b = b !== false;
         var a = b ? this.resolutionIncrement : 1,
@@ -397,42 +453,42 @@ Ext.define("Sch.data.TimeAxis", {
             d = b ? this.resolutionUnit : this.mainUnit
         }
         switch (d) {
-        case Sch.util.Date.HOUR:
-            if (e.getMinutes() > 0 || e.getSeconds() > 0 || e.getMilliseconds() > 0) {
-                g = true
-            }
-            break;
-        case Sch.util.Date.DAY:
-            if (e.getHours() > 0 || e.getMinutes() > 0 || e.getSeconds() > 0 || e.getMilliseconds() > 0) {
-                g = true
-            }
-            break;
-        case Sch.util.Date.WEEK:
-            Ext.Date.clearTime(e);
-            if (e.getDay() !== this.weekStartDay) {
-                g = true
-            }
-            break;
-        case Sch.util.Date.MONTH:
-            Ext.Date.clearTime(e);
-            if (e.getDate() !== 1) {
-                g = true
-            }
-            break;
-        case Sch.util.Date.QUARTER:
-            Ext.Date.clearTime(e);
-            if (e.getMonth() % 3 !== 0 || (e.getMonth() % 3 === 0 && e.getDate() !== 1)) {
-                g = true
-            }
-            break;
-        case Sch.util.Date.YEAR:
-            Ext.Date.clearTime(e);
-            if (e.getMonth() !== 0 || e.getDate() !== 1) {
-                g = true
-            }
-            break;
-        default:
-            break
+            case Sch.util.Date.HOUR:
+                if (e.getMinutes() > 0 || e.getSeconds() > 0 || e.getMilliseconds() > 0) {
+                    g = true
+                }
+                break;
+            case Sch.util.Date.DAY:
+                if (e.getHours() > 0 || e.getMinutes() > 0 || e.getSeconds() > 0 || e.getMilliseconds() > 0) {
+                    g = true
+                }
+                break;
+            case Sch.util.Date.WEEK:
+                Sch.util.Date.clearTime(e);
+                if (e.getDay() !== this.weekStartDay || c.getTime() - e.getTime() > 0) {
+                    g = true
+                }
+                break;
+            case Sch.util.Date.MONTH:
+                Sch.util.Date.clearTime(e);
+                if (e.getDate() !== 1 || c.getTime() - e.getTime() > 0) {
+                    g = true
+                }
+                break;
+            case Sch.util.Date.QUARTER:
+                Sch.util.Date.clearTime(e);
+                if (e.getMonth() % 3 !== 0 || e.getDate() !== 1 || c.getTime() - e.getTime() > 0) {
+                    g = true
+                }
+                break;
+            case Sch.util.Date.YEAR:
+                Sch.util.Date.clearTime(e);
+                if (e.getMonth() !== 0 || e.getDate() !== 1 || c.getTime() - e.getTime() > 0) {
+                    g = true
+                }
+                break;
+            default:
+                break
         }
         if (g) {
             return this.getNext(e, d, a)
@@ -440,55 +496,78 @@ Ext.define("Sch.data.TimeAxis", {
             return e
         }
     },
-    getNext: function (b, c, a) {
+    getNext: function(b, c, a) {
         return Sch.util.Date.getNext(b, c, a, this.weekStartDay)
     },
-    getResolution: function () {
+    getResolution: function() {
         return {
             unit: this.resolutionUnit,
             increment: this.resolutionIncrement
         }
     },
-    setResolution: function (b, a) {
+    setResolution: function(b, a) {
         this.resolutionUnit = b;
         this.resolutionIncrement = a || 1
     },
-    shift: function (a, b) {
+    shift: function(a, b) {
         this.setTimeSpan(Sch.util.Date.add(this.getStart(), b, a), Sch.util.Date.add(this.getEnd(), b, a))
     },
-    shiftNext: function (a) {
+    shiftNext: function(a) {
         a = a || this.getShiftIncrement();
         var b = this.getShiftUnit();
         this.setTimeSpan(Sch.util.Date.add(this.getStart(), b, a), Sch.util.Date.add(this.getEnd(), b, a))
     },
-    shiftPrevious: function (a) {
+    shiftPrevious: function(a) {
         a = -(a || this.getShiftIncrement());
         var b = this.getShiftUnit();
         this.setTimeSpan(Sch.util.Date.add(this.getStart(), b, a), Sch.util.Date.add(this.getEnd(), b, a))
     },
-    getShiftUnit: function () {
+    getShiftUnit: function() {
         return this.shiftUnit || this.mainUnit
     },
-    getShiftIncrement: function () {
+    getShiftIncrement: function() {
         return this.shiftIncrement || 1
     },
-    getUnit: function () {
+    getUnit: function() {
         return this.unit
     },
-    getIncrement: function () {
+    getIncrement: function() {
         return this.increment
     },
-    dateInAxis: function (a) {
+    getRowTicks: function() {
+        if (this.mode === "plain") {
+            return
+        } else {
+            var c = this.getStart();
+            var a = Sch.util.Date.add(c, this.headerConfig.middle.splitUnit, 1);
+            var b = this.findBy(function(d) {
+                return d.getStartDate().getTime() >= a.getTime()
+            });
+            if (b === -1) {
+                return this.getRange()
+            }
+            return this.getRange(0, b - 1)
+        }
+    },
+    dateInAxis: function(a) {
         return Sch.util.Date.betweenLesser(a, this.getStart(), this.getEnd())
     },
-    timeSpanInAxis: function (b, a) {
+    timeSpanInAxis: function(b, a) {
         if (this.isContinuous()) {
             return Sch.util.Date.intersectSpans(b, a, this.getStart(), this.getEnd())
         } else {
             return (b < this.getStart() && a > this.getEnd()) || this.getTickFromDate(b) !== this.getTickFromDate(a)
         }
     },
-    forEachAuxInterval: function (h, b, a, f) {
+    isRangeInAxis: function(b) {
+        var c = b.getStartDate(),
+            a = b.getEndDate();
+        if (!c || !a) {
+            return false
+        }
+        return this.timeSpanInAxis(c, a)
+    },
+    forEachAuxInterval: function(h, b, a, f) {
         f = f || this;
         var c = this.getEnd(),
             g = this.getStart(),
@@ -504,7 +583,7 @@ Ext.define("Sch.data.TimeAxis", {
             e++
         }
     },
-    consumeViewPreset: function (a) {
+    consumeViewPreset: function(a) {
         Ext.apply(this, {
             unit: a.getBottomHeader().unit,
             increment: a.getBottomHeader().increment || 1,
@@ -513,7 +592,9 @@ Ext.define("Sch.data.TimeAxis", {
             mainUnit: a.getMainHeader().unit,
             shiftUnit: a.shiftUnit,
             shiftIncrement: a.shiftIncrement || 1,
-            defaultSpan: a.defaultSpan || 1
+            defaultSpan: a.defaultSpan || 1,
+            presetName: a.name,
+            headerConfig: a.headerConfig
         })
     }
 });

@@ -10,8 +10,9 @@ Ext.define("Sch.feature.ResizeZone", {
     handlePos: null,
     eventRec: null,
     tip: null,
+    tipInstance: null,
     startScroll: null,
-    constructor: function (a) {
+    constructor: function(a) {
         Ext.apply(this, a);
         var b = this.schedulerView;
         b.on({
@@ -26,7 +27,7 @@ Ext.define("Sch.feature.ResizeZone", {
         });
         this.callParent(arguments)
     },
-    onMouseDown: function (f, a) {
+    onMouseDown: function(f, a) {
         var b = this.schedulerView;
         var d = this.eventRec = b.resolveEventRecord(a);
         var c = d.isResizable();
@@ -42,7 +43,7 @@ Ext.define("Sch.feature.ResizeZone", {
             single: true
         })
     },
-    onMouseUp: function (c, a) {
+    onMouseUp: function(c, a) {
         var b = this.schedulerView;
         b.el.un({
             mousemove: this.onMouseMove,
@@ -50,36 +51,56 @@ Ext.define("Sch.feature.ResizeZone", {
             single: true
         })
     },
-    onMouseMove: function (g, a) {
-        var b = this.schedulerView;
-        var f = this.eventRec;
-        var d = this.handlePos;
-        if (!f || b.fireEvent("beforeeventresize", b, f, g) === false) {
+    getTipInstance: function() {
+        if (this.tipInstance) {
+            return this.tipInstance
+        }
+        var a = this.schedulerView;
+        var c = this.tip;
+        var b = a.up("[lockable=true]").el;
+        if (c instanceof Ext.tip.ToolTip) {
+            Ext.applyIf(c, {
+                schedulerView: a
+            })
+        } else {
+            c = new Sch.tooltip.Tooltip(Ext.apply({
+                rtl: this.rtl,
+                schedulerView: a,
+                constrainTo: b,
+                cls: "sch-resize-tip",
+                onMyMouseMove: function(d) {
+                    this.el.alignTo(this.target, "bl-tl", [d.getX() - this.target.getX(), -5])
+                }
+            }, c))
+        }
+        return this.tipInstance = c
+    },
+    onMouseMove: function(h, a) {
+        var b = this.schedulerView,
+            g = this.eventRec,
+            d = this.handlePos;
+        if (!g || b.fireEvent("beforeeventresize", b, g, h) === false) {
             return
         }
         delete this.eventRec;
-        g.stopEvent();
-        this.resizer = this.createResizer(this.origEl, f, d, g, a);
+        h.stopEvent();
+        this.origEl.addCls("sch-event-resizing");
+        this.resizer = this.createResizer(this.origEl, g, d);
         var c = this.resizer.resizeTracker;
         if (this.showTooltip) {
-            if (!this.tip) {
-                this.tip = Ext.create("Sch.tooltip.Tooltip", {
-                    schedulerView: b,
-                    renderTo: b.getSecondaryCanvasEl(),
-                    cls: "sch-resize-tip"
-                })
-            }
-            this.tip.update(f.getStartDate(), f.getEndDate(), true);
-            this.tip.show(this.origEl)
+            var f = this.getTipInstance();
+            f.setTarget(this.origEl);
+            f.update(g.getStartDate(), g.getEndDate(), true);
+            f.show(this.origEl)
         }
-        c.onMouseDown(g, this.resizer[d].dom);
-        c.onMouseMove(g, this.resizer[d].dom);
-        b.fireEvent("eventresizestart", b, f);
+        c.onMouseDown(h, this.resizer[d].dom);
+        c.onMouseMove(h, this.resizer[d].dom);
+        b.fireEvent("eventresizestart", b, g);
         b.el.on("scroll", this.onViewElScroll, this)
     },
-    getHandlePosition: function (b) {
+    getHandlePosition: function(b) {
         var a = b.className.match("start");
-        if (this.schedulerView.getOrientation() === "horizontal") {
+        if (this.schedulerView.getMode() === "horizontal") {
             if (this.schedulerView.rtl) {
                 return a ? "east" : "west"
             }
@@ -88,119 +109,135 @@ Ext.define("Sch.feature.ResizeZone", {
             return a ? "north" : "south"
         }
     },
-    createResizer: function (c, f, p) {
-        var m = this.schedulerView,
-            t = this,
-            b = m.getElementFromEventRecord(f),
-            g = m.resolveResource(c),
-            r = m.getSnapPixelAmount(),
-            o = m.getScheduleRegion(g, f),
-            q = m.getDateConstraints(g, f),
-            n = c.getHeight,
-            h = (m.rtl && p[0] === "e") || (!m.rtl && p[0] === "w") || p[0] === "n",
-            i = m.getOrientation() === "vertical",
-            e = {
-                otherEdgeX: h ? b.getRight() : b.getLeft(),
+    createResizer: function(b, e, o) {
+        var l = this.schedulerView,
+            r = this,
+            f = l.resolveResource(b),
+            q = l.getSnapPixelAmount(),
+            n = l.getScheduleRegion(f, e),
+            p = l.getDateConstraints(f, e),
+            m = b.getHeight(),
+            g = (l.rtl && o[0] === "e") || (!l.rtl && o[0] === "w") || o[0] === "n",
+            h = l.getMode() !== "horizontal",
+            d = {
+                otherEdgeX: g ? b.getRight() : b.getLeft(),
+                otherEdgeY: g ? b.getBottom() : b.getTop(),
                 target: b,
-                isStart: h,
-                dateConstraints: q,
-                resourceRecord: g,
-                eventRecord: f,
-                handles: p[0],
-                minHeight: n,
-                constrainTo: o,
+                isStart: g,
+                startYOffset: b.getY() - b.parent().getY(),
+                startXOffset: b.getX() - b.parent().getX(),
+                dateConstraints: p,
+                resourceRecord: f,
+                eventRecord: e,
+                handles: o[0],
+                minHeight: m,
+                constrainTo: n,
                 listeners: {
                     resizedrag: this.partialResize,
                     resize: this.afterResize,
                     scope: this
                 }
             };
-        var d = c.id;
-        var k = "_" + d;
-        c.id = c.dom.id = k;
-        Ext.cache[k] = Ext.cache[d];
-        if (i) {
-            if (r > 0) {
-                var j = c.getWidth();
-                Ext.apply(e, {
-                    minHeight: r,
-                    minWidth: j,
-                    maxWidth: j,
-                    heightIncrement: r
+        var c = b.id;
+        var j = "_" + c;
+        b.id = b.dom.id = j;
+        Ext.cache[j] = Ext.cache[c];
+        if (h) {
+            if (q > 0) {
+                var i = b.getWidth();
+                Ext.apply(d, {
+                    minHeight: q,
+                    minWidth: i,
+                    maxWidth: i,
+                    heightIncrement: q
                 })
             }
         } else {
-            if (r > 0) {
-                Ext.apply(e, {
-                    minWidth: r,
-                    maxHeight: n,
-                    widthIncrement: r
+            if (q > 0) {
+                Ext.apply(d, {
+                    minWidth: q,
+                    maxHeight: m,
+                    widthIncrement: q
                 })
             }
         }
-        var l = new Ext.resizer.Resizer(e);
-        if (l.resizeTracker) {
-            l.resizeTracker.tolerance = -1;
-            var a = l.resizeTracker.updateDimensions;
-            l.resizeTracker.updateDimensions = function (u) {
-                if (!Ext.isWebKit || u.getTarget(".sch-timelineview")) {
+        var k = new Ext.resizer.Resizer(d);
+        k.prevId = c;
+        if (k.resizeTracker) {
+            k.resizeTracker.tolerance = -1;
+            var a = k.resizeTracker.updateDimensions;
+            k.resizeTracker.updateDimensions = function(t) {
+                if (!Ext.isWebKit || t.getTarget(".sch-timelineview")) {
                     var s;
-                    if (i) {
-                        s = m.el.getScroll().top - t.startScroll.top;
-                        l.resizeTracker.minHeight = e.minHeight - Math.abs(s)
+                    if (h) {
+                        s = l.el.getScroll().top - r.startScroll.top;
+                        k.resizeTracker.minHeight = d.minHeight - Math.abs(s)
                     } else {
-                        s = m.el.getScroll().left - t.startScroll.left;
-                        l.resizeTracker.minWidth = e.minWidth - Math.abs(s)
+                        s = l.el.getScroll().left - r.startScroll.left;
+                        k.resizeTracker.minWidth = d.minWidth - Math.abs(s)
                     }
                     a.apply(this, arguments)
                 }
             };
-            l.resizeTracker.resize = function (s) {
-                var u;
-                if (i) {
-                    u = m.el.getScroll().top - t.startScroll.top;
-                    if (p[0] === "s") {
-                        s.y -= u
+            k.resizeTracker.resize = function(s) {
+                var t;
+                if (h) {
+                    t = l.el.getScroll().top - r.startScroll.top;
+                    if (o[0] === "s") {
+                        s.y -= t
                     }
-                    s.height += Math.abs(u)
+                    s.height += Math.abs(t)
                 } else {
-                    u = m.el.getScroll().left - t.startScroll.left;
-                    if (p[0] === "e") {
-                        s.x -= u
+                    t = l.el.getScroll().left - r.startScroll.left;
+                    if (o[0] === "e") {
+                        s.x -= t
                     }
-                    s.width += Math.abs(u)
+                    s.width += Math.abs(t)
                 }
                 Ext.resizer.ResizeTracker.prototype.resize.apply(this, arguments)
             }
         }
-        c.setStyle("z-index", parseInt(c.getStyle("z-index"), 10) + 1);
-        Sch.util.ScrollManager.register(m.el);
-        this.startScroll = m.el.getScroll();
-        return l
+        b.setStyle("z-index", parseInt(b.getStyle("z-index"), 10) + 1);
+        Sch.util.ScrollManager.activate(l, l.getMode() === "horizontal" ? "horizontal" : "vertical");
+        this.startScroll = l.el.getScroll();
+        return k
     },
-    getStartEndDates: function (f) {
+    getStartEndDates: function() {
         var e = this.resizer,
             c = e.el,
             d = this.schedulerView,
             b = e.isStart,
-            g, a;
+            g, a, f;
         if (b) {
+            if (d.getMode() === "horizontal") {
+                f = [d.rtl ? c.getRight() : c.getLeft() + 1, c.getTop()]
+            } else {
+                f = [(c.getRight() + c.getLeft()) / 2, c.getTop()]
+            }
             a = e.eventRecord.getEndDate();
             if (d.snapRelativeToEventStartDate) {
-                g = d.getDateFromXY([d.rtl ? c.getRight() : c.getLeft() + 1, c.getTop()]);
+                g = d.getDateFromXY(f);
                 g = d.timeAxis.roundDate(g, e.eventRecord.getStartDate())
             } else {
-                g = d.getDateFromXY([d.rtl ? c.getRight() : c.getLeft() + 1, c.getTop()], "round")
+                g = d.getDateFromXY(f, "round")
             }
         } else {
+            if (d.getMode() === "horizontal") {
+                f = [d.rtl ? c.getLeft() : c.getRight(), c.getBottom()]
+            } else {
+                f = [(c.getRight() + c.getLeft()) / 2, c.getBottom()]
+            }
             g = e.eventRecord.getStartDate();
             if (d.snapRelativeToEventStartDate) {
-                a = d.getDateFromXY([d.rtl ? c.getLeft() : c.getRight(), c.getBottom()]);
+                a = d.getDateFromXY(f);
                 a = d.timeAxis.roundDate(a, e.eventRecord.getEndDate())
             } else {
-                a = d.getDateFromXY([d.rtl ? c.getLeft() : c.getRight(), c.getBottom()], "round")
+                a = d.getDateFromXY(f, "round")
             }
-        } if (e.dateConstraints) {
+        }
+        g = g || e.start;
+        a = a || e.end;
+        if (e.dateConstraints) {
             g = Sch.util.Date.constrain(g, e.dateConstraints.start, e.dateConstraints.end);
             a = Sch.util.Date.constrain(a, e.dateConstraints.start, e.dateConstraints.end)
         }
@@ -209,109 +246,142 @@ Ext.define("Sch.feature.ResizeZone", {
             end: a
         }
     },
-    partialResize: function (b, g, m, l) {
-        var p = this.schedulerView,
-            o = l.type === "scroll" ? this.resizer.resizeTracker.lastXY : l.getXY(),
-            n = this.getStartEndDates(o),
-            f = n.start,
-            h = n.end,
-            j = b.eventRecord;
-        if (p.isHorizontal()) {
-            b.target.el.setY(this.resizer.constrainTo.top - p.getScroll().top + this.startScroll.top)
+    partialResize: function(o, t, p, u) {
+        var m = this.schedulerView,
+            g = u.type === "scroll" ? this.resizer.resizeTracker.lastXY : u.getXY(),
+            n = this.getStartEndDates(g),
+            d = n.start,
+            c = n.end,
+            b = o.eventRecord,
+            l = m.getMode(),
+            i = m.isHorizontal();
+        if (i) {
+            o.target.el.setY(o.target.parent().getY() + o.startYOffset)
+        } else {
+            o.target.el.setX(o.target.parent().getX() + o.startXOffset)
         }
         if (this.showTooltip) {
-            var a = this.validatorFn.call(this.validatorFnScope || this, b.resourceRecord, j, f, h) !== false;
-            this.tip.update(f, h, a)
+            var q = this.validatorFn.call(this.validatorFnScope || this, o.resourceRecord, b, d, c);
+            var k = "";
+            if (q && typeof q !== "boolean") {
+                k = q.message;
+                q = q.valid
+            }
+            this.getTipInstance().update(d, c, q !== false, k)
         }
         if (this.showExactResizePosition) {
-            var k = b.target.el,
-                d;
-            if (b.isStart) {
-                d = p.timeAxisViewModel.getDistanceBetweenDates(f, j.getEndDate());
-                k.setWidth(d);
-                var c = p.getDateFromCoordinate(b.otherEdgeX - Math.min(g, b.maxWidth)) || f;
-                var i = p.timeAxisViewModel.getDistanceBetweenDates(c, f);
-                k.setX(k.getX() + i)
+            var v = o.target.el,
+                h, j, f;
+            if (o.isStart) {
+                if (m.getMode() === "calendar") {
+                    var a = m.calendar.getEventColumns(b)[0];
+                    h = m.timeAxisViewModel.getDistanceBetweenDates(d, a.end)
+                } else {
+                    h = m.timeAxisViewModel.getDistanceBetweenDates(d, b.getEndDate())
+                }
+                if (i) {
+                    j = m.getDateFromCoordinate(o.otherEdgeX - Math.min(t, o.maxWidth)) || d;
+                    f = m.timeAxisViewModel.getDistanceBetweenDates(j, d);
+                    v.setWidth(h);
+                    v.setX(v.getX() + f)
+                } else {
+                    j = m.getDateFromCoordinate(o.otherEdgeY - Math.min(t, o.maxHeight)) || d;
+                    f = m.timeAxisViewModel.getDistanceBetweenDates(j, d);
+                    v.setHeight(h);
+                    v.setY(v.getY() + f)
+                }
             } else {
-                d = p.timeAxisViewModel.getDistanceBetweenDates(j.getStartDate(), h);
-                k.setWidth(d)
+                h = m.timeAxisViewModel.getDistanceBetweenDates(b.getStartDate(), c);
+                if (i) {
+                    v.setWidth(h)
+                } else {
+                    v.setHeight(h)
+                }
             }
         } else {
-            if (!f || !h || ((b.start - f === 0) && (b.end - h === 0))) {
+            if (!d || !c || ((o.start - d === 0) && (o.end - c === 0))) {
                 return
             }
         }
-        b.end = h;
-        b.start = f;
-        p.fireEvent("eventpartialresize", p, j, f, h, b.el)
+        o.end = c;
+        o.start = d;
+        m.fireEvent("eventpartialresize", m, b, d, c, o.el)
     },
-    onViewElScroll: function (b, a) {
+    onViewElScroll: function(b, a) {
         this.resizer.resizeTracker.onDrag.apply(this.resizer.resizeTracker, arguments);
         this.partialResize(this.resizer, 0, 0, b)
     },
-    afterResize: function (a, m, f, g) {
-        var j = this,
-            i = a.resourceRecord,
-            k = a.eventRecord,
-            d = k.getStartDate(),
-            p = k.getEndDate(),
-            b = a.start || d,
-            c = a.end || p,
-            o = j.schedulerView,
-            n = false,
-            l = true;
-        Sch.util.ScrollManager.unregister(o.el);
-        o.el.un("scroll", this.onViewElScroll, this);
+    afterResize: function(b, n, g, i) {
+        var k = this,
+            j = b.resourceRecord,
+            l = b.eventRecord,
+            f = l.getStartDate(),
+            q = l.getEndDate(),
+            c = b.start || f,
+            d = b.end || q,
+            p = k.schedulerView,
+            o = false,
+            m = true,
+            a = k.validatorFn.call(k.validatorFnScope || k, j, l, c, d, i);
+        Sch.util.ScrollManager.deactivate();
+        p.el.un("scroll", this.onViewElScroll, this);
         if (this.showTooltip) {
-            this.tip.hide()
+            this.getTipInstance().hide()
         }
-        delete Ext.cache[a.el.id];
-        a.el.id = a.el.dom.id = a.el.id.substr(1);
-        j.resizeContext = {
-            resourceRecord: a.resourceRecord,
-            eventRecord: k,
-            start: b,
-            end: c,
-            finalize: function () {
-                j.finalize.apply(j, arguments)
+        p.el.select("[id^=calendar-resizer-placeholder]").remove();
+        delete Ext.cache[b.el.id];
+        b.el.id = b.el.dom.id = b.el.id.substr(1);
+        k.resizeContext = {
+            resourceRecord: b.resourceRecord,
+            eventRecord: l,
+            start: c,
+            end: d,
+            finalize: function() {
+                k.finalize.apply(k, arguments)
             }
         };
-        if (b && c && (c - b > 0) && ((b - d !== 0) || (c - p !== 0)) && j.validatorFn.call(j.validatorFnScope || j, i, k, b, c, g) !== false) {
-            l = o.fireEvent("beforeeventresizefinalize", j, j.resizeContext, g) !== false;
-            n = true
+        if (a && typeof a !== "boolean") {
+            a = a.valid
+        }
+        if (c && d && (d - c > 0) && ((c - f !== 0) || (d - q !== 0)) && a !== false) {
+            m = p.fireEvent("beforeeventresizefinalize", k, k.resizeContext, i) !== false;
+            o = true
         } else {
-            o.repaintEventsForResource(i)
-        } if (l) {
-            j.finalize(n)
+            p.repaintEventsForResource(j)
+        }
+        if (m) {
+            k.finalize(o)
         }
     },
-    finalize: function (a) {
+    finalize: function(a) {
         var b = this.schedulerView;
-        var d = this.resizeContext;
-        var c = false;
-        d.eventRecord.store.on("update", function () {
-            c = true
-        }, null, {
-            single: true
-        });
+        var e = this.resizeContext;
+        var d = false;
+        var c = function() {
+            d = true
+        };
+        b.eventStore.on("update", c);
+        this.resizer.target.destroy();
         if (a) {
             if (this.resizer.isStart) {
-                d.eventRecord.setStartDate(d.start, false, b.eventStore.skipWeekendsDuringDragDrop)
+                e.eventRecord.setStartDate(e.start, false, b.eventStore.skipWeekendsDuringDragDrop)
             } else {
-                d.eventRecord.setEndDate(d.end, false, b.eventStore.skipWeekendsDuringDragDrop)
-            } if (!c) {
-                b.repaintEventsForResource(d.resourceRecord)
+                e.eventRecord.setEndDate(e.end, false, b.eventStore.skipWeekendsDuringDragDrop)
+            }
+            if (!d) {
+                b.repaintEventsForResource(e.resourceRecord)
             }
         } else {
-            b.repaintEventsForResource(d.resourceRecord)
+            b.repaintEventsForResource(e.resourceRecord)
         }
         this.resizer.destroy();
-        b.fireEvent("eventresizeend", b, d.eventRecord);
+        b.eventStore.un("update", c);
+        b.fireEvent("eventresizeend", b, e.eventRecord);
         this.resizeContext = null
     },
-    cleanUp: function () {
-        if (this.tip) {
-            this.tip.destroy()
+    cleanUp: function() {
+        if (this.tipInstance) {
+            this.tipInstance.destroy()
         }
     }
 });
