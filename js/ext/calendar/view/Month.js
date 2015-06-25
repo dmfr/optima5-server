@@ -67,7 +67,7 @@ Ext.define('Ext.calendar.view.Month', {
     // defaults to auto by month
     dayCount: 7,
     moreElIdDelimiter: '-more-',
-    weekLinkIdDelimiter: 'ext-cal-week-',
+    weekLinkIdDelimiter: '-ext-cal-week-',
 
     // See EXTJSIV-11407.
     operaLT11: Ext.isOpera && (parseInt(Ext.operaVersion) < 11),
