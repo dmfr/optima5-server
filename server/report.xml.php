@@ -80,7 +80,7 @@ if( $TAB['tabs'] ) {
 	$TAB['result_tab']['tab_title'] = 'querygrid' ;
 	$tabs = array($TAB['result_tab']) ;
 } else {
-	header("HTTP/1.0 404 Not Found");
+	header("HTTP/1.0 202 Accepted");
 	exit ;
 }
 
