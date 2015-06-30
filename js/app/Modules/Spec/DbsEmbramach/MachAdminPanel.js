@@ -31,22 +31,41 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachAdminPanel',{
 							msgTarget: 'side',
 							labelWidth: 50
 					},
-					//bodyPadding: '0 0 0 0',
+					dockedItems: [{
+						xtype: 'toolbar',
+						dock: 'bottom',
+						ui: 'footer',
+						defaults: {minWidth: 100},
+						items: [
+							{ xtype: 'component', flex: 1 },
+							{ xtype: 'button', text: 'Upload' , handler:this.doUpload, scope:this }
+						]
+					}],
 					items: [{
+						xtype: 'combobox',
+						name: 'file_model',
+						fieldLabel: 'Model',
+						forceSelection: true,
+						allowBlank: false,
+						editable: false,
+						store: {
+							fields: ['id'],
+							data: [
+								{id: 'VL06F'},
+								{id: 'ZLORSD015'}
+							]
+						},
+						valueField: 'id',
+						displayField: 'id'
+					},{
 						xtype: 'filefield',
 						width: 450,
 						emptyText: 'Select a file',
 						fieldLabel: 'Source',
-						name: 'photo-filename',
+						name: 'file_upload',
 						buttonText: '',
 						buttonConfig: {
 							iconCls: 'upload-icon'
-						},
-						listeners: {
-							change: {
-								fn: this.doUpload,
-								scope:this
-							}
 						}
 					}]
 				}]
@@ -82,7 +101,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachAdminPanel',{
 			var ajaxParams = me.optimaModule.getConfiguredAjaxParams() ;
 			Ext.apply( ajaxParams, {
 				_moduleId: 'spec_dbs_embramach',
-				_action: 'mach_uploadSource'
+				_action: 'mach_upload'
 			}) ;
 			
 			var msgbox = Ext.Msg.wait('Uploading source...');
@@ -101,8 +120,6 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachAdminPanel',{
 				},
 				scope: me
 			});
-		} else {
-			console.log('not valid') ;
 		}
 	}
 }) ;

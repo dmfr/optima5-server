@@ -247,7 +247,30 @@ function specDbsEmbralam_mach_getGridData_sort( $row1, $row2 ) {
 }
 
 
-function specDbsEmbralam_mach_uploadSource() {
+function specDbsEmbralam_mach_upload( $post_data ) {
+	if( $_FILES['file_upload'] ) {
+		$handle = fopen($_FILES['file_upload']['tmp_name'],"rb") ;
+	} elseif( $post_data['file_contents'] ) {
+		$handle = tmpfile() ;
+		fwrite($handle,$post_data['file_contents']) ;
+		fseek($handle,0) ;
+	} else {
+		return array('success'=>false) ;
+	}
+	switch( $post_data['file_model'] ) {
+		case 'VL06F' :
+			specDbsEmbralam_mach_upload_VL06F($handle) ;
+			break ;
+		case 'ZLORSD015' :
+			specDbsEmbralam_mach_upload_ZLORSD015($handle) ;
+			break ;
+		default :
+			break ;
+	}
+	fclose($handle) ;
+	return array('success'=>true) ;
+}
+function specDbsEmbralam_mach_upload_ZLORSD015($handle) {
 	//paracrm_define_truncate( array('data_type'=>'file','file_code'=>'FLOW_PICKING') ) ;
 	
 	$file_code = 'FLOW_PICKING' ;
@@ -268,20 +291,17 @@ function specDbsEmbralam_mach_uploadSource() {
 
 
 	$first = TRUE ;
-	$handle = fopen($_FILES['photo-filename']['tmp_name'],"rb") ;
 	while( !feof($handle) )
 	{
 		$arr_csv = fgetcsv($handle,0,'|') ;
 		if( $first && count($arr_csv)==1 && !trim($arr_csv[0],'-') ) {
-			fclose($handle) ;
-			return specDbsEmbralam_mach_uploadFeedback() ;
+			return ;
 		}
 		if( !$arr_csv ) {
 			continue ;
 		}
 		if( $first ) {
 			$first = FALSE ;
-			continue ;
 		}
 		
 		if( !$arr_csv[0] ) {
@@ -334,18 +354,22 @@ function specDbsEmbralam_mach_uploadSource() {
 		continue ;
 	}
 
-	return array('success'=>true) ;
+	return ;
 }
-function specDbsEmbralam_mach_uploadFeedback() {
+function specDbsEmbralam_mach_upload_VL06F($handle) {
 	global $_opDB ;
 	
-	$handle = fopen($_FILES['photo-filename']['tmp_name'],"rb") ;
+	$first = TRUE ;
 	while( !feof($handle) )
 	{
 		$arr_csv = fgetcsv($handle,0,'|') ;
 		if( count($arr_csv) < 4 ) {
 			continue ;
 		}
+		if( $first ) {
+			$first = FALSE ;
+			continue ;
+		}		
 		
 		$no_delivery = trim($arr_csv[1]) ;
 		$txt_feedback = utf8_encode(trim($arr_csv[count($arr_csv)-2])) ;
@@ -359,9 +383,8 @@ function specDbsEmbralam_mach_uploadFeedback() {
 			$_opDB->query($query) ;
 		}
 	}
-	fclose($handle) ;
 	
-	return array('success'=>true) ;
+	return ;
 }
 
 
