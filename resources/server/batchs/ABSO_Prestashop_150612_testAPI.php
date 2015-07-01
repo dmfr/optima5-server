@@ -48,7 +48,16 @@ function do_prestashop_request($method, $function_url, $data, $optional_headers 
 	$xml = simplexml_load_string($response);
 	return $xml ;
 }
+function xml2array ( $xmlObject, $out = array () )
+{
+	if( count( (array) $xmlObject ) == 0 ) {
+		return (string)$xmlObject ;
+	}
+        foreach ( (array) $xmlObject as $index => $node ) 
+            $out[$index] = ( is_object ( $node ) ||  is_array ( $node ) ) ? xml2array ( $node ) : $node;
 
+        return $out;
+}
 
 $order_ids = array() ;
 $xml = do_prestashop_request('GET','/orders',NULL) ;
@@ -70,8 +79,12 @@ $toRetrieve_ids = array_diff($order_ids, $existing_ids) ;
 
 foreach( $toRetrieve_ids as $order_id ) {
 	$xml = do_prestashop_request('GET',"/orders/{$order_id}" ,NULL) ;
-	$xml_order = $xml->order[0] ;
-	echo $xml_order->id."\n" ;
+	if( count( (array)$xml ) == 1 ) {
+		$index = key($xml) ;
+	}
+	$xml_order = $xml->$index ;
+
+   print_r( xml2array($xml_order) );
 }
 
 
