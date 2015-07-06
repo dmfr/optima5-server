@@ -620,7 +620,7 @@ class DatabaseMgr_Util {
 			$query = "TRUNCATE TABLE {$dst_db}.{$arr[0]}" ;
 			$_opDB->query($query) ;
 			
-			$arr_dst_tables[] = $arr[0] ;
+			$arr_dst_tables[] = strtolower($arr[0]) ;
 		}
 
 		// integration du fichier CSV
@@ -639,7 +639,7 @@ class DatabaseMgr_Util {
 				$table_str = current($arrcsv) ;
 				$table_str = substr($table_str,3,strlen($table_str)-6) ;
 				$tarr = explode('**',$table_str) ;
-				$current_table = $tarr[1] ;
+				$current_table = strtolower($tarr[1]) ;
 				
 				// plan de la table dans le csv ?
 				$map_csv = fgetcsv($handle) ;
