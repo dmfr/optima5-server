@@ -41,6 +41,24 @@ Ext.define('Ext.ux.ComponentRowExpander', {
 				newComponent = this.createComponent(view, record, rowNode, view.indexOf(rowNode)),
 				targetRowbody = Ext.DomQuery.selectNode('div.x-grid-rowbody', expandRow) ;
 			
+			/*
+			 * Update 2015-07 : stop all Events from going to parents
+			 */
+			newComponent.mon( Ext.get(targetRowbody), {
+				scope: this,
+				click: this.onEvent,
+				longpress: this.onEvent,
+				mousedown: this.onEvent,
+				mouseup: this.onEvent,
+				dblclick: this.onEvent,
+				contextmenu: this.onEvent,
+				keydown: this.onEvent,
+				keyup: this.onEvent,
+				keypress: this.onEvent,
+				mouseover: this.onEvent,
+				mouseout: this.onEvent
+			});
+			
 			while (targetRowbody.hasChildNodes()) {
 				targetRowbody.removeChild(targetRowbody.lastChild);
 			}
@@ -105,6 +123,10 @@ Ext.define('Ext.ux.ComponentRowExpander', {
 		Ext.Array.each( keysToDelete, function(mkey) {
 			delete this.obj_recordId_componentId[mkey] ;
 		},this);
+	},
+	
+	onEvent: function(e) {
+		e.stopEvent() ;
 	},
 	
 	onResize: function() {
