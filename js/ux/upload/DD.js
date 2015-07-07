@@ -11,6 +11,7 @@ Ext.define('Ext.ux.upload.DD', {
     config: {
         id: null,
         directMethod: null,
+        method: 'POST',
         url: null,
         params: {},
         acceptedTypes: {},
