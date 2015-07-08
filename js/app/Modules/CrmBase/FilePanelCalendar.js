@@ -647,12 +647,8 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 					scope:me
 				},
 				
-				width:200,
-				height:200,
-				minWidth: 200,
-				maxWidth: 400,
-				minHeight: 200,
-				maxHeight: 400
+				width:1,
+				height:1
 			});
 		}
 		
@@ -675,7 +671,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 			p = me.eventDetailPanel,
 			hideIf = me.eventDetailHideIf ;
 		
-		p.setWidth(null) ; // Clear any previously forced maxSize applied below (400px)
+		p.setSize(null,null) ; // Clear any previously forced maxSize applied below (400px)
 		p.show();
 		p.getEl().alignTo(clickEl, 'tl-bl?');
 		p.doComponentLayout() ; // Force panel to calculate fit size based on new alignTo

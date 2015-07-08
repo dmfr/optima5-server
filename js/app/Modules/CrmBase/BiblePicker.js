@@ -5,7 +5,7 @@ Ext.define('Optima5.Modules.CrmBase.BiblePicker',{
 	
 	preSubTpl: [
 		'<div id="{cmpId}-triggerWrap" data-ref="triggerWrap" class="{triggerWrapCls} {triggerWrapCls}-{ui}">',
-			'<div id={cmpId}-inputWrap data-ref="inputWrap" class="{inputWrapCls}-{ui}">'
+			'<div id={cmpId}-inputWrap data-ref="inputWrap" class="{inputWrapCls} {inputWrapCls}-{ui}">'
 	],
 	
 	childEls: ['divicon','divtext'],
