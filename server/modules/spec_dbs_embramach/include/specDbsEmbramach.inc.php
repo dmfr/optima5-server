@@ -71,9 +71,25 @@ function specDbsEmbralam_mach_getGridData( $post_data ) {
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$filerecord_id = $arr['filerecord_id'] ;
+		
+		switch( $arr['field_STATUS'] ) {
+			case 'ACTIVE' :
+				break ;
+			case 'CLOSED' :
+				if( strtotime($arr['field_DATE_CLOSED']) < time() - (3600*24) ) {
+					continue 2 ;
+				}
+				break ;
+			case 'DELETED' :
+				continue 2 ;
+			default :
+				continue 2 ;
+		}
 	
 		$row = array() ;
 		$row['delivery_id'] = $arr['field_DELIVERY_ID'] ;
+		$row['date_issue'] = $arr['field_DATE_ISSUE'] ;
+		$row['date_closed'] = $arr['field_DATE_CLOSED'] ;
 		$row['type'] = $arr['field_TYPE'] ;
 		$row['flow'] = $arr['field_FLOW'] ;
 		$row['step_code'] = $arr['field_STEP_CURRENT'] ;
@@ -82,6 +98,7 @@ function specDbsEmbralam_mach_getGridData( $post_data ) {
 		$row['shipto_code'] = $arr['field_SHIPTO_CODE'] ;
 		$row['shipto_name'] = $arr['field_SHIPTO_NAME'] ;
 		$row['feedback_txt'] = $arr['field_FEEDBACK_TXT'] ;
+		$row['status_closed'] = ($arr['field_STATUS'] == 'CLOSED') ;
 		$row['obj_steps'] = array() ;
 		
 		$TAB[$filerecord_id] = $row ;
@@ -138,7 +155,9 @@ function specDbsEmbralam_mach_getGridData( $post_data ) {
 					$now_timestamp = time() ;
 					$this_milestone['pending'] = true ;
 					$this_milestone['pendingMonitored'] = true ;
-					if( $now_timestamp > $ETA_timestamp ) {
+					if( !$lastStep_timestamp ) {
+						$this_milestone['ETA_dateSql'] = '' ;
+					} elseif( $now_timestamp > $ETA_timestamp ) {
 						$this_milestone['color'] = 'red' ;
 						$row['calc_lateness'] = $now_timestamp - $ETA_timestamp ;
 					} elseif( $ETA_timestamp - $now_timestamp < (15*60) ) {
@@ -196,7 +215,16 @@ function specDbsEmbralam_mach_getGridData( $post_data ) {
 			$mkey = 'milestone_'.$milestone_code ;
 			$row[$mkey] = $this_milestone ;
 		}
-		$row['status_closed'] = !$has_pending ;
+		if( !$has_pending && !$row['status_closed'] ) {
+			$row['status_closed'] = !$has_pending ;
+			$row['date_closed'] = date('Y-m-d H:i:s') ;
+			
+			$arr_update = array() ;
+			$arr_update['field_STATUS'] = 'CLOSED' ;
+			$arr_update['field_DATE_CLOSED'] = date('Y-m-d H:i:s') ;
+			paracrm_lib_data_updateRecord_file( 'FLOW_PICKING', $arr_update, $filerecord_id ) ;
+		}
+		
 		unset($row['obj_steps']) ;
 		
 		if( $row['status_closed'] ) {
@@ -240,6 +268,9 @@ function specDbsEmbralam_mach_getGridData( $post_data ) {
 	) ;
 }
 function specDbsEmbralam_mach_getGridData_sort( $row1, $row2 ) {
+	if( $row2['status_closed'] && $row1['status_closed'] ) {
+		return $row2['date_issue'] - $row1['date_issue'] ;
+	}
 	if( $row2['status_closed'] != $row1['status_closed'] ){
 		return $row1['status_closed'] - $row2['status_closed'] ;
 	}
@@ -258,8 +289,11 @@ function specDbsEmbralam_mach_upload( $post_data ) {
 		return array('success'=>false) ;
 	}
 	switch( $post_data['file_model'] ) {
-		case 'VL06F' :
-			specDbsEmbralam_mach_upload_VL06F($handle) ;
+		case 'VL06F_active' :
+			specDbsEmbralam_mach_upload_VL06F($handle,FALSE) ;
+			break ;
+		case 'VL06F_closed' :
+			specDbsEmbralam_mach_upload_VL06F($handle,TRUE) ;
 			break ;
 		case 'ZLORSD015' :
 			specDbsEmbralam_mach_upload_ZLORSD015($handle) ;
@@ -271,6 +305,7 @@ function specDbsEmbralam_mach_upload( $post_data ) {
 	return array('success'=>true) ;
 }
 function specDbsEmbralam_mach_upload_ZLORSD015($handle) {
+	global $_opDB ;
 	//paracrm_define_truncate( array('data_type'=>'file','file_code'=>'FLOW_PICKING') ) ;
 	
 	$file_code = 'FLOW_PICKING' ;
@@ -334,7 +369,16 @@ function specDbsEmbralam_mach_upload_ZLORSD015($handle) {
 			}
 		}
 		
-		$filerecord_id = paracrm_lib_data_insertRecord_file($file_code,0,$main_row) ;
+		// $filerecord_id = paracrm_lib_data_insertRecord_file($file_code,0,$main_row) ;
+		$deliveryId = $main_row['field_DELIVERY_ID'] ;
+		$deliveryId_numeric = (int)$main_row['field_DELIVERY_ID'] ;
+		$query = "SELECT filerecord_id FROM view_file_{$file_code} WHERE field_DELIVERY_ID IN ('$deliveryId','$deliveryId_numeric')" ;
+		$result = $_opDB->query($query) ;
+		if( $_opDB->num_rows($result) < 1 ) {
+			continue ;
+		}
+		$arr = $_opDB->fetch_row($result) ;
+		$filerecord_id = $arr[0] ;
 		
 		$arr_existing_ids = array() ;
 		foreach( paracrm_lib_data_getFileChildRecords($file_code_step,$filerecord_id) as $subrow ) {
@@ -353,10 +397,14 @@ function specDbsEmbralam_mach_upload_ZLORSD015($handle) {
 		
 		continue ;
 	}
+	
+	// Après l'importation ZLORSD015
+	// => appel de la routine d'affichage / calcul MACH pour mise à jour du statut ACTIVE => CLOSED
+	specDbsEmbralam_mach_getGridData( array('flow_code'=>'PICKING') ) ;
 
 	return ;
 }
-function specDbsEmbralam_mach_upload_VL06F($handle) {
+function OLD_specDbsEmbralam_mach_upload_VL06F($handle) {
 	global $_opDB ;
 	
 	$first = TRUE ;
@@ -386,6 +434,154 @@ function specDbsEmbralam_mach_upload_VL06F($handle) {
 	
 	return ;
 }
+
+
+
+
+function specDbsEmbralam_mach_upload_VL06F($handle, $VL06F_forceClosed) {
+	global $_opDB ;
+	
+	$file_code = 'FLOW_PICKING' ;
+	$file_code_line = 'FLOW_PICKING_LINE' ;
+	
+	$arr_importedFilerecordIds = array() ;
+	$map_pickingID_header = array() ;
+	$map_pickingID_arrLigs = array() ;
+	
+	$first = TRUE ;
+	while( !feof($handle) )
+	{
+		// lecture linéaire du fichier, séparateur = |
+		$arr_csv = fgetcsv($handle,0,'|') ;
+			if( !$arr_csv ) {
+				continue ;
+			}
+			foreach( $arr_csv as &$value ) {
+				$value = trim($value) ;
+			}
+			unset($value) ;
+		if( !$arr_csv[1] || !is_numeric($picking_id=$arr_csv[1]) || strlen($picking_id) < 3 ) {
+			continue ;
+		}
+		
+		// extraction des champs utilisés
+		$data_header = array() ;
+		$data_header['field_DELIVERY_ID'] = $arr_csv[1] ;
+		$ttmp = date_create_from_format('d.m.Y', $arr_csv[7]);
+		$data_header['field_DATE_ISSUE'] = date_format($ttmp, 'Y-m-d');
+		$data_header['field_PRIORITY'] = $arr_csv[10] ;
+		$data_header['field_FLOW'] = $arr_csv[13] ;
+		$data_header['field_BUSINESSUNIT'] = $arr_csv[16] ;
+		$data_header['field_SHIPTO_CODE'] = $arr_csv[22] ;
+		$data_header['field_SHIPTO_NAME'] = $arr_csv[23] ;
+		$data_header['field_FEEDBACK_TXT'] = $arr_csv[40] ;
+			// champs non stockés
+			$data_header['field_PRIV_WM'] = $arr_csv[19] ;
+			$data_header['field_PRIV_SGP'] = $arr_csv[20] ;
+			$data_header['field_PRIV_StatW'] = $arr_csv[21] ;
+			$data_header['field_PRIV_TLvr'] = $arr_csv[32] ;
+			$data_header['field_PRIV_SM'] = $arr_csv[38] ;
+			$data_header['field_PRIV_StatutP'] = $arr_csv[39] ;
+		
+		$data_lig = array() ;
+		$data_lig['field_LINE_ID'] = $arr_csv[2] ;
+		$data_lig['field_BATCH_CODE'] = $arr_csv[3] ;
+		$data_lig['field_PROD_ID'] = $arr_csv[4] ;
+		$data_lig['field_QTY_PICKING'] = $arr_csv[5] ;
+		
+		
+		// Conditions préalables à l'imporation :
+		if( !$data_header['field_PRIV_WM']
+		|| !$data_header['field_PRIV_SGP']
+		|| !$data_header['field_PRIV_StatW']
+		|| !$data_header['field_PRIV_SM']
+		|| !$data_header['field_PRIV_StatutP'] ) {
+			continue ;
+		}
+		if( in_array($data_header['field_PRIV_TLvr'],array('ZP','CD')) ) {
+			continue ;
+		}
+		
+		if( !$map_pickingID_header[$picking_id] ) {
+			$map_pickingID_header[$picking_id] = $data_header ;
+		}
+		
+		if( !$map_pickingID_nbLigs[$picking_id] ) {
+			$map_pickingID_arrLigs[$picking_id] = array() ;
+		}
+		$map_pickingID_arrLigs[$picking_id][] = $data_lig ;
+	}
+	
+	// Stockage en base
+	foreach( $map_pickingID_header as $picking_id => $data_header ) {
+		// Cache du nb de lignes
+		$data_header['field_LINE_COUNT'] = ($map_pickingID_arrLigs[$picking_id] ? count($map_pickingID_arrLigs[$picking_id]) : 0 ) ;
+		
+		// Insert / update
+		$filerecord_id = paracrm_lib_data_insertRecord_file($file_code,0,$data_header) ;
+		if( $data_header['field_LINE_COUNT'] > 0 ) {
+			foreach( $map_pickingID_arrLigs[$picking_id] as $data_lig ) {
+				paracrm_lib_data_insertRecord_file($file_code_line,$filerecord_id,$data_lig) ;
+			}
+		}
+		
+		// Mémoire de l'ID interne pour transactions ci-dessous
+		$arr_importedFilerecordIds[] = $filerecord_id ;
+	}
+	
+	
+	if( TRUE ) {
+		// Passage en active
+		// => tous les records sans STATUS
+		
+		$arr_newFilerecordIds = array() ;
+		$query = "SELECT filerecord_id FROM view_file_{$file_code} WHERE field_STATUS=''" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$arr_newFilerecordIds[] = $arr[0] ;
+		}
+		
+		foreach( $arr_newFilerecordIds as $filerecord_id ) {
+			$arr_update = array() ;
+			$arr_update['field_STATUS'] = 'ACTIVE' ;
+			paracrm_lib_data_updateRecord_file( $file_code, $arr_update, $filerecord_id ) ;
+		}
+	}
+	if( !$VL06F_forceClosed ) {
+		// Passage en deleted
+		// => tous les records ACTIVE non présents dans le fichier ($arr_importedFilerecordIds)
+		
+		$arr_activeFilerecordIds = array() ;
+		$query = "SELECT filerecord_id FROM view_file_{$file_code} WHERE field_STATUS='ACTIVE'" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$arr_activeFilerecordIds[] = $arr[0] ;
+		}
+		
+		$to_deleteIds = array_diff($arr_activeFilerecordIds,$arr_importedFilerecordIds) ;
+	
+		foreach( $to_deleteIds as $filerecord_id ) {
+			$arr_update = array() ;
+			$arr_update['field_STATUS'] = 'DELETED' ;
+			$arr_update['field_DATE_CLOSED'] = date('Y-m-d H:i:s') ;
+			paracrm_lib_data_updateRecord_file( $file_code, $arr_update, $filerecord_id ) ;
+		}
+	}
+	if( $VL06F_forceClosed ) {
+		// Passage en closed
+		// => tous les records présents dans le fichier ($arr_importedFilerecordIds)
+		foreach( $arr_importedFilerecordIds as $filerecord_id ) {
+			$arr_update = array() ;
+			$arr_update['field_STATUS'] = 'CLOSED' ;
+			$arr_update['field_DATE_CLOSED'] = date('Y-m-d H:i:s') ;
+			paracrm_lib_data_updateRecord_file( $file_code, $arr_update, $filerecord_id ) ;
+		}
+	}
+	
+	return ;
+}
+
+
 
 
 ?>
