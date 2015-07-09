@@ -470,6 +470,7 @@ Ext.define('Optima5.Modules.CrmBase.DataImportPanel' ,{
 			}) ;
 			csvGrid.child('headercontainer').on('render',function(csvGridHeaderView) {
 				csvGridHeaderView.ddel = Ext.get(document.createElement('div'));
+				Ext.getBody().appendChild( csvGridHeaderView.ddel );
 				csvGridHeaderView.dragZone = Ext.create('Ext.dd.DragZone',csvGridHeaderView.getEl(), {
 					ddGroup: 'DataImportDD-'+me.getId(),
 					view: csvGridHeaderView,
