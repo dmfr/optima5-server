@@ -21,7 +21,8 @@ function media_img_processUploaded( $tmpfilepath, $src_filename=NULL )
 		$finfo = finfo_open(FILEINFO_MIME_TYPE);
 		$mimetype = finfo_file($finfo, $tmpfilepath) ;
 	} elseif( $src_filename ) {
-		$mimetype = end(explode('.',$src_filename)) ;
+		$ttmp = explode('.',$src_filename) ;
+		$mimetype = end($ttmp) ;
 	} else {
 		return FALSE ;
 	}
