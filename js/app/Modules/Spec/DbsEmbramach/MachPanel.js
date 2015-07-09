@@ -2,15 +2,19 @@ Ext.define('DbsEmbramachMachFlowRowModel', {
     extend: 'Ext.data.Model',
     fields: [
         {name: '_filerecord_id', type: 'int'},
-		  {name: 'delivery_id', type: 'string'},
+		  {name: 'delivery_id', type: 'int'},
 		  {name: 'priority_code', type: 'string'},
 		  {name: 'type', type: 'string'},
 		  {name: 'flow', type: 'string'},
 		  {name: 'shipto_code', type: 'string'},
 		  {name: 'shipto_name', type: 'string'},
+		  {name: 'shipto_txt', type: 'string'},
 		  {name: 'feedback_txt', type: 'string'},
+		  {name: 'step_warning', type: 'string'},
+		  {name: 'step_code', type: 'string'},
 		  {name: 'step_txt', type: 'string'},
-		  {name: 'status_closed', type: 'boolean'}
+		  {name: 'status_closed', type: 'boolean'},
+		  {name: 'linecount', type: 'int'}
 	]
 });
 Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
@@ -145,6 +149,11 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 				type: 'string'
 			}
 		},{
+			text: '# lines',
+			dataIndex: 'linecount',
+			width: 60,
+			align: 'center'
+		},{
 			text: 'Priority',
 			dataIndex: 'priority_code',
 			renderer: function(v,metaData) {
@@ -174,7 +183,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 			}
 		},{
 			text: 'Customer',
-			dataIndex: 'shipto_name',
+			dataIndex: 'shipto_txt',
 			width: 130,
 			filter: {
 				type: 'string'
@@ -187,6 +196,12 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 				type: 'op5crmbasebible',
 				optimaModule: this.optimaModule,
 				bibleId: 'FLOW_STEP'
+			},
+			renderer: function( v, meta, record ) {
+				if( record.get('step_warning') ) {
+					meta.style += 'color:red; font-weight:bold;' ;
+				}
+				return v ;
 			}
 		},{
 			text: 'Feedback',

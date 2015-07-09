@@ -92,12 +92,19 @@ function specDbsEmbralam_mach_getGridData( $post_data ) {
 		$row['date_closed'] = $arr['field_DATE_CLOSED'] ;
 		$row['type'] = $arr['field_TYPE'] ;
 		$row['flow'] = $arr['field_FLOW'] ;
-		$row['step_code'] = $arr['field_STEP_CURRENT'] ;
-		$row['step_txt'] = $map_stepCode_stepTxt[$arr['field_STEP_CURRENT']] ;
+		if( $arr['field_STEP_NOT_OT'] ) {
+			$row['step_warning'] = TRUE ;
+			$row['step_txt'] = 'Absence OT' ;
+		} else {
+			$row['step_code'] = $arr['field_STEP_CURRENT'] ;
+			$row['step_txt'] = $map_stepCode_stepTxt[$arr['field_STEP_CURRENT']] ;
+		}
 		$row['priority_code'] = $arr['field_PRIORITY'] ;
 		$row['shipto_code'] = $arr['field_SHIPTO_CODE'] ;
 		$row['shipto_name'] = $arr['field_SHIPTO_NAME'] ;
+		$row['shipto_txt'] = $arr['field_SHIPTO_NAME'].' '.$arr['field_SHIPTO_CODE'] ;
 		$row['feedback_txt'] = $arr['field_FEEDBACK_TXT'] ;
+		$row['linecount'] = $arr['field_LINE_COUNT'] ;
 		$row['status_closed'] = ($arr['field_STATUS'] == 'CLOSED') ;
 		$row['obj_steps'] = array() ;
 		
@@ -380,6 +387,10 @@ function specDbsEmbralam_mach_upload_ZLORSD015($handle) {
 		$arr = $_opDB->fetch_row($result) ;
 		$filerecord_id = $arr[0] ;
 		
+		$arr_update = array() ;
+		$arr_update['field_STEP_CURRENT'] = $main_row['field_STEP_CURRENT'] ;
+		paracrm_lib_data_updateRecord_file( $file_code, $arr_update, $filerecord_id ) ;
+		
 		$arr_existing_ids = array() ;
 		foreach( paracrm_lib_data_getFileChildRecords($file_code_step,$filerecord_id) as $subrow ) {
 			$arr_existing_ids[] = $subrow['filerecord_id'] ;
@@ -482,6 +493,7 @@ function specDbsEmbralam_mach_upload_VL06F($handle, $VL06F_forceClosed) {
 			$data_header['field_PRIV_TLvr'] = $arr_csv[32] ;
 			$data_header['field_PRIV_SM'] = $arr_csv[38] ;
 			$data_header['field_PRIV_StatutP'] = $arr_csv[39] ;
+		$data_header['field_STEP_NOT_OT'] = ($data_header['field_PRIV_WM']=='A' && $data_header['field_PRIV_SGP']=='A' && $data_header['field_PRIV_StatW']=='A') ;
 		
 		$data_lig = array() ;
 		$data_lig['field_LINE_ID'] = $arr_csv[2] ;
@@ -567,7 +579,7 @@ function specDbsEmbralam_mach_upload_VL06F($handle, $VL06F_forceClosed) {
 			paracrm_lib_data_updateRecord_file( $file_code, $arr_update, $filerecord_id ) ;
 		}
 	}
-	if( $VL06F_forceClosed ) {
+	if( FALSE ) {
 		// Passage en closed
 		// => tous les records présents dans le fichier ($arr_importedFilerecordIds)
 		foreach( $arr_importedFilerecordIds as $filerecord_id ) {
