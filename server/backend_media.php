@@ -39,6 +39,9 @@ function do_fallback() {
 		//
 	} else {
 		header('Content-type: image/jpeg');
+		header("Cache-Control: private, max-age=86400");
+		header("Pragma: private");
+		header('Expires: '. gmdate('D, d M Y H:i:s \G\M\T', time() + 86400));
 	}
 	readfile($getUrl) ;
 	die() ;
@@ -90,10 +93,11 @@ if( $_GET['download'] === true || $_GET['download'] == 'true' )
 	$filename = 'OP5.'.rand ( 1000000000 , 9999999999 ).'.jpg' ;
 	header("Content-Type: application/force-download; name=\"$filename\""); 
 	header("Content-Disposition: attachment; filename=\"$filename\""); 
-}
-else
-{
+} else {
 	header('Content-type: image/jpeg');
+	header("Cache-Control: private, max-age=86400");
+	header("Pragma: private");
+	header('Expires: '. gmdate('D, d M Y H:i:s \G\M\T', time() + 86400));
 }
 readfile($src_path) ;
 die() ;
