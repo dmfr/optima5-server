@@ -95,6 +95,7 @@ function specDbsEmbralam_mach_getGridData( $post_data ) {
 		if( $arr['field_STEP_NOT_OT'] ) {
 			$row['step_warning'] = TRUE ;
 			$row['step_txt'] = 'Absence OT' ;
+			$row['step_code'] = '' ;
 		} else {
 			$row['step_code'] = $arr['field_STEP_CURRENT'] ;
 			$row['step_txt'] = $map_stepCode_stepTxt[$arr['field_STEP_CURRENT']] ;

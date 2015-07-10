@@ -201,7 +201,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 			}
 		},{
 			text: 'Process step',
-			dataIndex: 'step_txt',
+			dataIndex: 'step_code',
 			width: 120,
 			filter: {
 				type: 'op5crmbasebible',
@@ -212,7 +212,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 				if( record.get('step_warning') ) {
 					meta.style += 'color:red; font-weight:bold;' ;
 				}
-				return v ;
+				return record.get('step_txt') ;
 			}
 		},{
 			text: 'Feedback',
