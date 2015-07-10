@@ -342,7 +342,8 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 				xtype:'panel',
 				bodyCls: 'ux-noframe-bg',
 				itemId: 'gauge_'+prio.prio_id,
-				title: '<font color="'+prio.prio_color+'">'+prio.prio_txt+' performance</font>' + text,
+				title: '&#160;',
+				titleBase: '<font color="'+prio.prio_color+'">'+prio.prio_txt+'</font>' + text,
 				layout: 'fit',
 				items: [{
 					xtype: 'chart',
@@ -464,6 +465,13 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 			if( pGauge == null ) {
 				return ;
 			}
+			
+			if( jsonResponse.data_prioCount[prioId] ) {
+				pGauge.setTitle( jsonResponse.data_prioCount[prioId] + '&#160;' + pGauge.titleBase ) ;
+			} else {
+				pGauge.setTitle( pGauge.titleBase ) ;
+			}
+			
 			var cGauge = pGauge.down('chart') ;
 			cGauge.getStore().loadData([{value: (cGauge._modeMinutes ? value * 60 : value)}]) ;
 		}) ;

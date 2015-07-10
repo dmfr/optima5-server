@@ -127,6 +127,7 @@ function specDbsEmbralam_mach_getGridData( $post_data ) {
 	}
 	
 	$map_prioCode_spentTimesS = array() ;
+	$map_prioCode_count = array() ;
 	foreach( $TAB as $filerecord_id => &$row ) {
 		// priorité : temps de base
 		$thisRow_baseTAT_s = ( $json_cfg_prio[$row['priority_code']]['tat_hour'] * 3600 ) ;
@@ -260,6 +261,13 @@ function specDbsEmbralam_mach_getGridData( $post_data ) {
 			$_opDB->update('view_file_FLOW_PICKING',$arr_ins, array('filerecord_id'=>$filerecord_id)) ;
 			//paracrm_lib_data_updateRecord_file( 'FLOW_PICKING', $arr_ins, $filerecord_id ) ;
 		}
+		
+		if( !$row['status_closed'] ) {
+			if( !isset($map_prioCode_count[$row['priority_code']]) ) {
+				$map_prioCode_count[$row['priority_code']] = 0 ;
+			}
+			$map_prioCode_count[$row['priority_code']]++;
+		}
 	}
 	unset($row) ;
 	usort($TAB,'specDbsEmbralam_mach_getGridData_sort') ;
@@ -284,6 +292,7 @@ function specDbsEmbralam_mach_getGridData( $post_data ) {
 		'success' => true,
 		'data_grid' => array_values($TAB),
 		'data_gauges' => $TAB_gauges,
+		'data_prioCount' => $map_prioCode_count,
 		'maj_date' => $maj_date
 	) ;
 }
