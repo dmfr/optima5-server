@@ -26,6 +26,9 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 	
 	flowCode: null,
 	
+	autoRefreshDelay: (5*60*1000),
+	autoRefreshTask: null,
+	
 	initComponent: function() {
 		Ext.apply(this,{
 			bodyCls: 'ux-noframe-bg',
@@ -78,6 +81,13 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 	},
 	
 	doConfigure: function() {
+		this.autoRefreshTask = new Ext.util.DelayedTask( function(){
+			if( this.isDestroyed ) { // private check
+				return ;
+			}
+			this.doLoad(false) ;
+		},this);
+		
 		this.showLoadmask() ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
@@ -411,6 +421,8 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 	},
 	
 	doLoad: function(doReset) {
+		this.autoRefreshTask.cancel() ;
+		
 		this.showLoadmask() ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
@@ -427,6 +439,9 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 			},
 			callback: function() {
 				this.hideLoadmask() ;
+				
+				// Setup autoRefresh task
+				this.autoRefreshTask.delay( this.autoRefreshDelay ) ;
 			},
 			scope: this
 		}) ;
@@ -549,6 +564,12 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 		if( this.loadMask ) {
 			this.loadMask.destroy() ;
 			this.loadMask = null ;
+		}
+	},
+	
+	onDestroy: function() {
+		if( this.autoRefreshTask ) {
+			this.autoRefreshTask.cancel() ;
 		}
 	}
 });
