@@ -274,11 +274,17 @@ function specDbsEmbralam_mach_getGridData( $post_data ) {
 	}
 	
 	
+	$query = "SELECT max(field_DATE) FROM view_file_LOG_IMPORT WHERE field_FLOW_CODE='PICKING'" ;
+	if( $date_sql = $_opDB->query_uniqueValue($query) ) {
+		$maj_date = date('d/m/Y H:i',strtotime($date_sql)) ;
+	}
+	
 	
 	return array(
 		'success' => true,
 		'data_grid' => array_values($TAB),
-		'data_gauges' => $TAB_gauges
+		'data_gauges' => $TAB_gauges,
+		'maj_date' => $maj_date
 	) ;
 }
 function specDbsEmbralam_mach_getGridData_sort( $row1, $row2 ) {
@@ -299,14 +305,20 @@ function specDbsEmbralam_mach_getGridData_sort( $row1, $row2 ) {
 
 function specDbsEmbralam_mach_upload( $post_data ) {
 	if( $_FILES['file_upload'] ) {
+		$debug = file_get_contents($_FILES['file_upload']['tmp_name']) ;
 		$handle = fopen($_FILES['file_upload']['tmp_name'],"rb") ;
 	} elseif( $post_data['file_contents'] ) {
+		$debug = file_get_contents($_FILES['file_upload']['tmp_name']) ;
 		$handle = tmpfile() ;
 		fwrite($handle,$post_data['file_contents']) ;
 		fseek($handle,0) ;
 	} else {
 		return array('success'=>false) ;
 	}
+	
+	$filename = "/var/log/apache2/machUpload_".time().'.txt' ;
+	@file_put_contents($filename, $debug) ;
+	
 	switch( $post_data['file_model'] ) {
 		case 'VL06F_active' :
 			specDbsEmbralam_mach_upload_VL06F($handle,FALSE) ;
@@ -318,9 +330,16 @@ function specDbsEmbralam_mach_upload( $post_data ) {
 			specDbsEmbralam_mach_upload_ZLORSD015($handle) ;
 			break ;
 		default :
-			break ;
+			return array('success'=>false) ;
 	}
 	fclose($handle) ;
+	
+	$arr_ins = array() ;
+	$arr_ins['field_DATE'] = date('Y-m-d H:i:s') ;
+	$arr_ins['field_FLOW_CODE'] = 'PICKING' ;
+	$arr_ins['field_FILE_MODEL'] = $post_data['file_model'] ;
+	paracrm_lib_data_insertRecord_file('LOG_IMPORT',0,$arr_ins) ;
+	
 	return array('success'=>true) ;
 }
 function specDbsEmbralam_mach_upload_ZLORSD015($handle) {
@@ -425,36 +444,6 @@ function specDbsEmbralam_mach_upload_ZLORSD015($handle) {
 	// => appel de la routine d'affichage / calcul MACH pour mise à jour du statut ACTIVE => CLOSED
 	specDbsEmbralam_mach_getGridData( array('flow_code'=>'PICKING') ) ;
 
-	return ;
-}
-function OLD_specDbsEmbralam_mach_upload_VL06F($handle) {
-	global $_opDB ;
-	
-	$first = TRUE ;
-	while( !feof($handle) )
-	{
-		$arr_csv = fgetcsv($handle,0,'|') ;
-		if( count($arr_csv) < 4 ) {
-			continue ;
-		}
-		if( $first ) {
-			$first = FALSE ;
-			continue ;
-		}		
-		
-		$no_delivery = trim($arr_csv[1]) ;
-		$txt_feedback = utf8_encode(trim($arr_csv[count($arr_csv)-2])) ;
-		
-		$query = "SELECT filerecord_id FROM view_file_FLOW_PICKING WHERE field_DELIVERY_ID LIKE '%$no_delivery%'" ;
-		$result = $_opDB->query($query) ;
-		if( $_opDB->num_rows($result) == 1 ) {
-			$arr = $_opDB->fetch_row($result) ;
-			$filerecord_id = $arr[0] ;
-			$query = "UPDATE view_file_FLOW_PICKING SET field_FEEDBACK_TXT='$txt_feedback' WHERE filerecord_id='$filerecord_id'" ;
-			$_opDB->query($query) ;
-		}
-	}
-	
 	return ;
 }
 

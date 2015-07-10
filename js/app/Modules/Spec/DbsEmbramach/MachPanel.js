@@ -32,6 +32,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 			layout: 'border',
 			items: [{
 				region: 'north',
+				itemId: 'pBanner',
 				height: 116,
 				xtype: 'component',
 				tpl: [
@@ -39,16 +40,16 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 						'<div class="op5-spec-embramach-banner-inside">',
 						'<div class="op5-spec-embramach-banner-left">',
 							'<div class="op5-spec-embramach-banner-logo"></div>',
-							'<div class="op5-spec-embramach-banner-title">{title}</div>',
+							'<div class="op5-spec-embramach-banner-title">MACH</div>',
 						'</div>',
 						'<div class="op5-spec-embramach-banner-right">',
-							'<div class="op5-spec-embramach-banner-people">Charge&nbsp:&nbsp;<b><font color="red">{people_count}</font>&nbsp;personne(s)</b></div>',
+							'<div class="op5-spec-embramach-banner-people">Update&nbsp:&nbsp;<b><font color="red">{maj_txt}</font></b></div>',
 						'</div>',
 						'</div>',
 						'<div class="op5-spec-embramach-banner-blue">&#160;</div>',
 					'</div>'
 				],
-				data: {title: 'MACH', people_count:0}
+				data: {maj_txt:'-'}
 			},{
 				region: 'center',
 				xtype: 'panel',
@@ -433,6 +434,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 	onLoad: function( jsonResponse, doReset ) {
 		var pGrid = this.down('#pGrid'),
 			pGauges = this.down('#pGauges'),
+			pBanner = this.down('#pBanner'),
 			pGridStore = pGrid.getStore() ;
 		if( doReset ) {
 			pGridStore.sorters.clear() ;
@@ -450,6 +452,8 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 			var cGauge = pGauge.down('chart') ;
 			cGauge.getStore().loadData([{value: (cGauge._modeMinutes ? value * 60 : value)}]) ;
 		}) ;
+		
+		pBanner.update({maj_txt: jsonResponse.maj_date}) ;
 	},
 	
 	applyFilters: function() {
