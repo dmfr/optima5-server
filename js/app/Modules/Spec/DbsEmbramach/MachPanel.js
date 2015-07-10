@@ -236,13 +236,17 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 								
 								if( !Ext.isEmpty(o1.ACTUAL_dateSql) ) {
 									v1 = o1.ACTUAL_dateSql ;
-								} else {
+								} else if( !Ext.isEmpty(o1.ETA_dateSql) ) {
 									v1 = o1.ETA_dateSql ;
+								} else {
+									v1 = '' ;
 								}
 								if( !Ext.isEmpty(o2.ACTUAL_dateSql) ) {
 									v2 = o2.ACTUAL_dateSql ;
-								} else {
+								} else if( !Ext.isEmpty(o2.ETA_dateSql) ) {
 									v2 = o2.ETA_dateSql ;
+								} else {
+									v2 = '' ;
 								}
 								
 								// transform v1 and v2 here
@@ -405,7 +409,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 		this.doLoad() ;
 	},
 	
-	doLoad: function() {
+	doLoad: function(doReset) {
 		this.showLoadmask() ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
@@ -418,7 +422,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 				if( jsonResponse.success != true ) {
 					return ;
 				}
-				this.onLoad( jsonResponse ) ;
+				this.onLoad( jsonResponse, doReset ) ;
 			},
 			callback: function() {
 				this.hideLoadmask() ;
@@ -426,11 +430,15 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 			scope: this
 		}) ;
 	},
-	onLoad: function( jsonResponse ) {
+	onLoad: function( jsonResponse, doReset ) {
 		var pGrid = this.down('#pGrid'),
 			pGauges = this.down('#pGauges'),
 			pGridStore = pGrid.getStore() ;
-		pGridStore.sorters.clear() ;
+		if( doReset ) {
+			pGridStore.sorters.clear() ;
+			pGrid.filters.clearFilters() ;
+		}
+		
 		pGridStore.loadData( jsonResponse.data_grid ) ;
 		this.applyFilters() ;
 		
@@ -455,12 +463,6 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 		var filterData = pGrid.filters.getFilterData() ;
 		pGridStore.filterBy(function(record){
 			var passed = true ;
-			if( !Ext.Array.contains(['LBG1','LBG2','LBG3'],record.get('flow')) ) {
-				passed = false ;
-			}
-			if( record.get('shipto_name') == 'EMBRAER - WHSE BRU' ) {
-				passed = false ;
-			}
 			Ext.Array.each( filterData, function(filter) {
 				switch(filter.data.type) {
 					case 'list' :
@@ -470,7 +472,11 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 						break ;
 						
 					case 'string' :
-						if( !record.get(filter.field).match(new RegExp(filter.data.value, "i")) ) {
+						var value = record.get(filter.field) ;
+						if( !Ext.isString(value) ) {
+							value = value.toString() ;
+						}
+						if( !value.match(new RegExp(filter.data.value, "i")) ) {
 							passed = false ;
 						}
 						break ;

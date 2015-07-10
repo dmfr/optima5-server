@@ -108,6 +108,8 @@ function specDbsEmbralam_mach_getGridData( $post_data ) {
 		$row['status_closed'] = ($arr['field_STATUS'] == 'CLOSED') ;
 		$row['obj_steps'] = array() ;
 		
+		$row['calc_lateness'] = 0 ;
+		
 		$TAB[$filerecord_id] = $row ;
 	}
 	
@@ -118,6 +120,9 @@ function specDbsEmbralam_mach_getGridData( $post_data ) {
 		$step_code = $arr['field_STEP'] ;
 		$date_sql = $arr['field_DATE'] ;
 		
+		if( !$TAB[$filerecord_parent_id] ) {
+			continue ;
+		}
 		$TAB[$filerecord_parent_id]['obj_steps'][$step_code] = $date_sql ;
 	}
 	
@@ -164,13 +169,15 @@ function specDbsEmbralam_mach_getGridData( $post_data ) {
 					$this_milestone['pendingMonitored'] = true ;
 					if( !$lastStep_timestamp ) {
 						$this_milestone['ETA_dateSql'] = '' ;
-					} elseif( $now_timestamp > $ETA_timestamp ) {
-						$this_milestone['color'] = 'red' ;
-						$row['calc_lateness'] = $now_timestamp - $ETA_timestamp ;
-					} elseif( $ETA_timestamp - $now_timestamp < (15*60) ) {
-						$this_milestone['color'] = 'orange' ;
 					} else {
-						$this_milestone['color'] = 'green' ;
+						$row['calc_lateness'] = $now_timestamp - $ETA_timestamp ;
+						if( $now_timestamp > $ETA_timestamp ) {
+							$this_milestone['color'] = 'red' ;
+						} elseif( $ETA_timestamp - $now_timestamp < (15*60) ) {
+							$this_milestone['color'] = 'orange' ;
+						} else {
+							$this_milestone['color'] = 'green' ;
+						}
 					}
 				}
 			} else {
@@ -275,11 +282,16 @@ function specDbsEmbralam_mach_getGridData( $post_data ) {
 	) ;
 }
 function specDbsEmbralam_mach_getGridData_sort( $row1, $row2 ) {
-	if( $row2['status_closed'] && $row1['status_closed'] ) {
-		return $row2['date_issue'] - $row1['date_issue'] ;
-	}
-	if( $row2['status_closed'] != $row1['status_closed'] ){
+	if( $row1['status_closed'] != $row2['status_closed'] ) {
 		return $row1['status_closed'] - $row2['status_closed'] ;
+	}
+	
+	if( $row1['status_closed'] && $row2['status_closed'] ) {
+		return strcmp($row2['date_closed'],$row1['date_closed']) ;
+	}
+	
+	if( $row1['priority_code'] != $row2['priority_code'] ) {
+		return $row1['priority_code'] - $row2['priority_code'] ;
 	}
 	return $row2['calc_lateness'] - $row1['calc_lateness'] ;
 }

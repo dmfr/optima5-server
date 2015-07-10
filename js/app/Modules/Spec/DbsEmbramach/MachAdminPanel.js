@@ -15,7 +15,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachAdminPanel',{
 				iconCls: 'op5-crmbase-datatoolbar-refresh',
 				text: 'Refresh',
 				handler: function() {
-					this.doLoad() ;
+					this.doRefresh() ;
 				},
 				scope: this
 			},'->',{
@@ -81,7 +81,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachAdminPanel',{
 		}
 	},
 	doRefresh: function() {
-		this.doLoad() ;
+		this.doLoad(true) ;
 	},
 	doUpload: function( dummyfield ) {
 		var me = this ;
