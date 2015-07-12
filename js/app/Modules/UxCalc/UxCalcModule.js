@@ -19,8 +19,14 @@ Ext.define('Optima5.Modules.UxCalc.UxCalcModule', {
 			maximizable:false,
 			items:[calc],
 			listeners:{
+				show: function(thiswin) {
+					if( thiswin.rendered ) {
+						thiswin.getEl().focus() ;
+					}
+				},
 				afterrender:function(thiswin) {
-					thiswin.getEl().relayEvent( 'keydown', calc ) ;
+					thiswin.getEl().focus() ;
+					calc.relayEvents( thiswin.getEl(), ['keydown'] ) ;
 				},
 				scope:me
 			}
