@@ -1,6 +1,6 @@
 Ext.define('Ext.ux.dams.ColorCombo', {
 	
-	extend: 'Ext.form.field.ComboBox',
+	extend: 'Ext.ux.dams.ComboBoxCached',
 	alias: 'widget.colorcombo',
 	
 	fieldSubTpl: [
@@ -62,9 +62,6 @@ Ext.define('Ext.ux.dams.ColorCombo', {
 		});        
 		
 		me.callParent(arguments);    
-		me.mon( me.store, 'datachanged',function(){
-			me.onStoreLoadData() ;
-		},me);
 	},
 		
 	setIconCls: function() {
@@ -103,34 +100,5 @@ Ext.define('Ext.ux.dams.ColorCombo', {
 		me.callParent() ;
 		me.cachedValue = me.value ;
 		me.setIconCls() ;
-	},
-	setValue: function(value) {
-		var me = this ;
-		
-		value = Ext.Array.from(value);
-		if( value.length == 1 ) {
-			var record = value[0];
-			// record found, select it.
-			if(record.isModel) {
-				me.cachedValue = record.get(me.valueField) ;
-			} else {
-				me.cachedValue = record ;
-			}
-		}
-		else if(value.length == 0 ) {
-			me.cachedValue = null ;
-		}
-		
-		me.callParent(arguments);
-		me.setIconCls() ;
-	},
-	getValue: function() {
-		var me = this ;
-		return me.cachedValue ;
-	},
-	
-	onStoreLoadData: function() {
-		var me = this ;
-		me.setValue( me.cachedValue ) ;
 	}
 });
