@@ -2,13 +2,6 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarSubpanel' ,{
 	extend: 'Ext.panel.Panel',
 	
 	requires : [
-		'Sch.model.Resource',
-		'Sch.preset.Manager',
-		'Sch.panel.SchedulerTree',
-		'Sch.data.EventStore',
-		'Sch.data.ResourceTreeStore',
-		'Sch.plugin.Zones',
-		'Sch.model.Range',
 		'Optima5.Modules.Spec.WbMrfoxy.PromoCalendarEventDetailView'
 	],
 	
@@ -20,7 +13,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarSubpanel' ,{
 		me.optimaModule = me.parentBrowserPanel.optimaModule ;
 		
 		// ** Models
-		Ext.define('WbMrfoxySchEventModel', {
+		Ext.define(this.id + '-' + 'WbMrfoxySchEventModel', {
 			extend: 'Sch.model.Event',
 			fields: [
 				{ name: 'ColorHex', type : 'string' },
@@ -28,14 +21,14 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarSubpanel' ,{
 				{ name: 'PromoId', type : 'string' }
 			]
 		}) ;
-		Ext.define('WbMrfoxySchResourceModel', {
+		Ext.define(this.id + '-' + 'WbMrfoxySchResourceModel', {
 			extend: 'Sch.model.Resource',
 			fields: [
 				{ name: 'nodeKey', type : 'string' },
 				{ name: 'nodeText', type : 'string' }
 			]
 		}) ;
-
+		
 		// ** Init dates
 		var startDate, endDate ;
 		if( me.startDate && me.endDate ) {
@@ -86,11 +79,11 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarSubpanel' ,{
 				border: false,
 				//rowHeight        : 32,
 				eventStore       : Ext.create('Sch.data.EventStore', {
-					model: 'WbMrfoxySchEventModel',
+					model: this.id + '-' + 'WbMrfoxySchEventModel',
 					data:[]
 				}),
 				resourceStore    : Ext.create('Sch.data.ResourceTreeStore', {
-					model: 'WbMrfoxySchResourceModel',
+					model: this.id + '-' + 'WbMrfoxySchResourceModel',
 					//nodeParam: 'nodeKey',
 					root: {children:[]},
 					proxy: {
@@ -208,7 +201,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarSubpanel' ,{
 		var me = this ;
 		
 		this.bibleTreestore = Ext.create('Ext.data.TreeStore', {
-			model: 'WbMrfoxySchResourceModel',
+			model: this.id + '-' + 'WbMrfoxySchResourceModel',
 			nodeParam: 'Id',
 			root: dataRoot 
 		});
@@ -389,7 +382,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarSubpanel' ,{
 				listeners:{
 					hide:me.onEventDetailHide,
 					scope:me
-				}
+				},
+				width:null,
+				height:null
 			});
 		}
 		
@@ -412,7 +407,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarSubpanel' ,{
 			p = me.eventDetailPanel,
 			hideIf = me.eventDetailHideIf ;
 		
-		p.setWidth(null) ; // Clear any previously forced maxSize applied below (400px)
+		p.setSize(null,null) ; // Clear any previously forced maxSize applied below (400px)
 		p.show();
 		p.getEl().alignTo(clickEl, 'tl-bl?');
 		p.doComponentLayout() ; // Force panel to calculate fit size based on new alignTo
@@ -458,5 +453,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarSubpanel' ,{
 		if( me.eventDetailPanel ) {
 			me.eventDetailPanel.destroy() ;
 		}
+		Ext.ux.dams.ModelManager.unregister( this.id + '-' + 'WbMrfoxySchEventModel' ) ;
+		Ext.ux.dams.ModelManager.unregister( this.id + '-' + 'WbMrfoxySchResourceModel' ) ;
 	}
 });

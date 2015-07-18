@@ -26,6 +26,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 				store: {
 					model: 'WbMrfoxyPromoModel',
 					autoLoad: false,
+					remoteFilter: true,
 					proxy: this.optimaModule.getConfiguredAjaxProxy({
 						extraParams : {
 							_moduleId: 'spec_wb_mrfoxy',
@@ -38,12 +39,10 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 					}),
 					listeners: {
 						beforeload: function(store,options) {
-							options.params = options.params || {};
-							var params = {
+							options.setParams({
 								filter_country: me.parentBrowserPanel.filterCountry,
 								filter_isProd: (me.parentBrowserPanel.filterIsProd ? 1:0)
-							} ;
-							Ext.apply(options.params, params);
+							}) ;
 						},
 						load: function(store) {
 							// why previous H4CK on PromoBrowserPanel ? : we need to make sure grid filters have been set -before- this call
@@ -56,6 +55,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 						scope: me
 					}
 				},
+				bufferedRenderer: false,
 				progressRenderer: (function () {
 					return function(progress,text) {
 					};

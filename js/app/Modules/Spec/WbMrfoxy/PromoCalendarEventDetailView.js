@@ -180,9 +180,10 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarEventDetailView',{
 		 */
 		var promoListRowPanel = this.getPromoListRowPanel(filerecord),
 					targetEl = Ext.DomQuery.selectNode('div.op5-spec-mrfoxy-schdetail-rowcnt', this.getEl().dom);
+		promoListRowPanel.on('afterrender', function() {
+			this.fireEvent('eventdetailrendered', this, null );
+		},this,{single:true}) ;
 		promoListRowPanel.render( targetEl );
-		
-		this.fireEvent('eventdetailrendered', this, null );
 	},
 
 	getPromoListRowPanel: function( filerecord ) {
@@ -190,7 +191,6 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarEventDetailView',{
 		
 		this.promoListRowPanel = Ext.create('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel', {
 			forceFit: true,
-			height: 190,
 			rowRecord: Ext.create('WbMrfoxyPromoModel',filerecord),
 			optimaModule: this.promoPanelCalendar.optimaModule,
 			listeners:{
@@ -211,5 +211,4 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarEventDetailView',{
 			this.promoListRowPanel = null ;
 		}
 	}
-	
 }) ;

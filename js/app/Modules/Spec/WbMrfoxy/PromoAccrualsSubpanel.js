@@ -26,6 +26,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoAccrualsSubpanel',{
 				store: {
 					model: 'WbMrfoxyPromoModel',
 					autoLoad: false,
+					remoteFilter: true,
 					proxy: this.optimaModule.getConfiguredAjaxProxy({
 						extraParams : {
 							_moduleId: 'spec_wb_mrfoxy',
@@ -38,12 +39,10 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoAccrualsSubpanel',{
 					}),
 					listeners: {
 						beforeload: function(store,options) {
-							options.params = options.params || {};
-							var params = {
+							options.setParams({
 								filter_country: me.parentBrowserPanel.filterCountry,
 								filter_isProd: 1
-							} ;
-							Ext.apply(options.params, params);
+							}) ;
 						},
 						load: function(store) {
 						},

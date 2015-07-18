@@ -51,7 +51,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 					width: 112,
 					tpl: new Ext.XTemplate(
 						'<tpl for=".">',
-						'<tpl if="!actionDisabled">',
+						'<tpl if="!(values.actionDisabled)">',
 						'<div class="op5-spec-mrfoxy-promorow-item">',
 						'<div class="op5-spec-mrfoxy-promorow-action">',
 						'{actionText}',
@@ -59,7 +59,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 						'</div>',
 						'</div>',
 						'</tpl>',
-						'<tpl if="actionDisabled">',
+						'<tpl if="(values.actionDisabled)">',
 						'<div class="op5-spec-mrfoxy-promorow-item" style="display:none">',
 						'</div>',
 						'</tpl>',
@@ -157,6 +157,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel',{
 					xtype:'fieldcontainer',
 					itemId: 'fcDisplay',
 					hidden: false,
+					cls: 'op5-spec-mrfoxy-promorow-fieldcontainer',
 					items:[{
 						xtype:'damsfieldset',
 						iconCls: ( Optima5.Modules.Spec.WbMrfoxy.HelperCache.authHelperQueryRole(['ADM','TM']) ? 'op5-spec-mrfoxy-promorow-fieldset-edit' : null ),

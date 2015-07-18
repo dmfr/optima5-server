@@ -53,6 +53,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoNAgreementsSubpanel',{
 				store: {
 					model: 'WbMrfoxyNAgreementModel',
 					autoLoad: false,
+					remoteFilter: true,
 					proxy: this.optimaModule.getConfiguredAjaxProxy({
 						extraParams : {
 							_moduleId: 'spec_wb_mrfoxy',
@@ -67,17 +68,15 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoNAgreementsSubpanel',{
 						property: 'cropYear_code',
 						direction: 'DESC'
 					}],
-					groupers: [{
+					grouper: {
 						property: 'group_key',
 						direction: 'DESC'
-					}],
+					},
 					listeners: {
 						beforeload: function(store,options) {
-							options.params = options.params || {};
-							var params = {
+							options.setParams({
 								filter_country: me.parentBrowserPanel.filterCountry
-							} ;
-							Ext.apply(options.params, params);
+							}) ;
 						},
 						load: function(store) {
 						},

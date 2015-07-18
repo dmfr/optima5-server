@@ -171,7 +171,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.MainPanel',{
 		var promoFormPanel = Ext.create('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 			optimaModule: me.optimaModule,
 			width: 800,
-			data: promoCfg
+			promoRecordData: promoCfg
 		}) ;
 		promoFormPanel.on('saved',function(p) {
 			if( promoCfg.is_prod == 'PROD' ) {

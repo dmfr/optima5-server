@@ -7,7 +7,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.StatPerformanceResultView',{
 			modePreview: this.modePreview,
 			tableRows: []
 		} ;
-		var queryVars = this.data.query_vars ;
+		var queryVars = this.queryData.query_vars ;
 		if( queryVars['time_mode'] ) {
 			var timeTxt = '' ;
 			switch( queryVars['time_mode'] ) {
@@ -90,7 +90,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.StatPerformanceResultView',{
 					},
 					scope: this
 				}
-			},this.buildResultPanel( this.data.result_tab )]
+			},this.buildResultPanel( this.queryData.result_tab )]
 		}) ;
 		
 		this.callParent() ;
@@ -212,7 +212,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.StatPerformanceResultView',{
 	
 	
 	getData: function() {
-		var returnData = Ext.clone(this.data) ;
+		var returnData = Ext.clone(this.queryData) ;
 		Ext.apply(returnData,{
 			title: this.title
 		}) ;
@@ -220,6 +220,6 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.StatPerformanceResultView',{
 	},
 	
 	onBtnSave: function() {
-		this.fireEvent('savepreview',this.data) ;
+		this.fireEvent('savepreview',this.queryData) ;
 	}
 }) ;

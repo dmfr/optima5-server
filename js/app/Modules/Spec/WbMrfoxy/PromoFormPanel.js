@@ -61,8 +61,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 		if( me.promoRecord ) {
 			me.loadDataFromRecord(me.promoRecord) ;
 		}
-		if( me.data ) {
-			me.loadData(me.data) ;
+		if( me.promoRecordData ) {
+			me.loadData(me.promoRecordData) ;
 		}
 	},
 	
@@ -205,7 +205,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 						items:[{
 							xtype: 'op5crmbasebibletreepicker',
 							allowBlank:false,
-							rootNode: ( me.data != null ? me.data.country_code : null ),
+							rootNode: ( me.promoRecordData != null ? me.promoRecordData.country_code : null ),
 							selectMode: 'single',
 							optimaModule: me.optimaModule,
 							bibleId: 'IRI_STORE',
@@ -430,8 +430,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 					},{
 						xtype: 'fieldcontainer',
 						layout:{
-							type: 'hbox',
-							align: 'stretch'
+							type: 'hbox'
 						},
 						fieldLabel: 'Fixed cost',
 						itemId: 'cost_static_billback',
@@ -458,8 +457,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 					},{
 						xtype: 'fieldcontainer',
 						layout:{
-							type: 'hbox',
-							align: 'stretch'
+							type: 'hbox'
 						},
 						fieldLabel: 'Fixed cost',
 						itemId: 'cost_static_discount',
@@ -486,8 +484,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoFormPanel',{
 					},{
 						xtype: 'fieldcontainer',
 						layout:{
-							type: 'hbox',
-							align: 'stretch'
+							type: 'hbox'
 						},
 						fieldLabel: 'Variable cost',
 						itemId: 'cost_forecast_var',
