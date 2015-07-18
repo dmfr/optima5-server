@@ -31,7 +31,6 @@ Ext.define('Optima5.Modules.Settings.SettingsModule', {
 	initModule: function() {
 		var me = this ;
 		
-		me.addEvents('op5broadcast') ;
 		me.on('op5broadcast',me.onCrmeventBroadcast,me) ;
 		
 		me.menuStore = Ext.create('Ext.data.Store',{

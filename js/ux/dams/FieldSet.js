@@ -5,7 +5,6 @@ Ext.define('Ext.ux.dams.FieldSet',{
 	initComponent: function() {
 		this.callParent() ;
 		this.addCls(this.baseCls + '-withicon') ;
-		this.addEvents('iconclick') ;
 	},
     createLegendCt: function () {
         var me = this,

@@ -7,9 +7,6 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelEventDetailView',{
 	
 	initComponent : function(){
 		this.callParent(arguments);
-		this.addEvents({
-			eventsrendered: true
-		});
 		
 		var me = this ;
 		if( (me.filePanelCalendar) instanceof Optima5.Modules.CrmBase.FilePanelCalendar ) {} else {

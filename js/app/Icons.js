@@ -23,7 +23,6 @@ Ext.define('Optima5.Icons',{
 		//build store
 		var me = this ;
 		
-		me.addEvents('ready') ;
 		me.mixins.observable.constructor.call(this, config);
 		
 		me.iconsStore = Ext.create('Ext.data.Store',{

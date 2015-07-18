@@ -47,7 +47,6 @@ Ext.define('Optima5.Helper',{
 	constructor: function(config) {
 		var me = this ;
 		
-		me.addEvents('ready') ;
 		me.mixins.observable.constructor.call(this, config);
 		
 		Ext.defer(function() {

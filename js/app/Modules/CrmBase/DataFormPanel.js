@@ -367,7 +367,6 @@ Ext.define('Optima5.Modules.CrmBase.DataFormPanel' ,{
 		
 		me.nbComponentsSaved = 0 ;
 		
-		me.addEvents('allsaved') ;
 		me.on('allsaved',function(nbSaved){
 			// console.log('allsabed '+nbSaved) ;
 			me.saveAndApply() ;

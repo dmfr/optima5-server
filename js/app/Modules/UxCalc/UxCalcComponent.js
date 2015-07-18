@@ -75,7 +75,6 @@ Ext.define('Optima5.Modules.UxCalc.UxCalcComponent',{
         var me             = this,
             buttonSelector = '.' + me.clsPrefix + '-btn';
 
-        me.addEvents('keydown');
         Ext.apply(me,{
             renderData: {
                 clsPrefix: me.clsPrefix

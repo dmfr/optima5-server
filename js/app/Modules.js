@@ -67,7 +67,6 @@ Ext.define('Optima5.Modules',{
 	constructor: function(config) {
 		//build store
 		var me = this ;
-		me.addEvents('ready') ;
 		me.mixins.observable.constructor.call(this, config);
 		
 		me.modulesStore = Ext.create('Ext.data.Store',{

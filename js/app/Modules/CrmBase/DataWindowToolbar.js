@@ -115,7 +115,6 @@ Ext.define('Optima5.Modules.CrmBase.DataWindowToolbar' ,{
 			}]
 		});
 		// console.dir(this.bibleMenu.items) ;
-		this.addEvents();
 		this.callParent() ;
 	},
 	

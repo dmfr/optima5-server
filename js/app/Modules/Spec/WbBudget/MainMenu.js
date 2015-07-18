@@ -60,8 +60,6 @@ Ext.define('Optima5.Modules.Spec.WbBudget.MainMenu',{
 			stateful: true
 		}) ;
 		
-		this.addEvents('actionclick') ;
-		
 		this.on('viewready',this.arrangeItems,this,{single:true}) ;
 		this.on('resize',this.arrangeItems,this) ;
 		this.on('itemclick',this.itemClicked,this) ;

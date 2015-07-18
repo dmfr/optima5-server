@@ -121,64 +121,6 @@ Ext.define('Ext.ux.upload.transport.Abstract', {
     },
     constructor: function (cfg) {
         var me = this;
-        me.addEvents({
-            /**
-             * @event
-             *
-             * Fired when dropped file has not accepted extension.
-             *
-             */
-            'notaccepted': true,
-            /**
-             * @event
-             *
-             * Fired when progress of upload was changed
-             *
-             */
-            'progresschange': true,
-            /**
-             * @event
-             *
-             * Fired when error occurred.
-             *
-             */
-            'failure': true,
-            /**
-             * @event
-             *
-             * Fired when file was uploaded.
-             *
-             */
-            'success': true,
-            /**
-             * @event
-             * @param formData
-             * @param record
-             *
-             * Fires when upload process start.
-             *
-             */
-            'beforeupload': true,
-            /**
-             * @event
-             * @param status
-             * @param event
-             * @param record
-             *
-             * Fired whatever file was uploaded or error occurred.
-             *
-             */
-            'afterupload': true,
-            /**
-             * @event
-             * @param event
-             * @param record
-             *
-             * Fired after request timeout.
-             *
-             */
-            'timeout': true
-        });
         me.initConfig(cfg);
         if (typeof me.config.url === 'undefined') {
             throw Error("uploadUrl missing in configuration object");

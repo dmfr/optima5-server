@@ -9,8 +9,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.DbsPeopleModule', {
 	initModule: function() {
 		var me = this ;
 		
-		me.addEvents('op5broadcast') ;
-		
 		me.createWindow({
 			width:1024,
 			height:600,

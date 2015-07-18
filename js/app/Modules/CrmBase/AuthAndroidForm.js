@@ -52,7 +52,6 @@ Ext.define('Optima5.Modules.CrmBase.AuthAndroidForm' ,{
 		});
 		
 		this.callParent() ;
-		this.addEvents('saved') ;
 		
 		// console.dir( me.query('combobox') ) ;
 		

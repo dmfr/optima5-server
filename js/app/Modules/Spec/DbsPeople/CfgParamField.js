@@ -36,8 +36,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.CfgParamField',{
 			Optima5.Helper.logError('CrmBase:BibleTreePicker','No module reference ?') ;
 		}
 		
-		this.addEvents('ready') ;
-		
 		this.on('afterrender',this.displayValue,this) ;
 		
 		this.cfgParamTree = Ext.create('Optima5.Modules.Spec.DbsPeople.CfgParamTree',{

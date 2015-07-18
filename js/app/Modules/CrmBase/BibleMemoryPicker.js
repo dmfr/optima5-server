@@ -38,7 +38,6 @@ Ext.define('Optima5.Modules.CrmBase.BibleMemoryPicker',{
 			Optima5.Helper.logError('CrmBase:FilePanel','No module reference ?') ;
 		}
 		
-		this.addEvents('iamready') ;
 		this.callParent() ;
 		
 		me.optimaModule.getConfiguredAjaxConnection().request({

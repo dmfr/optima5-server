@@ -4,7 +4,6 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoBaselinePanel',{
 
 	initComponent: function() {
 		var me = this ;
-		me.addEvents('proceed') ;
 		
 		if( (me.optimaModule) instanceof Optima5.Module ) {} else {
 			Optima5.Helper.logError('Spec:WbMrfoxy:PromoBaselinePanel','No module reference ?') ;

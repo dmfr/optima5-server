@@ -56,8 +56,6 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelGmap' ,{
 		this.on('beforeactivate',me.onBeforeActivate,me) ;
 		this.on('activate',me.onActivate,me) ;
 		this.on('beforedeactivate',me.onBeforeDeactivate,me) ;
-		
-		this.addEvents('openfile') ;
 	},
 	firstLoad: function() {
 		var me=this ;

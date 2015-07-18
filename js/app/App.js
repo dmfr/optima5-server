@@ -93,10 +93,6 @@ Ext.define('Optima5.App',{
 	constructor: function(appCfg) {
 		var me = this ;
 		
-		me.addEvents(
-			'ready',
-			'beforeunload'
-		);
 		me.mixins.observable.constructor.call(this, appCfg);
 		
 		Optima5.Helper.registerApplication(this) ;

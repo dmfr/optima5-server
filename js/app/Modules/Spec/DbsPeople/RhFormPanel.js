@@ -11,7 +11,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhFormPanel',{
 	
 	initComponent: function() {
 		var me = this ;
-		me.addEvents('saved') ;
 		
 		var formItems = [{
 			xtype:'textfield',

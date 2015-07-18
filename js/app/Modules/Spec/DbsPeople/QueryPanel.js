@@ -11,8 +11,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryPanel',{
 		var me = this,
 			width = me.width ;
 		
-		me.addEvents('abort','confirm') ;
-		
 		Ext.apply( me, {
 			layout:{
 				type:'vbox',

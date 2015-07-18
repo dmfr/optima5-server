@@ -57,7 +57,6 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 		});
 		
 		this.callParent(arguments);
-		this.addEvents('load','viewchanged') ;
 		
 		this.on('destroy',function(p){
 			if( p.gridModelName ) {

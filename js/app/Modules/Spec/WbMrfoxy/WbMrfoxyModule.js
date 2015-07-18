@@ -9,8 +9,6 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.WbMrfoxyModule', {
 	initModule: function() {
 		var me = this ;
 		
-		me.addEvents('op5broadcast') ;
-		
 		me.createWindow({
 			width:900,
 			height:640,

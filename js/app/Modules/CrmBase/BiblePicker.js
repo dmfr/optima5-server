@@ -39,7 +39,6 @@ Ext.define('Optima5.Modules.CrmBase.BiblePicker',{
 			Optima5.Helper.logError('CrmBase:BiblePicker','No module reference ?') ;
 		}
 		
-		this.addEvents('iamready') ;
 		this.callParent() ;
 		
 		me.optimaModule.getConfiguredAjaxConnection().request({

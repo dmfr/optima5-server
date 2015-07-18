@@ -129,8 +129,6 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentsPanel',{
 	viewMode: 'inbox',
 	
 	initComponent: function() {
-		this.addEvents('proceed') ;
-		
 		if( (this.optimaModule) instanceof Optima5.Module ) {} else {
 			Optima5.Helper.logError('Spec:WbMrfoxy:AttachmentsPanel','No module reference ?') ;
 		}

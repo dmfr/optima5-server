@@ -51,7 +51,6 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 		});
 		
 		this.callParent(arguments);
-		this.addEvents('load') ;
 		
 		this.on('destroy',function(p){
 			if( p.treeModelName ) {

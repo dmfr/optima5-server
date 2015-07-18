@@ -10,9 +10,6 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarEventDetailView',{
 	
 	initComponent : function(){
 		this.callParent(arguments);
-		this.addEvents({
-			eventsrendered: true
-		});
 		
 		var me = this ;
 		if( (me.promoPanelCalendar) instanceof Optima5.Modules.Spec.WbMrfoxy.PromoCalendarSubpanel ) {} else {

@@ -1016,7 +1016,6 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 		var me = this ;
 		me.nbComponentsSaved = 0 ;
 		
-		me.addEvents('allsaved') ;
 		me.on('allsaved',function(nbSaved){
 			me.saveAndApply() ;
 		},me) ;

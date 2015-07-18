@@ -7,7 +7,6 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoNewCfgPanel',{
 
 	initComponent: function() {
 		var me = this ;
-		me.addEvents('proceed') ;
 		
 		Ext.apply(me,{
 			title: 'Encode new promotion',

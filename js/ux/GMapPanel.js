@@ -239,21 +239,6 @@ markers: [{
     mapDefinedGMap: false,
     initComponent : function(){
         
-        this.addEvents(
-            /**
-             * @event mapready
-             * Fires when the map is ready for interaction
-             * @param {GMapPanel} this
-             * @param {GMap} map
-             */
-            'mapready',
-            /**
-             * @event apiready
-             * Fires when the Google Maps API is loaded
-             */
-            'apiready'
-        );
-        
         Ext.applyIf(this,{
           markers: [],
           cache: {

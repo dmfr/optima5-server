@@ -192,10 +192,6 @@ Ext.define('Optima5.Modules.CrmBase.QbookPanel' ,{
 		
 		me.on('render',me.onPanelRender,me,{single:true}) ;
 		
-		me.addEvents('querysaved') ;
-		me.addEvents('backendfilerecordchange','selectbackendfile') ; // BackendFile mgmt
-		me.addEvents('qbookztemplatechange') ;  // Floating panel to load/save ztemplates
-		
 		me.callParent() ;
 	},
 	onPanelRender: function(panel) {
