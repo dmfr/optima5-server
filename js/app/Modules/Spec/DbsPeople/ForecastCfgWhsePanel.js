@@ -29,7 +29,7 @@ Ext.define('DbsPeopleForecastCfgWhseTreeModel',{
 				return Optima5.Modules.Spec.DbsPeople.HelperCache.forTypeGetById("ROLE",v).text ;
 			}
 		},
-		{name: 'role_hRate', type:'int', useNull:true},
+		{name: 'role_hRate', type:'int', allowNull:true},
 		
 		{name: 'staticText', type:'string'},
 		{
@@ -179,9 +179,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastCfgWhsePanel',{
 		});
 		this.callParent() ;
 		
-		this.on('beforedestroy', this.onBeforeDestroy, this) ;
-		this.askSave = true ;
-		
 		this.buildBibleTree() ;
 		this.loadCfg() ;
 	},
@@ -214,7 +211,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastCfgWhsePanel',{
 							children: [],
 							expanded: true,
 							node_type: 'UO',
-							uo_code: srcRecord.get('uo_code')
+							uo_code: srcRecord.get('uo_code'),
+							
 						}
 						break ;
 						
@@ -285,6 +283,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastCfgWhsePanel',{
 		
 		sourceTreePanel.setRootNode({
 			root: true,
+			expanded: true,
 			children: [{
 				expanded: true,
 				staticText: 'Unités d\'oeuvre (toutes)',
@@ -359,6 +358,16 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastCfgWhsePanel',{
 		});
 	},
 	
+	doQuit: function() {
+		Ext.Msg.confirm('Save ?','Enregistrer config ?', function(btn) {
+			if( btn == 'no' ) {
+				this.destroy() ;
+			}
+			if( btn == 'yes' ) {
+				this.doSave() ;
+			}
+		},this) ;
+	},
 	doSave: function() {
 		this.getEl().mask('Saving...');
 		
@@ -399,21 +408,5 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastCfgWhsePanel',{
 		this.getEl().unmask() ;
 		
 		this.destroy() ;
-	},
-	onBeforeDestroy: function() {
-		if( this.askSave ) {
-			this.askSave = false ;
-			Ext.Msg.confirm('Save ?','Enregistrer config ?', function(btn) {
-				if( btn == 'no' ) {
-					this.destroy() ;
-				}
-				if( btn == 'yes' ) {
-					this.doSave() ;
-				}
-			},this) ;
-			
-			return false ;
-		}
-		return ;
 	}
 }) ;

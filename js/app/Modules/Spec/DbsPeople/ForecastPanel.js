@@ -526,10 +526,10 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 					property: 'uo_code',
 					direction: 'ASC'
 				}],
-				groupers: [{
+				grouper: {
 					property: 'group_id',
 					direction: 'ASC'
-				}],
+				},
 				proxy:{
 					type:'memory'
 				}
@@ -600,6 +600,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 		}) ;
 	},
 	gridValueRenderer: function(v,metaData,record) {
+		if( Ext.isEmpty(v) ) {
+			return ;
+		}
 		switch( record.get('group_id') ) {
 			case '0_WEEKCOEFS' :
 				return v.day_coef ;
@@ -816,7 +819,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 		var gridData = {} ;
 		this.gridAdapterPopulateForForecastWeekRecord(gridData, forecastWeekRecord, dateMap) ;
 		
-		store.suspendEvents() ; // HACK: suspendingEvents on bufferedgrid'store is dangerous
+		store.suspendEvents(true) ; // HACK: suspendingEvents on bufferedgrid'store is dangerous
 		Ext.Object.each( gridData, function(rowId, rowData) {
 			var rowRecord = store.getById(rowId) ;
 			if( rowRecord == null ) {
@@ -827,7 +830,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 		});
 		
 		store.resumeEvents() ; // HACK: need to resume -BEFORE- add/remove record(s)
-		grid.getView().refresh() ; //HACK
 	},
 	gridAdapterPopulateForForecastWeekRecord: function(gridData, forecastWeekRecord, dateMap) {
 		switch( this.viewMode ) {
@@ -1307,7 +1309,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 			tools: [{
 				type: 'close',
 				handler: function(e, t, p) {
-					p.ownerCt.destroy();
+					p.ownerCt.doQuit();
 				}
 			}]
 		});

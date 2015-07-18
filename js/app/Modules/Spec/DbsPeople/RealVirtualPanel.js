@@ -138,14 +138,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealVirtualPanel',{
 				this.evalForm(field);
 			},me) ;
 		},me) ;
-		this.on('beforedestroy',function(formpanel) {
-			if( formpanel.saveOnDestroy ) {
-				formpanel.saveOnDestroy = false ;
-				formpanel.rhAbsSave() ;
-				return false ;
-			}
-			return true ;
-		}) ;
 		this.on('afterrender',function(formpanel) {
 			Ext.defer(function() {
 				formpanel.rhAbsLoad() ;
@@ -177,9 +169,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealVirtualPanel',{
 		
 		halfDayCb.setVisible(sameDay && absHalfDayOpen) ;
 	},
-	
-	doCheckBeforeSave: Ext.emptyFn,
-	doSave: Ext.emptyFn,
 	
 	rhAbsLoad: function() {
 		this.showLoadmask() ;
@@ -309,6 +298,13 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealVirtualPanel',{
 		if( this.loadMask ) {
 			this.loadMask.destroy() ;
 			this.loadMask = null ;
+		}
+	},
+	
+	doQuit: function() {
+		if( this.saveOnDestroy ) {
+			this.saveOnDestroy = false ;
+			this.rhAbsSave() ;
 		}
 	}
 });

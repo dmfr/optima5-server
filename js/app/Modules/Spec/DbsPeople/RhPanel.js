@@ -6,7 +6,7 @@ Ext.define('DbsPeopleRhPeopleEventModel', {
 		{name: 'event_type',   type: 'string'},
 		{name: 'x_code',   type: 'string'},
 		{name: 'date_start',   type: 'date', dateFormat:'Y-m-d'},
-		{name: 'date_end',   type: 'date', dateFormat:'Y-m-d', useNull:true}
+		{name: 'date_end',   type: 'date', dateFormat:'Y-m-d', allowNull:true}
 	]
 });
 
@@ -350,7 +350,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 				_peopleCalcAttribute: peopleCalcAttr.peopleCalcAttribute,
 				name: 'calc_' + peopleCalcAttr.peopleCalcAttribute,
 				type: 'number',
-				useNull: true
+				allowNull: true
 			});
 		}) ;
 		if( !Ext.isEmpty(peopleCalcColumns) ) {
@@ -360,9 +360,19 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 			}) ;
 		}
 		
+		Ext.ux.dams.ModelManager.unregister( this.tmpModelName ) ;
 		Ext.define(this.tmpModelName,{
 			extend: 'DbsPeopleRhPeopleModel',
-			fields: addModelFields
+			fields: addModelFields,
+			hasMany: [{
+				model: 'DbsPeopleRhPeopleEventModel',
+				name: 'events',
+				associationKey: 'events'
+			},{
+				model: 'DbsPeopleRhPeopleCalcAttributeModel',
+				name: 'calc_attributes',
+				associationKey: 'calc_attributes'
+			}]
 		});
 		
 		var columnDefaults = {
@@ -411,10 +421,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 					scope: me
 				}
 			},
-			plugins: [{
-				ptype: 'bufferedrenderer',
-				pluginId: 'bufferedRender'
-			}],
 			features: [{
 				ftype: 'grouping',
 				hideGroupedHeader: false,
@@ -571,12 +577,13 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 			store.group( groupField, 'ASC' ) ;
 		}
 	},
-	onGridGroupChange: function( gridStore, groupers ) {
+	onGridGroupChange: function( gridStore, grouper ) {
 		var grid = this.down('grid'),
 			 groupFields = [] ;
-		groupers.each( function(grouper) {
-			groupFields.push(grouper.property) ;
-		}) ;
+		
+		if( grouper ) {
+			groupFields.push( grouper.getProperty() ) ;
+		}
 		Ext.Array.each( grid.headerCt.query('[_groupBy]'), function(col) {
 			if( col.hideable ) {
 				return ;
@@ -589,7 +596,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 				col.show() ;
 			}
 		}) ;
-		grid.getView().refresh() ; // HACK
 	},
 	
 	fetchCalcAttributes: function() {
@@ -621,7 +627,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 			}
 		}) ;
 			
-		gridStore.suspendEvents();
+		gridStore.suspendEvents(true);
 		var map_peopleCalcAttribute_fieldName = {};
 		Ext.Array.each( gridStore.model.getFields(), function(field) {
 			if( field._peopleCalcAttribute != null ) {
@@ -652,7 +658,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 			record.commit() ;
 		});
 		gridStore.resumeEvents() ;
-		this.down('grid').getView().refresh() ;
 	},
 	
 	onNewPeople: function() {

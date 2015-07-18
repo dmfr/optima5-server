@@ -461,7 +461,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryPanel',{
 		var me = this ;
 		me.query('#cntQueryPreview')[0].add( Ext.create('Optima5.Modules.Spec.DbsPeople.QueryResultView',{
 			optimaModule: me.optimaModule,
-			data: ajaxData,
+			queryData: ajaxData,
 			modePreview: true,
 			border: false,
 			listeners: {
