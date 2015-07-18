@@ -417,7 +417,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarSubpanel' ,{
 		p.setSize(null,null) ; // Clear any previously forced maxSize applied below (400px)
 		p.show();
 		p.getEl().alignTo(clickEl, 'tl-bl?');
-		p.doComponentLayout() ; // Force panel to calculate fit size based on new alignTo
+		p.updateLayout() ; // Force panel to calculate fit size based on new alignTo
 		
 		// monitor clicking and mousewheel
 		me.mon(Ext.getDoc(), {

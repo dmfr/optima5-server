@@ -71,7 +71,7 @@ Ext.define('Optima5.Modules.CrmBase.MainWindowButton',{
 			me.btnInnerTextCaption.update(me.textCaption || '&#160;');
 			me.setComponentVisibility();
 		}
-		me.doComponentLayout() ;
+		me.updateLayout() ;
 	},
 	getObjText: function() {
 		var me = this ;

@@ -87,7 +87,7 @@ Ext.define('Ext.ux.ComponentRowExpander', {
 				
 				// http://stackoverflow.com/questions/20143082/does-extjs-automatically-garbage-collect-components
 				targetRowbody.appendChild( reusedComponent.getEl().dom );
-				reusedComponent.doComponentLayout() ;
+				reusedComponent.updateLayout() ;
 			}
 		},this) ;
 		
@@ -131,7 +131,7 @@ Ext.define('Ext.ux.ComponentRowExpander', {
 	
 	onResize: function() {
 		Ext.Object.each( this.obj_recordId_componentId, function( recordId, cmpId ) {
-			Ext.getCmp(cmpId).doComponentLayout();
+			Ext.getCmp(cmpId).updateLayout();
 		}) ;
 	},
 	 
