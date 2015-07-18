@@ -490,6 +490,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastPanel',{
 				break ;
 		}
 		
+		Ext.ux.dams.ModelManager.unregister( this.tmpModelName ) ;
 		Ext.define(this.tmpModelName, {
 			extend: 'DbsPeopleForecastRowModel',
 			fields: pushModelfields
