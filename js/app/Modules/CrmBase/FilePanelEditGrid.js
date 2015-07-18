@@ -310,6 +310,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelEditGrid',{
 		gridStoreCfg = {
 			model: gridModelName,
 			remoteSort: true,
+			remoteFilter: true,
 			autoLoad: true,
 			autoSync: false,
 			proxy: this.optimaModule.getConfiguredAjaxProxy({

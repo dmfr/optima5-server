@@ -647,8 +647,8 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelCalendar' ,{
 					scope:me
 				},
 				
-				width:1,
-				height:1
+				width: null,
+				height: null
 			});
 		}
 		

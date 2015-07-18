@@ -177,8 +177,7 @@ Ext.define('Optima5.Modules.CrmBase.DataFormPanelGallery',{
 		
 		
 		this.on('destroy',function(){
-			var model = Ext.ModelManager.getModel(this.modelname);
-			Ext.ModelManager.unregister(model);
+			Ext.ux.dams.ModelManager.unregister( this.modelname ) ;
 		},this) ;
 		
 		this.callParent() ;

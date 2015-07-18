@@ -587,8 +587,8 @@ Ext.define('Optima5.App',{
 			shortcutsView.refresh() ;
 			
 			// Refresh startmenu
-			me.desktop.taskbar.startMenu.menu.removeAll() ;
-			me.desktop.taskbar.startMenu.menu.add( newDesktopConfig.taskbarConfig.startConfig.menu ) ;
+			me.desktop.taskbar.startMenu.removeAll() ;
+			me.desktop.taskbar.startMenu.add( newDesktopConfig.taskbarConfig.startConfig.menu ) ;
 		},me,[]) ;
 	},
 	desktopReloadWallpaper: function() {
