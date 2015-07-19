@@ -99,6 +99,21 @@ Ext.onReady(function () {
 		}
 	});
 	
+	/*
+	 * Ext 5.1.1 : applyRoot if TreeStore::setRoot() called with NodeInterface
+	 */
+	Ext.data.TreeStore.override({
+		applyRoot: function(newRoot) {
+			newRoot = this.callOverridden(arguments) ;
+			
+			var me = this ;
+			if( newRoot && newRoot.isNode && newRoot.isRoot() ) {
+				newRoot.store = newRoot.treeStore = me;
+			}
+			return newRoot ;
+		}
+	});
+	
 	
 	
 	
