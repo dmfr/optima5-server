@@ -85,6 +85,20 @@ Ext.onReady(function () {
 		}
 	}) ;
 	
+	/*
+	 * Ext 5.1.1 : BufferedRenderer + Locking + GroupingSummary = bug on destroy if store updated 
+	 * https://www.sencha.com/forum/showthread.php?303291-Grid-BufferedRenderer-Locking-GroupingSummary-bug-on-destroy-if-store-updated
+	 * Seems GlobalEvent 'afterlayout' set in Ext.grid.locking.View::onUpdate is not consumed until final destroy (where it's too late to dig up records ?)
+	 */
+	Ext.grid.plugin.BufferedRenderer.override({
+		refreshSize: function() {
+			if( !this.store.data ) {
+				return ;
+			}
+			this.callOverridden(arguments) ;
+		}
+	});
+	
 	
 	
 	
