@@ -305,6 +305,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealVirtualPanel',{
 		if( this.saveOnDestroy ) {
 			this.saveOnDestroy = false ;
 			this.rhAbsSave() ;
+		} else {
+			this.destroy() ;	
 		}
 	}
 });

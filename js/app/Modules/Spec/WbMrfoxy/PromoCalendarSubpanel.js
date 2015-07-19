@@ -351,6 +351,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoCalendarSubpanel' ,{
 			eventsData.push(evt) ;
 		}
 		
+		if( !this.getSchedulerTree() ) {
+			return ;
+		}
 		this.getSchedulerTree().getEventStore().loadData( eventsData ) ;
 		
 		Ext.defer(function() {

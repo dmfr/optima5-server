@@ -45,6 +45,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 							}) ;
 						},
 						load: function(store) {
+							if( !me.rendered ) {
+								return ;
+							}
 							// why previous H4CK on PromoBrowserPanel ? : we need to make sure grid filters have been set -before- this call
 							// ... because show/hide column headers triggers headerCt getMenu() and this should not happen before FilterFeature::addevents
 							var headerCt = me.getComponent('pCenter').headerCt,
