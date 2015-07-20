@@ -57,8 +57,7 @@ Ext.define('Ext.ux.dams.ColorCombo', {
 						return (me.iconColorField ? true : false) ;
 					}
 				}
-			),
-			
+			)
 		});        
 		
 		me.callParent(arguments);    

@@ -36,5 +36,5 @@ Ext.define('Optima5.Ajax.Proxy',{
 		this.lastRequest = request;
 
 		return request;
-	},
+	}
 });

@@ -211,8 +211,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.ForecastCfgWhsePanel',{
 							children: [],
 							expanded: true,
 							node_type: 'UO',
-							uo_code: srcRecord.get('uo_code'),
-							
+							uo_code: srcRecord.get('uo_code')
 						}
 						break ;
 						
