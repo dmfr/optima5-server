@@ -114,6 +114,21 @@ Ext.onReady(function () {
 		}
 	});
 	
+	/*
+	 * Chrome 43 / Charts ? : draw problem
+	 */
+	Ext.chart.Chart.override({
+		initComponent: function() {
+			Ext.apply(this,{
+				animate: false
+			});
+			this.callOverridden(arguments);
+			this.on('afterrender', function(chart) {
+				Ext.defer(function(){chart.redraw();},100,this);
+			});
+		}
+	});
+	
 	
 	
 	
