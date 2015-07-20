@@ -105,5 +105,15 @@
 		"moduleCssSrc":"module-spec_dbs_embramach.css",
 		"moduleType":"sdomain",
 		"params": []
+	},{
+		"enabled":true,
+		"moduleId":"spec_abso_crm",
+		"backendModuleId":"crmbase",
+		"parentModuleId":"crmbase",
+		"moduleName":"AbsoKR CRM",
+		"moduleClass":"Optima5.Modules.Spec.AbsoCrm.AbsoCrmModule",
+		"moduleCssSrc":"module-spec_abso_crm.css",
+		"moduleType":"sdomain",
+		"params": []
 	}
 ]
