@@ -180,7 +180,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.LivePanel',{
 					layout: 'hbox',
 					defaults: {
 						iconAlign: 'top',
-						width: 80,
+						width: 90,
 						padding: 10
 					},
 					items:[{
@@ -214,7 +214,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.LivePanel',{
 					layout: 'hbox',
 					defaults: {
 						iconAlign: 'top',
-						width: 80,
+						width: 90,
 						padding: 10,
 						listeners: {
 							click: function(btn) {
@@ -316,12 +316,10 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.LivePanel',{
 					}],
 					listeners: {
 						beforeload: function(store,options) {
-							options.params = options.params || {};
 							if( this.getCurrentProd() != null ) {
-								var params = {
+								options.setParams({
 									filter_prod: this.getCurrentProd()
-								} ;
-								Ext.apply(options.params, params);
+								}) ;
 							}
 						},
 						load: Ext.emptyFn,

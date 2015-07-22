@@ -535,7 +535,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 		var filterSiteBtn = this.down('#btnSite'),
 			filterTeamBtn = this.down('#btnTeam') ;
 		
-		options.params = options.params || {};
 		var addParams = {} ;
 		if( filterSiteBtn.getNode() != null ) {
 			addParams['filter_site_entries'] = Ext.JSON.encode( filterSiteBtn.getLeafNodesKey() ) ;
@@ -543,7 +542,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 		if( filterSiteBtn.getNode() != null ) {
 			addParams['filter_team_entries'] = Ext.JSON.encode( filterTeamBtn.getLeafNodesKey() ) ;
 		}
-		Ext.apply(options.params, addParams);
+		options.setParams(addParams) ;
 	},
 	onLoad: function(store) {
 		var grid = this.down('grid') ;

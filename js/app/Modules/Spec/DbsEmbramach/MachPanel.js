@@ -20,8 +20,7 @@ Ext.define('DbsEmbramachMachFlowRowModel', {
 Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 	extend:'Ext.panel.Panel',
 	requires: [
-		'Ext.ux.chart.series.KPIGauge', 'Ext.ux.chart.axis.KPIGauge',
-		'Ext.ux.grid.FiltersFeature'
+		'Ext.ux.chart.series.KPIGauge', 'Ext.ux.chart.axis.KPIGauge'
 	],
 	
 	flowCode: null,
@@ -219,10 +218,25 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 			dataIndex: 'feedback_txt',
 			width: 110
 		}] ;
+		
+		var sortTypeFn = function(o1) {
+			var v1 = '' ;
+			if( o1 ) {
+				if( !Ext.isEmpty(o1.ACTUAL_dateSql) ) {
+					v1 = o1.ACTUAL_dateSql ;
+				} else if( !Ext.isEmpty(o1.ETA_dateSql) ) {
+					v1 = o1.ETA_dateSql ;
+				} else {
+					v1 = '' ;
+				}
+			}
+			return v1 ;
+		};
 		Ext.Array.each( jsonResponse.data.flow_milestone, function(milestone) {
 			pushModelfields.push({
 				name: 'milestone_'+milestone.milestone_code,
-				type: 'auto'
+				type: 'auto',
+				sortType: sortTypeFn
 			}) ;
 			columns.push({
 				text: milestone.milestone_txt,
@@ -232,38 +246,28 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 				align: 'center',
 				filter: {
 					type: 'date',
-					dateFormat: 'Y-m-d'
-				},
-				doSort: function(state) {
-						var ds = this.up('grid').store;
-						var field = this.getSortParam();
-						ds.sort({
-							property: field,
-							direction: state,
-							sorterFn: function(r1, r2) {
-								var o1,o2,v1,v2 ;
-								o1 = r1.get(field);
-								o2 = r2.get(field);
-								
-								if( !Ext.isEmpty(o1.ACTUAL_dateSql) ) {
-									v1 = o1.ACTUAL_dateSql ;
-								} else if( !Ext.isEmpty(o1.ETA_dateSql) ) {
-									v1 = o1.ETA_dateSql ;
-								} else {
-									v1 = '' ;
-								}
-								if( !Ext.isEmpty(o2.ACTUAL_dateSql) ) {
-									v2 = o2.ACTUAL_dateSql ;
-								} else if( !Ext.isEmpty(o2.ETA_dateSql) ) {
-									v2 = o2.ETA_dateSql ;
-								} else {
-									v2 = '' ;
-								}
-								
-								// transform v1 and v2 here
-								return v1 > v2 ? 1 : (v1 < v2 ? -1 : 0);
+					dateFormat: 'Y-m-d',
+					convertDateOnly: function(o1) {
+						// HACK : overridding private method
+						var v1 ;
+						if( Ext.isDate(o1) ) {
+							v1 = o1 ;
+						} else if( Ext.isObject(o1) ) {
+							if( !Ext.isEmpty(o1.ACTUAL_dateSql) ) {
+								v1 = o1.ACTUAL_dateSql ;
+							} else if( !Ext.isEmpty(o1.ETA_dateSql) ) {
+								v1 = o1.ETA_dateSql ;
+							} else {
+								v1 = null ;
 							}
-						});
+						}
+						var result = null;
+						if (v1) {
+							var v2 = new Date(v1) ;
+							result = v2.getTime();
+						}
+						return result;
+					}
 				}
 			});
 		}) ;
@@ -295,18 +299,10 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 				model: this.tmpModelName,
 				data: []
 			},
-			columns:columns,
+			columns: columns,
 			plugins: [{
-				ptype: 'bufferedrenderer'
+				ptype: 'uxgridfilters'
 			}],
-			features: [{
-				ftype: 'filters',
-				encode: true,
-				autoReload: false,
-				local: true,
-				applyingState: true
-			}],
-			filtersUpdate: Ext.create('Ext.util.DelayedTask', this.applyFilters, this),
 			viewConfig: {
 				getRowClass: function(record) {
 					if( record.get('status_closed') ) {
@@ -314,14 +310,6 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 					}
 				},
 				enableTextSelection: true
-			},
-			listeners: {
-				filterupdate: function(filters) {
-					var grid = filters.getGridPanel() ;
-					grid.filtersUpdate.cancel() ;
-					grid.filtersUpdate.delay(500) ;
-				},
-				scope: this
 			},
 			_prioMap: prioMap
 		} ;
@@ -454,11 +442,11 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 			pGridStore = pGrid.getStore() ;
 		if( doReset ) {
 			pGridStore.sorters.clear() ;
+			pGridStore.clearFilter() ;
 			pGrid.filters.clearFilters() ;
 		}
 		
 		pGridStore.loadData( jsonResponse.data_grid ) ;
-		this.applyFilters() ;
 		
 		Ext.Object.each( jsonResponse.data_gauges, function( prioId, value ) {
 			var pGauge = pGauges.down('#gauge_'+prioId) ;
@@ -477,78 +465,6 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 		}) ;
 		
 		pBanner.update({maj_txt: jsonResponse.maj_date}) ;
-	},
-	
-	applyFilters: function() {
-		var pGrid = this.down('#pGrid'),
-			pGridStore = pGrid.getStore(),
-			pGridView = pGrid.getView() ;
-		
-		pGridStore.clearFilter() ;
-		
-		
-		var filterData = pGrid.filters.getFilterData() ;
-		pGridStore.filterBy(function(record){
-			var passed = true ;
-			Ext.Array.each( filterData, function(filter) {
-				switch(filter.data.type) {
-					case 'list' :
-						if( !Ext.Array.contains(filter.data.value,record.get(filter.field)) ) {
-							passed = false ;
-						}
-						break ;
-						
-					case 'string' :
-						var value = record.get(filter.field) ;
-						if( !Ext.isString(value) ) {
-							value = value.toString() ;
-						}
-						if( !value.match(new RegExp(filter.data.value, "i")) ) {
-							passed = false ;
-						}
-						break ;
-						
-					case 'date' :
-						var valueObj = record.get(filter.field),
-							value ;
-						if( !Ext.isEmpty(valueObj.ACTUAL_dateSql) ) {
-							value = valueObj.ACTUAL_dateSql ;
-						} else {
-							value = valueObj.ETA_dateSql ;
-						}
-						if( !Ext.isEmpty(value) ) {
-							value = value.substr(0,10) ;
-						}
-						switch( filter.data.comparison ) {
-							case 'eq' :
-								if( !(value == filter.data.value) ) {
-									passed = false ;
-								}
-								break ;
-								
-							case 'gt' :
-								console.log(filter.data.value + '    '  +value) ;
-								if( !Ext.isEmpty(value) && !(value >= filter.data.value) ) {
-									passed = false ;
-								}
-								break ;
-								
-							case 'lt' :
-								if( Ext.isEmpty(value) ) {
-									passed = false ;
-								}
-								if( !(value <= filter.data.value) ) {
-									passed = false ;
-								}
-								break ;
-						}
-						break ;
-				}
-			}) ;
-			return passed ;
-		});
-		
-		pGridView.refresh() ;
 	},
 	
 	showLoadmask: function() {

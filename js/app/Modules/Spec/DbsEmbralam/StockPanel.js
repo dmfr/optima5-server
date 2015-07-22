@@ -299,13 +299,11 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.StockPanel',{
 		var treepanel = this.down('treepanel') ;
 			selectedNodes = treepanel.getView().getSelectionModel().getSelection() ;
 		
-		options.params = options.params || {};
 		if( selectedNodes.length == 1 && !(selectedNodes[0].isRoot()) ) {
-			var params = {
+			options.setParams({
 				filter_treenodeKey: selectedNodes[0].getId()
-			} ;
+			}) ;
 		}
-		Ext.apply(options.params, params);
 	},
 	onItemClick: function( view, record, itemNode, index, e ) {
 		var cellNode = e.getTarget( view.getCellSelector() ),
