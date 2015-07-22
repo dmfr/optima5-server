@@ -611,8 +611,4 @@
         Ext.apply(Sch, {
             VERSION: "3.0.5"
         });
-        if (Ext.versions.extjs.isLessThan(a)) {
-            var b = console;
-            b && b.log("The Ext JS version you are using needs to be updated to at least " + a)
-        }
     });
