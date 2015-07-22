@@ -72,6 +72,8 @@ Ext.define('Ext.ux.grid.filters.Filters',{
 					header.setText( header.origText ) ;
 				}
 			},this) ;
+			headerCt.updateLayout() ;
 		}
+		
 	}
 });
