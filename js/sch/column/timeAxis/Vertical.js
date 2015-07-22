@@ -14,21 +14,21 @@ Ext.define("Sch.column.timeAxis.Vertical", {
     totalBorderWidth: null,
     enableLocking: false,
     locked: true,
-    initComponent: function () {
+    initComponent: function() {
         this.callParent(arguments);
         this.tdCls = (this.tdCls || "") + " sch-verticaltimeaxis-cell";
         this.scope = this;
         this.totalBorderWidth = this.cellTopBorderWidth + this.cellBottomBorderWidth
     },
-    afterRender: function () {
+    afterRender: function() {
         this.callParent(arguments);
         var a = this.up("panel");
         a.getView().on("resize", this.onContainerResize, this)
     },
-    onContainerResize: function (c, b, a) {
+    onContainerResize: function(c, b, a) {
         this.timeAxisViewModel.update(a - 21)
     },
-    renderer: function (d, b, a, e) {
+    renderer: function(d, b, a, e) {
         var c = this.timeAxisViewModel.getBottomHeader();
         b.style = "height:" + (this.timeAxisViewModel.getTickWidth() - this.totalBorderWidth) + "px";
         if (c.renderer) {

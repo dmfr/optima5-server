@@ -5,24 +5,36 @@
             idProperty: "Id"
         } : null,
         nameField: "Name",
-        customizableFields: ["Id", {
+        customizableFields: [{
             name: "Name",
             type: "string"
         }],
-        getEventStore: function () {
-            return this.stores[0] && this.stores[0].eventStore || this.parentNode && this.parentNode.getEventStore()
+        getInternalId: function() {
+            return this.internalId
         },
-        getEvents: function (d) {
-            var c = [],
-                e, f = this.getId() || this.internalId;
-            d = d || this.getEventStore();
-            for (var b = 0, a = d.getCount(); b < a; b++) {
-                e = d.getAt(b);
-                if (e.data[e.resourceIdField] === f) {
-                    c.push(e)
-                }
-            }
-            return c
+        getResourceStore: function() {
+            return this.joined && this.joined[0]
+        },
+        getEventStore: function() {
+            var a = this.getResourceStore();
+            return a && a.getEventStore() || this.parentNode && this.parentNode.getEventStore()
+        },
+        getAssignmentStore: function() {
+            var a = this.getEventStore();
+            return a && a.getAssignmentStore()
+        },
+        getEvents: function(a) {
+            var b = this;
+            a = a || b.getEventStore();
+            return a && a.getEventsForResource(b) || []
+        },
+        getAssignments: function() {
+            var b = this,
+                a = b.getEventStore();
+            return a && a.getAssignmentsForResource(b)
+        },
+        isPersistable: function() {
+            var a = this.parentNode;
+            return !a || !a.phantom || (a.isRoot && a.isRoot())
         }
     });
-

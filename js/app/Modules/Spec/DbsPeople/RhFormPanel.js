@@ -11,7 +11,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhFormPanel',{
 	
 	initComponent: function() {
 		var me = this ;
-		me.addEvents('saved') ;
 		
 		var formItems = [{
 			xtype:'textfield',
@@ -88,6 +87,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhFormPanel',{
 		},this) ;
 		formItems.push({
 			xtype:'fieldset',
+			cls: 'op5-spec-dbspeople-rhformpanel-fieldset',
 			title: 'Situation actuelle (instant T)',
 			defaults: {
 				margin: 2,

@@ -52,7 +52,7 @@ Ext.define('Ext.calendar.form.field.CalendarCombo', {
     afterRender: function(){
         this.callParent(arguments);
         
-        this.wrap = this.el.down('.x-form-item-body');
+        this.wrap = this.el.down('.x-form-text-wrap');
         this.wrap.addCls('ext-calendar-picker');
         
         this.icon = Ext.core.DomHelper.append(this.wrap, {

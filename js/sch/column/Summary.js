@@ -14,18 +14,18 @@ Ext.define("Sch.column.Summary", {
     dataIndex: "_sch_not_used",
     timeAxis: null,
     eventStore: null,
-    constructor: function (a) {
+    constructor: function(a) {
         this.scope = this;
         this.callParent(arguments)
     },
-    beforeRender: function () {
+    beforeRender: function() {
         this.callParent(arguments);
         var a = this.up("tablepanel[lockable=true]");
         this.timeAxis = a.getTimeAxis();
         a.lockedGridDependsOnSchedule = true;
         this.eventStore = a.getEventStore()
     },
-    renderer: function (j, a, g) {
+    renderer: function(j, a, g) {
         var h = this.timeAxis,
             e = this.eventStore,
             f = h.getStart(),
@@ -48,10 +48,10 @@ Ext.define("Sch.column.Summary", {
             return b + " " + Sch.util.Date.getShortNameOfUnit("MINUTE")
         }
     },
-    calculate: function (c, g, d) {
+    calculate: function(c, g, d) {
         var e = 0,
             b, a, f = Sch.util.Date;
-        Ext.each(c, function (h) {
+        Ext.each(c, function(h) {
             b = h.getStartDate();
             a = h.getEndDate();
             if (f.intersectSpans(g, d, b, a)) {

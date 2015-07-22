@@ -3,7 +3,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 	
 	requires : [
 		'Ext.ux.ComponentRowExpander',
-		'Ext.ux.grid.FiltersFeature',
+		'Ext.ux.grid.filters.Filters',
 		'Optima5.Modules.Spec.WbMrfoxy.PromoListRowPanel'
 	],
 	
@@ -26,6 +26,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 				store: {
 					model: 'WbMrfoxyPromoModel',
 					autoLoad: false,
+					remoteFilter: true,
 					proxy: this.optimaModule.getConfiguredAjaxProxy({
 						extraParams : {
 							_moduleId: 'spec_wb_mrfoxy',
@@ -33,21 +34,22 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 						},
 						reader: {
 							type: 'json',
-							root: 'data'
+							rootProperty: 'data'
 						}
 					}),
 					listeners: {
 						beforeload: function(store,options) {
-							options.params = options.params || {};
-							var params = {
+							options.setParams({
 								filter_country: me.parentBrowserPanel.filterCountry,
 								filter_isProd: (me.parentBrowserPanel.filterIsProd ? 1:0)
-							} ;
-							Ext.apply(options.params, params);
+							}) ;
 						},
 						load: function(store) {
+							if( !me.rendered ) {
+								return ;
+							}
 							// why previous H4CK on PromoBrowserPanel ? : we need to make sure grid filters have been set -before- this call
-							// ... because show/hide column headers triggers headerCt getMenu() and this should not happen before FilterFeature::addEvents
+							// ... because show/hide column headers triggers headerCt getMenu() and this should not happen before FilterFeature::addevents
 							var headerCt = me.getComponent('pCenter').headerCt,
 								isProd = me.parentBrowserPanel.filterIsProd ;
 							headerCt.down('[isColumnStatus]')[isProd ? 'show' : 'hide']();
@@ -56,6 +58,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 						scope: me
 					}
 				},
+				bufferedRenderer: false,
 				progressRenderer: (function () {
 					return function(progress,text) {
 					};
@@ -276,11 +279,9 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 						hideable: true
 					}]
 				},
-				features: [{
-					ftype: 'filters',
-					encode: true
-				}],
 				plugins: [{
+					ptype: 'uxgridfilters'
+				},{
 					ptype:'cmprowexpander',
 					pluginId: 'rowexpander',
 					expandOnDblClick: false,
@@ -324,6 +325,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 						render: function(gridview) {
 							gridview.ddel = Ext.get(document.createElement('div'));
 							gridview.ddel.addCls(Ext.baseCSSPrefix + 'grid-dd-wrap');
+							Ext.getBody().appendChild( gridview.ddel );
 							
 							Ext.create('Ext.dd.DragZone',gridview.getEl(),{
 								ddGroup: 'PromoToBenchmark'+me.getId(),
@@ -395,8 +397,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 					itemcontextmenu : function(view, record, item, index, event) {
 						Ext.create('Ext.menu.Menu',{
 							listeners: {
-								hide: function(m) {
-									m.destroy() ;
+								hide: function(menu) {
+									Ext.defer(function(){menu.destroy();},10) ;
 								}
 							},
 							items : [{
@@ -553,8 +555,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoListSubpanel',{
 					itemcontextmenu : function(view, record, item, index, event) {
 						Ext.create('Ext.menu.Menu',{
 							listeners: {
-								hide: function(m) {
-									m.destroy() ;
+								hide: function(menu) {
+									Ext.defer(function(){menu.destroy();},10) ;
 								}
 							},
 							items : [{

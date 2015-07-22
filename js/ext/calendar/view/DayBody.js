@@ -23,31 +23,23 @@ Ext.define('Ext.calendar.view.DayBody', {
     //private
     dayColumnElIdDelimiter: '-day-col-',
 
-    //private
-    initComponent: function() {
-        this.callParent(arguments);
+    /**
+     * @event eventresize
+     * Fires after the user drags the resize handle of an event to resize it
+     * @param {Ext.calendar.view.DayBody} this
+     * @param {Ext.calendar.EventRecord} rec The {@link Ext.calendar.EventRecord record} for the event that was resized
+     * containing the updated start and end dates
+     */
 
-        this.addEvents({
-            /**
-             * @event eventresize
-             * Fires after the user drags the resize handle of an event to resize it
-             * @param {Ext.calendar.view.DayBody} this
-             * @param {Ext.calendar.EventRecord} rec The {@link Ext.calendar.EventRecord record} for the event that was resized
-             * containing the updated start and end dates
-             */
-            eventresize: true,
-            /**
-             * @event dayclick
-             * Fires after the user clicks within the day view container and not on an event element
-             * @param {Ext.calendar.view.DayBody} this
-             * @param {Date} dt The date/time that was clicked on
-             * @param {Boolean} allday True if the day clicked on represents an all-day box, else false. Clicks within the 
-             * DayBodyView always return false for this param.
-             * @param {Ext.core.Element} el The Element that was clicked on
-             */
-            dayclick: true
-        });
-    },
+    /**
+     * @event dayclick
+     * Fires after the user clicks within the day view container and not on an event element
+     * @param {Ext.calendar.view.DayBody} this
+     * @param {Date} dt The date/time that was clicked on
+     * @param {Boolean} allday True if the day clicked on represents an all-day box, else false. Clicks within the 
+     * DayBodyView always return false for this param.
+     * @param {Ext.core.Element} el The Element that was clicked on
+     */
 
     //private
     initDD: function() {
@@ -107,12 +99,12 @@ Ext.define('Ext.calendar.view.DayBody', {
         defer = defer || (Ext.isIE || Ext.isOpera);
         if (defer) {
             Ext.defer(function() {
-                this.el.scrollTo('top', y, false);
+                this.el.scrollTo('top', y, false); //DAMS
                 this.scrollReady = true;
             }, 10, this);
         }
         else {
-            this.el.scrollTo('top', y, false);
+            this.el.scrollTo('top', y, false); //DAMS
             this.scrollReady = true;
         }
     },
@@ -184,7 +176,7 @@ Ext.define('Ext.calendar.view.DayBody', {
         if (!this.eventTpl) {
             this.eventTpl = !(Ext.isIE || Ext.isOpera) ?
             new Ext.XTemplate(
-                '<div id="{_elId}" class="{_selectorCls} ext-cal-evt ext-cal-evr {_doneCls}" style="left: {_left}%; width: {_width}%; top: {_top}px; height: {_height}px; background-color:{_colorHex};">',
+                '<div id="{_elId}" class="{_selectorCls} {_doneCls} ext-cal-evt ext-cal-evr" style="left: {_left}%; width: {_width}%; top: {_top}px; height: {_height}px; background-color:{_colorHex};">',
                 '<div class="ext-evt-bd">', this.getEventBodyMarkup(), '</div>',
                 '<div class="ext-evt-rsz"><div class="ext-evt-rsz-h">&#160;</div></div>',
                 '</div>'
@@ -224,7 +216,7 @@ Ext.define('Ext.calendar.view.DayBody', {
 
             tpl = !(Ext.isIE || Ext.isOpera) ?
             new Ext.XTemplate(
-                '<div id="{_elId}" class="{_selectorCls} {spanCls} ext-cal-evt ext-cal-evr {_doneCls}" style="left: {_left}%; width: {_width}%; top: {_top}px; height: {_height}px; background:{_colorHex};">',
+                '<div id="{_elId}" class="{_selectorCls} {_doneCls} {spanCls} ext-cal-evt ext-cal-evr" style="left: {_left}%; width: {_width}%; top: {_top}px; height: {_height}px; background:{_colorHex};">',
                 body,
                 '</div>'
             )
@@ -257,7 +249,7 @@ Ext.define('Ext.calendar.view.DayBody', {
         data._elId = selector + (evt._weekIndex ? '-' + evt._weekIndex: '');
         data._isRecurring = evt.Recurrence && evt.Recurrence != '';
         data._isReminder = evt[M.Reminder.name] && evt[M.Reminder.name] != '';
-        data._doneCls = evt[M.IsDone.name] ? 'ext-evt-done' : '' ;
+		  data._doneCls = evt[M.IsDone.name] ? 'ext-evt-done' : '' ;
         var title = evt[M.Title.name];
         data.Title = (!title || title.length == 0 ? '(No title)': title) ;
 
@@ -323,7 +315,7 @@ Ext.define('Ext.calendar.view.DayBody', {
                 });
             }
         }
-
+        
         // overlapping event pre-processing loop
         i = j = overlapCols = prevCol = 0;
         l = evts.length;
@@ -361,6 +353,7 @@ Ext.define('Ext.calendar.view.DayBody', {
             }
             markup = this.getEventTemplate().apply(evt);
             target = this.id + '-day-col-' + Ext.Date.format(evts[i].date, 'Ymd');
+            //Ext.get(target).select('*').destroy(); // BUG ?
 
             Ext.core.DomHelper.append(target, markup);
         }

@@ -4,7 +4,6 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoNAgreementsRowPanel',{
 
 	initComponent: function() {
 		var me = this ;
-		me.addEvents('proceed') ;
 		
 		if( (me.optimaModule) instanceof Optima5.Module ) {} else {
 			Optima5.Helper.logError('Spec:WbMrfoxy:PromoNAgreementsRowPanel','No module reference ?') ;
@@ -26,7 +25,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoNAgreementsRowPanel',{
 				},
 				reader: {
 					type: 'json',
-					root: 'data'
+					rootProperty: 'data'
 				}
 			})
 		}) ;
@@ -79,7 +78,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoNAgreementsRowPanel',{
 								items : contextMenuItems,
 								listeners: {
 									hide: function(menu) {
-										menu.destroy() ;
+										Ext.defer(function(){menu.destroy();},10) ;
 									}
 								}
 							}) ;
@@ -169,7 +168,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoNAgreementsRowPanel',{
 								items : contextMenuItems,
 								listeners: {
 									hide: function(menu) {
-										menu.destroy() ;
+										Ext.defer(function(){menu.destroy();},10) ;
 									}
 								}
 							}) ;

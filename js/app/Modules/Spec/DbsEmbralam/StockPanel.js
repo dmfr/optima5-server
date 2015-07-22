@@ -148,7 +148,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.StockPanel',{
 							},
 							reader: {
 								type: 'json',
-								root: 'data'
+								rootProperty: 'data'
 							}
 						}),
 						listeners: {
@@ -491,7 +491,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.StockPanel',{
 							},
 							reader: {
 								type: 'json',
-								root: 'data'
+								rootProperty: 'data'
 							}
 						}),
 						sorters:[{

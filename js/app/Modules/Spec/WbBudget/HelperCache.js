@@ -15,7 +15,6 @@ Ext.define('Optima5.Modules.Spec.WbBudget.HelperCache',{
 	constructor: function(config) {
 		//build store
 		var me = this ;
-		me.addEvents('ready') ;
 		me.mixins.observable.constructor.call(this, config);
 	},
 	init: function(optimaModule) {

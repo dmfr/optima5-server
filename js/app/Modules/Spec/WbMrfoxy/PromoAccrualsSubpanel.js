@@ -3,7 +3,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoAccrualsSubpanel',{
 	
 	requires : [
 		'Ext.ux.ComponentRowExpander',
-		'Ext.ux.grid.FiltersFeature',
+		'Ext.ux.grid.filters.Filters',
 		'Optima5.Modules.Spec.WbMrfoxy.PromoBillbackGrid'
 	],
 	
@@ -26,6 +26,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoAccrualsSubpanel',{
 				store: {
 					model: 'WbMrfoxyPromoModel',
 					autoLoad: false,
+					remoteFilter: true,
 					proxy: this.optimaModule.getConfiguredAjaxProxy({
 						extraParams : {
 							_moduleId: 'spec_wb_mrfoxy',
@@ -33,17 +34,15 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoAccrualsSubpanel',{
 						},
 						reader: {
 							type: 'json',
-							root: 'data'
+							rootProperty: 'data'
 						}
 					}),
 					listeners: {
 						beforeload: function(store,options) {
-							options.params = options.params || {};
-							var params = {
+							options.setParams({
 								filter_country: me.parentBrowserPanel.filterCountry,
 								filter_isProd: 1
-							} ;
-							Ext.apply(options.params, params);
+							}) ;
 						},
 						load: function(store) {
 						},
@@ -200,9 +199,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoAccrualsSubpanel',{
 						menuDisabled:false
 					}]
 				},
-				features: [{
-					ftype: 'filters',
-					encode: true
+				plugins: [{
+					ptype: 'uxgridfilters'
 				}],
 				listeners: {
 					itemclick: function(view, record, item, index, event) {
@@ -224,7 +222,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoAccrualsSubpanel',{
 							items : contextMenuItems,
 							listeners: {
 								hide: function(menu) {
-									menu.destroy() ;
+									Ext.defer(function(){menu.destroy();},10) ;
 								}
 							}
 						}) ;

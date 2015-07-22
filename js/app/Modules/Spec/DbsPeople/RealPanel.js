@@ -122,7 +122,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanelCellEditing',{
 		if( !editingContext ) {
 			return ;
 		}
-		view = columnHeader.getOwnerHeaderCt().view ;
+		view = columnHeader.getRootHeaderCt().view ;
 		
 		editorField = columnHeader.getEditor() ;
 		if( editorField && editorField.listKeyNav && editorField.listKeyNav.map.isEnabled() ) {
@@ -333,6 +333,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		});
 		this.preInit = 2 ;
 		this.callParent() ;
+		this.on('beforedestroy',this.onBeforeDestroy) ;
 	},
 	onPreInit: function() {
 		var me = this ;
@@ -610,6 +611,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 						editable: true,
 						typeAhead: true,
 						selectOnFocus: true,
+						autoSelect: true,
 						displayField: 'text',
 						displayTpl: [
 							'<tpl for=".">',
@@ -642,28 +644,27 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 					dateHash: 'd_'+dStr,
 					dateSql: dSql,
 					width:50,
-					editor: { xtype: 'numberfield', minValue: 0, keyNavEnabled: false },
+					editor: { xtype: 'numberfield', minValue: 0, keyNavEnabled: false, selectOnFocus: true },
 					renderer: lengthRenderer,
-					summaryType: function(rows, dataIndex) {
+					summaryType: function(records,values) {
 						var sum = 0,
-						rowsLn = rows.length,
+						valuesLn = values.length,
 						row, obj ;
-						for( var i=0 ; i<rowsLn ; i++ ) {
-						row = rows[i] ;
-						obj = row.get(dataIndex) ;
-						if( Ext.isEmpty(obj) ) {
-						continue ;
-						}
-						if( obj.statusIsVirtual ) {
-						sum += obj.stdValue ;
-						} else {
-						sum += obj.value ;
-						}
+						for( var i=0 ; i<valuesLn ; i++ ) {
+							obj = values[i] ;
+							if( Ext.isEmpty(obj) ) {
+								continue ;
+							}
+							if( obj.statusIsVirtual ) {
+								sum += obj.stdValue ;
+							} else {
+								sum += obj.value ;
+							}
 						}
 						return sum ;
 					},
-					summaryRenderer: function(value,metaData) {
-						metaData.tdCls += ' op5-spec-dbspeople-realsum-value' ;
+					summaryRenderer: function(value, summaryData, field, meta) {
+						meta.tdCls += ' op5-spec-dbspeople-realsum-value' ;
 						if( value == 0 ) {
 						return '' ;
 						}
@@ -673,6 +674,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			}) ;
 		}
 		
+		Ext.ux.dams.ModelManager.unregister( this.tmpModelName ) ;
 		Ext.define(this.tmpModelName, {
 			extend: 'DbsPeopleRealRowModel',
 			fields: pushModelfields
@@ -937,7 +939,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		if( store.getCount() == 0 ) {
 			return ;
 		}
-		grid.getView().refresh() ; // HACK
 	},
 	onColumnGroupBy: function( groupField ) {
 		var grid = this.child('grid'),
@@ -946,12 +947,13 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		grid.lockedGrid.getPlugin('bufferedRenderer').scrollTo(0) ;
 		store.group( groupField, 'ASC' ) ;
 	},
-	onGridGroupChange: function( gridStore, groupers ) {
+	onGridGroupChange: function( gridStore, grouper ) {
 		var grid = this.child('grid'),
 			 groupFields = [] ;
-		groupers.each( function(grouper) {
-			groupFields.push(grouper.property) ;
-		}) ;
+		
+		if( grouper ) {
+			groupFields.push( grouper.getProperty() ) ;
+		}
 		Ext.Array.each( grid.headerCt.query('[_groupBy]'), function(col) {
 			if( col.hideable ) {
 				return ;
@@ -964,7 +966,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				col.show() ;
 			}
 		}) ;
-		grid.getView().refresh() ; // HACK
 	},
 	
 	
@@ -997,7 +998,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		var grid = this.child('grid'),
 			normalGrid = grid.normalGrid, // lockedGrid private property
 			cellediting = normalGrid.getPlugin('cellediting') ;
-		if( cellediting.editing || this.realAdvancedPanel != null ) {
+		if( cellediting.editing || this.floatingPanel != null ) {
 			// some editing currently
 			return false ;
 		}
@@ -1041,7 +1042,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		var me = this,
 			jsonResponse = Ext.JSON.decode(response.responseText) ;
 		
-		var grid = me.child('grid') ;
+		var grid = me.child('grid'),
 			store = grid.getStore(),
 			filter_site = me.down('#btnSite').getNode(),
 			filter_team = me.down('#btnTeam').getNode() ;
@@ -1075,22 +1076,25 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		// peopledayStore + adapter (re)init
 		this.peopledayStore = Ext.create('Ext.data.Store',{
 			model: 'DbsPeoplePeopledayModel',
-			data: jsonResponse.data,
 			proxy:{
-				type:'memory'
+				type:'memory',
+				reader: {
+					type: 'json'
+				}
 			},
 			getById: function(id) { //HACK
 				return this.idMap[id];
 			},
 			listeners:{
-				load: function(store,records,successful) {
+				datachanged: function(store) {
 					store.idMap = {};
-					Ext.Array.forEach(records, function(record) {
+					store.each(function(record) {
 						store.idMap[record.getId()] = record;
 					});
 				}
 			}
 		}) ;
+		this.peopledayStore.loadRawData(jsonResponse.data) ;
 		this.gridAdapterInit() ;
 		store.group() ;
 		
@@ -1120,7 +1124,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			 store = grid.getStore(),
 			 dateMap = this.gridAdapterGetDateMap() ;
 		
-		store.suspendEvents() ; // HACK: suspendingEvents on bufferedgrid'store is dangerous
+		store.suspendEvents(true) ; // HACK: suspendingEvents on bufferedgrid'store is dangerous
 		
 		// mise à zero de toutes les 'cases' concernées par ce record (people + date)
 		var dateSql = peopledayRecord.get('date_sql'),
@@ -1198,7 +1202,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		if( gridRecordsToAdd.length > 0 ) { // more than 1 => alt warehouses and possible inserts
 			store.filter() ;
 		}
-		grid.getView().refresh() ; //HACK
 	},
 	gridAdapterGridFilter: function( gridData ) {
 		var filterBtn_site = this.down('#btnSite'),
@@ -1463,7 +1466,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			case 'combobox' :
 				editorField.on('focus',function(editorField) {
 					editorField.setValue(valueObj._editorValue) ;
-					editorField.focusInput() ;
 				},this,{single:true}) ;
 				break ;
 			case 'numberfield' :
@@ -1502,10 +1504,12 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		}
 		
 		var editorField = editEvent.column.getEditor(),
-			editorValue ;
+			editorValue = (editorField ? editorField.getValue() : null) ;
+		if( !editorValue ) {
+			return false ;
+		}
 		switch( editorField.getXType() ) {
 			case 'combobox' :
-				editorValue = editorField.getValue() ;
 				switch( editorValue.split(':')[0] ) {
 					case 'ABS' :
 						var absCode = editorValue.split(':')[1] ;
@@ -1543,7 +1547,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				break ;
 				
 			case 'numberfield' :
-				editorValue = editorField.getValue() ;
 				if( !Ext.isNumeric(editorValue) ) {
 					return false ;
 				}
@@ -1603,14 +1606,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			tools: [{
 				type: 'close',
 				handler: function(e, t, p) {
-					var checkResult = p.ownerCt.doCheckBeforeSave() ;
-					if( !Ext.isEmpty(checkResult) ) {
-						Ext.MessageBox.alert('Erreur',checkResult) ;
-						return ;
-					}
-					
-					p.ownerCt.doSave() ;
-					p.ownerCt.destroy();
+					p.ownerCt.doQuit();
 				},
 				scope: this
 			}]
@@ -1625,7 +1621,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 			this.gridAdapterUpdatePeopledayRecord( realAdvancedPanel.peopledayRecord ) ;
 			this.remoteSavePeopledayRecord( realAdvancedPanel.peopledayRecord ) ;
 			me.getEl().unmask() ;
-			me.realAdvancedPanel = null ;
+			this.floatingPanel = null ;
 			
 			if( me.openVirtualAfterPopup ) {
 				me.openVirtual( realAdvancedPanel.peopledayRecord, realAdvancedPanel.gridRecord, realAdvancedPanel.elXY ) ;
@@ -1641,7 +1637,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		}
 		Optima5.Helper.floatInsideParent( realAdvancedPanel ) ;
 		
-		me.realAdvancedPanel = realAdvancedPanel ;
+		me.floatingPanel = realAdvancedPanel ;
 	},
 	
 	
@@ -1676,7 +1672,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				},
 				scope: this
 			}],
-			data: {
+			cfgData: {
 				date_sql: dSql,
 				filter_site: (filter_whses ? filterBtn_site.getValue() : null),
 				filter_team: (filter_teams ? filterBtn_team.getValue() : null),
@@ -1686,10 +1682,13 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		
 		summaryPanel.on('destroy',function(summaryPanel) {
 			this.getEl().unmask() ;
+			this.floatingPanel = null ;
 		},this,{single:true}) ;
 		
 		summaryPanel.show();
 		summaryPanel.getEl().alignTo(this.getEl(), 'c-c?');
+		
+		this.floatingPanel = summaryPanel ;
 	},
 	
 	
@@ -1781,7 +1780,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 				},
 				scope: this
 			}],
-			data: {
+			cfgData: {
 				actionDay: postParams._subaction,
 				date_sql: postParams.date_sql,
 				filter_site_txt: postParams.filter_site_txt,
@@ -1793,6 +1792,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		
 		validConfirmPanel.on('destroy',function(validConfirmPanel) {
 			this.getEl().unmask() ;
+			this.floatingPanel = null ;
 		},this,{single:true}) ;
 		
 		validConfirmPanel.on('submit',function(validConfirmPanel) {
@@ -1820,6 +1820,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 		
 		validConfirmPanel.show();
 		validConfirmPanel.getEl().alignTo(this.getEl(), 'c-c?');
+		
+		this.floatingPanel = validConfirmPanel ;
 	},
 	handleExceptionDay: function( dSql, trueOrFalse ) {
 		this.showLoadmask() ;
@@ -1949,12 +1951,21 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealPanel',{
 	},
 	
 	handleQuit: function() {
+		var grid = this.child('grid'),
+			normalGrid = grid.normalGrid, // lockedGrid private property
+			cellediting = normalGrid.getPlugin('cellediting') ;
+		if( cellediting.editing ) {
+			cellediting.completeEdit() ;
+		}
 		this.destroy() ;
 	},
 	
-	onDestroy: function() {
-		if( this.printFrame ) {
-			this.printFrame.destroy() ;
+	onBeforeDestroy: function(pnl) {
+		if( pnl.floatingPanel ) {
+			pnl.floatingPanel.destroy() ;
+		}
+		if( pnl.printFrame ) {
+			pnl.printFrame.destroy() ;
 		}
 	}
 });

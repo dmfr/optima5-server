@@ -257,6 +257,13 @@ Ext.define('Optima5.Modules.CrmBase.DataFormPanel' ,{
 					});
 					break ;
 				
+				case 'bool' :
+				case 'boolean' :
+					Ext.apply( colCfg, {
+						editor:{ xtype:'checkboxfield' }
+					});
+					break ;
+				
 				case 'number' :
 					Ext.apply( colCfg, {
 						editor:{ xtype:'numberfield', decimalPrecision:3, allowBlank: !(field.is_header=='O' || field.is_mandatory=='O') }
@@ -292,7 +299,7 @@ Ext.define('Optima5.Modules.CrmBase.DataFormPanel' ,{
 			title:cfgsubfile.file_lib,
 			itemId: cfgsubfile.file_code,
 			columns : columns,
-			data:cfgsubfile.data,
+			tabData:cfgsubfile.data,
 			readOnly: me.readOnly
 		}) ;
 		return objCfg ;
@@ -360,7 +367,6 @@ Ext.define('Optima5.Modules.CrmBase.DataFormPanel' ,{
 		
 		me.nbComponentsSaved = 0 ;
 		
-		me.addEvents('allsaved') ;
 		me.on('allsaved',function(nbSaved){
 			// console.log('allsabed '+nbSaved) ;
 			me.saveAndApply() ;
@@ -393,7 +399,7 @@ Ext.define('Optima5.Modules.CrmBase.DataFormPanel' ,{
 					_subaction: 'subfileData_set',
 					subfile_code: item.itemId
 				};
-				params['data'] = Ext.encode(item.getData()) ;
+				params['data'] = Ext.encode(item.getTabData()) ;
 				
 				me.optimaModule.getConfiguredAjaxConnection().request({
 					params:params,

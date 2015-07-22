@@ -1,261 +1,336 @@
 Ext.define("Sch.mixin.AbstractSchedulerView", {
-    requires: ["Sch.eventlayout.Horizontal", "Sch.view.Vertical", "Sch.eventlayout.Vertical"],
+    requires: ["Sch.model.Assignment", "Sch.template.Event", "Sch.eventlayout.Horizontal", "Sch.view.Vertical", "Sch.eventlayout.Vertical"],
     _cmpCls: "sch-schedulerview",
     scheduledEventName: "event",
+    eventTemplateClass: "Sch.template.Event",
+    eventTpl: null,
     barMargin: 1,
     constrainDragToResource: false,
     allowOverlap: null,
     readOnly: null,
+    altColCls: "sch-col-alt",
     dynamicRowHeight: true,
     managedEventSizing: true,
     eventAnimations: true,
     horizontalLayoutCls: "Sch.eventlayout.Horizontal",
+    horizontalEventSorterFn: null,
     verticalLayoutCls: "Sch.eventlayout.Vertical",
+    verticalEventSorterFn: null,
     eventCls: "sch-event",
     verticalViewClass: "Sch.view.Vertical",
-    eventTpl: ['<tpl for=".">', '<div unselectable="on" id="{{evt-prefix}}{id}" style="right:{right}px;left:{left}px;top:{top}px;height:{height}px;width:{width}px;{style}" class="sch-event ' + Ext.baseCSSPrefix + 'unselectable {internalCls} {cls}">', '<div unselectable="on" class="sch-event-inner {iconCls}">', "{body}", "</div>", "</div>", "</tpl>"],
     eventStore: null,
     resourceStore: null,
     eventLayout: null,
-    _initializeSchedulerView: function () {
+    _initializeSchedulerView: function() {
         var a = Ext.ClassManager.get(this.horizontalLayoutCls);
         var b = Ext.ClassManager.get(this.verticalLayoutCls);
         this.eventSelector = "." + this.eventCls;
         this.eventLayout = {};
         if (a) {
-            this.eventLayout.horizontal = new a({
-                view: this,
+            this.eventLayout.horizontal = new a(Ext.apply({
                 timeAxisViewModel: this.timeAxisViewModel
-            })
+            }, {
+                bandIndexToPxConvertFn: this.horizontal.layoutEventVertically,
+                bandIndexToPxConvertScope: this.horizontal
+            }, this.horizontalEventSorterFn ? {
+                sortEvents: this.horizontalEventSorterFn
+            } : {}))
         }
         if (b) {
-            this.eventLayout.vertical = new b({
-                view: this,
-                timeAxisViewModel: this.timeAxisViewModel
-            })
+            this.eventLayout.vertical = new b(Ext.apply({}, {
+                view: this
+            }, this.verticalEventSorterFn ? {
+                sortEvents: this.verticalEventSorterFn
+            } : {}))
         }
         this.store = this.store || this.resourceStore;
         this.resourceStore = this.resourceStore || this.store
     },
-    generateTplData: function (d, c, g) {
-        var f = this[this.orientation].getEventRenderData(d),
-            h = d.getStartDate(),
-            b = d.getEndDate(),
-            a = d.getCls() || "";
-        a += " sch-event-resizable-" + d.getResizable();
-        if (d.dirty) {
+    generateTplData: function(e, d, c) {
+        var g = this[this.mode].getEventRenderData(e, d, c),
+            h = e.getStartDate(),
+            b = e.getEndDate(),
+            a = e.getCls() || "";
+        a += " sch-event-resizable-" + e.getResizable();
+        if (e.dirty) {
             a += " sch-dirty "
         }
-        if (f.endsOutsideView) {
+        if (g.endsOutsideView) {
             a += " sch-event-endsoutside "
         }
-        if (f.startsOutsideView) {
+        if (g.startsOutsideView) {
             a += " sch-event-startsoutside "
         }
         if (this.eventBarIconClsField) {
             a += " sch-event-withicon "
         }
-        if (d.isDraggable() === false) {
+        if (e.isDraggable() === false) {
             a += " sch-event-fixed "
         }
         if (b - h === 0) {
             a += " sch-event-milestone "
         }
-        f.id = d.internalId;
-        f.internalCls = a;
-        f.start = h;
-        f.end = b;
-        f.iconCls = d.data[this.eventBarIconClsField] || "";
+        g.id = e.internalId + "-" + d.internalId + (this.getMode() === "calendar" ? ("-" + c) : "-x");
+        g.internalCls = a;
+        g.start = h;
+        g.end = b;
+        g.iconCls = e.data[this.eventBarIconClsField] || "";
+        g.event = e;
         if (this.eventRenderer) {
-            var e = this.eventRenderer.call(this.eventRendererScope || this, d, c, f, g);
-            if (Ext.isObject(e) && this.eventBodyTemplate) {
-                f.body = this.eventBodyTemplate.apply(e)
+            var f = this.eventRenderer.call(this.eventRendererScope || this, e, d, g, c);
+            if (Ext.isObject(f) && this.eventBodyTemplate) {
+                g.body = this.eventBodyTemplate.apply(f)
             } else {
-                f.body = e
+                g.body = f
             }
         } else {
             if (this.eventBodyTemplate) {
-                f.body = this.eventBodyTemplate.apply(d.data)
+                g.body = this.eventBodyTemplate.apply(e.data)
             } else {
                 if (this.eventBarTextField) {
-                    f.body = d.data[this.eventBarTextField] || ""
+                    g.body = e.data[this.eventBarTextField] || ""
                 }
+            }
+        }
+        return g
+    },
+    resolveResource: function(b) {
+        var a = this;
+        return a[a.mode].resolveResource(b)
+    },
+    getResourceRegion: function(b, a, c) {
+        return this[this.mode].getResourceRegion(b, a, c)
+    },
+    resolveEventRecord: function(a) {
+        a = a.dom ? a.dom : a;
+        if (!(Ext.fly(a).is(this.eventSelector))) {
+            a = Ext.fly(a).up(this.eventSelector)
+        }
+        return a && this.getEventRecordFromDomId(a.id)
+    },
+    resolveEventRecordFromResourceRow: function(a) {
+        var c = this,
+            e = c.getEventSelectionModel(),
+            d, b;
+        a = a.dom ? a.dom : a;
+        d = c.getRecord(a);
+        return e.getFirstSelectedEventForResource(d)
+    },
+    resolveAssignmentRecord: function(a) {
+        var c = this,
+            e = c.eventStore.getAssignmentStore(),
+            f = null,
+            b, d;
+        if (e) {
+            a = a.dom && a.dom || a;
+            b = c.getEventRecordFromDomId(a.id);
+            d = c.getResourceRecordFromDomId(a.id);
+            if (b && d) {
+                f = e.getAssignmentForEventAndResource(b, d)
             }
         }
         return f
     },
-    resolveResource: function (a) {
-        return this[this.orientation].resolveResource(a)
+    getEventRecordFromDomId: function(a) {
+        a = this.getEventIdFromDomNodeId(a);
+        return this.eventStore.getModelByInternalId(a)
     },
-    getResourceRegion: function (b, a, c) {
-        return this[this.orientation].getResourceRegion(b, a, c)
+    getResourceRecordFromDomId: function(a) {
+        a = this.getResourceIdFromDomNodeId(a);
+        return this.eventStore.getResourceStore().getByInternalId(a)
     },
-    resolveEventRecord: function (a) {
-        a = a.dom ? a.dom : a;
-        if (!(Ext.fly(a).hasCls(this.eventCls))) {
-            a = Ext.fly(a).up(this.eventSelector)
-        }
-        return this.getEventRecordFromDomId(a.id)
-    },
-    getResourceByEventRecord: function (a) {
-        return a.getResource()
-    },
-    getEventRecordFromDomId: function (b) {
-        var a = this.getEventIdFromDomNodeId(b);
-        return this.eventStore.getByInternalId(a)
-    },
-    isDateRangeAvailable: function (d, a, b, c) {
+    isDateRangeAvailable: function(d, a, b, c) {
         return this.eventStore.isDateRangeAvailable(d, a, b, c)
     },
-    getEventsInView: function () {
+    getEventsInView: function() {
         var b = this.timeAxis.getStart(),
             a = this.timeAxis.getEnd();
         return this.eventStore.getEventsInTimeSpan(b, a)
     },
-    getEventNodes: function () {
+    getEventNodes: function() {
         return this.getEl().select(this.eventSelector)
     },
-    onEventCreated: function (a) {},
-    getEventStore: function () {
+    onEventCreated: function(a) {},
+    getEventStore: function() {
         return this.eventStore
     },
-    registerEventEditor: function (a) {
+    registerEventEditor: function(a) {
         this.eventEditor = a
     },
-    getEventEditor: function () {
+    getEventEditor: function() {
         return this.eventEditor
     },
-    onEventUpdate: function (b, c, a) {
-        this[this.orientation].onEventUpdate(b, c, a)
+    onEventUpdate: function(b, c, a) {
+        this[this.mode].onEventUpdate(b, c, a)
     },
-    onEventAdd: function (a, b) {
-        this[this.orientation].onEventAdd(a, b)
+    onEventAdd: function(a, b) {
+        if (!Ext.isArray(b)) {
+            b = [b]
+        }
+        this[this.mode].onEventAdd(a, b)
     },
-    onEventRemove: function (a, b) {
-        this[this.orientation].onEventRemove(a, b)
+    onAssignmentAdd: function(b, a) {
+        var c = this;
+        Ext.Array.forEach(a, function(e) {
+            var d = e.getResource();
+            d && c.repaintEventsForResource(d)
+        })
     },
-    bindEventStore: function (c, b) {
-        var d = this;
+    onAssignmentUpdate: function(d, g) {
+        var f = this,
+            a = g.previous && g.previous[g.resourceIdField],
+            e = g.getResourceId(),
+            b, c;
+        if (a) {
+            b = f.resourceStore.getModelById(a);
+            f.repaintEventsForResource(b)
+        }
+        if (e) {
+            c = f.resourceStore.getModelById(e);
+            f.repaintEventsForResource(c)
+        }
+    },
+    onAssignmentRemove: function(b, a) {
+        var c = this;
+        Ext.Array.forEach(a, function(e) {
+            var f = e.getResourceId();
+            var d = f && c.resourceStore.getModelById(f);
+            d && c.repaintEventsForResource(d)
+        })
+    },
+    onEventRemove: function(a, b) {
+        this[this.mode].onEventRemove(a, b)
+    },
+    bindEventStore: function(d, b) {
+        var f = this;
         var a = {
-            scope: d,
-            refresh: d.onEventDataRefresh,
-            addrecords: d.onEventAdd,
-            updaterecord: d.onEventUpdate,
-            removerecords: d.onEventRemove,
-            add: d.onEventAdd,
-            update: d.onEventUpdate,
-            remove: d.onEventRemove
+            scope: f,
+            refresh: f.onEventDataRefresh,
+            addrecords: f.onEventAdd,
+            updaterecord: f.onEventUpdate,
+            removerecords: f.onEventRemove,
+            add: f.onEventAdd,
+            update: f.onEventUpdate,
+            remove: f.onEventRemove,
+            nodeinsert: f.onEventAdd,
+            nodeappend: f.onEventAdd
+        };
+        var c = {
+            scope: f,
+            refresh: f.onEventDataRefresh,
+            load: f.onEventDataRefresh,
+            update: f.onAssignmentUpdate,
+            add: f.onAssignmentAdd,
+            remove: f.onAssignmentRemove
         };
         if (!Ext.versions.touch) {
-            a.clear = d.onEventDataRefresh
+            a.clear = f.onEventDataRefresh
         }
-        if (!b && d.eventStore) {
-            d.eventStore.setResourceStore(null);
-            if (c !== d.eventStore && d.eventStore.autoDestroy) {
-                d.eventStore.destroy()
+        if (!b && f.eventStore) {
+            f.eventStore.setResourceStore(null);
+            if (d !== f.eventStore && f.eventStore.autoDestroy) {
+                f.eventStore.destroy()
             } else {
-                if (d.mun) {
-                    d.mun(d.eventStore, a)
+                if (f.mun) {
+                    f.mun(f.eventStore, a);
+                    var e = f.eventStore.getAssignmentStore && f.eventStore.getAssignmentStore();
+                    if (e) {
+                        f.mun(e, c)
+                    }
                 } else {
-                    d.eventStore.un(a)
+                    f.eventStore.un(a)
                 }
-            } if (!c) {
-                if (d.loadMask && d.loadMask.bindStore) {
-                    d.loadMask.bindStore(null)
-                }
-                d.eventStore = null
+            }
+            if (!d) {
+                f.eventStore = null
             }
         }
-        if (c) {
-            c = Ext.data.StoreManager.lookup(c);
-            if (d.mon) {
-                d.mon(c, a)
+        if (d) {
+            d = Ext.data.StoreManager.lookup(d);
+            if (f.mon) {
+                f.mon(d, a)
             } else {
-                c.on(a)
-            } if (d.loadMask && d.loadMask.bindStore) {
-                d.loadMask.bindStore(c)
+                d.on(a)
             }
-            d.eventStore = c;
-            c.setResourceStore(d.resourceStore)
+            f.eventStore = d;
+            d.setResourceStore(f.resourceStore);
+            var g = d.getAssignmentStore && d.getAssignmentStore();
+            if (g) {
+                f.mon(g, c)
+            }
         }
-        if (c && !b) {
-            d.refresh()
+        if (d && !b) {
+            f.refresh()
         }
     },
-    onEventDataRefresh: function () {
+    onEventDataRefresh: function() {
         this.refreshKeepingScroll()
     },
-    onEventSelect: function (a) {
-        var b = this.getEventNodesByRecord(a);
-        if (b) {
-            b.addCls(this.selectedEventCls)
-        }
-    },
-    onEventDeselect: function (a) {
-        var b = this.getEventNodesByRecord(a);
-        if (b) {
-            b.removeCls(this.selectedEventCls)
-        }
-    },
-    refresh: function () {
-        throw "Abstract method call"
-    },
-    repaintEventsForResource: function (a) {
-        throw "Abstract method call"
-    },
-    repaintAllEvents: function () {
-        this.refreshKeepingScroll()
-    },
-    scrollEventIntoView: function (j, e, a, n, o) {
-        o = o || this;
-        var k = this;
-        var l = function (p) {
-            if (Ext.versions.extjs) {
-                k.up("panel").scrollTask.cancel();
-                k.scrollElementIntoView(p, k.el, true, a)
-            } else {
-                p.scrollIntoView(k.el, true, a)
-            } if (e) {
-                if (typeof e === "boolean") {
-                    p.highlight()
-                } else {
-                    p.highlight(null, e)
-                }
-            }
-            n && n.call(o)
-        };
-        if (Ext.data.TreeStore && this.resourceStore instanceof Ext.data.TreeStore) {
-            var d = j.getResources(k.eventStore);
-            if (d.length > 0 && !d[0].isVisible()) {
-                d[0].bubble(function (p) {
-                    p.expand()
-                })
-            }
-        }
-        var i = this.timeAxis;
-        var c = j.getStartDate();
-        var h = j.getEndDate();
-        if (!i.dateInAxis(c) || !i.dateInAxis(h)) {
-            var g = i.getEnd() - i.getStart();
-            i.setTimeSpan(new Date(c.getTime() - g / 2), new Date(h.getTime() + g / 2))
-        }
-        var b = this.getElementFromEventRecord(j);
-        if (b) {
-            l(b)
+    onEventBarSelect: function(a) {
+        var c = this,
+            b, d;
+        if (a instanceof Sch.model.Assignment) {
+            b = a.getEvent();
+            d = a.getResource()
         } else {
-            if (this.bufferedRenderer) {
-                var m = this.resourceStore;
-                var f = j.getResource(null, k.eventStore);
-                Ext.Function.defer(function () {
-                    var p = m.getIndexInTotalDataset ? m.getIndexInTotalDataset(f) : m.indexOf(f);
-                    this.bufferedRenderer.scrollTo(p, false, function () {
-                        var q = k.getElementFromEventRecord(j);
-                        if (q) {
-                            l(q)
-                        }
-                    })
-                }, 10, this)
-            }
+            b = a;
+            d = null
         }
+        Ext.Array.forEach(c.getElementsFromEventRecord(b, d), function(e) {
+            e.addCls(c.selectedEventCls)
+        })
+    },
+    onEventBarDeselect: function(a) {
+        var c = this,
+            b, d;
+        if (a instanceof Sch.model.Assignment) {
+            b = a.getEvent();
+            d = a.getResource()
+        } else {
+            b = a;
+            d = null
+        }
+        b && Ext.Array.forEach(c.getElementsFromEventRecord(b, d), function(e) {
+            e.removeCls(c.selectedEventCls)
+        })
+    },
+    refresh: function() {
+        throw "Abstract method call"
+    },
+    repaintEventsForResource: function(a) {
+        throw "Abstract method call"
+    },
+    repaintAllEvents: function() {
+        this.refreshKeepingScroll()
+    },
+    scrollEventIntoView: function(f, b, a, g, c) {
+        var d = this,
+            e = f.getResources();
+        e.length && d.scrollResourceEventIntoView(e[0], f, null, b, a, g, c)
+    },
+    scrollResourceEventIntoView: function(e, g, h, d, a, k, l) {
+        var j = this,
+            i = g.getStartDate(),
+            f = g.getEndDate(),
+            c, b;
+        if (Ext.data.TreeStore && j.resourceStore instanceof Ext.data.TreeStore) {
+            e.bubble(function(m) {
+                m.expand()
+            })
+        }
+        if (!j.timeAxis.dateInAxis(i) || !j.timeAxis.dateInAxis(f)) {
+            c = j.timeAxis.getEnd() - j.timeAxis.getStart();
+            j.timeAxis.setTimeSpan(new Date(i.valueOf() - c / 2), new Date(f.getTime() + c / 2));
+            j.up("panel").scrollTask.cancel()
+        }
+        j.panel.ownerCt.ensureVisible(e, {
+            callback: function() {
+                if (this.isLocked === false) {
+                    b = j.getElementsFromEventRecord(g, e, h);
+                    b = b.length && b[0] || null;
+                    j.scrollElementIntoView(b, true, a, d, null, k, l)
+                }
+            }
+        })
     }
 });

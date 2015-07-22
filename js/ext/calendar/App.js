@@ -23,7 +23,7 @@ Ext.define('Ext.calendar.App', {
         'Ext.calendar.data.Calendars',
         'Ext.calendar.form.EventWindow'
     ],
-    
+
     constructor : function() {
         // Minor workaround for OSX Lion scrollbars
         this.checkScrollOffset();
@@ -67,7 +67,6 @@ Ext.define('Ext.calendar.App', {
                     xtype: 'container',
                     id:'app-west',
                     region: 'west',
-                    width: Ext.themeName === 'neptune' ? 214 : 179,
                     items: [{
                         xtype: 'datepicker',
                         id: 'app-nav-picker',
@@ -256,11 +255,11 @@ Ext.define('Ext.calendar.App', {
         var p = Ext.getCmp('app-center'),
             fmt = Ext.Date.format;
         
-        if(Ext.Date.clearTime(startDt).getTime() == Ext.Date.clearTime(endDt).getTime()){
+        if(Ext.Date.clearTime(startDt).getTime() === Ext.Date.clearTime(endDt).getTime()){
             p.setTitle(fmt(startDt, 'F j, Y'));
         }
-        else if(startDt.getFullYear() == endDt.getFullYear()){
-            if(startDt.getMonth() == endDt.getMonth()){
+        else if(startDt.getFullYear() === endDt.getFullYear()){
+            if(startDt.getMonth() === endDt.getMonth()){
                 p.setTitle(fmt(startDt, 'F j') + ' - ' + fmt(endDt, 'j, Y'));
             }
             else{

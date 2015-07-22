@@ -1,7 +1,7 @@
 Ext.define('AuthGroupActionsTreeModel', {
 	extend: 'Ext.data.Model',
 	fields: [
-		{name: 'id',  type: 'int'}, // dummy ID as tree is built for display purposes only
+		//{name: 'id',  type: 'int'}, // dummy ID as tree is built for display purposes only
 		{name: 'text', type:'string'},
 		{name: '_type', type:'string'},
 		{name: 'action_code',  type: 'string'},
@@ -15,9 +15,9 @@ Ext.define('AuthGroupActionsTreeModel', {
 Ext.define('Optima5.Modules.Admin.AuthGroupFormCheckColumn',{
 	extend: 'Ext.grid.column.Check',
 	
-	renderer: function(value, metaData, record) {
+	defaultRenderer: function(value, metaData, record) {
 		if( record.isRoot() ) {
-			return '&#160;' ;
+			return ;
 		}
 		return this.callParent(arguments) ;
 	}

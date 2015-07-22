@@ -1,9 +1,9 @@
 Ext.define("Sch.mixin.Localizable", {
     requires: ["Sch.locale.En"],
-    legacyMode: true,
+    legacyMode: false,
     activeLocaleId: "",
     l10n: null,
-    isLocaleApplied: function () {
+    isLocaleApplied: function() {
         var b = (this.singleton && this.activeLocaleId) || this.self.activeLocaleId;
         if (!b) {
             return false
@@ -15,15 +15,15 @@ Ext.define("Sch.mixin.Localizable", {
         }
         return false
     },
-    applyLocale: function () {
+    applyLocale: function() {
         for (var a in Sch.locale.Active) {
             Sch.locale.Active[a].apply(this.singleton ? this : this.self.getName())
         }
     },
-    L: function () {
+    L: function() {
         return this.localize.apply(this, arguments)
     },
-    localize: function (b, d, g) {
+    localize: function(b, d, g) {
         if (!this.isLocaleApplied() && !g) {
             this.applyLocale()
         }
@@ -44,7 +44,7 @@ Ext.define("Sch.mixin.Localizable", {
                 }
             }
         }
-        var i = c.l10n[b];
+        var i = c.l10n && c.l10n[b];
         if (i === null || i === undefined) {
             var f = c && c.superclass;
             if (f && f.localize) {

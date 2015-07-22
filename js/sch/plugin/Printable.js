@@ -9,53 +9,56 @@ Ext.define("Sch.plugin.Printable", {
     autoPrintAndClose: true,
     fakeBackgroundColor: true,
     scheduler: null,
-    constructor: function (a) {
-        Ext.apply(this, a)
+    mainTpl: null,
+    constructor: function(a) {
+        Ext.apply(this, a);
+        if (!this.mainTpl) {
+            this.mainTpl = new Ext.XTemplate('{docType}<html class="' + Ext.baseCSSPrefix + 'border-box {htmlClasses}"><head><meta content="text/html; charset=UTF-8" http-equiv="Content-Type" /><title>{title}</title>{styles}</head><body class="sch-print-body {bodyClasses}"><div class="sch-print-ct {componentClasses}" style="width:{totalWidth}px"><div class="sch-print-headerbg" style="border-left-width:{totalWidth}px;height:{headerHeight}px;"></div><div class="sch-print-header-wrap">{[this.printLockedHeader(values)]}{[this.printNormalHeader(values)]}</div>{[this.printLockedGrid(values)]}{[this.printNormalGrid(values)]}</div><script type="text/javascript">{setupScript}<\/script></body></html>', {
+                printLockedHeader: function(b) {
+                    var c = "";
+                    if (b.lockedGrid) {
+                        c += '<div style="left:-' + b.lockedScroll + "px;margin-right:-" + b.lockedScroll + "px;width:" + (b.lockedWidth + b.lockedScroll) + 'px"';
+                        c += 'class="sch-print-lockedheader ' + b.lockedGrid.headerCt.el.dom.className + '">';
+                        c += b.lockedHeader;
+                        c += "</div>"
+                    }
+                    return c
+                },
+                printNormalHeader: function(b) {
+                    var c = "";
+                    if (b.normalGrid) {
+                        c += '<div style="left:' + (b.lockedGrid ? b.lockedWidth : "0") + "px;width:" + b.normalWidth + 'px;" class="sch-print-normalheader ' + b.normalGrid.headerCt.el.dom.className + '">';
+                        c += '<div style="margin-left:-' + b.normalScroll + 'px">' + b.normalHeader + "</div>";
+                        c += "</div>"
+                    }
+                    return c
+                },
+                printLockedGrid: function(b) {
+                    var c = "";
+                    if (b.lockedGrid) {
+                        c += '<div id="lockedRowsCt" style="left:-' + b.lockedScroll + "px;margin-right:-" + b.lockedScroll + "px;width:" + (b.lockedWidth + b.lockedScroll) + "px;top:" + b.headerHeight + 'px;" class="sch-print-locked-rows-ct ' + b.innerLockedClasses + " " + Ext.baseCSSPrefix + 'grid-inner-locked">';
+                        c += b.lockedRows;
+                        c += "</div>"
+                    }
+                    return c
+                },
+                printNormalGrid: function(b) {
+                    var c = "";
+                    if (b.normalGrid) {
+                        c += '<div id="normalRowsCt" style="left:' + (b.lockedGrid ? b.lockedWidth : "0") + "px;top:" + b.headerHeight + "px;width:" + b.normalWidth + 'px" class="sch-print-normal-rows-ct ' + b.innerNormalClasses + '">';
+                        c += '<div style="position:relative;overflow:visible;margin-left:-' + b.normalScroll + 'px">' + b.normalRows + "</div>";
+                        c += "</div>"
+                    }
+                    return c
+                }
+            })
+        }
     },
-    init: function (a) {
+    init: function(a) {
         this.scheduler = a;
         a.print = Ext.Function.bind(this.print, this)
     },
-    mainTpl: new Ext.XTemplate('{docType}<html class="' + Ext.baseCSSPrefix + 'border-box {htmlClasses}"><head><meta content="text/html; charset=UTF-8" http-equiv="Content-Type" /><title>{title}</title>{styles}</head><body class="sch-print-body {bodyClasses}"><div class="sch-print-ct {componentClasses}" style="width:{totalWidth}px"><div class="sch-print-headerbg" style="border-left-width:{totalWidth}px;height:{headerHeight}px;"></div><div class="sch-print-header-wrap">{[this.printLockedHeader(values)]}{[this.printNormalHeader(values)]}</div>{[this.printLockedGrid(values)]}{[this.printNormalGrid(values)]}</div><script type="text/javascript">{setupScript}<\/script></body></html>', {
-        printLockedHeader: function (a) {
-            var b = "";
-            if (a.lockedGrid) {
-                b += '<div style="left:-' + a.lockedScroll + "px;margin-right:-" + a.lockedScroll + "px;width:" + (a.lockedWidth + a.lockedScroll) + 'px"';
-                b += 'class="sch-print-lockedheader ' + a.lockedGrid.headerCt.el.dom.className + '">';
-                b += a.lockedHeader;
-                b += "</div>"
-            }
-            return b
-        },
-        printNormalHeader: function (a) {
-            var b = "";
-            if (a.normalGrid) {
-                b += '<div style="left:' + (a.lockedGrid ? a.lockedWidth : "0") + "px;width:" + a.normalWidth + 'px;" class="sch-print-normalheader ' + a.normalGrid.headerCt.el.dom.className + '">';
-                b += '<div style="margin-left:-' + a.normalScroll + 'px">' + a.normalHeader + "</div>";
-                b += "</div>"
-            }
-            return b
-        },
-        printLockedGrid: function (a) {
-            var b = "";
-            if (a.lockedGrid) {
-                b += '<div id="lockedRowsCt" style="left:-' + a.lockedScroll + "px;margin-right:-" + a.lockedScroll + "px;width:" + (a.lockedWidth + a.lockedScroll) + "px;top:" + a.headerHeight + 'px;" class="sch-print-locked-rows-ct ' + a.innerLockedClasses + " " + Ext.baseCSSPrefix + 'grid-inner-locked">';
-                b += a.lockedRows;
-                b += "</div>"
-            }
-            return b
-        },
-        printNormalGrid: function (a) {
-            var b = "";
-            if (a.normalGrid) {
-                b += '<div id="normalRowsCt" style="left:' + (a.lockedGrid ? a.lockedWidth : "0") + "px;top:" + a.headerHeight + "px;width:" + a.normalWidth + 'px" class="sch-print-normal-rows-ct ' + a.innerNormalClasses + '">';
-                b += '<div style="position:relative;overflow:visible;margin-left:-' + a.normalScroll + 'px">' + a.normalRows + "</div>";
-                b += "</div>"
-            }
-            return b
-        }
-    }),
-    getGridContent: function (n) {
+    getGridContent: function(n) {
         var m = n.normalGrid,
             e = n.lockedGrid,
             o = e.getView(),
@@ -76,17 +79,10 @@ Ext.define("Sch.plugin.Printable", {
         var a = document.createElement("div");
         a.innerHTML = d;
         a.firstChild.style.width = o.el.dom.style.width;
-        if (Ext.versions.extjs.isLessThan("4.2.1")) {
-            e.headerCt.items.each(function (q, p) {
-                if (q.isHidden()) {
-                    Ext.fly(a).down("colgroup:nth-child(" + (p + 1) + ") col").setWidth(0)
-                }
-            })
-        }
         d = a.innerHTML;
         if (Sch.feature && Sch.feature.AbstractTimeSpan) {
             var f = (n.plugins || []).concat(n.normalGrid.plugins || []).concat(n.columnLinesFeature || []);
-            Ext.each(f, function (p) {
+            Ext.each(f, function(p) {
                 if (p instanceof Sch.feature.AbstractTimeSpan && p.generateMarkup) {
                     l = p.generateMarkup(true) + l
                 }
@@ -110,10 +106,10 @@ Ext.define("Sch.plugin.Printable", {
             width: n.getWidth()
         }
     },
-    getStylesheets: function () {
+    getStylesheets: function() {
         return Ext.getDoc().select('link[rel="stylesheet"]')
     },
-    print: function () {
+    print: function() {
         var g = this.scheduler;
         if (!(this.mainTpl instanceof Ext.Template)) {
             var a = 22;
@@ -128,7 +124,7 @@ Ext.define("Sch.plugin.Printable", {
                 tag: "div"
             })),
             b;
-        i.each(function (j) {
+        i.each(function(j) {
             e.appendChild(j.dom.cloneNode(true))
         });
         b = e.dom.innerHTML + "";
@@ -152,8 +148,8 @@ Ext.define("Sch.plugin.Printable", {
         d.document.write(c);
         d.document.close()
     },
-    setupScript: function (e, a, d, b) {
-        var c = function () {
+    setupScript: function(e, a, d, b) {
+        var c = function() {
             if (e) {
                 var f = document.getElementById("lockedRowsCt"),
                     o = document.getElementById("normalRowsCt"),

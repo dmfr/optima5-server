@@ -36,11 +36,9 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelEditGrid',{
 		Ext.apply(me,{
 			store: gridStore,
 			columns: gridColumns,
-			features: [{
-				ftype:'filters',
-				encode: true
-			}],
 			plugins: [{
+				ptype: 'uxgridfilters'
+			},{
 				ptype: 'rowediting',
 				pluginId: 'rowEditor',
 				listeners: {
@@ -67,7 +65,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelEditGrid',{
 						items : gridContextMenuItems,
 						listeners: {
 							hide: function(menu) {
-								menu.destroy() ;
+								Ext.defer(function(){menu.destroy();},10) ;
 							}
 						}
 					}) ;
@@ -220,8 +218,14 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelEditGrid',{
 					}) ;
 				}
 				else {
+					var filterType ;
+					switch( v.type ) {
+						case 'bool' :
+							filterType = 'boolean' ;
+							break ;
+					}
 					Ext.apply(columnObject,{
-						filterable: true
+						filter: (filterType || true)
 					}) ;
 				}
 			}
@@ -299,10 +303,14 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelEditGrid',{
 			extend: 'Ext.data.Model',
 			fields: modelFields
 		});
+		this.on('destroy',function(){
+			Ext.ux.dams.ModelManager.unregister( gridModelName ) ;
+		},this) ;
 		
 		gridStoreCfg = {
 			model: gridModelName,
 			remoteSort: true,
+			remoteFilter: true,
 			autoLoad: true,
 			autoSync: false,
 			proxy: this.optimaModule.getConfiguredAjaxProxy({
@@ -312,7 +320,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelEditGrid',{
 				},
 				reader: {
 					type: 'json',
-					root: 'data',
+					rootProperty: 'data',
 					totalProperty: 'total'
 				}
 			}),

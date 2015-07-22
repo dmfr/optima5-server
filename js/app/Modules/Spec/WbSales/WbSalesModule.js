@@ -44,8 +44,6 @@ Ext.define('Optima5.Modules.Spec.WbSales.WbSalesModule', {
 	initModule: function() {
 		var me = this ;
 		
-		me.addEvents('op5broadcast') ;
-		
 		me.createWindow({
 			width:800,
 			height:600,

@@ -1,239 +1,384 @@
 Ext.define("Sch.data.mixin.FilterableTreeStore", {
-    requires: ["Sch.data.FilterableNodeStore"],
-    nodeStoreClassName: "Sch.data.FilterableNodeStore",
-    nodeStore: null,
     isFilteredFlag: false,
+    isHiddenFlag: false,
     lastTreeFilter: null,
-    initTreeFiltering: function () {
-        if (!this.nodeStore) {
-            this.nodeStore = this.createNodeStore(this)
+    lastTreeHiding: null,
+    allowExpandCollapseWhileFiltered: true,
+    reApplyFilterOnDataChange: true,
+    suspendIncrementalFilterRefresh: 0,
+    filterGeneration: 0,
+    currentFilterGeneration: null,
+    dataChangeListeners: null,
+    monitoringDataChange: false,
+    onClassMixedIn: function(a) {
+        a.override(Sch.data.mixin.FilterableTreeStore.prototype.inheritables() || {})
+    },
+    initTreeFiltering: function() {
+        this.treeFilter = new Ext.util.Filter({
+            filterFn: this.isNodeFilteredIn,
+            scope: this
+        });
+        this.dataChangeListeners = {
+            nodeappend: this.onNeedToUpdateFilter,
+            nodeinsert: this.onNeedToUpdateFilter,
+            scope: this
         }
-        this.addEvents("filter-set", "filter-clear", "nodestore-datachange-start", "nodestore-datachange-end")
     },
-    createNodeStore: function (a) {
-        return Ext.create(this.nodeStoreClassName, {
-            treeStore: a,
-            recursive: true,
-            rootVisible: this.rootVisible
-        })
+    startDataChangeMonitoring: function() {
+        if (this.monitoringDataChange) {
+            return
+        }
+        this.monitoringDataChange = true;
+        this.on(this.dataChangeListeners)
     },
-    clearTreeFilter: function () {
+    stopDataChangeMonitoring: function() {
+        if (!this.monitoringDataChange) {
+            return
+        }
+        this.monitoringDataChange = false;
+        this.un(this.dataChangeListeners)
+    },
+    onNeedToUpdateFilter: function() {
+        if (this.reApplyFilterOnDataChange && !this.suspendIncrementalFilterRefresh) {
+            this.reApplyFilter()
+        }
+    },
+    clearTreeFilter: function() {
         if (!this.isTreeFiltered()) {
             return
         }
-        this.refreshNodeStoreContent();
+        this.currentFilterGeneration = null;
         this.isFilteredFlag = false;
         this.lastTreeFilter = null;
+        if (!this.isTreeFiltered(true)) {
+            this.stopDataChangeMonitoring()
+        }
+        this.refreshNodeStoreContent();
         this.fireEvent("filter-clear", this)
     },
-    refreshNodeStoreContent: function (f) {
-        var a = this.getRootNode(),
-            d = [];
-        var c = this.rootVisible;
-        var b = function (i) {
-            if (i.isHidden && i.isHidden() || i.hidden || i.data.hidden) {
-                return
-            }
-            if (c || i != a) {
-                d[d.length] = i
-            }
-            if (!i.data.leaf && i.isExpanded()) {
-                var j = i.childNodes,
-                    h = j.length;
-                for (var g = 0; g < h; g++) {
-                    b(j[g])
-                }
-            }
-        };
-        b(a);
-        this.fireEvent("nodestore-datachange-start", this);
-        var e = this.nodeStore;
-        if (!this.loadDataInNodeStore || !this.loadDataInNodeStore(d)) {
-            e.loadRecords(d)
+    reApplyFilter: function() {
+        if (this.isHiddenFlag) {
+            this.hideNodesBy.apply(this, this.lastTreeHiding.concat(this.isFilteredFlag))
         }
-        if (!f) {
-            e.fireEvent("clear", e)
+        if (this.isFilteredFlag) {
+            this.filterTreeBy(this.lastTreeFilter)
         }
-        this.fireEvent("nodestore-datachange-end", this)
     },
-    getIndexInTotalDataset: function (b) {
-        var a = this.getRootNode(),
-            d = -1;
-        var e = this.rootVisible;
-        if (!e && b == a) {
+    refreshNodeStoreContent: function() {
+        var b = this,
+            a = b.getFilters();
+        if (a.indexOf(b.treeFilter) < 0) {
+            b.addFilter(b.treeFilter)
+        } else {
+            this.getFilters().fireEvent("endupdate", this.getFilters())
+        }
+    },
+    getIndexInTotalDataset: function(d) {
+        var c = this.getRootNode(),
+            f = -1;
+        var g = this.rootVisible;
+        if (!g && d == c) {
             return -1
         }
-        var c = function (h) {
-            if (h.isHidden && h.isHidden() || h.hidden || h.data.hidden) {
-                if (h == b) {
+        var b = this.isTreeFiltered();
+        var a = this.currentFilterGeneration;
+        var e = function(j) {
+            if (b && j.__filterGen != a || j.hidden) {
+                if (j == d) {
                     return false
                 }
             }
-            if (e || h != a) {
-                d++
+            if (g || j != c) {
+                f++
             }
-            if (h == b) {
+            if (j == d) {
                 return false
             }
-            if (!h.data.leaf && h.isExpanded()) {
-                var i = h.childNodes,
-                    g = i.length;
-                for (var f = 0; f < g; f++) {
-                    if (c(i[f]) === false) {
+            if (!j.data.leaf && j.isExpanded()) {
+                var l = j.childNodes,
+                    i = l.length;
+                for (var h = 0; h < i; h++) {
+                    if (e(l[h]) === false) {
                         return false
                     }
                 }
             }
         };
-        c(a);
-        return d
+        e(c);
+        return f
     },
-    isTreeFiltered: function () {
-        return this.isFilteredFlag
+    isTreeFiltered: function(a) {
+        return this.isFilteredFlag || a && this.isHiddenFlag
     },
-    filterTreeBy: function (s, b) {
-        var g;
-        if (arguments.length == 1 && Ext.isObject(arguments[0])) {
-            b = s.scope;
-            g = s.filter
-        } else {
-            g = s;
-            s = {
-                filter: g
-            }
-        }
-        this.fireEvent("nodestore-datachange-start", this);
-        s = s || {};
-        var j = s.shallow;
-        var r = s.checkParents || j;
-        var h = s.fullMathchingParents;
-        var c = s.onlyParents || h;
-        var e = this.rootVisible;
-        if (c && r) {
-            throw new Error("Can't combine `onlyParents` and `checkParents` options")
-        }
-        var o = {};
-        var m = this.getRootNode(),
-            d = [];
-        var a = function (t) {
-            var i = t.parentNode;
-            while (i && !o[i.internalId]) {
-                o[i.internalId] = true;
-                i = i.parentNode
+    markFilteredNodes: function(i, b) {
+        var h = this;
+        var d = this.currentFilterGeneration;
+        var c = {};
+        var j = this.getRootNode(),
+            l = this.rootVisible;
+        var o = function(q) {
+            var p = q.parentNode;
+            while (p && !c[p.internalId]) {
+                c[p.internalId] = true;
+                p = p.parentNode
             }
         };
-        var k = function (v) {
-            if (v.isHidden && v.isHidden() || v.hidden || v.data.hidden) {
+        var a = b.filter;
+        var n = b.scope || this;
+        var k = b.shallow;
+        var m = b.checkParents || k;
+        var f = b.fullMatchingParents;
+        var e = b.onlyParents || f;
+        if (e && m) {
+            throw new Error("Can't combine `onlyParents` and `checkParents` options")
+        }
+        if (l) {
+            c[j.internalId] = true
+        }
+        var g = function(s) {
+            if (s.hidden) {
                 return
             }
-            var t, w, u, i;
-            if (v.data.leaf) {
-                if (g.call(b, v, o)) {
-                    d[d.length] = v;
-                    a(v)
+            var q, t, r, p;
+            if (s.data.leaf) {
+                if (a.call(n, s, c)) {
+                    c[s.internalId] = true;
+                    o(s)
                 }
             } else {
-                if (e || v != m) {
-                    d[d.length] = v
-                }
-                if (c) {
-                    t = g.call(b, v);
-                    w = v.childNodes;
-                    u = w.length;
-                    if (t) {
-                        o[v.internalId] = true;
-                        a(v);
-                        if (h) {
-                            v.cascadeBy(function (x) {
-                                if (x != v) {
-                                    d[d.length] = x;
-                                    if (!x.data.leaf) {
-                                        o[x.internalId] = true
-                                    }
-                                }
+                if (e) {
+                    q = a.call(n, s);
+                    t = s.childNodes;
+                    r = t.length;
+                    if (q) {
+                        c[s.internalId] = true;
+                        o(s);
+                        if (f) {
+                            s.cascadeBy(function(u) {
+                                c[u.internalId] = true
                             });
                             return
                         }
                     }
-                    for (i = 0; i < u; i++) {
-                        if (t && w[i].data.leaf) {
-                            d[d.length] = w[i]
+                    for (p = 0; p < r; p++) {
+                        if (q && t[p].data.leaf) {
+                            c[t[p].internalId] = true
                         } else {
-                            if (!w[i].data.leaf) {
-                                k(w[i])
+                            if (!t[p].data.leaf) {
+                                g(t[p])
                             }
                         }
                     }
                 } else {
-                    if (r) {
-                        t = g.call(b, v, o);
-                        if (t) {
-                            o[v.internalId] = true;
-                            a(v)
+                    if (m) {
+                        q = a.call(n, s, c);
+                        if (q) {
+                            c[s.internalId] = true;
+                            o(s)
                         }
                     }
-                    if (!r || !j || j && (t || v == m && !e)) {
-                        w = v.childNodes;
-                        u = w.length;
-                        for (i = 0; i < u; i++) {
-                            k(w[i])
+                    if (!m || !k || k && (q || s == j && !l)) {
+                        t = s.childNodes;
+                        r = t.length;
+                        for (p = 0; p < r; p++) {
+                            g(t[p])
                         }
                     }
                 }
             }
         };
-        k(m);
-        var f = [];
-        for (var p = 0, q = d.length; p < q; p++) {
-            var l = d[p];
-            if (l.data.leaf || o[l.internalId]) {
-                f[f.length] = l
+        g(i);
+        j.cascadeBy(function(p) {
+            if (c[p.internalId]) {
+                p.__filterGen = d;
+                if (h.allowExpandCollapseWhileFiltered && !p.data.leaf) {
+                    p.expand()
+                }
+            }
+        })
+    },
+    filterTreeBy: function(c, b) {
+        this.currentFilterGeneration = this.filterGeneration++;
+        var a;
+        if (arguments.length == 1 && Ext.isObject(arguments[0])) {
+            b = c.scope;
+            a = c.filter
+        } else {
+            a = c;
+            c = {
+                filter: a,
+                scope: b
             }
         }
-        var n = this.nodeStore;
-        if (!this.loadDataInNodeStore || !this.loadDataInNodeStore(f)) {
-            n.loadRecords(f, false);
-            n.fireEvent("clear", n)
-        }
+        this.fireEvent("nodestore-datachange-start", this);
+        c = c || {};
+        this.markFilteredNodes(this.getRootNode(), c);
+        this.startDataChangeMonitoring();
         this.isFilteredFlag = true;
-        this.lastTreeFilter = s;
+        this.lastTreeFilter = c;
         this.fireEvent("nodestore-datachange-end", this);
-        this.fireEvent("filter-set", this)
+        this.fireEvent("filter-set", this);
+        this.refreshNodeStoreContent()
     },
-    hideNodesBy: function (b, a) {
-        if (this.isFiltered()) {
+    isNodeFilteredIn: function(c) {
+        var b = this.isTreeFiltered();
+        var a = this.currentFilterGeneration;
+        return this.loading || !Boolean(b && c.__filterGen != a || c.hidden)
+    },
+    hasNativeFilters: function() {
+        var c = this,
+            b = c.getFilters(),
+            a = b.getCount();
+        return (a && a > 1) || b.indexOf(c.treeFilter) < 0
+    },
+    hideNodesBy: function(b, a, d) {
+        var c = this;
+        if (c.isFiltered() && c.hasNativeFilters()) {
             throw new Error("Can't hide nodes of the filtered tree store")
         }
-        var c = this;
-        a = a || this;
-        this.getRootNode().cascadeBy(function (d) {
-            d.hidden = b.call(a, d, c)
+        a = a || c;
+        c.getRootNode().cascadeBy(function(e) {
+            e.hidden = Boolean(b.call(a, e, c))
         });
-        this.refreshNodeStoreContent()
+        c.startDataChangeMonitoring();
+        c.isHiddenFlag = true;
+        c.lastTreeHiding = [b, a];
+        if (!d) {
+            c.refreshNodeStoreContent()
+        }
     },
-    showAllNodes: function () {
-        this.getRootNode().cascadeBy(function (a) {
-            a.hidden = a.data.hidden = false
+    showAllNodes: function(a) {
+        this.getRootNode().cascadeBy(function(b) {
+            b.hidden = false
         });
-        this.refreshNodeStoreContent()
+        this.isHiddenFlag = false;
+        this.lastTreeHiding = null;
+        if (!this.isTreeFiltered(true)) {
+            this.stopDataChangeMonitoring()
+        }
+        if (!a) {
+            this.refreshNodeStoreContent()
+        }
     },
-    inheritables: function () {
+    inheritables: function() {
         return {
-            load: function () {
-                var a = this.getRootNode();
-                if (a) {
-                    var b = this.nodeStore;
-                    var c = a.removeAll;
-                    a.removeAll = function () {
-                        c.apply(this, arguments);
-                        b && b.fireEvent("clear", b);
-                        delete a.removeAll
+            onNodeExpand: function(c, b, a) {
+                if (this.isTreeFiltered(true) && c == this.getRoot()) {
+                    this.callParent(arguments);
+                    this.reApplyFilter()
+                } else {
+                    return this.callParent(arguments)
+                }
+            },
+            onNodeCollapse: function(f, a, h, g, i) {
+                var e = this;
+                var c = e.data;
+                var j = c.contains;
+                var b = e.isTreeFiltered();
+                var d = e.currentFilterGeneration;
+                c.contains = function() {
+                    var n, m, p;
+                    var l = e.indexOf(f) + 1;
+                    var o = false;
+                    for (var k = 0; k < a.length; k++) {
+                        if (!(a[k].hidden || b && a[k].__filterGen != d) && j.call(this, a[k])) {
+                            n = f;
+                            while (n.parentNode) {
+                                m = n;
+                                do {
+                                    m = m.nextSibling
+                                } while (m && (m.hidden || b && m.__filterGen != d));
+                                if (m) {
+                                    o = true;
+                                    p = e.indexOf(m);
+                                    break
+                                } else {
+                                    n = n.parentNode
+                                }
+                            }
+                            if (!o) {
+                                p = e.getCount()
+                            }
+                            e.removeAt(l, p - l);
+                            break
+                        }
+                    }
+                    return false
+                };
+                this.callParent(arguments);
+                c.contains = j
+            },
+            handleNodeExpand: function(h, a, j) {
+                var e = this;
+                var f = [];
+                var b = e.isTreeFiltered();
+                var g = e.currentFilterGeneration;
+                for (var c = 0; c < a.length; c++) {
+                    var d = a[c];
+                    if (!(b && d.__filterGen != g || d.hidden)) {
+                        f[f.length] = d
                     }
                 }
-                this.callParent(arguments);
-                if (a) {
-                    delete a.removeAll
+                return this.callParent([h, f, j])
+            },
+            onNodeInsert: function(m, a, g) {
+                var i = this,
+                    h, n, j, b, k, f, c = a.raw || a.data,
+                    l, e, d;
+                if (i.filterFn) {
+                    e = i.filterFn(a);
+                    a.set("visible", e);
+                    if (e) {
+                        m.set("visible", i.filterFn(m))
+                    }
                 }
+                i.registerNode(a, true);
+                i.beginUpdate();
+                if (i.isVisible(a)) {
+                    if (g === 0 || !a.previousSibling) {
+                        h = m
+                    } else {
+                        for (n = a.previousSibling; n && !n.get("visible"); n = n.previousSibling) {}
+                        if (!n) {
+                            h = m
+                        } else {
+                            while (n.isExpanded() && n.lastChild) {
+                                n = n.lastChild
+                            }
+                            h = n
+                        }
+                    }
+                    i.insert(i.indexOf(h) + 1, a);
+                    if (!a.isLeaf() && a.isExpanded()) {
+                        if (a.isLoaded()) {
+                            i.onNodeExpand(a, a.childNodes)
+                        } else {
+                            if (!i.fillCount) {
+                                a.set("expanded", false);
+                                a.expand()
+                            }
+                        }
+                    }
+                } else {
+                    i.needsSync = i.needsSync || a.phantom || a.dirty
+                }
+                if (!a.isLeaf() && !a.isLoaded() && !i.lazyFill) {
+                    j = i.getProxy().getReader();
+                    b = a.getProxy();
+                    k = b ? b.getReader() : null;
+                    f = k && k.initialConfig.rootProperty ? k : j;
+                    l = f.getRoot(c);
+                    if (l) {
+                        d = a.childType;
+                        i.fillNode(a, f.extractData(l, d ? {
+                            model: d
+                        } : undefined))
+                    }
+                }
+                i.endUpdate()
+            },
+            isFiltered: function() {
+                return this.callParent(arguments) || this.isTreeFiltered()
             }
         }
     }

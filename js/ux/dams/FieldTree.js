@@ -92,9 +92,11 @@ Ext.define('Ext.ux.dams.FieldTree',{
 		}
 		
 		// Ext.apply(this, {listeners: {resize: function() {this.mytree.doLayout();}}});
-		var me = this ;
-		if( me.value ) {
-			me.setRawValue(me.value) ;
+		
+		var me = this,
+			valueToSet = me.cacheValue || me.value ;
+		if( valueToSet ) {
+			me.setRawValue(valueToSet) ;
 		}
 	},
 			  
@@ -126,24 +128,24 @@ Ext.define('Ext.ux.dams.FieldTree',{
 	
 	setRawValue: function( strChecked ) {
 		if( !this.mytree ) {
-			// console.log('not ready') ;
+			this.cacheValue = strChecked ;
+			return ;
 		}
-		else {
-			if( strChecked ) {
-				var arrayChecked = Ext.JSON.decode(strChecked) ;
-				this.mytree.getRootNode().cascadeBy(function(rec){
-					if( Ext.Array.contains( arrayChecked , rec.get('nodeKey') ) ) {
-						rec.set('checked',true) ;
-						rec.cascadeBy(function(childrec){
-							childrec.set('checked',true) ;
-						},this) ;
-						return false ;
-					}
-					else {
-						rec.set('checked',false) ;
-					}
-				},this) ;
-			}
+		
+		if( strChecked ) {
+			var arrayChecked = Ext.JSON.decode(strChecked) ;
+			this.mytree.getRootNode().cascadeBy(function(rec){
+				if( Ext.Array.contains( arrayChecked , rec.get('nodeKey') ) ) {
+					rec.set('checked',true) ;
+					rec.cascadeBy(function(childrec){
+						childrec.set('checked',true) ;
+					},this) ;
+					return false ;
+				}
+				else {
+					rec.set('checked',false) ;
+				}
+			},this) ;
 		}
 	},
 	

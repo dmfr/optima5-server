@@ -11,8 +11,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryPanel',{
 		var me = this,
 			width = me.width ;
 		
-		me.addEvents('abort','confirm') ;
-		
 		Ext.apply( me, {
 			layout:{
 				type:'vbox',
@@ -129,7 +127,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryPanel',{
 								},
 								reader: {
 									type: 'json',
-									root: 'data'
+									rootProperty: 'data'
 								}
 							})
 						},
@@ -461,7 +459,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryPanel',{
 		var me = this ;
 		me.query('#cntQueryPreview')[0].add( Ext.create('Optima5.Modules.Spec.DbsPeople.QueryResultView',{
 			optimaModule: me.optimaModule,
-			data: ajaxData,
+			queryData: ajaxData,
 			modePreview: true,
 			border: false,
 			listeners: {

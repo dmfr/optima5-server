@@ -7,7 +7,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryResultView',{
 			modePreview: true,
 			tableRows: []
 		} ;
-		var queryVars = this.data.query_vars ;
+		var queryVars = this.queryData.query_vars ;
 		tplData.tableRows.push({
 			fieldLabel: 'URL data',
 			fieldValue: queryVars['q_urldata']
@@ -74,7 +74,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryResultView',{
 					},
 					scope: this
 				}
-			},this.buildResultPanel( this.data.result_tab )]
+			},this.buildResultPanel( this.queryData.result_tab )]
 		}) ;
 		
 		this.callParent() ;
@@ -172,7 +172,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryResultView',{
 				type:columnDef.dataType
 			});
 		},me);
-			
+		
+		Ext.ux.dams.ModelManager.unregister( this.tmpModelName ) ;
 		Ext.define(this.tmpModelName, {
 			extend: 'Ext.data.Model',
 			fields: fields
@@ -207,7 +208,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryResultView',{
 	
 	
 	getData: function() {
-		var returnData = Ext.clone(this.data) ;
+		var returnData = Ext.clone(this.queryData) ;
 		Ext.apply(returnData,{
 			title: this.title
 		}) ;
@@ -215,6 +216,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.QueryResultView',{
 	},
 	
 	onBtnSave: function() {
-		this.fireEvent('savepreview',this.data) ;
+		this.fireEvent('savepreview',this.queryData) ;
 	}
 }) ;

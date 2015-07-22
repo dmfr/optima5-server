@@ -1,7 +1,30 @@
 Ext.define('Ext.ux.dams.ColorCombo', {
 	
-	extend: 'Ext.form.field.ComboBox',
-	alias: 'widget.colorcombo',    
+	extend: 'Ext.ux.dams.ComboBoxCached',
+	alias: 'widget.colorcombo',
+	
+	fieldSubTpl: [
+		'<div class="ux-color-combo-wrap">',
+			'<div class="{hiddenDataCls}" role="presentation"></div>',
+			'<input id="{id}" data-ref="inputEl" type="{type}" role="{role}" {inputAttrTpl}',
+					' size="1"', // allows inputs to fully respect CSS widths across all browsers
+					'<tpl if="name"> name="{name}"</tpl>',
+					'<tpl if="value"> value="{[Ext.util.Format.htmlEncode(values.value)]}"</tpl>',
+					'<tpl if="placeholder"> placeholder="{placeholder}"</tpl>',
+					'{%if (values.maxLength !== undefined){%} maxlength="{maxLength}"{%}%}',
+					'<tpl if="readOnly"> readonly="readonly"</tpl>',
+					'<tpl if="disabled"> disabled="disabled"</tpl>',
+					'<tpl if="tabIdx != null"> tabindex="{tabIdx}"</tpl>',
+					'<tpl if="fieldStyle"> style="{fieldStyle}"</tpl>',
+			' class="{fieldCls} {typeCls} {typeCls}-{ui} {editableCls} {inputCls}" autocomplete="off"/>',
+			'<div class="ux-color-combo-icon" id="{cmpId}-iconClsEl" data-ref="iconClsEl"></div>',
+		'</div>',
+		{
+				compiled: true,
+				disableFormats: true
+		}
+	],
+	childEls: ['iconClsEl'],
 	
 	initComponent: function() {    
 		var me = this;
@@ -34,37 +57,10 @@ Ext.define('Ext.ux.dams.ColorCombo', {
 						return (me.iconColorField ? true : false) ;
 					}
 				}
-			),
-			fieldSubTpl: [
-				'<div class="ux-color-combo-wrap">',
-				'<div class="{hiddenDataCls}" role="presentation"></div>',
-					'<input id="{id}" type="{type}" {inputAttrTpl} class="{fieldCls} {typeCls}" autocomplete="off"',
-						'<tpl if="value"> value="{[Ext.util.Format.htmlEncode(values.value)]}"</tpl>',
-						'<tpl if="name"> name="{name}"</tpl>',
-						'<tpl if="placeholder"> placeholder="{placeholder}"</tpl>',
-						'<tpl if="size"> size="{size}"</tpl>',
-						'<tpl if="maxLength !== undefined"> maxlength="{maxLength}"</tpl>',
-						'<tpl if="readOnly"> readonly="readonly"</tpl>',
-						'<tpl if="disabled"> disabled="disabled"</tpl>',
-						'<tpl if="tabIdx"> tabIndex="{tabIdx}"</tpl>',
-						'<tpl if="fieldStyle"> style="{fieldStyle}"</tpl>',
-					'/>',
-					'<div class="ux-color-combo-icon"></div>',
-				'</div>',
-				{
-						compiled: true,
-						disableFormats: true
-				}
-			],
-			renderSelectors: {
-				iconClsEl: '.ux-color-combo-icon'
-			}
+			)
 		});        
 		
 		me.callParent(arguments);    
-		me.mon( me.store, 'datachanged',function(){
-			me.onStoreLoadData() ;
-		},me);
 	},
 		
 	setIconCls: function() {
@@ -88,6 +84,9 @@ Ext.define('Ext.ux.dams.ColorCombo', {
 					this.iconClsEl.dom.style.background="url(" + iconUrl + ") no-repeat center center" ;
 				}
 			}
+			if( this.iconOnly && this.inputEl ) {
+				this.inputEl.dom.value = '';
+			}
 		} else {
 			this.on('render', this.setIconCls, this, {
 				single: true
@@ -95,37 +94,10 @@ Ext.define('Ext.ux.dams.ColorCombo', {
 		}
 	},
 	
-	setValue: function(value) {
+	updateValue: function() {
 		var me = this ;
-		
-		value = Ext.Array.from(value);
-		if( value.length == 1 ) {
-			var record = value[0];
-			// record found, select it.
-			if(record.isModel) {
-				me.cachedValue = record.get(me.valueField) ;
-			}
-			else {
-				me.cachedValue = record ;
-			}
-		}
-		else if(value.length == 0 ) {
-			me.cachedValue = null ;
-		}
-		
-		me.callParent(arguments);
-		me.setIconCls();
-		if( me.iconOnly && me.inputEl ) {
-			me.inputEl.dom.value = '';
-		}
-	},
-	getValue: function() {
-		var me = this ;
-		return me.cachedValue ;
-	},
-	
-	onStoreLoadData: function() {
-		var me = this ;
-		me.setValue( me.cachedValue ) ;
+		me.callParent() ;
+		me.cachedValue = me.value ;
+		me.setIconCls() ;
 	}
 });

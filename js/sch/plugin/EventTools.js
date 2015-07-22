@@ -24,10 +24,10 @@ Ext.define("Sch.plugin.EventTools", {
     floating: true,
     hideMode: "offsets",
     hidden: true,
-    getRecord: function () {
+    getRecord: function() {
         return this.record
     },
-    init: function (a) {
+    init: function(a) {
         if (!this.items) {
             throw "Must define an items property for this plugin to function correctly"
         }
@@ -43,7 +43,7 @@ Ext.define("Sch.plugin.EventTools", {
             scope: this
         })
     },
-    onRender: function () {
+    onRender: function() {
         this.callParent(arguments);
         this.scheduler.mon(this.el, {
             mouseenter: this.onContainerMouseEnter,
@@ -51,11 +51,11 @@ Ext.define("Sch.plugin.EventTools", {
             scope: this
         })
     },
-    onEventMouseEnter: function (g, a, f) {
+    onEventMouseEnter: function(g, a, f) {
         var c = false;
         var h;
         this.record = a;
-        this.items.each(function (i) {
+        this.items.each(function(i) {
             h = i.visibleFn(a) !== false;
             i.setVisible(h);
             if (h) {
@@ -75,21 +75,21 @@ Ext.define("Sch.plugin.EventTools", {
         this.lastPosition = [f.getXY()[0] - (b.width / 2), d.y - b.height - this.offset.y];
         this.onContainerMouseEnter()
     },
-    onContainerMouseEnter: function () {
+    onContainerMouseEnter: function() {
         window.clearTimeout(this.hideTimer);
         this.setPosition.apply(this, this.lastPosition);
         this.show()
     },
-    onContainerMouseLeave: function () {
+    onContainerMouseLeave: function() {
         window.clearTimeout(this.hideTimer);
         this.hideTimer = Ext.defer(this.hide, this.hideDelay, this)
     },
-    onOperationStart: function () {
+    onOperationStart: function() {
         this.scheduler.un("eventmouseenter", this.onEventMouseEnter, this);
         window.clearTimeout(this.hideTimer);
         this.hide()
     },
-    onOperationEnd: function () {
+    onOperationEnd: function() {
         this.scheduler.on("eventmouseenter", this.onEventMouseEnter, this)
     }
 });

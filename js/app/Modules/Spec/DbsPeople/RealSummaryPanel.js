@@ -158,16 +158,16 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealSummaryPanel',{
 	},
 	
 	startPanel: function() {
-		if( this.data ) {
+		if( this.cfgData ) {
 			var formData = {
-				date_sql: this.data.date_sql,
-				filter_site: this.data.filter_site,
-				filter_team: this.data.filter_team
+				date_sql: this.cfgData.date_sql,
+				filter_site: this.cfgData.filter_site,
+				filter_team: this.cfgData.filter_team
 			} ;
 			this.down('form').getForm().setValues(formData) ;
 			
-			if( this.data.peopledayRecordsData ) {
-				this.processRecords( this.data.peopledayRecordsData ) ;
+			if( this.cfgData.peopledayRecordsData ) {
+				this.processRecords( this.cfgData.peopledayRecordsData ) ;
 			} else {
 				this.fetchRecords() ;
 			}

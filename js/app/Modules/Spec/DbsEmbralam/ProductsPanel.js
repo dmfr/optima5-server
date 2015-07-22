@@ -89,7 +89,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.ProductsPanel',{
 							},
 							reader: {
 								type: 'json',
-								root: 'data'
+								rootProperty: 'data'
 							}
 						}),
 						listeners: {
@@ -298,7 +298,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.ProductsPanel',{
 							},
 							reader: {
 								type: 'json',
-								root: 'data'
+								rootProperty: 'data'
 							}
 						}),
 						sorters:[{
@@ -338,7 +338,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.ProductsPanel',{
 							},
 							reader: {
 								type: 'json',
-								root: 'data'
+								rootProperty: 'data'
 							}
 						}),
 						sorters:[{

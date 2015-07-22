@@ -67,36 +67,32 @@ Ext.define('Ext.calendar.view.Month', {
     // defaults to auto by month
     dayCount: 7,
     moreElIdDelimiter: '-more-',
-    weekLinkIdDelimiter: 'ext-cal-week-',
+    weekLinkIdDelimiter: '-ext-cal-week-',
 
-    // private
-    initComponent: function() {
-        this.callParent(arguments);
-        
-        this.addEvents({
-            /**
-             * @event dayclick
-             * Fires after the user clicks within the view container and not on an event element
-             * @param {Ext.calendar.view.Month} this
-             * @param {Date} dt The date/time that was clicked on
-             * @param {Boolean} allday True if the day clicked on represents an all-day box, else false. Clicks within the 
-             * MonthView always return true for this param.
-             * @param {Ext.core.Element} el The Element that was clicked on
-             */
-            dayclick: true,
-            /**
-             * @event weekclick
-             * Fires after the user clicks within a week link (when {@link #showWeekLinks is true)
-             * @param {Ext.calendar.view.Month} this
-             * @param {Date} dt The start date of the week that was clicked on
-             */
-            weekclick: true,
-            // inherited docs
-            dayover: true,
-            // inherited docs
-            dayout: true
-        });
-    },
+    // See EXTJSIV-11407.
+    operaLT11: Ext.isOpera && (parseInt(Ext.operaVersion) < 11),
+
+    /**
+     * @event dayclick
+     * Fires after the user clicks within the view container and not on an event element
+     * @param {Ext.calendar.view.Month} this
+     * @param {Date} dt The date/time that was clicked on
+     * @param {Boolean} allday True if the day clicked on represents an all-day box, else false. Clicks within the 
+     * MonthView always return true for this param.
+     * @param {Ext.core.Element} el The Element that was clicked on
+     */
+
+    /**
+     * @event weekclick
+     * Fires after the user clicks within a week link (when {@link #showWeekLinks is true)
+     * @param {Ext.calendar.view.Month} this
+     * @param {Date} dt The start date of the week that was clicked on
+     */
+
+    // inherited docs
+    //dayover: true,
+    // inherited docs
+    //dayout: true
 
     // private
     initDD: function() {
@@ -113,13 +109,13 @@ Ext.define('Ext.calendar.view.Month', {
 
     // private
     onDestroy: function() {
-        if (this.detailPanel) {
-            this.detailPanel.destroy();
-        }
-        
         Ext.destroy(this.ddSelector);
         Ext.destroy(this.dragZone);
         Ext.destroy(this.dropZone);
+        
+        if (this.detailPanel) {
+            this.detailPanel.destroy(); //DAMS
+        }
         
         this.callParent(arguments);
     },
@@ -147,8 +143,8 @@ Ext.define('Ext.calendar.view.Month', {
     onResize: function() {
         var me = this;
         me.callParent(arguments);
-        if (this.monitorResize) {
-				// HACK : DAMS, max events per day, wait for resize/render to be done
+        if (me.monitorResize) {
+			  // HACK / DAMS : Wait to get accurate getMaxEventsPerDay
 				Ext.defer( function() {
 					this.maxEventsPerDay = this.getMaxEventsPerDay();
 					this.refresh();
@@ -228,7 +224,7 @@ Ext.define('Ext.calendar.view.Month', {
             var tpl,
             body = this.getEventBodyMarkup();
 
-            tpl = !(Ext.isIE || Ext.isOpera) ?
+            tpl = !(Ext.isIE7m || this.operaLT11) ?
             new Ext.XTemplate(
                 '<div id="{_elId}" class="{_selectorCls} {_doneCls} {spanCls} ext-cal-evt ext-cal-evr" style="background-color:{_colorHex};">',
                     body,
@@ -236,12 +232,12 @@ Ext.define('Ext.calendar.view.Month', {
             )
             : new Ext.XTemplate(
                 '<tpl if="_renderAsAllDay">',
-                    '<div id="{_elId}" class="{_selectorCls} {spanCls} {_doneCls} ext-cal-evt ext-cal-evo" style="background-color:{_colorHex};">',
+                    '<div id="{_elId}" class="{_selectorCls} {spanCls} {_doneCls} {_operaLT11} ext-cal-evo" style="background-color:{_colorHex};">',
                         '<div class="ext-cal-evm">',
                             '<div class="ext-cal-evi">',
                 '</tpl>',
                 '<tpl if="!_renderAsAllDay">',
-                    '<div id="{_elId}" class="{_selectorCls} {_doneCls} ext-cal-evt ext-cal-evr" style="background-color:{_colorHex};">',
+                    '<div id="{_elId}" class="{_selectorCls} {_doneCls} {_operaLT11} ext-cal-evt ext-cal-evr" style="background-color:{_colorHex};">',
                 '</tpl>',
                     body,
                 '<tpl if="_renderAsAllDay">',
@@ -269,7 +265,8 @@ Ext.define('Ext.calendar.view.Month', {
             _isRecurring: evt.Recurrence && evt.Recurrence != '',
             _isReminder: evt[M.Reminder.name] && evt[M.Reminder.name] != '',
             Title: (!title || title.length == 0 ? '(No title)' : title),
-            _doneCls: (evt[M.IsDone.name] ? 'ext-evt-done' : '' )
+            _doneCls: (evt[M.IsDone.name] ? 'ext-evt-done' : '' ),
+            _operaLT11: this.operaLT11 ? 'ext-operaLT11' : ''
         },
         evt);
     },
@@ -417,7 +414,7 @@ Ext.define('Ext.calendar.view.Month', {
         if (this.dayOverClass) {
             Ext.select(this.daySelector).removeCls(this.dayOverClass);
         }
-        if (this.detailPanel) {
+        if (this.detailPanel && (this.detailPanel.getEl() != null) && !e.within(this.detailPanel.getEl(), false, true) ) {
             this.detailPanel.hide();
         }
     },
@@ -463,7 +460,7 @@ Ext.define('Ext.calendar.view.Month', {
         
         p.setWidth(Math.max(box.width, 220));
         p.show();
-        p.getPositionEl().alignTo(dayEl, 't-t?');
+        p.getEl().alignTo(dayEl, 't-t?');
     },
 
     // private
@@ -477,7 +474,7 @@ Ext.define('Ext.calendar.view.Month', {
 
     // private
     onClick: function(e, t) {
-        if (this.detailPanel && (this.detailPanel.getEl() != null) && !e.within(this.detailPanel.getEl(), false, true) ) {
+        if (this.detailPanel) {
             this.detailPanel.hide();
         }
         if (Ext.calendar.view.Month.superclass.onClick.apply(this, arguments)) {

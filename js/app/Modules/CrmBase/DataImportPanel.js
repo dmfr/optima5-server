@@ -248,8 +248,8 @@ Ext.define('Optima5.Modules.CrmBase.DataImportPanel' ,{
 						
 						Ext.create('Ext.menu.Menu',{
 							listeners: {
-								hide: function(m) {
-									m.destroy() ;
+								hide: function(menu) {
+									Ext.defer(function(){menu.destroy();},10) ;
 								}
 							},
 							items : {
@@ -470,6 +470,7 @@ Ext.define('Optima5.Modules.CrmBase.DataImportPanel' ,{
 			}) ;
 			csvGrid.child('headercontainer').on('render',function(csvGridHeaderView) {
 				csvGridHeaderView.ddel = Ext.get(document.createElement('div'));
+				Ext.getBody().appendChild( csvGridHeaderView.ddel );
 				csvGridHeaderView.dragZone = Ext.create('Ext.dd.DragZone',csvGridHeaderView.getEl(), {
 					ddGroup: 'DataImportDD-'+me.getId(),
 					view: csvGridHeaderView,

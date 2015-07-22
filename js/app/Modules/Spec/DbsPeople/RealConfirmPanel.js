@@ -101,9 +101,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealConfirmPanel',{
 		
 		this.callParent() ;
 		
-		if( this.data ) {
+		if( this.cfgData ) {
 			var headerCmp = this.down('#pHeader') ;
-			headerCmp.update(this.data) ;
+			headerCmp.update(this.cfgData) ;
 			if( headerCmp.rendered ) {
 				me.headerAttachEvents() ;
 			} else {
@@ -112,27 +112,27 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealConfirmPanel',{
 				},me) ;
 			}
 			
-			if( !Ext.isEmpty(this.data.exception_rows) ) {
+			if( !Ext.isEmpty(this.cfgData.exception_rows) ) {
 				this.down('grid').setVisible(true) ;
-				this.down('grid').getStore().loadData( this.data.exception_rows ) ;
+				this.down('grid').getStore().loadData( this.cfgData.exception_rows ) ;
 				
 				var disableBtn = false ;
 				this.down('grid').getStore().each( function(record) {
-					if( this.data.actionDay == 'valid_ceq' && record.get('ceq_error') ) {
+					if( this.cfgData.actionDay == 'valid_ceq' && record.get('ceq_error') ) {
 						disableBtn = true ;
 						record.set('_error',true) ;
 					}
-					if( this.data.actionDay == 'valid_rh' && record.get('rh_error') ) {
+					if( this.cfgData.actionDay == 'valid_rh' && record.get('rh_error') ) {
 						disableBtn = true ;
 						record.set('_error',true) ;
 					}
 				},this) ;
-				this.down('grid').headerCt.down('[dataIndex="checked"]').setVisible( this.data.actionDay=='valid_ceq' ) ;
+				this.down('grid').headerCt.down('[dataIndex="checked"]').setVisible( this.cfgData.actionDay=='valid_ceq' ) ;
 				if( disableBtn ) {
 					this.down('#btnSubmit').setVisible(false) ;
 				}
 				
-				switch( this.data.actionDay ) {
+				switch( this.cfgData.actionDay ) {
 					case 'valid_ceq' :
 						this.down('grid').getStore().filter('ceq_show',true) ;
 						break ;
@@ -268,13 +268,13 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealConfirmPanel',{
 			q_name:'Validation RH / Exceptions',
 			fields: [{
 				fieldLabel: 'Date',
-				fieldValue: this.data.date_sql
+				fieldValue: this.cfgData.date_sql
 			},{
 				fieldLabel: 'Entrepôt',
-				fieldValue: this.data.filter_site_txt
+				fieldValue: this.cfgData.filter_site_txt
 			},{
 				fieldLabel: 'Equipe',
-				fieldValue: this.data.filter_team_txt
+				fieldValue: this.cfgData.filter_team_txt
 			}]
 		},
 		columns=[],

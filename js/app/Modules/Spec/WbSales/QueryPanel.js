@@ -10,8 +10,6 @@ Ext.define('Optima5.Modules.Spec.WbSales.QueryPanel',{
 		var me = this,
 			width = me.width ;
 		
-		me.addEvents('abort','confirm') ;
-		
 		Ext.apply( me, {
 			layout:{
 				type:'vbox',
@@ -540,7 +538,7 @@ Ext.define('Optima5.Modules.Spec.WbSales.QueryPanel',{
 			items: menuItems,
 			listeners: {
 				hide: function(menu) {
-					menu.destroy() ;
+					Ext.defer(function(){menu.destroy();},10) ;
 				}
 			}
 		}) ;

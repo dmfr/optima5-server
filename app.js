@@ -71,173 +71,65 @@ Ext.onReady(function () {
 	
 	
 	
-	
-	
-	
+	/*
+	 * From Ext 5.1.1, Floating inside other ELs seem to mess with Ext.dom.GarbageCollector
+	 * Guess: Ext.util.Floating tries to reuse shadows cleared/invalidated by garbageCollector before ???
+	 */
+	Ext.util.Floating.override({
+		//shadow: false
+	}) ;
+	Ext.dom.Underlay.override({
+		hide: function() {
+			this.callOverridden(arguments) ;
+			this.getPool().reset() ;
+		}
+	}) ;
 	
 	/*
-	 * From Ext 4.2 , Ext.view.Table monitors all DOM events to fire 'uievent'
-	 *  If a view.Table is nested in a higher view.Table (ComponentRowExpander...),
-	 *  this would cause higher view.Table to select nested cell as e.getTarget(cellselector) result
-	 *  => check selected cell has actually a header in current grid before continuing
+	 * Ext 5.1.1 : BufferedRenderer + Locking + GroupingSummary = bug on destroy if store updated 
+	 * https://www.sencha.com/forum/showthread.php?303291-Grid-BufferedRenderer-Locking-GroupingSummary-bug-on-destroy-if-store-updated
+	 * Seems GlobalEvent 'afterlayout' set in Ext.grid.locking.View::onUpdate is not consumed until final destroy (where it's too late to dig up records ?)
 	 */
-	Ext.view.Table.override( {
-		processItemEvent: function(record, row, rowIndex, e) {
-			var cell = e.getTarget(this.getCellSelector(), row) ;
-			if( cell && this.getHeaderByCell(cell) == null ) {
-				return false;
+	Ext.grid.plugin.BufferedRenderer.override({
+		refreshSize: function() {
+			if( !this.store.data ) {
+				return ;
 			}
 			this.callOverridden(arguments) ;
 		}
-	}) ;
-	
-	/*
-	 * From Ext 4.2...
-	 * Ext.grid.plugin.Editing (parent of RowEditing) checks that an editor has been defined on clicked cell (to start editing row)
-	 * => restore Ext 4.1 behavior (startEdit whether editor is defined or not)
-	 */
-	Ext.grid.plugin.RowEditing.override( {
-		onCellClick: function(view, cell, colIdx, record, row, rowIdx, e) {
-			// Make sure that the column has an editor.  In the case of CheckboxModel,
-			// calling startEdit doesn't make sense when the checkbox is clicked.
-			// Also, cancel editing if the element that was clicked was a tree expander.
-			var expanderSelector = view.expanderSelector,
-				// Use getColumnManager() in this context because colIdx includes hidden columns.
-				columnHeader = view.ownerCt.getColumnManager().getHeaderAtIndex(colIdx),
-				editor = columnHeader.getEditor(record);
-			
-			if ( !expanderSelector || !e.getTarget(expanderSelector)) {
-				this.startEdit(record, columnHeader);
-			}
-		}
-	}) ;
-	
-	/*
-	 * Ext 4.1 : Ext.grid.RowEditor "layouts" itself on every startEdit
-	 * From Ext 4.2, Ext.grid.RowEditor monitors columns on trigger components layout on add/remove/resize/move... BUT misses column::setEditor()
-	 * => force syncAllFieldWidths() on every startEdit
-	 */
-	Ext.grid.RowEditor.override( {
-		onShow: function() {
-			var me = this;
-			
-			me.callParent(arguments);
-			if (true) {
-				me.suspendLayouts();
-				me.syncAllFieldWidths();
-				me.resumeLayouts(true);
-			}
-			delete me.needsSyncFieldWidths;
-			
-			me.reposition();
-		}
 	});
 	
 	/*
-	 * [4.2.1 GA] GridView preserveScrollOnRefresh doesn't work if any row is focused
-	 * http://www.sencha.com/forum/showthread.php?269364
-	 * http://www.sencha.com/forum/showthread.php?274002-preserveScrollOnRefresh-is-not-working-when-using-bufferedrenderer+
+	 * Ext 5.1.1 : applyRoot if TreeStore::setRoot() called with NodeInterface
 	 */
-	Ext.view.Table.override( {
-		refresh: function() {
-			this.callOverridden() ;
+	Ext.data.TreeStore.override({
+		applyRoot: function(newRoot) {
+			newRoot = this.callOverridden(arguments) ;
 			
 			var me = this ;
-			if (me.rendered && me.bufferedRenderer && me.preserveScrollOnRefresh) {
-				me.el.dom.scrollTop = me._ws_lastScrollPosition;
-				Ext.defer( function() { // HACK : rendered late sometimes
-					me.bufferedRenderer.onViewScroll(null, me.el);
-				},10,me) ;
+			if( newRoot && newRoot.isNode && newRoot.isRoot() ) {
+				newRoot.store = newRoot.treeStore = me;
 			}
-		},
-		onViewScroll: function(e, t) {
+			return newRoot ;
+		}
+	});
+	
+	/*
+	 * Chrome 43 / Charts ? : draw problem
+	 */
+	Ext.chart.Chart.override({
+		initComponent: function() {
+			Ext.apply(this,{
+				animate: false
+			});
 			this.callOverridden(arguments);
-			
-			this._ws_lastScrollPosition = t.scrollTop;
-		}
-	});
-	
-	/*
-	 * Ext 4.2.2 : Ext.data.Model fails to keep internalId on copy
-	 * => explicitly set newId
-	 */
-	Ext.data.Model.override({
-		copy : function(newId) {
-			var me = this;
-			if( !(newId || newId === 0) && me.idProperty && me.raw.hasOwnProperty(me.idProperty) ) {
-				newId = me.internalId ;
-			}
-			return new me.self(me.raw, newId, null, Ext.apply({}, me[me.persistenceProperty]));
-		}
-	});
-	
-	/*
-	 * Ext 4.x + Chrome 43+ : submenus disappears
-	 */
-	Ext.menu.Menu.override({
-		onMouseLeave: function(e) {
-			if (this.disabled) {
-					return;
-			}
-			this.fireEvent('mouseleave', this, e);
+			this.on('afterrender', function(chart) {
+				Ext.defer(function(){chart.redraw();},100,this);
+			});
 		}
 	});
 	
 	
-	
-	/*
-	 * For IE11 : http://www.sencha.com/forum/showthread.php?281297-Ext.util.CSS.createStyleSheet-fails-in-IE11.
-	 * HACK: same in js/app/Modules.js
-	 * HACK: same in js/ux/ColumnAutoWidthPlugin.js
-	 */
-	Ext.util.CSS.createStyleSheet = function (cssText, id) {
-		var CSS = this,
-			doc = document;
-		var ss,
-			head = doc.getElementsByTagName("head")[0],
-			styleEl = doc.createElement("style");
-		styleEl.setAttribute("type", "text/css");
-		if (id) {
-			styleEl.setAttribute("id", id);
-		}
-		if (Ext.isIE10m) {
-			head.appendChild(styleEl);
-			ss = styleEl.styleSheet;
-			ss.cssText = cssText;
-		} else {
-			try {
-				styleEl.appendChild(doc.createTextNode(cssText));
-			} catch (e) {
-				styleEl.cssText = cssText;
-			}
-			head.appendChild(styleEl);
-			ss = styleEl.styleSheet ? styleEl.styleSheet : (styleEl.sheet || doc.styleSheets[doc.styleSheets.length - 1]);
-		}
-		CSS.cacheStyleSheet(ss);
-		return ss;
-	}
-	
-	
-	
-	/*
-	 * Bug by myself
-	 * If records are filtered, and are filtering an entire group,
-	 * updating one of these records make update fails.
-	 * See RealPanel::gridAdapterUpdatePeopledayRecord
-	 * TODO: build a test case
-	 */
-	Ext.data.Store.override({
-		updateGroupsOnUpdate: function(record, modifiedFieldNames) {
-			var me = this,
-				groupName = me.getGroupString(record),
-				groups = me.groups,
-				group = groups.getByKey(groupName) ;
-			if( group == null ) {
-				return ;
-			}
-			this.callOverridden(arguments);
-		}
-	});
 	
 	
 	/*
@@ -262,7 +154,9 @@ Ext.onReady(function () {
 	/*
 	Désactiver le click droit
 	*/
-	Ext.getBody().on('contextmenu', Ext.emptyFn, null, {preventDefault: true});
+	Ext.getDoc().on('contextmenu', function(ev){
+		ev.preventDefault() ;
+	}) ;
 	
 	// onReady : bootstrap Optima app.
 	Ext.create('Optima5.App',{}) ;

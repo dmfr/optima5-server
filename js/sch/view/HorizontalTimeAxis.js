@@ -10,17 +10,15 @@ Ext.define("Sch.view.HorizontalTimeAxis", {
     hoverCls: "",
     containerEl: null,
     height: null,
-    constructor: function (d) {
+    constructor: function(d) {
         var e = this;
-        var b = !! Ext.versions.touch;
+        var b = !!Ext.versions.touch;
         var a = b ? "tap" : "click";
         Ext.apply(this, d);
         e.callParent(arguments);
-        e.model.on({
-            update: e.onModelUpdate,
-            scope: e
+        e.model.on("update", e.onModelUpdate, this, {
+            priority: 5
         });
-        this.addEvents("refresh");
         e.containerEl = Ext.get(e.containerEl);
         if (!(e.headerHtmlRowTpl instanceof Ext.Template)) {
             e.headerHtmlRowTpl = e.headerHtmlRowTpl.replace("{{baseCls}}", this.baseCls).replace("{{tableCls}}", this.tableCls);
@@ -43,20 +41,18 @@ Ext.define("Sch.view.HorizontalTimeAxis", {
         };
         if (b) {
             c.tap = this.onElClick("tap");
-            c.doubletap = this.onElClick("doubletap");
-            this.addEvents("timeheadertap", "timeheaderdoubletap")
+            c.doubletap = this.onElClick("doubletap")
         } else {
             c.click = this.onElClick("click");
             c.dblclick = this.onElClick("dblclick");
-            c.contextmenu = this.onElClick("contextmenu");
-            this.addEvents("timeheaderclick", "timeheaderdblclick", "timeheadercontextmenu")
+            c.contextmenu = this.onElClick("contextmenu")
         }
         e._listenerCfg = c;
         if (e.containerEl) {
             e.containerEl.on(c)
         }
     },
-    destroy: function () {
+    destroy: function() {
         var a = this;
         if (a.containerEl) {
             a.containerEl.un(a._listenerCfg);
@@ -75,10 +71,10 @@ Ext.define("Sch.view.HorizontalTimeAxis", {
             scope: a
         })
     },
-    onModelUpdate: function () {
+    onModelUpdate: function() {
         this.render()
     },
-    getHTML: function (e, h, d) {
+    getHTML: function(e, h, d) {
         var i = this.model.getColumnConfig();
         var g = this.model.getTotalWidth();
         var c = Ext.Object.getKeys(i).length;
@@ -116,7 +112,7 @@ Ext.define("Sch.view.HorizontalTimeAxis", {
         }
         return f + '<div class="sch-header-secondary-canvas"></div>'
     },
-    render: function () {
+    render: function() {
         if (!this.containerEl) {
             return
         }
@@ -138,8 +134,8 @@ Ext.define("Sch.view.HorizontalTimeAxis", {
         f.style.display = d;
         this.fireEvent("refresh", this)
     },
-    embedCellWidths: function (b) {
-        var e = (Ext.isIE7 || Ext.isSafari) ? 1 : 0;
+    embedCellWidths: function(b) {
+        var e = (Ext.isIE7 || (Ext.isSafari && !Ext.supports.Touch)) ? 1 : 0;
         for (var c = 0; c < b.length; c++) {
             var a = b[c];
             var d = this.model.getDistanceBetweenDates(a.start, a.end);
@@ -151,8 +147,8 @@ Ext.define("Sch.view.HorizontalTimeAxis", {
             }
         }
     },
-    onElClick: function (a) {
-        return function (e, f) {
+    onElClick: function(a) {
+        return function(e, f) {
             f = e.delegatedTarget || f;
             var b = Ext.fly(f).getAttribute("headerPosition"),
                 c = Ext.fly(f).getAttribute("headerIndex"),
@@ -160,7 +156,7 @@ Ext.define("Sch.view.HorizontalTimeAxis", {
             this.fireEvent("timeheader" + a, this, d.start, d.end, e)
         }
     },
-    highlightCell: function (c, a) {
+    highlightCell: function(c, a) {
         var b = this;
         if (a !== b.highlightedCell) {
             b.clearHighlight();
@@ -168,7 +164,7 @@ Ext.define("Sch.view.HorizontalTimeAxis", {
             Ext.fly(a).addCls(b.hoverCls)
         }
     },
-    clearHighlight: function () {
+    clearHighlight: function() {
         var b = this,
             a = b.highlightedCell;
         if (a) {

@@ -33,8 +33,8 @@ function specWbMrfoxy_promo_getGrid( $post_data ) {
 	$filters = array() ;
 	if( $post_data['filter_country'] ) {
 		$filter = array() ;
-		$filter['field'] = 'WORK_PROMO_field_COUNTRY' ;
-		$filter['type'] = 'list' ;
+		$filter['property'] = 'WORK_PROMO_field_COUNTRY' ;
+		$filter['operator'] = 'in' ;
 		$filter['value'] = array($post_data['filter_country']) ;
 		$filters[] = $filter ;
 	}
@@ -43,32 +43,29 @@ function specWbMrfoxy_promo_getGrid( $post_data ) {
 	}
 	if( isset($post_data['filter_isProd']) ) {
 		$filter = array() ;
-		$filter['field'] = 'WORK_PROMO_field_IS_PROD' ;
-		$filter['type'] = 'numeric' ;
-		$filter['comparison'] = 'eq' ;
+		$filter['property'] = 'WORK_PROMO_field_IS_PROD' ;
+		$filter['operator'] = 'eq' ;
 		$filter['value'] = ( $post_data['filter_isProd'] ? 1 : 0 ) ;
 		$filters[] = $filter ;
 	}
 	if( isset($post_data['filter_isBenchmarkEligible']) && $post_data['filter_isBenchmarkEligible'] ) {
 		$filter = array() ;
-		$filter['field'] = 'WORK_PROMO_field_STATUS_entry_PERCENT' ;
-		$filter['type'] = 'numeric' ;
-		$filter['comparison'] = 'gt' ;
-		$filter['value'] = 79 ;
+		$filter['property'] = 'WORK_PROMO_field_STATUS_entry_PERCENT' ;
+		$filter['operator'] = 'gt' ;
+		$filter['value'] = 80 ;
 		$filters[] = $filter ;
 	}
 	if( isset($post_data['filter_isDone']) && $post_data['filter_isDone'] ) {
 		$filter = array() ;
-		$filter['field'] = 'WORK_PROMO_field_STATUS' ;
-		$filter['type'] = 'string' ;
-		$filter['comparison'] = 'eq' ;
-		$filter['value'] = '99_CLOSED' ;
+		$filter['property'] = 'WORK_PROMO_field_STATUS' ;
+		$filter['operator'] = 'in' ;
+		$filter['value'] = array('99_CLOSED') ;
 		$filters[] = $filter ;
 	}
 	if( $post_data['filter_id'] && isJsonArr($post_data['filter_id']) ) {
 		$filter = array() ;
-		$filter['field'] = 'filerecord_id' ;
-		$filter['type'] = 'list' ;
+		$filter['property'] = 'filerecord_id' ;
+		$filter['operator'] = 'in' ;
 		$filter['value'] = json_decode($post_data['filter_id'],true) ;
 		$filters[] = $filter ;
 	}
@@ -76,7 +73,7 @@ function specWbMrfoxy_promo_getGrid( $post_data ) {
 		
 		foreach( json_decode($post_data['filter'],true) as $filter ) {
 			$paracrm_field = NULL ;
-			switch( $filter['field'] ) {
+			switch( $filter['property'] ) {
 				case 'status_code' : $paracrm_field='WORK_PROMO_field_STATUS' ; break ;
 				case 'brand_text' : $paracrm_field='WORK_PROMO_field_BRAND' ; break ;
 				case 'date_supply_start' : $paracrm_field='WORK_PROMO_field_DATE_SUPPLY_START' ; break ;
@@ -89,10 +86,10 @@ function specWbMrfoxy_promo_getGrid( $post_data ) {
 				case 'mechanics_text' : $paracrm_field='WORK_PROMO_field_MECH_TYPE' ; break ;
 				default : continue 2 ;
 			}
-			if( $post_data['filter_isProd'] && $filter['field']=='brand_text' ) {
+			if( $post_data['filter_isProd'] && $filter['property']=='brand_text' ) {
 				continue ;
 			}
-			$filter['field'] = $paracrm_field ;
+			$filter['property'] = $paracrm_field ;
 			$filters[] = $filter ;
 		}
 		
@@ -202,8 +199,8 @@ function specWbMrfoxy_promo_getGrid( $post_data ) {
 				'file_code'=>'WORK_PROMO_SKU',
 				'filter'=>json_encode(array(
 					array(
-						'field'=>'WORK_PROMO_id',
-						'type'=>'list',
+						'property'=>'WORK_PROMO_id',
+						'operator'=>'in',
 						'value'=>array($paracrm_row['filerecord_id'])
 					)
 				))
@@ -329,10 +326,10 @@ function specWbMrfoxy_promo_getSideBenchmark( $post_data ) {
 	
 	$grid_filter = array() ;
 	if( $promo_record['prod_code'] ) {
-		$grid_filter[] = array('field'=>'prod_text', 'type'=>'list', 'value'=>specWbMrfoxy_tool_getProdNodes($promo_record['prod_code'])) ;
+		$grid_filter[] = array('property'=>'prod_text', 'operator'=>'in', 'value'=>specWbMrfoxy_tool_getProdNodes($promo_record['prod_code'])) ;
 	}
 	if( $promo_record['store_code'] ) {
-		$grid_filter[] = array('field'=>'store_text', 'type'=>'list', 'value'=>specWbMrfoxy_tool_getStoreNodes($promo_record['store_code'])) ;
+		$grid_filter[] = array('property'=>'store_text', 'operator'=>'in', 'value'=>specWbMrfoxy_tool_getStoreNodes($promo_record['store_code'])) ;
 	}
 	$json = specWbMrfoxy_promo_getGrid(array('filter_isProd'=>1, 'filter_isBenchmarkEligible'=>1, 'filter_country'=>$promo_record['country_code'],'filter'=>json_encode($grid_filter))) ;
 	return $json ;
@@ -355,9 +352,9 @@ function specWbMrfoxy_promo_getSideBillback( $post_data ) {
 	$forward_post['limit'] ;
 	$forward_post['file_code'] = 'ORACLE_PURCHASE' ;
 		$filter = array() ;
-		$filter['field'] = 'ORACLE_PURCHASE_field_PROMO_CODE' ;
-		$filter['type'] = 'string' ;
-		$filter['value'] = $promo_record['promo_id'] ;
+		$filter['property'] = 'ORACLE_PURCHASE_field_PROMO_CODE' ;
+		$filter['operator'] = 'in' ;
+		$filter['value'] = array($promo_record['promo_id']) ;
 		$filters[] = $filter ;
 	$forward_post['filter'] = json_encode(array($filter)) ;
 		$sorter = array() ;
@@ -406,10 +403,10 @@ function specWbMrfoxy_promo_formEval( $post_data ) {
 	
 	$grid_filter = array() ;
 	if( $form_data['prod_code'] ) {
-		$grid_filter[] = array('field'=>'prod_text', 'type'=>'list', 'value'=>specWbMrfoxy_tool_getProdNodes($form_data['prod_code'])) ;
+		$grid_filter[] = array('property'=>'prod_text', 'operator'=>'in', 'value'=>specWbMrfoxy_tool_getProdNodes($form_data['prod_code'])) ;
 	}
 	if( $form_data['store_code'] ) {
-		$grid_filter[] = array('field'=>'store_text', 'type'=>'list', 'value'=>specWbMrfoxy_tool_getStoreNodes($form_data['store_code'])) ;
+		$grid_filter[] = array('property'=>'store_text', 'operator'=>'in', 'value'=>specWbMrfoxy_tool_getStoreNodes($form_data['store_code'])) ;
 	}
 	$ttmp = specWbMrfoxy_promo_getGrid(array('filter_isProd'=>1, 'filter_isBenchmarkEligible'=>1, 'filter_country'=>$form_data['country_code'],'filter'=>json_encode($grid_filter))) ;
 	$resp_data['gridBenchmark'] = $ttmp['data'];
@@ -639,10 +636,10 @@ function specWbMrfoxy_promo_formSubmit( $post_data ) {
 	// Comparable promos
 	$grid_filter = array() ;
 	if( $form_data['prod_code'] ) {
-		$grid_filter[] = array('field'=>'prod_text', 'type'=>'list', 'value'=>specWbMrfoxy_tool_getProdNodes($form_data['prod_code'])) ;
+		$grid_filter[] = array('property'=>'prod_text', 'operator'=>'in', 'value'=>specWbMrfoxy_tool_getProdNodes($form_data['prod_code'])) ;
 	}
 	if( $form_data['store_code'] ) {
-		$grid_filter[] = array('field'=>'store_text', 'type'=>'list', 'value'=>specWbMrfoxy_tool_getStoreNodes($form_data['store_code'])) ;
+		$grid_filter[] = array('property'=>'store_text', 'operator'=>'in', 'value'=>specWbMrfoxy_tool_getStoreNodes($form_data['store_code'])) ;
 	}
 	$ttmp = specWbMrfoxy_promo_getGrid(array('filter_isProd'=>1, 'filter_isBenchmarkEligible'=>1, 'filter_country'=>$form_data['country_code'],'filter'=>json_encode($grid_filter))) ;
 	$benchmark_arr_ids = array() ;
@@ -908,13 +905,13 @@ function specWbMrfoxy_promo_getAttachments( $post_data ) {
 	$forward_post['file_code'] = 'WORK_PROMO_ATTACH' ;
 	$forward_post['filter'] = json_encode(array(
 		array(
-			'type' => 'list',
-			'field' => 'WORK_PROMO_id',
+			'operator' => 'in',
+			'property' => 'WORK_PROMO_id',
 			'value' => array( $promo_filerecordId )
 		),
 		array(
-			'type' => 'list',
-			'field' => 'WORK_PROMO_ATTACH_field_TYPE',
+			'operator' => 'in',
+			'property' => 'WORK_PROMO_ATTACH_field_TYPE',
 			'value' => array( $doc_type )
 		)
 	)) ;

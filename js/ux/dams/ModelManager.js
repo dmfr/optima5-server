@@ -20,7 +20,10 @@ Ext.define('Ext.ux.dams.ModelManager',{
 			return isArray ? tmpStore.getRange() : tmpStore.getAt(0) ;
 		},
 		unregister: function(modelName) {
-			Ext.ModelManager.unregisterType(modelName) ;
+			var cls = Ext.ClassManager.get(modelName) ;
+			if( cls && cls.schema ) {
+				delete cls.schema.entities[modelName] ;
+			}
 			Ext.undefine(modelName) ;
 		}
 	}

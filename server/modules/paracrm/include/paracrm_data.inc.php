@@ -451,68 +451,68 @@ function paracrm_data_getFileGrid_data( $post_data, $auth_bypass=FALSE )
 	// filters.....
 	if( $post_data['filter'] )
 	{
-	// table de mapping
-	$mapping = array() ;
-	foreach( $TAB['sql_selectfields'] as $ttmp )
-	{
-		$sql_field = $ttmp[0] ;
-		$display_field = $ttmp[1] ;
-		$mapping[$display_field] = $sql_field ;
-	}
-	
-	foreach( json_decode($post_data['filter'],TRUE) as $filter )
-	{
-		$sql_field = $mapping[$filter['field']] ;
-		if( !$sql_field )
-			continue ;
-		switch( $filter['type'] )
+		// table de mapping
+		$mapping = array() ;
+		foreach( $TAB['sql_selectfields'] as $ttmp )
 		{
-			case 'list' :
-			if( is_array($filter['value']) && $filter['value'] )
-			{
-				$query.= " AND {$sql_field} IN ".$_opDB->makeSQLlist($filter['value']) ;
-			}
-			elseif( is_array($filter['value']) )
-			{
-				$query.= " AND 0" ;
-			}
-			break ;
-			
-			case 'date' :
-			$sign = '' ;
-			switch( $filter['comparison'] )
-			{
-				case 'eq' : $sign = '=' ; break ;
-				case 'lt' : $sign = '<=' ; break ;
-				case 'gt' : $sign = '>=' ; break ;
-			}
-			if( $sign )
-			{
-				$query.= " AND DATE({$sql_field}) {$sign} '{$filter['value']}'" ;
-			}
-			break ;
-			
-			
-			case 'numeric' :
-			$sign = '' ;
-			switch( $filter['comparison'] )
-			{
-				case 'eq' : $sign = '=' ; break ;
-				case 'lt' : $sign = '<' ; break ;
-				case 'gt' : $sign = '>' ; break ;
-			}
-			if( $sign )
-			{
-				$query.= " AND {$sql_field} {$sign} '{$filter['value']}'" ;
-			}
-			break ;
-			
-			
-			case 'string' :
-			$query.= " AND {$sql_field} LIKE '%{$filter['value']}%'" ;
-			break ;
+			$sql_field = $ttmp[0] ;
+			$display_field = $ttmp[1] ;
+			$mapping[$display_field] = $sql_field ;
 		}
-	}
+		$types = array() ;
+		foreach( $TAB['select_map'] as $ttmp )
+		{
+			$sql_field = $ttmp[0] ;
+			$display_field = $ttmp[1] ;
+			$types[$ttmp['field']] = $ttmp['type'] ;
+		}
+		
+		foreach( json_decode($post_data['filter'],TRUE) as $filter )
+		{
+			$sql_field = $mapping[$filter['property']] ;
+			if( !$sql_field )
+				continue ;
+			if( ($type = $types[$filter['property']]) == 'date' ){
+				$sql_field = 'DATE('.$sql_field.')';
+			}
+			
+			if( ($type = $types[$filter['property']]) == 'bool' ){
+				$filter['value'] = ($filter['value'] ? 1 : 0) ;
+			}
+			
+			switch( $filter['operator'] ) {
+				case 'in' :
+					if( is_array($filter['value']) && $filter['value'] )
+					{
+						$query.= " AND {$sql_field} IN ".$_opDB->makeSQLlist($filter['value']) ;
+					}
+					elseif( is_array($filter['value']) )
+					{
+						$query.= " AND 0" ;
+					}
+					break ;
+				
+				case '=' :
+				case 'eq' :
+				case 'lt' :
+				case 'gt' :
+					switch( $filter['operator'] ) {
+						case '=' : $sign = '=' ; break ;
+						case 'eq' : $sign = '=' ; break ;
+						case 'lt' : $sign = '<=' ; break ;
+						case 'gt' : $sign = '>=' ; break ;
+					}
+					$query.= " AND {$sql_field} {$sign} '{$filter['value']}'" ;
+					break ;
+				
+				case 'like' :
+					$query.= " AND {$sql_field} LIKE '%{$filter['value']}%'" ;
+					break ;
+					
+				default :
+					break ;
+			}
+		}
 	}
 	
 	if( $post_data['sort'] )

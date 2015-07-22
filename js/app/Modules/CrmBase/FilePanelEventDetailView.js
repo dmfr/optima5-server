@@ -7,9 +7,6 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelEventDetailView',{
 	
 	initComponent : function(){
 		this.callParent(arguments);
-		this.addEvents({
-			eventsrendered: true
-		});
 		
 		var me = this ;
 		if( (me.filePanelCalendar) instanceof Optima5.Modules.CrmBase.FilePanelCalendar ) {} else {
@@ -144,7 +141,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelEventDetailView',{
 			this.tpl = new Ext.XTemplate(
 				'<div class="op5-crmbase-filecalendar-eventdetail">',
 					'<tpl if="headerColor">',
-						'<div class="op5-crmbase-filecalendar-eventdetail-account" style="background-color:{headerColor}">',
+						'<div class="op5-crmbase-filecalendar-eventdetail-account" style="background-color:#{headerColor}">',
 							'{[ values.headerTxt != null ? values.headerTxt : "&#160;"]}',
 						'</div>',
 					'</tpl>',

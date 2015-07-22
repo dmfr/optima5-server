@@ -28,7 +28,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoNAgreementsSubpanel',{
 	extend:'Ext.panel.Panel',
 	
 	requires : [
-		'Ext.ux.grid.FiltersFeature',
+		'Ext.ux.grid.filters.Filters',
 		'Ext.ux.ComponentRowExpander',
 		'Optima5.Modules.Spec.WbMrfoxy.PromoNAgreementsRowPanel'
 	],
@@ -53,6 +53,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoNAgreementsSubpanel',{
 				store: {
 					model: 'WbMrfoxyNAgreementModel',
 					autoLoad: false,
+					remoteFilter: true,
 					proxy: this.optimaModule.getConfiguredAjaxProxy({
 						extraParams : {
 							_moduleId: 'spec_wb_mrfoxy',
@@ -60,24 +61,22 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoNAgreementsSubpanel',{
 						},
 						reader: {
 							type: 'json',
-							root: 'data'
+							rootProperty: 'data'
 						}
 					}),
 					sorters: [{
 						property: 'cropYear_code',
 						direction: 'DESC'
 					}],
-					groupers: [{
+					grouper: {
 						property: 'group_key',
 						direction: 'DESC'
-					}],
+					},
 					listeners: {
 						beforeload: function(store,options) {
-							options.params = options.params || {};
-							var params = {
+							options.setParams({
 								filter_country: me.parentBrowserPanel.filterCountry
-							} ;
-							Ext.apply(options.params, params);
+							}) ;
 						},
 						load: function(store) {
 						},
@@ -194,9 +193,6 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoNAgreementsSubpanel',{
 					}]
 				},
 				features: [{
-					ftype: 'filters',
-					encode: true
-				},{
 					ftype: 'grouping',
 					hideGroupedHeader: false,
 					enableGroupingMenu: false,
@@ -221,6 +217,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoNAgreementsSubpanel',{
 					)
 				}],
 				plugins: [{
+					ptype: 'uxgridfilters'
+				},{
 					ptype:'cmprowexpander',
 					pluginId: 'rowexpander',
 					expandOnDblClick: false,

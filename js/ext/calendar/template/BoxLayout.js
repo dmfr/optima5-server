@@ -68,7 +68,7 @@ Ext.define('Ext.calendar.template.BoxLayout', {
                     // The ISO week format 'W' is relative to a Monday week start. If we
                     // make this check on Sunday the week number will be off.
                     weeks[w].weekNum = this.showWeekNumbers ? Ext.Date.format(dt, 'W') : '&#160;';
-                    weeks[w].weekLinkId = 'ext-cal-week-'+Ext.Date.format(dt, 'Ymd');
+                    weeks[w].weekLinkId = this.id+'-ext-cal-week-'+Ext.Date.format(dt, 'Ymd');
                 }
                 
                 if(showMonth){

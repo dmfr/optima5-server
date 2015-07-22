@@ -10,7 +10,7 @@ Ext.define('AdminSdomainModel',{
 		{name: 'stat_nbBibles', type:'int'},
 		{name: 'stat_nbFiles', type:'int'},
 		{name: 'stat_dbSize', type:'string'},
-		{name: 'sdomain_id_forDisplay',  type:'string', convert:function(v,record){return record.getId().toUpperCase();}}
+		{name: 'sdomain_id_forDisplay',  type:'string', convert:function(v,record){return record.get('sdomain_id').toUpperCase();}}
 	]
 });
 
@@ -33,7 +33,7 @@ Ext.define('Optima5.Modules.Admin.SdomainsPanel',{
 				},
 				reader: {
 					type: 'json',
-					root: 'data'
+					rootProperty: 'data'
 				}
 			}),
 			autoLoad: true

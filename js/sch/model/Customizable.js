@@ -1,99 +1,140 @@
     Ext.define("Sch.model.Customizable", {
         extend: "Ext.data.Model",
-        idProperty: null,
         customizableFields: null,
         previous: null,
-        onClassExtended: function (b, d, a) {
+        __editing: null,
+        __editCounter: 0,
+        constructor: function() {
+            var a = this.callParent(arguments);
+            return a
+        },
+        onClassExtended: function(b, d, a) {
             var c = a.onBeforeCreated;
-            a.onBeforeCreated = function (f, k) {
+            a.onBeforeCreated = function(n, i) {
                 c.apply(this, arguments);
-                var j = f.prototype;
+                var j = n.prototype;
                 if (!j.customizableFields) {
                     return
                 }
-                j.customizableFields = (f.superclass.customizableFields || []).concat(j.customizableFields);
+                j.customizableFields = (n.superclass.customizableFields || []).concat(j.customizableFields);
                 var g = j.customizableFields;
-                var i = {};
-                Ext.Array.each(g, function (l) {
-                    if (typeof l == "string") {
-                        l = {
-                            name: l
+                var h = {};
+                var l = this;
+                var f = Ext.Array.findBy(n.fields, function(o) {
+                    return o.name === j.idProperty
+                });
+                l.idField = j.idField = f;
+                if (!n.fieldsMap[j.idProperty]) {
+                    n.fieldsMap[j.idProperty] = f
+                }
+                Ext.Array.forEach(g, function(o) {
+                    if (typeof o == "string") {
+                        o = {
+                            name: o
                         }
                     }
-                    i[l.name] = l
+                    h[o.name] = o
                 });
-                var e = j.fields;
-                var h = [];
-                e.each(function (l) {
-                    if (l.isCustomizableField) {
-                        h.push(l)
+                var k = j.fields;
+                var m = [];
+                var e = [];
+                Ext.Array.forEach(k, function(o) {
+                    if (o.isCustomizableField) {
+                        e.push(o.getName())
                     }
                 });
-                e.removeAll(h);
-                Ext.Object.each(i, function (l, o) {
-                    o.isCustomizableField = true;
-                    var p = o.name || o.getName();
-                    var t = p === "Id" ? "idProperty" : p.charAt(0).toLowerCase() + p.substr(1) + "Field";
-                    var q = j[t];
-                    var s = q || p;
-                    if (e.containsKey(s)) {
-                        e.getByKey(s).isCustomizableField = true;
-                        g.push(new Ext.data.Field(Ext.applyIf({
-                            name: p,
-                            isCustomizableField: true
-                        }, e.getByKey(s))))
-                    } else {
-                        e.add(new Ext.data.Field(Ext.applyIf({
+                if (j.idProperty !== "id" && j.getField("id")) {
+                    if (!j.getField("id").hasOwnProperty("name")) {
+                        e.push("id")
+                    }
+                }
+                if (j.idProperty !== "Id" && j.getField("Id")) {
+                    if (!j.getField("Id").hasOwnProperty("name")) {
+                        e.push("Id")
+                    }
+                }
+                n.removeFields(e);
+                Ext.Object.each(h, function(o, r) {
+                    r.isCustomizableField = true;
+                    var s = r.name || r.getName();
+                    var x = s === "Id" ? "idProperty" : s.charAt(0).toLowerCase() + s.substr(1) + "Field";
+                    var t = j[x];
+                    var w = t || s;
+                    var v;
+                    if (j.getField(w)) {
+                        v = Ext.applyIf({
                             name: s,
                             isCustomizableField: true
-                        }, o)))
+                        }, j.getField(w));
+                        j.getField(w).isCustomizableField = true;
+                        v = Ext.create("data.field." + (v.type || "auto"), v);
+                        g.push(v)
+                    } else {
+                        v = Ext.applyIf({
+                            name: w,
+                            isCustomizableField: true
+                        }, r);
+                        v = Ext.create("data.field." + (v.type || "auto"), v);
+                        m.push(v)
                     }
-                    var n = Ext.String.capitalize(p);
-                    if (n != "Id") {
-                        var r = "get" + n;
-                        var m = "set" + n;
-                        if (!j[r] || j[r].__getterFor__ && j[r].__getterFor__ != s) {
-                            j[r] = function () {
-                                return this.data[s]
+                    var q = Ext.String.capitalize(s);
+                    if (q != "Id") {
+                        var u = "get" + q;
+                        var p = "set" + q;
+                        if (!j[u] || j[u].__getterFor__ && j[u].__getterFor__ != w) {
+                            j[u] = function() {
+                                return this.get(w)
                             };
-                            j[r].__getterFor__ = s
+                            j[u].__getterFor__ = w
                         }
-                        if (!j[m] || j[m].__setterFor__ && j[m].__setterFor__ != s) {
-                            j[m] = function (u) {
-                                return this.set(s, u)
+                        if (!j[p] || j[p].__setterFor__ && j[p].__setterFor__ != w) {
+                            j[p] = function(y) {
+                                return this.set(w, y)
                             };
-                            j[m].__setterFor__ = s
+                            j[p].__setterFor__ = w
                         }
                     }
-                })
+                });
+                n.addFields(m)
             }
         },
-        set: function (d, b) {
+        set: function(f, b) {
             var a;
+            var d;
             this.previous = this.previous || {};
-            if (arguments.length > 1) {
-                a = this.get(d);
-                if (a !== b) {
-                    this.previous[d] = a
+            if (typeof f === "string") {
+                a = this.get(f);
+                if (a instanceof Date && !(b instanceof Date)) {
+                    b = this.getField(f).convert(b, this)
+                }
+                if ((a instanceof Date && (a - b)) || !(a instanceof Date) && a !== b) {
+                    this.previous[f] = a
+                } else {
+                    return []
                 }
             } else {
-                for (var c in d) {
-                    a = this.get(c);
-                    if (a !== d[c]) {
-                        this.previous[c] = a
+                for (var e in f) {
+                    a = this.get(e);
+                    var c = f[e];
+                    if (a instanceof Date && !(c instanceof Date)) {
+                        c = this.getField(e).convert(c, this)
+                    }
+                    if ((a instanceof Date && (a - c)) || !(a instanceof Date) && a !== c) {
+                        this.previous[e] = a
                     }
                 }
             }
-            this.callParent(arguments)
+            d = this.callParent(arguments);
+            if (!this.__editing) {
+                delete this.previous
+            }
+            return d
         },
-        afterEdit: function () {
-            this.callParent(arguments);
-            delete this.previous
-        },
-        reject: function () {
+        reject: function() {
             var b = this,
-                a = b.modified,
+                a = b.modified || {},
                 c;
+            b.__editing = true;
             b.previous = b.previous || {};
             for (c in a) {
                 if (a.hasOwnProperty(c)) {
@@ -103,7 +144,34 @@
                 }
             }
             b.callParent(arguments);
-            delete b.previous
+            delete b.previous;
+            b.__editing = false
+        },
+        beginEdit: function() {
+            this.__editCounter++;
+            this.__editing = true;
+            this.callParent(arguments)
+        },
+        cancelEdit: function() {
+            this.__editCounter = 0;
+            this.__editing = false;
+            this.callParent(arguments);
+            delete this.previous
+        },
+        endEdit: function(b, c) {
+            if (--this.__editCounter === 0) {
+                if (!b && this.getModifiedFieldNames) {
+                    var a = this.editMemento;
+                    if (!c) {
+                        c = this.getModifiedFieldNames(a.data)
+                    }
+                    if (c && c.length === 0) {
+                        b = true
+                    }
+                }
+                this.callParent([b].concat(Array.prototype.slice.call(arguments, 1)));
+                this.__editing = false;
+                delete this.previous
+            }
         }
-    }) ;
-
+    })

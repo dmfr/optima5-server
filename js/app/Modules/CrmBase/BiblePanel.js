@@ -51,7 +51,15 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 		});
 		
 		this.callParent(arguments);
-		this.addEvents('load') ;
+		
+		this.on('destroy',function(p){
+			if( p.treeModelName ) {
+				Ext.ux.dams.ModelManager.unregister( p.treeModelName ) ;
+			}
+			if( p.gridModelName ) {
+				Ext.ux.dams.ModelManager.unregister( p.gridModelName ) ;
+			}
+		},this) ;
 	},
 			  
 			  
@@ -121,16 +129,13 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 		this.add( [this.treegrid,{xtype: 'splitter'},this.mainview] ) ;
 	},
 	
-	getTreeModelName: function() {
-		return 'BibleTree'+'-'+this.bibleId ;
-	},
 	reconfigureDataBuildTree: function( ajaxData ) {
 		var authReadOnly = false;
 		if( ajaxData.auth_status != null && ajaxData.auth_status.readOnly ) {
 			authReadOnly = true ;
 		}
 		
-		var treeModelName = this.getTreeModelName() ;
+		var treeModelName = 'BibleTree'+'-'+this.bibleId ;
 		
 		// Création du modèle TREE
 		var modelFields = new Array() ;
@@ -161,11 +166,16 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 			}) ;
 			modelFields.push( fieldObject ) ;
 		},this) ;
+		
+		if( this.treeModelName ) {
+			Ext.ux.dams.ModelManager.unregister( this.treeModelName ) ;
+		}
 		Ext.define(treeModelName, {
 			extend: 'Ext.data.Model',
 			// idProperty: 'treenode_key',
 			fields: modelFields
 		});
+		this.treeModelName = treeModelName ;
 		
 		var treeroot = {iconCls:'task-folder',expanded:true,treenode_key:'&',allowDrop:true,allowDrag:false} ;
 		treeroot[keyfield] = '<b>Bible</b>: '+ajaxData.define_bible.text ;
@@ -271,7 +281,7 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 						if( data.records.length > 0 && dropRecord ) {
 							var dragRecord = data.records[0] ;
 							switch( Ext.getClassName(dragRecord) ) {
-								case this.getGridModelName() :
+								case this.gridModelName :
 									if( dropRecord.isRoot() ) {
 										Ext.Msg.show({
 											title:'Assign treenode',
@@ -309,7 +319,7 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 									});
 									break ;
 								
-								case this.getTreeModelName() :
+								case this.treeModelName :
 									var treenodeKey = data.records[0].get('treenode_key') ;
 									var targetTreenode = dropRecord.get('treenode_key') ;
 									var msg ;
@@ -401,7 +411,7 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 				items : treeContextMenuItems,
 				listeners: {
 					hide: function(menu) {
-						menu.destroy() ;
+						Ext.defer(function(){menu.destroy();},10) ;
 					}
 				}
 			}) ;
@@ -414,11 +424,8 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 		return treegrid ;
 	},
 	
-	getGridModelName: function() {
-		return 'BibleGrid'+'-'+this.bibleId ;
-	},
 	reconfigureDataBuildGridStore: function( ajaxData ) {
-		var gridModelName = this.getGridModelName() ;
+		var gridModelName = 'BibleGrid'+'-'+this.bibleId ;
 		
 		// Création du modèle GRID
 		var modelFields = new Array() ;
@@ -449,10 +456,15 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 			}) ;
 			modelFields.push( fieldObject ) ;
 		},this) ;
+		
+		if( this.gridModelName ) {
+			Ext.ux.dams.ModelManager.unregister( this.gridModelName ) ;
+		}
 		Ext.define(gridModelName, {
 			extend: 'Ext.data.Model',
 			fields: modelFields
 		});
+		this.gridModelName = gridModelName ;
 		
 		var gridstore = Ext.create('Ext.data.Store', {
 			model: gridModelName,
@@ -466,7 +478,7 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 				},
 				reader: {
 					type: 'json',
-					root: 'data',
+					rootProperty: 'data',
 					totalProperty: 'total'
 				}
 			}),
@@ -627,7 +639,7 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 				items : gridContextMenuItems,
 				listeners: {
 					hide: function(menu) {
-						menu.destroy() ;
+						Ext.defer(function(){menu.destroy();},10) ;
 					}
 				}
 			}) ;
@@ -677,19 +689,15 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 	},
 	
 	filterGridByTreenode: function( treenodeKey ) {
-		var parameters = new Object() ;
-		Ext.apply(parameters,{
-			filters: [ new Ext.util.Filter({
-				property: 'treenode_key',
-				value   : treenodeKey
-			})]
-		});
 		if( this.gridstore ) {
-			this.gridstore.filters.clear() ;
-			this.gridstore.filters.addAll([new Ext.util.Filter({
-				property: 'treenode_key',
-				value   : treenodeKey
-			})]) ;
+			if( !treenodeKey ) {
+				this.gridstore.clearFilter() ;
+			} else {
+				this.gridstore.filter(new Ext.util.Filter({
+					property: 'treenode_key',
+					value   : treenodeKey
+				})) ;
+			}
 			this.gridstore.loadPage(1);
 		}
 	},

@@ -9,8 +9,6 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.StatPerformancePanel',{
 		var me = this,
 			width = me.width ;
 		
-		me.addEvents('abort','confirm') ;
-		
 		Ext.apply( me, {
 			layout:{
 				type:'vbox',
@@ -356,7 +354,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.StatPerformancePanel',{
 		var me = this ;
 		me.query('#cntQueryPreview')[0].add( Ext.create('Optima5.Modules.Spec.WbMrfoxy.StatPerformanceResultView',{
 			optimaModule: me.optimaModule,
-			data: ajaxData,
+			queryData: ajaxData,
 			modePreview: true,
 			border: false,
 			listeners: {
@@ -371,7 +369,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.StatPerformancePanel',{
 			
 		tabpanel.add( Ext.create('Optima5.Modules.Spec.WbMrfoxy.StatPerformanceResultView',{
 			optimaModule: me.optimaModule,
-			data: ajaxData,
+			queryData: ajaxData,
 			title: 'Result #' + tabpanel.items.getCount(),
 			closable: true
 		}) ) ;
@@ -437,7 +435,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.StatPerformancePanel',{
 			items: menuItems,
 			listeners: {
 				hide: function(menu) {
-					menu.destroy() ;
+					Ext.defer(function(){menu.destroy();},10) ;
 				}
 			}
 		}) ;

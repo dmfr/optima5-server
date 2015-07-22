@@ -1,23 +1,23 @@
 Ext.define("Sch.feature.SchedulerDragZone", {
     extend: "Ext.dd.DragZone",
-    requires: ["Sch.tooltip.Tooltip", "Ext.dd.StatusProxy", "Ext.util.Point"],
+    requires: ["Sch.tooltip.Tooltip", "Ext.dd.StatusProxy"],
     repairHighlight: false,
     repairHighlightColor: "transparent",
     containerScroll: false,
-    dropAllowed: "sch-dragproxy",
-    dropNotAllowed: "sch-dragproxy",
     showTooltip: true,
     tip: null,
+    tipIsProcessed: false,
     schedulerView: null,
+    lastXY: null,
     showExactDropPosition: false,
     enableCopy: false,
     enableCopyKey: "SHIFT",
-    validatorFn: function (b, a, c, f, d) {
+    validatorFn: function(b, a, c, f, d) {
         return true
     },
     validatorFnScope: null,
     copyKeyPressed: false,
-    constructor: function (c, a) {
+    constructor: function(c, a) {
         if (Ext.isIE8m && window.top !== window) {
             Ext.dd.DragDropManager.notifyOccluded = true
         }
@@ -32,26 +32,35 @@ Ext.define("Sch.feature.SchedulerDragZone", {
         this.scroll = false;
         this.ignoreSelf = false;
         var d = this.schedulerView;
-        Ext.dd.ScrollManager.register(d.el);
+        if (d.touchScroll) {
+            this.showTooltip = false
+        }
         d.el.appendChild(b.el);
         if (d.rtl) {
             b.addCls("sch-rtl")
         }
+        b.addCls("sch-dragproxy");
+        d.on({
+            eventdragstart: function() {
+                Sch.util.ScrollManager.activate(d, d.constrainDragToResource && d.getMode())
+            },
+            aftereventdrop: function() {
+                Sch.util.ScrollManager.deactivate()
+            },
+            scope: this
+        })
     },
-    destroy: function () {
+    destroy: function() {
         this.callParent(arguments);
-        if (this.tip) {
-            this.tip.destroy()
-        }
-        Ext.dd.ScrollManager.unregister(this.schedulerView.el)
+        Ext.destroyMembers(this, "tip")
     },
-    autoOffset: function (a, b) {
+    autoOffset: function(a, b) {
         this.setDelta(0, 0)
     },
-    setupConstraints: function (k, d, g, e, i, f, c) {
+    setupConstraints: function(k, d, g, e, i, f, c) {
         this.clearTicks();
-        var a = i && f > 1 ? f : 0;
-        var h = !i && f > 1 ? f : 0;
+        var a = i && !this.showExactDropPosition && f > 1 ? f : 0;
+        var h = !i && !this.showExactDropPosition && f > 1 ? f : 0;
         this.resetConstraints();
         this.initPageX = k.left + g;
         this.initPageY = k.top + e;
@@ -73,7 +82,7 @@ Ext.define("Sch.feature.SchedulerDragZone", {
             }
         }
     },
-    setXConstraint: function (c, b, a) {
+    setXConstraint: function(c, b, a) {
         this.leftConstraint = c;
         this.rightConstraint = b;
         this.minX = c;
@@ -83,7 +92,7 @@ Ext.define("Sch.feature.SchedulerDragZone", {
         }
         this.constrainX = true
     },
-    setYConstraint: function (a, c, b) {
+    setYConstraint: function(a, c, b) {
         this.topConstraint = a;
         this.bottomConstraint = c;
         this.minY = a;
@@ -95,111 +104,142 @@ Ext.define("Sch.feature.SchedulerDragZone", {
     },
     onDragEnter: Ext.emptyFn,
     onDragOut: Ext.emptyFn,
-    setVisibilityForSourceEvents: function (a) {
-        Ext.each(this.dragData.eventEls, function (b) {
+    setVisibilityForSourceEvents: function(a) {
+        Ext.each(this.dragData.getEventBarElements(), function(b) {
             b[a ? "show" : "hide"]()
         })
     },
-    onDragOver: function (h, b) {
+    onDragOver: function(g) {
+        if (g.event.touches && g.event.touches.length > 1) {
+            Ext.dd.DragDropManager.handleMouseUp(g);
+            return
+        }
+        var l = g.type === "scroll" ? this.lastXY : g.getXY();
         this.checkShiftChange();
         var k = this.dragData;
         if (!k.originalHidden) {
             this.setVisibilityForSourceEvents(false);
             k.originalHidden = true
         }
-        var c = k.startDate;
-        var f = k.newResource;
-        var i = this.schedulerView;
-        this.updateDragContext(h);
+        var b = k.startDate;
+        var d = k.newResource;
+        var h = this.schedulerView;
+        this.updateDragContext(g);
         if (this.showExactDropPosition) {
-            var a = i.getDateFromCoordinate(h.getXY()[0]) - k.sourceDate;
+            var i = h.isHorizontal();
+            var a = h.getDateFromCoordinate(i ? l[0] : l[1]) - k.sourceDate;
             var j = new Date(k.origStart - 0 + a);
-            var g = i.timeAxisViewModel.getDistanceBetweenDates(j, k.startDate);
-            if (k.startDate > i.timeAxis.getStart()) {
-                var d = this.proxy.el;
-                if (g) {
-                    d.setX(d.getX() + g)
+            var f = h.timeAxisViewModel.getDistanceBetweenDates(j, k.startDate);
+            if (k.startDate > h.timeAxis.getStart()) {
+                var c = this.proxy.el;
+                if (f) {
+                    if (h.isHorizontal()) {
+                        c.setX(l[0] + (this.schedulerView.rtl ? -f : f))
+                    } else {
+                        c.setY(l[1] + f)
+                    }
                 }
             }
         }
-        if (k.startDate - c !== 0 || f !== k.newResource) {
-            this.schedulerView.fireEvent("eventdrag", this.schedulerView, k.eventRecords, k.startDate, k.newResource, k)
+        if (k.startDate - b !== 0 || d !== k.newResource) {
+            this.schedulerView.fireEvent("eventdrag", this.schedulerView, k.draggedRecords, k.startDate, k.newResource, k)
         }
         if (this.showTooltip) {
-            this.tip.update(k.startDate, k.endDate, k.valid)
+            this.tip.realign();
+            this.tip.update(k.startDate, k.endDate, k.valid, k.message)
+        }
+        if (g.type !== "scroll") {
+            this.lastXY = g.getXY()
         }
     },
-    getDragData: function (q) {
-        var o = this.schedulerView,
-            n = q.getTarget(o.eventSelector);
-        if (!n) {
+    getCoordinate: function(a) {
+        switch (this.schedulerView.getMode()) {
+            case "horizontal":
+                return a[0];
+            case "vertical":
+                return a[1];
+            case "calendar":
+                return a
+        }
+    },
+    getDragData: function(q) {
+        var p = this.schedulerView,
+            o = q.getTarget(p.eventSelector);
+        if (!o || q.event.touches && q.event.touches.length > 1) {
             return
         }
-        var j = o.resolveEventRecord(n);
-        if (!j || j.isDraggable() === false || o.fireEvent("beforeeventdrag", o, j, q) === false) {
+        var j = p.resolveEventRecord(o),
+            m = p.resolveResource(o),
+            f = p.resolveAssignmentRecord(o);
+        if (!j || j.isDraggable() === false || p.fireEvent("beforeeventdrag", p, j, q) === false) {
             return null
         }
         var h = q.getXY(),
-            a = Ext.get(n),
+            a = Ext.get(o),
             u = a.getXY(),
             i = [h[0] - u[0], h[1] - u[1]],
             l = a.getRegion();
-        var k = o.getOrientation() == "horizontal";
-        var b = o.resolveResource(n);
-        if (o.constrainDragToResource && !b) {
-            throw "Resource could not be resolved for event: " + j.getId()
-        }
-        var r = o.getDateConstraints(o.constrainDragToResource ? b : null, j);
-        this.setupConstraints(o.getScheduleRegion(o.constrainDragToResource ? b : null, j), l, i[0], i[1], k, o.getSnapPixelAmount(), Boolean(r));
-        var c = j.getStartDate(),
-            m = j.getEndDate(),
-            d = o.timeAxis,
-            g = this.getRelatedRecords(j),
-            p = [a];
-        Ext.Array.each(g, function (s) {
-            var e = o.getElementFromEventRecord(s);
-            if (e) {
-                p.push(e)
+        var k = p.getMode() == "horizontal";
+        p.constrainDragToResource && !m && Ext.Error.raise("Resource could not be resolved for event: " + j.getId());
+        var r = p.getDateConstraints(p.constrainDragToResource ? m : null, j);
+        this.setupConstraints(p.getScheduleRegion(p.constrainDragToResource ? m : null, j), l, i[0], i[1], k, p.getSnapPixelAmount(), Boolean(r));
+        var b = j.getStartDate(),
+            n = j.getEndDate(),
+            c = p.timeAxis,
+            g = this.getRelatedRecords(f || j) || [],
+            v = p.getElementsFromEventRecord(j, m);
+        Ext.Array.forEach(g, function(e) {
+            if (e instanceof Sch.model.Assignment) {
+                v = v.concat(p.getElementsFromEventRecord(e.getEvent(), e.getResource()))
+            } else {
+                v = v.concat(p.getElementsFromEventRecord(e))
             }
         });
-        var f = {
+        v = Ext.Array.unique(v);
+        var d = {
             offsets: i,
             repairXY: u,
-            prevScroll: o.getScroll(),
+            prevScroll: p.getScroll(),
             dateConstraints: r,
-            eventEls: p,
-            eventRecords: [j].concat(g),
-            relatedEventRecords: g,
-            resourceRecord: b,
-            sourceDate: o.getDateFromCoordinate(h[k ? 0 : 1]),
-            origStart: c,
-            origEnd: m,
-            startDate: c,
-            endDate: m,
+            eventBarEls: v,
+            getEventBarElements: function() {
+                return d.eventBarEls = Ext.Array.map(d.eventBarEls, function(e) {
+                    return e.dom && e || Ext.get(e.id)
+                })
+            },
+            draggedRecords: [f || j].concat(g),
+            resourceRecord: m,
+            sourceDate: p.getDateFromCoordinate(this.getCoordinate(h)),
+            origStart: b,
+            origEnd: n,
+            startDate: b,
+            endDate: n,
             timeDiff: 0,
-            startsOutsideView: c < d.getStart(),
-            endsOutsideView: m > d.getEnd(),
-            duration: m - c,
+            startsOutsideView: b < c.getStart(),
+            endsOutsideView: n > c.getEnd(),
+            duration: n - b,
             bodyScroll: Ext.getBody().getScroll(),
             eventObj: q
         };
-        f.ddel = this.getDragElement(a, f);
-        return f
+        d.ddel = this.getDragElement(a, d);
+        return d
     },
-    onStartDrag: function (b, d) {
+    onStartDrag: function(b, d) {
         var c = this.schedulerView,
             a = this.dragData;
-        a.eventEls[0].removeCls("sch-event-hover");
-        c.fireEvent("eventdragstart", c, a.eventRecords);
+        Ext.Array.forEach(a.getEventBarElements(), function(e) {
+            e.removeCls("sch-event-hover")
+        });
+        c.fireEvent("eventdragstart", c, a.draggedRecords);
         c.el.on("scroll", this.onViewElScroll, this)
     },
-    alignElWithMouse: function (b, e, d) {
+    alignElWithMouse: function(b, e, d) {
         this.callParent(arguments);
         var c = this.getTargetCoord(e, d),
             a = b.dom ? b : Ext.fly(b, "_dd");
         this.setLocalXY(a, c.x + this.deltaSetXY[0], c.y + this.deltaSetXY[1])
     },
-    onViewElScroll: function (a, d) {
+    onViewElScroll: function(a, d) {
         var e = this.proxy,
             i = this.schedulerView,
             g = this.dragData;
@@ -210,12 +250,13 @@ Ext.define("Sch.feature.SchedulerDragZone", {
         var b = this.deltaSetXY;
         this.deltaSetXY = [b[0] + f.left - g.prevScroll.left, b[1] + f.top - g.prevScroll.top];
         g.prevScroll = f;
-        e.setXY(c)
+        e.setXY(c);
+        this.onDragOver(a)
     },
-    getCopyKeyPressed: function () {
+    getCopyKeyPressed: function() {
         return Boolean(this.enableCopy && this.dragData.eventObj[this.enableCopyKey.toLowerCase() + "Key"])
     },
-    checkShiftChange: function () {
+    checkShiftChange: function() {
         var b = this.getCopyKeyPressed(),
             a = this.dragData;
         if (b !== this.copyKeyPressed) {
@@ -229,103 +270,174 @@ Ext.define("Sch.feature.SchedulerDragZone", {
             }
         }
     },
-    onKey: function (a) {
+    onKey: function(a) {
         if (a.getKey() === a[this.enableCopyKey]) {
             this.checkShiftChange()
         }
     },
-    startDrag: function () {
+    startDrag: function() {
         if (this.enableCopy) {
-            Ext.EventManager.on(document, "keydown", this.onKey, this);
-            Ext.EventManager.on(document, "keyup", this.onKey, this)
+            Ext.getDoc().on({
+                keydown: this.onKey,
+                keyup: this.onKey,
+                scope: this
+            })
         }
-        var c = this.callParent(arguments);
-        var b = this.dragData;
-        b.refElement = this.proxy.el.down("#sch-id-dd-ref");
-        b.refElements = this.proxy.el.select(".sch-event");
-        b.refElement.removeCls("sch-event-hover");
+        var e = this.callParent(arguments);
+        var d = this.dragData;
+        d.refElement = this.proxy.el.down(".sch-dd-ref");
+        d.refElements = this.proxy.el.select(".sch-event");
+        d.refElement.removeCls("sch-event-hover");
         if (this.showTooltip) {
-            var a = this.schedulerView;
-            if (!this.tip) {
-                this.tip = new Sch.tooltip.Tooltip({
-                    schedulerView: a,
-                    cls: "sch-dragdrop-tip",
-                    renderTo: document.body
-                })
+            var a = this.schedulerView,
+                c = a.up("[lockable=true]").el;
+            if (!this.tipIsProcessed) {
+                this.tipIsProcessed = true;
+                var b = this.tip;
+                if (b instanceof Ext.tip.ToolTip) {
+                    Ext.applyIf(b, {
+                        schedulerView: a
+                    })
+                } else {
+                    this.tip = new Sch.tooltip.Tooltip(Ext.apply({
+                        schedulerView: a,
+                        cls: "sch-dragdrop-tip",
+                        constrainTo: c
+                    }, b))
+                }
             }
-            this.tip.update(b.origStart, b.origEnd, true);
-            this.tip.el.setStyle("visibility");
-            this.tip.show(b.refElement, b.offsets[0])
+            this.tip.update(d.origStart, d.origEnd, true);
+            this.tip.setStyle("visibility");
+            this.tip.show(d.refElement, d.offsets[0])
         }
         this.copyKeyPressed = this.getCopyKeyPressed();
         if (this.copyKeyPressed) {
-            b.refElements.addCls("sch-event-copy");
-            b.originalHidden = true
+            d.refElements.addCls("sch-event-copy");
+            d.originalHidden = true
         }
-        return c
+        return e
     },
-    endDrag: function () {
+    endDrag: function() {
+        this.schedulerView.el.un("scroll", this.onViewElScroll, this);
         if (this.enableCopy) {
-            Ext.EventManager.un(document, "keydown", this.onKey, this);
-            Ext.EventManager.un(document, "keyup", this.onKey, this)
+            Ext.getDoc().un({
+                keydown: this.onKey,
+                keyup: this.onKey,
+                scope: this
+            })
         }
         this.callParent(arguments)
     },
-    updateRecords: function (b) {
-        var g = this,
-            i = g.schedulerView,
-            k = i.resourceStore,
-            d = b.newResource,
-            l = b.eventRecords[0],
-            m = [],
-            j = this.getCopyKeyPressed(),
-            c = i.eventStore;
-        if (j) {
-            l = l.copy();
+    onMouseUp: function() {
+        if (!this.dragging) {
+            this.afterDragFinalized()
+        }
+    },
+    afterDragFinalized: function() {
+        this.proxy.el.setStyle({
+            left: 0,
+            top: 0
+        })
+    },
+    updateRecords: function(c) {
+        var k = this,
+            l = k.schedulerView,
+            f = l.eventStore,
+            n = l.resourceStore,
+            i = f.getAssignmentStore(),
+            g = c.newResource,
+            h = c.draggedRecords[0],
+            b = c.draggedRecords.slice(1),
+            j = c.resourceRecord,
+            m = k.getCopyKeyPressed(),
+            d = c.startDate,
+            a = c.timeDiff,
+            e = l.getMode();
+        if (i && f instanceof Sch.data.EventStore) {
+            k.updateRecordsMultipleAssignmentMode(d, a, h, b, j, g, f, n, i, m, e)
+        } else {
+            if (i) {
+                k.updateRecordsSingleAssignmentMode(d, a, h.getEvent(), Ext.Array.map(b, function(o) {
+                    return o.getEvent()
+                }), j, g, f, n, m, e)
+            } else {
+                k.updateRecordsSingleAssignmentMode(d, a, h, b, j, g, f, n, m, e)
+            }
+        }
+        l.fireEvent("eventdrop", l, c.draggedRecords, m)
+    },
+    updateRecordsSingleAssignmentMode: function(c, b, l, i, e, j, f, k, a, d) {
+        var h = this,
+            m = [];
+        if (a) {
+            l = l.fullCopy(null);
             m.push(l)
         }
-        var f = b.resourceRecord;
         l.beginEdit();
-        if (d !== f) {
-            l.unassign(f);
-            l.assign(d)
+        if (!a && j !== e && e instanceof Sch.model.Resource && j instanceof Sch.model.Resource) {
+            l.reassign(e, j)
+        } else {
+            if (j !== e && e instanceof Sch.model.Resource && j instanceof Sch.model.Resource) {
+                l.assign(j)
+            }
         }
-        l.setStartDate(b.startDate, true, c.skipWeekendsDuringDragDrop);
+        l.setStartDate(c, true, f.skipWeekendsDuringDragDrop);
         l.endEdit();
-        var a = b.timeDiff,
-            n = Ext.data.TreeStore && k instanceof Ext.data.TreeStore;
-        var h = n ? i.store : k;
-        var e = h.indexOf(f) - h.indexOf(d);
-        Ext.each(b.relatedEventRecords, function (p) {
-            var q = p.getResource(null, c);
-            if (j) {
-                p = p.copy();
-                m.push(p)
-            }
-            p.beginEdit();
-            p.shift(Ext.Date.MILLI, a);
-            var o = h.indexOf(q) - e;
-            if (o < 0) {
-                o = 0
-            }
-            if (o >= h.getCount()) {
-                o = h.getCount() - 1
-            }
-            p.setResource(h.getAt(o));
-            p.endEdit()
-        });
-        if (m.length) {
-            c.add(m)
+        if (d !== "calendar") {
+            var g = k.indexOf(e) - k.indexOf(j);
+            Ext.Array.forEach(i, function(o) {
+                var n = o.getResources();
+                if (a) {
+                    o = o.fullCopy(null);
+                    m.push(o)
+                }
+                o.beginEdit();
+                o.setStartDate(h.adjustStartDate(o.getStartDate(), b), true, f.skipWeekendsDuringDragDrop);
+                g !== 0 && n.length && Ext.Array.forEach(n, function(s) {
+                    var q = k.indexOf(s) - g,
+                        p;
+                    if (q < 0) {
+                        q = 0
+                    } else {
+                        if (q >= k.getCount()) {
+                            q = k.getCount() - 1
+                        }
+                    }
+                    p = k.getAt(q);
+                    o.reassign(s, p)
+                });
+                o.endEdit()
+            })
         }
-        i.fireEvent("eventdrop", i, b.eventRecords, j)
+        if (m.length) {
+            f.append(m)
+        }
     },
-    isValidDrop: function (a, b, c) {
-        if (a !== b && c.isAssignedTo(b)) {
+    updateRecordsMultipleAssignmentMode: function(c, b, h, l, e, j, f, k, g, a, d) {
+        var i = this;
+        Ext.Array.forEach([].concat(h, l), function(n) {
+            var m = n.getEvent();
+            m.setStartDate(i.adjustStartDate(m.getStartDate(), b), true, f.skipWeekendsDuringDragDrop);
+            if (d != "calendar" && e !== j && a) {
+                m.assign(j)
+            } else {
+                if (d != "calendar" && e !== j && !m.isAssignedTo(j)) {
+                    m.reassign(n.getResource(), j)
+                } else {
+                    if (d != "calendar" && e !== j) {
+                        m.unassign(n.getResource())
+                    }
+                }
+            }
+        })
+    },
+    isValidDrop: function(a, b, c) {
+        if (a !== b && !(c instanceof Sch.model.Assignment) && c.isAssignedTo(b)) {
             return false
         }
         return true
     },
-    resolveResource: function (g, f) {
+    resolveResource: function(g, f) {
         var c = this.proxy.el.dom;
         var h = this.dragData.bodyScroll;
         c.style.display = "none";
@@ -338,6 +450,9 @@ Ext.define("Sch.feature.SchedulerDragZone", {
             return null
         }
         var a = this.schedulerView;
+        if (d.className.match(Ext.baseCSSPrefix + "grid-item")) {
+            return this.resolveResource([g[0], g[1] + 3], f)
+        }
         if (!d.className.match(a.timeCellCls)) {
             var b = Ext.fly(d).up("." + a.timeCellCls);
             if (b) {
@@ -348,80 +463,101 @@ Ext.define("Sch.feature.SchedulerDragZone", {
         }
         return a.resolveResource(d)
     },
-    updateDragContext: function (g) {
-        var a = this.dragData,
-            f = g.getXY();
-        if (!a.refElement) {
+    adjustStartDate: function(a, c) {
+        var b = this.schedulerView;
+        return b.timeAxis.roundDate(new Date(a - 0 + c), b.snapRelativeToEventStartDate ? a : false)
+    },
+    updateDragContext: function(h) {
+        var b = this.dragData,
+            g = h.type === "scroll" ? this.lastXY : h.getXY();
+        if (!b.refElement) {
             return
         }
-        var d = this.schedulerView,
-            h = a.refElement.getRegion();
-        if (d.timeAxis.isContinuous()) {
-            if ((d.isHorizontal() && this.minX < f[0] && f[0] < this.maxX) || (d.isVertical() && this.minY < f[1] && f[1] < this.maxY)) {
-                var b = d.getDateFromCoordinate(g.getXY()[d.getOrientation() == "horizontal" ? 0 : 1]);
-                a.timeDiff = b - a.sourceDate;
-                a.startDate = d.timeAxis.roundDate(new Date(a.origStart - 0 + a.timeDiff), d.snapRelativeToEventStartDate ? a.origStart : false);
-                a.endDate = new Date(a.startDate - 0 + a.duration)
+        var f = this.schedulerView,
+            i = b.refElement.getRegion();
+        if (f.timeAxis.isContinuous()) {
+            if ((f.isHorizontal() && this.minX < g[0] && g[0] < this.maxX) || (f.isVertical() && this.minY < g[1] && g[1] < this.maxY)) {
+                var c = f.getDateFromCoordinate(this.getCoordinate(g));
+                b.timeDiff = c - b.sourceDate;
+                b.startDate = this.adjustStartDate(b.origStart, b.timeDiff);
+                b.endDate = new Date(b.startDate - 0 + b.duration)
             }
         } else {
-            var c = this.resolveStartEndDates(h);
-            a.startDate = c.startDate;
-            a.endDate = c.endDate;
-            a.timeDiff = a.startDate - a.origStart
+            var d = this.resolveStartEndDates(i);
+            b.startDate = d.startDate;
+            b.endDate = d.endDate;
+            b.timeDiff = b.startDate - b.origStart
         }
-        a.newResource = d.constrainDragToResource ? a.resourceRecord : this.resolveResource([h.left + a.offsets[0], h.top + a.offsets[1]], g);
-        if (a.newResource) {
-            a.valid = this.validatorFn.call(this.validatorFnScope || this, a.eventRecords, a.newResource, a.startDate, a.duration, g)
+        b.newResource = f.constrainDragToResource ? b.resourceRecord : this.resolveResource([i.left + b.offsets[0], i.top + b.offsets[1]], h);
+        if (b.newResource) {
+            var a = this.validatorFn.call(this.validatorFnScope || this, b.draggedRecords, b.newResource, b.startDate, b.duration, h);
+            if (!a || typeof a === "boolean") {
+                b.valid = a !== false;
+                b.message = ""
+            } else {
+                b.valid = a.valid !== false;
+                b.message = a.message
+            }
         } else {
-            a.valid = false
+            b.valid = false
         }
     },
-    getRelatedRecords: function (c) {
-        var b = this.schedulerView;
-        var d = b.selModel;
-        var a = [];
-        if (d.selected.getCount() > 1) {
-            d.selected.each(function (e) {
-                if (e !== c && e.isDraggable() !== false) {
-                    a.push(e)
-                }
-            })
-        }
-        return a
+    getRelatedRecords: function(c) {
+        var b = this.schedulerView,
+            d = b.getEventSelectionModel(),
+            a = d.getDraggableSelections();
+        return Ext.Array.filter(a, function(e) {
+            return c !== e
+        })
     },
-    getDragElement: function (b, e) {
-        var c = e.eventEls;
+    getDragElement: function(b, e) {
+        var h = e.getEventBarElements();
         var g;
+        var d;
         var a = e.offsets[0];
         var f = e.offsets[1];
-        if (c.length > 1) {
-            var d = Ext.core.DomHelper.createDom({
+        if (h.length > 1) {
+            var c = Ext.core.DomHelper.createDom({
                 tag: "div",
                 cls: "sch-dd-wrap",
                 style: {
                     overflow: "visible"
                 }
             });
-            Ext.Array.each(c, function (i) {
-                g = i.dom.cloneNode(true);
-                g.id = i.dom === b.dom ? "sch-id-dd-ref" : Ext.id();
-                d.appendChild(g);
-                var h = i.getOffsetsTo(b);
+            Ext.Array.forEach(h, function(j) {
+                g = j.dom.cloneNode(true);
+                g.id = Ext.id();
+                if (j.dom === b.dom) {
+                    g.className += " sch-dd-ref";
+                    if (Ext.isIE8) {
+                        Ext.fly(g).addCls("sch-dd-ref")
+                    }
+                }
+                c.appendChild(g);
+                var i = j.getOffsetsTo(b);
                 Ext.fly(g).setStyle({
-                    left: h[0] - a + "px",
-                    top: h[1] - f + "px"
+                    left: i[0] - a + "px",
+                    top: i[1] - f + "px"
                 })
             });
-            return d
+            d = c
         } else {
             g = b.dom.cloneNode(true);
-            g.id = "sch-id-dd-ref";
+            g.id = Ext.id();
             g.style.left = -a + "px";
             g.style.top = -f + "px";
-            return g
+            g.className += " sch-dd-ref";
+            if (Ext.isIE8) {
+                Ext.fly(g).addCls("sch-dd-ref")
+            }
+            d = g
         }
+        if (!b.dom.style.height) {
+            Ext.fly(d).setHeight(b.getHeight())
+        }
+        return d
     },
-    onDragDrop: function (h, i) {
+    onDragDrop: function(h, i) {
         this.updateDragContext(h);
         var d = this,
             b = d.schedulerView,
@@ -431,53 +567,57 @@ Ext.define("Sch.feature.SchedulerDragZone", {
             c = true;
         f.ddCallbackArgs = [g, h, i];
         if (f.valid && f.startDate && f.endDate) {
-            f.finalize = function () {
+            f.finalize = function() {
                 d.finalize.apply(d, arguments)
             };
             c = b.fireEvent("beforeeventdropfinalize", d, f, h) !== false;
-            if (c && d.isValidDrop(f.resourceRecord, f.newResource, f.eventRecords[0])) {
+            if (c && d.isValidDrop(f.resourceRecord, f.newResource, f.draggedRecords[0])) {
                 a = (f.startDate - f.origStart) !== 0 || f.newResource !== f.resourceRecord
             }
         }
         if (c) {
             d.finalize(f.valid && a)
+        } else {
+            d.proxy.el.addCls("sch-before-drag-finalized")
         }
-        b.el.un("scroll", d.onViewElScroll, d)
     },
-    finalize: function (c) {
-        var e = this,
-            b = e.schedulerView,
-            f = e.dragData;
-        if (e.tip) {
-            e.tip.hide()
+    finalize: function(c) {
+        var f = this,
+            b = f.schedulerView,
+            d = b.eventStore,
+            g = f.dragData;
+        f.proxy.el.removeCls("sch-before-drag-finalized");
+        if (f.tip) {
+            f.tip.hide()
         }
         if (c) {
-            var a, d = function () {
-                    a = true
-                };
-            b.on("itemupdate", d, null, {
+            var a, e = function() {
+                a = true
+            };
+            d.on("update", e, null, {
                 single: true
             });
-            e.updateRecords(f);
-            b.un("itemupdate", d, null, {
+            f.updateRecords(g);
+            d.un("update", e, null, {
                 single: true
             });
             if (!a) {
-                e.onInvalidDrop.apply(e, f.ddCallbackArgs)
+                f.onInvalidDrop.apply(f, g.ddCallbackArgs)
             } else {
                 if (Ext.isIE9) {
-                    e.proxy.el.setStyle("visibility", "hidden");
-                    Ext.Function.defer(e.onValidDrop, 10, e, f.ddCallbackArgs)
+                    f.proxy.el.setStyle("visibility", "hidden");
+                    Ext.Function.defer(f.onValidDrop, 10, f, g.ddCallbackArgs)
                 } else {
-                    e.onValidDrop.apply(e, f.ddCallbackArgs)
+                    f.onValidDrop.apply(f, g.ddCallbackArgs)
                 }
-                b.fireEvent("aftereventdrop", b, f.eventRecords)
+                b.fireEvent("aftereventdrop", b, g.draggedRecords)
             }
+            f.afterDragFinalized()
         } else {
-            e.onInvalidDrop.apply(e, f.ddCallbackArgs)
+            f.onInvalidDrop.apply(f, g.ddCallbackArgs)
         }
     },
-    onInvalidDrop: function (d, c, f) {
+    onInvalidDrop: function(d, c, f) {
         if (Ext.isIE && !c) {
             c = d;
             d = d.getTarget() || document.body
@@ -488,10 +628,11 @@ Ext.define("Sch.feature.SchedulerDragZone", {
         this.setVisibilityForSourceEvents(true);
         var a = this.schedulerView,
             b = this.callParent([d, c, f]);
-        a.fireEvent("aftereventdrop", a, this.dragData.eventRecords);
+        a.fireEvent("aftereventdrop", a, this.dragData.draggedRecords);
+        this.afterDragFinalized();
         return b
     },
-    resolveStartEndDates: function (f) {
+    resolveStartEndDates: function(f) {
         var a = this.dragData,
             c, e = a.origStart,
             b = a.origEnd;

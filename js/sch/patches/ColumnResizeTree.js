@@ -1,10 +1,10 @@
 Ext.define("Sch.patches.ColumnResizeTree", {
     override: "Sch.panel.TimelineTreePanel",
-    afterRender: function () {
+    afterRender: function() {
         this.callParent(arguments);
         var a = this.lockedGrid.headerCt.findPlugin("gridheaderresizer");
         if (a) {
-            a.getConstrainRegion = function () {
+            a.getConstrainRegion = function() {
                 var d = this,
                     b = d.dragHd.el,
                     c;

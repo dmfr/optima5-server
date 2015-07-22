@@ -2,44 +2,40 @@ Ext.define('Optima5.Modules.CrmBase.MainWindowButton',{
 	extend:'Ext.button.Button',
 	alias: 'widget.op5crmbasemwbutton',
 	
-	renderTpl: [
-		'<span id="{id}-btnWrap" role="presentation" class="{baseCls}-wrap',
-			'<tpl if="splitCls"> {splitCls}</tpl>',
-			'{childElCls}" unselectable="on">',
-			'<span id="{id}-btnEl" class="{baseCls}-button" role="presentation">',
-				'<span id="{id}-btnInnerEl" class="{baseCls}-inner {innerCls}',
-					'{childElCls}" unselectable="on">',
-						'<span id="{id}-btnInnerTextTitle" class="op5-crmmbase-mainwindowbtn-title">{textTitle}</span>',
-						'&nbsp;&nbsp;',
-						'<span id="{id}-btnInnerTextRedcount" class="op5-crmmbase-mainwindowbtn-redcount">({textRedcount})</span>',
-						'<br/>',
-						'<span id="{id}-btnInnerTextCaption" class="op5-crmmbase-mainwindowbtn-caption">{textCaption}</span>',
-				'</span>',
-				'<span role="presentation" id="{id}-btnIconEl" class="{baseCls}-icon-el {iconCls}',
-					'{childElCls} {glyphCls}" unselectable="on" style="',
-					'<tpl if="iconUrl">background-image:url({iconUrl});</tpl>',
-					'<tpl if="glyph && glyphFontFamily">font-family:{glyphFontFamily};</tpl>">',
-					'<tpl if="glyph">&#{glyph};</tpl><tpl if="iconCls || iconUrl">&#160;</tpl>',
-				'</span>',
-			'</span>',
-		'</span>',
-		// if "closable" (tab) add a close element icon
-		'<tpl if="closable">',
-			'<span id="{id}-closeEl" role="presentation"',
-					' class="{baseCls}-close-btn"',
-					'<tpl if="closeText">',
-						' title="{closeText}" aria-label="{closeText}"',
-					'</tpl>',
-					'>',
-			'</span>',
-		'</tpl>'
+	childEls: [
+		'btnEl', 'btnWrap', 'btnInnerEl', 'btnIconEl', 'btnInnerTextTitle', 'btnInnerTextRedcount', 'btnInnerTextCaption'
 	],
+	renderTpl:
+		'<span id="{id}-btnWrap" data-ref="btnWrap" role="presentation" unselectable="on" style="{btnWrapStyle}" ' +
+					'class="{btnWrapCls} {btnWrapCls}-{ui} {splitCls}{childElCls}">' +
+			'<span id="{id}-btnEl" data-ref="btnEl" role="presentation" unselectable="on" style="{btnElStyle}" ' +
+						'class="{btnCls} {btnCls}-{ui} {textCls} {noTextCls} {hasIconCls} ' +
+						'{iconAlignCls} {textAlignCls} {btnElAutoHeightCls}{childElCls}">' +
+					'<tpl if="iconBeforeText">{[values.$comp.renderIcon(values)]}</tpl>' +
+					'<span id="{id}-btnInnerEl" data-ref="btnInnerEl" unselectable="on" ' +
+						'class="{innerCls} {innerCls}-{ui}{childElCls}">' +
+							'<span id="{id}-btnInnerTextTitle" data-ref="btnInnerTextTitle" class="op5-crmmbase-mainwindowbtn-title">{textTitle}</span>' +
+							'&nbsp;&nbsp;' +
+							'<span id="{id}-btnInnerTextRedcount" data-ref="btnInnerTextRedcount" class="op5-crmmbase-mainwindowbtn-redcount">({textRedcount})</span>' +
+							'<br/>' +
+							'<span id="{id}-btnInnerTextCaption" data-ref="btnInnerTextCaption" class="op5-crmmbase-mainwindowbtn-caption">{textCaption}</span>' +
+						'</span>' +
+					'<tpl if="!iconBeforeText">{[values.$comp.renderIcon(values)]}</tpl>' +
+			'</span>' +
+		'</span>' +
+		'{[values.$comp.getAfterMarkup ? values.$comp.getAfterMarkup(values) : ""]}' +
+		// if "closable" (tab) add a close element icon
+		'<tpl if="closable">' +
+			'<span id="{id}-closeEl" data-ref="closeEl" class="{baseCls}-close-btn">' +
+					'<tpl if="closeText">' +
+						' {closeText}' +
+					'</tpl>' +
+			'</span>' +
+		'</tpl>',
 	
 	initComponent: function() {
 		var me = this ;
 		
-		me.addChildEls('btnInnerTextTitle','btnInnerTextRedcount','btnInnerTextCaption') ;
-		 
 		Ext.apply(me,{
 			//height:32,
 			scale:'large',
@@ -50,7 +46,7 @@ Ext.define('Optima5.Modules.CrmBase.MainWindowButton',{
 	},
 	afterRender: function() {
 		var me = this;
-		me.setComponentCls();
+		me.setComponentVisibility();
 	},
 	getTemplateArgs: function() {
 		var me = this ;
@@ -73,9 +69,9 @@ Ext.define('Optima5.Modules.CrmBase.MainWindowButton',{
 			me.btnInnerTextTitle.update(me.textTitle || '&#160;');
 			me.btnInnerTextRedcount.update('(' + (me.textRedcount || '&#160;') + ')');
 			me.btnInnerTextCaption.update(me.textCaption || '&#160;');
-			me.setComponentCls();
+			me.setComponentVisibility();
 		}
-		me.doComponentLayout() ;
+		me.updateLayout() ;
 	},
 	getObjText: function() {
 		var me = this ;
@@ -85,9 +81,8 @@ Ext.define('Optima5.Modules.CrmBase.MainWindowButton',{
 			caption: me.textCaption
 		} ;
 	},
-	setComponentCls: function() {
+	setComponentVisibility: function() {
 		var me = this ;
-		me.callParent() ;
 		if( me.textRedcount && me.textRedcount != '' ) {
 			me.btnInnerTextRedcount.show() ;
 		} else {

@@ -72,8 +72,8 @@ Ext.define('Optima5.Modules.Spec.WbBudget.AssortBuildPanel',{
 				menu: {
 					listeners: {
 						click: function(menu, item) {
-							if( item.cropYear != null && (menu.ownerButton) instanceof Ext.button.Button ) {
-								menu.ownerButton.cropYear = item.cropYear ;
+							if( item.cropYear != null && (menu.ownerCmp) instanceof Ext.button.Button ) {
+								menu.ownerCmp.cropYear = item.cropYear ;
 								this.onSelectCropYear() ;
 							}
 						},
@@ -201,7 +201,7 @@ Ext.define('Optima5.Modules.Spec.WbBudget.AssortBuildPanel',{
 				},
 				reader: {
 					type: 'json',
-					root: 'data'
+					rootProperty: 'data'
 				}
 			}),
 			listeners: {

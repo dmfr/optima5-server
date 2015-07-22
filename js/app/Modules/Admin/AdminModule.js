@@ -39,9 +39,6 @@ Ext.define('Optima5.Modules.Admin.AdminModule', {
 	initModule: function() {
 		var me = this ;
 		
-		me.addEvents('op5broadcast') ;
-		
-		
 		me.menuStore = Ext.create('Ext.data.Store',{
 			model:'AdminModuleItem',
 			data:me.menuData

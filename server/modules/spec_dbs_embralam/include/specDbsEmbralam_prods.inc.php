@@ -43,8 +43,8 @@ function specDbsEmbralam_prods_getStockGrid($post_data) {
 	$forward_post['file_code'] = 'INV' ;
 	$forward_post['filter'] = json_encode(array(
 		array(
-			'type' => 'list',
-			'field' => 'INV_field_PROD_ID',
+			'operator' => 'in',
+			'property' => 'INV_field_PROD_ID',
 			'value' => array( $post_data['prod_id'] )
 		)
 	)) ;

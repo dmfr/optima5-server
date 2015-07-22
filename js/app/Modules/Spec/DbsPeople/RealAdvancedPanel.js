@@ -838,5 +838,14 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 				recordAbsStore.add(absSlices) ;
 			}
 		}
-	}	
+	},
+	doQuit: function() {
+		var checkResult = this.doCheckBeforeSave() ;
+		if( !Ext.isEmpty(checkResult) ) {
+			Ext.MessageBox.alert('Erreur',checkResult) ;
+			return ;
+		}
+		this.doSave() ;
+		this.destroy() ;
+	}
 });

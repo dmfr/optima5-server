@@ -7,30 +7,33 @@ Ext.define('BibleTreeFilterModel', {
 });
 
 Ext.define('Optima5.Modules.CrmBase.BibleTreeFilter', {
-    extend: 'Ext.ux.grid.filter.Filter',
-    alias: 'gridfilter.op5crmbasebibletree',
+	extend: 'Ext.grid.filters.filter.SingleFilter',
+	alias: 'grid.filter.op5crmbasebibletree',
 
-    requires: ['Ext.selection.CheckboxModel'] ,
+	requires: ['Ext.selection.CheckboxModel'] ,
 
-    /**
-     * @cfg {String} iconCls
-     * The iconCls to be applied to the menu item.
-     * Defaults to <tt>'ux-gridfilter-text-icon'</tt>.
-     */
-    iconCls : 'ux-gridfilter-text-icon',
+	/**
+	* @cfg {String} iconCls
+	* The iconCls to be applied to the menu item.
+	* Defaults to <tt>'ux-gridfilter-text-icon'</tt>.
+	*/
+	iconCls : 'ux-gridfilter-text-icon',
 
-    emptyText: 'Enter Filter Text...',
-    selectOnFocus: true,
-    width: 300,
-			  
+	emptyText: 'Enter Filter Text...',
+	selectOnFocus: true,
+	
+	operator: 'in',
+	
 	inputValue: [],
+	
 
 	/**
 	* @private
 	* Template method that is to initialize the filter and install required menu items.
 	*/
-	init : function (config) {
+	constructor : function (config) {
 		var me = this ;
+		this.callParent(arguments);
 		if( (me.optimaModule) instanceof Optima5.Module ) {} else {
 			Optima5.Helper.logError('CrmBase:BibleTreeFilter','No module reference ?') ;
 		}
@@ -50,9 +53,6 @@ Ext.define('Optima5.Modules.CrmBase.BibleTreeFilter', {
 			}
 		});
 		
-		this.updateTask = Ext.create('Ext.util.DelayedTask', this.fireUpdate, this);
-		  
-		  
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_action : 'data_getBibleTreeOne',
@@ -69,8 +69,7 @@ Ext.define('Optima5.Modules.CrmBase.BibleTreeFilter', {
 			},
 			scope: this
 		});
-		  
-    },
+	},
 			  
 	initSetupTree: function( dataRoot ) {
 		var me = this ;
@@ -79,6 +78,15 @@ Ext.define('Optima5.Modules.CrmBase.BibleTreeFilter', {
 			model: 'BibleTreeFilterModel',
 			root: dataRoot 
 		});
+	},
+	
+	/**
+	* @private
+	* Template method that is to initialize the filter and install required menu items.
+	*/
+	createMenu: function() {
+		var me = this ;
+		this.callParent() ;
 		
 		var width = 200 ;
 		if( this.width )
@@ -98,15 +106,16 @@ Ext.define('Optima5.Modules.CrmBase.BibleTreeFilter', {
 				height = 50 ;
 		}
 		
-		this.inputItem = Ext.create('Ext.tree.Panel', {
+		var treePanel = Ext.create('Ext.tree.Panel', {
 			store: this.mystore ,
 			displayField: 'nodeText',
 			rootVisible: true,
 			useArrows: true,
 			width: width,
-			height: height
+			height: height,
+			bufferedRenderer: false
 		}) ;
-		this.inputItem.getView().on('checkchange',function(rec,check){
+		treePanel.getView().on('checkchange',function(rec,check){
 			rec.cascadeBy(function(chrec){
 				chrec.set('checked',check) ;
 			},this);
@@ -120,8 +129,7 @@ Ext.define('Optima5.Modules.CrmBase.BibleTreeFilter', {
 			me.onCheckChange() ;
 		},this) ;
 		
-		this.menu.add(this.inputItem);
-		
+		me.menu.add(treePanel) ;
 		me.menu.on('beforeshow',function(){
 			me.onMenuBeforeShow() ;
 		},me) ;
@@ -129,6 +137,7 @@ Ext.define('Optima5.Modules.CrmBase.BibleTreeFilter', {
 			me.onMenuHide() ;
 		},me) ;
 	},
+	activateMenu: Ext.emptyFn,
 			  
 	onCheckChange: function(){
 		var me = this ;
@@ -155,15 +164,16 @@ Ext.define('Optima5.Modules.CrmBase.BibleTreeFilter', {
 		}
 		me.inputValueRoot = checkedKeysRoot ;
 		
-		me.fireUpdate() ;
+		me.filter.setValue(checkedKeys);
+		
+		var hasRecords = (checkedKeys.length > 0) ;
+		if( hasRecords && me.active ) {
+			me.updateStoreFilter();
+		} else {
+			me.setActive( checkedKeys.length > 0 ) ;
+		}
 	},
-	isActivatable : function () {
-		return this.getValue().length > 0;
-	},
-	getSerialArgs : function () {
-		var me = this ;
-		return {type: 'list', value: this.phpMode ? me.getValue().join(',') : me.getValue() , valueRoot : this.phpMode ? me.getValue().join(',') : me.inputValueRoot };
-	},
+	
 	getValue : function() {
 		var me = this ;
 		return me.inputValue ;
@@ -173,17 +183,13 @@ Ext.define('Optima5.Modules.CrmBase.BibleTreeFilter', {
 		
 		// Load de la valeur
 		value = me.inputValue = [].concat(value);
-		this.fireEvent('update', this);
+		// TODO: setup filter list
 	},
 			  
 	onMenuBeforeShow: function() {
 		var me = this ;
-		
 	},
 	onMenuHide: function() {
 		var me = this ;
-		
 	}
-
-
 });

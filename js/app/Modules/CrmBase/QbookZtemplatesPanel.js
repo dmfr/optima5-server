@@ -38,7 +38,7 @@ Ext.define('Optima5.Modules.CrmBase.QbookZtemplatesPanel' ,{
 						},
 						reader: {
 							type: 'json',
-							root: 'data',
+							rootProperty: 'data',
 							totalProperty: 'total'
 						}
 					}),

@@ -1,28 +1,26 @@
 Ext.define('Optima5.Modules.CrmBase.BibleFilter', {
-    extend: 'Ext.ux.grid.filter.Filter',
-    alias: 'gridfilter.op5crmbasebible',
+	extend: 'Ext.grid.filters.filter.SingleFilter',
+	alias: 'grid.filter.op5crmbasebible',
 
-    requires: ['Ext.selection.CheckboxModel'] ,
-
-    /**
-     * @cfg {String} iconCls
-     * The iconCls to be applied to the menu item.
-     * Defaults to <tt>'ux-gridfilter-text-icon'</tt>.
-     */
-    iconCls : 'ux-gridfilter-text-icon',
-
-    emptyText: 'Enter Filter Text...',
-    selectOnFocus: true,
-    width: 125,
-			  
-	inputValue: [],
+	requires: ['Ext.selection.CheckboxModel'] ,
 
 	/**
-	* @private
-	* Template method that is to initialize the filter and install required menu items.
+	* @cfg {String} iconCls
+	* The iconCls to be applied to the menu item.
+	* Defaults to <tt>'ux-gridfilter-text-icon'</tt>.
 	*/
-	init : function (config) {
+	iconCls : 'ux-gridfilter-text-icon',
+
+	emptyText: 'Enter Filter Text...',
+	selectOnFocus: true,
+	
+	operator: 'in',
+	
+	inputValue: [],
+
+	constructor : function (config) {
 		var me = this ;
+		this.callParent(arguments);
 		if( (me.optimaModule) instanceof Optima5.Module ) {} else {
 			Optima5.Helper.logError('CrmBase:BibleTreeFilter','No module reference ?') ;
 		}
@@ -44,7 +42,6 @@ Ext.define('Optima5.Modules.CrmBase.BibleFilter', {
 		
 		this.updateTask = Ext.create('Ext.util.DelayedTask', this.onTypeAhead, this);
 		  
-		  
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_action : 'data_getBibleCfg',
@@ -61,9 +58,8 @@ Ext.define('Optima5.Modules.CrmBase.BibleFilter', {
 			},
 			scope: this
 		});
-		  
-    },
-			  
+	},
+	 
 	initSetupBible: function( ajaxDataBibleCfg ) {
 		var me = this ;
 		// me.inputEl.addCls('icon-bible-edit') ;
@@ -71,7 +67,10 @@ Ext.define('Optima5.Modules.CrmBase.BibleFilter', {
 		//me.divicon.addCls('biblepicker-iconimg') ;
 		// me.inputEl.dom.innerHTML = '<b>ijsiqjdodqsjijsiqjdodqsjijsiqjdodqsjijsiqjdodqsjijsiqjdodqsjijsiqjdodqsjijsiqjdodqsjijsiqjdodqsj</b>' ;
 		
-		this.myModelname = this.id+'-'+'dynModel' ;
+		var gridStore = this.getGridStore(),
+			gridStoreModelName = ( Ext.isString(gridStore.getModel()) ? gridStore.getModel() : gridStore.getModel().getName() ) ;
+		this.myModelname = 'Filter'+'-'+gridStoreModelName+'-'+this.dataIndex ;
+		
 		// Création du modèle GRID
 		var modelFields = new Array() ;
 		var keyfield = '' ;
@@ -142,7 +141,7 @@ Ext.define('Optima5.Modules.CrmBase.BibleFilter', {
 				},
 				reader: {
 					type: 'json',
-					root: 'data',
+					rootProperty: 'data',
 					totalProperty: 'total'
 				}
 			})
@@ -154,15 +153,18 @@ Ext.define('Optima5.Modules.CrmBase.BibleFilter', {
 			single:true
 		}) ;
 		
-		// console.log('finished') ;
-		
-		this.on('destroy',function(){
-			var model = Ext.ModelManager.getModel(this.myModelname);
-			Ext.ModelManager.unregister(model);
-			// console.log("unregister model "+this.myModelname) ;
+		this.grid.on('destroy',function(){
+			Ext.ux.dams.ModelManager.unregister( this.myModelname ) ;
 		},this) ;
+	},
 		
-		
+	/**
+	* @private
+	* Template method that is to initialize the filter and install required menu items.
+	*/
+	createMenu: function() {
+		var me = this ;
+		this.callParent() ;
 		this.menu.add({
 			xtype:'gridpanel',
 			viewConfig: {
@@ -194,7 +196,7 @@ Ext.define('Optima5.Modules.CrmBase.BibleFilter', {
 					keyup: this.onInputKeyUp,
 					el: {
 						click: function(e) {
-								e.stopPropagation();
+							e.stopPropagation();
 						}
 					}
 				}
@@ -203,6 +205,8 @@ Ext.define('Optima5.Modules.CrmBase.BibleFilter', {
 				iconCls : 'icon-cancel' ,
 				handler : function(button,event) {
 					me.menu.query('gridpanel')[0].getSelectionModel().deselectAll() ;
+					me.menu.query('gridpanel')[0].getDockedItems('toolbar')[0].query('textfield')[0].reset() ;
+					me.onTypeAhead() ;
 				},
 				scope : me
 			}]
@@ -215,7 +219,8 @@ Ext.define('Optima5.Modules.CrmBase.BibleFilter', {
 			me.onMenuHide() ;
 		},me) ;
 	},
-			  
+	activateMenu: Ext.emptyFn,
+	
 	onInputKeyUp : function (field, e) {
 		// restart the timer
 		this.updateTask.delay(this.updateBuffer);
@@ -241,24 +246,6 @@ Ext.define('Optima5.Modules.CrmBase.BibleFilter', {
 			})]
 		}); ;
 	},
-	onTypeAheadLocal: function() {
-		var me = this ;
-		
-		var textfield = me.menu.query('gridpanel')[0].getDockedItems('toolbar')[0].query('textfield')[0] ;
-		var mvalue = textfield.getRawValue() ;
-		
-		me.myStore.filterBy( function(record) {
-			if( mvalue.length < 3 )
-				return false ;
-			var found = false ;
-			Ext.each( me.myColumns , function(col) {
-				if( record.get( col.dataIndex ).toLowerCase().indexOf(mvalue.toLowerCase()) != -1 ) {
-					found = true ;
-				}
-			}, me);
-			return found ;
-		},me ) ;
-	},
 	
 	onSelectionChange: function(selmodel, selrecords){
 		var me = this ;
@@ -267,24 +254,23 @@ Ext.define('Optima5.Modules.CrmBase.BibleFilter', {
 			return ;
 		}
 		
-		// console.log('selection changed') ;
-
 		var mTab = new Array() ;
 		Ext.Object.each( selrecords, function(k,o){
 			mTab.push(o.get('entry_key')) ;
 		}) ;
 		me.inputValue = mTab ;
 		
-		me.fireUpdate() ;
+		me.filter.setValue(mTab);
+		
+		var hasRecords = (mTab.length > 0) ;
+		if( hasRecords && me.active ) {
+			me.updateStoreFilter();
+		} else {
+			me.setActive( mTab.length > 0 ) ;
+		}
 	},
-	isActivatable : function () {
-		return this.getValue().length > 0;
-	},
-	getSerialArgs : function () {
-		var me = this ;
-		return {type: 'list', value: this.phpMode ? me.getValue().join(',') : me.getValue()};
-	},
-	getValue : function() {
+	
+	getValue : function(field) {
 		var me = this ;
 		return me.inputValue ;
 	},
@@ -293,7 +279,7 @@ Ext.define('Optima5.Modules.CrmBase.BibleFilter', {
 		
 		// Load de la valeur
 		value = me.inputValue = [].concat(value);
-		this.fireEvent('update', this);
+		// TODO: setup filter list
 	},
 			  
 	onMenuBeforeShow: function() {
@@ -340,6 +326,4 @@ Ext.define('Optima5.Modules.CrmBase.BibleFilter', {
 			// rien
 		}
 	}
-
-
 });

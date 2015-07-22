@@ -11,20 +11,19 @@ Ext.define("Sch.widget.ExportDialog", {
     layout: "fit",
     draggable: true,
     padding: 0,
+    myConfig: null,
     plugin: null,
     buttonsPanel: null,
     buttonsPanelScope: null,
     progressBar: null,
     dateRangeFormat: "",
-    constructor: function (a) {
+    showHeaderField: true,
+    showFooterField: false,
+    constructor: function(a) {
         Ext.apply(this, a.exportDialogConfig);
-        Ext.Array.forEach(["generalError", "title", "formatFieldLabel", "orientationFieldLabel", "rangeFieldLabel", "showHeaderLabel", "orientationPortraitText", "orientationLandscapeText", "completeViewText", "currentViewText", "dateRangeText", "dateRangeFromText", "pickerText", "dateRangeToText", "exportButtonText", "cancelButtonText", "progressBarText", "exportToSingleLabel"], function (b) {
-            if (b in a) {
-                this[b] = a[b]
-            }
-        }, this);
+        this.plugin = a.plugin;
         this.title = this.L("title");
-        this.config = Ext.apply({
+        this.myConfig = Ext.apply({
             progressBarText: this.L("progressBarText"),
             dateRangeToText: this.L("dateRangeToText"),
             pickerText: this.L("pickerText"),
@@ -35,7 +34,8 @@ Ext.define("Sch.widget.ExportDialog", {
             orientationFieldLabel: this.L("orientationFieldLabel"),
             rangeFieldLabel: this.L("rangeFieldLabel"),
             showHeaderLabel: this.L("showHeaderLabel"),
-            exportToSingleLabel: this.L("exportToSingleLabel"),
+            showFooterLabel: this.L("showFooterLabel"),
+            exportersFieldLabel: this.L("exportersFieldLabel"),
             orientationPortraitText: this.L("orientationPortraitText"),
             orientationLandscapeText: this.L("orientationLandscapeText"),
             completeViewText: this.L("completeViewText"),
@@ -43,21 +43,47 @@ Ext.define("Sch.widget.ExportDialog", {
             adjustColsAndRows: this.L("adjustColsAndRows"),
             specifyDateRange: this.L("specifyDateRange"),
             dateRangeFormat: this.dateRangeFormat,
-            defaultConfig: this.defaultConfig
+            exportConfig: this.exportConfig,
+            showHeaderField: this.showHeaderField,
+            showFooterField: this.showFooterField,
+            pageFormats: this.getPageFormats()
         }, a.exportDialogConfig);
         this.callParent(arguments)
     },
-    initComponent: function () {
+    getPageFormats: function() {
+        var b = this.plugin.pageSizes,
+            d = [];
+        Ext.Object.each(b, function(e, f) {
+            d.push({
+                width: f.width,
+                height: f.height,
+                name: e
+            })
+        });
+        d.sort(function(f, e) {
+            return f.width - e.width
+        });
+        var a = [];
+        for (var c = 0; c < d.length; c++) {
+            a.push(d[c].name)
+        }
+        return a
+    },
+    initComponent: function() {
         var b = this,
             a = {
                 hidedialogwindow: b.destroy,
                 showdialogerror: b.showError,
-                updateprogressbar: function (c) {
-                    b.fireEvent("updateprogressbar", c)
+                updateprogressbar: function(c, d) {
+                    if (arguments.length == 2) {
+                        b.fireEvent("updateprogressbar", c, undefined)
+                    } else {
+                        b.fireEvent("updateprogressbar", c, d)
+                    }
                 },
                 scope: this
             };
-        b.form = b.buildForm(b.config);
+        b.form = b.buildForm(b.myConfig);
         Ext.apply(this, {
             items: b.form,
             fbar: b.buildButtons(b.buttonsPanelScope || b)
@@ -65,21 +91,30 @@ Ext.define("Sch.widget.ExportDialog", {
         b.callParent(arguments);
         b.plugin.on(a)
     },
-    afterRender: function () {
+    afterRender: function() {
         var a = this;
         a.relayEvents(a.form.resizePicker, ["change", "changecomplete", "select"]);
         a.form.relayEvents(a, ["updateprogressbar", "hideprogressbar", "showprogressbar"]);
         a.callParent(arguments)
     },
-    buildButtons: function (a) {
+    buildButtons: function(a) {
         return [{
             xtype: "button",
             scale: "medium",
             text: this.L("exportButtonText"),
-            handler: function () {
+            handler: function() {
                 if (this.form.isValid()) {
                     this.fireEvent("showprogressbar");
-                    this.plugin.doExport(this.form.getValues())
+                    var c = this.form.getValues();
+                    c.exporterId = c.exporterId;
+                    var b = this.dateRangeFormat || Ext.Date.defaultFormat;
+                    if (c.dateFrom && !Ext.isDate(c.dateFrom)) {
+                        c.dateFrom = Ext.Date.parse(c.dateFrom, b)
+                    }
+                    if (c.dateTo && !Ext.isDate(c.dateTo)) {
+                        c.dateTo = Ext.Date.parse(c.dateTo, b)
+                    }
+                    this.plugin.doExport(c)
                 }
             },
             scope: a
@@ -87,19 +122,19 @@ Ext.define("Sch.widget.ExportDialog", {
             xtype: "button",
             scale: "medium",
             text: this.L("cancelButtonText"),
-            handler: function () {
+            handler: function() {
                 this.destroy()
             },
             scope: a
         }]
     },
-    buildForm: function (a) {
+    buildForm: function(a) {
         return new Sch.widget.ExportDialogForm({
             progressBar: this.progressBar,
             dialogConfig: a
         })
     },
-    showError: function (b, a) {
+    showError: function(b, a) {
         var c = b,
             d = a || c.L("generalError");
         c.fireEvent("hideprogressbar");

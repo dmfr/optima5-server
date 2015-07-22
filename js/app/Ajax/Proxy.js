@@ -31,26 +31,10 @@ Ext.define('Optima5.Ajax.Proxy',{
 		
 		me.callParent([cfg]) ;
 	},
-	doRequest: function(operation, callback, scope) {
-		var me = this ;
-		var writer  = this.getWriter(),
-				request = this.buildRequest(operation, callback, scope);
+	sendRequest: function(request) {
+		request.setRawRequest(this.optConnection.request(request.getCurrentConfig()));
+		this.lastRequest = request;
 
-		if (operation.allowWrite()) {
-				request = writer.write(request);
-		}
-
-		Ext.apply(request, {
-				headers       : this.headers,
-				timeout       : this.timeout,
-				scope         : this,
-				callback      : this.createRequestCallback(request, operation, callback, scope),
-				method        : this.getMethod(request),
-				disableCaching: false // explicitly set it to false, ServerProxy handles caching
-		});
-		
-		me.optConnection.request(request);
-		
 		return request;
 	}
 });

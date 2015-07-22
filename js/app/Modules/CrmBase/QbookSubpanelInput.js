@@ -148,7 +148,7 @@ Ext.define('Optima5.Modules.CrmBase.QbookSubpanelInput' ,{
 							items : gridContextMenuItems,
 							listeners: {
 								hide: function(menu) {
-									menu.destroy() ;
+									Ext.defer(function(){menu.destroy();},10) ;
 								}
 							}
 						}) ;

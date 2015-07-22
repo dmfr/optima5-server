@@ -399,9 +399,6 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 						rowBody: rowbody
 					};
 				}
-			},{
-				ftype: 'rowwrap',
-				lockableScope: 'normal'
 			}]
 		});
 		
@@ -633,7 +630,7 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 			me.optimaModule.getConfiguredAjaxConnection().request({
 				params:params,
 				success: function(response) {
-					item.setData( Ext.decode(response.responseText).data ) ;
+					item.setTabData( Ext.decode(response.responseText).data ) ;
 				},
 				scope:me
 			}) ;
@@ -1019,7 +1016,6 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 		var me = this ;
 		me.nbComponentsSaved = 0 ;
 		
-		me.addEvents('allsaved') ;
 		me.on('allsaved',function(nbSaved){
 			me.saveAndApply() ;
 		},me) ;

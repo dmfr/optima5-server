@@ -56,7 +56,6 @@ Ext.define('Ext.ux.ColumnAutoWidthPlugin', {
         Ext.apply(me, config);
         
         me.viewChangeDT = new Ext.util.DelayedTask(function(){ me.refresh() });
-        me.addEvents('beforecolumnresize', 'columnresize');
         me.mixins.observable.constructor.call(me);
         
     },

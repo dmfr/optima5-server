@@ -150,6 +150,16 @@
 }
 
 
+.op5-spec-dbspeople-rhformpanel-fieldset .x-form-item-label-default {
+	min-height: 16px ;
+}
+.op5-spec-dbspeople-rhformpanel-fieldset .x-form-item-body-default {
+	min-height: 16px ;
+}
+.op5-spec-dbspeople-rhformpanel-fieldset .x-form-display-field-default {
+	min-height: 16px ;
+}
+
 
 .op5-spec-dbspeople-realcell-virtual {
 	color: #777777 ;

@@ -18,10 +18,6 @@ Ext.define('Optima5.Module',{
 	
 	constructor: function( moduleCfg ) {
 		var me = this;
-		me.addEvents(
-			'modulestart',
-			'modulestop'
-		);
 		me.mixins.observable.constructor.call(this, moduleCfg);
 		
 		if( moduleCfg.app == null || !(moduleCfg.app instanceof Optima5.App) ) {
@@ -162,7 +158,6 @@ Ext.define('Optima5.Module',{
 		if( fireStart ) {
 			me.fireEvent('modulestart',me) ;
 		}
-		win.addEvents('windowattach') ;
 		win.fireEvent('windowattach',win) ;
 		
 		win.on({

@@ -10,27 +10,28 @@ Ext.define("Sch.plugin.Pan", {
         KEY_ALL: 7
     },
     disableOnKey: 0,
-    panel: null,
-    constructor: function (a) {
+    constructor: function(a) {
         Ext.apply(this, a)
     },
-    init: function (a) {
-        this.panel = a.normalGrid || a;
+    init: function(a) {
+        if (Ext.supports.Touch) {
+            return
+        }
         this.view = a.getSchedulingView();
         this.view.on("afterrender", this.onRender, this)
     },
-    onRender: function (a) {
+    onRender: function(a) {
         this.view.el.on("mousedown", this.onMouseDown, this)
     },
-    onMouseDown: function (d, c) {
+    onMouseDown: function(d, c) {
         var b = this.self,
             a = this.disableOnKey;
         if ((d.shiftKey && (a & b.KEY_SHIFT)) || (d.ctrlKey && (a & b.KEY_CTRL)) || (d.altKey && (a & b.KEY_ALT))) {
             return
         }
         if (d.getTarget("." + this.view.timeCellCls, 10) && !d.getTarget(this.view.eventSelector)) {
-            this.mouseX = d.getPageX();
-            this.mouseY = d.getPageY();
+            this.mouseX = d.getX();
+            this.mouseY = d.getY();
             Ext.getBody().on("mousemove", this.onMouseMove, this);
             Ext.getDoc().on("mouseup", this.onMouseUp, this);
             if (Ext.isIE || Ext.isGecko) {
@@ -39,20 +40,20 @@ Ext.define("Sch.plugin.Pan", {
             d.stopEvent()
         }
     },
-    onMouseMove: function (d) {
+    onMouseMove: function(d) {
         d.stopEvent();
-        var a = d.getPageX(),
-            f = d.getPageY(),
-            c = a - this.mouseX,
-            b = f - this.mouseY;
-        this.panel.scrollByDeltaX(-c);
+        var a = d.getX();
+        var f = d.getY();
+        var b = 0,
+            c = this.mouseX - a;
+        if (this.enableVerticalPan) {
+            b = this.mouseY - f
+        }
         this.mouseX = a;
         this.mouseY = f;
-        if (this.enableVerticalPan) {
-            this.panel.scrollByDeltaY(-b)
-        }
+        this.view.scrollBy(c, b, false)
     },
-    onMouseUp: function (a) {
+    onMouseUp: function(a) {
         Ext.getBody().un("mousemove", this.onMouseMove, this);
         Ext.getDoc().un("mouseup", this.onMouseUp, this);
         if (Ext.isIE || Ext.isGecko) {

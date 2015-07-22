@@ -4,13 +4,12 @@ Ext.define("Sch.plugin.DragSelector", {
     mixins: ["Ext.AbstractPlugin"],
     requires: ["Sch.util.ScrollManager"],
     lockableScope: "top",
-    scheduler: null,
     schedulerView: null,
     eventData: null,
     sm: null,
     proxy: null,
     bodyRegion: null,
-    constructor: function (a) {
+    constructor: function(a) {
         a = a || {};
         Ext.applyIf(a, {
             onBeforeStart: this.onBeforeStart,
@@ -20,27 +19,22 @@ Ext.define("Sch.plugin.DragSelector", {
         });
         this.callParent(arguments)
     },
-    init: function (a) {
+    init: function(b) {
+        var a = this.schedulerView = b.getSchedulingView();
         a.on({
-            afterrender: this.onSchedulerRender,
-            destroy: this.onSchedulerDestroy,
-            scope: this
-        });
-        a.getSchedulingView().on({
             afterrender: this.onSchedulingViewRender,
             scope: this
-        });
-        this.scheduler = a
+        })
     },
-    onBeforeStart: function (a) {
+    onBeforeStart: function(a) {
         return !a.getTarget(".sch-event") && a.ctrlKey
     },
-    onStart: function (b) {
+    onStart: function(b) {
         var c = this.schedulerView;
         this.proxy.show();
         this.bodyRegion = c.getScheduleRegion();
         var a = [];
-        c.getEventNodes().each(function (d) {
+        c.getEventNodes().each(function(d) {
             a[a.length] = {
                 region: d.getRegion(),
                 node: d.dom
@@ -48,14 +42,14 @@ Ext.define("Sch.plugin.DragSelector", {
         });
         this.eventData = a;
         this.sm.deselectAll();
-        Sch.util.ScrollManager.register(c.el)
+        Sch.util.ScrollManager.activate(c)
     },
-    onDrag: function (h) {
+    onDrag: function(h) {
         var j = this.sm,
             f = this.eventData,
             b = this.getRegion().constrainTo(this.bodyRegion),
             c, d, a, g;
-        this.proxy.setRegion(b);
+        this.proxy.setBox(b);
         for (c = 0, a = f.length; c < a; c++) {
             d = f[c];
             g = b.intersect(d.region);
@@ -70,26 +64,23 @@ Ext.define("Sch.plugin.DragSelector", {
             }
         }
     },
-    onEnd: function (a) {
+    onEnd: function(a) {
         if (this.proxy) {
             this.proxy.setDisplayed(false)
         }
-        Sch.util.ScrollManager.unregister(this.schedulerView.el)
+        Sch.util.ScrollManager.deactivate()
     },
-    onSchedulerRender: function (a) {
+    onSchedulingViewRender: function(a) {
         this.sm = a.getEventSelectionModel();
-        this.schedulerView = a.getSchedulingView();
-        this.initEl(this.schedulerView.el)
-    },
-    onSchedulingViewRender: function () {
-        this.proxy = this.scheduler.getSchedulingView().el.createChild({
+        this.initEl(this.schedulerView.el);
+        this.proxy = a.el.createChild({
             cls: "sch-drag-selector"
         })
     },
-    onSchedulerDestroy: function () {
+    destroy: function() {
         if (this.proxy) {
             Ext.destroy(this.proxy)
         }
-        this.destroy()
+        this.callParent(arguments)
     }
 });

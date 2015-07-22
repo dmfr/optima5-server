@@ -3,81 +3,6 @@ Ext.define("Sch.preset.Manager", {
     requires: ["Sch.util.Date", "Sch.preset.ViewPreset"],
     mixins: ["Sch.mixin.Localizable"],
     singleton: true,
-    constructor: function () {
-        this.callParent(arguments);
-        this.registerDefaults()
-    },
-    registerPreset: function (b, a) {
-        if (a) {
-            var c = a.headerConfig;
-            var f = Sch.util.Date;
-            for (var g in c) {
-                if (c.hasOwnProperty(g)) {
-                    if (f[c[g].unit]) {
-                        c[g].unit = f[c[g].unit.toUpperCase()]
-                    }
-                }
-            }
-            if (!a.timeColumnWidth) {
-                a.timeColumnWidth = 50
-            }
-            if (!a.rowHeight) {
-                a.rowHeight = 24
-            }
-            var d = a.timeResolution;
-            if (d && f[d.unit]) {
-                d.unit = f[d.unit.toUpperCase()]
-            }
-            var e = a.shiftUnit;
-            if (e && f[e]) {
-                a.shiftUnit = f[e.toUpperCase()]
-            }
-        }
-        if (this.isValidPreset(a)) {
-            if (this.containsKey(b)) {
-                this.removeAtKey(b)
-            }
-            a.name = b;
-            this.add(b, new Sch.preset.ViewPreset(a))
-        } else {
-            throw "Invalid preset, please check your configuration"
-        }
-    },
-    isValidPreset: function (a) {
-        var e = Sch.util.Date,
-            c = true,
-            d = Sch.util.Date.units,
-            b = {};
-        for (var f in a.headerConfig) {
-            if (a.headerConfig.hasOwnProperty(f)) {
-                b[f] = true;
-                c = c && Ext.Array.indexOf(d, a.headerConfig[f].unit) >= 0
-            }
-        }
-        if (!(a.columnLinesFor in b)) {
-            a.columnLinesFor = "middle"
-        }
-        if (a.timeResolution) {
-            c = c && Ext.Array.indexOf(d, a.timeResolution.unit) >= 0
-        }
-        if (a.shiftUnit) {
-            c = c && Ext.Array.indexOf(d, a.shiftUnit) >= 0
-        }
-        return c
-    },
-    getPreset: function (a) {
-        return this.get(a)
-    },
-    deletePreset: function (a) {
-        this.removeAtKey(a)
-    },
-    registerDefaults: function () {
-        var b = this,
-            a = this.defaultPresets;
-        for (var c in a) {
-            b.registerPreset(c, a[c])
-        }
-    },
     defaultPresets: {
         secondAndMinute: {
             timeColumnWidth: 30,
@@ -177,7 +102,7 @@ Ext.define("Sch.preset.Manager", {
                 top: {
                     unit: "WEEK",
                     align: "center",
-                    renderer: function (c, b, a) {
+                    renderer: function(c, b, a) {
                         return Sch.util.Date.getShortNameOfUnit("WEEK") + "." + Ext.Date.format(c, "W M Y")
                     }
                 }
@@ -223,7 +148,7 @@ Ext.define("Sch.preset.Manager", {
             headerConfig: {
                 middle: {
                     unit: "WEEK",
-                    renderer: function (c, b, a) {
+                    renderer: function(c, b, a) {
                         return Ext.Date.format(c, "d M")
                     }
                 },
@@ -275,7 +200,7 @@ Ext.define("Sch.preset.Manager", {
                 middle: {
                     unit: "QUARTER",
                     align: "center",
-                    renderer: function (c, b, a) {
+                    renderer: function(c, b, a) {
                         return Ext.String.format(Sch.util.Date.getShortNameOfUnit("QUARTER").toUpperCase() + "{0}", Math.floor(c.getMonth() / 3) + 1)
                     }
                 },
@@ -302,7 +227,14 @@ Ext.define("Sch.preset.Manager", {
                 middle: {
                     unit: "YEAR",
                     align: "center",
-                    dateFormat: "Y"
+                    dateFormat: "Y",
+                    increment: 5
+                },
+                bottom: {
+                    unit: "YEAR",
+                    align: "center",
+                    dateFormat: "y",
+                    increment: 1
                 }
             }
         },
@@ -322,7 +254,7 @@ Ext.define("Sch.preset.Manager", {
                 bottom: {
                     unit: "DAY",
                     align: "center",
-                    renderer: function (a) {
+                    renderer: function(a) {
                         return Ext.Date.dayNames[a.getDay()].substring(0, 1)
                     }
                 },
@@ -355,7 +287,185 @@ Ext.define("Sch.preset.Manager", {
                     dateFormat: "Y F"
                 }
             }
+        },
+        day: {
+            timeRowHeight: 40,
+            calendarColumnWidth: 200,
+            displayDateFormat: "G:i",
+            shiftIncrement: 1,
+            shiftUnit: "DAY",
+            defaultSpan: 24,
+            timeResolution: {
+                unit: "MINUTE",
+                increment: 30
+            },
+            headerConfig: {
+                bottom: {
+                    unit: "HOUR",
+                    align: "center",
+                    renderer: function(a) {
+                        return Ext.String.format('<div class="sch-calendarcolumn-ct"><span class="sch-calendarcolumn-hours">{0}</span><span class="sch-calendarcolumn-minutes">{1}</span></div>', Ext.Date.format(a, "H"), Ext.Date.format(a, "i"))
+                    }
+                },
+                middle: {
+                    unit: "DAY",
+                    align: "center",
+                    dateFormat: "D d/m",
+                    splitUnit: "DAY"
+                }
+            }
+        },
+        week: {
+            timeRowHeight: 40,
+            calendarColumnWidth: 164,
+            displayDateFormat: "G:i",
+            shiftIncrement: 1,
+            shiftUnit: "WEEK",
+            defaultSpan: 24,
+            timeResolution: {
+                unit: "MINUTE",
+                increment: 30
+            },
+            headerConfig: {
+                bottom: {
+                    unit: "HOUR",
+                    align: "center",
+                    dateFormat: "H:i",
+                    renderer: function(a) {
+                        return Ext.String.format('<div class="sch-calendarcolumn-ct"><span class="sch-calendarcolumn-hours">{0}</span><span class="sch-calendarcolumn-minutes">{1}</span></div>', Ext.Date.format(a, "H"), Ext.Date.format(a, "i"))
+                    }
+                },
+                middle: {
+                    unit: "WEEK",
+                    align: "center",
+                    dateFormat: "D d",
+                    splitUnit: "DAY"
+                }
+            }
+        },
+        month: {
+            timeColumnWidth: 60,
+            rowHeight: 24,
+            resourceColumnWidth: 100,
+            displayDateFormat: "G:i",
+            shiftIncrement: 1,
+            shiftUnit: "MONTH",
+            defaultSpan: 4,
+            timeResolution: {
+                unit: "HOUR",
+                increment: 12
+            },
+            headerConfig: {
+                bottom: {
+                    unit: "DAY",
+                    align: "center",
+                    dateFormat: "D",
+                    splitUnit: "WEEK"
+                },
+                middle: {
+                    unit: "WEEK",
+                    align: "center",
+                    dateFormat: "D d/m"
+                },
+                top: {
+                    unit: "MONTH",
+                    align: "center",
+                    renderer: function(c, b, a) {
+                        return Ext.Date.format(c, "d/m") + " - " + Ext.Date.format(b, "d/m, Y")
+                    },
+                    splitUnit: "WEEK"
+                }
+            }
+        }
+    },
+    constructor: function() {
+        this.callParent(arguments);
+        this.registerDefaults()
+    },
+    onLocalized: function() {
+        var a = this;
+        this.eachKey(function(c, d) {
+            if (a.l10n[c]) {
+                var b = a.L(c);
+                b.displayDateFormat && (d.displayDateFormat = b.displayDateFormat);
+                b.middleDateFormat && (d.headerConfig.middle.dateFormat = b.middleDateFormat);
+                b.topDateFormat && (d.headerConfig.top.dateFormat = b.topDateFormat);
+                b.bottomDateFormat && (d.headerConfig.bottom.dateFormat = b.bottomDateFormat)
+            }
+        })
+    },
+    registerPreset: function(b, a) {
+        if (a) {
+            var c = a.headerConfig;
+            var f = Sch.util.Date;
+            for (var g in c) {
+                if (c.hasOwnProperty(g)) {
+                    if (f[c[g].unit]) {
+                        c[g].unit = f[c[g].unit.toUpperCase()]
+                    }
+                    if (f[c[g].splitUnit]) {
+                        c[g].splitUnit = f[c[g].splitUnit.toUpperCase()]
+                    }
+                }
+            }
+            if (!a.timeColumnWidth) {
+                a.timeColumnWidth = 50
+            }
+            if (!a.rowHeight) {
+                a.rowHeight = 24
+            }
+            var d = a.timeResolution;
+            if (d && f[d.unit]) {
+                d.unit = f[d.unit.toUpperCase()]
+            }
+            var e = a.shiftUnit;
+            if (e && f[e]) {
+                a.shiftUnit = f[e.toUpperCase()]
+            }
+        }
+        if (this.isValidPreset(a)) {
+            if (this.containsKey(b)) {
+                this.removeAtKey(b)
+            }
+            a.name = b;
+            this.add(b, new Sch.preset.ViewPreset(a))
+        } else {
+            throw "Invalid preset, please check your configuration"
+        }
+    },
+    isValidPreset: function(a) {
+        var e = Sch.util.Date,
+            c = true,
+            d = Sch.util.Date.units,
+            b = {};
+        for (var f in a.headerConfig) {
+            if (a.headerConfig.hasOwnProperty(f)) {
+                b[f] = true;
+                c = c && Ext.Array.indexOf(d, a.headerConfig[f].unit) >= 0
+            }
+        }
+        if (!(a.columnLinesFor in b)) {
+            a.columnLinesFor = "middle"
+        }
+        if (a.timeResolution) {
+            c = c && Ext.Array.indexOf(d, a.timeResolution.unit) >= 0
+        }
+        if (a.shiftUnit) {
+            c = c && Ext.Array.indexOf(d, a.shiftUnit) >= 0
+        }
+        return c
+    },
+    getPreset: function(a) {
+        return this.get(a)
+    },
+    deletePreset: function(a) {
+        this.removeAtKey(a)
+    },
+    registerDefaults: function() {
+        var b = this,
+            a = this.defaultPresets;
+        for (var c in a) {
+            b.registerPreset(c, a[c])
         }
     }
 });
-

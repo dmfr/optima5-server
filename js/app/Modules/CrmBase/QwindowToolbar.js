@@ -99,21 +99,21 @@ Ext.define('Optima5.Modules.CrmBase.QwindowToolbar',{
 	},
 	onItemClick:function( item ) {
 		var menuItem = item ;
-		var toolbarButton = item.up().ownerButton ;
+		var toolbarButton = item.up().ownerCmp ;
 		
 		var me = this ;
 		me.fireEvent('toolbaritemclick',toolbarButton.itemId,menuItem.itemId,null) ;
 	},
 	onCheckItemChange: function( checkItem, checked ) {
 		var menuItem = checkItem ;
-		var toolbarButton = checkItem.up().ownerButton ;
+		var toolbarButton = checkItem.up().ownerCmp ;
 		
 		var me = this ;
 		me.fireEvent('toolbaritemclick',toolbarButton.itemId,menuItem.itemId,checked) ;
 	},
 	onItemMenuSubmit:function( item, input ) {
 		var menuItem = item ;
-		var toolbarButton = item.up().ownerButton ;
+		var toolbarButton = item.up().ownerCmp ;
 		
 		var me = this ;
 		me.fireEvent('toolbaritemclick',toolbarButton.itemId,menuItem.itemId,input) ;

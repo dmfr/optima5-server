@@ -116,7 +116,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.LivePanel',{
 									},
 									reader: {
 										type: 'json',
-										root: 'data'
+										rootProperty: 'data'
 									}
 								})
 							},
@@ -307,7 +307,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.LivePanel',{
 						},
 						reader: {
 							type: 'json',
-							root: 'data'
+							rootProperty: 'data'
 						}
 					}),
 					sorters:[{

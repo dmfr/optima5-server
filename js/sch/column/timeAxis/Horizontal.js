@@ -17,69 +17,77 @@ Ext.define("Sch.column.timeAxis.Horizontal", {
     ownHoverCls: "sch-column-header-over",
     trackHeaderOver: true,
     compactCellWidthThreshold: 20,
-    initComponent: function () {
-        this.callParent(arguments)
-    },
-    afterRender: function () {
-        var a = this;
-        a.headerView = new Sch.view.HorizontalTimeAxis({
-            model: a.timeAxisViewModel,
-            containerEl: a.titleEl,
-            hoverCls: a.ownHoverCls,
-            trackHeaderOver: a.trackHeaderOver,
-            compactCellWidthThreshold: a.compactCellWidthThreshold
+    afterRender: function() {
+        var b = this;
+        var a = b.titleEl.createChild({
+            cls: "sch-horizontaltimeaxis-ct"
         });
-        a.headerView.on("refresh", a.onTimeAxisViewRefresh, a);
-        a.ownerCt.on("afterlayout", function () {
-            a.mon(a.ownerCt, "resize", a.onHeaderContainerResize, a);
+        b.headerView = new Sch.view.HorizontalTimeAxis({
+            model: b.timeAxisViewModel,
+            containerEl: a,
+            hoverCls: b.ownHoverCls,
+            trackHeaderOver: b.trackHeaderOver,
+            compactCellWidthThreshold: b.compactCellWidthThreshold
+        });
+        b.headerView.on("refresh", b.onTimeAxisViewRefresh, b);
+        b.ownerCt.on("afterlayout", function() {
+            if (!b.ownerCt) {
+                return
+            }
+            b.mon(b.ownerCt, "resize", b.onHeaderContainerResize, b);
             if (this.getWidth() > 0) {
-                if (a.getAvailableWidthForSchedule() === a.timeAxisViewModel.getAvailableWidth()) {
-                    a.headerView.render()
+                if (b.getAvailableWidthForSchedule() === b.timeAxisViewModel.getAvailableWidth()) {
+                    b.headerView.render()
                 } else {
-                    a.timeAxisViewModel.update(a.getAvailableWidthForSchedule())
+                    b.timeAxisViewModel.update(b.getAvailableWidthForSchedule())
                 }
-                a.setWidth(a.timeAxisViewModel.getTotalWidth())
+                b.setWidth(b.timeAxisViewModel.getTotalWidth())
             }
         }, null, {
             single: true
         });
         this.enableBubble("timeheaderclick", "timeheaderdblclick", "timeheadercontextmenu");
-        a.relayEvents(a.headerView, ["timeheaderclick", "timeheaderdblclick", "timeheadercontextmenu"]);
-        a.callParent(arguments)
+        b.relayEvents(b.headerView, ["timeheaderclick", "timeheaderdblclick", "timeheadercontextmenu"]);
+        b.callParent(arguments);
+        b.focusable = false
     },
-    initRenderData: function () {
+    initRenderData: function() {
         var a = this;
         a.renderData.headerCls = a.renderData.headerCls || a.headerCls;
         return a.callParent(arguments)
     },
-    destroy: function () {
+    destroy: function() {
         if (this.headerView) {
             this.headerView.destroy()
         }
         this.callParent(arguments)
     },
-    onTimeAxisViewRefresh: function () {
+    onTimeAxisViewRefresh: function() {
         this.headerView.un("refresh", this.onTimeAxisViewRefresh, this);
         this.setWidth(this.timeAxisViewModel.getTotalWidth());
         this.headerView.on("refresh", this.onTimeAxisViewRefresh, this)
     },
-    getAvailableWidthForSchedule: function () {
-        var c = this.ownerCt.getWidth();
-        var a = this.ownerCt.items;
+    getAvailableWidthForSchedule: function() {
+        var d = this.ownerCt.isVisible(true) ? this.ownerCt.getWidth() : (this.ownerCt.lastBox && this.ownerCt.lastBox.width || 0),
+            a = this.ownerCt.items,
+            c;
         for (var b = 1; b < a.length; b++) {
-            c -= a.get(b).getWidth()
+            c = a.get(b);
+            if (!c.hidden) {
+                d -= c.isVisible(true) ? c.getWidth() : (c.lastBox && c.lastBox.width || 0)
+            }
         }
-        return c - Ext.getScrollbarSize().width - 1
+        return d - Ext.getScrollbarSize().width - 1
     },
-    onResize: function () {
+    onResize: function() {
         this.callParent(arguments);
         this.timeAxisViewModel.setAvailableWidth(this.getAvailableWidthForSchedule())
     },
-    onHeaderContainerResize: function () {
+    onHeaderContainerResize: function() {
         this.timeAxisViewModel.setAvailableWidth(this.getAvailableWidthForSchedule());
         this.headerView.render()
     },
-    refresh: function () {
+    refresh: function() {
         this.timeAxisViewModel.update(null, true);
         this.headerView.render()
     }

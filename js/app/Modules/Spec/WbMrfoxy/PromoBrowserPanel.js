@@ -77,7 +77,7 @@ Ext.define('WbMrfoxyPromoModel', {
 		  {name: 'baseline_out_value',   type: 'number'},
         {name: 'benchmark_arr_ids', type: 'string'}
      ],
-	  idgen: 'sequential',
+	  identifier: 'sequential',
 	  hasMany: [{
 			model: 'WbMrfoxyPromoSkuModel',
 			name: 'promo_sku',

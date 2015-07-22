@@ -13,10 +13,10 @@ Ext.define("Sch.preset.ViewPreset", {
     columnLinesFor: "middle",
     headers: null,
     mainHeader: 0,
-    constructor: function (a) {
+    constructor: function(a) {
         Ext.apply(this, a)
     },
-    getHeaders: function () {
+    getHeaders: function() {
         if (this.headers) {
             return this.headers
         }
@@ -24,17 +24,17 @@ Ext.define("Sch.preset.ViewPreset", {
         this.mainHeader = a.top ? 1 : 0;
         return this.headers = [].concat(a.top || [], a.middle || [], a.bottom || [])
     },
-    getMainHeader: function () {
+    getMainHeader: function() {
         return this.getHeaders()[this.mainHeader]
     },
-    getBottomHeader: function () {
+    getBottomHeader: function() {
         var a = this.getHeaders();
         return a[a.length - 1]
     },
-    clone: function () {
+    clone: function() {
         var a = {};
         var b = this;
-        Ext.each(["rowHeight", "timeColumnWidth", "timeRowHeight", "timeAxisColumnWidth", "displayDateFormat", "shiftUnit", "shiftIncrement", "defaultSpan", "timeResolution", "headerConfig"], function (c) {
+        Ext.each(["rowHeight", "timeColumnWidth", "timeRowHeight", "timeAxisColumnWidth", "displayDateFormat", "shiftUnit", "shiftIncrement", "defaultSpan", "timeResolution", "headerConfig"], function(c) {
             a[c] = b[c]
         });
         return new this.self(Ext.clone(a))

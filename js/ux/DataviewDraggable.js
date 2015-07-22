@@ -1,24 +1,54 @@
 /**
  * @author Ed Spencer
  *
-<pre><code>
-Ext.create('Ext.view.View', {
-    mixins: {
-        draggable: 'Ext.ux.DataView.Draggable'
-    },
-
-    initComponent: function() {
-        this.mixins.draggable.init(this, {
-            ddConfig: {
-                ddGroup: 'someGroup'
-            }
-        });
-
-        this.callParent(arguments);
-    }
-});
-</code></pre>
+ * ## Basic DataView with Draggable mixin.
  *
+ *     Ext.Loader.setPath('Ext.ux', '../../../SDK/extjs/examples/ux');
+ *
+ *     Ext.define('My.cool.View', {
+ *         extend: 'Ext.view.View',
+ *
+ *         mixins: {
+ *             draggable: 'Ext.ux.DataView.Draggable'
+ *         },
+ *
+ *         initComponent: function() {
+ *             this.mixins.draggable.init(this, {
+ *                 ddConfig: {
+ *                     ddGroup: 'someGroup'
+ *                 }
+ *             });
+ * 
+ *             this.callParent(arguments);
+ *         }
+ *     });
+ *
+ *     Ext.onReady(function () {
+ *         Ext.create('Ext.data.Store', {
+ *             storeId: 'baseball',
+ *             fields: ['team', 'established'],
+ *             data: [
+ *                 { team: 'Atlanta Braves', established: '1871' },
+ *                 { team: 'Miami Marlins', established: '1993' },
+ *                 { team: 'New York Mets', established: '1962' },
+ *                 { team: 'Philadelphia Phillies', established: '1883' },
+ *                 { team: 'Washington Nationals', established: '1969' }
+ *             ]
+ *          });
+ *
+ *          Ext.create('My.cool.View', {
+ *              store: Ext.StoreMgr.get('baseball'),
+ *              tpl: [
+ *                  '<tpl for=".">', 
+ *                      '<p class="team">', 
+ *                          'The {team} were founded in {established}.',
+ *                      '</p>', 
+ *                  '</tpl>'
+ *              ],
+ *              itemSelector: 'p.team',
+ *              renderTo: Ext.getBody()
+ *          });
+ *      });
  */
 Ext.define('Ext.ux.DataviewDraggable', {
     requires: 'Ext.dd.DragZone',
@@ -110,16 +140,16 @@ Ext.define('Ext.ux.DataviewDraggable', {
                 item: true
             };
 
-            if (selected.length == 1) {
+            if (selected.length === 1) {
                 dragData.single = true;
                 dragData.ddel = target;
             } else {
                 dragData.multi = true;
-                dragData.ddel = draggable.prepareGhost(selModel.getSelection()).dom;
+                dragData.ddel = draggable.prepareGhost(selModel.getSelection());
             }
-            
-            var listenersReturn = dataview.fireEvent('dragdata',this,dragData) ; // HACK : DAMS
-            if( listenersReturn === false ) {
+
+				var listenersReturn = dataview.fireEvent('dragdata',this,dragData) ; // HACK : DAMS
+				if( listenersReturn === false ) {
 					return false ;
 				}
 
@@ -170,16 +200,10 @@ Ext.define('Ext.ux.DataviewDraggable', {
     /**
      * Updates the internal ghost DataView by ensuring it is rendered and contains the correct records
      * @param {Array} records The set of records that is currently selected in the parent DataView
-     * @return {Ext.view.View} The Ghost DataView
+     * @return {HTMLElement} The Ghost DataView's encapsulating HtmnlElement.
      */
     prepareGhost: function(records) {
-        var ghost = this.createGhost(records),
-            store = ghost.store;
-
-        store.removeAll();
-        store.add(records);
-
-        return ghost.getEl();
+        return this.createGhost(records).getEl().dom;
     },
 
     /**
@@ -188,18 +212,32 @@ Ext.define('Ext.ux.DataviewDraggable', {
      * lighter-weight representation of just the nodes that are selected in the parent DataView.
      */
     createGhost: function(records) {
-        if (!this.ghost) {
-            var ghostConfig = Ext.apply({}, this.ghostConfig, {
-                store: Ext.create('Ext.data.Store', {
-                    model: records[0].modelName
-                })
+        var me = this,
+            store;
+
+        if (me.ghost) {
+            (store = me.ghost.store).loadRecords(records);
+        } else {
+            store = Ext.create('Ext.data.Store', {
+                model: records[0].self
             });
 
-            this.ghost = Ext.create('Ext.view.View', ghostConfig);
-
-            this.ghost.render(document.createElement('div'));
+            store.loadRecords(records);
+            me.ghost = Ext.create('Ext.view.View', Ext.apply({
+                renderTo: document.createElement('div'),
+                store: store
+            }, me.ghostConfig));
+            me.ghost.container.skipGarbageCollection = me.ghost.el.skipGarbageCollection = true;
         }
+        store.clearData();
 
-        return this.ghost;
+        return me.ghost;
+    },
+
+    destroy: function() {
+        if (this.ghost) {
+            this.ghost.container.destroy();
+            this.ghost.destroy();
+        }
     }
 });

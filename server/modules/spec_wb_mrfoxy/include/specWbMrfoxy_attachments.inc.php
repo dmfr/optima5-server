@@ -22,8 +22,8 @@ function specWbMrfoxy_attachments_getList( $post_data ) {
 	if( $post_data['filter_id'] ) {
 		$forward_post['filter'] = json_encode(array(
 			array(
-				'type' => 'list',
-				'field' => 'WORK_ATTACH_id',
+				'operator' => 'in',
+				'property' => 'WORK_ATTACH_id',
 				'value' => json_decode($post_data['filter_id'],true)
 			)
 		)) ;

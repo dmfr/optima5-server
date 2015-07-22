@@ -11,6 +11,7 @@ Ext.define('Ext.ux.upload.DD', {
     config: {
         id: null,
         directMethod: null,
+        method: 'POST',
         url: null,
         params: {},
         acceptedTypes: {},
@@ -24,29 +25,6 @@ Ext.define('Ext.ux.upload.DD', {
         var me = this;
         me.initConfig(cfg);
         me.callParent(arguments);
-        me.addEvents({
-            /**
-             * @event
-             *
-             * Fired when dragged element is over drop zone.
-             *
-             */
-            'dragover': true,
-            /**
-             * @event
-             *
-             * Fired when dragged element left drop zone
-             *
-             */
-            'dragout': true,
-            /**
-             * @event
-             *
-             * Fired when element was dropped.
-             *
-             */
-            'drop': true
-        });
         /**
          * test browser compatibility
          */

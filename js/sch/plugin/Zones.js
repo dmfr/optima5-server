@@ -5,7 +5,7 @@ Ext.define("Sch.plugin.Zones", {
     innerTpl: null,
     cls: "sch-zone",
     side: null,
-    init: function (a) {
+    init: function(a) {
         if (Ext.isString(this.innerTpl)) {
             this.innerTpl = new Ext.XTemplate(this.innerTpl)
         }
@@ -13,7 +13,7 @@ Ext.define("Sch.plugin.Zones", {
         var b = this.innerTpl;
         if (!this.template) {
             this.template = new Ext.XTemplate('<tpl for="."><div id="{id}" class="{$cls}" style="' + this.side + ':{left}px;top:{top}px;height:{height}px;width:{width}px;{style}">' + (b ? "{[this.renderInner(values)]}" : "") + "</div></tpl>", {
-                renderInner: function (c) {
+                renderInner: function(c) {
                     return b.apply(c)
                 }
             })
@@ -23,53 +23,61 @@ Ext.define("Sch.plugin.Zones", {
         }
         this.callParent(arguments)
     },
-    getElementData: function (h, d, r, f) {
+    getElementData: function(h, d, r, f) {
         var g = this.schedulerView,
-            s = [],
-            c = g.getTimeSpanRegion(h, d, this.expandToFitView),
-            k = this.schedulerView.isHorizontal(),
-            b, m, a, j, n, e;
+            t = [];
+        var c = g.getTimeSpanRegion(h, d, this.expandToFitView);
+        var b, k, a, j, n, e;
         r = r || this.store.getRange();
         for (var q = 0, p = r.length; q < p; q++) {
             b = r[q];
-            m = b.getStartDate();
+            k = b.getStartDate();
             a = b.getEndDate();
             e = this.getTemplateData(b);
-            if (m && a && Sch.util.Date.intersectSpans(m, a, h, d)) {
-                var t = g.getCoordinateFromDate(Sch.util.Date.max(m, h));
-                var o = g.getCoordinateFromDate(Sch.util.Date.min(a, d));
+            if (k && a && Sch.util.Date.intersectSpans(k, a, h, d)) {
                 j = Ext.apply({}, e);
                 j.id = this.getElementId(b);
                 j.$cls = this.getElementCls(b, e);
-                if (k) {
-                    j.left = t;
-                    j.top = c.top;
-                    j.width = f ? 0 : o - t;
-                    j.height = c.bottom - c.top;
-                    j.style = f ? ("border-left-width:" + (o - t) + "px") : ""
+                var m = g.getMode();
+                if (m === "calendar") {
+                    var s = g.getTimeSpanRegion(k, a);
+                    j.left = s.left;
+                    j.top = s.top;
+                    j.height = s.bottom - s.top;
+                    j.width = s.right - s.left
                 } else {
-                    j.left = c.left;
-                    j.top = t;
-                    j.height = f ? 0 : o - t;
-                    j.width = c.right - c.left;
-                    j.style = f ? ("border-top-width:" + (o - t) + "px") : ""
+                    var u = g.getCoordinateFromDate(Sch.util.Date.max(k, h));
+                    var o = g.getCoordinateFromDate(Sch.util.Date.min(a, d));
+                    if (m === "horizontal") {
+                        j.left = u;
+                        j.top = c.top;
+                        j.width = f ? 0 : o - u;
+                        j.height = c.bottom - c.top;
+                        j.style = f ? ("border-left-width:" + (o - u) + "px") : ""
+                    } else {
+                        j.left = c.left;
+                        j.top = u;
+                        j.height = f ? 0 : o - u;
+                        j.width = c.right - c.left;
+                        j.style = f ? ("border-top-width:" + (o - u) + "px") : ""
+                    }
                 }
-                s.push(j)
+                t.push(j)
             }
         }
-        return s
+        return t
     },
-    getHeaderElementId: function (b, a) {
+    getHeaderElementId: function(b, a) {
         return this.callParent([b]) + (a ? "-start" : "-end")
     },
-    getHeaderElementCls: function (b, d, a) {
+    getHeaderElementCls: function(b, d, a) {
         var c = b.clsField || this.clsField;
         if (!d) {
             d = this.getTemplateData(b)
         }
         return "sch-header-indicator sch-header-indicator-" + (a ? "start " : "end ") + this.uniqueCls + " " + (d[c] || "")
     },
-    getZoneHeaderElementData: function (b, h, f, a) {
+    getZoneHeaderElementData: function(b, h, f, a) {
         var c = a ? f.getStartDate() : f.getEndDate(),
             e = null,
             g, i, d;
@@ -87,7 +95,7 @@ Ext.define("Sch.plugin.Zones", {
         }
         return e
     },
-    getHeaderElementData: function (b) {
+    getHeaderElementData: function(b) {
         var a = this.timeAxis.getStart(),
             h = this.timeAxis.getEnd(),
             e = [],
@@ -106,7 +114,7 @@ Ext.define("Sch.plugin.Zones", {
         }
         return e
     },
-    updateZoneHeaderElement: function (a, b) {
+    updateZoneHeaderElement: function(a, b) {
         a.dom.className = b.cls;
         if (this.schedulerView.isHorizontal()) {
             this.setElementX(a, b.position)
@@ -114,7 +122,7 @@ Ext.define("Sch.plugin.Zones", {
             a.setTop(b.position)
         }
     },
-    updateHeaderElement: function (c) {
+    updateHeaderElement: function(c) {
         var a = this.timeAxis.getStart(),
             g = this.timeAxis.getEnd(),
             f = Ext.get(this.getHeaderElementId(c, true)),

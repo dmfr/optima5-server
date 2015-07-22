@@ -8,7 +8,7 @@ Ext.define('Optima5.Modules.UxCalc.UxCalcComponent',{
     ui: 'default',
     
     renderTpl: [
-        '<input readonly type="text" id="{id}-display" class="{clsPrefix}-display" />',
+        '<input readonly type="text" id="{id}-display" data-ref="display" class="{clsPrefix}-display" />',
         '<br/>',
         '<span class="{clsPrefix}-btn {clsPrefix}-clear">c</span>',
         '<span class="{clsPrefix}-btn {clsPrefix}-negative">+/-</span>',
@@ -75,7 +75,6 @@ Ext.define('Optima5.Modules.UxCalc.UxCalcComponent',{
         var me             = this,
             buttonSelector = '.' + me.clsPrefix + '-btn';
 
-        me.addEvents('keydown');
         Ext.apply(me,{
             renderData: {
                 clsPrefix: me.clsPrefix

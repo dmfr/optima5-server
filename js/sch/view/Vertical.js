@@ -1,44 +1,51 @@
 Ext.define("Sch.view.Vertical", {
     view: null,
-    constructor: function (a) {
+    constructor: function(a) {
         Ext.apply(this, a)
     },
-    translateToScheduleCoordinate: function (b) {
+    translateToScheduleCoordinate: function(b) {
         var a = this.view;
         return b - a.getEl().getY() + a.getScroll().top
     },
-    translateToPageCoordinate: function (d) {
+    translateToPageCoordinate: function(d) {
         var b = this.view;
         var c = b.getEl(),
             a = c.getScroll();
         return d + c.getY() - a.top
     },
-    getEventRenderData: function (a) {
-        var g = a.getStartDate(),
-            f = a.getEndDate(),
-            i = this.view,
-            e = i.timeAxis.getStart(),
-            j = i.timeAxis.getEnd(),
-            h = Math,
-            d = h.floor(i.getCoordinateFromDate(Sch.util.Date.max(g, e))),
-            k = h.floor(i.getCoordinateFromDate(Sch.util.Date.min(f, j))),
-            c = this.getResourceColumnWidth(a.getResource(), i.eventStore),
-            b;
-        b = {
-            top: h.max(0, h.min(d, k) - i.eventBorderWidth),
-            height: h.max(1, h.abs(d - k))
-        };
-        if (i.managedEventSizing) {
-            b.left = i.barMargin;
-            b.width = c - (2 * i.barMargin) - i.eventBorderWidth
+    getDateFromXY: function(c, b, a) {
+        var d = c[1];
+        if (!a) {
+            d = this.translateToScheduleCoordinate(d)
         }
-        b.start = g;
-        b.end = f;
-        b.startsOutsideView = g < e;
-        b.endsOutsideView = f > j;
-        return b
+        return this.view.timeAxisViewModel.getDateFromPosition(d, b)
     },
-    getScheduleRegion: function (d, f) {
+    getEventRenderData: function(a, b, h) {
+        var i = a.getStartDate(),
+            g = a.getEndDate(),
+            k = this.view,
+            f = k.timeAxis.getStart(),
+            l = k.timeAxis.getEnd(),
+            j = Math,
+            e = j.floor(k.getCoordinateFromDate(Sch.util.Date.max(i, f))),
+            m = j.floor(k.getCoordinateFromDate(Sch.util.Date.min(g, l))),
+            d = this.getResourceColumnWidth(b),
+            c;
+        c = {
+            top: j.max(0, j.min(e, m) - k.eventBorderWidth),
+            height: j.max(1, j.abs(e - m))
+        };
+        if (k.managedEventSizing) {
+            c.left = k.barMargin;
+            c.width = d - (2 * k.barMargin) - k.eventBorderWidth
+        }
+        c.start = i;
+        c.end = g;
+        c.startsOutsideView = i < f;
+        c.endsOutsideView = g > l;
+        return c
+    },
+    getScheduleRegion: function(d, f) {
         var h = this.view,
             g = d ? Ext.fly(h.getScheduleCell(0, h.resourceStore.indexOf(d))).getRegion() : h.getTableRegion(),
             e = h.timeAxis.getStart(),
@@ -46,16 +53,17 @@ Ext.define("Sch.view.Vertical", {
             a = h.getDateConstraints(d, f) || {
                 start: e,
                 end: k
-            }, c = this.translateToPageCoordinate(h.getCoordinateFromDate(Sch.util.Date.max(e, a.start))),
+            },
+            c = this.translateToPageCoordinate(h.getCoordinateFromDate(Sch.util.Date.max(e, a.start))),
             j = this.translateToPageCoordinate(h.getCoordinateFromDate(Sch.util.Date.min(k, a.end))),
             b = g.left + h.barMargin,
             i = (d ? (g.left + this.getResourceColumnWidth(d)) : g.right) - h.barMargin;
         return new Ext.util.Region(Math.min(c, j), i, Math.max(c, j), b)
     },
-    getResourceColumnWidth: function (a) {
-        return this.view.resourceColumnWidth
+    getResourceColumnWidth: function(a) {
+        return this.view.timeAxisViewModel.resourceColumnWidth
     },
-    getResourceRegion: function (h, b, g) {
+    getResourceRegion: function(h, b, g) {
         var j = this.view,
             e = j.resourceStore.indexOf(h) * this.getResourceColumnWidth(h),
             i = j.timeAxis.getStart(),
@@ -68,7 +76,7 @@ Ext.define("Sch.view.Vertical", {
             k = e + this.getResourceColumnWidth(h) - j.cellBorderWidth;
         return new Ext.util.Region(Math.min(f, l), k, Math.max(f, l), c)
     },
-    columnRenderer: function (f, r, m, o, q) {
+    columnRenderer: function(f, r, m, o, q) {
         var p = this.view;
         var e = "";
         if (o === 0) {
@@ -86,10 +94,7 @@ Ext.define("Sch.view.Vertical", {
                 }
             }
             p.eventLayout.vertical.applyLayout(n, this.getResourceColumnWidth(m));
-            e = "&#160;" + p.eventTpl.apply(n);
-            if (Ext.isIE) {
-                r.tdAttr = 'style="z-index:1000"'
-            }
+            e = "&#160;" + p.eventTpl.apply(n)
         }
         if (q % 2 === 1) {
             r.tdCls = (r.tdCls || "") + " " + p.altColCls;
@@ -97,93 +102,130 @@ Ext.define("Sch.view.Vertical", {
         }
         return e
     },
-    resolveResource: function (c) {
-        var a = this.view;
-        c = Ext.fly(c).is(a.timeCellSelector) ? c : Ext.fly(c).up(a.timeCellSelector);
-        if (c) {
-            var d = c.dom ? c.dom : c;
-            var b = Ext.Array.indexOf(Array.prototype.slice.call(d.parentNode.children), d);
-            if (b >= 0) {
-                return a.resourceStore.getAt(b)
-            }
-        }
-        return null
-    },
-    onEventUpdate: function (b, c) {
-        this.renderSingle.call(this, c);
-        var a = this.view;
-        var d = c.previous;
-        if (d && d[c.resourceIdField]) {
-            var e = c.getResource(d[c.resourceIdField], a.eventStore);
-            this.relayoutRenderedEvents(e)
-        }
-        this.relayoutRenderedEvents(c.getResource(null, a.eventStore));
-        if (a.getSelectionModel().isSelected(c)) {
-            a.onEventSelect(c, true)
-        }
-    },
-    onEventAdd: function (b, c) {
-        var a = this.view;
-        if (c.length === 1) {
-            this.renderSingle(c[0]);
-            this.relayoutRenderedEvents(c[0].getResource(null, a.eventStore))
+    resolveResource: function(f) {
+        var e = this,
+            b = e.view,
+            d, c, a;
+        d = Ext.fly(f).is(b.eventSelector) && f || Ext.fly(f).up(b.eventSelector, null, true);
+        if (d) {
+            a = b.getResourceRecordFromDomId(d.id)
         } else {
-            a.repaintAllEvents()
-        }
-    },
-    onEventRemove: function (b, c) {
-        var a = this.view;
-        if (c.length === 1) {
-            this.relayoutRenderedEvents(this.getResourceByEventRecord(c[0]))
-        } else {
-            a.repaintAllEvents()
-        }
-    },
-    relayoutRenderedEvents: function (h) {
-        var g = [],
-            b = this.view,
-            d, a, f, e, c = b.eventStore.getEventsForResource(h);
-        if (c.length > 0) {
-            for (d = 0, a = c.length; d < a; d++) {
-                f = c[d];
-                e = b.getEventNodeByRecord(f);
-                if (e) {
-                    g.push({
-                        start: f.getStartDate(),
-                        end: f.getEndDate(),
-                        id: e.id
-                    })
+            f = Ext.fly(f).is(b.timeCellSelector) ? f : Ext.fly(f).up(b.timeCellSelector, null, true);
+            c = -1;
+            if (f && Ext.isIE8m) {
+                f = f.previousSibling;
+                while (f) {
+                    if (f.nodeType === 1) {
+                        c++
+                    }
+                    f = f.previousSibling
+                }
+            } else {
+                if (f) {
+                    c = Ext.Array.indexOf(Array.prototype.slice.call(f.parentNode.children), f)
                 }
             }
-            b.eventLayout.vertical.applyLayout(g, this.getResourceColumnWidth(h));
-            for (d = 0; d < g.length; d++) {
-                f = g[d];
-                Ext.fly(f.id).setStyle({
-                    left: f.left + "px",
-                    width: f.width + "px"
+            a = c >= 0 && b.resourceStore.getAt(c) || null
+        }
+        return a
+    },
+    onEventUpdate: function(l, a) {
+        var i = this;
+        var g = a.previous || {};
+        var j = i.view;
+        var f = j.timeAxis;
+        var b = a.getStartDate();
+        var h = a.getEndDate();
+        var c = g.StartDate || b;
+        var e = g.EndDate || h;
+        var k = c && e && f.timeSpanInAxis(c, e);
+        var d;
+        if (a.resourceIdField in g && k) {
+            d = l.getResourceStore().getById(g[a.resourceIdField]);
+            d && i.relayoutRenderedEvents(d)
+        }
+        if ((b && h && f.timeSpanInAxis(b, h)) || k) {
+            i.renderSingle(a);
+            Ext.Array.forEach(a.getResources(), function(m) {
+                i.relayoutRenderedEvents(m);
+                j.getEventSelectionModel().isSelected(a) && j.onEventBarSelect(a, true)
+            })
+        }
+    },
+    onEventAdd: function(c, f) {
+        var e = this,
+            b = e.view,
+            d, a, g;
+        if (f.length === 1) {
+            d = f[0];
+            a = d.getStartDate();
+            g = d.getEndDate();
+            if (a && g && b.timeAxis.timeSpanInAxis(a, g)) {
+                e.renderSingle(d);
+                Ext.Array.forEach(c.getResourcesForEvent(d), function(h) {
+                    e.relayoutRenderedEvents(h)
                 })
             }
+        } else {
+            b.repaintAllEvents()
         }
     },
-    renderSingle: function (d) {
-        var a = this.view;
-        var g = d.getResource(null, a.eventStore);
-        var c = a.getEventNodeByRecord(d);
-        var f = a.resourceStore.indexOf(g);
-        if (c) {
-            Ext.fly(c).destroy()
+    onEventRemove: function(k, j) {
+        var g = this,
+            h = g.view,
+            a, c, e, d, f, b;
+        for (b = false, d = 0, f = j.length; !b && d < f; d++) {
+            a = j[d];
+            c = a.getStartDate();
+            e = a.getEndDate();
+            b = c && e && h.timeAxis.timeSpanInAxis(c, e);
+            b && h.repaintAllEvents()
         }
-        var b = Ext.fly(a.getScheduleCell(0, f));
-        if (!b) {
-            return
-        }
-        var e = a.generateTplData(d, g, f);
-        if (!Ext.versions.touch) {
-            b = b.first()
-        }
-        a.eventTpl.append(b, [e])
     },
-    getTimeSpanRegion: function (b, g) {
+    relayoutRenderedEvents: function(d) {
+        var c = [],
+            a = this.view,
+            b = a.eventStore.getEventsForResource(d);
+        Ext.Array.forEach(a.eventStore.getEventsForResource(d), function(f) {
+            var e = a.getElementsFromEventRecord(f, d);
+            e.length && c.push({
+                start: f.getStartDate(),
+                end: f.getEndDate(),
+                event: f,
+                node: e[0]
+            })
+        });
+        a.eventLayout.vertical.applyLayout(c, this.getResourceColumnWidth(d));
+        Ext.Array.forEach(c, function(e) {
+            e.node.setStyle({
+                left: e.left + "px",
+                width: e.width + "px"
+            });
+            a.fireEvent("eventrepaint", a, e.event, e.node)
+        })
+    },
+    renderSingle: function(d) {
+        var c = this,
+            b = c.view,
+            a = d.getStartDate(),
+            f = d.getEndDate(),
+            e;
+        Ext.Array.forEach(b.getElementsFromEventRecord(d), function(g) {
+            g.destroy()
+        });
+        if (a && f && b.timeAxis.timeSpanInAxis(a, f)) {
+            Ext.Array.forEach(d.getResources(), function(j) {
+                var i = b.resourceStore.indexOf(j),
+                    g = Ext.fly(b.getScheduleCell(0, i)),
+                    h;
+                if (g) {
+                    h = b.generateTplData(d, j, i);
+                    b.eventTpl.append(g.first(), [h])
+                }
+            })
+        }
+    },
+    getTimeSpanRegion: function(b, g) {
         var d = this.view,
             a = d.getCoordinateFromDate(b),
             f = g ? d.getCoordinateFromDate(g) : a,
@@ -191,7 +233,7 @@ Ext.define("Sch.view.Vertical", {
             e = c ? c.right - c.left : d.getEl().dom.clientWidth;
         return new Ext.util.Region(Math.min(a, f), e, Math.max(a, f), 0)
     },
-    getStartEndDatesFromRegion: function (d, c, b) {
+    getStartEndDatesFromRegion: function(d, c, b) {
         var a = this.view.getDateFromCoordinate(d.top, c),
             e = this.view.getDateFromCoordinate(d.bottom, c);
         if (a && e) {
@@ -203,13 +245,12 @@ Ext.define("Sch.view.Vertical", {
             return null
         }
     },
-    setColumnWidth: function (c, b) {
+    setColumnWidth: function(c, b) {
         var a = this.view;
         a.resourceColumnWidth = c;
-        a.getTimeAxisViewModel().setViewColumnWidth(c, b);
-        a.fireEvent("columnwidthchange", a, c)
+        a.getTimeAxisViewModel().setViewColumnWidth(c, b)
     },
-    getVisibleDateRange: function () {
+    getVisibleDateRange: function() {
         var e = this.view;
         if (!e.rendered) {
             return null

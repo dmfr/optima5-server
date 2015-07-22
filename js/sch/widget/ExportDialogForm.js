@@ -1,27 +1,21 @@
 Ext.define("Sch.widget.ExportDialogForm", {
     extend: "Ext.form.Panel",
-    requires: ["Ext.data.Store", "Ext.ProgressBar", "Ext.form.field.ComboBox", "Ext.form.field.Date", "Ext.form.FieldContainer", "Ext.form.field.Checkbox", "Sch.widget.ResizePicker"],
+    requires: ["Ext.data.Store", "Ext.XTemplate", "Ext.ProgressBar", "Ext.form.field.ComboBox", "Ext.form.field.Date", "Ext.form.FieldContainer", "Ext.form.field.Checkbox", "Sch.widget.ResizePicker"],
     border: false,
     bodyPadding: "10 10 0 10",
     autoHeight: true,
-    initComponent: function () {
+    initComponent: function() {
         var a = this;
-        if (Ext.getVersion("extjs").isLessThan("4.2.1")) {
-            if (typeof Ext.tip !== "undefined" && Ext.tip.Tip && Ext.tip.Tip.prototype.minWidth != "auto") {
-                Ext.tip.Tip.prototype.minWidth = "auto"
-            }
-        }
-        a.createFields();
-        Ext.apply(this, {
-            fieldDefaults: {
-                labelAlign: "left",
-                labelWidth: 120,
-                anchor: "99%"
-            },
-            items: [a.rangeField, a.resizerHolder, a.datesHolder, a.showHeaderField, a.exportToSingleField, a.formatField, a.orientationField, a.progressBar || a.createProgressBar()]
+        a.fieldDefaults = Ext.applyIf(a.fieldDefaults || {}, {
+            labelAlign: "left",
+            labelWidth: 120,
+            anchor: "99%"
         });
+        a.items = a.createFields();
+        a.items.push(a.progressBar || a.createProgressBar());
         a.callParent(arguments);
-        a.onRangeChange(null, a.dialogConfig.defaultConfig.range);
+        a.onRangeChange(null, a.dialogConfig.exportConfig.range);
+        a.onExporterChange(a.exportersField, a.exportersField.getValue());
         a.on({
             hideprogressbar: a.hideProgressBar,
             showprogressbar: a.showProgressBar,
@@ -29,15 +23,17 @@ Ext.define("Sch.widget.ExportDialogForm", {
             scope: a
         })
     },
-    isValid: function () {
+    isValid: function() {
         var a = this;
         if (a.rangeField.getValue() === "date") {
             return a.dateFromField.isValid() && a.dateToField.isValid()
         }
         return true
     },
-    getValues: function (e, c, d, b) {
+    getValues: function(e, c, d, b) {
         var a = this.callParent(arguments);
+        a.showHeader = !!a.showHeader;
+        a.showFooter = !!a.showFooter;
         var f = this.resizePicker.getValues();
         if (!e) {
             a.cellSize = f
@@ -46,13 +42,14 @@ Ext.define("Sch.widget.ExportDialogForm", {
         }
         return a
     },
-    createFields: function () {
-        var d = this,
-            a = d.dialogConfig,
-            f = '<table class="sch-fieldcontainer-label-wrap"><td width="1" class="sch-fieldcontainer-label">',
-            e = '<td><div class="sch-fieldcontainer-separator"></div></table>';
-        d.rangeField = new Ext.form.field.ComboBox({
-            value: a.defaultConfig.range,
+    createFields: function() {
+        var e = this,
+            a = e.dialogConfig,
+            g = '<table class="sch-fieldcontainer-label-wrap"><td width="1" class="sch-fieldcontainer-label">',
+            f = '<td><div class="sch-fieldcontainer-separator"></div></table>',
+            b = [];
+        e.rangeField = new Ext.form.field.ComboBox({
+            value: a.exportConfig.range,
             triggerAction: "all",
             cls: "sch-export-dialog-range",
             forceSelection: true,
@@ -76,29 +73,29 @@ Ext.define("Sch.widget.ExportDialogForm", {
                 }]
             }),
             listeners: {
-                change: d.onRangeChange,
-                scope: d
+                change: e.onRangeChange,
+                scope: e
             }
         });
-        d.resizePicker = new Sch.widget.ResizePicker({
+        e.resizePicker = new Sch.widget.ResizePicker({
             dialogConfig: a,
             margin: "10 20"
         });
-        d.resizerHolder = new Ext.form.FieldContainer({
+        e.resizerHolder = new Ext.form.FieldContainer({
             fieldLabel: a.scrollerDisabled ? a.adjustCols : a.adjustColsAndRows,
             labelAlign: "top",
             hidden: true,
             labelSeparator: "",
-            beforeLabelTextTpl: f,
-            afterLabelTextTpl: e,
+            beforeLabelTextTpl: g,
+            afterLabelTextTpl: f,
             layout: "vbox",
             defaults: {
                 flex: 1,
                 allowBlank: false
             },
-            items: [d.resizePicker]
+            items: [e.resizePicker]
         });
-        d.dateFromField = new Ext.form.field.Date({
+        e.dateFromField = new Ext.form.field.Date({
             fieldLabel: a.dateRangeFromText,
             baseBodyCls: "sch-exportdialogform-date",
             name: "dateFrom",
@@ -108,7 +105,7 @@ Ext.define("Sch.widget.ExportDialogForm", {
             minValue: a.startDate,
             value: a.startDate
         });
-        d.dateToField = new Ext.form.field.Date({
+        e.dateToField = new Ext.form.field.Date({
             fieldLabel: a.dateRangeToText,
             name: "dateTo",
             format: a.dateRangeFormat || Ext.Date.defaultFormat,
@@ -118,52 +115,77 @@ Ext.define("Sch.widget.ExportDialogForm", {
             minValue: a.startDate,
             value: a.endDate
         });
-        d.datesHolder = new Ext.form.FieldContainer({
+        e.datesHolder = new Ext.form.FieldContainer({
             fieldLabel: a.specifyDateRange,
             labelAlign: "top",
             hidden: true,
             labelSeparator: "",
-            beforeLabelTextTpl: f,
-            afterLabelTextTpl: e,
+            beforeLabelTextTpl: g,
+            afterLabelTextTpl: f,
             layout: "vbox",
             defaults: {
                 flex: 1,
                 allowBlank: false
             },
-            items: [d.dateFromField, d.dateToField]
+            items: [e.dateFromField, e.dateToField]
         });
-        d.showHeaderField = new Ext.form.field.Checkbox({
-            xtype: "checkboxfield",
-            boxLabel: d.dialogConfig.showHeaderLabel,
-            name: "showHeader",
-            checked: !! a.defaultConfig.showHeaderLabel
+        if (a.showHeaderField) {
+            e.showHeaderField = new Ext.form.field.Checkbox({
+                fieldLabel: e.dialogConfig.showHeaderLabel,
+                cls: "sch-export-dialog-header",
+                name: "showHeader",
+                checked: !!a.exportConfig.showHeader,
+                checkedValue: true,
+                uncheckedValue: false
+            })
+        }
+        if (a.showFooterField) {
+            e.showFooterField = new Ext.form.field.Checkbox({
+                fieldLabel: e.dialogConfig.showFooterLabel,
+                cls: "sch-export-dialog-footer",
+                name: "showFooter",
+                checked: !!a.exportConfig.showFooter,
+                checkedValue: true,
+                uncheckedValue: false
+            })
+        }
+        e.exportersField = new Ext.form.field.ComboBox({
+            value: a.defaultExporter,
+            triggerAction: "all",
+            cls: "sch-export-dialog-exporter",
+            forceSelection: true,
+            editable: false,
+            fieldLabel: a.exportersFieldLabel,
+            name: "exporterId",
+            queryMode: "local",
+            displayField: "name",
+            valueField: "value",
+            store: e.buildExporterStore(a.exporters),
+            listeners: {
+                change: e.onExporterChange,
+                scope: e
+            }
         });
-        d.exportToSingleField = new Ext.form.field.Checkbox({
-            xtype: "checkboxfield",
-            boxLabel: d.dialogConfig.exportToSingleLabel,
-            name: "singlePageExport",
-            checked: !! a.defaultConfig.singlePageExport
-        });
-        d.formatField = new Ext.form.field.ComboBox({
-            value: a.defaultConfig.format,
+        e.formatField = new Ext.form.field.ComboBox({
+            value: a.exportConfig.format,
             triggerAction: "all",
             forceSelection: true,
             editable: false,
             fieldLabel: a.formatFieldLabel,
             name: "format",
             queryMode: "local",
-            store: ["A5", "A4", "A3", "Letter", "Legal"]
+            store: a.pageFormats || ["A5", "A4", "A3", "Letter", "Legal"]
         });
-        var c = a.defaultConfig.orientation === "portrait" ? 'class="sch-none"' : "",
-            b = a.defaultConfig.orientation === "landscape" ? 'class="sch-none"' : "";
-        d.orientationField = new Ext.form.field.ComboBox({
-            value: a.defaultConfig.orientation,
+        var d = a.exportConfig.orientation === "portrait" ? 'class="sch-none"' : "",
+            c = a.exportConfig.orientation === "landscape" ? 'class="sch-none"' : "";
+        e.orientationField = new Ext.form.field.ComboBox({
+            value: a.exportConfig.orientation,
             triggerAction: "all",
-            baseBodyCls: "sch-exportdialogform-orientation",
+            componentCls: "sch-exportdialogform-orientation",
             forceSelection: true,
             editable: false,
-            fieldLabel: d.dialogConfig.orientationFieldLabel,
-            afterSubTpl: new Ext.XTemplate('<span id="sch-exportdialog-imagePortrait" ' + b + '></span><span id="sch-exportdialog-imageLandscape" ' + c + "></span>"),
+            fieldLabel: e.dialogConfig.orientationFieldLabel,
+            afterSubTpl: new Ext.XTemplate('<span id="sch-exportdialog-imagePortrait" ' + c + '></span><span id="sch-exportdialog-imageLandscape" ' + d + "></span>"),
             name: "orientation",
             displayField: "name",
             valueField: "value",
@@ -179,22 +201,49 @@ Ext.define("Sch.widget.ExportDialogForm", {
                 }]
             }),
             listeners: {
-                change: function (h, g) {
-                    switch (g) {
-                    case "landscape":
-                        Ext.fly("sch-exportdialog-imagePortrait").toggleCls("sch-none");
-                        Ext.fly("sch-exportdialog-imageLandscape").toggleCls("sch-none");
-                        break;
-                    case "portrait":
-                        Ext.fly("sch-exportdialog-imagePortrait").toggleCls("sch-none");
-                        Ext.fly("sch-exportdialog-imageLandscape").toggleCls("sch-none");
-                        break
+                change: function(i, h) {
+                    switch (h) {
+                        case "landscape":
+                            Ext.fly("sch-exportdialog-imagePortrait").toggleCls("sch-none");
+                            Ext.fly("sch-exportdialog-imageLandscape").toggleCls("sch-none");
+                            break;
+                        case "portrait":
+                            Ext.fly("sch-exportdialog-imagePortrait").toggleCls("sch-none");
+                            Ext.fly("sch-exportdialog-imageLandscape").toggleCls("sch-none");
+                            break
                     }
                 }
             }
+        });
+        b.push(e.rangeField);
+        b.push(e.resizerHolder);
+        b.push(e.datesHolder);
+        b.push(e.exportersField);
+        b.push(e.formatField);
+        b.push(e.orientationField);
+        if (a.showHeaderField) {
+            b.push(e.showHeaderField)
+        }
+        if (a.showFooterField) {
+            b.push(e.showFooterField)
+        }
+        return b
+    },
+    buildExporterStore: function(c) {
+        var e = [];
+        for (var b = 0, a = c.length; b < a; b++) {
+            var d = c[b];
+            e.push({
+                name: d.getName(),
+                value: d.getExporterId()
+            })
+        }
+        return Ext.create("Ext.data.Store", {
+            fields: ["name", "value"],
+            data: e
         })
     },
-    createProgressBar: function () {
+    createProgressBar: function() {
         return this.progressBar = new Ext.ProgressBar({
             text: this.config.progressBarText,
             animate: true,
@@ -202,36 +251,56 @@ Ext.define("Sch.widget.ExportDialogForm", {
             margin: "4px 0 10px 0"
         })
     },
-    onRangeChange: function (b, a) {
+    onRangeChange: function(b, a) {
         switch (a) {
-        case "complete":
-            this.datesHolder.hide();
-            this.resizerHolder.hide();
-            break;
-        case "date":
-            this.datesHolder.show();
-            this.resizerHolder.hide();
-            break;
-        case "current":
-            this.datesHolder.hide();
-            this.resizerHolder.show();
-            this.resizePicker.expand(true);
-            break
+            case "complete":
+                this.datesHolder.hide();
+                this.resizerHolder.hide();
+                break;
+            case "date":
+                this.datesHolder.show();
+                this.resizerHolder.hide();
+                break;
+            case "current":
+                this.datesHolder.hide();
+                this.resizerHolder.show();
+                this.resizePicker.expand(true);
+                break
         }
     },
-    showProgressBar: function () {
+    onExporterChange: function(b, a) {
+        switch (a) {
+            case "singlepage":
+                this.disableFields(true);
+                break;
+            default:
+                this.disableFields(false)
+        }
+    },
+    disableFields: function(b) {
+        var a = this;
+        if (a.showHeaderField) {
+            a.showHeaderField.setDisabled(b)
+        }
+        a.formatField.setDisabled(b);
+        a.orientationField.setDisabled(b)
+    },
+    showProgressBar: function() {
         if (this.progressBar) {
             this.progressBar.show()
         }
     },
-    hideProgressBar: function () {
+    hideProgressBar: function() {
         if (this.progressBar) {
             this.progressBar.hide()
         }
     },
-    updateProgressBar: function (a) {
+    updateProgressBar: function(a, b) {
         if (this.progressBar) {
-            this.progressBar.updateProgress(a)
+            this.progressBar.updateProgress(a);
+            if (b) {
+                this.progressBar.updateText(b)
+            }
         }
     }
 });

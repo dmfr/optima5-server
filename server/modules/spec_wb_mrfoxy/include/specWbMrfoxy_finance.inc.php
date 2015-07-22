@@ -511,22 +511,22 @@ function specWbMrfoxy_finance_getNationalAgreements( $post_data ) {
 	$filters = array() ;
 	if( TRUE ) {
 		$filter = array() ;
-		$filter['field'] = 'FINANCE_REVISION_ROW_field_GROUP_KEY' ;
-		$filter['type'] = 'string' ;
-		$filter['value'] = '2_STORES' ;
+		$filter['property'] = 'FINANCE_REVISION_ROW_field_GROUP_KEY' ;
+		$filter['operator'] = 'in' ;
+		$filter['value'] = array('2_STORES') ;
 		$filters[] = $filter ;
 	}
 	if( TRUE ) {
 		$filter = array() ;
-		$filter['field'] = 'FINANCE_REVISION_id' ;
-		$filter['type'] = 'list' ;
+		$filter['property'] = 'FINANCE_REVISION_id' ;
+		$filter['operator'] = 'in' ;
 		$filter['value'] = $filerecord_ids ;
 		$filters[] = $filter ;
 	}
 	if( $post_data['filter_country'] ) {
 		$filter = array() ;
-		$filter['field'] = 'FINANCE_REVISION_field_COUNTRY' ;
-		$filter['type'] = 'list' ;
+		$filter['property'] = 'FINANCE_REVISION_field_COUNTRY' ;
+		$filter['operator'] = 'in' ;
 		$filter['value'] = array($post_data['filter_country']) ;
 		$filters[] = $filter ;
 	}
@@ -534,7 +534,7 @@ function specWbMrfoxy_finance_getNationalAgreements( $post_data ) {
 		
 		foreach( json_decode($post_data['filter'],true) as $filter ) {
 			$paracrm_field = NULL ;
-			switch( $filter['field'] ) {
+			switch( $filter['property'] ) {
 				case 'cropYear_code' : 
 					$post_data['filter_cropYear_arr'] = $filter['value'] ;
 					continue 2 ;
@@ -544,7 +544,7 @@ function specWbMrfoxy_finance_getNationalAgreements( $post_data ) {
 				
 				default : continue 2 ;
 			}
-			$filter['field'] = $paracrm_field ;
+			$filter['property'] = $paracrm_field ;
 			$filters[] = $filter ;
 		}
 		
@@ -697,8 +697,8 @@ function specWbMrfoxy_finance_NAattach_associateAttachment($post_data) {
 	$forward_post['file_code'] = 'FINANCE_NA' ;
 	$forward_post['filter'] = json_encode(array(
 		array(
-			'type' => 'list',
-			'field' => 'FINANCE_NA_field_NAGREEMENT_ID',
+			'operator' => 'in',
+			'property' => 'FINANCE_NA_field_NAGREEMENT_ID',
 			'value' => array( $nagreement_id )
 		)
 	)) ;

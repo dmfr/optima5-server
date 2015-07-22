@@ -163,7 +163,6 @@ Ext.define('Optima5.Modules.CrmBase.AuthDelegateForm' ,{
 			}]
 		});
 		
-		this.addEvents('saved') ;
 		this.callParent() ;
 		this.getForm().getFields().each(function(field) {
 			field.on('change',function(){

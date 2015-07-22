@@ -9,7 +9,6 @@ Ext.define('Optima5.LoginWindow',{
 	
 	initComponent:function() {
 		var me = this ;
-		me.addEvents('loginsuccess','loginfailed') ;
 		
 		Ext.apply(me,{
 			title: 'Optima Desktop / Login',
