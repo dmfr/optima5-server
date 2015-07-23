@@ -9,8 +9,6 @@ Ext.define('Optima5.Modules.Spec.AbsoCrm.AbsoCrmModule', {
 	initModule: function() {
 		var me = this ;
 		
-		me.addEvents('op5broadcast') ;
-		
 		me.createWindow({
 			width:1100,
 			height:600,

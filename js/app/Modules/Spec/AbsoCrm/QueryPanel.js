@@ -9,8 +9,6 @@ Ext.define('Optima5.Modules.Spec.AbsoCrm.QueryPanel',{
 		var me = this,
 			width = me.width ;
 		
-		me.addEvents('abort','confirm') ;
-		
 		Ext.apply( me, {
 			layout:{
 				type:'vbox',
