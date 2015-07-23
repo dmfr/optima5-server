@@ -853,7 +853,7 @@ function paracrm_android_postBinary( $post_data )
 
 function paracrm_android_getFileGrid_data( $post_data )
 {	
-	return paracrm_data_getFileGrid_raw( $post_data ) ;
+	return paracrm_data_getFileGrid_raw( $post_data, $auth_bypass=TRUE ) ;
 }
 
 
