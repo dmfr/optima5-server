@@ -152,10 +152,12 @@ function specDbsEmbralam_mach_getGridData( $post_data ) {
 				
 				$available_time_s = $total_allowed_time_s - $total_spent_time_s ;
 				$ETA_timestamp = $lastStep_timestamp + $available_time_s ;
+				$this_milestone['ETA_timestamp'] = $ETA_timestamp ;
 				$this_milestone['ETA_dateSql'] = date('Y-m-d H:i:s',$ETA_timestamp) ;
 				
 				if( $row['obj_steps'][$step_milestone] ) {
 					$ACTUAL_timestamp = strtotime($row['obj_steps'][$step_milestone]) ;
+					$this_milestone['ACTUAL_timestamp'] = $ACTUAL_timestamp ;
 					$this_milestone['ACTUAL_dateSql'] = date('Y-m-d H:i:s',$ACTUAL_timestamp) ;
 					$total_spent_time_s += ($ACTUAL_timestamp - $lastStep_timestamp) ;
 					if( $ACTUAL_timestamp > $ETA_timestamp ) {
@@ -170,9 +172,9 @@ function specDbsEmbralam_mach_getGridData( $post_data ) {
 					$this_milestone['pending'] = true ;
 					$this_milestone['pendingMonitored'] = true ;
 					if( !$lastStep_timestamp ) {
+						$this_milestone['ETA_timestamp'] = NULL ;
 						$this_milestone['ETA_dateSql'] = '' ;
 					} else {
-						$row['calc_lateness'] = $now_timestamp - $ETA_timestamp ;
 						if( $now_timestamp > $ETA_timestamp ) {
 							$this_milestone['color'] = 'red' ;
 						} elseif( $ETA_timestamp - $now_timestamp < (15*60) ) {
@@ -202,6 +204,10 @@ function specDbsEmbralam_mach_getGridData( $post_data ) {
 				unset($previous_milestone) ;
 				if( $has_previous_pending ) {
 					continue ;
+				}
+				if( $this_milestone['pendingMonitored'] && $this_milestone['ETA_timestamp'] ) {
+					$now_timestamp = time() ;
+					$row['calc_lateness'] = $now_timestamp - $this_milestone['ETA_timestamp'] ;
 				}
 			}
 			
@@ -318,7 +324,7 @@ function specDbsEmbralam_mach_upload( $post_data ) {
 		$debug = file_get_contents($_FILES['file_upload']['tmp_name']) ;
 		$handle = fopen($_FILES['file_upload']['tmp_name'],"rb") ;
 	} elseif( $post_data['file_contents'] ) {
-		$debug = file_get_contents($_FILES['file_upload']['tmp_name']) ;
+		$debug = $post_data['file_contents'] ;
 		$handle = tmpfile() ;
 		fwrite($handle,$post_data['file_contents']) ;
 		fseek($handle,0) ;
@@ -529,7 +535,7 @@ function specDbsEmbralam_mach_upload_VL06F($handle, $VL06F_forceClosed) {
 			$map_pickingID_header[$picking_id] = $data_header ;
 		}
 		
-		if( !$map_pickingID_nbLigs[$picking_id] ) {
+		if( !$map_pickingID_arrLigs[$picking_id] ) {
 			$map_pickingID_arrLigs[$picking_id] = array() ;
 		}
 		$map_pickingID_arrLigs[$picking_id][] = $data_lig ;
@@ -581,12 +587,26 @@ function specDbsEmbralam_mach_upload_VL06F($handle, $VL06F_forceClosed) {
 			$arr_activeFilerecordIds[] = $arr[0] ;
 		}
 		
+		$arr_deletedFilerecordIds = array() ;
+		$query = "SELECT filerecord_id FROM view_file_{$file_code} WHERE field_STATUS='DELETED'" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$arr_deletedFilerecordIds[] = $arr[0] ;
+		}
+		
 		$to_deleteIds = array_diff($arr_activeFilerecordIds,$arr_importedFilerecordIds) ;
-	
 		foreach( $to_deleteIds as $filerecord_id ) {
 			$arr_update = array() ;
 			$arr_update['field_STATUS'] = 'DELETED' ;
 			$arr_update['field_DATE_CLOSED'] = date('Y-m-d H:i:s') ;
+			paracrm_lib_data_updateRecord_file( $file_code, $arr_update, $filerecord_id ) ;
+		}
+		
+		$to_reactivateIds = array_intersect($arr_deletedFilerecordIds,$arr_importedFilerecordIds) ;
+		foreach( $to_reactivateIds as $filerecord_id ) {
+			$arr_update = array() ;
+			$arr_update['field_STATUS'] = 'ACTIVE' ;
+			$arr_update['field_DATE_CLOSED'] = '' ;
 			paracrm_lib_data_updateRecord_file( $file_code, $arr_update, $filerecord_id ) ;
 		}
 	}
