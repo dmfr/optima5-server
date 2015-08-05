@@ -4,7 +4,7 @@ class DatabaseMgr_Sdomain {
 	private $_opDB ;
 	private $domain_id ;
 	
-	private static $dbVersion = 25 ;
+	private static $dbVersion = 26 ;
 	
 	public function __construct( $domain_id ) {
 		$this->_opDB = $GLOBALS['_opDB'] ;
@@ -60,6 +60,7 @@ CREATE TABLE `define_bible` (
   `bible_iconfile` varchar(50) NOT NULL,
   `bible_specdata` varchar(10) NOT NULL,
   `gmap_is_on` varchar(1) NOT NULL,
+  `gallery_is_on` varchar(1) NOT NULL,
   PRIMARY KEY (`bible_code`)
 ) ;
 
