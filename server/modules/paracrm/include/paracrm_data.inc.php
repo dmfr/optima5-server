@@ -95,6 +95,21 @@ function paracrm_data_getBibleCfg( $post_data )
 		}
 	}
 	
+	$query = "SELECT gallery_is_on FROM define_bible WHERE bible_code='$bible_code'" ;
+	if( $_opDB->query_uniqueValue($query) == 'O' )
+	{
+		$tfield = 'media_id' ;
+		
+		$arr = array() ;
+		$arr['entry_field_is_header'] = FALSE ;
+		$arr['entry_field_is_highlight'] = FALSE ;
+		$arr['entry_field_is_key'] = FALSE ;
+		$arr['entry_field_code'] = $tfield ;
+		$arr['entry_field_lib'] = $tfield ;
+		$arr['entry_field_type'] = 'string' ;
+		$tab_entry_fields[] = $arr ;
+	}
+	
 	
 	$query = "SELECT * FROM define_bible_entry WHERE bible_code='$bible_code' ORDER BY entry_field_index" ;
 	$result = $_opDB->query($query);
@@ -344,6 +359,17 @@ function paracrm_data_getBibleGrid( $post_data )
 	
 	$queryf = "SELECT FOUND_ROWS()" ;
 	$nb_rows = $_opDB->query_uniqueValue($queryf);
+	
+	
+	if( $post_data['gallery_is_on'] ) {
+		media_contextOpen( $_POST['_sdomainId'] ) ;
+		foreach( $TAB_json as &$arr ) {
+			$entry_key = $arr['entry_key'] ;
+			$arr['media_id'] = media_img_toolBible_getDefault( $post_data['bible_code'], 'entry', $entry_key, $fallback=true ) ;
+		}
+		media_contextClose() ;
+		unset($arr) ;
+	}
 	
 	
 	return array('success'=>true,'data'=>$TAB_json,'total'=>$nb_rows,'query'=>$query) ;

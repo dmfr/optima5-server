@@ -129,6 +129,20 @@ Ext.define('Optima5.Modules.CrmBase.DataFormPanel' ,{
 			tabitems.push( gmaptab ) ;
 		}
 		
+		if( layoutFromAjax.bible_gallery ) {
+			var objCfg = {} ;
+			Ext.apply( objCfg, {
+				xtype:'op5crmbasedataformpanelgallery' ,
+				optimaModule: me.optimaModule,
+				transactionID : me.transactionID,
+				title: 'Gallery',
+				itemId: '_gallery',
+				readOnly: me.readOnly,
+				horizontal: true
+			}) ;
+			tabitems.push( objCfg ) ;
+		}
+		
 		//console.log('query?') ;
 		if( layoutFromAjax.subfiles && layoutFromAjax.subfiles.length > 0 ) {
 			//console.log('building some panels!!!') ;
@@ -155,7 +169,8 @@ Ext.define('Optima5.Modules.CrmBase.DataFormPanel' ,{
 			var tabpanelcfg = new Object() ;
 			Ext.apply(tabpanelcfg, {
 				xtype:'tabpanel' ,
-				flex: 1,
+				flex: (!Ext.isEmpty(layoutFromAjax.subfiles) ? 1 : null),
+				height: (Ext.isEmpty(layoutFromAjax.subfiles) ? 240 : null),
 				//frame: true,
 				activeTab: 0,
 				defaults :{
@@ -165,7 +180,7 @@ Ext.define('Optima5.Modules.CrmBase.DataFormPanel' ,{
 			}) ;
 		}
 		
-		if( tabitems.length < 1 ) {
+		if( Ext.isEmpty(layoutFromAjax.subfiles) ) {
 			Ext.apply( formconfig, {
 				frame: true,
 				flex: 1

@@ -3,7 +3,8 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 			  
 	requires: [
 		'Optima5.Modules.CrmBase.DataFormPanel',
-		'Optima5.Modules.CrmBase.BiblePanelGmap'
+		'Optima5.Modules.CrmBase.BiblePanelGmap',
+		'Optima5.Modules.CrmBase.BiblePanelGallery'
 	],
 	
 	optimaModule: null,
@@ -123,6 +124,20 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 				panelType: 'gmap',
 				store:this.gridstore,
 				bibleId: this.bibleId
+			},{
+				xtype:'op5crmbasebiblegallery',
+				optimaModule: this.optimaModule,
+				border:false,
+				panelType: 'gallery',
+				store:this.gridstore,
+				bibleId: this.bibleId,
+				gridCfg: ajaxData,
+				listeners: {
+					editentryupdate: function(entryKey) {
+						this.editEntryUpdate(entryKey) ;
+					},
+					scope: this
+				}
 			}]
 		});
 		
@@ -213,6 +228,7 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 					break ;
 			}
 			
+			var daterenderer = Ext.util.Format.dateRenderer('d/m/Y H:i');
 			var boolrenderer = function(value) {
 				if( value==1 ) {
 					return '<b>X</b>' ;
@@ -233,6 +249,11 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 			if( v.tree_field_is_key ){
 				Ext.apply(columnObject,{
 					xtype: 'treecolumn'
+				}) ;
+			}
+			if( v.tree_field_type == 'date' ) {
+				Ext.apply(columnObject,{
+					renderer: daterenderer
 				}) ;
 			}
 			if( v.tree_field_type == 'bool' ) {
@@ -474,7 +495,8 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 			proxy: this.optimaModule.getConfiguredAjaxProxy({
 				extraParams : {
 					_action: 'data_getBibleGrid' ,
-					bible_code: this.bibleId
+					bible_code: this.bibleId,
+					gallery_is_on: ajaxData.define_bible.viewmode_gallery
 				},
 				reader: {
 					type: 'json',
@@ -514,6 +536,7 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 					break ;
 			}
 			
+			var daterenderer = Ext.util.Format.dateRenderer('d/m/Y H:i');
 			var boolrenderer = function(value) {
 				if( value==1 ) {
 					return '<b>X</b>' ;
@@ -531,6 +554,11 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
             dataIndex: v.entry_field_code,
 				xtype:'gridcolumn'
 			}) ;
+			if( v.entry_field_type == 'date' ) {
+				Ext.apply(columnObject,{
+					renderer: daterenderer
+				}) ;
+			}
 			if( v.entry_field_type == 'bool' ) {
 				Ext.apply(columnObject,{
 					renderer: boolrenderer

@@ -47,6 +47,13 @@ function paracrm_data_editTransaction_bibleEntry( $post_data , &$arr_saisie )
 				}
 				$arr_saisie['arr_gmap'] = $arr_gmap ;
 			}
+			
+			$query = "SELECT gallery_is_on FROM define_bible WHERE bible_code='{$post_data['bible_code']}'" ;
+			if( $_opDB->query_uniqueValue($query) == 'O' )
+			{
+				$arr_gallery = array() ;
+				$arr_saisie['arr_gallery'] = $arr_gallery ;
+			}
 		}
 		elseif( $post_data['entry_key'] )
 		{
@@ -72,6 +79,18 @@ function paracrm_data_editTransaction_bibleEntry( $post_data , &$arr_saisie )
 			}
 			$arr_saisie['arr_ent'] = $arr_ent ;
 			$arr_saisie['arr_gmap'] = $arr_gmap ;
+			$query = "SELECT gallery_is_on FROM define_bible WHERE bible_code='{$post_data['bible_code']}'" ;
+			if( $_opDB->query_uniqueValue($query) == 'O' )
+			{
+				$arr_gallery = array() ;
+				media_contextOpen( $_POST['_sdomainId'] ) ;
+				$default_id = media_img_toolBible_getDefault($post_data['bible_code'],'entry',$post_data['entry_key']) ;
+				foreach( media_img_toolBible_getIds($post_data['bible_code'],'entry',$post_data['entry_key']) as $media_id ) {
+					$arr_gallery[] = array('_media_id'=>$media_id, '_is_default'=>($media_id==$default_id)) ;
+				}
+				media_contextClose() ;
+				$arr_saisie['arr_gallery'] = $arr_gallery ;
+			}
 		}
 		else
 		{
@@ -160,9 +179,15 @@ function paracrm_data_editTransaction_bibleEntry( $post_data , &$arr_saisie )
 		if( $_opDB->query_uniqueValue($query) == 'O' )
 			$gmap_is_on = TRUE ;
 	
+		$gallery_is_on = FALSE ;
+		$query = "SELECT gallery_is_on FROM define_bible WHERE bible_code='{$bible_code}'" ;
+		if( $_opDB->query_uniqueValue($query) == 'O' )
+			$gallery_is_on = TRUE ;
+	
 		$layout = array() ;
 		$layout['form'] = $layout_form ;
 		$layout['gmap'] = $gmap_is_on ;
+		$layout['bible_gallery'] = $gallery_is_on ;
 	
 		return array('success'=>true,'data'=>$layout) ;
 	}
@@ -226,6 +251,61 @@ function paracrm_data_editTransaction_bibleEntry( $post_data , &$arr_saisie )
 	
 	
 	
+	if( $post_data['_subaction'] == 'subfileGallery_get' )
+	{
+		$tab_data = array() ;
+		foreach( $arr_saisie['arr_gallery'] as $record ) {
+			if( $record['_editor_action'] == 'delete' )
+				continue ;
+			$tab_data[] = $record ;
+		}
+		return array_reverse($tab_data) ;
+	}
+	if( $post_data['_subaction'] == 'subfileGallery_delete' )
+	{
+		foreach( $arr_saisie['arr_gallery'] as $arrId => &$record )
+		{
+			if( $record['_media_id'] == $_POST['_media_id'] )
+			{
+				$record['_editor_action'] = 'delete' ;
+				return array('success'=>true) ;
+			}
+		}
+		unset($record) ;
+		return array('success'=>false) ;
+	}
+	if( $post_data['_subaction'] == 'subfileGallery_upload' )
+	{
+		usleep(500000) ;
+		media_contextOpen( $_POST['_sdomainId'] ) ;
+		foreach( $_FILES as $mkey => $dummy ) {
+			$media_id = media_img_processUploaded( $_FILES[$mkey]['tmp_name'], $_FILES[$mkey]['name'] ) ;
+			if( !$media_id ) {
+				continue ;
+			}
+			$newrecord = array() ;
+			$newrecord['_media_id'] = $media_id ;
+			$newrecord['filerecord_id'] = 0 ;
+			$newrecord['media_title'] = $_FILES[$mkey]['name'] ;
+			$newrecord['media_date'] = date('Y-m-d H:i:s') ;
+			$newrecord['media_mimetype'] = 'image/jpeg' ;
+			$newrecord['_editor_action'] = 'new' ;
+			
+			$arr_saisie['arr_gallery'][] = $newrecord ;
+		}
+		media_contextClose() ;
+		
+		return array('success'=>true) ;
+	}
+	if( $post_data['_subaction'] == 'subfileGallery_setDefault' )
+	{
+		foreach( $arr_saisie['arr_gallery'] as $arrId => &$record )
+		{
+			$record['_is_default'] = ($record['_media_id'] == $_POST['_media_id']) ;
+		}
+		unset($record) ;
+		return array('success'=>true) ;
+	}
 	
 	
 	
@@ -333,6 +413,32 @@ function paracrm_data_editTransaction_bibleEntry_apply($arr_saisie, $apply=FALSE
 																	$arr_ent_ins ) ;
 	}
 	paracrm_lib_data_endTransaction(FALSE) ;
+	
+	if( $arr_saisie['arr_gallery'] ) {
+		media_contextOpen( $_POST['_sdomainId'] ) ;
+		foreach( $arr_saisie['arr_gallery'] as &$data_record )
+		{
+			// quoi faire ?
+			$editor_action = $data_record['_editor_action'] ;
+			// unset($data_record['_editor_action']) ;
+			switch( $editor_action )
+			{
+				case 'new'  :
+				media_img_move( $data_record['_media_id'] , $new_id = media_img_toolBible_createNewId( $bible_code, 'entry', $entry_key ) ) ;
+				$data_record['_media_id'] = $new_id ;
+				break ;
+				
+				case 'delete' :
+				media_img_delete( $data_record['_media_id'] ) ;
+				break ;
+			}
+			if( $data_record['_is_default'] ) {
+				media_img_toolBible_setDefault( $bible_code, 'entry', $entry_key, $data_record['_media_id'] ) ;
+			}
+		}
+		unset($data_record) ;
+		media_contextClose() ;
+	}
 	
 	if( $ret == 0 )
 		return array('success'=>true) ;

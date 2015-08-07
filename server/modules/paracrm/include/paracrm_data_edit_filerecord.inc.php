@@ -165,27 +165,28 @@ function paracrm_data_editTransaction_fileRecord( $post_data , &$arr_saisie )
 	{
 		usleep(500000) ;
 		media_contextOpen( $_POST['_sdomainId'] ) ;
-		$media_id = media_img_processUploaded( $_FILES['photo-filename']['tmp_name'], $_FILES['photo-filename']['name'] ) ;
-		media_contextClose() ;
-		if( !$media_id ) {
-			return array('success'=>false) ;
-		}
-		
-		$newrecord = array() ;
-		$newrecord['_media_id'] = $media_id ;
-		$newrecord['filerecord_id'] = 0 ;
-		$newrecord['media_title'] = $_FILES['photo-filename']['name'] ;
-		$newrecord['media_date'] = date('Y-m-d H:i:s') ;
-		$newrecord['media_mimetype'] = 'image/jpeg' ;
-		$newrecord['_editor_action'] = 'new' ;
-		
-		foreach( $arr_saisie['file_subfiles'] as &$subfile )
-		{
-			if( $subfile['file_code'] != $_POST['subfile_code'] )
+		foreach( $_FILES as $mkey => $dummy ) {
+			$media_id = media_img_processUploaded( $_FILES[$mkey]['tmp_name'], $_FILES[$mkey]['name'] ) ;
+			if( !$media_id ) {
 				continue ;
-				
-			$subfile['data'][] = $newrecord ;
+			}
+			$newrecord = array() ;
+			$newrecord['_media_id'] = $media_id ;
+			$newrecord['filerecord_id'] = 0 ;
+			$newrecord['media_title'] = $_FILES[$mkey]['name'] ;
+			$newrecord['media_date'] = date('Y-m-d H:i:s') ;
+			$newrecord['media_mimetype'] = 'image/jpeg' ;
+			$newrecord['_editor_action'] = 'new' ;
+			
+			foreach( $arr_saisie['file_subfiles'] as &$subfile )
+			{
+				if( $subfile['file_code'] != $_POST['subfile_code'] )
+					continue ;
+					
+				$subfile['data'][] = $newrecord ;
+			}
 		}
+		media_contextClose() ;
 		
 		return array('success'=>true) ;
 	}

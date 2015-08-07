@@ -39,7 +39,7 @@ function paracrm_define_getMainToolbar($post_data)
 	switch( $post_data['data_type'] )
 	{
 		case 'bible' :
-		$query = "SELECT bible_code as bibleId , bible_lib as text , bible_iconfile as icon , '' as store_type , gmap_is_on
+		$query = "SELECT bible_code as bibleId , bible_lib as text , bible_iconfile as icon , '' as store_type , gmap_is_on , gallery_is_on
 						FROM define_bible
 						ORDER BY bible_code" ;
 		break ;
@@ -100,6 +100,8 @@ function paracrm_define_getMainToolbar($post_data)
 			$arr['viewmode_editgrid'] = true ;
 		if( $arr['gmap_is_on'] == 'O' )
 			$arr['viewmode_gmap'] = true ;
+		if( $arr['gallery_is_on'] == 'O' )
+			$arr['viewmode_gallery'] = true ;
 		if( $arr['store_type'] == 'media_img' )
 			$arr['viewmode_gallery'] = true ;
 		if( $arr['store_type'] == 'calendar' )
@@ -337,7 +339,7 @@ function paracrm_define_manageTransaction( $post_data )
 		{
 			case 'bible' :
 			$arr_saisie['bible_code'] = $post_data['bible_code'] ;
-			$query = "SELECT bible_code as store_code , bible_lib as store_lib , gmap_is_on from define_bible WHERE bible_code='{$arr_saisie['bible_code']}'" ;
+			$query = "SELECT bible_code as store_code , bible_lib as store_lib , gmap_is_on , gallery_is_on from define_bible WHERE bible_code='{$arr_saisie['bible_code']}'" ;
 			break ;
 		
 			case 'file' :
@@ -348,6 +350,7 @@ function paracrm_define_manageTransaction( $post_data )
 		$result = $_opDB->query($query) ;
 		$arr_saisie['arr_ent'] = $_opDB->fetch_assoc($result) ;
 		$arr_saisie['arr_ent']['gmap_is_on'] = ($arr_saisie['arr_ent']['gmap_is_on']=='O')? true:false ;
+		$arr_saisie['arr_ent']['gallery_is_on'] = ($arr_saisie['arr_ent']['gallery_is_on']=='O')? true:false ;
 		
 		$arr_saisie['cfg_calendar'] = NULL ;
 		if( $arr_saisie['data_type'] == 'file' && $arr_saisie['arr_ent']['store_type'] == 'calendar' )
@@ -556,6 +559,7 @@ function paracrm_define_manageTransaction( $post_data )
 		$arr_ent['store_type'] = trim($post_data['store_type']) ;
 		$arr_ent['store_parent_code'] = $post_data['store_parent_code'] ;
 		$arr_ent['gmap_is_on'] = ($post_data['gmap_is_on']=='on')? true:false ;
+		$arr_ent['gallery_is_on'] = ($post_data['gallery_is_on']=='on')? true:false ;
 		$arr_saisie['arr_ent'] = $arr_ent ;
 		$_SESSION['transactions'][$transaction_id]['arr_saisie'] = $arr_saisie ;
 		
@@ -807,6 +811,7 @@ function paracrm_define_manageTransaction_applyBible($arr_saisie, $apply)
 	$arr_ins['bible_lib'] = $arr_saisie['arr_ent']['store_lib'] ;
 	$arr_ins['bible_iconfile'] = 'ico_dataadd_16.gif' ;
 	$arr_ins['gmap_is_on'] = ($arr_saisie['arr_ent']['gmap_is_on']==TRUE)?'O':'N' ;
+	$arr_ins['gallery_is_on'] = ($arr_saisie['arr_ent']['gallery_is_on']==TRUE)?'O':'N' ;
 	$_opDB->insert('define_bible',$arr_ins) ;
 	
 	$idx = 1 ;

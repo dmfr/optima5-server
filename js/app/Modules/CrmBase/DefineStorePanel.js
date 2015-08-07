@@ -432,6 +432,11 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 				name: 'gmap_is_on',
 				fieldLabel: 'Gmap/Adr',
 				boxLabel: 'Enable'
+			},{
+				xtype: 'checkboxfield',
+				name: 'gallery_is_on',
+				fieldLabel: 'Bible gallery',
+				boxLabel: 'Enable'
 			}] ;
 		}
 		if( this.defineDataType == 'file' ){

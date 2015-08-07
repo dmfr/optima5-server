@@ -2,7 +2,7 @@ Ext.define('Optima5.Modules.CrmBase.DataFormPanelGallery',{
 	extend : 'Ext.panel.Panel',
 	alias : 'widget.op5crmbasedataformpanelgallery',
 
-	requires : ['Ext.Img'],
+	requires : ['Ext.Img','Ext.ux.upload.DD'],
 
 	initComponent: function() {
 		var me = this ;
@@ -46,16 +46,20 @@ Ext.define('Optima5.Modules.CrmBase.DataFormPanelGallery',{
 		
 		
 		Ext.apply( me, {
-			autoScroll:true,
-			frame: true,
+			layout: 'fit',
 			items: [{
 				xtype: 'dataview',
+				itemId: 'dvGallery',
 				store: this.linkstore,
-				//frame: true,
-				//autoScroll:true,
+				scrollable: true,
+				preserveScrollOnRefresh: true,
 				tpl:[
 					'<tpl for=".">',
-						'<div class="thumb-box">',
+						'<div class="thumb-box',
+						'<tpl if="thumb_red">',
+						' thumb-box-red',
+						'</tpl>',
+						'">',
 								'<a href="#{id}">',
 									'<img src="{thumb_url}">',
 								'</a>',
@@ -75,7 +79,8 @@ Ext.define('Optima5.Modules.CrmBase.DataFormPanelGallery',{
 					});
 					
 					Ext.apply(data, {
-						thumb_url: 'server/backend_media.php?' + Ext.Object.toQueryString(getParams)
+						thumb_url: 'server/backend_media.php?' + Ext.Object.toQueryString(getParams),
+						thumb_red: data._is_default
 					});
 					return data;
 				},
@@ -104,6 +109,17 @@ Ext.define('Optima5.Modules.CrmBase.DataFormPanelGallery',{
 							});
 							
 							if( !me.readOnly ) {
+								if( me.horizontal ) {
+								contextMenuItems.push('-') ;
+									contextMenuItems.push({
+										iconCls: 'icon-bible-delete',
+										text: 'Set default',
+										handler : function() {
+											me.setDefaultItem(record.get('_media_id')) ;
+										},
+										scope : me
+									});
+								}
 								contextMenuItems.push('-') ;
 								contextMenuItems.push({
 									iconCls: 'icon-bible-delete',
@@ -134,11 +150,29 @@ Ext.define('Optima5.Modules.CrmBase.DataFormPanelGallery',{
 							me.showPhoto(record.get('_media_id')) ;
 						},
 						scope:me
-					}
+					},
+					afterrender: function(p) {
+						// See : http://stackoverflow.com/questions/14502492/add-listener-to-all-elements-with-a-given-class
+						p.getEl().on('dragstart',function(e,elem) {
+							e.stopEvent(); // Stop IMGs from being dragged (std browser behavior)
+						},this,{delegate:'img'});
+						
+						this.afterDataviewRender() ;
+					},
+					scope: this
 				}
 			}]
 		}) ;
 		
+		if( me.horizontal ) {
+			Ext.apply(me,{
+				scrollable: null,
+				overflowX: 'auto',
+				style: {
+					whiteSpace: 'nowrap'
+				}
+			});
+		}
 		
 		if( !me.readOnly ) {
 			Ext.apply(me,{
@@ -182,6 +216,50 @@ Ext.define('Optima5.Modules.CrmBase.DataFormPanelGallery',{
 		
 		this.callParent() ;
 	},
+	afterDataviewRender: function() {
+		var me = this ;
+		
+		var ajaxParams = me.optimaModule.getConfiguredAjaxParams() ;
+		Ext.apply( ajaxParams, {
+			_action:'data_editTransaction',
+			_transaction_id : me.transactionID,
+			_subaction:'subfileGallery_upload',
+			subfile_code:me.itemId
+		}) ;
+		
+		me.upload = Ext.create('Ext.ux.upload.DD', {
+			dropZone: me.down('#dvGallery'),
+			directMethod: '',
+			id: me.id,
+			url: Optima5.Helper.getApplication().desktopGetBackendUrl(),
+			params: ajaxParams,
+			listeners: {
+				dragover: function (el, count) {
+					el.getEl().highlight() ;
+				},
+				dragout: function (el) {
+				},
+				drop: function (el) {
+					var files = me.upload.getTransport().getFiles();
+					if (files.count() > 0) {
+						me.upload.msgbox = Ext.Msg.wait('Uploading document...');
+						me.upload.upload();
+					}
+				}
+			}
+		});
+		me.upload.getTransport().on('afterupload', function (status, xmlRequest) {
+			if( me.upload.msgbox ) {
+				me.upload.msgbox.close() ;
+			}
+			if( status != 200 ) {
+				Ext.Msg.alert('Error','Upload failed') ;
+				return ;
+			}
+			me.linkstore.load() ;
+			me.down('#dvGallery').scrollTo(0,0) ;
+		},this) ;
+	},
 	doUpload: function( dummyfield ) {
 		var me = this ;
 		var msg = function(title, msg) {
@@ -213,6 +291,7 @@ Ext.define('Optima5.Modules.CrmBase.DataFormPanelGallery',{
 				success : function(){
 					msgbox.close() ;
 					me.linkstore.load() ;
+					me.down('#dvGallery').scrollTo(0,0) ;
 				},
 				failure: function(fp, o) {
 					msgbox.close() ;
@@ -229,6 +308,22 @@ Ext.define('Optima5.Modules.CrmBase.DataFormPanelGallery',{
 				_action:'data_editTransaction',
 				_transaction_id : me.transactionID,
 				_subaction:'subfileGallery_delete',
+				subfile_code:me.itemId,
+				_media_id:mediaId
+			},
+			success : function(){
+				me.linkstore.load() ;
+			},
+			scope: me
+		});
+	},
+	setDefaultItem: function( mediaId ) {
+		var me = this ;
+		me.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_action:'data_editTransaction',
+				_transaction_id : me.transactionID,
+				_subaction:'subfileGallery_setDefault',
 				subfile_code:me.itemId,
 				_media_id:mediaId
 			},

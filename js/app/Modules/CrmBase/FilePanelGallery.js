@@ -14,12 +14,11 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelGallery',{
 		}
 		
 		Ext.apply( me, {
-			autoScroll:true,
+			layout: 'fit',
 			items: [{
 				xtype: 'dataview',
 				store: me.store,
-				//frame: true,
-				//autoScroll:true,
+				scrollable: true,
 				tpl:[
 					'<tpl for=".">',
 						'<div class="thumb-box">',

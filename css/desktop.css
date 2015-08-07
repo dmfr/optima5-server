@@ -429,7 +429,9 @@
 
 .thumb-box  {
     display: inline-block;
+    vertical-align: top;
     width: 200px;
+    min-height: 150px;
     padding: 5px;
     text-align: center;
     margin: 4px;
