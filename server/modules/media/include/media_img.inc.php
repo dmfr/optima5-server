@@ -172,6 +172,10 @@ function media_img_move( $src_id , $dst_id )
 		rename( $src_path.'.jpg' , $dst_path.'.jpg' ) ;
 	if( is_file($src_path.'.thumb.jpg') )
 		rename( $src_path.'.thumb.jpg' , $dst_path.'.thumb.jpg' ) ;
+	if( is_file($dst_path.'.tmp') )
+		unlink( $dst_path.'.tmp' ) ;
+	if( is_file($dst_path.'.default') )
+		unlink( $dst_path.'.default' ) ;
 }
 function media_img_delete( $src_id )
 {
@@ -197,6 +201,8 @@ function media_img_delete( $src_id )
 		unlink( $src_path.'.jpg' ) ;
 	if( is_file($src_path.'.thumb.jpg') )
 		unlink( $src_path.'.thumb.jpg' ) ;
+	if( is_file($src_path.'.tmp') )
+		unlink( $src_path.'.tmp' ) ;
 	
 }
 function media_img_getPath( $src_id )
@@ -245,6 +251,95 @@ function media_img_getBinary( $src_id )
 	if( is_file($src_path.'.jpg') )
 		return file_get_contents( $src_path.'.jpg' ) ;
 	return NULL ;
+}
+
+
+
+function media_img_toolBible_getBasename( $bible_code, $data_type, $key ) {
+	switch( $data_type ) {
+		case 'treenode' :
+			$prefix = 't' ;
+			break ;
+		case 'entry' :
+			$prefix = 'e' ;
+			break ;
+		default :
+			return NULL ;
+	}
+	$basename = $bible_code.'_'.$prefix.'_'.$key ;
+	return $basename ;
+}
+function media_img_toolBible_getIds( $bible_code, $data_type, $key ) {
+	if( !$basename = media_img_toolBible_getBasename( $bible_code, $data_type, $key ) ) {
+		return NULL ;
+	}
+	$media_path = media_contextGetDirPath() ;
+	$arr_ids = array() ;
+	foreach( glob($media_path.'/'.$basename.'*') as $filepath ) {
+		$filename = basename($filepath) ;
+		$ttmp = explode('.',$filename) ;
+		$id = $ttmp[0] ;
+		$ttmp = explode('_',$id) ;
+		$idx = end($ttmp) ;
+		$arr_ids[$id] = $idx ;
+	}
+	asort($arr_ids) ;
+	return array_keys($arr_ids) ;
+}
+function media_img_toolBible_createNewId( $bible_code, $data_type, $key ) {
+	if( !$basename = media_img_toolBible_getBasename( $bible_code, $data_type, $key ) ) {
+		return NULL ;
+	}
+	
+	$existing_ids = media_img_toolBible_getIds($bible_code, $data_type, $key) ;
+	if( $existing_ids ) {
+		$last_id = end($existing_ids) ;
+		$ttmp = explode('_',$last_id) ;
+		$last_idx = end($ttmp) ;
+		$new_idx = (int)$last_idx + 1 ;
+	} else {
+		$new_idx = 1 ;
+	}
+	
+	$media_path = media_contextGetDirPath() ;
+	$filepath = $media_path.'/'.$basename.'_'.$new_idx.'.'.'tmp' ;
+	touch($filepath);
+	return $basename.'_'.$new_idx ;
+}
+function media_img_toolBible_getDefault( $bible_code, $data_type, $key, $fallback=FALSE ) {
+	if( !$basename = media_img_toolBible_getBasename( $bible_code, $data_type, $key ) ) {
+		return NULL ;
+	}
+	$media_path = media_contextGetDirPath() ;
+	if( $tarr = glob($media_path.'/'.$basename.'_*.default') ) {
+		$ttmp = basename(reset($tarr)) ;
+		$ttmp = explode('.',$ttmp) ;
+		return $ttmp[0];
+	}
+	if( !$fallback ) {
+		return NULL ;
+	}
+	if( $arr_ids = media_img_toolBible_getIds($bible_code, $data_type, $key) ) {
+		return end($arr_ids) ;
+	}
+	return NULL ;
+}
+function media_img_toolBible_setDefault( $bible_code, $data_type, $key, $media_id ) {
+	if( !$basename = media_img_toolBible_getBasename( $bible_code, $data_type, $key ) ) {
+		return ;
+	}
+	if( strpos($media_id,$basename) !== 0 ) {
+		return ;
+	}
+	foreach( media_img_toolBible_getIds($bible_code, $data_type, $key) as $id ) {
+		$media_path = media_contextGetDirPath() ;
+		$filepath = $media_path.'/'.$id.'.'.'default' ;
+		if( is_file($filepath) ) {
+			unlink($filepath) ;
+		}
+	}
+	$filepath = $media_path.'/'.$media_id.'.'.'default' ;
+	touch($filepath);
 }
 
 
