@@ -82,6 +82,12 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanelGallery',{
 						scope:me
 					}
 				}
+			}],
+			dockedItems: [{
+				xtype: 'pagingtoolbar',
+				store: me.store,   // same store GridPanel is using
+				dock: 'bottom',
+				displayInfo: true
 			}]
 		}) ;
 		
