@@ -85,7 +85,8 @@ Ext.define('Ext.ux.dams.ColorCombo', {
 				}
 			}
 			if( this.iconOnly && this.inputEl ) {
-				this.inputEl.dom.value = '';
+				this.inputEl.setVisible(false) ;
+				//this.inputEl.dom.value = '';
 			}
 		} else {
 			this.on('render', this.setIconCls, this, {
