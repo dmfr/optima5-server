@@ -203,6 +203,8 @@ function media_img_delete( $src_id )
 		unlink( $src_path.'.thumb.jpg' ) ;
 	if( is_file($src_path.'.tmp') )
 		unlink( $src_path.'.tmp' ) ;
+	if( is_file($src_path.'.default') )
+		unlink( $src_path.'.default' ) ;
 	
 }
 function media_img_getPath( $src_id )
@@ -340,6 +342,65 @@ function media_img_toolBible_setDefault( $bible_code, $data_type, $key, $media_i
 	}
 	$filepath = $media_path.'/'.$media_id.'.'.'default' ;
 	touch($filepath);
+}
+
+function media_img_toolBible_list( $bible_code, $data_type ) {
+	if( !$root_basename = media_img_toolBible_getBasename( $bible_code, $data_type, '' ) ) {
+		return NULL ;
+	}
+	
+	$media_path = media_contextGetDirPath() ;
+	
+	$map_basename_isDefault = array() ;
+	foreach( glob($media_path.'/'.$root_basename.'*') as $filepath ) {
+		$filename = basename($filepath) ;
+		$ttmp = explode('.',$filename) ;
+		$basename = $ttmp[0] ;
+		if( $ttmp[1] == 'default' ) {
+			$map_basename_isDefault[$basename] = TRUE ;
+		} elseif( !isset($map_basename_isDefault[$basename]) ) {
+			$map_basename_isDefault[$basename] = FALSE ;
+		}
+	}
+	
+	$root_basename_length = strlen($root_basename) ;
+	
+	$map_key_idxDefault = array() ;
+	$map_key_arrMediaIds = array() ;
+	foreach( $map_basename_isDefault as $basename => $isDefault ) {
+		$child_basename = substr($basename,$root_basename_length) ;
+		$ttmp = explode('_',$child_basename) ;
+		
+		$idx = end($ttmp) ;
+		$key = substr($child_basename,0,strlen($child_basename)-(strlen($idx)+1)) ;
+		$media_id = $basename ;
+		
+		if( $isDefault ) {
+			$map_key_idxDefault[$key] = $idx ;
+		}
+		if( !isset($map_key_arrMediaIds[$key]) ) {
+			$map_key_arrMediaIds[$key] = array() ;
+		}
+		$map_key_arrMediaIds[$key][$idx] = $media_id ;
+	}
+	
+	$TAB = array() ;
+	foreach( $map_key_arrMediaIds as $key => $tarr ) {
+		if( !$map_key_idxDefault[$key] ) {
+			$ttmp = array_keys($tarr) ;
+			$map_key_idxDefault[$key] = end($ttmp) ;
+		}
+		foreach( $tarr as $idx => $media_id ) {
+			$TAB[] = array(
+				'bible_code' => $bible_code,
+				$data_type.'_key' => $key,
+				'media_idx' => (int)$idx,
+				'media_id' => $media_id,
+				'media_is_default' => ($map_key_idxDefault[$key]==$idx)
+			);
+		}
+	}
+	return $TAB ;
 }
 
 
