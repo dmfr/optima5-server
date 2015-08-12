@@ -58,14 +58,9 @@ if( !$obj_dmgr_base->baseDb_exists($_POST['_domainId']) || !$obj_dmgr_sdomain->s
 $_opDB->select_db( $mysql_db ) ;
 
 // ************************
-$query = "SELECT module_id FROM sdomain WHERE sdomain_id='{$_POST['_sdomainId']}'" ;
-$result = $_opDB->query($query) ;
-if( $_opDB->num_rows($result) != 1 ) {
-	//header("HTTP/1.0 404 Not Found");
-	die() ;
+if( !$_POST['_moduleId'] ) {
+	$_POST['_moduleId'] = 'crmbase' ;
 }
-$arr = $_opDB->fetch_row($result) ;
-$_POST['_moduleId'] = $arr[0] ;
 // ************************
 
 $my_module = $_POST['_moduleId'] ;
