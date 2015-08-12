@@ -129,6 +129,16 @@ Ext.onReady(function () {
 		}
 	});
 	
+	/*
+	 * Disable NavigationModels
+	 */
+	Ext.view.NavigationModel.override({
+		focusCls: ''
+	});
+	Ext.grid.NavigationModel.override({
+		focusCls: ''
+	});
+	
 	
 	
 	
