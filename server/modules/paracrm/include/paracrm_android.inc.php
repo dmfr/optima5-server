@@ -28,6 +28,8 @@ function paracrm_android_getDbImage($post_data)
 	$_opDB->query($query) ;
 	$query = "DROP TABLE IF EXISTS tmp_store_bible_entry_field" ;
 	$_opDB->query($query) ;
+	$query = "DROP TABLE IF EXISTS tmp_store_bible_entry_gallery" ;
+	$_opDB->query($query) ;
 	
 	$query = "CREATE TEMPORARY TABLE IF NOT EXISTS "
                     . "tmp_store_bible_entry" . " ("
@@ -47,6 +49,16 @@ function paracrm_android_getDbImage($post_data)
                     . "entry_field_value_date" . " DATE,"
                     . "entry_field_value_link" . " VARCHAR(500),"
                     . "PRIMARY KEY( bible_code, entry_key,entry_field_code)"
+                    . ");";
+	$_opDB->query($query) ;
+	$query = "CREATE TEMPORARY TABLE IF NOT EXISTS "
+                    . "tmp_store_bible_entry_gallery" . " ("
+                    . "bible_code" . " VARCHAR(50), "
+                    . "entry_key" . " VARCHAR(100),"
+                    . "media_idx" . " INTEGER,"
+                    . "media_id" . " VARCHAR(500),"
+                    . "media_is_default" . " VARCHAR(1),"
+                    . "PRIMARY KEY( bible_code, entry_key, media_idx)"
                     . ");";
 	$_opDB->query($query) ;
 	$query = "CREATE TEMPORARY TABLE IF NOT EXISTS "
@@ -159,6 +171,18 @@ function paracrm_android_getDbImage($post_data)
 			$map_entry[] = $map ;
 		}
 		
+		$query = "SELECT * FROM define_bible WHERE bible_code='$bible_code'" ;
+		$result = $_opDB->query($query) ;
+		$arr = $_opDB->fetch_assoc($result) ;
+		if( $arr['gallery_is_on'] == 'O' ) {
+			media_contextOpen( $post_data['_sdomainId'] ) ;
+			foreach( media_img_toolBible_list($bible_code,'entry') as $arr_ins ) {
+				$arr_ins['media_is_default'] = ($arr_ins['media_is_default'] ? 'O' : '') ;
+				$_opDB->insert('tmp_store_bible_entry_gallery',$arr_ins) ;
+			}
+			media_contextClose() ;
+		}
+		
 		$query = "SELECT * FROM store_bible_{$bible_code}_tree ORDER BY treenode_key" ;
 		$result = $_opDB->query($query) ;
 		while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
@@ -239,6 +263,7 @@ function paracrm_android_getDbImage($post_data)
 	$tables['querygrid_template'] = 'querygrid_template' ;
 	$tables['store_bible_entry'] = 'tmp_store_bible_entry' ;
 	$tables['store_bible_entry_field'] = 'tmp_store_bible_entry_field' ;
+	$tables['store_bible_entry_gallery'] = 'tmp_store_bible_entry_gallery' ;
 	$tables['store_bible_tree'] = 'tmp_store_bible_tree' ;
 	$tables['store_bible_tree_field'] = 'tmp_store_bible_tree_field' ;
 	$tables['input_query'] = 'tmp_input_query' ;
