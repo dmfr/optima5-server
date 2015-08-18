@@ -264,6 +264,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 						var result = null;
 						if (v1) {
 							var v2 = new Date(v1) ;
+							v2.setHours(0,0,0,0) ;
 							result = v2.getTime();
 						}
 						return result;
