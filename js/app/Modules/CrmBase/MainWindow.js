@@ -165,6 +165,7 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 		var menuCfg = respObj.data_bible ;
 		Ext.Array.each( menuCfg, function(o) {
 			Ext.apply(o,{
+				cls: o.isPublished ? me.clsForPublished : '' ,
 				handler: function() {
 					me.openBible( o.bibleId ) ;
 				},
