@@ -479,7 +479,9 @@ Ext.define('Optima5.Modules.Admin.SdomainsForm' ,{
 							name: 'fetch_login_user',
 							allowBlank: false
 						},{
-							xtype:'splitter'
+							xtype: 'box',
+							html: '&#160;',
+							width: 6
 						},{
 							xtype: 'textfield',
 							flex:1,

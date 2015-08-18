@@ -142,7 +142,9 @@ Ext.define('Optima5.Modules.CrmBase.DefineStoreCalendarForm' ,{
 						scope:me
 					}
 				},{
-					xtype: 'splitter'
+					xtype: 'box',
+					html: '&#160;',
+					width: 6
 				},{
 					xtype:'comboboxcached', 
 					flex:1,

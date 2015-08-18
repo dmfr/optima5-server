@@ -451,7 +451,9 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 					maxWidth: 200,
 					readOnly : (this.defineIsNew == false)
 				},{
-					xtype: 'splitter'
+					xtype: 'box',
+					html: '&#160;',
+					width: 6
 				},{
 					xtype:'combobox', 
 					name: 'store_type',
