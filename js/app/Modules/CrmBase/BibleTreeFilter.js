@@ -88,11 +88,11 @@ Ext.define('Optima5.Modules.CrmBase.BibleTreeFilter', {
 		var me = this ;
 		this.callParent() ;
 		
-		var width = 200 ;
+		var width = 400 ;
 		if( this.width )
 			width = this.width ;
 		  
-		var height = 150 ;
+		var height = 250 ;
 		if( this.height )
 			height = this.height ;
 		if( this.autoHeight ) {
