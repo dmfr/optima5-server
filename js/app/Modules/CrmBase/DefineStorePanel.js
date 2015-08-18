@@ -42,7 +42,7 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 		
 		this.parentFiles = Ext.create('Ext.data.Store', {
 			fields: ['fileCode', 'fileLib'],
-			data : [{"fileCode":"", "fileLib":"<i>Root file / No parent</i>"}]
+			data : []
 		});
 		
 		this.linkBibles = Ext.create('Ext.data.Store', {
@@ -943,7 +943,12 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 				if( Ext.decode(response.responseText).success == false )
 					return this.onAbort() ;
 				else {
-					this.parentFiles.add( Ext.decode(response.responseText).data.parent_files ) ;
+					var parentFilesData = [{"fileCode":"", "fileLib":"<i>Root file / No parent</i>"}] ;
+					Ext.Array.each( Ext.decode(response.responseText).data.parent_files, function(parentFileData) {
+						parentFilesData.push(parentFileData) ;
+					}) ;
+					this.parentFiles.loadRawData( parentFilesData ) ;
+					
 					this.linkBibles.loadRawData( Ext.decode(response.responseText).data.link_bibles ) ;
 				}
 			},
