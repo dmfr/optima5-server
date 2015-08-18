@@ -886,8 +886,15 @@ function paracrm_android_imgPull( $post_data )
 {
 	global $_opDB ;
 	
-	$query = "SELECT filerecord_id FROM store_file WHERE sync_vuid='{$post_data['sync_vuid']}'" ;
-	$filerecord_id = $_opDB->query_uniqueValue($query) ;
+	if( $post_data['media_id'] ) {
+		$media_id = $post_data['media_id'] ;
+	} elseif( $post_data['sync_vuid'] ) {
+		$query = "SELECT filerecord_id FROM store_file WHERE sync_vuid='{$post_data['sync_vuid']}'" ;
+		$filerecord_id = $_opDB->query_uniqueValue($query) ;
+		$media_id = $filerecord_id ;
+	} else {
+		$media_id = '0' ;
+	}
 	
 	$domain = $_SESSION['login_data']['login_domain'] ;
 	$sdomain_id = $post_data['_sdomainId'] ;
@@ -898,7 +905,7 @@ function paracrm_android_imgPull( $post_data )
 		// die() ;
 		paracrm_android_imgPullFallback( $post_data ) ;
 	}
-	$src_path = $media_path.'/'.$filerecord_id ;
+	$src_path = $media_path.'/'.$media_id ;
 	if( $post_data['thumbnail'] == 'O' )
 	{
 		$src_path.= '.thumb.jpg' ;
