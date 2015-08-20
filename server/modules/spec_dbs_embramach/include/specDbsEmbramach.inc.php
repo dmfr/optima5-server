@@ -43,14 +43,6 @@ function specDbsEmbralam_mach_getGridCfg( $post_data ) {
 function specDbsEmbralam_mach_getGridData( $post_data ) {
 	global $_opDB ;
 	
-	$stats_tat_intervals = array() ;
-	$query = "SELECT field_INTERVAL_CODE, field_INTERVAL_VALUE FROM view_bible_STATS_TAT_INTERVAL_entry" ;
-	$result = $_opDB->query($query) ;
-	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
-		$stats_tat_intervals[$arr[0]] = $arr[1] ;
-	}
-	asort($stats_tat_intervals) ;
-	
 	$json_cfg = specDbsEmbralam_mach_getGridCfg( $post_data ) ;
 	$json_cfg_prio = array() ;
 	foreach( $json_cfg['data']['flow_prio'] as $prio_desc ) {
@@ -258,13 +250,6 @@ function specDbsEmbralam_mach_getGridData( $post_data ) {
 			// Cache stats
 			$arr_ins = array() ;
 			$arr_ins['field_STAT_TAT_H'] = $total_spent_time_s / 3600 ;
-			asort($stats_tat_intervals) ;
-			foreach( $stats_tat_intervals as $interval_code => $interval_value ) {
-				if( $arr_ins['field_STAT_TAT_H'] < $interval_value ) {
-					$arr_ins['field_STAT_TAT'] = $interval_code ;
-					break ;
-				}
-			}
 			$_opDB->update('view_file_FLOW_PICKING',$arr_ins, array('filerecord_id'=>$filerecord_id)) ;
 			//paracrm_lib_data_updateRecord_file( 'FLOW_PICKING', $arr_ins, $filerecord_id ) ;
 		}
