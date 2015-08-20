@@ -216,7 +216,13 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 		},{
 			text: 'Feedback',
 			dataIndex: 'feedback_txt',
-			width: 110
+			width: 110,
+			editor: {
+				xtype: 'textareafield',
+				grow: true,
+				growMin: 30,
+				growMax: 40
+			}
 		}] ;
 		
 		var sortTypeFn = function(o1) {
@@ -303,6 +309,9 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 			columns: columns,
 			plugins: [{
 				ptype: 'uxgridfilters'
+			},{
+				ptype: 'cellediting',
+				clicksToEdit: 1
 			}],
 			viewConfig: {
 				getRowClass: function(record) {

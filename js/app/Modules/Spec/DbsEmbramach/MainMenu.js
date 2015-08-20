@@ -60,6 +60,11 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MainMenu',{
 				action_caption: 'Dashboard MACH',
 				action_sendEvent:'panel_mach',
 				action_iconCls:'op5-spec-dbsembramach-icon-mach'
+			},{
+				type_action:true,
+				action_caption: 'Report KPI',
+				action_sendEvent:'panel_report',
+				action_iconCls:'op5-spec-dbsembramach-icon-report'
 			}]
 		}) ;
 		 

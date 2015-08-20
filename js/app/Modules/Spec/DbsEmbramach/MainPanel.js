@@ -4,7 +4,8 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MainPanel',{
 		'Optima5.Modules.Spec.DbsEmbramach.HelperCache',
 		'Optima5.Modules.Spec.DbsEmbramach.MainMenu',
 		'Optima5.Modules.Spec.DbsEmbramach.MachPanel',
-		'Optima5.Modules.Spec.DbsEmbramach.MachAdminPanel'
+		'Optima5.Modules.Spec.DbsEmbramach.MachAdminPanel',
+		'Optima5.Modules.Spec.DbsEmbramach.ReportPanel'
 	],
 	
 	initComponent: function() {
@@ -55,6 +56,8 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MainPanel',{
 		switch( actionCode ) {
 			case 'panel_mach' :
 				return me.switchToAppPanel('Optima5.Modules.Spec.DbsEmbramach.MachAdminPanel',{flowCode: 'PICKING'}) ;
+			case 'panel_report' :
+				return me.switchToAppPanel('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{}) ;
 			default :
 				return ;
 		}
