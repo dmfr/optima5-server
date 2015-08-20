@@ -11,6 +11,10 @@ include("$server_root/modules/media/include/media.inc.php");
 include( "$server_root/include/database/mysql_DB.inc.php" ) ;
 
 include("$server_root/login.inc.php") ;
+if( $_REQUEST['PHP_AUTH_USER'] && $_REQUEST['PHP_AUTH_PW'] ) {
+	$_SERVER['PHP_AUTH_USER'] = $_REQUEST['PHP_AUTH_USER'] ;
+	$_SERVER['PHP_AUTH_PW'] = $_REQUEST['PHP_AUTH_PW'] ;
+}
 if( !isset($_SERVER['PHP_AUTH_USER']) || !($login_result=op5_login_test( $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'] )) || !$login_result['done'] ) {
 	header('WWW-Authenticate: Basic realm="OP5"');
 	header('HTTP/1.0 401 Unauthorized');
