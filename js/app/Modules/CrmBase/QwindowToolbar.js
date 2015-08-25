@@ -38,7 +38,7 @@ Ext.define('Optima5.Modules.CrmBase.QwindowToolbar',{
 								text:'Save Query',
 								handler: function(button){
 									var textfield = button.up('menu').query('textfield')[0] ;
-									me.onItemMenuSubmit( button.up('menu').parentItem,textfield.getValue() ) ;
+									me.onItemMenuSubmit( button.up('menu').ownerCmp,textfield.getValue() ) ;
 									Ext.menu.Manager.hideAll();
 								},
 								scope:me
