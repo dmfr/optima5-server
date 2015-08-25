@@ -9,6 +9,8 @@ function specDbsEmbramach_stats_getPicking() {
 	$cur_date = date('Y-m-d') ;
 	while( TRUE ) {
 		$params_date[] = array(
+			'time_key' => 'd_'.date('Ymd',strtotime($cur_date)),
+			'time_title' => $cur_date,
 			'date_start' => $cur_date,
 			'date_end' => $cur_date
 		);
@@ -54,11 +56,32 @@ function specDbsEmbramach_stats_getPicking() {
 		) ;
 	}
 	
+	$map_fieldCode_rowKey = array(
+		'STATS_SHIFT' => 'shift_id',
+		'STATS_TAT' => 'value_TAT',
+		'PRIORITY' => 'prio_id'
+	);
 	
-	
-	
-	
-	
+	$data = array() ;
+	// Run queries per date intervals
+	foreach( $params_date as $date_interval ) {
+		$q_id = 'Report::Picking::KPI' ;
+		$where_params = array() ;
+		$where_params['condition_date_gt'] = $date_interval['date_start'] ;
+		$where_params['condition_date_lt'] = $date_interval['date_end'] ;
+		
+		$TAB = specDbsEmbramach_stats_sub_runQuery($q_id, $where_params) ;
+		
+		foreach( $TAB as $query_row ) {
+			$row = array() ;
+			$row['time_key'] = $date_interval['time_key'] ;
+			foreach( $map_fieldCode_rowKey as $fieldCode=>$rowKey ) {
+				$row[$rowKey] = $query_row['group'][$fieldCode] ;
+			}
+			$row['value_count'] = reset($query_row['values']) ;
+			$data[] = $row ;
+		}
+	}
 	return array(
 		'success'=>true,
 		'cfg' => array(
@@ -66,9 +89,70 @@ function specDbsEmbramach_stats_getPicking() {
 			'tat' => $params_stats_tat,
 			'shift' => $params_stats_shift,
 			'priority' => $params_priority
-		)
+		),
+		'data' => $data
 	) ;
 }
+
+
+
+
+function specDbsEmbramach_stats_sub_runQuery( $q_id, $where_params=NULL ) {
+	global $_opDB ;
+	
+	if( !is_numeric($q_id) ) {
+		$query = "SELECT query_id FROM query WHERE query_name LIKE '{$q_id}'";
+		$q_id = $_opDB->query_uniqueValue($query) ;
+		if( !$q_id ) {
+			return NULL ;
+		}
+	}
+	
+	$arr_saisie = array() ;
+	paracrm_queries_builderTransaction_init( array('query_id'=>$q_id) , $arr_saisie ) ;
+	
+	foreach( $arr_saisie['fields_where'] as &$field_where ) {
+		foreach( $field_where as $mkey => $mvalue ) {
+			if( isset($where_params[$mkey]) ) {
+				$field_where[$mkey] = $where_params[$mkey] ;
+			}
+		}
+		unset($field_where) ;
+	}
+	
+	$RES = paracrm_queries_process_query($arr_saisie , FALSE ) ;
+	//print_r($RES) ;
+	
+	$map_groupId_lib = array() ;
+	foreach( $RES['RES_titles']['group_tagId'] as $groupId => $groupTag ) {
+		$ttmp = explode('_field_',$groupTag) ;
+		$ttmp = explode('%',$ttmp[1]) ;
+		$map_groupId_lib[$groupId] = $ttmp[0] ;
+	}
+	$map_selectId_lib = array() ;
+	foreach( $RES['RES_titles']['fields_select'] as $selectId => $selectLib ) {
+		$map_selectId_lib[$selectId] = $selectLib ;
+	}
+	
+	$TAB = array() ;
+	foreach( $RES['RES_groupKey_groupDesc'] as $groupKey => $groupDesc ) {
+		$group = array() ;
+		foreach( $groupDesc as $groupId=>$key ) {
+			$group[$map_groupId_lib[$groupId]] = substr($key,2) ; //strip "t_" / "e_"
+		}
+		$select = array() ;
+		foreach( $RES['RES_groupKey_selectId_value'][$groupKey] as $selectId => $value ) {
+			$select[$map_selectId_lib[$selectId]] = $value ;
+		}
+		$TAB[] = array(
+			'group' => $group,
+			'values' => $select
+		) ;
+	}
+	return $TAB ;
+}
+
+
 
 function specDbsEmbramach_stats_sub_prepareData() {
 	global $_opDB ;
@@ -88,8 +172,11 @@ function specDbsEmbramach_stats_sub_prepareData() {
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 		$cfg_map_prioId_tatCode_tatValueMax[$arr[0]][$arr[1]] = $arr[2] ;
+		foreach( $cfg_map_prioId_tatCode_tatValueMax as $prio_id => &$arr ) {
+			asort($arr,SORT_NUMERIC) ;
+		}
+		unset($arr) ;
 	}
-	asort($cfg_map_prioId_tatCode_tatValueMax) ;
 	
 	$stats_tat_intervals = array() ;
 	$query = "SELECT field_SHIFT_ID, field_SHIFT_TXT FROM view_bible_STATS_PICKING_SHIFT_entry" ;
@@ -112,14 +199,22 @@ function specDbsEmbramach_stats_sub_prepareData() {
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$filerecord_id = $arr['filerecord_id'] ;
 		$prio_id = $arr['field_PRIORITY'] ;
-		if( isset($cfg_map_prioId_tatCode_tatValueMax[$prio_id]) ) {
+		
+		if( $arr['field_STATUS'] == 'DELETED' ) {
+			$arr_ins['field_STATS_TAT'] = '' ;
+		}
+		elseif( isset($cfg_map_prioId_tatCode_tatValueMax[$prio_id]) ) {
 			foreach( $cfg_map_prioId_tatCode_tatValueMax[$prio_id] as $tatCode => $tatMaxValue ) {
-				if( $arr['field_STAT_TAT_H'] < $tatMaxValue ) {
+				if( $arr['field_STAT_TAT_H'] <= $tatMaxValue ) {
 					$arr_ins['field_STATS_TAT'] = $tatCode ;
 					break ;
 				}
 			}
 		}
+		else {
+			$arr_ins['field_STATS_TAT'] = '' ;
+		}
+		
 		if( isset($map_filerecordId_dateCreate[$filerecord_id]) ) {
 			$date_sql = $map_filerecordId_dateCreate[$filerecord_id] ;
 			$hour = (int)substr($date_sql,11,2) ; // "YYYY-MM-DD HH:MM:SS"

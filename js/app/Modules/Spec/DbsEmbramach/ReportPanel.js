@@ -72,7 +72,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 		}) ;
 	},
 	onConfigure: function( jsonResponse ) {
-		console.dir(jsonResponse) ;
+		//console.dir(jsonResponse) ;
 		
 		var cssBlob = '',
 			colors = [] ;
@@ -80,7 +80,6 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 			cssRoot = '.color-'+cfgTat.color.substr(1,6) ;
 			cssBlob += cssRoot+" .x-grid-cell-inner { background-color:"+cfgTat.color+" }\r\n" ;
 		}) ;
-		console.log(cssBlob) ;
 		Ext.util.CSS.createStyleSheet(cssBlob, 'op5specdbsembralamcolors-'+this.getId());
 		
 		// create Model + Grid
@@ -105,78 +104,108 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 			}
 		}] ;
 		
+		var uniqueRenderer = function(value, metaData, record, rowIndex, colIndex, store, view) {
+			var column = view.ownerCt.columns[colIndex] ;
+			if( column._shiftId ) {
+				retValue = value.obj_shifts[column._shiftId].value_count ;
+				totValue = value.obj_shifts[column._shiftId].value_total ;
+			} else {
+				retValue = value.value_count ;
+				totValue = value.value_total ;
+			}
+			if( Ext.isEmpty(retValue) || retValue == 0 ) {
+				return '' ;
+			}
+			if( column._modePercent ) {
+				retValue = (retValue / totValue) * 100 ;
+				retValue = Math.round(retValue) ;
+				retValue = retValue + '&#160;' + '%' ;
+			}
+			
+			if( Ext.isEmpty(column._shiftId) 
+			|| Ext.isEmpty(record.get('row_color')) || record.get('row_color').toUpperCase() == '#FFFFFF' ) {
+				retValue = '<b>' + retValue + '</b>' ;
+			}
+			return retValue ;
+		}
+		
 		Ext.Array.each( jsonResponse.cfg.date, function(cfgDate) {
 			var objDate = Ext.Date.parse(cfgDate.date_start,'Y-m-d') ;
-				dStr = Ext.Date.format(objDate,'Ymd'),
-				dSql = Ext.Date.format(objDate,'Y-m-d');
+				timeKey = cfgDate.time_key;
 				
 			var childColumns = [] ;
 			Ext.Array.each( jsonResponse.cfg.shift, function(cfgShift) {
 				childColumns.push({
 					text: 'shift : <b>'+cfgShift.shift_txt+'</b>',
 					align: 'center',
-					_dateSql: dSql,
-					_dateStr: dStr,
+					_timeKey: timeKey,
 					_shiftId: cfgShift.shift_id,
 					menuDisabled: true,
 					columns: [{
 						text: 'Nb',
-						dataIndex: 'd_'+dStr,
+						sortable: false,
+						dataIndex: timeKey,
 						menuDisabled: true,
-						_dateSql: dSql,
-						_dateStr: dStr,
+						_timeKey: timeKey,
 						_shiftId: cfgShift.shift_id,
 						_modePercent: false,
-						width: 60,
-						align: 'center'
+						width: 45,
+						align: 'center',
+						renderer: uniqueRenderer
 					},{
 						text: '%',
-						dataIndex: 'd_'+dStr,
+						sortable: false,
+						dataIndex: timeKey,
 						menuDisabled: true,
-						_dateSql: dSql,
-						_dateStr: dStr,
+						_timeKey: timeKey,
 						_shiftId: cfgShift.shift_id,
 						_modePercent: true,
-						width: 60,
-						align: 'center'
+						width: 45,
+						align: 'center',
+						renderer: uniqueRenderer
 					}]
 				}) ;
 			});
 			childColumns.push({
 				text: '<b>All day</b>',
 				align: 'center',
-				_dateSql: dSql,
-				_dateStr: dStr,
+				_timeKey: timeKey,
 				menuDisabled: true,
 				columns: [{
 					text: 'Nb',
-					dataIndex: 'd_'+dStr,
+					sortable: false,
+					dataIndex: timeKey,
 					menuDisabled: true,
-					_dateSql: dSql,
-					_dateStr: dStr,
+					_timeKey: timeKey,
 					_shiftId: null,
 					_modePercent: false,
-					width: 60,
-					align: 'center'
+					width: 45,
+					align: 'center',
+					renderer: uniqueRenderer
 				},{
 					text: '%',
-					dataIndex: 'd_'+dStr,
+					sortable: false,
+					dataIndex: timeKey,
 					menuDisabled: true,
-					_dateSql: dSql,
-					_dateStr: dStr,
+					_timeKey: timeKey,
 					_shiftId: null,
 					_modePercent: true,
-					width: 60,
-					align: 'center'
+					width: 45,
+					align: 'center',
+					renderer: uniqueRenderer
 				}]
 			}) ;
 			
 			columns.push({
 				text: '<b>'+Ext.Date.format(objDate,'l') + ' ' + Ext.Date.format(objDate,'d/m')+'</b>',
-				_dateSql: dSql,
-				_dateStr: dStr,
+				_timeKey: timeKey,
 				menuDisabled: true,
 				columns: childColumns
+			});
+			
+			pushModelfields.push({
+				name: timeKey,
+				type: 'auto'
 			});
 		});
 		
@@ -282,20 +311,73 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 		}) ;
 	},
 	onLoad: function( jsonResponse ) {
+		var sortObj = {}, sortKey ; 
+		// prio_id => tat_code => date_sql => shift_id => ++count
+		// prio_id => _ => date_sql => shift_id => ++count
+		Ext.Array.each( jsonResponse.data, function(dataRow) {
+			//console.dir(dataRow) ;
+			sortKey = [dataRow.prio_id,dataRow.value_TAT,dataRow.time_key,dataRow.shift_id].join('%%') ;
+			if( !sortObj.hasOwnProperty(sortKey) ) {
+				sortObj[sortKey] = 0 ;
+			}
+			sortObj[sortKey]+= dataRow.value_count ;
+			
+			if( !dataRow.value_TAT ) {
+				return ;
+			}
+			
+			sortKey = [dataRow.prio_id,'_',dataRow.time_key,dataRow.shift_id].join('%%') ;
+			if( !sortObj.hasOwnProperty(sortKey) ) {
+				sortObj[sortKey] = 0 ;
+			}
+			sortObj[sortKey]+= dataRow.value_count ;
+		}) ;
+		
 		// create Records
-		var data = [] ;
+		var data = [], rowRecord ;
 		Ext.Array.each( jsonResponse.cfg.priority, function( cfgPriority ) {
 			Ext.Array.each( jsonResponse.cfg.tat, function( cfgTat ) {
 				if( cfgTat.prio_id != cfgPriority.prio_id ) {
 					return ;
 				}
-				data.push({
+				rowRecord = {
 					prio_id: cfgPriority.prio_id,
 					prio_txt: cfgPriority.prio_txt,
 					tat_code: cfgTat.tat_code,
 					tat_name: cfgTat.tat_name,
 					row_color: cfgTat.color
-				});
+				} ;
+				
+				Ext.Array.each( jsonResponse.cfg.date, function( cfgDate ) {
+					var timeKey = cfgDate.time_key ;
+					var timeValue = {
+						value_count: 0,
+						value_total: 0,
+						obj_shifts: {}
+					} ;
+					Ext.Array.each( jsonResponse.cfg.shift, function( cfgShift ) {
+						if( !timeValue.obj_shifts.hasOwnProperty(cfgShift.shift_id) ) {
+							timeValue.obj_shifts[cfgShift.shift_id] = {
+								value_count: 0,
+								value_total: 0,
+							}
+						}
+						// dig information from sortObj
+						sortKey = [cfgPriority.prio_id,cfgTat.tat_code,timeKey,cfgShift.shift_id].join('%%') ;
+						if( sortObj.hasOwnProperty(sortKey) ) {
+							timeValue.value_count += sortObj[sortKey] ;
+							timeValue.obj_shifts[cfgShift.shift_id].value_count += sortObj[sortKey] ;
+						}
+						sortKey = [cfgPriority.prio_id,'_',timeKey,cfgShift.shift_id].join('%%') ;
+						if( sortObj.hasOwnProperty(sortKey) ) {
+							timeValue.value_total += sortObj[sortKey] ;
+							timeValue.obj_shifts[cfgShift.shift_id].value_total += sortObj[sortKey] ;
+						}
+					}) ;
+					rowRecord[timeKey] = timeValue ;
+				}) ;
+				
+				data.push(rowRecord) ;
 			});
 		});
 		
