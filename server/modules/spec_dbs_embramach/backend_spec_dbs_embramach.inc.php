@@ -12,6 +12,8 @@ switch( $post_data['_action'] )
 	return specDbsEmbralam_mach_getGridCfg( $post_data ) ;
 	case 'mach_getGridData' :
 	return specDbsEmbralam_mach_getGridData( $post_data ) ;
+	case 'mach_saveGridRow' :
+	return specDbsEmbralam_mach_saveGridRow( $post_data ) ;
 	
 	case 'mach_upload' :
 	return specDbsEmbralam_mach_upload( $post_data ) ;

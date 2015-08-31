@@ -79,6 +79,7 @@ function specDbsEmbralam_mach_getGridData( $post_data ) {
 		}
 	
 		$row = array() ;
+		$row['_filerecord_id'] = $filerecord_id ;
 		$row['delivery_id'] = $arr['field_DELIVERY_ID'] ;
 		$row['date_issue'] = $arr['field_DATE_ISSUE'] ;
 		$row['date_closed'] = $arr['field_DATE_CLOSED'] ;
@@ -302,6 +303,20 @@ function specDbsEmbralam_mach_getGridData_sort( $row1, $row2 ) {
 		return $row1['priority_code'] - $row2['priority_code'] ;
 	}
 	return $row2['calc_lateness'] - $row1['calc_lateness'] ;
+}
+
+function specDbsEmbralam_mach_saveGridRow( $post_data ) {
+	global $_opDB ;
+	
+	$record = json_decode($post_data['data'],true) ;
+	if( !$record['_filerecord_id'] ) {
+		return array('success'=>false) ;
+	}
+	
+	$arr_update = array() ;
+	$arr_update['field_FEEDBACK_TXT'] = $record['feedback_txt'] ;
+	paracrm_lib_data_updateRecord_file( 'FLOW_PICKING', $arr_update, $record['_filerecord_id'] ) ;
+	return array('success'=>true) ;
 }
 
 

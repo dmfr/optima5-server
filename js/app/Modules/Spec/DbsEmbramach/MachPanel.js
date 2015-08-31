@@ -311,7 +311,12 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 				ptype: 'uxgridfilters'
 			},{
 				ptype: 'cellediting',
-				clicksToEdit: 1
+				clicksToEdit: 1,
+				listeners: {
+					beforeedit: this.onGridBeforeEdit,
+					edit: this.onGridAfterEdit,
+					scope: this
+				}
 			}],
 			viewConfig: {
 				getRowClass: function(record) {
@@ -499,6 +504,24 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 			this.loadMask.destroy() ;
 			this.loadMask = null ;
 		}
+	},
+	
+	onGridBeforeEdit: function( editor, editEvent ) {},
+	onGridAfterEdit: function( editor, editEvent ) {
+		this.remoteSaveRecord( editEvent.record ) ;
+	},
+	
+	remoteSaveRecord: function( gridRecord ) {
+		var ajaxParams = {
+			_moduleId: 'spec_dbs_embramach',
+			_action: 'mach_saveGridRow',
+			data: Ext.JSON.encode( gridRecord.getData(true) )
+		};
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams,
+			success: function(response) {},
+			scope: this
+		}) ;
 	},
 	
 	onDestroy: function() {
