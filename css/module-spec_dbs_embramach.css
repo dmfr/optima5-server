@@ -151,3 +151,10 @@
 .op5-spec-dbsembramach-gridcell-done .x-grid-cell {
 	background-color: #C29FFF ;
 }
+
+
+.op5-spec-dbsembramach-report-sums .x-grid-cell-inner {
+	font-weight: bold;
+	font-size: 12px;
+}
+
