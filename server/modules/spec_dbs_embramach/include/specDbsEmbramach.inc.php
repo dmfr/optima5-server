@@ -82,6 +82,7 @@ function specDbsEmbralam_mach_getGridData( $post_data ) {
 		$row['delivery_id'] = $arr['field_DELIVERY_ID'] ;
 		$row['date_issue'] = $arr['field_DATE_ISSUE'] ;
 		$row['date_closed'] = $arr['field_DATE_CLOSED'] ;
+		$row['date_toship'] = $arr['field_DATE_TOSHIP'] ;
 		$row['type'] = $arr['field_TYPE'] ;
 		$row['flow'] = $arr['field_FLOW'] ;
 		if( $arr['field_STEP_NOT_OT'] ) {
@@ -383,6 +384,8 @@ function specDbsEmbralam_mach_upload_ZLORSD015($handle) {
 		}
 		//print_r($arr_csv) ;
 		
+		$_field_DATE_ISSUE = NULL ;
+		
 		$main_row = $steps_arrRow = array() ;
 		$main_row['field_DELIVERY_ID'] = $arr_csv[0] ;
 		$main_row['field_PRIORITY'] = (float)$arr_csv[1] ;
@@ -406,6 +409,9 @@ function specDbsEmbralam_mach_upload_ZLORSD015($handle) {
 			if( $step_code=='01_CREATE' && date('Y',$timestamp) < 2015 ) {
 				continue 2 ;
 			}
+			if( $step_code=='01_CREATE' ) {
+				$_field_DATE_ISSUE = date('Y-m-d H:i:s',$timestamp + (5*60*60)) ;
+			}
 		}
 		
 		// $filerecord_id = paracrm_lib_data_insertRecord_file($file_code,0,$main_row) ;
@@ -421,6 +427,9 @@ function specDbsEmbralam_mach_upload_ZLORSD015($handle) {
 		
 		$arr_update = array() ;
 		$arr_update['field_STEP_CURRENT'] = $main_row['field_STEP_CURRENT'] ;
+		if( $_field_DATE_ISSUE ) {
+			$arr_update['field_DATE_ISSUE'] = $_field_DATE_ISSUE ;
+		}
 		paracrm_lib_data_updateRecord_file( $file_code, $arr_update, $filerecord_id ) ;
 		
 		$arr_existing_ids = array() ;
@@ -481,7 +490,7 @@ function specDbsEmbralam_mach_upload_VL06F($handle, $VL06F_forceClosed) {
 		$data_header = array() ;
 		$data_header['field_DELIVERY_ID'] = $arr_csv[1] ;
 		$ttmp = date_create_from_format('d.m.Y', $arr_csv[7]);
-		$data_header['field_DATE_ISSUE'] = date_format($ttmp, 'Y-m-d');
+		$data_header['field_DATE_TOSHIP'] = date_format($ttmp, 'Y-m-d');
 		$data_header['field_PRIORITY'] = $arr_csv[10] ;
 		$data_header['field_FLOW'] = $arr_csv[13] ;
 		$data_header['field_BUSINESSUNIT'] = $arr_csv[16] ;
