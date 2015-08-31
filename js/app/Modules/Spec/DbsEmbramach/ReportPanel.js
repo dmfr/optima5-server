@@ -127,7 +127,35 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 				retValue = '<b>' + retValue + '</b>' ;
 			}
 			return retValue ;
-		}
+		} ;
+		var summaryTypeFn = function(records,values) {
+			return values ;
+		} ;
+		var summaryRendererFn = function(values, summaryData, field, meta) {
+			var column = this ;
+			
+			var retValue = 0 ;
+			if( column._shiftId ) {
+				retValue = 0 ;
+				Ext.Array.each( values, function(value) {
+					retValue += value.obj_shifts[column._shiftId].value_count ;
+				}) ;
+			} else {
+				retValue = 0 ;
+				Ext.Array.each( values, function(value) {
+					retValue += value.value_count ;
+				}) ;
+			}
+			
+			if( column._modePercent ) {
+				return '' ;
+			}
+			if( retValue == 0 ) {
+				return '' ;
+			}
+			meta.tdCls += ' op5-spec-dbsembramach-report-sums' ;
+			return retValue ;
+		} ;
 		
 		Ext.Array.each( jsonResponse.cfg.date, function(cfgDate) {
 			var objDate = Ext.Date.parse(cfgDate.date_start,'Y-m-d') ;
@@ -151,7 +179,9 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 						_modePercent: false,
 						width: 45,
 						align: 'center',
-						renderer: uniqueRenderer
+						renderer: uniqueRenderer,
+						summaryType: summaryTypeFn,
+						summaryRenderer: summaryRendererFn
 					},{
 						text: '%',
 						sortable: false,
@@ -162,7 +192,9 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 						_modePercent: true,
 						width: 45,
 						align: 'center',
-						renderer: uniqueRenderer
+						renderer: uniqueRenderer,
+						summaryType: summaryTypeFn,
+						summaryRenderer: summaryRendererFn
 					}]
 				}) ;
 			});
@@ -181,7 +213,9 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 					_modePercent: false,
 					width: 45,
 					align: 'center',
-					renderer: uniqueRenderer
+					renderer: uniqueRenderer,
+					summaryType: summaryTypeFn,
+					summaryRenderer: summaryRendererFn
 				},{
 					text: '%',
 					sortable: false,
@@ -192,7 +226,9 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 					_modePercent: true,
 					width: 45,
 					align: 'center',
-					renderer: uniqueRenderer
+					renderer: uniqueRenderer,
+					summaryType: summaryTypeFn,
+					summaryRenderer: summaryRendererFn
 				}]
 			}) ;
 			
@@ -255,7 +291,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 			enableLocking: true,
 			plugins: [],
 			features: [{
-				ftype: 'grouping',
+				ftype: 'groupingsummary',
 				hideGroupedHeader: false,
 				enableGroupingMenu: false,
 				enableNoGroups: false,
@@ -359,7 +395,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 						if( !timeValue.obj_shifts.hasOwnProperty(cfgShift.shift_id) ) {
 							timeValue.obj_shifts[cfgShift.shift_id] = {
 								value_count: 0,
-								value_total: 0,
+								value_total: 0
 							}
 						}
 						// dig information from sortObj
