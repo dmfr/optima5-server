@@ -61,7 +61,7 @@ function specDbsEmbralam_live_goAdr( $post_data ) {
 		}
 		$mvt_id = specDbsEmbralam_lib_proc_insertMvt( $form_data['mvt_obj'], $adr_obj['adr_id'] ) ;
 		$form_data['mvt_obj']['mvt_id'] = $mvt_id ;
-		$return = array('success'=>true, 'data'=>specDbsEmbralam_live_buildResponse($adr_obj['status'], $form_data['mvt_obj'], $adr_obj['adr_id'])) ;
+		$return = array('success'=>true, 'data'=>specDbsEmbralam_live_buildResponse($adr_obj['status'], $form_data['mvt_obj'], $adr_obj['adr_id'], $form_data['stockAttributes_obj'])) ;
 		break ;
 	}
 	specDbsEmbralam_lib_proc_lock_off() ;
@@ -81,9 +81,22 @@ function specDbsEmbralam_live_loadMvt( $post_data ) {
 		'mvt_qty' => $record['field_QTY']
 	);
 	$adr_id = $record['field_ADR_ID'] ;
+	
+	$stockAttributes_obj = array() ;
+	$record_adr = paracrm_lib_data_getRecord_bibleEntry('STOCK',$adr_id) ;
+	foreach( specDbsEmbralam_lib_stockAttributes_getStockAttributes() as $stockAttribute_obj ) {
+		$mkey = $stockAttribute_obj['mkey'] ;
+		$STOCK_fieldcode = $stockAttribute_obj['STOCK_fieldcode'] ;
+		
+		$stockAttributes_obj[$mkey] = '' ;
+		if( $ttmp = json_decode($record_adr[$STOCK_fieldcode],true) ) {
+			$stockAttributes_obj[$mkey] = reset($ttmp) ;
+		}
+	}
+	
 	return array(
 		'success' => true,
-		'data' => specDbsEmbralam_live_buildResponse('RELOAD',$mvt_obj,$adr_id)
+		'data' => specDbsEmbralam_live_buildResponse('RELOAD',$mvt_obj,$adr_id,$stockAttributes_obj)
 	) ;
 }
 
@@ -96,12 +109,16 @@ function specDbsEmbralam_live_deleteMvt( $post_data ) {
 	return array('success'=>true) ;
 }
 
-function specDbsEmbralam_live_buildResponse($status, $mvt_obj, $adr_id) {
-	return array(
+function specDbsEmbralam_live_buildResponse($status, $mvt_obj, $adr_id, $stockAttributes_obj=NULL) {
+	$return = array(
 		'status' => $status, // OK_NEW, OK_ADD, RELOAD, PROD_TOSET
 		'mvt_obj' => $mvt_obj,
 		'adr_id' => $adr_id
 	);
+	if( $stockAttributes_obj ) {
+		$return['stockAttributes_obj'] = $stockAttributes_obj ;
+	}
+	return $return ;
 }
 
 function specDbsEmbralam_live_goRelocate( $post_data ) {
@@ -144,7 +161,7 @@ function specDbsEmbralam_live_goRelocate( $post_data ) {
 		// recreate du MVT
 		$mvt_id = specDbsEmbralam_lib_proc_insertMvt( $previousMvt_obj, $adr_obj['adr_id'] ) ;
 		$previousMvt_obj['mvt_id'] = $mvt_id ;
-		$return = array('success'=>true, 'data'=>specDbsEmbralam_live_buildResponse($adr_obj['status'], $previousMvt_obj, $adr_obj['adr_id'])) ;
+		$return = array('success'=>true, 'data'=>specDbsEmbralam_live_buildResponse($adr_obj['status'], $previousMvt_obj, $adr_obj['adr_id'], $form_data['stockAttributes_obj'])) ;
 		
 		break ;
 	}
@@ -164,12 +181,13 @@ function specDbsEmbralam_live_getGrid($post_data) {
 	$forward_post['file_code'] = 'MVT' ;
 	$forward_post['sort'] = json_encode(array(array('property'=>'filerecord_id','direction'=>'DESC'))) ;
 	if( $post_data['filter_prod'] ) {
-		$filter = array() ;
-		$filter['field'] = 'MVT_field_PROD_ID' ;
-		$filter['type'] = 'list' ;
-		$filter['value'] = array($post_data['filter_prod']) ;
-		$filters = array($filter) ;
-		$forward_post['filter'] = json_encode($filters) ;
+		$forward_post['filter'] = json_encode(array(
+			array(
+				'operator' => 'in',
+				'property' => 'MVT_field_PROD_ID',
+				'value' => array( $post_data['filter_prod'] )
+			),
+		)) ;
 	}
 	$ttmp = paracrm_data_getFileGrid_data( $forward_post, $auth_bypass=TRUE ) ;
 	$paracrm_TAB = $ttmp['data'] ;

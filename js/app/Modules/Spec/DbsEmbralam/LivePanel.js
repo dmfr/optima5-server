@@ -384,7 +384,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.LivePanel',{
 		}
 	},
 	
-	onSelectProd: function(prodCode) {
+	onSelectProd: function(prodCode, ajaxData) {
 		var fsAttributes = this.down('#fsAttributes'),
 			fsDummy = this.down('#fsDummy') ;
 		
@@ -400,6 +400,11 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.LivePanel',{
 		fsAttributes.setVisible(false) ;
 		fsDummy.setVisible(true) ;
 		if( prodCode == null ) {
+			return ;
+		}
+		
+		if( ajaxData != null ) {
+			this.onLoadProd(ajaxData) ;
 			return ;
 		}
 		
@@ -651,6 +656,9 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.LivePanel',{
 		
 		// Set MVT_OBJ to readonly
 		Ext.Array.each( fsSKU.query('field'),function(field) {
+			if( !ajaxData.mvt_obj.hasOwnProperty(field.name) ) {
+				return ;
+			}
 			field.setReadOnly(true) ;
 			field.setValue( ajaxData.mvt_obj[field.name] ) ;
 		}) ;
@@ -678,11 +686,17 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.LivePanel',{
 			return ;
 		}
 		
-		this.onSelectProd( ajaxData.mvt_obj['prod_id'] ) ;
+		if( ajaxData.stockAttributes_obj ) {
+			var prodRecord = {
+				prod_id: ajaxData.mvt_obj['prod_id']
+			} ;
+			Ext.apply(prodRecord,ajaxData.stockAttributes_obj) ;
+			var prodRecords = [prodRecord] ;
+		}
+		this.onSelectProd( ajaxData.mvt_obj['prod_id'], prodRecords ) ;
+		
 		cntBefore.setVisible(false) ;
 		cntAfter.setVisible(true) ;
-		
-		this.optimaModule.postCrmEvent('datachange') ;
 		
 		switch( ajaxData.status ) {
 			case 'RELOAD' :
@@ -692,6 +706,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.LivePanel',{
 				break ;
 				
 			case 'OK_ADD' :
+				this.optimaModule.postCrmEvent('datachange') ;
 				fsResultCmp.update({
 					adr: ajaxData.adr_id,
 					caption: 'Ajout sur emplacement existant (P/N + Batch)'
@@ -699,6 +714,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.LivePanel',{
 				break ;
 				
 			case 'OK_NEW' :
+				this.optimaModule.postCrmEvent('datachange') ;
 				fsResultCmp.update({
 					adr: ajaxData.adr_id,
 					caption: 'Nouvel emplacement'
