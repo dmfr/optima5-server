@@ -20,7 +20,8 @@ Ext.define('DbsEmbramachMachFlowRowModel', {
 Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 	extend:'Ext.panel.Panel',
 	requires: [
-		'Ext.ux.chart.series.KPIGauge', 'Ext.ux.chart.axis.KPIGauge'
+		'Ext.ux.chart.series.KPIGauge', 'Ext.ux.chart.axis.KPIGauge',
+		'Ext.ux.grid.filters.filter.StringList'
 	],
 	
 	flowCode: null,
@@ -189,14 +190,14 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 			align: 'center',
 			tdCls: 'op5-spec-dbsembramach-bigcolumn',
 			filter: {
-				type: 'string'
+				type: 'stringlist'
 			}
 		},{
 			text: 'Customer',
 			dataIndex: 'shipto_txt',
 			width: 130,
 			filter: {
-				type: 'string'
+				type: 'stringlist'
 			}
 		},{
 			text: 'Process step',
