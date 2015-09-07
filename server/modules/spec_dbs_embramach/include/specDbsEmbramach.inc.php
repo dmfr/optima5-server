@@ -1,5 +1,5 @@
 <?php
-function specDbsEmbralam_mach_getGridCfg( $post_data ) {
+function specDbsEmbramach_mach_getGridCfg( $post_data ) {
 	global $_opDB ;
 	
 	$flow_code = $post_data['flow_code'] ;
@@ -40,10 +40,10 @@ function specDbsEmbralam_mach_getGridCfg( $post_data ) {
 	) ;
 }
 
-function specDbsEmbralam_mach_getGridData( $post_data ) {
+function specDbsEmbramach_mach_getGridData( $post_data ) {
 	global $_opDB ;
 	
-	$json_cfg = specDbsEmbralam_mach_getGridCfg( $post_data ) ;
+	$json_cfg = specDbsEmbramach_mach_getGridCfg( $post_data ) ;
 	$json_cfg_prio = array() ;
 	foreach( $json_cfg['data']['flow_prio'] as $prio_desc ) {
 		$json_cfg_prio[$prio_desc['prio_id']] = $prio_desc ;
@@ -264,7 +264,7 @@ function specDbsEmbralam_mach_getGridData( $post_data ) {
 		}
 	}
 	unset($row) ;
-	usort($TAB,'specDbsEmbralam_mach_getGridData_sort') ;
+	usort($TAB,'specDbsEmbramach_mach_getGridData_sort') ;
 	
 	
 	$TAB_gauges = array() ;
@@ -290,7 +290,7 @@ function specDbsEmbralam_mach_getGridData( $post_data ) {
 		'maj_date' => $maj_date
 	) ;
 }
-function specDbsEmbralam_mach_getGridData_sort( $row1, $row2 ) {
+function specDbsEmbramach_mach_getGridData_sort( $row1, $row2 ) {
 	if( $row1['status_closed'] != $row2['status_closed'] ) {
 		return $row1['status_closed'] - $row2['status_closed'] ;
 	}
@@ -305,7 +305,7 @@ function specDbsEmbralam_mach_getGridData_sort( $row1, $row2 ) {
 	return $row2['calc_lateness'] - $row1['calc_lateness'] ;
 }
 
-function specDbsEmbralam_mach_saveGridRow( $post_data ) {
+function specDbsEmbramach_mach_saveGridRow( $post_data ) {
 	global $_opDB ;
 	
 	$record = json_decode($post_data['data'],true) ;
@@ -320,7 +320,7 @@ function specDbsEmbralam_mach_saveGridRow( $post_data ) {
 }
 
 
-function specDbsEmbralam_mach_upload( $post_data ) {
+function specDbsEmbramach_mach_upload( $post_data ) {
 	if( $_FILES['file_upload'] ) {
 		$debug = file_get_contents($_FILES['file_upload']['tmp_name']) ;
 		$handle = fopen($_FILES['file_upload']['tmp_name'],"rb") ;
@@ -338,13 +338,13 @@ function specDbsEmbralam_mach_upload( $post_data ) {
 	
 	switch( $post_data['file_model'] ) {
 		case 'VL06F_active' :
-			specDbsEmbralam_mach_upload_VL06F($handle,FALSE) ;
+			specDbsEmbramach_mach_upload_VL06F($handle,FALSE) ;
 			break ;
 		case 'VL06F_closed' :
-			specDbsEmbralam_mach_upload_VL06F($handle,TRUE) ;
+			specDbsEmbramach_mach_upload_VL06F($handle,TRUE) ;
 			break ;
 		case 'ZLORSD015' :
-			specDbsEmbralam_mach_upload_ZLORSD015($handle) ;
+			specDbsEmbramach_mach_upload_ZLORSD015($handle) ;
 			break ;
 		default :
 			return array('success'=>false) ;
@@ -359,7 +359,7 @@ function specDbsEmbralam_mach_upload( $post_data ) {
 	
 	return array('success'=>true) ;
 }
-function specDbsEmbralam_mach_upload_ZLORSD015($handle) {
+function specDbsEmbramach_mach_upload_ZLORSD015($handle) {
 	global $_opDB ;
 	//paracrm_define_truncate( array('data_type'=>'file','file_code'=>'FLOW_PICKING') ) ;
 	
@@ -467,7 +467,7 @@ function specDbsEmbralam_mach_upload_ZLORSD015($handle) {
 	
 	// Après l'importation ZLORSD015
 	// => appel de la routine d'affichage / calcul MACH pour mise à jour du statut ACTIVE => CLOSED
-	specDbsEmbralam_mach_getGridData( array('flow_code'=>'PICKING') ) ;
+	specDbsEmbramach_mach_getGridData( array('flow_code'=>'PICKING') ) ;
 
 	return ;
 }
@@ -475,7 +475,7 @@ function specDbsEmbralam_mach_upload_ZLORSD015($handle) {
 
 
 
-function specDbsEmbralam_mach_upload_VL06F($handle, $VL06F_forceClosed) {
+function specDbsEmbramach_mach_upload_VL06F($handle, $VL06F_forceClosed) {
 	global $_opDB ;
 	
 	$file_code = 'FLOW_PICKING' ;

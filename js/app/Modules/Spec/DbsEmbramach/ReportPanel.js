@@ -80,7 +80,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 			cssRoot = '.color-'+cfgTat.color.substr(1,6) ;
 			cssBlob += cssRoot+" .x-grid-cell-inner { background-color:"+cfgTat.color+" }\r\n" ;
 		}) ;
-		Ext.util.CSS.createStyleSheet(cssBlob, 'op5specdbsembralamcolors-'+this.getId());
+		Ext.util.CSS.createStyleSheet(cssBlob, 'op5specdbsembramachcolors-'+this.getId());
 		
 		// create Model + Grid
 		var pushModelfields = [] ;
@@ -457,6 +457,6 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 	},
 	
 	onDestroy: function() {
-		
+		Ext.util.CSS.removeStyleSheet('op5specdbsembramachcolors-'+this.getId());
 	}
 });

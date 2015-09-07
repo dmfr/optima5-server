@@ -9,14 +9,14 @@ function backend_specific( $post_data )
 switch( $post_data['_action'] )
 {
 	case 'mach_getGridCfg' :
-	return specDbsEmbralam_mach_getGridCfg( $post_data ) ;
+	return specDbsEmbramach_mach_getGridCfg( $post_data ) ;
 	case 'mach_getGridData' :
-	return specDbsEmbralam_mach_getGridData( $post_data ) ;
+	return specDbsEmbramach_mach_getGridData( $post_data ) ;
 	case 'mach_saveGridRow' :
-	return specDbsEmbralam_mach_saveGridRow( $post_data ) ;
+	return specDbsEmbramach_mach_saveGridRow( $post_data ) ;
 	
 	case 'mach_upload' :
-	return specDbsEmbralam_mach_upload( $post_data ) ;
+	return specDbsEmbramach_mach_upload( $post_data ) ;
 	
 	case 'stats_getPicking' :
 	return specDbsEmbramach_stats_getPicking( $post_data ) ;

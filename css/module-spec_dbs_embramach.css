@@ -161,6 +161,24 @@
 	font-weight: bold;
 }
 
+.op5-spec-dbsembramach-colorinfo {
+	background: white
+}
+.op5-spec-dbsembramach-colorinfo-item {
+	position: relative;
+	padding-left: 24px ;
+	line-height: 24px ;
+	font-size: 8pt;
+}
+.op5-spec-dbsembramach-colorinfo-item-icon {
+	position: absolute ;
+	left: 4px ;
+	top: 4px ;
+	height: 16px;
+	width: 16px;
+	border: 1px solid #aaa ;
+}
+
 .op5-spec-dbsembramach-gridcell-bold-legend { 
 	border: 2px solid black;
 	font-weight: bold;
