@@ -70,6 +70,38 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachAdminPanel',{
 						}
 					}]
 				}]
+			},{
+				icon: 'images/op5img/ico_info_small.gif',
+				text: 'Légende',
+				menuAlign: 'tr-br?',
+				menu: {
+					xtype:'menu',
+					items:[{
+						xtype:'dataview',
+						cls: 'op5-spec-dbspeople-realcolorinfo',
+						tpl: new Ext.XTemplate(
+							'<tpl for=".">',
+								'<div class="op5-spec-dbspeople-realcolorinfo-item">',
+									'{text}',
+									'<div class="op5-spec-dbspeople-realcolorinfo-item-icon {iconCls}"></div>',
+								'</div>',
+							'</tpl>'
+						),
+						itemSelector: 'div.op5-spec-dbspeople-realcolorinfo-item',
+						store: {
+							fields: ['iconCls', 'text'],
+							data:[
+								{iconCls: 'op5-spec-dbsembramach-gridcell-green-legend', text:'On-time'},
+								{iconCls: 'op5-spec-dbsembramach-gridcell-orange-legend', text:'On-time, imminent ETA'},
+								{iconCls: 'op5-spec-dbsembramach-gridcell-red-legend', text:'Late'},
+								{iconCls: 'op5-spec-dbsembramach-gridcell-bold-legend', text:'Current step'},
+							]
+						},
+						//frame: true,
+						width:200,
+						height:200
+					}]
+				}
 			}]
 		}) ;
 		this.callParent() ;

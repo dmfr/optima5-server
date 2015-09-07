@@ -148,6 +148,20 @@
 	font-weight: bold;
 }
 
+.op5-spec-dbsembramach-gridcell-bold-legend { 
+	border: 2px solid black;
+	font-weight: bold;
+}
+.op5-spec-dbsembramach-gridcell-green-legend { 
+	background-color: #2AFF00;
+}
+.op5-spec-dbsembramach-gridcell-orange-legend { 
+	background-color: #FFB300;
+}
+.op5-spec-dbsembramach-gridcell-red-legend { 
+	background-color: #FF2B2B;
+}
+
 .op5-spec-dbsembramach-gridcell-done .x-grid-cell {
 	background-color: #C29FFF ;
 }
