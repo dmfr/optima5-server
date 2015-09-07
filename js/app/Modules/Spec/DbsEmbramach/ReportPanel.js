@@ -1,6 +1,7 @@
 Ext.define('DbsEmbramachReportRowModel', {
 	extend: 'Ext.data.Model',
 	fields: [
+		{name: '_is_footer', type:'boolean'},
 		{name: 'row_color', type:'string'},
 		{name: 'prio_id', type:'string'},
 		{name: 'prio_txt',  type: 'string'},
@@ -131,11 +132,14 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 			},
 			summaryType: 'count',
 			summaryRenderer: function(v) {
-				return 'Total heures :' ;
+				return '<i><b>Total</b></i>' ;
 			}
 		}] ;
 		
 		var uniqueRenderer = function(value, metaData, record, rowIndex, colIndex, store, view) {
+			if( record.data._is_footer ) {
+				return '' ;
+			}
 			var column = view.ownerCt.columns[colIndex] ;
 			if( column._shiftId ) {
 				retValue = value.obj_shifts[column._shiftId].value_count ;
@@ -179,7 +183,18 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 			}
 			
 			if( column._modePercent ) {
-				return '' ;
+				var footerRowRecord = column.up('grid').getStore().findRecord('_is_footer',true),
+					footerTimekeyObj = footerRowRecord.get(column._timeKey),
+					percentRetValue ;
+				if( column._shiftId ) {
+					percentRetValue = retValue / footerTimekeyObj.obj_shifts[column._shiftId].value_count ;
+				} else {
+					percentRetValue = retValue / footerTimekeyObj.value_count ;
+				}
+				if( isNaN(percentRetValue) || percentRetValue == 1 ) {
+					return '' ;
+				}
+				return Math.round(percentRetValue * 100) + '&#160;' + '%' ;
 			}
 			if( retValue == 0 ) {
 				return '' ;
@@ -407,6 +422,10 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 		
 		// create Records
 		var data = [], rowRecord ;
+		var footerRowRecord = {
+			_is_footer: true,
+			prio_id: 9
+		} ;
 		Ext.Array.each( jsonResponse.cfg.priority, function( cfgPriority ) {
 			Ext.Array.each( jsonResponse.cfg.tat, function( cfgTat ) {
 				if( cfgTat.prio_id != cfgPriority.prio_id ) {
@@ -445,12 +464,34 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 							timeValue.value_total += sortObj[sortKey] ;
 							timeValue.obj_shifts[cfgShift.shift_id].value_total += sortObj[sortKey] ;
 						}
+						
+						
+						
+						// Footer row
+						if( !footerRowRecord.hasOwnProperty(timeKey) ) {
+							footerRowRecord[timeKey] = {
+								value_count: 0,
+								obj_shifts: {}
+							};
+						}
+						if( !footerRowRecord[timeKey].obj_shifts.hasOwnProperty(cfgShift.shift_id) ) {
+							footerRowRecord[timeKey].obj_shifts[cfgShift.shift_id] = {
+								value_count: 0
+							} ;
+						}
+						
+						sortKey = [cfgPriority.prio_id,cfgTat.tat_code,timeKey,cfgShift.shift_id].join('%%') ;
+						if( sortObj.hasOwnProperty(sortKey) ) {
+							footerRowRecord[timeKey].value_count += sortObj[sortKey] ;
+							footerRowRecord[timeKey].obj_shifts[cfgShift.shift_id].value_count += sortObj[sortKey] ;
+						}
 					}) ;
 					rowRecord[timeKey] = timeValue ;
 				}) ;
 				
 				data.push(rowRecord) ;
 			});
+			data.push(footerRowRecord) ;
 		});
 		
 		this.down('grid').getStore().loadData(data) ;
