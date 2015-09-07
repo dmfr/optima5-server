@@ -203,6 +203,13 @@
 	font-size: 12px;
 }
 
+.op5-spec-dbsembramach-report-column-separator-outer {
+	border-right: 2px solid gray !important;
+}
+.op5-spec-dbsembramach-report-column-separator-inner {
+	border-right: 1px solid gray !important;
+}
+
 .op5-spec-dbsembramach-report-clock {
 	background-image: url("../images/modules/dbsembramach-clock-16.png") !important;
 }

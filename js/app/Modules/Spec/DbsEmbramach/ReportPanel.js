@@ -225,7 +225,9 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 						align: 'center',
 						renderer: uniqueRenderer,
 						summaryType: summaryTypeFn,
-						summaryRenderer: summaryRendererFn
+						summaryRenderer: summaryRendererFn,
+						
+						tdCls: 'op5-spec-dbsembramach-report-column-separator-inner'
 					}]
 				}) ;
 			});
@@ -259,7 +261,9 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 					align: 'center',
 					renderer: uniqueRenderer,
 					summaryType: summaryTypeFn,
-					summaryRenderer: summaryRendererFn
+					summaryRenderer: summaryRendererFn,
+					
+					tdCls: 'op5-spec-dbsembramach-report-column-separator-outer'
 				}]
 			}) ;
 			
