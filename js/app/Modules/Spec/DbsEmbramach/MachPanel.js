@@ -44,6 +44,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 						'<div class="op5-spec-embramach-banner-left">',
 							'<div class="op5-spec-embramach-banner-logo"></div>',
 							'<div class="op5-spec-embramach-banner-title">MACH</div>',
+							'<div class="op5-spec-embramach-banner-titlecaption">(Material Availability Chronometer Hub)</div>',
 						'</div>',
 						'<div class="op5-spec-embramach-banner-right">',
 							'<div class="op5-spec-embramach-banner-people">Update&nbsp:&nbsp;<b><font color="red">{maj_txt}</font></b></div>',

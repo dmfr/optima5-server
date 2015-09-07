@@ -72,6 +72,8 @@
 }
 .op5-spec-embramach-banner-left {
 	float: left;
+	padding-top: 16px;
+	padding-right: 6px ;
 }
 .op5-spec-embramach-banner-right {
 	float: right;
@@ -85,14 +87,25 @@
 	background-image: url("../images/modules/dbsembramach-logo.png") !important;
 	background-position: center center ;
 	background-repeat: no-repeat;
+	float: left;
 }
 .op5-spec-embramach-banner-title {
 	text-align: left;
-	line-height: 40px;
-	font-size: 24px;
+	line-height: 48px;
+	font-size: 32px;
 	font-weight: bold ;
 	font-family: 'Droid Sans';
-	padding: 0px 16px
+	padding: 0px 48px ;
+	float: left;
+}
+.op5-spec-embramach-banner-titlecaption {
+	text-align: left;
+	line-height: 48px;
+	font-size: 16px;
+	font-weight: bold ;
+	font-family: 'Droid Sans';
+	padding: 0px 16px ;
+	float: left;
 }
 .op5-spec-embramach-banner-blue {
 	background-color: #010066 ;
