@@ -417,15 +417,25 @@ function specDbsEmbramach_mach_upload_ZLORSD015($handle) {
 			}
 			$main_row['field_STEP_CURRENT'] = $step_code ;
 			
+			// Adjust timezone -4(BR) >> +1(FR)
+			$timestamp = $timestamp + (5*60*60) ;
+			
 			$steps_arrRow[] = array(
 				'field_STEP' => $step_code,
-				'field_DATE' => date('Y-m-d H:i:s',$timestamp + (5*60*60))
+				'field_DATE' => date('Y-m-d H:i:s',$timestamp)
 			);
 			if( $step_code=='01_CREATE' && date('Y',$timestamp) < 2015 ) {
 				continue 2 ;
 			}
 			if( $step_code=='01_CREATE' ) {
-				$_field_DATE_ISSUE = date('Y-m-d H:i:s',$timestamp + (5*60*60)) ;
+				$_field_DATE_ISSUE = date('Y-m-d H:i:s',$timestamp) ;
+			}
+			
+			if( $step_code=='04_ASM_END' && trim($main_row['field_TYPE'])=='ZLT1' ) {
+				$steps_arrRow[] = array(
+					'field_STEP' => '09_INVOICE',
+					'field_DATE' => date('Y-m-d H:i:s',$timestamp)
+				);
 			}
 		}
 		
