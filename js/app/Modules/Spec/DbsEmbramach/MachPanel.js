@@ -429,6 +429,12 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 	doLoad: function(doReset) {
 		this.autoRefreshTask.cancel() ;
 		
+		Ext.Array.each( this.down('#pGrid').getColumns(), function(column) {
+			if( column.filter && column.filter.type == 'stringlist' ) {
+				column.filter.resetList() ; // HACK!
+			}
+		}) ;
+		
 		this.showLoadmask() ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {

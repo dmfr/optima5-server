@@ -67,6 +67,10 @@ Ext.define('Ext.ux.grid.filters.filter.StringList', {
 			single:true
 		}) ;
 	},
+	resetList: function() {
+		var gridStore = this.getGridStore() ;
+		gridStore.on('datachanged', this.onStoreDataChanged, this, {single:true}) ;
+	},
 	onStoreDataChanged: function(gridStore) {
 		var listStr = [],
 			storeData = gridStore.getData().getSource() || gridStore.getData(),
