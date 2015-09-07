@@ -13,6 +13,8 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 	extend:'Ext.panel.Panel',
 	requires: [],
 	
+	viewMode: 'day',
+	
 	initComponent: function() {
 		Ext.apply(this,{
 			layout: 'fit',
@@ -37,10 +39,37 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 					this.doRefresh() ;
 				},
 				scope: this
+			},{
+				iconCls: 'op5-spec-dbsembramach-report-clock',
+				itemId: 'tbViewmode',
+				viewConfig: {forceFit: true},
+				menu: {
+					defaults: {
+						handler:function(menuitem) {
+							//console.log('ch view '+menuitem.itemId) ;
+							this.onViewSet( menuitem.itemId ) ;
+						},
+						scope:this
+					},
+					items: [{
+						itemId: 'day',
+						text: 'by Day',
+						iconCls: 'op5-spec-dbsembramach-report-view-day'
+					},{
+						itemId: 'week',
+						text: 'by Week',
+						iconCls: 'op5-spec-dbsembramach-report-view-week'
+					},{
+						itemId: 'month',
+						text: 'by Month',
+						iconCls: 'op5-spec-dbsembramach-report-view-month'
+					}]
+				}
 			}]
 		});
 		
 		this.callParent() ;
+		this.updateToolbar() ;
 		
 		this.tmpModelName = 'DbsEmbramachReportRowModel-' + this.getId() ;
 		this.on('destroy',function(p) {
@@ -56,17 +85,19 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 			params: {
 				_moduleId: 'spec_dbs_embramach',
 				_action: 'stats_getPicking',
-				flow_code: this.flowCode
+				flow_code: this.flowCode,
+				cfg_date: this.viewMode
 			},
 			success: function(response) {
 				var jsonResponse = Ext.JSON.decode(response.responseText) ;
 				if( jsonResponse.success != true ) {
+					this.removeAll() ;
 					return ;
 				}
 				this.onConfigure( jsonResponse ) ;
 			},
 			callback: function() {
-				//this.hideLoadmask() ;
+				this.hideLoadmask() ;
 			},
 			scope: this
 		}) ;
@@ -158,7 +189,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 		} ;
 		
 		Ext.Array.each( jsonResponse.cfg.date, function(cfgDate) {
-			var objDate = Ext.Date.parse(cfgDate.date_start,'Y-m-d') ;
+			var timeTitle = cfgDate.time_title,
 				timeKey = cfgDate.time_key;
 				
 			var childColumns = [] ;
@@ -233,7 +264,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 			}) ;
 			
 			columns.push({
-				text: '<b>'+Ext.Date.format(objDate,'l') + ' ' + Ext.Date.format(objDate,'d/m')+'</b>',
+				text: '<b>'+timeTitle+'</b>',
 				_timeKey: timeKey,
 				menuDisabled: true,
 				columns: childColumns
@@ -331,7 +362,8 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 			params: {
 				_moduleId: 'spec_dbs_embramach',
 				_action: 'stats_getPicking',
-				flow_code: this.flowCode
+				flow_code: this.flowCode,
+				cfg_date: this.viewMode
 			},
 			success: function(response) {
 				var jsonResponse = Ext.JSON.decode(response.responseText) ;
@@ -421,6 +453,29 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 	},
 	
 	
+	onViewSet: function( viewId ) {
+		var tbViewmode = this.child('toolbar').getComponent('tbViewmode'),
+			tbViewmodeItem = tbViewmode.menu.getComponent(viewId),
+			iconCls, text ;
+		if( tbViewmodeItem ) {
+			var oldViewMode = this.viewMode ;
+			this.viewMode = viewId ;
+		}
+		
+		this.updateToolbar() ;
+		this.showLoadmask() ;
+		this.doConfigure() ;
+	},
+	updateToolbar: function(doActivate) {
+		var tbViewmode = this.child('toolbar').getComponent('tbViewmode') ;
+		
+		// View mode
+		var tbViewmodeItem = tbViewmode.menu.getComponent(this.viewMode) ;
+		if( tbViewmodeItem ) {
+			tbViewmode.setText( 'View :'+'&#160;'+'<b>' + tbViewmodeItem.text + '</b>' );
+			tbViewmode.setIconCls( tbViewmodeItem.iconCls );
+		}
+	},
 	
 	
 	doQuit: function() {

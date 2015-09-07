@@ -1,5 +1,5 @@
 <?php
-function specDbsEmbramach_stats_getPicking() {
+function specDbsEmbramach_stats_getPicking($post_data) {
 	global $_opDB ;
 	
 	$flow_code = 'PICKING' ;
@@ -7,18 +7,69 @@ function specDbsEmbramach_stats_getPicking() {
 	
 	$params_date = array() ;
 	$cur_date = date('Y-m-d') ;
-	while( TRUE ) {
-		$params_date[] = array(
-			'time_key' => 'd_'.date('Ymd',strtotime($cur_date)),
-			'time_title' => $cur_date,
-			'date_start' => $cur_date,
-			'date_end' => $cur_date
-		);
-		
-		$cur_date = date('Y-m-d',strtotime('-1 day',strtotime($cur_date))) ;
-		if( $cur_date < date('Y-m-d',strtotime('-7 days')) ) {
+	switch( $post_data['cfg_date'] ) {
+		case 'day' :
+			while( TRUE ) {
+				$params_date[] = array(
+					'time_key' => 'd_'.date('Ymd',strtotime($cur_date)),
+					'time_title' => date('l d/m',strtotime($cur_date)),
+					'date_start' => $cur_date,
+					'date_end' => $cur_date
+				);
+				
+				$cur_date = date('Y-m-d',strtotime('-1 day',strtotime($cur_date))) ;
+				if( $cur_date < date('Y-m-d',strtotime('-7 days')) ) {
+					break ;
+				}
+			}
 			break ;
-		}
+			
+		case 'week' :
+			while( TRUE ) {
+				// Rollback to monday
+				if( date('N',strtotime($cur_date)) == 1 ) {
+					break ;
+				}
+				$cur_date = date('Y-m-d',strtotime('-1 day',strtotime($cur_date))) ;
+			}
+			while( TRUE ) {
+				$params_date[] = array(
+					'time_key' => 'd_'.date('Ymd',strtotime($cur_date)),
+					'time_title' => 'Week '.date('W - o',strtotime($cur_date)),
+					'date_start' => $cur_date,
+					'date_end' => date('Y-m-d',strtotime('+6 days',strtotime($cur_date)))
+				);
+				
+				$cur_date = date('Y-m-d',strtotime('-1 week',strtotime($cur_date))) ;
+				if( $cur_date < date('Y-m-d',strtotime('-10 weeks')) ) {
+					break ;
+				}
+			}
+			break ;
+			
+		case 'month' :
+			while( TRUE ) {
+				// Rollback to first day of month
+				$cur_date = date('Y-m-01',strtotime($cur_date)) ;
+				break ;
+			}
+			while( TRUE ) {
+				$params_date[] = array(
+					'time_key' => 'd_'.date('Ymd',strtotime($cur_date)),
+					'time_title' => date('F Y',strtotime($cur_date)),
+					'date_start' => $cur_date,
+					'date_end' => date('Y-m-t',strtotime($cur_date))
+				);
+				
+				$cur_date = date('Y-m-d',strtotime('-1 month',strtotime($cur_date))) ;
+				if( $cur_date < date('Y-m-d',strtotime('-12 months')) ) {
+					break ;
+				}
+			}
+			break ;
+			
+		default :
+			return array('success'=>false) ;
 	}
 	
 	$params_priority = array() ;

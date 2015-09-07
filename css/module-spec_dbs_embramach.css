@@ -203,3 +203,15 @@
 	font-size: 12px;
 }
 
+.op5-spec-dbsembramach-report-clock {
+	background-image: url("../images/modules/dbsembramach-clock-16.png") !important;
+}
+.op5-spec-dbsembramach-report-view-day {
+	background-image: url("../images/modules/dbsembramach-calendar-day-16.png") !important;
+}
+.op5-spec-dbsembramach-report-view-week {
+	background-image: url("../images/modules/dbsembramach-calendar-week-16.png") !important;
+}
+.op5-spec-dbsembramach-report-view-month {
+	background-image: url("../images/modules/dbsembramach-calendar-month-16.png") !important;
+}
