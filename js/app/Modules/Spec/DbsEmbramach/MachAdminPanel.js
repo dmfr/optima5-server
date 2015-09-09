@@ -18,6 +18,13 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachAdminPanel',{
 					this.doRefresh() ;
 				},
 				scope: this
+			},{
+				iconCls: 'op5-crmbase-datatoolbar-refresh',
+				text: 'Refresh',
+				handler: function() {
+					console.dir( this.down('#pGrid').getStore().getFilters() ) ;
+				},
+				scope: this
 			},'->',{
 				itemId: 'tbUpload',
 				iconCls: 'op5-spec-mrfoxy-promorow-action-icon-attachments',

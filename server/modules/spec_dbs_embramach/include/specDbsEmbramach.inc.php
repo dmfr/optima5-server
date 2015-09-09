@@ -56,10 +56,33 @@ function specDbsEmbramach_mach_getGridData( $post_data ) {
 		$map_stepCode_stepTxt[$arr['field_STEP_CODE']] = $arr['field_STEP_TXT'] ;
 	}
 	
+	// HACK!!
+	if( $filters = json_decode($post_data['filters'],true) ) {
+		$_filter_filerecordIds = array() ;
+		$query = "SELECT filerecord_id FROM view_file_FLOW_PICKING
+					WHERE filerecord_id IN (select filerecord_parent_id FROM view_file_FLOW_PICKING_STEP WHERE field_STEP='01_CREATE' AND DATE(field_DATE) BETWEEN '{$filters['date_start']}' AND '{$filters['date_end']}')
+					AND field_STATS_TAT='{$filters['tat_code']}' AND field_PRIORITY='{$filters['prio_id']}'" ;
+		if( $filters['shift_id'] ) {
+			$query.= " AND field_STATS_SHIFT='{$filters['shift_id']}'" ;
+		}
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$_filter_filerecordIds[] = $arr[0] ;
+		}
+	}
+	
 	
 	$TAB = array() ;
 	
-	$query = "SELECT * FROM view_file_FLOW_PICKING ORDER BY filerecord_id DESC" ;
+	$query = "SELECT * FROM view_file_FLOW_PICKING" ;
+	if( isset($_filter_filerecordIds) ) {
+		if( $_filter_filerecordIds ) {
+			$query.= " WHERE filerecord_id IN ".$_opDB->makeSQLlist($_filter_filerecordIds) ;
+		} else {
+			$query.= " WHERE 0" ;
+		}
+	}
+	$query.= " ORDER BY filerecord_id DESC" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$filerecord_id = $arr['filerecord_id'] ;
@@ -68,7 +91,7 @@ function specDbsEmbramach_mach_getGridData( $post_data ) {
 			case 'ACTIVE' :
 				break ;
 			case 'CLOSED' :
-				if( strtotime($arr['field_DATE_CLOSED']) < time() - (3600*24) ) {
+				if( !$_filter_filerecordIds && strtotime($arr['field_DATE_CLOSED']) < time() - (3600*24) ) {
 					continue 2 ;
 				}
 				break ;

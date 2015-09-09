@@ -184,7 +184,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 			
 			if( column._modePercent ) {
 				var footerRowRecord = column.up('grid').getStore().findRecord('_is_footer',true),
-					footerTimekeyObj = footerRowRecord.get(column._timeKey),
+					footerTimekeyObj = footerRowRecord.get(column.dataIndex),
 					percentRetValue ;
 				if( column._shiftId ) {
 					percentRetValue = retValue / footerTimekeyObj.obj_shifts[column._shiftId].value_count ;
@@ -205,6 +205,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 		
 		Ext.Array.each( jsonResponse.cfg.date, function(cfgDate) {
 			var timeTitle = cfgDate.time_title,
+				timeObj = cfgDate,
 				timeKey = cfgDate.time_key;
 				
 			var childColumns = [] ;
@@ -212,7 +213,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 				childColumns.push({
 					text: 'shift : <b>'+cfgShift.shift_txt+'</b>',
 					align: 'center',
-					_timeKey: timeKey,
+					_timeObj: timeObj,
 					_shiftId: cfgShift.shift_id,
 					menuDisabled: true,
 					columns: [{
@@ -220,7 +221,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 						sortable: false,
 						dataIndex: timeKey,
 						menuDisabled: true,
-						_timeKey: timeKey,
+						_timeObj: timeObj,
 						_shiftId: cfgShift.shift_id,
 						_modePercent: false,
 						width: 45,
@@ -233,7 +234,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 						sortable: false,
 						dataIndex: timeKey,
 						menuDisabled: true,
-						_timeKey: timeKey,
+						_timeObj: timeObj,
 						_shiftId: cfgShift.shift_id,
 						_modePercent: true,
 						width: 45,
@@ -249,14 +250,14 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 			childColumns.push({
 				text: '<b>All day</b>',
 				align: 'center',
-				_timeKey: timeKey,
+				_timeObj: timeObj,
 				menuDisabled: true,
 				columns: [{
 					text: 'Nb',
 					sortable: false,
 					dataIndex: timeKey,
 					menuDisabled: true,
-					_timeKey: timeKey,
+					_timeObj: timeObj,
 					_shiftId: null,
 					_modePercent: false,
 					width: 45,
@@ -269,7 +270,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 					sortable: false,
 					dataIndex: timeKey,
 					menuDisabled: true,
-					_timeKey: timeKey,
+					_timeObj: timeObj,
 					_shiftId: null,
 					_modePercent: true,
 					width: 45,
@@ -284,7 +285,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 			
 			columns.push({
 				text: '<b>'+timeTitle+'</b>',
-				_timeKey: timeKey,
+				_timeObj: timeObj,
 				menuDisabled: true,
 				columns: childColumns
 			});
@@ -363,7 +364,26 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 				)
 			}],
 			columns: columns,
-			listeners: {},
+			listeners: {
+				itemclick: function( gridview, record, node, index, e ) {
+					var cellNode = e.getTarget(gridview.cellSelector),
+						column = gridview.getHeaderByCell(cellNode),
+						value = record.get(column.dataIndex) ;
+					if( !value || !value.value_count || value.value_count <= 0 ) {
+						return ;
+					}
+					
+					var machFilters = {
+						prio_id: record.get('prio_id'),
+						tat_code: record.get('tat_code'),
+						date_start: column._timeObj.date_start,
+						date_end: column._timeObj.date_end,
+						shift_id: column._shiftId
+					} ;
+					this.openMachPopup(machFilters) ;
+				},
+				scope: this
+			},
 			viewConfig: {
 				preserveScrollOnRefresh: true,
 				getRowClass: function(record, index, rowParams, ds) {
@@ -554,6 +574,51 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 			this.loadMask.destroy() ;
 			this.loadMask = null ;
 		}
+	},
+	
+	
+	openMachPopup: function(machFilters) {
+		if( this.machPopup ) {
+			this.machPopup.destroy() ;
+		}
+		
+		var panelSize = this.getSize() ;
+		this.machPopup = Ext.create('Ext.panel.Panel',{
+			width: panelSize.width,
+			height: panelSize.height,
+			
+			floating: true,
+			renderTo: this.getEl(),
+			tools: [{
+				type: 'close',
+				handler: function(e, t, p) {
+					p.ownerCt.destroy();
+				}
+			}],
+			
+			layout: 'fit',
+			items: [Ext.create('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
+				optimaModule: this.optimaModule,
+				noDestroy: false,
+				flowCode: 'PICKING',
+				
+				_popupMode: true,
+				_popupFilters: machFilters
+			})]
+		});
+
+		// Size + position
+		this.machPopup.setSize({
+			width: this.getSize().width - 60,
+			height: this.getSize().height - 60
+		}) ;
+		this.machPopup.on('destroy',function() {
+			this.getEl().unmask() ;
+		},this,{single:true}) ;
+		this.getEl().mask() ;
+		
+		this.machPopup.show();
+		this.machPopup.getEl().alignTo(this.getEl(), 'c-c?');
 	},
 	
 	onDestroy: function() {

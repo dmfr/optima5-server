@@ -26,6 +26,9 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 	
 	flowCode: null,
 	
+	_popupMode: false,
+	_popupFilters: null,
+	
 	autoRefreshDelay: (5*60*1000),
 	autoRefreshTask: null,
 	
@@ -34,6 +37,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 			bodyCls: 'ux-noframe-bg',
 			layout: 'border',
 			items: [{
+				hidden: this._popupMode,
 				region: 'north',
 				itemId: 'pBanner',
 				height: 116,
@@ -61,6 +65,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 				border: false,
 				itemId: 'pCenter'
 			},{
+				hidden: this._popupMode,
 				region: 'east',
 				width: 175,
 				layout: 'fit',
@@ -287,7 +292,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 		});
 		
 		var columnDefaults = {
-			menuDisabled: false,
+			menuDisabled: (this._popupMode ? true : false),
 			draggable: false,
 			sortable: true,
 			hideable: false,
@@ -440,7 +445,8 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 			params: {
 				_moduleId: 'spec_dbs_embramach',
 				_action: 'mach_getGridData',
-				flow_code: this.flowCode
+				flow_code: this.flowCode,
+				filters: ( this._popupMode ? Ext.JSON.encode(this._popupFilters) : null )
 			},
 			success: function(response) {
 				var jsonResponse = Ext.JSON.decode(response.responseText) ;
