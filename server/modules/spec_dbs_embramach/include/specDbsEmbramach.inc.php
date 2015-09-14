@@ -58,17 +58,25 @@ function specDbsEmbramach_mach_getGridData( $post_data ) {
 	
 	// HACK!!
 	if( $filters = json_decode($post_data['filters'],true) ) {
-		$_filter_filerecordIds = array() ;
+		$_filter1 = $filter2 = array() ;
 		$query = "SELECT filerecord_id FROM view_file_FLOW_PICKING
-					WHERE filerecord_id IN (select filerecord_parent_id FROM view_file_FLOW_PICKING_STEP WHERE field_STEP='01_CREATE' AND DATE(field_DATE) BETWEEN '{$filters['date_start']}' AND '{$filters['date_end']}')
-					AND field_STATS_TAT='{$filters['tat_code']}' AND field_PRIORITY='{$filters['prio_id']}'" ;
+					WHERE field_STATS_TAT='{$filters['tat_code']}' AND field_PRIORITY='{$filters['prio_id']}'" ;
 		if( $filters['shift_id'] ) {
 			$query.= " AND field_STATS_SHIFT='{$filters['shift_id']}'" ;
 		}
 		$result = $_opDB->query($query) ;
 		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
-			$_filter_filerecordIds[] = $arr[0] ;
+			$_filter1[] = $arr[0] ;
 		}
+
+
+		$query = "select filerecord_parent_id FROM view_file_FLOW_PICKING_STEP WHERE field_STEP='01_CREATE' AND DATE(field_DATE) BETWEEN '{$filters['date_start']}' AND '{$filters['date_end']}'";
+		$result = $_opDB->query($query) ;
+                while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+                        $_filter2[] = $arr[0] ;
+                }
+
+		$_filter_filerecordIds = array_intersect($_filter1,$_filter2) ;
 	}
 	
 	
