@@ -65,9 +65,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhCalcAttributePanel',{
 		
 		this.callParent() ;
 		
-		if( this.data ) {
-			this.down('#pHeader').update(this.data) ;
-			this.down('grid').getStore().loadData( this.data.rows ) ;
+		if( this.panelData ) {
+			this.down('#pHeader').update(this.panelData) ;
+			this.down('grid').getStore().loadData( this.panelData.rows ) ;
 		}
 	},
 	initHeaderCfg: function() {

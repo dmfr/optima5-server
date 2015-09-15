@@ -34,7 +34,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhCalcAttributesPanel',{
 			attributePanels.push( Ext.create('Optima5.Modules.Spec.DbsPeople.RhCalcAttributePanel',{
 				itemId: peopleCalcAttributeData.people_calc_attribute,
 				title: peopleCalcAttributeData.people_calc_attribute,
-				data: peopleCalcAttributeData
+				panelData: peopleCalcAttributeData
 			}));
 		}) ;
 		
