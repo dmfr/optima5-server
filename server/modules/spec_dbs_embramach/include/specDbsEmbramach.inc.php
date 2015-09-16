@@ -184,7 +184,7 @@ function specDbsEmbramach_mach_getGridData( $post_data ) {
 					$ACTUAL_timestamp = strtotime($row['obj_steps'][$step_milestone]) ;
 					$this_milestone['ACTUAL_timestamp'] = $ACTUAL_timestamp ;
 					$this_milestone['ACTUAL_dateSql'] = date('Y-m-d H:i:s',$ACTUAL_timestamp) ;
-					$total_spent_time_s += ($ACTUAL_timestamp - $lastStep_timestamp) ;
+					$total_spent_time_s += max(0,($ACTUAL_timestamp - $lastStep_timestamp)) ;
 					if( $ACTUAL_timestamp > $ETA_timestamp ) {
 						$this_milestone['color'] = 'red' ;
 					} elseif( $ETA_timestamp - $ACTUAL_timestamp < (15*60) ) {
