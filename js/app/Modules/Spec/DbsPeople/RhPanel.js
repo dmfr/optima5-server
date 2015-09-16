@@ -37,6 +37,7 @@ Ext.define('DbsPeopleRhPeopleModel', {
 	extend: 'Ext.data.Model',
 	idProperty: 'people_code',
 	fields: [
+		{name: '_is_new',  type: 'boolean'},
 		{name: 'status_out',  type: 'boolean'},
 		{name: 'status_undefined',  type: 'boolean'},
 		{name: 'status_incident',  type: 'boolean'},
@@ -660,7 +661,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 	},
 	
 	onNewPeople: function() {
-		var newPeopleRecord = Ext.ux.dams.ModelManager.create('DbsPeopleRhPeopleModel',{}) ;
+		var newPeopleRecord = Ext.ux.dams.ModelManager.create('DbsPeopleRhPeopleModel',{_is_new:true}) ;
 		this.setFormRecord(newPeopleRecord) ;
 	},
 	onItemClick: function( view, record, itemNode, index, e ) {
@@ -709,7 +710,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 		}
 		
 		var title ;
-		if( peopleRecord.getId() == null ) {
+		if( peopleRecord.get('_is_new') ) {
 			title = 'Création People' ;
 		} else {
 			title = 'Modification: '+peopleRecord.get('people_name') ;

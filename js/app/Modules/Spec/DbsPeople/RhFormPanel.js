@@ -286,7 +286,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhFormPanel',{
 		}
 	},
 	setPeopleRecord: function( peopleRecord ) {
-		this.peopleCode = peopleRecord.getId() ;
+		this.peopleCode = (peopleRecord.get('_is_new') ? null : peopleRecord.getId()) ;
 		
 		var recordData = peopleRecord.getData() ;
 		Ext.Array.each( Optima5.Modules.Spec.DbsPeople.HelperCache.getPeopleFields(), function( peopleField ) {
