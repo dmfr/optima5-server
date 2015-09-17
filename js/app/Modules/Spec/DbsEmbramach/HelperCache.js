@@ -21,11 +21,51 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.HelperCache',{
 		me.isReady = false ;
 		
 		Ext.defer(function() {
-			me.libCount = 0 ;
+			me.libCount = 1 ;
 			
-			me.isReady=true ;
-			me.fireEvent('ready',this) ;
+			me.authHelperInit() ;
 		},1000,me) ;
+	},
+	
+	authHelperInit: function() {
+		var me = this ;
+		
+		// Query Bible
+		var ajaxParams = {} ;
+		Ext.apply( ajaxParams, {
+			_moduleId: 'spec_dbs_embramach',
+			_action: 'cfg_getAuth'
+		});
+		me.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams ,
+			success: function(response) {
+				var ajaxData = Ext.decode(response.responseText) ;
+				if( ajaxData.success == false ) {
+					Ext.Msg.alert('Failed', 'Unknown error');
+				}
+				else {
+					me.authPage = ajaxData.authPage ;
+				}
+				
+				me.onLibLoad() ;
+			},
+			scope: me
+		});
+	},
+	authHelperHasAll: function() {
+		var me = this ;
+		if( me.optimaModule.getSdomainRecord().get('auth_has_all') ) {
+			return true ;
+		}
+		return false ;
+	},
+	authHelperQueryPage: function( pageCode ) {
+		var me = this ;
+			
+		if( me.optimaModule.getSdomainRecord().get('auth_has_all') ) {
+			return true ;
+		}
+		return ( !Ext.isEmpty(me.authPage) && Ext.Array.contains( me.authPage, pageCode ) ) ;
 	},
 	
 	onLibLoad: function() {

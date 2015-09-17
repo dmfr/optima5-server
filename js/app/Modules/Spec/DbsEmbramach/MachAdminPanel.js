@@ -19,6 +19,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachAdminPanel',{
 				},
 				scope: this
 			},'->',{
+				hidden: !Optima5.Modules.Spec.DbsEmbramach.HelperCache.authHelperHasAll(),
 				itemId: 'tbUpload',
 				iconCls: 'op5-spec-mrfoxy-promorow-action-icon-attachments',
 				text: '<b>Upload Document</b>',

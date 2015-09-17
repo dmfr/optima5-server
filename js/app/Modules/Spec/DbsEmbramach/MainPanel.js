@@ -43,8 +43,8 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MainPanel',{
 				scope: me
 			}
 		}) ;
-		if( !this.optimaModule.getSdomainRecord().get('auth_has_all') ) {
-			return this.switchToAppPanel('Optima5.Modules.Spec.DbsEmbramach.MachAdminPanel',{flowCode: 'PICKING'},true) ;
+		if( !Optima5.Modules.Spec.DbsEmbramach.HelperCache.authHelperQueryPage('ALL') ) {
+			return this.switchToAppPanel('Optima5.Modules.Spec.DbsEmbramach.MachAdminPanel',{flowCode: 'PICKING',_readonlyMode:true},true) ;
 		}
 		this.removeAll() ;
 		this.add( mainMenuView ) ;

@@ -8,6 +8,9 @@ function backend_specific( $post_data )
 {
 switch( $post_data['_action'] )
 {
+	case 'cfg_getAuth' :
+	return specDbsEmbramach_cfg_getAuth( $post_data ) ;
+	
 	case 'mach_getGridCfg' :
 	return specDbsEmbramach_mach_getGridCfg( $post_data ) ;
 	case 'mach_getGridData' :

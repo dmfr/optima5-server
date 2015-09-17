@@ -292,9 +292,9 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 		});
 		
 		var columnDefaults = {
-			menuDisabled: (this._popupMode ? true : false),
+			menuDisabled: (this._popupMode || this._readonlyMode ? true : false),
 			draggable: false,
-			sortable: true,
+			sortable: (this._readonlyMode ? false : true),
 			hideable: false,
 			resizable: false,
 			groupable: false,
@@ -316,14 +316,6 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 			columns: columns,
 			plugins: [{
 				ptype: 'uxgridfilters'
-			},{
-				ptype: 'cellediting',
-				clicksToEdit: 1,
-				listeners: {
-					beforeedit: this.onGridBeforeEdit,
-					edit: this.onGridAfterEdit,
-					scope: this
-				}
 			}],
 			viewConfig: {
 				getRowClass: function(record) {
@@ -335,6 +327,17 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 			},
 			_prioMap: prioMap
 		} ;
+		if( !this._readonlyMode ) {
+			tmpGridCfg.plugins.push({
+				ptype: 'cellediting',
+				clicksToEdit: 1,
+				listeners: {
+					beforeedit: this.onGridBeforeEdit,
+					edit: this.onGridAfterEdit,
+					scope: this
+				}
+			}) ;
+		}
 		
 		
 		var gaugesSubPanels = [] ;

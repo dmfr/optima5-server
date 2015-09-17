@@ -1,4 +1,46 @@
 <?php
+
+function specDbsEmbramach_cfg_getAuth( $post_data ) {
+	global $_opDB ;
+	
+	if( !isset($_SESSION['login_data']['delegate_sdomainId']) ) {
+		return array('success'=>true) ;
+	}
+	$t = new DatabaseMgr_Sdomain( DatabaseMgr_Base::dbCurrent_getDomainId() ) ;
+	if( $_SESSION['login_data']['delegate_sdomainId'] != $t->dbCurrent_getSdomainId() ) {
+		return array('success'=>false) ;
+	}
+	
+	$user_id = $_SESSION['login_data']['delegate_userId'] ;
+	$query = "SELECT * FROM view_bible_USER_entry WHERE entry_key='{$user_id}'" ;
+	$result = $_opDB->query($query) ;
+	if( ($arr = $_opDB->fetch_assoc($result)) == FALSE ) {
+		return array('success'=>false) ;
+	}
+	
+	$authPage = array() ;
+	$user_class = $arr['treenode_key'] ;
+	switch( $user_class ) {
+		case 'ALL' :
+			$authPage = array('ALL') ;
+			break ;
+		
+		default :
+			$authPage = array() ;
+			break ;
+	}
+	
+	return array(
+		'success' => true,
+		'authPage' => $authPage
+	) ;
+}
+
+
+
+
+
+
 function specDbsEmbramach_mach_getGridCfg( $post_data ) {
 	global $_opDB ;
 	
