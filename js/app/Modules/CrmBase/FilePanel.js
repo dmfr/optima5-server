@@ -179,7 +179,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 	},
 	
 	reconfigureDataBuildStore: function( ajaxData ) {
-		var gridModelName = 'FileGrid'+'-'+this.fileId ;
+		var gridModelName = 'FileGrid'+'-'+this.getId() ;
 		
 		// Création du modèle GRID
 		var modelFields = new Array() ;

@@ -150,7 +150,7 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 			authReadOnly = true ;
 		}
 		
-		var treeModelName = 'BibleTree'+'-'+this.bibleId ;
+		var treeModelName = 'BibleTree'+'-'+this.getId() ;
 		
 		// Création du modèle TREE
 		var modelFields = new Array() ;
@@ -446,7 +446,7 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 	},
 	
 	reconfigureDataBuildGridStore: function( ajaxData ) {
-		var gridModelName = 'BibleGrid'+'-'+this.bibleId ;
+		var gridModelName = 'BibleGrid'+'-'+this.getId() ;
 		
 		// Création du modèle GRID
 		var modelFields = new Array() ;
