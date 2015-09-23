@@ -406,7 +406,7 @@ function specDbsEmbramach_mach_upload( $post_data ) {
 		return array('success'=>false) ;
 	}
 	
-	$filename = "/var/log/apache2/machUpload_".time().'.txt' ;
+	$filename = "/var/log/apache2/machUpload_".$post_data['file_model']."_".time().'.txt' ;
 	@file_put_contents($filename, $debug) ;
 	
 	switch( $post_data['file_model'] ) {
@@ -418,6 +418,10 @@ function specDbsEmbramach_mach_upload( $post_data ) {
 			break ;
 		case 'ZLORSD015' :
 			specDbsEmbramach_mach_upload_ZLORSD015($handle) ;
+			break ;
+		case 'MB51' :
+		case 'Z086' :
+			// TODO!
 			break ;
 		default :
 			return array('success'=>false) ;
