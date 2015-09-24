@@ -29,7 +29,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 	_popupMode: false,
 	_popupFilters: null,
 	
-	autoRefreshDelay: (5*60*1000),
+	autoRefreshDelay: (10*1000),
 	autoRefreshTask: null,
 	
 	initComponent: function() {
@@ -438,7 +438,8 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 		this.autoRefreshTask.cancel() ;
 		
 		Ext.Array.each( this.down('#pGrid').getColumns(), function(column) {
-			if( column.filter && column.filter.type == 'stringlist' ) {
+			if( column.filter && column.filter.type == 'stringlist' && !column.filter.active ) {
+				console.dir(column.filter) ;
 				column.filter.resetList() ; // HACK!
 			}
 		}) ;
