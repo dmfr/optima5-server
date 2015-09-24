@@ -29,7 +29,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 	_popupMode: false,
 	_popupFilters: null,
 	
-	autoRefreshDelay: (10*1000),
+	autoRefreshDelay: (5*60*1000),
 	autoRefreshTask: null,
 	
 	initComponent: function() {
