@@ -262,6 +262,7 @@ Ext.define('Optima5.Modules.CrmBase.DataFormPanel' ,{
 					
 				case 'date' :
 					Ext.apply( colCfg, {
+						renderer: Ext.util.Format.dateRenderer('d/m/Y H:i'),
 						editor:{ xtype:'datetimefield' , allowBlank: !(field.is_header=='O' || field.is_mandatory=='O') }
 					});
 					break ;

@@ -9,6 +9,7 @@ Ext.define('Ext.ux.dams.EmbeddedGrid',{
 		var modelfields = new Array() ;
 		var modelvalidators = new Object() ;
 		Ext.each( ( Ext.isObject(this.columns) ? this.columns.items : this.columns ), function( v ){
+			var type, dateFormat=null ;
 			if( v.type=='hidden' ) {
 				return ;
 			}
@@ -17,7 +18,10 @@ Ext.define('Ext.ux.dams.EmbeddedGrid',{
 			} else {
 				type = v.type ;
 			}
-			modelfields.push( { name:v.dataIndex, type:type, defaultValue:((typeof v.defaultValue === 'undefined')? '' : v.defaultValue ) } ) ;
+			if( v.type == 'date' ) {
+				dateFormat = 'Y-m-d H:i:s' ;
+			}
+			modelfields.push( { name:v.dataIndex, type:type, dateFormat:dateFormat, defaultValue:((typeof v.defaultValue === 'undefined')? '' : v.defaultValue ) } ) ;
 			if( v.editor && v.editor.allowBlank == false ) {
 				modelvalidators[v.dataIndex] = {type:'length',min:1} ;
 			}
