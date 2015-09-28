@@ -64,6 +64,9 @@ function paracrm_lib_data_getRecord_file( $file_code, $filerecord_id )
 
 	return $_opDB->fetch_assoc($result) ;
 }
+function paracrm_lib_data_getFileRecords( $file_code ) {
+	return paracrm_lib_data_getFileChildRecords($file_code,0) ;
+}
 function paracrm_lib_data_getFileChildRecords( $file_code, $filerecord_parent_id )
 {
 	global $_opDB ;
@@ -668,11 +671,17 @@ function paracrm_lib_data_insertRecord_file( $file_code , $filerecord_parent_id 
 			if( $ignore_ifExists ) {
 				return $primaryKey_filerecordId ;
 			}
+			if( $data['_DELETE'] == TRUE ) {
+				paracrm_lib_data_deleteRecord_file( $file_code , $primaryKey_filerecordId ) ;
+			}
 			return paracrm_lib_data_updateRecord_file( $file_code , $data, $primaryKey_filerecordId ) ;
 		}
 		unset($db_view) ;
 	}
 	
+	if( $data['_DELETE'] == TRUE ) {
+		return 0 ;
+	}
 	
 	$arr_ins = array() ;
 	$arr_ins['file_code'] = $file_code ;
