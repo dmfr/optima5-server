@@ -508,7 +508,7 @@ function specDbsEmbramach_mach_upload_ZLORSD015($handle) {
 				$_field_DATE_ISSUE = date('Y-m-d H:i:s',$timestamp) ;
 			}
 			
-			if( $step_code=='04_ASM_END' && trim($main_row['field_TYPE'])=='ZLT1' ) {
+			if( $step_code=='08_PACK_END' && trim($main_row['field_TYPE'])=='ZLT1' ) {
 				$steps_arrRow[] = array(
 					'field_STEP' => '09_INVOICE',
 					'field_DATE' => date('Y-m-d H:i:s',$timestamp)
@@ -598,7 +598,7 @@ function specDbsEmbramach_mach_upload_VL06F($handle, $VL06F_forceClosed) {
 		$data_header['field_BUSINESSUNIT'] = $arr_csv[16] ;
 		$data_header['field_SHIPTO_CODE'] = $arr_csv[22] ;
 		$data_header['field_SHIPTO_NAME'] = $arr_csv[23] ;
-		$data_header['field_FEEDBACK_TXT'] = $arr_csv[40] ;
+		//$data_header['field_FEEDBACK_TXT'] = $arr_csv[40] ; //HACK
 			// champs non stockés
 			$data_header['field_PRIV_WM'] = $arr_csv[19] ;
 			$data_header['field_PRIV_SGP'] = $arr_csv[20] ;
@@ -607,6 +607,7 @@ function specDbsEmbramach_mach_upload_VL06F($handle, $VL06F_forceClosed) {
 			$data_header['field_PRIV_SM'] = $arr_csv[38] ;
 			$data_header['field_PRIV_StatutP'] = $arr_csv[39] ;
 		$data_header['field_STEP_NOT_OT'] = ($data_header['field_PRIV_WM']=='A' && $data_header['field_PRIV_SGP']=='A' && $data_header['field_PRIV_StatW']=='A') ;
+		$data_header['field_STEP_FINISHED'] = ($VL06F_forceClosed && $data_header['field_PRIV_WM']=='C' && $data_header['field_PRIV_SGP']=='C' && $data_header['field_PRIV_StatW']=='C' && $data_header['field_PRIV_SGP']=='C' && $data_header['field_PRIV_StatW']=='C') ;
 		
 		$data_lig = array() ;
 		$data_lig['field_LINE_ID'] = $arr_csv[2] ;
