@@ -12,6 +12,12 @@ switch( $post_data['_action'] )
 	return specDbsPeople_RH_getGrid( $post_data ) ;
 	case 'RH_setPeople' :
 	return specDbsPeople_RH_setPeople( $post_data ) ;
+	case 'RH_getCalcAttributeSetupFile' :
+	session_write_close() ;
+	return specDbsPeople_RH_getCalcAttributeSetupFile( $post_data ) ;
+	case 'RH_setCalcAttributeSetupFile' :
+	session_write_close() ;
+	return specDbsPeople_RH_setCalcAttributeSetupFile( $post_data ) ;
 	
 	
 	case 'Real_getData' :

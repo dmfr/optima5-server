@@ -400,3 +400,11 @@ table.op5-spec-dbspeople-realvalidhdr-tbl > tbody > tr > td.op5-spec-dbspeople-r
 .op5-spec-dbspeople-forecast-column-now .x-column-header-inner {
 	background-color: #FFCC52 !important;
 }
+
+
+.op5-spec-dbspeople-rh-attrsetup-ok {
+	background: url('../images/op5img/ico_greendot.gif') no-repeat center center ;
+}
+.op5-spec-dbspeople-rh-attrsetup-nok {
+	background: url('../images/op5img/ico_cancel_small.gif') no-repeat center center ;
+}

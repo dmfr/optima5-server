@@ -101,7 +101,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 	requires: [
 		'Optima5.Modules.Spec.DbsPeople.CfgParamTree',
 		'Optima5.Modules.Spec.DbsPeople.RhFormPanel',
-		'Optima5.Modules.Spec.DbsPeople.RhCalcAttributesPanel'
+		'Optima5.Modules.Spec.DbsPeople.RhCalcAttributesPanel',
+		'Optima5.Modules.Spec.DbsPeople.RhAttributesValuesSetupPanel'
 	],
 	
 	cfgPeopleCalcAttributes: [],
@@ -163,6 +164,13 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 				text: 'New People',
 				handler: function() {
 					this.onNewPeople() ;
+				},
+				scope: this
+			},{
+				icon: 'images/modules/admin-import-16.png',
+				text: 'Réglage solde(s)',
+				handler: function() {
+					this.openRhAttributesValuesSetupPopup() ;
 				},
 				scope: this
 			}],
@@ -780,5 +788,50 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 		if( this.asyncConnectionForCalcAttributes ) {
 			this.asyncConnectionForCalcAttributes.abort() ;
 		}
+	},
+	
+	
+	openRhAttributesValuesSetupPopup: function() {
+		var me = this,
+			filterBtn_site = this.down('#btnSite'),
+			filter_whses = ( filterBtn_site.getNode()==null ? null : filterBtn_site.getLeafNodesKey() ) ;
+		
+		var rhAttributesValueSetupPanel = Ext.create('Optima5.Modules.Spec.DbsPeople.RhAttributesValuesSetupPanel',{
+			width:800, // dummy initial size, for border layout to work
+			height:600, // ...
+			floating: true,
+			draggable: true,
+			renderTo: me.getEl(),
+			tools: [{
+				type: 'close',
+				handler: function(e, t, p) {
+					p.ownerCt.doQuit();
+				},
+				scope: this
+			}],
+			
+			optimaModule: me.optimaModule,
+			cfgData: {
+				filter_site: (filter_whses ? filterBtn_site.getValue() : null)
+			}
+		});
+		
+		// Size + position
+		rhAttributesValueSetupPanel.setSize({
+			width: Math.min(800,me.getWidth()-50),
+			height: Math.min(600,me.getHeight()-50)
+		}) ;
+		rhAttributesValueSetupPanel.on('destroy',function(rhAttributesValueSetupPanel) {
+			me.getEl().unmask() ;
+			this.floatingPanel = null ;
+			
+			this.reload() ;
+		},me,{single:true}) ;
+		me.getEl().mask() ;
+		
+		rhAttributesValueSetupPanel.show();
+		rhAttributesValueSetupPanel.getEl().alignTo(this.getEl(), 'c-c?');
+		
+		me.floatingPanel = rhAttributesValueSetupPanel ;
 	}
 });

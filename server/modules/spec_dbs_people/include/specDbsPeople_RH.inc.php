@@ -330,4 +330,75 @@ function specDbsPeople_RH_resyncPeopleEvents( $people_code ) {
 
 
 
+
+function specDbsPeople_RH_getCalcAttributeSetupFile( $post_data ) {
+	global $_opDB ;
+	
+	$peopleCalcAttribute = $post_data['people_calc_attribute'] ;
+	
+	$file_code = 'QUOTA_'.$peopleCalcAttribute ;
+	$map_dbField_returnField = array(
+		'field_PPL_CODE' => 'people_code',
+		'field_DATE_APPLY' => 'date_apply',
+		'field_QUOTA_'.$peopleCalcAttribute => 'value'
+	);
+	
+	$TAB_db = paracrm_lib_data_getFileRecords($file_code) ;
+	$row_db = current($TAB_db) ;
+	foreach( $map_dbField_returnField as $dbField => $returnField ) {
+		if( !isset($row_db[$dbField]) ) {
+			return array('success'=>false) ;
+		}
+	}
+	
+	$TAB_return = array() ;
+	foreach( $TAB_db as $row_db ) {
+		$row = array() ;
+		foreach( $map_dbField_returnField as $dbField => $returnField ) {
+			switch( $returnField ) {
+				case 'value' :
+					$value = (float)$row_db[$dbField] ;
+					break ;
+				case 'date_apply' :
+					$value = substr($row_db[$dbField],0,10) ;
+					break ;
+				default :
+					$value = $row_db[$dbField] ;
+					break ;
+			}
+			$row[$returnField] = $value ;
+		}
+		$TAB_return[] = $row ;
+	}
+	return array(
+		'success' => true,
+		'data' => $TAB_return
+	) ;
+}
+function specDbsPeople_RH_setCalcAttributeSetupFile( $post_data ) {
+	global $_opDB ;
+	
+	$peopleCalcAttribute = $post_data['people_calc_attribute'] ;
+	
+	$file_code = 'QUOTA_'.$peopleCalcAttribute ;
+	$map_dbField_returnField = array(
+		'field_PPL_CODE' => 'people_code',
+		'field_DATE_APPLY' => 'date_apply',
+		'field_QUOTA_'.$peopleCalcAttribute => 'value'
+	);
+	
+	foreach( json_decode($post_data['data'],true) as $row ) {
+		$arr_ins = array() ;
+		foreach( $map_dbField_returnField as $dbField => $returnField ) {
+			if( $returnField=='value' && $row[$returnField]==NULL ) {
+				$arr_ins['_DELETE'] = TRUE ;
+			}
+			$arr_ins[$dbField] = $row[$returnField] ;
+		}
+		paracrm_lib_data_insertRecord_file( $file_code, 0, $arr_ins ) ;
+	}
+
+	return array('success'=>true) ;
+}
+
 ?>
