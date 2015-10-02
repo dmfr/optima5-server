@@ -284,6 +284,10 @@ function paracrm_lib_dataImport_commit_processNode_file( $treefields_node, $arr_
 		
 		switch( $directChild['field_type'] ) {
 			case 'date' :
+				if( !trim($arr_srcLig[$field]) ) {
+					$leaf_value = '' ;
+					break ;
+				}
 				$leaf_value = date('Y-m-d H:i:s',strtotime($arr_srcLig[$field])) ;
 				break ;
 				
