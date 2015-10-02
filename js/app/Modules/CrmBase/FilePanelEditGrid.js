@@ -346,39 +346,20 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelEditGrid',{
 		var hasError = false ;
 		var presetFieldValue = {filerecord_id:-1} ;
 		Ext.Array.each( me.filters.getFilterData(), function(filterCfg){
-			var filter = me.filters.getFilter( filterCfg.field ) ;
-			if( !filter || !filter.active ) {
-				return ;
-			}
-			var filterArgs = filter.getSerialArgs() ;
-			switch( filter.alias[0] ) {
-				case 'gridfilter.op5crmbasebibletree' :
-					if( filterArgs.valueRoot.length != 1 ) {
+			switch( filterCfg.operator ) {
+				case 'in' :
+					if( filterCfg.value.length > 1 ) {
 						hasError = true ;
 						return false ;
+					} else if( filterCfg.value.length == 1 ) {
+						presetFieldValue[filterCfg.property] = filterCfg.value[0] ;
 					}
-					presetFieldValue[filterCfg.field] = filterArgs.valueRoot[0] ;
 					break ;
-				
-				case 'gridfilter.op5crmbasebible' :
-					if( filterArgs.value.length != 1 ) {
-						hasError = true ;
-						return false ;
-					}
-					presetFieldValue[filterCfg.field] = filterArgs.value[0] ;
+					
+				case 'eq' :
+					presetFieldValue[filterCfg.property] = filterCfg.value ;
 					break ;
-				
-				case 'gridfilter.date' :
-					Ext.Array.each( filterArgs, function(filterArg) {
-						if( filterArg.comparison == 'eq' ) {
-							presetFieldValue[filterCfg.field] = Ext.Date.parse(filterArg.value,'Y-m-d') ;
-						} else {
-							hasError = true ;
-							return false ;
-						}
-					},me) ;
-					break ;
-				
+					
 				default :
 					hasError = true ;
 					return false ;
@@ -407,12 +388,9 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelEditGrid',{
 		
 		// **** get Enabled Filters > READONLY ****
 		Ext.Array.each( me.filters.getFilterData(), function(filterCfg){
-			var filter = me.filters.getFilter( filterCfg.field ) ;
-			if( !filter ) {
-				return ;
-			}
-			if( filter.active ) {
-				readonlyColumns.push( filterCfg.field ) ;
+			var filterField = filterCfg.property ;
+			if( !Ext.Array.contains(readonlyColumns,filterField) ) {
+				readonlyColumns.push( filterField ) ;
 			}
 		},me);
 		

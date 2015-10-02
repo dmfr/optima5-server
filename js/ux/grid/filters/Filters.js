@@ -74,6 +74,19 @@ Ext.define('Ext.ux.grid.filters.Filters',{
 			},this) ;
 			headerCt.updateLayout() ;
 		}
-		
+	},
+	
+	getFilterData: function() {
+		var me = this,
+			store = me.store,
+			storeFilters = store.getFilters() ;
+		if( !storeFilters ) {
+			return [] ;
+		}
+		var filterArr = [] ;
+		storeFilters.each( function(filter) {
+			filterArr.push( filter.serialize() ) ;
+		}) ;
+		return filterArr ;
 	}
 });

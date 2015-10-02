@@ -562,15 +562,6 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 					gridContextMenu.showAt(event.getXY());
 				}
 			},me) ;
-			
-			/*
-			gridpanel.on('filterupdate',function(){
-				console.log('Filters :') ;
-				console.dir(gridpanel.filters.getFilterData()) ;
-				console.log('Query :') ;
-				console.dir(gridpanel.filters.buildQuery(gridpanel.filters.getFilterData())) ;
-			},me);
-			*/
 		}
 		
 		return gridpanel ;
@@ -770,16 +761,9 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 		}) ;
 		
 		if( me.gridpanel.filters && me.gridpanel.filters.getFilterData().length > 0 ) {
-			//console.log('Export Excel :') ;
-			//console.dir(me.gridpanel.filters.buildQuery(me.gridpanel.filters.getFilterData())) ;
-			
-			delete exportParams[me.gridpanel.filters.paramPrefix];
-			Ext.apply(exportParams,
-				me.gridpanel.filters.buildQuery(me.gridpanel.filters.getFilterData())
-			) ;
-		}
-		else {
-			//console.log('Export Excel without filters') ;
+			Ext.apply( exportParams, {
+				filter: Ext.JSON.encode(me.gridpanel.filters.getFilterData())
+			}) ;
 		}
 		
 		Ext.create('Ext.ux.dams.FileDownloader',{
@@ -802,16 +786,9 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 		}) ;
 		
 		if( me.gridpanel.filters && me.gridpanel.filters.getFilterData().length > 0 ) {
-			//console.log('Export Excel :') ;
-			//console.dir(me.gridpanel.filters.buildQuery(me.gridpanel.filters.getFilterData())) ;
-			
-			delete exportParams[me.gridpanel.filters.paramPrefix];
-			Ext.apply(exportParams,
-				me.gridpanel.filters.buildQuery(me.gridpanel.filters.getFilterData())
-			) ;
-		}
-		else {
-			//console.log('Export Excel without filters') ;
+			Ext.apply( exportParams, {
+				filter: Ext.JSON.encode(me.gridpanel.filters.getFilterData())
+			}) ;
 		}
 		
 		var arrShownColumns = [] ;
