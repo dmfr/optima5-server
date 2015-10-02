@@ -7,4 +7,6 @@ include("$server_root/modules/spec_dbs_embralam/include/specDbsEmbralam_live.inc
 include("$server_root/modules/spec_dbs_embralam/include/specDbsEmbralam_stock.inc.php") ;
 include("$server_root/modules/spec_dbs_embralam/include/specDbsEmbralam_prods.inc.php") ;
 
+include("$server_root/modules/spec_dbs_embralam/include/specDbsEmbralam_upload.inc.php") ;
+
 ?>

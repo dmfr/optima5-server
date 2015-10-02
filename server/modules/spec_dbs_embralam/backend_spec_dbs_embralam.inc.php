@@ -39,6 +39,9 @@ switch( $post_data['_action'] )
 	case 'prods_setRecord' :
 	return specDbsEmbralam_prods_setRecord( $post_data ) ;
 	
+	case 'upload' :
+	return specDbsEmbralam_upload( $post_data ) ;
+	
 	default :
 	return NULL ;
 }
