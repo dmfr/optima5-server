@@ -9,7 +9,8 @@ Ext.define('DbsEmbralamStkAttributeModel', {
 		{name: 'PROD_fieldcode',  type: 'string'},
 		{name: 'cfg_is_optional',  type: 'boolean'},
 		{name: 'cfg_is_hidden',  type: 'boolean'},
-		{name: 'cfg_is_editable',  type: 'boolean'}
+		{name: 'cfg_is_editable',  type: 'boolean'},
+		{name: 'cfg_is_mismatch',  type: 'boolean'}
 	]
 });
 

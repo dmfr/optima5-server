@@ -9,4 +9,6 @@ include("$server_root/modules/spec_dbs_embralam/include/specDbsEmbralam_prods.in
 
 include("$server_root/modules/spec_dbs_embralam/include/specDbsEmbralam_upload.inc.php") ;
 
+include("$server_root/modules/spec_dbs_embralam/include/specDbsEmbralam_queryspec.inc.php") ;
+
 ?>

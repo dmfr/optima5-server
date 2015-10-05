@@ -6,7 +6,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.MainPanel',{
 		'Optima5.Modules.Spec.DbsEmbralam.LivePanel',
 		'Optima5.Modules.Spec.DbsEmbralam.StockPanel',
 		'Optima5.Modules.Spec.DbsEmbralam.ProductsPanel',
-		'Optima5.Modules.Spec.DbsEmbralam.QueriesPanel'
+		'Optima5.Modules.Spec.DbsEmbralam.QueryspecPanel'
 	],
 	
 	initComponent: function() {
@@ -78,7 +78,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.MainPanel',{
 					optimaModule: this.optimaModule
 				})
 			,
-				Ext.create('Optima5.Modules.Spec.DbsEmbralam.QueriesPanel',{
+				Ext.create('Optima5.Modules.Spec.DbsEmbralam.QueryspecPanel',{
 					title: 'Requêtes',
 					icon: 'images/op5img/ico_info_small.gif',
 					

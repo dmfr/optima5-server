@@ -42,6 +42,9 @@ switch( $post_data['_action'] )
 	case 'upload' :
 	return specDbsEmbralam_upload( $post_data ) ;
 	
+	case 'queryspec' :
+	return specDbsEmbralam_queryspec( $post_data ) ;
+	
 	default :
 	return NULL ;
 }

@@ -14,7 +14,8 @@ function specDbsEmbralam_lib_stockAttributes_getStockAttributes() {
 		'PROD_fieldcode' => '',
 		'cfg_is_optional' => NULL,
 		'cfg_is_hidden' => NULL,
-		'cfg_is_editable' => NULL
+		'cfg_is_editable' => NULL,
+		'cfg_is_mismatch' => NULL
 	);
 	
 	// preload map bibles PROD STOCK
@@ -54,7 +55,8 @@ function specDbsEmbralam_lib_stockAttributes_getStockAttributes() {
 			'PROD_fieldcode' => $PROD_fieldcode,
 			'cfg_is_optional' => $ATR_entry['field_CFG_IS_OPTIONAL'],
 			'cfg_is_hidden' => $ATR_entry['field_CFG_IS_HIDDEN'],
-			'cfg_is_editable' => $ATR_entry['field_CFG_IS_EDITABLE']
+			'cfg_is_editable' => $ATR_entry['field_CFG_IS_EDITABLE'],
+			'cfg_is_mismatch' => $ATR_entry['field_CFG_IS_MISMATCH']
 		);
 	}
 	usort($TAB, create_function('$a,$b','return ($a[\'_sort\'] - $b[\'_sort\']) ;'));
