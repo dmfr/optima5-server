@@ -49,6 +49,16 @@ function specDbsEmbralam_upload_ZLORMM086( $handle ) {
 	if( count($raw_ZLORMM086) <= 1 ) {
 		return ;
 	}
+	foreach( $raw_ZLORMM086 as &$raw_record ) {
+		$record_row = array() ;
+		$record_row['ZLORMM086'] = $raw_record ;
+		paracrm_lib_file_joinQueryRecord( 'ZLORMM086', $record_row ) ;
+		foreach( $record_row['ZLORMM086'] as $mkey=>$mvalue ) {
+			$raw_record[$mkey] = $mvalue ;
+		}
+	}
+	unset($raw_record) ;
+	
 	
 	// Sync prods
 	$map_rawTOprod = array(
