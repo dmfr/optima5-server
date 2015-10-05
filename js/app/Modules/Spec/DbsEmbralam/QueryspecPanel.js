@@ -99,7 +99,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.QueryspecPanel',{
 					defaults: {
 						menuDisabled: true,
 						draggable: false,
-						sortable: false,
+						sortable: true,
 						hideable: false,
 						resizable: false,
 						groupable: false,
@@ -152,13 +152,17 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.QueryspecPanel',{
 							type: 'json',
 							rootProperty: 'data'
 						}
-					})
+					}),
+					sorters:[{
+						property : 'inv_datelc',
+						direction: 'ASC'
+					}]
 				},
 				columns: {
 					defaults: {
 						menuDisabled: true,
 						draggable: false,
-						sortable: false,
+						sortable: true,
 						hideable: false,
 						resizable: false,
 						groupable: false,
@@ -190,10 +194,32 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.QueryspecPanel',{
 							dataIndex: 'inv_datelc',
 							text: '<b>DLC</b>',
 							align: 'center',
-							width: 120
+							width: 120,
+							renderer: function(v) {
+								var date = Ext.Date.parse(v,'Y-m-d') ;
+								return '<b><font color="red">'+Ext.Date.format(date,'d/m/Y')+'</font></b>' ;
+							},
+							menuDisabled: false,
+							filter: {
+								type: 'date',
+								dateFormat: 'Y-m-d',
+								active: true,
+								convertDateOnly: function(v1) { //HACK!
+									var result = null;
+									if (v1) {
+										var v2 = new Date(v1) ;
+										v2.setHours(0,0,0,0) ;
+										result = v2.getTime();
+									}
+									return result;
+								}
+							}
 						}]
 					}]
-				}
+				},
+				plugins: [{
+					ptype: 'uxgridfilters'
+				}]
 			}]
 		});
 		this.callParent() ;

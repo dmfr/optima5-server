@@ -91,7 +91,8 @@ function specDbsEmbralam_upload_ZLORMM086( $handle ) {
 		'DEP_POSICAO'=>'ADR_ID',
 		'MATERIAL'=>'PROD_ID',
 		'LOTE'=>'BATCH_CODE',
-		'QTY_TOTAL'=>'QTY_AVAIL'
+		'QTY_TOTAL'=>'QTY_AVAIL',
+		'VENCIMENTO'=>'SPEC_DATELC'
 	);
 	$arr_stock_boolean = array() ;
 	$handle_stock = tmpfile() ;

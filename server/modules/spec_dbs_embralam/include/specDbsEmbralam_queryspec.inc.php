@@ -3,6 +3,8 @@ function specDbsEmbralam_queryspec($post_data) {
 	switch( $post_data['queryspec_code'] ) {
 		case 'atr_mismatch' :
 			return array('success'=>true, 'data'=>specDbsEmbralam_queryspec_lib_atrMismatch()) ;
+		case 'DLC_expire' :
+			return array('success'=>true, 'data'=>specDbsEmbralam_queryspec_lib_dlcExpire()) ;
 		default :
 			sleep(2) ;
 			return array('success'=>true, 'data'=>array()) ;
@@ -73,8 +75,28 @@ function specDbsEmbralam_queryspec_lib_atrMismatch() {
 		
 		$data[] = $row ;
 	}
-	//$json_data = paracrm_data_getFileGrid_data( array('file_code'=>'INV') ) ;
 	return $data ;
+}
+function specDbsEmbralam_queryspec_lib_dlcExpire() {
+	global $_opDB ;
+
+	$query = "" ;
+	$query.= "SELECT inv.* FROM view_file_INV inv WHERE inv.field_SPEC_DATELC<>'0000-00-00 00:00:00'" ;
+	
+	$result = $_opDB->query($query) ;
+	
+	$data = array() ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$row = array() ;
+		$row['adr_id'] = $arr['field_ADR_ID'] ;
+		$row['inv_prod'] = $arr['field_PROD_ID'] ;
+		$row['inv_batch'] = $arr['field_BATCH_CODE'] ;
+		$row['inv_qty'] = ( $arr['field_PROD_ID'] ? $arr['field_QTY_AVAIL'] : null ) ;
+		$row['inv_datelc'] = date('Y-m-d',strtotime($arr['field_SPEC_DATELC'])) ;
+		$data[] = $row ;
+	}
+	return $data ;
+
 }
 
 ?>
