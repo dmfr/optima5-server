@@ -38,17 +38,72 @@ function specDbsEmbralam_upload_ZLORMM086( $handle ) {
 	fseek($handle_trad,0) ;
 	
 	$t = new DatabaseMgr_Sdomain( DatabaseMgr_Base::dbCurrent_getDomainId() );
-	$t->sdomainDefine_dropFile( DatabaseMgr_Sdomain::dbCurrent_getSdomainId(), 'ZLORMM086' ) ;
+	$t->sdomainDefine_truncateFile( DatabaseMgr_Sdomain::dbCurrent_getSdomainId(), 'ZLORMM086', $do_preserveSync=FALSE ) ;
 	
 	paracrm_lib_dataImport_commit_processHandle( 'file','ZLORMM086', $handle_trad ) ;
-	
+
 	fclose($handle_trad) ;
 	
 	
+	$raw_ZLORMM086 = paracrm_lib_data_getFileRecords('ZLORMM086') ;
+	if( count($raw_ZLORMM086) <= 1 ) {
+		return ;
+	}
+	
 	// Sync prods
+	$map_rawTOprod = array(
+		'MATERIAL'=>'PROD_ID',
+		'LAM_DGR'=>'ATR_HAZMAT',
+		'LAM_TC'=>'ATR_ENV'
+	);
+	$arr_prod_boolean = array() ;
+	$handle_prod = tmpfile() ;
+	fputcsv($handle_prod,array_values($map_rawTOprod)) ;
+	foreach( $raw_ZLORMM086 as $raw_record ) {
+		if( $arr_prod_boolean[$raw_record['field_MATERIAL']] ) {
+			continue ;
+		}
+		$arr_prod_boolean[$raw_record['field_MATERIAL']] = TRUE ;
+		$arr_csv = array() ;
+		foreach( $map_rawTOprod as $msrc => $dest ) {
+			$mkey = 'field_'.$msrc ;
+			$arr_csv[] = $raw_record[$mkey] ;
+		}
+		fputcsv($handle_prod,$arr_csv) ;
+	}
+	fseek($handle_prod,0) ;
+	paracrm_lib_dataImport_commit_processHandle('bible','PROD',$handle_prod) ;
+	fclose($handle_prod) ;
+	
 	
 	// Sync stock
-	
+	$map_rawTOstock = array(
+		'DEP_POSICAO'=>'ADR_ID',
+		'MATERIAL'=>'PROD_ID',
+		'LOTE'=>'BATCH_CODE',
+		'QTY_TOTAL'=>'QTY_AVAIL'
+	);
+	$arr_stock_boolean = array() ;
+	$handle_stock = tmpfile() ;
+	fputcsv($handle_stock,array_values($map_rawTOstock)) ;
+	foreach( $raw_ZLORMM086 as $raw_record ) {
+		$adr_id = $raw_record['field_DEP_POSICAO'] ;
+		if( !paracrm_lib_data_getRecord_bibleEntry('STOCK',$adr_id) ) {
+			continue ;
+		}
+		
+		$arr_csv = array() ;
+		foreach( $map_rawTOstock as $msrc => $dest ) {
+			$mkey = 'field_'.$msrc ;
+			$arr_csv[] = $raw_record[$mkey] ;
+		}
+		fputcsv($handle_stock,$arr_csv) ;
+	}
+	fseek($handle_stock,0) ;
+	$t = new DatabaseMgr_Sdomain( DatabaseMgr_Base::dbCurrent_getDomainId() );
+	$t->sdomainDefine_truncateFile( DatabaseMgr_Sdomain::dbCurrent_getSdomainId(), 'INV', $do_preserveSync=FALSE ) ;
+	paracrm_lib_dataImport_commit_processHandle('file','INV',$handle_stock) ;
+	fclose($handle_stock) ;
 }
 
 function specDbsEmbralam_upload_lib_separator( $handle_in, $handle_out, $separator='|' ) {
