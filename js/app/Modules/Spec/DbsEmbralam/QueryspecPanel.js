@@ -227,6 +227,18 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.QueryspecPanel',{
 	onTabActivate: function(tab) {
 		if( tab.getStore() ) {
 			tab.getStore().load() ;
+			
+			if( tab.headerCt.down('[dataIndex="inv_datelc"]') ) {  //HACK
+				var dateFilter = tab.headerCt.down('[dataIndex="inv_datelc"]').filter ;
+				
+				var dateGt = new Date() ;
+				dateGt.setFullYear( dateGt.getFullYear() - 1 ) ;
+				var dateLt = new Date() ;
+				dateLt.setDate( dateLt.getDate() + 90 ) ;
+				
+				dateFilter.setValue({lt:dateLt, gt:dateGt}) ;
+				dateFilter.setActive(true) ;
+			}
 		}
 	}
 });
