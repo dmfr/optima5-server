@@ -2091,8 +2091,12 @@ function paracrm_queries_process_query_iteration( $arr_saisie )
 		// new 14-05-22 : mode exclusif VALUES
 		// - mode linéaire ie. pas de chaine d'itération parent>child
 		// => 1 seule requête SQL
-		$RES_groupKeyId_selectId_value = paracrm_queries_process_query_onePassValues( $arr_saisie ) ;
-		return $RES_groupKeyId_selectId_value ;
+		if( $RES_groupKeyId_selectId_value = paracrm_queries_process_query_onePassValuesFast( $arr_saisie ) ) {
+			return $RES_groupKeyId_selectId_value ;
+		}
+		if( $RES_groupKeyId_selectId_value = paracrm_queries_process_query_onePassValues( $arr_saisie ) ) {
+			return $RES_groupKeyId_selectId_value ;
+		}
 	} 
 	
 	
@@ -2359,6 +2363,9 @@ function paracrm_queries_process_query_onePassValues( $arr_saisie ) {
 	$query.= " ORDER BY ".implode(',',array_reverse($sqlQ_orderReverse)) ;
 	$selectMap_onOrder = array_reverse($selectMap,true) ;
 	
+	
+	
+	
 	$result = $_opDB->query($query) ;
 	
 	$_map_groupKey_resCount = array() ;
@@ -2506,6 +2513,185 @@ function paracrm_queries_process_query_onePassValues( $arr_saisie ) {
 		}
 	}
 	
+	return $RES_groupKeyId_selectId_value ;
+}
+
+function paracrm_queries_process_query_onePassValuesFast( $arr_saisie ) {
+	// ****** Update 2015-10 : factorisation de la requête (SQL groupBy)
+	// Conditions :
+	//  - Sql prefilter exhaustif
+	//  - pas de join
+	//  - opération SUM sur un seul champ
+	// Actions :
+	//  => réécriture de $query
+	//  => réécriture de $selectMap (présence des champs GROUP et SELECT uniquement)
+	//  => introduction du count (pour $_map_groupKey_resCount)
+	// Join map (to skip CRM joined field)
+	
+	
+	foreach( $arr_saisie['join_for_file'] as $file_code => $doJoin ) {
+		if( $doJoin ) {
+			return FALSE ;
+		}
+	}
+	foreach( $arr_saisie['fields_where'] as $where_id => $field_where ) {
+		if( $field_where['sql_bible_code'] && $field_where['sql_bible_field_code'] ) {
+			// Condition on linked bible inner-field => can't stat with SQL
+			return FALSE ;
+		}
+		if( $field_where['field_type'] == 'link' && $field_where['condition_bible_mode'] == 'SINGLE' ) {
+			// Can't use SQL group
+			return FALSE ;
+		}
+	}
+	foreach( $arr_saisie['fields_group'] as $group_id => $field_group ) {
+		if( $field_group['field_type'] == 'link' && $field_group['group_bible_type'] != 'ENTRY' ) {
+			return FALSE ;
+		}
+	}
+	foreach( $arr_saisie['fields_select'] as $select_id => $field_select ) {
+		if( $field_select['iteration_mode'] != 'value' ) {
+			return FALSE ;
+		}
+		if( count($field_select['math_expression']) != 1 ) {
+			return FALSE ;
+		}
+		$symbol = reset($field_select['math_expression']) ;
+		if( $symbol['sql_bible_code'] && $symbol['sql_bible_field_code'] ) {
+			return FALSE ;
+		}
+	}
+	
+	
+	
+	global $_opDB ;
+	global $arr_bible_trees , $arr_bible_entries, $arr_bible_treenodes ;
+	
+	// Construction de la requête :
+	$arr_groupId = $arr_selectId = array() ;
+	$select_words = array() ;
+	$group_words = array() ;
+	foreach( $arr_saisie['fields_group'] as $group_id => $field_group ) {
+		$sqlKey = $field_group['sql_file_code'].'.'.$field_group['sql_file_field_code'] ;
+		$sqlAlias = 'g'.$group_id ;
+		switch( $field_group['field_type'] ) {
+			case 'date' :
+				switch( $field_group['group_date_type'] ) {
+					case 'DAY' :
+					$select_words[] = 'DATE('.$sqlKey.') AS '.$sqlAlias ;
+					break ;
+				
+					case 'MONTH' :
+					$select_words[] = 'DATE_FORMAT('.$sqlKey.',\'%Y-%m\') AS '.$sqlAlias ;
+					break ;
+				
+					case 'WEEK' :
+					$select_words[] = 'DATE_FORMAT('.$sqlKey.',\'%x-%v\') AS '.$sqlAlias ;
+					break ;
+				
+					case 'YEAR' :
+					$select_words[] = 'YEAR('.$sqlKey.') AS '.$sqlAlias ;
+					break ;
+				
+					default :
+					$select_words[] = $sqlKey.' AS '.$sqlAlias ;
+					break ;
+				}
+				break ;
+				
+			case 'link' :
+				switch( $field_group['group_bible_type'] ) {
+					case 'ENTRY' :
+						$select_words[] = 'CONCAT(\'e_\','.$sqlKey.') AS '.$sqlAlias ;
+						break ;
+						
+					default :
+						return FALSE ;
+				}
+				break ;
+				
+			default :
+				$select_words[] = $sqlKey.' AS '.$sqlAlias ;
+				break ;
+		}
+		$group_words[] = $sqlAlias ;
+		$arr_groupId[] = $group_id ;
+	}
+	foreach( $arr_saisie['fields_select'] as $select_id => $select_field ) {
+		if( $field_select['iteration_mode'] != 'value' ) {
+			return FALSE ;
+		}
+		if( count($field_select['math_expression']) != 1 ) {
+			return FALSE ;
+		}
+		
+		$symbol = reset($field_select['math_expression']) ;
+		switch( strtoupper($field_select['math_func_group']) ) {
+			case 'AGV' :
+			case 'SUM' :
+			case 'MAX' :
+			case 'MIN' :
+				$func = strtoupper($field_select['math_func_group']) ;
+				break ;
+				
+			default :
+				return FALSE ;			
+		}
+		
+		$sqlKey = $symbol['sql_file_code'].'.'.$symbol['sql_file_field_code'] ;
+		$sqlAlias = 's'.$select_id ;
+		$select_words[] = $func.'('.$sqlKey.') AS '.$sqlAlias ;
+		$arr_selectId[] = $select_id ;
+	}
+	
+	
+	$target_file_code = $arr_saisie['target_file_code'] ;
+	$arr_fileCode = array();
+	
+	$t_sqlView = "view_file_{$target_file_code}" ;
+	$t_fileCode = $target_file_code ;
+	$sqlQ_select = "SELECT ".implode(',',$select_words) ;
+	$sqlQ_from = "FROM {$t_sqlView} {$target_file_code}" ;
+	while(TRUE) {
+		$arr_fileCode[] = $t_fileCode ;
+		$query = "SELECT file_parent_code FROM define_file WHERE file_code='$t_fileCode'" ;
+		if( !($parent_fileCode = $_opDB->query_uniqueValue($query)) ) {
+			break ;
+		}
+		
+		$t_fileCodePrevious = $t_fileCode ;
+		$t_sqlViewPrevious = $t_sqlView ;
+		$t_fileCode = $parent_fileCode ;
+		$t_sqlView = "view_file_{$t_fileCode}" ;
+		
+		$sqlQ_from.= " "."JOIN {$t_sqlView} {$t_fileCode} ON {$t_fileCode}.filerecord_id = {$t_fileCodePrevious}.filerecord_parent_id" ;
+	}
+	
+	$query = $sqlQ_select." ".$sqlQ_from." WHERE 1" ;
+	foreach( $arr_fileCode as $file_code ) {
+		$query.= paracrm_queries_process_queryHelp_getWhereSqlPrefilter( $file_code, $arr_saisie['fields_where'], $file_code ) ;
+	}
+	$query.= " GROUP BY ".implode(',',$group_words) ;
+	
+	// echo $query ;
+	
+	$result = $_opDB->query($query) ;
+	
+	$RES_groupKeyId_selectId_value = array() ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$group_hash = array() ;
+		foreach( $arr_groupId as $group_id ) {
+			$group_hash[$group_id] = $arr['g'.$group_id] ;
+		}
+		$group_key_id = paracrm_queries_process_queryHelp_getIdGroup($group_hash) ;
+		
+		$arr_selectId_value = array() ;
+		foreach( $arr_selectId as $select_id ) {
+			$arr_selectId_value[$select_id] = $arr['s'.$select_id] ;
+		}
+		
+		$RES_groupKeyId_selectId_value[$group_key_id] = $arr_selectId_value ;
+	}
 	return $RES_groupKeyId_selectId_value ;
 }
 
