@@ -27,6 +27,8 @@ function specDbsEmbramach_upload( $post_data ) {
 			specDbsEmbramach_upload_ZLORSD015($handle) ;
 			break ;
 		case 'MB51' :
+			specDbsEmbramach_upload_ZMB51($handle) ;
+			break ;
 		case 'Z086' :
 			// TODO!
 			break ;
@@ -42,6 +44,15 @@ function specDbsEmbramach_upload( $post_data ) {
 	paracrm_lib_data_insertRecord_file('LOG_IMPORT',0,$arr_ins) ;
 	
 	return array('success'=>true) ;
+}
+function specDbsEmbramach_upload_ZMB51($handle) {
+	$handle_trad = tmpfile() ;
+	specDbsEmbramach_upload_lib_separator( $handle, $handle_trad ) ;
+	fseek($handle_trad,0) ;
+	
+	paracrm_lib_dataImport_commit_processHandle( 'file','ZMB51', $handle_trad ) ;
+
+	fclose($handle_trad) ;
 }
 function specDbsEmbramach_upload_ZLORSD015($handle) {
 	global $_opDB ;
@@ -326,6 +337,75 @@ function specDbsEmbramach_upload_VL06F($handle, $VL06F_forceClosed) {
 	}
 	
 	return ;
+}
+
+
+
+
+
+
+
+function specDbsEmbramach_upload_lib_separator( $handle_in, $handle_out, $separator='|' ) {
+	$handle_priv = tmpfile() ;
+	while( !feof($handle_in) ) {
+		$lig = fgets($handle_in) ;
+		$lig = mb_convert_encoding($lig, "UTF-8");
+		fwrite($handle_priv,$lig) ;
+	}
+	
+	fseek($handle_priv,0) ;
+	$max_occurences = 0 ;
+	while( !feof($handle_priv) ) {
+		$arr_csv = fgetcsv($handle_priv,0,$separator) ;
+		if( count($arr_csv) > $max_occurences ) {
+			$max_occurences = count($arr_csv) ;
+		}
+	}
+	
+	fseek($handle_priv,0) ;
+	$strip_first = TRUE ;
+	$strip_last = TRUE ;
+	while( !feof($handle_priv) ) {
+		$arr_csv = fgetcsv($handle_priv,0,$separator) ;
+		if( count($arr_csv) != $max_occurences ) {
+			continue ;
+		}
+		if( reset($arr_csv) ) {
+			$strip_first = FALSE ;
+		}
+		if( end($arr_csv) ) {
+			$strip_last = FALSE ;
+		}
+	}
+	
+	$is_first = TRUE ;
+	
+	fseek($handle_priv,0) ;
+	while( !feof($handle_priv) ) {
+		$arr_csv = fgetcsv($handle_priv,0,$separator) ;
+		if( count($arr_csv) != $max_occurences ) {
+			continue ;
+		}
+		if( $strip_first ) {
+			array_shift($arr_csv) ;
+		}
+		if( $strip_last ) {
+			array_pop($arr_csv) ;
+		}
+		foreach( $arr_csv as &$item ) {
+			$item = trim($item) ;
+		}
+		unset($item) ;
+		if( $is_first ) {
+			$arr_header = $arr_csv ;
+			$is_first = FALSE ;
+		} elseif($arr_csv == $arr_header) {
+			continue ;
+		}
+		fputcsv($handle_out,$arr_csv) ;
+	}
+	
+	fclose($handle_priv) ;
 }
 
 ?>
