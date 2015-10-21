@@ -296,23 +296,56 @@ function specDbsEmbramach_stats_getPickingXls($post_data) {
 	$col=$base_col ;
 	$row=$base_row ;
 	
+	$obj_sheet->getColumnDimension($col)->setWidth(15);
+	$obj_sheet->getStyle("{$col}{$row}")->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+	$obj_sheet->getStyle("{$col}{$row}")->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 	$obj_sheet->SetCellValue("{$col}{$row}", 'Priority');
-	$col++;
-	$obj_sheet->SetCellValue("{$col}{$row}", 'Tat interval');
+	$mRow=$row; for($i=0;$i<2;$i++)$mRow++;
+	$obj_sheet->mergeCells( "{$col}{$row}:{$col}{$mRow}" ) ;
+	
 	$col++;
 	
+	$obj_sheet->getColumnDimension($col)->setWidth(20);
+	$obj_sheet->getStyle("{$col}{$row}")->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+	$obj_sheet->getStyle("{$col}{$row}")->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+	$obj_sheet->SetCellValue("{$col}{$row}", 'Tat interval');
+	$mRow=$row; for($i=0;$i<2;$i++)$mRow++;
+	$obj_sheet->mergeCells( "{$col}{$row}:{$col}{$mRow}" ) ;
+	
+	$col++;
+	
+	$date_nbCols = (count($json_cfg['shift'])+1)*2 ;
+	
 	foreach( $json_cfg['date'] as $cfg_date ) {
+		$styleArray = array(
+			'borders' => array(
+				'left' => array(
+					'style' => PHPExcel_Style_Border::BORDER_THIN
+				)
+			)
+		);
+		$row_init = $row_end = $row ;
+		$row_end += (count($data) + 3) ;
+		$obj_sheet->getStyle("{$col}{$row_init}:{$col}{$row_end}")->applyFromArray( $styleArray ) ;
+	
 		$tcol = $col ;
 		
 		$trow = $row ;
+		$obj_sheet->getStyle("{$tcol}{$trow}")->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 		$obj_sheet->SetCellValue("{$tcol}{$trow}", $cfg_date['time_title']);
+		$mCol=$tcol; for($i=0;$i<($date_nbCols-1);$i++)$mCol++;
+		$obj_sheet->mergeCells( "{$tcol}{$trow}:{$mCol}{$trow}" ) ;
 		
 		foreach( $json_cfg['shift'] as $cfg_shift ) {
 			$trow = $row+1 ;
+			$obj_sheet->getStyle("{$tcol}{$trow}")->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 			$obj_sheet->SetCellValue("{$tcol}{$trow}", "Shift : {$cfg_shift['shift_txt']}");
+			$mCol=$tcol; for($i=0;$i<1;$i++)$mCol++;
+			$obj_sheet->mergeCells( "{$tcol}{$trow}:{$mCol}{$trow}" ) ;
 			
 			foreach( array('Nb','%') as $txt ) {
 				$trow = $row+2 ;
+				$obj_sheet->getStyle("{$tcol}{$trow}")->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 				$obj_sheet->SetCellValue("{$tcol}{$trow}", $txt);
 				
 				$tcol++ ;
@@ -320,42 +353,71 @@ function specDbsEmbramach_stats_getPickingXls($post_data) {
 		}
 		if( TRUE ) { // total
 			$trow = $row+1 ;
+			$obj_sheet->getStyle("{$tcol}{$trow}")->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 			$obj_sheet->SetCellValue("{$tcol}{$trow}", "All shifts");
+			$mCol=$tcol; for($i=0;$i<1;$i++)$mCol++;
+			$obj_sheet->mergeCells( "{$tcol}{$trow}:{$mCol}{$trow}" ) ;
 			
 			foreach( array('Nb','%') as $txt ) {
 				$trow = $row+2 ;
+				$obj_sheet->getStyle("{$tcol}{$trow}")->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 				$obj_sheet->SetCellValue("{$tcol}{$trow}", $txt);
 				
 				$tcol++ ;
 			}
 		}
 		
-		for( $i=0;$i<8;$i++ ) {
+		for( $i=0;$i<$date_nbCols;$i++ ) {
 			$col++ ;
 		}
 	}
 	for( $i=0;$i<3;$i++ ) {
 		$row++ ;
 	}
+	$max_col = $col ;
+	$max_col-- ;
+	
+	$mCol = $col; $mCol++; $mCol++;
+	$obj_sheet->freezePane("{$mCol}{$row}");
 	
 	$tPrio = NULL ;
 	foreach( $data as $data_record ) {
 		$col = $base_col ;
 		
-		if( !$data_record['prio_id'] ) {
-			$obj_sheet->SetCellValue("{$col}{$row}", "TOTAL");
-		} elseif( $tPrio != $data_record['prio_id'] ) {
-			$obj_sheet->SetCellValue("{$col}{$row}", $data_record['prio_txt']);
+		if( $tPrio != $data_record['prio_id'] ) {
+			$styleArray = array(
+				'borders' => array(
+					'top' => array(
+						'style' => PHPExcel_Style_Border::BORDER_THIN
+					)
+				)
+			);
+			$obj_sheet->getStyle("{$col}{$row}:{$max_col}{$row}")->applyFromArray( $styleArray ) ;
+		
+		
+			if( !$data_record['prio_id'] ) {
+				$obj_sheet->SetCellValue("{$col}{$row}", "TOTAL");
+			} else {
+				$obj_sheet->SetCellValue("{$col}{$row}", $data_record['prio_txt']);
+			}
 			$tPrio = $data_record['prio_id'] ;
 		}
 		$col++;
 		
 		if( $data_record['prio_id'] ) {
-		if( $data_record['tat_code'] ) {
-			$obj_sheet->SetCellValue("{$col}{$row}", $data_record['tat_name']);
-		} else {
-			$obj_sheet->SetCellValue("{$col}{$row}", "Total");
-		}
+			if( $data_record['tat_code'] ) {
+				$obj_sheet->SetCellValue("{$col}{$row}", $data_record['tat_name']);
+				$obj_sheet->getStyle("{$col}{$row}:{$max_col}{$row}")->applyFromArray(
+					array(
+						'fill' => array(
+								'type' => PHPExcel_Style_Fill::FILL_SOLID,
+								'color' => array('rgb' => substr($data_record['row_color'],1))
+						)
+					)
+				);
+			} else {
+				$obj_sheet->SetCellValue("{$col}{$row}", "Total");
+			}
 		}
 		$col++;
 		
@@ -372,7 +434,12 @@ function specDbsEmbramach_stats_getPickingXls($post_data) {
 				
 				$total = $dataObj['obj_shifts'][$cfg_shift['shift_id']]['value_total'] ;
 				if( $val > 0 && $total ) {
-					$obj_sheet->SetCellValue("{$col}{$row}", round($val / $total * 100).' %');
+					$obj_sheet->SetCellValue("{$col}{$row}", ($val / $total) );
+					$obj_sheet->getStyle("{$col}{$row}")->getNumberFormat()->applyFromArray( 
+						array( 
+							'code' => PHPExcel_Style_NumberFormat::FORMAT_PERCENTAGE
+						)
+					);
 				}
 				$col++ ;
 			}
@@ -385,7 +452,12 @@ function specDbsEmbramach_stats_getPickingXls($post_data) {
 				
 				$total = $dataObj['value_total'] ;
 				if( $val > 0 && $total > 0 ) {
-					$obj_sheet->SetCellValue("{$col}{$row}", round($val / $total * 100).' %');
+					$obj_sheet->SetCellValue("{$col}{$row}", ($val / $total) );
+					$obj_sheet->getStyle("{$col}{$row}")->getNumberFormat()->applyFromArray( 
+						array( 
+							'code' => PHPExcel_Style_NumberFormat::FORMAT_PERCENTAGE
+						)
+					);
 				}
 				$col++ ;
 			}
@@ -394,8 +466,6 @@ function specDbsEmbramach_stats_getPickingXls($post_data) {
 		
 		$row++ ;
 	}
-	
-	
 	
 	
 	$tmpfilename = tempnam( sys_get_temp_dir(), "FOO");
