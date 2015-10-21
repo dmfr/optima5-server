@@ -66,6 +66,14 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 						iconCls: 'op5-spec-dbsembramach-report-view-month'
 					}]
 				}
+			},'->',{
+				itemId: 'xlsExport',
+				text: 'Export XLS',
+				icon: 'images/op5img/ico_save_16.gif',
+				handler: function() {
+					this.handleDownload() ;
+				},
+				scope: this
 			}]
 		});
 		
@@ -620,6 +628,26 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 		this.machPopup.show();
 		this.machPopup.getEl().alignTo(this.getEl(), 'c-c?');
 	},
+	
+	
+	handleDownload: function() {
+		var me = this ;
+		
+		var exportParams = me.optimaModule.getConfiguredAjaxParams() ;
+		Ext.apply(exportParams,{
+			_moduleId: 'spec_dbs_embramach',
+			_action: 'stats_getPickingXls',
+			flow_code: this.flowCode,
+			cfg_date: this.viewMode
+		}) ;
+		Ext.create('Ext.ux.dams.FileDownloader',{
+			renderTo: Ext.getBody(),
+			requestParams: exportParams,
+			requestAction: Optima5.Helper.getApplication().desktopGetBackendUrl(),
+			requestMethod: 'POST'
+		}) ;
+	},
+	
 	
 	onDestroy: function() {
 		Ext.util.CSS.removeStyleSheet('op5specdbsembramachcolors-'+this.getId());

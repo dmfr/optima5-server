@@ -23,6 +23,8 @@ switch( $post_data['_action'] )
 	
 	case 'stats_getPicking' :
 	return specDbsEmbramach_stats_getPicking( $post_data ) ;
+	case 'stats_getPickingXls' :
+	return specDbsEmbramach_stats_getPickingXls( $post_data ) ;
 	
 	default :
 	return NULL ;

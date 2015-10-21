@@ -145,6 +145,273 @@ function specDbsEmbramach_stats_getPicking($post_data) {
 	) ;
 }
 
+function specDbsEmbramach_stats_getPickingXls($post_data) {
+	$ttmp = specDbsEmbramach_stats_getPicking($post_data) ;
+	$json_cfg = $ttmp['cfg'] ;
+	$json_data = $ttmp['data'] ;
+	
+	// ******* Process data ************
+	$sortObj = array() ;
+	foreach( $json_data as $data_row ) {
+		$sortKey = implode('%%',array($data_row['prio_id'],$data_row['value_TAT'],$data_row['time_key'],$data_row['shift_id'])) ;
+		if( !isset($sortObj[$sortKey]) ) {
+			$sortObj[$sortKey] = 0 ;
+		}
+		$sortObj[$sortKey] += $data_row['value_count'] ;
+		
+		if( !$data_row['value_TAT'] ) {
+			continue ;
+		}
+		
+		$sortKey = implode('%%',array($data_row['prio_id'],'_',$data_row['time_key'],$data_row['shift_id'])) ;
+		if( !isset($sortObj[$sortKey]) ) {
+			$sortObj[$sortKey] = 0 ;
+		}
+		$sortObj[$sortKey] += $data_row['value_count'] ;
+	}
+	
+	$data = array() ;
+	$row_Sum = array() ;
+	foreach( $json_cfg['priority'] as $cfg_priority ) {
+		$row_prioritySum = array(
+			'prio_id' => $cfg_priority['prio_id'],
+			'prio_txt' => $cfg_priority['prio_txt'],
+		) ;
+		foreach( $json_cfg['tat'] as $cfg_tat ) {
+			if( $cfg_tat['prio_id'] != $cfg_priority['prio_id'] ) {
+				continue ;
+			}
+			$row_record = array(
+				'prio_id' => $cfg_priority['prio_id'],
+				'prio_txt' => $cfg_priority['prio_txt'],
+				'tat_code' => $cfg_tat['tat_code'],
+				'tat_name' => $cfg_tat['tat_name'],
+				'row_color' => $cfg_tat['color']
+			) ;
+			
+			foreach( $json_cfg['date'] as $cfg_date ) {
+				$timeKey = $cfg_date['time_key'] ;
+				$timeValue = array(
+					'value_count' => 0,
+					'value_total' => 0,
+					'obj_shifts' => array()
+				);
+				foreach( $json_cfg['shift'] as $cfg_shift ) {
+					if( !isset($timeValue['obj_shifts'][$cfg_shift['shift_id']]) ) {
+						$timeValue['obj_shifts'][$cfg_shift['shift_id']] = array(
+							'value_count' => 0,
+							'value_total' => 0
+						);
+					}
+					
+					$sortKey = implode('%%',array($cfg_priority['prio_id'],$cfg_tat['tat_code'],$timeKey,$cfg_shift['shift_id'])) ;
+					if( $sortObj[$sortKey] ) {
+						$timeValue['value_count'] += $sortObj[$sortKey] ;
+						$timeValue['obj_shifts'][$cfg_shift['shift_id']]['value_count'] += $sortObj[$sortKey] ;
+					}
+					
+					$sortKey = implode('%%',array($cfg_priority['prio_id'],'_',$timeKey,$cfg_shift['shift_id'])) ;
+					if( $sortObj[$sortKey] ) {
+						$timeValue['value_total'] += $sortObj[$sortKey] ;
+						$timeValue['obj_shifts'][$cfg_shift['shift_id']]['value_total'] += $sortObj[$sortKey] ;
+					}
+					
+					
+					
+					
+					if( !$row_prioritySum[$timeKey] ) {
+						$row_prioritySum[$timeKey] = array(
+							'value_count' => 0,
+							'value_total' => 0,
+							'obj_shifts' => array()
+						);
+					}
+					if( !$row_prioritySum[$timeKey]['obj_shifts'][$cfg_shift['shift_id']] ) {
+						$row_prioritySum[$timeKey]['obj_shifts'][$cfg_shift['shift_id']] = array(
+							'value_count' => 0,
+							'value_total' => 0
+						);
+					}
+					if( !$row_Sum[$timeKey] ) {
+						$row_Sum[$timeKey] = array(
+							'value_count' => 0,
+							'obj_shifts' => array()
+						);
+					}
+					if( !$row_Sum[$timeKey]['obj_shifts'][$cfg_shift['shift_id']] ) {
+						$row_Sum[$timeKey]['obj_shifts'][$cfg_shift['shift_id']] = array(
+							'value_count' => 0
+						);
+					}
+					
+					$sortKey = implode('%%',array($cfg_priority['prio_id'],$cfg_tat['tat_code'],$timeKey,$cfg_shift['shift_id'])) ;
+					if( $sortObj[$sortKey] ) {
+						$row_prioritySum[$timeKey]['value_count'] += $sortObj[$sortKey] ;
+						$row_prioritySum[$timeKey]['obj_shifts'][$cfg_shift['shift_id']]['value_count'] += $sortObj[$sortKey] ;
+						$row_Sum[$timeKey]['value_count'] += $sortObj[$sortKey] ;
+						$row_Sum[$timeKey]['obj_shifts'][$cfg_shift['shift_id']]['value_count'] += $sortObj[$sortKey] ;
+					}
+					
+					$sortKey = implode('%%',array($cfg_priority['prio_id'],'_',$timeKey,$cfg_shift['shift_id'])) ;
+					if( $sortObj[$sortKey] ) {
+						$row_prioritySum[$timeKey]['value_total'] += $sortObj[$sortKey] ;
+						$row_prioritySum[$timeKey]['obj_shifts'][$cfg_shift['shift_id']]['value_total'] += $sortObj[$sortKey] ;
+					}
+				}
+				$row_record[$timeKey] = $timeValue ;
+			}
+			$data[] = $row_record ;
+		}
+		$data[] = $row_prioritySum ;
+	}
+	$data[] = $row_Sum ;
+	
+	
+	
+	
+	
+	
+	// ******* Création du tableau **********
+	$columns = array() ;
+	$columns[] = array('dataIndex'=>'prio_id','text'=>'Priority') ;
+	$columns[] = array('dataIndex'=>'tat_name','text'=>'Tat interval') ;
+	
+	
+	
+	
+	if( !class_exists('PHPExcel') )
+		return FALSE ;
+		
+		
+	$objPHPExcel = new PHPExcel() ;
+	$objPHPExcel->getDefaultStyle()->getFont()->setName('Arial');
+	$objPHPExcel->getDefaultStyle()->getFont()->setSize( 10 );
+	
+	$objPHPExcel->setActiveSheetIndex(0);
+	$obj_sheet = $objPHPExcel->getActiveSheet() ;
+	
+	$base_col = 'A' ;
+	$base_row =  1  ;
+	
+	$col=$base_col ;
+	$row=$base_row ;
+	
+	$obj_sheet->SetCellValue("{$col}{$row}", 'Priority');
+	$col++;
+	$obj_sheet->SetCellValue("{$col}{$row}", 'Tat interval');
+	$col++;
+	
+	foreach( $json_cfg['date'] as $cfg_date ) {
+		$tcol = $col ;
+		
+		$trow = $row ;
+		$obj_sheet->SetCellValue("{$tcol}{$trow}", $cfg_date['time_title']);
+		
+		foreach( $json_cfg['shift'] as $cfg_shift ) {
+			$trow = $row+1 ;
+			$obj_sheet->SetCellValue("{$tcol}{$trow}", "Shift : {$cfg_shift['shift_txt']}");
+			
+			foreach( array('Nb','%') as $txt ) {
+				$trow = $row+2 ;
+				$obj_sheet->SetCellValue("{$tcol}{$trow}", $txt);
+				
+				$tcol++ ;
+			}
+		}
+		if( TRUE ) { // total
+			$trow = $row+1 ;
+			$obj_sheet->SetCellValue("{$tcol}{$trow}", "All shifts");
+			
+			foreach( array('Nb','%') as $txt ) {
+				$trow = $row+2 ;
+				$obj_sheet->SetCellValue("{$tcol}{$trow}", $txt);
+				
+				$tcol++ ;
+			}
+		}
+		
+		for( $i=0;$i<8;$i++ ) {
+			$col++ ;
+		}
+	}
+	for( $i=0;$i<3;$i++ ) {
+		$row++ ;
+	}
+	
+	$tPrio = NULL ;
+	foreach( $data as $data_record ) {
+		$col = $base_col ;
+		
+		if( !$data_record['prio_id'] ) {
+			$obj_sheet->SetCellValue("{$col}{$row}", "TOTAL");
+		} elseif( $tPrio != $data_record['prio_id'] ) {
+			$obj_sheet->SetCellValue("{$col}{$row}", $data_record['prio_txt']);
+			$tPrio = $data_record['prio_id'] ;
+		}
+		$col++;
+		
+		if( $data_record['prio_id'] ) {
+		if( $data_record['tat_code'] ) {
+			$obj_sheet->SetCellValue("{$col}{$row}", $data_record['tat_name']);
+		} else {
+			$obj_sheet->SetCellValue("{$col}{$row}", "Total");
+		}
+		}
+		$col++;
+		
+		foreach( $json_cfg['date'] as $cfg_date ) {
+			$timeKey = $cfg_date['time_key'] ;
+			$dataObj = $data_record[$timeKey] ;
+			
+			foreach( $json_cfg['shift'] as $cfg_shift ) {
+				$val = $dataObj['obj_shifts'][$cfg_shift['shift_id']]['value_count'] ;
+				if( $val > 0 ) {
+					$obj_sheet->SetCellValue("{$col}{$row}", $val);
+				}
+				$col++ ;
+				
+				$total = $dataObj['obj_shifts'][$cfg_shift['shift_id']]['value_total'] ;
+				if( $val > 0 && $total ) {
+					$obj_sheet->SetCellValue("{$col}{$row}", round($val / $total * 100).' %');
+				}
+				$col++ ;
+			}
+			if( TRUE ) { // total
+				$val = $dataObj['value_count'];
+				if( $val > 0 ) {
+					$obj_sheet->SetCellValue("{$col}{$row}", $val);
+				}
+				$col++ ;
+				
+				$total = $dataObj['value_total'] ;
+				if( $val > 0 && $total > 0 ) {
+					$obj_sheet->SetCellValue("{$col}{$row}", round($val / $total * 100).' %');
+				}
+				$col++ ;
+			}
+		}
+		
+		
+		$row++ ;
+	}
+	
+	
+	
+	
+	$tmpfilename = tempnam( sys_get_temp_dir(), "FOO");
+	$objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+	$objWriter->save($tmpfilename);
+	$objPHPExcel->disconnectWorksheets();
+	unset($objPHPExcel) ;
+	
+	$filename = 'DbsMach_PickingKPI'.'_'.time().'.xlsx' ;
+	header("Content-Type: application/force-download; name=\"$filename\""); 
+	header("Content-Disposition: attachment; filename=\"$filename\""); 
+	readfile($tmpfilename) ;
+	unlink($tmpfilename) ;
+	die() ;
+}
+
 
 
 
