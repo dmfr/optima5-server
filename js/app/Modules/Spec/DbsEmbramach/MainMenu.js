@@ -65,6 +65,14 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MainMenu',{
 				action_caption: 'Report KPI',
 				action_sendEvent:'panel_report',
 				action_iconCls:'op5-spec-dbsembramach-icon-report'
+			},{
+				type_separator:true,
+				separator_label: 'DBS TraMoS'
+			},{
+				type_action:true,
+				action_caption: 'Query:MB51',
+				action_sendEvent:'panel_query_mb51',
+				action_iconCls:'op5-spec-dbsembramach-icon-report'
 			}]
 		}) ;
 		 

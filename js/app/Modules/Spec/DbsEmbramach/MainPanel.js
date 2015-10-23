@@ -5,7 +5,8 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MainPanel',{
 		'Optima5.Modules.Spec.DbsEmbramach.MainMenu',
 		'Optima5.Modules.Spec.DbsEmbramach.MachPanel',
 		'Optima5.Modules.Spec.DbsEmbramach.MachAdminPanel',
-		'Optima5.Modules.Spec.DbsEmbramach.ReportPanel'
+		'Optima5.Modules.Spec.DbsEmbramach.ReportPanel',
+		'Optima5.Modules.Spec.DbsEmbramach.QueryPanel'
 	],
 	
 	initComponent: function() {
@@ -58,6 +59,8 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MainPanel',{
 				return me.switchToAppPanel('Optima5.Modules.Spec.DbsEmbramach.MachAdminPanel',{flowCode: 'PICKING'}) ;
 			case 'panel_report' :
 				return me.switchToAppPanel('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{}) ;
+			case 'panel_query_mb51' :
+				return me.switchToAppPanel('Optima5.Modules.Spec.DbsEmbramach.QueryPanel',{qType:'query', queryId:'Report::ZMB51::Synthese'}) ;
 			default :
 				return ;
 		}
