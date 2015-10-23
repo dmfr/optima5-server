@@ -416,4 +416,39 @@ function paracrm_queries_paginate_buildTree_call( $arr_parentId_nodes, $parent_i
 	return $arr ;
 }
 
+function paracrm_queries_paginate_reorderPseudoTree( $grid_data ) {
+	// sort/index all nodes per parent
+	$arr_id_parentId = array() ;
+	$arr_parentIds_root = array() ;
+	foreach( $grid_data as $grid_row ) {
+		$arr_parentIds_root[$grid_row['_parent_id']] = true ;
+	}
+	foreach( $grid_data as $grid_row ) {
+		unset($arr_parentIds_root[$grid_row['_id']]) ;
+		
+		$row_parent_id = $grid_row['_parent_id'] ;
+		if( !isset($arr_parentId_nodes[$row_parent_id]) ) {
+			$arr_parentId_nodes[$row_parent_id] = array() ;
+		}
+		$arr_parentId_nodes[$row_parent_id][] = $grid_row ;
+	}
+	$first_parent = ( count($arr_parentIds_root) == 1 ? key($arr_parentIds_root) : '' ) ;
+	
+	
+	
+	return paracrm_queries_paginate_reorderPseudoTree_call($arr_parentId_nodes,$first_parent) ;
+}
+function paracrm_queries_paginate_reorderPseudoTree_call( $arr_parentId_nodes, $parent_id ) {
+	$arr = array() ;
+	foreach( $arr_parentId_nodes[$parent_id] as $grid_row ) {
+		$row_id = $grid_row['_id'] ;
+		
+		$arr[] = $grid_row ;
+		if( $arr_parentId_nodes[$row_id] ) {
+			$arr = array_merge($arr,paracrm_queries_paginate_reorderPseudoTree_call($arr_parentId_nodes,$row_id)) ;
+		}
+	}
+	return $arr ;
+}
+
 ?>

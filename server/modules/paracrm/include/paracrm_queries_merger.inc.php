@@ -606,7 +606,18 @@ function paracrm_queries_mergerTransaction_exportXLS( $post_data, &$arr_saisie )
 	{
 		$tab = array() ;
 		$tab['tab_title'] = $dummy['tab_title'] ;
-		$workbook_tab_grid[$tab_id] = $tab + paracrm_queries_mpaginate_getGrid( $RES, $tab_id ) ;
+		$tab['cfg_doTreeview'] = ($RES['RES_titles']['cfg_doTreeview'] == TRUE) ;
+		$tab = $tab + paracrm_queries_mpaginate_getGrid( $RES, $tab_id ) ;
+		
+		if( !$tab['data'] ) {
+			continue ;
+		}
+		
+		if( $tab['cfg_doTreeview'] ) {
+			$tab['data'] = paracrm_queries_paginate_reorderPseudoTree( $tab['data'] ) ;
+		}
+		
+		$workbook_tab_grid[$tab_id] = $tab ;
 	}
 	
 	$objPHPExcel = paracrm_queries_xls_build( $workbook_tab_grid ) ;
