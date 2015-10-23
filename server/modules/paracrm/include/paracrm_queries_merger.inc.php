@@ -129,6 +129,11 @@ function paracrm_queries_mergerTransaction_init( $post_data , &$arr_saisie )
 {
 	global $_opDB ;
 	
+	if( $post_data['qmerge_id'] && !is_numeric($post_data['qmerge_id']) ) {
+		$query = "SELECT qmerge_id FROM qmerge WHERE qmerge_name='{$post_data['qmerge_id']}'" ;
+		$post_data['qmerge_id'] = $_opDB->query_uniqueValue($query) ;
+	}
+	
 	/*
 	************ INITIALISATION *********
 	- bible des QUERIES existantes

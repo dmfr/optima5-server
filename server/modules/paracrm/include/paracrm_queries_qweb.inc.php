@@ -94,6 +94,11 @@ function paracrm_queries_qwebTransaction_init( $post_data , &$arr_saisie )
 {
 	global $_opDB ;
 	
+	if( $post_data['qweb_id'] && !is_numeric($post_data['qweb_id']) ) {
+		$query = "SELECT qweb_id FROM qweb WHERE qweb_name='{$post_data['qweb_id']}'" ;
+		$post_data['qweb_id'] = $_opDB->query_uniqueValue($query) ;
+	}
+	
 	/*
 	************ INITIALISATION *********
 	- structure 'tree' du fichier

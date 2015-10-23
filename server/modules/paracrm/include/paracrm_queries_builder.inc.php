@@ -130,6 +130,11 @@ function paracrm_queries_builderTransaction_init( $post_data , &$arr_saisie )
 {
 	global $_opDB ;
 	
+	if( $post_data['query_id'] && !is_numeric($post_data['query_id']) ) {
+		$query = "SELECT query_id FROM query WHERE query_name='{$post_data['query_id']}'" ;
+		$post_data['query_id'] = $_opDB->query_uniqueValue($query) ;
+	}
+	
 	/*
 	************ INITIALISATION *********
 	- structure 'tree' du fichier

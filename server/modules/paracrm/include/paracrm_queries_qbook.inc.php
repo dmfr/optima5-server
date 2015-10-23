@@ -205,6 +205,11 @@ function paracrm_queries_qbookTransaction_init( $post_data , &$arr_saisie )
 {
 	global $_opDB ;
 	
+	if( $post_data['qbook_id'] && !is_numeric($post_data['qbook_id']) ) {
+		$query = "SELECT qbook_id FROM qbook WHERE qbook_name='{$post_data['qbook_id']}'" ;
+		$post_data['qbook_id'] = $_opDB->query_uniqueValue($query) ;
+	}
+	
 	/*
 	************ INITIALISATION *********
 	- bible des QUERIES existantes
