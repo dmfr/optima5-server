@@ -37,9 +37,6 @@ function specDbsEmbralam_upload_ZLORMM086( $handle ) {
 	specDbsEmbralam_upload_lib_separator( $handle, $handle_trad ) ;
 	fseek($handle_trad,0) ;
 	
-	$t = new DatabaseMgr_Sdomain( DatabaseMgr_Base::dbCurrent_getDomainId() );
-	$t->sdomainDefine_truncateFile( DatabaseMgr_Sdomain::dbCurrent_getSdomainId(), 'ZLORMM086', $do_preserveSync=FALSE ) ;
-	
 	paracrm_lib_dataImport_commit_processHandle( 'file','ZLORMM086', $handle_trad ) ;
 
 	fclose($handle_trad) ;
@@ -111,8 +108,6 @@ function specDbsEmbralam_upload_ZLORMM086( $handle ) {
 		fputcsv($handle_stock,$arr_csv) ;
 	}
 	fseek($handle_stock,0) ;
-	$t = new DatabaseMgr_Sdomain( DatabaseMgr_Base::dbCurrent_getDomainId() );
-	$t->sdomainDefine_truncateFile( DatabaseMgr_Sdomain::dbCurrent_getSdomainId(), 'INV', $do_preserveSync=FALSE ) ;
 	paracrm_lib_dataImport_commit_processHandle('file','INV',$handle_stock) ;
 	fclose($handle_stock) ;
 }
