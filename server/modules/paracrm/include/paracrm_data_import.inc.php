@@ -378,20 +378,8 @@ function paracrm_data_importTransaction_doCommit( $post_data, &$arr_saisie ) {
 	if( $arr_saisie['csvsrc_params']['firstrow_is_header'] ) {
 		fgets($fp) ;
 	}
-	while( !feof($fp) ){
-		$arr_csv = fgetcsv($fp,0,$delimiter) ;
-		if( !$arr_csv ) {
-			continue ;
-		}
-		
-		$arr_srcLig = array() ;
-		foreach( $map_fieldCode_csvsrcIdx as $fieldCode => $sIdx ) {
-			$arr_srcLig[$fieldCode] = $arr_csv[$sIdx] ;
-		}
-		
-		paracrm_lib_dataImport_commit_processNode($arr_saisie['treefields_root'], $arr_srcLig, $truncate_mode) ;
-	}
-	fclose($fp) ;
+	
+	paracrm_lib_dataImport_commit_processStream( $arr_saisie['treefields_root'], $map_fieldCode_csvsrcIdx, $fp, $delimiter, $truncate_mode ) ;
 	
 	return array('success'=>true) ;
 }

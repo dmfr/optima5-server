@@ -161,6 +161,7 @@ Ext.define('Optima5.Modules.CrmBase.DataImportPanel' ,{
 								columns: 1,
 								vertical: true,
 								items:[
+									{boxLabel: 'Truncate before', name: 'file_truncate_mode', inputValue: 'truncate'},
 									{boxLabel: 'Overwrite primaryKeys', name: 'file_truncate_mode', inputValue: 'overwrite', checked: true},
 									{boxLabel: 'Ignore if exists', name: 'file_truncate_mode', inputValue: 'ignore'}
 								]

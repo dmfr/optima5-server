@@ -211,9 +211,15 @@ function paracrm_lib_dataImport_commit_processHandle( $data_type,$store_code, $h
 	
 	$treefields_root = paracrm_lib_dataImport_getTreefieldsRoot( $data_type,$store_code ) ;
 	
+	paracrm_lib_dataImport_commit_processStream( $treefields_root, $map_fieldCode_csvsrcIdx, $handle, $delimiter, $truncate_mode ) ;
 	
+	return TRUE ;
+}
+
+function paracrm_lib_dataImport_commit_processStream( $treefields_root, $map_fieldCode_csvsrcIdx, $handle, $handle_delimiter, $truncate_mode=NULL ) {
+	$arr_insertedFilerecordId = array() ;
 	while( !feof($handle) ){
-		$arr_csv = fgetcsv($handle,0,$delimiter) ;
+		$arr_csv = fgetcsv($handle,0,$handle_delimiter) ;
 		if( !$arr_csv ) {
 			continue ;
 		}
@@ -223,14 +229,29 @@ function paracrm_lib_dataImport_commit_processHandle( $data_type,$store_code, $h
 			$arr_srcLig[$fieldCode] = $arr_csv[$sIdx] ;
 		}
 		
-		paracrm_lib_dataImport_commit_processNode($treefields_root,$arr_srcLig,$truncate_mode) ;
+		paracrm_lib_dataImport_commit_processNode($treefields_root,$arr_srcLig,$truncate_mode, $arr_insertedFilerecordId) ;
 	}
-	
-	
-	return TRUE ;
+	if( $truncate_mode=='truncate' ) {
+		global $_opDB ;
+		foreach( $treefields_root['children'] as $directChild ) {
+			if( isset($directChild['file_code']) ) {
+				$arr_existingFilerecordId = array() ;
+				$view = 'view_file_'.$directChild['file_code'] ;
+				$query = "SELECT filerecord_id FROM {$view}" ;
+				$result = $_opDB->query($query) ;
+				while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+					$arr_existingFilerecordId[] = $arr[0] ;
+				}
+				$todelete_filerecordIds = array_diff($arr_existingFilerecordId,$arr_insertedFilerecordId) ;
+				foreach( $todelete_filerecordIds as $filerecord_id ) {
+					paracrm_lib_data_deleteRecord_file( $directChild['file_code'] , $filerecord_id ) ;
+				}
+			}
+		}
+	}
 }
 
-function paracrm_lib_dataImport_commit_processNode( $treefields_node, $arr_srcLig, $truncate_mode=NULL ) {
+function paracrm_lib_dataImport_commit_processNode( $treefields_node, $arr_srcLig, $truncate_mode=NULL, &$arr_insertedFilerecordId=NULL ) {
 	if( !$treefields_node['root'] ) {
 		return ;
 	}
@@ -239,6 +260,9 @@ function paracrm_lib_dataImport_commit_processNode( $treefields_node, $arr_srcLi
 	foreach( $treefields_node['children'] as $directChild ) {
 		if( isset($directChild['file_code']) ) {
 			$filerecord_id = paracrm_lib_dataImport_commit_processNode_file( $directChild, $arr_srcLig, $filerecord_id, $truncate_mode );
+			if( is_array($arr_insertedFilerecordId) ) {
+				$arr_insertedFilerecordId[] = $filerecord_id ;
+			}
 			continue ;
 		}
 		if( isset($directChild['bible_code']) ) {
