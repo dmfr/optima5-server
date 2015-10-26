@@ -1089,7 +1089,7 @@ EOF;
 					$arr_model_keys[$field_name] = array('non_unique'=>'1','arr_columns'=>array($field_name)) ;
 				}
 				if( $_mode_primaryKey && $arr_field_isPrimaryKey[$field_code] ) {
-					$primaryKey_arrColumns = NULL ;
+					$arrAssoc_dbField_fieldType[$field_name] = 'varchar(100)' ;
 				}
 				break ;
 				
