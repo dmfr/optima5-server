@@ -216,7 +216,7 @@ function paracrm_lib_dataImport_commit_processHandle( $data_type,$store_code, $h
 	return TRUE ;
 }
 
-function paracrm_lib_dataImport_commit_processStream( $treefields_root, $map_fieldCode_csvsrcIdx, $handle, $handle_delimiter, $truncate_mode=NULL ) {
+function paracrm_lib_dataImport_commit_processStream( $treefields_root, $map_fieldCode_csvsrcIdx, $handle, $handle_delimiter, $truncate_mode ) {
 	$arr_insertedFilerecordId = array() ;
 	while( !feof($handle) ){
 		$arr_csv = fgetcsv($handle,0,$handle_delimiter) ;
@@ -251,7 +251,7 @@ function paracrm_lib_dataImport_commit_processStream( $treefields_root, $map_fie
 	}
 }
 
-function paracrm_lib_dataImport_commit_processNode( $treefields_node, $arr_srcLig, $truncate_mode=NULL, &$arr_insertedFilerecordId=NULL ) {
+function paracrm_lib_dataImport_commit_processNode( $treefields_node, $arr_srcLig, $truncate_mode, &$arr_insertedFilerecordId ) {
 	if( !$treefields_node['root'] ) {
 		return ;
 	}
@@ -260,9 +260,7 @@ function paracrm_lib_dataImport_commit_processNode( $treefields_node, $arr_srcLi
 	foreach( $treefields_node['children'] as $directChild ) {
 		if( isset($directChild['file_code']) ) {
 			$filerecord_id = paracrm_lib_dataImport_commit_processNode_file( $directChild, $arr_srcLig, $filerecord_id, $truncate_mode );
-			if( is_array($arr_insertedFilerecordId) ) {
-				$arr_insertedFilerecordId[] = $filerecord_id ;
-			}
+			$arr_insertedFilerecordId[] = $filerecord_id ;
 			continue ;
 		}
 		if( isset($directChild['bible_code']) ) {
@@ -275,7 +273,7 @@ function paracrm_lib_dataImport_commit_processNode( $treefields_node, $arr_srcLi
 		echo "??pN??" ;
 	}
 }
-function paracrm_lib_dataImport_commit_processNode_file( $treefields_node, $arr_srcLig, $filerecord_parent_id=0, $truncate_mode=NULL ) {
+function paracrm_lib_dataImport_commit_processNode_file( $treefields_node, $arr_srcLig, $filerecord_parent_id, $truncate_mode ) {
 	if( $treefields_node['leaf'] ) {
 		return NULL ;
 	}
