@@ -58,6 +58,9 @@ function specDbsEmbramach_upload_ZLORSD015($handle) {
 	global $_opDB ;
 	//paracrm_define_truncate( array('data_type'=>'file','file_code'=>'FLOW_PICKING') ) ;
 	
+	$br_time = new DateTimeZone('America/Sao_Paulo');
+	$fr_time = new DateTimeZone('Europe/Paris');
+	
 	$file_code = 'FLOW_PICKING' ;
 	$file_code_step = 'FLOW_PICKING_STEP' ;
 
@@ -113,7 +116,9 @@ function specDbsEmbramach_upload_ZLORSD015($handle) {
 			$main_row['field_STEP_CURRENT'] = $step_code ;
 			
 			// Adjust timezone -4(BR) >> +1(FR)
-			$timestamp = $timestamp + (5*60*60) ;
+			$datetime = new DateTime($date_txt,$br_time);
+			$datetime->setTimezone($fr_time);
+			$date_txt = $datetime->format('Y-m-d H:i:s');			
 			
 			$steps_arrRow[] = array(
 				'field_STEP' => $step_code,
