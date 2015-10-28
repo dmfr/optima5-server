@@ -30,8 +30,8 @@ Ext.define('Optima5.Modules.CrmBase.DataWindowToolbar' ,{
 					},{
 						xtype: 'menuseparator'
 					},{
-						itemId: 'export-excel',
-						text: 'Excel export',
+						itemId: 'export-csv',
+						text: 'CSV export',
 						iconCls: 'op5-crmbase-datatoolbar-file-export-excel'
 					},{
 						itemId: 'export-gallery',
@@ -126,12 +126,12 @@ Ext.define('Optima5.Modules.CrmBase.DataWindowToolbar' ,{
 		fileMenu.menu.hide() ;
 		if( typeof ajaxData.fileId !== 'undefined' ) {
 			fileMenu.setVisible(true) ;
-			fileMenu.menu.child('#export-excel').setVisible(true) ;
+			fileMenu.menu.child('#export-csv').setVisible(true) ;
 			fileMenu.menu.child('#export-gallery').setVisible( ajaxData.viewmode_gallery ) ;
 		} else if( typeof ajaxData.bibleId !== 'undefined' ) {
 			fileMenu.setVisible(true) ;
-			fileMenu.menu.child('menuseparator').setVisible(false) ;
-			fileMenu.menu.child('#export-excel').setVisible(false) ;
+			fileMenu.menu.child('menuseparator').setVisible(true) ;
+			fileMenu.menu.child('#export-csv').setVisible(true) ;
 			fileMenu.menu.child('#export-gallery').setVisible(false) ;
 		} else {
 			fileMenu.setVisible(false) ;

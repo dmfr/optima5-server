@@ -720,7 +720,87 @@ function paracrm_data_setFileGrid_raw( $post_data, $auth_bypass=FALSE ) {
 
 
 
-function paracrm_data_getFileGrid_exportXLS( $post_data, $auth_bypass=FALSE )
+function paracrm_data_getBibleGrid_exportCSV( $post_data, $auth_bypass=FALSE )
+{
+	global $_opDB ;
+	
+	if( !$auth_bypass && !Auth_Manager::getInstance()->auth_query_sdomain_action(
+		Auth_Manager::sdomain_getCurrent(),
+		'files',
+		array('bible_code'=>$post_data['bible_code']),
+		$write=false
+	)) {
+			return Auth_Manager::auth_getDenialResponse() ;
+	}
+	
+	$TAB_cfg = paracrm_data_getBibleCfg( array('bible_code'=>$post_data['bible_code']) ) ;
+	
+	if( !$TAB_cfg['data']['entry_fields'] )
+		return ;
+
+	$arr_keys = array() ;
+	$arr_types = array() ;
+	
+	$handle = tmpfile() ;
+	$arr_csv = array() ;
+	foreach( $TAB_cfg['data']['entry_fields'] as $cfg_field ) {
+		if( !$cfg_field['entry_field_is_highlight'] ) {
+			continue ;
+		}
+		
+		$arr_keys[] = $cfg_field['entry_field_code'] ;
+		$arr_types[] = $cfg_field['entry_field_type'] ;
+	
+		$str = $cfg_field['entry_field_lib'] ;
+	
+		$arr_csv[] = $str ;
+	}
+	fputcsv($handle,$arr_csv) ;
+	
+	$bible_code = $post_data['bible_code'] ;
+	$view_name = 'view_bible_'.$bible_code.'_entry' ;
+	
+	$query = "SELECT SQL_CALC_FOUND_ROWS * FROM $view_name ORDER BY entry_key ASC" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$rowArr = array() ;
+		foreach( $arr_keys as $idx => $field_code ) {
+			$value = $arr[$field_code] ;
+		
+			switch( $arr_types[$idx] ) {
+				case 'link' :
+				$arr_links = json_decode($value,true) ;
+				if( !is_array($arr_links) ) {
+					$str = $value ;
+				} elseif( count($arr_links)>1 ) {
+					$str = '['.implode(',',$arr_links).']' ;
+				} else {
+					$str = reset($arr_links) ;
+				}
+				$rowArr[] = $str ;
+				break ;
+				
+				case 'number' :
+				$rowArr[] = (float)$value ;
+				break ;
+			
+				default :
+				$rowArr[] = $value ;
+				break ;
+			}
+		}
+		fputcsv($handle,$rowArr) ;
+	}
+	
+	$filename = 'OP5report_CRM_.'.$post_data['bible_code'].'_'.time().'.csv' ;
+	header("Content-Type: application/force-download; name=\"$filename\""); 
+	header("Content-Disposition: attachment; filename=\"$filename\""); 
+	fseek($handle,0) ;
+	fpassthru($handle) ;
+	fclose($handle) ;
+	die() ;
+}
+function paracrm_data_getFileGrid_exportCSV( $post_data, $auth_bypass=FALSE )
 {
 	if( !$auth_bypass && !Auth_Manager::getInstance()->auth_query_sdomain_action(
 		Auth_Manager::sdomain_getCurrent(),
@@ -731,25 +811,17 @@ function paracrm_data_getFileGrid_exportXLS( $post_data, $auth_bypass=FALSE )
 			return Auth_Manager::auth_getDenialResponse() ;
 	}
 	
-	if( !class_exists('PHPExcel') )
-		return NULL ;
-	
 	$TAB_cfg = paracrm_data_getFileGrid_config( array('file_code'=>$post_data['file_code']) ) ;
 	$TAB_data = paracrm_data_getFileGrid_data( $post_data ) ;
 
 	if( !$TAB_cfg['data']['grid_fields'] )
 		return ;
 
-	$objPHPExcel = new PHPExcel();
-	$objPHPExcel->getDefaultStyle()->getFont()->setName('Arial');
-	$objPHPExcel->getDefaultStyle()->getFont()->setSize( 10 );
-
-	$objPHPExcel->setActiveSheetIndex(0);
-	$obj_sheet = $objPHPExcel->getActiveSheet() ;
-	$obj_sheet->setTitle($TAB_cfg['data']['define_file']['file_code']) ;
+	$arr_keys = array() ;
+	$arr_types = array() ;
 	
-	$row = 1 ;
-	$cell = 'A' ;
+	$handle = tmpfile() ;
+	$arr_csv = array() ;
 	foreach( $TAB_cfg['data']['grid_fields'] as $cfg_field ) {
 	
 		$str = $cfg_field['text'] ;
@@ -757,56 +829,50 @@ function paracrm_data_getFileGrid_exportXLS( $post_data, $auth_bypass=FALSE )
 			$str = $cfg_field['field'] ;
 		}
 	
-		$obj_sheet->SetCellValue("{$cell}{$row}", $str);
-		$obj_sheet->getColumnDimension($cell)->setWidth(20);
-		$obj_sheet->getStyle("{$cell}{$row}")->getFont()->setBold(TRUE);
-		
-		$cell++ ;
+		$arr_keys[] = $cfg_field['field'] ;
+		$arr_types[] = $cfg_field['type'] ;
+	
+		$arr_csv[] = $str ;
 	}
+	fputcsv($handle,$arr_csv) ;
 	
 	foreach( $TAB_data['data'] as $record ) {
-		$row++ ;
-		$cell = 'A' ;
-		foreach( $TAB_cfg['data']['grid_fields'] as $cfg_field ) {
-			$field_code = $cfg_field['field'] ;
+		$rowArr = array() ;
+		foreach( $arr_keys as $idx => $field_code ) {
+			$value = $record[$field_code] ;
 		
-			switch( $cfg_field['type'] ) {
-			
-				case 'string' :
-				$obj_sheet->getCell($cell.$row)->setValueExplicit($record[$field_code],PHPExcel_Cell_DataType::TYPE_STRING);
+			switch( $arr_types[$idx] ) {
+				case 'link' :
+				$arr_links = json_decode($value,true) ;
+				if( !is_array($arr_links) ) {
+					$str = $value ;
+				} elseif( count($arr_links)>1 ) {
+					$str = '['.implode(',',$arr_links).']' ;
+				} else {
+					$str = reset($arr_links) ;
+				}
+				$rowArr[] = $str ;
 				break ;
 				
+				case 'number' :
+				$rowArr[] = (float)$value ;
+				break ;
+			
 				default :
-				$obj_sheet->SetCellValue("{$cell}{$row}", $record[$field_code] );
+				$rowArr[] = $value ;
 				break ;
 			}
-			
-		
-			$cell++ ;
 		}
+		fputcsv($handle,$rowArr) ;
 	}
 	
-	$tmpfilename = tempnam( sys_get_temp_dir(), "FOO");
-	
-	$objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
-	$objWriter->save($tmpfilename);
-	$objPHPExcel->disconnectWorksheets();
-	unset($objPHPExcel) ;
-	
-	
-	
-	
-	
-	
-	
-	
-	
 
-	$filename = 'OP5report_CRM_.'.$post_data['file_code'].'_'.time().'.xlsx' ;
+	$filename = 'OP5report_CRM_.'.$post_data['file_code'].'_'.time().'.csv' ;
 	header("Content-Type: application/force-download; name=\"$filename\""); 
 	header("Content-Disposition: attachment; filename=\"$filename\""); 
-	readfile($tmpfilename) ;
-	unlink($tmpfilename) ;
+	fseek($handle,0) ;
+	fpassthru($handle) ;
+	fclose($handle) ;
 	die() ;
 }
 function paracrm_data_getFileGrid_exportGallery( $post_data, $auth_bypass=FALSE )
@@ -820,9 +886,6 @@ function paracrm_data_getFileGrid_exportGallery( $post_data, $auth_bypass=FALSE 
 			return Auth_Manager::auth_getDenialResponse() ;
 	}
 	
-	if( !class_exists('PHPExcel') )
-		return NULL ;
-		
 	$shown_columns = json_decode($post_data['columns']) ;
 		
 	$TAB_cfg = paracrm_data_getFileGrid_config( array('file_code'=>$post_data['file_code']) ) ;

@@ -296,8 +296,8 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 				switch( menuItemId ) {
 					case 'importdata' :
 						return me.openDataImportPanel() ;
-					case 'export-excel' :
-						return me.getPanel().exportExcel() ;
+					case 'export-csv' :
+						return me.getPanel().exportCSV() ;
 					case 'export-gallery' :
 						return me.getPanel().exportGallery() ;
 					default : break ;

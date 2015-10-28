@@ -1016,7 +1016,25 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 				var newPanel = this.mainview.items.getAt(newPanelIdx) ;
 				layout.setActiveItem(newPanelIdx);
 		}
+	},
+	
+	exportCSV: function() {
+		var me = this ;
+		if( !me.gridpanel ) {
+			return ;
+		}
+		
+		var exportParams = me.optimaModule.getConfiguredAjaxParams() ;
+		Ext.apply(exportParams,{
+			_action: 'data_getBibleGrid_exportCSV' ,
+			bible_code: this.bibleId
+		}) ;
+		
+		Ext.create('Ext.ux.dams.FileDownloader',{
+			renderTo: Ext.getBody(),
+			requestParams: exportParams,
+			requestAction: Optima5.Helper.getApplication().desktopGetBackendUrl(),
+			requestMethod: 'POST'
+		}) ;
 	}
-	
-	
 });

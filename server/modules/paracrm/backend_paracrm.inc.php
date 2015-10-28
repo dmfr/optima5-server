@@ -28,6 +28,9 @@ switch( $post_data['_action'] )
 	case 'data_getBibleGrid' :
 	//session_write_close() ;
 	return paracrm_data_getBibleGrid( $post_data );
+	case 'data_getBibleGrid_exportCSV' :
+	session_write_close() ;
+	return paracrm_data_getBibleGrid_exportCSV( $post_data );
 	
 	case 'data_editTransaction' :
 	return paracrm_data_editTransaction( $post_data ) ;
@@ -45,9 +48,9 @@ switch( $post_data['_action'] )
 	return paracrm_data_getFileGrid_config( $post_data );
 	case 'data_getFileGrid_data' :
 	return paracrm_data_getFileGrid_data( $post_data );
-	case 'data_getFileGrid_exportXLS' :
+	case 'data_getFileGrid_exportCSV' :
 	session_write_close() ;
-	return paracrm_data_getFileGrid_exportXLS( $post_data );
+	return paracrm_data_getFileGrid_exportCSV( $post_data );
 	case 'data_getFileGrid_exportGallery' :
 	session_write_close() ;
 	return paracrm_data_getFileGrid_exportGallery( $post_data );

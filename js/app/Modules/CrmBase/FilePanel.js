@@ -748,7 +748,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 		me.fireEvent('viewchange',activeId) ;
 	},
 	
-	exportExcel: function() {
+	exportCSV: function() {
 		var me = this ;
 		if( !me.gridpanel ) {
 			return ;
@@ -756,7 +756,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 		
 		var exportParams = me.optimaModule.getConfiguredAjaxParams() ;
 		Ext.apply(exportParams,{
-			_action: 'data_getFileGrid_exportXLS' ,
+			_action: 'data_getFileGrid_exportCSV' ,
 			file_code: this.fileId
 		}) ;
 		
