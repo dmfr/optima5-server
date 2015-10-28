@@ -11,8 +11,9 @@ Ext.define('DbsEmbralamStockTreeModel',{
 
 Ext.define('DbsEmbralamStockGridModel',{
 	extend: 'Ext.data.Model',
-	idProperty: 'adr_id',
+	idProperty: 'id',
 	fields: [
+		{name: 'id', type:'string'},
 		{name: 'status', type:'boolean'},
 		{name: 'adr_id', type:'string', useNull:true},
 		{name: 'pos_zone', type:'string'},
@@ -20,6 +21,7 @@ Ext.define('DbsEmbralamStockGridModel',{
 		{name: 'pos_bay', type:'string'},
 		{name: 'pos_level', type:'string'},
 		{name: 'pos_bin', type:'string'},
+		{name: 'inv_id', type:'int', useNull:true},
 		{name: 'inv_prod', type:'string'},
 		{name: 'inv_batch', type:'string'},
 		{name: 'inv_qty', type:'number', useNull:true}
@@ -548,6 +550,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.StockPanel',{
 			adrForm = eastInnerPanel.child('form'),
 			adrInventory = eastInnerPanel.child('tabpanel').child('form') ;
 			adrMvts = eastInnerPanel.child('tabpanel').child('grid') ;
+		eastInnerPanel._inv_id = record.get('inv_id') ;
 		eastInnerPanel._adr_id = record.get('adr_id') ;
 		if( record.get('adr_id') == null ) {
 			var toRemove = adrForm.child('#fsPositionDisplay') ;
@@ -590,6 +593,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.StockPanel',{
 			_action: 'stock_setRecord',
 			_is_new: ( eastInnerPanel._adr_id == null ? 1 : 0 ),
 			adr_id: ( eastInnerPanel._adr_id != null ? eastInnerPanel._adr_id : '' ),
+			inv_id: ( eastInnerPanel._inv_id != null ? eastInnerPanel._inv_id : '' ),
 			data: Ext.JSON.encode(formData)
 		} ;
 		

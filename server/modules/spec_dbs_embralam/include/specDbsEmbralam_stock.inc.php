@@ -16,6 +16,12 @@ function specDbsEmbralam_stock_getGrid($post_data) {
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$row = array() ;
 		
+		if( $arr['field_ADR_ID'] ) {
+			$row['id'] = $arr['field_ADR_ID'].'+'.$arr['field_PROD_ID'].'+'.$arr['field_BATCH_CODE'] ;
+		} else {
+			$row['id'] = $arr['entry_key'] ;
+		}
+		
 		$row['adr_id'] = $arr['entry_key'] ;
 		
 		$row['pos_zone'] = substr($arr['treenode_key'],0,1) ;
@@ -36,6 +42,7 @@ function specDbsEmbralam_stock_getGrid($post_data) {
 			}
 		}
 		
+		$row['inv_id'] = $arr['filerecord_id'] ;
 		$row['inv_prod'] = $arr['field_PROD_ID'] ;
 		$row['inv_batch'] = $arr['field_BATCH_CODE'] ;
 		$row['inv_qty'] = ( $arr['field_PROD_ID'] ? $arr['field_QTY_AVAIL'] : null ) ;
@@ -146,10 +153,11 @@ function specDbsEmbralam_stock_setRecord( $post_data ) {
 	
 	// MaJ du stock
 	if( !$form_data['inv_prod'] ) {
-		$query = "SELECT filerecord_id FROM view_file_INV WHERE field_ADR_ID='{$adr_id}'" ;
-		$filerecord_id = $_opDB->query_uniqueValue($query) ;
-		if( $filerecord_id > 0 ) {
-			paracrm_lib_data_deleteRecord_file('INV',$filerecord_id) ;
+		if( $post_data['inv_id'] ) {
+			$query = "SELECT field_ADR_ID FROM view_file_INV WHERE filerecord_id='{$post_data['inv_id']}'" ;
+			if( $_opDB->query_uniqueValue($query) ==  $adr_id ) {
+				paracrm_lib_data_deleteRecord_file('INV',$post_data['inv_id']) ;
+			}
 		}
 	} else {
 		$arr_ins = array() ;
@@ -157,7 +165,14 @@ function specDbsEmbralam_stock_setRecord( $post_data ) {
 		$arr_ins['field_PROD_ID'] = $form_data['inv_prod'] ;
 		$arr_ins['field_BATCH_CODE'] = $form_data['inv_batch'] ;
 		$arr_ins['field_QTY_AVAIL'] = $form_data['inv_qty'] ;
-		paracrm_lib_data_insertRecord_file( 'INV' , 0 , $arr_ins ) ;
+		if( !$post_data['inv_id'] ) {
+			paracrm_lib_data_insertRecord_file( 'INV' , 0 , $arr_ins ) ;
+		} else {
+			$query = "SELECT field_ADR_ID FROM view_file_INV WHERE filerecord_id='{$post_data['inv_id']}'" ;
+			if( $_opDB->query_uniqueValue($query) ==  $adr_id ) {
+				paracrm_lib_data_updateRecord_file( 'INV' , $arr_ins, $post_data['inv_id'] ) ;
+			}
+		}
 	}
 	
 	return array('success'=>true) ;
