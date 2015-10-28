@@ -294,80 +294,130 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.LivePanel',{
 				}]
 				
 			},{
+				xtype: 'panel',
 				flex: 1,
-				xtype: 'grid',
-				title: 'Adressages récents',
-				store: {
-					model: 'DbsEmbralamMovementModel',
-					autoLoad: true,
-					proxy: this.optimaModule.getConfiguredAjaxProxy({
-						extraParams : {
-							_moduleId: 'spec_dbs_embralam',
-							_action: 'live_getGrid'
-						},
-						reader: {
-							type: 'json',
-							rootProperty: 'data'
-						}
-					}),
-					sorters:[{
-						property : 'mvt_id',
-						direction: 'DESC'
-					}],
-					listeners: {
-						beforeload: function(store,options) {
-							if( this.getCurrentProd() != null ) {
-								options.setParams({
-									filter_prod: this.getCurrentProd()
-								}) ;
-							}
-						},
-						load: Ext.emptyFn,
-						scope: this
-					}
+				layout: {
+					type: 'vbox',
+					align: 'stretch'
 				},
-				tools: [{
-					type:'refresh',
-					tooltip: 'Reload',
-					handler: function(event, toolEl, panelHeader) {
-						panelHeader.ownerCt.getStore().load() ;
-					}
-				}],
-				columns: [{
-					xtype: 'actioncolumn',
-					items: [{
-						icon: 'images/op5img/ico_procedit_16.png',  // Use a URL in the icon config
-						tooltip: 'Modifier',
-						handler: function(grid, rowIndex, colIndex) {
-							var rec = grid.getStore().getAt(rowIndex);
-							this.reloadMvt( rec.get('mvt_id') ) ;
-						},
-						scope: this
+				items: [{
+					flex: 1,
+					xtype: 'grid',
+					title: 'Adressages récents',
+					store: {
+						model: 'DbsEmbralamMovementModel',
+						autoLoad: true,
+						proxy: this.optimaModule.getConfiguredAjaxProxy({
+							extraParams : {
+								_moduleId: 'spec_dbs_embralam',
+								_action: 'live_getGrid'
+							},
+							reader: {
+								type: 'json',
+								rootProperty: 'data'
+							}
+						}),
+						sorters:[{
+							property : 'mvt_id',
+							direction: 'DESC'
+						}],
+						listeners: {
+							beforeload: function(store,options) {
+								if( this.getCurrentProd() != null ) {
+									options.setParams({
+										filter_prod: this.getCurrentProd()
+									}) ;
+								}
+							},
+							load: Ext.emptyFn,
+							scope: this
+						}
+					},
+					tools: [{
+						type:'refresh',
+						tooltip: 'Reload',
+						handler: function(event, toolEl, panelHeader) {
+							panelHeader.ownerCt.getStore().load() ;
+						}
 					}],
-					width: 24
+					columns: [{
+						xtype: 'actioncolumn',
+						items: [{
+							icon: 'images/op5img/ico_procedit_16.png',  // Use a URL in the icon config
+							tooltip: 'Modifier',
+							handler: function(grid, rowIndex, colIndex) {
+								var rec = grid.getStore().getAt(rowIndex);
+								this.reloadMvt( rec.get('mvt_id') ) ;
+							},
+							scope: this
+						}],
+						width: 24
+					},{
+						xtype: 'datecolumn',
+						format:'d/m H:i',
+						dataIndex: 'mvt_date',
+						text: 'Date',
+						width: 80
+					},{
+						dataIndex: 'adr_id',
+						text: 'Adresse',
+						width: 90
+					},{
+						dataIndex: 'prod_id',
+						text: 'Article',
+						width: 90
+					},{
+						dataIndex: 'batch',
+						text: 'BatchCode',
+						width: 100
+					},{
+						dataIndex: 'mvt_qty',
+						text: 'Qty IN',
+						align: 'right',
+						width: 60
+					}]
 				},{
-					xtype: 'datecolumn',
-					format:'d/m H:i',
-					dataIndex: 'mvt_date',
-					text: 'Date',
-					width: 80
-				},{
-					dataIndex: 'adr_id',
-					text: 'Adresse',
-					width: 90
-				},{
-					dataIndex: 'prod_id',
-					text: 'Article',
-					width: 90
-				},{
-					dataIndex: 'batch',
-					text: 'BatchCode',
-					width: 100
-				},{
-					dataIndex: 'mvt_qty',
-					text: 'Qty IN',
-					align: 'right',
-					width: 60
+					itemId: 'pInv',
+					flex: 1,
+					title: 'Inventory',
+					icon: 'images/op5img/ico_blocs_small.gif',
+					xtype: 'grid',
+					store: {
+						model: 'DbsEmbralamStockGridModel',
+						autoLoad: false,
+						proxy: this.optimaModule.getConfiguredAjaxProxy({
+							extraParams : {
+								_moduleId: 'spec_dbs_embralam',
+								_action: 'prods_getStockGrid'
+							},
+							reader: {
+								type: 'json',
+								rootProperty: 'data'
+							}
+						}),
+						sorters:[{
+							property : 'adr_id',
+							direction: 'ASC'
+						}]
+					},
+					columns: [{
+						dataIndex: 'adr_id',
+						text: 'Adr.ID',
+						width: 80
+					},{
+						dataIndex: 'inv_prod',
+						text: 'Article',
+						width: 90
+					},{
+						dataIndex: 'inv_batch',
+						text: 'BatchCode',
+						width: 100
+					},{
+						dataIndex: 'inv_qty',
+						text: 'Qty disp',
+						align: 'right',
+						width: 60
+					}]
 				}]
 			}]
 		});
@@ -386,7 +436,8 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.LivePanel',{
 	
 	onSelectProd: function(prodCode, ajaxData) {
 		var fsAttributes = this.down('#fsAttributes'),
-			fsDummy = this.down('#fsDummy') ;
+			fsDummy = this.down('#fsDummy'),
+			pInv = this.down('#pInv') ;
 		
 		var oldProdSet = this.down('form').getForm().findField('prod_set').getValue() ;
 		if( Ext.isEmpty(oldProdSet) ) {
@@ -400,6 +451,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.LivePanel',{
 		fsAttributes.setVisible(false) ;
 		fsDummy.setVisible(true) ;
 		if( prodCode == null ) {
+			pInv.setVisible(false) ;
 			return ;
 		}
 		
@@ -425,6 +477,13 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.LivePanel',{
 			},
 			scope: this
 		});
+		
+		pInv.setVisible(true) ;
+		pInv.getStore().load({
+			params: {
+				prod_id: prodCode
+			}
+		}) ;
 	},
 	onLoadProd: function(ajaxData) {
 		var fsAttributes = this.down('#fsAttributes'),
