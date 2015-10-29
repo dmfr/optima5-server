@@ -295,12 +295,14 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.LivePanel',{
 				
 			},{
 				xtype: 'panel',
+				border: false,
 				flex: 1,
 				layout: {
 					type: 'vbox',
 					align: 'stretch'
 				},
 				items: [{
+					itemId: 'pMvt',
 					flex: 1,
 					xtype: 'grid',
 					title: 'Adressages récents',
@@ -398,7 +400,21 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.LivePanel',{
 						sorters:[{
 							property : 'adr_id',
 							direction: 'ASC'
-						}]
+						}],
+						listeners: {
+							beforeload: function(store,options) {
+								if( this.getCurrentProd() != null ) {
+									options.setParams({
+										prod_id: this.getCurrentProd()
+									}) ;
+								} else {
+									store.removeAll() ;
+									return false ;
+								}
+							},
+							load: Ext.emptyFn,
+							scope: this
+						}
 					},
 					columns: [{
 						dataIndex: 'adr_id',
@@ -428,7 +444,8 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.LivePanel',{
 	onCrmeventBroadcast: function(crmEvent, eventParams) {
 		switch( crmEvent ) {
 			case 'datachange' :
-				this.child('grid').getStore().load() ;
+				this.down('#pMvt').getStore().load() ;
+				this.down('#pInv').getStore().load() ;
 				break ;
 			default: break ;
 		}
@@ -445,7 +462,8 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.LivePanel',{
 		}
 		if( oldProdSet != prodCode ) {
 			this.down('form').getForm().findField('prod_set').setValue(prodCode) ;
-			this.down('grid').getStore().load() ;
+			this.down('#pMvt').getStore().load() ;
+			this.down('#pInv').getStore().load() ;
 		}
 		
 		fsAttributes.setVisible(false) ;
@@ -479,11 +497,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.LivePanel',{
 		});
 		
 		pInv.setVisible(true) ;
-		pInv.getStore().load({
-			params: {
-				prod_id: prodCode
-			}
-		}) ;
+		pInv.getStore().load() ;
 	},
 	onLoadProd: function(ajaxData) {
 		var fsAttributes = this.down('#fsAttributes'),
@@ -514,7 +528,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbralam.LivePanel',{
 	},
 	
 	onChangeBatch: function(value) {
-		var gridStore = this.down('grid').getStore() ;
+		var gridStore = this.down('#pMvt').getStore() ;
 		gridStore.clearFilter() ;
 		if( !Ext.isEmpty(this.down('form').getForm().findField('prod_set').getValue()) ) {
 			gridStore.filter('batch',value) ;
