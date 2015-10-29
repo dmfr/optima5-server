@@ -29,8 +29,9 @@ function specDbsEmbramach_upload( $post_data ) {
 		case 'MB51' :
 			specDbsEmbramach_upload_ZMB51($handle) ;
 			break ;
-		case 'Z086' :
-			// TODO!
+		case 'Z080L' :
+		case 'Z080P' :
+			specDbsEmbramach_upload_Z080($handle) ;
 			break ;
 		default :
 			return array('success'=>false) ;
@@ -51,6 +52,15 @@ function specDbsEmbramach_upload_ZMB51($handle) {
 	fseek($handle_trad,0) ;
 	
 	paracrm_lib_dataImport_commit_processHandle( 'file','ZMB51', $handle_trad ) ;
+
+	fclose($handle_trad) ;
+}
+function specDbsEmbramach_upload_Z080($handle) {
+	$handle_trad = tmpfile() ;
+	specDbsEmbramach_upload_lib_separator( $handle, $handle_trad ) ;
+	fseek($handle_trad,0) ;
+	
+	paracrm_lib_dataImport_commit_processHandle( 'file','Z080', $handle_trad ) ;
 
 	fclose($handle_trad) ;
 }
