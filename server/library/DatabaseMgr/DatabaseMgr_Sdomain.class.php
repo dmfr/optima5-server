@@ -1089,7 +1089,7 @@ EOF;
 					$arr_model_keys[$field_name] = array('non_unique'=>'1','arr_columns'=>array($field_name)) ;
 				}
 				if( $_mode_primaryKey && $arr_field_isPrimaryKey[$field_code] ) {
-					$arrAssoc_dbField_fieldType[$field_name] = 'varchar(100)' ;
+					$arrAssoc_dbField_fieldType[$field_name] = 'varchar(80)' ;
 				}
 				break ;
 				
@@ -1116,7 +1116,7 @@ EOF;
 				
 				case 'link' :
 				$field_name.= '_str' ;
-				$arrAssoc_dbField_fieldType[$field_name] = 'varchar(104)' ;
+				$arrAssoc_dbField_fieldType[$field_name] = 'varchar(80)' ;
 				if( TRUE ) {
 					$arr_model_keys[$field_name] = array('non_unique'=>'1','arr_columns'=>array($field_name)) ;
 				}
