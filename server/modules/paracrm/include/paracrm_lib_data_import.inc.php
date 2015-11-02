@@ -304,6 +304,10 @@ function paracrm_lib_dataImport_commit_processNode_file( $treefields_node, $arr_
 			continue ;
 		}
 		
+		if( !isset($arr_srcLig[$field]) ) {
+			continue ;
+		}
+		
 		switch( $directChild['field_type'] ) {
 			case 'date' :
 				if( !trim($arr_srcLig[$field]) ) {

@@ -792,7 +792,7 @@ function paracrm_data_getBibleGrid_exportCSV( $post_data, $auth_bypass=FALSE )
 		fputcsv($handle,$rowArr) ;
 	}
 	
-	$filename = 'OP5report_CRM_.'.$post_data['bible_code'].'_'.time().'.csv' ;
+	$filename = 'OP5report_CRM_'.$post_data['bible_code'].'_'.time().'.csv' ;
 	header("Content-Type: application/force-download; name=\"$filename\""); 
 	header("Content-Disposition: attachment; filename=\"$filename\""); 
 	fseek($handle,0) ;
