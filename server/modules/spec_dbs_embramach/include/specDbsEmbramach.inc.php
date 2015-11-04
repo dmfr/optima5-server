@@ -79,14 +79,84 @@ function specDbsEmbramach_mach_getGridCfg( $post_data ) {
 	return array(
 		'success'=>true,
 		'data' => array(
+			'fields' => specDbsEmbramach_mach_getGridCfg_lib_getFields($flow_code),
 			'flow_prio' => array_values($map_priorityId_obj),
 			'flow_milestone' => array_values($map_milestoneCode_obj)
 		)
 	) ;
 }
+function specDbsEmbramach_mach_getGridCfg_lib_getFields($flow_code) {
+	$arr_fields = NULL ;
+	switch( $flow_code ) {
+		case 'PICKING' :
+			$arr_fields = array() ;
+			$arr_fields[] = array(
+				'dataIndex' => 'delivery_id',
+				'text' => 'Picking',
+				'width' => 130,
+				'widthBig' => true,
+				'filter' => array(
+					'type' => 'string'
+				),
+				'source' => array('field_DELIVERY_ID')
+			);
+			$arr_fields[] = array(
+				'dataIndex' => 'linecount',
+				'text' => '# lines',
+				'width' => 60,
+				'type' => 'number',
+				'source' => array('field_LINE_COUNT')
+			);
+			$arr_fields[] = array(
+				'dataIndex' => 'priority_code',
+				'text' => 'Priority',
+				'width' => 60,
+				'widthBig' => true,
+				'renderer' => 'priority',
+				'filter' => array(
+					'type' => 'bible',
+					'bible_code' => 'FLOW_PRIO'
+				),
+				'source' => array('field_PRIORITY')
+			);
+			$arr_fields[] = array(
+				'dataIndex' => 'flow',
+				'text' => 'Flow',
+				'width' => 70,
+				'widthBig' => true,
+				'filter' => array(
+					'type' => 'stringlist'
+				),
+				'source' => array('field_FLOW')
+			);
+			$arr_fields[] = array(
+				'dataIndex' => 'shipto_txt',
+				'text' => 'Customer',
+				'width' => 130,
+				'filter' => array(
+					'type' => 'stringlist'
+				),
+				'source' => array('field_SHIPTO_NAME','field_SHIPTO_CODE')
+			);
+			break ;
+			
+		default :
+			break ;
+	}
+	return $arr_fields ;
+}
 
 function specDbsEmbramach_mach_getGridData( $post_data ) {
 	global $_opDB ;
+	
+	$flow_code = $post_data['flow_code'] ;
+	
+	// controle
+	$ttmp_FLOW = paracrm_define_getMainToolbar(array('data_type'=>'file','file_code'=>"FLOW_{$flow_code}")) ;
+	$ttmp_FLOW_STEP = paracrm_define_getMainToolbar(array('data_type'=>'file','file_code'=>"FLOW_{$flow_code}_STEP")) ;
+	if( !$ttmp_FLOW['data_files'] || !$ttmp_FLOW_STEP['data_files'] ) {
+		return array('success'=>false) ;
+	}
 	
 	$json_cfg = specDbsEmbramach_mach_getGridCfg( $post_data ) ;
 	$json_cfg_prio = array() ;
@@ -104,7 +174,7 @@ function specDbsEmbramach_mach_getGridData( $post_data ) {
 	// HACK!!
 	if( $filters = json_decode($post_data['filters'],true) ) {
 		$_filter1 = $filter2 = array() ;
-		$query = "SELECT filerecord_id FROM view_file_FLOW_PICKING
+		$query = "SELECT filerecord_id FROM view_file_FLOW_{$flow_code}
 					WHERE field_STATS_TAT='{$filters['tat_code']}' AND field_PRIORITY='{$filters['prio_id']}'" ;
 		if( $filters['shift_id'] ) {
 			$query.= " AND field_STATS_SHIFT='{$filters['shift_id']}'" ;
@@ -115,7 +185,7 @@ function specDbsEmbramach_mach_getGridData( $post_data ) {
 		}
 
 
-		$query = "select filerecord_parent_id FROM view_file_FLOW_PICKING_STEP WHERE field_STEP='01_CREATE' AND DATE(field_DATE) BETWEEN '{$filters['date_start']}' AND '{$filters['date_end']}'";
+		$query = "select filerecord_parent_id FROM view_file_FLOW_{$flow_code}_STEP WHERE field_STEP='01_CREATE' AND DATE(field_DATE) BETWEEN '{$filters['date_start']}' AND '{$filters['date_end']}'";
 		$result = $_opDB->query($query) ;
                 while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
                         $_filter2[] = $arr[0] ;
@@ -127,7 +197,7 @@ function specDbsEmbramach_mach_getGridData( $post_data ) {
 	
 	$TAB = array() ;
 	
-	$query = "SELECT * FROM view_file_FLOW_PICKING" ;
+	$query = "SELECT * FROM view_file_FLOW_{$flow_code}" ;
 	if( isset($_filter_filerecordIds) ) {
 		if( $_filter_filerecordIds ) {
 			$query.= " WHERE filerecord_id IN ".$_opDB->makeSQLlist($_filter_filerecordIds) ;
@@ -156,12 +226,7 @@ function specDbsEmbramach_mach_getGridData( $post_data ) {
 	
 		$row = array() ;
 		$row['_filerecord_id'] = $filerecord_id ;
-		$row['delivery_id'] = $arr['field_DELIVERY_ID'] ;
-		$row['date_issue'] = $arr['field_DATE_ISSUE'] ;
 		$row['date_closed'] = $arr['field_DATE_CLOSED'] ;
-		$row['date_toship'] = $arr['field_DATE_TOSHIP'] ;
-		$row['type'] = $arr['field_TYPE'] ;
-		$row['flow'] = $arr['field_FLOW'] ;
 		if( $arr['field_STEP_NOT_OT'] ) {
 			$row['step_warning'] = TRUE ;
 			$row['step_txt'] = 'Absence OT' ;
@@ -171,20 +236,27 @@ function specDbsEmbramach_mach_getGridData( $post_data ) {
 			$row['step_txt'] = $map_stepCode_stepTxt[$arr['field_STEP_CURRENT']] ;
 		}
 		$row['priority_code'] = $arr['field_PRIORITY'] ;
-		$row['shipto_code'] = $arr['field_SHIPTO_CODE'] ;
-		$row['shipto_name'] = $arr['field_SHIPTO_NAME'] ;
-		$row['shipto_txt'] = $arr['field_SHIPTO_NAME'].' '.$arr['field_SHIPTO_CODE'] ;
 		$row['feedback_txt'] = $arr['field_FEEDBACK_TXT'] ;
-		$row['linecount'] = $arr['field_LINE_COUNT'] ;
 		$row['status_closed'] = ($arr['field_STATUS'] == 'CLOSED') ;
 		$row['obj_steps'] = array() ;
 		
 		$row['calc_lateness'] = 0 ;
 		
+		foreach( $json_cfg['data']['fields'] as $field_idx => $field_cfg ) {
+			$dataIndex = 'field_'.$field_idx ;
+			
+			$value = array() ;
+			foreach( $field_cfg['source'] as $field_src ) {
+				$value[] = $arr[$field_src] ;
+			}
+			
+			$row[$dataIndex] = implode(' ',$value) ;
+		}
+		
 		$TAB[$filerecord_id] = $row ;
 	}
 	
-	$query = "SELECT * FROM view_file_FLOW_PICKING_STEP" ;
+	$query = "SELECT * FROM view_file_FLOW_{$flow_code}_STEP" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$filerecord_parent_id = $arr['filerecord_parent_id'] ;
@@ -314,7 +386,7 @@ function specDbsEmbramach_mach_getGridData( $post_data ) {
 			$arr_update = array() ;
 			$arr_update['field_STATUS'] = 'CLOSED' ;
 			$arr_update['field_DATE_CLOSED'] = date('Y-m-d H:i:s') ;
-			paracrm_lib_data_updateRecord_file( 'FLOW_PICKING', $arr_update, $filerecord_id ) ;
+			paracrm_lib_data_updateRecord_file( "FLOW_{$flow_code}", $arr_update, $filerecord_id ) ;
 		}
 		
 		unset($row['obj_steps']) ;
@@ -328,8 +400,8 @@ function specDbsEmbramach_mach_getGridData( $post_data ) {
 			// Cache stats
 			$arr_ins = array() ;
 			$arr_ins['field_STAT_TAT_H'] = $total_spent_time_s / 3600 ;
-			$_opDB->update('view_file_FLOW_PICKING',$arr_ins, array('filerecord_id'=>$filerecord_id)) ;
-			//paracrm_lib_data_updateRecord_file( 'FLOW_PICKING', $arr_ins, $filerecord_id ) ;
+			$_opDB->update("view_file_FLOW_{$flow_code}",$arr_ins, array('filerecord_id'=>$filerecord_id)) ;
+			//paracrm_lib_data_updateRecord_file( "FLOW_{$flow_code}", $arr_ins, $filerecord_id ) ;
 		}
 		
 		if( !$row['status_closed'] ) {
@@ -352,7 +424,7 @@ function specDbsEmbramach_mach_getGridData( $post_data ) {
 	}
 	
 	
-	$query = "SELECT max(field_DATE) FROM view_file_LOG_IMPORT WHERE field_FLOW_CODE='PICKING'" ;
+	$query = "SELECT max(field_DATE) FROM view_file_LOG_IMPORT WHERE field_FLOW_CODE='{$flow_code}'" ;
 	if( $date_sql = $_opDB->query_uniqueValue($query) ) {
 		$maj_date = date('d/m/Y H:i',strtotime($date_sql)) ;
 	}
@@ -384,6 +456,8 @@ function specDbsEmbramach_mach_getGridData_sort( $row1, $row2 ) {
 function specDbsEmbramach_mach_saveGridRow( $post_data ) {
 	global $_opDB ;
 	
+	$flow_code = $post_data['flow_code'] ;
+	
 	$record = json_decode($post_data['data'],true) ;
 	if( !$record['_filerecord_id'] ) {
 		return array('success'=>false) ;
@@ -391,7 +465,7 @@ function specDbsEmbramach_mach_saveGridRow( $post_data ) {
 	
 	$arr_update = array() ;
 	$arr_update['field_FEEDBACK_TXT'] = $record['feedback_txt'] ;
-	paracrm_lib_data_updateRecord_file( 'FLOW_PICKING', $arr_update, $record['_filerecord_id'] ) ;
+	paracrm_lib_data_updateRecord_file( "FLOW_{$flow_code}", $arr_update, $record['_filerecord_id'] ) ;
 	return array('success'=>true) ;
 }
 

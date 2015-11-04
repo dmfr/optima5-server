@@ -2,19 +2,12 @@ Ext.define('DbsEmbramachMachFlowRowModel', {
     extend: 'Ext.data.Model',
     fields: [
         {name: '_filerecord_id', type: 'int'},
-		  {name: 'delivery_id', type: 'int'},
 		  {name: 'priority_code', type: 'string'},
-		  {name: 'type', type: 'string'},
-		  {name: 'flow', type: 'string'},
-		  {name: 'shipto_code', type: 'string'},
-		  {name: 'shipto_name', type: 'string'},
-		  {name: 'shipto_txt', type: 'string'},
 		  {name: 'feedback_txt', type: 'string'},
 		  {name: 'step_warning', type: 'string'},
 		  {name: 'step_code', type: 'string'},
 		  {name: 'step_txt', type: 'string'},
 		  {name: 'status_closed', type: 'boolean'},
-		  {name: 'linecount', type: 'int'}
 	]
 });
 Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
@@ -156,56 +149,60 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 		};
 		
 		var pushModelfields = [] ;
-		var columns = [{
-			text: 'Picking',
-			dataIndex: 'delivery_id',
-			tdCls: 'op5-spec-dbsembramach-bigcolumn',
-			width: 130,
-			align: 'center',
-			filter: {
-				type: 'string'
-			}
-		},{
-			text: '# lines',
-			dataIndex: 'linecount',
-			width: 60,
-			align: 'center'
-		},{
-			text: 'Priority',
-			dataIndex: 'priority_code',
-			renderer: function(v,metaData) {
-				var prioMap = this._prioMap ;
-				if( prioMap.hasOwnProperty(v) ) {
-					var prioData = prioMap[v] ;
-					return '<font color="' + prioData.prio_color + '">' + prioData.prio_code + '</font>' ;
+		var columns = [] ;
+		
+		Ext.Array.each( jsonResponse.data.fields, function(fieldCfg, fieldIdx) {
+			var dataIndex = 'field_'+fieldIdx ;
+			var filter, renderer ;
+			if( fieldCfg.filter ) {
+				switch( fieldCfg.filter.type ) {
+					case 'bible' :
+						filter = {
+							type: 'op5crmbasebible',
+							optimaModule: this.optimaModule,
+							bibleId: fieldCfg.filter.bible_code
+						} ;
+						break ;
+					default :
+						filter = {
+							type: fieldCfg.filter.type
+						} ;
+						break ;
 				}
-				return '?' ;
-			},
-			width: 60,
-			align: 'center',
-			tdCls: 'op5-spec-dbsembramach-bigcolumn',
-			filter: {
-				type: 'op5crmbasebible',
-				optimaModule: this.optimaModule,
-				bibleId: 'FLOW_PRIO'
 			}
-		},{
-			text: 'Flow',
-			dataIndex: 'flow',
-			width: 70,
-			align: 'center',
-			tdCls: 'op5-spec-dbsembramach-bigcolumn',
-			filter: {
-				type: 'stringlist'
+			if( fieldCfg.renderer ) {
+				switch( fieldCfg.renderer ) {
+					case 'priority' :
+						renderer = function(v,metaData) {
+							var prioMap = this._prioMap ;
+							if( prioMap.hasOwnProperty(v) ) {
+								var prioData = prioMap[v] ;
+								return '<font color="' + prioData.prio_color + '">' + prioData.prio_code + '</font>' ;
+							}
+							return '?' ;
+						} ;
+						break ;
+					default :
+						break ;
+				}
 			}
-		},{
-			text: 'Customer',
-			dataIndex: 'shipto_txt',
-			width: 130,
-			filter: {
-				type: 'stringlist'
-			}
-		},{
+			columns.push({
+				dataIndex: dataIndex,
+				text: fieldCfg.text,
+				width: fieldCfg.width,
+				align: 'center',
+				tdCls: (fieldCfg.widthBig ? 'op5-spec-dbsembramach-bigcolumn' : ''),
+				filter: filter,
+				renderer: renderer
+			}) ;
+			
+			pushModelfields.push({
+				name: dataIndex,
+				type: (!Ext.isEmpty(fieldCfg.type) ? fieldCfg.type : 'auto')
+			}) ;
+		},this) ;
+		
+		columns.push({
 			text: 'Process step',
 			dataIndex: 'step_code',
 			width: 120,
@@ -230,7 +227,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 				growMin: 30,
 				growMax: 40
 			}
-		}] ;
+		}) ;
 		
 		var sortTypeFn = function(o1) {
 			var v1 = '' ;
@@ -532,6 +529,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 		var ajaxParams = {
 			_moduleId: 'spec_dbs_embramach',
 			_action: 'mach_saveGridRow',
+			flow_code: this.flowCode,
 			data: Ext.JSON.encode( gridRecord.getData(true) )
 		};
 		this.optimaModule.getConfiguredAjaxConnection().request({
