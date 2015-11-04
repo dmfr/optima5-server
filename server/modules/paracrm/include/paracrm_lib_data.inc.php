@@ -260,19 +260,13 @@ function paracrm_lib_data_endTransaction($reset_orphans=FALSE)
 }
 
 
-function paracrm_lib_data_insertRecord_bibleTreenode( $bible_code, $treenode_key, $treenode_parent_key, $data )
-{
+function paracrm_lib_data_getDefine_bibleTreenode( $bible_code ) {
 	global $_opDB ;
 	
-	if( paracrm_lib_data_getRecord_bibleTreenode( $bible_code, $treenode_key ) )
-		return -1 ;
-	if( $treenode_parent_key && $treenode_parent_key != '&' )
-	{
-		if( !paracrm_lib_data_getRecord_bibleTreenode( $bible_code, $treenode_parent_key ) )
-			return -1 ;
+	if( $GLOBALS['cache_fastImport'] && $GLOBALS['define_dataGetDefine'][$bible_code.'_t'] ) {
+		return $GLOBALS['define_dataGetDefine'][$bible_code.'_t'] ;
 	}
 	
-	// definition
 	$key_field = NULL ;
 	$fields = array() ;
 	$query = "SELECT * FROM define_bible_tree WHERE bible_code='$bible_code' ORDER BY tree_field_index" ;
@@ -283,6 +277,32 @@ function paracrm_lib_data_insertRecord_bibleTreenode( $bible_code, $treenode_key
 		if( $arr['tree_field_is_key'] == 'O' )
 			$key_field = $arr['tree_field_code'] ;
 	}
+	
+	$return = array() ;
+	$return['fields'] = $fields ;
+	$return['key_field'] = $key_field ;
+	if( $GLOBALS['cache_fastImport'] ) {
+		$GLOBALS['define_dataGetDefine'][$bible_code.'_t'] = $return ;
+	}
+	return $return ;
+}
+function paracrm_lib_data_insertRecord_bibleTreenode( $bible_code, $treenode_key, $treenode_parent_key, $data )
+{
+	global $_opDB ;
+	
+	if( !$GLOBALS['cache_fastImport'] && paracrm_lib_data_getRecord_bibleTreenode( $bible_code, $treenode_key ) )
+		return -1 ;
+	if( !$GLOBALS['cache_fastImport'] && $treenode_parent_key && $treenode_parent_key != '&' )
+	{
+		if( !paracrm_lib_data_getRecord_bibleTreenode( $bible_code, $treenode_parent_key ) )
+			return -1 ;
+	}
+	
+	// definition
+	$_getDefine = paracrm_lib_data_getDefine_bibleTreenode($bible_code) ;
+	$key_field = $_getDefine['key_field'] ;
+	$fields = $_getDefine['fields'] ;
+	
 	
 	$data_key_field = 'field_'.$key_field ;
 	if( !($data[$data_key_field] === $treenode_key) )
@@ -310,22 +330,16 @@ function paracrm_lib_data_updateRecord_bibleTreenode( $bible_code, $treenode_key
 {
 	global $_opDB ;
 	
-	if( !($rec = paracrm_lib_data_getRecord_bibleTreenode( $bible_code, $treenode_key )) )
+	if( !$GLOBALS['cache_fastImport'] && !($rec = paracrm_lib_data_getRecord_bibleTreenode( $bible_code, $treenode_key )) )
 		return -1 ;
 		
 	$db_table = 'store_bible_'.$bible_code.'_tree' ;
 	
 	// definition
-	$key_field = NULL ;
-	$fields = array() ;
-	$query = "SELECT * FROM define_bible_tree WHERE bible_code='$bible_code' ORDER BY tree_field_index" ;
-	$result = $_opDB->query($query) ;
-	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
-	{
-		$fields[$arr['tree_field_code']] = $arr['tree_field_type'] ;
-		if( $arr['tree_field_is_key'] == 'O' )
-			$key_field = $arr['tree_field_code'] ;
-	}
+	$_getDefine = paracrm_lib_data_getDefine_bibleTreenode($bible_code) ;
+	$key_field = $_getDefine['key_field'] ;
+	$fields = $_getDefine['fields'] ;
+	
 	
 	$db_table_tree = $db_table ;
 	$db_table_entry = 'store_bible_'.$bible_code.'_entry' ;
@@ -392,22 +406,13 @@ function paracrm_lib_data_deleteRecord_bibleTreenode( $bible_code, $treenode_key
 
 
 
-
-function paracrm_lib_data_insertRecord_bibleEntry( $bible_code, $entry_key, $treenode_key, $data )
-{
+function paracrm_lib_data_getDefine_bibleEntry( $bible_code ) {
 	global $_opDB ;
 	
-	$db_table = 'store_bible_'.$bible_code.'_entry' ;
-	
-	if( paracrm_lib_data_getRecord_bibleEntry( $bible_code, $entry_key ) )
-		return -1 ;
-	if( $treenode_key && $treenode_key != '&' )
-	{
-		if( !paracrm_lib_data_getRecord_bibleTreenode( $bible_code, $treenode_key ) )
-			return -1 ;
+	if( $GLOBALS['cache_fastImport'] && $GLOBALS['define_dataGetDefine'][$bible_code.'_e'] ) {
+		return $GLOBALS['define_dataGetDefine'][$bible_code.'_e'] ;
 	}
 	
-	// definition
 	$key_field = NULL ;
 	$fields = array() ;
 	$query = "SELECT * FROM define_bible_entry WHERE bible_code='$bible_code' ORDER BY entry_field_index" ;
@@ -428,6 +433,35 @@ function paracrm_lib_data_insertRecord_bibleEntry( $bible_code, $entry_key, $tre
 			$arr_gmap[] = $tfield ;
 		}
 	}
+	
+	$return = array() ;
+	$return['fields'] = $fields ;
+	$return['key_field'] = $key_field ;
+	$return['arr_gmap'] = $arr_gmap ;
+	if( $GLOBALS['cache_fastImport'] ) {
+		$GLOBALS['define_dataGetDefine'][$bible_code.'_e'] = $return ;
+	}
+	return $return ;
+}
+function paracrm_lib_data_insertRecord_bibleEntry( $bible_code, $entry_key, $treenode_key, $data )
+{
+	global $_opDB ;
+	
+	$db_table = 'store_bible_'.$bible_code.'_entry' ;
+	
+	if( !$GLOBALS['cache_fastImport'] && paracrm_lib_data_getRecord_bibleEntry( $bible_code, $entry_key ) )
+		return -1 ;
+	if( !$GLOBALS['cache_fastImport'] && $treenode_key && $treenode_key != '&' )
+	{
+		if( !paracrm_lib_data_getRecord_bibleTreenode( $bible_code, $treenode_key ) )
+			return -1 ;
+	}
+	
+	// definition
+	$_getDefine = paracrm_lib_data_getDefine_bibleEntry($bible_code) ;
+	$key_field = $_getDefine['key_field'] ;
+	$fields = $_getDefine['fields'] ;
+	$arr_gmap = $_getDefine['arr_gmap'] ;
 	
 	
 	$data_key_field = 'field_'.$key_field ;
@@ -465,30 +499,15 @@ function paracrm_lib_data_updateRecord_bibleEntry( $bible_code, $entry_key, $dat
 	
 	$db_table = 'store_bible_'.$bible_code.'_entry' ;
 	
-	if( !($rec=paracrm_lib_data_getRecord_bibleEntry( $bible_code, $entry_key )) )
+	if( !$GLOBALS['cache_fastImport'] && !($rec=paracrm_lib_data_getRecord_bibleEntry( $bible_code, $entry_key )) )
 		return -1 ;
 	
 	// definition
-	$key_field = NULL ;
-	$fields = array() ;
-	$query = "SELECT * FROM define_bible_entry WHERE bible_code='$bible_code' ORDER BY entry_field_index" ;
-	$result = $_opDB->query($query) ;
-	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
-	{
-		$fields[$arr['entry_field_code']] = $arr['entry_field_type'] ;
-		if( $arr['entry_field_is_key'] == 'O' )
-			$key_field = $arr['entry_field_code'] ;
-	}
-	$query = "SELECT gmap_is_on FROM define_bible WHERE bible_code='$bible_code'" ;
-	if( $_opDB->query_uniqueValue($query) == 'O' )
-	{
-		$arr_gmap = array() ;
-		foreach( $_opDB->table_fields('define_gmap') as $field )
-		{
-			$tfield = 'gmap_'.$field ;
-			$arr_gmap[] = $tfield ;
-		}
-	}
+	$_getDefine = paracrm_lib_data_getDefine_bibleEntry($bible_code) ;
+	$key_field = $_getDefine['key_field'] ;
+	$fields = $_getDefine['fields'] ;
+	$arr_gmap = $_getDefine['arr_gmap'] ;
+	
 	
 	$data_key_field = 'field_'.$key_field ;
 	if( !($data[$data_key_field] === $entry_key) )
@@ -555,12 +574,14 @@ function paracrm_lib_data_deleteRecord_bibleEntry( $bible_code, $entry_key )
 function paracrm_lib_data_bibleAssignTreenode( $bible_code, $entry_key, $new_treenode_key )
 {
 	global $_opDB ;
-	if( !paracrm_lib_data_getRecord_bibleEntry( $bible_code, $entry_key ) )
-		return -1 ;
-	if( $new_treenode_key && $new_treenode_key != '&' )
-	{
-		if( !paracrm_lib_data_getRecord_bibleTreenode( $bible_code, $new_treenode_key ) )
+	if( !$GLOBALS['cache_fastImport'] ) {
+		if( !paracrm_lib_data_getRecord_bibleEntry( $bible_code, $entry_key ) )
 			return -1 ;
+		if( $new_treenode_key && $new_treenode_key != '&' )
+		{
+			if( !paracrm_lib_data_getRecord_bibleTreenode( $bible_code, $new_treenode_key ) )
+				return -1 ;
+		}
 	}
 	
 	$db_table = 'store_bible_'.$bible_code.'_entry' ;
@@ -575,12 +596,14 @@ function paracrm_lib_data_bibleAssignTreenode( $bible_code, $entry_key, $new_tre
 function paracrm_lib_data_bibleAssignParentTreenode( $bible_code, $treenode_key, $parent_treenode_key )
 {
 	global $_opDB ;
-	if( !paracrm_lib_data_getRecord_bibleTreenode( $bible_code, $treenode_key ) )
-		return -1 ;
-	if( $parent_treenode_key && $parent_treenode_key != '&' )
-	{
-		if( !paracrm_lib_data_getRecord_bibleTreenode( $bible_code, $parent_treenode_key ) )
+	if( !$GLOBALS['cache_fastImport'] ) {
+		if( !paracrm_lib_data_getRecord_bibleTreenode( $bible_code, $treenode_key ) )
 			return -1 ;
+		if( $parent_treenode_key && $parent_treenode_key != '&' )
+		{
+			if( !paracrm_lib_data_getRecord_bibleTreenode( $bible_code, $parent_treenode_key ) )
+				return -1 ;
+		}
 	}
 	
 	$db_table = 'store_bible_'.$bible_code.'_tree' ;

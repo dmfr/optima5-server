@@ -217,6 +217,8 @@ function paracrm_lib_dataImport_commit_processHandle( $data_type,$store_code, $h
 }
 
 function paracrm_lib_dataImport_commit_processStream( $treefields_root, $map_fieldCode_csvsrcIdx, $handle, $handle_delimiter, $truncate_mode ) {
+	$GLOBALS['cache_fastImport'] = TRUE ;
+	
 	$arr_insertedFilerecordId = array() ;
 	while( !feof($handle) ){
 		$arr_csv = fgetcsv($handle,0,$handle_delimiter) ;
@@ -249,6 +251,8 @@ function paracrm_lib_dataImport_commit_processStream( $treefields_root, $map_fie
 			}
 		}
 	}
+	
+	$GLOBALS['cache_fastImport'] = FALSE ;
 }
 
 function paracrm_lib_dataImport_commit_processNode( $treefields_node, $arr_srcLig, $truncate_mode, &$arr_insertedFilerecordId ) {
@@ -437,6 +441,10 @@ function paracrm_lib_dataImport_commit_insertBibleTreenode( $bible_code, $treeno
 		$arr_ins[$mkey] = $value ;
 	}
 	
+	if( !$treenode_key ) {
+		return NULL ;
+	}
+	
 	if( paracrm_lib_data_getRecord_bibleTreenode( $bible_code, $treenode_key ) ) {
 		paracrm_lib_data_updateRecord_bibleTreenode( $bible_code, $treenode_key, $arr_ins );
 		if( $treenode_parent_key ) {
@@ -505,6 +513,10 @@ function paracrm_lib_dataImport_commit_insertBibleEntry( $bible_code, $treenode_
 	foreach( $arr_insert_bible as $bible_field_code => $value ) {
 		$mkey = 'field_'.$bible_field_code ;
 		$arr_ins[$mkey] = $value ;
+	}
+	
+	if( !$entry_key ) {
+		return NULL ;
 	}
 	
 	if( paracrm_lib_data_getRecord_bibleEntry( $bible_code, $entry_key ) ) {
