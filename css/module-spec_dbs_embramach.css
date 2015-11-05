@@ -45,11 +45,13 @@
 	width: 104px;
 	height: 124px;
 	overflow: hidden;
-	cursor: pointer;
 	z-index: 1;
 	font-size: 14px;	
 }
-.op5-spec-dbsembramach-mainmenu .op5-spec-dbsembramach-mainmenu-item-over .op5-spec-dbsembramach-mainmenu-action {
+.op5-spec-dbsembramach-mainmenu .op5-spec-dbsembramach-mainmenu-action-active {
+	cursor: pointer;
+}
+.op5-spec-dbsembramach-mainmenu .op5-spec-dbsembramach-mainmenu-item-over .op5-spec-dbsembramach-mainmenu-action-active {
 	background-color: rgb(37, 68, 93);
 	border: 1px solid rgb(221, 221, 221);
 	padding: 4px;
