@@ -5,6 +5,7 @@ Ext.define('DbsEmbramachMenuItemModel',{
 		{name: 'type_header',  type: 'boolean'},
 		{name: 'type_separator',   type: 'boolean'},
 		{name: 'type_action',   type: 'boolean'},
+		{name: 'type_action_blank',   type: 'boolean'},
 		{name: 'separator_label',   type: 'string'},
 		{name: 'action_iconCls',   type: 'string'},
 		{name: 'action_qtip',   type: 'string'},
@@ -34,8 +35,10 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MainMenu',{
 			
 				'<tpl if="type_action">',
 					'<div class="op5-spec-dbsembramach-mainmenu-action">',
+						'<tpl if="!type_action_blank">',
 						'<div class="op5-spec-dbsembramach-mainmenu-action-icon {action_iconCls}" data-qtip="{action_qtip:htmlEncode}"></div>',
 						'<span>{action_caption:htmlEncode}</span>',
+						'</tpl>',
 					'</div>',
 				'</tpl>',
 			'</div>',
@@ -57,14 +60,22 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MainMenu',{
 				separator_label: 'DBS MACH : Suivi de l\'activité'
 			},{
 				type_action:true,
-				action_caption: 'Dashboard MACH',
-				action_sendEvent:'panel_mach',
+				action_caption: 'MACH Picking',
+				action_sendEvent:'panel_mach_picking',
 				action_iconCls:'op5-spec-dbsembramach-icon-mach'
 			},{
 				type_action:true,
 				action_caption: 'Report KPI',
 				action_sendEvent:'panel_report',
 				action_iconCls:'op5-spec-dbsembramach-icon-report'
+			},{
+				type_action:true,
+				type_action_blank:true
+			},{
+				type_action:true,
+				action_caption: 'MACH Inbound',
+				action_sendEvent:'panel_mach_inbound',
+				action_iconCls:'op5-spec-dbsembramach-icon-mach'
 			},{
 				type_separator:true,
 				separator_label: 'DBS TraMoS'

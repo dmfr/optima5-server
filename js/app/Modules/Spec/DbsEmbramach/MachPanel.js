@@ -7,7 +7,7 @@ Ext.define('DbsEmbramachMachFlowRowModel', {
 		  {name: 'step_warning', type: 'string'},
 		  {name: 'step_code', type: 'string'},
 		  {name: 'step_txt', type: 'string'},
-		  {name: 'status_closed', type: 'boolean'},
+		  {name: 'status_closed', type: 'boolean'}
 	]
 });
 Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{

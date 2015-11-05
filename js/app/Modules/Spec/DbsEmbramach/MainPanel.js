@@ -55,10 +55,12 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MainPanel',{
 		//console.log("Action: "+actionCode) ;
 		
 		switch( actionCode ) {
-			case 'panel_mach' :
+			case 'panel_mach_picking' :
 				return me.switchToAppPanel('Optima5.Modules.Spec.DbsEmbramach.MachAdminPanel',{flowCode: 'PICKING'}) ;
 			case 'panel_report' :
 				return me.switchToAppPanel('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{}) ;
+			case 'panel_mach_inbound' :
+				return me.switchToAppPanel('Optima5.Modules.Spec.DbsEmbramach.MachAdminPanel',{flowCode: 'INBOUND'}) ;
 			case 'panel_query_mb51' :
 				return me.switchToAppPanel('Optima5.Modules.Spec.DbsEmbramach.QueryPanel',{qType:'query', queryId:'Report::ZMB51::Synthese'}) ;
 			default :

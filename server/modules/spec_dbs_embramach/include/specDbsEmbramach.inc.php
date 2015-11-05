@@ -140,6 +140,58 @@ function specDbsEmbramach_mach_getGridCfg_lib_getFields($flow_code) {
 			);
 			break ;
 			
+		case 'INBOUND' :
+			$arr_fields = array() ;
+			$arr_fields[] = array(
+				'text' => 'Doc Ref',
+				'width' => 130,
+				'widthBig' => true,
+				'filter' => array(
+					'type' => 'string'
+				),
+				'source' => array('field_D_DOCREF')
+			);
+			$arr_fields[] = array(
+				'text' => 'Type',
+				'width' => 80,
+				'widthBig' => true,
+				'filter' => array(
+					'type' => 'stringlist'
+				),
+				'source' => array('field_D_TYPE')
+			);
+			$arr_fields[] = array(
+				'text' => 'AWB',
+				'width' => 150,
+				'filter' => array(
+					'type' => 'stringlist'
+				),
+				'source' => array('field_D_AWB')
+			);
+			$arr_fields[] = array(
+				'text' => 'Carrier',
+				'width' => 75,
+				'filter' => array(
+					'type' => 'stringlist'
+				),
+				'source' => array('field_D_CARRIER')
+			);
+			$arr_fields[] = array(
+				'text' => 'Ecode',
+				'width' => 75,
+				'filter' => array(
+					'type' => 'stringlist'
+				),
+				'source' => array('field_D_ECODE')
+			);
+			$arr_fields[] = array(
+				'text' => 'Qty',
+				'width' => 50,
+				'type' => 'number',
+				'source' => array('field_D_QTY')
+			);
+			break ;
+			
 		default :
 			break ;
 	}
