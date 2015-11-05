@@ -136,7 +136,7 @@ function paracrm_lib_file_joinPrivate_do( $file_code, $entry_field_code, $jSrcVa
 		$jSrcValue = $jSrcValues[$idx] ;
 		switch( $joinCondition['join_field_type'] ) {
 			case 'date' :
-				$jSrcValues_arrHash[] = paracrm_lib_file_joinTool_findInfLevel( strtotime($jSrcValue), $joinCondition['join_field_arrLevels'] ) ;
+				$jSrcValues_arrHash[] = paracrm_lib_file_joinTool_findInfLevelDate( strtotime($jSrcValue), $joinCondition['join_field_arrLevels'] ) ;
 				break ;
 			default :
 				$jSrcValues_arrHash[] = $jSrcValue ;
@@ -228,6 +228,22 @@ function paracrm_lib_file_joinPrivate_do( $file_code, $entry_field_code, $jSrcVa
 				$jSchemaCondition['date_max'] = $jSrcValue ;
 				$jSchemaCondition['date_lastValue'] = NULL ;
 				break ;
+			case 'string' :
+				if( $joinCondition['join_field_arrLevels'] ) {
+					$tidx = 1 ;
+					$link_values = array() ;
+					$link_values[$jSrcValue] = $tidx ;
+					if( $jInfValue = paracrm_lib_file_joinTool_findInfLevelStr( $jSrcValue, $joinCondition['join_field_arrLevels'] ) ) {
+						$tidx++ ;
+						$link_values[$jInfValue] = $tidx ;
+					}
+					$jSchemaCondition['_field_type'] = 'link' ;
+					$jSchemaCondition['link_values'] = $link_values ;
+					break ;
+				}
+				$jSchemaCondition['_field_type'] = 'eq' ;
+				$jSchemaCondition['eq_value'] = $jSrcValue ;
+				break ;
 			default :
 				$jSchemaCondition['_field_type'] = 'eq' ;
 				$jSchemaCondition['eq_value'] = $jSrcValue ;
@@ -272,7 +288,6 @@ function paracrm_lib_file_joinPrivate_do( $file_code, $entry_field_code, $jSrcVa
 	
 	
 	//echo $query ;
-	
 	
 	// Analyse et notation des résultats
 	$result = $_opDB->query($query) ;
@@ -446,22 +461,39 @@ function paracrm_lib_file_joinPrivate_getMap( $file_code ) {
 					break ;
 			}
 		}
-		if( $arr_defineTarget['entry_field_type'] == 'date' ) {
-			$arr_levels = array() ;
-			
-			$db_view = "view_file_".$target_fileCode ;
-			$db_field = 'field_'.$target_fileFieldCode ;
-			$query_dateLevels = "SELECT distinct {$db_field} FROM {$db_view} ORDER BY {$db_field} ASC" ;
-			$res_dateLevels = $_opDB->query($query_dateLevels) ;
-			while( ($tRow = $_opDB->fetch_row($res_dateLevels)) != FALSE ) {
-				$tVal = $tRow[0] ;
-				if( $tVal == NULL || $tVal == '0000-00-00' || $tVal == '0000-00-00 00:00:00' ) {
-					continue ;
+		
+		
+		$db_view = "view_file_".$target_fileCode ;
+		$db_field = 'field_'.$target_fileFieldCode ;
+		switch( $arr_defineTarget['entry_field_type'] ) {
+			case 'date' :
+				$arr_levels = array() ;
+				$query_dateLevels = "SELECT distinct {$db_field} FROM {$db_view} ORDER BY {$db_field} ASC" ;
+				$res_dateLevels = $_opDB->query($query_dateLevels) ;
+				while( ($tRow = $_opDB->fetch_row($res_dateLevels)) != FALSE ) {
+					$tVal = $tRow[0] ;
+					if( $tVal == NULL || $tVal == '0000-00-00' || $tVal == '0000-00-00 00:00:00' ) {
+						continue ;
+					}
+					$arr_levels[] = strtotime($tVal) ;
 				}
-				$arr_levels[] = strtotime($tVal) ;
-			}
-			
-			$arrJoinCondition['join_field_arrLevels'] = $arr_levels ;
+				$arrJoinCondition['join_field_arrLevels'] = $arr_levels ;
+				break ;
+			case 'string' :
+				$query_strLevels = "SELECT distinct {$db_field} FROM {$db_view} WHERE {$db_field} LIKE '%*' ORDER BY LENGTH({$db_field}) DESC" ;
+				$res_strLevels = $_opDB->query($query_strLevels) ;
+				if( $_opDB->num_rows($res_strLevels) > 0 ) {
+					$arr_levels = array() ;
+					while( ($tRow = $_opDB->fetch_row($res_strLevels)) != FALSE ) {
+						$tVal = $tRow[0] ;
+						$arr_levels[] = $tVal ;
+					}
+					$arrJoinCondition['join_field_arrLevels'] = $arr_levels ;
+				}
+				break ;
+				
+			default :
+				break ;
 		}
 		
 		$GLOBALS['cache_joinMap'][$file_code][$entry_field_code]['join_map'][] = $arrJoinCondition ;
@@ -473,7 +505,7 @@ function paracrm_lib_file_joinPrivate_getMap( $file_code ) {
 
 
 
-function paracrm_lib_file_joinTool_findInfLevel( $value, $arr_levels ) {
+function paracrm_lib_file_joinTool_findInfLevelDate( $value, $arr_levels ) {
 	$idx_min = 0 ;
 	$idx_max = count($arr_levels) - 1 ;
 	if( $idx_max < 0 ) {
@@ -502,6 +534,17 @@ function paracrm_lib_file_joinTool_findInfLevel( $value, $arr_levels ) {
 	}
 	
 	return $arr_levels[$idx_min] ;
+}
+function paracrm_lib_file_joinTool_findInfLevelStr( $value, $arr_levels ) {
+	if( !$arr_levels ) {
+		return $value ;
+	}
+	foreach( $arr_levels as $level ) {
+		if( fnmatch($level,$value) ) {
+			return $level ;
+		}
+	}
+	return $value ;
 }
 
 ?>
