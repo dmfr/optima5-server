@@ -54,7 +54,8 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachAdminPanel',{
 							data: [
 								{id: 'VL06F_active'},
 								{id: 'VL06F_closed'},
-								{id: 'ZLORSD015'}
+								{id: 'ZLORSD015'},
+								{id: 'Z080P'}
 							]
 						},
 						valueField: 'id',

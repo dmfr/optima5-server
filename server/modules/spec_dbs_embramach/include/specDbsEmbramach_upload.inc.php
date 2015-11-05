@@ -16,14 +16,18 @@ function specDbsEmbramach_upload( $post_data ) {
 	$filename = "/var/log/apache2/machUpload_".$post_data['file_model']."_".time().'.txt' ;
 	@file_put_contents($filename, $debug) ;
 	
+	$flow_code = '' ;
 	switch( $post_data['file_model'] ) {
 		case 'VL06F_active' :
+			$flow_code = 'PICKING' ;
 			specDbsEmbramach_upload_VL06F($handle,FALSE) ;
 			break ;
 		case 'VL06F_closed' :
+			$flow_code = 'PICKING' ;
 			specDbsEmbramach_upload_VL06F($handle,TRUE) ;
 			break ;
 		case 'ZLORSD015' :
+			$flow_code = 'PICKING' ;
 			specDbsEmbramach_upload_ZLORSD015($handle) ;
 			break ;
 		case 'MB51' :
@@ -31,6 +35,7 @@ function specDbsEmbramach_upload( $post_data ) {
 			break ;
 		case 'Z080L' :
 		case 'Z080P' :
+			$flow_code = 'INBOUND' ;
 			specDbsEmbramach_upload_Z080($handle) ;
 			break ;
 		default :
@@ -40,7 +45,7 @@ function specDbsEmbramach_upload( $post_data ) {
 	
 	$arr_ins = array() ;
 	$arr_ins['field_DATE'] = date('Y-m-d H:i:s') ;
-	$arr_ins['field_FLOW_CODE'] = 'PICKING' ;
+	$arr_ins['field_FLOW_CODE'] = $flow_code ;
 	$arr_ins['field_FILE_MODEL'] = $post_data['file_model'] ;
 	paracrm_lib_data_insertRecord_file('LOG_IMPORT',0,$arr_ins) ;
 	
@@ -61,6 +66,9 @@ function specDbsEmbramach_upload_Z080($handle) {
 	fseek($handle_trad,0) ;
 	
 	paracrm_lib_dataImport_commit_processHandle( 'file','Z080', $handle_trad ) ;
+	
+	// Spec COPY, TODO: use DataSourceCenter
+	specDbsEmbramach_upload_sync_FLOW_INBOUND() ;
 
 	fclose($handle_trad) ;
 }
@@ -354,6 +362,108 @@ function specDbsEmbramach_upload_VL06F($handle, $VL06F_forceClosed) {
 	return ;
 }
 
+
+
+
+
+function specDbsEmbramach_upload_sync_FLOW_INBOUND() {
+	global $_opDB ;
+	
+	$file_code = 'FLOW_INBOUND' ;
+	$file_code_step = 'FLOW_INBOUND_STEP' ;
+	
+	$raw_Z080 = paracrm_lib_data_getFileRecords('Z080') ;
+	if( count($raw_Z080) <= 1 ) {
+		return ;
+	}
+	foreach( $raw_Z080 as &$raw_record ) {
+		$record_row = array() ;
+		$record_row['Z080'] = $raw_record ;
+		paracrm_lib_file_joinQueryRecord( 'Z080', $record_row ) ;
+		foreach( $record_row['Z080'] as $mkey=>$mvalue ) {
+			$raw_record[$mkey] = $mvalue ;
+		}
+	}
+	unset($raw_record) ;
+	
+	$map_stepCode_arrFields = array(
+		'IN_01_DOCK' => array('field_DATE_L_START','field_DATE_P_V1_DOCK'),
+		'IN_02_PUTAWAY' => array('field_DATE_P_V4_CONF')
+	);
+	
+	$arr_insertedFilerecordId = array() ;
+	foreach( $raw_Z080 as &$raw_record ) {
+		print_r($raw_record) ;
+		
+		$arr_ins = array() ;
+		$arr_ins['field_PRIORITY'] = 'IN_1' ;
+		$arr_ins['field_D_AWB'] = $raw_record['field_AWB'] ;
+		$arr_ins['field_D_CARRIER'] = $raw_record['field_CARRIER'] ;
+		$arr_ins['field_D_TYPE'] = $raw_record['field_TYPE'] ;
+		$arr_ins['field_D_DOCREF'] = $raw_record['field_DOC_REF'] ;
+		$arr_ins['field_D_ECODE'] = $raw_record['field_ECODE'] ;
+		$arr_ins['field_D_QTY'] = $raw_record['field_QTY'] ;
+		$filerecord_id = paracrm_lib_data_insertRecord_file($file_code,0,$arr_ins) ;
+		
+		$current_step = NULL ;
+		foreach( $map_stepCode_arrFields as $step_code => $arr_fields ) {
+			foreach( $arr_fields as $src_field ) {
+				//paracrm_lib_data_insertRecord_file($file_code_step,$filerecord_id,$subrow) ;
+				if( strtotime($raw_record[$src_field]) > 0 ) {
+					$subrow = array() ;
+					$subrow['field_STEP'] = $step_code ;
+					$subrow['field_DATE'] = $raw_record[$src_field] ;
+					paracrm_lib_data_insertRecord_file($file_code_step,$filerecord_id,$subrow) ;
+					
+					$current_step = $step_code ;
+					break ;
+				}
+			}
+		}
+		
+		if( $current_step ) {
+			$arr_update = array() ;
+			$arr_update['field_STEP_CURRENT'] = $current_step ;
+			if( $_field_DATE_ISSUE ) {
+				$arr_update['field_DATE_ISSUE'] = $_field_DATE_ISSUE ;
+			}
+			paracrm_lib_data_updateRecord_file( $file_code, $arr_update, $filerecord_id ) ;
+		}
+		
+		$arr_insertedFilerecordId[] = $filerecord_id ;
+	}
+
+	$view = 'view_file_'.$file_code ;
+	$query = "SELECT filerecord_id FROM {$view}" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$arr_existingFilerecordId[] = $arr[0] ;
+	}
+	$todelete_filerecordIds = array_diff($arr_existingFilerecordId,$arr_insertedFilerecordId) ;
+	foreach( $todelete_filerecordIds as $filerecord_id ) {
+		paracrm_lib_data_deleteRecord_file( $file_code , $filerecord_id ) ;
+	}
+	
+	
+	
+	if( TRUE ) {
+		// Passage en active
+		// => tous les records sans STATUS
+		
+		$arr_newFilerecordIds = array() ;
+		$query = "SELECT filerecord_id FROM view_file_{$file_code} WHERE field_STATUS=''" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$arr_newFilerecordIds[] = $arr[0] ;
+		}
+		
+		foreach( $arr_newFilerecordIds as $filerecord_id ) {
+			$arr_update = array() ;
+			$arr_update['field_STATUS'] = 'ACTIVE' ;
+			paracrm_lib_data_updateRecord_file( $file_code, $arr_update, $filerecord_id ) ;
+		}
+	}
+}
 
 
 
