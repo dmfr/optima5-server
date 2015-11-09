@@ -4,7 +4,7 @@ class DatabaseMgr_Sdomain {
 	private $_opDB ;
 	private $domain_id ;
 	
-	private static $dbVersion = 26 ;
+	private static $dbVersion = 27 ;
 	
 	public function __construct( $domain_id ) {
 		$this->_opDB = $GLOBALS['_opDB'] ;
@@ -609,6 +609,7 @@ CREATE TABLE `store_file` (
   `sync_vuid` varchar(100) NOT NULL,
   `sync_is_deleted` varchar(1) NOT NULL,
   `sync_timestamp` int(11) NOT NULL,
+  `dsc_is_locked` varchar(1) NOT NULL,
   PRIMARY KEY (`filerecord_id`),
   KEY `filerecord_parent_id` (`filerecord_parent_id`),
   KEY `file_code` (`file_code`),
