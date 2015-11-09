@@ -40,8 +40,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 						'<div class="op5-spec-embramach-banner-inside">',
 						'<div class="op5-spec-embramach-banner-left">',
 							'<div class="op5-spec-embramach-banner-logo"></div>',
-							'<div class="op5-spec-embramach-banner-title">MACH</div>',
-							'<div class="op5-spec-embramach-banner-titlecaption">(Material Availability Chronometer Hub)</div>',
+							'<div class="op5-spec-embramach-banner-title">MACH<tpl if="flow_text">&#160;/&#160;{flow_text}</tpl></div>',
 						'</div>',
 						'<div class="op5-spec-embramach-banner-right">',
 							'<div class="op5-spec-embramach-banner-people">Update&nbsp:&nbsp;<b><font color="red">{maj_txt}</font></b></div>',
@@ -50,7 +49,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 						'<div class="op5-spec-embramach-banner-blue">&#160;</div>',
 					'</div>'
 				],
-				data: {maj_txt:'-'}
+				data: {flow_text:null, maj_txt:'-'}
 			},{
 				region: 'center',
 				xtype: 'panel',
@@ -493,7 +492,10 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 			cGauge.getStore().loadData([{value: (cGauge._modeMinutes ? value * 60 : value)}]) ;
 		}) ;
 		
-		pBanner.update({maj_txt: jsonResponse.maj_date}) ;
+		pBanner.update({
+			flow_text: jsonResponse.flow_text,
+			maj_txt: jsonResponse.maj_date
+		}) ;
 	},
 	
 	showLoadmask: function() {

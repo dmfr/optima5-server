@@ -39,13 +39,13 @@ function paracrm_define_getMainToolbar($post_data, $auth_bypass=FALSE )
 	switch( $post_data['data_type'] )
 	{
 		case 'bible' :
-		$query = "SELECT bible_code as bibleId , bible_lib as text , bible_iconfile as icon , '' as store_type , gmap_is_on , gallery_is_on
+		$query = "SELECT bible_code as bibleId , bible_lib as text , bible_iconfile as icon , '' as store_type , gmap_is_on , gallery_is_on , bible_code , bible_lib
 						FROM define_bible
 						ORDER BY bible_code" ;
 		break ;
 		
 		case 'file' :
-		$query = "SELECT file_code as fileId , file_lib as text , file_iconfile as icon , file_type as store_type , gmap_is_on , file_parent_code
+		$query = "SELECT file_code as fileId , file_lib as text , file_iconfile as icon , file_type as store_type , gmap_is_on , file_code , file_lib , file_parent_code
 						FROM define_file
 						ORDER BY IF(file_parent_code<>'',file_parent_code,file_code),IF(file_parent_code<>'',file_code,'')" ;
 		break ;

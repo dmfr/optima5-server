@@ -209,6 +209,14 @@ function specDbsEmbramach_mach_getGridData( $post_data ) {
 	if( !$ttmp_FLOW['data_files'] || !$ttmp_FLOW_STEP['data_files'] ) {
 		return array('success'=>false) ;
 	}
+	$ttmp_FLOW = reset($ttmp_FLOW['data_files']) ;
+	$ttmp_FLOW_STEP = reset($ttmp_FLOW_STEP['data_files']) ;
+	
+	$flow_text = $flow_code ;
+	if( strpos($ttmp_FLOW['file_lib'],'Flow : ')===0 ) {
+		$flow_text = substr($ttmp_FLOW['file_lib'],strlen('Flow : ')) ;
+	}
+	
 	
 	$json_cfg = specDbsEmbramach_mach_getGridCfg( $post_data ) ;
 	$json_cfg_prio = array() ;
@@ -489,7 +497,8 @@ function specDbsEmbramach_mach_getGridData( $post_data ) {
 		'data_grid' => array_values($TAB),
 		'data_gauges' => $TAB_gauges,
 		'data_prioCount' => $map_prioCode_count,
-		'maj_date' => $maj_date
+		'maj_date' => $maj_date,
+		'flow_text' => $flow_text
 	) ;
 }
 function specDbsEmbramach_mach_getGridData_sort( $row1, $row2 ) {

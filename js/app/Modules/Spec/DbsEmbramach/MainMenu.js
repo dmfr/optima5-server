@@ -64,12 +64,12 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MainMenu',{
 				separator_label: 'DBS MACH : Suivi de l\'activité'
 			},{
 				type_action:true,
-				action_caption: 'MACH Picking',
+				action_caption: 'MACH Outbound',
 				action_sendEvent:'panel_mach_picking',
 				action_iconCls:'op5-spec-dbsembramach-icon-mach'
 			},{
 				type_action:true,
-				action_caption: 'Report KPI',
+				action_caption: 'Outbound KPI',
 				action_sendEvent:'panel_report',
 				action_iconCls:'op5-spec-dbsembramach-icon-report'
 			},{
