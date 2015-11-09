@@ -140,6 +140,7 @@ function specDbsEmbralam_lib_proc_insertMvt( $mvt_obj, $adr_id ) {
 		$arr_ins['field_ADR_ID'] = $adr_id ;
 		$arr_ins['field_PROD_ID'] = $mvt_obj['prod_id'] ;
 		$arr_ins['field_BATCH_CODE'] = $mvt_obj['batch'] ;
+		$arr_ins['field_LAM_DATEUPDATE'] = date('Y-m-d H:i:s') ;
 		$filerecord_id = paracrm_lib_data_insertRecord_file( 'INV' , 0 , $arr_ins ) ;
 	}
 	$query = "UPDATE view_file_INV SET field_QTY_AVAIL = field_QTY_AVAIL + '{$mvt_obj['mvt_qty']}' WHERE filerecord_id='{$filerecord_id}'" ;
