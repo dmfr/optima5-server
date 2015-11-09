@@ -238,8 +238,7 @@ function paracrm_lib_dataImport_commit_processStream( $treefields_root, $map_fie
 		foreach( $treefields_root['children'] as $directChild ) {
 			if( isset($directChild['file_code']) ) {
 				$arr_existingFilerecordId = array() ;
-				$view = 'view_file_'.$directChild['file_code'] ;
-				$query = "SELECT filerecord_id FROM {$view}" ;
+				$query = "SELECT filerecord_id FROM store_file WHERE file_code='{$directChild['file_code']}' AND sync_is_deleted<>'O' AND dsc_is_locked<>'O'" ;
 				$result = $_opDB->query($query) ;
 				while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 					$arr_existingFilerecordId[] = $arr[0] ;
