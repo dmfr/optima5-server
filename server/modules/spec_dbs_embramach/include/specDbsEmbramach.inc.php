@@ -204,8 +204,8 @@ function specDbsEmbramach_mach_getGridData( $post_data ) {
 	$flow_code = $post_data['flow_code'] ;
 	
 	// controle
-	$ttmp_FLOW = paracrm_define_getMainToolbar(array('data_type'=>'file','file_code'=>"FLOW_{$flow_code}")) ;
-	$ttmp_FLOW_STEP = paracrm_define_getMainToolbar(array('data_type'=>'file','file_code'=>"FLOW_{$flow_code}_STEP")) ;
+	$ttmp_FLOW = paracrm_define_getMainToolbar(array('data_type'=>'file','file_code'=>"FLOW_{$flow_code}"),$auth_bypass=TRUE) ;
+	$ttmp_FLOW_STEP = paracrm_define_getMainToolbar(array('data_type'=>'file','file_code'=>"FLOW_{$flow_code}_STEP"),$auth_bypass=TRUE) ;
 	if( !$ttmp_FLOW['data_files'] || !$ttmp_FLOW_STEP['data_files'] ) {
 		return array('success'=>false) ;
 	}
@@ -293,6 +293,7 @@ function specDbsEmbramach_mach_getGridData( $post_data ) {
 		$row['obj_steps'] = array() ;
 		
 		$row['calc_lateness'] = 0 ;
+		$row['calc_lateness_blank'] = TRUE ;
 		
 		foreach( $json_cfg['data']['fields'] as $field_idx => $field_cfg ) {
 			$dataIndex = 'field_'.$field_idx ;
@@ -402,6 +403,7 @@ function specDbsEmbramach_mach_getGridData( $post_data ) {
 				if( $this_milestone['pendingMonitored'] && $this_milestone['ETA_timestamp'] ) {
 					$now_timestamp = time() ;
 					$row['calc_lateness'] = $now_timestamp - $this_milestone['ETA_timestamp'] ;
+					$row['calc_lateness_blank'] = FALSE ;
 				}
 			}
 			
@@ -501,6 +503,9 @@ function specDbsEmbramach_mach_getGridData_sort( $row1, $row2 ) {
 	
 	if( $row1['priority_code'] != $row2['priority_code'] ) {
 		return $row1['priority_code'] - $row2['priority_code'] ;
+	}
+	if( $row1['calc_lateness_blank'] != $row2['calc_lateness_blank'] ) {
+		return $row1['calc_lateness_blank'] - $row2['calc_lateness_blank'] ;
 	}
 	return $row2['calc_lateness'] - $row1['calc_lateness'] ;
 }
