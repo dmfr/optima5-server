@@ -1,6 +1,6 @@
 <?php
 
-function paracrm_define_getMainToolbar($post_data)
+function paracrm_define_getMainToolbar($post_data, $auth_bypass=FALSE )
 {
 	global $_opDB ;
 	
@@ -69,30 +69,32 @@ function paracrm_define_getMainToolbar($post_data)
 		}
 		
 		// ** Authentication **
-		switch( $post_data['data_type'] ) {
-			case 'bible' :
-				if( !Auth_Manager::getInstance()->auth_query_sdomain_action(
-					Auth_Manager::sdomain_getCurrent(),
-					'bible',
-					array('bible_code'=>$arr['bibleId']),
-					$write=false
-				)) {
-					// Permission denied
-					continue 2 ;
-				}
-				break ;
-				
-			case 'file' :
-				if( !Auth_Manager::getInstance()->auth_query_sdomain_action(
-					Auth_Manager::sdomain_getCurrent(),
-					'files',
-					array( 'file_code' => ($arr['file_parent_code']==NULL ? $arr['fileId']:$arr['file_parent_code']) ),
-					$write=false
-				)) {
-					// Permission denied
-					continue 2 ;
-				}
-				break ;
+		if( !$auth_bypass ) {
+			switch( $post_data['data_type'] ) {
+				case 'bible' :
+					if( !Auth_Manager::getInstance()->auth_query_sdomain_action(
+						Auth_Manager::sdomain_getCurrent(),
+						'bible',
+						array('bible_code'=>$arr['bibleId']),
+						$write=false
+					)) {
+						// Permission denied
+						continue 2 ;
+					}
+					break ;
+					
+				case 'file' :
+					if( !Auth_Manager::getInstance()->auth_query_sdomain_action(
+						Auth_Manager::sdomain_getCurrent(),
+						'files',
+						array( 'file_code' => ($arr['file_parent_code']==NULL ? $arr['fileId']:$arr['file_parent_code']) ),
+						$write=false
+					)) {
+						// Permission denied
+						continue 2 ;
+					}
+					break ;
+			}
 		}
 		
 		$arr['viewmode_grid'] = true ;
