@@ -393,11 +393,10 @@ function specDbsEmbramach_upload_sync_FLOW_INBOUND() {
 	
 	$arr_insertedFilerecordId = array() ;
 	foreach( $raw_Z080 as &$raw_record ) {
-		print_r($raw_record) ;
-		
 		$arr_ins = array() ;
 		$arr_ins['field_PRIORITY'] = 'IN_1' ;
 		$arr_ins['field_D_AWB'] = $raw_record['field_AWB'] ;
+		$arr_ins['field_D_CART'] = $raw_record['field_TYPE_CART'] ;
 		$arr_ins['field_D_CARRIER'] = $raw_record['field_CARRIER'] ;
 		$arr_ins['field_D_TYPE'] = $raw_record['field_TYPE'] ;
 		$arr_ins['field_D_DOCREF'] = $raw_record['field_DOC_REF'] ;

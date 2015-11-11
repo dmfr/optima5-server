@@ -146,6 +146,7 @@ function specDbsEmbramach_mach_getGridCfg_lib_getFields($flow_code) {
 				'text' => 'Doc Ref',
 				'width' => 130,
 				'widthBig' => true,
+				'type' => 'number',
 				'filter' => array(
 					'type' => 'string'
 				),
@@ -162,11 +163,19 @@ function specDbsEmbramach_mach_getGridCfg_lib_getFields($flow_code) {
 			);
 			$arr_fields[] = array(
 				'text' => 'AWB',
-				'width' => 150,
+				'width' => 200,
 				'filter' => array(
 					'type' => 'stringlist'
 				),
 				'source' => array('field_D_AWB')
+			);
+			$arr_fields[] = array(
+				'text' => 'Cart',
+				'width' => 200,
+				'filter' => array(
+					'type' => 'stringlist'
+				),
+				'source' => array('field_D_CART')
 			);
 			$arr_fields[] = array(
 				'text' => 'Carrier',
