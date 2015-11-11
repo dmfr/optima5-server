@@ -33,6 +33,8 @@ function specDbsEmbralam_upload( $post_data ) {
 	return array('success'=>true) ;
 }
 function specDbsEmbralam_upload_ZLORMM086( $handle ) {
+	global $_opDB ;
+	
 	$handle_trad = tmpfile() ;
 	specDbsEmbralam_upload_lib_separator( $handle, $handle_trad ) ;
 	fseek($handle_trad,0) ;
@@ -83,13 +85,38 @@ function specDbsEmbralam_upload_ZLORMM086( $handle ) {
 	fclose($handle_prod) ;
 	
 	
+	// Sync stock, pre HACK LAM_DATEUPDATE
+	$query = "LOCK TABLES store_file WRITE, view_file_INV READ" ;
+	$_opDB->query($query) ;
+	
+	$query = "UPDATE store_file SET dsc_is_locked='' WHERE file_code='INV'" ;
+	$_opDB->query($query) ;
+	
+	$date_3days = date('Y-m-d',strtotime('-3 days')) ;
+	$arr_3days_filerecordIds = array() ;
+	$query = "SELECT filerecord_id FROM view_file_INV WHERE field_LAM_DATEUPDATE >= '$date_3days'" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$arr_3days_filerecordIds[] = $arr[0] ;
+	}
+	if( $arr_3days_filerecordIds ) {
+		$sql_3days_filerecordIds = $_opDB->makeSQLlist($arr_3days_filerecordIds) ;
+		$query = "UPDATE store_file SET dsc_is_locked='O' WHERE file_code='INV' AND filerecord_id IN {$sql_3days_filerecordIds}" ;
+		$_opDB->query($query) ;
+	}
+	
+	$query = "UNLOCK TABLES" ;
+	$_opDB->query($query) ;
+	
+	
 	// Sync stock
 	$map_rawTOstock = array(
 		'DEP_POSICAO'=>'ADR_ID',
 		'MATERIAL'=>'PROD_ID',
 		'LOTE'=>'BATCH_CODE',
 		'QTY_TOTAL'=>'QTY_AVAIL',
-		'VENCIMENTO'=>'SPEC_DATELC'
+		'VENCIMENTO'=>'SPEC_DATELC',
+		''=>'LAM_DATEUPDATE'
 	);
 	$arr_stock_boolean = array() ;
 	$handle_stock = tmpfile() ;
@@ -102,6 +129,10 @@ function specDbsEmbralam_upload_ZLORMM086( $handle ) {
 		
 		$arr_csv = array() ;
 		foreach( $map_rawTOstock as $msrc => $dest ) {
+			if( $dest == 'LAM_DATEUPDATE' ) {
+				$arr_csv[] = '' ;
+				continue ;
+			}
 			$mkey = 'field_'.$msrc ;
 			$arr_csv[] = $raw_record[$mkey] ;
 		}
@@ -110,6 +141,11 @@ function specDbsEmbralam_upload_ZLORMM086( $handle ) {
 	fseek($handle_stock,0) ;
 	paracrm_lib_dataImport_commit_processHandle('file','INV',$handle_stock) ;
 	fclose($handle_stock) ;
+	
+	$query = "UPDATE store_file SET dsc_is_locked='' WHERE file_code='INV'" ;
+	$_opDB->query($query) ;
+	
+	return ;
 }
 
 function specDbsEmbralam_upload_lib_separator( $handle_in, $handle_out, $separator='|' ) {
