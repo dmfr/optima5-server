@@ -623,7 +623,7 @@ function paracrm_lib_data_bibleAssignParentTreenode( $bible_code, $treenode_key,
 
 
 
-function paracrm_lib_data_insertRecord_file( $file_code , $filerecord_parent_id , $data, $ignore_ifExists=FALSE )
+function paracrm_lib_data_insertRecord_file( $file_code , $filerecord_parent_id , $data, $ignore_ifExists=FALSE, $ignore_ifLocked=FALSE )
 {
 	global $_opDB ;
 	
@@ -678,7 +678,7 @@ function paracrm_lib_data_insertRecord_file( $file_code , $filerecord_parent_id 
 	}
 	if( is_array($arr_fieldsPrimaryKey) ) {
 		$db_view = 'view_file_'.$file_code ;
-		$query = "SELECT filerecord_id FROM {$db_view} WHERE 1" ;
+		$query = "SELECT filerecord_id , dsc_is_locked FROM {$db_view} WHERE 1" ;
 		if( $arr['file_parent_code'] ) {
 			$query.= " AND `filerecord_parent_id` = '{$filerecord_parent_id}'" ;
 		}
@@ -690,7 +690,12 @@ function paracrm_lib_data_insertRecord_file( $file_code , $filerecord_parent_id 
 			
 			$query.= " AND `{$dbfield}` = '{$data[$datafield]}'" ;
 		}
-		if( $primaryKey_filerecordId = $_opDB->query_uniqueValue($query) ) {
+		if( $_opDB->num_rows($restmp = $_opDB->query($query)) == 1 ) {
+			$ttmp = $_opDB->fetch_row($restmp) ;
+			$primaryKey_filerecordId = $ttmp[0] ;
+			if( $ignore_ifLocked && $ttmp[1] == 'O' ) {
+				return $primaryKey_filerecordId ;
+			}
 			if( $ignore_ifExists ) {
 				return $primaryKey_filerecordId ;
 			}
@@ -846,12 +851,17 @@ function paracrm_lib_data_updateRecord_file( $file_code , $data, $filerecord_id 
 	
 	return $filerecord_id ;
 }
-function paracrm_lib_data_deleteRecord_file( $file_code, $filerecord_id )
+function paracrm_lib_data_deleteRecord_file( $file_code, $filerecord_id, $ignore_ifLocked=FALSE )
 {
 	global $_opDB ;
 	
-	if( !paracrm_lib_data_getRecord_file( $file_code, $filerecord_id ) )
+	if( !($arrDB = paracrm_lib_data_getRecord_file( $file_code, $filerecord_id )) ) {
 		return -1 ;
+	}
+	
+	if( $ignore_ifLocked && $arrDB['dsc_is_locked']=='O' ) {
+		return 0 ;
+	}
 	
 	$query = "SELECT filerecord_id, file_code FROM store_file WHERE filerecord_parent_id='$filerecord_id'" ;
 	$result = $_opDB->query($query) ;

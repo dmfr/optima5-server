@@ -238,14 +238,15 @@ function paracrm_lib_dataImport_commit_processStream( $treefields_root, $map_fie
 		foreach( $treefields_root['children'] as $directChild ) {
 			if( isset($directChild['file_code']) ) {
 				$arr_existingFilerecordId = array() ;
-				$query = "SELECT filerecord_id FROM store_file WHERE file_code='{$directChild['file_code']}' AND sync_is_deleted<>'O' AND dsc_is_locked<>'O'" ;
+				$view = 'view_file_'.$directChild['file_code'] ;
+				$query = "SELECT filerecord_id FROM {$view}" ;
 				$result = $_opDB->query($query) ;
 				while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 					$arr_existingFilerecordId[] = $arr[0] ;
 				}
 				$todelete_filerecordIds = array_diff($arr_existingFilerecordId,$arr_insertedFilerecordId) ;
 				foreach( $todelete_filerecordIds as $filerecord_id ) {
-					paracrm_lib_data_deleteRecord_file( $directChild['file_code'] , $filerecord_id ) ;
+					paracrm_lib_data_deleteRecord_file( $directChild['file_code'] , $filerecord_id, $ignore_ifLocked=TRUE ) ;
 				}
 			}
 		}
@@ -332,7 +333,7 @@ function paracrm_lib_dataImport_commit_processNode_file( $treefields_node, $arr_
 		$mkey = 'field_'.$file_field_code ;
 		$arr_ins[$mkey] = $value ;
 	}
-	return paracrm_lib_data_insertRecord_file( $file_code , $filerecord_parent_id , $arr_ins, $ignore_ifExists=($truncate_mode=='ignore') ) ;
+	return paracrm_lib_data_insertRecord_file( $file_code , $filerecord_parent_id , $arr_ins, $ignore_ifExists=($truncate_mode=='ignore'), $ignore_ifLocked=TRUE ) ;
 }
 function paracrm_lib_dataImport_commit_processNode_bible( $treefields_node, $arr_srcLig, $treenode_parent_key='' ) {
 	if( $treefields_node['leaf'] ) {

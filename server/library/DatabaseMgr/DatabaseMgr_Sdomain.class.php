@@ -4,7 +4,7 @@ class DatabaseMgr_Sdomain {
 	private $_opDB ;
 	private $domain_id ;
 	
-	private static $dbVersion = 27 ;
+	private static $dbVersion = 28 ;
 	
 	public function __construct( $domain_id ) {
 		$this->_opDB = $GLOBALS['_opDB'] ;
@@ -1147,7 +1147,7 @@ EOF;
 		$query = "DROP VIEW IF EXISTS {$sdomain_db}.{$view_name}" ;
 		$_opDB->query($query) ;
 		
-		$query = "CREATE ALGORITHM=MERGE VIEW {$sdomain_db}.{$view_name} AS SELECT data.filerecord_id, mstr.filerecord_parent_id" ;
+		$query = "CREATE ALGORITHM=MERGE VIEW {$sdomain_db}.{$view_name} AS SELECT data.filerecord_id, mstr.filerecord_parent_id, mstr.dsc_is_locked" ;
 		foreach( $arrAssoc_crmField_dbField as $field_crm => $field_name ) {
 			if( $field_name == 'filerecord_id' ) {
 				continue ;
