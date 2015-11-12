@@ -186,6 +186,14 @@ function specDbsEmbramach_mach_getGridCfg_lib_getFields($flow_code) {
 				'source' => array('field_D_CARRIER')
 			);
 			$arr_fields[] = array(
+				'text' => 'Xdock',
+				'width' => 60,
+				'filter' => array(
+					'type' => 'stringlist'
+				),
+				'source' => array('field_D_XDOCK')
+			);
+			$arr_fields[] = array(
 				'text' => 'Ecode',
 				'width' => 75,
 				'filter' => array(
