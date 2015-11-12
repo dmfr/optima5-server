@@ -555,4 +555,117 @@ function specDbsEmbramach_mach_saveGridRow( $post_data ) {
 
 
 
+
+
+function specDbsEmbramach_mach_getGridXls( $post_data ) {
+	$ttmp = specDbsEmbramach_mach_getGridCfg( $post_data ) ;
+	$json_cfg = $ttmp['data'] ;
+	$ttmp = specDbsEmbramach_mach_getGridData($post_data) ;
+	$json_data = $ttmp['data_grid'] ;
+
+	
+	//print_r($json_cfg) ;
+	//print_r($json_data) ;
+	
+	
+	// ******* Création du tableau **********
+	$columns = array() ;
+	foreach( $json_cfg['fields'] as $idx=>$field ) {
+		$field['dataIndex'] = 'field_'.$idx ;
+		$columns[] = $field ;
+	}
+	if( TRUE ) {
+		$field = array() ;
+		$field['width'] = 120 ;
+		$field['type'] = 'string' ;
+		$field['text'] = 'Process step' ;
+		$field['dataIndex'] = 'step_txt' ;
+		$columns[] = $field ;
+		
+		$field = array() ;
+		$field['width'] = 110 ;
+		$field['type'] = 'string' ;
+		$field['text'] = 'Feedback' ;
+		$field['dataIndex'] = 'feedback_txt' ;
+		$columns[] = $field ;
+	}
+	foreach( $json_cfg['flow_milestone'] as $milestone ) {
+		$field = array() ;
+		$field['width'] = 120 ;
+		$field['type'] = 'milestone' ;
+		$field['text'] = $milestone['milestone_txt'] ;
+		$field['dataIndex'] = 'milestone_'.$milestone['milestone_code'] ;
+		$columns[] = $field ;
+	}
+	
+	
+	
+	if( !class_exists('PHPExcel') )
+		return FALSE ;
+		
+		
+	$objPHPExcel = new PHPExcel() ;
+	$objPHPExcel->getDefaultStyle()->getFont()->setName('Arial');
+	$objPHPExcel->getDefaultStyle()->getFont()->setSize( 10 );
+	
+	$objPHPExcel->setActiveSheetIndex(0);
+	$obj_sheet = $objPHPExcel->getActiveSheet() ;
+	
+	$base_col = 'A' ;
+	$base_row =  1  ;
+	
+	$col=$base_col ;
+	$row=$base_row ;
+	foreach( $columns as $column ) {
+		$obj_sheet->getColumnDimension($col)->setWidth( round($column['width']/5) );
+		$obj_sheet->SetCellValue("{$col}{$row}", $column['text']);
+		$col++ ;
+	}
+	$row++ ;
+	
+	foreach( $json_data as $data_row ) {
+		$col=$base_col ;
+		foreach( $columns as $column ) {
+			switch( $column['type'] ) {
+				case 'milestone' :
+					$value = $data_row[$column['dataIndex']] ;
+					if( $value['ACTUAL_dateSql'] ) {
+						$value_date = $value['ACTUAL_dateSql'] ;
+					} else {
+						$value_date = NULL ;
+						break ;
+					}
+					$obj_sheet->SetCellValue($col.$row, $value_date);
+					break ;
+					
+				case 'number' :
+					$value = $data_row[$column['dataIndex']] ;
+					$obj_sheet->SetCellValue($col.$row, $value);
+					break ;
+				default :
+					$value = $data_row[$column['dataIndex']] ;
+					$obj_sheet->SetCellValueExplicit($col.$row, $value, PHPExcel_Cell_DataType::TYPE_STRING);
+					break ;
+			}
+			
+			
+			$col++ ;
+		}
+		$row++ ;
+	}
+	
+	$tmpfilename = tempnam( sys_get_temp_dir(), "FOO");
+	$objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+	$objWriter->save($tmpfilename);
+	$objPHPExcel->disconnectWorksheets();
+	unset($objPHPExcel) ;
+	
+	$filename = 'DbsMach_'.$post_data['flow_code'].'_'.time().'.xlsx' ;
+	header("Content-Type: application/force-download; name=\"$filename\""); 
+	header("Content-Disposition: attachment; filename=\"$filename\""); 
+	readfile($tmpfilename) ;
+	unlink($tmpfilename) ;
+	die() ;
+}
+
 ?>

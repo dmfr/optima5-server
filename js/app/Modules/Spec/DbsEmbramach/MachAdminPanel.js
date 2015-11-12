@@ -73,6 +73,14 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachAdminPanel',{
 					}]
 				}]
 			},{
+				itemId: 'xlsExport',
+				text: 'Export XLS',
+				icon: 'images/op5img/ico_save_16.gif',
+				handler: function() {
+					this.doDownload() ;
+				},
+				scope: this
+			},{
 				icon: 'images/op5img/ico_info_small.gif',
 				text: 'Légende',
 				menuAlign: 'tr-br?',
@@ -156,5 +164,22 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachAdminPanel',{
 				scope: me
 			});
 		}
+	},
+	
+	doDownload: function() {
+		var me = this ;
+		
+		var exportParams = me.optimaModule.getConfiguredAjaxParams() ;
+		Ext.apply(exportParams,{
+			_moduleId: 'spec_dbs_embramach',
+			_action: 'mach_getGridXls',
+			flow_code: this.flowCode
+		}) ;
+		Ext.create('Ext.ux.dams.FileDownloader',{
+			renderTo: Ext.getBody(),
+			requestParams: exportParams,
+			requestAction: Optima5.Helper.getApplication().desktopGetBackendUrl(),
+			requestMethod: 'POST'
+		}) ;
 	}
 }) ;
