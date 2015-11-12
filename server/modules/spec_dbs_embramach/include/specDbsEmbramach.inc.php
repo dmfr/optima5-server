@@ -171,7 +171,7 @@ function specDbsEmbramach_mach_getGridCfg_lib_getFields($flow_code) {
 			);
 			$arr_fields[] = array(
 				'text' => 'Cart',
-				'width' => 200,
+				'width' => 90,
 				'filter' => array(
 					'type' => 'stringlist'
 				),

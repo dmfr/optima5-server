@@ -387,8 +387,9 @@ function specDbsEmbramach_upload_sync_FLOW_INBOUND() {
 	unset($raw_record) ;
 	
 	$map_stepCode_arrFields = array(
-		'IN_01_DOCK' => array('field_DATE_L_START','field_DATE_P_V1_DOCK'),
-		'IN_02_PUTAWAY' => array('field_DATE_P_V4_CONF')
+		'IN_01_DOCK' => array('field_DATE_P_V1_DOCK'),
+		'IN_02_RECEIPT' => array('field_DATE_P_V2_RECEIPT'),
+		'IN_04_PUTAWAY' => array('field_DATE_P_V4_PUTAWAY')
 	);
 	
 	$arr_insertedFilerecordId = array() ;
