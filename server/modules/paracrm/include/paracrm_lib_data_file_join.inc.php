@@ -233,7 +233,7 @@ function paracrm_lib_file_joinPrivate_do( $file_code, $entry_field_code, $jSrcVa
 					$tidx = 1 ;
 					$link_values = array() ;
 					$link_values[$jSrcValue] = $tidx ;
-					if( $jInfValue = paracrm_lib_file_joinTool_findInfLevelStr( $jSrcValue, $joinCondition['join_field_arrLevels'] ) ) {
+					foreach( paracrm_lib_file_joinTool_findInfLevelsStr( $jSrcValue, $joinCondition['join_field_arrLevels'] ) as $jInfValue ) {
 						$tidx++ ;
 						$link_values[$jInfValue] = $tidx ;
 					}
@@ -535,16 +535,17 @@ function paracrm_lib_file_joinTool_findInfLevelDate( $value, $arr_levels ) {
 	
 	return $arr_levels[$idx_min] ;
 }
-function paracrm_lib_file_joinTool_findInfLevelStr( $value, $arr_levels ) {
+function paracrm_lib_file_joinTool_findInfLevelsStr( $value, $arr_levels ) {
 	if( !$arr_levels ) {
-		return $value ;
+		return array() ;
 	}
+	$values = array() ;
 	foreach( $arr_levels as $level ) {
 		if( fnmatch($level,$value) ) {
-			return $level ;
+			$values[] = $level ;
 		}
 	}
-	return $value ;
+	return $values ;
 }
 
 ?>
