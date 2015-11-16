@@ -666,6 +666,7 @@ function paracrm_queries_builderTransaction_saveFields( &$arr_saisie , $query_id
 	$group[] = 'group_bible_display_treenode' ;
 	$group[] = 'group_bible_display_entry' ;
 	$group[] = 'group_date_type' ;
+	$group[] = 'group_date_is_desc' ;
 	$group[] = 'extrapolate_is_on' ;
 	$group[] = 'extrapolate_src_date_from' ;
 	$group[] = 'extrapolate_calc_date_from' ;

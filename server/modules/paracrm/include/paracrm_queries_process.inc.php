@@ -3932,7 +3932,7 @@ function paracrm_queries_process_labelEnum( $group_id, $field_group, $bibleCondi
 		if( $field_group['extrapolate_is_on'] && paracrm_queries_process_extrapolate_isDateValid($field_group['extrapolate_calc_date_to']) ) {
 			$force_values['key_end'] = paracrm_queries_process_extrapolateGroup_outputDate( $field_group['extrapolate_calc_date_to'], $field_group['group_date_type'] );
 		}
-		foreach( paracrm_queries_process_labelEnumDate( $group_id, $field_group['group_date_type'], $force_values ) as $group_key )
+		foreach( paracrm_queries_process_labelEnumDate( $group_id, $field_group['group_date_type'], $field_group['group_date_is_desc'], $force_values ) as $group_key )
 		{
 			$arr[$group_key] = array($group_key) ;
 		}
@@ -4341,7 +4341,7 @@ function paracrm_queries_process_labelEnumFile( $group_id, $file_code, $group_fi
 	return $tab ;
 }
 
-function paracrm_queries_process_labelEnumDate( $group_id, $group_date_type, $force_values=NULL )
+function paracrm_queries_process_labelEnumDate( $group_id, $group_date_type, $group_date_is_desc=FALSE, $force_values=NULL )
 {
 	global $_groups_hashes ;
 	
@@ -4407,6 +4407,9 @@ function paracrm_queries_process_labelEnumDate( $group_id, $group_date_type, $fo
 		continue ;
 	}
 	
+	if( $group_date_is_desc ) {
+		$keys = array_reverse($keys) ;
+	}
 	return $keys ;
 }
 
@@ -4493,7 +4496,7 @@ function paracrm_queries_process_extrapolateGroup( $extrapolate_batch, &$RES_gro
 	// covering real + extrapolate
 	$force_values = array() ;
 	$force_values['key_end'] = $extrapolate_batch['extrapolate_calc_date_to'] ;
-	$ITERATION_dates = paracrm_queries_process_labelEnumDate($extrapolate_batch['group_id'],$extrapolate_batch['group_date_type'],$force_values) ;
+	$ITERATION_dates = paracrm_queries_process_labelEnumDate($extrapolate_batch['group_id'],$extrapolate_batch['group_date_type'],$group_date_is_desc=FALSE,$force_values) ;
 	$ITERATION_src_dates = array() ;
 	$ITERATION_calc_dates = array() ;
 	foreach( $ITERATION_dates as $date_step ) {

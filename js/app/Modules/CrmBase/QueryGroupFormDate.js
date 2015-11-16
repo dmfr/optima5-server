@@ -42,6 +42,10 @@ Ext.define('Optima5.Modules.CrmBase.QueryGroupFormDate' ,{
 					queryMode: 'local',
 					displayField: 'lib',
 					valueField: 'mode'
+				},{
+					xtype:'checkbox',
+					name:'group_date_is_desc',
+					fieldLabel:'Sort Desc.'
 				}]
 			},{
 				xtype: 'fieldset',

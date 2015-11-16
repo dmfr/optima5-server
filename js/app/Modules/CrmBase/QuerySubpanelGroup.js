@@ -12,6 +12,7 @@ Ext.define('QueryGroupModel', {
 		{name: 'group_bible_display_treenode',   type: 'string'},
 		{name: 'group_bible_display_entry',   type: 'string'},
 		{name: 'group_date_type',   type: 'string'},
+		{name: 'group_date_is_desc',   type: 'boolean'},
 		{name: 'extrapolate_is_on',   type: 'boolean'},
 		{name: 'extrapolate_src_date_from', type: 'string'},
 		{name: 'extrapolate_calc_date_from', type: 'string'},
@@ -289,6 +290,7 @@ Ext.define('Optima5.Modules.CrmBase.QuerySubpanelGroup' ,{
 						break ;
 						
 					case 'group_date_type' :
+					case 'group_date_is_desc' :
 						record.set(k,v) ;
 						break ;
 						
