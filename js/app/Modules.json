@@ -115,5 +115,14 @@
 		"moduleCssSrc":"module-spec_abso_crm.css",
 		"moduleType":"sdomain",
 		"params": []
+	},{
+		"enabled":true,
+		"moduleId":"crmbase_dsc",
+		"backendModuleId":"crmbase",
+		"moduleName":"CRM Date Source",
+		"moduleClass":"Optima5.Modules.CrmBase.CrmDscModule",
+		"moduleCssSrc":"module-crmbase.css",
+		"moduleType":"sdomain",
+		"params": []
 	}
 ]

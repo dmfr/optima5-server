@@ -106,6 +106,12 @@
 .op5-crmbase-mainwindow-admin-authandroid {
 	background-image: url("../images/modules/crmbase-android-16.png") !important;
 }
+.op5-crmbase-mainwindow-workflow {
+	background-image: url("../images/modules/crmbase-plugin-22.png") !important;
+}
+.op5-crmbase-mainwindow-logs {
+	background-image: url("../images/modules/crmbase-clock-22.png") !important;
+}
 
 .op5-crmbase-datatoolbar-new {
 	background-image: url("../images/modules/crmbase-new-16.gif") !important;
