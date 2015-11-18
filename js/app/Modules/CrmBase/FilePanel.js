@@ -266,8 +266,6 @@ Ext.define('Optima5.Modules.CrmBase.FilePanel' ,{
 			authReadOnly = true ;
 		}
 		
-		var gridModelName = 'FileGrid'+'-'+this.fileId ;
-		
 		var daterenderer = Ext.util.Format.dateRenderer('d/m/Y H:i');
 		var boolrenderer = function(value) {
 			if( value==1 ) {

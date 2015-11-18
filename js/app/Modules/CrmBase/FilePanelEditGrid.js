@@ -82,6 +82,12 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelEditGrid',{
 		}) ;
 		
 		me.callParent(arguments) ;
+		
+		this.on('destroy',function(p){
+			if( p.gridModelName ) {
+				Ext.ux.dams.ModelManager.unregister( p.gridModelName ) ;
+			}
+		},this) ;
 	},
 	initGetColumns: function() {
 		var me = this ;
@@ -257,7 +263,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelEditGrid',{
 	initGetStoreCfg: function() {
 		var me = this ;
 		
-		var gridModelName = 'FileEditGrid'+'-'+this.fileId ;
+		var gridModelName = 'FileEditGrid'+'-'+this.getId() ;
 		
 		// Création du modèle GRID
 		var modelFields = new Array() ;
@@ -299,13 +305,15 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelEditGrid',{
 			}
 			modelFields.push( fieldObject ) ;
 		},this) ;
+		
+		if( this.gridModelName ) {
+			Ext.ux.dams.ModelManager.unregister( this.gridModelName ) ;
+		}
 		Ext.define(gridModelName, {
 			extend: 'Ext.data.Model',
 			fields: modelFields
 		});
-		this.on('destroy',function(){
-			Ext.ux.dams.ModelManager.unregister( gridModelName ) ;
-		},this) ;
+		this.gridModelName = gridModelName ;
 		
 		gridStoreCfg = {
 			model: gridModelName,
