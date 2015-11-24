@@ -1,0 +1,77 @@
+.op5-spec-dbslam-stock-avail .x-grid-cell-inner {
+	background: url('../images/op5img/ico_greendot.gif') no-repeat center center ;
+}
+.op5-spec-dbslam-stock-notavail .x-grid-cell-inner {
+	background: url('../images/op5img/ico_reddot.gif') no-repeat center center ;
+}
+
+.op5-spec-dbslam-stock-disabled .x-grid-cell-inner {
+	background-color: #cccccc !important;
+}
+
+
+.op5-spec-dbslam-liveadr-adr {
+	font-size: 18px ;
+	padding-bottom: 6px ;
+}
+.op5-spec-dbslam-liveadr-adrtxt {
+	font-size: 24px ;
+	font-weight: bold ;
+}
+.op5-spec-dbslam-liveadr-caption {
+	background: url('../images/op5img/ico_info_small.gif') no-repeat 4px center ;
+	line-height: 20px ;
+}
+.op5-spec-dbslam-liveadr-captiontxt {
+	padding-left: 24px ;
+}
+.op5-spec-dbslam-liveadr-captionwarning {
+	color: #cc0000 ;
+	font-weight: bold ;
+}
+
+.op5-spec-dbslam-liveadr-btnrelocate .x-btn-inner {
+	color: #dd0000 ;
+	font-weight: bold ;
+}
+
+.op5-spec-dbslam-livelogo {
+	text-align: center;
+	line-height: 40px;
+	font-size: 24px;
+	font-weight: bold ;
+}
+.op5-spec-dbslam-livelogo-left {
+	width: 128px;
+	height: 64px;
+	float: left;
+	background-image: url("../images/modules/dbslam-logoleft.png") !important;
+	background-position: center center ;
+	background-repeat: no-repeat;
+}
+.op5-spec-dbslam-livelogo-right {
+	width: 256px;
+	height: 64px;
+	float: right;
+	background-image: url("../images/modules/dbslam-logoright.png") !important;
+	background-position: center center ;
+	background-repeat: no-repeat;
+}
+
+
+
+.op5-spec-dbslam-liveadr-relocatebanner {
+	padding: 5px;
+	margin: 0px 5px;
+	color: rgb(50, 50, 50);
+	border-bottom: 1px solid rgb(100, 100, 100);
+	display:block;
+	text-align:left;
+	
+	padding-left: 46px;
+	
+	background-position: 4 center;
+	background-repeat: no-repeat;
+	background-image: url("../images/modules/crmbase-warning-32.png") !important;
+}
+

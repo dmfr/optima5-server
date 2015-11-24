@@ -124,5 +124,15 @@
 		"moduleCssSrc":"module-crmbase.css",
 		"moduleType":"sdomain",
 		"params": []
+	},{
+		"enabled":true,
+		"moduleId":"spec_dbs_lam",
+		"backendModuleId":"crmbase",
+		"parentModuleId":"crmbase",
+		"moduleName":"(DBS) LAM S",
+		"moduleClass":"Optima5.Modules.Spec.DbsLam.DbsLamModule",
+		"moduleCssSrc":"module-spec_dbs_lam.css",
+		"moduleType":"sdomain",
+		"params": []
 	}
 ]
