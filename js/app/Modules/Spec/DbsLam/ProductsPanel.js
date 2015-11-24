@@ -49,6 +49,13 @@ Ext.define('Optima5.Modules.Spec.DbsLam.ProductsPanel',{
 					align: 'stretch'
 				},
 				tbar:[{
+					icon: 'images/op5img/ico_back_16.gif',
+					text: '<u>Back</u>',
+					handler: function(){
+						this.doQuit() ;
+					},
+					scope: this
+				},'-',{
 					icon: 'images/op5img/ico_search_16.gif',
 					handler: function(btn) {
 						btn.up().down('#txtSearch').reset() ;
@@ -450,5 +457,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.ProductsPanel',{
 			},
 			scope: this
 		}) ;
+	},
+	
+	doQuit: function() {
+		this.destroy() ;
 	}
 });

@@ -58,6 +58,14 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 				bodyCls: 'ux-noframe-bg',
 				bodyPadding: 15,
 				layout:'anchor',
+				tbar:[{
+					icon: 'images/op5img/ico_back_16.gif',
+					text: '<u>Back</u>',
+					handler: function(){
+						this.doQuit() ;
+					},
+					scope: this
+				}],
 				items:[{
 					height: 72,
 					xtype: 'component',
@@ -897,5 +905,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 		
 		popupPanel.show();
 		popupPanel.getEl().alignTo(me.getEl(), 'c-c?');
+	},
+	
+	doQuit: function() {
+		this.destroy() ;
 	}
 });

@@ -1,3 +1,87 @@
+.op5-spec-dbslam-mainmenu {
+	background: rgb(159, 159, 159);
+	background-attachment: scroll;
+	background-clip: border-box;
+	background-image: -ms-radial-gradient(center top, #4b7e98 0%, #1a334c 100%);
+	background-image: -moz-radial-gradient(center top, #4b7e98 0%, #1a334c 100%);
+	background-image: -webkit-gradient(radial, center top, 0, center top, 900, from(rgb(75, 126, 152)), to(rgb(26, 51, 76)));
+	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#4b7e98', endColorstr='#1a334c');
+	background-origin: padding-box;
+	background-position: 0 0;
+	background-repeat: repeat;
+	background-size: 100% 100%;
+	
+	text-align:center;
+}
+
+.op5-spec-dbslam-mainmenu .op5-spec-dbslam-mainmenu-item {
+	display:block;
+	position:absolute;
+}
+.op5-spec-dbslam-mainmenu .op5-spec-dbslam-mainmenu-header {
+	background-position: 0 0;
+	background-repeat: no-repeat;
+	background-image: url("../images/modules/dbspeople-mainmenu-logo.png") !important;
+	display:block;
+	width: 500px;
+	height: 93px;
+	margin: 20px ;
+}
+.op5-spec-dbslam-mainmenu .op5-spec-dbslam-mainmenu-separator {
+	padding: 5px;
+	margin: 0px 5px;
+	color: rgb(204, 204, 204);
+	border-bottom: 1px solid rgb(204, 204, 204);
+	display:block;
+	text-align:left;
+	font-size: 14px;
+}
+.op5-spec-dbslam-mainmenu .op5-spec-dbslam-mainmenu-action {
+	margin: 5px;
+	padding: 5px;
+	text-align: center;
+	color: rgb(255, 255, 255);
+	text-shadow: 1px 1px rgb(0, 0, 0);
+	width: 104px;
+	height: 124px;
+	overflow: hidden;
+	z-index: 1;
+	font-size: 14px;	
+}
+.op5-spec-dbslam-mainmenu .op5-spec-dbslam-mainmenu-action-active {
+	cursor: pointer;
+}
+.op5-spec-dbslam-mainmenu .op5-spec-dbslam-mainmenu-item-over .op5-spec-dbslam-mainmenu-action-active {
+	background-color: rgb(37, 68, 93);
+	border: 1px solid rgb(221, 221, 221);
+	padding: 4px;
+	-moz-border-radius: 10px;
+	border-radius: 10px !important;
+	z-index: 2;
+}
+.op5-spec-dbslam-mainmenu .op5-spec-dbslam-mainmenu-action-icon {
+	width: 64px;
+	height: 64px;
+	margin: 10px auto;
+}
+
+
+.op5-spec-dbslam-menu-live {
+	background-image: url("../images/modules/dbslam-menu-live-64.png") !important;
+}
+.op5-spec-dbslam-menu-stock {
+	background-image: url("../images/modules/dbslam-menu-stock-64.png") !important;
+}
+.op5-spec-dbslam-menu-products {
+	background-image: url("../images/modules/dbslam-menu-products-64.png") !important;
+}
+.op5-spec-dbslam-menu-query {
+	background-image: url("../images/modules/dbslam-menu-query-64.png") !important;
+}
+
+
+
+
 .op5-spec-dbslam-stock-avail .x-grid-cell-inner {
 	background: url('../images/op5img/ico_greendot.gif') no-repeat center center ;
 }

@@ -70,6 +70,13 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 					align: 'stretch'
 				},
 				tbar:[{
+					icon: 'images/op5img/ico_back_16.gif',
+					text: '<u>Back</u>',
+					handler: function(){
+						this.doQuit() ;
+					},
+					scope: this
+				},'-',{
 					icon:'images/op5img/ico_new_16.gif',
 					text:'Création adresse(s)',
 					handler: function() { this.handleNew() },
@@ -613,5 +620,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 			},
 			scope: this
 		}) ;
+	},
+	
+	doQuit: function() {
+		this.destroy() ;
 	}
 });

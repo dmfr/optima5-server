@@ -22,7 +22,7 @@ Ext.define('DbsLamQueryspecDLCModel',{
 }) ;
 
 Ext.define('Optima5.Modules.Spec.DbsLam.QueryspecPanel',{
-	extend:'Ext.tab.Panel',
+	extend:'Ext.panel.Panel',
 	initComponent: function() {
 		
 		this.tmpQueryspecMismatchModelName = 'DbsLamQueryspecMismatchModel-' + this.getId() ;
@@ -65,160 +65,173 @@ Ext.define('Optima5.Modules.Spec.DbsLam.QueryspecPanel',{
 		
 		
 		Ext.apply(this,{
-			defaults: {
-				listeners: {
-					activate: this.onTabActivate
-				}
-			},
+			tbar:[{
+				icon: 'images/op5img/ico_back_16.gif',
+				text: '<u>Back</u>',
+				handler: function(){
+					this.doQuit() ;
+				},
+				scope: this
+			}],
+			layout: 'fit',
 			items:[{
-				xtype:'grid',
-				title: 'Attributes mismatch',
 				border: false,
-				icon: 'images/op5img/ico_dataadd_16.gif',
-				store: {
-					autoload: false,
-					model: this.tmpQueryspecMismatchModelName,
-					proxy: this.optimaModule.getConfiguredAjaxProxy({
-						extraParams : {
-							_moduleId: 'spec_dbs_lam',
-							_action: 'queryspec',
-							queryspec_code: 'atr_mismatch',
-							limit: 20
-						},
-						reader: {
-							type: 'json',
-							rootProperty: 'data'
-						}
-					}),
-					sorters:[{
-						property : 'adr_id',
-						direction: 'ASC'
-					}]
+				xtype: 'tabpanel',
+				defaults: {
+					listeners: {
+						activate: this.onTabActivate
+					}
 				},
-				columns: {
-					defaults: {
-						menuDisabled: true,
-						draggable: false,
-						sortable: true,
-						hideable: false,
-						resizable: false,
-						groupable: false,
-						lockable: false
-					},
-					items: [{
-						dataIndex: 'adr_id',
-						text: 'Adr',
-						width: 90,
-						renderer: function(v) {
-							return '<b>'+v+'</b>';
-						}
-					},{
-						text: 'Item',
-						columns: [{
-							dataIndex: 'inv_prod',
-							text: 'Article',
-							width: 100
-						},{
-							dataIndex: 'inv_batch',
-							text: 'BatchCode',
-							width: 100
-						},{
-							dataIndex: 'inv_qty',
-							text: 'Qty disp',
-							align: 'right',
-							width: 75
-						}]
-					},{
-						text: 'Attributs Mismatch(s)',
-						columns: atrColumns
-					}]
-				}
-			},{
-				xtype:'grid',
-				title: 'Alertes Dates',
-				border: false,
-				icon: 'images/op5img/ico_dataadd_16.gif',
-				store: {
-					autoload: false,
-					model: 'DbsLamQueryspecDLCModel',
-					proxy: this.optimaModule.getConfiguredAjaxProxy({
-						extraParams : {
-							_moduleId: 'spec_dbs_lam',
-							_action: 'queryspec',
-							queryspec_code: 'DLC_expire',
-							limit: 20
-						},
-						reader: {
-							type: 'json',
-							rootProperty: 'data'
-						}
-					}),
-					sorters:[{
-						property : 'inv_datelc',
-						direction: 'ASC'
-					}]
-				},
-				columns: {
-					defaults: {
-						menuDisabled: true,
-						draggable: false,
-						sortable: true,
-						hideable: false,
-						resizable: false,
-						groupable: false,
-						lockable: false
-					},
-					items: [{
-						dataIndex: 'adr_id',
-						text: 'Adr',
-						width: 90,
-						renderer: function(v) {
-							return '<b>'+v+'</b>';
-						}
-					},{
-						text: 'Item',
-						columns: [{
-							dataIndex: 'inv_prod',
-							text: 'Article',
-							width: 100
-						},{
-							dataIndex: 'inv_batch',
-							text: 'BatchCode',
-							width: 100
-						},{
-							dataIndex: 'inv_qty',
-							text: 'Qty disp',
-							align: 'right',
-							width: 75
-						},{
-							dataIndex: 'inv_datelc',
-							text: '<b>DLC</b>',
-							align: 'center',
-							width: 120,
-							renderer: function(v) {
-								var date = Ext.Date.parse(v,'Y-m-d') ;
-								return '<b><font color="red">'+Ext.Date.format(date,'d/m/Y')+'</font></b>' ;
+				items:[{
+					xtype:'grid',
+					title: 'Attributes mismatch',
+					border: false,
+					icon: 'images/op5img/ico_dataadd_16.gif',
+					store: {
+						autoload: false,
+						model: this.tmpQueryspecMismatchModelName,
+						proxy: this.optimaModule.getConfiguredAjaxProxy({
+							extraParams : {
+								_moduleId: 'spec_dbs_lam',
+								_action: 'queryspec',
+								queryspec_code: 'atr_mismatch',
+								limit: 20
 							},
-							menuDisabled: false,
-							filter: {
-								type: 'date',
-								dateFormat: 'Y-m-d',
-								active: true,
-								convertDateOnly: function(v1) { //HACK!
-									var result = null;
-									if (v1) {
-										var v2 = new Date(v1) ;
-										v2.setHours(0,0,0,0) ;
-										result = v2.getTime();
-									}
-									return result;
-								}
+							reader: {
+								type: 'json',
+								rootProperty: 'data'
 							}
+						}),
+						sorters:[{
+							property : 'adr_id',
+							direction: 'ASC'
 						}]
+					},
+					columns: {
+						defaults: {
+							menuDisabled: true,
+							draggable: false,
+							sortable: true,
+							hideable: false,
+							resizable: false,
+							groupable: false,
+							lockable: false
+						},
+						items: [{
+							dataIndex: 'adr_id',
+							text: 'Adr',
+							width: 90,
+							renderer: function(v) {
+								return '<b>'+v+'</b>';
+							}
+						},{
+							text: 'Item',
+							columns: [{
+								dataIndex: 'inv_prod',
+								text: 'Article',
+								width: 100
+							},{
+								dataIndex: 'inv_batch',
+								text: 'BatchCode',
+								width: 100
+							},{
+								dataIndex: 'inv_qty',
+								text: 'Qty disp',
+								align: 'right',
+								width: 75
+							}]
+						},{
+							text: 'Attributs Mismatch(s)',
+							columns: atrColumns
+						}]
+					}
+				},{
+					xtype:'grid',
+					title: 'Alertes Dates',
+					border: false,
+					icon: 'images/op5img/ico_dataadd_16.gif',
+					store: {
+						autoload: false,
+						model: 'DbsLamQueryspecDLCModel',
+						proxy: this.optimaModule.getConfiguredAjaxProxy({
+							extraParams : {
+								_moduleId: 'spec_dbs_lam',
+								_action: 'queryspec',
+								queryspec_code: 'DLC_expire',
+								limit: 20
+							},
+							reader: {
+								type: 'json',
+								rootProperty: 'data'
+							}
+						}),
+						sorters:[{
+							property : 'inv_datelc',
+							direction: 'ASC'
+						}]
+					},
+					columns: {
+						defaults: {
+							menuDisabled: true,
+							draggable: false,
+							sortable: true,
+							hideable: false,
+							resizable: false,
+							groupable: false,
+							lockable: false
+						},
+						items: [{
+							dataIndex: 'adr_id',
+							text: 'Adr',
+							width: 90,
+							renderer: function(v) {
+								return '<b>'+v+'</b>';
+							}
+						},{
+							text: 'Item',
+							columns: [{
+								dataIndex: 'inv_prod',
+								text: 'Article',
+								width: 100
+							},{
+								dataIndex: 'inv_batch',
+								text: 'BatchCode',
+								width: 100
+							},{
+								dataIndex: 'inv_qty',
+								text: 'Qty disp',
+								align: 'right',
+								width: 75
+							},{
+								dataIndex: 'inv_datelc',
+								text: '<b>DLC</b>',
+								align: 'center',
+								width: 120,
+								renderer: function(v) {
+									var date = Ext.Date.parse(v,'Y-m-d') ;
+									return '<b><font color="red">'+Ext.Date.format(date,'d/m/Y')+'</font></b>' ;
+								},
+								menuDisabled: false,
+								filter: {
+									type: 'date',
+									dateFormat: 'Y-m-d',
+									active: true,
+									convertDateOnly: function(v1) { //HACK!
+										var result = null;
+										if (v1) {
+											var v2 = new Date(v1) ;
+											v2.setHours(0,0,0,0) ;
+											result = v2.getTime();
+										}
+										return result;
+									}
+								}
+							}]
+						}]
+					},
+					plugins: [{
+						ptype: 'uxgridfilters'
 					}]
-				},
-				plugins: [{
-					ptype: 'uxgridfilters'
 				}]
 			}]
 		});
@@ -240,5 +253,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.QueryspecPanel',{
 				dateFilter.setActive(true) ;
 			}
 		}
+	},
+	
+	doQuit: function() {
+		this.destroy() ;
 	}
 });
