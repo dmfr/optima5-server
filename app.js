@@ -115,6 +115,24 @@ Ext.onReady(function () {
 	});
 	
 	/*
+	 * Ext 5.1.1 : onUpdate if filtered => non-existant group => metaGroup isCollapsed not defined
+	 * fixed in 5.1.2 ?
+	 */
+	Ext.grid.feature.GroupStore.override({
+		onUpdate: function(store, record, operation, modifiedFieldNames) {
+			var me = this,
+				groupingFeature = me.groupingFeature ;
+			
+			if (store.isGrouped() && !groupingFeature.getGroup(record)) {
+				me.fireEvent('update', me, record, operation, modifiedFieldNames);
+				return ;
+			}
+			
+			this.callOverridden(arguments) ;
+		}
+	});
+	
+	/*
 	 * Chrome 43 / Charts ? : draw problem
 	 */
 	Ext.chart.Chart.override({
