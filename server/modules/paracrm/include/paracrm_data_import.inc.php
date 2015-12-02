@@ -1,5 +1,34 @@
 <?php
 
+function paracrm_data_importDirect( $post_data ) {
+	if( !isset($_FILES['csvsrc_binary']) ) {
+		return array('success'=>false) ;
+	}
+	
+	switch( $post_data['data_type'] ) {
+		case 'bible' :
+			$store_code = $post_data['bible_code'] ;
+			break ;
+			
+		case 'file' :
+			$store_code = $post_data['file_code'] ;
+			break ;
+			
+		default :
+			break ;
+	}
+	if( !$store_code ) {
+		return array('success'=>false) ;
+	}
+	
+	$handle = fopen($_FILES['csvsrc_binary']['tmp_name'],'rb') ;
+	paracrm_lib_dataImport_commit_processHandle( $post_data['data_type'],$store_code, $handle ) ;
+	fclose($handle) ;
+	
+	return array('success'=>true) ;
+}
+
+
 function paracrm_data_importTransaction( $post_data )
 {
 	if( $post_data['_action'] == 'data_importTransaction' && $post_data['_subaction'] == 'init' )

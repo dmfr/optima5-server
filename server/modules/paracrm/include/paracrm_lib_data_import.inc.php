@@ -321,6 +321,16 @@ function paracrm_lib_dataImport_commit_processNode_file( $treefields_node, $arr_
 				$leaf_value = date('Y-m-d H:i:s',strtotime($arr_srcLig[$field])) ;
 				break ;
 				
+			case 'number' :
+				$leaf_value = $arr_srcLig[$field] ;
+				if( !is_numeric($leaf_value) ) {
+					$leaf_value = str_replace(',','.',$leaf_value) ;
+					if( $leaf_value[0] == '.' ) {
+						$leaf_value = '0'.$leaf_value ;
+					}
+				}
+				break ;
+				
 			default :
 				$leaf_value = $arr_srcLig[$field] ;
 				break ;	
