@@ -26,14 +26,16 @@ $_opDB->connect_mysql( $mysql_host, $login_result['mysql_db'], $mysql_user, $mys
 $_opDB->query("SET NAMES UTF8") ;
 
 // ************************
-$query = "SELECT module_id FROM sdomain WHERE sdomain_id='{$_REQUEST['_sdomainId']}'" ;
-$result = $_opDB->query($query) ;
-if( $_opDB->num_rows($result) != 1 ) {
-	//header("HTTP/1.0 404 Not Found");
-	die() ;
+if( !$_REQUEST['_moduleId'] ) {
+	$query = "SELECT module_id FROM sdomain WHERE sdomain_id='{$_REQUEST['_sdomainId']}'" ;
+	$result = $_opDB->query($query) ;
+	if( $_opDB->num_rows($result) != 1 ) {
+		//header("HTTP/1.0 404 Not Found");
+		die() ;
+	}
+	$arr = $_opDB->fetch_row($result) ;
+	$_REQUEST['_moduleId'] = $arr[0] ;
 }
-$arr = $_opDB->fetch_row($result) ;
-$_REQUEST['_moduleId'] = $arr[0] ;
 // ************************
 $my_module = $_REQUEST['_moduleId'] ;
 if( !$my_module ) {
