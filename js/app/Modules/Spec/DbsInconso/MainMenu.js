@@ -62,6 +62,11 @@ Ext.define('Optima5.Modules.Spec.DbsInconso.MainMenu',{
 			},{
 				type_separator:true,
 				separator_label: 'Inconso : Ordonnancement'
+			},{
+				type_action:true,
+				action_caption: 'Orders / Commandes',
+				action_sendEvent:'panel_sdg',
+				action_iconCls:'op5-spec-dbsinconso-icon-sdg'
 			}]
 		}) ;
 		 

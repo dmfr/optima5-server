@@ -3,7 +3,8 @@ Ext.define('Optima5.Modules.Spec.DbsInconso.MainPanel',{
 	requires:[
 		'Optima5.Modules.Spec.DbsInconso.HelperCache',
 		
-		'Optima5.Modules.Spec.DbsInconso.MainMenu'
+		'Optima5.Modules.Spec.DbsInconso.MainMenu',
+		'Optima5.Modules.Spec.DbsInconso.SdgPanel'
 	],
 	
 	initComponent: function() {
@@ -46,14 +47,8 @@ Ext.define('Optima5.Modules.Spec.DbsInconso.MainPanel',{
 		//console.log("Action: "+actionCode) ;
 		
 		switch( actionCode ) {
-			case 'panel_stock' :
-				return me.switchToAppPanel('Optima5.Modules.Spec.DbsInconso.StockPanel',{}) ;
-			case 'panel_products' :
-				return me.switchToAppPanel('Optima5.Modules.Spec.DbsInconso.ProductsPanel',{}) ;
-			case 'panel_live' :
-				return me.switchToAppPanel('Optima5.Modules.Spec.DbsInconso.LivePanel',{}) ;
-			case 'panel_queryspec' :
-				return me.switchToAppPanel('Optima5.Modules.Spec.DbsInconso.QueryspecPanel',{}) ;
+			case 'panel_sdg' :
+				return me.switchToAppPanel('Optima5.Modules.Spec.DbsInconso.SdgPanel',{}) ;
 			default :
 				return ;
 		}

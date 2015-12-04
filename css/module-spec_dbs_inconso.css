@@ -64,3 +64,12 @@
 	height: 64px;
 	margin: 10px auto;
 }
+
+.op5-spec-dbsinconso-icon-sdg {
+	background-image: url("../images/modules/dbsinconso-sdg-64.png") !important;
+}
+
+
+.op5-spec-dbsinconso-boldcolumn .x-grid-cell-inner {
+	font-weight: bold;
+}
