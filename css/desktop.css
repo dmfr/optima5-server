@@ -542,6 +542,12 @@ div.thumb-wrap:hover span.title{
 .op5-device-no {
 	background: url('../images/op5img/ico_cancel_small.gif') no-repeat center center ;
 }
+.op5-group-expand {
+	background: url('../images/op5img/group-expand.gif') no-repeat center center ;
+}
+.op5-group-collapse {
+	background: url('../images/op5img/group-collapse.gif') no-repeat center center ;
+}
 
 
 .ux-color-combo-wrap {
