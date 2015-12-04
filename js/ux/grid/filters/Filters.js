@@ -14,7 +14,7 @@ Ext.define('Ext.ux.grid.filters.Filters',{
 		var me = this,
 			headerCt = me.grid.getView().headerCt;
 		if (headerCt) {
-			headerCt.items.each(function(header) {
+			Ext.Array.each( headerCt.getGridColumns(), function(header) {
 				if( !header.origText ) {
 					header.origText = header.text ;
 				}
