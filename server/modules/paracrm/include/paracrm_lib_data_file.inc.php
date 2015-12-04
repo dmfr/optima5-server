@@ -131,6 +131,7 @@ function paracrm_lib_file_mapFile( $file_code, $is_called=FALSE )
 				continue ;
 			}
 			
+			$arr['is_join'] = TRUE ;
 			$arr['entry_field_type'] = $jMapNode['join_select_file_field_type'] ;
 			if( $arr['entry_field_type'] == 'link' ) {
 				$arr['entry_field_linktype'] = $jMapNode['join_select_file_field_linktype'] ;
@@ -206,6 +207,7 @@ function paracrm_lib_file_mapFile( $file_code, $is_called=FALSE )
 		$grid_cell['is_display'] = true ;
 		$grid_cell['is_header'] = ( $arr['entry_field_is_header'] == 'O' );
 		$grid_cell['is_highlight'] = ( $arr['entry_field_is_highlight'] == 'O' );
+		$grid_cell['is_join'] = $arr['is_join'] ;
 		$grid_map[] = $grid_cell ;
 	}
 	

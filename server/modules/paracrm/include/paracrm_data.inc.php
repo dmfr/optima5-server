@@ -488,16 +488,23 @@ function paracrm_data_getFileGrid_data( $post_data, $auth_bypass=FALSE )
 		$types = array() ;
 		foreach( $TAB['select_map'] as $ttmp )
 		{
-			$sql_field = $ttmp[0] ;
-			$display_field = $ttmp[1] ;
 			$types[$ttmp['field']] = $ttmp['type'] ;
 		}
+		$joins = array() ;
+		foreach( $TAB['select_map'] as $ttmp )
+		{
+			$joins[$ttmp['field']] = $ttmp['is_join'] ;
+		}
+		
 		
 		foreach( json_decode($post_data['filter'],TRUE) as $filter )
 		{
 			$sql_field = $mapping[$filter['property']] ;
 			if( !$sql_field )
 				continue ;
+			if( $joins[$filter['property']] ) {
+				continue ;
+			}
 			if( ($type = $types[$filter['property']]) == 'date' ){
 				$sql_field = 'DATE('.$sql_field.')';
 			}
@@ -579,6 +586,40 @@ function paracrm_data_getFileGrid_data( $post_data, $auth_bypass=FALSE )
 		paracrm_lib_file_joinGridRecord( $file_code, $arr ) ;
 		$TAB_json[] = $arr ;
 	}
+	
+	if( $post_data['filter'] ) {
+		$joins = array() ;
+		foreach( $TAB['select_map'] as $ttmp )
+		{
+			$joins[$ttmp['field']] = $ttmp['is_join'] ;
+		}
+		
+		foreach( json_decode($post_data['filter'],TRUE) as $filter )
+		{
+			$sql_field = $mapping[$filter['property']] ;
+			if( !$sql_field )
+				continue ;
+			if( !$joins[$filter['property']] ) {
+				continue ;
+			}
+			switch( $filter['operator'] ) {
+				case 'in' :
+					if( !is_array($filter['value']) ) {
+						break ;
+					}
+					$TAB_json_new = array() ;
+					foreach( $TAB_json as $arr ) {
+						if( !in_array($arr[$filter['property']],$filter['value']) ) {
+							continue ;
+						}
+						$TAB_json_new[] = $arr ;
+					}
+					$TAB_json = $TAB_json_new ;
+					break ;
+			}
+		}
+	}
+	
 	return array('success'=>true,'data'=>$TAB_json,'total'=>$nb_rows) ;
 }
 function paracrm_data_getFileGrid_raw( $post_data, $auth_bypass=FALSE )
