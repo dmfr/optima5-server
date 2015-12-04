@@ -1265,7 +1265,7 @@ EOF;
 		if( !(strpos($current_database,$base_database) === 0) ) {
 			return NULL ;
 		}
-		$ttmp = explode('_',$current_database) ;
+		$ttmp = explode('_',$current_database,4) ;
 		switch( count($ttmp) ) {
 			case 4 :
 			return $ttmp[3] ;
