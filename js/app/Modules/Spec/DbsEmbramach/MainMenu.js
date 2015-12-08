@@ -82,12 +82,14 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MainMenu',{
 				action_iconCls:'op5-spec-dbsembramach-icon-mach'
 			},{
 				type_separator:true,
-				separator_label: 'DBS TraMoS'
+				separator_label: 'DBS TraMoS',
+				item_disabled: !Optima5.Modules.Spec.DbsEmbramach.HelperCache.authHelperQueryPage('ALL')
 			},{
 				type_action:true,
 				action_caption: 'Query:MB51',
 				action_sendEvent:'panel_query_mb51',
-				action_iconCls:'op5-spec-dbsembramach-icon-report'
+				action_iconCls:'op5-spec-dbsembramach-icon-report',
+				item_disabled: !Optima5.Modules.Spec.DbsEmbramach.HelperCache.authHelperQueryPage('ALL')
 			}]
 		}) ;
 		 

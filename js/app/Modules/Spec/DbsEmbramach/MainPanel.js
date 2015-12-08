@@ -4,7 +4,6 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MainPanel',{
 		'Optima5.Modules.Spec.DbsEmbramach.HelperCache',
 		'Optima5.Modules.Spec.DbsEmbramach.MainMenu',
 		'Optima5.Modules.Spec.DbsEmbramach.MachPanel',
-		'Optima5.Modules.Spec.DbsEmbramach.MachAdminPanel',
 		'Optima5.Modules.Spec.DbsEmbramach.ReportPanel',
 		'Optima5.Modules.Spec.DbsEmbramach.QueryPanel'
 	],
@@ -44,9 +43,6 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MainPanel',{
 				scope: me
 			}
 		}) ;
-		if( !Optima5.Modules.Spec.DbsEmbramach.HelperCache.authHelperQueryPage('ALL') ) {
-			return this.switchToAppPanel('Optima5.Modules.Spec.DbsEmbramach.MachAdminPanel',{flowCode: 'PICKING',_readonlyMode:true},true) ;
-		}
 		this.removeAll() ;
 		this.add( mainMenuView ) ;
 	},
@@ -54,13 +50,15 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MainPanel',{
 		var me = this ;
 		//console.log("Action: "+actionCode) ;
 		
+		var _readonlyMode = !( Optima5.Modules.Spec.DbsEmbramach.HelperCache.authHelperQueryPage('ALL') ) ;
+		
 		switch( actionCode ) {
 			case 'panel_mach_picking' :
-				return me.switchToAppPanel('Optima5.Modules.Spec.DbsEmbramach.MachAdminPanel',{flowCode: 'PICKING'}) ;
+				return me.switchToAppPanel('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{flowCode: 'PICKING', _readonlyMode:_readonlyMode}) ;
 			case 'panel_report' :
-				return me.switchToAppPanel('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{}) ;
+				return me.switchToAppPanel('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{_readonlyMode:_readonlyMode}) ;
 			case 'panel_mach_inbound' :
-				return me.switchToAppPanel('Optima5.Modules.Spec.DbsEmbramach.MachAdminPanel',{flowCode: 'INBOUND'}) ;
+				return me.switchToAppPanel('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{flowCode: 'INBOUND', _readonlyMode:_readonlyMode}) ;
 			case 'panel_query_mb51' :
 				return me.switchToAppPanel('Optima5.Modules.Spec.DbsEmbramach.QueryPanel',{qType:'query', queryId:'Report::ZMB51::Synthese'}) ;
 			default :

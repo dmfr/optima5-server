@@ -67,6 +67,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 					}]
 				}
 			},'->',{
+				hidden: this._readonlyMode,
 				itemId: 'xlsExport',
 				text: 'Export XLS',
 				icon: 'images/op5img/ico_save_16.gif',
@@ -588,6 +589,10 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 	openMachPopup: function(machFilters) {
 		if( this.machPopup ) {
 			this.machPopup.destroy() ;
+		}
+		
+		if( this._readonlyMode ) {
+			return ;
 		}
 		
 		var panelSize = this.getSize() ;
