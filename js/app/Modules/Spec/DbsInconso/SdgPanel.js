@@ -466,24 +466,23 @@ Ext.define('Optima5.Modules.Spec.DbsInconso.SdgPanel',{
 			store = grid.getStore(),
 			model = store.model,
 			fieldDesc = model.getField(groupField) ;
-			
 		
-		var groupFn ;
-		switch( fieldDesc.type ) {
-			case 'date' :
-				groupFn = function (record) {
-					return Ext.Date.format(record.get(groupField), 'Y-m-d');
-				} ;
-				break ;
-				
-			default :
-				groupFn = null ;
-				break ;
-		}
-			
 		if( groupField == null ) {
 			store.clearGrouping() ;
 		} else {
+			var groupFn ;
+			switch( fieldDesc.type ) {
+				case 'date' :
+					groupFn = function (record) {
+						return Ext.Date.format(record.get(groupField), 'Y-m-d');
+					} ;
+					break ;
+					
+				default :
+					groupFn = null ;
+					break ;
+			}
+			
 			store.group({
 				property: groupField,
 				groupFn: groupFn
