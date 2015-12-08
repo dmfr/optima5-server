@@ -202,6 +202,15 @@ function specDbsEmbralam_upload_lib_separator( $handle_in, $handle_out, $separat
 		if( $is_first ) {
 			$arr_header = $arr_csv ;
 			$is_first = FALSE ;
+			
+			// Réécriture du header :
+			$map_field_nbOcc = array() ;
+			foreach( $arr_csv as $idx => $field ) {
+				$map_field_nbOcc[$field]++ ;
+				if( $map_field_nbOcc[$field] > 1 ) {
+					$arr_csv[$idx].= '-'.$map_field_nbOcc[$field] ;
+				}
+			}
 		} elseif($arr_csv == $arr_header) {
 			continue ;
 		}
