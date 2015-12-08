@@ -155,11 +155,14 @@ function paracrm_lib_dataImport_getMapping( $importmap_id, $csvsrc_arrHeaderTxt=
 	foreach( $map_csvHeaderTxt_arrTargetfieldmapcode as $csvHeaderTxt => $arrTargetfieldmapcode ) {
 		$cur_csvsrcIdx++ ;
 		foreach( json_decode($arrTargetfieldmapcode,true) as $target_fieldmapcode ) {
+			if( !isset($map_fieldCode_csvsrcIdx[$target_fieldmapcode]) ) {
+				$map_fieldCode_csvsrcIdx[$target_fieldmapcode] = array() ;
+			}
 			if( is_array($csvsrc_arrHeaderTxt) ) {
 				$idx = array_search($csvHeaderTxt,$csvsrc_arrHeaderTxt) ;
-				$map_fieldCode_csvsrcIdx[$target_fieldmapcode] = $idx ;
+				$map_fieldCode_csvsrcIdx[$target_fieldmapcode][] = $idx ;
 			} else {
-				$map_fieldCode_csvsrcIdx[$target_fieldmapcode] = $cur_csvsrcIdx ;
+				$map_fieldCode_csvsrcIdx[$target_fieldmapcode][] = $cur_csvsrcIdx ;
 			}
 		}
 	}
@@ -227,8 +230,12 @@ function paracrm_lib_dataImport_commit_processStream( $treefields_root, $map_fie
 		}
 		
 		$arr_srcLig = array() ;
-		foreach( $map_fieldCode_csvsrcIdx as $fieldCode => $sIdx ) {
-			$arr_srcLig[$fieldCode] = $arr_csv[$sIdx] ;
+		foreach( $map_fieldCode_csvsrcIdx as $fieldCode => $arr_sIdx ) {
+			$ttmp = array() ;
+			foreach( $arr_sIdx as $sIdx ) {
+				$ttmp[] = $arr_csv[$sIdx] ;
+			}
+			$arr_srcLig[$fieldCode] = implode(' ',$ttmp) ;
 		}
 		
 		paracrm_lib_dataImport_commit_processNode($treefields_root,$arr_srcLig,$truncate_mode, $arr_insertedFilerecordId) ;
@@ -318,7 +325,27 @@ function paracrm_lib_dataImport_commit_processNode_file( $treefields_node, $arr_
 					$leaf_value = '' ;
 					break ;
 				}
-				$leaf_value = date('Y-m-d H:i:s',strtotime($arr_srcLig[$field])) ;
+				$value = trim($arr_srcLig[$field]) ;
+				$ttmp = explode(' ',$value) ;
+				// Conversion(s) ?
+					// 1 -> Heure numeric => xx:xx:xx
+					if( count($ttmp)==2 && is_numeric($ttmp[1]) ) {
+						if( !$ttmp[0] ) {
+							$leaf_value = '' ;
+							break ;
+						}
+						$strH = (int)$ttmp[1] ;
+						$h = (int)($strH/10000) ;
+						$strH -= ($h*10000) ;
+						$m = (int)($strH/100) ;
+						$strH -= ($m*100) ;
+						$s = (int)($strH) ;
+						
+						$ttmp[1] = $h.':'.$m.':'.$s ;
+						
+						$value = implode(' ',$ttmp) ;
+					}
+				$leaf_value = date('Y-m-d H:i:s',strtotime($value)) ;
 				break ;
 				
 			case 'number' :
