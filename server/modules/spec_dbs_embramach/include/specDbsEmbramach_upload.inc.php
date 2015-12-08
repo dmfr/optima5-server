@@ -387,7 +387,7 @@ function specDbsEmbramach_upload_sync_FLOW_INBOUND() {
 	
 	$map_stepCode_arrFields = array(
 		'IN_01_DOCK' => array('field_DATE_P_V1_DOCK'),
-		'IN_02_RECEIPT' => array('field_DATE_P_V2_RECEIPT'),
+		'IN_02_RECEIPT' => array('field_DATE_P_V2_RECEIPT','field_DATE_L_END@EN'),
 		'IN_04_PUTAWAY' => array('field_DATE_P_V4_PUTAWAY')
 	);
 	
@@ -408,11 +408,33 @@ function specDbsEmbramach_upload_sync_FLOW_INBOUND() {
 		$current_step = NULL ;
 		foreach( $map_stepCode_arrFields as $step_code => $arr_fields ) {
 			foreach( $arr_fields as $src_field ) {
+				$ttmp = explode('@',$src_field) ;
+				if( count($ttmp) > 1 ) {
+					//echo $src_field ;
+					$convert = $ttmp[1] ;
+					$src_field = $ttmp[0] ;
+				} else {
+					$convert = NULL ;
+				}
 				//paracrm_lib_data_insertRecord_file($file_code_step,$filerecord_id,$subrow) ;
-				if( strtotime($raw_record[$src_field]) > 0 ) {
+				
+				$value = $raw_record[$src_field] ;
+				if( $convert == 'US' ) {
+					//echo $value.'->' ;
+					$ttmp = explode('/',$value) ;
+					$value = $ttmp[2].'-'.$ttmp[0].'-'.$ttmp[1] ;
+					//echo $value."\n" ;
+				}
+				if( $convert == 'EN' ) {
+					//echo $value.'->' ;
+					$ttmp = explode('.',$value) ;
+					$value = $ttmp[2].'-'.$ttmp[1].'-'.$ttmp[0] ;
+					//echo $value."\n" ;
+				}
+				if( strtotime($value) > 0 ) {
 					$subrow = array() ;
 					$subrow['field_STEP'] = $step_code ;
-					$subrow['field_DATE'] = $raw_record[$src_field] ;
+					$subrow['field_DATE'] = $value ;
 					paracrm_lib_data_insertRecord_file($file_code_step,$filerecord_id,$subrow) ;
 					
 					$current_step = $step_code ;
