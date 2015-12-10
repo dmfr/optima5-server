@@ -81,9 +81,21 @@ function specDbsEmbramach_mach_getGridCfg( $post_data ) {
 		'data' => array(
 			'fields' => specDbsEmbramach_mach_getGridCfg_lib_getFields($flow_code),
 			'flow_prio' => array_values($map_priorityId_obj),
-			'flow_milestone' => array_values($map_milestoneCode_obj)
+			'flow_milestone' => array_values($map_milestoneCode_obj),
+			
+			'upload_models' => specDbsEmbramach_mach_getGridCfg_lib_getUploadModels($flow_code)
 		)
 	) ;
+}
+function specDbsEmbramach_mach_getGridCfg_lib_getUploadModels($flow_code) {
+	switch( $flow_code ) {
+		case 'PICKING' :
+			return array('VL06F_active','VL06F_closed','ZLORSD015') ;
+		case 'INBOUND' :
+			return array('Z080P','Z080L') ;
+		default :
+			return array() ;
+	}
 }
 function specDbsEmbramach_mach_getGridCfg_lib_getFields($flow_code) {
 	$arr_fields = NULL ;

@@ -33,7 +33,8 @@ function specDbsEmbramach_upload( $post_data ) {
 		case 'MB51' :
 			specDbsEmbramach_upload_ZMB51($handle) ;
 			break ;
-		case 'Z080x' :
+		case 'Z080P' :
+		case 'Z080L' :
 			$flow_code = 'INBOUND' ;
 			specDbsEmbramach_upload_Z080($handle) ;
 			break ;

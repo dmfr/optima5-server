@@ -106,17 +106,13 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 						xtype: 'combobox',
 						name: 'file_model',
 						fieldLabel: 'Model',
+						queryMode: 'local',
 						forceSelection: true,
 						allowBlank: false,
 						editable: false,
 						store: {
 							fields: ['id'],
-							data: [
-								{id: 'VL06F_active'},
-								{id: 'VL06F_closed'},
-								{id: 'ZLORSD015'},
-								{id: 'Z080x'}
-							]
+							data: []
 						},
 						valueField: 'id',
 						displayField: 'id'
@@ -585,6 +581,17 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 		pEast.removeAll() ;
 		pEast.add( tmpGaugesCfg ) ;
 		this.doLoad() ;
+		
+		
+		var tbUpload = this.down('toolbar').down('#tbUpload') ;
+			uploadModelsRecords = [] ;
+		Ext.Array.each( jsonResponse.data.upload_models, function(uploadCode) {
+			uploadModelsRecords.push({id: uploadCode}) ;
+		});
+		if( tbUpload ) {
+			var tbUploadStore = tbUpload.menu.down('form').getForm().findField('file_model').getStore() ;
+			tbUploadStore.loadData(uploadModelsRecords) ;
+		}
 	},
 	
 	doLoad: function(doReset) {
