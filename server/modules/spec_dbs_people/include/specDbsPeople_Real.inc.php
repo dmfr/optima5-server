@@ -1,5 +1,36 @@
 <?php
 
+function specDbsPeople_Real_lib_getActivePeople( $date_start, $date_end ) {
+	global $_opDB ;
+	$cfg_contracts = specDbsPeople_tool_getContracts() ;
+	
+	$TAB = array() ;
+	
+	$query_maxdate = "select field_PPL_CODE AS people_code, max(field_DATE_APPLY) AS max_date
+		FROM view_file_RH_CONTRACT 
+		WHERE DATE(field_DATE_APPLY) <= '{$date_end}' 
+		GROUP BY people_code" ;
+	
+	$query = "SELECT field_PPL_CODE, DATE(field_DATE_APPLY) as field_DATE_APPLY, field_CONTRACT_CODE
+		FROM view_file_RH_CONTRACT t
+		INNER JOIN ( $query_maxdate ) a ON a.people_code = t.field_PPL_CODE AND a.max_date = t.field_DATE_APPLY
+		ORDER BY field_PPL_CODE" ;
+	
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$people_code = $arr['field_PPL_CODE'] ;
+		
+		if( $arr['field_DATE_APPLY'] < $date_start 
+			&& !($cfg_contracts[$arr['field_CONTRACT_CODE']]) ) {
+			
+			$TAB[$people_code] = FALSE ;
+			continue ;
+		}
+		$TAB[$people_code] = TRUE ;
+	}
+	return $TAB ;
+}
+
 function specDbsPeople_Real_getData( $post_data ) {
 	global $_opDB ;
 	if( isset($post_data['filter_peopleCode']) ) {
@@ -34,6 +65,7 @@ function specDbsPeople_Real_getData( $post_data ) {
 	$cfg_contracts = specDbsPeople_tool_getContracts() ;
 	$cfg_arrDatesException = specDbsPeople_tool_getExceptionDays($sql_dates) ;
 	
+	$cacheMap_peopleCode_isActive = specDbsPeople_Real_lib_getActivePeople($post_data['date_start'],$post_data['date_end']) ;
 	
 	/*
 	 * On STD BIBLE
@@ -48,6 +80,10 @@ function specDbsPeople_Real_getData( $post_data ) {
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$people_code = $arr['entry_key'] ;
+		
+		if( !$cacheMap_peopleCode_isActive[$people_code] ) {
+			continue ;
+		}
 		
 		reset($sql_dates_days) ;
 		foreach( $sql_dates as $cur_date ) {
