@@ -237,6 +237,7 @@ Ext.define('Optima5.Modules.CrmBase.BiblePicker',{
 		}
 		
 		return Ext.create('Ext.grid.Panel', {
+			bufferedRenderer: false,
 			viewConfig: {
 				loadMask: false
 			},

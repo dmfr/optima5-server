@@ -222,6 +222,7 @@ Ext.define('Optima5.Modules.CrmBase.BibleMemoryPicker',{
 		}
 
 		return Ext.create('Ext.grid.Panel', {
+			bufferedRenderer: false,
 			// title: 'Simpsons',
 			store: me.myStore,
 			columns: me.myColumns,

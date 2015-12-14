@@ -107,13 +107,13 @@ Ext.define('Optima5.Modules.CrmBase.BibleTreeFilter', {
 		}
 		
 		var treePanel = Ext.create('Ext.tree.Panel', {
+			bufferedRenderer: false,
 			store: this.mystore ,
 			displayField: 'nodeText',
 			rootVisible: true,
 			useArrows: true,
 			width: width,
-			height: height,
-			bufferedRenderer: false
+			height: height
 		}) ;
 		treePanel.getView().on('checkchange',function(rec,check){
 			rec.cascadeBy(function(chrec){

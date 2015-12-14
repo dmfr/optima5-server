@@ -119,6 +119,7 @@ Ext.define('Optima5.Modules.CrmBase.BibleTreePicker',{
 		}
 		
 		var treepanel = Ext.create('Ext.tree.Panel', {
+			bufferedRenderer: false,
 			store: this.mystore ,
 			displayField: 'nodeText',
 			rootVisible: true,

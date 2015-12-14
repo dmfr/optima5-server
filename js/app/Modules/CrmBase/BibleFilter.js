@@ -167,6 +167,7 @@ Ext.define('Optima5.Modules.CrmBase.BibleFilter', {
 		this.callParent() ;
 		this.menu.add({
 			xtype:'gridpanel',
+			bufferedRenderer: false,
 			viewConfig: {
 				loadMask: false
 			},
