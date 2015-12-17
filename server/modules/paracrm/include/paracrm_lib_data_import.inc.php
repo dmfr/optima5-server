@@ -231,9 +231,6 @@ function paracrm_lib_dataImport_commit_processStream( $treefields_root, $map_fie
 		
 		$arr_srcLig = array() ;
 		foreach( $map_fieldCode_csvsrcIdx as $fieldCode => $arr_sIdx ) {
-			if( !$arr_sIdx ) {
-				continue ;
-			}
 			if( !is_array($arr_sIdx) ) {
 				$arr_sIdx = array($arr_sIdx) ;
 			}
