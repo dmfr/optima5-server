@@ -30,6 +30,78 @@ function specDbsPeople_Real_lib_getActivePeople( $date_start, $date_end ) {
 	}
 	return $TAB ;
 }
+function specDbsPeople_Real_lib_getJoinCache( $date_start, $date_end ) {
+	global $_opDB ;
+	$return_peopleCode_dateSql_fieldCode = array() ;
+	
+	$sql_dates = array() ;
+	$cur_date = date('Y-m-d',strtotime($date_start)) ;
+	while( strtotime($cur_date) <= strtotime($date_end) ) {
+		$sql_dates[] = $cur_date ;
+		$cur_date = date('Y-m-d',strtotime('+1 day',strtotime($cur_date))) ;
+	}
+	
+	$queries_list_fieldCode_dbTabField = array(
+		'std_contract_code' => array('RH_CONTRACT','field_CONTRACT_CODE'),
+		'std_whse_code' => array('RH_WHSE','field_WHSE_CODE'),
+		'std_team_code' => array('RH_TEAM','field_TEAM_CODE'),
+		'std_role_code' => array('RH_ROLE','field_ROLE_CODE'),
+		'std_abs_code' => array('RH_ABS','field_ABS_CODE')
+	) ;
+	$queriesMap_field_peopleCode_dateSql_value = array() ;
+	foreach( $queries_list_fieldCode_dbTabField as $field_code => $ttmp ) {
+		$db_tab = $ttmp[0] ;
+		$target_field = $ttmp[1] ;
+		$view = 'view_file_'.$db_tab ;
+	
+		$map_peopleCode_dateSql_value = array() ;
+		$query = "SELECT field_PPL_CODE, DATE(field_DATE_APPLY), {$target_field} FROM {$view} 
+					WHERE DATE(field_DATE_APPLY) BETWEEN '{$date_start}' AND '{$date_end}'" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$map_peopleCode_dateSql_value[$arr[0]][$arr[1]] = $arr[2] ;
+		}
+		
+		$queriesMap_field_peopleCode_dateSql_value[$field_code] = $map_peopleCode_dateSql_value ;
+	}
+	
+	
+	$cacheMap_peopleCode_isActive = specDbsPeople_Real_lib_getActivePeople($date_start,$date_end) ;
+	foreach( $cacheMap_peopleCode_isActive as $people_code => $is_active ) {
+		if( !$is_active ) {
+			continue ;
+		}
+		
+		// Fake JOIN on PEOPLEDAY file to retrieve current attributes
+		$fake_row = array() ;
+		$fake_row['PEOPLEDAY']['field_DATE'] = $date_start ;
+		$fake_row['PEOPLEDAY']['field_PPL_CODE'] = $people_code ;
+		paracrm_lib_file_joinQueryRecord( 'PEOPLEDAY', $fake_row ) ;
+		$join_map = array() ;
+		$join_map['field_STD_CONTRACT'] = 'std_contract_code' ;
+		$join_map['field_STD_WHSE'] = 'std_whse_code' ;
+		$join_map['field_STD_TEAM'] = 'std_team_code' ;
+		$join_map['field_STD_ROLE'] = 'std_role_code' ;
+		$join_map['field_STD_ABS'] = 'std_abs_code' ;
+		$last_row = array() ;
+		foreach( $join_map as $src => $dest ) {
+			$last_row[$dest] = $fake_row['PEOPLEDAY'][$src] ;
+		}
+		$return_peopleCode_dateSql_fieldCode[$people_code][$date_start] = $last_row ;
+		
+		foreach( $sql_dates as $cur_date ) {
+			$cur_row = $last_row ;
+			foreach( $queries_list_fieldCode_dbTabField as $field_code => $dummy ) {
+				if( $value = $queriesMap_field_peopleCode_dateSql_value[$field_code][$people_code][$cur_date] ) {
+					$cur_row[$field_code] = $value ;
+				}
+			}
+			$return_peopleCode_dateSql_fieldCode[$people_code][$cur_date] = $cur_row ;
+			$last_row = $cur_row ;
+		}
+	}
+	return $return_peopleCode_dateSql_fieldCode ;
+}
 
 function specDbsPeople_Real_getData( $post_data ) {
 	global $_opDB ;
@@ -65,7 +137,7 @@ function specDbsPeople_Real_getData( $post_data ) {
 	$cfg_contracts = specDbsPeople_tool_getContracts() ;
 	$cfg_arrDatesException = specDbsPeople_tool_getExceptionDays($sql_dates) ;
 	
-	$cacheMap_peopleCode_isActive = specDbsPeople_Real_lib_getActivePeople($post_data['date_start'],$post_data['date_end']) ;
+	$cacheMap_peopleCode_dateSql_fieldCode = specDbsPeople_Real_lib_getJoinCache($post_data['date_start'],$post_data['date_end']) ;
 	
 	/*
 	 * On STD BIBLE
@@ -81,7 +153,7 @@ function specDbsPeople_Real_getData( $post_data ) {
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$people_code = $arr['entry_key'] ;
 		
-		if( !$cacheMap_peopleCode_isActive[$people_code] ) {
+		if( !$cacheMap_peopleCode_dateSql_fieldCode[$people_code] ) {
 			continue ;
 		}
 		
@@ -98,24 +170,8 @@ function specDbsPeople_Real_getData( $post_data ) {
 			$row['fields'] = array() ;
 			specDbsPeople_lib_peopleFields_populateRow( $row['fields'], $arr ) ;
 			
-			// Fake JOIN on PEOPLEDAY file to retrieve current attributes
-			$fake_row = array() ;
-			$fake_row['PEOPLEDAY']['field_DATE'] = $cur_date ;
-			$fake_row['PEOPLEDAY']['field_PPL_CODE'] = $arr['entry_key'] ;
-			paracrm_lib_file_joinQueryRecord( 'PEOPLEDAY', $fake_row ) ;
-			
-			$join_map = array() ;
-			$join_map['field_STD_CONTRACT'] = 'std_contract_code' ;
-			$join_map['field_STD_WHSE'] = 'std_whse_code' ;
-			$join_map['field_STD_TEAM'] = 'std_team_code' ;
-			$join_map['field_STD_ROLE'] = 'std_role_code' ;
-			$join_map['field_STD_ABS'] = 'std_abs_code' ;
-			foreach( $join_map as $src => $dest ) {
-				$row[$dest] = $fake_row['PEOPLEDAY'][$src] ;
-				if( !$row[$dest] ) {
-					continue 2 ;
-				}
-			}
+			// 2015-12 : join cache
+			$row += $cacheMap_peopleCode_dateSql_fieldCode[$people_code][$cur_date] ;
 			
 			unset($cfg_contract) ;
 			if( $contract_code = $row['std_contract_code'] ) {

@@ -273,11 +273,16 @@ function specDbsPeople_RH_resyncPeopleEvents( $people_code ) {
 		$to_delete = array() ;
 		
 		$view_file = 'view_file_'.$type_desc['file_code'] ;
+		
 		$query = "SELECT * FROM {$view_file} WHERE field_PPL_CODE='{$people_code}' AND field_TMP_IS_ON='1'" ;
 		$result = $_opDB->query($query) ;
 		while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 			$filerecord_id = $arr['filerecord_id'] ;
 			if( $arr['field_TMP_IS_END'] == 1 ) {
+				$to_delete[$filerecord_id] = TRUE ;
+				continue ;
+			}
+			if( $arr['field_TMP_DATE_END'] < $arr['field_DATE_APPLY'] ) {
 				$to_delete[$filerecord_id] = TRUE ;
 				continue ;
 			}
