@@ -92,7 +92,7 @@ function specDbsPeople_Real_lib_getJoinCache( $date_start, $date_end ) {
 		foreach( $sql_dates as $cur_date ) {
 			$cur_row = $last_row ;
 			foreach( $queries_list_fieldCode_dbTabField as $field_code => $dummy ) {
-				if( $value = $queriesMap_field_peopleCode_dateSql_value[$field_code][$people_code][$cur_date] ) {
+				if( ($value = $queriesMap_field_peopleCode_dateSql_value[$field_code][$people_code][$cur_date]) !== NULL ) {
 					$cur_row[$field_code] = $value ;
 				}
 			}
