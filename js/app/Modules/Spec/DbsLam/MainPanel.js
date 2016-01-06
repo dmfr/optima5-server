@@ -7,7 +7,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.MainPanel',{
 		'Optima5.Modules.Spec.DbsLam.LivePanel',
 		'Optima5.Modules.Spec.DbsLam.StockPanel',
 		'Optima5.Modules.Spec.DbsLam.ProductsPanel',
-		'Optima5.Modules.Spec.DbsLam.QueryspecPanel'
+		'Optima5.Modules.Spec.DbsLam.QueryspecPanel',
+		'Optima5.Modules.Spec.DbsLam.CfgSocPanel'
 	],
 	
 	initComponent: function() {
@@ -35,6 +36,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.MainPanel',{
 	switchToMainMenu: function() {
 		var me = this ;
 		var mainMenuView = Ext.create('Optima5.Modules.Spec.DbsLam.MainMenu',{
+			scrollable: 'vertical',
 			listeners: {
 				actionclick: function( view, actionCode ) {
 					me.onActionClick(actionCode) ;
@@ -58,6 +60,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.MainPanel',{
 				return me.switchToAppPanel('Optima5.Modules.Spec.DbsLam.LivePanel',{}) ;
 			case 'panel_queryspec' :
 				return me.switchToAppPanel('Optima5.Modules.Spec.DbsLam.QueryspecPanel',{}) ;
+			case 'panel_cfg_soc' :
+				return me.switchToAppPanel('Optima5.Modules.Spec.DbsLam.CfgSocPanel',{}) ;
 			default :
 				return ;
 		}

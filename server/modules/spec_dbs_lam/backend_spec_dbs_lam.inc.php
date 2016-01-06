@@ -11,6 +11,10 @@ switch( $post_data['_action'] )
 	return specDbsLam_cfg_getStockAttributes( $post_data ) ;
 	case 'cfg_getAuth' :
 	return specDbsLam_cfg_getAuth( $post_data ) ;
+	case 'cfg_getSoc' :
+	return specDbsLam_cfg_getSoc( $post_data ) ;
+	case 'cfg_applySoc' :
+	return specDbsLam_cfg_applySoc( $post_data ) ;
 	
 	case 'live_goAdr' :
 	return specDbsLam_live_goAdr( $post_data ) ;

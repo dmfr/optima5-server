@@ -1,3 +1,16 @@
+.op5-spec-dbslam-fieldset .x-form-item-label-default {
+	min-height: 16px ;
+}
+.op5-spec-dbslam-fieldset .x-form-item-body-default {
+	min-height: 16px ;
+}
+.op5-spec-dbslam-fieldset .x-form-display-field-default {
+	min-height: 16px ;
+}
+.op5-spec-dbslam-fieldset .x-form-cb-wrap-inner {
+	padding-bottom: 6px ;
+}
+
 .op5-spec-dbslam-mainmenu {
 	background: rgb(159, 159, 159);
 	background-attachment: scroll;
@@ -77,6 +90,9 @@
 }
 .op5-spec-dbslam-menu-query {
 	background-image: url("../images/modules/dbslam-menu-query-64.png") !important;
+}
+.op5-spec-dbslam-menu-cfg-soc {
+	background-image: url("../images/modules/dbslam-menu-cfgsoc-64.png") !important;
 }
 
 
@@ -159,3 +175,9 @@
 	background-image: url("../images/modules/crmbase-warning-32.png") !important;
 }
 
+
+
+.op5-spec-dbslam-cfgsoc-apply {
+	background: url('../images/modules/dbslam-apply-16.png') no-repeat 4px center ;
+	line-height: 20px ;
+}

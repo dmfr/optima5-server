@@ -1,3 +1,35 @@
+Ext.define('DbsLamCfgSocAttributeModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'atr_code',
+	fields: [
+		{name: 'atr_code', type:'string', useNull:true},
+		{name: 'atr_txt', type:'string'},
+		{name: 'is_bible', type:'boolean'},
+		{name: 'use_prod', type:'boolean'},
+		{name: 'use_prod_multi', type:'boolean'},
+		{name: 'use_stock', type:'boolean'},
+		{name: 'cfg_is_hidden', type:'boolean'},
+		{name: 'cfg_is_editable', type:'boolean'},
+		{name: 'use_adr', type:'boolean'},
+		{name: 'use_adr_multi', type:'boolean'},
+		{name: 'adr_is_optional', type:'boolean'},
+		{name: 'adr_is_mismatch', type:'boolean'}
+	]
+});
+Ext.define('DbsLamCfgSocModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'soc_code',
+	fields: [
+		{name: 'soc_code', type:'string', useNull:true},
+		{name: 'soc_txt', type:'string'}
+	],
+	hasMany: [{
+		model: 'DbsLamCfgSocAttributeModel',
+		name: 'attributes',
+		associationKey: 'attributes'
+	}]
+});
+
 Ext.define('Optima5.Modules.Spec.DbsLam.DbsLamModule', {
 	extend: 'Optima5.Module',
 	requires: [

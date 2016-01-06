@@ -88,6 +88,14 @@ Ext.define('Optima5.Modules.Spec.DbsLam.MainMenu',{
 				action_caption: 'Queries',
 				action_sendEvent:'panel_queryspec',
 				action_iconCls:'op5-spec-dbslam-menu-query'
+			},{
+				type_separator:true,
+				separator_label: 'LAM S : Administration'
+			},{
+				type_action:true,
+				action_caption: 'Cfg Soc',
+				action_sendEvent:'panel_cfg_soc',
+				action_iconCls:'op5-spec-dbslam-menu-cfg-soc'
 			}]
 		}) ;
 		 
