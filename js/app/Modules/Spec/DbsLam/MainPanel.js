@@ -8,7 +8,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.MainPanel',{
 		'Optima5.Modules.Spec.DbsLam.StockPanel',
 		'Optima5.Modules.Spec.DbsLam.ProductsPanel',
 		'Optima5.Modules.Spec.DbsLam.QueryspecPanel',
-		'Optima5.Modules.Spec.DbsLam.CfgSocPanel'
+		'Optima5.Modules.Spec.DbsLam.CfgPanel',
+		'Optima5.Modules.Spec.DbsLam.TransferPanel'
 	],
 	
 	initComponent: function() {
@@ -60,8 +61,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.MainPanel',{
 				return me.switchToAppPanel('Optima5.Modules.Spec.DbsLam.LivePanel',{}) ;
 			case 'panel_queryspec' :
 				return me.switchToAppPanel('Optima5.Modules.Spec.DbsLam.QueryspecPanel',{}) ;
-			case 'panel_cfg_soc' :
-				return me.switchToAppPanel('Optima5.Modules.Spec.DbsLam.CfgSocPanel',{}) ;
+			case 'panel_cfg' :
+				return me.switchToAppPanel('Optima5.Modules.Spec.DbsLam.CfgPanel',{}) ;
+			case 'panel_transfer' :
+				return me.switchToAppPanel('Optima5.Modules.Spec.DbsLam.TransferPanel',{}) ;
 			default :
 				return ;
 		}

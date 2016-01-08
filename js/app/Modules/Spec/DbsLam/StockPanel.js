@@ -24,12 +24,15 @@ Ext.define('DbsLamStockGridModel',{
 		{name: 'inv_id', type:'int', useNull:true},
 		{name: 'inv_prod', type:'string'},
 		{name: 'inv_batch', type:'string'},
-		{name: 'inv_qty', type:'number', useNull:true}
+		{name: 'inv_qty', type:'number', useNull:true},
+		{name: 'inv_sn', type:'string'}
 	]
 });
 
 Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 	extend:'Ext.panel.Panel',
+	
+	requires: ['Optima5.Modules.Spec.DbsLam.CfgParamButton'],
 	
 	initComponent: function() {
 		this.tmpGridModelName = 'DbsLamStockGridModel-' + this.getId() ;
@@ -37,32 +40,12 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 			Ext.ux.dams.ModelManager.unregister( p.tmpGridModelName ) ;
 		}) ;
 		
-		var pushModelfields = [], atrColumns = [] ;
-		Ext.Array.each( Optima5.Modules.Spec.DbsLam.HelperCache.getStockAttributes(), function( stockAttribute ) {
-			var fieldColumn = {
-				locked: true,
-				text: stockAttribute.atr_txt,
-				dataIndex: stockAttribute.mkey,
-				width: 75
-			} ;
-			atrColumns.push(fieldColumn) ;
-			
-			pushModelfields.push({
-				name: stockAttribute.mkey,
-				type: 'string'
-			});
-		}) ;
-		
-		Ext.define(this.tmpGridModelName, {
-			extend: 'DbsLamStockGridModel',
-			fields: pushModelfields
-		});
-		
 		Ext.apply(this, {
 			layout: 'border',
 			items: [{
 				flex: 3,
 				region: 'center',
+				itemId: 'pCenter',
 				border: false,
 				xtype: 'panel',
 				layout: {
@@ -76,7 +59,27 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 						this.doQuit() ;
 					},
 					scope: this
-				},'-',{
+				},Ext.create('Optima5.Modules.Spec.DbsLam.CfgParamButton',{
+					cfgParam_id: 'WHSE',
+					icon: 'images/op5img/ico_blocs_small.gif',
+					text: 'Sites / Warehouses',
+					itemId: 'btnWhse',
+					optimaModule: this.optimaModule,
+					listeners: {
+						change: {
+							fn: function() {
+								this.onWhseSet() ;
+							},
+							scope: this
+						},
+						ready: {
+							fn: function() {
+								
+							},
+							scope: this
+						}
+					}
+				}),'-',{
 					icon:'images/op5img/ico_new_16.gif',
 					text:'Création adresse(s)',
 					handler: function() { this.handleNew() },
@@ -85,176 +88,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 					icon:'images/op5img/ico_print_16.png',
 					text:'Impression Inventaires'
 				}],
-				items: [{
-					border: 1,
-					width: 240,
-					xtype: 'treepanel',
-					store: {
-						model: 'DbsLamStockTreeModel',
-						root:{
-							iconCls:'task-folder',
-							expanded:true,
-							treenode_key:'&',
-							field_ROW_ID: 'EmbraLAM'
-						},
-						proxy: this.optimaModule.getConfiguredAjaxProxy({
-							extraParams : {
-								_action: 'data_getBibleTree',
-								bible_code: 'STOCK'
-							}
-						})
-					},
-					collapsible: false,
-					useArrows: false,
-					rootVisible: true,
-					multiSelect: false,
-					singleExpand: false,
-					columns: {
-						defaults: {
-							menuDisabled: false,
-							draggable: false,
-							sortable: false,
-							hideable: false,
-							resizable: false,
-							groupable: false,
-							lockable: false
-						},
-						items: [{
-							xtype:'treecolumn',
-							dataIndex: 'field_ROW_ID',
-							text: 'ID',
-							width: 120,
-							renderer: function(v) {
-								return '<b>'+v+'</b>';
-							}
-						},{
-							dataIndex: 'field_POS_ZONE',
-							text: 'Zone',
-							width: 50
-						},{
-							dataIndex: 'field_POS_ROW',
-							text: 'Allée',
-							width: 50
-						}]
-					},
-					listeners: {
-						selectionchange: function() {
-							this.doGridReload();
-						},
-						scope: this
-					}
-				},{
-					border: false,
-					flex:1,
-					xtype:'gridpanel',
-					store: {
-						model: this.tmpGridModelName,
-						autoLoad: true,
-						proxy: this.optimaModule.getConfiguredAjaxProxy({
-							extraParams : {
-								_moduleId: 'spec_dbs_lam',
-								_action: 'stock_getGrid'
-							},
-							reader: {
-								type: 'json',
-								rootProperty: 'data'
-							}
-						}),
-						listeners: {
-							beforeload: this.onGridBeforeLoad,
-							load: Ext.emptyFn,
-							scope: this
-						}
-					},
-					columns: {
-						defaults: {
-							menuDisabled: true,
-							draggable: false,
-							sortable: false,
-							hideable: false,
-							resizable: false,
-							groupable: false,
-							lockable: false
-						},
-						items: [{
-							text: '',
-							width: 24,
-							renderer: function(v,metadata,record) {
-								if( Ext.isEmpty(record.get('inv_prod')) ) {
-									metadata.tdCls = 'op5-spec-dbslam-stock-avail'
-								} else {
-									metadata.tdCls = 'op5-spec-dbslam-stock-notavail'
-								}
-							}
-						},{
-							dataIndex: 'adr_id',
-							text: 'ID',
-							width: 90,
-							renderer: function(v) {
-								return '<b>'+v+'</b>';
-							}
-						},{
-							text: 'Position',
-							columns: [{
-								dataIndex: 'pos_bay',
-								text: 'Pos.',
-								width: 50
-							},{
-								dataIndex: 'pos_level',
-								text: 'Niv.',
-								width: 50
-							},{
-								dataIndex: 'pos_bin',
-								text: 'Case',
-								width: 50
-							}]
-						},{
-							text: 'Attributs',
-							columns: atrColumns
-						},{
-							text: 'Attributs',
-							columns: [{
-								dataIndex: 'inv_prod',
-								text: 'Article',
-								width: 100
-							},{
-								dataIndex: 'inv_batch',
-								text: 'BatchCode',
-								width: 100
-							},{
-								dataIndex: 'inv_qty',
-								text: 'Qty disp',
-								align: 'right',
-								width: 75
-							}]
-						}]
-					},
-					plugins: [{
-						ptype: 'bufferedrenderer',
-						pluginId: 'bufferedRenderer',
-						synchronousRender: true
-					}],
-					viewConfig: {
-						preserveScrollOnRefresh: true,
-						getRowClass: function(record) {
-							if( !record.get('status') ) {
-								return 'op5-spec-dbslam-stock-disabled' ;
-							}
-						},
-						listeners: {
-							beforerefresh: function(view) {
-								view.isRefreshing = true ;
-							},
-							refresh: function(view) {
-								view.isRefreshing = false ;
-							}
-						}
-					},
-					listeners: {
-						itemclick: this.onItemClick,
-						scope: this
-					}
-				}]
+				items: []
 			},{
 				region: 'east',
 				flex: 2,
@@ -278,11 +112,257 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 		this.mon(this.optimaModule,'op5broadcast',this.onCrmeventBroadcast,this) ;
 		this.on('beforedeactivate', function() {
 			// HACK !!!
-			if( this.down('gridpanel').getStore().loading || this.down('gridpanel').getView().isRefreshing ) {
+			if( !this.down('#pGrid') ) {
+				return ;
+			}
+			if( this.down('#pGrid').getStore().loading || this.down('#pGrid').getView().isRefreshing ) {
 				return false ;
 			}
 		},this) ;
+		
+		this.doConfigure() ;
 	},
+	
+	
+	onWhseSet: function() {
+		var filterSiteBtn = this.down('#btnWhse') ;
+		if( !Ext.isEmpty(filterSiteBtn.getValue()) ) {
+			this.whseCode = filterSiteBtn.getValue() ;
+		} else {
+			this.whseCode = null ;
+		}
+		
+		this.doConfigure() ;
+	},
+	doConfigure: function() {
+		var pCenter = this.down('#pCenter') ;
+		
+		if( !this.whseCode ) {
+			pCenter.removeAll() ;
+			pCenter.add({xtype:'component',cls: 'ux-noframe-bg', flex:1}) ;
+			return ;
+		}
+		
+		
+		
+		var pushModelfields = [], atrAdrColumns = [], atrStockColumns = [] ;
+		Ext.Array.each( Optima5.Modules.Spec.DbsLam.HelperCache.getAttributeAll(), function( attribute ) {
+			var fieldColumn = {
+				locked: true,
+				text: attribute.atr_txt,
+				dataIndex: attribute.mkey,
+				width: 75
+			} ;
+			if( attribute.ADR_fieldcode ) {
+				atrAdrColumns.push(fieldColumn) ;
+			}
+			if( attribute.STOCK_fieldcode ) {
+				atrStockColumns.push(fieldColumn) ;
+			}
+			
+			pushModelfields.push({
+				name: attribute.mkey,
+				type: 'string'
+			});
+		}) ;
+		
+		Ext.ux.dams.ModelManager.unregister( this.tmpGridModelName ) ;
+		Ext.define(this.tmpGridModelName, {
+			extend: 'DbsLamStockGridModel',
+			fields: pushModelfields
+		});
+		
+		pCenter.removeAll() ;
+		pCenter.add({
+			border: 1,
+			width: 240,
+			xtype: 'treepanel',
+			itemId: 'pTree',
+			store: {
+				model: 'DbsLamStockTreeModel',
+				root:{
+					iconCls:'task-folder',
+					expanded:true,
+					treenode_key:'&',
+					field_ROW_ID: 'EmbraLAM'
+				},
+				proxy: this.optimaModule.getConfiguredAjaxProxy({
+					extraParams : {
+						_action: 'data_getBibleTree',
+						bible_code: 'ADR'
+					}
+				}),
+				listeners: {
+					load: function(store) {
+						if( store.getNodeById(this.whseCode) ) {
+							store.setRootNode( store.getNodeById(this.whseCode).copy(undefined,true) ) ;
+						}
+					},
+					scope: this
+				}
+			},
+			collapsible: false,
+			useArrows: false,
+			rootVisible: true,
+			multiSelect: false,
+			singleExpand: false,
+			columns: {
+				defaults: {
+					menuDisabled: false,
+					draggable: false,
+					sortable: false,
+					hideable: false,
+					resizable: false,
+					groupable: false,
+					lockable: false
+				},
+				items: [{
+					xtype:'treecolumn',
+					dataIndex: 'field_ROW_ID',
+					text: 'ID',
+					width: 120,
+					renderer: function(v) {
+						return '<b>'+v+'</b>';
+					}
+				},{
+					dataIndex: 'field_POS_ZONE',
+					text: 'Zone',
+					width: 50
+				},{
+					dataIndex: 'field_POS_ROW',
+					text: 'Allée',
+					width: 50
+				}]
+			},
+			listeners: {
+				selectionchange: function() {
+					this.doGridReload();
+				},
+				scope: this
+			}
+		},{
+			border: false,
+			flex:1,
+			xtype:'gridpanel',
+			itemId: 'pGrid',
+			store: {
+				model: this.tmpGridModelName,
+				autoLoad: true,
+				proxy: this.optimaModule.getConfiguredAjaxProxy({
+					extraParams : {
+						_moduleId: 'spec_dbs_lam',
+						_action: 'stock_getGrid'
+					},
+					reader: {
+						type: 'json',
+						rootProperty: 'data'
+					}
+				}),
+				listeners: {
+					beforeload: this.onGridBeforeLoad,
+					load: Ext.emptyFn,
+					scope: this
+				}
+			},
+			columns: {
+				defaults: {
+					menuDisabled: true,
+					draggable: false,
+					sortable: false,
+					hideable: false,
+					resizable: false,
+					groupable: false,
+					lockable: false
+				},
+				items: [{
+					text: '',
+					width: 24,
+					renderer: function(v,metadata,record) {
+						if( Ext.isEmpty(record.get('inv_prod')) ) {
+							metadata.tdCls = 'op5-spec-dbslam-stock-avail'
+						} else {
+							metadata.tdCls = 'op5-spec-dbslam-stock-notavail'
+						}
+					}
+				},{
+					dataIndex: 'adr_id',
+					text: 'ID',
+					width: 90,
+					renderer: function(v) {
+						return '<b>'+v+'</b>';
+					}
+				},{
+					text: 'Position',
+					columns: [{
+						dataIndex: 'pos_bay',
+						text: 'Pos.',
+						width: 50
+					},{
+						dataIndex: 'pos_level',
+						text: 'Niv.',
+						width: 50
+					},{
+						dataIndex: 'pos_bin',
+						text: 'Case',
+						width: 50
+					}]
+				},{
+					text: 'Location Attributes',
+					columns: atrAdrColumns
+				},{
+					text: 'Stock Attributes',
+					columns: atrStockColumns
+				},{
+					text: 'Attributs',
+					columns: [{
+						dataIndex: 'inv_prod',
+						text: 'Article',
+						width: 100
+					},{
+						dataIndex: 'inv_batch',
+						text: 'BatchCode',
+						width: 100
+					},{
+						dataIndex: 'inv_qty',
+						text: 'Qty disp',
+						align: 'right',
+						width: 75
+					},{
+						dataIndex: 'inv_sn',
+						text: 'Serial',
+						width: 100
+					}]
+				}]
+			},
+			plugins: [{
+				ptype: 'bufferedrenderer',
+				pluginId: 'bufferedRenderer',
+				synchronousRender: true
+			}],
+			viewConfig: {
+				preserveScrollOnRefresh: true,
+				getRowClass: function(record) {
+					if( !record.get('status') ) {
+						return 'op5-spec-dbslam-stock-disabled' ;
+					}
+				},
+				listeners: {
+					beforerefresh: function(view) {
+						view.isRefreshing = true ;
+					},
+					refresh: function(view) {
+						view.isRefreshing = false ;
+					}
+				}
+			},
+			listeners: {
+				itemclick: this.onItemClick,
+				scope: this
+			}
+		}) ;
+	},
+	
+	
 	onCrmeventBroadcast: function(crmEvent, eventParams) {
 		switch( crmEvent ) {
 			case 'datachange' :
@@ -301,18 +381,25 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 	},
 	
 	doGridReload: function() {
-		var gridpanel = this.down('gridpanel') ;
+		var gridpanel = this.down('#pCenter').down('#pGrid') ;
 		gridpanel.getStore().load() ;
 	},
 	onGridBeforeLoad: function(store,options) {
-		var treepanel = this.down('treepanel') ;
+		var treepanel = this.down('#pCenter').down('#pTree') ;
 			selectedNodes = treepanel.getView().getSelectionModel().getSelection() ;
+		var params = {} ;
+		
+		Ext.apply(params,{
+			whse_code: this.whseCode
+		}) ;
 		
 		if( selectedNodes.length == 1 && !(selectedNodes[0].isRoot()) ) {
-			options.setParams({
+			Ext.apply(params,{
 				filter_treenodeKey: selectedNodes[0].getId()
 			}) ;
 		}
+		
+		options.setParams(params) ;
 	},
 	onItemClick: function( view, record, itemNode, index, e ) {
 		var cellNode = e.getTarget( view.getCellSelector() ),

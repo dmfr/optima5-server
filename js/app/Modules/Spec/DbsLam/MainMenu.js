@@ -81,6 +81,11 @@ Ext.define('Optima5.Modules.Spec.DbsLam.MainMenu',{
 				action_sendEvent:'panel_live',
 				action_iconCls:'op5-spec-dbslam-menu-live'
 			},{
+				type_action:true,
+				action_caption: 'Transfers',
+				action_sendEvent:'panel_transfer',
+				action_iconCls:'op5-spec-dbslam-menu-transfer'
+			},{
 				type_separator:true,
 				separator_label: 'LAM S : Reporting / Queries'
 			},{
@@ -93,9 +98,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.MainMenu',{
 				separator_label: 'LAM S : Administration'
 			},{
 				type_action:true,
-				action_caption: 'Cfg Soc',
-				action_sendEvent:'panel_cfg_soc',
-				action_iconCls:'op5-spec-dbslam-menu-cfg-soc'
+				action_caption: 'Config',
+				action_sendEvent:'panel_cfg',
+				action_iconCls:'op5-spec-dbslam-menu-cfg'
 			}]
 		}) ;
 		 

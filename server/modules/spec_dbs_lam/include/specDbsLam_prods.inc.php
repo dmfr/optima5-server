@@ -9,7 +9,16 @@ function specDbsLam_prods_getGrid($post_data) {
 	if( isset($post_data['entry_key']) ) {
 		$query.= " WHERE entry_key = '{$post_data['entry_key']}'" ;
 	} elseif ( isset($post_data['filter']) ) {
-		$query.= " WHERE entry_key LIKE '{$post_data['filter']}%'" ;
+		$query.= " WHERE entry_key LIKE '{$post_data['soc_code']}_{$post_data['filter']}%'" ;
+	} else {
+		$query.= " WHERE 1" ;
+	}
+	if( $post_data['soc_code'] ) {
+		if( $arr_treenodes = paracrm_data_getBibleTreeBranch( 'PROD', $post_data['soc_code'] ) ) {
+			$query.= " AND treenode_key IN ".$_opDB->makeSQLlist($arr_treenodes) ;
+		} else {
+			$query.= " AND 0" ;
+		}
 	}
 	$query.= " ORDER BY prod.entry_key" ;
 	if( !isset($post_data['filter']) ) {
@@ -21,8 +30,12 @@ function specDbsLam_prods_getGrid($post_data) {
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$row = array() ;
 		
-		$row['prod_id'] = $arr['entry_key'] ;
+		$ttmp = explode('_',$arr['entry_key'],2) ;
+		$row['prod_id'] = $ttmp[1] ;
 		$row['prod_txt'] = $arr['field_PROD_TXT'] ;
+		$row['spec_is_batch'] = $arr['field_SPEC_IS_BATCH'] ;
+		$row['spec_is_dlc'] = $arr['field_SPEC_IS_DLC'] ;
+		$row['spec_is_sn'] = $arr['field_SPEC_IS_SN'] ;
 		
 		foreach( specDbsLam_lib_stockAttributes_getStockAttributes() as $stockAttribute_obj ) {
 			$mkey = $stockAttribute_obj['mkey'] ;

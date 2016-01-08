@@ -9,10 +9,10 @@ switch( $post_data['_action'] )
 {
 	case 'cfg_getStockAttributes' :
 	return specDbsLam_cfg_getStockAttributes( $post_data ) ;
+	case 'cfg_getConfig' :
+	return specDbsLam_cfg_getConfig( $post_data ) ;
 	case 'cfg_getAuth' :
 	return specDbsLam_cfg_getAuth( $post_data ) ;
-	case 'cfg_getSoc' :
-	return specDbsLam_cfg_getSoc( $post_data ) ;
 	case 'cfg_applySoc' :
 	return specDbsLam_cfg_applySoc( $post_data ) ;
 	

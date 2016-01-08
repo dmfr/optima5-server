@@ -24,6 +24,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.HelperCache',{
 	// business logic data
 	stockAttributesStore: null,
 	
+	cfgAttributeStore: null,
+	cfgSocStore: null,
+	cfgWhseStore: null,
+	
 	isReady: false,
 	
 	constructor: function(config) {
@@ -41,6 +45,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.HelperCache',{
 			
 			me.authHelperInit() ;
 			me.fetchStockAttributes() ;
+			me.fetchConfig() ;
 		},1000,me) ;
 	},
 	
@@ -126,6 +131,62 @@ Ext.define('Optima5.Modules.Spec.DbsLam.HelperCache',{
 			return stockAttributeRecord.data ;
 		}
 		return null ;
+	},
+	
+	fetchConfig: function() {
+		// Query Bible
+		var ajaxParams = {} ;
+		Ext.apply( ajaxParams, {
+			_moduleId: 'spec_dbs_lam',
+			_action: 'cfg_getConfig'
+		});
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams ,
+			success: function(response) {
+				var ajaxData = Ext.decode(response.responseText) ;
+				if( ajaxData.success == false ) {
+					Ext.Msg.alert('Failed', 'Unknown error');
+				}
+				else {
+					this.onLoadConfig( ajaxData ) ;
+				}
+			},
+			scope: this
+		});
+	},
+	onLoadConfig: function( ajaxData ) {
+		this.cfgAttributeStore = Ext.create('Ext.data.Store',{
+			model: 'DbsLamStkAttributeModel',
+			data : ajaxData.data.cfg_attribute
+		}) ;
+		this.cfgSocStore = Ext.create('Ext.data.Store',{
+			model: 'DbsLamCfgSocModel',
+			data : ajaxData.data.cfg_soc
+		}) ;
+		this.cfgWhseStore = Ext.create('Ext.data.Store',{
+			model: 'DbsLamCfgWhseModel',
+			data : ajaxData.data.cfg_whse
+		}) ;
+		
+		this.onLibLoad() ;
+	},
+	getAttributeAll: function() {
+		return Ext.pluck( this.cfgAttributeStore.getRange(), 'data' ) ;
+	},
+	getAttribute: function(atrCode) {
+		return this.cfgAttributeStore.getById(atrCode) ? this.cfgAttributeStore.getById(atrCode).getData(true) : null ;
+	},
+	getSocAll: function() {
+		return Ext.pluck( this.cfgSocStore.getRange(), 'data' ) ;
+	},
+	getSoc: function(socCode) {
+		return this.cfgSocStore.getById(atrCode) ? this.cfgSocStore.getById(atrCode).getData(true) : null ;
+	},
+	getWhseAll: function() {
+		return Ext.pluck( this.cfgWhseStore.getRange(), 'data' ) ;
+	},
+	getWhse: function( whseCode ) {
+		return this.cfgWhseStore.getById(atrCode) ? this.cfgWhseStore.getById(atrCode).getData(true) : null ;
 	},
 	
 	onLibLoad: function() {

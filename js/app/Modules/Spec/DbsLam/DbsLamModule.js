@@ -29,6 +29,14 @@ Ext.define('DbsLamCfgSocModel',{
 		associationKey: 'attributes'
 	}]
 });
+Ext.define('DbsLamCfgWhseModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'whse_code',
+	fields: [
+		{name: 'whse_code', type:'string', useNull:true},
+		{name: 'whse_code', type:'string'}
+	]
+});
 
 Ext.define('Optima5.Modules.Spec.DbsLam.DbsLamModule', {
 	extend: 'Optima5.Module',

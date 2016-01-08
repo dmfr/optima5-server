@@ -3,15 +3,25 @@
 function specDbsLam_stock_getGrid($post_data) {
 	global $_opDB ;
 	
+	$ttmp = specDbsLam_cfg_getConfig() ;
+	$json_cfg = $ttmp['data'] ;
+	
 	$tab_DATA = array() ;
 	
-	$query = "SELECT * FROM view_bible_STOCK_entry stk
-				LEFT OUTER JOIN view_file_INV inv ON inv.field_ADR_ID = stk.entry_key
+	$query = "SELECT * FROM view_bible_ADR_entry adr
+				LEFT OUTER JOIN view_file_STOCK stock ON stock.field_ADR_ID = adr.entry_key
 				WHERE 1" ;
-	if( $post_data['filter_treenodeKey'] && ($arr_treenodes = paracrm_data_getBibleTreeBranch( 'STOCK', $post_data['filter_treenodeKey'] )) ) {
+	if( $post_data['filter_treenodeKey'] && ($arr_treenodes = paracrm_data_getBibleTreeBranch( 'ADR', $post_data['filter_treenodeKey'] )) ) {
 		$query.= " AND treenode_key IN ".$_opDB->makeSQLlist($arr_treenodes) ;
 	}
-	$query.= " ORDER BY stk.entry_key LIMIT 10000" ;
+	if( $post_data['whse_code'] ) {
+		if( $arr_treenodes = paracrm_data_getBibleTreeBranch( 'ADR', $post_data['whse_code'] ) ) {
+			$query.= " AND treenode_key IN ".$_opDB->makeSQLlist($arr_treenodes) ;
+		} else {
+			$query.= " AND 0" ;
+		}
+	}
+	$query.= " ORDER BY adr.entry_key LIMIT 10000" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$row = array() ;
@@ -22,7 +32,12 @@ function specDbsLam_stock_getGrid($post_data) {
 			$row['id'] = $arr['entry_key'] ;
 		}
 		
-		$row['adr_id'] = $arr['entry_key'] ;
+		$ttmp = explode('_',$arr['entry_key'],2) ;
+		if( $ttmp[1] ) {
+			$row['adr_id'] = $ttmp[1] ;
+		} else {
+			$row['adr_id'] = '-' ;
+		}
 		
 		$row['pos_zone'] = substr($arr['treenode_key'],0,1) ;
 		$row['pos_row'] = $arr['treenode_key'] ;
@@ -31,21 +46,33 @@ function specDbsLam_stock_getGrid($post_data) {
 		$row['pos_bin'] = $arr['field_POS_BIN'] ;
 		
 		$status = TRUE ;
-		foreach( specDbsLam_lib_stockAttributes_getStockAttributes() as $stockAttribute_obj ) {
+		foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
+			if( !$stockAttribute_obj['ADR_fieldcode'] ) {
+				continue ;
+			}
 			$mkey = $stockAttribute_obj['mkey'] ;
-			$STOCK_fieldcode = $stockAttribute_obj['STOCK_fieldcode'] ;
+			$ADR_fieldcode = $stockAttribute_obj['ADR_fieldcode'] ;
 			
-			$ttmp = ($arr[$STOCK_fieldcode] ? json_decode($arr[$STOCK_fieldcode]) : array()) ;
+			$ttmp = ($arr[$ADR_fieldcode] ? json_decode($arr[$ADR_fieldcode]) : array()) ;
 			$row[$mkey] = (string)reset($ttmp) ;
 			if( !$row[$mkey] ) {
 				$status = FALSE ;
 			}
 		}
+		foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
+			if( !$stockAttribute_obj['STOCK_fieldcode'] ) {
+				continue ;
+			}
+			$mkey = $stockAttribute_obj['mkey'] ;
+			$STOCK_fieldcode = $stockAttribute_obj['STOCK_fieldcode'] ;
+			$row[$mkey] = $arr[$STOCK_fieldcode] ;
+		}
 		
 		$row['inv_id'] = $arr['filerecord_id'] ;
 		$row['inv_prod'] = $arr['field_PROD_ID'] ;
-		$row['inv_batch'] = $arr['field_BATCH_CODE'] ;
+		$row['inv_batch'] = $arr['field_SPEC_BATCH'] ;
 		$row['inv_qty'] = ( $arr['field_PROD_ID'] ? $arr['field_QTY_AVAIL'] : null ) ;
+		$row['inv_sn'] = $arr['field_SPEC_SN'] ;
 		
 		$row['status'] = $status ;
 		

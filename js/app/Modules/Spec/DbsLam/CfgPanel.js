@@ -5,20 +5,23 @@ Ext.define('DbsLamCfgSocTreeModel',{
 		{name: 'display_txt', string: 'string'},
 		{name: 'display_desc', string: 'string'},
 		{name: 'type', type:'string'},
+		{name: 'whse_code', type:'string'},
 		{name: 'soc_code', type:'string'},
 		{name: 'atr_code', type:'string'}
 	]
 });
 
-Ext.define('Optima5.Modules.Spec.DbsLam.CfgSocPanel',{
+Ext.define('Optima5.Modules.Spec.DbsLam.CfgPanel',{
 	extend:'Ext.panel.Panel',
 	
 	requires: [
+		'Optima5.Modules.Spec.DbsLam.CfgWhseForm',
 		'Optima5.Modules.Spec.DbsLam.CfgSocForm',
 		'Optima5.Modules.Spec.DbsLam.CfgSocAttributeForm'
 	],
 	
 	socStore: null,
+	whseStore: null,
 	
 	initComponent: function() {
 		Ext.apply( this,{
@@ -30,7 +33,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CfgSocPanel',{
 				},
 				scope: this
 			},{
-				iconCls: 'op5-spec-dbslam-cfgsoc-apply',
+				iconCls: 'op5-spec-dbslam-cfg-apply',
 				text: '<b>Apply</b>',
 				handler: function(){
 					this.handleApply() ;
@@ -70,6 +73,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CfgSocPanel',{
 					dataIndex: 'display_desc',
 					width: 250
 				}],
+				rootVisible: false,
 				useArrows: true,
 				listeners: {
 					itemclick: this.onTreeItemClick,
@@ -88,34 +92,57 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CfgSocPanel',{
 			}]
 		});
 		
-		this.socStore = Ext.create('Ext.data.Store',{
-			model: 'DbsLamCfgSocModel',
-			proxy: this.optimaModule.getConfiguredAjaxProxy({
-				extraParams : {
-					_moduleId: 'spec_dbs_lam',
-					_action: 'cfg_getSoc'
-				},
-				reader: {
-					type: 'json',
-					rootProperty: 'data'
-				}
-			}),
-			pageSize: 0,
-			autoLoad: false
-		}) ;
-		
 		this.callParent() ;
 		this.doLoad() ;
 	},
 	doLoad: function() {
-		this.socStore.on('load',function(store){
-			this.buildRootNode() ;
-		},this) ;
-		this.socStore.load() ;
+		// Query Bible
+		var ajaxParams = {} ;
+		Ext.apply( ajaxParams, {
+			_moduleId: 'spec_dbs_lam',
+			_action: 'cfg_getConfig'
+		});
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams ,
+			success: function(response) {
+				var ajaxData = Ext.decode(response.responseText) ;
+				if( ajaxData.success == false ) {
+					Ext.Msg.alert('Failed', 'Unknown error');
+				}
+				else {
+					this.onLoad( ajaxData ) ;
+				}
+			},
+			scope: this
+		});
+	},
+	onLoad: function(ajaxData) {
+		this.socStore = Ext.create('Ext.data.Store',{
+			model: 'DbsLamCfgSocModel',
+			data : ajaxData.data.cfg_soc,
+			proxy: {
+				type: 'memory',
+				reader: {
+					type: 'json'
+				}
+			}
+		}) ;
+		this.whseStore = Ext.create('Ext.data.Store',{
+			model: 'DbsLamCfgWhseModel',
+			data : ajaxData.data.cfg_whse,
+			proxy: {
+				type: 'memory',
+				reader: {
+					type: 'json'
+				}
+			}
+		}) ;
+		
+		this.buildRootNode() ;
 	},
 	
 	buildRootNode: function() {
-		var rootChildren = [] ;
+		var socChildren = [], whseChildren = [] ;
 		this.socStore.each( function(socRecord) {
 			var socAttributes = [] ;
 			socRecord.attributes().each( function(atrRecord) {
@@ -140,7 +167,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CfgSocPanel',{
 				});
 			}) ;
 			
-			rootChildren.push({
+			socChildren.push({
 				expanded: true,
 				display_code: '<b>'+socRecord.get('soc_code')+'</b>',
 				display_txt: '<b>'+socRecord.get('soc_txt')+'</b>',
@@ -150,16 +177,49 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CfgSocPanel',{
 			})
 		}) ;
 		
+		this.whseStore.each( function(whseRecord) {
+			whseChildren.push({
+				expanded: true,
+				display_code: '<b>'+whseRecord.get('whse_code')+'</b>',
+				display_txt: '<b>'+whseRecord.get('whse_txt')+'</b>',
+				type: 'whse',
+				whse_code: whseRecord.get('whse_code'),
+				leaf: true
+			})
+		}) ;
+		
 		this.down('treepanel').setRootNode({
-			icon: 'images/op5img/ico_storeview_16.png',
 			root: true,
 			expanded: true,
-			display_code: '<u>Companies</u>',
-			type: 'root',
-			children: rootChildren
+			children:[{
+				icon: 'images/op5img/ico_storeview_16.png',
+				root: false,
+				expanded: true,
+				display_code: '<u>Companies</u>',
+				type: 'root_soc',
+				children: socChildren
+			},{
+				icon: 'images/op5img/ico_storeview_16.png',
+				root: false,
+				expanded: true,
+				display_code: '<u>Warehouses</u>',
+				type: 'root_whse',
+				children: whseChildren
+			}]
 		});
 	},
 	
+	handleNewWhse: function() {
+		this.setNullRecord() ;
+		var tmpRecord = this.whseStore.add( {whse_code:null} )[0] ;
+		this.setWhseRecord( tmpRecord ) ;
+	},
+	handleDeleteWhse: function( whseCode ) {
+		this.setNullRecord() ;
+		var whseRecord = this.whseStore.getById( whseCode ) ;
+		this.whseStore.remove( whseRecord ) ;
+		this.buildRootNode() ;
+	},
 	handleNewSoc: function() {
 		this.setNullRecord() ;
 		var tmpRecord = this.socStore.add( {soc_code:null} )[0] ;
@@ -201,6 +261,11 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CfgSocPanel',{
 				this.setSocRecord( socRecord ) ;
 				break ;
 			
+			case 'whse' :
+				var whseRecord = this.whseStore.getById( record.get('whse_code') ) ;
+				this.setWhseRecord( whseRecord ) ;
+				break ;
+			
 			default :
 				this.setNullRecord() ;
 				break ;
@@ -210,7 +275,18 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CfgSocPanel',{
 		var treeContextMenuItems = new Array() ;
 		
 		switch( record.get('type') ) {
-			case 'root' :
+			case 'root_whse' :
+				treeContextMenuItems.push({
+					iconCls: 'icon-bible-new',
+					text: 'Define warehouse',
+					handler : function() {
+						this.handleNewWhse() ;
+					},
+					scope : this
+				});
+				break ;
+				
+			case 'root_soc' :
 				treeContextMenuItems.push({
 					iconCls: 'icon-bible-new',
 					text: 'Define company',
@@ -236,6 +312,17 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CfgSocPanel',{
 					text: 'New attribute on '+record.get('soc_code'),
 					handler : function() {
 						this.handleNewAttribute( record.get('soc_code') ) ;
+					},
+					scope : this
+				});
+				break ;
+				
+			case 'whse' :
+				treeContextMenuItems.push({
+					iconCls: 'icon-bible-delete',
+					text: 'Delete <b>'+record.get('whse_code')+'</b> warehouse',
+					handler : function() {
+						this.handleDeleteWhse( record.get('whse_code') ) ;
 					},
 					scope : this
 				});
@@ -287,7 +374,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CfgSocPanel',{
 		if( !socRecord.phantom ) {
 			title += socRecord.get('soc_code') ;
 		} else {
-			title += '<i>new attribute</i>' ;
+			title += '<i>new company definition</i>' ;
 		}
 		
 		var formPanel = Ext.create( 'Optima5.Modules.Spec.DbsLam.CfgSocForm',{
@@ -333,6 +420,34 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CfgSocPanel',{
 			}
 		});
 		formPanel.setRecord(socRecord,atrRecord) ;
+		eastpanel.add(formPanel) ;
+	},
+	setWhseRecord: function(whseRecord) {
+		var me = this,
+			eastpanel = me.getComponent('mFormContainer') ;
+		eastpanel.removeAll() ;
+		
+		var title = '' ;
+		if( !whseRecord.phantom ) {
+			title += whseRecord.get('whse_code') ;
+		} else {
+			title += '<i>new warehouse</i>' ;
+		}
+		
+		var formPanel = Ext.create( 'Optima5.Modules.Spec.DbsLam.CfgWhseForm',{
+			border: false,
+			optimaModule: this.optimaModule,
+			title: title,
+			listeners: {
+				saved: function(formPanel) {
+					this._modified = true ;
+					this.setNullRecord();
+					this.buildRootNode() ;
+				},
+				scope:me
+			}
+		});
+		formPanel.setRecord(whseRecord) ;
 		eastpanel.add(formPanel) ;
 	},
 	
