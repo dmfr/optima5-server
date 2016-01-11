@@ -47,6 +47,13 @@ function specDbsLam_cfg_getAuth( $post_data ) {
 
 
 function specDbsLam_cfg_getConfig() {
+	if( isset($GLOBALS['cache_specDbsLam_cfg']['getConfig']) ) {
+		return array(
+			'success'=>true,
+			'data' => $GLOBALS['cache_specDbsLam_cfg']['getConfig']
+		);
+	}
+
 	$ttmp = specDbsLam_cfg_getSoc() ;
 	$cfg_soc = $ttmp['data'] ;
 	
@@ -130,13 +137,17 @@ function specDbsLam_cfg_getConfig() {
 			
 		}
 	}
+	
+	$return_data = array(
+		'cfg_whse' => $cfg_whse,
+		'cfg_soc' => $cfg_soc,
+		'cfg_attribute' => array_values($cfg_attribute)
+	) ;
+	$GLOBALS['cache_specDbsLam_cfg']['getConfig'] = $return_data ;
+	
 	return array(
 		'success'=>true,
-		'data' => array(
-			'cfg_whse' => $cfg_whse,
-			'cfg_soc' => $cfg_soc,
-			'cfg_attribute' => array_values($cfg_attribute)
-		)
+		'data' => $return_data
 	);
 }
 
@@ -276,6 +287,8 @@ function specDbsLam_cfg_applySoc($post_data) {
 	}
 	
 	specDbsLam_cfg_lib_build() ;
+	
+	unset($GLOBALS['cache_specDbsLam_cfg']['getConfig']) ;
 	
 	return array('success'=>true) ;
 }
@@ -433,6 +446,25 @@ function specDbsLam_cfg_lib_build() {
 				$arr_ins['entry_field_is_highlight'] = 'O' ;
 				$_opDB->insert('define_file_entry',$arr_ins) ;
 			}
+			
+			$query = "SELECT count(*) FROM define_file_entry WHERE file_code='MVT' AND entry_field_code='{$field_code}'" ;
+			if( $_opDB->query_uniqueValue($query) != 1 ) {
+				$query = "SELECT max(entry_field_index) FROM define_file_entry WHERE file_code='MVT'" ;
+				$max_index = $_opDB->query_uniqueValue($query) ;
+				$max_index++ ;
+				
+				$arr_ins = array() ;
+				$arr_ins['file_code'] = 'MVT' ;
+				$arr_ins['entry_field_code'] = $field_code ;
+				$arr_ins['entry_field_index'] = $max_index ;
+				$arr_ins['entry_field_lib'] = 'Atr: '.$attribute['atr_txt'] ;
+				$arr_ins['entry_field_type'] = 'link' ;
+				$arr_ins['entry_field_linktype'] = 'treenode' ;
+				$arr_ins['entry_field_linkbible'] = $bible_code ;
+				$arr_ins['entry_field_is_header'] = '' ;
+				$arr_ins['entry_field_is_highlight'] = 'O' ;
+				$_opDB->insert('define_file_entry',$arr_ins) ;
+			}
 		}
 		if( !$attribute['use_stock'] ) {
 			$query = "DELETE FROM define_file_entry WHERE file_code='STOCK' AND entry_field_code='{$field_code}'" ;
@@ -443,6 +475,7 @@ function specDbsLam_cfg_lib_build() {
 	$t->sdomainDefine_buildBible( DatabaseMgr_Sdomain::dbCurrent_getSdomainId(), 'PROD' ) ;
 	$t->sdomainDefine_buildBible( DatabaseMgr_Sdomain::dbCurrent_getSdomainId(), 'ADR' ) ;
 	$t->sdomainDefine_buildFile( DatabaseMgr_Sdomain::dbCurrent_getSdomainId(), 'STOCK' ) ;
+	$t->sdomainDefine_buildFile( DatabaseMgr_Sdomain::dbCurrent_getSdomainId(), 'MVT' ) ;
 	
 }
 ?>

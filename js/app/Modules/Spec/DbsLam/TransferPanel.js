@@ -1,3 +1,30 @@
+Ext.define('DbsLamTransferTreeModel',{
+	extend: 'Ext.data.Model',
+	fields: [
+		{name: 'display_txt', string: 'string'},
+		{name: 'type', type:'string'},
+		{name: 'transfer_filerecord_id', type:'int'},
+		{name: 'status_code', type:'string'}
+	]
+});
+
+Ext.define('DbsLamTransferGridModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'transferlig_filerecord_id',
+	fields: [
+		{name: 'transfer_filerecord_id', type:'int'},
+		{name: 'transferlig_filerecord_id', type:'int'},
+		{name: 'status', type:'boolean'},
+		{name: 'src_adr', type:'string'},
+		{name: 'desc_adr', type:'string'},
+		{name: 'stk_prod', type:'string'},
+		{name: 'stk_batch', type:'string'},
+		{name: 'stk_sn', type:'string'},
+		{name: 'mvt_qty', type:'number'}
+	]
+});
+
+
 Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 	extend:'Ext.panel.Panel',
 	
@@ -33,14 +60,24 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					itemId: 'btnWhseSrc',
 					optimaModule: this.optimaModule
 				}),{
-					icon: 'images/op5img/ico_arrow-double_16.png'
+					icon: 'images/op5img/ico_arrow-double_16.png',
+					disabled: true,
+					style: {opacity: 1}
 				},Ext.create('Optima5.Modules.Spec.DbsLam.CfgParamButton',{
 					cfgParam_id: 'WHSE',
 					icon: 'images/op5img/ico_blocs_small.gif',
 					text: '<i>Destination</i>',
 					itemId: 'btnWhseDest',
 					optimaModule: this.optimaModule
-				})],
+				}),'-',{
+					iconCls: 'op5-spec-dbslam-transfer-add',
+					text: '<b>Build/Pick</b>',
+					handler: function() {
+						console.dir( this.down('#pCenter').down('#pTree').getSelectionModel() ) ;
+						this.openStockPopup() ;
+					},
+					scope: this
+				}],
 				items: [{xtype:'component',cls: 'ux-noframe-bg', flex:1}]
 			},{
 				region: 'east',
@@ -62,7 +99,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			}]
 		});
 		this.callParent() ;
-		//this.mon(this.optimaModule,'op5broadcast',this.onCrmeventBroadcast,this) ;
+		this.mon(this.optimaModule,'op5broadcast',this.onCrmeventBroadcast,this) ;
 		
 		this.doConfigure() ;
 	},
@@ -93,7 +130,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		
 		Ext.ux.dams.ModelManager.unregister( this.tmpGridModelName ) ;
 		Ext.define(this.tmpGridModelName, {
-			extend: 'DbsLamStockGridModel',
+			extend: 'DbsLamTransferGridModel',
 			fields: pushModelfields
 		});
 		
@@ -104,17 +141,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			xtype: 'treepanel',
 			itemId: 'pTree',
 			store: {
-				model: 'DbsLamStockTreeModel',
-				root:{
-					iconCls:'task-folder',
-					expanded:true,
-					treenode_key:'&',
-					field_ROW_ID: 'Transfers',
-					children: [{
-						field_ROW_ID: 'TEST 01',
-						leaf: true
-					}]
-				},
+				model: 'DbsLamTransferTreeModel',
+				root:{},
 				proxy: {
 					type: 'memory',
 					reader: {
@@ -139,16 +167,16 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				},
 				items: [{
 					xtype:'treecolumn',
-					dataIndex: 'field_ROW_ID',
+					dataIndex: 'display_txt',
 					text: 'Document ID',
-					width: 120,
-					renderer: function(v) {
-						return '<b>'+v+'</b>';
-					}
+					width: 120
 				},{
-					dataIndex: 'field_POS_ZONE',
+					dataIndex: 'status_code',
 					text: '<b>Status</b>',
-					width: 50
+					width: 70,
+					renderer: function(v) {
+						return '<b>'+v+'</b>' ;
+					}
 				}]
 			},
 			listeners: {
@@ -164,12 +192,25 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			itemId: 'pGrid',
 			store: {
 				model: this.tmpGridModelName,
-				proxy: {
-					type: 'memory',
+				autoLoad: true,
+				proxy: this.optimaModule.getConfiguredAjaxProxy({
+					extraParams : {
+						_moduleId: 'spec_dbs_lam',
+						_action: 'transfer_getTransferLig'
+					},
 					reader: {
-						type: 'json'
+						type: 'json',
+						rootProperty: 'data'
 					}
+				}),
+				listeners: {
+					beforeload: this.onGridBeforeLoad,
+					load: Ext.emptyFn,
+					scope: this
 				}
+			},
+			selModel: {
+				mode: 'MULTI'
 			},
 			columns: {
 				defaults: {
@@ -231,12 +272,14 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				pluginId: 'bufferedRenderer',
 				synchronousRender: true
 			}],
+			listeners: {
+				render: this.doConfigureOnGridRender,
+				itemcontextmenu: this.onGridContextMenu,
+				scope: this
+			},
 			viewConfig: {
 				preserveScrollOnRefresh: true,
 				getRowClass: function(record) {
-					if( !record.get('status') ) {
-						return 'op5-spec-dbslam-stock-disabled' ;
-					}
 				},
 				listeners: {
 					beforerefresh: function(view) {
@@ -247,6 +290,204 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					}
 				}
 			}
+		}) ;
+		
+		// Build tree
+		this.doTreeLoad() ;
+	},
+	doConfigureOnGridRender: function(grid) {
+		var me = this ;
+		
+		var gridPanelDropTargetEl =  grid.body.dom;
+
+		var gridPanelDropTarget = Ext.create('Ext.dd.DropTarget', gridPanelDropTargetEl, {
+			ddGroup: 'DbsLamStockDD',
+			notifyEnter: function(ddSource, e, data) {
+					//Add some flare to invite drop.
+					grid.body.stopAnimation();
+					grid.body.highlight();
+			},
+			notifyDrop: function(ddSource, e, data){
+					var srcStockFilerecordIds = [] ;
+					Ext.Array.each( ddSource.dragData.records, function(selectedRecord) {
+						if( selectedRecord.get('inv_id') ) {
+							srcStockFilerecordIds.push( selectedRecord.get('inv_id') ) ; 
+						}
+					});
+					if( srcStockFilerecordIds.length > 0 ) {
+						me.handleDropStock(srcStockFilerecordIds) ;
+					}
+			}
+		});
+	},
+	
+	onCrmeventBroadcast: function(crmEvent, eventParams) {
+		switch( crmEvent ) {
+			case 'datachange' :
+				this.onDataChange() ;
+				break ;
+			default: break ;
+		}
+	},
+	onDataChange: function() {
+		if( this.isVisible() ) {
+			this.doGridReload() ;
+		} else {
+			this.on('activate',function(){this.onDataChange();}, this, {single:true}) ;
+		}
+	},
+	onGridContextMenu: function(view, record, item, index, event) {
+		var gridContextMenuItems = new Array() ;
+		
+		var selRecords = view.getSelectionModel().getSelection() ;
+		
+		var entryKeys = [] ;
+		for( var recIdx=0 ; recIdx<selRecords.length ; recIdx++ ) {
+			entryKeys.push( selRecords[recIdx].get('transferlig_filerecord_id') ) ;
+		}
+		gridContextMenuItems.push({
+			iconCls: 'icon-bible-delete',
+			text: 'Remove <b>'+selRecords.length+'</b> rows',
+			handler : function() {
+				this.handleRemoveLigs( entryKeys ) ;
+			},
+			scope : this
+		});
+		
+		var gridContextMenu = Ext.create('Ext.menu.Menu',{
+			items : gridContextMenuItems,
+			listeners: {
+				hide: function(menu) {
+					Ext.defer(function(){menu.destroy();},10) ;
+				}
+			}
+		}) ;
+		
+		gridContextMenu.showAt(event.getXY());
+	},
+	
+	
+	
+	doTreeLoad: function() {
+		var ajaxParams = {
+			_moduleId: 'spec_dbs_lam',
+			_action: 'transfer_getTransfer'
+		} ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams,
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+				
+				var transferChildren = [] ;
+				Ext.Array.each( ajaxResponse.data, function(transferDoc) {
+					transferChildren.push({
+						leaf: true,
+						type: 'transfer',
+						display_txt: transferDoc.transfer_txt,
+						transfer_filerecord_id: transferDoc.transfer_filerecord_id,
+						status_code: transferDoc.status_code
+					}) ;
+				}) ;
+				
+				var treepanel = this.down('#pCenter').down('#pTree') ;
+				treepanel.getStore().setRootNode({
+					root: true,
+					iconCls:'task-folder',
+					expanded:true,
+					display_txt: '<b>Transfers</b>',
+					children: transferChildren
+				}) ;
+			},
+			scope: this
+		}) ;
+	},
+	
+	doGridReload: function() {
+		var gridpanel = this.down('#pCenter').down('#pGrid') ;
+		gridpanel.getStore().load() ;
+	},
+	onGridBeforeLoad: function(store,options) {
+		var treepanel = this.down('#pCenter').down('#pTree') ;
+			selectedNodes = treepanel.getView().getSelectionModel().getSelection() ;
+		var params = {} ;
+		
+		Ext.apply(params,{
+			//whse_code: this.whseCode
+		}) ;
+		
+		if( selectedNodes.length == 1 && !(selectedNodes[0].isRoot()) ) {
+			Ext.apply(params,{
+				filter_transferFilerecordId: selectedNodes[0].get('file_transfer_id')
+			}) ;
+		}
+		
+		options.setParams(params) ;
+	},
+	
+	openStockPopup: function() {
+		this.optimaModule.createWindow({
+			width:1100,
+			height:600,
+			resizable:true,
+			layout:'fit',
+			border: false,
+			items:[Ext.create('Optima5.Modules.Spec.DbsLam.StockPanel',{
+				optimaModule: this.optimaModule,
+				_popupMode: true,
+				_enableDD: true,
+				whseCode: 'SDV',
+			})]
+		}) ;
+	},
+	
+	handleDropStock: function(srcStockFilerecordIds) {
+		var pTreeSelection = this.down('#pCenter').down('#pTree').getSelectionModel().selectedNodes ;
+		if( selectedNodes.length != 1 || selectedNodes[0].get('type') != 'transfer' ) {
+			Ext.MessageBox.alert('Error','No suitable doc selected.') ;
+			return ;
+		}
+		
+		
+		var ajaxParams = {
+			_moduleId: 'spec_dbs_lam',
+			_action: 'transfer_addStock',
+			stock_filerecordIds: Ext.JSON.encode(srcStockFilerecordIds),
+			transfer_filerecordId: selectedNodes[0].get('transfer_filerecord_id') 
+		} ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams,
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+				this.optimaModule.postCrmEvent('datachange') ;
+			},
+			scope: this
+		}) ;
+	},
+	handleRemoveLigs: function(transferLigIds) {
+		var ajaxParams = {
+			_moduleId: 'spec_dbs_lam',
+			_action: 'transfer_removeStock',
+			transferLig_filerecordIds: Ext.JSON.encode(transferLigIds) 
+		} ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams,
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+				this.optimaModule.postCrmEvent('datachange') ;
+			},
+			scope: this
 		}) ;
 	},
 	

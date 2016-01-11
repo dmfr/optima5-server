@@ -111,6 +111,9 @@
 .op5-spec-dbslam-stock-disabled .x-grid-cell-inner {
 	background-color: #cccccc !important;
 }
+.op5-spec-dbslam-stock-out .x-grid-cell-inner {
+	background-color: #5AB5FF !important;
+}
 
 
 .op5-spec-dbslam-liveadr-adr {
@@ -182,5 +185,9 @@
 
 .op5-spec-dbslam-cfg-apply {
 	background: url('../images/modules/dbslam-apply-16.png') no-repeat 4px center ;
+	line-height: 20px ;
+}
+.op5-spec-dbslam-transfer-add {
+	background: url('../images/modules/dbslam-transfer-add-16.png') no-repeat 4px center ;
 	line-height: 20px ;
 }

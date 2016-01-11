@@ -25,6 +25,7 @@ Ext.define('DbsLamStockGridModel',{
 		{name: 'inv_prod', type:'string'},
 		{name: 'inv_batch', type:'string'},
 		{name: 'inv_qty', type:'number', useNull:true},
+		{name: 'inv_qty_out', type:'number', useNull:true},
 		{name: 'inv_sn', type:'string'}
 	]
 });
@@ -33,6 +34,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 	extend:'Ext.panel.Panel',
 	
 	requires: ['Optima5.Modules.Spec.DbsLam.CfgParamButton'],
+	
+	_popupMode: false,
+	_enableDD: false,
+	whseCode: null,
 	
 	initComponent: function() {
 		this.tmpGridModelName = 'DbsLamStockGridModel-' + this.getId() ;
@@ -120,6 +125,11 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 			}
 		},this) ;
 		
+		if( this._popupMode ) {
+			this.down('toolbar').setVisible(false) ;
+			this.down('#mStockFormContainer').setVisible(false) ;
+		}
+		
 		this.doConfigure() ;
 	},
 	
@@ -172,8 +182,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 			fields: pushModelfields
 		});
 		
-		pCenter.removeAll() ;
-		pCenter.add({
+		var treepanelCfg = {
 			border: 1,
 			width: 240,
 			xtype: 'treepanel',
@@ -240,7 +249,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 				},
 				scope: this
 			}
-		},{
+		};
+		
+		var gridpanelCfg = {
 			border: false,
 			flex:1,
 			xtype:'gridpanel',
@@ -342,8 +353,11 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 			viewConfig: {
 				preserveScrollOnRefresh: true,
 				getRowClass: function(record) {
+					if( record.get('inv_qty_out') > 0 && record.get('inv_qty') == 0 ) {
+						return 'op5-spec-dbslam-stock-out' ;
+					}
 					if( !record.get('status') ) {
-						return 'op5-spec-dbslam-stock-disabled' ;
+						//return 'op5-spec-dbslam-stock-disabled' ;
 					}
 				},
 				listeners: {
@@ -359,7 +373,23 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 				itemclick: this.onItemClick,
 				scope: this
 			}
-		}) ;
+		};
+		if( this._enableDD ) {
+			Ext.apply(gridpanelCfg,{
+				selModel: {
+					mode: 'MULTI'
+				}
+			});
+			Ext.apply(gridpanelCfg.viewConfig,{
+				plugins: {
+					ddGroup : 'DbsLamStockDD',
+					ptype: 'gridviewdragdrop'
+				}
+			});
+		}
+		
+		pCenter.removeAll() ;
+		pCenter.add(treepanelCfg,gridpanelCfg) ;
 	},
 	
 	
@@ -404,7 +434,11 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 	onItemClick: function( view, record, itemNode, index, e ) {
 		var cellNode = e.getTarget( view.getCellSelector() ),
 			cellColumn = view.getHeaderByCell( cellNode ) ;
-		this.setFormRecord(record) ;
+		
+		var eastpanel = this.getComponent('mStockFormContainer') ;
+		if( eastpanel.isVisible() ) {
+			this.setFormRecord(record) ;
+		}
 	},
 	
 	setFormRecord: function(record) {

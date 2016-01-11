@@ -72,6 +72,7 @@ function specDbsLam_stock_getGrid($post_data) {
 		$row['inv_prod'] = $arr['field_PROD_ID'] ;
 		$row['inv_batch'] = $arr['field_SPEC_BATCH'] ;
 		$row['inv_qty'] = ( $arr['field_PROD_ID'] ? $arr['field_QTY_AVAIL'] : null ) ;
+		$row['inv_qty_out'] = ( $arr['field_PROD_ID'] ? $arr['field_QTY_OUT'] : null ) ;
 		$row['inv_sn'] = $arr['field_SPEC_SN'] ;
 		
 		$row['status'] = $status ;
