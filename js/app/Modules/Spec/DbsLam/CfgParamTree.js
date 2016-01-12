@@ -63,6 +63,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CfgParamTree',{
 					expanded: true
 				}
 				break ;
+				
 			case 'SOC' :
 				data = Optima5.Modules.Spec.DbsLam.HelperCache.getSocAll() ;
 				Ext.Array.each( data, function(row) {
@@ -81,8 +82,27 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CfgParamTree',{
 					expanded: true
 				}
 				break ;
+				
 			default :
-				return ;
+				this.optimaModule.getConfiguredAjaxConnection().request({
+					params: {
+						_moduleId: 'spec_dbs_lam',
+						_action: 'cfg_getTree',
+						cfgParam_id: this.cfgParam_id
+					},
+					success: function(response) {
+						var jsonResponse = Ext.decode(response.responseText) ;
+						if( jsonResponse.success == false ) {
+							Ext.Msg.alert('Failed', 'Failed');
+						}
+						else {
+							this.getStore().setRootNode(jsonResponse.dataRoot) ;
+							this.onAfterLoad() ;
+							this.fireEvent('load',this) ;
+						}
+					},
+					scope: this
+				});
 		}
 		
 		this.getStore().setRootNode(rootNode) ;

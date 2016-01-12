@@ -15,6 +15,8 @@ switch( $post_data['_action'] )
 	return specDbsLam_cfg_getAuth( $post_data ) ;
 	case 'cfg_applySoc' :
 	return specDbsLam_cfg_applySoc( $post_data ) ;
+	case 'cfg_getTree' :
+	return specDbsLam_cfg_getTree( $post_data ) ;
 	
 	case 'live_goAdr' :
 	return specDbsLam_live_goAdr( $post_data ) ;
@@ -48,6 +50,21 @@ switch( $post_data['_action'] )
 	
 	case 'queryspec' :
 	return specDbsLam_queryspec( $post_data ) ;
+	
+	case 'transfer_getTransfer' :
+	return specDbsLam_transfer_getTransfer( $post_data ) ;
+	case 'transfer_getTransferLig' :
+	return specDbsLam_transfer_getTransferLig( $post_data ) ;
+	case 'transfer_addStock' :
+	return specDbsLam_transfer_addStock( $post_data ) ;
+	case 'transfer_removeStock' :
+	return specDbsLam_transfer_removeStock( $post_data ) ;
+	case 'transfer_printDoc' :
+	return specDbsLam_transfer_printDoc( $post_data ) ;
+	case 'transfer_createDoc' :
+	return specDbsLam_transfer_createDoc( $post_data ) ;
+	case 'transfer_deleteDoc' :
+	return specDbsLam_transfer_deleteDoc( $post_data ) ;
 	
 	default :
 	return NULL ;

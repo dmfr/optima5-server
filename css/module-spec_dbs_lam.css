@@ -156,10 +156,10 @@
 	background-repeat: no-repeat;
 }
 .op5-spec-dbslam-livelogo-right {
-	width: 256px;
+	width: 64px;
 	height: 64px;
 	float: right;
-	background-image: url("../images/modules/dbslam-logoright.png") !important;
+	background-image: url("../images/modules/dbslam-safran.png") !important;
 	background-position: center center ;
 	background-repeat: no-repeat;
 }

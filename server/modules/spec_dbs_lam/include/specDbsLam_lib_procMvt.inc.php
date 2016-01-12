@@ -67,8 +67,42 @@ function specDbsLam_lib_procMvt_addStock($stock_filerecordId, $qte_mvt=0) {
 	return $mvt_filerecordId ;
 }
 function specDbsLam_lib_procMvt_delMvt($mvt_filerecordId) {
+	global $_opDB ;
 	
-	return ;
+	$query = "SELECT * FROM view_file_MVT WHERE
+		filerecord_id='{$mvt_filerecordId}'" ;
+	$result = $_opDB->query($query) ;
+	if( $_opDB->num_rows($result) != 1 ) {
+		return FALSE ;
+	}
+	$row_mvt = $_opDB->fetch_assoc($result) ;
+	$qte_mvt = (float)$row_mvt['field_QTY_MVT'] ;
+	
+	$query = "SELECT * FROM view_file_MVT_STEP WHERE
+		filerecord_parent_id='{$mvt_filerecordId}'" ;
+	$result = $_opDB->query($query) ;
+	if( $_opDB->num_rows($result) != 1 ) {
+		return FALSE ;
+	}
+	$row_mvt_step = $_opDB->fetch_assoc($result) ;
+	
+	$stock_filerecordId = $row_mvt_step['field_FILE_STOCK_ID'] ;
+
+	$query = "SELECT * FROM view_file_STOCK WHERE filerecord_id='{$stock_filerecordId}'" ;
+	$result = $_opDB->query($query) ;
+	if( $_opDB->num_rows($result) != 1 ) {
+		return FALSE ;
+	}
+	$row_stock = $_opDB->fetch_assoc($result) ;
+	
+	$query = "UPDATE view_file_STOCK 
+			SET field_QTY_AVAIL = field_QTY_AVAIL + '{$qte_mvt}', field_QTY_OUT = field_QTY_OUT - '{$qte_mvt}'
+			WHERE filerecord_id='{$stock_filerecordId}'" ;
+	$_opDB->query($query) ;
+	
+	paracrm_lib_data_deleteRecord_file( 'MVT' , $mvt_filerecordId ) ;
+	
+	return TRUE ;
 }
 
 

@@ -478,4 +478,137 @@ function specDbsLam_cfg_lib_build() {
 	$t->sdomainDefine_buildFile( DatabaseMgr_Sdomain::dbCurrent_getSdomainId(), 'MVT' ) ;
 	
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function specDbsLam_cfg_getTree( $post_data ) {
+	global $_opDB ;
+	
+	$cfgParam_id = $post_data['cfgParam_id'] ;
+	
+	switch( strtolower($cfgParam_id) ) {
+		case 'mvtflow' :
+			$bible_code = 'CFG_MVTFLOW' ;
+			$field_txt_treenode = 'field_FLOW_TXT' ;
+			$field_txt_entry = 'field_STEP_TXT' ;
+			break ;
+			
+		default :
+			return ;
+	}
+	
+	$view_name_tree = 'view_bible_'.$bible_code.'_tree' ;
+	$view_name_entry = 'view_bible_'.$bible_code.'_entry' ;
+	
+	$tab_parentkey_nodes = array() ;
+	$query = "SELECT * FROM $view_name_tree" ;
+	$result = $_opDB->query($query);
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
+	{
+		$record = array() ;
+		$record['nodeId'] = 't_'.$arr['treenode_key'] ;
+		$record['nodeType'] = 'treenode' ;
+		$record['nodeKey'] = $arr['treenode_key'] ;
+		$record['nodeText'] = $arr[$field_txt_treenode] ;
+	
+		$tab_parentkey_nodes[$arr['treenode_parent_key']][$arr['treenode_key']] = $record ;
+	}
+	$query = "SELECT * FROM $view_name_entry" ;
+	$result = $_opDB->query($query);
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
+	{
+		$record = array() ;
+		$record['nodeId'] = 'e_'.$arr['entry_key'] ;
+		$record['nodeType'] = 'entry' ;
+		$record['nodeKey'] = $arr['entry_key'] ;
+		$record['nodeText'] = $arr['entry_key'].' : '.$arr[$field_txt_entry] ;
+	
+		$tab_parentkey_nodes[$arr['treenode_key']][] = $record ;
+	}
+	
+	/*
+	$view_name_entry = 'view_bible_'.$bible_code.'_entry' ;
+	$arr_treenode_nbEntries = array() ;
+	$query = "select treenode_key, count(*) from $view_name_entry group by treenode_key" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE )
+	{
+		$arr_treenode_nbEntries[$arr[0]] = $arr[1] ;
+	}
+	*/
+	
+	foreach( $tab_parentkey_nodes as $treenode_parent_key => $arr1 )
+	{
+		foreach( $arr1 as $treenode_key => $record )
+		{
+			$tab_parentkey_nodes[$treenode_parent_key][$treenode_key] = $record ;
+		}
+		ksort($tab_parentkey_nodes[$treenode_parent_key]) ;
+	}
+	
+	// print_r($tab_parentkey_nodes) ;
+	
+	$TAB_json = specDbsLam_cfg_getTree_call( $tab_parentkey_nodes, '' ) ;
+	//$TAB_json[] = array('field_PRODLINE'=>'POM','field_PRODLINEDESC'=>'Pom Juices','expanded'=>true,'children'=>array(array('field_PRODLINE'=>'POM_C','field_PRODLINEDESC'=>'Pom Cold','leaf'=>true),array('field_PRODLINE'=>'POM_H','field_PRODLINEDESC'=>'Pom Hot','leaf'=>true))) ;
+	return array(
+		'success'=>true,
+		'dataRoot'=>array(
+			'nodeId'=>'',
+			'nodeKey'=>'',
+			'nodeText'=>'<b>Toutes valeurs</b>',
+			'expanded'=>true,
+			'children'=>$TAB_json
+		)
+	) ;
+}
+function specDbsLam_cfg_getTree_call( $tab_parentkey_nodes, $treenode_parent_key )
+{
+	global $_opDB ;
+	
+	$TAB_json = array() ;
+	if( !$tab_parentkey_nodes[$treenode_parent_key] )
+		return array() ;
+	foreach( $tab_parentkey_nodes[$treenode_parent_key] as $treenode_key => $record )
+	{
+		if( $child_tab = specDbsLam_cfg_getTree_call( $tab_parentkey_nodes, $treenode_key ) )
+		{
+			$leaf_only = FALSE ;
+			foreach( $child_tab as $node ) {
+				if( !$node['leaf'] ) {
+					$leaf_only = FALSE ;
+				}
+			}
+			$record['expanded'] = !$leaf_only ;
+			$record['expandable'] = !$leaf_only ;
+			$record['leaf_only'] = $leaf_only ;
+			$record['icon'] = ($leaf_only ? 'images/op5img/ico_leaf_small.gif' : '') ;
+			$record['children'] = $child_tab ;
+		}
+		elseif( $record['nodeType'] == 'entry' )
+		{
+			$record['leaf'] = TRUE ;
+			$record['children'] = array() ;
+		}
+		else
+		{
+			continue ;
+		}
+		$TAB_json[] = $record ;
+	}
+	return $TAB_json ;
+}
+
 ?>

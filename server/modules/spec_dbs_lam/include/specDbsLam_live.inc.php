@@ -1,5 +1,12 @@
 <?php
 
+function specDbsLam_live_goMvt( $post_data ) {
+	$form_data = json_decode($post_data['form_data'],true) ;
+	
+	
+}
+
+
 function specDbsLam_live_goAdr( $post_data ) {
 	$form_data = json_decode($post_data['form_data'],true) ;
 	
