@@ -30,6 +30,12 @@ Ext.define('DbsLamMovementModel',{
 
 Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 	extend:'Ext.panel.Panel',
+	
+	requires: ['Optima5.Modules.Spec.DbsLam.CfgParamField'],
+	
+	transferRecord: null,
+	transferLigStore: null,
+	
 	initComponent: function() {
 		var atrFields = [] ;
 		Ext.Array.each( Optima5.Modules.Spec.DbsLam.HelperCache.getStockAttributes(), function( stockAttribute ) {
@@ -86,11 +92,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 						anchor: '100%'
 					},
 					items:[Ext.create('Optima5.Modules.Spec.DbsLam.CfgParamField',{
-						cfgParam_id: 'MVTFLOW',
+						cfgParam_id: 'MVTFLOWSTEP',
 						cfgParam_emptyDisplayText: 'Flow / Step',
 						icon: 'images/op5img/ico_blocs_small.gif',
 						fieldLabel: 'Transfer type / Step',
-						itemId: 'btnWhseSrc',
 						optimaModule: this.optimaModule,
 						name: 'input_statusCode'
 					}),{

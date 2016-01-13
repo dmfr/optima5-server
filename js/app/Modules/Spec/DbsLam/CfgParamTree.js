@@ -83,26 +83,46 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CfgParamTree',{
 				}
 				break ;
 				
+			case 'MVTFLOW' :
+			case 'MVTFLOWSTEP' :
+				data = Optima5.Modules.Spec.DbsLam.HelperCache.getMvtflowAll() ;
+				var doSteps = (this.cfgParam_id=='MVTFLOWSTEP') ;
+				Ext.Array.each( data, function(row) {
+					flowChildren = [] ;
+					Ext.Array.each( row.steps, function(rowstep) {
+						flowChildren.push({
+							nodeId: rowstep.step_code,
+							nodeType: 'entry',
+							nodeKey: rowstep.step_code,
+							nodeText: rowstep.step_code + ' : ' + rowstep.step_txt,
+							leaf: true
+						});
+					}) ;
+					rootChildren.push({
+						nodeId: row.flow_code,
+						nodeType: 'treenode',
+						nodeKey: row.flow_code,
+						nodeText: row.flow_code + ' : ' + row.flow_txt,
+						expanded: (doSteps ? true : false),
+						leaf: (doSteps ? false : true),
+						children: (doSteps ? flowChildren : null),
+					}) ;
+				}) ;
+				rootNode = {
+					root: true,
+					children: rootChildren,
+					nodeText: '<b>Mvt flow / step</b>',
+					expanded: true
+				}
+				break ;
+				
 			default :
-				this.optimaModule.getConfiguredAjaxConnection().request({
-					params: {
-						_moduleId: 'spec_dbs_lam',
-						_action: 'cfg_getTree',
-						cfgParam_id: this.cfgParam_id
-					},
-					success: function(response) {
-						var jsonResponse = Ext.decode(response.responseText) ;
-						if( jsonResponse.success == false ) {
-							Ext.Msg.alert('Failed', 'Failed');
-						}
-						else {
-							this.getStore().setRootNode(jsonResponse.dataRoot) ;
-							this.onAfterLoad() ;
-							this.fireEvent('load',this) ;
-						}
-					},
-					scope: this
-				});
+				rootNode = {
+					root: true,
+					children: [],
+					nodeText: 'Not defined',
+					expanded: true
+				}
 		}
 		
 		this.getStore().setRootNode(rootNode) ;

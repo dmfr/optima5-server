@@ -28,6 +28,8 @@ Ext.define('DbsLamTransferGridModel',{
 Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 	extend:'Ext.panel.Panel',
 	
+	requires: ['Optima5.Modules.Spec.DbsLam.TransferCreateForm'],
+	
 	initComponent: function() {
 		this.tmpGridModelName = 'DbsLamStockGridModel-' + this.getId() ;
 		this.on('destroy',function(p) {

@@ -27,6 +27,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.HelperCache',{
 	cfgAttributeStore: null,
 	cfgSocStore: null,
 	cfgWhseStore: null,
+	cfgMvtflowStore: null,
 	
 	isReady: false,
 	
@@ -167,6 +168,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.HelperCache',{
 			model: 'DbsLamCfgWhseModel',
 			data : ajaxData.data.cfg_whse
 		}) ;
+		this.cfgMvtflowStore = Ext.create('Ext.data.Store',{
+			model: 'DbsLamCfgMvtFlowModel',
+			data : ajaxData.data.cfg_mvtflow
+		}) ;
 		
 		this.onLibLoad() ;
 	},
@@ -180,13 +185,26 @@ Ext.define('Optima5.Modules.Spec.DbsLam.HelperCache',{
 		return Ext.pluck( this.cfgSocStore.getRange(), 'data' ) ;
 	},
 	getSoc: function(socCode) {
-		return this.cfgSocStore.getById(atrCode) ? this.cfgSocStore.getById(atrCode).getData(true) : null ;
+		return this.cfgSocStore.getById(socCode) ? this.cfgSocStore.getById(socCode).getData(true) : null ;
 	},
 	getWhseAll: function() {
 		return Ext.pluck( this.cfgWhseStore.getRange(), 'data' ) ;
 	},
 	getWhse: function( whseCode ) {
-		return this.cfgWhseStore.getById(atrCode) ? this.cfgWhseStore.getById(atrCode).getData(true) : null ;
+		return this.cfgWhseStore.getById(whseCode) ? this.cfgWhseStore.getById(whseCode).getData(true) : null ;
+	},
+	getWhseAll: function() {
+		return Ext.pluck( this.cfgWhseStore.getRange(), 'data' ) ;
+	},
+	getMvtflow: function( flowCode ) {
+		return this.cfgMvtflowStore.getById(flowCode) ? this.cfgMvtflowStore.getById(flowCode).getData(true) : null ;
+	},
+	getMvtflowAll: function() {
+		var data = [] ;
+		this.cfgMvtflowStore.each( function(record) {
+			data.push( record.getData(true) ) ;
+		}) ;
+		return data ;
 	},
 	
 	onLibLoad: function() {

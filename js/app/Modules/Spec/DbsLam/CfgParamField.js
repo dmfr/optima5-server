@@ -1,7 +1,10 @@
 Ext.define('Optima5.Modules.Spec.DbsLam.CfgParamField',{
 	extend:'Ext.form.field.Picker',
 
-	requires: ['Ext.XTemplate'], 
+	requires: [
+		'Ext.XTemplate',
+		'Optima5.Modules.Spec.DbsLam.CfgParamTree'
+	], 
 
 	preSubTpl: [
 		'<div id="{cmpId}-triggerWrap" data-ref="triggerWrap" class="{triggerWrapCls} {triggerWrapCls}-{ui}">',

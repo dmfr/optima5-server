@@ -1,3 +1,27 @@
+Ext.define('DbsLamCfgMvtStepModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'step_code',
+	fields: [
+		{name: 'step_code', type:'string'},
+		{name: 'step_txt', type:'string'},
+		{name: 'is_attach_parent', type:'boolean'},
+		{name: 'is_final', type:'boolean'}
+	]
+});
+Ext.define('DbsLamCfgMvtFlowModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'flow_code',
+	fields: [
+		{name: 'flow_code', type:'string'},
+		{name: 'flow_txt', type:'string'}
+	],
+	hasMany: [{
+		model: 'DbsLamCfgMvtStepModel',
+		name: 'steps',
+		associationKey: 'steps'
+	}]
+});
+
 Ext.define('DbsLamCfgSocAttributeModel',{
 	extend: 'Ext.data.Model',
 	idProperty: 'atr_code',
@@ -29,6 +53,7 @@ Ext.define('DbsLamCfgSocModel',{
 		associationKey: 'attributes'
 	}]
 });
+
 Ext.define('DbsLamCfgWhseModel',{
 	extend: 'Ext.data.Model',
 	idProperty: 'whse_code',
