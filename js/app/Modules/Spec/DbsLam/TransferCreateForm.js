@@ -38,19 +38,11 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferCreateForm',{
 					allowBlank: false
 				},Ext.create('Optima5.Modules.Spec.DbsLam.CfgParamField',{
 					optimaModule: this.optimaModule,
-					name : 'status_flow',
+					name : 'flow_code',
 					fieldLabel: 'Flow class',
 					cfgParam_id: 'MVTFLOW',
 					allowBlank: false,
 					cfgParam_emptyDisplayText: 'Flow / Step',
-					listeners: {
-						ready: {
-							fn: function() {
-								//this.onPreInit() ;
-							},
-							scope: this
-						}
-					}
 				})]
 			}],
 			buttons: [{

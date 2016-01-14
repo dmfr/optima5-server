@@ -8,6 +8,21 @@ Ext.define('DbsLamTransferTreeModel',{
 	]
 });
 
+Ext.define('DbsLamTransferStepModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'step_code',
+	fields: [
+		{name: 'step_code', type:'string'},
+		{name: 'status_is_ok', type: 'boolean'},
+		{name: 'status_is_previous', type: 'boolean'},
+		{name: 'src_adr_entry', type:'string', useNull:true},
+		{name: 'src_adr_treenode', type:'string', useNull:true},
+		{name: 'src_adr_is_grouped', type:'boolean'},
+		{name: 'dest_adr_entry', type:'string', useNull:true},
+		{name: 'dest_adr_treenode', type:'string', useNull:true},
+		{name: 'dest_adr_is_grouped', type:'boolean'}
+	]
+});
 Ext.define('DbsLamTransferGridModel',{
 	extend: 'Ext.data.Model',
 	idProperty: 'transferlig_filerecord_id',
@@ -16,13 +31,33 @@ Ext.define('DbsLamTransferGridModel',{
 		{name: 'transferlig_filerecord_id', type:'int'},
 		{name: 'status', type:'boolean'},
 		{name: 'src_adr', type:'string'},
+		{name: 'current_adr', type: 'string'},
 		{name: 'desc_adr', type:'string'},
 		{name: 'stk_prod', type:'string'},
 		{name: 'stk_batch', type:'string'},
 		{name: 'stk_sn', type:'string'},
 		{name: 'mvt_qty', type:'number'}
-	]
+	],
+	hasMany: [{
+		model: 'DbsLamTransferStepModel',
+		name: 'steps',
+		associationKey: 'steps'
+	}]
 });
+Ext.define('DbsLamTransferOneModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'transfer_filerecord_id',
+	fields: [
+		{name: 'transfer_filerecord_id', type:'int'},
+		{name: 'transfer_txt', type:'string'},
+		{name: 'flow_code', type:'string'}
+	],
+	hasMany: [{
+		model: 'DbsLamTransferGridModel',
+		name: 'ligs',
+		associationKey: 'ligs'
+	}]
+}) ;
 
 
 Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
@@ -212,7 +247,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			listeners: {
 				itemcontextmenu: this.onTreeContextMenu,
 				selectionchange: function() {
-					this.updateToolbar()  ;
+					this.updateToolbar();
 					this.doGridReload();
 				},
 				scope: this

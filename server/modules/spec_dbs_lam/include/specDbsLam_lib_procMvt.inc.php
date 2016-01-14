@@ -1,6 +1,6 @@
 <?php
 
-function specDbsLam_lib_procMvt_addStock($stock_filerecordId, $qte_mvt=0) {
+function specDbsLam_lib_procMvt_addStock($stock_filerecordId, $qte_mvt=0, $step_code=NULL) {
 	global $_opDB ;
 	
 	// Load cfg attributes
@@ -50,9 +50,9 @@ function specDbsLam_lib_procMvt_addStock($stock_filerecordId, $qte_mvt=0) {
 	$mvt_filerecordId = paracrm_lib_data_insertRecord_file('MVT',0,$row_mvt) ;
 	
 	$row_mvt_step = array(
-		'field_STEP_CODE' => 'T01_INIT',
+		'field_STEP_CODE' => $step_code,
 		'field_FILE_STOCK_ID' => $stock_filerecordId,
-		'field_ADR_ID' => $row_stock['field_ADR_ID'],
+		'field_SRC_ADR_ID' => $row_stock['field_ADR_ID'],
 		'field_DATE_START' => date('Y-m-d H:i:s')
 	) ;
 	paracrm_lib_data_insertRecord_file('MVT_STEP',$mvt_filerecordId,$row_mvt_step) ;

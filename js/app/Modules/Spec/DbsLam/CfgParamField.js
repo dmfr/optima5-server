@@ -158,7 +158,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CfgParamField',{
 		var cfgParamTree = this.cfgParamTree ;
 		cfgParamTree.setValue(value,true) ;
 		if( Ext.isEmpty(value) ) {
-			cfgParamTree.autoAdvance() ;
+			//cfgParamTree.autoAdvance() ;
 		}
 	},
 	

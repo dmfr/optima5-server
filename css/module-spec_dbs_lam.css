@@ -191,3 +191,19 @@
 	background: url('../images/modules/dbslam-transfer-add-16.png') no-repeat 4px center ;
 	line-height: 20px ;
 }
+
+
+.op5-spec-dbslam-closeheader-wrap {
+	width:36px ;
+}
+.op5-spec-dbslam-closeheader-btn {
+	position: absolute ;
+	background-image: url("../images/op5img/ico_cancel_small.gif") !important;
+	top:0px;
+	right:0px ;
+	width:16px ;
+	height:16px ;
+	background-position: center center;
+	background-repeat: no-repeat;
+	cursor: pointer;
+}
