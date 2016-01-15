@@ -4,8 +4,17 @@ Ext.define('DbsLamCfgMvtStepModel',{
 	fields: [
 		{name: 'step_code', type:'string'},
 		{name: 'step_txt', type:'string'},
+		{name: 'is_checklist', type: 'boolean'},
 		{name: 'is_attach_parent', type:'boolean'},
 		{name: 'is_final', type:'boolean'}
+	]
+});
+Ext.define('DbsLamCfgChecklistModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'check_code',
+	fields: [
+		{name: 'check_code', type:'string'},
+		{name: 'check_txt', type:'string'}
 	]
 });
 Ext.define('DbsLamCfgMvtFlowModel',{
@@ -19,8 +28,13 @@ Ext.define('DbsLamCfgMvtFlowModel',{
 		model: 'DbsLamCfgMvtStepModel',
 		name: 'steps',
 		associationKey: 'steps'
+	},{
+		model: 'DbsLamCfgChecklistModel',
+		name: 'checks',
+		associationKey: 'checks'
 	}]
 });
+
 
 Ext.define('DbsLamCfgSocAttributeModel',{
 	extend: 'Ext.data.Model',

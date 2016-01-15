@@ -4,7 +4,7 @@ Ext.define('DbsLamTransferTreeModel',{
 		{name: 'display_txt', string: 'string'},
 		{name: 'type', type:'string'},
 		{name: 'transfer_filerecord_id', type:'int'},
-		{name: 'status_code', type:'string'}
+		{name: 'step_code', type:'string'}
 	]
 });
 
@@ -30,13 +30,16 @@ Ext.define('DbsLamTransferGridModel',{
 		{name: 'transfer_filerecord_id', type:'int'},
 		{name: 'transferlig_filerecord_id', type:'int'},
 		{name: 'status', type:'boolean'},
+		{name: 'status_is_reject', type:'boolean'},
+		{name: 'step_code', type:'string'},
 		{name: 'src_adr', type:'string'},
 		{name: 'current_adr', type: 'string'},
 		{name: 'desc_adr', type:'string'},
 		{name: 'stk_prod', type:'string'},
 		{name: 'stk_batch', type:'string'},
 		{name: 'stk_sn', type:'string'},
-		{name: 'mvt_qty', type:'number'}
+		{name: 'mvt_qty', type:'number'},
+		{name: 'reject_arr', type:'auto'}
 	],
 	hasMany: [{
 		model: 'DbsLamTransferStepModel',
@@ -50,7 +53,8 @@ Ext.define('DbsLamTransferOneModel',{
 	fields: [
 		{name: 'transfer_filerecord_id', type:'int'},
 		{name: 'transfer_txt', type:'string'},
-		{name: 'flow_code', type:'string'}
+		{name: 'flow_code', type:'string'},
+		{name: 'step_code', type:'string'}
 	],
 	hasMany: [{
 		model: 'DbsLamTransferGridModel',
@@ -66,7 +70,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 	requires: ['Optima5.Modules.Spec.DbsLam.TransferCreateForm'],
 	
 	initComponent: function() {
-		this.tmpGridModelName = 'DbsLamStockGridModel-' + this.getId() ;
+		this.tmpGridModelName = 'DbsLamTransferGridModel-' + this.getId() ;
 		this.on('destroy',function(p) {
 			Ext.ux.dams.ModelManager.unregister( p.tmpGridModelName ) ;
 		}) ;
@@ -74,7 +78,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		Ext.apply(this, {
 			layout: 'border',
 			items: [{
-				flex: 3,
+				flex: 2,
 				region: 'center',
 				itemId: 'pCenter',
 				border: false,
@@ -135,11 +139,14 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				}],
 				items: [{xtype:'component',cls: 'ux-noframe-bg', flex:1}]
 			},{
-				region: 'east',
-				flex: 2,
+				region: 'south',
+				flex: 1,
 				xtype: 'panel',
-				layout: 'fit',
-				itemId:'mStockFormContainer',
+				layout: {
+					type: 'hbox',
+					align: 'stretch'
+				},
+				itemId:'pSouth',
 				collapsible:true,
 				collapsed: true,
 				_empty:true,
@@ -148,6 +155,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 						if( eastpanel._empty ) {
 							return false;
 						}
+					},
+					collapse: function(eastpanel) {
+						eastpanel._empty=true;
 					},
 					scope:this
 				}
@@ -196,7 +206,12 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		Ext.ux.dams.ModelManager.unregister( this.tmpGridModelName ) ;
 		Ext.define(this.tmpGridModelName, {
 			extend: 'DbsLamTransferGridModel',
-			fields: pushModelfields
+			fields: pushModelfields,
+			hasMany: [{
+				model: 'DbsLamTransferStepModel',
+				name: 'steps',
+				associationKey: 'steps'
+			}]
 		});
 		
 		pCenter.removeAll() ;
@@ -236,7 +251,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					text: 'Document ID',
 					width: 120
 				},{
-					dataIndex: 'status_code',
+					dataIndex: 'step_code',
 					text: '<b>Status</b>',
 					width: 70,
 					renderer: function(v) {
@@ -293,7 +308,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					text: '',
 					width: 24,
 					renderer: function(v,metadata,record) {
-						if( Ext.isEmpty(record.get('inv_prod')) ) {
+						if( !record.get('status_is_reject') ) {
 							metadata.tdCls = 'op5-spec-dbslam-stock-avail'
 						} else {
 							metadata.tdCls = 'op5-spec-dbslam-stock-notavail'
@@ -301,8 +316,11 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					}
 				},{
 					text: '<b>Status</b>',
-					dataIndex: 'dest_adr',
-					width: 70
+					dataIndex: 'step_code',
+					width: 65,
+					renderer: function(v) {
+						return '<b>'+v+'</b>' ;
+					}
 				},{
 					text: '<b>Source Location</b>',
 					dataIndex: 'src_adr',
@@ -344,6 +362,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			}],
 			listeners: {
 				render: this.doConfigureOnGridRender,
+				itemclick: this.onGridItemClick,
 				itemcontextmenu: this.onGridContextMenu,
 				scope: this
 			},
@@ -464,7 +483,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		
 		gridContextMenu.showAt(event.getXY());
 	},
-	
+	onGridItemClick: function(view,record) {
+		this.setFormRecord(record) ;
+	},
 	
 	
 	doTreeLoad: function() {
@@ -488,7 +509,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 						type: 'transfer',
 						display_txt: transferDoc.transfer_txt,
 						transfer_filerecord_id: transferDoc.transfer_filerecord_id,
-						status_code: transferDoc.status_code
+						step_code: transferDoc.step_code
 					}) ;
 				}) ;
 				
@@ -694,6 +715,113 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			},
 			scope: this
 		}) ;
+	},
+	
+	setFormRecord: function( transferLigRecord ) {
+		var southP = this.down('#pSouth') ;
+		southP._empty = false ;
+		southP.removeAll() ;
+		southP.add({
+			xtype: 'grid',
+			flex: 2,
+			title: 'Steps',
+			store: transferLigRecord.steps(),
+			columns: [{
+				dataIndex: 'status_is_ok',
+				text: '',
+				width: 24,
+				renderer: function(v,metadata,record) {
+					if( v ) {
+						metadata.tdCls = 'op5-spec-dbslam-stock-avail' ;
+					} else {
+						metadata.tdCls = 'op5-spec-dbslam-stock-wait' ;
+					}
+				}
+			},{
+				dataIndex: 'step_code',
+				text: 'Step Code',
+				width: 100,
+				renderer: function(v) {
+					return '<b>'+v+'</b>' ;
+				}
+			},{
+				text: 'Source Loc',
+				width: 100,
+				renderer: function(v,metaData,record) {
+					if( record.get('src_adr_is_grouped') ) {
+						return record.get('src_adr_treenode') ;
+					} else {
+						return record.get('src_adr_entry') ;
+					}
+				}
+			},{
+				dataIndex: 'commit_date',
+				text: 'Commit date',
+				width: 100
+			},{
+				dataIndex: 'commit_user',
+				text: 'Commit user',
+				width: 80
+			},{
+				text: 'Dest Loc',
+				width: 100,
+				renderer: function(v,metaData,record) {
+					if( record.get('dest_adr_is_grouped') ) {
+						return record.get('dest_adr_treenode') ;
+					} else {
+						return record.get('dest_adr_entry') ;
+					}
+				}
+			}]
+		}) ;
+		
+		if( transferLigRecord.get('status_is_reject') ) {
+			var rejectRecords = [] ;
+			Ext.Array.each( transferLigRecord.get('reject_arr'), function(rejectCode) {
+				var rejectTxt ;
+				Ext.Array.each( Optima5.Modules.Spec.DbsLam.HelperCache.getMvtflowAll(), function(mvtflow) {
+					Ext.Array.each( mvtflow.checks, function(check) {
+						if( rejectCode == check.check_code ) {
+							rejectTxt  = check.check_txt
+						}
+					});
+				}) ;
+				rejectRecords.push({
+					reject_code: rejectCode,
+					reject_txt: rejectTxt
+				});
+			}) ;
+			var rejectStore = Ext.create('Ext.data.Store',{
+				fields:[
+					{name:'reject_code',type:'string'},
+					{name:'reject_txt',type:'string'}
+				],
+				data: rejectRecords
+			}) ;
+			southP.add({
+				xtype: 'grid',
+				flex: 1,
+				title: 'Reject causes',
+				store: rejectStore,
+				columns: [{
+					dataIndex: '',
+					text: '',
+					width: 24,
+					renderer: function(v,metadata,record) {
+						metadata.tdCls = 'op5-spec-dbslam-stock-notavail' ;
+					}
+				},{
+					dataIndex: 'reject_code',
+					text: 'Step Code',
+					width: 100
+				},{
+					dataIndex: 'reject_txt',
+					text: 'BatchCode',
+					width: 100
+				}]
+			}) ;
+		}
+		southP.expand() ;
 	},
 	
 	doQuit: function() {

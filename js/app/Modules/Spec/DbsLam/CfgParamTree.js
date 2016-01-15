@@ -105,7 +105,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CfgParamTree',{
 						nodeText: row.flow_code + ' : ' + row.flow_txt,
 						expanded: (doSteps ? true : false),
 						leaf: (doSteps ? false : true),
-						children: (doSteps ? flowChildren : null),
+						children: (doSteps ? flowChildren : null)
 					}) ;
 				}) ;
 				rootNode = {

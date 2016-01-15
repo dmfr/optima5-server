@@ -229,7 +229,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 					xtype:'treecolumn',
 					dataIndex: 'field_ROW_ID',
 					text: 'ID',
-					width: 120,
+					width: 200,
 					renderer: function(v) {
 						return '<b>'+v+'</b>';
 					}

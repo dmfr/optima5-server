@@ -18,6 +18,7 @@ function specDbsLam_transfer_getTransfer($post_data) {
 			'transfer_filerecord_id' => $arr['filerecord_id'],
 			'transfer_txt' => $arr['field_TRANSFER_TXT'],
 			'flow_code' => $arr['field_FLOW_CODE'],
+			'step_code' => $arr['field_STEP_CODE'],
 			'ligs' => array()
 		);
 		if( $post_data['filter_transferFilerecordId'] ) {
@@ -37,7 +38,7 @@ function specDbsLam_transfer_getTransferLig($post_data) {
 	$ttmp = specDbsLam_cfg_getConfig() ;
 	$json_cfg = $ttmp['data'] ;
 	
-	$query = "SELECT tl.filerecord_id as transferlig_filerecord_id, tl.filerecord_parent_id as transfer_filerecord_id, mvt.*, mvtstep.*
+	$query = "SELECT tl.filerecord_id as transferlig_filerecord_id, tl.filerecord_parent_id as transfer_filerecord_id, tl.*, mvt.*, mvtstep.*
 					, sadr.entry_key as src_adr_entry, sadr.treenode_key as src_adr_treenode
 					, dadr.entry_key as dest_adr_entry, dadr.treenode_key as dest_adr_treenode
 				FROM view_file_TRANSFER_LIG tl
@@ -65,7 +66,9 @@ function specDbsLam_transfer_getTransferLig($post_data) {
 				'src_adr' => NULL,
 				'dest_adr' => NULL,
 				'dest_adr_tmp' => NULL,
-				'steps' => array()
+				'steps' => array(),
+				'status_is_reject' => $arr['field_STATUS_IS_REJECT'],
+				'reject_arr' => explode(',',$arr['field_REJECT_ARR'])
 			);
 			foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
 				if( !$stockAttribute_obj['STOCK_fieldcode'] ) {
@@ -92,11 +95,17 @@ function specDbsLam_transfer_getTransferLig($post_data) {
 		$TAB[$filerecord_id]['steps'][] = $row_step ;
 	}
 	// post-process
-	foreach( $TAB as $transferlig_filerecord_id => $row_transferlig ) {
+	foreach( $TAB as $transferlig_filerecord_id => &$row_transferlig ) {
+		$step_code = NULL ;
 		foreach( $row_transferlig['steps'] as $row_transferlig_step ) {
-		
+			if( !$row_transferlig_step['status_is_ok'] ) {
+				$step_code = $row_transferlig_step['step_code'] ;
+				break ;
+			}
 		}
+		$row_transferlig['step_code'] = $step_code ;
 	}
+	unset($row_transferlig) ;
 	
 	return array('success'=>true, 'data'=>array_values($TAB)) ;
 }
@@ -169,13 +178,6 @@ function specDbsLam_transfer_removeStock( $post_data ) {
 	
 	
 	return array('success'=>true) ;
-}
-function specDbsLam_transfer_commit( $post_data ) {
-	global $_opDB ;
-	
-	$transferLig_filerecordIds = json_decode($post_data['transferLig_filerecordIds'],true) ;
-	
-	
 }
 
 
@@ -277,8 +279,20 @@ function specDbsLam_transfer_createDoc($post_data) {
 	global $_opDB ;
 	$form_data = json_decode($post_data['data'],true) ;
 	
+	if( $form_data['flow_code'] ) {
+		$ttmp = specDbsLam_cfg_getMvtflow() ;
+		$cfg_mvtflow = $ttmp['data'] ;
+		foreach( $cfg_mvtflow as $row_mvtflow ) {
+			if( $row_mvtflow['flow_code'] == $form_data['flow_code'] ) {
+				$row_mvtflowstep = reset($row_mvtflow['steps']) ;
+				$init_mvtflowstep = $row_mvtflowstep['step_code'] ;
+			}
+		}
+	}
+	
 	$arr_ins = array(
 		'field_FLOW_CODE' => $form_data['flow_code'],
+		'field_STEP_CODE' => $init_mvtflowstep,
 		'field_TRANSFER_TXT' => $form_data['transfer_txt'] 
 	);
 	paracrm_lib_data_insertRecord_file('TRANSFER',0,$arr_ins) ;
@@ -304,9 +318,95 @@ function specDbsLam_transfer_deleteDoc($post_data) {
 	paracrm_lib_data_deleteRecord_file('TRANSFER',$transfer_filerecordId) ;
 	
 	return array('success'=>true) ;
-	
 }
 
 
+
+
+function specDbsLam_transfer_saveReject($post_data) {
+	global $_opDB ;
+	
+	foreach( json_decode($post_data['transferLigFilerecordId_arr'],true) as $transferLigFilerecordId ) {
+		$arr_update = array();
+		$arr_update['field_STATUS_IS_REJECT'] = TRUE ;
+		$arr_update['field_REJECT_ARR'] = implode(',',json_decode($post_data['rejectCheckCode_arr'],true)) ;
+		paracrm_lib_data_updateRecord_file('TRANSFER_LIG',$arr_update,$transferLigFilerecordId) ;
+	}
+	
+	specDbsLam_transfer_lib_advanceDoc($post_data['transferFilerecordId']) ;
+	
+	return array('success'=>true, 'debug'=>$post_data) ;
+}
+
+function specDbsLam_transfer_commitAdrTmp($post_data) {
+	global $_opDB ;
+	
+	foreach( json_decode($post_data['transferLigFilerecordId_arr'],true) as $transferLigFilerecordId ) {
+		$arr_update = array();
+		$arr_update['field_STATUS_IS_REJECT'] = FALSE ;
+		$arr_update['field_REJECT_ARR'] = NULL ;
+		paracrm_lib_data_updateRecord_file('TRANSFER_LIG',$arr_update,$transferLigFilerecordId) ;
+	}
+	
+	
+	
+	// ****************************************
+	$current_step_code = $post_data['transferStepCode'] ;
+	$current_flow_code = $_opDB->query_uniqueValue("SELECT treenode_key FROM view_bible_CFG_MVTFLOW_entry WHERE entry_key='{$current_step_code}'");
+	
+	$steps = array() ;
+	$query = "SELECT entry_key FROM view_bible_CFG_MVTFLOW_entry WHERE treenode_key='{$current_flow_code}' ORDER BY entry_key" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$steps[] = $arr[0] ;
+	}
+	foreach( $steps as $step ) {
+		if( $step == $current_step_code ) {
+			$next_step_code = current($steps) ;
+		}
+	}
+	
+	
+	// CURRENT LOCATION IS TMP ?
+	
+	
+	// CREATE PARENT LOCATION
+	$location_treenodeKey = 'TMP_'.$post_data['location'] ;
+	if( !paracrm_lib_data_getRecord_bibleTreenode('ADR',$location_treenodeKey) ) {
+		paracrm_lib_data_insertRecord_bibleTreenode('ADR',$location_treenodeKey,'TMP',array('field_ROW_ID'=>$location_treenodeKey)) ;
+	}
+	
+	$location_entryKey = 'TMP_POS_'.date('Hi') ;
+	if( !paracrm_lib_data_getRecord_bibleEntry('ADR',$location_entryKey) ) {
+		paracrm_lib_data_insertRecord_bibleEntry('ADR',$location_entryKey,$location_treenodeKey,array('field_ADR_ID'=>$location_entryKey)) ;
+	}
+	
+	foreach( json_decode($post_data['transferLigFilerecordId_arr'],true) as $transferLig_filerecordId ) {
+		// mvt ID ?
+		$query = "SELECT field_FILE_MVT_ID FROM view_file_TRANSFER_LIG WHERE filerecord_id='{$transferLig_filerecordId}'" ;
+		$mvt_filerecordId = $_opDB->query_uniqueValue($query) ;
+		if( !$mvt_filerecordId ) {
+			continue ;
+		}
+		if( specDbsLam_lib_procMvt_commit($mvt_filerecordId, $location_entryKey, $next_step_code ) ) {
+			$arr_update = array();
+			$arr_update['field_STATUS_IS_REJECT'] = FALSE ;
+			$arr_update['field_REJECT_ARR'] = NULL ;
+			$arr_update['field_STEP_CODE'] = $next_step_code ;
+			paracrm_lib_data_updateRecord_file('TRANSFER_LIG',$arr_update,$transferLigFilerecordId) ;
+		}
+	}
+	
+	
+	
+	specDbsLam_transfer_lib_advanceDoc($post_data['transferFilerecordId']) ;
+	
+	return array('success'=>true, 'debug'=>$post_data) ;
+}
+
+
+function specDbsLam_transfer_lib_advanceDoc($transfer_filerecordId) {
+	global $_opDB ;
+}
 
 ?>

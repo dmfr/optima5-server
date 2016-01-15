@@ -106,15 +106,73 @@ function specDbsLam_lib_procMvt_delMvt($mvt_filerecordId) {
 }
 
 
-function specDbsLam_lib_procMvt_commit($mvt_filerecordId) {
+function specDbsLam_lib_procMvt_commit($mvt_filerecordId, $adr_dest, $next_step_code) {
+	global $_opDB ;
+
+	$query = "SELECT * FROM view_file_MVT WHERE
+		filerecord_id='{$mvt_filerecordId}'" ;
+	$result = $_opDB->query($query) ;
+	if( $_opDB->num_rows($result) != 1 ) {
+		return FALSE ;
+	}
+	$row_mvt = $_opDB->fetch_assoc($result) ;
+	$qte_mvt = (float)$row_mvt['field_QTY_MVT'] ;
+	
+	$query = "SELECT * FROM view_file_MVT_STEP WHERE
+		filerecord_parent_id='{$mvt_filerecordId}' AND field_STATUS_IS_OK='0'" ;
+	$result = $_opDB->query($query) ;
+	if( $_opDB->num_rows($result) != 1 ) {
+		return FALSE ;
+	}
+	$row_mvt_step = $_opDB->fetch_assoc($result) ;
+	
+	$stock_filerecordId = $row_mvt_step['field_FILE_STOCK_ID'] ;
+	
+	$query = "SELECT * FROM view_file_STOCK WHERE filerecord_id='{$stock_filerecordId}'" ;
+	$result = $_opDB->query($query) ;
+	if( $_opDB->num_rows($result) != 1 ) {
+		return FALSE ;
+	}
+	$row_stock = $_opDB->fetch_assoc($result) ;
+	$row_stock['field_ADR_ID'] = $adr_dest ;
+	$row_stock['field_QTY_AVAIL'] = $row_stock['field_QTY_OUT'] ;
+	$row_stock['field_QTY_OUT'] = 0 ;
+	paracrm_lib_data_deleteRecord_file( 'STOCK' , $stock_filerecordId ) ;
+	$stock_filerecordId = paracrm_lib_data_insertRecord_file('STOCK',0,$row_stock) ;
+	
+	
 	// creation lig STOCK
 	
 	
+	
 	// flag MVT
+	$arr_update = array() ;
+	$arr_update['field_DEST_ADR_ID'] =  $adr_dest ;
+	$arr_update['field_DEST_ADR_IS_GROUPED'] = 1 ;
+	$arr_update['field_STATUS_IS_OK'] = 1 ;
+	$arr_update['field_COMMIT_DATE'] = date('Y-m-d H:i:s') ;
+	$arr_update['field_COMMIT_USER'] = 'DM:LAMS' ;
+	$arr_cond = array() ;
+	$arr_cond['filerecord_id'] = $row_mvt_step['filerecord_id'] ;
+	$_opDB->update('view_file_MVT_STEP',$arr_update, $arr_cond) ;
 	
 	
 	// if step=not_final => specDbsLam_lib_procMvt_addStock (chain reaction...)
-	
+	if( $next_step_code ) {
+		$row_mvt_step = array(
+			'field_STEP_CODE' => $next_step_code,
+			'field_FILE_STOCK_ID' => $stock_filerecordId,
+			'field_SRC_ADR_ID' => $row_stock['field_ADR_ID'],
+			'field_DATE_START' => date('Y-m-d H:i:s')
+		) ;
+		paracrm_lib_data_insertRecord_file('MVT_STEP',$mvt_filerecordId,$row_mvt_step) ;
+		
+		
+		$query = "UPDATE view_file_STOCK 
+				SET field_QTY_AVAIL = field_QTY_AVAIL - '{$qte_mvt}', field_QTY_OUT = field_QTY_OUT + '{$qte_mvt}'
+				WHERE filerecord_id='{$stock_filerecordId}'" ;
+		$_opDB->query($query) ;
+	}
 	
 	
 	return ;

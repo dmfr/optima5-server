@@ -172,7 +172,8 @@ function specDbsLam_cfg_getMvtflow() {
 		$record = array(
 			'flow_code' => $arr['field_FLOW_CODE'],
 			'flow_txt' => $arr['field_FLOW_TXT'],
-			'steps' => array()
+			'steps' => array(),
+			'checks' => array()
 		) ;
 		
 		$TAB[$flow_code] = $record ;
@@ -189,11 +190,28 @@ function specDbsLam_cfg_getMvtflow() {
 		$record = array(
 			'step_code' => $arr['field_STEP_CODE'],
 			'step_txt' => $arr['field_STEP_TXT'],
+			'is_checklist' => $arr['field_IS_CHECKLIST'],
 			'is_attach_parent' => $arr['field_IS_ATTACH_PARENT'],
 			'is_final' => $arr['field_IS_FINAL']
 		) ;
 		
 		$TAB[$flow_code]['steps'][] = $record ;
+	}
+	
+	$query = "SELECT * FROM view_bible_CFG_CHECKS_entry ORDER BY treenode_key, entry_key" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$flow_code = $arr['treenode_key'] ;
+		if( !$TAB[$flow_code] ) {
+			continue ;
+		}
+		$check_code = $arr['field_CHECK_CODE'] ;
+		$record = array(
+			'check_code' => $arr['field_CHECK_CODE'],
+			'check_txt' => $arr['field_CHECK_TXT']
+		) ;
+		
+		$TAB[$flow_code]['checks'][] = $record ;
 	}
 	
 	return array('success'=>true, 'data'=>array_values($TAB)) ;

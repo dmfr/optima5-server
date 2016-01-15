@@ -66,6 +66,11 @@ switch( $post_data['_action'] )
 	case 'transfer_deleteDoc' :
 	return specDbsLam_transfer_deleteDoc( $post_data ) ;
 	
+	case 'transfer_saveReject' :
+	return specDbsLam_transfer_saveReject( $post_data ) ;
+	case 'transfer_commitAdrTmp' :
+	return specDbsLam_transfer_commitAdrTmp( $post_data ) ;
+	
 	default :
 	return NULL ;
 }

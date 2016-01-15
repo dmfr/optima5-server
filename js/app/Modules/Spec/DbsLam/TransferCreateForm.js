@@ -42,7 +42,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferCreateForm',{
 					fieldLabel: 'Flow class',
 					cfgParam_id: 'MVTFLOW',
 					allowBlank: false,
-					cfgParam_emptyDisplayText: 'Flow / Step',
+					cfgParam_emptyDisplayText: 'Flow / Step'
 				})]
 			}],
 			buttons: [{
