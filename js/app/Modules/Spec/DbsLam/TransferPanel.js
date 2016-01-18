@@ -22,7 +22,9 @@ Ext.define('DbsLamTransferStepModel',{
 		{name: 'src_adr_display', type:'string'},
 		{name: 'dest_adr_entry', type:'string', useNull:true},
 		{name: 'dest_adr_treenode', type:'string', useNull:true},
-		{name: 'dest_adr_display', type:'string'}
+		{name: 'dest_adr_display', type:'string'},
+		{name: 'commit_user', type: 'string'},
+		{name: 'commit_date', type: 'string'}
 	]
 });
 Ext.define('DbsLamTransferGridModel',{
@@ -32,6 +34,7 @@ Ext.define('DbsLamTransferGridModel',{
 		{name: 'transfer_filerecord_id', type:'int'},
 		{name: 'transferlig_filerecord_id', type:'int'},
 		{name: 'status', type:'boolean'},
+		{name: 'status_is_ok', type:'boolean'},
 		{name: 'status_is_reject', type:'boolean'},
 		{name: 'step_code', type:'string'},
 		{name: 'src_adr', type:'string'},
@@ -314,10 +317,12 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					text: '',
 					width: 24,
 					renderer: function(v,metadata,record) {
-						if( !record.get('status_is_reject') ) {
-							metadata.tdCls = 'op5-spec-dbslam-stock-avail'
-						} else {
+						if( record.get('status_is_reject') ) {
 							metadata.tdCls = 'op5-spec-dbslam-stock-notavail'
+						} else if( !record.get('status_is_ok') ) {
+							metadata.tdCls = 'op5-spec-dbslam-stock-wait'
+						} else {
+							metadata.tdCls = 'op5-spec-dbslam-stock-avail'
 						}
 					}
 				},{
@@ -360,10 +365,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					text: '<b>Dest Location</b>',
 					dataIndex: 'current_adr',
 					renderer: function(v,metaData,record) {
-						if( !record.get('current_adr_tmp') ) {
+						if( record.get('status_is_ok') ) {
 							return '<b>'+v+'</b>' ;
 						} else {
-							return v ;
+							return '<i>'+v+'</i>' ;
 						}
 					}
 				}]

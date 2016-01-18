@@ -115,6 +115,7 @@ function specDbsLam_transfer_getTransferLig($post_data) {
 			}
 			if( $row_transferlig_step['status_is_ok'] && ($idx==count($row_transferlig['steps'])-1) ) {
 				$row_transferlig['current_adr'] = $row_transferlig_step['dest_adr_display'] ;
+				$row_transferlig['status_is_ok'] = TRUE ;
 			}
 		}
 	}
@@ -354,13 +355,40 @@ function specDbsLam_transfer_saveReject($post_data) {
 }
 
 function specDbsLam_transfer_lib_cleanAdr() {
+	global $_opDB ;
 
+	$query = "DELETE view_bible_ADR_entry 
+					from view_bible_ADR_entry
+					LEFT OUTER JOIN view_file_STOCK ON view_file_STOCK.field_ADR_ID=view_bible_ADR_entry.entry_key
+					WHERE view_bible_ADR_entry.entry_key LIKE 'TMP_%' AND view_file_STOCK.field_ADR_ID IS NULL" ;
+	$_opDB->query($query) ;
+	
+	$arr_parentTreenodes = array() ;
+	$query = "SELECT distinct treenode_parent_key FROM view_bible_ADR_tree
+				WHERE treenode_key LIKE 'TMP_%' AND treenode_parent_key NOT IN ('','&')" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$arr_parentTreenodes[] = $arr[0] ;
+	}
+	
+	$arr_usedTreenodes = array() ;
+	$query = "SELECT distinct treenode_key FROM view_bible_ADR_entry
+				WHERE treenode_key LIKE 'TMP_%' AND treenode_key NOT IN ('','&')" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$arr_usedTreenodes[] = $arr[0] ;
+	}
+	
+	$arr_tokeepTreenodes = array_merge($arr_parentTreenodes,$arr_usedTreenodes) ;
+	$query = "DELETE FROM view_bible_ADR_tree WHERE treenode_key LIKE 'TMP_%'" ;
+	if( $arr_tokeepTreenodes ) {
+		$query.= " AND treenode_key NOT IN ".$_opDB->makeSQLlist($arr_tokeepTreenodes) ;
+	}
+	$_opDB->query($query) ;
 }
 function specDbsLam_transfer_commitAdrTmp($post_data) {
 	global $_opDB ;
 	$prefix_TMP = 'TMP_' ;
-	
-	specDbsLam_transfer_lib_cleanAdr() ;
 	
 	$p_transferFilerecordId = $post_data['transferFilerecordId'] ;
 	$p_transferLigFilerecordId_arr = json_decode($post_data['transferLigFilerecordId_arr'],true) ;
@@ -437,7 +465,11 @@ function specDbsLam_transfer_commitAdrTmp($post_data) {
 				}
 			}
 		}
-		$full=call_user_func_array('array_intersect', $arr_arrTreenodes);
+		if( count($arr_arrTreenodes) > 1 ) {
+			$full=call_user_func_array('array_intersect', $arr_arrTreenodes);
+		} else {
+			$full = reset($arr_arrTreenodes) ;
+		}
 		$unique_treenode = reset($full) ;
 		
 		
@@ -450,9 +482,8 @@ function specDbsLam_transfer_commitAdrTmp($post_data) {
 			$location_treenodeKey = 'TMP_'.$post_data['location'] ;
 			if( !paracrm_lib_data_getRecord_bibleTreenode('ADR',$location_treenodeKey) ) {
 				paracrm_lib_data_insertRecord_bibleTreenode('ADR',$location_treenodeKey,'TMP',array('field_ROW_ID'=>$location_treenodeKey)) ;
-			} else {
-				paracrm_lib_data_bibleAssignParentTreenode( 'ADR', $unique_treenode, $location_treenodeKey ) ;
 			}
+			paracrm_lib_data_bibleAssignParentTreenode( 'ADR', $unique_treenode, $location_treenodeKey ) ;
 		} else {
 			$location_treenodeKey = $unique_treenode ;
 			paracrm_lib_data_bibleAssignParentTreenode( 'ADR', $unique_treenode, 'TMP' ) ;
@@ -486,12 +517,13 @@ function specDbsLam_transfer_commitAdrTmp($post_data) {
 			$arr_update['field_STATUS_IS_REJECT'] = FALSE ;
 			$arr_update['field_REJECT_ARR'] = NULL ;
 			$arr_update['field_STEP_CODE'] = $next_step_code ;
-			paracrm_lib_data_updateRecord_file('TRANSFER_LIG',$arr_update,$transferLigFilerecordId) ;
+			paracrm_lib_data_updateRecord_file('TRANSFER_LIG',$arr_update,$transferLig_filerecordId) ;
 		}
 	}
 	
 	
 	specDbsLam_transfer_lib_advanceDoc($post_data['transferFilerecordId']) ;
+	specDbsLam_transfer_lib_cleanAdr() ;
 	
 	return array('success'=>true, 'debug'=>$post_data) ;
 }
@@ -567,6 +599,7 @@ function specDbsLam_transfer_commitAdrFinal($post_data) {
 	
 
 	specDbsLam_transfer_lib_advanceDoc($post_data['transferFilerecordId']) ;
+	specDbsLam_transfer_lib_cleanAdr() ;
 	
 	return array('success'=>true, 'data'=> $adr_obj) ;
 }

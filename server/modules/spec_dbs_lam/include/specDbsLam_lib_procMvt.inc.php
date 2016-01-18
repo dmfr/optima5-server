@@ -177,7 +177,7 @@ function specDbsLam_lib_procMvt_commit($mvt_filerecordId, $adr_dest, $adr_dest_d
 	}
 	
 	
-	return ;
+	return TRUE ;
 }
 
 

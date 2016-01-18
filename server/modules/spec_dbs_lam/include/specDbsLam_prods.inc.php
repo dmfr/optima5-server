@@ -53,11 +53,11 @@ function specDbsLam_prods_getStockGrid($post_data) {
 	$forward_post = array() ;
 	$forward_post['start'] ;
 	$forward_post['limit'] ;
-	$forward_post['file_code'] = 'INV' ;
+	$forward_post['file_code'] = 'STOCK' ;
 	$forward_post['filter'] = json_encode(array(
 		array(
 			'operator' => 'in',
-			'property' => 'INV_field_PROD_ID',
+			'property' => 'STOCK_field_PROD_ID',
 			'value' => array( $post_data['prod_id'] )
 		)
 	)) ;
@@ -69,7 +69,7 @@ function specDbsLam_prods_getStockGrid($post_data) {
 		$row = array() ;
 		$row['adr_id'] = $paracrm_row['INV_field_ADR_ID'] ;
 		$row['inv_prod'] = $paracrm_row['INV_field_PROD_ID'] ;
-		$row['inv_batch'] = $paracrm_row['INV_field_BATCH_CODE'] ;
+		$row['inv_batch'] = $paracrm_row['INV_field_SPEC_BATCH'] ;
 		$row['inv_qty'] = $paracrm_row['INV_field_QTY_AVAIL'] ;
 		$TAB[] = $row ;
 	}

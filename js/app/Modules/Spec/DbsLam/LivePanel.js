@@ -700,6 +700,12 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 		this.transferLigRecord_arr = [] ;
 		this.transferRecord.ligs().each( function(transferLigRecord) {
 			if( Ext.Array.contains( transferLigFilerecordId_arr, transferLigRecord.get('transferlig_filerecord_id').toString() ) ) {
+				if( transferLigRecord.get('step_code') != this.transferRecord.get('step_code') ) {
+					Ext.MessageBox.alert('Error','Status mismatch for SKU / container ('+transferLigRecord.get('step_code')+')', function() {
+						this.onOpenTransfer() ;
+					},this) ;
+					return ;
+				}
 				this.transferLigRecord_arr.push( transferLigRecord ) ;
 			}
 		},this) ;
@@ -1004,7 +1010,12 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 	},
 	
 	onLiveResponse: function( ajaxData ) {
+		var formPanel = this.down('form'),
+			form = this.down('form').getForm() ;
 		Ext.Array.each( Optima5.Modules.Spec.DbsLam.HelperCache.getAttributeAll(), function( attribute ) {
+			if( !attribute.PROD_fieldcode ) {
+				return ;
+			}
 			form.findField(attribute.mkey).setReadOnly(true) ;
 		},this) ;
 		
