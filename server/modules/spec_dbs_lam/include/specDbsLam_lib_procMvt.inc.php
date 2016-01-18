@@ -53,6 +53,7 @@ function specDbsLam_lib_procMvt_addStock($stock_filerecordId, $qte_mvt=0, $step_
 		'field_STEP_CODE' => $step_code,
 		'field_FILE_STOCK_ID' => $stock_filerecordId,
 		'field_SRC_ADR_ID' => $row_stock['field_ADR_ID'],
+		'field_SRC_ADR_DISPLAY' => $row_stock['field_ADR_ID'],
 		'field_DATE_START' => date('Y-m-d H:i:s')
 	) ;
 	paracrm_lib_data_insertRecord_file('MVT_STEP',$mvt_filerecordId,$row_mvt_step) ;
@@ -106,7 +107,7 @@ function specDbsLam_lib_procMvt_delMvt($mvt_filerecordId) {
 }
 
 
-function specDbsLam_lib_procMvt_commit($mvt_filerecordId, $adr_dest, $next_step_code) {
+function specDbsLam_lib_procMvt_commit($mvt_filerecordId, $adr_dest, $adr_dest_display, $next_step_code) {
 	global $_opDB ;
 
 	$query = "SELECT * FROM view_file_MVT WHERE
@@ -148,10 +149,10 @@ function specDbsLam_lib_procMvt_commit($mvt_filerecordId, $adr_dest, $next_step_
 	// flag MVT
 	$arr_update = array() ;
 	$arr_update['field_DEST_ADR_ID'] =  $adr_dest ;
-	$arr_update['field_DEST_ADR_IS_GROUPED'] = 1 ;
+	$arr_update['field_DEST_ADR_DISPLAY'] = $adr_dest_display ;
 	$arr_update['field_STATUS_IS_OK'] = 1 ;
 	$arr_update['field_COMMIT_DATE'] = date('Y-m-d H:i:s') ;
-	$arr_update['field_COMMIT_USER'] = 'DM:LAMS' ;
+	$arr_update['field_COMMIT_USER'] = strtoupper($_SESSION['login_data']['delegate_userId']) ;
 	$arr_cond = array() ;
 	$arr_cond['filerecord_id'] = $row_mvt_step['filerecord_id'] ;
 	$_opDB->update('view_file_MVT_STEP',$arr_update, $arr_cond) ;
@@ -163,6 +164,7 @@ function specDbsLam_lib_procMvt_commit($mvt_filerecordId, $adr_dest, $next_step_
 			'field_STEP_CODE' => $next_step_code,
 			'field_FILE_STOCK_ID' => $stock_filerecordId,
 			'field_SRC_ADR_ID' => $row_stock['field_ADR_ID'],
+			'field_SRC_ADR_DISPLAY' => $adr_dest_display,
 			'field_DATE_START' => date('Y-m-d H:i:s')
 		) ;
 		paracrm_lib_data_insertRecord_file('MVT_STEP',$mvt_filerecordId,$row_mvt_step) ;

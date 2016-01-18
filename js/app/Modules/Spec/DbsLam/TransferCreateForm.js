@@ -31,6 +31,12 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferCreateForm',{
 					anchor: '100%'
 				},
 				items:[{
+					xtype:'hiddenfield',
+					name: 'whse_src'
+				},{
+					xtype:'hiddenfield',
+					name: 'whse_dest'
+				},{
 					xtype:'textfield',
 					format: 'Y-m-d',
 					name : 'transfer_txt',
@@ -55,13 +61,16 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferCreateForm',{
 			}]
 		});
 		this.callParent() ;
+		if( this.values ) {
+			this.down('form').getForm().setValues(this.values) ;
+		}
 	},
 	onNewSubmit: function() {
 		var form = this.down('form').getForm() ;
 		if( !form.isValid() ) {
 			return ;
 		}
-		var formValues = this.down('form').getForm().getValues() ;
+		var formValues = this.down('form').getForm().getValues(false,false,false,true) ;
 		
 		
 		this.optimaModule.getConfiguredAjaxConnection().request({

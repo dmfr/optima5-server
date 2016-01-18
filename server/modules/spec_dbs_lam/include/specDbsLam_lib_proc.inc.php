@@ -50,6 +50,11 @@ function specDbsLam_lib_proc_lock_off() {
 function specDbsLam_lib_proc_findAdr( $mvt_obj, $stockAttributes_obj, $excludeAdr_arr ) {
 	global $_opDB ;
 	
+	// Load cfg attributes
+	$ttmp = specDbsLam_cfg_getConfig() ;
+	$json_cfg = $ttmp['data'] ;
+	
+	
 	$adr_id = NULL ;
 	while(TRUE) {
 		if( $mvt_obj ) {
@@ -75,22 +80,25 @@ function specDbsLam_lib_proc_findAdr( $mvt_obj, $stockAttributes_obj, $excludeAd
 			$doCheckAttributes = ($i==1) ;
 			
 			$attributesToCheck = array() ;
-			foreach( specDbsLam_lib_stockAttributes_getStockAttributes() as $stockAttribute_obj ) {
-				$mkey = $stockAttribute_obj['mkey'] ;
-				$STOCK_fieldcode = $stockAttribute_obj['STOCK_fieldcode'] ;
-				
+			foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
+				if( !$stockAttribute_obj['PROD_fieldcode'] ) {
+					continue ;
+				}
+				if( !$stockAttribute_obj['STOCK_fieldcode'] ) {
+					continue ;
+				}
 				if( ($doCheckAttributes || !$stockAttribute_obj['cfg_is_optional']) && $stockAttributes_obj[$mkey] ) {
-					$attributesToCheck[$STOCK_fieldcode] = $stockAttributes_obj[$mkey] ;
+					$attributesToCheck[$stockAttribute_obj['STOCK_fieldcode']] = $stockAttributes_obj[$mkey] ;
 				}
 			}
 			
-			$query = "SELECT stk.* FROM view_bible_STOCK_entry stk
-						LEFT OUTER JOIN view_file_INV inv ON inv.field_ADR_ID = stk.entry_key
+			$query = "SELECT adr.* FROM view_bible_ADR_entry adr
+						LEFT OUTER JOIN view_file_STOCK inv ON inv.field_ADR_ID = adr.entry_key
 						WHERE inv.filerecord_id IS NULL" ;
 			foreach( $attributesToCheck as $STOCK_fieldcode => $neededValue ) {
-				$query.= " AND stk.{$STOCK_fieldcode}='".mysql_real_escape_string(json_encode(array($neededValue)))."'" ;
+				$query.= " AND adr.{$STOCK_fieldcode}='".mysql_real_escape_string(json_encode(array($neededValue)))."'" ;
 			}
-			$query.= " ORDER BY stk.field_PRIO_IDX LIMIT 1" ;
+			$query.= " ORDER BY adr.field_PRIO_IDX LIMIT 1" ;
 			$result = $_opDB->query($query) ;
 			while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 				$status = 'OK_NEW' ;

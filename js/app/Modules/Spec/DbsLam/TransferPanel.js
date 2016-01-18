@@ -4,7 +4,9 @@ Ext.define('DbsLamTransferTreeModel',{
 		{name: 'display_txt', string: 'string'},
 		{name: 'type', type:'string'},
 		{name: 'transfer_filerecord_id', type:'int'},
-		{name: 'step_code', type:'string'}
+		{name: 'step_code', type:'string'},
+		{name: 'whse_src', type:'string'},
+		{name: 'whse_dest', type:'string'}
 	]
 });
 
@@ -17,10 +19,10 @@ Ext.define('DbsLamTransferStepModel',{
 		{name: 'status_is_previous', type: 'boolean'},
 		{name: 'src_adr_entry', type:'string', useNull:true},
 		{name: 'src_adr_treenode', type:'string', useNull:true},
-		{name: 'src_adr_is_grouped', type:'boolean'},
+		{name: 'src_adr_display', type:'string'},
 		{name: 'dest_adr_entry', type:'string', useNull:true},
 		{name: 'dest_adr_treenode', type:'string', useNull:true},
-		{name: 'dest_adr_is_grouped', type:'boolean'}
+		{name: 'dest_adr_display', type:'string'}
 	]
 });
 Ext.define('DbsLamTransferGridModel',{
@@ -34,7 +36,7 @@ Ext.define('DbsLamTransferGridModel',{
 		{name: 'step_code', type:'string'},
 		{name: 'src_adr', type:'string'},
 		{name: 'current_adr', type: 'string'},
-		{name: 'desc_adr', type:'string'},
+		{name: 'current_adr_tmp', type:'boolean'},
 		{name: 'stk_prod', type:'string'},
 		{name: 'stk_batch', type:'string'},
 		{name: 'stk_sn', type:'string'},
@@ -54,7 +56,9 @@ Ext.define('DbsLamTransferOneModel',{
 		{name: 'transfer_filerecord_id', type:'int'},
 		{name: 'transfer_txt', type:'string'},
 		{name: 'flow_code', type:'string'},
-		{name: 'step_code', type:'string'}
+		{name: 'step_code', type:'string'},
+		{name: 'whse_src', type:'string'},
+		{name: 'whse_dest', type:'string'}
 	],
 	hasMany: [{
 		model: 'DbsLamTransferGridModel',
@@ -99,7 +103,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					icon: 'images/op5img/ico_blocs_small.gif',
 					text: '<i>Origin</i>',
 					itemId: 'btnWhseSrc',
-					optimaModule: this.optimaModule
+					optimaModule: this.optimaModule,
+					value: 'SDV' // HACK
 				}),{
 					icon: 'images/op5img/ico_arrow-double_16.png',
 					disabled: true,
@@ -109,7 +114,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					icon: 'images/op5img/ico_blocs_small.gif',
 					text: '<i>Destination</i>',
 					itemId: 'btnWhseDest',
-					optimaModule: this.optimaModule
+					optimaModule: this.optimaModule,
+					value: 'MIT' // HACK
 				}),'-',{
 					itemId: 'tbCreate',
 					icon: 'images/op5img/ico_new_16.gif',
@@ -352,7 +358,14 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					}]
 				},{
 					text: '<b>Dest Location</b>',
-					dataIndex: 'dest_adr'
+					dataIndex: 'current_adr',
+					renderer: function(v,metaData,record) {
+						if( !record.get('current_adr_tmp') ) {
+							return '<b>'+v+'</b>' ;
+						} else {
+							return v ;
+						}
+					}
 				}]
 			},
 			plugins: [{
@@ -509,7 +522,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 						type: 'transfer',
 						display_txt: transferDoc.transfer_txt,
 						transfer_filerecord_id: transferDoc.transfer_filerecord_id,
-						step_code: transferDoc.step_code
+						step_code: transferDoc.step_code,
+						whse_src: transferDoc.whse_src,
+						whse_dest: transferDoc.whse_dest
 					}) ;
 				}) ;
 				
@@ -549,6 +564,12 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 	},
 	
 	openCreatePopup: function() {
+		var whseSrc = this.down('#btnWhseSrc').getValue(),
+			whseDest = this.down('#btnWhseDest').getValue() ;
+		if( Ext.isEmpty(whseSrc) || Ext.isEmpty(whseSrc) ) {
+			Ext.Msg.alert('Notice','Select source/destination warehouse') ;
+		}
+		
 		this.getEl().mask() ;
 		// Open panel
 		var createPanel = Ext.create('Optima5.Modules.Spec.DbsLam.TransferCreateForm',{
@@ -565,7 +586,11 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					p.ownerCt.destroy();
 				},
 				scope: this
-			}]
+			}],
+			values: {
+				whse_src: whseSrc,
+				whse_dest: whseDest
+			}
 		});
 		createPanel.on('saved', function(p) {
 			this.doTreeLoad() ;
@@ -580,6 +605,11 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 	},
 	
 	openStockPopup: function() {
+		var treepanel = this.down('#pCenter').down('#pTree'),
+			selectedNodes = treepanel.getView().getSelectionModel().getSelection(),
+			isDocSelected = (selectedNodes.length==1 && selectedNodes[0].get('type')=='transfer'),
+			whseSrc = selectedNodes[0].get('whse_src') ;
+		
 		this.optimaModule.createWindow({
 			width:1100,
 			height:600,
@@ -590,7 +620,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				optimaModule: this.optimaModule,
 				_popupMode: true,
 				_enableDD: true,
-				whseCode: 'SDV'
+				whseCode: whseSrc
 			})]
 		}) ;
 	},
@@ -746,14 +776,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				}
 			},{
 				text: 'Source Loc',
-				width: 100,
-				renderer: function(v,metaData,record) {
-					if( record.get('src_adr_is_grouped') ) {
-						return record.get('src_adr_treenode') ;
-					} else {
-						return record.get('src_adr_entry') ;
-					}
-				}
+				dataIndex: 'src_adr_display',
+				width: 100
 			},{
 				dataIndex: 'commit_date',
 				text: 'Commit date',
@@ -764,14 +788,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				width: 80
 			},{
 				text: 'Dest Loc',
-				width: 100,
-				renderer: function(v,metaData,record) {
-					if( record.get('dest_adr_is_grouped') ) {
-						return record.get('dest_adr_treenode') ;
-					} else {
-						return record.get('dest_adr_entry') ;
-					}
-				}
+				dataIndex: 'dest_adr_display',
+				width: 100
 			}]
 		}) ;
 		

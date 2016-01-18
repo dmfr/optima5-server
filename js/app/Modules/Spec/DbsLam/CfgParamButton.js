@@ -23,7 +23,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CfgParamButton' ,{
 							fn: this.onAfterLoad,
 							scope: this
 						}
-					}
+					},
+					value: this.value
 				})]
 			}
 		});
@@ -31,8 +32,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CfgParamButton' ,{
 		this.baseText = this.text ;
 		
 		this.callParent() ;
+		this.onChange(true) ;
 	},
-	onChange: function() {
+	onChange: function(silent) {
 		var cfgParamTree = this.menu.down('treepanel'),
 			selectedValue = cfgParamTree.getValue() ;
 		if( selectedValue == null ) {
@@ -43,7 +45,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CfgParamButton' ,{
 			this.setText( cfgParamTree.getStore().getNodeById(selectedValue).get('nodeText') ) ;
 		}
 		
-		this.fireEvent('change',selectedValue) ;
+		if( !silent ) {
+			this.fireEvent('change',selectedValue) ;
+		}
 	},
 	getValue: function() {
 		var cfgParamTree = this.menu.down('treepanel'),
