@@ -392,11 +392,16 @@ function specDbsLam_transfer_commitAdrTmp($post_data) {
 	
 	$p_transferFilerecordId = $post_data['transferFilerecordId'] ;
 	$p_transferLigFilerecordId_arr = json_decode($post_data['transferLigFilerecordId_arr'],true) ;
-	
+	$p_transferStepCode = $post_data['transferStepCode'] ;
 	
 	// **** Vérifs STEP *****
 	//  - step <> is_final
 	//  - 
+	$step_isFinal = $_opDB->query_uniqueValue("SELECT field_IS_ADR FROM view_bible_CFG_MVTFLOW_entry WHERE entry_key='{$p_transferStepCode}'") ;
+	if( $step_isFinal ) {
+		return array('success'=>false) ;
+	}
+	
 	
 	// **** Recherche next Step ********
 	$current_step_code = $post_data['transferStepCode'] ;
@@ -422,6 +427,9 @@ function specDbsLam_transfer_commitAdrTmp($post_data) {
 	foreach( $rows_transferLig as $idx => $row_transferLig ) {
 		if( !in_array($row_transferLig['transferlig_filerecord_id'],$p_transferLigFilerecordId_arr) ) {
 			unset($rows_transferLig[$idx]) ;
+		}
+		if( $row_transferLig['step_code'] != $p_transferStepCode ) {
+			return array('success'=>false) ;
 		}
 	}
 	if( count($rows_transferLig) != count($p_transferLigFilerecordId_arr) ) {
@@ -480,6 +488,9 @@ function specDbsLam_transfer_commitAdrTmp($post_data) {
 		*/
 		if( $step_isGroup ) {
 			$location_treenodeKey = 'TMP_'.$post_data['location'] ;
+			if( $location_treenodeKey == $unique_treenode ) {
+				return array('success'=>false, 'error'=>'Destination == Source ?') ;
+			}
 			if( !paracrm_lib_data_getRecord_bibleTreenode('ADR',$location_treenodeKey) ) {
 				paracrm_lib_data_insertRecord_bibleTreenode('ADR',$location_treenodeKey,'TMP',array('field_ROW_ID'=>$location_treenodeKey)) ;
 			}
@@ -532,10 +543,20 @@ function specDbsLam_transfer_commitAdrFinal($post_data) {
 	
 	$p_transferFilerecordId = $post_data['transferFilerecordId'] ;
 	$p_transferLigFilerecordId_arr = json_decode($post_data['transferLigFilerecordId_arr'],true) ;
+	$p_transferStepCode = $post_data['transferStepCode'] ;
 	
 	// Load cfg attributes
 	$ttmp = specDbsLam_cfg_getConfig() ;
 	$json_cfg = $ttmp['data'] ;
+	
+	
+	// **** Vérifs STEP *****
+	//  - step = is_final
+	//  - 
+	$step_isFinal = $_opDB->query_uniqueValue("SELECT field_IS_ADR FROM view_bible_CFG_MVTFLOW_entry WHERE entry_key='{$p_transferStepCode}'") ;
+	if( !$step_isFinal ) {
+		return array('success'=>false) ;
+	}
 	
 	
 	

@@ -942,6 +942,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 				var jsonResponse = Ext.JSON.decode(response.responseText) ;
 				if( jsonResponse.success ) {
 					this.doOpenTransfer(true) ;
+				} else {
+					Ext.Msg.alert('Error',jsonResponse.error) ;
 				}
 			},
 			scope: this
