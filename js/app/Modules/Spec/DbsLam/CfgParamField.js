@@ -69,6 +69,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CfgParamField',{
 		
 		this.callParent() ;
 	},
+	setRootNode: function(rootNode) {
+		var cfgParamTree = this.cfgParamTree ;
+		cfgParamTree.setRootNode(rootNode) ;
+	},
 	onAfterLoad: function() {
 		if( !Optima5.Modules.Spec.DbsLam.HelperCache.authHelperHasAll() && !this.noAuthCheck ) {
 			this.doAuthCleanup() ;
@@ -178,5 +182,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CfgParamField',{
 	getErrors: function( curvalue ) {
 		var errors = this.callParent(arguments) ;
 		return errors;
-	}  
+	},
+	
+	reset: function() {
+		this.callParent() ;
+		this.displayValue() ;
+	}
 }); 

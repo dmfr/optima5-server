@@ -43,6 +43,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CfgParamTree',{
 		me.startLoading() ;
 	},
 	startLoading: function() {
+		if( this.cfgParam_root ) {
+			this.doLoading(this.cfgParam_root) ;
+			return ;
+		}
 		var rootNode, rootChildren = [] ;
 		switch( this.cfgParam_id ) {
 			case 'WHSE' :
@@ -124,10 +128,13 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CfgParamTree',{
 					expanded: true
 				}
 		}
-		
 		this.getStore().setRootNode(rootNode) ;
 		this.onAfterLoad() ;
 		this.fireEvent('load',this) ;
+	},
+	setRootNode: function(rootNode) {
+		this.callParent([rootNode]) ;
+		this.onAfterLoad() ;
 	},
 	onAfterLoad: function() {
 		this.getRootNode().cascadeBy(function(node) {

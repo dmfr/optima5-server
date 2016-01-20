@@ -42,6 +42,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 	requires: ['Optima5.Modules.Spec.DbsLam.CfgParamField'],
 	
 	transferRecord: null,
+	transferStepCode: null,
 	transferLigRecord_arr: null,
 	
 	initCloseFieldsetCfg: function() {
@@ -110,6 +111,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 				},{
 					xtype:'fieldset',
 					itemId: 'fsDocInput',
+					hidden: true,
 					title: 'Document selection',
 					fieldDefaults: {
 						labelWidth: 120,
@@ -122,23 +124,16 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 						fieldLabel: 'Transfer type / Step',
 						optimaModule: this.optimaModule,
 						name: 'input_statusCode'
-					}),{
-						xtype: 'textfield',
+					}),Ext.create('Optima5.Modules.Spec.DbsLam.CfgParamField',{
 						allowBlank:false,
-						fieldLabel: 'Doc Barcode',
-						name: 'input_transferFilerecordId',
-						enableKeyEvents: true,
-						listeners: {
-							keypress: function(field,e) {
-								if( e.getKey() == e.ENTER ) {
-									this.doOpenTransfer() ;
-								}
-							},
-							scope: this
-						}
-					}]
+						fieldLabel: 'Document',
+						cfgParam_emptyDisplayText: '<b>Transfer Documents</b>',
+						optimaModule: this.optimaModule,
+						name: 'input_transferFilerecordId'
+					})]
 				},{
 					xtype:'fieldset',
+					hidden: true,
 					itemId: 'fsDocLigInput',
 					title: 'Document selection',
 					fieldDefaults: {
@@ -163,11 +158,14 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 							optimaModule: this.optimaModule,
 							name: 'display_statusCode',
 							readOnly: true
+						}),Ext.create('Optima5.Modules.Spec.DbsLam.CfgParamField',{
+							allowBlank:false,
+							fieldLabel: 'Document',
+							cfgParam_emptyDisplayText: '<b>Transfer Documents</b>',
+							optimaModule: this.optimaModule,
+							name: 'display_transferFilerecordId',
+							readOnly: true
 						}),{
-							xtype: 'displayfield',
-							name: 'display_transferTxt',
-							fieldLabel: 'Doc Barcode'
-						},{
 							xtype: 'textfield',
 							allowBlank:false,
 							fieldLabel: 'Item Barcode',
@@ -196,6 +194,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 					})]
 				},{
 					xtype: 'container',
+					hidden: true,
 					itemId: 'cntSkuInput',
 					layout: {
 						type: 'hbox',
@@ -322,6 +321,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 				},{
 					anchor: '100%',
 					xtype: 'container',
+					hidden: true,
 					itemId: 'cntOpen',
 					layout: 'hbox',
 					defaults: {
@@ -342,6 +342,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 					}]
 				},{
 					anchor: '100%',
+					hidden: true,
 					xtype: 'container',
 					itemId: 'cntBefore',
 					layout: 'hbox',
@@ -377,6 +378,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 				},{
 					margin: '20 0 10 0',
 					xtype:'fieldset',
+					hidden: true,
 					itemId: 'fsResult',
 					title: 'Résultat Adressage',
 					items:[{
@@ -424,6 +426,14 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 							this.doOpenTransfer(true) ;
 						},
 						scope: this
+					},{
+						xtype:'button',
+						text: 'Impression',
+						icon: 'images/op5img/ico_print_16.png',
+						handler: function() {
+							this.openPrintPopup() ;
+						},
+						scope: this
 					}]
 				}]
 				
@@ -466,14 +476,61 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 			form.setValues({input_statusCode: input_statusCode}) ;
 		}
 		
-		formPanel.down('#fsDocInput').setVisible(true);
+		formPanel.down('#fsDocInput').setVisible(false);
 		formPanel.down('#fsDocLigInput').setVisible(false);
 		formPanel.down('#cntSkuInput').setVisible(false) ;
 		formPanel.down('#cntOpen').setVisible(true) ;
 		formPanel.down('#cntBefore').setVisible(false) ;
 		formPanel.down('#fsResult').setVisible(false) ;
 			  
-		form.findField('input_transferFilerecordId').focus(false,100) ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_lam',
+				_action: 'transfer_getTransfer',
+				filter_transferFilerecordId: formValues.input_transferFilerecordId
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false || ajaxResponse.data.length != 1 ) {
+					Ext.MessageBox.alert('Error','Error', function() {
+						this.resetForm() ;
+					},this) ;
+					return ;
+				}
+				var transferDocsData = ajaxResponse.data ;
+				this.onResetForm(transferDocsData) ;
+			},
+			scope: this
+		}) ;
+	},
+	onResetForm: function( transferDocsData ) {
+		var formPanel = this.down('form'),
+			 form = this.down('form').getForm() ;
+			  
+		var rootChildren = [] ;
+		Ext.Array.each( transferDocsData, function(transferDocRow) {
+			if( transferDocRow.status_is_ok == 1 ) {
+				return ;
+			}
+			rootChildren.push({
+				nodeId: transferDocRow.transfer_filerecord_id,
+				nodeKey: transferDocRow.transfer_filerecord_id,
+				nodeType: 'entry',
+				nodeText: transferDocRow.transfer_txt,
+				leaf: true
+			}) ;
+		}) ;
+		var rootNode = {
+			root: true,
+			children: rootChildren,
+			nodeText: '<b>Transfer Documents</b>',
+			expanded: true
+		};
+		
+		form.findField('input_transferFilerecordId').setRootNode( rootNode ) ;
+		form.findField('display_transferFilerecordId').setRootNode( rootNode ) ;
+		
+		formPanel.down('#fsDocInput').setVisible(true);
 	},
 	
 	handleOpen: function() {
@@ -507,6 +564,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 					return ;
 				}
 				var ajaxDataRow = ajaxResponse.data[0] ;
+				this.transferStepCode = formValues.input_statusCode,
 				this.transferRecord = Ext.ux.dams.ModelManager.create('DbsLamTransferOneModel',ajaxDataRow) ;
 				this.onOpenTransfer(doForce) ;
 			},
@@ -518,7 +576,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 			 form = this.down('form').getForm(),
 			formValues = form.getValues(false,false,false,true) ;
 		
-		// check status
+		// check status TODO: on all open ligs
+		/*
 		var docStatus = this.transferRecord.get('step_code') ;
 		if( !doForce && docStatus != formValues.input_statusCode ) {
 			Ext.MessageBox.alert('Error','Specified step not applicable for Doc', function() {
@@ -526,6 +585,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 			},this) ;
 			return ;
 		}
+		*/
 		
 		
 		// buildTree
@@ -555,7 +615,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 		
 		form.setValues({
 			display_statusCode: formValues.input_statusCode,
-			display_transferTxt: '<b>'+this.transferRecord.get('transfer_txt')+'</b>',
+			display_transferFilerecordId: this.transferRecord.get('transfer_filerecord_id'),
 			input_transferLigFilerecordId: ''
 		}) ;
 		form.findField('input_transferLigFilerecordId').setReadOnly(false) ;
@@ -586,7 +646,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 		this.transferRecord.ligs().each( function(transferLigRecord) {
 			var adrEntry, adrTreenode, adrIsGrouped ;
 			transferLigRecord.steps().each( function(transferLigStepRecord) {
-				if( transferLigStepRecord.get('step_code') != formValues.input_statusCode ) {
+				if( transferLigStepRecord.get('step_code') != this.transferStepCode ) {
 					return ;
 				}
 				
@@ -636,13 +696,13 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 					adrNode.appendChild(skuModel) ;
 				}
 				return false ;
-			});
-		});
+			},this);
+		},this);
 		
 		while(true) {
 			var nodesToRemove = [] ;
 			treeStore.getRoot().cascadeBy(function(node) {
-				if( !node.isLeaf() && !node.hasChildNodes() ) {
+				if( !node.isRoot() && !node.isLeaf() && !node.hasChildNodes() ) {
 					nodesToRemove.push(node) ;
 					return false ;
 				}
@@ -700,7 +760,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 		this.transferLigRecord_arr = [] ;
 		this.transferRecord.ligs().each( function(transferLigRecord) {
 			if( Ext.Array.contains( transferLigFilerecordId_arr, transferLigRecord.get('transferlig_filerecord_id').toString() ) ) {
-				if( transferLigRecord.get('step_code') != this.transferRecord.get('step_code') ) {
+				if( transferLigRecord.get('step_code') != this.transferStepCode ) {
 					Ext.MessageBox.alert('Error','Status mismatch for SKU / container ('+transferLigRecord.get('step_code')+')', function() {
 						this.onOpenTransfer() ;
 					},this) ;
@@ -764,7 +824,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 			docFlow = this.transferRecord.get('flow_code'),
 			flowRecord = Optima5.Modules.Spec.DbsLam.HelperCache.getMvtflow(docFlow) ;
 		Ext.Array.each( flowRecord.steps, function(step) {
-			if( step.step_code == this.transferRecord.get('step_code') && step.is_checklist == 1 ) {
+			if( step.step_code == this.transferStepCode && step.is_checklist == 1 ) {
 				doChecks = true ;
 			}
 		},this) ;
@@ -824,7 +884,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 			flowRecord = Optima5.Modules.Spec.DbsLam.HelperCache.getMvtflow(docFlow),
 			isFinal = false ;
 		Ext.Array.each( flowRecord.steps, function(step) {
-			if( step.step_code == this.transferRecord.get('step_code') && step.is_final == 1 ) {
+			if( step.step_code == this.transferStepCode && step.is_final == 1 ) {
 				isFinal = true ;
 			}
 		},this) ;
@@ -866,8 +926,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 		}) ;
 		
 		
-		Ext.MessageBox.confirm('Confirmation',"Confirm reject ?", function(buttonStr) {
-			if( buttonStr != 'yes' ) {
+		Ext.MessageBox.prompt('Confirmation',"Confirm reject ?\nEnter comment below:", function(buttonStr,mTxt) {
+			if( buttonStr != 'ok' ) {
 				return ;
 			}
 			this.optimaModule.getConfiguredAjaxConnection().request({
@@ -876,8 +936,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 					_action: 'transfer_saveReject',
 					transferFilerecordId: this.transferRecord.get('transfer_filerecord_id'),
 					transferLigFilerecordId_arr: Ext.JSON.encode(transferLigFilerecordId_arr),
-					transferStepCode: this.transferRecord.get('step_code'),
-					rejectCheckCode_arr: Ext.JSON.encode(failedChecks)
+					transferStepCode: this.transferStepCode,
+					rejectCheckCode_arr: Ext.JSON.encode(failedChecks),
+					rejectTxt: mTxt
 				},
 				success: function(response) {
 					var jsonResponse = Ext.JSON.decode(response.responseText) ;
@@ -904,7 +965,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 			flowRecord = Optima5.Modules.Spec.DbsLam.HelperCache.getMvtflow(docFlow),
 			stepRecord ;
 		Ext.Array.each( flowRecord.steps, function(step) {
-			if( step.step_code == this.transferRecord.get('step_code') ) {
+			if( step.step_code == this.transferStepCode ) {
 				stepRecord = step ;
 				return false ;
 			}
@@ -929,19 +990,35 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 		}) ;
 		  
 		
+		// Checklist
+		var docFlow = this.transferRecord.get('flow_code'),
+			flowRecord = Optima5.Modules.Spec.DbsLam.HelperCache.getMvtflow(docFlow),
+			stepRecord ;
+		Ext.Array.each( flowRecord.steps, function(step) {
+			if( step.step_code == this.transferStepCode ) {
+				stepRecord = step ;
+				return false ;
+			}
+		},this) ;
+		var doPrint = (stepRecord.is_print==1);
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_dbs_lam',
 				_action: 'transfer_commitAdrTmp',
 				transferFilerecordId: this.transferRecord.get('transfer_filerecord_id'),
 				transferLigFilerecordId_arr: Ext.JSON.encode(transferLigFilerecordId_arr),
-				transferStepCode: this.transferRecord.get('step_code'),
+				transferStepCode: this.transferStepCode,
 				location: (formPanel.down('#fsRightLocation').isVisible() ? formValues.dest_adr : null)
 			},
 			success: function(response) {
 				var jsonResponse = Ext.JSON.decode(response.responseText) ;
 				if( jsonResponse.success ) {
-					this.doOpenTransfer(true) ;
+					if( doPrint ) {
+						this.down('#cntBefore').setVisible(false) ;
+						this.down('#cntAfter').setVisible(true) ;
+					} else {
+						this.doOpenTransfer(true) ;
+					}
 				} else {
 					Ext.Msg.alert('Error',jsonResponse.error) ;
 				}
@@ -972,7 +1049,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 				_action: 'transfer_commitAdrFinal',
 				transferFilerecordId: this.transferRecord.get('transfer_filerecord_id'),
 				transferLigFilerecordId_arr: Ext.JSON.encode(transferLigFilerecordId_arr),
-				transferStepCode: this.transferRecord.get('step_code'),
+				transferStepCode: this.transferStepCode,
 				stockAttributes_obj: Ext.JSON.encode(atrValues)
 			},
 			success: function(response) {
@@ -986,6 +1063,66 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 			scope: this
 		});
 	},
+	
+	openPrintPopup: function() {
+		var transferLigFilerecordId_arr = [] ;
+		Ext.Array.each( this.transferLigRecord_arr, function(transferLigRecord) {
+			transferLigFilerecordId_arr.push(transferLigRecord.get('transferlig_filerecord_id')) ;
+		}) ;
+		
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_lam',
+				_action: 'transfer_printDoc',
+				transferFilerecordId: this.transferRecord.get('transfer_filerecord_id'),
+				transferLigFilerecordId_arr: Ext.JSON.encode(transferLigFilerecordId_arr),
+				transferStepCode: this.transferStepCode
+			},
+			success: function(response) {
+				var jsonResponse = Ext.JSON.decode(response.responseText) ;
+				if( jsonResponse.success == true ) {
+					this.openPrintPopupDo( 'Container doc', jsonResponse.html ) ;
+				} else {
+					Ext.MessageBox.alert('Error','Print system disabled') ;
+				}
+			},
+			callback: function() {
+				
+			},
+			scope: this
+		}) ;
+	},
+	openPrintPopupDo: function(pageTitle, pageHtml) {
+		this.optimaModule.createWindow({
+			width:850,
+			height:700,
+			iconCls: 'op5-crmbase-qresultwindow-icon',
+			animCollapse:false,
+			border: false,
+			layout:'fit',
+			title: pageTitle,
+			items:[Ext.create('Ext.ux.dams.IFrameContent',{
+				itemId: 'uxIFrame',
+				content:pageHtml
+			})],
+			tbar:[{
+				icon: 'images/op5img/ico_print_16.png',
+				text: 'Print',
+				handler: function(btn) {
+					var uxIFrame = btn.up('window').down('#uxIFrame'),
+						uxIFrameWindows = uxIFrame.getWin() ;
+					if( uxIFrameWindows == null ) {
+						Ext.MessageBox.alert('Problem','Printing disabled !') ;
+						return ;
+					}
+					uxIFrameWindows.print() ;
+				},
+				scope: this
+			}]
+		}); 
+	},
+	
+	
 	
 	doSubmit: function() {
 		

@@ -27,7 +27,7 @@ function specDbsLam_stock_getGrid($post_data) {
 		$row = array() ;
 		
 		if( $arr['field_ADR_ID'] ) {
-			$row['id'] = $arr['field_ADR_ID'].'+'.$arr['field_PROD_ID'].'+'.$arr['field_BATCH_CODE'] ;
+			$row['id'] = $arr['filerecord_id'] ;
 		} else {
 			$row['id'] = $arr['entry_key'] ;
 		}

@@ -4,7 +4,7 @@ Ext.define('DbsLamTransferTreeModel',{
 		{name: 'display_txt', string: 'string'},
 		{name: 'type', type:'string'},
 		{name: 'transfer_filerecord_id', type:'int'},
-		{name: 'step_code', type:'string'},
+		{name: 'status_is_ok', type:'boolean'},
 		{name: 'whse_src', type:'string'},
 		{name: 'whse_dest', type:'string'}
 	]
@@ -37,13 +37,16 @@ Ext.define('DbsLamTransferGridModel',{
 		{name: 'status_is_ok', type:'boolean'},
 		{name: 'status_is_reject', type:'boolean'},
 		{name: 'step_code', type:'string'},
+		{name: 'tree_adr', type:'string'},
 		{name: 'src_adr', type:'string'},
 		{name: 'current_adr', type: 'string'},
 		{name: 'current_adr_tmp', type:'boolean'},
+		{name: 'current_adr_entryKey', type:'string'},
+		{name: 'current_adr_treenodeKey', type:'string'},
 		{name: 'stk_prod', type:'string'},
 		{name: 'stk_batch', type:'string'},
 		{name: 'stk_sn', type:'string'},
-		{name: 'mvt_qty', type:'number'},
+		{name: 'mvt_qty', type:'number', allowNull:true},
 		{name: 'reject_arr', type:'auto'}
 	],
 	hasMany: [{
@@ -59,7 +62,7 @@ Ext.define('DbsLamTransferOneModel',{
 		{name: 'transfer_filerecord_id', type:'int'},
 		{name: 'transfer_txt', type:'string'},
 		{name: 'flow_code', type:'string'},
-		{name: 'step_code', type:'string'},
+		{name: 'status_is_ok', type:'string'},
 		{name: 'whse_src', type:'string'},
 		{name: 'whse_dest', type:'string'}
 	],
@@ -80,6 +83,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		this.tmpGridModelName = 'DbsLamTransferGridModel-' + this.getId() ;
 		this.on('destroy',function(p) {
 			Ext.ux.dams.ModelManager.unregister( p.tmpGridModelName ) ;
+		}) ;
+		this.tmpGridTreeModelName = 'DbsLamTransferGridTreeModel-' + this.getId() ;
+		this.on('destroy',function(p) {
+			Ext.ux.dams.ModelManager.unregister( p.tmpGridTreeModelName ) ;
 		}) ;
 		
 		Ext.apply(this, {
@@ -107,7 +114,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					text: '<i>Origin</i>',
 					itemId: 'btnWhseSrc',
 					optimaModule: this.optimaModule,
-					value: 'SDV' // HACK
+					value: 'STW' // HACK
 				}),{
 					icon: 'images/op5img/ico_arrow-double_16.png',
 					disabled: true,
@@ -223,6 +230,134 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			}]
 		});
 		
+		Ext.ux.dams.ModelManager.unregister( this.tmpGridTreeModelName ) ;
+		Ext.define(this.tmpGridTreeModelName, {
+			extend: 'DbsLamTransferGridModel',
+			fields: pushModelfields,
+			idProperty: 'id'
+		});
+		
+		var gridColumns = {
+			defaults: {
+				menuDisabled: true,
+				draggable: false,
+				sortable: false,
+				hideable: false,
+				resizable: false,
+				groupable: false,
+				lockable: false
+			},
+			items: [{
+				text: '',
+				width: 24,
+				renderer: function(v,metadata,record) {
+					if( record.get('status_is_reject') ) {
+						metadata.tdCls = 'op5-spec-dbslam-stock-notavail'
+					} else if( !record.get('status_is_ok') ) {
+						metadata.tdCls = 'op5-spec-dbslam-stock-wait'
+					} else {
+						metadata.tdCls = 'op5-spec-dbslam-stock-avail'
+					}
+				}
+			},{
+				text: '<b>Status</b>',
+				dataIndex: 'step_code',
+				width: 65,
+				renderer: function(v) {
+					return '<b>'+v+'</b>' ;
+				}
+			},{
+				text: '<b>Source Location</b>',
+				dataIndex: 'src_adr',
+				renderer: function(v) {
+					return '<b>'+v+'</b>' ;
+				}
+			},{
+				text: 'Stock Attributes',
+				columns: atrStockColumns
+			},{
+				text: '<b>SKU details</b>',
+				columns: [{
+					dataIndex: 'stk_prod',
+					text: 'Article',
+					width: 100
+				},{
+					dataIndex: 'stk_batch',
+					text: 'BatchCode',
+					width: 100
+				},{
+					dataIndex: 'mvt_qty',
+					text: 'Qty disp',
+					align: 'right',
+					width: 75
+				},{
+					dataIndex: 'stk_sn',
+					text: 'Serial',
+					width: 100
+				}]
+			},{
+				text: '<b>Dest Location</b>',
+				dataIndex: 'current_adr',
+				renderer: function(v,metaData,record) {
+					if( record.get('status_is_ok') ) {
+						return '<b>'+v+'</b>' ;
+					} else {
+						return '<i>'+v+'</i>' ;
+					}
+				}
+			}]
+		};
+		var gridTreeColumns = {
+			defaults: {
+				menuDisabled: true,
+				draggable: false,
+				sortable: false,
+				hideable: false,
+				resizable: false,
+				groupable: false,
+				lockable: false
+			},
+			items: [{
+				xtype: 'treecolumn',
+				text: '<b>Location</b>',
+				dataIndex: 'tree_adr',
+				width: 200,
+				renderer: function(v) {
+					return '<b>'+v+'</b>' ;
+				}
+			},{
+				text: '<b>Status</b>',
+				dataIndex: 'step_code',
+				width: 65,
+				renderer: function(v) {
+					return '<b>'+v+'</b>' ;
+				}
+			},{
+				text: 'Stock Attributes',
+				columns: atrStockColumns
+			},{
+				text: '<b>SKU details</b>',
+				columns: [{
+					dataIndex: 'stk_prod',
+					text: 'Article',
+					width: 100
+				},{
+					dataIndex: 'stk_batch',
+					text: 'BatchCode',
+					width: 100
+				},{
+					dataIndex: 'mvt_qty',
+					text: 'Qty disp',
+					align: 'right',
+					width: 75
+				},{
+					dataIndex: 'stk_sn',
+					text: 'Serial',
+					width: 100
+				}]
+			}]
+		};
+		
 		pCenter.removeAll() ;
 		pCenter.add({
 			border: 1,
@@ -260,11 +395,13 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					text: 'Document ID',
 					width: 120
 				},{
-					dataIndex: 'step_code',
+					dataIndex: 'status_is_ok',
 					text: '<b>Status</b>',
 					width: 70,
-					renderer: function(v) {
-						return '<b>'+v+'</b>' ;
+					renderer: function(v,metaData,record) {
+						if( v ) {
+							metadata.tdCls = 'op5-spec-dbslam-stock-ok'
+						}
 					}
 				}]
 			},
@@ -277,126 +414,81 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				scope: this
 			}
 		},{
-			border: false,
+			xtype: 'tabpanel',
 			flex:1,
-			xtype:'gridpanel',
-			itemId: 'pGrid',
-			store: {
-				model: this.tmpGridModelName,
-				autoLoad: true,
-				proxy: this.optimaModule.getConfiguredAjaxProxy({
-					extraParams : {
-						_moduleId: 'spec_dbs_lam',
-						_action: 'transfer_getTransferLig'
-					},
-					reader: {
-						type: 'json',
-						rootProperty: 'data'
+			border: false,
+			items: [{
+				title: 'List',
+				xtype:'gridpanel',
+				itemId: 'pGrid',
+				store: {
+					model: this.tmpGridModelName,
+					autoLoad: true,
+					proxy: this.optimaModule.getConfiguredAjaxProxy({
+						extraParams : {
+							_moduleId: 'spec_dbs_lam',
+							_action: 'transfer_getTransferLig'
+						},
+						reader: {
+							type: 'json',
+							rootProperty: 'data'
+						}
+					}),
+					listeners: {
+						beforeload: this.onGridBeforeLoad,
+						load: this.onGridLoad,
+						scope: this
 					}
-				}),
+				},
+				selModel: {
+					mode: 'MULTI'
+				},
+				columns: gridColumns,
+				plugins: [{
+					ptype: 'bufferedrenderer',
+					pluginId: 'bufferedRenderer',
+					synchronousRender: true
+				}],
 				listeners: {
-					beforeload: this.onGridBeforeLoad,
-					load: Ext.emptyFn,
+					render: this.doConfigureOnGridRender,
+					itemclick: this.onGridItemClick,
+					itemcontextmenu: this.onGridContextMenu,
 					scope: this
-				}
-			},
-			selModel: {
-				mode: 'MULTI'
-			},
-			columns: {
-				defaults: {
-					menuDisabled: true,
-					draggable: false,
-					sortable: false,
-					hideable: false,
-					resizable: false,
-					groupable: false,
-					lockable: false
 				},
-				items: [{
-					text: '',
-					width: 24,
-					renderer: function(v,metadata,record) {
-						if( record.get('status_is_reject') ) {
-							metadata.tdCls = 'op5-spec-dbslam-stock-notavail'
-						} else if( !record.get('status_is_ok') ) {
-							metadata.tdCls = 'op5-spec-dbslam-stock-wait'
-						} else {
-							metadata.tdCls = 'op5-spec-dbslam-stock-avail'
-						}
-					}
-				},{
-					text: '<b>Status</b>',
-					dataIndex: 'step_code',
-					width: 65,
-					renderer: function(v) {
-						return '<b>'+v+'</b>' ;
-					}
-				},{
-					text: '<b>Source Location</b>',
-					dataIndex: 'src_adr',
-					renderer: function(v) {
-						return '<b>'+v+'</b>' ;
-					}
-				},{
-					text: 'Stock Attributes',
-					columns: atrStockColumns
-				},{
-					text: '<b>SKU details</b>',
-					columns: [{
-						dataIndex: 'stk_prod',
-						text: 'Article',
-						width: 100
-					},{
-						dataIndex: 'stk_batch',
-						text: 'BatchCode',
-						width: 100
-					},{
-						dataIndex: 'mvt_qty',
-						text: 'Qty disp',
-						align: 'right',
-						width: 75
-					},{
-						dataIndex: 'stk_sn',
-						text: 'Serial',
-						width: 100
-					}]
-				},{
-					text: '<b>Dest Location</b>',
-					dataIndex: 'current_adr',
-					renderer: function(v,metaData,record) {
-						if( record.get('status_is_ok') ) {
-							return '<b>'+v+'</b>' ;
-						} else {
-							return '<i>'+v+'</i>' ;
-						}
-					}
-				}]
-			},
-			plugins: [{
-				ptype: 'bufferedrenderer',
-				pluginId: 'bufferedRenderer',
-				synchronousRender: true
-			}],
-			listeners: {
-				render: this.doConfigureOnGridRender,
-				itemclick: this.onGridItemClick,
-				itemcontextmenu: this.onGridContextMenu,
-				scope: this
-			},
-			viewConfig: {
-				preserveScrollOnRefresh: true,
-				getRowClass: function(record) {
-				},
-				listeners: {
-					beforerefresh: function(view) {
-						view.isRefreshing = true ;
+				viewConfig: {
+					preserveScrollOnRefresh: true,
+					getRowClass: function(record) {
 					},
-					refresh: function(view) {
-						view.isRefreshing = false ;
+					listeners: {
+						beforerefresh: function(view) {
+							view.isRefreshing = true ;
+						},
+						refresh: function(view) {
+							view.isRefreshing = false ;
+						}
 					}
 				}
-			}
+			},{
+				title: 'Tree/Location',
+				xtype: 'treepanel',
+				itemId: 'pGridTree',
+				store: {
+					model: this.tmpGridTreeModelName,
+					root:{},
+					proxy: {
+						type: 'memory',
+						reader: {
+							type: 'json'
+						}
+					}
+				},
+				collapsible: false,
+				useArrows: false,
+				rootVisible: false,
+				multiSelect: false,
+				singleExpand: false,
+				columns: gridTreeColumns
+			}]
 		}) ;
 		
 		// Build tree
@@ -566,6 +658,132 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		}
 		
 		options.setParams(params) ;
+		
+		this.down('#pCenter').down('#pGridTree').setRootNode({root:true}) ;
+	},
+	onGridLoad: function(store) {
+		// buildTree
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_action: 'data_getBibleTreeOne',
+				bible_code: 'ADR'
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					return ;
+				}
+				var dataRoot = ajaxResponse.dataRoot ;
+				this.onGridLoadBuildTree(dataRoot,store) ;
+			},
+			scope: this
+		}) ;
+	},
+	onGridLoadBuildTree: function(dataRoot,gridStore) {
+		var treeStore = Ext.create('Ext.data.TreeStore',{
+			model: 'DbsLamLiveTreeModel',
+			data: dataRoot,
+			proxy: {
+				type: 'memory',
+				reader: {
+					type: 'json'
+				}
+			}
+		}) ;
+		
+		//qualify records
+		var map_treeAdr_childrenAdr = {} ;
+		var map_treeAdr_gridRows = {} ;
+		gridStore.each( function(gridRecord) {
+			var gridRow = Ext.clone(gridRecord.getData()),
+				treeAdr ;
+			
+			if( !gridRecord.get('current_adr_tmp') ) {
+				if( !map_treeAdr_childrenAdr.hasOwnProperty(gridRecord.get('current_adr_treenodeKey')) ) {
+					map_treeAdr_childrenAdr[gridRecord.get('current_adr_treenodeKey')] = [] ;
+				}
+				if( !Ext.Array.contains(map_treeAdr_childrenAdr[gridRecord.get('current_adr_treenodeKey')], gridRecord.get('current_adr_entryKey')) ) {
+					map_treeAdr_childrenAdr[gridRecord.get('current_adr_treenodeKey')].push(gridRecord.get('current_adr_entryKey')) ;
+				}
+				treeAdr = gridRecord.get('current_adr_entryKey') ;
+			} else {
+				treeAdr = gridRecord.get('current_adr_treenodeKey') ;
+			}
+			
+			if( !map_treeAdr_gridRows.hasOwnProperty(treeAdr) ) {
+				map_treeAdr_gridRows[treeAdr] = [] ;
+			}
+			
+			gridRow.leaf = true ;
+			if( gridRecord.get('status_is_reject') ) {
+				gridRow.icon = 'images/op5img/ico_cancel_small.gif' ;
+			} else if( gridRecord.get('status_is_ok') ) {
+				gridRow.icon = 'images/op5img/ico_ok_16.gif' ;
+			} else {
+				gridRow.icon = 'images/op5img/ico_wait_small.gif' ;
+			}
+			
+			map_treeAdr_gridRows[treeAdr].push(gridRow) ;
+		}) ;
+		
+		var cascadeRoot = function(node) {
+			node['tree_adr'] = node.nodeKey ;
+			delete node.checked ;
+			node['icon'] = '' ;
+			if( Ext.isEmpty(node.children) ) {
+				node['leaf'] = false ;
+				node['expanded'] = true ;
+				node.children = [] ;
+			}
+			if( map_treeAdr_childrenAdr[node.tree_adr] ) {
+				Ext.Array.each(map_treeAdr_childrenAdr[node.tree_adr], function(newAdr) {
+					node.children.push({
+						expanded: true,
+						leaf: false,
+						tree_adr: newAdr,
+						nodeKey: newAdr,
+						children: []
+					});
+				}) ;
+			}
+			if( map_treeAdr_gridRows[node.tree_adr] ) {
+				Ext.Array.each(map_treeAdr_gridRows[node.tree_adr], function(gridRow) {
+					node.children.push(gridRow);
+				}) ;
+				return ;
+			}
+			Ext.Array.each( node.children, function(childNode) {
+				cascadeRoot(childNode) ;
+			});
+		} ;
+		cascadeRoot(dataRoot) ;
+		
+		var treeStore = Ext.create('Ext.data.TreeStore',{
+			model: this.tmpGridTreeModelName,
+			data: dataRoot,
+			proxy: {
+				type: 'memory',
+				reader: {
+					type: 'json'
+				}
+			}
+		}) ;
+		while(true) {
+			var nodesToRemove = [] ;
+			treeStore.getRoot().cascadeBy(function(node) {
+				if( !node.isRoot() && !node.isLeaf() && !node.hasChildNodes() ) {
+					nodesToRemove.push(node) ;
+					return false ;
+				}
+			}) ;
+			if( nodesToRemove.length == 0 ) {
+				break ;
+			}
+			Ext.Array.each(nodesToRemove, function(node) {
+				node.remove();
+			});
+		}
+		this.down('#pCenter').down('#pGridTree').setRootNode(treeStore.getRootNode()) ;
 	},
 	
 	openCreatePopup: function() {
@@ -814,6 +1032,12 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					reject_txt: rejectTxt
 				});
 			}) ;
+			if( !Ext.isEmpty(transferLigRecord.get('reject_txt')) ) {
+				rejectRecords.push({
+					reject_code: '',
+					reject_txt: transferLigRecord.get('reject_txt')
+				});
+			}
 			var rejectStore = Ext.create('Ext.data.Store',{
 				fields:[
 					{name:'reject_code',type:'string'},
@@ -835,11 +1059,11 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					}
 				},{
 					dataIndex: 'reject_code',
-					text: 'Step Code',
+					text: 'Code',
 					width: 100
 				},{
 					dataIndex: 'reject_txt',
-					text: 'BatchCode',
+					text: 'Reject desc',
 					width: 100
 				}]
 			}) ;

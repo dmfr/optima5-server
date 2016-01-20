@@ -192,7 +192,8 @@ function specDbsLam_cfg_getMvtflow() {
 			'step_txt' => $arr['field_STEP_TXT'],
 			'is_checklist' => $arr['field_IS_CHECKLIST'],
 			'is_attach_parent' => $arr['field_IS_ATTACH_PARENT'],
-			'is_final' => $arr['field_IS_ADR']
+			'is_final' => $arr['field_IS_ADR'],
+			'is_print' => $arr['field_IS_PRINT']
 		) ;
 		
 		$TAB[$flow_code]['steps'][] = $record ;

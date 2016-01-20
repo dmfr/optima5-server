@@ -6,7 +6,8 @@ Ext.define('DbsLamCfgMvtStepModel',{
 		{name: 'step_txt', type:'string'},
 		{name: 'is_checklist', type: 'boolean'},
 		{name: 'is_attach_parent', type:'boolean'},
-		{name: 'is_final', type:'boolean'}
+		{name: 'is_final', type:'boolean'},
+		{name: 'is_print', type:'boolean'}
 	]
 });
 Ext.define('DbsLamCfgChecklistModel',{
