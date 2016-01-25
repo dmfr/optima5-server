@@ -486,12 +486,11 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_dbs_lam',
-				_action: 'transfer_getTransfer',
-				filter_transferFilerecordId: formValues.input_transferFilerecordId
+				_action: 'transfer_getTransfer'
 			},
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
-				if( ajaxResponse.success == false || ajaxResponse.data.length != 1 ) {
+				if( ajaxResponse.success == false ) {
 					Ext.MessageBox.alert('Error','Error', function() {
 						this.resetForm() ;
 					},this) ;
@@ -665,7 +664,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 					isSku: true,
 					nodeKey: transferLigRecord.get('transferlig_filerecord_id'),
 					nodeText: '<b>'+transferLigRecord.get('stk_prod')+'</b>'+' / Qty:'+transferLigRecord.get('mvt_qty')
-				}
+				};
 				
 				if( transferLigRecord.get('status_is_reject') ) {
 					skuModel['icon'] = 'images/op5img/ico_cancel_small.gif' ;
@@ -680,12 +679,18 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 				if( adrIsGrouped ) {
 					// attach to treenode
 					var treenodeNode = rootNode.findChild('nodeKey',adrTreenode,true) ;
+					if( !treenodeNode ) {
+						return false ;
+					}
 					treenodeNode.expand();
 					treenodeNode.appendChild(skuModel) ;
 				} else {
 					var adrNode = rootNode.findChild('nodeKey',adrEntry,true) ;
 					if( !adrNode ) {
 						var treenodeNode = rootNode.findChild('nodeKey',adrTreenode,true) ;
+						if( !treenodeNode ) {
+							return false ;
+						}
 						treenodeNode.expand() ;
 						adrNode = treenodeNode.appendChild({
 							expanded: true,

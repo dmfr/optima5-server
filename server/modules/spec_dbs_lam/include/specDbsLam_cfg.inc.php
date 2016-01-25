@@ -71,7 +71,7 @@ function specDbsLam_cfg_getConfig() {
 	$defineBible_ADR = $ttmp['data'] ;
 	$ttmp = paracrm_data_getBibleCfg(array('bible_code'=>'PROD')) ;
 	$defineBible_PROD = $ttmp['data'] ;
-	$ttmp = paracrm_data_getFileGrid_config(array('file_code'=>'STOCK')) ;
+	$ttmp = paracrm_data_getFileGrid_config(array('file_code'=>'STOCK'),$auth_bypass=TRUE) ;
 	$defineFile_STOCK = $ttmp['data'] ;
 	
 	// Model

@@ -258,48 +258,54 @@ function specDbsLam_transfer_printDoc( $post_data ) {
 		}
 		
 	$buffer = '' ;
+	$is_first = TRUE ;
 	foreach( $adr_rowsTransferLig as $adr => $rows_transferLig ) {
-	$buffer.= '<DIV style="page-break-after:always"></DIV>' ;
-	$buffer.= "<table border='0' cellspacing='1' cellpadding='1'>" ;
-	$buffer.= "<tr><td width='5'/><td width='250'>" ;
-		$buffer.= '<div align="center">' ;
-		$buffer.= '<img src="data:image/jpeg;base64,'.base64_encode(specDbsLam_lib_getBarcodePng($adr,75)).'" /><br>' ;
-		$buffer.= $adr.'<br>' ;
-		$buffer.= '</div>' ;
-	$buffer.= "</td><td valign='middle'>" ;
-		$buffer.= "<table cellspacing='0' cellpadding='1'>";
-		$buffer.= "<tr><td><span class=\"mybig\">TRANSFER DOCUMENT</span></td></tr>" ;
-		//{$data_commande['date_exp']}
-		$buffer.= "<tr><td><span class=\"verybig\"><b>{$row_transfer['field_TRANSFER_TXT']}</b></span>&nbsp;&nbsp;-&nbsp;&nbsp;<big>printed on <b>".date('d/m/Y H:i')."</b></big></td></tr>" ;
-		$buffer.= "<tr><td><span class=\"verybig\">Location : <b>{$adr}</b></td></tr>" ;
-		$buffer.= "</table>";
-	$buffer.= "</td></tr><tr><td height='25'/></tr></table>" ;
-			
-	$buffer.= "<table class='tabledonnees'>" ;
-		$buffer.= '<thead>' ;
-			$buffer.= "<tr>";
-				$buffer.= "<th>Barcode</th>";
-				$buffer.= "<th>Source</th>";
-				$buffer.= "<th>PartNumber</th>";
-				$buffer.= "<th>Batch</th>";
-				$buffer.= "<th>Qty</th>";
-				$buffer.= "<th>SN</th>";
-			$buffer.= "</tr>" ;
-		$buffer.= '</thead>' ;
-		foreach( $rows_transferLig as $row_transferLig ) {
-			$buffer.= "<tr>" ;
-				$buffer.= '<td align="center">' ;
-					$buffer.= '<img src="data:image/jpeg;base64,'.base64_encode(specDbsLam_lib_getBarcodePng($row_transferLig['transferlig_filerecord_id'],30)).'" /><br>';
-					$buffer.= $row_transferLig['transferlig_filerecord_id'].'<br>';
-				$buffer.= '</td>' ;
-				$buffer.= "<td><span class=\"\">{$row_transferLig['src_adr']}</span></td>" ;
-				$buffer.= "<td><span class=\"mybig\">{$row_transferLig['stk_prod']}</span></td>" ;
-				$buffer.= "<td><span class=\"\">{$row_transferLig['stk_batch']}</span></td>" ;
-				$buffer.= "<td align='right'><span class=\"mybig\"><b>".(float)$row_transferLig['mvt_qty']."</b></span></td>" ;
-				$buffer.= "<td><span class=\"\">{$row_transferLig['stk_sn']}</span></td>" ;
-			$buffer.= "</tr>" ;
+		if( $is_first ) {
+			$is_first = FALSE ;
+		} else {
+			$buffer.= '<DIV style="page-break-after:always"></DIV>' ;
 		}
-	$buffer.= "</table>" ;
+		$buffer.= '<DIV style="page-break-after:always"></DIV>' ;
+		$buffer.= "<table border='0' cellspacing='1' cellpadding='1'>" ;
+		$buffer.= "<tr><td width='5'/><td width='250'>" ;
+			$buffer.= '<div align="center">' ;
+			$buffer.= '<img src="data:image/jpeg;base64,'.base64_encode(specDbsLam_lib_getBarcodePng($adr,75)).'" /><br>' ;
+			$buffer.= $adr.'<br>' ;
+			$buffer.= '</div>' ;
+		$buffer.= "</td><td valign='middle'>" ;
+			$buffer.= "<table cellspacing='0' cellpadding='1'>";
+			$buffer.= "<tr><td><span class=\"mybig\">TRANSFER DOCUMENT</span></td></tr>" ;
+			//{$data_commande['date_exp']}
+			$buffer.= "<tr><td><span class=\"verybig\"><b>{$row_transfer['field_TRANSFER_TXT']}</b></span>&nbsp;&nbsp;-&nbsp;&nbsp;<big>printed on <b>".date('d/m/Y H:i')."</b></big></td></tr>" ;
+			$buffer.= "<tr><td><span class=\"verybig\">Location : <b>{$adr}</b></td></tr>" ;
+			$buffer.= "</table>";
+		$buffer.= "</td></tr><tr><td height='25'/></tr></table>" ;
+				
+		$buffer.= "<table class='tabledonnees'>" ;
+			$buffer.= '<thead>' ;
+				$buffer.= "<tr>";
+					$buffer.= "<th>Barcode</th>";
+					$buffer.= "<th>Source</th>";
+					$buffer.= "<th>PartNumber</th>";
+					$buffer.= "<th>Batch</th>";
+					$buffer.= "<th>Qty</th>";
+					$buffer.= "<th>SN</th>";
+				$buffer.= "</tr>" ;
+			$buffer.= '</thead>' ;
+			foreach( $rows_transferLig as $row_transferLig ) {
+				$buffer.= "<tr>" ;
+					$buffer.= '<td align="center">' ;
+						$buffer.= '<img src="data:image/jpeg;base64,'.base64_encode(specDbsLam_lib_getBarcodePng($row_transferLig['transferlig_filerecord_id'],30)).'" /><br>';
+						$buffer.= $row_transferLig['transferlig_filerecord_id'].'<br>';
+					$buffer.= '</td>' ;
+					$buffer.= "<td><span class=\"\">{$row_transferLig['src_adr']}</span></td>" ;
+					$buffer.= "<td><span class=\"mybig\">{$row_transferLig['stk_prod']}</span></td>" ;
+					$buffer.= "<td><span class=\"\">{$row_transferLig['stk_batch']}</span></td>" ;
+					$buffer.= "<td align='right'><span class=\"mybig\"><b>".(float)$row_transferLig['mvt_qty']."</b></span></td>" ;
+					$buffer.= "<td><span class=\"\">{$row_transferLig['stk_sn']}</span></td>" ;
+				$buffer.= "</tr>" ;
+			}
+		$buffer.= "</table>" ;
 	}
 	
 	
@@ -545,6 +551,7 @@ function specDbsLam_transfer_commitAdrTmp($post_data) {
 			$location_treenodeKey = $unique_treenode ;
 			paracrm_lib_data_bibleAssignParentTreenode( 'ADR', $unique_treenode, 'TMP' ) ;
 		} else {
+			// HACK : identify source_location
 			$query = "SELECT treenode_parent_key FROM view_bible_ADR_tree WHERE treenode_key='{$unique_treenode}'" ;
 			$location_treenodeKey = $_opDB->query_uniqueValue($query) ;
 		}
