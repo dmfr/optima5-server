@@ -184,7 +184,14 @@ function paracrm_queries_xls_build( $workbook_tab_grid , $numberFormat_round=FAL
 				}
 				
 				$value = $record[$col['dataIndex']] ;
-				$obj_sheet->SetCellValue("{$cell}{$row}", $value );
+				switch( $col['dataType'] ) {
+					case 'string' :
+						$obj_sheet->setCellValueExplicit("{$cell}{$row}", $value,PHPExcel_Cell_DataType::TYPE_STRING);
+						break ;
+					default :
+						$obj_sheet->SetCellValue("{$cell}{$row}", $value );
+						break ;
+				}
 				if( $col['is_bold'] )
 					$obj_sheet->getStyle("{$cell}{$row}")->getFont()->setBold(TRUE);
 					
