@@ -25,45 +25,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.QueryspecPanel',{
 	extend:'Ext.panel.Panel',
 	initComponent: function() {
 		
-		this.tmpQueryspecMismatchModelName = 'DbsLamQueryspecMismatchModel-' + this.getId() ;
-		this.on('destroy',function(p) {
-			Ext.ux.dams.ModelManager.unregister( p.tmpQueryspecMismatchModelName ) ;
-		}) ;
-		var atrRenderer = function(value, metaData, record, rowIndex, colIndex, store, view) {
-			var column = view.ownerCt.columns[colIndex] ;
-			if( !value ) {
-				return '' ;
-			}
-			metaData.tdAttr = 'data-qtip="' + 'Atr : <b>'+column['text']+'</b><br>' + "Stock : "+record.data['adr_id']+' = <b>'+value['stock']+'</b><br>' + "Ecode : "+record.data['inv_prod']+' = <b>'+value['prod']+'</b><br>' + '"';
-			metaData.tdCls += ' ' + 'op5-device-no' ;
-			return '' ;
-		} ;
-		var pushModelfields = [], atrColumns = [] ;
-		Ext.Array.each( Optima5.Modules.Spec.DbsLam.HelperCache.getStockAttributes(), function( stockAttribute ) {
-			if( !stockAttribute.cfg_is_mismatch ) {
-				return ;
-			}
-			var fieldColumn = {
-				locked: true,
-				text: stockAttribute.atr_txt,
-				dataIndex: stockAttribute.mkey,
-				width: 75,
-				renderer: atrRenderer
-			} ;
-			atrColumns.push(fieldColumn) ;
-			
-			pushModelfields.push({
-				name: stockAttribute.mkey,
-				type: 'auto'
-			});
-		}) ;
-		
-		Ext.define(this.tmpQueryspecMismatchModelName, {
-			extend: 'DbsLamQueryspecMismatchModel',
-			fields: pushModelfields
-		});
-		
-		
 		Ext.apply(this,{
 			tbar:[{
 				icon: 'images/op5img/ico_back_16.gif',
@@ -72,187 +33,255 @@ Ext.define('Optima5.Modules.Spec.DbsLam.QueryspecPanel',{
 					this.doQuit() ;
 				},
 				scope: this
+			},{
+				itemId: 'btnSave',
+				icon: 'images/op5img/ico_save_16.gif',
+				text: '<b>Save</b>',
+				hidden: true,
+				handler: function(){
+					this.doDownload() ;
+				},
+				scope: this
+			},{
 			}],
 			layout: 'fit',
 			items:[{
-				border: false,
-				xtype: 'tabpanel',
-				defaults: {
-					listeners: {
-						activate: this.onTabActivate
-					}
-				},
-				items:[{
-					xtype:'grid',
-					title: 'Attributes mismatch',
-					border: false,
-					icon: 'images/op5img/ico_dataadd_16.gif',
-					store: {
-						autoload: false,
-						model: this.tmpQueryspecMismatchModelName,
-						proxy: this.optimaModule.getConfiguredAjaxProxy({
-							extraParams : {
-								_moduleId: 'spec_dbs_lam',
-								_action: 'queryspec',
-								queryspec_code: 'atr_mismatch',
-								limit: 20
-							},
-							reader: {
-								type: 'json',
-								rootProperty: 'data'
-							}
-						}),
-						sorters:[{
-							property : 'adr_id',
-							direction: 'ASC'
-						}]
-					},
-					columns: {
-						defaults: {
-							menuDisabled: true,
-							draggable: false,
-							sortable: true,
-							hideable: false,
-							resizable: false,
-							groupable: false,
-							lockable: false
-						},
-						items: [{
-							dataIndex: 'adr_id',
-							text: 'Adr',
-							width: 90,
-							renderer: function(v) {
-								return '<b>'+v+'</b>';
-							}
-						},{
-							text: 'Item',
-							columns: [{
-								dataIndex: 'inv_prod',
-								text: 'Article',
-								width: 100
-							},{
-								dataIndex: 'inv_batch',
-								text: 'BatchCode',
-								width: 100
-							},{
-								dataIndex: 'inv_qty',
-								text: 'Qty disp',
-								align: 'right',
-								width: 75
-							}]
-						},{
-							text: 'Attributs Mismatch(s)',
-							columns: atrColumns
-						}]
-					}
-				},{
-					xtype:'grid',
-					title: 'Alertes Dates',
-					border: false,
-					icon: 'images/op5img/ico_dataadd_16.gif',
-					store: {
-						autoload: false,
-						model: 'DbsLamQueryspecDLCModel',
-						proxy: this.optimaModule.getConfiguredAjaxProxy({
-							extraParams : {
-								_moduleId: 'spec_dbs_lam',
-								_action: 'queryspec',
-								queryspec_code: 'DLC_expire',
-								limit: 20
-							},
-							reader: {
-								type: 'json',
-								rootProperty: 'data'
-							}
-						}),
-						sorters:[{
-							property : 'inv_datelc',
-							direction: 'ASC'
-						}]
-					},
-					columns: {
-						defaults: {
-							menuDisabled: true,
-							draggable: false,
-							sortable: true,
-							hideable: false,
-							resizable: false,
-							groupable: false,
-							lockable: false
-						},
-						items: [{
-							dataIndex: 'adr_id',
-							text: 'Adr',
-							width: 90,
-							renderer: function(v) {
-								return '<b>'+v+'</b>';
-							}
-						},{
-							text: 'Item',
-							columns: [{
-								dataIndex: 'inv_prod',
-								text: 'Article',
-								width: 100
-							},{
-								dataIndex: 'inv_batch',
-								text: 'BatchCode',
-								width: 100
-							},{
-								dataIndex: 'inv_qty',
-								text: 'Qty disp',
-								align: 'right',
-								width: 75
-							},{
-								dataIndex: 'inv_datelc',
-								text: '<b>DLC</b>',
-								align: 'center',
-								width: 120,
-								renderer: function(v) {
-									var date = Ext.Date.parse(v,'Y-m-d') ;
-									return '<b><font color="red">'+Ext.Date.format(date,'d/m/Y')+'</font></b>' ;
-								},
-								menuDisabled: false,
-								filter: {
-									type: 'date',
-									dateFormat: 'Y-m-d',
-									active: true,
-									convertDateOnly: function(v1) { //HACK!
-										var result = null;
-										if (v1) {
-											var v2 = new Date(v1) ;
-											v2.setHours(0,0,0,0) ;
-											result = v2.getTime();
-										}
-										return result;
-									}
-								}
-							}]
-						}]
-					},
-					plugins: [{
-						ptype: 'uxgridfilters'
-					}]
-				}]
+				xtype:'box',
+				cls:'op5-waiting',
+				flex:1
 			}]
 		});
 		this.callParent() ;
+		this.doLoadTabs() ;
 	},
+	doLoadTabs: function() {
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_lam',
+				_action: 'queryspec',
+			},
+			success: function(response) {
+				var ajaxData = Ext.decode(response.responseText) ;
+				if( ajaxData.success != true ) {
+					return ;
+				}
+				this.onLoadTabs( ajaxData.data ) ;
+			},
+			scope: this
+		}) ;
+	},
+	onLoadTabs: function(ajaxData) {
+		var tabs = [] ;
+		Ext.Array.each(ajaxData, function(queryspec) {
+			tabs.push({
+				xtype: 'panel',
+				_queryspecCode: queryspec.queryspec_code,
+				title: queryspec.queryspec_title,
+				layout: 'fit',
+				items: []
+			});
+		}) ;
+		
+		this.removeAll() ;
+		this.add({
+			border: false,
+			xtype: 'tabpanel',
+			defaults: {
+				listeners: {
+					activate: this.onTabActivate,
+					scope: this
+				}
+			},
+			items:tabs
+		});
+	},
+	updateToolbar: function() {
+		var tabpanel = this.down('tabpanel'),
+			activeTab = tabpanel.getActiveTab() ;
+		this.down('toolbar').down('#btnSave').setVisible( activeTab && activeTab.down('grid') ) ;
+	},
+	
 	onTabActivate: function(tab) {
-		if( tab.getStore() ) {
-			tab.getStore().load() ;
+		tab.removeAll() ;
+		tab.add({
+			xtype:'box',
+			cls:'op5-waiting'
+		}) ;
+		
+		this.updateToolbar() ;
+		
+		var queryspecCode = tab._queryspecCode ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			timeout: (300 * 1000),
+			params: {
+				_moduleId: 'spec_dbs_lam',
+				_action: 'queryspec',
+				queryspec_code: queryspecCode
+			},
+			success: function(response) {
+				var ajaxData = Ext.decode(response.responseText) ;
+				if( ajaxData.success != true ) {
+					return ;
+				}
+				this.doInstallPreview( tab, ajaxData.data ) ;
+				this.updateToolbar() ;
+			},
+			scope: this
+		}) ;
+	},
+	
+	doInstallPreview: function( tab, queryData ) {
+		tab.tmpGridModelName = 'DbsLamQueryspecGridModel-' + tab.getId() ;
+		tab.on('destroy',function(p) {
+			Ext.ux.dams.ModelManager.unregister( p.tmpGridModelName ) ;
+		}) ;
+		
+		tab.removeAll() ;
+		tab.add( this.buildResultPanel(queryData,tab.tmpGridModelName) ) ;
+	},
+	buildResultPanel: function( tabData, tmpGridModelName ) {
+		var me = this ;
+		
+		Optima5.Modules.CrmBase.QueryTemplateManager.loadStyle(me.optimaModule);
+		
+		var getRowClassFn = function(record,index) {
+			var cssClasses = [] ;
 			
-			if( tab.headerCt.down('[dataIndex="inv_datelc"]') ) {  //HACK
-				var dateFilter = tab.headerCt.down('[dataIndex="inv_datelc"]').filter ;
-				
-				var dateGt = new Date() ;
-				dateGt.setFullYear( dateGt.getFullYear() - 1 ) ;
-				var dateLt = new Date() ;
-				dateLt.setDate( dateLt.getDate() + 90 ) ;
-				
-				dateFilter.setValue({lt:dateLt, gt:dateGt}) ;
-				dateFilter.setActive(true) ;
+			if( record.get('detachedRow') ) {
+				cssClasses.push('op5crmbase-detachedrow') ;
 			}
+			
+			return cssClasses.join(' ') ;
+		} ;
+		
+		var daterenderer = Ext.util.Format.dateRenderer('Y-m-d');
+		
+		var columns = [] ;
+		var fields = [{
+			name:'_rowIdx', // server-side rowIdx ( ie related to row_pivotMap )
+			type:'int'
+		},{
+			name:'_id',     // node "_id" (not used here but server available)
+			type:'string'
+		},{
+			name:'_tdCls',     // node "_id" (not used here but server available)
+			type:'string'
+		}] ;
+		Ext.Array.each(tabData.columns, function(columnDef,colIdx) {
+			if( columnDef.text_bold == true ) {
+				columnDef.text = ''+columnDef.text+'' ;
+				columnDef.style = 'font-weight:bold' ;
+			}
+			if( columnDef.text_italic == true ) {
+				columnDef.text = ''+columnDef.text+'' ;
+			}
+			if( columnDef.is_bold == true ) {
+				Ext.apply(columnDef,{
+					renderer: function(value,metaData,record) {
+						if( record.get('detachedRow') ) {
+							return ''+value+'' ;
+						} else {
+							return ''+value+'' ;
+						}
+					}
+				}) ;
+			}
+			else if( columnDef.detachedColumn == true ) {
+				Ext.apply(columnDef,{
+					tdCls: 'op5crmbase-detachedcolumn'
+				}) ;
+			}
+			else if( columnDef.progressColumn == true ) {
+				Ext.apply(columnDef,{
+					tdCls: 'op5crmbase-progresscolumn',
+					renderer: function(value,meta) {
+						if( value > 0 ) {
+							meta.tdCls = 'op5crmbase-progresscell-pos' ;
+							return '+ '+Math.abs(value) ;
+						} else if( value < 0 ) {
+							meta.tdCls = 'op5crmbase-progresscell-neg' ;
+							return '- '+Math.abs(value) ;
+						} else if( value==='' ) {
+							return '' ;
+						} else {
+							return '=' ;
+						}
+					}
+				}) ;
+			}
+			else {
+				Ext.apply(columnDef,{
+					tdCls: 'op5crmbase-datacolumn'
+				}) ;
+			}
+			if( columnDef.dataType == 'date' ) {
+				Ext.apply(columnDef,{
+					renderer: daterenderer
+				}) ;
+			}
+			Ext.apply(columnDef,{
+				align:''
+			});
+			if( !columnDef.invisible ) {
+				columns.push(columnDef);
+			}
+			
+			fields.push({
+				name:columnDef.dataIndex,
+				type:columnDef.dataType
+			});
+		},me);
+		
+		Ext.ux.dams.ModelManager.unregister( tmpGridModelName ) ;
+		Ext.define(tmpGridModelName, {
+			extend: 'Ext.data.Model',
+			fields: fields
+		});
+		
+		var tabgrid = Ext.create('Ext.grid.Panel',{
+			flex: 1,
+			border:false,
+			//cls:'op5crmbase-querygrid-'+me.optimaModule.sdomainId,
+			columns:columns,
+			store:{
+				model:tmpGridModelName,
+				data: tabData.data,
+				proxy:{
+					type:'memory'
+				}
+			},
+			plugins: [Ext.create('Ext.ux.ColumnAutoWidthPlugin', {
+				allColumns: true,
+				minAutoWidth: 90,
+				singleOnly: true,
+				suspendAutoSize: (columns.length > 20)
+			})]
+		});
+		
+		return tabgrid ;
+	},
+	
+	doDownload: function() {
+		var activeTab = this.down('tabpanel').getActiveTab() ;
+		if( !activeTab ) {
+			return ;
 		}
+		
+		var queryspecCode = activeTab._queryspecCode ;
+		
+		var exportParams = this.optimaModule.getConfiguredAjaxParams() ;
+		Ext.apply(exportParams,{
+			_moduleId: 'spec_dbs_lam',
+			_action: 'queryspec',
+			queryspec_code: queryspecCode,
+			exportXls: true
+		}) ;
+		Ext.create('Ext.ux.dams.FileDownloader',{
+			renderTo: Ext.getBody(),
+			requestParams: exportParams,
+			requestAction: Optima5.Helper.getApplication().desktopGetBackendUrl(),
+			requestMethod: 'POST'
+		}) ;
 	},
 	
 	doQuit: function() {

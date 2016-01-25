@@ -1,102 +1,180 @@
 <?
+
 function specDbsLam_queryspec($post_data) {
-	switch( $post_data['queryspec_code'] ) {
-		case 'atr_mismatch' :
-			return array('success'=>true, 'data'=>specDbsLam_queryspec_lib_atrMismatch()) ;
-		case 'DLC_expire' :
-			return array('success'=>true, 'data'=>specDbsLam_queryspec_lib_dlcExpire()) ;
-		default :
-			sleep(2) ;
-			return array('success'=>true, 'data'=>array()) ;
-			return array('success'=>false) ;
-	}
-}
-function specDbsLam_queryspec_lib_atrMismatch() {
 	global $_opDB ;
 	
-	$empty = TRUE ;
-	$select_fields = $where_fields = $mismatch_fields = array() ;
-	foreach( specDbsLam_lib_stockAttributes_getStockAttributes() as $stockAttribute_obj ) {
-		if( !$stockAttribute_obj['cfg_is_mismatch'] ) {
-			continue ;
+	if( isset($post_data['exportXls']) ) {
+		unset($post_data['exportXls']) ;
+		$ttmp = specDbsLam_queryspec($post_data) ;
+		
+		$objPHPExcel = paracrm_queries_xls_build( array(array('tab_title'=>$post_data['queryspec_code'])+$ttmp['data']) ) ;
+		if( !$objPHPExcel ) {
+			die() ;
 		}
-		$empty = FALSE ;
 		
-		$select_fields[] = "
-			substring(adr.{$stockAttribute_obj['STOCK_fieldcode']},3,length(adr.{$stockAttribute_obj['STOCK_fieldcode']})-4) as adr_{$stockAttribute_obj['bible_code']}
-			,
-			substring(prod.{$stockAttribute_obj['PROD_fieldcode']},3,length(prod.{$stockAttribute_obj['PROD_fieldcode']})-4) as prod_{$stockAttribute_obj['bible_code']}
-		" ;
-		$where_fields[] = "(adr_{$stockAttribute_obj['bible_code']}<>'' AND adr_{$stockAttribute_obj['bible_code']} <> prod_{$stockAttribute_obj['bible_code']})" ;
+		$tmpfilename = tempnam( sys_get_temp_dir(), "FOO");
+		$objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+		$objWriter->save($tmpfilename);
+		$objPHPExcel->disconnectWorksheets();
+		unset($objPHPExcel) ;
 		
-		$mismatch_fields[] = $stockAttribute_obj['bible_code'] ;
+		$filename = 'DbsLam_Query'.'_'.time().'.xlsx' ;
+		header("Content-Type: application/force-download; name=\"$filename\""); 
+		header("Content-Disposition: attachment; filename=\"$filename\""); 
+		readfile($tmpfilename) ;
+		unlink($tmpfilename) ;
+		die() ;
 	}
 	
-	if( $empty ) {
-		return array() ;
+	switch( $post_data['queryspec_code'] ) {
+		case 'SAFRAN_TRANSFERFLOW' :
+			return array('success'=>true, 'data'=>specDbsLam_queryspec_lib_SAFRAN_TRANSFERFLOW()) ;
+		default :
+			if( $post_data['queryspec_code'] ) {
+				return array('success'=>false) ;
+			}
+			sleep(1) ;
+			break ;
 	}
 	
-	$query = "" ;
-	$query.= "SELECT inv.*" ;
-	if( $select_fields ) {
-		$query.= "," ;
-		$query.= implode(',',$select_fields) ;
-	}
-	$query.= " FROM view_file_INV inv" ;
-	$query.= " LEFT JOIN view_bible_STOCK_entry adr ON adr.entry_key=inv.field_ADR_ID" ;
-	$query.= " LEFT JOIN view_bible_PROD_entry prod ON prod.entry_key=inv.field_PROD_ID" ;
-	if( $where_fields ) {
-		$query.= " HAVING 0"." OR ".implode(' OR ',$where_fields) ;
-	}
-	
-	$result = $_opDB->query($query) ;
+	$TAB = array(
+		array('queryspec_code'=>'SAFRAN_TRANSFERFLOW', 'queryspec_title'=>'Safran Transfer Flow')
+	) ;
+	return array('success'=>true,'data'=>$TAB) ;
+}
+
+function specDbsLam_queryspec_lib_SAFRAN_TRANSFERFLOW() {
+	global $_opDB ;
 	
 	$data = array() ;
+
+	$query = "SELECT * FROM view_file_STOCK" ;
+	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
-		$row = array() ;
-		$row['adr_id'] = $arr['field_ADR_ID'] ;
-		$row['inv_prod'] = $arr['field_PROD_ID'] ;
-		$row['inv_batch'] = $arr['field_BATCH_CODE'] ;
-		$row['inv_qty'] = ( $arr['field_PROD_ID'] ? $arr['field_QTY_AVAIL'] : null ) ;
+		//print_r($arr) ;
+		//continue ;
+		$whse_code = substr($arr['field_ADR_ID'],0,3) ;
+		switch( $whse_code ) {
+			case 'TMP' :
+				$treenode_key = $_opDB->query_uniqueValue("SELECT treenode_key FROM view_bible_ADR_entry WHERE entry_key='{$arr['field_ADR_ID']}'") ;
+				while( $treenode_key != 'TMP' && $treenode_parent_key != 'TMP' ) {
+					$treenode_parent_key = $_opDB->query_uniqueValue("SELECT treenode_parent_key FROM view_bible_ADR_tree WHERE treenode_key='{$treenode_key}'");
+					if( $treenode_parent_key == 'TMP' ) {
+						break ;
+					}
+					$treenode_key = $treenode_parent_key ;
+				}
+				$whse_bin = substr($treenode_key,4) ;
+				break ;
+				
+			default :
+				$whse_bin = substr($arr['field_ADR_ID'],4) ;
+				break ;
+		}
 		
-		foreach( $mismatch_fields as $mismatch_field ) {
-			$mkey = 'atr_'.$mismatch_field ;
-			$row[$mkey] = NULL ;
+		$query = "SELECT * FROM view_bible_PROD_entry WHERE entry_key='{$arr['field_PROD_ID']}'" ;
+		$res_prod = $_opDB->query($query) ;
+		$arr_prod = $_opDB->fetch_assoc($res_prod) ;
 		
-			$mkey_PROD = 'prod_'.$mismatch_field ;
-			$mkey_STOCK = 'adr_'.$mismatch_field ;
-			if( $arr[$mkey_PROD] != $arr[$mkey_STOCK] ) {
-				$row[$mkey] = array(
-					'prod' => $arr[$mkey_PROD],
-					'stock' => $arr[$mkey_STOCK]
-				);
+		$row = array(
+			'soc_code' => substr($arr['field_PROD_ID'],0,3),
+			'whse_code' => substr($arr['field_ADR_ID'],0,3),
+			'atr_DIV' => $arr['field_ATR_DIV'],
+			'atr_ES' => $arr['field_ATR_ES'],
+			'atr_SW' => '520',
+			'atr_STOTYPE' => '200',
+			'adr_id_parent' => $whse_bin,
+			'adr_id_sub' => '',
+			'atr_BINTYPE' => ( substr($arr['field_ADR_ID'],0,3) == 'MIT' ? 'EC2/X' : '' ),
+			'stk_prod' => substr($arr['field_PROD_ID'],4),
+			'stk_prod_desc' => $arr_prod['field_PROD_TXT'],
+			'stk_spec_batch' => $arr['field_SPEC_BATCH'],
+			'stk_spec_sn' => $arr['field_SPEC_SN'],
+			'stk_spec_sn' => $arr['field_SPEC_SN'],
+			'stk_spec_dlc' => '',
+			'stk_qty' => (float)($arr['field_QTY_AVAIL']+$arr['field_QTY_OUT'])
+		) ;
+		
+		if( $arr_prod['field_SPEC_IS_SN'] == 1 ) {
+			$row['stk_prod_spec'] = 'SN' ;
+		} elseif( $arr_prod['field_SPEC_IS_BATCH'] == 1 ) {
+			$row['stk_prod_spec'] = 'BATCH' ;
+		} else {
+			$row['stk_prod_spec'] = 'BANAL' ;
+		}
+		
+		if( substr($arr['field_ADR_ID'],0,3) == 'MIT' ) {
+			$row['mvt_step'] = 'T06_DONE' ;
+			
+			$query = "SELECT mvtstep.*, mvt.* FROM view_file_MVT_STEP mvtstep 
+					INNER JOIN view_file_MVT mvt ON mvt.filerecord_id = mvtstep.filerecord_parent_id
+					WHERE mvtstep.field_DEST_ADR_ID='{$arr['field_ADR_ID']}' AND field_STATUS_IS_OK='1'" ;
+			$res_mvt = $_opDB->query($query) ;
+			$arr_mvt = $_opDB->fetch_assoc($res_mvt) ;
+			$row['mvt_commit_date'] = $arr_mvt['field_COMMIT_DATE'] ;
+		} else {
+			$query = "SELECT mvtstep.*, mvt.*, mvt.filerecord_id AS mvt_filerecord_id FROM view_file_MVT_STEP mvtstep 
+					INNER JOIN view_file_MVT mvt ON mvt.filerecord_id = mvtstep.filerecord_parent_id
+					WHERE mvtstep.field_FILE_STOCK_ID='{$arr['filerecord_id']}' AND field_STATUS_IS_OK<>'1'" ;
+			$res_mvt = $_opDB->query($query) ;
+			$arr_mvt = $_opDB->fetch_assoc($res_mvt) ;
+			if( $arr_mvt ) {
+				$row['mvt_step'] = $arr_mvt['field_STEP_CODE'] ;
+				
+				$query = "SELECT * FROM view_file_TRANSFER_LIG WHERE field_FILE_MVT_ID='{$arr_mvt['mvt_filerecord_id']}'" ;
+				$res_tl = $_opDB->query($query) ;
+				$arr_tl = $_opDB->fetch_assoc($res_tl) ;
+				if( $arr_tl['field_STATUS_IS_REJECT'] == 1 ) {
+					$row['mvt_reject_is_on'] = 'Y' ;
+					$row['mvt_reject_codes'] = $arr_tl['field_REJECT_ARR'] ;
+				}
+			} else {
+				$row['mvt_step'] = 'T00_TODO' ;
 			}
 		}
 		
+		$row['static_n'] = 'N' ;
+		
 		$data[] = $row ;
 	}
-	return $data ;
-}
-function specDbsLam_queryspec_lib_dlcExpire() {
-	global $_opDB ;
 
-	$query = "" ;
-	$query.= "SELECT inv.* FROM view_file_INV inv WHERE inv.field_SPEC_DATELC<>'0000-00-00 00:00:00'" ;
-	
-	$result = $_opDB->query($query) ;
-	
-	$data = array() ;
-	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
-		$row = array() ;
-		$row['adr_id'] = $arr['field_ADR_ID'] ;
-		$row['inv_prod'] = $arr['field_PROD_ID'] ;
-		$row['inv_batch'] = $arr['field_BATCH_CODE'] ;
-		$row['inv_qty'] = ( $arr['field_PROD_ID'] ? $arr['field_QTY_AVAIL'] : null ) ;
-		$row['inv_datelc'] = date('Y-m-d',strtotime($arr['field_SPEC_DATELC'])) ;
-		$data[] = $row ;
-	}
-	return $data ;
 
+	// Colonnes
+	$columns = array(
+		array('dataIndex' => 'soc_code', 'text' => 'B.U.'),
+		array('dataIndex' => 'whse_code', 'text' => 'DC Location'),
+		array('dataIndex' => 'atr_DIV', 'text' => 'Plant','dataType'=>'string'),
+		array('dataIndex' => 'atr_ES', 'text' => 'Storage location','dataType'=>'string'),
+		array('dataIndex' => 'atr_SW', 'text' => 'Warehouse','dataType'=>'string'),
+		array('dataIndex' => 'atr_STOTYPE', 'text' => 'Storage Type','dataType'=>'string'),
+		array('dataIndex' => 'adr_id_parent', 'text' => 'Bin location','dataType'=>'string'),
+		array('dataIndex' => 'adr_id_sub', 'text' => '"Boite fille"'),
+		array('dataIndex' => 'atr_BINTYPE', 'text' => 'Bin type'),
+		array('dataIndex' => 'stk_prod', 'text' => 'Part Number','dataType'=>'string'),
+		array('dataIndex' => 'stk_prod_desc', 'text' => 'Part Description'),
+		array('dataIndex' => 'stk_prod_uom', 'text' => 'UoM'),
+		array('dataIndex' => 'stk_prod_std', 'text' => 'Standard (Y/N)'),
+		array('dataIndex' => '', 'text' => 'Traceability Level 1 (EASA/CoC)'),
+		array('dataIndex' => '', 'text' => 'N# EASA or CoC'),
+		array('dataIndex' => '', 'text' => '(Paper / Electronic) EASA or CoC'),
+		array('dataIndex' => 'stk_prod_spec', 'text' => 'Traceability Level 2 (BATCH/SN/BANAL)'),
+		array('dataIndex' => 'stk_spec_batch', 'text' => 'Batch #','dataType'=>'string'),
+		array('dataIndex' => 'stk_spec_sn', 'text' => 'Serial Number','dataType'=>'string'),
+		array('dataIndex' => '', 'text' => 'Shelf Life (Y/N)'),
+		array('dataIndex' => 'stk_spec_dlc', 'text' => 'Shelf Life (Date)'),
+		array('dataIndex' => 'stk_prod_uc', 'text' => '(SPQ) Taille de lot de vente'),
+		array('dataIndex' => 'atr_STKTYPE', 'text' => 'Stock Type (S/Q)'),
+		array('dataIndex' => 'stk_qty', 'text' => 'Quantity'),
+		array('dataIndex' => 'static_n', 'text' => 'Temoin de supression (Y/N)'),
+		array('dataIndex' => 'atr_CLASS', 'text' => 'ABC class'),
+		array('dataIndex' => '', 'text' => 'Status / Comments'),
+		array('dataIndex' => 'mvt_step', 'text' => 'Step'),
+		array('dataIndex' => 'mvt_commit_date', 'text' => 'Commit (LAM) Date'),
+		array('dataIndex' => 'mvt_reject_is_on', 'text' => 'Rejected'),
+		array('dataIndex' => 'mvt_reject_codes', 'text' => 'Reject reason')
+	);
+	
+	return array('columns'=>$columns, 'data'=>$data) ;
 }
 
 ?>
