@@ -1,6 +1,6 @@
 Ext.define('DbsLamProdGridModel',{
 	extend: 'Ext.data.Model',
-	idProperty: 'prod_id',
+	idProperty: 'id',
 	fields: [
 		{name: 'prod_id', type:'string'},
 		{name: 'prod_txt', type:'string'},
@@ -21,11 +21,15 @@ Ext.define('Optima5.Modules.Spec.DbsLam.ProductsPanel',{
 			Ext.ux.dams.ModelManager.unregister( p.tmpModelName ) ;
 		}) ;
 		
+		this.tmpGridTreeModelName = 'DbsLamProdGridTreeModel-' + this.getId() ;
+		this.on('destroy',function(p) {
+			Ext.ux.dams.ModelManager.unregister( p.tmpGridTreeModelName ) ;
+		}) ;
 		
 		Ext.apply(this, {
 			layout: 'border',
 			items: [{
-				flex: 3,
+				flex: 1,
 				region: 'center',
 				border: false,
 				xtype: 'panel',
@@ -91,7 +95,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.ProductsPanel',{
 				items: []
 			},{
 				region: 'east',
-				flex: 2,
+				flex: 3,
 				xtype: 'panel',
 				layout: 'fit',
 				itemId:'mProdsFormContainer',
@@ -307,8 +311,297 @@ Ext.define('Optima5.Modules.Spec.DbsLam.ProductsPanel',{
 	onItemClick: function( view, record, itemNode, index, e ) {
 		var cellNode = e.getTarget( view.getCellSelector() ),
 			cellColumn = view.getHeaderByCell( cellNode ) ;
-		this.setFormRecord(record) ;
+		this.setViewRecord(record) ;
 	},
+	
+	
+	
+	setViewRecord: function(record) {
+		var me = this,
+			eastpanel = me.getComponent('mProdsFormContainer') ;
+		if( record == null ) {
+			eastpanel._empty = true ;
+			eastpanel.collapse() ;
+			eastpanel.removeAll() ;
+			return ;
+		}
+		
+		var pushModelfields = [], atrAdrColumns = [], atrStockColumns = [] ;
+		Ext.Array.each( Optima5.Modules.Spec.DbsLam.HelperCache.getAttributeAll(), function( attribute ) {
+			var fieldColumn = {
+				locked: true,
+				text: attribute.atr_txt,
+				dataIndex: attribute.mkey,
+				width: 75
+			} ;
+			if( attribute.ADR_fieldcode ) {
+				atrAdrColumns.push(fieldColumn) ;
+			}
+			if( attribute.STOCK_fieldcode ) {
+				atrStockColumns.push(fieldColumn) ;
+			}
+			
+			pushModelfields.push({
+				name: attribute.mkey,
+				type: 'string'
+			});
+		}) ;
+		
+		Ext.ux.dams.ModelManager.unregister( this.tmpGridTreeModelName ) ;
+		Ext.define(this.tmpGridTreeModelName, {
+			extend: 'DbsLamTransferGridModel',
+			fields: pushModelfields,
+			idProperty: 'id'
+		});
+		
+		var gridTreeColumns = {
+			defaults: {
+				menuDisabled: true,
+				draggable: false,
+				sortable: false,
+				hideable: false,
+				resizable: false,
+				groupable: false,
+				lockable: false
+			},
+			items: [{
+				xtype: 'treecolumn',
+				text: '<b>Location</b>',
+				dataIndex: 'tree_adr',
+				width: 200,
+				renderer: function(v) {
+					return '<b>'+v+'</b>' ;
+				}
+			},{
+				text: '<b>Status</b>',
+				dataIndex: 'step_code',
+				width: 65,
+				renderer: function(v) {
+					return '<b>'+v+'</b>' ;
+				}
+			},{
+				text: 'Stock Attributes',
+				columns: atrStockColumns
+			},{
+				text: '<b>SKU details</b>',
+				columns: [{
+					dataIndex: 'stk_prod',
+					text: 'Article',
+					width: 100
+				},{
+					dataIndex: 'stk_batch',
+					text: 'BatchCode',
+					width: 100
+				},{
+					dataIndex: 'mvt_qty',
+					text: 'Qty disp',
+					align: 'right',
+					width: 75
+				},{
+					dataIndex: 'stk_sn',
+					text: 'Serial',
+					width: 100
+				}]
+			}]
+		};
+		
+		eastpanel.removeAll() ;
+		eastpanel.add({
+			title: 'Tree/Location',
+			xtype: 'treepanel',
+			itemId: 'pGridTree',
+			store: {
+				model: this.tmpGridTreeModelName,
+				root:{},
+				proxy: {
+					type: 'memory',
+					reader: {
+						type: 'json'
+					}
+				}
+			},
+			collapsible: false,
+			useArrows: false,
+			rootVisible: false,
+			multiSelect: false,
+			singleExpand: false,
+			columns: gridTreeColumns
+		}) ;
+		var title = 'Article <b>'+record.get('prod_id')+'</b>' ;
+		
+		eastpanel._empty = false ;
+		eastpanel.setTitle(title) ;
+		eastpanel.expand() ;
+		this.doTreeLoad( record.getId() ) ;
+	},
+	doTreeLoad: function( prodId ) {
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_lam',
+				_action: 'prods_getStockGrid',
+				filter_id: prodId
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+				
+				var store = Ext.create('Ext.data.Store',{
+					model: this.tmpGridTreeModelName,
+					data: ajaxResponse.data,
+					proxy: {
+						type: 'memory',
+						reader: {
+							type: 'json'
+						}
+					}
+				}) ;
+				this.onTreeLoad(store) ;
+			},
+			scope: this
+		}) ;
+	},
+	onTreeLoad: function(store) {
+		// buildTree
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_action: 'data_getBibleTreeOne',
+				bible_code: 'ADR'
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					return ;
+				}
+				var dataRoot = ajaxResponse.dataRoot ;
+				this.onTreeLoadBuildTree(dataRoot,store) ;
+			},
+			scope: this
+		}) ;
+	},
+	onTreeLoadBuildTree: function(dataRoot,gridStore) {
+		var treeStore = Ext.create('Ext.data.TreeStore',{
+			model: 'DbsLamLiveTreeModel',
+			data: dataRoot,
+			proxy: {
+				type: 'memory',
+				reader: {
+					type: 'json'
+				}
+			}
+		}) ;
+		
+		//qualify records
+		var map_treeAdr_childrenAdr = {} ;
+		var map_treeAdr_gridRows = {} ;
+		gridStore.each( function(gridRecord) {
+			var gridRow = Ext.clone(gridRecord.getData()),
+				treeAdr ;
+				
+			console.dir(gridRow) ;
+			
+			if( !gridRecord.get('current_adr_tmp') ) {
+				if( !map_treeAdr_childrenAdr.hasOwnProperty(gridRecord.get('current_adr_treenodeKey')) ) {
+					map_treeAdr_childrenAdr[gridRecord.get('current_adr_treenodeKey')] = [] ;
+				}
+				if( !Ext.Array.contains(map_treeAdr_childrenAdr[gridRecord.get('current_adr_treenodeKey')], gridRecord.get('current_adr_entryKey')) ) {
+					map_treeAdr_childrenAdr[gridRecord.get('current_adr_treenodeKey')].push(gridRecord.get('current_adr_entryKey')) ;
+				}
+				treeAdr = gridRecord.get('current_adr_entryKey') ;
+			} else {
+				treeAdr = gridRecord.get('current_adr_treenodeKey') ;
+			}
+			
+			if( !map_treeAdr_gridRows.hasOwnProperty(treeAdr) ) {
+				map_treeAdr_gridRows[treeAdr] = [] ;
+			}
+			
+			gridRow.leaf = true ;
+			/*
+			if( gridRecord.get('status_is_reject') ) {
+				gridRow.icon = 'images/op5img/ico_cancel_small.gif' ;
+			} else if( gridRecord.get('status_is_ok') ) {
+				gridRow.icon = 'images/op5img/ico_ok_16.gif' ;
+			} else {
+				gridRow.icon = 'images/op5img/ico_wait_small.gif' ;
+			}
+			*/
+			
+			map_treeAdr_gridRows[treeAdr].push(gridRow) ;
+		}) ;
+		
+		var cascadeRoot = function(node) {
+			node['tree_adr'] = node.nodeKey ;
+			delete node.checked ;
+			node['icon'] = '' ;
+			if( Ext.isEmpty(node.children) ) {
+				node['leaf'] = false ;
+				node['expanded'] = true ;
+				node.children = [] ;
+			}
+			if( map_treeAdr_childrenAdr[node.tree_adr] ) {
+				Ext.Array.each(map_treeAdr_childrenAdr[node.tree_adr], function(newAdr) {
+					node.children.push({
+						expanded: true,
+						leaf: false,
+						tree_adr: newAdr,
+						nodeKey: newAdr,
+						children: []
+					});
+				}) ;
+			}
+			if( map_treeAdr_gridRows[node.tree_adr] ) {
+				Ext.Array.each(map_treeAdr_gridRows[node.tree_adr], function(gridRow) {
+					node.children.push(gridRow);
+				}) ;
+				return ;
+			}
+			Ext.Array.each( node.children, function(childNode) {
+				cascadeRoot(childNode) ;
+			});
+		} ;
+		cascadeRoot(dataRoot) ;
+		
+		console.dir(dataRoot) ;
+		
+		var treeStore = Ext.create('Ext.data.TreeStore',{
+			model: this.tmpGridTreeModelName,
+			data: dataRoot,
+			proxy: {
+				type: 'memory',
+				reader: {
+					type: 'json'
+				}
+			}
+		}) ;
+		while(true) {
+			var nodesToRemove = [] ;
+			treeStore.getRoot().cascadeBy(function(node) {
+				if( !node.isRoot() && !node.isLeaf() && !node.hasChildNodes() ) {
+					nodesToRemove.push(node) ;
+					return false ;
+				}
+			}) ;
+			if( nodesToRemove.length == 0 ) {
+				break ;
+			}
+			Ext.Array.each(nodesToRemove, function(node) {
+				node.remove();
+			});
+		}
+		
+		console.dir(treeStore.getRootNode()) ;
+		this.getComponent('mProdsFormContainer').down('treepanel').setRootNode(treeStore.getRootNode()) ;
+	},
+	
+	
+	
+	
+	
+	
+	
 	
 	setFormRecord: function(record) {
 		var me = this,
