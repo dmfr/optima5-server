@@ -213,6 +213,7 @@ function specDbsLam_transfer_printDoc( $post_data ) {
 	$app_root = $GLOBALS['app_root'] ;
 	$resources_root=$app_root.'/resources' ;
 	$templates_dir=$resources_root.'/server/templates' ;
+	$_IMG['DBS_logo_bw'] = file_get_contents($templates_dir.'/'.'DBS_logo_bw.png') ;
 	
 		if( $post_data['transfer_filerecordId'] ) {
 			$transfer_filerecordId = $post_data['transfer_filerecordId'] ;
@@ -260,6 +261,9 @@ function specDbsLam_transfer_printDoc( $post_data ) {
 	$buffer = '' ;
 	$is_first = TRUE ;
 	foreach( $adr_rowsTransferLig as $adr => $rows_transferLig ) {
+		$ttmp = explode('_',$adr,2) ;
+		$adr_str = $ttmp[1] ;
+		
 		if( $is_first ) {
 			$is_first = FALSE ;
 		} else {
@@ -267,18 +271,20 @@ function specDbsLam_transfer_printDoc( $post_data ) {
 		}
 		$buffer.= '<DIV style="page-break-after:always"></DIV>' ;
 		$buffer.= "<table border='0' cellspacing='1' cellpadding='1'>" ;
-		$buffer.= "<tr><td width='5'/><td width='250'>" ;
+		$buffer.= "<tr><td width='5'/><td width='200'>" ;
 			$buffer.= '<div align="center">' ;
 			$buffer.= '<img src="data:image/jpeg;base64,'.base64_encode(specDbsLam_lib_getBarcodePng($adr,75)).'" /><br>' ;
 			$buffer.= $adr.'<br>' ;
 			$buffer.= '</div>' ;
-		$buffer.= "</td><td valign='middle'>" ;
+		$buffer.= "</td><td valign='middle' width='400'>" ;
 			$buffer.= "<table cellspacing='0' cellpadding='1'>";
-			$buffer.= "<tr><td><span class=\"mybig\">TRANSFER DOCUMENT</span></td></tr>" ;
+			$buffer.= "<tr><td><span class=\"mybig\">BORDEREAU DE TRANSFERT</span></td></tr>" ;
 			//{$data_commande['date_exp']}
 			$buffer.= "<tr><td><span class=\"verybig\"><b>{$row_transfer['field_TRANSFER_TXT']}</b></span>&nbsp;&nbsp;-&nbsp;&nbsp;<big>printed on <b>".date('d/m/Y H:i')."</b></big></td></tr>" ;
-			$buffer.= "<tr><td><span class=\"verybig\">Location : <b>{$adr}</b></td></tr>" ;
+			$buffer.= "<tr><td><span class=\"verybig\">BIN / CONTAINER : <b>{$adr_str}</b></td></tr>" ;
 			$buffer.= "</table>";
+		$buffer.= "</td><td valign='middle' align='center' width='120'>" ;
+			$buffer.= "<img src=\"data:image/jpeg;base64,".base64_encode($_IMG['DBS_logo_bw'])."\" />" ;
 		$buffer.= "</td></tr><tr><td height='25'/></tr></table>" ;
 				
 		$buffer.= "<table class='tabledonnees'>" ;
@@ -290,19 +296,44 @@ function specDbsLam_transfer_printDoc( $post_data ) {
 					$buffer.= "<th>Batch</th>";
 					$buffer.= "<th>Qty</th>";
 					$buffer.= "<th>SN</th>";
+					$buffer.= "<th>Std ?</th>";
+					$buffer.= "<th>SPQ</th>";
 				$buffer.= "</tr>" ;
 			$buffer.= '</thead>' ;
 			foreach( $rows_transferLig as $row_transferLig ) {
+				$src_adr = $row_transferLig['src_adr'] ;
+				$ttmp = explode('_',$src_adr,2) ;
+				$src_adr_str = $ttmp[1] ;
+				
+				$stk_prod = $row_transferLig['stk_prod'] ;
+				$ttmp = explode('_',$stk_prod,2) ;
+				$stk_prod_str = $ttmp[1] ;
+				
+				$query = "SELECT * FROM view_bible_PROD_entry WHERE entry_key='{$stk_prod}'" ;
+				$result = $_opDB->query($query) ;
+				$arr_prod = $_opDB->fetch_assoc($result) ;
+				//print_r($arr_prod) ;
+				
+				
 				$buffer.= "<tr>" ;
 					$buffer.= '<td align="center">' ;
 						$buffer.= '<img src="data:image/jpeg;base64,'.base64_encode(specDbsLam_lib_getBarcodePng($row_transferLig['transferlig_filerecord_id'],30)).'" /><br>';
 						$buffer.= $row_transferLig['transferlig_filerecord_id'].'<br>';
 					$buffer.= '</td>' ;
-					$buffer.= "<td><span class=\"\">{$row_transferLig['src_adr']}</span></td>" ;
-					$buffer.= "<td><span class=\"mybig\">{$row_transferLig['stk_prod']}</span></td>" ;
-					$buffer.= "<td><span class=\"\">{$row_transferLig['stk_batch']}</span></td>" ;
+					$buffer.= "<td><span class=\"\">{$src_adr_str}</span></td>" ;
+					$buffer.= "<td><span class=\"mybig\">{$stk_prod_str}</span></td>" ;
+					
+					$class = ($arr_prod['field_SPEC_IS_BATCH'] ? '' : 'croix') ;
+					$buffer.= "<td class=\"$class\"><span>{$row_transferLig['stk_batch']}</span></td>" ;
+					
 					$buffer.= "<td align='right'><span class=\"mybig\"><b>".(float)$row_transferLig['mvt_qty']."</b></span></td>" ;
-					$buffer.= "<td><span class=\"\">{$row_transferLig['stk_sn']}</span></td>" ;
+					
+					$class = ($arr_prod['field_SPEC_IS_SN'] ? '' : 'croix') ;
+					$buffer.= "<td class=\"$class\"><span class=\"\">{$row_transferLig['stk_sn']}</span></td>" ;
+					
+					$buffer.= "<td><span class=\"\"><b>".(json_decode($arr_prod['field_ATR_STD'],true)==array('STD')?'Y':'N')."</b></span></td>" ;
+					
+					$buffer.= "<td><span class=\"\"><i>".($arr_prod['field_UC_QTY']>0 ? (float)$arr_prod['field_UC_QTY']:'')."</i></span></td>" ;
 				$buffer.= "</tr>" ;
 			}
 		$buffer.= "</table>" ;
