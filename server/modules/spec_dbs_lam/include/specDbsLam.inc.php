@@ -16,6 +16,16 @@ include("$server_root/modules/spec_dbs_lam/include/specDbsLam_transfer.inc.php")
 
 
 
+function specDbsLam_util_htmlToPdf( $post_data ) {
+	if( $output_pdf = media_pdf_html2pdf(json_decode($post_data['html'],true),'A4') ) {
+		$filename = 'PRINT'.'_'.time().'.pdf' ;
+		header("Content-Type: application/force-download; name=\"$filename\""); 
+		header("Content-Disposition: attachment; filename=\"$filename\""); 
+		echo $output_pdf ;
+	}
+	die() ;
+}
+
 function specDbsLam_lib_getBarcodePng( $text=0, $size=20, $orientation='horizontal', $code_type="code128") {
 /*
  *  Author:  David S. Tufts

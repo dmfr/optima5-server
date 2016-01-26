@@ -73,6 +73,9 @@ switch( $post_data['_action'] )
 	case 'transfer_commitAdrFinal' :
 	return specDbsLam_transfer_commitAdrFinal( $post_data ) ;
 	
+	case 'util_htmlToPdf' :
+	return specDbsLam_util_htmlToPdf($post_data) ;
+	
 	default :
 	return NULL ;
 }

@@ -901,6 +901,26 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					uxIFrameWindows.print() ;
 				},
 				scope: this
+			},{
+				icon: 'images/op5img/ico_save_16.gif',
+				text: 'Save as PDF',
+				handler: function(btn) {
+					var uxIFrame = btn.up('window').down('#uxIFrame') ;
+					
+					var exportParams = this.optimaModule.getConfiguredAjaxParams() ;
+					Ext.apply(exportParams,{
+						_moduleId: 'spec_dbs_lam',
+						_action: 'util_htmlToPdf',
+						html: Ext.JSON.encode(uxIFrame.content)
+					}) ;
+					Ext.create('Ext.ux.dams.FileDownloader',{
+						renderTo: Ext.getBody(),
+						requestParams: exportParams,
+						requestAction: Optima5.Helper.getApplication().desktopGetBackendUrl(),
+						requestMethod: 'POST'
+					}) ;
+				},
+				scope: this
 			}]
 		}); 
 	},

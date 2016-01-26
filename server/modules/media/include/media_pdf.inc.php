@@ -6,7 +6,7 @@ function media_pdf_makeExecCmd( $executable ) {
 	return $executable ;
 }
 
-function media_pdf_html2pdf( $html ) {
+function media_pdf_html2pdf( $html, $format=NULL ) {
 	$media_pdf_wkhtmltoimage_path = $GLOBALS['media_pdf_wkhtmltoimage_path'] ;
 	$media_pdf_wkhtmltopdf_path = $GLOBALS['media_pdf_wkhtmltopdf_path'] ;
 	if( !$media_pdf_wkhtmltoimage_path || !is_executable($media_pdf_wkhtmltoimage_path)
@@ -36,7 +36,16 @@ function media_pdf_html2pdf( $html ) {
 	$pdf_width = $img_width * (254/1200) * 1.3 ;
 	$pdf_height = $img_height * (254/1200) * 1.35 ;
 	
-	exec( media_pdf_makeExecCmd($GLOBALS['media_pdf_wkhtmltopdf_path'])." --page-height $pdf_height --page-width $pdf_width {$html_path} {$pdf_path}" ) ;
+	switch( $format ) {
+		case 'A4' :
+			exec( media_pdf_makeExecCmd($GLOBALS['media_pdf_wkhtmltopdf_path'])." --page-size A4 {$html_path} {$pdf_path}" ) ;
+			break ;
+			
+		default :
+			exec( media_pdf_makeExecCmd($GLOBALS['media_pdf_wkhtmltopdf_path'])." --page-height $pdf_height --page-width $pdf_width {$html_path} {$pdf_path}" ) ;
+			break ;
+	}
+	
 	$pdf = file_get_contents($pdf_path) ;
 	
 	unlink($html_path) ;
