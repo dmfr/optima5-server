@@ -3,6 +3,7 @@ function media_pdf_makeExecCmd( $executable ) {
 	if( !(strpos($executable,' ')===FALSE) ) {
 		return '"'.str_replace('\\','\\\\',$executable).'"' ;
 	}
+	return $executable ;
 }
 
 function media_pdf_html2pdf( $html ) {
