@@ -58,7 +58,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.QueryspecPanel',{
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_dbs_lam',
-				_action: 'queryspec',
+				_action: 'queryspec'
 			},
 			success: function(response) {
 				var ajaxData = Ext.decode(response.responseText) ;

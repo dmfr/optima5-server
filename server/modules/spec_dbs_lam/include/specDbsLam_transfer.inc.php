@@ -435,7 +435,8 @@ function specDbsLam_transfer_lib_cleanAdr() {
 	if( $arr_tokeepTreenodes ) {
 		$query.= " AND treenode_key NOT IN ".$_opDB->makeSQLlist($arr_tokeepTreenodes) ;
 	}
-	$_opDB->query($query) ;
+	//$_opDB->query($query) ;
+	// HACK 25/01/2016 : DO NOT PURGE TREENODES
 }
 function specDbsLam_transfer_commitAdrTmp($post_data) {
 	global $_opDB ;
@@ -444,6 +445,8 @@ function specDbsLam_transfer_commitAdrTmp($post_data) {
 	$p_transferFilerecordId = $post_data['transferFilerecordId'] ;
 	$p_transferLigFilerecordId_arr = json_decode($post_data['transferLigFilerecordId_arr'],true) ;
 	$p_transferStepCode = $post_data['transferStepCode'] ;
+	$p_transferTargetNode = $post_data['transferTargetNode'] ;
+	$p_location = preg_replace("/[^A-Z0-9]/", "", strtoupper($post_data['location'])) ;
 	
 	// **** Vérifs STEP *****
 	//  - step <> is_final
@@ -478,9 +481,10 @@ function specDbsLam_transfer_commitAdrTmp($post_data) {
 	foreach( $rows_transferLig as $idx => $row_transferLig ) {
 		if( !in_array($row_transferLig['transferlig_filerecord_id'],$p_transferLigFilerecordId_arr) ) {
 			unset($rows_transferLig[$idx]) ;
+			continue ;
 		}
 		if( $row_transferLig['step_code'] != $p_transferStepCode ) {
-			//return array('success'=>false) ;
+			return array('success'=>false, 'error'=>'Invalid status for item(s) != '.$p_transferStepCode) ;
 		}
 	}
 	if( count($rows_transferLig) != count($p_transferLigFilerecordId_arr) ) {
@@ -504,60 +508,67 @@ function specDbsLam_transfer_commitAdrTmp($post_data) {
 	
 	// CURRENT LOCATION IS TMP ?
 	if( $srcAdr_isTmp ) {
-		// search common treenode ?
-		$arr_arrTreenodes = array() ;
-		foreach( $rows_transferLig as $idx => $row_transferLig ) {
-			foreach( $row_transferLig['steps'] as $row_transferLigStep ) {
-				if( !$row_transferLigStep['status_is_ok'] ) {
-					$arr_treenodes = array($row_transferLigStep['src_adr_treenode']) ;
-					$cur_treenode = $row_transferLigStep['src_adr_treenode'] ;
-					while(TRUE) {
-						$query = "SELECT treenode_parent_key FROM view_bible_ADR_tree WHERE treenode_key='{$cur_treenode}'" ;
-						$cur_treenode = $_opDB->query_uniqueValue($query) ;
-						if( !$cur_treenode || $cur_treenode == '&' ) {
-							break ;
-						}
-						$arr_treenodes[] = $cur_treenode ;
-					}
-					$arr_arrTreenodes[] = $arr_treenodes ;
-					break ;
-				}
-			}
+		// CHECK: source location ($p_transferTargetNode) is ADR treenode ?
+		$query = "SELECT count(*) from view_bible_ADR_tree WHERE treenode_key='{$p_transferTargetNode}'" ;
+		if( $_opDB->query_uniqueValue($query) != 1 ) {
+			return array('success'=>false, 'error'=>"CHECK FAIL : Source target {$p_transferTargetNode} invalid for step") ;
 		}
-		if( count($arr_arrTreenodes) > 1 ) {
-			$full=call_user_func_array('array_intersect', $arr_arrTreenodes);
-		} else {
-			$full = reset($arr_arrTreenodes) ;
-		}
-		$unique_treenode = reset($full) ;
+		$currentAdrTreenode = $p_transferTargetNode ;
 		
 		
+		// CHECK: source location nb of final items == nb ligs
+		$ttmp = specDbsLam_stock_getGrid( array('filter_treenodeKey'=>$currentAdrTreenode) ) ;
+		if( count($ttmp['data']) != count($p_transferLigFilerecordId_arr) ) {
+			return array('success'=>false, 'error'=>"CHECK FAIL : Nb items loaded != nb items in location {$currentAdrTreenode}") ;
+		}
+		
+		
+		
+	
 		$step_isGroup = $_opDB->query_uniqueValue("SELECT field_IS_ATTACH_PARENT FROM view_bible_CFG_MVTFLOW_entry WHERE entry_key='{$current_step_code}'") ;
+		$step_isDetach = $_opDB->query_uniqueValue("SELECT field_IS_DETACH FROM view_bible_CFG_MVTFLOW_entry WHERE entry_key='{$current_step_code}'") ;
 		$step_isPrint = $_opDB->query_uniqueValue("SELECT field_IS_PRINT FROM view_bible_CFG_MVTFLOW_entry WHERE entry_key='{$current_step_code}'") ;
 		/*
 		 * if step = GROUP => attach common treenode (pallet ?) to a primary root treenode (truck ?)
 		 * if step NOT GROUP => attach common treenode (pallet ?) to root TMP
 		*/
 		if( $step_isGroup ) {
-			$location_treenodeKey = 'TMP_'.$post_data['location'] ;
-			if( $location_treenodeKey == $unique_treenode ) {
+			if( !trim($p_location) ) {
+				return array('success'=>false, 'error'=>'Must specify explicit location') ;
+			}
+			$location_treenodeKey = 'TMP_'.$p_location ;
+			if( $location_treenodeKey == $currentAdrTreenode ) {
 				return array('success'=>false, 'error'=>'Destination == Source ?') ;
 			}
+			
+			// controle => l'élément sélectionné est pur parent / ne doit pas avoir de leaf (adresses réelles)
+			$query = "SELECT count(*) from view_bible_ADR_entry WHERE treenode_key='{$location_treenodeKey}'" ;
+			if( $_opDB->query_uniqueValue($query) > 0 ) {
+				return array('success'=>false, 'error'=>"Destination has leaf nodes : Incompatible.") ;
+			}
+			
 			if( !paracrm_lib_data_getRecord_bibleTreenode('ADR',$location_treenodeKey) ) {
 				paracrm_lib_data_insertRecord_bibleTreenode('ADR',$location_treenodeKey,'TMP',array('field_ROW_ID'=>$location_treenodeKey)) ;
 			}
-			paracrm_lib_data_bibleAssignParentTreenode( 'ADR', $unique_treenode, $location_treenodeKey ) ;
-		} elseif( !$step_isPrint ) {
-			$location_treenodeKey = $unique_treenode ;
-			paracrm_lib_data_bibleAssignParentTreenode( 'ADR', $unique_treenode, 'TMP' ) ;
+			paracrm_lib_data_bibleAssignParentTreenode( 'ADR', $currentAdrTreenode, $location_treenodeKey ) ;
+		} elseif( $step_isDetach ) {
+			// controle => l'élément sélectionné doit avoir un parent
+			$query = "SELECT treenode_parent_key from view_bible_ADR_tree WHERE treenode_key='{$currentAdrTreenode}'" ;
+			if( in_array($_opDB->query_uniqueValue($query),array('TMP')) ) {
+				return array('success'=>false, 'error'=>"Selected item {$currentAdrTreenode} is not detachable") ;
+			}
+		
+			$location_treenodeKey = $currentAdrTreenode ;
+			paracrm_lib_data_bibleAssignParentTreenode( 'ADR', $currentAdrTreenode, 'TMP' ) ;
 		} else {
-			// HACK : identify source_location
-			$query = "SELECT treenode_parent_key FROM view_bible_ADR_tree WHERE treenode_key='{$unique_treenode}'" ;
-			$location_treenodeKey = $_opDB->query_uniqueValue($query) ;
+			$location_treenodeKey = $currentAdrTreenode ;
 		}
 	} else {
+		if( !trim($p_location) ) {
+			return array('success'=>false, 'error'=>'Must specify explicit location') ;
+		}
 		// CREATE PARENT LOCATION
-		$location_treenodeKey = 'TMP_'.$post_data['location'] ;
+		$location_treenodeKey = 'TMP_'.$p_location ;
 		if( !paracrm_lib_data_getRecord_bibleTreenode('ADR',$location_treenodeKey) ) {
 			paracrm_lib_data_insertRecord_bibleTreenode('ADR',$location_treenodeKey,'TMP',array('field_ROW_ID'=>$location_treenodeKey)) ;
 		} else {
@@ -565,6 +576,26 @@ function specDbsLam_transfer_commitAdrTmp($post_data) {
 		}
 	}
 	$location_display = $location_treenodeKey ;
+	
+	
+	// Controle cohérence : l'élément DEST doit contenir
+	// - currentStep OR nextStep + !status_is_ok 
+	$ttmp = specDbsLam_stock_getGrid( array('filter_treenodeKey'=>$location_treenodeKey) ) ;
+	foreach( $ttmp['data'] as $inv_row ) {
+		$stk_filerecordId = $inv_row['inv_id'] ;
+		if( !$stk_filerecordId ) {
+			continue ;
+		}
+		$query = "SELECT * from view_file_MVT_STEP WHERE field_FILE_STOCK_ID='$stk_filerecordId'" ;
+		$result = $_opDB->query($query) ;
+		if( $_opDB->num_rows($result) != 1 ) {
+			return array('success'=>false, 'error'=>'CHECK FAIL : Missing MVT_STEP for component') ;
+		}
+		$arr = $_opDB->fetch_assoc($result) ;
+		if( !in_array($arr['field_STEP_CODE'],array($current_step_code,$next_step_code)) ) {
+			return array('success'=>false, 'error'=>'CHECK FAIL : Select target '.$location_treenodeKey.' not compatible') ;
+		}
+	}
 	
 	
 	

@@ -293,7 +293,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 							xtype: 'textfield',
 							allowBlank:false,
 							fieldLabel: 'Location',
-							name: 'dest_adr'
+							name: 'dest_adr',
+							fieldStyle: 'text-transform:uppercase'
 						}]
 					},{
 						flex: 1,
@@ -680,6 +681,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 					// attach to treenode
 					var treenodeNode = rootNode.findChild('nodeKey',adrTreenode,true) ;
 					if( !treenodeNode ) {
+						console.dir('WARN nodeKey not found:'+adrTreenode) ;
 						return false ;
 					}
 					treenodeNode.expand();
@@ -689,6 +691,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 					if( !adrNode ) {
 						var treenodeNode = rootNode.findChild('nodeKey',adrTreenode,true) ;
 						if( !treenodeNode ) {
+							console.dir('WARN nodeKey not found:'+adrTreenode) ;
 							return false ;
 						}
 						treenodeNode.expand() ;
@@ -762,6 +765,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 			return ;
 		}
 		
+		this.transferTargetNode = foundNode ;
 		this.transferLigRecord_arr = [] ;
 		this.transferRecord.ligs().each( function(transferLigRecord) {
 			if( Ext.Array.contains( transferLigFilerecordId_arr, transferLigRecord.get('transferlig_filerecord_id').toString() ) ) {
@@ -989,6 +993,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 		var formPanel = this.down('form'),
 			form = this.down('form').getForm(),
 			formValues = form.getValues(false,false,false,true) ;
+			  
 		var transferLigFilerecordId_arr = [] ;
 		Ext.Array.each( this.transferLigRecord_arr, function(transferLigRecord) {
 			transferLigFilerecordId_arr.push(transferLigRecord.get('transferlig_filerecord_id')) ;
@@ -1013,7 +1018,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 				transferFilerecordId: this.transferRecord.get('transfer_filerecord_id'),
 				transferLigFilerecordId_arr: Ext.JSON.encode(transferLigFilerecordId_arr),
 				transferStepCode: this.transferStepCode,
-				location: (formPanel.down('#fsRightLocation').isVisible() ? formValues.dest_adr : null)
+				transferTargetNode: this.transferTargetNode.get('nodeKey'),
+				location: (formPanel.down('#fsRightLocation').isVisible() ? formValues.dest_adr.toUpperCase() : null)
 			},
 			success: function(response) {
 				var jsonResponse = Ext.JSON.decode(response.responseText) ;
