@@ -41,19 +41,50 @@ function specDbsLam_transfer_getTransferLig($post_data) {
 	$ttmp = specDbsLam_cfg_getConfig() ;
 	$json_cfg = $ttmp['data'] ;
 	
-	$query = "SELECT tl.filerecord_id as transferlig_filerecord_id, tl.filerecord_parent_id as transfer_filerecord_id, tl.*, mvt.*, mvtstep.*
-					, sadr.entry_key as src_adr_entry, sadr.treenode_key as src_adr_treenode
-					, dadr.entry_key as dest_adr_entry, dadr.treenode_key as dest_adr_treenode
-				FROM view_file_TRANSFER_LIG tl
-				INNER JOIN view_file_MVT mvt ON mvt.filerecord_id = tl.field_FILE_MVT_ID
-				INNER JOIN view_file_MVT_STEP mvtstep ON mvtstep.filerecord_parent_id = mvt.filerecord_id
-				LEFT OUTER JOIN view_bible_ADR_entry sadr ON sadr.entry_key = mvtstep.field_SRC_ADR_ID
-				LEFT OUTER JOIN view_bible_ADR_entry dadr ON dadr.entry_key = mvtstep.field_DEST_ADR_ID" ;
-	if( $post_data['filter_transferFilerecordId'] ) {
-		$query.= " WHERE tl.filerecord_parent_id='{$post_data['filter_transferFilerecordId']}'" ;
+	
+	// **************** SQL selection *****************
+	$ignores = array('tl.field_STEP_CODE') ;
+	$selects = array() ;
+	foreach( array('tl'=>'view_file_TRANSFER_LIG','mvt'=>'view_file_MVT','mvtstep'=>'view_file_MVT_STEP') as $prefix=>$table ) {
+		$query = "SHOW COLUMNS FROM {$table}" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$field = $arr[0] ;
+			if( !(strpos($field,'field_')===0) ) {
+				continue ;
+			}
+			$mkey = $prefix.'.'.$field ;
+			if( in_array($mkey,$ignores) ) {
+				continue ;
+			}
+			
+			$selects[] = $prefix.'.'.$field ;
+		}
 	}
-	$query.= " ORDER BY mvt.filerecord_id DESC, mvtstep.field_STEP_CODE ASC" ;
+	$selects = implode(',',$selects) ;
+	
+	$query = "select a.*
+		, sadr.entry_key as src_adr_entry, sadr.treenode_key as src_adr_treenode
+		, dadr.entry_key as dest_adr_entry, dadr.treenode_key as dest_adr_treenode
+		FROM (
+		SELECT tl.filerecord_id as transferlig_filerecord_id, tl.filerecord_parent_id as transfer_filerecord_id
+		, mvt.filerecord_id as mvt_filerecord_id
+		, mvtstep.filerecord_id as mvtstep_filerecord_id
+		, {$selects}
+		FROM view_file_TRANSFER_LIG tl
+		INNER JOIN view_file_MVT mvt ON mvt.filerecord_id = tl.field_FILE_MVT_ID
+		INNER JOIN view_file_MVT_STEP mvtstep ON mvtstep.filerecord_parent_id = mvt.filerecord_id
+		) a
+		LEFT OUTER JOIN view_bible_ADR_entry sadr ON sadr.entry_key = a.field_SRC_ADR_ID
+		LEFT OUTER JOIN view_bible_ADR_entry dadr ON dadr.entry_key = a.field_DEST_ADR_ID" ;
+	if( $post_data['filter_transferFilerecordId'] ) {
+		$query.= " WHERE transfer_filerecord_id='{$post_data['filter_transferFilerecordId']}'" ;
+	}
+	$query.= " ORDER BY a.mvt_filerecord_id DESC, a.field_STEP_CODE ASC" ;
 	$result = $_opDB->query($query) ;
+	// *********************************************
+	
+	
 	
 	$TAB = array() ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
