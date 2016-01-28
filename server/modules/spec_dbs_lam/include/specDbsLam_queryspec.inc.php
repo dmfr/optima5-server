@@ -7,16 +7,39 @@ function specDbsLam_queryspec($post_data) {
 		unset($post_data['exportXls']) ;
 		$ttmp = specDbsLam_queryspec($post_data) ;
 		
-		$objPHPExcel = paracrm_queries_xls_build( array(array('tab_title'=>$post_data['queryspec_code'])+$ttmp['data']) ) ;
-		if( !$objPHPExcel ) {
-			die() ;
-		}
 		
+		$worksheet = $ttmp['data'] ;
+		
+		
+		$server_root = $GLOBALS['server_root'] ;
+		include("$server_root/include/xlsxwriter.class.php");
+		$header = array() ;
+		foreach( $worksheet['columns'] as $column ) {
+			switch( $col['dataType'] ) {
+				case 'int' :
+					$header[$column['text']] = 'int' ;
+					break ;
+				default :
+					$header[$column['text']] = 'string' ;
+					break ;
+			}
+		}
+		$writer = new XLSXWriter();
+		$writer->writeSheetHeader('Sheet1', $header );//optional
+		foreach( $worksheet['data'] as $record ) {
+			$row = array() ;
+			foreach( $worksheet['columns'] as $column ) {
+				$value = $record[$column['dataIndex']] ;
+				$row[] = $value ;
+			}
+			$writer->writeSheetRow('Sheet1', $row );
+			break ;
+		}
 		$tmpfilename = tempnam( sys_get_temp_dir(), "FOO");
-		$objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
-		$objWriter->save($tmpfilename);
-		$objPHPExcel->disconnectWorksheets();
-		unset($objPHPExcel) ;
+		$writer->writeToFile($tmpfilename);
+		
+		
+		
 		
 		$filename = 'DbsLam_Query'.'_'.time().'.xlsx' ;
 		header("Content-Type: application/force-download; name=\"$filename\""); 
@@ -81,8 +104,8 @@ function specDbsLam_queryspec_lib_SAFRAN_TRANSFERFLOW() {
 			'whse_code' => substr($arr['field_ADR_ID'],0,3),
 			'atr_DIV' => $arr['field_ATR_DIV'],
 			'atr_ES' => $arr['field_ATR_ES'],
-			'atr_SW' => '520',
-			'atr_STOTYPE' => '200',
+			'atr_SW' => '',
+			'atr_STOTYPE' => '',
 			'adr_id_parent' => $whse_bin,
 			'adr_id_sub' => '',
 			'atr_BINTYPE' => ( substr($arr['field_ADR_ID'],0,3) == 'MIT' ? 'EC2/X' : '' ),
@@ -164,7 +187,7 @@ function specDbsLam_queryspec_lib_SAFRAN_TRANSFERFLOW() {
 		array('dataIndex' => 'stk_spec_dlc', 'text' => 'Shelf Life (Date)'),
 		array('dataIndex' => 'stk_prod_uc', 'text' => '(SPQ) Taille de lot de vente'),
 		array('dataIndex' => 'atr_STKTYPE', 'text' => 'Stock Type (S/Q)'),
-		array('dataIndex' => 'stk_qty', 'text' => 'Quantity'),
+		array('dataIndex' => 'stk_qty', 'text' => 'Quantity','dataType'=>'int'),
 		array('dataIndex' => 'static_n', 'text' => 'Temoin de supression (Y/N)'),
 		array('dataIndex' => 'atr_CLASS', 'text' => 'ABC class'),
 		array('dataIndex' => '', 'text' => 'Status / Comments'),
