@@ -9,7 +9,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.MainPanel',{
 		'Optima5.Modules.Spec.DbsLam.ProductsPanel',
 		'Optima5.Modules.Spec.DbsLam.QueryspecPanel',
 		'Optima5.Modules.Spec.DbsLam.CfgPanel',
-		'Optima5.Modules.Spec.DbsLam.TransferPanel'
+		'Optima5.Modules.Spec.DbsLam.TransferPanel',
+		'Optima5.Modules.Spec.DbsLam.UploadForm'
 	],
 	
 	initComponent: function() {
@@ -65,6 +66,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.MainPanel',{
 				return me.switchToAppPanel('Optima5.Modules.Spec.DbsLam.CfgPanel',{}) ;
 			case 'panel_transfer' :
 				return me.switchToAppPanel('Optima5.Modules.Spec.DbsLam.TransferPanel',{}) ;
+			case 'form_upload' :
+				return me.openUploadPopup() ;
 			default :
 				return ;
 		}
@@ -87,5 +90,36 @@ Ext.define('Optima5.Modules.Spec.DbsLam.MainPanel',{
 		
 		this.removeAll() ;
 		this.add( panel ) ;
+	},
+	
+	openUploadPopup: function() {
+		this.getEl().mask() ;
+		// Open panel
+		var createPanel = Ext.create('Optima5.Modules.Spec.DbsLam.UploadForm',{
+			optimaModule: this.optimaModule,
+			width:400, // dummy initial size, for border layout to work
+			height:null, // ...
+			floating: true,
+			draggable: true,
+			resizable: true,
+			renderTo: this.getEl(),
+			tools: [{
+				type: 'close',
+				handler: function(e, t, p) {
+					p.ownerCt.destroy();
+				},
+				scope: this
+			}]
+		});
+		createPanel.on('saved', function(p) {
+			this.doTreeLoad() ;
+		},this,{single:true}) ;
+		createPanel.on('destroy',function(p) {
+			this.getEl().unmask() ;
+			this.floatingPanel = null ;
+		},this,{single:true}) ;
+		
+		createPanel.show();
+		createPanel.getEl().alignTo(this.getEl(), 'c-c?');
 	}
 }) ;

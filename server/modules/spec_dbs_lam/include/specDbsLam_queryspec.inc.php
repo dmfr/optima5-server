@@ -200,4 +200,203 @@ function specDbsLam_queryspec_lib_SAFRAN_TRANSFERFLOW() {
 	return array('columns'=>$columns, 'data'=>$data) ;
 }
 
+
+
+function specDbsLam_queryspecSync( $post_data ) {
+	$handle = fopen($_FILES['file_upload']['tmp_name'],"rb") ;
+	$soc_code = $post_data['soc_code'] ;
+	
+	$ret = specDbsLam_queryspec_lib_sync( $handle, $soc_code ) ;
+	
+	return array('success'=>$ret) ;
+}
+
+function specDbsLam_queryspec_lib_sync( $handle, $soc_code ) {
+	global $_opDB ;
+	
+	$mapStock_mkey_id = array() ;
+	$mapStock_mkey_isLocked = array() ;
+
+	$query = "SELECT * FROM view_file_STOCK" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		if( !(strpos($arr['field_PROD_ID'],$soc_code.'_') === 0) ) {
+			continue ;
+		}
+		
+		$mkey = array(
+			$arr['field_ATR_DIV'],
+			$arr['field_ATR_ES'],
+			$arr['field_PROD_ID'],
+			$arr['field_SPEC_BATCH'],
+			$arr['field_SPEC_SN']
+		) ;
+		$mkey = implode('%%%',$mkey) ;
+		if( $mapStock_mkey_id[$mkey] ) {
+			//echo "exists!!!\n" ;
+			//print_r($mkey) ;
+			//echo "\n\n\n" ;
+			$mapStock_mkey_isLocked[$mkey] = TRUE ;
+		} else {
+			$mapStock_mkey_id[$mkey] = $arr['filerecord_id'] ;
+		}
+		if( $arr['field_QTY_OUT'] > 0 ) {
+			$mapStock_mkey_isLocked[$mkey] = TRUE ;
+		}
+	}
+	
+	
+	$bible_PROD_tree = array() ;
+	$bible_PROD_entry = array() ;
+	$bible_ADR_tree = array() ;
+	$bible_ADR_entry = array() ;
+	$file_STOCK = array() ;
+	
+	$arr_header = fgetcsv($handle) ;
+	while( !feof($handle) ) {
+		$arr_csv = fgetcsv($handle) ;
+		if( !$arr_csv ) {
+			continue ;
+		}
+		
+		$row = array_combine($arr_header,$arr_csv) ;
+		
+		if( !(strpos($row['prod_id'],$soc_code.'_') === 0) ) {
+			continue ;
+		}
+		
+		$ttmp = explode('_',$row['adr_id'],2) ;
+		$whse_code = $ttmp[0] ;
+		
+		$bible_PROD_tree[$row['prod_key']] = array(
+			'treenode_parent_key' => '',
+			'field_PRODGROUP_CODE' => $row['prod_key']
+		);
+		$bible_PROD_entry[$row['prod_id']] = array(
+			'treenode_key' => $row['prod_key'],
+			'field_PROD_ID' => $row['prod_id'],
+			'field_PROD_TXT' => $row['desc']
+		);
+		$bible_ADR_tree[$row['adr_key']] = array(
+			'treenode_parent_key' => $whse_code,
+			'field_ROW_ID' => $row['adr_key'],
+			'field_POS_ZONE' => $row['adr_row']
+		);
+		$bible_ADR_entry[$row['adr']] = array(
+			'treenode_key' => $row['adr_key'],
+			'field_ADR_ID' => $row['adr']
+		);
+		
+		$mkey = array(
+			$row['atr_DIV'],
+			$row['atr_ES'],
+			$row['prod_id'],
+			$row['spec_batch'],
+			$row['spec_sn']
+		);
+		$mkey = implode('%%%',$mkey) ;
+		if( $mapStock_mkey_isLocked[$mkey] ) {
+			continue ;
+		}
+		if( !$mapStock_mkey_id[$mkey] ) {
+			//echo $mkey."\n" ;
+			//print_r($row) ;
+			//echo "\n" ;
+		}
+		$file_STOCK[] = array(
+			'filerecord_id' => $mapStock_mkey_id[$mkey],
+			'field_ATR_DIV' => $row['atr_DIV'],
+			'field_ATR_ES' => $row['atr_ES'],
+			'field_PROD_ID' => $row['prod_id'],
+			'field_ADR_ID' => $row['adr'],
+			'field_QTY_AVAIL' => $row['qty'],
+			'field_SPEC_BATCH' => $row['spec_batch'],
+			'field_SPEC_SN' => $row['spec_sn']
+		);
+	}
+	
+	if( count($file_STOCK)==0 ) {
+		return false ;
+	}
+	
+	
+	//BIBLE
+	foreach( $bible_PROD_tree as $treenode_key => $arr_ins ) {
+		$bible_code = 'PROD' ;
+		$treenode_parent_key = $arr_ins['treenode_parent_key'] ;
+		if( paracrm_lib_data_getRecord_bibleTreenode( $bible_code, $treenode_key ) ) {
+			paracrm_lib_data_updateRecord_bibleTreenode( $bible_code, $treenode_key, $arr_ins );
+			if( $treenode_parent_key ) {
+				paracrm_lib_data_bibleAssignParentTreenode( $bible_code, $treenode_key, $treenode_parent_key ) ;
+			}
+		} else {
+			paracrm_lib_data_insertRecord_bibleTreenode( $bible_code, $treenode_key, $treenode_parent_key, $arr_ins ) ;
+		}
+	}
+	foreach( $bible_PROD_entry as $entry_key => $arr_ins ) {
+		$bible_code = 'PROD' ;
+		$treenode_key = $arr_ins['treenode_key'] ;
+		if( paracrm_lib_data_getRecord_bibleEntry( $bible_code, $entry_key ) ) {
+			paracrm_lib_data_updateRecord_bibleEntry( $bible_code, $entry_key, $arr_ins );
+			if( $treenode_key ) {
+				paracrm_lib_data_bibleAssignTreenode( $bible_code, $entry_key, $treenode_key ) ;
+			}
+		} else {
+			paracrm_lib_data_insertRecord_bibleEntry( $bible_code, $entry_key, $treenode_key, $arr_ins );
+		}
+	}
+	
+	foreach( $bible_ADR_tree as $treenode_key => $arr_ins ) {
+		$bible_code = 'ADR' ;
+		$treenode_parent_key = $arr_ins['treenode_parent_key'] ;
+		if( paracrm_lib_data_getRecord_bibleTreenode( $bible_code, $treenode_key ) ) {
+			paracrm_lib_data_updateRecord_bibleTreenode( $bible_code, $treenode_key, $arr_ins );
+			if( $treenode_parent_key ) {
+				paracrm_lib_data_bibleAssignParentTreenode( $bible_code, $treenode_key, $treenode_parent_key ) ;
+			}
+		} else {
+			paracrm_lib_data_insertRecord_bibleTreenode( $bible_code, $treenode_key, $treenode_parent_key, $arr_ins ) ;
+		}
+	}
+	foreach( $bible_ADR_entry as $entry_key => $arr_ins ) {
+		$bible_code = 'ADR' ;
+		$treenode_key = $arr_ins['treenode_key'] ;
+		if( paracrm_lib_data_getRecord_bibleEntry( $bible_code, $entry_key ) ) {
+			paracrm_lib_data_updateRecord_bibleEntry( $bible_code, $entry_key, $arr_ins );
+			if( $treenode_key ) {
+				paracrm_lib_data_bibleAssignTreenode( $bible_code, $entry_key, $treenode_key ) ;
+			}
+		} else {
+			paracrm_lib_data_insertRecord_bibleEntry( $bible_code, $entry_key, $treenode_key, $arr_ins );
+		}
+	}
+	
+	
+	// UPDATE
+	$arr_new_filerecordIds = array() ;
+	foreach( $file_STOCK as $row_STOCK ) {
+		if( $row_STOCK['filerecord_id'] ) {
+			paracrm_lib_data_updateRecord_file( 'STOCK', $row_STOCK, $row_STOCK['filerecord_id'] ) ;
+			$arr_new_filerecordIds[] = $row_STOCK['filerecord_id'] ;
+		} else {
+			$arr_new_filerecordIds[] = paracrm_lib_data_insertRecord_file( 'STOCK', 0, $row_STOCK ) ;
+		}
+	}
+	
+	// CLEAN
+	$arr_previous_filerecordIds = array() ;
+	foreach( $mapStock_mkey_id as $mkey => $filerecord_id ) {
+		if( $mapStock_mkey_isLocked[$mkey] ) {
+			continue ;
+		}
+		$arr_previous_filerecordIds[] = $filerecord_id ;
+	}
+	$arr_toDelete_filerecordIds = array_diff($arr_previous_filerecordIds,$arr_new_filerecordIds) ;
+	foreach( $arr_toDelete_filerecordIds as $filerecord_id ) {
+		paracrm_lib_data_deleteRecord_file('STOCK',$filerecord_id) ;
+	}
+	
+	return true ;
+}
+
 ?>

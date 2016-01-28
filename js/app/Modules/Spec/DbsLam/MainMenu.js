@@ -94,6 +94,11 @@ Ext.define('Optima5.Modules.Spec.DbsLam.MainMenu',{
 				action_sendEvent:'panel_queryspec',
 				action_iconCls:'op5-spec-dbslam-menu-query'
 			},{
+				type_action:true,
+				action_caption: 'Upload / Sync',
+				action_sendEvent:'form_upload',
+				action_iconCls:'op5-spec-dbslam-menu-query'
+			},{
 				type_separator:true,
 				separator_label: 'LAM S : Administration'
 			},{

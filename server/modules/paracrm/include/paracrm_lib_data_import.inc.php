@@ -441,7 +441,7 @@ function paracrm_lib_dataImport_commit_insertBibleTreenode( $bible_code, $treeno
 			$value = strtoupper(trim($value)) ;
 			if( $t_fielddesc['bible_field_iskey'] ) {
 				$value = str_replace(' ','_',$value) ;
-				$value = preg_replace("/[^a-zA-Z0-9_\-\/]/", "",$value) ;
+				$value = preg_replace("/[^a-zA-Z0-9_:.\-\/]/", "",$value) ;
 			}
 		}
 		
@@ -515,7 +515,7 @@ function paracrm_lib_dataImport_commit_insertBibleEntry( $bible_code, $treenode_
 			$value = strtoupper(trim($value)) ;
 			if( $t_fielddesc['bible_field_iskey'] ) {
 				$value = str_replace(' ','_',$value) ;
-				$value = preg_replace("/[^a-zA-Z0-9_\-\/]/", "",$value) ;
+				$value = preg_replace("/[^a-zA-Z0-9_:.\-\/]/", "",$value) ;
 			}
 		}
 		
