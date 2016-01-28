@@ -4,6 +4,7 @@ Ext.define('DbsLamTransferTreeModel',{
 		{name: 'display_txt', string: 'string'},
 		{name: 'type', type:'string'},
 		{name: 'transfer_filerecord_id', type:'int'},
+		{name: 'status_is_on', type:'boolean'},
 		{name: 'status_is_ok', type:'boolean'},
 		{name: 'whse_src', type:'string'},
 		{name: 'whse_dest', type:'string'}
@@ -62,7 +63,8 @@ Ext.define('DbsLamTransferOneModel',{
 		{name: 'transfer_filerecord_id', type:'int'},
 		{name: 'transfer_txt', type:'string'},
 		{name: 'flow_code', type:'string'},
-		{name: 'status_is_ok', type:'string'},
+		{name: 'status_is_on', type:'boolean'},
+		{name: 'status_is_ok', type:'boolean'},
 		{name: 'whse_src', type:'string'},
 		{name: 'whse_dest', type:'string'}
 	],
@@ -243,7 +245,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				draggable: false,
 				sortable: false,
 				hideable: false,
-				resizable: false,
+				resizable: true,
 				groupable: false,
 				lockable: false
 			},
@@ -313,7 +315,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				draggable: false,
 				sortable: false,
 				hideable: false,
-				resizable: false,
+				resizable: true,
 				groupable: false,
 				lockable: false
 			},
@@ -385,7 +387,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					draggable: false,
 					sortable: false,
 					hideable: false,
-					resizable: false,
+					resizable: true,
 					groupable: false,
 					lockable: false
 				},
@@ -393,14 +395,18 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					xtype:'treecolumn',
 					dataIndex: 'display_txt',
 					text: 'Document ID',
-					width: 120
+					width: 180
 				},{
 					dataIndex: 'status_is_ok',
 					text: '<b>Status</b>',
 					width: 70,
 					renderer: function(v,metaData,record) {
-						if( v ) {
+						if( record.get('status_is_ok') ) {
 							metadata.tdCls = 'op5-spec-dbslam-stock-ok'
+						} else if( record.get('status_is_on') ) {
+							return 'ACTIVE' ;
+						} else if( record.get('type') == 'transfer' ) {
+							return '-' ;
 						}
 					}
 				}]
@@ -620,6 +626,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 						display_txt: transferDoc.transfer_txt,
 						transfer_filerecord_id: transferDoc.transfer_filerecord_id,
 						step_code: transferDoc.step_code,
+						status_is_on: transferDoc.status_is_on,
+						status_is_ok: transferDoc.status_is_ok,
 						whse_src: transferDoc.whse_src,
 						whse_dest: transferDoc.whse_dest
 					}) ;
@@ -855,6 +863,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			return ;
 		}
 		
+		this.showLoadmask() ;
+		
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_dbs_lam',
@@ -868,9 +878,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				} else {
 					Ext.MessageBox.alert('Error','Print system disabled') ;
 				}
+				this.doTreeLoad() ;
 			},
 			callback: function() {
-				
+				this.hideLoadmask() ;
 			},
 			scope: this
 		}) ;
@@ -1090,6 +1101,31 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		}
 		southP.expand() ;
 	},
+	
+	showLoadmask: function() {
+		if( this.rendered ) {
+			this.doShowLoadmask() ;
+		} else {
+			this.on('afterrender',this.doShowLoadmask,this,{single:true}) ;
+		}
+	},
+	doShowLoadmask: function() {
+		if( this.loadMask ) {
+			return ;
+		}
+		this.loadMask = Ext.create('Ext.LoadMask',{
+			target: this,
+			msg:"Please wait..."
+		}).show();
+	},
+	hideLoadmask: function() {
+		this.un('afterrender',this.doShowLoadmask,this) ;
+		if( this.loadMask ) {
+			this.loadMask.destroy() ;
+			this.loadMask = null ;
+		}
+	},
+	
 	
 	doQuit: function() {
 		this.destroy() ;

@@ -20,6 +20,7 @@ function specDbsLam_transfer_getTransfer($post_data) {
 			'flow_code' => $arr['field_FLOW_CODE'],
 			'whse_src' => $arr['field_WHSE_SRC'],
 			'whse_dest' => $arr['field_WHSE_DEST'],
+			'status_is_on' => $arr['field_STATUS_IS_ON'],
 			'status_is_ok' => $arr['field_STATUS_IS_OK'],
 			'ligs' => array()
 		);
@@ -221,6 +222,9 @@ function specDbsLam_transfer_printDoc( $post_data ) {
 			$query = "SELECT * FROM view_file_TRANSFER WHERE filerecord_id='{$transfer_filerecordId}'" ;
 			$result = $_opDB->query($query) ;
 			$row_transfer = $_opDB->fetch_assoc($result) ;
+			
+			$query = "UPDATE view_file_TRANSFER set field_STATUS_IS_ON='1' WHERE filerecord_id='{$transfer_filerecordId}'" ;
+			$_opDB->query($query) ;
 		
 			$ttmp = specDbsLam_transfer_getTransferLig( array('filter_transferFilerecordId'=>$transfer_filerecordId) ) ;
 			$rows_transferLig = $ttmp['data'] ;
@@ -250,7 +254,7 @@ function specDbsLam_transfer_printDoc( $post_data ) {
 				if( !in_array($row_transferLig['transferlig_filerecord_id'],$transferLig_filerecordIds) ) {
 					continue ;
 				}
-				$adr = $row_transferLig['current_adr'] ;
+				$adr = $row_transferLig['current_adr_treenodeKey'] ;
 				if( !$adr_rowsTransferLig[$adr] ) {
 					$adr_rowsTransferLig[$adr] = array() ;
 				}
@@ -280,7 +284,7 @@ function specDbsLam_transfer_printDoc( $post_data ) {
 			$buffer.= "<table cellspacing='0' cellpadding='1'>";
 			$buffer.= "<tr><td><span class=\"mybig\">BORDEREAU DE TRANSFERT</span></td></tr>" ;
 			//{$data_commande['date_exp']}
-			$buffer.= "<tr><td><span class=\"verybig\"><b>{$row_transfer['field_TRANSFER_TXT']}</b></span>&nbsp;&nbsp;-&nbsp;&nbsp;<big>printed on <b>".date('d/m/Y H:i')."</b></big></td></tr>" ;
+			$buffer.= "<tr><td><span class=\"verybig\"><b>{$row_transfer['field_TRANSFER_TXT']}</b></span>&nbsp;&nbsp;<br>&nbsp;&nbsp;<big>printed on <b>".date('d/m/Y H:i')."</b></big></td></tr>" ;
 			$buffer.= "<tr><td><span class=\"verybig\">BIN / CONTAINER : <b>{$adr_str}</b></td></tr>" ;
 			$buffer.= "</table>";
 		$buffer.= "</td><td valign='middle' align='center' width='120'>" ;
@@ -563,6 +567,14 @@ function specDbsLam_transfer_commitAdrTmp($post_data) {
 		 * if step = GROUP => attach common treenode (pallet ?) to a primary root treenode (truck ?)
 		 * if step NOT GROUP => attach common treenode (pallet ?) to root TMP
 		*/
+		if( $step_isPrint ) {
+			$location_treenodeKey = $currentAdrTreenode ;
+			// controle => l'élément sélectionné est pur parent / ne doit pas avoir de leaf (adresses réelles)
+			$query = "SELECT treenode_parent_key from view_bible_ADR_tree WHERE treenode_key='{$location_treenodeKey}'" ;
+			if( $_opDB->query_uniqueValue($query) != 'TMP' ) {
+				return array('success'=>false, 'error'=>"Target not printable") ;
+			}
+		}
 		if( $step_isGroup ) {
 			if( !trim($p_location) ) {
 				return array('success'=>false, 'error'=>'Must specify explicit location') ;

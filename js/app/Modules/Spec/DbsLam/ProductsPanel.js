@@ -225,7 +225,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.ProductsPanel',{
 					draggable: false,
 					sortable: false,
 					hideable: false,
-					resizable: false,
+					resizable: true,
 					groupable: false,
 					lockable: false
 				},
@@ -360,7 +360,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.ProductsPanel',{
 				draggable: false,
 				sortable: false,
 				hideable: false,
-				resizable: false,
+				resizable: true,
 				groupable: false,
 				lockable: false
 			},
@@ -500,8 +500,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.ProductsPanel',{
 			var gridRow = Ext.clone(gridRecord.getData()),
 				treeAdr ;
 				
-			console.dir(gridRow) ;
-			
 			if( !gridRecord.get('current_adr_tmp') ) {
 				if( !map_treeAdr_childrenAdr.hasOwnProperty(gridRecord.get('current_adr_treenodeKey')) ) {
 					map_treeAdr_childrenAdr[gridRecord.get('current_adr_treenodeKey')] = [] ;
@@ -519,15 +517,12 @@ Ext.define('Optima5.Modules.Spec.DbsLam.ProductsPanel',{
 			}
 			
 			gridRow.leaf = true ;
-			/*
+			
 			if( gridRecord.get('status_is_reject') ) {
 				gridRow.icon = 'images/op5img/ico_cancel_small.gif' ;
-			} else if( gridRecord.get('status_is_ok') ) {
-				gridRow.icon = 'images/op5img/ico_ok_16.gif' ;
-			} else {
+			} else if( gridRecord.get('step_code') != '' ) {
 				gridRow.icon = 'images/op5img/ico_wait_small.gif' ;
 			}
-			*/
 			
 			map_treeAdr_gridRows[treeAdr].push(gridRow) ;
 		}) ;
@@ -564,8 +559,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.ProductsPanel',{
 		} ;
 		cascadeRoot(dataRoot) ;
 		
-		console.dir(dataRoot) ;
-		
 		var treeStore = Ext.create('Ext.data.TreeStore',{
 			model: this.tmpGridTreeModelName,
 			data: dataRoot,
@@ -592,7 +585,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.ProductsPanel',{
 			});
 		}
 		
-		console.dir(treeStore.getRootNode()) ;
 		this.getComponent('mProdsFormContainer').down('treepanel').setRootNode(treeStore.getRootNode()) ;
 	},
 	

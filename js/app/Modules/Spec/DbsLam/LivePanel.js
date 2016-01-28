@@ -167,7 +167,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 							readOnly: true
 						}),{
 							xtype: 'textfield',
-							allowBlank:false,
+							allowBlank:true,
 							fieldLabel: 'Item Barcode',
 							name: 'input_transferLigFilerecordId',
 							enableKeyEvents: true,
@@ -575,6 +575,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 		var formPanel = this.down('form'),
 			 form = this.down('form').getForm(),
 			formValues = form.getValues(false,false,false,true) ;
+			  
+		this.showLoadmask() ;
 		
 		// check status TODO: on all open ligs
 		/*
@@ -733,6 +735,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 			rootVisible: false,
 			useArrows: true
 		});
+		
+		this.hideLoadmask() ;
 	},
 	
 	doOpenTransferLig: function() {
@@ -994,6 +998,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 			form = this.down('form').getForm(),
 			formValues = form.getValues(false,false,false,true) ;
 			  
+		this.showLoadmask() ;
+			  
 		var transferLigFilerecordId_arr = [] ;
 		Ext.Array.each( this.transferLigRecord_arr, function(transferLigRecord) {
 			transferLigFilerecordId_arr.push(transferLigRecord.get('transferlig_filerecord_id')) ;
@@ -1034,6 +1040,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 					Ext.Msg.alert('Error',jsonResponse.error) ;
 				}
 			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
 			scope: this
 		});
 	},
@@ -1042,6 +1051,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 			form = this.down('form').getForm(),
 			formValues = form.getValues(false,false,false,true) ;
 		var transferLigFilerecordId_arr = [] ;
+		
+		this.showLoadmask() ;
+		
 		Ext.Array.each( this.transferLigRecord_arr, function(transferLigRecord) {
 			transferLigFilerecordId_arr.push(transferLigRecord.get('transferlig_filerecord_id')) ;
 		}) ;
@@ -1071,6 +1083,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 					Ext.Msg.alert('Error',jsonResponse.error) ;
 				}
 			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
 			scope: this
 		});
 	},
@@ -1080,6 +1095,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 		Ext.Array.each( this.transferLigRecord_arr, function(transferLigRecord) {
 			transferLigFilerecordId_arr.push(transferLigRecord.get('transferlig_filerecord_id')) ;
 		}) ;
+		
+		this.showLoadmask() ;
 		
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
@@ -1098,7 +1115,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 				}
 			},
 			callback: function() {
-				
+				this.hideLoadmask() ;
 			},
 			scope: this
 		}) ;
@@ -1252,6 +1269,30 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 				this.deleteMvt( mvtId ) ;
 			}
 		},this) ;
+	},
+
+	showLoadmask: function() {
+		if( this.rendered ) {
+			this.doShowLoadmask() ;
+		} else {
+			this.on('afterrender',this.doShowLoadmask,this,{single:true}) ;
+		}
+	},
+	doShowLoadmask: function() {
+		if( this.loadMask ) {
+			return ;
+		}
+		this.loadMask = Ext.create('Ext.LoadMask',{
+			target: this,
+			msg:"Please wait..."
+		}).show();
+	},
+	hideLoadmask: function() {
+		this.un('afterrender',this.doShowLoadmask,this) ;
+		if( this.loadMask ) {
+			this.loadMask.destroy() ;
+			this.loadMask = null ;
+		}
 	},
 	
 	

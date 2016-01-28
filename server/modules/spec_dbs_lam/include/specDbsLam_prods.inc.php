@@ -83,6 +83,15 @@ function specDbsLam_prods_getStockGrid($post_data) {
 		$filerecord_id = $paracrm_row['filerecord_id'] ;
 		$query = "SELECT field_STEP_CODE FROM view_file_MVT_STEP WHERE field_FILE_STOCK_ID='{$filerecord_id}'" ;
 		$row['step_code'] = $_opDB->query_uniqueValue($query) ;
+		if( $row['step_code'] ) {
+			$query = "SELECT filerecord_parent_id FROM view_file_MVT_STEP WHERE field_FILE_STOCK_ID='{$filerecord_id}'" ;
+			$ff = $_opDB->query_uniqueValue($query) ;
+			
+			$query = "SELECT field_STATUS_IS_REJECT FROM view_file_TRANSFER_LIG WHERE field_FILE_MVT_ID='{$ff}'" ;
+			if( $_opDB->query_uniqueValue($query) == 1 ) {
+				$row['status_is_reject'] = TRUE ;
+			}
+		}
 		
 		foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
 			if( !$stockAttribute_obj['STOCK_fieldcode'] ) {
