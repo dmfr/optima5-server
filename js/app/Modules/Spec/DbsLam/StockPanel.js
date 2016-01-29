@@ -157,16 +157,22 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 		
 		var pushModelfields = [], atrAdrColumns = [], atrStockColumns = [] ;
 		Ext.Array.each( Optima5.Modules.Spec.DbsLam.HelperCache.getAttributeAll(), function( attribute ) {
-			var fieldColumn = {
-				locked: true,
-				text: attribute.atr_txt,
-				dataIndex: attribute.mkey,
-				width: 75
-			} ;
 			if( attribute.ADR_fieldcode ) {
+				var fieldColumn = {
+					locked: true,
+					text: attribute.atr_txt,
+					dataIndex: 'ADR_'+attribute.mkey,
+					width: 75
+				} ;
 				atrAdrColumns.push(fieldColumn) ;
 			}
 			if( attribute.STOCK_fieldcode ) {
+				var fieldColumn = {
+					locked: true,
+					text: attribute.atr_txt,
+					dataIndex: 'STOCK_'+attribute.mkey,
+					width: 75
+				} ;
 				atrStockColumns.push(fieldColumn) ;
 			}
 			
