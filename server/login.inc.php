@@ -111,7 +111,8 @@ function op5_login_test( $userstr, $password ) {
 				if( $list_ips != NULL ) {
 					$ACL_OK = FALSE ;
 					foreach( explode(',',$list_ips) as $ip ) {
-						if( fnmatch($ip,$_SERVER['REMOTE_ADDR']) ) {
+						$src_ip = ( $_SERVER['HTTP_X_FORWARDED_FOR'] ? $_SERVER['HTTP_X_FORWARDED_FOR'] : $_SERVER['REMOTE_ADDR'] );
+						if( fnmatch($ip,$src_ip) ) {
 							$ACL_OK = TRUE ;
 							break ;
 						}
@@ -128,10 +129,11 @@ function op5_login_test( $userstr, $password ) {
 		}
 		
 		// Log
+		$src_ip = ( $_SERVER['HTTP_X_FORWARDED_FOR'] ? $_SERVER['HTTP_X_FORWARDED_FOR'] : $_SERVER['REMOTE_ADDR'] );
 		$arr_ins = array() ;
 		$arr_ins['authdelegate_log_timestamp'] = time() ;
 		$arr_ins['authdelegate_log_user'] = $delegate_userId ;
-		$arr_ins['authdelegate_log_ipaddr'] = $_SERVER['REMOTE_ADDR'] ;
+		$arr_ins['authdelegate_log_ipaddr'] = $src_ip ;
 		$arr_ins['authdelegate_log_failcode'] = ( $OK ? '' : $FAIL ) ;
 		if( $sdomain_db ) {
 			$GLOBALS['_opDB']->insert($sdomain_db.'.'.'auth_delegate_log',$arr_ins) ;
