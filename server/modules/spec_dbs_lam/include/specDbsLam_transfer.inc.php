@@ -515,7 +515,7 @@ function specDbsLam_transfer_commitAdrTmp($post_data) {
 	$p_transferLigFilerecordId_arr = json_decode($post_data['transferLigFilerecordId_arr'],true) ;
 	$p_transferStepCode = $post_data['transferStepCode'] ;
 	$p_transferTargetNode = $post_data['transferTargetNode'] ;
-	$p_location = preg_replace("/[^A-Z0-9]/", "", strtoupper($post_data['location'])) ;
+	$p_location = preg_replace("/[^A-Z0-9\-\/]/", "", strtoupper($post_data['location'])) ;
 	
 	// **** Vérifs STEP *****
 	//  - step <> is_final
