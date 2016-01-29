@@ -108,6 +108,23 @@ Ext.define('Optima5.Modules.Spec.DbsLam.MainMenu',{
 				action_iconCls:'op5-spec-dbslam-menu-cfg'
 			}]
 		}) ;
+		
+		if( !Optima5.Modules.Spec.DbsLam.HelperCache.authHelperQueryPage('ADMIN') ) {
+			var itemsStore = Ext.create('Ext.data.Store',{
+				model:'DbsLamMenuItemModel',
+				data:[{
+					type_header:true
+				},{
+					type_separator:true,
+					separator_label: 'LAM S : WMS operations'
+				},{
+					type_action:true,
+					action_caption: 'Inbound / Location',
+					action_sendEvent:'panel_live',
+					action_iconCls:'op5-spec-dbslam-menu-live'
+				}]
+			}) ;
+		}
 		 
 		Ext.apply(this,{
 			cls: 'op5-spec-dbslam-mainmenu',
