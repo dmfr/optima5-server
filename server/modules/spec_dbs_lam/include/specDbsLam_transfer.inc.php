@@ -639,6 +639,9 @@ function specDbsLam_transfer_commitAdrTmp($post_data) {
 			$location_treenodeKey = $currentAdrTreenode ;
 		}
 	} else {
+		if( count($rows_transferLig) != 1 ) {
+			return array('success'=>false, 'error'=>'Group locations not accepted') ;
+		}
 		if( !trim($p_location) ) {
 			return array('success'=>false, 'error'=>'Must specify explicit location') ;
 		}

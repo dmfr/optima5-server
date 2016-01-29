@@ -172,9 +172,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 							name: 'input_transferLigFilerecordId',
 							enableKeyEvents: true,
 							listeners: {
-								keypress: function(field,e) {
-									if( e.getKey() == e.ENTER ) {
+								specialkey: function(field,e) {
+									if( e.getKey() == e.ENTER || e.getKey() == e.TAB ) {
 										this.doOpenTransferLig() ;
+										e.stopEvent() ;
 									}
 								},
 								scope: this
