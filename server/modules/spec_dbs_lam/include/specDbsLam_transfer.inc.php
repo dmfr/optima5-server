@@ -473,6 +473,9 @@ function specDbsLam_transfer_saveReject($post_data) {
 
 function specDbsLam_transfer_lib_cleanAdr() {
 	global $_opDB ;
+	
+	//HACK : BUG ! Must synchronize / use LOCKs
+	return ;
 
 	$query = "DELETE view_bible_ADR_entry 
 					from view_bible_ADR_entry
@@ -740,9 +743,13 @@ function specDbsLam_transfer_commitAdrTmp($post_data) {
 	
 	foreach( $p_transferLigFilerecordId_arr as $transferLig_filerecordId ) {
 		$location_entryKey = 'TMP_POS_'.$transferLig_filerecordId ;
-		paracrm_lib_data_insertRecord_bibleEntry('ADR',$location_entryKey,$location_treenodeKey,array('field_ADR_ID'=>$location_entryKey)) ;
-	
-	
+		if( paracrm_lib_data_getRecord_bibleEntry( 'ADR', $location_entryKey ) ) {
+			paracrm_lib_data_bibleAssignTreenode( 'ADR', $location_entryKey, $location_treenodeKey ) ;
+		} else {
+			paracrm_lib_data_insertRecord_bibleEntry('ADR',$location_entryKey,$location_treenodeKey,array('field_ADR_ID'=>$location_entryKey)) ;
+		}
+		
+		
 		// mvt ID ?
 		$query = "SELECT field_FILE_MVT_ID FROM view_file_TRANSFER_LIG WHERE filerecord_id='{$transferLig_filerecordId}'" ;
 		$mvt_filerecordId = $_opDB->query_uniqueValue($query) ;
@@ -760,7 +767,6 @@ function specDbsLam_transfer_commitAdrTmp($post_data) {
 	
 	
 	specDbsLam_transfer_lib_advanceDoc($post_data['transferFilerecordId']) ;
-	specDbsLam_transfer_lib_cleanAdr() ;
 	
 	return array('success'=>true, 'debug'=>$post_data) ;
 }
@@ -813,6 +819,8 @@ function specDbsLam_transfer_commitAdrFinal($post_data) {
 		// count ?
 		return array('success'=>false) ;
 	}
+	
+	
 	$form_data['mvt_obj'] = array() ;
 	$form_data['mvt_obj']['prod_id'] = $rows_transferLig[0]['stk_prod'] ;
 	$form_data['mvt_obj']['batch'] = $rows_transferLig[0]['stk_batch'] ;
@@ -846,7 +854,17 @@ function specDbsLam_transfer_commitAdrFinal($post_data) {
 	
 
 	specDbsLam_transfer_lib_advanceDoc($post_data['transferFilerecordId']) ;
-	specDbsLam_transfer_lib_cleanAdr() ;
+	
+	if( $rows_transferLig[0]['current_adr_tmp'] ) {
+		// clean TMP adr 
+		$src_adr_id = $rows_transferLig[0]['current_adr_entryKey'] ;
+		
+		$query = "DELETE view_bible_ADR_entry 
+						from view_bible_ADR_entry
+						LEFT OUTER JOIN view_file_STOCK ON view_file_STOCK.field_ADR_ID=view_bible_ADR_entry.entry_key
+						WHERE view_bible_ADR_entry.entry_key='{$src_adr_id}' AND view_file_STOCK.field_ADR_ID IS NULL" ;
+		$_opDB->query($query) ;
+	}
 	
 	return array('success'=>true, 'data'=> $adr_obj) ;
 }
