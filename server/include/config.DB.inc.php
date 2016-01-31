@@ -14,4 +14,6 @@
 	$media_pdf_IMconvert_path = '' ;
 	$media_pdf_wkhtmltoimage_path = '' ;
 	$media_pdf_wkhtmltopdf_path = '' ;
+	
+	$httpd_log = '' ;
 ?>

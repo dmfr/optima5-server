@@ -13,8 +13,10 @@ function specDbsEmbramach_upload( $post_data ) {
 		return array('success'=>false) ;
 	}
 	
-	$filename = "/var/log/apache2/machUpload_".$post_data['file_model']."_".time().'.txt' ;
-	@file_put_contents($filename, $debug) ;
+	if( $GLOBALS['httpd_log'] ) {
+		$filename = $GLOBALS['httpd_log']."/machUpload_".$post_data['file_model']."_".time().'.txt' ;
+		@file_put_contents($filename, $debug) ;
+	}
 	
 	$flow_code = '' ;
 	switch( $post_data['file_model'] ) {
