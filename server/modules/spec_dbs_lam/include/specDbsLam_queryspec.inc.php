@@ -1,4 +1,4 @@
-<?
+<?php
 
 function specDbsLam_queryspec($post_data) {
 	global $_opDB ;

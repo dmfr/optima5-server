@@ -1,4 +1,4 @@
-<?
+<?php
 function specDbsEmbralam_queryspec($post_data) {
 	switch( $post_data['queryspec_code'] ) {
 		case 'atr_mismatch' :
