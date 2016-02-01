@@ -1263,7 +1263,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 				this.optimaModule.postCrmEvent('datachange') ;
 				fsResultCmp.update({
 					adr: ajaxData.adr_id,
-					caption: 'Ajout sur emplacement existant (P/N + Batch)'
+					caption: 'Add to existing P/N location'
 				});
 				break ;
 				
@@ -1271,7 +1271,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 				this.optimaModule.postCrmEvent('datachange') ;
 				fsResultCmp.update({
 					adr: ajaxData.adr_id,
-					caption: 'Nouvel emplacement'
+					caption: 'New location'
 				});
 				break ;
 			
