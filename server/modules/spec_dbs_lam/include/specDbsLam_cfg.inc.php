@@ -30,7 +30,11 @@ function specDbsLam_cfg_getAuth( $post_data ) {
 	$user_class = $arr['treenode_key'] ;
 	switch( $user_class ) {
 		case 'ADMIN' :
-			$authPage = array('ADMIN','STD') ;
+			$authPage = array('ADMIN','STD','DESK') ;
+			break ;
+		
+		case 'DESK' :
+			$authPage = array('DESK') ;
 			break ;
 		
 		case 'STD' :

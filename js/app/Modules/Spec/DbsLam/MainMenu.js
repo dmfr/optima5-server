@@ -119,9 +119,22 @@ Ext.define('Optima5.Modules.Spec.DbsLam.MainMenu',{
 					separator_label: 'LAM S : WMS operations'
 				},{
 					type_action:true,
+					action_caption: 'Products',
+					action_sendEvent:'panel_products',
+					action_iconCls:'op5-spec-dbslam-menu-products',
+					item_disabled: !Optima5.Modules.Spec.DbsLam.HelperCache.authHelperQueryPage('DESK')
+				},{
+					type_action:true,
 					action_caption: 'Inbound / Location',
 					action_sendEvent:'panel_live',
-					action_iconCls:'op5-spec-dbslam-menu-live'
+					action_iconCls:'op5-spec-dbslam-menu-live',
+					item_disabled: !Optima5.Modules.Spec.DbsLam.HelperCache.authHelperQueryPage('STD')
+				},{
+					type_action:true,
+					action_caption: 'Transfers',
+					action_sendEvent:'panel_transfer',
+					action_iconCls:'op5-spec-dbslam-menu-transfer',
+					item_disabled: !Optima5.Modules.Spec.DbsLam.HelperCache.authHelperQueryPage('DESK')
 				}]
 			}) ;
 		}
