@@ -3,6 +3,11 @@
 function specDbsLam_prods_getGrid($post_data) {
 	global $_opDB ;
 	
+	// Load cfg attributes
+	$ttmp = specDbsLam_cfg_getConfig() ;
+	$json_cfg = $ttmp['data'] ;
+	
+	
 	$tab_DATA = array() ;
 	
 	$query = "SELECT * FROM view_bible_PROD_entry prod" ;
@@ -37,7 +42,10 @@ function specDbsLam_prods_getGrid($post_data) {
 		$row['spec_is_dlc'] = $arr['field_SPEC_IS_DLC'] ;
 		$row['spec_is_sn'] = $arr['field_SPEC_IS_SN'] ;
 		
-		foreach( specDbsLam_lib_stockAttributes_getStockAttributes() as $stockAttribute_obj ) {
+		foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
+			if( !$stockAttribute_obj['PROD_fieldcode'] ) {
+				continue ;
+			}
 			$mkey = $stockAttribute_obj['mkey'] ;
 			$PROD_fieldcode = $stockAttribute_obj['PROD_fieldcode'] ;
 			

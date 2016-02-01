@@ -63,18 +63,22 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 	
 	initComponent: function() {
 		var atrFields = [] ;
-		Ext.Array.each( Optima5.Modules.Spec.DbsLam.HelperCache.getStockAttributes(), function( stockAttribute ) {
-			var atrField = {
+		Ext.Array.each( Optima5.Modules.Spec.DbsLam.HelperCache.getAttributeAll(), function( attribute ) {
+			if( !attribute.STOCK_fieldcode ) {
+				return ;
+			}
+			var fieldDefinition = {
 				xtype:'op5crmbasebibletreepicker',
+				anchor: '100%',
 				selectMode: 'single',
 				optimaModule: this.optimaModule,
-				bibleId: stockAttribute.bible_code,
-				fieldLabel: stockAttribute.atr_txt,
-				name: stockAttribute.mkey,
-				readOnly: !(stockAttribute.cfg_is_editable)
+				bibleId: attribute.bible_code,
+				fieldLabel: attribute.atr_txt,
+				name: attribute.mkey
 			} ;
-			atrFields.push(atrField) ;
-		}, this) ;
+			atrFields.push(fieldDefinition);
+		},this) ;
+
 		
 		Ext.apply(this,{
 			bodyCls: 'ux-noframe-bg',
@@ -219,7 +223,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 							labelWidth: 40,
 							anchor: '100%'
 						},
-						items:[{
+						items:Ext.Array.merge(atrFields,[{
 							xtype: 'combobox',
 							fieldLabel: 'P/N',
 							name: 'stk_prod',
@@ -266,7 +270,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 							allowBlank:true,
 							fieldLabel: 'S/N',
 							name: 'stk_sn'
-						}]
+						}])
 					},{
 						width: 24,
 						xtype: 'box'
@@ -647,6 +651,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 		}) ;
 		
 		this.transferRecord.ligs().each( function(transferLigRecord) {
+			if( transferLigRecord.get('status_is_ok') ) {
+				return ;
+			}
 			var adrEntry, adrTreenode, adrIsGrouped ;
 			transferLigRecord.steps().each( function(transferLigStepRecord) {
 				if( transferLigStepRecord.get('step_code') != this.transferStepCode ) {
@@ -805,12 +812,19 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 			}) ;
 			
 			// *** Set form fields ****
-			form.setValues({
+			var formValues = {
 				stk_prod: transferLigRecord.get('stk_prod'),
 				stk_batch: transferLigRecord.get('stk_batch'),
 				mvt_qty: transferLigRecord.get('mvt_qty'),
 				stk_sn: transferLigRecord.get('stk_sn')
-			});
+			};
+			Ext.Array.each( Optima5.Modules.Spec.DbsLam.HelperCache.getAttributeAll(), function( attribute ) {
+				if( !attribute.STOCK_fieldcode ) {
+					return ;
+				}
+				formValues[attribute.mkey] = transferLigRecord.get(attribute.mkey) ;
+			}) ;
+			form.setValues(formValues);
 			
 			// *** Load prod ***
 			this.optimaModule.getConfiguredAjaxConnection().request({
@@ -875,9 +889,13 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 			if( !attribute.PROD_fieldcode ) {
 				return ;
 			}
+			if( !attribute.ADR_fieldcode ) {
+				return ;
+			}
 			var fieldDefinition = {
 				xtype:'op5crmbasebibletreepicker',
 				selectMode: 'single',
+				anchor: '100%',
 				optimaModule: this.optimaModule,
 				bibleId: attribute.bible_code,
 				fieldLabel: attribute.atr_txt,
@@ -1053,19 +1071,35 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 			formValues = form.getValues(false,false,false,true) ;
 		var transferLigFilerecordId_arr = [] ;
 		
-		this.showLoadmask() ;
-		
 		Ext.Array.each( this.transferLigRecord_arr, function(transferLigRecord) {
 			transferLigFilerecordId_arr.push(transferLigRecord.get('transferlig_filerecord_id')) ;
 		}) ;
 		
-		var atrValues = {} ;
+		var atrErrors = false, atrValues = {} ;
 		Ext.Array.each( Optima5.Modules.Spec.DbsLam.HelperCache.getAttributeAll(), function( attribute ) {
-			if( !attribute.PROD_fieldcode ) {
+			if( !attribute.PROD_fieldcode && !attribute.STOCK_fieldcode ) {
 				return ;
+			}
+			if( !attribute.ADR_fieldcode ) {
+				return ;
+			}
+			var formField = form.findField(attribute.mkey) ;
+			if( !formField ) {
+				return ;
+			}
+			if( Ext.isEmpty(formField.getValue()) || formField.getValue()=='&' ) {
+				atrErrors = true ;
+				formField.markInvalid('Missing stock attribute');
 			}
 			atrValues[attribute.mkey] = form.findField(attribute.mkey).getValue() ;
 		},this) ;
+		
+		if( atrErrors ) {
+			Ext.Msg.alert('Error','Missing stock attributes') ;
+			return ;
+		}
+		
+		this.showLoadmask() ;
 		
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
@@ -1202,6 +1236,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 			form = this.down('form').getForm() ;
 		Ext.Array.each( Optima5.Modules.Spec.DbsLam.HelperCache.getAttributeAll(), function( attribute ) {
 			if( !attribute.PROD_fieldcode ) {
+				return ;
+			}
+			if( !attribute.ADR_fieldcode ) {
 				return ;
 			}
 			form.findField(attribute.mkey).setReadOnly(true) ;

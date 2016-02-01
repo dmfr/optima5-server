@@ -7,6 +7,7 @@ Ext.define('DbsLamStkAttributeModel', {
 		{name: 'atr_txt',  type: 'string'},
 		{name: 'STOCK_fieldcode',  type: 'string'},
 		{name: 'PROD_fieldcode',  type: 'string'},
+		{name: 'ADR_fieldcode',  type: 'string'},
 		{name: 'cfg_is_optional',  type: 'boolean'},
 		{name: 'cfg_is_hidden',  type: 'boolean'},
 		{name: 'cfg_is_editable',  type: 'boolean'},

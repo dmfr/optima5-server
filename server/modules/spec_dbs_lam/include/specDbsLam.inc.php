@@ -150,7 +150,6 @@ function specDbsLam_lib_getBarcodePng( $text=0, $size=20, $orientation='horizont
 	$tmpfname = tempnam( sys_get_temp_dir(), "FOO").'.png';
 	
 	// Draw barcode to the screen
-	header ('Content-type: image/png');
 	imagepng($image, $tmpfname);
 	imagedestroy($image);
 	

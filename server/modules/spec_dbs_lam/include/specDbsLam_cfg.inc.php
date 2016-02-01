@@ -96,7 +96,8 @@ function specDbsLam_cfg_getConfig() {
 					'atr_code' => $atr_code,
 					'mkey' => 'ATR_'.$atr_code,
 					'atr_txt' => $atr_record['atr_txt'],
-					'bible_code' => $atr_record['is_bible'] ? 'ATR_'.$atr_code : NULL
+					'bible_code' => $atr_record['is_bible'] ? 'ATR_'.$atr_code : NULL,
+					'cfg_is_editable' => $atr_record['cfg_is_editable']
 				);
 			}
 			

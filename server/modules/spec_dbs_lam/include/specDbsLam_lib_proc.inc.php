@@ -47,29 +47,41 @@ function specDbsLam_lib_proc_lock_off() {
 	$_opDB->query($query) ;
 }
 
-function specDbsLam_lib_proc_findAdr( $mvt_obj, $stockAttributes_obj, $excludeAdr_arr ) {
+function specDbsLam_lib_proc_findAdr( $mvt_obj, $stockAttributes_obj, $whse_dest, $excludeAdr_arr=array() ) {
 	global $_opDB ;
 	
 	// Load cfg attributes
 	$ttmp = specDbsLam_cfg_getConfig() ;
 	$json_cfg = $ttmp['data'] ;
 	
+	// Load warehouse treenodes
+	$adr_treenodes = paracrm_data_getBibleTreeBranch( 'ADR', $whse_dest ) ;
+	
 	
 	$adr_id = NULL ;
 	while(TRUE) {
 		if( $mvt_obj ) {
-			// 1er cas : emplacement existant
-			$query = "SELECT * FROM view_file_INV WHERE
-				field_PROD_ID='{$mvt_obj['prod_id']}' AND field_BATCH_CODE='{$mvt_obj['batch']}'" ;
+			// 1er cas : emplacement existant POS_ID
+			$query = "SELECT adr.field_POS_ID FROM view_file_STOCK stk
+				INNER JOIN view_bible_ADR_entry adr ON adr.field_ADR_ID = stk.field_ADR_ID
+				WHERE field_PROD_ID='{$mvt_obj['prod_id']}' AND (stk.field_QTY_AVAIL+stk.field_QTY_OUT) > '0'
+				AND adr.treenode_key IN ".$_opDB->makeSQLlist($adr_treenodes) ;
 			$result = $_opDB->query($query) ;
-			if( $_opDB->num_rows($result) > 1 ) {
-				$status = 'NOK_MULTI' ;
-			} elseif( $_opDB->num_rows($result) == 1 ) {
-				$status = 'OK_ADD' ;
-				
-				$arr = $_opDB->fetch_assoc($result) ;
-				$adr_id = $arr['field_ADR_ID'] ;
-				
+			if( $_opDB->num_rows($result) >= 1 ) {
+				$arr = $_opDB->fetch_row($result) ;
+				$pos_id = $arr[0] ;
+				$query = "SELECT adr.* FROM view_bible_ADR_entry adr
+							LEFT OUTER JOIN view_file_STOCK inv ON inv.field_ADR_ID = adr.entry_key
+							WHERE inv.filerecord_id IS NULL AND adr.field_POS_ID='{$pos_id}'
+							AND adr.treenode_key IN ".$_opDB->makeSQLlist($adr_treenodes) ;
+				$query.= " ORDER BY adr.entry_key LIMIT 1" ;
+				$result = $_opDB->query($query) ;
+				while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+					$status = 'OK_NEW' ;
+					$adr_id = $arr['entry_key'] ;
+					
+					break 2 ;
+				}
 				break ;
 			}
 		}
@@ -81,24 +93,23 @@ function specDbsLam_lib_proc_findAdr( $mvt_obj, $stockAttributes_obj, $excludeAd
 			
 			$attributesToCheck = array() ;
 			foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
-				if( !$stockAttribute_obj['PROD_fieldcode'] ) {
+				if( !$stockAttribute_obj['ADR_fieldcode'] ) {
 					continue ;
 				}
-				if( !$stockAttribute_obj['STOCK_fieldcode'] ) {
-					continue ;
-				}
+				$mkey = $stockAttribute_obj['mkey'] ;
 				if( ($doCheckAttributes || !$stockAttribute_obj['cfg_is_optional']) && $stockAttributes_obj[$mkey] ) {
-					$attributesToCheck[$stockAttribute_obj['STOCK_fieldcode']] = $stockAttributes_obj[$mkey] ;
+					$attributesToCheck[$stockAttribute_obj['ADR_fieldcode']] = $stockAttributes_obj[$mkey] ;
 				}
 			}
 			
 			$query = "SELECT adr.* FROM view_bible_ADR_entry adr
 						LEFT OUTER JOIN view_file_STOCK inv ON inv.field_ADR_ID = adr.entry_key
-						WHERE inv.filerecord_id IS NULL" ;
+						WHERE inv.filerecord_id IS NULL
+						AND adr.treenode_key IN ".$_opDB->makeSQLlist($adr_treenodes) ;
 			foreach( $attributesToCheck as $STOCK_fieldcode => $neededValue ) {
 				$query.= " AND adr.{$STOCK_fieldcode}='".mysql_real_escape_string(json_encode(array($neededValue)))."'" ;
 			}
-			$query.= " ORDER BY adr.field_PRIO_IDX LIMIT 1" ;
+			$query.= " ORDER BY adr.field_PRIO_IDX, adr.entry_key LIMIT 1" ;
 			$result = $_opDB->query($query) ;
 			while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 				$status = 'OK_NEW' ;
