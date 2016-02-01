@@ -249,6 +249,7 @@ function specDbsLam_transfer_printDoc( $post_data ) {
 	
 		if( $post_data['transfer_filerecordId'] ) {
 			$transfer_filerecordId = $post_data['transfer_filerecordId'] ;
+			$step_isFinal = FALSE ;
 		
 			$query = "SELECT * FROM view_file_TRANSFER WHERE filerecord_id='{$transfer_filerecordId}'" ;
 			$result = $_opDB->query($query) ;
@@ -272,6 +273,10 @@ function specDbsLam_transfer_printDoc( $post_data ) {
 		if( $post_data['transferFilerecordId'] ) {
 			$transfer_filerecordId = $post_data['transferFilerecordId'] ;
 			$transferLig_filerecordIds = json_decode($post_data['transferLigFilerecordId_arr'],true) ;
+			$transferStepCode = $post_data['transferStepCode'] ;
+			
+			// ****** Interro step ********
+			$step_isFinal = $_opDB->query_uniqueValue("SELECT field_IS_ADR FROM view_bible_CFG_MVTFLOW_entry WHERE entry_key='{$transferStepCode}'") ;
 		
 			$query = "SELECT * FROM view_file_TRANSFER WHERE filerecord_id='{$transfer_filerecordId}'" ;
 			$result = $_opDB->query($query) ;
@@ -285,13 +290,15 @@ function specDbsLam_transfer_printDoc( $post_data ) {
 				if( !in_array($row_transferLig['transferlig_filerecord_id'],$transferLig_filerecordIds) ) {
 					continue ;
 				}
-				$adr = $row_transferLig['current_adr_treenodeKey'] ;
+				$adr = ( $step_isFinal ? $row_transferLig['current_adr_entryKey'] : $row_transferLig['current_adr_treenodeKey'] ) ; ;
 				if( !$adr_rowsTransferLig[$adr] ) {
 					$adr_rowsTransferLig[$adr] = array() ;
 				}
 				$adr_rowsTransferLig[$adr][] = $row_transferLig ;
 			}
 		}
+	
+	$title = ( $step_isFinal ? 'MISE EN STOCK' : 'BORDEREAU DE TRANSFERT' );
 		
 	$buffer = '' ;
 	$is_first = TRUE ;
@@ -313,7 +320,7 @@ function specDbsLam_transfer_printDoc( $post_data ) {
 			$buffer.= '</div>' ;
 		$buffer.= "</td><td valign='middle' width='400'>" ;
 			$buffer.= "<table cellspacing='0' cellpadding='1'>";
-			$buffer.= "<tr><td><span class=\"mybig\">BORDEREAU DE TRANSFERT</span></td></tr>" ;
+			$buffer.= "<tr><td><span class=\"mybig\">{$title}</span></td></tr>" ;
 			//{$data_commande['date_exp']}
 			$buffer.= "<tr><td><span class=\"verybig\"><b>{$row_transfer['field_TRANSFER_TXT']}</b></span>&nbsp;&nbsp;<br>&nbsp;&nbsp;<big>printed on <b>".date('d/m/Y H:i')."</b></big></td></tr>" ;
 			$buffer.= "<tr><td><span class=\"verybig\">BIN / CONTAINER : <b>{$adr_str}</b></td></tr>" ;
@@ -372,6 +379,57 @@ function specDbsLam_transfer_printDoc( $post_data ) {
 				$buffer.= "</tr>" ;
 			}
 		$buffer.= "</table>" ;
+		
+		if( $step_isFinal && count($rows_transferLig)==1 ) {
+			$row_transferLig = reset($rows_transferLig) ;
+			
+				$query = "SELECT * FROM view_bible_PROD_entry WHERE entry_key='{$row_transferLig['stk_prod']}'" ;
+				$result = $_opDB->query($query) ;
+				$arr_prod = $_opDB->fetch_assoc($result) ;
+			
+			$buffer.= "<br><br><br><br>" ;
+			
+			$buffer.= "<div align='left'>" ;
+			
+			$buffer.= "<table class='tabledonnees'>" ;
+				
+				$buffer.= "<tr>" ;
+					$buffer.= "<td width='30%'><span class=\"mybig\">PartNumber</span></td>" ;
+					$buffer.= '<td align="center">' ;
+						$buffer.= '<img src="data:image/jpeg;base64,'.base64_encode(specDbsLam_lib_getBarcodePng($row_transferLig['stk_prod'],50)).'" /><br>';
+						$buffer.= $row_transferLig['stk_prod'].'<br>';
+					$buffer.= '</td>' ;
+				$buffer.= "</tr>" ;
+			
+				$buffer.= "<tr>" ;
+					$buffer.= "<td width='30%'><span class=\"mybig\">Batch</span></td>" ;
+					if( $arr_prod['field_SPEC_IS_BATCH'] ) {
+						$buffer.= '<td align="center">' ;
+						$buffer.= '<img src="data:image/jpeg;base64,'.base64_encode(specDbsLam_lib_getBarcodePng($row_transferLig['stk_batch'],50)).'" /><br>';
+						$buffer.= $row_transferLig['stk_batch'].'<br>';
+						$buffer.= '</td>' ;
+					} else {
+						$buffer.= '<td class="croix">&nbsp;</td>' ;
+					}
+				$buffer.= "</tr>" ;
+			
+				$buffer.= "<tr>" ;
+					$buffer.= "<td width='30%'><span class=\"mybig\">SerialNo</span></td>" ;
+					if( $arr_prod['field_SPEC_IS_SN'] ) {
+						$buffer.= '<td align="center">' ;
+						$buffer.= '<img src="data:image/jpeg;base64,'.base64_encode(specDbsLam_lib_getBarcodePng($row_transferLig['stk_sn'],50)).'" /><br>';
+						$buffer.= $row_transferLig['stk_sn'].'<br>';
+						$buffer.= '</td>' ;
+					} else {
+						$buffer.= '<td class="croix">&nbsp;</td>' ;
+					}
+				$buffer.= "</tr>" ;
+			
+			
+			$buffer.= "</table>" ;
+			
+			$buffer.= "</div>" ;
+		}
 	}
 	
 	
