@@ -1056,7 +1056,11 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 						this.doOpenTransfer(true) ;
 					}
 				} else {
-					Ext.Msg.alert('Error',jsonResponse.error) ;
+					Ext.Msg.alert('Error',jsonResponse.error, function(){
+						if( jsonResponse.reload ) {
+							this.doOpenTransfer() ;
+						}
+					},this) ;
 				}
 			},
 			callback: function() {

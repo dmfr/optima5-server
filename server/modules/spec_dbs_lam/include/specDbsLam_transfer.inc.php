@@ -553,7 +553,7 @@ function specDbsLam_transfer_commitAdrTmp($post_data) {
 			continue ;
 		}
 		if( $row_transferLig['step_code'] != $p_transferStepCode ) {
-			return array('success'=>false, 'error'=>'Invalid status for item(s) != '.$p_transferStepCode) ;
+			return array('success'=>false, 'reload'=>true, 'error'=>'Invalid status for item(s) != '.$p_transferStepCode) ;
 		}
 	}
 	if( count($rows_transferLig) != count($p_transferLigFilerecordId_arr) ) {
@@ -580,7 +580,7 @@ function specDbsLam_transfer_commitAdrTmp($post_data) {
 		// CHECK: source location ($p_transferTargetNode) is ADR treenode ?
 		$query = "SELECT count(*) from view_bible_ADR_tree WHERE treenode_key='{$p_transferTargetNode}'" ;
 		if( $_opDB->query_uniqueValue($query) != 1 ) {
-			return array('success'=>false, 'error'=>"CHECK FAIL : Source target {$p_transferTargetNode} invalid for step") ;
+			return array('success'=>false, 'reload'=>true, 'error'=>"CHECK FAIL : Source target {$p_transferTargetNode} invalid for step") ;
 		}
 		$currentAdrTreenode = $p_transferTargetNode ;
 		
@@ -594,7 +594,7 @@ function specDbsLam_transfer_commitAdrTmp($post_data) {
 			}
 		}
 		if( $count_stk != count($p_transferLigFilerecordId_arr) ) {
-			return array('success'=>false, 'error'=>"CHECK FAIL : Nb items loaded != nb items in location {$currentAdrTreenode}") ;
+			return array('success'=>false, 'reload'=>true, 'error'=>"CHECK FAIL : Nb items loaded != nb items in location {$currentAdrTreenode}") ;
 		}
 		
 		
