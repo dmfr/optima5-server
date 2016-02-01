@@ -593,7 +593,7 @@ function specDbsLam_transfer_commitAdrTmp($post_data) {
 				$count_stk++ ;
 			}
 		}
-		if( count($count_stk) != count($p_transferLigFilerecordId_arr) ) {
+		if( $count_stk != count($p_transferLigFilerecordId_arr) ) {
 			return array('success'=>false, 'error'=>"CHECK FAIL : Nb items loaded != nb items in location {$currentAdrTreenode}") ;
 		}
 		
@@ -696,7 +696,7 @@ function specDbsLam_transfer_commitAdrTmp($post_data) {
 				$count_stk++ ;
 			}
 		}
-		if( count($count_stk) != count($p_transferLigFilerecordId_arr) ) {
+		if( $count_stk != count($p_transferLigFilerecordId_arr) ) {
 			return array('success'=>false, 'error'=>"CHECK FAIL : Nb items loaded != nb items in location {$currentAdrTreenode}") ;
 		}
 		
