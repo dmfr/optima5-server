@@ -33,7 +33,6 @@ function specDbsLam_queryspec($post_data) {
 				$row[] = $value ;
 			}
 			$writer->writeSheetRow('Sheet1', $row );
-			break ;
 		}
 		$tmpfilename = tempnam( sys_get_temp_dir(), "FOO");
 		$writer->writeToFile($tmpfilename);
