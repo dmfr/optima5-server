@@ -128,12 +128,17 @@ function specDbsLam_queryspec_lib_SAFRAN_TRANSFERFLOW() {
 		if( substr($arr['field_ADR_ID'],0,3) == 'MIT' ) {
 			$row['mvt_step'] = 'T06_DONE' ;
 			
-			$query = "SELECT mvtstep.*, mvt.* FROM view_file_MVT_STEP mvtstep 
+			$query = "SELECT mvtstep.*, mvt.*, mvt.filerecord_id AS mvt_filerecord_id FROM view_file_MVT_STEP mvtstep 
 					INNER JOIN view_file_MVT mvt ON mvt.filerecord_id = mvtstep.filerecord_parent_id
 					WHERE mvtstep.field_DEST_ADR_ID='{$arr['field_ADR_ID']}' AND field_STATUS_IS_OK='1'" ;
 			$res_mvt = $_opDB->query($query) ;
 			$arr_mvt = $_opDB->fetch_assoc($res_mvt) ;
 			$row['mvt_commit_date'] = $arr_mvt['field_COMMIT_DATE'] ;
+			
+			$query = "SELECT * FROM view_file_TRANSFER_LIG tl JOIN view_file_TRANSFER t ON t.filerecord_id=tl.filerecord_parent_id WHERE field_FILE_MVT_ID='{$arr_mvt['mvt_filerecord_id']}'" ;
+			$res_tl = $_opDB->query($query) ;
+			$arr_tl = $_opDB->fetch_assoc($res_tl) ;
+			$row['mvt_doc'] = $arr_tl['field_TRANSFER_TXT'] ;
 		} else {
 			$query = "SELECT mvtstep.*, mvt.*, mvt.filerecord_id AS mvt_filerecord_id FROM view_file_MVT_STEP mvtstep 
 					INNER JOIN view_file_MVT mvt ON mvt.filerecord_id = mvtstep.filerecord_parent_id
@@ -143,13 +148,14 @@ function specDbsLam_queryspec_lib_SAFRAN_TRANSFERFLOW() {
 			if( $arr_mvt ) {
 				$row['mvt_step'] = $arr_mvt['field_STEP_CODE'] ;
 				
-				$query = "SELECT * FROM view_file_TRANSFER_LIG WHERE field_FILE_MVT_ID='{$arr_mvt['mvt_filerecord_id']}'" ;
+				$query = "SELECT * FROM view_file_TRANSFER_LIG tl JOIN view_file_TRANSFER t ON t.filerecord_id=tl.filerecord_parent_id WHERE field_FILE_MVT_ID='{$arr_mvt['mvt_filerecord_id']}'" ;
 				$res_tl = $_opDB->query($query) ;
 				$arr_tl = $_opDB->fetch_assoc($res_tl) ;
 				if( $arr_tl['field_STATUS_IS_REJECT'] == 1 ) {
 					$row['mvt_reject_is_on'] = 'Y' ;
 					$row['mvt_reject_codes'] = $arr_tl['field_REJECT_ARR'] ;
 				}
+				$row['mvt_doc'] = $arr_tl['field_TRANSFER_TXT'] ;
 			} else {
 				$row['mvt_step'] = 'T00_TODO' ;
 			}
@@ -190,6 +196,7 @@ function specDbsLam_queryspec_lib_SAFRAN_TRANSFERFLOW() {
 		array('dataIndex' => 'static_n', 'text' => 'Temoin de supression (Y/N)'),
 		array('dataIndex' => 'atr_CLASS', 'text' => 'ABC class'),
 		array('dataIndex' => '', 'text' => 'Status / Comments'),
+		array('dataIndex' => 'mvt_doc', 'text' => 'TransferDoc'),
 		array('dataIndex' => 'mvt_step', 'text' => 'Step'),
 		array('dataIndex' => 'mvt_commit_date', 'text' => 'Commit (LAM) Date'),
 		array('dataIndex' => 'mvt_reject_is_on', 'text' => 'Rejected'),
