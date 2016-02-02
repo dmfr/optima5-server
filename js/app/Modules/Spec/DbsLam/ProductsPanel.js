@@ -89,7 +89,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.ProductsPanel',{
 				},'->',{
 					icon:'images/op5img/ico_new_16.gif',
 					text:'Création Article',
-					handler: function() { this.handleNew() },
+					handler: function() {},
 					scope: this
 				}],
 				items: []
@@ -133,7 +133,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.ProductsPanel',{
 	},
 	onDataChange: function() {
 		if( this.isVisible() ) {
-			this.setFormRecord(null) ;
+			this.setViewRecord(null);
 			this.down('gridpanel').getStore().load() ;
 		} else {
 			this.on('activate',function(){this.onDataChange();}, this, {single:true}) ;
@@ -346,6 +346,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.ProductsPanel',{
 				type: 'string'
 			});
 		}) ;
+		pushModelfields.push({
+			name: 'stk_filerecord_id',
+			type: 'int'
+		});
 		
 		Ext.ux.dams.ModelManager.unregister( this.tmpGridTreeModelName ) ;
 		Ext.define(this.tmpGridTreeModelName, {
@@ -425,7 +429,11 @@ Ext.define('Optima5.Modules.Spec.DbsLam.ProductsPanel',{
 			rootVisible: false,
 			multiSelect: false,
 			singleExpand: false,
-			columns: gridTreeColumns
+			columns: gridTreeColumns,
+			listeners: {
+				itemcontextmenu: this.onTreeContextMenu,
+				scope: this
+			}
 		}) ;
 		var title = 'Article <b>'+record.get('prod_id')+'</b>' ;
 		
@@ -516,6 +524,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.ProductsPanel',{
 				map_treeAdr_gridRows[treeAdr] = [] ;
 			}
 			
+			gridRow.stk_filerecord_id = gridRecord.get('stk_filerecord_id') ;
+			
 			gridRow.leaf = true ;
 			
 			if( gridRecord.get('status_is_reject') ) {
@@ -587,278 +597,182 @@ Ext.define('Optima5.Modules.Spec.DbsLam.ProductsPanel',{
 		
 		this.getComponent('mProdsFormContainer').down('treepanel').setRootNode(treeStore.getRootNode()) ;
 	},
-	
-	
-	
-	
-	
-	
-	
-	
-	setFormRecord: function(record) {
-		var me = this,
-			eastpanel = me.getComponent('mProdsFormContainer') ;
-		if( record == null ) {
-			eastpanel._empty = true ;
-			eastpanel.collapse() ;
-			eastpanel.removeAll() ;
-			return ;
-		}
+	onTreeContextMenu: function(view, record, item, index, event) {
+		var gridContextMenuItems = new Array() ;
 		
-		var atrFields = [] ;
-		Ext.Array.each( Optima5.Modules.Spec.DbsLam.HelperCache.getStockAttributes(), function( stockAttribute ) {
-			var atrField = {
-				xtype:'op5crmbasebibletreepicker',
-				selectMode: 'single',
-				optimaModule: this.optimaModule,
-				bibleId: stockAttribute.bible_code,
-				fieldLabel: stockAttribute.atr_txt,
-				name: stockAttribute.mkey
-			} ;
-			atrFields.push(atrField) ;
-		}, this) ;
-		var eastPanelCfg = {
-			xtype: 'panel',
-			layout: {
-				type: 'border',
-				align: 'stretch'
-			},
-			tbar:[{
-				iconCls:'op5-sdomains-menu-submit',
-				text:'Save',
-				handler: function() {
-					me.handleSave() ;
-				},
-				scope:me
-			}],
-			items:[{
-				region: 'center',
-				flex: 1,
-				xtype: 'form',
-				layout: 'anchor',
-				fieldDefaults: {
-					labelAlign: 'left',
-					labelWidth: 70,
-					anchor: '100%'
-				},
-				frame:false,
-				border: false,
-				autoScroll: true,
-				bodyPadding: 10,
-				bodyCls: 'ux-noframe-bg',
-				items: [{
-					xtype:'fieldset',
-					title: 'Identification',
-					defaults: {
-						labelWidth: 100
-					},
-					items:[{
-						xtype: 'textfield',
-						fieldLabel: 'Code article',
-						name: 'prod_id'
-					},{
-						xtype: 'textfield',
-						fieldLabel: 'Description',
-						name: 'prod_txt'
-					}]
-				},{
-					xtype:'fieldset',
-					title: 'Flags',
-					defaults: {
-						labelWidth: 100
-					},
-					items:[{
-						xtype: 'checkboxfield',
-						boxLabel: 'Batch code',
-						name: 'spec_is_batch'
-					},{
-						xtype: 'checkboxfield',
-						boxLabel: 'Shelf life / DLC',
-						name: 'spec_is_dlc'
-					},{
-						xtype: 'checkboxfield',
-						boxLabel: 'S/N',
-						name: 'spec_is_sn'
-					}]
-				},{
-					xtype:'fieldset',
-					title: 'Attributes',
-					defaults: {
-						labelWidth: 100
-					},
-					items: atrFields
-				}]
-			},{
-				region: 'south',
-				flex: 1,
-				xtype: 'tabpanel',
-				items: [{
-					title: 'Inventory',
-					icon: 'images/op5img/ico_blocs_small.gif',
-					xtype: 'grid',
-					store: {
-						model: 'DbsLamStockGridModel',
-						autoLoad: false,
-						proxy: this.optimaModule.getConfiguredAjaxProxy({
-							extraParams : {
-								_moduleId: 'spec_dbs_lam',
-								_action: 'prods_getStockGrid'
-							},
-							reader: {
-								type: 'json',
-								rootProperty: 'data'
-							}
-						}),
-						sorters:[{
-							property : 'adr_id',
-							direction: 'ASC'
-						}]
-					},
-					columns: [{
-						dataIndex: 'adr_id',
-						text: 'Adr.ID',
-						width: 80
-					},{
-						dataIndex: 'inv_prod',
-						text: 'Article',
-						width: 90
-					},{
-						dataIndex: 'inv_batch',
-						text: 'BatchCode',
-						width: 100
-					},{
-						dataIndex: 'inv_qty',
-						text: 'Qty disp',
-						align: 'right',
-						width: 60
-					}]
-				},{
-					title: 'History',
-					icon: 'images/op5img/ico_wait_small.gif',
-					xtype: 'grid',
-					store: {
-						model: 'DbsLamMovementModel',
-						autoLoad: false,
-						proxy: this.optimaModule.getConfiguredAjaxProxy({
-							extraParams : {
-								_moduleId: 'spec_dbs_lam',
-								_action: 'prods_getMvtsGrid'
-							},
-							reader: {
-								type: 'json',
-								rootProperty: 'data'
-							}
-						}),
-						sorters:[{
-							property : 'mvt_id',
-							direction: 'DESC'
-						}]
-					},
-					columns: [{
-						xtype: 'datecolumn',
-						format:'d/m H:i',
-						dataIndex: 'mvt_date',
-						text: 'Date',
-						width: 80
-					},{
-						dataIndex: 'adr_id',
-						text: 'Adr.ID',
-						width: 80
-					},{
-						dataIndex: 'prod_id',
-						text: 'Article',
-						width: 90
-					},{
-						dataIndex: 'batch',
-						text: 'BatchCode',
-						width: 100
-					},{
-						dataIndex: 'mvt_qty',
-						text: 'Qty disp',
-						align: 'right',
-						width: 60,
-						renderer: function(v,metaData,record) {
-							var sign ;
-							if( v > 0 ) {
-								metaData.tdCls += ' op5-spec-dbspeople-balance-pos' ;
-								sign = '+' ;
-							} else {
-								metaData.tdCls += ' op5-spec-dbspeople-balance-neg' ;
-								sign = '-' ;
-							}
-							return sign + ' ' + v ;
-						}
-					}]
-				}]
-			}]
-		};
+		var selRecord = record;
 		
-		var title = 'Article <b>'+record.get('prod_id')+'</b>' ;
-		
-		eastpanel.removeAll();
-		eastpanel.add(eastPanelCfg);
-		eastpanel._empty = false ;
-		eastpanel.setTitle(title) ;
-		eastpanel.expand() ;
-		
-		var eastInnerPanel = eastpanel.child('panel'),
-			prodForm = eastInnerPanel.child('form') ;
-		eastInnerPanel._prod_id = record.get('prod_id') ;
-		if( record.get('prod_id') == null ) {
-			eastInnerPanel.down('tabpanel').setVisible(false) ;
-		} else {
-			prodForm.getForm().findField('prod_id').setReadOnly( true ) ;
-			prodForm.loadRecord(record) ;
-			Ext.Array.each( eastInnerPanel.query('grid'), function(gridPanel) {
-				gridPanel.getStore().load({
-					params: {
-						prod_id: record.get('prod_id')
-					}
-				}) ;
-			});
-		}
-	},
-	handleNew: function() {
-		var newProdRecord = Ext.ux.dams.ModelManager.create(this.tmpModelName,{}) ;
-		this.setFormRecord(newProdRecord) ;
-	},
-	handleSave: function() {
-		var me = this,
-			eastpanel = me.getComponent('mProdsFormContainer'),
-			eastInnerPanel = eastpanel.child('panel') ;
-		if( eastInnerPanel == null ) {
-			return ;
-		}
-		
-		var prodForm = eastInnerPanel.child('form') ;
-			
-		var formData = {} ;
-		Ext.apply( formData, prodForm.getValues() ) ;
-		var ajaxParams = {
-			_moduleId: 'spec_dbs_lam',
-			_action: 'prods_setRecord',
-			_is_new: ( eastInnerPanel._prod_id == null ? 1 : 0 ),
-			prod_id: ( eastInnerPanel._prod_id != null ? eastInnerPanel._prod_id : '' ),
-			data: Ext.JSON.encode(formData)
-		} ;
-		
-		this.optimaModule.getConfiguredAjaxConnection().request({
-			params: ajaxParams,
-			success: function(response) {
-				var ajaxResponse = Ext.decode(response.responseText) ;
-				if( ajaxResponse.success == false ) {
-					if( ajaxResponse.formErrors ) {
-						prodForm.getForm().markInvalid( ajaxResponse.formErrors ) ;
-						return ;
-					}
-					Ext.MessageBox.alert('Erreur',ajaxResponse.error) ;
+		var lib, arrFilerecordIds=[] ;
+		if( !Ext.isEmpty(selRecord.get('tree_adr')) ) {
+			// test
+			var testFail = false ;
+			record.cascadeBy(function(s) {
+				if( s==record ){
 					return ;
 				}
-				this.optimaModule.postCrmEvent('datachange') ;
+				if( !s.isLeaf() ) {
+					testFail = true ; 
+				}
+			}) ;
+			if( testFail ) {
+				return ;
+			}
+			
+			lib = '<b>'+selRecord.get('tree_adr')+'</b>' ;
+			record.cascadeBy(function(s) {
+				if( s.isLeaf() && s.get('stk_filerecord_id') ) {
+					arrFilerecordIds.push(s.get('stk_filerecord_id')); 
+				}
+			}) ;
+		} else {
+			lib = '<b>id:</b>'+record.get('stk_filerecord_id') ;
+			arrFilerecordIds.push(record.get('stk_filerecord_id')) ;
+		}
+		
+		gridContextMenuItems.push({
+			iconCls: 'icon-bible-new',
+			text: 'Relocate <b>'+lib+'</b>',
+			handler : function() {
+				this.openRelocatePopup(arrFilerecordIds,lib) ;
 			},
-			scope: this
+			scope : this
+		});
+		
+		var gridContextMenu = Ext.create('Ext.menu.Menu',{
+			items : gridContextMenuItems,
+			listeners: {
+				hide: function(menu) {
+					Ext.defer(function(){menu.destroy();},10) ;
+				}
+			}
 		}) ;
+		
+		gridContextMenu.showAt(event.getXY());
 	},
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	openRelocatePopup: function(arrFilerecordIds,lib) {
+		var me = this ;
+		var popupPanel = Ext.create('Ext.form.Panel',{
+			optimaModule: this.optimaModule,
+			
+			width:400,
+			height:250,
+			
+			cls: 'ux-noframe-bg',
+			
+			arrFilerecordIds: arrFilerecordIds,
+			
+			floating: true,
+			renderTo: me.getEl(),
+			tools: [{
+				type: 'close',
+				handler: function(e, t, p) {
+					p.ownerCt.destroy();
+				}
+			}],
+			
+			xtype: 'form',
+			border: false,
+			bodyCls: 'ux-noframe-bg',
+			bodyPadding: 8,
+			layout:'anchor',
+			fieldDefaults: {
+				labelWidth: 100
+			},
+			items:[{
+				height: 72,
+				xtype: 'component',
+				tpl: [
+					'<div class="op5-spec-embralam-liveadr-relocatebanner">',
+						'<span>{text}</span>',
+					'</div>'
+				],
+				data: {text: '<b>Déplacement d\'une adresse existante</b><br>Pour valider, veuillez saisir l\'adresse <u>destination</u>'}
+			},{
+				xtype: 'displayfield',
+				anchor: '',
+				width: 180,
+				fieldLabel: 'Item(s)',
+				value: lib
+			},{
+				xtype: 'displayfield',
+				anchor: '',
+				width: 180,
+				fieldLabel: 'Stock lines count',
+				value: '<b>'+arrFilerecordIds.length+'</b>'
+			},{
+				xtype: 'textfield',
+				name: 'dest_adr_id',
+				anchor: '',
+				width: 180,
+				fieldLabel: 'Adresse'
+			}],
+			buttons: [{
+				xtype: 'button',
+				text: 'Submit',
+				handler:function(btn){ 
+					var formPanel = btn.up('form') ;
+					formPanel.doSubmitRelocate() ;
+				},
+				scope: this
+			}],
+			doSubmitRelocate: function() {
+				var formPanel = this,
+					form = formPanel.getForm(),
+					formValues = form.getValues() ;
+					
+				var relocateObj = {
+					arrFilerecordIds: this.arrFilerecordIds,
+					dest_adr_id: formValues.dest_adr_id
+				} ;
+				
+				this.optimaModule.getConfiguredAjaxConnection().request({
+					params: {
+						_moduleId: 'spec_dbs_lam',
+						_action: 'prods_doRelocate',
+						data: Ext.JSON.encode(relocateObj)
+					},
+					success: function(response) {
+						var jsonResponse = Ext.JSON.decode(response.responseText) ;
+						this.onSubmitRelocate(jsonResponse) ;
+					},
+					callback: function() {
+						//this.hideLoadmask() ;
+					},
+					scope: this
+				});
+			},
+			onSubmitRelocate: function(ajaxResponse) {
+				var formPanel = this,
+					form = formPanel.getForm(),
+					formValues = form.getValues() ;
+											 
+				if( ajaxResponse.success ) {
+					this.optimaModule.postCrmEvent('datachange') ;
+					this.destroy() ;
+				} else {
+					form.findField('dest_adr_id').markInvalid('Error') ;
+				}
+			}
+		});
+		
+		popupPanel.on('destroy',function() {
+			me.getEl().unmask() ;
+		},me,{single:true}) ;
+		me.getEl().mask() ;
+		
+		popupPanel.show();
+		popupPanel.getEl().alignTo(me.getEl(), 'c-c?');
+	},
+	
 	
 	doQuit: function() {
 		this.destroy() ;

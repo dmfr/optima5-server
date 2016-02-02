@@ -44,6 +44,8 @@ switch( $post_data['_action'] )
 	return specDbsLam_prods_getStockGrid( $post_data ) ;
 	case 'prods_setRecord' :
 	return specDbsLam_prods_setRecord( $post_data ) ;
+	case 'prods_doRelocate' :
+	return specDbsLam_prods_doRelocate( $post_data ) ;
 	
 	case 'upload' :
 	return specDbsLam_upload( $post_data ) ;
