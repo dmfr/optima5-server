@@ -932,10 +932,21 @@ function specDbsLam_transfer_commitAdrFinal($post_data) {
 	
 	specDbsLam_lib_proc_lock_on() ;
 	
-	$adr_obj = specDbsLam_lib_proc_findAdr( $form_data['mvt_obj'], $form_data['stockAttributes_obj'], $whse_dest ) ;
-	if( !$adr_obj['adr_id'] ) {
-		specDbsLam_lib_proc_lock_off() ;
-		return array('success'=>false, 'error'=>'Pas d\'emplacement disponible.') ;
+	if( !$post_data['manAdr_isOn'] ) {
+		$adr_obj = specDbsLam_lib_proc_findAdr( $form_data['mvt_obj'], $form_data['stockAttributes_obj'], $whse_dest ) ;
+		if( !$adr_obj['adr_id'] ) {
+			specDbsLam_lib_proc_lock_off() ;
+			return array('success'=>false, 'error'=>'Pas d\'emplacement disponible.', 'error_available'=>true) ;
+		}
+	} else {
+		$adr_treenodes = paracrm_data_getBibleTreeBranch( 'ADR', $whse_dest ) ;
+		$query = "SELECT count(*) FROM view_bible_ADR_entry WHERE entry_key='{$post_data['manAdr_adrId']}'
+					AND treenode_key IN ".$_opDB->makeSQLlist($adr_treenodes) ;
+		if( $_opDB->query_uniqueValue($query) == 1 ) {
+			$adr_obj = array('status'=>'OK_MAN','adr_id'=>strtoupper(trim($post_data['manAdr_adrId']))) ;
+		} else {
+			return array('success'=>false, 'error'=>'Invalid location') ;
+		}
 	}
 	
 	

@@ -921,7 +921,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 			}
 		},this) ;
 		if( isFinal ) {
-			this.doProcessAdrFinal() ;
+			this.doProcessAdrFinal(null) ;
 			return ;
 		}
 
@@ -1069,7 +1069,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 			scope: this
 		});
 	},
-	doProcessAdrFinal: function() {
+	doProcessAdrFinal: function(adrId) {
 		var formPanel = this.down('form'),
 			form = this.down('form').getForm(),
 			formValues = form.getValues(false,false,false,true) ;
@@ -1112,14 +1112,16 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 				transferFilerecordId: this.transferRecord.get('transfer_filerecord_id'),
 				transferLigFilerecordId_arr: Ext.JSON.encode(transferLigFilerecordId_arr),
 				transferStepCode: this.transferStepCode,
-				stockAttributes_obj: Ext.JSON.encode(atrValues)
+				stockAttributes_obj: Ext.JSON.encode(atrValues),
+				manAdr_isOn: (adrId!=null ? 1 : 0),
+				manAdr_adrId: (adrId!=null ? adrId : null)
 			},
 			success: function(response) {
 				var jsonResponse = Ext.JSON.decode(response.responseText) ;
 				if( jsonResponse.success ) {
 					this.onLiveResponse(jsonResponse.data) ;
 				} else {
-					Ext.Msg.alert('Error',jsonResponse.error) ;
+					this.doProcessAdrFinalError(jsonResponse) ;
 				}
 			},
 			callback: function() {
@@ -1127,6 +1129,13 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 			},
 			scope: this
 		});
+	},
+	doProcessAdrFinalError: function(jsonResponse) {
+		if( jsonResponse.error_available ) {
+			this.openAdrManPopup() ;
+		} else {
+			Ext.Msg.alert('Error',jsonResponse.error) ;
+		}
 	},
 	
 	openPrintPopup: function() {
@@ -1267,6 +1276,14 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 				});
 				break ;
 				
+			case 'OK_MAN' :
+				this.optimaModule.postCrmEvent('datachange') ;
+				fsResultCmp.update({
+					adr: ajaxData.adr_id,
+					caption: 'Manual location'
+				});
+				break ;
+				
 			case 'OK_NEW' :
 				this.optimaModule.postCrmEvent('datachange') ;
 				fsResultCmp.update({
@@ -1313,6 +1330,72 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 		},this) ;
 	},
 
+	openAdrManPopup: function() {
+		var me = this ;
+		var popupPanel = Ext.create('Ext.form.Panel',{
+			width:400,
+			height:200,
+			
+			cls: 'ux-noframe-bg',
+			
+			floating: true,
+			renderTo: me.getEl(),
+			tools: [{
+				type: 'close',
+				handler: function(e, t, p) {
+					p.ownerCt.destroy();
+				}
+			}],
+			
+			xtype: 'form',
+			border: false,
+			bodyCls: 'ux-noframe-bg',
+			bodyPadding: 8,
+			layout:'anchor',
+			fieldDefaults: {
+				labelWidth: 75
+			},
+			items:[{
+				height: 72,
+				xtype: 'component',
+				tpl: [
+					'<div class="op5-spec-embralam-liveadr-relocatebanner">',
+						'<span>{text}</span>',
+					'</div>'
+				],
+				data: {text: '<b>No location available</b><br>Enter manual location or close window to cancel'}
+			},{
+				xtype: 'textfield',
+				name: 'adr_id',
+				anchor: '',
+				width: 180,
+				fieldLabel: 'Adresse'
+			}],
+			buttons: [{
+				xtype: 'button',
+				text: 'Submit',
+				handler:function(btn){ 
+					var formPanel = btn.up('form'),
+						form = btn.up('form').getForm(),
+						relocateObj = form.getValues() ;
+					this.doProcessAdrFinal(relocateObj.adr_id) ;
+					formPanel.destroy() ;
+				},
+				scope: this
+			}]
+		});
+		
+		popupPanel.on('destroy',function() {
+			me.getEl().unmask() ;
+		},me,{single:true}) ;
+		me.getEl().mask() ;
+		
+		popupPanel.show();
+		popupPanel.getEl().alignTo(me.getEl(), 'c-c?');
+	},
+	
+	
+	
 	showLoadmask: function() {
 		if( this.rendered ) {
 			this.doShowLoadmask() ;
