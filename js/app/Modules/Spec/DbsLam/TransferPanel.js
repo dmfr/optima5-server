@@ -324,7 +324,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				text: '<b>Location</b>',
 				dataIndex: 'tree_adr',
 				width: 200,
-				renderer: function(v) {
+				renderer: function(v,metaData,record) {
+					if( record.get('transferlig_filerecord_id') ) {
+						return ''+record.get('transferlig_filerecord_id')+'' ;
+					}
 					return '<b>'+v+'</b>' ;
 				}
 			},{

@@ -153,6 +153,7 @@ function specDbsLam_lib_procMvt_commit($mvt_filerecordId, $adr_dest, $adr_dest_d
 	$arr_update['field_STATUS_IS_OK'] = 1 ;
 	$arr_update['field_COMMIT_DATE'] = date('Y-m-d H:i:s') ;
 	$arr_update['field_COMMIT_USER'] = strtoupper($_SESSION['login_data']['delegate_userId']) ;
+	$arr_update['field_COMMIT_FILE_STOCK_ID'] = $stock_filerecordId ;
 	$arr_cond = array() ;
 	$arr_cond['filerecord_id'] = $row_mvt_step['filerecord_id'] ;
 	$_opDB->update('view_file_MVT_STEP',$arr_update, $arr_cond) ;

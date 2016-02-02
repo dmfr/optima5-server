@@ -830,7 +830,6 @@ function specDbsLam_transfer_commitAdrTmp($post_data) {
 		if( specDbsLam_lib_procMvt_commit($mvt_filerecordId, $location_entryKey, $location_display, $next_step_code ) ) {
 			$arr_update = array();
 			$arr_update['field_STATUS_IS_REJECT'] = FALSE ;
-			$arr_update['field_REJECT_ARR'] = NULL ;
 			$arr_update['field_STEP_CODE'] = $next_step_code ;
 			paracrm_lib_data_updateRecord_file('TRANSFER_LIG',$arr_update,$transferLig_filerecordId) ;
 		}
@@ -881,7 +880,7 @@ function specDbsLam_transfer_commitAdrFinal($post_data) {
 	}
 	foreach( $form_data['stockAttributes_obj'] as $mkey => $mvalue ) {
 		if( !$mvalue ) {
-			$return = array('success'=>false, 'error'=>'Stock attributes error !') ;
+			return array('success'=>false, 'error'=>'Stock attributes error !') ;
 		}
 	}
 	
@@ -890,7 +889,7 @@ function specDbsLam_transfer_commitAdrFinal($post_data) {
 	$row_transfer = $ttmp['data'][0] ;
 	$whse_dest = $row_transfer['whse_dest'] ;
 	if( !$whse_dest ) {
-		$return = array('success'=>false, 'error'=>'Warehouse destination ?') ;
+		return array('success'=>false, 'error'=>'Warehouse destination ?') ;
 	}
 	
 	// Load current ligs
@@ -936,8 +935,7 @@ function specDbsLam_transfer_commitAdrFinal($post_data) {
 	$adr_obj = specDbsLam_lib_proc_findAdr( $form_data['mvt_obj'], $form_data['stockAttributes_obj'], $whse_dest ) ;
 	if( !$adr_obj['adr_id'] ) {
 		specDbsLam_lib_proc_lock_off() ;
-		$return = array('success'=>false, 'error'=>'Pas d\'emplacement disponible.') ;
-		break ;
+		return array('success'=>false, 'error'=>'Pas d\'emplacement disponible.') ;
 	}
 	
 	
@@ -951,8 +949,7 @@ function specDbsLam_transfer_commitAdrFinal($post_data) {
 		if( specDbsLam_lib_procMvt_commit($mvt_filerecordId, $adr_obj['adr_id'], $adr_obj['adr_id'], NULL ) ) {
 			$arr_update = array();
 			$arr_update['field_STATUS_IS_REJECT'] = FALSE ;
-			$arr_update['field_REJECT_ARR'] = NULL ;
-			$arr_update['field_STEP_CODE'] = NULL ;
+			$arr_update['field_STEP_CODE'] = '' ;
 			paracrm_lib_data_updateRecord_file('TRANSFER_LIG',$arr_update,$transferLigFilerecordId) ;
 		}
 	}

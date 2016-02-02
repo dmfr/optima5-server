@@ -674,7 +674,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 					leaf: true,
 					isSku: true,
 					nodeKey: transferLigRecord.get('transferlig_filerecord_id'),
-					nodeText: '<b>'+transferLigRecord.get('stk_prod')+'</b>'+' / Qty:'+transferLigRecord.get('mvt_qty')
+					nodeText: '(<i>'+transferLigRecord.get('transferlig_filerecord_id')+'</i>) '+'<b>'+transferLigRecord.get('stk_prod')+'</b>'+' / Qty:'+transferLigRecord.get('mvt_qty')
 				};
 				
 				if( transferLigRecord.get('status_is_reject') ) {
