@@ -965,7 +965,7 @@ function specDbsLam_transfer_commitAdrFinal($post_data,$fast=FALSE) {
 			$arr_update = array();
 			$arr_update['field_STATUS_IS_REJECT'] = FALSE ;
 			$arr_update['field_STEP_CODE'] = '' ;
-			paracrm_lib_data_updateRecord_file('TRANSFER_LIG',$arr_update,$transferLigFilerecordId) ;
+			paracrm_lib_data_updateRecord_file('TRANSFER_LIG',$arr_update,$transferLig_filerecordId) ;
 		}
 	}
 	
