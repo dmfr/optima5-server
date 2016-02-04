@@ -251,7 +251,6 @@ function specDbsLam_queryspec_lib_sync( $handle, $soc_code ) {
 		}
 	}
 	
-	
 	$bible_PROD_tree = array() ;
 	$bible_PROD_entry = array() ;
 	$bible_ADR_tree = array() ;
@@ -274,22 +273,26 @@ function specDbsLam_queryspec_lib_sync( $handle, $soc_code ) {
 		$ttmp = explode('_',$row['adr_id'],2) ;
 		$whse_code = $ttmp[0] ;
 		
-		$bible_PROD_tree[$row['prod_key']] = array(
-			'treenode_parent_key' => '',
-			'field_PRODGROUP_CODE' => $row['prod_key']
-		);
+		if( $row['prod_key'] ) {
+			$bible_PROD_tree[$row['prod_key']] = array(
+				'treenode_parent_key' => '',
+				'field_PRODGROUP_CODE' => $row['prod_key']
+			);
+		}
 		$bible_PROD_entry[$row['prod_id']] = array(
-			'treenode_key' => $row['prod_key'],
+			'treenode_key' => ($row['prod_key'] ? $row['prod_key']:NULL),
 			'field_PROD_ID' => $row['prod_id'],
 			'field_PROD_TXT' => $row['desc']
 		);
-		$bible_ADR_tree[$row['adr_key']] = array(
-			'treenode_parent_key' => $whse_code,
-			'field_ROW_ID' => $row['adr_key'],
-			'field_POS_ZONE' => $row['adr_row']
-		);
+		if( $row['adr_key'] ) {
+			$bible_ADR_tree[$row['adr_key']] = array(
+				'treenode_parent_key' => $whse_code,
+				'field_ROW_ID' => $row['adr_key'],
+				'field_POS_ZONE' => $row['adr_row']
+			);
+		}
 		$bible_ADR_entry[$row['adr']] = array(
-			'treenode_key' => $row['adr_key'],
+			'treenode_key' => ($row['adr_key'] ? $row['adr_key']:NULL),
 			'field_ADR_ID' => $row['adr']
 		);
 		
@@ -302,6 +305,9 @@ function specDbsLam_queryspec_lib_sync( $handle, $soc_code ) {
 		);
 		$mkey = implode('%%%',$mkey) ;
 		if( $mapStock_mkey_isLocked[$mkey] ) {
+			$file_STOCK[] = array(
+				'filerecord_id' => $mapStock_mkey_id[$mkey]
+			);
 			continue ;
 		}
 		if( !$mapStock_mkey_id[$mkey] ) {
@@ -382,7 +388,10 @@ function specDbsLam_queryspec_lib_sync( $handle, $soc_code ) {
 	$arr_new_filerecordIds = array() ;
 	foreach( $file_STOCK as $row_STOCK ) {
 		if( $row_STOCK['filerecord_id'] ) {
-			paracrm_lib_data_updateRecord_file( 'STOCK', $row_STOCK, $row_STOCK['filerecord_id'] ) ;
+			unset($row_STOCK['field_ADR_ID']) ;
+			if( count($row_STOCK) > 1 ) {
+				paracrm_lib_data_updateRecord_file( 'STOCK', $row_STOCK, $row_STOCK['filerecord_id'] ) ;
+			}
 			$arr_new_filerecordIds[] = $row_STOCK['filerecord_id'] ;
 		} else {
 			$arr_new_filerecordIds[] = paracrm_lib_data_insertRecord_file( 'STOCK', 0, $row_STOCK ) ;
