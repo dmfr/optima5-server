@@ -307,6 +307,7 @@ function specDbsLam_transfer_printDoc( $post_data ) {
 		
 	$buffer = '' ;
 	$is_first = TRUE ;
+	ksort($adr_rowsTransferLig) ;
 	foreach( $adr_rowsTransferLig as $adr => $rows_transferLig ) {
 		$ttmp = explode('_',$adr,2) ;
 		$adr_str = $ttmp[1] ;
