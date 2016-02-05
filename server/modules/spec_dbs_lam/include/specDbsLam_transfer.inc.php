@@ -64,8 +64,8 @@ function specDbsLam_transfer_getTransferLig($post_data) {
 	$selects = implode(',',$selects) ;
 	
 	$query = "select a.*
-		, sadr.entry_key as src_adr_entry, sadr.treenode_key as src_adr_treenode
-		, dadr.entry_key as dest_adr_entry, dadr.treenode_key as dest_adr_treenode
+		, a.field_SRC_ADR_ID as src_adr_entry, sadr.treenode_key as src_adr_treenode
+		, a.field_DEST_ADR_ID as dest_adr_entry, dadr.treenode_key as dest_adr_treenode
 		FROM (
 		SELECT tl.filerecord_id as transferlig_filerecord_id, tl.filerecord_parent_id as transfer_filerecord_id
 		, mvt.filerecord_id as mvt_filerecord_id
@@ -93,6 +93,7 @@ function specDbsLam_transfer_getTransferLig($post_data) {
 			$row = array(
 				'transfer_filerecord_id' => $arr['transfer_filerecord_id'],
 				'transferlig_filerecord_id' => $arr['transferlig_filerecord_id'],
+				'mvt_filerecord_id' => $arr['mvt_filerecord_id'],
 				'stk_prod' => $arr['field_PROD_ID'],
 				'stk_batch' => $arr['field_SPEC_BATCH'],
 				'stk_sn' => $arr['field_SPEC_SN'],
@@ -120,7 +121,9 @@ function specDbsLam_transfer_getTransferLig($post_data) {
 		
 		// inscription steps
 		$row_step = array(
+			'mvtstep_filerecord_id' => $arr['mvtstep_filerecord_id'],
 			'step_code' => $arr['field_STEP_CODE'],
+			'file_stock_id' => $arr['field_FILE_STOCK_ID'],
 			'src_adr_entry' =>  $arr['src_adr_entry'],
 			'src_adr_treenode' => $arr['src_adr_treenode'],
 			'src_adr_display' =>  $arr['field_SRC_ADR_DISPLAY'],
@@ -129,7 +132,8 @@ function specDbsLam_transfer_getTransferLig($post_data) {
 			'dest_adr_display' =>  $arr['field_DEST_ADR_DISPLAY'],
 			'status_is_ok' =>  $arr['field_STATUS_IS_OK'],
 			'commit_date' => $arr['field_COMMIT_DATE'],
-			'commit_user' => $arr['field_COMMIT_USER']
+			'commit_user' => $arr['field_COMMIT_USER'],
+			'commit_file_stock_id' => $arr['field_COMMIT_FILE_STOCK_ID']
 		);
 		$TAB[$filerecord_id]['steps'][] = $row_step ;
 	}
@@ -1020,5 +1024,208 @@ function specDbsLam_transfer_lib_advanceDoc($transfer_filerecordId) {
 	}
 	return ;
 }
+
+
+
+
+function specDbsLam_transfer_rollbackStep($post_data) {
+	global $_opDB ;
+	
+	$p_transferFilerecordId = $post_data['transferFilerecordId'] ;
+	$p_transferLigFilerecordId_arr = json_decode($post_data['transferLigFilerecordId_arr'],true) ;
+	$p_transferStepCode = $post_data['transferStepCode'] ;
+	
+	// **** Checks *******
+	 // toutes lignes => étape courante ?
+	 // => étape précédente
+	 //     => étape précédente TMP ? => besoin de déplacer des treenodes
+	// Load current doc
+		$ttmp = specDbsLam_transfer_getTransfer( array('filter_transferFilerecordId'=>$p_transferFilerecordId) ) ;
+		$row_transfer = $ttmp['data'][0] ;
+		$flow_code = $row_transfer['flow_code'] ;
+		
+	 
+		$ttmp = specDbsLam_cfg_getMvtflow() ;
+		$cfg_mvtflow = $ttmp['data'] ;
+		foreach( $cfg_mvtflow as $row_mvtflow ) {
+			if( $row_mvtflow['flow_code'] == $flow_code ) {
+				$steps = array() ;
+				foreach( $row_mvtflow['steps'] as $step ) {
+					$steps[] = $step['step_code'] ;
+				}
+				$steps[] = 'OK' ;
+			}
+		}
+		if( !$steps ) {
+			return array('success'=>false) ;
+		}
+		$stepCode_idx = array_search($p_transferStepCode,$steps) ;
+		$nextStepCode = $steps[$stepCode_idx+1] ;
+		
+		
+		
+		
+		$ttmp = specDbsLam_transfer_getTransferLig( array('filter_transferFilerecordId'=>$p_transferFilerecordId) ) ;
+		$rows_transferLig_orig = $ttmp['data'] ;
+		$rows_transferLig = array() ;
+		foreach( $rows_transferLig_orig as $idx => $row_transferLig ) {
+			if( !in_array($row_transferLig['transferlig_filerecord_id'],$p_transferLigFilerecordId_arr) ) {
+				continue ;
+			}
+			$rows_transferLig[] = $row_transferLig ;
+			if( $row_transferLig['status_is_ok'] ) {
+				$row_transferLig['step_code'] = 'OK' ;
+			}
+			if( $row_transferLig['step_code'] != $nextStepCode ) {
+				return array('success'=>false, 'reload'=>true, 'error'=>'Invalid status for item(s) != '.$p_transferStepCode) ;
+			}
+		}
+	
+	
+	$step_isFinal = $_opDB->query_uniqueValue("SELECT field_IS_ADR FROM view_bible_CFG_MVTFLOW_entry WHERE entry_key='{$p_transferStepCode}'") ;
+	
+	foreach( $rows_transferLig as $row_transferLig ) {
+		$lastStep_log = end($row_transferLig['steps']) ;
+		if( $lastStep_log['status_is_ok'] ) {
+			$prevStep_log = $lastStep_log ;
+			$lastStep_log = array('step_code'=>'OK') ;
+		} else {
+			$prevStep_log = prev($row_transferLig['steps']) ;
+		}
+		
+		if( $lastStep_log['step_code'] != $nextStepCode ) {
+			return array('success'=>false) ;
+		}
+		if( $prevStep_log['step_code'] != $p_transferStepCode ) {
+			return array('success'=>false) ;
+		}
+		
+		// Search STK lines
+			// => is_final : recherche qte_avail
+			// => !is_final : recherche qte_out
+		$query_stk = "SELECT * FROM view_file_STOCK where filerecord_id='{$prevStep_log['commit_file_stock_id']}'" ;
+		$res_stk = $_opDB->query($query_stk) ;
+		if( !($arr_stk = $_opDB->fetch_assoc($res_stk)) ) {
+			return array('success'=>false) ;
+		}
+		if( $arr_stk['field_ADR_ID'] != $prevStep_log['dest_adr_entry'] ) {
+			return array('success'=>false) ;
+		}
+		
+		$qte_ok = ( $step_isFinal ? $row_transferLig['mvt_qty'] == $arr_stk['field_QTY_AVAIL']
+										: $row_transferLig['mvt_qty'] == $arr_stk['field_QTY_OUT'] ) ;
+		if( !$qte_ok ) {
+			return array('success'=>false) ;
+		}
+		
+		if( $prevStep_log['src_adr_display'] != $prevStep_log['src_adr_entry']
+			&& $prevStep_log['dest_adr_display'] != $prevStep_log['dest_adr_entry'] ) {
+			$_is_TMP = TRUE ;
+			$_is_TMP_prevDestAdrDisplay = $prevStep_log['dest_adr_display'] ;
+		}
+	}
+	
+	// SI is tmp
+	//  => verif autres lignes avec la meme dest_adr_display
+	if( $_is_TMP ) {
+	$_is_TMP_count = 0 ;
+	foreach( $rows_transferLig_orig as $row_transferLig ) {
+		$lastStep_log = end($row_transferLig['steps']) ;
+		if( $lastStep_log['status_is_ok'] ) {
+			$prevStep_log = $lastStep_log ;
+		} else {
+			$prevStep_log = prev($row_transferLig['steps']) ;
+		}
+		
+		if( $prevStep_log['step_code'] == $p_transferStepCode 
+			&& $prevStep_log['dest_adr_display'] == $_is_TMP_prevDestAdrDisplay ) {
+			
+			$_is_TMP_count++ ;
+		}
+	}
+	if( $_is_TMP_count != count($rows_transferLig) ) {
+		return array('success'=>false, 'error'=>'Inconsistant level') ;
+	}
+	}
+	
+	// verif des treenodes
+	
+	foreach( $rows_transferLig as $row_transferLig ) {
+		$lastStep_log = end($row_transferLig['steps']) ;
+		if( $lastStep_log['status_is_ok'] ) {
+			$prevStep_log = $lastStep_log ;
+		} else {
+			$prevStep_log = prev($row_transferLig['steps']) ;
+		}
+		if( $prevStep_log['src_adr_display'] != $prevStep_log['src_adr_entry'] ) {
+			if( !paracrm_lib_data_getRecord_bibleTreenode('ADR',$prevStep_log['src_adr_display']) ) {
+				return array('success'=>false, 'error'=>'Missing master treenode') ;
+			}
+			if( !paracrm_lib_data_getRecord_bibleEntry( 'ADR', $prevStep_log['src_adr_entry'] ) ) {
+				paracrm_lib_data_insertRecord_bibleEntry('ADR',$prevStep_log['src_adr_entry'],$prevStep_log['src_adr_display'],array('field_ADR_ID'=>$prevStep_log['src_adr_entry'])) ;
+			} else {
+				$query = "SELECT treenode_key FROM view_bible_ADR_entry WHERE entry_key='{$prevStep_log['src_adr_entry']}'" ;
+				if( $_opDB->query_uniqueValue($query) != $prevStep_log['src_adr_display'] ) {
+					//echo "attach ".$_opDB->query_uniqueValue($query)."to {$prevStep_log['src_adr_display']}" ;
+					paracrm_lib_data_bibleAssignParentTreenode( 'ADR', $_opDB->query_uniqueValue($query), $prevStep_log['src_adr_display'] ) ;
+				} else {
+					paracrm_lib_data_bibleAssignParentTreenode( 'ADR', $_opDB->query_uniqueValue($query), 'TMP') ;
+				}
+			}
+		}
+		break ;
+	}
+	
+	
+	// ************** ROLLBACK ! *******************
+	//   - del $lastStep
+	//   - update mvtstep $prevStep file_stock_id = $prevStep commit_file_stock_id 
+	//   - update stock position originale $prevStep src
+	//    * re-création ADR entryKey  source
+	//    * 
+	//   - update stock > SI isFinal ALORS qte_avail > qte_out
+	foreach( $rows_transferLig as $row_transferLig ) {
+		$lastStep_log = end($row_transferLig['steps']) ;
+		if( $lastStep_log['status_is_ok'] ) {
+			if( !$step_isFinal ) {
+				return array('success'=>false) ;
+			}
+			$prevStep_log = $lastStep_log ;
+			unset($lastStep_log) ;
+		} else {
+			$prevStep_log = prev($row_transferLig['steps']) ;
+		}
+		
+		
+		if( $lastStep_log ) {
+			paracrm_lib_data_deleteRecord_file( 'MVT_STEP' , $lastStep_log['mvtstep_filerecord_id'] ) ;
+		}
+		
+		$arr_update = array() ;
+		$arr_update['field_COMMIT_FILE_STOCK_ID'] = 0 ;
+		$arr_update['field_COMMIT_DATE'] = '' ;
+		$arr_update['field_COMMIT_USER'] = '' ;
+		$arr_update['field_FILE_STOCK_ID'] = $prevStep_log['commit_file_stock_id'] ;
+		$arr_update['field_STATUS_IS_OK'] = 0 ;
+		paracrm_lib_data_updateRecord_file('MVT_STEP',$arr_update,$prevStep_log['mvtstep_filerecord_id']) ;
+		
+		$query = "UPDATE view_file_MVT_STEP set field_COMMIT_FILE_STOCK_ID='{$prevStep_log['commit_file_stock_id']}'
+				WHERE field_COMMIT_FILE_STOCK_ID='{$prevStep_log['file_stock_id']}'" ;
+		$_opDB->query($query) ;
+		
+		$query_stk = "SELECT * FROM view_file_STOCK where filerecord_id='{$prevStep_log['commit_file_stock_id']}'" ;
+		$res_stk = $_opDB->query($query_stk) ;
+		$arr_stk = $_opDB->fetch_assoc($res_stk) ;
+		
+		$arr_update = array() ;
+		$arr_update['field_ADR_ID'] = $prevStep_log['src_adr_entry'] ;
+		$arr_update['field_QTY_OUT'] = ($step_isFinal ? $arr_stk['field_QTY_AVAIL'] : $arr_stk['field_QTY_OUT']) ;
+		$arr_update['field_QTY_AVAIL'] = 0 ;
+		paracrm_lib_data_updateRecord_file('STOCK',$arr_update,$prevStep_log['commit_file_stock_id']) ;
+	}
+	
+	return array('success'=>true, 'debug'=>$post_data) ;
+}
+
 
 ?>

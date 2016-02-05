@@ -69,6 +69,8 @@ switch( $post_data['_action'] )
 	return specDbsLam_transfer_createDoc( $post_data ) ;
 	case 'transfer_deleteDoc' :
 	return specDbsLam_transfer_deleteDoc( $post_data ) ;
+	case 'transfer_rollbackStep' :
+	return specDbsLam_transfer_rollbackStep( $post_data ) ;
 	
 	case 'transfer_saveReject' :
 	return specDbsLam_transfer_saveReject( $post_data ) ;

@@ -7,7 +7,8 @@ Ext.define('DbsLamTransferTreeModel',{
 		{name: 'status_is_on', type:'boolean'},
 		{name: 'status_is_ok', type:'boolean'},
 		{name: 'whse_src', type:'string'},
-		{name: 'whse_dest', type:'string'}
+		{name: 'whse_dest', type:'string'},
+		{name: 'flow_code', type:'string'}
 	]
 });
 
@@ -116,7 +117,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					text: '<i>Origin</i>',
 					itemId: 'btnWhseSrc',
 					optimaModule: this.optimaModule,
-					value: '' // HACK
+					value: 'SDV' // HACK
 				}),{
 					icon: 'images/op5img/ico_arrow-double_16.png',
 					disabled: true,
@@ -127,7 +128,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					text: '<i>Destination</i>',
 					itemId: 'btnWhseDest',
 					optimaModule: this.optimaModule,
-					value: '' // HACK
+					value: 'MIT' // HACK
 				}),'-',{
 					itemId: 'tbCreate',
 					icon: 'images/op5img/ico_new_16.gif',
@@ -496,7 +497,12 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				rootVisible: false,
 				multiSelect: false,
 				singleExpand: false,
-				columns: gridTreeColumns
+				columns: gridTreeColumns,
+				listeners: {
+					itemclick: this.onGridTreeItemClick,
+					itemcontextmenu: this.onGridTreeContextMenu,
+					scope: this
+				}
 			}]
 		}) ;
 		
@@ -605,6 +611,49 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 	onGridItemClick: function(view,record) {
 		this.setFormRecord(record) ;
 	},
+	onGridTreeItemClick: function(view, record, item, index, event) {
+		var gridpanel = this.down('#pCenter').down('#pGrid'),
+			gridStore = gridpanel.getStore() ;
+		if( record.get('transferlig_filerecord_id') ) {
+			var gridRecord = gridStore.getById(record.get('transferlig_filerecord_id')) ;
+			this.setFormRecord(gridRecord) ;
+		} else {
+			this.setFormRecord(null) ;
+		}
+	},
+	onGridTreeContextMenu: function(view, record, item, index, event) {
+		var gridContextMenuItems = new Array() ;
+		
+		var selRecord = record;
+		
+		gridContextMenuItems.push({
+			iconCls: 'icon-bible-new',
+			text: 'Rollback',
+			handler : function() {
+				this.handleRollback(record) ;
+			},
+			scope : this
+		});
+		gridContextMenuItems.push({
+			icon: 'images/op5img/ico_print_16.png',
+			text: 'Print',
+			handler : function() {
+				this.handlePrint(record) ;
+			},
+			scope : this
+		});
+		
+		var gridContextMenu = Ext.create('Ext.menu.Menu',{
+			items : gridContextMenuItems,
+			listeners: {
+				hide: function(menu) {
+					Ext.defer(function(){menu.destroy();},10) ;
+				}
+			}
+		}) ;
+		
+		gridContextMenu.showAt(event.getXY());
+	},
 	
 	
 	doTreeLoad: function() {
@@ -632,7 +681,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 						status_is_on: transferDoc.status_is_on,
 						status_is_ok: transferDoc.status_is_ok,
 						whse_src: transferDoc.whse_src,
-						whse_dest: transferDoc.whse_dest
+						whse_dest: transferDoc.whse_dest,
+						flow_code: transferDoc.flow_code
 					}) ;
 				}) ;
 				
@@ -1006,6 +1056,14 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 	
 	setFormRecord: function( transferLigRecord ) {
 		var southP = this.down('#pSouth') ;
+		
+		if( transferLigRecord == null ) {
+			southP._empty = true ;
+			southP.removeAll() ;
+			southP.collapse() ;
+			return ;
+		}
+		
 		southP._empty = false ;
 		southP.removeAll() ;
 		southP.add({
@@ -1129,6 +1187,261 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		}
 	},
 	
+	handlePrint: function( gridTreeNode ) {
+		var treepanel = this.down('#pCenter').down('#pTree'),
+			selectedNodes = treepanel.getView().getSelectionModel().getSelection(),
+			isDocSelected = (selectedNodes.length==1 && selectedNodes[0].get('type')=='transfer') ;
+		if( !isDocSelected ) {
+			return ;
+		}
+		var docFlow = selectedNodes[0].get('flow_code'),
+			flowRecord = Optima5.Modules.Spec.DbsLam.HelperCache.getMvtflow(docFlow) ;
+		//console.dir(flowRecord) ;
+		
+		var lib ;
+		var transferFilerecordId = selectedNodes[0].get('transfer_filerecord_id') ;
+		var transferLigFilerecordId_arr = [] ;
+		var transferStepCode ;
+		if( !Ext.isEmpty(gridTreeNode.get('tree_adr')) ) {
+			transferStepCode = [] ;
+			gridTreeNode.cascadeBy(function(s) {
+				if( s.isLeaf() && s.get('transferlig_filerecord_id') ) {
+					transferLigFilerecordId_arr.push(s.get('transferlig_filerecord_id'));
+					if( !Ext.Array.contains(transferStepCode,s.get('step_code')) ) {
+						transferStepCode.push(s.get('step_code')) ;
+					}
+				}
+			}) ;
+			if( transferStepCode.length != 1 ) {
+				return ;
+			}
+			transferStepCode = transferStepCode[0] ;
+		} else {
+			transferLigFilerecordId_arr.push(gridTreeNode.get('transferlig_filerecord_id')) ;
+			transferStepCode = gridTreeNode.get('step_code')
+		}
+		
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_lam',
+				_action: 'transfer_printDoc',
+				transferFilerecordId: transferFilerecordId,
+				transferLigFilerecordId_arr: Ext.JSON.encode(transferLigFilerecordId_arr),
+				transferStepCode: null
+			},
+			success: function(response) {
+				var jsonResponse = Ext.JSON.decode(response.responseText) ;
+				if( jsonResponse.success == true ) {
+					this.openPrintPopupDo( 'Container doc', jsonResponse.html ) ;
+				} else {
+					Ext.MessageBox.alert('Error','Print system disabled') ;
+				}
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+	},
+	handleRollback: function( gridTreeNode ) {
+		var treepanel = this.down('#pCenter').down('#pTree'),
+			selectedNodes = treepanel.getView().getSelectionModel().getSelection(),
+			isDocSelected = (selectedNodes.length==1 && selectedNodes[0].get('type')=='transfer') ;
+		if( !isDocSelected ) {
+			return ;
+		}
+		var docFlow = selectedNodes[0].get('flow_code'),
+			flowRecord = Optima5.Modules.Spec.DbsLam.HelperCache.getMvtflow(docFlow),
+			steps = [] ;
+		Ext.Array.each( flowRecord.steps, function(step) {
+			steps.push(step.step_code) ;
+		}) ;
+		steps.push('OK') ;
+		
+		var lib ;
+		var transferFilerecordId = selectedNodes[0].get('transfer_filerecord_id') ;
+		var transferLigFilerecordId_arr = [] ;
+		var currentStepCode, transferStepCode ;
+		if( !Ext.isEmpty(gridTreeNode.get('tree_adr')) ) {
+			currentStepCode = [] ;
+			
+			lib = '<b>'+gridTreeNode.get('tree_adr')+'</b>' ;
+			gridTreeNode.cascadeBy(function(s) {
+				if( s.isLeaf() && s.get('transferlig_filerecord_id') ) {
+					transferLigFilerecordId_arr.push(s.get('transferlig_filerecord_id'));
+					
+					var stepCode = (s.get('status_is_ok') ? 'OK' : s.get('step_code')) ;
+					if( !Ext.Array.contains(currentStepCode,stepCode) ) {
+						currentStepCode.push(stepCode) ;
+					}
+				}
+			}) ;
+			if( currentStepCode.length != 1 ) {
+				return ;
+			}
+			currentStepCode = currentStepCode[0] ;
+		} else {
+			lib = '<b>id:</b>'+gridTreeNode.get('transferlig_filerecord_id') ;
+			transferLigFilerecordId_arr.push(gridTreeNode.get('transferlig_filerecord_id')) ;
+			
+			var stepCode = (gridTreeNode.get('status_is_ok') ? 'OK' : gridTreeNode.get('step_code')) ;
+			currentStepCode = stepCode ;
+		}
+		transferStepCode = steps[Ext.Array.indexOf(steps,currentStepCode)-1] ;
+		
+		var me = this ;
+		var popupPanel = Ext.create('Ext.form.Panel',{
+			optimaModule: this.optimaModule,
+			
+			width:400,
+			height:250,
+			
+			cls: 'ux-noframe-bg',
+			
+			transferFilerecordId: transferFilerecordId,
+			transferLigFilerecordId_arr: transferLigFilerecordId_arr,
+			transferStepCode: transferStepCode,
+			
+			floating: true,
+			renderTo: me.getEl(),
+			tools: [{
+				type: 'close',
+				handler: function(e, t, p) {
+					p.ownerCt.destroy();
+				}
+			}],
+			
+			xtype: 'form',
+			border: false,
+			bodyCls: 'ux-noframe-bg',
+			bodyPadding: 8,
+			layout:'anchor',
+			fieldDefaults: {
+				labelWidth: 125,
+				anchor: '100%'
+			},
+			items:[{
+				height: 72,
+				xtype: 'component',
+				tpl: [
+					'<div class="op5-spec-embralam-liveadr-relocatebanner">',
+						'<span>{text}</span>',
+					'</div>'
+				],
+				data: {text: '<b>Rollback procedure</b><br><br>'}
+			},{
+				xtype: 'displayfield',
+				fieldLabel: 'Item(s)',
+				value: lib
+			},{
+				xtype: 'displayfield',
+				fieldLabel: 'Transfer lines count',
+				value: '<b>'+transferLigFilerecordId_arr.length+'</b>'
+			},{
+				xtype: 'displayfield',
+				fieldLabel: 'Step code',
+				value: currentStepCode+'&#160;>>&#160;'+'<b>'+transferStepCode+'</b>'
+			}],
+			buttons: [{
+				xtype: 'button',
+				text: 'Submit',
+				handler:function(btn){ 
+					var formPanel = btn.up('form') ;
+					formPanel.doSubmitRelocate() ;
+				},
+				scope: this
+			}],
+			doSubmitRelocate: function() {
+				this.optimaModule.getConfiguredAjaxConnection().request({
+					params: {
+						_moduleId: 'spec_dbs_lam',
+						_action: 'transfer_rollbackStep',
+						transferFilerecordId: this.transferFilerecordId,
+						transferLigFilerecordId_arr: Ext.JSON.encode(this.transferLigFilerecordId_arr),
+						transferStepCode: this.transferStepCode
+					},
+					success: function(response) {
+						var jsonResponse = Ext.JSON.decode(response.responseText) ;
+						if( jsonResponse.success ) {
+							this.optimaModule.postCrmEvent('datachange') ;
+							this.destroy() ;
+						} else {
+							Ext.MessageBox.alert('Error',jsonResponse.error) ;
+							return ;
+						}
+					},
+					callback: function() {
+						//this.hideLoadmask() ;
+					},
+					scope: this
+				}) ;
+			},
+			onSubmitRelocate: function(ajaxResponse) {
+				if( ajaxResponse.success ) {
+					this.optimaModule.postCrmEvent('datachange') ;
+					this.destroy() ;
+				}
+			}
+		});
+		
+		popupPanel.on('destroy',function() {
+			me.getEl().unmask() ;
+		},me,{single:true}) ;
+		me.getEl().mask() ;
+		
+		popupPanel.show();
+		popupPanel.getEl().alignTo(me.getEl(), 'c-c?');
+	},
+	
+	openPrintPopupDo: function(pageTitle, pageHtml) {
+		this.optimaModule.createWindow({
+			width:850,
+			height:700,
+			iconCls: 'op5-crmbase-qresultwindow-icon',
+			animCollapse:false,
+			border: false,
+			layout:'fit',
+			title: pageTitle,
+			items:[Ext.create('Ext.ux.dams.IFrameContent',{
+				itemId: 'uxIFrame',
+				content:pageHtml
+			})],
+			tbar:[{
+				icon: 'images/op5img/ico_print_16.png',
+				text: 'Print',
+				handler: function(btn) {
+					var uxIFrame = btn.up('window').down('#uxIFrame'),
+						uxIFrameWindows = uxIFrame.getWin() ;
+					if( uxIFrameWindows == null ) {
+						Ext.MessageBox.alert('Problem','Printing disabled !') ;
+						return ;
+					}
+					uxIFrameWindows.print() ;
+				},
+				scope: this
+			},{
+				icon: 'images/op5img/ico_save_16.gif',
+				text: 'Save as PDF',
+				handler: function(btn) {
+					var uxIFrame = btn.up('window').down('#uxIFrame') ;
+					
+					var exportParams = this.optimaModule.getConfiguredAjaxParams() ;
+					Ext.apply(exportParams,{
+						_moduleId: 'spec_dbs_lam',
+						_action: 'util_htmlToPdf',
+						html: Ext.JSON.encode(uxIFrame.content)
+					}) ;
+					Ext.create('Ext.ux.dams.FileDownloader',{
+						renderTo: Ext.getBody(),
+						requestParams: exportParams,
+						requestAction: Optima5.Helper.getApplication().desktopGetBackendUrl(),
+						requestMethod: 'POST'
+					}) ;
+				},
+				scope: this
+			}]
+		}); 
+	},
 	
 	doQuit: function() {
 		this.destroy() ;
