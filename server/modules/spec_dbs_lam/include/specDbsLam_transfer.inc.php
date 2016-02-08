@@ -1153,28 +1153,76 @@ function specDbsLam_transfer_rollbackStep($post_data) {
 		}
 	}
 	
+	$step_isGroup = $_opDB->query_uniqueValue("SELECT field_IS_ATTACH_PARENT FROM view_bible_CFG_MVTFLOW_entry WHERE entry_key='{$p_transferStepCode}'") ;
+	$step_isDetach = $_opDB->query_uniqueValue("SELECT field_IS_DETACH FROM view_bible_CFG_MVTFLOW_entry WHERE entry_key='{$p_transferStepCode}'") ;
 	// SI is tmp
 	//  => verif autres lignes avec la meme dest_adr_display
-	if( $_is_TMP ) {
-	$_is_TMP_count = 0 ;
-	foreach( $rows_transferLig_orig as $row_transferLig ) {
-		$lastStep_log = end($row_transferLig['steps']) ;
-		if( $lastStep_log['status_is_ok'] ) {
-			$prevStep_log = $lastStep_log ;
-		} else {
-			$prevStep_log = prev($row_transferLig['steps']) ;
-		}
-		
-		if( $prevStep_log['step_code'] == $p_transferStepCode 
-			&& $prevStep_log['dest_adr_display'] == $_is_TMP_prevDestAdrDisplay ) {
+	if( $step_isDetach && $prevStep_log['dest_adr_display'] != $prevStep_log['dest_adr_entry'] ) {
+		$_is_TMP_prevDestAdrDisplay = $prevStep_log['dest_adr_display'] ;
+		$_is_TMP_count = 0 ;
+		foreach( $rows_transferLig_orig as $row_transferLig ) {
+			$lastStep_log = end($row_transferLig['steps']) ;
+			if( $lastStep_log['status_is_ok'] ) {
+				$prevStep_log = $lastStep_log ;
+			} else {
+				$prevStep_log = prev($row_transferLig['steps']) ;
+			}
 			
-			$_is_TMP_count++ ;
+			if( $prevStep_log['step_code'] == $p_transferStepCode 
+				&& $prevStep_log['dest_adr_display'] == $_is_TMP_prevDestAdrDisplay ) {
+				
+				$_is_TMP_count++ ;
+			}
+		}
+		if( $_is_TMP_count != count($rows_transferLig) ) {
+			return array('success'=>false, 'error'=>'Inconsistant level '.$_is_TMP_count.' '.count($rows_transferLig)) ;
 		}
 	}
-	if( $_is_TMP_count != count($rows_transferLig) ) {
-		return array('success'=>false, 'error'=>'Inconsistant level') ;
+	if( $step_isGroup && $prevStep_log['src_adr_display'] != $prevStep_log['src_adr_entry'] ) {
+		$_is_TMP_prevSrcAdrDisplay = $prevStep_log['src_adr_display'] ;
+		$_is_TMP_count = 0 ;
+		foreach( $rows_transferLig_orig as $row_transferLig ) {
+			$lastStep_log = end($row_transferLig['steps']) ;
+			if( $lastStep_log['status_is_ok'] ) {
+				$prevStep_log = $lastStep_log ;
+			} else {
+				$prevStep_log = prev($row_transferLig['steps']) ;
+			}
+			
+			if( $prevStep_log['step_code'] == $p_transferStepCode 
+				&& $prevStep_log['src_adr_display'] == $_is_TMP_prevSrcAdrDisplay ) {
+				
+				$_is_TMP_count++ ;
+			}
+		}
+		if( $_is_TMP_count != count($rows_transferLig) ) {
+			return array('success'=>false, 'error'=>'Inconsistant level') ;
+		}
 	}
+	if( !$step_isGroup && !$step_isDetach
+		&& $prevStep_log['src_adr_display'] != $prevStep_log['src_adr_entry'] ) {
+		
+		$_is_TMP_prevSrcAdrDisplay = $prevStep_log['src_adr_display'] ;
+		$_is_TMP_count = 0 ;
+		foreach( $rows_transferLig_orig as $row_transferLig ) {
+			$lastStep_log = end($row_transferLig['steps']) ;
+			if( $lastStep_log['status_is_ok'] ) {
+				$prevStep_log = $lastStep_log ;
+			} else {
+				$prevStep_log = prev($row_transferLig['steps']) ;
+			}
+			
+			if( $prevStep_log['step_code'] == $p_transferStepCode 
+				&& $prevStep_log['src_adr_display'] == $_is_TMP_prevSrcAdrDisplay ) {
+				
+				$_is_TMP_count++ ;
+			}
+		}
+		if( $_is_TMP_count != count($rows_transferLig) ) {
+			return array('success'=>false, 'error'=>'Inconsistant level') ;
+		}
 	}
+	
 	
 	// verif des treenodes
 	
