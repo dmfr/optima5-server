@@ -819,11 +819,14 @@ function specDbsLam_transfer_commitAdrTmp($post_data) {
 	}
 	$location_display = $location_treenodeKey ;
 	
-	
 	foreach( $p_transferLigFilerecordId_arr as $transferLig_filerecordId ) {
 		$location_entryKey = 'TMP_POS_'.$transferLig_filerecordId ;
 		if( !paracrm_lib_data_getRecord_bibleEntry( 'ADR', $location_entryKey ) ) {
 			paracrm_lib_data_insertRecord_bibleEntry('ADR',$location_entryKey,$location_treenodeKey,array('field_ADR_ID'=>$location_entryKey)) ;
+		} else {
+			if( !$srcAdr_isTmp ) {
+				paracrm_lib_data_bibleAssignTreenode('ADR', $location_entryKey, $location_treenodeKey ) ;
+			}
 		}
 		
 		
