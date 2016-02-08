@@ -631,30 +631,15 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 	onLoadTree: function( dataRoot ) {
 		var form = this.down('form').getForm(),
 			formValues = form.getValues(false,false,false,true) ;
-			  
-			  
-		var treeStore = Ext.create('Ext.data.TreeStore',{
-			model: 'DbsLamLiveTreeModel',
-			data: dataRoot,
-			proxy: {
-				type: 'memory',
-				reader: {
-					type: 'json'
-				}
-			}
-		}) ;
 		
-		var rootNode = treeStore.getRoot() ;
-		rootNode.cascadeBy(function(node) {
-			node.set('leaf',false) ;
-			node.set('checked',null) ;
-		}) ;
-		
+		//qualify records
+		var map_treeAdr_childrenAdr = {} ;
+		var map_treeAdr_gridRows = {} ;
 		this.transferRecord.ligs().each( function(transferLigRecord) {
 			if( transferLigRecord.get('status_is_ok') ) {
 				return ;
 			}
-			var adrEntry, adrTreenode, adrIsGrouped ;
+			var adrEntry, adrTreenode, adrIsGrouped,  treeAdr ;
 			transferLigRecord.steps().each( function(transferLigStepRecord) {
 				if( transferLigStepRecord.get('step_code') != this.transferStepCode ) {
 					return ;
@@ -689,33 +674,68 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 				// Render it !
 				if( adrIsGrouped ) {
 					// attach to treenode
-					var treenodeNode = rootNode.findChild('nodeKey',adrTreenode,true) ;
-					if( !treenodeNode ) {
-						console.dir('WARN nodeKey not found:'+adrTreenode) ;
-						return false ;
-					}
-					treenodeNode.expand();
-					treenodeNode.appendChild(skuModel) ;
+					treeAdr = adrTreenode ;
 				} else {
-					var adrNode = rootNode.findChild('nodeKey',adrEntry,true) ;
-					if( !adrNode ) {
-						var treenodeNode = rootNode.findChild('nodeKey',adrTreenode,true) ;
-						if( !treenodeNode ) {
-							console.dir('WARN nodeKey not found:'+adrTreenode) ;
-							return false ;
-						}
-						treenodeNode.expand() ;
-						adrNode = treenodeNode.appendChild({
-							expanded: true,
-							nodeKey: adrEntry,
-							nodeText: adrEntry
-						}) ;
+					// attach to entry
+					if( !map_treeAdr_childrenAdr.hasOwnProperty(adrTreenode) ) {
+						map_treeAdr_childrenAdr[adrTreenode] = [] ;
 					}
-					adrNode.appendChild(skuModel) ;
+					if( !Ext.Array.contains(map_treeAdr_childrenAdr[adrTreenode], adrEntry) ) {
+						map_treeAdr_childrenAdr[adrTreenode].push(adrEntry) ;
+					}
+					treeAdr = adrEntry ;
 				}
-				return false ;
+				
+				if( !map_treeAdr_gridRows.hasOwnProperty(treeAdr) ) {
+					map_treeAdr_gridRows[treeAdr] = [] ;
+				}
+				
+				map_treeAdr_gridRows[treeAdr].push(skuModel) ;
 			},this);
 		},this);
+		
+		var cascadeRoot = function(node) {
+			node['tree_adr'] = node.nodeKey ;
+			delete node.checked ;
+			node['icon'] = '' ;
+			if( Ext.isEmpty(node.children) ) {
+				node['leaf'] = false ;
+				node['expanded'] = true ;
+				node.children = [] ;
+			}
+			if( map_treeAdr_childrenAdr[node.tree_adr] ) {
+				Ext.Array.each(map_treeAdr_childrenAdr[node.tree_adr], function(newAdr) {
+					node.children.push({
+						expanded: true,
+						leaf: false,
+						nodeKey: newAdr,
+						nodeText: newAdr,
+						children: []
+					});
+				}) ;
+			}
+			if( map_treeAdr_gridRows[node.tree_adr] ) {
+				Ext.Array.each(map_treeAdr_gridRows[node.tree_adr], function(skuModel) {
+					node.children.push(skuModel);
+				}) ;
+				return ;
+			}
+			Ext.Array.each( node.children, function(childNode) {
+				cascadeRoot(childNode) ;
+			});
+		} ;
+		cascadeRoot(dataRoot) ;
+		
+		var treeStore = Ext.create('Ext.data.TreeStore',{
+			model: 'DbsLamLiveTreeModel',
+			data: dataRoot,
+			proxy: {
+				type: 'memory',
+				reader: {
+					type: 'json'
+				}
+			}
+		}) ;
 		
 		while(true) {
 			var nodesToRemove = [] ;
