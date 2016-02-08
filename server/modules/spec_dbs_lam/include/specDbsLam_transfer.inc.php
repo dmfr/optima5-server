@@ -727,6 +727,7 @@ function specDbsLam_transfer_commitAdrTmp($post_data) {
 	// Controle cohérence : l'élément DEST doit contenir
 	// - currentStep OR nextStep + !status_is_ok 
 	$ttmp = specDbsLam_stock_getGrid( array('filter_treenodeKey'=>$location_treenodeKey) ) ;
+	$arr_mvtFilerecordIds = array() ;
 	foreach( $ttmp['data'] as $inv_row ) {
 		$stk_filerecordId = $inv_row['inv_id'] ;
 		if( !$stk_filerecordId ) {
@@ -741,7 +742,30 @@ function specDbsLam_transfer_commitAdrTmp($post_data) {
 		if( !in_array($arr['field_STEP_CODE'],array($current_step_code,$next_step_code)) ) {
 			return array('success'=>false, 'error'=>'CHECK FAIL : Select target '.$location_treenodeKey.' not compatible') ;
 		}
+		if( !in_array($arr['filerecord_parent_id'],$arr_mvtFilerecordIds) ) {
+			$arr_mvtFilerecordIds[] = $arr['filerecord_parent_id'] ;
+		}
 	}
+	$step_isGroup = $_opDB->query_uniqueValue("SELECT field_IS_ATTACH_PARENT FROM view_bible_CFG_MVTFLOW_entry WHERE entry_key='{$current_step_code}'") ;
+	// Contrôle cohérence : l'element DEST ne doit PAS contenir d'élément d'une autre vague
+	if( $step_isGroup && count($arr_mvtFilerecordIds) > 0 ) {
+		$testOk = true ;
+		$query = "SELECT distinct filerecord_parent_id FROM view_file_TRANSFER_LIG
+				WHERE field_FILE_MVT_ID IN ".$_opDB->makeSQLlist($arr_mvtFilerecordIds) ;
+		$result = $_opDB->query($query) ;
+		if( $_opDB->num_rows($result) != 1 ) {
+			$testOk = FALSE ;
+		} else {
+			$arr = $_opDB->fetch_row($result) ;
+			if( $arr[0] != $p_transferFilerecordId ) {
+				$testOk = FALSE ;
+			}
+		}
+		if( !$testOk ) {
+			return array('success'=>false, 'error'=>'CHECK FAIL : Select target '.$location_treenodeKey.' has items from foreign transfer doc.') ;
+		}
+	}
+	
 	
 	if( $srcAdr_isTmp ) {
 		// CHECK: source location ($p_transferTargetNode) is ADR treenode ?
