@@ -571,9 +571,73 @@ function specDbsLam_transfer_lib_cleanAdr() {
 	//$_opDB->query($query) ;
 	// HACK 25/01/2016 : DO NOT PURGE TREENODES
 }
+function specDbsLam_transfer_lib_processForeign( &$post_data ) {
+	global $_opDB ;
+	
+	// Load cfg attributes
+	$ttmp = specDbsLam_cfg_getConfig() ;
+	$json_cfg = $ttmp['data'] ;
+	
+	
+	if( json_decode($post_data['transferLigFilerecordId_arr'],true) ) {
+		return TRUE ;
+	}
+	if( !json_decode($post_data['skuData_obj'],true) ) {
+		return FALSE ;
+	}
+		
+	$current_step_code = $post_data['transferStepCode'] ;
+	$current_flow_code = $_opDB->query_uniqueValue("SELECT treenode_key FROM view_bible_CFG_MVTFLOW_entry WHERE entry_key='{$current_step_code}'");
+	$first_step_code = $_opDB->query_uniqueValue("SELECT entry_key FROM view_bible_CFG_MVTFLOW_entry WHERE treenode_key='{$current_flow_code}' ORDER BY entry_key LIMIT 1");
+	$flow_isForeign = $_opDB->query_uniqueValue("SELECT field_IS_FOREIGN FROM view_bible_CFG_MVTFLOW_tree WHERE treenode_key='{$current_flow_code}'") ;
+
+	if( $first_step_code != $current_step_code || !$flow_isForeign ) {
+		return FALSE ;
+	}
+	
+	//echo "BUILDING LINE" ;
+	$skuData = json_decode($post_data['skuData_obj'],true) ;
+	//print_r($skuData) ;
+	
+	
+	
+	if( !paracrm_lib_data_getRecord_bibleEntry( 'ADR', 'TMP_RECEP' ) ) {
+		paracrm_lib_data_insertRecord_bibleEntry('ADR','TMP_RECEP','TMP',array('field_ADR_ID'=>'TMP_RECEP')) ;
+	}
+	$arr_ins = array() ;
+	$arr_ins['field_ADR_ID'] = 'TMP_RECEP' ;
+	$arr_ins['field_PROD_ID'] = $skuData['stk_prod'] ;
+	$arr_ins['field_SPEC_BATCH'] = $skuData['stk_batch'] ;
+	$arr_ins['field_SPEC_DLC'] = $skuData['stk_dlc'] ;
+	$arr_ins['field_SPEC_SN'] = $skuData['stk_sn'] ;
+	$arr_ins['field_QTY_AVAIL'] = $skuData['mvt_qty'] ;
+	foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
+		if( !$stockAttribute_obj['STOCK_fieldcode'] ) {
+			continue ;
+		}
+		$arr_ins[$stockAttribute_obj['STOCK_fieldcode']] = $skuData[$stockAttribute_obj['mkey']] ;
+	}
+	$stk_filerecord_id = paracrm_lib_data_insertRecord_file('STOCK',0,$arr_ins) ;
+	//echo $stk_filerecord_id ;
+	
+	$ttmp = specDbsLam_transfer_addStock( array(
+		'transfer_filerecordId'=>$post_data['transferFilerecordId'],
+		'stock_filerecordIds'=>json_encode(array($stk_filerecord_id))
+	) ) ;
+	if( count($ttmp['ids']) != 1 ) {
+		return FALSE ;
+	}
+	$transferLigFilerecordId = reset($ttmp['ids']) ;
+	$post_data['transferLigFilerecordId_arr'] = json_encode(array($transferLigFilerecordId)) ;
+	return TRUE ;
+}
 function specDbsLam_transfer_commitAdrTmp($post_data) {
 	global $_opDB ;
 	$prefix_TMP = 'TMP_' ;
+	
+	if( !specDbsLam_transfer_lib_processForeign($post_data) ) {
+		return array('success'=>false) ;
+	}
 	
 	$p_transferFilerecordId = $post_data['transferFilerecordId'] ;
 	$p_transferLigFilerecordId_arr = json_decode($post_data['transferLigFilerecordId_arr'],true) ;
@@ -876,6 +940,12 @@ function specDbsLam_transfer_commitAdrTmp($post_data) {
 function specDbsLam_transfer_commitAdrFinal($post_data,$fast=FALSE) {
 	global $_opDB ;
 	
+	
+	if( !specDbsLam_transfer_lib_processForeign($post_data) ) {
+		return array('success'=>false) ;
+	}
+	
+	
 	$p_transferFilerecordId = $post_data['transferFilerecordId'] ;
 	$p_transferLigFilerecordId_arr = json_decode($post_data['transferLigFilerecordId_arr'],true) ;
 	$p_transferStepCode = $post_data['transferStepCode'] ;
@@ -892,7 +962,6 @@ function specDbsLam_transfer_commitAdrFinal($post_data,$fast=FALSE) {
 	if( !$step_isFinal ) {
 		return array('success'=>false) ;
 	}
-	
 	
 	
 	

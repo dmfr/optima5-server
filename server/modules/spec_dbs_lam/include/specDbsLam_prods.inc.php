@@ -36,6 +36,7 @@ function specDbsLam_prods_getGrid($post_data) {
 		$row = array() ;
 		$row['id'] = $arr['entry_key'] ;
 		$ttmp = explode('_',$arr['entry_key'],2) ;
+		$row['prod_soc'] = $ttmp[0] ;
 		$row['prod_id'] = $ttmp[1] ;
 		$row['prod_txt'] = $arr['field_PROD_TXT'] ;
 		$row['spec_is_batch'] = $arr['field_SPEC_IS_BATCH'] ;

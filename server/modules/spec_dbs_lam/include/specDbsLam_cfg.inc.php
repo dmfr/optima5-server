@@ -177,6 +177,7 @@ function specDbsLam_cfg_getMvtflow() {
 		$record = array(
 			'flow_code' => $arr['field_FLOW_CODE'],
 			'flow_txt' => $arr['field_FLOW_TXT'],
+			'is_foreign' => $arr['field_IS_FOREIGN'],
 			'steps' => array(),
 			'checks' => array()
 		) ;
