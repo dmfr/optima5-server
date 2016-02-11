@@ -23,7 +23,8 @@ Ext.define('DbsLamCfgMvtFlowModel',{
 	idProperty: 'flow_code',
 	fields: [
 		{name: 'flow_code', type:'string'},
-		{name: 'flow_txt', type:'string'}
+		{name: 'flow_txt', type:'string'},
+		{name: 'is_foreign', type:'boolean'}
 	],
 	hasMany: [{
 		model: 'DbsLamCfgMvtStepModel',
