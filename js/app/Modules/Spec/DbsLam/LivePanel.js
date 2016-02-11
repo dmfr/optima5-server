@@ -1296,7 +1296,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 			success: function(response) {
 				var jsonResponse = Ext.JSON.decode(response.responseText) ;
 				if( jsonResponse.success ) {
-					this.onLiveResponse(jsonResponse.data) ;
+					this.onLiveResponse(jsonResponse.data, jsonResponse.ids) ;
 				} else {
 					this.doProcessAdrFinalError(jsonResponse) ;
 				}
@@ -1319,6 +1319,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 		var transferLigFilerecordId_arr = [] ;
 		Ext.Array.each( this.transferLigRecord_arr, function(transferLigRecord) {
 			transferLigFilerecordId_arr.push(transferLigRecord.get('transferlig_filerecord_id')) ;
+		}) ;
+		Ext.Array.each( this.transferLig_ids, function(transferLigId) {
+			transferLigFilerecordId_arr.push(transferLigId) ;
 		}) ;
 		
 		this.showLoadmask() ;
@@ -1421,7 +1424,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 		
 	},
 	
-	onLiveResponse: function( ajaxData ) {
+	onLiveResponse: function( ajaxData, ids ) {
 		var formPanel = this.down('form'),
 			form = this.down('form').getForm() ;
 		Ext.Array.each( formPanel.down('#fsLeftSku').query('field'), function(field) {
@@ -1478,6 +1481,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 		
 		this.down('#cntBefore').setVisible(false) ;
 		this.down('#cntAfter').setVisible(true) ;
+		
+		if( Ext.isEmpty(this.transferLigRecord_arr) && ids ) {
+			this.transferLig_ids = ids ;
+		}
 	},
 	
 	handleAfterAdrAction: function( btnId ) {

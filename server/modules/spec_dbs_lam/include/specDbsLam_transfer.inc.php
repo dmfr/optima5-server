@@ -631,12 +631,54 @@ function specDbsLam_transfer_lib_processForeign( &$post_data ) {
 	$post_data['transferLigFilerecordId_arr'] = json_encode(array($transferLigFilerecordId)) ;
 	return TRUE ;
 }
-function specDbsLam_transfer_commitAdrTmp($post_data) {
+function specDbsLam_transfer_lib_cleanForeign($post_data) {
+	global $_opDB ;
+	
+	$current_step_code = $post_data['transferStepCode'] ;
+	$current_flow_code = $_opDB->query_uniqueValue("SELECT treenode_key FROM view_bible_CFG_MVTFLOW_entry WHERE entry_key='{$current_step_code}'");
+	$first_step_code = $_opDB->query_uniqueValue("SELECT entry_key FROM view_bible_CFG_MVTFLOW_entry WHERE treenode_key='{$current_flow_code}' ORDER BY entry_key LIMIT 1");
+	$flow_isForeign = $_opDB->query_uniqueValue("SELECT field_IS_FOREIGN FROM view_bible_CFG_MVTFLOW_tree WHERE treenode_key='{$current_flow_code}'") ;
+
+	if( $first_step_code != $current_step_code || !$flow_isForeign ) {
+		return ;
+	}
+	
+	if( !($ttmp = json_decode($post_data['transferLigFilerecordId_arr'],true)) ) {
+		return ;
+	}
+	$target_transferLigFilerecordId = reset($ttmp) ;
+	
+	
+	$ttmp = specDbsLam_transfer_getTransferLig( array('filter_transferFilerecordId'=>$post_data['transferFilerecordId']) ) ;
+	$rows_transferLig = $ttmp['data'] ;
+	$row_transferLig = NULL ;
+	foreach( $ttmp['data'] as $row ) {
+		if( $row['transferlig_filerecord_id'] == $target_transferLigFilerecordId ) {
+			$row_transferLig = $row ;
+			break ;
+		}
+	}
+	if( !$row_transferLig['status_is_ok'] && count($row_transferLig['steps'])==1 ) {
+		// etat initial d'un direct inbound => suppression
+		$row_transferLig_step = reset($row_transferLig['steps']) ;
+		$stk_filerecord_id = $row_transferLig_step['file_stock_id'] ;
+		
+		specDbsLam_transfer_removeStock( array('transferLig_filerecordIds'=>json_encode(array($target_transferLigFilerecordId))) ) ;
+		$stk_filerecord_id = paracrm_lib_data_deleteRecord_file('STOCK',$stk_filerecord_id) ;
+	}
+	return ;
+}
+function specDbsLam_transfer_commitAdrTmp($post_data,$inner=FALSE) {
 	global $_opDB ;
 	$prefix_TMP = 'TMP_' ;
 	
-	if( !specDbsLam_transfer_lib_processForeign($post_data) ) {
-		return array('success'=>false) ;
+	if( !$inner ) {
+		if( !specDbsLam_transfer_lib_processForeign($post_data) ) {
+			return array('success'=>false) ;
+		}
+		$ret = specDbsLam_transfer_commitAdrTmp($post_data,$inner=TRUE) ;
+		specDbsLam_transfer_lib_cleanForeign($post_data) ;
+		return $ret ;
 	}
 	
 	$p_transferFilerecordId = $post_data['transferFilerecordId'] ;
@@ -935,14 +977,18 @@ function specDbsLam_transfer_commitAdrTmp($post_data) {
 	
 	specDbsLam_transfer_lib_advanceDoc($post_data['transferFilerecordId']) ;
 	
-	return array('success'=>true, 'debug'=>$post_data) ;
+	return array('success'=>true, 'debug'=>$post_data, 'ids'=>$p_transferLigFilerecordId_arr) ;
 }
-function specDbsLam_transfer_commitAdrFinal($post_data,$fast=FALSE) {
+function specDbsLam_transfer_commitAdrFinal($post_data,$fast=FALSE,$inner=FALSE) {
 	global $_opDB ;
 	
-	
-	if( !specDbsLam_transfer_lib_processForeign($post_data) ) {
-		return array('success'=>false) ;
+	if( !$inner ) {
+		if( !specDbsLam_transfer_lib_processForeign($post_data) ) {
+			return array('success'=>false) ;
+		}
+		$ret = specDbsLam_transfer_commitAdrFinal($post_data,$fast,$inner=TRUE) ;
+		specDbsLam_transfer_lib_cleanForeign($post_data) ;
+		return $ret ;
 	}
 	
 	
@@ -1086,7 +1132,7 @@ function specDbsLam_transfer_commitAdrFinal($post_data,$fast=FALSE) {
 		$_opDB->query($query) ;
 	}
 	
-	return array('success'=>true, 'data'=> $adr_obj) ;
+	return array('success'=>true, 'data'=> $adr_obj, 'ids'=>$p_transferLigFilerecordId_arr) ;
 }
 
 function specDbsLam_transfer_lib_advanceDoc($transfer_filerecordId) {
