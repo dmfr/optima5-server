@@ -1269,7 +1269,8 @@ function specDbsLam_transfer_rollbackStep($post_data) {
 		}
 	}
 	if( !$step_isGroup && !$step_isDetach
-		&& $prevStep_log['src_adr_display'] != $prevStep_log['src_adr_entry'] ) {
+		&& $prevStep_log['src_adr_display'] != $prevStep_log['src_adr_entry']
+		&& $prevStep_log['dest_adr_display'] != $prevStep_log['dest_adr_entry'] ) {
 		
 		$_is_TMP_prevSrcAdrDisplay = $prevStep_log['src_adr_display'] ;
 		$_is_TMP_count = 0 ;
