@@ -126,8 +126,7 @@ function specDbsLam_queryspec_lib_SAFRAN_TRANSFERFLOW() {
 		}
 		
 		if( substr($arr['field_ADR_ID'],0,3) == 'MIT' ) {
-			$row['mvt_step'] = 'T07_DONE' ;
-			
+			unset($arr_mvt) ;
 			$stk_filerecord_id = $arr['filerecord_id'] ;
 			while( TRUE ) {
 				$query = "SELECT mvtstep.*, mvt.*, mvt.filerecord_id AS mvt_filerecord_id FROM view_file_MVT_STEP mvtstep 
@@ -139,15 +138,18 @@ function specDbsLam_queryspec_lib_SAFRAN_TRANSFERFLOW() {
 					break ;
 				}
 				$stk_filerecord_id = $arr_mvt['field_FILE_STOCK_ID'] ;
+				unset($arr_mvt) ;
 				continue ;
 			}
-			
-			$row['mvt_commit_date'] = $arr_mvt['field_COMMIT_DATE'] ;
-			
-			$query = "SELECT * FROM view_file_TRANSFER_LIG tl JOIN view_file_TRANSFER t ON t.filerecord_id=tl.filerecord_parent_id WHERE field_FILE_MVT_ID='{$arr_mvt['mvt_filerecord_id']}'" ;
-			$res_tl = $_opDB->query($query) ;
-			$arr_tl = $_opDB->fetch_assoc($res_tl) ;
-			$row['mvt_doc'] = $arr_tl['field_TRANSFER_TXT'] ;
+			if( $arr_mvt ) {
+				$row['mvt_step'] = 'T07_DONE' ;
+				$row['mvt_commit_date'] = $arr_mvt['field_COMMIT_DATE'] ;
+				
+				$query = "SELECT * FROM view_file_TRANSFER_LIG tl JOIN view_file_TRANSFER t ON t.filerecord_id=tl.filerecord_parent_id WHERE field_FILE_MVT_ID='{$arr_mvt['mvt_filerecord_id']}'" ;
+				$res_tl = $_opDB->query($query) ;
+				$arr_tl = $_opDB->fetch_assoc($res_tl) ;
+				$row['mvt_doc'] = $arr_tl['field_TRANSFER_TXT'] ;
+			}
 		} else {
 			$query = "SELECT mvtstep.*, mvt.*, mvt.filerecord_id AS mvt_filerecord_id FROM view_file_MVT_STEP mvtstep 
 					INNER JOIN view_file_MVT mvt ON mvt.filerecord_id = mvtstep.filerecord_parent_id
