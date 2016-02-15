@@ -17,6 +17,31 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 	viewMode: 'day',
 	
 	initComponent: function() {
+		this.viewMode = 'day' ;
+		var viewModeItems = [{
+			itemId: 'day',
+			text: 'by Day',
+			iconCls: 'op5-spec-dbsembramach-report-view-day'
+		},{
+			itemId: 'week',
+			text: 'by Week',
+			iconCls: 'op5-spec-dbsembramach-report-view-week'
+		},{
+			itemId: 'month',
+			text: 'by Month',
+			iconCls: 'op5-spec-dbsembramach-report-view-month'
+		}] ;
+		
+		if( this._readonlyMode ) {
+			this.viewMode = 'month' ;
+			var viewModeItems = [{
+				itemId: 'month',
+				text: 'by Month',
+				iconCls: 'op5-spec-dbsembramach-report-view-month'
+			}] ;
+		}
+		
+		
 		Ext.apply(this,{
 			layout: 'fit',
 			border: false,
@@ -52,19 +77,7 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{
 						},
 						scope:this
 					},
-					items: [{
-						itemId: 'day',
-						text: 'by Day',
-						iconCls: 'op5-spec-dbsembramach-report-view-day'
-					},{
-						itemId: 'week',
-						text: 'by Week',
-						iconCls: 'op5-spec-dbsembramach-report-view-week'
-					},{
-						itemId: 'month',
-						text: 'by Month',
-						iconCls: 'op5-spec-dbsembramach-report-view-month'
-					}]
+					items: viewModeItems
 				}
 			},'->',{
 				hidden: this._readonlyMode,

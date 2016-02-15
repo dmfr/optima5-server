@@ -58,6 +58,10 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MainPanel',{
 			case 'panel_report' :
 				return me.switchToAppPanel('Optima5.Modules.Spec.DbsEmbramach.ReportPanel',{_readonlyMode:_readonlyMode}) ;
 			case 'panel_mach_inbound' :
+				if( _readonlyMode ) {
+					Ext.Msg.alert('MachPanel Inbound', 'Not published, work in progress');
+					return ;
+				}
 				return me.switchToAppPanel('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{flowCode: 'INBOUND', _readonlyMode:_readonlyMode}) ;
 			case 'panel_query_mb51' :
 				return me.switchToAppPanel('Optima5.Modules.Spec.DbsEmbramach.QueryPanel',{qType:'query', queryId:'Report::ZMB51::Synthese'}) ;
