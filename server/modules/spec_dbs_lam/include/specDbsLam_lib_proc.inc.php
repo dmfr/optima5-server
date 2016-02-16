@@ -71,7 +71,7 @@ function specDbsLam_lib_proc_findAdr( $mvt_obj, $stockAttributes_obj, $whse_dest
 					continue ;
 				}
 				$mkey = $stockAttribute_obj['mkey'] ;
-				if( $stockAttributes_obj[$mkey] && !$stockAttribute_obj['cfg_is_optional']) ) {
+				if( $stockAttributes_obj[$mkey] && !$stockAttribute_obj['cfg_is_optional'] ) {
 					$attributesToCheck[$stockAttribute_obj['ADR_fieldcode']] = $stockAttributes_obj[$mkey] ;
 				}
 			}
