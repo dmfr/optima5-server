@@ -62,10 +62,27 @@ function specDbsLam_lib_proc_findAdr( $mvt_obj, $stockAttributes_obj, $whse_dest
 	while(TRUE) {
 		if( $mvt_obj ) {
 			// 1er cas : emplacement existant POS_ID
+			$attributesToCheck = array() ;
+			foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
+				if( !$stockAttribute_obj['ADR_fieldcode'] ) {
+					continue ;
+				}
+				if( !$stockAttribute_obj['STOCK_fieldcode'] ) {
+					continue ;
+				}
+				$mkey = $stockAttribute_obj['mkey'] ;
+				if( $stockAttributes_obj[$mkey] && !$stockAttribute_obj['cfg_is_optional']) ) {
+					$attributesToCheck[$stockAttribute_obj['ADR_fieldcode']] = $stockAttributes_obj[$mkey] ;
+				}
+			}
+			
 			$query = "SELECT adr.field_ADR_ID as adr_id, adr.field_POS_ID as pos_id FROM view_file_STOCK stk
 				INNER JOIN view_bible_ADR_entry adr ON adr.field_ADR_ID = stk.field_ADR_ID
 				WHERE field_PROD_ID='{$mvt_obj['prod_id']}' AND (stk.field_QTY_AVAIL+stk.field_QTY_OUT) > '0'
 				AND adr.treenode_key IN ".$_opDB->makeSQLlist($adr_treenodes) ;
+			foreach( $attributesToCheck as $STOCK_fieldcode => $neededValue ) {
+				$query.= " AND adr.{$STOCK_fieldcode}='".mysql_real_escape_string(json_encode(array($neededValue)))."'" ;
+			}
 			$result = $_opDB->query($query) ;
 			if( $_opDB->num_rows($result) >= 1 ) {
 				$arr = $_opDB->fetch_assoc($result) ;
