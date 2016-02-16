@@ -1,13 +1,5 @@
 <?php
 
-function specDbsLam_cfg_getStockAttributes() {
-	$return_fields = specDbsLam_lib_stockAttributes_getStockAttributes() ;
-	if( !is_array($return_fields) ) {
-		return array('success'=>false) ;
-	}
-	return array('success'=>true, 'data'=>$return_fields) ;
-}
-
 function specDbsLam_cfg_getAuth( $post_data ) {
 	global $_opDB ;
 	

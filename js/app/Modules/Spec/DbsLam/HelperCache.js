@@ -23,8 +23,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.HelperCache',{
 	singleton:true,
 	
 	// business logic data
-	stockAttributesStore: null,
-	
 	cfgAttributeStore: null,
 	cfgSocStore: null,
 	cfgWhseStore: null,
@@ -46,7 +44,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.HelperCache',{
 			me.libCount = 2 ;
 			
 			me.authHelperInit() ;
-			me.fetchStockAttributes() ;
 			me.fetchConfig() ;
 		},1000,me) ;
 	},
@@ -93,46 +90,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.HelperCache',{
 			return true ;
 		}
 		return ( !Ext.isEmpty(me.authPage) && Ext.Array.contains( me.authPage, pageCode ) ) ;
-	},
-	
-	fetchStockAttributes: function() {
-		// Query Bible
-		var ajaxParams = {} ;
-		Ext.apply( ajaxParams, {
-			_moduleId: 'spec_dbs_lam',
-			_action: 'cfg_getStockAttributes'
-		});
-		this.optimaModule.getConfiguredAjaxConnection().request({
-			params: ajaxParams ,
-			success: function(response) {
-				var ajaxData = Ext.decode(response.responseText) ;
-				if( ajaxData.success == false ) {
-					Ext.Msg.alert('Failed', 'Unknown error');
-				}
-				else {
-					this.onLoadStockAttributes( ajaxData ) ;
-				}
-			},
-			scope: this
-		});
-	},
-	onLoadStockAttributes: function( ajaxData ) {
-		this.stockAttributesStore = Ext.create('Ext.data.Store',{
-			model: 'DbsLamStkAttributeModel',
-			data : ajaxData.data
-		}) ;
-		
-		this.onLibLoad() ;
-	},
-	getStockAttributes: function() {
-		return Ext.pluck( this.stockAttributesStore.getRange(), 'data' ) ;
-	},
-	getStockAttribute: function(stockAttributeBibleCode) {
-		var stockAttributeRecord = this.stockAttributesStore.getById(stockAttributeBibleCode) ;
-		if( stockAttributeRecord ) {
-			return stockAttributeRecord.data ;
-		}
-		return null ;
 	},
 	
 	fetchConfig: function() {
