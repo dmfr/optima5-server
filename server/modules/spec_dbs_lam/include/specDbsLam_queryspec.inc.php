@@ -233,6 +233,7 @@ function specDbsLam_queryspec_lib_sync( $handle, $soc_code ) {
 	
 	$mapStock_mkey_id = array() ;
 	$mapStock_mkey_isLocked = array() ;
+	$mapStock_mkey_whseCode = array() ;
 
 	$query = "SELECT * FROM view_file_STOCK" ;
 	$result = $_opDB->query($query) ;
@@ -256,6 +257,10 @@ function specDbsLam_queryspec_lib_sync( $handle, $soc_code ) {
 			$mapStock_mkey_isLocked[$mkey] = TRUE ;
 		} else {
 			$mapStock_mkey_id[$mkey] = $arr['filerecord_id'] ;
+			
+			$ttmp = explode('_',$arr['field_ADR_ID'],2) ;
+			$whse_code = $ttmp[0] ;
+			$mapStock_mkey_whseCode[$mkey] = $whse_code ;
 		}
 		if( $arr['field_QTY_OUT'] > 0 ) {
 			$mapStock_mkey_isLocked[$mkey] = TRUE ;
@@ -281,7 +286,7 @@ function specDbsLam_queryspec_lib_sync( $handle, $soc_code ) {
 			continue ;
 		}
 		
-		$ttmp = explode('_',$row['adr_id'],2) ;
+		$ttmp = explode('_',$row['adr'],2) ;
 		$whse_code = $ttmp[0] ;
 		
 		if( $row['prod_key'] ) {
@@ -326,7 +331,7 @@ function specDbsLam_queryspec_lib_sync( $handle, $soc_code ) {
 			//print_r($row) ;
 			//echo "\n" ;
 		}
-		$file_STOCK[] = array(
+		$row_STOCK = array(
 			'filerecord_id' => $mapStock_mkey_id[$mkey],
 			'field_ATR_DIV' => $row['atr_DIV'],
 			'field_ATR_ES' => $row['atr_ES'],
@@ -336,6 +341,10 @@ function specDbsLam_queryspec_lib_sync( $handle, $soc_code ) {
 			'field_SPEC_BATCH' => $row['spec_batch'],
 			'field_SPEC_SN' => $row['spec_sn']
 		);
+		if( isset($mapStock_mkey_whseCode[$mkey]) && $mapStock_mkey_whseCode[$mkey] != $whse_code ) {
+			unset($row_STOCK['field_ADR_ID']) ;
+		}
+		$file_STOCK[] = $row_STOCK ;
 	}
 	
 	if( count($file_STOCK)==0 ) {
@@ -399,7 +408,6 @@ function specDbsLam_queryspec_lib_sync( $handle, $soc_code ) {
 	$arr_new_filerecordIds = array() ;
 	foreach( $file_STOCK as $row_STOCK ) {
 		if( $row_STOCK['filerecord_id'] ) {
-			unset($row_STOCK['field_ADR_ID']) ;
 			if( count($row_STOCK) > 1 ) {
 				paracrm_lib_data_updateRecord_file( 'STOCK', $row_STOCK, $row_STOCK['filerecord_id'] ) ;
 			}
