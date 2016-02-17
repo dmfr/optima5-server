@@ -39,6 +39,8 @@ Ext.define('DbsLamTransferGridModel',{
 		{name: 'status_is_ok', type:'boolean'},
 		{name: 'status_is_reject', type:'boolean'},
 		{name: 'step_code', type:'string'},
+		{name: 'hidden', type:'boolean'},
+		{name: 'tree_id', type:'string'},
 		{name: 'tree_adr', type:'string'},
 		{name: 'src_adr', type:'string'},
 		{name: 'current_adr', type: 'string'},
@@ -155,6 +157,31 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 						this.openPrintPopup() ;
 					},
 					scope: this
+				},'->',{
+					hidden: true,
+					itemId: 'tbSearchLogo',
+					icon: 'images/op5img/ico_search_16.gif'
+				},{
+					hidden: true,
+					itemId: 'tbSearchText',
+					xtype: 'textfield',
+					triggers: {
+						clear: {
+							cls: Ext.baseCSSPrefix + 'form-clear-trigger',
+							handler: function(field) {
+								field.reset() ;
+							}
+						}
+					},
+					listeners: {
+						change: {
+							fn: function(field) {
+								this.filterGridTree(field.getValue()) ;
+							},
+							scope: this,
+							buffer: 500
+						}
+					}
 				}],
 				items: [{xtype:'component',cls: 'ux-noframe-bg', flex:1}]
 			},{
@@ -195,6 +222,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				isDocSelected = (selectedNodes.length==1 && selectedNodes[0].get('type')=='transfer') ;
 			this.down('toolbar').down('#tbAdd').setVisible(isDocSelected) ;
 			this.down('toolbar').down('#tbPrint').setVisible(isDocSelected) ;
+			
+			var searchOn = isDocSelected && this.down('#pCenter').down('#pGridTree') && this.down('#pCenter').down('#pGridTree').isVisible()
+			this.down('toolbar').down('#tbSearchLogo').setVisible(searchOn) ;
+			this.down('toolbar').down('#tbSearchText').setVisible(searchOn) ;
 		}
 	},
 	doConfigure: function() {
@@ -503,7 +534,13 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					itemcontextmenu: this.onGridTreeContextMenu,
 					scope: this
 				}
-			}]
+			}],
+			listeners: {
+				tabchange: function() {
+					this.updateToolbar() ;
+				},
+				scope: this
+			}
 		}) ;
 		
 		// Build tree
@@ -791,6 +828,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		}) ;
 		
 		var cascadeRoot = function(node) {
+			node['tree_id'] = node.nodeKey ;
 			node['tree_adr'] = node.nodeKey ;
 			delete node.checked ;
 			node['icon'] = '' ;
@@ -804,6 +842,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					node.children.push({
 						expanded: true,
 						leaf: false,
+						tree_id: newAdr,
 						tree_adr: newAdr,
 						nodeKey: newAdr,
 						children: []
@@ -812,6 +851,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			}
 			if( map_treeAdr_gridRows[node.tree_adr] ) {
 				Ext.Array.each(map_treeAdr_gridRows[node.tree_adr], function(gridRow) {
+					gridRow.tree_id = gridRow.transferlig_filerecord_id ;
 					node.children.push(gridRow);
 				}) ;
 				return ;
@@ -848,6 +888,54 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			});
 		}
 		this.down('#pCenter').down('#pGridTree').setRootNode(treeStore.getRootNode()) ;
+	},
+	
+	filterGridTree: function( value ) {
+		// inspired by Tree Filter
+		
+		var gridTree = this.down('#pCenter').down('#pGridTree'),
+			gridTreeStore = gridTree.getStore() ;
+
+		if( !value || Ext.isEmpty(value) ) {
+			gridTreeStore.clearFilter() ;
+			gridTree.scrollTo(0,0) ;
+			return ;
+		}
+		
+		var re = new RegExp(value, "ig"),
+			  root = gridTree.getRootNode(),
+			  visibleNodes = [],
+			  matches = [] ;
+
+		// iterate over all nodes in the tree in order to evalute them against the search criteria
+		root.cascadeBy(function (node) {
+				if (node.get('tree_id').match(re)) {                         // if the node matches the search criteria and is a leaf (could be  modified to searh non-leaf nodes)
+					matches.push(node)                                  // add the node to the matches array
+				}
+		});
+
+		Ext.each(matches, function (item, i, arr) {                 // loop through all matching leaf nodes
+			root.cascadeBy(function (node) {                         // find each parent node containing the node from the matches array
+				if (node.contains(item) == true) {
+					visibleNodes.push(node)                          // if it's an ancestor of the evaluated node add it to the visibleNodes  array
+				}
+			});
+			if( !item.isLeaf()) {    // if me.allowParentFolders is true and the item is  a non-leaf item
+				item.cascadeBy(function (node) {                    // iterate over its children and set them as visible
+					visibleNodes.push(node)
+				});
+			}
+			visibleNodes.push(item)                                  // also add the evaluated node itself to the visibleNodes array
+		});
+
+		root.cascadeBy(function (node) {                            // finally loop to hide/show each node
+			node.set('hidden',!Ext.Array.contains(visibleNodes, node)) ;
+		});
+		
+		gridTreeStore.filterBy( function(node) {
+			return !node.get('hidden') ;
+		}) ;
+		gridTree.scrollTo(0,0) ;
 	},
 	
 	openCreatePopup: function() {
