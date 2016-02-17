@@ -3,8 +3,9 @@ Ext.define('DbsLamStkAttributeModel', {
 	idProperty: 'mkey',
 	fields: [
 		{name: 'mkey', type: 'string'},
-		{name: 'bible_code', type: 'string'},
+		{name: 'bible_code', type: 'string', allowNull:true},
 		{name: 'atr_txt',  type: 'string'},
+		{name: 'is_bible',  type: 'boolean'},
 		{name: 'STOCK_fieldcode',  type: 'string'},
 		{name: 'PROD_fieldcode',  type: 'string'},
 		{name: 'ADR_fieldcode',  type: 'string'},

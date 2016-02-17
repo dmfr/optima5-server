@@ -490,42 +490,51 @@ function specDbsLam_cfg_lib_build() {
 		
 		
 		if( $attribute['use_stock'] ) {
+			$arr_ins_base = array() ;
+			$arr_ins_base['entry_field_code'] = $field_code ;
+			$arr_ins_base['entry_field_lib'] = 'Atr: '.$attribute['atr_txt'] ;
+			if( $attribute['is_bible'] ) {
+				$arr_ins_base['entry_field_type'] = 'link' ;
+				$arr_ins_base['entry_field_linktype'] = 'treenode' ;
+				$arr_ins_base['entry_field_linkbible'] = $bible_code ;
+			} else {
+				$arr_ins_base['entry_field_type'] = 'string' ;
+			}
+			$arr_ins_base['entry_field_is_header'] = '' ;
+			$arr_ins_base['entry_field_is_highlight'] = 'O' ;
+			
+			$arr_ins = $arr_ins_base ;
+			$arr_ins['file_code'] = 'STOCK' ;
 			$query = "SELECT count(*) FROM define_file_entry WHERE file_code='STOCK' AND entry_field_code='{$field_code}'" ;
 			if( $_opDB->query_uniqueValue($query) != 1 ) {
 				$query = "SELECT max(entry_field_index) FROM define_file_entry WHERE file_code='STOCK'" ;
 				$max_index = $_opDB->query_uniqueValue($query) ;
 				$max_index++ ;
 				
-				$arr_ins = array() ;
-				$arr_ins['file_code'] = 'STOCK' ;
-				$arr_ins['entry_field_code'] = $field_code ;
 				$arr_ins['entry_field_index'] = $max_index ;
-				$arr_ins['entry_field_lib'] = 'Atr: '.$attribute['atr_txt'] ;
-				$arr_ins['entry_field_type'] = 'link' ;
-				$arr_ins['entry_field_linktype'] = 'treenode' ;
-				$arr_ins['entry_field_linkbible'] = $bible_code ;
-				$arr_ins['entry_field_is_header'] = '' ;
-				$arr_ins['entry_field_is_highlight'] = 'O' ;
 				$_opDB->insert('define_file_entry',$arr_ins) ;
+			} else {
+				$arr_cond = array() ;
+				$arr_cond['file_code'] = 'STOCK' ;
+				$arr_cond['entry_field_code'] = $field_code ;
+				$_opDB->update('define_file_entry',$arr_ins,$arr_cond) ;
 			}
 			
+			$arr_ins = $arr_ins_base ;
+			$arr_ins['file_code'] = 'MVT' ;
 			$query = "SELECT count(*) FROM define_file_entry WHERE file_code='MVT' AND entry_field_code='{$field_code}'" ;
 			if( $_opDB->query_uniqueValue($query) != 1 ) {
 				$query = "SELECT max(entry_field_index) FROM define_file_entry WHERE file_code='MVT'" ;
 				$max_index = $_opDB->query_uniqueValue($query) ;
 				$max_index++ ;
 				
-				$arr_ins = array() ;
-				$arr_ins['file_code'] = 'MVT' ;
-				$arr_ins['entry_field_code'] = $field_code ;
 				$arr_ins['entry_field_index'] = $max_index ;
-				$arr_ins['entry_field_lib'] = 'Atr: '.$attribute['atr_txt'] ;
-				$arr_ins['entry_field_type'] = 'link' ;
-				$arr_ins['entry_field_linktype'] = 'treenode' ;
-				$arr_ins['entry_field_linkbible'] = $bible_code ;
-				$arr_ins['entry_field_is_header'] = '' ;
-				$arr_ins['entry_field_is_highlight'] = 'O' ;
 				$_opDB->insert('define_file_entry',$arr_ins) ;
+			} else {
+				$arr_cond = array() ;
+				$arr_cond['file_code'] = 'MVT' ;
+				$arr_cond['entry_field_code'] = $field_code ;
+				$_opDB->update('define_file_entry',$arr_ins,$arr_cond) ;
 			}
 		}
 		if( !$attribute['use_stock'] ) {

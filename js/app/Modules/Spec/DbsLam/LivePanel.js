@@ -68,15 +68,26 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 			if( !attribute.STOCK_fieldcode ) {
 				return ;
 			}
-			var fieldDefinition = {
-				xtype:'op5crmbasebibletreepicker',
-				anchor: '100%',
-				selectMode: 'single',
-				optimaModule: this.optimaModule,
-				bibleId: attribute.bible_code,
-				fieldLabel: attribute.atr_txt,
-				name: attribute.mkey
-			} ;
+			var fieldDefinition ;
+			if( attribute.bible_code ) {
+				fieldDefinition = {
+					xtype:'op5crmbasebibletreepicker',
+					selectMode: 'single',
+					anchor: '100%',
+					optimaModule: this.optimaModule,
+					bibleId: attribute.bible_code,
+					fieldLabel: attribute.atr_txt,
+					name: attribute.mkey
+				} ;
+			} else  {
+				fieldDefinition = {
+					xtype:'textfield',
+					anchor: '100%',
+					optimaModule: this.optimaModule,
+					fieldLabel: attribute.atr_txt,
+					name: attribute.mkey
+				} ;
+			}
 			atrStkFields.push(fieldDefinition);
 		},this) ;
 		Ext.Array.each( Optima5.Modules.Spec.DbsLam.HelperCache.getAttributeAll(), function( attribute ) {
@@ -965,12 +976,15 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 		
 		// Checklist
 		var fsRightChecklist = formPanel.down('#fsRightChecklist'),
-			doChecks = false,
+			doChecks = false, isFinal = false,
 			docFlow = this.transferRecord.get('flow_code'),
 			flowRecord = Optima5.Modules.Spec.DbsLam.HelperCache.getMvtflow(docFlow) ;
 		Ext.Array.each( flowRecord.steps, function(step) {
 			if( step.step_code == this.transferStepCode && step.is_checklist == 1 ) {
 				doChecks = true ;
+			}
+			if( step.step_code == this.transferStepCode && step.is_final == 1 ) {
+				isFinal = true ;
 			}
 		},this) ;
 		fsRightChecklist.removeAll() ;
@@ -986,6 +1000,19 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 			fsRightChecklist.setVisible(true) ;
 		} else {
 			this.onAfterChecks() ;
+		}
+		if( isFinal ) {
+			// update 2016/02/15 : empty stock fields editable
+			Ext.Array.each( Optima5.Modules.Spec.DbsLam.HelperCache.getAttributeAll(), function( attribute ) {
+				if( !attribute.STOCK_fieldcode ) {
+					return ;
+				}
+				var formField = form.findField(attribute.mkey) ;
+				if( Ext.isEmpty(formField.getValue()) ) {
+					formField.setReadOnly(false) ;
+				}
+			}) ;
+			
 		}
 		
 		formPanel.down('#cntSkuInput').setVisible(true) ;
@@ -1257,10 +1284,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 		
 		var atrErrors = false, atrValues = {} ;
 		Ext.Array.each( Optima5.Modules.Spec.DbsLam.HelperCache.getAttributeAll(), function( attribute ) {
-			if( !attribute.PROD_fieldcode && !attribute.STOCK_fieldcode ) {
-				return ;
-			}
-			if( !attribute.ADR_fieldcode ) {
+			if( attribute.STOCK_fieldcode
+				|| (attribute.PROD_fieldcode && attribute.ADR_fieldcode) ) {} else {
+					
 				return ;
 			}
 			var formField = form.findField(attribute.mkey) ;
@@ -1296,7 +1322,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 			success: function(response) {
 				var jsonResponse = Ext.JSON.decode(response.responseText) ;
 				if( jsonResponse.success ) {
-					this.onLiveResponse(jsonResponse.data, jsonResponse.ids) ;
+					this.onLiveResponse(jsonResponse.data, jsonResponse.ids, jsonResponse.stockAttributes_obj) ;
 				} else {
 					this.doProcessAdrFinalError(jsonResponse) ;
 				}
@@ -1424,7 +1450,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 		
 	},
 	
-	onLiveResponse: function( ajaxData, ids ) {
+	onLiveResponse: function( ajaxData, ids, stockAttributes_obj ) {
 		var formPanel = this.down('form'),
 			form = this.down('form').getForm() ;
 		Ext.Array.each( formPanel.down('#fsLeftSku').query('field'), function(field) {
@@ -1484,6 +1510,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 		
 		if( Ext.isEmpty(this.transferLigRecord_arr) && ids ) {
 			this.transferLig_ids = ids ;
+		}
+		if( stockAttributes_obj ) {
+			form.setValues(stockAttributes_obj) ;
 		}
 	},
 	

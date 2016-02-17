@@ -107,8 +107,30 @@ function specDbsLam_lib_procMvt_delMvt($mvt_filerecordId) {
 }
 
 
-function specDbsLam_lib_procMvt_commit($mvt_filerecordId, $adr_dest, $adr_dest_display, $next_step_code) {
+function specDbsLam_lib_procMvt_commit($mvt_filerecordId, $adr_dest, $adr_dest_display, $next_step_code, $stockAttributes_obj=NULL) {
 	global $_opDB ;
+	
+	// Load cfg attributes
+	$ttmp = specDbsLam_cfg_getConfig() ;
+	$json_cfg = $ttmp['data'] ;
+	
+	// update 2016-02: add stock fields
+	$stockAttributes = array() ;
+	if( $stockAttributes_obj ) {
+	foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
+		if( !$stockAttribute_obj['STOCK_fieldcode'] ) {
+			continue ;
+		}
+		$mkey = $stockAttribute_obj['mkey'] ;
+		if( $value = $stockAttributes_obj[$mkey] ) {
+			$stockAttributes[] = array(
+				'mkey' => $mkey,
+				'STOCK_fieldcode' => $stockAttribute_obj['STOCK_fieldcode'],
+				'value' => $value
+			) ;
+		}
+	}
+	}
 
 	$query = "SELECT * FROM view_file_MVT WHERE
 		filerecord_id='{$mvt_filerecordId}'" ;
@@ -138,12 +160,23 @@ function specDbsLam_lib_procMvt_commit($mvt_filerecordId, $adr_dest, $adr_dest_d
 	$row_stock['field_ADR_ID'] = $adr_dest ;
 	$row_stock['field_QTY_AVAIL'] = $row_stock['field_QTY_OUT'] ;
 	$row_stock['field_QTY_OUT'] = 0 ;
+	foreach( $stockAttributes as $stockAttribute ) {
+		$row_stock[$stockAttribute['STOCK_fieldcode']] = $stockAttribute['value'] ;
+	}
 	paracrm_lib_data_deleteRecord_file( 'STOCK' , $stock_filerecordId ) ;
 	$stock_filerecordId = paracrm_lib_data_insertRecord_file('STOCK',0,$row_stock) ;
 	
 	
 	// creation lig STOCK
-	
+	if( $stockAttributes ) {
+		$arr_update = array();
+		foreach( $stockAttributes as $stockAttribute ) {
+			$arr_update['field_'.$stockAttribute['mkey']] = $stockAttribute['value'] ;
+		}
+		$arr_cond = array() ;
+		$arr_cond['filerecord_id'] = $mvt_filerecordId ;
+		$_opDB->update('view_file_MVT',$arr_update, $arr_cond) ;
+	}
 	
 	
 	// flag MVT

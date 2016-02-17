@@ -1016,10 +1016,9 @@ function specDbsLam_transfer_commitAdrFinal($post_data,$fast=FALSE,$inner=FALSE)
 	$form_data['stockAttributes_obj'] = array() ;
 	$stockAttributes_obj = json_decode($post_data['stockAttributes_obj'],true) ;
 	foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
-		if( !$stockAttribute_obj['PROD_fieldcode'] && !$stockAttribute_obj['STOCK_fieldcode'] ) {
-			continue ;
-		}
-		if( !$stockAttribute_obj['ADR_fieldcode'] ) {
+		if( $stockAttribute_obj['STOCK_fieldcode']
+			|| $stockAttribute_obj['PROD_fieldcode'] && $stockAttribute_obj['ADR_fieldcode'] ) {} else {
+			
 			continue ;
 		}
 		$mkey = $stockAttribute_obj['mkey'] ;
@@ -1055,10 +1054,31 @@ function specDbsLam_transfer_commitAdrFinal($post_data,$fast=FALSE,$inner=FALSE)
 	}
 	
 	$rows_transferLig = array_values($rows_transferLig) ;
+	// Save/generate STOCK fields ?
+	$row_transferLig = $rows_transferLig[0] ;
+	foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
+		if( !$stockAttribute_obj['STOCK_fieldcode'] ) {
+			continue ;
+		}
+		$mkey = $stockAttribute_obj['mkey'] ;
+		if( $row_transferLig[$stockAttribute_obj['mkey']] == '' ) {
+			$forward_stockAttributes[$mkey] = $form_data['stockAttributes_obj'][$mkey] ;
+		} elseif( substr($row_transferLig[$stockAttribute_obj['mkey']],0,1) == '@' ) {
+			switch( substr($row_transferLig[$stockAttribute_obj['mkey']],1) ) {
+				case 'MBDSU' :
+					$value = specDbsLam_spec_get_MBDSU() ;
+					break ;
+					
+				default :
+					continue 2 ;
+			}
+			$forward_stockAttributes[$mkey] = $form_data['stockAttributes_obj'][$mkey] = $value ;
+		}
+	}
 	
 	$form_data['mvt_obj'] = array() ;
-	$form_data['mvt_obj']['prod_id'] = $rows_transferLig[0]['stk_prod'] ;
-	$form_data['mvt_obj']['batch'] = $rows_transferLig[0]['stk_batch'] ;
+	$form_data['mvt_obj']['prod_id'] = $row_transferLig['stk_prod'] ;
+	$form_data['mvt_obj']['batch'] = $row_transferLig['stk_batch'] ;
 	
 	
 	// Save PROD fields ?
@@ -1108,7 +1128,7 @@ function specDbsLam_transfer_commitAdrFinal($post_data,$fast=FALSE,$inner=FALSE)
 		if( !$mvt_filerecordId ) {
 			continue ;
 		}
-		if( specDbsLam_lib_procMvt_commit($mvt_filerecordId, $adr_obj['adr_id'], $adr_obj['adr_id'], NULL ) ) {
+		if( specDbsLam_lib_procMvt_commit($mvt_filerecordId, $adr_obj['adr_id'], $adr_obj['adr_id'], NULL, $forward_stockAttributes ) ) {
 			$arr_update = array();
 			$arr_update['field_STATUS_IS_REJECT'] = FALSE ;
 			$arr_update['field_STEP_CODE'] = '' ;
@@ -1121,9 +1141,9 @@ function specDbsLam_transfer_commitAdrFinal($post_data,$fast=FALSE,$inner=FALSE)
 
 	specDbsLam_transfer_lib_advanceDoc($post_data['transferFilerecordId']) ;
 	
-	if( $rows_transferLig[0]['current_adr_tmp'] ) {
+	if( $row_transferLig['current_adr_tmp'] ) {
 		// clean TMP adr 
-		$src_adr_id = $rows_transferLig[0]['current_adr_entryKey'] ;
+		$src_adr_id = $row_transferLig['current_adr_entryKey'] ;
 		
 		$query = "DELETE view_bible_ADR_entry 
 						from view_bible_ADR_entry
@@ -1132,7 +1152,7 @@ function specDbsLam_transfer_commitAdrFinal($post_data,$fast=FALSE,$inner=FALSE)
 		$_opDB->query($query) ;
 	}
 	
-	return array('success'=>true, 'data'=> $adr_obj, 'ids'=>$p_transferLigFilerecordId_arr) ;
+	return array('success'=>true, 'data'=> $adr_obj, 'ids'=>$p_transferLigFilerecordId_arr, 'stockAttributes_obj'=>$form_data['stockAttributes_obj']) ;
 }
 
 function specDbsLam_transfer_lib_advanceDoc($transfer_filerecordId) {

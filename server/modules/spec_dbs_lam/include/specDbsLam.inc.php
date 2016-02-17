@@ -156,4 +156,28 @@ function specDbsLam_lib_getBarcodePng( $text=0, $size=20, $orientation='horizont
 	return $binary ;
 }
 
+
+
+function specDbsLam_spec_get_MBDSU() {
+	global $_opDB ;
+
+	$arr_ins = array() ;
+	$arr_ins['field_NAME'] = 'MBDSU' ;
+	paracrm_lib_data_insertRecord_file('Z_ATTRIB',0,$arr_ins) ;
+	
+	$query = "LOCK TABLES view_file_Z_ATTRIB WRITE" ;
+	$_opDB->query($query) ;
+	
+	$query = "UPDATE view_file_Z_ATTRIB SET field_VALUE=field_VALUE+1 WHERE field_NAME='MBDSU'" ;
+	$_opDB->query($query) ;
+	
+	$query = "SELECT field_VALUE FROM view_file_Z_ATTRIB WHERE field_NAME='MBDSU'" ;
+	$value = $_opDB->query_uniqueValue($query) ;
+	
+	$query = "UNLOCK TABLES" ;
+	$_opDB->query($query) ;
+
+	return  '4'.str_pad((float)$value, 10, "0", STR_PAD_LEFT) ;
+}
+
 ?>
