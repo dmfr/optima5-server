@@ -34,6 +34,7 @@ Ext.define('DbsLamTransferGridModel',{
 	idProperty: 'transferlig_filerecord_id',
 	fields: [
 		{name: 'transfer_filerecord_id', type:'int'},
+		{name: 'transfer_txt', type:'string'},
 		{name: 'transferlig_filerecord_id', type:'int'},
 		{name: 'status', type:'boolean'},
 		{name: 'status_is_ok', type:'boolean'},

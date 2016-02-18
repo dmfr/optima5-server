@@ -101,6 +101,12 @@ function specDbsLam_prods_getStockGrid($post_data) {
 			if( $_opDB->query_uniqueValue($query) == 1 ) {
 				$row['status_is_reject'] = TRUE ;
 			}
+			$query = "SELECT filerecord_parent_id FROM view_file_TRANSFER_LIG WHERE field_FILE_MVT_ID='{$ff}'" ;
+			$transfer_filerecordId = $_opDB->query_uniqueValue($query) ;
+			if( $transfer_filerecordId ) {
+				$query = "SELECT field_TRANSFER_TXT FROM view_file_TRANSFER WHERE filerecord_id='{$transfer_filerecordId}'" ;
+				$row['transfer_txt'] = $_opDB->query_uniqueValue($query) ;
+			}
 		}
 		
 		foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {

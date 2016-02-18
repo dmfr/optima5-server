@@ -377,6 +377,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.ProductsPanel',{
 					return '<b>'+v+'</b>' ;
 				}
 			},{
+				text: 'Transfer',
+				dataIndex: 'transfer_txt',
+				width: 85
+			},{
 				text: '<b>Status</b>',
 				dataIndex: 'step_code',
 				width: 65,
