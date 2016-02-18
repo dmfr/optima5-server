@@ -220,10 +220,24 @@ function specDbsLam_queryspec_lib_SAFRAN_TRANSFERFLOW() {
 
 
 function specDbsLam_queryspecSync( $post_data ) {
+	global $_opDB ;
+	
 	$handle = fopen($_FILES['file_upload']['tmp_name'],"rb") ;
 	$soc_code = $post_data['soc_code'] ;
 	
 	$ret = specDbsLam_queryspec_lib_sync( $handle, $soc_code ) ;
+	
+	// Specs
+	switch( $soc_code ) {
+		case 'MBD' :
+			$query = "UPDATE view_file_STOCK SET field_ATR_SU='@MBDSU' WHERE field_ATR_SU='' AND field_PROD_ID LIKE 'MBD%'" ;
+			$_opDB->query($query) ;
+			break ;
+		case 'ACL' :
+			break ;
+		default :
+			break ;
+	}
 	
 	return array('success'=>$ret) ;
 }
