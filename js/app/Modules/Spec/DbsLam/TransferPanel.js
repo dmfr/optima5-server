@@ -50,6 +50,7 @@ Ext.define('DbsLamTransferGridModel',{
 		{name: 'current_adr_treenodeKey', type:'string'},
 		{name: 'stk_prod', type:'string'},
 		{name: 'stk_batch', type:'string'},
+		{name: 'stk_datelc', type:'string'},
 		{name: 'stk_sn', type:'string'},
 		{name: 'mvt_qty', type:'number', allowNull:true},
 		{name: 'reject_arr', type:'auto'}

@@ -35,7 +35,7 @@ function specDbsLam_lib_procMvt_addStock($stock_filerecordId, $qte_mvt=0, $step_
 		'field_PROD_ID' => $row_stock['field_PROD_ID'],
 		'field_QTY_MVT' => $qte_mvt,
 		'field_SPEC_BATCH' => $row_stock['field_SPEC_BATCH'],
-		'field_SPEC_DLC' => $row_stock['field_SPEC_DLC'],
+		'field_SPEC_DATELC' => $row_stock['field_SPEC_DATELC'],
 		'field_SPEC_SN' => $row_stock['field_SPEC_SN']
 	);
 	foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {

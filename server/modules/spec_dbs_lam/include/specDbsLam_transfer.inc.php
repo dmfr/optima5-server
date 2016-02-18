@@ -96,6 +96,7 @@ function specDbsLam_transfer_getTransferLig($post_data) {
 				'mvt_filerecord_id' => $arr['mvt_filerecord_id'],
 				'stk_prod' => $arr['field_PROD_ID'],
 				'stk_batch' => $arr['field_SPEC_BATCH'],
+				'stk_datelc' => $arr['field_SPEC_DATELC'],
 				'stk_sn' => $arr['field_SPEC_SN'],
 				'mvt_qty' => $arr['field_QTY_MVT'],
 				'src_adr' => NULL,
@@ -623,7 +624,7 @@ function specDbsLam_transfer_lib_processForeign( &$post_data ) {
 	$arr_ins['field_ADR_ID'] = 'TMP_RECEP' ;
 	$arr_ins['field_PROD_ID'] = $skuData['stk_prod'] ;
 	$arr_ins['field_SPEC_BATCH'] = $skuData['stk_batch'] ;
-	$arr_ins['field_SPEC_DLC'] = $skuData['stk_dlc'] ;
+	$arr_ins['field_SPEC_DATELC'] = $skuData['stk_datelc'] ;
 	$arr_ins['field_SPEC_SN'] = $skuData['stk_sn'] ;
 	$arr_ins['field_QTY_AVAIL'] = $skuData['mvt_qty'] ;
 	foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {

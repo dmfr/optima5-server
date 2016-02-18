@@ -308,6 +308,14 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 							fieldLabel: 'Batch',
 							name: 'stk_batch'
 						},{
+							xtype: 'datefield',
+							format: 'd/m/Y',
+							submitFormat: 'Y-m-d',
+							anchor: '100%',
+							allowBlank:true,
+							fieldLabel: 'DLC',
+							name: 'stk_datelc'
+						},{
 							xtype: 'numberfield',
 							allowBlank:true,
 							fieldLabel: 'QTE',
@@ -943,6 +951,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 			var formValues = {
 				stk_prod: transferLigRecord.get('stk_prod'),
 				stk_batch: transferLigRecord.get('stk_batch'),
+				stk_datelc: (transferLigRecord.get('stk_datelc') ? transferLigRecord.get('stk_datelc').substr(0,10) : ''),
 				mvt_qty: transferLigRecord.get('mvt_qty'),
 				stk_sn: transferLigRecord.get('stk_sn')
 			};
@@ -1080,6 +1089,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 		form.findField('stk_prod').setRawValue(prodData.prod_id) ;
 		
 		form.findField('stk_batch').setVisible( (prodData.spec_is_batch == 1) ) ;
+		form.findField('stk_datelc').setVisible( (prodData.spec_is_dlc == 1) ) ;
 		form.findField('stk_sn').setVisible( (prodData.spec_is_sn == 1) ) ;
 	},
 	
