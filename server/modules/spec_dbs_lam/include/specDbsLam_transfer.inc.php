@@ -447,8 +447,22 @@ function specDbsLam_transfer_printDoc( $post_data ) {
 			
 			$buffer.= "</table>" ;
 			
-			if( $row_transferLig['ATR_SU'] && $row_transferLig['ATR_SU']!='@MBDSU' ) {
+			if( $row_transferLig['ATR_NEASA'] ) {
 				$buffer.= "<br><br><br><br>" ;
+				
+				$buffer.= "<table class='tabledonnees'>" ;
+					$buffer.= "<tr>" ;
+						$buffer.= "<td width='45%'><span class=\"mybig\">EASA #</span></td>" ;
+
+						$buffer.= '<td align="center">' ;
+							$buffer.= '<img src="data:image/jpeg;base64,'.base64_encode(specDbsLam_lib_getBarcodePng($row_transferLig['ATR_NEASA'],50)).'" /><br>';
+							$buffer.= $row_transferLig['ATR_NEASA'].'<br>';
+						$buffer.= '</td>' ;
+					$buffer.= "</tr>" ;
+				$buffer.= "</table>" ;
+			}
+			if( $row_transferLig['ATR_SU'] && $row_transferLig['ATR_SU']!='@MBDSU' ) {
+				$buffer.= "<br><br>" ;
 				
 				$buffer.= "<table class='tabledonnees'>" ;
 					$buffer.= "<tr>" ;
