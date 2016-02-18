@@ -298,7 +298,10 @@ function specDbsLam_queryspec_lib_sync( $handle, $soc_code ) {
 		$bible_PROD_entry[$row['prod_id']] = array(
 			'treenode_key' => ($row['prod_key'] ? $row['prod_key']:NULL),
 			'field_PROD_ID' => $row['prod_id'],
-			'field_PROD_TXT' => $row['desc']
+			'field_PROD_TXT' => $row['desc'],
+			'field_SPEC_IS_BATCH' => $row['prod_is_batch'],
+			'field_SPEC_IS_DLC' => $row['prod_is_dlc'],
+			'field_SPEC_IS_SN' => $row['prod_is_sn']
 		);
 		if( $row['adr_key'] ) {
 			$bible_ADR_tree[$row['adr_key']] = array(
@@ -339,6 +342,7 @@ function specDbsLam_queryspec_lib_sync( $handle, $soc_code ) {
 			'field_ADR_ID' => $row['adr'],
 			'field_QTY_AVAIL' => $row['qty'],
 			'field_SPEC_BATCH' => $row['spec_batch'],
+			'field_SPEC_DATELC' => $row['spec_dlc'],
 			'field_SPEC_SN' => $row['spec_sn']
 		);
 		if( isset($mapStock_mkey_whseCode[$mkey]) && $mapStock_mkey_whseCode[$mkey] != $whse_code ) {
