@@ -421,6 +421,18 @@ function specDbsLam_transfer_printDoc( $post_data ) {
 				$buffer.= "</tr>" ;
 			
 				$buffer.= "<tr>" ;
+					$buffer.= "<td width='30%'><span class=\"mybig\">DLC</span></td>" ;
+					if( $arr_prod['field_SPEC_IS_DLC'] ) {
+						$buffer.= '<td align="center">' ;
+						$buffer.= '<img src="data:image/jpeg;base64,'.base64_encode(specDbsLam_lib_getBarcodePng($row_transferLig['stk_datelc'],50)).'" /><br>';
+						$buffer.= $row_transferLig['stk_datelc'].'<br>';
+						$buffer.= '</td>' ;
+					} else {
+						$buffer.= '<td class="croix">&nbsp;</td>' ;
+					}
+				$buffer.= "</tr>" ;
+			
+				$buffer.= "<tr>" ;
 					$buffer.= "<td width='30%'><span class=\"mybig\">SerialNo</span></td>" ;
 					if( $arr_prod['field_SPEC_IS_SN'] ) {
 						$buffer.= '<td align="center">' ;
