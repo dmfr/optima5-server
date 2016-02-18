@@ -343,6 +343,7 @@ function specDbsLam_transfer_printDoc( $post_data ) {
 					$buffer.= "<th>Source</th>";
 					$buffer.= "<th>PartNumber</th>";
 					$buffer.= "<th>Batch</th>";
+					$buffer.= "<th>DLC</th>";
 					$buffer.= "<th>Qty</th>";
 					$buffer.= "<th>SN</th>";
 					$buffer.= "<th>Std ?</th>";
@@ -374,6 +375,9 @@ function specDbsLam_transfer_printDoc( $post_data ) {
 					
 					$class = ($arr_prod['field_SPEC_IS_BATCH'] ? '' : 'croix') ;
 					$buffer.= "<td class=\"$class\"><span>{$row_transferLig['stk_batch']}</span></td>" ;
+					
+					$class = ($arr_prod['field_SPEC_IS_DLC'] ? '' : 'croix') ;
+					$buffer.= "<td class=\"$class\"><span>{$row_transferLig['stk_datelc']}</span></td>" ;
 					
 					$buffer.= "<td align='right'><span class=\"mybig\"><b>".(float)$row_transferLig['mvt_qty']."</b></span></td>" ;
 					
