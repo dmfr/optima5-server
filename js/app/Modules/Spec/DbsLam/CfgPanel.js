@@ -480,7 +480,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CfgPanel',{
 		this.socStore.each( function(socRecord) {
 			arrSocs.push(socRecord.getData(true)) ;
 		}) ;
-		console.dir(arrSocs) ;
 		
 		var params = {
 			_moduleId: 'spec_dbs_lam',

@@ -61,7 +61,8 @@ Ext.define('DbsLamCfgSocModel',{
 	idProperty: 'soc_code',
 	fields: [
 		{name: 'soc_code', type:'string', useNull:true},
-		{name: 'soc_txt', type:'string'}
+		{name: 'soc_txt', type:'string'},
+		{name: 'location_policy_ifexists', type:'string'}
 	],
 	hasMany: [{
 		model: 'DbsLamCfgSocAttributeModel',

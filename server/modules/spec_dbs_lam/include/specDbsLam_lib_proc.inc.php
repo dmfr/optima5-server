@@ -60,7 +60,27 @@ function specDbsLam_lib_proc_findAdr( $mvt_obj, $stockAttributes_obj, $whse_dest
 	
 	$adr_id = NULL ;
 	while(TRUE) {
-		if( $mvt_obj ) {
+		while( TRUE ) {
+			if( !$mvt_obj ) {
+				break ;
+			}
+			
+			$ttmp = explode('_',$mvt_obj['prod_id'],2) ;
+			$soc_code = $ttmp[0] ;
+			foreach( $json_cfg['cfg_soc'] as $socCfg_obj ) {
+				if( $socCfg_obj['soc_code'] == $soc_code ) {
+					break ;
+				}
+				unset($socCfg_obj) ;
+			}
+			switch( $socCfg_obj['location_policy_ifexists'] ) {
+				case 'PN' :
+				case 'PN_BATCH' :
+					break ;
+					
+				default : break 2 ;
+			}
+			
 			// 1er cas : emplacement existant POS_ID
 			$attributesToCheck = array() ;
 			foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
@@ -78,7 +98,17 @@ function specDbsLam_lib_proc_findAdr( $mvt_obj, $stockAttributes_obj, $whse_dest
 			
 			$query = "SELECT adr.field_ADR_ID as adr_id, adr.field_POS_ID as pos_id FROM view_file_STOCK stk
 				INNER JOIN view_bible_ADR_entry adr ON adr.field_ADR_ID = stk.field_ADR_ID
-				WHERE field_PROD_ID='{$mvt_obj['prod_id']}' AND (stk.field_QTY_AVAIL+stk.field_QTY_OUT) > '0'
+				WHERE 1" ;
+			switch( $socCfg_obj['location_policy_ifexists'] ) {
+				case 'PN' :
+					$query.= " AND field_PROD_ID='{$mvt_obj['prod_id']}'" ;
+					break ;
+					
+				case 'PN_BATCH' :
+					$query.= " AND field_PROD_ID='{$mvt_obj['prod_id']}' AND field_SPEC_BATCH='{$mvt_obj['batch']}' AND field_SPEC_SN='{$mvt_obj['sn']}'" ;
+					break ;
+			}
+			$query.= " AND (stk.field_QTY_AVAIL+stk.field_QTY_OUT) > '0'
 				AND adr.treenode_key IN ".$_opDB->makeSQLlist($adr_treenodes) ;
 			foreach( $attributesToCheck as $STOCK_fieldcode => $neededValue ) {
 				$query.= " AND adr.{$STOCK_fieldcode}='".mysql_real_escape_string(json_encode(array($neededValue)))."'" ;
@@ -90,8 +120,9 @@ function specDbsLam_lib_proc_findAdr( $mvt_obj, $stockAttributes_obj, $whse_dest
 				$status = 'OK_ADD' ;
 				$adr_id = $arr['adr_id'] ;
 				
-				break ;
+				break 2 ;
 			}
+			break ;
 		}
 		
 		// 2ème cas : position libre correspondant aux critères

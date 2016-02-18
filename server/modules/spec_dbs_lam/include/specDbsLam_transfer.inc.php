@@ -1094,6 +1094,7 @@ function specDbsLam_transfer_commitAdrFinal($post_data,$fast=FALSE,$inner=FALSE)
 	$form_data['mvt_obj'] = array() ;
 	$form_data['mvt_obj']['prod_id'] = $row_transferLig['stk_prod'] ;
 	$form_data['mvt_obj']['batch'] = $row_transferLig['stk_batch'] ;
+	$form_data['mvt_obj']['sn'] = $row_transferLig['stk_sn'] ;
 	
 	
 	// Save PROD fields ?

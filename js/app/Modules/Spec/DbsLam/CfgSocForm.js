@@ -44,6 +44,21 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CfgSocForm',{
 					name: 'soc_txt',
 					allowBlank: false,
 					fieldLabel: 'Description'
+				},{
+					xtype: 'fieldset',
+					cls: 'op5-spec-dbslam-fieldset',
+					title: 'Location policy',
+					defaults: {
+						xtype: 'radiofield',
+						name: 'location_policy_ifexists',
+						margin: 2,
+						fieldBodyCls: '' // Otherwise height would be set at 22px
+					},
+					items: [
+						{ boxLabel: 'New location for items', inputValue: 'NONE' },
+						{ boxLabel: 'Same P/N', inputValue: 'PN'},
+						{ boxLabel: 'Same P/N + batch', inputValue: 'PN_BATCH' }
+ 					]
 				}]
 			}]
 		}) ;
@@ -67,7 +82,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CfgSocForm',{
 			  
 		var formValues = {
 			soc_code: !socRecord.phantom ? socRecord.get('soc_code') : '',
-			soc_txt: socRecord.get('soc_txt')
+			soc_txt: socRecord.get('soc_txt'),
+			location_policy_ifexists: socRecord.get('location_policy_ifexists')
 		} ;
 		form.setValues(formValues) ;
 			  
@@ -95,7 +111,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CfgSocForm',{
 		
 		var recordData = {
 			soc_code: formValues.soc_code.replace(' ','').toUpperCase(),
-			soc_txt: formValues.soc_txt} ;
+			soc_txt: formValues.soc_txt,
+			location_policy_ifexists: formValues.location_policy_ifexists
+		} ;
 		this.socRecord.set(recordData) ;
 		this.socRecord.commit() ;
 		

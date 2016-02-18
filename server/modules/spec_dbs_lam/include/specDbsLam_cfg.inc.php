@@ -250,6 +250,7 @@ function specDbsLam_cfg_getSoc() {
 		$record = array(
 			'soc_code' => $arr['field_SOC_CODE'],
 			'soc_txt' => $arr['field_SOC_TXT'],
+			'location_policy_ifexists' => $arr['field_PLOCATION_IFEXISTS'],
 			'attributes' => array()
 		) ;
 		
@@ -311,7 +312,8 @@ function specDbsLam_cfg_applySoc($post_data) {
 			'entry_key' => $soc_record['soc_code'],
 			'treenode_key' => 'SOC',
 			'field_SOC_CODE' => $soc_record['soc_code'],
-			'field_SOC_TXT' => $soc_record['soc_txt']
+			'field_SOC_TXT' => $soc_record['soc_txt'],
+			'field_PLOCATION_IFEXISTS' => $soc_record['location_policy_ifexists']
 		);
 		$TAB['view_bible_CFG_ATR_tree'][] = array(
 			'treenode_key' => $soc_record['soc_code'],
