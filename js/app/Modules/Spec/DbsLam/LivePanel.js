@@ -438,6 +438,20 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 							},
 							scope: this
 						}
+					},{
+						xtype:'box',
+						width: 48
+					},{
+						xtype:'button',
+						itemId: 'bntBeforeSplit',
+						text: 'Split qty',
+						icon: 'images/op5img/ico_filechild_16.gif',
+						listeners: {
+							click: function() {
+								this.openSplitForwardPopup() ;
+							},
+							scope: this
+						}
 					}]
 				},{
 					margin: '20 0 10 0',
@@ -875,6 +889,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 		
 		formPanel.down('#cntOpen').setVisible(false) ;
 		formPanel.down('#cntBefore').setVisible(true) ;
+		formPanel.down('#bntBeforeSplit').setVisible(false) ;
 		formPanel.down('#fsResult').setVisible(false) ;
 			  
 		Ext.Array.each( formPanel.down('#fsLeftSku').query('field'), function(field) {
@@ -1021,7 +1036,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 					formField.setReadOnly(false) ;
 				}
 			}) ;
-			
 		}
 		
 		formPanel.down('#cntSkuInput').setVisible(true) ;
@@ -1029,6 +1043,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 		formPanel.down('#cntOpen').setVisible(false) ;
 		formPanel.down('#cntBefore').setVisible(true) ;
 		formPanel.down('#fsResult').setVisible(false) ;
+			  
+		// HACK !
+		var askSplit = ( isFinal && form.findField('stk_prod').getValue() && form.findField('stk_prod').getValue().substr(0,3) == 'MBD' ) ;
+		formPanel.down('#bntBeforeSplit').setVisible(askSplit) ;
 	},
 	onComboProdBeforeLoad: function(store,options) {
 		var formPanel = this.down('form'),
@@ -1458,6 +1476,194 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 	},
 	submitAdrAuto: function() {
 		
+	},
+	
+	openSplitForwardPopup: function() {
+		var me = this ;
+		var popupPanel = Ext.create('Ext.panel.Panel',{
+			width:750,
+			height:250,
+			
+			cls: 'ux-noframe-bg',
+			
+			floating: true,
+			renderTo: me.getEl(),
+			tools: [{
+				type: 'close',
+				handler: function(e, t, p) {
+					p.ownerCt.destroy();
+				}
+			}],
+			
+			xtype: 'panel',
+			layout:'fit',
+			title: 'Split Qty for line item',
+			items:[{
+				xtype: 'damsembeddedgrid',
+				border: false,
+				columns: {
+					defaults: {
+						menuDisabled: true,
+						draggable: false,
+						sortable: false
+					},
+					items: [{
+						text: 'EASA #',
+						// width: 40,
+						width:175,
+						dataIndex: 'ATR_NEASA',
+						editor:{xtype:'textfield',allowBlank:false}
+					},{
+						text: 'Atr / Type',
+						//width: 40,
+						width:175,
+						dataIndex: 'ATR_TYPE',
+						editor:{xtype:'op5crmbasebibletreepicker', optimaModule: this.optimaModule, selectMode: 'single', bibleId: 'ATR_TYPE', allowBlank:false}
+					},{
+						text: 'Qty',
+						//width: 40,
+						width:75,
+						align: 'center',
+						dataIndex: 'mvt_qty',
+						editor:{xtype:'numberfield', allowBlank:false}
+					},{
+						text: '<b>Location</b>',
+						//width: 40,
+						width:120,
+						dataIndex: 'adr_id'
+					},{
+						text: '<b>SU #</b>',
+						//width: 40,
+						width:120,
+						dataIndex: 'ATR_SU'
+					}]
+				}
+			}],
+			buttons: [{
+				itemId: 'btnSubmit',
+				icon: 'images/op5img/ico_ok_16.gif',
+				xtype: 'button',
+				text: 'Submit',
+				handler:function(btn){ 
+					var splitForwardPanel = btn.up('panel') ;
+					this.submitSplitForwardPopup( splitForwardPanel ) ;
+				},
+				scope: this
+			},{
+				itemId: 'btnPrint',
+				hidden: true,
+				icon: 'images/op5img/ico_print_16.png',
+				xtype: 'button',
+				text: 'Print',
+				handler:function(btn){ 
+					var splitForwardPanel = btn.up('panel') ;
+					this.openSplitPrintPopup(splitForwardPanel) ;
+				},
+				scope: this
+			}]
+		});
+		
+		popupPanel.on('destroy',function() {
+			me.getEl().unmask() ;
+			me.doOpenTransfer() ;
+		},me,{single:true}) ;
+		me.getEl().mask() ;
+		
+		popupPanel.show();
+		popupPanel.getEl().alignTo(me.getEl(), 'c-c?');
+	},
+	submitSplitForwardPopup: function(splitForwardPanel) {
+		var gridPanel = splitForwardPanel.down('damsembeddedgrid'),
+			gridPanelData = gridPanel.getTabData() ;
+		
+		var formPanel = this.down('form'),
+			form = this.down('form').getForm(),
+			formValues = form.getValues(false,false,false,true) ;
+		
+		if( this.transferLigRecord_arr.length != 1 || form.findField('soc_code').getValue() != 'MBD' ) {
+			Ext.Msg.alert('Error','Invalid transaction') ;
+			return ;
+		}
+		
+		var atrErrors = false, atrValues = {} ;
+		Ext.Array.each( Optima5.Modules.Spec.DbsLam.HelperCache.getAttributeAll(), function( attribute ) {
+			if( attribute.STOCK_fieldcode
+				|| (attribute.PROD_fieldcode && attribute.ADR_fieldcode) ) {} else {
+					
+				return ;
+			}
+			var formField = form.findField(attribute.mkey) ;
+			if( !formField ) {
+				return ;
+			}
+			if( Ext.isEmpty(formField.getValue()) || formField.getValue()=='&' ) {
+				return ;
+			}
+			atrValues[attribute.mkey] = form.findField(attribute.mkey).getValue() ;
+		},this) ;
+		
+		var sumQty = 0 ;
+		Ext.Array.each( gridPanelData, function(gridPanelRow) {
+			sumQty += parseFloat(gridPanelRow.mvt_qty) ;
+		}) ;
+		if( sumQty != parseFloat(form.findField('mvt_qty').getValue()) ) {
+			Ext.Msg.alert('Qty mismatch','Sum qty check failed.') ;
+			return ;
+		}
+		
+		splitForwardPanel.down('#btnSubmit').setVisible(false) ;
+		splitForwardPanel.mask() ;
+		
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_lam',
+				_action: 'transfer_commitAdrFinalForwardSplit',
+				transferFilerecordId: this.transferRecord.get('transfer_filerecord_id'),
+				transferLigFilerecordId_arr: Ext.JSON.encode([this.transferLigRecord_arr[0].get('transferlig_filerecord_id')]),
+				transferStepCode: this.transferStepCode,
+				stockAttributes_obj: Ext.JSON.encode(atrValues),
+				forwardSplit_isOn: 1,
+				forwardSplit_arr: Ext.JSON.encode(gridPanelData)
+			},
+			success: function(response) {
+				var jsonResponse = Ext.JSON.decode(response.responseText) ;
+				if( !jsonResponse.success ) {
+					Ext.Msg.alert('Error','Split transaction error : '+jsonResponse.error) ;
+				} else {
+					splitForwardPanel.down('#btnPrint').setVisible(true) ;
+					gridPanel.setTabData(jsonResponse.data) ;
+					splitForwardPanel.transfer_id = jsonResponse.id ;
+					splitForwardPanel.transferLig_ids = jsonResponse.ids ;
+				}
+			},
+			callback: function() {
+				splitForwardPanel.unmask() ;
+			},
+			scope: this
+		});
+	},
+	openSplitPrintPopup: function(splitForwardPanel) {
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_lam',
+				_action: 'transfer_printDoc',
+				transferFilerecordId: splitForwardPanel.transfer_id,
+				transferLigFilerecordId_arr: Ext.JSON.encode(splitForwardPanel.transferLig_ids),
+				transferStepCode: 'S00_SPLIT'
+			},
+			success: function(response) {
+				var jsonResponse = Ext.JSON.decode(response.responseText) ;
+				if( jsonResponse.success == true ) {
+					this.openPrintPopupDo( 'Container doc', jsonResponse.html ) ;
+				} else {
+					Ext.MessageBox.alert('Error','Print system disabled') ;
+				}
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
 	},
 	
 	onLiveResponse: function( ajaxData, ids, stockAttributes_obj ) {

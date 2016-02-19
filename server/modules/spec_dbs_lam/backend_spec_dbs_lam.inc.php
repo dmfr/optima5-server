@@ -53,6 +53,8 @@ switch( $post_data['_action'] )
 	return specDbsLam_transfer_commitAdrTmp( $post_data ) ;
 	case 'transfer_commitAdrFinal' :
 	return specDbsLam_transfer_commitAdrFinal( $post_data ) ;
+	case 'transfer_commitAdrFinalForwardSplit' :
+	return specDbsLam_transfer_commitAdrFinalForwardSplit( $post_data ) ;
 	
 	case 'util_htmlToPdf' :
 	return specDbsLam_util_htmlToPdf($post_data) ;

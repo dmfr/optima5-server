@@ -179,6 +179,11 @@ function specDbsLam_transfer_addStock( $post_data ) {
 	
 	$transfer_filerecordId = $post_data['transfer_filerecordId'] ;
 	$stock_filerecordIds = json_decode($post_data['stock_filerecordIds'],true) ;
+	if( count($stock_filerecordIds)==1 && $post_data['mvt_qty'] ) {
+		$mvt_qty = (float)$post_data['mvt_qty'] ;
+	} else {
+		$mvt_qty = 0 ;
+	}
 	
 	//controle $transfer_filerecordId ?
 	$query = "SELECT * FROM view_file_TRANSFER WHERE filerecord_id='{$transfer_filerecordId}'" ;
@@ -197,7 +202,7 @@ function specDbsLam_transfer_addStock( $post_data ) {
 	
 	$ids = array() ;
 	foreach( $stock_filerecordIds as $stock_filerecordId ) {
-		$mvt_filerecordId = specDbsLam_lib_procMvt_addStock( $stock_filerecordId, 0, $init_mvtflowstep ) ;
+		$mvt_filerecordId = specDbsLam_lib_procMvt_addStock( $stock_filerecordId, $mvt_qty, $init_mvtflowstep ) ;
 		if( !$mvt_filerecordId ){
 			continue ;
 		}
@@ -1029,6 +1034,10 @@ function specDbsLam_transfer_commitAdrTmp($post_data,$inner=FALSE) {
 function specDbsLam_transfer_commitAdrFinal($post_data,$fast=FALSE,$inner=FALSE) {
 	global $_opDB ;
 	
+	if( $post_data['forwardSplit_isOn'] ) {
+		return array('success'=>false) ;
+	}
+	
 	if( !$inner ) {
 		if( !specDbsLam_transfer_lib_processForeign($post_data) ) {
 			return array('success'=>false) ;
@@ -1060,23 +1069,23 @@ function specDbsLam_transfer_commitAdrFinal($post_data,$fast=FALSE,$inner=FALSE)
 	
 	$form_data = array() ;
 	if( !$fast ) {
-	$form_data['stockAttributes_obj'] = array() ;
-	$stockAttributes_obj = json_decode($post_data['stockAttributes_obj'],true) ;
-	foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
-		if( $stockAttribute_obj['STOCK_fieldcode']
-			|| $stockAttribute_obj['PROD_fieldcode'] && $stockAttribute_obj['ADR_fieldcode'] ) {} else {
-			
-			continue ;
+		$form_data['stockAttributes_obj'] = array() ;
+		$stockAttributes_obj = json_decode($post_data['stockAttributes_obj'],true) ;
+		foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
+			if( $stockAttribute_obj['STOCK_fieldcode']
+				|| $stockAttribute_obj['PROD_fieldcode'] && $stockAttribute_obj['ADR_fieldcode'] ) {} else {
+				
+				continue ;
+			}
+			$mkey = $stockAttribute_obj['mkey'] ;
+			$STOCK_fieldcode = $stockAttribute_obj['STOCK_fieldcode'] ;
+			$form_data['stockAttributes_obj'][$mkey] = $stockAttributes_obj[$mkey] ;
 		}
-		$mkey = $stockAttribute_obj['mkey'] ;
-		$STOCK_fieldcode = $stockAttribute_obj['STOCK_fieldcode'] ;
-		$form_data['stockAttributes_obj'][$mkey] = $stockAttributes_obj[$mkey] ;
-	}
-	foreach( $form_data['stockAttributes_obj'] as $mkey => $mvalue ) {
-		if( !$mvalue ) {
-			return array('success'=>false, 'error'=>'Stock attributes error !') ;
+		foreach( $form_data['stockAttributes_obj'] as $mkey => $mvalue ) {
+			if( !$mvalue ) {
+				return array('success'=>false, 'error'=>'Stock attributes error !') ;
+			}
 		}
-	}
 	}
 	
 	// Load current doc
@@ -1101,25 +1110,28 @@ function specDbsLam_transfer_commitAdrFinal($post_data,$fast=FALSE,$inner=FALSE)
 	}
 	
 	$rows_transferLig = array_values($rows_transferLig) ;
-	// Save/generate STOCK fields ?
 	$row_transferLig = $rows_transferLig[0] ;
-	foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
-		if( !$stockAttribute_obj['STOCK_fieldcode'] ) {
-			continue ;
-		}
-		$mkey = $stockAttribute_obj['mkey'] ;
-		if( $row_transferLig[$stockAttribute_obj['mkey']] == '' ) {
-			$forward_stockAttributes[$mkey] = $form_data['stockAttributes_obj'][$mkey] ;
-		} elseif( substr($row_transferLig[$stockAttribute_obj['mkey']],0,1) == '@' ) {
-			switch( substr($row_transferLig[$stockAttribute_obj['mkey']],1) ) {
-				case 'MBDSU' :
-					$value = specDbsLam_spec_get_MBDSU() ;
-					break ;
-					
-				default :
-					continue 2 ;
+	
+	if( !$fast ) {
+		// Save/generate STOCK fields ?
+		foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
+			if( !$stockAttribute_obj['STOCK_fieldcode'] ) {
+				continue ;
 			}
-			$forward_stockAttributes[$mkey] = $form_data['stockAttributes_obj'][$mkey] = $value ;
+			$mkey = $stockAttribute_obj['mkey'] ;
+			if( $row_transferLig[$stockAttribute_obj['mkey']] == '' ) {
+				$forward_stockAttributes[$mkey] = $form_data['stockAttributes_obj'][$mkey] ;
+			} elseif( substr($row_transferLig[$stockAttribute_obj['mkey']],0,1) == '@' ) {
+				switch( substr($row_transferLig[$stockAttribute_obj['mkey']],1) ) {
+					case 'MBDSU' :
+						$value = specDbsLam_spec_get_MBDSU() ;
+						break ;
+						
+					default :
+						continue 2 ;
+				}
+				$forward_stockAttributes[$mkey] = $form_data['stockAttributes_obj'][$mkey] = $value ;
+			}
 		}
 	}
 	
@@ -1131,22 +1143,22 @@ function specDbsLam_transfer_commitAdrFinal($post_data,$fast=FALSE,$inner=FALSE)
 	
 	// Save PROD fields ?
 	if( !$fast ) {
-	$prod_stockAttributes = array() ;
-	foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
-		if( $stockAttribute_obj['PROD_fieldcode'] && $stockAttribute_obj['cfg_is_editable'] ) {
-			$mvalue = $form_data['stockAttributes_obj'][$stockAttribute_obj['mkey']] ;
-			$prod_stockAttributes[$stockAttribute_obj['PROD_fieldcode']] = $mvalue ;
+		$prod_stockAttributes = array() ;
+		foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
+			if( $stockAttribute_obj['PROD_fieldcode'] && $stockAttribute_obj['cfg_is_editable'] ) {
+				$mvalue = $form_data['stockAttributes_obj'][$stockAttribute_obj['mkey']] ;
+				$prod_stockAttributes[$stockAttribute_obj['PROD_fieldcode']] = $mvalue ;
+			}
 		}
-	}
-	if( $prod_stockAttributes ) {
-		$arr_update = array() ;
-		foreach( $prod_stockAttributes as $field_code => $value ) {
-			$arr_update[$field_code] = json_encode(array($value)) ;
+		if( $prod_stockAttributes ) {
+			$arr_update = array() ;
+			foreach( $prod_stockAttributes as $field_code => $value ) {
+				$arr_update[$field_code] = json_encode(array($value)) ;
+			}
+			$arr_cond = array() ;
+			$arr_cond['entry_key'] = $form_data['mvt_obj']['prod_id'] ;
+			$_opDB->update('view_bible_PROD_entry',$arr_update,$arr_cond) ;
 		}
-		$arr_cond = array() ;
-		$arr_cond['entry_key'] = $form_data['mvt_obj']['prod_id'] ;
-		$_opDB->update('view_bible_PROD_entry',$arr_update,$arr_cond) ;
-	}
 	}
 	
 	specDbsLam_lib_proc_lock_on() ;
@@ -1201,6 +1213,195 @@ function specDbsLam_transfer_commitAdrFinal($post_data,$fast=FALSE,$inner=FALSE)
 	}
 	
 	return array('success'=>true, 'data'=> $adr_obj, 'ids'=>$p_transferLigFilerecordId_arr, 'stockAttributes_obj'=>$form_data['stockAttributes_obj']) ;
+}
+
+function specDbsLam_transfer_commitAdrFinalForwardSplit( $post_data ) {
+	global $_opDB ;
+	// Load cfg attributes
+	$ttmp = specDbsLam_cfg_getConfig() ;
+	$json_cfg = $ttmp['data'] ;
+	
+	
+	if( !$post_data['forwardSplit_isOn'] ) {
+		return array('success'=>false) ;
+	}
+	
+	$p_transferFilerecordId = $post_data['transferFilerecordId'] ;
+	$p_transferLigFilerecordId_arr = json_decode($post_data['transferLigFilerecordId_arr'],true) ;
+	$p_transferStepCode = $post_data['transferStepCode'] ;
+	
+	$p_stockAttributes_obj = json_decode($post_data['stockAttributes_obj'],true) ;
+	$p_forwardSplit_arr = json_decode($post_data['forwardSplit_arr'],true) ;
+	
+	/*
+	 * création d'une position intermédiaire {whse_code}_FORWARD
+	 * T06 (ou équivalent) en mode FAST
+	 * open doc RELOCATE name:SPLIT
+	 * construction du doc ligne par ligne 
+	 *  - addStock --qté partielle !--
+	 *  - commit envoi des parametres POST=stockAttributes_obj
+	 * 
+	 *  => reload specDbsLam_transfer_getTransferLig >> construction réponse
+	 */
+	
+	
+	if( TRUE ) { //TODO
+		$form_data['stockAttributes_obj'] = array() ;
+		$stockAttributes_obj = json_decode($post_data['stockAttributes_obj'],true) ;
+		foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
+			if( $stockAttribute_obj['STOCK_fieldcode']
+				|| $stockAttribute_obj['PROD_fieldcode'] && $stockAttribute_obj['ADR_fieldcode'] ) {} else {
+				
+				continue ;
+			}
+			$mkey = $stockAttribute_obj['mkey'] ;
+			foreach( $p_forwardSplit_arr as $forwardSplit_obj ) {
+				if( !$p_stockAttributes_obj[$mkey] && !$forwardSplit_obj[$mkey] ) {
+					return array('success'=>false, 'error'=>'Missing stock attribute') ;
+				}
+			}
+		}
+	}
+	
+	// Open split doc
+	$query = "SELECT filerecord_id FROM view_file_TRANSFER WHERE field_TRANSFER_TXT='SPLIT'" ;
+	$split_filerecord_id = $_opDB->query_uniqueValue($query) ;
+	if( !$split_filerecord_id ) {
+		return array('success'=>false) ;
+	}
+	
+	
+	// Load current doc
+	$ttmp = specDbsLam_transfer_getTransfer( array('filter_transferFilerecordId'=>$p_transferFilerecordId) ) ;
+	$row_transfer = $ttmp['data'][0] ;
+	$whse_dest = $row_transfer['whse_dest'] ;
+	if( !$whse_dest ) {
+		return array('success'=>false, 'error'=>'Warehouse destination ?') ;
+	}
+	$whseForward_code = $whse_dest.'_FW' ;
+	if( !paracrm_lib_data_getRecord_bibleEntry( 'ADR', $whseForward_code ) ) {
+		paracrm_lib_data_insertRecord_bibleEntry('ADR', $whseForward_code,$whse_dest,array('field_ADR_ID'=>$whseForward_code)) ;
+	}
+	
+	
+	// commit current Doc
+	$ttmp = specDbsLam_transfer_commitAdrFinal( array(
+		'transferFilerecordId' =>  $p_transferFilerecordId,
+		'transferLigFilerecordId_arr' => json_encode($p_transferLigFilerecordId_arr),
+		'transferStepCode' => $p_transferStepCode,
+		'manAdr_isOn' => 1,
+		'manAdr_adrId' => $whseForward_code
+	), $fast=TRUE) ;
+	if( !$ttmp['success'] ) {
+		return array('success'=>false) ;
+	}
+	
+	
+	// reload current lig
+	$ttmp = specDbsLam_transfer_getTransferLig( array('filter_transferFilerecordId'=>$p_transferFilerecordId) ) ;
+	$rows_transferLig = $ttmp['data'] ;
+	foreach( $rows_transferLig as $idx => $row_transferLig ) {
+		if( $row_transferLig['transferlig_filerecord_id'] == reset($p_transferLigFilerecordId_arr) ) {
+			break ;
+		}
+		unset($row_transferLig) ;
+	}
+	if( !$row_transferLig || !$row_transferLig['status_is_ok'] || $row_transferLig['current_adr'] != $whseForward_code ) {
+		return array('success'=>false) ;
+	}
+
+	$row_transferLigLastStep = end($row_transferLig['steps']) ;
+	$srcStk_filerecord_id = $row_transferLigLastStep['commit_file_stock_id'] ;
+	
+	$splitLig_filerecord_ids = array() ;
+	// Add stock => to procedure
+	foreach( $p_forwardSplit_arr as &$forwardSplit_obj ) {
+		
+		$stockAttributes_obj = array() ;
+		foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
+			if( $stockAttribute_obj['STOCK_fieldcode']
+				|| $stockAttribute_obj['PROD_fieldcode'] && $stockAttribute_obj['ADR_fieldcode'] ) {} else {
+				
+				continue ;
+			}
+			$mkey = $stockAttribute_obj['mkey'] ;
+			if( $forwardSplit_obj[$mkey] ) {
+				$stockAttributes_obj[$mkey] = $forwardSplit_obj[$mkey] ;
+			} elseif( $p_stockAttributes_obj[$mkey] ) {
+				$stockAttributes_obj[$mkey] = $p_stockAttributes_obj[$mkey] ;
+			} else {
+				$stockAttributes_obj[$mkey] ; //???
+			}
+		}
+		
+		// Add stock 
+		$ttmp = specDbsLam_transfer_addStock( array(
+			'transfer_filerecordId' => $split_filerecord_id,
+			'stock_filerecordIds' => json_encode(array($srcStk_filerecord_id)),
+			'mvt_qty' => $forwardSplit_obj['mvt_qty']
+		)) ;
+		$splitLig_filerecord_id = reset($ttmp['ids']) ;
+		$splitLig_filerecord_ids[] = $splitLig_filerecord_id ;
+		
+		
+		// Commit
+		$ttmp = specDbsLam_transfer_commitAdrFinal( array(
+			'transferFilerecordId' =>  $split_filerecord_id,
+			'transferLigFilerecordId_arr' => json_encode(array($splitLig_filerecord_id)),
+			'transferStepCode' => 'S00_SPLIT',
+			'stockAttributes_obj' => json_encode($stockAttributes_obj)
+		)) ;
+		if( !$ttmp['data']['adr_id'] ) {
+			$do_rollback = true ;
+			break ;
+		}
+		$forwardSplit_obj['adr_id'] = $ttmp['data']['adr_id'] ;
+		
+		
+		// Load transferLig
+		$ttmp = specDbsLam_transfer_getTransferLig( array('filter_transferFilerecordId'=>$split_filerecord_id) ) ;
+		$rows_transferLig = $ttmp['data'] ;
+		foreach( $rows_transferLig as $idx => $row_transferLig ) {
+			if( $row_transferLig['transferlig_filerecord_id'] == $splitLig_filerecord_id ) {
+				break ;
+			}
+			unset($row_transferLig) ;
+		}
+		
+		
+		
+		// Add infos to lig
+		foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
+			if( $stockAttribute_obj['STOCK_fieldcode'] ) {} else {
+				
+				continue ;
+			}
+			$mkey = $stockAttribute_obj['mkey'] ;
+			$forwardSplit_obj[$mkey] = $row_transferLig[$mkey] ;
+		}
+	}
+	unset($forwardSplit_obj) ;
+	
+	
+	
+	if( $do_rollback ) {
+		foreach( $splitLig_filerecord_ids as $splitLig_filerecord_id ) {
+			//specDbsLam_transfer_rollbackStep( //TODO
+		
+			specDbsLam_transfer_removeStock( array('transferLig_filerecordIds'=>json_encode(array($splitLig_filerecord_id))) ) ;
+		}
+		
+		specDbsLam_transfer_rollbackStep( array(
+			'transferFilerecordId' => $post_data['transferFilerecordId'],
+			'transferLigFilerecordId_arr' => $post_data['transferLigFilerecordId_arr'],
+			'transferStepCode' => $post_data['transferStepCode']
+		)) ;
+		
+		return array('success'=>false, 'error'=>'Allocation ADR failed') ;
+	}
+	
+	
+	return array('success'=>true, 'data'=>$p_forwardSplit_arr, 'id'=>$split_filerecord_id, 'ids'=>$splitLig_filerecord_ids) ;
 }
 
 function specDbsLam_transfer_lib_advanceDoc($transfer_filerecordId) {
