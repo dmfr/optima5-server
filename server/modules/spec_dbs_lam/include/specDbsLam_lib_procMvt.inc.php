@@ -156,14 +156,27 @@ function specDbsLam_lib_procMvt_commit($mvt_filerecordId, $adr_dest, $adr_dest_d
 	if( $_opDB->num_rows($result) != 1 ) {
 		return FALSE ;
 	}
+	
+	$query = "UPDATE view_file_STOCK 
+			SET field_QTY_OUT = field_QTY_OUT - '{$qte_mvt}'
+			WHERE filerecord_id='{$stock_filerecordId}'" ;
+	$_opDB->query($query) ;
+	
+	$query = "SELECT * FROM view_file_STOCK WHERE filerecord_id='{$stock_filerecordId}'" ;
+	$result = $_opDB->query($query) ;
 	$row_stock = $_opDB->fetch_assoc($result) ;
+	if( $row_stock['field_QTY_AVAIL'] == 0 && $row_stock['field_QTY_OUT'] == 0 ) {
+		$doDelete = true ;
+	}
 	$row_stock['field_ADR_ID'] = $adr_dest ;
-	$row_stock['field_QTY_AVAIL'] = $row_stock['field_QTY_OUT'] ;
+	$row_stock['field_QTY_AVAIL'] = $qte_mvt ;
 	$row_stock['field_QTY_OUT'] = 0 ;
 	foreach( $stockAttributes as $stockAttribute ) {
 		$row_stock[$stockAttribute['STOCK_fieldcode']] = $stockAttribute['value'] ;
 	}
-	paracrm_lib_data_deleteRecord_file( 'STOCK' , $stock_filerecordId ) ;
+	if( $doDelete ) {
+		paracrm_lib_data_deleteRecord_file( 'STOCK' , $stock_filerecordId ) ;
+	}
 	$stock_filerecordId = paracrm_lib_data_insertRecord_file('STOCK',0,$row_stock) ;
 	
 	
