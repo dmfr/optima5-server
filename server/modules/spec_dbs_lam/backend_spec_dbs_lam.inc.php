@@ -38,6 +38,8 @@ switch( $post_data['_action'] )
 	return specDbsLam_transfer_addStock( $post_data ) ;
 	case 'transfer_removeStock' :
 	return specDbsLam_transfer_removeStock( $post_data ) ;
+	case 'transfer_setFlag' :
+	return specDbsLam_transfer_setFlag( $post_data ) ;
 	case 'transfer_printDoc' :
 	return specDbsLam_transfer_printDoc( $post_data ) ;
 	case 'transfer_createDoc' :

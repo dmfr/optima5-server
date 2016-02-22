@@ -107,7 +107,8 @@ function specDbsLam_transfer_getTransferLig($post_data) {
 				'steps' => array(),
 				'status_is_reject' => $arr['field_STATUS_IS_REJECT'],
 				'reject_arr' => explode(',',$arr['field_REJECT_ARR']),
-				'reject_txt' => $arr['field_REJECT_TXT']
+				'reject_txt' => $arr['field_REJECT_TXT'],
+				'flag_allowgroup' => ($arr['field_FLAG_ALLOWGROUP']==1)
 			);
 			foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
 				if( !$stockAttribute_obj['STOCK_fieldcode'] ) {
@@ -243,6 +244,29 @@ function specDbsLam_transfer_removeStock( $post_data ) {
 	
 	return array('success'=>true) ;
 }
+function specDbsLam_transfer_setFlag( $post_data ) {
+	global $_opDB ;
+	
+	$transferLig_filerecordIds = json_decode($post_data['transferLig_filerecordIds'],true) ;
+	$p_flagCode = $post_data['flag_code'] ;
+	$p_flagValue = $post_data['flag_value'] ;
+	
+	foreach( $transferLig_filerecordIds as $transferLig_filerecordId ) {
+		$arr_update = array() ;
+		switch( $p_flagCode ) {
+			case 'ALLOWGROUP' ;
+				$arr_update['field_FLAG_ALLOWGROUP'] = ($p_flagValue ? 1 : 0) ;
+				break ;
+			default :
+				break ;
+		}
+		$arr_cond = array() ;
+		$arr_cond['filerecord_id'] = $transferLig_filerecordId ;
+		$_opDB->update('view_file_TRANSFER_LIG',$arr_update,$arr_cond) ;
+	}
+	return array('success'=>true) ;
+}
+
 
 
 
@@ -868,7 +892,11 @@ function specDbsLam_transfer_commitAdrTmp($post_data,$inner=FALSE) {
 		}
 	} else {
 		if( count($rows_transferLig) != 1 ) {
-			return array('success'=>false, 'error'=>'Group locations not accepted') ;
+			foreach( $rows_transferLig as $row_transferLig ) {
+				if( !$row_transferLig['flag_allowgroup'] ) {
+					return array('success'=>false, 'error'=>'Group locations not accepted') ;
+				}
+			}
 		}
 		if( !trim($p_location) ) {
 			return array('success'=>false, 'error'=>'Must specify explicit location') ;

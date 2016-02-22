@@ -53,7 +53,8 @@ Ext.define('DbsLamTransferGridModel',{
 		{name: 'stk_datelc', type:'string'},
 		{name: 'stk_sn', type:'string'},
 		{name: 'mvt_qty', type:'number', allowNull:true},
-		{name: 'reject_arr', type:'auto'}
+		{name: 'reject_arr', type:'auto'},
+		{name: 'flag_allowgroup', type:'boolean'}
 	],
 	hasMany: [{
 		model: 'DbsLamTransferStepModel',
@@ -664,6 +665,42 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		var gridContextMenuItems = new Array() ;
 		
 		var selRecord = record;
+		// eval flags
+		var transferLig_records = [],
+			mapFlagValue = {
+			'flag_allowgroup': []
+		};
+		record.cascadeBy( function(node) {
+			if( !node.isLeaf() ) {
+				return ;
+			}
+			transferLig_records.push(node) ;
+			Ext.Object.each( mapFlagValue, function(flag,values) {
+				var tvalue = node.get(flag) ;
+				if( !Ext.Array.contains(values,tvalue) ) {
+					values.push(tvalue) ;
+				}
+			});
+		}) ;
+		Ext.Object.each( mapFlagValue, function(flag,values) {
+			if( values.length = 1 ) {
+				mapFlagValue[flag] = values[0];
+			} else {
+				mapFlagValue[flag] = null ;
+			}
+		});
+		
+		if( !Ext.isEmpty(record.get('tree_adr')) ) {
+			gridContextMenuItems.push({
+				checked: mapFlagValue.flag_allowgroup,
+				text: 'Allow group acknowledgment',
+				checkHandler : function(menuitem,checked) {
+					this.onGridTreeContextMenuHandleFlag( menuitem.up('menu').transferLig_records, 'flag_allowgroup', checked ) ;
+				},
+				scope : this
+			});
+			gridContextMenuItems.push('-') ;
+		}
 		
 		gridContextMenuItems.push({
 			iconCls: 'icon-bible-new',
@@ -684,6 +721,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		
 		var gridContextMenu = Ext.create('Ext.menu.Menu',{
 			items : gridContextMenuItems,
+			transferLig_records: transferLig_records,
 			listeners: {
 				hide: function(menu) {
 					Ext.defer(function(){menu.destroy();},10) ;
@@ -692,6 +730,42 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		}) ;
 		
 		gridContextMenu.showAt(event.getXY());
+	},
+	onGridTreeContextMenuHandleFlag: function( transferLig_records, flag, value ) {
+		var transferLig_filerecordIds = [] ;
+		// local
+		Ext.Array.each( transferLig_records, function(node) {
+			node.set(flag,value) ;
+			transferLig_filerecordIds.push(node.get('transferlig_filerecord_id')) ;
+		}) ;
+		// remote
+		var remoteFlag ;
+		switch( flag ) {
+			case 'flag_allowgroup' :
+				remoteFlag = 'ALLOWGROUP' ;
+				break ;
+			default :
+				return ;
+		}
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_lam',
+				_action: 'transfer_setFlag',
+				transferLig_filerecordIds: Ext.JSON.encode(transferLig_filerecordIds),
+				flag_code: remoteFlag,
+				flag_value: ( value ? 1 : 0 )
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+			},
+			callback: function() {
+			},
+			scope: this
+		}) ;
 	},
 	
 	
