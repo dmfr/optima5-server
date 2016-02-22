@@ -1314,13 +1314,27 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			transferStepCode = gridTreeNode.get('step_code')
 		}
 		
+		var steps = [], idx ;
+		Ext.Array.each( flowRecord.steps, function(step) {
+			steps.push(step.step_code) ;
+		});
+		if( transferStepCode == '' ) {
+			idx = steps.length ;
+		} else {
+			idx = steps.indexOf(transferStepCode) ;
+		}
+		if( idx > 0 ) {
+			idx-- ;
+		}
+		transferStepCode = steps[idx] ;
+		
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_dbs_lam',
 				_action: 'transfer_printDoc',
 				transferFilerecordId: transferFilerecordId,
 				transferLigFilerecordId_arr: Ext.JSON.encode(transferLigFilerecordId_arr),
-				transferStepCode: null
+				transferStepCode: transferStepCode
 			},
 			success: function(response) {
 				var jsonResponse = Ext.JSON.decode(response.responseText) ;
