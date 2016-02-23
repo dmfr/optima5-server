@@ -299,10 +299,13 @@ function specDbsLam_transfer_printDoc( $post_data ) {
 			$adr_rowsTransferLig = array() ;
 			foreach( $rows_transferLig as $row_transferLig ) {
 				$adr = $row_transferLig['src_adr'] ;
-				if( !$adr_rowsTransferLig[$adr] ) {
-					$adr_rowsTransferLig[$adr] = array() ;
+				if( !$tab_rowsTransferLig[$adr] ) {
+					$tab_rowsTransferLig[$adr] = array(
+						'adr' => $adr,
+						'arr' => array()
+					) ;
 				}
-				$adr_rowsTransferLig[$adr][] = $row_transferLig ;
+				$tab_rowsTransferLig[$adr]['arr'][] = $row_transferLig ;
 			}
 		}
 		if( $post_data['transferFilerecordId'] ) {
@@ -320,16 +323,26 @@ function specDbsLam_transfer_printDoc( $post_data ) {
 			$ttmp = specDbsLam_transfer_getTransferLig( array('filter_transferFilerecordId'=>$transfer_filerecordId) ) ;
 			$rows_transferLig = $ttmp['data'] ;
 			
-			$adr_rowsTransferLig = array() ;
+			$tab_rowsTransferLig = array() ;
 			foreach( $rows_transferLig as $row_transferLig ) {
 				if( !in_array($row_transferLig['transferlig_filerecord_id'],$transferLig_filerecordIds) ) {
 					continue ;
 				}
 				$adr = ( $step_isFinal ? $row_transferLig['current_adr_entryKey'] : $row_transferLig['current_adr_treenodeKey'] ) ; ;
-				if( !$adr_rowsTransferLig[$adr] ) {
-					$adr_rowsTransferLig[$adr] = array() ;
+				if( $step_isFinal ) {
+					$tab_rowsTransferLig[] = array(
+						'adr' => $adr,
+						'arr' => array($row_transferLig)
+					);
+					continue ;
 				}
-				$adr_rowsTransferLig[$adr][] = $row_transferLig ;
+				if( !$tab_rowsTransferLig[$adr] ) {
+					$tab_rowsTransferLig[$adr] = array(
+						'adr' => $adr,
+						'arr' => array()
+					) ;
+				}
+				$tab_rowsTransferLig[$adr]['arr'][] = $row_transferLig ;
 			}
 		}
 	
@@ -337,8 +350,15 @@ function specDbsLam_transfer_printDoc( $post_data ) {
 		
 	$buffer = '' ;
 	$is_first = TRUE ;
-	ksort($adr_rowsTransferLig) ;
-	foreach( $adr_rowsTransferLig as $adr => $rows_transferLig ) {
+	if( !$step_isFinal ) {
+		ksort($tab_rowsTransferLig) ;
+		$tab_rowsTransferLig = array_values($tab_rowsTransferLig) ;
+	}
+	
+	foreach( $tab_rowsTransferLig as $ttmp ) {
+		$adr = $ttmp['adr'] ;
+		$rows_transferLig = $ttmp['arr'] ;
+	
 		$ttmp = explode('_',$adr,2) ;
 		$adr_str = $ttmp[1] ;
 		
@@ -448,18 +468,6 @@ function specDbsLam_transfer_printDoc( $post_data ) {
 						$buffer.= '<td align="center">' ;
 						$buffer.= '<img src="data:image/jpeg;base64,'.base64_encode(specDbsLam_lib_getBarcodePng($row_transferLig['stk_batch'],50)).'" /><br>';
 						$buffer.= $row_transferLig['stk_batch'].'<br>';
-						$buffer.= '</td>' ;
-					} else {
-						$buffer.= '<td class="croix">&nbsp;</td>' ;
-					}
-				$buffer.= "</tr>" ;
-			
-				$buffer.= "<tr>" ;
-					$buffer.= "<td width='30%'><span class=\"mybig\">DLC</span></td>" ;
-					if( $arr_prod['field_SPEC_IS_DLC'] ) {
-						$buffer.= '<td align="center">' ;
-						$buffer.= '<img src="data:image/jpeg;base64,'.base64_encode(specDbsLam_lib_getBarcodePng($row_transferLig['stk_datelc'],50)).'" /><br>';
-						$buffer.= $row_transferLig['stk_datelc'].'<br>';
 						$buffer.= '</td>' ;
 					} else {
 						$buffer.= '<td class="croix">&nbsp;</td>' ;
