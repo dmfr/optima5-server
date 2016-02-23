@@ -1414,8 +1414,13 @@ function specDbsLam_transfer_commitAdrFinalForwardSplit( $post_data ) {
 	
 	if( $do_rollback ) {
 		foreach( $splitLig_filerecord_ids as $splitLig_filerecord_id ) {
-			//specDbsLam_transfer_rollbackStep( //TODO
-		
+			specDbsLam_transfer_rollbackStep( array(
+				'transferFilerecordId' => $split_filerecord_id,
+				'transferLigFilerecordId_arr' => json_encode(array($splitLig_filerecord_id)),
+				'transferStepCode' => 'S00_SPLIT'
+			)) ;
+		}
+		foreach( $splitLig_filerecord_ids as $splitLig_filerecord_id ) {
 			specDbsLam_transfer_removeStock( array('transferLig_filerecordIds'=>json_encode(array($splitLig_filerecord_id))) ) ;
 		}
 		
@@ -1470,6 +1475,10 @@ function specDbsLam_transfer_lib_advanceDoc($transfer_filerecordId) {
 
 function specDbsLam_transfer_rollbackStep($post_data) {
 	global $_opDB ;
+	
+	// Load cfg attributes
+	$ttmp = specDbsLam_cfg_getConfig() ;
+	$json_cfg = $ttmp['data'] ;
 	
 	$p_transferFilerecordId = $post_data['transferFilerecordId'] ;
 	$p_transferLigFilerecordId_arr = json_decode($post_data['transferLigFilerecordId_arr'],true) ;
@@ -1687,30 +1696,78 @@ function specDbsLam_transfer_rollbackStep($post_data) {
 		
 		
 		if( $lastStep_log ) {
+			$mvt_qty = $row_transferLig['mvt_qty'] ;
 			paracrm_lib_data_deleteRecord_file( 'MVT_STEP' , $lastStep_log['mvtstep_filerecord_id'] ) ;
+			$query = "UPDATE view_file_STOCK 
+					SET field_QTY_AVAIL=field_QTY_AVAIL+'{$mvt_qty}' , field_QTY_OUT=field_QTY_OUT-'{$mvt_qty}'
+					WHERE filerecord_id='{$prevStep_log['commit_file_stock_id']}'" ;
+			$_opDB->query($query) ;
 		}
+		
+		
+		
+		// *********** Recreate source STOCK  *****************
+		$query_stk = "SELECT * FROM view_file_STOCK where filerecord_id='{$prevStep_log['commit_file_stock_id']}'" ;
+		$res_stk = $_opDB->query($query_stk) ;
+		$arr_stk = $_opDB->fetch_assoc($res_stk) ;
+		
+		$stockSrc_filerecord_id = $prevStep_log['file_stock_id'] ;
+		$query = "SELECT count(*) FROM view_file_STOCK WHERE filerecord_id='{$stockSrc_filerecord_id}'" ;
+		if( $_opDB->query_uniqueValue($query) == 0 ) {
+			$query = "DELETE FROM store_file WHERE filerecord_id='{$stockSrc_filerecord_id}'" ;
+			$_opDB->query($query) ;
+			$query = "DELETE FROM store_file_STOCK WHERE filerecord_id='{$stockSrc_filerecord_id}'" ;
+			$_opDB->query($query) ;
+			
+			$arr_ins = array() ;
+			$arr_ins['filerecord_id'] = $stockSrc_filerecord_id ;
+			$arr_ins['file_code'] = 'STOCK' ;
+			$_opDB->insert('store_file',$arr_ins) ;
+			
+			$arr_ins = array() ;
+			$arr_ins['filerecord_id'] = $stockSrc_filerecord_id ;
+			$_opDB->insert('store_file_STOCK',$arr_ins) ;
+			
+			$arr_update = $arr_stk ;
+			foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
+				if( $stockAttribute_obj['STOCK_fieldcode'] ) {
+					$mkey = $stockAttribute_obj['mkey'] ;
+					$arr_update[$stockAttribute_obj['STOCK_fieldcode']] = $row_transferLig[$mkey] ;
+				}
+			}
+			$arr_update['field_ADR_ID'] = $prevStep_log['src_adr_entry'] ;
+			$arr_update['field_QTY_AVAIL'] = 0 ;
+			$arr_update['field_QTY_OUT'] = 0 ;
+			paracrm_lib_data_updateRecord_file('STOCK',$arr_update,$stockSrc_filerecord_id) ;
+		}
+		// ***************************
+		
+		
+		// ************* Balance QTY ********************
+		$mvt_qty = $row_transferLig['mvt_qty'] ;
+		
+		$query = "UPDATE view_file_STOCK SET field_QTY_AVAIL=field_QTY_AVAIL-'{$mvt_qty}' WHERE filerecord_id='{$prevStep_log['commit_file_stock_id']}'" ;
+		$_opDB->query($query) ;
+		
+		$query = "SELECT * FROM view_file_STOCK WHERE filerecord_id='{$prevStep_log['commit_file_stock_id']}'" ;
+		$result = $_opDB->query($query) ;
+		$row_stock = $_opDB->fetch_assoc($result) ;
+		if( $row_stock['field_QTY_AVAIL'] == 0 && $row_stock['field_QTY_OUT'] == 0 ) {
+			$doDelete = true ;
+			paracrm_lib_data_deleteRecord_file( 'STOCK' , $prevStep_log['commit_file_stock_id'] ) ;
+		}
+		
+		$query = "UPDATE view_file_STOCK SET field_QTY_OUT=field_QTY_OUT+'{$mvt_qty}' WHERE filerecord_id='{$prevStep_log['file_stock_id']}'" ;
+		$_opDB->query($query) ;
+		// ***********************************************
+		
 		
 		$arr_update = array() ;
 		$arr_update['field_COMMIT_FILE_STOCK_ID'] = 0 ;
 		$arr_update['field_COMMIT_DATE'] = '' ;
 		$arr_update['field_COMMIT_USER'] = '' ;
-		$arr_update['field_FILE_STOCK_ID'] = $prevStep_log['commit_file_stock_id'] ;
 		$arr_update['field_STATUS_IS_OK'] = 0 ;
 		paracrm_lib_data_updateRecord_file('MVT_STEP',$arr_update,$prevStep_log['mvtstep_filerecord_id']) ;
-		
-		$query = "UPDATE view_file_MVT_STEP set field_COMMIT_FILE_STOCK_ID='{$prevStep_log['commit_file_stock_id']}'
-				WHERE field_COMMIT_FILE_STOCK_ID='{$prevStep_log['file_stock_id']}'" ;
-		$_opDB->query($query) ;
-		
-		$query_stk = "SELECT * FROM view_file_STOCK where filerecord_id='{$prevStep_log['commit_file_stock_id']}'" ;
-		$res_stk = $_opDB->query($query_stk) ;
-		$arr_stk = $_opDB->fetch_assoc($res_stk) ;
-		
-		$arr_update = array() ;
-		$arr_update['field_ADR_ID'] = $prevStep_log['src_adr_entry'] ;
-		$arr_update['field_QTY_OUT'] = ($step_isFinal ? $arr_stk['field_QTY_AVAIL'] : $arr_stk['field_QTY_OUT']) ;
-		$arr_update['field_QTY_AVAIL'] = 0 ;
-		paracrm_lib_data_updateRecord_file('STOCK',$arr_update,$prevStep_log['commit_file_stock_id']) ;
 	}
 	
 	return array('success'=>true, 'debug'=>$post_data) ;
