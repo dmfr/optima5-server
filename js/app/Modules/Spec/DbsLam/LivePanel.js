@@ -831,39 +831,40 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 		} ;
 		cascadeRoot(dataRoot) ;
 		
-		var treeStore = Ext.create('Ext.data.TreeStore',{
-			model: 'DbsLamLiveTreeModel',
-			data: dataRoot,
-			proxy: {
-				type: 'memory',
-				reader: {
-					type: 'json'
-				}
+		var cascadeRoot = function(node) {
+			if( node.children ) {
+				var toRemoveIdx = [] ;
+				Ext.Array.each( node.children, function(childNode,idx) {
+					if( cascadeRoot(childNode)===false ) {
+						toRemoveIdx.push(idx) ;
+					}
+				});
+				toRemoveIdx.reverse() ;
+				Ext.Array.each( toRemoveIdx, function(idx) {
+					node.children.splice(idx,1) ;
+				}) ;
 			}
-		}) ;
-		
-		while(true) {
-			var nodesToRemove = [] ;
-			treeStore.getRoot().cascadeBy(function(node) {
-				if( !node.isRoot() && !node.isLeaf() && !node.hasChildNodes() ) {
-					nodesToRemove.push(node) ;
-					return false ;
-				}
-			}) ;
-			if( nodesToRemove.length == 0 ) {
-				break ;
+			if( !node.root && !node.leaf && node.children.length==0 ) {
+				return false ;
 			}
-			Ext.Array.each(nodesToRemove, function(node) {
-				node.remove();
-			});
-		}
-		
+			return true ;
+		} ;
+		cascadeRoot(dataRoot) ;
 		
 		this.down('#pTree').removeAll() ;
 		this.down('#pTree').add({
 			xtype: 'treepanel',
-			bufferedRenderer: false,
-			store: treeStore ,
+			bufferedRenderer: true,
+			store: {
+			model: 'DbsLamLiveTreeModel',
+				data: dataRoot,
+				proxy: {
+					type: 'memory',
+					reader: {
+						type: 'json'
+					}
+				}
+			},
 			displayField: 'nodeText',
 			rootVisible: false,
 			useArrows: true
