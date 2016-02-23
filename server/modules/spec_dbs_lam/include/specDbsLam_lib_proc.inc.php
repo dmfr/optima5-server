@@ -105,7 +105,7 @@ function specDbsLam_lib_proc_findAdr( $mvt_obj, $stockAttributes_obj, $whse_dest
 					break ;
 					
 				case 'PN_BATCH' :
-					$query.= " AND field_PROD_ID='{$mvt_obj['prod_id']}' AND field_SPEC_BATCH='{$mvt_obj['batch']}' AND field_SPEC_SN='{$mvt_obj['sn']}'" ;
+					$query.= " AND field_PROD_ID='{$mvt_obj['prod_id']}' AND field_SPEC_BATCH='{$mvt_obj['batch']}'" ;
 					break ;
 			}
 			$query.= " AND (stk.field_QTY_AVAIL+stk.field_QTY_OUT) > '0'
