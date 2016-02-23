@@ -177,7 +177,7 @@ function specDbsLam_spec_get_MBDSU() {
 	$query = "UNLOCK TABLES" ;
 	$_opDB->query($query) ;
 
-	return  '4'.str_pad((float)$value, 10, "0", STR_PAD_LEFT) ;
+	return  '4'.str_pad((float)$value, 11, "0", STR_PAD_LEFT) ;
 }
 
 ?>
