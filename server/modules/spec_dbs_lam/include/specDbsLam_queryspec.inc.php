@@ -106,6 +106,7 @@ function specDbsLam_queryspec_lib_SAFRAN_TRANSFERFLOW() {
 			'whse_code' => substr($arr['field_ADR_ID'],0,3),
 			'atr_DIV' => $arr['field_ATR_DIV'],
 			'atr_ES' => $arr['field_ATR_ES'],
+			'atr_STKTYPE' => $arr['field_ATR_STKTYPE'],
 			'atr_SW' => '',
 			'atr_STOTYPE' => '',
 			'adr_id_parent' => $whse_bin,
@@ -256,6 +257,7 @@ function specDbsLam_queryspec_lib_SAFRAN_MBD_OT() {
 			'whse_code' => substr($arr['field_ADR_ID'],0,3),
 			'atr_DIV' => $arr['field_ATR_DIV'],
 			'atr_ES' => $arr['field_ATR_ES'],
+			'atr_STKTYPE' => $arr['field_ATR_STKTYPE'],
 			'atr_SW' => '',
 			'atr_STOTYPE' => '',
 			'atr_SU' => $arr['field_ATR_SU'],
@@ -315,7 +317,7 @@ function specDbsLam_queryspec_lib_SAFRAN_MBD_OT() {
 		array('dataIndex' => 'atr_STOTYPE', 'text' => 'FROM_STORAGE_TYPE','dataType'=>'string'),
 		array('dataIndex' => 'stk_prod', 'text' => 'MATERIAL','dataType'=>'string'),
 		array('dataIndex' => 'stk_qty', 'text' => 'QUANTITY','dataType'=>'int'),
-		array('dataIndex' => '', 'text' => 'STOCK_CATEGORY','dataType'=>'string'),
+		array('dataIndex' => 'atr_STKTYPE', 'text' => 'STOCK_CATEGORY','dataType'=>'string'),
 		array('dataIndex' => 'src_adr_id', 'text' => 'FROM_STORAGE_BIN','dataType'=>'string'),
 		array('dataIndex' => 'adr_id_parent', 'text' => 'TO_STORAGE_BIN','dataType'=>'string'),
 		array('dataIndex' => 'atr_SU', 'text' => 'TO_STORAGE_UNIT','dataType'=>'string'),
@@ -365,10 +367,14 @@ function specDbsLam_queryspec_lib_sync( $handle, $soc_code ) {
 		if( !(strpos($arr['field_PROD_ID'],$soc_code.'_') === 0) ) {
 			continue ;
 		}
+		if( !$arr['field_ATR_STKTYPE'] ) {
+			$arr['field_ATR_STKTYPE']='-' ;
+		}
 		
 		$mkey = array(
 			$arr['field_ATR_DIV'],
 			$arr['field_ATR_ES'],
+			$arr['field_ATR_STKTYPE'],
 			$arr['field_PROD_ID'],
 			$arr['field_SPEC_BATCH'],
 			$arr['field_SPEC_SN']
@@ -406,6 +412,9 @@ function specDbsLam_queryspec_lib_sync( $handle, $soc_code ) {
 		
 		$row = array_combine($arr_header,$arr_csv) ;
 		
+		if( !$row['atr_STKTYPE'] ) {
+			$row['atr_STKTYPE']='-' ;
+		}
 		if( !(strpos($row['prod_id'],$soc_code.'_') === 0) ) {
 			continue ;
 		}
@@ -442,6 +451,7 @@ function specDbsLam_queryspec_lib_sync( $handle, $soc_code ) {
 		$mkey = array(
 			$row['atr_DIV'],
 			$row['atr_ES'],
+			$row['atr_STKTYPE'],
 			$row['prod_id'],
 			$row['spec_batch'],
 			$row['spec_sn']
@@ -462,6 +472,7 @@ function specDbsLam_queryspec_lib_sync( $handle, $soc_code ) {
 			'filerecord_id' => $mapStock_mkey_id[$mkey],
 			'field_ATR_DIV' => $row['atr_DIV'],
 			'field_ATR_ES' => $row['atr_ES'],
+			'field_ATR_STKTYPE' => $row['atr_STKTYPE'],
 			'field_PROD_ID' => $row['prod_id'],
 			'field_ADR_ID' => $row['adr'],
 			'field_QTY_AVAIL' => $row['qty'],

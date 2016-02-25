@@ -397,6 +397,7 @@ function specDbsLam_transfer_printDoc( $post_data ) {
 					$buffer.= "<th>SN</th>";
 					$buffer.= "<th>Std ?</th>";
 					$buffer.= "<th>SPQ</th>";
+					$buffer.= "<th>StkType</th>";
 				$buffer.= "</tr>" ;
 			$buffer.= '</thead>' ;
 			foreach( $rows_transferLig as $row_transferLig ) {
@@ -437,6 +438,8 @@ function specDbsLam_transfer_printDoc( $post_data ) {
 					$buffer.= "<td><span class=\"\"><b>".(json_decode($arr_prod['field_ATR_STD'],true)==array('STD')?'Y':'N')."</b></span></td>" ;
 					
 					$buffer.= "<td><span class=\"\"><i>".($arr_prod['field_UC_QTY']>0 ? (float)$arr_prod['field_UC_QTY']:'')."</i></span></td>" ;
+					
+					$buffer.= "<td><span class=\"\"><span class=\"mybig\">{$row_transferLig['ATR_STKTYPE']}</span></td>" ;
 				$buffer.= "</tr>" ;
 			}
 		$buffer.= "</table>" ;
