@@ -81,7 +81,8 @@ function specDbsLam_cfg_getConfig() {
 		'cfg_is_optional' => NULL,
 		'cfg_is_hidden' => NULL,
 		'cfg_is_editable' => NULL,
-		'cfg_is_mismatch' => NULL
+		'cfg_is_mismatch' => NULL,
+		'socs' => array()
 	);
 	foreach( $cfg_soc as $soc_record ) {
 		foreach( $soc_record['attributes'] as $atr_record ) {
@@ -93,7 +94,8 @@ function specDbsLam_cfg_getConfig() {
 					'mkey' => 'ATR_'.$atr_code,
 					'atr_txt' => $atr_record['atr_txt'],
 					'bible_code' => $atr_record['is_bible'] ? 'ATR_'.$atr_code : NULL,
-					'cfg_is_editable' => $atr_record['cfg_is_editable']
+					'cfg_is_editable' => $atr_record['cfg_is_editable'],
+					'socs' => array()
 				);
 			}
 			
@@ -136,6 +138,7 @@ function specDbsLam_cfg_getConfig() {
 				}
 			}
 			
+			$cfg_attribute[$atr_code]['socs'][] = $soc_record['soc_code'] ;
 		}
 	}
 	

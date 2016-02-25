@@ -254,18 +254,24 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 							anchor: '100%'
 						},
 						layout: 'anchor',
-						items:Ext.Array.merge(atrStkFields,[Ext.create('Optima5.Modules.Spec.DbsLam.CfgParamField',{
+						items:Ext.Array.merge([Ext.create('Optima5.Modules.Spec.DbsLam.CfgParamField',{
 							optimaModule: this.optimaModule,
 							name : 'soc_code',
 							fieldLabel: 'BU',
 							cfgParam_id: 'SOC',
 							allowBlank: false,
 							cfgParam_emptyDisplayText: 'Company',
-							anchor: '100%'
-						}),{
+							anchor: '100%',
+							listeners: {
+								change: function(field) {
+									this.onSetSoc(field.getValue()) ;
+								},
+								scope: this
+							}
+						})],atrStkFields,[{
 							xtype: 'combobox',
 							anchor: '100%',
-							fieldLabel: 'P/N',
+							fieldLabel: '<b>P/N</b>',
 							name: 'stk_prod',
 							forceSelection:false,
 							allowBlank:true,
@@ -305,7 +311,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 							xtype: 'textfield',
 							anchor: '100%',
 							allowBlank:true,
-							fieldLabel: 'Batch',
+							fieldLabel: '<i>Batch</i>',
 							name: 'stk_batch'
 						},{
 							xtype: 'datefield',
@@ -313,12 +319,12 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 							submitFormat: 'Y-m-d',
 							anchor: '100%',
 							allowBlank:true,
-							fieldLabel: 'DLC',
+							fieldLabel: '<i>DLC</i>',
 							name: 'stk_datelc'
 						},{
 							xtype: 'numberfield',
 							allowBlank:true,
-							fieldLabel: 'QTE',
+							fieldLabel: '<b>QTE</b>',
 							name: 'mvt_qty',
 							anchor: '',
 							width: 120
@@ -326,7 +332,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 							xtype: 'textfield',
 							anchor: '100%',
 							allowBlank:true,
-							fieldLabel: 'S/N',
+							fieldLabel: '<b>S/N</b>',
 							name: 'stk_sn'
 						}])
 					},{
@@ -897,6 +903,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 			field.setReadOnly(false) ;
 			field.reset() ;
 		}) ;
+		this.onSetSoc(null) ;
+		this.onLoadProd(null) ;
 	},
 	
 	doOpenTransferLig: function() {
@@ -964,6 +972,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 			}) ;
 			
 			// *** Set form fields ****
+			this.onSetSoc(null) ;
+			this.onLoadProd(null) ;
 			var formValues = {
 				stk_prod: transferLigRecord.get('stk_prod'),
 				stk_batch: transferLigRecord.get('stk_batch'),
@@ -1083,10 +1093,39 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 			scope: this
 		});
 	},
+	getSocCode: function() {
+		var formPanel = this.down('form'),
+			form = this.down('form').getForm() ;
+		return form.findField('soc_code').getValue() ;
+	},
+	onSetSoc: function(socCode) {
+		var formPanel = this.down('form'),
+			form = this.down('form').getForm(),
+			fsAttributes = formPanel.down('#fsRightAttributes') ;
+			
+		Ext.Array.each( Optima5.Modules.Spec.DbsLam.HelperCache.getAttributeAll(), function( attribute ) {
+			if( !attribute.STOCK_fieldcode ) {
+				return ;
+			}
+			
+			var atrProdField = form.findField(attribute.mkey) ;
+			if( Ext.isEmpty(socCode) ) {
+				atrProdField.setVisible(false) ;
+			}
+			atrProdField.setVisible( Ext.Array.contains(attribute.socs, socCode) );
+		},this) ;
+	},
 	onLoadProd: function(ajaxData) {
 		var formPanel = this.down('form'),
 			form = this.down('form').getForm(),
 			fsAttributes = formPanel.down('#fsRightAttributes') ;
+		if( ajaxData==null ) {
+			form.findField('stk_batch').setVisible( false ) ;
+			form.findField('stk_datelc').setVisible( false ) ;
+			form.findField('stk_sn').setVisible( false ) ;
+			
+			return ;
+		}
 			
 		var prodData = ajaxData[0] ;
 		
@@ -1275,6 +1314,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 				transferLigFilerecordId_arr: Ext.JSON.encode(transferLigFilerecordId_arr),
 				transferStepCode: this.transferStepCode,
 				transferTargetNode: this.transferTargetNode.get('nodeKey'),
+				socCode: this.getSocCode(),
 				skuData_obj: Ext.JSON.encode(this.getSkuData()),
 				location: (formPanel.down('#fsRightLocation').isVisible() ? formValues.dest_adr.toUpperCase() : null)
 			},
@@ -1319,7 +1359,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 				return ;
 			}
 			var formField = form.findField(attribute.mkey) ;
-			if( !formField ) {
+			if( !formField || !formField.isVisible() ) {
 				return ;
 			}
 			if( Ext.isEmpty(formField.getValue()) || formField.getValue()=='&' ) {
@@ -1343,6 +1383,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 				transferFilerecordId: this.transferRecord.get('transfer_filerecord_id'),
 				transferLigFilerecordId_arr: Ext.JSON.encode(transferLigFilerecordId_arr),
 				transferStepCode: this.transferStepCode,
+				socCode: this.getSocCode(),
 				skuData_obj: Ext.JSON.encode(this.getSkuData()),
 				stockAttributes_obj: Ext.JSON.encode(atrValues),
 				manAdr_isOn: (adrId!=null ? 1 : 0),
@@ -1594,7 +1635,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 				return ;
 			}
 			var formField = form.findField(attribute.mkey) ;
-			if( !formField ) {
+			if( !formField || !formField.isVisible() ) {
 				return ;
 			}
 			if( Ext.isEmpty(formField.getValue()) || formField.getValue()=='&' ) {
@@ -1622,6 +1663,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 				transferFilerecordId: this.transferRecord.get('transfer_filerecord_id'),
 				transferLigFilerecordId_arr: Ext.JSON.encode([this.transferLigRecord_arr[0].get('transferlig_filerecord_id')]),
 				transferStepCode: this.transferStepCode,
+				socCode: this.getSocCode(),
 				stockAttributes_obj: Ext.JSON.encode(atrValues),
 				forwardSplit_isOn: 1,
 				forwardSplit_arr: Ext.JSON.encode(gridPanelData)

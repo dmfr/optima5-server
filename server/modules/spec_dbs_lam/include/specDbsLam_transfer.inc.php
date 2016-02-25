@@ -1091,6 +1091,8 @@ function specDbsLam_transfer_commitAdrFinal($post_data,$fast=FALSE,$inner=FALSE)
 	$p_transferLigFilerecordId_arr = json_decode($post_data['transferLigFilerecordId_arr'],true) ;
 	$p_transferStepCode = $post_data['transferStepCode'] ;
 	
+	$p_socCode = $post_data['socCode'] ;
+	
 	// Load cfg attributes
 	$ttmp = specDbsLam_cfg_getConfig() ;
 	$json_cfg = $ttmp['data'] ;
@@ -1108,12 +1110,17 @@ function specDbsLam_transfer_commitAdrFinal($post_data,$fast=FALSE,$inner=FALSE)
 	
 	$form_data = array() ;
 	if( !$fast ) {
+		$soc_code = $post_data['socCode'] ;
+		
 		$form_data['stockAttributes_obj'] = array() ;
 		$stockAttributes_obj = json_decode($post_data['stockAttributes_obj'],true) ;
 		foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
 			if( $stockAttribute_obj['STOCK_fieldcode']
 				|| $stockAttribute_obj['PROD_fieldcode'] && $stockAttribute_obj['ADR_fieldcode'] ) {} else {
 				
+				continue ;
+			}
+			if( !in_array($p_socCode, $stockAttribute_obj['socs']) ) {
 				continue ;
 			}
 			$mkey = $stockAttribute_obj['mkey'] ;
@@ -1269,6 +1276,7 @@ function specDbsLam_transfer_commitAdrFinalForwardSplit( $post_data ) {
 	$p_transferLigFilerecordId_arr = json_decode($post_data['transferLigFilerecordId_arr'],true) ;
 	$p_transferStepCode = $post_data['transferStepCode'] ;
 	
+	$p_socCode = $post_data['socCode'] ;
 	$p_stockAttributes_obj = json_decode($post_data['stockAttributes_obj'],true) ;
 	$p_forwardSplit_arr = json_decode($post_data['forwardSplit_arr'],true) ;
 	
@@ -1285,8 +1293,6 @@ function specDbsLam_transfer_commitAdrFinalForwardSplit( $post_data ) {
 	
 	
 	if( TRUE ) { //TODO
-		$form_data['stockAttributes_obj'] = array() ;
-		$stockAttributes_obj = json_decode($post_data['stockAttributes_obj'],true) ;
 		foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
 			if( $stockAttribute_obj['STOCK_fieldcode']
 				|| $stockAttribute_obj['PROD_fieldcode'] && $stockAttribute_obj['ADR_fieldcode'] ) {} else {
@@ -1295,6 +1301,9 @@ function specDbsLam_transfer_commitAdrFinalForwardSplit( $post_data ) {
 			}
 			$mkey = $stockAttribute_obj['mkey'] ;
 			foreach( $p_forwardSplit_arr as $forwardSplit_obj ) {
+				if( !in_array($p_socCode, $stockAttribute_obj['socs']) ) {
+					continue ;
+				}
 				if( !$p_stockAttributes_obj[$mkey] && !$forwardSplit_obj[$mkey] ) {
 					return array('success'=>false, 'error'=>'Missing stock attribute') ;
 				}
@@ -1388,6 +1397,7 @@ function specDbsLam_transfer_commitAdrFinalForwardSplit( $post_data ) {
 			'transferFilerecordId' =>  $split_filerecord_id,
 			'transferLigFilerecordId_arr' => json_encode(array($splitLig_filerecord_id)),
 			'transferStepCode' => 'S00_SPLIT',
+			'socCode' => $p_socCode,
 			'stockAttributes_obj' => json_encode($stockAttributes_obj)
 		)) ;
 		if( !$ttmp['data']['adr_id'] ) {
