@@ -472,7 +472,7 @@ function specDbsLam_queryspec_lib_sync( $handle, $soc_code ) {
 			'filerecord_id' => $mapStock_mkey_id[$mkey],
 			'field_ATR_DIV' => $row['atr_DIV'],
 			'field_ATR_ES' => $row['atr_ES'],
-			'field_ATR_DIV' => $row['atr_STOTYPE'],
+			'field_ATR_STOTYPE' => $row['atr_STOTYPE'],
 			'field_ATR_SW' => $row['atr_SW'],
 			'field_ATR_STKTYPE' => $row['atr_STKTYPE'],
 			'field_PROD_ID' => $row['prod_id'],
