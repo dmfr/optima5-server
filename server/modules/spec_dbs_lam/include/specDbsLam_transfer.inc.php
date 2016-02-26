@@ -686,7 +686,9 @@ function specDbsLam_transfer_lib_processForeign( &$post_data ) {
 	$skuData = json_decode($post_data['skuData_obj'],true) ;
 	//print_r($skuData) ;
 	
-	
+	if( !paracrm_lib_data_getRecord_bibleEntry( 'PROD', $skuData['stk_prod'] ) ) {
+		return FALSE ;
+	}
 	
 	if( !paracrm_lib_data_getRecord_bibleEntry( 'ADR', 'TMP_RECEP' ) ) {
 		paracrm_lib_data_insertRecord_bibleEntry('ADR','TMP_RECEP','TMP',array('field_ADR_ID'=>'TMP_RECEP')) ;

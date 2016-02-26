@@ -957,7 +957,15 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 			form = this.down('form').getForm(),
 			formValues = form.getValues(false,false,false,true) ;
 		form.findField('input_transferLigFilerecordId').setReadOnly(true) ;
-			  
+		
+		// Reset SKU form
+		Ext.Array.each( formPanel.down('#fsLeftSku').query('field'), function(field) {
+			field.setReadOnly(false) ;
+			field.reset() ;
+		}) ;
+		this.onSetSoc(null) ;
+		this.onLoadProd(null) ;
+		
 		formPanel.down('#fsRightChecklist').setVisible(false) ;
 		formPanel.down('#fsRightAttributes').setVisible(false) ;
 		formPanel.down('#fsRightLocation').setVisible(false) ;
