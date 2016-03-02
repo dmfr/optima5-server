@@ -122,7 +122,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					text: '<i>Origin</i>',
 					itemId: 'btnWhseSrc',
 					optimaModule: this.optimaModule,
-					value: '' // HACK
 				}),{
 					icon: 'images/op5img/ico_arrow-double_16.png',
 					disabled: true,
@@ -133,7 +132,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					text: '<i>Destination</i>',
 					itemId: 'btnWhseDest',
 					optimaModule: this.optimaModule,
-					value: '' // HACK
 				}),'-',{
 					itemId: 'tbCreate',
 					icon: 'images/op5img/ico_new_16.gif',
@@ -1014,6 +1012,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			whseDest = this.down('#btnWhseDest').getValue() ;
 		if( Ext.isEmpty(whseSrc) || Ext.isEmpty(whseSrc) ) {
 			Ext.Msg.alert('Notice','Select source/destination warehouse') ;
+			return ;
 		}
 		
 		this.getEl().mask() ;
