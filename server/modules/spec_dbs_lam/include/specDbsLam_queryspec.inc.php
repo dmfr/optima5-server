@@ -224,7 +224,7 @@ function specDbsLam_queryspec_lib_SAFRAN_MBD_OT() {
 	
 	$data = array() ;
 
-	$query = "SELECT * FROM view_file_STOCK" ;
+	$query = "SELECT * FROM view_file_STOCK WHERE field_PROD_ID LIKE 'MBD%'" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		//print_r($arr) ;
@@ -362,6 +362,9 @@ function specDbsLam_queryspec_lib_sync( $handle, $soc_code ) {
 	$mapStock_mkey_whseCode = array() ;
 
 	$query = "SELECT * FROM view_file_STOCK" ;
+	if( $soc_code == 'MBD' ) {
+		$query.= " WHERE (field_ADR_ID LIKE 'DAH%' OR field_ADR_ID LIKE 'TMP%')" ;
+	}
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		if( !(strpos($arr['field_PROD_ID'],$soc_code.'_') === 0) ) {
@@ -370,6 +373,12 @@ function specDbsLam_queryspec_lib_sync( $handle, $soc_code ) {
 		if( !$arr['field_ATR_STKTYPE'] ) {
 			$arr['field_ATR_STKTYPE']='-' ;
 		}
+		if( substr($arr['field_ATR_SU'],0,1)=='@' ) {
+			$arr['field_ATR_SU'] = '' ;
+		}
+			
+		$ttmp = explode('_',$arr['field_ADR_ID'],2) ;
+		$whse_code = $ttmp[0] ;
 		
 		$mkey = array(
 			$arr['field_ATR_DIV'],
@@ -377,7 +386,8 @@ function specDbsLam_queryspec_lib_sync( $handle, $soc_code ) {
 			$arr['field_ATR_STKTYPE'],
 			$arr['field_PROD_ID'],
 			$arr['field_SPEC_BATCH'],
-			$arr['field_SPEC_SN']
+			$arr['field_SPEC_SN'],
+			$arr['field_ATR_SU']
 		) ;
 		$mkey = implode('%%%',$mkey) ;
 		if( $mapStock_mkey_id[$mkey] ) {
@@ -387,9 +397,6 @@ function specDbsLam_queryspec_lib_sync( $handle, $soc_code ) {
 			$mapStock_mkey_isLocked[$mkey] = TRUE ;
 		} else {
 			$mapStock_mkey_id[$mkey] = $arr['filerecord_id'] ;
-			
-			$ttmp = explode('_',$arr['field_ADR_ID'],2) ;
-			$whse_code = $ttmp[0] ;
 			$mapStock_mkey_whseCode[$mkey] = $whse_code ;
 		}
 		if( $arr['field_QTY_OUT'] > 0 ) {
@@ -454,13 +461,17 @@ function specDbsLam_queryspec_lib_sync( $handle, $soc_code ) {
 			$row['atr_STKTYPE'],
 			$row['prod_id'],
 			$row['spec_batch'],
-			$row['spec_sn']
+			$row['spec_sn'],
+			$row['atr_SU']
 		);
 		$mkey = implode('%%%',$mkey) ;
-		if( $mapStock_mkey_isLocked[$mkey] ) {
-			$file_STOCK[] = array(
-				'filerecord_id' => $mapStock_mkey_id[$mkey]
-			);
+		if( $mapStock_mkey_isLocked[$mkey] || ($soc_code=='MBD' && $whse_code=='MIT') ) {
+			if( $mapStock_mkey_id[$mkey] ) {
+				$cnt['ignore']++ ;
+				$file_STOCK[] = array(
+					'filerecord_id' => $mapStock_mkey_id[$mkey]
+				);
+			}
 			continue ;
 		}
 		if( !$mapStock_mkey_id[$mkey] ) {
@@ -550,10 +561,12 @@ function specDbsLam_queryspec_lib_sync( $handle, $soc_code ) {
 	foreach( $file_STOCK as $row_STOCK ) {
 		if( $row_STOCK['filerecord_id'] ) {
 			if( count($row_STOCK) > 1 ) {
+				$cnt['update']++ ;
 				paracrm_lib_data_updateRecord_file( 'STOCK', $row_STOCK, $row_STOCK['filerecord_id'] ) ;
 			}
 			$arr_new_filerecordIds[] = $row_STOCK['filerecord_id'] ;
 		} else {
+			$cnt['insert']++ ;
 			$arr_new_filerecordIds[] = paracrm_lib_data_insertRecord_file( 'STOCK', 0, $row_STOCK ) ;
 		}
 	}
@@ -568,9 +581,11 @@ function specDbsLam_queryspec_lib_sync( $handle, $soc_code ) {
 	}
 	$arr_toDelete_filerecordIds = array_diff($arr_previous_filerecordIds,$arr_new_filerecordIds) ;
 	foreach( $arr_toDelete_filerecordIds as $filerecord_id ) {
+		$cnt['delete']++ ;
 		paracrm_lib_data_deleteRecord_file('STOCK',$filerecord_id) ;
 	}
 	
+	//print_r($cnt) ;
 	return true ;
 }
 
