@@ -121,7 +121,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					icon: 'images/op5img/ico_blocs_small.gif',
 					text: '<i>Origin</i>',
 					itemId: 'btnWhseSrc',
-					optimaModule: this.optimaModule,
+					optimaModule: this.optimaModule
 				}),{
 					icon: 'images/op5img/ico_arrow-double_16.png',
 					disabled: true,
@@ -131,7 +131,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					icon: 'images/op5img/ico_blocs_small.gif',
 					text: '<i>Destination</i>',
 					itemId: 'btnWhseDest',
-					optimaModule: this.optimaModule,
+					optimaModule: this.optimaModule
 				}),'-',{
 					itemId: 'tbCreate',
 					icon: 'images/op5img/ico_new_16.gif',
