@@ -182,8 +182,10 @@ function specDbsLam_lib_procMvt_commit($mvt_filerecordId, $adr_dest, $adr_dest_d
 	
 	// creation lig STOCK
 	if( $stockAttributes ) {
+		$stockAttributes_saveObj = array() ;
 		$arr_update = array();
 		foreach( $stockAttributes as $stockAttribute ) {
+			$stockAttributes_saveObj[$stockAttribute['mkey']] = $row_mvt['field_'.$stockAttribute['mkey']] ;
 			$arr_update['field_'.$stockAttribute['mkey']] = $stockAttribute['value'] ;
 		}
 		$arr_cond = array() ;
@@ -200,6 +202,9 @@ function specDbsLam_lib_procMvt_commit($mvt_filerecordId, $adr_dest, $adr_dest_d
 	$arr_update['field_COMMIT_DATE'] = date('Y-m-d H:i:s') ;
 	$arr_update['field_COMMIT_USER'] = strtoupper($_SESSION['login_data']['delegate_userId']) ;
 	$arr_update['field_COMMIT_FILE_STOCK_ID'] = $stock_filerecordId ;
+	if( $stockAttributes_saveObj ) {
+		$arr_update['field_COMMIT_ATRSAVE'] = json_encode($stockAttributes_saveObj) ;
+	}
 	$arr_cond = array() ;
 	$arr_cond['filerecord_id'] = $row_mvt_step['filerecord_id'] ;
 	$_opDB->update('view_file_MVT_STEP',$arr_update, $arr_cond) ;

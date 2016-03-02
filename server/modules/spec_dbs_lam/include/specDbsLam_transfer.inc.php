@@ -135,7 +135,8 @@ function specDbsLam_transfer_getTransferLig($post_data) {
 			'status_is_ok' =>  $arr['field_STATUS_IS_OK'],
 			'commit_date' => $arr['field_COMMIT_DATE'],
 			'commit_user' => $arr['field_COMMIT_USER'],
-			'commit_file_stock_id' => $arr['field_COMMIT_FILE_STOCK_ID']
+			'commit_file_stock_id' => $arr['field_COMMIT_FILE_STOCK_ID'],
+			'commit_atrsave' => $arr['field_COMMIT_ATRSAVE']
 		);
 		$TAB[$filerecord_id]['steps'][] = $row_step ;
 	}
@@ -1785,10 +1786,21 @@ function specDbsLam_transfer_rollbackStep($post_data) {
 		// ***********************************************
 		
 		
+		if( $prevStep_log['commit_atrsave'] ) {
+			$stockAttributes_saveObj = json_decode($prevStep_log['commit_atrsave'],true) ;
+			
+			$arr_update = array() ;
+			foreach( $stockAttributes_saveObj as $mkey => $mvalue ) {
+				$arr_update['field_'.$mkey] = $mvalue ;
+			}
+			paracrm_lib_data_updateRecord_file('MVT',$arr_update,$row_transferLig['mvt_filerecord_id']) ;
+		}
+		
 		$arr_update = array() ;
 		$arr_update['field_COMMIT_FILE_STOCK_ID'] = 0 ;
 		$arr_update['field_COMMIT_DATE'] = '' ;
 		$arr_update['field_COMMIT_USER'] = '' ;
+		$arr_update['field_COMMIT_ATRSAVE'] = '' ;
 		$arr_update['field_STATUS_IS_OK'] = 0 ;
 		paracrm_lib_data_updateRecord_file('MVT_STEP',$arr_update,$prevStep_log['mvtstep_filerecord_id']) ;
 	}
