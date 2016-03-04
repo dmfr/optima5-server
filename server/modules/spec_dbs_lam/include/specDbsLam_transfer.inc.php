@@ -1154,8 +1154,26 @@ function specDbsLam_transfer_commitAdrFinal($post_data,$fast=FALSE,$inner=FALSE)
 		}
 	}
 	if( !$fast && count($rows_transferLig) != 1 ) {
+		foreach( $rows_transferLig as $row_transferLig ) {
+			if( !$row_transferLig['flag_allowgroup'] ) {
+				return array('success'=>false, 'error'=>'Group locations not accepted') ;
+			}
+		}
 		// count ?
-		return array('success'=>false) ;
+		if( !$post_data['manAdr_isOn'] ) {
+			return array('success'=>false, 'error'=>'Manual location needed for group', 'error_available'=>true) ;
+		}
+		foreach( $rows_transferLig as $row_transferLig ) {
+			$ttmp = specDbsLam_transfer_commitAdrFinal( array(
+				'transferFilerecordId' =>  $p_transferFilerecordId,
+				'transferLigFilerecordId_arr' => json_encode(array($row_transferLig['transferlig_filerecord_id'])),
+				'transferStepCode' => $p_transferStepCode,
+				'manAdr_isOn' => 1,
+				'manAdr_adrId' => $post_data['manAdr_adrId']
+			), $fast=TRUE) ;
+		}
+		$adr_obj = array('status'=>'OK_MAN','adr_id'=>strtoupper(trim($post_data['manAdr_adrId']))) ;
+		return array('success'=>true, 'data'=> $adr_obj, 'ids'=>$p_transferLigFilerecordId_arr, 'stockAttributes_obj'=>NULL) ;
 	}
 	
 	$rows_transferLig = array_values($rows_transferLig) ;
