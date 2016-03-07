@@ -356,6 +356,7 @@ function paracrm_lib_file_joinPrivate_getMap( $file_code ) {
 			case 'number' :
 				return '_dec' ;
 			case 'bool' :
+			case 'extid' :
 				return '_int' ;
 			case 'date' :
 				return '_dtm' ;

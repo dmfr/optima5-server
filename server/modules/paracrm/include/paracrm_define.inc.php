@@ -991,6 +991,7 @@ function paracrm_define_tool_getEqFieldType( $crm_field_type ) {
 		return 'dec' ;
 		
 		case 'bool' :
+		case 'extid' :
 		return 'int' ;
 		
 		case 'date' ;

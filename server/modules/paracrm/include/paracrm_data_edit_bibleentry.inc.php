@@ -125,6 +125,7 @@ function paracrm_data_editTransaction_bibleEntry( $post_data , &$arr_saisie )
 			{
 				case 'string' :
 				case 'number' :
+				case 'extid' :
 				switch( $arr['entry_field_type'] ) {
 					case 'string' :
 						$form_item['xtype'] = 'textfield' ;
@@ -132,6 +133,12 @@ function paracrm_data_editTransaction_bibleEntry( $post_data , &$arr_saisie )
 					case 'number' :
 						$form_item['xtype'] = 'numberfield' ;
 						$form_item['decimalPrecision'] = 3 ;
+						break ;
+					case 'extid' :
+						$form_item['xtype'] = 'numberfield' ;
+						$form_item['allowDecimals'] = false ;
+						$form_item['allowExponential'] = false ;
+						$form_item['hideTrigger'] = true ;
 						break ;
 				}
 				$form_item['name'] = 'field_'.$arr['entry_field_code'] ;

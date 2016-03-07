@@ -247,6 +247,7 @@ function paracrm_data_editTransaction_fileRecord_init( $post_data , &$arr_saisie
 		{
 			case 'string' :
 			case 'number' :
+			case 'extid' :
 			if( $color_field == $arr['entry_field_code'] ) {
 				$field['xtype'] = 'colorpickercombo' ;
 				break ;
@@ -258,6 +259,12 @@ function paracrm_data_editTransaction_fileRecord_init( $post_data , &$arr_saisie
 				case 'number' :
 					$field['xtype'] = 'numberfield' ;
 					$field['decimalPrecision'] = 3 ;
+					break ;
+				case 'extid' :
+					$field['xtype'] = 'numberfield' ;
+					$field['allowDecimals'] = false ;
+					$field['allowExponential'] = false ;
+					$field['hideTrigger'] = true ;
 					break ;
 			}
 			break ;

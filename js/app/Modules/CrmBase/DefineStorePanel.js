@@ -26,6 +26,7 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 				{"dataType":"string", "dataTypeLib":"Text"},
 				{"dataType":"number", "dataTypeLib":"Number"},
 				{"dataType":"bool", "dataTypeLib":"Boolean"},
+				{"dataType":"extid", "dataTypeLib":"Ext.ID"},
 				{"dataType":"date", "dataTypeLib":"Date"}
 			]
 		});
@@ -36,6 +37,7 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 				{"dataType":"string", "dataTypeLib":"Text"},
 				{"dataType":"number", "dataTypeLib":"Number"},
 				{"dataType":"bool", "dataTypeLib":"Boolean"},
+				{"dataType":"extid", "dataTypeLib":"Ext.ID"},
 				{"dataType":"date", "dataTypeLib":"Date"}
 			]
 		});
