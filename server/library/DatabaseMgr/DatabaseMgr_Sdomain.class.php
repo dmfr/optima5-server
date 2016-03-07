@@ -889,6 +889,7 @@ EOF;
 				break ;
 				
 				case 'bool' :
+				case 'extid' :
 				$field_name.= '_int' ;
 				$arrAssoc_dbField_fieldType[$field_name] = 'int(11)' ;
 				break ;
@@ -980,6 +981,7 @@ EOF;
 				break ;
 				
 				case 'bool' :
+				case 'extid' :
 				$field_name.= '_int' ;
 				$arrAssoc_dbField_fieldType[$field_name] = 'int(11)' ;
 				break ;
@@ -1104,8 +1106,12 @@ EOF;
 				break ;
 				
 				case 'bool' :
+				case 'extid' :
 				$field_name.= '_int' ;
 				$arrAssoc_dbField_fieldType[$field_name] = 'int(11)' ;
+				if( $field_type=='extid' ) {
+					$arr_model_keys[$field_name] = array('non_unique'=>'1','arr_columns'=>array($field_name)) ;
+				}
 				break ;
 				
 				case 'date' :
