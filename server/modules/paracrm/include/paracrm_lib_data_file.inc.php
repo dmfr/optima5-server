@@ -189,6 +189,7 @@ function paracrm_lib_file_mapFile( $file_code, $is_called=FALSE )
 			case 'date' :
 			case 'string' :
 			case 'bool' :
+			case 'extid' :
 			case 'number' :
 				break ;
 				
