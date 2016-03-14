@@ -637,7 +637,7 @@ class DatabaseMgr_Util {
 					$query = "LOAD DATA LOCAL INFILE '{$tmpfname}' INTO TABLE {$dst_db}.{$current_table} 
 						FIELDS TERMINATED BY ','
 						OPTIONALLY ENCLOSED BY '\"'
-						ESCAPED BY '\\'
+						ESCAPED BY '\\\\'
 						LINES TERMINATED BY '\n'" ;
 					$_opDB->query($query) ;
 					unlink($tmpfname) ;
@@ -708,7 +708,7 @@ class DatabaseMgr_Util {
 			$query = "LOAD DATA LOCAL INFILE '{$tmpfname}' INTO TABLE {$dst_db}.{$current_table} 
 				FIELDS TERMINATED BY ','
 				OPTIONALLY ENCLOSED BY '\"'
-				ESCAPED BY '\\'
+				ESCAPED BY '\\\\'
 				LINES TERMINATED BY '\n'" ;
 			$_opDB->query($query) ;
 			unlink($tmpfname) ;
