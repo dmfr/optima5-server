@@ -77,8 +77,12 @@ function specDbsLam_transfer_getTransferLig($post_data) {
 		) a
 		LEFT OUTER JOIN view_bible_ADR_entry sadr ON sadr.entry_key = a.field_SRC_ADR_ID
 		LEFT OUTER JOIN view_bible_ADR_entry dadr ON dadr.entry_key = a.field_DEST_ADR_ID" ;
+	$query.= " WHERE 1" ;
 	if( $post_data['filter_transferFilerecordId'] ) {
-		$query.= " WHERE transfer_filerecord_id='{$post_data['filter_transferFilerecordId']}'" ;
+		$query.= " AND transfer_filerecord_id='{$post_data['filter_transferFilerecordId']}'" ;
+	}
+	if( $post_data['filter_transferLigFilerecordId_arr'] ) {
+		$query.= " AND transferlig_filerecord_id IN ".$_opDB->makeSQLlist(json_decode($post_data['filter_transferLigFilerecordId_arr'],true)) ;
 	}
 	$query.= " ORDER BY a.mvt_filerecord_id DESC, a.field_STEP_CODE ASC" ;
 	$result = $_opDB->query($query) ;
@@ -321,14 +325,14 @@ function specDbsLam_transfer_printDoc( $post_data ) {
 			$result = $_opDB->query($query) ;
 			$row_transfer = $_opDB->fetch_assoc($result) ;
 		
-			$ttmp = specDbsLam_transfer_getTransferLig( array('filter_transferFilerecordId'=>$transfer_filerecordId) ) ;
+			$ttmp = specDbsLam_transfer_getTransferLig( array(
+				'filter_transferFilerecordId'=>$transfer_filerecordId,
+				'filter_transferLigFilerecordId_arr'=>json_encode($transferLig_filerecordIds)
+			) ) ;
 			$rows_transferLig = $ttmp['data'] ;
 			
 			$tab_rowsTransferLig = array() ;
 			foreach( $rows_transferLig as $row_transferLig ) {
-				if( !in_array($row_transferLig['transferlig_filerecord_id'],$transferLig_filerecordIds) ) {
-					continue ;
-				}
 				$adr = ( $step_isFinal ? $row_transferLig['current_adr_entryKey'] : $row_transferLig['current_adr_treenodeKey'] ) ; ;
 				if( $step_isFinal ) {
 					$tab_rowsTransferLig[] = array(
@@ -739,15 +743,12 @@ function specDbsLam_transfer_lib_cleanForeign($post_data) {
 	$target_transferLigFilerecordId = reset($ttmp) ;
 	
 	
-	$ttmp = specDbsLam_transfer_getTransferLig( array('filter_transferFilerecordId'=>$post_data['transferFilerecordId']) ) ;
+	$ttmp = specDbsLam_transfer_getTransferLig( array(
+		'filter_transferFilerecordId'=>$post_data['transferFilerecordId'],
+		'filter_transferLigFilerecordId_arr'=>json_encode(array($target_transferLigFilerecordId))
+	) ) ;
 	$rows_transferLig = $ttmp['data'] ;
-	$row_transferLig = NULL ;
-	foreach( $ttmp['data'] as $row ) {
-		if( $row['transferlig_filerecord_id'] == $target_transferLigFilerecordId ) {
-			$row_transferLig = $row ;
-			break ;
-		}
-	}
+	$row_transferLig = reset($rows_transferLig) ;
 	if( !$row_transferLig['status_is_ok'] && count($row_transferLig['steps'])==1 ) {
 		// etat initial d'un direct inbound => suppression
 		$row_transferLig_step = reset($row_transferLig['steps']) ;
@@ -805,13 +806,12 @@ function specDbsLam_transfer_commitAdrTmp($post_data,$inner=FALSE) {
 	
 	
 	// Load current ligs
-	$ttmp = specDbsLam_transfer_getTransferLig( array('filter_transferFilerecordId'=>$p_transferFilerecordId) ) ;
+	$ttmp = specDbsLam_transfer_getTransferLig( array(
+		'filter_transferFilerecordId'=>$p_transferFilerecordId,
+		'filter_transferLigFilerecordId_arr'=>json_encode($p_transferLigFilerecordId_arr)
+	) ) ;
 	$rows_transferLig = $ttmp['data'] ;
 	foreach( $rows_transferLig as $idx => $row_transferLig ) {
-		if( !in_array($row_transferLig['transferlig_filerecord_id'],$p_transferLigFilerecordId_arr) ) {
-			unset($rows_transferLig[$idx]) ;
-			continue ;
-		}
 		if( $row_transferLig['step_code'] != $p_transferStepCode ) {
 			return array('success'=>false, 'reload'=>true, 'error'=>'Invalid status for item(s) != '.$p_transferStepCode) ;
 		}
@@ -1146,13 +1146,11 @@ function specDbsLam_transfer_commitAdrFinal($post_data,$fast=FALSE,$inner=FALSE)
 	}
 	
 	// Load current ligs
-	$ttmp = specDbsLam_transfer_getTransferLig( array('filter_transferFilerecordId'=>$p_transferFilerecordId) ) ;
+	$ttmp = specDbsLam_transfer_getTransferLig( array(
+		'filter_transferFilerecordId'=>$p_transferFilerecordId,
+		'filter_transferLigFilerecordId_arr'=>json_encode($p_transferLigFilerecordId_arr)
+	) ) ;
 	$rows_transferLig = $ttmp['data'] ;
-	foreach( $rows_transferLig as $idx => $row_transferLig ) {
-		if( !in_array($row_transferLig['transferlig_filerecord_id'],$p_transferLigFilerecordId_arr) ) {
-			unset($rows_transferLig[$idx]) ;
-		}
-	}
 	if( !$fast && count($rows_transferLig) != 1 ) {
 		foreach( $rows_transferLig as $row_transferLig ) {
 			if( !$row_transferLig['flag_allowgroup'] ) {
@@ -1367,14 +1365,12 @@ function specDbsLam_transfer_commitAdrFinalForwardSplit( $post_data ) {
 	
 	
 	// reload current lig
-	$ttmp = specDbsLam_transfer_getTransferLig( array('filter_transferFilerecordId'=>$p_transferFilerecordId) ) ;
+	$ttmp = specDbsLam_transfer_getTransferLig( array(
+		'filter_transferFilerecordId'=>$p_transferFilerecordId,
+		'filter_transferLigFilerecordId_arr'=>json_encode($p_transferLigFilerecordId_arr)
+	) ) ;
 	$rows_transferLig = $ttmp['data'] ;
-	foreach( $rows_transferLig as $idx => $row_transferLig ) {
-		if( $row_transferLig['transferlig_filerecord_id'] == reset($p_transferLigFilerecordId_arr) ) {
-			break ;
-		}
-		unset($row_transferLig) ;
-	}
+	$row_transferLig = reset($rows_transferLig) ;
 	if( !$row_transferLig || !$row_transferLig['status_is_ok'] || $row_transferLig['current_adr'] != $whseForward_code ) {
 		return array('success'=>false) ;
 	}
@@ -1429,14 +1425,12 @@ function specDbsLam_transfer_commitAdrFinalForwardSplit( $post_data ) {
 		
 		
 		// Load transferLig
-		$ttmp = specDbsLam_transfer_getTransferLig( array('filter_transferFilerecordId'=>$split_filerecord_id) ) ;
+		$ttmp = specDbsLam_transfer_getTransferLig( array(
+			'filter_transferFilerecordId'=>$split_filerecord_id,
+			'filter_transferLigFilerecordId_arr'=>json_encode(array($splitLig_filerecord_id))
+		) ) ;
 		$rows_transferLig = $ttmp['data'] ;
-		foreach( $rows_transferLig as $idx => $row_transferLig ) {
-			if( $row_transferLig['transferlig_filerecord_id'] == $splitLig_filerecord_id ) {
-				break ;
-			}
-			unset($row_transferLig) ;
-		}
+		$row_transferLig = reset($rows_transferLig) ;
 		
 		
 		
