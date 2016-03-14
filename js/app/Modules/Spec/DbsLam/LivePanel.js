@@ -40,7 +40,10 @@ Ext.define('DbsLamMovementModel',{
 Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 	extend:'Ext.panel.Panel',
 	
-	requires: ['Optima5.Modules.Spec.DbsLam.CfgParamField'],
+	requires: [
+		'Optima5.Modules.Spec.DbsLam.CfgParamField',
+		'Optima5.Modules.Spec.DbsLam.LiveManAdrPanel'
+	],
 	
 	transferRecord: null,
 	transferStepCode: null,
@@ -862,7 +865,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 			xtype: 'treepanel',
 			bufferedRenderer: true,
 			store: {
-			model: 'DbsLamLiveTreeModel',
+				model: 'DbsLamLiveTreeModel',
 				data: dataRoot,
 				proxy: {
 					type: 'memory',
@@ -1815,11 +1818,12 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 
 	openAdrManPopup: function() {
 		var me = this ;
-		var popupPanel = Ext.create('Ext.form.Panel',{
-			width:400,
-			height:200,
+		var popupPanel = Ext.create('Optima5.Modules.Spec.DbsLam.LiveManAdrPanel',{
+			optimaModule: this.optimaModule,
 			
-			cls: 'ux-noframe-bg',
+			width:425,
+			minHeight:200,
+			border: false,
 			
 			floating: true,
 			renderTo: me.getEl(),
@@ -1830,42 +1834,13 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 				}
 			}],
 			
-			xtype: 'form',
-			border: false,
-			bodyCls: 'ux-noframe-bg',
-			bodyPadding: 8,
-			layout:'anchor',
-			fieldDefaults: {
-				labelWidth: 75
-			},
-			items:[{
-				height: 72,
-				xtype: 'component',
-				tpl: [
-					'<div class="op5-spec-embralam-liveadr-relocatebanner">',
-						'<span>{text}</span>',
-					'</div>'
-				],
-				data: {text: '<b>No location available</b><br>Enter manual location or close window to cancel'}
-			},{
-				xtype: 'textfield',
-				name: 'adr_id',
-				anchor: '',
-				width: 180,
-				fieldLabel: 'Adresse'
-			}],
-			buttons: [{
-				xtype: 'button',
-				text: 'Submit',
-				handler:function(btn){ 
-					var formPanel = btn.up('form'),
-						form = btn.up('form').getForm(),
-						relocateObj = form.getValues() ;
-					this.doProcessAdrFinal(relocateObj.adr_id) ;
-					formPanel.destroy() ;
+			listeners: {
+				dolocate: function(form,locateObj) {
+					this.doProcessAdrFinal(locateObj.adr_id) ;
+					form.destroy();
 				},
 				scope: this
-			}]
+			}
 		});
 		
 		popupPanel.on('destroy',function() {

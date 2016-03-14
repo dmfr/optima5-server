@@ -199,6 +199,21 @@
 }
 
 
+.op5-spec-dbslam-reloadheader-wrap {
+	width:36px ;
+}
+.op5-spec-dbslam-reloadheader-btn {
+	position: absolute ;
+	background-image: url("../images/op5img/ico_reload_small.gif") !important;
+	top:0px;
+	right:0px ;
+	width:16px ;
+	height:16px ;
+	background-position: center center;
+	background-repeat: no-repeat;
+	cursor: pointer;
+}
+
 .op5-spec-dbslam-closeheader-wrap {
 	width:36px ;
 }

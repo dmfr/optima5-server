@@ -25,7 +25,10 @@ function specDbsLam_stock_getGrid($post_data) {
 	$query = "SELECT {$selects} FROM view_bible_ADR_entry adr
 				LEFT OUTER JOIN view_file_STOCK stock ON stock.field_ADR_ID = adr.entry_key
 				WHERE 1" ;
-	if( $post_data['filter_treenodeKey'] && ($arr_treenodes = paracrm_data_getBibleTreeBranch( 'ADR', $post_data['filter_treenodeKey'] )) ) {
+	if( $post_data['filter_entryKey'] ) {
+		$query.= " AND entry_key='{$post_data['filter_entryKey']}'" ;
+	} elseif( $post_data['filter_treenodeKey'] 
+			&& ($arr_treenodes = paracrm_data_getBibleTreeBranch( 'ADR', $post_data['filter_treenodeKey'] )) ) {
 		$query.= " AND treenode_key IN ".$_opDB->makeSQLlist($arr_treenodes) ;
 	}
 	if( $post_data['whse_code'] ) {
@@ -49,6 +52,8 @@ function specDbsLam_stock_getGrid($post_data) {
 		} else {
 			$row['id'] = $arr['ADR_entry_key'] ;
 		}
+		
+		$row['ADR_entry_key'] = $arr['ADR_entry_key'] ;
 		
 		$ttmp = explode('_',$arr['ADR_entry_key'],2) ;
 		if( $ttmp[1] ) {
