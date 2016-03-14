@@ -3153,7 +3153,24 @@ function paracrm_queries_process_queryHelp_getWhereSqlPrefilter( $target_fileCod
 			break ;
 			
 			case 'string' :
-			$where_clause.= " AND {$sqlPrefix}{$sql_file_field_code} = '".$GLOBALS['_opDB']->escape_string($field_where['condition_string'])."'" ;
+			if( substr($field_where['condition_string'],0,2) == '!(' && substr($field_where['condition_string'],-1,1)==')' ) {
+				// inverse mode
+				$arr_values = array() ;
+				foreach( explode(',',substr($field_where['condition_string'],2,strlen($field_where['condition_string'])-3)) as $test_string ) {
+					$arr_values[] = $GLOBALS['_opDB']->escape_string($test_string) ;
+				}
+				if( $arr_values ) {
+					$where_clause.= " AND {$sqlPrefix}{$sql_file_field_code} NOT IN ".$GLOBALS['_opDB']->makeSQLlist($arr_values) ;
+				}
+			} else {
+				$arr_values = array() ;
+				foreach( explode(',',$field_where['condition_string']) as $test_string ) {
+					$arr_values[] = $GLOBALS['_opDB']->escape_string($test_string) ;
+				}
+				if( $arr_values ) {
+					$where_clause.= " AND {$sqlPrefix}{$sql_file_field_code} IN ".$GLOBALS['_opDB']->makeSQLlist($arr_values) ;
+				}
+			}
 			break ;
 			
 			case 'number' :
@@ -3286,7 +3303,26 @@ function paracrm_queries_process_queryHelp_where( $record_file, $fields_where ) 
 			
 			
 			case 'string' :
-			if( $field_where['condition_string'] != $eval_value ) {
+			if( trim($field_where['condition_string']) ) {
+				break ;
+			}
+			if( substr($field_where['condition_string'],0,2) == '!(' && substr($field_where['condition_string'],-1,1)==')' ) {
+				// inverse mode
+				$passed = TRUE ;
+				foreach( explode(',',substr($field_where['condition_string'],2,strlen($field_where['condition_string'])-3)) as $test_string ) {
+					if( $test_string == $eval_value ) {
+						$passed = FALSE ;
+					}
+				}
+			} else {
+				$passed = FALSE ;
+				foreach( explode(',',$field_where['condition_string']) as $test_string ) {
+					if( $test_string == $eval_value ) {
+						$passed = TRUE ;
+					}
+				}
+			}
+			if( !$passed ) {
 				return FALSE ;
 			}
 			break ;
