@@ -632,9 +632,17 @@ class DatabaseMgr_Util {
 			
 			if( count($arrcsv) == 1 )
 			{
-				if( $query_insert )
-					$_opDB->query_unbuf( $query_insert ) ;
-				$query_insert = '' ;
+				if( $tmpfname ) {
+					fclose($handle_infile) ;
+					$query = "LOAD DATA LOCAL INFILE '{$tmpfname}' INTO TABLE {$dst_db}.{$current_table} 
+						FIELDS TERMINATED BY ','
+						OPTIONALLY ENCLOSED BY '\"'
+						ESCAPED BY '\\'
+						LINES TERMINATED BY '\n'" ;
+					$_opDB->query($query) ;
+					unlink($tmpfname) ;
+					$tmpfname = '' ;
+				}
 			
 				$table_str = current($arrcsv) ;
 				$table_str = substr($table_str,3,strlen($table_str)-6) ;
@@ -682,36 +690,30 @@ class DatabaseMgr_Util {
 				continue ;
 			}
 			
-			if( !$query_insert )
-				$query_insert = "INSERT INTO {$dst_db}.{$current_table} VALUES " ;
-			else
-				$query_insert.= ',' ;
-			$isfirst = TRUE ;
-			$query_insert.= '(' ;
-			foreach( $map as $csv_pos )
-			{
-				if( !$isfirst )
-					$query_insert.="," ;
-				if( $csv_pos >= 0 )
-					$query_insert.="'".addslashes($arrcsv[$csv_pos])."'" ;
-				else
-					$query_insert.="''" ;
-				$isfirst=FALSE ;
-			}
-			$query_insert.=')' ;
-			// $_opDB->query_unbuf_mysql( $query ) ;
 			
-			$nbc++ ;
-			if( strlen($query_insert) > $max_packet_size )
-			{
-				$_opDB->query_unbuf( $query_insert ) ;
-				// echo strlen($query_insert)."\n" ;
-				$query_insert = '' ;
+			if( !$tmpfname ) {
+				$tmpfname = tempnam( sys_get_temp_dir(), "FOO");
+				$handle_infile = fopen($tmpfname,'wb') ;
 			}
+			
+			$arrcsv_infile = array() ;
+			foreach( $map as $csv_pos ) {
+				$arrcsv_infile[] = $arrcsv[$csv_pos] ;
+			}
+			fputcsv($handle_infile,$arrcsv_infile) ;
 		}
 
-		if( $query_insert )
-			$_opDB->query_unbuf( $query_insert ) ;
+		if( $tmpfname ) {
+			fclose($handle_infile) ;
+			$query = "LOAD DATA LOCAL INFILE '{$tmpfname}' INTO TABLE {$dst_db}.{$current_table} 
+				FIELDS TERMINATED BY ','
+				OPTIONALLY ENCLOSED BY '\"'
+				ESCAPED BY '\\'
+				LINES TERMINATED BY '\n'" ;
+			$_opDB->query($query) ;
+			unlink($tmpfname) ;
+			$tmpfname = '' ;
+		}
 	}
 	
 	
