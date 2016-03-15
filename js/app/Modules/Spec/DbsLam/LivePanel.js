@@ -1625,7 +1625,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 		popupPanel.show();
 		popupPanel.getEl().alignTo(me.getEl(), 'c-c?');
 	},
-	submitSplitForwardPopup: function(splitForwardPanel) {
+	submitSplitForwardPopup: function(splitForwardPanel, manAdrId ) {
 		var gridPanel = splitForwardPanel.down('damsembeddedgrid'),
 			gridPanelData = gridPanel.getTabData() ;
 		
@@ -1677,12 +1677,49 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 				socCode: this.getSocCode(),
 				stockAttributes_obj: Ext.JSON.encode(atrValues),
 				forwardSplit_isOn: 1,
-				forwardSplit_arr: Ext.JSON.encode(gridPanelData)
+				forwardSplit_arr: Ext.JSON.encode(gridPanelData),
+				manAdr_isOn: (manAdrId!=null ? 1 : 0),
+				manAdr_adrId: (manAdrId!=null ? manAdrId : null)
 			},
 			success: function(response) {
 				var jsonResponse = Ext.JSON.decode(response.responseText) ;
 				if( !jsonResponse.success ) {
-					Ext.Msg.alert('Error','Split transaction error : '+jsonResponse.error) ;
+					if( jsonResponse.error_available ) {
+						var popupPanel = Ext.create('Optima5.Modules.Spec.DbsLam.LiveManAdrPanel',{
+							optimaModule: this.optimaModule,
+							
+							width:425,
+							minHeight:200,
+							border: false,
+							
+							floating: true,
+							renderTo: this.getEl(),
+							tools: [{
+								type: 'close',
+								handler: function(e, t, p) {
+									p.ownerCt.destroy();
+								}
+							}],
+							
+							listeners: {
+								dolocate: function(form,locateObj) {
+									this.submitSplitForwardPopup(splitForwardPanel, locateObj.adr_id) ;
+									form.destroy();
+								},
+								scope: this
+							}
+						});
+						
+						popupPanel.on('destroy',function() {
+							this.getEl().unmask() ;
+						},this,{single:true}) ;
+						this.getEl().mask() ;
+						
+						popupPanel.show();
+						popupPanel.getEl().alignTo(this.getEl(), 'c-c?');
+					} else {
+						Ext.Msg.alert('Error','Split transaction error : '+jsonResponse.error) ;
+					}
 				} else {
 					splitForwardPanel.down('#btnPrint').setVisible(true) ;
 					gridPanel.setTabData(jsonResponse.data) ;

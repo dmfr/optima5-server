@@ -1410,16 +1410,34 @@ function specDbsLam_transfer_commitAdrFinalForwardSplit( $post_data ) {
 		
 		
 		// Commit
-		$ttmp = specDbsLam_transfer_commitAdrFinal( array(
-			'transferFilerecordId' =>  $split_filerecord_id,
-			'transferLigFilerecordId_arr' => json_encode(array($splitLig_filerecord_id)),
-			'transferStepCode' => 'S00_SPLIT',
-			'socCode' => $p_socCode,
-			'stockAttributes_obj' => json_encode($stockAttributes_obj)
-		)) ;
-		if( !$ttmp['data']['adr_id'] ) {
-			$do_rollback = true ;
-			break ;
+		if( $post_data['manAdr_isOn'] ) {
+			$query = "SELECT count(*) FROM view_bible_ADR_entry WHERE entry_key='{$post_data['manAdr_adrId']}'" ;
+			if( $_opDB->query_uniqueValue($query) != 1 ) {
+				$do_rollback = true ;
+				return array('success'=>false, 'error'=>'Invalid location') ;
+			}
+			$ttmp = specDbsLam_transfer_commitAdrFinal( array(
+				'transferFilerecordId' =>  $split_filerecord_id,
+				'transferLigFilerecordId_arr' => json_encode(array($splitLig_filerecord_id)),
+				'transferStepCode' => 'S00_SPLIT',
+				'socCode' => $p_socCode,
+				'stockAttributes_obj' => json_encode($stockAttributes_obj),
+				'manAdr_isOn' => 1,
+				'manAdr_adrId' => $post_data['manAdr_adrId']
+			)) ;
+		} else {
+			$ttmp = specDbsLam_transfer_commitAdrFinal( array(
+				'transferFilerecordId' =>  $split_filerecord_id,
+				'transferLigFilerecordId_arr' => json_encode(array($splitLig_filerecord_id)),
+				'transferStepCode' => 'S00_SPLIT',
+				'socCode' => $p_socCode,
+				'stockAttributes_obj' => json_encode($stockAttributes_obj)
+			)) ;
+			if( !$ttmp['data']['adr_id'] ) {
+				$do_rollback = true ;
+				$do_rollback_adrError = true ;
+				break ;
+			}
 		}
 		$forwardSplit_obj['adr_id'] = $ttmp['data']['adr_id'] ;
 		
@@ -1466,7 +1484,11 @@ function specDbsLam_transfer_commitAdrFinalForwardSplit( $post_data ) {
 			'transferStepCode' => $post_data['transferStepCode']
 		)) ;
 		
-		return array('success'=>false, 'error'=>'Allocation ADR failed') ;
+		if( $do_rollback_adrError ) {
+			return array('success'=>false, 'error'=>'Allocation ADR failed', 'error_available'=>true) ;
+		} else {
+			return array('success'=>false, 'error'=>'Unknown error') ;
+		}
 	}
 	
 	
