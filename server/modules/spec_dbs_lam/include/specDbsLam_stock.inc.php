@@ -106,4 +106,70 @@ function specDbsLam_stock_getGrid($post_data) {
 }
 
 
+
+function specDbsLam_stock_getStkMvts( $post_data ) {
+	global $_opDB ;
+	
+	$p_filerecordId = $post_data['stk_filerecord_id'] ;
+	
+	// **************** SQL selection *****************
+	$ignores = array('tl.field_STEP_CODE') ;
+	$selects = array() ;
+	foreach( array('t'=>'view_file_TRANSFER','tl'=>'view_file_TRANSFER_LIG','mvt'=>'view_file_MVT','mvtstep'=>'view_file_MVT_STEP') as $prefix=>$table ) {
+		$query = "SHOW COLUMNS FROM {$table}" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$field = $arr[0] ;
+			if( !(strpos($field,'field_')===0) ) {
+				continue ;
+			}
+			$mkey = $prefix.'.'.$field ;
+			if( in_array($mkey,$ignores) ) {
+				continue ;
+			}
+			
+			$selects[] = $prefix.'.'.$field ;
+		}
+	}
+	$selects = implode(',',$selects) ;
+	
+	$TAB = array() ;
+	$stk_filerecord_id = $p_filerecordId ;
+	while( TRUE ) {
+		$query = "SELECT tl.filerecord_id as transferlig_filerecord_id, tl.filerecord_parent_id as transfer_filerecord_id
+		, mvt.filerecord_id as mvt_filerecord_id
+		, mvtstep.filerecord_id as mvtstep_filerecord_id
+		, {$selects}
+		FROM view_file_MVT_STEP mvtstep
+		INNER JOIN view_file_MVT mvt ON mvt.filerecord_id = mvtstep.filerecord_parent_id
+		LEFT OUTER JOIN view_file_TRANSFER_LIG tl ON tl.field_FILE_MVT_ID = mvt.filerecord_id
+		LEFT OUTER JOIN view_file_TRANSFER t ON t.filerecord_id = tl.filerecord_parent_id
+		WHERE mvtstep.field_COMMIT_FILE_STOCK_ID='{$stk_filerecord_id}'" ;
+		
+		$result = $_opDB->query($query) ;
+		if( $_opDB->num_rows($result) != 1 ) {
+			break ;
+		}
+		
+		$arr = $_opDB->fetch_assoc($result) ;
+		$TAB[] = array(
+			'transfer_txt' => $arr['field_TRANSFER_TXT'],
+			'step_code' => $arr['field_STEP_CODE'],
+			'file_stock_id' => $arr['field_FILE_STOCK_ID'],
+			'src_adr_display' =>  $arr['field_SRC_ADR_DISPLAY'],
+			'dest_adr_display' =>  $arr['field_DEST_ADR_DISPLAY'],
+			'status_is_ok' =>  $arr['field_STATUS_IS_OK'],
+			'commit_date' => $arr['field_COMMIT_DATE'],
+			'commit_user' => $arr['field_COMMIT_USER'],
+			'commit_file_stock_id' => $arr['field_COMMIT_FILE_STOCK_ID']
+		);
+		
+		$stk_filerecord_id = $arr['field_FILE_STOCK_ID'] ;
+		continue ;
+	}
+	
+	return array('success'=>true, 'data'=>$TAB) ;
+}
+
+
 ?>

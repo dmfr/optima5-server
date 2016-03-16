@@ -9,6 +9,18 @@ Ext.define('DbsLamProdGridModel',{
 		{name: 'spec_is_sn', type:'boolean'}
 	]
 });
+Ext.define('DbsLamMvtlogModel',{
+	extend: 'Ext.data.Model',
+	fields: [
+		{name: 'step_code', type:'string'},
+		{name: 'status_is_ok', type: 'boolean'},
+		{name: 'src_adr_display', type:'string'},
+		{name: 'dest_adr_display', type:'string'},
+		{name: 'commit_user', type: 'string'},
+		{name: 'commit_date', type: 'string'}
+	]
+});
+
 
 Ext.define('Optima5.Modules.Spec.DbsLam.ProductsPanel',{
 	extend:'Ext.panel.Panel',
@@ -107,6 +119,29 @@ Ext.define('Optima5.Modules.Spec.DbsLam.ProductsPanel',{
 						if( eastpanel._empty ) {
 							return false;
 						}
+					},
+					scope:this
+				}
+			},{
+				region: 'south',
+				flex: 1,
+				xtype: 'panel',
+				layout: {
+					type: 'hbox',
+					align: 'stretch'
+				},
+				itemId:'pSouth',
+				collapsible:true,
+				collapsed: true,
+				_empty:true,
+				listeners:{
+					beforeexpand:function(eastpanel) {
+						if( eastpanel._empty ) {
+							return false;
+						}
+					},
+					collapse: function(eastpanel) {
+						eastpanel._empty=true;
 					},
 					scope:this
 				}
@@ -635,6 +670,16 @@ Ext.define('Optima5.Modules.Spec.DbsLam.ProductsPanel',{
 			},
 			scope : this
 		});
+		if( arrFilerecordIds.length==1 ) {
+			gridContextMenuItems.push({
+				iconCls: 'icon-bible-newfile',
+				text: 'Trace for <b>'+lib+'</b>',
+				handler : function() {
+					this.doMvtlog(arrFilerecordIds[0]) ;
+				},
+				scope : this
+			});
+		}
 		
 		var gridContextMenu = Ext.create('Ext.menu.Menu',{
 			items : gridContextMenuItems,
@@ -650,7 +695,92 @@ Ext.define('Optima5.Modules.Spec.DbsLam.ProductsPanel',{
 	
 	
 	
-	
+	doMvtlog: function( filerecordId ) {
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_lam',
+				_action: 'stock_getStkMvts',
+				stk_filerecord_id: filerecordId
+			},
+			success: function(response) {
+				var jsonResponse = Ext.JSON.decode(response.responseText) ;
+				if( jsonResponse.success ) {
+					this.buildMvtlog(jsonResponse.data) ;
+				}
+			},
+			callback: function() {
+				//this.hideLoadmask() ;
+			},
+			scope: this
+		});
+		
+		
+	},
+	buildMvtlog: function( ajaxData ) {
+		var southP = this.down('#pSouth') ;
+		
+		if( ajaxData == null ) {
+			southP._empty = true ;
+			southP.removeAll() ;
+			southP.collapse() ;
+			return ;
+		}
+		
+		southP._empty = false ;
+		southP.removeAll() ;
+		southP.add({
+			xtype: 'grid',
+			flex: 2,
+			title: 'Mvt Log',
+			store: {
+				model: 'DbsLamMvtlogModel',
+				data: ajaxData
+			},
+			columns: [{
+				dataIndex: 'status_is_ok',
+				text: '',
+				width: 24,
+				renderer: function(v,metadata,record) {
+					if( v ) {
+						metadata.tdCls = 'op5-spec-dbslam-stock-avail' ;
+					} else {
+						metadata.tdCls = 'op5-spec-dbslam-stock-wait' ;
+					}
+				}
+			},{
+				dataIndex: 'transfer_txt',
+				text: 'Document',
+				width: 120,
+				renderer: function(v) {
+					return '<b>'+v+'</b>' ;
+				}
+			},{
+				dataIndex: 'step_code',
+				text: 'Step Code',
+				width: 120,
+				renderer: function(v) {
+					return '<b>'+v+'</b>' ;
+				}
+			},{
+				text: 'Source Loc',
+				dataIndex: 'src_adr_display',
+				width: 120
+			},{
+				dataIndex: 'commit_date',
+				text: 'Commit date',
+				width: 120
+			},{
+				dataIndex: 'commit_user',
+				text: 'Commit user',
+				width: 100
+			},{
+				text: 'Dest Loc',
+				dataIndex: 'dest_adr_display',
+				width: 120
+			}]
+		}) ;
+		southP.expand() ;
+	},
 	
 	
 	
