@@ -116,7 +116,7 @@ function specDbsLam_lib_proc_findAdr( $mvt_obj, $stockAttributes_obj, $whse_dest
 				AND adr.treenode_key IN ".$_opDB->makeSQLlist($adr_treenodes) ;
 			foreach( $attributesToCheck as $STOCK_fieldcode => $neededValue ) {
 				$query.= " AND adr.{$STOCK_fieldcode}='".mysql_real_escape_string(json_encode(array($neededValue)))."'" ;
-				$query.= " AND stk.{$STOCK_fieldcode}='".mysql_real_escape_string(json_encode(array($neededValue)))."'" ;
+				$query.= " AND stk.{$STOCK_fieldcode}='".mysql_real_escape_string($neededValue)."'" ;
 			}
 			$result = $_opDB->query($query) ;
 			if( $_opDB->num_rows($result) >= 1 ) {
