@@ -84,6 +84,10 @@ function specDbsLam_lib_proc_findAdr( $mvt_obj, $stockAttributes_obj, $whse_dest
 			// 1er cas : emplacement existant POS_ID
 			$attributesToCheck = array() ;
 			foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
+				if( !in_array($soc_code, $stockAttribute_obj['socs']) ) {
+					continue ;
+				}
+				
 				if( !$stockAttribute_obj['ADR_fieldcode'] ) {
 					continue ;
 				}
@@ -112,6 +116,7 @@ function specDbsLam_lib_proc_findAdr( $mvt_obj, $stockAttributes_obj, $whse_dest
 				AND adr.treenode_key IN ".$_opDB->makeSQLlist($adr_treenodes) ;
 			foreach( $attributesToCheck as $STOCK_fieldcode => $neededValue ) {
 				$query.= " AND adr.{$STOCK_fieldcode}='".mysql_real_escape_string(json_encode(array($neededValue)))."'" ;
+				$query.= " AND stk.{$STOCK_fieldcode}='".mysql_real_escape_string(json_encode(array($neededValue)))."'" ;
 			}
 			$result = $_opDB->query($query) ;
 			if( $_opDB->num_rows($result) >= 1 ) {
