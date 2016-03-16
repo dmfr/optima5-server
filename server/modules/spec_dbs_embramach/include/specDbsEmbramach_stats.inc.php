@@ -593,6 +593,9 @@ function specDbsEmbramach_stats_sub_prepareData() {
 		}
 		elseif( isset($cfg_map_prioId_tatCode_tatValueMax[$prio_id]) ) {
 			foreach( $cfg_map_prioId_tatCode_tatValueMax[$prio_id] as $tatCode => $tatMaxValue ) {
+				if( $tatMaxValue==0 && $arr['field_STATUS'] == 'CLOSED' ) {
+					continue ;
+				}
 				if( $arr['field_STAT_TAT_H'] <= $tatMaxValue ) {
 					$arr_ins['field_STATS_TAT'] = $tatCode ;
 					break ;
