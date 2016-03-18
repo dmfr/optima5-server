@@ -358,6 +358,17 @@ function specDbsLam_transfer_printDoc( $post_data ) {
 	if( !$step_isFinal ) {
 		ksort($tab_rowsTransferLig) ;
 		$tab_rowsTransferLig = array_values($tab_rowsTransferLig) ;
+	} else {
+		$arr_stkFilerecordId = array() ;
+		foreach( $tab_rowsTransferLig as $ttmp ) {
+			$rows_transferLig = $ttmp['arr'] ;
+			foreach( $rows_transferLig as $row_transferLig ) {
+				$row_transferLigStepFinal = end($row_transferLig['steps']) ;
+				$arr_stkFilerecordId[] = $row_transferLigStepFinal['commit_file_stock_id'] ;
+			}
+		}
+		
+		return specDbsLam_stock_printEtiq( array('stock_filerecordIds'=>json_encode($arr_stkFilerecordId)) ) ;
 	}
 	
 	foreach( $tab_rowsTransferLig as $ttmp ) {

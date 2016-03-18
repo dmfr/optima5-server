@@ -171,5 +171,202 @@ function specDbsLam_stock_getStkMvts( $post_data ) {
 	return array('success'=>true, 'data'=>$TAB) ;
 }
 
+function specDbsLam_stock_printEtiq($post_data) {
+	global $_opDB ;
+	
+	$app_root = $GLOBALS['app_root'] ;
+	$resources_root=$app_root.'/resources' ;
+	$templates_dir=$resources_root.'/server/templates' ;
+	$_IMG['DBS_logo_bw'] = file_get_contents($templates_dir.'/'.'DBS_logo_bw.png') ;
+	
+	// Load cfg attributes
+	$ttmp = specDbsLam_cfg_getConfig() ;
+	$json_cfg = $ttmp['data'] ;
+	
+	$p_stock_filerecordIds = json_decode($post_data['stock_filerecordIds'],true) ;
+	
+	foreach( $p_stock_filerecordIds as $stk_filerecord_id ) {
+		$query = "SELECT * FROM view_file_STOCK WHERE filerecord_id='{$stk_filerecord_id}'" ;
+		$result = $_opDB->query($query) ;
+		$arr_stk = $_opDB->fetch_assoc($result) ;
+		if( !$arr_stk ) {
+			continue ;
+		}
+		
+		$adr = $arr_stk['field_ADR_ID'] ;
+		$ttmp = explode('_',$adr,2) ;
+		$adr_txt = $ttmp[1] ;
+		
+		if( $is_first ) {
+			$is_first = FALSE ;
+		} else {
+			$buffer.= '<DIV style="page-break-after:always"></DIV>' ;
+		}
+		$buffer.= "<table border='0' cellspacing='1' cellpadding='1'>" ;
+		$buffer.= "<tr><td width='5'/><td width='200'>" ;
+			$buffer.= '<div align="center">' ;
+			$buffer.= '<img src="data:image/jpeg;base64,'.base64_encode(specDbsLam_lib_getBarcodePng($adr_txt,75)).'" /><br>' ;
+			$buffer.= $adr_txt.'<br>' ;
+			$buffer.= '</div>' ;
+		$buffer.= "</td><td valign='middle' width='400'>" ;
+			$buffer.= "<table cellspacing='0' cellpadding='1'>";
+			$buffer.= "<tr><td><span class=\"mybig\">STOCK LABEL</span></td></tr>" ;
+			//{$data_commande['date_exp']}
+			$buffer.= "<tr><td><span class=\"verybig\">BIN</span>&nbsp;:&nbsp;<span class=\"huge\"><b>{$adr_txt}</b></span></td></tr>" ;
+			$buffer.= "</table>";
+		$buffer.= "</td><td valign='middle' align='center' width='120'>" ;
+			$buffer.= "<img src=\"data:image/jpeg;base64,".base64_encode($_IMG['DBS_logo_bw'])."\" />" ;
+		$buffer.= "</td></tr><tr><td height='25'/></tr></table>" ;
+		
+		
+		
+		$buffer.= "" ;
+		
+		$buffer.= "<table border='0' cellspacing='1' cellpadding='10'><tr>" ;
+			
+		$buffer.= "<td align='left' valign='top' width='50%'>" ;
+			
+			$buffer.= "<table class='tabledonnees'>" ;
+			
+				$ttmp = explode('_',$arr_stk['field_PROD_ID'],2) ;
+				$soc_code = $ttmp[0] ;
+				$prod_txt = $ttmp[1] ;
+				
+				$query = "SELECT * FROM view_bible_PROD_entry WHERE entry_key='{$arr_stk['field_PROD_ID']}'" ;
+				$result = $_opDB->query($query) ;
+				$arr_prod = $_opDB->fetch_assoc($result) ;
+				
+				$buffer.= "<tr>" ;
+					$buffer.= "<td width='30%'><span class=\"mybig\">BusinessUnit</span></td>" ;
+					$buffer.= '<td align="center" class="mybig">' ;
+						$buffer.= '<b>'.$soc_code.'</b><br>';
+					$buffer.= '</td>' ;
+				$buffer.= "</tr>" ;
+			
+				$buffer.= "<tr>" ;
+					$buffer.= "<td width='30%'><span class=\"mybig\">PartNumber</span></td>" ;
+					$buffer.= '<td align="center">' ;
+						$buffer.= '<img src="data:image/jpeg;base64,'.base64_encode(specDbsLam_lib_getBarcodePng($prod_txt,50)).'" /><br>';
+						$buffer.= "<span class=\"mybig\">".$prod_txt.'<br>';
+					$buffer.= '</td>' ;
+				$buffer.= "</tr>" ;
+			
+				$buffer.= "<tr>" ;
+					$buffer.= "<td width='30%'><span class=\"mybig\">Quantity</span></td>" ;
+					$buffer.= '<td align="center" class="mybig">' ;
+						$buffer.= '<b>'.(float)$arr_stk['field_QTY_AVAIL'].'</b><br>';
+					$buffer.= '</td>' ;
+				$buffer.= "</tr>" ;
+			
+				$buffer.= "<tr>" ;
+					$buffer.= "<td width='30%'><span class=\"mybig\">Batch</span></td>" ;
+					if( $arr_prod['field_SPEC_IS_BATCH'] ) {
+						$buffer.= '<td align="center">' ;
+						$buffer.= '<img src="data:image/jpeg;base64,'.base64_encode(specDbsLam_lib_getBarcodePng($arr_stk['field_SPEC_BATCH'],50)).'" /><br>';
+						$buffer.= $arr_stk['field_SPEC_BATCH'].'<br>';
+						$buffer.= '</td>' ;
+					} else {
+						$buffer.= '<td class="croix">&nbsp;</td>' ;
+					}
+				$buffer.= "</tr>" ;
+				
+				if( $arr_prod['field_SPEC_IS_DLC'] ) {
+					$buffer.= "<tr>" ;
+						$buffer.= "<td width='30%'><span class=\"mybig\">DLC</span></td>" ;
+						if( TRUE ) {
+							$buffer.= '<td align="center">' ;
+							$buffer.= date('d/m/Y',strtotime($arr_stk['field_SPEC_DATELC'])).'<br>';
+							$buffer.= '</td>' ;
+						}
+					$buffer.= "</tr>" ;
+				}
+			
+				$buffer.= "<tr>" ;
+					$buffer.= "<td width='30%'><span class=\"mybig\">SerialNo</span></td>" ;
+					if( $arr_prod['field_SPEC_IS_SN'] ) {
+						$buffer.= '<td align="center">' ;
+						$buffer.= '<img src="data:image/jpeg;base64,'.base64_encode(specDbsLam_lib_getBarcodePng($arr_stk['field_SPEC_SN'],50)).'" /><br>';
+						$buffer.= $arr_stk['field_SPEC_SN'].'<br>';
+						$buffer.= '</td>' ;
+					} else {
+						$buffer.= '<td class="croix">&nbsp;</td>' ;
+					}
+				$buffer.= "</tr>" ;
+			
+			
+			$buffer.= "</table>" ;
+		
+		$buffer.= "</td>" ;
+		
+		$buffer.= "<td align='left' valign='top'  width='50%'>" ;
+		
+			$buffer.= "<table class='tabledonnees'>" ;
+				
+			foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
+				if( $stockAttribute_obj['STOCK_fieldcode'] ) {} else {
+					continue ;
+				}
+				if( !in_array($soc_code, $stockAttribute_obj['socs']) ) {
+					continue ;
+				}
+				$mkey = $stockAttribute_obj['mkey'] ;
+				$STOCK_fieldcode = $stockAttribute_obj['STOCK_fieldcode'] ;
+				//
+				if( in_array($mkey,array('ATR_STKTYPE','ATR_SW')) ) {
+					continue ;
+				}
+				
+				$buffer.= "<tr>" ;
+					$buffer.= "<td width='30%'><span class=\"mybig\">{$stockAttribute_obj['atr_txt']}</span></td>" ;
+					if( TRUE ) {
+						$buffer.= '<td align="center">' ;
+						$buffer.= '<img src="data:image/jpeg;base64,'.base64_encode(specDbsLam_lib_getBarcodePng($arr_stk[$STOCK_fieldcode],30)).'" /><br>';
+						$buffer.= $arr_stk[$STOCK_fieldcode].'<br>';
+						$buffer.= '</td>' ;
+					}
+				$buffer.= "</tr>" ;
+			}
+			
+			$buffer.= "</table>" ;
+		
+		$buffer.= "</td>";
+		
+		$buffer.= "</tr></table>" ;
+		
+	}
+	
+	
+	
+	
+	
+	$app_root = $GLOBALS['app_root'] ;
+	$resources_root=$app_root.'/resources' ;
+	$templates_dir=$resources_root.'/server/templates' ;
+	$inputFileName = $templates_dir.'/'.'DBS_LAM_blank.html' ;
+	$inputBinary = file_get_contents($inputFileName) ;
+	
+	
+	//echo $inputFileName ;
+	$doc = new DOMDocument();
+	@$doc->loadHTML($inputBinary);
+	
+	$elements = $doc->getElementsByTagName('body');
+	$i = $elements->length - 1;
+	while ($i > -1) {
+		$body_element = $elements->item($i); 
+		$i--; 
+		
+		libxml_use_internal_errors(true);
+
+		$tpl = new DOMDocument;
+		$tpl->loadHtml('<?xml encoding="UTF-8">'.$buffer);
+		libxml_use_internal_errors(false);
+
+		
+		$body_element->appendChild($doc->importNode($tpl->documentElement, TRUE)) ;
+	}
+	
+	return array('success'=>true, 'html'=>$doc->saveHTML() ) ;
+}
 
 ?>
