@@ -144,5 +144,15 @@
 		"moduleCssSrc":"module-spec_dbs_inconso.css",
 		"moduleType":"sdomain",
 		"params": []
+	},{
+		"enabled":true,
+		"moduleId":"spec_bp_sales",
+		"backendModuleId":"crmbase",
+		"parentModuleId":"crmbase",
+		"moduleName":"(BluePhoenix) Sales",
+		"moduleClass":"Optima5.Modules.Spec.BpSales.BpSalesModule",
+		"moduleCssSrc":"module-spec_bp_sales.css",
+		"moduleType":"sdomain",
+		"params": []
 	}
 ]

@@ -1,0 +1,89 @@
+Ext.define('Optima5.Modules.Spec.BpSales.MainPanel',{
+	extend:'Ext.panel.Panel',
+	requires:[
+		'Optima5.Modules.Spec.BpSales.HelperCache',
+		'Optima5.Modules.Spec.BpSales.MainMenu'
+	],
+	
+	initComponent: function() {
+		var me = this ;
+			
+		Ext.apply(me,{
+			layout:'fit',
+			items:[{
+				xtype:'box',
+				cls:'op5-spec-bpsales-mainmenu',
+				flex:1,
+				html: '<div class="op5-spec-bpsales-logo"></span>' 
+			}]
+		});
+		
+		this.on('afterrender', function(){
+			Ext.defer(this.onEndAnimation, 500, this) ;
+		}, me) ;
+		
+		this.callParent() ;
+	},
+	startAnimation: function() {
+		var logoEl = Ext.get( Ext.DomQuery.selectNode('div.op5-spec-bpsales-logo') );
+		logoEl.animate({
+			duration: 1000,
+			to: {
+				opacity: 1
+			}
+		});
+		Ext.defer( this.onEndAnimation, 2000, this) ;
+	},
+	onEndAnimation: function() {
+		var me = this ;
+		
+		var helperCache = Optima5.Modules.Spec.BpSales.HelperCache ;
+		helperCache.init(me.optimaModule) ;
+		if( helperCache.isReady ) {
+			this.switchToMainMenu() ;
+		} else {
+			this.mon(helperCache,'ready',function() {
+				this.switchToMainMenu() ;
+			},me,{single:true}) ;
+		}
+	},
+	switchToMainMenu: function() {
+		var me = this ;
+		var mainMenuView = Ext.create('Optima5.Modules.Spec.BpSales.MainMenu',{
+			listeners: {
+				actionclick: function( view, actionCode ) {
+					me.onActionClick(actionCode) ;
+				},
+				scope: me
+			}
+		}) ;
+		this.removeAll() ;
+		this.add( mainMenuView ) ;
+	},
+	onActionClick: function( actionCode ) {
+		var me = this ;
+		//console.log("Action: "+actionCode) ;
+		
+		switch( actionCode ) {
+			default :
+				return ;
+		}
+	},
+	
+	switchToAppPanel: function( className, options ) {
+		var me = this ;
+		
+		options = options || {} ;
+		Ext.apply(options,{
+			optimaModule: me.optimaModule
+		}) ;
+		
+		var panel = Ext.create(className,options) ;
+		panel.on('destroy',function() {
+			me.switchToMainMenu() ;
+		},this) ;
+		
+		this.removeAll() ;
+		this.add( panel ) ;
+	}
+}) ;
