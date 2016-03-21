@@ -59,7 +59,13 @@ function specDbsEmbramach_upload_ZMB51($handle) {
 	fseek($handle_trad,0) ;
 	
 	paracrm_lib_dataImport_commit_processHandle( 'file','ZMB51', $handle_trad ) ;
-
+	
+	// Done 2016-03: reattach priorities
+	$query = "UPDATE view_file_ZMB51 z 
+				JOIN view_file_FLOW_PICKING pk ON pk.field_DELIVERY_ID=TRIM(LEADING '0' FROM z.field_REFERENCE) 
+				SET z.field_MACH_PK_PRIO=pk.field_PRIORITY" ;
+	$GLOBALS['_opDB']->query($query) ;
+	
 	fclose($handle_trad) ;
 }
 function specDbsEmbramach_upload_Z080($handle) {
@@ -499,7 +505,7 @@ function specDbsEmbramach_upload_lib_separator( $handle_in, $handle_out, $separa
 	$handle_priv = tmpfile() ;
 	while( !feof($handle_in) ) {
 		$lig = fgets($handle_in) ;
-		$lig = mb_convert_encoding($lig, "UTF-8");
+		$lig = mb_convert_encoding($lig, "UTF-8", mb_detect_encoding($lig));
 		fwrite($handle_priv,$lig) ;
 	}
 	
