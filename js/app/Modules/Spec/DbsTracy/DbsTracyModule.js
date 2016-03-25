@@ -33,13 +33,13 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.DbsTracyModule', {
 			case 'opentrspt' :
 				Ext.apply( eventParams, {
 					trsptNew: postParams.trsptNew,
-					trsptFilerecordId: postParams.trsptFilerecordId,
+					trsptFilerecordId: postParams.trsptFilerecordId
 				}) ;
 				break ;
 			case 'openorder' :
 				Ext.apply( eventParams, {
 					orderNew: postParams.orderNew,
-					orderFilerecordId: postParams.orderFilerecordId,
+					orderFilerecordId: postParams.orderFilerecordId
 				}) ;
 				break ;
 			

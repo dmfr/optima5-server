@@ -81,7 +81,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 					xtype: 'datefield',
 					fieldLabel: 'Created',
 					format: 'd/m/Y',
-					submitFormat: 'Y-m-d',
+					submitFormat: 'Y-m-d'
 				},{
 					xtype: 'op5specdbstracycfgparamtext',
 					cfgParam_id: 'LIST_CONSIGNEE',
@@ -120,7 +120,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 						xtype: 'datefield',
 						fieldLabel: 'Flight date',
 						format: 'd/m/Y',
-						submitFormat: 'Y-m-d',
+						submitFormat: 'Y-m-d'
 					},{
 						xtype: 'textfield',
 						fieldLabel: 'Flight code'
@@ -148,7 +148,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 							v = Ext.DomHelper.markup(b.getRenderTree());
 							b.destroy() ;
 						return v;
-					},
+					}
 				},{
 					text: 'Parcels',
 					width: 60,
@@ -208,7 +208,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 						anchor: ''
 					},{
 						xtype: 'textarea',
-						fieldLabel: 'Comment',
+						fieldLabel: 'Comment'
 					}],
 					buttons: [{
 						xtype: 'button',
@@ -254,7 +254,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 							expanded: true
 						}],
 						listeners: {
-							scope: this,
+							scope: this
 						}
 					},
 					columns: [{

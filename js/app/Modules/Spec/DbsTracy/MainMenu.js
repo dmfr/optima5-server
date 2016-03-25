@@ -4,6 +4,7 @@ Ext.define('DbsTracyMenuItemModel',{
 		{name: 'type_header',  type: 'boolean'},
 		{name: 'type_separator',   type: 'boolean'},
 		{name: 'type_action',   type: 'boolean'},
+		{name: 'type_action_blank',   type: 'boolean'},
 		{name: 'separator_label',   type: 'string'},
 		{name: 'action_iconCls',   type: 'string'},
 		{name: 'action_qtip',   type: 'string'},
@@ -31,10 +32,16 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.MainMenu',{
 				"</tpl>",
 			
 				'<tpl if="type_action">',
-					'<div class="op5-spec-dbstracy-mainmenu-action">',
-						'<div class="op5-spec-dbstracy-mainmenu-action-icon {action_iconCls}" data-qtip="{action_qtip:htmlEncode}"></div>',
-						'<span>{action_caption:htmlEncode}</span>',
-					'</div>',
+					'<tpl if="!type_action_blank">',
+						'<div class="op5-spec-dbstracy-mainmenu-action op5-spec-dbstracy-mainmenu-action-active">',
+							'<div class="op5-spec-dbstracy-mainmenu-action-icon {action_iconCls}" data-qtip="{action_qtip:htmlEncode}"></div>',
+							'<span>{action_caption:htmlEncode}</span>',
+						'</div>',
+					'</tpl>',
+					'<tpl if="type_action_blank">',
+						'<div class="op5-spec-dbstracy-mainmenu-action">',
+						'</div>',
+					'</tpl>',
 				'</tpl>',
 			'</div>',
 			'</tpl>'
@@ -44,9 +51,11 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.MainMenu',{
 			model:'DbsTracyMenuItemModel',
 			data:[
 				{type_header:true},
-				{type_separator:true, separator_label: 'Transport Files'},
-				{type_action:true, action_caption: 'Transport Files', action_sendEvent:'trspt_files', action_iconCls:'op5-spec-dbstracy-mmenu-files'},
-				{type_action:true, action_caption: 'Create transport', action_sendEvent:'trspt_create', action_iconCls:'op5-spec-dbstracy-mmenu-create'}
+				{type_separator:true, separator_label: 'Files Management'},
+				{type_action:true, action_caption: 'Transport Files', action_sendEvent:'files', action_iconCls:'op5-spec-dbstracy-mmenu-files'},
+				{type_action:true, type_action_blank:true},
+				{type_action:true, action_caption: 'Create Transport', action_sendEvent:'trspt_create', action_iconCls:'op5-spec-dbstracy-mmenu-create'},
+				{type_action:true, action_caption: 'Create Order', action_sendEvent:'order_create', action_iconCls:'op5-spec-dbstracy-mmenu-create'}
 			]
 		}) ;
 		 

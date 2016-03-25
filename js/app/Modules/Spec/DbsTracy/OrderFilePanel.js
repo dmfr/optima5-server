@@ -1,3 +1,77 @@
+Ext.define('Optima5.Modules.Spec.DbsTracy.OrderAttachmentsDataview',{
+	extend: 'Ext.view.View',
+	mixins: {
+		draggable   : 'Ext.ux.DataviewDraggable'
+	},
+	store: {
+		model: 'WbMrfoxyAttachmentDataviewModel',
+		proxy: {
+			type: 'memory' ,
+			reader: {
+				type: 'json'
+			}
+		}
+	},
+	//frame: true,
+	//autoScroll:true,
+	tpl:[
+		'<tpl for=".">',
+			'<tpl if="type_separator">',
+				'<div class="x-clear"></div>',
+				'<div class="op5-spec-mrfoxy-attachments-separator"',
+				'<tpl if="separator_iconurl">',
+					' style="background-image:url({separator_iconurl})"',
+				'</tpl>',
+				'>{separator_txt}</div>',
+				'<div class="op5-spec-mrfoxy-attachments-item" style="display:none"></div>',
+			"</tpl>",
+		
+			'<tpl if="type_media">',
+				'<div class="op5-spec-mrfoxy-attachments-item thumb-box',
+				'<tpl if="thumb_red">',
+				' thumb-box-red',
+				'</tpl>',
+				'">',
+						'<div>{thumb_date}</div>',
+						'<a href="#">',
+							'<img src="{thumb_url}"/>',
+						'</a>',
+						'<div>{thumb_caption}</div>',
+				'</div>',
+			'</tpl>',
+		'</tpl>'
+	],
+	trackOver: true,
+	itemSelector: 'div.op5-spec-mrfoxy-attachments-item',
+	prepareData: function(data) {
+		var getParams = this.optimaModule.getConfiguredAjaxParams() ;
+		Ext.apply( getParams, {
+			media_id: data.filerecord_id,
+			thumb: true
+		});
+		
+		Ext.apply(data, {
+			thumb_date: data.filerecord_date,
+			thumb_url: 'server/backend_media.php?' + Ext.Object.toQueryString(getParams),
+			thumb_caption: data.filerecord_caption,
+			thumb_red: data.filerecord_blocked
+		});
+		return data;
+	},
+	
+	initComponent: function() {
+		this.mixins.draggable.init(this, {
+				ddConfig: {
+					ddGroup: 'AttachmentDD'+this.optimaModule.sdomainId
+				},
+				ghostTpl: this.tpl
+		});
+		
+		this.callParent();
+	}
+}) ;
+
+
 Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 	extend:'Ext.panel.Panel',
 	
@@ -27,7 +101,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 				scope:this
 			}],
 			items:[{
-				flex: 2,
+				flex: 3,
 				xtype: 'form',
 				bodyCls: 'ux-noframe-bg',
 				bodyPadding: 15,
@@ -38,55 +112,66 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 				},
 				items: [{
 					xtype: 'textfield',
-					fieldLabel: '<b>WID</b>',
-					value: 'MBD/20000001'
+					fieldLabel: '<b>DN #</b>',
+					anchor: '',
+					width: 250,
+					value: ''
 				},{
-					xtype: 'datefield',
-					fieldLabel: 'Created',
-					format: 'd/m/Y',
-					submitFormat: 'Y-m-d',
+					xtype: 'textfield',
+					fieldLabel: 'PO #',
+					anchor: '',
+					width: 250,
+					value: ''
 				},{
 					xtype: 'op5specdbstracycfgparamtext',
 					cfgParam_id: 'LIST_CONSIGNEE',
 					fieldLabel: '<b>Consignee</b>'
 				},{
-					xtype: 'op5specdbstracycfgparamtext',
-					cfgParam_id: 'LIST_INCOTERM',
-					fieldLabel: 'Incoterm'
+					xtype: 'textarea',
+					fieldLabel: '<b>Location</b>'
 				},{
 					xtype: 'op5specdbstracycfgparamtext',
 					cfgParam_id: 'LIST_SERVICE',
-					fieldLabel: 'Priority'
+					fieldLabel: '<b>Priority</b>',
+					anchor: '',
+					width: 200
 				},{
 					xtype: 'fieldset',
-					title: 'Transport details',
+					title: 'Volume details',
 					items: [{
-						xtype: 'op5specdbstracycfgparamtext',
-						cfgParam_id: 'LIST_AIRPORT',
-						fieldLabel: 'Origin'
+						fieldLabel: 'Dimensions',
+						xtype: 'fieldcontainer',
+						layout: {
+							type: 'hbox',
+							align: 'center'
+						},
+						items: [{
+							xtype: 'box',
+							html: '&#160;&#160;<b>L:</b>&#160;'
+						},{
+							xtype: 'textfield',
+							name: 'vol_dim_l',
+							width: 50
+						},{
+							xtype: 'box',
+							html: '&#160;&#160;<b>W:</b>&#160;'
+						},{
+							xtype: 'textfield',
+							name: 'vol_dim_w',
+							width: 50
+						},{
+							xtype: 'box',
+							html: '&#160;&#160;<b>H:</b>&#160;'
+						},{
+							xtype: 'textfield',
+							name: 'vol_dim_h',
+							width: 50
+						}]
 					},{
-						xtype: 'op5specdbstracycfgparamtext',
-						cfgParam_id: 'LIST_AIRPORT',
-						fieldLabel: 'Destination'
-					},{
-						xtype: 'op5specdbstracycfgparamtext',
-						cfgParam_id: 'LIST_CARRIER',
-						fieldLabel: '<b>Carrier</b>'
-					}]
-				},{
-					xtype: 'fieldset',
-					title: 'Flight details',
-					items: [{
 						xtype: 'textfield',
-						fieldLabel: 'AWB'
-					},{
-						xtype: 'datefield',
-						fieldLabel: 'Flight date',
-						format: 'd/m/Y',
-						submitFormat: 'Y-m-d',
-					},{
-						xtype: 'textfield',
-						fieldLabel: 'Flight code'
+						anchor: '',
+						width: 120,
+						fieldLabel: 'NbParcels'
 					}]
 				}]
 			},{
@@ -111,7 +196,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 							v = Ext.DomHelper.markup(b.getRenderTree());
 							b.destroy() ;
 						return v;
-					},
+					}
 				},{
 					text: 'Parcels',
 					width: 60,
@@ -140,115 +225,124 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 					}]
 				}
 			},{
-				flex: 3,
+				flex: 2,
+				title: 'Attachments',
 				xtype: 'panel',
-				layout: 'border',
-				items:[{
-					region: 'north',
-					title: 'New action',
-					collapsible: true,
-					collapsed: true,
-					xtype: 'form',
-					border: false,
-					bodyCls: 'ux-noframe-bg',
-					bodyPadding: 8,
-					layout: 'anchor',
-					fieldDefaults: {
-						labelWidth: 75,
-						anchor: '100%'
+				layout: 'fit',
+				items: {
+					xtype: 'dataview',
+					store: {
+						fields: ['url_id'],
+						data: [{
+							url_id: 'test1'
+						},{
+							url_id: 'test2'
+						},{
+							url_id: 'test3'
+						},{
+							url_id: 'test4'
+						},{
+							url_id: 'test5'
+						}]
 					},
-					items: [{
-						xtype: 'datefield',
-						fieldLabel: 'Date Action',
-						format: 'Y-m-d',
-						width: 175,
-						anchor: ''
-					},{
-						xtype: 'textarea',
-						fieldLabel: 'Comment',
-					}],
-					buttons: [{
-						xtype: 'button',
-						text: 'OK',
-						handler: function( btn ) {
-						},
-						scope: this
-					}]
-				},{
-					region: 'center',
-					flex: 3,
-					xtype: 'grid',
-					cls: 'op5-spec-dbstracy-feedgrid',
-					store: Ext.create('Ext.data.Store', {
-						autoLoad: true,
-						model: 'FeedItem',
-						sortInfo: {
-							property: 'pubDate',
-							direction: 'DESC'
-						},
-						proxy: {
-							type: 'ajax',
-							url: '/feed-proxy.php',
-							reader: {
-									type: 'xml',
-									record: 'item'
+					scrollable: 'vertical',
+					
+					tpl:[
+						'<tpl for=".">',
+							'<div class="op5-spec-dbstracy-attachments-item thumb-box">',
+								'<div>{thumb_date}</div>',
+								'<a href="#">',
+									'<img src="{thumb_url}"/>',
+								'</a>',
+							'</div>',
+						'</tpl>'
+					],
+					trackOver: true,
+					overItemCls: 'x-item-over',
+					itemSelector: 'div.thumb-box',
+					prepareData: function(data) {
+						Ext.apply(data, {
+							thumb_date: '<b>'+data.url_id+'</b>',
+							thumb_url: '/demo/'+data.url_id+'.thumb.jpg'
+						});
+						return data;
+					},
+					listeners: {
+						itemcontextmenu: {
+							fn:function(view, record, item, index, event) {
+								//console.log('okokokok') ;
+								
+								var contextMenuItems = new Array() ;
+								contextMenuItems.push({
+									iconCls: 'icon-fullscreen',
+									text: 'Show photo',
+									handler : function() {
+										// console.log( 'Create child node of '+record.get('treenode_key') ) ;
+										this.showPhoto(record.get('url_id')) ;
+									},
+									scope : this
+								});
+								contextMenuItems.push({
+									iconCls: 'icon-save',
+									text: 'Downlaod file',
+									handler : function() {
+										this.downloadPhoto(record.get('filerecord_id')) ;
+									},
+									scope : this
+								});
+								contextMenuItems.push('-') ;
+								contextMenuItems.push({
+									iconCls: 'icon-bible-delete',
+									text: 'Discard invoice',
+									handler : function() {
+										this.discardItem(record.get('filerecord_id')) ;
+									},
+									scope : this
+								});
+								
+								var contextMenu = Ext.create('Ext.menu.Menu',{
+									items : contextMenuItems,
+									listeners: {
+										hide: function(menu) {
+											Ext.defer(function(){menu.destroy();},10) ;
+										}
+									}
+								}) ;
+								
+								contextMenu.showAt(event.getXY());
+								
 							},
-							listeners: {
-									scope: this
-							}
+							scope:this
 						},
-						listeners: {
+						itemdblclick: {
+							fn:function(view, record, item, index, event) {
+								this.showPhoto(record.get('url_id')) ;
+							},
+							scope:this
+						},
+						render: { 
+							//fn: this.onDataviewRender,
 							scope: this
 						}
-					}),
-
-					viewConfig: {
-						itemId: 'view',
-						plugins: [{
-							pluginId: 'preview',
-							ptype: 'preview',
-							bodyField: 'description',
-							expanded: true
-						}],
-						listeners: {
-							scope: this,
-						}
-					},
-					columns: [{
-						text: 'Title',
-						dataIndex: 'title',
-						flex: 1,
-						hidden: true
-					}, {
-						text: 'Author',
-						dataIndex: 'author',
-						hidden: false,
-						width: 200
-					}, {
-						text: 'Date',
-						dataIndex: 'pubDate',
-						renderer: function(date){
-							if (!date) {
-									return '';
-							}
-
-							var now = new Date(), d = Ext.Date.clearTime(now, true), notime = Ext.Date.clearTime(date, true).getTime();
-
-							if (notime === d.getTime()) {
-									return 'Today ' + Ext.Date.format(date, 'g:i a');
-							}
-
-							d = Ext.Date.add(d, 'd', -6);
-							if (d.getTime() <= notime) {
-									return Ext.Date.format(date, 'D g:i a');
-							}
-							return Ext.Date.format(date, 'Y/m/d g:i a');
-						},
-						width: 200
-					}]
-				}]
+					}
+				}
 			}]
 		}) ;
 		this.callParent() ;
+	},
+	showPhoto: function( url_id ) {
+		var imageviewerWindow = this.optimaModule.createWindow({
+			title:'Image Viewer',
+			width:800,
+			height:600,
+			iconCls: 'op5-crmbase-dataformwindow-photo-icon',
+			animCollapse:false,
+			border: false,
+			items: [{
+				xtype:'image',
+				src: '/demo/' + url_id + '.jpg',
+				resizable: false
+			}]
+		}) ;
 	}
 });

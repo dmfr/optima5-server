@@ -3,9 +3,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.MainPanel',{
 	requires:[
 		'Optima5.Modules.Spec.DbsTracy.HelperCache',
 		'Optima5.Modules.Spec.DbsTracy.MainMenu',
-		'Optima5.Modules.Spec.DbsTracy.TrsptFilesGrid',
+		'Optima5.Modules.Spec.DbsTracy.FilesGrid',
 		'Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',
-		'Optima5.Modules.Spec.DbsTracy.FilesGrid'
+		'Optima5.Modules.Spec.DbsTracy.OrderFilePanel'
 	],
 	
 	initComponent: function() {
@@ -69,10 +69,12 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.MainPanel',{
 		//console.log("Action: "+actionCode) ;
 		
 		switch( actionCode ) {
-			case 'trspt_files' :
-				return me.switchToAppPanel('Optima5.Modules.Spec.DbsTracy.TrsptFilesGrid',{}) ;
+			case 'files' :
+				return me.switchToAppPanel('Optima5.Modules.Spec.DbsTracy.FilesGrid',{}) ;
 			case 'trspt_create' :
 				return me.optimaModule.postCrmEvent('opentrspt',{trsptNew:true}) ;
+			case 'order_create' :
+				return me.optimaModule.postCrmEvent('openorder',{orderNew:true}) ;
 			default :
 				return ;
 		}
@@ -140,5 +142,5 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.MainPanel',{
 				optimaModule: this.optimaModule
 			})
 		}) ;
-	},
+	}
 }) ;
