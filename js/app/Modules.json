@@ -154,5 +154,15 @@
 		"moduleCssSrc":"module-spec_bp_sales.css",
 		"moduleType":"sdomain",
 		"params": []
+	},{
+		"enabled":true,
+		"moduleId":"spec_dbs_tracy",
+		"backendModuleId":"crmbase",
+		"parentModuleId":"crmbase",
+		"moduleName":"(DBS) Transport",
+		"moduleClass":"Optima5.Modules.Spec.DbsTracy.DbsTracyModule",
+		"moduleCssSrc":"module-spec_dbs_tracy.css",
+		"moduleType":"sdomain",
+		"params": []
 	}
 ]

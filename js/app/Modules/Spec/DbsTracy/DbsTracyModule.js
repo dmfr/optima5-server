@@ -1,0 +1,26 @@
+Ext.define('Optima5.Modules.Spec.DbsTracy.DbsTracyModule', {
+	extend: 'Optima5.Module',
+	requires: [
+		'Optima5.Modules.Spec.DbsTracy.MainPanel'
+	],
+	
+	moduleParams: null,
+	
+	initModule: function() {
+		var me = this ;
+		
+		me.createWindow({
+			width:1100,
+			height:600,
+			resizable:true,
+			layout:'fit',
+			items:[Ext.create('Optima5.Modules.Spec.DbsTracy.MainPanel',{
+				optimaModule: me,
+				border: false
+			})]
+		}) ;
+	},
+	postCrmEvent: function( crmEvent, postParams ) {
+		this.callParent(arguments) ;
+	}
+});
