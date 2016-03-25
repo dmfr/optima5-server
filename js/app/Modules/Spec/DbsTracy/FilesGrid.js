@@ -1,4 +1,4 @@
-Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilesGrid',{
+Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 	extend:'Ext.panel.Panel',
 	
 	requires: [

@@ -4,7 +4,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.MainPanel',{
 		'Optima5.Modules.Spec.DbsTracy.HelperCache',
 		'Optima5.Modules.Spec.DbsTracy.MainMenu',
 		'Optima5.Modules.Spec.DbsTracy.TrsptFilesGrid',
-		'Optima5.Modules.Spec.DbsTracy.TrsptFilePanel'
+		'Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',
+		'Optima5.Modules.Spec.DbsTracy.FilesGrid'
 	],
 	
 	initComponent: function() {
@@ -25,6 +26,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.MainPanel',{
 		}, me) ;
 		
 		this.callParent() ;
+		this.mon(this.optimaModule,'op5broadcast',this.onCrmeventBroadcast,this) ;
 	},
 	startAnimation: function() {
 		var logoEl = Ext.get( Ext.DomQuery.selectNode('div.op5-spec-dbstracy-logo') );
@@ -70,7 +72,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.MainPanel',{
 			case 'trspt_files' :
 				return me.switchToAppPanel('Optima5.Modules.Spec.DbsTracy.TrsptFilesGrid',{}) ;
 			case 'trspt_create' :
-				return me.openTrpstFile(null) ;
+				return me.optimaModule.postCrmEvent('opentrspt',{trsptNew:true}) ;
 			default :
 				return ;
 		}
@@ -88,14 +90,27 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.MainPanel',{
 		panel.on('destroy',function(p) {
 			me.switchToMainMenu() ;
 		},this) ;
-		panel.on('opentrsptfile',function(p,trsptFilerecordId) {
-			me.openTrpstFile(trsptFilerecordId) ;
-		},this) ;
 		
 		this.removeAll() ;
 		this.add( panel ) ;
 	},
-	openTrpstFile: function(trsptFilerecordId) {
+	
+	
+	onCrmeventBroadcast: function(crmEvent, eventParams) {
+		switch( crmEvent ) {
+			case 'datachange' :
+				break ;
+			case 'opentrspt' :
+				return this.openTrsptFile( eventParams.trsptNew ? 0 : eventParams.trsptFilerecordId ) ;
+			case 'openorder' :
+				return this.openOrderFile( eventParams.orderNew ? 0 : eventParams.orderFilerecordId ) ;
+			default: break ;
+		}
+	},
+	openTrsptFile: function(trsptFilerecordId) {
+		if( trsptFilerecordId === null ) {
+			return ;
+		}
 		// new window
 		this.optimaModule.createWindow({
 			title: 'Create new shipping',
@@ -108,5 +123,22 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.MainPanel',{
 				optimaModule: this.optimaModule
 			})
 		}) ;
-	}
+	},
+	openOrderFile: function(orderFilerecordId) {
+		if( orderFilerecordId === null ) {
+			return ;
+		}
+		// new window
+		this.optimaModule.createWindow({
+			title: 'Create new order',
+			width:1150,
+			height:600,
+			iconCls: 'op5-crmbase-dataformwindow-icon',
+			animCollapse:false,
+			border: false,
+			items: Ext.create('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
+				optimaModule: this.optimaModule
+			})
+		}) ;
+	},
 }) ;

@@ -178,7 +178,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 				},
 				listeners: {
 					itemdblclick: function() {
-						this.openOrderFile() ;
+						this.optimaModule.postCrmEvent('openorder',{orderNew:true}) ;
 					},
 					scope: this
 				}
@@ -295,9 +295,5 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 			}]
 		}) ;
 		this.callParent() ;
-	},
-	
-	openOrderFile: function() {
-		
 	}
 });

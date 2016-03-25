@@ -21,6 +21,31 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.DbsTracyModule', {
 		}) ;
 	},
 	postCrmEvent: function( crmEvent, postParams ) {
-		this.callParent(arguments) ;
+		var me = this ;
+		if( typeof postParams === 'undefined' ) {
+			postParams = {} ;
+		}
+		
+		var eventParams = {} ;
+		switch( crmEvent ) {
+			case 'datachange' :
+				break ;
+			case 'opentrspt' :
+				Ext.apply( eventParams, {
+					trsptNew: postParams.trsptNew,
+					trsptFilerecordId: postParams.trsptFilerecordId,
+				}) ;
+				break ;
+			case 'openorder' :
+				Ext.apply( eventParams, {
+					orderNew: postParams.orderNew,
+					orderFilerecordId: postParams.orderFilerecordId,
+				}) ;
+				break ;
+			
+			default :
+				return ;
+		}
+		me.fireEvent('op5broadcast',crmEvent,eventParams) ;
 	}
 });

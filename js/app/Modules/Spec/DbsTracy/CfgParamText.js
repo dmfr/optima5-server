@@ -19,8 +19,6 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.CfgParamText',{
 			helperData = [] ;
 		}
 		
-		console.dir(helperData) ;
-		
 		Ext.apply( this, {
 			forceSelection:true,
 			allowBlank:false,
