@@ -6,6 +6,7 @@ Ext.define('DbsTracyCfgSocModel',{
 		{name: 'soc_txt', type:'string'}
 	]
 });
+
 Ext.define('DbsTracyCfgListItemModel',{
 	extend: 'Ext.data.Model',
 	idProperty: 'id',
@@ -26,6 +27,30 @@ Ext.define('DbsTracyCfgListModel',{
 		associationKey: 'records'
 	}]
 });
+
+Ext.define('DbsTracyCfgOrderStepModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'step_code',
+	fields: [
+		{name: 'step_code', type:'string'},
+		{name: 'step_txt', type:'string'},
+		{name: 'status_percent', type:'string'}
+	]
+});
+Ext.define('DbsTracyCfgOrderFlowModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'flow_code',
+	fields: [
+		{name: 'flow_code', type:'string'},
+		{name: 'flow_txt', type:'string'}
+	],
+	hasMany: [{
+		model: 'DbsTracyCfgOrderStepModel',
+		name: 'steps',
+		associationKey: 'steps'
+	}]
+});
+
 
 Ext.define('Optima5.Modules.Spec.DbsTracy.HelperCache',{
 	mixins: {
@@ -106,6 +131,10 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.HelperCache',{
 					type: 'json'
 				}
 			}
+		}) ;
+		this.cfgOrderflowStore = Ext.create('Ext.data.Store',{
+			model: 'DbsTracyCfgOrderFlowModel',
+			data : ajaxData.data.cfg_orderflow
 		}) ;
 		
 		this.onLoad() ;

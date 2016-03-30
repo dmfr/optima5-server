@@ -5,6 +5,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		'Optima5.Modules.Spec.DbsTracy.CfgParamButton'
 	],
 	
+	defaultViewMode: 'order',
+	viewMode: null,
+	
 	initComponent: function() {
 		Ext.apply(this, {
 			layout: 'fit',
@@ -15,7 +18,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 					this.doQuit() ;
 				},
 				scope: this
-			},Ext.create('Optima5.Modules.Spec.DbsTracy.CfgParamButton',{
+			},'-',Ext.create('Optima5.Modules.Spec.DbsTracy.CfgParamButton',{
 				cfgParam_id: 'SOC',
 				icon: 'images/op5img/ico_blocs_small.gif',
 				text: 'Companies / Customers',
@@ -35,32 +38,32 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 						scope: this
 					}
 				}
-			}),'-',{
-				icon: 'images/op5img/ico_search_16.gif',
-				handler: function(btn) {
-					btn.up().down('#txtSearch').reset() ;
-				}
-			},{
-				xtype: 'textfield',
-				itemId: 'txtSearch',
-				width: 100,
-				listeners: {
-					change: function(field) {
-						var value = field.getValue(),
-							store = this.down('grid').getStore() ;
-						if( Ext.isEmpty(value) ) {
-							store.clearFilter() ;
-							return ;
-						}
-						store.filter('prod_id',value) ;
+			}),'->',{
+				//iconCls: 'op5-spec-dbsembramach-report-clock',
+				itemId: 'tbViewmode',
+				viewConfig: {forceFit: true},
+				menu: {
+					defaults: {
+						handler:function(menuitem) {
+							//console.log('ch view '+menuitem.itemId) ;
+							this.onViewSet( menuitem.itemId ) ;
+						},
+						scope:this
 					},
-					scope: this
+					items: [{
+						itemId: 'order',
+						text: 'Orders',
+						iconCls: 'op5-spec-dbstracy-grid-view-order'
+					},{
+						itemId: 'order-group-trspt',
+						text: 'Orders w/ Transport',
+						iconCls: 'op5-spec-dbstracy-grid-view-ordergroup'
+					},{
+						itemId: 'trspt',
+						text: 'Transport Files',
+						iconCls: 'op5-spec-dbstracy-grid-view-trspt'
+					}]
 				}
-			},'->',{
-				icon:'images/op5img/ico_new_16.gif',
-				text:'Création Article',
-				handler: function() {},
-				scope: this
 			}],
 			items: [{
 				flex: 1,
@@ -83,7 +86,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			}
 		},this) ;
 		
-		this.doConfigure() ;
+		this.onViewSet(this.defaultViewMode) ;
 	},
 	onCrmeventBroadcast: function(crmEvent, eventParams) {
 		switch( crmEvent ) {
@@ -94,6 +97,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		}
 	},
 	onDataChange: function() {
+		return ;
 		if( this.isVisible() ) {
 			this.setViewRecord(null);
 			this.down('gridpanel').getStore().load() ;
@@ -102,12 +106,53 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		}
 	},
 	
-	doConfigure: function() {
+	onViewSet: function(viewId) {
+		var tbViewmode = this.child('toolbar').getComponent('tbViewmode'),
+			tbViewmodeItem = tbViewmode.menu.getComponent(viewId),
+			iconCls, text ;
+		if( tbViewmodeItem ) {
+			this.viewMode = viewId ;
+		}
+		// View mode
+		var tbViewmodeItem = tbViewmode.menu.getComponent(this.viewMode) ;
+		if( tbViewmodeItem ) {
+			tbViewmode.setText( 'View :'+'&#160;'+'<b>' + tbViewmodeItem.text + '</b>' );
+			tbViewmode.setIconCls( tbViewmodeItem.iconCls );
+		}
+		
 		// Create grid ?
-		
-		
+		var withGrouping ;
+		switch( this.viewMode ) {
+			case 'order' :
+			case 'order-group-trspt' :
+				return this.doConfigureOrder(withGrouping=(this.viewMode=='order-group-trspt')) ;
+				
+			case 'trspt' :
+				return this.doConfigureTrspt() ;
+				
+			default:
+				return this.doConfigureNull() ;
+		}
+	},
+	doConfigureNull: function() {
+		var pCenter = this.down('#pCenter') ;
+		pCenter.removeAll() ;
+		pCenter.add({
+			xtype:'box',
+			cls:'op5-waiting',
+			flex:1
+		});
+	},
+	doConfigureTrspt: function(withGrouping) {
+		this.doConfigureNull() ;
+	},
+	doConfigureOrder: function() {
+		this.doConfigureNull() ;
 	},
 	
+	onSocSet: function( socCode ) {
+		
+	},
 	
 	doQuit: function() {
 		this.destroy() ;

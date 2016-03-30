@@ -54,11 +54,13 @@
 	width: 104px;
 	height: 124px;
 	overflow: hidden;
-	cursor: pointer;
 	z-index: 1;
 	font-size: 14px;	
 }
-.op5-spec-dbstracy-mainmenu .op5-spec-dbstracy-mainmenu-item-over .op5-spec-dbstracy-mainmenu-action {
+.op5-spec-dbstracy-mainmenu .op5-spec-dbstracy-mainmenu-action-active {
+	cursor: pointer;
+}
+.op5-spec-dbstracy-mainmenu .op5-spec-dbstracy-mainmenu-item-over .op5-spec-dbstracy-mainmenu-action-active {
 	background-color: rgb(37, 68, 93);
 	border: 1px solid rgb(221, 221, 221);
 	padding: 4px;
@@ -102,3 +104,13 @@
     margin: 5px 25px 10px 20px !important;
 }
 
+
+.op5-spec-dbstracy-grid-view-order {
+	background-image: url("../images/modules/dbstracy-order-16.gif") !important;
+}
+.op5-spec-dbstracy-grid-view-ordergroup {
+	background-image: url("../images/modules/dbstracy-ordergroup-16.png") !important;
+}
+.op5-spec-dbstracy-grid-view-trspt {
+	background-image: url("../images/modules/dbstracy-trspt-16.png") !important;
+}

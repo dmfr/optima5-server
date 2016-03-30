@@ -12,10 +12,10 @@ switch( $post_data['_action'] )
 	case 'cfg_getConfig' :
 	return specDbsTracy_cfg_getConfig( $post_data ) ;
 	
-	case 'file_getList' :
-	return specDbsTracy_files_getList( $post_data ) ;
-	case 'file_getFile' :
-	return specDbsTracy_files_getFile( $post_data ) ;
+	case 'files_getTrspt' :
+	return specDbsTracy_files_getTrspt( $post_data ) ;
+	case 'files_getOrder' :
+	return specDbsTracy_files_getOrder( $post_data ) ;
 	
 	default :
 	return NULL ;

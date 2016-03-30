@@ -41,6 +41,36 @@ function specDbsTracy_cfg_getConfig() {
 	}
 	
 	
+	$TAB_orderflow = array() ;
+	$query = "SELECT * FROM view_bible_CFG_ORDERFLOW_tree WHERE treenode_parent_key IN ('','&') ORDER BY treenode_key" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$flow_code = $arr['field_FLOW_CODE'] ;
+		$record = array(
+			'flow_code' => $arr['field_FLOW_CODE'],
+			'flow_txt' => $arr['field_FLOW_TXT']
+		) ;
+		
+		$TAB_orderflow[$flow_code] = $record ;
+	}
+	$query = "SELECT * FROM view_bible_CFG_ORDERFLOW_entry ORDER BY treenode_key, entry_key" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$flow_code = $arr['treenode_key'] ;
+		if( !$TAB_orderflow[$flow_code] ) {
+			continue ;
+		}
+		$step_code = $arr['field_STEP_CODE'] ;
+		$record = array(
+			'step_code' => $arr['field_STEP_CODE'],
+			'step_txt' => $arr['field_STEP_TXT'],
+			'status_percent' => $arr['field_PERCENT']
+		) ;
+		
+		$TAB_orderflow[$flow_code]['steps'][] = $record ;
+	}
+	
+	
 	$TAB_list = array() ;
 	$json_define = paracrm_define_getMainToolbar( array('data_type'=>'bible') , true ) ;
 	foreach( $json_define['data_bible'] as $define_bible ) {
@@ -72,6 +102,7 @@ function specDbsTracy_cfg_getConfig() {
 
 	return array('success'=>true, 'data'=>array(
 		'cfg_soc' => $TAB_soc,
+		'cfg_orderflow' => $TAB_orderflow,
 		'cfg_list' => $TAB_list
 	))  ;
 }
