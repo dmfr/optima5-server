@@ -42,6 +42,19 @@ function specDbsTracy_cfg_getConfig() {
 	}
 	
 	
+	$TAB_priority = array() ;
+	$query = "SELECT * FROM view_bible_LIST_SERVICE_entry WHERE 1 ORDER BY entry_key" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$TAB_priority[] = array(
+			'prio_id' => $arr['field_CODE'],
+			'prio_txt' => $arr['field_TEXT'],
+			'prio_code' => $arr['field_TEXT'],
+			'prio_color' => $arr['field_COLOR']
+		) ;
+	}
+	
+	
 	$TAB_orderflow = array() ;
 	$query = "SELECT * FROM view_bible_CFG_ORDERFLOW_tree WHERE treenode_parent_key IN ('','&') ORDER BY treenode_key" ;
 	$result = $_opDB->query($query) ;
@@ -103,7 +116,8 @@ function specDbsTracy_cfg_getConfig() {
 
 	return array('success'=>true, 'data'=>array(
 		'cfg_soc' => $TAB_soc,
-		'cfg_orderflow' => $TAB_orderflow,
+		'cfg_orderflow' => array_values($TAB_orderflow),
+		'cfg_priority' => $TAB_priority,
 		'cfg_list' => $TAB_list
 	))  ;
 }

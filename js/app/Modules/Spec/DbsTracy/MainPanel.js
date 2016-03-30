@@ -122,7 +122,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.MainPanel',{
 			animCollapse:false,
 			border: false,
 			items: Ext.create('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
-				optimaModule: this.optimaModule
+				optimaModule: this.optimaModule,
+				_trsptNew: (trsptFilerecordId==0)
 			})
 		}) ;
 	},

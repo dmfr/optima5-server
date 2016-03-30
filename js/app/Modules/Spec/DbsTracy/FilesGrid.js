@@ -86,6 +86,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			}
 		},this) ;
 		
+		this.tmpModelCnt = 0 ;
+		
 		this.onViewSet(this.defaultViewMode) ;
 	},
 	onCrmeventBroadcast: function(crmEvent, eventParams) {
@@ -148,6 +150,174 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 	},
 	doConfigureOrder: function() {
 		this.doConfigureNull() ;
+		
+		var prioMap = {} ;
+		Ext.Array.each( Optima5.Modules.Spec.DbsTracy.HelperCache.getPriorityAll(), function(prio) {
+			prioMap[prio.prio_id] = prio ;
+		}) ;
+		
+		var stepRenderer = function(vObj,metaData) {
+			if( !vObj ) {
+				return '&#160;' ;
+			}
+			if( !vObj.pending && !vObj.ACTUAL_dateSql ) {
+				return '&#160;' ;
+			}
+			var dateSql ;
+			if( vObj.pending ) {
+				dateSql = vObj.ETA_dateSql ;
+			} else {
+				dateSql = vObj.ACTUAL_dateSql ;
+			}
+			switch( vObj.color ) {
+				case 'red' :
+				case 'orange' :
+				case 'green' :
+					metaData.tdCls += ' '+'op5-spec-dbsembramach-gridcell-'+vObj.color ;
+					break ;
+			}
+			if( vObj.pending && !Ext.isEmpty(dateSql) ) {
+				metaData.tdCls += ' '+'op5-spec-dbsembramach-gridcell-bold' ;
+			} else {
+				metaData.tdCls += ' '+'op5-spec-dbsembramach-gridcell-nobold' ;
+			}
+			if( Ext.isEmpty(dateSql) ) {
+				return '&#160;' ;
+			}
+			dateSql = Ext.Date.format(Ext.Date.parse(dateSql,'Y-m-d H:i:s'),'d/m/Y H:i') ;
+			return dateSql.replace(' ','<br>') ;
+		};
+		
+		var pushModelfields = [] ;
+		var columns = [{
+			text: 'Process step',
+			dataIndex: 'step_code',
+			width: 120,
+			filter: {
+				type: 'op5crmbasebible',
+				optimaModule: this.optimaModule,
+				bibleId: 'CFG_ORDERFLOW'
+			},
+			renderer: function( v, meta, record ) {
+				if( record.get('step_warning') ) {
+					meta.style += 'color:red; font-weight:bold;' ;
+				}
+				return record.get('step_txt') ;
+			}
+		}] ;
+		
+		var sortTypeFn = function(o1) {
+			var v1 = '' ;
+			if( o1 ) {
+				if( !Ext.isEmpty(o1.ACTUAL_dateSql) ) {
+					v1 = o1.ACTUAL_dateSql ;
+				} else if( !Ext.isEmpty(o1.ETA_dateSql) ) {
+					v1 = o1.ETA_dateSql ;
+				} else {
+					v1 = '' ;
+				}
+			}
+			return v1 ;
+		};
+		Ext.Array.each( Optima5.Modules.Spec.DbsTracy.HelperCache.getOrderflow('AIR').steps, function(step) {
+			pushModelfields.push({
+				name: 'step_'+step.step_code,
+				type: 'auto',
+				sortType: sortTypeFn
+			}) ;
+			columns.push({
+				text: step.step_code,
+				dataIndex: 'step_'+step.step_code,
+				renderer: stepRenderer,
+				width: 90,
+				align: 'center',
+				filter: {
+					type: 'date',
+					dateFormat: 'Y-m-d',
+					convertDateOnly: function(o1) {
+						// HACK : overridding private method
+						var v1 ;
+						if( Ext.isDate(o1) ) {
+							v1 = o1 ;
+						} else if( Ext.isObject(o1) ) {
+							if( !Ext.isEmpty(o1.ACTUAL_dateSql) ) {
+								v1 = o1.ACTUAL_dateSql ;
+							} else if( !Ext.isEmpty(o1.ETA_dateSql) ) {
+								v1 = o1.ETA_dateSql ;
+							} else {
+								v1 = null ;
+							}
+						}
+						var result = null;
+						if (v1) {
+							var v2 = new Date(v1) ;
+							v2.setHours(0,0,0,0) ;
+							result = v2.getTime();
+						}
+						return result;
+					}
+				}
+			});
+		}) ;
+		
+		var tmpModelName = 'DbsTracyFileRowModel-' + this.getId() + (++this.tmpModelCnt) ;
+		this.on('destroy',function(p) {
+			Ext.ux.dams.ModelManager.unregister( tmpModelName ) ;
+		}) ;
+		Ext.define(tmpModelName, {
+			extend: 'DbsTracyFileOrderModel',
+			fields: pushModelfields,
+			hasMany: [{
+				model: 'DbsTracyFileOrderStepModel',
+				name: 'steps',
+				associationKey: 'steps'
+			},{
+				model: 'DbsTracyFileOrderAttachmentModel',
+				name: 'attachments',
+				associationKey: 'attachments'
+			}]
+		});
+		
+		var columnDefaults = {
+			menuDisabled: (this._popupMode || this._readonlyMode ? true : false),
+			draggable: false,
+			sortable: (this._readonlyMode ? false : true),
+			hideable: false,
+			resizable: false,
+			groupable: false,
+			lockable: false
+		} ;
+		Ext.Array.each( columns, function(column) {
+			Ext.applyIf( column, columnDefaults ) ;
+		}) ;
+		
+		var tmpGridCfg = {
+			border: false,
+			xtype: 'grid',
+			itemId: 'pGrid',
+			bodyCls: 'op5-spec-dbsembramach-mach-grid',
+			store: {
+				model: tmpModelName,
+				data: []
+			},
+			columns: columns,
+			plugins: [{
+				ptype: 'uxgridfilters'
+			}],
+			viewConfig: {
+				getRowClass: function(record) {
+					if( record.get('status_closed') ) {
+						return 'op5-spec-dbsembramach-gridcell-done' ;
+					}
+				},
+				enableTextSelection: true
+			},
+			_prioMap: prioMap
+		} ;
+		
+		var pCenter = this.down('#pCenter') ;
+		pCenter.removeAll() ;
+		pCenter.add(tmpGridCfg);
 	},
 	
 	onSocSet: function( socCode ) {

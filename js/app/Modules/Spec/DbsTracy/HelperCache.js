@@ -7,6 +7,17 @@ Ext.define('DbsTracyCfgSocModel',{
 	]
 });
 
+Ext.define('DbsTracyCfgPriorityModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'prio_id',
+	fields: [
+		{name: 'prio_id', type:'string'},
+		{name: 'prio_txt', type:'string'},
+		{name: 'prio_code', type:'string'},
+		{name: 'prio_color', type:'string'}
+	]
+});
+
 Ext.define('DbsTracyCfgListItemModel',{
 	extend: 'Ext.data.Model',
 	idProperty: 'id',
@@ -61,6 +72,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.HelperCache',{
 	
 	cfgSocStore: null,
 	cfgListStore: null,
+	cfgPriorityStore: null,
 	
 	isReady: false,
 	nbLoaded: 0,
@@ -121,6 +133,10 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.HelperCache',{
 		this.cfgSocStore = Ext.create('Ext.data.Store',{
 			model: 'DbsTracyCfgSocModel',
 			data : ajaxData.data.cfg_soc
+		}) ;
+		this.cfgPriorityStore = Ext.create('Ext.data.Store',{
+			model: 'DbsTracyCfgPriorityModel',
+			data : ajaxData.data.cfg_priority
 		}) ;
 		this.cfgListStore = Ext.create('Ext.data.Store',{
 			model: 'DbsTracyCfgListModel',
@@ -191,7 +207,22 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.HelperCache',{
 		return this.cfgSocStore.getById(socCode) ? this.cfgSocStore.getById(socCode).getData(true) : null ;
 	},
 	
+	getPriorityAll: function() {
+		return Ext.pluck( this.cfgPriorityStore.getRange(), 'data' ) ;
+	},
+	
 	getListData: function(listId) {
 		return this.cfgListStore.getById(listId) ? Ext.pluck(this.cfgListStore.getById(listId).records().getRange(), 'data') : null ;
-	}
+	},
+	
+	getOrderflow: function( flowCode ) {
+		return this.cfgOrderflowStore.getById(flowCode) ? this.cfgOrderflowStore.getById(flowCode).getData(true) : null ;
+	},
+	getOrderflowAll: function() {
+		var data = [] ;
+		this.cfgOrderflowStore.each( function(record) {
+			data.push( record.getData(true) ) ;
+		}) ;
+		return data ;
+	},
 });

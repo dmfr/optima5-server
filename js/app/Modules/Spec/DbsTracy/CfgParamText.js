@@ -21,7 +21,6 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.CfgParamText',{
 		
 		Ext.apply( this, {
 			forceSelection:true,
-			allowBlank:false,
 			editable:true,
 			typeAhead:true,
 			selectOnFocus: true,

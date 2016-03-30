@@ -54,6 +54,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 				iconCls:'op5-sdomains-menu-submit',
 				text:'Save',
 				handler: function() {
+					this.doSaveHeader() ;
 				},
 				scope:this
 			},{
@@ -66,6 +67,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 			items:[{
 				flex: 2,
 				xtype: 'form',
+				itemId: 'pHeaderForm',
 				bodyCls: 'ux-noframe-bg',
 				bodyPadding: 15,
 				layout:'anchor',
@@ -73,34 +75,50 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 					labelWidth: 75,
 					anchor: '100%'
 				},
-				items: [{
+				items: [Ext.create('Optima5.Modules.Spec.DbsTracy.CfgParamField',{
+					cfgParam_id: 'SOC',
+					cfgParam_emptyDisplayText: 'Select...',
+					optimaModule: this.optimaModule,
+					fieldLabel: '<b>Company</b>',
+					name: 'id_soc',
+					allowBlank: false
+				}),{
 					xtype: 'textfield',
 					fieldLabel: '<b>WID</b>',
-					value: 'MBD/20000001'
+					value: '',
+					readOnly: true,
+					name: 'id_doc',
+					allowBlank: false
 				},{
 					xtype: 'datefield',
 					fieldLabel: 'Created',
 					format: 'd/m/Y',
-					submitFormat: 'Y-m-d'
+					submitFormat: 'Y-m-d',
+					name: 'date_create',
+					allowBlank: false
 				},{
 					xtype: 'op5specdbstracycfgparamtext',
 					cfgParam_id: 'LIST_CONSIGNEE',
-					fieldLabel: '<b>Consignee</b>'
+					fieldLabel: '<b>Consignee</b>',
+					allowBlank: false
 				},{
 					xtype: 'op5specdbstracycfgparamtext',
 					cfgParam_id: 'LIST_INCOTERM',
-					fieldLabel: 'Incoterm'
+					fieldLabel: 'Incoterm',
+					allowBlank: false
 				},{
 					xtype: 'op5specdbstracycfgparamtext',
 					cfgParam_id: 'LIST_SERVICE',
-					fieldLabel: 'Priority'
+					fieldLabel: 'Priority',
+					allowBlank: false
 				},{
 					xtype: 'fieldset',
 					title: 'Transport details',
 					items: [{
 						xtype: 'op5specdbstracycfgparamtext',
 						cfgParam_id: 'LIST_AIRPORT',
-						fieldLabel: 'Origin'
+						fieldLabel: 'Origin',
+						allowBlank: true
 					},{
 						xtype: 'op5specdbstracycfgparamtext',
 						cfgParam_id: 'LIST_AIRPORT',
@@ -128,6 +146,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 				}]
 			},{
 				flex: 3,
+				itemId: 'pOrdersGrid',
 				xtype: 'grid',
 				columns: [{
 					text: 'DN #',
@@ -185,9 +204,11 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 			},{
 				flex: 3,
 				xtype: 'panel',
+				itemId: 'pEvents',
 				layout: 'border',
 				items:[{
 					region: 'north',
+					itemId: 'pEventsForm',
 					title: 'New action',
 					collapsible: true,
 					collapsed: true,
@@ -219,6 +240,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 					}]
 				},{
 					region: 'center',
+					itemId: 'pEventsGrid',
 					flex: 3,
 					xtype: 'grid',
 					cls: 'op5-spec-dbstracy-feedgrid',
@@ -295,14 +317,42 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 			}]
 		}) ;
 		this.callParent() ;
-		this.loadTrspt( this._trsptFilerecordId ) ;
+		
+		this.on('afterrender', function() {
+			if( this._trsptNew ) {
+				this.newTrspt() ;
+			} else {
+				this.loadTrspt( this._trsptFilerecordId ) ;
+			}
+		},this) ;
 	},
 	
+	newTrspt: function() {
+		//fHeader
+		this.down('#pHeaderForm').getForm().reset() ;
+		this.down('#pHeaderForm').getForm().setValues({
+			date_create: new Date(),
+			id_doc: 'NEW'
+		});
+		
+		//gOrders
+		this.down('#pOrdersGrid').getEl().mask() ;
+		
+		//gEvents
+		this.down('#pEvents').getEl().mask() ;
+	},
 	loadTrspt: function( filerecordId ) {
 		this.showLoadmask() ;
 	},
 	onLoadTrspt: function( trsptRecord ) {
 		this.hideLoadmask() ;
+		
+		//fHeader
+		
+		//gOrders
+		
+		//gEvents
+		
 	},
 	doReload: function() {
 		this.loadTrspt( this._trsptFilerecordId ) ;
@@ -330,5 +380,23 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 			this.loadMask.destroy() ;
 			this.loadMask = null ;
 		}
+	},
+	
+	doSaveHeader: function() {
+		var formPanel = this.down('#pHeaderForm'),
+			form = formPanel.getForm() ;
+		if( !form.isValid() ) {
+			return ;
+		}
+		
+	},
+	doOrdersAdd: function() {
+		
+	},
+	doOrdersRemove: function() {
+		
+	},
+	doSubmitEvent: function() {
+		
 	}
 });
