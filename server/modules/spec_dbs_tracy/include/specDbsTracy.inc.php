@@ -1,6 +1,7 @@
 <?php
 
-include("$server_root/modules/spec_dbs_tracy/include/specDbsTracy_files.inc.php") ;
+include("$server_root/modules/spec_dbs_tracy/include/specDbsTracy_order.inc.php") ;
+include("$server_root/modules/spec_dbs_tracy/include/specDbsTracy_trspt.inc.php") ;
 
 function specDbsTracy_cfg_getAuth( $post_data ) {
 	global $_opDB ;

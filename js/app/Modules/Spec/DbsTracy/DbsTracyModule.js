@@ -5,7 +5,7 @@ Ext.define('DbsTracyFileOrderStepModel',{
 		{name: 'orderstep_filerecord_id', type:'int'},
 		{name: 'step_code', type:'string'},
 		{name: 'status_is_ok', type:'int'},
-		{name: 'status_date_actual', type:'string'}
+		{name: 'date_actual', type:'string'}
 	]
 });
 
@@ -14,7 +14,7 @@ Ext.define('DbsTracyFileOrderAttachmentModel',{
 	idProperty: 'orderattachment_filerecord_id',
 	fields: [
 		{name: 'orderattachment_filerecord_id', type:'int'},
-		{name: 'doc_type', type:'string'}
+		{name: 'attachment_type', type:'string'}
 	]
 });
 
@@ -22,7 +22,15 @@ Ext.define('DbsTracyFileOrderModel',{
 	extend: 'Ext.data.Model',
 	idProperty: 'order_filerecord_id',
 	fields: [
-		{name: 'order_filerecord_id', type:'int'}
+		{name: 'order_filerecord_id', type:'int'},
+		{name: 'id_soc', type:'string'},
+		{name: 'id_dn', type:'string'},
+		{name: 'ref_po', type:'string'},
+		{name: 'atr_priority', type:'string'},
+		{name: 'atr_consignee', type:'string'},
+		{name: 'txt_location', type:'string'},
+		{name: 'vol_dims', type:'string'},
+		{name: 'vol_count', type:'int'}
 	],
 	hasMany: [{
 		model: 'DbsTracyFileOrderStepModel',
