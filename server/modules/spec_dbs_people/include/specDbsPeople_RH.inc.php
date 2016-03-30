@@ -395,7 +395,7 @@ function specDbsPeople_RH_setCalcAttributeSetupFile( $post_data ) {
 	foreach( json_decode($post_data['data'],true) as $row ) {
 		$arr_ins = array() ;
 		foreach( $map_dbField_returnField as $dbField => $returnField ) {
-			if( $returnField=='value' && $row[$returnField]==NULL ) {
+			if( $returnField=='value' && !is_numeric($row[$returnField]) ) {
 				$arr_ins['_DELETE'] = TRUE ;
 			}
 			$arr_ins[$dbField] = $row[$returnField] ;
