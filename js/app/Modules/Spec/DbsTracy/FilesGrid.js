@@ -218,7 +218,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			align: 'center'
 		},{
 			text: '<b>DN#</b>',
-			dataIndex: 'id_doc',
+			dataIndex: 'id_dn',
 			width:90,
 			tdCls: 'op5-spec-dbstracy-bigcolumn',
 			align: 'center',

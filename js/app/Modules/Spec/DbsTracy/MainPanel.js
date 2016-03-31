@@ -123,7 +123,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.MainPanel',{
 			border: false,
 			items: Ext.create('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 				optimaModule: this.optimaModule,
-				_trsptNew: (trsptFilerecordId==0)
+				_trsptNew: (trsptFilerecordId==0),
+				_trsptFilerecordId: trsptFilerecordId
 			})
 		}) ;
 	},
@@ -140,7 +141,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.MainPanel',{
 			animCollapse:false,
 			border: false,
 			items: Ext.create('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
-				optimaModule: this.optimaModule
+				optimaModule: this.optimaModule,
+				_orderNew: (orderFilerecordId==0),
+				_orderFilerecordId: orderFilerecordId
 			})
 		}) ;
 	}

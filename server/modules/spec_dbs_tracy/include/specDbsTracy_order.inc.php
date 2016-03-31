@@ -11,16 +11,16 @@ function specDbsTracy_order_getRecords( $post_data ) {
 	$TAB_order = array() ;
 	
 	$query = "SELECT * FROM view_file_CDE c" ;
-	$query = " WHERE 1" ;
+	$query.= " WHERE 1" ;
 	if( isset($filter_orderFilerecordId_list) ) {
-		$query = " AND t.filerecord_id IN {$filter_orderFilerecordId_list}" ;
+		$query.= " AND c.filerecord_id IN {$filter_orderFilerecordId_list}" ;
 	}
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$TAB_order[$arr['filerecord_id']] = array(
 			'order_filerecord_id' => $arr['filerecord_id'],
 			'id_soc' => $arr['field_ID_SOC'],
-			'id_doc' => $arr['field_ID_DOC'],
+			'id_dn' => $arr['field_ID_DN'],
 			'ref_po' => $arr['field_REF_PO'],
 			'atr_priority' => $arr['field_ATR_PRIORITY'],
 			'atr_consignee' => $arr['field_ATR_CONSIGNEE'],
@@ -36,7 +36,7 @@ function specDbsTracy_order_getRecords( $post_data ) {
 	$query = "SELECT * FROM view_file_CDE_ATTACH ca" ;
 	$query.= " WHERE 1" ;
 	if( isset($filter_orderFilerecordId_list) ) {
-		$query = " AND ca.filerecord_parent_id IN {$filter_orderFilerecordId_list}" ;
+		$query.= " AND ca.filerecord_parent_id IN {$filter_orderFilerecordId_list}" ;
 	}
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
@@ -49,11 +49,11 @@ function specDbsTracy_order_getRecords( $post_data ) {
 	$query = "SELECT * FROM view_file_CDE_STEP cs" ;
 	$query.= " WHERE 1" ;
 	if( isset($filter_orderFilerecordId_list) ) {
-		$query = " AND cs.filerecord_parent_id IN {$filter_orderFilerecordId_list}" ;
+		$query.= " AND cs.filerecord_parent_id IN {$filter_orderFilerecordId_list}" ;
 	}
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
-		$TAB_order[$arr['filerecord_parent_id']]['orders'][] = array(
+		$TAB_order[$arr['filerecord_parent_id']]['steps'][] = array(
 			'orderstep_filerecord_id' => $arr['filerecord_id'],
 			'step_code' => $arr['field_STEP_CODE'],
 			'status_is_ok' => $arr['field_STATUS_IS_OK'],
@@ -65,12 +65,56 @@ function specDbsTracy_order_getRecords( $post_data ) {
 }
 
 function specDbsTracy_order_setHeader( $post_data ) {
+	usleep(500000);
 	global $_opDB ;
+	$file_code = 'CDE' ;
+	
+	$form_data = json_decode($post_data['data'],true) ;
 	
 	$arr_ins = array() ;
+	if( $post_data['_is_new'] ) {
+		$arr_ins['field_ID_SOC'] = $form_data['id_soc'] ;
+		$arr_ins['field_ID_DN'] = $form_data['id_dn'] ;
+	}
+	$arr_ins['field_REF_PO'] = $form_data['ref_po'] ;
+	$arr_ins['field_ATR_PRIORITY'] = $form_data['atr_priority'] ;
+	$arr_ins['field_ATR_CONSIGNEE'] = $form_data['atr_consignee'] ;
+	$arr_ins['field_TXT_LOCATION'] = $form_data['txt_location'] ;
+	$arr_ins['field_VOL_DIMS'] = $form_data['vol_dims'] ;
+	$arr_ins['field_VOL_COUNT'] = $form_data['vol_count'] ;
 	
+	if( $post_data['_is_new'] ) {
+		$filerecord_id = paracrm_lib_data_insertRecord_file( $file_code, 0, $arr_ins );
+	} elseif( $post_data['order_filerecord_id'] ) {
+		$filerecord_id = paracrm_lib_data_updateRecord_file( $file_code, $arr_ins, $post_data['order_filerecord_id'] );
+	} else {
+		return array('success'=>false) ;
+	}
 	
-	return array('success'=>false, 'debug'=>$post_data) ;
+	if( TRUE ) {
+		$file_code = 'CDE_STEP' ;
+	
+		// TODO : specify order flow
+		$orderflow_AIR = NULL ;
+		
+		$ttmp = specDbsTracy_cfg_getConfig() ;
+		$json_cfg = $ttmp['data'] ;
+		foreach( $json_cfg['cfg_orderflow'] as $orderflow ) {
+			if( $orderflow['flow_code'] == 'AIR' ) {
+				$orderflow_AIR = $orderflow ;
+				break ;
+			}
+		}
+		if( $orderflow_AIR ) {
+			foreach( $orderflow_AIR['steps'] as $orderflow_step ) {
+				$arr_ins = array() ;
+				$arr_ins['field_STEP_CODE'] = $orderflow_step['step_code'] ;
+				paracrm_lib_data_insertRecord_file($file_code,$filerecord_id,$arr_ins,$ignore_ifExists=TRUE) ;
+			}
+		}
+	}
+	
+	return array('success'=>true, 'id'=>$filerecord_id) ;
 }
 
 ?>

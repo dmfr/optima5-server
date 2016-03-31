@@ -11,9 +11,9 @@ function specDbsTracy_trspt_getRecords( $post_data ) {
 	$TAB_trspt = array() ;
 	
 	$query = "SELECT * FROM view_file_TRSPT t" ;
-	$query = " WHERE 1" ;
+	$query.= " WHERE 1" ;
 	if( isset($filter_trsptFilerecordId_list) ) {
-		$query = " AND t.filerecord_id IN {$filter_trsptFilerecordId_list}" ;
+		$query.= " AND t.filerecord_id IN {$filter_trsptFilerecordId_list}" ;
 	}
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
@@ -42,7 +42,7 @@ function specDbsTracy_trspt_getRecords( $post_data ) {
 	$query = "SELECT * FROM view_file_TRSPT_EVENT te" ;
 	$query.= " WHERE 1" ;
 	if( isset($filter_trsptFilerecordId_list) ) {
-		$query = " AND te.filerecord_parent_id IN {$filter_trsptFilerecordId_list}" ;
+		$query.= " AND te.filerecord_parent_id IN {$filter_trsptFilerecordId_list}" ;
 	}
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
@@ -57,7 +57,7 @@ function specDbsTracy_trspt_getRecords( $post_data ) {
 	$query = "SELECT * FROM view_file_TRSPT_CDE to" ;
 	$query.= " WHERE 1" ;
 	if( isset($filter_trsptFilerecordId_list) ) {
-		$query = " AND to.filerecord_parent_id IN {$filter_trsptFilerecordId_list}" ;
+		$query.= " AND to.filerecord_parent_id IN {$filter_trsptFilerecordId_list}" ;
 	}
 	$result = $_opDB->query($query) ;
 	$filter_orderFilerecordId_arr = array() ;

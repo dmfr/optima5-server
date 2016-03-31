@@ -127,7 +127,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 					fieldLabel: '<b>DN #</b>',
 					anchor: '',
 					width: 250,
-					name: 'id_doc',
+					name: 'id_dn',
 					allowBlank: false
 				},{
 					xtype: 'textfield',
@@ -206,6 +206,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 			},{
 				flex: 3,
 				xtype: 'grid',
+				itemId: 'pStepsGrid',
 				columns: [{
 					text: 'DN #',
 					width: 75,
@@ -255,11 +256,13 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 				}
 			},{
 				flex: 2,
+				itemId: 'pAttachments',
 				title: 'Attachments',
 				xtype: 'panel',
 				layout: 'fit',
 				items: {
 					xtype: 'dataview',
+					itemId: 'pAttachmentsDv',
 					store: {
 						fields: ['url_id'],
 						data: [{
@@ -357,7 +360,16 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 				}
 			}]
 		}) ;
+		
 		this.callParent() ;
+		
+		this.on('afterrender', function() {
+			if( this._orderNew ) {
+				this.newOrder() ;
+			} else {
+				this.loadOrder( this._orderFilerecordId ) ;
+			}
+		},this) ;
 	},
 	showPhoto: function( url_id ) {
 		var imageviewerWindow = this.optimaModule.createWindow({
@@ -404,28 +416,53 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 		
 		//fHeader
 		this.down('#pHeaderForm').getForm().reset() ;
-		this.down('#pHeaderForm').getForm().findField('id_doc').set
+		this.down('#pHeaderForm').getForm().findField('id_dn').setReadOnly(false) ;
 		
-		//gOrders
-		//this.down('#pOrdersGrid').getEl().mask() ;
+		//gSteps
+		this.down('#pStepsGrid').getEl().mask() ;
+		this.down('#pStepsGrid').getStore().removeAll() ;
 		
-		//gEvents
-		//this.down('#pEvents').getEl().mask() ;
+		//gAttachments
+		this.down('#pAttachmentsDv').getEl().mask() ;
+		this.down('#pAttachmentsDv').getStore().removeAll() ;
 	},
 	loadOrder: function( filerecordId ) {
 		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_tracy',
+				_action: 'order_getRecords',
+				filter_orderFilerecordId_arr: Ext.JSON.encode([filerecordId])
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false || ajaxResponse.data.length != 1 ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+				this.onLoadOrder(Ext.ux.dams.ModelManager.create('DbsTracyFileOrderModel',ajaxResponse.data[0])) ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
 	},
 	onLoadOrder: function( orderRecord ) {
-		this.hideLoadmask() ;
 		this._orderFilerecordId = orderRecord.getId() ;
 		
 		//fHeader
+		this.down('#pHeaderForm').getForm().reset() ;
+		this.down('#pHeaderForm').getForm().findField('id_dn').setReadOnly(true) ;
+		this.down('#pHeaderForm').getForm().loadRecord(orderRecord) ;
 		
+		//gSteps
+		this.down('#pStepsGrid').getEl().unmask() ;
+		this.down('#pStepsGrid').getStore().loadData(orderRecord.steps().getRange()) ;
 		
-		//gOrders
-		
-		//gEvents
-		
+		//gAttachments
+		this.down('#pAttachmentsDv').getEl().unmask() ;
+		this.down('#pAttachmentsDv').getStore().loadData(orderRecord.attachments().getRange()) ;
 	},
 	doReload: function() {
 		this.loadOrder( this._orderFilerecordId ) ;
@@ -441,20 +478,20 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 		var recordData = form.getValues(false,false,false,true) ;
 		recordData['vol_dims'] = recordData['vol_dim_l'] + ' x ' + recordData['vol_dim_w'] + ' x ' + recordData['vol_dim_h'] ;
 		
-		var ajaxParams = {
-			_moduleId: 'spec_dbs_tracy',
-			_action: 'order_setHeader',
-			_is_new: ( this._orderNew ? 1 : 0 ),
-			order_filerecord_id: ( this._orderNew ? null : this._orderFilerecordId ),
-			data: Ext.JSON.encode(recordData)
-		} ;
 		this.showLoadmask() ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
-			params: ajaxParams,
+			params: {
+				_moduleId: 'spec_dbs_tracy',
+				_action: 'order_setHeader',
+				_is_new: ( this._orderNew ? 1 : 0 ),
+				order_filerecord_id: ( this._orderNew ? null : this._orderFilerecordId ),
+				data: Ext.JSON.encode(recordData)
+			},
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
 				if( ajaxResponse.success == false ) {
-					Ext.MessageBox.alert('Error','File not saved !') ;
+					var error = ajaxResponse.success || 'File not saved !' ;
+					Ext.MessageBox.alert('Error',error) ;
 					return ;
 				}
 				this.onSaveHeader(ajaxResponse.id) ;
