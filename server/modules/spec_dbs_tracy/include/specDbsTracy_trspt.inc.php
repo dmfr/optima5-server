@@ -15,6 +15,7 @@ function specDbsTracy_trspt_getRecords( $post_data ) {
 	if( isset($filter_trsptFilerecordId_list) ) {
 		$query.= " AND t.filerecord_id IN {$filter_trsptFilerecordId_list}" ;
 	}
+	$query.= " ORDER BY t.filerecord_id DESC" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$TAB_trspt[$arr['filerecord_id']] = array(

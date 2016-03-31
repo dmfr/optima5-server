@@ -15,6 +15,7 @@ function specDbsTracy_order_getRecords( $post_data ) {
 	if( isset($filter_orderFilerecordId_list) ) {
 		$query.= " AND c.filerecord_id IN {$filter_orderFilerecordId_list}" ;
 	}
+	$query.= " ORDER BY c.filerecord_id DESC" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$TAB_order[$arr['filerecord_id']] = array(

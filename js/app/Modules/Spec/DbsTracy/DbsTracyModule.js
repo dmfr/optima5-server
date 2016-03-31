@@ -4,7 +4,8 @@ Ext.define('DbsTracyFileOrderStepModel',{
 	fields: [
 		{name: 'orderstep_filerecord_id', type:'int'},
 		{name: 'step_code', type:'string'},
-		{name: 'status_is_ok', type:'int'},
+		{name: 'step_txt', type:'string'}, // null => to convert
+		{name: 'status_is_ok', type:'boolean'},
 		{name: 'date_actual', type:'string'}
 	]
 });
@@ -23,6 +24,7 @@ Ext.define('DbsTracyFileOrderModel',{
 	idProperty: 'order_filerecord_id',
 	fields: [
 		{name: 'order_filerecord_id', type:'int'},
+		{name: 'flow_code', type:'string'}, //TODO ?
 		{name: 'id_soc', type:'string'},
 		{name: 'id_dn', type:'string'},
 		{name: 'ref_po', type:'string'},

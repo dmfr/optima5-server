@@ -150,7 +150,13 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.HelperCache',{
 		}) ;
 		this.cfgOrderflowStore = Ext.create('Ext.data.Store',{
 			model: 'DbsTracyCfgOrderFlowModel',
-			data : ajaxData.data.cfg_orderflow
+			data : ajaxData.data.cfg_orderflow,
+			proxy: {
+				type: 'memory',
+				reader: {
+					type: 'json'
+				}
+			}
 		}) ;
 		
 		this.onLoad() ;
@@ -217,6 +223,18 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.HelperCache',{
 	
 	getOrderflow: function( flowCode ) {
 		return this.cfgOrderflowStore.getById(flowCode) ? this.cfgOrderflowStore.getById(flowCode).getData(true) : null ;
+	},
+	getOrderflowByStep: function( stepCode ) {
+		var matchFlow = null ;
+		this.cfgOrderflowStore.each( function(flowRecord) {
+			if( flowRecord.steps().getById(stepCode) != null ) {
+				matchFlow = flowRecord ;
+			}
+		}) ;
+		if( matchFlow ) {
+			return matchFlow.getData(true) ;
+		}
+		return null ;
 	},
 	getOrderflowAll: function() {
 		var data = [] ;

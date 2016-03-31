@@ -178,6 +178,12 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			prioMap[prio.prio_id] = prio ;
 		}) ;
 		
+		var consigneeMap = {} ;
+		Ext.Array.each( Optima5.Modules.Spec.DbsTracy.HelperCache.getListData('LIST_CONSIGNEE'), function(r) {
+			consigneeMap[r.id] = r.text ;
+		}) ;
+		
+		
 		var stepRenderer = function(vObj,metaData) {
 			if( !vObj ) {
 				return '&#160;' ;
@@ -198,7 +204,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 					metaData.tdCls += ' '+'op5-spec-dbsembramach-gridcell-'+vObj.color ;
 					break ;
 			}
-			if( vObj.pending && !Ext.isEmpty(dateSql) ) {
+			if( !Ext.isEmpty(dateSql) ) {
 				metaData.tdCls += ' '+'op5-spec-dbsembramach-gridcell-bold' ;
 			} else {
 				metaData.tdCls += ' '+'op5-spec-dbsembramach-gridcell-nobold' ;
@@ -219,11 +225,15 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		},{
 			text: '<b>DN#</b>',
 			dataIndex: 'id_dn',
-			width:90,
+			width:120,
 			tdCls: 'op5-spec-dbstracy-bigcolumn',
+			resizable: true,
 			align: 'center',
 			filter: {
 				type: 'string'
+			},
+			renderer: function(v) {
+				return '<b>'+v+'</b>';
 			}
 		},{
 			text: 'Priority',
@@ -246,8 +256,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		},{
 			text: 'PO#',
 			dataIndex: 'ref_po',
-			width:80,
+			width:120,
 			tdCls: 'op5-spec-dbstracy-bigcolumn',
+			resizable: true,
 			align: 'center',
 			filter: {
 				type: 'string'
@@ -256,11 +267,29 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			text: '<b>Consignee</b><br>Site location',
 			dataIndex: 'atr_consignee',
 			width:120,
-			align: 'center',
+			align: 'left',
 			filter: {
 				type: 'op5crmbasebible',
 				optimaModule: this.optimaModule,
 				bibleId: 'LIST_CONSIGNEE'
+			},
+			renderer: function(v,metaData,record) {
+				var str = '' ;
+				
+				str+= '<b>' ;
+				var consigneeMap = this._consigneeMap ;
+				if( prioMap.hasOwnProperty(v) ) {
+					str+= consigneeMap[v] ;
+				} else {
+					str+= v ;
+				}
+				str+= '</b>' ;
+				
+				if( !Ext.isEmpty( record.get('txt_location') ) ) {
+					str+= '<br>' ;
+					str+= Ext.util.Format.nl2br( Ext.String.htmlEncode( record.get('txt_location') ) ) ;
+				}
+				return str ;
 			}
 		},{
 			text: '<b>Current step</b>',
@@ -381,6 +410,11 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			plugins: [{
 				ptype: 'uxgridfilters'
 			}],
+			listeners: {
+				render: this.doConfigureOrderOnRender,
+				itemcontextmenu: this.onOrderContextMenu,
+				scope: this
+			},
 			viewConfig: {
 				getRowClass: function(record) {
 					if( record.get('status_closed') ) {
@@ -389,7 +423,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				},
 				enableTextSelection: true
 			},
-			_prioMap: prioMap
+			_prioMap: prioMap,
+			_consigneeMap: consigneeMap
 		} ;
 		
 		var pCenter = this.down('#pCenter') ;
@@ -397,6 +432,40 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		pCenter.add(tmpGridCfg);
 		
 		this.doLoad() ;
+	},
+	doConfigureOrderOnRender: function() {
+		
+	},
+	onOrderContextMenu: function(view, record, item, index, event) {
+		var gridContextMenuItems = new Array() ;
+		
+		var selRecords = view.getSelectionModel().getSelection() ;
+		if( selRecords.length != 1 ) {
+			return ;
+		}
+		var selRecord = selRecords[0] ;
+		gridContextMenuItems.push({
+			disabled: true,
+			text: '<b>'+selRecord.get('id_soc')+'/'+selRecord.get('id_dn')+'</b>',
+		},'-',{
+			iconCls: 'icon-bible-edit',
+			text: 'Edit / modify',
+			handler : function() {
+				this.handleEditOrder( selRecord.getId() ) ;
+			},
+			scope : this
+		});
+		
+		var gridContextMenu = Ext.create('Ext.menu.Menu',{
+			items : gridContextMenuItems,
+			listeners: {
+				hide: function(menu) {
+					Ext.defer(function(){menu.destroy();},10) ;
+				}
+			}
+		}) ;
+		
+		gridContextMenu.showAt(event.getXY());
 	},
 	
 	onSocSet: function( socCode ) {
@@ -417,10 +486,45 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		}
 	},
 	doLoadOrder: function() {
-		
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_tracy',
+				_action: 'order_getRecords'
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+				this.onLoadOrder(ajaxResponse.data) ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
 	},
 	onLoadOrder: function(ajaxData) {
+		var flowSteps = Optima5.Modules.Spec.DbsTracy.HelperCache.getOrderflow('AIR').steps ; //TODO
 		
+		var gridData = [] ;
+		Ext.Array.each(ajaxData, function(row) {
+			Ext.Array.each( row.steps, function(rowStep) {
+				var stepCode = rowStep.step_code,
+					rowKey = 'step_'+stepCode ;
+				if( rowStep.status_is_ok != 1 ) {
+					return ;
+				}
+				row[rowKey] = {
+					color: 'green',
+					ACTUAL_dateSql: rowStep.date_actual
+				} ;
+			}) ;
+			gridData.push(row) ;
+		}) ;
+		this.down('#pCenter').down('grid').getStore().loadRawData(gridData) ;
 	},
 	
 	doLoadTrspt: function() {
@@ -428,6 +532,34 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 	},
 	onLoadTrspt: function(ajaxData) {
 		
+	},
+	
+	showLoadmask: function() {
+		if( this.rendered ) {
+			this.doShowLoadmask() ;
+		} else {
+			this.on('afterrender',this.doShowLoadmask,this,{single:true}) ;
+		}
+	},
+	doShowLoadmask: function() {
+		if( this.loadMask ) {
+			return ;
+		}
+		this.loadMask = Ext.create('Ext.LoadMask',{
+			target: this,
+			msg:"Please wait..."
+		}).show();
+	},
+	hideLoadmask: function() {
+		this.un('afterrender',this.doShowLoadmask,this) ;
+		if( this.loadMask ) {
+			this.loadMask.destroy() ;
+			this.loadMask = null ;
+		}
+	},
+	
+	handleEditOrder: function( orderFilerecordId ) {
+		this.optimaModule.postCrmEvent('openorder',{orderFilerecordId:orderFilerecordId}) ;
 	},
 	
 	doQuit: function() {

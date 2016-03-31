@@ -208,51 +208,64 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 				xtype: 'grid',
 				itemId: 'pStepsGrid',
 				columns: [{
-					text: 'DN #',
-					width: 75,
-					dataIndex: 'tmp_dn'
-				},{
-					text: 'PO #',
-					width: 75,
-					dataIndex: 'tmp_po'
-				},{
-					text: 'Status',
-					width: 100,
-					renderer: function(v,m,record) {
-						var tmpProgress = record.get('tmp_status_percent') / 100 ;
-						var tmpText = record.get('tmp_status_text') ;
-							var b = new Ext.ProgressBar({height: 15, cls: 'op5-spec-mrfoxy-promolist-progress'});
-							b.updateProgress(tmpProgress,tmpText);
-							v = Ext.DomHelper.markup(b.getRenderTree());
-							b.destroy() ;
-						return v;
+					text: 'Code',
+					width: 90,
+					dataIndex: 'step_code',
+					renderer: function(v) {
+						return '<b>'+v+'</b>' ;
 					}
 				},{
-					text: 'Parcels',
-					width: 60,
-					dataIndex: 'tmp_parcels'
+					text: 'Step',
+					width: 80,
+					dataIndex: 'step_txt'
 				},{
-					text: 'Dimensions',
-					width: 150,
-					dataIndex: 'tmp_dims'
+					text: 'Status',
+					width: 50,
+					dataIndex: 'status_is_ok',
+					editor:{ xtype:'checkboxfield' }
+				},{
+					text: 'Date OK',
+					width: 160,
+					dataIndex: 'date_actual',
+					editor:{ xtype:'datetimefield' }
+				}],
+				plugins: [{
+					ptype: 'rowediting',
+					listeners: {
+						edit: this.onAfterEditStep,
+						scope: this
+					}
 				}],
 				store: {
-					fields: ['tmp_dn','tmp_po','tmp_status_percent','tmp_status_text','tmp_parcels','tmp_dims'],
-					data: [{
-						tmp_dn: '132465',
-						tmp_po: '879878',
-						tmp_status_percent: 20,
-						tmp_status_text: 'WaitDocuments',
-						tmp_parcels: '1',
-						tmp_dims: '250 x 350 x 1200'
-					},{
-						tmp_dn: '540000',
-						tmp_po: '879899',
-						tmp_status_percent: 35,
-						tmp_status_text: 'Ready',
-						tmp_parcels: '2',
-						tmp_dims: '400 x 500 x 500'
-					}]
+					model: 'DbsTracyFileOrderStepModel',
+					data: [],
+					proxy: {
+						type: 'memory',
+						reader: {
+							type: 'json'
+						}
+					},
+					listeners: {
+						datachanged: function(store) {
+							store.each( function(record) {
+								var flow = Optima5.Modules.Spec.DbsTracy.HelperCache.getOrderflowByStep( record.get('step_code') ) ;
+								if( flow == null ) {
+									return ;
+								}
+								var curStep = null ;
+								Ext.Array.each( flow.steps, function(step) {
+									if( step.step_code == record.get('step_code') ) {
+										curStep = step ;
+										return false ;
+									}
+								});
+								if( curStep == null ) {
+									return ;
+								}
+								record.data['step_txt'] = curStep.step_txt ;
+							}) ;
+						}
+					}
 				}
 			},{
 				flex: 2,
@@ -458,7 +471,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 		
 		//gSteps
 		this.down('#pStepsGrid').getEl().unmask() ;
-		this.down('#pStepsGrid').getStore().loadData(orderRecord.steps().getRange()) ;
+		this.down('#pStepsGrid').getStore().loadRawData(orderRecord.steps().getRange()) ;
 		
 		//gAttachments
 		this.down('#pAttachmentsDv').getEl().unmask() ;
@@ -508,7 +521,61 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 		if( this._orderNew ) {
 			this.loadOrder(savedId) ;
 		} else {
-			this.destroy() ;
+			this.fireEvent('candestroy',this) ;
 		}
-	}
+	},
+	
+	onAfterEditStep: function(editor,editEvent) {
+		return ;
+		var me = this,
+			crmFields = {},
+			editedRecord = editEvent.record ;
+		
+		if( editedRecord.get('filerecord_id') == -1 ) {
+			editedRecord.set('filerecord_id',0);
+		}
+			
+		Ext.Object.each( me.gridCfg.grid_fields , function(k,v) {
+			if( v.link_bible && !v.is_raw_link ) {
+				return ;
+			}
+			
+			if( editedRecord.data[v.field] != null && v.file_field != null ) {
+				var fieldCode = 'field_'+v.file_field ;
+				switch( v.type ) {
+					case 'date' :
+						crmFields[fieldCode] = Ext.Date.format(editedRecord.data[v.field], 'Y-m-d H:i:s') ;
+						break ;
+						
+					default :
+						crmFields[fieldCode] = editedRecord.data[v.field] ;
+						break ;
+				}
+			}
+		}) ;
+		
+		
+		var ajaxParams = new Object() ;
+		Ext.apply( ajaxParams, {
+			_action: 'data_setFileGrid_raw',
+			data: Ext.JSON.encode(crmFields),
+			file_code: this.fileId,
+			is_new: ( editedRecord.get('filerecord_id')>0 ? 0 : 1 ),
+			filerecord_id: editedRecord.get('filerecord_id')
+		});
+		me.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams ,
+			success: function(response) {
+				if( Ext.decode(response.responseText).success == false ) {
+					Ext.Msg.alert('Failed', 'Failed');
+				}
+				else {
+					var filerecordId = Ext.decode(response.responseText).filerecord_id ;
+					editedRecord.set('filerecord_id',filerecordId) ;
+					editedRecord.set(me.fileId+'_id',filerecordId) ;
+				}
+			},
+			scope: this
+		});
+	},
 });
