@@ -64,4 +64,13 @@ function specDbsTracy_order_getRecords( $post_data ) {
 	return array('success'=>true, 'data'=>array_values($TAB_order)) ;
 }
 
+function specDbsTracy_order_setHeader( $post_data ) {
+	global $_opDB ;
+	
+	$arr_ins = array() ;
+	
+	
+	return array('success'=>false, 'debug'=>$post_data) ;
+}
+
 ?>

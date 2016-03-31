@@ -14,6 +14,8 @@ switch( $post_data['_action'] )
 	
 	case 'order_getRecords' :
 	return specDbsTracy_order_getRecords( $post_data ) ;
+	case 'order_setHeader' :
+	return specDbsTracy_order_setHeader( $post_data ) ;
 	
 	case 'trspt_getRecords' :
 	return specDbsTracy_trspt_getRecords( $post_data ) ;

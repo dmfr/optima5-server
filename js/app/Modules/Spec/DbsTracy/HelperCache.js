@@ -224,5 +224,5 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.HelperCache',{
 			data.push( record.getData(true) ) ;
 		}) ;
 		return data ;
-	},
+	}
 });

@@ -114,3 +114,15 @@
 .op5-spec-dbstracy-grid-view-trspt {
 	background-image: url("../images/modules/dbstracy-trspt-16.png") !important;
 }
+
+
+.op5-spec-dbstracy-files-grid .x-grid-cell-inner { 
+	white-space: normal;
+}
+
+.op5-spec-dbstracy-bigcolumn .x-grid-cell-inner { 
+	font-weight: bold;
+	font-size: 16px;
+	line-height: 18px;
+}
+

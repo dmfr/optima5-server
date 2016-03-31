@@ -39,6 +39,27 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 					}
 				}
 			}),'->',{
+				icon: 'images/op5img/ico_new_16.gif',
+				text:'Create file...',
+				menu: {
+					defaults: {
+						scope:this
+					},
+					items: [{
+						text: 'Order',
+						icon: 'images/op5img/ico_new_16.gif',
+						handler: function() {
+							return this.optimaModule.postCrmEvent('openorder',{orderNew:true}) ;
+						}
+					},{
+						text: 'Transport',
+						icon: 'images/op5img/ico_new_16.gif',
+						handler: function() {
+							return this.optimaModule.postCrmEvent('opentrspt',{trsptNew:true}) ;
+						}
+					}]
+				}
+			},'-',{
 				//iconCls: 'op5-spec-dbsembramach-report-clock',
 				itemId: 'tbViewmode',
 				viewConfig: {forceFit: true},
@@ -86,7 +107,10 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			}
 		},this) ;
 		
-		this.tmpModelCnt = 0 ;
+		this.tmpModelName = 'DbsTracyFileRowModel-' + this.getId() + (++this.tmpModelCnt) ;
+		this.on('destroy',function(p) {
+			Ext.ux.dams.ModelManager.unregister( p.tmpModelName ) ;
+		}) ;
 		
 		this.onViewSet(this.defaultViewMode) ;
 	},
@@ -99,10 +123,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		}
 	},
 	onDataChange: function() {
-		return ;
 		if( this.isVisible() ) {
-			this.setViewRecord(null);
-			this.down('gridpanel').getStore().load() ;
+			this.doLoad() ;
 		} else {
 			this.on('activate',function(){this.onDataChange();}, this, {single:true}) ;
 		}
@@ -190,9 +212,61 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		
 		var pushModelfields = [] ;
 		var columns = [{
-			text: 'Process step',
+			text: '<b>BU</b>',
+			dataIndex: 'id_soc',
+			width:50,
+			align: 'center'
+		},{
+			text: '<b>DN#</b>',
+			dataIndex: 'id_doc',
+			width:90,
+			tdCls: 'op5-spec-dbstracy-bigcolumn',
+			align: 'center',
+			filter: {
+				type: 'string'
+			}
+		},{
+			text: 'Priority',
+			dataIndex: 'atr_priority',
+			width:70,
+			align: 'center',
+			renderer: function(v,metaData) {
+				var prioMap = this._prioMap ;
+				if( prioMap.hasOwnProperty(v) ) {
+					var prioData = prioMap[v] ;
+					return '<font color="' + prioData.prio_color + '">' + prioData.prio_code + '</font>' ;
+				}
+				return '?' ;
+			},
+			filter: {
+				type: 'op5crmbasebible',
+				optimaModule: this.optimaModule,
+				bibleId: 'LIST_SERVICE'
+			}
+		},{
+			text: 'PO#',
+			dataIndex: 'ref_po',
+			width:80,
+			tdCls: 'op5-spec-dbstracy-bigcolumn',
+			align: 'center',
+			filter: {
+				type: 'string'
+			}
+		},{
+			text: '<b>Consignee</b><br>Site location',
+			dataIndex: 'atr_consignee',
+			width:120,
+			align: 'center',
+			filter: {
+				type: 'op5crmbasebible',
+				optimaModule: this.optimaModule,
+				bibleId: 'LIST_CONSIGNEE'
+			}
+		},{
+			text: '<b>Current step</b>',
 			dataIndex: 'step_code',
-			width: 120,
+			width: 100,
+			align: 'center',
 			filter: {
 				type: 'op5crmbasebible',
 				optimaModule: this.optimaModule,
@@ -219,14 +293,15 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			}
 			return v1 ;
 		};
+		var stepColumns = [] ;
 		Ext.Array.each( Optima5.Modules.Spec.DbsTracy.HelperCache.getOrderflow('AIR').steps, function(step) {
 			pushModelfields.push({
 				name: 'step_'+step.step_code,
 				type: 'auto',
 				sortType: sortTypeFn
 			}) ;
-			columns.push({
-				text: step.step_code,
+			stepColumns.push({
+				text: step.step_txt,
 				dataIndex: 'step_'+step.step_code,
 				renderer: stepRenderer,
 				width: 90,
@@ -259,23 +334,16 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				}
 			});
 		}) ;
+		columns.push({
+			text: '<b><i>Process steps</i></b>',
+			align: 'center',
+			columns: stepColumns
+		});
 		
-		var tmpModelName = 'DbsTracyFileRowModel-' + this.getId() + (++this.tmpModelCnt) ;
-		this.on('destroy',function(p) {
-			Ext.ux.dams.ModelManager.unregister( tmpModelName ) ;
-		}) ;
-		Ext.define(tmpModelName, {
+		Ext.ux.dams.ModelManager.unregister( this.tmpModelName ) ;
+		Ext.define(this.tmpModelName, {
 			extend: 'DbsTracyFileOrderModel',
-			fields: pushModelfields,
-			hasMany: [{
-				model: 'DbsTracyFileOrderStepModel',
-				name: 'steps',
-				associationKey: 'steps'
-			},{
-				model: 'DbsTracyFileOrderAttachmentModel',
-				name: 'attachments',
-				associationKey: 'attachments'
-			}]
+			fields: pushModelfields
 		});
 		
 		var columnDefaults = {
@@ -287,6 +355,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			groupable: false,
 			lockable: false
 		} ;
+		Ext.Array.each( stepColumns, function(column) {
+			Ext.applyIf( column, columnDefaults ) ;
+		}) ;
 		Ext.Array.each( columns, function(column) {
 			Ext.applyIf( column, columnDefaults ) ;
 		}) ;
@@ -295,10 +366,16 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			border: false,
 			xtype: 'grid',
 			itemId: 'pGrid',
-			bodyCls: 'op5-spec-dbsembramach-mach-grid',
+			bodyCls: 'op5-spec-dbstracy-files-grid',
 			store: {
-				model: tmpModelName,
-				data: []
+				model: this.tmpModelName,
+				data: [],
+				proxy: {
+					type: 'memory',
+					reader: {
+						type: 'json'
+					}
+				}
 			},
 			columns: columns,
 			plugins: [{
@@ -318,9 +395,38 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		var pCenter = this.down('#pCenter') ;
 		pCenter.removeAll() ;
 		pCenter.add(tmpGridCfg);
+		
+		this.doLoad() ;
 	},
 	
 	onSocSet: function( socCode ) {
+		
+	},
+	
+	doLoad: function() {
+		switch( this.viewMode ) {
+			case 'order' :
+			case 'order-group-trspt' :
+				return this.doLoadOrder() ;
+				
+			case 'trspt' :
+				return this.doLoadTrspt() ;
+				
+			default:
+				return ;
+		}
+	},
+	doLoadOrder: function() {
+		
+	},
+	onLoadOrder: function(ajaxData) {
+		
+	},
+	
+	doLoadTrspt: function() {
+		
+	},
+	onLoadTrspt: function(ajaxData) {
 		
 	},
 	

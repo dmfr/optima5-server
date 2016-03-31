@@ -76,6 +76,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 	extend:'Ext.panel.Panel',
 	
 	requires: [
+		'Optima5.Modules.Spec.DbsTracy.CfgParamField',
 		'Optima5.Modules.Spec.DbsTracy.CfgParamText'
 	],
 	
@@ -91,6 +92,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 				iconCls:'op5-sdomains-menu-submit',
 				text:'Save',
 				handler: function() {
+					this.handleSaveHeader() ;
 				},
 				scope:this
 			},{
@@ -103,6 +105,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 			items:[{
 				flex: 3,
 				xtype: 'form',
+				itemId: 'pHeaderForm',
 				bodyCls: 'ux-noframe-bg',
 				bodyPadding: 15,
 				layout:'anchor',
@@ -110,31 +113,47 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 					labelWidth: 75,
 					anchor: '100%'
 				},
-				items: [{
+				items: [Ext.create('Optima5.Modules.Spec.DbsTracy.CfgParamField',{
+					cfgParam_id: 'SOC',
+					cfgParam_emptyDisplayText: 'Select...',
+					optimaModule: this.optimaModule,
+					fieldLabel: '<b>Company</b>',
+					name: 'id_soc',
+					allowBlank: false,
+					anchor: '',
+					width: 325
+				}),{
 					xtype: 'textfield',
 					fieldLabel: '<b>DN #</b>',
 					anchor: '',
 					width: 250,
-					value: ''
+					name: 'id_doc',
+					allowBlank: false
 				},{
 					xtype: 'textfield',
 					fieldLabel: 'PO #',
 					anchor: '',
 					width: 250,
-					value: ''
+					name: 'ref_po',
+					allowBlank: false
 				},{
 					xtype: 'op5specdbstracycfgparamtext',
 					cfgParam_id: 'LIST_CONSIGNEE',
-					fieldLabel: '<b>Consignee</b>'
+					fieldLabel: '<b>Consignee</b>',
+					name: 'atr_consignee',
+					allowBlank: false
 				},{
 					xtype: 'textarea',
-					fieldLabel: '<b>Location</b>'
+					fieldLabel: '<b>Location</b>',
+					name: 'txt_location'
 				},{
 					xtype: 'op5specdbstracycfgparamtext',
 					cfgParam_id: 'LIST_SERVICE',
 					fieldLabel: '<b>Priority</b>',
 					anchor: '',
-					width: 200
+					width: 200,
+					name: 'atr_priority',
+					allowBlank: false
 				},{
 					xtype: 'fieldset',
 					title: 'Volume details',
@@ -149,29 +168,39 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 							xtype: 'box',
 							html: '&#160;&#160;<b>L:</b>&#160;'
 						},{
-							xtype: 'textfield',
+							xtype: 'numberfield',
+							hideTrigger:true,
 							name: 'vol_dim_l',
-							width: 50
+							width: 50,
+							allowBlank: false
 						},{
 							xtype: 'box',
 							html: '&#160;&#160;<b>W:</b>&#160;'
 						},{
-							xtype: 'textfield',
+							xtype: 'numberfield',
+							hideTrigger:true,
 							name: 'vol_dim_w',
-							width: 50
+							width: 50,
+							allowBlank: false
 						},{
 							xtype: 'box',
 							html: '&#160;&#160;<b>H:</b>&#160;'
 						},{
-							xtype: 'textfield',
+							xtype: 'numberfield',
+							hideTrigger:true,
 							name: 'vol_dim_h',
-							width: 50
+							width: 50,
+							allowBlank: false
 						}]
 					},{
+						xtype: 'numberfield',
+						hideTrigger:true,
 						xtype: 'textfield',
 						anchor: '',
 						width: 120,
-						fieldLabel: 'NbParcels'
+						fieldLabel: 'NbParcels',
+						allowBlank: false,
+						name: 'vol_count'
 					}]
 				}]
 			},{
@@ -344,5 +373,105 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 				resizable: false
 			}]
 		}) ;
+	},
+	
+	showLoadmask: function() {
+		if( this.rendered ) {
+			this.doShowLoadmask() ;
+		} else {
+			this.on('afterrender',this.doShowLoadmask,this,{single:true}) ;
+		}
+	},
+	doShowLoadmask: function() {
+		if( this.loadMask ) {
+			return ;
+		}
+		this.loadMask = Ext.create('Ext.LoadMask',{
+			target: this,
+			msg:"Please wait..."
+		}).show();
+	},
+	hideLoadmask: function() {
+		this.un('afterrender',this.doShowLoadmask,this) ;
+		if( this.loadMask ) {
+			this.loadMask.destroy() ;
+			this.loadMask = null ;
+		}
+	},
+	
+	newOrder: function() {
+		this._orderNew = true ;
+		
+		//fHeader
+		this.down('#pHeaderForm').getForm().reset() ;
+		this.down('#pHeaderForm').getForm().findField('id_doc').set
+		
+		//gOrders
+		//this.down('#pOrdersGrid').getEl().mask() ;
+		
+		//gEvents
+		//this.down('#pEvents').getEl().mask() ;
+	},
+	loadOrder: function( filerecordId ) {
+		this.showLoadmask() ;
+	},
+	onLoadOrder: function( orderRecord ) {
+		this.hideLoadmask() ;
+		this._orderFilerecordId = orderRecord.getId() ;
+		
+		//fHeader
+		
+		
+		//gOrders
+		
+		//gEvents
+		
+	},
+	doReload: function() {
+		this.loadOrder( this._orderFilerecordId ) ;
+	},
+	
+	handleSaveHeader: function() {
+		var formPanel = this.down('#pHeaderForm'),
+			form = formPanel.getForm() ;
+		if( !form.isValid() ) {
+			return ;
+		}
+		
+		var recordData = form.getValues(false,false,false,true) ;
+		recordData['vol_dims'] = recordData['vol_dim_l'] + ' x ' + recordData['vol_dim_w'] + ' x ' + recordData['vol_dim_h'] ;
+		
+		var ajaxParams = {
+			_moduleId: 'spec_dbs_tracy',
+			_action: 'order_setHeader',
+			_is_new: ( this._orderNew ? 1 : 0 ),
+			order_filerecord_id: ( this._orderNew ? null : this._orderFilerecordId ),
+			data: Ext.JSON.encode(recordData)
+		} ;
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams,
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','File not saved !') ;
+					return ;
+				}
+				this.onSaveHeader(ajaxResponse.id) ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+	},
+	onSaveHeader: function(savedId) {
+		this.fireEvent('datachange',this) ;
+		
+		if( this._orderNew ) {
+			this.loadOrder(savedId) ;
+		} else {
+			this.destroy() ;
+		}
 	}
 });

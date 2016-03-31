@@ -30,7 +30,38 @@ Ext.define('DbsTracyFileOrderModel',{
 		{name: 'atr_consignee', type:'string'},
 		{name: 'txt_location', type:'string'},
 		{name: 'vol_dims', type:'string'},
-		{name: 'vol_count', type:'int'}
+		{name: 'vol_count', type:'int'},
+		{
+			name: 'vol_dim_l',
+			type: 'int',
+			convert: function(v, record) {
+				var ttmp = record.get('vol_dims').split('x') ;
+				if( !ttmp[0] ) {
+					return 0 ;
+				}
+				return parseInt(ttmp[0].trim()) ;
+			}
+		},{
+			name: 'vol_dim_w',
+			type: 'int',
+			convert: function(v, record) {
+				var ttmp = record.get('vol_dims').split('x') ;
+				if( !ttmp[1] ) {
+					return 0 ;
+				}
+				return parseInt(ttmp[1].trim()) ;
+			}
+		},{
+			name: 'vol_dim_h',
+			type: 'int',
+			convert: function(v, record) {
+				var ttmp = record.get('vol_dims').split('x') ;
+				if( !ttmp[2] ) {
+					return 0 ;
+				}
+				return parseInt(ttmp[2].trim()) ;
+			}
+		}
 	],
 	hasMany: [{
 		model: 'DbsTracyFileOrderStepModel',

@@ -39,6 +39,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 	
 	requires: [
 		'Ext.ux.PreviewPlugin',
+		'Optima5.Modules.Spec.DbsTracy.CfgParamField',
 		'Optima5.Modules.Spec.DbsTracy.CfgParamText'
 	],
 	
@@ -54,7 +55,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 				iconCls:'op5-sdomains-menu-submit',
 				text:'Save',
 				handler: function() {
-					this.doSaveHeader() ;
+					this.handleSaveHeader() ;
 				},
 				scope:this
 			},{
@@ -118,11 +119,12 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 						xtype: 'op5specdbstracycfgparamtext',
 						cfgParam_id: 'LIST_AIRPORT',
 						fieldLabel: 'Origin',
-						allowBlank: true
+						allowBlank: false
 					},{
 						xtype: 'op5specdbstracycfgparamtext',
 						cfgParam_id: 'LIST_AIRPORT',
-						fieldLabel: 'Destination'
+						fieldLabel: 'Destination',
+						allowBlank: false
 					},{
 						xtype: 'op5specdbstracycfgparamtext',
 						cfgParam_id: 'LIST_CARRIER',
@@ -328,6 +330,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 	},
 	
 	newTrspt: function() {
+		this._trsptNew = true ;
+		
 		//fHeader
 		this.down('#pHeaderForm').getForm().reset() ;
 		this.down('#pHeaderForm').getForm().setValues({
@@ -346,6 +350,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 	},
 	onLoadTrspt: function( trsptRecord ) {
 		this.hideLoadmask() ;
+		this._trsptFilerecordId = trsptRecord.getId() ;
 		
 		//fHeader
 		
@@ -382,7 +387,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		}
 	},
 	
-	doSaveHeader: function() {
+	handleSaveHeader: function() {
 		var formPanel = this.down('#pHeaderForm'),
 			form = formPanel.getForm() ;
 		if( !form.isValid() ) {
@@ -396,7 +401,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 	doOrdersRemove: function() {
 		
 	},
-	doSubmitEvent: function() {
+	handleSubmitEvent: function() {
 		
 	}
 });
