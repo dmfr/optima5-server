@@ -64,6 +64,19 @@ function specDbsTracy_order_getRecords( $post_data ) {
 		);
 	}
 	
+	foreach( $TAB_order as &$row_order ) {
+		$max_stepCode = array() ;
+		foreach( $row_order['steps'] as $row_order_step ) {
+			if( $row_order_step['status_is_ok'] ) {
+				$max_stepCode[] = $row_order_step['step_code'] ;
+			}
+		}
+		if( $max_stepCode ) {
+			$row_order['calc_step'] = max($max_stepCode) ;
+		}
+	}
+	unset($row_order) ;
+	
 	return array('success'=>true, 'data'=>array_values($TAB_order)) ;
 }
 

@@ -21,6 +21,14 @@ switch( $post_data['_action'] )
 	
 	case 'trspt_getRecords' :
 	return specDbsTracy_trspt_getRecords( $post_data ) ;
+	case 'trspt_setHeader' :
+	return specDbsTracy_trspt_setHeader( $post_data ) ;
+	case 'trspt_orderAdd' :
+	return specDbsTracy_trspt_orderAdd( $post_data ) ;
+	case 'trspt_orderRemove' :
+	return specDbsTracy_trspt_orderRemove( $post_data ) ;
+	case 'trspt_eventAdd' :
+	return specDbsTracy_trspt_eventAdd( $post_data ) ;
 	
 	case 'attachments_uploadfile' :
 	return specDbsTracy_attachments_uploadfile( $post_data ) ;

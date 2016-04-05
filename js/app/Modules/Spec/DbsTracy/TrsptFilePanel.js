@@ -44,7 +44,10 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 	],
 	
 	initComponent: function() {
-		
+		var stepsMap = {} ;
+		Ext.Array.each( Optima5.Modules.Spec.DbsTracy.HelperCache.getOrderflow('AIR').steps, function(step) {
+			stepsMap[step.step_code] = step ;
+		}) ;
 		
 		Ext.apply(this,{
 			layout: {
@@ -101,17 +104,20 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 					xtype: 'op5specdbstracycfgparamtext',
 					cfgParam_id: 'LIST_CONSIGNEE',
 					fieldLabel: '<b>Consignee</b>',
-					allowBlank: false
+					allowBlank: false,
+					name: 'atr_consignee'
 				},{
 					xtype: 'op5specdbstracycfgparamtext',
 					cfgParam_id: 'LIST_INCOTERM',
 					fieldLabel: 'Incoterm',
-					allowBlank: false
+					allowBlank: false,
+					name: 'atr_incoterm'
 				},{
 					xtype: 'op5specdbstracycfgparamtext',
 					cfgParam_id: 'LIST_SERVICE',
 					fieldLabel: 'Priority',
-					allowBlank: false
+					allowBlank: false,
+					name: 'atr_priority'
 				},{
 					xtype: 'fieldset',
 					title: 'Transport details',
@@ -119,31 +125,37 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 						xtype: 'op5specdbstracycfgparamtext',
 						cfgParam_id: 'LIST_AIRPORT',
 						fieldLabel: 'Origin',
-						allowBlank: false
+						allowBlank: false,
+						name: 'mvt_origin'
 					},{
 						xtype: 'op5specdbstracycfgparamtext',
 						cfgParam_id: 'LIST_AIRPORT',
 						fieldLabel: 'Destination',
-						allowBlank: false
+						allowBlank: false,
+						name: 'mvt_dest'
 					},{
 						xtype: 'op5specdbstracycfgparamtext',
 						cfgParam_id: 'LIST_CARRIER',
-						fieldLabel: '<b>Carrier</b>'
+						fieldLabel: '<b>Carrier</b>',
+						name: 'mvt_carrier'
 					}]
 				},{
 					xtype: 'fieldset',
 					title: 'Flight details',
 					items: [{
 						xtype: 'textfield',
-						fieldLabel: 'AWB'
+						fieldLabel: 'AWB',
+						name: 'flight_awb'
 					},{
 						xtype: 'datefield',
 						fieldLabel: 'Flight date',
 						format: 'd/m/Y',
-						submitFormat: 'Y-m-d'
+						submitFormat: 'Y-m-d',
+						name: 'flight_date'
 					},{
 						xtype: 'textfield',
-						fieldLabel: 'Flight code'
+						fieldLabel: 'Flight code',
+						name: 'flight_code'
 					}]
 				}]
 			},{
@@ -153,17 +165,22 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 				columns: [{
 					text: 'DN #',
 					width: 75,
-					dataIndex: 'tmp_dn'
+					dataIndex: 'id_dn'
 				},{
 					text: 'PO #',
 					width: 75,
-					dataIndex: 'tmp_po'
+					dataIndex: 'ref_po'
 				},{
 					text: 'Status',
 					width: 100,
+					dataIndex: 'calc_step',
 					renderer: function(v,m,record) {
-						var tmpProgress = record.get('tmp_status_percent') / 100 ;
-						var tmpText = record.get('tmp_status_text') ;
+						var stepRow = this._stepsMap[v] ;
+						if( !stepRow ) {
+							return ;
+						}
+						var tmpProgress = stepRow['status_percent'] / 100 ;
+						var tmpText = stepRow['step_txt'] ;
 							var b = new Ext.ProgressBar({height: 15, cls: 'op5-spec-mrfoxy-promolist-progress'});
 							b.updateProgress(tmpProgress,tmpText);
 							v = Ext.DomHelper.markup(b.getRenderTree());
@@ -173,36 +190,57 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 				},{
 					text: 'Parcels',
 					width: 60,
-					dataIndex: 'tmp_parcels'
+					dataIndex: 'vol_count'
 				},{
 					text: 'Dimensions',
 					width: 150,
-					dataIndex: 'tmp_dims'
+					dataIndex: 'vol_dims'
 				}],
 				store: {
-					fields: ['tmp_dn','tmp_po','tmp_status_percent','tmp_status_text','tmp_parcels','tmp_dims'],
-					data: [{
-						tmp_dn: '132465',
-						tmp_po: '879878',
-						tmp_status_percent: 20,
-						tmp_status_text: 'WaitDocuments',
-						tmp_parcels: '1',
-						tmp_dims: '250 x 350 x 1200'
-					},{
-						tmp_dn: '540000',
-						tmp_po: '879899',
-						tmp_status_percent: 35,
-						tmp_status_text: 'Ready',
-						tmp_parcels: '2',
-						tmp_dims: '400 x 500 x 500'
-					}]
+					model: 'DbsTracyFileTrsptOrderModel',
+					data: [],
+					proxy: {
+						type: 'memory',
+						reader: {
+							type: 'json'
+						}
+					}
 				},
 				listeners: {
 					itemdblclick: function() {
 						this.optimaModule.postCrmEvent('openorder',{orderNew:true}) ;
 					},
+					itemcontextmenu: function(view, record, item, index, event) {
+						var gridContextMenuItems = new Array() ;
+						
+						var selRecord = record ;
+						gridContextMenuItems.push({
+							disabled: true,
+							text: '<b>'+selRecord.get('id_soc')+'/'+selRecord.get('id_dn')+'</b>'
+						},'-',{
+							iconCls: 'icon-bible-delete',
+							text: 'Unassign',
+							handler : function() {
+								this.doOrdersRemove( [selRecord] ) ;
+							},
+							scope : this
+						});
+						
+						var gridContextMenu = Ext.create('Ext.menu.Menu',{
+							items : gridContextMenuItems,
+							listeners: {
+								hide: function(menu) {
+									Ext.defer(function(){menu.destroy();},10) ;
+								}
+							}
+						}) ;
+						
+						gridContextMenu.showAt(event.getXY());
+					},
+					render: this.onOrdersGridRender,
 					scope: this
-				}
+				},
+				_stepsMap: stepsMap
 			},{
 				flex: 3,
 				xtype: 'panel',
@@ -224,19 +262,22 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 						anchor: '100%'
 					},
 					items: [{
-						xtype: 'datefield',
-						fieldLabel: 'Date Action',
+						xtype: 'textfield',
+						fieldLabel: 'Action author',
 						format: 'Y-m-d',
 						width: 175,
-						anchor: ''
+						anchor: '',
+						name: 'event_user'
 					},{
 						xtype: 'textarea',
-						fieldLabel: 'Comment'
+						fieldLabel: 'Comment',
+						name: 'event_txt'
 					}],
 					buttons: [{
 						xtype: 'button',
 						text: 'OK',
 						handler: function( btn ) {
+							this.handleSubmitEvent() ;
 						},
 						scope: this
 					}]
@@ -246,35 +287,26 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 					flex: 3,
 					xtype: 'grid',
 					cls: 'op5-spec-dbstracy-feedgrid',
-					store: Ext.create('Ext.data.Store', {
-						autoLoad: true,
-						model: 'FeedItem',
-						sortInfo: {
-							property: 'pubDate',
+					store: {
+						model: 'DbsTracyFileTrsptEventModel',
+						data: [],
+						sorters: [{
+							property: 'event_date',
 							direction: 'DESC'
-						},
+						}],
 						proxy: {
-							type: 'ajax',
-							url: '/feed-proxy.php',
+							type: 'memory',
 							reader: {
-									type: 'xml',
-									record: 'item'
-							},
-							listeners: {
-									scope: this
+								type: 'json'
 							}
-						},
-						listeners: {
-							scope: this
 						}
-					}),
-
+					},
 					viewConfig: {
 						itemId: 'view',
 						plugins: [{
 							pluginId: 'preview',
 							ptype: 'preview',
-							bodyField: 'description',
+							bodyField: 'event_txt',
 							expanded: true
 						}],
 						listeners: {
@@ -282,20 +314,13 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 						}
 					},
 					columns: [{
-						text: 'Title',
-						dataIndex: 'title',
-						flex: 1,
-						hidden: true,
-						renderer: this.formatTitle
-					}, {
 						text: 'Author',
-						dataIndex: 'author',
+						dataIndex: 'event_user',
 						hidden: false,
 						width: 200
-
 					}, {
 						text: 'Date',
-						dataIndex: 'pubDate',
+						dataIndex: 'event_date',
 						renderer: function(date){
 							if (!date) {
 									return '';
@@ -328,6 +353,26 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 			}
 		},this) ;
 	},
+	onOrdersGridRender: function(grid) {
+		var me = this ;
+		
+		var gridPanelDropTargetEl =  grid.body.dom;
+
+		var gridPanelDropTarget = Ext.create('Ext.dd.DropTarget', gridPanelDropTargetEl, {
+			ddGroup: 'OrdersDD'+me.optimaModule.sdomainId,
+			notifyEnter: function(ddSource, e, data) {
+					//Add some flare to invite drop.
+					grid.body.stopAnimation();
+					grid.body.highlight();
+			},
+			notifyDrop: function(ddSource, e, data){
+					// Reference the record (single selection) for readability
+					var selectedRecord = ddSource.dragData.records[0];
+					me.doOrdersAdd([selectedRecord]) ;
+					return true;
+			}
+		});
+	},
 	
 	newTrspt: function() {
 		this._trsptNew = true ;
@@ -341,23 +386,50 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		
 		//gOrders
 		this.down('#pOrdersGrid').getEl().mask() ;
+		this.down('#pOrdersGrid').getStore().removeAll() ;
 		
 		//gEvents
 		this.down('#pEvents').getEl().mask() ;
+		this.down('#pEventsGrid').getStore().removeAll() ;
 	},
 	loadTrspt: function( filerecordId ) {
 		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_tracy',
+				_action: 'trspt_getRecords',
+				filter_trsptFilerecordId_arr: Ext.JSON.encode([filerecordId])
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false || ajaxResponse.data.length != 1 ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+				this.onLoadTrspt(Ext.ux.dams.ModelManager.create('DbsTracyFileTrsptModel',ajaxResponse.data[0])) ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
 	},
 	onLoadTrspt: function( trsptRecord ) {
-		this.hideLoadmask() ;
 		this._trsptFilerecordId = trsptRecord.getId() ;
 		
 		//fHeader
+		this.down('#pHeaderForm').getForm().reset() ;
+		this.down('#pHeaderForm').getForm().findField('id_soc').setReadOnly(true) ;
+		this.down('#pHeaderForm').getForm().findField('id_doc').setReadOnly(true) ;
+		this.down('#pHeaderForm').getForm().loadRecord(trsptRecord) ;
 		
-		//gOrders
+		//gSteps
+		this.down('#pOrdersGrid').getEl().unmask() ;
+		this.down('#pOrdersGrid').getStore().loadRawData(trsptRecord.orders().getRange()) ;
 		
-		//gEvents
-		
+		//gAttachments
+		this.down('#pEvents').getEl().unmask() ;
+		this.down('#pEventsGrid').getStore().loadRawData(trsptRecord.events().getRange()) ;
 	},
 	doReload: function() {
 		this.loadTrspt( this._trsptFilerecordId ) ;
@@ -394,14 +466,124 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 			return ;
 		}
 		
-	},
-	doOrdersAdd: function() {
+		var recordData = form.getValues(false,false,false,true) ;
 		
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_tracy',
+				_action: 'trspt_setHeader',
+				_is_new: ( this._trsptNew ? 1 : 0 ),
+				trspt_filerecord_id: ( this._trsptNew ? null : this._trsptFilerecordId ),
+				data: Ext.JSON.encode(recordData)
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					var error = ajaxResponse.success || 'File not saved !' ;
+					Ext.MessageBox.alert('Error',error) ;
+					return ;
+				}
+				this.onSaveHeader(ajaxResponse.id) ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
 	},
-	doOrdersRemove: function() {
+	onSaveHeader: function(savedId) {
+		this.optimaModule.postCrmEvent('datachange',{}) ;
 		
+		if( this._trsptNew ) {
+			this.loadTrspt(savedId) ;
+		} else {
+			this.fireEvent('candestroy',this) ;
+		}
 	},
+	
+	
+	doOrdersAdd: function(orderRecords) {
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_tracy',
+				_action: 'trspt_orderAdd',
+				trspt_filerecord_id: this._trsptFilerecordId,
+				order_filerecord_id: orderRecords[0].get('order_filerecord_id')
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					var error = ajaxResponse.success || 'File not saved !' ;
+					Ext.MessageBox.alert('Error',error) ;
+					return ;
+				}
+				this.doReload() ;
+				this.optimaModule.postCrmEvent('datachange',{}) ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+	},
+	doOrdersRemove: function(orderRecords) {
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_tracy',
+				_action: 'trspt_orderRemove',
+				trspt_filerecord_id: this._trsptFilerecordId,
+				order_filerecord_id: orderRecords[0].get('order_filerecord_id')
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					var error = ajaxResponse.success || 'File not saved !' ;
+					Ext.MessageBox.alert('Error',error) ;
+					return ;
+				}
+				this.doReload() ;
+				this.optimaModule.postCrmEvent('datachange',{}) ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+	},
+	
 	handleSubmitEvent: function() {
+		var formPanel = this.down('#pEventsForm'),
+			form = formPanel.getForm() ;
+		if( !form.isValid() ) {
+			return ;
+		}
 		
+		var recordData = form.getValues(false,false,false,true) ;
+		
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_tracy',
+				_action: 'trspt_eventAdd',
+				trspt_filerecord_id: this._trsptFilerecordId,
+				data: Ext.JSON.encode(recordData)
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					var error = ajaxResponse.success || 'File not saved !' ;
+					Ext.MessageBox.alert('Error',error) ;
+					return ;
+				}
+				form.reset() ;
+				formPanel.collapse() ;
+				this.doReload() ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
 	}
 });

@@ -206,7 +206,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 				optimaModule: this.optimaModule,
 				flex: 2,
 				itemId: 'pAttachments',
-				title: 'Attachments',
+				title: 'Attachments'
 			})]
 		}) ;
 		
@@ -300,6 +300,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 		
 		//fHeader
 		this.down('#pHeaderForm').getForm().reset() ;
+		this.down('#pHeaderForm').getForm().findField('id_soc').setReadOnly(true) ;
 		this.down('#pHeaderForm').getForm().findField('id_dn').setReadOnly(true) ;
 		this.down('#pHeaderForm').getForm().loadRecord(orderRecord) ;
 		

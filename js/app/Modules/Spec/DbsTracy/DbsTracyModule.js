@@ -65,7 +65,8 @@ Ext.define('DbsTracyFileOrderModel',{
 				}
 				return parseInt(ttmp[2].trim()) ;
 			}
-		}
+		},
+		{name: 'calc_step', type:'string'}
 	],
 	hasMany: [{
 		model: 'DbsTracyFileOrderStepModel',
@@ -78,18 +79,18 @@ Ext.define('DbsTracyFileOrderModel',{
 	}]
 });
 
-Ext.define('DbsTracyFileTrpstEventModel',{
+Ext.define('DbsTracyFileTrsptEventModel',{
 	extend: 'Ext.data.Model',
 	idProperty: 'trsptevent_filerecord_id',
 	fields: [
 		{name: 'trsptevent_filerecord_id', type:'int'},
 		{name: 'event_user', type:'string'},
-		{name: 'event_date', type:'string'},
+		{name: 'event_date', type:'date', dateFormat:'Y-m-d H:i:s'},
 		{name: 'event_txt', type:'string'}
 	]
 });
 
-Ext.define('DbsTracyFileTrpstOrderModel',{
+Ext.define('DbsTracyFileTrsptOrderModel',{
 	extend: 'DbsTracyFileOrderModel',
 	idProperty: 'trsptorder_filerecord_id',
 	fields: [
@@ -98,18 +99,18 @@ Ext.define('DbsTracyFileTrpstOrderModel',{
 	]
 });
 
-Ext.define('DbsTracyFileTrpstModel',{
+Ext.define('DbsTracyFileTrsptModel',{
 	extend: 'Ext.data.Model',
 	idProperty: 'trspt_filerecord_id',
 	fields: [
 		{name: 'trspt_filerecord_id', type:'int'},
 		{name: 'id_soc', type:'string'},
 		{name: 'id_doc', type:'string'},
-		{name: 'date_create', type:'string'},
+		{name: 'date_create', type:'date', dateFormat:'Y-m-d'},
 		{name: 'atr_priority', type:'string'},
 		{name: 'atr_incoterm', type:'string'},
 		{name: 'atr_consignee', type:'string'},
-		{name: 'mvt_carrier', type:'boolean'},
+		{name: 'mvt_carrier', type:'string'},
 		{name: 'mvt_origin', type:'string'},
 		{name: 'mvt_dest', type:'string'},
 		{name: 'flight_awb', type:'string'},
@@ -122,7 +123,7 @@ Ext.define('DbsTracyFileTrpstModel',{
 		name: 'orders',
 		associationKey: 'orders'
 	},{
-		model: 'DbsTracyFileTrpstEventModel',
+		model: 'DbsTracyFileTrsptEventModel',
 		name: 'events',
 		associationKey: 'events'
 	}]
