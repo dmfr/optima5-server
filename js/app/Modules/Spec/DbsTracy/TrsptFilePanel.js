@@ -64,9 +64,39 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 			},{
 				iconCls:'op5-sdomains-menu-updateschema',
 				text:'<b>Validate</b>',
-				handler: function() {
-				},
-				scope:this
+				menu: [{
+					iconCls:'op5-sdomains-menu-updateschema',
+					text:'Validate <b>70_PICKUP</b>',
+					handler: function() {
+						this.handleValidate('70_PICKUP') ;
+					},
+					scope:this
+				},{
+					iconCls:'op5-sdomains-menu-updateschema',
+					text:'Validate <b>99_POD</b>',
+					handler: function() {
+						this.handleValidate('99_POD') ;
+					},
+					scope:this
+				}]
+			},{
+				iconCls:'op5-sdomains-menu-updateschema',
+				text:'<b>Validate</b>',
+				menu: [{
+					iconCls:'op5-sdomains-menu-updateschema',
+					text:'Validate <b>70_PICKUP</b>',
+					handler: function() {
+						this.handleValidate('70_PICKUP') ;
+					},
+					scope:this
+				},{
+					iconCls:'op5-sdomains-menu-updateschema',
+					text:'Validate <b>99_POD</b>',
+					handler: function() {
+						this.handleValidate('99_POD') ;
+					},
+					scope:this
+				}]
 			}],
 			items:[{
 				flex: 2,
@@ -534,6 +564,39 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 				_action: 'trspt_orderRemove',
 				trspt_filerecord_id: this._trsptFilerecordId,
 				order_filerecord_id: orderRecords[0].get('order_filerecord_id')
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					var error = ajaxResponse.success || 'File not saved !' ;
+					Ext.MessageBox.alert('Error',error) ;
+					return ;
+				}
+				this.doReload() ;
+				this.optimaModule.postCrmEvent('datachange',{}) ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+	},
+	
+	handleValidate: function(stepCode) {
+		var formPanel = this.down('#pHeaderForm'),
+			form = formPanel.getForm() ;
+		if( !form.isValid() ) {
+			Ext.Msg.alert('Error','Header incomplete') ;
+			return ;
+		}
+		
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_tracy',
+				_action: 'trspt_stepValidate',
+				trspt_filerecord_id: this._trsptFilerecordId,
+				step_code: stepCode
 			},
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;

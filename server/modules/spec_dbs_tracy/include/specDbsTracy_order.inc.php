@@ -7,6 +7,9 @@ function specDbsTracy_order_getRecords( $post_data ) {
 	if( isset($post_data['filter_orderFilerecordId_arr']) ) {
 		$filter_orderFilerecordId_list = $_opDB->makeSQLlist( json_decode($post_data['filter_orderFilerecordId_arr'],true) ) ;
 	}
+	if( $post_data['filter_socCode'] ) {
+		$filter_socCode = $post_data['filter_socCode'] ;
+	}
 	
 	$TAB_order = array() ;
 	
@@ -14,6 +17,9 @@ function specDbsTracy_order_getRecords( $post_data ) {
 	$query.= " WHERE 1" ;
 	if( isset($filter_orderFilerecordId_list) ) {
 		$query.= " AND c.filerecord_id IN {$filter_orderFilerecordId_list}" ;
+	}
+	if( isset($filter_socCode) ) {
+		$query.= " AND c.field_ID_SOC='{$filter_socCode}'" ;
 	}
 	$query.= " ORDER BY c.filerecord_id DESC" ;
 	$result = $_opDB->query($query) ;
@@ -45,6 +51,9 @@ function specDbsTracy_order_getRecords( $post_data ) {
 	if( isset($filter_orderFilerecordId_list) ) {
 		$query.= " AND c.filerecord_id IN {$filter_orderFilerecordId_list}" ;
 	}
+	if( isset($filter_socCode) ) {
+		$query.= " AND c.field_ID_SOC='{$filter_socCode}'" ;
+	}
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 		$filerecord_id = $arr[0] ;
@@ -61,6 +70,9 @@ function specDbsTracy_order_getRecords( $post_data ) {
 	}
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		if( !isset($TAB_order[$arr['filerecord_parent_id']]) ) {
+			continue ;
+		}
 		$TAB_order[$arr['filerecord_parent_id']]['attachments'][] = array(
 			'attachment_filerecord_id' => $arr['filerecord_id'],
 			'parent_file' => 'order',
@@ -76,6 +88,9 @@ function specDbsTracy_order_getRecords( $post_data ) {
 	}
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		if( !isset($TAB_order[$arr['filerecord_parent_id']]) ) {
+			continue ;
+		}
 		$TAB_order[$arr['filerecord_parent_id']]['steps'][] = array(
 			'orderstep_filerecord_id' => $arr['filerecord_id'],
 			'step_code' => $arr['field_STEP_CODE'],

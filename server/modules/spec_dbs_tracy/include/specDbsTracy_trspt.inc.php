@@ -7,6 +7,9 @@ function specDbsTracy_trspt_getRecords( $post_data ) {
 	if( isset($post_data['filter_trsptFilerecordId_arr']) ) {
 		$filter_trsptFilerecordId_list = $_opDB->makeSQLlist( json_decode($post_data['filter_trsptFilerecordId_arr'],true) ) ;
 	}
+	if( $post_data['filter_socCode'] ) {
+		$filter_socCode = $post_data['filter_socCode'] ;
+	}
 	
 	$TAB_trspt = array() ;
 	
@@ -14,6 +17,9 @@ function specDbsTracy_trspt_getRecords( $post_data ) {
 	$query.= " WHERE 1" ;
 	if( isset($filter_trsptFilerecordId_list) ) {
 		$query.= " AND t.filerecord_id IN {$filter_trsptFilerecordId_list}" ;
+	}
+	if( isset($filter_socCode) ) {
+		$query.= " AND t.field_ID_SOC='{$filter_socCode}'" ;
 	}
 	$query.= " ORDER BY t.filerecord_id DESC" ;
 	$result = $_opDB->query($query) ;
@@ -47,6 +53,9 @@ function specDbsTracy_trspt_getRecords( $post_data ) {
 	}
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		if( !isset($TAB_trspt[$arr['filerecord_parent_id']]) ) {
+			continue ;
+		}
 		$TAB_trspt[$arr['filerecord_parent_id']]['events'][] = array(
 			'trsptevent_filerecord_id' => $arr['filerecord_id'],
 			'event_date' => $arr['field_EVENT_DATE'],
@@ -63,6 +72,9 @@ function specDbsTracy_trspt_getRecords( $post_data ) {
 	$result = $_opDB->query($query) ;
 	$filter_orderFilerecordId_arr = array() ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		if( !isset($TAB_trspt[$arr['filerecord_parent_id']]) ) {
+			continue ;
+		}
 		$TAB_trspt[$arr['filerecord_parent_id']]['orders'][] = array(
 			'trsptorder_filerecord_id' => $arr['filerecord_id'],
 			'order_filerecord_id' => $arr['field_FILE_CDE_ID'],
@@ -73,6 +85,7 @@ function specDbsTracy_trspt_getRecords( $post_data ) {
 	}
 	
 	$ttmp = specDbsTracy_order_getRecords( array(
+		'filter_socCode' => $filter_socCode,
 		'filter_orderFilerecordId_arr'=> json_encode($filter_orderFilerecordId_arr)
 	) ) ;
 	$TAB_order = array() ;
@@ -161,7 +174,7 @@ function specDbsTracy_trspt_orderAdd( $post_data ) {
 		return array('success'=>false,'error'=>"Order {$ttmp['data'][0]['id_dn']} already attached") ;
 	}
 	foreach( $ttmp['data'][0]['steps'] as $row_order_step ) {
-		if( $row_order_step['step_code'] == '30_DOCS' || !$row_order_step['status_is_ok'] ) {
+		if( $row_order_step['step_code'] == '30_DOCS' && !$row_order_step['status_is_ok'] ) {
 			return array('success'=>false, 'error'=>"Order {$ttmp['data'][0]['id_dn']} not ready") ;
 		}
 	}
@@ -230,6 +243,65 @@ function specDbsTracy_trspt_eventAdd( $post_data ) {
 
 	return array('success'=>true, 'debug'=>$post_data) ;
 }
+
+
+
+function specDbsTracy_trspt_stepValidate( $post_data ) {
+	global $_opDB ;
+	
+	$p_trsptFilerecordId = $post_data['trspt_filerecord_id'] ;
+	$p_stepCode = $post_data['step_code'] ;
+	
+	// liste chaine des étapes
+	$arr_steps = array() ;
+	$ttmp = specDbsTracy_cfg_getConfig() ;
+	$json_cfg = $ttmp['data'] ;
+	foreach( $json_cfg['cfg_orderflow'] as $orderflow ) {
+		if( $orderflow['flow_code'] != 'AIR' ) {
+			continue ;
+		}
+		foreach( $orderflow['steps'] as $step ) {
+			$arr_steps[] = $step['step_code'] ;
+		}
+	}
+	sort($arr_steps) ;
+	print_r($arr_steps) ;
+	
+	$ttmp = specDbsTracy_trspt_getRecords(array('filter_trsptFilerecordId_arr'=>json_encode(array($p_trsptFilerecordId)))) ;
+	$trspt_record = $ttmp['data'][0] ;
+	if( !$trspt_record ) {
+		return array('success'=>false) ;
+	}
+	$steps = array() ;
+	foreach( $trspt_record['orders'] as $row_order ) {
+		if( $row_order['calc_step'] && !in_array($row_order['calc_step'],$steps) ) {
+			$steps[] = $row_order['calc_step'] ;
+		}
+	}
+	if( count($steps) != 1 ) {
+		return array('success'=>false, 'error'=>'Inconsistant steps in current orders') ;
+	}
+	
+	if( FALSE ) {
+		$current_stepCode = reset($steps) ;
+		$current_stepCode_idx = array_search($current_stepCode,$arr_steps) ;
+		if( $current_stepCode_idx===false || $arr_steps[$current_stepCode_idx+1] != $p_stepCode ) {
+			return array('success'=>false, 'error'=>'Inconsistant target step : '+$p_stepCode) ;
+		}
+	}
+	
+	return array('success'=>true) ;
+	
+	
+	
+	$arr_update = array() ;
+	$arr_update['field_STATUS_IS_OK'] = 1 ;
+	$arr_update['field_DATE_ACTUAL'] = date('Y-m-d H:i:s') ;
+	paracrm_lib_data_updateRecord_file( $file_code, $arr_update, $p_orderstepFilerecordId );
+	
+	return array('success'=>true, 'debug'=>$form_data) ;
+}
+
 
 
 

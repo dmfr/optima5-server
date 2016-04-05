@@ -322,7 +322,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			text: '<b>'+selRecord.get('id_doc')+'</b>'
 		},'-',{
 			iconCls: 'icon-bible-edit',
-			text: 'Edit / modify',
+			text: 'Edit TrsptFile',
 			handler : function() {
 				this.handleEditTrspt( selRecord.getId() ) ;
 			},
@@ -644,7 +644,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			text: '<b>'+selRecord.get('id_soc')+'/'+selRecord.get('id_dn')+'</b>'
 		},{
 			iconCls: 'icon-bible-edit',
-			text: 'Edit / modify',
+			text: 'Edit Order',
 			handler : function() {
 				this.handleEditOrder( selRecord.getId() ) ;
 			},
@@ -656,7 +656,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				text: 'TrsptFile&#160;:&#160;<b>'+selRecord.get('calc_link_trspt_txt')+'</b>'
 			},{
 				iconCls: 'icon-bible-edit',
-				text: 'Edit / modify',
+				text: 'Edit TrsptFile',
 				handler : function() {
 					this.handleEditTrspt( selRecord.get('calc_link_trspt_filerecord_id') ) ;
 				},
@@ -677,7 +677,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 	},
 	
 	onSocSet: function( socCode ) {
-		
+		this.doLoad() ;
 	},
 	
 	doLoad: function() {
@@ -698,7 +698,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_dbs_tracy',
-				_action: 'order_getRecords'
+				_action: 'order_getRecords',
+				filter_socCode: this.down('#btnSoc').getValue()
 			},
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
@@ -740,7 +741,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_dbs_tracy',
-				_action: 'trspt_getRecords'
+				_action: 'trspt_getRecords',
+				filter_socCode: this.down('#btnSoc').getValue()
 			},
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;

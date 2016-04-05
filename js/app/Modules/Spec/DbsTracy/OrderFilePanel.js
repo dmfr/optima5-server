@@ -27,7 +27,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 				iconCls:'op5-sdomains-menu-updateschema',
 				text:'<b>Validate</b>',
 				handler: function() {
-					this.handleValidate() ;
+					this.handleValidate('30_DOCS') ;
 				},
 				scope:this
 			}],
@@ -362,7 +362,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 		}
 	},
 	
-	handleValidate: function() {
+	handleValidate: function(stepCode) {
 		var formPanel = this.down('#pHeaderForm'),
 			form = formPanel.getForm() ;
 		if( !form.isValid() ) {
@@ -376,7 +376,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 				_moduleId: 'spec_dbs_tracy',
 				_action: 'order_stepValidate',
 				order_filerecord_id: this._orderFilerecordId,
-				step_code: '30_DOCS'
+				step_code: stepCode
 			},
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
