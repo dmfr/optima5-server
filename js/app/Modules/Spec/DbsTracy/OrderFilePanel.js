@@ -1,83 +1,10 @@
-Ext.define('Optima5.Modules.Spec.DbsTracy.OrderAttachmentsDataview',{
-	extend: 'Ext.view.View',
-	mixins: {
-		draggable   : 'Ext.ux.DataviewDraggable'
-	},
-	store: {
-		model: 'WbMrfoxyAttachmentDataviewModel',
-		proxy: {
-			type: 'memory' ,
-			reader: {
-				type: 'json'
-			}
-		}
-	},
-	//frame: true,
-	//autoScroll:true,
-	tpl:[
-		'<tpl for=".">',
-			'<tpl if="type_separator">',
-				'<div class="x-clear"></div>',
-				'<div class="op5-spec-mrfoxy-attachments-separator"',
-				'<tpl if="separator_iconurl">',
-					' style="background-image:url({separator_iconurl})"',
-				'</tpl>',
-				'>{separator_txt}</div>',
-				'<div class="op5-spec-mrfoxy-attachments-item" style="display:none"></div>',
-			"</tpl>",
-		
-			'<tpl if="type_media">',
-				'<div class="op5-spec-mrfoxy-attachments-item thumb-box',
-				'<tpl if="thumb_red">',
-				' thumb-box-red',
-				'</tpl>',
-				'">',
-						'<div>{thumb_date}</div>',
-						'<a href="#">',
-							'<img src="{thumb_url}"/>',
-						'</a>',
-						'<div>{thumb_caption}</div>',
-				'</div>',
-			'</tpl>',
-		'</tpl>'
-	],
-	trackOver: true,
-	itemSelector: 'div.op5-spec-mrfoxy-attachments-item',
-	prepareData: function(data) {
-		var getParams = this.optimaModule.getConfiguredAjaxParams() ;
-		Ext.apply( getParams, {
-			media_id: data.filerecord_id,
-			thumb: true
-		});
-		
-		Ext.apply(data, {
-			thumb_date: data.filerecord_date,
-			thumb_url: 'server/backend_media.php?' + Ext.Object.toQueryString(getParams),
-			thumb_caption: data.filerecord_caption,
-			thumb_red: data.filerecord_blocked
-		});
-		return data;
-	},
-	
-	initComponent: function() {
-		this.mixins.draggable.init(this, {
-				ddConfig: {
-					ddGroup: 'AttachmentDD'+this.optimaModule.sdomainId
-				},
-				ghostTpl: this.tpl
-		});
-		
-		this.callParent();
-	}
-}) ;
-
-
 Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 	extend:'Ext.panel.Panel',
 	
 	requires: [
 		'Optima5.Modules.Spec.DbsTracy.CfgParamField',
-		'Optima5.Modules.Spec.DbsTracy.CfgParamText'
+		'Optima5.Modules.Spec.DbsTracy.CfgParamText',
+		'Optima5.Modules.Spec.DbsTracy.OrderAttachmentsDataview'
 	],
 	
 	initComponent: function() {
@@ -222,11 +149,19 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 					text: 'Status',
 					width: 50,
 					dataIndex: 'status_is_ok',
-					editor:{ xtype:'checkboxfield' }
+					editor:{ xtype:'checkboxfield' },
+					renderer: function(v, metaData) {
+						if( v ) {
+							metaData.tdCls += ' op5-spec-dbslam-stock-ok' ;
+						} else {
+							return ;
+						}
+					}
 				},{
 					text: 'Date OK',
-					width: 160,
+					width: 190,
 					dataIndex: 'date_actual',
+					renderer: Ext.util.Format.dateRenderer('d/m/Y H:i'),
 					editor:{ xtype:'datetimefield' }
 				}],
 				plugins: [{
@@ -267,111 +202,12 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 						}
 					}
 				}
-			},{
+			},Ext.create('Optima5.Modules.Spec.DbsTracy.OrderAttachmentsDataview',{
+				optimaModule: this.optimaModule,
 				flex: 2,
 				itemId: 'pAttachments',
 				title: 'Attachments',
-				xtype: 'panel',
-				layout: 'fit',
-				items: {
-					xtype: 'dataview',
-					itemId: 'pAttachmentsDv',
-					store: {
-						fields: ['url_id'],
-						data: [{
-							url_id: 'test1'
-						},{
-							url_id: 'test2'
-						},{
-							url_id: 'test3'
-						},{
-							url_id: 'test4'
-						},{
-							url_id: 'test5'
-						}]
-					},
-					scrollable: 'vertical',
-					
-					tpl:[
-						'<tpl for=".">',
-							'<div class="op5-spec-dbstracy-attachments-item thumb-box">',
-								'<div>{thumb_date}</div>',
-								'<a href="#">',
-									'<img src="{thumb_url}"/>',
-								'</a>',
-							'</div>',
-						'</tpl>'
-					],
-					trackOver: true,
-					overItemCls: 'x-item-over',
-					itemSelector: 'div.thumb-box',
-					prepareData: function(data) {
-						Ext.apply(data, {
-							thumb_date: '<b>'+data.url_id+'</b>',
-							thumb_url: '/demo/'+data.url_id+'.thumb.jpg'
-						});
-						return data;
-					},
-					listeners: {
-						itemcontextmenu: {
-							fn:function(view, record, item, index, event) {
-								//console.log('okokokok') ;
-								
-								var contextMenuItems = new Array() ;
-								contextMenuItems.push({
-									iconCls: 'icon-fullscreen',
-									text: 'Show photo',
-									handler : function() {
-										// console.log( 'Create child node of '+record.get('treenode_key') ) ;
-										this.showPhoto(record.get('url_id')) ;
-									},
-									scope : this
-								});
-								contextMenuItems.push({
-									iconCls: 'icon-save',
-									text: 'Downlaod file',
-									handler : function() {
-										this.downloadPhoto(record.get('filerecord_id')) ;
-									},
-									scope : this
-								});
-								contextMenuItems.push('-') ;
-								contextMenuItems.push({
-									iconCls: 'icon-bible-delete',
-									text: 'Discard invoice',
-									handler : function() {
-										this.discardItem(record.get('filerecord_id')) ;
-									},
-									scope : this
-								});
-								
-								var contextMenu = Ext.create('Ext.menu.Menu',{
-									items : contextMenuItems,
-									listeners: {
-										hide: function(menu) {
-											Ext.defer(function(){menu.destroy();},10) ;
-										}
-									}
-								}) ;
-								
-								contextMenu.showAt(event.getXY());
-								
-							},
-							scope:this
-						},
-						itemdblclick: {
-							fn:function(view, record, item, index, event) {
-								this.showPhoto(record.get('url_id')) ;
-							},
-							scope:this
-						},
-						render: { 
-							//fn: this.onDataviewRender,
-							scope: this
-						}
-					}
-				}
-			}]
+			})]
 		}) ;
 		
 		this.callParent() ;
@@ -383,21 +219,19 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 				this.loadOrder( this._orderFilerecordId ) ;
 			}
 		},this) ;
+		this.on('beforedestroy',this.onBeforeDestroy,this) ;
+		
+		this.mon(this.optimaModule,'op5broadcast',this.onCrmeventBroadcast,this) ;
 	},
-	showPhoto: function( url_id ) {
-		var imageviewerWindow = this.optimaModule.createWindow({
-			title:'Image Viewer',
-			width:800,
-			height:600,
-			iconCls: 'op5-crmbase-dataformwindow-photo-icon',
-			animCollapse:false,
-			border: false,
-			items: [{
-				xtype:'image',
-				src: '/demo/' + url_id + '.jpg',
-				resizable: false
-			}]
-		}) ;
+	onCrmeventBroadcast: function(crmEvent, eventParams) {
+		switch( crmEvent ) {
+			case 'attachmentschange' :
+				if( this._orderFilerecordId && this._orderFilerecordId == eventParams.orderFilerecordId ) {
+					this.loadOrder( this._orderFilerecordId ) ;
+				}
+				break ;
+			default: break ;
+		}
 	},
 	
 	showLoadmask: function() {
@@ -436,8 +270,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 		this.down('#pStepsGrid').getStore().removeAll() ;
 		
 		//gAttachments
-		this.down('#pAttachmentsDv').getEl().mask() ;
-		this.down('#pAttachmentsDv').getStore().removeAll() ;
+		this.down('#pAttachments').getEl().mask() ;
+		this.down('#pAttachments').setOrderRecord(null) ;
 	},
 	loadOrder: function( filerecordId ) {
 		this.showLoadmask() ;
@@ -474,8 +308,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 		this.down('#pStepsGrid').getStore().loadRawData(orderRecord.steps().getRange()) ;
 		
 		//gAttachments
-		this.down('#pAttachmentsDv').getEl().unmask() ;
-		this.down('#pAttachmentsDv').getStore().loadData(orderRecord.attachments().getRange()) ;
+		this.down('#pAttachments').getEl().unmask() ;
+		this.down('#pAttachments').setOrderRecord(orderRecord) ;
 	},
 	doReload: function() {
 		this.loadOrder( this._orderFilerecordId ) ;
@@ -516,7 +350,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 		}) ;
 	},
 	onSaveHeader: function(savedId) {
-		this.fireEvent('datachange',this) ;
+		this.optimaModule.postCrmEvent('datachange',{}) ;
 		
 		if( this._orderNew ) {
 			this.loadOrder(savedId) ;
@@ -526,56 +360,40 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 	},
 	
 	onAfterEditStep: function(editor,editEvent) {
-		return ;
 		var me = this,
-			crmFields = {},
 			editedRecord = editEvent.record ;
 		
-		if( editedRecord.get('filerecord_id') == -1 ) {
-			editedRecord.set('filerecord_id',0);
+		if( editedRecord.get('status_is_ok') && Ext.isEmpty(editedRecord.get('date_actual')) ) {
+			editedRecord.set('status_is_ok',false) ;
 		}
-			
-		Ext.Object.each( me.gridCfg.grid_fields , function(k,v) {
-			if( v.link_bible && !v.is_raw_link ) {
-				return ;
-			}
-			
-			if( editedRecord.data[v.field] != null && v.file_field != null ) {
-				var fieldCode = 'field_'+v.file_field ;
-				switch( v.type ) {
-					case 'date' :
-						crmFields[fieldCode] = Ext.Date.format(editedRecord.data[v.field], 'Y-m-d H:i:s') ;
-						break ;
-						
-					default :
-						crmFields[fieldCode] = editedRecord.data[v.field] ;
-						break ;
-				}
-			}
-		}) ;
-		
+		if( !editedRecord.get('status_is_ok') ) {
+			editedRecord.set('date_actual',null) ;
+		}
 		
 		var ajaxParams = new Object() ;
 		Ext.apply( ajaxParams, {
-			_action: 'data_setFileGrid_raw',
-			data: Ext.JSON.encode(crmFields),
-			file_code: this.fileId,
-			is_new: ( editedRecord.get('filerecord_id')>0 ? 0 : 1 ),
-			filerecord_id: editedRecord.get('filerecord_id')
+			_moduleId: 'spec_dbs_tracy',
+			_action: 'order_setStep',
+			data: Ext.JSON.encode(editedRecord.getData()),
+			orderstep_filerecord_id: editedRecord.get('orderstep_filerecord_id')
 		});
 		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams ,
 			success: function(response) {
 				if( Ext.decode(response.responseText).success == false ) {
 					Ext.Msg.alert('Failed', 'Failed');
+					return ;
 				}
-				else {
-					var filerecordId = Ext.decode(response.responseText).filerecord_id ;
-					editedRecord.set('filerecord_id',filerecordId) ;
-					editedRecord.set(me.fileId+'_id',filerecordId) ;
-				}
+				editedRecord.commit() ;
+				this._isDirty = true ;
 			},
 			scope: this
 		});
 	},
+	
+	onBeforeDestroy: function() {
+		if( this._isDirty ) {
+			this.optimaModule.postCrmEvent('datachange',{}) ;
+		}
+	}
 });

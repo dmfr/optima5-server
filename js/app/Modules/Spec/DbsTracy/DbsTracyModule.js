@@ -1,3 +1,14 @@
+Ext.define('DbsTracyAttachmentModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'attachment_filerecord_id',
+	fields: [
+		{name: 'attachment_filerecord_id', type:'int'},
+		{name: 'parent_file', type:'string'},
+		{name: 'attachment_date', type:'date', dateFormat:'Y-m-d'},
+		{name: 'attachment_txt', type:'string'}
+	]
+});
+
 Ext.define('DbsTracyFileOrderStepModel',{
 	extend: 'Ext.data.Model',
 	idProperty: 'orderstep_filerecord_id',
@@ -6,16 +17,7 @@ Ext.define('DbsTracyFileOrderStepModel',{
 		{name: 'step_code', type:'string'},
 		{name: 'step_txt', type:'string'}, // null => to convert
 		{name: 'status_is_ok', type:'boolean'},
-		{name: 'date_actual', type:'string'}
-	]
-});
-
-Ext.define('DbsTracyFileOrderAttachmentModel',{
-	extend: 'Ext.data.Model',
-	idProperty: 'orderattachment_filerecord_id',
-	fields: [
-		{name: 'orderattachment_filerecord_id', type:'int'},
-		{name: 'attachment_type', type:'string'}
+		{name: 'date_actual', type:'date', dateFormat:'Y-m-d H:i:s'}
 	]
 });
 
@@ -70,7 +72,7 @@ Ext.define('DbsTracyFileOrderModel',{
 		name: 'steps',
 		associationKey: 'steps'
 	},{
-		model: 'DbsTracyFileOrderAttachmentModel',
+		model: 'DbsTracyAttachmentModel',
 		name: 'attachments',
 		associationKey: 'attachments'
 	}]
@@ -159,6 +161,11 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.DbsTracyModule', {
 		var eventParams = {} ;
 		switch( crmEvent ) {
 			case 'datachange' :
+				break ;
+			case 'attachmentschange' :
+				Ext.apply( eventParams, {
+					orderFilerecordId: postParams.orderFilerecordId
+				}) ;
 				break ;
 			case 'opentrspt' :
 				Ext.apply( eventParams, {

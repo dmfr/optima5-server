@@ -2,7 +2,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 	extend:'Ext.panel.Panel',
 	
 	requires: [
-		'Optima5.Modules.Spec.DbsTracy.CfgParamButton'
+		'Optima5.Modules.Spec.DbsTracy.CfgParamButton',
+		'Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',
+		'Optima5.Modules.Spec.DbsTracy.OrderFilePanel'
 	],
 	
 	defaultViewMode: 'order',
@@ -123,11 +125,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		}
 	},
 	onDataChange: function() {
-		if( this.isVisible() ) {
-			this.doLoad() ;
-		} else {
-			this.on('activate',function(){this.onDataChange();}, this, {single:true}) ;
-		}
+		this.doLoad() ;
 	},
 	
 	onViewSet: function(viewId) {
@@ -201,13 +199,13 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				case 'red' :
 				case 'orange' :
 				case 'green' :
-					metaData.tdCls += ' '+'op5-spec-dbsembramach-gridcell-'+vObj.color ;
+					metaData.tdCls += ' '+'op5-spec-dbstracy-gridcell-'+vObj.color ;
 					break ;
 			}
 			if( !Ext.isEmpty(dateSql) ) {
-				metaData.tdCls += ' '+'op5-spec-dbsembramach-gridcell-bold' ;
+				metaData.tdCls += ' '+'op5-spec-dbstracy-gridcell-bold' ;
 			} else {
-				metaData.tdCls += ' '+'op5-spec-dbsembramach-gridcell-nobold' ;
+				metaData.tdCls += ' '+'op5-spec-dbstracy-gridcell-nobold' ;
 			}
 			if( Ext.isEmpty(dateSql) ) {
 				return '&#160;' ;

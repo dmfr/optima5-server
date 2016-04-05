@@ -5,7 +5,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.MainPanel',{
 		'Optima5.Modules.Spec.DbsTracy.MainMenu',
 		'Optima5.Modules.Spec.DbsTracy.FilesGrid',
 		'Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',
-		'Optima5.Modules.Spec.DbsTracy.OrderFilePanel'
+		'Optima5.Modules.Spec.DbsTracy.OrderFilePanel',
+		'Optima5.Modules.Spec.DbsTracy.AttachmentsPanel',
+		'Optima5.Modules.Spec.DbsTracy.AttachmentViewerWindow'
 	],
 	
 	initComponent: function() {
@@ -69,6 +71,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.MainPanel',{
 		//console.log("Action: "+actionCode) ;
 		
 		switch( actionCode ) {
+			case 'attachments' :
+				return me.switchToAppPanel('Optima5.Modules.Spec.DbsTracy.AttachmentsPanel',{}) ;
 			case 'files' :
 				return me.switchToAppPanel('Optima5.Modules.Spec.DbsTracy.FilesGrid',{}) ;
 			case 'trspt_create' :

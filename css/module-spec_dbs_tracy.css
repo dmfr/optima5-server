@@ -82,6 +82,9 @@
 .op5-spec-dbstracy-mmenu-create {
 	background-image: url("../images/modules/dbstracy-create-64.png") !important;
 }
+.op5-spec-dbstracy-mmenu-attachments {
+	background-image: url("../images/modules/dbstracy-attachment-64.png") !important;
+}
 
 
 .op5-spec-dbstracy-alm .x-grid-cell-inner {
@@ -136,11 +139,21 @@
 .op5-spec-dbstracy-gridcell-red .x-grid-cell-inner { 
 	background-color: #FF2B2B;
 }
+.op5-spec-dbstracy-gridcell-nobold { 
+	border: 1px solid transparent;
+}
 .op5-spec-dbstracy-gridcell-nobold .x-grid-cell-inner { 
-	border: 2px solid transparent;
+	border: 1px solid transparent;
 	font-weight: normal;
 }
+.op5-spec-dbstracy-gridcell-bold {
+	border: 1px solid transparent;
+}
 .op5-spec-dbstracy-gridcell-bold .x-grid-cell-inner { 
-	border: 2px solid gray;
+	border: 1px solid black;
 	font-weight: normal;
+}
+
+.op5-spec-dbstracy-attachments-icon {
+	background-image: url("../images/modules/dbstracy-attachment-16.png") !important;
 }

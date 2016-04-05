@@ -54,8 +54,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.MainMenu',{
 				{type_separator:true, separator_label: 'Files Management'},
 				{type_action:true, action_caption: 'Transport Files', action_sendEvent:'files', action_iconCls:'op5-spec-dbstracy-mmenu-files'},
 				{type_action:true, type_action_blank:true},
-				{type_action:true, action_caption: 'Create Transport', action_sendEvent:'trspt_create', action_iconCls:'op5-spec-dbstracy-mmenu-create'},
-				{type_action:true, action_caption: 'Create Order', action_sendEvent:'order_create', action_iconCls:'op5-spec-dbstracy-mmenu-create'}
+				{type_action:true, action_caption: 'Unsorted attachments', action_sendEvent:'attachments', action_iconCls:'op5-spec-dbstracy-mmenu-attachments'}
 			]
 		}) ;
 		 

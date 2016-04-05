@@ -16,9 +16,27 @@ switch( $post_data['_action'] )
 	return specDbsTracy_order_getRecords( $post_data ) ;
 	case 'order_setHeader' :
 	return specDbsTracy_order_setHeader( $post_data ) ;
+	case 'order_setStep' :
+	return specDbsTracy_order_setStep( $post_data ) ;
 	
 	case 'trspt_getRecords' :
 	return specDbsTracy_trspt_getRecords( $post_data ) ;
+	
+	case 'attachments_uploadfile' :
+	return specDbsTracy_attachments_uploadfile( $post_data ) ;
+	case 'attachments_setAttachment' :
+	return specDbsTracy_attachments_setAttachment( $post_data ) ;
+	case 'attachments_load' :
+	return specDbsTracy_attachments_load( $post_data ) ;
+	case 'attachments_delete' :
+	return specDbsTracy_attachments_delete( $post_data ) ;
+	case 'attachments_attach' :
+	return specDbsTracy_attachments_attach( $post_data ) ;
+	case 'attachments_detach' :
+	return specDbsTracy_attachments_detach( $post_data ) ;
+	
+	case 'attachments_getInbox' :
+	return specDbsTracy_attachments_getInbox( $post_data ) ;
 	
 	default :
 	return NULL ;

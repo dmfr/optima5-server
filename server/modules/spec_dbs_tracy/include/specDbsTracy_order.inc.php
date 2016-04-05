@@ -42,8 +42,10 @@ function specDbsTracy_order_getRecords( $post_data ) {
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$TAB_order[$arr['filerecord_parent_id']]['attachments'][] = array(
-			'orderattachment_filerecord_id' => $arr['filerecord_id'],
-			'attachment_type' => $arr['field_ATTACHMENT_TYPE']
+			'attachment_filerecord_id' => $arr['filerecord_id'],
+			'parent_file' => 'order',
+			'attachment_date' => substr($arr['field_ATTACHMENT_DATE'],0,10),
+			'attachment_txt' => $arr['field_ATTACHMENT_TXT']
 		);
 	}
 	
@@ -66,7 +68,7 @@ function specDbsTracy_order_getRecords( $post_data ) {
 }
 
 function specDbsTracy_order_setHeader( $post_data ) {
-	usleep(500000);
+	usleep(100*1000);
 	global $_opDB ;
 	$file_code = 'CDE' ;
 	
@@ -116,6 +118,23 @@ function specDbsTracy_order_setHeader( $post_data ) {
 	}
 	
 	return array('success'=>true, 'id'=>$filerecord_id) ;
+}
+
+function specDbsTracy_order_setStep( $post_data ) {
+	global $_opDB ;
+	$file_code = 'CDE_STEP' ;
+	
+	$form_data = json_decode($post_data['data'],true) ;
+	
+	if( $post_data['orderstep_filerecord_id'] != $form_data['orderstep_filerecord_id'] ) {
+		return array('success'=>false) ;
+	}
+	$arr_update = array() ;
+	$arr_update['field_STATUS_IS_OK'] = ( $form_data['status_is_ok'] ? 1 : 0 ) ;
+	$arr_update['field_DATE_ACTUAL'] = $form_data['date_actual'] ;
+	paracrm_lib_data_updateRecord_file( $file_code, $arr_update, $post_data['orderstep_filerecord_id'] );
+	
+	return array('success'=>true, 'debug'=>$form_data) ;
 }
 
 ?>
