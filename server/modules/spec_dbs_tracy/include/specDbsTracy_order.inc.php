@@ -30,9 +30,29 @@ function specDbsTracy_order_getRecords( $post_data ) {
 			'vol_count' => $arr['field_VOL_COUNT'],
 			
 			'steps' => array(),
-			'attachments' => array()
+			'attachments' => array(),
+			
+			'calc_step' => '',
+			'calc_link_is_active' => null,
+			'calc_link_trspt_filerecord_id' => null
 		);
 	}
+	
+	$query = "SELECT c.filerecord_id, tc.filerecord_parent_id, t.field_ID_DOC FROM view_file_CDE c" ;
+	$query.= " LEFT OUTER JOIN view_file_TRSPT_CDE tc ON tc.field_FILE_CDE_ID=c.filerecord_id AND tc.field_LINK_IS_CANCEL='0'" ;
+	$query.= " LEFT OUTER JOIN view_file_TRSPT t ON t.filerecord_id=tc.filerecord_parent_id" ;
+	$query.= " WHERE 1" ;
+	if( isset($filter_orderFilerecordId_list) ) {
+		$query.= " AND c.filerecord_id IN {$filter_orderFilerecordId_list}" ;
+	}
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$filerecord_id = $arr[0] ;
+		$TAB_order[$filerecord_id]['calc_link_is_active'] = ($arr[1]!=NULL) ;
+		$TAB_order[$filerecord_id]['calc_link_trspt_filerecord_id'] = $arr[1] ;
+		$TAB_order[$filerecord_id]['calc_link_trspt_txt'] = $arr[2] ;
+	}
+	
 	
 	$query = "SELECT * FROM view_file_CDE_ATTACH ca" ;
 	$query.= " WHERE 1" ;
@@ -144,10 +164,31 @@ function specDbsTracy_order_setStep( $post_data ) {
 	}
 	$arr_update = array() ;
 	$arr_update['field_STATUS_IS_OK'] = ( $form_data['status_is_ok'] ? 1 : 0 ) ;
-	$arr_update['field_DATE_ACTUAL'] = $form_data['date_actual'] ;
+	$arr_update['field_DATE_ACTUAL'] = ( $form_data['date_actual'] ? $form_data['date_actual'] : '0000-00-00 00:00:00' ) ;
 	paracrm_lib_data_updateRecord_file( $file_code, $arr_update, $post_data['orderstep_filerecord_id'] );
 	
 	return array('success'=>true, 'debug'=>$form_data) ;
 }
+
+
+function specDbsTracy_order_stepValidate( $post_data ) {
+	global $_opDB ;
+	$file_code = 'CDE_STEP' ;
+	
+	$p_orderFilerecordId = $post_data['order_filerecord_id'] ;
+	$p_stepCode = $post_data['step_code'] ;
+	
+	$query = "SELECT filerecord_id FROM view_file_CDE_STEP WHERE filerecord_parent_id='{$p_orderFilerecordId}' AND field_STEP_CODE='{$p_stepCode}'" ;
+	$p_orderstepFilerecordId = $_opDB->query_uniqueValue($query) ;
+	
+	$arr_update = array() ;
+	$arr_update['field_STATUS_IS_OK'] = 1 ;
+	$arr_update['field_DATE_ACTUAL'] = date('Y-m-d H:i:s') ;
+	paracrm_lib_data_updateRecord_file( $file_code, $arr_update, $p_orderstepFilerecordId );
+	
+	return array('success'=>true, 'debug'=>$form_data) ;
+}
+
+
 
 ?>

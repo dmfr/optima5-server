@@ -7,7 +7,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.MainPanel',{
 		'Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',
 		'Optima5.Modules.Spec.DbsTracy.OrderFilePanel',
 		'Optima5.Modules.Spec.DbsTracy.AttachmentsPanel',
-		'Optima5.Modules.Spec.DbsTracy.AttachmentViewerWindow'
+		'Optima5.Modules.Spec.DbsTracy.AttachmentViewerWindow',
+		'Optima5.Modules.Spec.DbsTracy.UploadForm'
 	],
 	
 	initComponent: function() {
@@ -79,6 +80,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.MainPanel',{
 				return me.optimaModule.postCrmEvent('opentrspt',{trsptNew:true}) ;
 			case 'order_create' :
 				return me.optimaModule.postCrmEvent('openorder',{orderNew:true}) ;
+			case 'form_upload' :
+				return me.openUploadPopup() ;
 			default :
 				return ;
 		}
@@ -160,5 +163,35 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.MainPanel',{
 				}
 			})
 		}) ;
+	},
+	openUploadPopup: function() {
+		this.getEl().mask() ;
+		// Open panel
+		var createPanel = Ext.create('Optima5.Modules.Spec.DbsTracy.UploadForm',{
+			optimaModule: this.optimaModule,
+			width:400, // dummy initial size, for border layout to work
+			height:null, // ...
+			floating: true,
+			draggable: true,
+			resizable: true,
+			renderTo: this.getEl(),
+			tools: [{
+				type: 'close',
+				handler: function(e, t, p) {
+					p.ownerCt.destroy();
+				},
+				scope: this
+			}]
+		});
+		createPanel.on('saved', function(p) {
+			this.doTreeLoad() ;
+		},this,{single:true}) ;
+		createPanel.on('destroy',function(p) {
+			this.getEl().unmask() ;
+			this.floatingPanel = null ;
+		},this,{single:true}) ;
+		
+		createPanel.show();
+		createPanel.getEl().alignTo(this.getEl(), 'c-c?');
 	}
 }) ;

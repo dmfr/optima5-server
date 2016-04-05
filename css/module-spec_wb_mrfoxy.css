@@ -247,6 +247,12 @@
 .op5-spec-mrfoxy-promolist-progress .x-progress-text {
 	line-height: inherit ;
 }
+.op5-spec-mrfoxy-promolist-progresscolor .x-progress-bar {     
+	border-right-color: #FF3D0D;     
+	border-top-color: #FF3D0D;     
+	background-image: none;     
+	background-color: #FF3D0D; 
+}
 
 .op5-spec-mrfoxy-promosch-today {
 	background-color: rgb(232, 232, 232) ;

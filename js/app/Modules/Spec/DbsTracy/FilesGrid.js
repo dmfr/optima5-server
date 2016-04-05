@@ -51,13 +51,13 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 						text: 'Order',
 						icon: 'images/op5img/ico_new_16.gif',
 						handler: function() {
-							return this.optimaModule.postCrmEvent('openorder',{orderNew:true}) ;
+							this.handleNewOrder() ;
 						}
 					},{
 						text: 'Transport',
 						icon: 'images/op5img/ico_new_16.gif',
 						handler: function() {
-							this.handleNewOrder() ;
+							this.handleNewTrspt() ;
 						}
 					}]
 				}
@@ -255,7 +255,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			draggable: false,
 			sortable: (this._readonlyMode ? false : true),
 			hideable: false,
-			resizable: false,
+			resizable: true,
 			groupable: false,
 			lockable: false
 		} ;
@@ -444,7 +444,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		},{
 			text: '<b>Consignee</b><br>Site location',
 			dataIndex: 'atr_consignee',
-			width:120,
+			width:140,
 			align: 'left',
 			filter: {
 				type: 'op5crmbasebible',
@@ -487,6 +487,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				var tmpProgress = stepRow['status_percent'] / 100 ;
 				var tmpText = stepRow['step_txt'] ;
 					var b = new Ext.ProgressBar({height: 15, cls: 'op5-spec-mrfoxy-promolist-progress'});
+					if( !record.get('calc_link_is_active') ) {
+						b.addCls('op5-spec-mrfoxy-promolist-progresscolor') ;
+					}
 					b.updateProgress(tmpProgress,tmpText);
 					v = Ext.DomHelper.markup(b.getRenderTree());
 					b.destroy() ;
@@ -565,7 +568,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			draggable: false,
 			sortable: (this._readonlyMode ? false : true),
 			hideable: false,
-			resizable: false,
+			resizable: true,
 			groupable: false,
 			lockable: false
 		} ;
@@ -639,7 +642,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		gridContextMenuItems.push({
 			disabled: true,
 			text: '<b>'+selRecord.get('id_soc')+'/'+selRecord.get('id_dn')+'</b>'
-		},'-',{
+		},{
 			iconCls: 'icon-bible-edit',
 			text: 'Edit / modify',
 			handler : function() {
@@ -647,6 +650,19 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			},
 			scope : this
 		});
+		if( selRecord.get('calc_link_is_active') ) {
+			gridContextMenuItems.push('-',{
+				disabled: true,
+				text: 'TrsptFile&#160;:&#160;<b>'+selRecord.get('calc_link_trspt_txt')+'</b>'
+			},{
+				iconCls: 'icon-bible-edit',
+				text: 'Edit / modify',
+				handler : function() {
+					this.handleEditTrspt( selRecord.get('calc_link_trspt_filerecord_id') ) ;
+				},
+				scope : this
+			});
+		}
 		
 		var gridContextMenu = Ext.create('Ext.menu.Menu',{
 			items : gridContextMenuItems,

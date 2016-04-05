@@ -18,6 +18,8 @@ switch( $post_data['_action'] )
 	return specDbsTracy_order_setHeader( $post_data ) ;
 	case 'order_setStep' :
 	return specDbsTracy_order_setStep( $post_data ) ;
+	case 'order_stepValidate' :
+	return specDbsTracy_order_stepValidate( $post_data ) ;
 	
 	case 'trspt_getRecords' :
 	return specDbsTracy_trspt_getRecords( $post_data ) ;
@@ -45,6 +47,9 @@ switch( $post_data['_action'] )
 	
 	case 'attachments_getInbox' :
 	return specDbsTracy_attachments_getInbox( $post_data ) ;
+	
+	case 'upload' :
+	return specDbsTracy_upload($post_data) ;
 	
 	default :
 	return NULL ;

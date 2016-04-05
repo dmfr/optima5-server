@@ -514,7 +514,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
 				if( ajaxResponse.success == false ) {
-					var error = ajaxResponse.success || 'File not saved !' ;
+					var error = ajaxResponse.error || 'File not saved !' ;
 					Ext.MessageBox.alert('Error',error) ;
 					return ;
 				}

@@ -23,9 +23,11 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 				},
 				scope:this
 			},{
+				itemId: 'tbValidate',
 				iconCls:'op5-sdomains-menu-updateschema',
 				text:'<b>Validate</b>',
 				handler: function() {
+					this.handleValidate() ;
 				},
 				scope:this
 			}],
@@ -358,6 +360,39 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 		} else {
 			this.fireEvent('candestroy',this) ;
 		}
+	},
+	
+	handleValidate: function() {
+		var formPanel = this.down('#pHeaderForm'),
+			form = formPanel.getForm() ;
+		if( !form.isValid() ) {
+			Ext.Msg.alert('Error','Header incomplete') ;
+			return ;
+		}
+		
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_tracy',
+				_action: 'order_stepValidate',
+				order_filerecord_id: this._orderFilerecordId,
+				step_code: '30_DOCS'
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					var error = ajaxResponse.success || 'File not saved !' ;
+					Ext.MessageBox.alert('Error',error) ;
+					return ;
+				}
+				this.doReload() ;
+				this.optimaModule.postCrmEvent('datachange',{}) ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
 	},
 	
 	onAfterEditStep: function(editor,editEvent) {

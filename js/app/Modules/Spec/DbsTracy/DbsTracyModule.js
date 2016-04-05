@@ -66,7 +66,10 @@ Ext.define('DbsTracyFileOrderModel',{
 				return parseInt(ttmp[2].trim()) ;
 			}
 		},
-		{name: 'calc_step', type:'string'}
+		{name: 'calc_step', type:'string'},
+		{name: 'calc_link_is_active', type:'boolean'},
+		{name: 'calc_link_trspt_filerecord_id', type:'int'},
+		{name: 'calc_link_trspt_txt', type:'string'}
 	],
 	hasMany: [{
 		model: 'DbsTracyFileOrderStepModel',

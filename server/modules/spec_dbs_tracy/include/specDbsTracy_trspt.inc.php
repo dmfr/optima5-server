@@ -156,11 +156,28 @@ function specDbsTracy_trspt_orderAdd( $post_data ) {
 	$p_trsptFilerecordId = $post_data['trspt_filerecord_id'] ;
 	$p_orderFilerecordId = $post_data['order_filerecord_id'] ;
 	
-	specDbsTracy_trspt_orderRemove($post_data) ;
+	$ttmp = specDbsTracy_order_getRecords(array('filter_orderFilerecordId_arr'=>json_encode(array($p_orderFilerecordId)))) ;
+	if( $ttmp['data'][0]['calc_link_is_active'] ) {
+		return array('success'=>false,'error'=>"Order {$ttmp['data'][0]['id_dn']} already attached") ;
+	}
+	foreach( $ttmp['data'][0]['steps'] as $row_order_step ) {
+		if( $row_order_step['step_code'] == '30_DOCS' || !$row_order_step['status_is_ok'] ) {
+			return array('success'=>false, 'error'=>"Order {$ttmp['data'][0]['id_dn']} not ready") ;
+		}
+	}
 	
 	$arr_ins = array() ;
 	$arr_ins['field_FILE_CDE_ID'] = $p_orderFilerecordId ;
 	$filerecord_id = paracrm_lib_data_insertRecord_file( $file_code, $p_trsptFilerecordId, $arr_ins );
+	
+	foreach( $ttmp['data'][0]['steps'] as $row_order_step ) {
+		if( $row_order_step['step_code'] == '50_ASSOC' ) {
+			$arr_ins = array() ;
+			$arr_ins['field_STATUS_IS_OK'] = 1 ;
+			$arr_ins['field_DATE_ACTUAL'] = date('Y-m-d H:i:s') ;
+			paracrm_lib_data_updateRecord_file( 'CDE_STEP', $arr_ins, $row_order_step['orderstep_filerecord_id'] );
+		}
+	}
 	
 	return array('success'=>true) ;
 }
@@ -172,6 +189,8 @@ function specDbsTracy_trspt_orderRemove( $post_data ) {
 	$p_trsptFilerecordId = $post_data['trspt_filerecord_id'] ;
 	$p_orderFilerecordId = $post_data['order_filerecord_id'] ;
 	
+	$ttmp = specDbsTracy_order_getRecords(array('filter_orderFilerecordId_arr'=>json_encode(array($p_orderFilerecordId)))) ;
+	
 	$query = "SELECT * FROM view_file_TRSPT_CDE WHERE filerecord_parent_id='{$p_trsptFilerecordId}'" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
@@ -179,6 +198,16 @@ function specDbsTracy_trspt_orderRemove( $post_data ) {
 			paracrm_lib_data_deleteRecord_file($file_code,$arr['filerecord_id']) ;
 		}
 	}
+	
+	foreach( $ttmp['data'][0]['steps'] as $row_order_step ) {
+		if( $row_order_step['step_code'] == '50_ASSOC' ) {
+			$arr_ins = array() ;
+			$arr_ins['field_STATUS_IS_OK'] = 0 ;
+			$arr_ins['field_DATE_ACTUAL'] = '0000-00-00 00:00:00' ;
+			paracrm_lib_data_updateRecord_file( 'CDE_STEP', $arr_ins, $row_order_step['orderstep_filerecord_id'] );
+		}
+	}
+	
 	return array('success'=>true) ;
 }
 
