@@ -117,7 +117,7 @@ Ext.define('DbsTracyFileTrsptModel',{
 		{name: 'mvt_origin', type:'string'},
 		{name: 'mvt_dest', type:'string'},
 		{name: 'flight_awb', type:'string'},
-		{name: 'flight_date', type: 'string'},
+		{name: 'flight_date', type: 'date', dateFormat:'Y-m-d'},
 		{name: 'flight_code', type:'string'},
 		{name: 'calc_step', type:'string'}
 	],

@@ -2,9 +2,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 	extend:'Ext.panel.Panel',
 	
 	requires: [
-		'Optima5.Modules.Spec.DbsTracy.CfgParamButton',
-		'Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',
-		'Optima5.Modules.Spec.DbsTracy.OrderFilePanel'
+		'Optima5.Modules.Spec.DbsTracy.CfgParamButton'
 	],
 	
 	defaultViewMode: 'order',
@@ -178,6 +176,11 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			stepsMap[step.step_code] = step ;
 		}) ;
 		
+		var consigneeMap = {} ;
+		Ext.Array.each( Optima5.Modules.Spec.DbsTracy.HelperCache.getListData('LIST_CONSIGNEE'), function(r) {
+			consigneeMap[r.id] = r.text ;
+		}) ;
+		
 		var columns = [{
 			text: '<b>BU</b>',
 			dataIndex: 'id_soc',
@@ -246,6 +249,81 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 					v = Ext.DomHelper.markup(b.getRenderTree());
 					b.destroy() ;
 				return v;
+			}
+		},{
+			text: '<b>Consignee</b>',
+			dataIndex: 'atr_consignee',
+			width:140,
+			align: 'left',
+			filter: {
+				type: 'op5crmbasebible',
+				optimaModule: this.optimaModule,
+				bibleId: 'LIST_CONSIGNEE'
+			},
+			renderer: function(v,metaData,record) {
+				var str = '' ;
+				
+				str+= '<b>' ;
+				var consigneeMap = this._consigneeMap ;
+				if( prioMap.hasOwnProperty(v) ) {
+					str+= consigneeMap[v] ;
+				} else {
+					str+= v ;
+				}
+				str+= '</b>' ;
+				
+				return str ;
+			}
+		},{
+			text: 'Incoterm',
+			dataIndex: 'atr_incoterm',
+			width:75,
+			align: 'left',
+			filter: {
+				type: 'op5crmbasebible',
+				optimaModule: this.optimaModule,
+				bibleId: 'LIST_INCOTERM'
+			},
+			renderer: function(v,metaData,record) {
+				var str = '' ;
+				
+				str+= '<b>' ;
+				str+= v ;
+				str+= '</b>' ;
+				
+				return str ;
+			}
+		},{
+			text: 'Transport',
+			align: 'center',
+			columns:[{
+				text: 'Origin',
+				dataIndex: 'mvt_origin',
+				width: 60
+			},{
+				text: 'Dest',
+				dataIndex: 'mvt_dest',
+				width: 60
+			},{
+				text: 'Carrier',
+				dataIndex: 'mvt_carrier',
+				width: 120,
+				filter: {
+					type: 'op5crmbasebible',
+					optimaModule: this.optimaModule,
+					bibleId: 'LIST_CARRIER'
+				}
+			}]
+		},{
+			text: 'Orders',
+			align: 'left',
+			width: 100,
+			renderer: function(v,metaData,record) {
+				var arr = [] ;
+				record.orders().each(function(orderRecord) {
+					arr.push( '<b>'+orderRecord.get('id_dn')+'</b>' ) ;
+				})
+				return arr.join('<br>') ;
 			}
 		}] ;
 		

@@ -146,7 +146,7 @@ function specDbsTracy_trspt_setHeader( $post_data ) {
 	$arr_ins['field_MVT_ORIGIN'] = $form_data['mvt_origin'] ;
 	$arr_ins['field_MVT_DEST'] = $form_data['mvt_dest'] ;
 	$arr_ins['field_FLIGHT_AWB'] = $form_data['flight_awb'] ;
-	$arr_ins['field_FLIGHT_DATE'] = $form_data['flight_date'] ;
+	$arr_ins['field_FLIGHT_DATE'] = substr($form_data['flight_date'],0,10) ;
 	$arr_ins['field_FLIGHT_CODE'] = $form_data['flight_code'] ;
 	
 	if( $post_data['_is_new'] ) {
@@ -265,7 +265,6 @@ function specDbsTracy_trspt_stepValidate( $post_data ) {
 		}
 	}
 	sort($arr_steps) ;
-	print_r($arr_steps) ;
 	
 	$ttmp = specDbsTracy_trspt_getRecords(array('filter_trsptFilerecordId_arr'=>json_encode(array($p_trsptFilerecordId)))) ;
 	$trspt_record = $ttmp['data'][0] ;
@@ -290,16 +289,14 @@ function specDbsTracy_trspt_stepValidate( $post_data ) {
 		}
 	}
 	
+	foreach( $trspt_record['orders'] as $row_order ) {
+		specDbsTracy_order_stepValidate( array(
+			'order_filerecord_id' => $row_order['order_filerecord_id'],
+			'step_code' => $p_stepCode
+		) );
+	}
+	
 	return array('success'=>true) ;
-	
-	
-	
-	$arr_update = array() ;
-	$arr_update['field_STATUS_IS_OK'] = 1 ;
-	$arr_update['field_DATE_ACTUAL'] = date('Y-m-d H:i:s') ;
-	paracrm_lib_data_updateRecord_file( $file_code, $arr_update, $p_orderstepFilerecordId );
-	
-	return array('success'=>true, 'debug'=>$form_data) ;
 }
 
 

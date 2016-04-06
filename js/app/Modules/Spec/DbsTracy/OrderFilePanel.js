@@ -1,5 +1,5 @@
 Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
-	extend:'Ext.panel.Panel',
+	extend:'Ext.window.Window',
 	
 	requires: [
 		'Optima5.Modules.Spec.DbsTracy.CfgParamField',
@@ -274,6 +274,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 		//gAttachments
 		this.down('#pAttachments').getEl().mask() ;
 		this.down('#pAttachments').setOrderRecord(null) ;
+		
+		// Title
+		this.setTitle('New OrderFile') ;
 	},
 	loadOrder: function( filerecordId ) {
 		this.showLoadmask() ;
@@ -313,6 +316,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 		//gAttachments
 		this.down('#pAttachments').getEl().unmask() ;
 		this.down('#pAttachments').setOrderRecord(orderRecord) ;
+		
+		// Title
+		this.setTitle('Order: '+orderRecord.get('id_soc')+'/'+orderRecord.get('id_dn')) ;
 	},
 	doReload: function() {
 		this.loadOrder( this._orderFilerecordId ) ;

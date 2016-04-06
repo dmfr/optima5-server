@@ -1,41 +1,5 @@
-        Ext.define('FeedItem', {
-            extend: 'Ext.data.Model',
-            fields: ['title', 'author', 'link', {
-                name: 'pubDate',
-                type: 'date'
-            }, {
-                // Some feeds return the description as the main content
-                // Others return description as a summary. Figure this out here
-                name: 'description',
-                mapping: function(raw) {
-                    var DQ = Ext.dom.Query,
-                        content = DQ.selectNode('content', raw),
-                        key;
-
-                    if (content && DQ.getNodeValue(content)) {
-                        key = 'description';
-                    } else {
-                        key = 'title';
-                    }
-                    return DQ.selectValue(key, raw);
-
-                }
-            }, {
-                name: 'content',
-                mapping: function(raw) {
-                    var DQ = Ext.dom.Query,
-                        content = DQ.selectNode('content', raw);
-
-                    if (!content || !DQ.getNodeValue(content)) {
-                        content = DQ.selectNode('description', raw);
-                    }
-                    return DQ.getNodeValue(content, '');
-                }
-            }]
-        });
-
 Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
-	extend:'Ext.panel.Panel',
+	extend:'Ext.window.Window',
 	
 	requires: [
 		'Ext.ux.PreviewPlugin',
@@ -80,20 +44,13 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 					scope:this
 				}]
 			},{
-				iconCls:'op5-sdomains-menu-updateschema',
-				text:'<b>Validate</b>',
+				icon: 'images/op5img/ico_print_16.png',
+				text:'<b>Print</b>',
 				menu: [{
-					iconCls:'op5-sdomains-menu-updateschema',
-					text:'Validate <b>70_PICKUP</b>',
+					icon: 'images/op5img/ico_print_16.png',
+					text:'Print <b>SummaryManifest</b>',
 					handler: function() {
-						this.handleValidate('70_PICKUP') ;
-					},
-					scope:this
-				},{
-					iconCls:'op5-sdomains-menu-updateschema',
-					text:'Validate <b>99_POD</b>',
-					handler: function() {
-						this.handleValidate('99_POD') ;
+						
 					},
 					scope:this
 				}]
@@ -237,8 +194,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 					}
 				},
 				listeners: {
-					itemdblclick: function() {
-						this.optimaModule.postCrmEvent('openorder',{orderNew:true}) ;
+					itemdblclick: function(view, record, item, index, event) {
+						this.optimaModule.postCrmEvent('openorder',{orderFilerecordId:record.get('order_filerecord_id')}) ;
 					},
 					itemcontextmenu: function(view, record, item, index, event) {
 						var gridContextMenuItems = new Array() ;
@@ -421,6 +378,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		//gEvents
 		this.down('#pEvents').getEl().mask() ;
 		this.down('#pEventsGrid').getStore().removeAll() ;
+		
+		// Title
+		this.setTitle('New TrsptFile') ;
 	},
 	loadTrspt: function( filerecordId ) {
 		this.showLoadmask() ;
@@ -460,6 +420,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		//gAttachments
 		this.down('#pEvents').getEl().unmask() ;
 		this.down('#pEventsGrid').getStore().loadRawData(trsptRecord.events().getRange()) ;
+		
+		// Title
+		this.setTitle('Trspt: '+trsptRecord.get('id_doc')) ;
 	},
 	doReload: function() {
 		this.loadTrspt( this._trsptFilerecordId ) ;
@@ -534,12 +497,19 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 	
 	
 	doOrdersAdd: function(orderRecords) {
+		// Check soc_code
+		var orderRecord = orderRecords[0] ;
+		if( orderRecord.get('id_soc') != this.down('#pHeaderForm').getForm().findField('id_soc').getValue() ) {
+			Ext.MessageBox.alert('Error','Incompatible (company code)') ;
+			return ;
+		}
+		
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_dbs_tracy',
 				_action: 'trspt_orderAdd',
 				trspt_filerecord_id: this._trsptFilerecordId,
-				order_filerecord_id: orderRecords[0].get('order_filerecord_id')
+				order_filerecord_id: orderRecord.get('order_filerecord_id')
 			},
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;

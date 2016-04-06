@@ -120,49 +120,84 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.MainPanel',{
 		if( trsptFilerecordId === null ) {
 			return ;
 		}
+		
+		// recherche d'une fenetre deja ouverte
+		var doOpen = true ;
+		this.optimaModule.eachWindow(function(win){
+			if( !(win instanceof Optima5.Modules.Spec.DbsTracy.TrsptFilePanel) ) {
+				return true ;
+			}
+			if( win._trsptFilerecordId == trsptFilerecordId ) {
+				win.show() ;
+				win.focus() ;
+				doOpen = false ;
+				return false ;
+			}
+		},this) ;
+		if( !doOpen ) {
+			return ;
+		}
+		
 		// new window
 		this.optimaModule.createWindow({
-			title: 'Create new shipping',
+			title: '',
 			width:1150,
 			height:600,
 			iconCls: 'op5-crmbase-dataformwindow-icon',
 			animCollapse:false,
-			border: false,
-			items: Ext.create('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
+			
 				optimaModule: this.optimaModule,
 				_trsptNew: (trsptFilerecordId==0),
 				_trsptFilerecordId: trsptFilerecordId,
 				listeners: {
-					candestroy: function(p) {
-						p.up('window').close() ;
+					candestroy: function(w) {
+						w.close() ;
 					}
 				}
-			})
-		}) ;
+		},Optima5.Modules.Spec.DbsTracy.TrsptFilePanel) ;
 	},
 	openOrderFile: function(orderFilerecordId) {
 		if( orderFilerecordId === null ) {
 			return ;
 		}
+		
+		// recherche d'une fenetre deja ouverte
+		var doOpen = true ;
+		this.optimaModule.eachWindow(function(win){
+			if( !(win instanceof Optima5.Modules.Spec.DbsTracy.OrderFilePanel) ) {
+				return true ;
+			}
+			if( win._orderFilerecordId == orderFilerecordId ) {
+				win.show() ;
+				win.focus() ;
+				doOpen = false ;
+				return false ;
+			}
+		},this) ;
+		if( !doOpen ) {
+			return ;
+		}
+		
+		//title
+		
+		
 		// new window
 		this.optimaModule.createWindow({
-			title: 'Create new order',
+			title: '',
 			width:1150,
 			height:600,
 			iconCls: 'op5-crmbase-dataformwindow-icon',
 			animCollapse:false,
-			border: false,
-			items: Ext.create('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
+			
 				optimaModule: this.optimaModule,
 				_orderNew: (orderFilerecordId==0),
 				_orderFilerecordId: orderFilerecordId,
 				listeners: {
-					candestroy: function(p) {
-						p.up('window').close() ;
+					candestroy: function(w) {
+						w.close() ;
 					}
 				}
-			})
-		}) ;
+		},Optima5.Modules.Spec.DbsTracy.OrderFilePanel) ;
 	},
 	openUploadPopup: function() {
 		this.getEl().mask() ;
