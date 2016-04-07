@@ -33,6 +33,7 @@ Ext.define('DbsTracyFileOrderModel',{
 		{name: 'atr_priority', type:'string'},
 		{name: 'atr_consignee', type:'string'},
 		{name: 'txt_location', type:'string'},
+		{name: 'vol_kg', type:'number'},
 		{name: 'vol_dims', type:'string'},
 		{name: 'vol_count', type:'int'},
 		{

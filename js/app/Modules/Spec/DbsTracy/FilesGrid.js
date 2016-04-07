@@ -263,14 +263,14 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			renderer: function(v,metaData,record) {
 				var str = '' ;
 				
-				str+= '<b>' ;
+				//str+= '<b>' ;
 				var consigneeMap = this._consigneeMap ;
-				if( prioMap.hasOwnProperty(v) ) {
+				if( consigneeMap.hasOwnProperty(v) ) {
 					str+= consigneeMap[v] ;
 				} else {
 					str+= v ;
 				}
-				str+= '</b>' ;
+				//str+= '</b>' ;
 				
 				return str ;
 			}
@@ -378,6 +378,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				enableTextSelection: true
 			},
 			_prioMap: prioMap,
+			_consigneeMap: consigneeMap,
 			_stepsMap: stepsMap
 		} ;
 		
@@ -532,16 +533,16 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			renderer: function(v,metaData,record) {
 				var str = '' ;
 				
-				str+= '<b>' ;
+				//str+= '<b>' ;
 				var consigneeMap = this._consigneeMap ;
-				if( prioMap.hasOwnProperty(v) ) {
+				if( consigneeMap.hasOwnProperty(v) ) {
 					str+= consigneeMap[v] ;
 				} else {
 					str+= v ;
 				}
-				str+= '</b>' ;
+				//str+= '</b>' ;
 				
-				if( !Ext.isEmpty( record.get('txt_location') ) ) {
+				if( false && !Ext.isEmpty( record.get('txt_location') ) ) {
 					str+= '<br>' ;
 					str+= Ext.util.Format.nl2br( Ext.String.htmlEncode( record.get('txt_location') ) ) ;
 				}
@@ -617,12 +618,15 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 							} else {
 								v1 = null ;
 							}
+							if( v1 ) {
+								v1 = Ext.Date.parse(v1, "Y-m-d H:i:s");
+							}
 						}
 						var result = null;
 						if (v1) {
-							var v2 = new Date(v1) ;
-							v2.setHours(0,0,0,0) ;
-							result = v2.getTime();
+							//var v2 = new Date(v1) ;
+							v1.setHours(0,0,0,0) ;
+							result = v1.getTime();
 						}
 						return result;
 					}

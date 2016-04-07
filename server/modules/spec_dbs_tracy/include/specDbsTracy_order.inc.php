@@ -29,9 +29,11 @@ function specDbsTracy_order_getRecords( $post_data ) {
 			'id_soc' => $arr['field_ID_SOC'],
 			'id_dn' => $arr['field_ID_DN'],
 			'ref_po' => $arr['field_REF_PO'],
+			'ref_invoice' => $arr['field_REF_INVOICE'],
 			'atr_priority' => $arr['field_ATR_PRIORITY'],
 			'atr_consignee' => $arr['field_ATR_CONSIGNEE'],
 			'txt_location' => $arr['field_TXT_LOCATION'],
+			'vol_kg' => $arr['field_VOL_KG'],
 			'vol_dims' => $arr['field_VOL_DIMS'],
 			'vol_count' => $arr['field_VOL_COUNT'],
 			
@@ -122,15 +124,28 @@ function specDbsTracy_order_setHeader( $post_data ) {
 	
 	$form_data = json_decode($post_data['data'],true) ;
 	
+	if( $form_data['atr_consignee_create'] ) {
+		$entry_key = preg_replace("/[^a-zA-Z0-9]/", "", strtoupper($form_data['atr_consignee'])) ;
+	
+		$arr_ins = array() ;
+		$arr_ins['field_CODE'] = $entry_key ;
+		$arr_ins['field_NAME'] = strtoupper($form_data['atr_consignee']) ;
+		paracrm_lib_data_insertRecord_bibleEntry( 'LIST_CONSIGNEE', $entry_key, 'UPLOAD', $arr_ins ) ;
+		
+		$form_data['atr_consignee'] = $entry_key ;
+	}
+	
 	$arr_ins = array() ;
 	if( $post_data['_is_new'] ) {
 		$arr_ins['field_ID_SOC'] = $form_data['id_soc'] ;
 		$arr_ins['field_ID_DN'] = $form_data['id_dn'] ;
 	}
 	$arr_ins['field_REF_PO'] = $form_data['ref_po'] ;
+	$arr_ins['field_REF_INVOICE'] = $form_data['ref_invoice'] ;
 	$arr_ins['field_ATR_PRIORITY'] = $form_data['atr_priority'] ;
 	$arr_ins['field_ATR_CONSIGNEE'] = $form_data['atr_consignee'] ;
 	$arr_ins['field_TXT_LOCATION'] = $form_data['txt_location'] ;
+	$arr_ins['field_VOL_KG'] = $form_data['vol_kg'] ;
 	$arr_ins['field_VOL_DIMS'] = $form_data['vol_dims'] ;
 	$arr_ins['field_VOL_COUNT'] = $form_data['vol_count'] ;
 	

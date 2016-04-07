@@ -66,11 +66,22 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 					name: 'ref_po',
 					allowBlank: false
 				},{
+					xtype: 'textfield',
+					fieldLabel: 'Invoice #',
+					anchor: '',
+					width: 250,
+					name: 'ref_invoice',
+					allowBlank: false
+				},{
 					xtype: 'op5specdbstracycfgparamtext',
 					cfgParam_id: 'LIST_CONSIGNEE',
 					fieldLabel: '<b>Consignee</b>',
 					name: 'atr_consignee',
-					allowBlank: false
+					allowBlank: false,
+					forceSelection: false
+				},{
+					xtype: 'hiddenfield',
+					name: 'atr_consignee_create',
 				},{
 					xtype: 'textarea',
 					fieldLabel: '<b>Location</b>',
@@ -87,6 +98,15 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 					xtype: 'fieldset',
 					title: 'Volume details',
 					items: [{
+						xtype: 'numberfield',
+						hideTrigger:true,
+						xtype: 'textfield',
+						anchor: '',
+						width: 150,
+						fieldLabel: 'Weight (kg)',
+						allowBlank: false,
+						name: 'vol_kg'
+					},{
 						fieldLabel: 'Dimensions',
 						xtype: 'fieldcontainer',
 						layout: {
@@ -324,11 +344,23 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 		this.loadOrder( this._orderFilerecordId ) ;
 	},
 	
-	handleSaveHeader: function() {
+	handleSaveHeader: function(noConfirm) {
 		var formPanel = this.down('#pHeaderForm'),
 			form = formPanel.getForm() ;
 		if( !form.isValid() ) {
 			return ;
+		}
+		
+		if( !noConfirm ) {
+			if( !form.findField('atr_consignee').getSelection() ) {
+				Ext.Msg.confirm('Confirm?','Create new consignee ?',function(btn){
+					if( btn=='yes' ) {
+						form.findField('atr_consignee_create').setValue('true') ;
+						this.handleSaveHeader(true) ;
+					}
+				},this);
+				return ;
+			}
 		}
 		
 		var recordData = form.getValues(false,false,false,true) ;
@@ -350,7 +382,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 					Ext.MessageBox.alert('Error',error) ;
 					return ;
 				}
-				this.onSaveHeader(ajaxResponse.id) ;
+				var doReload = noConfirm ;
+				this.onSaveHeader(ajaxResponse.id, doReload) ;
 			},
 			callback: function() {
 				this.hideLoadmask() ;
@@ -358,8 +391,11 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 			scope: this
 		}) ;
 	},
-	onSaveHeader: function(savedId) {
+	onSaveHeader: function(savedId, doReload) {
 		this.optimaModule.postCrmEvent('datachange',{}) ;
+		if( doReload ) {
+			Optima5.Modules.Spec.DbsTracy.HelperCache.fetchConfig() ;
+		}
 		
 		if( this._orderNew ) {
 			this.loadOrder(savedId) ;

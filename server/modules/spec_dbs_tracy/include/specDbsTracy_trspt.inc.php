@@ -302,4 +302,127 @@ function specDbsTracy_trspt_stepValidate( $post_data ) {
 
 
 
+function specDbsTracy_trspt_printDoc( $post_data ) {
+	global $_opDB ;
+	
+	$app_root = $GLOBALS['app_root'] ;
+	$resources_root=$app_root.'/resources' ;
+	$templates_dir=$resources_root.'/server/templates' ;
+	$_IMG['DBS_logo_bw'] = file_get_contents($templates_dir.'/'.'DBS_logo_bw.png') ;
+	
+	
+	$title = ( $step_isFinal ? 'MISE EN STOCK' : 'LIVRAISON NAVETTE SAFRAN' );
+		
+		$buffer.= '<DIV style="page-break-after:always"></DIV>' ;
+		$buffer.= "<table border='0' cellspacing='1' cellpadding='1'>" ;
+		$buffer.= "<tr><td width='5'/><td width='200'>" ;
+			$buffer.= '<div align="center">' ;
+			$buffer.= '<img src="data:image/jpeg;base64,'.base64_encode(specDbsTracy_lib_getBarcodePng($adr,75)).'" /><br>' ;
+			$buffer.= $adr.'<br>' ;
+			$buffer.= '</div>' ;
+		$buffer.= "</td><td valign='middle' width='400'>" ;
+			$buffer.= "<table cellspacing='0' cellpadding='1'>";
+			$buffer.= "<tr><td><span class=\"mybig\">{$title}</span></td></tr>" ;
+			//{$data_commande['date_exp']}
+			$buffer.= "<tr><td><span class=\"verybig\"><b>{$row_transfer['field_TRANSFER_TXT']}</b></span>&nbsp;&nbsp;<br>&nbsp;&nbsp;<big>printed on <b>".date('d/m/Y H:i')."</b></big></td></tr>" ;
+			$buffer.= "<tr><td><span class=\"verybig\">BIN / CONTAINER : <b>{$adr_str}</b></td></tr>" ;
+			$buffer.= "</table>";
+		$buffer.= "</td><td valign='middle' align='center' width='120'>" ;
+			$buffer.= "<img src=\"data:image/jpeg;base64,".base64_encode($_IMG['DBS_logo_bw'])."\" />" ;
+		$buffer.= "</td></tr><tr><td height='25'/></tr></table>" ;
+				
+		$buffer.= "<table class='tabledonnees'>" ;
+			$buffer.= '<thead>' ;
+				$buffer.= "<tr>";
+					$buffer.= "<th>Barcode</th>";
+					$buffer.= "<th>Source</th>";
+					$buffer.= "<th>PartNumber</th>";
+					$buffer.= "<th>Batch</th>";
+					$buffer.= "<th>DLC</th>";
+					$buffer.= "<th>Qty</th>";
+					$buffer.= "<th>SN</th>";
+					$buffer.= "<th>Std ?</th>";
+					$buffer.= "<th>SPQ</th>";
+					$buffer.= "<th>StkType</th>";
+				$buffer.= "</tr>" ;
+			$buffer.= '</thead>' ;
+			foreach( array() as $row_transferLig ) {
+				$src_adr = $row_transferLig['src_adr'] ;
+				$ttmp = explode('_',$src_adr,2) ;
+				$src_adr_str = $ttmp[1] ;
+				
+				$stk_prod = $row_transferLig['stk_prod'] ;
+				$ttmp = explode('_',$stk_prod,2) ;
+				$stk_prod_str = $ttmp[1] ;
+				
+				$query = "SELECT * FROM view_bible_PROD_entry WHERE entry_key='{$stk_prod}'" ;
+				$result = $_opDB->query($query) ;
+				$arr_prod = $_opDB->fetch_assoc($result) ;
+				//print_r($arr_prod) ;
+				
+				
+				$buffer.= "<tr>" ;
+					$buffer.= '<td align="center">' ;
+						$buffer.= '<img src="data:image/jpeg;base64,'.base64_encode(specDbsLam_lib_getBarcodePng($row_transferLig['transferlig_filerecord_id'],30)).'" /><br>';
+						$buffer.= $row_transferLig['transferlig_filerecord_id'].'<br>';
+					$buffer.= '</td>' ;
+					$buffer.= "<td><span class=\"\">{$src_adr_str}</span></td>" ;
+					$buffer.= "<td><span class=\"mybig\">{$stk_prod_str}</span></td>" ;
+					
+					$class = ($arr_prod['field_SPEC_IS_BATCH'] ? '' : 'croix') ;
+					$buffer.= "<td class=\"$class\"><span>{$row_transferLig['stk_batch']}</span></td>" ;
+					
+					$datelc = ($row_transferLig['stk_datelc'] != '0000-00-00 00:00:00' ? substr($row_transferLig['stk_datelc'],0,10) : '') ;
+					$class = ($arr_prod['field_SPEC_IS_DLC'] ? '' : 'croix') ;
+					$buffer.= "<td class=\"$class\"><span>{$datelc}</span></td>" ;
+					
+					$buffer.= "<td align='right'><span class=\"mybig\"><b>".(float)$row_transferLig['mvt_qty']."</b></span></td>" ;
+					
+					$class = ($arr_prod['field_SPEC_IS_SN'] ? '' : 'croix') ;
+					$buffer.= "<td class=\"$class\"><span class=\"\">{$row_transferLig['stk_sn']}</span></td>" ;
+					
+					$buffer.= "<td><span class=\"\"><b>".(json_decode($arr_prod['field_ATR_STD'],true)==array('STD')?'Y':'N')."</b></span></td>" ;
+					
+					$buffer.= "<td><span class=\"\"><i>".($arr_prod['field_UC_QTY']>0 ? (float)$arr_prod['field_UC_QTY']:'')."</i></span></td>" ;
+					
+					$buffer.= "<td><span class=\"\"><span class=\"mybig\">{$row_transferLig['ATR_STKTYPE']}</span></td>" ;
+				$buffer.= "</tr>" ;
+			}
+		$buffer.= "</table>" ;
+		
+
+	
+	
+	$app_root = $GLOBALS['app_root'] ;
+	$resources_root=$app_root.'/resources' ;
+	$templates_dir=$resources_root.'/server/templates' ;
+	$inputFileName = $templates_dir.'/'.'DBS_TRACY_blank.html' ;
+	$inputBinary = file_get_contents($inputFileName) ;
+	
+	
+	//echo $inputFileName ;
+	$doc = new DOMDocument();
+	@$doc->loadHTML($inputBinary);
+	
+	$elements = $doc->getElementsByTagName('body');
+	$i = $elements->length - 1;
+	while ($i > -1) {
+		$body_element = $elements->item($i); 
+		$i--; 
+		
+		libxml_use_internal_errors(true);
+
+		$tpl = new DOMDocument;
+		$tpl->loadHtml('<?xml encoding="UTF-8">'.$buffer);
+		libxml_use_internal_errors(false);
+
+		
+		$body_element->appendChild($doc->importNode($tpl->documentElement, TRUE)) ;
+	}
+	
+	return array('success'=>true, 'html'=>$doc->saveHTML() ) ;
+}
+
+
+
 ?>

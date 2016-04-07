@@ -19,12 +19,17 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.CfgParamText',{
 			helperData = [] ;
 		}
 		
+		if( this.forceSelection === undefined ) {
+			this.forceSelection = true ;
+		}
+		
 		Ext.apply( this, {
-			forceSelection:true,
-			editable:true,
-			typeAhead:true,
+			forceSelection:this.forceSelection,
+			editable: true,
+			typeAhead: true,
+			autoSelect: true,
 			selectOnFocus: true,
-			selectOnTab: false,
+			selectOnTab: true,
 			queryMode: 'local',
 			displayField: 'text',
 			valueField: 'id',

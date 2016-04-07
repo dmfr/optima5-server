@@ -33,6 +33,8 @@ switch( $post_data['_action'] )
 	return specDbsTracy_trspt_eventAdd( $post_data ) ;
 	case 'trspt_stepValidate' :
 	return specDbsTracy_trspt_stepValidate( $post_data ) ;
+	case 'trspt_printDoc' :
+	return specDbsTracy_trspt_printDoc( $post_data ) ;
 	
 	case 'attachments_uploadfile' :
 	return specDbsTracy_attachments_uploadfile( $post_data ) ;

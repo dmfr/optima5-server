@@ -24,6 +24,13 @@ function specDbsTracy_upload_VL06F_tmp( $handle ) {
 	specDbsTracy_upload_lib_separator($handle,$handle_priv) ;
 	fseek($handle_priv,0) ;
 	
+	$map_idSoc_idDn_torf = array() ;
+	$query = "SELECT field_ID_SOC, field_ID_DN FROM view_file_CDE" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$map_idSoc_idDn_torf[$arr[0]][$arr[1]] = true ;
+	}
+	
 	fgets($handle_priv) ;
 	while( !feof($handle_priv) ) {
 		$arr_csv = fgetcsv($handle_priv) ;
@@ -43,13 +50,50 @@ function specDbsTracy_upload_VL06F_tmp( $handle ) {
 				break ;
 			case 'R':
 			case 'A':
-				$form_data['id_soc'] = 'MBD' ;
+				$form_data['id_soc'] = 'ACL' ;
 				break ;
 			default :
 				continue 2 ;
 		}
 		$form_data['id_dn'] = $arr_csv[0] ;
-		$form_data['txt_location'] = $arr_csv[6]."\n".$arr_csv[10] ;
+		
+		if( $map_idSoc_idDn_torf[$form_data['id_soc']][$form_data['id_dn']] ) {
+			continue ;
+		}
+		
+		// Create CONSIGNEE ?
+		$query = "SELECT entry_key FROM view_bible_LIST_CONSIGNEE_entry WHERE field_NAME='{$arr_csv[6]}'" ;
+		$atr_consignee = $_opDB->query_uniqueValue($query) ;
+		if( !$atr_consignee ) {
+			$entry_key = preg_replace("/[^a-zA-Z0-9]/", "", strtoupper($arr_csv[6])) ;
+		
+			$arr_ins = array() ;
+			$arr_ins['field_CODE'] = $entry_key ;
+			$arr_ins['field_NAME'] = $arr_csv[6] ;
+			paracrm_lib_data_insertRecord_bibleEntry( 'LIST_CONSIGNEE', $entry_key, 'UPLOAD', $arr_ins ) ;
+			
+			$atr_consignee = $entry_key ;
+		}
+		$form_data['atr_consignee'] = $atr_consignee ;
+		
+		// Fetch UPLOAD_RECEP ?
+		$query = "SELECT * FROM view_bible_UPLOAD_RECEP_entry WHERE treenode_key='{$form_data['id_soc']}' AND entry_key='{$arr_csv[5]}'" ;
+		$result = $_opDB->query($query) ;
+		if( $_opDB->num_rows($result) == 1 ) {
+			$arr_recep = $_opDB->fetch_assoc($result) ;
+			
+			$txt_location=array() ;
+			foreach( array('field_ADR_NAME1','field_ADR_NAME2','field_ADR_STREET','field_ADR_CITY','field_ADR_COUNTRY') as $mkey ) {
+				if( $arr_recep[$mkey] ) {
+					$txt_location[] = $arr_recep[$mkey] ;
+				}
+			}
+			$form_data['txt_location'] = implode("\n",$txt_location) ;
+		} else {
+			$form_data['txt_location'] = $arr_csv[6]."\n".$arr_csv[10] ;
+		}
+		
+		
 		$json_return = specDbsTracy_order_setHeader(array(
 			'_is_new' => true,
 			'data' => json_encode($form_data)
