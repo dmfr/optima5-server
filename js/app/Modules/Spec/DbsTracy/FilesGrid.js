@@ -407,6 +407,16 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			},
 			scope : this
 		});
+		if( Ext.isEmpty(record.get('calc_step')) && record.orders().getCount()==0 ) {
+			gridContextMenuItems.push({
+				iconCls: 'icon-bible-delete',
+				text: 'Delete TrsptFile',
+				handler : function() {
+					this.handleDeleteTrspt( selRecord.getId() ) ;
+				},
+				scope : this
+			});
+		}
 		
 		var gridContextMenu = Ext.create('Ext.menu.Menu',{
 			items : gridContextMenuItems,
@@ -879,6 +889,27 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 	},
 	handleEditTrspt: function( trsptFilerecordId ) {
 		this.optimaModule.postCrmEvent('opentrspt',{trsptFilerecordId:trsptFilerecordId}) ;
+	},
+	
+	handleDeleteTrspt: function( trsptFilerecordId ) {
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_tracy',
+				_action: 'trspt_delete',
+				trspt_filerecord_id: trsptFilerecordId
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == true ) {
+					this.doLoad() ;
+				}
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
 	},
 	
 	doQuit: function() {

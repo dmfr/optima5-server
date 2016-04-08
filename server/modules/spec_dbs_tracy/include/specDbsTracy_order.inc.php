@@ -180,6 +180,13 @@ function specDbsTracy_order_setHeader( $post_data ) {
 		}
 	}
 	
+	if( $post_data['validateStepCode'] ) {
+		specDbsTracy_order_stepValidate( array(
+			'order_filerecord_id' => $filerecord_id,
+			'step_code' => $post_data['validateStepCode']
+		));
+	}
+	
 	return array('success'=>true, 'id'=>$filerecord_id) ;
 }
 

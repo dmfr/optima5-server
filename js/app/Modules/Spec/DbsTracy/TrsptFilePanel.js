@@ -30,16 +30,30 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 				text:'<b>Validate</b>',
 				menu: [{
 					iconCls:'op5-sdomains-menu-updateschema',
-					text:'Validate <b>70_PICKUP</b>',
+					text:'Validate <b>60_TRSPTREADY</b>',
 					handler: function() {
-						this.handleValidate('70_PICKUP') ;
+						this.handleSaveHeader('60_TRSPTREADY') ;
 					},
 					scope:this
 				},{
 					iconCls:'op5-sdomains-menu-updateschema',
-					text:'Validate <b>99_POD</b>',
+					text:'Validate <b>70_PICKUP</b>',
 					handler: function() {
-						this.handleValidate('99_POD') ;
+						this.handleSaveHeader('70_PICKUP') ;
+					},
+					scope:this
+				},{
+					iconCls:'op5-sdomains-menu-updateschema',
+					text:'Validate <b>90_POD</b>',
+					handler: function() {
+						this.handleSaveHeader('90_POD') ;
+					},
+					scope:this
+				},{
+					iconCls:'op5-sdomains-menu-updateschema',
+					text:'Validate <b>99_LTA</b>',
+					handler: function() {
+						this.handleSaveHeader('99_LTA') ;
 					},
 					scope:this
 				}]
@@ -48,9 +62,16 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 				text:'<b>Print</b>',
 				menu: [{
 					icon: 'images/op5img/ico_print_16.png',
-					text:'Print <b>SummaryManifest</b>',
+					text:'Print <b><i>Livraison navette</i></b>',
 					handler: function() {
-						this.openPrintPopup() ;
+						this.openPrintPopup('delivery') ;
+					},
+					scope:this
+				},{
+					icon: 'images/op5img/ico_print_16.png',
+					text:'Print <b><i>Mise à disposition</b>',
+					handler: function() {
+						this.openPrintPopup('pickup') ;
 					},
 					scope:this
 				}]
@@ -194,9 +215,6 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 					}
 				},
 				listeners: {
-					itemdblclick: function(view, record, item, index, event) {
-						this.optimaModule.postCrmEvent('openorder',{orderFilerecordId:record.get('order_filerecord_id')}) ;
-					},
 					itemcontextmenu: function(view, record, item, index, event) {
 						var gridContextMenuItems = new Array() ;
 						
@@ -205,6 +223,13 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 							disabled: true,
 							text: '<b>'+selRecord.get('id_soc')+'/'+selRecord.get('id_dn')+'</b>'
 						},'-',{
+							iconCls: 'icon-bible-edit',
+							text: 'Modify',
+							handler : function() {
+								this.optimaModule.postCrmEvent('openorder',{orderFilerecordId:record.get('order_filerecord_id')}) ;
+							},
+							scope : this
+						},{
 							iconCls: 'icon-bible-delete',
 							text: 'Unassign',
 							handler : function() {
@@ -405,6 +430,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		}) ;
 	},
 	onLoadTrspt: function( trsptRecord ) {
+		this._trsptNew = false ;
 		this._trsptFilerecordId = trsptRecord.getId() ;
 		
 		//fHeader
@@ -452,7 +478,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		}
 	},
 	
-	handleSaveHeader: function() {
+	handleSaveHeader: function(validateStepCode) {
 		var formPanel = this.down('#pHeaderForm'),
 			form = formPanel.getForm() ;
 		if( !form.isValid() ) {
@@ -468,16 +494,17 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 				_action: 'trspt_setHeader',
 				_is_new: ( this._trsptNew ? 1 : 0 ),
 				trspt_filerecord_id: ( this._trsptNew ? null : this._trsptFilerecordId ),
-				data: Ext.JSON.encode(recordData)
+				data: Ext.JSON.encode(recordData),
+				validateStepCode: ( !Ext.isEmpty(validateStepCode) ? validateStepCode : null )
 			},
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
 				if( ajaxResponse.success == false ) {
-					var error = ajaxResponse.success || 'File not saved !' ;
+					var error = ajaxResponse.error || 'File not saved !' ;
 					Ext.MessageBox.alert('Error',error) ;
 					return ;
 				}
-				this.onSaveHeader(ajaxResponse.id) ;
+				this.onSaveHeader(ajaxResponse.id, !Ext.isEmpty(validateStepCode)) ;
 			},
 			callback: function() {
 				this.hideLoadmask() ;
@@ -485,10 +512,10 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 			scope: this
 		}) ;
 	},
-	onSaveHeader: function(savedId) {
+	onSaveHeader: function(savedId, dontClose) {
 		this.optimaModule.postCrmEvent('datachange',{}) ;
 		
-		if( this._trsptNew ) {
+		if( this._trsptNew || dontClose ) {
 			this.loadTrspt(savedId) ;
 		} else {
 			this.fireEvent('candestroy',this) ;
@@ -552,6 +579,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		}) ;
 	},
 	
+	/*
 	handleValidate: function(stepCode) {
 		var formPanel = this.down('#pHeaderForm'),
 			form = formPanel.getForm() ;
@@ -584,6 +612,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 			scope: this
 		}) ;
 	},
+	*/
 	
 	handleSubmitEvent: function() {
 		var formPanel = this.down('#pEventsForm'),
@@ -620,14 +649,15 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		}) ;
 	},
 	
-	openPrintPopup: function() {
+	openPrintPopup: function(printType) {
 		this.showLoadmask() ;
 		
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_dbs_tracy',
 				_action: 'trspt_printDoc',
-				trspt_filerecord_id: this._trsptFilerecordId
+				trspt_filerecord_id: this._trsptFilerecordId,
+				print_type: printType
 			},
 			success: function(response) {
 				var jsonResponse = Ext.JSON.decode(response.responseText) ;

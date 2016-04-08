@@ -27,7 +27,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 				iconCls:'op5-sdomains-menu-updateschema',
 				text:'<b>Validate</b>',
 				handler: function() {
-					this.handleValidate('30_DOCS') ;
+					this.handleSaveHeader('30_DOCS') ;
 				},
 				scope:this
 			}],
@@ -81,7 +81,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 					forceSelection: false
 				},{
 					xtype: 'hiddenfield',
-					name: 'atr_consignee_create',
+					name: 'atr_consignee_create'
 				},{
 					xtype: 'textarea',
 					fieldLabel: '<b>Location</b>',
@@ -321,6 +321,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 		}) ;
 	},
 	onLoadOrder: function( orderRecord ) {
+		this._orderNew = false ;
 		this._orderFilerecordId = orderRecord.getId() ;
 		
 		//fHeader
@@ -344,7 +345,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 		this.loadOrder( this._orderFilerecordId ) ;
 	},
 	
-	handleSaveHeader: function(noConfirm) {
+	handleSaveHeader: function(validateStepCode, noConfirm) {
 		var formPanel = this.down('#pHeaderForm'),
 			form = formPanel.getForm() ;
 		if( !form.isValid() ) {
@@ -356,7 +357,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 				Ext.Msg.confirm('Confirm?','Create new consignee ?',function(btn){
 					if( btn=='yes' ) {
 						form.findField('atr_consignee_create').setValue('true') ;
-						this.handleSaveHeader(true) ;
+						this.handleSaveHeader(validateStepCode, true) ;
 					}
 				},this);
 				return ;
@@ -373,7 +374,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 				_action: 'order_setHeader',
 				_is_new: ( this._orderNew ? 1 : 0 ),
 				order_filerecord_id: ( this._orderNew ? null : this._orderFilerecordId ),
-				data: Ext.JSON.encode(recordData)
+				data: Ext.JSON.encode(recordData),
+				validateStepCode: ( !Ext.isEmpty(validateStepCode) ? validateStepCode : null )
 			},
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
@@ -383,7 +385,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 					return ;
 				}
 				var doReload = noConfirm ;
-				this.onSaveHeader(ajaxResponse.id, doReload) ;
+				this.onSaveHeader(ajaxResponse.id, doReload, !Ext.isEmpty(validateStepCode)) ;
 			},
 			callback: function() {
 				this.hideLoadmask() ;
@@ -391,19 +393,20 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 			scope: this
 		}) ;
 	},
-	onSaveHeader: function(savedId, doReload) {
+	onSaveHeader: function(savedId, doReload, dontClose) {
 		this.optimaModule.postCrmEvent('datachange',{}) ;
 		if( doReload ) {
 			Optima5.Modules.Spec.DbsTracy.HelperCache.fetchConfig() ;
 		}
 		
-		if( this._orderNew ) {
+		if( this._orderNew || dontClose ) {
 			this.loadOrder(savedId) ;
 		} else {
 			this.fireEvent('candestroy',this) ;
 		}
 	},
 	
+	/*
 	handleValidate: function(stepCode) {
 		var formPanel = this.down('#pHeaderForm'),
 			form = formPanel.getForm() ;
@@ -436,6 +439,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 			scope: this
 		}) ;
 	},
+	*/
 	
 	onAfterEditStep: function(editor,editEvent) {
 		var me = this,
