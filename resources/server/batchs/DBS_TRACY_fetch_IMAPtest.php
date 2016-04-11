@@ -114,7 +114,7 @@ if($emails) {
 					$newrecord['media_date'] = date('Y-m-d H:i:s') ;
 					$newrecord['media_mimetype'] = 'image/jpeg' ;
 					$newrecord['field_ATTACHMENT_DATE'] = date('Y-m-d') ;
-					$newrecord['field_ATTACHMENT_TXT'] = $at[filename] ;
+					$newrecord['field_ATTACHMENT_TXT'] = $email_subject ;
 					
 					$query = "SELECT filerecord_id FROM view_file_CDE WHERE UPPER(field_ID_DN)='{$email_subject}'" ;
 					$CDE_parent_filerecordId = $_opDB->query_uniqueValue($query) ;
