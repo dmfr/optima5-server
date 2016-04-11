@@ -8,7 +8,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.MainPanel',{
 		'Optima5.Modules.Spec.DbsTracy.OrderFilePanel',
 		'Optima5.Modules.Spec.DbsTracy.AttachmentsPanel',
 		'Optima5.Modules.Spec.DbsTracy.AttachmentViewerWindow',
-		'Optima5.Modules.Spec.DbsTracy.UploadForm'
+		'Optima5.Modules.Spec.DbsTracy.UploadForm',
+		'Optima5.Modules.Spec.DbsTracy.LivePanel'
 	],
 	
 	initComponent: function() {
@@ -82,6 +83,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.MainPanel',{
 				return me.optimaModule.postCrmEvent('openorder',{orderNew:true}) ;
 			case 'form_upload' :
 				return me.openUploadPopup() ;
+			case 'panel_live' :
+				return me.openLivePanel() ;
 			default :
 				return ;
 		}
@@ -228,5 +231,36 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.MainPanel',{
 		
 		createPanel.show();
 		createPanel.getEl().alignTo(this.getEl(), 'c-c?');
+	},
+	openLivePanel: function() {
+		// recherche d'une fenetre deja ouverte
+		var doOpen = true ;
+		this.optimaModule.eachWindow(function(win){
+			if( win instanceof Optima5.Modules.Spec.DbsTracy.LivePanel ) {
+				win.show() ;
+				win.focus() ;
+				doOpen = false ;
+				return false ;
+			}
+		},this) ;
+		if( !doOpen ) {
+			return ;
+		}
+		
+		// new window
+		this.optimaModule.createWindow({
+			title: 'Live Trspt Validation',
+			width:500,
+			height:500,
+			iconCls: 'op5-crmbase-dataformwindow-icon',
+			animCollapse:false,
+			
+				optimaModule: this.optimaModule,
+				listeners: {
+					candestroy: function(w) {
+						w.close() ;
+					}
+				}
+		},Optima5.Modules.Spec.DbsTracy.LivePanel) ;
 	}
 }) ;
