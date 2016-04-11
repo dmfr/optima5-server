@@ -105,7 +105,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 						width: 150,
 						fieldLabel: 'Weight (kg)',
 						allowBlank: false,
-						name: 'vol_kg'
+						name: 'vol_kg',
+						minValue: 0.001
 					},{
 						fieldLabel: 'Dimensions',
 						xtype: 'fieldcontainer',
@@ -121,7 +122,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 							hideTrigger:true,
 							name: 'vol_dim_l',
 							width: 50,
-							allowBlank: false
+							allowBlank: false,
+							minValue: 1
 						},{
 							xtype: 'box',
 							html: '&#160;&#160;<b>W:</b>&#160;'
@@ -130,7 +132,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 							hideTrigger:true,
 							name: 'vol_dim_w',
 							width: 50,
-							allowBlank: false
+							allowBlank: false,
+							minValue: 1
 						},{
 							xtype: 'box',
 							html: '&#160;&#160;<b>H:</b>&#160;'
@@ -139,7 +142,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 							hideTrigger:true,
 							name: 'vol_dim_h',
 							width: 50,
-							allowBlank: false
+							allowBlank: false,
+							minValue: 1
 						}]
 					},{
 						xtype: 'numberfield',
@@ -149,7 +153,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 						width: 120,
 						fieldLabel: 'NbParcels',
 						allowBlank: false,
-						name: 'vol_count'
+						name: 'vol_count',
+						minValue: 1
 					}]
 				}]
 			},{

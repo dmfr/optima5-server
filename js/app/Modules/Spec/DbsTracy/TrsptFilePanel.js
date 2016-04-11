@@ -165,6 +165,28 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 						fieldLabel: 'Flight code',
 						name: 'flight_code'
 					}]
+				},{
+					xtype: 'fieldset',
+					title: 'Customs request',
+					checkboxName: 'customs_is_on',
+					checkboxToggle: true,
+					fieldDefaults: {
+						labelWidth: 100,
+						anchor: '100%'
+					},
+					items: [{
+						xtype: 'datefield',
+						fieldLabel: 'Request date',
+						format: 'd/m/Y',
+						submitFormat: 'Y-m-d',
+						name: 'customs_date_request'
+					},{
+						xtype: 'datefield',
+						fieldLabel: 'Clearance date',
+						format: 'd/m/Y',
+						submitFormat: 'Y-m-d',
+						name: 'customs_date_cleared'
+					}]
 				}]
 			},{
 				flex: 3,
@@ -393,7 +415,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		this.down('#pHeaderForm').getForm().reset() ;
 		this.down('#pHeaderForm').getForm().setValues({
 			date_create: new Date(),
-			id_doc: 'NEW'
+			id_doc: 'NEW',
+			customs_is_on: false
 		});
 		
 		//gOrders
