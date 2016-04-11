@@ -93,6 +93,19 @@ function specDbsTracy_upload_VL06F_tmp( $handle ) {
 			$form_data['txt_location'] = $arr_csv[6]."\n".$arr_csv[10] ;
 		}
 		
+		// VL ?
+		if( $arr_csv[3] ) {
+			$form_data['vol_count'] = (int)$arr_csv[3] ;
+		}
+		if( $arr_csv[9] == 'KG' ) {
+			$vol_kg = $arr_csv[8] ;
+			$vol_kg = str_replace('-','',$vol_kg) ;
+			$vol_kg = str_replace(' ','',$vol_kg) ;
+			$vol_kg = str_replace('.','',$vol_kg) ;
+			$vol_kg = str_replace(',','.',$vol_kg) ;
+			$form_data['vol_kg'] = $vol_kg ;
+		}
+		
 		
 		$json_return = specDbsTracy_order_setHeader(array(
 			'_is_new' => true,

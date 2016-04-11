@@ -91,6 +91,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.UploadForm',{
 				params: ajaxParams,
 				success : function(form,action){
 					msgbox.close() ;
+					Optima5.Modules.Spec.DbsTracy.HelperCache.fetchConfig() ;
 					
 					Ext.Msg.alert('Success','Success !', function(){
 						this.destroy() ;
