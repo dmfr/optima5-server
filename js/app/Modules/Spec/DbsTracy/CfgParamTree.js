@@ -68,6 +68,39 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.CfgParamTree',{
 				}
 				break ;
 				
+			case 'ORDERFLOW' :
+			case 'ORDERFLOWSTEP' :
+				data = Optima5.Modules.Spec.DbsTracy.HelperCache.getOrderflowAll() ;
+				var doSteps = (this.cfgParam_id=='ORDERFLOWSTEP') ;
+				Ext.Array.each( data, function(row) {
+					flowChildren = [] ;
+					Ext.Array.each( row.steps, function(rowstep) {
+						flowChildren.push({
+							nodeId: rowstep.step_code,
+							nodeType: 'entry',
+							nodeKey: rowstep.step_code,
+							nodeText: rowstep.step_code + ' : ' + rowstep.step_txt,
+							leaf: true
+						});
+					}) ;
+					rootChildren.push({
+						nodeId: row.flow_code,
+						nodeType: 'treenode',
+						nodeKey: row.flow_code,
+						nodeText: row.flow_code + ' : ' + row.flow_txt,
+						expanded: (doSteps ? true : false),
+						leaf: (doSteps ? false : true),
+						children: (doSteps ? flowChildren : null)
+					}) ;
+				}) ;
+				rootNode = {
+					root: true,
+					children: rootChildren,
+					nodeText: '<b>Order flow / step</b>',
+					expanded: true
+				}
+				break ;
+				
 			default :
 				rootNode = {
 					root: true,

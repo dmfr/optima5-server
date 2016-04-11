@@ -250,7 +250,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.MainPanel',{
 		// new window
 		this.optimaModule.createWindow({
 			title: 'Live Trspt Validation',
-			width:500,
+			width:450,
 			height:500,
 			iconCls: 'op5-crmbase-dataformwindow-icon',
 			animCollapse:false,
