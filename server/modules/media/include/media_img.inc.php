@@ -1,6 +1,6 @@
 <?php
 
-function media_img_processUploaded( $tmpfilepath, $src_filename=NULL )
+function media_img_processUploaded( $tmpfilepath, $src_filename=NULL, $all_pages=FALSE )
 {
 	if( !$GLOBALS['_media_context'] )
 		return FALSE ;
@@ -9,13 +9,6 @@ function media_img_processUploaded( $tmpfilepath, $src_filename=NULL )
 	{
 		return FALSE ;
 	}
-	
-	$path = $media_path.'/tmp' ;
-	
-	do{
-		$tmpid = rand ( 1000000000 , 9999999999 ) ;
-	}
-	while( glob( $path.'/'.$tmpid.'*') ) ;
 	
 	if( function_exists('finfo_open') ) {
 		$finfo = finfo_open(FILEINFO_MIME_TYPE);
@@ -26,32 +19,45 @@ function media_img_processUploaded( $tmpfilepath, $src_filename=NULL )
 	} else {
 		return FALSE ;
 	}
+	
+	$arr_imgSrc = array() ;
 	switch($mimetype) {
 		case 'image/jpeg':
 		case 'image/jpg':
 		case 'jpeg':
 		case 'jpg':
-			$img_src = imagecreatefromjpeg($tmpfilepath);
+			$arr_imgSrc[] = imagecreatefromjpeg($tmpfilepath);
 			break;
 		case 'image/png':
 		case 'png':
-			$img_src = imagecreatefrompng($tmpfilepath);
+			$arr_imgSrc[] = imagecreatefrompng($tmpfilepath);
 			break;
 		case 'image/gif':
 		case 'gif':
-			$img_src = imagecreatefromgif($tmpfilepath);
+			$arr_imgSrc[] = imagecreatefromgif($tmpfilepath);
 			break;
 		
 		case 'application/pdf':
 		case 'pdf':
 			$pdf = file_get_contents($tmpfilepath) ;
-			$jpeg = media_pdf_pdf2jpg( $pdf ) ;
-			if( !$jpeg ) {
-				return FALSE ;
+			if( $all_pages ) {
+				$jpegs = media_pdf_pdf2jpgs( $pdf ) ;
+				if( !$jpegs ) {
+					return FALSE ;
+				}
+				foreach( $jpegs as $jpeg ) {
+					file_put_contents( $tmpfilepath, $jpeg ) ;
+					$arr_imgSrc[] = imagecreatefromjpeg($tmpfilepath);
+				}
+			} else {
+				$jpeg = media_pdf_pdf2jpg( $pdf ) ;
+				if( !$jpeg ) {
+					return FALSE ;
+				}
+				file_put_contents( $tmpfilepath, $jpeg ) ;
+				
+				$arr_imgSrc[] = imagecreatefromjpeg($tmpfilepath);
 			}
-			file_put_contents( $tmpfilepath, $jpeg ) ;
-			
-			$img_src = imagecreatefromjpeg($tmpfilepath);
 			break ;
 		
 		case 'application/xhtml+xml' :
@@ -65,47 +71,63 @@ function media_img_processUploaded( $tmpfilepath, $src_filename=NULL )
 			}
 			file_put_contents( $tmpfilepath, $jpeg ) ;
 			
-			$img_src = imagecreatefromjpeg($tmpfilepath);
+			$arr_imgSrc[] = imagecreatefromjpeg($tmpfilepath);
 			break ;
 			
 		default :
 			return FALSE ;
 	}
 	
-	$orig_w = imagesx($img_src);
-	$orig_h = imagesy($img_src);
-	if( $ttmp = media_img_getResize( $orig_w, $orig_h, $is_thumb=FALSE ) )
-	{
-		$dest_w = $ttmp[0];
-		$dest_h = $ttmp[1] ;
+	$arr_tmpIds = array() ;
+	foreach( $arr_imgSrc as $img_src ) {
+		$path = $media_path.'/tmp' ;
+		
+		do{
+			$tmpid = rand ( 1000000000 , 9999999999 ) ;
+		}
+		while( glob( $path.'/'.$tmpid.'*') ) ;
 	
-		$img_new = imagecreatetruecolor($dest_w, $dest_h);
-		imagecopyresampled($img_new, $img_src, 0, 0, 0, 0, $dest_w, $dest_h, $orig_w, $orig_h);
-		imagejpeg($img_new, $path.'/'.$tmpid.'.jpg');
+	
+		$orig_w = imagesx($img_src);
+		$orig_h = imagesy($img_src);
+		if( $ttmp = media_img_getResize( $orig_w, $orig_h, $is_thumb=FALSE ) )
+		{
+			$dest_w = $ttmp[0];
+			$dest_h = $ttmp[1] ;
+		
+			$img_new = imagecreatetruecolor($dest_w, $dest_h);
+			imagecopyresampled($img_new, $img_src, 0, 0, 0, 0, $dest_w, $dest_h, $orig_w, $orig_h);
+			imagejpeg($img_new, $path.'/'.$tmpid.'.jpg');
+		}
+		else
+		{
+			imagejpeg($img_src, $path.'/'.$tmpid.'.jpg');
+		}
+		
+		if( $ttmp = media_img_getResize( $orig_w, $orig_h, $is_thumb=TRUE ) )
+		{
+			$dest_w = $ttmp[0];
+			$dest_h = $ttmp[1] ;
+		
+			$img_new = imagecreatetruecolor($dest_w, $dest_h);
+			imagecopyresampled($img_new, $img_src, 0, 0, 0, 0, $dest_w, $dest_h, $orig_w, $orig_h);
+			imagejpeg($img_new, $path.'/'.$tmpid.'.thumb.jpg',90);
+		}
+		else
+		{
+			imagejpeg($img_src, $path.'/'.$tmpid.'.thumb.jpg',90);
+		}
+		
+		$arr_tmpIds[] = 'tmp_'.$tmpid ;
 	}
-	else
-	{
-		imagejpeg($img_src, $path.'/'.$tmpid.'.jpg');
+	
+	
+	
+	if( !$all_pages ) {
+		$ret = reset($arr_tmpIds) ;
+		return $ret ;
 	}
-	
-	if( $ttmp = media_img_getResize( $orig_w, $orig_h, $is_thumb=TRUE ) )
-	{
-		$dest_w = $ttmp[0];
-		$dest_h = $ttmp[1] ;
-	
-		$img_new = imagecreatetruecolor($dest_w, $dest_h);
-		imagecopyresampled($img_new, $img_src, 0, 0, 0, 0, $dest_w, $dest_h, $orig_w, $orig_h);
-		imagejpeg($img_new, $path.'/'.$tmpid.'.thumb.jpg',90);
-	}
-	else
-	{
-		imagejpeg($img_src, $path.'/'.$tmpid.'.thumb.jpg',90);
-	}
-	
-	
-	
-
-	return 'tmp_'.$tmpid ;
+	return $arr_tmpIds ;
 }
 function media_img_getResize( $orig_w, $orig_h, $is_thumb )
 {
