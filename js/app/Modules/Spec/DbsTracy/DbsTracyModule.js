@@ -30,9 +30,12 @@ Ext.define('DbsTracyFileOrderModel',{
 		{name: 'id_soc', type:'string'},
 		{name: 'id_dn', type:'string'},
 		{name: 'ref_po', type:'string'},
+		{name: 'ref_invoice', type:'string'},
 		{name: 'atr_priority', type:'string'},
+		{name: 'atr_incoterm', type:'string'},
 		{name: 'atr_consignee', type:'string'},
-		{name: 'txt_location', type:'string'},
+		{name: 'txt_location_city', type:'string'},
+		{name: 'txt_location_full', type:'string'},
 		{name: 'vol_kg', type:'number'},
 		{name: 'vol_dims', type:'string'},
 		{name: 'vol_count', type:'int'},
@@ -122,8 +125,8 @@ Ext.define('DbsTracyFileTrsptModel',{
 		{name: 'flight_code', type:'string'},
 		{name: 'calc_step', type:'string'},
 		{name: 'customs_is_on', type:'boolean'},
-		{name: 'customs_date_request', dateFormat:'Y-m-d'},
-		{name: 'customs_date_cleared', dateFormat:'Y-m-d'}
+		{name: 'customs_date_request', dateFormat:'Y-m-d H:i:s'},
+		{name: 'customs_date_cleared', dateFormat:'Y-m-d H:i:s'}
 	],
 	hasMany: [{
 		model: 'DbsTracyFileTrsptOrderModel',

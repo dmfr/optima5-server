@@ -171,20 +171,16 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 					checkboxName: 'customs_is_on',
 					checkboxToggle: true,
 					fieldDefaults: {
-						labelWidth: 100,
+						labelWidth: 40,
 						anchor: '100%'
 					},
 					items: [{
-						xtype: 'datefield',
-						fieldLabel: 'Request date',
-						format: 'd/m/Y',
-						submitFormat: 'Y-m-d',
+						xtype: 'datetimefield',
+						fieldLabel: 'REQ',
 						name: 'customs_date_request'
 					},{
-						xtype: 'datefield',
-						fieldLabel: 'Clearance date',
-						format: 'd/m/Y',
-						submitFormat: 'Y-m-d',
+						xtype: 'datetimefield',
+						fieldLabel: 'CLR',
 						name: 'customs_date_cleared'
 					}]
 				}]
@@ -199,7 +195,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 				},{
 					text: 'PO #',
 					width: 75,
-					dataIndex: 'ref_po'
+					dataIndex: 'ref_invoice'
 				},{
 					text: 'Status',
 					width: 100,
@@ -218,9 +214,20 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 						return v;
 					}
 				},{
-					text: 'Parcels',
-					width: 60,
-					dataIndex: 'vol_count'
+					text: 'Prcl',
+					width: 50,
+					dataIndex: 'vol_count',
+					align: 'right'
+				},{
+					text: 'Weight',
+					width: 75,
+					dataIndex: 'vol_kg',
+					align: 'right',
+					renderer: function(v) {
+						if( !Ext.isEmpty(v) ) {
+							return v+'&#160;'+'kg' ;
+						}
+					}
 				},{
 					text: 'Dimensions',
 					width: 150,
@@ -551,6 +558,11 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		var orderRecord = orderRecords[0] ;
 		if( orderRecord.get('id_soc') != this.down('#pHeaderForm').getForm().findField('id_soc').getValue() ) {
 			Ext.MessageBox.alert('Error','Incompatible (company code)') ;
+			return ;
+		}
+		
+		if( Optima5.Modules.Spec.DbsTracy.HelperCache.checkOrderData(orderRecord.getData()) != null ) {
+			Ext.MessageBox.alert('Incomplete','DN incomplete. Check order details') ;
 			return ;
 		}
 		

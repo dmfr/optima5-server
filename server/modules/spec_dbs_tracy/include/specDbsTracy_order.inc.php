@@ -31,8 +31,10 @@ function specDbsTracy_order_getRecords( $post_data ) {
 			'ref_po' => $arr['field_REF_PO'],
 			'ref_invoice' => $arr['field_REF_INVOICE'],
 			'atr_priority' => $arr['field_ATR_PRIORITY'],
+			'atr_incoterm' => $arr['field_ATR_INCOTERM'],
 			'atr_consignee' => $arr['field_ATR_CONSIGNEE'],
-			'txt_location' => $arr['field_TXT_LOCATION'],
+			'txt_location_city' => $arr['field_TXT_LOCATION_CITY'],
+			'txt_location_full' => $arr['field_TXT_LOCATION_FULL'],
 			'vol_kg' => $arr['field_VOL_KG'],
 			'vol_dims' => $arr['field_VOL_DIMS'],
 			'vol_count' => $arr['field_VOL_COUNT'],
@@ -143,8 +145,10 @@ function specDbsTracy_order_setHeader( $post_data ) {
 	$arr_ins['field_REF_PO'] = $form_data['ref_po'] ;
 	$arr_ins['field_REF_INVOICE'] = $form_data['ref_invoice'] ;
 	$arr_ins['field_ATR_PRIORITY'] = $form_data['atr_priority'] ;
+	$arr_ins['field_ATR_INCOTERM'] = $form_data['atr_incoterm'] ;
 	$arr_ins['field_ATR_CONSIGNEE'] = $form_data['atr_consignee'] ;
-	$arr_ins['field_TXT_LOCATION'] = $form_data['txt_location'] ;
+	$arr_ins['field_TXT_LOCATION_CITY'] = $form_data['txt_location_city'] ;
+	$arr_ins['field_TXT_LOCATION_FULL'] = $form_data['txt_location_full'] ;
 	$arr_ins['field_VOL_KG'] = $form_data['vol_kg'] ;
 	$arr_ins['field_VOL_DIMS'] = $form_data['vol_dims'] ;
 	$arr_ins['field_VOL_COUNT'] = $form_data['vol_count'] ;

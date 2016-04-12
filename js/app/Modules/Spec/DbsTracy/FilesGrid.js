@@ -526,9 +526,35 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			width:120,
 			tdCls: 'op5-spec-dbstracy-bigcolumn',
 			resizable: true,
+			hidden: true,
 			align: 'center',
 			filter: {
 				type: 'string'
+			}
+		},{
+			text: 'Invoice#',
+			dataIndex: 'ref_invoice',
+			width:120,
+			tdCls: 'op5-spec-dbstracy-bigcolumn',
+			resizable: true,
+			align: 'center',
+			filter: {
+				type: 'string'
+			}
+		},{
+			text: 'Incoterm',
+			dataIndex: 'atr_incoterm',
+			width:60,
+			tdCls: 'op5-spec-dbstracy-bigcolumn',
+			resizable: true,
+			align: 'center',
+			renderer: function(v) {
+				return '<b>'+v+'</b>' ;
+			},
+			filter: {
+				type: 'op5crmbasebible',
+				optimaModule: this.optimaModule,
+				bibleId: 'LIST_INCOTERM'
 			}
 		},{
 			text: '<b>Consignee</b><br>Site location',
@@ -543,18 +569,18 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			renderer: function(v,metaData,record) {
 				var str = '' ;
 				
-				//str+= '<b>' ;
+				str+= '<b>' ;
 				var consigneeMap = this._consigneeMap ;
 				if( consigneeMap.hasOwnProperty(v) ) {
 					str+= consigneeMap[v] ;
 				} else {
 					str+= v ;
 				}
-				//str+= '</b>' ;
+				str+= '</b>' ;
 				
-				if( false && !Ext.isEmpty( record.get('txt_location') ) ) {
+				if( !Ext.isEmpty( record.get('txt_location_city') ) ) {
 					str+= '<br>' ;
-					str+= Ext.util.Format.nl2br( Ext.String.htmlEncode( record.get('txt_location') ) ) ;
+					str+= Ext.util.Format.nl2br( Ext.String.htmlEncode( record.get('txt_location_city') ) ) ;
 				}
 				return str ;
 			}

@@ -242,5 +242,45 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.HelperCache',{
 			data.push( record.getData(true) ) ;
 		}) ;
 		return data ;
+	},
+	
+	checkOrderData: function( orderData ) {
+		var errors = {} ;
+		
+		var fields = [
+			'id_soc',
+			'ref_po',
+			'ref_invoice',
+			'atr_priority',
+			'atr_incoterm',
+			'atr_consignee',
+			'txt_location_city',
+			'txt_location_full'
+		];
+		Ext.Array.each( fields, function(field) {
+			if( Ext.isEmpty(orderData[field]) ) {
+				errors[field] = 'Missing '+field ;
+			}
+		}) ;
+		
+		if( orderData.vol_dim_l > 0 && orderData.vol_dim_w > 0 && orderData.vol_dim_h > 0 ) {} else {
+			var msg = 'Specify dimensions' ;
+			errors.vol_dim_l = msg ;
+			errors.vol_dim_w = msg ;
+			errors.vol_dim_h = msg ;
+		}
+		if( orderData.vol_count > 0 ) {} else {
+			var msg = 'Parcel count' ;
+			errors.vol_count = msg ;
+		}
+		if( orderData.vol_kg > 0 ) {} else {
+			var msg = 'Specify weight' ;
+			errors.vol_kg = msg ;
+		}
+		
+		if( Ext.Object.isEmpty(errors) ) {
+			return null ;
+		}
+		return errors ;
 	}
 });

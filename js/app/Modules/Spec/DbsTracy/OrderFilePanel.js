@@ -63,15 +63,13 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 					fieldLabel: 'PO #',
 					anchor: '',
 					width: 250,
-					name: 'ref_po',
-					allowBlank: false
+					name: 'ref_po'
 				},{
 					xtype: 'textfield',
 					fieldLabel: 'Invoice #',
 					anchor: '',
 					width: 250,
-					name: 'ref_invoice',
-					allowBlank: false
+					name: 'ref_invoice'
 				},{
 					xtype: 'op5specdbstracycfgparamtext',
 					cfgParam_id: 'LIST_CONSIGNEE',
@@ -83,17 +81,27 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 					xtype: 'hiddenfield',
 					name: 'atr_consignee_create'
 				},{
+					xtype: 'textfield',
+					fieldLabel: '<b>City</b>',
+					name: 'txt_location_city'
+				},{
 					xtype: 'textarea',
 					fieldLabel: '<b>Location</b>',
-					name: 'txt_location'
+					name: 'txt_location_full'
 				},{
 					xtype: 'op5specdbstracycfgparamtext',
 					cfgParam_id: 'LIST_SERVICE',
 					fieldLabel: '<b>Priority</b>',
 					anchor: '',
 					width: 200,
-					name: 'atr_priority',
-					allowBlank: false
+					name: 'atr_priority'
+				},{
+					xtype: 'op5specdbstracycfgparamtext',
+					cfgParam_id: 'LIST_INCOTERM',
+					fieldLabel: '<b>Incoterm</b>',
+					anchor: '',
+					width: 200,
+					name: 'atr_incoterm'
 				},{
 					xtype: 'fieldset',
 					title: 'Volume details',
@@ -104,9 +112,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 						anchor: '',
 						width: 150,
 						fieldLabel: 'Weight (kg)',
-						allowBlank: false,
 						name: 'vol_kg',
-						minValue: 0.001
+						minValue: 0
 					},{
 						fieldLabel: 'Dimensions',
 						xtype: 'fieldcontainer',
@@ -122,8 +129,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 							hideTrigger:true,
 							name: 'vol_dim_l',
 							width: 50,
-							allowBlank: false,
-							minValue: 1
+							minValue: 0
 						},{
 							xtype: 'box',
 							html: '&#160;&#160;<b>W:</b>&#160;'
@@ -132,8 +138,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 							hideTrigger:true,
 							name: 'vol_dim_w',
 							width: 50,
-							allowBlank: false,
-							minValue: 1
+							minValue: 0
 						},{
 							xtype: 'box',
 							html: '&#160;&#160;<b>H:</b>&#160;'
@@ -142,8 +147,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 							hideTrigger:true,
 							name: 'vol_dim_h',
 							width: 50,
-							allowBlank: false,
-							minValue: 1
+							minValue: 0
 						}]
 					},{
 						xtype: 'numberfield',
@@ -152,9 +156,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 						anchor: '',
 						width: 120,
 						fieldLabel: 'NbParcels',
-						allowBlank: false,
 						name: 'vol_count',
-						minValue: 1
+						minValue: 0
 					}]
 				}]
 			},{
@@ -201,6 +204,10 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 				store: {
 					model: 'DbsTracyFileOrderStepModel',
 					data: [],
+					sorters: [{
+						property: 'step_code',
+						direction: 'ASC'
+					}],
 					proxy: {
 						type: 'memory',
 						reader: {
@@ -370,6 +377,14 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 		}
 		
 		var recordData = form.getValues(false,false,false,true) ;
+		if( !Ext.isEmpty(validateStepCode) ) {
+			var errors = Optima5.Modules.Spec.DbsTracy.HelperCache.checkOrderData(recordData) ;
+			if( errors != null ) {
+				form.markInvalid(errors) ;
+				return ;
+			}
+		}
+		
 		recordData['vol_dims'] = recordData['vol_dim_l'] + ' x ' + recordData['vol_dim_w'] + ' x ' + recordData['vol_dim_h'] ;
 		
 		this.showLoadmask() ;

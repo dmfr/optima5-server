@@ -82,16 +82,17 @@ function specDbsTracy_upload_VL06F_tmp( $handle ) {
 		if( $_opDB->num_rows($result) == 1 ) {
 			$arr_recep = $_opDB->fetch_assoc($result) ;
 			
-			$txt_location=array() ;
+			$txt_location_full=array() ;
 			foreach( array('field_ADR_NAME1','field_ADR_NAME2','field_ADR_STREET','field_ADR_CITY','field_ADR_COUNTRY') as $mkey ) {
 				if( $arr_recep[$mkey] ) {
-					$txt_location[] = $arr_recep[$mkey] ;
+					$txt_location_full[] = $arr_recep[$mkey] ;
 				}
 			}
-			$form_data['txt_location'] = implode("\n",$txt_location) ;
+			$form_data['txt_location_full'] = implode("\n",$txt_location_full) ;
 		} else {
-			$form_data['txt_location'] = $arr_csv[6]."\n".$arr_csv[10] ;
+			$form_data['txt_location_full'] = $arr_csv[6]."\n".$arr_csv[10] ;
 		}
+		$form_data['txt_location_city'] = $arr_csv[10] ;
 		
 		// VL ?
 		if( $arr_csv[3] ) {
@@ -106,6 +107,8 @@ function specDbsTracy_upload_VL06F_tmp( $handle ) {
 			$form_data['vol_kg'] = $vol_kg ;
 		}
 		
+		$form_data['atr_priority'] = 3 ;
+		$form_data['atr_incoterm'] = $arr_csv[4] ;
 		
 		$json_return = specDbsTracy_order_setHeader(array(
 			'_is_new' => true,
@@ -119,6 +122,7 @@ function specDbsTracy_upload_VL06F_tmp( $handle ) {
 		$arr_cond = array() ;
 		$arr_cond['filerecord_parent_id'] = $filerecord_id ;
 		$arr_cond['field_STEP_CODE'] = '10_RLS' ;
+		$arr_update = array() ;
 		$arr_update['field_DATE_ACTUAL'] = $p_dateRelease ;
 		$arr_update['field_STATUS_IS_OK'] = 1 ;
 		$_opDB->update('view_file_CDE_STEP',$arr_update,$arr_cond) ;

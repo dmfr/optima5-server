@@ -39,8 +39,8 @@ function specDbsTracy_trspt_getRecords( $post_data ) {
 			'flight_date' => substr($arr['field_FLIGHT_DATE'],0,10),
 			'flight_code' => $arr['field_FLIGHT_CODE'],
 			'customs_is_on' => $arr['field_CUSTOMS_IS_ON'],
-			'customs_date_request' => substr($arr['field_CUSTOMS_DATE_REQUEST'],0,10),
-			'customs_date_cleared' => substr($arr['field_CUSTOMS_DATE_CLEARED'],0,10),
+			'customs_date_request' => $arr['field_CUSTOMS_DATE_REQUEST'],
+			'customs_date_cleared' => $arr['field_CUSTOMS_DATE_CLEARED'],
 			
 			'calc_step' => NULL,
 			
@@ -450,7 +450,7 @@ function specDbsTracy_trspt_printDoc( $post_data ) {
 					
 					$buffer.= "<td align='center'><span class=\"verybig\">".(int)$row_order['vol_count']."</span></td>" ;
 					
-					$buffer.= "<td class=\"$class\" align='left'><span>".nl2br(htmlentities($row_order['txt_location']))."</span></td>" ;
+					$buffer.= "<td class=\"$class\" align='left'><span>".nl2br(htmlentities($row_order['txt_location_full']))."</span></td>" ;
 					
 					$buffer.= "<td align='center'><span class=\"mybig\"><b>".(float)$row_order['vol_kg']."</b>&#160;kg"."</span></td>" ;
 					
