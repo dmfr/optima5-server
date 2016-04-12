@@ -22,7 +22,7 @@ $_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
 
 /* connect to gmail */
 $hostname = '{mail.mirabel-sil.com:993/imap/ssl/novalidate-cert}INBOX';
-$username = 'scannertest@mirabel-sil.com';
+$username = 'mbd@mirabel-sil.com';
 $password = 'scannertest';
 
 /* try to connect */
@@ -103,29 +103,47 @@ if($emails) {
 			
 			foreach( $attachments as $at ) {
 				$email_subject = strtoupper(trim($overview[0]->subject)) ;
+				
+				
 				if($at[is_attachment]==1){
-					$tmpfname = tempnam( sys_get_temp_dir(), "FOO") ;
-					file_put_contents($tmpfname, $at[attachment]);
-					$tmp_id = media_img_processUploaded( $tmpfname, $at[filename] ) ;
-					unlink($tmpfname) ;
+					$arr_emailSubject = explode('/',$email_subject) ;
 					
-					
-					$newrecord = array() ;
-					$newrecord['media_date'] = date('Y-m-d H:i:s') ;
-					$newrecord['media_mimetype'] = 'image/jpeg' ;
-					$newrecord['field_ATTACHMENT_DATE'] = date('Y-m-d') ;
-					$newrecord['field_ATTACHMENT_TXT'] = $email_subject ;
-					
-					$query = "SELECT filerecord_id FROM view_file_CDE WHERE UPPER(field_ID_DN)='{$email_subject}'" ;
+					$query = "SELECT filerecord_id FROM view_file_CDE WHERE UPPER(field_ID_DN)='{$arr_emailSubject[0]}'" ;
 					$CDE_parent_filerecordId = $_opDB->query_uniqueValue($query) ;
-					
-					if( $CDE_parent_filerecordId ) {
-						$img_filerecordId = paracrm_lib_data_insertRecord_file( 'CDE_ATTACH', $CDE_parent_filerecordId, $newrecord ) ;
-					} else {
-						$img_filerecordId = paracrm_lib_data_insertRecord_file( 'ATTACH_INBOX', 0, $newrecord ) ;
+					if( $CDE_parent_filerecordId && $arr_emailSubject[1] ) {
+						$arr_update = array() ;
+						$arr_update['field_REF_INVOICE'] = trim($arr_emailSubject[1]) ;
+						paracrm_lib_data_updateRecord_file( 'CDE', $arr_update, $CDE_parent_filerecordId );
+						
+						// Adv status
+						$arr_cond = array() ;
+						$arr_cond['filerecord_parent_id'] = $CDE_parent_filerecordId ;
+						$arr_cond['field_STEP_CODE'] = '30_DOCS' ;
+						$arr_update = array() ;
+						$arr_update['field_DATE_ACTUAL'] = date('Y-m-d H:i:s') ;
+						$arr_update['field_STATUS_IS_OK'] = 1 ;
+						$_opDB->update('view_file_CDE_STEP',$arr_update,$arr_cond) ;
 					}
 					
-					media_img_move( $tmp_id , $img_filerecordId ) ;
+					$tmpfname = tempnam( sys_get_temp_dir(), "FOO") ;
+					file_put_contents($tmpfname, $at[attachment]);
+					$arr_tmpIds = media_img_processUploaded( $tmpfname, $at[filename], $all_pages=TRUE ) ;
+					foreach( $arr_tmpIds as $tmp_id ) {
+							$newrecord = array() ;
+							$newrecord['media_date'] = date('Y-m-d H:i:s') ;
+							$newrecord['media_mimetype'] = 'image/jpeg' ;
+							$newrecord['field_ATTACHMENT_DATE'] = date('Y-m-d') ;
+							$newrecord['field_ATTACHMENT_TXT'] = $email_subject ;
+							
+							if( $CDE_parent_filerecordId ) {
+								$img_filerecordId = paracrm_lib_data_insertRecord_file( 'CDE_ATTACH', $CDE_parent_filerecordId, $newrecord ) ;
+							} else {
+								$img_filerecordId = paracrm_lib_data_insertRecord_file( 'ATTACH_INBOX', 0, $newrecord ) ;
+							}
+							
+							media_img_move( $tmp_id , $img_filerecordId ) ;
+					}
+					unlink($tmpfname) ;
 				}
 			}
 			
