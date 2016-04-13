@@ -132,6 +132,37 @@ function media_pdf_pdf2jpgs( $pdf ) {
 	
 	return $jpegs ;
 }
+function media_pdf_jpgs2pdf( $jpegs ) {
+	$media_pdf_IMconvert_path = $GLOBALS['media_pdf_IMconvert_path'] ;
+	if( !$media_pdf_IMconvert_path || !is_executable($media_pdf_IMconvert_path) ) {
+		return NULL ;
+	}
+	
+	$img_paths = array() ;
+	foreach( $jpegs as $jpeg ) {
+		$img_path = tempnam( sys_get_temp_dir(), "FOO");
+		rename($img_path,$img_path.'.jpg') ;
+		$img_path.= '.jpg' ;
+		
+		$img_paths[] = $img_path ;
+		file_put_contents( $img_path, $jpeg ) ;
+	}
+	
+	$pdf_path = tempnam( sys_get_temp_dir(), "FOO");
+	rename($pdf_path,$pdf_path.'.pdf') ;
+	$pdf_path.= '.pdf' ;
+	
+	exec( media_pdf_makeExecCmd($GLOBALS['media_pdf_IMconvert_path'])." ".implode(' ',$img_paths)." ".$pdf_path ) ;
+	
+	$pdf = file_get_contents($pdf_path) ;
+	
+	foreach( $img_paths as $img_path ) {
+		unlink($img_path) ;
+	}
+	unlink($pdf_path) ;
+	
+	return $pdf ;
+}
 
 
 ?>
