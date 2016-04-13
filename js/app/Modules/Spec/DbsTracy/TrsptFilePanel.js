@@ -167,18 +167,44 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 					}]
 				},{
 					xtype: 'fieldset',
-					title: 'Customs request',
-					checkboxName: 'customs_is_on',
-					checkboxToggle: true,
+					title: 'Customs',
 					fieldDefaults: {
 						labelWidth: 40,
 						anchor: '100%'
 					},
 					items: [{
+						xtype: 'combobox',
+						name: 'customs_mode',
+						fieldLabel: 'Flow',
+						queryMode: 'local',
+						forceSelection: true,
+						allowBlank: false,
+						editable: false,
+						store: {
+							fields: ['id','text'],
+							data: [
+								{id: '', text: ''},
+								{id: 'OFF', text: 'No customs (EU)'},
+								{id: 'ON', text: 'Customs REQ/CLR'}
+							]
+						},
+						valueField: 'id',
+						displayField: 'text',
+						listeners:{
+							change: function(cmb) {
+								var formPanel = cmb.up('panel'),
+									form = formPanel.getForm() ;
+								form.findField('customs_date_request').setVisible(cmb.getValue()=='ON') ;
+								form.findField('customs_date_cleared').setVisible(cmb.getValue()=='ON') ;
+							}
+						}
+					},{
+						hidden: true,
 						xtype: 'datetimefield',
 						fieldLabel: 'REQ',
 						name: 'customs_date_request'
 					},{
+						hidden: true,
 						xtype: 'datetimefield',
 						fieldLabel: 'CLR',
 						name: 'customs_date_cleared'
@@ -423,7 +449,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		this.down('#pHeaderForm').getForm().setValues({
 			date_create: new Date(),
 			id_doc: 'NEW',
-			customs_is_on: false
+			customs_mode: ''
 		});
 		
 		//gOrders

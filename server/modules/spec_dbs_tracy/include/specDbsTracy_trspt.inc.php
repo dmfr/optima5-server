@@ -38,7 +38,7 @@ function specDbsTracy_trspt_getRecords( $post_data ) {
 			'flight_awb' => $arr['field_FLIGHT_AWB'],
 			'flight_date' => substr($arr['field_FLIGHT_DATE'],0,10),
 			'flight_code' => $arr['field_FLIGHT_CODE'],
-			'customs_is_on' => $arr['field_CUSTOMS_IS_ON'],
+			'customs_mode' => ($arr['field_CUSTOMS_IS_ON'] ?  'ON' : 'OFF'),
 			'customs_date_request' => $arr['field_CUSTOMS_DATE_REQUEST'],
 			'customs_date_cleared' => $arr['field_CUSTOMS_DATE_CLEARED'],
 			
@@ -159,7 +159,7 @@ function specDbsTracy_trspt_setHeader( $post_data ) {
 	$arr_ins['field_FLIGHT_AWB'] = $form_data['flight_awb'] ;
 	$arr_ins['field_FLIGHT_DATE'] = $form_data['flight_date'] ;
 	$arr_ins['field_FLIGHT_CODE'] = $form_data['flight_code'] ;
-	$arr_ins['field_CUSTOMS_IS_ON'] = ($form_data['customs_is_on'] ? 1 : 0) ;
+	$arr_ins['field_CUSTOMS_IS_ON'] = ($form_data['customs_mode']=='ON') ;
 	$arr_ins['field_CUSTOMS_DATE_REQUEST'] = ($form_data['customs_date_request'] ? $form_data['customs_date_request'] : '') ;
 	$arr_ins['field_CUSTOMS_DATE_CLEARED'] = ($form_data['customs_date_cleared'] ? $form_data['customs_date_cleared'] : '') ;
 	

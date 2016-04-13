@@ -315,7 +315,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderAttachmentsDataview',{
 			_moduleId: 'spec_dbs_tracy',
 			_action: 'attachments_downloadPdf',
 			parent_file_code: 'order',
-			parent_filerecord_id: this.orderRecord.get('order_filerecord_id'),
+			parent_filerecord_id: this.orderRecord.get('order_filerecord_id')
 		});
 		
 		
