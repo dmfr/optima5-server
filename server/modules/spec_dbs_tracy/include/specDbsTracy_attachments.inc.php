@@ -187,6 +187,50 @@ function specDbsTracy_attachments_getInbox($post_data) {
 }
 
 
+function specDbsTracy_attachments_downloadPdf( $post_data ) {
+	global $_opDB ;
+	$p_parentFileCode = $post_data['parent_file_code'] ;
+	$p_parentFilerecordId = $post_data['parent_filerecord_id'] ;
+	
+	$arr_ids = array() ;
+	switch( $p_parentFileCode ) {
+		case 'order' :
+			$query = "SELECT field_ID_SOC, field_ID_DN FROM view_file_CDE WHERE filerecord_id='{$p_parentFilerecordId}'" ;
+			$result = $_opDB->query($query) ;
+			$arr = $_opDB->fetch_row($result) ;
+			if( !$arr ) {
+				return array('success'=>false) ;
+			}
+			$title = $arr[0].'_'.$arr[1] ;
+			
+			$query = "SELECT filerecord_id FROM view_file_CDE_ATTACH WHERE filerecord_parent_id='{$p_parentFilerecordId}' ORDER BY filerecord_id" ;
+			$result = $_opDB->query($query) ;
+			while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+				$arr_ids[] = $arr[0] ;
+			}
+			break ;
+		default :
+			return array('success'=>false) ;
+	}
+	
+	media_contextOpen( $_POST['_sdomainId'] ) ;
+	
+	$jpegs = array() ;
+	foreach( $arr_ids as $media_id ) {
+		$src_filepath = media_img_getPath( $media_id ) ;
+		$jpegs[] = file_get_contents($src_filepath) ;
+	}
+	
+	$pdf = media_pdf_jpgs2pdf($jpegs) ;
+	media_contextClose() ;
+
+
+	$filename_pdf = 'DN_'.$title.'_'.time().'.pdf' ;
+	header("Content-Type: application/force-download; name=\"$filename_pdf\""); 
+	header("Content-Disposition: attachment; filename=\"$filename_pdf\""); 
+	echo $pdf ;
+	die() ;
+}
 
 
 ?>

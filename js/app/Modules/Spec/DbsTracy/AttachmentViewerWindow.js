@@ -8,6 +8,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.AttachmentViewerWindow',{
 		
 		Ext.apply(this,{
 			title:'Attachment Viewer',
+			layout: 'auto',
 			//width:dispwidth,
 			//height:dispheight,
 			iconCls: 'op5-crmbase-dataformwindow-photo-icon',
@@ -60,6 +61,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.AttachmentViewerWindow',{
 		this.callParent() ;
 		this.on('afterrender', function() {
 			this.initCreateForm() ;
+			this.setScrollable( true ) ;
 		},this) ;
 		this.on('beforeclose',this.onBeforeClose,this) ;
 		this.on('beforedestroy',this.onBeforeDestroy,this) ;
@@ -220,6 +222,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.AttachmentViewerWindow',{
 	loadMedia: function(mediaId) {
 		this.mediaId = mediaId ;
 		
+		var overX = this.getWidth() - this.body.getWidth() ;
+		var overY = this.getHeight() - this.body.getHeight() ;
+		
 		var getParams = this.optimaModule.getConfiguredAjaxParams() ;
 		Ext.apply( getParams, {
 			media_id: mediaId,
@@ -246,10 +251,17 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.AttachmentViewerWindow',{
 					Ext.Msg.alert('Failed', 'Failed');
 					return ;
 				}
-				var width = parseInt( Ext.decode(response.responseText).width ) ;
-				var height = parseInt( Ext.decode(response.responseText).height ) ;
-				this.setSize(width,height) ;
+				var width = Ext.Array.min( [
+					this.optimaModule.getViewport().getWidth(),
+					parseInt( Ext.decode(response.responseText).width )
+				]) ;
+				var height = Ext.Array.min( [
+					this.optimaModule.getViewport().getHeight(),
+					parseInt( Ext.decode(response.responseText).height )
+				]) ;
+				this.setSize(width+overX,height+overY) ;
 				this.down('#cmpImage').setSrc('server/backend_media.php?' + Ext.Object.toQueryString(getParams)) ;
+				this.down('#cmpImage').setSize( parseInt(Ext.decode(response.responseText).width), parseInt(Ext.decode(response.responseText).height) ) ;
 				this.fireEvent('load',this) ;
 				Ext.defer(function() {
 					this.toggleFormVisibility(true) ;

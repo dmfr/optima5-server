@@ -43,6 +43,13 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderAttachmentsDataview',{
 						}
 					}]
 				}]
+			},'->',{
+				iconCls: 'op5-crmbase-datatoolbar-file-export-gallery',
+				text: 'Get PDF',
+				handler: function(){
+					this.handleDownloadPdf() ;
+				},
+				scope: this
 			}],
 			items:[{
 				xtype: 'dataview',
@@ -300,6 +307,29 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderAttachmentsDataview',{
 			width: 0,
 			height: 0
 		});
+	},
+	handleDownloadPdf: function() {
+		var me = this ;
+		var exportParams = me.optimaModule.getConfiguredAjaxParams() ;
+		Ext.apply( exportParams, {
+			_moduleId: 'spec_dbs_tracy',
+			_action: 'attachments_downloadPdf',
+			parent_file_code: 'order',
+			parent_filerecord_id: this.orderRecord.get('order_filerecord_id'),
+		});
+		
+		
+		try {
+			Ext.destroy(Ext.get('testIframe'));
+		}
+		catch(e) {}
+
+		Ext.create('Ext.ux.dams.FileDownloader',{
+			renderTo: Ext.getBody(),
+			requestParams: exportParams,
+			requestAction: Optima5.Helper.getApplication().desktopGetBackendUrl(),
+			requestMethod: 'POST'
+		}) ;
 	}
 	
 	

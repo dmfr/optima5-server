@@ -53,6 +53,8 @@ switch( $post_data['_action'] )
 	return specDbsTracy_attachments_attach( $post_data ) ;
 	case 'attachments_detach' :
 	return specDbsTracy_attachments_detach( $post_data ) ;
+	case 'attachments_downloadPdf' :
+	return specDbsTracy_attachments_downloadPdf( $post_data ) ;
 	
 	case 'attachments_getInbox' :
 	return specDbsTracy_attachments_getInbox( $post_data ) ;
