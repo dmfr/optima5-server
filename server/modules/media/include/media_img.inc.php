@@ -138,8 +138,13 @@ function media_img_getResize( $orig_w, $orig_h, $is_thumb )
 	}
 	else
 	{
-		$dest_w = '1000' ;
-		$dest_h = '750' ;
+		if( $orig_w > $orig_h ) {
+			$dest_w = '1500' ;
+			$dest_h = '1125' ;
+		} else {
+			$dest_h = '1500' ;
+			$dest_w = '1125' ;
+		}
 	}
 	if( !$is_thumb && ($orig_w<=$dest_w) && ($orig_h<=$dest_h) )
 		return NULL ;
