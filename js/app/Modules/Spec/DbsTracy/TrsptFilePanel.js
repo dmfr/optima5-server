@@ -554,15 +554,36 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 	
 	
 	doOrdersAdd: function(orderRecords) {
+		var formPanel = this.down('#pHeaderForm'),
+			form = formPanel.getForm(),
+			recordData = form.getValues(false,false,false,true) ;
+		
 		// Check soc_code
 		var orderRecord = orderRecords[0] ;
-		if( orderRecord.get('id_soc') != this.down('#pHeaderForm').getForm().findField('id_soc').getValue() ) {
+		if( orderRecord.get('id_soc') != recordData['id_soc'] ) {
 			Ext.MessageBox.alert('Error','Incompatible (company code)') ;
 			return ;
 		}
 		
 		if( Optima5.Modules.Spec.DbsTracy.HelperCache.checkOrderData(orderRecord.getData()) != null ) {
 			Ext.MessageBox.alert('Incomplete','DN incomplete. Check order details') ;
+			return ;
+		}
+		
+		var fields = [
+			'atr_priority',
+			'atr_incoterm',
+			'atr_consignee'
+		];
+		var passed = true ;
+		Ext.Array.each( fields, function(field) {
+			if( orderRecord.get(field) != recordData[field] ) {
+				Ext.MessageBox.alert('Error','Incompatible ('+field+')') ;
+				passed = false ;
+				return false ;
+			}
+		}) ;
+		if( !passed ) {
 			return ;
 		}
 		
