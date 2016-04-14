@@ -7,6 +7,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 	
 	defaultViewMode: 'order',
 	viewMode: null,
+	autoRefreshDelay: (60*1000),
 	
 	initComponent: function() {
 		Ext.apply(this, {
@@ -60,6 +61,13 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 					}]
 				}
 			},'-',{
+				iconCls: 'op5-crmbase-datatoolbar-refresh',
+				text: 'Refresh',
+				handler: function() {
+					this.doLoad() ;
+				},
+				scope: this
+			},{
 				//iconCls: 'op5-spec-dbsembramach-report-clock',
 				itemId: 'tbViewmode',
 				viewConfig: {forceFit: true},
@@ -141,6 +149,13 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		}
 		
 		// Create grid ?
+		this.autoRefreshTask = new Ext.util.DelayedTask( function(){
+			if( this.isDestroyed ) { // private check
+				return ;
+			}
+			this.doLoad() ;
+		},this);
+		
 		var withGrouping ;
 		switch( this.viewMode ) {
 			case 'order' :
@@ -799,6 +814,10 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 	},
 	
 	doLoad: function() {
+		if( this.autoRefreshTask != null ) {
+			this.autoRefreshTask.cancel() ;
+		}
+		
 		switch( this.viewMode ) {
 			case 'order' :
 			case 'order-group-trspt' :
@@ -826,6 +845,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 					return ;
 				}
 				this.onLoadOrder(ajaxResponse.data) ;
+				// Setup autoRefresh task
+				this.autoRefreshTask.delay( this.autoRefreshDelay ) ;
 			},
 			callback: function() {
 				this.hideLoadmask() ;
@@ -869,6 +890,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 					return ;
 				}
 				this.onLoadTrspt(ajaxResponse.data) ;
+				// Setup autoRefresh task
+				this.autoRefreshTask.delay( this.autoRefreshDelay ) ;
 			},
 			callback: function() {
 				this.hideLoadmask() ;
@@ -940,5 +963,10 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 	
 	doQuit: function() {
 		this.destroy() ;
+	},
+	onDestroy: function() {
+		if( this.autoRefreshTask ) {
+			this.autoRefreshTask.cancel() ;
+		}
 	}
 });
