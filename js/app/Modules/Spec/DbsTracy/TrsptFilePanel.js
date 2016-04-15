@@ -545,6 +545,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 	onLoadTrspt: function( trsptRecord ) {
 		this._trsptNew = false ;
 		this._trsptFilerecordId = trsptRecord.getId() ;
+		this._trsptRecordCopy = trsptRecord ;
 		
 		//fHeader
 		this.down('#pHeaderForm').getForm().reset() ;
@@ -647,6 +648,14 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		var formPanel = this.down('#pHeaderForm'),
 			form = formPanel.getForm(),
 			recordData = form.getValues(false,false,false,true) ;
+			
+		if( this._trsptRecordCopy ) {
+			recordData = this._trsptRecordCopy.getData() ;
+			if( recordData['print_is_ok'] ) {
+				Ext.MessageBox.alert('Error','Document already printed') ;
+				return ;
+			}
+		}
 		
 		// Check soc_code
 		var orderRecord = orderRecords[0] ;
@@ -809,6 +818,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 				var jsonResponse = Ext.JSON.decode(response.responseText) ;
 				if( jsonResponse.success == true ) {
 					this.openPrintPopupDo( this.getTitle(), jsonResponse.html ) ;
+					this.doReload() ;
 				} else {
 					Ext.MessageBox.alert('Error','Print system disabled') ;
 				}

@@ -41,6 +41,7 @@ function specDbsTracy_trspt_getRecords( $post_data ) {
 			'customs_mode' => ($arr['field_CUSTOMS_IS_ON'] ?  'ON' : 'OFF'),
 			'customs_date_request' => $arr['field_CUSTOMS_DATE_REQUEST'],
 			'customs_date_cleared' => $arr['field_CUSTOMS_DATE_CLEARED'],
+			'print_is_ok' => $arr['field_PRINT_IS_OK'],
 			
 			'calc_step' => NULL,
 			
@@ -373,6 +374,10 @@ function specDbsTracy_trspt_printDoc( $post_data ) {
 	}
 	
 	$trspt_record = $ttmp['data'][0] ;
+	
+	$arr_update = array() ;
+	$arr_update['field_PRINT_IS_OK'] = 1 ;
+	paracrm_lib_data_updateRecord_file( 'TRSPT', $arr_update, $p_trsptFilerecordId );
 	
 	//print_r($trspt_record) ;
 	switch( $post_data['print_type'] ) {
