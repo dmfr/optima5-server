@@ -165,6 +165,14 @@ function specDbsTracy_trspt_setHeader( $post_data ) {
 	
 	if( $post_data['_is_new'] ) {
 		$filerecord_id = paracrm_lib_data_insertRecord_file( $file_code, 0, $arr_ins );
+		if( json_decode($post_data['data_orderFilerecordIds'],true) ) {
+			foreach( json_decode($post_data['data_orderFilerecordIds'],true) as $order_filerecord_id ) {
+				specDbsTracy_trspt_orderAdd( array(
+					'trspt_filerecord_id' => $filerecord_id,
+					'order_filerecord_id' => $order_filerecord_id
+				));
+			}
+		}
 	} elseif( $post_data['trspt_filerecord_id'] ) {
 		$filerecord_id = paracrm_lib_data_updateRecord_file( $file_code, $arr_ins, $post_data['trspt_filerecord_id'] );
 	} else {

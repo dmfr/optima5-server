@@ -253,6 +253,12 @@
 	background-image: none;     
 	background-color: #FF3D0D; 
 }
+.op5-spec-mrfoxy-promolist-progresscolorgreen .x-progress-bar {     
+	border-right-color: #07E38B;     
+	border-top-color: #07E38B;     
+	background-image: none;     
+	background-color: #07E38B; 
+}
 
 .op5-spec-mrfoxy-promosch-today {
 	background-color: rgb(232, 232, 232) ;

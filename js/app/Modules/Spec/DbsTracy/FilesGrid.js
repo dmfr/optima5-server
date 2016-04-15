@@ -40,6 +40,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 					}
 				}
 			}),'->',{
+				itemId: 'tbCreate',
 				icon: 'images/op5img/ico_new_16.gif',
 				text:'Create file...',
 				menu: {
@@ -51,13 +52,15 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 						icon: 'images/op5img/ico_new_16.gif',
 						handler: function() {
 							this.handleNewOrder() ;
-						}
+						},
+						scope: this
 					},{
 						text: 'Transport',
 						icon: 'images/op5img/ico_new_16.gif',
 						handler: function() {
 							this.handleNewTrspt() ;
-						}
+						},
+						scope: this
 					}]
 				}
 			},'-',{
@@ -498,8 +501,34 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			return dateSql.replace(' ','<br>') ;
 		};
 		
-		var pushModelfields = [] ;
+		var pushModelfields = [{
+			name: '_is_selection',
+			type: 'boolean'
+		}] ;
+		var validBtn = Ext.create('Ext.button.Button',{
+			iconCls: 'op5-spec-mrfoxy-financebudget-newrevisionmenu-save'
+		});
+		var buttonMarkup = Ext.DomHelper.markup(validBtn.getRenderTree());
+		validBtn.destroy() ;
 		var columns = [{
+			hidden: true,
+			width: 60,
+			xtype: 'checkcolumn',
+			sortable: false,
+			dataIndex: '_is_selection',
+			text: '<b><font color="red">Create</font></b>' + '<div align="center">' + buttonMarkup + '</div>',
+			isColumnCreate: true,
+			listeners: {
+				// attach event listener to buttonMarkup
+				afterrender: function(editingColumn) {
+					editingColumn.mon( editingColumn.getEl().down('.x-btn'), 'click', function(e) {
+						e.stopEvent() ;
+						this.handleNewTrsptSelection() ;
+					}, this) ;
+				},
+				scope: this
+			}
+		},{
 			text: '<b>BU</b>',
 			dataIndex: 'id_soc',
 			width:50,
@@ -618,7 +647,11 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				var tmpText = stepRow['step_txt'] ;
 					var b = new Ext.ProgressBar({height: 15, cls: 'op5-spec-mrfoxy-promolist-progress'});
 					if( !record.get('calc_link_is_active') ) {
-						b.addCls('op5-spec-mrfoxy-promolist-progresscolor') ;
+						if( Optima5.Modules.Spec.DbsTracy.HelperCache.checkOrderData(record.getData()) != null ) {
+							b.addCls('op5-spec-mrfoxy-promolist-progresscolor') ;
+						} else {
+							b.addCls('op5-spec-mrfoxy-promolist-progresscolorgreen') ;
+						}
 					}
 					b.updateProgress(tmpProgress,tmpText);
 					v = Ext.DomHelper.markup(b.getRenderTree());
@@ -831,6 +864,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		}
 	},
 	doLoadOrder: function() {
+		this.toggleNewTrspt(false) ;
 		this.showLoadmask() ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
@@ -927,6 +961,23 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		}
 	},
 	
+	toggleNewTrspt: function(torf) {
+		if( this.viewMode != 'order' ) {
+			return ;
+		}
+		this.down('toolbar').down('#tbViewmode').setVisible(!torf) ;
+		this.down('toolbar').down('#tbCreate').setVisible(!torf) ;
+		if( !torf ) {
+			this.down('grid').child('headercontainer').down('checkcolumn').setVisible(false) ;
+			return ;
+		}
+		if( torf ) {
+			this.autoRefreshTask.cancel() ;
+			this.down('grid').child('headercontainer').down('checkcolumn').setVisible(true) ;
+			return ;
+		}
+	},
+	
 	handleNewOrder: function() {
 		this.optimaModule.postCrmEvent('openorder',{orderNew:true}) ;
 	},
@@ -934,10 +985,26 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		this.optimaModule.postCrmEvent('openorder',{orderFilerecordId:orderFilerecordId}) ;
 	},
 	handleNewTrspt: function() {
-		this.optimaModule.postCrmEvent('opentrspt',{trsptNew:true}) ;
+		this.toggleNewTrspt(true) ;
+		//this.optimaModule.postCrmEvent('opentrspt',{trsptNew:true}) ;
 	},
 	handleEditTrspt: function( trsptFilerecordId ) {
 		this.optimaModule.postCrmEvent('opentrspt',{trsptFilerecordId:trsptFilerecordId}) ;
+	},
+	handleNewTrsptSelection: function() {
+		var orderRecords = [];
+		this.down('grid').getStore().each( function(orderRecord) {
+			if( orderRecord.get('_is_selection') ) {
+				orderRecords.push( orderRecord ) ;
+			}
+		}) ;
+		if( orderRecords.length == 0 ) {
+			return ;
+		}
+		this.optimaModule.postCrmEvent('opentrspt',{
+			trsptNew:true,
+			trsptNew_orderRecords: orderRecords
+		}) ;
 	},
 	
 	handleDeleteTrspt: function( trsptFilerecordId ) {

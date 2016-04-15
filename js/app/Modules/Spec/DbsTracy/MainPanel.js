@@ -113,13 +113,13 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.MainPanel',{
 			case 'datachange' :
 				break ;
 			case 'opentrspt' :
-				return this.openTrsptFile( eventParams.trsptNew ? 0 : eventParams.trsptFilerecordId ) ;
+				return this.openTrsptFile( eventParams.trsptNew ? 0 : eventParams.trsptFilerecordId, eventParams.trsptNew_orderRecords ) ;
 			case 'openorder' :
 				return this.openOrderFile( eventParams.orderNew ? 0 : eventParams.orderFilerecordId ) ;
 			default: break ;
 		}
 	},
-	openTrsptFile: function(trsptFilerecordId) {
+	openTrsptFile: function(trsptFilerecordId, trsptNew_orderRecords) {
 		if( trsptFilerecordId === null ) {
 			return ;
 		}
@@ -152,6 +152,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.MainPanel',{
 				optimaModule: this.optimaModule,
 				_trsptNew: (trsptFilerecordId==0),
 				_trsptFilerecordId: trsptFilerecordId,
+				_trsptNew_orderRecords: trsptNew_orderRecords,
 				listeners: {
 					candestroy: function(w) {
 						w.close() ;

@@ -29,6 +29,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 				iconCls:'op5-sdomains-menu-updateschema',
 				text:'<b>Validate</b>',
 				menu: [{
+					hidden: true,
 					iconCls:'op5-sdomains-menu-updateschema',
 					text:'Validate <b>60_TRSPTREADY</b>',
 					handler: function() {
@@ -36,6 +37,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 					},
 					scope:this
 				},{
+					hidden: true,
 					iconCls:'op5-sdomains-menu-updateschema',
 					text:'Validate <b>70_PICKUP</b>',
 					handler: function() {
@@ -414,7 +416,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		
 		this.on('afterrender', function() {
 			if( this._trsptNew ) {
-				this.newTrspt() ;
+				this.newTrspt( this._trsptNew_orderRecords ) ;
 			} else {
 				this.loadTrspt( this._trsptFilerecordId ) ;
 			}
@@ -441,7 +443,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		});
 	},
 	
-	newTrspt: function() {
+	newTrspt: function( trsptNew_orderRecords ) {
 		this._trsptNew = true ;
 		
 		//fHeader
@@ -462,6 +464,61 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		
 		// Title
 		this.setTitle('New TrsptFile') ;
+		
+		if( trsptNew_orderRecords != null && trsptNew_orderRecords.length>0 ){
+			this.down('#pOrdersGrid').getStore().add(trsptNew_orderRecords) ;
+			
+			var passed = true ;
+			Ext.Array.each( trsptNew_orderRecords, function(orderRecord) {
+				if( Optima5.Modules.Spec.DbsTracy.HelperCache.checkOrderData(orderRecord.getData()) != null ) {
+					passed = false ;
+				}
+			}) ;
+			if( !passed ) {
+				this.onNewTrsptError('DN incomplete. Check order details') ;
+				return false ;
+			}
+			
+			var copyFields = ['id_soc','atr_consignee','atr_incoterm','atr_priority'] ;
+			var map_copyFields_values = {} ;
+			//check ?
+			// if OK => setValues
+			Ext.Array.each( copyFields, function(copyField) {
+				map_copyFields_values[copyField] = [] ;
+				Ext.Array.each( trsptNew_orderRecords, function(orderRecord) {
+					if( !Ext.Array.contains(map_copyFields_values[copyField],orderRecord.get(copyField)) ) {
+						map_copyFields_values[copyField].push( orderRecord.get(copyField) ) ;
+					}
+				}) ;
+			}) ;
+			
+			var passed = true ;
+			var objValues = {} ;
+			Ext.Object.each( map_copyFields_values, function(copyField,values) {
+				if( values.length != 1 ) {
+					passed = false ;
+					return false ;
+				}
+				objValues[copyField] = values[0] ;
+			}) ;
+			if( !passed ) {
+				this.onNewTrsptError('Incompatible DNs') ;
+				return false ;
+			}
+			this.down('#pHeaderForm').getForm().setValues(objValues);
+		}
+	},
+	onNewTrsptError: function(msg) {
+		if( this.rendered ) {
+			this.getEl().mask() ;
+			Ext.defer( function() {
+				Ext.MessageBox.alert('Error',msg,function(){this.close();},this) ;
+			}, 500, this) ;
+		} else {
+			this.on('afterrender',function() {
+				this.onNewTrsptError(msg) ;
+			},this,{single: true}) ;
+		}
 	},
 	loadTrspt: function( filerecordId ) {
 		this.showLoadmask() ;
@@ -543,6 +600,12 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		
 		var recordData = form.getValues(false,false,false,true) ;
 		
+		var gridOrders = this.down('#pOrdersGrid'),
+			orderFilerecordIds = [] ;
+		gridOrders.getStore().each( function(orderRecord) {
+			orderFilerecordIds.push(orderRecord.getId()) ;
+		}) ;
+		
 		this.showLoadmask() ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
@@ -551,6 +614,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 				_is_new: ( this._trsptNew ? 1 : 0 ),
 				trspt_filerecord_id: ( this._trsptNew ? null : this._trsptFilerecordId ),
 				data: Ext.JSON.encode(recordData),
+				data_orderFilerecordIds: Ext.JSON.encode( orderFilerecordIds ),
 				validateStepCode: ( !Ext.isEmpty(validateStepCode) ? validateStepCode : null )
 			},
 			success: function(response) {
