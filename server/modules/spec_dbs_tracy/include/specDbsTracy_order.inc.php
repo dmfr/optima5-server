@@ -39,6 +39,10 @@ function specDbsTracy_order_getRecords( $post_data ) {
 			'vol_dims' => $arr['field_VOL_DIMS'],
 			'vol_count' => $arr['field_VOL_COUNT'],
 			
+			'warning_is_on' => $arr['field_WARNING_IS_ON'],
+			'warning_code' => $arr['field_WARNING_CODE'],
+			'warning_txt' => $arr['field_WARNING_TXT'],
+			
 			'steps' => array(),
 			'attachments' => array(),
 			
@@ -190,6 +194,22 @@ function specDbsTracy_order_setHeader( $post_data ) {
 			'step_code' => $post_data['validateStepCode']
 		));
 	}
+	
+	return array('success'=>true, 'id'=>$filerecord_id) ;
+}
+function specDbsTracy_order_setWarning( $post_data ) {
+	usleep(100*1000);
+	global $_opDB ;
+	$file_code = 'CDE' ;
+	
+	$form_data = json_decode($post_data['data'],true) ;
+	
+	
+	$arr_ins = array() ;
+	$arr_ins['field_WARNING_IS_ON'] = ($form_data['warning_is_on'] ? 1:0 ) ;
+	$arr_ins['field_WARNING_CODE'] = $form_data['warning_code'] ;
+	$arr_ins['field_WARNING_TXT'] = $form_data['warning_txt'] ;
+	$filerecord_id = paracrm_lib_data_updateRecord_file( $file_code, $arr_ins, $post_data['order_filerecord_id'] );
 	
 	return array('success'=>true, 'id'=>$filerecord_id) ;
 }

@@ -73,7 +73,11 @@ Ext.define('DbsTracyFileOrderModel',{
 		{name: 'calc_step', type:'string'},
 		{name: 'calc_link_is_active', type:'boolean'},
 		{name: 'calc_link_trspt_filerecord_id', type:'int'},
-		{name: 'calc_link_trspt_txt', type:'string'}
+		{name: 'calc_link_trspt_txt', type:'string'},
+		
+		{name: 'warning_is_on', type: 'boolean'},
+		{name: 'warning_code', type: 'string'},
+		{name: 'warning_txt', type: 'string'}
 	],
 	hasMany: [{
 		model: 'DbsTracyFileOrderStepModel',

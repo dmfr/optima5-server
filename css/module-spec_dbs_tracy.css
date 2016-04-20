@@ -160,3 +160,18 @@
 .op5-spec-dbstracy-attachments-icon {
 	background-image: url("../images/modules/dbstracy-attachment-16.png") !important;
 }
+
+
+.op5-spec-dbstracy-files-nowarning .x-grid-cell-inner {
+	background: url('../images/op5img/ico_info_small.gif') no-repeat center center ;
+}
+.op5-spec-dbstracy-files-warning .x-grid-cell {
+	background-color: #FFCD75 ;
+}
+.op5-spec-dbstracy-warning-icon {
+	width: 56px ;
+	background-position: center ;
+	background-repeat: no-repeat ;
+	background-image: url("../images/modules/dbstracy-warning-48.png") !important;
+}
+

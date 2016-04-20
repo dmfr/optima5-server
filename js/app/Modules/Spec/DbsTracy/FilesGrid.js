@@ -2,7 +2,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 	extend:'Ext.panel.Panel',
 	
 	requires: [
-		'Optima5.Modules.Spec.DbsTracy.CfgParamButton'
+		'Optima5.Modules.Spec.DbsTracy.CfgParamButton',
+		'Optima5.Modules.Spec.DbsTracy.OrderWarningPanel'
 	],
 	
 	defaultViewMode: 'order',
@@ -390,7 +391,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			viewConfig: {
 				getRowClass: function(record) {
 					if( record.get('status_closed') ) {
-						return 'op5-spec-dbsembramach-gridcell-done' ;
+						return 'op5-spec-dbstracy-files-warning' ;
 					}
 				},
 				enableTextSelection: true
@@ -629,6 +630,22 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				return str ;
 			}
 		},{
+			text: '<b>Warning</b>',
+			dataIndex: 'warning_is_on',
+			width: 120,
+			align: 'center',
+			renderer: function(v,metaData,record) {
+				if( !v ) {
+					metaData.tdCls += ' op5-spec-dbstracy-files-nowarning' ;
+					return ;
+				}
+				var txt = '' ;
+				txt += '<font color="red"><b>'+record.get('warning_code')+'</b></font>' ;
+				txt += '<br>' ;
+				txt += Ext.util.Format.nl2br( Ext.String.htmlEncode( record.get('warning_txt') ) )
+				return txt ;
+			}
+		},{
 			text: '<b>Current step</b>',
 			dataIndex: 'calc_step',
 			width: 100,
@@ -726,7 +743,12 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		Ext.ux.dams.ModelManager.unregister( this.tmpModelName ) ;
 		Ext.define(this.tmpModelName, {
 			extend: 'DbsTracyFileOrderModel',
-			fields: pushModelfields
+			fields: pushModelfields,
+			hasMany: [{
+				model: 'DbsTracyFileOrderStepModel',
+				name: 'steps',
+				associationKey: 'steps'
+			}]
 		});
 		
 		var columnDefaults = {
@@ -766,6 +788,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			}],
 			listeners: {
 				render: this.doConfigureOrderOnRender,
+				itemclick: this.onOrderClick,
 				itemcontextmenu: this.onOrderContextMenu,
 				scope: this
 			},
@@ -777,8 +800,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 					ddGroup: 'OrdersDD'+this.optimaModule.sdomainId
 				},
 				getRowClass: function(record) {
-					if( record.get('status_closed') ) {
-						return 'op5-spec-dbsembramach-gridcell-done' ;
+					if( record.get('warning_is_on') ) {
+						return 'op5-spec-dbstracy-files-warning' ;
 					}
 				},
 				enableTextSelection: true
@@ -796,6 +819,14 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 	},
 	doConfigureOrderOnRender: function() {
 		
+	},
+	onOrderClick: function( view, record, itemNode, index, e ) {
+		var cellNode = e.getTarget( view.getCellSelector() ),
+			cellColumn = view.getHeaderByCell( cellNode ) ;
+		if( cellColumn.dataIndex=='warning_is_on' ) {
+			this.openWarningPanel( record ) ;
+			return ;
+		}
 	},
 	onOrderContextMenu: function(view, record, item, index, event) {
 		var gridContextMenuItems = new Array() ;
@@ -1027,6 +1058,42 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			scope: this
 		}) ;
 	},
+	
+	openWarningPanel: function( orderRecord ) {
+		var postParams = {} ;
+		var orderWarningPanel = Ext.create('Optima5.Modules.Spec.DbsTracy.OrderWarningPanel',{
+			optimaModule: this.optimaModule,
+			orderRecord: orderRecord,
+			width:500, // dummy initial size, for border layout to work
+			height:null, // ...
+			floating: true,
+			draggable: true,
+			resizable: true,
+			renderTo: this.getEl(),
+			tools: [{
+				type: 'close',
+				handler: function(e, t, p) {
+					p.ownerCt.destroy();
+				},
+				scope: this
+			}],
+			
+			title: 'Warning / RedFlag'
+		});
+		
+		orderWarningPanel.on('destroy',function(validConfirmPanel) {
+			this.getEl().unmask() ;
+			this.floatingPanel = null ;
+		},this,{single:true}) ;
+		
+		this.getEl().mask() ;
+		
+		orderWarningPanel.show();
+		orderWarningPanel.getEl().alignTo(this.getEl(), 'c-c?');
+		
+		this.floatingPanel = orderWarningPanel ;
+	},
+	
 	
 	doQuit: function() {
 		this.destroy() ;

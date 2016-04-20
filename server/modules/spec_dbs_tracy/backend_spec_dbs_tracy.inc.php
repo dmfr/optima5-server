@@ -16,6 +16,8 @@ switch( $post_data['_action'] )
 	return specDbsTracy_order_getRecords( $post_data ) ;
 	case 'order_setHeader' :
 	return specDbsTracy_order_setHeader( $post_data ) ;
+	case 'order_setWarning' :
+	return specDbsTracy_order_setWarning( $post_data ) ;
 	case 'order_setStep' :
 	return specDbsTracy_order_setStep( $post_data ) ;
 	case 'order_stepValidate' :
