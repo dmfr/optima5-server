@@ -521,10 +521,10 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			listeners: {
 				// attach event listener to buttonMarkup
 				afterrender: function(editingColumn) {
-					editingColumn.mon( editingColumn.getEl().down('.x-btn'), 'click', function(e) {
+					editingColumn.getEl().on( 'click', function(e,t) {
 						e.stopEvent() ;
 						this.handleNewTrsptSelection() ;
-					}, this) ;
+					},this,{delegate:'.x-btn'}) ;
 				},
 				scope: this
 			}
