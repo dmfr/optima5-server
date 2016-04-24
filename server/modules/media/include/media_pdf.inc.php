@@ -132,7 +132,7 @@ function media_pdf_pdf2jpgs( $pdf ) {
 	
 	return $jpegs ;
 }
-function media_pdf_jpgs2pdf( $jpegs ) {
+function media_pdf_jpgs2pdf( $jpegs, $page_format=NULL ) {
 	$media_pdf_IMconvert_path = $GLOBALS['media_pdf_IMconvert_path'] ;
 	if( !$media_pdf_IMconvert_path || !is_executable($media_pdf_IMconvert_path) ) {
 		return NULL ;
@@ -152,7 +152,16 @@ function media_pdf_jpgs2pdf( $jpegs ) {
 	rename($pdf_path,$pdf_path.'.pdf') ;
 	$pdf_path.= '.pdf' ;
 	
-	exec( media_pdf_makeExecCmd($GLOBALS['media_pdf_IMconvert_path'])." ".implode(' ',$img_paths)." ".$pdf_path ) ;
+	$options = '' ;
+	switch( $page_format ) {
+		case 'A4' :
+			$options = '-define pdf:fit-page=A4 -page A4' ;
+			break ;
+		default :
+			$options = '-density 150' ;
+			break ;
+	}
+	exec( media_pdf_makeExecCmd($GLOBALS['media_pdf_IMconvert_path'])." ".implode(' ',$img_paths)." {$options} ".$pdf_path ) ;
 	
 	$pdf = file_get_contents($pdf_path) ;
 	

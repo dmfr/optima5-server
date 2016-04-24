@@ -221,7 +221,7 @@ function specDbsTracy_attachments_downloadPdf( $post_data ) {
 		$jpegs[] = file_get_contents($src_filepath) ;
 	}
 	
-	$pdf = media_pdf_jpgs2pdf($jpegs) ;
+	$pdf = media_pdf_jpgs2pdf($jpegs,$page_format='A4') ;
 	media_contextClose() ;
 
 
