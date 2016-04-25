@@ -1,4 +1,14 @@
 <?php
+function specDbsTracy_trspt_tool_isDateValid( $date_sql )
+{
+	if( $date_sql == '0000-00-00' )
+		return FALSE ;
+	if( $date_sql == '0000-00-00 00:00:00' )
+		return FALSE ;
+	if( !$date_sql )
+		return FALSE ;
+	return TRUE ;
+}
 
 function specDbsTracy_trspt_getRecords( $post_data ) {
 	global $_opDB ;
@@ -44,6 +54,7 @@ function specDbsTracy_trspt_getRecords( $post_data ) {
 			'print_is_ok' => $arr['field_PRINT_IS_OK'],
 			
 			'calc_step' => NULL,
+			'calc_customs_is_wait' => ( $arr['field_CUSTOMS_IS_ON'] && specDbsTracy_trspt_tool_isDateValid($arr['field_CUSTOMS_DATE_REQUEST']) && !specDbsTracy_trspt_tool_isDateValid($arr['field_CUSTOMS_DATE_CLEARED']) ),
 			
 			'events' => array(),
 			'orders' => array()

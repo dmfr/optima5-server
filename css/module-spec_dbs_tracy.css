@@ -168,6 +168,9 @@
 .op5-spec-dbstracy-files-warning .x-grid-cell {
 	background-color: #FFCD75 ;
 }
+.op5-spec-dbstracy-files-customs .x-grid-cell {
+	background-color: #DCA8A8 ;
+}
 .op5-spec-dbstracy-warning-icon {
 	width: 56px ;
 	background-position: center ;

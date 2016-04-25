@@ -390,8 +390,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			},
 			viewConfig: {
 				getRowClass: function(record) {
-					if( record.get('status_closed') ) {
-						return 'op5-spec-dbstracy-files-warning' ;
+					if( record.get('calc_customs_is_wait') ) {
+						return 'op5-spec-dbstracy-files-customs' ;
 					}
 				},
 				enableTextSelection: true
