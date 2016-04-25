@@ -268,6 +268,11 @@ Ext.define('Optima5.Module',{
 	},
 	
 	
+	getViewport: function() {
+		return Ext.ComponentQuery.query('viewport')[0] ;
+	},
+	
+	
 	selfDestroy: function() {
 		var me = this ;
 		delete me.app ;
