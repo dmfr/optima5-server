@@ -260,6 +260,19 @@
 	background-color: #07E38B; 
 }
 
+.op5-spec-mrfoxy-promolist-progressred-legend {
+	background-image: none;
+	background-color: #FF3D0D;
+}
+.op5-spec-mrfoxy-promolist-progressgreen-legend {
+	background-image: none;
+	background-color: #07E38B;
+}
+.op5-spec-mrfoxy-promolist-progressblue-legend {
+	background-image: none;
+	background-color: #6399DC;
+}
+
 .op5-spec-mrfoxy-promosch-today {
 	background-color: rgb(232, 232, 232) ;
 }

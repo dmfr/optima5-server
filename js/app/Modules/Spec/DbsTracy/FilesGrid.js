@@ -503,6 +503,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		};
 		
 		var pushModelfields = [{
+			name: '_color',
+			type: 'string'
+		},{
 			name: '_is_selection',
 			type: 'boolean'
 		}] ;
@@ -646,6 +649,15 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				return txt ;
 			}
 		},{
+			hidden: true,
+			text: '',
+			dataIndex: '_color',
+			width: 100,
+			align: 'center',
+			filter: {
+				type: 'string'
+			}
+		},{
 			text: '<b>Current step</b>',
 			dataIndex: 'calc_step',
 			width: 100,
@@ -653,7 +665,13 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			filter: {
 				type: 'op5crmbasebible',
 				optimaModule: this.optimaModule,
-				bibleId: 'CFG_ORDERFLOW'
+				bibleId: 'CFG_ORDERFLOW',
+				listeners: {
+					update: function() {
+						this.doOrderSetColorFilter(null) ;
+					},
+					scope: this
+				}
 			},
 			renderer: function(v,m,record) {
 				var stepRow = this._stepsMap[v] ;
@@ -663,12 +681,15 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				var tmpProgress = stepRow['status_percent'] / 100 ;
 				var tmpText = stepRow['step_txt'] ;
 					var b = new Ext.ProgressBar({height: 15, cls: 'op5-spec-mrfoxy-promolist-progress'});
-					if( !record.get('calc_link_is_active') ) {
-						if( Optima5.Modules.Spec.DbsTracy.HelperCache.checkOrderData(record.getData()) != null ) {
-							b.addCls('op5-spec-mrfoxy-promolist-progresscolor') ;
-						} else {
+					switch( record.get('_color') ) {
+						case 'green' :
 							b.addCls('op5-spec-mrfoxy-promolist-progresscolorgreen') ;
-						}
+							break ;
+						case 'red' :
+							b.addCls('op5-spec-mrfoxy-promolist-progresscolor') ;
+							break ;
+						default :
+							break ;
 					}
 					b.updateProgress(tmpProgress,tmpText);
 					v = Ext.DomHelper.markup(b.getRenderTree());
@@ -790,6 +811,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				render: this.doConfigureOrderOnRender,
 				itemclick: this.onOrderClick,
 				itemcontextmenu: this.onOrderContextMenu,
+				added: function(gridpanel) {
+					gridpanel.headerCt.on('menucreate',this.onOrderColumnsMenuCreate,this) ;
+				},
 				scope: this
 			},
 			viewConfig: {
@@ -872,6 +896,64 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		
 		gridContextMenu.showAt(event.getXY());
 	},
+	onOrderColumnsMenuCreate: function( headerCt, menu ) {
+		var me = this;
+		if( true ) {
+			menu.add({
+				xtype: 'menuseparator',
+				itemId: 'color-separator'
+			},{
+				itemId: 'color-menu',
+				icon: 'images/op5img/ico_groupby_16.png',
+				text: 'Color',
+				menu: {
+					defaults: {
+						handler: function(menuitem) {
+							this.doOrderSetColorFilter(menuitem._color) ;
+						},
+						scope: this
+					},
+					items: [{
+						_color: null,
+						text: '<i>All</i>'
+					},{
+						iconCls: 'op5-spec-mrfoxy-promolist-progressred-legend',
+						_color: 'red',
+						text: 'Red'
+					},{
+						iconCls: 'op5-spec-mrfoxy-promolist-progressgreen-legend',
+						_color: 'green',
+						text: 'Green'
+					},{
+						iconCls: 'op5-spec-mrfoxy-promolist-progressblue-legend',
+						_color: 'blue',
+						text: 'Blue'
+					}]
+				}
+			});
+		}
+		menu.on('beforeshow', me.onOrderColumnsMenuBeforeShow, me);
+	},
+	onOrderColumnsMenuBeforeShow: function( menu ) {
+		var me = this,
+			activeHeader = menu.activeHeader,
+			doShow = (activeHeader && activeHeader.dataIndex=='calc_step') ;
+		menu.down('#color-separator').setVisible( doShow ) ;
+		menu.down('#color-menu').setVisible( doShow ) ;
+	},
+	doOrderSetColorFilter: function( colorStr ) {
+		Ext.Array.each( this.down('#pGrid').getColumns(), function(column) {
+			if( column.filter && column.dataIndex=='_color' ) {
+				if( !Ext.isEmpty(colorStr) ) {
+					column.filter.setActive(true) ;
+					column.filter.setValue(colorStr) ; // HACK!
+				} else {
+					column.filter.setActive(false) ;
+				}
+			}
+		}) ;
+	},
+	
 	
 	onSocSet: function( socCode ) {
 		this.doLoad() ;
@@ -935,6 +1017,18 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 					ACTUAL_dateSql: rowStep.date_actual
 				} ;
 			}) ;
+			
+			var recordTest = new DbsTracyFileOrderModel(row) ;
+			if( !recordTest.get('calc_link_is_active') ) {
+				if( Optima5.Modules.Spec.DbsTracy.HelperCache.checkOrderData(recordTest.getData()) != null ) {
+					row['_color'] = 'red' ;
+				} else {
+					row['_color'] = 'green' ;
+				}
+			} else {
+				row['_color'] = 'blue' ;
+			}
+			
 			gridData.push(row) ;
 		}) ;
 		if( doClearFilters ) {
