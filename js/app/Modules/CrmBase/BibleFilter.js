@@ -1,7 +1,10 @@
 Ext.define('Optima5.Modules.CrmBase.BibleFilter', {
 	extend: 'Ext.grid.filters.filter.SingleFilter',
 	alias: 'grid.filter.op5crmbasebible',
-
+	mixins: {
+		observable: 'Ext.mixin.Observable'
+	},
+	
 	requires: ['Ext.selection.CheckboxModel'] ,
 
 	/**
@@ -21,6 +24,8 @@ Ext.define('Optima5.Modules.CrmBase.BibleFilter', {
 	constructor : function (config) {
 		var me = this ;
 		this.callParent(arguments);
+		this.mixins.observable.constructor.call(this, config);
+		
 		if( (me.optimaModule) instanceof Optima5.Module ) {} else {
 			Optima5.Helper.logError('CrmBase:BibleTreeFilter','No module reference ?') ;
 		}
@@ -262,6 +267,7 @@ Ext.define('Optima5.Modules.CrmBase.BibleFilter', {
 		me.inputValue = mTab ;
 		
 		me.filter.setValue(mTab);
+		me.fireEvent('update',me) ;
 		
 		var hasRecords = (mTab.length > 0) ;
 		if( hasRecords && me.active ) {
