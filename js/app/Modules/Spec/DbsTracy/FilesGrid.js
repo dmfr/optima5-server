@@ -68,7 +68,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				iconCls: 'op5-crmbase-datatoolbar-refresh',
 				text: 'Refresh',
 				handler: function() {
-					this.doLoad() ;
+					this.doLoad(true) ;
 				},
 				scope: this
 			},{
@@ -877,7 +877,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		this.doLoad() ;
 	},
 	
-	doLoad: function() {
+	doLoad: function(doClearFilters) {
 		if( this.autoRefreshTask != null ) {
 			this.autoRefreshTask.cancel() ;
 		}
@@ -885,16 +885,16 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		switch( this.viewMode ) {
 			case 'order' :
 			case 'order-group-trspt' :
-				return this.doLoadOrder() ;
+				return this.doLoadOrder(doClearFilters) ;
 				
 			case 'trspt' :
-				return this.doLoadTrspt() ;
+				return this.doLoadTrspt(doClearFilters) ;
 				
 			default:
 				return ;
 		}
 	},
-	doLoadOrder: function() {
+	doLoadOrder: function(doClearFilters) {
 		this.toggleNewTrspt(false) ;
 		this.showLoadmask() ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
@@ -909,7 +909,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 					Ext.MessageBox.alert('Error','Error') ;
 					return ;
 				}
-				this.onLoadOrder(ajaxResponse.data) ;
+				this.onLoadOrder(ajaxResponse.data, doClearFilters) ;
 				// Setup autoRefresh task
 				this.autoRefreshTask.delay( this.autoRefreshDelay ) ;
 			},
@@ -919,7 +919,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			scope: this
 		}) ;
 	},
-	onLoadOrder: function(ajaxData) {
+	onLoadOrder: function(ajaxData, doClearFilters) {
 		var flowSteps = Optima5.Modules.Spec.DbsTracy.HelperCache.getOrderflow('AIR').steps ; //TODO
 		
 		var gridData = [] ;
@@ -937,10 +937,14 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			}) ;
 			gridData.push(row) ;
 		}) ;
+		if( doClearFilters ) {
+			this.down('#pCenter').down('grid').getStore().clearFilter() ;
+			this.down('#pCenter').down('grid').filters.clearFilters() ;
+		}
 		this.down('#pCenter').down('grid').getStore().loadRawData(gridData) ;
 	},
 	
-	doLoadTrspt: function() {
+	doLoadTrspt: function(doClearFilters) {
 		this.showLoadmask() ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
@@ -954,7 +958,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 					Ext.MessageBox.alert('Error','Error') ;
 					return ;
 				}
-				this.onLoadTrspt(ajaxResponse.data) ;
+				this.onLoadTrspt(ajaxResponse.data, doClearFilters) ;
 				// Setup autoRefresh task
 				this.autoRefreshTask.delay( this.autoRefreshDelay ) ;
 			},
@@ -964,7 +968,11 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			scope: this
 		}) ;
 	},
-	onLoadTrspt: function(ajaxData) {
+	onLoadTrspt: function(ajaxData, doClearFilters) {
+		if( doClearFilters ) {
+			this.down('#pCenter').down('grid').getStore().clearFilter() ;
+			this.down('#pCenter').down('grid').filters.clearFilters() ;
+		}
 		this.down('#pCenter').down('grid').getStore().loadRawData(ajaxData) ;
 	},
 	
