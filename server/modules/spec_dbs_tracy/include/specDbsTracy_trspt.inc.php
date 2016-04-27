@@ -51,6 +51,7 @@ function specDbsTracy_trspt_getRecords( $post_data ) {
 			'customs_mode' => ($arr['field_CUSTOMS_IS_ON'] ?  'ON' : 'OFF'),
 			'customs_date_request' => $arr['field_CUSTOMS_DATE_REQUEST'],
 			'customs_date_cleared' => $arr['field_CUSTOMS_DATE_CLEARED'],
+			'pod_doc' => $arr['field_POD_DOC'],
 			'print_is_ok' => $arr['field_PRINT_IS_OK'],
 			
 			'calc_step' => NULL,
@@ -174,6 +175,7 @@ function specDbsTracy_trspt_setHeader( $post_data ) {
 	$arr_ins['field_CUSTOMS_IS_ON'] = ($form_data['customs_mode']=='ON') ;
 	$arr_ins['field_CUSTOMS_DATE_REQUEST'] = ($form_data['customs_date_request'] ? $form_data['customs_date_request'] : '') ;
 	$arr_ins['field_CUSTOMS_DATE_CLEARED'] = ($form_data['customs_date_cleared'] ? $form_data['customs_date_cleared'] : '') ;
+	$arr_ins['field_POD_DOC'] = $form_data['pod_doc'] ;
 	
 	if( $post_data['_is_new'] ) {
 		$filerecord_id = paracrm_lib_data_insertRecord_file( $file_code, 0, $arr_ins );

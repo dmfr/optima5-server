@@ -129,6 +129,10 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 					allowBlank: false,
 					name: 'atr_priority'
 				},{
+					xtype: 'textfield',
+					fieldLabel: '<b>PoD</b>',
+					name: 'pod_doc'
+				},{
 					xtype: 'fieldset',
 					title: 'Transport details',
 					items: [{
@@ -597,6 +601,19 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 			form = formPanel.getForm() ;
 		if( !form.isValid() ) {
 			return ;
+		}
+		
+		// Spec
+		switch( validateStepCode ) {
+			case '90_POD' :
+				var podField = form.findField('pod_doc') ;
+				if( Ext.isEmpty( podField.getValue() ) ) {
+					form.markInvalid({pod_doc: 'Fill PoD reference'}) ;
+					return ;
+				}
+				break ;
+			default :
+				break ;
 		}
 		
 		var recordData = form.getValues(false,false,false,true) ;
