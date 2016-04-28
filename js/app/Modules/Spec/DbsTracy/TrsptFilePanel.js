@@ -129,6 +129,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 					allowBlank: false,
 					name: 'atr_priority'
 				},{
+					hidden: true,
 					xtype: 'textfield',
 					fieldLabel: '<b>PoD</b>',
 					name: 'pod_doc'
@@ -596,7 +597,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		}
 	},
 	
-	handleSaveHeader: function(validateStepCode) {
+	handleSaveHeader: function(validateStepCode, validateData) {
 		var formPanel = this.down('#pHeaderForm'),
 			form = formPanel.getForm() ;
 		if( !form.isValid() ) {
@@ -606,12 +607,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		// Spec
 		switch( validateStepCode ) {
 			case '90_POD' :
-				var podField = form.findField('pod_doc') ;
-				if( Ext.isEmpty( podField.getValue() ) ) {
-					form.markInvalid({pod_doc: 'Fill PoD reference'}) ;
-					return ;
+				if( validateData === undefined ) {
+					return this.openAdvancedValidationPopup(validateStepCode) ;
 				}
-				break ;
 			default :
 				break ;
 		}
@@ -633,7 +631,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 				trspt_filerecord_id: ( this._trsptNew ? null : this._trsptFilerecordId ),
 				data: Ext.JSON.encode(recordData),
 				data_orderFilerecordIds: Ext.JSON.encode( orderFilerecordIds ),
-				validateStepCode: ( !Ext.isEmpty(validateStepCode) ? validateStepCode : null )
+				validateStepCode: ( !Ext.isEmpty(validateStepCode) ? validateStepCode : null ),
+				validateData: Ext.JSON.encode(validateData)
 			},
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
@@ -894,5 +893,84 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 				scope: this
 			}]
 		}); 
+	},
+	
+	openAdvancedValidationPopup: function(validateStepCode) {
+		var popupPanel = Ext.create('Ext.form.Panel',{
+			optimaModule: this.optimaModule,
+			thisParent: this,
+			
+			width:420,
+			height:250,
+			
+			cls: 'ux-noframe-bg',
+			
+			floating: true,
+			renderTo: this.getEl(),
+			tools: [{
+				type: 'close',
+				handler: function(e, t, p) {
+					p.ownerCt.destroy();
+				}
+			}],
+			
+			xtype: 'form',
+			border: false,
+			bodyCls: 'ux-noframe-bg',
+			bodyPadding: 8,
+			layout:'anchor',
+			fieldDefaults: {
+				labelWidth: 140,
+				anchor: '100%'
+			},
+			items:[{
+				height: 72,
+				xtype: 'component',
+				tpl: [
+					'<div class="op5-spec-embralam-liveadr-relocatebanner">',
+						'<span>{text}</span>',
+					'</div>'
+				],
+				data: {text: '<b>Validate step procedure</b><br>Step requires additional data<br>'}
+			},{
+				xtype: 'displayfield',
+				fieldLabel: '<b>Step code</b>',
+				name: 'step_code',
+				value: validateStepCode
+			},{
+				xtype: 'datetimefield',
+				fieldLabel: '<b>Acknowledgment date</b>',
+				name: 'date_actual',
+				allowBlank: false
+			}],
+			buttons: [{
+				xtype: 'button',
+				text: 'Submit',
+				handler:function(btn){
+					var formPanel = btn.up('form') ;
+					formPanel.doSubmitPopup() ;
+				},
+				scope: this
+			}],
+			doSubmitPopup: function() {
+				var formPanel = this,
+					form = formPanel.getForm(),
+					formValues = form.getValues(false,false,false,true) ;
+				if( !form.isValid() ) {
+					return ;
+				}
+				
+				this.thisParent.handleSaveHeader( formValues['step_code'], formValues ) ;
+				this.destroy() ;
+			}
+		});
+		
+		popupPanel.on('destroy',function() {
+			this.getEl().unmask() ;
+		},this,{single:true}) ;
+		this.getEl().mask() ;
+		
+		popupPanel.show();
+		popupPanel.getEl().alignTo(this.getEl(), 'c-c?');
 	}
 });

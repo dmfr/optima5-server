@@ -194,10 +194,19 @@ function specDbsTracy_trspt_setHeader( $post_data ) {
 	}
 	
 	if( $post_data['validateStepCode'] ) {
-		$ttmp = specDbsTracy_trspt_stepValidate( array(
+		$params = array(
 			'trspt_filerecord_id' => $filerecord_id,
 			'step_code' => $post_data['validateStepCode']
-		));
+		) ;
+		if( $post_data['validateData'] ) {
+			$validateData = json_decode($post_data['validateData'],true) ;
+			if( $validateData['step_code'] == $post_data['validateStepCode'] ) {
+				$params += array(
+					'date_actual' => $validateData['date_actual']
+				);
+			}
+		}
+		$ttmp = specDbsTracy_trspt_stepValidate( $params );
 		if( !$ttmp['success'] && !$post_data['_is_new'] ) {
 			return array('success'=>false, 'error'=>$ttmp['error']) ;
 		}
@@ -298,6 +307,9 @@ function specDbsTracy_trspt_stepValidate( $post_data ) {
 	
 	$p_trsptFilerecordId = $post_data['trspt_filerecord_id'] ;
 	$p_stepCode = $post_data['step_code'] ;
+	if( isset($post_data['date_actual']) ) {
+		$p_dateActual = $post_data['date_actual'] ;
+	}
 	
 	// liste chaine des étapes
 	$arr_steps = array() ;
@@ -337,10 +349,14 @@ function specDbsTracy_trspt_stepValidate( $post_data ) {
 	}
 	
 	foreach( $trspt_record['orders'] as $row_order ) {
-		specDbsTracy_order_stepValidate( array(
+		$params = array(
 			'order_filerecord_id' => $row_order['order_filerecord_id'],
 			'step_code' => $p_stepCode
-		) );
+		);
+		if( $p_dateActual ) {
+			$params += array('date_actual'=>$p_dateActual) ;
+		}
+		specDbsTracy_order_stepValidate( $params );
 	}
 	
 	return array('success'=>true) ;

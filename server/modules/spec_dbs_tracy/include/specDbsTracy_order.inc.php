@@ -238,13 +238,16 @@ function specDbsTracy_order_stepValidate( $post_data ) {
 	
 	$p_orderFilerecordId = $post_data['order_filerecord_id'] ;
 	$p_stepCode = $post_data['step_code'] ;
+	if( isset($post_data['date_actual']) ) {
+		$p_dateActual = $post_data['date_actual'] ;
+	}
 	
 	$query = "SELECT filerecord_id FROM view_file_CDE_STEP WHERE filerecord_parent_id='{$p_orderFilerecordId}' AND field_STEP_CODE='{$p_stepCode}'" ;
 	$p_orderstepFilerecordId = $_opDB->query_uniqueValue($query) ;
 	
 	$arr_update = array() ;
 	$arr_update['field_STATUS_IS_OK'] = 1 ;
-	$arr_update['field_DATE_ACTUAL'] = date('Y-m-d H:i:s') ;
+	$arr_update['field_DATE_ACTUAL'] = ($p_dateActual ? $p_dateActual : date('Y-m-d H:i:s')) ;
 	paracrm_lib_data_updateRecord_file( $file_code, $arr_update, $p_orderstepFilerecordId );
 	
 	return array('success'=>true, 'debug'=>$form_data) ;
