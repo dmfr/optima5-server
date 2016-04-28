@@ -106,42 +106,18 @@ if($emails) {
 				
 				
 				if($at[is_attachment]==1){
-					$arr_emailSubject = explode('/',$email_subject) ;
-					
-					$query = "SELECT filerecord_id FROM view_file_CDE WHERE UPPER(field_ID_DN)='{$arr_emailSubject[0]}'" ;
-					$CDE_parent_filerecordId = $_opDB->query_uniqueValue($query) ;
-					if( $CDE_parent_filerecordId && $arr_emailSubject[1] ) {
-						$arr_update = array() ;
-						$arr_update['field_REF_INVOICE'] = trim($arr_emailSubject[1]) ;
-						paracrm_lib_data_updateRecord_file( 'CDE', $arr_update, $CDE_parent_filerecordId );
-						
-						// Adv status
-						$arr_cond = array() ;
-						$arr_cond['filerecord_parent_id'] = $CDE_parent_filerecordId ;
-						$arr_cond['field_STEP_CODE'] = '30_DOCS' ;
-						$arr_update = array() ;
-						$arr_update['field_DATE_ACTUAL'] = date('Y-m-d H:i:s') ;
-						$arr_update['field_STATUS_IS_OK'] = 1 ;
-						$_opDB->update('view_file_CDE_STEP',$arr_update,$arr_cond) ;
-					}
-					
 					$tmpfname = tempnam( sys_get_temp_dir(), "FOO") ;
 					file_put_contents($tmpfname, $at[attachment]);
 					$arr_tmpIds = media_img_processUploaded( $tmpfname, $at[filename], $all_pages=TRUE ) ;
 					foreach( $arr_tmpIds as $tmp_id ) {
-							$newrecord = array() ;
-							$newrecord['media_date'] = date('Y-m-d H:i:s') ;
-							$newrecord['media_mimetype'] = 'image/jpeg' ;
-							$newrecord['field_ATTACHMENT_DATE'] = date('Y-m-d') ;
-							$newrecord['field_ATTACHMENT_TXT'] = $email_subject ;
-							
-							if( $CDE_parent_filerecordId ) {
-								$img_filerecordId = paracrm_lib_data_insertRecord_file( 'CDE_ATTACH', $CDE_parent_filerecordId, $newrecord ) ;
-							} else {
-								$img_filerecordId = paracrm_lib_data_insertRecord_file( 'ATTACH_INBOX', 0, $newrecord ) ;
-							}
-							
-							media_img_move( $tmp_id , $img_filerecordId ) ;
+						$newrecord = array() ;
+						$newrecord['media_date'] = date('Y-m-d H:i:s') ;
+						$newrecord['media_mimetype'] = 'image/jpeg' ;
+						$newrecord['field_ATTACHMENT_DATE'] = date('Y-m-d') ;
+						$newrecord['field_ATTACHMENT_TXT'] = $email_subject ;
+						
+						$img_filerecordId = paracrm_lib_data_insertRecord_file( 'ATTACH_INBOX', 0, $newrecord ) ;
+						media_img_move( $tmp_id , $img_filerecordId ) ;
 					}
 					unlink($tmpfname) ;
 				}
@@ -150,6 +126,62 @@ if($emails) {
 			media_contextClose() ;
 		}
 	}
-} 
+}
+
+
+if( TRUE ) {
+	media_contextOpen( $_sdomain_id ) ;
+	
+	$json_order = specDbsTracy_order_getRecords( array('filter_socCode'=>'MBD') ) ;
+	$map_idDn_orderRow = array() ;
+	foreach( $json_order['data'] as $order_row ) {
+		$mkey = strtoupper(trim($order_row['id_dn'])) ;
+		$map_idDn_orderRow[$mkey] = $order_row ;
+	}
+	
+	$query = "SELECT * FROM view_file_ATTACH_INBOX" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr_media = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$attach_filerecordId = $arr_media['filerecord_id'] ;
+		
+		$email_subject = $arr_media['field_ATTACHMENT_TXT'] ;
+		$arr_emailSubject = explode('/',$email_subject) ;
+		
+		$mkey = strtoupper(trim($arr_emailSubject[0])) ;
+		
+		if( $order_row = $map_idDn_orderRow[$mkey] ) {
+			$CDE_parent_filerecordId = $order_row['order_filerecord_id'] ;
+			
+			// Move media
+			$arr_media ;
+			$img_filerecordId = paracrm_lib_data_insertRecord_file( 'CDE_ATTACH', $CDE_parent_filerecordId, $arr_media ) ;
+			media_img_move( $attach_filerecordId , $img_filerecordId ) ;
+			
+			// Update field
+			$arr_update = array() ;
+			$arr_update['field_REF_INVOICE'] = trim($arr_emailSubject[1]) ;
+			paracrm_lib_data_updateRecord_file( 'CDE', $arr_update, $CDE_parent_filerecordId );
+			
+			// Adv status
+			$arr_cond = array() ;
+			$arr_cond['filerecord_parent_id'] = $CDE_parent_filerecordId ;
+			$arr_cond['field_STEP_CODE'] = '30_DOCS' ;
+			$arr_update = array() ;
+			$arr_update['field_DATE_ACTUAL'] = date('Y-m-d H:i:s') ;
+			$arr_update['field_STATUS_IS_OK'] = 1 ;
+			$_opDB->update('view_file_CDE_STEP',$arr_update,$arr_cond) ;
+				
+			paracrm_lib_data_deleteRecord_file('ATTACH_INBOX',$attach_filerecordId) ;
+		} elseif( strtotime($arr_media['media_date']) < strtotime('-48 hours') ) {
+			paracrm_lib_data_deleteRecord_file('ATTACH_INBOX',$attach_filerecordId) ;
+			media_img_delete($attach_filerecordId) ;
+		} else {
+			
+		}
+	}
+	
+	media_contextClose() ;
+}
+
 
 ?>
