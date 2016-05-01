@@ -119,10 +119,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			}
 		},this) ;
 		
-		this.tmpModelName = 'DbsTracyFileRowModel-' + this.getId() + (++this.tmpModelCnt) ;
-		this.on('destroy',function(p) {
-			Ext.ux.dams.ModelManager.unregister( p.tmpModelName ) ;
-		}) ;
+		this.tmpModelCnt = 0 ;
 		
 		this.onViewSet(this.defaultViewMode) ;
 	},
@@ -761,6 +758,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			columns: stepColumns
 		});
 		
+		this.tmpModelName = 'DbsTracyFileRowModel-' + this.getId() + (++this.tmpModelCnt) ;
 		Ext.ux.dams.ModelManager.unregister( this.tmpModelName ) ;
 		Ext.define(this.tmpModelName, {
 			extend: 'DbsTracyFileOrderModel',
