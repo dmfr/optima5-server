@@ -4418,7 +4418,7 @@ function paracrm_queries_process_labelEnumDate( $group_id, $group_date_type, $gr
 			$ttmp = explode('-',$cur_key) ;
 			$tyear = $ttmp[0] ;
 			$tweek = $ttmp[1] ;
-			$next_key = date('Y-W',strtotime('+1 week',strtotime("{$tyear}0104 + ".($tweek-1)." weeks"))) ;
+			$next_key = date('o-W',strtotime('+1 week',strtotime("{$tyear}0104 + ".($tweek-1)." weeks"))) ;
 			break ;
 			
 			case 'DAY' :
