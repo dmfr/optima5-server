@@ -97,6 +97,13 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 						iconCls: 'op5-spec-dbstracy-grid-view-trspt'
 					}]
 				}
+			},{
+				iconCls: 'op5-crmbase-datatoolbar-file-export-excel',
+				text: 'Export',
+				handler: function() {
+					this.handleDownload() ;
+				},
+				scope: this
 			}],
 			items: [{
 				flex: 1,
@@ -1192,6 +1199,52 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		orderWarningPanel.getEl().alignTo(this.getEl(), 'c-c?');
 		
 		this.floatingPanel = orderWarningPanel ;
+	},
+	
+	
+	handleDownload: function() {
+		var action ;
+		switch( this.viewMode ) {
+			case 'order' :
+			case 'order-group-trspt' :
+				action = 'order_download' ;
+				break ;
+				
+			case 'trspt' :
+				action = 'trspt_download' ;
+				break ;
+				
+			default:
+				return ;
+		}
+		
+		var columns = [] ;
+		Ext.Array.each( this.down('#pCenter').down('grid').headerCt.getGridColumns(), function(column) {
+			columns.push({
+				dataIndex: column.dataIndex,
+				text: column.text
+			});
+		});
+		
+		var data = [] ;
+		this.down('#pCenter').down('grid').getStore().each( function(record) {
+			data.push( record.getData(true) ) ;
+		}) ;
+		
+		var exportParams = this.optimaModule.getConfiguredAjaxParams() ;
+		Ext.apply(exportParams,{
+			_moduleId: 'spec_dbs_tracy',
+			_action: action,
+			columns: Ext.JSON.encode(columns),
+			data: Ext.JSON.encode(data),
+			exportXls: true
+		}) ;
+		Ext.create('Ext.ux.dams.FileDownloader',{
+			renderTo: Ext.getBody(),
+			requestParams: exportParams,
+			requestAction: Optima5.Helper.getApplication().desktopGetBackendUrl(),
+			requestMethod: 'POST'
+		}) ;
 	},
 	
 	

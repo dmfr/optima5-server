@@ -589,6 +589,111 @@ function specDbsTracy_trspt_printDoc( $post_data ) {
 	return array('success'=>true, 'html'=>$doc->saveHTML() ) ;
 }
 
-
-
+function specDbsTracy_trspt_download( $post_data ) {
+	$data = json_decode($post_data['data'],true) ;
+	$columns = array(
+		'id_soc' => 'Shipper',
+		'id_doc' => 'Document',
+		'date_create' => 'Creation date',
+		'atr_consignee' => 'Consignee',
+		'atr_incoterm' => 'Incoterm',
+		'orders_id' => 'Orders',
+		'orders_po' => 'PO',
+		'orders_invoice' => 'Invoice',
+		'mvt_carrier' => 'Carrier',
+		'flight_awb' => 'AWB',
+		'date_awb' => 'Date AWB',
+		'date_pup' => 'Date PUP',
+		'date_pod' => 'Date POD'
+	);
+	
+		$server_root = $GLOBALS['server_root'] ;
+		include("$server_root/include/xlsxwriter.class.php");
+		
+	$header = array() ;
+	foreach( $columns as $mkey => $col_title ) {
+		$header[$col_title] = 'string' ;
+	}
+	$writer = new XLSXWriter();
+	$writer->writeSheetHeader('Sheet1', $header );//optional
+	foreach( $data as $data_row ) {
+		$map_stepCode_date = array() ;
+		foreach( $data_row['orders'] as $row_order ) {
+			foreach( $row_order['steps'] as $row_step ) {
+				if( $row_step['status_is_ok'] ) {
+					$map_stepCode_date[$row_step['step_code']][] = $row_step['date_actual'] ;
+				}
+			}
+		}
+		foreach( $map_stepCode_date as $step_code => &$date ) {
+			$date = min($date) ;
+		}
+		unset($date) ;
+		
+	
+	
+	
+		$row = array() ;
+		foreach( $columns as $mkey => $dummy ) {
+			switch( $mkey ) {
+				case 'date_create' :
+					$value = $map_stepCode_date['10_RLS'] ;
+					break ;
+					
+				case 'date_pup' :
+					$value = $map_stepCode_date['70_PICKUP'] ;
+					break ;
+					
+				case 'date_pod' :
+					$value = $map_stepCode_date['90_POD'] ;
+					break ;
+					
+				case 'date_awb' :
+					$value = $map_stepCode_date['99_LTA'] ;
+					break ;
+					
+				case 'orders_id' :
+					$ttmp = array() ;
+					foreach( $data_row['orders'] as $row_order ) {
+						$ttmp[] = $row_order['id_dn'] ;
+					}
+					$value = implode("\n",$ttmp) ;
+					break ;
+					
+				case 'orders_po' :
+					$ttmp = array() ;
+					foreach( $data_row['orders'] as $row_order ) {
+						$ttmp[] = $row_order['ref_po'] ;
+					}
+					$value = implode("\n",$ttmp) ;
+					break ;
+					
+				case 'orders_invoice' :
+					$ttmp = array() ;
+					foreach( $data_row['orders'] as $row_order ) {
+						$ttmp[] = $row_order['ref_invoice'] ;
+					}
+					$value = implode("\n",$ttmp) ;
+					break ;
+					
+				default :
+					$value = $data_row[$mkey] ;
+					break ;
+			}
+			$row[] = $value ;
+		}
+		$writer->writeSheetRow('Sheet1', $row );
+	}
+	
+	$tmpfilename = tempnam( sys_get_temp_dir(), "FOO");
+	$writer->writeToFile($tmpfilename);
+	
+	
+	$filename = 'DbsTracy_Query'.'_'.time().'.xlsx' ;
+	header("Content-Type: application/force-download; name=\"$filename\""); 
+	header("Content-Disposition: attachment; filename=\"$filename\""); 
+	readfile($tmpfilename) ;
+	unlink($tmpfilename) ;
+	die() ;
+}
 ?>

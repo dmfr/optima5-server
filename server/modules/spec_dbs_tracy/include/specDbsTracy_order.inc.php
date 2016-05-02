@@ -254,5 +254,8 @@ function specDbsTracy_order_stepValidate( $post_data ) {
 }
 
 
+function specDbsTracy_order_download( $post_data ) {
+	die() ;
+}
 
 ?>

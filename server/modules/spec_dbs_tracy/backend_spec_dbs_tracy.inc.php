@@ -22,6 +22,8 @@ switch( $post_data['_action'] )
 	return specDbsTracy_order_setStep( $post_data ) ;
 	case 'order_stepValidate' :
 	return specDbsTracy_order_stepValidate( $post_data ) ;
+	case 'order_download' :
+	return specDbsTracy_order_download( $post_data ) ;
 	
 	case 'trspt_getRecords' :
 	return specDbsTracy_trspt_getRecords( $post_data ) ;
@@ -39,6 +41,8 @@ switch( $post_data['_action'] )
 	return specDbsTracy_trspt_delete( $post_data ) ;
 	case 'trspt_printDoc' :
 	return specDbsTracy_trspt_printDoc( $post_data ) ;
+	case 'trspt_download' :
+	return specDbsTracy_trspt_download( $post_data ) ;
 	
 	case 'live_stepValidate' :
 	return specDbsTracy_live_stepValidate( $post_data ) ;
