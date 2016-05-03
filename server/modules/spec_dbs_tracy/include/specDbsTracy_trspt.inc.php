@@ -161,6 +161,8 @@ function specDbsTracy_trspt_setHeader( $post_data ) {
 	
 		$arr_ins['field_ID_SOC'] = $form_data['id_soc'] ;
 		$arr_ins['field_ID_DOC'] = $prefix.str_pad((float)$max_idx, 3, "0", STR_PAD_LEFT) ;
+		
+		$arr_ins['field_LOG_USER'] = strtoupper($_SESSION['login_data']['delegate_userId']) ;
 	}
 	$arr_ins['field_DATE_CREATE'] = $form_data['date_create'] ;
 	$arr_ins['field_ATR_PRIORITY'] = $form_data['atr_priority'] ;
@@ -636,10 +638,6 @@ function specDbsTracy_trspt_download( $post_data ) {
 		$row = array() ;
 		foreach( $columns as $mkey => $dummy ) {
 			switch( $mkey ) {
-				case 'date_create' :
-					$value = $map_stepCode_date['10_RLS'] ;
-					break ;
-					
 				case 'date_pup' :
 					$value = $map_stepCode_date['70_PICKUP'] ;
 					break ;
