@@ -621,7 +621,7 @@ function specDbsTracy_trspt_download( $post_data ) {
 		foreach( $data_row['orders'] as $row_order ) {
 			foreach( $row_order['steps'] as $row_step ) {
 				if( $row_step['status_is_ok'] ) {
-					$map_stepCode_date[$row_step['step_code']][] = $row_step['date_actual'] ;
+					$map_stepCode_date[$row_step['step_code']][] = date('d/m/Y H:i',strtotime($row_step['date_actual'])) ;
 				}
 			}
 		}
@@ -689,7 +689,7 @@ function specDbsTracy_trspt_download( $post_data ) {
 	$writer->writeToFile($tmpfilename);
 	
 	
-	$filename = 'DbsTracy_Query'.'_'.time().'.xlsx' ;
+	$filename = 'DbsTracy_Trspt'.'_'.time().'.xlsx' ;
 	header("Content-Type: application/force-download; name=\"$filename\""); 
 	header("Content-Disposition: attachment; filename=\"$filename\""); 
 	readfile($tmpfilename) ;

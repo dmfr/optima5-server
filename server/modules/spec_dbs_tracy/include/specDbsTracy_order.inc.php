@@ -255,6 +255,95 @@ function specDbsTracy_order_stepValidate( $post_data ) {
 
 
 function specDbsTracy_order_download( $post_data ) {
+	$ttmp = specDbsTracy_cfg_getConfig() ;
+	$json_cfg = $ttmp['data'] ;
+
+	$data = json_decode($post_data['data'],true) ;
+	$columns = array(
+		'id_soc' => 'Shipper',
+		'id_dn' => 'OrderNo',
+		'ref_po' => 'PO #',
+		'ref_invoice' => 'Invoice#',
+		'atr_priority' => 'Priority',
+		'atr_incoterm' => 'Incoterm',
+		'atr_consignee' => 'Consignee',
+		
+			'vol_kg' => 'Weight (kg)',
+			'vol_dims' => 'Dimensions',
+			'vol_count' => 'Count',
+		
+		'calc_link_trspt_txt' => 'Trspt file'
+	);
+	foreach( $json_cfg['cfg_orderflow'] as $orderflow ) {
+		if( $orderflow['flow_code'] == 'AIR' ) {
+			$orderflow_AIR = $orderflow ;
+			break ;
+		}
+	}
+	if( $orderflow_AIR ) {
+		foreach( $orderflow_AIR['steps'] as $orderflow_step ) {
+			$mkey = 'step_'.$orderflow_step['step_code'] ;
+			$columns[$mkey] = $orderflow_step['step_code'] ;
+		}
+	}
+	
+		$server_root = $GLOBALS['server_root'] ;
+		include("$server_root/include/xlsxwriter.class.php");
+		
+	$header = array() ;
+	foreach( $columns as $mkey => $col_title ) {
+		$header[$col_title] = 'string' ;
+	}
+	$writer = new XLSXWriter();
+	$writer->writeSheetHeader('Sheet1', $header );//optional
+	foreach( $data as $data_row ) {
+	
+		$map_stepCode_date = array() ;
+		foreach( $data_row['steps'] as $row_step ) {
+			if( $row_step['status_is_ok'] ) {
+				$map_stepCode_date[$row_step['step_code']] = date('d/m/Y H:i',strtotime($row_step['date_actual'])) ;
+			}
+		}
+	
+	
+	
+		$row = array() ;
+		foreach( $columns as $mkey => $dummy ) {
+			if( strpos($mkey,'step_')===0 ) {
+				$step_code = substr($mkey,5) ;
+				if( $map_stepCode_date[$step_code] ) {
+					$value = $map_stepCode_date[$step_code] ;
+				} else {
+					$value = '' ;
+				}
+			} else {
+				$value = '' ;
+				switch( $mkey ) {
+					case 'calc_link_trspt_txt' :
+						if( $data_row['calc_link_is_active'] ) {
+							$value = $data_row['calc_link_trspt_txt'] ;
+						}
+						break ;
+						
+					default :
+						$value = $data_row[$mkey] ;
+						break ;
+				}
+			}
+			$row[] = $value ;
+		}
+		$writer->writeSheetRow('Sheet1', $row );
+	}
+	
+	$tmpfilename = tempnam( sys_get_temp_dir(), "FOO");
+	$writer->writeToFile($tmpfilename);
+	
+	
+	$filename = 'DbsTracy_Order'.'_'.time().'.xlsx' ;
+	header("Content-Type: application/force-download; name=\"$filename\""); 
+	header("Content-Disposition: attachment; filename=\"$filename\""); 
+	readfile($tmpfilename) ;
+	unlink($tmpfilename) ;
 	die() ;
 }
 

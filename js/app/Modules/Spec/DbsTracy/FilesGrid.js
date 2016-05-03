@@ -97,7 +97,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 						iconCls: 'op5-spec-dbstracy-grid-view-trspt'
 					}]
 				}
-			},{
+			},'-',{
 				iconCls: 'op5-crmbase-datatoolbar-file-export-excel',
 				text: 'Export',
 				handler: function() {
