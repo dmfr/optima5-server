@@ -200,6 +200,11 @@ function specDbsTracy_trspt_setHeader( $post_data ) {
 			'trspt_filerecord_id' => $filerecord_id,
 			'step_code' => $post_data['validateStepCode']
 		) ;
+		if( $post_data['validateDoForce'] ) {
+			$params += array(
+				'step_doForce' => true
+			);
+		}
 		if( $post_data['validateData'] ) {
 			$validateData = json_decode($post_data['validateData'],true) ;
 			if( $validateData['step_code'] == $post_data['validateStepCode'] ) {
@@ -210,7 +215,7 @@ function specDbsTracy_trspt_setHeader( $post_data ) {
 		}
 		$ttmp = specDbsTracy_trspt_stepValidate( $params );
 		if( !$ttmp['success'] && !$post_data['_is_new'] ) {
-			return array('success'=>false, 'error'=>$ttmp['error']) ;
+			return $ttmp ;
 		}
 	}
 	
@@ -309,6 +314,7 @@ function specDbsTracy_trspt_stepValidate( $post_data ) {
 	
 	$p_trsptFilerecordId = $post_data['trspt_filerecord_id'] ;
 	$p_stepCode = $post_data['step_code'] ;
+	$p_stepDoForce = !(!$post_data['step_doForce']) ;
 	if( isset($post_data['date_actual']) ) {
 		$p_dateActual = $post_data['date_actual'] ;
 	}
@@ -332,21 +338,22 @@ function specDbsTracy_trspt_stepValidate( $post_data ) {
 	if( !$trspt_record ) {
 		return array('success'=>false) ;
 	}
-	$steps = array() ;
-	foreach( $trspt_record['orders'] as $row_order ) {
-		if( $row_order['calc_step'] && !in_array($row_order['calc_step'],$steps) ) {
-			$steps[] = $row_order['calc_step'] ;
-		}
-	}
-	if( count($steps) != 1 ) {
-		return array('success'=>false, 'error'=>'Inconsistant steps in current orders') ;
-	}
 	
-	if( TRUE ) {
+	if( !$p_stepDoForce ) {
+		$steps = array() ;
+		foreach( $trspt_record['orders'] as $row_order ) {
+			if( $row_order['calc_step'] && !in_array($row_order['calc_step'],$steps) ) {
+				$steps[] = $row_order['calc_step'] ;
+			}
+		}
+		if( count($steps) != 1 ) {
+			return array('success'=>false, 'error'=>'Inconsistant steps in current orders', 'error_validate'=>true) ;
+		}
+		
 		$current_stepCode = reset($steps) ;
 		$current_stepCode_idx = array_search($current_stepCode,$arr_steps) ;
 		if( $current_stepCode_idx===false || $arr_steps[$current_stepCode_idx+1] != $p_stepCode ) {
-			return array('success'=>false, 'error'=>'Inconsistant target step : '.$p_stepCode) ;
+			return array('success'=>false, 'error'=>'Inconsistant target step : '.$p_stepCode, 'error_validate'=>true) ;
 		}
 	}
 	

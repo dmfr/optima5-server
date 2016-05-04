@@ -597,7 +597,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		}
 	},
 	
-	handleSaveHeader: function(validateStepCode, validateData) {
+	handleSaveHeader: function(validateStepCode) {
 		var formPanel = this.down('#pHeaderForm'),
 			form = formPanel.getForm() ;
 		if( !form.isValid() ) {
@@ -607,9 +607,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		// Spec
 		switch( validateStepCode ) {
 			case '90_POD' :
-				if( validateData === undefined ) {
-					return this.openAdvancedValidationPopup(validateStepCode) ;
-				}
+				return this.openAdvancedValidationPopup(validateStepCode) ;
 			default :
 				break ;
 		}
@@ -631,8 +629,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 				trspt_filerecord_id: ( this._trsptNew ? null : this._trsptFilerecordId ),
 				data: Ext.JSON.encode(recordData),
 				data_orderFilerecordIds: Ext.JSON.encode( orderFilerecordIds ),
-				validateStepCode: ( !Ext.isEmpty(validateStepCode) ? validateStepCode : null ),
-				validateData: Ext.JSON.encode(validateData)
+				validateStepCode: ( !Ext.isEmpty(validateStepCode) ? validateStepCode : null )
 			},
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
@@ -896,6 +893,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 	},
 	
 	openAdvancedValidationPopup: function(validateStepCode) {
+		if( this._trsptNew ) {
+			return ;
+		}
 		var popupPanel = Ext.create('Ext.form.Panel',{
 			optimaModule: this.optimaModule,
 			thisParent: this,
@@ -942,6 +942,11 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 				fieldLabel: '<b>Acknowledgment date</b>',
 				name: 'date_actual',
 				allowBlank: false
+			},{
+				xtype: 'checkboxfield',
+				boxLabel: '<font color="red"><b>Inconsistent step ! Force transaction ?</b></font>',
+				name: 'step_doForce',
+				hidden: true
 			}],
 			buttons: [{
 				xtype: 'button',
@@ -960,8 +965,37 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 					return ;
 				}
 				
-				this.thisParent.handleSaveHeader( formValues['step_code'], formValues ) ;
-				this.destroy() ;
+				this.getEl().mask('Submitting...') ;
+				this.optimaModule.getConfiguredAjaxConnection().request({
+					params: {
+						_moduleId: 'spec_dbs_tracy',
+						_action: 'trspt_setHeader',
+						_is_new: 0,
+						trspt_filerecord_id: this.thisParent._trsptFilerecordId,
+						data: Ext.JSON.encode( this.thisParent.down('#pHeaderForm').getForm().getValues(false,false,false,true) ),
+						validateStepCode: formValues['step_code'],
+						validateDoForce: (formValues['step_doForce'] ? 1 : 0),
+						validateData: Ext.JSON.encode(formValues)
+					},
+					success: function(response) {
+						var ajaxResponse = Ext.decode(response.responseText) ;
+						if( ajaxResponse.error_validate ) {
+							form.findField('step_doForce').setVisible(true) ;
+							return ;
+						}
+						if( ajaxResponse.success == false ) {
+							var error = ajaxResponse.error || 'File not saved !' ;
+							Ext.MessageBox.alert('Error',error) ;
+							return ;
+						}
+						this.thisParent.onSaveHeader(ajaxResponse.id, true) ;
+						this.destroy() ;
+					},
+					callback: function() {
+						this.getEl().unmask() ;
+					},
+					scope: this
+				}) ;
 			}
 		});
 		
