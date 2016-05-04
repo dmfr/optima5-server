@@ -248,6 +248,7 @@ function specDbsTracy_order_stepValidate( $post_data ) {
 	$arr_update = array() ;
 	$arr_update['field_STATUS_IS_OK'] = 1 ;
 	$arr_update['field_DATE_ACTUAL'] = ($p_dateActual ? $p_dateActual : date('Y-m-d H:i:s')) ;
+	$arr_update['field_LOG_USER'] = strtoupper($_SESSION['login_data']['delegate_userId']) ;
 	paracrm_lib_data_updateRecord_file( $file_code, $arr_update, $p_orderstepFilerecordId );
 	
 	return array('success'=>true, 'debug'=>$form_data) ;
