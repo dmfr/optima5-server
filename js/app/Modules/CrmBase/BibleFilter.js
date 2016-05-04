@@ -105,6 +105,8 @@ Ext.define('Optima5.Modules.CrmBase.BibleFilter', {
 			}) ;
 			modelFields.push( fieldObject ) ;
 		},this) ;
+		
+		Ext.ux.dams.ModelManager.unregister( this.myModelname ) ;
 		Ext.define(this.myModelname, {
 			extend: 'Ext.data.Model',
 			fields: modelFields
