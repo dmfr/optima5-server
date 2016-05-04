@@ -641,6 +641,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			dataIndex: 'warning_is_on',
 			width: 120,
 			align: 'center',
+			filter: {
+				type: 'boolean'
+			},
 			renderer: function(v,metaData,record) {
 				if( !v ) {
 					metaData.tdCls += ' op5-spec-dbstracy-files-nowarning' ;

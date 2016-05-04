@@ -287,6 +287,11 @@ function specDbsTracy_order_download( $post_data ) {
 			$columns[$mkey] = $orderflow_step['step_code'] ;
 		}
 	}
+	$columns += array(
+		'warning_is_on' => 'Warning On',
+		'warning_code' => 'Warning code',
+		'warning_txt' => 'Warning text'
+	);
 	
 		$server_root = $GLOBALS['server_root'] ;
 		include("$server_root/include/xlsxwriter.class.php");
