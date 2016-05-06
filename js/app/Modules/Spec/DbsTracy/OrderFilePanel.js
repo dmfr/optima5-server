@@ -162,80 +162,158 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 				}]
 			},{
 				flex: 3,
-				xtype: 'grid',
-				itemId: 'pStepsGrid',
-				columns: [{
-					text: 'Code',
-					width: 90,
-					dataIndex: 'step_code',
-					renderer: function(v) {
-						return '<b>'+v+'</b>' ;
-					}
-				},{
-					text: 'Step',
-					width: 80,
-					dataIndex: 'step_txt'
-				},{
-					text: 'Status',
-					width: 50,
-					dataIndex: 'status_is_ok',
-					editor:{ xtype:'checkboxfield' },
-					renderer: function(v, metaData) {
-						if( v ) {
-							metaData.tdCls += ' op5-spec-dbslam-stock-ok' ;
-						} else {
-							return ;
+				xtype: 'panel',
+				layout: {
+					type: 'border',
+					align: 'stretch'
+				},
+				border: false,
+				items:[{
+					region: 'center',
+					flex: 2,
+					xtype: 'grid',
+					itemId: 'pStepsGrid',
+					columns: [{
+						text: 'Code',
+						width: 90,
+						dataIndex: 'step_code',
+						renderer: function(v) {
+							return '<b>'+v+'</b>' ;
+						}
+					},{
+						text: 'Step',
+						width: 80,
+						dataIndex: 'step_txt'
+					},{
+						text: 'Status',
+						width: 50,
+						dataIndex: 'status_is_ok',
+						editor:{ xtype:'checkboxfield' },
+						renderer: function(v, metaData) {
+							if( v ) {
+								metaData.tdCls += ' op5-spec-dbslam-stock-ok' ;
+							} else {
+								return ;
+							}
+						}
+					},{
+						text: 'Date OK',
+						width: 190,
+						dataIndex: 'date_actual',
+						renderer: Ext.util.Format.dateRenderer('d/m/Y H:i'),
+						editor:{ xtype:'datetimefield' }
+					}],
+					plugins: [{
+						ptype: 'rowediting',
+						listeners: {
+							edit: this.onAfterEditStep,
+							scope: this
+						}
+					}],
+					store: {
+						model: 'DbsTracyFileOrderStepModel',
+						data: [],
+						sorters: [{
+							property: 'step_code',
+							direction: 'ASC'
+						}],
+						proxy: {
+							type: 'memory',
+							reader: {
+								type: 'json'
+							}
+						},
+						listeners: {
+							datachanged: function(store) {
+								store.each( function(record) {
+									var flow = Optima5.Modules.Spec.DbsTracy.HelperCache.getOrderflowByStep( record.get('step_code') ) ;
+									if( flow == null ) {
+										return ;
+									}
+									var curStep = null ;
+									Ext.Array.each( flow.steps, function(step) {
+										if( step.step_code == record.get('step_code') ) {
+											curStep = step ;
+											return false ;
+										}
+									});
+									if( curStep == null ) {
+										return ;
+									}
+									record.data['step_txt'] = curStep.step_txt ;
+								}) ;
+							}
 						}
 					}
 				},{
-					text: 'Date OK',
-					width: 190,
-					dataIndex: 'date_actual',
-					renderer: Ext.util.Format.dateRenderer('d/m/Y H:i'),
-					editor:{ xtype:'datetimefield' }
-				}],
-				plugins: [{
-					ptype: 'rowediting',
-					listeners: {
-						edit: this.onAfterEditStep,
-						scope: this
-					}
-				}],
-				store: {
-					model: 'DbsTracyFileOrderStepModel',
-					data: [],
-					sorters: [{
-						property: 'step_code',
-						direction: 'ASC'
+					region: 'south',
+					flex: 3,
+					xtype: 'grid',
+					itemId: 'pWarningsGrid',
+					title: 'Warnings',
+					collapsible: true,
+					collapsed: true,
+					plugins: [{
+						ptype: 'rowediting',
+						listeners: {
+							edit: this.onAfterEditStep,
+							scope: this
+						}
 					}],
-					proxy: {
-						type: 'memory',
-						reader: {
-							type: 'json'
+					store: {
+						model: 'DbsTracyFileTrsptEventModel',
+						data: [],
+						sorters: [{
+							property: 'event_date',
+							direction: 'DESC'
+						}],
+						proxy: {
+							type: 'memory',
+							reader: {
+								type: 'json'
+							}
 						}
 					},
-					listeners: {
-						datachanged: function(store) {
-							store.each( function(record) {
-								var flow = Optima5.Modules.Spec.DbsTracy.HelperCache.getOrderflowByStep( record.get('step_code') ) ;
-								if( flow == null ) {
-									return ;
-								}
-								var curStep = null ;
-								Ext.Array.each( flow.steps, function(step) {
-									if( step.step_code == record.get('step_code') ) {
-										curStep = step ;
-										return false ;
-									}
-								});
-								if( curStep == null ) {
-									return ;
-								}
-								record.data['step_txt'] = curStep.step_txt ;
-							}) ;
+					viewConfig: {
+						itemId: 'view',
+						plugins: [{
+							pluginId: 'preview',
+							ptype: 'preview',
+							bodyField: 'event_txt',
+							expanded: true
+						}],
+						listeners: {
+							scope: this
 						}
-					}
-				}
+					},
+					columns: [{
+						text: 'Code',
+						dataIndex: 'event_user',
+						hidden: false,
+						width: 200
+					}, {
+						text: 'Date',
+						dataIndex: 'event_date',
+						renderer: function(date){
+							if (!date) {
+									return '';
+							}
+
+							var now = new Date(), d = Ext.Date.clearTime(now, true), notime = Ext.Date.clearTime(date, true).getTime();
+
+							if (notime === d.getTime()) {
+									return 'Today ' + Ext.Date.format(date, 'g:i a');
+							}
+
+							d = Ext.Date.add(d, 'd', -6);
+							if (d.getTime() <= notime) {
+									return Ext.Date.format(date, 'D g:i a');
+							}
+							return Ext.Date.format(date, 'Y/m/d g:i a');
+						},
+						width: 200
+					}]
+				}]
 			},Ext.create('Optima5.Modules.Spec.DbsTracy.OrderAttachmentsDataview',{
 				optimaModule: this.optimaModule,
 				flex: 2,
