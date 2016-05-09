@@ -26,39 +26,16 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 				},
 				scope:this
 			},{
+				itemId: 'tbValidate',
 				iconCls:'op5-sdomains-menu-updateschema',
 				text:'<b>Validate</b>',
-				menu: [{
-					hidden: true,
-					iconCls:'op5-sdomains-menu-updateschema',
-					text:'Validate <b>60_TRSPTREADY</b>',
-					handler: function() {
-						this.handleSaveHeader('60_TRSPTREADY') ;
-					},
-					scope:this
-				},{
-					hidden: true,
-					iconCls:'op5-sdomains-menu-updateschema',
-					text:'Validate <b>70_PICKUP</b>',
-					handler: function() {
-						this.handleSaveHeader('70_PICKUP') ;
-					},
-					scope:this
-				},{
-					iconCls:'op5-sdomains-menu-updateschema',
-					text:'Validate <b>90_POD</b>',
-					handler: function() {
-						this.handleSaveHeader('90_POD') ;
-					},
-					scope:this
-				},{
-					iconCls:'op5-sdomains-menu-updateschema',
-					text:'Validate <b>99_LTA</b>',
-					handler: function() {
-						this.handleSaveHeader('99_LTA') ;
-					},
-					scope:this
-				}]
+				menu: [],
+				handler: function(tbValidate) {
+					if( tbValidate.menu.items.getCount() == 0 ) {
+						this.handleSaveHeader(true) ;
+					}
+				},
+				scope: this
 			},{
 				icon: 'images/op5img/ico_print_16.png',
 				text:'<b>Print</b>',
@@ -96,6 +73,15 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 					fieldLabel: '<b>Company</b>',
 					name: 'id_soc',
 					allowBlank: false
+				}),Ext.create('Optima5.Modules.Spec.DbsTracy.CfgParamField',{
+					cfgParam_id: 'ORDERFLOW',
+					cfgParam_emptyDisplayText: 'Select...',
+					optimaModule: this.optimaModule,
+					fieldLabel: '<b>Flow code</b>',
+					name: 'flow_code',
+					allowBlank: false,
+					anchor: '',
+					width: 325
 				}),{
 					xtype: 'textfield',
 					fieldLabel: '<b>WID</b>',
@@ -239,7 +225,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 							return ;
 						}
 						var tmpProgress = stepRow['status_percent'] / 100 ;
-						var tmpText = stepRow['step_txt'] ;
+						var tmpText = stepRow['desc_txt'] ;
 							var b = new Ext.ProgressBar({height: 15, cls: 'op5-spec-mrfoxy-promolist-progress'});
 							b.updateProgress(tmpProgress,tmpText);
 							v = Ext.DomHelper.markup(b.getRenderTree());
@@ -453,6 +439,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		
 		//fHeader
 		this.down('#pHeaderForm').getForm().reset() ;
+		this.down('#pHeaderForm').getForm().findField('id_soc').setReadOnly(false) ;
+		this.down('#pHeaderForm').getForm().findField('flow_code').setReadOnly(false) ;
+		this.down('#pHeaderForm').getForm().findField('id_doc').setReadOnly(false) ;
 		this.down('#pHeaderForm').getForm().setValues({
 			date_create: new Date(),
 			id_doc: 'NEW',
@@ -484,7 +473,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 				return false ;
 			}
 			
-			var copyFields = ['id_soc','atr_consignee','atr_incoterm','atr_priority'] ;
+			var copyFields = ['id_soc','flow_code','atr_consignee','atr_incoterm','atr_priority'] ;
 			var map_copyFields_values = {} ;
 			//check ?
 			// if OK => setValues
@@ -555,6 +544,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		//fHeader
 		this.down('#pHeaderForm').getForm().reset() ;
 		this.down('#pHeaderForm').getForm().findField('id_soc').setReadOnly(true) ;
+		this.down('#pHeaderForm').getForm().findField('flow_code').setReadOnly(true) ;
 		this.down('#pHeaderForm').getForm().findField('id_doc').setReadOnly(true) ;
 		this.down('#pHeaderForm').getForm().loadRecord(trsptRecord) ;
 		
@@ -568,6 +558,29 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		
 		// Title
 		this.setTitle('Trspt: '+trsptRecord.get('id_doc')) ;
+		
+		// Validate steps menu
+		var tbValidateMenu = this.down('#tbValidate').menu ;
+		tbValidateMenu.removeAll() ;
+		tbValidateMenuItems = [] ;
+		var curFlow = Optima5.Modules.Spec.DbsTracy.HelperCache.getOrderflow( trsptRecord.get('flow_code') );
+		if( curFlow ) {
+			Ext.Array.each( curFlow.steps, function(curStep) {
+				if( !curStep.prompt_trspt ) {
+					return ;
+				}
+				tbValidateMenuItems.push({
+					_stepCode: curStep.step_code,
+					text: '<b>' + curStep.step_code + '</b>',
+					iconCls:'op5-sdomains-menu-updateschema',
+					handler: function(menuitem) {
+						this.handleSaveHeader( menuitem._stepCode ) ;
+					},
+					scope: this
+				});
+			},this) ;
+		}
+		tbValidateMenu.add(tbValidateMenuItems) ;
 	},
 	doReload: function() {
 		this.loadTrspt( this._trsptFilerecordId ) ;
@@ -604,12 +617,12 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 			return ;
 		}
 		
-		// Spec
-		switch( validateStepCode ) {
-			case '90_POD' :
+		// Spec is_options
+		if( validateStepCode && !(validateStepCode === true) ) {
+			var curStep = Optima5.Modules.Spec.DbsTracy.HelperCache.getStepByStep( validateStepCode ) ;
+			if( curStep.is_options ) {
 				return this.openAdvancedValidationPopup(validateStepCode) ;
-			default :
-				break ;
+			}
 		}
 		
 		var recordData = form.getValues(false,false,false,true) ;
@@ -992,7 +1005,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 						this.destroy() ;
 					},
 					callback: function() {
-						this.getEl().unmask() ;
+						if( this.getEl() ) {
+							this.getEl().unmask() ;
+						}
 					},
 					scope: this
 				}) ;

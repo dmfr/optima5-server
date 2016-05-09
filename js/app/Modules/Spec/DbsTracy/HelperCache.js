@@ -44,8 +44,12 @@ Ext.define('DbsTracyCfgOrderStepModel',{
 	idProperty: 'step_code',
 	fields: [
 		{name: 'step_code', type:'string'},
-		{name: 'step_txt', type:'string'},
-		{name: 'status_percent', type:'string'}
+		{name: 'desc_code', type:'string'},
+		{name: 'desc_txt', type:'string'},
+		{name: 'status_percent', type:'string'},
+		{name: 'prompt_order', type:'boolean'},
+		{name: 'prompt_trspt', type:'boolean'},
+		{name: 'is_options', type:'boolean'}
 	]
 });
 Ext.define('DbsTracyCfgOrderFlowModel',{
@@ -242,6 +246,23 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.HelperCache',{
 			data.push( record.getData(true) ) ;
 		}) ;
 		return data ;
+	},
+	getStepByStep: function( stepCode ) {
+		var flow = this.getOrderflowByStep( stepCode ) ;
+		if( flow == null ) {
+			return null ;
+		}
+		var curStep = null ;
+		Ext.Array.each( flow.steps, function(step) {
+			if( step.step_code == stepCode ) {
+				curStep = step ;
+				return false ;
+			}
+		});
+		if( curStep == null ) {
+			return null ;
+		}
+		return curStep ;
 	},
 	
 	checkOrderData: function( orderData ) {

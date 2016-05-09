@@ -26,6 +26,7 @@ function specDbsTracy_order_getRecords( $post_data ) {
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$TAB_order[$arr['filerecord_id']] = array(
 			'order_filerecord_id' => $arr['filerecord_id'],
+			'flow_code' => $arr['field_FLOW_CODE'],
 			'id_soc' => $arr['field_ID_SOC'],
 			'id_dn' => $arr['field_ID_DN'],
 			'ref_po' => $arr['field_REF_PO'],
@@ -145,6 +146,7 @@ function specDbsTracy_order_setHeader( $post_data ) {
 	if( $post_data['_is_new'] ) {
 		$arr_ins['field_ID_SOC'] = $form_data['id_soc'] ;
 		$arr_ins['field_ID_DN'] = $form_data['id_dn'] ;
+		$arr_ins['field_FLOW_CODE'] = $form_data['flow_code'] ;
 	}
 	$arr_ins['field_REF_PO'] = $form_data['ref_po'] ;
 	$arr_ins['field_REF_INVOICE'] = $form_data['ref_invoice'] ;
@@ -169,18 +171,18 @@ function specDbsTracy_order_setHeader( $post_data ) {
 		$file_code = 'CDE_STEP' ;
 	
 		// TODO : specify order flow
-		$orderflow_AIR = NULL ;
+		$orderflow_current = NULL ;
 		
 		$ttmp = specDbsTracy_cfg_getConfig() ;
 		$json_cfg = $ttmp['data'] ;
 		foreach( $json_cfg['cfg_orderflow'] as $orderflow ) {
-			if( $orderflow['flow_code'] == 'AIR' ) {
-				$orderflow_AIR = $orderflow ;
+			if( $orderflow['flow_code'] == $form_data['flow_code'] ) {
+				$orderflow_current = $orderflow ;
 				break ;
 			}
 		}
-		if( $orderflow_AIR ) {
-			foreach( $orderflow_AIR['steps'] as $orderflow_step ) {
+		if( $orderflow_current ) {
+			foreach( $orderflow_current['steps'] as $orderflow_step ) {
 				$arr_ins = array() ;
 				$arr_ins['field_STEP_CODE'] = $orderflow_step['step_code'] ;
 				paracrm_lib_data_insertRecord_file($file_code,$filerecord_id,$arr_ins,$ignore_ifExists=TRUE) ;

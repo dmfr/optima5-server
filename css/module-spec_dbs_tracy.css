@@ -142,6 +142,9 @@
 .op5-spec-dbstracy-gridcell-red .x-grid-cell-inner { 
 	background-color: #FF2B2B;
 }
+.op5-spec-dbstracy-gridcell-gray { 
+	background-color: #CCCCCC;
+}
 .op5-spec-dbstracy-gridcell-nobold { 
 	border: 1px solid transparent;
 }

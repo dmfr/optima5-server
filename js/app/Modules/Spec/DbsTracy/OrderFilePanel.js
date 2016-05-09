@@ -26,10 +26,13 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 				itemId: 'tbValidate',
 				iconCls:'op5-sdomains-menu-updateschema',
 				text:'<b>Validate</b>',
-				handler: function() {
-					this.handleSaveHeader('30_DOCS') ;
+				menu: [],
+				handler: function(tbValidate) {
+					if( tbValidate.menu.items.getCount() == 0 ) {
+						this.handleSaveHeader(true) ;
+					}
 				},
-				scope:this
+				scope: this
 			}],
 			items:[{
 				flex: 3,
@@ -48,6 +51,15 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 					optimaModule: this.optimaModule,
 					fieldLabel: '<b>Company</b>',
 					name: 'id_soc',
+					allowBlank: false,
+					anchor: '',
+					width: 325
+				}),Ext.create('Optima5.Modules.Spec.DbsTracy.CfgParamField',{
+					cfgParam_id: 'ORDERFLOW',
+					cfgParam_emptyDisplayText: 'Select...',
+					optimaModule: this.optimaModule,
+					fieldLabel: '<b>Flow code</b>',
+					name: 'flow_code',
 					allowBlank: false,
 					anchor: '',
 					width: 325
@@ -226,21 +238,11 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 						listeners: {
 							datachanged: function(store) {
 								store.each( function(record) {
-									var flow = Optima5.Modules.Spec.DbsTracy.HelperCache.getOrderflowByStep( record.get('step_code') ) ;
-									if( flow == null ) {
-										return ;
-									}
-									var curStep = null ;
-									Ext.Array.each( flow.steps, function(step) {
-										if( step.step_code == record.get('step_code') ) {
-											curStep = step ;
-											return false ;
-										}
-									});
+									var curStep = Optima5.Modules.Spec.DbsTracy.HelperCache.getStepByStep( record.get('step_code') ) ;
 									if( curStep == null ) {
 										return ;
 									}
-									record.data['step_txt'] = curStep.step_txt ;
+									record.data['step_txt'] = curStep.desc_txt ;
 								}) ;
 							}
 						}
@@ -375,6 +377,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 		
 		//fHeader
 		this.down('#pHeaderForm').getForm().reset() ;
+		this.down('#pHeaderForm').getForm().findField('id_soc').setReadOnly(false) ;
+		this.down('#pHeaderForm').getForm().findField('flow_code').setReadOnly(false) ;
 		this.down('#pHeaderForm').getForm().findField('id_dn').setReadOnly(false) ;
 		
 		//gSteps
@@ -417,6 +421,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 		//fHeader
 		this.down('#pHeaderForm').getForm().reset() ;
 		this.down('#pHeaderForm').getForm().findField('id_soc').setReadOnly(true) ;
+		this.down('#pHeaderForm').getForm().findField('flow_code').setReadOnly(true) ;
 		this.down('#pHeaderForm').getForm().findField('id_dn').setReadOnly(true) ;
 		this.down('#pHeaderForm').getForm().loadRecord(orderRecord) ;
 		
@@ -430,6 +435,29 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 		
 		// Title
 		this.setTitle('Order: '+orderRecord.get('id_soc')+'/'+orderRecord.get('id_dn')) ;
+		
+		// Validate steps menu
+		var tbValidateMenu = this.down('#tbValidate').menu ;
+		tbValidateMenu.removeAll() ;
+		tbValidateMenuItems = [] ;
+		var curFlow = Optima5.Modules.Spec.DbsTracy.HelperCache.getOrderflow( orderRecord.get('flow_code') );
+		if( curFlow ) {
+			Ext.Array.each( curFlow.steps, function(curStep) {
+				if( !curStep.prompt_order ) {
+					return ;
+				}
+				tbValidateMenuItems.push({
+					_stepCode: curStep.step_code,
+					text: curStep.desc_txt,
+					iconCls:'op5-sdomains-menu-updateschema',
+					handler: function(menuitem) {
+						this.handleSaveHeader( menuitem._stepCode ) ;
+					},
+					scope: this
+				});
+			},this) ;
+		}
+		tbValidateMenu.add(tbValidateMenuItems) ;
 	},
 	doReload: function() {
 		this.loadOrder( this._orderFilerecordId ) ;

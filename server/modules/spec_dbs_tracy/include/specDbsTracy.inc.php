@@ -80,8 +80,12 @@ function specDbsTracy_cfg_getConfig() {
 		$step_code = $arr['field_STEP_CODE'] ;
 		$record = array(
 			'step_code' => $arr['field_STEP_CODE'],
-			'step_txt' => $arr['field_STEP_TXT'],
-			'status_percent' => $arr['field_PERCENT']
+			'desc_code' => $arr['field_DESC_CODE'],
+			'desc_txt' => $arr['field_DESC_TXT'],
+			'status_percent' => $arr['field_PERCENT'],
+			'prompt_order' => ($arr['field_PROMPT_ORDER']==1),
+			'prompt_trspt' => ($arr['field_PROMPT_TRSPT']==1),
+			'is_options' => ($arr['field_IS_OPTIONS']==1)
 		) ;
 		
 		$TAB_orderflow[$flow_code]['steps'][] = $record ;

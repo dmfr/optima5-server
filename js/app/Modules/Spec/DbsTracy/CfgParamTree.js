@@ -79,7 +79,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.CfgParamTree',{
 							nodeId: rowstep.step_code,
 							nodeType: 'entry',
 							nodeKey: rowstep.step_code,
-							nodeText: rowstep.step_code + ' : ' + rowstep.step_txt,
+							nodeText: rowstep.step_code + ' : ' + rowstep.desc_txt,
 							leaf: true
 						});
 					}) ;

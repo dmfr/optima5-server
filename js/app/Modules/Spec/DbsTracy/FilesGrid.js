@@ -157,6 +157,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		}
 		
 		// Create grid ?
+		if( this.autoRefreshTask ) {
+			this.autoRefreshTask.cancel() ;
+		}
 		this.autoRefreshTask = new Ext.util.DelayedTask( function(){
 			if( this.isDestroyed ) { // private check
 				return ;
@@ -195,8 +198,10 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		}) ;
 		
 		var stepsMap = {} ;
-		Ext.Array.each( Optima5.Modules.Spec.DbsTracy.HelperCache.getOrderflow('AIR').steps, function(step) {
-			stepsMap[step.step_code] = step ;
+		Ext.Array.each( Optima5.Modules.Spec.DbsTracy.HelperCache.getOrderflowAll(), function(flow) {
+			Ext.Array.each( flow.steps, function(step) {
+				stepsMap[step.step_code] = step ;
+			}) ;
 		}) ;
 		
 		var consigneeMap = {} ;
@@ -266,7 +271,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 					return ;
 				}
 				var tmpProgress = stepRow['status_percent'] / 100 ;
-				var tmpText = stepRow['step_txt'] ;
+				var tmpText = stepRow['desc_txt'] ;
 					var b = new Ext.ProgressBar({height: 15, cls: 'op5-spec-mrfoxy-promolist-progress'});
 					b.updateProgress(tmpProgress,tmpText);
 					v = Ext.DomHelper.markup(b.getRenderTree());
@@ -469,13 +474,16 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		}) ;
 		
 		var stepsMap = {} ;
-		Ext.Array.each( Optima5.Modules.Spec.DbsTracy.HelperCache.getOrderflow('AIR').steps, function(step) {
-			stepsMap[step.step_code] = step ;
+		Ext.Array.each( Optima5.Modules.Spec.DbsTracy.HelperCache.getOrderflowAll(), function(flow) {
+			Ext.Array.each( flow.steps, function(step) {
+				stepsMap[step.step_code] = step ;
+			}) ;
 		}) ;
 		
 		
 		var stepRenderer = function(vObj,metaData) {
 			if( !vObj ) {
+				metaData.tdCls += ' '+'op5-spec-dbstracy-gridcell-gray' ;
 				return '&#160;' ;
 			}
 			if( !vObj.pending && !vObj.ACTUAL_dateSql ) {
@@ -686,7 +694,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 					return ;
 				}
 				var tmpProgress = stepRow['status_percent'] / 100 ;
-				var tmpText = stepRow['step_txt'] ;
+				var tmpText = stepRow['desc_txt'] ;
 					var b = new Ext.ProgressBar({height: 15, cls: 'op5-spec-mrfoxy-promolist-progress'});
 					switch( record.get('_color') ) {
 						case 'green' :
@@ -721,13 +729,13 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		var stepColumns = [] ;
 		Ext.Array.each( Optima5.Modules.Spec.DbsTracy.HelperCache.getOrderflow('AIR').steps, function(step) {
 			pushModelfields.push({
-				name: 'step_'+step.step_code,
+				name: 'step_'+step.desc_code,
 				type: 'auto',
 				sortType: sortTypeFn
 			}) ;
 			stepColumns.push({
-				text: step.step_txt,
-				dataIndex: 'step_'+step.step_code,
+				text: step.desc_txt,
+				dataIndex: 'step_'+step.desc_code,
 				renderer: stepRenderer,
 				width: 90,
 				align: 'center',
@@ -1010,14 +1018,23 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		}) ;
 	},
 	onLoadOrder: function(ajaxData, doClearFilters) {
-		var flowSteps = Optima5.Modules.Spec.DbsTracy.HelperCache.getOrderflow('AIR').steps ; //TODO
+		// Trad => stepCode => descCode
+		var map_stepCode_descCode = {} ;
+		Ext.Array.each( Optima5.Modules.Spec.DbsTracy.HelperCache.getOrderflowAll(), function(flow) {
+			Ext.Array.each(flow.steps, function(step) {
+				map_stepCode_descCode[step.step_code] = step.desc_code ;
+			});
+		}) ;
 		
 		var gridData = [] ;
 		Ext.Array.each(ajaxData, function(row) {
 			Ext.Array.each( row.steps, function(rowStep) {
 				var stepCode = rowStep.step_code,
-					rowKey = 'step_'+stepCode ;
+					rowKey = 'step_'+map_stepCode_descCode[stepCode] ;
 				if( rowStep.status_is_ok != 1 ) {
+					row[rowKey] = {
+						color: ''
+					} ;
 					return ;
 				}
 				row[rowKey] = {

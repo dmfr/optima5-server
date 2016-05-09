@@ -36,6 +36,7 @@ function specDbsTracy_trspt_getRecords( $post_data ) {
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$TAB_trspt[$arr['filerecord_id']] = array(
 			'trspt_filerecord_id' => $arr['filerecord_id'],
+			'flow_code' => $arr['field_FLOW_CODE'],
 			'id_soc' => $arr['field_ID_SOC'],
 			'id_doc' => $arr['field_ID_DOC'],
 			'date_create' => substr($arr['field_DATE_CREATE'],0,10),
@@ -151,6 +152,11 @@ function specDbsTracy_trspt_setHeader( $post_data ) {
 	
 	$arr_ins = array() ;
 	if( $post_data['_is_new'] ) {
+		if( !$form_data['id_soc'] || !$form_data['flow_code'] ) {
+			return array('success'=>false, 'error'=>'Missing ID_DOC or FLOW_CODE') ;
+		}
+		
+		
 		$prefix = $form_data['id_soc'].'/'.date('ymd') ;
 		$prefix_len = strlen($prefix) ;
 		$offset = $prefix_len+1 ;
@@ -161,6 +167,8 @@ function specDbsTracy_trspt_setHeader( $post_data ) {
 	
 		$arr_ins['field_ID_SOC'] = $form_data['id_soc'] ;
 		$arr_ins['field_ID_DOC'] = $prefix.str_pad((float)$max_idx, 3, "0", STR_PAD_LEFT) ;
+		
+		$arr_ins['field_FLOW_CODE'] = $form_data['flow_code'] ;
 		
 		$arr_ins['field_LOG_USER'] = strtoupper($_SESSION['login_data']['delegate_userId']) ;
 	}
@@ -319,12 +327,19 @@ function specDbsTracy_trspt_stepValidate( $post_data ) {
 		$p_dateActual = $post_data['date_actual'] ;
 	}
 	
+	// load trspt
+	$ttmp = specDbsTracy_trspt_getRecords(array('filter_trsptFilerecordId_arr'=>json_encode(array($p_trsptFilerecordId)))) ;
+	$trspt_record = $ttmp['data'][0] ;
+	if( !$trspt_record ) {
+		return array('success'=>false) ;
+	}
+	
 	// liste chaine des étapes
 	$arr_steps = array() ;
 	$ttmp = specDbsTracy_cfg_getConfig() ;
 	$json_cfg = $ttmp['data'] ;
 	foreach( $json_cfg['cfg_orderflow'] as $orderflow ) {
-		if( $orderflow['flow_code'] != 'AIR' ) {
+		if( $orderflow['flow_code'] != $trspt_record['flow_code'] ) {
 			continue ;
 		}
 		foreach( $orderflow['steps'] as $step ) {
@@ -332,12 +347,6 @@ function specDbsTracy_trspt_stepValidate( $post_data ) {
 		}
 	}
 	sort($arr_steps) ;
-	
-	$ttmp = specDbsTracy_trspt_getRecords(array('filter_trsptFilerecordId_arr'=>json_encode(array($p_trsptFilerecordId)))) ;
-	$trspt_record = $ttmp['data'][0] ;
-	if( !$trspt_record ) {
-		return array('success'=>false) ;
-	}
 	
 	if( !$p_stepDoForce ) {
 		$steps = array() ;

@@ -26,7 +26,7 @@ Ext.define('DbsTracyFileOrderModel',{
 	idProperty: 'order_filerecord_id',
 	fields: [
 		{name: 'order_filerecord_id', type:'int'},
-		{name: 'flow_code', type:'string'}, //TODO ?
+		{name: 'flow_code', type:'string'},
 		{name: 'id_soc', type:'string'},
 		{name: 'id_dn', type:'string'},
 		{name: 'ref_po', type:'string'},
@@ -115,6 +115,7 @@ Ext.define('DbsTracyFileTrsptModel',{
 	idProperty: 'trspt_filerecord_id',
 	fields: [
 		{name: 'trspt_filerecord_id', type:'int'},
+		{name: 'flow_code', type:'string'},
 		{name: 'id_soc', type:'string'},
 		{name: 'id_doc', type:'string'},
 		{name: 'date_create', type:'date', dateFormat:'Y-m-d'},
