@@ -10,6 +10,9 @@ function specDbsTracy_upload( $post_data ) {
 		case 'VL06F' :
 			$ret = specDbsTracy_upload_VL06F_tmp($handle) ;
 			break ;
+		case 'LIKP' :
+			$ret = specDbsTracy_upload_LIKP_tmp($handle) ;
+			break ;
 		default :
 			return array('success'=>false);
 	}
@@ -122,6 +125,72 @@ function specDbsTracy_upload_VL06F_tmp( $handle ) {
 		
 		$arr_cond = array() ;
 		$arr_cond['filerecord_parent_id'] = $filerecord_id ;
+		$arr_cond['field_STEP_CODE'] = '10_RLS' ;
+		$arr_update = array() ;
+		$arr_update['field_DATE_ACTUAL'] = $p_dateRelease ;
+		$arr_update['field_STATUS_IS_OK'] = 1 ;
+		$_opDB->update('view_file_CDE_STEP',$arr_update,$arr_cond) ;
+	}
+	
+	fclose($handle_priv) ;
+	
+	return true ;
+}
+
+function specDbsTracy_upload_LIKP_tmp( $handle ) {
+	global $_opDB ;
+	
+	$handle_priv = tmpfile();
+	specDbsTracy_upload_lib_separator($handle,$handle_priv) ;
+	fseek($handle_priv,0) ;
+	
+	$map_idSoc_idDn_torf = array() ;
+	$query = "SELECT field_ID_SOC, field_ID_DN, filerecord_id FROM view_file_CDE" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$map_idSoc_idDn_torf[$arr[0]][$arr[1]] = $arr[2] ;
+	}
+	
+	fgets($handle_priv) ;
+	while( !feof($handle_priv) ) {
+		$arr_csv = fgetcsv($handle_priv) ;
+		if( !$arr_csv ) {
+			continue ;
+		}
+		foreach( $arr_csv as &$tvalue ) {
+			$tvalue = trim($tvalue) ;
+		}
+		unset($tvalue) ;
+		
+		
+		$form_data = array() ;
+		switch( substr($arr_csv[8],0,1) ) {
+			case 'M':
+				$form_data['id_soc'] = 'MBD' ;
+				break ;
+			case 'R':
+			case 'A':
+				$form_data['id_soc'] = 'ACL' ;
+				break ;
+			default :
+				continue 2 ;
+		}
+		$form_data['id_dn'] = (string)((int)$arr_csv[2]) ;
+		
+		if( !$map_idSoc_idDn_torf[$form_data['id_soc']][$form_data['id_dn']] ) {
+			continue ;
+		}
+		$filerecord_parent_id = $map_idSoc_idDn_torf[$form_data['id_soc']][$form_data['id_dn']] ;
+		
+		
+		// Date
+		$str_date = $arr_csv[5] ;
+		$str_time = $arr_csv[4] ;
+		$p_dateRelease = substr($str_date,6,4).'-'.substr($str_date,3,2).'-'.substr($str_date,0,2).' '.$str_time ;
+		
+		
+		$arr_cond = array() ;
+		$arr_cond['filerecord_parent_id'] = $filerecord_parent_id ;
 		$arr_cond['field_STEP_CODE'] = '10_RLS' ;
 		$arr_update = array() ;
 		$arr_update['field_DATE_ACTUAL'] = $p_dateRelease ;
