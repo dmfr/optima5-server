@@ -64,6 +64,15 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 					anchor: '',
 					width: 325
 				}),{
+					xtype: 'op5specdbstracycfgparamtext',
+					cfgParam_id: 'LIST_TYPE',
+					fieldLabel: '<b>Type</b>',
+					name: 'atr_type',
+					allowBlank: false,
+					forceSelection: true,
+					anchor: '',
+					width: 325
+				},{
 					xtype: 'textfield',
 					fieldLabel: '<b>DN #</b>',
 					anchor: '',
@@ -379,6 +388,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 		this.down('#pHeaderForm').getForm().reset() ;
 		this.down('#pHeaderForm').getForm().findField('id_soc').setReadOnly(false) ;
 		this.down('#pHeaderForm').getForm().findField('flow_code').setReadOnly(false) ;
+		this.down('#pHeaderForm').getForm().findField('atr_type').setReadOnly(false) ;
 		this.down('#pHeaderForm').getForm().findField('id_dn').setReadOnly(false) ;
 		
 		//gSteps
@@ -422,6 +432,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 		this.down('#pHeaderForm').getForm().reset() ;
 		this.down('#pHeaderForm').getForm().findField('id_soc').setReadOnly(true) ;
 		this.down('#pHeaderForm').getForm().findField('flow_code').setReadOnly(true) ;
+		this.down('#pHeaderForm').getForm().findField('atr_type').setReadOnly(true) ;
 		this.down('#pHeaderForm').getForm().findField('id_dn').setReadOnly(true) ;
 		this.down('#pHeaderForm').getForm().loadRecord(orderRecord) ;
 		

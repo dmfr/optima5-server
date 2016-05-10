@@ -215,6 +215,16 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			width:50,
 			align: 'center'
 		},{
+			text: 'Type',
+			dataIndex: 'atr_type',
+			width:50,
+			align: 'center',
+			filter: {
+				type: 'op5crmbasebible',
+				optimaModule: this.optimaModule,
+				bibleId: 'LIST_TYPE'
+			}
+		},{
 			text: '<b>ID#</b>',
 			dataIndex: 'id_doc',
 			width:120,
@@ -549,6 +559,16 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			dataIndex: 'id_soc',
 			width:50,
 			align: 'center'
+		},{
+			text: 'Type',
+			dataIndex: 'atr_type',
+			width:50,
+			align: 'center',
+			filter: {
+				type: 'op5crmbasebible',
+				optimaModule: this.optimaModule,
+				bibleId: 'LIST_TYPE'
+			}
 		},{
 			text: '<b>DN#</b>',
 			dataIndex: 'id_dn',

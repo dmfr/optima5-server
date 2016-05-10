@@ -80,9 +80,15 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 					fieldLabel: '<b>Flow code</b>',
 					name: 'flow_code',
 					allowBlank: false,
-					anchor: '',
-					width: 325
+					anchor: ''
 				}),{
+					xtype: 'op5specdbstracycfgparamtext',
+					cfgParam_id: 'LIST_TYPE',
+					fieldLabel: '<b>Type</b>',
+					name: 'atr_type',
+					allowBlank: false,
+					forceSelection: true
+				},{
 					xtype: 'textfield',
 					fieldLabel: '<b>WID</b>',
 					value: '',
@@ -441,12 +447,14 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		this.down('#pHeaderForm').getForm().reset() ;
 		this.down('#pHeaderForm').getForm().findField('id_soc').setReadOnly(false) ;
 		this.down('#pHeaderForm').getForm().findField('flow_code').setReadOnly(false) ;
+		this.down('#pHeaderForm').getForm().findField('atr_type').setReadOnly(false) ;
 		this.down('#pHeaderForm').getForm().findField('id_doc').setReadOnly(false) ;
 		this.down('#pHeaderForm').getForm().setValues({
 			date_create: new Date(),
 			id_doc: 'NEW',
 			customs_mode: ''
 		});
+		this.down('#pHeaderForm').getForm().findField('id_doc').setReadOnly(true) ;
 		
 		//gOrders
 		this.down('#pOrdersGrid').getEl().mask() ;
@@ -473,7 +481,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 				return false ;
 			}
 			
-			var copyFields = ['id_soc','flow_code','atr_consignee','atr_incoterm','atr_priority'] ;
+			var copyFields = ['id_soc','flow_code','atr_type','atr_consignee','atr_incoterm','atr_priority'] ;
 			var map_copyFields_values = {} ;
 			//check ?
 			// if OK => setValues
@@ -500,6 +508,10 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 				return false ;
 			}
 			this.down('#pHeaderForm').getForm().setValues(objValues);
+			
+			this.down('#pHeaderForm').getForm().findField('id_soc').setReadOnly(true) ;
+			this.down('#pHeaderForm').getForm().findField('flow_code').setReadOnly(true) ;
+			this.down('#pHeaderForm').getForm().findField('atr_type').setReadOnly(true) ;
 		}
 	},
 	onNewTrsptError: function(msg) {
@@ -545,6 +557,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		this.down('#pHeaderForm').getForm().reset() ;
 		this.down('#pHeaderForm').getForm().findField('id_soc').setReadOnly(true) ;
 		this.down('#pHeaderForm').getForm().findField('flow_code').setReadOnly(true) ;
+		this.down('#pHeaderForm').getForm().findField('atr_type').setReadOnly(true) ;
 		this.down('#pHeaderForm').getForm().findField('id_doc').setReadOnly(true) ;
 		this.down('#pHeaderForm').getForm().loadRecord(trsptRecord) ;
 		
@@ -696,6 +709,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		}
 		
 		var fields = [
+			'id_soc',
+			'flow_code',
+			'atr_type',
 			'atr_priority',
 			'atr_incoterm',
 			'atr_consignee'

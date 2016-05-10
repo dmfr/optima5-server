@@ -40,6 +40,7 @@ function specDbsTracy_trspt_getRecords( $post_data ) {
 			'id_soc' => $arr['field_ID_SOC'],
 			'id_doc' => $arr['field_ID_DOC'],
 			'date_create' => substr($arr['field_DATE_CREATE'],0,10),
+			'atr_type' => $arr['field_ATR_TYPE'],
 			'atr_priority' => $arr['field_ATR_PRIORITY'],
 			'atr_incoterm' => $arr['field_ATR_INCOTERM'],
 			'atr_consignee' => $arr['field_ATR_CONSIGNEE'],
@@ -152,8 +153,8 @@ function specDbsTracy_trspt_setHeader( $post_data ) {
 	
 	$arr_ins = array() ;
 	if( $post_data['_is_new'] ) {
-		if( !$form_data['id_soc'] || !$form_data['flow_code'] ) {
-			return array('success'=>false, 'error'=>'Missing ID_DOC or FLOW_CODE') ;
+		if( !$form_data['id_soc'] || !$form_data['flow_code'] || !$form_data['atr_type'] ) {
+			return array('success'=>false, 'error'=>'Missing ID_DOC / FLOW_CODE / ATR_TYPE') ;
 		}
 		
 		
@@ -173,6 +174,7 @@ function specDbsTracy_trspt_setHeader( $post_data ) {
 		$arr_ins['field_LOG_USER'] = strtoupper($_SESSION['login_data']['delegate_userId']) ;
 	}
 	$arr_ins['field_DATE_CREATE'] = $form_data['date_create'] ;
+	$arr_ins['field_ATR_TYPE'] = $form_data['atr_type'] ;
 	$arr_ins['field_ATR_PRIORITY'] = $form_data['atr_priority'] ;
 	$arr_ins['field_ATR_INCOTERM'] = $form_data['atr_incoterm'] ;
 	$arr_ins['field_ATR_CONSIGNEE'] = $form_data['atr_consignee'] ;
@@ -611,8 +613,10 @@ function specDbsTracy_trspt_download( $post_data ) {
 	$data = json_decode($post_data['data'],true) ;
 	$columns = array(
 		'id_soc' => 'Shipper',
+		'atr_type' => 'Type',
 		'id_doc' => 'Document',
 		'date_create' => 'Creation date',
+		'atr_type' => 'Type',
 		'atr_priority' => 'Priority',
 		'atr_consignee' => 'Consignee',
 		'atr_incoterm' => 'Incoterm',

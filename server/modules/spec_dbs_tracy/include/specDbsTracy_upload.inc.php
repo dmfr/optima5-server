@@ -60,6 +60,7 @@ function specDbsTracy_upload_VL06F_tmp( $handle ) {
 		}
 		$form_data['id_dn'] = $arr_csv[0] ;
 		$form_data['flow_code'] = 'AIR' ; //TODO: dynamic ??
+		$form_data['atr_type'] = 'STD' ;
 		
 		if( $map_idSoc_idDn_torf[$form_data['id_soc']][$form_data['id_dn']] ) {
 			continue ;

@@ -31,6 +31,7 @@ function specDbsTracy_order_getRecords( $post_data ) {
 			'id_dn' => $arr['field_ID_DN'],
 			'ref_po' => $arr['field_REF_PO'],
 			'ref_invoice' => $arr['field_REF_INVOICE'],
+			'atr_type' => $arr['field_ATR_TYPE'],
 			'atr_priority' => $arr['field_ATR_PRIORITY'],
 			'atr_incoterm' => $arr['field_ATR_INCOTERM'],
 			'atr_consignee' => $arr['field_ATR_CONSIGNEE'],
@@ -150,6 +151,7 @@ function specDbsTracy_order_setHeader( $post_data ) {
 	}
 	$arr_ins['field_REF_PO'] = $form_data['ref_po'] ;
 	$arr_ins['field_REF_INVOICE'] = $form_data['ref_invoice'] ;
+	$arr_ins['field_ATR_TYPE'] = $form_data['atr_type'] ;
 	$arr_ins['field_ATR_PRIORITY'] = $form_data['atr_priority'] ;
 	$arr_ins['field_ATR_INCOTERM'] = $form_data['atr_incoterm'] ;
 	$arr_ins['field_ATR_CONSIGNEE'] = $form_data['atr_consignee'] ;
@@ -264,9 +266,11 @@ function specDbsTracy_order_download( $post_data ) {
 	$data = json_decode($post_data['data'],true) ;
 	$columns = array(
 		'id_soc' => 'Shipper',
+		'atr_type' => 'Type',
 		'id_dn' => 'OrderNo',
 		'ref_po' => 'PO #',
 		'ref_invoice' => 'Invoice#',
+		'atr_type' => 'Type',
 		'atr_priority' => 'Priority',
 		'atr_incoterm' => 'Incoterm',
 		'atr_consignee' => 'Consignee',
