@@ -104,6 +104,7 @@ function specDbsTracy_cfg_getConfig() {
 			$query = "SELECT * FROM view_bible_{$bible_code}_entry ORDER BY entry_key" ;
 			$result = $_opDB->query($query) ;
 			while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+				$node = $arr['treenode_key'] ;
 				$id = $arr['entry_key'] ;
 				$lib = array() ;
 				foreach( $json_define_bible['data']['entry_fields'] as $entry_field ) {
@@ -111,7 +112,7 @@ function specDbsTracy_cfg_getConfig() {
 						$lib[] = $arr[$entry_field['entry_field_code']] ;
 					}
 				}
-				$records[] = array('id'=>$id, 'text'=>implode(' - ',$lib)) ;
+				$records[] = array('node'=>$node, 'id'=>$id, 'text'=>implode(' - ',$lib)) ;
 			}
 			
 			$TAB_list[] = array(

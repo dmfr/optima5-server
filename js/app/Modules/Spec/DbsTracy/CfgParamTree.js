@@ -101,6 +101,43 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.CfgParamTree',{
 				}
 				break ;
 				
+			case 'WARNINGCODE' :
+				data = Optima5.Modules.Spec.DbsTracy.HelperCache.getListData('LIST_WARNINGCODE') ;
+				var map_nodeCode_rows = {} ;
+				Ext.Array.each( data, function(row) {
+					if( !map_nodeCode_rows.hasOwnProperty(row.node) ) {
+						map_nodeCode_rows[row.node] = [] ;
+					}
+					map_nodeCode_rows[row.node].push(row) ;
+				}) ;
+				Ext.Object.each( map_nodeCode_rows, function(node,rows) {
+					flowChildren = [] ;
+					Ext.Array.each( rows, function(row) {
+						flowChildren.push({
+							nodeId: row.id,
+							nodeType: 'entry',
+							nodeKey: row.id,
+							nodeText: row.text,
+							leaf: true
+						});
+					}) ;
+					rootChildren.push({
+						nodeId: node,
+						nodeType: 'treenode',
+						nodeKey: node,
+						nodeText: node,
+						expanded: true,
+						children: flowChildren
+					}) ;
+				}) ;
+				rootNode = {
+					root: true,
+					children: rootChildren,
+					nodeText: '<b>Reason codes</b>',
+					expanded: true
+				}
+				break ;
+				
 			default :
 				rootNode = {
 					root: true,

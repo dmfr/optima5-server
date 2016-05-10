@@ -28,26 +28,14 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderWarningPanel',{
 					title: 'Warning enabled ?',
 					checkboxToggle: true,
 					checkboxName: 'warning_is_on',
-					items: [{
-						xtype: 'combobox',
+					items: [Ext.create('Optima5.Modules.Spec.DbsTracy.CfgParamField',{
+						cfgParam_id: 'WARNINGCODE',
+						cfgParam_emptyDisplayText: 'Select...',
+						optimaModule: this.optimaModule,
+						fieldLabel: '<b>Reason codes</b>',
 						name: 'warning_code',
-						fieldLabel: 'Reponsability',
-						queryMode: 'local',
-						forceSelection: true,
-						allowBlank: false,
-						editable: false,
-						store: {
-							fields: ['id','text'],
-							data: [
-								{id: '', text: ''},
-								{id: 'MAG', text: 'Magasin'},
-								{id: 'GOM', text: 'GOM'},
-								{id: 'TRSPT', text: 'Transporteur'}
-							]
-						},
-						valueField: 'id',
-						displayField: 'text'
-					},{
+						allowBlank: false
+					}),{
 						xtype: 'textarea',
 						fieldLabel: 'Explanation',
 						name: 'warning_txt'

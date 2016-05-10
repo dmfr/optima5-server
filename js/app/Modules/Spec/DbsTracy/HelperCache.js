@@ -22,6 +22,7 @@ Ext.define('DbsTracyCfgListItemModel',{
 	extend: 'Ext.data.Model',
 	idProperty: 'id',
 	fields: [
+		{name: 'node', type:'string'},
 		{name: 'id', type:'string'},
 		{name: 'text', type:'string'}
 	]
