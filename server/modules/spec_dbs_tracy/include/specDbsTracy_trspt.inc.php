@@ -613,6 +613,7 @@ function specDbsTracy_trspt_download( $post_data ) {
 		'id_soc' => 'Shipper',
 		'id_doc' => 'Document',
 		'date_create' => 'Creation date',
+		'atr_priority' => 'Priority',
 		'atr_consignee' => 'Consignee',
 		'atr_incoterm' => 'Incoterm',
 		'orders_id' => 'Orders',
