@@ -367,7 +367,7 @@ function paracrm_data_importTransaction_doCommit( $post_data, &$arr_saisie ) {
 	}
 	
 	// Save mapping
-	if( $arr_saisie['csvsrc_params']['firstrow_is_header'] ) {
+	if( $arr_saisie['csvsrc_params']['firstrow_is_header'] && $truncate_mode!='delete' ) {
 		if( !$arr_saisie['importmap_id'] ) {
 			$arr_ins = array() ;
 			$_opDB->insert('importmap',$arr_ins) ;

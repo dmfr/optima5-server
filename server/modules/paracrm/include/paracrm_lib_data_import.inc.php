@@ -373,6 +373,9 @@ function paracrm_lib_dataImport_commit_processNode_file( $treefields_node, $arr_
 		$mkey = 'field_'.$file_field_code ;
 		$arr_ins[$mkey] = $value ;
 	}
+	if( $truncate_mode=='delete' ) {
+		$arr_ins += array('_DELETE'=>true) ;
+	}
 	return paracrm_lib_data_insertRecord_file( $file_code , $filerecord_parent_id , $arr_ins, $ignore_ifExists=($truncate_mode=='ignore'), $ignore_ifLocked=TRUE ) ;
 }
 function paracrm_lib_dataImport_commit_processNode_bible( $treefields_node, $arr_srcLig, $treenode_parent_key='' ) {

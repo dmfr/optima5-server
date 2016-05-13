@@ -163,7 +163,8 @@ Ext.define('Optima5.Modules.CrmBase.DataImportPanel' ,{
 								items:[
 									{boxLabel: 'Truncate before', name: 'file_truncate_mode', inputValue: 'truncate'},
 									{boxLabel: 'Overwrite primaryKeys', name: 'file_truncate_mode', inputValue: 'overwrite', checked: true},
-									{boxLabel: 'Ignore if exists', name: 'file_truncate_mode', inputValue: 'ignore'}
+									{boxLabel: 'Ignore if exists', name: 'file_truncate_mode', inputValue: 'ignore'},
+									{boxLabel: '<font color="red">Delete on primaryKeys</font>', name: 'file_truncate_mode', inputValue: 'delete'}
 								]
 							},{
 								xtype: 'box',
@@ -549,14 +550,22 @@ Ext.define('Optima5.Modules.CrmBase.DataImportPanel' ,{
 	},
 	
 	handleCommit: function() {
-		Ext.Msg.confirm('Do import', 'Commit buffer using selected mapping ?', function(btn){
+		var msgTitle = 'Do import',
+			msgText = 'Commit buffer using selected mapping ?' ;
+		var me = this,
+			csvForm = me.getComponent('pCsv').getComponent('pCsvForm').getForm() ;
+		if( csvForm.getValues().file_truncate_mode == 'delete' ) {
+			msgTitle = 'Do delete' ;
+			msgText = '<b>Will delete on primary key(s) match</b>' ;
+		}
+		Ext.Msg.confirm(msgTitle, msgText, function(btn){
 			if( btn == 'yes' ) {
 				this.handleCommitDo() ;
 			}
 		},this) ;
 	},
 	handleCommitDo: function() {
-		var me = this;
+		var me = this,
 			csvForm = me.getComponent('pCsv').getComponent('pCsvForm').getForm() ,
 			fieldsTree = me.getComponent('pFieldsTree') ;
 			
