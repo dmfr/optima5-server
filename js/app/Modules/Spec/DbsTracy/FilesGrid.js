@@ -8,7 +8,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 	
 	defaultViewMode: 'order',
 	viewMode: null,
-	autoRefreshDelay: (60*1000),
+	autoRefreshDelay: (10*60*1000),
 	
 	initComponent: function() {
 		Ext.apply(this, {

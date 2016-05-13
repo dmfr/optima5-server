@@ -13,6 +13,7 @@ switch( $post_data['_action'] )
 	return specDbsTracy_cfg_getConfig( $post_data ) ;
 	
 	case 'order_getRecords' :
+	session_write_close() ;
 	return specDbsTracy_order_getRecords( $post_data ) ;
 	case 'order_setHeader' :
 	return specDbsTracy_order_setHeader( $post_data ) ;
@@ -23,9 +24,11 @@ switch( $post_data['_action'] )
 	case 'order_stepValidate' :
 	return specDbsTracy_order_stepValidate( $post_data ) ;
 	case 'order_download' :
+	session_write_close() ;
 	return specDbsTracy_order_download( $post_data ) ;
 	
 	case 'trspt_getRecords' :
+	session_write_close() ;
 	return specDbsTracy_trspt_getRecords( $post_data ) ;
 	case 'trspt_setHeader' :
 	return specDbsTracy_trspt_setHeader( $post_data ) ;
@@ -42,6 +45,7 @@ switch( $post_data['_action'] )
 	case 'trspt_printDoc' :
 	return specDbsTracy_trspt_printDoc( $post_data ) ;
 	case 'trspt_download' :
+	session_write_close() ;
 	return specDbsTracy_trspt_download( $post_data ) ;
 	
 	case 'live_stepValidate' :
