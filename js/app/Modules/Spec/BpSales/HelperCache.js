@@ -32,14 +32,6 @@ Ext.define('Optima5.Modules.Spec.BpSales.HelperCache',{
 		
 		me.onLoad() ;
 	},
-	onCountryLoad: function(ajaxData) {
-		var me = this ;
-		
-		// Populate store
-		var data = [] ;
-		me.countryRoot = ajaxData ;
-		me.onLoad() ;
-	},
 	onLoad: function() {
 		var me = this ;
 		me.nbLoaded++ ;

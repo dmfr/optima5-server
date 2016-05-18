@@ -2,7 +2,9 @@ Ext.define('Optima5.Modules.Spec.BpSales.MainPanel',{
 	extend:'Ext.panel.Panel',
 	requires:[
 		'Optima5.Modules.Spec.BpSales.HelperCache',
-		'Optima5.Modules.Spec.BpSales.MainMenu'
+		'Optima5.Modules.Spec.BpSales.MainMenu',
+		'Optima5.Modules.Spec.BpSales.OrdersGrid',
+		'Optima5.Modules.Spec.BpSales.InvoicePanel'
 	],
 	
 	initComponent: function() {
@@ -23,6 +25,7 @@ Ext.define('Optima5.Modules.Spec.BpSales.MainPanel',{
 		}, me) ;
 		
 		this.callParent() ;
+		this.mon(this.optimaModule,'op5broadcast',this.onCrmeventBroadcast,this) ;
 	},
 	startAnimation: function() {
 		var logoEl = Ext.get( Ext.DomQuery.selectNode('div.op5-spec-bpsales-logo') );
@@ -65,6 +68,8 @@ Ext.define('Optima5.Modules.Spec.BpSales.MainPanel',{
 		//console.log("Action: "+actionCode) ;
 		
 		switch( actionCode ) {
+			case 'orders' :
+				return me.switchToAppPanel('Optima5.Modules.Spec.BpSales.OrdersGrid',{}) ;
 			default :
 				return ;
 		}
@@ -85,5 +90,57 @@ Ext.define('Optima5.Modules.Spec.BpSales.MainPanel',{
 		
 		this.removeAll() ;
 		this.add( panel ) ;
+	},
+	
+	onCrmeventBroadcast: function(crmEvent, eventParams) {
+		switch( crmEvent ) {
+			case 'datachange' :
+				break ;
+			case 'openinv' :
+				return this.openInvFile( eventParams.invFilerecordId ) ;
+			default: break ;
+		}
+	},
+	openInvFile: function(invFilerecordId) {
+		if( invFilerecordId === null ) {
+			return ;
+		}
+		
+		// recherche d'une fenetre deja ouverte
+		var doOpen = true ;
+		this.optimaModule.eachWindow(function(win){
+			if( !(win instanceof Optima5.Modules.Spec.BpSales.InvoicePanel) ) {
+				return true ;
+			}
+			if( win._invFilerecordId == invFilerecordId ) {
+				win.show() ;
+				win.focus() ;
+				doOpen = false ;
+				return false ;
+			}
+		},this) ;
+		if( !doOpen ) {
+			return ;
+		}
+		
+		//title
+		
+		
+		// new window
+		this.optimaModule.createWindow({
+			title: '',
+			width:1150,
+			height:600,
+			iconCls: 'op5-crmbase-dataformwindow-icon',
+			animCollapse:false,
+			
+				optimaModule: this.optimaModule,
+				_invFilerecordId: invFilerecordId,
+				listeners: {
+					candestroy: function(w) {
+						w.close() ;
+					}
+				}
+		},Optima5.Modules.Spec.BpSales.InvoicePanel) ;
 	}
 }) ;

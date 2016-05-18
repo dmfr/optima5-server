@@ -7,6 +7,18 @@ function backend_specific( $post_data )
 {
 switch( $post_data['_action'] )
 {
+	case 'cde_getRecords' :
+		return specBpSales_cde_getRecords($post_data) ;
+		
+	case 'inv_getRecords' :
+		return specBpSales_inv_getRecords($post_data) ;
+	case 'inv_createFromOrder' :
+		return specBpSales_inv_createFromOrder($post_data) ;
+	case 'inv_deleteRecord' :
+		return specBpSales_inv_deleteRecord($post_data) ;
+	case 'inv_setRecord' :
+		return specBpSales_inv_setRecord($post_data) ;
+
 	default :
 	return NULL ;
 }
