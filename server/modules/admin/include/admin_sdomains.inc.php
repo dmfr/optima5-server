@@ -324,7 +324,7 @@ function admin_sdomains_importRemote( $post_data ) {
 				return array('success'=>false,'values'=>$values,'errors'=>array('fetch_login_user'=>'Username','fetch_login_pass'=>'Password')) ;
 			}
 			
-			$values['fetch_login_pass'] = strtolower($post_data['fetch_login_pass']) ;
+			$values['fetch_login_pass'] = $post_data['fetch_login_pass'] ;
 			
 			if( $response_json['success'] == false ) {
 				return array('success'=>false,'values'=>$values) ;
