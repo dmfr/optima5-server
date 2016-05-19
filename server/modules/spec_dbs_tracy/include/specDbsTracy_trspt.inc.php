@@ -641,7 +641,13 @@ function specDbsTracy_trspt_download( $post_data ) {
 	$writer->writeSheetHeader('Sheet1', $header );//optional
 	foreach( $data as $data_row ) {
 		$map_stepCode_date = array() ;
+		if( !is_array($data_row['orders']) ) {
+			continue ;
+		}
 		foreach( $data_row['orders'] as $row_order ) {
+			if( !is_array($row_order['steps']) ) {
+				continue ;
+			}
 			foreach( $row_order['steps'] as $row_step ) {
 				if( $row_step['status_is_ok'] ) {
 					$map_stepCode_date[$row_step['step_code']][] = date('d/m/Y H:i',strtotime($row_step['date_actual'])) ;

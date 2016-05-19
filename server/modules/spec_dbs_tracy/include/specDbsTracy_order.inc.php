@@ -67,6 +67,9 @@ function specDbsTracy_order_getRecords( $post_data ) {
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 		$filerecord_id = $arr[0] ;
+		if( !isset($TAB_order[$filerecord_id]) ) {
+			continue ;
+		}
 		$TAB_order[$filerecord_id]['calc_link_is_active'] = ($arr[1]!=NULL) ;
 		$TAB_order[$filerecord_id]['calc_link_trspt_filerecord_id'] = $arr[1] ;
 		$TAB_order[$filerecord_id]['calc_link_trspt_txt'] = $arr[2] ;
