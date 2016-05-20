@@ -8,7 +8,7 @@ Ext.define('Optima5.Modules.Spec.BpSales.OrdersGrid',{
 	
 	defaultViewMode: 'order',
 	viewMode: null,
-	autoRefreshDelay: (10*60*1000),
+	autoRefreshDelay: (5*60*1000),
 	
 	initComponent: function() {
 		Ext.apply(this, {
@@ -146,12 +146,17 @@ Ext.define('Optima5.Modules.Spec.BpSales.OrdersGrid',{
 			}
 		},{
 			text: 'Customer',
-			dataIndex: 'cli_link_txt',
+			dataIndex: 'cli_link',
 			width:150,
 			resizable: true,
 			align: 'left',
 			filter: {
-				type: 'string'
+				type: 'op5crmbasebible',
+				optimaModule: this.optimaModule,
+				bibleId: 'CDE_STATUS'
+			},
+			renderer: function(v,m,r) {
+				return r.get('cli_link_txt') ;
 			}
 		},{
 			text: 'Invoice#',
@@ -171,13 +176,7 @@ Ext.define('Optima5.Modules.Spec.BpSales.OrdersGrid',{
 			filter: {
 				type: 'op5crmbasebible',
 				optimaModule: this.optimaModule,
-				bibleId: 'CDE_STATUS',
-				listeners: {
-					update: function() {
-						this.doOrderSetColorFilter(null) ;
-					},
-					scope: this
-				}
+				bibleId: 'CDE_STATUS'
 			},
 			renderer: function(v,m,record) {
 				var tmpProgress = record.get('status_percent') / 100 ;
@@ -310,7 +309,7 @@ Ext.define('Optima5.Modules.Spec.BpSales.OrdersGrid',{
 			itemId: 'pGrid',
 			bodyCls: 'op5-spec-dbstracy-files-grid',
 			store: {
-				autoLoad: true,
+				autoLoad: false,
 				model: this.tmpModelName,
 				proxy: this.optimaModule.getConfiguredAjaxProxy({
 					extraParams : {
@@ -347,14 +346,18 @@ Ext.define('Optima5.Modules.Spec.BpSales.OrdersGrid',{
 		pCenter.removeAll() ;
 		pCenter.add(tmpGridCfg);
 		
+		this.autoRefreshTask = new Ext.util.DelayedTask( function(){
+			if( this.isDestroyed ) { // private check
+				return ;
+			}
+			this.doLoad() ;
+		},this);
 		this.doLoad() ;
 	},
 	doConfigureOnRender: function() {
 		
 	},
 	onOrderItemClick: function(view, record, item, index, event) {
-		console.dir(record.ligs().getRange()) ;
-		
 		var tmpGridCfg = {
 			border: false,
 			xtype: 'grid',
@@ -480,76 +483,9 @@ Ext.define('Optima5.Modules.Spec.BpSales.OrdersGrid',{
 		
 		var gridPanel = this.down('#pCenter').down('grid') ;
 		gridPanel.getStore().load() ;
-	},
-	doLoadOrder: function(doClearFilters) {
-		this.toggleNewTrspt(false) ;
-		this.showLoadmask() ;
-		this.optimaModule.getConfiguredAjaxConnection().request({
-			params: {
-				_moduleId: 'spec_dbs_tracy',
-				_action: 'order_getRecords',
-				filter_socCode: this.down('#btnSoc').getValue()
-			},
-			success: function(response) {
-				var ajaxResponse = Ext.decode(response.responseText) ;
-				if( ajaxResponse.success == false ) {
-					Ext.MessageBox.alert('Error','Error') ;
-					return ;
-				}
-				this.onLoadOrder(ajaxResponse.data, doClearFilters) ;
-				// Setup autoRefresh task
-				this.autoRefreshTask.delay( this.autoRefreshDelay ) ;
-			},
-			callback: function() {
-				this.hideLoadmask() ;
-			},
-			scope: this
-		}) ;
-	},
-	onLoadOrder: function(ajaxData, doClearFilters) {
-		// Trad => stepCode => descCode
-		var map_stepCode_descCode = {} ;
-		Ext.Array.each( Optima5.Modules.Spec.DbsTracy.HelperCache.getOrderflowAll(), function(flow) {
-			Ext.Array.each(flow.steps, function(step) {
-				map_stepCode_descCode[step.step_code] = step.desc_code ;
-			});
-		}) ;
-		
-		var gridData = [] ;
-		Ext.Array.each(ajaxData, function(row) {
-			Ext.Array.each( row.steps, function(rowStep) {
-				var stepCode = rowStep.step_code,
-					rowKey = 'step_'+map_stepCode_descCode[stepCode] ;
-				if( rowStep.status_is_ok != 1 ) {
-					row[rowKey] = {
-						color: ''
-					} ;
-					return ;
-				}
-				row[rowKey] = {
-					color: 'green',
-					ACTUAL_dateSql: rowStep.date_actual
-				} ;
-			}) ;
-			
-			var recordTest = new DbsTracyFileOrderModel(row) ;
-			if( !recordTest.get('calc_link_is_active') ) {
-				if( Optima5.Modules.Spec.DbsTracy.HelperCache.checkOrderData(recordTest.getData()) != null ) {
-					row['_color'] = 'red' ;
-				} else {
-					row['_color'] = 'green' ;
-				}
-			} else {
-				row['_color'] = 'blue' ;
-			}
-			
-			gridData.push(row) ;
-		}) ;
-		if( doClearFilters ) {
-			this.down('#pCenter').down('grid').getStore().clearFilter() ;
-			this.down('#pCenter').down('grid').filters.clearFilters() ;
+		if( this.autoRefreshTask != null ) {
+			this.autoRefreshTask.delay(this.autoRefreshDelay) ;
 		}
-		this.down('#pCenter').down('grid').getStore().loadRawData(gridData) ;
 	},
 	
 	showLoadmask: function() {
@@ -573,23 +509,6 @@ Ext.define('Optima5.Modules.Spec.BpSales.OrdersGrid',{
 		if( this.loadMask ) {
 			this.loadMask.destroy() ;
 			this.loadMask = null ;
-		}
-	},
-	
-	toggleNewTrspt: function(torf) {
-		if( this.viewMode != 'order' ) {
-			return ;
-		}
-		this.down('toolbar').down('#tbViewmode').setVisible(!torf) ;
-		this.down('toolbar').down('#tbCreate').setVisible(!torf) ;
-		if( !torf ) {
-			this.down('grid').child('headercontainer').down('checkcolumn').setVisible(false) ;
-			return ;
-		}
-		if( torf ) {
-			this.autoRefreshTask.cancel() ;
-			this.down('grid').child('headercontainer').down('checkcolumn').setVisible(true) ;
-			return ;
 		}
 	},
 	
