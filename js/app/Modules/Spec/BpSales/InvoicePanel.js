@@ -1,3 +1,104 @@
+Ext.define('Optima5.Modules.Spec.BpSales.InvoiceLinesEditableGrid',{
+	extend: 'Ext.grid.Panel',
+	
+	initComponent: function() {
+		Ext.apply(this,{
+			dockedItems: [{
+				xtype: 'toolbar',
+				items: [{
+					itemId: 'add',
+					text: 'Add',
+					iconCls: 'icon-add',
+					handler: function(){
+						this.onBtnAdd({}) ;
+					},
+					scope: this,
+					menu: []
+				}, '-', {
+					itemId: 'delete',
+					text: 'Delete',
+					iconCls: 'icon-delete',
+					handler: function(){
+						this.onBtnDelete() ;
+					},
+					scope: this
+				}]
+			}],
+			plugins: [{
+				ptype: 'rowediting',
+				pluginId: 'rowediting',
+				listeners: {
+					edit: this.onAfterEdit,
+					canceledit: this.onCancelEdit,
+					scope: this
+				}
+			}],
+			store: {
+				model: 'BpSalesInvLigModel',
+				data: [],
+				proxy: {
+					type: 'memory',
+					reader: {
+						type: 'json'
+					}
+				}
+			}
+		}); 
+		
+		this.callParent() ;
+		if( this.data ) {
+			this.setData(this.data) ;
+			this.data = null ;
+		}
+	},
+	
+	setData: function(data) {
+		this.getStore().loadRawData(data) ;
+	},
+	
+	onCancelEdit : function(editor, editObject){
+		var store = editObject.store,
+			record = editObject.record ;
+		if( record.phantom ) {
+			// Mod 2014-03 : if phantom set, remove record
+			store.remove(record) ;
+		}
+	},
+	onAfterEdit: function(editor, editObject) {
+		var record = editObject.record ;
+		// Mod 2014-03 : now actual record, unset phantom
+		record.phantom = false ;
+		this.getView().getSelectionModel().deselectAll( true ) ;
+		
+		this.fireEvent('edited',this) ;
+	},
+	
+	onBtnAdd: function() {
+		var newRecordIndex = 0 ;
+		
+		var newRecordValues = {
+			
+		};
+		
+		var newModel = Ext.create('BpSalesInvLigModel',newRecordValues) ;
+		
+		this.getStore().insert(newRecordIndex, newModel );
+		this.getStore().sync() ;
+		
+		// Mod 2014-03 : safely set "phantom" explicitly
+		newModel.phantom = true ;
+		
+		this.getPlugin('rowediting').startEdit(newRecordIndex, 0);
+	},
+	onBtnDelete: function() {
+		var selection = this.getView().getSelectionModel().getSelection()[0];
+		if (selection) {
+			this.getStore().remove(selection);
+			this.getStore().sync() ;
+			this.fireEvent('edited',this) ;
+		}
+	}
+}) ;
 Ext.define('Optima5.Modules.Spec.BpSales.InvoicePanel',{
 	extend:'Ext.window.Window',
 	
@@ -88,6 +189,16 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoicePanel',{
 					}]
 				},{
 					xtype: 'fieldset',
+					title: 'Payment',
+					items: [{
+						xtype: 'textarea',
+						fieldLabel: 'Bank details',
+						growMin: 80,
+						name: 'pay_bank',
+						readOnly: false
+					}]
+				},{
+					xtype: 'fieldset',
 					title: 'Location',
 					items: [{
 						xtype: 'textarea',
@@ -113,18 +224,18 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoicePanel',{
 					title: 'Amount details',
 					items: [{
 						xtype: 'textfield',
-						align: 'right',
+						fieldStyle: 'text-align: right',
 						fieldLabel: '<b>Excl VAT</b>',
 						anchor: '',
-						width: 250,
+						width: 200,
 						name: 'calc_amount_novat',
 						readOnly: true
 					},{
 						xtype: 'textfield',
-						align: 'right',
+						fieldStyle: 'text-align: right',
 						fieldLabel: '<b>Net amount</b>',
 						anchor: '',
-						width: 250,
+						width: 200,
 						name: 'calc_amount_final',
 						readOnly: true
 					}]
@@ -137,32 +248,10 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoicePanel',{
 					align: 'stretch'
 				},
 				border: false,
-				items:[{
+				items:[Ext.create('Optima5.Modules.Spec.BpSales.InvoiceLinesEditableGrid',{
 					region: 'center',
 					flex: 2,
-					xtype: 'grid',
-					itemId: 'pStepsGrid',
-					dockedItems: [{
-						xtype: 'toolbar',
-						items: [{
-							itemId: 'add',
-							text: 'Add',
-							iconCls: 'icon-add',
-							handler: function(){
-								this.onBtnAdd({}) ;
-							},
-							scope: this,
-							menu: []
-						}, '-', {
-							itemId: 'delete',
-							text: 'Delete',
-							iconCls: 'icon-delete',
-							handler: function(){
-								this.onBtnDelete() ;
-							},
-							scope: this
-						}]
-					}],
+					itemId: 'pCalcLinesGrid',
 					columns: [{
 						text: 'INV mode',
 						width: 70,
@@ -183,7 +272,8 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoicePanel',{
 							},
 							queryMode: 'local',
 							displayField: 'id',
-							valueField: 'id'
+							valueField: 'id',
+							allowBlank: false
 						}
 					},{
 						text: 'Product',
@@ -223,37 +313,108 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoicePanel',{
 						width: 80,
 						dataIndex: 'calc_amount_novat',
 						renderer: function(v) {
+							v = Ext.util.Format.number( v, '0.000' )
 							return '<b>'+v+'</b>';
 						}
+					},{
+						text: 'VAT',
+						align: 'right',
+						width: 60,
+						dataIndex: 'join_vat'
 					},{
 						text: '<b>Net</b>',
 						align: 'right',
 						width: 80,
 						dataIndex: 'calc_amount_final',
 						renderer: function(v) {
+							v = Ext.util.Format.number( v, '0.000' )
 							return '<b>'+v+'</b>';
 						}
 					}],
-					plugins: [{
-						ptype: 'rowediting',
-						pluginId: 'rowediting',
-						listeners: {
-							edit: this.onAfterEdit,
-							canceledit: this.onCancelEdit,
-							scope: this
+					listeners: {
+						edited: function(editableGrid) {
+							this.doSave();
+						},
+						scope: this
+					}
+				}),Ext.create('Optima5.Modules.Spec.BpSales.InvoiceLinesEditableGrid',{
+					region: 'south',
+					title: 'Static invoice lines',
+					collapsible: true,
+					collapsed: true,
+					flex: 1,
+					itemId: 'pStaticLinesGrid',
+					columns: [{
+						text: 'INV mode',
+						width: 90,
+						dataIndex: 'mode_inv',
+						renderer: function(v) {
+							return '<b>'+v+'</b>' ;
+						},
+						editor: {
+							xtype: 'combobox',
+							forceSelection: true,
+							editable: false,
+							store: {
+								fields: ['id'],
+								data : [
+									{id:'STATIC000'},
+									{id:'STATIC055'},
+									{id:'STATIC020'}
+								]
+							},
+							queryMode: 'local',
+							displayField: 'id',
+							valueField: 'id',
+							allowBlank: false
+						}
+					},{
+						text: 'Description',
+						width: 410,
+						dataIndex: 'static_txt',
+						editor: {
+							xtype: 'textfield'
+						}
+					},{
+						text: 'Amount',
+						align: 'right',
+						width: 60,
+						dataIndex: 'static_amount',
+						editor: {
+							xtype:'numberfield',
+							hideTrigger:true
+						}
+					},{
+						text: '<b>Excl.VAT</b>',
+						align: 'right',
+						width: 80,
+						dataIndex: 'calc_amount_novat',
+						renderer: function(v) {
+							v = Ext.util.Format.number( v, '0.000' )
+							return '<b>'+v+'</b>';
+						}
+					},{
+						text: 'VAT',
+						align: 'right',
+						width: 60,
+						dataIndex: 'join_vat'
+					},{
+						text: '<b>Net</b>',
+						align: 'right',
+						width: 80,
+						dataIndex: 'calc_amount_final',
+						renderer: function(v) {
+							v = Ext.util.Format.number( v, '0.000' )
+							return '<b>'+v+'</b>';
 						}
 					}],
-					store: {
-						model: 'BpSalesInvLigModel',
-						data: [],
-						proxy: {
-							type: 'memory',
-							reader: {
-								type: 'json'
-							}
-						}
+					listeners: {
+						edited: function(editableGrid) {
+							this.doSave();
+						},
+						scope: this
 					}
-				}]
+				})]
 			}]
 		}) ;
 		
@@ -324,10 +485,33 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoicePanel',{
 		//fHeader
 		this.down('#pHeaderForm').getForm().reset() ;
 		this.down('#pHeaderForm').getForm().loadRecord(invRecord) ;
+		this.down('#pHeaderForm').getForm().setValues({
+			calc_amount_novat: Ext.util.Format.number(invRecord.get('calc_amount_novat'),'0.000'),
+			calc_amount_final: Ext.util.Format.number(invRecord.get('calc_amount_final'),'0.000')
+		});
+		
+		// ***Split lines***
+		var ligsCalc = [],
+			ligsStatic = [] ;
+		invRecord.ligs().each(function(invLineRecord) {
+			if( invLineRecord.get('mode_inv_is_calc') ) {
+				ligsCalc.push( invLineRecord.getData() ) ;
+			} else {
+				ligsStatic.push( invLineRecord.getData() ) ;
+			}
+		}) ;
 		
 		//gLigs
-		this.down('#pStepsGrid').getEl().unmask() ;
-		this.down('#pStepsGrid').getStore().loadRawData(invRecord.ligs().getRange()) ;
+		this.down('#pCalcLinesGrid').getEl().unmask() ;
+		this.down('#pCalcLinesGrid').setData(ligsCalc) ;
+		
+		this.down('#pStaticLinesGrid').getEl().unmask() ;
+		this.down('#pStaticLinesGrid').setData(ligsStatic) ;
+		if( ligsStatic.length > 0 ) {
+			this.down('#pStaticLinesGrid').expand() ;
+		} else {
+			this.down('#pStaticLinesGrid').collapse() ;
+		}
 		
 		// Title
 		this.setTitle('Invoice: '+invRecord.get('id_inv')) ;
@@ -347,7 +531,10 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoicePanel',{
 		var recordData = form.getValues(false,false,false,true) ;
 		
 		var ligs = [] ;
-		this.down('#pStepsGrid').getStore().each( function(ligRecord) {
+		this.down('#pCalcLinesGrid').getStore().each( function(ligRecord) {
+			ligs.push(ligRecord.getData()) ;
+		}) ;
+		this.down('#pStaticLinesGrid').getStore().each( function(ligRecord) {
 			ligs.push(ligRecord.getData()) ;
 		}) ;
 		recordData['ligs'] = ligs ;
@@ -375,49 +562,6 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoicePanel',{
 			},
 			scope: this
 		}) ;
-	},
-	
-	onCancelEdit : function(editor, editObject){
-		var store = editObject.store,
-			record = editObject.record ;
-		if( record.phantom ) {
-			// Mod 2014-03 : if phantom set, remove record
-			store.remove(record) ;
-		}
-	},
-	onAfterEdit: function(editor, editObject) {
-		var record = editObject.record ;
-		// Mod 2014-03 : now actual record, unset phantom
-		record.phantom = false ;
-		this.down('#pStepsGrid').getView().getSelectionModel().deselectAll( true ) ;
-		
-		this.doSave() ;
-	},
-	
-	onBtnAdd: function() {
-		var newRecordIndex = 0 ;
-		
-		var newRecordValues = {
-			mode_inv: 'STD'
-		};
-		
-		var newModel = Ext.create('BpSalesInvLigModel',newRecordValues) ;
-		
-		this.down('#pStepsGrid').getStore().insert(newRecordIndex, newModel );
-		this.down('#pStepsGrid').getStore().sync() ;
-		
-		// Mod 2014-03 : safely set "phantom" explicitly
-		newModel.phantom = true ;
-		
-		this.down('#pStepsGrid').getPlugin('rowediting').startEdit(newRecordIndex, 0);
-	},
-	onBtnDelete: function() {
-		var selection = this.down('#pStepsGrid').getView().getSelectionModel().getSelection()[0];
-		if (selection) {
-			this.down('#pStepsGrid').getStore().remove(selection);
-			this.down('#pStepsGrid').getStore().sync() ;
-			this.doSave() ;
-		}
 	},
 	
 	

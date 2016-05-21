@@ -18,6 +18,7 @@ function specBpSales_inv_getRecords( $post_data ) {
 		$row['id_cde_ref'] = $paracrm_row['INV_field_ID_CDE_REF'] ;
 		$row['cli_link'] = $paracrm_row['INV_field_CLI_LINK'] ;
 		$row['cli_link_txt'] = $paracrm_row['INV_field_CLI_LINK_entry_CLI_NAME'] ;
+		$row['pay_bank'] = $paracrm_row['INV_field_PAY_BANK'] ;
 		$row['adr_sendto'] = $paracrm_row['INV_field_ADR_SENDTO'] ;
 		$row['adr_invoice'] = $paracrm_row['INV_field_ADR_INVOICE'] ;
 		$row['adr_ship'] = $paracrm_row['INV_field_ADR_SHIP'] ;
@@ -30,7 +31,6 @@ function specBpSales_inv_getRecords( $post_data ) {
 		
 		$TAB[$paracrm_row['filerecord_id']] = $row ;
 	}
-	$debug = $paracrm_TAB ;
 	
 	
 	
@@ -52,6 +52,7 @@ function specBpSales_inv_getRecords( $post_data ) {
 		$row['id_inv_lig'] = $paracrm_row['INV_LIG_field_ID_INV_LIG'] ;
 		$row['link_cdelig_filerecord_id'] = $paracrm_row['INV_LIG_field_LINK_CDELIG_FILE_ID'] ;
 		$row['mode_inv'] = $paracrm_row['INV_LIG_field_MODE_INV'] ;
+		$row['mode_inv_is_calc'] = ($paracrm_row['INV_LIG_field_MODE_INV_tree_INVMODE_GROUP']=='CALC') ;
 		$row['base_prod'] = $paracrm_row['INV_LIG_field_BASE_PROD'] ;
 		$row['base_prod_txt'] = $paracrm_row['INV_LIG_field_BASE_PROD_entry_PROD_TXT'] ;
 		$row['base_qty'] = $paracrm_row['INV_LIG_field_BASE_QTY'] ;
@@ -66,6 +67,7 @@ function specBpSales_inv_getRecords( $post_data ) {
 		
 		$TAB[$filerecord_parent_id]['ligs'][] = $row ;
 	}
+	$debug = $paracrm_TAB ;
 	
 	
 	if( isset($post_data['filter_invFilerecordId_arr']) ) {
@@ -157,7 +159,8 @@ function specBpSales_inv_setRecord( $post_data ) {
 	}
 	
 	$arr_update = array() ;
-	$arr_update['field_DATE_INVOIDE'] = $record_data['date_invoice'] ;
+	$arr_update['field_DATE_INVOICE'] = $record_data['date_invoice'] ;
+	$arr_update['field_PAY_BANK'] = $record_data['pay_bank'] ;
 	$arr_update['field_ADR_SENDTO'] = $record_data['adr_sendto'] ;
 	$arr_update['field_ADR_INVOICE'] = $record_data['adr_invoice'] ;
 	$arr_update['field_ADR_SHIP'] = $record_data['adr_ship'] ;
@@ -176,6 +179,8 @@ function specBpSales_inv_setRecord( $post_data ) {
 		$arr_update['field_MODE_INV'] = $row_lig['mode_inv'] ;
 		$arr_update['field_BASE_PROD'] = $row_lig['base_prod'] ;
 		$arr_update['field_BASE_QTY'] = $row_lig['base_qty'] ;
+		$arr_update['field_STATIC_AMOUNT'] = $row_lig['static_amount'] ;
+		$arr_update['field_STATIC_TXT'] = $row_lig['static_txt'] ;
 		if( !is_numeric($row_lig['invlig_filerecord_id']) ) {
 			$arr_newIds[] = paracrm_lib_data_insertRecord_file( 'INV_LIG', $record_data['inv_filerecord_id'], $arr_update );
 		} else {
@@ -208,7 +213,9 @@ function specBpSales_inv_lib_calc( $inv_filerecord_id ) {
 	
 	$tot_amount_novat = $tot_amount_final = 0 ;
 	foreach( $row_inv['ligs'] as $row_inv_lig ) {
-		$amount_base = $row_inv_lig['join_price'] * $row_inv_lig['base_qty'] ;
+		$amount_base = 0 ;
+		$amount_base+= $row_inv_lig['join_price'] * $row_inv_lig['base_qty'] ;
+		$amount_base+= $row_inv_lig['static_amount'] ;
 		
 		$amount_novat = $amount_base * $row_inv_lig['join_coef1'] * $row_inv_lig['join_coef2'] ;
 		$amount_final = $amount_novat * $row_inv_lig['join_vat'] ;
