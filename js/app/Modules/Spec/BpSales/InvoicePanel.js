@@ -98,7 +98,9 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoiceLinesEditableGrid',{
 			this.fireEvent('edited',this) ;
 		}
 	}
-}) ;
+});
+
+
 Ext.define('Optima5.Modules.Spec.BpSales.InvoicePanel',{
 	extend:'Ext.window.Window',
 	
@@ -360,7 +362,7 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoicePanel',{
 								data : [
 									{id:'STATIC000'},
 									{id:'STATIC055'},
-									{id:'STATIC020'}
+									{id:'STATIC200'}
 								]
 							},
 							queryMode: 'local',
