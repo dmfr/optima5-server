@@ -41,6 +41,10 @@ function media_pdf_html2pdf( $html, $format=NULL ) {
 			exec( media_pdf_makeExecCmd($GLOBALS['media_pdf_wkhtmltopdf_path'])." --page-size A4 {$html_path} {$pdf_path}" ) ;
 			break ;
 			
+		case 'A4L' :
+			exec( media_pdf_makeExecCmd($GLOBALS['media_pdf_wkhtmltopdf_path'])." --page-size A4 --orientation landscape {$html_path} {$pdf_path}" ) ;
+			break ;
+			
 		default :
 			exec( media_pdf_makeExecCmd($GLOBALS['media_pdf_wkhtmltopdf_path'])." --page-height $pdf_height --page-width $pdf_width {$html_path} {$pdf_path}" ) ;
 			break ;
