@@ -60,7 +60,9 @@ function specBpSales_cde_getRecords( $post_data ) {
 		$row['cdelig_filerecord_id'] = $paracrm_row['CDE_LIG_id'] ;
 		$row['status_is_ship'] = $paracrm_row['CDE_field_STATUS_IS_SHIP'] ;
 		$row['prod_ref'] = $paracrm_row['CDE_LIG_field_PROD_REF'] ;
+		$row['prod_ref_ean'] = $paracrm_row['CDE_LIG_field_PROD_REF_entry_PROD_SKU_EAN'] ;
 		$row['prod_ref_txt'] = $paracrm_row['CDE_LIG_field_PROD_REF_entry_PROD_TXT'] ;
+		$row['prod_ref_pcb'] = $paracrm_row['CDE_LIG_field_PROD_REF_entry_QTE_SKU'] ;
 		$row['spec_batch'] = $paracrm_row['CDE_LIG_field_BATCH_CODE'] ;
 		$row['spec_dlc'] = $paracrm_row['CDE_LIG_field_DLC_DATE'] ;
 		$row['qty_order'] = $paracrm_row['CDE_LIG_field_QTE_ORDER'] ;
@@ -87,7 +89,7 @@ function specBpSales_cde_getRecords( $post_data ) {
 			$row['calc_weight_kg'] += $row_lig['calc_weight_kg'] ;
 		}
 	}
-	unset($arr) ;
+	unset($row) ;
 	
 	
 	if( isset($post_data['filter_cdeFilerecordId_arr']) ) {
@@ -111,6 +113,9 @@ function specBpSales_cde_getRecords( $post_data ) {
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 		$cde_filerecord_id = $arr[0] ;
+		if( !$TAB[$cde_filerecord_id] ) {
+			continue ;
+		}
 		
 		$id_inv = $arr[1] ;
 		$amount_novat = $arr[2] ;

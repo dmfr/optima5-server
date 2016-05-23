@@ -55,6 +55,8 @@ function specBpSales_inv_getRecords( $post_data ) {
 		$row['mode_inv_is_calc'] = ($paracrm_row['INV_LIG_field_MODE_INV_tree_INVMODE_GROUP']=='CALC') ;
 		$row['base_prod'] = $paracrm_row['INV_LIG_field_BASE_PROD'] ;
 		$row['base_prod_txt'] = $paracrm_row['INV_LIG_field_BASE_PROD_entry_PROD_TXT'] ;
+		$row['base_prod_ean'] = $paracrm_row['INV_LIG_field_BASE_PROD_entry_PROD_SKU_EAN'] ;
+		$row['base_prod_pcb'] = $paracrm_row['INV_LIG_field_BASE_PROD_entry_QTE_SKU'] ;
 		$row['base_qty'] = $paracrm_row['INV_LIG_field_BASE_QTY'] ;
 		$row['static_txt'] = $paracrm_row['INV_LIG_field_STATIC_TXT'] ;
 		$row['static_amount'] = $paracrm_row['INV_LIG_field_STATIC_AMOUNT'] ;
@@ -233,6 +235,177 @@ function specBpSales_inv_lib_calc( $inv_filerecord_id ) {
 	$arr_update['field_CALC_AMOUNT_FINAL'] = $tot_amount_final ;
 	paracrm_lib_data_updateRecord_file( 'INV' , $arr_update, $row_inv['inv_filerecord_id'] ) ;
 
+}
+
+
+
+
+
+
+
+
+function specBpSales_inv_printDoc( $post_data ) {
+	global $_opDB ;
+	
+	$p_invFilerecordId = $post_data['inv_filerecord_id'] ;
+	
+	$app_root = $GLOBALS['app_root'] ;
+	$resources_root=$app_root.'/resources' ;
+	$templates_dir=$resources_root.'/server/templates' ;
+	$_IMG['DBS_logo_bw'] = file_get_contents($templates_dir.'/'.'DBS_logo_bw.png') ;
+	
+	$ttmp = specBpSales_inv_getRecords( array(
+		'filter_invFilerecordId_arr' => json_encode( array($p_invFilerecordId) )
+	) );
+	if( count($ttmp['data']) != 1 ) {
+		return array('success'=>false) ;
+	}
+	$inv_record = $ttmp['data'][0] ;
+	
+	
+	$query = "SELECT filerecord_id FROM view_file_CDE WHERE field_LINK_INV_FILE_ID='{$inv_record['inv_filerecord_id']}'" ;
+	$cde_filerecord_id = $_opDB->query_uniqueValue($query) ;
+	
+	$ttmp = specBpSales_cde_getRecords( array(
+		'filter_cdeFilerecordId_arr' => json_encode( array($cde_filerecord_id) )
+	) );
+	if( count($ttmp['data']) != 1 ) {
+		return array('success'=>false) ;
+	}
+	$cde_record = $ttmp['data'][0] ;
+	
+	
+	$map_mkey_value = array(
+		'id_inv' => $inv_record['id_inv'],
+		'cde_no' => $cde_record['cde_ref'],
+		'cli_ref_id' => $cde_record['cli_ref_id'],
+		'date_order' => date('d/m/Y',strtotime($cde_record['date_order'])),
+		'date_ship' => date('d/m/Y',strtotime($cde_record['date_ship'])),
+		
+		'adr_sendto' => nl2br($inv_record['adr_sendto']),
+		'adr_invoice' => nl2br($inv_record['adr_invoice']),
+		'adr_ship' => nl2br($inv_record['adr_ship']),
+		
+		'pay_bank' => nl2br(htmlentities($inv_record['pay_bank'])),
+		
+		'calc_amount_novat' => number_format($inv_record['calc_amount_novat'],3),
+		'calc_amount_final' => number_format($inv_record['calc_amount_final'],3),
+		'calc_vat' => number_format($inv_record['calc_amount_final']-$inv_record['calc_amount_novat'],3),
+		
+		'date_invoice' => date('d/m/Y',strtotime($inv_record['date_invoice']))
+	);
+	
+	
+	$map_columns = array(
+		'prod_ref_ean' => 'EAN Produit',
+		'prod_ref' => 'Code produit',
+		'txt' => 'Designation',
+		'qty_ship_uc' => 'Nb cartons',
+		'prod_ref_pcb' => 'SKU/carton',
+		'qty_ship' => 'Quantité SKU',
+		'join_price' => 'Prix tarif HT',
+		'join_coef1' => 'Remise 1',
+		'join_coef2' => 'Remise 2',
+		'join_coef3' => 'Remise 3',
+		'calc_price_unit' => 'Prix unitaire HT',
+		'join_vat' => 'TVA',
+		'calc_amount_novat' => 'Montant HT'
+	);
+	$table_columns = array() ;
+	foreach( $map_columns as $mkey => $mvalue ) {
+		$table_columns[] = array(
+			'dataIndex' => $mkey,
+			'text' => $mvalue
+		);
+	}
+	
+	$table_data = array() ;
+	foreach( $inv_record['ligs'] as $invlig_record ) {
+		$row_table = array(
+			'join_coef1' => (100 - ($invlig_record['join_coef1'] * 100)).' %',
+			'join_coef2' => (100 - ($invlig_record['join_coef2'] * 100)).' %',
+			'join_vat' => (($invlig_record['join_vat'] * 100) - 100).' %',
+			'calc_amount_novat' => number_format($invlig_record['calc_amount_novat'],3)
+		);
+		if( $invlig_record['base_prod'] ) {
+			$row_table+= array(
+				'prod_ref_ean' => $invlig_record['base_prod_ean'],
+				'prod_ref' => $invlig_record['base_prod'],
+				'prod_ref_pcb' => (float)$invlig_record['base_prod_pcb'],
+				'txt' => htmlentities($invlig_record['base_prod_txt']),
+				'qty_ship' => (float)$invlig_record['base_qty'],
+				'qty_ship_uc' => (float)($invlig_record['base_qty']/$invlig_record['base_prod_pcb']),
+				'join_price' => $invlig_record['join_price'],
+				'calc_price_unit' => number_format($invlig_record['join_price']*$invlig_record['join_coef1']*$invlig_record['join_coef2'],3),
+				'calc_price_novat' => number_format($invlig_record['calc_amount_novat'],3)
+			);
+		}
+		if( $invlig_record['static_txt'] ) {
+			$row_table+= array(
+				'txt' => htmlentities($invlig_record['static_txt']),
+				'calc_price_novat' => $invlig_record['calc_amount_novat']
+			);
+		}
+		$table_data[] = $row_table ;
+	}
+	
+	
+	
+	$app_root = $GLOBALS['app_root'] ;
+	$resources_root=$app_root.'/resources' ;
+	$templates_dir=$resources_root.'/server/templates' ;
+	$inputFileName = $templates_dir.'/'.'BP_SALES_invoice.html' ;
+	$inputBinary = file_get_contents($inputFileName) ;
+		
+	//echo $inputFileName ;
+	$doc = new DOMDocument();
+	@$doc->loadHTML($inputBinary);
+	
+	$elements = $doc->getElementsByTagName('qbook-value');
+	$i = $elements->length - 1;
+	while ($i > -1) {
+		$node_qbookValue = $elements->item($i); 
+		$i--; 
+		
+		$val = '' ;
+		$src_value = $node_qbookValue->attributes->getNamedItem('src_value')->value ;
+		if( $map_mkey_value[$src_value] ) {
+			$val = $map_mkey_value[$src_value] ;
+		}
+		
+		$new_node = $doc->createCDATASection($val) ;
+		$node_qbookValue->parentNode->replaceChild($new_node,$node_qbookValue) ;
+	}
+	
+	$elements = $doc->getElementsByTagName('qbook-table');
+	$i = $elements->length - 1;
+	while ($i > -1) {
+		$node_qbookTable = $elements->item($i); 
+		$i--; 
+		
+		$table_html = paracrm_queries_template_makeTable($table_columns,$table_data) ;
+		
+		//echo $table_html ;
+		$dom_table = new DOMDocument();
+		$dom_table->loadHTML( '<?xml encoding="UTF-8"><html>'.$table_html.'</html>' ) ;
+		$node_table = $dom_table->getElementsByTagName("table")->item(0);
+		
+		$table_attr = $dom_table->createAttribute("width") ;
+		$table_attr->value = '1200' ;
+		$node_table->appendChild($table_attr) ;
+		
+		$table_attr = $dom_table->createAttribute("class") ;
+		$table_attr->value = 'tabledonnees' ;
+		$node_table->appendChild($table_attr) ;
+		
+		$node_table = $doc->importNode($node_table,true) ;
+		
+		$node_qbookTable->parentNode->replaceChild($node_table,$node_qbookTable) ;
+	}
+	
+	
+	
+	return array('success'=>true, 'html'=>$doc->saveHTML() ) ;
 }
 
 ?>

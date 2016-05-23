@@ -19,6 +19,12 @@ switch( $post_data['_action'] )
 	case 'inv_setRecord' :
 		return specBpSales_inv_setRecord($post_data) ;
 
+	case 'inv_printDoc' :
+		return specBpSales_inv_printDoc($post_data) ;
+		
+	case 'util_htmlToPdf' :
+		return specBpSales_util_htmlToPdf( $post_data ) ;
+
 	default :
 	return NULL ;
 }
