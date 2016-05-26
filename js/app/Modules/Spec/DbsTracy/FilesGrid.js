@@ -445,7 +445,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			},
 			scope : this
 		});
-		if( Ext.isEmpty(record.get('calc_step')) && record.orders().getCount()==0 ) {
+		if( Ext.isEmpty(record.get('calc_step')) && record.orders().getCount()==0 
+				&& Optima5.Modules.Spec.DbsTracy.HelperCache.authHelperQueryPage('ADMIN') ) {
 			gridContextMenuItems.push({
 				iconCls: 'icon-bible-delete',
 				text: 'Delete TrsptFile',
@@ -1186,6 +1187,10 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 	},
 	
 	handleDeleteTrspt: function( trsptFilerecordId ) {
+		if( !Optima5.Modules.Spec.DbsTracy.HelperCache.authHelperQueryPage('ADMIN') ) {
+			Ext.Msg.alert('Auth','Not authorized') ;
+			return ;
+		}
 		this.showLoadmask() ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {

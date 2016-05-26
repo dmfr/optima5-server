@@ -17,8 +17,35 @@ function specDbsTracy_cfg_getAuth( $post_data ) {
 		return array('success'=>false) ;
 	}
 	
-	return array('success'=>true, 'authPage'=>array()) ;
+	$user_id = $_SESSION['login_data']['delegate_userId'] ;
+	$query = "SELECT * FROM view_bible_USERS_entry WHERE field_USER_CODE='{$user_id}'" ;
+	$result = $_opDB->query($query) ;
+	if( ($arr = $_opDB->fetch_assoc($result)) == FALSE ) {
+		return array('success'=>false) ;
+	}
+	
+	$authPage = array() ;
+	$user_class = $arr['treenode_key'] ;
+	switch( $user_class ) {
+		case 'ADMIN' :
+			$authPage = array('ADMIN','GOM','STD') ;
+			break ;
+		
+		case 'GOM' :
+			$authPage = array('GOM','STD') ;
+			break ;
+		
+		case 'STD' :
+			$authPage = array('STD') ;
+			break ;
+	}
+	
+	return array(
+		'success' => true,
+		'authPage' => $authPage
+	) ;
 }
+
 
 function specDbsTracy_cfg_getConfig() {
 	if( isset($GLOBALS['cache_specDbsLam_cfg']['getConfig']) ) {

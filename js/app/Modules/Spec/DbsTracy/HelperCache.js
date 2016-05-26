@@ -91,6 +91,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.HelperCache',{
 	init: function(optimaModule) {
 		var me = this ;
 		me.optimaModule = optimaModule ;
+		me.isReady = false ;
 		
 		Ext.defer(function() {
 			me.startLoading() ;

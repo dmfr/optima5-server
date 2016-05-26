@@ -23,6 +23,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 				},
 				scope:this
 			},{
+				hidden: !Optima5.Modules.Spec.DbsTracy.HelperCache.authHelperQueryPage('GOM'),
 				itemId: 'tbValidate',
 				iconCls:'op5-sdomains-menu-updateschema',
 				text:'<b>Validate</b>',
@@ -224,13 +225,13 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 						renderer: Ext.util.Format.dateRenderer('d/m/Y H:i'),
 						editor:{ xtype:'datetimefield' }
 					}],
-					plugins: [{
+					plugins: ( Optima5.Modules.Spec.DbsTracy.HelperCache.authHelperQueryPage('ADMIN') ? [{
 						ptype: 'rowediting',
 						listeners: {
 							edit: this.onAfterEditStep,
 							scope: this
 						}
-					}],
+					}] : []),
 					store: {
 						model: 'DbsTracyFileOrderStepModel',
 						data: [],
@@ -475,6 +476,12 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 	},
 	
 	handleSaveHeader: function(validateStepCode, noConfirm) {
+		if( !Ext.isEmpty(validateStepCode) && !Optima5.Modules.Spec.DbsTracy.HelperCache.authHelperQueryPage('GOM') ) {
+			Ext.Msg.alert('Auth','Not authorized') ;
+			return ;
+		}
+		
+		
 		var formPanel = this.down('#pHeaderForm'),
 			form = formPanel.getForm() ;
 		if( !form.isValid() ) {

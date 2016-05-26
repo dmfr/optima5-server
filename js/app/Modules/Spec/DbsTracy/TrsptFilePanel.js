@@ -26,6 +26,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 				},
 				scope:this
 			},{
+				hidden: !Optima5.Modules.Spec.DbsTracy.HelperCache.authHelperQueryPage('GOM'),
 				itemId: 'tbValidate',
 				iconCls:'op5-sdomains-menu-updateschema',
 				text:'<b>Validate</b>',
@@ -283,14 +284,17 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 								this.optimaModule.postCrmEvent('openorder',{orderFilerecordId:record.get('order_filerecord_id')}) ;
 							},
 							scope : this
-						},{
-							iconCls: 'icon-bible-delete',
-							text: 'Unassign',
-							handler : function() {
-								this.doOrdersRemove( [selRecord] ) ;
-							},
-							scope : this
 						});
+						if( Optima5.Modules.Spec.DbsTracy.HelperCache.authHelperQueryPage('ADMIN') ) {
+							gridContextMenuItems.push({
+								iconCls: 'icon-bible-delete',
+								text: 'Unassign',
+								handler : function() {
+									this.doOrdersRemove( [selRecord] ) ;
+								},
+								scope : this
+							});
+						}
 						
 						var gridContextMenu = Ext.create('Ext.menu.Menu',{
 							items : gridContextMenuItems,
@@ -624,6 +628,12 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 	},
 	
 	handleSaveHeader: function(validateStepCode) {
+		if( !Ext.isEmpty(validateStepCode) && !Optima5.Modules.Spec.DbsTracy.HelperCache.authHelperQueryPage('GOM') ) {
+			Ext.Msg.alert('Auth','Not authorized') ;
+			return ;
+		}
+		
+		
 		var formPanel = this.down('#pHeaderForm'),
 			form = formPanel.getForm() ;
 		if( !form.isValid() ) {
@@ -684,6 +694,12 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 	
 	
 	doOrdersAdd: function(orderRecords) {
+		if( !Optima5.Modules.Spec.DbsTracy.HelperCache.authHelperQueryPage('ADMIN') ) {
+			Ext.Msg.alert('Auth','Not authorized') ;
+			return ;
+		}
+		
+		
 		var formPanel = this.down('#pHeaderForm'),
 			form = formPanel.getForm(),
 			recordData = form.getValues(false,false,false,true) ;
@@ -752,6 +768,11 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		}) ;
 	},
 	doOrdersRemove: function(orderRecords) {
+		if( !Optima5.Modules.Spec.DbsTracy.HelperCache.authHelperQueryPage('ADMIN') ) {
+			Ext.Msg.alert('Auth','Not authorized') ;
+			return ;
+		}
+		
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_dbs_tracy',

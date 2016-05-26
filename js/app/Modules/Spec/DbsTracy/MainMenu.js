@@ -1,6 +1,7 @@
 Ext.define('DbsTracyMenuItemModel',{
 	extend: 'Ext.data.Model',
 	fields: [
+		{name: 'item_disabled',  type: 'boolean'},
 		{name: 'type_header',  type: 'boolean'},
 		{name: 'type_separator',   type: 'boolean'},
 		{name: 'type_action',   type: 'boolean'},
@@ -21,6 +22,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.MainMenu',{
 	initComponent: function() {
 		 var viewItemTpl = new Ext.XTemplate(
 			'<tpl for=".">',
+			'<tpl if="!item_disabled">',
 			'<div class="op5-spec-dbstracy-mainmenu-item">',
 				'<tpl if="type_header">',
 					'<div class="op5-spec-dbstracy-mainmenu-header"></div>',
@@ -44,21 +46,36 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.MainMenu',{
 					'</tpl>',
 				'</tpl>',
 			'</div>',
+			'</tpl>',
+			'<tpl if="item_disabled">',
+				'<div class="op5-spec-dbstracy-mainmenu-item" style="display:none">',
+				'&#160;',
+				'</div>',
+			'</tpl>',
 			'</tpl>'
 		);
 		 
-		var itemsStore = Ext.create('Ext.data.Store',{
-			model:'DbsTracyMenuItemModel',
-			data:[
+		var itemsStoreData = [] ;
+		if( true ) {
+			itemsStoreData.push(
 				{type_header:true},
 				{type_separator:true, separator_label: 'Files Management'},
 				{type_action:true, action_caption: 'Transport Files', action_sendEvent:'files', action_iconCls:'op5-spec-dbstracy-mmenu-files'},
 				{type_action:true, action_caption: 'Unsorted attachments', action_sendEvent:'attachments', action_iconCls:'op5-spec-dbstracy-mmenu-attachments'},
 				{type_action:true, type_action_blank:true},
-				{type_action:true, action_caption: 'Live Validation', action_sendEvent:'panel_live', action_iconCls:'op5-spec-dbslam-menu-live'},
+				{type_action:true, action_caption: 'Live Validation', action_sendEvent:'panel_live', action_iconCls:'op5-spec-dbslam-menu-live'}
+			);
+		}
+		if( Optima5.Modules.Spec.DbsTracy.HelperCache.authHelperQueryPage('ADMIN') ) {
+			itemsStoreData.push(
 				{type_separator:true, separator_label: 'Upload data sources'},
 				{type_action:true, action_caption: 'Upload / Sync', action_sendEvent:'form_upload', action_iconCls:'op5-spec-dbstracy-mmenu-upload'}
-			]
+			);
+		}
+		 
+		var itemsStore = Ext.create('Ext.data.Store',{
+			model: 'DbsTracyMenuItemModel',
+			data: itemsStoreData
 		}) ;
 		 
 		Ext.apply(this,{
