@@ -44,7 +44,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.UploadForm',{
 					editable: false,
 					store: {
 						fields: ['id'],
-						data: [{id:'VL06F'},{id:'LIKP'}]
+						data: [{id:'RCL_VL06F'},{id:'MBD_VL06F'},{id:'MBD_LIKP'}]
 					},
 					valueField: 'id',
 					displayField: 'id'

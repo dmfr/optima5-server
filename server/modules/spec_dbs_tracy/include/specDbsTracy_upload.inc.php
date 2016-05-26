@@ -7,8 +7,11 @@ function specDbsTracy_upload( $post_data ) {
 	
 	// Specs
 	switch( $file_model ) {
-		case 'VL06F' :
-			$ret = specDbsTracy_upload_VL06F_tmp($handle) ;
+		case 'RCL_VL06F' :
+			$ret = specDbsTracy_upload_VL06F_tmp($handle,'ACL') ;
+			break ;
+		case 'MBD_VL06F' :
+			$ret = specDbsTracy_upload_VL06F_tmp($handle,'MBD') ;
 			break ;
 		case 'LIKP' :
 			$ret = specDbsTracy_upload_LIKP_tmp($handle) ;
@@ -20,7 +23,7 @@ function specDbsTracy_upload( $post_data ) {
 	return array('success'=>$ret) ;
 }
 
-function specDbsTracy_upload_VL06F_tmp( $handle ) {
+function specDbsTracy_upload_VL06F_tmp( $handle, $id_soc ) {
 	global $_opDB ;
 	
 	$handle_priv = tmpfile();
@@ -53,11 +56,16 @@ function specDbsTracy_upload_VL06F_tmp( $handle ) {
 				break ;
 			case 'R':
 			case 'A':
+			case '1':
 				$form_data['id_soc'] = 'ACL' ;
 				break ;
 			default :
 				continue 2 ;
 		}
+		if( $form_data['id_soc'] != $id_soc ) {
+			continue ;
+		}
+		$passed = true ;
 		$form_data['id_dn'] = $arr_csv[0] ;
 		$form_data['flow_code'] = 'AIR' ; //TODO: dynamic ??
 		$form_data['atr_type'] = 'STD' ;
@@ -135,7 +143,7 @@ function specDbsTracy_upload_VL06F_tmp( $handle ) {
 	
 	fclose($handle_priv) ;
 	
-	return true ;
+	return $passed ;
 }
 
 function specDbsTracy_upload_LIKP_tmp( $handle ) {
