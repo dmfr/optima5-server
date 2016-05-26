@@ -13,8 +13,8 @@ function specDbsTracy_upload( $post_data ) {
 		case 'MBD_VL06F' :
 			$ret = specDbsTracy_upload_VL06F_tmp($handle,'MBD') ;
 			break ;
-		case 'LIKP' :
-			$ret = specDbsTracy_upload_LIKP_tmp($handle) ;
+		case 'MBD_LIKP' :
+			$ret = specDbsTracy_upload_LIKP_tmp($handle,'MBD') ;
 			break ;
 		default :
 			return array('success'=>false);
@@ -146,7 +146,7 @@ function specDbsTracy_upload_VL06F_tmp( $handle, $id_soc ) {
 	return $passed ;
 }
 
-function specDbsTracy_upload_LIKP_tmp( $handle ) {
+function specDbsTracy_upload_LIKP_tmp( $handle, $id_soc ) {
 	global $_opDB ;
 	
 	$handle_priv = tmpfile();
@@ -177,13 +177,13 @@ function specDbsTracy_upload_LIKP_tmp( $handle ) {
 			case 'M':
 				$form_data['id_soc'] = 'MBD' ;
 				break ;
-			case 'R':
-			case 'A':
-				$form_data['id_soc'] = 'ACL' ;
-				break ;
 			default :
 				continue 2 ;
 		}
+		if( $form_data['id_soc'] != $id_soc ) {
+			continue ;
+		}
+		$passed = true ;
 		$form_data['id_dn'] = (string)((int)$arr_csv[2]) ;
 		
 		if( !$map_idSoc_idDn_torf[$form_data['id_soc']][$form_data['id_dn']] ) {
@@ -209,7 +209,7 @@ function specDbsTracy_upload_LIKP_tmp( $handle ) {
 	
 	fclose($handle_priv) ;
 	
-	return true ;
+	return $passed ;
 }
 
 
