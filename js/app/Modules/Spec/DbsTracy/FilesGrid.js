@@ -1271,9 +1271,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			});
 		});
 		
-		var data = [] ;
+		var dataIds = [] ;
 		this.down('#pCenter').down('grid').getStore().each( function(record) {
-			data.push( record.getData(true) ) ;
+			dataIds.push( record.getId() ) ;
 		}) ;
 		
 		var exportParams = this.optimaModule.getConfiguredAjaxParams() ;
@@ -1281,7 +1281,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			_moduleId: 'spec_dbs_tracy',
 			_action: action,
 			columns: Ext.JSON.encode(columns),
-			data: Ext.JSON.encode(data),
+			dataIds: Ext.JSON.encode(dataIds),
 			exportXls: true
 		}) ;
 		Ext.create('Ext.ux.dams.FileDownloader',{

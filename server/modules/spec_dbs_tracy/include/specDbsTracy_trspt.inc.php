@@ -610,7 +610,7 @@ function specDbsTracy_trspt_printDoc( $post_data ) {
 }
 
 function specDbsTracy_trspt_download( $post_data ) {
-	$data = json_decode($post_data['data'],true) ;
+	$dataIds = json_decode($post_data['dataIds'],true) ;
 	$columns = array(
 		'id_soc' => 'Shipper',
 		'atr_type' => 'Type',
@@ -633,13 +633,25 @@ function specDbsTracy_trspt_download( $post_data ) {
 		$server_root = $GLOBALS['server_root'] ;
 		include("$server_root/include/xlsxwriter.class.php");
 		
+	$json = specDbsTracy_trspt_getRecords(array()) ;
+	$map_id_rowTrspt = array() ;
+	foreach( $json['data'] as $rowTrspt ) {
+		$id = $rowTrspt['trspt_filerecord_id'] ;
+		$map_id_rowTrspt[$id] = $rowTrspt ;
+	}
+		
 	$header = array() ;
 	foreach( $columns as $mkey => $col_title ) {
 		$header[$col_title] = 'string' ;
 	}
 	$writer = new XLSXWriter();
 	$writer->writeSheetHeader('Sheet1', $header );//optional
-	foreach( $data as $data_row ) {
+	foreach( $dataIds as $trspt_filerecord_id ) {
+	
+		if( !($data_row = $map_id_rowTrspt[$trspt_filerecord_id]) ) {
+			continue ;
+		}
+	
 		$map_stepCode_date = array() ;
 		if( !is_array($data_row['orders']) ) {
 			continue ;
