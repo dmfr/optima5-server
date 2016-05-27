@@ -306,7 +306,7 @@ function specBpSales_inv_printDoc( $post_data ) {
 		'join_price' => 'Prix tarif HT',
 		'join_coef1' => 'Remise 1',
 		'join_coef2' => 'Remise 2',
-		'join_coef3' => 'Remise 3',
+		//'join_coef3' => 'Remise 3',
 		'calc_price_unit' => 'Prix unitaire HT',
 		'join_vat' => 'TVA',
 		'calc_amount_novat' => 'Montant HT'
@@ -320,7 +320,7 @@ function specBpSales_inv_printDoc( $post_data ) {
 	}
 	
 	$table_data = array() ;
-	foreach( $inv_record['ligs'] as $invlig_record ) {
+	foreach( array_reverse($inv_record['ligs']) as $invlig_record ) {
 		$row_table = array(
 			'join_coef1' => (100 - ($invlig_record['join_coef1'] * 100)).' %',
 			'join_coef2' => (100 - ($invlig_record['join_coef2'] * 100)).' %',
@@ -390,12 +390,8 @@ function specBpSales_inv_printDoc( $post_data ) {
 		$dom_table->loadHTML( '<?xml encoding="UTF-8"><html>'.$table_html.'</html>' ) ;
 		$node_table = $dom_table->getElementsByTagName("table")->item(0);
 		
-		$table_attr = $dom_table->createAttribute("width") ;
-		$table_attr->value = '1200' ;
-		$node_table->appendChild($table_attr) ;
-		
 		$table_attr = $dom_table->createAttribute("class") ;
-		$table_attr->value = 'tabledonnees' ;
+		$table_attr->value = 'invoicewidth tabledonnees' ;
 		$node_table->appendChild($table_attr) ;
 		
 		$node_table = $doc->importNode($node_table,true) ;
