@@ -41,12 +41,9 @@ function specDbsTracy_order_getRecords( $post_data ) {
 			'vol_dims' => $arr['field_VOL_DIMS'],
 			'vol_count' => $arr['field_VOL_COUNT'],
 			
-			'warning_is_on' => $arr['field_WARNING_IS_ON'],
-			'warning_code' => $arr['field_WARNING_CODE'],
-			'warning_txt' => $arr['field_WARNING_TXT'],
-			
 			'steps' => array(),
 			'attachments' => array(),
+			'events' => array(),
 			
 			'calc_step' => '',
 			'calc_link_is_active' => null,
@@ -112,6 +109,27 @@ function specDbsTracy_order_getRecords( $post_data ) {
 		);
 	}
 	
+	$query = "SELECT * FROM view_file_CDE_EVENT ce" ;
+	$query.= " WHERE 1" ;
+	if( isset($filter_orderFilerecordId_list) ) {
+		$query.= " AND ce.filerecord_parent_id IN {$filter_orderFilerecordId_list}" ;
+	}
+	$query.= " ORDER BY filerecord_id";
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		if( !isset($TAB_order[$arr['filerecord_parent_id']]) ) {
+			continue ;
+		}
+		$TAB_order[$arr['filerecord_parent_id']]['events'][] = array(
+			'orderevent_filerecord_id' => $arr['filerecord_id'],
+			'event_date' => $arr['field_EVENT_DATE'],
+			'event_user' => $arr['field_EVENT_USER'],
+			'event_is_warning' => $arr['field_EVENT_IS_WARNING'],
+			'event_code' => $arr['field_EVENT_CODE'],
+			'event_txt' => $arr['field_EVENT_TXT'],
+		);
+	}
+	
 	foreach( $TAB_order as &$row_order ) {
 		$max_stepCode = array() ;
 		foreach( $row_order['steps'] as $row_order_step ) {
@@ -121,6 +139,16 @@ function specDbsTracy_order_getRecords( $post_data ) {
 		}
 		if( $max_stepCode ) {
 			$row_order['calc_step'] = max($max_stepCode) ;
+		}
+		
+		
+		$last_warning = end($row_order['events']) ;
+		if( $last_warning ) {
+			$row_order += array(
+				'warning_is_on' => $last_warning['event_is_warning'],
+				'warning_code' => $last_warning['event_code'],
+				'warning_txt' => $last_warning['event_txt']
+			);
 		}
 	}
 	unset($row_order) ;
@@ -207,16 +235,26 @@ function specDbsTracy_order_setHeader( $post_data ) {
 function specDbsTracy_order_setWarning( $post_data ) {
 	usleep(100*1000);
 	global $_opDB ;
-	$file_code = 'CDE' ;
+	$file_code = 'CDE_EVENT' ;
 	
 	$form_data = json_decode($post_data['data'],true) ;
 	
-	
-	$arr_ins = array() ;
-	$arr_ins['field_WARNING_IS_ON'] = ($form_data['warning_is_on'] ? 1:0 ) ;
-	$arr_ins['field_WARNING_CODE'] = $form_data['warning_code'] ;
-	$arr_ins['field_WARNING_TXT'] = $form_data['warning_txt'] ;
-	$filerecord_id = paracrm_lib_data_updateRecord_file( $file_code, $arr_ins, $post_data['order_filerecord_id'] );
+	if( $form_data['warning_is_on'] ) {
+		$arr_ins = array() ;
+		$arr_ins['field_EVENT_DATE'] = date('Y-m-d H:i:s') ;
+		$arr_ins['field_EVENT_USER'] = strtoupper($_SESSION['login_data']['delegate_userId']) ;
+		$arr_ins['field_EVENT_CODE'] = $form_data['warning_code'] ;
+		$arr_ins['field_EVENT_IS_WARNING'] = 1 ;
+		$arr_ins['field_EVENT_TXT'] = $form_data['warning_txt'] ;
+	} else {
+		$arr_ins = array() ;
+		$arr_ins['field_EVENT_DATE'] = date('Y-m-d H:i:s') ;
+		$arr_ins['field_EVENT_USER'] = strtoupper($_SESSION['login_data']['delegate_userId']) ;
+		$arr_ins['field_EVENT_CODE'] = '' ;
+		$arr_ins['field_EVENT_IS_WARNING'] = 0 ;
+		$arr_ins['field_EVENT_TXT'] = 'Warning suppressed' ;
+	}
+	$filerecord_id = paracrm_lib_data_insertRecord_file( $file_code, $post_data['order_filerecord_id'], $arr_ins );
 	
 	return array('success'=>true, 'id'=>$filerecord_id) ;
 }

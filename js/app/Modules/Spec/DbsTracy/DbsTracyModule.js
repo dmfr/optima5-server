@@ -21,6 +21,19 @@ Ext.define('DbsTracyFileOrderStepModel',{
 	]
 });
 
+Ext.define('DbsTracyFileOrderEventModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'orderevent_filerecord_id',
+	fields: [
+		{name: 'orderevent_filerecord_id', type:'int'},
+		{name: 'event_date', type:'date', dateFormat:'Y-m-d H:i:s'},
+		{name: 'event_user', type:'string'}, // null => to convert
+		{name: 'event_is_warning', type:'boolean'},
+		{name: 'event_code', type:'string'},
+		{name: 'event_txt', type:'string'}
+	]
+});
+
 Ext.define('DbsTracyFileOrderModel',{
 	extend: 'Ext.data.Model',
 	idProperty: 'order_filerecord_id',
@@ -84,6 +97,10 @@ Ext.define('DbsTracyFileOrderModel',{
 		model: 'DbsTracyFileOrderStepModel',
 		name: 'steps',
 		associationKey: 'steps'
+	},{
+		model: 'DbsTracyFileOrderEventModel',
+		name: 'events',
+		associationKey: 'events'
 	},{
 		model: 'DbsTracyAttachmentModel',
 		name: 'attachments',

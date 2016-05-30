@@ -192,7 +192,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 				border: false,
 				items:[{
 					region: 'center',
-					flex: 2,
+					flex: 3,
 					xtype: 'grid',
 					itemId: 'pStepsGrid',
 					columns: [{
@@ -259,21 +259,14 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 					}
 				},{
 					region: 'south',
-					flex: 3,
+					flex: 2,
 					xtype: 'grid',
-					itemId: 'pWarningsGrid',
+					itemId: 'pEventsGrid',
 					title: 'Warnings',
 					collapsible: true,
 					collapsed: true,
-					plugins: [{
-						ptype: 'rowediting',
-						listeners: {
-							edit: this.onAfterEditStep,
-							scope: this
-						}
-					}],
 					store: {
-						model: 'DbsTracyFileTrsptEventModel',
+						model: 'DbsTracyFileOrderEventModel',
 						data: [],
 						sorters: [{
 							property: 'event_date',
@@ -294,15 +287,31 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 							bodyField: 'event_txt',
 							expanded: true
 						}],
+						getRowClass: function(record) {
+							if( record.get('event_is_warning') ) {
+								return 'op5-spec-dbstracy-files-warning' ;
+							}
+						},
 						listeners: {
 							scope: this
 						}
 					},
 					columns: [{
-						text: 'Code',
+						text: 'User',
 						dataIndex: 'event_user',
 						hidden: false,
-						width: 200
+						flex: 1
+					}, {
+						text: 'Code',
+						dataIndex: 'event_code',
+						hidden: false,
+						flex: 1,
+						renderer: function(v) {
+							if( !Ext.isEmpty(v) ) {
+								return '<b>'+v+'</b>';
+							}
+							return '' ;
+						}
 					}, {
 						text: 'Date',
 						dataIndex: 'event_date',
@@ -323,7 +332,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 							}
 							return Ext.Date.format(date, 'Y/m/d g:i a');
 						},
-						width: 200
+						flex: 1
 					}]
 				}]
 			},Ext.create('Optima5.Modules.Spec.DbsTracy.OrderAttachmentsDataview',{
@@ -396,6 +405,10 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 		this.down('#pStepsGrid').getEl().mask() ;
 		this.down('#pStepsGrid').getStore().removeAll() ;
 		
+		//gEvents
+		this.down('#pEventsGrid').getEl().mask() ;
+		this.down('#pEventsGrid').getStore().removeAll() ;
+		
 		//gAttachments
 		this.down('#pAttachments').getEl().mask() ;
 		this.down('#pAttachments').setOrderRecord(null) ;
@@ -440,6 +453,17 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 		//gSteps
 		this.down('#pStepsGrid').getEl().unmask() ;
 		this.down('#pStepsGrid').getStore().loadRawData(orderRecord.steps().getRange()) ;
+		
+		//gEvents
+		var tmpData = [] ;
+		orderRecord.events().each( function(rec) {
+			tmpData.push(rec.getData()) ;
+		}) ;
+		this.down('#pEventsGrid').getEl().unmask() ;
+		this.down('#pEventsGrid').getStore().loadData(tmpData) ;
+		if( tmpData.length > 0 ) {
+			this.down('#pEventsGrid').expand() ;
+		}
 		
 		//gAttachments
 		this.down('#pAttachments').getEl().unmask() ;
