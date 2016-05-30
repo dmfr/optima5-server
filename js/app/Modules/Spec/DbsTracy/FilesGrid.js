@@ -3,6 +3,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 	
 	requires: [
 		'Optima5.Modules.Spec.DbsTracy.CfgParamButton',
+		'Optima5.Modules.Spec.DbsTracy.CfgParamFilter',
 		'Optima5.Modules.Spec.DbsTracy.OrderWarningPanel'
 	],
 	
@@ -667,14 +668,17 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			}
 		},{
 			text: '<b>Warning</b>',
-			dataIndex: 'warning_is_on',
+			dataIndex: 'warning_code',
 			width: 120,
 			align: 'center',
 			filter: {
-				type: 'boolean'
+				type: 'op5specdbstracycfgfilter',
+				cfgParam_id: 'WARNINGCODE',
+				cfgParam_emptyDisplayText: 'Select...',
+				optimaModule: this.optimaModule
 			},
 			renderer: function(v,metaData,record) {
-				if( !v ) {
+				if( !record.get('warning_is_on') ) {
 					metaData.tdCls += ' op5-spec-dbstracy-files-nowarning' ;
 					return ;
 				}
@@ -884,7 +888,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 	onOrderClick: function( view, record, itemNode, index, e ) {
 		var cellNode = e.getTarget( view.getCellSelector() ),
 			cellColumn = view.getHeaderByCell( cellNode ) ;
-		if( cellColumn.dataIndex=='warning_is_on' ) {
+		if( cellColumn.dataIndex=='warning_code' ) {
 			this.openWarningPanel( record ) ;
 			return ;
 		}
