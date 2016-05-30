@@ -277,6 +277,7 @@ function specBpSales_inv_printDoc( $post_data ) {
 	
 	$map_mkey_value = array(
 		'id_inv' => $inv_record['id_inv'],
+		'cli_link' => $inv_record['cli_link'],
 		'cde_no' => $cde_record['cde_ref'],
 		'cli_ref_id' => $cde_record['cli_ref_id'],
 		'date_order' => date('d/m/Y',strtotime($cde_record['date_order'])),
