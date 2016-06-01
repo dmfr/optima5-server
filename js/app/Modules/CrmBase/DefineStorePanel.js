@@ -23,7 +23,8 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 		this.treeFieldType = Ext.create('Ext.data.Store', {
 			fields: ['dataType', 'dataTypeLib'],
 			data : [
-				{"dataType":"string", "dataTypeLib":"Text"},
+				{"dataType":"string", "dataTypeLib":"String"},
+				{"dataType":"stringplus", "dataTypeLib":"Text"},
 				{"dataType":"number", "dataTypeLib":"Number"},
 				{"dataType":"bool", "dataTypeLib":"Boolean"},
 				{"dataType":"extid", "dataTypeLib":"Ext.ID"},
@@ -34,7 +35,8 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 			fields: ['dataType', 'dataTypeLib'],
 			data : [
 				{"dataType":"_label", "dataTypeLib":"None/Label"},
-				{"dataType":"string", "dataTypeLib":"Text"},
+				{"dataType":"string", "dataTypeLib":"String"},
+				{"dataType":"stringplus", "dataTypeLib":"Text"},
 				{"dataType":"number", "dataTypeLib":"Number"},
 				{"dataType":"bool", "dataTypeLib":"Boolean"},
 				{"dataType":"extid", "dataTypeLib":"Ext.ID"},

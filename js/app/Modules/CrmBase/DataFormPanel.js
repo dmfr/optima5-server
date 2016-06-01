@@ -292,6 +292,12 @@ Ext.define('Optima5.Modules.CrmBase.DataFormPanel' ,{
 					});
 					break ;
 				
+				case 'stringplus' :
+					Ext.apply( colCfg, {
+						editor:{ xtype:'textarea', allowBlank: !(field.is_header=='O' || field.is_mandatory=='O') }
+					});
+					break ;
+				
 				default :
 					Ext.apply( colCfg, {
 						editor:{ xtype:'textfield', allowBlank: !(field.is_header=='O' || field.is_mandatory=='O') }

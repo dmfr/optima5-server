@@ -352,6 +352,7 @@ function paracrm_lib_file_joinPrivate_getMap( $file_code ) {
 	$fn_getStoreSuffix = function($field_type) {
 		switch( $field_type ) {
 			case 'string' :
+			case 'stringplus' :
 				return '_str' ;
 			case 'number' :
 				return '_dec' ;

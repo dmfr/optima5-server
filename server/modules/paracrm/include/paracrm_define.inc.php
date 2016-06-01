@@ -985,6 +985,7 @@ function paracrm_define_tool_getEqFieldType( $crm_field_type ) {
 	switch( $crm_field_type ) {
 		case 'link' :
 		case 'string' :
+		case 'stringplus' :
 		return 'str' ;
 		
 		case 'number' :

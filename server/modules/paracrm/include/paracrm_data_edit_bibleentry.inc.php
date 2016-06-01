@@ -123,10 +123,14 @@ function paracrm_data_editTransaction_bibleEntry( $post_data , &$arr_saisie )
 			$form_item = array() ;
 			switch( $arr['entry_field_type'] )
 			{
+				case 'stringplus' :
 				case 'string' :
 				case 'number' :
 				case 'extid' :
 				switch( $arr['entry_field_type'] ) {
+					case 'stringplus' :
+						$form_item['xtype'] = 'textarea' ;
+						break ;
 					case 'string' :
 						$form_item['xtype'] = 'textfield' ;
 						break ;

@@ -188,6 +188,7 @@ function paracrm_lib_file_mapFile( $file_code, $is_called=FALSE )
 		switch( $arr['entry_field_type'] ) {
 			case 'date' :
 			case 'string' :
+			case 'stringplus' :
 			case 'bool' :
 			case 'extid' :
 			case 'number' :

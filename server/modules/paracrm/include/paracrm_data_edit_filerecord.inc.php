@@ -245,6 +245,7 @@ function paracrm_data_editTransaction_fileRecord_init( $post_data , &$arr_saisie
 		$field['fieldLabel'] = $arr['entry_field_lib'] ;
 		switch( $arr['entry_field_type'] )
 		{
+			case 'stringplus' :
 			case 'string' :
 			case 'number' :
 			case 'extid' :
@@ -253,6 +254,9 @@ function paracrm_data_editTransaction_fileRecord_init( $post_data , &$arr_saisie
 				break ;
 			}
 			switch( $arr['entry_field_type'] ) {
+				case 'stringplus' :
+					$field['xtype'] = 'textarea' ;
+					break ;
 				case 'string' :
 					$field['xtype'] = 'textfield' ;
 					break ;
