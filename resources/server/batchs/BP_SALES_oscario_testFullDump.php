@@ -415,6 +415,7 @@ $lig = fgets($handle)  ;
 $fields = json_decode($lig) ;
 
 $map_localField_position = array() ;
+$adr_positions = array() ;
 foreach( $fields as $position => $field ) {
 	$localTarget = NULL ;
 	switch( $field ) {
@@ -422,6 +423,13 @@ foreach( $fields as $position => $field ) {
 		case 'cli_lib' : $target = 'field_cli_NAME_str' ; break ;
 		
 		case 'cligroup_code' : $target = '_' ; break ;
+		
+		case 'adrfact_nom' :
+		case 'adrfact_rue' :
+		case 'adrfact_localite' :
+		case 'adrfact_ville' :
+			$adr_positions[] = $position ;
+			continue 2 ;
 		
 		default : continue 2 ;
 	}
@@ -447,6 +455,17 @@ while( !feof($handle) ) {
 	if( !$entry_key ) {
 		continue ;
 	}
+	
+	$adr = '' ;
+	foreach( $adr_positions as $pos ) {
+		$str = $arr[$pos] ;
+		if( $str ) {
+			$adr.= $str."\n" ;
+		}
+	}
+	$arr_ins['field_ADR_SHIP_str'] = $adr ;
+	$arr_ins['field_ADR_INVOICE_str'] = $adr ; 
+	
 	
 	$query = "SELECT * FROM store_bible_CUSTOMER_entry WHERE entry_key='{$entry_key}'" ;
 	if( $_opDB->num_rows($res = $_opDB->query($query)) > 0 ) {
@@ -522,6 +541,18 @@ fclose($handle) ;
 
 
 
+$map_prefix8_treenodeKey = array() ;
+$query = "SELECT treenode_key, field_TMP_AUTONODE_C8 FROM view_bible_CUSTOMER_tree WHERE field_TMP_AUTONODE_C8<>''" ;
+$result = $_opDB->query($query) ;
+while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+	$map_prefix8_treenodeKey[$arr[1]] = $arr[0] ;
+}
+//print_r($map_prefix8_treenodeKey) ;
+foreach( $map_prefix8_treenodeKey as $prefix8 => $treenode_key ) {
+	$query = "UPDATE view_bible_CUSTOMER_entry SET treenode_key='{$treenode_key}'
+		WHERE entry_key LIKE '{$prefix8}%' AND LENGTH(entry_key)=11" ;
+	$_opDB->query($query) ;
+}
 
 
 
