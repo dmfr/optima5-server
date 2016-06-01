@@ -28,17 +28,38 @@ function paracrm_lib_data_getRecord( $data_type, $store_code, $key, $parent_key=
 			return NULL ;
 	}
 }
-function paracrm_lib_data_getRecord_bibleTreenode( $bible_code, $treenode_key )
+function paracrm_lib_data_getRecord_bibleTreenode( $bible_code, $treenode_key, $ascend_on_empty=FALSE )
 {
 	global $_opDB ;
 
 	$view_name = 'view_bible_'.$bible_code.'_tree' ;
-	$query = "SELECT * FROM $view_name WHERE treenode_key='$treenode_key'" ;
-	$result = $_opDB->query($query) ;
-	if( $_opDB->num_rows($result) != 1 )
-		return NULL ;
-
-	return $_opDB->fetch_assoc($result) ;
+	$return_arr = NULL ;
+	while( TRUE ) {
+		$query = "SELECT * FROM $view_name WHERE treenode_key='$treenode_key'" ;
+		$result = $_opDB->query($query) ;
+		if( $_opDB->num_rows($result) != 1 ) {
+			break ;
+		}
+		if( !is_array($return_arr) ) {
+			$return_arr = array() ;
+		}
+		$arr = $_opDB->fetch_assoc($result) ;
+		if( !$ascend_on_empty ) {
+			$return_arr = $arr ;
+			break ;
+		}
+		foreach( $arr as $mkey => $mvalue ) {
+			if( !$return_arr[$mkey] ) {
+				$return_arr[$mkey] = $mvalue ;
+			}
+		}
+		if( $arr['treenode_parent_key'] && $arr['treenode_parent_key'] != $treenode_key ) {
+			$treenode_key = $arr['treenode_parent_key'] ;
+			continue ;
+		}
+		break ;
+	}
+	return $return_arr ;
 }
 function paracrm_lib_data_getRecord_bibleEntry( $bible_code, $entry_key )
 {
