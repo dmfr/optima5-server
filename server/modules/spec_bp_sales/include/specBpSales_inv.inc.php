@@ -27,6 +27,9 @@ function specBpSales_inv_getRecords( $post_data ) {
 		$row['calc_amount_novat'] = $paracrm_row['INV_field_CALC_AMOUNT_NOVAT'] ;
 		$row['calc_amount_final'] = $paracrm_row['INV_field_CALC_AMOUNT_FINAL'] ;
 		
+		$row['status_is_final'] = $paracrm_row['INV_field_STATUS_IS_FINAL'] ;
+		$row['status_is_sent'] = $paracrm_row['INV_field_STATUS_IS_SENT'] ;
+		
 		$row['ligs'] = array() ;
 		
 		$TAB[$paracrm_row['filerecord_id']] = $row ;
@@ -147,8 +150,44 @@ function specBpSales_inv_createFromOrder( $post_data ) {
 }
 
 function specBpSales_inv_deleteRecord( $post_data ) {
-
-
+	global $_opDB ;
+	$ttmp = specBpSales_inv_getRecords(
+		array(
+			'filter_invFilerecordId_arr'=> json_encode(array($post_data['inv_filerecord_id']))
+		)
+	) ;
+	$inv_record = $ttmp['data'][0] ;
+	if( !$inv_record || $inv_record['inv_filerecord_id']!=$post_data['inv_filerecord_id'] ) {
+		return array('success'=>false) ;
+	}
+	if( $inv_record['status_is_final'] ) {
+		return array('success'=>false) ;
+	}
+	
+	
+	$arr_cdeFilerecordIds = array() ;
+	$query = "SELECT filerecord_id FROM view_file_CDE WHERE field_LINK_INV_FILE_ID='{$inv_record['inv_filerecord_id']}'" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$arr_cdeFilerecordIds[] = $arr[0] ;
+	}
+	
+	$ttmp = specBpSales_cde_getRecords(
+		array(
+			'filter_cdeFilerecordId_arr'=> json_encode($arr_cdeFilerecordIds)
+		)
+	) ;
+	$cde_records = $ttmp['data'] ;
+	foreach( $cde_records as $row_cde ) {
+		$arr_update = array() ;
+		$arr_update['field_LINK_INV_FILE_ID'] = 0 ;
+		$arr_update['field_STATUS'] = '50_SHIPPED' ;
+		paracrm_lib_data_updateRecord_file( 'CDE' , $arr_update, $row_cde['cde_filerecord_id'] ) ;
+	}
+	
+	paracrm_lib_data_deleteRecord_file( 'INV', $post_data['inv_filerecord_id'] ) ;
+	
+	return array('success'=>true) ;
 }
 
 function specBpSales_inv_setRecord( $post_data ) {
@@ -196,6 +235,32 @@ function specBpSales_inv_setRecord( $post_data ) {
 	}
 	
 	specBpSales_inv_lib_calc($record_data['inv_filerecord_id']) ;
+	
+	if( $post_data['validate'] == 1 ) {
+		$arr_cdeFilerecordIds = array() ;
+		$query = "SELECT filerecord_id FROM view_file_CDE WHERE field_LINK_INV_FILE_ID='{$record_data['inv_filerecord_id']}'" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$arr_cdeFilerecordIds[] = $arr[0] ;
+		}
+		
+		$ttmp = specBpSales_cde_getRecords(
+			array(
+				'filter_cdeFilerecordId_arr'=> json_encode($arr_cdeFilerecordIds)
+			)
+		) ;
+		$cde_records = $ttmp['data'] ;
+		foreach( $cde_records as $row_cde ) {
+			if( $row_cde['status_percent'] < 85 ) {
+				$arr_update = array() ;
+				$arr_update['field_STATUS'] = '85_INVSENT' ;
+				paracrm_lib_data_updateRecord_file( 'CDE' , $arr_update, $row_cde['cde_filerecord_id'] ) ;
+			}
+		}
+		$arr_update = array() ;
+		$arr_update['field_STATUS_IS_FINAL'] = 1 ;
+		paracrm_lib_data_updateRecord_file( 'INV' , $arr_update, $record_data['inv_filerecord_id'] ) ;
+	}
 	
 	return array('success'=>true,'debug'=>$record_data) ;
 }
@@ -400,9 +465,9 @@ function specBpSales_inv_printDoc( $post_data ) {
 		$node_qbookTable->parentNode->replaceChild($node_table,$node_qbookTable) ;
 	}
 	
+	$filename = preg_replace("/[^a-zA-Z0-9]/", "",$inv_record['id_inv']).'.pdf' ;
 	
-	
-	return array('success'=>true, 'html'=>$doc->saveHTML() ) ;
+	return array('success'=>true, 'html'=>$doc->saveHTML(), 'filename'=>$filename ) ;
 }
 
 ?>

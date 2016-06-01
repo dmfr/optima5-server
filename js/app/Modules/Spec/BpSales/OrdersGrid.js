@@ -127,11 +127,6 @@ Ext.define('Optima5.Modules.Spec.BpSales.OrdersGrid',{
 		var buttonMarkup = Ext.DomHelper.markup(validBtn.getRenderTree());
 		validBtn.destroy() ;
 		var columns = [{
-			text: '',
-			dataIndex: '',
-			width:32,
-			align: ''
-		},{
 			text: '<b>Order</b>',
 			dataIndex: 'cde_ref',
 			width:120,

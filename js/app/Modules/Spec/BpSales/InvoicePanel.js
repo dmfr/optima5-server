@@ -55,6 +55,14 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoiceLinesEditableGrid',{
 	setData: function(data) {
 		this.getStore().loadRawData(data) ;
 	},
+	setReadOnly: function(torf) {
+		if( torf ) {
+			this.getPlugin('rowediting').disable() ;
+		} else {
+			this.getPlugin('rowediting').enable() ;
+		}
+		this.down('toolbar').setVisible( !torf ) ;
+	},
 	
 	onCancelEdit : function(editor, editObject){
 		var store = editObject.store,
@@ -115,6 +123,7 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoicePanel',{
 				align: 'stretch'
 			},
 			tbar:[{
+				itemId: 'tbSave',
 				iconCls:'op5-sdomains-menu-submit',
 				text:'Save',
 				handler: function() {
@@ -122,17 +131,27 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoicePanel',{
 				},
 				scope:this
 			},{
+				itemId: 'tbDelete',
 				iconCls:'icon-bible-delete',
 				text:'Delete',
 				handler: function() {
-					
+					this.handleDelete() ;
 				},
 				scope:this
-			},'->',{
-				icon: 'images/op5img/ico_save_16.gif',
+			},{
+				itemId: 'tbDownload',
+				icon: 'images/op5img/ico_download_16.png',
 				text:'Download',
 				handler: function() {
 					this.handleDownload() ;
+				},
+				scope:this
+			},'->',{
+				itemId: 'tbValidate',
+				iconCls:'op5-sdomains-menu-updateschema',
+				text:'Validate',
+				handler: function() {
+					this.handleValidate() ;
 				},
 				scope:this
 			}],
@@ -484,6 +503,14 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoicePanel',{
 	onLoadInv: function( invRecord ) {
 		this._invFilerecordId = invRecord.getId() ;
 		
+		var readOnly = invRecord.get('status_is_final') ;
+		
+		//toolbar
+		this.down('toolbar').down('#tbSave').setVisible(!readOnly) ;
+		this.down('toolbar').down('#tbDelete').setVisible(!readOnly) ;
+		this.down('toolbar').down('#tbValidate').setVisible(!readOnly) ;
+		this.down('toolbar').down('#tbDownload').setVisible(readOnly) ;
+		
 		//fHeader
 		this.down('#pHeaderForm').getForm().reset() ;
 		this.down('#pHeaderForm').getForm().loadRecord(invRecord) ;
@@ -491,6 +518,11 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoicePanel',{
 			calc_amount_novat: Ext.util.Format.number(invRecord.get('calc_amount_novat'),'0.000'),
 			calc_amount_final: Ext.util.Format.number(invRecord.get('calc_amount_final'),'0.000')
 		});
+		if( readOnly ) {
+			this.down('#pHeaderForm').getForm().getFields().each(function(field) {
+				field.setReadOnly( true ) ;
+			}) ;
+		}
 		
 		// ***Split lines***
 		var ligsCalc = [],
@@ -506,6 +538,9 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoicePanel',{
 		//gLigs
 		this.down('#pCalcLinesGrid').getEl().unmask() ;
 		this.down('#pCalcLinesGrid').setData(ligsCalc) ;
+		if( readOnly ) {
+			this.down('#pCalcLinesGrid').setReadOnly(true) ;
+		}
 		
 		this.down('#pStaticLinesGrid').getEl().unmask() ;
 		this.down('#pStaticLinesGrid').setData(ligsStatic) ;
@@ -513,6 +548,9 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoicePanel',{
 			this.down('#pStaticLinesGrid').expand() ;
 		} else {
 			this.down('#pStaticLinesGrid').collapse() ;
+		}
+		if( readOnly ) {
+			this.down('#pStaticLinesGrid').setReadOnly(true) ;
 		}
 		
 		// Title
@@ -523,7 +561,7 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoicePanel',{
 		this.loadInv( this._invFilerecordId ) ;
 	},
 	
-	doSave: function() {
+	doSave: function(doValidate) {
 		var formPanel = this.down('#pHeaderForm'),
 			form = formPanel.getForm() ;
 		if( !form.isValid() ) {
@@ -547,7 +585,8 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoicePanel',{
 			params: {
 				_moduleId: 'spec_bp_sales',
 				_action: 'inv_setRecord',
-				data: Ext.JSON.encode(recordData)
+				data: Ext.JSON.encode(recordData),
+				validate: (doValidate ? 1:0)
 			},
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
@@ -565,8 +604,46 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoicePanel',{
 			scope: this
 		}) ;
 	},
+	doDelete: function() {
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_bp_sales',
+				_action: 'inv_deleteRecord',
+				inv_filerecord_id: this._invFilerecordId
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					var error = ajaxResponse.success || 'File not saved !' ;
+					Ext.MessageBox.alert('Error',error) ;
+					this.hideLoadmask() ;
+					return ;
+				}
+				
+				this.destroy() ;
+			},
+			callback: function() {
+				//this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+	},
 	
-	
+	handleDelete: function() {
+		Ext.Msg.confirm('Delete','Delete invoice ?',function(btn){
+			if( btn=='yes' ) {
+				this.doDelete() ;
+			}
+		},this);
+	},
+	handleValidate: function() {
+		Ext.Msg.confirm('Validate invoice ?','Warning : Not editable beyond this action',function(btn){
+			if( btn=='yes' ) {
+				this.doSave(true) ;
+			}
+		},this);
+	},
 	handleDownload: function() {
 		if( this._invFilerecordId ) {
 			return this.openPrintPopup() ;
@@ -584,7 +661,7 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoicePanel',{
 			success: function(response) {
 				var jsonResponse = Ext.JSON.decode(response.responseText) ;
 				if( jsonResponse.success == true ) {
-					this.openPrintPopupDo( this.getTitle(), jsonResponse.html ) ;
+					this.openPrintPopupDo( this.getTitle(), jsonResponse.html, jsonResponse.filename ) ;
 					this.doReload() ;
 				} else {
 					Ext.MessageBox.alert('Error','Print system disabled') ;
@@ -596,7 +673,7 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoicePanel',{
 			scope: this
 		}) ;
 	},
-	openPrintPopupDo: function(pageTitle, pageHtml) {
+	openPrintPopupDo: function(pageTitle, pageHtml, pageFilename) {
 		this.optimaModule.createWindow({
 			width:850,
 			height:700,
@@ -605,6 +682,7 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoicePanel',{
 			border: false,
 			layout:'fit',
 			title: pageTitle,
+			filename: pageFilename,
 			items:[Ext.create('Ext.ux.dams.IFrameContent',{
 				itemId: 'uxIFrame',
 				content:pageHtml
@@ -627,12 +705,14 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoicePanel',{
 				icon: 'images/op5img/ico_save_16.gif',
 				text: 'Save as PDF',
 				handler: function(btn) {
-					var uxIFrame = btn.up('window').down('#uxIFrame') ;
+					var win = btn.up('window'),
+						uxIFrame = win.down('#uxIFrame') ;
 					
 					var exportParams = this.optimaModule.getConfiguredAjaxParams() ;
 					Ext.apply(exportParams,{
 						_moduleId: 'spec_bp_sales',
 						_action: 'util_htmlToPdf',
+						filename: win.filename,
 						html: Ext.JSON.encode(uxIFrame.content)
 					}) ;
 					Ext.create('Ext.ux.dams.FileDownloader',{

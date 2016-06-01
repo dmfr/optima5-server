@@ -95,7 +95,10 @@ Ext.define('BpSalesInvModel',{
 		{name: 'date_invoice', type:'date', dateFormat:'Y-m-d'},
 		
 		{name: 'calc_amount_novat', type:'number'},
-		{name: 'calc_amount_final', type:'number'}
+		{name: 'calc_amount_final', type:'number'},
+		
+		{name: 'status_is_final', type:'boolean'},
+		{name: 'status_is_sent', type:'boolean'}
 	],
 	hasMany: [{
 		model: 'BpSalesInvLigModel',
