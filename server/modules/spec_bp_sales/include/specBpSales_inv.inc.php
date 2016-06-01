@@ -119,13 +119,18 @@ function specBpSales_inv_createFromOrder( $post_data ) {
 	$id = $_opDB->query_uniqueValue($query) ;
 	$_opDB->query("UNLOCK TABLES") ;
 	
+	//Query customer
+	$customer_entry = paracrm_lib_data_getRecord_bibleEntry('CUSTOMER',$row_cde['cli_link']) ;
+	$customer_treenode = paracrm_lib_data_getRecord_bibleTreenode('CUSTOMER',$customer_entry['treenode_key'],$ascend_on_empty=TRUE) ;
+	
 	$arr_ins = array() ;
 	$arr_ins['field_ID_INV'] = 'INV/'.str_pad((float)$id, 6, "0", STR_PAD_LEFT) ;
 	$arr_ins['field_ID_CDE_REF'] = $row_cde['cde_ref'] ;
 	$arr_ins['field_CLI_LINK'] = $row_cde['cli_link'] ;
-	$arr_ins['field_ADR_SENDTO'] = $row_cde['cli_link_txt'] ;
-	$arr_ins['field_ADR_INVOICE'] = $row_cde['cli_link_txt'] ;
-	$arr_ins['field_ADR_SHIP'] = $row_cde['cli_link_txt'] ;
+	$arr_ins['field_ADR_SENDTO'] = '' ;
+	$arr_ins['field_ADR_INVOICE'] = $customer_entry['field_ADR_INVOICE'] ;
+	$arr_ins['field_ADR_SHIP'] = $customer_entry['field_ADR_SHIP'] ;
+	$arr_ins['field_PAY_BANK'] = $customer_treenode['field_ATR_PAYBANK'] ;
 	$arr_ins['field_DATE_CREATE'] = date('Y-m-d H:i:s') ;
 	$arr_ins['field_DATE_INVOICE'] = $row_cde['date_order'] ;
 	$inv_filerecord_id = paracrm_lib_data_insertRecord_file( 'INV', 0, $arr_ins );
