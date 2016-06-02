@@ -357,7 +357,7 @@ function specBpSales_inv_printDoc( $post_data ) {
 		'adr_invoice' => nl2br($inv_record['adr_invoice']),
 		'adr_ship' => nl2br($inv_record['adr_ship']),
 		
-		'pay_bank' => nl2br(htmlentities($inv_record['pay_bank'])),
+		'pay_bank' => nl2br($inv_record['pay_bank']),
 		
 		'calc_amount_novat' => number_format($inv_record['calc_amount_novat'],3),
 		'calc_amount_final' => number_format($inv_record['calc_amount_final'],3),
