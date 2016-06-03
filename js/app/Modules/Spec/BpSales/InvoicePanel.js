@@ -123,6 +123,7 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoicePanel',{
 				align: 'stretch'
 			},
 			tbar:[{
+				hidden: true,
 				itemId: 'tbSave',
 				iconCls:'op5-sdomains-menu-submit',
 				text:'Save',
@@ -131,6 +132,7 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoicePanel',{
 				},
 				scope:this
 			},{
+				hidden: true,
 				itemId: 'tbDelete',
 				iconCls:'icon-bible-delete',
 				text:'Delete',
@@ -139,6 +141,7 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoicePanel',{
 				},
 				scope:this
 			},{
+				hidden: true,
 				itemId: 'tbDownload',
 				icon: 'images/op5img/ico_download_16.png',
 				text:'Download',
@@ -147,6 +150,7 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoicePanel',{
 				},
 				scope:this
 			},'->',{
+				hidden: true,
 				itemId: 'tbValidate',
 				iconCls:'op5-sdomains-menu-updateschema',
 				text:'Validate',
