@@ -224,6 +224,11 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 						dataIndex: 'date_actual',
 						renderer: Ext.util.Format.dateRenderer('d/m/Y H:i'),
 						editor:{ xtype:'datetimefield' }
+					},{
+						hidden: true,
+						text: 'Log User',
+						width: 100,
+						dataIndex: 'log_user'
 					}],
 					plugins: ( Optima5.Modules.Spec.DbsTracy.HelperCache.authHelperQueryPage('ADMIN') ? [{
 						ptype: 'rowediting',

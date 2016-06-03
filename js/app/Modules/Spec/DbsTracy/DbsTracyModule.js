@@ -17,7 +17,8 @@ Ext.define('DbsTracyFileOrderStepModel',{
 		{name: 'step_code', type:'string'},
 		{name: 'step_txt', type:'string'}, // null => to convert
 		{name: 'status_is_ok', type:'boolean'},
-		{name: 'date_actual', type:'date', dateFormat:'Y-m-d H:i:s'}
+		{name: 'date_actual', type:'date', dateFormat:'Y-m-d H:i:s'},
+		{name: 'log_user', type:'string'}
 	]
 });
 

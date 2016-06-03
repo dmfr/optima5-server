@@ -261,6 +261,7 @@ function specDbsTracy_trspt_orderAdd( $post_data ) {
 			$arr_ins = array() ;
 			$arr_ins['field_STATUS_IS_OK'] = 1 ;
 			$arr_ins['field_DATE_ACTUAL'] = date('Y-m-d H:i:s') ;
+			$arr_ins['field_LOG_USER'] = strtoupper($_SESSION['login_data']['delegate_userId']) ;
 			paracrm_lib_data_updateRecord_file( 'CDE_STEP', $arr_ins, $row_order_step['orderstep_filerecord_id'] );
 		}
 	}

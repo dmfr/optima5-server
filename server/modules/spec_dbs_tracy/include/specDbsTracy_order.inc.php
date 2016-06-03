@@ -105,7 +105,8 @@ function specDbsTracy_order_getRecords( $post_data ) {
 			'orderstep_filerecord_id' => $arr['filerecord_id'],
 			'step_code' => $arr['field_STEP_CODE'],
 			'status_is_ok' => $arr['field_STATUS_IS_OK'],
-			'date_actual' => $arr['field_DATE_ACTUAL']
+			'date_actual' => $arr['field_DATE_ACTUAL'],
+			'log_user' => $arr['field_LOG_USER']
 		);
 	}
 	
