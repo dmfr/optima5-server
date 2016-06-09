@@ -363,7 +363,8 @@ function specBpSales_inv_printDoc( $post_data ) {
 		'calc_amount_final' => number_format($inv_record['calc_amount_final'],3),
 		'calc_vat' => number_format($inv_record['calc_amount_final']-$inv_record['calc_amount_novat'],3),
 		
-		'date_invoice' => date('d/m/Y',strtotime($inv_record['date_invoice']))
+		'date_invoice' => date('d/m/Y',strtotime($inv_record['date_invoice'])),
+		'date_due' => date('d/m/Y',strtotime('+30 days',strtotime($inv_record['date_invoice'])))
 	);
 	
 	
