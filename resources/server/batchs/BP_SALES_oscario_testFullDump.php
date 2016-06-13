@@ -11,6 +11,9 @@ function do_post_request_fp($url, $data, $optional_headers = null)
   }
   $ctx = stream_context_create($params);
   $fp = @fopen($url, 'rb', false, $ctx);
+  if( !$fp ) {
+    throw new Exception("Problem with $url");
+  }
   return $fp;
 }
 function do_post_request($url, $data, $optional_headers = null)
