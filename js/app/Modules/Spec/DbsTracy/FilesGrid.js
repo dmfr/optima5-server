@@ -108,8 +108,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			}],
 			items: [{
 				region: 'north',
+				hidden: true,
 				collapsible: true,
-				height: 150,
+				height: 120,
 				border: true,
 				xtype: 'panel',
 				itemId: 'pNorth',
@@ -894,7 +895,6 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		} ;
 		
 		var pCenter = this.down('#pCenter'), pNorth = this.down('#pNorth') ;
-		pNorth.setVisible(true) ;
 		pCenter.removeAll() ;
 		pCenter.add(tmpGridCfg);
 		
@@ -922,7 +922,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			colorSet.push(step.chart_color) ;
 		}) ;
 		
-		
+		pNorth.setVisible(true) ;
 		pNorth.removeAll() ;
 		pNorth.add({
 			border: false,
@@ -964,11 +964,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 					fields: pushModelfields,
 					title: false,
 					grid: true,
-					label: {
-						renderer: function(v) {
-								return String(v).replace(/(.)00000$/, '.$1M');
-						}
-					}
+					majorTickSteps: 5
 				}],
 				series: [{
 					colorSet: colorSet,
@@ -980,10 +976,10 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 					stacked: true,
 					tips: {
 						trackMouse: true,
-						width: 180,
+						width: 160,
 						height: 28,
 						renderer: function(storeItem, item) {
-							this.setTitle(item.yField + ' : ' + String(item.value[1]) + ' rows');
+							this.setTitle("<span style='float:left'>"+ item.yField + ' :</span><span style="float:right">' + String(item.value[1]) + ' rows</span>');
 						}
 					},
 					renderer: function(sprite, record, attributes, index, store) {
