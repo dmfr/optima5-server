@@ -13,7 +13,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 	
 	initComponent: function() {
 		Ext.apply(this, {
-			layout: 'fit',
+			layout: 'border',
 			tbar:[{
 				icon: 'images/op5img/ico_back_16.gif',
 				text: '<u>Back</u>',
@@ -107,6 +107,19 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				scope: this
 			}],
 			items: [{
+				region: 'north',
+				collapsible: true,
+				height: 150,
+				border: true,
+				xtype: 'panel',
+				itemId: 'pNorth',
+				layout: {
+					type: 'hbox',
+					align: 'stretch'
+				},
+				items: []
+			},{
+				region: 'center',
 				flex: 1,
 				border: false,
 				xtype: 'panel',
@@ -182,7 +195,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		}
 	},
 	doConfigureNull: function() {
-		var pCenter = this.down('#pCenter') ;
+		var pCenter = this.down('#pCenter'), pNorth = this.down('#pNorth') ;
+		pNorth.setVisible(false) ;
+		pNorth.removeAll() ;
 		pCenter.removeAll() ;
 		pCenter.add({
 			xtype:'box',
@@ -421,7 +436,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			_stepsMap: stepsMap
 		} ;
 		
-		var pCenter = this.down('#pCenter') ;
+		var pCenter = this.down('#pCenter'), pNorth = this.down('#pNorth') ;
+		pNorth.setVisible(false) ;
+		pNorth.removeAll() ;
 		pCenter.removeAll() ;
 		pCenter.add(tmpGridCfg);
 		
@@ -876,9 +893,109 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			_stepsMap: stepsMap
 		} ;
 		
-		var pCenter = this.down('#pCenter') ;
+		var pCenter = this.down('#pCenter'), pNorth = this.down('#pNorth') ;
+		pNorth.setVisible(true) ;
 		pCenter.removeAll() ;
 		pCenter.add(tmpGridCfg);
+		
+		
+		// ********** North panel *************
+		var northRenderer = function(value, metaData, record, rowIndex, colIndex) {
+			var header = this.headerCt.getHeaderAtIndex(colIndex),
+				renderColor = header._renderColor;
+			metaData.style += 'background:'+renderColor+'; ' ;
+			metaData.tdCls += ' ' + 'op5-spec-dbstracy-bigcolumn';
+			return '<b>'+value+'</b' ;
+		};
+
+		var pushModelfields=[], stepColumns = [], colorSet = [] ;
+		Ext.Array.each( Optima5.Modules.Spec.DbsTracy.HelperCache.getOrderflow('AIR').steps, function(step) {
+			pushModelfields.push('step_'+step.desc_code) ;
+			stepColumns.push({
+				text: step.desc_txt,
+				dataIndex: 'step_'+step.desc_code,
+				renderer: northRenderer,
+				_renderColor: step.chart_color,
+				width: 90,
+				align: 'center'
+			});
+			colorSet.push(step.chart_color) ;
+		}) ;
+		
+		
+		pNorth.removeAll() ;
+		pNorth.add({
+			border: false,
+			width: ((90 * stepColumns.length) + 0),
+			xtype: 'grid',
+			columns: [{
+				text: '<b><i>Process steps</i></b>',
+				align: 'center',
+				columns: stepColumns
+			}],
+			store: {
+				proxy: {
+					type: 'memory',
+					reader: {
+						type: 'json'
+					}
+				},
+				fields: pushModelfields,
+				data: []
+			}
+		},{
+			flex: 1,
+			xtype:'chart',
+				animate: true,
+				shadow: true,
+				store: {
+					proxy: {
+						type: 'memory',
+						reader: {
+							type:'json'
+						}
+					},
+					fields: Ext.Array.merge(['dummy'], pushModelfields),
+					data: []
+				},
+				axes: [{
+					type: 'Numeric',
+					position: 'bottom',
+					fields: pushModelfields,
+					title: false,
+					grid: true,
+					label: {
+						renderer: function(v) {
+								return String(v).replace(/(.)00000$/, '.$1M');
+						}
+					}
+				}],
+				series: [{
+					colorSet: colorSet,
+					type: 'bar',
+					axis: 'bottom',
+					gutter: 80,
+					xField: 'dummy',
+					yField: pushModelfields,
+					stacked: true,
+					tips: {
+						trackMouse: true,
+						width: 180,
+						height: 28,
+						renderer: function(storeItem, item) {
+							this.setTitle(item.yField + ' : ' + String(item.value[1]) + ' rows');
+						}
+					},
+					renderer: function(sprite, record, attributes, index, store) {
+						index = index % this.colorSet.length ;
+						Ext.apply(attributes,{
+							fill: this.colorSet[index],
+							stroke: this.colorSet[index]
+						}) ;
+						return attributes ;
+					}
+            }]
+		}) ;
 		
 		this.doLoad() ;
 	},
@@ -1044,10 +1161,14 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 	},
 	onLoadOrder: function(ajaxData, doClearFilters) {
 		// Trad => stepCode => descCode
-		var map_stepCode_descCode = {} ;
+		var map_stepCode_descCode = {},
+			map_stepDescCodes_count = {} ;
 		Ext.Array.each( Optima5.Modules.Spec.DbsTracy.HelperCache.getOrderflowAll(), function(flow) {
 			Ext.Array.each(flow.steps, function(step) {
 				map_stepCode_descCode[step.step_code] = step.desc_code ;
+				if( !map_stepDescCodes_count.hasOwnProperty(step.desc_code) ) {
+					map_stepDescCodes_count[step.desc_code] = 0 ;
+				}
 			});
 		}) ;
 		
@@ -1079,6 +1200,12 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				row['_color'] = 'blue' ;
 			}
 			
+			var curStepCode = recordTest.get('calc_step'),
+				curStepDescCode = map_stepCode_descCode[curStepCode] ;
+			if( map_stepDescCodes_count.hasOwnProperty(curStepDescCode) ) {
+				map_stepDescCodes_count[curStepDescCode]++ ;
+			}
+			
 			gridData.push(row) ;
 		}) ;
 		if( doClearFilters ) {
@@ -1086,6 +1213,15 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			this.down('#pCenter').down('grid').filters.clearFilters() ;
 		}
 		this.down('#pCenter').down('grid').getStore().loadRawData(gridData) ;
+		
+		var northRecord = {
+			dummy: ''
+		} ;
+		Ext.Object.each( map_stepDescCodes_count, function(stepDescCode,count) {
+			northRecord['step_'+stepDescCode] = count ;
+		});
+		this.down('#pNorth').down('grid').getStore().loadData([northRecord]) ;
+		this.down('#pNorth').down('chart').getStore().loadData([northRecord]) ;
 	},
 	
 	doLoadTrspt: function(doClearFilters) {
@@ -1151,12 +1287,12 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		this.down('toolbar').down('#tbViewmode').setVisible(!torf) ;
 		this.down('toolbar').down('#tbCreate').setVisible(!torf) ;
 		if( !torf ) {
-			this.down('grid').child('headercontainer').down('checkcolumn').setVisible(false) ;
+			this.down('#pCenter').down('grid').child('headercontainer').down('checkcolumn').setVisible(false) ;
 			return ;
 		}
 		if( torf ) {
 			this.autoRefreshTask.cancel() ;
-			this.down('grid').child('headercontainer').down('checkcolumn').setVisible(true) ;
+			this.down('#pCenter').down('grid').child('headercontainer').down('checkcolumn').setVisible(true) ;
 			return ;
 		}
 	},

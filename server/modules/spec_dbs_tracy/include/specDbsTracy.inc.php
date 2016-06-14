@@ -112,7 +112,8 @@ function specDbsTracy_cfg_getConfig() {
 			'status_percent' => $arr['field_PERCENT'],
 			'prompt_order' => ($arr['field_PROMPT_ORDER']==1),
 			'prompt_trspt' => ($arr['field_PROMPT_TRSPT']==1),
-			'is_options' => ($arr['field_IS_OPTIONS']==1)
+			'is_options' => ($arr['field_IS_OPTIONS']==1),
+			'chart_color' => $arr['field_CHART_COLOR']
 		) ;
 		
 		$TAB_orderflow[$flow_code]['steps'][] = $record ;
