@@ -1308,7 +1308,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 	},
 	handleNewTrsptSelection: function() {
 		var orderRecords = [];
-		this.down('grid').getStore().each( function(orderRecord) {
+		this.down('#pCenter').down('grid').getStore().each( function(orderRecord) {
 			if( orderRecord.get('_is_selection') ) {
 				orderRecords.push( orderRecord ) ;
 			}
