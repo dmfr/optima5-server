@@ -196,6 +196,10 @@ function paracrm_queries_mpaginate_getGridColumns( &$RES, $RES_labels_tab, &$log
 					$select_index_inner = $select_index + $i ;
 					$col = array() ;
 					$col['text'] = implode(' - ',$x_arr_strings) ;
+					if( count($inner_selectIds) > 1 ) {
+						$inner_RES_infos = $RES['RES_selectId_infos'][$select_index_inner] ;
+						$col['text'] += ' : '.$inner_RES_infos['select_lib'] ;
+					}
 					$col['text_bold'] = true ;
 					$col['dataIndex'] = 'valueCol_'.$select_index_inner.'_'.$x_code ;
 					$col['dataType'] = 'string' ;

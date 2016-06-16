@@ -1527,7 +1527,7 @@ function paracrm_queries_process_query(&$arr_saisie, $debug=FALSE)
 	{
 		$tfield = $field_group['field_code'] ;
 		$field_group['sql_file_code'] = $arr_indexed_treefields[$tfield]['file_code'] ;
-		$field_group['sql_file_field_code'] = 'field_'.$arr_indexed_treefields[$tfield]['file_field_code'] ;
+		$field_group['sql_file_field_code'] = ( $arr_indexed_treefields[$tfield]['file_field_code'] ? 'field_'.$arr_indexed_treefields[$tfield]['file_field_code'] : 'filerecord_id' ) ;
 		if( $field_group['field_linkbible'] && $field_group['field_type'] != 'link' )
 		{
 			// pour le moment on ne supporte pas les group fields non link (bible principale)
