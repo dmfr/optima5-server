@@ -92,7 +92,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.HelperCache',{
 	init: function(optimaModule) {
 		var me = this ;
 		me.optimaModule = optimaModule ;
+		
 		me.isReady = false ;
+		me.nbLoaded = 0 ;
 		
 		Ext.defer(function() {
 			me.startLoading() ;
@@ -101,10 +103,11 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.HelperCache',{
 	startLoading: function() {
 		var me = this ;
 		
-		me.nbToLoad = 2 ;
+		me.nbToLoad = 3 ;
 		
 		me.authHelperInit() ;
 		me.fetchConfig() ;
+		me.doInit() ;
 	},
 	onLoad: function() {
 		var me = this ;
@@ -113,6 +116,26 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.HelperCache',{
 			me.isReady = true ;
 			me.fireEvent('ready') ;
 		}
+	},
+	
+	doInit: function() {
+		// Query Bible
+		var ajaxParams = {} ;
+		Ext.apply( ajaxParams, {
+			_moduleId: 'spec_dbs_tracy',
+			_action: 'cfg_doInit'
+		});
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams ,
+			success: function(response) {
+				var ajaxData = Ext.decode(response.responseText) ;
+				if( ajaxData.success == false ) {
+					Ext.Msg.alert('Failed', 'Unknown error');
+				}
+				this.onLoad() ;
+			},
+			scope: this
+		});
 	},
 	
 	fetchConfig: function() {

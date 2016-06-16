@@ -11,6 +11,8 @@ switch( $post_data['_action'] )
 	return specDbsTracy_cfg_getAuth( $post_data ) ;
 	case 'cfg_getConfig' :
 	return specDbsTracy_cfg_getConfig( $post_data ) ;
+	case 'cfg_doInit' :
+	return specDbsTracy_cfg_doInit( $post_data ) ;
 	
 	case 'order_getRecords' :
 	session_write_close() ;

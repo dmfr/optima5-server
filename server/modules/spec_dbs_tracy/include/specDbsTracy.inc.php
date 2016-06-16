@@ -6,6 +6,16 @@ include("$server_root/modules/spec_dbs_tracy/include/specDbsTracy_attachments.in
 include("$server_root/modules/spec_dbs_tracy/include/specDbsTracy_upload.inc.php") ;
 include("$server_root/modules/spec_dbs_tracy/include/specDbsTracy_live.inc.php") ;
 
+function specDbsTracy_cfg_doInit( $post_data ) {
+	global $_opDB ;
+	
+	if( isset($_SESSION['login_data']['delegate_sdomainId']) ) {
+		return array('success'=>true) ;
+	}
+	return array('success'=>true) ;
+}
+
+
 function specDbsTracy_cfg_getAuth( $post_data ) {
 	global $_opDB ;
 	
@@ -48,10 +58,10 @@ function specDbsTracy_cfg_getAuth( $post_data ) {
 
 
 function specDbsTracy_cfg_getConfig() {
-	if( isset($GLOBALS['cache_specDbsLam_cfg']['getConfig']) ) {
+	if( isset($GLOBALS['cache_specDbsTracy_cfg']['getConfig']) ) {
 		return array(
 			'success'=>true,
-			'data' => $GLOBALS['cache_specDbsLam_cfg']['getConfig']
+			'data' => $GLOBALS['cache_specDbsTracy_cfg']['getConfig']
 		);
 	}
 	
@@ -150,14 +160,14 @@ function specDbsTracy_cfg_getConfig() {
 		}
 	}
 	
-	$GLOBALS['cache_specDbsLam_cfg']['getConfig'] = array(
+	$GLOBALS['cache_specDbsTracy_cfg']['getConfig'] = array(
 		'cfg_soc' => $TAB_soc,
 		'cfg_orderflow' => array_values($TAB_orderflow),
 		'cfg_priority' => $TAB_priority,
 		'cfg_list' => $TAB_list
 	);
 
-	return array('success'=>true, 'data'=>$GLOBALS['cache_specDbsLam_cfg']['getConfig'])  ;
+	return array('success'=>true, 'data'=>$GLOBALS['cache_specDbsTracy_cfg']['getConfig'])  ;
 }
 
 
