@@ -6,12 +6,15 @@ include("$server_root/modules/spec_dbs_tracy/include/specDbsTracy_attachments.in
 include("$server_root/modules/spec_dbs_tracy/include/specDbsTracy_upload.inc.php") ;
 include("$server_root/modules/spec_dbs_tracy/include/specDbsTracy_live.inc.php") ;
 
+include("$server_root/modules/spec_dbs_tracy/include/specDbsTracy_lib_calc.inc.php") ;
+
 function specDbsTracy_cfg_doInit( $post_data ) {
 	global $_opDB ;
 	
 	if( isset($_SESSION['login_data']['delegate_sdomainId']) ) {
 		return array('success'=>true) ;
 	}
+	specDbsTracy_lib_calc_perf() ;
 	return array('success'=>true) ;
 }
 
