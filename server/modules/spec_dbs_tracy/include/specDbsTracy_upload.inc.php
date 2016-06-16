@@ -197,12 +197,12 @@ function specDbsTracy_upload_VL06F_tmp( $handle, $id_soc ) {
 				'order_filerecord_id' => $row_order['order_filerecord_id'],
 				'data' => json_encode(array(
 					'warning_is_on' => true,
-					'warning_code' => '16_AUTRE_OPS',
+					'warning_code' => '19_ABS_DOCS',
 					'warning_txt' => "Auto-warning set on VLO6F upload.\nStatuses SGP=C SM=C ATTACH=0\n"
 				))
 			));
 		}
-		if( !$missing_attach && $row_order['warning_is_on'] && $row_order['warning_code']=='16_AUTRE_OPS' ) {
+		if( !$missing_attach && $row_order['warning_is_on'] && $row_order['warning_code']=='19_ABS_DOCS' ) {
 			// suppr warning
 			specDbsTracy_order_setWarning( array(
 				'order_filerecord_id' => $row_order['order_filerecord_id'],
