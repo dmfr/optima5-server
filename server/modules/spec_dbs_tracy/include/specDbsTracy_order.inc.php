@@ -40,6 +40,9 @@ function specDbsTracy_order_getRecords( $post_data ) {
 			'vol_kg' => $arr['field_VOL_KG'],
 			'vol_dims' => $arr['field_VOL_DIMS'],
 			'vol_count' => $arr['field_VOL_COUNT'],
+			'date_create' => $arr['field_DATE_CREATE'],
+			'date_init' => $arr['field_DATE_INIT'],
+			'date_closed' => $arr['field_DATE_CLOSED'],
 			
 			'steps' => array(),
 			'attachments' => array(),
@@ -320,6 +323,10 @@ function specDbsTracy_order_download( $post_data ) {
 			'vol_kg' => 'Weight (kg)',
 			'vol_dims' => 'Dimensions',
 			'vol_count' => 'Count',
+		
+			'date_create' => 'Date Created',
+			'date_init' => 'Date SM',
+			'date_closed' => 'Date Closed',
 		
 		'calc_link_trspt_txt' => 'Trspt file'
 	);

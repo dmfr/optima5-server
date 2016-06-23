@@ -137,15 +137,14 @@ function specDbsTracy_upload_VL06F_tmp( $handle, $id_soc ) {
 		$filerecord_id = $json_return['id'] ;
 		
 		$p_dateRaw = $arr_csv[7] ;
-		$p_dateRelease = substr($p_dateRaw,6,4).'-'.substr($p_dateRaw,3,2).'-'.substr($p_dateRaw,0,2) ;
+		$p_dateSM = substr($p_dateRaw,6,4).'-'.substr($p_dateRaw,3,2).'-'.substr($p_dateRaw,0,2) ;
 		
 		$arr_cond = array() ;
-		$arr_cond['filerecord_parent_id'] = $filerecord_id ;
-		$arr_cond['field_STEP_CODE'] = '10_RLS' ;
+		$arr_cond['filerecord_id'] = $filerecord_id ;
 		$arr_update = array() ;
-		$arr_update['field_DATE_ACTUAL'] = $p_dateRelease ;
-		$arr_update['field_STATUS_IS_OK'] = 1 ;
-		$_opDB->update('view_file_CDE_STEP',$arr_update,$arr_cond) ;
+		$arr_update['field_DATE_CREATE'] = date('Y-m-d H:i:s') ;
+		$arr_update['field_DATE_INIT'] = $p_dateSM ;
+		$_opDB->update('view_file_CDE',$arr_update,$arr_cond) ;
 	}
 	
 	fclose($handle_priv) ;

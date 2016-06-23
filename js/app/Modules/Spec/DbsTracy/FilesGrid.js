@@ -511,6 +511,11 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		}) ;
 		
 		
+		var dateRenderer = function(v) {
+			var dateSql ;
+			dateSql = Ext.Date.format(v,'d/m/Y H:i') ;
+			return dateSql.replace(' ','<br>') ;
+		};
 		var stepRenderer = function(vObj,metaData) {
 			if( !vObj ) {
 				metaData.tdCls += ' '+'op5-spec-dbstracy-gridcell-gray' ;
@@ -705,6 +710,42 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				txt += '<br>' ;
 				txt += Ext.util.Format.nl2br( Ext.String.htmlEncode( record.get('warning_txt') ) )
 				return txt ;
+			}
+		},{
+			hidden: true,
+			hideable: true,
+			text: 'Date Created',
+			dataIndex: 'date_create',
+			renderer: dateRenderer,
+			width: 90,
+			align: 'center',
+			filter: {
+				type: 'date',
+				dateFormat: 'Y-m-d'
+			}
+		},{
+			hidden: true,
+			hideable: true,
+			text: 'Date SM',
+			dataIndex: 'date_init',
+			renderer: dateRenderer,
+			width: 90,
+			align: 'center',
+			filter: {
+				type: 'date',
+				dateFormat: 'Y-m-d'
+			}
+		},{
+			hidden: true,
+			hideable: true,
+			text: 'Date Closed',
+			dataIndex: 'date_closed',
+			renderer: dateRenderer,
+			width: 90,
+			align: 'center',
+			filter: {
+				type: 'date',
+				dateFormat: 'Y-m-d'
 			}
 		},{
 			hidden: true,
