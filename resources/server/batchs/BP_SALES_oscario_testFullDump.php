@@ -743,6 +743,13 @@ fclose($handle) ;
 
 
 
+$arr_new_filerecordIds = array() ;
+$arr_old_filerecordIds = array() ;
+$query = "SELECT filerecord_id FROM store_file WHERE file_code='CDE'" ;
+$result = $_opDB->query($query) ;
+while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+	$arr_old_filerecordIds[] = $arr[0] ;
+}
 
 foreach( $TAB_cde as $cde_id => &$arr_ent ) {
 	$arr_ent['_CDE_LIG'] = array_values($arr_ent['_CDE_LIG']) ;
@@ -772,6 +779,7 @@ foreach( $TAB_cde as $cde_id => &$arr_ent ) {
 		$arr_cond = array() ;
 		$arr_cond['filerecord_id'] = $filerecord_id ;
 		$_opDB->update('store_file_CDE',$arr_update_ent,$arr_cond) ;
+		$arr_new_filerecordIds[] = $filerecord_id ;
 	} else {
 		$arr_ins = array() ;
 		$arr_ins['file_code'] = 'CDE' ;
@@ -784,6 +792,7 @@ foreach( $TAB_cde as $cde_id => &$arr_ent ) {
 		unset($arr_ins_ent['_CDE_LIG']) ;
 		$arr_ins_ent['filerecord_id'] = $filerecord_id ;
 		$_opDB->insert( 'store_file_CDE', $arr_ins_ent );
+		$arr_new_filerecordIds[] = $filerecord_id ;
 	}
 	// echo "o" ;
 	
@@ -820,6 +829,12 @@ foreach( $TAB_cde as $cde_id => &$arr_ent ) {
 	
 }
 unset($arr_ent) ;
+
+// Clean old records
+$arr_toDelete_filerecordIds = array_diff($arr_old_filerecordIds,$arr_new_filerecordIds) ;
+foreach( $arr_toDelete_filerecordIds as $filerecord_id ) {
+	paracrm_lib_data_deleteRecord_file('CDE',$filerecord_id) ;
+}
 
 
 ?>
