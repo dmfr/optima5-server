@@ -69,6 +69,41 @@ foreach( explode(',',$field_params) as $param ) {
 }
 // *******************************************
 
+if( TRUE ) {
+	// ****** Alerte CLIENT=13 / EDI inconnu factor
+	$arr_customerEntryKeys = array() ;
+	$query = "SELECT entry_key, field_CLI_NAME
+		FROM view_bible_CUSTOMER_entry 
+		WHERE (field_FACTOR_ID='' OR field_FACTOR_ID IS NULL) AND entry_key REGEXP '^[0-9]+$' AND entry_key IN (
+			SELECT distinct field_CLI_LINK FROM view_file_CDE
+		)" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$arr_customerEntryKeys[] = $arr[0] ;
+	}
+
+	if( $arr_customerEntryKeys ) {
+		$email_text = mailBlocage_getBody( $arr_customerEntryKeys ) ;
+
+		$to = array('finance@bluephoenix.fr') ;
+		if( $GLOBALS['__OPTIMA_TEST'] ) {
+			$to = array() ;
+			$to[] = 'dm@mirabel-sil.com' ;
+		}
+
+		$email = new Email() ;
+		$email->set_From( 'finance@bluephoenix.fr', 'BluePhoenix Finance' ) ;
+		foreach( $to as $to_email ) {
+			$email->add_Recipient( $to_email ) ;
+		}
+		$email->set_Subject( '[BluePhoenix] '.'Blocage facturation / Clients inconnus factor' ) ;
+		$email->set_text_body( $email_text ) ;
+		$email->send() ;
+	}
+}
+
+// ******************************************
+
 
 $arr_invFilerecordIds = array() ;
 

@@ -109,4 +109,41 @@ function mail_getBody( $arr_invFilerecordIds ) {
 	
 	return $email_text ;
 }
+
+function mailBlocage_getBody( $arr_customerEntryKeys ) {
+	global $_opDB ;
+	
+	
+	
+	//print_r($file_CDE_SAISIE) ;
+	//print_r($bible_STORE_entry) ;
+	//print_r($TABfile_CDE_SAISIE_LIG) ;
+	$email_text = "" ;
+	$email_text.= "Factor         : ".'CA Eurofactor'."\r\n" ;
+	$email_text.= "\r\n" ;
+	$email_text.= "Date alerte    : ".date('Y-m-d')."\r\n" ;
+	$email_text.= "\r\n" ;
+	$email_text.= "  Customer      | Libellé client                          | FactorID  "."\r\n" ;
+	$email_text.= "----------------|-----------------------------------------|-----------"."\r\n" ;
+	
+	$email_base = "                |                                         |           " ;
+	
+	foreach( $arr_customerEntryKeys as $customer_entryKey ) {
+		$query = "SELECT *
+			FROM view_bible_CUSTOMER_entry
+			WHERE entry_key='{$customer_entryKey}'" ;
+		$result = $_opDB->query($query) ;
+		$arr = $_opDB->fetch_assoc($result) ;
+		
+		$lig = $email_base ;
+		$lig = substr_mklig($lig,$arr['field_CLI_EAN'],0,15) ;
+		$lig = substr_mklig($lig,$arr['field_CLI_NAME'],18,35) ;
+		$email_text.= $lig."\r\n" ;
+	}
+	$email_text.= $email_base."\r\n" ;
+	
+	$email_text.= "\r\n" ;
+	
+	return $email_text ;
+}
 ?>
