@@ -552,7 +552,8 @@ while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 }
 //print_r($map_prefix8_treenodeKey) ;
 foreach( $map_prefix8_treenodeKey as $prefix8 => $treenode_key ) {
-	$query = "UPDATE view_bible_CUSTOMER_entry SET treenode_key='{$treenode_key}'
+	$query = "UPDATE view_bible_CUSTOMER_entry
+		SET treenode_key='{$treenode_key}' , field_FACTOR_ID = entry_key
 		WHERE entry_key LIKE '{$prefix8}%' AND LENGTH(entry_key)=11" ;
 	$_opDB->query($query) ;
 }
