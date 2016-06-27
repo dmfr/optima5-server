@@ -44,7 +44,7 @@ function specDbsTracy_lib_calc_perf() {
 		$ts_calc_DUE = $ts_RLS ;
 		while( $tat_days > 0 ) {
 			$ts_calc_DUE = strtotime('+1 day',$ts_calc_DUE) ;
-			if( date('N') <= 5 ) {
+			if( date('N',$ts_calc_DUE) <= 5 ) {
 				$tat_days-- ;
 			}
 		}
