@@ -1018,7 +1018,7 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 		}
 	},
 	
-	exportCSV: function() {
+	exportBible: function(fileFormat) {
 		var me = this ;
 		if( !me.gridpanel ) {
 			return ;
@@ -1026,7 +1026,8 @@ Ext.define('Optima5.Modules.CrmBase.BiblePanel' ,{
 		
 		var exportParams = me.optimaModule.getConfiguredAjaxParams() ;
 		Ext.apply(exportParams,{
-			_action: 'data_getBibleGrid_exportCSV' ,
+			_action: 'data_getBibleGrid_export' ,
+			output_format: fileFormat,
 			bible_code: this.bibleId
 		}) ;
 		

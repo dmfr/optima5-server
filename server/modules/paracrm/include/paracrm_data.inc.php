@@ -41,7 +41,7 @@ function paracrm_data_getBibleCfg( $post_data )
 		$arr['tree_field_code'] = 'field_'.$arr['tree_field_code'] ;
 		$tab_tree_fields[] = $arr ;
 		
-		if($arr['tree_field_is_key']=='O') {
+		if($arr['tree_field_is_key']) {
 			$tree_key_lib = $arr['tree_field_lib'] ;
 		}
 	}
@@ -761,7 +761,7 @@ function paracrm_data_setFileGrid_raw( $post_data, $auth_bypass=FALSE ) {
 
 
 
-function paracrm_data_getBibleGrid_exportCSV( $post_data, $auth_bypass=FALSE )
+function paracrm_data_getBibleGrid_export( $post_data, $auth_bypass=FALSE )
 {
 	global $_opDB ;
 	
@@ -782,8 +782,7 @@ function paracrm_data_getBibleGrid_exportCSV( $post_data, $auth_bypass=FALSE )
 	$arr_keys = array() ;
 	$arr_types = array() ;
 	
-	$handle = tmpfile() ;
-	$arr_csv = array() ;
+	$header = array() ;
 	foreach( $TAB_cfg['data']['entry_fields'] as $cfg_field ) {
 		if( !$cfg_field['entry_field_is_highlight'] ) {
 			continue ;
@@ -794,15 +793,27 @@ function paracrm_data_getBibleGrid_exportCSV( $post_data, $auth_bypass=FALSE )
 	
 		$str = $cfg_field['entry_field_lib'] ;
 	
-		$arr_csv[] = $str ;
+		$type = '' ;
+		switch( $cfg_field['type'] ) {
+			case 'number' :
+				$type = '' ;
+				break ;
+			case 'bool' :
+				$type = 'integer' ;
+				break ;
+			default :
+				$type = 'string' ;
+				break ;
+		}
+		$header[$str] = $type ;
 	}
-	fputcsv($handle,$arr_csv) ;
 	
 	$bible_code = $post_data['bible_code'] ;
 	$view_name = 'view_bible_'.$bible_code.'_entry' ;
 	
 	$query = "SELECT SQL_CALC_FOUND_ROWS * FROM $view_name ORDER BY entry_key ASC" ;
 	$result = $_opDB->query($query) ;
+	$data = array() ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$rowArr = array() ;
 		foreach( $arr_keys as $idx => $field_code ) {
@@ -830,18 +841,12 @@ function paracrm_data_getBibleGrid_exportCSV( $post_data, $auth_bypass=FALSE )
 				break ;
 			}
 		}
-		fputcsv($handle,$rowArr) ;
+		$data[] = $rowArr ;
 	}
 	
-	$filename = 'OP5report_CRM_'.$post_data['bible_code'].'_'.time().'.csv' ;
-	header("Content-Type: application/force-download; name=\"$filename\""); 
-	header("Content-Disposition: attachment; filename=\"$filename\""); 
-	fseek($handle,0) ;
-	fpassthru($handle) ;
-	fclose($handle) ;
-	die() ;
+	return paracrm_data_lib_downloadGrid( $header, $data, $post_data['output_format'] ) ;
 }
-function paracrm_data_getFileGrid_exportCSV( $post_data, $auth_bypass=FALSE )
+function paracrm_data_getFileGrid_exportFile( $post_data, $auth_bypass=FALSE )
 {
 	if( !$auth_bypass && !Auth_Manager::getInstance()->auth_query_sdomain_action(
 		Auth_Manager::sdomain_getCurrent(),
@@ -861,8 +866,7 @@ function paracrm_data_getFileGrid_exportCSV( $post_data, $auth_bypass=FALSE )
 	$arr_keys = array() ;
 	$arr_types = array() ;
 	
-	$handle = tmpfile() ;
-	$arr_csv = array() ;
+	$header = array() ;
 	foreach( $TAB_cfg['data']['grid_fields'] as $cfg_field ) {
 	
 		$str = $cfg_field['text'] ;
@@ -872,11 +876,24 @@ function paracrm_data_getFileGrid_exportCSV( $post_data, $auth_bypass=FALSE )
 	
 		$arr_keys[] = $cfg_field['field'] ;
 		$arr_types[] = $cfg_field['type'] ;
-	
-		$arr_csv[] = $str ;
+		
+
+		$type = '' ;
+		switch( $cfg_field['type'] ) {
+			case 'number' :
+				$type = '' ;
+				break ;
+			case 'bool' :
+				$type = 'integer' ;
+				break ;
+			default :
+				$type = 'string' ;
+				break ;
+		}
+		$header[$str] = $type ;
 	}
-	fputcsv($handle,$arr_csv) ;
 	
+	$data = array() ;
 	foreach( $TAB_data['data'] as $record ) {
 		$rowArr = array() ;
 		foreach( $arr_keys as $idx => $field_code ) {
@@ -904,18 +921,41 @@ function paracrm_data_getFileGrid_exportCSV( $post_data, $auth_bypass=FALSE )
 				break ;
 			}
 		}
-		fputcsv($handle,$rowArr) ;
+		$data[] = $rowArr ;
 	}
 	
-
-	$filename = 'OP5report_CRM_.'.$post_data['file_code'].'_'.time().'.csv' ;
+	return paracrm_data_lib_downloadGrid( $header, $data, $post_data['output_format'] ) ;
+}
+function paracrm_data_lib_downloadGrid( $header, $data, $output_format ) {
+	$tmpfilename = tempnam( sys_get_temp_dir(), "FOO");
+	switch( $output_format ) {
+		case 'XLSX' :
+			$server_root = $GLOBALS['server_root'] ;
+			include("$server_root/include/xlsxwriter.class.php");
+			$writer = new XLSXWriter();
+			$writer->writeSheet($data,preg_replace("/[^a-zA-Z0-9]/", "", $post_data['file_code']), $header);
+			$writer->writeToFile($tmpfilename);
+			break ;
+		case 'CSV' :
+			$handle = fopen($tmpfilename,'wb') ;
+			fputcsv( $handle, array_keys($header) ) ;
+			foreach( $data as $rowArr ) {
+				fputcsv( $handle, $rowArr ) ;
+			}
+			fclose($handle) ;
+			break ;
+		default :
+			die() ;
+	}
+	
+	$filename = 'OP5report_CRM_.'.$post_data['file_code'].'_'.time().'.'.strtolower($output_format) ;
 	header("Content-Type: application/force-download; name=\"$filename\""); 
 	header("Content-Disposition: attachment; filename=\"$filename\""); 
-	fseek($handle,0) ;
-	fpassthru($handle) ;
-	fclose($handle) ;
+	readfile($tmpfilename) ;
+	unlink($tmpfilename) ;
 	die() ;
 }
+
 function paracrm_data_getFileGrid_exportGallery( $post_data, $auth_bypass=FALSE )
 {
 	if( !$auth_bypass && !Auth_Manager::getInstance()->auth_query_sdomain_action(

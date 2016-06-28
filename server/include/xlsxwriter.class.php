@@ -21,6 +21,7 @@ class XLSXWriter
 	protected $cell_types = array();//contains friendly format like datetime
 
 	protected $current_sheet = '';
+	protected $temp_dir = NULL;
 
 	public function __construct()
 	{
@@ -42,10 +43,16 @@ class XLSXWriter
 			}
 		}
 	}
-
+	
+	public function setTempDir($dir)
+	{
+		$this->temp_dir = $dir;
+	}
+	
 	protected function tempFilename()
 	{
-		$filename = tempnam(sys_get_temp_dir(), "xlsx_writer_");
+		$temp_dir = is_null($this->temp_dir) ? sys_get_temp_dir() : $this->temp_dir;
+		$filename = tempnam($temp_dir, "xlsx_writer_");
 		$this->temp_files[] = $filename;
 		return $filename;
 	}
@@ -330,6 +337,8 @@ class XLSXWriter
 
 		if (!is_scalar($value) || $value==='') { //objects, array, empty
 			$file->write('<c r="'.$cell_name.'" s="'.$cell_format_index.'"/>');
+		} elseif ($cell_type=='string') { //implied: ($cell_format=='string')
+			$file->write('<c r="'.$cell_name.'" s="'.$cell_format_index.'" t="s"><v>'.self::xmlspecialchars($this->setSharedString($value)).'</v></c>');
 		} elseif (is_string($value) && $value{0}=='='){
 			$file->write('<c r="'.$cell_name.'" s="'.$cell_format_index.'" t="s"><f>'.self::xmlspecialchars($value).'</f></c>');
 		} elseif ($cell_type=='date') {

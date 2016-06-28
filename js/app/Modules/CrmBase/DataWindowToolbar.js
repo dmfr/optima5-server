@@ -30,8 +30,20 @@ Ext.define('Optima5.Modules.CrmBase.DataWindowToolbar' ,{
 					},{
 						xtype: 'menuseparator'
 					},{
-						itemId: 'export-csv',
+						itemId: 'export-bible-csv',
 						text: 'CSV export',
+						iconCls: 'op5-crmbase-datatoolbar-file-export-excel'
+					},{
+						itemId: 'export-bible-xlsx',
+						text: 'XLSX export',
+						iconCls: 'op5-crmbase-datatoolbar-file-export-excel'
+					},{
+						itemId: 'export-file-csv',
+						text: 'CSV export',
+						iconCls: 'op5-crmbase-datatoolbar-file-export-excel'
+					},{
+						itemId: 'export-file-xlsx',
+						text: 'XLSX export',
 						iconCls: 'op5-crmbase-datatoolbar-file-export-excel'
 					},{
 						itemId: 'export-gallery',
@@ -126,12 +138,18 @@ Ext.define('Optima5.Modules.CrmBase.DataWindowToolbar' ,{
 		fileMenu.menu.hide() ;
 		if( typeof ajaxData.fileId !== 'undefined' ) {
 			fileMenu.setVisible(true) ;
-			fileMenu.menu.child('#export-csv').setVisible(true) ;
+			fileMenu.menu.child('#export-bible-csv').setVisible(false) ;
+			fileMenu.menu.child('#export-bible-xlsx').setVisible(false) ;
+			fileMenu.menu.child('#export-file-csv').setVisible(true) ;
+			fileMenu.menu.child('#export-file-xlsx').setVisible(true) ;
 			fileMenu.menu.child('#export-gallery').setVisible( ajaxData.viewmode_gallery ) ;
 		} else if( typeof ajaxData.bibleId !== 'undefined' ) {
 			fileMenu.setVisible(true) ;
 			fileMenu.menu.child('menuseparator').setVisible(true) ;
-			fileMenu.menu.child('#export-csv').setVisible(true) ;
+			fileMenu.menu.child('#export-bible-csv').setVisible(true) ;
+			fileMenu.menu.child('#export-bible-xlsx').setVisible(true) ;
+			fileMenu.menu.child('#export-file-csv').setVisible(false) ;
+			fileMenu.menu.child('#export-file-xlsx').setVisible(false) ;
 			fileMenu.menu.child('#export-gallery').setVisible(false) ;
 		} else {
 			fileMenu.setVisible(false) ;
