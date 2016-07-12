@@ -5,6 +5,7 @@ Ext.define('DbsPeopleMenuItemModel',{
 		{name: 'type_header',  type: 'boolean'},
 		{name: 'type_separator',   type: 'boolean'},
 		{name: 'type_action',   type: 'boolean'},
+		{name: 'type_action_blank',   type: 'boolean'},
 		{name: 'separator_label',   type: 'string'},
 		{name: 'action_iconCls',   type: 'string'},
 		{name: 'action_qtip',   type: 'string'},
@@ -33,10 +34,16 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.MainMenu',{
 				"</tpl>",
 			
 				'<tpl if="type_action">',
-					'<div class="op5-spec-dbspeople-mainmenu-action">',
-						'<div class="op5-spec-dbspeople-mainmenu-action-icon {action_iconCls}" data-qtip="{action_qtip:htmlEncode}"></div>',
-						'<span>{action_caption:htmlEncode}</span>',
-					'</div>',
+					'<tpl if="!type_action_blank">',
+						'<div class="op5-spec-dbspeople-mainmenu-action op5-spec-dbspeople-mainmenu-action-active">',
+							'<div class="op5-spec-dbspeople-mainmenu-action-icon {action_iconCls}" data-qtip="{action_qtip:htmlEncode}"></div>',
+							'<span>{action_caption:htmlEncode}</span>',
+						'</div>',
+					'</tpl>',
+					'<tpl if="type_action_blank">',
+						'<div class="op5-spec-dbspeople-mainmenu-action">',
+						'</div>',
+					'</tpl>',
 				'</tpl>',
 			'</div>',
 			'</tpl>',
@@ -73,6 +80,16 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.MainMenu',{
 				action_sendEvent:'panel_query',
 				action_iconCls:'op5-spec-dbspeople-icon-query',
 				item_disabled: !Optima5.Modules.Spec.DbsPeople.HelperCache.authHelperQueryPage('CEQ')
+			},{
+				type_action:true,
+				type_action_blank:true,
+				item_disabled: !Optima5.Modules.Spec.DbsPeople.HelperCache.authHelperQueryPage('ADMIN')
+			},{
+				type_action:true,
+				action_caption: 'Upload',
+				action_sendEvent:'panel_upload',
+				action_iconCls:'op5-spec-dbspeople-icon-upload',
+				item_disabled: !Optima5.Modules.Spec.DbsPeople.HelperCache.authHelperQueryPage('ADMIN')
 			},{
 				type_separator:true,
 				separator_label: 'DBS People : Forecast',

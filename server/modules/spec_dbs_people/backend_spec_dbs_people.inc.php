@@ -59,6 +59,12 @@ switch( $post_data['_action'] )
 	return specDbsPeople_query_getResultXLS( $post_data ) ;
 	
 	
+	case 'upload_getLibrary' :
+	return specDbsPeople_upload_getLibrary( $post_data ) ;
+	case 'upload_do' :
+	return specDbsPeople_upload_do( $post_data ) ;
+	
+	
 	case 'auth_getTable' :
 	return specDbsPeople_auth_getTable( $post_data ) ;
 	

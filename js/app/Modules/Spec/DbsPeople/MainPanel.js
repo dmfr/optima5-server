@@ -6,7 +6,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.MainPanel',{
 		'Optima5.Modules.Spec.DbsPeople.RhPanel',
 		'Optima5.Modules.Spec.DbsPeople.RealPanel',
 		'Optima5.Modules.Spec.DbsPeople.QueryPanel',
-		'Optima5.Modules.Spec.DbsPeople.ForecastPanel'
+		'Optima5.Modules.Spec.DbsPeople.ForecastPanel',
+		'Optima5.Modules.Spec.DbsPeople.UploadForm'
 	],
 	
 	initComponent: function() {
@@ -58,6 +59,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.MainPanel',{
 				return me.switchToAppPanel('Optima5.Modules.Spec.DbsPeople.RealPanel') ;
 			case 'panel_query' :
 				return me.switchToAppPanel('Optima5.Modules.Spec.DbsPeople.QueryPanel',{width: 996}) ;
+			case 'panel_upload' :
+				return me.openUploadPopup() ;
 			case 'panel_forecast' :
 				return me.switchToAppPanel('Optima5.Modules.Spec.DbsPeople.ForecastPanel') ;
 			default :
@@ -79,5 +82,36 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.MainPanel',{
 		
 		this.removeAll() ;
 		this.add( panel ) ;
+	},
+	
+	openUploadPopup: function() {
+		this.getEl().mask() ;
+		// Open panel
+		var createPanel = Ext.create('Optima5.Modules.Spec.DbsPeople.UploadForm',{
+			optimaModule: this.optimaModule,
+			width:400, // dummy initial size, for border layout to work
+			height:null, // ...
+			floating: true,
+			draggable: true,
+			resizable: true,
+			renderTo: this.getEl(),
+			tools: [{
+				type: 'close',
+				handler: function(e, t, p) {
+					p.ownerCt.destroy();
+				},
+				scope: this
+			}]
+		});
+		createPanel.on('saved', function(p) {
+			this.doTreeLoad() ;
+		},this,{single:true}) ;
+		createPanel.on('destroy',function(p) {
+			this.getEl().unmask() ;
+			this.floatingPanel = null ;
+		},this,{single:true}) ;
+		
+		createPanel.show();
+		createPanel.getEl().alignTo(this.getEl(), 'c-c?');
 	}
 }) ;

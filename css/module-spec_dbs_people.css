@@ -10,6 +10,9 @@
 .op5-spec-dbspeople-icon-query {
 	background-image: url("../images/modules/dbspeople-query-64.png") !important;
 }
+.op5-spec-dbspeople-icon-upload {
+	background-image: url("../images/modules/dbspeople-query-64.png") !important;
+}
 
 
 .op5-spec-dbspeople-mainmenu {
@@ -59,11 +62,13 @@
 	width: 104px;
 	height: 124px;
 	overflow: hidden;
-	cursor: pointer;
 	z-index: 1;
 	font-size: 14px;	
 }
-.op5-spec-dbspeople-mainmenu .op5-spec-dbspeople-mainmenu-item-over .op5-spec-dbspeople-mainmenu-action {
+.op5-spec-dbspeople-mainmenu .op5-spec-dbspeople-mainmenu-action-active {
+	cursor: pointer;
+}
+.op5-spec-dbspeople-mainmenu .op5-spec-dbspeople-mainmenu-item-over .op5-spec-dbspeople-mainmenu-action-active {
 	background-color: rgb(37, 68, 93);
 	border: 1px solid rgb(221, 221, 221);
 	padding: 4px;
