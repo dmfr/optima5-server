@@ -9,6 +9,15 @@ function specBpSales_cde_getRecords( $post_data ) {
 	$forward_post['start'] ;
 	$forward_post['limit'] ;
 	$forward_post['file_code'] = 'CDE' ;
+	if( isset($post_data['filter_cdeFilerecordId_arr']) ) {
+		$forward_post['filter'] = json_encode(array(
+			array(
+				'operator' => 'in',
+				'property' => 'CDE_id',
+				'value' => json_decode($post_data['filter_cdeFilerecordId_arr'],true)
+			)
+		)) ;
+	}
 	$ttmp = paracrm_data_getFileGrid_data( $forward_post, $auth_bypass=TRUE ) ;
 	$paracrm_TAB = $ttmp['data'] ;
 	foreach( $paracrm_TAB as $paracrm_row ) {
@@ -51,6 +60,15 @@ function specBpSales_cde_getRecords( $post_data ) {
 	$forward_post['start'] ;
 	$forward_post['limit'] ;
 	$forward_post['file_code'] = 'CDE_LIG' ;
+	if( isset($post_data['filter_cdeFilerecordId_arr']) ) {
+		$forward_post['filter'] = json_encode(array(
+			array(
+				'operator' => 'in',
+				'property' => 'CDE_id',
+				'value' => json_decode($post_data['filter_cdeFilerecordId_arr'],true)
+			)
+		)) ;
+	}
 	$ttmp = paracrm_data_getFileGrid_data( $forward_post, $auth_bypass=TRUE ) ;
 	$paracrm_TAB = $ttmp['data'] ;
 	foreach( $paracrm_TAB as $paracrm_row ) {

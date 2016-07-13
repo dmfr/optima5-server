@@ -9,6 +9,15 @@ function specBpSales_inv_getRecords( $post_data ) {
 	$forward_post['start'] ;
 	$forward_post['limit'] ;
 	$forward_post['file_code'] = 'INV' ;
+	if( isset($post_data['filter_invFilerecordId_arr']) ) {
+		$forward_post['filter'] = json_encode(array(
+			array(
+				'operator' => 'in',
+				'property' => 'INV_id',
+				'value' => json_decode($post_data['filter_invFilerecordId_arr'],true)
+			)
+		)) ;
+	}
 	$ttmp = paracrm_data_getFileGrid_data( $forward_post, $auth_bypass=TRUE ) ;
 	$paracrm_TAB = $ttmp['data'] ;
 	foreach( $paracrm_TAB as $paracrm_row ) {
@@ -45,6 +54,15 @@ function specBpSales_inv_getRecords( $post_data ) {
 		$sorter['property'] = 'INV_LIG_id' ;
 		$sorter['direction'] = 'DESC' ;
 	$forward_post['sort'] = json_encode(array($sorter)) ;
+	if( isset($post_data['filter_invFilerecordId_arr']) ) {
+		$forward_post['filter'] = json_encode(array(
+			array(
+				'operator' => 'in',
+				'property' => 'INV_id',
+				'value' => json_decode($post_data['filter_invFilerecordId_arr'],true)
+			)
+		)) ;
+	}
 	$ttmp = paracrm_data_getFileGrid_data( $forward_post, $auth_bypass=TRUE ) ;
 	$paracrm_TAB = $ttmp['data'] ;
 	foreach( $paracrm_TAB as $paracrm_row ) {
@@ -98,7 +116,11 @@ function specBpSales_inv_createFromOrder( $post_data ) {
 	global $_opDB ;
 	
 	$row_cde = NULL ;
-	$ttmp = specBpSales_cde_getRecords(array()) ;
+	$ttmp = specBpSales_cde_getRecords(
+		array(
+			'filter_cdeFilerecordId_arr'=>json_encode(array($post_data['cde_filerecord_id']))
+		)
+	) ;
 	foreach( $ttmp['data'] as $row_cde_test ) {
 		if( $row_cde_test['cde_filerecord_id'] == $post_data['cde_filerecord_id'] ) {
 			$row_cde = $row_cde_test ;
@@ -272,7 +294,11 @@ function specBpSales_inv_setRecord( $post_data ) {
 
 
 function specBpSales_inv_lib_calc( $inv_filerecord_id ) {
-	$ttmp = specBpSales_inv_getRecords(array()) ;
+	$ttmp = specBpSales_inv_getRecords(
+		array(
+			'filter_invFilerecordId_arr'=>json_encode(array($inv_filerecord_id))
+		)
+	) ;
 	foreach( $ttmp['data'] as $row_inv_test ) {
 		if( $row_inv_test['inv_filerecord_id'] == $inv_filerecord_id ) {
 			$row_inv = $row_inv_test ;
