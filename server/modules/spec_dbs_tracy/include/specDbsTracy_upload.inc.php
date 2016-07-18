@@ -107,7 +107,17 @@ function specDbsTracy_upload_RCLSPEC_tmp( $handle, $id_soc ) {
 		}
 		$form_data['txt_location_city'] = $arr_csv[13] ;
 		
-		$form_data['atr_priority'] = 3 ;
+		switch( trim($arr_csv[8]) ) {
+			case '3' :
+				$form_data['atr_priority'] = 1 ;
+				break ;
+			case '4' :
+				$form_data['atr_priority'] = 2 ;
+				break ;
+			default :
+				$form_data['atr_priority'] = 3 ;
+				break ;
+		}
 		$form_data['atr_incoterm'] = $arr_csv[10] ;
 		
 		$json_return = specDbsTracy_order_setHeader(array(
@@ -151,64 +161,7 @@ function specDbsTracy_upload_RCLSPEC_tmp( $handle, $id_soc ) {
 	}
 	
 	
-	$ttmp_json = specDbsTracy_order_getRecords( array(
-		'filter_socCode' => $form_data['id_soc']
-	));
-	$rows_order = $ttmp_json['data'] ;
-	foreach( $rows_order as $row_order ) {
-		$statuses = $map_id_statuses[$row_order['id_soc'].'%%%'.$row_order['id_dn']] ;
-		if( !$statuses ) {
-			continue ;
-		}
-		
-		// Sans OT ?
-		$no_OT = ( $statuses['SGP']=='A' && $statuses['SM']=='A' );
-		if( $no_OT && !$row_order['warning_is_on'] ) {
-			// MeP warning
-			specDbsTracy_order_setWarning( array(
-				'order_filerecord_id' => $row_order['order_filerecord_id'],
-				'data' => json_encode(array(
-					'warning_is_on' => true,
-					'warning_code' => '10_SANS_OT',
-					'warning_txt' => "Auto-warning set on VLO6F upload.\nStatuses SGP=A SM=A\n"
-				))
-			));
-		}
-		if( !$no_OT && $row_order['warning_is_on'] && $row_order['warning_code']=='10_SANS_OT' ) {
-			// suppr warning
-			specDbsTracy_order_setWarning( array(
-				'order_filerecord_id' => $row_order['order_filerecord_id'],
-				'data' => json_encode(array(
-					'warning_is_on' => false
-				))
-			));
-		}
-		
-		// Missing attachments ?
-		$missing_attach = ( $statuses['SGP']=='C' && $statuses['SM']=='C' && count($row_order['attachments'])==0 );
-		if( $missing_attach && !$row_order['warning_is_on'] ) {
-			// MeP warning
-			specDbsTracy_order_setWarning( array(
-				'order_filerecord_id' => $row_order['order_filerecord_id'],
-				'data' => json_encode(array(
-					'warning_is_on' => true,
-					'warning_code' => '19_ABS_DOCS',
-					'warning_txt' => "Auto-warning set on VLO6F upload.\nStatuses SGP=C SM=C ATTACH=0\n"
-				))
-			));
-		}
-		if( !$missing_attach && $row_order['warning_is_on'] && $row_order['warning_code']=='19_ABS_DOCS' ) {
-			// suppr warning
-			specDbsTracy_order_setWarning( array(
-				'order_filerecord_id' => $row_order['order_filerecord_id'],
-				'data' => json_encode(array(
-					'warning_is_on' => false
-				))
-			));
-		}
-	}
-	
-	
+	specDbsTracy_upload_lib_processWarnings( $form_data['id_soc'] ) ;
 	
 	
 	return $passed ;
@@ -346,64 +299,7 @@ function specDbsTracy_upload_VL06F_tmp( $handle, $id_soc ) {
 	}
 	
 	
-	$ttmp_json = specDbsTracy_order_getRecords( array(
-		'filter_socCode' => $form_data['id_soc']
-	));
-	$rows_order = $ttmp_json['data'] ;
-	foreach( $rows_order as $row_order ) {
-		$statuses = $map_id_statuses[$row_order['id_soc'].'%%%'.$row_order['id_dn']] ;
-		if( !$statuses ) {
-			continue ;
-		}
-		
-		// Sans OT ?
-		$no_OT = ( $statuses['SGP']=='A' && $statuses['SM']=='A' );
-		if( $no_OT && !$row_order['warning_is_on'] ) {
-			// MeP warning
-			specDbsTracy_order_setWarning( array(
-				'order_filerecord_id' => $row_order['order_filerecord_id'],
-				'data' => json_encode(array(
-					'warning_is_on' => true,
-					'warning_code' => '10_SANS_OT',
-					'warning_txt' => "Auto-warning set on VLO6F upload.\nStatuses SGP=A SM=A\n"
-				))
-			));
-		}
-		if( !$no_OT && $row_order['warning_is_on'] && $row_order['warning_code']=='10_SANS_OT' ) {
-			// suppr warning
-			specDbsTracy_order_setWarning( array(
-				'order_filerecord_id' => $row_order['order_filerecord_id'],
-				'data' => json_encode(array(
-					'warning_is_on' => false
-				))
-			));
-		}
-		
-		// Missing attachments ?
-		$missing_attach = ( $statuses['SGP']=='C' && $statuses['SM']=='C' && count($row_order['attachments'])==0 );
-		if( $missing_attach && !$row_order['warning_is_on'] ) {
-			// MeP warning
-			specDbsTracy_order_setWarning( array(
-				'order_filerecord_id' => $row_order['order_filerecord_id'],
-				'data' => json_encode(array(
-					'warning_is_on' => true,
-					'warning_code' => '19_ABS_DOCS',
-					'warning_txt' => "Auto-warning set on VLO6F upload.\nStatuses SGP=C SM=C ATTACH=0\n"
-				))
-			));
-		}
-		if( !$missing_attach && $row_order['warning_is_on'] && $row_order['warning_code']=='19_ABS_DOCS' ) {
-			// suppr warning
-			specDbsTracy_order_setWarning( array(
-				'order_filerecord_id' => $row_order['order_filerecord_id'],
-				'data' => json_encode(array(
-					'warning_is_on' => false
-				))
-			));
-		}
-	}
-	
-	
+	specDbsTracy_upload_lib_processWarnings( $form_data['id_soc'] ) ;
 	
 	
 	return $passed ;
@@ -474,6 +370,76 @@ function specDbsTracy_upload_LIKP_tmp( $handle, $id_soc ) {
 	
 	return $passed ;
 }
+
+function specDbsTracy_upload_lib_processWarnings($id_soc) {
+	$ttmp_json = specDbsTracy_order_getRecords( array(
+		'filter_socCode' => $id_soc
+	));
+	$rows_order = $ttmp_json['data'] ;
+	foreach( $rows_order as $row_order ) {
+		$statuses = $map_id_statuses[$row_order['id_soc'].'%%%'.$row_order['id_dn']] ;
+		if( !$statuses ) {
+			continue ;
+		}
+		
+		// Sans OT ?
+		if( $id_soc == 'MBD' ) {
+			$no_OT = ( $statuses['SGP']=='A' && $statuses['SM']=='A' );
+			if( $no_OT && !$row_order['warning_is_on'] ) {
+				// MeP warning
+				specDbsTracy_order_setWarning( array(
+					'order_filerecord_id' => $row_order['order_filerecord_id'],
+					'data' => json_encode(array(
+						'warning_is_on' => true,
+						'warning_code' => '10_SANS_OT',
+						'warning_txt' => "Auto-warning set on VLO6F upload.\nStatuses SGP=A SM=A\n"
+					))
+				));
+			}
+			if( !$no_OT && $row_order['warning_is_on'] && $row_order['warning_code']=='10_SANS_OT' ) {
+				// suppr warning
+				specDbsTracy_order_setWarning( array(
+					'order_filerecord_id' => $row_order['order_filerecord_id'],
+					'data' => json_encode(array(
+						'warning_is_on' => false
+					))
+				));
+			}
+		}
+		
+		// Missing attachments ?
+		$missing_attach = ( $statuses['SGP']=='C' && $statuses['SM']=='C' && count($row_order['attachments'])==0 );
+		if( $missing_attach && !$row_order['warning_is_on'] ) {
+			// MeP warning
+			specDbsTracy_order_setWarning( array(
+				'order_filerecord_id' => $row_order['order_filerecord_id'],
+				'data' => json_encode(array(
+					'warning_is_on' => true,
+					'warning_code' => '19_ABS_DOCS',
+					'warning_txt' => "Auto-warning set on VLO6F upload.\nStatuses SGP=C SM=C ATTACH=0\n"
+				))
+			));
+		}
+		if( !$missing_attach && $row_order['warning_is_on'] && $row_order['warning_code']=='19_ABS_DOCS' ) {
+			// suppr warning
+			specDbsTracy_order_setWarning( array(
+				'order_filerecord_id' => $row_order['order_filerecord_id'],
+				'data' => json_encode(array(
+					'warning_is_on' => false
+				))
+			));
+		}
+	}
+}
+
+
+
+
+
+
+
+
+
 
 
 function specDbsTracy_upload_lib_separator( $handle_in, $handle_out, $separator='|' ) {
