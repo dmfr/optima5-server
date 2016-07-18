@@ -10,6 +10,9 @@ function specDbsTracy_order_getRecords( $post_data ) {
 	if( $post_data['filter_socCode'] ) {
 		$filter_socCode = $post_data['filter_socCode'] ;
 	}
+	if( $post_data['filter_archiveIsOn'] ) {
+		$filter_archiveIsOn = ( $post_data['filter_archiveIsOn'] ? true : false ) ;
+	}
 	
 	$TAB_order = array() ;
 	
@@ -20,6 +23,9 @@ function specDbsTracy_order_getRecords( $post_data ) {
 	}
 	if( isset($filter_socCode) ) {
 		$query.= " AND c.field_ID_SOC='{$filter_socCode}'" ;
+	}
+	if( !$filter_archiveIsOn ) {
+		$query.= " AND c.field_ARCHIVE_IS_ON='0'" ;
 	}
 	$query.= " ORDER BY c.filerecord_id DESC" ;
 	$result = $_opDB->query($query) ;
@@ -63,6 +69,9 @@ function specDbsTracy_order_getRecords( $post_data ) {
 	}
 	if( isset($filter_socCode) ) {
 		$query.= " AND c.field_ID_SOC='{$filter_socCode}'" ;
+	}
+	if( !$filter_archiveIsOn ) {
+		$query.= " AND c.field_ARCHIVE_IS_ON='0'" ;
 	}
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
