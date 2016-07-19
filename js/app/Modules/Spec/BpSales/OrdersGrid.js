@@ -6,15 +6,14 @@ Ext.define('Optima5.Modules.Spec.BpSales.OrdersGrid',{
 		'Optima5.Modules.Spec.DbsTracy.OrderWarningPanel'
 	],
 	
-	defaultViewMode: 'order',
+	defaultViewMode: 'cde',
 	viewMode: null,
 	autoRefreshDelay: (5*60*1000),
 	
 	initComponent: function() {
 		Ext.apply(this, {
 			layout: {
-				type: 'border',
-				align: 'stretch'
+				type: 'fit'
 			},
 			tbar:[{
 				icon: 'images/op5img/ico_back_16.gif',
@@ -24,7 +23,6 @@ Ext.define('Optima5.Modules.Spec.BpSales.OrdersGrid',{
 				},
 				scope: this
 			},'->',{
-				hidden: true,
 				itemId: 'tbCreate',
 				icon: 'images/op5img/ico_new_16.gif',
 				text:'Create file...',
@@ -33,6 +31,7 @@ Ext.define('Optima5.Modules.Spec.BpSales.OrdersGrid',{
 						scope:this
 					},
 					items: [{
+						hidden: true,
 						text: 'Order',
 						icon: 'images/op5img/ico_new_16.gif',
 						handler: function() {
@@ -40,21 +39,43 @@ Ext.define('Optima5.Modules.Spec.BpSales.OrdersGrid',{
 						},
 						scope: this
 					},{
-						text: 'Transport',
+						text: 'Invoice',
 						icon: 'images/op5img/ico_new_16.gif',
 						handler: function() {
-							this.handleNewTrspt() ;
+							this.handleNewInvoice() ;
 						},
 						scope: this
 					}]
 				}
-			},{
+			},'-',{
 				iconCls: 'op5-crmbase-datatoolbar-refresh',
 				text: 'Refresh',
 				handler: function() {
 					this.doLoad(true) ;
 				},
 				scope: this
+			},{
+				//iconCls: 'op5-spec-dbsembramach-report-clock',
+				itemId: 'tbViewmode',
+				viewConfig: {forceFit: true},
+				menu: {
+					defaults: {
+						handler:function(menuitem) {
+							//console.log('ch view '+menuitem.itemId) ;
+							this.onViewSet( menuitem.itemId ) ;
+						},
+						scope:this
+					},
+					items: [{
+						itemId: 'cde',
+						text: 'Orders',
+						iconCls: 'op5-spec-dbstracy-grid-view-order'
+					},{
+						itemId: 'inv',
+						text: 'Invoices / Refunds',
+						iconCls: 'op5-spec-dbstracy-grid-view-trspt'
+					}]
+				}
 			},'-',{
 				iconCls: 'op5-crmbase-datatoolbar-file-export-excel',
 				text: 'Export',
@@ -62,29 +83,6 @@ Ext.define('Optima5.Modules.Spec.BpSales.OrdersGrid',{
 					this.handleDownload() ;
 				},
 				scope: this
-			}],
-			items: [{
-				region: 'center',
-				flex: 3,
-				border: false,
-				xtype: 'panel',
-				itemId: 'pCenter',
-				layout: {
-					type: 'fit'
-				},
-				items: []
-			},{
-				region: 'south',
-				flex: 2,
-				collapsible: true,
-				collapsed: true,
-				resizable: true,
-				xtype: 'panel',
-				itemId: 'pSouth',
-				layout: {
-					type: 'fit'
-				},
-				items:[]
 			}]
 		});
 		this.callParent() ;
@@ -99,7 +97,7 @@ Ext.define('Optima5.Modules.Spec.BpSales.OrdersGrid',{
 		
 		this.tmpModelCnt = 0 ;
 		
-		this.doConfigure() ;
+		this.onViewSet(this.defaultViewMode) ;
 	},
 	onCrmeventBroadcast: function(crmEvent, eventParams) {
 		switch( crmEvent ) {
@@ -113,7 +111,53 @@ Ext.define('Optima5.Modules.Spec.BpSales.OrdersGrid',{
 		this.doLoad() ;
 	},
 	
-	doConfigure: function() {
+	onViewSet: function(viewId) {
+		var tbViewmode = this.child('toolbar').getComponent('tbViewmode'),
+			tbViewmodeItem = tbViewmode.menu.getComponent(viewId),
+			iconCls, text ;
+		if( tbViewmodeItem ) {
+			this.viewMode = viewId ;
+		}
+		// View mode
+		var tbViewmodeItem = tbViewmode.menu.getComponent(this.viewMode) ;
+		if( tbViewmodeItem ) {
+			tbViewmode.setText( 'View :'+'&#160;'+'<b>' + tbViewmodeItem.text + '</b>' );
+			tbViewmode.setIconCls( tbViewmodeItem.iconCls );
+		}
+		
+		// Create grid ?
+		if( this.autoRefreshTask ) {
+			this.autoRefreshTask.cancel() ;
+		}
+		this.autoRefreshTask = new Ext.util.DelayedTask( function(){
+			if( this.isDestroyed ) { // private check
+				return ;
+			}
+			this.doLoad() ;
+		},this);
+		
+		switch( this.viewMode ) {
+			case 'cde' :
+				this.down('#tbCreate').setVisible(false);
+				return this.doConfigureOrder() ;
+				
+			case 'inv' :
+				this.down('#tbCreate').setVisible(true);
+				return this.doConfigureInvoice() ;
+				
+			default:
+				return this.doConfigureNull() ;
+		}
+	},
+	doConfigureNull: function() {
+		this.removeAll() ;
+		this.add({
+			xtype:'box',
+			cls:'op5-waiting',
+			flex:1
+		});
+	},
+	doConfigureOrder: function() {
 		var pushModelfields = [{
 			name: '_color',
 			type: 'string'
@@ -337,9 +381,217 @@ Ext.define('Optima5.Modules.Spec.BpSales.OrdersGrid',{
 			}
 		} ;
 		
-		var pCenter = this.down('#pCenter') ;
-		pCenter.removeAll() ;
-		pCenter.add(tmpGridCfg);
+		this.removeAll() ;
+		this.add(tmpGridCfg);
+		
+		this.autoRefreshTask = new Ext.util.DelayedTask( function(){
+			if( this.isDestroyed ) { // private check
+				return ;
+			}
+			this.doLoad() ;
+		},this);
+		this.doLoad() ;
+	},
+	doConfigureInvoice: function() {
+		var pushModelfields = [{
+			name: '_color',
+			type: 'string'
+		},{
+			name: '_is_selection',
+			type: 'boolean'
+		}] ;
+		var validBtn = Ext.create('Ext.button.Button',{
+			iconCls: 'op5-spec-mrfoxy-financebudget-newrevisionmenu-save'
+		});
+		var buttonMarkup = Ext.DomHelper.markup(validBtn.getRenderTree());
+		validBtn.destroy() ;
+		var columns = [{
+			text: '<b>Invoice</b>',
+			dataIndex: 'id_inv',
+			width:120,
+			tdCls: 'op5-spec-dbstracy-bigcolumn',
+			resizable: true,
+			align: 'center',
+			filter: {
+				type: 'string'
+			},
+			renderer: function(v) {
+				return '<b>'+v+'</b>';
+			}
+		},{
+			text: 'Customer',
+			dataIndex: 'cli_link',
+			width:150,
+			resizable: true,
+			align: 'left',
+			filter: {
+				type: 'op5crmbasebible',
+				optimaModule: this.optimaModule,
+				bibleId: 'CDE_STATUS'
+			},
+			renderer: function(v,m,r) {
+				return r.get('cli_link_txt') ;
+			}
+		},{
+			text: 'Order#',
+			dataIndex: 'id_cde_ref',
+			width:120,
+			tdCls: 'op5-spec-dbstracy-bigcolumn',
+			resizable: true,
+			align: 'center',
+			filter: {
+				type: 'string'
+			}
+		},{
+			text: '<b>Status</b>',
+			dataIndex: 'status',
+			width: 100,
+			align: 'center',
+			renderer: function(v,m,record) {
+				var tmpProgress, tmpText, tmpColor ;
+				if( record.get('status_is_final') ) {
+					tmpColor = '' ;
+					tmpText = 'Final' ;
+					tmpProgress = 100/100 ;
+				} else {
+					tmpColor = 'red' ;
+					tmpText = 'Open' ;
+					tmpProgress = 30/100 ;
+				}
+				var b = new Ext.ProgressBar({height: 15, cls: 'op5-spec-mrfoxy-promolist-progress'});
+				switch( tmpColor ) {
+					case 'green' :
+						b.addCls('op5-spec-mrfoxy-promolist-progresscolorgreen') ;
+						break ;
+					case 'red' :
+						b.addCls('op5-spec-mrfoxy-promolist-progresscolor') ;
+						break ;
+					default :
+						break ;
+				}
+				b.updateProgress(tmpProgress,tmpText);
+				v = Ext.DomHelper.markup(b.getRenderTree());
+				b.destroy() ;
+				return v;
+			}
+		},{
+			text: 'Created',
+			dataIndex: 'date_create',
+			width:90,
+			resizable: true,
+			align: 'center',
+			renderer: Ext.util.Format.dateRenderer('d/m/Y'),
+			filter: {
+				type: 'date'
+			}
+		},{
+			text: 'Value Date',
+			dataIndex: 'date_invoice',
+			width:90,
+			resizable: true,
+			align: 'center',
+			renderer: Ext.util.Format.dateRenderer('d/m/Y'),
+			filter: {
+				type: 'date'
+			}
+		},{
+			text: 'ExclVAT',
+			dataIndex: 'calc_amount_novat',
+			width:75,
+			resizable: true,
+			align: 'right',
+			filter: {
+				type: 'number'
+			},
+			renderer: function(v) {
+				if(v) {
+				return '<b><font color="#AA0000">'+v+'</font></b>' ;
+				}
+			}
+		},{
+			text: 'NetVAT',
+			dataIndex: 'calc_amount_final',
+			width:75,
+			resizable: true,
+			align: 'right',
+			filter: {
+				type: 'number'
+			},
+			renderer: function(v) {
+				if(v) {
+				return '<b><font color="#AA0000">'+v+'</font></b>' ;
+				}
+			}
+		}] ;
+		
+		
+		this.tmpModelName = 'BpSalesInvRowModel-' + this.getId() + (++this.tmpModelCnt) ;
+		Ext.ux.dams.ModelManager.unregister( this.tmpModelName ) ;
+		Ext.define(this.tmpModelName, {
+			extend: 'BpSalesInvModel',
+			fields: pushModelfields,
+			hasMany: [{
+				model: 'BpSalesInvLigModel',
+				name: 'ligs',
+				associationKey: 'ligs'
+			}]
+		});
+		
+		var columnDefaults = {
+			menuDisabled: (this._popupMode || this._readonlyMode ? true : false),
+			draggable: false,
+			sortable: (this._readonlyMode ? false : true),
+			hideable: false,
+			resizable: true,
+			groupable: false,
+			lockable: false
+		} ;
+		Ext.Array.each( columns, function(column) {
+			Ext.applyIf( column, columnDefaults ) ;
+		}) ;
+		
+		var tmpGridCfg = {
+			border: false,
+			xtype: 'grid',
+			itemId: 'pGrid',
+			bodyCls: 'op5-spec-dbstracy-files-grid',
+			store: {
+				autoLoad: false,
+				model: this.tmpModelName,
+				proxy: this.optimaModule.getConfiguredAjaxProxy({
+					extraParams : {
+						_moduleId: 'spec_bp_sales',
+						_action: 'inv_getRecords',
+						filter_fastMode: 1
+					},
+					reader: {
+						type: 'json',
+						rootProperty: 'data'
+					}
+				})
+			},
+			columns: columns,
+			plugins: [{
+				ptype: 'uxgridfilters'
+			}],
+			listeners: {
+				render: this.doConfigureOnRender,
+				itemclick: this.onOrderItemClick,
+				itemcontextmenu: this.onOrderContextMenu,
+				scope: this
+			},
+			viewConfig: {
+				getRowClass: function(record) {
+					if( record.get('warning_is_on') ) {
+						return 'op5-spec-dbstracy-files-warning' ;
+					}
+				},
+				enableTextSelection: true
+			}
+		} ;
+		
+		this.removeAll() ;
+		this.add(tmpGridCfg);
 		
 		this.autoRefreshTask = new Ext.util.DelayedTask( function(){
 			if( this.isDestroyed ) { // private check
@@ -476,7 +728,7 @@ Ext.define('Optima5.Modules.Spec.BpSales.OrdersGrid',{
 			this.autoRefreshTask.cancel() ;
 		}
 		
-		var gridPanel = this.down('#pCenter').down('grid') ;
+		var gridPanel = this.down('grid') ;
 		gridPanel.getStore().load() ;
 		if( this.autoRefreshTask != null ) {
 			this.autoRefreshTask.delay(this.autoRefreshDelay) ;

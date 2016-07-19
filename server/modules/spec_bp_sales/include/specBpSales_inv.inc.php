@@ -45,52 +45,53 @@ function specBpSales_inv_getRecords( $post_data ) {
 	}
 	
 	
-	
-	$forward_post = array() ;
-	$forward_post['start'] ;
-	$forward_post['limit'] ;
-	$forward_post['file_code'] = 'INV_LIG' ;
-		$sorter = array() ;
-		$sorter['property'] = 'INV_LIG_id' ;
-		$sorter['direction'] = 'DESC' ;
-	$forward_post['sort'] = json_encode(array($sorter)) ;
-	if( isset($post_data['filter_invFilerecordId_arr']) ) {
-		$forward_post['filter'] = json_encode(array(
-			array(
-				'operator' => 'in',
-				'property' => 'INV_id',
-				'value' => json_decode($post_data['filter_invFilerecordId_arr'],true)
-			)
-		)) ;
+	if( !$post_data['filter_fastMode'] ) {
+		$forward_post = array() ;
+		$forward_post['start'] ;
+		$forward_post['limit'] ;
+		$forward_post['file_code'] = 'INV_LIG' ;
+			$sorter = array() ;
+			$sorter['property'] = 'INV_LIG_id' ;
+			$sorter['direction'] = 'DESC' ;
+		$forward_post['sort'] = json_encode(array($sorter)) ;
+		if( isset($post_data['filter_invFilerecordId_arr']) ) {
+			$forward_post['filter'] = json_encode(array(
+				array(
+					'operator' => 'in',
+					'property' => 'INV_id',
+					'value' => json_decode($post_data['filter_invFilerecordId_arr'],true)
+				)
+			)) ;
+		}
+		$ttmp = paracrm_data_getFileGrid_data( $forward_post, $auth_bypass=TRUE ) ;
+		$paracrm_TAB = $ttmp['data'] ;
+		foreach( $paracrm_TAB as $paracrm_row ) {
+			$filerecord_parent_id = $paracrm_row['INV_id'] ;
+			
+			$row = array() ;
+			$row['invlig_filerecord_id'] = $paracrm_row['INV_LIG_id'] ;
+			$row['id_inv_lig'] = $paracrm_row['INV_LIG_field_ID_INV_LIG'] ;
+			$row['link_cdelig_filerecord_id'] = $paracrm_row['INV_LIG_field_LINK_CDELIG_FILE_ID'] ;
+			$row['mode_inv'] = $paracrm_row['INV_LIG_field_MODE_INV'] ;
+			$row['mode_inv_is_calc'] = ($paracrm_row['INV_LIG_field_MODE_INV_tree_INVMODE_GROUP']=='CALC') ;
+			$row['base_prod'] = $paracrm_row['INV_LIG_field_BASE_PROD'] ;
+			$row['base_prod_txt'] = $paracrm_row['INV_LIG_field_BASE_PROD_entry_PROD_TXT'] ;
+			$row['base_prod_ean'] = $paracrm_row['INV_LIG_field_BASE_PROD_entry_PROD_SKU_EAN'] ;
+			$row['base_prod_pcb'] = $paracrm_row['INV_LIG_field_BASE_PROD_entry_QTE_SKU'] ;
+			$row['base_qty'] = $paracrm_row['INV_LIG_field_BASE_QTY'] ;
+			$row['static_txt'] = $paracrm_row['INV_LIG_field_STATIC_TXT'] ;
+			$row['static_amount'] = $paracrm_row['INV_LIG_field_STATIC_AMOUNT'] ;
+			$row['join_price'] = $paracrm_row['INV_LIG_field_JOIN_PRICE'] ;
+			$row['join_coef1'] = $paracrm_row['INV_LIG_field_JOIN_COEF1'] ;
+			$row['join_coef2'] = $paracrm_row['INV_LIG_field_JOIN_COEF2'] ;
+			$row['join_vat'] = $paracrm_row['INV_LIG_field_JOIN_VAT'] ;
+			$row['calc_amount_novat'] = $paracrm_row['INV_LIG_field_CALC_AMOUNT_NOVAT'] ;
+			$row['calc_amount_final'] = $paracrm_row['INV_LIG_field_CALC_AMOUNT_FINAL'] ;
+			
+			$TAB[$filerecord_parent_id]['ligs'][] = $row ;
+		}
+		$debug = $paracrm_TAB ;
 	}
-	$ttmp = paracrm_data_getFileGrid_data( $forward_post, $auth_bypass=TRUE ) ;
-	$paracrm_TAB = $ttmp['data'] ;
-	foreach( $paracrm_TAB as $paracrm_row ) {
-		$filerecord_parent_id = $paracrm_row['INV_id'] ;
-		
-		$row = array() ;
-		$row['invlig_filerecord_id'] = $paracrm_row['INV_LIG_id'] ;
-		$row['id_inv_lig'] = $paracrm_row['INV_LIG_field_ID_INV_LIG'] ;
-		$row['link_cdelig_filerecord_id'] = $paracrm_row['INV_LIG_field_LINK_CDELIG_FILE_ID'] ;
-		$row['mode_inv'] = $paracrm_row['INV_LIG_field_MODE_INV'] ;
-		$row['mode_inv_is_calc'] = ($paracrm_row['INV_LIG_field_MODE_INV_tree_INVMODE_GROUP']=='CALC') ;
-		$row['base_prod'] = $paracrm_row['INV_LIG_field_BASE_PROD'] ;
-		$row['base_prod_txt'] = $paracrm_row['INV_LIG_field_BASE_PROD_entry_PROD_TXT'] ;
-		$row['base_prod_ean'] = $paracrm_row['INV_LIG_field_BASE_PROD_entry_PROD_SKU_EAN'] ;
-		$row['base_prod_pcb'] = $paracrm_row['INV_LIG_field_BASE_PROD_entry_QTE_SKU'] ;
-		$row['base_qty'] = $paracrm_row['INV_LIG_field_BASE_QTY'] ;
-		$row['static_txt'] = $paracrm_row['INV_LIG_field_STATIC_TXT'] ;
-		$row['static_amount'] = $paracrm_row['INV_LIG_field_STATIC_AMOUNT'] ;
-		$row['join_price'] = $paracrm_row['INV_LIG_field_JOIN_PRICE'] ;
-		$row['join_coef1'] = $paracrm_row['INV_LIG_field_JOIN_COEF1'] ;
-		$row['join_coef2'] = $paracrm_row['INV_LIG_field_JOIN_COEF2'] ;
-		$row['join_vat'] = $paracrm_row['INV_LIG_field_JOIN_VAT'] ;
-		$row['calc_amount_novat'] = $paracrm_row['INV_LIG_field_CALC_AMOUNT_NOVAT'] ;
-		$row['calc_amount_final'] = $paracrm_row['INV_LIG_field_CALC_AMOUNT_FINAL'] ;
-		
-		$TAB[$filerecord_parent_id]['ligs'][] = $row ;
-	}
-	$debug = $paracrm_TAB ;
 	
 	
 	if( isset($post_data['filter_invFilerecordId_arr']) ) {
