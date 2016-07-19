@@ -96,6 +96,16 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 						itemId: 'trspt',
 						text: 'Transport Files',
 						iconCls: 'op5-spec-dbstracy-grid-view-trspt'
+					},{
+						xtype: 'menuseparator',
+						handler: function() {}
+					},{
+						itemId: 'tbArchiveIsOn',
+						text: 'Show archived',
+						handler: function() {},
+						checked: false,
+						checkHandler : function() { this.doLoad(true) },
+						scope: this
 					}]
 				}
 			},'-',{
@@ -1178,7 +1188,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			params: {
 				_moduleId: 'spec_dbs_tracy',
 				_action: 'order_getRecords',
-				filter_socCode: this.down('#btnSoc').getValue()
+				filter_socCode: this.down('#btnSoc').getValue(),
+				filter_archiveIsOn: (this.down('#tbArchiveIsOn').checked ? 1 : 0 )
 			},
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
@@ -1267,7 +1278,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			params: {
 				_moduleId: 'spec_dbs_tracy',
 				_action: 'trspt_getRecords',
-				filter_socCode: this.down('#btnSoc').getValue()
+				filter_socCode: this.down('#btnSoc').getValue(),
+				filter_archiveIsOn: (this.down('#tbArchiveIsOn').checked ? 1 : 0 )
 			},
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
