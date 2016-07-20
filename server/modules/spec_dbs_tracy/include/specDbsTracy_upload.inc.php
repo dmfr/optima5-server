@@ -47,11 +47,10 @@ function specDbsTracy_report_RCL_VL02NAWB_tmp( $form_data ) {
 
 	$csv_buffer = '' ;
 	$query = "SELECT c.field_ID_DN, t.field_FLIGHT_AWB
-				FROM view_file_CDE c, view_file_CDE_STEP cs, view_file_TRSPT_CDE tc, view_file_TRSPT t
-				WHERE c.filerecord_id = cs.filerecord_parent_id AND cs.field_STEP_CODE='90_POD' AND cs.field_STATUS_IS_OK='1'
-				AND c.filerecord_id = tc.field_FILE_CDE_ID AND tc.field_LINK_IS_CANCEL='0'
+				FROM view_file_CDE c, view_file_TRSPT_CDE tc, view_file_TRSPT t
+				WHERE c.filerecord_id = tc.field_FILE_CDE_ID AND tc.field_LINK_IS_CANCEL='0'
 				AND tc.filerecord_parent_id = t.filerecord_id
-				AND c.field_ID_SOC='ACL' AND t.field_FLIGHT_AWB<>'' AND DATE(cs.field_DATE_ACTUAL) BETWEEN '{$form_data['date_start']}' AND '{$form_data['date_end']}'" ;
+				AND c.field_ID_SOC='ACL' AND t.field_FLIGHT_AWB<>'' AND DATE(t.field_DATE_CREATE) BETWEEN '{$form_data['date_start']}' AND '{$form_data['date_end']}'" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_row($result)) !=  FALSE ) {
 		$csv_buffer.= $arr[0].';'.$arr[1]."\r\n" ;

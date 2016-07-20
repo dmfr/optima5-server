@@ -66,10 +66,10 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.MainMenu',{
 				{type_action:true, action_caption: 'Live Validation', action_sendEvent:'panel_live', action_iconCls:'op5-spec-dbslam-menu-live'}
 			);
 		}
-		if( Optima5.Modules.Spec.DbsTracy.HelperCache.authHelperQueryPage('ADMIN') ) {
+		if( Optima5.Modules.Spec.DbsTracy.HelperCache.authHelperQueryPage('ADMIN') || Optima5.Modules.Spec.DbsTracy.HelperCache.authHelperQueryPage('GOM') ) {
 			itemsStoreData.push(
-				{type_separator:true, separator_label: 'Upload data sources'},
-				{type_action:true, action_caption: 'Upload / Sync', action_sendEvent:'form_upload', action_iconCls:'op5-spec-dbstracy-mmenu-upload'},
+				{type_separator:true, separator_label: 'Data sources'},
+				{type_action:true, action_caption: 'Upload / Sync', action_sendEvent:'form_upload', action_iconCls:'op5-spec-dbstracy-mmenu-upload', item_disabled:!(Optima5.Modules.Spec.DbsTracy.HelperCache.authHelperQueryPage('ADMIN'))},
 				{type_action:true, action_caption: 'Specific reports', action_sendEvent:'form_report', action_iconCls:'op5-spec-dbstracy-mmenu-attachments'}
 			);
 		}
