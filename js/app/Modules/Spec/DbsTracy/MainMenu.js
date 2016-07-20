@@ -69,7 +69,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.MainMenu',{
 		if( Optima5.Modules.Spec.DbsTracy.HelperCache.authHelperQueryPage('ADMIN') ) {
 			itemsStoreData.push(
 				{type_separator:true, separator_label: 'Upload data sources'},
-				{type_action:true, action_caption: 'Upload / Sync', action_sendEvent:'form_upload', action_iconCls:'op5-spec-dbstracy-mmenu-upload'}
+				{type_action:true, action_caption: 'Upload / Sync', action_sendEvent:'form_upload', action_iconCls:'op5-spec-dbstracy-mmenu-upload'},
+				{type_action:true, action_caption: 'Specific reports', action_sendEvent:'form_report', action_iconCls:'op5-spec-dbstracy-mmenu-attachments'}
 			);
 		}
 		 

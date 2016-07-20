@@ -1,4 +1,76 @@
 <?php
+
+function specDbsTracy_report( $post_data ) {
+	$form_data = json_decode($post_data['data'],true) ;
+	
+	// Specs
+	switch( $form_data['file_model'] ) {
+		case 'RCL_VL02NPOD' :
+			$csv_buffer = specDbsTracy_report_RCL_VL02NPOD_tmp($form_data) ;
+			break ;
+		case 'RCL_VL02NAWB' :
+			$csv_buffer = specDbsTracy_report_RCL_VL02NAWB_tmp($form_data) ;
+			break ;
+		default :
+			return array('success'=>false);
+	}
+	
+	$filename = 'OP5report_TRACY_.'.$form_data['file_model'].'_'.time().'.'.'csv' ;
+	header("Content-Type: application/force-download; name=\"$filename\""); 
+	header("Content-Disposition: attachment; filename=\"$filename\""); 
+	echo $csv_buffer ;
+	die() ;
+}
+
+
+function specDbsTracy_report_RCL_VL02NPOD_tmp( $form_data ) {
+	$json = specDbsTracy_order_getRecords(array('filter_archiveIsOn'=>1,'filter_socCode'=>'ACL')) ;
+	$csv_buffer = '' ;
+	foreach( $json['data'] as $rowOrder ) {
+		foreach( $rowOrder['steps'] as $rowOrderStep ) {
+			if( !$rowOrderStep['status_is_ok'] || $rowOrderStep['step_code']!='90_POD' ) {
+				continue ;
+			}
+			if( $rowOrderStep['date_actual'] >= $form_data['date_start'] 
+				&& $rowOrderStep['date_actual'] <= $form_data['date_end'] ) {
+				
+				
+				$csv_buffer.= $rowOrder['id_dn'].';'.date('d.m.Y',strtotime($rowOrderStep['date_actual'])).';'.date('H:i',strtotime($rowOrderStep['date_actual']))."\r\n" ;
+			}
+		}
+		
+	}
+	return $csv_buffer ;
+}
+function specDbsTracy_report_RCL_VL02NAWB_tmp( $form_data ) {
+	global $_opDB ;
+
+	$csv_buffer = '' ;
+	$query = "SELECT c.field_ID_DN, t.field_FLIGHT_AWB
+				FROM view_file_CDE c, view_file_CDE_STEP cs, view_file_TRSPT_CDE tc, view_file_TRSPT t
+				WHERE c.filerecord_id = cs.filerecord_parent_id AND cs.field_STEP_CODE='90_POD' AND cs.field_STATUS_IS_OK='1'
+				AND c.filerecord_id = tc.field_FILE_CDE_ID AND tc.field_LINK_IS_CANCEL='0'
+				AND tc.filerecord_parent_id = t.filerecord_id
+				AND c.field_ID_SOC='ACL' AND t.field_FLIGHT_AWB<>'' AND DATE(cs.field_DATE_ACTUAL) BETWEEN '{$form_data['date_start']}' AND '{$form_data['date_end']}'" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) !=  FALSE ) {
+		$csv_buffer.= $arr[0].';'.$arr[1]."\r\n" ;
+	}
+	
+	return $csv_buffer ;
+}
+
+
+
+
+
+
+
+
+
+
+
+
 function specDbsTracy_upload( $post_data ) {
 	global $_opDB ;
 	
@@ -504,5 +576,41 @@ function specDbsTracy_upload_lib_separator( $handle_in, $handle_out, $separator=
 	
 	fclose($handle_priv) ;
 }
+
+
+
+
+
+/*
+
+
+
+
+update view_file_CDE c, view_file_CDE_STEP cs 
+set c.field_ARCHIVE_IS_ON='1' 
+where c.filerecord_id=cs.filerecord_parent_id 
+	AND cs.field_STEP_CODE='90_POD' 
+	AND cs.field_STATUS_IS_OK='1' 
+	AND cs.field_DATE_ACTUAL <= DATE_SUB(CURDATE(),INTERVAL 8 DAY  ) ;
+
+
+
+update view_file_TRSPT 
+SET field_ARCHIVE_IS_ON='1' 
+WHERE filerecord_id IN ( 
+	select distinct filerecord_parent_id  
+	from view_file_TRSPT_CDE 
+	where field_FILE_CDE_ID IN (
+		select filerecord_id from view_file_CDE where field_ARCHIVE_IS_ON='1' AND field_LINK_IS_CANCEL='0' 
+	)
+)
+
+
+
+
+
+
+
+*/
 
 ?>

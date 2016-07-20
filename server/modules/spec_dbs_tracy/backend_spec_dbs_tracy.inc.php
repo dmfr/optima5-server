@@ -73,6 +73,8 @@ switch( $post_data['_action'] )
 	
 	case 'upload' :
 	return specDbsTracy_upload($post_data) ;
+	case 'report' :
+	return specDbsTracy_report($post_data) ;
 	
 	default :
 	return NULL ;
