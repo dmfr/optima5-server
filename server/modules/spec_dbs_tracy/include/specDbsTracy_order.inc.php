@@ -20,12 +20,11 @@ function specDbsTracy_order_getRecords( $post_data ) {
 	$query.= " WHERE 1" ;
 	if( isset($filter_orderFilerecordId_list) ) {
 		$query.= " AND c.filerecord_id IN {$filter_orderFilerecordId_list}" ;
+	} elseif( !$filter_archiveIsOn ) {
+		$query.= " AND c.field_ARCHIVE_IS_ON='0'" ;
 	}
 	if( isset($filter_socCode) ) {
 		$query.= " AND c.field_ID_SOC='{$filter_socCode}'" ;
-	}
-	if( !$filter_archiveIsOn ) {
-		$query.= " AND c.field_ARCHIVE_IS_ON='0'" ;
 	}
 	$query.= " ORDER BY c.filerecord_id DESC" ;
 	$result = $_opDB->query($query) ;
@@ -66,12 +65,11 @@ function specDbsTracy_order_getRecords( $post_data ) {
 	$query.= " WHERE 1" ;
 	if( isset($filter_orderFilerecordId_list) ) {
 		$query.= " AND c.filerecord_id IN {$filter_orderFilerecordId_list}" ;
+	} elseif( !$filter_archiveIsOn ) {
+		$query.= " AND c.field_ARCHIVE_IS_ON='0'" ;
 	}
 	if( isset($filter_socCode) ) {
 		$query.= " AND c.field_ID_SOC='{$filter_socCode}'" ;
-	}
-	if( !$filter_archiveIsOn ) {
-		$query.= " AND c.field_ARCHIVE_IS_ON='0'" ;
 	}
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
@@ -360,7 +358,7 @@ function specDbsTracy_order_download( $post_data ) {
 		$server_root = $GLOBALS['server_root'] ;
 		include("$server_root/include/xlsxwriter.class.php");
 		
-	$json = specDbsTracy_order_getRecords(array()) ;
+	$json = specDbsTracy_order_getRecords(array('filter_archiveIsOn'=>1)) ;
 	$map_id_rowOrder = array() ;
 	foreach( $json['data'] as $rowOrder ) {
 		$id = $rowOrder['order_filerecord_id'] ;
