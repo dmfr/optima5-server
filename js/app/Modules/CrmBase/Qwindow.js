@@ -5,7 +5,8 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 		'Optima5.Modules.CrmBase.QueryPanel',
 		'Optima5.Modules.CrmBase.QmergePanel',
 		'Optima5.Modules.CrmBase.QbookPanel',
-		'Optima5.Modules.CrmBase.QsimplePanel'
+		'Optima5.Modules.CrmBase.QsimplePanel',
+		'Optima5.Modules.CrmBase.QsqlPanel'
 	],
 	
 	optimaModule: null,
@@ -66,6 +67,15 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 				qCfg['qwebId'] = me.qwebId ;
 				return qCfg ;
 				break ;
+			case 'qsql' :
+				qCfg['qType'] = me.qType ;
+				if( me.qsqlId == null ) {
+					qCfg['qsqlNew'] = true ;
+				} else {
+					qCfg['qsqlId'] = me.qsqlId ;
+				}
+				return qCfg ;
+				break ;
 			default:
 				return null ;
 				break ;
@@ -80,6 +90,8 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 				return 'queries_mergerTransaction' ;
 			case 'qweb' :
 				return 'queries_qwebTransaction' ;
+			case 'qsql' :
+				return 'queries_qsqlTransaction' ;
 			case 'qbook' :
 			case 'qbook_ztemplate' :
 				return 'queries_qbookTransaction' ;
@@ -143,6 +155,32 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 								querysaved: function( success, qmergeId ) {
 									if( success ) {
 										me.onQmergeSaved(qmergeId);
+									}
+								},
+								querydelete: function( success ) {
+									if( success ) {
+										me.close();
+									}
+								},
+								scope:me
+							}
+						})]
+					}) ;
+					cfgValid = true ;
+				}
+				break ;
+				
+			case 'qsql' :
+				if( me.qsqlId || me.qsqlNew ) {
+					panelClass = 'Optima5.Modules.CrmBase.QsqlPanel' ;
+					Ext.apply(me,{
+						items:[Ext.create(panelClass,{
+							itemId:'qPanel',
+							optimaModule: me.optimaModule,
+							listeners: {
+								querysaved: function( success, qsqlId ) {
+									if( success ) {
+										me.onQsqlSaved(qsqlId);
 									}
 								},
 								querydelete: function( success ) {
@@ -231,6 +269,13 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 				}) ;
 				break ;
 				
+			case 'Optima5.Modules.CrmBase.QsqlPanel' :
+				Ext.apply(me,{
+					width:1000,
+					height:700
+				}) ;
+				break ;
+				
 			default :
 				Ext.apply(me,{
 					width:800,
@@ -296,6 +341,14 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 		
 		me.configureComponents() ;
 	},
+	onQsqlSaved: function( qsqlId ) {
+		var me = this ;
+		me.qType = 'qsql' ;
+		me.qsqlNew = false ;
+		me.qsqlId = qsqlId ;
+		
+		me.configureComponents() ;
+	},
 	
 	getToolbar: function() {
 		var me = this ;
@@ -308,6 +361,7 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 			case 'qmerge' :
 			case 'qbook' :
 			case 'qweb' :
+			case 'qsql' :
 				return me.child('#qPanel') ;
 			default :
 				return null ;
@@ -339,6 +393,13 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 						me.getPanel().qbookNew() ;
 					} else if( me.qbookId > 0 ) {
 						me.getPanel().qbookOpen(me.qbookId) ;
+					}
+					break ;
+				case 'qsql' :
+					if( me.qsqlNew ) {
+						me.getPanel().qsqlNew() ;
+					} else if( me.qsqlId > 0 ) {
+						me.getPanel().qsqlOpen(me.qsqlId) ;
 					}
 					break ;
 				case 'qweb' :
@@ -402,6 +463,22 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 						} else if( me.qmergeId > 0 ) {
 							Ext.Array.each( ajaxData.data_qmerges, function(o) {
 								if( o.qmergeId == me.qmergeId ) {
+									winTitle = 'Q# '+o.text ;
+									if( o.isPublished ) {
+										tbarDisableSave = tbarIsPublished = true ;
+									}
+									return false ;
+								}
+							});
+						}
+						break ;
+					case 'qsql' :
+						if( me.qsqlNew ) {
+							tbarIsNew = tbarDisableSave = true ;
+							winTitle = 'Q# '+'New Qsql' ;
+						} else if( me.qsqlId > 0 ) {
+							Ext.Array.each( ajaxData.data_qsql, function(o) {
+								if( o.qsqlId == me.qsqlId ) {
 									winTitle = 'Q# '+o.text ;
 									if( o.isPublished ) {
 										tbarDisableSave = tbarIsPublished = true ;
@@ -618,6 +695,9 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 				break ;
 			case 'qweb' :
 				windowTitle = me.getPanel().qweb_name ;
+				break ;
+			case 'qsql' :
+				windowTitle = me.getPanel().qsql_name ;
 				break ;
 			case 'qbook' :
 				windowTitle = me.getPanel().qbook_name ;

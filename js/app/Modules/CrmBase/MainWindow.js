@@ -359,6 +359,21 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 				scope: me
 			});
 		},me) ;
+		Ext.Array.each( respObj.data_qsqls , function(v) {
+			var qsqlId = parseInt(v.qsqlId) ;
+			
+			qMenuItems.push({
+				qsqlId: qsqlId,
+				isPublished: v.isPublished,
+				text: v.text,
+				icon: 'images/op5img/ico_sql_16.png' ,
+				cls: (v.isPublished == true)? me.clsForPublished:null,
+				handler: function(){
+					me.openQsql( qsqlId, v.authReadOnly ) ;
+				},
+				scope: me
+			});
+		},me) ;
 		Ext.Array.sort( qMenuItems, function(o1,o2) {
 			var o1text = o1.text.toLowerCase(),
 				o2text = o2.text.toLowerCase() ;
@@ -423,9 +438,18 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 				scope : me
 			}) ;
 		}
-		if( !authReadOnly && respObj.data_filetargets && respObj.data_filetargets.length > 0
-				&& qMenuItems.length > 0 ) {
-			
+		// ajout du "new" Qsql
+		if( !authReadOnly ) {
+			menuItems.push({
+				icon: 'images/op5img/ico_sql_16.png' ,
+				text: 'Create SQL' ,
+				handler : function() {
+					me.openQsqlNew() ;
+				},
+				scope : me
+			}) ;
+		}
+		if( !authReadOnly && qMenuItems.length > 0 ) {
 			menuItems.push('-') ;
 		}
 		menuItems = Ext.Array.union(menuItems,qMenuItems) ;
@@ -629,6 +653,20 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 			qType: 'qmerge',
 			qmergeId: qmergeId,
 			forceQsimple: readOnly
+		});
+	},
+	openQsqlNew: function() {
+		var me = this ;
+		return me.openQwindow({
+			qType: 'qsql',
+			qsqlNew: true
+		});
+	},
+	openQsql: function( qsqlId ) {
+		var me = this ;
+		return me.openQwindow({
+			qType: 'qsql',
+			qsqlId: qsqlId
 		});
 	},
 	openQbookNew: function() {

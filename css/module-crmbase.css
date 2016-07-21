@@ -45,6 +45,10 @@
 .op5-crmbase-query-groupextrapolate-row .x-grid-cell {
 	background-color: #FF8587 ;
 }
+.op5-crmbase-query-sql-textarea {
+	font-family: monospace ;
+	padding: 8px ;
+}
 
 
 

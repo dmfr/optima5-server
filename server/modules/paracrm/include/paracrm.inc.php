@@ -22,6 +22,7 @@ include("$server_root/modules/paracrm/include/paracrm_queries_xls.inc.php") ;
 include("$server_root/modules/paracrm/include/paracrm_queries_template.inc.php") ;
 include("$server_root/modules/paracrm/include/paracrm_queries_qbook.inc.php") ;
 include("$server_root/modules/paracrm/include/paracrm_queries_qweb.inc.php") ;
+include("$server_root/modules/paracrm/include/paracrm_queries_qsql.inc.php") ;
 include("$server_root/modules/paracrm/include/paracrm_queries_charts.inc.php") ;
 
 include("$server_root/modules/paracrm/include/paracrm_lib_data.inc.php") ;
