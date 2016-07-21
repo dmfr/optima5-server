@@ -4,7 +4,7 @@ class DatabaseMgr_Sdomain {
 	private $_opDB ;
 	private $domain_id ;
 	
-	private static $dbVersion = 29 ;
+	private static $dbVersion = 30 ;
 	
 	public function __construct( $domain_id ) {
 		$this->_opDB = $GLOBALS['_opDB'] ;
@@ -601,6 +601,13 @@ CREATE TABLE `qweb_field_qwhere` (
   `qfield_type` varchar(100) NOT NULL,
   `qfield_linkbible` varchar(100) NOT NULL,
   PRIMARY KEY (`qweb_id`,`qweb_fieldqwhere_ssid`)
+) ;
+
+CREATE TABLE `qsql` (
+  `qsql_id` int(11) NOT NULL AUTO_INCREMENT,
+  `qsql_name` varchar(100) NOT NULL,
+  `sql_querystring` text NOT NULL,
+  PRIMARY KEY (`qsql_id`)
 ) ;
 
 CREATE TABLE `store_file` (
