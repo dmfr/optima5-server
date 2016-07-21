@@ -85,6 +85,7 @@ Ext.define('BpSalesInvModel',{
 		{name: 'inv_filerecord_id', type:'int'},
 		{name: 'id_inv', type:'string'},
 		{name: 'id_cde_ref', type:'string'},
+		{name: 'id_coef', type:'int'},
 		{name: 'cli_link', type:'string'},
 		{name: 'cli_link_txt', type:'string'},
 		{name: 'pay_bank', type:'string'},
@@ -143,7 +144,8 @@ Ext.define('Optima5.Modules.Spec.BpSales.BpSalesModule', {
 				break ;
 			case 'openinv' :
 				Ext.apply( eventParams, {
-					invFilerecordId: postParams.invFilerecordId
+					invFilerecordId: postParams.invFilerecordId,
+					invNew: postParams.invNew
 				}) ;
 				break ;
 			

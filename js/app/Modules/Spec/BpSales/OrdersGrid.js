@@ -42,7 +42,14 @@ Ext.define('Optima5.Modules.Spec.BpSales.OrdersGrid',{
 						text: 'Invoice',
 						icon: 'images/op5img/ico_new_16.gif',
 						handler: function() {
-							this.handleNewInvoice() ;
+							this.handleNewInvoice('INV','invoice') ;
+						},
+						scope: this
+					},{
+						text: '<font color="red">Refund</font>',
+						icon: 'images/op5img/ico_new_16.gif',
+						handler: function() {
+							this.handleNewInvoice('REF','refund') ;
 						},
 						scope: this
 					}]
@@ -295,10 +302,13 @@ Ext.define('Optima5.Modules.Spec.BpSales.OrdersGrid',{
 			filter: {
 				type: 'number'
 			},
-			renderer: function(v) {
-				if(v) {
-				return '<b><font color="#AA0000">'+v+'</font></b>' ;
+			renderer: function(v,metaData) {
+				if( v >= 0 ) {
+					metaData.tdCls += ' op5-spec-bpsales-positif' ;
+				} else {
+					metaData.tdCls += ' op5-spec-bpsales-negatif' ;
 				}
+				return v ;
 			}
 		},{
 			text: 'NetVAT',
@@ -309,10 +319,13 @@ Ext.define('Optima5.Modules.Spec.BpSales.OrdersGrid',{
 			filter: {
 				type: 'number'
 			},
-			renderer: function(v) {
-				if(v) {
-				return '<b><font color="#AA0000">'+v+'</font></b>' ;
+			renderer: function(v,metaData) {
+				if( v >= 0 ) {
+					metaData.tdCls += ' op5-spec-bpsales-positif' ;
+				} else {
+					metaData.tdCls += ' op5-spec-bpsales-negatif' ;
 				}
+				return v ;
 			}
 		}] ;
 		
@@ -415,7 +428,10 @@ Ext.define('Optima5.Modules.Spec.BpSales.OrdersGrid',{
 			filter: {
 				type: 'string'
 			},
-			renderer: function(v) {
+			renderer: function(v,metaData,record) {
+				if( record.get('id_coef') < 0 ) {
+					metaData.tdCls += ' op5-spec-bpsales-negatif' ;
+				}
 				return '<b>'+v+'</b>';
 			}
 		},{
@@ -503,10 +519,13 @@ Ext.define('Optima5.Modules.Spec.BpSales.OrdersGrid',{
 			filter: {
 				type: 'number'
 			},
-			renderer: function(v) {
-				if(v) {
-				return '<b><font color="#AA0000">'+v+'</font></b>' ;
+			renderer: function(v,metaData) {
+				if( v >= 0 ) {
+					metaData.tdCls += ' op5-spec-bpsales-positif' ;
+				} else {
+					metaData.tdCls += ' op5-spec-bpsales-negatif' ;
 				}
+				return v ;
 			}
 		},{
 			text: 'NetVAT',
@@ -517,10 +536,13 @@ Ext.define('Optima5.Modules.Spec.BpSales.OrdersGrid',{
 			filter: {
 				type: 'number'
 			},
-			renderer: function(v) {
-				if(v) {
-				return '<b><font color="#AA0000">'+v+'</font></b>' ;
+			renderer: function(v,metaData) {
+				if( v >= 0 ) {
+					metaData.tdCls += ' op5-spec-bpsales-positif' ;
+				} else {
+					metaData.tdCls += ' op5-spec-bpsales-negatif' ;
 				}
+				return v ;
 			}
 		}] ;
 		
@@ -576,8 +598,7 @@ Ext.define('Optima5.Modules.Spec.BpSales.OrdersGrid',{
 			}],
 			listeners: {
 				render: this.doConfigureOnRender,
-				itemclick: this.onOrderItemClick,
-				itemcontextmenu: this.onOrderContextMenu,
+				itemcontextmenu: this.onInvoiceContextMenu,
 				scope: this
 			},
 			viewConfig: {
@@ -721,6 +742,50 @@ Ext.define('Optima5.Modules.Spec.BpSales.OrdersGrid',{
 		
 		gridContextMenu.showAt(event.getXY());
 	},
+	onInvoiceContextMenu: function(view, record, item, index, event) {
+		var gridContextMenuItems = new Array() ;
+		
+		var selRecords = view.getSelectionModel().getSelection() ;
+		if( selRecords.length != 1 ) {
+			return ;
+		}
+		var selRecord = selRecords[0] ;
+		gridContextMenuItems.push({
+			disabled: true,
+			text: '<b>'+selRecord.get('id_inv')+'</b>'
+		},'-');
+		if( true ) {
+			gridContextMenuItems.push({
+				iconCls: 'icon-bible-edit',
+				text: 'Open invoice',
+				handler : function() {
+					this.handleOpenInvoice( selRecord.get('inv_filerecord_id'),selRecord.get('id_inv') ) ;
+				},
+				scope : this
+			});
+		}
+		if( selRecord.get('id_coef') > 0 ) {
+			gridContextMenuItems.push({
+				iconCls: 'icon-bible-new',
+				text: 'Create refund',
+				handler : function() {
+					this.handleNewRefundFromInvoice( selRecord.get('inv_filerecord_id'), selRecord.get('id_inv') ) ;
+				},
+				scope : this
+			});
+		}
+		
+		var gridContextMenu = Ext.create('Ext.menu.Menu',{
+			items : gridContextMenuItems,
+			listeners: {
+				hide: function(menu) {
+					Ext.defer(function(){menu.destroy();},10) ;
+				}
+			}
+		}) ;
+		
+		gridContextMenu.showAt(event.getXY());
+	},
 	
 	
 	doLoad: function(doClearFilters) {
@@ -766,6 +831,43 @@ Ext.define('Optima5.Modules.Spec.BpSales.OrdersGrid',{
 			}
 		},this);
 	},
+	handleNewInvoice: function( invPrefix, text ) {
+		Ext.Msg.confirm('Confirm?','Create blank '+ text,function(btn){
+			if( btn=='yes' ) {
+				this.doNewInvoice(invPrefix) ;
+			}
+		},this);
+	},
+	handleNewRefundFromInvoice: function( invFilerecordId, invRef ) {
+		Ext.Msg.confirm('Confirm?','Create refund from '+ invRef,function(btn){
+			if( btn=='yes' ) {
+				this.doNewRefundFromInvoice(invFilerecordId) ;
+			}
+		},this);
+	},
+	doNewInvoice: function( invPrefix ) {
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_bp_sales',
+				_action: 'inv_createFromBlank',
+				inv_prefix: invPrefix
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+				this.optimaModule.postCrmEvent('datachange',{}) ;
+				this.handleOpenInvoice(ajaxResponse.inv_filerecord_id,true) ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+	},
 	doCreateInvoice: function( cdeFilerecordId ) {
 		this.showLoadmask() ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
@@ -789,8 +891,31 @@ Ext.define('Optima5.Modules.Spec.BpSales.OrdersGrid',{
 			scope: this
 		}) ;
 	},
-	handleOpenInvoice: function( invFilerecordId ) {
-		this.optimaModule.postCrmEvent('openinv',{invFilerecordId:invFilerecordId}) ;
+	doNewRefundFromInvoice: function( invFilerecordId ) {
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_bp_sales',
+				_action: 'inv_createFromInvoiceRefund',
+				inv_filerecord_id: invFilerecordId
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+				this.optimaModule.postCrmEvent('datachange',{}) ;
+				this.handleOpenInvoice(ajaxResponse.inv_filerecord_id) ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+	},
+	handleOpenInvoice: function( invFilerecordId, invNew ) {
+		this.optimaModule.postCrmEvent('openinv',{invFilerecordId:invFilerecordId, invNew:invNew}) ;
 	},
 	
 	

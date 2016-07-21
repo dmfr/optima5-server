@@ -186,14 +186,22 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoicePanel',{
 						anchor: '',
 						width: 250,
 						name: 'id_cde_ref',
-						readOnly: true
+						readOnly: !this._invNew
 					},{
 						xtype: 'op5crmbasebiblepicker',
 						bibleId: 'CUSTOMER',
 						optimaModule: this.optimaModule,
 						fieldLabel: 'Customer',
 						name: 'cli_link',
-						readOnly: true
+						readOnly: !this._invNew,
+						listeners: {
+							change: function(field,newValue,oldValue) {
+								if( newValue != oldValue && this._invNew ) {
+									this.doQueryCustomer(newValue) ;
+								}
+							},
+							scope: this
+						}
 					},{
 						xtype: 'datefield',
 						fieldLabel: 'Created',
@@ -337,7 +345,10 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoicePanel',{
 						align: 'right',
 						width: 80,
 						dataIndex: 'calc_amount_novat',
-						renderer: function(v) {
+						renderer: function(v,metaData) {
+							if( v < 0 ) {
+								metaData.tdCls += ' op5-spec-bpsales-negatif' ;
+							}
 							v = Ext.util.Format.number( v, '0.000' )
 							return '<b>'+v+'</b>';
 						}
@@ -351,7 +362,10 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoicePanel',{
 						align: 'right',
 						width: 80,
 						dataIndex: 'calc_amount_final',
-						renderer: function(v) {
+						renderer: function(v,metaData) {
+							if( v < 0 ) {
+								metaData.tdCls += ' op5-spec-bpsales-negatif' ;
+							}
 							v = Ext.util.Format.number( v, '0.000' )
 							return '<b>'+v+'</b>';
 						}
@@ -516,6 +530,10 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoicePanel',{
 		this.down('toolbar').down('#tbDownload').setVisible(readOnly) ;
 		
 		//fHeader
+		if( invRecord.get('id_coef') < 0 ) {
+			this.down('#pHeaderForm').getForm().findField('calc_amount_novat').addCls('op5-spec-bpsales-negatif') ;
+			this.down('#pHeaderForm').getForm().findField('calc_amount_final').addCls('op5-spec-bpsales-negatif') ;
+		}
 		this.down('#pHeaderForm').getForm().reset() ;
 		this.down('#pHeaderForm').getForm().loadRecord(invRecord) ;
 		this.down('#pHeaderForm').getForm().setValues({
@@ -626,6 +644,25 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoicePanel',{
 				}
 				
 				this.destroy() ;
+			},
+			callback: function() {
+				//this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+	},
+	doQueryCustomer: function( cliLink ) {
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_bp_sales',
+				_action: 'inv_queryCustomer',
+				cli_link: cliLink
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == true ) {
+					this.down('#pHeaderForm').getForm().setValues( ajaxResponse.data ) ;
+				}
 			},
 			callback: function() {
 				//this.hideLoadmask() ;

@@ -94,3 +94,16 @@
 .op5-spec-bpsales-pom .x-grid-cell-inner {
 	background-color: rgba(255,122,122,0.4) ;
 }
+
+.op5-spec-bpsales-negatif .x-form-text {
+	color: red ;
+	font-weight: bold;
+}
+.op5-spec-bpsales-negatif .x-grid-cell-inner {
+	color: red ;
+	font-weight: bold;
+}
+.op5-spec-bpsales-positif .x-grid-cell-inner {
+	color: #00008E ;
+	font-weight: bold;
+}

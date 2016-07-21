@@ -97,11 +97,11 @@ Ext.define('Optima5.Modules.Spec.BpSales.MainPanel',{
 			case 'datachange' :
 				break ;
 			case 'openinv' :
-				return this.openInvFile( eventParams.invFilerecordId ) ;
+				return this.openInvFile( eventParams.invFilerecordId, eventParams.invNew ) ;
 			default: break ;
 		}
 	},
-	openInvFile: function(invFilerecordId) {
+	openInvFile: function(invFilerecordId, invNew) {
 		if( invFilerecordId === null ) {
 			return ;
 		}
@@ -136,6 +136,7 @@ Ext.define('Optima5.Modules.Spec.BpSales.MainPanel',{
 			
 				optimaModule: this.optimaModule,
 				_invFilerecordId: invFilerecordId,
+				_invNew: invNew,
 				listeners: {
 					candestroy: function(w) {
 						w.close() ;

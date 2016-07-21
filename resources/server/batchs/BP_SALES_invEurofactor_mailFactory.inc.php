@@ -11,6 +11,10 @@ function mail_getBinary_remiseTxt( $arr_invFilerecordIds ) { // return String (b
 		$result = $_opDB->query($query) ;
 		$arr = $_opDB->fetch_assoc($result) ;
 		
+		if( !($arr['field_ID_COEF'] > 0) ) {
+			continue ;
+		}
+		
 		$lig = '' ;
 		$lig = substr_mklig($lig,$GLOBALS['factor_emetteur'],0,5) ;
 		$lig = substr_mklig($lig,';',5,1) ;

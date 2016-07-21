@@ -25,6 +25,7 @@ function specBpSales_inv_getRecords( $post_data ) {
 		$row['inv_filerecord_id'] = $paracrm_row['INV_id'] ;
 		$row['id_inv'] = $paracrm_row['INV_field_ID_INV'] ;
 		$row['id_cde_ref'] = $paracrm_row['INV_field_ID_CDE_REF'] ;
+		$row['id_coef'] = (float)$paracrm_row['INV_field_ID_COEF'] ;
 		$row['cli_link'] = $paracrm_row['INV_field_CLI_LINK'] ;
 		$row['cli_link_txt'] = $paracrm_row['INV_field_CLI_LINK_entry_CLI_NAME'] ;
 		$row['pay_bank'] = $paracrm_row['INV_field_PAY_BANK'] ;
@@ -113,6 +114,42 @@ function specBpSales_inv_getRecords( $post_data ) {
 
 
 
+function specBpSales_inv_createFromBlank( $post_data ) {
+	global $_opDB ;
+	
+	switch( $post_data['inv_prefix'] ) {
+		case 'INV' :
+			$prefix = 'INV' ;
+			$coef = 1 ;
+			break ;
+			
+		case 'REF' :
+			$prefix = 'REF' ;
+			$coef = -1 ;
+			break ;
+		
+		default :
+			return array('success'=>false) ;
+	}
+	
+	$_opDB->query("LOCK TABLES view_file_Z_ATTRIB WRITE") ;
+	$query = "UPDATE view_file_Z_ATTRIB set field_ID=field_ID+'1' WHERE field_FILE_CODE='INV'" ;
+	$_opDB->query($query) ;
+	$query = "SELECT field_ID FROM view_file_Z_ATTRIB WHERE field_FILE_CODE='INV'" ;
+	$id = $_opDB->query_uniqueValue($query) ;
+	$_opDB->query("UNLOCK TABLES") ;
+	
+	$arr_ins = array() ;
+	$arr_ins['field_ID_INV'] = $prefix.'/'.str_pad((float)$id, 6, "0", STR_PAD_LEFT) ;
+	$arr_ins['field_ID_COEF'] = $coef ;
+	$arr_ins['field_DATE_CREATE'] = date('Y-m-d H:i:s') ;
+	$arr_ins['field_DATE_INVOICE'] = date('Y-m-d') ;
+	$inv_filerecord_id = paracrm_lib_data_insertRecord_file( 'INV', 0, $arr_ins );
+	
+	specBpSales_inv_lib_calc($inv_filerecord_id) ;
+	
+	return array('success'=>true, 'inv_filerecord_id'=>$inv_filerecord_id) ;
+}
 function specBpSales_inv_createFromOrder( $post_data ) {
 	global $_opDB ;
 	
@@ -149,6 +186,7 @@ function specBpSales_inv_createFromOrder( $post_data ) {
 	$arr_ins = array() ;
 	$arr_ins['field_ID_INV'] = 'INV/'.str_pad((float)$id, 6, "0", STR_PAD_LEFT) ;
 	$arr_ins['field_ID_CDE_REF'] = $row_cde['cde_ref'] ;
+	$arr_ins['field_ID_COEF'] = 1 ;
 	$arr_ins['field_CLI_LINK'] = $row_cde['cli_link'] ;
 	$arr_ins['field_ADR_SENDTO'] = '' ;
 	$arr_ins['field_ADR_INVOICE'] = $customer_entry['field_ADR_INVOICE'] ;
@@ -175,6 +213,79 @@ function specBpSales_inv_createFromOrder( $post_data ) {
 	specBpSales_inv_lib_calc($inv_filerecord_id) ;
 	
 	return array('success'=>true, 'inv_filerecord_id'=>$inv_filerecord_id) ;
+}
+function specBpSales_inv_createFromInvoiceRefund( $post_data ) {
+	global $_opDB ;
+	
+	$row_inv = NULL ;
+	$ttmp = specBpSales_inv_getRecords(
+		array(
+			'filter_invFilerecordId_arr'=>json_encode(array($post_data['inv_filerecord_id']))
+		)
+	) ;
+	foreach( $ttmp['data'] as $row_inv_test ) {
+		if( $row_inv_test['inv_filerecord_id'] == $post_data['inv_filerecord_id'] ) {
+			$row_inv = $row_inv_test ;
+			break ;
+		}
+	}
+	if( !$row_inv ) {
+		return array('success'=>false, 'error'=>'Not found') ;
+	}
+	
+	$_opDB->query("LOCK TABLES view_file_Z_ATTRIB WRITE") ;
+	$query = "UPDATE view_file_Z_ATTRIB set field_ID=field_ID+'1' WHERE field_FILE_CODE='INV'" ;
+	$_opDB->query($query) ;
+	$query = "SELECT field_ID FROM view_file_Z_ATTRIB WHERE field_FILE_CODE='INV'" ;
+	$id = $_opDB->query_uniqueValue($query) ;
+	$_opDB->query("UNLOCK TABLES") ;
+	
+	$ttmp = explode('/',$row_inv['id_inv']);
+	$id_refund = 'REF/'.$ttmp[1] ;
+	$query_test = "SELECT count(*) FROM view_file_INV WHERE field_ID_INV='{$id_refund}'" ;
+	if( $_opDB->query_uniqueValue($query_test) > 0 ) {
+		return array('success'=>false, 'error'=>'Duplicate') ;
+	}
+	
+	$arr_ins = array() ;
+	$arr_ins['field_ID_INV'] = $id_refund ;
+	$arr_ins['field_ID_CDE_REF'] = $row_inv['id_cde_ref'] ;
+	$arr_ins['field_ID_COEF'] = -1 ; 
+	$arr_ins['field_CLI_LINK'] = $row_inv['cli_link'] ;
+	$arr_ins['field_ADR_SENDTO'] = $row_inv['adr_sendto'] ;
+	$arr_ins['field_ADR_INVOICE'] = $row_inv['adr_invoice'] ;
+	$arr_ins['field_ADR_SHIP'] = $row_inv['adr_ship'] ;
+	$arr_ins['field_PAY_BANK'] = $row_inv['pay_bank'] ;
+	$arr_ins['field_DATE_CREATE'] = date('Y-m-d H:i:s') ;
+	$arr_ins['field_DATE_INVOICE'] = $row_inv['date_invoice'] ;
+	$inv_filerecord_id = paracrm_lib_data_insertRecord_file( 'INV', 0, $arr_ins );
+	
+	foreach( $row_inv['ligs'] as $row_inv_lig ) {
+		$arr_ins = array() ;
+		$arr_ins['field_LINK_CDELIG_FILE_ID'] = $row_inv_lig['link_cdelig_filerecord_id'] ;
+		$arr_ins['field_MODE_INV'] = $row_inv_lig['mode_inv'] ;
+		$arr_ins['field_BASE_PROD'] = $row_inv_lig['base_prod'] ;
+		$arr_ins['field_BASE_QTY'] = $row_inv_lig['base_qty'] ;
+		$arr_ins['field_STATIC_TXT'] = $row_inv_lig['static_txt'] ;
+		$arr_ins['field_STATIC_AMOUNT'] = $row_inv_lig['static_amount'] ;
+		$invlig_filerecord_id = paracrm_lib_data_insertRecord_file( 'INV_LIG', $inv_filerecord_id, $arr_ins );
+	}
+	
+	specBpSales_inv_lib_calc($inv_filerecord_id) ;
+	
+	return array('success'=>true, 'inv_filerecord_id'=>$inv_filerecord_id) ;
+}
+function specBpSales_inv_queryCustomer( $post_data ) {
+	//Query customer
+	$customer_entry = paracrm_lib_data_getRecord_bibleEntry('CUSTOMER',$post_data['cli_link']) ;
+	$customer_treenode = paracrm_lib_data_getRecord_bibleTreenode('CUSTOMER',$customer_entry['treenode_key'],$ascend_on_empty=TRUE) ;
+	
+	$arr_ins['adr_sendto'] = '' ;
+	$arr_ins['adr_invoice'] = $customer_entry['field_ADR_INVOICE'] ;
+	$arr_ins['adr_ship'] = $customer_entry['field_ADR_SHIP'] ;
+	$arr_ins['pay_bank'] = $customer_treenode['field_ATR_PAYBANK'] ;
+	
+	return array('success'=>true, 'data'=>$arr_ins) ;
 }
 
 function specBpSales_inv_deleteRecord( $post_data ) {
@@ -228,6 +339,9 @@ function specBpSales_inv_setRecord( $post_data ) {
 	}
 	
 	$arr_update = array() ;
+	$arr_update['field_ID_CDE_REF'] = $record_data['id_cde_ref'] ;
+	$arr_update['field_CLI_LINK'] = $record_data['cli_link'] ;
+	$arr_update['field_DATE_INVOICE'] = $record_data['date_invoice'] ;
 	$arr_update['field_DATE_INVOICE'] = $record_data['date_invoice'] ;
 	$arr_update['field_PAY_BANK'] = $record_data['pay_bank'] ;
 	$arr_update['field_ADR_SENDTO'] = $record_data['adr_sendto'] ;
@@ -309,6 +423,7 @@ function specBpSales_inv_lib_calc( $inv_filerecord_id ) {
 	if( !$row_inv ) {
 		return  ;
 	}
+	$coef = $row_inv['id_coef'] ;
 	
 	$tot_amount_novat = $tot_amount_final = 0 ;
 	foreach( $row_inv['ligs'] as $row_inv_lig ) {
@@ -320,16 +435,16 @@ function specBpSales_inv_lib_calc( $inv_filerecord_id ) {
 		$amount_final = $amount_novat * $row_inv_lig['join_vat'] ;
 		
 		$arr_update = array() ;
-		$arr_update['field_CALC_AMOUNT_NOVAT'] = $amount_novat ;
-		$arr_update['field_CALC_AMOUNT_FINAL'] = $amount_final ;
+		$arr_update['field_CALC_AMOUNT_NOVAT'] = $coef * $amount_novat ;
+		$arr_update['field_CALC_AMOUNT_FINAL'] = $coef * $amount_final ;
 		paracrm_lib_data_updateRecord_file( 'INV_LIG' , $arr_update, $row_inv_lig['invlig_filerecord_id'] ) ;
 		
 		$tot_amount_novat += $amount_novat ;
 		$tot_amount_final += $amount_final ;
 	}
 	
-	$arr_update['field_CALC_AMOUNT_NOVAT'] = $tot_amount_novat ;
-	$arr_update['field_CALC_AMOUNT_FINAL'] = $tot_amount_final ;
+	$arr_update['field_CALC_AMOUNT_NOVAT'] = $tot_amount_novat * $coef ;
+	$arr_update['field_CALC_AMOUNT_FINAL'] = $tot_amount_final * $coef ;
 	paracrm_lib_data_updateRecord_file( 'INV' , $arr_update, $row_inv['inv_filerecord_id'] ) ;
 
 }
