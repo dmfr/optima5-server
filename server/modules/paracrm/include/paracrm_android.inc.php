@@ -106,12 +106,12 @@ function paracrm_android_getDbImage($post_data)
 			$map['src_db_field'] = 'field_'.$field_code.'_'.paracrm_define_tool_getEqFieldType($field_type) ;
 			switch( $field_type = $arr[1] ) {
 				case 'string' :
+				case 'stringplus' :
 					$map['dest_db_field'] = 'treenode_field_value_string' ;
 					break ;
 				case 'number' :
-					$map['dest_db_field'] = 'treenode_field_value_number' ;
-					break ;
 				case 'bool' :
+				case 'extid' :
 					$map['dest_db_field'] = 'treenode_field_value_number' ;
 					break ;
 				case 'date' :
@@ -120,6 +120,8 @@ function paracrm_android_getDbImage($post_data)
 				case 'link' :
 					$map['dest_db_field'] = 'treenode_field_value_link' ;
 					break ;
+				default :
+					continue 2 ;
 			}
 			
 			$map_tree[] = $map ;
@@ -152,12 +154,12 @@ function paracrm_android_getDbImage($post_data)
 			$map['src_db_field'] = 'field_'.$field_code.'_'.paracrm_define_tool_getEqFieldType($field_type) ;
 			switch( $field_type = $arr[1] ) {
 				case 'string' :
+				case 'stringplus' :
 					$map['dest_db_field'] = 'entry_field_value_string' ;
 					break ;
 				case 'number' :
-					$map['dest_db_field'] = 'entry_field_value_number' ;
-					break ;
 				case 'bool' :
+				case 'extid' :
 					$map['dest_db_field'] = 'entry_field_value_number' ;
 					break ;
 				case 'date' :
@@ -166,6 +168,8 @@ function paracrm_android_getDbImage($post_data)
 				case 'link' :
 					$map['dest_db_field'] = 'entry_field_value_link' ;
 					break ;
+				default :
+					continue 2 ;
 			}
 			
 			$map_entry[] = $map ;
@@ -597,12 +601,12 @@ function paracrm_android_syncPull_dumpFile( $file_code, $master_query )
 		$map['src_db_field'] = 'field_'.$field_code.'_'.paracrm_define_tool_getEqFieldType($field_type) ;
 		switch( $field_type = $arr[1] ) {
 			case 'string' :
+			case 'stringplus' :
 				$map['dest_db_field'] = 'filerecord_field_value_string' ;
 				break ;
 			case 'number' :
-				$map['dest_db_field'] = 'filerecord_field_value_number' ;
-				break ;
 			case 'bool' :
+			case 'extid' :
 				$map['dest_db_field'] = 'filerecord_field_value_number' ;
 				break ;
 			case 'date' :
@@ -768,12 +772,12 @@ function paracrm_android_syncPush( $post_data )
 				$map['dest_db_field'] = 'field_'.$field_code.'_'.paracrm_define_tool_getEqFieldType($field_type) ;
 				switch( $field_type = $arr[1] ) {
 					case 'string' :
+					case 'stringplus' :
 						$map['src_db_field'] = 'filerecord_field_value_string' ;
 						break ;
 					case 'number' :
-						$map['src_db_field'] = 'filerecord_field_value_number' ;
-						break ;
 					case 'bool' :
+					case 'extid' :
 						$map['src_db_field'] = 'filerecord_field_value_number' ;
 						break ;
 					case 'date' :
