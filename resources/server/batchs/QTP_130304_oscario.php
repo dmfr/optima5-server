@@ -68,6 +68,16 @@ $json = json_decode(oscario_http_post($post),true) ;
 if( $json['success'] == true ) {
 	update_PRODLOG_from_oscario_prod( $json['data'] ) ;
 }
+$post = array() ;
+$post['edi_method'] = 'RAW_cli' ;
+$json = json_decode(oscario_http_post($post),true) ;
+if( $json['success'] == true ) {
+	update_CLILOG_from_oscario_cli( $json['data'] ) ;
+}
+
+if( $db_sales = getenv('OPTIMA_DB_SALES') ) {
+	update_CDELIG_from_salesDb( $db_sales ) ;
+}
 
 
 // ************ PARTIE COMMANDES **************
