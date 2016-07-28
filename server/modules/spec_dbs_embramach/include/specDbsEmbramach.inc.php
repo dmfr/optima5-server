@@ -342,6 +342,13 @@ function specDbsEmbramach_mach_getGridData( $post_data ) {
 			
 			$row[$dataIndex] = implode(' ',$value) ;
 		}
+
+		if( $arr['field_SHIPTO_CODE'] == '527852' ) {
+			continue ;
+		}
+		if( $row['field_3'] == 'CDG1' ) {
+			continue ;
+		}
 		
 		$TAB[$filerecord_id] = $row ;
 	}
