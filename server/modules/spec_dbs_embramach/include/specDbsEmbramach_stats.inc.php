@@ -129,7 +129,7 @@ function specDbsEmbramach_stats_getPicking($post_data) {
 			foreach( $map_fieldCode_rowKey as $fieldCode=>$rowKey ) {
 				$row[$rowKey] = $query_row['group'][$fieldCode] ;
 			}
-			$row['value_count'] = reset($query_row['values']) ;
+			$row['value_count'] = (float)reset($query_row['values']) ;
 			$data[] = $row ;
 		}
 	}
