@@ -132,7 +132,7 @@ if($emails) {
 if( TRUE ) {
 	media_contextOpen( $_sdomain_id ) ;
 	
-	$json_order = specDbsTracy_order_getRecords( array('filter_socCode'=>'MBD') ) ;
+	$json_order = specDbsTracy_order_getRecords( array() ) ;
 	$map_idDn_orderRow = array() ;
 	foreach( $json_order['data'] as $order_row ) {
 		$mkey = strtoupper(trim($order_row['id_dn'])) ;
