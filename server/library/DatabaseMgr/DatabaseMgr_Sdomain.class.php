@@ -610,20 +610,6 @@ CREATE TABLE `qsql` (
   PRIMARY KEY (`qsql_id`)
 ) ;
 
-CREATE TABLE `store_file` (
-  `filerecord_id` int(11) NOT NULL AUTO_INCREMENT,
-  `filerecord_parent_id` int(11) NOT NULL,
-  `file_code` varchar(50) NOT NULL,
-  `sync_vuid` varchar(100) NOT NULL,
-  `sync_is_deleted` varchar(1) NOT NULL,
-  `sync_timestamp` int(11) NOT NULL,
-  `dsc_is_locked` varchar(1) NOT NULL,
-  PRIMARY KEY (`filerecord_id`),
-  KEY `filerecord_parent_id` (`filerecord_parent_id`),
-  KEY `file_code` (`file_code`),
-  KEY `sync_vuid` (`sync_vuid`)
-) ;
-
 CREATE TABLE `q_cfgchart` (
   `q_type` varchar(20) NOT NULL,
   `q_id` int(11) NOT NULL,
@@ -692,7 +678,7 @@ CREATE TABLE `importmap_column` (
 EOF;
 	}
 	
-	private function getSdomainDb( $sdomain_id ) {
+	public function getSdomainDb( $sdomain_id ) {
 		return DatabaseMgr_Base::getBaseDb( $this->domain_id ).'_'.strtolower($sdomain_id) ;
 	}
 	
@@ -1077,7 +1063,14 @@ EOF;
 		
 		
 		$db_table = 'store_file_'.$file_code ;
-		$arrAssoc_dbField_fieldType = array('filerecord_id'=>'int(11)') ;
+		$arrAssoc_dbField_fieldType = array(
+			'filerecord_id'=>'int(11)',
+			'filerecord_parent_id' => 'int(11)',
+			'sync_vuid' => 'varchar(100)',
+			'sync_is_deleted' => 'varchar(1)',
+			'sync_timestamp' => 'int(11)',
+			'dsc_is_locked' => 'varchar(1)'
+		) ;
 		$arr_model_keys = array('PRIMARY'=>array('arr_columns'=>array('filerecord_id'))) ;
 		$arrAssoc_crmField_dbField = array() ;
 		foreach( $arr_gmap_define as $gmap_field ) {
@@ -1159,12 +1152,14 @@ EOF;
 		}
 		
 		DatabaseMgr_Util::syncTableStructure( $sdomain_db , $db_table , $arrAssoc_dbField_fieldType , $arr_model_keys ) ;
+		$query = "ALTER TABLE {$sdomain_db}.{$db_table} MODIFY filerecord_id int(11) NOT NULL AUTO_INCREMENT" ;
+		$_opDB->query($query) ;
 		
 		$view_name = 'view_file_'.$file_code ;
 		$query = "DROP VIEW IF EXISTS {$sdomain_db}.{$view_name}" ;
 		$_opDB->query($query) ;
 		
-		$query = "CREATE ALGORITHM=MERGE VIEW {$sdomain_db}.{$view_name} AS SELECT data.filerecord_id, mstr.filerecord_parent_id, mstr.dsc_is_locked" ;
+		$query = "CREATE ALGORITHM=MERGE VIEW {$sdomain_db}.{$view_name} AS SELECT data.filerecord_id, data.filerecord_parent_id, data.dsc_is_locked" ;
 		foreach( $arrAssoc_crmField_dbField as $field_crm => $field_name ) {
 			if( $field_name == 'filerecord_id' ) {
 				continue ;
@@ -1177,11 +1172,8 @@ EOF;
 			$query.= ",data.{$field_name} AS {$field_crm}" ;
 		}
 		$query.= " FROM {$sdomain_db}.{$db_table} data" ;
-		$query.= " LEFT JOIN {$sdomain_db}.store_file mstr ON data.filerecord_id = mstr.filerecord_id AND mstr.sync_is_deleted<>'O'" ;
+		$query.= " WHERE data.sync_is_deleted<>'O'" ;
 		$query.= " " ;
-		$_opDB->query($query) ;
-		
-		$query = "DELETE FROM {$sdomain_db}.{$db_table} WHERE filerecord_id NOT IN (SELECT filerecord_id FROM {$sdomain_db}.store_file WHERE file_code='$file_code' AND sync_is_deleted<>'O')" ;
 		$_opDB->query($query) ;
 		
 		return array($db_table , $arrAssoc_dbField_fieldType , $arr_model_keys, $arrAssoc_crmField_dbField) ;

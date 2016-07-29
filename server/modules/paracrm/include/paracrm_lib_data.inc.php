@@ -732,21 +732,13 @@ function paracrm_lib_data_insertRecord_file( $file_code , $filerecord_parent_id 
 		return 0 ;
 	}
 	
-	$arr_ins = array() ;
-	$arr_ins['file_code'] = $file_code ;
-	if( $filerecord_parent_id > 0 )
-		$arr_ins['filerecord_parent_id'] = $filerecord_parent_id ;
-	$_opDB->insert('store_file',$arr_ins) ;
-	$new_filerecord_id = $_opDB->insert_id() ;
-	
 	
 	$db_table = 'store_file_'.$file_code ;
 	
-	$query = "DELETE FROM $db_table WHERE filerecord_id='$new_filerecord_id'" ;
-	$_opDB->query($query) ;
-	
 	$arr_ins = array() ;
-	$arr_ins['filerecord_id'] = $new_filerecord_id ;
+	if( $filerecord_parent_id > 0 ) {
+		$arr_ins['filerecord_parent_id'] = $filerecord_parent_id ;
+	}
 	foreach( $fields as $field_code => $field_type )
 	{
 		$datafield = 'field_'.$field_code ;
@@ -777,6 +769,7 @@ function paracrm_lib_data_insertRecord_file( $file_code , $filerecord_parent_id 
 	}
 	$_opDB->insert($db_table,$arr_ins) ;
 	
+	$new_filerecord_id = $_opDB->insert_id() ;
 	return $new_filerecord_id ;
 }
 function paracrm_lib_data_updateRecord_file( $file_code , $data, $filerecord_id )
@@ -827,15 +820,14 @@ function paracrm_lib_data_updateRecord_file( $file_code , $data, $filerecord_id 
 	}
 	
 	
+	$db_table = 'store_file_'.$file_code ;
+	
 	$arr_update = array() ;
 	$arr_update['sync_is_deleted'] = '' ;
 	$arr_update['sync_timestamp'] = 0 ;
 	$arr_cond = array() ;
 	$arr_cond['filerecord_id'] = $filerecord_id ;
-	$_opDB->update('store_file',$arr_update,$arr_cond) ;
-	
-	
-	$db_table = 'store_file_'.$file_code ;
+	$_opDB->update($db_table,$arr_update,$arr_cond) ;
 	
 	$arr_update = array() ;
 	foreach( $fields as $field_code => $field_type )
@@ -884,26 +876,19 @@ function paracrm_lib_data_deleteRecord_file( $file_code, $filerecord_id, $ignore
 		return 0 ;
 	}
 	
-	$query = "SELECT filerecord_id, file_code FROM store_file WHERE filerecord_parent_id='$filerecord_id'" ;
+	$query = "SELECT file_code FROM define_file WHERE file_parent_code='$file_code' AND file_parent_code<>''" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
-		$delete_id = $arr[0] ;
+		$db_table = 'store_file_'.$arr[0] ;
 		
-		$db_table = 'store_file_'.$arr[1] ;
-		
-		$query = "DELETE FROM $db_table WHERE filerecord_id='$delete_id'" ;
-		$_opDB->query($query) ;
-		
-		$query = "UPDATE store_file SET sync_is_deleted='O' , sync_timestamp='0' WHERE filerecord_id='$delete_id'" ;
+		$query = "UPDATE {$db_table} SET sync_is_deleted='O' , sync_timestamp='0' WHERE filerecord_parent_id='$delete_id'" ;
 		$_opDB->query($query) ;
 	}
 	
 	
 	$db_table = 'store_file_'.$file_code ;
 	
-	$query = "DELETE FROM $db_table WHERE filerecord_id='$filerecord_id'" ;
-	$_opDB->query($query) ;
-	$query = "UPDATE store_file SET sync_is_deleted='O' , sync_timestamp='0' WHERE filerecord_id='$filerecord_id'" ;
+	$query = "UPDATE {$db_table} SET sync_is_deleted='O' , sync_timestamp='0' WHERE filerecord_id='$filerecord_id'" ;
 	$_opDB->query($query) ;
 	
 	
