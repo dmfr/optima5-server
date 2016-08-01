@@ -721,25 +721,38 @@ function paracrm_android_syncPush( $post_data )
 	paracrm_lib_data_beginTransaction() ;
 	foreach( $data['store_file'] as $file_entry )
 	{
+		$file_code = $file_entry['file_code'] ;
+		if( !isset($tab_definefile[$file_code]) ) {
+			continue ;
+		}
+		$target_dbTable = 'store_file_'.$file_code ;
+		
 		$sync_vuid = $file_entry['sync_vuid'] ;
 		if( !$sync_vuid )
 		{
 			continue ;
 		}
-		$query = "DELETE FROM store_file WHERE sync_vuid='$sync_vuid'" ;
+		$query = "DELETE FROM {$target_dbTable} WHERE sync_vuid='$sync_vuid'" ;
 		$_opDB->query($query) ;
 	}
 	foreach( $data['store_file'] as $file_entry )
 	{
 		if( $file_entry['filerecord_parent_id'] != 0 )
 			continue ;
-		$arr_ins = $file_entry ;
-		unset($arr_ins['sync_is_synced']) ;
-		unset($arr_ins['pull_timestamp']) ;
-		$arr_ins['filerecord_id'] = 0 ;
-		$arr_ins['sync_timestamp'] = $timestamp ;
-		$_opDB->insert('store_file',$arr_ins) ;
 		
+		$file_code = $file_entry['file_code'] ;
+		if( !isset($tab_definefile[$file_code]) ) {
+			continue ;
+		}
+		$target_dbTable = 'store_file_'.$file_code ;
+		
+		$arr_ins = array() ;
+		$arr_ins['filerecord_id'] = 0 ;
+		$arr_ins['filerecord_parent_id'] = 0 ;
+		$arr_ins['sync_vuid'] = $file_entry['sync_vuid'] ;
+		$arr_ins['sync_is_deleted'] = $file_entry['sync_is_deleted'] ;
+		$arr_ins['sync_timestamp'] = $timestamp ;
+		$_opDB->insert($target_dbTable,$arr_ins) ;
 		
 		$arr_tmpid_fileid[$file_entry['filerecord_id']] = $_opDB->insert_id() ;
 		if( strpos($tab_definefile[$file_entry['file_code']]['file_type'],'media_') === 0 )
@@ -750,13 +763,19 @@ function paracrm_android_syncPush( $post_data )
 		if( $file_entry['filerecord_parent_id'] == 0 || !$arr_tmpid_fileid[$file_entry['filerecord_parent_id']])
 			continue ;
 			
-		$arr_ins = $file_entry ;
-		unset($arr_ins['sync_is_synced']) ;
-		unset($arr_ins['pull_timestamp']) ;
+		$file_code = $file_entry['file_code'] ;
+		if( !isset($tab_definefile[$file_code]) ) {
+			continue ;
+		}
+		$target_dbTable = 'store_file_'.$file_code ;
+		
+		$arr_ins = array() ;
 		$arr_ins['filerecord_id'] = 0 ;
 		$arr_ins['filerecord_parent_id'] = $arr_tmpid_fileid[$file_entry['filerecord_parent_id']] ;
+		$arr_ins['sync_vuid'] = $file_entry['sync_vuid'] ;
+		$arr_ins['sync_is_deleted'] = $file_entry['sync_is_deleted'] ;
 		$arr_ins['sync_timestamp'] = $timestamp ;
-		$_opDB->insert('store_file',$arr_ins) ;
+		$_opDB->insert($target_dbTable,$arr_ins) ;
 		
 		$arr_tmpid_fileid[$file_entry['filerecord_id']] = $_opDB->insert_id() ;
 		if( strpos($tab_definefile[$file_entry['file_code']]['file_type'],'media_') === 0 )
@@ -873,12 +892,12 @@ function paracrm_android_syncPush( $post_data )
 	
 	foreach( $TAB_inserts as $file_code => $arrArr_ins ) {
 		$target_dbTable = 'store_file_'.$file_code ;
-		
-		$query = "DELETE FROM $target_dbTable WHERE filerecord_id NOT IN (SELECT filerecord_id FROM store_file WHERE file_code='$file_code' AND sync_is_deleted<>'O')" ;
-		$_opDB->query($query) ;
+		$arr_cond = array() ;
 		
 		foreach( $arrArr_ins as $arr_ins ) {
-			$_opDB->insert($target_dbTable,$arr_ins) ;
+			$arr_cond['filerecord_id'] = $arr_ins['filerecord_id'] ;
+			unset($arr_ins['filerecord_id']) ;
+			$_opDB->update($target_dbTable,$arr_ins,$arr_cond) ;
 		}
 	}
 	
