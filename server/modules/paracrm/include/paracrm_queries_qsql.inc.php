@@ -369,5 +369,43 @@ function paracrm_queries_qsql_lib_exec($querystring) {
 }
 
 
+function paracrm_queries_qsqlTransaction_exportXLS( $post_data, &$arr_saisie )
+{
+	if( !class_exists('PHPExcel') )
+		return NULL ;
+	
+	$transaction_id = $post_data['_transaction_id'] ;
+	$RES = $_SESSION['transactions'][$transaction_id]['arr_RES'][$post_data['RES_id']] ;
+	
+	$workbook_tab_grid = array() ;
+	foreach( $RES as $tab_id => $tab )
+	{
+		$workbook_tab_grid[$tab_id] = $tab ;
+	}
+	
+	$objPHPExcel = paracrm_queries_xls_build( $workbook_tab_grid, $RES['RES_round'] ) ;
+	if( !$objPHPExcel ) {
+		die() ;
+	}
+	
+	$tmpfilename = tempnam( sys_get_temp_dir(), "FOO");
+	$objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+	$objWriter->save($tmpfilename);
+	$objPHPExcel->disconnectWorksheets();
+	unset($objPHPExcel) ;
+	
+	$query_name = "unnamed" ;
+	if( $arr_saisie['query_name'] ) {
+		$query_name = $arr_saisie['query_name'] ;
+	}
+	$query_name=str_replace(' ','_',preg_replace("/[^a-zA-Z0-9\s]/", "", $query_name)) ;
+	
+	$filename = 'OP5report_Query_'.$query_name.'_'.time().'.xlsx' ;
+	header("Content-Type: application/force-download; name=\"$filename\""); 
+	header("Content-Disposition: attachment; filename=\"$filename\""); 
+	readfile($tmpfilename) ;
+	unlink($tmpfilename) ;
+	die() ;
+}
 
 ?>
