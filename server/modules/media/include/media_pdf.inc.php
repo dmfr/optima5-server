@@ -6,7 +6,7 @@ function media_pdf_makeExecCmd( $executable ) {
 	return $executable ;
 }
 
-function media_pdf_html2pdf( $html, $format=NULL ) {
+function media_pdf_html2pdf( $htmls, $format=NULL ) {
 	$media_pdf_wkhtmltoimage_path = $GLOBALS['media_pdf_wkhtmltoimage_path'] ;
 	$media_pdf_wkhtmltopdf_path = $GLOBALS['media_pdf_wkhtmltopdf_path'] ;
 	if( !$media_pdf_wkhtmltoimage_path || !is_executable($media_pdf_wkhtmltoimage_path)
@@ -15,9 +15,6 @@ function media_pdf_html2pdf( $html, $format=NULL ) {
 		return NULL ;
 	}
 	
-	$html_path = tempnam( sys_get_temp_dir(), "FOO");
-	rename($html_path,$html_path.'.html') ;
-	$html_path.= '.html' ;
 	$img_path = tempnam( sys_get_temp_dir(), "FOO");
 	rename($img_path,$img_path.'.png') ;
 	$img_path.= '.png' ;
@@ -25,16 +22,20 @@ function media_pdf_html2pdf( $html, $format=NULL ) {
 	rename($pdf_path,$pdf_path.'.pdf') ;
 	$pdf_path.= '.pdf' ;
 	
-	file_put_contents( $html_path, $html ) ;
+	if( !is_array($htmls) ) {
+		$htmls = array($htmls) ;
+	}
+	$arr_htmlPaths = array() ;
+	foreach( $htmls as $html ) {
+		$html_path = tempnam( sys_get_temp_dir(), "FOO");
+		rename($html_path,$html_path.'.html') ;
+		$html_path.= '.html' ;
+		file_put_contents( $html_path, $html ) ;
+		
+		$arr_htmlPaths[] = $html_path ;
+	}
+	$html_path = implode(' ',$arr_htmlPaths) ;
 	
-	exec( media_pdf_makeExecCmd($GLOBALS['media_pdf_wkhtmltoimage_path'])." --width 0 --enable-smart-width --format png {$html_path} {$img_path}" ) ;
-	
-	$img_size = getimagesize( $img_path ) ;
-	$img_width = $img_size[0] ;
-	$img_height = $img_size[1] ;
-	
-	$pdf_width = $img_width * (254/1200) * 1.3 ;
-	$pdf_height = $img_height * (254/1200) * 1.35 ;
 	
 	switch( $format ) {
 		case 'A4' :
@@ -46,13 +47,25 @@ function media_pdf_html2pdf( $html, $format=NULL ) {
 			break ;
 			
 		default :
+			exec( media_pdf_makeExecCmd($GLOBALS['media_pdf_wkhtmltoimage_path'])." --width 0 --enable-smart-width --format png {$html_path} {$img_path}" ) ;
+			
+			$img_size = getimagesize( $img_path ) ;
+			$img_width = $img_size[0] ;
+			$img_height = $img_size[1] ;
+			
+			$pdf_width = $img_width * (254/1200) * 1.3 ;
+			$pdf_height = $img_height * (254/1200) * 1.35 ;
+			
+			
 			exec( media_pdf_makeExecCmd($GLOBALS['media_pdf_wkhtmltopdf_path'])." --page-height $pdf_height --page-width $pdf_width {$html_path} {$pdf_path}" ) ;
 			break ;
 	}
 	
 	$pdf = file_get_contents($pdf_path) ;
 	
-	unlink($html_path) ;
+	foreach( $arr_htmlPaths as $html_path ) {
+		unlink($html_path) ;
+	}
 	unlink($img_path) ;
 	unlink($pdf_path) ;
 	
