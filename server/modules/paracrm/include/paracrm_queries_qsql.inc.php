@@ -294,7 +294,8 @@ function paracrm_queries_qsql_lib_exec($querystring) {
 	
 	$mysqli = new mysqli('localhost', $mysql_tmp_user, $mysql_tmp_user, $mysql_tmp_user);
 	$q=0 ;
-	foreach( SqlParser::parse($querystring) as $query ) {
+	// print_r( SqlParser::split_sql($querystring) ) ;
+	foreach( SqlParser::split_sql($querystring) as $query ) {
 		$q++ ;
 		$result = $mysqli->query($query) ;
 		if( $result===TRUE ) {
@@ -302,10 +303,16 @@ function paracrm_queries_qsql_lib_exec($querystring) {
 			continue ;
 		} elseif( !$result ) {
 			// Erreur
+			$TAB[] = array(
+				'tab_title' => 'Q'.$q,
+				'columns' => array(),
+				'data' => array(),
+				'SQL_debug'=>array('sql_query'=>$query, 'sql_error'=>$mysqli->error)
+			);
 			continue ;
 		}
 		
-		$columns = $data = array() ;
+		$columns = $data = $mkeys = array() ;
 		$c=0 ;
 		foreach( $result->fetch_fields() as $sql_column ) {
 			$c++ ;
@@ -326,6 +333,7 @@ function paracrm_queries_qsql_lib_exec($querystring) {
 				case '8' :
 				case '9' :
 				case '246' :
+					$column['dataType'] = 'number' ;
 					break ;
 					
 				default :
@@ -344,7 +352,8 @@ function paracrm_queries_qsql_lib_exec($querystring) {
 		$TAB[] = array(
 			'tab_title' => 'Q'.$q,
 			'columns' => $columns,
-			'data' => $data
+			'data' => $data,
+			'SQL_debug'=>array('sql_query'=>$query)
 		);
 	}
 	$mysqli->close() ;

@@ -477,7 +477,7 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 							tbarIsNew = tbarDisableSave = true ;
 							winTitle = 'Q# '+'New Qsql' ;
 						} else if( me.qsqlId > 0 ) {
-							Ext.Array.each( ajaxData.data_qsql, function(o) {
+							Ext.Array.each( ajaxData.data_qsqls, function(o) {
 								if( o.qsqlId == me.qsqlId ) {
 									winTitle = 'Q# '+o.text ;
 									if( o.isPublished ) {

@@ -343,6 +343,52 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 			
 			tabgrid.getView().headerCt.on('menucreate',me.onColumnsMenuCreate,me) ;
 			
+			if( tabData.SQL_debug ) {
+				Ext.apply(tabgrid,{
+					region:'center',
+					flex:1
+				}) ;
+				var tabitem = {
+					xtype:'panel',
+					layout:'border',
+					title:tabData.tab_title,
+					border:false,
+					isTabItem: true,
+					items:[tabgrid,{
+						xtype:'panel',
+						region:'north',
+						collapsible:true,
+						collapsed: ( tabData.SQL_debug.sql_error ? false : true ),
+						height: ( tabData.SQL_debug.sql_error ? '100%' : 300 ),
+						border:true,
+						split:true,
+						layout:'fit',
+						//title: 'Charts',
+						title: 'SQL debug',
+						scrollable: 'vertical',
+						items:[{
+							xtype: 'component',
+							tpl: [
+								'<div style="padding:10px">',
+									'<b>Executed query :</b><br>',
+									'{sql_query}',
+									'<br>','<br>',
+									'<tpl if="sql_error">',
+										'<font color="red">',
+										'<b>Error :</b><br>',
+										'{sql_error}',
+										'</font>',
+										'<br>','<br>',
+									'</tpl>',
+								'</div>'
+							],
+							data: tabData.SQL_debug
+						}]
+					}]
+				}
+				tabitems.push(tabitem);
+				return true ;
+			}
 			if( tabData.RESchart_static ) {
 				Ext.apply(tabgrid,{
 					region:'center',

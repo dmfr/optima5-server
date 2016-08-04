@@ -1,100 +1,33 @@
 <?php
 
 /**
- * @author  : Principe Orazio (orazio.principe@gmail.com)
- * @websites: http://principeorazio.wordpress.com http://www.dbpersister.com
- * @version : 1.1
- * @date    : 24/10/2011
- * 
- * Purpose : Parse a valid SQL file with MySql syntax
- * Release : Released under GNU Public License
- * 
- * Updates: 1.1 Excluding inline, end of line and multiline comments
+ * http://stackoverflow.com/questions/4747808/split-mysql-queries-in-array-each-queries-separated-by
  */
 class SqlParser {
 
-    /**
-     * Take off comments from an sql string
-     * 
-     * Referring documentation at:
-     * http://dev.mysql.com/doc/refman/5.6/en/comments.html
-     * 
-     * @return string Query without comments
-     */
-    public static function takeOffComments($query)
-    {
-        /* 
-         * Commented version
-         * $sqlComments = '@
-         *     (([\'"]).*?[^\\\]\2) # $1 : Skip single & double quoted expressions
-         *     |(                   # $3 : Match comments
-         *         (?:\#|--).*?$    # - Single line comments
-         *         |                # - Multi line (nested) comments
-         *          /\*             #   . comment open marker
-         *             (?: [^/*]    #   . non comment-marker characters
-         *                 |/(?!\*) #   . ! not a comment open
-         *                 |\*(?!/) #   . ! not a comment close
-         *                 |(?R)    #   . recursive case
-         *             )*           #   . repeat eventually
-         *         \*\/             #   . comment close marker
-         *     )\s*                 # Trim after comments
-         *     |(?<=;)\s+           # Trim after semi-colon
-         *     @msx';
-         */
-        $sqlComments = '@(([\'"]).*?[^\\\]\2)|((?:\#|--).*?$|/\*(?:[^/*]|/(?!\*)|\*(?!/)|(?R))*\*\/)\s*|(?<=;)\s+@ms';
-                        
-        $query = trim( preg_replace( $sqlComments, '$1', $query ) );
-        
-        //Eventually remove the last ;
-        if(strrpos($query, ";") === strlen($query) - 1) {
-            $query = substr($query, 0, strlen($query) - 1);
-        }
-        
-        return $query;
-    }
-    
-    
-    /**
-     * @purpose : Parses SQL file
-     * @params string $content Text containing sql instructions
-     * @return array List of sql parsed from $content
-     */
-    public static function parse($content) {
+    public static function split_sql($sql_text) {
+		// Return array of ; terminated SQL statements in $sql_text.
+		$re = '% # Match an SQL record ending with ";"
+		\s*                                     # Discard leading whitespace.
+		(                                       # $1: Trimmed non-empty SQL record.
+			(?:                                   # Group for content alternatives.
+			\'[^\'\\\\]*(?:\\\\.[^\'\\\\]*)*\'  # Either a single quoted string,
+			| "[^"\\\\]*(?:\\\\.[^"\\\\]*)*"      # or a double quoted string,
+			| /*[^*]*\*+([^*/][^*]*\*+)*/         # or a multi-line comment,
+			| \#.*                                # or a # single line comment,
+			| --.*                                # or a -- single line comment,
+			| [^"\';#]                            # or one non-["\';#-]
+			)+                                    # One or more content alternatives
+			(?:;|$)                               # Record end is a ; or string end.
+		)                                       # End $1: Trimmed SQL record.
+		%x';
+		if (preg_match_all($re, $sql_text, $matches)) {
+			return $matches[1];
+		}
+		return array();
+	}
 
-        $sqlList = array();
-        
-        // Processing the SQL file content	 		
-        $lines = explode("\n", $content);
 
-        $query = "";
-        
-        // Parsing the SQL file content			 
-        foreach ($lines as $sql_line):
-            $sql_line = trim($sql_line);
-            if($sql_line === "") continue;
-            else if(strpos($sql_line, "--") === 0) continue;
-            else if(strpos($sql_line, "#") === 0) continue;
-                
-            $query .= $sql_line;
-            // Checking whether the line is a valid statement
-            if (preg_match("/(.*);/", $sql_line)) {
-                $query = trim($query);
-                $query = substr($query, 0, strlen($query) - 1);
-
-                $query = SqlParser::takeOffComments($query);
-                
-                //store this query
-                $sqlList[] = $query;
-                //reset the variable
-                $query = "";
-            }
-            
-        endforeach;
-
-        return $sqlList;
-    }
-
-//End of function
 }
 
 //End of class
