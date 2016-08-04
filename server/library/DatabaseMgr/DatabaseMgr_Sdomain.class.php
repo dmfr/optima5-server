@@ -837,8 +837,9 @@ EOF;
 		$result = $_opDB->query($query) ;
 		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 			$file_code = $arr[0] ;
-			$this->sdomainDefine_buildFile( $sdomain_id , $file_code ) ;
+			$this->sdomainDefine_buildFilePrivate( $sdomain_id , $file_code ) ;
 		}
+		$this->sdomainDefine_buildFilesVuid( $sdomain_id ) ;
 	}
 	public function sdomainDefine_buildBible( $sdomain_id , $bible_code ) {
 		$_opDB = $this->_opDB ;
@@ -1021,6 +1022,11 @@ EOF;
 		return array($db_table , $arrAssoc_dbField_fieldType , $arr_model_keys, $arrAssoc_crmField_dbField) ;
 	}
 	public function sdomainDefine_buildFile( $sdomain_id , $file_code ) {
+		$return = $this->sdomainDefine_buildFilePrivate( $sdomain_id , $file_code ) ;
+		$this->sdomainDefine_buildFilesVuid( $sdomain_id ) ;
+		return $return ;
+	}
+	private function sdomainDefine_buildFilePrivate( $sdomain_id , $file_code ) {
 		$_opDB = $this->_opDB ;
 		$sdomain_db = $this->getSdomainDb( $sdomain_id ) ;
 	
@@ -1177,6 +1183,33 @@ EOF;
 		$_opDB->query($query) ;
 		
 		return array($db_table , $arrAssoc_dbField_fieldType , $arr_model_keys, $arrAssoc_crmField_dbField) ;
+	}
+	private function sdomainDefine_buildFilesVuid( $sdomain_id ) {
+		$_opDB = $this->_opDB ;
+		$sdomain_db = $this->getSdomainDb( $sdomain_id ) ;
+		$view_name = 'view_files_syncvuid' ;
+		
+		$query = "DROP VIEW IF EXISTS {$sdomain_db}.{$view_name}" ;
+		$_opDB->query($query) ;
+		
+		$arr_fileCodes = array() ;
+		$query = "SELECT file_code FROM {$sdomain_db}.define_file ORDER BY file_code" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$arr_fileCodes[] = $arr[0] ;
+		}
+		if( !$arr_fileCodes ) {
+			return ;
+		}
+		
+		$union_queries = array() ;
+		foreach( $arr_fileCodes as $file_code ) {
+			$union_queries[] = "SELECT '{$file_code}' as file_code , filerecord_id, sync_vuid 
+				FROM {$sdomain_db}.store_file_{$file_code}" ;
+		}
+		
+		$query = "CREATE ALGORITHM=MERGE VIEW {$sdomain_db}.{$view_name} AS ".implode(' UNION ALL ',$union_queries) ;
+		$_opDB->query($query) ;
 	}
 	public function sdomainDefine_truncateBible( $sdomain_id , $bible_code ) {
 		$_opDB = $this->_opDB ;

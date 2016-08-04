@@ -991,7 +991,7 @@ function paracrm_data_getFileGrid_exportGallery( $post_data, $auth_bypass=FALSE 
 		}
 		$base_filename = implode('_',$arr_filename) ;
 		if( strlen($base_filename) > 196 )
-			$base_filename = 'OP5jpg_CRM_.'.$record['filerecord_id'] ;
+			$base_filename = 'OP5jpg_CRM_'.$post_data['file_code'].'_'.$record['filerecord_id'] ;
 		$dst_filename = $base_filename.'.jpg' ;
 	
 		
@@ -1006,7 +1006,7 @@ function paracrm_data_getFileGrid_exportGallery( $post_data, $auth_bypass=FALSE 
 	$tmp_totalBytes = 0 ;
 	foreach( $map_filerecordId_dstFilename as $filerecord_id => $dummy )
 	{
-		if( !($src_filepath = media_img_getPath( $filerecord_id )) )
+		if( !($src_filepath = media_img_getPath( media_img_toolFile_getId( $post_data['file_code'], $filerecord_id ) )) )
 			continue ;
 			
 		$stat_file = stat($src_filepath) ;
@@ -1021,7 +1021,7 @@ function paracrm_data_getFileGrid_exportGallery( $post_data, $auth_bypass=FALSE 
    $obj_zip->open( $filepath_zip , ZIPARCHIVE::CREATE ) ;
 	foreach( $map_filerecordId_dstFilename as $filerecord_id => $dst_filename ) {
 	
-		$src_filepath = media_img_getPath( $filerecord_id ) ;
+		$src_filepath = media_img_getPath( media_img_toolFile_getId( $post_data['file_code'], $filerecord_id ) ) ;
 		if( !$src_filepath )
 			continue ;
 		

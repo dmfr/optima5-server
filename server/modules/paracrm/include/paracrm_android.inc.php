@@ -355,7 +355,7 @@ function paracrm_android_syncPull( $post_data )
 		
 		$ref_prefix = "PHPSERVER" ;
 		$ref_timestamp = time() ;
-		$query = "UPDATE store_file_{$file_code} SET sync_vuid=CONCAT('$ref_prefix','-','$ref_timestamp','-',filerecord_id) WHERE sync_vuid=''" ;
+		$query = "UPDATE store_file_{$file_code} SET sync_vuid=CONCAT('$ref_prefix','-',UUID_SHORT()) WHERE sync_vuid=''" ;
 		$_opDB->query($query) ;
 		
 		$now_timestamp = time() ;
@@ -704,6 +704,7 @@ function paracrm_android_syncPush( $post_data )
 	$timestamp = time() ;
 
 	$arr_tmpid_fileid = array() ;
+	$arr_tmpid_syncvuid = array() ;
 	$arr_upload_slots  = array() ;
 	
 	$tab_definefile = array() ;
@@ -755,8 +756,9 @@ function paracrm_android_syncPush( $post_data )
 		$_opDB->insert($target_dbTable,$arr_ins) ;
 		
 		$arr_tmpid_fileid[$file_entry['filerecord_id']] = $_opDB->insert_id() ;
+		$arr_tmpid_syncvuid[$file_entry['filerecord_id']] = $file_entry['sync_vuid'] ;
 		if( strpos($tab_definefile[$file_entry['file_code']]['file_type'],'media_') === 0 )
-			$arr_upload_slots[] = $arr_tmpid_fileid[$file_entry['filerecord_id']] ;
+			$arr_upload_slots[] = $arr_ins['sync_vuid'] ;
 	}
 	foreach( $data['store_file'] as $file_entry )
 	{
@@ -778,8 +780,9 @@ function paracrm_android_syncPush( $post_data )
 		$_opDB->insert($target_dbTable,$arr_ins) ;
 		
 		$arr_tmpid_fileid[$file_entry['filerecord_id']] = $_opDB->insert_id() ;
+		$arr_tmpid_syncvuid[$file_entry['filerecord_id']] = $file_entry['sync_vuid'] ;
 		if( strpos($tab_definefile[$file_entry['file_code']]['file_type'],'media_') === 0 )
-			$arr_upload_slots[] = $arr_tmpid_fileid[$file_entry['filerecord_id']] ;
+			$arr_upload_slots[] = $arr_ins['sync_vuid'] ;
 	}
 	
 	// buffer inserts store_file_X
@@ -907,13 +910,30 @@ function paracrm_android_syncPush( $post_data )
 	
 
 
-	return array('success'=>true,'map_tmpid_fileid'=>$arr_tmpid_fileid,'upload_slots'=>$arr_upload_slots) ;
+	return array(
+		'success'=>true,
+		'map_tmpid_fileid'=>$arr_tmpid_fileid,
+		'map_tmpid_syncvuid'=>$arr_tmpid_syncvuid,
+		'upload_slots'=>$arr_upload_slots
+	) ;
 }
 
 
 
 function paracrm_android_postBinary( $post_data )
 {
+	global $_opDB ;
+	
+	$query = "SELECT file_code, filerecord_id FROM view_files_syncvuid WHERE sync_vuid='{$post_data['sync_vuid']}'" ;
+	$result = $_opDB->query($query);
+	$arr = $_opDB->fetch_row($result);
+	if( !$arr ) {
+		return array('success'=>true) ;
+	}
+	$file_code = $arr[0] ;
+	$filerecord_id = $arr[1] ;
+	$media_id = media_img_toolFile_getId($file_code,$filerecord_id) ;
+	
 	media_contextOpen( $post_data['_sdomainId'] ) ;
 
 	$base=$post_data['base64_binary'];
@@ -922,7 +942,7 @@ function paracrm_android_postBinary( $post_data )
    $res = file_put_contents( $tmpfilename , $binary ) ;
    
    $tmp_id = media_img_processUploaded( $tmpfilename, 'jpg' ) ;
-   media_img_move( $tmp_id , $post_data['filerecord_id'] ) ;
+   media_img_move( $tmp_id , $media_id ) ;
    unlink($tmpfilename) ;
    
    media_contextClose() ;
@@ -945,9 +965,12 @@ function paracrm_android_imgPull( $post_data )
 	if( $post_data['media_id'] ) {
 		$media_id = $post_data['media_id'] ;
 	} elseif( $post_data['sync_vuid'] ) {
-		$query = "SELECT filerecord_id FROM store_file WHERE sync_vuid='{$post_data['sync_vuid']}'" ;
-		$filerecord_id = $_opDB->query_uniqueValue($query) ;
-		$media_id = $filerecord_id ;
+		$query = "SELECT file_code, filerecord_id FROM view_files_syncvuid WHERE sync_vuid='{$post_data['sync_vuid']}'" ;
+		$result = $_opDB->query($query);
+		$arr = $_opDB->fetch_row($result);
+		$file_code = $arr[0] ;
+		$filerecord_id = $arr[1] ;
+		$media_id = media_img_toolFile_getId($file_code,$filerecord_id) ;
 	} else {
 		$media_id = '0' ;
 	}
@@ -991,14 +1014,18 @@ function paracrm_android_imgPullFallback( $post_data )
 		$thumb_get = "true" ;
 	}
 	
-	$query = "SELECT filerecord_id FROM store_file WHERE sync_vuid='{$post_data['sync_vuid']}'" ;
-	$filerecord_id = $_opDB->query_uniqueValue($query) ;
+	$query = "SELECT file_code, filerecord_id FROM view_files_syncvuid WHERE sync_vuid='{$post_data['sync_vuid']}'" ;
+	$result = $_opDB->query($query);
+	$arr = $_opDB->fetch_row($result);
+	$file_code = $arr[0] ;
+	$filerecord_id = $arr[1] ;
+	$media_id = media_img_toolFile_getId($file_code,$filerecord_id) ;
 	
 	$domain_id = $_SESSION['login_data']['login_domain'] ;
 	$sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
 	
 	header('Content-type: image/jpeg');
-	$getUrl = "{$GLOBALS['media_fallback_url']}?_domainId={$domain_id}&_sdomainId={$sdomain_id}&media_id={$filerecord_id}&thumb={$thumb_get}" ;
+	$getUrl = "{$GLOBALS['media_fallback_url']}?_domainId={$domain_id}&_sdomainId={$sdomain_id}&media_id={$media_id}&thumb={$thumb_get}" ;
 	readfile($getUrl) ;
 	die() ;
 }

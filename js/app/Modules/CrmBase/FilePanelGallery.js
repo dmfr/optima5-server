@@ -36,7 +36,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelGallery',{
 				prepareData: function(data) {
 					var getParams = me.optimaModule.getConfiguredAjaxParams() ;
 					Ext.apply( getParams, {
-						media_id: data.filerecord_id,
+						media_id: me.fileId + '_' + data.filerecord_id,
 						thumb: true
 					});
 					
@@ -56,7 +56,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelGallery',{
 								text: 'Show photo',
 								handler : function() {
 									// console.log( 'Create child node of '+record.get('treenode_key') ) ;
-									me.showPhoto(record.get(me.storeKeyField)) ;
+									me.showPhoto(me.fileId + '_' + record.get(me.storeKeyField)) ;
 								},
 								scope : me
 							});
@@ -64,7 +64,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelGallery',{
 								iconCls: 'icon-save',
 								text: 'Downlaod file',
 								handler : function() {
-									me.downloadPhoto(record.get(me.storeKeyField)) ;
+									me.downloadPhoto(me.fileId + '_' + record.get(me.storeKeyField)) ;
 								},
 								scope : me
 							});
@@ -85,7 +85,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelGallery',{
 					},
 					itemdblclick: {
 						fn:function(view, record, item, index, event) {
-							me.showPhoto(record.get(me.storeKeyField)) ;
+							me.showPhoto(me.fileId + '_' + record.get(me.storeKeyField)) ;
 						},
 						scope:me
 					}
@@ -100,7 +100,7 @@ Ext.define('Optima5.Modules.CrmBase.FilePanelGallery',{
 		var me = this.up('op5crmbasefilegallery') ;
 		var getParams = me.optimaModule.getConfiguredAjaxParams() ;
 		Ext.apply( getParams, {
-			media_id: data.filerecord_id,
+			media_id: me.fileId + '_' + data.filerecord_id,
 			thumb: true
 		});
 		

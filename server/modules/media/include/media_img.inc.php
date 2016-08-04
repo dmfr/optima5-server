@@ -284,6 +284,10 @@ function media_img_getBinary( $src_id )
 
 
 
+function media_img_toolFile_getId( $file_code, $filerecord_id ) {
+	return $file_code.'_'.$filerecord_id ;
+}
+
 function media_img_toolBible_getBasename( $bible_code, $data_type, $key ) {
 	switch( $data_type ) {
 		case 'treenode' :
