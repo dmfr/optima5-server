@@ -3,7 +3,7 @@
 class SpreadsheetToCsv {
 	public static function toCsvHandle( $filepath, $filename ) {
 		try {
-			$obj_ssReader = new SpreadsheetReader($_FILES['file_upload']['tmp_name'],$_FILES['file_upload']['name']) ;
+			$obj_ssReader = new SpreadsheetReader($filepath,$filename) ;
 			
 			$handle = tmpfile() ;
 			$obj_ssReader->ChangeSheet(0);
