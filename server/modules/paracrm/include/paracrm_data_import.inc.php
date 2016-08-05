@@ -175,6 +175,10 @@ function paracrm_data_importTransaction_upload( $post_data, &$arr_saisie ) {
 	
 	$fp = fopen("php://temp", 'r+');
 	fputs($fp, $tmp_csvsrcBinary);
+	
+	rewind($fp);
+	$fp = paracrm_lib_dataImport_preHandle($fp) ;
+	
 	$map_delimiter_nbCols = array() ;
 	foreach( $arr_saisie['cfg_delimiters'] as $delimiter_code=>$delimiter_symbol ) {
 		rewind($fp);
@@ -184,7 +188,8 @@ function paracrm_data_importTransaction_upload( $post_data, &$arr_saisie ) {
 	reset($map_delimiter_nbCols) ;
 	$tmp_delimiter = key($map_delimiter_nbCols) ;
 		
-	$arr_saisie['csvsrc_binary'] = $tmp_csvsrcBinary ;
+	rewind($fp) ;
+	$arr_saisie['csvsrc_binary'] = stream_get_contents($fp) ; ;
 	$arr_saisie['csvsrc_params']['delimiter'] = $tmp_delimiter ;
 	
 	$arr_saisie['_firstUpload'] = TRUE ;

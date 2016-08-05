@@ -574,4 +574,129 @@ function paracrm_lib_dataImport_commit_insertBibleEntry( $bible_code, $treenode_
 }
 
 
+
+function paracrm_lib_dataImport_preHandle( $handle_in ) {
+	$lig = fgets($handle_in) ;
+	rewind($handle_in) ;
+	
+	if( strpos($lig,"\x50\x4B\x03\x04")===0 ) {
+		// mode XLSX ?
+		$filename = "test.xlsx" ;
+		$tmpfname = tempnam( sys_get_temp_dir(), "FOO").'.xlsx';
+		$handle_w = fopen($tmpfname,'wb') ;
+		stream_copy_to_stream($handle_in,$handle_w);
+		fclose($handle_w) ;
+		fclose($handle_in) ;
+		$handle_out = SpreadsheetToCsv::toCsvHandle($tmpfname,$filename) ;
+		unlink($tmpfname) ;
+		return $handle_out ;
+	}
+	if( strpos($lig,"\xD0\xCF\x11\xE0")===0 ) {
+		// mode XLS ?
+		$filename = "test.xls" ;
+		$tmpfname = tempnam( sys_get_temp_dir(), "FOO").'.xls';
+		$handle_w = fopen($tmpfname,'wb') ;
+		stream_copy_to_stream($handle_in,$handle_w);
+		fclose($handle_w) ;
+		fclose($handle_in) ;
+		$handle_out = SpreadsheetToCsv::toCsvHandle($tmpfname,$filename) ;
+		unlink($tmpfname) ;
+		return $handle_out ;
+	}
+	
+	$lig = trim($lig) ;
+	$chars = array() ;
+	for($i=0;$i<strlen($lig);$i++) {
+		$char = $lig[$i];
+		if( !in_array($char,$chars) ) {
+			$chars[] = $char ;
+		}
+	}
+	if( count($chars)==1 && reset($chars)=='-' ) {
+		rewind($handle_in) ;
+		$handle_out = tmpfile() ;
+		paracrm_lib_dataImport_preHandle_SAP( $handle_in, $handle_out ) ;
+		fclose($handle_in) ;
+		return $handle_out ;
+	}
+	
+	
+	rewind($handle_in) ;
+	return $handle_in ;
+}
+
+
+function paracrm_lib_dataImport_preHandle_SAP( $handle_in, $handle_out, $separator='|' ) {
+	$handle_priv = tmpfile() ;
+	while( !feof($handle_in) ) {
+		$lig = fgets($handle_in) ;
+		$lig = mb_convert_encoding($lig, "UTF-8", mb_detect_encoding($lig));
+		fwrite($handle_priv,$lig) ;
+	}
+	
+	fseek($handle_priv,0) ;
+	$max_occurences = 0 ;
+	while( !feof($handle_priv) ) {
+		$arr_csv = fgetcsv($handle_priv,0,$separator) ;
+		if( count($arr_csv) > $max_occurences ) {
+			$max_occurences = count($arr_csv) ;
+		}
+	}
+	
+	fseek($handle_priv,0) ;
+	$strip_first = TRUE ;
+	$strip_last = TRUE ;
+	while( !feof($handle_priv) ) {
+		$arr_csv = fgetcsv($handle_priv,0,$separator) ;
+		if( count($arr_csv) != $max_occurences ) {
+			continue ;
+		}
+		if( reset($arr_csv) ) {
+			$strip_first = FALSE ;
+		}
+		if( end($arr_csv) ) {
+			$strip_last = FALSE ;
+		}
+	}
+	
+	$is_first = TRUE ;
+	
+	fseek($handle_priv,0) ;
+	while( !feof($handle_priv) ) {
+		$arr_csv = fgetcsv($handle_priv,0,$separator) ;
+		if( count($arr_csv) != $max_occurences ) {
+			continue ;
+		}
+		if( $strip_first ) {
+			array_shift($arr_csv) ;
+		}
+		if( $strip_last ) {
+			array_pop($arr_csv) ;
+		}
+		foreach( $arr_csv as &$item ) {
+			$item = trim($item) ;
+		}
+		unset($item) ;
+		if( $is_first ) {
+			$arr_header = $arr_csv ;
+			$is_first = FALSE ;
+			
+			// Réécriture du header :
+			$map_field_nbOcc = array() ;
+			foreach( $arr_csv as $idx => $field ) {
+				$map_field_nbOcc[$field]++ ;
+				if( $map_field_nbOcc[$field] > 1 ) {
+					$arr_csv[$idx].= '-'.$map_field_nbOcc[$field] ;
+				}
+			}
+		} elseif($arr_csv == $arr_header) {
+			continue ;
+		}
+		fputcsv($handle_out,$arr_csv) ;
+	}
+	
+	fclose($handle_priv) ;
+}
+
+
 ?>
