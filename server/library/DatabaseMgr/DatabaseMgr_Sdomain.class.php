@@ -4,7 +4,7 @@ class DatabaseMgr_Sdomain {
 	private $_opDB ;
 	private $domain_id ;
 	
-	private static $dbVersion = 30 ;
+	private static $dbVersion = 31 ;
 	
 	public function __construct( $domain_id ) {
 		$this->_opDB = $GLOBALS['_opDB'] ;
@@ -192,6 +192,7 @@ CREATE TABLE `input_query_src` (
   `target_qmerge_id` int(11) NOT NULL,
   `target_qbook_id` int(11) NOT NULL,
   `target_qweb_id` int(11) NOT NULL,
+  `target_qsql_id` int(11) NOT NULL,
   PRIMARY KEY (`querysrc_id`)
 ) ;
 
