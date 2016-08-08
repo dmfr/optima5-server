@@ -293,9 +293,13 @@ function paracrm_queries_qsql_lib_exec($querystring) {
 	$TAB = array() ;
 	
 	$mysqli = new mysqli('localhost', $mysql_tmp_user, $mysql_tmp_user, $mysql_tmp_user);
+	$mysqli->query("SET NAMES UTF8") ;
 	$q=0 ;
 	// print_r( SqlParser::split_sql($querystring) ) ;
 	foreach( SqlParser::split_sql($querystring) as $query ) {
+		if( !trim($query) ) {
+			continue ;
+		}
 		$q++ ;
 		$result = $mysqli->query($query) ;
 		if( $result===TRUE ) {
