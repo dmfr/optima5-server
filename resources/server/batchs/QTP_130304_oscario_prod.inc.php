@@ -103,6 +103,25 @@ function update_CDELIG_from_salesDb( $db_name ) {
 	
 	return NULL ;
 }
+function update_CLILOG_from_salesDb( $db_name ) {
+	global $_opDB ;
+	
+	$query = "SELECT entry_key, field_FACTOR_ID
+				FROM {$db_name}.view_bible_CUSTOMER_entry" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$cli_EAN = $arr['entry_key'] ;
+		
+		$arr_insert = array() ;
+		$arr_insert['field_RACX_ID'] = ($arr['field_FACTOR_ID']?$arr['field_FACTOR_ID']:$arr['entry_key']) ;
+		if( TRUE ) {
+			$arr_cond = array() ;
+			$arr_cond['entry_key'] = $cli_EAN ;
+			$_opDB->update('view_bible_CLI_LOG_entry',$arr_insert,$arr_cond) ;
+		}
+	}
+}
+
 
 function update_PRODLOG_from_oscario_prod( $TAB ) {
 	global $_opDB ;

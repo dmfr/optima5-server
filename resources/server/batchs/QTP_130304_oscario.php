@@ -76,6 +76,7 @@ if( $json['success'] == true ) {
 }
 
 if( $db_sales = getenv('OPTIMA_DB_SALES') ) {
+	update_CLILOG_from_salesDb( $db_sales ) ;
 	update_CDELIG_from_salesDb( $db_sales ) ;
 }
 
