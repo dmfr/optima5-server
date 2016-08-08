@@ -12,6 +12,9 @@ $app_root='..' ;
 include("$server_root/include/config.inc.php");
 
 include( "$server_root/include/database/mysql_DB.inc.php" ) ;
+include( "$server_root/modules/media/include/media.inc.php" );
+
+
 $_opDB = new mysql_DB( );
 $_opDB->connect_mysql( $mysql_host, '', $mysql_user, $mysql_pass );
 $_opDB->query("SET NAMES UTF8") ;
@@ -191,6 +194,9 @@ function action_domainupdate( $domain_id ) {
 function action_domainmigrate1607( $domain_id ) {
 	global $_opDB ;
 	
+	$_SESSION['login_data']['mysql_db'] = 'op5_'.$domain_id.'_prod' ;
+	$_SESSION['login_data']['login_domain'] = $domain_id.'_prod' ;
+	
 	openBaseDb($domain_id,$do_select=FALSE) ;
 	
 	$t = new DatabaseMgr_Base() ;
@@ -212,6 +218,13 @@ function action_domainmigrate1607( $domain_id ) {
 		}
 		
 		$t->sdomainDb_updateSchema( $sdomain_id ) ;
+		
+		$map_oldFilerecordId_fileCode = array() ;
+		$query = "SELECT filerecord_id, file_code FROM {$sdomain_db}.store_file" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$map_oldFilerecordId_fileCode[$arr[0]] = $arr[1] ;
+		}
 		
 		foreach( $arr_tables as $db_table ) {
 			if( $db_table == 'store_file' ) {
@@ -239,6 +252,20 @@ function action_domainmigrate1607( $domain_id ) {
 		}
 		$query = "DROP TABLE {$sdomain_db}.store_file" ;
 		$_opDB->query($query) ;
+		
+		
+		// migrate media
+		media_contextOpen( $sdomain_id ) ;
+		echo $media_path = media_contextGetDirPath() ;
+		foreach( glob($media_path.'/'.'*') as $filepath ) {
+			echo $filename = basename($filepath) ;
+			$ttmp = explode('.',$filename) ;
+			$id = $ttmp[0] ;
+			if( is_numeric($id) && $map_oldFilerecordId_fileCode[$id] ) {
+				media_img_move($id,media_img_toolFile_getId($map_oldFilerecordId_fileCode[$id],$id)) ;
+			}
+		}
+		media_contextClose() ;
 	}
 	
 	die("OK.\n") ;
