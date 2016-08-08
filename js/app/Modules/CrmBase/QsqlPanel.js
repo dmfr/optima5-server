@@ -269,6 +269,11 @@ Ext.define('Optima5.Modules.CrmBase.QsqlPanel' ,{
 				me.remoteActionSubmit( me.remoteActionDelete, me ) ;
 				break ;
 				
+			case 'toggle_publish' :
+				var isPublished = actionParam ;
+				me.remoteActionSubmit( me.remoteActionTogglePublish, me, [isPublished]  ) ;
+				break ;
+				
 			case 'run' :
 				me.remoteActionSubmit( me.remoteActionRun, me ) ;
 				break ;
@@ -325,7 +330,7 @@ Ext.define('Optima5.Modules.CrmBase.QsqlPanel' ,{
 				}
 				else {
 					me.optimaModule.postCrmEvent('querychange') ;
-					me.fireEvent('querysaved',true,Ext.decode(response.responseText).query_id) ;
+					me.fireEvent('querysaved',true,Ext.decode(response.responseText).qsql_id) ;
 				}
 			},
 			scope: me
@@ -378,6 +383,33 @@ Ext.define('Optima5.Modules.CrmBase.QsqlPanel' ,{
 					me.optimaModule.postCrmEvent('querychange') ;
 					me.fireEvent('querydelete',true ) ;
 					me.destroy() ;
+				}
+			},
+			scope: me
+		});
+	},
+	remoteActionTogglePublish: function( isPublished ) {
+		var me = this ;
+		
+		var ajaxParams = {} ;
+		Ext.apply( ajaxParams, {
+			_action: 'queries_qsqlTransaction',
+			_transaction_id: me.transaction_id ,
+			_subaction: 'toggle_publish',
+			isPublished: isPublished
+		});
+		
+		me.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams ,
+			success: function(response) {
+				if( Ext.decode(response.responseText).success == false ) {
+					Ext.Msg.alert('Failed', 'Failed');
+				}
+				else {
+					me.optimaModule.postCrmEvent('togglepublishquery',{
+						qType:'qsql',
+						queryId:me.qsql_id
+					}) ;
 				}
 			},
 			scope: me

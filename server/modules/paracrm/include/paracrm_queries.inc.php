@@ -21,7 +21,7 @@ function paracrm_queries_getToolbarData( $post_data )
 	
 	// Queries / Qmerges publiés
 	$arr_pub_query = $arr_pub_qmerge = $arr_pub_qweb = $arr_pub_qbook = $arr_pub_qsql = array() ;
-	$query = "SELECT target_query_id , target_qmerge_id , target_qbook_id , target_qweb_id FROM input_query_src" ;
+	$query = "SELECT target_query_id , target_qmerge_id , target_qbook_id , target_qweb_id, target_qsql_id FROM input_query_src" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		if( $arr['target_query_id'] > 0 ) {

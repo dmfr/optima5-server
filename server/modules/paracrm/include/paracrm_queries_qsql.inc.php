@@ -45,6 +45,13 @@ function paracrm_queries_qsqlTransaction( $post_data ) {
 		{
 			$json =  paracrm_queries_qsqlTransaction_save( $post_data , $arr_saisie ) ;
 		}
+		if( $post_data['_subaction'] == 'toggle_publish' )
+		{
+			$json =  paracrm_queries_qsqlTransaction_togglePublish( $post_data , $arr_saisie ) ;
+			if( $json['success'] ) {
+				paracrm_queries_organizePublish() ;
+			}
+		}
 		
 		if( $post_data['_subaction'] == 'res_get' )
 		{
@@ -195,6 +202,24 @@ function paracrm_queries_qsqlTransaction_save( $post_data , &$arr_saisie )
 		
 		return array('success'=>true) ;
 	}
+}
+function paracrm_queries_qsqlTransaction_togglePublish( $post_data , &$arr_saisie )
+{
+	global $_opDB ;
+
+	$qsql_id = $arr_saisie['qsql_id'] ;
+	$is_published = ($post_data['isPublished']=='true')?true:false ;
+	
+	$query = "DELETE FROM input_query_src WHERE target_qsql_id='$qsql_id'" ;
+	$_opDB->query($query) ;
+	
+	if( $is_published ) {
+		$arr_ins = array() ;
+		$arr_ins['target_qsql_id'] = $qsql_id ;
+		$_opDB->insert('input_query_src',$arr_ins) ;
+	}
+
+	return array('success'=>true) ;
 }
 
 
