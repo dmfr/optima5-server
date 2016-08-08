@@ -32,11 +32,11 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.ReportForm',{
 					allowBlank: false,
 					editable: false,
 					store: {
-						fields: ['id'],
+						fields: ['id','text'],
 						data: [{id:'RCL_VL02NPOD'},{id:'RCL_VL02NAWB'}]
 					},
 					valueField: 'id',
-					displayField: 'id'
+					displayField: 'text'
 				},{
 					xtype:'datefield',
 					startDay:1,
@@ -81,9 +81,29 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.ReportForm',{
 			}]
 		});
 		this.callParent() ;
-		if( this.values ) {
-			this.down('form').getForm().setValues(this.values) ;
-		}
+		this.doFetchList() ;
+	},
+	doFetchList: function() {
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_tracy',
+				_action: 'reportList'
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+				
+				var combo = this.down('form').getForm().findField('file_model') ;
+				combo.getStore().loadData(ajaxResponse.data) ;
+			},
+			callback: function() {
+				
+			},
+			scope: this
+		}) ;
 	},
 	doDownload: function() {
 		var me = this ;
