@@ -206,7 +206,7 @@ foreach( $arr_filerecord_id as $filerecord_id ) {
 	$arr_update['sync_timestamp'] = 0 ;
 	$arr_cond = array() ;
 	$arr_cond['filerecord_id'] = $filerecord_id ;
-	$_opDB->update('store_file',$arr_update,$arr_cond) ;
+	$_opDB->update('store_file_CDE_SAISIE',$arr_update,$arr_cond) ;
 	// ****************************************
 	
 	
