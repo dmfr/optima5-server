@@ -117,7 +117,7 @@ if($emails) {
 						$newrecord['field_ATTACHMENT_TXT'] = $email_subject ;
 						
 						$img_filerecordId = paracrm_lib_data_insertRecord_file( 'ATTACH_INBOX', 0, $newrecord ) ;
-						media_img_move( $tmp_id , $img_filerecordId ) ;
+						media_img_move( $tmp_id , media_img_toolFile_getId('ATTACH_INBOX',$img_filerecordId) ) ;
 					}
 					unlink($tmpfname) ;
 				}
@@ -155,7 +155,7 @@ if( TRUE ) {
 			// Move media
 			$arr_media ;
 			$img_filerecordId = paracrm_lib_data_insertRecord_file( 'CDE_ATTACH', $CDE_parent_filerecordId, $arr_media ) ;
-			media_img_move( $attach_filerecordId , $img_filerecordId ) ;
+			media_img_move( media_img_toolFile_getId('ATTACH_INBOX',$attach_filerecordId) , media_img_toolFile_getId('CDE_ATTACH',$img_filerecordId) ) ;
 			
 			// Update field
 			$arr_update = array() ;
@@ -174,7 +174,7 @@ if( TRUE ) {
 			paracrm_lib_data_deleteRecord_file('ATTACH_INBOX',$attach_filerecordId) ;
 		} elseif( strtotime($arr_media['media_date']) < strtotime('-48 hours') ) {
 			paracrm_lib_data_deleteRecord_file('ATTACH_INBOX',$attach_filerecordId) ;
-			media_img_delete($attach_filerecordId) ;
+			media_img_delete(media_img_toolFile_getId('ATTACH_INBOX',$attach_filerecordId)) ;
 		} else {
 			
 		}

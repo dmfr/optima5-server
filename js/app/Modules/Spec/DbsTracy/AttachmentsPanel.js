@@ -30,7 +30,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.AttachmentsDataview',{
 	prepareData: function(data) {
 		var getParams = this.optimaModule.getConfiguredAjaxParams() ;
 		Ext.apply( getParams, {
-			media_id: data.attachment_filerecord_id,
+			media_id: 'ATTACH_INBOX'+'_'+data.attachment_filerecord_id,
 			thumb: true
 		});
 		
@@ -368,7 +368,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.AttachmentsPanel',{
 	},
 	handleEditAttachment: function( filerecordId ) {
 		var attachmentViewerWindow = this.createAttachmentWindow() ;
-		attachmentViewerWindow.loadFilerecord( filerecordId ) ;
+		attachmentViewerWindow.loadFilerecord( 'ATTACH_INBOX',filerecordId ) ;
 	},
 	createAttachmentWindow: function() {
 		attachmentViewerWindow = this.optimaModule.createWindow({
@@ -387,7 +387,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.AttachmentsPanel',{
 		var me = this ;
 		var getParams = me.optimaModule.getConfiguredAjaxParams() ;
 		Ext.apply( getParams, {
-			media_id: filerecordId,
+			media_id: 'ATTACH_INBOX'+'_'+filerecordId,
 			thumb:'',
 			download:true
 		});
