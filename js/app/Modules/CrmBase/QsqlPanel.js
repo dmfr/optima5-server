@@ -194,6 +194,9 @@ Ext.define('Optima5.Modules.CrmBase.QsqlPanel' ,{
 				value: ajaxData.data_sqlquerystring,
 				anchor: '100%',
 				listeners: {
+					change: function() {
+						this.setDirty(true) ;
+					},
 					render: this.addComponentsOnRenderTextarea,
 					scope: this
 				}
@@ -203,6 +206,7 @@ Ext.define('Optima5.Modules.CrmBase.QsqlPanel' ,{
 		if( me.loadMask ) {
 			me.loadMask.hide() ;
 		}
+		me.setDirty(false);
 	},
 	addComponentsOnRenderTextarea: function(field) {
 		var me = this ;
@@ -356,7 +360,7 @@ Ext.define('Optima5.Modules.CrmBase.QsqlPanel' ,{
 				}
 				else {
 					me.optimaModule.postCrmEvent('querychange') ;
-					me.fireEvent('querysaved',true,Ext.decode(response.responseText).query_id) ;
+					me.fireEvent('querysaved',true,Ext.decode(response.responseText).qsql_id) ;
 				}
 			},
 			scope: me
@@ -444,5 +448,12 @@ Ext.define('Optima5.Modules.CrmBase.QsqlPanel' ,{
 			},
 			scope: me
 		});
+	},
+	
+	setDirty: function(torf) {
+		this.dirtyEdit = torf ;
+	},
+	isDirty: function() {
+		return this.dirtyEdit ;
 	}
 });

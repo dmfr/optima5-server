@@ -299,6 +299,7 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 		},me,{single:true}) ;
 		
 		me.callParent() ;
+		me.on('beforeclose',this.onBeforeClose,this) ;
 		
 		me.mon(me.optimaModule,'op5broadcast',me.onCrmeventBroadcast,me) ;
 	},
@@ -745,7 +746,18 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 			}
 		});
 	},
-	
+	onBeforeClose: function() {
+		if( this.getPanel().isDirty && this.getPanel().isDirty() && !this.acceptClose ) {
+			Ext.Msg.confirm('Not saved ?','Query was modified. Quit anyway ?',function(btn){
+				if( btn=='yes' ) {
+					this.acceptClose = true ;
+					this.close() ;
+				}
+			},this);
+			return false ;
+		}
+		return true ;
+	},
 	onDestroy: function() {
 		this.doCleanup() ;
 		this.callParent() ;
