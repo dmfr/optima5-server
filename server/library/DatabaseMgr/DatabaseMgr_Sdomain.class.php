@@ -788,8 +788,6 @@ EOF;
 			$query = "TRUNCATE TABLE {$sdomain_db}.store_file_{$file_code}" ;
 			$_opDB->query($query) ;
 		}
-		$query = "TRUNCATE TABLE {$sdomain_db}.store_file" ;
-		$_opDB->query($query) ;
 	}
 	
 	public function sdomainDb_clone( $src_sdomain_id, $dst_sdomain_id ) {
@@ -1227,14 +1225,12 @@ EOF;
 		$sdomain_db = $this->getSdomainDb( $sdomain_id ) ;
 		
 		$table_name = 'store_file_'.$file_code ;
-		$query = "TRUNCATE TABLE {$sdomain_db}.{$table_name}" ;
-		$_opDB->query($query) ;
 		
 		if( $do_preserveSync ) {
-			$query = "UPDATE {$sdomain_db}.store_file SET sync_is_deleted='O',sync_timestamp='0' WHERE file_code='$file_code'" ;
+			$query = "UPDATE {$sdomain_db}.{$table_name} SET sync_is_deleted='O',sync_timestamp='0'" ;
 			$_opDB->query($query) ;
 		} else {
-			$query = "DELETE FROM {$sdomain_db}.store_file WHERE file_code='$file_code'" ;
+			$query = "TRUNCATE TABLE {$sdomain_db}.{$table_name}" ;
 			$_opDB->query($query) ;
 		}
 	}
@@ -1266,9 +1262,6 @@ EOF;
 		
 		$table_name = 'store_file_'.$file_code ;
 		$query = "DROP TABLE IF EXISTS {$sdomain_db}.{$table_name}" ;
-		$_opDB->query($query) ;
-		
-		$query = "UPDATE {$sdomain_db}.store_file SET sync_is_deleted='O',sync_timestamp='0' WHERE file_code='$file_code'" ;
 		$_opDB->query($query) ;
 	}
 	

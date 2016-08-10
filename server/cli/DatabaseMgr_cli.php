@@ -256,9 +256,9 @@ function action_domainmigrate1607( $domain_id ) {
 		
 		// migrate media
 		media_contextOpen( $sdomain_id ) ;
-		echo $media_path = media_contextGetDirPath() ;
+		$media_path = media_contextGetDirPath() ;
 		foreach( glob($media_path.'/'.'*') as $filepath ) {
-			echo $filename = basename($filepath) ;
+			$filename = basename($filepath) ;
 			$ttmp = explode('.',$filename) ;
 			$id = $ttmp[0] ;
 			if( is_numeric($id) && $map_oldFilerecordId_fileCode[$id] ) {
