@@ -192,15 +192,12 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.AttachmentViewerWindow',{
 			country_code: countryCode
 		}) ;
 	},
-	loadFilerecord: function( fileCode, filerecordId ) {
+	loadFilerecord: function( filerecordId ) {
 		if( !this.rendered ) {
 			this.on('afterrender', function() {
-				this.loadFilerecord(fileCode,filerecordId) ;
+				this.loadFilerecord(filerecordId) ;
 			},this,{single:true});
 		}
-		
-		// Set window
-		this.loadMedia(fileCode+'_'+filerecordId) ;
 		
 		// Load form
 		this.optimaModule.getConfiguredAjaxConnection().request({
@@ -217,6 +214,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.AttachmentViewerWindow',{
 					var values = ajaxObj.data,
 						form = this.floatForm.getForm() ;
 					form.setValues( values ) ;
+					this.loadMedia( values.media_id ) ;
 				}
 			},
 			scope: this

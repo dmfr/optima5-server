@@ -1,7 +1,8 @@
 Ext.define('DbsTracyAttachmentModel',{
 	extend: 'Ext.data.Model',
-	idProperty: 'attachment_filerecord_id',
+	idProperty: 'attachment_media_id',
 	fields: [
+		{name: 'attachment_media_id', type:'string'},
 		{name: 'attachment_filerecord_id', type:'int'},
 		{name: 'parent_file', type:'string'},
 		{name: 'attachment_date', type:'date', dateFormat:'Y-m-d'},

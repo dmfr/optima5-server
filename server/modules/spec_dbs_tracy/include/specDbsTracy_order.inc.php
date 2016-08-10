@@ -94,6 +94,7 @@ function specDbsTracy_order_getRecords( $post_data ) {
 			continue ;
 		}
 		$TAB_order[$arr['filerecord_parent_id']]['attachments'][] = array(
+			'attachment_media_id' => media_img_toolFile_getId('CDE_ATTACH',$arr['filerecord_id']),
 			'attachment_filerecord_id' => $arr['filerecord_id'],
 			'parent_file' => 'order',
 			'attachment_date' => substr($arr['field_ATTACHMENT_DATE'],0,10),

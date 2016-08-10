@@ -88,7 +88,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderAttachmentsDataview',{
 				prepareData: function(data) {
 					var getParams = me.optimaModule.getConfiguredAjaxParams() ;
 					Ext.apply( getParams, {
-						media_id: 'CDE_ATTACH'+'_'+data.attachment_filerecord_id,
+						media_id: data.attachment_media_id,
 						thumb: true
 					});
 					
@@ -119,7 +119,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderAttachmentsDataview',{
 								iconCls: 'icon-save',
 								text: 'Download file',
 								handler : function() {
-									me.handleDownload(record.get('attachment_filerecord_id')) ;
+									me.handleDownload(record.get('attachment_media_id')) ;
 								},
 								scope : me
 							});
@@ -249,7 +249,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderAttachmentsDataview',{
 	},
 	handleEditAttachment: function( filerecordId ) {
 		var attachmentViewerWindow = this.createAttachmentWindow() ;
-		attachmentViewerWindow.loadFilerecord( 'CDE_ATTACH',filerecordId ) ;
+		attachmentViewerWindow.loadFilerecord( filerecordId ) ;
 	},
 	createAttachmentWindow: function() {
 		attachmentViewerWindow = this.optimaModule.createWindow({
@@ -283,11 +283,11 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderAttachmentsDataview',{
 			scope: this
 		});
 	},
-	handleDownload: function(filerecordId) {
+	handleDownload: function(mediaId) {
 		var me = this ;
 		var getParams = me.optimaModule.getConfiguredAjaxParams() ;
 		Ext.apply( getParams, {
-			media_id: 'CDE_ATTACH'+'_'+filerecordId,
+			media_id: mediaId,
 			thumb:'',
 			download:true
 		});

@@ -202,6 +202,7 @@ function specDbsTracy_attachments_getInbox($post_data) {
 	$TAB = array() ;
 	foreach( $paracrm_TAB as $paracrm_row ) {
 		$TAB[] = array(
+			'attachment_media_id'=> media_img_toolFile_getId('ATTACH_INBOX',$paracrm_row['ATTACH_INBOX_id']),
 			'attachment_filerecord_id'=> $paracrm_row['ATTACH_INBOX_id'],
 			'parent_file' => '',
 			'attachment_date' => date('Y-m-d',strtotime($paracrm_row['ATTACH_INBOX_field_ATTACHMENT_DATE'])),
