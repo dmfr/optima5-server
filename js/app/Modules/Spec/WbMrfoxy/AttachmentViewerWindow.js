@@ -261,9 +261,6 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentViewerWindow',{
 			},this,{single:true});
 		}
 		
-		// Set window
-		this.loadMedia(filerecordId) ;
-		
 		// Load form
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
@@ -278,6 +275,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentViewerWindow',{
 						form = this.floatForm.getForm() ;
 					form.setValues( values ) ;
 					form.findField('reject_mode').setValue( form.findField('invoice_is_reject').getValue() ) ;
+					this.loadMedia( values.media_id ) ;
 				}
 			},
 			scope: this
