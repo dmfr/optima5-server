@@ -113,7 +113,7 @@ $query = "SELECT i.filerecord_id FROM view_file_INV i
 	LEFT OUTER JOIN view_file_INV_PEER ip ON ip.filerecord_parent_id=i.filerecord_id
 		AND ip.field_PEER_CODE='{$GLOBALS['_cfg_peer_code']}'
 	WHERE i.field_STATUS_IS_FINAL='1' and (ip.field_SEND_IS_OK IS NULL OR ip.field_SEND_IS_OK<>'1')
-	AND i.field_CALC_AMOUNT_FINAL > '0'
+	AND ABS(i.field_CALC_AMOUNT_FINAL) > '0'
 	AND ( c.field_FACTOR_ID IS NOT NULL AND c.field_FACTOR_ID <> '')" ;
 $result = $_opDB->query($query) ;
 while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {

@@ -11,7 +11,12 @@ function mail_getBinary_remiseTxt( $arr_invFilerecordIds ) { // return String (b
 		$result = $_opDB->query($query) ;
 		$arr = $_opDB->fetch_assoc($result) ;
 		
-		if( !($arr['field_ID_COEF'] > 0) ) {
+		if( $arr['field_ID_COEF'] > 0 ) {
+			$code_mode = 'F' ;
+		} elseif( $arr['field_ID_COEF'] < 0 ) {
+			$code_mode = 'A' ;
+		} else {
+			$code_mode = NULL ;
 			continue ;
 		}
 		
@@ -26,7 +31,7 @@ function mail_getBinary_remiseTxt( $arr_invFilerecordIds ) { // return String (b
 		$lig = substr_mklig($lig,';',22,1) ;
 		$lig = substr_mklig($lig,$GLOBALS['factor_AFC'],23,3) ;
 		$lig = substr_mklig($lig,';',26,1) ;
-		$lig = substr_mklig($lig,'F',27,1) ;
+		$lig = substr_mklig($lig,$code_mode,27,1) ;
 		$lig = substr_mklig($lig,';',28,1) ;
 		$lig = substr_mklig($lig,'EUR',29,3) ;
 		$lig = substr_mklig($lig,';',32,1) ;
@@ -38,7 +43,7 @@ function mail_getBinary_remiseTxt( $arr_invFilerecordIds ) { // return String (b
 		$lig = substr_mklig($lig,';',80,1) ;
 		$lig = substr_mklig($lig,preg_replace("/[^a-zA-Z0-9]/", "",$arr['field_ID_INV']),81,14) ;
 		$lig = substr_mklig($lig,';',95,1) ;
-		$lig = substr_mklig($lig,str_pad(round(((float)$arr['field_CALC_AMOUNT_FINAL'])*100), 15, "0", STR_PAD_LEFT),96,15) ;
+		$lig = substr_mklig($lig,str_pad(round(( abs((float)$arr['field_CALC_AMOUNT_FINAL']) )*100), 15, "0", STR_PAD_LEFT),96,15) ;
 		$lig = substr_mklig($lig,';',111,1) ;
 		$lig = substr_mklig($lig,date('Ymd',strtotime($arr['field_DATE_INVOICE'])),112,8) ;
 		$lig = substr_mklig($lig,';',120,1) ;
