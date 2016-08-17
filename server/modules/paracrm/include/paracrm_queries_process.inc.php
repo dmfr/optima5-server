@@ -2618,20 +2618,20 @@ function paracrm_queries_process_query_onePassValuesFast( $arr_saisie ) {
 		$arr_groupId[] = $group_id ;
 	}
 	foreach( $arr_saisie['fields_select'] as $select_id => $select_field ) {
-		if( $field_select['iteration_mode'] != 'value' ) {
+		if( $select_field['iteration_mode'] != 'value' ) {
 			return FALSE ;
 		}
-		if( count($field_select['math_expression']) != 1 ) {
+		if( count($select_field['math_expression']) != 1 ) {
 			return FALSE ;
 		}
 		
-		$symbol = reset($field_select['math_expression']) ;
-		switch( strtoupper($field_select['math_func_group']) ) {
+		$symbol = reset($select_field['math_expression']) ;
+		switch( strtoupper($select_field['math_func_group']) ) {
 			case 'AGV' :
 			case 'SUM' :
 			case 'MAX' :
 			case 'MIN' :
-				$func = strtoupper($field_select['math_func_group']) ;
+				$func = strtoupper($select_field['math_func_group']) ;
 				break ;
 				
 			default :
@@ -2671,7 +2671,9 @@ function paracrm_queries_process_query_onePassValuesFast( $arr_saisie ) {
 	foreach( $arr_fileCode as $file_code ) {
 		$query.= paracrm_queries_process_queryHelp_getWhereSqlPrefilter( $file_code, $arr_saisie['fields_where'], $file_code ) ;
 	}
-	$query.= " GROUP BY ".implode(',',$group_words) ;
+	if( count($group_words) > 0 ) {
+		$query.= " GROUP BY ".implode(',',$group_words) ;
+	}
 	
 	// echo $query ;
 	
