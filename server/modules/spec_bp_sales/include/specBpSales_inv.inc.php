@@ -481,33 +481,60 @@ function specBpSales_inv_printDoc( $post_data ) {
 	$ttmp = specBpSales_cde_getRecords( array(
 		'filter_cdeFilerecordId_arr' => json_encode( array($cde_filerecord_id) )
 	) );
-	if( count($ttmp['data']) != 1 ) {
-		return array('success'=>false) ;
+	if( count($ttmp['data']) == 1 ) {
+		$cde_record = $ttmp['data'][0] ;
 	}
-	$cde_record = $ttmp['data'][0] ;
 	
 	
-	$map_mkey_value = array(
-		'id_inv' => $inv_record['id_inv'],
-		'cli_link' => $inv_record['cli_link'],
-		'cde_no' => $cde_record['cde_ref'],
-		'cli_ref_id' => $cde_record['cli_ref_id'],
-		'date_order' => date('d/m/Y',strtotime($cde_record['date_order'])),
-		'date_ship' => date('d/m/Y',strtotime($cde_record['date_ship'])),
-		
-		'adr_sendto' => nl2br($inv_record['adr_sendto']),
-		'adr_invoice' => nl2br($inv_record['adr_invoice']),
-		'adr_ship' => nl2br($inv_record['adr_ship']),
-		
-		'pay_bank' => nl2br($inv_record['pay_bank']),
-		
-		'calc_amount_novat' => number_format($inv_record['calc_amount_novat'],3),
-		'calc_amount_final' => number_format($inv_record['calc_amount_final'],3),
-		'calc_vat' => number_format($inv_record['calc_amount_final']-$inv_record['calc_amount_novat'],3),
-		
-		'date_invoice' => date('d/m/Y',strtotime($inv_record['date_invoice'])),
-		'date_due' => date('d/m/Y',strtotime('+30 days',strtotime($inv_record['date_invoice'])))
-	);
+	if( $cde_record ) {
+		$map_mkey_value = array(
+			'id_inv' => $inv_record['id_inv'],
+			'cli_link' => $inv_record['cli_link'],
+			'cde_no' => $cde_record['cde_ref'],
+			'cli_ref_id' => $cde_record['cli_ref_id'],
+			'date_order' => date('d/m/Y',strtotime($cde_record['date_order'])),
+			'date_ship' => date('d/m/Y',strtotime($cde_record['date_ship'])),
+			
+			'adr_sendto' => nl2br($inv_record['adr_sendto']),
+			'adr_invoice' => nl2br($inv_record['adr_invoice']),
+			'adr_ship' => nl2br($inv_record['adr_ship']),
+			
+			'pay_bank' => nl2br($inv_record['pay_bank']),
+			
+			'calc_amount_novat' => number_format($inv_record['calc_amount_novat'],3),
+			'calc_amount_final' => number_format($inv_record['calc_amount_final'],3),
+			'calc_vat' => number_format($inv_record['calc_amount_final']-$inv_record['calc_amount_novat'],3),
+			
+			'date_invoice' => date('d/m/Y',strtotime($inv_record['date_invoice'])),
+			'date_due' => date('d/m/Y',strtotime('+30 days',strtotime($inv_record['date_invoice'])))
+		);
+	} else {
+		$map_mkey_value = array(
+			'id_inv' => $inv_record['id_inv'],
+			'cli_link' => $inv_record['cli_link'],
+			'cde_no' => $inv_record['id_cde_ref'],
+			//'cli_ref_id' => $cde_record['cli_ref_id'],
+			//'date_order' => date('d/m/Y',strtotime($inv_record['date_invoice'])),
+			//'date_ship' => date('d/m/Y',strtotime($inv_record['date_invoice'])),
+			
+			'adr_sendto' => nl2br($inv_record['adr_sendto']),
+			'adr_invoice' => nl2br($inv_record['adr_invoice']),
+			'adr_ship' => nl2br($inv_record['adr_ship']),
+			
+			'pay_bank' => nl2br($inv_record['pay_bank']),
+			
+			'calc_amount_novat' => number_format($inv_record['calc_amount_novat'],3),
+			'calc_amount_final' => number_format($inv_record['calc_amount_final'],3),
+			'calc_vat' => number_format($inv_record['calc_amount_final']-$inv_record['calc_amount_novat'],3),
+			
+			'date_invoice' => date('d/m/Y',strtotime($inv_record['date_invoice'])),
+			'date_due' => date('d/m/Y',strtotime('+30 days',strtotime($inv_record['date_invoice'])))
+		);
+	}
+	
+	if( $inv_record['calc_amount_final'] < 0 ) {
+		$map_mkey_value['date_due'] = NULL ;
+	}
 	
 	
 	$map_columns = array(
