@@ -109,42 +109,9 @@ foreach( $map_factorRef_invFilerecordIds as $factor_SEND_REF => $arr_invFilereco
 		$to[] = 'dm@mirabel-sil.com' ;
 	}
 	
-	$filename_zip = $factor_SEND_REF.'.zip' ;
-	$ttmp = tempnam(sys_get_temp_dir(),'dmp') ;
-	unlink($ttmp) ;
-	$filepath_zip = $ttmp.'.zip' ;
 	
-	$toDeletePaths = array() ;
-	
-	$obj_zip = new ZipArchive() ;
-	$obj_zip->open( $filepath_zip , ZIPARCHIVE::CREATE ) ;
-	foreach( $arr_invFilerecordIds as $inv_filerecord_id ) {
-		// Données de la facture
-		$query = "SELECT * FROM view_file_INV WHERE filerecord_id='{$inv_filerecord_id}'" ;
-		$result = $_opDB->query($query) ;
-		$arr_inv = $_opDB->fetch_assoc($result) ;
-		
-		$binarybuffer_pdf = mail_getBinary_attachPdf( $inv_filerecord_id ) ;
-		if( !$binarybuffer_pdf ) {
-			continue ;
-		}
-		
-		$filename_pdf = preg_replace("/[^a-zA-Z0-9]/", "",$arr_inv['field_ID_INV']).'.pdf' ;
-		$ttmp = tempnam(sys_get_temp_dir(),'pdf') ;
-		unlink($ttmp) ;
-		$filepath_pdf = $ttmp.'.pdf' ;
-		file_put_contents($filepath_pdf,$binarybuffer_pdf) ;
-		
-		$obj_zip->addFile( $filepath_pdf , $filename_pdf ) ;
-		
-		$toDeletePaths[] = $filepath_pdf ;
-		// ***************************************************
-	}
-	$obj_zip->close() ;
-	
-	foreach($toDeletePaths as $delete_path ) {
-		unlink($delete_path) ;
-	}
+	$filename_pdf = 'PRINT_'.$factor_SEND_REF.'.pdf' ;
+	$binarybuffer_pdf = mail_getBinary_attachPdf( $arr_invFilerecordIds ) ;
 
 	$email = new Email() ;
 	$email->set_From( 'finance@bluephoenix.fr', 'BluePhoenix Finance' ) ;
@@ -153,10 +120,8 @@ foreach( $map_factorRef_invFilerecordIds as $factor_SEND_REF => $arr_invFilereco
 	}
 	$email->set_Subject( '[BluePhoenix] '."Remise FACTOR/REF # {$factor_SEND_REF}") ;
 	$email->set_text_body( $email_text ) ;
-	$email->attach_file( $filename_zip, file_get_contents($filepath_zip), 'application/zip' );
+	$email->attach_file( $filename_pdf, $binarybuffer_pdf, 'application/pdf' );
 	$email->send() ;
-	
-	unlink($filepath_zip) ;
 }
 
 

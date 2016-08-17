@@ -1,15 +1,21 @@
 <?php
-function mail_getBinary_attachPdf( $inv_filerecord_id ) { // return String (binarybuffer)
+function mail_getBinary_attachPdf( $arr_invFilerecordIds ) { // return String (binarybuffer)
 	global $_opDB ;
 	
-	$json = specBpSales_inv_printDoc( array('inv_filerecord_id'=>$inv_filerecord_id) ) ;
-	if( !$json['success'] ) {
-		return NULL ;
-	}
-	$inv_html = $json['html'] ;
+	$htmls = array() ;
 	
-	$inv_pdf = specBpSales_util_htmlToPdf_buffer( $inv_html ) ;
-	return $inv_pdf ;
+	foreach( $arr_invFilerecordIds as $inv_filerecord_id ) {
+		$json = specBpSales_inv_printDoc( array('inv_filerecord_id'=>$inv_filerecord_id) ) ;
+		if( !$json['success'] ) {
+			return NULL ;
+		}
+		$inv_html = $json['html'] ;
+		
+		$htmls[] = $inv_html ;
+	}
+	
+	$pdf = specBpSales_util_htmlToPdf_buffer( $htmls ) ;
+	return $pdf ;
 }
 
 ?>
