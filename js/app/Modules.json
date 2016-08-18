@@ -164,5 +164,14 @@
 		"moduleCssSrc":"module-spec_dbs_tracy.css",
 		"moduleType":"sdomain",
 		"params": []
+	},{
+		"enabled":true,
+		"moduleId":"sql",
+		"moduleName":"SQL console",
+		"moduleClass":"Optima5.Modules.Sql.SqlModule",
+		"moduleCssSrc":"module-sql.css",
+		"moduleType":"admin",
+		"iconCode":"sql",
+		"params":[]
 	}
 ]
