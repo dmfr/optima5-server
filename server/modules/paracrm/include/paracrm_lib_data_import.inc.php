@@ -604,20 +604,26 @@ function paracrm_lib_dataImport_preHandle( $handle_in ) {
 		return $handle_out ;
 	}
 	
-	$lig = trim($lig) ;
-	$chars = array() ;
-	for($i=0;$i<strlen($lig);$i++) {
-		$char = $lig[$i];
-		if( !in_array($char,$chars) ) {
-			$chars[] = $char ;
+	$SAP_tries = 5 ;
+	while( $SAP_tries > 0 ) {
+		$lig = trim($lig) ;
+		$chars = array() ;
+		for($i=0;$i<strlen($lig);$i++) {
+			$char = $lig[$i];
+			if( !in_array($char,$chars) ) {
+				$chars[] = $char ;
+			}
 		}
-	}
-	if( count($chars)==1 && reset($chars)=='-' ) {
-		rewind($handle_in) ;
-		$handle_out = tmpfile() ;
-		paracrm_lib_dataImport_preHandle_SAP( $handle_in, $handle_out ) ;
-		fclose($handle_in) ;
-		return $handle_out ;
+		if( count($chars)==1 && reset($chars)=='-' ) {
+			rewind($handle_in) ;
+			$handle_out = tmpfile() ;
+			paracrm_lib_dataImport_preHandle_SAP( $handle_in, $handle_out ) ;
+			fclose($handle_in) ;
+			return $handle_out ;
+		}
+		
+		$lig = fgets($handle_in) ;
+		$SAP_tries-- ;
 	}
 	
 	
@@ -630,7 +636,7 @@ function paracrm_lib_dataImport_preHandle_SAP( $handle_in, $handle_out, $separat
 	$handle_priv = tmpfile() ;
 	while( !feof($handle_in) ) {
 		$lig = fgets($handle_in) ;
-		$lig = mb_convert_encoding($lig, "UTF-8", mb_detect_encoding($lig));
+		$lig = mb_convert_encoding($lig, "UTF-8", mb_detect_encoding($lig,"UTF-8, ISO-8859-1, ISO-8859-15"));
 		fwrite($handle_priv,$lig) ;
 	}
 	
@@ -664,9 +670,15 @@ function paracrm_lib_dataImport_preHandle_SAP( $handle_in, $handle_out, $separat
 	fseek($handle_priv,0) ;
 	while( !feof($handle_priv) ) {
 		$arr_csv = fgetcsv($handle_priv,0,$separator) ;
+		
 		if( count($arr_csv) != $max_occurences ) {
 			continue ;
 		}
+		foreach( $arr_csv as &$value ) {
+			$value = trim($value) ;
+		}
+		unset($value) ;
+		
 		if( $strip_first ) {
 			array_shift($arr_csv) ;
 		}
