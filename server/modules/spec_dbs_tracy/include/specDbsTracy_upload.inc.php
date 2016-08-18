@@ -147,11 +147,22 @@ function specDbsTracy_upload( $post_data ) {
 		case 'MBD_LIKP' :
 			$ret = specDbsTracy_upload_LIKP_tmp($handle,'MBD') ;
 			break ;
+		case 'DATAIMPORT_MB51' :
+			$ret = specDbsTracy_upload_DATAIMPORT($handle,'MB51') ;
+			break ;
 		default :
 			return array('success'=>false);
 	}
 	
 	return array('success'=>$ret) ;
+}
+
+function specDbsTracy_upload_DATAIMPORT( $handle, $file_code ) {
+	rewind($handle) ;
+	$handle = paracrm_lib_dataImport_preHandle($handle) ;
+	rewind($handle) ;
+	paracrm_lib_dataImport_commit_processHandle( 'file', $file_code, $handle ) ;
+	return true ;
 }
 
 function specDbsTracy_upload_RCLSPEC_tmp( $handle, $id_soc ) {
