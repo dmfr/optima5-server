@@ -92,7 +92,7 @@ function specDbsTracy_report_RCL_VL02NPOD_tmp( $form_data ) {
 				&& $rowOrderStep['date_actual'] <= $form_data['date_end'] ) {
 				
 				
-				$csv_buffer.= '"'.$rowOrder['id_dn'].'"'.';'.'"'.date('d.m.Y',strtotime($rowOrderStep['date_actual'])).'"'.';'.'"'.date('H:i',strtotime($rowOrderStep['date_actual'])).'"'."\r\n" ;
+				$csv_buffer.= $rowOrder['id_dn'].';'.date('d.m.Y',strtotime($rowOrderStep['date_actual'])).';'.date('H:i',strtotime($rowOrderStep['date_actual']))."\r\n" ;
 			}
 		}
 		
@@ -110,7 +110,7 @@ function specDbsTracy_report_RCL_VL02NAWB_tmp( $form_data ) {
 				AND c.field_ID_SOC='ACL' AND t.field_FLIGHT_AWB<>'' AND DATE(t.field_DATE_CREATE) BETWEEN '{$form_data['date_start']}' AND '{$form_data['date_end']}'" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_row($result)) !=  FALSE ) {
-		$csv_buffer.= '"'.$arr[0].'"'.';'.'"'.$arr[1].'"'."\r\n" ;
+		$csv_buffer.= $arr[0].';'.$arr[1]."\r\n" ;
 	}
 	
 	return $csv_buffer ;
