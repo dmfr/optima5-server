@@ -3899,7 +3899,7 @@ function paracrm_queries_process_labelEnum( $group_id, $field_group, $bibleCondi
 					}
 				
 					$bible_field_code = $display_field_arrDesc['bible_type'].'_'.$display_field_arrDesc['bible_field_code'] ;
-					if( in_array($bible_field_code,$link_field_refs) ) {
+					if( in_array($bible_field_code,$link_field_refs) && is_array(json_decode($record[$display_field_key])) ) {
 						// décodage JSON
 						$ttmp[$display_field_key] = implode(' ',json_decode($record[$display_field_key])) ;
 					}
@@ -3925,7 +3925,7 @@ function paracrm_queries_process_labelEnum( $group_id, $field_group, $bibleCondi
 				foreach( $field_group['group_bible_display_arrFields'] as $display_field_key => $display_field_arrDesc )
 				{
 					$bible_field_code = $display_field_arrDesc['bible_type'].'_'.$display_field_arrDesc['bible_field_code'] ;
-					if( in_array($bible_field_code,$link_field_refs) ) {
+					if( in_array($bible_field_code,$link_field_refs) && is_array(json_decode($record[$display_field_key])) ) {
 						// décodage JSON
 						$ttmp[$display_field_key] = implode(' ',json_decode($record[$display_field_key])) ;
 					}
@@ -3948,7 +3948,7 @@ function paracrm_queries_process_labelEnum( $group_id, $field_group, $bibleCondi
 				foreach( $field_group['group_bible_display_arrFields'] as $display_field_key => $display_field_arrDesc )
 				{
 					$bible_field_code = $display_field_arrDesc['bible_type'].'_'.$display_field_arrDesc['bible_field_code'] ;
-					if( in_array($bible_field_code,$link_field_refs) ) {
+					if( in_array($bible_field_code,$link_field_refs) && is_array(json_decode($record[$display_field_key])) ) {
 						// décodage JSON
 						$ttmp[$display_field_key] = implode(' ',json_decode($record[$display_field_key])) ;
 					}
