@@ -144,8 +144,16 @@ if( TRUE ) {
 	while( ($arr_media = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$attach_filerecordId = $arr_media['filerecord_id'] ;
 		
-		$email_subject = $arr_media['field_ATTACHMENT_TXT'] ;
-		$arr_emailSubject = explode('/',$email_subject) ;
+		while( TRUE ) {
+			$email_subject = $arr_media['field_ATTACHMENT_TXT'] ;
+			$arr_emailSubject = explode('@',$email_subject) ;
+			if( count($arr_emailSubject) > 1 ) {
+				break ;
+			}
+			$arr_emailSubject = explode('/',$email_subject) ;
+			break ;
+		}
+		
 		
 		$mkey = strtoupper(trim($arr_emailSubject[0])) ;
 		
