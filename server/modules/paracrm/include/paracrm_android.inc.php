@@ -914,7 +914,8 @@ function paracrm_android_syncPush( $post_data )
 		'success'=>true,
 		'map_tmpid_fileid'=>$arr_tmpid_fileid,
 		'map_tmpid_syncvuid'=>$arr_tmpid_syncvuid,
-		'upload_slots'=>$arr_upload_slots
+		'upload_slots' => array(),
+		'upload_slots_vuid'=>$arr_upload_slots
 	) ;
 }
 
