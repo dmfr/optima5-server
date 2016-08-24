@@ -129,7 +129,7 @@ Ext.define('Optima5.Modules.Spec.BpSales.MainPanel',{
 		// new window
 		this.optimaModule.createWindow({
 			title: '',
-			width:1250,
+			width:1310,
 			height:700,
 			iconCls: 'op5-crmbase-dataformwindow-icon',
 			animCollapse:false,

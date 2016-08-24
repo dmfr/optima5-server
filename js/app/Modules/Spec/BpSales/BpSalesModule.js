@@ -72,6 +72,7 @@ Ext.define('BpSalesInvLigModel',{
 		{name: 'join_price', type:'number'},
 		{name: 'join_coef1', type:'number'},
 		{name: 'join_coef2', type:'number'},
+		{name: 'join_coef3', type:'number'},
 		{name: 'join_vat', type:'number'},
 		
 		{name: 'calc_amount_novat', type:'number'},

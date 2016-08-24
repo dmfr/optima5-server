@@ -341,6 +341,11 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoicePanel',{
 						width: 60,
 						dataIndex: 'join_coef2'
 					},{
+						text: 'Coef 3',
+						align: 'right',
+						width: 60,
+						dataIndex: 'join_coef3'
+					},{
 						text: '<b>Excl.VAT</b>',
 						align: 'right',
 						width: 80,
