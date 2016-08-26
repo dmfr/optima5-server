@@ -190,6 +190,7 @@ function specDbsTracy_order_setHeader( $post_data ) {
 		$arr_ins['field_ID_SOC'] = $form_data['id_soc'] ;
 		$arr_ins['field_ID_DN'] = $form_data['id_dn'] ;
 		$arr_ins['field_FLOW_CODE'] = $form_data['flow_code'] ;
+		$arr_ins['field_DATE_CREATE'] = date('Y-m-d H:i:s') ;
 	}
 	$arr_ins['field_REF_PO'] = $form_data['ref_po'] ;
 	$arr_ins['field_REF_INVOICE'] = $form_data['ref_invoice'] ;
