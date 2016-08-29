@@ -312,6 +312,24 @@ function specDbsTracy_order_stepValidate( $post_data ) {
 }
 
 
+function specDbsTracy_order_delete( $post_data ) {
+	global $_opDB ;
+	$file_code = 'CDE' ;
+	
+	$p_orderFilerecordId = $post_data['order_filerecord_id'] ;
+	$ttmp = specDbsTracy_order_getRecords(array('filter_orderFilerecordId_arr'=>json_encode(array($p_orderFilerecordId)))) ;
+	if( count($ttmp['data']) != 1 ) {
+		return array('success'=>false) ;
+	}
+	if( $ttmp['data'][0]['calc_link_is_active'] ) {
+		return array('success'=>false,'error'=>"Order {$ttmp['data'][0]['id_dn']} already attached") ;
+	}
+	
+	paracrm_lib_data_deleteRecord_file($file_code,$p_orderFilerecordId) ;
+	return array('success'=>true) ;
+}
+
+
 function specDbsTracy_order_download( $post_data ) {
 	$ttmp = specDbsTracy_cfg_getConfig() ;
 	$json_cfg = $ttmp['data'] ;

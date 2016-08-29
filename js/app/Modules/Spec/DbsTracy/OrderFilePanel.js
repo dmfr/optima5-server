@@ -16,10 +16,20 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 				align: 'stretch'
 			},
 			tbar:[{
+				itemId: 'tbSave',
 				iconCls:'op5-sdomains-menu-submit',
 				text:'Save',
 				handler: function() {
 					this.handleSaveHeader() ;
+				},
+				scope:this
+			},{
+				itemId: 'tbDelete',
+				hidden: true,
+				iconCls:'op5-sdomains-menu-delete',
+				text:'Delete',
+				handler: function() {
+					this.handleDelete() ;
 				},
 				scope:this
 			},{
@@ -399,6 +409,10 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 	newOrder: function() {
 		this._orderNew = true ;
 		
+		// toolbar
+		var tbDelete = this.down('toolbar').down('#tbDelete') ;
+		tbDelete.setVisible(false) ;
+		
 		//fHeader
 		this.down('#pHeaderForm').getForm().reset() ;
 		this.down('#pHeaderForm').getForm().findField('id_soc').setReadOnly(false) ;
@@ -446,6 +460,12 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 	onLoadOrder: function( orderRecord ) {
 		this._orderNew = false ;
 		this._orderFilerecordId = orderRecord.getId() ;
+		
+		// toolbar
+		var tbDelete = this.down('toolbar').down('#tbDelete'),
+			showDelete = ( Optima5.Modules.Spec.DbsTracy.HelperCache.authHelperQueryPage('ADMIN')
+							&& !orderRecord.get('calc_link_is_active') ) ;
+		tbDelete.setVisible(showDelete) ;
 		
 		//fHeader
 		this.down('#pHeaderForm').getForm().reset() ;
@@ -577,6 +597,49 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 		} else {
 			this.fireEvent('candestroy',this) ;
 		}
+	},
+	
+	
+	handleDelete: function() {
+		if( this._orderNew ) {
+			return ;
+		}
+		if( !Optima5.Modules.Spec.DbsTracy.HelperCache.authHelperQueryPage('ADMIN') ) {
+			Ext.Msg.alert('Auth','Not authorized') ;
+			return ;
+		}
+		Ext.Msg.confirm('Confirm?','Delete order ?',function(btn){
+			if( btn=='yes' ) {
+				this.doDelete() ;
+			}
+		},this);
+	},
+	doDelete: function() {
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_tracy',
+				_action: 'order_delete',
+				order_filerecord_id: this._orderFilerecordId
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					var error = ajaxResponse.success || 'Error on delete' ;
+					Ext.MessageBox.alert('Error',error) ;
+					return ;
+				}
+				this.onDelete() ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+	},
+	onDelete: function() {
+		this.optimaModule.postCrmEvent('datachange',{}) ;
+		this.fireEvent('candestroy',this) ;
 	},
 	
 	/*

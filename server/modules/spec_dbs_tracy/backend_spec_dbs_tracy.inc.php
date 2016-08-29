@@ -25,6 +25,8 @@ switch( $post_data['_action'] )
 	return specDbsTracy_order_setStep( $post_data ) ;
 	case 'order_stepValidate' :
 	return specDbsTracy_order_stepValidate( $post_data ) ;
+	case 'order_delete' :
+	return specDbsTracy_order_delete( $post_data ) ;
 	case 'order_download' :
 	session_write_close() ;
 	return specDbsTracy_order_download( $post_data ) ;
