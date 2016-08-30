@@ -51,6 +51,9 @@ function paracrm_android_query_buildTables() {
 		elseif( $arr['target_qweb_id'] ) {
 			paracrm_android_query_buildTables_forQweb($arr['target_qweb_id'] , $querysrc_id, $querysrc_index) ;
 		}
+		elseif( $arr['target_qsql_id'] ) {
+			paracrm_android_query_buildTables_forQsql($arr['target_qsql_id'] , $querysrc_id, $querysrc_index) ;
+		}
 	}
 }
 function paracrm_android_query_buildTables_forQuery( $query_id , $dest_querysrc_id , $dest_querysrc_index ) {
@@ -239,6 +242,25 @@ function paracrm_android_query_buildTables_forQweb( $qweb_id , $dest_querysrc_id
 		$_opDB->insert('tmp_input_query_where',$arr_ins) ;
 	}
 }
+function paracrm_android_query_buildTables_forQsql( $qsql_id , $dest_querysrc_id , $dest_querysrc_index ) {
+
+	global $_opDB ;
+	global $tmplinearfields ;
+
+	$query = "SELECT * FROM qsql WHERE qsql_id='$qsql_id'" ;
+	$result = $_opDB->query($query) ;
+	if( $_opDB->num_rows($result) != 1 ) {
+		return ;
+	}
+	$arr = $_opDB->fetch_assoc($result) ;
+	
+	$arr_ins = array() ;
+	$arr_ins['querysrc_id'] = $dest_querysrc_id ;
+	$arr_ins['querysrc_index'] = $dest_querysrc_index ;
+	$arr_ins['querysrc_type'] = 'qsql' ;
+	$arr_ins['querysrc_name'] = $arr['qsql_name'] ;
+	$_opDB->insert('tmp_input_query',$arr_ins) ;
+}
 function paracrm_android_query_buildTables_toolIsWhereSet( $arrDB_where ) {
 	switch( $arrDB_where['field_type'] ) {
 		case 'link' :
@@ -420,6 +442,23 @@ function paracrm_android_query_fetchResult( $post_data ) {
 		
 		
 		
+		case 'qsql' :
+		$qsql_id = $_opDB->query_uniqueValue("SELECT target_qsql_id FROM input_query_src WHERE querysrc_id='$querysrc_id'") ;
+		//error_log('Qmerge_id :'.$qmerge_id) ;
+		
+		$arr_saisie = array() ;
+		paracrm_queries_qsqlTransaction_init( array('qsql_id'=>$qsql_id) , $arr_saisie ) ;
+		
+		$RES = paracrm_queries_qsql_lib_exec($arr_saisie['sql_querystring']) ;
+		
+		if( $post_data['xls_export'] == 'true' ) {
+			return paracrm_android_query_fetchResultXls( $RES, $arrQuery['querysrc_type'] );
+		}
+		
+		return array('success'=>true,'tabs'=>array_values($RES)) ;
+		
+		
+		
 		case 'qweb' :
 		$qweb_id = $_opDB->query_uniqueValue("SELECT target_qweb_id FROM input_query_src WHERE querysrc_id='$querysrc_id'") ;
 		
@@ -495,6 +534,10 @@ function paracrm_android_query_fetchResultXls( $RES , $query_type ) {
 			$tab['tab_title'] = $dummy['tab_title'] ;
 			$workbook_tab_grid[$tab_id] = $tab + paracrm_queries_mpaginate_getGrid( $RES, $tab_id ) ;
 		}
+		break ;
+		
+		case 'qsql' :
+		$workbook_tab_grid = $RES ;
 		break ;
 		
 		default :
