@@ -85,7 +85,7 @@ if( TRUE ) {
 	if( $arr_customerEntryKeys ) {
 		$email_text = mailBlocage_getBody( $arr_customerEntryKeys ) ;
 
-		$to = array('finance@bluephoenix.fr') ;
+		$to = array('finance@bluephoenix.fr','dm@mirabel-sil.com') ;
 		if( $GLOBALS['__OPTIMA_TEST'] ) {
 			$to = array() ;
 			$to[] = 'dm@mirabel-sil.com' ;

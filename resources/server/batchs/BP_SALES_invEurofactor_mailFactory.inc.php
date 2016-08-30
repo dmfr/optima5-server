@@ -47,7 +47,11 @@ function mail_getBinary_remiseTxt( $arr_invFilerecordIds ) { // return String (b
 		$lig = substr_mklig($lig,';',111,1) ;
 		$lig = substr_mklig($lig,date('Ymd',strtotime($arr['field_DATE_INVOICE'])),112,8) ;
 		$lig = substr_mklig($lig,';',120,1) ;
-		$lig = substr_mklig($lig,date('Ymd',strtotime('+30 days',strtotime($arr['field_DATE_INVOICE']))),121,8) ;
+			$time_due = strtotime('+30 days',strtotime($arr['field_DATE_INVOICE'])) ;
+			if( $time_due < strtotime('+10 days') ) {
+				$time_due = strtotime('+10 days') ;
+			}
+		$lig = substr_mklig($lig,date('Ymd',$time_due),121,8) ;
 		$lig = substr_mklig($lig,';',129,1) ;
 		$lig = substr_mklig($lig,'A',130,1) ;
 		$lig = substr_mklig($lig,';',131,1) ;
@@ -100,7 +104,11 @@ function mail_getBody( $arr_invFilerecordIds ) {
 		$lig = substr_mklig($lig,date('d/m/y',strtotime($arr['field_DATE_INVOICE'])),16,8) ;
 		$lig = substr_mklig($lig,preg_replace("/[^a-zA-Z0-9]/", "",$arr['field_ID_INV']),25,11) ;
 		$lig = substr_mklig($lig,number_format(round($arr['field_CALC_AMOUNT_FINAL'],2),2),37,10,true) ;
-		$lig = substr_mklig($lig,date('d/m/y',strtotime('+30 days',strtotime($arr['field_DATE_INVOICE']))),50,8) ;
+			$time_due = strtotime('+30 days',strtotime($arr['field_DATE_INVOICE'])) ;
+			if( $time_due < strtotime('+10 days') ) {
+				$time_due = strtotime('+10 days') ;
+			}
+		$lig = substr_mklig($lig,date('d/m/y',$time_due),50,8) ;
 		$lig = substr_mklig($lig,$arr['field_ID_CDE_REF'],60,10) ;
 		$email_text.= $lig."\r\n" ;
 		
