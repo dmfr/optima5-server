@@ -159,7 +159,7 @@ function paracrm_queries_getToolbarData( $post_data )
 	$query = "SELECT qsql_id as qsqlId, qsql_name as text
 				FROM qsql" ;
 	$result = $_opDB->query($query) ;
-	$TAB_qwebs = array() ;
+	$TAB_qsqls = array() ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$qsql_id = $arr['qsqlId'] ;
 		
