@@ -307,6 +307,7 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 		var me = this ;
 		switch( crmEvent ) {
 			case 'togglepublishquery' :
+			case 'toggleautorunquery' :
 				break ;
 			
 			default :
@@ -315,6 +316,7 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 		
 		switch( crmEvent ) {
 			case 'togglepublishquery' :
+			case 'toggleautorunquery' :
 				return me.configureComponents(true) ;
 		}
 	},
@@ -418,7 +420,7 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 			success: function(response) {
 				var ajaxData = Ext.decode(response.responseText),
 					winTitle,
-					tbarDisableFile=false, tbarIsNew=false, tbarDisableSave=false, tbarIsPublished=false,
+					tbarDisableFile=false, tbarIsNew=false, tbarDisableSave=false, tbarIsPublished=false, tbarIsAutorun=false,
 					qbookArrZtemplate = null ;
 				
 				var authReadOnly=false,
@@ -484,6 +486,9 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 									if( o.isPublished ) {
 										tbarDisableSave = tbarIsPublished = true ;
 									}
+									if( o.isAutorun ) {
+										tbarDisableSave = tbarIsAutorun = true ;
+									}
 									return false ;
 								}
 							});
@@ -539,7 +544,8 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 				
 				var tbarRunBtn = tbar.child('#run'),
 					tbarRunQbookMenu = tbar.child('#run-qbook'),
-					isQbook = (me.qType=='qbook') ;
+					isQbook = (me.qType=='qbook'),
+					isQsql = (me.qType=='qsql') ;
 				tbarRunBtn.setVisible( !isQbook ) ;
 				tbarRunQbookMenu.setVisible( isQbook ) ;
 				if( isQbook ) {
@@ -587,6 +593,14 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 				} else {
 					tbarOptionsMenu.menu.child('#toggle-android').setChecked(false,true) ;
 					tbarOptionsMenu.menu.child('#toggle-android').removeCls(tbar.clsForPublished) ;
+				}
+				tbarOptionsMenu.menu.child('#toggle-autorun').setVisible(isQsql) ;
+				if( tbarIsAutorun ) {
+					tbarOptionsMenu.menu.child('#toggle-autorun').setChecked(true,true) ;
+					tbarOptionsMenu.menu.child('#toggle-autorun').addCls(tbar.clsForAutorun) ;
+				} else {
+					tbarOptionsMenu.menu.child('#toggle-autorun').setChecked(false,true) ;
+					tbarOptionsMenu.menu.child('#toggle-autorun').removeCls(tbar.clsForAutorun) ;
 				}
 			},
 			scope: me
@@ -655,6 +669,9 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 					case 'toggle-android' :
 						var checked = input ;
 						return me.getPanel().remoteAction('toggle_publish',checked) ;
+					case 'toggle-autorun' :
+						var checked = input ;
+						return me.getPanel().remoteAction('toggle_autorun',checked) ;
 					default : break ;
 				}
 				break ;

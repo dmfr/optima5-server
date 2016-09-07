@@ -2,6 +2,7 @@ Ext.define('Optima5.Modules.CrmBase.QwindowToolbar',{
 	extend: 'Ext.toolbar.Toolbar',
 	
 	clsForPublished: 'op5-crmbase-published',
+	clsForAutorun:   'op5-crmbase-autorun',
 	
 	initComponent: function() {
 		var me = this ;
@@ -82,6 +83,13 @@ Ext.define('Optima5.Modules.CrmBase.QwindowToolbar',{
 					items: [{
 						itemId: 'toggle-android',
 						text: 'Publish to Android',
+						handler: null,
+						checked: false,
+						checkHandler : me.onCheckItemChange,
+						scope: me
+					},{
+						itemId: 'toggle-autorun',
+						text: '<font color="red">Autorun</font>',
 						handler: null,
 						checked: false,
 						checkHandler : me.onCheckItemChange,

@@ -400,6 +400,10 @@ Ext.define('Optima5.Modules.CrmBase.QsqlPanel' ,{
 				var isPublished = actionParam ;
 				me.remoteActionSubmit( me.remoteActionTogglePublish, me, [isPublished]  ) ;
 				break ;
+			case 'toggle_autorun' :
+				var isAutorun = actionParam ;
+				me.remoteActionSubmit( me.remoteActionToggleAutorun, me, [isAutorun]  ) ;
+				break ;
 				
 			case 'run' :
 				me.remoteActionSubmit( me.remoteActionRun, me ) ;
@@ -535,6 +539,33 @@ Ext.define('Optima5.Modules.CrmBase.QsqlPanel' ,{
 				}
 				else {
 					me.optimaModule.postCrmEvent('togglepublishquery',{
+						qType:'qsql',
+						queryId:me.qsql_id
+					}) ;
+				}
+			},
+			scope: me
+		});
+	},
+	remoteActionToggleAutorun: function( isAutorun ) {
+		var me = this ;
+		
+		var ajaxParams = {} ;
+		Ext.apply( ajaxParams, {
+			_action: 'queries_qsqlTransaction',
+			_transaction_id: me.transaction_id ,
+			_subaction: 'toggle_autorun',
+			isAutorun: isAutorun
+		});
+		
+		me.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams ,
+			success: function(response) {
+				if( Ext.decode(response.responseText).success == false ) {
+					Ext.Msg.alert('Failed', 'Failed');
+				}
+				else {
+					me.optimaModule.postCrmEvent('toggleautorunquery',{
 						qType:'qsql',
 						queryId:me.qsql_id
 					}) ;

@@ -29,6 +29,7 @@ Ext.define('Optima5.Modules.CrmBase.CrmBaseModule', {
 			
 			case 'querychange' :
 			case 'togglepublishquery' :
+			case 'toggleautorunquery' :
 				Ext.apply( eventParams, {
 					qType: postParams.qType,
 					queryId: postParams.queryId,

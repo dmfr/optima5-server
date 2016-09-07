@@ -155,8 +155,8 @@ function paracrm_queries_getToolbarData( $post_data )
 		$TAB_qwebs[] = $arr ;
 	}
 	
-	// Qwebs
-	$query = "SELECT qsql_id as qsqlId, qsql_name as text
+	// Qsql
+	$query = "SELECT qsql_id as qsqlId, qsql_name as text, autorun_is_on as autorun
 				FROM qsql" ;
 	$result = $_opDB->query($query) ;
 	$TAB_qsqls = array() ;
@@ -183,6 +183,9 @@ function paracrm_queries_getToolbarData( $post_data )
 		
 		if( in_array($qsql_id,$arr_pub_qsql) ) {
 			$arr['isPublished'] = TRUE ;
+		}
+		if( $arr['autorun']=='O' ) {
+			$arr['isAutorun'] = TRUE ;
 		}
 		$TAB_qsqls[] = $arr ;
 	}

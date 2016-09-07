@@ -59,6 +59,16 @@
 	border-bottom: 2px solid #33B6E5 ;
 }
 
+.op5-crmbase-autorun .x-menu-item-text {
+	border-bottom: 2px solid red ;
+	color: red ;
+	font-weight: bold ;
+}
+.op5-crmbase-autorun .x-btn-inner {
+	color: red ;
+	font-weight: bold ;
+}
+
 
 
 .op5-crmbase-menuitem-boldunderline .x-menu-item-text {

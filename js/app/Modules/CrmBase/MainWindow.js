@@ -12,6 +12,7 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 	],
 	
 	clsForPublished: 'op5-crmbase-published',
+	clsForAutorun:   'op5-crmbase-autorun',
 	
 	initComponent: function() {
 		var me = this,
@@ -119,6 +120,7 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 		switch( crmEvent ) {
 			case 'togglepublishdata' :
 			case 'togglepublishquery' :
+			case 'toggleautorunquery' :
 			case 'definechange' :
 			case 'querychange' :
 				me.syncData() ;
@@ -367,7 +369,7 @@ Ext.define('Optima5.Modules.CrmBase.MainWindow',{
 				isPublished: v.isPublished,
 				text: v.text,
 				icon: 'images/op5img/ico_sql_16.png' ,
-				cls: (v.isPublished == true)? me.clsForPublished:null,
+				cls: ((v.isPublished == true)? me.clsForPublished:null) + ' ' + ((v.isAutorun == true)? me.clsForAutorun:null),
 				handler: function(){
 					me.openQsql( qsqlId, v.authReadOnly ) ;
 				},
