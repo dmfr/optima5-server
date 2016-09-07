@@ -4,7 +4,7 @@ class DatabaseMgr_Sdomain {
 	private $_opDB ;
 	private $domain_id ;
 	
-	private static $dbVersion = 32 ;
+	private static $dbVersion = 33 ;
 	
 	public function __construct( $domain_id ) {
 		$this->_opDB = $GLOBALS['_opDB'] ;
@@ -608,6 +608,7 @@ CREATE TABLE `qsql` (
   `qsql_id` int(11) NOT NULL AUTO_INCREMENT,
   `qsql_name` varchar(100) NOT NULL,
   `sql_querystring` text NOT NULL,
+  `sql_is_rw` varchar(1) NOT NULL,
   PRIMARY KEY (`qsql_id`)
 ) ;
 
@@ -693,7 +694,7 @@ CREATE TABLE `importmap_column` (
 EOF;
 	}
 	
-	private function getSdomainDb( $sdomain_id ) {
+	public function getSdomainDb( $sdomain_id ) {
 		return DatabaseMgr_Base::getBaseDb( $this->domain_id ).'_'.strtolower($sdomain_id) ;
 	}
 	
