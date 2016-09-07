@@ -58,7 +58,7 @@ function specDbsTracy_report_qsql( $qsql_id ) {
 	$qsql_name = preg_replace("/[^a-zA-Z0-9]/", "", $arr['qsql_name']) ;
 	$sql_querystring = $arr['sql_querystring'] ;
 	
-	$TAB = paracrm_queries_qsql_lib_exec($sql_querystring) ;
+	$TAB = paracrm_queries_qsql_lib_exec($sql_querystring,$is_rw=FALSE,$auth_bypass=TRUE) ;
 	
 	$objPHPExcel = paracrm_queries_xls_build( $TAB, NULL ) ;
 	if( !$objPHPExcel ) {
