@@ -254,14 +254,14 @@ function paracrm_queries_qsqlTransaction_resGet( $post_data )
 }
 
 
-function paracrm_queries_qsql_lib_getSdomains() {
+function paracrm_queries_qsql_lib_getSdomains($auth_bypass=FALSE) {
 	global $_opDB ;
 	
 	$arr_sdomains = array() ;
 	
 	$t = new DatabaseMgr_Sdomain( DatabaseMgr_Base::dbCurrent_getDomainId() );
 	foreach( $t->sdomains_getAll() as $sdomain_id ) {
-		if( !Auth_Manager::getInstance()->auth_query_sdomain_admin($sdomain_id) ) {
+		if( !$auth_bypass && !Auth_Manager::getInstance()->auth_query_sdomain_admin($sdomain_id) ) {
 			continue ;
 		}
 		$arr_sdomains[] = array(
@@ -308,7 +308,7 @@ function paracrm_queries_qsql_lib_getTables() {
 	return $arr_views ;
 }
 
-function paracrm_queries_qsql_lib_exec($querystring, $is_rw=FALSE) {
+function paracrm_queries_qsql_lib_exec($querystring, $is_rw=FALSE, $auth_bypass=FALSE) {
 	global $_opDB ;
 	
 	
@@ -335,9 +335,9 @@ function paracrm_queries_qsql_lib_exec($querystring, $is_rw=FALSE) {
 	$query = "GRANT ALL PRIVILEGES ON {$mysql_tmp_user}.* To '{$mysql_tmp_user}'@'localhost' IDENTIFIED BY '{$mysql_tmp_user}';" ;
 	$_opDB->query($query) ;
 	
-	foreach( paracrm_queries_qsql_lib_getSdomains() as $row_sdomain ) {
+	foreach( paracrm_queries_qsql_lib_getSdomains($auth_bypass) as $row_sdomain ) {
 		$current_database = $row_sdomain['database_name'] ;
-		if( $is_rw ) {
+		if( $is_rw && !$auth_bypass ) {
 			$privileges = 'SELECT,UPDATE,INSERT,DELETE' ;
 		} else {
 			$privileges = 'SELECT' ;
