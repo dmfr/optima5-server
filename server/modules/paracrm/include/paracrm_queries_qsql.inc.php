@@ -117,6 +117,7 @@ function paracrm_queries_qsqlTransaction_init( $post_data , &$arr_saisie ) {
 		$arr_saisie['qsql_id'] = $arr['qsql_id'] ;
 		$arr_saisie['qsql_name'] = $arr['qsql_name'] ;
 		$arr_saisie['sql_querystring'] = $arr['sql_querystring'] ;
+		$arr_saisie['sql_is_rw'] = ($arr['sql_is_rw']=='O') ;
 	}
 	else
 	{
@@ -132,7 +133,10 @@ function paracrm_queries_qsqlTransaction_init( $post_data , &$arr_saisie ) {
 			'qsql_id' => $arr_saisie['qsql_id'],
 			'qsql_name' => $arr_saisie['qsql_name'],
 			'data_sqlquerystring' => $arr_saisie['sql_querystring'],
-			'db_schema' => paracrm_queries_qsql_lib_getTables()
+			'data_sqlwrite' => $arr_saisie['sql_is_rw'],
+			'auth_readonly' => false,
+			'db_schema' => paracrm_queries_qsql_lib_getTables(),
+			'db_sdomains' => paracrm_queries_qsql_lib_getSdomains()
 		)
 	) ;
 }
@@ -140,7 +144,8 @@ function paracrm_queries_qsqlTransaction_submit( $post_data , &$arr_saisie )
 {
 	global $_opDB ;
 	
-	$arr_saisie['sql_querystring'] = json_decode($post_data['data_sqlquerystring'],true) ; 
+	$arr_saisie['sql_querystring'] = json_decode($post_data['data_sqlquerystring'],true) ;
+	$arr_saisie['sql_is_rw'] = json_decode($post_data['data_sqlwrite'],true) ; 
 
 	return array('success'=>true) ;
 }
@@ -166,6 +171,7 @@ function paracrm_queries_qsqlTransaction_save( $post_data , &$arr_saisie )
 		$arr_cond['qsql_id'] = $arr_saisie['qsql_id'] ;
 		$arr_update = array() ;
 		$arr_update['sql_querystring'] = $arr_saisie['sql_querystring'] ;
+		$arr_update['sql_is_rw'] = ($arr_saisie['sql_is_rw']?'O':'') ;
 		$_opDB->update('qsql',$arr_update,$arr_cond) ;
 		return array('success'=>true,'qsql_id'=>$arr_saisie['qsql_id']) ;
 	}
@@ -182,6 +188,7 @@ function paracrm_queries_qsqlTransaction_save( $post_data , &$arr_saisie )
 		$arr_cond['qsql_id'] = $arr_saisie['qsql_id'] ;
 		$arr_update = array() ;
 		$arr_update['sql_querystring'] = $arr_saisie['sql_querystring'] ;
+		$arr_update['sql_is_rw'] = ($arr_saisie['sql_is_rw']?'O':'') ;
 		$_opDB->update('qsql',$arr_update,$arr_cond) ;
 		return array('success'=>true,'qsql_id'=>$arr_saisie['qsql_id']) ;
 	}
@@ -224,7 +231,7 @@ function paracrm_queries_qsqlTransaction_togglePublish( $post_data , &$arr_saisi
 
 
 function paracrm_queries_qsqlTransaction_runQuery($post_data, &$arr_saisie ) {
-	$RES = paracrm_queries_qsql_lib_exec($arr_saisie['sql_querystring']) ;
+	$RES = paracrm_queries_qsql_lib_exec($arr_saisie['sql_querystring'],$arr_saisie['sql_is_rw']) ;
 	if( $RES===FALSE )
 		return array('success'=>false,'query_status'=>'NOK') ;
 		
@@ -247,27 +254,47 @@ function paracrm_queries_qsqlTransaction_resGet( $post_data )
 }
 
 
+function paracrm_queries_qsql_lib_getSdomains() {
+	global $_opDB ;
+	
+	$arr_sdomains = array() ;
+	
+	$t = new DatabaseMgr_Sdomain( DatabaseMgr_Base::dbCurrent_getDomainId() );
+	foreach( $t->sdomains_getAll() as $sdomain_id ) {
+		if( !Auth_Manager::getInstance()->auth_query_sdomain_admin($sdomain_id) ) {
+			continue ;
+		}
+		$arr_sdomains[] = array(
+			'sdomain_id' => $sdomain_id,
+			'database_name' => $t->getSdomainDb( $sdomain_id )
+		) ;
+	}
+	
+	return $arr_sdomains ;
+}
 function paracrm_queries_qsql_lib_getTables() {
 	global $_opDB ;
 	
 	$arr_views = array() ;
 	
-	// use database
-	$current_database = $_opDB->query_uniqueValue("SELECT DATABASE()") ;
-	
-	// use define routines
-	$query = "SHOW TABLES LIKE 'view\_%'" ;
-	$result = $_opDB->query($query) ;
-	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
-		$arr_views[] = array(
-			'database_name' => $current_database,
-			'view_name' => $arr[0],
-			'view_fields' => array()
-		);
+	foreach( paracrm_queries_qsql_lib_getSdomains() as $sdomain ) {
+		// use database
+		$current_database = $sdomain['database_name'] ;
+		
+		// use define routines
+		$query = "SHOW TABLES FROM {$current_database} LIKE 'view\_%' " ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$arr_views[] = array(
+				'database_name' => $current_database,
+				'view_name' => $arr[0],
+				'view_fields' => array()
+			);
+		}
 	}
 	
 	foreach( $arr_views as &$view ) {
-		$query = "SHOW COLUMNS FROM {$view['view_name']}" ;
+		$query = "SHOW COLUMNS FROM {$view['database_name']}.{$view['view_name']}" ;
 		$result = $_opDB->query($query) ;
 		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 			$view['view_fields'][] = array(
@@ -281,7 +308,7 @@ function paracrm_queries_qsql_lib_getTables() {
 	return $arr_views ;
 }
 
-function paracrm_queries_qsql_lib_exec($querystring) {
+function paracrm_queries_qsql_lib_exec($querystring, $is_rw=FALSE) {
 	global $_opDB ;
 	
 	
@@ -307,9 +334,17 @@ function paracrm_queries_qsql_lib_exec($querystring) {
 	
 	$query = "GRANT ALL PRIVILEGES ON {$mysql_tmp_user}.* To '{$mysql_tmp_user}'@'localhost' IDENTIFIED BY '{$mysql_tmp_user}';" ;
 	$_opDB->query($query) ;
-	$current_database = $_opDB->query_uniqueValue("SELECT DATABASE()") ;
-	$query = "GRANT SELECT ON {$current_database}.* To '{$mysql_tmp_user}'@'localhost'" ;
-	$_opDB->query($query) ;
+	
+	foreach( paracrm_queries_qsql_lib_getSdomains() as $row_sdomain ) {
+		$current_database = $row_sdomain['database_name'] ;
+		if( $is_rw ) {
+			$privileges = 'SELECT,UPDATE,INSERT,DELETE' ;
+		} else {
+			$privileges = 'SELECT' ;
+		}
+		$query = "GRANT {$privileges} ON {$current_database}.* To '{$mysql_tmp_user}'@'localhost'" ;
+		$_opDB->query($query) ;
+	}
 	
 	$query = "UNLOCK TABLES" ;
 	$_opDB->query($query) ;

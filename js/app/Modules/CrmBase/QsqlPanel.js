@@ -97,6 +97,7 @@ Ext.define('Optima5.Modules.CrmBase.QsqlPanel' ,{
 	
 	addComponents: function( transactionId, ajaxData ){
 		var me = this ;
+			me.cfgAjaxData = ajaxData ;
 		
 		me.removeAll();
 		
@@ -107,52 +108,103 @@ Ext.define('Optima5.Modules.CrmBase.QsqlPanel' ,{
 			me.qsql_name =  ajaxData.qsql_name ;
 		}
 		
-		
-		
-		
-		// Build tree store
-		var rootViews = [] ;
-		Ext.Array.each( ajaxData.db_schema, function(viewRow) {
-			var viewFields = [] ;
-			Ext.Array.each( viewRow.view_fields, function(viewField) {
-				viewFields.push({
-					id: viewRow.view_name + '::' + viewField.field_name,
-					text: viewField.field_name,
-					sql_database: viewRow.database_name,
-					sql_view: viewRow.view_name,
-					sql_field: viewField.field_name,
-					sql_field_type: viewField.field_type,
-					leaf: true
-				});
-			});
-			rootViews.push({
-				id: viewRow.view_name,
-				text: '<b>'+viewRow.view_name+'</b>',
-				sql_database: viewRow.database_name,
-				sql_view: viewRow.view_name,
-				children: viewFields,
-				expanded: false,
-				expandable: true
-			});
+		var sdomainsChidren = [] ;
+		Ext.Array.each( ajaxData.db_sdomains, function( sdomainRow ) {
+			sdomainsChidren.push({
+				leaf: true,
+				checked: false,
+				id: sdomainRow.sdomain_id,
+				text: sdomainRow.sdomain_id
+			}) ;
 		}) ;
-		var rootData = {
-			root: true,
-			children: rootViews,
-			expanded: true
-		} ;
-		
 		
 		var treeCfg = {} ;
 		Ext.apply( treeCfg, {
+			itemId: 'tViews',
 			xtype: 'treepanel',
 			title: 'Available views',
 			flex: 1,
 			useArrows: true,
 			rootVisible: false,
+			dockedItems: [{
+				xtype: 'toolbar',
+				dock: 'top',
+				items: [{
+					itemId: 'btnSdomain',
+					xtype: 'button',
+					disabled: false,
+					icon: 'images/op5img/ico_blocs_small.gif',
+					text: '<b>Available Sdomains</b>',
+					menu: {
+						xtype: 'menu',
+						items: [{
+							itemId: 'tDomains',
+							xtype: 'treepanel',
+							width:250,
+							height:300,
+							store: {
+								fields: ['id','text'],
+								root: {
+									root: true,
+									id: '',
+									text: '<b>Available Sdomains</b>',
+									expanded: true,
+									children: sdomainsChidren
+								},
+								proxy: {
+									type: 'memory' ,
+									reader: {
+										type: 'json'
+									}
+								}
+							},
+							displayField: 'text',
+							rootVisible: true,
+							useArrows: true,
+							listeners: {
+								checkchange: {
+									fn: function(rec,check) {
+										var doFireCheckchange = false ;
+										if( !check ) {
+											this.getRootNode().cascadeBy(function(chrec){
+												if( chrec==rec ) {
+													chrec.set('checked',true) ;
+												}
+											},this);
+										} else {
+											this.getRootNode().cascadeBy(function(chrec){
+												if( chrec != rec ) {
+													chrec.set('checked',false) ;
+												}
+											},this);
+											doFireCheckchange = true ;
+										}
+										if( rec == this.getRootNode() ) {
+											this.value = null ;
+										} else {
+											this.value = rec.getId() ;
+										}
+										
+										if( doFireCheckchange ) {
+											this.fireEvent('change',this.value) ;
+										}
+									}
+								},
+								change: {
+									fn: function(selectedValue) {
+										this.filterTreeviewDatabase( selectedValue ) ;
+									},
+									scope: this
+								}
+							}
+						}]
+					}
+				}]
+			}],
 			store: {
 				model: 'QsqlDescModel',
 				nodeParam: 'id',
-				root: rootData
+				root: {children:[]}
 			},
 			columns: [{
 				xtype: 'treecolumn', //this is so we know which column will show the tree
@@ -185,6 +237,19 @@ Ext.define('Optima5.Modules.CrmBase.QsqlPanel' ,{
 			title: 'SQL Query string',
 			xtype:'form',
 			layout: 'fit',
+			dockedItems: [{
+				xtype: 'form',
+				dock: 'top',
+				bodyCls: 'ux-noframe-bg',
+				bodyPadding: '2px 8px',
+				items: [{
+					itemId: 'fIsRw',
+					xtype: 'checkbox',
+					boxLabel: 'Read / write',
+					value: ajaxData.data_sqlwrite,
+					readOnly: ajaxData.auth_readonly
+				}]
+			}],
 			items: [{
 				itemId: 'fQuerystring',
 				xtype: 'textareafield',
@@ -192,6 +257,7 @@ Ext.define('Optima5.Modules.CrmBase.QsqlPanel' ,{
 				grow: true,
 				name: 'message',
 				value: ajaxData.data_sqlquerystring,
+				readOnly: ajaxData.auth_readonly,
 				anchor: '100%',
 				listeners: {
 					change: function() {
@@ -207,6 +273,9 @@ Ext.define('Optima5.Modules.CrmBase.QsqlPanel' ,{
 			me.loadMask.hide() ;
 		}
 		me.setDirty(false);
+		
+		// current Sdomain
+		me.filterTreeviewDatabase( this.optimaModule.getSdomainRecord().get('sdomain_id') ) ;
 	},
 	addComponentsOnRenderTextarea: function(field) {
 		var me = this ;
@@ -232,6 +301,60 @@ Ext.define('Optima5.Modules.CrmBase.QsqlPanel' ,{
 				me.jsInsertTextAtCursor( field.bodyEl.down('textarea').dom, toInsert ) ;
 			}
 		});
+	},
+	
+	filterTreeviewDatabase: function(sdomainId, doLock) {
+		// ajaxData
+		var ajaxData = this.cfgAjaxData ;
+		
+		var sqlDatabase = null ;
+		Ext.Array.each( ajaxData.db_sdomains, function( sdomainRow ) {
+			if( sdomainRow.sdomain_id == sdomainId ) {
+				sqlDatabase = sdomainRow.database_name ;
+				return ;
+			}
+		},this) ;
+		
+		// Build tree store
+		var rootViews = [] ;
+		Ext.Array.each( ajaxData.db_schema, function(viewRow) {
+			if( viewRow.database_name != sqlDatabase ) {
+				return ;
+			}
+			var viewFields = [] ;
+			Ext.Array.each( viewRow.view_fields, function(viewField) {
+				viewFields.push({
+					id: viewRow.view_name + '::' + viewField.field_name,
+					text: viewField.field_name,
+					sql_database: viewRow.database_name,
+					sql_view: viewRow.view_name,
+					sql_field: viewField.field_name,
+					sql_field_type: viewField.field_type,
+					leaf: true
+				});
+			});
+			rootViews.push({
+				id: viewRow.view_name,
+				text: '<b>'+viewRow.view_name+'</b>',
+				sql_database: viewRow.database_name,
+				sql_view: viewRow.view_name,
+				children: viewFields,
+				expanded: false,
+				expandable: true
+			});
+		}) ;
+		var rootData = {
+			root: true,
+			children: rootViews,
+			expanded: true
+		} ;
+		
+		this.down('#tViews').getStore().setRootNode(rootData) ;
+		
+		this.down('toolbar').down('#btnSdomain').setText( '<b>'+sdomainId+'</b>' ) ;
+		if( doLock ) {
+			this.down('toolbar').down('#btnSdomain').setDisabled() ;
+		}
 	},
 	
 	jsInsertTextAtCursor: function(el, text) {
@@ -299,7 +422,8 @@ Ext.define('Optima5.Modules.CrmBase.QsqlPanel' ,{
 			_transaction_id: me.transaction_id ,
 			_subaction: 'submit',
 					  
-			data_sqlquerystring: Ext.JSON.encode(me.down('form').down('#fQuerystring').getValue())
+			data_sqlquerystring: Ext.JSON.encode(me.down('#fQuerystring').getValue()),
+			data_sqlwrite: ( me.down('#fIsRw').getValue() ? 1 : 0 )
 		});
 		
 		me.optimaModule.getConfiguredAjaxConnection().request({
