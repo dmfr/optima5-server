@@ -21,11 +21,6 @@ $_opDB->query("SET NAMES UTF8") ;
 include("$server_root/modules/spec_bp_sales/backend_spec_bp_sales.inc.php");
 
 
-include('BP_SALES_invMaileva_mailFactory.inc.php') ;
-include('BP_SALES_invEurofactor_mailFactory.inc.php') ;
-
-
-
 // *********** Get CONSTANTES *******************
 $GLOBALS['factor_ref'] = date('ymdHis') ;
 
@@ -71,7 +66,7 @@ foreach( explode(',',$field_params) as $param ) {
 }
 // *******************************************
 if( $GLOBALS['__OPTIMA_TEST'] ) {
-	$GLOBALS['maileva_URL'] = 'https://webservices.recette.maileva.com/java/public/connector/ConnectorWebService?wsdl' ;
+	$GLOBALS['maileva_URL'] = '' ;
 	$GLOBALS['maileva_USER'] = 'testclient' ;
 	$GLOBALS['maileva_PASS'] = 'testclient' ;
 }
@@ -105,43 +100,11 @@ if( !$map_factorRef_invFilerecordIds ) {
 
 foreach( $map_factorRef_invFilerecordIds as $factor_SEND_REF => $arr_invFilerecordIds ) {
 	foreach( $arr_invFilerecordIds as $inv_filerecord_id ) {
-		$xml = xml_getContents($inv_filerecord_id, $track_email=$field_sendto) ;
-		//echo $xml ;
-		
-		$url = $GLOBALS['maileva_URL'] ;
-		$params = array(
-			'soap_version'   => SOAP_1_1,
-			'trace' => false,
-			'login' => $GLOBALS['maileva_USER'],
-			'password' => $GLOBALS['maileva_PASS']
-		) ;
-		$client = new SoapClient($url,$params);
-		
-		$track_id = NULL ;
-		try {
-			$args = new SoapVar($xml, XSD_ANYXML);    
-			
-			$res  = $client->__soapCall('submit', array($args));
-			
-			if( $res ) {
-				$track_id = $res->return ;
-				//var_dump($track_id) ;
-			}
-			echo $inv_filerecord_id.':'.$track_id."\n" ;
-		} catch( Exception $e ) {
-			echo "Exception ".$e ;
-			echo "\n\n" ;
-		}
-		
-		//file_put_contents('/var/log/apache2/maileva.xml',$client->__getLastRequest()) ;
-		
-		//die() ;
-		
-		if( $track_id ) {
+		if( TRUE ) {
 			$arr_ins = array() ;
 			$arr_ins['field_PEER_CODE'] = $GLOBALS['_cfg_peer_code'] ;
 			$arr_ins['field_SEND_IS_OK'] = 1 ;
-			$arr_ins['field_SEND_REF'] = $track_id ;
+			$arr_ins['field_SEND_REF'] = 'DUMMY' ;
 			$arr_ins['field_SEND_DATE'] = date('Y-m-d H:i:s') ;
 			paracrm_lib_data_insertRecord_file( 'INV_PEER' , $inv_filerecord_id , $arr_ins ) ;
 		}
