@@ -1,6 +1,7 @@
 <?php
 
 function xmlUtil_parseAdr( $adr_string ) {
+	$adr_string = trim($adr_string) ;
 	$pxml = '' ;
 	
 	$adr_array = array() ;
@@ -41,7 +42,13 @@ function xml_getContents( $inv_filerecord_id, $track_email ) {
 		return NULL ;
 	}
 	
-	$adr_string = $arr['field_ADR_INVOICE'] ;
+	if( trim($arr['field_ADR_SENDTO']) ) {
+		$adr_string = $arr['field_ADR_SENDTO'] ;
+	} elseif( trim($arr['field_ADR_INVOICE']) ) {
+		$adr_string = $arr['field_ADR_INVOICE'] ;
+	} else {
+		$adr_string = $arr['field_ADR_SHIP'] ;
+	}
 	
 	$json = specBpSales_inv_printDoc( array('inv_filerecord_id'=>$inv_filerecord_id) ) ;
 	if( !$json['success'] ) {
