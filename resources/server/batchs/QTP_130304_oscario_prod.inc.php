@@ -120,6 +120,42 @@ function update_CLILOG_from_salesDb( $db_name ) {
 			$_opDB->update('view_bible_CLI_LOG_entry',$arr_insert,$arr_cond) ;
 		}
 	}
+	
+	
+	$query = "select cde.filerecord_id, cli.field_FORCE_PFF, s1.field_STORELINK, cde.field_CLI_LINK, s1.entry_key
+from  `op5_bluephoenix_prod_fdv`.`view_file_CDE_LOG` cde 
+ join  `op5_bluephoenix_prod_fdv`.`view_bible_CLI_LOG_entry` cli ON cli.entry_key = cde.field_CLI_LINK
+left outer join  `op5_bluephoenix_prod_fdv`.`view_bible_STORE_entry` s1 ON s1.entry_key = cli.field_RACX_ID" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$cde_filerecordId = $arr[0] ;
+		$force_PFF = $arr[1] ;
+		$cli_PFF = $arr[2] ;
+		$cli_link = $arr[3] ;
+		$store_entryKey = $arr[4] ;
+		
+		$PFF = NULL ;
+		if( $force_PFF ) {
+			$PFF = $force_PFF ;
+		} elseif( $cli_PFF ) {
+			$PFF = $cli_PFF ;
+		}
+		
+		$PFF = preg_replace("/[^a-zA-Z0-9]/", "", $PFF) ;
+		
+		if( $PFF ) {
+			$json_PFF = json_encode(array($PFF)) ;
+			$query = "UPDATE view_bible_CLI_LOG_entry set field_LINK_PFF='{$json_PFF}' WHERE entry_key='{$cli_link}'" ;
+			$_opDB->query($query) ;
+			
+			$query = "UPDATE view_file_CDE_LOG set field_LINK_PFF='{$PFF}' WHERE filerecord_id='{$cde_filerecordId}'" ;
+			$_opDB->query($query) ;
+		}
+		if( $store_entryKey ) {
+			$query = "UPDATE view_file_CDE_LOG set field_LINK_STORE='{$store_entryKey}' WHERE filerecord_id='{$cde_filerecordId}'" ;
+			$_opDB->query($query) ;
+		}
+	}
 }
 
 
@@ -244,7 +280,7 @@ function update_CLILOG_from_oscario_cli( $TAB ) {
 		
 		$arr_insert = array() ;
 		$arr_insert['entry_key'] = $arr['cli_EAN'] ;
-		$arr_insert['treenode_key'] = $arr['cligroup_code'] ;
+		//$arr_insert['treenode_key'] = $arr['cligroup_code'] ;
 		$arr_insert['field_CLI_ID'] = ($arr['cli_FACTOR_ID']?$arr['cli_EAN']:$arr['cli_EAN']) ;
 		$arr_insert['field_CLI_TXT'] = $arr['cli_lib'] ;
 		if( in_array($cli_EAN,$arr_crm_cli) ) {
@@ -254,6 +290,9 @@ function update_CLILOG_from_oscario_cli( $TAB ) {
 		} else {
 			$_opDB->insert('view_bible_CLI_LOG_entry',$arr_insert) ;
 		}
+		
+		$query = "UPDATE view_bible_CLI_LOG_entry SET treenode_key='{$arr['cligroup_code']}' WHERE entry_key='{$arr['cli_EAN']}' AND treenode_key=''" ;
+		$_opDB->query($query) ;
 	}
 
 	$query = "UNLOCK TABLES" ;

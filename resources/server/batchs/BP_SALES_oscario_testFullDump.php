@@ -476,6 +476,9 @@ while( !feof($handle) ) {
 		$treenode_key = $arrDB['treenode_key'] ;
 		$arr_existing_treenodes[$treenode_key] = TRUE ;
 		
+		// 14/09/16 : pas d'écrasement ADR facturation
+		unset($arr_ins['field_ADR_INVOICE_str']) ;
+		
 		$arr_cond = array();
 		$arr_cond['entry_key'] = $entry_key ;
 		unset($arr_ins['treenode_key']) ;
