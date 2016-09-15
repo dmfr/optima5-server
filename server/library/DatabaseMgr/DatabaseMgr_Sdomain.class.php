@@ -1086,7 +1086,11 @@ EOF;
 			'sync_timestamp' => 'int(11)',
 			'dsc_is_locked' => 'varchar(1)'
 		) ;
-		$arr_model_keys = array('PRIMARY'=>array('arr_columns'=>array('filerecord_id'))) ;
+		$arr_model_keys = array(
+			'PRIMARY'=>array('arr_columns'=>array('filerecord_id')),
+			'filerecord_parent_id' => array('non_unique'=>'1','arr_columns'=>array('filerecord_parent_id')),
+			'sync_vuid' => array('non_unique'=>'1','arr_columns'=>array('sync_vuid'))
+		) ;
 		$arrAssoc_crmField_dbField = array() ;
 		foreach( $arr_gmap_define as $gmap_field ) {
 			$gmap_field = 'gmap_'.$gmap_field ;
