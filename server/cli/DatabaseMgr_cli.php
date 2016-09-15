@@ -244,7 +244,7 @@ function action_domainmigrate1607( $domain_id ) {
 			$query = "DELETE FROM {$sdomain_db}.store_file WHERE file_code='{$file_code}'" ;
 			$_opDB->query($query) ;
 			
-			$query = "SELECT max(filerecord_id) FROM {$sdomain_db}.{$db_table} WHERE file_code='{$file_code}'" ;
+			$query = "SELECT max(filerecord_id) FROM {$sdomain_db}.{$db_table}" ;
 			$max_id = $_opDB->query_uniqueValue($query) ;
 			$max_id++ ;
 			$query = "ALTER TABLE {$sdomain_db}.{$db_table} AUTO_INCREMENT = {$max_id}" ;
