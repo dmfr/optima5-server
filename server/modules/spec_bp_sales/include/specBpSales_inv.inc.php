@@ -281,7 +281,7 @@ function specBpSales_inv_queryCustomer( $post_data ) {
 	$customer_entry = paracrm_lib_data_getRecord_bibleEntry('CUSTOMER',$post_data['cli_link']) ;
 	$customer_treenode = paracrm_lib_data_getRecord_bibleTreenode('CUSTOMER',$customer_entry['treenode_key'],$ascend_on_empty=TRUE) ;
 	
-	$arr_ins['adr_sendto'] = '' ;
+	$arr_ins['adr_sendto'] = $customer_entry['field_ADR_SENDTO'] ;
 	$arr_ins['adr_invoice'] = $customer_entry['field_ADR_INVOICE'] ;
 	$arr_ins['adr_ship'] = $customer_entry['field_ADR_SHIP'] ;
 	$arr_ins['pay_bank'] = $customer_treenode['field_ATR_PAYBANK'] ;
