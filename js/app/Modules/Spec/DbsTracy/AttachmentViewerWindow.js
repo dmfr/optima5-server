@@ -101,6 +101,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.AttachmentViewerWindow',{
 				name:'filerecord_id'
 			},{
 				xtype:'hiddenfield',
+				name:'media_id'
+			},{
+				xtype:'hiddenfield',
 				name:'tmp_id'
 			},{
 				xtype: 'datefield',
@@ -147,6 +150,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.AttachmentViewerWindow',{
 							var ajaxData = Ext.JSON.decode(action.response.responseText).data ;
 							form.findField('tmp_id').setValue(null) ;
 							form.findField('filerecord_id').setValue(ajaxData.filerecord_id) ;
+							form.findField('media_id').setValue(ajaxData.media_id) ;
 							
 							this.fireEvent('submitok') ;
 						},
@@ -195,9 +199,6 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.AttachmentViewerWindow',{
 			},this,{single:true});
 		}
 		
-		// Set window
-		this.loadMedia(filerecordId) ;
-		
 		// Load form
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
@@ -213,6 +214,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.AttachmentViewerWindow',{
 					var values = ajaxObj.data,
 						form = this.floatForm.getForm() ;
 					form.setValues( values ) ;
+					this.loadMedia( values.media_id ) ;
 				}
 			},
 			scope: this
@@ -341,7 +343,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.AttachmentViewerWindow',{
 		var me = this ;
 		var getParams = me.optimaModule.getConfiguredAjaxParams() ;
 		Ext.apply( getParams, {
-			media_id: this.floatForm.getForm().getValues(false,false,false,true).filerecord_id,
+			media_id: this.floatForm.getForm().getValues(false,false,false,true).media_id,
 			thumb:'',
 			download:true
 		});

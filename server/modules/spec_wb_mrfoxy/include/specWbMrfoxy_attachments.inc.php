@@ -33,6 +33,8 @@ function specWbMrfoxy_attachments_getList( $post_data ) {
 	$TAB = array() ;
 	foreach( $paracrm_TAB as $paracrm_row ) {
 		$TAB[] = array(
+			'media_id'=> media_img_toolFile_getId('WORK_ATTACH',$paracrm_row['WORK_ATTACH_id']),
+			'file_code'=> 'WORK_ATTACH',
 			'filerecord_id'=> $paracrm_row['WORK_ATTACH_id'],
 			'country_code' => $paracrm_row['WORK_ATTACH_field_COUNTRY'],
 			'doc_date' => date('Y-m-d',strtotime($paracrm_row['WORK_ATTACH_field_DATE'])),
@@ -77,7 +79,7 @@ function specWbMrfoxy_attachments_setAttachment($post_data) {
 		$img_filerecordId = paracrm_lib_data_insertRecord_file( 'WORK_ATTACH', 0, $newrecord ) ;
 		
 		media_contextOpen( $_POST['_sdomainId'] ) ;
-		media_img_move( $form_data['tmp_id'] , $img_filerecordId ) ;
+		media_img_move( $form_data['tmp_id'] , media_img_toolFile_getId('WORK_ATTACH',$img_filerecordId) ) ;
 		media_contextClose() ;
 	} else {
 		return array('success'=>false) ;
@@ -89,7 +91,7 @@ function specWbMrfoxy_attachments_delete($post_data) {
 	$attach_filerecordId = $post_data['filerecord_id'] ;
 	
 	media_contextOpen( $_POST['_sdomainId'] ) ;
-	media_img_delete( $attach_filerecordId ) ;
+	media_img_delete( media_img_toolFile_getId('WORK_ATTACH',$attach_filerecordId) ) ;
 	media_contextClose() ;
 	
 	if( is_numeric($attach_filerecordId) ) {
@@ -118,7 +120,7 @@ function specWbMrfoxy_attachments_reject($post_data) {
 		$attachment_row = $ttmp['data'][0] ;
 		
 		media_contextOpen( $_POST['_sdomainId'] ) ;
-		$invoice_jpg_binary = media_img_getBinary( $attach_filerecordId ) ;
+		$invoice_jpg_binary = media_img_getBinary( media_img_toolFile_getId('WORK_ATTACH',$attach_filerecordId) ) ;
 		media_contextClose() ;
 		
 		specWbMrfoxy_attachments_lib_sendInvoiceEmail( $attachment_row, NULL, $invoice_jpg_binary ) ;

@@ -613,20 +613,6 @@ CREATE TABLE `qsql` (
   PRIMARY KEY (`qsql_id`)
 ) ;
 
-CREATE TABLE `store_file` (
-  `filerecord_id` int(11) NOT NULL AUTO_INCREMENT,
-  `filerecord_parent_id` int(11) NOT NULL,
-  `file_code` varchar(50) NOT NULL,
-  `sync_vuid` varchar(100) NOT NULL,
-  `sync_is_deleted` varchar(1) NOT NULL,
-  `sync_timestamp` int(11) NOT NULL,
-  `dsc_is_locked` varchar(1) NOT NULL,
-  PRIMARY KEY (`filerecord_id`),
-  KEY `filerecord_parent_id` (`filerecord_parent_id`),
-  KEY `file_code` (`file_code`),
-  KEY `sync_vuid` (`sync_vuid`)
-) ;
-
 CREATE TABLE `q_cfgchart` (
   `q_type` varchar(20) NOT NULL,
   `q_id` int(11) NOT NULL,
@@ -805,8 +791,6 @@ EOF;
 			$query = "TRUNCATE TABLE {$sdomain_db}.store_file_{$file_code}" ;
 			$_opDB->query($query) ;
 		}
-		$query = "TRUNCATE TABLE {$sdomain_db}.store_file" ;
-		$_opDB->query($query) ;
 	}
 	
 	public function sdomainDb_clone( $src_sdomain_id, $dst_sdomain_id ) {
@@ -854,8 +838,9 @@ EOF;
 		$result = $_opDB->query($query) ;
 		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 			$file_code = $arr[0] ;
-			$this->sdomainDefine_buildFile( $sdomain_id , $file_code ) ;
+			$this->sdomainDefine_buildFilePrivate( $sdomain_id , $file_code ) ;
 		}
+		$this->sdomainDefine_buildFilesVuid( $sdomain_id ) ;
 	}
 	public function sdomainDefine_buildBible( $sdomain_id , $bible_code ) {
 		$_opDB = $this->_opDB ;
@@ -1046,6 +1031,11 @@ EOF;
 		return array($db_table , $arrAssoc_dbField_fieldType , $arr_model_keys, $arrAssoc_crmField_dbField) ;
 	}
 	public function sdomainDefine_buildFile( $sdomain_id , $file_code ) {
+		$return = $this->sdomainDefine_buildFilePrivate( $sdomain_id , $file_code ) ;
+		$this->sdomainDefine_buildFilesVuid( $sdomain_id ) ;
+		return $return ;
+	}
+	private function sdomainDefine_buildFilePrivate( $sdomain_id , $file_code ) {
 		$_opDB = $this->_opDB ;
 		$sdomain_db = $this->getSdomainDb( $sdomain_id ) ;
 	
@@ -1088,7 +1078,14 @@ EOF;
 		
 		
 		$db_table = 'store_file_'.$file_code ;
-		$arrAssoc_dbField_fieldType = array('filerecord_id'=>'int(11)') ;
+		$arrAssoc_dbField_fieldType = array(
+			'filerecord_id'=>'int(11)',
+			'filerecord_parent_id' => 'int(11)',
+			'sync_vuid' => 'varchar(100)',
+			'sync_is_deleted' => 'varchar(1)',
+			'sync_timestamp' => 'int(11)',
+			'dsc_is_locked' => 'varchar(1)'
+		) ;
 		$arr_model_keys = array('PRIMARY'=>array('arr_columns'=>array('filerecord_id'))) ;
 		$arrAssoc_crmField_dbField = array() ;
 		foreach( $arr_gmap_define as $gmap_field ) {
@@ -1172,12 +1169,14 @@ EOF;
 		}
 		
 		DatabaseMgr_Util::syncTableStructure( $sdomain_db , $db_table , $arrAssoc_dbField_fieldType , $arr_model_keys ) ;
+		$query = "ALTER TABLE {$sdomain_db}.{$db_table} MODIFY filerecord_id int(11) NOT NULL AUTO_INCREMENT" ;
+		$_opDB->query($query) ;
 		
 		$view_name = 'view_file_'.$file_code ;
 		$query = "DROP VIEW IF EXISTS {$sdomain_db}.{$view_name}" ;
 		$_opDB->query($query) ;
 		
-		$query = "CREATE ALGORITHM=MERGE VIEW {$sdomain_db}.{$view_name} AS SELECT data.filerecord_id, mstr.filerecord_parent_id, mstr.dsc_is_locked" ;
+		$query = "CREATE ALGORITHM=MERGE VIEW {$sdomain_db}.{$view_name} AS SELECT data.filerecord_id, data.filerecord_parent_id, data.dsc_is_locked" ;
 		foreach( $arrAssoc_crmField_dbField as $field_crm => $field_name ) {
 			if( $field_name == 'filerecord_id' ) {
 				continue ;
@@ -1190,14 +1189,38 @@ EOF;
 			$query.= ",data.{$field_name} AS {$field_crm}" ;
 		}
 		$query.= " FROM {$sdomain_db}.{$db_table} data" ;
-		$query.= " LEFT JOIN {$sdomain_db}.store_file mstr ON data.filerecord_id = mstr.filerecord_id AND mstr.sync_is_deleted<>'O'" ;
+		$query.= " WHERE data.sync_is_deleted<>'O'" ;
 		$query.= " " ;
 		$_opDB->query($query) ;
 		
-		$query = "DELETE FROM {$sdomain_db}.{$db_table} WHERE filerecord_id NOT IN (SELECT filerecord_id FROM {$sdomain_db}.store_file WHERE file_code='$file_code' AND sync_is_deleted<>'O')" ;
+		return array($db_table , $arrAssoc_dbField_fieldType , $arr_model_keys, $arrAssoc_crmField_dbField) ;
+	}
+	private function sdomainDefine_buildFilesVuid( $sdomain_id ) {
+		$_opDB = $this->_opDB ;
+		$sdomain_db = $this->getSdomainDb( $sdomain_id ) ;
+		$view_name = 'view_files_syncvuid' ;
+		
+		$query = "DROP VIEW IF EXISTS {$sdomain_db}.{$view_name}" ;
 		$_opDB->query($query) ;
 		
-		return array($db_table , $arrAssoc_dbField_fieldType , $arr_model_keys, $arrAssoc_crmField_dbField) ;
+		$arr_fileCodes = array() ;
+		$query = "SELECT file_code FROM {$sdomain_db}.define_file ORDER BY file_code" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$arr_fileCodes[] = $arr[0] ;
+		}
+		if( !$arr_fileCodes ) {
+			return ;
+		}
+		
+		$union_queries = array() ;
+		foreach( $arr_fileCodes as $file_code ) {
+			$union_queries[] = "SELECT '{$file_code}' as file_code , filerecord_id, sync_vuid 
+				FROM {$sdomain_db}.store_file_{$file_code}" ;
+		}
+		
+		$query = "CREATE ALGORITHM=MERGE VIEW {$sdomain_db}.{$view_name} AS ".implode(' UNION ALL ',$union_queries) ;
+		$_opDB->query($query) ;
 	}
 	public function sdomainDefine_truncateBible( $sdomain_id , $bible_code ) {
 		$_opDB = $this->_opDB ;
@@ -1215,14 +1238,12 @@ EOF;
 		$sdomain_db = $this->getSdomainDb( $sdomain_id ) ;
 		
 		$table_name = 'store_file_'.$file_code ;
-		$query = "TRUNCATE TABLE {$sdomain_db}.{$table_name}" ;
-		$_opDB->query($query) ;
 		
 		if( $do_preserveSync ) {
-			$query = "UPDATE {$sdomain_db}.store_file SET sync_is_deleted='O',sync_timestamp='0' WHERE file_code='$file_code'" ;
+			$query = "UPDATE {$sdomain_db}.{$table_name} SET sync_is_deleted='O',sync_timestamp='0'" ;
 			$_opDB->query($query) ;
 		} else {
-			$query = "DELETE FROM {$sdomain_db}.store_file WHERE file_code='$file_code'" ;
+			$query = "TRUNCATE TABLE {$sdomain_db}.{$table_name}" ;
 			$_opDB->query($query) ;
 		}
 	}
@@ -1254,9 +1275,6 @@ EOF;
 		
 		$table_name = 'store_file_'.$file_code ;
 		$query = "DROP TABLE IF EXISTS {$sdomain_db}.{$table_name}" ;
-		$_opDB->query($query) ;
-		
-		$query = "UPDATE {$sdomain_db}.store_file SET sync_is_deleted='O',sync_timestamp='0' WHERE file_code='$file_code'" ;
 		$_opDB->query($query) ;
 	}
 	

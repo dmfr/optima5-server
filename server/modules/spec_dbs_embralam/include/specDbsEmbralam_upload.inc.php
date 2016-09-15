@@ -88,10 +88,10 @@ function specDbsEmbralam_upload_ZLORMM086( $handle ) {
 	
 	
 	// Sync stock, pre HACK LAM_DATEUPDATE
-	$query = "LOCK TABLES store_file WRITE, view_file_INV READ" ;
+	$query = "LOCK TABLES store_file_INV WRITE, view_file_INV READ" ;
 	$_opDB->query($query) ;
 	
-	$query = "UPDATE store_file SET dsc_is_locked='' WHERE file_code='INV'" ;
+	$query = "UPDATE store_file_INV SET dsc_is_locked='' WHERE file_code='INV'" ;
 	$_opDB->query($query) ;
 	
 	$date_3days = date('Y-m-d',strtotime('-3 days')) ;
@@ -103,7 +103,7 @@ function specDbsEmbralam_upload_ZLORMM086( $handle ) {
 	}
 	if( $arr_3days_filerecordIds ) {
 		$sql_3days_filerecordIds = $_opDB->makeSQLlist($arr_3days_filerecordIds) ;
-		$query = "UPDATE store_file SET dsc_is_locked='O' WHERE file_code='INV' AND filerecord_id IN {$sql_3days_filerecordIds}" ;
+		$query = "UPDATE store_file_INV SET dsc_is_locked='O' WHERE filerecord_id IN {$sql_3days_filerecordIds}" ;
 		$_opDB->query($query) ;
 	}
 	
@@ -144,7 +144,7 @@ function specDbsEmbralam_upload_ZLORMM086( $handle ) {
 	paracrm_lib_dataImport_commit_processHandle('file','INV',$handle_stock) ;
 	fclose($handle_stock) ;
 	
-	$query = "UPDATE store_file SET dsc_is_locked='' WHERE file_code='INV'" ;
+	$query = "UPDATE store_file_INV SET dsc_is_locked=''" ;
 	$_opDB->query($query) ;
 	
 	return ;

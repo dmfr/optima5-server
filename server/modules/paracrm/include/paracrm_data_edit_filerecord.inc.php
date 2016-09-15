@@ -369,7 +369,7 @@ function paracrm_data_editTransaction_fileRecord_init( $post_data , &$arr_saisie
 					$cfg_subfile['data'] = array() ;
 					foreach( paracrm_lib_data_getRecord( 'file_record', $child_file_code, 0, $parent_key=$arr_saisie['filerecord_id'] ) as $data_record )
 					{
-						$data_record['_media_id'] = $data_record['filerecord_id'] ;
+						$data_record['_media_id'] = media_img_toolFile_getId( $child_file_code, $data_record['filerecord_id'] ) ;
 					
 						$cfg_subfile['data'][] = $data_record ;
 					}
@@ -574,7 +574,7 @@ function paracrm_data_editTransaction_fileRecord_apply( $arr_saisie, $apply=FALS
 				switch( $editor_action )
 				{
 					case 'new'  :
-					media_img_move( $data_record['_media_id'] , $data_record['filerecord_id'] ) ;
+					media_img_move( $data_record['_media_id'] , media_img_toolFile_getId( $subfile['file_code'], $data_record['filerecord_id'] ) ) ;
 					break ;
 					
 					case 'delete' :

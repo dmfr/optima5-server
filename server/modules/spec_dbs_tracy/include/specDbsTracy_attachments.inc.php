@@ -25,6 +25,7 @@ function specDbsTracy_attachments_setAttachment($post_data) {
 	$newrecord['field_ATTACHMENT_DATE'] = $form_data['attachment_date'] ;
 	$newrecord['field_ATTACHMENT_TXT'] = $form_data['attachment_txt'] ;
 	if( $form_data['filerecord_id'] > 0 ) {
+		$img_mediaId = $form_data['media_id'] ;
 		$img_filerecordId = $form_data['filerecord_id'] ;
 		switch( $p_parentFileCode ) {
 			case 'order' :
@@ -38,21 +39,25 @@ function specDbsTracy_attachments_setAttachment($post_data) {
 	} elseif( $form_data['tmp_id'] ) {
 		switch( $p_parentFileCode ) {
 			case 'order' :
+				$filecode = 'CDE_ATTACH' ;
 				$img_filerecordId = paracrm_lib_data_insertRecord_file( 'CDE_ATTACH', $p_parentFilerecordId, $newrecord ) ;
+				$img_mediaId = media_img_toolFile_getId($filecode,$img_filerecordId) ;
 				break ;
 			default :
+				$filecode = 'ATTACH_INBOX' ;
 				$img_filerecordId = paracrm_lib_data_insertRecord_file( 'ATTACH_INBOX', 0, $newrecord ) ;
+				$img_mediaId = media_img_toolFile_getId($filecode,$img_filerecordId) ;
 				break ;
 		}
 		
 		media_contextOpen( $_POST['_sdomainId'] ) ;
-		media_img_move( $form_data['tmp_id'] , $img_filerecordId ) ;
+		media_img_move( $form_data['tmp_id'] , $img_mediaId ) ;
 		media_contextClose() ;
 	} else {
 		return array('success'=>false) ;
 	}
 	
-	return array('success'=>true, 'data'=>array('filerecord_id'=>$img_filerecordId)) ;
+	return array('success'=>true, 'data'=>array('filerecord_id'=>$img_filerecordId,'media_img'=>$img_mediaId)) ;
 }
 function specDbsTracy_attachments_load($post_data) {
 	$p_parentFileCode = $post_data['parent_file_code'] ;
@@ -61,10 +66,14 @@ function specDbsTracy_attachments_load($post_data) {
 	
 	switch( $p_parentFileCode ) {
 		case 'order' :
+			$filecode = 'CDE_ATTACH' ;
 			$data = paracrm_lib_data_getRecord_file('CDE_ATTACH',$attach_filerecordId) ;
+			$img_mediaId = media_img_toolFile_getId($filecode,$attach_filerecordId) ;
 			break ;
 		default :
+			$filecode = 'ATTACH_INBOX' ;
 			$data = paracrm_lib_data_getRecord_file('ATTACH_INBOX',$attach_filerecordId) ;
+			$img_mediaId = media_img_toolFile_getId($filecode,$attach_filerecordId) ;
 			break ;
 	}
 
@@ -74,6 +83,7 @@ function specDbsTracy_attachments_load($post_data) {
 	return array(
 		'success' => true,
 		'data' => array(
+			'media_id' => $img_mediaId,
 			'filerecord_id' => $data['filerecord_id'],
 			'attachment_date' => substr($data['field_ATTACHMENT_DATE'],0,10),
 			'attachment_txt' => $data['field_ATTACHMENT_TXT']
@@ -85,8 +95,23 @@ function specDbsTracy_attachments_delete($post_data) {
 	$p_parentFilerecordId = $post_data['parent_filerecord_id'] ;
 	$attach_filerecordId = $post_data['filerecord_id'] ;
 	
+	if( is_numeric($attach_filerecordId) ) {
+		switch( $p_parentFileCode ) {
+			case 'order' :
+				$filecode = 'CDE_ATTACH' ;
+				$img_mediaId = media_img_toolFile_getId($filecode,$attach_filerecordId) ;
+				break ;
+			default :
+				$filecode = 'ATTACH_INBOX' ;
+				$img_mediaId = media_img_toolFile_getId($filecode,$attach_filerecordId) ;
+				break ;
+		}
+	} else {
+		$img_mediaId = $attach_filerecordId ;
+	}
+	
 	media_contextOpen( $_POST['_sdomainId'] ) ;
-	media_img_delete( $attach_filerecordId ) ;
+	media_img_delete( $img_mediaId ) ;
 	media_contextClose() ;
 	
 	if( is_numeric($attach_filerecordId) ) {
@@ -122,7 +147,7 @@ function specDbsTracy_attachments_attach($post_data) {
 			$img_filerecordId = paracrm_lib_data_insertRecord_file( 'CDE_ATTACH', $p_parentFilerecordId, $arr_ins ) ;
 			
 			media_contextOpen( $_POST['_sdomainId'] ) ;
-			media_img_move( $attach_filerecordId , $img_filerecordId ) ;
+			media_img_move( media_img_toolFile_getId('ATTACH_INBOX',$attach_filerecordId) , media_img_toolFile_getId('CDE_ATTACH',$img_filerecordId) ) ;
 			media_contextClose() ;
 
 			paracrm_lib_data_deleteRecord_file('ATTACH_INBOX',$attach_filerecordId) ;
@@ -151,7 +176,7 @@ function specDbsTracy_attachments_detach($post_data) {
 			$img_filerecordId = paracrm_lib_data_insertRecord_file( 'ATTACH_INBOX', 0, $arr_ins ) ;
 			
 			media_contextOpen( $_POST['_sdomainId'] ) ;
-			media_img_move( $attach_filerecordId , $img_filerecordId ) ;
+			media_img_move( media_img_toolFile_getId('CDE_ATTACH',$attach_filerecordId) , media_img_toolFile_getId('ATTACH_INBOX',$img_filerecordId) ) ;
 			media_contextClose() ;
 
 			paracrm_lib_data_deleteRecord_file('CDE_ATTACH',$attach_filerecordId) ;
@@ -177,6 +202,7 @@ function specDbsTracy_attachments_getInbox($post_data) {
 	$TAB = array() ;
 	foreach( $paracrm_TAB as $paracrm_row ) {
 		$TAB[] = array(
+			'attachment_media_id'=> media_img_toolFile_getId('ATTACH_INBOX',$paracrm_row['ATTACH_INBOX_id']),
 			'attachment_filerecord_id'=> $paracrm_row['ATTACH_INBOX_id'],
 			'parent_file' => '',
 			'attachment_date' => date('Y-m-d',strtotime($paracrm_row['ATTACH_INBOX_field_ATTACHMENT_DATE'])),
@@ -206,7 +232,7 @@ function specDbsTracy_attachments_downloadPdf( $post_data ) {
 			$query = "SELECT filerecord_id FROM view_file_CDE_ATTACH WHERE filerecord_parent_id='{$p_parentFilerecordId}' ORDER BY filerecord_id" ;
 			$result = $_opDB->query($query) ;
 			while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
-				$arr_ids[] = $arr[0] ;
+				$arr_ids[] = media_img_toolFile_getId('CDE_ATTACH',$arr[0]) ;
 			}
 			break ;
 		default :

@@ -920,6 +920,8 @@ function specWbMrfoxy_promo_getAttachments( $post_data ) {
 	$TAB = array() ;
 	foreach( $paracrm_TAB as $paracrm_row ) {
 		$TAB[] = array(
+			'media_id'=>media_img_toolFile_getId('WORK_PROMO_ATTACH',$paracrm_row['WORK_PROMO_ATTACH_id']),
+			'file_code'=>'WORK_PROMO_ATTACH',
 			'filerecord_id'=>$paracrm_row['WORK_PROMO_ATTACH_id'],
 			'country_code' => $paracrm_row['WORK_PROMO_ATTACH_field_COUNTRY'],
 			'doc_date' => date('Y-m-d',strtotime($paracrm_row['WORK_PROMO_ATTACH_field_DATE'])),
@@ -960,7 +962,7 @@ function specWbMrfoxy_promo_associateAttachment($post_data) {
 		
 		$attach_filerecordId ;
 		media_contextOpen( $_POST['_sdomainId'] ) ;
-		$invoice_jpg_binary = media_img_getBinary( $attach_filerecordId ) ;
+		$invoice_jpg_binary = media_img_getBinary( media_img_toolFile_getId('WORK_ATTACH',$attach_filerecordId) ) ;
 		media_contextClose() ;
 		
 		specWbMrfoxy_attachments_lib_sendInvoiceEmail( $attachment_row, $promo_row, $invoice_jpg_binary ) ;
@@ -972,7 +974,7 @@ function specWbMrfoxy_promo_associateAttachment($post_data) {
 	$img_filerecordId = paracrm_lib_data_insertRecord_file( 'WORK_PROMO_ATTACH',$promo_filerecordId,$attach_record) ;
 	
 	media_contextOpen( $_POST['_sdomainId'] ) ;
-	media_img_move( $attach_filerecordId , $img_filerecordId ) ;
+	media_img_move( media_img_toolFile_getId('WORK_ATTACH',$attach_filerecordId) , media_img_toolFile_getId('WORK_PROMO_ATTACH',$img_filerecordId) ) ;
 	media_contextClose() ;
 	
 	paracrm_lib_data_deleteRecord_file('WORK_ATTACH',$attach_filerecordId) ;
@@ -989,7 +991,7 @@ function specWbMrfoxy_promo_discardAttachment($post_data) {
 	$img_filerecordId = paracrm_lib_data_insertRecord_file( 'WORK_ATTACH',0,$record) ;
 	
 	media_contextOpen( $_POST['_sdomainId'] ) ;
-	media_img_move( $attach_filerecordId , $img_filerecordId ) ;
+	media_img_move( media_img_toolFile_getId('WORK_PROMO_ATTACH',$attach_filerecordId) , media_img_toolFile_getId('WORK_ATTACH',$img_filerecordId) ) ;
 	media_contextClose() ;
 	
 	paracrm_lib_data_deleteRecord_file('WORK_PROMO_ATTACH',$attach_filerecordId) ;

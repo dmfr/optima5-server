@@ -749,7 +749,7 @@ fclose($handle) ;
 
 $arr_new_filerecordIds = array() ;
 $arr_old_filerecordIds = array() ;
-$query = "SELECT filerecord_id FROM store_file WHERE file_code='CDE'" ;
+$query = "SELECT filerecord_id FROM store_file_CDE" ;
 $result = $_opDB->query($query) ;
 while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 	$arr_old_filerecordIds[] = $arr[0] ;
@@ -771,7 +771,7 @@ foreach( $TAB_cde as $cde_id => &$arr_ent ) {
 		}
 			
 		$pool_child_filerecordIds = array() ;
-		$query = "SELECT filerecord_id FROM store_file WHERE filerecord_parent_id='$filerecord_id'" ;
+		$query = "SELECT filerecord_id FROM store_file_CDE_LIG WHERE filerecord_parent_id='$filerecord_id'" ;
 		$result = $_opDB->query($query) ;
 		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 			$pool_child_filerecordIds[] = $arr[0] ;
@@ -785,17 +785,13 @@ foreach( $TAB_cde as $cde_id => &$arr_ent ) {
 		$_opDB->update('store_file_CDE',$arr_update_ent,$arr_cond) ;
 		$arr_new_filerecordIds[] = $filerecord_id ;
 	} else {
-		$arr_ins = array() ;
-		$arr_ins['file_code'] = 'CDE' ;
-		$_opDB->insert('store_file',$arr_ins) ;
-		$filerecord_id = $_opDB->insert_id() ;
-		
 		$pool_child_filerecordIds = array() ;
 		
 		$arr_ins_ent = $arr_ent ;
 		unset($arr_ins_ent['_CDE_LIG']) ;
 		$arr_ins_ent['filerecord_id'] = $filerecord_id ;
 		$_opDB->insert( 'store_file_CDE', $arr_ins_ent );
+		$filerecord_id = $_opDB->insert_id() ;
 		$arr_new_filerecordIds[] = $filerecord_id ;
 	}
 	// echo "o" ;
@@ -806,27 +802,12 @@ foreach( $TAB_cde as $cde_id => &$arr_ent ) {
 		$query = "DELETE FROM store_file_CDE_LIG WHERE filerecord_id='$child_filerecordId'" ;
 		$_opDB->query($query) ;
 	}
-	if( count($arr_ent['_CDE_LIG']) > count($pool_child_filerecordIds) ) {
-		$nb_to_add = count($arr_ent['_CDE_LIG']) - count($pool_child_filerecordIds) ;
-		for( $a=0 ; $a<$nb_to_add ; $a++ ) {
-			$arr_ins = array() ;
-			$arr_ins['file_code'] = 'CDE_LIG' ;
-			$arr_ins['filerecord_parent_id'] = $filerecord_id ;
-			$_opDB->insert('store_file',$arr_ins) ;
-			$pool_child_filerecordIds[] = $_opDB->insert_id() ;
-		}
-	}
-	if( count($arr_ent['_CDE_LIG']) < count($pool_child_filerecordIds) ) {
-		$nb_to_delete = count($pool_child_filerecordIds) - count($arr_ent['_CDE_LIG']) ;
-		for( $a=0 ; $a<$nb_to_delete ; $a++ ) {
-			$todelete = array_shift($pool_child_filerecordIds) ;
-			$query = "DELETE FROM store_file WHERE filerecord_id='$todelete'" ;
-		}
-	}
 	
 	for( $i=0 ; $i < count($arr_ent['_CDE_LIG']) ; $i++ ) {
 		$arr_lig = $arr_ent['_CDE_LIG'][$i] ;
-		$arr_lig['filerecord_id'] = $pool_child_filerecordIds[$i] ;
+		if( $reuse_filerecordId = array_shift($pool_child_filerecordIds) ) {
+			$arr_lig['filerecord_id'] = $reuse_filerecordId ;
+		}
 		$_opDB->insert( 'store_file_CDE_LIG', $arr_lig ) ;
 		// echo "." ;
 	}

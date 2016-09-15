@@ -1783,15 +1783,8 @@ function specDbsLam_transfer_rollbackStep($post_data) {
 		$stockSrc_filerecord_id = $prevStep_log['file_stock_id'] ;
 		$query = "SELECT count(*) FROM view_file_STOCK WHERE filerecord_id='{$stockSrc_filerecord_id}'" ;
 		if( $_opDB->query_uniqueValue($query) == 0 ) {
-			$query = "DELETE FROM store_file WHERE filerecord_id='{$stockSrc_filerecord_id}'" ;
-			$_opDB->query($query) ;
 			$query = "DELETE FROM store_file_STOCK WHERE filerecord_id='{$stockSrc_filerecord_id}'" ;
 			$_opDB->query($query) ;
-			
-			$arr_ins = array() ;
-			$arr_ins['filerecord_id'] = $stockSrc_filerecord_id ;
-			$arr_ins['file_code'] = 'STOCK' ;
-			$_opDB->insert('store_file',$arr_ins) ;
 			
 			$arr_ins = array() ;
 			$arr_ins['filerecord_id'] = $stockSrc_filerecord_id ;

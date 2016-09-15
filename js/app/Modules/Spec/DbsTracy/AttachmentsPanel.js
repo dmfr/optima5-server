@@ -30,7 +30,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.AttachmentsDataview',{
 	prepareData: function(data) {
 		var getParams = this.optimaModule.getConfiguredAjaxParams() ;
 		Ext.apply( getParams, {
-			media_id: data.attachment_filerecord_id,
+			media_id: data.attachment_media_id,
 			thumb: true
 		});
 		
@@ -141,7 +141,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.AttachmentsPanel',{
 								iconCls: 'icon-save',
 								text: 'Download file',
 								handler : function() {
-									this.handleDownload(record.get('attachment_filerecord_id')) ;
+									this.handleDownload(record.get('attachment_media_id')) ;
 								},
 								scope : this
 							});
@@ -190,8 +190,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.AttachmentsPanel',{
 					dragdata: function(dvDragZone,dragData) {
 						var selectedRecord = dragData.records[0];
 						if( selectedRecord ) {
-							var filerecordId = selectedRecord.get('attachment_filerecord_id') ;
-							var attachmentRecord = dvDragZone.dataview.getStore().getById(filerecordId) ;
+							var mediaId = selectedRecord.get('attachment_media_id') ;
+							var attachmentRecord = dvDragZone.dataview.getStore().getById(mediaId) ;
 							dragData.records = [attachmentRecord] ;
 						}
 					},
@@ -383,11 +383,11 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.AttachmentsPanel',{
 		return attachmentViewerWindow ;
 	},
 	
-	handleDownload: function(filerecordId) {
+	handleDownload: function(mediaId) {
 		var me = this ;
 		var getParams = me.optimaModule.getConfiguredAjaxParams() ;
 		Ext.apply( getParams, {
-			media_id: filerecordId,
+			media_id: mediaId,
 			thumb:'',
 			download:true
 		});

@@ -120,7 +120,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoBillbackPanel',{
 				prepareData: function(data) {
 					var getParams = me.optimaModule.getConfiguredAjaxParams() ;
 					Ext.apply( getParams, {
-						media_id: data.filerecord_id,
+						media_id: data.media_id,
 						thumb: true
 					});
 					
@@ -142,7 +142,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoBillbackPanel',{
 								text: 'Show photo',
 								handler : function() {
 									// console.log( 'Create child node of '+record.get('treenode_key') ) ;
-									me.showPhoto(record.get('filerecord_id')) ;
+									me.showPhoto(record.get('media_id')) ;
 								},
 								scope : me
 							});
@@ -150,7 +150,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoBillbackPanel',{
 								iconCls: 'icon-save',
 								text: 'Downlaod file',
 								handler : function() {
-									me.downloadPhoto(record.get('filerecord_id')) ;
+									me.downloadPhoto(record.get('media_id')) ;
 								},
 								scope : me
 							});
@@ -180,7 +180,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoBillbackPanel',{
 					},
 					itemdblclick: {
 						fn:function(view, record, item, index, event) {
-							me.showPhoto(record.get('filerecord_id')) ;
+							me.showPhoto(record.get('media_id')) ;
 						},
 						scope:me
 					},
@@ -285,11 +285,11 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoBillbackPanel',{
 		});
 	},
 	
-	showPhoto: function( filerecordId ) {
+	showPhoto: function( mediaId ) {
 		var me = this ;
 		var getParams = me.optimaModule.getConfiguredAjaxParams() ;
 		Ext.apply( getParams, {
-			media_id: filerecordId,
+			media_id: mediaId,
 			thumb:''
 		});
 		
@@ -337,11 +337,11 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.PromoBillbackPanel',{
 			scope: me
 		});
 	},
-	downloadPhoto: function(filerecordId) {
+	downloadPhoto: function(mediaId) {
 		var me = this ;
 		var getParams = me.optimaModule.getConfiguredAjaxParams() ;
 		Ext.apply( getParams, {
-			media_id: filerecordId,
+			media_id: mediaId,
 			thumb:'',
 			download:true
 		});

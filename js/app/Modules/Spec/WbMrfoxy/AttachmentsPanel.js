@@ -5,6 +5,7 @@ Ext.define('WbMrfoxyAttachmentDataviewModel',{
 		{name: 'type_media', type: 'boolean' },
 		{name: 'separator_txt',  type: 'string'},
 		{name: 'separator_iconurl',  type: 'string'},
+		{name: 'media_id',  type: 'string'},
 		{name: 'filerecord_id',  type: 'int'},
 		{name: 'filerecord_caption',  type: 'string'},
 		{name: 'filerecord_date',  type: 'string'},
@@ -22,8 +23,10 @@ Ext.define('WbMrfoxyAttachmentTypeModel',{
 }) ;
 Ext.define('WbMrfoxyAttachmentModel',{
 	extend: 'Ext.data.Model',
-	idProperty: 'filerecord_id',
+	idProperty: 'media_id',
 	fields: [
+		{name: 'media_id',  type: 'string'},
+		{name: 'file_code',  type: 'string'},
 		{name: 'filerecord_id',  type: 'int'},
 		{name: 'country_code',  type: 'string'},
 		{name: 'doc_date',  type: 'string'},
@@ -93,7 +96,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentsDataview',{
 	prepareData: function(data) {
 		var getParams = this.optimaModule.getConfiguredAjaxParams() ;
 		Ext.apply( getParams, {
-			media_id: data.filerecord_id,
+			media_id: data.media_id,
 			thumb: true
 		});
 		
@@ -559,6 +562,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentsPanel',{
 					
 					var dataObj = {
 						type_media: true,
+						media_id: attachmentRecord.get('media_id'),
 						filerecord_id: attachmentRecord.get('filerecord_id'),
 						filerecord_date: attachmentRecord.get('doc_date'),
 						filerecord_caption: filerecordCaption,
@@ -602,6 +606,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentsPanel',{
 					
 					var dataObj = {
 						type_media: true,
+						media_id: attachmentRecord.get('media_id'),
 						filerecord_id: attachmentRecord.get('filerecord_id'),
 						filerecord_date: attachmentRecord.get('doc_date'),
 						filerecord_caption: filerecordCaption,
@@ -644,7 +649,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentsPanel',{
 	 * Event detail floating window
 	 */
 	onItemClick: function( dataview, record, node, index, clickEl ) {
-		var filerecordId = record.get('filerecord_id') ;
+		var filerecordId = record.get('filerecord_id'),
+			mediaId = record.get('media_id') ;
 			
 		if( !(filerecordId > 0) ) {
 			return ;
@@ -729,7 +735,7 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentsPanel',{
 			});
 		}
 		
-		var attachmentRecord = this.attachmentsStore.getById(filerecordId),
+		var attachmentRecord = this.attachmentsStore.getById(mediaId),
 			crmFields = [] ;
 		if( attachmentRecord == null ) {
 			return ;
@@ -755,7 +761,8 @@ Ext.define('Optima5.Modules.Spec.WbMrfoxy.AttachmentsPanel',{
 		}
 		
 		this.itemDetailPanel.filerecordId = filerecordId ;
-		this.itemDetailPanel.setTitle('File #'+filerecordId) ;
+		this.itemDetailPanel.mediaId = mediaId ;
+		this.itemDetailPanel.setTitle('Media #'+mediaId) ;
 		this.itemDetailPanel.child('#cmpData').update({
 			crmFields: crmFields
 		}) ;
