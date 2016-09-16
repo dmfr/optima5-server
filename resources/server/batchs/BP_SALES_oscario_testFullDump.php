@@ -789,7 +789,6 @@ foreach( $TAB_cde as $cde_id => &$arr_ent ) {
 		
 		$arr_ins_ent = $arr_ent ;
 		unset($arr_ins_ent['_CDE_LIG']) ;
-		$arr_ins_ent['filerecord_id'] = $filerecord_id ;
 		$_opDB->insert( 'store_file_CDE', $arr_ins_ent );
 		$filerecord_id = $_opDB->insert_id() ;
 		$arr_new_filerecordIds[] = $filerecord_id ;
@@ -808,6 +807,7 @@ foreach( $TAB_cde as $cde_id => &$arr_ent ) {
 		if( $reuse_filerecordId = array_shift($pool_child_filerecordIds) ) {
 			$arr_lig['filerecord_id'] = $reuse_filerecordId ;
 		}
+		$arr_lig['filerecord_parent_id'] = $filerecord_id ;
 		$_opDB->insert( 'store_file_CDE_LIG', $arr_lig ) ;
 		// echo "." ;
 	}
