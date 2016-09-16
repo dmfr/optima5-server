@@ -189,7 +189,7 @@ function specBpSales_inv_createFromOrder( $post_data ) {
 	$arr_ins['field_ID_CDE_REF'] = $row_cde['cde_ref'] ;
 	$arr_ins['field_ID_COEF'] = 1 ;
 	$arr_ins['field_CLI_LINK'] = $row_cde['cli_link'] ;
-	$arr_ins['field_ADR_SENDTO'] = '' ;
+	$arr_ins['field_ADR_SENDTO'] = $customer_entry['field_ADR_SENDTO'] ;
 	$arr_ins['field_ADR_INVOICE'] = $customer_entry['field_ADR_INVOICE'] ;
 	$arr_ins['field_ADR_SHIP'] = $customer_entry['field_ADR_SHIP'] ;
 	$arr_ins['field_PAY_BANK'] = $customer_treenode['field_ATR_PAYBANK'] ;
