@@ -346,20 +346,29 @@ function paracrm_android_syncPull( $post_data )
 		$arrRemote_syncVuid_syncTime = json_decode($post_data['local_sync_hashmap'],true) ;
 	}
 	
-	
-	$query_test = "select count(*) from store_file_{$file_code} where ( sync_vuid='' OR sync_timestamp='0' )" ;
-	if( $_opDB->query_uniqueValue($query_test) > 0 ) {
+	// Tag sync_vuid
+	$files = array($file_code) ;
+	$query = "SELECT file_code FROM define_file WHERE file_parent_code='$file_code'" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$files[] = $arr[0] ;
+	}
+	foreach( $files as $tag_fileCode ) {
+		$query_test = "select count(*) from store_file_{$tag_fileCode} where ( sync_vuid='' OR sync_timestamp='0' )" ;
+		if( $_opDB->query_uniqueValue($query_test) == 0 ) {
+			continue ;
+		}
 		// ***** PREPARATION DES DONNEES ******
-		$query = "LOCK TABLES store_file_{$file_code} WRITE" ;
+		$query = "LOCK TABLES store_file_{$tag_fileCode} WRITE" ;
 		$_opDB->query($query) ;
 		
 		$ref_prefix = "PHPSERVER" ;
 		$ref_timestamp = time() ;
-		$query = "UPDATE store_file_{$file_code} SET sync_vuid=CONCAT('$ref_prefix','-',UUID_SHORT()) WHERE sync_vuid=''" ;
+		$query = "UPDATE store_file_{$tag_fileCode} SET sync_vuid=CONCAT('$ref_prefix','-',UUID_SHORT()) WHERE sync_vuid=''" ;
 		$_opDB->query($query) ;
 		
 		$now_timestamp = time() ;
-		$query = "UPDATE store_file_{$file_code} SET sync_timestamp='$now_timestamp' WHERE sync_timestamp='0'" ;
+		$query = "UPDATE store_file_{$tag_fileCode} SET sync_timestamp='$now_timestamp' WHERE sync_timestamp='0'" ;
 		$_opDB->query($query) ;
 		
 		$query = "UNLOCK TABLES" ;
