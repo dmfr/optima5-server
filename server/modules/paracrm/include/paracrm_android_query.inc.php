@@ -449,7 +449,8 @@ function paracrm_android_query_fetchResult( $post_data ) {
 		$arr_saisie = array() ;
 		paracrm_queries_qsqlTransaction_init( array('qsql_id'=>$qsql_id) , $arr_saisie ) ;
 		
-		$RES = paracrm_queries_qsql_lib_exec($arr_saisie['sql_querystring']) ;
+		$RES = paracrm_queries_qsql_lib_exec($arr_saisie['sql_querystring'], $is_rw=FALSE, $auth_bypass=TRUE) ;
+		error_log(print_r($RES,true)) ;
 		
 		if( $post_data['xls_export'] == 'true' ) {
 			return paracrm_android_query_fetchResultXls( $RES, $arrQuery['querysrc_type'] );
