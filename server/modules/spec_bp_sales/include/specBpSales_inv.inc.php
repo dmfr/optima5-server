@@ -428,11 +428,11 @@ function specBpSales_inv_lib_calc( $inv_filerecord_id ) {
 	
 	$tot_amount_novat = $tot_amount_final = 0 ;
 	foreach( $row_inv['ligs'] as $row_inv_lig ) {
-		$amount_base = 0 ;
-		$amount_base+= $row_inv_lig['join_price'] * $row_inv_lig['base_qty'] ;
-		$amount_base+= $row_inv_lig['static_amount'] ;
+		$amount_base = $row_inv_lig['join_price'] * $row_inv_lig['base_qty'] ;
 		
-		$amount_novat = $amount_base * $row_inv_lig['join_coef1'] * $row_inv_lig['join_coef2'] * $row_inv_lig['join_coef3'] ;
+		$amount_novat = 0 ;
+		$amount_novat+= $amount_base * $row_inv_lig['join_coef1'] * $row_inv_lig['join_coef2'] * $row_inv_lig['join_coef3'] ;
+		$amount_novat+= $row_inv_lig['static_amount'] ;
 		$amount_final = $amount_novat * $row_inv_lig['join_vat'] ;
 		
 		$arr_update = array() ;
