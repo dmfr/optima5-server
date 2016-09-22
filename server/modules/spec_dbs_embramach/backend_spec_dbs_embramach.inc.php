@@ -22,6 +22,10 @@ switch( $post_data['_action'] )
 	case 'upload' :
 	case 'mach_upload' :
 	return specDbsEmbramach_upload( $post_data ) ;
+	case 'reportList' :
+	return specDbsEmbramach_reportList($post_data) ;
+	case 'report' :
+	return specDbsEmbramach_report($post_data) ;
 	
 	case 'stats_getPicking' :
 	return specDbsEmbramach_stats_getPicking( $post_data ) ;

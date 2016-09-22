@@ -65,6 +65,8 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MainPanel',{
 				return me.switchToAppPanel('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{flowCode: 'INBOUND', _readonlyMode:_readonlyMode}) ;
 			case 'panel_query_mb51' :
 				return me.switchToAppPanel('Optima5.Modules.Spec.DbsEmbramach.QueryPanel',{qType:'query', queryId:'Report::ZMB51::Synthese'}) ;
+			case 'form_report' :
+				return me.openReportPopup() ;
 			default :
 				return ;
 		}
@@ -87,5 +89,35 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MainPanel',{
 		
 		this.removeAll() ;
 		this.add( panel ) ;
+	},
+	openReportPopup: function() {
+		this.getEl().mask() ;
+		// Open panel
+		var createPanel = Ext.create('Optima5.Modules.Spec.DbsEmbramach.ReportForm',{
+			optimaModule: this.optimaModule,
+			width:400, // dummy initial size, for border layout to work
+			height:null, // ...
+			floating: true,
+			draggable: true,
+			resizable: true,
+			renderTo: this.getEl(),
+			tools: [{
+				type: 'close',
+				handler: function(e, t, p) {
+					p.ownerCt.destroy();
+				},
+				scope: this
+			}]
+		});
+		createPanel.on('saved', function(p) {
+			this.doTreeLoad() ;
+		},this,{single:true}) ;
+		createPanel.on('destroy',function(p) {
+			this.getEl().unmask() ;
+			this.floatingPanel = null ;
+		},this,{single:true}) ;
+		
+		createPanel.show();
+		createPanel.getEl().alignTo(this.getEl(), 'c-c?');
 	}
 }) ;

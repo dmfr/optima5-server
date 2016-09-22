@@ -1,5 +1,78 @@
 <?php
 
+function specDbsEmbramach_reportList( $post_data ) {
+	global $_opDB ;
+	
+	$TAB = array() ;
+	
+	$query = "SELECT qsql_id, qsql_name 
+		FROM qsql JOIN input_query_src ON input_query_src.target_qsql_id = qsql.qsql_id
+		ORDER BY qsql_name" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$TAB[] = array('id'=>'QSQL::'.$arr[0],'text'=>'QSQL / '.$arr[1]) ;
+	}
+	
+	return array('success'=>true, 'data'=>$TAB) ;
+}
+
+
+function specDbsEmbramach_report( $post_data ) {
+	$form_data = json_decode($post_data['data'],true) ;
+	
+	// Specs
+	switch( $form_data['file_model'] ) {
+		default :
+			if( strpos($form_data['file_model'],'QSQL::')===0 ) {
+				$ttmp = explode('::',$form_data['file_model']) ;
+				$qsql_id = $ttmp[1] ;
+				specDbsEmbramach_report_qsql($qsql_id) ;
+				die() ;
+			}
+			return array('success'=>false);
+	}
+	
+	$filename = 'OP5report_TRACY_.'.$form_data['file_model'].'_'.time().'.'.'csv' ;
+	header("Content-Type: application/force-download; name=\"$filename\""); 
+	header("Content-Disposition: attachment; filename=\"$filename\""); 
+	echo $csv_buffer ;
+	die() ;
+}
+function specDbsEmbramach_report_qsql( $qsql_id ) {
+	global $_opDB ;
+	
+	$query = "SELECT * FROM qsql WHERE qsql_id='{$qsql_id}'" ;
+	$result = $_opDB->query($query) ;
+	if( $_opDB->num_rows($result) != 1 ) {
+		return array('success'=>false) ;
+	}
+	$arr = $_opDB->fetch_assoc($result) ;
+	$qsql_name = preg_replace("/[^a-zA-Z0-9]/", "", $arr['qsql_name']) ;
+	$sql_querystring = $arr['sql_querystring'] ;
+	
+	$TAB = paracrm_queries_qsql_lib_exec($sql_querystring,$is_rw=FALSE,$auth_bypass=TRUE) ;
+	
+	$objPHPExcel = paracrm_queries_xls_build( $TAB, NULL ) ;
+	if( !$objPHPExcel ) {
+		die() ;
+	}
+	
+	$tmpfilename = tempnam( sys_get_temp_dir(), "FOO");
+	$objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+	$objWriter->save($tmpfilename);
+	$objPHPExcel->disconnectWorksheets();
+	unset($objPHPExcel) ;
+	
+	$filename = 'OP5report_MACH_.'.$qsql_name.'_'.time().'.'.'xlsx' ;
+	header("Content-Type: application/force-download; name=\"$filename\""); 
+	header("Content-Disposition: attachment; filename=\"$filename\""); 
+	readfile($tmpfilename) ;
+	unlink($tmpfilename) ;
+	die() ;
+}
+
+
+
 function specDbsEmbramach_upload( $post_data ) {
 	if( $_FILES['file_upload'] ) {
 		$debug = file_get_contents($_FILES['file_upload']['tmp_name']) ;
