@@ -492,6 +492,20 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 		}
 		
 		//gSteps
+		if( this._readonlyMode ) {
+			// filter steps
+			var orderStepRecords_toRemove = [] ;
+			orderRecord.steps().each( function(orderStepRecord) {
+				var stepCode = orderStepRecord.get('step_code'),
+					stepRecord = Optima5.Modules.Spec.DbsTracy.HelperCache.getStepByStep( stepCode ) ;
+				if( stepRecord.is_private ) {
+					orderStepRecords_toRemove.push(orderStepRecord) ;
+				}
+			}) ;
+			if( orderStepRecords_toRemove.length > 0 ) {
+				orderRecord.steps().remove(orderStepRecords_toRemove) ;
+			}
+		}
 		this.down('#pStepsGrid').getEl().unmask() ;
 		this.down('#pStepsGrid').getStore().loadRawData(orderRecord.steps().getRange()) ;
 		

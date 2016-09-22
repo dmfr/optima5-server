@@ -51,7 +51,8 @@ Ext.define('DbsTracyCfgOrderStepModel',{
 		{name: 'prompt_order', type:'boolean'},
 		{name: 'prompt_trspt', type:'boolean'},
 		{name: 'is_options', type:'boolean'},
-		{name: 'chart_color', type:'string'}
+		{name: 'chart_color', type:'string'},
+		{name: 'is_private', type:'boolean'}
 	]
 });
 Ext.define('DbsTracyCfgOrderFlowModel',{

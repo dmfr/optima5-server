@@ -831,6 +831,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				type: 'auto',
 				sortType: sortTypeFn
 			}) ;
+			if( this._readonlyMode && step.is_private ) {
+				return ;
+			}
 			stepColumns.push({
 				text: step.desc_txt,
 				dataIndex: 'step_'+step.desc_code,
@@ -867,7 +870,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 					}
 				}
 			});
-		}) ;
+		},this) ;
 		columns.push({
 			text: '<b><i>Process steps</i></b>',
 			align: 'center',

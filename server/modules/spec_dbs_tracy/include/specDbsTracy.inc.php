@@ -126,7 +126,8 @@ function specDbsTracy_cfg_getConfig() {
 			'prompt_order' => ($arr['field_PROMPT_ORDER']==1),
 			'prompt_trspt' => ($arr['field_PROMPT_TRSPT']==1),
 			'is_options' => ($arr['field_IS_OPTIONS']==1),
-			'chart_color' => $arr['field_CHART_COLOR']
+			'chart_color' => $arr['field_CHART_COLOR'],
+			'is_private' => ($arr['field_IS_PRIVATE']==1)
 		) ;
 		
 		$TAB_orderflow[$flow_code]['steps'][] = $record ;
