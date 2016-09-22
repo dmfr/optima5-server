@@ -7,6 +7,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		'Optima5.Modules.Spec.DbsTracy.OrderWarningPanel'
 	],
 	
+	_readonlyMode: false,
+	
 	defaultViewMode: 'order',
 	viewMode: null,
 	autoRefreshDelay: (10*60*1000),
@@ -15,6 +17,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		Ext.apply(this, {
 			layout: 'border',
 			tbar:[{
+				hidden: this._readonlyMode,
 				icon: 'images/op5img/ico_back_16.gif',
 				text: '<u>Back</u>',
 				handler: function(){
@@ -109,6 +112,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 					}]
 				}
 			},'-',{
+				hidden: this._readonlyMode,
 				iconCls: 'op5-crmbase-datatoolbar-file-export-excel',
 				text: 'Export',
 				handler: function() {
@@ -394,9 +398,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		
 		
 		var columnDefaults = {
-			menuDisabled: (this._popupMode || this._readonlyMode ? true : false),
+			menuDisabled: false,
 			draggable: false,
-			sortable: (this._readonlyMode ? false : true),
+			sortable: true,
 			hideable: false,
 			resizable: true,
 			groupable: false,
@@ -883,9 +887,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		});
 		
 		var columnDefaults = {
-			menuDisabled: (this._popupMode || this._readonlyMode ? true : false),
+			menuDisabled: false,
 			draggable: false,
-			sortable: (this._readonlyMode ? false : true),
+			sortable: true,
 			hideable: false,
 			resizable: true,
 			groupable: false,
@@ -973,76 +977,78 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			colorSet.push(step.chart_color) ;
 		}) ;
 		
-		pNorth.setVisible(true) ;
+		pNorth.setVisible(true && !this._readonlyMode) ;
 		pNorth.removeAll() ;
-		pNorth.add({
-			border: false,
-			width: ((90 * stepColumns.length) + 0),
-			xtype: 'grid',
-			columns: [{
-				text: '<b><i>Process steps</i></b>',
-				align: 'center',
-				columns: stepColumns
-			}],
-			store: {
-				proxy: {
-					type: 'memory',
-					reader: {
-						type: 'json'
-					}
-				},
-				fields: pushModelfields,
-				data: []
-			}
-		},{
-			flex: 1,
-			xtype:'chart',
-				animate: true,
-				shadow: true,
+		if( !this._readonlyMode ) {
+			pNorth.add({
+				border: false,
+				width: ((90 * stepColumns.length) + 0),
+				xtype: 'grid',
+				columns: [{
+					text: '<b><i>Process steps</i></b>',
+					align: 'center',
+					columns: stepColumns
+				}],
 				store: {
 					proxy: {
 						type: 'memory',
 						reader: {
-							type:'json'
+							type: 'json'
 						}
 					},
-					fields: Ext.Array.merge(['dummy'], pushModelfields),
-					data: []
-				},
-				axes: [{
-					type: 'Numeric',
-					position: 'bottom',
 					fields: pushModelfields,
-					title: false,
-					grid: true,
-					majorTickSteps: 5
-				}],
-				series: [{
-					colorSet: colorSet,
-					type: 'bar',
-					axis: 'bottom',
-					gutter: 80,
-					xField: 'dummy',
-					yField: pushModelfields,
-					stacked: true,
-					tips: {
-						trackMouse: true,
-						width: 160,
-						height: 28,
-						renderer: function(storeItem, item) {
-							this.setTitle("<span style='float:left'>"+ item.yField + ' :</span><span style="float:right">' + String(item.value[1]) + ' rows</span>');
-						}
+					data: []
+				}
+			},{
+				flex: 1,
+				xtype:'chart',
+					animate: true,
+					shadow: true,
+					store: {
+						proxy: {
+							type: 'memory',
+							reader: {
+								type:'json'
+							}
+						},
+						fields: Ext.Array.merge(['dummy'], pushModelfields),
+						data: []
 					},
-					renderer: function(sprite, record, attributes, index, store) {
-						index = index % this.colorSet.length ;
-						Ext.apply(attributes,{
-							fill: this.colorSet[index],
-							stroke: this.colorSet[index]
-						}) ;
-						return attributes ;
-					}
-            }]
-		}) ;
+					axes: [{
+						type: 'Numeric',
+						position: 'bottom',
+						fields: pushModelfields,
+						title: false,
+						grid: true,
+						majorTickSteps: 5
+					}],
+					series: [{
+						colorSet: colorSet,
+						type: 'bar',
+						axis: 'bottom',
+						gutter: 80,
+						xField: 'dummy',
+						yField: pushModelfields,
+						stacked: true,
+						tips: {
+							trackMouse: true,
+							width: 160,
+							height: 28,
+							renderer: function(storeItem, item) {
+								this.setTitle("<span style='float:left'>"+ item.yField + ' :</span><span style="float:right">' + String(item.value[1]) + ' rows</span>');
+							}
+						},
+						renderer: function(sprite, record, attributes, index, store) {
+							index = index % this.colorSet.length ;
+							Ext.apply(attributes,{
+								fill: this.colorSet[index],
+								stroke: this.colorSet[index]
+							}) ;
+							return attributes ;
+						}
+					}]
+			}) ;
+		}
 		
 		this.doLoad() ;
 	},
@@ -1262,14 +1268,16 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		}
 		this.down('#pCenter').down('grid').getStore().loadRawData(gridData) ;
 		
-		var northRecord = {
-			dummy: ''
-		} ;
-		Ext.Object.each( map_stepDescCodes_count, function(stepDescCode,count) {
-			northRecord['step_'+stepDescCode] = count ;
-		});
-		this.down('#pNorth').down('grid').getStore().loadData([northRecord]) ;
-		this.down('#pNorth').down('chart').getStore().loadData([northRecord]) ;
+		if( !this._readonlyMode ) {
+			var northRecord = {
+				dummy: ''
+			} ;
+			Ext.Object.each( map_stepDescCodes_count, function(stepDescCode,count) {
+				northRecord['step_'+stepDescCode] = count ;
+			});
+			this.down('#pNorth').down('grid').getStore().loadData([northRecord]) ;
+			this.down('#pNorth').down('chart').getStore().loadData([northRecord]) ;
+		}
 	},
 	
 	doLoadTrspt: function(doClearFilters) {
@@ -1334,7 +1342,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			return ;
 		}
 		this.down('toolbar').down('#tbViewmode').setVisible(!torf) ;
-		this.down('toolbar').down('#tbCreate').setVisible(!torf) ;
+		this.down('toolbar').down('#tbCreate').setVisible(!torf && !this._readonlyMode) ;
 		if( !torf ) {
 			this.down('#pCenter').down('grid').child('headercontainer').down('checkcolumn').setVisible(false) ;
 			return ;
@@ -1401,6 +1409,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 	},
 	
 	openWarningPanel: function( orderRecord ) {
+		if( this._readonlyMode ) {
+			return ;
+		}
 		var postParams = {} ;
 		var orderWarningPanel = Ext.create('Optima5.Modules.Spec.DbsTracy.OrderWarningPanel',{
 			optimaModule: this.optimaModule,

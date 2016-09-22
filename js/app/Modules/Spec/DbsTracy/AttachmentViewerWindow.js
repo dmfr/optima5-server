@@ -1,6 +1,8 @@
 Ext.define('Optima5.Modules.Spec.DbsTracy.AttachmentViewerWindow',{
 	extend:'Ext.window.Window',
 	
+	_readonlyMode: false,
+	
 	initComponent: function() {
 		if( (this.optimaModule) instanceof Optima5.Module ) {} else {
 			Optima5.Helper.logError('Spec:DbsTracy:AttachmentViewerWindow','No module reference ?') ;
@@ -30,6 +32,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.AttachmentViewerWindow',{
 				},
 				scope: this
 			},'->',{
+				hidden: this._readonlyMode,
 				icon: 'images/op5img/ico_new_16.gif',
 				text:'Actions',
 				menu: {
@@ -120,7 +123,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.AttachmentViewerWindow',{
 				name: 'attachment_txt'
 			}],
 			buttons: [
-				{ xtype: 'button', text: 'Submit' , handler:function(btn){ btn.up('form').handleSubmit();} }
+				{ hidden:this._readonlyMode, xtype: 'button', text: 'Submit' , handler:function(btn){ btn.up('form').handleSubmit();} }
 			],
 			
 			handleSubmit: function() {

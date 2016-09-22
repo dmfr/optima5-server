@@ -7,6 +7,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		'Optima5.Modules.Spec.DbsTracy.CfgParamText'
 	],
 	
+	_readonlyMode: false,
+	
 	initComponent: function() {
 		var stepsMap = {} ;
 		Ext.Array.each( Optima5.Modules.Spec.DbsTracy.HelperCache.getOrderflow('AIR').steps, function(step) {
@@ -320,6 +322,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 					region: 'north',
 					itemId: 'pEventsForm',
 					title: 'New action',
+					hidden: this._readonlyMode,
 					collapsible: true,
 					collapsed: true,
 					xtype: 'form',
@@ -414,6 +417,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 			}]
 		}) ;
 		this.callParent() ;
+		if( this._readonlyMode ) {
+			this.down('toolbar').setVisible(false) ;
+		}
 		
 		this.on('afterrender', function() {
 			if( this._trsptNew ) {
@@ -459,6 +465,13 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 			customs_mode: ''
 		});
 		this.down('#pHeaderForm').getForm().findField('id_doc').setReadOnly(true) ;
+		if( this._readonlyMode ) {
+			this.down('#pHeaderForm').getForm().getFields().each( function(field) {
+				if( field.setReadOnly ) {
+					field.setReadOnly(true) ;
+				}
+			});
+		}
 		
 		//gOrders
 		this.down('#pOrdersGrid').getEl().mask() ;
@@ -564,6 +577,13 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		this.down('#pHeaderForm').getForm().findField('atr_type').setReadOnly(true) ;
 		this.down('#pHeaderForm').getForm().findField('id_doc').setReadOnly(true) ;
 		this.down('#pHeaderForm').getForm().loadRecord(trsptRecord) ;
+		if( this._readonlyMode ) {
+			this.down('#pHeaderForm').getForm().getFields().each( function(field) {
+				if( field.setReadOnly ) {
+					field.setReadOnly(true) ;
+				}
+			});
+		}
 		
 		//gSteps
 		this.down('#pOrdersGrid').getEl().unmask() ;
@@ -628,6 +648,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 	},
 	
 	handleSaveHeader: function(validateStepCode) {
+		if( this._readonlyMode ) {
+			return ;
+		}
 		if( !Ext.isEmpty(validateStepCode) && !Optima5.Modules.Spec.DbsTracy.HelperCache.authHelperQueryPage('GOM') ) {
 			Ext.Msg.alert('Auth','Not authorized') ;
 			return ;
@@ -833,6 +856,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 	*/
 	
 	handleSubmitEvent: function() {
+		if( this._readonlyMode ) {
+			return ;
+		}
 		var formPanel = this.down('#pEventsForm'),
 			form = formPanel.getForm() ;
 		if( !form.isValid() ) {
@@ -868,6 +894,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 	},
 	
 	openPrintPopup: function(printType) {
+		if( this._readonlyMode ) {
+			return ;
+		}
 		this.showLoadmask() ;
 		
 		this.optimaModule.getConfiguredAjaxConnection().request({
@@ -943,6 +972,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 	},
 	
 	openAdvancedValidationPopup: function(validateStepCode) {
+		if( this._readonlyMode ) {
+			return ;
+		}
 		if( this._trsptNew ) {
 			return ;
 		}

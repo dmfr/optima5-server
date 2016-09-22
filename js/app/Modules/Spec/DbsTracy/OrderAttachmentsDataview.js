@@ -1,6 +1,8 @@
 Ext.define('Optima5.Modules.Spec.DbsTracy.OrderAttachmentsDataview',{
 	extend:'Ext.panel.Panel',
 	
+	_readonlyMode: false,
+	
 	initComponent: function() {
 		var me = this ;
 		
@@ -153,6 +155,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderAttachmentsDataview',{
 		});
 		
 		this.callParent() ;
+		if( this._readonlyMode ) {
+			this.down('toolbar').setVisible(false) ;
+		}
 	},
 	onDataviewRender: function(view) {
 		var me = this ;
@@ -254,7 +259,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderAttachmentsDataview',{
 	createAttachmentWindow: function() {
 		attachmentViewerWindow = this.optimaModule.createWindow({
 			_parentFileCode:'order',
-			_parentFilerecordId: this.orderRecord.get('order_filerecord_id')
+			_parentFilerecordId: this.orderRecord.get('order_filerecord_id'),
+			_readonlyMode: this._readonlyMode
 		},Optima5.Modules.Spec.DbsTracy.AttachmentViewerWindow) ;
 		attachmentViewerWindow.on('load',function() {
 			attachmentViewerWindow.show() ;

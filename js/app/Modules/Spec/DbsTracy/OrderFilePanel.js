@@ -7,6 +7,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 		'Optima5.Modules.Spec.DbsTracy.OrderAttachmentsDataview'
 	],
 	
+	_readonlyMode: false,
+	
 	initComponent: function() {
 		
 		
@@ -240,7 +242,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 						width: 100,
 						dataIndex: 'log_user'
 					}],
-					plugins: ( Optima5.Modules.Spec.DbsTracy.HelperCache.authHelperQueryPage('ADMIN') ? [{
+					plugins: ( Optima5.Modules.Spec.DbsTracy.HelperCache.authHelperQueryPage('ADMIN') && !this._readonlyMode ? [{
 						ptype: 'rowediting',
 						listeners: {
 							edit: this.onAfterEditStep,
@@ -352,6 +354,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 				}]
 			},Ext.create('Optima5.Modules.Spec.DbsTracy.OrderAttachmentsDataview',{
 				optimaModule: this.optimaModule,
+				_readonlyMode: this._readonlyMode,
 				flex: 2,
 				itemId: 'pAttachments',
 				title: 'Attachments'
@@ -359,6 +362,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 		}) ;
 		
 		this.callParent() ;
+		if( this._readonlyMode ) {
+			this.down('toolbar').setVisible(false) ;
+		}
 		
 		this.on('afterrender', function() {
 			if( this._orderNew ) {
@@ -419,6 +425,11 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 		this.down('#pHeaderForm').getForm().findField('flow_code').setReadOnly(false) ;
 		this.down('#pHeaderForm').getForm().findField('atr_type').setReadOnly(false) ;
 		this.down('#pHeaderForm').getForm().findField('id_dn').setReadOnly(false) ;
+		if( this._readonlyMode ) {
+			this.down('#pHeaderForm').getForm().getFields().each( function(field) {
+				field.setReadOnly(true) ;
+			});
+		}
 		
 		//gSteps
 		this.down('#pStepsGrid').getEl().mask() ;
@@ -474,6 +485,11 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 		this.down('#pHeaderForm').getForm().findField('atr_type').setReadOnly(true) ;
 		this.down('#pHeaderForm').getForm().findField('id_dn').setReadOnly(true) ;
 		this.down('#pHeaderForm').getForm().loadRecord(orderRecord) ;
+		if( this._readonlyMode ) {
+			this.down('#pHeaderForm').getForm().getFields().each( function(field) {
+				field.setReadOnly(true) ;
+			});
+		}
 		
 		//gSteps
 		this.down('#pStepsGrid').getEl().unmask() ;

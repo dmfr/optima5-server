@@ -235,6 +235,14 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.HelperCache',{
 		}
 		return ( !Ext.isEmpty(me.authPage) && Ext.Array.contains( me.authPage, pageCode ) ) ;
 	},
+	authHelperIsReadOnly: function() {
+		var me = this ;
+			
+		if( me.optimaModule.getSdomainRecord().get('auth_has_all') ) {
+			return false ;
+		}
+		return Ext.isEmpty(me.authPage) ;
+	},
 	
 	getSocAll: function() {
 		return Ext.pluck( this.cfgSocStore.getRange(), 'data' ) ;

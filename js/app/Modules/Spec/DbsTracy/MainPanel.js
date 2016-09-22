@@ -13,6 +13,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.MainPanel',{
 		'Optima5.Modules.Spec.DbsTracy.LivePanel'
 	],
 	
+	_readonlyMode: false,
+	
 	initComponent: function() {
 		var me = this ;
 			
@@ -57,6 +59,12 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.MainPanel',{
 		}
 	},
 	switchToMainMenu: function() {
+		this._readonlyMode = Optima5.Modules.Spec.DbsTracy.HelperCache.authHelperIsReadOnly() ;
+		
+		if( this._readonlyMode ) {
+			return this.switchToAppPanel('Optima5.Modules.Spec.DbsTracy.FilesGrid',{}) ;
+		}
+		
 		var me = this ;
 		var mainMenuView = Ext.create('Optima5.Modules.Spec.DbsTracy.MainMenu',{
 			listeners: {
@@ -98,12 +106,15 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.MainPanel',{
 		
 		options = options || {} ;
 		Ext.apply(options,{
-			optimaModule: me.optimaModule
+			optimaModule: me.optimaModule,
+			_readonlyMode: this._readonlyMode
 		}) ;
 		
 		var panel = Ext.create(className,options) ;
 		panel.on('destroy',function(p) {
-			me.switchToMainMenu() ;
+			if( !this._readonlyMode ) {
+				me.switchToMainMenu() ;
+			}
 		},this) ;
 		
 		this.removeAll() ;
@@ -153,6 +164,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.MainPanel',{
 			animCollapse:false,
 			
 				optimaModule: this.optimaModule,
+				_readonlyMode: this._readonlyMode,
 				_trsptNew: (trsptFilerecordId==0),
 				_trsptFilerecordId: trsptFilerecordId,
 				_trsptNew_orderRecords: trsptNew_orderRecords,
@@ -197,6 +209,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.MainPanel',{
 			animCollapse:false,
 			
 				optimaModule: this.optimaModule,
+				_readonlyMode: this._readonlyMode,
 				_orderNew: (orderFilerecordId==0),
 				_orderFilerecordId: orderFilerecordId,
 				listeners: {
