@@ -5,13 +5,26 @@
  */
 class SqlParser {
 
+	/*
+	Alternative : http://stackoverflow.com/questions/24423260/split-sql-statements-in-php-on-semicolons-but-not-inside-quotes
+	$splits = preg_split('~\([^)]*\)(*SKIP)(*F)|;~', $sql);
+	*/
+
     public static function split_sql($sql_text) {
+		
+		// Extract escaped statements
+		preg_match_all("/<query>(.+?)<\/query>/is", $sql_text, $matches) ;
+		$escaped_statements = $matches[1] ;
+		
+		// Replace escaped st.
+		$sql_text = preg_replace("/<query>(.+?)<\/query>/is", "<query/>;", $sql_text);
+		
 		// Return array of ; terminated SQL statements in $sql_text.
 		$re = '% # Match an SQL record ending with ";"
 		\s*                                     # Discard leading whitespace.
 		(                                       # $1: Trimmed non-empty SQL record.
 			(?:                                   # Group for content alternatives.
-			\'[^\'\\\\]*(?:\\\\.[^\'\\\\]*)*\'  # Either a single quoted string,
+			\'[^\'\\\\]*(?:\\\\.[^\'\\\\]*)*\'    # Either a single quoted string,
 			| "[^"\\\\]*(?:\\\\.[^"\\\\]*)*"      # or a double quoted string,
 			| /*[^*]*\*+([^*/][^*]*\*+)*/         # or a multi-line comment,
 			| \#.*                                # or a # single line comment,
@@ -22,12 +35,18 @@ class SqlParser {
 		)                                       # End $1: Trimmed SQL record.
 		%x';
 		if (preg_match_all($re, $sql_text, $matches)) {
-			return $matches[1];
+			$statements = $matches[1] ;
+			foreach( $statements as &$statement ) {
+				if( $statement=='<query/>;' ) {
+					$statement = array_shift($escaped_statements) ;
+				}
+			}
+			unset($statement) ;
+			return $statements;
 		}
 		return array();
 	}
-
-
 }
 
 //End of class
+?>
