@@ -1,7 +1,7 @@
 <?php
 
 function paracrm_data_importDirect( $post_data ) {
-	if( !isset($_FILES['csvsrc_binary']) ) {
+	if( !isset($_FILES['csvsrc_binary']) && !isset($_POST['csvsrc_binary']) ) {
 		return array('success'=>false) ;
 	}
 	
@@ -21,7 +21,19 @@ function paracrm_data_importDirect( $post_data ) {
 		return array('success'=>false) ;
 	}
 	
-	$handle = fopen($_FILES['csvsrc_binary']['tmp_name'],'rb') ;
+	if( isset($_FILES['csvsrc_binary']) ) {
+		$handle = fopen($_FILES['csvsrc_binary']['tmp_name'],'rb') ;
+	} elseif( $_POST['csvsrc_binary'] ) {
+		$handle = tmpfile() ;
+		fputs($handle,$_POST['csvsrc_binary']) ;
+		rewind($handle);
+	} else {
+		return array('success'=>false) ;
+	}
+	if( $_POST['do_preprocess'] ) {
+		$handle = paracrm_lib_dataImport_preHandle($handle) ;
+		rewind($handle) ;
+	}
 	paracrm_lib_dataImport_commit_processHandle( $post_data['data_type'],$store_code, $handle ) ;
 	fclose($handle) ;
 	
