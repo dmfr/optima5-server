@@ -93,7 +93,7 @@ function specBpSales_cde_getRecords( $post_data ) {
 		$eq_ut = $paracrm_row['CDE_LIG_field_PROD_REF_entry_EQ_UT'] ;
 		$eq_kg = $paracrm_row['CDE_LIG_field_PROD_REF_entry_EQ_KG'] ;
 		$row['calc_count_ut'] = $eq_ut * $qte ;
-		$row['calc_count_pack'] = ($pcb_pack ? $qte / $pcb_pack : 0) ;
+		$row['calc_count_pack'] = ($pcb_pack > 0 ? $qte / $pcb_pack : 0) ;
 		$row['calc_weight_kg'] = $eq_kg * $qte ;
 		
 		$TAB[$filerecord_parent_id]['ligs'][] = $row ;
