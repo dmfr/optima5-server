@@ -1085,7 +1085,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			},
 			scope : this
 		});
-		if( selRecord.get('calc_link_is_active') ) {
+		if( selRecord.get('calc_link_is_active') && !this._readonlyMode ) {
 			gridContextMenuItems.push('-',{
 				disabled: true,
 				text: 'TrsptFile&#160;:&#160;<b>'+selRecord.get('calc_link_trspt_txt')+'</b>'
@@ -1344,7 +1344,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		if( this.viewMode != 'order' ) {
 			return ;
 		}
-		this.down('toolbar').down('#tbViewmode').setVisible(!torf) ;
+		this.down('toolbar').down('#tbViewmode').setVisible(!torf && !this._readonlyMode) ;
 		this.down('toolbar').down('#tbCreate').setVisible(!torf && !this._readonlyMode) ;
 		if( !torf ) {
 			this.down('#pCenter').down('grid').child('headercontainer').down('checkcolumn').setVisible(false) ;
