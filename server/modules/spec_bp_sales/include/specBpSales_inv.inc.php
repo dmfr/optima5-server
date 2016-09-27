@@ -28,6 +28,8 @@ function specBpSales_inv_getRecords( $post_data ) {
 		$row['id_coef'] = (float)$paracrm_row['INV_field_ID_COEF'] ;
 		$row['cli_link'] = $paracrm_row['INV_field_CLI_LINK'] ;
 		$row['cli_link_txt'] = $paracrm_row['INV_field_CLI_LINK_entry_CLI_NAME'] ;
+		$row['cli_linktree'] = $paracrm_row['INV_field_CLI_LINK_tree_CLIGROUP_CODE'] ;
+		$row['cli_linktree_txt'] = $paracrm_row['INV_field_CLI_LINK_tree_CLIGROUP_CODE'] ;
 		$row['pay_bank'] = $paracrm_row['INV_field_PAY_BANK'] ;
 		$row['adr_sendto'] = $paracrm_row['INV_field_ADR_SENDTO'] ;
 		$row['adr_invoice'] = $paracrm_row['INV_field_ADR_INVOICE'] ;

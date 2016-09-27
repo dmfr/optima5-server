@@ -29,6 +29,8 @@ function specBpSales_cde_getRecords( $post_data ) {
 		$row['mag_link_txt'] = $paracrm_row['CDE_field_MAG_CODE_entry_MAG_LIB'] ;
 		$row['cli_link'] = $paracrm_row['CDE_field_CLI_LINK'] ;
 		$row['cli_link_txt'] = $paracrm_row['CDE_field_CLI_LINK_entry_CLI_NAME'] ;
+		$row['cli_linktree'] = $paracrm_row['CDE_field_CLI_LINK_tree_CLIGROUP_CODE'] ;
+		$row['cli_linktree_txt'] = $paracrm_row['CDE_field_CLI_LINK_tree_CLIGROUP_CODE'] ;
 		$row['cli_ref_id'] = $paracrm_row['CDE_field_CLI_REF_ID'] ;
 		$row['status_is_ship'] = $paracrm_row['CDE_field_STATUS_IS_SHIP'] ;
 		$row['status'] = $paracrm_row['CDE_field_STATUS'] ;
