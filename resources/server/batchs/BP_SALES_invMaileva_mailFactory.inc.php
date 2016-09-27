@@ -56,10 +56,12 @@ function xml_getContents( $inv_filerecord_id, $track_email ) {
 	}
 	$inv_html = $json['html'] ;
 	$inv_pdf = specBpSales_util_htmlToPdf_buffer( $inv_html ) ;
+	$pdf_pageCount = preg_match_all("/\/Page\W/", $inv_pdf, $dummy);
+	$pdf_pageCount = ( $pdf_pageCount >= 1 ? $pdf_pageCount : 1 ) ;
 	$pdf_size = strlen($inv_pdf) ;
 	$pdf_base64 = base64_encode($inv_pdf) ;
 	//$pdf_base64 = NULL ;
-
+	
 	$xml = '' ;
 	
 	$xml.= '<con:submit xmlns:con="http://connector.services.siclv2.maileva.fr/">' ;
@@ -122,7 +124,7 @@ function xml_getContents( $inv_filerecord_id, $track_email ) {
 	$xml.= "<pjs:Fold Id=\"{$randomId}\">" ;
 	$xml.= "<pjs:RecipientId>{$randomId}</pjs:RecipientId>" ;
 	$xml.= '<pjs:Documents>' ;
-	$xml.= '<pjs:Document DocumentId="001" FirstPage="1" LastPage="1">' ;
+	$xml.= "<pjs:Document DocumentId=\"001\" FirstPage=\"1\" LastPage=\"{$pdf_pageCount}\">' ;
 	$xml.= '</pjs:Document>' ;
 	$xml.= '</pjs:Documents>' ;
 	$xml.= '</pjs:Fold>' ;
