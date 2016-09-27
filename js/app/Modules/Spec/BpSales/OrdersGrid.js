@@ -191,6 +191,21 @@ Ext.define('Optima5.Modules.Spec.BpSales.OrdersGrid',{
 				return '<b>'+v+'</b>';
 			}
 		},{
+			text: 'CstGroup',
+			dataIndex: 'cli_linktree',
+			width:80,
+			hidden: true,
+			resizable: true,
+			align: 'left',
+			filter: {
+				type: 'op5crmbasebibletree',
+				optimaModule: this.optimaModule,
+				bibleId: 'CUSTOMER'
+			},
+			renderer: function(v,m,r) {
+				return r.get('cli_linktree_txt') ;
+			}
+		},{
 			text: 'Customer',
 			dataIndex: 'cli_link',
 			width:150,
@@ -199,7 +214,7 @@ Ext.define('Optima5.Modules.Spec.BpSales.OrdersGrid',{
 			filter: {
 				type: 'op5crmbasebible',
 				optimaModule: this.optimaModule,
-				bibleId: 'CDE_STATUS'
+				bibleId: 'CUSTOMER'
 			},
 			renderer: function(v,m,r) {
 				return r.get('cli_link_txt') ;
@@ -346,7 +361,7 @@ Ext.define('Optima5.Modules.Spec.BpSales.OrdersGrid',{
 			menuDisabled: (this._popupMode || this._readonlyMode ? true : false),
 			draggable: false,
 			sortable: (this._readonlyMode ? false : true),
-			hideable: false,
+			//hideable: false,
 			resizable: true,
 			groupable: false,
 			lockable: false
@@ -433,6 +448,21 @@ Ext.define('Optima5.Modules.Spec.BpSales.OrdersGrid',{
 					metaData.tdCls += ' op5-spec-bpsales-negatif' ;
 				}
 				return '<b>'+v+'</b>';
+			}
+		},{
+			text: 'CstGroup',
+			dataIndex: 'cli_linktree',
+			width:80,
+			hidden: true,
+			resizable: true,
+			align: 'left',
+			filter: {
+				type: 'op5crmbasebibletree',
+				optimaModule: this.optimaModule,
+				bibleId: 'CUSTOMER'
+			},
+			renderer: function(v,m,r) {
+				return r.get('cli_linktree_txt') ;
 			}
 		},{
 			text: 'Customer',
@@ -563,7 +593,7 @@ Ext.define('Optima5.Modules.Spec.BpSales.OrdersGrid',{
 			menuDisabled: (this._popupMode || this._readonlyMode ? true : false),
 			draggable: false,
 			sortable: (this._readonlyMode ? false : true),
-			hideable: false,
+			//hideable: false,
 			resizable: true,
 			groupable: false,
 			lockable: false
