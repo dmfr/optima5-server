@@ -89,7 +89,7 @@ $query = "SELECT ipp.field_SEND_REF, i.filerecord_id FROM view_file_INV i
 	WHERE i.field_STATUS_IS_FINAL='1'
 	AND (ip.field_SEND_IS_OK IS NULL OR ip.field_SEND_IS_OK<>'1')
 	AND (ipp.field_SEND_IS_OK='1')
-	AND i.field_CALC_AMOUNT_FINAL > '0'" ;
+	AND ABS(i.field_CALC_AMOUNT_FINAL) > '0'" ;
 $result = $_opDB->query($query) ;
 while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 	$factor_SEND_REF = $arr[0] ;
