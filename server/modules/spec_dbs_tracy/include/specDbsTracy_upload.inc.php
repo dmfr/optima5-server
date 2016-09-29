@@ -150,6 +150,9 @@ function specDbsTracy_upload( $post_data ) {
 		case 'DATAIMPORT_MB51' :
 			$ret = specDbsTracy_upload_DATAIMPORT($handle,'MB51') ;
 			break ;
+		case 'DATAIMPORT_INPUTPODLTA' :
+			$ret = specDbsTracy_upload_DATAIMPORT($handle,'INPUT_PODLTA') ;
+			break ;
 		default :
 			return array('success'=>false);
 	}
