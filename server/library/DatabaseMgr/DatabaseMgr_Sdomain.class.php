@@ -1280,6 +1280,8 @@ EOF;
 		$table_name = 'store_file_'.$file_code ;
 		$query = "DROP TABLE IF EXISTS {$sdomain_db}.{$table_name}" ;
 		$_opDB->query($query) ;
+		
+		$this->sdomainDefine_buildFilesVuid( $sdomain_id ) ;
 	}
 	
 	public function sdomainDump_export( $sdomain_id, $handle_out ) {
