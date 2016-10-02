@@ -14,7 +14,7 @@ function specDbsTracy_cfg_doInit( $post_data ) {
 	if( isset($_SESSION['login_data']['delegate_sdomainId']) ) {
 		return array('success'=>true) ;
 	}
-	specDbsTracy_lib_calc_perf() ;
+	//specDbsTracy_lib_calc_perf() ;
 	return array('success'=>true) ;
 }
 

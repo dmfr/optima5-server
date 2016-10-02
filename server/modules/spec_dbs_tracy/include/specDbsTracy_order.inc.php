@@ -87,6 +87,8 @@ function specDbsTracy_order_getRecords( $post_data ) {
 	$query.= " WHERE 1" ;
 	if( isset($filter_orderFilerecordId_list) ) {
 		$query.= " AND ca.filerecord_parent_id IN {$filter_orderFilerecordId_list}" ;
+	} elseif( !$filter_archiveIsOn ) {
+		$query.= " AND ca.filerecord_parent_id IN (SELECT filerecord_id FROM view_file_CDE WHERE field_ARCHIVE_IS_ON='0')" ;
 	}
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
@@ -106,6 +108,8 @@ function specDbsTracy_order_getRecords( $post_data ) {
 	$query.= " WHERE 1" ;
 	if( isset($filter_orderFilerecordId_list) ) {
 		$query.= " AND cs.filerecord_parent_id IN {$filter_orderFilerecordId_list}" ;
+	} elseif( !$filter_archiveIsOn ) {
+		$query.= " AND cs.filerecord_parent_id IN (SELECT filerecord_id FROM view_file_CDE WHERE field_ARCHIVE_IS_ON='0')" ;
 	}
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
@@ -125,6 +129,8 @@ function specDbsTracy_order_getRecords( $post_data ) {
 	$query.= " WHERE 1" ;
 	if( isset($filter_orderFilerecordId_list) ) {
 		$query.= " AND ce.filerecord_parent_id IN {$filter_orderFilerecordId_list}" ;
+	} elseif( !$filter_archiveIsOn ) {
+		$query.= " AND ce.filerecord_parent_id IN (SELECT filerecord_id FROM view_file_CDE WHERE field_ARCHIVE_IS_ON='0')" ;
 	}
 	$query.= " ORDER BY filerecord_id";
 	$result = $_opDB->query($query) ;

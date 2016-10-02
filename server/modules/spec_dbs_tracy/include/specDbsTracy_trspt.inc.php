@@ -73,6 +73,8 @@ function specDbsTracy_trspt_getRecords( $post_data ) {
 	$query.= " WHERE 1" ;
 	if( isset($filter_trsptFilerecordId_list) ) {
 		$query.= " AND te.filerecord_parent_id IN {$filter_trsptFilerecordId_list}" ;
+	} elseif( !$filter_archiveIsOn ) {
+		$query.= " AND te.filerecord_parent_id IN (SELECT filerecord_id FROM view_file_TRSPT WHERE field_ARCHIVE_IS_ON='0')" ;
 	}
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
@@ -91,6 +93,8 @@ function specDbsTracy_trspt_getRecords( $post_data ) {
 	$query.= " WHERE 1" ;
 	if( isset($filter_trsptFilerecordId_list) ) {
 		$query.= " AND tc.filerecord_parent_id IN {$filter_trsptFilerecordId_list}" ;
+	} elseif( !$filter_archiveIsOn ) {
+		$query.= " AND tc.filerecord_parent_id IN (SELECT filerecord_id FROM view_file_TRSPT WHERE field_ARCHIVE_IS_ON='0')" ;
 	}
 	$result = $_opDB->query($query) ;
 	$filter_orderFilerecordId_arr = array() ;
