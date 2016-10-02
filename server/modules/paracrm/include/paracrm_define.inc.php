@@ -17,23 +17,30 @@ function paracrm_define_getMainToolbar($post_data, $auth_bypass=FALSE )
 	}
 	
 	// Cache des "counts"
-	$count_bibles = $count_files = array() ;
-	$query = "SELECT table_name, TABLE_ROWS 
-					FROM INFORMATION_SCHEMA.TABLES 
-					WHERE TABLE_SCHEMA = DATABASE()" ;
-	$result = $_opDB->query($query) ;
-	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
-		$db_table = $arr[0] ;
-		$count = $arr[1] ;
-		
-		if( strpos($db_table,'store_bible_') === 0 && substr($db_table,-6)=='_entry' ) {
-			$bible_code = substr( substr($db_table, strlen('store_bible_')) , 0 , -1 * strlen('_entry') );
-			$count_bibles[$bible_code] = $count ;
+	if( !$GLOBALS['cache_counts'] ) {
+		$count_bibles = $count_files = array() ;
+		$query = "SELECT table_name, TABLE_ROWS 
+						FROM INFORMATION_SCHEMA.TABLES 
+						WHERE TABLE_SCHEMA = DATABASE()" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$db_table = $arr[0] ;
+			$count = $arr[1] ;
+			
+			if( strpos($db_table,'store_bible_') === 0 && substr($db_table,-6)=='_entry' ) {
+				$bible_code = substr( substr($db_table, strlen('store_bible_')) , 0 , -1 * strlen('_entry') );
+				$count_bibles[$bible_code] = $count ;
+			}
+			if( strpos($db_table,'store_file_') === 0 ) {
+				$file_code = substr($db_table, strlen('store_file_'));
+				$count_files[$file_code] = $count ;
+			}
 		}
-		if( strpos($db_table,'store_file_') === 0 ) {
-			$file_code = substr($db_table, strlen('store_file_'));
-			$count_files[$file_code] = $count ;
-		}
+		$GLOBALS['cache_counts']['count_bibles'] = $count_bibles ;
+		$GLOBALS['cache_counts']['count_files'] = $count_files ;
+	} else {
+		$count_bibles = $GLOBALS['cache_counts']['count_bibles'] ;
+		$count_files = $GLOBALS['cache_counts']['count_files'] ;
 	}
 	
 	switch( $post_data['data_type'] )
