@@ -31,7 +31,7 @@ class MySQL_DB {
 		$this->db_name = $db ;
 		
 		// echo "CONNECT !!!" ;
-		mysql_query( "SET storage_engine=MYISAM", $this->connection ) ;
+		//mysql_query( "SET storage_engine=MYISAM", $this->connection ) ;
 		
 		if( $db ) {
 			foreach( $this->db_tables(NULL) as $dbtab )
@@ -52,7 +52,7 @@ class MySQL_DB {
 		$this->type_de_base = "MySQL" ;
 		$this->db_name = $db ;
 		
-		mysql_query( "SET storage_engine=MYISAM", $this->connection ) ;
+		//mysql_query( "SET storage_engine=MYISAM", $this->connection ) ;
 	}
 
 	function connect_pgsql( $host, $db, $user, $pass ) {
