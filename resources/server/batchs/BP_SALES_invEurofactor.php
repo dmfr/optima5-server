@@ -108,16 +108,19 @@ if( TRUE ) {
 $arr_invFilerecordIds = array() ;
 
 // ************ Chargement INV **************
-$query = "SELECT i.filerecord_id FROM view_file_INV i
+$query = "SELECT i.filerecord_id, i.field_CLI_LINK FROM view_file_INV i
 	INNER JOIN view_bible_CUSTOMER_entry c ON c.entry_key = i.field_CLI_LINK
 	LEFT OUTER JOIN view_file_INV_PEER ip ON ip.filerecord_parent_id=i.filerecord_id
 		AND ip.field_PEER_CODE='{$GLOBALS['_cfg_peer_code']}'
 	WHERE i.field_STATUS_IS_FINAL='1' and (ip.field_SEND_IS_OK IS NULL OR ip.field_SEND_IS_OK<>'1')
-	AND ABS(i.field_CALC_AMOUNT_FINAL) > '0'
-	AND ( c.field_FACTOR_ID IS NOT NULL AND c.field_FACTOR_ID <> '')" ;
+	AND ABS(i.field_CALC_AMOUNT_FINAL) > '0'" ;
 $result = $_opDB->query($query) ;
 while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 	$filerecord_id = $arr[0] ;
+	$field_CLI_LINK = $arr[1] ;
+	if( !lookup_factorId($field_CLI_LINK) ) {
+		continue ;
+	}
 	$arr_invFilerecordIds[] = $filerecord_id ;
 }
 if( !$arr_invFilerecordIds ) {

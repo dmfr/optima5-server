@@ -32,7 +32,7 @@ function xml_getContents( $inv_filerecord_id, $track_email ) {
 
 	$randomId = rand( pow(10,5) , pow(10,6)-1 ) ;
 	
-	$query = "SELECT i.*, c.field_FACTOR_ID as field_CUSTOMER_FACTOR_ID
+	$query = "SELECT i.*
 		FROM view_file_INV i
 		INNER JOIN view_bible_CUSTOMER_entry c ON c.entry_key = i.field_CLI_LINK
 		WHERE filerecord_id='{$inv_filerecord_id}'" ;

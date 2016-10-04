@@ -1,10 +1,22 @@
 <?php
+function lookup_factorId( $customer_entryKey ) {
+	//Query customer
+	$customer_entry = paracrm_lib_data_getRecord_bibleEntry('CUSTOMER',$customer_entryKey) ;
+	$customer_treenode = paracrm_lib_data_getRecord_bibleTreenode('CUSTOMER',$customer_entry['treenode_key'],$ascend_on_empty=TRUE) ;
+	
+	if( $customer_treenode['field_GLOBAL_FACTOR_ID'] ) {
+		return $customer_treenode['field_GLOBAL_FACTOR_ID'] ;
+	}
+	return $customer_entry['field_FACTOR_ID'] ;
+}
+
+
 function mail_getBinary_remiseTxt( $arr_invFilerecordIds ) { // return String (binarybuffer)
 	global $_opDB ;
 	
 	$buffer = '' ;
 	foreach( $arr_invFilerecordIds as $inv_filerecord_id ) {
-		$query = "SELECT i.*, c.field_FACTOR_ID as field_CUSTOMER_FACTOR_ID
+		$query = "SELECT i.*
 			FROM view_file_INV i
 			INNER JOIN view_bible_CUSTOMER_entry c ON c.entry_key = i.field_CLI_LINK
 			WHERE filerecord_id='{$inv_filerecord_id}'" ;
@@ -44,7 +56,7 @@ function mail_getBinary_remiseTxt( $arr_invFilerecordIds ) { // return String (b
 		$lig = substr_mklig($lig,';',32,1) ;
 		$lig = substr_mklig($lig,'0000000',33,7) ;
 		$lig = substr_mklig($lig,';',40,1) ;
-		$lig = substr_mklig($lig,$arr['field_CUSTOMER_FACTOR_ID'],41,15) ;
+		$lig = substr_mklig($lig,lookup_factorId($arr['field_CLI_LINK']),41,15) ;
 		$lig = substr_mklig($lig,';',56,1) ;
 		$lig = substr_mklig($lig,'',57,23) ;
 		$lig = substr_mklig($lig,';',80,1) ;
@@ -95,7 +107,7 @@ function mail_getBody( $arr_invFilerecordIds ) {
 	$email_base = "               |        |           |           |          |          " ;
 	
 	foreach( $arr_invFilerecordIds as $inv_filerecord_id ) {
-		$query = "SELECT i.*, c.field_FACTOR_ID as field_CUSTOMER_FACTOR_ID
+		$query = "SELECT i.*
 			FROM view_file_INV i
 			INNER JOIN view_bible_CUSTOMER_entry c ON c.entry_key = i.field_CLI_LINK
 			WHERE filerecord_id='{$inv_filerecord_id}'" ;
@@ -110,7 +122,7 @@ function mail_getBody( $arr_invFilerecordIds ) {
 		}
 		
 		$lig = $email_base ;
-		$lig = substr_mklig($lig,$arr['field_CUSTOMER_FACTOR_ID'],0,15) ;
+		$lig = substr_mklig($lig,$arr['field_CLI_LINK'],0,15) ;
 		$lig = substr_mklig($lig,date('d/m/y',$time_invoice),16,8) ;
 		$lig = substr_mklig($lig,preg_replace("/[^a-zA-Z0-9]/", "",$arr['field_ID_INV']),25,11) ;
 		$lig = substr_mklig($lig,number_format(round($arr['field_CALC_AMOUNT_FINAL'],2),2),37,10,true) ;
