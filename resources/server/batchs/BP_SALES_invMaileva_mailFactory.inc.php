@@ -124,7 +124,7 @@ function xml_getContents( $inv_filerecord_id, $track_email ) {
 	$xml.= "<pjs:Fold Id=\"{$randomId}\">" ;
 	$xml.= "<pjs:RecipientId>{$randomId}</pjs:RecipientId>" ;
 	$xml.= '<pjs:Documents>' ;
-	$xml.= "<pjs:Document DocumentId=\"001\" FirstPage=\"1\" LastPage=\"{$pdf_pageCount}\">' ;
+	$xml.= "<pjs:Document DocumentId=\"001\" FirstPage=\"1\" LastPage=\"{$pdf_pageCount}\">" ;
 	$xml.= '</pjs:Document>' ;
 	$xml.= '</pjs:Documents>' ;
 	$xml.= '</pjs:Fold>' ;
