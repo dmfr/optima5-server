@@ -378,12 +378,31 @@ function paracrm_queries_qsql_lib_exec($querystring, $is_rw=FALSE, $auth_bypass=
 	$mysqli->query("SET NAMES UTF8") ;
 	$q=0 ;
 	// print_r( SqlParser::split_sql($querystring) ) ;
+	@ini_set('pcre.backtrack_limit', PHP_INT_MAX); // HACK
 	foreach( SqlParser::split_sql($querystring) as $query ) {
 		if( !trim($query) ) {
 			continue ;
 		}
 		$q++ ;
-		$result = $mysqli->query($query) ;
+		
+		$result = NULL ;
+		$mysqli->query($query, MYSQLI_ASYNC | MYSQLI_USE_RESULT);
+		$links = $errors = $reject = array();
+		$links[] = $errors[] = $reject[] = $mysqli;
+		$seconds = 30;  // wait up to 30 seconds
+		if (mysqli_poll($links, $errors, $reject, $seconds) > 0) {
+			$result = $mysqli->reap_async_query();
+		} else {
+			// Timeout
+			$TAB[] = array(
+				'tab_title' => 'Q'.$q,
+				'columns' => array(),
+				'data' => array(),
+				'SQL_debug'=>array('sql_query'=>$query, 'sql_error'=>'MYSQLI poll timeout')
+			);
+			continue ;
+		}
+		
 		if( $result===TRUE ) {
 			// INSERT , UPDATE, DELETE, ..... CREATE
 			continue ;
