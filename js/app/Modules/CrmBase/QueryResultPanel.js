@@ -281,7 +281,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 					singleExpand: false,
 					// viewConfig:{toggleOnDblClick: false},
 					columns: columns,
-					plugins: [Ext.create('Ext.ux.ColumnAutoWidthPlugin', {allColumns:true, minAutoWidth:90, singleOnly:true})],
+					//plugins: [Ext.create('Ext.ux.ColumnAutoWidthPlugin', {allColumns:true, minAutoWidth:90, singleOnly:true})],
 					listeners: {
 						itemcontextmenu: me.onRowRightClick,
 						scope:me
@@ -319,7 +319,7 @@ Ext.define('Optima5.Modules.CrmBase.QueryResultPanel' ,{
 						scope:me
 					},
 					plugins: [
-						Ext.create('Ext.ux.ColumnAutoWidthPlugin', {allColumns:true, minAutoWidth:90, singleOnly:true}),
+						//Ext.create('Ext.ux.ColumnAutoWidthPlugin', {allColumns:true, minAutoWidth:90, singleOnly:true}),
 					{
 						ptype: 'bufferedrenderer'
 					}],
