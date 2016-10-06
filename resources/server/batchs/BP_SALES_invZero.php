@@ -40,9 +40,6 @@ while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 	$filerecord_id = $arr[0] ;
 	$arr_invFilerecordIds[] = $filerecord_id ;
 }
-if( !$arr_invFilerecordIds ) {
-	exit ;
-}
 
 foreach( $arr_invFilerecordIds as $inv_filerecord_id ) {
 	foreach( $_arr_peerCodes as $peerCode ) {
@@ -56,6 +53,32 @@ foreach( $arr_invFilerecordIds as $inv_filerecord_id ) {
 		}
 	}
 }
+
+
+
+
+
+$query = "select ipp.inv_filerecord_id, count(*) as nb_peers 
+	from (
+		select i.filerecord_id as inv_filerecord_id, ip.field_PEER_CODE
+		from view_file_INV i
+		JOIN view_file_INV_PEER ip 
+			ON ip.filerecord_parent_id=i.filerecord_id 
+			AND ip.field_PEER_CODE IN ".$_opDB->makeSQLlist($_arr_peerCodes)."
+			AND ip.field_SEND_IS_OK='1'
+		WHERE i.field_STATUS<>'99_CLOSED'
+	) ipp
+	GROUP BY inv_filerecord_id
+	HAVING nb_peers='3'" ;
+$result = $_opDB->query($query) ;
+while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+	$inv_filerecord_id = $arr[0] ;
+	
+	specBpSales_inv_lib_close($inv_filerecord_id) ;
+}
+
+
+
 
 exit ;
 ?>
