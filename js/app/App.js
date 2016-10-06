@@ -290,21 +290,6 @@ Ext.define('Optima5.App',{
 				moduleExecRecord : adminModuleExec,
 				scope: me
 			}) ;
-			
-			// Ajout de l'applet SQL
-			var sqlModuleRecord = modulesLib.modulesGetById('sql') ;
-			var sqlModuleExec = Ext.ux.dams.ModelManager.create('OptimaModuleExecModel',{
-				moduleId: sqlModuleRecord.get('moduleId'),
-				params:[]
-			}) ;
-			sdomainItems.push({
-				text: '<b>'+sqlModuleRecord.get('moduleName')+'</b>',
-				iconCls: iconsLib.iconGetCls16(sqlModuleRecord.get('iconCode')),
-				handler : me.onModuleItemClick,
-				moduleExecRecord : sqlModuleExec,
-				scope: me
-			}) ;
-			
 			sdomainItems.push('-') ;
 		}
 		if( true ) {
