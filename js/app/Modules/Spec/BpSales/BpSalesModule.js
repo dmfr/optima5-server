@@ -104,7 +104,10 @@ Ext.define('BpSalesInvModel',{
 		{name: 'calc_amount_final', type:'number'},
 		
 		{name: 'status_is_final', type:'boolean'},
-		{name: 'status_is_sent', type:'boolean'}
+		{name: 'status', type:'string'},
+		{name: 'status_txt', type:'string'},
+		{name: 'status_percent', type:'int'},
+		{name: 'status_color', type:'string'}
 	],
 	hasMany: [{
 		model: 'BpSalesInvLigModel',

@@ -493,31 +493,28 @@ Ext.define('Optima5.Modules.Spec.BpSales.OrdersGrid',{
 			dataIndex: 'status',
 			width: 100,
 			align: 'center',
+			filter: {
+				type: 'op5crmbasebible',
+				optimaModule: this.optimaModule,
+				bibleId: 'CDE_STATUS'
+			},
 			renderer: function(v,m,record) {
-				var tmpProgress, tmpText, tmpColor ;
-				if( record.get('status_is_final') ) {
-					tmpColor = '' ;
-					tmpText = 'Final' ;
-					tmpProgress = 100/100 ;
-				} else {
-					tmpColor = 'red' ;
-					tmpText = 'Open' ;
-					tmpProgress = 30/100 ;
-				}
-				var b = new Ext.ProgressBar({height: 15, cls: 'op5-spec-mrfoxy-promolist-progress'});
-				switch( tmpColor ) {
-					case 'green' :
-						b.addCls('op5-spec-mrfoxy-promolist-progresscolorgreen') ;
-						break ;
-					case 'red' :
-						b.addCls('op5-spec-mrfoxy-promolist-progresscolor') ;
-						break ;
-					default :
-						break ;
-				}
-				b.updateProgress(tmpProgress,tmpText);
-				v = Ext.DomHelper.markup(b.getRenderTree());
-				b.destroy() ;
+				var tmpProgress = record.get('status_percent') / 100 ;
+				var tmpText = record.get('status_txt') ;
+					var b = new Ext.ProgressBar({height: 15, cls: 'op5-spec-mrfoxy-promolist-progress'});
+					switch( record.get('status_color') ) {
+						case 'green' :
+							b.addCls('op5-spec-mrfoxy-promolist-progresscolorgreen') ;
+							break ;
+						case 'red' :
+							b.addCls('op5-spec-mrfoxy-promolist-progresscolor') ;
+							break ;
+						default :
+							break ;
+					}
+					b.updateProgress(tmpProgress,tmpText);
+					v = Ext.DomHelper.markup(b.getRenderTree());
+					b.destroy() ;
 				return v;
 			}
 		},{

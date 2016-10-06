@@ -40,7 +40,17 @@ function specBpSales_inv_getRecords( $post_data ) {
 		$row['calc_amount_final'] = $paracrm_row['INV_field_CALC_AMOUNT_FINAL'] ;
 		
 		$row['status_is_final'] = $paracrm_row['INV_field_STATUS_IS_FINAL'] ;
-		$row['status_is_sent'] = $paracrm_row['INV_field_STATUS_IS_SENT'] ;
+		$row['status'] = $paracrm_row['INV_field_STATUS'] ;
+		$row['status_txt'] = $paracrm_row['INV_field_STATUS_entry_STATUS_TXT'] ;
+		$row['status_percent'] = $paracrm_row['INV_field_STATUS_entry_PERCENT'] ;
+		
+		if( $row['status_percent'] > 85 ) {
+			$row['status_color'] = '' ;
+		} elseif( $row['status_percent'] == 85 ) {
+			$row['status_color'] = 'green' ;
+		} else {
+			$row['status_color'] = 'red' ;
+		}
 		
 		$row['ligs'] = array() ;
 		
@@ -147,6 +157,7 @@ function specBpSales_inv_createFromBlank( $post_data ) {
 	$arr_ins['field_ID_COEF'] = $coef ;
 	$arr_ins['field_DATE_CREATE'] = date('Y-m-d H:i:s') ;
 	$arr_ins['field_DATE_INVOICE'] = date('Y-m-d') ;
+	$arr_ins['field_STATUS'] = '70_INVCREATE' ;
 	$inv_filerecord_id = paracrm_lib_data_insertRecord_file( 'INV', 0, $arr_ins );
 	
 	specBpSales_inv_lib_calc($inv_filerecord_id) ;
@@ -197,6 +208,7 @@ function specBpSales_inv_createFromOrder( $post_data ) {
 	$arr_ins['field_PAY_BANK'] = $customer_treenode['field_ATR_PAYBANK'] ;
 	$arr_ins['field_DATE_CREATE'] = date('Y-m-d H:i:s') ;
 	$arr_ins['field_DATE_INVOICE'] = $row_cde['date_order'] ;
+	$arr_ins['field_STATUS'] = '70_INVCREATE' ;
 	$inv_filerecord_id = paracrm_lib_data_insertRecord_file( 'INV', 0, $arr_ins );
 	
 	foreach( $row_cde['ligs'] as $row_cde_lig ) {
@@ -398,12 +410,13 @@ function specBpSales_inv_setRecord( $post_data ) {
 		foreach( $cde_records as $row_cde ) {
 			if( $row_cde['status_percent'] < 85 ) {
 				$arr_update = array() ;
-				$arr_update['field_STATUS'] = '85_INVSENT' ;
+				$arr_update['field_STATUS'] = '85_INVOK' ;
 				paracrm_lib_data_updateRecord_file( 'CDE' , $arr_update, $row_cde['cde_filerecord_id'] ) ;
 			}
 		}
 		$arr_update = array() ;
 		$arr_update['field_STATUS_IS_FINAL'] = 1 ;
+		$arr_update['field_STATUS'] = '85_INVOK' ;
 		paracrm_lib_data_updateRecord_file( 'INV' , $arr_update, $record_data['inv_filerecord_id'] ) ;
 	}
 	
@@ -451,7 +464,48 @@ function specBpSales_inv_lib_calc( $inv_filerecord_id ) {
 	paracrm_lib_data_updateRecord_file( 'INV' , $arr_update, $row_inv['inv_filerecord_id'] ) ;
 
 }
-
+function specBpSales_inv_lib_close( $inv_filerecord_id ) {
+	global $_opDB ;
+	
+	$ttmp = specBpSales_inv_getRecords(
+		array(
+			'filter_invFilerecordId_arr'=>json_encode(array($inv_filerecord_id))
+		)
+	) ;
+	foreach( $ttmp['data'] as $row_inv_test ) {
+		if( $row_inv_test['inv_filerecord_id'] == $inv_filerecord_id ) {
+			$row_inv = $row_inv_test ;
+			break ;
+		}
+	}
+	if( !$row_inv || !$row_inv['status_is_final'] ) {
+		return  ;
+	}
+	
+	$arr_cdeFilerecordIds = array() ;
+	$query = "SELECT filerecord_id FROM view_file_CDE WHERE field_LINK_INV_FILE_ID='{$row_inv['inv_filerecord_id']}'" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$arr_cdeFilerecordIds[] = $arr[0] ;
+	}
+	
+	$ttmp = specBpSales_cde_getRecords(
+		array(
+			'filter_cdeFilerecordId_arr'=> json_encode($arr_cdeFilerecordIds)
+		)
+	) ;
+	$cde_records = $ttmp['data'] ;
+	foreach( $cde_records as $row_cde ) {
+		if( $row_cde['status_percent'] < 99 ) {
+			$arr_update = array() ;
+			$arr_update['field_STATUS'] = '99_CLOSED' ;
+			paracrm_lib_data_updateRecord_file( 'CDE' , $arr_update, $row_cde['cde_filerecord_id'] ) ;
+		}
+	}
+	$arr_update = array() ;
+	$arr_update['field_STATUS'] = '99_CLOSED' ;
+	paracrm_lib_data_updateRecord_file( 'INV' , $arr_update, $row_inv['inv_filerecord_id'] ) ;
+}
 
 
 
