@@ -227,6 +227,38 @@ Ext.define('Optima5.Modules.CrmBase.MainDscWindow',{
 	},
 	
 	
+	openBible: function( bibleId ) {
+		var me = this ;
+		
+		// recherche d'une fenetre deja ouverte
+		var doOpen = true ;
+		me.optimaModule.eachWindow(function(win){
+			if( !(win instanceof Optima5.Modules.CrmBase.DataWindow) ) {
+				return true ;
+			}
+			if( win.dataType == 'bible' && win.bibleId == bibleId ) {
+				win.show() ;
+				win.focus() ;
+				doOpen = false ;
+				return false ;
+			}
+		},me) ;
+		
+		if( !doOpen ) {
+			return ;
+		}
+		
+		var win = me.optimaModule.createWindow({
+			title: '',
+			
+			dataType:'bible',
+			bibleId:bibleId
+		},Optima5.Modules.CrmBase.DataWindow) ;
+	},
+	openBibleDefineNew: function() {
+		var me = this ;
+		Optima5.Modules.CrmBase.DataWindow.sOpenDefineWindow(me.optimaModule,'bible',true) ;
+	},
 	openFile: function( fileId ) {
 		var me = this ;
 		
