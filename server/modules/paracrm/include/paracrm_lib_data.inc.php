@@ -881,7 +881,7 @@ function paracrm_lib_data_deleteRecord_file( $file_code, $filerecord_id, $ignore
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 		$db_table = 'store_file_'.$arr[0] ;
 		
-		$query = "UPDATE {$db_table} SET sync_is_deleted='O' , sync_timestamp='0' WHERE filerecord_parent_id='$delete_id'" ;
+		$query = "UPDATE {$db_table} SET sync_is_deleted='O' , sync_timestamp='0' WHERE filerecord_parent_id='{$filerecord_id}'" ;
 		$_opDB->query($query) ;
 	}
 	
