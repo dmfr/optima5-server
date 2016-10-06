@@ -1,3 +1,14 @@
+2016-07 Terminal ?
+http://www.masswerk.at/termlib/
+http://dailyjs.com/2015/01/22/terminaljs/
+
+
+
+
+2015-08-18 Sencha compile cmd :
+sencha -sdk extjs compile -classpath=extjs/packages/ext-charts/src,js/ux,js/ext,js/sch,js/app,app.js -debug=false page --compress -in=index.html -out=build/index.html
+
+
 ********* Desktop 1304 ***********
 
 2013-04-12 Model vs Store :
