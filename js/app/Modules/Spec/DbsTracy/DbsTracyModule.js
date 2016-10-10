@@ -96,7 +96,15 @@ Ext.define('DbsTracyFileOrderModel',{
 		
 		{name: 'warning_is_on', type: 'boolean'},
 		{name: 'warning_code', type: 'string'},
-		{name: 'warning_txt', type: 'string'}
+		{name: 'warning_txt', type: 'string'},
+		
+		{name: 'kpi_is_on', type: 'boolean'},
+		{name: 'kpi_is_ok', type: 'boolean', useNull: true},
+		{name: 'kpi_code', type: 'string'},
+		{name: 'kpi_txt', type: 'string'},
+		{name: 'kpi_calc_step', type:'string'},
+		{name: 'kpi_calc_date_target', type:'date', dateFormat:'Y-m-d H:i:s'},
+		{name: 'kpi_calc_date_actual', type:'date', dateFormat:'Y-m-d H:i:s'}
 	],
 	hasMany: [{
 		model: 'DbsTracyFileOrderStepModel',

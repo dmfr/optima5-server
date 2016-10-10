@@ -102,7 +102,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.CfgParamTree',{
 				break ;
 				
 			case 'WARNINGCODE' :
-				data = Optima5.Modules.Spec.DbsTracy.HelperCache.getListData('LIST_WARNINGCODE') ;
+			case 'KPICODE' :
+				data = Optima5.Modules.Spec.DbsTracy.HelperCache.getListData('LIST_'+this.cfgParam_id) ;
 				var map_nodeCode_rows = {} ;
 				Ext.Array.each( data, function(row) {
 					if( !map_nodeCode_rows.hasOwnProperty(row.node) ) {

@@ -171,6 +171,32 @@ function specDbsTracy_order_getRecords( $post_data ) {
 	}
 	unset($row_order) ;
 	
+	
+	$query = "SELECT * FROM view_file_CDE_KPI ck" ;
+	$query.= " WHERE 1" ;
+	if( isset($filter_orderFilerecordId_list) ) {
+		$query.= " AND ck.filerecord_parent_id IN {$filter_orderFilerecordId_list}" ;
+	} elseif( !$filter_archiveIsOn ) {
+		$query.= " AND ck.filerecord_parent_id IN (SELECT filerecord_id FROM view_file_CDE WHERE field_ARCHIVE_IS_ON='0')" ;
+	}
+	$query.= " ORDER BY filerecord_id";
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		if( !isset($TAB_order[$arr['filerecord_parent_id']]) ) {
+			continue ;
+		}
+		$TAB_order[$arr['filerecord_parent_id']] += array(
+			'kpi_is_on' => true,
+			'kpi_is_ok' => $arr['field_KPI_IS_OK'],
+			'kpi_code' => $arr['field_KPI_CODE'],
+			'kpi_txt' => $arr['field_KPI_TXT'],
+			'kpi_calc_step' => $arr['field_KPI_CALC_STEP'],
+			'kpi_calc_date_target' => $arr['field_KPI_CALC_DATE_TARGET'],
+			'kpi_calc_date_actual' => $arr['field_KPI_CALC_DATE_ACTUAL']
+		);
+	}
+	
+	
 	return array('success'=>true, 'data'=>array_values($TAB_order)) ;
 }
 
@@ -273,6 +299,27 @@ function specDbsTracy_order_setWarning( $post_data ) {
 		$arr_ins['field_EVENT_IS_WARNING'] = 0 ;
 		$arr_ins['field_EVENT_TXT'] = 'Warning suppressed' ;
 	}
+	$filerecord_id = paracrm_lib_data_insertRecord_file( $file_code, $post_data['order_filerecord_id'], $arr_ins );
+	
+	return array('success'=>true, 'id'=>$filerecord_id) ;
+}
+function specDbsTracy_order_setKpi( $post_data ) {
+	usleep(100*1000);
+	global $_opDB ;
+	$file_code = 'CDE_KPI' ;
+	
+	$p_orderFilerecordId = $post_data['order_filerecord_id'] ;
+	$ttmp = specDbsTracy_order_getRecords(array('filter_orderFilerecordId_arr'=>json_encode(array($p_orderFilerecordId)))) ;
+	if( !$ttmp['data'][0]['kpi_is_on'] ) {
+		return array('success'=>false,'error'=>"Order {$ttmp['data'][0]['id_dn']} has no KPI") ;
+	}
+	
+	$form_data = json_decode($post_data['data'],true) ;
+	$arr_ins = array() ;
+	$arr_ins['field_CALC_CODE'] = 'CALC' ;
+	$arr_ins['field_KPI_IS_OK'] = ($form_data['kpi_is_ok'] ? 1 : 0) ;
+	$arr_ins['field_KPI_CODE'] = $form_data['kpi_code'] ;
+	$arr_ins['field_KPI_TXT'] = $form_data['kpi_txt'] ;
 	$filerecord_id = paracrm_lib_data_insertRecord_file( $file_code, $post_data['order_filerecord_id'], $arr_ins );
 	
 	return array('success'=>true, 'id'=>$filerecord_id) ;

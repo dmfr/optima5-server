@@ -726,6 +726,44 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				return txt ;
 			}
 		},{
+			text: '<b>KPI</b>',
+			hidden: true,
+			hideable: true,
+			dataIndex: 'kpi_code',
+			width: 120,
+			align: 'center',
+			filter: {
+				type: 'op5specdbstracycfgfilter',
+				cfgParam_id: 'KPICODE',
+				cfgParam_emptyDisplayText: 'Select...',
+				optimaModule: this.optimaModule
+			},
+			renderer: function(v,metaData,record) {
+				if( !record.get('kpi_is_on') ) {
+					return ;
+				}
+				var color ;
+				switch( record.get('kpi_code') ) {
+					case 'OK' :
+						color = 'green' ;
+						break ;
+					case 'NOK' :
+						color = 'red' ;
+						break ;
+					default :
+						color = 'orange' ;
+						break ;
+				}
+				if( !record.get('kpi_is_ok') ) {
+					color = 'red' ;
+				}
+				var txt = '' ;
+				txt += '<font color="'+color+'"><b>'+record.get('kpi_code')+'</b></font>' ;
+				txt += '<br>' ;
+				txt += Ext.util.Format.nl2br( Ext.String.htmlEncode( record.get('kpi_txt') ) )
+				return txt ;
+			}
+		},{
 			hidden: true,
 			hideable: true,
 			text: 'Date Created',
@@ -1064,6 +1102,12 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		if( cellColumn.dataIndex=='warning_code' ) {
 			this.openWarningPanel( record ) ;
 			return ;
+		}
+		if( cellColumn.dataIndex=='kpi_code' ) {
+			if( record.get('kpi_is_on') ) {
+				this.openKpiPanel( record ) ;
+				return ;
+			}
 		}
 	},
 	onOrderContextMenu: function(view, record, item, index, event) {
@@ -1434,6 +1478,43 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			}],
 			
 			title: 'Warning / RedFlag'
+		});
+		
+		orderWarningPanel.on('destroy',function(validConfirmPanel) {
+			this.getEl().unmask() ;
+			this.floatingPanel = null ;
+		},this,{single:true}) ;
+		
+		this.getEl().mask() ;
+		
+		orderWarningPanel.show();
+		orderWarningPanel.getEl().alignTo(this.getEl(), 'c-c?');
+		
+		this.floatingPanel = orderWarningPanel ;
+	},
+	openKpiPanel: function( orderRecord ) {
+		if( this._readonlyMode ) {
+			return ;
+		}
+		var postParams = {} ;
+		var orderWarningPanel = Ext.create('Optima5.Modules.Spec.DbsTracy.OrderKpiPanel',{
+			optimaModule: this.optimaModule,
+			orderRecord: orderRecord,
+			width:800, // dummy initial size, for border layout to work
+			height:null, // ...
+			floating: true,
+			draggable: true,
+			resizable: true,
+			renderTo: this.getEl(),
+			tools: [{
+				type: 'close',
+				handler: function(e, t, p) {
+					p.ownerCt.destroy();
+				},
+				scope: this
+			}],
+			
+			title: 'KPI tuning'
 		});
 		
 		orderWarningPanel.on('destroy',function(validConfirmPanel) {
