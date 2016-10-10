@@ -427,6 +427,15 @@ function specDbsTracy_order_download( $post_data ) {
 		'warning_code' => 'Warning code',
 		'warning_txt' => 'Warning text'
 	);
+	$columns += array(
+		'kpi_is_on' => 'KPI calc',
+		'kpi_is_ok' => 'KPI OK ?',
+		'kpi_code' => 'KPI code',
+		'kpi_txt' => 'KPI explain',
+		'kpi_calc_step' => 'KPI step',
+		'kpi_calc_date_target' => 'KPI target',
+		'kpi_calc_date_actual' => 'KPI actual'
+	);
 	
 		$server_root = $GLOBALS['server_root'] ;
 		include("$server_root/include/xlsxwriter.class.php");
