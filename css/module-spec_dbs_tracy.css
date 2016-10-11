@@ -181,3 +181,10 @@
 	background-image: url("../images/modules/dbstracy-warning-48.png") !important;
 }
 
+
+.op5-spec-dbstracy-kpi-ok {
+	background: url('../images/op5img/ico_ok_16.gif') no-repeat center center ;
+}
+.op5-spec-dbstracy-kpi-nok {
+	background: url('../images/op5img/ico_cancel_small.gif') no-repeat center center ;
+}
