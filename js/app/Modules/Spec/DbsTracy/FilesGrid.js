@@ -738,44 +738,6 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				return txt ;
 			}
 		},{
-			text: '<b>KPI</b>',
-			hidden: true,
-			hideable: true,
-			dataIndex: 'kpi_code',
-			width: 120,
-			align: 'center',
-			filter: {
-				type: 'op5specdbstracycfgfilter',
-				cfgParam_id: 'KPICODE',
-				cfgParam_emptyDisplayText: 'Select...',
-				optimaModule: this.optimaModule
-			},
-			renderer: function(v,metaData,record) {
-				if( !record.get('kpi_is_on') ) {
-					return ;
-				}
-				var color ;
-				switch( record.get('kpi_code') ) {
-					case 'OK' :
-						color = 'green' ;
-						break ;
-					case 'NOK' :
-						color = 'red' ;
-						break ;
-					default :
-						color = 'orange' ;
-						break ;
-				}
-				if( !record.get('kpi_is_ok') ) {
-					color = 'red' ;
-				}
-				var txt = '' ;
-				txt += '<font color="'+color+'"><b>'+record.get('kpi_code')+'</b></font>' ;
-				txt += '<br>' ;
-				txt += Ext.util.Format.nl2br( Ext.String.htmlEncode( record.get('kpi_txt') ) )
-				return txt ;
-			}
-		},{
 			hidden: true,
 			hideable: true,
 			text: 'Date Created',
@@ -925,6 +887,64 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			text: '<b><i>Process steps</i></b>',
 			align: 'center',
 			columns: stepColumns
+		});
+		columns.push({
+			text: '<b><i>KPI data</i></b>',
+			align: 'center',
+			hidden: this._readonlyMode,
+			columns: [{
+				text: '<b>Raw KPI</b>',
+				dataIndex: 'kpi_is_ok_raw',
+				renderer: function( value, metadata, record ) {
+					if( value===true ) {
+						metadata.tdCls = 'op5-spec-dbstracy-kpi-ok' ;
+						return ;
+					}
+					if( value===false ) {
+						metadata.tdCls = 'op5-spec-dbstracy-kpi-nok' ;
+						return ;
+					}
+				},
+				filter: {
+					type: 'boolean',
+				}
+			},{
+				text: '<b>final KPI</b>',
+				dataIndex: 'kpi_code',
+				width: 120,
+				align: 'center',
+				filter: {
+					type: 'op5specdbstracycfgfilter',
+					cfgParam_id: 'KPICODE',
+					cfgParam_emptyDisplayText: 'Select...',
+					optimaModule: this.optimaModule
+				},
+				renderer: function(v,metaData,record) {
+					if( !record.get('kpi_is_on') ) {
+						return ;
+					}
+					var color ;
+					switch( record.get('kpi_code') ) {
+						case 'OK' :
+							color = 'green' ;
+							break ;
+						case 'NOK' :
+							color = 'red' ;
+							break ;
+						default :
+							color = 'orange' ;
+							break ;
+					}
+					if( !record.get('kpi_is_ok') ) {
+						color = 'red' ;
+					}
+					var txt = '' ;
+					txt += '<font color="'+color+'"><b>'+record.get('kpi_code')+'</b></font>' ;
+					txt += '<br>' ;
+					txt += Ext.util.Format.nl2br( Ext.String.htmlEncode( record.get('kpi_txt') ) )
+					return txt ;
+				}
+			}]
 		});
 		
 		this.tmpModelName = 'DbsTracyFileRowModel-' + this.getId() + (++this.tmpModelCnt) ;

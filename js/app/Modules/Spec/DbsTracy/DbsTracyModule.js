@@ -100,7 +100,8 @@ Ext.define('DbsTracyFileOrderModel',{
 		{name: 'warning_txt', type: 'string'},
 		
 		{name: 'kpi_is_on', type: 'boolean'},
-		{name: 'kpi_is_ok', type: 'boolean', useNull: true},
+		{name: 'kpi_is_ok_raw', type: 'boolean', allowNull: true},
+		{name: 'kpi_is_ok', type: 'boolean', allowNull: true},
 		{name: 'kpi_code', type: 'string'},
 		{name: 'kpi_txt', type: 'string'},
 		{name: 'kpi_calc_step', type:'string'},

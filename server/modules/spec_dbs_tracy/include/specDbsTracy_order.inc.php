@@ -188,6 +188,7 @@ function specDbsTracy_order_getRecords( $post_data ) {
 		}
 		$TAB_order[$arr['filerecord_parent_id']] += array(
 			'kpi_is_on' => true,
+			'kpi_is_ok_raw' => $arr['field_KPI_IS_OK_RAW'],
 			'kpi_is_ok' => $arr['field_KPI_IS_OK'],
 			'kpi_code' => $arr['field_KPI_CODE'],
 			'kpi_txt' => $arr['field_KPI_TXT'],
