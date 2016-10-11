@@ -46,6 +46,7 @@ Ext.define('DbsTracyFileOrderModel',{
 		{name: 'id_dn', type:'string'},
 		{name: 'ref_po', type:'string'},
 		{name: 'ref_invoice', type:'string'},
+		{name: 'ref_mag', type:'string'},
 		{name: 'atr_type', type:'string'},
 		{name: 'atr_priority', type:'string'},
 		{name: 'atr_incoterm', type:'string'},

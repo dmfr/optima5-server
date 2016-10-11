@@ -36,6 +36,7 @@ function specDbsTracy_order_getRecords( $post_data ) {
 			'id_dn' => $arr['field_ID_DN'],
 			'ref_po' => $arr['field_REF_PO'],
 			'ref_invoice' => $arr['field_REF_INVOICE'],
+			'ref_mag' => $arr['field_REF_MAG'],
 			'atr_type' => $arr['field_ATR_TYPE'],
 			'atr_priority' => $arr['field_ATR_PRIORITY'],
 			'atr_incoterm' => $arr['field_ATR_INCOTERM'],

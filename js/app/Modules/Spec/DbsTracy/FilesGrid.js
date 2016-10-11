@@ -661,6 +661,18 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				type: 'string'
 			}
 		},{
+			text: 'Mag#',
+			dataIndex: 'ref_mag',
+			width:80,
+			tdCls: 'op5-spec-dbstracy-bigcolumn',
+			resizable: true,
+			hidden: true,
+			hideable: true,
+			align: 'center',
+			filter: {
+				type: 'string'
+			}
+		},{
 			text: 'Incoterm',
 			dataIndex: 'atr_incoterm',
 			width:60,

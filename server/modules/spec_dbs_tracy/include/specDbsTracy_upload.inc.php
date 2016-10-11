@@ -176,10 +176,10 @@ function specDbsTracy_upload_RCLSPEC_tmp( $handle, $id_soc ) {
 	fseek($handle_priv,0) ;
 	
 	$map_idSoc_idDn_torf = array() ;
-	$query = "SELECT field_ID_SOC, field_ID_DN FROM view_file_CDE" ;
+	$query = "SELECT field_ID_SOC, field_ID_DN, filerecord_id FROM view_file_CDE" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
-		$map_idSoc_idDn_torf[$arr[0]][$arr[1]] = true ;
+		$map_idSoc_idDn_torf[$arr[0]][$arr[1]] = $arr[2] ;
 	}
 	
 	fgets($handle_priv) ;
@@ -213,6 +213,12 @@ function specDbsTracy_upload_RCLSPEC_tmp( $handle, $id_soc ) {
 		) ;
 		
 		if( $map_idSoc_idDn_torf[$form_data['id_soc']][$form_data['id_dn']] ) {
+			//MaJ Mag ?
+			$arr_cond = array() ;
+			$arr_cond['filerecord_id'] = $map_idSoc_idDn_torf[$form_data['id_soc']][$form_data['id_dn']] ;
+			$arr_update = array() ;
+			$arr_update['field_REF_MAG'] = $arr_csv[2] ;
+			$_opDB->update('view_file_CDE',$arr_update,$arr_cond) ;
 			continue ;
 		}
 		
@@ -276,6 +282,7 @@ function specDbsTracy_upload_RCLSPEC_tmp( $handle, $id_soc ) {
 		$arr_update = array() ;
 		$arr_update['field_DATE_CREATE'] = date('Y-m-d H:i:s') ;
 		$arr_update['field_DATE_INIT'] = $p_dateSM ;
+		$arr_update['field_REF_MAG'] = $arr_csv[2] ;
 		$_opDB->update('view_file_CDE',$arr_update,$arr_cond) ;
 		
 		
