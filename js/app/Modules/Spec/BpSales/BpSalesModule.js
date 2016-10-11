@@ -76,9 +76,21 @@ Ext.define('BpSalesInvLigModel',{
 		{name: 'join_coef2', type:'number'},
 		{name: 'join_coef3', type:'number'},
 		{name: 'join_vat', type:'number'},
+		{name: 'mod_is_on', type:'boolean'},
+		{name: 'mod_price', type:'number'},
+		{name: 'mod_coef1', type:'number'},
+		{name: 'mod_coef2', type:'number'},
+		{name: 'mod_coef3', type:'number'},
+		{name: 'mod_vat', type:'number'},
 		
 		{name: 'calc_amount_novat', type:'number'},
-		{name: 'calc_amount_final', type:'number'}
+		{name: 'calc_amount_final', type:'number'},
+		
+		{name: 'edit_price', type:'number', allowNull:true},
+		{name: 'edit_coef1', type:'number', allowNull:true},
+		{name: 'edit_coef2', type:'number', allowNull:true},
+		{name: 'edit_coef3', type:'number', allowNull:true},
+		{name: 'edit_vat', type:'number', allowNull:true}
 	]
 });
 Ext.define('BpSalesInvModel',{

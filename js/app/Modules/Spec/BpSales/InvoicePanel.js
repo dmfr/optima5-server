@@ -30,6 +30,7 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoiceLinesEditableGrid',{
 				listeners: {
 					edit: this.onAfterEdit,
 					canceledit: this.onCancelEdit,
+					beforeedit: this.onBeforeEdit,
 					scope: this
 				}
 			}],
@@ -73,12 +74,80 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoiceLinesEditableGrid',{
 		}
 	},
 	onAfterEdit: function(editor, editObject) {
-		var record = editObject.record ;
+		var record = editObject.record,
+			newValues = editObject.newValues;
 		// Mod 2014-03 : now actual record, unset phantom
 		record.phantom = false ;
 		this.getView().getSelectionModel().deselectAll( true ) ;
 		
+		var editKeys = ['edit_price','edit_coef1','edit_coef2','edit_coef3','edit_vat'] ;
+		var joinKeys = ['join_price','join_coef1','join_coef2','join_coef3','join_vat'] ;
+		var modKeys = ['mod_price','mod_coef1','mod_coef2','mod_coef3','mod_vat'] ;
+		
+		Ext.Array.each( editKeys, function(editKey,i) {
+			var joinKey = joinKeys[i] ;
+			if( newValues[editKey] === null ) {
+				record.set(editKey,record.get(joinKey)) ;
+			}
+		}) ;
+		
+		var hasDiff = false ;
+		Ext.Array.each( editKeys, function(editKey,i) {
+			var joinKey = joinKeys[i] ;
+			if( record.get(editKey) != record.get(joinKey) ) {
+				hasDiff = true ;
+			}
+		}) ;
+		if( hasDiff ) {
+			record.set('mod_is_on',true) ;
+			Ext.Array.each( modKeys, function(dstKey,i) {
+				var srcKey = editKeys[i] ;
+				record.set(dstKey,record.get(srcKey)) ;
+			}) ;
+		} else {
+			record.set('mod_is_on',false) ;
+			Ext.Array.each( modKeys, function(dstKey,i) {
+				var srcKey = editKeys[i] ;
+				record.set(dstKey,null) ;
+			}) ;
+		}
+		
+		record.set({
+			edit_price: null,
+			edit_coef1: null,
+			edit_coef2: null,
+			edit_coef3: null,
+			edit_vat: null
+		}) ;
+		record.phantom = false ;
+		record.dirty = false ;
+		
 		this.fireEvent('edited',this) ;
+	},
+	onBeforeEdit: function(editor, editObject) {
+		var record = editObject.record,
+			recordValues = record.data ;
+		if( record.get('mod_is_on') ) {
+			record.set({
+				edit_price: recordValues.mod_price,
+				edit_coef1: recordValues.mod_coef1,
+				edit_coef2: recordValues.mod_coef2,
+				edit_coef3: recordValues.mod_coef3,
+				edit_vat: recordValues.mod_vat
+			}) ;
+		} else {
+			record.set({
+				edit_price: recordValues.join_price,
+				edit_coef1: recordValues.join_coef1,
+				edit_coef2: recordValues.join_coef2,
+				edit_coef3: recordValues.join_coef3,
+				edit_vat: recordValues.join_vat
+			}) ;
+		}
+		record.phantom = false ;
+		record.dirty = false ;
+		
+		return ;
 	},
 	
 	onBtnAdd: function() {
@@ -116,6 +185,16 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoicePanel',{
 	
 	initComponent: function() {
 		
+		var editRenderer = function(v,metaData,r, rowIndex, colIndex) {
+			var header = this.headerCt.getHeaderAtIndex(colIndex),
+				dataKey = header.dataIndex,
+				joinKey = 'join_'+dataKey.split('_')[1],
+				modKey = 'mod_'+dataKey.split('_')[1],
+				color = ( r.get('mod_is_on') ? 'red' : 'black' ),
+				v = ( r.get('mod_is_on') ? r.get(modKey) : r.get(joinKey) ) ;
+				
+			return '<font color="'+color+'">'+v+'</font>' ;
+		}
 		
 		Ext.apply(this,{
 			layout: {
@@ -329,22 +408,30 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoicePanel',{
 						text: 'Price/ut',
 						align: 'right',
 						width: 60,
-						dataIndex: 'join_price'
+						dataIndex: 'edit_price',
+						editor:{ xtype:'numberfield', hideTrigger:true, decimalPrecision:3 },
+						renderer: editRenderer
 					},{
 						text: 'Coef 1',
 						align: 'right',
 						width: 60,
-						dataIndex: 'join_coef1'
+						dataIndex: 'edit_coef1',
+						editor:{ xtype:'numberfield', hideTrigger:true, decimalPrecision:3 },
+						renderer: editRenderer
 					},{
 						text: 'Coef 2',
 						align: 'right',
 						width: 60,
-						dataIndex: 'join_coef2'
+						dataIndex: 'edit_coef2',
+						editor:{ xtype:'numberfield', hideTrigger:true, decimalPrecision:3 },
+						renderer: editRenderer
 					},{
 						text: 'Coef 3',
 						align: 'right',
 						width: 60,
-						dataIndex: 'join_coef3'
+						dataIndex: 'edit_coef3',
+						editor:{ xtype:'numberfield', hideTrigger:true, decimalPrecision:3 },
+						renderer: editRenderer
 					},{
 						text: '<b>Excl.VAT</b>',
 						align: 'right',
@@ -361,7 +448,9 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoicePanel',{
 						text: 'VAT',
 						align: 'right',
 						width: 60,
-						dataIndex: 'join_vat'
+						dataIndex: 'edit_vat',
+						editor:{ xtype:'numberfield', hideTrigger:true, decimalPrecision:3 },
+						renderer: editRenderer
 					},{
 						text: '<b>Net</b>',
 						align: 'right',
@@ -441,7 +530,9 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoicePanel',{
 						text: 'VAT',
 						align: 'right',
 						width: 60,
-						dataIndex: 'join_vat'
+						dataIndex: 'edit_vat',
+						editor:{ xtype:'numberfield', hideTrigger:true, decimalPrecision:3 },
+						renderer: editRenderer
 					},{
 						text: '<b>Net</b>',
 						align: 'right',

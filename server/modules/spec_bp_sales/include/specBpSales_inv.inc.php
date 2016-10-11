@@ -99,6 +99,12 @@ function specBpSales_inv_getRecords( $post_data ) {
 			$row['join_coef2'] = $paracrm_row['INV_LIG_field_JOIN_COEF2'] ;
 			$row['join_coef3'] = $paracrm_row['INV_LIG_field_JOIN_COEF3'] ;
 			$row['join_vat'] = $paracrm_row['INV_LIG_field_JOIN_VAT'] ;
+			$row['mod_is_on'] = ($paracrm_row['INV_LIG_field_MOD_IS_ON']==1) ;
+			$row['mod_price'] = $paracrm_row['INV_LIG_field_MOD_PRICE'] ;
+			$row['mod_coef1'] = $paracrm_row['INV_LIG_field_MOD_COEF1'] ;
+			$row['mod_coef2'] = $paracrm_row['INV_LIG_field_MOD_COEF2'] ;
+			$row['mod_coef3'] = $paracrm_row['INV_LIG_field_MOD_COEF3'] ;
+			$row['mod_vat'] = $paracrm_row['INV_LIG_field_MOD_VAT'] ;
 			$row['calc_amount_novat'] = $paracrm_row['INV_LIG_field_CALC_AMOUNT_NOVAT'] ;
 			$row['calc_amount_final'] = $paracrm_row['INV_LIG_field_CALC_AMOUNT_FINAL'] ;
 			
@@ -379,6 +385,12 @@ function specBpSales_inv_setRecord( $post_data ) {
 		$arr_update['field_BASE_QTY'] = $row_lig['base_qty'] ;
 		$arr_update['field_STATIC_AMOUNT'] = $row_lig['static_amount'] ;
 		$arr_update['field_STATIC_TXT'] = $row_lig['static_txt'] ;
+		$arr_update['field_MOD_IS_ON'] = ($row_lig['mod_is_on'] ? 1 : 0) ;
+		$arr_update['field_MOD_PRICE'] = $row_lig['mod_price'] ;
+		$arr_update['field_MOD_COEF1'] = $row_lig['mod_coef1'] ;
+		$arr_update['field_MOD_COEF2'] = $row_lig['mod_coef2'] ;
+		$arr_update['field_MOD_COEF3'] = $row_lig['mod_coef3'] ;
+		$arr_update['field_MOD_VAT'] = $row_lig['mod_vat'] ;
 		if( !is_numeric($row_lig['invlig_filerecord_id']) ) {
 			$arr_newIds[] = paracrm_lib_data_insertRecord_file( 'INV_LIG', $record_data['inv_filerecord_id'], $arr_update );
 		} else {
@@ -449,6 +461,14 @@ function specBpSales_inv_lib_calc( $inv_filerecord_id ) {
 		$amount_novat+= $amount_base * $row_inv_lig['join_coef1'] * $row_inv_lig['join_coef2'] * $row_inv_lig['join_coef3'] ;
 		$amount_novat+= $row_inv_lig['static_amount'] ;
 		$amount_final = $amount_novat * $row_inv_lig['join_vat'] ;
+		
+		if( $row_inv_lig['mod_is_on'] ) {
+			$amount_base = $row_inv_lig['mod_price'] * $row_inv_lig['base_qty'] ;
+			$amount_novat = 0 ;
+			$amount_novat+= $amount_base * $row_inv_lig['mod_coef1'] * $row_inv_lig['mod_coef2'] * $row_inv_lig['mod_coef3'] ;
+			$amount_novat+= $row_inv_lig['static_amount'] ;
+			$amount_final = $amount_novat * $row_inv_lig['mod_vat'] ;
+		}
 		
 		$arr_update = array() ;
 		$arr_update['field_CALC_AMOUNT_NOVAT'] = $coef * $amount_novat ;
