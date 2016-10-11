@@ -906,7 +906,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 					}
 				},
 				filter: {
-					type: 'boolean',
+					type: 'boolean'
 				}
 			},{
 				text: '<b>final KPI</b>',
