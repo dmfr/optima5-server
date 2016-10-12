@@ -665,8 +665,51 @@ function paracrm_lib_dataImport_preHandle_SAP( $handle_in, $handle_out, $separat
 		}
 	}
 	
-	$is_first = TRUE ;
 	
+	// Probe number fields
+	$is_first = TRUE ;
+	fseek($handle_priv,0) ;
+	while( !feof($handle_priv) ) {
+		$arr_csv = fgetcsv($handle_priv,0,$separator) ;
+		if( !$arr_csv ) {
+			continue ;
+		}
+		if( count($arr_csv) != $max_occurences ) {
+			continue ;
+		}
+		foreach( $arr_csv as &$value ) {
+			$value = trim($value) ;
+		}
+		unset($value) ;
+		
+		if( $strip_first ) {
+			array_shift($arr_csv) ;
+		}
+		if( $strip_last ) {
+			array_pop($arr_csv) ;
+		}
+		
+		if( $is_first ) {
+			$idxs_number = array() ;
+			foreach( $arr_csv as $idx=>$field ) {
+				$idxs_number[$idx] = TRUE ;
+			}
+			
+			$is_first = FALSE ;
+			continue ;
+		}
+		
+		foreach( $arr_csv as $idx => $value ) {
+			$value = str_replace(array('-','.',','),array('','',''),$value) ;
+			if( $idxs_number[$idx] && !is_numeric($value) && strlen($value)>0 ) {
+				unset($idxs_number[$idx]) ;
+			}
+		}
+	}
+	$idxs_sapNumeric = array_keys($idxs_number) ;
+	
+	
+	$is_first = TRUE ;
 	fseek($handle_priv,0) ;
 	while( !feof($handle_priv) ) {
 		$arr_csv = fgetcsv($handle_priv,0,$separator) ;
@@ -704,6 +747,21 @@ function paracrm_lib_dataImport_preHandle_SAP( $handle_in, $handle_out, $separat
 		} elseif($arr_csv == $arr_header) {
 			continue ;
 		}
+		
+		if( $idxs_sapNumeric ) {
+			foreach( $arr_csv as $idx=>&$value ) {
+				$value = str_replace('.','',$value) ;
+				$value = str_replace(',','.',$value) ;
+				
+				$value_len = strlen($value) ;
+				$value_lastchar = $value_len-1 ;
+				if( $value[$value_lastchar]=='-' ) {
+					$value = '-'.substr($value,0,$value_lastchar) ;
+				}
+			}
+			unset($value) ;
+		}
+		
 		fputcsv($handle_out,$arr_csv) ;
 	}
 	
