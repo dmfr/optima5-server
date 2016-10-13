@@ -840,6 +840,7 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_RC( $at_date_sql ) {
 	$RES_realDays = specDbsPeople_lib_calc_getRealDays() ;
 	$where_params = array() ;
 	$where_params['condition_date_gt'] = $min_date ;
+	$RES_realDurationByDay = specDbsPeople_lib_calc_tool_runQuery( 'RC:RealDurationByDay', $where_params ) ;
 	$RES_realDurationByMonth = specDbsPeople_lib_calc_tool_runQuery( 'RC:RealDurationByMonth', $where_params ) ;
 	$RES_realDurationByWeek = specDbsPeople_lib_calc_tool_runQuery( 'RC:RealDurationByWeek', $where_params ) ;
 	$RES_minus = specDbsPeople_lib_calc_tool_runQuery( 'RC:Minus', $where_params ) ;
@@ -912,6 +913,11 @@ function specDbsPeople_lib_calc_getCalcAttributeRecords_RC( $at_date_sql ) {
 			}
 			$ISO8601_day = date('N',strtotime($date_sql)) ;
 			if( !$contract_row['std_dayson'][$ISO8601_day] ) {
+				continue ;
+			}
+			
+			if( $RES_realDurationByDay[$people_code][$date_sql] > 0 ) {
+				// Update 2016-10 : pas de réinclusion pour les jours féries travaillés (donc payés HSup)
 				continue ;
 			}
 			
