@@ -385,23 +385,7 @@ function paracrm_queries_qsql_lib_exec($querystring, $is_rw=FALSE, $auth_bypass=
 		}
 		$q++ ;
 		
-		$result = NULL ;
-		$mysqli->query($query, MYSQLI_ASYNC | MYSQLI_USE_RESULT);
-		$links = $errors = $reject = array();
-		$links[] = $errors[] = $reject[] = $mysqli;
-		$seconds = 30;  // wait up to 30 seconds
-		if (mysqli_poll($links, $errors, $reject, $seconds) > 0) {
-			$result = $mysqli->reap_async_query();
-		} else {
-			// Timeout
-			$TAB[] = array(
-				'tab_title' => 'Q'.$q,
-				'columns' => array(),
-				'data' => array(),
-				'SQL_debug'=>array('sql_query'=>$query, 'sql_error'=>'MYSQLI poll timeout')
-			);
-			continue ;
-		}
+		$result = $mysqli->query($query) ;
 		
 		if( $result===TRUE ) {
 			// INSERT , UPDATE, DELETE, ..... CREATE
