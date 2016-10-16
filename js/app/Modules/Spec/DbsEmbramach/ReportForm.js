@@ -37,6 +37,26 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.ReportForm',{
 					},
 					valueField: 'id',
 					displayField: 'text'
+				},{
+					xtype:'datefield',
+					startDay:1,
+					format: 'Y-m-d',
+					width: 180,
+					anchor: '',
+					name : 'date_start',
+					fieldLabel: 'Date from',
+					itemId : 'dateStart',
+					allowBlank: false
+				},{
+					xtype:'datefield',
+					startDay:1,
+					format: 'Y-m-d',
+					width: 180,
+					anchor: '',
+					name : 'date_end',
+					fieldLabel: 'Date to',
+					itemId : 'dateEnd',
+					allowBlank: false
 				}]
 			},{
 				xtype: 'component',

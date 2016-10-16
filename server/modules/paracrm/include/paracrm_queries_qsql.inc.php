@@ -330,7 +330,7 @@ function paracrm_queries_qsql_lib_getTables() {
 	return $arr_views ;
 }
 
-function paracrm_queries_qsql_lib_exec($querystring, $is_rw=FALSE, $auth_bypass=FALSE) {
+function paracrm_queries_qsql_lib_exec($querystring, $is_rw=FALSE, $auth_bypass=FALSE, $vars=array()) {
 	global $_opDB ;
 	
 	
@@ -376,6 +376,11 @@ function paracrm_queries_qsql_lib_exec($querystring, $is_rw=FALSE, $auth_bypass=
 	
 	$mysqli = new mysqli('localhost', $mysql_tmp_user, $mysql_tmp_user, $mysql_tmp_user);
 	$mysqli->query("SET NAMES UTF8") ;
+	if( $vars ) {
+		foreach( $vars as $mkey=>$mvalue ) {
+			$mysqli->query("SET @{$mkey} = '{$mvalue}'") ;
+		}
+	}
 	$q=0 ;
 	// print_r( SqlParser::split_sql($querystring) ) ;
 	@ini_set('pcre.backtrack_limit', PHP_INT_MAX); // HACK

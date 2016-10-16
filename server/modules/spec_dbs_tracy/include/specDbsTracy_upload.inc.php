@@ -34,7 +34,7 @@ function specDbsTracy_report( $post_data ) {
 			if( strpos($form_data['file_model'],'QSQL::')===0 ) {
 				$ttmp = explode('::',$form_data['file_model']) ;
 				$qsql_id = $ttmp[1] ;
-				specDbsTracy_report_qsql($qsql_id) ;
+				specDbsTracy_report_qsql($qsql_id,$form_data) ;
 				die() ;
 			}
 			return array('success'=>false);
@@ -46,7 +46,7 @@ function specDbsTracy_report( $post_data ) {
 	echo $csv_buffer ;
 	die() ;
 }
-function specDbsTracy_report_qsql( $qsql_id ) {
+function specDbsTracy_report_qsql( $qsql_id, $form_data ) {
 	global $_opDB ;
 	
 	$query = "SELECT * FROM qsql WHERE qsql_id='{$qsql_id}'" ;
@@ -58,7 +58,7 @@ function specDbsTracy_report_qsql( $qsql_id ) {
 	$qsql_name = preg_replace("/[^a-zA-Z0-9]/", "", $arr['qsql_name']) ;
 	$sql_querystring = $arr['sql_querystring'] ;
 	
-	$TAB = paracrm_queries_qsql_lib_exec($sql_querystring,$is_rw=FALSE,$auth_bypass=TRUE) ;
+	$TAB = paracrm_queries_qsql_lib_exec($sql_querystring,$is_rw=FALSE,$auth_bypass=TRUE,$vars=$form_data) ;
 	
 	$objPHPExcel = paracrm_queries_xls_build( $TAB, NULL ) ;
 	if( !$objPHPExcel ) {
