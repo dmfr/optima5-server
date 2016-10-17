@@ -123,7 +123,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.CfgParamTree',{
 						});
 					}) ;
 					rootChildren.push({
-						nodeId: node,
+						nodeId: 't_'+node,
 						nodeType: 'treenode',
 						nodeKey: node,
 						nodeText: node,

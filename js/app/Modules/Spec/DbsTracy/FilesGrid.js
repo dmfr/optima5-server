@@ -924,18 +924,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 						return ;
 					}
 					var color ;
-					switch( record.get('kpi_code') ) {
-						case 'OK' :
-							color = 'green' ;
-							break ;
-						case 'NOK' :
-							color = 'red' ;
-							break ;
-						default :
-							color = 'orange' ;
-							break ;
-					}
-					if( !record.get('kpi_is_ok') ) {
+					if( record.get('kpi_is_ok') ) {
+						color = 'green' ;
+					} else {
 						color = 'red' ;
 					}
 					var txt = '' ;

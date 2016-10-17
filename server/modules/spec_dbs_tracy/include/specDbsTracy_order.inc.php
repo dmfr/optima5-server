@@ -173,7 +173,8 @@ function specDbsTracy_order_getRecords( $post_data ) {
 	unset($row_order) ;
 	
 	
-	$query = "SELECT * FROM view_file_CDE_KPI ck" ;
+	$query = "SELECT ck.*, lkc.treenode_key as lkc_node FROM view_file_CDE_KPI ck" ;
+	$query.= " LEFT OUTER JOIN view_bible_LIST_KPICODE_entry lkc ON lkc.entry_key = ck.field_KPI_CODE" ;
 	$query.= " WHERE 1" ;
 	if( isset($filter_orderFilerecordId_list) ) {
 		$query.= " AND ck.filerecord_parent_id IN {$filter_orderFilerecordId_list}" ;
@@ -189,7 +190,7 @@ function specDbsTracy_order_getRecords( $post_data ) {
 		$TAB_order[$arr['filerecord_parent_id']] += array(
 			'kpi_is_on' => true,
 			'kpi_is_ok_raw' => $arr['field_KPI_IS_OK_RAW'],
-			'kpi_is_ok' => $arr['field_KPI_IS_OK'],
+			'kpi_is_ok' => ($arr['lkc_node'] == 'OK' ? true : false),
 			'kpi_code' => $arr['field_KPI_CODE'],
 			'kpi_txt' => $arr['field_KPI_TXT'],
 			'kpi_calc_step' => $arr['field_KPI_CALC_STEP'],
@@ -319,7 +320,6 @@ function specDbsTracy_order_setKpi( $post_data ) {
 	$form_data = json_decode($post_data['data'],true) ;
 	$arr_ins = array() ;
 	$arr_ins['field_CALC_CODE'] = 'CALC' ;
-	$arr_ins['field_KPI_IS_OK'] = ($form_data['kpi_is_ok'] ? 1 : 0) ;
 	$arr_ins['field_KPI_CODE'] = $form_data['kpi_code'] ;
 	$arr_ins['field_KPI_TXT'] = $form_data['kpi_txt'] ;
 	$filerecord_id = paracrm_lib_data_insertRecord_file( $file_code, $post_data['order_filerecord_id'], $arr_ins );

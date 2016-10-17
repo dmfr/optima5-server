@@ -26,11 +26,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderKpiPanel',{
 				items: [{
 					xtype: 'fieldset',
 					title: 'KPI detail',
-					items: [{
-						xtype: 'checkbox',
-						boxLabel: 'KPI success ?',
-						name: 'kpi_is_ok'
-					},Ext.create('Optima5.Modules.Spec.DbsTracy.CfgParamField',{
+					items: [Ext.create('Optima5.Modules.Spec.DbsTracy.CfgParamField',{
 						cfgParam_id: 'KPICODE',
 						cfgParam_emptyDisplayText: 'Select...',
 						optimaModule: this.optimaModule,
@@ -60,7 +56,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderKpiPanel',{
 			var headerData = {
 				id_dn: this.orderRecord.get('id_dn'),
 				atr_consignee: this.orderRecord.get('atr_consignee'),
-				date_rls: Ext.util.Format.date(this.orderRecord.steps().findRecord('step_code','10_RLS').get('date_actual'),'d/m/Y'),
+				date_rls: Ext.util.Format.date(this.orderRecord.steps().findRecord('step_code','10_RLS').get('date_actual'),'d/m/Y H:i:s'),
 				kpi_calc_step: this.orderRecord.get('kpi_calc_step'),
 				kpi_calc_date_target: Ext.util.Format.date(this.orderRecord.get('kpi_calc_date_target'),'d/m/Y H:i:s'),
 				kpi_calc_date_actual: Ext.util.Format.date(this.orderRecord.get('kpi_calc_date_actual'),'d/m/Y H:i:s')
