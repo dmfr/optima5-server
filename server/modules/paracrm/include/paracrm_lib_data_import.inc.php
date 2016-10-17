@@ -746,7 +746,6 @@ function paracrm_lib_dataImport_preHandle_SAP( $handle_in, $handle_out, $separat
 		unset($item) ;
 		if( $is_first ) {
 			$arr_header = $arr_csv ;
-			$is_first = FALSE ;
 			
 			// Réécriture du header :
 			$map_field_nbOcc = array() ;
@@ -760,7 +759,7 @@ function paracrm_lib_dataImport_preHandle_SAP( $handle_in, $handle_out, $separat
 			continue ;
 		}
 		
-		if( $idxs_sapNumeric ) {
+		if( $idxs_sapNumeric && !$is_first ) {
 			foreach( $arr_csv as $idx=>&$value ) {
 				if( !in_array($idx,$idxs_sapNumeric) || in_array($idx,$idxs_sapDate) ) {
 					continue ;
@@ -776,7 +775,7 @@ function paracrm_lib_dataImport_preHandle_SAP( $handle_in, $handle_out, $separat
 			}
 			unset($value) ;
 		}
-		if( $idxs_sapDate ) {
+		if( $idxs_sapDate && !$is_first ) {
 			foreach( $arr_csv as $idx=>&$value ) {
 				if( !in_array($idx,$idxs_sapDate) ) {
 					continue ;
@@ -786,6 +785,10 @@ function paracrm_lib_dataImport_preHandle_SAP( $handle_in, $handle_out, $separat
 				}
 			}
 			unset($value) ;
+		}
+		
+		if( $is_first ) {
+			$is_first = FALSE ;
 		}
 		
 		fputcsv($handle_out,$arr_csv) ;
