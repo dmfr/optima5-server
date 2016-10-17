@@ -691,8 +691,10 @@ function paracrm_lib_dataImport_preHandle_SAP( $handle_in, $handle_out, $separat
 		
 		if( $is_first ) {
 			$idxs_number = array() ;
+			$idxs_date = array() ;
 			foreach( $arr_csv as $idx=>$field ) {
 				$idxs_number[$idx] = TRUE ;
+				$idxs_date[$idx] = TRUE ;
 			}
 			
 			$is_first = FALSE ;
@@ -700,14 +702,24 @@ function paracrm_lib_dataImport_preHandle_SAP( $handle_in, $handle_out, $separat
 		}
 		
 		foreach( $arr_csv as $idx => $value ) {
-			$value = str_replace(array('-','.',','),array('','',''),$value) ;
+			if( !$value ) {
+				continue ;
+			}
+			if( strlen($value)==10 && preg_match('/^([0-9][0-9]).([0-9][0-9]).([0-9][0-9][0-9][0-9])$/',$value) ) {
+				// date SAP ?
+			} else {
+				unset($idxs_date[$idx]) ;
+			}
+		
+			$value = str_replace(array('-','.',',','*'),array('','','',''),$value) ;
 			if( $idxs_number[$idx] && !is_numeric($value) && strlen($value)>0 ) {
 				unset($idxs_number[$idx]) ;
 			}
 		}
 	}
-	$idxs_sapNumeric = array_keys($idxs_number) ;
 	
+	$idxs_sapNumeric = array_keys($idxs_number) ;
+	$idxs_sapDate = array_keys($idxs_date) ;
 	
 	$is_first = TRUE ;
 	fseek($handle_priv,0) ;
@@ -750,6 +762,9 @@ function paracrm_lib_dataImport_preHandle_SAP( $handle_in, $handle_out, $separat
 		
 		if( $idxs_sapNumeric ) {
 			foreach( $arr_csv as $idx=>&$value ) {
+				if( !in_array($idx,$idxs_sapNumeric) || in_array($idx,$idxs_sapDate) ) {
+					continue ;
+				}
 				$value = str_replace('.','',$value) ;
 				$value = str_replace(',','.',$value) ;
 				
@@ -757,6 +772,17 @@ function paracrm_lib_dataImport_preHandle_SAP( $handle_in, $handle_out, $separat
 				$value_lastchar = $value_len-1 ;
 				if( $value[$value_lastchar]=='-' ) {
 					$value = '-'.substr($value,0,$value_lastchar) ;
+				}
+			}
+			unset($value) ;
+		}
+		if( $idxs_sapDate ) {
+			foreach( $arr_csv as $idx=>&$value ) {
+				if( !in_array($idx,$idxs_sapDate) ) {
+					continue ;
+				}
+				if( strlen($value) == 10 ) {
+					$value = substr($value,6,4).'-'.substr($value,3,2).'-'.substr($value,0,2) ;
 				}
 			}
 			unset($value) ;
