@@ -17,7 +17,7 @@ function paracrm_define_getMainToolbar($post_data, $auth_bypass=FALSE )
 	}
 	
 	// Cache des "counts"
-	if( !$GLOBALS['cache_counts'] ) {
+	if( !$_SESSION['cache_counts'] && session_id() ) {
 		$count_bibles = $count_files = array() ;
 		$query = "SELECT table_name, TABLE_ROWS 
 						FROM INFORMATION_SCHEMA.TABLES 
@@ -36,12 +36,11 @@ function paracrm_define_getMainToolbar($post_data, $auth_bypass=FALSE )
 				$count_files[$file_code] = $count ;
 			}
 		}
-		$GLOBALS['cache_counts']['count_bibles'] = $count_bibles ;
-		$GLOBALS['cache_counts']['count_files'] = $count_files ;
-	} else {
-		$count_bibles = $GLOBALS['cache_counts']['count_bibles'] ;
-		$count_files = $GLOBALS['cache_counts']['count_files'] ;
+		$_SESSION['cache_counts']['count_bibles'] = $count_bibles ;
+		$_SESSION['cache_counts']['count_files'] = $count_files ;
 	}
+	$count_bibles = $_SESSION['cache_counts']['count_bibles'] ;
+	$count_files = $_SESSION['cache_counts']['count_files'] ;
 	
 	switch( $post_data['data_type'] )
 	{
