@@ -2075,19 +2075,21 @@ function paracrm_queries_process_query_iteration( $arr_saisie )
 
 	
 	// Mode de calcul COUNT / VALUE
-	$doCount = $doValue = FALSE ;
+		// new 2016-10 : count by SQL direct
+		// - only for 1 count otherwise separate iterations (old system, example DN wonderful)
+	$doCount = $doValue = 0 ;
 	foreach( $arr_saisie['fields_select'] as $select_id => &$dummy ) {
 		switch( $arr_saisie['fields_select'][$select_id]['iteration_mode'] ) {
 			case 'count' :
-				$doCount = TRUE ;
+				$doCount++ ;
 				break ;
 			case 'value' :
-				$doValue = TRUE ;
+				$doValue++ ;
 				break ;
 		}
 	}
 	
-	if( $doValue && !$doCount ) {
+	if( ($doValue+$doCount)>0 && $doCount<=1 ) {
 		// new 14-05-22 : mode exclusif VALUES
 		// - mode linéaire ie. pas de chaine d'itération parent>child
 		// => 1 seule requête SQL
@@ -2098,7 +2100,6 @@ function paracrm_queries_process_query_iteration( $arr_saisie )
 			return $RES_groupKeyId_selectId_value ;
 		}
 	} 
-	
 	
 	
 	
@@ -2407,9 +2408,6 @@ function paracrm_queries_process_query_onePassValues( $arr_saisie ) {
 		}
 		
 		foreach( $arr_saisie['fields_select'] as $select_id => $field_select ) {
-			if( $field_select['iteration_mode'] != 'value' ) {
-				continue ;
-			}
 			
 			$subResIN_symbol_value = array() ;
 			// iteration sur les symboles
@@ -2421,7 +2419,10 @@ function paracrm_queries_process_query_onePassValues( $arr_saisie ) {
 				$file_code = $symbol['sql_file_code'] ;
 				$file_field_code = $symbol['sql_file_field_code'] ;
 				
-				if( $symbol['sql_bible_code'] && $symbol['sql_bible_field_code'] ) {
+				if( !$file_field_code && $field_select['iteration_mode'] == 'count' ) {
+					// Update 2016-10 : COUNT en SQL direct
+					$subResIN_symbol_value[$symbol_id] = 1 ;
+				} elseif( $symbol['sql_bible_code'] && $symbol['sql_bible_field_code'] ) {
 					switch( $symbol['sql_linktype'] ) {
 						case 'entry' :
 						$entry_key = $row_group[$file_code][$file_field_code] ;
@@ -2550,9 +2551,6 @@ function paracrm_queries_process_query_onePassValuesFast( $arr_saisie ) {
 		}
 	}
 	foreach( $arr_saisie['fields_select'] as $select_id => $field_select ) {
-		if( $field_select['iteration_mode'] != 'value' ) {
-			return FALSE ;
-		}
 		if( count($field_select['math_expression']) != 1 ) {
 			return FALSE ;
 		}
@@ -2618,6 +2616,13 @@ function paracrm_queries_process_query_onePassValuesFast( $arr_saisie ) {
 		$arr_groupId[] = $group_id ;
 	}
 	foreach( $arr_saisie['fields_select'] as $select_id => $select_field ) {
+		if( $select_field['iteration_mode'] == 'count' ) {
+			// Update 2016-10 : COUNT en SQL direct for only 1 count
+			$sqlAlias = 's'.$select_id ;
+			$select_words[] = 'count'.'('.'*'.') AS '.$sqlAlias ;
+			$arr_selectId[] = $select_id ;
+			continue ;
+		}
 		if( $select_field['iteration_mode'] != 'value' ) {
 			return FALSE ;
 		}
@@ -4387,6 +4392,9 @@ function paracrm_queries_process_labelEnumDate( $group_id, $group_date_type, $gr
 	$ttmp = array() ;
 	foreach( $_groups_hashes as $hash_key => $hash_desc )
 	{
+		if( strpos($hash_desc[$group_id],'0000')===0 ) {
+			continue ;
+		}
 		$ttmp[] = $hash_desc[$group_id] ;
 	}
 	if( !$ttmp ) {
