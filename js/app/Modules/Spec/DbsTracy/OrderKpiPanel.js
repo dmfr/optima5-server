@@ -26,7 +26,11 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderKpiPanel',{
 				items: [{
 					xtype: 'fieldset',
 					title: 'KPI detail',
-					items: [Ext.create('Optima5.Modules.Spec.DbsTracy.CfgParamField',{
+					items: [{
+						xtype: 'checkbox',
+						boxLabel: 'KPI success ?',
+						name: 'kpi_is_ok'
+					},Ext.create('Optima5.Modules.Spec.DbsTracy.CfgParamField',{
 						cfgParam_id: 'KPICODE',
 						cfgParam_emptyDisplayText: 'Select...',
 						optimaModule: this.optimaModule,

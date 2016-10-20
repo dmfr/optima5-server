@@ -923,14 +923,16 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 					if( !record.get('kpi_is_on') ) {
 						return ;
 					}
-					var color ;
+					var color, txtbase ;
 					if( record.get('kpi_is_ok') ) {
 						color = 'green' ;
+						txtbase = 'OK' ;
 					} else {
 						color = 'red' ;
+						txtbase = 'FAIL' ;
 					}
 					var txt = '' ;
-					txt += '<font color="'+color+'"><b>'+record.get('kpi_code')+'</b></font>' ;
+					txt += '<font color="'+color+'"><b>'+txtbase+' '+record.get('kpi_code')+'</b></font>' ;
 					txt += '<br>' ;
 					txt += Ext.util.Format.nl2br( Ext.String.htmlEncode( record.get('kpi_txt') ) )
 					return txt ;
@@ -1127,7 +1129,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			return ;
 		}
 		if( cellColumn.dataIndex=='kpi_code' ) {
-			if( record.get('kpi_is_on') ) {
+			if( record.get('kpi_is_on') && !record.get('kpi_is_ok_raw') ) {
 				this.openKpiPanel( record ) ;
 				return ;
 			}
