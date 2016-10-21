@@ -153,6 +153,7 @@ function paracrm_queries_qsqlTransaction_submit( $post_data , &$arr_saisie )
 	
 	$arr_saisie['sql_querystring'] = json_decode($post_data['data_sqlquerystring'],true) ;
 	$arr_saisie['sql_is_rw'] = json_decode($post_data['data_sqlwrite'],true) ; 
+	$arr_saisie['sql_is_superuser'] = json_decode($post_data['data_sqlsu'],true) ; 
 
 	return array('success'=>true) ;
 }
@@ -253,7 +254,7 @@ function paracrm_queries_qsqlTransaction_toggleAutorun( $post_data , &$arr_saisi
 
 
 function paracrm_queries_qsqlTransaction_runQuery($post_data, &$arr_saisie ) {
-	$RES = paracrm_queries_qsql_lib_exec($arr_saisie['sql_querystring'],$arr_saisie['sql_is_rw']) ;
+	$RES = paracrm_queries_qsql_lib_exec($arr_saisie['sql_querystring'],$arr_saisie['sql_is_rw'],FALSE,array(),$arr_saisie['sql_is_superuser']) ;
 	if( $RES===FALSE )
 		return array('success'=>false,'query_status'=>'NOK') ;
 		
@@ -330,14 +331,21 @@ function paracrm_queries_qsql_lib_getTables() {
 	return $arr_views ;
 }
 
-function paracrm_queries_qsql_lib_exec($querystring, $is_rw=FALSE, $auth_bypass=FALSE, $vars=array()) {
+function paracrm_queries_qsql_lib_exec($querystring, $is_rw=FALSE, $auth_bypass=FALSE, $vars=array(), $is_superuser=FALSE) {
 	global $_opDB ;
 	
+	$prefix = 'tmp' ;
+	if( $is_superuser ) {
+		if( !Auth_Manager::getInstance()->auth_is_admin() ) {
+			return NULL ;
+		}
+		$prefix = 'tsu' ;
+	}
 	
 	$query = "LOCK TABLES mysql.user WRITE" ;
 	$try = 3 ;
 	while($try > 0) {
-		$mysql_tmp_user = 'tmp'.rand ( 100000 , 999999 ) ;
+		$mysql_tmp_user = $prefix.rand ( 100000 , 999999 ) ;
 		
 		$try-- ;
 		$query = "SELECT count(*) FROM mysql.user WHERE user='{$mysql_tmp_user}'" ;
@@ -359,7 +367,9 @@ function paracrm_queries_qsql_lib_exec($querystring, $is_rw=FALSE, $auth_bypass=
 	
 	foreach( paracrm_queries_qsql_lib_getSdomains($auth_bypass) as $row_sdomain ) {
 		$current_database = $row_sdomain['database_name'] ;
-		if( $is_rw && !$auth_bypass ) {
+		if( $is_superuser ) {
+			$privileges = 'ALL PRIVILEGES' ;
+		} elseif( $is_rw && !$auth_bypass ) {
 			$privileges = 'SELECT,UPDATE,INSERT,DELETE' ;
 		} else {
 			$privileges = 'SELECT' ;

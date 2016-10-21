@@ -239,14 +239,32 @@ Ext.define('Optima5.Modules.CrmBase.QsqlPanel' ,{
 			layout: 'fit',
 			dockedItems: [{
 				xtype: 'form',
+				layout: 'hbox',
 				dock: 'top',
 				bodyCls: 'ux-noframe-bg',
 				bodyPadding: '2px 8px',
+				defaults: {
+					listeners: {
+						change: function() {
+							this.addComponentsEvalForm();
+						},
+						scope: me
+					}
+				},
 				items: [{
 					itemId: 'fIsRw',
 					xtype: 'checkbox',
 					boxLabel: 'Read / write',
 					value: ajaxData.data_sqlwrite,
+					readOnly: ajaxData.auth_readonly
+				},{
+					xtype: 'box',
+					width: 24
+				},{
+					itemId: 'fIsSuperUser',
+					xtype: 'checkbox',
+					boxLabel: '<font color="red">SuperUser</font>',
+					value: ajaxData.data_sqlsu,
 					readOnly: ajaxData.auth_readonly
 				}]
 			}],
@@ -276,6 +294,11 @@ Ext.define('Optima5.Modules.CrmBase.QsqlPanel' ,{
 		
 		// current Sdomain
 		me.filterTreeviewDatabase( this.optimaModule.getSdomainRecord().get('sdomain_id') ) ;
+		me.addComponentsEvalForm() ;
+	},
+	addComponentsEvalForm: function() {
+		var me = this ;
+		me.down('#fIsSuperUser').setVisible( me.down('#fIsRw').getValue() ) ;
 	},
 	addComponentsOnRenderTextarea: function(field) {
 		var me = this ;
@@ -427,7 +450,8 @@ Ext.define('Optima5.Modules.CrmBase.QsqlPanel' ,{
 			_subaction: 'submit',
 					  
 			data_sqlquerystring: Ext.JSON.encode(me.down('#fQuerystring').getValue()),
-			data_sqlwrite: ( me.down('#fIsRw').getValue() ? 1 : 0 )
+			data_sqlwrite: ( me.down('#fIsRw').getValue() ? 1 : 0 ),
+			data_sqlsu: ( me.down('#fIsSuperUser').getValue() ? 1 : 0 )
 		});
 		
 		me.optimaModule.getConfiguredAjaxConnection().request({
@@ -586,6 +610,7 @@ Ext.define('Optima5.Modules.CrmBase.QsqlPanel' ,{
 		});
 		
 		me.optimaModule.getConfiguredAjaxConnection().request({
+			timeout: (10 * 60 * 1000),
 			params: ajaxParams ,
 			success: function(response) {
 				msgbox.close() ;
