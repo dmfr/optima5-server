@@ -473,7 +473,7 @@ Ext.define('Optima5.Modules.Spec.BpSales.OrdersGrid',{
 			filter: {
 				type: 'op5crmbasebible',
 				optimaModule: this.optimaModule,
-				bibleId: 'CDE_STATUS'
+				bibleId: 'CUSTOMER'
 			},
 			renderer: function(v,m,r) {
 				return r.get('cli_link_txt') ;

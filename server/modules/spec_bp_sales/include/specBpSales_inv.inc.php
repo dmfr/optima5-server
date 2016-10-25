@@ -639,6 +639,14 @@ function specBpSales_inv_printDoc( $post_data ) {
 	
 	$table_data = array() ;
 	foreach( array_reverse($inv_record['ligs']) as $invlig_record ) {
+		if( $invlig_record['mod_is_on'] ) {
+			$invlig_record['join_price'] = $invlig_record['mod_price'] ;
+			$invlig_record['join_coef1'] = $invlig_record['mod_coef1'] ;
+			$invlig_record['join_coef2'] = $invlig_record['mod_coef2'] ;
+			$invlig_record['join_coef3'] = $invlig_record['mod_coef3'] ;
+			$invlig_record['join_vat'] = $invlig_record['mod_vat'] ;
+		}
+		
 		$row_table = array(
 			'join_coef1' => (100 - ($invlig_record['join_coef1'] * 100)).' %',
 			'join_coef2' => (100 - ($invlig_record['join_coef2'] * 100)).' %',
