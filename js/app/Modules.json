@@ -164,5 +164,15 @@
 		"moduleCssSrc":"module-spec_dbs_tracy.css",
 		"moduleType":"sdomain",
 		"params": []
+	},{
+		"enabled":true,
+		"moduleId":"spec_rsi_recouveo",
+		"backendModuleId":"crmbase",
+		"parentModuleId":"crmbase",
+		"moduleName":"(RSI) Recouveo",
+		"moduleClass":"Optima5.Modules.Spec.RsiRecouveo.RsiRecouveoModule",
+		"moduleCssSrc":"module-spec_rsi_recouveo.css",
+		"moduleType":"sdomain",
+		"params": []
 	}
 ]

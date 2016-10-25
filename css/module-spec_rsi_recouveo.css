@@ -1,0 +1,103 @@
+.op5-spec-rsiveo-logo {
+	background-image: url("../images/modules/wbbudget-logo.png") !important;
+	background-position: center center;
+	background-repeat: no-repeat;
+	width:100% ;
+	height:100% ;
+	opacity: 0 ;
+}
+
+.op5-spec-rsiveo-mainmenu {
+	background: rgb(159, 159, 159);
+	background-attachment: scroll;
+	background-clip: border-box;
+	background-image: -ms-radial-gradient(center top, #4b7e98 0%, #1a334c 100%);
+	background-image: -moz-radial-gradient(center top, #4b7e98 0%, #1a334c 100%);
+	background-image: -webkit-gradient(radial, center top, 0, center top, 900, from(rgb(75, 126, 152)), to(rgb(26, 51, 76)));
+	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#4b7e98', endColorstr='#1a334c');
+	background-origin: padding-box;
+	background-position: 0 0;
+	background-repeat: repeat;
+	background-size: 100% 100%;
+	
+	text-align:center;
+}
+
+.op5-spec-rsiveo-mainmenu .op5-spec-rsiveo-mainmenu-item {
+	display:block;
+	position:absolute;
+}
+.op5-spec-rsiveo-mainmenu .op5-spec-rsiveo-mainmenu-header {
+	background-position: 0 0;
+	background-repeat: no-repeat;
+	background-image: url("../images/modules/rsiveo-mainmenu-logo.png") !important;
+	display:block;
+	width: 368px;
+	height: 100px;
+	margin: 5px ;
+}
+.op5-spec-rsiveo-mainmenu .op5-spec-rsiveo-mainmenu-separator {
+	padding: 5px;
+	margin: 0px 5px;
+	color: rgb(204, 204, 204);
+	border-bottom: 1px solid rgb(204, 204, 204);
+	display:block;
+	text-align:left;
+	font-size: 14px;
+}
+.op5-spec-rsiveo-mainmenu .op5-spec-rsiveo-mainmenu-action {
+	margin: 5px;
+	padding: 5px;
+	text-align: center;
+	color: rgb(255, 255, 255);
+	text-shadow: 1px 1px rgb(0, 0, 0);
+	width: 104px;
+	height: 124px;
+	overflow: hidden;
+	cursor: pointer;
+	z-index: 1;
+	font-size: 14px;	
+}
+.op5-spec-rsiveo-mainmenu .op5-spec-rsiveo-mainmenu-item-over .op5-spec-rsiveo-mainmenu-action {
+	background-color: rgb(37, 68, 93);
+	border: 1px solid rgb(221, 221, 221);
+	padding: 4px;
+	-moz-border-radius: 10px;
+	border-radius: 10px !important;
+	z-index: 2;
+}
+.op5-spec-rsiveo-mainmenu .op5-spec-rsiveo-mainmenu-action-icon {
+	width: 64px;
+	height: 64px;
+	margin: 10px auto;
+}
+
+
+
+.op5-spec-rsiveo-mmenu-agenda {
+	background-image: url("../images/modules/rsiveo-agenda-64.png") !important;
+}
+
+
+.op5-spec-rsiveo-alm .x-grid-cell-inner {
+	background-color: rgba(255,190,121,0.4) ;
+}
+.op5-spec-rsiveo-pis .x-grid-cell-inner {
+	background-color: rgba(183,235,113,0.4) ;
+}
+.op5-spec-rsiveo-pom .x-grid-cell-inner {
+	background-color: rgba(255,122,122,0.4) ;
+}
+
+.op5-spec-rsiveo-negatif .x-form-text {
+	color: red ;
+	font-weight: bold;
+}
+.op5-spec-rsiveo-negatif .x-grid-cell-inner {
+	color: red ;
+	font-weight: bold;
+}
+.op5-spec-rsiveo-positif .x-grid-cell-inner {
+	color: #00008E ;
+	font-weight: bold;
+}
