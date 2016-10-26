@@ -281,7 +281,7 @@ function paracrm_lib_file_joinPrivate_do( $file_code, $entry_field_code, $jSrcVa
 		}
 	}
 	
-	$query = "SELECT ".implode(',',$select_fields)." FROM ".$from_view." WHERE ".implode(' AND ',$where_words) ;
+	$query = "SELECT ".implode(',',$select_fields)." FROM ".$from_view." WHERE sync_is_deleted<>'O' AND ".implode(' AND ',$where_words) ;
 	if( $orderBy_words ) {
 		$query.= " ORDER BY ".implode(',',$orderBy_words) ;
 	}
