@@ -101,6 +101,54 @@ function update_CDELIG_from_salesDb( $db_name ) {
 		}
 	}
 	
+	
+	$map_dstId_ligIds = array() ;
+	
+	$query = "SELECT filerecord_parent_id, filerecord_id FROM view_file_CDE_LOG_INVLIG" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		if( !isset($map_dstId_ligIds[$arr[0]]) ) {
+			$map_dstId_ligIds[$arr[0]] = array() ;
+		}
+		$map_dstId_ligIds[$arr[0]][] = $arr[1] ;
+	}
+	
+	$query = "SELECT invlig.*, cde.filerecord_id as cde_filerecord_id
+				FROM {$db_name}.view_file_INV_LIG invlig
+				LEFT OUTER JOIN {$db_name}.view_file_CDE cde ON invlig.filerecord_parent_id = cde.field_LINK_INV_FILE_ID" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$src_filerecord_id = $arr['cde_filerecord_id'] ;
+		$dst_filerecord_id = $map_srcId_dstId[$src_filerecord_id] ;
+		if( !$dst_filerecord_id ) {
+			continue ;
+		}
+		
+		$pool_ligIds =& $map_dstId_ligIds[$dst_filerecord_id] ;
+		if( !is_array($pool_ligIds) ) {
+			$pool_ligIds = array() ;
+		}
+		
+		$arr_ins = array() ;
+		$arr_ins['field_PROD_REF'] = $arr['field_BASE_PROD'] ;
+		$arr_ins['field_QTE_INV'] = $arr['field_BASE_QTY'] ;
+		$arr_ins['field_INVLIG_AMOUNT_NOVAT'] = $arr['field_CALC_AMOUNT_NOVAT'] ;
+		$arr_ins['field_INVLIG_AMOUNT_FINAL'] = $arr['field_CALC_AMOUNT_FINAL'] ;
+		if( count($pool_ligIds) > 0 ) {
+			$reuse_ligId = array_shift($pool_ligIds) ;
+			paracrm_lib_data_updateRecord_file( 'CDE_LOG_INVLIG' , $arr_ins, $reuse_ligId ) ;
+		} else {
+			$dst_filerecord_id = paracrm_lib_data_insertRecord_file( 'CDE_LOG_INVLIG' , $dst_filerecord_id, $arr_ins ) ;
+		}
+		
+		unset($pool_ligIds) ;
+	}
+	foreach( $map_dstId_ligIds as $ligIds ) {
+		foreach( $ligIds as $orphan_ligId ) {
+			paracrm_lib_data_deleteRecord_file( 'CDE_LOG_INVLIG' , $orphan_ligId ) ;
+		}
+	}
+	
 	return NULL ;
 }
 function update_CLILOG_from_salesDb( $db_name ) {
