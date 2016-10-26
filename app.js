@@ -131,6 +131,45 @@ Ext.onReady(function () {
 			this.callOverridden(arguments) ;
 		}
 	});
+	/*
+	 * https://www.sencha.com/forum/showthread.php?301099-Grouping-is-not-working-when-value-is-null/page2
+	 * http://forums.ext.net/showthread.php?60224&p=275467&viewfull=1#post275467
+	 */
+	Ext.grid.feature.Grouping.override({
+		// Overridden because of #919
+		getMetaGroup: function (group) {
+			var metaGroupCache = this.metaGroupCache || this.createCache(),
+					key,
+					metaGroup;
+
+			if (group.isModel) {
+					group = this.getGroup(group);
+			}
+
+			if (group != null) { // #919. Do not replace with "!==", beucase it should filter for null and undefined.
+					key = (typeof group === 'string') ? group : group.getGroupKey();
+					metaGroup = metaGroupCache[key];
+
+					if (!metaGroup) {
+						metaGroup = metaGroupCache[key] = {
+							isCollapsed: false,
+							lastGroup: null,
+							lastGroupGeneration: null,
+							lastFilterGeneration: null,
+							aggregateRecord: new Ext.data.Model()
+						};
+
+						if (!metaGroupCache.map) {
+							metaGroupCache.map = {};
+						}
+
+						metaGroupCache.map[key] = true;
+					}
+			}
+
+			return metaGroup;
+		}
+	});
 	
 	/*
 	 * Chrome 43 / Charts ? : draw problem
