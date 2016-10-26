@@ -111,6 +111,27 @@ Ext.onReady(function () {
 				newRoot.store = newRoot.treeStore = me;
 			}
 			return newRoot ;
+		},
+		privates: {
+			filterNodes: function(root, node, filterFn) {
+				/*
+				* https://www.sencha.com/forum/showthread.php?296893-Filtering-tree-store
+				*/
+				var match = false,
+					childNodes = node.childNodes,
+					len = childNodes && childNodes.length,
+					i, child;
+				if (len) {
+					for (i = 0; i < len; ++i) {
+						// match needs to be true if any child nodes have been found to match
+						match = this.filterNodes(root, childNodes[i], filterFn) || match;
+					}
+				}
+				// match if a child matches, or if the current node matches.
+				match = match || (node === root || filterFn(node));
+				node.set('visible', match, this._silentOptions);
+				return match;
+			}
 		}
 	});
 	
