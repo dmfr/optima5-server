@@ -198,6 +198,39 @@ Ext.onReady(function () {
 	
 	
 	
+	Ext.event.publisher.Focus.override({ // input.x-tree-checkbox has no parent Node ????
+    doDelegatedEvent: function(e, invokeAfter) {
+        var me = this,
+            relatedTarget;
+
+		if (Ext.browser.is.Firefox) {
+			e = me.callParent([e, false]);
+		} else {
+			e = me.callSuper([e, false]);
+		}
+
+        if (e) {
+            if (e.type === 'focusout' && e.target != null) {
+                // If focus is departing to the document, there will be no forthcoming focusin event
+                // to trigger a focusleave, to fire a focusleave now.
+                if (e.relatedTarget == null && !e.target.matches('input.x-tree-checkbox')) {
+                    me.processFocusIn(e, e.target, document.body, invokeAfter);
+                } else {
+						 
+					 }
+            }
+            else {
+                relatedTarget = e.relatedTarget;
+
+                // IE reports relatedTarget as either an inaccessible object which coercively equates to null, or just a blank object in the case of focusing from nowhere.
+                // So we can't use a truth test ternary expression to substitute in document.body.
+                me.processFocusIn(e, (relatedTarget == null || !relatedTarget.tagName) ? document.body : relatedTarget, e.target, invokeAfter);
+            }
+        }
+    }
+	});
+	
+	
 	
 	/*
 	 * Désactiver le drag&drop file=>browser(open)
