@@ -79,6 +79,9 @@ switch( $post_data['_action'] )
 	case 'queries_gridTemplate' :
 	return paracrm_queries_gridTemplate( $post_data );
 	
+	case 'queries_direct' :
+	return paracrm_queries_direct( $post_data );
+	
 	
 	case 'auth_android_getDevicesList' :
 	return paracrm_auth_android_getDevicesList( $post_data ) ;
