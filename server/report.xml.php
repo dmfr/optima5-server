@@ -133,9 +133,13 @@ switch( strtolower($_SERVER['PATH_INFO']) ) {
 							$datatype = 'xs:string' ;
 							break ;
 					}
+					$datacol = $column['dataIndex'] ;
+					if( $column['text'] ) {
+						$datacol = preg_replace("/[^a-zA-Z0-9_]/", "", str_replace(' ','_',$column['text']));
+					}
 				
 					$oXMLWriter->startElement("xs:element");
-						$oXMLWriter->writeAttribute("name",$column['dataIndex']);
+						$oXMLWriter->writeAttribute("name",$datacol);
 						$oXMLWriter->writeAttribute("type",$datatype);
 					$oXMLWriter->endElement();
 				}
@@ -171,7 +175,12 @@ switch( strtolower($_SERVER['PATH_INFO']) ) {
 			foreach( $result_tab['data'] as $data_row ) {
 				$oXMLWriter->startElement("row");
 				foreach( $result_tab['columns'] as $column ) {
-					$oXMLWriter->writeElement($column['dataIndex'], $data_row[$column['dataIndex']]);
+					$datacol = $column['dataIndex'] ;
+					if( $column['text'] ) {
+						$datacol = preg_replace("/[^a-zA-Z0-9_]/", "", str_replace(' ','_',$column['text']));
+					}
+					
+					$oXMLWriter->writeElement($datacol, $data_row[$column['dataIndex']]);
 				}
 				$oXMLWriter->endElement() ;
 			}
