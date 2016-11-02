@@ -1151,6 +1151,11 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		
 	},
 	onOrderClick: function( view, record, itemNode, index, e ) {
+		if( !(record.get('order_filerecord_id') > 0) ) {
+			// exclude HAT
+			return ;
+		}
+		
 		var cellNode = e.getTarget( view.getCellSelector() ),
 			cellColumn = view.getHeaderByCell( cellNode ) ;
 		if( cellColumn.dataIndex=='warning_code' ) {
@@ -1448,22 +1453,26 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				}
 				
 				var hatData = map_hatId_hatRow[map_orderId_hatId[orderFilerecordId]],
-					hatHeader = Ext.clone(row) ;
+					hatHeader = {} ;
 				hatHeader['id_soc'] = hatData.id_soc ;
 				hatHeader['id_dn'] = hatData.id_hat ;
 				hatHeader['order_filerecord_id'] = null ;
 				hatHeader['hat_filerecord_id'] = hatData.hat_filerecord_id ;
+				hatHeader['calc_step'] = row.calc_step ;
+				hatHeader['_color'] = row._color ;
+				Ext.Object.each( row, function(k,v) {
+					if( Ext.Array.contains(['txt','atr','ref'],k.split('_')[0]) ) {
+						hatHeader[k] = v ;
+					}
+				}) ;
 				
 				var hatChildren = [] ;
 				Ext.Array.each( hatData.orders, function(rowLinkOrder) {
 					var orderRow = map_orderId_orderRow[rowLinkOrder['order_filerecord_id']] ;
-					hatChildren.push({
-						leaf: true,
-						
-						order_filerecord_id: orderRow.order_filerecord_id,
-						id_soc: orderRow.id_soc,
-						id_dn: orderRow.id_dn
-					}) ;
+					
+					var hatChild = Ext.clone(orderRow) ;
+					hatChild['leaf'] = true ;
+					hatChildren.push(hatChild) ;
 				}) ;
 				
 				hatHeader['leaf'] = false ;
