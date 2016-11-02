@@ -111,7 +111,22 @@ Ext.onReady(function () {
 			this.suspendFilters = true ;
 			var ret = this.callOverridden(arguments) ;
 			this.suspendFilters = false ;
+			
+			// HACK : DAMS , recover filter AFTER setRootNode
 			this.doFilter(this.getRoot()) ;
+			// onNodeFilter copy
+			root = this.getRoot() ;
+			var filteredNodes = [];
+			var childNodes = root.childNodes;
+			for (i = 0, length = childNodes.length; i < length; i++) {
+				childNode = childNodes[i];
+				if (childNode.get('visible')) {
+						filteredNodes.push(childNode);
+				}
+			}
+			this.onNodeFilter(root, filteredNodes);
+			// HACK : end
+			
 			return ret ;
 		},
 		
@@ -248,6 +263,14 @@ Ext.onReady(function () {
 				// match if a child matches, or if the current node matches.
 				match = match || (node === root || filterFn(node));
 				node.set('visible', match, this._silentOptions);
+				if( match && node !== root ) { // HACK : DAMS , display children if parent matches
+					node.cascadeBy( function(childNode) {
+						if( childNode==node ) {
+							return ;
+						}
+						childNode.set('visible', true, this._silentOptions);
+					},this) ;
+				}
 				return match;
 			}
 		}
