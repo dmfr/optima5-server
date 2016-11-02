@@ -443,8 +443,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 			},
 			notifyDrop: function(ddSource, e, data){
 					// Reference the record (single selection) for readability
-					var selectedRecord = ddSource.dragData.records[0];
-					me.doOrdersAdd([selectedRecord]) ;
+					var selectedNodeRecord = ddSource.dragData.records[0];
+					me.doOrdersAdd(selectedNodeRecord) ;
 					return true;
 			}
 		});
@@ -485,7 +485,15 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		this.setTitle('New TrsptFile') ;
 		
 		if( trsptNew_orderRecords != null && trsptNew_orderRecords.length>0 ){
-			this.down('#pOrdersGrid').getStore().add(trsptNew_orderRecords) ;
+			var trsptNew_orderLeafRecords = [] ;
+			Ext.Array.each( trsptNew_orderRecords, function(trsptNew_orderRecord) {
+				trsptNew_orderRecord.cascadeBy( function(trsptNew_orderChildRecord) {
+					if( trsptNew_orderChildRecord.isLeaf() ) {
+						trsptNew_orderLeafRecords.push(trsptNew_orderChildRecord) ;
+					}
+				}) ;
+			}) ;
+			this.down('#pOrdersGrid').getStore().add(trsptNew_orderLeafRecords) ;
 			
 			var passed = true ;
 			Ext.Array.each( trsptNew_orderRecords, function(orderRecord) {
@@ -676,7 +684,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		var gridOrders = this.down('#pOrdersGrid'),
 			orderFilerecordIds = [] ;
 		gridOrders.getStore().each( function(orderRecord) {
-			orderFilerecordIds.push(orderRecord.getId()) ;
+			orderFilerecordIds.push(orderRecord.get('order_filerecord_id')) ;
 		}) ;
 		
 		this.showLoadmask() ;
@@ -716,7 +724,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 	},
 	
 	
-	doOrdersAdd: function(orderRecords) {
+	doOrdersAdd: function(selectedNodeRecord) {
 		if( !Optima5.Modules.Spec.DbsTracy.HelperCache.authHelperQueryPage('ADMIN') ) {
 			Ext.Msg.alert('Auth','Not authorized') ;
 			return ;
@@ -736,13 +744,13 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		}
 		
 		// Check soc_code
-		var orderRecord = orderRecords[0] ;
-		if( orderRecord.get('id_soc') != recordData['id_soc'] ) {
+		var validationRecord = selectedNodeRecord ;
+		if( validationRecord.get('id_soc') != recordData['id_soc'] ) {
 			Ext.MessageBox.alert('Error','Incompatible (company code)') ;
 			return ;
 		}
 		
-		if( Optima5.Modules.Spec.DbsTracy.HelperCache.checkOrderData(orderRecord.getData()) != null ) {
+		if( Optima5.Modules.Spec.DbsTracy.HelperCache.checkOrderData(validationRecord.getData()) != null ) {
 			Ext.MessageBox.alert('Incomplete','DN incomplete. Check order details') ;
 			return ;
 		}
@@ -757,7 +765,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		];
 		var passed = true ;
 		Ext.Array.each( fields, function(field) {
-			if( orderRecord.get(field) != recordData[field] ) {
+			if( validationRecord.get(field) != recordData[field] ) {
 				Ext.MessageBox.alert('Error','Incompatible ('+field+')') ;
 				passed = false ;
 				return false ;
@@ -767,28 +775,41 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 			return ;
 		}
 		
-		this.optimaModule.getConfiguredAjaxConnection().request({
-			params: {
-				_moduleId: 'spec_dbs_tracy',
-				_action: 'trspt_orderAdd',
-				trspt_filerecord_id: this._trsptFilerecordId,
-				order_filerecord_id: orderRecord.get('order_filerecord_id')
-			},
-			success: function(response) {
-				var ajaxResponse = Ext.decode(response.responseText) ;
-				if( ajaxResponse.success == false ) {
-					var error = ajaxResponse.error || 'File not saved !' ;
-					Ext.MessageBox.alert('Error',error) ;
-					return ;
-				}
-				this.doReload() ;
-				this.optimaModule.postCrmEvent('datachange',{}) ;
-			},
-			callback: function() {
-				this.hideLoadmask() ;
-			},
-			scope: this
-		}) ;
+		var selectedOrderRecords = [] ;
+		selectedNodeRecord.cascadeBy( function(node) {
+			if( node.get('order_filerecord_id') > 0 ) {
+				selectedOrderRecords.push(node) ;
+			}
+		});
+		
+		var nbLeft = selectedOrderRecords.length ;
+		Ext.Array.each( selectedOrderRecords, function(orderRecord) {
+			this.optimaModule.getConfiguredAjaxConnection().request({
+				params: {
+					_moduleId: 'spec_dbs_tracy',
+					_action: 'trspt_orderAdd',
+					trspt_filerecord_id: this._trsptFilerecordId,
+					order_filerecord_id: orderRecord.get('order_filerecord_id')
+				},
+				success: function(response) {
+					var ajaxResponse = Ext.decode(response.responseText) ;
+					if( ajaxResponse.success == false ) {
+						var error = ajaxResponse.error || 'File not saved !' ;
+						Ext.MessageBox.alert('Error',error) ;
+						return ;
+					}
+					nbLeft-- ;
+					if( nbLeft == 0 ) {
+						this.doReload() ;
+						this.optimaModule.postCrmEvent('datachange',{}) ;
+					}
+				},
+				callback: function() {
+					this.hideLoadmask() ;
+				},
+				scope: this
+			}) ;
+		},this) ;
 	},
 	doOrdersRemove: function(orderRecords) {
 		if( !Optima5.Modules.Spec.DbsTracy.HelperCache.authHelperQueryPage('ADMIN') ) {

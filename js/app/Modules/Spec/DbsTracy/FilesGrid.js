@@ -2,6 +2,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 	extend:'Ext.panel.Panel',
 	
 	requires: [
+		'Ext.ux.CheckColumnNull',
 		'Optima5.Modules.Spec.DbsTracy.CfgParamButton',
 		'Optima5.Modules.Spec.DbsTracy.CfgParamFilter',
 		'Optima5.Modules.Spec.DbsTracy.OrderWarningPanel'
@@ -57,6 +58,13 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 						icon: 'images/op5img/ico_new_16.gif',
 						handler: function() {
 							this.handleNewOrder() ;
+						},
+						scope: this
+					},{
+						text: 'Shipment group',
+						iconCls: 'op5-spec-dbstracy-grid-view-ordergroup',
+						handler: function() {
+							this.handleNewHat() ;
 						},
 						scope: this
 					},{
@@ -532,7 +540,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		};
 		var stepRenderer = function(vObj,metaData) {
 			if( !vObj ) {
-				metaData.tdCls += ' '+'op5-spec-dbstracy-gridcell-gray' ;
+				//metaData.tdCls += ' '+'op5-spec-dbstracy-gridcell-gray' ;
 				return '&#160;' ;
 			}
 			if( !vObj.pending && !vObj.ACTUAL_dateSql ) {
@@ -568,7 +576,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			type: 'string'
 		},{
 			name: '_is_selection',
-			type: 'boolean'
+			type: 'boolean',
+			allowNull: true
 		}] ;
 		var validBtn = Ext.create('Ext.button.Button',{
 			iconCls: 'op5-spec-mrfoxy-financebudget-newrevisionmenu-save'
@@ -578,7 +587,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		var columns = [{
 			hidden: true,
 			width: 60,
-			xtype: 'checkcolumn',
+			xtype: 'uxnullcheckcolumn',
+			_is_selection_mode: null,
 			sortable: false,
 			dataIndex: '_is_selection',
 			text: '<b><font color="red">Create</font></b>' + '<div align="center">' + buttonMarkup + '</div>',
@@ -588,7 +598,12 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				afterrender: function(editingColumn) {
 					editingColumn.getEl().on( 'click', function(e,t) {
 						e.stopEvent() ;
-						this.handleNewTrsptSelection() ;
+						switch( editingColumn._is_selection_mode ) {
+							case 'trspt' :
+								return this.handleNewTrsptSelection() ;
+							case 'hat' :
+								return this.handleNewHatSelection() ;
+						}
 					},this,{delegate:'.x-btn'}) ;
 				},
 				scope: this
@@ -609,12 +624,13 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				bibleId: 'LIST_TYPE'
 			}
 		},{
+			xtype: 'treecolumn',
 			text: '<b>DN#</b>',
 			dataIndex: 'id_dn',
-			width:120,
+			width:150,
 			tdCls: 'op5-spec-dbstracy-bigcolumn',
 			resizable: true,
-			align: 'center',
+			align: 'left',
 			filter: {
 				type: 'string'
 			},
@@ -627,6 +643,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			width:70,
 			align: 'center',
 			renderer: function(v,metaData) {
+				if( Ext.isEmpty(v) ) {
+					return '' ;
+				}
 				var prioMap = this._prioMap ;
 				if( prioMap.hasOwnProperty(v) ) {
 					var prioData = prioMap[v] ;
@@ -727,6 +746,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				optimaModule: this.optimaModule
 			},
 			renderer: function(v,metaData,record) {
+				if( record.get('warning_is_on')===null ) {
+					return ;
+				}
 				if( !record.get('warning_is_on') ) {
 					metaData.tdCls += ' op5-spec-dbstracy-files-nowarning' ;
 					return ;
@@ -940,10 +962,16 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			}]
 		});
 		
+		pushModelfields.push({
+			name: 'hat_filerecord_id',
+			type: 'int'
+		}) ;
+			
 		this.tmpModelName = 'DbsTracyFileRowModel-' + this.getId() + (++this.tmpModelCnt) ;
 		Ext.ux.dams.ModelManager.unregister( this.tmpModelName ) ;
 		Ext.define(this.tmpModelName, {
 			extend: 'DbsTracyFileOrderModel',
+			idProperty: 'id',
 			fields: pushModelfields,
 			hasMany: [{
 				model: 'DbsTracyFileOrderStepModel',
@@ -970,12 +998,13 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		
 		var tmpGridCfg = {
 			border: false,
-			xtype: 'grid',
+			xtype: 'treepanel',
+			rootVisible: false,
 			itemId: 'pGrid',
 			bodyCls: 'op5-spec-dbstracy-files-grid',
 			store: {
 				model: this.tmpModelName,
-				data: [],
+				root: {children:[]},
 				proxy: {
 					type: 'memory',
 					reader: {
@@ -1143,17 +1172,19 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			return ;
 		}
 		var selRecord = selRecords[0] ;
-		gridContextMenuItems.push({
-			disabled: true,
-			text: '<b>'+selRecord.get('id_soc')+'/'+selRecord.get('id_dn')+'</b>'
-		},{
-			iconCls: 'icon-bible-edit',
-			text: 'Edit Order',
-			handler : function() {
-				this.handleEditOrder( selRecord.getId() ) ;
-			},
-			scope : this
-		});
+		if( selRecord.get('order_filerecord_id') > 0 ) {
+			gridContextMenuItems.push({
+				disabled: true,
+				text: '<b>'+selRecord.get('id_soc')+'/'+selRecord.get('id_dn')+'</b>'
+			},{
+				iconCls: 'icon-bible-edit',
+				text: 'Edit Order',
+				handler : function() {
+					this.handleEditOrder( selRecord.get('order_filerecord_id') ) ;
+				},
+				scope : this
+			});
+		}
 		if( selRecord.get('calc_link_is_active') && !this._readonlyMode ) {
 			gridContextMenuItems.push('-',{
 				disabled: true,
@@ -1163,6 +1194,19 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				text: 'Edit TrsptFile',
 				handler : function() {
 					this.handleEditTrspt( selRecord.get('calc_link_trspt_filerecord_id') ) ;
+				},
+				scope : this
+			});
+		}
+		if( selRecord.get('hat_filerecord_id') > 0 ) {
+			gridContextMenuItems.push({
+				disabled: true,
+				text: '<b>'+selRecord.get('id_soc')+'/'+selRecord.get('id_dn')+'</b>'
+			},{
+				iconCls: 'icon-bible-edit',
+				text: 'Edit ShipGroup',
+				handler : function() {
+					this.handleEditHat( selRecord.get('hat_filerecord_id') ) ;
 				},
 				scope : this
 			});
@@ -1260,6 +1304,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		}
 	},
 	doLoadOrder: function(doClearFilters) {
+		delete this.ajaxDataOrder ;
+		delete this.ajaxDataHat ;
+		
 		this.toggleNewTrspt(false) ;
 		this.showLoadmask() ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
@@ -1275,7 +1322,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 					Ext.MessageBox.alert('Error','Error') ;
 					return ;
 				}
-				this.onLoadOrder(ajaxResponse.data, doClearFilters) ;
+				this.onResponseOrder(ajaxResponse.data) ;
+				this.onResponse(doClearFilters) ;
 				// Setup autoRefresh task
 				this.autoRefreshTask.delay( this.autoRefreshDelay ) ;
 			},
@@ -1284,8 +1332,51 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			},
 			scope: this
 		}) ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_tracy',
+				_action: 'hat_getRecords',
+				filter_socCode: this.down('#btnSoc').getValue(),
+				filter_archiveIsOn: (this.down('#tbArchiveIsOn').checked ? 1 : 0 )
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+				this.onResponseHat(ajaxResponse.data) ;
+				this.onResponse(doClearFilters) ;
+				// Setup autoRefresh task
+				this.autoRefreshTask.delay( this.autoRefreshDelay ) ;
+			},
+			callback: function() {
+				
+			},
+			scope: this
+		}) ;
 	},
-	onLoadOrder: function(ajaxData, doClearFilters) {
+	onResponseOrder: function(ajaxData) {
+		this.ajaxDataOrder = ajaxData ;
+	},
+	onResponseHat: function(ajaxData) {
+		this.ajaxDataHat = ajaxData ;
+	},
+	onResponse: function(doClearFilters) {
+		if( !(this.ajaxDataOrder && this.ajaxDataHat) ) {
+			return ;
+		}
+		var ajaxDataOrder = this.ajaxDataOrder ;
+		var ajaxDataHat = this.ajaxDataHat ;
+		delete this.ajaxDataOrder ;
+		delete this.ajaxDataHat ;
+		
+		this.onLoadOrder(ajaxDataOrder, ajaxDataHat, doClearFilters) ;
+	},
+	onLoadOrder: function(ajaxDataOrder, ajaxDataHat, doClearFilters) {
+		delete this.ajaxDataOrder ;
+		delete this.ajaxDataHat ;
+		
 		// Trad => stepCode => descCode
 		var map_stepCode_descCode = {},
 			map_stepDescCodes_count = {} ;
@@ -1298,8 +1389,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			});
 		}) ;
 		
-		var gridData = [] ;
-		Ext.Array.each(ajaxData, function(row) {
+		var map_orderId_orderRow = {} ;
+		Ext.Array.each(ajaxDataOrder, function(row) {
 			Ext.Array.each( row.steps, function(rowStep) {
 				var stepCode = rowStep.step_code,
 					rowKey = 'step_'+map_stepCode_descCode[stepCode] ;
@@ -1332,13 +1423,76 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				map_stepDescCodes_count[curStepDescCode]++ ;
 			}
 			
-			gridData.push(row) ;
+			map_orderId_orderRow[row['order_filerecord_id']] = row ;
 		}) ;
+		
+		var map_hatId_hatRow = {}, map_orderId_hatId = {} ;
+		Ext.Array.each(ajaxDataHat, function(row) {
+			map_hatId_hatRow[row['hat_filerecord_id']] = row ;
+			Ext.Array.each(row.orders, function(rowLinkOrder) {
+				map_orderId_hatId[rowLinkOrder['order_filerecord_id']] = row['hat_filerecord_id'] ;
+			});
+		}) ;
+		
+		var gridData = [] ;
+		Ext.Array.each(ajaxDataOrder, function(row) {
+			/*
+			 * Si hat + map_hatId_hatRow > construction du hat
+			 * - delete map_hatId_hatRow 
+			 */
+			var orderFilerecordId = row['order_filerecord_id'] ;
+			if( map_orderId_hatId.hasOwnProperty(orderFilerecordId) ) {
+				if( !map_hatId_hatRow.hasOwnProperty(map_orderId_hatId[orderFilerecordId]) ) {
+					// hat déja construit
+					return ;
+				}
+				
+				var hatData = map_hatId_hatRow[map_orderId_hatId[orderFilerecordId]],
+					hatHeader = Ext.clone(row) ;
+				hatHeader['id_soc'] = hatData.id_soc ;
+				hatHeader['id_dn'] = hatData.id_hat ;
+				hatHeader['order_filerecord_id'] = null ;
+				hatHeader['hat_filerecord_id'] = hatData.hat_filerecord_id ;
+				
+				var hatChildren = [] ;
+				Ext.Array.each( hatData.orders, function(rowLinkOrder) {
+					var orderRow = map_orderId_orderRow[rowLinkOrder['order_filerecord_id']] ;
+					hatChildren.push({
+						leaf: true,
+						
+						order_filerecord_id: orderRow.order_filerecord_id,
+						id_soc: orderRow.id_soc,
+						id_dn: orderRow.id_dn
+					}) ;
+				}) ;
+				
+				hatHeader['leaf'] = false ;
+				hatHeader['expanded'] = true ;
+				hatHeader['children'] = hatChildren ;
+				gridData.push(hatHeader) ;
+				
+				//delete map_hatId_hatRow 
+				delete map_hatId_hatRow[map_orderId_hatId[orderFilerecordId]] ;
+				
+				return ;
+			}
+			
+			var singleOrderRow = map_orderId_orderRow[row['order_filerecord_id']] ;
+			singleOrderRow['leaf'] = true ;
+			gridData.push(singleOrderRow) ;
+		}) ;
+		
+		
 		if( doClearFilters ) {
-			this.down('#pCenter').down('grid').getStore().clearFilter() ;
-			this.down('#pCenter').down('grid').filters.clearFilters() ;
+			this.down('#pCenter').down('#pGrid').getStore().clearFilter() ;
+			this.down('#pCenter').down('#pGrid').filters.clearFilters() ;
 		}
-		this.down('#pCenter').down('grid').getStore().loadRawData(gridData) ;
+		this.down('#pCenter').down('#pGrid').getStore().setRootNode({
+			root:true,
+			order_filerecord_id:0,
+			expanded: true,
+			children: gridData
+		});
 		
 		if( !this._readonlyMode ) {
 			var northRecord = {
@@ -1379,10 +1533,10 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 	},
 	onLoadTrspt: function(ajaxData, doClearFilters) {
 		if( doClearFilters ) {
-			this.down('#pCenter').down('grid').getStore().clearFilter() ;
-			this.down('#pCenter').down('grid').filters.clearFilters() ;
+			this.down('#pCenter').down('#pGrid').getStore().clearFilter() ;
+			this.down('#pCenter').down('#pGrid').filters.clearFilters() ;
 		}
-		this.down('#pCenter').down('grid').getStore().loadRawData(ajaxData) ;
+		this.down('#pCenter').down('#pGrid').getStore().loadRawData(ajaxData) ;
 	},
 	
 	showLoadmask: function() {
@@ -1416,13 +1570,41 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		this.down('toolbar').down('#tbViewmode').setVisible(!torf && !this._readonlyMode) ;
 		this.down('toolbar').down('#tbCreate').setVisible(!torf && !this._readonlyMode) ;
 		if( !torf ) {
-			this.down('#pCenter').down('grid').child('headercontainer').down('checkcolumn').setVisible(false) ;
-			return ;
+			this.down('#pCenter').down('#pGrid').child('headercontainer').down('checkcolumn').setVisible(false) ;
 		}
 		if( torf ) {
 			this.autoRefreshTask.cancel() ;
-			this.down('#pCenter').down('grid').child('headercontainer').down('checkcolumn').setVisible(true) ;
+			this.down('#pCenter').down('#pGrid').child('headercontainer').down('checkcolumn').setVisible(true) ;
+			this.down('#pCenter').down('#pGrid').child('headercontainer').down('checkcolumn')._is_selection_mode = 'trspt' ;
+		}
+		
+		if( this.down('#pCenter').down('#pGrid').getStore() instanceof Ext.data.TreeStore ) {
+			this.down('#pCenter').down('#pGrid').getRootNode().cascadeBy( function(node) {
+				node.set('_is_selection', ( (torf && node.getDepth()==1) ? false : null ) ) ;
+				node.commit() ;
+			}) ;
+		}
+	},
+	toggleNewHat: function(torf) {
+		if( this.viewMode != 'order' ) {
 			return ;
+		}
+		this.down('toolbar').down('#tbViewmode').setVisible(!torf && !this._readonlyMode) ;
+		this.down('toolbar').down('#tbCreate').setVisible(!torf && !this._readonlyMode) ;
+		if( !torf ) {
+			this.down('#pCenter').down('#pGrid').child('headercontainer').down('checkcolumn').setVisible(false) ;
+		}
+		if( torf ) {
+			this.autoRefreshTask.cancel() ;
+			this.down('#pCenter').down('#pGrid').child('headercontainer').down('checkcolumn').setVisible(true) ;
+			this.down('#pCenter').down('#pGrid').child('headercontainer').down('checkcolumn')._is_selection_mode = 'hat' ;
+		}
+		
+		if( this.down('#pCenter').down('#pGrid').getStore() instanceof Ext.data.TreeStore ) {
+			this.down('#pCenter').down('#pGrid').getRootNode().cascadeBy( function(node) {
+				node.set('_is_selection', ( (torf && node.isLeaf()) ? false : null ) ) ;
+				node.commit() ;
+			}) ;
 		}
 	},
 	
@@ -1431,6 +1613,12 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 	},
 	handleEditOrder: function( orderFilerecordId ) {
 		this.optimaModule.postCrmEvent('openorder',{orderFilerecordId:orderFilerecordId}) ;
+	},
+	handleNewHat: function() {
+		this.toggleNewHat(true) ;
+	},
+	handleEditHat: function( hatFilerecordId ) {
+		this.optimaModule.postCrmEvent('openhat',{hatFilerecordId:hatFilerecordId}) ;
 	},
 	handleNewTrspt: function() {
 		this.toggleNewTrspt(true) ;
@@ -1441,7 +1629,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 	},
 	handleNewTrsptSelection: function() {
 		var orderRecords = [];
-		this.down('#pCenter').down('grid').getStore().each( function(orderRecord) {
+		this.down('#pCenter').down('#pGrid').getStore().each( function(orderRecord) {
 			if( orderRecord.get('_is_selection') ) {
 				orderRecords.push( orderRecord ) ;
 			}
@@ -1452,6 +1640,21 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		this.optimaModule.postCrmEvent('opentrspt',{
 			trsptNew:true,
 			trsptNew_orderRecords: orderRecords
+		}) ;
+	},
+	handleNewHatSelection: function() {
+		var orderRecords = [];
+		this.down('#pCenter').down('#pGrid').getStore().each( function(orderRecord) {
+			if( orderRecord.get('_is_selection') ) {
+				orderRecords.push( orderRecord ) ;
+			}
+		}) ;
+		if( orderRecords.length == 0 ) {
+			return ;
+		}
+		this.optimaModule.postCrmEvent('openhat',{
+			hatNew:true,
+			hatNew_orderRecords: orderRecords
 		}) ;
 	},
 	
@@ -1573,7 +1776,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		}
 		
 		var columns = [] ;
-		Ext.Array.each( this.down('#pCenter').down('grid').headerCt.getGridColumns(), function(column) {
+		Ext.Array.each( this.down('#pCenter').down('#pGrid').headerCt.getGridColumns(), function(column) {
 			columns.push({
 				dataIndex: column.dataIndex,
 				text: column.text
@@ -1581,8 +1784,10 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		});
 		
 		var dataIds = [] ;
-		this.down('#pCenter').down('grid').getStore().each( function(record) {
-			dataIds.push( record.getId() ) ;
+		this.down('#pCenter').down('#pGrid').getStore().each( function(record) {
+			if( record.get('order_filerecord_id') > 0 ) {
+				dataIds.push( record.getId() ) ;
+			}
 		}) ;
 		
 		var exportParams = this.optimaModule.getConfiguredAjaxParams() ;

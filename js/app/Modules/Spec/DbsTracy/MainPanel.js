@@ -6,6 +6,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.MainPanel',{
 		'Optima5.Modules.Spec.DbsTracy.FilesGrid',
 		'Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',
 		'Optima5.Modules.Spec.DbsTracy.OrderFilePanel',
+		'Optima5.Modules.Spec.DbsTracy.HatFilePanel',
 		'Optima5.Modules.Spec.DbsTracy.AttachmentsPanel',
 		'Optima5.Modules.Spec.DbsTracy.AttachmentViewerWindow',
 		'Optima5.Modules.Spec.DbsTracy.UploadForm',
@@ -130,6 +131,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.MainPanel',{
 				return this.openTrsptFile( eventParams.trsptNew ? 0 : eventParams.trsptFilerecordId, eventParams.trsptNew_orderRecords ) ;
 			case 'openorder' :
 				return this.openOrderFile( eventParams.orderNew ? 0 : eventParams.orderFilerecordId ) ;
+			case 'openhat' :
+				return this.openHatFile( eventParams.hatNew ? 0 : eventParams.hatFilerecordId, eventParams.hatNew_orderRecords ) ;
 			default: break ;
 		}
 	},
@@ -218,6 +221,48 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.MainPanel',{
 					}
 				}
 		},Optima5.Modules.Spec.DbsTracy.OrderFilePanel) ;
+	},
+	openHatFile: function(hatFilerecordId, hatNew_orderRecords) {
+		if( hatFilerecordId === null ) {
+			return ;
+		}
+		
+		// recherche d'une fenetre deja ouverte
+		var doOpen = true ;
+		this.optimaModule.eachWindow(function(win){
+			if( !(win instanceof Optima5.Modules.Spec.DbsTracy.HatFilePanel) ) {
+				return true ;
+			}
+			if( win._hatFilerecordId == hatFilerecordId ) {
+				win.show() ;
+				win.focus() ;
+				doOpen = false ;
+				return false ;
+			}
+		},this) ;
+		if( !doOpen ) {
+			return ;
+		}
+		
+		// new window
+		this.optimaModule.createWindow({
+			title: '',
+			width:850,
+			height:400,
+			iconCls: 'op5-crmbase-dataformwindow-icon',
+			animCollapse:false,
+			
+				optimaModule: this.optimaModule,
+				_readonlyMode: this._readonlyMode,
+				_hatNew: (hatFilerecordId==0),
+				_hatFilerecordId: hatFilerecordId,
+				_hatNew_orderRecords: hatNew_orderRecords,
+				listeners: {
+					candestroy: function(w) {
+						w.close() ;
+					}
+				}
+		},Optima5.Modules.Spec.DbsTracy.HatFilePanel) ;
 	},
 	openUploadPopup: function() {
 		this.getEl().mask() ;

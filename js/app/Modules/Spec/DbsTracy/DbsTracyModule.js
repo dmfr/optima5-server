@@ -95,11 +95,11 @@ Ext.define('DbsTracyFileOrderModel',{
 		{name: 'calc_link_trspt_filerecord_id', type:'int'},
 		{name: 'calc_link_trspt_txt', type:'string'},
 		
-		{name: 'warning_is_on', type: 'boolean'},
+		{name: 'warning_is_on', type: 'boolean', allowNull: true},
 		{name: 'warning_code', type: 'string'},
 		{name: 'warning_txt', type: 'string'},
 		
-		{name: 'kpi_is_on', type: 'boolean'},
+		{name: 'kpi_is_on', type: 'boolean', allowNull: true},
 		{name: 'kpi_is_ok_raw', type: 'boolean', allowNull: true},
 		{name: 'kpi_is_ok', type: 'boolean', allowNull: true},
 		{name: 'kpi_code', type: 'string'},
@@ -181,6 +181,31 @@ Ext.define('DbsTracyFileTrsptModel',{
 	}]
 });
 
+Ext.define('DbsTracyFileHatOrderModel',{
+	extend: 'DbsTracyFileOrderModel',
+	idProperty: 'hatorder_filerecord_id',
+	fields: [
+		{name: 'hatorder_filerecord_id', type:'int'},
+		{name: 'link_is_cancel', type:'boolean'}
+	]
+});
+
+Ext.define('DbsTracyFileHatModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'hat_filerecord_id',
+	fields: [
+		{name: 'hat_filerecord_id', type:'int'},
+		{name: 'id_soc', type:'string'},
+		{name: 'id_hat', type:'string'},
+		{name: 'date_create', type:'date', dateFormat:'Y-m-d'}
+	],
+	hasMany: [{
+		model: 'DbsTracyFileHatOrderModel',
+		name: 'orders',
+		associationKey: 'orders'
+	}]
+});
+
 
 
 Ext.define('Optima5.Modules.Spec.DbsTracy.DbsTracyModule', {
@@ -231,6 +256,13 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.DbsTracyModule', {
 				Ext.apply( eventParams, {
 					orderNew: postParams.orderNew,
 					orderFilerecordId: postParams.orderFilerecordId
+				}) ;
+				break ;
+			case 'openhat' :
+				Ext.apply( eventParams, {
+					hatNew: postParams.hatNew,
+					hatFilerecordId: postParams.hatFilerecordId,
+					hatNew_orderRecords: postParams.hatNew_orderRecords
 				}) ;
 				break ;
 			

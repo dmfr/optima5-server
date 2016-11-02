@@ -33,6 +33,16 @@ switch( $post_data['_action'] )
 	session_write_close() ;
 	return specDbsTracy_order_download( $post_data ) ;
 	
+	case 'hat_getRecords' :
+	session_write_close() ;
+	return specDbsTracy_hat_getRecords( $post_data ) ;
+	case 'hat_setHeader' :
+	return specDbsTracy_hat_setHeader( $post_data ) ;
+	case 'hat_orderAdd' :
+	return specDbsTracy_hat_orderAdd( $post_data ) ;
+	case 'hat_orderRemove' :
+	return specDbsTracy_hat_orderRemove( $post_data ) ;
+	
 	case 'trspt_getRecords' :
 	session_write_close() ;
 	return specDbsTracy_trspt_getRecords( $post_data ) ;

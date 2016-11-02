@@ -168,6 +168,10 @@ function specDbsTracy_order_getRecords( $post_data ) {
 				'warning_code' => $last_warning['event_code'],
 				'warning_txt' => $last_warning['event_txt']
 			);
+		} else {
+			$row_order += array(
+				'warning_is_on' => false
+			);
 		}
 	}
 	unset($row_order) ;
