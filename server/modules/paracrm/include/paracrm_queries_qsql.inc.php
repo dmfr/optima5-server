@@ -386,6 +386,7 @@ function paracrm_queries_qsql_lib_exec($querystring, $is_rw=FALSE, $auth_bypass=
 	
 	$mysqli = new mysqli('localhost', $mysql_tmp_user, $mysql_tmp_user, $mysql_tmp_user);
 	$mysqli->query("SET NAMES UTF8") ;
+	$mysqli->query("SET collation_connection = utf8_unicode_ci") ;
 	if( $vars ) {
 		foreach( $vars as $mkey=>$mvalue ) {
 			$mysqli->query("SET @{$mkey} = '{$mvalue}'") ;
