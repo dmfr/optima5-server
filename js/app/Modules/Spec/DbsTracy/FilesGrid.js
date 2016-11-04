@@ -1329,8 +1329,6 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				}
 				this.onResponseOrder(ajaxResponse.data) ;
 				this.onResponse(doClearFilters) ;
-				// Setup autoRefresh task
-				this.autoRefreshTask.delay( this.autoRefreshDelay ) ;
 			},
 			callback: function() {
 				this.hideLoadmask() ;
@@ -1352,8 +1350,6 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				}
 				this.onResponseHat(ajaxResponse.data) ;
 				this.onResponse(doClearFilters) ;
-				// Setup autoRefresh task
-				this.autoRefreshTask.delay( this.autoRefreshDelay ) ;
 			},
 			callback: function() {
 				
@@ -1375,6 +1371,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		var ajaxDataHat = this.ajaxDataHat ;
 		delete this.ajaxDataOrder ;
 		delete this.ajaxDataHat ;
+		
+		// Setup autoRefresh task
+		this.autoRefreshTask.delay( this.autoRefreshDelay ) ;
 		
 		this.onLoadOrder(ajaxDataOrder, ajaxDataHat, doClearFilters) ;
 	},
