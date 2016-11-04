@@ -705,7 +705,7 @@ function paracrm_lib_dataImport_preHandle_SAP( $handle_in, $handle_out, $separat
 			if( !$value ) {
 				continue ;
 			}
-			if( strlen($value)==10 && preg_match('/^([0-9][0-9]).([0-9][0-9]).([0-9][0-9][0-9][0-9])$/',$value) ) {
+			if( strlen($value)==10 && preg_match('/^[0-9][0-9]\.[0-9][0-9]\.[0-9][0-9][0-9][0-9]$/',$value) ) {
 				// date SAP ?
 			} else {
 				unset($idxs_date[$idx]) ;
