@@ -1,12 +1,33 @@
+Ext.define('RsiRecouveoCfgAtrItemModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'id',
+	fields: [
+		{name: 'node', type:'string'},
+		{name: 'id', type:'string'},
+		{name: 'text', type:'string'}
+	]
+});
+Ext.define('RsiRecouveoCfgAtrModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'bible_code',
+	fields: [
+		{name: 'bible_code', type:'string'},
+		{name: 'atr_code', type:'string'},
+		{name: 'atr_txt', type:'string'}
+	],
+	hasMany: [{
+		model: 'RsiRecouveoCfgAtrItemModel',
+		name: 'records',
+		associationKey: 'records'
+	}]
+});
+
 Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 	mixins: {
 		observable: 'Ext.util.Observable'
 	},
 	
 	singleton:true,
-	
-	countryStore: null,
-	brandStore: null,
 	
 	isReady: false,
 	nbLoaded: 0,
@@ -28,9 +49,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 	startLoading: function() {
 		var me = this ;
 		
-		me.nbToLoad = 0 ;
+		me.nbToLoad = 1 ;
 		
-		me.onLoad() ;
+		me.fetchConfig() ;
 	},
 	onLoad: function() {
 		var me = this ;
@@ -41,8 +62,55 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 		}
 	},
 	
-	countryGetRoot: function() {
+	
+	fetchConfig: function() {
+		// Query Bible
+		var ajaxParams = {} ;
+		Ext.apply( ajaxParams, {
+			_moduleId: 'spec_rsi_recouveo',
+			_action: 'cfg_getConfig'
+		});
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams ,
+			success: function(response) {
+				var ajaxData = Ext.decode(response.responseText) ;
+				if( ajaxData.success == false ) {
+					Ext.Msg.alert('Failed', 'Unknown error');
+				}
+				else {
+					this.onLoadConfig( ajaxData ) ;
+				}
+			},
+			scope: this
+		});
+	},
+	onLoadConfig: function( ajaxData ) {
+		this.cfgAtrStore = Ext.create('Ext.data.Store',{
+			model: 'RsiRecouveoCfgAtrModel',
+			data : ajaxData.data.cfg_atr,
+			proxy: {
+				type: 'memory',
+				reader: {
+					type: 'json'
+				}
+			}
+		}) ;
+		
+		this.onLoad() ;
+	},
+	
+	getAtrHeader: function(atrId) {
+		return this.cfgAtrStore.getById(atrId).getData() ;
+	},
+	getAtrData: function(atrId) {
+		return this.cfgAtrStore.getById(atrId) ? Ext.pluck(this.cfgAtrStore.getById(atrId).records().getRange(), 'data') : null ;
+	},
+	
+	authHelperHasAll: function() {
 		var me = this ;
-		return me.countryRoot ;
+		if( me.optimaModule.getSdomainRecord().get('auth_has_all') ) {
+			return true ;
+		}
+		return false ;
 	}
 });

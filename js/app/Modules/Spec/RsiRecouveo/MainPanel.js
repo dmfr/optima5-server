@@ -2,7 +2,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 	extend:'Ext.panel.Panel',
 	requires:[
 		'Optima5.Modules.Spec.RsiRecouveo.HelperCache',
-		'Optima5.Modules.Spec.RsiRecouveo.MainMenu'
+		'Optima5.Modules.Spec.RsiRecouveo.MainMenu',
+		'Optima5.Modules.Spec.RsiRecouveo.FilesPanel'
 	],
 	
 	initComponent: function() {
@@ -38,7 +39,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 	onEndAnimation: function() {
 		var me = this ;
 		
-		var helperCache = Optima5.Modules.Spec.BpSales.HelperCache ;
+		var helperCache = Optima5.Modules.Spec.RsiRecouveo.HelperCache ;
 		helperCache.init(me.optimaModule) ;
 		if( helperCache.isReady ) {
 			this.switchToMainMenu() ;
@@ -66,6 +67,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 		//console.log("Action: "+actionCode) ;
 		
 		switch( actionCode ) {
+			case 'files' :
+				return me.switchToAppPanel('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{}) ;
 			default :
 				return ;
 		}

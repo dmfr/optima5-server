@@ -45,7 +45,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainMenu',{
 			data:[
 				{type_header:true},
 				{type_separator:true, separator_label: 'Opérations'},
-				{type_action:true, action_caption: 'Agenda', action_sendEvent:'agenda', action_iconCls:'op5-spec-rsiveo-mmenu-agenda'}
+				{type_action:true, action_caption: 'Agenda / Recherche', action_sendEvent:'files', action_iconCls:'op5-spec-rsiveo-mmenu-agenda'}
 			]
 		}) ;
 		 
