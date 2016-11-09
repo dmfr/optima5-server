@@ -134,9 +134,16 @@ if( TRUE ) {
 	
 	$json_order = specDbsTracy_order_getRecords( array() ) ;
 	$map_idDn_orderRow = array() ;
+	$map_idHat_ordersRow = array() ;
 	foreach( $json_order['data'] as $order_row ) {
 		$mkey = strtoupper(trim($order_row['id_dn'])) ;
 		$map_idDn_orderRow[$mkey] = $order_row ;
+		
+		$mkey = strtoupper(trim($order_row['ref_invoice'])) ;
+		if( !is_array($map_idHat_ordersRow[$mkey]) ) {
+			$map_idHat_ordersRow[$mkey] = array() ;
+		}
+		$map_idHat_ordersRow[$mkey][] = $order_row ;
 	}
 	
 	$query = "SELECT * FROM view_file_ATTACH_INBOX" ;
@@ -185,6 +192,52 @@ if( TRUE ) {
 			media_img_delete(media_img_toolFile_getId('ATTACH_INBOX',$attach_filerecordId)) ;
 		} else {
 			
+		}
+	}
+	
+	$query = "SELECT * FROM view_file_ATTACH_INBOX" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr_media = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$attach_filerecordId = $arr_media['filerecord_id'] ;
+		
+		while( TRUE ) {
+			$email_subject = $arr_media['field_ATTACHMENT_TXT'] ;
+			$arr_emailSubject = explode(':',$email_subject) ;
+			if( count($arr_emailSubject) != 2 ) {
+				continue 2 ;
+			}
+			break ;
+		}
+		
+		
+		$mkey = strtoupper(trim($arr_emailSubject[1])) ;
+		if( $map_idHat_ordersRow[$mkey] ) {
+			foreach( $map_idHat_ordersRow[$mkey] as $order_row ) {
+				$CDE_parent_filerecordId = $order_row['order_filerecord_id'] ;
+				
+				// Copy media
+				$arr_media ;
+				$img_filerecordId = paracrm_lib_data_insertRecord_file( 'CDE_ATTACH', $CDE_parent_filerecordId, $arr_media ) ;
+				media_img_copy( media_img_toolFile_getId('ATTACH_INBOX',$attach_filerecordId) , media_img_toolFile_getId('CDE_ATTACH',$img_filerecordId) ) ;
+				
+				// Update field
+				$arr_update = array() ;
+				$arr_update['field_REF_INVOICE'] = trim($arr_emailSubject[1]) ;
+				paracrm_lib_data_updateRecord_file( 'CDE', $arr_update, $CDE_parent_filerecordId );
+				
+				// Adv status
+				$arr_cond = array() ;
+				$arr_cond['filerecord_parent_id'] = $CDE_parent_filerecordId ;
+				$arr_cond['field_STEP_CODE'] = '30_DOCS' ;
+				$arr_update = array() ;
+				$arr_update['field_DATE_ACTUAL'] = date('Y-m-d H:i:s') ;
+				$arr_update['field_STATUS_IS_OK'] = 1 ;
+				$_opDB->update('view_file_CDE_STEP',$arr_update,$arr_cond) ;
+			}
+			
+			// Delete media
+			media_img_delete( media_img_toolFile_getId('ATTACH_INBOX',$attach_filerecordId) );
+			paracrm_lib_data_deleteRecord_file('ATTACH_INBOX',$attach_filerecordId) ;
 		}
 	}
 	
