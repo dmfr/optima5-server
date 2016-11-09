@@ -496,7 +496,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 			this.down('#pOrdersGrid').getStore().add(trsptNew_orderLeafRecords) ;
 			
 			var passed = true ;
-			Ext.Array.each( trsptNew_orderRecords, function(orderRecord) {
+			Ext.Array.each( trsptNew_orderLeafRecords, function(orderRecord) {
 				if( Optima5.Modules.Spec.DbsTracy.HelperCache.checkOrderData(orderRecord.getData()) != null ) {
 					passed = false ;
 				}
@@ -512,7 +512,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 			// if OK => setValues
 			Ext.Array.each( copyFields, function(copyField) {
 				map_copyFields_values[copyField] = [] ;
-				Ext.Array.each( trsptNew_orderRecords, function(orderRecord) {
+				Ext.Array.each( trsptNew_orderLeafRecords, function(orderRecord) {
 					if( !Ext.Array.contains(map_copyFields_values[copyField],orderRecord.get(copyField)) ) {
 						map_copyFields_values[copyField].push( orderRecord.get(copyField) ) ;
 					}
@@ -743,8 +743,19 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 			}
 		}
 		
+		var selectedOrderRecords = [] ;
+		selectedNodeRecord.cascadeBy( function(node) {
+			if( node.get('order_filerecord_id') > 0 ) {
+				selectedOrderRecords.push(node) ;
+			}
+		});
+		
+		if( selectedOrderRecords.length < 1 ) {
+			return ;
+		}
+		
 		// Check soc_code
-		var validationRecord = selectedNodeRecord ;
+		var validationRecord = selectedOrderRecords[0] ;
 		if( validationRecord.get('id_soc') != recordData['id_soc'] ) {
 			Ext.MessageBox.alert('Error','Incompatible (company code)') ;
 			return ;
@@ -774,13 +785,6 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		if( !passed ) {
 			return ;
 		}
-		
-		var selectedOrderRecords = [] ;
-		selectedNodeRecord.cascadeBy( function(node) {
-			if( node.get('order_filerecord_id') > 0 ) {
-				selectedOrderRecords.push(node) ;
-			}
-		});
 		
 		var nbLeft = selectedOrderRecords.length ;
 		Ext.Array.each( selectedOrderRecords, function(orderRecord) {
