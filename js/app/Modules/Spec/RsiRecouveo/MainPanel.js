@@ -3,7 +3,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 	requires:[
 		'Optima5.Modules.Spec.RsiRecouveo.HelperCache',
 		'Optima5.Modules.Spec.RsiRecouveo.MainMenu',
-		'Optima5.Modules.Spec.RsiRecouveo.FilesPanel'
+		'Optima5.Modules.Spec.RsiRecouveo.FilesPanel',
+		'Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel'
 	],
 	
 	initComponent: function() {
@@ -95,12 +96,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 		switch( crmEvent ) {
 			case 'datachange' :
 				break ;
-			case 'openinv' :
-				return this.openInvFile( eventParams.invFilerecordId, eventParams.invNew ) ;
+			case 'openfile' :
+				return this.openFileDetail() ;
 			default: break ;
 		}
 	},
-	openInvFile: function(invFilerecordId, invNew) {
+	openFileDetail: function(invFilerecordId, invNew) {
 		if( invFilerecordId === null ) {
 			return ;
 		}
@@ -108,7 +109,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 		// recherche d'une fenetre deja ouverte
 		var doOpen = true ;
 		this.optimaModule.eachWindow(function(win){
-			if( !(win instanceof Optima5.Modules.Spec.BpSales.InvoicePanel) ) {
+			if( !(win instanceof Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel) ) {
 				return true ;
 			}
 			if( win._invFilerecordId == invFilerecordId ) {
@@ -141,6 +142,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 						w.close() ;
 					}
 				}
-		},Optima5.Modules.Spec.BpSales.InvoicePanel) ;
+		},Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel) ;
 	}
 }) ;

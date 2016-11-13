@@ -79,6 +79,37 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 					}
 				}
 			}),'->',{
+				itemId: 'tbCreate',
+				icon: 'images/op5img/ico_new_16.gif',
+				text:'Actions...',
+				menu: {
+					defaults: {
+						scope:this
+					},
+					items: [{
+						text: 'Action groupée',
+						icon: 'images/op5img/ico_new_16.gif',
+						handler: function() {
+							this.handleNewOrder() ;
+						},
+						scope: this
+					},{
+						text: 'Mailing ponctuel',
+						iconCls: 'op5-spec-dbstracy-grid-view-ordergroup',
+						handler: function() {
+							this.handleNewHat() ;
+						},
+						scope: this
+					},{
+						text: 'Transport',
+						icon: 'images/op5img/ico_new_16.gif',
+						handler: function() {
+							this.handleNewTrspt() ;
+						},
+						scope: this
+					}]
+				}
+			},{
 				hidden: this._readonlyMode,
 				iconCls: 'op5-crmbase-datatoolbar-file-export-excel',
 				text: 'Export',
@@ -154,11 +185,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				store: { 
 					fields: ['os', 'data1' ],
 					data: [
-						{ os: 'Android', data1: 68.3 },
-						{ os: 'BlackBerry', data1: 1.7 },
-						{ os: 'iOS', data1: 17.9 },
-						{ os: 'Windows Phone', data1: 10.2 },
-						{ os: 'Others', data1: 1.9 }
+						{ os: '<b>Recouvré</b>', data1: 68.3 },
+						{ os: '<u>Irrecouvrable</u>', data1: 1.7 },
+						{ os: 'Prise de contact', data1: 17.9 },
+						{ os: 'Relances amiable', data1: 10.2 },
+						{ os: 'Outils juridiques', data1: 1.9 }
 					]
 				},
 				insetPadding: { top: 10, left: 10, right: 10, bottom: 20 },
@@ -176,11 +207,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				interactions: ['itemhighlight'],
             sprites: [{
 					type: 'text',
-					text: 'Répartition K€',
+					text: 'Répartition (321,580.00 k€)',
 					fontSize: 12,
 					width: 100,
 					height: 30,
-					x: 55, // the sprite x position
+					x: 30, // the sprite x position
 					y: 205  // the sprite y position
 				}],
 				series: [{
@@ -218,11 +249,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				store: { 
 					fields: ['os', 'data1' ],
 					data: [
-						{ os: 'Android', data1: 68.3 },
-						{ os: 'BlackBerry', data1: 1.7 },
-						{ os: 'iOS', data1: 17.9 },
-						{ os: 'Windows Phone', data1: 10.2 },
-						{ os: 'Others', data1: 1.9 }
+						{ os: '<b>Recouvré</b>', data1: 68.3 },
+						{ os: '<u>Irrecouvrable</u>', data1: 1.7 },
+						{ os: 'Prise de contact', data1: 17.9 },
+						{ os: 'Relances amiable', data1: 10.2 },
+						{ os: 'Outils juridiques', data1: 1.9 }
 					]
 				},
 				insetPadding: { top: 10, left: 10, right: 10, bottom: 20 },
@@ -230,11 +261,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				interactions: ['itemhighlight'],
             sprites: [{
 					type: 'text',
-					text: 'Nb Dossiers',
+					text: 'Nb Dossiers (950)',
 					fontSize: 12,
 					width: 100,
 					height: 30,
-					x: 65, // the sprite x position
+					x: 55, // the sprite x position
 					y: 205  // the sprite y position
 				}],
 				series: [{
@@ -255,7 +286,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 						trackMouse: true,
 						style: 'background: #fff',
 						renderer: function(storeItem, item) {
-							this.setHtml(storeItem.get('os') + ': ' + storeItem.get('data1') + '%');
+							this.setHtml(storeItem.get('os') + ': ' + storeItem.get('data1') + '');
 						}
 					}
 				}]
@@ -301,7 +332,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
                 adjustByMajorUnit: true,
                 fields: 'data1',
                 grid: true,
-                renderer: function (v) { return v + '%'; },
+                renderer: function (v) { return v + ''; },
                 minimum: 0
             }, {
                 type: 'category',
@@ -312,7 +343,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
             series: [{
                 type: 'bar',
                 axis: 'bottom',
-                title: [ 'IE', 'Firefox', 'Chrome', 'Safari' ],
+                title: [ 'Retard', 'Jour J', 'Jour J+1', '< J+5' ],
                 xField: 'month',
                 yField: [ 'data1', 'data2', 'data3', 'data4' ],
                 stacked: true,
@@ -333,6 +364,117 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
             }]
 			}
 		}) ;
+		
+		
+		var pCenter = this.down('#pCenter') ;
+		var columns = [{
+			text: 'Attributs',
+			columns: [{
+				text: 'BusinessUnit',
+				dataIndex: 'atr_bu',
+				width:90,
+				align: 'center'
+			},{
+				text: 'Divisions',
+				dataIndex: 'atr_div',
+				width:90,
+				align: 'center'
+			},{
+				text: 'Secteurs',
+				dataIndex: 'atr_sect',
+				width:90,
+				align: 'center'
+			}]
+		},{
+			text: 'Acheteurs',
+			columns: [{
+				text: 'ID',
+				dataIndex: 'id_ref',
+				tdCls: 'op5-spec-dbstracy-bigcolumn',
+				width:100,
+				align: 'center',
+				filter: {
+					type: 'op5crmbasebible',
+					optimaModule: this.optimaModule,
+					bibleId: 'BASE_CLI'
+				}
+			},{
+				text: 'Acheteur',
+				dataIndex: 'id_txt',
+				width:150,
+				align: 'center',
+				filter: {
+					type: 'string'
+				}
+			}]
+		},{
+			text: 'Statut',
+			align: 'center',
+			dataIndex: 'status',
+			filter: {
+				type: 'op5crmbasebibletree',
+				optimaModule: this.optimaModule,
+				bibleId: 'CFG_STATUS'
+			},
+			renderer: function(v,metaData,r) {
+				v = r.get('status_txt') ;
+				metaData.style += 'color: white ; background: '+r.get('status_color') ;
+				return v ;
+			}
+		},{
+			text: 'Next action',
+			columns: [{
+				text: 'RDV/Action',
+				dataIndex: 'next_action'
+			},{
+				text: 'Date/Echeance',
+				dataIndex: 'next_date',
+				filter: {
+					type: 'date'
+				}
+			}]
+		},{
+			text: 'Finance',
+			columns: [{
+				text: 'Nb Fact',
+				dataIndex: 'inv_nb',
+				width:90,
+				align: 'center'
+			},{
+				text: 'Montant<br>débiteur',
+				dataIndex: 'inv_amount_due',
+				width:90,
+				align: 'center',
+				filter: {
+					type: 'number'
+				}
+			},{
+				text: 'Montant<br>total',
+				dataIndex: 'inv_amount_total',
+				width:90,
+				align: 'center',
+				filter: {
+					type: 'number'
+				}
+			}]
+		}] ;
+		pCenter.add({
+			xtype: 'grid',
+			columns: columns,
+			plugins: [{
+				ptype: 'uxgridfilters'
+			}],
+			store: {
+				model: 'RsiRecouveoFileModel',
+				data: this.getSampleData()
+			},
+			listeners: {
+				itemdblclick: function(){
+					this.handleOpenFile() ;
+				},
+				scope :this
+			}
+		});
 	},
 	
 	doQuit: function() {
@@ -342,5 +484,42 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		if( this.autoRefreshTask ) {
 			this.autoRefreshTask.cancel() ;
 		}
+	},
+	
+	handleOpenFile: function() {
+		this.optimaModule.postCrmEvent('openfile',{}) ;
+	},
+	
+	getSampleData: function() {
+		var data = [{
+			filerecord_id: 1,
+			atr_bu: 'PMI / PME',
+			atr_div: 'Sols',
+			atr_sect: 'Secteur 3',
+			id_ref: '1234567890',
+			id_txt: 'Plastibert',
+			status_txt: 'Prise contact',
+			status_color: '#A61120',
+			next_action: '<font color="black">2ème appel</font>',
+			next_date: '15/11/2016',
+			inv_nb: '<b>1</b>',
+			inv_amount_due: '<b>580.00</b>&nbsp;&euro;',
+			inv_amount_total: '<b>580.00</b>&nbsp;&euro;'
+		},{
+			filerecord_id: 2,
+			atr_bu: 'Large industries',
+			atr_div: 'Peintures',
+			atr_sect: 'Secteur 1',
+			id_ref: '9876543210',
+			id_txt: 'Solvay SA (SOLB.BE)',
+			status_txt: 'Outils juridiques',
+			status_color: '#FFD13E',
+			next_action: '<font color="red">RDV Tel huissier</font>',
+			next_date: '16/11/2016 <font color="red"><b>9h30</b></font>',
+			inv_nb: '<b>3</b>',
+			inv_amount_due: '<b>2890.49</b>&nbsp;&euro;',
+			inv_amount_total: '<b>3600.59</b>&nbsp;&euro;'
+		}] ;
+		return data ;
 	}
 });
