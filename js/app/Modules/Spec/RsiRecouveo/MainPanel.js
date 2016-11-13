@@ -4,7 +4,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 		'Optima5.Modules.Spec.RsiRecouveo.HelperCache',
 		'Optima5.Modules.Spec.RsiRecouveo.MainMenu',
 		'Optima5.Modules.Spec.RsiRecouveo.FilesPanel',
-		'Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel'
+		'Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',
+		'Optima5.Modules.Spec.RsiRecouveo.CfgPanel'
 	],
 	
 	initComponent: function() {
@@ -70,6 +71,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 		switch( actionCode ) {
 			case 'files' :
 				return me.switchToAppPanel('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{}) ;
+			case 'cfg' :
+				return me.switchToAppPanel('Optima5.Modules.Spec.RsiRecouveo.CfgPanel',{}) ;
 			default :
 				return ;
 		}
