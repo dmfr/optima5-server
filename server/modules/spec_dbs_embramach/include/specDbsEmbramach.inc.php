@@ -40,6 +40,52 @@ function specDbsEmbramach_cfg_getAuth( $post_data ) {
 }
 
 
+function specDbsEmbramach_cfg_getList() {
+	if( isset($GLOBALS['cache_specDbsEmbramach_cfg']['getConfig']) ) {
+		return array(
+			'success'=>true,
+			'data' => $GLOBALS['cache_specDbsEmbramach_cfg']['getConfig']
+		);
+	}
+	
+	global $_opDB ;
+	
+	$TAB_list = array() ;
+	$json_define = paracrm_define_getMainToolbar( array('data_type'=>'bible') , true ) ;
+	foreach( $json_define['data_bible'] as $define_bible ) {
+		if( strpos($define_bible['bibleId'],'LIST_')===0 ) {
+			$json_define_bible = paracrm_data_getBibleCfg(array('bible_code'=>$define_bible['bibleId'])) ;
+			
+			$bible_code = $define_bible['bibleId'] ;
+			
+			$records = array() ;
+			$query = "SELECT * FROM view_bible_{$bible_code}_entry ORDER BY entry_key" ;
+			$result = $_opDB->query($query) ;
+			while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+				$node = $arr['treenode_key'] ;
+				$id = $arr['entry_key'] ;
+				$lib = array() ;
+				foreach( $json_define_bible['data']['entry_fields'] as $entry_field ) {
+					if( strpos($entry_field['entry_field_code'],'field_')===0 && $entry_field['entry_field_is_header'] ) {
+						$lib[] = $arr[$entry_field['entry_field_code']] ;
+					}
+				}
+				$records[] = array('node'=>$node, 'id'=>$id, 'text'=>implode(' - ',$lib)) ;
+			}
+			
+			$TAB_list[] = array(
+				'bible_code' => $bible_code,
+				'records' => $records
+			) ;
+		}
+	}
+	
+	$GLOBALS['cache_specDbsEmbramach_cfg']['getConfig'] = array(
+		'cfg_list' => $TAB_list
+	);
+
+	return array('success'=>true, 'data'=>$GLOBALS['cache_specDbsEmbramach_cfg']['getConfig'])  ;
+}
 
 
 
@@ -328,6 +374,7 @@ function specDbsEmbramach_mach_getGridData( $post_data ) {
 		$row['feedback_txt'] = $arr['field_FEEDBACK_TXT'] ;
 		$row['status_closed'] = ($arr['field_STATUS'] == 'CLOSED') ;
 		$row['obj_steps'] = array() ;
+		$row['events'] = array() ;
 		
 		$row['calc_lateness'] = 0 ;
 		$row['calc_lateness_blank'] = TRUE ;
@@ -365,6 +412,39 @@ function specDbsEmbramach_mach_getGridData( $post_data ) {
 		}
 		$TAB[$filerecord_parent_id]['obj_steps'][$step_code] = $date_sql ;
 	}
+	
+	$query = "SELECT * FROM view_file_FLOW_{$flow_code}_EVENT ORDER BY filerecord_id" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$filerecord_parent_id = $arr['filerecord_parent_id'] ;
+		if( !$TAB[$filerecord_parent_id] ) {
+			continue ;
+		}
+		$TAB[$filerecord_parent_id]['events'][] = array(
+			'_filerecord_id' => $arr['filerecord_id'],
+			'event_date' => $arr['field_EVENT_DATE'],
+			'event_user' => $arr['field_EVENT_USER'],
+			'event_is_warning' => $arr['field_EVENT_IS_WARNING'],
+			'event_code' => $arr['field_EVENT_CODE'],
+			'event_txt' => $arr['field_EVENT_TXT'],
+		);
+	}
+	foreach( $TAB as &$row ) {
+		$last_warning = end($row['events']) ;
+		if( $last_warning ) {
+			$row += array(
+				'warning_is_on' => $last_warning['event_is_warning'],
+				'warning_code' => $last_warning['event_code'],
+				'warning_txt' => $last_warning['event_txt']
+			);
+		} else {
+			$row += array(
+				'warning_is_on' => false
+			);
+		}
+	}
+	unset($row) ;
+	
 	
 	$map_prioCode_spentTimesS = array() ;
 	$map_prioCode_count = array() ;
@@ -569,6 +649,33 @@ function specDbsEmbramach_mach_saveGridRow( $post_data ) {
 	$arr_update['field_FEEDBACK_TXT'] = $record['feedback_txt'] ;
 	paracrm_lib_data_updateRecord_file( "FLOW_{$flow_code}", $arr_update, $record['_filerecord_id'] ) ;
 	return array('success'=>true) ;
+}
+function specDbsEmbramach_mach_setWarning( $post_data ) {
+	usleep(100*1000);
+	global $_opDB ;
+	$flow_code = $post_data['flow_code'] ;
+	$file_code = "FLOW_{$flow_code}_EVENT" ;
+	
+	$form_data = json_decode($post_data['data'],true) ;
+	
+	if( $form_data['warning_is_on'] ) {
+		$arr_ins = array() ;
+		$arr_ins['field_EVENT_DATE'] = date('Y-m-d H:i:s') ;
+		$arr_ins['field_EVENT_USER'] = strtoupper($_SESSION['login_data']['delegate_userId']) ;
+		$arr_ins['field_EVENT_CODE'] = $form_data['warning_code'] ;
+		$arr_ins['field_EVENT_IS_WARNING'] = 1 ;
+		$arr_ins['field_EVENT_TXT'] = $form_data['warning_txt'] ;
+	} else {
+		$arr_ins = array() ;
+		$arr_ins['field_EVENT_DATE'] = date('Y-m-d H:i:s') ;
+		$arr_ins['field_EVENT_USER'] = strtoupper($_SESSION['login_data']['delegate_userId']) ;
+		$arr_ins['field_EVENT_CODE'] = '' ;
+		$arr_ins['field_EVENT_IS_WARNING'] = 0 ;
+		$arr_ins['field_EVENT_TXT'] = 'Warning suppressed' ;
+	}
+	$filerecord_id = paracrm_lib_data_insertRecord_file( $file_code, $post_data['_filerecord_id'], $arr_ins );
+	
+	return array('success'=>true, 'id'=>$filerecord_id) ;
 }
 
 

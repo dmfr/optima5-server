@@ -7,14 +7,20 @@ Ext.define('DbsEmbramachMachFlowRowModel', {
 		  {name: 'step_warning', type: 'string'},
 		  {name: 'step_code', type: 'string'},
 		  {name: 'step_txt', type: 'string'},
-		  {name: 'status_closed', type: 'boolean'}
+		  {name: 'status_closed', type: 'boolean'},
+		  
+			{name: 'warning_is_on', type: 'boolean', allowNull: true},
+			{name: 'warning_code', type: 'string'},
+			{name: 'warning_txt', type: 'string'}
 	]
 });
 Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 	extend:'Ext.panel.Panel',
 	requires: [
 		'Ext.ux.chart.series.KPIGauge', 'Ext.ux.chart.axis.KPIGauge',
-		'Ext.ux.grid.filters.filter.StringList'
+		'Ext.ux.grid.filters.filter.StringList',
+		'Optima5.Modules.Spec.DbsEmbramach.CfgParamFilter',
+		'Optima5.Modules.Spec.DbsEmbramach.MachWarningPanel'
 	],
 	
 	flowCode: null,
@@ -370,14 +376,29 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 			}
 		},{
 			hidden: this._readonlyMode,
-			text: 'Feedback',
-			dataIndex: 'feedback_txt',
-			width: 110,
-			editor: {
-				xtype: 'textareafield',
-				grow: true,
-				growMin: 30,
-				growMax: 40
+			text: '<b>Warning</b>',
+			dataIndex: 'warning_code',
+			width: 120,
+			align: 'center',
+			filter: {
+				type: 'op5specdbsembramachcfgfilter',
+				cfgParam_id: 'WARNINGCODE',
+				cfgParam_emptyDisplayText: 'Select...',
+				optimaModule: this.optimaModule
+			},
+			renderer: function(v,metaData,record) {
+				if( record.get('warning_is_on')===null ) {
+					return ;
+				}
+				if( !record.get('warning_is_on') ) {
+					metaData.tdCls += ' op5-spec-dbstracy-files-nowarning' ;
+					return ;
+				}
+				var txt = '' ;
+				txt += '<font color="red"><b>'+record.get('warning_code')+'</b></font>' ;
+				txt += '<br>' ;
+				txt += Ext.util.Format.nl2br( Ext.String.htmlEncode( record.get('warning_txt') ) )
+				return txt ;
 			}
 		}) ;
 		
@@ -466,6 +487,10 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 			plugins: [{
 				ptype: 'uxgridfilters'
 			}],
+			listeners: {
+				itemclick: this.onRowClick,
+				scope: this
+			},
 			viewConfig: {
 				getRowClass: function(record) {
 					if( record.get('status_closed') ) {
@@ -476,17 +501,6 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 			},
 			_prioMap: prioMap
 		} ;
-		if( !this._readonlyMode ) {
-			tmpGridCfg.plugins.push({
-				ptype: 'cellediting',
-				clicksToEdit: 1,
-				listeners: {
-					beforeedit: this.onGridBeforeEdit,
-					edit: this.onGridAfterEdit,
-					scope: this
-				}
-			}) ;
-		}
 		
 		
 		var gaugesSubPanels = [] ;
@@ -661,6 +675,19 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 			maj_txt: jsonResponse.maj_date
 		}) ;
 	},
+	onRowClick: function( view, record, itemNode, index, e ) {
+		if( !(record.get('_filerecord_id') > 0) ) {
+			// exclude HAT
+			return ;
+		}
+		
+		var cellNode = e.getTarget( view.getCellSelector() ),
+			cellColumn = view.getHeaderByCell( cellNode ) ;
+		if( cellColumn.dataIndex=='warning_code' ) {
+			this.openWarningPanel( record ) ;
+			return ;
+		}
+	},
 	
 	showLoadmask: function() {
 		if( this.rendered ) {
@@ -686,23 +713,43 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.MachPanel',{
 		}
 	},
 	
-	onGridBeforeEdit: function( editor, editEvent ) {},
-	onGridAfterEdit: function( editor, editEvent ) {
-		this.remoteSaveRecord( editEvent.record ) ;
-	},
-	
-	remoteSaveRecord: function( gridRecord ) {
-		var ajaxParams = {
-			_moduleId: 'spec_dbs_embramach',
-			_action: 'mach_saveGridRow',
-			flow_code: this.flowCode,
-			data: Ext.JSON.encode( gridRecord.getData(true) )
-		};
-		this.optimaModule.getConfiguredAjaxConnection().request({
-			params: ajaxParams,
-			success: function(response) {},
-			scope: this
-		}) ;
+	openWarningPanel: function( machRecord ) {
+		if( this._readonlyMode ) {
+			return ;
+		}
+		var postParams = {} ;
+		var machWarningPanel = Ext.create('Optima5.Modules.Spec.DbsEmbramach.MachWarningPanel',{
+			optimaModule: this.optimaModule,
+			flowCode: this.flowCode,
+			machRecord: machRecord,
+			width:500, // dummy initial size, for border layout to work
+			height:null, // ...
+			floating: true,
+			draggable: true,
+			resizable: true,
+			renderTo: this.getEl(),
+			tools: [{
+				type: 'close',
+				handler: function(e, t, p) {
+					p.ownerCt.destroy();
+				},
+				scope: this
+			}],
+			
+			title: 'Warning / RedFlag'
+		});
+		
+		machWarningPanel.on('destroy',function(validConfirmPanel) {
+			this.getEl().unmask() ;
+			this.floatingPanel = null ;
+		},this,{single:true}) ;
+		
+		this.getEl().mask() ;
+		
+		machWarningPanel.show();
+		machWarningPanel.getEl().alignTo(this.getEl(), 'c-c?');
+		
+		this.floatingPanel = machWarningPanel ;
 	},
 	
 	

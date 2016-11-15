@@ -1,3 +1,26 @@
+Ext.define('DbsEmbramachCfgListItemModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'id',
+	fields: [
+		{name: 'node', type:'string'},
+		{name: 'id', type:'string'},
+		{name: 'text', type:'string'}
+	]
+});
+Ext.define('DbsEmbramachCfgListModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'bible_code',
+	fields: [
+		{name: 'bible_code', type:'string'}
+	],
+	hasMany: [{
+		model: 'DbsEmbramachCfgListItemModel',
+		name: 'records',
+		associationKey: 'records'
+	}]
+});
+
+
 Ext.define('Optima5.Modules.Spec.DbsEmbramach.HelperCache',{
 	mixins: {
 		observable: 'Ext.util.Observable'
@@ -21,10 +44,46 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.HelperCache',{
 		me.isReady = false ;
 		
 		Ext.defer(function() {
-			me.libCount = 1 ;
+			me.libCount = 2 ;
 			
 			me.authHelperInit() ;
+			me.fetchConfig() ;
 		},1000,me) ;
+	},
+	
+	fetchConfig: function() {
+		// Query Bible
+		var ajaxParams = {} ;
+		Ext.apply( ajaxParams, {
+			_moduleId: 'spec_dbs_embramach',
+			_action: 'cfg_getList'
+		});
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams ,
+			success: function(response) {
+				var ajaxData = Ext.decode(response.responseText) ;
+				if( ajaxData.success == false ) {
+					Ext.Msg.alert('Failed', 'Unknown error');
+				}
+				else {
+					this.onLoadConfig( ajaxData ) ;
+				}
+			},
+			scope: this
+		});
+	},
+	onLoadConfig: function( ajaxData ) {
+		this.cfgListStore = Ext.create('Ext.data.Store',{
+			model: 'DbsEmbramachCfgListModel',
+			data : ajaxData.data.cfg_list,
+			proxy: {
+				type: 'memory',
+				reader: {
+					type: 'json'
+				}
+			}
+		}) ;
+		this.onLibLoad() ;
 	},
 	
 	authHelperInit: function() {
@@ -66,6 +125,10 @@ Ext.define('Optima5.Modules.Spec.DbsEmbramach.HelperCache',{
 			return true ;
 		}
 		return ( !Ext.isEmpty(me.authPage) && Ext.Array.contains( me.authPage, pageCode ) ) ;
+	},
+	
+	getListData: function(listId) {
+		return this.cfgListStore.getById(listId) ? Ext.pluck(this.cfgListStore.getById(listId).records().getRange(), 'data') : null ;
 	},
 	
 	onLibLoad: function() {

@@ -9,6 +9,8 @@ switch( $post_data['_action'] )
 {
 	case 'cfg_getAuth' :
 	return specDbsEmbramach_cfg_getAuth( $post_data ) ;
+	case 'cfg_getList' :
+	return specDbsEmbramach_cfg_getList( $post_data ) ;
 	
 	case 'mach_getGridCfg' :
 	return specDbsEmbramach_mach_getGridCfg( $post_data ) ;
@@ -18,6 +20,8 @@ switch( $post_data['_action'] )
 	return specDbsEmbramach_mach_saveGridRow( $post_data ) ;
 	case 'mach_getGridXls' :
 	return specDbsEmbramach_mach_getGridXls( $post_data ) ;
+	case 'mach_setWarning' :
+	return specDbsEmbramach_mach_setWarning( $post_data ) ;
 	
 	case 'upload' :
 	case 'mach_upload' :
