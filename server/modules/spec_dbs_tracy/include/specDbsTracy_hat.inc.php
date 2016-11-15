@@ -61,26 +61,28 @@ function specDbsTracy_hat_getRecords( $post_data ) {
 		$filter_orderFilerecordId_arr[] = $arr['field_FILE_CDE_ID'] ;
 	}
 	
-	$ttmp = specDbsTracy_order_getRecords( array(
-		'filter_socCode' => $filter_socCode,
-		'filter_orderFilerecordId_arr'=> json_encode($filter_orderFilerecordId_arr),
-		'filter_archiveIsOn' => ( $filter_archiveIsOn ? 1 : 0 )
-	) ) ;
-	$TAB_order = array() ;
-	foreach( $ttmp['data'] as $row_order ) {
-		$TAB_order[$row_order['order_filerecord_id']] = $row_order ;
-	}
-	
-	foreach( $TAB_hat as &$row_hat ) {
-		foreach( $row_hat['orders'] as &$row_hatorder ) {
-			if( !($row_order = $TAB_order[$row_hatorder['order_filerecord_id']]) ) {
-				continue ;
-			}
-			$row_hatorder += $row_order ;
+	if( !$post_data['skip_details'] ) { // 15/11 : Don't (double)load on FilesGrid
+		$ttmp = specDbsTracy_order_getRecords( array(
+			'filter_socCode' => $filter_socCode,
+			'filter_orderFilerecordId_arr'=> json_encode($filter_orderFilerecordId_arr),
+			'filter_archiveIsOn' => ( $filter_archiveIsOn ? 1 : 0 )
+		) ) ;
+		$TAB_order = array() ;
+		foreach( $ttmp['data'] as $row_order ) {
+			$TAB_order[$row_order['order_filerecord_id']] = $row_order ;
 		}
-		unset($row_hatorder) ;
+		
+		foreach( $TAB_hat as &$row_hat ) {
+			foreach( $row_hat['orders'] as &$row_hatorder ) {
+				if( !($row_order = $TAB_order[$row_hatorder['order_filerecord_id']]) ) {
+					continue ;
+				}
+				$row_hatorder += $row_order ;
+			}
+			unset($row_hatorder) ;
+		}
+		unset($row_hat) ;
 	}
-	unset($row_hat) ;
 	
 	return array('success'=>true, 'data'=>array_values($TAB_hat)) ;
 }

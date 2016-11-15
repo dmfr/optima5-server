@@ -1339,6 +1339,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			params: {
 				_moduleId: 'spec_dbs_tracy',
 				_action: 'hat_getRecords',
+				skip_details : 1,
 				filter_socCode: this.down('#btnSoc').getValue(),
 				filter_archiveIsOn: (this.down('#tbArchiveIsOn').checked ? 1 : 0 )
 			},
