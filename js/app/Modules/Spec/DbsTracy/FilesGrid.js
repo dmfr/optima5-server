@@ -1468,6 +1468,10 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				var hatChildren = [] ;
 				Ext.Array.each( hatData.orders, function(rowLinkOrder) {
 					var orderRow = map_orderId_orderRow[rowLinkOrder['order_filerecord_id']] ;
+					if( !orderRow ) {
+						//console.dir(rowLinkOrder['order_filerecord_id']) ;
+						return ;
+					}
 					
 					var hatChild = Ext.clone(orderRow) ;
 					hatChild['leaf'] = true ;
