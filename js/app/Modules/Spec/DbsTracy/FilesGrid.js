@@ -1370,8 +1370,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		}
 		var ajaxDataOrder = this.ajaxDataOrder ;
 		var ajaxDataHat = this.ajaxDataHat ;
-		delete this.ajaxDataOrder ;
-		delete this.ajaxDataHat ;
+		this.ajaxDataOrder = null ;
+		this.ajaxDataHat = null ;
 		
 		// Setup autoRefresh task
 		this.autoRefreshTask.delay( this.autoRefreshDelay ) ;
@@ -1379,8 +1379,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		this.onLoadOrder(ajaxDataOrder, ajaxDataHat, doClearFilters) ;
 	},
 	onLoadOrder: function(ajaxDataOrder, ajaxDataHat, doClearFilters) {
-		delete this.ajaxDataOrder ;
-		delete this.ajaxDataHat ;
+		//delete this.ajaxDataOrder ;
+		//delete this.ajaxDataHat ;
 		
 		// Trad => stepCode => descCode
 		var map_stepCode_descCode = {},
@@ -1773,15 +1773,17 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 	
 	
 	handleDownload: function() {
-		var action ;
+		var action, recordIdProperty ;
 		switch( this.viewMode ) {
 			case 'order' :
 			case 'order-group-trspt' :
 				action = 'order_download' ;
+				recordIdProperty = 'order_filerecord_id' ;
 				break ;
 				
 			case 'trspt' :
 				action = 'trspt_download' ;
+				recordIdProperty = 'trspt_filerecord_id' ;
 				break ;
 				
 			default:
@@ -1796,12 +1798,21 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			});
 		});
 		
-		var dataIds = [] ;
-		this.down('#pCenter').down('#pGrid').getStore().each( function(record) {
-			if( record.get('order_filerecord_id') > 0 ) {
-				dataIds.push( record.getId() ) ;
-			}
-		}) ;
+		var dataIds = [],
+			gridStore = this.down('#pCenter').down('#pGrid').getStore() ;
+		if( gridStore instanceof Ext.data.TreeStore ) {
+			gridStore.getRootNode().cascadeBy( function(record) {
+				if( record.get(recordIdProperty) > 0 ) {
+					dataIds.push( record.get(recordIdProperty) ) ;
+				}
+			}) ;
+		} else {
+			gridStore.each( function(record) {
+				if( record.get(recordIdProperty) > 0 ) {
+					dataIds.push( record.get(recordIdProperty) ) ;
+				}
+			}) ;
+		}
 		
 		var exportParams = this.optimaModule.getConfiguredAjaxParams() ;
 		Ext.apply(exportParams,{
