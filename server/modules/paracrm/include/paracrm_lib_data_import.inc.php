@@ -636,6 +636,7 @@ function paracrm_lib_dataImport_preHandle_SAP( $handle_in, $handle_out, $separat
 	$handle_priv = tmpfile() ;
 	while( !feof($handle_in) ) {
 		$lig = fgets($handle_in) ;
+		$lig = str_replace('\\','',$lig) ;
 		$lig = mb_convert_encoding($lig, "UTF-8", mb_detect_encoding($lig,"UTF-8, ISO-8859-1, ISO-8859-15"));
 		fwrite($handle_priv,$lig) ;
 	}
