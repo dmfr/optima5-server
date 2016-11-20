@@ -237,6 +237,15 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoicePanel',{
 					this.handleValidate() ;
 				},
 				scope:this
+			},{
+				hidden: true,
+				itemId: 'tbReopen',
+				icon: 'images/op5img/ico_reload_small.gif',
+				text:'Reopen',
+				handler: function() {
+					this.handleReopen() ;
+				},
+				scope:this
 			}],
 			items:[{
 				flex: 1,
@@ -624,6 +633,7 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoicePanel',{
 		this.down('toolbar').down('#tbDelete').setVisible(!readOnly) ;
 		this.down('toolbar').down('#tbValidate').setVisible(!readOnly) ;
 		this.down('toolbar').down('#tbDownload').setVisible(readOnly) ;
+		this.down('toolbar').down('#tbReopen').setVisible(readOnly) ;
 		
 		//fHeader
 		if( invRecord.get('id_coef') < 0 ) {
@@ -747,6 +757,31 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoicePanel',{
 			scope: this
 		}) ;
 	},
+	doReopen: function() {
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_bp_sales',
+				_action: 'inv_reopenRecord',
+				inv_filerecord_id: this._invFilerecordId
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					var error = ajaxResponse.error || 'File not saved !' ;
+					Ext.MessageBox.alert('Error',error) ;
+					this.hideLoadmask() ;
+					return ;
+				}
+				
+				this.doReload() ;
+			},
+			callback: function() {
+				//this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+	},
 	doQueryCustomer: function( cliLink ) {
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
@@ -778,6 +813,13 @@ Ext.define('Optima5.Modules.Spec.BpSales.InvoicePanel',{
 		Ext.Msg.confirm('Validate invoice ?','Warning : Not editable beyond this action',function(btn){
 			if( btn=='yes' ) {
 				this.doSave(true) ;
+			}
+		},this);
+	},
+	handleReopen: function() {
+		Ext.Msg.confirm('Reopen invoice ?','Reopen invoice ?',function(btn){
+			if( btn=='yes' ) {
+				this.doReopen() ;
 			}
 		},this);
 	},

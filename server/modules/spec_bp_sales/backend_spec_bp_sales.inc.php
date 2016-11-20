@@ -24,6 +24,8 @@ switch( $post_data['_action'] )
 		return specBpSales_inv_setRecord($post_data) ;
 	case 'inv_queryCustomer' :
 		return specBpSales_inv_queryCustomer($post_data) ;
+	case 'inv_reopenRecord' :
+		return specBpSales_inv_reopenRecord($post_data) ;
 
 	case 'inv_printDoc' :
 		return specBpSales_inv_printDoc($post_data) ;

@@ -434,7 +434,57 @@ function specBpSales_inv_setRecord( $post_data ) {
 	
 	return array('success'=>true,'debug'=>$record_data) ;
 }
-
+function specBpSales_inv_reopenRecord( $post_data ) {
+	global $_opDB ;
+	
+	$ttmp = specBpSales_inv_getRecords(
+		array(
+			'filter_invFilerecordId_arr'=> json_encode(array($post_data['inv_filerecord_id']))
+		)
+	) ;
+	$inv_record = $ttmp['data'][0] ;
+	if( !$inv_record || $inv_record['inv_filerecord_id']!=$post_data['inv_filerecord_id'] ) {
+		return array('success'=>false) ;
+	}
+	
+	if( $inv_record['status_percent'] <= 70 && !$inv_record['status_is_final'] ) {
+		return array('success'=>true) ;
+	}
+	
+	
+	// test ?
+	$query = "SELECT count(*) FROM view_file_INV_PEER 
+		WHERE filerecord_parent_id='{$inv_record['inv_filerecord_id']}' AND field_SEND_IS_OK='1'" ;
+	if( $_opDB->query_uniqueValue($query) > 0 ) {
+		return array('success'=>false, 'error'=>'Some peers already sent') ;
+	}
+	
+	
+	$arr_cdeFilerecordIds = array() ;
+	$query = "SELECT filerecord_id FROM view_file_CDE WHERE field_LINK_INV_FILE_ID='{$inv_record['inv_filerecord_id']}'" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$arr_cdeFilerecordIds[] = $arr[0] ;
+	}
+	
+	$ttmp = specBpSales_cde_getRecords(
+		array(
+			'filter_cdeFilerecordId_arr'=> json_encode($arr_cdeFilerecordIds)
+		)
+	) ;
+	$cde_records = $ttmp['data'] ;
+	foreach( $cde_records as $row_cde ) {
+		$arr_update = array() ;
+		$arr_update['field_STATUS'] = '70_INVCREATE' ;
+		paracrm_lib_data_updateRecord_file( 'CDE' , $arr_update, $row_cde['cde_filerecord_id'] ) ;
+	}
+	$arr_update = array() ;
+	$arr_update['field_STATUS_IS_FINAL'] = 0 ;
+	$arr_update['field_STATUS'] = '70_INVCREATE' ;
+	paracrm_lib_data_updateRecord_file( 'INV' , $arr_update, $inv_record['inv_filerecord_id'] ) ;
+	
+	return array('success'=>true) ;
+}
 
 function specBpSales_inv_lib_calc( $inv_filerecord_id ) {
 	$ttmp = specBpSales_inv_getRecords(
