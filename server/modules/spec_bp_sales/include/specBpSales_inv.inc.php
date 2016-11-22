@@ -520,7 +520,28 @@ function specBpSales_inv_lib_calc( $inv_filerecord_id ) {
 			$amount_final = $amount_novat * $row_inv_lig['mod_vat'] ;
 		}
 		
+		
 		$arr_update = array() ;
+		
+		$arr_update['field_JC_PRICE'] = $row_inv_lig['join_price'] ;
+		$arr_update['field_JC_COEF1'] = $row_inv_lig['join_coef1'] ;
+		$arr_update['field_JC_COEF2'] = $row_inv_lig['join_coef2'] ;
+		$arr_update['field_JC_COEF3'] = $row_inv_lig['join_coef3'] ;
+		$arr_update['field_JC_VAT'] = $row_inv_lig['join_vat'] ;
+		if( $row_inv_lig['mod_is_on'] ) {
+			$arr_update['field_LOG_PRICE'] = $row_inv_lig['mod_price'] ;
+			$arr_update['field_LOG_COEF1'] = $row_inv_lig['mod_coef1'] ;
+			$arr_update['field_LOG_COEF2'] = $row_inv_lig['mod_coef2'] ;
+			$arr_update['field_LOG_COEF3'] = $row_inv_lig['mod_coef3'] ;
+			$arr_update['field_LOG_VAT'] = $row_inv_lig['mod_vat'] ;
+		} else {
+			$arr_update['field_LOG_PRICE'] = $row_inv_lig['join_price'] ;
+			$arr_update['field_LOG_COEF1'] = $row_inv_lig['join_coef1'] ;
+			$arr_update['field_LOG_COEF2'] = $row_inv_lig['join_coef2'] ;
+			$arr_update['field_LOG_COEF3'] = $row_inv_lig['join_coef3'] ;
+			$arr_update['field_LOG_VAT'] = $row_inv_lig['join_vat'] ;
+		}
+		
 		$arr_update['field_CALC_AMOUNT_NOVAT'] = $coef * $amount_novat ;
 		$arr_update['field_CALC_AMOUNT_FINAL'] = $coef * $amount_final ;
 		paracrm_lib_data_updateRecord_file( 'INV_LIG' , $arr_update, $row_inv_lig['invlig_filerecord_id'] ) ;
