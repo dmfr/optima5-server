@@ -719,9 +719,6 @@ function specBpSales_inv_printDoc( $post_data ) {
 		}
 		
 		$row_table = array(
-			'join_coef1' => (100 - ($invlig_record['join_coef1'] * 100)).' %',
-			'join_coef2' => (100 - ($invlig_record['join_coef2'] * 100)).' %',
-			'join_coef3' => (100 - ($invlig_record['join_coef3'] * 100)).' %',
 			'join_vat' => (($invlig_record['join_vat'] * 100) - 100).' %',
 			'calc_amount_novat' => number_format($invlig_record['calc_amount_novat'],3)
 		);
@@ -734,6 +731,9 @@ function specBpSales_inv_printDoc( $post_data ) {
 				'qty_ship' => (float)$invlig_record['base_qty'],
 				'qty_ship_uc' => (float)($invlig_record['base_qty']/$invlig_record['base_prod_pcb']),
 				'join_price' => $invlig_record['join_price'],
+				'join_coef1' => (100 - ($invlig_record['join_coef1'] * 100)).' %',
+				'join_coef2' => (100 - ($invlig_record['join_coef2'] * 100)).' %',
+				'join_coef3' => (100 - ($invlig_record['join_coef3'] * 100)).' %',
 				'calc_price_unit' => number_format($invlig_record['join_price']*$invlig_record['join_coef1']*$invlig_record['join_coef2']*$invlig_record['join_coef3'],3),
 				'calc_price_novat' => number_format($invlig_record['calc_amount_novat'],3)
 			);
