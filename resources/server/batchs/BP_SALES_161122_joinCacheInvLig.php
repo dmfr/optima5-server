@@ -30,16 +30,15 @@ $forward_post['file_code'] = 'INV_LIG' ;
 	$sorter['direction'] = 'DESC' ;
 $forward_post['sort'] = json_encode(array($sorter)) ;
 $json = paracrm_data_getFileGrid_data( $forward_post, $auth_bypass=TRUE ) ;
-foreach( $json['data'] as $paracrm_row ) {
-	echo "." ;
-		
+foreach( $json['data'] as $paracrm_row ) {		
 		$row = array() ;
 		$row['field_JC_PRICE'] = $paracrm_row['INV_LIG_field_JOIN_PRICE'] ;
 		$row['field_JC_COEF1'] = $paracrm_row['INV_LIG_field_JOIN_COEF1'] ;
 		$row['field_JC_COEF2'] = $paracrm_row['INV_LIG_field_JOIN_COEF2'] ;
 		$row['field_JC_COEF3'] = $paracrm_row['INV_LIG_field_JOIN_COEF3'] ;
 		$row['field_JC_VAT'] = $paracrm_row['INV_LIG_field_JOIN_VAT'] ;
-		if( $row['INV_LIG_field_MOD_IS_ON'] ) {
+		if( $paracrm_row['INV_LIG_field_MOD_IS_ON'] ) {
+			echo "X" ;
 			$row['field_LOG_PRICE'] = $paracrm_row['INV_LIG_field_MOD_PRICE'] ;
 			$row['field_LOG_COEF1'] = $paracrm_row['INV_LIG_field_MOD_COEF1'] ;
 			$row['field_LOG_COEF2'] = $paracrm_row['INV_LIG_field_MOD_COEF2'] ;
