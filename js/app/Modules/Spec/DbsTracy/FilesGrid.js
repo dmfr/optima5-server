@@ -1506,6 +1506,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			expanded: true,
 			children: gridData
 		});
+		this.down('#pCenter').down('#pGrid').getStore().removedNodes.length = 0
 		
 		if( !this._readonlyMode ) {
 			var northRecord = {

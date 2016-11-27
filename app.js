@@ -118,6 +118,7 @@ Ext.onReady(function () {
 			root = this.getRoot() ;
 			var filteredNodes = [];
 			var childNodes = root.childNodes;
+			var childNode ;
 			for (i = 0, length = childNodes.length; i < length; i++) {
 				childNode = childNodes[i];
 				if (childNode.get('visible')) {
