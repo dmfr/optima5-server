@@ -45,7 +45,26 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 						scope: this
 					}
 				}
-			}),'->',{
+			}),{
+				itemId: 'btnSearchSeparator',
+				xtype: 'tbseparator'
+			},{
+				icon: 'images/op5img/ico_search_16.gif',
+				itemId: 'btnSearchIcon',
+				handler: function(btn) {
+					btn.up().down('#btnSearch').reset() ;
+				}
+			},{
+				xtype: 'textfield',
+				itemId: 'btnSearch',
+				width: 100,
+				listeners: {
+					change: function() {
+						this.onSearch() ;
+					},
+					scope: this
+				}
+			},'->',{
 				itemId: 'tbCreate',
 				icon: 'images/op5img/ico_new_16.gif',
 				text:'Create file...',
@@ -80,6 +99,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				iconCls: 'op5-crmbase-datatoolbar-refresh',
 				text: 'Refresh',
 				handler: function() {
+					this.down('#btnSearch').reset() ;
 					this.doLoad(true) ;
 				},
 				scope: this
@@ -204,18 +224,43 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			this.doLoad() ;
 		},this);
 		
+		this.updateToolbar() ;
+		
 		var withGrouping ;
 		switch( this.viewMode ) {
 			case 'order' :
 			case 'order-group-trspt' :
-				return this.doConfigureOrder(withGrouping=(this.viewMode=='order-group-trspt')) ;
+				this.doConfigureOrder(withGrouping=(this.viewMode=='order-group-trspt')) ;
+				break ;
 				
 			case 'trspt' :
-				return this.doConfigureTrspt() ;
+				this.doConfigureTrspt() ;
+				break ;
 				
 			default:
 				return this.doConfigureNull() ;
 		}
+	},
+	updateToolbar: function() {
+		var showSearch = true ;
+		switch( this.viewMode ) {
+			case 'order' :
+			case 'order-group-trspt' :
+				break ;
+				
+			default:
+				showSearch = false ;
+				break ;
+		}
+		if( Ext.isEmpty(this.down('#btnSoc').getValue()) ) {
+			showSearch = false ;
+		}
+		if( !showSearch ) {
+			this.down('#btnSearch').reset() ;
+		}
+		this.down('#btnSearchSeparator').setVisible(showSearch) ;
+		this.down('#btnSearchIcon').setVisible(showSearch) ;
+		this.down('#btnSearch').setVisible(showSearch) ;
 	},
 	doConfigureNull: function() {
 		var pCenter = this.down('#pCenter'), pNorth = this.down('#pNorth') ;
@@ -1288,7 +1333,14 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 	
 	
 	onSocSet: function( socCode ) {
+		this.updateToolbar() ;
 		this.doLoad() ;
+	},
+	onSearch: function( socCode ) {
+		if( this.autoRefreshTask != null ) {
+			this.autoRefreshTask.cancel() ;
+			this.autoRefreshTask.delay( 1500 ) ;
+		}
 	},
 	
 	doLoad: function(doClearFilters) {
@@ -1312,15 +1364,23 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		delete this.ajaxDataOrder ;
 		delete this.ajaxDataHat ;
 		
+		var filterParams = {
+			filter_socCode: this.down('#btnSoc').getValue(),
+			filter_archiveIsOn: (this.down('#tbArchiveIsOn').checked ? 1 : 0 )
+		};
+		if( !Ext.isEmpty(this.down('#btnSearch').getValue()) ) {
+			Ext.apply(filterParams,{
+				filter_searchTxt: this.down('#btnSearch').getValue()
+			});
+		}
+		
 		this.toggleNewTrspt(false) ;
 		this.showLoadmask() ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
-			params: {
+			params: Ext.apply({
 				_moduleId: 'spec_dbs_tracy',
-				_action: 'order_getRecords',
-				filter_socCode: this.down('#btnSoc').getValue(),
-				filter_archiveIsOn: (this.down('#tbArchiveIsOn').checked ? 1 : 0 )
-			},
+				_action: 'order_getRecords'
+			},filterParams),
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
 				if( ajaxResponse.success == false ) {
@@ -1336,13 +1396,11 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			scope: this
 		}) ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
-			params: {
+			params: Ext.apply({
 				_moduleId: 'spec_dbs_tracy',
 				_action: 'hat_getRecords',
-				skip_details : 1,
-				filter_socCode: this.down('#btnSoc').getValue(),
-				filter_archiveIsOn: (this.down('#tbArchiveIsOn').checked ? 1 : 0 )
-			},
+				skip_details : 1
+			},filterParams),
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
 				if( ajaxResponse.success == false ) {
@@ -1506,7 +1564,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			expanded: true,
 			children: gridData
 		});
-		this.down('#pCenter').down('#pGrid').getStore().removedNodes.length = 0
+		this.down('#pCenter').down('#pGrid').getStore().removedNodes.length = 0 // HACK
 		
 		if( !this._readonlyMode ) {
 			var northRecord = {

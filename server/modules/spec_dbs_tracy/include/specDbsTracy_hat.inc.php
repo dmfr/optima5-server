@@ -1,10 +1,76 @@
 <?php
 
+function specDbsTracy_hat_search2hat($soc_code, $txt) {
+	global $_opDB ;
+	$txt = trim($txt) ;
+	
+	$query = "SELECT filerecord_id FROM view_file_HAT h
+			WHERE h.field_ID_SOC='{$soc_code}' AND h.field_ID_HAT='{$txt}'" ;
+	$result = $_opDB->query($query) ;
+	if( $_opDB->num_rows($result) > 0 ) {
+		$return = array() ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$return[] = $arr[0] ;
+		}
+		return $return ;
+	}
+	
+	$query = "SELECT hc.filerecord_id
+			FROM view_file_HAT_CDE hc, view_file_CDE c
+			WHERE hc.field_FILE_CDE_ID=c.filerecord_id AND hc.field_LINK_IS_CANCEL='0'
+			AND c.field_ID_SOC='{$soc_code}' AND c.field_ID_DN='{$txt}'" ;
+	$result = $_opDB->query($query) ;
+	if( $_opDB->num_rows($result) > 0 ) {
+		$return = array() ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$return[] = $arr[0] ;
+		}
+		return $return ;
+	}
+	
+	return array() ;
+}
+function specDbsTracy_hat_search2order($soc_code, $txt) {
+	global $_opDB ;
+	$txt = trim($txt) ;
+	
+	$query = "SELECT hc.field_FILE_CDE_ID
+			FROM view_file_HAT_CDE hc, view_file_HAT h
+			WHERE hc.filerecord_parent_id=h.filerecord_id AND hc.field_LINK_IS_CANCEL='0'
+			AND h.field_ID_SOC='{$soc_code}' AND h.field_ID_HAT='{$txt}'" ;
+	$result = $_opDB->query($query) ;
+	if( $_opDB->num_rows($result) > 0 ) {
+		$return = array() ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$return[] = $arr[0] ;
+		}
+		return $return ;
+	}
+	
+	$query = "SELECT c.filerecord_id
+			FROM view_file_CDE c
+			WHERE c.field_ID_SOC='{$soc_code}' AND c.field_ID_DN='{$txt}'" ;
+	$result = $_opDB->query($query) ;
+	if( $_opDB->num_rows($result) > 0 ) {
+		$return = array() ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$return[] = $arr[0] ;
+		}
+		return $return ;
+	}
+	
+	return array() ;
+}
+
 function specDbsTracy_hat_getRecords( $post_data ) {
 	global $_opDB ;
 	
 	// filter ?
-	if( isset($post_data['filter_hatFilerecordId_arr']) ) {
+	if( isset($post_data['filter_searchTxt']) ) {
+		$filter_hatFilerecordId_list = $_opDB->makeSQLlist( 
+			specDbsTracy_hat_search2hat($post_data['filter_socCode'],$post_data['filter_searchTxt'])
+		) ;
+	} elseif( isset($post_data['filter_hatFilerecordId_arr']) ) {
 		$filter_hatFilerecordId_list = $_opDB->makeSQLlist( json_decode($post_data['filter_hatFilerecordId_arr'],true) ) ;
 	}
 	if( $post_data['filter_socCode'] ) {

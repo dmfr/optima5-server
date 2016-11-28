@@ -4,7 +4,11 @@ function specDbsTracy_order_getRecords( $post_data ) {
 	global $_opDB ;
 	
 	// filter ?
-	if( isset($post_data['filter_orderFilerecordId_arr']) ) {
+	if( isset($post_data['filter_searchTxt']) ) {
+		$filter_orderFilerecordId_list = $_opDB->makeSQLlist(
+			specDbsTracy_hat_search2order($post_data['filter_socCode'],$post_data['filter_searchTxt'])
+		) ;
+	} elseif( isset($post_data['filter_orderFilerecordId_arr']) ) {
 		$filter_orderFilerecordId_list = $_opDB->makeSQLlist( json_decode($post_data['filter_orderFilerecordId_arr'],true) ) ;
 	}
 	if( $post_data['filter_socCode'] ) {
