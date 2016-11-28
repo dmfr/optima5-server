@@ -657,7 +657,7 @@ function specDbsTracy_trspt_download( $post_data ) {
 	}
 	$writer = new XLSXWriter();
 	$writer->writeSheetHeader('Sheet1', $header );//optional
-	foreach( $dataIds as $trspt_filerecord_id ) {
+	foreach( ( is_array($dataIds) ? $dataIds : array_keys($map_id_rowTrspt) ) as $trspt_filerecord_id ) {
 	
 		if( !($data_row = $map_id_rowTrspt[$trspt_filerecord_id]) ) {
 			continue ;

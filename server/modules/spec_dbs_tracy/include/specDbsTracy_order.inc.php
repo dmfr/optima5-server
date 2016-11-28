@@ -464,7 +464,7 @@ function specDbsTracy_order_download( $post_data ) {
 	}
 	$writer = new XLSXWriter();
 	$writer->writeSheetHeader('Sheet1', $header );//optional
-	foreach( $dataIds as $order_filerecord_id ) {
+	foreach( ( is_array($dataIds) ? $dataIds : array_keys($map_id_rowOrder) ) as $order_filerecord_id ) {
 	
 		if( !($data_row = $map_id_rowOrder[$order_filerecord_id]) ) {
 			continue ;

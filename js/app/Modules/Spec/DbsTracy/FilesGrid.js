@@ -143,10 +143,23 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				hidden: this._readonlyMode,
 				iconCls: 'op5-crmbase-datatoolbar-file-export-excel',
 				text: 'Export',
-				handler: function() {
-					this.handleDownload() ;
-				},
-				scope: this
+				menu: {
+					items: [{
+						iconCls: 'op5-crmbase-datatoolbar-file-export-excel',
+						text: 'Export selection',
+						handler: function() {
+							this.handleDownload() ;
+						},
+						scope: this
+					},{
+						iconCls: 'op5-crmbase-datatoolbar-file-export-excel',
+						text: 'Export all',
+						handler: function() {
+							this.handleDownload(true) ;
+						},
+						scope: this
+					}]
+				}
 			}],
 			items: [{
 				region: 'north',
@@ -1831,7 +1844,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 	},
 	
 	
-	handleDownload: function() {
+	handleDownload: function( everything ) {
 		var action, recordIdProperty ;
 		switch( this.viewMode ) {
 			case 'order' :
@@ -1857,20 +1870,22 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			});
 		});
 		
-		var dataIds = [],
-			gridStore = this.down('#pCenter').down('#pGrid').getStore() ;
-		if( gridStore instanceof Ext.data.TreeStore ) {
-			gridStore.getRootNode().cascadeBy( function(record) {
-				if( record.get(recordIdProperty) > 0 ) {
-					dataIds.push( record.get(recordIdProperty) ) ;
-				}
-			}) ;
-		} else {
-			gridStore.each( function(record) {
-				if( record.get(recordIdProperty) > 0 ) {
-					dataIds.push( record.get(recordIdProperty) ) ;
-				}
-			}) ;
+		if( !everything ) {
+			var dataIds = [],
+				gridStore = this.down('#pCenter').down('#pGrid').getStore() ;
+			if( gridStore instanceof Ext.data.TreeStore ) {
+				gridStore.getRootNode().cascadeBy( function(record) {
+					if( record.get(recordIdProperty) > 0 ) {
+						dataIds.push( record.get(recordIdProperty) ) ;
+					}
+				}) ;
+			} else {
+				gridStore.each( function(record) {
+					if( record.get(recordIdProperty) > 0 ) {
+						dataIds.push( record.get(recordIdProperty) ) ;
+					}
+				}) ;
+			}
 		}
 		
 		var exportParams = this.optimaModule.getConfiguredAjaxParams() ;
@@ -1878,7 +1893,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			_moduleId: 'spec_dbs_tracy',
 			_action: action,
 			columns: Ext.JSON.encode(columns),
-			dataIds: Ext.JSON.encode(dataIds),
+			dataIds: ( everything ? null : Ext.JSON.encode(dataIds) ),
 			exportXls: true
 		}) ;
 		Ext.create('Ext.ux.dams.FileDownloader',{
