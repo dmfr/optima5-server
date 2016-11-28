@@ -1062,12 +1062,12 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			bodyCls: 'op5-spec-dbstracy-files-grid',
 			store: {
 				model: this.tmpModelName,
-				root: {children:[]},
 				proxy: {
 					type: 'memory',
 					reader: {
 						type: 'json'
-					}
+					},
+					data: []
 				}
 			},
 			columns: columns,
@@ -1566,18 +1566,13 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			gridData.push(singleOrderRow) ;
 		}) ;
 		
-		
 		if( doClearFilters ) {
 			this.down('#pCenter').down('#pGrid').getStore().clearFilter() ;
 			this.down('#pCenter').down('#pGrid').filters.clearFilters() ;
 		}
-		this.down('#pCenter').down('#pGrid').getStore().setRootNode({
-			root:true,
-			order_filerecord_id:0,
-			expanded: true,
-			children: gridData
-		});
-		this.down('#pCenter').down('#pGrid').getStore().removedNodes.length = 0 // HACK
+		// To refresh root node : https://www.sencha.com/forum/showthread.php?303359
+		this.down('#pCenter').down('#pGrid').getStore().getProxy().setData(gridData) ;
+		this.down('#pCenter').down('#pGrid').getStore().reload() ;
 		
 		if( !this._readonlyMode ) {
 			var northRecord = {
