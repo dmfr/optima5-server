@@ -15,7 +15,7 @@ function specDbsTracy_hat_search2hat($soc_code, $txt) {
 		return $return ;
 	}
 	
-	$query = "SELECT hc.filerecord_id
+	$query = "SELECT hc.filerecord_parent_id
 			FROM view_file_HAT_CDE hc, view_file_CDE c
 			WHERE hc.field_FILE_CDE_ID=c.filerecord_id AND hc.field_LINK_IS_CANCEL='0'
 			AND c.field_ID_SOC='{$soc_code}' AND c.field_ID_DN='{$txt}'" ;
