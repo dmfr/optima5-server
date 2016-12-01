@@ -1,5 +1,34 @@
 <?php
 
+function specDbsTracy_hat_searchSuggest($post_data) {
+	global $_opDB ;
+	$soc_code = trim($post_data['filter_socCode']) ;
+	$txt = trim($post_data['filter_searchTxt']) ;
+	
+	$ret = array() ;
+	
+	$query = "SELECT field_ID_HAT FROM view_file_HAT h
+			WHERE h.field_ID_SOC='{$soc_code}' AND h.field_ID_HAT LIKE '%{$txt}%'
+			LIMIT 10" ;
+	$result = $_opDB->query($query) ;
+	if( $_opDB->num_rows($result) > 0 ) {
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$ret[] = array('search_txt'=>$arr[0]) ;
+		}
+	}
+	
+	$query = "SELECT field_ID_DN FROM view_file_CDE c
+			WHERE c.field_ID_SOC='{$soc_code}' AND c.field_ID_DN LIKE '%{$txt}%'
+			LIMIT 10" ;
+	$result = $_opDB->query($query) ;
+	if( $_opDB->num_rows($result) > 0 ) {
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$ret[] = array('search_txt'=>$arr[0]) ;
+		}
+	}
+	
+	return array('success'=>true,'data'=>$ret) ;
+}
 function specDbsTracy_hat_search2hat($soc_code, $txt) {
 	global $_opDB ;
 	$txt = trim($txt) ;

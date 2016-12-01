@@ -43,6 +43,9 @@ switch( $post_data['_action'] )
 	case 'hat_orderRemove' :
 	return specDbsTracy_hat_orderRemove( $post_data ) ;
 	
+	case 'hat_searchSuggest' :
+	return specDbsTracy_hat_searchSuggest( $post_data ) ;
+	
 	case 'trspt_getRecords' :
 	session_write_close() ;
 	return specDbsTracy_trspt_getRecords( $post_data ) ;

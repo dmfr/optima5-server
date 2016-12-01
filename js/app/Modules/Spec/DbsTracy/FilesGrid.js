@@ -53,15 +53,56 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				itemId: 'btnSearchIcon',
 				handler: function(btn) {
 					btn.up().down('#btnSearch').reset() ;
-				}
+					this.doLoad() ;
+				},
+				scope: this
 			},{
-				xtype: 'textfield',
+				xtype: 'combobox',
 				itemId: 'btnSearch',
-				width: 100,
+				width: 150,
+				forceSelection:true,
+				allowBlank:true,
+				editable:true,
+				typeAhead:false,
+				selectOnFocus: true,
+				selectOnTab: false,
+				queryMode: 'remote',
+				displayField: 'search_txt',
+				valueField: 'search_txt',
+				queryParam: 'filter_searchTxt',
+				minChars: 2,
+				fieldStyle: 'text-transform:uppercase',
+				store: {
+					fields: ['search_txt'],
+					proxy: this.optimaModule.getConfiguredAjaxProxy({
+						extraParams : {
+							_moduleId: 'spec_dbs_tracy',
+							_action: 'hat_searchSuggest',
+							limit: 20
+						},
+						reader: {
+							type: 'json',
+							rootProperty: 'data'
+						}
+					}),
+					listeners: {
+						beforeload: function(store,options) {
+							var socCode = this.down('#btnSoc').getValue() ;
+							if( Ext.isEmpty(socCode) ) {
+								return false ;
+							}
+							
+							var params = options.getParams() ;
+							Ext.apply(params,{
+								filter_socCode: socCode
+							}) ;
+							options.setParams(params) ;
+						},
+						scope: this
+					}
+				},
 				listeners: {
-					change: function() {
-						this.onSearch() ;
-					},
+					select: this.onSearchSelect,
 					scope: this
 				}
 			},'->',{
@@ -1349,11 +1390,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		this.updateToolbar() ;
 		this.doLoad() ;
 	},
-	onSearch: function( socCode ) {
-		if( this.autoRefreshTask != null ) {
-			this.autoRefreshTask.cancel() ;
-			this.autoRefreshTask.delay( 1500 ) ;
-		}
+	onSearchSelect: function() {
+		this.doLoad(true) ;
 	},
 	
 	doLoad: function(doClearFilters) {
