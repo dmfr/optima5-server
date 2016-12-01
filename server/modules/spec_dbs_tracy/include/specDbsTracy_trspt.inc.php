@@ -648,6 +648,9 @@ function specDbsTracy_trspt_download( $post_data ) {
 	$map_id_rowTrspt = array() ;
 	foreach( $json['data'] as $rowTrspt ) {
 		$id = $rowTrspt['trspt_filerecord_id'] ;
+		if( isset($post_data['filter_socCode']) && ($rowTrspt['id_soc'] != $post_data['filter_socCode']) ) {
+			continue ;
+		}
 		$map_id_rowTrspt[$id] = $rowTrspt ;
 	}
 		

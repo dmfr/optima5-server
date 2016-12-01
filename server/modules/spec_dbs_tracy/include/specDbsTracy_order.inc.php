@@ -455,6 +455,9 @@ function specDbsTracy_order_download( $post_data ) {
 	$map_id_rowOrder = array() ;
 	foreach( $json['data'] as $rowOrder ) {
 		$id = $rowOrder['order_filerecord_id'] ;
+		if( isset($post_data['filter_socCode']) && ($rowOrder['id_soc'] != $post_data['filter_socCode']) ) {
+			continue ;
+		}
 		$map_id_rowOrder[$id] = $rowOrder ;
 	}
 		

@@ -53,7 +53,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				itemId: 'btnSearchIcon',
 				handler: function(btn) {
 					btn.up().down('#btnSearch').reset() ;
-					this.doLoad() ;
+					this.doLoad(true) ;
 				},
 				scope: this
 			},{
@@ -61,17 +61,15 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				itemId: 'btnSearch',
 				width: 150,
 				forceSelection:true,
-				allowBlank:true,
+				allowBlank:false,
 				editable:true,
 				typeAhead:false,
-				selectOnFocus: true,
-				selectOnTab: false,
 				queryMode: 'remote',
 				displayField: 'search_txt',
 				valueField: 'search_txt',
 				queryParam: 'filter_searchTxt',
 				minChars: 2,
-				fieldStyle: 'text-transform:uppercase',
+				checkValueOnChange: function() {}, //HACK
 				store: {
 					fields: ['search_txt'],
 					proxy: this.optimaModule.getConfiguredAjaxProxy({
@@ -102,6 +100,11 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 					}
 				},
 				listeners: {
+					change: function() {
+						if( this.autoRefreshTask ) {
+							this.autoRefreshTask.cancel() ;
+						}
+					},
 					select: this.onSearchSelect,
 					scope: this
 				}
@@ -1929,6 +1932,11 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			dataIds: ( everything ? null : Ext.JSON.encode(dataIds) ),
 			exportXls: true
 		}) ;
+		if( !Ext.isEmpty(this.down('#btnSoc').getValue()) ) {
+			Ext.apply(exportParams,{
+				filter_socCode: this.down('#btnSoc').getValue()
+			}) ;
+		}
 		Ext.create('Ext.ux.dams.FileDownloader',{
 			renderTo: Ext.getBody(),
 			requestParams: exportParams,
