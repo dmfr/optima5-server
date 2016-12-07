@@ -103,6 +103,16 @@ Ext.onReady(function () {
 	 * Ext 5.1.1 : applyRoot if TreeStore::setRoot() called with NodeInterface
 	 */
 	Ext.data.TreeStore.override({
+		load: function() {
+			this.suspendFilters = true ;
+			this.callOverridden(arguments) ;
+			this.suspendFilters = false ;
+			if( this.needsLocalFilter() ) {
+				this.onFilterEndUpdate(this.getFilters());
+			}
+			return this ;
+		},
+		
 		applyRoot: function(newRoot) {
 			newRoot = this.callOverridden(arguments) ;
 			
@@ -111,7 +121,48 @@ Ext.onReady(function () {
 				newRoot.store = newRoot.treeStore = me;
 			}
 			return newRoot ;
-		}
+		},
+		privates: {
+			needsLocalFilter: function(force) {
+				if( !force && this.suspendFilters ) {
+					return false ;
+				}
+				return this.callOverridden(arguments) ;
+			},
+			createOperation: function(type, options) {
+				if( this.needsLocalFilter(true) ) {
+					delete options.filters ;
+				}
+				return this.callOverridden(arguments) ;
+			},
+			filterNodes: function(root, node, filterFn) {
+				/*
+				* https://www.sencha.com/forum/showthread.php?296893-Filtering-tree-store
+				*/
+				var match = false,
+					childNodes = node.childNodes,
+					len = childNodes && childNodes.length,
+					i, child;
+				if (len) {
+					for (i = 0; i < len; ++i) {
+						// match needs to be true if any child nodes have been found to match
+						match = this.filterNodes(root, childNodes[i], filterFn) || match;
+					}
+				}
+				// match if a child matches, or if the current node matches.
+				match = match || (node === root || filterFn(node));
+				node.set('visible', match, this._silentOptions);
+				if( match && node !== root ) { // HACK : DAMS , display children if parent matches
+					node.cascadeBy( function(childNode) {
+						if( childNode==node ) {
+							return ;
+						}
+						childNode.set('visible', true, this._silentOptions);
+					},this) ;
+				}
+				return match;
+			}
+ 		}
 	});
 	
 	/*
