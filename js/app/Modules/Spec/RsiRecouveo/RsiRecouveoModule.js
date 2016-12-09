@@ -1,4 +1,4 @@
-Ext.define('RsiRecouveoFileModel',{
+Ext.define('RsiRecouveoFileTplModel',{
 	extend: 'Ext.data.Model',
 	idProperty: 'filerecord_id',
 	fields: [

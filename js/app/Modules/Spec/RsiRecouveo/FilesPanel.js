@@ -29,7 +29,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				listeners: {
 					change: {
 						fn: function() {
-							//this.onSocSet() ;
+							this.onAtrSet() ;
 						},
 						scope: this
 					},
@@ -48,7 +48,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				listeners: {
 					change: {
 						fn: function() {
-							//this.onSocSet() ;
+							this.onAtrSet() ;
 						},
 						scope: this
 					},
@@ -67,7 +67,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				listeners: {
 					change: {
 						fn: function() {
-							//this.onSocSet() ;
+							this.onAtrSet() ;
 						},
 						scope: this
 					},
@@ -365,26 +365,30 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			}
 		}) ;
 		
+		var atrRenderer = function(value, metaData, record, rowIndex, colIndex, store, view) {
+			var column = view.ownerCt.columns[colIndex] ;
+			console.log(column.rendererDataindex) ;
+		}
+		var atrColumns = [] ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
+			var atrRecord = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(atrId) ;
+			//console.dir(atrRecord) ;
+			atrColumns.push({
+				text: atrRecord.atr_txt,
+				dataIndex: atrRecord.bible_code,
+				rendererDataindex: atrRecord.bible_code + '_text',
+				width:90,
+				align: 'center',
+				renderer: atrRenderer
+			}) ;
+		}) ;
+		
+		
 		
 		var pCenter = this.down('#pCenter') ;
 		var columns = [{
 			text: 'Attributs',
-			columns: [{
-				text: 'BusinessUnit',
-				dataIndex: 'atr_bu',
-				width:90,
-				align: 'center'
-			},{
-				text: 'Divisions',
-				dataIndex: 'atr_div',
-				width:90,
-				align: 'center'
-			},{
-				text: 'Secteurs',
-				dataIndex: 'atr_sect',
-				width:90,
-				align: 'center'
-			}]
+			columns: atrColumns
 		},{
 			text: 'Acheteurs',
 			columns: [{
@@ -460,6 +464,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		}] ;
 		pCenter.add({
 			xtype: 'grid',
+			itemId: 'pGrid',
 			columns: columns,
 			plugins: [{
 				ptype: 'uxgridfilters'
@@ -475,6 +480,76 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				scope :this
 			}
 		});
+		
+		this.doLoad() ;
+	},
+	
+	onAtrSet: function() {
+		this.doLoad(true) ;
+	},
+	
+	doLoad: function(doClearFilters) {
+		var objAtrFilter = {} ;
+		Ext.Array.each( this.query('toolbar > [cfgParam_id]'), function(cfgParamBtn) {
+			console.dir(cfgParamBtn) ;
+			objAtrFilter[cfgParamBtn.cfgParam_id] = cfgParamBtn.getValue()
+		}) ;
+		console.dir(objAtrFilter) ;
+		
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_rsi_recouveo',
+				_action: 'file_getRecords',
+				filter_atr: Ext.JSON.encode(objAtrFilter)
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+				this.onLoad(ajaxResponse.data, doClearFilters) ;
+				// Setup autoRefresh task
+				//this.autoRefreshTask.delay( this.autoRefreshDelay ) ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+	},
+	onLoad: function(ajaxData, doClearFilters) {
+		if( doClearFilters ) {
+			this.down('#pCenter').down('#pGrid').getStore().clearFilter() ;
+			this.down('#pCenter').down('#pGrid').filters.clearFilters() ;
+		}
+		this.down('#pCenter').down('#pGrid').getStore().loadRawData(ajaxData) ;
+	},
+	
+	
+	showLoadmask: function() {
+		if( this.rendered ) {
+			this.doShowLoadmask() ;
+		} else {
+			this.on('afterrender',this.doShowLoadmask,this,{single:true}) ;
+		}
+	},
+	doShowLoadmask: function() {
+		if( this.loadMask ) {
+			return ;
+		}
+		this.loadMask = Ext.create('Ext.LoadMask',{
+			target: this,
+			msg:"Please wait..."
+		}).show();
+	},
+	hideLoadmask: function() {
+		this.un('afterrender',this.doShowLoadmask,this) ;
+		if( this.loadMask ) {
+			this.loadMask.destroy() ;
+			this.loadMask = null ;
+		}
 	},
 	
 	doQuit: function() {

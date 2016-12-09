@@ -1,4 +1,5 @@
 <?php
+include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_file.inc.php") ;
 
 function specRsiRecouveo_cfg_doInit( $post_data ) {
 	global $_opDB ;
@@ -38,6 +39,18 @@ function specRsiRecouveo_cfg_getConfig() {
 	
 	$GLOBALS['cache_specRsiRecouveo_cfg']['getConfig'] = array();
 	
+	$TAB_status = array() ;
+	$query = "SELECT * FROM view_bible_CFG_STATUS_tree WHERE 1 ORDER BY treenode_key" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$TAB_status[] = array(
+			'status_id' => $arr['field_CODE'],
+			'status_txt' => $arr['field_TEXT'],
+			'status_code' => $arr['field_TEXT'],
+			'status_color' => $arr['field_COLOR']
+		) ;
+	}
+	
 	$TAB_list = array() ;
 	$json_define = paracrm_define_getMainToolbar( array('data_type'=>'bible') , true ) ;
 	foreach( $json_define['data_bible'] as $define_bible ) {
@@ -47,15 +60,15 @@ function specRsiRecouveo_cfg_getConfig() {
 			$bible_code = $define_bible['bibleId'] ;
 			
 			$records = array() ;
-			$query = "SELECT * FROM view_bible_{$bible_code}_entry ORDER BY entry_key" ;
+			$query = "SELECT * FROM view_bible_{$bible_code}_tree ORDER BY treenode_key" ;
 			$result = $_opDB->query($query) ;
 			while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 				$node = $arr['treenode_key'] ;
-				$id = $arr['entry_key'] ;
+				$id = $arr['treenode_key'] ;
 				$lib = array() ;
-				foreach( $json_define_bible['data']['entry_fields'] as $entry_field ) {
-					if( strpos($entry_field['entry_field_code'],'field_')===0 && $entry_field['entry_field_is_header'] ) {
-						$lib[] = $arr[$entry_field['entry_field_code']] ;
+				foreach( $json_define_bible['data']['tree_fields'] as $tree_field ) {
+					if( strpos($tree_field['tree_field_code'],'field_')===0 && $tree_field['tree_field_is_header'] ) {
+						$lib[] = $arr[$tree_field['tree_field_code']] ;
 					}
 				}
 				$records[] = array('node'=>'', 'id'=>$id, 'text'=>implode(' - ',$lib)) ;
@@ -71,7 +84,8 @@ function specRsiRecouveo_cfg_getConfig() {
 	}
 	
 	$GLOBALS['cache_specRsiRecouveo_cfg']['getConfig'] = array(
-		'cfg_atr' => $TAB_list
+		'cfg_atr' => $TAB_list,
+		'cfg_status' => $TAB_status
 	);
 	
 	return array('success'=>true, 'data'=>$GLOBALS['cache_specRsiRecouveo_cfg']['getConfig'])  ;

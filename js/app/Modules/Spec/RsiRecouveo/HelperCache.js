@@ -21,6 +21,17 @@ Ext.define('RsiRecouveoCfgAtrModel',{
 		associationKey: 'records'
 	}]
 });
+Ext.define('RsiRecouveoCfgStatusModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'status_id',
+	fields: [
+		{name: 'status_id', type:'string'},
+		{name: 'status_txt', type:'string'},
+		{name: 'status_code', type:'string'},
+		{name: 'status_color', type:'string'}
+	]
+});
+
 
 Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 	mixins: {
@@ -95,6 +106,24 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 				}
 			}
 		}) ;
+		this.cfgStatusStore = Ext.create('Ext.data.Store',{
+			model: 'RsiRecouveoCfgStatusModel',
+			data : ajaxData.data.cfg_status
+		}) ;
+		
+		var pushModelFields = [] ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
+			pushModelFields.push({
+				name: atrId,
+				type: 'string'
+			}) ;
+		}) ;
+		Ext.ux.dams.ModelManager.unregister( 'RsiRecouveoFileModel' ) ;
+		Ext.define('RsiRecouveoFileModel',{
+			extend: 'RsiRecouveoFileTplModel',
+			idProperty: 'filerecord_id',
+			fields: pushModelFields
+		}) ;
 		
 		this.onLoad() ;
 	},
@@ -111,6 +140,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 	},
 	getAtrData: function(atrId) {
 		return this.cfgAtrStore.getById(atrId) ? Ext.pluck(this.cfgAtrStore.getById(atrId).records().getRange(), 'data') : null ;
+	},
+	
+	getStatusAll: function() {
+		return Ext.pluck( this.cfgStatusStore.getRange(), 'data' ) ;
 	},
 	
 	authHelperHasAll: function() {

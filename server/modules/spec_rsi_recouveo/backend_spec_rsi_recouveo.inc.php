@@ -14,6 +14,9 @@ switch( $post_data['_action'] )
 	case 'cfg_doInit' :
 	return specRsiRecouveo_cfg_doInit( $post_data ) ;
 	
+	case 'file_getRecords' :
+	return specRsiRecouveo_file_getRecords( $post_data ) ;
+	
 	default :
 	return NULL ;
 }
