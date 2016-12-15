@@ -131,6 +131,9 @@
 	font-size: 14px;
 	line-height: 16px;
 }
+.op5-spec-dbstracy-boldcolumn .x-grid-cell-inner { 
+	font-weight: bold;
+}
 
 
 .op5-spec-dbstracy-gridcell-green .x-grid-cell-inner { 

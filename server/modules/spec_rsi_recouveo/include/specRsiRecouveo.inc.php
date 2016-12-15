@@ -45,8 +45,8 @@ function specRsiRecouveo_cfg_getConfig() {
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$TAB_status[] = array(
 			'status_id' => $arr['field_CODE'],
-			'status_txt' => $arr['field_TEXT'],
-			'status_code' => $arr['field_TEXT'],
+			'status_txt' => $arr['field_TXT'],
+			'status_code' => $arr['field_TXT'],
 			'status_color' => $arr['field_COLOR']
 		) ;
 	}

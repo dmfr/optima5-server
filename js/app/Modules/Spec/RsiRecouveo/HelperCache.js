@@ -118,11 +118,26 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 				type: 'string'
 			}) ;
 		}) ;
+		Ext.ux.dams.ModelManager.unregister( 'RsiRecouveoRecordModel' ) ;
+		Ext.define('RsiRecouveoRecordModel',{
+			extend: 'RsiRecouveoRecordTplModel',
+			idProperty: 'record_filerecord_id',
+			fields: pushModelFields
+		}) ;
 		Ext.ux.dams.ModelManager.unregister( 'RsiRecouveoFileModel' ) ;
 		Ext.define('RsiRecouveoFileModel',{
 			extend: 'RsiRecouveoFileTplModel',
-			idProperty: 'filerecord_id',
-			fields: pushModelFields
+			idProperty: 'file_filerecord_id',
+			fields: pushModelFields,
+			hasMany: [{
+				model: 'RsiRecouveoFileActionModel',
+				name: 'actions',
+				associationKey: 'actions'
+			},{
+				model: 'RsiRecouveoRecordModel',
+				name: 'records',
+				associationKey: 'records'
+			}]
 		}) ;
 		
 		this.onLoad() ;

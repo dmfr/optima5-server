@@ -110,6 +110,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 					}]
 				}
 			},{
+				iconCls: 'op5-crmbase-datatoolbar-refresh',
+				text: 'Refresh',
+				handler: function() {
+					this.doLoad(true) ;
+				},
+				scope: this
+			},{
 				hidden: this._readonlyMode,
 				iconCls: 'op5-crmbase-datatoolbar-file-export-excel',
 				text: 'Export',
@@ -172,6 +179,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 	},
 	
 	configureViews: function() {
+		var statusColors = [], statusTitles = [] ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getStatusAll(), function(status) {
+			statusColors.push(status.status_color) ;
+			statusTitles.push(status.status_txt) ;
+		}) ;
+
+		
 		var pNorth = this.down('#pNorth') ;
 		pNorth.add({
 			xtype: 'panel',
@@ -181,7 +195,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			border: false,
 			items: {
 				xtype: 'polar',
+				itemId: 'chrtStatus',
 				border: false,
+				colors: statusColors,
 				store: { 
 					fields: ['os', 'data1' ],
 					data: [
@@ -246,6 +262,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			items: {
 				xtype: 'polar',
 				border: false,
+				colors: statusColors,
 				store: { 
 					fields: ['os', 'data1' ],
 					data: [
@@ -365,9 +382,16 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			}
 		}) ;
 		
+		
+		var statusMap = {} ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getStatusAll(), function(status) {
+			statusMap[status.status_id] = status ;
+		}) ;
+		
 		var atrRenderer = function(value, metaData, record, rowIndex, colIndex, store, view) {
-			var column = view.ownerCt.columns[colIndex] ;
-			console.log(column.rendererDataindex) ;
+			var column = view.ownerCt.columns[colIndex],
+				value = record.get(column.rendererDataindex) ;
+			return value ;
 		}
 		var atrColumns = [] ;
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
@@ -383,8 +407,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			}) ;
 		}) ;
 		
-		
-		
 		var pCenter = this.down('#pCenter') ;
 		var columns = [{
 			text: 'Attributs',
@@ -393,8 +415,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			text: 'Acheteurs',
 			columns: [{
 				text: 'ID',
-				dataIndex: 'id_ref',
-				tdCls: 'op5-spec-dbstracy-bigcolumn',
+				dataIndex: 'acc_id',
+				tdCls: 'op5-spec-dbstracy-boldcolumn',
 				width:100,
 				align: 'center',
 				filter: {
@@ -404,7 +426,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				}
 			},{
 				text: 'Acheteur',
-				dataIndex: 'id_txt',
+				dataIndex: 'acc_txt',
 				width:150,
 				align: 'center',
 				filter: {
@@ -421,9 +443,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				bibleId: 'CFG_STATUS'
 			},
 			renderer: function(v,metaData,r) {
-				v = r.get('status_txt') ;
-				metaData.style += 'color: white ; background: '+r.get('status_color') ;
-				return v ;
+				var statusMap = this._statusMap ;
+				if( statusMap.hasOwnProperty(v) ) {
+					var statusData = statusMap[v] ;
+					metaData.style += 'color: white ; background: '+statusData.status_color ;
+					return statusData.status_txt ;
+				}
+				return '?' ;
 			}
 		},{
 			text: 'Next action',
@@ -442,11 +468,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			columns: [{
 				text: 'Nb Fact',
 				dataIndex: 'inv_nb',
+				tdCls: 'op5-spec-dbstracy-boldcolumn',
 				width:90,
 				align: 'center'
 			},{
 				text: 'Montant<br>débiteur',
 				dataIndex: 'inv_amount_due',
+				tdCls: 'op5-spec-dbstracy-boldcolumn',
 				width:90,
 				align: 'center',
 				filter: {
@@ -471,14 +499,15 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			}],
 			store: {
 				model: 'RsiRecouveoFileModel',
-				data: this.getSampleData()
+				data: []
 			},
 			listeners: {
 				itemdblclick: function(){
 					this.handleOpenFile() ;
 				},
 				scope :this
-			}
+			},
+			_statusMap: statusMap
 		});
 		
 		this.doLoad() ;
@@ -491,10 +520,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 	doLoad: function(doClearFilters) {
 		var objAtrFilter = {} ;
 		Ext.Array.each( this.query('toolbar > [cfgParam_id]'), function(cfgParamBtn) {
-			console.dir(cfgParamBtn) ;
 			objAtrFilter[cfgParamBtn.cfgParam_id] = cfgParamBtn.getValue()
 		}) ;
-		console.dir(objAtrFilter) ;
 		
 		this.showLoadmask() ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
@@ -525,6 +552,25 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			this.down('#pCenter').down('#pGrid').filters.clearFilters() ;
 		}
 		this.down('#pCenter').down('#pGrid').getStore().loadRawData(ajaxData) ;
+		
+		// Calcul des stats
+		// - chaque statut => nb de dossiers / montant
+		var map_status_nbFiles = {},
+			map_status_amount = {} ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getStatusAll(), function(status) {
+			map_status_nbFiles[status.status_id]=0 ;
+			map_status_amount[status.status_id]=0 ;
+		}) ;
+		Ext.Array.each( ajaxData, function(fileRow) {
+			var status = fileRow.status ;
+			if( !map_status_nbFiles.hasOwnProperty(status) ) {
+				return ;
+			}
+			map_status_nbFiles[status]++ ;
+			map_status_amount[status] += fileRow.inv_amount_due ;
+		}) ;
+		console.dir(map_status_nbFiles) ;
+		console.dir(map_status_amount) ;
 	},
 	
 	

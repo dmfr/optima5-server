@@ -6,6 +6,14 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 	$ttmp = specRsiRecouveo_cfg_getConfig() ;
 	$cfg_atr = $ttmp['data']['cfg_atr'] ;
 	//print_r($cfg_atr) ;
+	foreach( $cfg_atr as &$atr_record ) {
+		$map_id_text = array() ;
+		foreach( $atr_record['records'] as $rec ) {
+			$map_id_text[$rec['id']] = substr($rec['text'],strlen($rec['id'])+2) ;
+		}
+		$atr_record['map_id_text'] = $map_id_text ;
+	}
+	unset($atr_record) ;
 	
 	if( $post_data['filter_atr'] ) {
 		$filter_atr = json_decode($post_data['filter_atr'],true) ;
@@ -14,29 +22,47 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 		$_load_details = true ;
 		$filter_fileFilerecordId_list = $_opDB->makeSQLlist( json_decode($post_data['filter_fileFilerecordId_arr'],true) ) ;
 	}
+	if( $post_data['filter_archiveIsOn'] ) {
+		$filter_archiveIsOn = ( $post_data['filter_archiveIsOn'] ? true : false ) ;
+	}
 	
 	$TAB_files = array() ;
 	
-	$query = "SELECT f.* FROM view_file_FILE f" ;
+	$query = "SELECT f.*, la.field_ACC_NAME FROM view_file_FILE f" ;
 	$query.= " JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key = f.field_LINK_ACCOUNT" ;
 	$query.= " WHERE 1" ;
 	if( isset($filter_fileFilerecordId_list) ) {
 		$query.= " AND f.filerecord_id IN {$filter_fileFilerecordId_list}" ;
-	} elseif( $filter_atr ) {
-		foreach( $cfg_atr as $atr_record ) {
-			$mkey = $atr_record['bible_code'] ;
-			if( $filter_atr[$mkey] ) {
-				$mvalue = $filter_atr[$mkey] ;
-				$query.= " AND f.field_{$mkey} = '$mvalue'" ;
+	} else {
+		if( $filter_atr ) {
+			foreach( $cfg_atr as $atr_record ) {
+				$mkey = $atr_record['bible_code'] ;
+				if( $filter_atr[$mkey] ) {
+					$mvalue = $filter_atr[$mkey] ;
+					$query.= " AND f.field_{$mkey} = '$mvalue'" ;
+				}
 			}
+		}
+		if( !$filter_archiveIsOn ) {
+			$query.= " AND f.field_STATUS <> ''" ;
 		}
 	}
 	$query.= " ORDER BY f.filerecord_id DESC" ;
-	//echo $query ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$record = array(
 			'file_filerecord_id' => $arr['filerecord_id'],
+			
+			'id_ref' => $arr['field_FILE_ID'],
+			
+			'acc_id' => $arr['field_LINK_ACCOUNT'],
+			'acc_txt' => $arr['field_ACC_NAME'],
+			
+			'status' => $arr['field_STATUS'],
+			'status_closed' => ($arr['field_STATUS']==NULL),
+			
+			'date_open' => $arr['field_DATE_OPEN'],
+			'date_last' => $arr['field_DATE_LAST'],
 			
 			'records' => array(),
 			'actions' => array()
@@ -44,34 +70,160 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 		foreach( $cfg_atr as $atr_record ) {
 			$mkey = $atr_record['bible_code'] ;
 			$record[$mkey] = $arr['field_'.$mkey] ;
+			$record[$mkey.'_text'] = $atr_record['map_id_text'][$arr['field_'.$mkey]] ;
 		}
 		
 		$TAB_files[$arr['filerecord_id']] = $record ;
 	}
 	
-	/*
-	$query = "SELECT * FROM view_file_TRSPT_EVENT te" ;
+	
+	$query = "SELECT fa.* FROM view_file_FILE_ACTION fa" ;
+	$query.= " JOIN view_file_FILE f ON f.filerecord_id=fa.filerecord_parent_id" ;
 	$query.= " WHERE 1" ;
-	if( isset($filter_trsptFilerecordId_list) ) {
-		$query.= " AND te.filerecord_parent_id IN {$filter_trsptFilerecordId_list}" ;
-	} elseif( !$filter_archiveIsOn ) {
-		$query.= " AND te.filerecord_parent_id IN (SELECT filerecord_id FROM view_file_TRSPT WHERE field_ARCHIVE_IS_ON='0')" ;
+	if( isset($filter_fileFilerecordId_list) ) {
+		$query.= " AND f.filerecord_id IN {$filter_fileFilerecordId_list}" ;
+	} else {
+		if( $filter_atr ) {
+			foreach( $cfg_atr as $atr_record ) {
+				$mkey = $atr_record['bible_code'] ;
+				if( $filter_atr[$mkey] ) {
+					$mvalue = $filter_atr[$mkey] ;
+					$query.= " AND f.field_{$mkey} = '$mvalue'" ;
+				}
+			}
+		}
+		if( !$filter_archiveIsOn ) {
+			$query.= " AND f.field_STATUS <> ''" ;
+		}
 	}
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		if( !isset($TAB_files[$arr['filerecord_parent_id']]) ) {
 			continue ;
 		}
-		$TAB_files[$arr['filerecord_parent_id']]['events'][] = array(
-			'trsptevent_filerecord_id' => $arr['filerecord_id'],
-			'event_date' => $arr['field_EVENT_DATE'],
-			'event_user' => $arr['field_EVENT_USER'],
-			'event_txt' => $arr['field_EVENT_TXT']
+		$TAB_files[$arr['filerecord_parent_id']]['actions'][] = array(
+			'fileaction_filerecord_id' => $arr['filerecord_id'],
+			'link_status' => $arr['field_LINK_STATUS'],
+			'link_action' => $arr['field_LINK_ACTION'],
+			'status_is_ok' => ($arr['field_STATUS_IS_OK']==1),
+			'date_sched' => $arr['field_DATE_SCHED'],
+			'date_actual' => $arr['field_DATE_ACTUAL'],
+			'txt' => $arr['field_TXT']
 		);
 	}
-	*/
-
+	
+	
+	// Clé de raccrochage facture <=> dossier
+	$map_racx_fileIds = array() ;
+	foreach( $TAB_files as $file_row ) {
+		$racx = array($file_row['acc_id']) ;
+		foreach( $cfg_atr as $atr_record ) {
+			$mkey = $atr_record['bible_code'] ;
+			$racx[] = $file_row[$mkey] ;
+		}
+		$racx = implode('%%%',$racx) ;
+		
+		if( !$map_racx_fileIds[$racx] ) {
+			$map_racx_fileIds[$racx] = array() ;
+		}
+		$map_racx_fileIds[$racx][] = $file_row['file_filerecord_id'] ;
+	}
+	
+	$query = "SELECT r.* FROM view_file_RECORD r" ;
+	$query.= " WHERE 1" ;
+	if( $filter_atr ) {
+		foreach( $cfg_atr as $atr_record ) {
+			$mkey = $atr_record['bible_code'] ;
+			if( $filter_atr[$mkey] ) {
+				$mvalue = $filter_atr[$mkey] ;
+				$query.= " AND r.field_{$mkey} = '$mvalue'" ;
+			}
+		}
+	}
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$record_row = array(
+			'record_filerecord_id' => $arr['filerecord_id'],
+			'acc_id' => $arr['field_LINK_ACCOUNT']
+		);
+		foreach( $cfg_atr as $atr_record ) {
+			$mkey = $atr_record['bible_code'] ;
+			$record_row[$mkey] = $arr['field_'.$mkey] ;
+		}
+		$record_row += array(
+			'type' => $arr['field_TYPE'],
+			'acc_id' => $arr['field_LINK_ACCOUNT'],
+			'date_record' => $arr['field_DATE_RECORD'],
+			'date_value' => $arr['field_DATE_VALUE'],
+			'amount' => $arr['field_AMOUNT'],
+			'clear_is_on' => ($arr['field_CLEAR_IS_ON']==1),
+			'clear_assign' => $arr['field_CLEAR_ASSIGN']
+		);
+		
+		$racx = array($record_row['acc_id']) ;
+		foreach( $cfg_atr as $atr_record ) {
+			$mkey = $atr_record['bible_code'] ;
+			$racx[] = $record_row[$mkey] ;
+		}
+		$racx = implode('%%%',$racx) ;
+		
+		foreach( $map_racx_fileIds[$racx] as $file_filerecord_id ) {
+			$TAB_files[$file_filerecord_id]['records'][] = $record_row ;
+		}
+	}
+	
+	
+	// Calculs sur dossiers (next_action, inv_total)
+	foreach( $TAB_files as &$file_row ) {
+		$next_action = NULL ;
+		$inv_header = array(
+			'inv_nb' => 0,
+			'inv_amount_due' => 0,
+			'inv_amount_total' => 0
+		) ;
+		foreach( $file_row['actions'] as $action_row ) {
+			if( $action_row['status_is_ok'] || !specRsiRecouveo_file_tool_isDateValid($action_row['date_sched']) ) {
+				continue ;
+			}
+			if( !$next_action || $action_row['date_sched'] < $next_action['date_sched'] ) {
+				$next_action = $action_row ;
+			}
+		}
+		foreach( $file_row['records'] as $record_row ) {
+			if( $record_row['clear_is_on'] ) {
+				continue ;
+			}
+			if( $record_row['amount'] > 0 ) {
+				$inv_header['inv_nb']++ ;
+				$inv_header['inv_amount_total'] += $record_row['amount'] ;
+			}
+			$inv_header['inv_amount_due'] += $record_row['amount'] ;
+		}
+		
+		
+		if( $next_action ) {
+			$file_row += array(
+				'next_action' => $next_action['link_action'],
+				'next_date' => $next_action['date_sched']
+			);
+		}
+		$file_row += $inv_header ;
+	}
+	unset($file_row) ;
+	
+	
 	return array('success'=>true, 'data'=>array_values($TAB_files)) ;
 }
 
+
+function specRsiRecouveo_file_tool_isDateValid( $date_sql )
+{
+	if( $date_sql == '0000-00-00' )
+		return FALSE ;
+	if( $date_sql == '0000-00-00 00:00:00' )
+		return FALSE ;
+	if( !$date_sql )
+		return FALSE ;
+	return TRUE ;
+}
 ?>
