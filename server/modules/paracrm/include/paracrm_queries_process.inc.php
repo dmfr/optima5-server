@@ -2078,10 +2078,14 @@ function paracrm_queries_process_query_iteration( $arr_saisie )
 		// new 2016-10 : count by SQL direct
 		// - only for 1 count otherwise separate iterations (old system, example DN wonderful)
 	$doCount = $doValue = 0 ;
+	$doAdvCount = FALSE ;
 	foreach( $arr_saisie['fields_select'] as $select_id => &$dummy ) {
 		switch( $arr_saisie['fields_select'][$select_id]['iteration_mode'] ) {
 			case 'count' :
 				$doCount++ ;
+				if( count($arr_saisie['fields_select'][$select_id]['math_expression']) > 1 ) {
+					$doAdvCount = TRUE ;
+				}
 				break ;
 			case 'value' :
 				$doValue++ ;
@@ -2089,7 +2093,7 @@ function paracrm_queries_process_query_iteration( $arr_saisie )
 		}
 	}
 	
-	if( ($doValue+$doCount)>0 && $doCount<=1 ) {
+	if( ($doValue+$doCount)>0 && !$doAdvCount ) {
 		// new 14-05-22 : mode exclusif VALUES
 		// - mode linéaire ie. pas de chaine d'itération parent>child
 		// => 1 seule requête SQL
@@ -2891,7 +2895,6 @@ function paracrm_queries_process_query_doCount( $arr_saisie, $target_fileCode, $
 	global $_opDB ;
 	global $arr_bible_trees , $arr_bible_entries ;
 	
-	
 	// $subRes_group_arr_arrSymbolValue = array() ; // return value @OBSOLETE
 	$subRes_selectId_group_arr_arrSymbolValue = array() ; // return value
 	
@@ -2942,7 +2945,10 @@ function paracrm_queries_process_query_doCount( $arr_saisie, $target_fileCode, $
 					}
 					
 					// print_r($define_field) ;
-					$bible_foreignConstraints[$define_field['bible_code']] = $base_row[$file_code][$file_field_code] ;
+					$bible_foreignConstraints[$define_field['bible_code']] = array(
+						'record_type' => 'entry',
+						'record_key' => $base_row[$file_code][$file_field_code]
+					) ;
 				}
 			
 				// iteration sur la bible !!!!!
