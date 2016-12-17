@@ -51,6 +51,32 @@ function specRsiRecouveo_cfg_getConfig() {
 		) ;
 	}
 	
+	$TAB_action = array() ;
+	$query = "SELECT * FROM view_bible_CFG_ACTION_entry WHERE 1 ORDER BY entry_key" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$TAB_action[] = array(
+			'action_id' => $arr['field_ACTION_CODE'],
+			'action_txt' => $arr['field_ACTION_TXT'],
+			'group_id' => $arr['treenode_key'],
+			'status_open' => json_decode($arr['field_LINK_STATUS_OPEN'],true),
+			'status_next' => json_decode($arr['field_LINK_STATUS_NEXT'],true),
+			'agenda_class' => $arr['field_AGENDA_CLASS']
+		) ;
+	}
+	
+	$TAB_action_eta = array() ;
+	$query = "SELECT * FROM view_bible_CFG_ACTION_ETA_entry WHERE 1 ORDER BY entry_key" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$TAB_action_eta[] = array(
+			'eta_range' => $arr['field_ETA_RANGE'],
+			'eta_txt' => $arr['field_ETA_TXT'],
+			'eta_color' => $arr['field_ETA_COLOR'],
+			'upto_days' => $arr['field_UPTO_DAYS']
+		) ;
+	}
+	
 	$TAB_list = array() ;
 	$json_define = paracrm_define_getMainToolbar( array('data_type'=>'bible') , true ) ;
 	foreach( $json_define['data_bible'] as $define_bible ) {
@@ -85,7 +111,9 @@ function specRsiRecouveo_cfg_getConfig() {
 	
 	$GLOBALS['cache_specRsiRecouveo_cfg']['getConfig'] = array(
 		'cfg_atr' => $TAB_list,
-		'cfg_status' => $TAB_status
+		'cfg_status' => $TAB_status,
+		'cfg_action' => $TAB_action,
+		'cfg_action_eta' => $TAB_action_eta
 	);
 	
 	return array('success'=>true, 'data'=>$GLOBALS['cache_specRsiRecouveo_cfg']['getConfig'])  ;

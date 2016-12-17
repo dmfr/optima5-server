@@ -179,213 +179,19 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 	},
 	
 	configureViews: function() {
-		var statusColors = [], statusTitles = [] ;
-		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getStatusAll(), function(status) {
-			statusColors.push(status.status_color) ;
-			statusTitles.push(status.status_txt) ;
-		}) ;
+		
 
 		
-		var pNorth = this.down('#pNorth') ;
-		pNorth.add({
-			xtype: 'panel',
-			cls: 'chart-no-border',
-			width: 350,
-			layout: 'fit',
-			border: false,
-			items: {
-				xtype: 'polar',
-				itemId: 'chrtStatus',
-				border: false,
-				colors: statusColors,
-				store: { 
-					fields: ['os', 'data1' ],
-					data: [
-						{ os: '<b>Recouvré</b>', data1: 68.3 },
-						{ os: '<u>Irrecouvrable</u>', data1: 1.7 },
-						{ os: 'Prise de contact', data1: 17.9 },
-						{ os: 'Relances amiable', data1: 10.2 },
-						{ os: 'Outils juridiques', data1: 1.9 }
-					]
-				},
-				insetPadding: { top: 10, left: 10, right: 10, bottom: 20 },
-				//innerPadding: 20,
-				legend: {
-					docked: 'left',
-					border: false,
-					toggleable: false,
-					style: {
-						border: {
-							color: 'white'
-						}
-					}
-				},
-				interactions: ['itemhighlight'],
-            sprites: [{
-					type: 'text',
-					text: 'Répartition (321,580.00 k€)',
-					fontSize: 12,
-					width: 100,
-					height: 30,
-					x: 30, // the sprite x position
-					y: 205  // the sprite y position
-				}],
-				series: [{
-					type: 'pie',
-					angleField: 'data1',
-					donut: 50,
-					label: {
-						field: 'os',
-						calloutLine: {
-							color: 'rgba(0,0,0,0)' // Transparent to hide callout line
-						},
-						renderer: function(val) {
-							return ''; // Empty label to hide text
-						}
-					},
-					highlight: true,
-					tooltip: {
-						trackMouse: true,
-						style: 'background: #fff',
-						renderer: function(storeItem, item) {
-							this.setHtml(storeItem.get('os') + ': ' + storeItem.get('data1') + '%');
-						}
-					}
-				}]
-			}
-		}) ;
-		pNorth.add({
-			xtype: 'panel',
-			width: 215,
-			layout: 'fit',
-			border: false,
-			items: {
-				xtype: 'polar',
-				border: false,
-				colors: statusColors,
-				store: { 
-					fields: ['os', 'data1' ],
-					data: [
-						{ os: '<b>Recouvré</b>', data1: 68.3 },
-						{ os: '<u>Irrecouvrable</u>', data1: 1.7 },
-						{ os: 'Prise de contact', data1: 17.9 },
-						{ os: 'Relances amiable', data1: 10.2 },
-						{ os: 'Outils juridiques', data1: 1.9 }
-					]
-				},
-				insetPadding: { top: 10, left: 10, right: 10, bottom: 20 },
-				//innerPadding: 20,
-				interactions: ['itemhighlight'],
-            sprites: [{
-					type: 'text',
-					text: 'Nb Dossiers (950)',
-					fontSize: 12,
-					width: 100,
-					height: 30,
-					x: 55, // the sprite x position
-					y: 205  // the sprite y position
-				}],
-				series: [{
-					type: 'pie',
-					angleField: 'data1',
-					donut: 50,
-					label: {
-						field: 'os',
-						calloutLine: {
-							color: 'rgba(0,0,0,0)' // Transparent to hide callout line
-						},
-						renderer: function(val) {
-							return ''; // Empty label to hide text
-						}
-					},
-					highlight: true,
-					tooltip: {
-						trackMouse: true,
-						style: 'background: #fff',
-						renderer: function(storeItem, item) {
-							this.setHtml(storeItem.get('os') + ': ' + storeItem.get('data1') + '');
-						}
-					}
-				}]
-			}
-		}) ;
-		pNorth.add({
-			xtype: 'panel',
-			border: false,
-			cls: 'chart-no-border',
-			flex: 1,
-			layout: 'fit',
-			//border: false,
-			items: {
-            xtype: 'cartesian',
-				border: false,
-            width: '100%',
-            height: '100%',
-            legend: {
-                docked: 'bottom'
-            },
-            store: {
-					fields: ['month', 'data1', 'data2', 'data3', 'data4', 'other'],
-					data: [
-						{ month: 'Contacts', data1: 20, data2: 37, data3: 35, data4: 4, other: 4 },
-						{ month: 'RDV', data1: 20, data2: 37, data3: 35, data4: 4, other: 4 },
-						{ month: 'Promesses', data1: 20, data2: 37, data3: 35, data4: 4, other: 4 },
-					]
-				},
-            insetPadding: { top: 30, left: 10, right: 30, bottom: 10 },
-            flipXY: true,
-            sprites: [{
-                type: 'text',
-                text: 'Agenda / Actions imminentes',
-                fontSize: 14,
-                width: 100,
-                height: 30,
-                x: 150, // the sprite x position
-                y: 20  // the sprite y position
-            }],
-            axes: [{
-                type: 'numeric',
-                position: 'bottom',
-                adjustByMajorUnit: true,
-                fields: 'data1',
-                grid: true,
-                renderer: function (v) { return v + ''; },
-                minimum: 0
-            }, {
-                type: 'category',
-                position: 'left',
-                fields: 'month',
-                grid: true
-            }],
-            series: [{
-                type: 'bar',
-                axis: 'bottom',
-                title: [ 'Retard', 'Jour J', 'Jour J+1', '< J+5' ],
-                xField: 'month',
-                yField: [ 'data1', 'data2', 'data3', 'data4' ],
-                stacked: true,
-                style: {
-                    opacity: 0.80
-                },
-                highlight: {
-                    fillStyle: 'yellow'
-                },
-                tooltip: {
-                    trackMouse: true,
-                    style: 'background: #fff',
-                    renderer: function(storeItem, item) {
-                        var browser = item.series.getTitle()[Ext.Array.indexOf(item.series.getYField(), item.field)];
-                        this.setHtml(browser + ' for ' + storeItem.get('month') + ': ' + storeItem.get(item.field) + '%');
-                    }
-                }
-            }]
-			}
-		}) ;
 		
 		
 		var statusMap = {} ;
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getStatusAll(), function(status) {
 			statusMap[status.status_id] = status ;
+		}) ;
+		
+		var actionMap = {} ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionAll(), function(action) {
+			actionMap[action.action_id] = action ;
 		}) ;
 		
 		var atrRenderer = function(value, metaData, record, rowIndex, colIndex, store, view) {
@@ -455,12 +261,37 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			text: 'Next action',
 			columns: [{
 				text: 'RDV/Action',
-				dataIndex: 'next_action'
+				tdCls: 'op5-spec-dbstracy-boldcolumn',
+				align: 'center',
+				dataIndex: 'next_action',
+				renderer: function(v,metaData,r) {
+					if( Ext.isEmpty(v) ) {
+						return '' ;
+					}
+					var actionMap = this._actionMap ;
+					if( actionMap.hasOwnProperty(v) ) {
+						var actionData = actionMap[v] ;
+						return actionData.action_txt ;
+					}
+					return '?' ;
+				}
 			},{
 				text: 'Date/Echeance',
 				dataIndex: 'next_date',
+				align: 'center',
 				filter: {
 					type: 'date'
+				},
+				renderer: function(v) {
+					if( Ext.isEmpty(v) ) {
+						return '' ;
+					}
+					var dateSql ;
+					dateSql = Ext.Date.format(v,'d/m/Y') ;
+					if( v.getHours() != 0 || v.getMinutes() != 0 ) {
+						dateSql += '&#160;' + '<font color="red"><b>' + Ext.Date.format(v,'H:i') + '</b></font>' ;
+					}
+					return dateSql;
 				}
 			}]
 		},{
@@ -507,10 +338,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				},
 				scope :this
 			},
-			_statusMap: statusMap
+			_statusMap: statusMap,
+			_actionMap: actionMap
 		});
 		
-		this.doLoad() ;
+		this.doLoad(true) ;
 	},
 	
 	onAtrSet: function() {
@@ -547,14 +379,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		}) ;
 	},
 	onLoad: function(ajaxData, doClearFilters) {
-		if( doClearFilters ) {
-			this.down('#pCenter').down('#pGrid').getStore().clearFilter() ;
-			this.down('#pCenter').down('#pGrid').filters.clearFilters() ;
-		}
-		this.down('#pCenter').down('#pGrid').getStore().loadRawData(ajaxData) ;
-		
 		// Calcul des stats
 		// - chaque statut => nb de dossiers / montant
+		// - chaque action non réalisée
 		var map_status_nbFiles = {},
 			map_status_amount = {} ;
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getStatusAll(), function(status) {
@@ -569,8 +396,285 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			map_status_nbFiles[status]++ ;
 			map_status_amount[status] += fileRow.inv_amount_due ;
 		}) ;
-		console.dir(map_status_nbFiles) ;
-		console.dir(map_status_amount) ;
+		
+		var map_actionAgendaClass_etaRange_nbActions = {},
+			map_actionId_action = {},
+			actionRow, actionAgendaClass ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionAll(), function(action) {
+			map_actionId_action[action.action_id] = action ;
+		}) ;
+		Ext.Array.each( ajaxData, function(fileRow) {
+			Ext.Array.each( fileRow.actions, function(fileActionRow) {
+				actionRow = map_actionId_action[fileActionRow.link_action] ;
+				if( !actionRow || fileActionRow.status_is_ok ) {
+					return ;
+				}
+				actionAgendaClass = actionRow.agenda_class ;
+				if( Ext.isEmpty(actionAgendaClass) ) {
+					return ;
+				}
+				if( !map_actionAgendaClass_etaRange_nbActions.hasOwnProperty(actionAgendaClass) ) {
+					map_actionAgendaClass_etaRange_nbActions[actionAgendaClass] = {} ;
+				}
+				if( !map_actionAgendaClass_etaRange_nbActions[actionAgendaClass].hasOwnProperty(fileActionRow.calc_eta_range) ) {
+					map_actionAgendaClass_etaRange_nbActions[actionAgendaClass][fileActionRow.calc_eta_range] = 0 ;
+				}
+				map_actionAgendaClass_etaRange_nbActions[actionAgendaClass][fileActionRow.calc_eta_range]++ ;
+			}) ;
+		}) ;
+		
+		
+		// grid 
+		if( doClearFilters ) {
+			this.down('#pCenter').down('#pGrid').getStore().clearFilter() ;
+			this.down('#pCenter').down('#pGrid').filters.clearFilters() ;
+			
+			this.down('#pCenter').down('#pGrid').getStore().sort('next_date','DESC') ;
+		}
+		this.down('#pCenter').down('#pGrid').getStore().loadRawData(ajaxData) ;
+		
+		
+		
+		// charts
+		var statusColors = [], statusTitles = [] ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getStatusAll(), function(status) {
+			statusColors.push(status.status_color) ;
+			statusTitles.push(status.status_txt) ;
+		}) ;
+		
+		var agendaFields = ['agenda_class'],
+			agendaYFields = [],
+			agendaTitles = [],
+			agendaColors = [] ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionEtaAll(), function(etaRange) {
+			agendaFields.push(etaRange.eta_range) ;
+			agendaYFields.push(etaRange.eta_range) ;
+			agendaTitles.push(etaRange.eta_txt) ;
+			agendaColors.push(etaRange.eta_color) ;
+		}) ;
+		
+		var agendaData = [], agendaRow,
+			agendaSummary = {
+				'ACTION' : 'Actions',
+				'RDV' : 'Rendez-vous',
+				'AGREE' : 'Promesses'
+			};
+		Ext.Object.each( agendaSummary, function(agendaClass,agendaClassTxt) {
+			agendaRow = {} ;
+			agendaRow['agenda_class'] = agendaClassTxt ;
+			Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionEtaAll(), function(etaRangeRow) {
+				var etaRange = etaRangeRow.eta_range ;
+				agendaRow[etaRange] = 0 ;
+				
+				if( map_actionAgendaClass_etaRange_nbActions.hasOwnProperty(agendaClass)
+					&& map_actionAgendaClass_etaRange_nbActions[actionAgendaClass].hasOwnProperty(etaRange) ) {
+					
+					
+					agendaRow[etaRange] = map_actionAgendaClass_etaRange_nbActions[actionAgendaClass][etaRange] ;
+				}
+			}) ;
+			
+			agendaData.push(agendaRow) ;
+		}) ;
+		
+		var chartStatusAmountData = [],
+			chartStatusCountData = [] ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getStatusAll(), function(status) {
+			chartStatusAmountData.push({
+				'status_txt' : status.status_txt,
+				'amount' : Math.round(map_status_amount[status.status_id])
+			}) ;
+			chartStatusCountData.push({
+				'status_txt' : status.status_txt,
+				'count' : Math.round(map_status_nbFiles[status.status_id])
+			}) ;
+		}) ;
+		var chartStatusAmountTotal = Math.round( Ext.Array.sum( Ext.Object.getValues(map_status_amount)) ),
+			chartStatusCountTotal = Ext.Array.sum( Ext.Object.getValues(map_status_nbFiles)) ;
+		
+		var pNorth = this.down('#pNorth') ;
+		pNorth.removeAll() ;
+		pNorth.add({
+			xtype: 'panel',
+			cls: 'chart-no-border',
+			width: 350,
+			layout: 'fit',
+			border: false,
+			items: {
+				xtype: 'polar',
+				itemId: 'chrtStatusAmount',
+				border: false,
+				colors: statusColors,
+				store: { 
+					fields: ['status_txt', 'amount' ],
+					data: chartStatusAmountData
+				},
+				insetPadding: { top: 10, left: 10, right: 10, bottom: 20 },
+				//innerPadding: 20,
+				legend: {
+					docked: 'left',
+					border: false,
+					toggleable: false,
+					style: {
+						border: {
+							color: 'white'
+						}
+					}
+				},
+				interactions: ['itemhighlight'],
+            sprites: [{
+					type: 'text',
+					text: 'Répartition ('+Ext.util.Format.number(chartStatusAmountTotal,'0,000')+' k€)',
+					fontSize: 12,
+					width: 100,
+					height: 30,
+					x: 30, // the sprite x position
+					y: 205  // the sprite y position
+				}],
+				series: [{
+					type: 'pie',
+					angleField: 'amount',
+					donut: 50,
+					label: {
+						field: 'status_txt',
+						calloutLine: {
+							color: 'rgba(0,0,0,0)' // Transparent to hide callout line
+						},
+						renderer: function(val) {
+							return ''; // Empty label to hide text
+						}
+					},
+					highlight: true,
+					tooltip: {
+						trackMouse: true,
+						style: 'background: #fff',
+						renderer: function(storeItem, item) {
+							this.setHtml(storeItem.get('status_txt') + ': ' + storeItem.get('amount') + '€');
+						}
+					}
+				}]
+			}
+		}) ;
+		pNorth.add({
+			xtype: 'panel',
+			width: 215,
+			layout: 'fit',
+			border: false,
+			items: {
+				xtype: 'polar',
+				itemId: 'chrtStatusCount',
+				border: false,
+				colors: statusColors,
+				store: { 
+					fields: ['status_txt', 'count' ],
+					data: chartStatusCountData
+				},
+				insetPadding: { top: 10, left: 10, right: 10, bottom: 20 },
+				//innerPadding: 20,
+				interactions: ['itemhighlight'],
+            sprites: [{
+					type: 'text',
+					text: 'Nb Dossiers ('+chartStatusCountTotal+')',
+					fontSize: 12,
+					width: 100,
+					height: 30,
+					x: 55, // the sprite x position
+					y: 205  // the sprite y position
+				}],
+				series: [{
+					type: 'pie',
+					angleField: 'count',
+					donut: 50,
+					label: {
+						field: 'status_txt',
+						calloutLine: {
+							color: 'rgba(0,0,0,0)' // Transparent to hide callout line
+						},
+						renderer: function(val) {
+							return ''; // Empty label to hide text
+						}
+					},
+					highlight: true,
+					tooltip: {
+						trackMouse: true,
+						style: 'background: #fff',
+						renderer: function(storeItem, item) {
+							this.setHtml(storeItem.get('status_txt') + ': ' + storeItem.get('count') + '');
+						}
+					}
+				}]
+			}
+		}) ;
+		pNorth.add({
+			xtype: 'panel',
+			border: false,
+			cls: 'chart-no-border',
+			flex: 1,
+			layout: 'fit',
+			//border: false,
+			items: {
+            xtype: 'cartesian',
+				 itemId: 'chrtAgenda',
+				 colors: agendaColors,
+				border: false,
+            width: '100%',
+            height: '100%',
+            legend: {
+                docked: 'bottom'
+            },
+            store: {
+					fields: agendaFields,
+					data: agendaData
+				},
+            insetPadding: { top: 30, left: 10, right: 30, bottom: 10 },
+            flipXY: true,
+            sprites: [{
+                type: 'text',
+                text: 'Agenda / Actions imminentes',
+                fontSize: 14,
+                width: 100,
+                height: 30,
+                x: 150, // the sprite x position
+                y: 20  // the sprite y position
+            }],
+            axes: [{
+                type: 'numeric',
+                position: 'bottom',
+                adjustByMajorUnit: true,
+                fields: agendaYFields,
+                grid: true,
+                renderer: function (v) { return v + ''; },
+                minimum: 0
+            }, {
+                type: 'category',
+                position: 'left',
+                fields: 'agenda_class',
+                grid: true
+            }],
+            series: [{
+                type: 'bar',
+                axis: 'bottom',
+                title: agendaTitles,
+                xField: 'agenda_class',
+                yField: agendaYFields,
+                stacked: true,
+                style: {
+                    opacity: 0.80
+                },
+                highlight: {
+                    fillStyle: 'yellow'
+                },
+                tooltip: {
+                    trackMouse: true,
+                    style: 'background: #fff',
+                    renderer: function(storeItem, item) {
+                        var browser = item.series.getTitle()[Ext.Array.indexOf(item.series.getYField(), item.field)];
+                        this.setHtml(browser + ' for ' + storeItem.get('agenda_class') + ': ' + storeItem.get(item.field));
+                    }
+                }
+            }]
+			}
+		}) ;
 	},
 	
 	

@@ -4,6 +4,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 	global $_opDB ;
 	
 	$ttmp = specRsiRecouveo_cfg_getConfig() ;
+	$cfg_action_eta = $ttmp['data']['cfg_action_eta'] ;
 	$cfg_atr = $ttmp['data']['cfg_atr'] ;
 	//print_r($cfg_atr) ;
 	foreach( $cfg_atr as &$atr_record ) {
@@ -172,7 +173,12 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 		}
 	}
 	
-	
+	$map_etaRange_maxDays = array() ;
+	foreach( $cfg_action_eta as $row ) {
+		$map_etaRange_maxDays[$row['eta_range']] = $row['upto_days'] ;
+	}
+	asort($map_etaRange_maxDays) ;
+	$obj_datetime_now = new DateTime(date('Y-m-d')) ;
 	// Calculs sur dossiers (next_action, inv_total)
 	foreach( $TAB_files as &$file_row ) {
 		$next_action = NULL ;
@@ -181,6 +187,33 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			'inv_amount_due' => 0,
 			'inv_amount_total' => 0
 		) ;
+		
+		foreach( $file_row['actions'] as &$action_row ) {
+			if( $action_row['status_is_ok'] || !specRsiRecouveo_file_tool_isDateValid($action_row['date_sched']) ) {
+				continue ;
+			}
+			
+			// next action
+			if( !$next_action || $action_row['date_sched'] < $next_action['date_sched'] ) {
+				$next_action = $action_row ;
+			}
+		
+			// calcul du J+x
+			$obj_datetime_sched = new DateTime(substr($action_row['date_sched'],0,10)) ;
+			$obj_date_interval = date_diff($obj_datetime_now,$obj_datetime_sched);
+			$eta_days = (int)($obj_date_interval->format('%R%a')) ;
+				// range
+				$eta_range_target = NULL ;
+				foreach( $map_etaRange_maxDays as $eta_range => $upto_days ) {
+					if( $eta_days < $upto_days ) {
+						$eta_range_target = $eta_range ;
+						break ;
+					}
+				}
+			$action_row['calc_eta_range'] = $eta_range_target ;
+		}
+		unset( $action_row ) ;
+		
 		foreach( $file_row['actions'] as $action_row ) {
 			if( $action_row['status_is_ok'] || !specRsiRecouveo_file_tool_isDateValid($action_row['date_sched']) ) {
 				continue ;

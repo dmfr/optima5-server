@@ -135,7 +135,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgPanel',{
 					val1: 'X',
 					val2: 'X',
 					val3: 'X',
-					leaf: true,
+					leaf: true
 				}]
 			},{
 				nodeId: '<b>2 - Relances amiable</b>',
@@ -146,7 +146,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgPanel',{
 					val1: '-',
 					val2: '-',
 					val3: '-',
-					leaf: true,
+					leaf: true
 				},{
 					nodeId: 'Appel 1',
 					nodeText: 'J',
@@ -167,7 +167,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgPanel',{
 					val1: '',
 					val2: '',
 					val3: 'X',
-					leaf: true,
+					leaf: true
 				}]
 			},{
 				nodeId: '<b>3 - Outils juridiques</b>',
@@ -185,7 +185,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgPanel',{
 					val1: '',
 					val2: '',
 					val3: 'X',
-					leaf: true,
+					leaf: true
 				}]
 			}]
 		} ;

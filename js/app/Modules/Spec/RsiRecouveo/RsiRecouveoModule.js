@@ -10,8 +10,8 @@ Ext.define('RsiRecouveoFileTplModel',{ // TO: RsiRecouveoFileModel
 		{name: 'status_closed', type:'boolean'},
 		{name: 'date_open', type:'date', dateFormat:'Y-m-d H:i:s'},
 		{name: 'date_last', type:'date', dateFormat:'Y-m-d H:i:s'},
-		{name: 'next_action', type: 'string'},
-		{name: 'next_date', type:'date', dateFormat:'Y-m-d H:i:s'},
+		{name: 'next_action', type: 'string', allowNull:true},
+		{name: 'next_date', type:'date', dateFormat:'Y-m-d H:i:s', allowNull:true},
 		{name: 'inv_nb', type: 'number'},
 		{name: 'inv_amount_due', type: 'number'},
 		{name: 'inv_amount_total', type: 'number'}
@@ -28,7 +28,8 @@ Ext.define('RsiRecouveoFileActionModel',{
 		{name: 'date_sched', type:'date', dateFormat:'Y-m-d H:i:s'},
 		{name: 'date_actual', type:'date', dateFormat:'Y-m-d H:i:s'},
 		{name: 'txt', type: 'string'},
-		{name: 'sched_count_day', type:'int'}
+		
+		{name: 'calc_eta_range', type:'string'}
 	]
 }) ;
 Ext.define('RsiRecouveoRecordTplModel',{ // TO: RsiRecouveoRecordModel

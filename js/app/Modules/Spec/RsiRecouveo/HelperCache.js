@@ -31,6 +31,28 @@ Ext.define('RsiRecouveoCfgStatusModel',{
 		{name: 'status_color', type:'string'}
 	]
 });
+Ext.define('RsiRecouveoCfgActionModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'action_id',
+	fields: [
+		{name: 'action_id', type:'string'},
+		{name: 'action_txt', type:'string'},
+		{name: 'group_id', type:'string'},
+		{name: 'status_open', type:'auto'},
+		{name: 'status_next', type:'auto'},
+		{name: 'agenda_class', type:'string'}
+	]
+});
+Ext.define('RsiRecouveoCfgActionEtaModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'eta_range',
+	fields: [
+		{name: 'eta_range', type:'string'},
+		{name: 'eta_txt', type:'string'},
+		{name: 'eta_color', type:'string'},
+		{name: 'upto_days', type:'int'}
+	]
+});
 
 
 Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
@@ -110,6 +132,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 			model: 'RsiRecouveoCfgStatusModel',
 			data : ajaxData.data.cfg_status
 		}) ;
+		this.cfgActionStore = Ext.create('Ext.data.Store',{
+			model: 'RsiRecouveoCfgActionModel',
+			data : ajaxData.data.cfg_action
+		}) ;
+		this.cfgActionEtaStore = Ext.create('Ext.data.Store',{
+			model: 'RsiRecouveoCfgActionEtaModel',
+			data : ajaxData.data.cfg_action_eta
+		}) ;
 		
 		var pushModelFields = [] ;
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
@@ -159,6 +189,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 	
 	getStatusAll: function() {
 		return Ext.pluck( this.cfgStatusStore.getRange(), 'data' ) ;
+	},
+	
+	getActionAll: function() {
+		return Ext.pluck( this.cfgActionStore.getRange(), 'data' ) ;
+	},
+	
+	getActionEtaAll: function() {
+		return Ext.pluck( this.cfgActionEtaStore.getRange(), 'data' ) ;
 	},
 	
 	authHelperHasAll: function() {

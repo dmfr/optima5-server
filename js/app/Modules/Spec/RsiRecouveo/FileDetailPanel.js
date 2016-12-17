@@ -112,7 +112,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 						anchor: '',
 						width: 250,
 						name: 'ref_invoice',
-						value: '4657898891 15616',
+						value: '4657898891 15616'
 					},{
 						xtype: 'textarea',
 						fieldLabel: '<b>Adresse</b>',
@@ -169,7 +169,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 						xtype: 'treecolumn',
 						dataIndex: 'action_txt',
 						text: 'Action',
-						width: 165,
+						width: 165
 					},{
 						text: 'Date',
 						width: 100,
@@ -383,5 +383,5 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		
 		this.mon(this.optimaModule,'op5broadcast',this.onCrmeventBroadcast,this) ;
 		*/
-	},
+	}
 }) ; 
