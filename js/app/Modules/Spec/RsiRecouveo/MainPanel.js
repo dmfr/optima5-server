@@ -100,12 +100,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 			case 'datachange' :
 				break ;
 			case 'openfile' :
-				return this.openFileDetail() ;
+				return this.openFileDetail( eventParams.fileNew ? 0 : eventParams.fileFilerecordId ) ;
 			default: break ;
 		}
 	},
-	openFileDetail: function(invFilerecordId, invNew) {
-		if( invFilerecordId === null ) {
+	openFileDetail: function(fileFilerecordId, fileNew) {
+		if( fileFilerecordId === null ) {
 			return ;
 		}
 		
@@ -115,7 +115,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 			if( !(win instanceof Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel) ) {
 				return true ;
 			}
-			if( win._invFilerecordId == invFilerecordId ) {
+			if( win._fileFilerecordId == fileFilerecordId ) {
 				win.show() ;
 				win.focus() ;
 				doOpen = false ;
@@ -138,8 +138,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 			animCollapse:false,
 			
 				optimaModule: this.optimaModule,
-				_invFilerecordId: invFilerecordId,
-				_invNew: invNew,
+				_fileFilerecordId: fileFilerecordId,
+				_fileNew: fileNew,
 				listeners: {
 					candestroy: function(w) {
 						w.close() ;

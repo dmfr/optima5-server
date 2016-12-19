@@ -333,8 +333,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				data: []
 			},
 			listeners: {
-				itemdblclick: function(){
-					this.handleOpenFile() ;
+				itemdblclick: function( view, record, itemNode, index, e ) {
+					this.handleOpenFile(record.get('file_filerecord_id')) ;
 				},
 				scope :this
 			},
@@ -711,8 +711,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		}
 	},
 	
-	handleOpenFile: function() {
-		this.optimaModule.postCrmEvent('openfile',{}) ;
+	handleOpenFile: function(fileFilerecordId) {
+		this.optimaModule.postCrmEvent('openfile',{fileFilerecordId:fileFilerecordId}) ;
 	},
 	
 	getSampleData: function() {

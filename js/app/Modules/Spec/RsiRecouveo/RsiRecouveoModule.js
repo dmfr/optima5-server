@@ -6,6 +6,7 @@ Ext.define('RsiRecouveoFileTplModel',{ // TO: RsiRecouveoFileModel
 		{name: 'id_ref', type:'string'},
 		{name: 'acc_id', type:'string'},
 		{name: 'acc_txt', type:'string'},
+		{name: 'acc_siret', type:'string'},
 		{name: 'status', type:'string'},
 		{name: 'status_closed', type:'boolean'},
 		{name: 'date_open', type:'date', dateFormat:'Y-m-d H:i:s'},
@@ -43,6 +44,26 @@ Ext.define('RsiRecouveoRecordTplModel',{ // TO: RsiRecouveoRecordModel
 		{name: 'amount', type:'number'},
 		{name: 'clear_is_on', type:'boolean'},
 		{name: 'clear_assign', type: 'string'}
+	]
+}) ;
+Ext.define('RsiRecouveoAdrPostalModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'adrpostal_filerecord_id',
+	fields: [
+		{name: 'adrpostal_filerecord_id', type:'int'},
+		{name: 'adr_name', type:'string'},
+		{name: 'adr_postal_txt', type:'string'},
+		{name: 'status', type:'boolean'}
+	]
+}) ;
+Ext.define('RsiRecouveoAdrTelModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'adrtel_filerecord_id',
+	fields: [
+		{name: 'adrtel_filerecord_id', type:'int'},
+		{name: 'adr_name', type:'string'},
+		{name: 'adr_tel_txt', type:'string'},
+		{name: 'status', type:'boolean'}
 	]
 }) ;
 
@@ -83,6 +104,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RsiRecouveoModule', {
 				break ;
 				
 			case 'openfile' :
+				Ext.apply( eventParams, {
+					fileNew: postParams.fileNew,
+					fileFilerecordId: postParams.fileFilerecordId
+				}) ;
 				break ;
 			
 			default :

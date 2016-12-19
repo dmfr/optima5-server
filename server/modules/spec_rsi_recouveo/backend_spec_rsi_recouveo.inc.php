@@ -16,6 +16,8 @@ switch( $post_data['_action'] )
 	
 	case 'file_getRecords' :
 	return specRsiRecouveo_file_getRecords( $post_data ) ;
+	case 'file_setHeader' :
+	return specRsiRecouveo_file_setHeader( $post_data ) ;
 	
 	default :
 	return NULL ;

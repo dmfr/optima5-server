@@ -167,6 +167,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 				model: 'RsiRecouveoRecordModel',
 				name: 'records',
 				associationKey: 'records'
+			},{
+				model: 'RsiRecouveoAdrPostalModel',
+				name: 'adr_postal',
+				associationKey: 'adr_postal'
+			},{
+				model: 'RsiRecouveoAdrTelModel',
+				name: 'adr_tel',
+				associationKey: 'adr_tel'
 			}]
 		}) ;
 		
