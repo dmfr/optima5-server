@@ -30,7 +30,15 @@ Ext.define('RsiRecouveoFileActionModel',{
 		{name: 'date_actual', type:'date', dateFormat:'Y-m-d H:i:s'},
 		{name: 'txt', type: 'string'},
 		
-		{name: 'calc_eta_range', type:'string'}
+		{name: 'calc_eta_range', type:'string'},
+		
+		{name: 'calc_date', type:'date', calculate: function (data) {
+			if( data.status_is_ok ) {
+				return data.date_actual ;
+			} else {
+				return data.date_sched ;
+			}
+     }}
 	]
 }) ;
 Ext.define('RsiRecouveoRecordTplModel',{ // TO: RsiRecouveoRecordModel
@@ -38,12 +46,14 @@ Ext.define('RsiRecouveoRecordTplModel',{ // TO: RsiRecouveoRecordModel
 	idProperty: 'record_filerecord_id',
 	fields: [
 		{name: 'record_filerecord_id', type:'int'},
+		{name: 'record_id', type:'string'},
 		{name: 'acc_id', type:'string'},
 		{name: 'date_record', type:'date', dateFormat:'Y-m-d H:i:s'},
 		{name: 'date_value', type:'date', dateFormat:'Y-m-d H:i:s'},
 		{name: 'amount', type:'number'},
 		{name: 'clear_is_on', type:'boolean'},
-		{name: 'clear_assign', type: 'string'}
+		{name: 'clear_assign', type: 'string'},
+		{name: '_checked', type: 'boolean'}
 	]
 }) ;
 Ext.define('RsiRecouveoAdrPostalModel',{

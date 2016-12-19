@@ -8,26 +8,35 @@ Ext.define('RsiRecouveoFileDetailActionsTreeModel', {
 		  {name: 'action_result_ok', type:'boolean'}
      ]
 });
-Ext.define('RsiRecouveoFileDetailFactureModel', {
-    extend: 'Ext.data.Model',
-    fields: [
-        {name: 'libelle',  type: 'string'},
-		  {name: 'lettrage', type: 'string'},
-		  {name: 'debit',  type: 'string'},
-		  {name: 'credit', type:'string'}
-     ]
-});
 
 Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 	extend:'Ext.window.Window',
 	
 	requires: [
-		'Optima5.Modules.Spec.RsiRecouveo.CfgParamField'
+		'Optima5.Modules.Spec.RsiRecouveo.CfgParamField',
+		'Optima5.Modules.Spec.RsiRecouveo.ActionAgreeStartForm',
+		'Optima5.Modules.Spec.RsiRecouveo.ActionCallInForm',
+		'Optima5.Modules.Spec.RsiRecouveo.ActionMailOutForm'
 	],
 	
 	_readonlyMode: false,
 	
 	initComponent: function() {
+		
+		
+		var statusMap = {} ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getStatusAll(), function(status) {
+			statusMap[status.status_id] = status ;
+		}) ;
+		
+		var actionMap = {} ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionAll(), function(action) {
+			actionMap[action.action_id] = action ;
+		}) ;
+		
+		
+		
+		
 		var formItems = []
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
 			var atrRecord = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(atrId) ;
@@ -51,7 +60,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		},{
 			xtype: 'textfield',
 			fieldLabel: 'Nom / Société',
-			value: 'Solvay SA (SOLB.BE)',
 			name: 'acc_txt'
 		},{
 			xtype: 'textfield',
@@ -74,6 +82,32 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					this.handleSaveHeader() ;
 				},
 				scope:this
+			},'->',{
+				itemId: 'tbNew',
+				icon: 'images/op5img/ico_blocs_small.gif',
+				text: '<b>Nouvelle action</b>',
+				menu:[{
+					icon: 'images/modules/tmp/rsiveo-call-in-16.png',
+					text: 'Appel entrant',
+					handler: function() {
+						this.openActionPanel('Optima5.Modules.Spec.RsiRecouveo.ActionCallInForm',400,500) ;
+					},
+					scope: this
+				},{
+					icon: 'images/modules/tmp/rsiveo-mail-out-16.png',
+					text: 'Envoi courrier',
+					handler: function() {
+						this.openActionPanel('Optima5.Modules.Spec.RsiRecouveo.ActionMailOutForm',800,600) ;
+					},
+					scope: this
+				},{
+					icon: 'images/modules/tmp/rsiveo-agree-start-16.png',
+					text: 'Promesse réglement',
+					handler: function() {
+						this.openActionPanel('Optima5.Modules.Spec.RsiRecouveo.ActionAgreeStartForm',400,400) ;
+					},
+					scope: this
+				}]
 			}],
 			items:[{
 				flex: 1,
@@ -178,56 +212,77 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				}]
 			},{
 				flex: 1,
+				bodyCls: 'ux-noframe-bg',
 				title: 'Factures',
-				xtype: 'grid',
-				columns: [{
-					text: 'Libellé',
-					dataIndex: 'libelle',
-					width: 170
+				layout: {
+					type: 'vbox',
+					align: 'stretch'
+				},
+				items: [{
+					height: 65,
+					itemId: 'pRecordsHeader',
+					xtype:'component',
+					hidden: true,
+					tpl: [
+						'<div class="op5-spec-dbspeople-realvalidhdr">',
+							'<div class="op5-spec-dbspeople-realvalidhdr-inline-tbl">',
+								'<div class="op5-spec-dbspeople-realvalidhdr-inline-elem op5-spec-rsiveo-factureheader-icon">',
+								'</div>',
+								'<div class="op5-spec-dbspeople-realvalidhdr-inline-elem">',
+									'<table class="op5-spec-dbspeople-realvalidhdr-tbl">',
+									'<tr>',
+										'<td class="op5-spec-dbspeople-realvalidhdr-tdlabel">Nb Factures :</td>',
+										'<td class="op5-spec-dbspeople-realvalidhdr-tdvalue">{inv_nb}</td>',
+									'</tr>',
+									'<tr>',
+										'<td class="op5-spec-dbspeople-realvalidhdr-tdlabel">Total encours :</td>',
+										'<td class="op5-spec-dbspeople-realvalidhdr-tdvalue">{inv_amount_total}&#160;€</td>',
+									'</tr>',
+									'<tr>',
+										'<td class="op5-spec-dbspeople-realvalidhdr-tdlabel">Reste dû :</td>',
+										'<td class="op5-spec-dbspeople-realvalidhdr-tdvalue">{inv_amount_due}&#160;€</td>',
+									'</tr>',
+									'</table>',
+								'</div>',
+							'</div>',
+						'</div>',
+						{
+							disableFormats: true
+						}
+					]
 				},{
-					text: 'Lettrage',
-					dataIndex: 'lettrage',
-					width: 80
-				},{
-					text: 'Débit',
-					dataIndex: 'debit',
-					align: 'right',
-					width: 80
-				},{
-					text: 'Crédit',
-					dataIndex: 'credit',
-					align: 'right',
-					width: 80
-				}],
-				store: {
-					model: 'RsiRecouveoFileDetailFactureModel',
-					data: [{
-						libelle: 'Reglement CA-151-15151',
-						lettrage: '',
-						credit: '<b>750.00',
-						debit: ''
+					flex: 1,
+					itemId: 'pRecordsGrid',
+					xtype: 'grid',
+					columns: [{
+						text: 'Libellé',
+						dataIndex: 'record_id',
+						width: 170
 					},{
-						libelle: 'Facuture 123456',
-						lettrage: '',
-						debit: '<b>320.25',
-						credit: ''
+						text: 'Lettrage',
+						dataIndex: 'clear_assign',
+						width: 80
 					},{
-						libelle: 'Facuture TA8745',
-						lettrage: '',
-						debit: '<b>2985.00',
-						credit: ''
+						text: 'Date',
+						dataIndex: 'date_value',
+						align: 'center',
+						width: 80,
+						renderer: Ext.util.Format.dateRenderer('d/m/Y')
 					},{
-						libelle: 'Reglement CA-999-0000',
-						lettrage: '<b>AAC',
-						credit: '<b>4000.00',
-						debit: ''
-					},{
-						libelle: 'Facuture XX1222',
-						lettrage: '<b>AAC',
-						debit: '<b>4000.00',
-						credit: ''
-					}]
-				}
+						text: 'Montant',
+						dataIndex: 'amount',
+						align: 'right',
+						width: 80
+					}],
+					store: {
+						model: 'RsiRecouveoRecordModel',
+						data: [],
+						sorters:[{
+							property: 'date_value',
+							direction: 'DESC'
+						}]
+					}
+				}]
 			},{
 				flex: 1,
 				xtype: 'panel',
@@ -239,93 +294,75 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				items:[{
 					region: 'center',
 					flex: 3,
-					xtype: 'treepanel',
-					rootVisible: false,
-					useArrows: true,
-					itemId: 'pStepsGrid',
+					xtype: 'grid',
+					_statusMap: statusMap,
+					_actionMap: actionMap,
+					itemId: 'pActionsGrid',
+					viewConfig: {
+						itemId: 'view',
+						plugins: [{
+							pluginId: 'preview',
+							ptype: 'preview',
+							bodyField: 'txt',
+							expanded: true
+						}],
+						listeners: {
+							scope: this
+						}
+					},
 					columns: [{
-						xtype: 'treecolumn',
-						dataIndex: 'action_txt',
-						text: 'Action',
-						width: 165
-					},{
-						text: 'Date',
-						width: 100,
-						dataIndex: 'action_date'
-					},{
-						text: 'Result',
-						width: 200,
-						dataIndex: 'action_result',
+						dataIndex: 'link_status',
+						width: 40,
 						renderer: function(v,metaData,r) {
-							if( r.get('action_result_pending') ) {
-								metaData.tdCls += ' op5-spec-dbstracy-files-nowarning' ;
+							var statusMap = this._statusMap ;
+							if( statusMap.hasOwnProperty(v) ) {
+								var statusData = statusMap[v] ;
+								metaData.style += 'color: white ; background: '+statusData.status_color ;
+								return '' ;
 							}
-							if( r.get('action_result_ok') ) {
+							return '' ;
+						}
+					},{
+						dataIndex: 'link_action',
+						width: 100,
+						renderer: function(v,metaData,r) {
+							var actionMap = this._actionMap ;
+							if( actionMap.hasOwnProperty(v) ) {
+								var actionData = actionMap[v] ;
+								return '<b>'+actionData.action_txt+'</b>' ;
+							}
+							return '?' ;
+						}
+					},{
+						text: 'Planning',
+						width: 100,
+						dataIndex: 'date_sched',
+						renderer: Ext.util.Format.dateRenderer('d/m/Y')
+					},{
+						text: 'Status',
+						width: 48,
+						dataIndex: 'status_is_ok',
+						renderer: function(v,metaData,r) {
+							if( !v ) {
+								metaData.tdCls += ' op5-spec-dbstracy-files-nowarning' ;
+							} else {
 								metaData.tdCls += ' op5-spec-dbstracy-kpi-ok' ;
 							}
-							return v ;
+							return '' ;
 						}
+					},{
+						text: 'Réalisé',
+						width: 100,
+						dataIndex: 'date_actual',
+						renderer: Ext.util.Format.dateRenderer('d/m/Y')
 					}],
 					store: {
-						model: 'RsiRecouveoFileDetailActionsTreeModel',
-						root:{
-							root: true,
-							expanded: true,
-							children: [{
-								action_txt: '<b>3 - Outils juridiques</b>',
-								expanded: true,
-								children: [{
-									leaf: true,
-									action_txt: 'RDV Tel huissier',
-									action_date: '16/11/2016 09:30',
-									action_result_pending: true,
-									action_result_ok: false
-								},{
-									leaf: true,
-									action_txt: 'Régularisation partielle',
-									action_date: '11/11/2016',
-									action_result: 'Virement AAC : <b>750.00€<b>'
-								},{
-									leaf: true,
-									action_txt: 'Courrier Avocat',
-									action_date: '11/11/2016',
-									action_result_ok: true
-								}]
-							},{
-								action_txt: '<b>2 - Relance amiable</b>',
-								expanded: true,
-								children: [{
-									leaf: true,
-									action_txt: 'RDV téléphonique',
-									action_date: '10/11/2016 17h14',
-									action_result: '<i>On s\'est fait jeter</i>'
-								},{
-									leaf: true,
-									action_txt: 'Relance 2',
-									action_date: '08/11/2016',
-									action_result: '<i>Pas le bon interlocuteur</i>'
-								},{
-									leaf: true,
-									action_txt: 'Relance 1',
-									action_date: '05/11/2016',
-									action_result: '<i>Promesse de règlement</i>'
-								}]
-							},{
-								action_txt: '<b>1 - Prise de contact</b>',
-								expanded: true,
-								children: [{
-									leaf: true,
-									action_txt: 'Appel 2',
-									action_date: '04/11/2016',
-									action_result_ok: true
-								},{
-									leaf: true,
-									action_txt: 'Appel 1',
-									action_date: '01/11/2016',
-									action_result: '<i>Mise à jour contacts</i>'
-								}]
-							}]
-						},
+						model: 'RsiRecouveoFileActionModel',
+						data: [],
+						sorters: [{
+							property: 'calc_date',
+							direction: 'DESC'
+						}],
 						proxy: {
 							type: 'memory',
 							reader: {
@@ -333,61 +370,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 							}
 						}
 					}
-				},{
-					region: 'south',
-					flex: 1,
-					itemId: 'pEventsGrid',
-					title: 'Action result / New action',
-					collapsible: true,
-					collapsed: false,
-					xtype: 'form',
-					border: false,
-					bodyCls: 'ux-noframe-bg',
-					bodyPadding: 8,
-					layout: 'anchor',
-					fieldDefaults: {
-						labelWidth: 75,
-						anchor: '100%'
-					},
-					items: [{
-						xtype: 'datetimefield',
-						fieldLabel: 'Date / heure',
-						format: 'Y-m-d',
-						name: 'event_user',
-						value: new Date()
-					},{
-						anchor: '',
-						width: 275,
-						xtype: 'combobox',
-						name: 'group_date_type',
-						fieldLabel: 'Issue',
-						forceSelection: true,
-						editable: false,
-						store: {
-							fields: ['lib'],
-							data : [
-								{lib:'Appel effectué'},
-								{lib:'Echec appel'},
-								{lib:'Reporté'},
-								{lib:'Promesse'}
-							]
-						},
-						queryMode: 'local',
-						displayField: 'lib',
-						valueField: 'mode'
-					},{
-						xtype: 'textarea',
-						fieldLabel: 'Observation',
-						name: 'event_txt'
-					}],
-					buttons: [{
-						xtype: 'button',
-						text: 'OK',
-						handler: function( btn ) {
-							this.handleSubmitEvent() ;
-						},
-						scope: this
-					}]
 				}]
 			}]
 		}) ;
@@ -467,6 +449,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 	onLoadFile: function( fileRecord ) {
 		this._fileNew = false ;
 		this._fileFilerecordId = fileRecord.getId() ;
+		this._fileRecord = fileRecord ;
 		
 		//fHeader
 		this.down('#pHeaderForm').getForm().reset() ;
@@ -488,66 +471,27 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			adrTelData.push(rec.getData()) ;
 		}) ;
 		this.down('#gridAdrTel').setTabData(adrTelData) ;
-		return ;
 		
-		//gSteps
-		if( this._readonlyMode ) {
-			// filter steps
-			var orderStepRecords_toRemove = [] ;
-			orderRecord.steps().each( function(orderStepRecord) {
-				var stepCode = orderStepRecord.get('step_code'),
-					stepRecord = Optima5.Modules.Spec.DbsTracy.HelperCache.getStepByStep( stepCode ) ;
-				if( stepRecord.is_private ) {
-					orderStepRecords_toRemove.push(orderStepRecord) ;
-				}
-			}) ;
-			if( orderStepRecords_toRemove.length > 0 ) {
-				orderRecord.steps().remove(orderStepRecords_toRemove) ;
-			}
-		}
-		this.down('#pStepsGrid').getEl().unmask() ;
-		this.down('#pStepsGrid').getStore().loadRawData(orderRecord.steps().getRange()) ;
 		
-		//gEvents
-		var tmpData = [] ;
-		orderRecord.events().each( function(rec) {
-			tmpData.push(rec.getData()) ;
+		this.down('#pRecordsHeader').setData({
+			inv_nb: fileRecord.get('inv_nb'),
+			inv_amount_total: fileRecord.get('inv_amount_total'),
+			inv_amount_due: fileRecord.get('inv_amount_due')
+		});
+		this.down('#pRecordsHeader').setVisible(true) ;
+		
+		var pRecordsGridData = [] ;
+		fileRecord.records().each(function(rec) {
+			pRecordsGridData.push(rec.getData()) ;
 		}) ;
-		this.down('#pEventsGrid').getEl().unmask() ;
-		this.down('#pEventsGrid').getStore().loadData(tmpData) ;
-		if( tmpData.length > 0 ) {
-			this.down('#pEventsGrid').expand() ;
-		}
+		this.down('#pRecordsGrid').getStore().loadRawData(pRecordsGridData) ;
 		
-		//gAttachments
-		this.down('#pAttachments').getEl().unmask() ;
-		this.down('#pAttachments').setOrderRecord(orderRecord) ;
-		
-		// Title
-		this.setTitle('Order: '+orderRecord.get('id_soc')+'/'+orderRecord.get('id_dn')) ;
-		
-		// Validate steps menu
-		var tbValidateMenu = this.down('#tbValidate').menu ;
-		tbValidateMenu.removeAll() ;
-		tbValidateMenuItems = [] ;
-		var curFlow = Optima5.Modules.Spec.DbsTracy.HelperCache.getOrderflow( orderRecord.get('flow_code') );
-		if( curFlow ) {
-			Ext.Array.each( curFlow.steps, function(curStep) {
-				if( !curStep.prompt_order ) {
-					return ;
-				}
-				tbValidateMenuItems.push({
-					_stepCode: curStep.step_code,
-					text: curStep.desc_txt,
-					iconCls:'op5-sdomains-menu-updateschema',
-					handler: function(menuitem) {
-						this.handleSaveHeader( menuitem._stepCode ) ;
-					},
-					scope: this
-				});
-			},this) ;
-		}
-		tbValidateMenu.add(tbValidateMenuItems) ;
+		var pActionsGridData = [] ;
+		fileRecord.actions().each(function(rec) {
+			pActionsGridData.push(rec.getData()) ;
+		}) ;
+		this.down('#pActionsGrid').getStore().loadRawData(pActionsGridData) ;
+		return ;
 	},
 	doReload: function() {
 		this.loadOrder( this._orderFilerecordId ) ;
@@ -597,6 +541,46 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 	
 	
 	
+	openActionPanel: function(actionPanelClass,w,h) {
+		if( this._readonlyMode ) {
+			return ;
+		}
+		var postParams = {} ;
+		var actionPanel = Ext.create(actionPanelClass,{
+			optimaModule: this.optimaModule,
+			_fileRecord: this._fileRecord,
+			width:w, 
+			height:h,
+			floating: true,
+			draggable: true,
+			resizable: true,
+			renderTo: this.getEl(),
+			tools: [{
+				type: 'close',
+				handler: function(e, t, p) {
+					p.ownerCt.destroy();
+				},
+				scope: this
+			}],
+			
+			title: 'Action sur dossier'
+		});
+		
+		actionPanel.on('saved',function() {
+			this.doReload() ;
+		},this) ;
+		actionPanel.on('destroy',function(validConfirmPanel) {
+			this.getEl().unmask() ;
+			this.floatingPanel = null ;
+		},this,{single:true}) ;
+		
+		this.getEl().mask() ;
+		
+		actionPanel.show();
+		actionPanel.getEl().alignTo(this.getEl(), 'c-c?');
+		
+		this.floatingPanel = actionPanel ;
+	},
 	
 	
 	

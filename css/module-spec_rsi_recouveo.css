@@ -101,3 +101,12 @@
 	color: #00008E ;
 	font-weight: bold;
 }
+
+
+.op5-spec-rsiveo-factureheader-icon {
+	width: 56px ;
+	background-position: center ;
+	background-repeat: no-repeat ;
+	background-image: url("../images/modules/rsiveo-facture-48.png") !important;
+}
+
