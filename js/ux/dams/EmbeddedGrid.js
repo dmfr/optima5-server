@@ -154,6 +154,7 @@ Ext.define('Ext.ux.dams.EmbeddedGrid',{
 		// Mod 2014-03 : now actual record, unset phantom
 		record.phantom = false ;
 		this.getView().getSelectionModel().deselectAll( true ) ;
+		this.fireEvent('edited') ;
 	},
 	
 	onBtnAdd: function( newRecordValues ) {
@@ -177,6 +178,7 @@ Ext.define('Ext.ux.dams.EmbeddedGrid',{
 		if (selection) {
 			this.linkstore.remove(selection);
 			this.linkstore.sync() ;
+			this.fireEvent('edited') ;
 		}
 	}
 });
