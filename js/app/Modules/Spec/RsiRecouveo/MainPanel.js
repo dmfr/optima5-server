@@ -42,7 +42,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 		var me = this ;
 		
 		var helperCache = Optima5.Modules.Spec.RsiRecouveo.HelperCache ;
-		helperCache.init(me.optimaModule) ;
+		helperCache.init(me.optimaModule, this.getId()) ;
 		if( helperCache.isReady ) {
 			this.switchToMainMenu() ;
 		} else {

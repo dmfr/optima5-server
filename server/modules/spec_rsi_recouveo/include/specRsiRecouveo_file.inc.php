@@ -177,8 +177,8 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			'link_status' => $arr['field_LINK_STATUS'],
 			'link_action' => $arr['field_LINK_ACTION'],
 			'status_is_ok' => ($arr['field_STATUS_IS_OK']==1),
-			'date_sched' => $arr['field_DATE_SCHED'],
-			'date_actual' => $arr['field_DATE_ACTUAL'],
+			'date_sched' => (specRsiRecouveo_file_tool_isDateValid($arr['field_DATE_SCHED']) ? $arr['field_DATE_SCHED'] : null),
+			'date_actual' => (specRsiRecouveo_file_tool_isDateValid($arr['field_DATE_ACTUAL']) ? $arr['field_DATE_ACTUAL'] : null),
 			'txt' => $arr['field_TXT']
 		);
 	}
@@ -387,6 +387,82 @@ function specRsiRecouveo_file_setHeader( $post_data ) {
 	
 
 	return array('success'=>true,'id'=>$file_filerecord_id) ;
+}
+
+function specRsiRecouveo_file_setAction( $post_data ) {
+	global $_opDB ;
+	
+	$file_filerecord_id = $post_data['file_filerecord_id'] ;
+	$ttmp = specRsiRecouveo_file_getRecords( array(
+		'filter_fileFilerecordId_arr' => json_encode(array($file_filerecord_id))
+	)) ;
+	$file_record = $ttmp['data'][0] ;
+	if( $file_record['file_filerecord_id'] != $file_filerecord_id ) {
+		return array('success'=>false) ;
+	}
+	
+	$post_form = json_decode($post_data['data'],true) ;
+	$file_code = 'FILE_ACTION' ;
+	
+	switch( $post_form['action_id'] ) {
+		case 'AGREE_START' :
+			if( !$post_form['agree_period'] ) {
+				return array('success'=>false) ;
+			}
+			$txt = array() ;
+			$txt[]= 'Promesse réglement '.$post_form['agree_period'] ;
+			$txt[]= 'Montant total : '.$post_form['inv_amount_due'].' €' ;
+			
+			$arr_ins = array() ;
+			$arr_ins['field_STATUS_IS_OK'] = 1 ;
+			$arr_ins['field_DATE_ACTUAL'] = date('Y-m-d H:i:s') ;
+			$arr_ins['field_LINK_STATUS'] = 'S2P_PAY' ;
+			$arr_ins['field_LINK_ACTION'] = 'AGREE_START' ;
+			$arr_ins['field_TXT'] = trim(implode("\r\n",$txt)) ;
+			paracrm_lib_data_insertRecord_file($file_code,$file_filerecord_id,$arr_ins) ;
+			
+			switch( $post_form['agree_period'] ) {
+				case 'MONTH' :
+				case 'WEEK' :
+					$nb = $post_form['agree_count'] ;
+					$date = $post_form['agree_first'] ;
+					$amount_each = round($post_form['inv_amount_due'] / $nb,2) ;
+					break ;
+				case 'SINGLE' :
+					$nb = 1 ;
+					$date = $post_form['agree_date'] ;
+					$amount_each = round($post_form['inv_amount_due'] / $nb,2) ;
+					break ;
+				default :
+					break ;
+			}
+			for( $i=0 ; $i<$nb ; $i++ ) {
+				$arr_ins = array() ;
+				$arr_ins['field_STATUS_IS_OK'] = 0 ;
+				$arr_ins['field_DATE_SCHED'] = $date ;
+				$arr_ins['field_LINK_STATUS'] = 'S2P_PAY' ;
+				$arr_ins['field_LINK_ACTION'] = 'AGREE_FOLLOW' ;
+				$arr_ins['field_TXT'] = 'Attendu : '.$amount_each.' €' ;
+				paracrm_lib_data_insertRecord_file($file_code,$file_filerecord_id,$arr_ins) ;
+				
+				switch( $post_form['agree_period'] ) {
+					case 'MONTH' :
+						$date = date('Y-m-d',strtotime('+1 month',strtotime($date))) ;
+						break ;
+					case 'WEEK' :
+						$date = date('Y-m-d',strtotime('+1 month',strtotime($date))) ;
+						break ;
+				}
+			}
+			
+			break ;
+		
+	
+	
+	}
+	
+
+	return array('success'=>true,'id'=>$fileaction_filerecord_id) ;
 }
 
 

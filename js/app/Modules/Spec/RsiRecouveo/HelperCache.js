@@ -71,9 +71,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 		var me = this ;
 		me.mixins.observable.constructor.call(this, config);
 	},
-	init: function(optimaModule) {
+	init: function(optimaModule, cmpId) {
 		var me = this ;
 		me.optimaModule = optimaModule ;
+		console.log( cmpId ) ;
 		
 		Ext.defer(function() {
 			me.startLoading() ;

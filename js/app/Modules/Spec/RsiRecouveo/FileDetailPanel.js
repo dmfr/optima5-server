@@ -354,7 +354,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 						text: 'Réalisé',
 						width: 100,
 						dataIndex: 'date_actual',
-						renderer: Ext.util.Format.dateRenderer('d/m/Y')
+						renderer: function(v,metaData,r) {
+							if( r.get('status_is_ok') ) {
+								return Ext.util.Format.date(v,'d/m/Y') ;
+							}
+							return '' ;
+						}
 					}],
 					store: {
 						model: 'RsiRecouveoFileActionModel',
@@ -494,7 +499,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		return ;
 	},
 	doReload: function() {
-		this.loadOrder( this._orderFilerecordId ) ;
+		this.loadFile( this._fileFilerecordId ) ;
 	},
 	
 	

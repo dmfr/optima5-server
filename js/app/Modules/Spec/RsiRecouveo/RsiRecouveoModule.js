@@ -26,8 +26,8 @@ Ext.define('RsiRecouveoFileActionModel',{
 		{name: 'link_status', type:'string'},
 		{name: 'link_action', type:'string'},
 		{name: 'status_is_ok', type:'boolean'},
-		{name: 'date_sched', type:'date', dateFormat:'Y-m-d H:i:s'},
-		{name: 'date_actual', type:'date', dateFormat:'Y-m-d H:i:s'},
+		{name: 'date_sched', type:'date', dateFormat:'Y-m-d H:i:s', allowNull: true},
+		{name: 'date_actual', type:'date', dateFormat:'Y-m-d H:i:s', allowNull:true},
 		{name: 'txt', type: 'string'},
 		
 		{name: 'calc_eta_range', type:'string'},

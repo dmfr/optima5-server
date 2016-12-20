@@ -20,6 +20,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionAgreeStartForm',{
 					labelWidth: 80
 				},
 				items: [{
+					xtype: 'hiddenfield',
+					name: 'action_id',
+					value: 'AGREE_START'
+				},{
 					flex: 1,
 					xtype: 'displayfield',
 					fieldLabel: 'Action',
@@ -131,6 +135,69 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionAgreeStartForm',{
 				adrField.setValue( rec.get('adr_tel_txt') ) ;
 			}
 		}) ;
+	},
+	
+	
+	showLoadmask: function() {
+		if( this.rendered ) {
+			this.doShowLoadmask() ;
+		} else {
+			this.on('afterrender',this.doShowLoadmask,this,{single:true}) ;
+		}
+	},
+	doShowLoadmask: function() {
+		if( this.loadMask ) {
+			return ;
+		}
+		this.loadMask = Ext.create('Ext.LoadMask',{
+			target: this,
+			msg:"Please wait..."
+		}).show();
+	},
+	hideLoadmask: function() {
+		this.un('afterrender',this.doShowLoadmask,this) ;
+		if( this.loadMask ) {
+			this.loadMask.destroy() ;
+			this.loadMask = null ;
+		}
+	},
+	
+	
+	handleSubmitEvent: function() {
+		var formPanel = this,
+			form = formPanel.getForm() ;
+			  
+		var recordData = form.getValues(false,false,false,true) ;
+		
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_rsi_recouveo',
+				_action: 'file_setAction',
+				_is_new: ( this._fileNew ? 1 : 0 ),
+				file_filerecord_id: this._fileRecord.get('file_filerecord_id'),
+				data: Ext.JSON.encode(recordData)
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					var error = ajaxResponse.success || 'File not saved !' ;
+					Ext.MessageBox.alert('Error',error) ;
+					return ;
+				}
+				var doReload = doReload ;
+				this.onSaveHeader() ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+	},
+	onSaveHeader: function() {
+		this.fireEvent('saved') ;
+		this.optimaModule.postCrmEvent('datachange',{}) ;
+		this.destroy() ;
 	}
 	
 }) ;
