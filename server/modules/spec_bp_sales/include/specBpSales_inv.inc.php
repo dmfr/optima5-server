@@ -262,10 +262,22 @@ function specBpSales_inv_createFromInvoiceRefund( $post_data ) {
 	$_opDB->query("UNLOCK TABLES") ;
 	
 	$ttmp = explode('/',$row_inv['id_inv']);
-	$id_refund = 'REF/'.$ttmp[1] ;
-	$query_test = "SELECT count(*) FROM view_file_INV WHERE field_ID_INV='{$id_refund}'" ;
-	if( $_opDB->query_uniqueValue($query_test) > 0 ) {
-		return array('success'=>false, 'error'=>'Duplicate') ;
+	$id_refund_base = 'REF/'.$ttmp[1] ;
+	$try = 0 ;
+	while( TRUE ) {
+		if( $try > 10 ) {
+			return array('success'=>false, 'error'=>'Duplicate') ;
+		}
+		$id_refund = $id_refund_base ;
+		if( $try > 0 ) {
+			$id_refund.= chr(ord('A')+$try-1) ;
+		}
+		
+		$query_test = "SELECT count(*) FROM view_file_INV WHERE field_ID_INV='{$id_refund}'" ;
+		if( $_opDB->query_uniqueValue($query_test) == 0 ) {
+			break ;
+		}
+		$try++ ;
 	}
 	
 	$arr_ins = array() ;
@@ -625,6 +637,10 @@ function specBpSales_inv_printDoc( $post_data ) {
 	
 	$query = "SELECT filerecord_id FROM view_file_CDE WHERE field_LINK_INV_FILE_ID='{$inv_record['inv_filerecord_id']}'" ;
 	$cde_filerecord_id = $_opDB->query_uniqueValue($query) ;
+	if( !$cde_filerecord_id && $inv_record['id_cde_ref'] ) {
+		$query = "SELECT filerecord_id FROM view_file_CDE WHERE field_CDE_NO='{$inv_record['id_cde_ref']}'" ;
+		$cde_filerecord_id = $_opDB->query_uniqueValue($query) ;
+	}
 	
 	$ttmp = specBpSales_cde_getRecords( array(
 		'filter_cdeFilerecordId_arr' => json_encode( array($cde_filerecord_id) )
