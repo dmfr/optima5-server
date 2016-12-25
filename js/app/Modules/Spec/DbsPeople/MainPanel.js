@@ -5,6 +5,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.MainPanel',{
 		'Optima5.Modules.Spec.DbsPeople.MainMenu',
 		'Optima5.Modules.Spec.DbsPeople.RhPanel',
 		'Optima5.Modules.Spec.DbsPeople.RealPanel',
+		'Optima5.Modules.Spec.DbsPeople.RealDayPanel',
 		'Optima5.Modules.Spec.DbsPeople.QueryPanel',
 		'Optima5.Modules.Spec.DbsPeople.ForecastPanel',
 		'Optima5.Modules.Spec.DbsPeople.UploadForm'
@@ -57,6 +58,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.MainPanel',{
 				return me.switchToAppPanel('Optima5.Modules.Spec.DbsPeople.RhPanel') ;
 			case 'panel_real' :
 				return me.switchToAppPanel('Optima5.Modules.Spec.DbsPeople.RealPanel') ;
+			case 'panel_realday' :
+				return me.switchToAppPanel('Optima5.Modules.Spec.DbsPeople.RealDayPanel') ;
 			case 'panel_query' :
 				return me.switchToAppPanel('Optima5.Modules.Spec.DbsPeople.QueryPanel',{width: 996}) ;
 			case 'panel_upload' :

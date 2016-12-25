@@ -70,9 +70,15 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.MainMenu',{
 				item_disabled: !Optima5.Modules.Spec.DbsPeople.HelperCache.authHelperQueryPage('RH')
 			},{
 				type_action:true,
-				action_caption: 'Exploitation',
+				action_caption: 'Exploitation Semaine',
 				action_sendEvent:'panel_real',
 				action_iconCls:'op5-spec-dbspeople-icon-real',
+				item_disabled: !Optima5.Modules.Spec.DbsPeople.HelperCache.authHelperQueryPage('CEQ')
+			},{
+				type_action:true,
+				action_caption: 'Exploitation Jour',
+				action_sendEvent:'panel_realday',
+				action_iconCls:'op5-spec-dbspeople-icon-realday',
 				item_disabled: !Optima5.Modules.Spec.DbsPeople.HelperCache.authHelperQueryPage('CEQ')
 			},{
 				type_action:true,
