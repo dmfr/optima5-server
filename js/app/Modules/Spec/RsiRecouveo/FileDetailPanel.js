@@ -14,9 +14,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 	
 	requires: [
 		'Optima5.Modules.Spec.RsiRecouveo.CfgParamField',
-		'Optima5.Modules.Spec.RsiRecouveo.ActionAgreeStartForm',
-		'Optima5.Modules.Spec.RsiRecouveo.ActionCallInForm',
-		'Optima5.Modules.Spec.RsiRecouveo.ActionMailOutForm'
+		'Optima5.Modules.Spec.RsiRecouveo.ActionForm'
 	],
 	
 	_readonlyMode: false,
@@ -275,7 +273,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 						width: 80
 					}],
 					store: {
-						model: 'RsiRecouveoRecordModel',
+						model: Optima5.Modules.Spec.RsiRecouveo.HelperCache.getFileModel(),
 						data: [],
 						sorters:[{
 							property: 'date_value',
@@ -443,7 +441,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					Ext.MessageBox.alert('Error','Error') ;
 					return ;
 				}
-				this.onLoadFile(Ext.ux.dams.ModelManager.create('RsiRecouveoFileModel',ajaxResponse.data[0])) ;
+				this.onLoadFile(Ext.ux.dams.ModelManager.create(
+					Optima5.Modules.Spec.RsiRecouveo.HelperCache.getFileModel()
+					,ajaxResponse.data[0])
+				) ;
 			},
 			callback: function() {
 				this.hideLoadmask() ;
@@ -546,16 +547,16 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 	
 	
 	
-	openActionPanel: function(actionPanelClass,w,h) {
+	openActionPanel: function() {
 		if( this._readonlyMode ) {
 			return ;
 		}
 		var postParams = {} ;
-		var actionPanel = Ext.create(actionPanelClass,{
+		var actionPanel = Ext.create('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 			optimaModule: this.optimaModule,
-			_fileRecord: this._fileRecord,
-			width:w, 
-			height:h,
+			_fileFilerecordId: this._fileFilerecordId,
+			minWidth:350, 
+			minHeight:350,
 			floating: true,
 			draggable: true,
 			resizable: true,
@@ -581,8 +582,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		
 		this.getEl().mask() ;
 		
-		actionPanel.show();
+		actionPanel.on('mylayout', function(actionPanel) {
+			actionPanel.updateLayout() ;
+			actionPanel.setSize( actionPanel.getWidth() , actionPanel.getHeight() ) ;
+			actionPanel.getEl().alignTo(this.getEl(), 'c-c?');
+		},this) ;
 		actionPanel.getEl().alignTo(this.getEl(), 'c-c?');
+		actionPanel.show();
+		
 		
 		this.floatingPanel = actionPanel ;
 	},

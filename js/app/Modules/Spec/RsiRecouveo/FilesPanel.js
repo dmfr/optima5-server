@@ -329,7 +329,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				ptype: 'uxgridfilters'
 			}],
 			store: {
-				model: 'RsiRecouveoFileModel',
+				model: Optima5.Modules.Spec.RsiRecouveo.HelperCache.getFileModel(),
 				data: []
 			},
 			listeners: {
@@ -457,7 +457,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			agendaSummary = {
 				'ACTION' : 'Actions',
 				'RDV' : 'Rendez-vous',
-				'AGREE' : 'Promesses'
+				'FOLLOW' : 'Promesses'
 			};
 		Ext.Object.each( agendaSummary, function(agendaClass,agendaClassTxt) {
 			agendaRow = {} ;
@@ -467,10 +467,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				agendaRow[etaRange] = 0 ;
 				
 				if( map_actionAgendaClass_etaRange_nbActions.hasOwnProperty(agendaClass)
-					&& map_actionAgendaClass_etaRange_nbActions[actionAgendaClass].hasOwnProperty(etaRange) ) {
+					&& map_actionAgendaClass_etaRange_nbActions[agendaClass].hasOwnProperty(etaRange) ) {
 					
 					
-					agendaRow[etaRange] = map_actionAgendaClass_etaRange_nbActions[actionAgendaClass][etaRange] ;
+					agendaRow[etaRange] = map_actionAgendaClass_etaRange_nbActions[agendaClass][etaRange] ;
 				}
 			}) ;
 			

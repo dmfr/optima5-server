@@ -1,17 +1,17 @@
-Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionMailOutForm',{
+Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel',{
 	extend:'Ext.form.Panel',
 	
 	_fileRecord: null,
 	
 	initComponent: function() {
 		Ext.apply(this,{
-			cls: 'ux-noframe-bg',
 			bodyCls: 'ux-noframe-bg',
-			bodyPadding: 10,
+			bodyPadding: 0,
 			layout: {
 				type: 'vbox',
 				align: 'stretch'
 			},
+			width: 800,
 			items: [{
 				xtype: 'fieldset',
 				title: 'Type d\'action',
@@ -182,7 +182,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionMailOutForm',{
 							width: 80
 						}],
 						store: {
-							model: 'RsiRecouveoRecordModel',
+							model: Optima5.Modules.Spec.RsiRecouveo.HelperCache.getRecordModel(),
 							data: [],
 							sorters:[{
 								property: 'date_value',
@@ -212,18 +212,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionMailOutForm',{
 					name: 'mail_txt',
 					height: 150
 				}]
-			}],
-			buttons: [{
-				xtype: 'button',
-				text: 'OK',
-				handler: function( btn ) {
-					this.handleSubmitEvent() ;
-				},
-				scope: this
 			}]
 		}) ;
 		
 		this.callParent() ;
+		
 		
 		var adrNames = [] ;
 		this._fileRecord.adr_postal().each( function(rec) {
@@ -265,5 +258,4 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionMailOutForm',{
 			}
 		}) ;
 	}
-	
 }) ;

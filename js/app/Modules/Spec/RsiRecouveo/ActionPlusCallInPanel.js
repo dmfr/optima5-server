@@ -1,17 +1,17 @@
-Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionCallInForm',{
+Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusCallInPanel',{
 	extend:'Ext.form.Panel',
 	
 	_fileRecord: null,
 	
 	initComponent: function() {
 		Ext.apply(this,{
-			cls: 'ux-noframe-bg',
 			bodyCls: 'ux-noframe-bg',
-			bodyPadding: 10,
+			bodyPadding: 0,
 			layout: {
 				type: 'vbox',
 				align: 'stretch'
 			},
+			width: 400,
 			items: [{
 				xtype: 'fieldset',
 				title: 'Type d\'action',
@@ -62,38 +62,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionCallInForm',{
 					name: 'mail_txt',
 					height: 150
 				}]
-			},{
-				xtype: 'fieldset',
-				padding: 10,
-				checkboxToggle: true,
-				collapsed: false, // fieldset initially collapsed
-				title: 'Changement statut',
-				items:[{
-					flex: 1,
-					xtype: 'combobox',
-					name: 'status_next',
-					fieldLabel: 'Nouveau statut',
-					forceSelection: true,
-					editable: false,
-					store: {
-						fields: ['txt'],
-						data : [
-							{id: '', txt:'<pas de changement>'},
-							{id: 'S1_OPEN', txt:'Retour "En cours"'}
-						]
-					},
-					queryMode: 'local',
-					displayField: 'txt',
-					valueField: 'id'
-				}]
-			}],
-			buttons: [{
-				xtype: 'button',
-				text: 'OK',
-				handler: function( btn ) {
-					this.handleSubmitEvent() ;
-				},
-				scope: this
 			}]
 		}) ;
 		
@@ -116,5 +84,4 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionCallInForm',{
 			}
 		}) ;
 	}
-	
 }) ;

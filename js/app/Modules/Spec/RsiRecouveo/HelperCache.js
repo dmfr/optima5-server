@@ -74,7 +74,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 	init: function(optimaModule, cmpId) {
 		var me = this ;
 		me.optimaModule = optimaModule ;
-		console.log( cmpId ) ;
+		me.cmpId = cmpId ;
+		me.isReady = false ;
 		
 		Ext.defer(function() {
 			me.startLoading() ;
@@ -142,6 +143,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 			data : ajaxData.data.cfg_action_eta
 		}) ;
 		
+		var cmpId = this.cmpId ;
+		
 		var pushModelFields = [] ;
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
 			pushModelFields.push({
@@ -149,14 +152,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 				type: 'string'
 			}) ;
 		}) ;
-		Ext.ux.dams.ModelManager.unregister( 'RsiRecouveoRecordModel' ) ;
-		Ext.define('RsiRecouveoRecordModel',{
+		Ext.ux.dams.ModelManager.unregister( 'RsiRecouveoRecordModel'+'-'+cmpId ) ;
+		Ext.define('RsiRecouveoRecordModel'+'-'+cmpId,{
 			extend: 'RsiRecouveoRecordTplModel',
 			idProperty: 'record_filerecord_id',
 			fields: pushModelFields
 		}) ;
-		Ext.ux.dams.ModelManager.unregister( 'RsiRecouveoFileModel' ) ;
-		Ext.define('RsiRecouveoFileModel',{
+		Ext.ux.dams.ModelManager.unregister( 'RsiRecouveoFileModel'+'-'+cmpId ) ;
+		Ext.define('RsiRecouveoFileModel'+'-'+cmpId,{
 			extend: 'RsiRecouveoFileTplModel',
 			idProperty: 'file_filerecord_id',
 			fields: pushModelFields,
@@ -165,7 +168,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 				name: 'actions',
 				associationKey: 'actions'
 			},{
-				model: 'RsiRecouveoRecordModel',
+				model: 'RsiRecouveoRecordModel'+'-'+cmpId,
 				name: 'records',
 				associationKey: 'records'
 			},{
@@ -180,6 +183,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 		}) ;
 		
 		this.onLoad() ;
+	},
+	getFileModel: function() {
+		return 'RsiRecouveoFileModel'+'-'+this.cmpId ;
+	},
+	getRecordModel: function() {
+		return 'RsiRecouveoRecordModel'+'-'+this.cmpId ;
 	},
 	
 	getAllAtrIds: function() {
