@@ -110,3 +110,17 @@
 	background-image: url("../images/modules/rsiveo-facture-48.png") !important;
 }
 
+
+.op5-spec-rsiveo-action-agreestart {
+	background-position: center ;
+	background-repeat: no-repeat ;
+	background-image: url("../images/modules/rsiveo-agree-start-16.png") !important;
+}
+
+.op5-spec-rsiveo-doaction {
+	cursor: pointer;
+	background-position: center ;
+	background-repeat: no-repeat ;
+	background-image: url("../images/modules/crmbase-process-16.gif") !important;
+}
+

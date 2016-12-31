@@ -1,4 +1,4 @@
-Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionAgreeStartForm',{
+Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextAgreePanel',{
 	extend:'Ext.form.Panel',
 	
 	_fileRecord: null,

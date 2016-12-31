@@ -11,7 +11,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel',{
 				type: 'vbox',
 				align: 'stretch'
 			},
-			width: 800,
 			items: [{
 				xtype: 'fieldset',
 				title: 'Type d\'action',

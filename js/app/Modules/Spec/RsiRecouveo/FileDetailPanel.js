@@ -88,21 +88,21 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					icon: 'images/modules/tmp/rsiveo-call-in-16.png',
 					text: 'Appel entrant',
 					handler: function() {
-						this.openActionPanel('Optima5.Modules.Spec.RsiRecouveo.ActionCallInForm',400,500) ;
+						this.doNewAction('CALL_IN') ;
 					},
 					scope: this
 				},{
 					icon: 'images/modules/tmp/rsiveo-mail-out-16.png',
 					text: 'Envoi courrier',
 					handler: function() {
-						this.openActionPanel('Optima5.Modules.Spec.RsiRecouveo.ActionMailOutForm',800,600) ;
+						this.doNewAction('MAIL_OUT') ;
 					},
 					scope: this
 				},{
 					icon: 'images/modules/tmp/rsiveo-agree-start-16.png',
 					text: 'Promesse réglement',
 					handler: function() {
-						this.openActionPanel('Optima5.Modules.Spec.RsiRecouveo.ActionAgreeStartForm',400,400) ;
+						//this.doNewAction('AGREE_FOLLOW') ;
 					},
 					scope: this
 				}]
@@ -341,13 +341,18 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 						width: 48,
 						dataIndex: 'status_is_ok',
 						renderer: function(v,metaData,r) {
+							if( this._fileRecord.get('next_fileaction_filerecord_id') == r.get('fileaction_filerecord_id') ) {
+								metaData.tdCls += ' op5-spec-rsiveo-doaction' ;
+								return ;
+							}
 							if( !v ) {
 								metaData.tdCls += ' op5-spec-dbstracy-files-nowarning' ;
 							} else {
 								metaData.tdCls += ' op5-spec-dbstracy-kpi-ok' ;
 							}
 							return '' ;
-						}
+						},
+						scope: this
 					},{
 						text: 'Réalisé',
 						width: 100,
@@ -372,6 +377,18 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 								type: 'json'
 							}
 						}
+					},
+					listeners: {
+						itemclick: function( view, record, itemNode, index, e ) {
+							var cellNode = e.getTarget( view.getCellSelector() ),
+								cellColumn = view.getHeaderByCell( cellNode ) ;
+							if( cellColumn.dataIndex == 'status_is_ok'
+								&& this._fileRecord.get('next_fileaction_filerecord_id') == record.get('fileaction_filerecord_id') ) {
+									
+								this.doNextAction( record.get('fileaction_filerecord_id') ) ;
+							}
+						},
+						scope: this
 					}
 				}]
 			}]
@@ -546,15 +563,40 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 	},
 	
 	
-	
-	openActionPanel: function() {
+	doNewAction: function(actionCode,force) {
+		if( !force
+			&& this._fileRecord.get('next_fileaction_filerecord_id') > 0
+			&& this._fileRecord.get('next_action') == actionCode ) {
+			
+			var msg = 'Prochaine action planifiée du même type.<br>Effectuer quand même une action spontanée ?' ;
+			Ext.MessageBox.confirm('Attention',msg, function(btn) {
+				if( btn =='yes' ) {
+					this.doNewAction(actionCode,true) ;
+				}
+			},this) ;
+			return ;
+		}
+		this.openActionPanel(null,actionCode) ;
+	},
+	doNextAction: function(fileActionFilerecordId) {
+		if( fileActionFilerecordId != this._fileRecord.get('next_fileaction_filerecord_id') ) {
+			Ext.MessageBox.alert('Error','Erreur, action non valide ?') ;
+			return ;
+		}
+		this.openActionPanel(fileActionFilerecordId) ;
+	},
+	openActionPanel: function( fileActionFilerecordId, newActionCode ) {
 		if( this._readonlyMode ) {
 			return ;
 		}
 		var postParams = {} ;
 		var actionPanel = Ext.create('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 			optimaModule: this.optimaModule,
+			
 			_fileFilerecordId: this._fileFilerecordId,
+			_fileActionFilerecordId: fileActionFilerecordId,
+			_newActionCode: newActionCode,
+			
 			minWidth:350, 
 			minHeight:350,
 			floating: true,

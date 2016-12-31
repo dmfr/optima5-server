@@ -37,9 +37,12 @@ Ext.define('RsiRecouveoCfgActionModel',{
 	fields: [
 		{name: 'action_id', type:'string'},
 		{name: 'action_txt', type:'string'},
+		{name: 'action_cls', type:'string'},
 		{name: 'group_id', type:'string'},
 		{name: 'status_open', type:'auto'},
 		{name: 'status_next', type:'auto'},
+		{name: 'is_sched', type:'boolean'},
+		{name: 'is_direct', type:'boolean'},
 		{name: 'agenda_class', type:'string'}
 	]
 });
@@ -130,6 +133,16 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 				}
 			}
 		}) ;
+		this.cfgOptStore = Ext.create('Ext.data.Store',{
+			model: 'RsiRecouveoCfgAtrModel',
+			data : ajaxData.data.cfg_opt,
+			proxy: {
+				type: 'memory',
+				reader: {
+					type: 'json'
+				}
+			}
+		}) ;
 		this.cfgStatusStore = Ext.create('Ext.data.Store',{
 			model: 'RsiRecouveoCfgStatusModel',
 			data : ajaxData.data.cfg_status
@@ -205,12 +218,32 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 		return this.cfgAtrStore.getById(atrId) ? Ext.pluck(this.cfgAtrStore.getById(atrId).records().getRange(), 'data') : null ;
 	},
 	
+	getAllOptIds: function() {
+		var atrIds = [] ;
+		this.cfgOptStore.each( function(atrRecord) {
+			atrIds.push( atrRecord.getId()) ;
+		}) ;
+		return atrIds ;
+	},
+	getOptHeader: function(optId) {
+		return this.cfgOptStore.getById(optId).getData() ;
+	},
+	getOptData: function(optId) {
+		return this.cfgOptStore.getById(optId) ? Ext.pluck(this.cfgOptStore.getById(optId).records().getRange(), 'data') : null ;
+	},
+	
 	getStatusAll: function() {
 		return Ext.pluck( this.cfgStatusStore.getRange(), 'data' ) ;
+	},
+	getStatusRowId: function( statusId ) {
+		return ( this.cfgStatusStore.getById(statusId) ? this.cfgStatusStore.getById(statusId).getData() : null );
 	},
 	
 	getActionAll: function() {
 		return Ext.pluck( this.cfgActionStore.getRange(), 'data' ) ;
+	},
+	getActionRowId: function( actionId ) {
+		return ( this.cfgActionStore.getById(actionId) ? this.cfgActionStore.getById(actionId).getData() : null );
 	},
 	
 	getActionEtaAll: function() {

@@ -48,7 +48,8 @@ function specRsiRecouveo_cfg_getConfig() {
 			'status_id' => $arr['field_CODE'],
 			'status_txt' => $arr['field_TXT'],
 			'status_code' => $arr['field_TXT'],
-			'status_color' => $arr['field_COLOR']
+			'status_color' => $arr['field_COLOR'],
+			'sched_lock' => $arr['field_SCHED_LOCK']
 		) ;
 	}
 	
@@ -59,9 +60,12 @@ function specRsiRecouveo_cfg_getConfig() {
 		$TAB_action[] = array(
 			'action_id' => $arr['field_ACTION_CODE'],
 			'action_txt' => $arr['field_ACTION_TXT'],
+			'action_cls' => $arr['field_ACTION_CLS'],
 			'group_id' => $arr['treenode_key'],
 			'status_open' => json_decode($arr['field_LINK_STATUS_OPEN'],true),
 			'status_next' => json_decode($arr['field_LINK_STATUS_NEXT'],true),
+			'is_sched' => $arr['field_IS_SCHED'],
+			'is_direct' => $arr['field_IS_DIRECT'],
 			'agenda_class' => $arr['field_AGENDA_CLASS']
 		) ;
 	}
@@ -78,10 +82,11 @@ function specRsiRecouveo_cfg_getConfig() {
 		) ;
 	}
 	
-	$TAB_list = array() ;
+	$TAB_list_atr = array() ;
+	$TAB_list_opt = array() ;
 	$json_define = paracrm_define_getMainToolbar( array('data_type'=>'bible') , true ) ;
 	foreach( $json_define['data_bible'] as $define_bible ) {
-		if( strpos($define_bible['bibleId'],'ATR_')===0 ) {
+		if( strpos($define_bible['bibleId'],'ATR_')===0 || strpos($define_bible['bibleId'],'OPT_')===0 ) {
 			$json_define_bible = paracrm_data_getBibleCfg(array('bible_code'=>$define_bible['bibleId'])) ;
 			
 			$bible_code = $define_bible['bibleId'] ;
@@ -90,6 +95,7 @@ function specRsiRecouveo_cfg_getConfig() {
 			$query = "SELECT * FROM view_bible_{$bible_code}_tree ORDER BY treenode_key" ;
 			$result = $_opDB->query($query) ;
 			while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+				$parent = $arr['treenode_parent_key'] ;
 				$node = $arr['treenode_key'] ;
 				$id = $arr['treenode_key'] ;
 				$lib = array() ;
@@ -98,20 +104,28 @@ function specRsiRecouveo_cfg_getConfig() {
 						$lib[] = $arr[$tree_field['tree_field_code']] ;
 					}
 				}
-				$records[] = array('node'=>'', 'id'=>$id, 'text'=>implode(' - ',$lib)) ;
+				$records[] = array('node'=>'', 'id'=>$id, 'parent'=>$parent, 'text'=>implode(' - ',$lib)) ;
 			}
 			
-			$TAB_list[] = array(
+			$new_rec = array(
 				'bible_code' => $bible_code,
 				'atr_code' => substr($bible_code,4),
 				'atr_txt' => $define_bible['text'],
 				'records' => $records
 			) ;
+			
+			if( strpos($define_bible['bibleId'],'ATR_')===0 ) {
+				$TAB_list_atr[] = $new_rec ;
+			}
+			if( strpos($define_bible['bibleId'],'OPT_')===0 ) {
+				$TAB_list_opt[] = $new_rec ;
+			}
 		}
 	}
 	
 	$GLOBALS['cache_specRsiRecouveo_cfg']['getConfig'] = array(
-		'cfg_atr' => $TAB_list,
+		'cfg_atr' => $TAB_list_atr,
+		'cfg_opt' => $TAB_list_opt,
 		'cfg_status' => $TAB_status,
 		'cfg_action' => $TAB_action,
 		'cfg_action_eta' => $TAB_action_eta

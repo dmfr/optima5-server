@@ -309,6 +309,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 		
 		if( $next_action ) {
 			$file_row += array(
+				'next_fileaction_filerecord_id' => $next_action['fileaction_filerecord_id'],
 				'next_action' => $next_action['link_action'],
 				'next_date' => $next_action['date_sched']
 			);

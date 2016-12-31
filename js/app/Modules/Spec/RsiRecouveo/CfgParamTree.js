@@ -75,6 +75,57 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamTree',{
 				nodeText: '<b>'+Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(this.cfgParam_id).atr_txt+'</b>',
 				expanded: true
 			}
+		} else if( this.cfgParam_id && this.cfgParam_id.indexOf('OPT_')===0 ) {
+			data = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getOptData(this.cfgParam_id) ;
+			var tmpTreeStore = Ext.create('Ext.data.TreeStore',{
+				model: 'RsiRecouveoCfgParamTreeModel',
+				root: {
+					root: true,
+					children: [],
+					nodeText: '<b>'+Optima5.Modules.Spec.RsiRecouveo.HelperCache.getOptHeader(this.cfgParam_id).atr_txt+'</b>'
+				},
+				proxy: {
+					type: 'memory',
+					reader: {
+						type: 'json'
+					}
+				}
+			}) ;
+			while( true ) {
+				var cnt = 0 ;
+				var parentNode ;
+				Ext.Array.each( data, function(row) {
+					if( tmpTreeStore.getNodeById( row.id ) ) {
+						return ;
+					}
+					if( Ext.isEmpty(row.parent) ) {
+						parentNode = tmpTreeStore.getRootNode() ;
+					} else {
+						parentNode = tmpTreeStore.getNodeById( row.parent ) ;
+					}
+					if( !parentNode ) {
+						return ;
+					}
+					cnt++ ;
+					parentNode.appendChild({
+						nodeId: row.id,
+						nodeType: 'entry',
+						nodeKey: row.id,
+						nodeText: row.text
+					});
+				}) ;
+				if( cnt==0 ) {
+					break ;
+				}
+			}
+			tmpTreeStore.getRootNode().cascadeBy( function(node) {
+				if( node.childNodes.length == 0 ) {
+					node.set('leaf',true) ;
+				} else {
+					node.expand() ;
+				}
+			}) ;
+			rootNode = tmpTreeStore.getRootNode().copy(undefined,true) ;
 		} else {
 			rootNode = {
 				root: true,
@@ -97,6 +148,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamTree',{
 				node.set('checked',true) ;
 				return ;
 			}
+			if( !node.isLeaf() ) {
+				return ;
+			}
 			node.set('checked', (node.getId()==this.value) );
 		},this);
 		
@@ -104,13 +158,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamTree',{
 			var doFireCheckchange = false ;
 			if( !check ) {
 				this.getRootNode().cascadeBy(function(chrec){
-					if( chrec==rec ) {
+					if( chrec==rec && (node.isLeaf()||node.isRoot()) ) {
 						chrec.set('checked',true) ;
 					}
 				},this);
 			} else {
 				this.getRootNode().cascadeBy(function(chrec){
-					if( chrec != rec ) {
+					if( chrec != rec && (node.isLeaf()||node.isRoot()) ) {
 						chrec.set('checked',false) ;
 					}
 				},this);

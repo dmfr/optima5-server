@@ -11,12 +11,66 @@ Ext.define('RsiRecouveoFileTplModel',{ // TO: RsiRecouveoFileModel
 		{name: 'status_closed', type:'boolean'},
 		{name: 'date_open', type:'date', dateFormat:'Y-m-d H:i:s'},
 		{name: 'date_last', type:'date', dateFormat:'Y-m-d H:i:s'},
+		{name: 'next_fileaction_filerecord_id', type: 'int'},
 		{name: 'next_action', type: 'string', allowNull:true},
 		{name: 'next_date', type:'date', dateFormat:'Y-m-d H:i:s', allowNull:true},
 		{name: 'inv_nb', type: 'number'},
 		{name: 'inv_amount_due', type: 'number'},
 		{name: 'inv_amount_total', type: 'number'}
-	]
+	],
+	statusIsSchedLock: function() {
+		var fileStatus = this.get('status'),
+			statusRow = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getStatusRowId(fileStatus),
+			isSchedLock = !!(statusRow && statusRow.sched_lock) ;
+		return isSchedLock ;
+	},
+	getNextXAction: function(x) {
+		var pendingActions = [] ;
+		this.actions().each( function(fileActionRecord) {
+			if( fileActionRecord.get('status_is_ok') ) {
+				return ;
+			}
+			pendingActions.push({
+				fileaction_filerecord_id: fileActionRecord.get('fileaction_filerecord_id'),
+				date_sched: fileActionRecord.get('date_sched')
+			}) ;
+		}) ;
+		Ext.Array.sort(pendingActions, function(o1,o2) {
+			return o1.date_sched > o2.date_sched ;
+		});
+		var fileActionId = ( pendingActions[x-1] ? pendingActions[x-1]['fileaction_filerecord_id'] : null ) ;
+		if( fileActionId ) {
+			return this.actions().getById(fileActionId).getData() ;
+		}
+		return null ;
+	},
+	getNextAction: function() {
+		return this.getNextXAction(1) ;
+	},
+	getAfterNextAction: function() {
+		return this.getNextXAction(2) ;
+	},
+	getAvailableActions: function() {
+		var availableActions = [] ;
+		var statusCode = this.get('status'),
+			isSchedLock = this.statusIsSchedLock() ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionAll(), function(action) {
+			if( !Ext.isEmpty(action.status_open) ) {
+				if( Ext.Array.contains(action.status_open,statusCode) ) {
+					availableActions.push(action) ;
+				}
+				return ;
+			}
+			if( isSchedLock && (action.is_sched||action.is_direct) ) {
+				return ;
+			}
+			if( !Ext.isEmpty(action.status_next) && Ext.Array.contains(action.status_next,statusCode) ) {
+				return ;
+			}
+			availableActions.push(action) ;
+		}) ;
+		return availableActions ;
+	}
 }) ;
 Ext.define('RsiRecouveoFileActionModel',{
 	extend: 'Ext.data.Model',
