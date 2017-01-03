@@ -368,6 +368,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 						sorters: [{
 							property: 'calc_date',
 							direction: 'DESC'
+						},{
+							property: 'fileaction_filerecord_id',
+							direction: 'DESC'
 						}],
 						proxy: {
 							type: 'memory',

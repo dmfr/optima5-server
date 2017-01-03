@@ -61,7 +61,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			'acc_siret' => $arr['field_ACC_SIRET'],
 			
 			'status' => $arr['field_STATUS'],
-			'status_closed' => ($arr['field_STATUS']==NULL),
+			'status_closed' => ($arr['field_STATUS_CLOSED']==1),
 			
 			'date_open' => $arr['field_DATE_OPEN'],
 			'date_last' => $arr['field_DATE_LAST'],

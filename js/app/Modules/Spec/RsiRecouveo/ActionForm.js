@@ -94,6 +94,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 			case 'MAIL_OUT' :
 				nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel' ;
 				break ;
+			case 'BUMP' :
+				nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusBumpPanel' ;
+				break ;
 			default :
 				break ;
 		}
@@ -272,7 +275,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 		var txtField = this.getForm().findField('txt') ;
 		if( txtField ) {
 			if( Ext.isEmpty(postData['txt']) ) {
-				var error = 'Numéro d\'appel non renseigné' ;
+				var error = 'Commentaire non renseigné' ;
 				
 				errors.push(error) ;
 				txtField.markInvalid(error) ;
@@ -284,7 +287,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 		switch( postData['next_action'] ) {
 			case 'AGREE_START' :
 				var fields = ['agree_amount','agree_period','agree_date','agree_datefirst','agree_count'] ;
-				Ext.Array.each( function(fieldName) {
+				Ext.Array.each( fields, function(fieldName) {
 					var hasErrors = false ;
 					var field = this.getForm().findField(fieldName) ;
 					if( field.isVisible() && Ext.isEmpty( postData[fieldName] ) ) {
@@ -294,7 +297,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 					if( hasErrors ) {
 						errors.push('Echéancier non rempli') ;
 					}
-				}) ;
+				},this) ;
 				break ;
 			case 'CLOSE_ASK' :
 				if( Ext.isEmpty( postData['close_code'] ) ) {

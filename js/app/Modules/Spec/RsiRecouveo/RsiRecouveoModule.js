@@ -95,11 +95,11 @@ Ext.define('RsiRecouveoFileActionModel',{
 		
 		{name: 'calc_eta_range', type:'string'},
 		
-		{name: 'calc_date', type:'date', calculate: function (data) {
+		{name: 'calc_date', type:'string', calculate: function (data) {
 			if( data.status_is_ok ) {
-				return data.date_actual ;
+				return Ext.Date.format(data.date_actual,'Y-m-d') ;
 			} else {
-				return data.date_sched ;
+				return Ext.Date.format(data.date_sched,'Y-m-d') ;
 			}
 		}}
 	]

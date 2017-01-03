@@ -143,6 +143,9 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 					$txt = '' ;
 					$txt.= "Clôture acceptée"."\r\n" ;
 					$txt.= $post_form['close_txt']."\r\n" ;
+					if( $post_form['txt'] ) {
+						$txt.= $post_form['txt']."\r\n" ;
+					}
 					$arr_ins['field_TXT'] = $txt ;
 					break ;
 			
@@ -275,7 +278,7 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 				$arr_ins['field_LINK_ACTION'] = 'AGREE_START' ;
 				$arr_ins['field_STATUS_IS_OK'] = 1 ;
 				$arr_ins['field_DATE_ACTUAL'] = date('Y-m-d H:i:s') ;
-				$arr_ins['field_TXT'] = $txt ;
+				$arr_ins['field_TXT'] = explode("\r\n",$txt) ;
 				paracrm_lib_data_insertRecord_file( $file_code, $file_filerecord_id, $arr_ins );
 				
 				switch( $post_form['agree_period'] ) {
@@ -331,6 +334,7 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 	}
 	if( $post_form['schedlock_next'] == 'close' ) {
 		$arr_update = array() ;
+		$arr_update['field_STATUS'] = 1 ;
 		$arr_update['field_STATUS_CLOSED'] = 1 ;
 		paracrm_lib_data_updateRecord_file( 'FILE', $arr_update, $file_filerecord_id);
 	}
