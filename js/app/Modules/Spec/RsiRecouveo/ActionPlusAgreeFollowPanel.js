@@ -14,78 +14,137 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusAgreeFollowPanel',{
 			items: [{
 				flex: 1,
 				xtype: 'fieldset',
-				title: 'Type d\'action',
+				title: 'Suivi de la promesse',
 				defaults: {
 					anchor: '100%',
 					labelWidth: 80
 				},
 				items: [{
-					flex: 1,
 					xtype: 'displayfield',
 					fieldLabel: 'Action',
-					value: '<b>Appel Entrant</b>'
+					name: 'action_txt',
+					value: ''
 				},{
-					xtype: 'combobox',
-					itemId: 'selectAdrTelName',
-					fieldLabel: 'Destinataires',
-					forceSelection: true,
-					editable: false,
-					store: {
-						fields: ['adr_name'],
-						data : []
-					},
-					queryMode: 'local',
-					displayField: 'adr_name',
-					valueField: 'adr_name',
+					hidden: true,
+					xtype: 'displayfield',
+					fieldLabel: 'Prévue le',
+					name: 'action_sched',
+					value: '',
 					listeners: {
-						select: this.onSelectAdrTelName,
-						scope: this
+						change: function(field,val) {
+							field.setVisible( !Ext.isEmpty(val) ) ;
+						}
 					}
 				},{
-					xtype: 'textfield',
-					name: 'adrtel_txt',
-					fieldLabel: 'No.Mobile'
+					xtype      : 'fieldcontainer',
+					fieldLabel : 'Echéance',
+					defaultType: 'radiofield',
+					defaults: {
+						flex: 1
+					},
+					layout: 'vbox',
+					items: [
+						{
+							boxLabel  : 'Valider cette échéance<br><i>Identifier le paiement ci-contre</i>',
+							name      : 'schedlock_next',
+							inputValue: 'confirm'
+						}, {
+							boxLabel  : 'Reporter l\'échéance',
+							name      : 'schedlock_next',
+							inputValue: 'resched'
+						}, {
+							boxLabel  : '<font color="red">Annuler la promesse</font><br><i>Retour dossier "en cours"</i>',
+							name      : 'schedlock_next',
+							inputValue: 'end'
+						}
+					]
+				},{
+					hidden: true,
+					anchor: '',
+					width: 200,
+					xtype: 'datefield',
+					format: 'Y-m-d',
+					name: 'schedlock_resched_date',
+					fieldLabel: 'Date prévue'
 				}]
 			},{
 				xtype: 'box',
 				width: 16
 			},{
+				itemId: 'rightEmpty',
+				hidden: false,
+				flex: 1,
+				xtype: 'box'
+			},{
+				hidden: true,
+				itemId: 'rightRecords',
 				flex: 1,
 				xtype: 'fieldset',
-				padding: 10,
-				title: 'Compte-rendu',
+				padding: 5,
+				title: 'Enregistrements',
 				layout: {
 					type: 'anchor'
 				},
 				defaults: {
-					anchor: '100%',
-					labelWidth: 80
+					anchor: '100%'
 				},
 				items: [{
-					xtype: 'textarea',
-					name: 'mail_txt',
-					height: 150
+					itemId: 'pRecordsGrid',
+					xtype: 'grid',
+					height: 220,
+					selModel: {
+						selType: 'checkboxmodel',
+						mode: 'SINGLE'
+					},
+					columns: [{
+						text: 'Libellé',
+						dataIndex: 'record_id',
+						width: 130
+					},{
+						text: 'Date',
+						dataIndex: 'date_value',
+						align: 'center',
+						width: 80,
+						renderer: Ext.util.Format.dateRenderer('d/m/Y')
+					},{
+						text: 'Montant',
+						dataIndex: 'amount',
+						align: 'right',
+						width: 80
+					}],
+					store: {
+						model: Optima5.Modules.Spec.RsiRecouveo.HelperCache.getRecordModel(),
+						data: this._fileRecord.records().getRange(),
+						sorters:[{
+							property: 'date_value',
+							direction: 'DESC'
+						}],
+						filters:[{
+							property: 'amount',
+							operator: 'gt',
+							value: 0
+						}]
+					}
 				}]
 			}]
 		}) ;
 		
 		this.callParent() ;
-		
-		var adrNames = [] ;
-		this._fileRecord.adr_tel().each( function(rec) {
-			adrNames.push({adr_name: rec.get('adr_name')}) ;
-		}) ;
-		this.down('#selectAdrTelName').getStore().loadData(adrNames) ;
+		this.getForm().getFields().each( function(field) {
+			field.on('change',function(field) {
+				this.onFormChange(this,field) ;
+			},this) ;
+		},this) ;
 	},
 	
-	onSelectAdrTelName: function(cmb) {
-		var adrName = cmb.getValue(),
-			adrField = this.getForm().findField('adrtel_txt') ;
-		adrField.reset() ;
-		this._fileRecord.adr_tel().each( function(rec) {
-			if( rec.get('adr_name') == adrName ) {
-				adrField.setValue( rec.get('adr_tel_txt') ) ;
-			}
-		}) ;
+	onFormChange: function(form,field) {
+		if( field.getName() == 'schedlock_next' ) {
+			var fieldValue = form.getValues()['schedlock_next'] ;
+			this.getForm().findField('schedlock_resched_date').setVisible( fieldValue=='resched' ) ;
+			this.down('#rightEmpty').setVisible( fieldValue!='confirm' ) ;
+			this.down('#rightRecords').setVisible( fieldValue=='confirm' ) ;
+			
+		}
+		this.fireEvent('change',field) ;
 	}
 }) ;

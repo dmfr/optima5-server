@@ -27,7 +27,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextLitigPanel',{
 					name: 'litig_code',
 					allowBlank: false,
 					fieldLabel: 'Motif'
-				})]
+				}),{
+					anchor: '',
+					width: 200,
+					xtype: 'datefield',
+					format: 'Y-m-d',
+					name: 'litig_nextdate',
+					fieldLabel: 'Prochain suivi'
+				}]
 			}]
 		}) ;
 		

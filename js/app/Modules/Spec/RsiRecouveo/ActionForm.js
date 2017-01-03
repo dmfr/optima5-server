@@ -2,7 +2,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 	extend:'Ext.form.Panel',
 	
 	requires: [
-		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusCallInPanel',
+		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusBumpPanel',
+		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusCallPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextPanel'
 	],
@@ -26,7 +27,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 				xtype: 'button',
 				text: 'OK',
 				handler: function( btn ) {
-					console.dir( this.getForm().getValues(false,false,false,true) ) ;
 					this.handleSubmitEvent() ;
 				},
 				scope: this
@@ -71,27 +71,25 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 		console.dir(fileRecord) ;
 		this._fileRecord = fileRecord ;
 		
-		var nowActionCode = null,
-			nowActionClass = null ;
-		if( this._fileActionFilerecordId ) {
-			var nowActionRecord = this._fileRecord.actions().getById( this._fileActionFilerecordId ) ;
-			nowActionCode = nowActionRecord.get('link_action') ;
-		} else {
-			nowActionCode = this._newActionCode ;
-		}
-		console.log(nowActionCode) ;
-		switch( nowActionCode ) {
+		var currentAction = this.getCurrentAction() ;
+		switch( currentAction.action_id ) {
 			case 'AGREE_FOLLOW' :
 				nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusAgreeFollowPanel' ;
 				break ;
+			case 'LITIG_FOLLOW' :
+				nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusLitigFollowPanel' ;
+				break ;
+			case 'CLOSE_ACK' :
+				nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusClosePanel' ;
+				break ;
 			case 'CALL_IN' :
-				nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusCallInPanel' ;
+				nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusCallPanel' ;
 				break ;
 			case 'CALL_OUT' :
-				nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusCallOutPanel' ;
+				nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusCallPanel' ;
 				break ;
 			case 'MAIL_IN' :
-				nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailInPanel' ;
+				nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusCallPanel' ;
 				break ;
 			case 'MAIL_OUT' :
 				nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel' ;
@@ -107,6 +105,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 		
 		
 		this.add(Ext.create(nowActionClass,{
+			itemId: 'formNow',
 			border: false,
 			
 			optimaModule: this.optimaModule,
@@ -119,25 +118,38 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 				scope: this
 			}
 		})) ;
-		this.add(Ext.create('Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextPanel',{
-			border: false,
-			
-			optimaModule: this.optimaModule,
-			
-			_fileRecord: this._fileRecord,
-			_actionForm: this,
-			
-			listeners: {
-				change: this.onFormChange,
-				scope: this
-			}
-		})) ;
+		if( !this._fileRecord.statusIsSchedLock() ) {
+			this.add(Ext.create('Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextPanel',{
+				itemId: 'formNext',
+				border: false,
+				
+				optimaModule: this.optimaModule,
+				
+				_fileRecord: this._fileRecord,
+				_actionForm: this,
+				
+				listeners: {
+					change: this.onFormChange,
+					scope: this
+				}
+			})) ;
+		}
 		this.down('#btnOk').setVisible(true) ;
 		this.fireEvent('mylayout',this) ;
+		
+		// Données
+		var formData = {
+			action_txt: currentAction.action_txt,
+			action_sched: ( this.getCurrentSched() ? Ext.util.Format.date(this.getCurrentSched(),'d/m/Y') : '' )
+		};
+		this.getForm().setValues(formData) ;
 	},
 	
 	onFormChange: function(field) {
 		console.log('on form change') ;
+		if( field ) {
+			console.log(field.getName()) ;
+		}
 		console.dir(field) ;
 	},
 	
@@ -167,29 +179,217 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 	},
 	
 	
+	getCurrentAction: function() {
+		if( this._fileActionFilerecordId ) {
+			var nowActionRecord = this._fileRecord.actions().getById( this._fileActionFilerecordId ) ;
+			nowActionCode = nowActionRecord.get('link_action') ;
+		} else {
+			nowActionCode = this._newActionCode ;
+		}
+		if( !nowActionCode ) {
+			return null ;
+		}
+		return Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionRowId(nowActionCode) ;
+	},
+	getCurrentSched: function() {
+		if( this._fileActionFilerecordId ) {
+			var nowActionRecord = this._fileRecord.actions().getById( this._fileActionFilerecordId ) ;
+			if( nowActionRecord ) {
+				return nowActionRecord.get('date_sched') ;
+			}
+		}
+		return null ;
+	},
+	
+	
 	handleSubmitEvent: function() {
 		var formPanel = this,
 			form = formPanel.getForm() ;
 			  
-		var recordData = form.getValues(false,false,false,true) ;
-		// next values
+		var errors = [] ;
 		
-		var postData = {} ;
-		// nextValues
+		var postDataObj = form.getValues(false,false,false,true) ;
+		var postData = form.getValues() ;
 		Ext.apply(postData,{
-			next_fileaction_filerecord_id: 0,    // >0 maintien de d'une action next existante
-			next_action: null,
-			next_date: null
+			fileaction_filerecord_id: this._fileActionFilerecordId,
+			link_status: this._fileRecord.get('status'),
+			link_action: this.getCurrentAction()['action_id']
 		}) ;
+		
+		// *** Statut SCHEDLOCK : validation action / next
+		if( this._fileRecord.statusIsSchedLock() && postDataObj.hasOwnProperty('schedlock_next') ) {
+			if( Ext.isEmpty( postData['schedlock_next'] ) ) {
+				errors.push('Suivi de l\'action non renseigné') ;
+			}
+			if( postData['schedlock_next'] == 'resched' 
+				&& Ext.isEmpty(postData['schedlock_resched_date']) ) {
+				var error = 'Date de report non renseignée' ;
+				
+				errors.push(error) ;
+				this.getForm().findField('schedlock_resched_date').markInvalid(error) ;
+			}
+			if( postData['schedlock_next'] == 'schednew' 
+				&& Ext.isEmpty(postData['schedlock_schednew_date']) ) {
+				var error = 'Date prochaine action non renseignée' ;
+				
+				errors.push(error) ;
+				this.getForm().findField('schedlock_schednew_date').markInvalid(error) ;
+			}
+			if( this.down('#rightRecords') && this.down('#rightRecords').isVisible() ) {
+				if( this.down('#rightRecords').down('grid').getSelectionModel().getSelection().length != 1 ) {
+					errors.push('Enregistrement comptable non sélectionné') ;
+				} else {
+					var rec = this.down('#rightRecords').down('grid').getSelectionModel().getSelection()[0] ;
+					postData['schedlock_confirm_txt'] = rec.get('record_id') ;
+				}
+			}
+		}
+		
+		// *** Statut STANDARD : validation next
+		if( !this._fileRecord.statusIsSchedLock() ) {
+			if( Ext.isEmpty( postData['next_action'] ) ) {
+				var error = 'Prochaine action non renseignée' ;
+				errors.push(error) ;
+				this.getForm().findField('next_action').markInvalid(error) ;
+			} else if( this.getForm().findField('next_date').isVisible() && Ext.isEmpty( postData['next_date'] ) ) {
+				var error = 'Date prochaine action non renseignée' ;
+				errors.push(error) ;
+				this.getForm().findField('next_date').markInvalid(error) ;
+			}
+		}
+		
+		
+		// ****** Champs statiques ***********
+		var telField = this.getForm().findField('adrtel_txt') ;
+		if( telField ) {
+			if( Ext.isEmpty(postData['adrtel_txt']) ) {
+				var error = 'Numéro d\'appel non renseigné' ;
+				
+				errors.push(error) ;
+				telField.markInvalid(error) ;
+			}
+		}
+		var txtField = this.getForm().findField('txt') ;
+		if( txtField ) {
+			if( Ext.isEmpty(postData['txt']) ) {
+				var error = 'Numéro d\'appel non renseigné' ;
+				
+				errors.push(error) ;
+				txtField.markInvalid(error) ;
+			}
+		}
+		
+		
+		// ****** Champs dynamiques ***********
+		switch( postData['next_action'] ) {
+			case 'AGREE_START' :
+				var fields = ['agree_amount','agree_period','agree_date','agree_datefirst','agree_count'] ;
+				Ext.Array.each( function(fieldName) {
+					var hasErrors = false ;
+					var field = this.getForm().findField(fieldName) ;
+					if( field.isVisible() && Ext.isEmpty( postData[fieldName] ) ) {
+						field.markInvalid('Information non renseignée') ;
+						hasErrors = true ;
+					}
+					if( hasErrors ) {
+						errors.push('Echéancier non rempli') ;
+					}
+				}) ;
+				break ;
+			case 'CLOSE_ASK' :
+				if( Ext.isEmpty( postData['close_code'] ) ) {
+					var error = 'Renseigner raison de clôture' ;
+					errors.push(error) ;
+					this.getForm().findField('close_code').markInvalid(error) ;
+					break ;
+				}
+				var fieldValue = postData['close_code'],
+					fieldTree = this.getForm().findField('close_code').cfgParamTree,
+					fieldNode = fieldTree.getStore().getNodeById(fieldValue),
+					fieldTxt = [] ;
+				while( true ) {
+					if( fieldNode.isRoot() ) {
+						break ;
+					}
+					fieldTxt.push( fieldNode.get('nodeText') ) ;
+					fieldNode = fieldNode.parentNode ;
+				}
+				postData['close_txt'] = fieldTxt.reverse().join(' - ') ;
+				break ;
+			
+			case 'LITIG_START' :
+				if( Ext.isEmpty( postData['litig_code'] ) ) {
+					var error = 'Renseigner raison de litige' ;
+					errors.push(error) ;
+					this.getForm().findField('litig_code').markInvalid(error) ;
+					break ;
+				}
+				var fieldValue = postData['litig_code'],
+					fieldTree = this.getForm().findField('litig_code').cfgParamTree,
+					fieldNode = fieldTree.getStore().getNodeById(fieldValue),
+					fieldTxt = [] ;
+				while( true ) {
+					if( fieldNode.isRoot() ) {
+						break ;
+					}
+					fieldTxt.push( fieldNode.get('nodeText') ) ;
+					fieldNode = fieldNode.parentNode ;
+				}
+				postData['litig_txt'] = fieldTxt.reverse().join(' - ') ;
+				
+				if( Ext.isEmpty(postData['litig_nextdate']) ) {
+					var error = 'Renseigner date de suivi litige' ;
+					errors.push(error) ;
+					this.getForm().findField('litig_nextdate').markInvalid(error) ;
+					break ;
+				}
+				break ;
+			
+			default :
+				break ;
+		}
+		if( this.getCurrentAction()['action_id'] == 'CLOSE_ACK' && postData['schedlock_next'] == 'close' ) {
+			while( true ) {
+				
+				if( Ext.isEmpty( postData['close_code'] ) ) {
+					var error = 'Renseigner issue après clôture' ;
+					errors.push(error) ;
+					this.getForm().findField('close_code').markInvalid(error) ;
+					break ;
+				}
+				var fieldValue = postData['close_code'],
+					fieldTree = this.getForm().findField('close_code').cfgParamTree,
+					fieldNode = fieldTree.getStore().getNodeById(fieldValue),
+					fieldTxt = [] ;
+				while( true ) {
+					if( fieldNode.isRoot() ) {
+						break ;
+					}
+					fieldTxt.push( fieldNode.get('nodeText') ) ;
+					fieldNode = fieldNode.parentNode ;
+				}
+				postData['close_txt'] = fieldTxt.reverse().join(' - ') ;
+				
+				break ;
+			}
+		}
+		
+		if( errors.length > 0 ) {
+			Ext.MessageBox.alert('Erreur',errors.join('<br>')) ;
+			return ;
+		}
+		
+		
+		
 		
 		this.showLoadmask() ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_rsi_recouveo',
-				_action: 'file_setAction',
+				_action: 'action_doFileAction',
 				_is_new: ( this._fileNew ? 1 : 0 ),
 				file_filerecord_id: this._fileRecord.get('file_filerecord_id'),
-				data: Ext.JSON.encode(recordData)
+				data: Ext.JSON.encode(postData)
 			},
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;

@@ -1,3 +1,4 @@
+var globalMaxDate = new Date('2099-01-01') ;
 Ext.define('RsiRecouveoFileTplModel',{ // TO: RsiRecouveoFileModel
 	extend: 'Ext.data.Model',
 	idProperty: 'file_filerecord_id',
@@ -13,7 +14,14 @@ Ext.define('RsiRecouveoFileTplModel',{ // TO: RsiRecouveoFileModel
 		{name: 'date_last', type:'date', dateFormat:'Y-m-d H:i:s'},
 		{name: 'next_fileaction_filerecord_id', type: 'int'},
 		{name: 'next_action', type: 'string', allowNull:true},
-		{name: 'next_date', type:'date', dateFormat:'Y-m-d H:i:s', allowNull:true},
+		{name: 'next_date', type:'date', dateFormat:'Y-m-d H:i:s', allowNull:true,
+			sortType: function(v) {
+				if( v==null ) {
+					return globalMaxDate ;
+				}
+				return v ;
+			}
+		},
 		{name: 'inv_nb', type: 'number'},
 		{name: 'inv_amount_due', type: 'number'},
 		{name: 'inv_amount_total', type: 'number'}
@@ -22,6 +30,7 @@ Ext.define('RsiRecouveoFileTplModel',{ // TO: RsiRecouveoFileModel
 		var fileStatus = this.get('status'),
 			statusRow = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getStatusRowId(fileStatus),
 			isSchedLock = !!(statusRow && statusRow.sched_lock) ;
+		console.dir(statusRow) ;
 		return isSchedLock ;
 	},
 	getNextXAction: function(x) {
@@ -65,7 +74,7 @@ Ext.define('RsiRecouveoFileTplModel',{ // TO: RsiRecouveoFileModel
 				return ;
 			}
 			if( !Ext.isEmpty(action.status_next) && Ext.Array.contains(action.status_next,statusCode) ) {
-				return ;
+				//return ;
 			}
 			availableActions.push(action) ;
 		}) ;
@@ -92,7 +101,7 @@ Ext.define('RsiRecouveoFileActionModel',{
 			} else {
 				return data.date_sched ;
 			}
-     }}
+		}}
 	]
 }) ;
 Ext.define('RsiRecouveoRecordTplModel',{ // TO: RsiRecouveoRecordModel

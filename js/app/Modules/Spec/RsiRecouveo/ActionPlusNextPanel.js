@@ -32,14 +32,20 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextPanel',{
 					labelWidth: 110
 				},
 				items:[{
+					itemId: 'btnReset',
+					anchor: '',
+					xtype: 'button',
+					icon: 'images/modules/crmbase-save-16.gif',
+					text: 'Reset next action',
+					style: 'margin-bottom: 6px',
+					handler: function() {
+						this.onFormBegin() ;
+					},
+					scope: this
+				},{
 					xtype: 'hiddenfield',
 					name: 'next_fileaction_filerecord_id',
 					value: 0
-				},{
-					hidden: true,
-					xtype: 'checkboxfield',
-					name: 'next_suppr',
-					boxLabel: '<b><font color="red">Supprimer prochaine action ?</font></b>'
 				},{
 					xtype: 'colorcombo',
 					name: 'next_action',
@@ -55,6 +61,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextPanel',{
 					valueField: 'action_id',
 					iconClsField: 'action_cls'
 				},{
+					hidden: true,
 					xtype: 'datefield',
 					format: 'Y-m-d',
 					name: 'next_date',
@@ -93,9 +100,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextPanel',{
 			this.setRightPanel(nextPlusClass) ;
 			
 			var action = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionRowId(nextActionCode) ;
-			if( action.is_sched ) {
-				// set visible
-				console.log('setvisible') ;
+			if( action ) {
+				this.getForm().findField('next_date').setVisible( action.is_sched ) ;
 			}
 		}
 		
@@ -106,17 +112,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextPanel',{
 	onFormBegin: function(form) {
 		this.setRightPanel(null) ;
 		
-		if( this._actionForm._fileActionFilerecordId ) {
-			var nowActionRecord = this._fileRecord.actions().getById( this._actionForm._fileActionFilerecordId ) ;
-			nowActionCode = nowActionRecord.get('link_action') ;
-			var action = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionRowId(nowActionCode) ;
-			if( !Ext.isEmpty(action.status_open) ) {
-				this.getForm().findField('next_suppr').setVisible(true) ;
-			}
-		}
+		var readOnly = this._fileRecord.statusIsSchedLock() ;
+		this.getForm().getFields().each( function(field) {
+			field.setReadOnly(readOnly) ;
+		});
+		this.down('#btnReset').setVisible(!readOnly) ;
 		
-		// getNextValues
-		
+		// fetchNextValues
+		this.fetchNextValues() ;
 		
 		
 		
@@ -148,7 +151,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextPanel',{
 	},
 	
 	
-	getNextValues: function() {
+	fetchNextValues: function() {
 		// if fileActionFilerecordId == next
 			// query nextafter
 			// yes => nextafter
@@ -156,6 +159,29 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextPanel',{
 		// else
 			// query next
 			// yes => next
-			// no => nextafter
+			// no => scenario
+		if( this._fileRecord.get('next_fileaction_filerecord_id') > 0 
+			&& this._fileRecord.get('next_fileaction_filerecord_id') == this._actionForm._fileActionFilerecordId ) {
+			
+			var nextAction = this._fileRecord.getAfterNextAction() ;
+		} else {
+			var nextAction = this._fileRecord.getNextAction() ;
+		}
+		if( nextAction ) {
+			var formValues = {
+				next_fileaction_filerecord_id: nextAction.fileaction_filerecord_id,
+				next_action: nextAction.link_action,
+				next_date: nextAction.date_sched
+			} ;
+			this.setNextValues(formValues) ;
+			return ;
+		}
+		
+		// Query scenario
+		
+	},
+	setNextValues: function(formValues) {
+		this.getForm().setValues(formValues) ;
 	}
+	
 }) ;

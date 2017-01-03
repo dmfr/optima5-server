@@ -37,7 +37,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel',{
 					store: {
 						fields: ['txt'],
 						data : [
-							{id: 'STD', txt:'Relance Standard'}
+							{id: 'RELANCE_STD', txt:'Relance Standard'}
 						]
 					},
 					queryMode: 'local',

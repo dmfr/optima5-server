@@ -119,6 +119,7 @@
 
 .op5-spec-rsiveo-doaction {
 	cursor: pointer;
+	border: 1px solid red;
 	background-position: center ;
 	background-repeat: no-repeat ;
 	background-image: url("../images/modules/crmbase-process-16.gif") !important;

@@ -24,7 +24,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextAgreePanel',{
 					xtype:'numberfield',
 					width: 220,
 					anchor: '',
-					name: 'inv_amount_due',
+					name: 'agree_amount',
 					hideTrigger:true,
 					fieldLabel: 'Montant'
 				},{
@@ -57,7 +57,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextAgreePanel',{
 				},{
 					xtype:'datefield',
 					format: 'Y-m-d',
-					name: 'agree_first',
+					name: 'agree_datefirst',
 					fieldLabel: 'Première échéance'
 				},{
 					xtype:'numberfield',
@@ -72,7 +72,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextAgreePanel',{
 		this.callParent() ;
 		this.onSelectPeriod();
 		
-		this.getForm().findField('inv_amount_due').setValue( this._fileRecord.get('inv_amount_due') ) ;
+		this.getForm().findField('agree_amount').setValue( this._fileRecord.get('inv_amount_due') ) ;
 	},
 	
 	onSelectPeriod: function(s) {
@@ -81,56 +81,20 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextAgreePanel',{
 		switch( form.findField('agree_period').getValue() ) {
 			case 'SINGLE' :
 				form.findField('agree_date').setVisible(true) ;
-			  form.findField('agree_first').setVisible(false) ;
+			  form.findField('agree_datefirst').setVisible(false) ;
 			  form.findField('agree_count').setVisible(false) ;
 			  break ;
 			case 'WEEK' :
 			case 'MONTH' :
 				form.findField('agree_date').setVisible(false) ;
-			  form.findField('agree_first').setVisible(true) ;
+			  form.findField('agree_datefirst').setVisible(true) ;
 			  form.findField('agree_count').setVisible(true) ;
 			  break ;
 			default :
 				form.findField('agree_date').setVisible(false) ;
-			  form.findField('agree_first').setVisible(false) ;
+			  form.findField('agree_datefirst').setVisible(false) ;
 			  form.findField('agree_count').setVisible(false) ;
 			  break ;
-		}
-	},
-	
-	onSelectAdrTelName: function(cmb) {
-		var adrName = cmb.getValue(),
-			adrField = this.getForm().findField('adrtel_txt') ;
-		adrField.reset() ;
-		this._fileRecord.adr_tel().each( function(rec) {
-			if( rec.get('adr_name') == adrName ) {
-				adrField.setValue( rec.get('adr_tel_txt') ) ;
-			}
-		}) ;
-	},
-	
-	
-	showLoadmask: function() {
-		if( this.rendered ) {
-			this.doShowLoadmask() ;
-		} else {
-			this.on('afterrender',this.doShowLoadmask,this,{single:true}) ;
-		}
-	},
-	doShowLoadmask: function() {
-		if( this.loadMask ) {
-			return ;
-		}
-		this.loadMask = Ext.create('Ext.LoadMask',{
-			target: this,
-			msg:"Please wait..."
-		}).show();
-	},
-	hideLoadmask: function() {
-		this.un('afterrender',this.doShowLoadmask,this) ;
-		if( this.loadMask ) {
-			this.loadMask.destroy() ;
-			this.loadMask = null ;
 		}
 	}
 }) ;

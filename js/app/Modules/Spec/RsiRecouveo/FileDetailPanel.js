@@ -296,18 +296,16 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					_statusMap: statusMap,
 					_actionMap: actionMap,
 					itemId: 'pActionsGrid',
-					viewConfig: {
-						itemId: 'view',
-						plugins: [{
-							pluginId: 'preview',
-							ptype: 'preview',
-							bodyField: 'txt',
-							expanded: true
-						}],
-						listeners: {
-							scope: this
+					features: [{
+						ftype: 'rowbody',
+						getAdditionalData: function (data, idx, record, orig) {
+								// Usually you would style the my-body-class in a CSS file
+								return {
+									rowBody: '<div style="">' + Ext.util.Format.nl2br(record.get("txt")) + '</div>',
+									rowBodyCls: "my-body-class"
+								};
 						}
-					},
+					}],
 					columns: [{
 						dataIndex: 'link_status',
 						width: 40,

@@ -158,13 +158,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamTree',{
 			var doFireCheckchange = false ;
 			if( !check ) {
 				this.getRootNode().cascadeBy(function(chrec){
-					if( chrec==rec && (node.isLeaf()||node.isRoot()) ) {
+					if( chrec==rec && (chrec.isLeaf()||chrec.isRoot()) ) {
 						chrec.set('checked',true) ;
 					}
 				},this);
 			} else {
 				this.getRootNode().cascadeBy(function(chrec){
-					if( chrec != rec && (node.isLeaf()||node.isRoot()) ) {
+					if( chrec != rec && (chrec.isLeaf()||chrec.isRoot()) ) {
 						chrec.set('checked',false) ;
 					}
 				},this);

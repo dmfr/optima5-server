@@ -429,7 +429,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			this.down('#pCenter').down('#pGrid').getStore().clearFilter() ;
 			this.down('#pCenter').down('#pGrid').filters.clearFilters() ;
 			
-			this.down('#pCenter').down('#pGrid').getStore().sort('next_date','DESC') ;
+			this.down('#pCenter').down('#pGrid').getStore().sort('next_date','ASC') ;
 		}
 		this.down('#pCenter').down('#pGrid').getStore().loadRawData(ajaxData) ;
 		

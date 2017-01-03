@@ -1,4 +1,4 @@
-Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusCallInPanel',{
+Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusCallPanel',{
 	extend:'Ext.form.Panel',
 	
 	_fileRecord: null,
@@ -20,14 +20,25 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusCallInPanel',{
 					labelWidth: 80
 				},
 				items: [{
-					flex: 1,
 					xtype: 'displayfield',
 					fieldLabel: 'Action',
-					value: '<b>Appel Entrant</b>'
+					name: 'action_txt',
+					value: ''
+				},{
+					hidden: true,
+					xtype: 'displayfield',
+					fieldLabel: 'Prévue le',
+					name: 'action_sched',
+					value: '',
+					listeners: {
+						change: function(field,val) {
+							field.setVisible( !Ext.isEmpty(val) ) ;
+						}
+					}
 				},{
 					xtype: 'combobox',
 					itemId: 'selectAdrTelName',
-					fieldLabel: 'Destinataires',
+					fieldLabel: 'Numéro appel',
 					forceSelection: true,
 					editable: false,
 					store: {
@@ -63,7 +74,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusCallInPanel',{
 				},
 				items: [{
 					xtype: 'textarea',
-					name: 'mail_txt',
+					name: 'txt',
 					height: 150
 				}]
 			}]

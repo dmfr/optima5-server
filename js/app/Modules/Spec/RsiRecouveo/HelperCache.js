@@ -28,7 +28,8 @@ Ext.define('RsiRecouveoCfgStatusModel',{
 		{name: 'status_id', type:'string'},
 		{name: 'status_txt', type:'string'},
 		{name: 'status_code', type:'string'},
-		{name: 'status_color', type:'string'}
+		{name: 'status_color', type:'string'},
+		{name: 'sched_lock', type:'boolean'}
 	]
 });
 Ext.define('RsiRecouveoCfgActionModel',{
