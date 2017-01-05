@@ -467,6 +467,125 @@ function specRsiRecouveo_file_setAction( $post_data ) {
 }
 
 
+
+
+function specRsiRecouveo_file_searchSuggest( $post_data ) {
+	global $_opDB ;
+	/*
+	* Recherche
+	*  - no client
+	*  - nom client
+	*  - SIRET
+	*  - adresse / no tel
+	*/
+	$filter_atr = array() ;
+	if( $post_data['filter_atr'] ) {
+		$filter_atr = json_decode($post_data['filter_atr'],true) ;
+	}
+	$sub_query = "SELECT filerecord_id FROM view_file_FILE WHERE 1" ;
+	foreach( $filter_atr as $mkey => $mvalue ) {
+		$sub_query.= " AND f.field_{$mkey} = '$mvalue'" ;
+	}
+	
+	$search_txt = $post_data['search_txt'] ;
+	
+	$tab_result = array() ;
+	
+	$query = "SELECT filerecord_id, f.field_FILE_ID FROM view_file_FILE f
+				INNER JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key=f.field_LINK_ACCOUNT
+				WHERE f.filerecord_id IN ({$sub_query})
+				AND la.entry_key LIKE '%{$search_txt}%'
+				LIMIT 10" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$res_value = $arr[1] ;
+		
+		$idx_start = strpos($res_value,$search_txt) ;
+		$idx_end = $idx_start + strlen($search_txt) ;
+		
+		$res_value = substr($res_value,0,$idx_start).'<b>'.substr($res_value,$idx_start,$idx_end-$idx_start).'</b>'.substr($res_value,$idx_end) ;
+		
+		$tab_result[] = array(
+			'file_filerecord_id' => $arr[0],
+			'id_ref' => $arr[1],
+			'result_property' => 'Acheteur',
+			'result_value' => $res_value
+		);
+	}
+	
+	$query = "SELECT filerecord_id, f.field_FILE_ID, la.field_ACC_NAME FROM view_file_FILE f
+				INNER JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key=f.field_LINK_ACCOUNT
+				WHERE f.filerecord_id IN ({$sub_query})
+				AND la.field_ACC_NAME LIKE '%{$search_txt}%'
+				LIMIT 10" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$res_value = $arr[2] ;
+		
+		$idx_start = strpos($res_value,$search_txt) ;
+		$idx_end = $idx_start + strlen($search_txt) ;
+		
+		$res_value = substr($res_value,0,$idx_start).'<b>'.substr($res_value,$idx_start,$idx_end-$idx_start).'</b>'.substr($res_value,$idx_end) ;
+		
+		$tab_result[] = array(
+			'file_filerecord_id' => $arr[0],
+			'id_ref' => $arr[1],
+			'result_property' => 'Acheteur',
+			'result_value' => $res_value
+		);
+	}
+	
+	$query = "SELECT filerecord_id, f.field_FILE_ID, la.field_ACC_SIRET FROM view_file_FILE f
+				INNER JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key=f.field_LINK_ACCOUNT
+				WHERE f.filerecord_id IN ({$sub_query})
+				AND la.field_ACC_SIRET LIKE '%{$search_txt}%'
+				LIMIT 10" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$res_value = $arr[2] ;
+		
+		$idx_start = strpos($res_value,$search_txt) ;
+		$idx_end = $idx_start + strlen($search_txt) ;
+		
+		$res_value = substr($res_value,0,$idx_start).'<b>'.substr($res_value,$idx_start,$idx_end-$idx_start).'</b>'.substr($res_value,$idx_end) ;
+		
+		$tab_result[] = array(
+			'file_filerecord_id' => $arr[0],
+			'id_ref' => $arr[1],
+			'result_property' => 'Siret',
+			'result_value' => $res_value
+		);
+	}
+
+	
+	$query = "SELECT f.filerecord_id, f.field_FILE_ID, REPLACE(REPLACE(at.field_ADR_TEL,'.',''),' ','') as searchval FROM view_file_FILE f
+				INNER JOIN view_file_ADR_TEL at ON at.field_ACC_ID=f.field_LINK_ACCOUNT
+				WHERE f.filerecord_id IN ({$sub_query})
+				AND REPLACE(REPLACE(at.field_ADR_TEL,'.',''),' ','') LIKE '%{$search_txt}%'
+				LIMIT 10" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$res_value = $arr[2] ;
+		
+		$idx_start = strpos($res_value,$search_txt) ;
+		$idx_end = $idx_start + strlen($search_txt) ;
+		
+		$res_value = substr($res_value,0,$idx_start).'<b>'.substr($res_value,$idx_start,$idx_end-$idx_start).'</b>'.substr($res_value,$idx_end) ;
+		
+		$tab_result[] = array(
+			'file_filerecord_id' => $arr[0],
+			'id_ref' => $arr[1],
+			'result_property' => 'No Tel',
+			'result_value' => $res_value
+		);
+	}
+
+	return array('success'=>true, 'data'=>$tab_result) ;
+}
+
+
+
+
 function specRsiRecouveo_file_tool_isDateValid( $date_sql )
 {
 	if( $date_sql == '0000-00-00' )

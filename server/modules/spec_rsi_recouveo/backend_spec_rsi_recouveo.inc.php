@@ -21,6 +21,9 @@ switch( $post_data['_action'] )
 	case 'file_setAction' :
 	return specRsiRecouveo_file_setAction( $post_data ) ;
 	
+	case 'file_searchSuggest' :
+	return specRsiRecouveo_file_searchSuggest( $post_data ) ;
+	
 	case 'action_doFileAction' :
 	return specRsiRecouveo_action_doFileAction( $post_data ) ;
 	

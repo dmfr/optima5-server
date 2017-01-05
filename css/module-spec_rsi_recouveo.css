@@ -111,10 +111,45 @@
 }
 
 
-.op5-spec-rsiveo-action-agreestart {
+.op5-spec-rsiveo-action-agree {
 	background-position: center ;
 	background-repeat: no-repeat ;
-	background-image: url("../images/modules/rsiveo-agree-start-16.png") !important;
+	background-image: url("../images/modules/rsiveo-agree-16.png") !important;
+}
+.op5-spec-rsiveo-action-bump {
+	background-position: center ;
+	background-repeat: no-repeat ;
+	background-image: url("../images/modules/rsiveo-bump-16.png") !important;
+}
+.op5-spec-rsiveo-action-callin {
+	background-position: center ;
+	background-repeat: no-repeat ;
+	background-image: url("../images/modules/rsiveo-call-in-16.png") !important;
+}
+.op5-spec-rsiveo-action-callout {
+	background-position: center ;
+	background-repeat: no-repeat ;
+	background-image: url("../images/modules/rsiveo-call-out-16.png") !important;
+}
+.op5-spec-rsiveo-action-mailin {
+	background-position: center ;
+	background-repeat: no-repeat ;
+	background-image: url("../images/modules/rsiveo-mail-in-16.png") !important;
+}
+.op5-spec-rsiveo-action-mailout {
+	background-position: center ;
+	background-repeat: no-repeat ;
+	background-image: url("../images/modules/rsiveo-mail-out-16.png") !important;
+}
+.op5-spec-rsiveo-action-litig {
+	background-position: center ;
+	background-repeat: no-repeat ;
+	background-image: url("../images/modules/rsiveo-litig-16.png") !important;
+}
+.op5-spec-rsiveo-action-close {
+	background-position: center ;
+	background-repeat: no-repeat ;
+	background-image: url("../images/modules/rsiveo-close-16.png") !important;
 }
 
 .op5-spec-rsiveo-doaction {

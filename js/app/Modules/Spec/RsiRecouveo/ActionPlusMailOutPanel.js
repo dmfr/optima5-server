@@ -146,70 +146,22 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel',{
 					xtype: 'box',
 					width: 16
 				},{
-					flex: 1,
+					flex:1,
 					xtype: 'fieldset',
-					padding: 5,
-					title: 'Pièces jointes',
+					padding: 10,
+					title: 'Paragraphe additionnel',
 					layout: {
 						type: 'anchor'
 					},
 					defaults: {
-						anchor: '100%'
+						anchor: '100%',
+						labelWidth: 80
 					},
 					items: [{
-						itemId: 'pRecordsGrid',
-						xtype: 'grid',
-						height: 220,
-						columns: [{
-							dataIndex: '_checked',
-							xtype: 'checkcolumn',
-							width: 60
-						},{
-							text: 'Libellé',
-							dataIndex: 'record_id',
-							width: 130
-						},{
-							text: 'Date',
-							dataIndex: 'date_value',
-							align: 'center',
-							width: 80,
-							renderer: Ext.util.Format.dateRenderer('d/m/Y')
-						},{
-							text: 'Montant',
-							dataIndex: 'amount',
-							align: 'right',
-							width: 80
-						}],
-						store: {
-							model: Optima5.Modules.Spec.RsiRecouveo.HelperCache.getRecordModel(),
-							data: [],
-							sorters:[{
-								property: 'date_value',
-								direction: 'DESC'
-							}],
-							filters:[{
-								property: 'amount',
-								operator: 'gt',
-								value: 0
-							}]
-						}
+						xtype: 'textarea',
+						name: 'mail_txt',
+						height: 150
 					}]
-				}]
-			},{
-				xtype: 'fieldset',
-				padding: 10,
-				title: 'Paragraphe additionnel',
-				layout: {
-					type: 'anchor'
-				},
-				defaults: {
-					anchor: '100%',
-					labelWidth: 80
-				},
-				items: [{
-					xtype: 'textarea',
-					name: 'mail_txt',
-					height: 150
 				}]
 			}]
 		}) ;
@@ -228,12 +180,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel',{
 			adrNames.push({adr_name: rec.get('adr_name')}) ;
 		}) ;
 		this.down('#selectAdrTelName').getStore().loadData(adrNames) ;
-		
-		var pRecordsGridData = [] ;
-		this._fileRecord.records().each(function(rec) {
-			pRecordsGridData.push(rec.getData()) ;
-		}) ;
-		this.down('#pRecordsGrid').getStore().loadRawData(pRecordsGridData) ;
 	},
 	
 	onSelectAdrName: function(cmb) {

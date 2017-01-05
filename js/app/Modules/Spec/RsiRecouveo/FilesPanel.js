@@ -4,7 +4,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 	requires: [
 		'Ext.ux.CheckColumnNull',
 		'Optima5.Modules.Spec.RsiRecouveo.CfgParamButton',
-		'Optima5.Modules.Spec.RsiRecouveo.CfgParamFilter'
+		'Optima5.Modules.Spec.RsiRecouveo.CfgParamFilter',
+		'Optima5.Modules.Spec.RsiRecouveo.SearchCombo'
 	],
 	
 	viewMode: null,
@@ -79,36 +80,25 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 					}
 				}
 			}),'->',{
-				itemId: 'tbCreate',
-				icon: 'images/op5img/ico_new_16.gif',
-				text:'Actions...',
-				menu: {
-					defaults: {
-						scope:this
-					},
-					items: [{
-						text: 'Action groupée',
-						icon: 'images/op5img/ico_new_16.gif',
-						handler: function() {
-							this.handleNewOrder() ;
-						},
-						scope: this
-					},{
-						text: 'Mailing ponctuel',
-						iconCls: 'op5-spec-dbstracy-grid-view-ordergroup',
-						handler: function() {
-							this.handleNewHat() ;
-						},
-						scope: this
-					},{
-						text: 'Transport',
-						icon: 'images/op5img/ico_new_16.gif',
-						handler: function() {
-							this.handleNewTrspt() ;
-						},
-						scope: this
-					}]
+				icon: 'images/op5img/ico_search_16.gif',
+				itemId: 'btnSearchIcon',
+				handler: function(btn) {
+					btn.up().down('#btnSearch').reset() ;
+					//this.doLoad(true) ;
+				},
+				scope: this
+			},Ext.create('Optima5.Modules.Spec.RsiRecouveo.SearchCombo',{
+				optimaModule: this.optimaModule,
+				
+				itemId: 'btnSearch',
+				width: 150,
+				listeners: {
+					beforequeryload: this.onBeforeQueryLoad,
+					select: this.onSearchSelect,
+					scope: this
 				}
+			}),{
+				xtype: 'tbseparator'
 			},{
 				iconCls: 'op5-crmbase-datatoolbar-refresh',
 				text: 'Refresh',
@@ -347,6 +337,23 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 	
 	onAtrSet: function() {
 		this.doLoad(true) ;
+	},
+	
+	onBeforeQueryLoad: function(store,options) {
+		var objAtrFilter = {} ;
+		Ext.Array.each( this.query('toolbar > [cfgParam_id]'), function(cfgParamBtn) {
+			objAtrFilter[cfgParamBtn.cfgParam_id] = cfgParamBtn.getValue()
+		}) ;
+		
+		var params = options.getParams() ;
+		Ext.apply(params,{
+			filter_atr: Ext.JSON.encode(objAtrFilter)
+		}) ;
+		options.setParams(params) ;
+	},
+	onSearchSelect: function(searchcombo) {
+		var fileFilerecordId = searchcombo.getValue() ;
+		this.optimaModule.postCrmEvent('openfile',{fileFilerecordId:fileFilerecordId}) ;
 	},
 	
 	doLoad: function(doClearFilters) {

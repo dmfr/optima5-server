@@ -85,24 +85,31 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				icon: 'images/op5img/ico_blocs_small.gif',
 				text: '<b>Nouvelle action</b>',
 				menu:[{
-					icon: 'images/modules/tmp/rsiveo-call-in-16.png',
+					iconCls: 'op5-spec-rsiveo-action-callin',
 					text: 'Appel entrant',
 					handler: function() {
 						this.doNewAction('CALL_IN') ;
 					},
 					scope: this
 				},{
-					icon: 'images/modules/tmp/rsiveo-mail-out-16.png',
-					text: 'Envoi courrier',
+					iconCls: 'op5-spec-rsiveo-action-callout',
+					text: 'Appel entrant',
 					handler: function() {
-						this.doNewAction('MAIL_OUT') ;
+						this.doNewAction('CALL_OUT') ;
 					},
 					scope: this
 				},{
-					icon: 'images/modules/tmp/rsiveo-agree-start-16.png',
-					text: 'Promesse réglement',
+					iconCls: 'op5-spec-rsiveo-action-mailin',
+					text: 'Appel entrant',
 					handler: function() {
-						//this.doNewAction('AGREE_FOLLOW') ;
+						this.doNewAction('MAIL_IN') ;
+					},
+					scope: this
+				},{
+					iconCls: 'op5-spec-rsiveo-action-mailout',
+					text: 'Appel entrant',
+					handler: function() {
+						this.doNewAction('MAIL_OUT') ;
 					},
 					scope: this
 				}]
@@ -142,8 +149,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 						dataIndex: 'adr_name',
 						editor: {xtype:'textfield'}
 					},{
-						text: 'Telephone',
-						width: 250,
+						text: 'Adresse',
+						width: 200,
 						dataIndex: 'adr_postal_txt',
 						renderer: function(v) {
 							return Ext.util.Format.nl2br( Ext.String.htmlEncode( v ) ) ;
@@ -161,6 +168,18 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 							}
 						},
 						editor: {xtype: 'checkboxfield'}
+					},{
+						align: 'center',
+						xtype:'actioncolumn',
+						width:50,
+						items: [{
+							iconCls: 'op5-spec-rsiveo-action-mailout', 
+							tooltip: 'Mail out',
+							handler: function(grid, rowIndex, colIndex) {
+								var rec = grid.getStore().getAt(rowIndex);
+								
+							}
+						}]
 					}],
 					listeners: {
 						edited: function() {
@@ -200,6 +219,18 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 							}
 						},
 						editor: {xtype: 'checkboxfield'}
+					},{
+						align: 'center',
+						xtype:'actioncolumn',
+						width:50,
+						items: [{
+							iconCls: 'op5-spec-rsiveo-action-callout', 
+							tooltip: 'Call out',
+							handler: function(grid, rowIndex, colIndex) {
+								var rec = grid.getStore().getAt(rowIndex);
+								
+							}
+						}]
 					}],
 					listeners: {
 						edited: function() {

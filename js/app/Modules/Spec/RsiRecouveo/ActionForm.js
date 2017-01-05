@@ -68,7 +68,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 		}) ;
 	},
 	onStartResponse: function( fileRecord ) {
-		console.dir(fileRecord) ;
 		this._fileRecord = fileRecord ;
 		
 		var currentAction = this.getCurrentAction() ;
@@ -149,11 +148,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 	},
 	
 	onFormChange: function(field) {
-		console.log('on form change') ;
 		if( field ) {
-			console.log(field.getName()) ;
 		}
-		console.dir(field) ;
 	},
 	
 	
@@ -264,7 +260,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 		
 		// ****** Champs statiques ***********
 		var telField = this.getForm().findField('adrtel_txt') ;
-		if( telField ) {
+		if( telField && telField.isVisible() ) {
 			if( Ext.isEmpty(postData['adrtel_txt']) ) {
 				var error = 'Numéro d\'appel non renseigné' ;
 				
@@ -273,7 +269,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 			}
 		}
 		var txtField = this.getForm().findField('txt') ;
-		if( txtField ) {
+		if( txtField && txtField.isVisible() ) {
 			if( Ext.isEmpty(postData['txt']) ) {
 				var error = 'Commentaire non renseigné' ;
 				
