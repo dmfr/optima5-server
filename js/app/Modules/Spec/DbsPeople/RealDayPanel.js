@@ -209,32 +209,27 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 		
 		var pushModelfields = [] ;
 		var columns = [{
-			//locked: true,
 			text: 'Entrepôt',
 			dataIndex: 'whse_txt',
 			width: 180,
 			_groupBy: 'whse_code'
 		},{
-			//locked: true,
 			text: 'Equipe',
 			dataIndex: 'team_txt',
 			width: 100,
 			_groupBy: 'team_code'
 		},{
-			//locked: true,
 			text: 'Contrat',
 			dataIndex: 'contract_txt',
 			width: 80,
 			_groupBy: 'contract_code',
 			hideable: true
 		},{
-			//locked: true,
 			text: 'RôleStd',
 			dataIndex: 'std_role_code',
 			width: 60,
 			_groupBy: 'std_role_code'
 		},{
-			//locked: true,
 			text: '<b>Nom complet</b>',
 			dataIndex: 'people_name',
 			width: 200,
@@ -242,7 +237,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 				return '<b>'+v+'</b>' ;
 			}
 		},{
-			//locked: true,
 			align: 'center',
 			text: '<b>Total<br>Heures</b>',
 			dataIndex: 'total_duration',
@@ -251,7 +245,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 				if( record.get('status_str') == 'virtual' ) {
 					metaData.tdCls += ' op5-spec-dbspeople-realcell-virtual' ;
 				}
-				if( value.stdValue==0 || record.get('whse_isAlt') ) {
+				if( record.get('whse_isAlt') || value.stdValue==0 ) {
 					return '' ;
 				}
 				
@@ -279,7 +273,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 		}] ;
 		Ext.Array.each( Optima5.Modules.Spec.DbsPeople.HelperCache.getPeopleFields(), function( peopleField ) {
 			var fieldColumn = {
-				//locked: true,
 				text: peopleField.text,
 				dataIndex: peopleField.field,
 				_groupBy: peopleField.field,
@@ -408,6 +401,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 		me.add(Ext.create('Sch.panel.SchedulerGrid',{
 			border: false,
 			viewPreset  : 'realDayPanelPreset',
+			allowOverlap: false,
 			//zoneStore   : zoneStore,
 			startDate   : dateDayStart,
 			endDate     : dateDayEnd,
@@ -446,9 +440,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 					}
 					return str ;
 				}
-				if( !Ext.isEmpty(resourceRec.get('alt_whse_code')) ) {
-					str = '@'+'&#160:'+resourceRec.get('alt_whse_code') ;
-					templateData.cls = 'op5-spec-dbspeople-realcolor-whse' ;
+				if( !Ext.isEmpty(eventRec.get('alt_whse_code')) ) {
+					str = '@'+'&#160:'+eventRec.get('alt_whse_code') ;
+					templateData.cls = 'op5-spec-dbspeople-realsch-whse' ;
 					return str ;
 				}
 				
@@ -465,7 +459,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 				}
 				return str ;
 			},
-			//enableLocking: true,
 			plugins: [],
 			features: [{
 				ftype: 'grouping',
@@ -529,6 +522,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 				dragcreateend: this.onAfterEventAdd,
 				eventcontextmenu: this.onEventClick,
 				eventdblclick: this.onEventClick,
+				eventresizeend: this.onEventResize,
 				scope: me
 			},
 			viewConfig: {
@@ -659,10 +653,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 	onColumnGroupBy: function( groupField ) {
 		var grid = this.child('grid'),
 			store = grid.getStore() ;
-		/*	
-		grid.normalGrid.getPlugin('bufferedRenderer').scrollTo(0) ;
-		grid.lockedGrid.getPlugin('bufferedRenderer').scrollTo(0) ;
-		*/
+			
+		grid.getSchedulingView().scrollVerticallyTo(0,false) ;
 		store.group( groupField, 'ASC' ) ;
 	},
 	onGridGroupChange: function( gridStore, grouper ) {
@@ -825,86 +817,74 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 	},
 	gridAdapterUpdatePeopledayRecord: function(peopledayRecord) {
 		var grid = this.child('grid'),
-			 store = grid.getStore(),
-			 dateMap = this.gridAdapterGetDateMap() ;
+			resourceStore = grid.getResourceStore(),
+			eventStore = grid.getEventStore() ;
 		
-		store.suspendEvents(true) ; // HACK: suspendingEvents on bufferedgrid'store is dangerous
+		resourceStore.suspendEvents(true) ; // HACK: suspendingEvents on bufferedgrid'store is dangerous
+		eventStore.suspendEvents(true) ; // HACK: suspendingEvents on bufferedgrid'store is dangerous
 		
-		// mise à zero de toutes les 'cases' concernées par ce record (people + date)
-		var dateSql = peopledayRecord.get('date_sql'),
-			dateStr = dateMap[dateSql] ;
-		if( dateStr == null ) {
+		// suppr de tous les events concernés par ce record
+		if( peopledayRecord.get('date_sql') != this.dateDayStr ) {
 			return ; // hors champ
 		}
-		var roleKey = 'd_'+dateStr+'_role',
-			durationKey = 'd_'+dateStr+'_tmp',
-			nullObj = {},
-			gridRecordIdsToDelete = [] ;
-		nullObj[roleKey] = '' ;
-		nullObj[durationKey] = '' ;
-		store.data.each( function(gridRec) {
-			if( gridRec.get('people_code') != peopledayRecord.get('people_code') ) {
+		var resourceRecordIdsToDelete = [] ;
+		resourceStore.data.each( function(resourceRecord) {
+			if( resourceRecord.get('people_code') != peopledayRecord.get('people_code') ) {
 				return ;
 			}
 			
-			gridRec.set(nullObj) ;
-			gridRec.commit() ;
-			
-			// Is gridRow empty ?
-			var isGridRowEmpty = true ;
-			Ext.Object.each( dateMap, function(dateSql,dateStr) {
-				var roleKey = 'd_'+dateStr+'_role',
-					durationKey = 'd_'+dateStr+'_tmp' ;
-				if( !Ext.isEmpty(gridRec.get(roleKey)) || !Ext.isEmpty(gridRec.get(durationKey)) ) {
-					isGridRowEmpty = false ;
-				}
+			Ext.Array.each( resourceRecord.getEvents(), function(eventRecord) {
+				eventStore.remove(eventRecord) ;
 			}) ;
-			if( isGridRowEmpty && gridRec.get('whse_code') != peopledayRecord.get('std_whse_code') ) {
-				gridRecordIdsToDelete[gridRec.getId()] = true ;
+			
+			if( resourceRecord.get('whse_isAlt') ) {
+				resourceRecordIdsToDelete[resourceRecord.getId()] = true ;
 			}
 		}) ;
 		
 		// construction d'une grid data partielle
-		var gridData = {}
-		this.gridAdapterPopulateForPeopledayRecord( gridData, peopledayRecord, dateMap ) ;
+		var resourceData = {},
+			eventData = [] ;
+		this.gridAdapterPopulateForPeopledayRecord( resourceData, eventData, peopledayRecord ) ;
 		
-		gridData = this.gridAdapterGridFilter(gridData) ;
+		resourceData = this.gridAdapterGridFilter(resourceData) ;
 		
-		var gridRecordsToAdd = [] ;
+		var resourceRecordsToAdd = [] ;
 		// fusion avec le store existant
-		Ext.Array.each( gridData, function( gridDataRow ) {
-			var gridDataRowId = gridDataRow.id ;
+		Ext.Array.each( resourceData, function( resourceDataRow ) {
+			var resourceDataRowId = resourceDataRow.Id ;
 			// row record exists ?
-			var gridRec = store.getById( gridDataRowId ) ;
-			if( gridRec != null ) {
-				gridRecordIdsToDelete[gridRec.getId()] = false ;
-				gridRec.set(gridDataRow) ;
-				gridRec.commit() ;
+			var resourceRecord = resourceStore.getById( resourceDataRowId ) ;
+			if( resourceRecord != null ) {
+				resourceRecordIdsToDelete[resourceRecord.getId()] = false ;
 			} else {
-				gridRecordsToAdd.push(gridDataRow) ;
+				resourceRecordsToAdd.push(resourceDataRow) ;
 			}
 		}) ;
 		
-		store.resumeEvents() ; // HACK: need to resume -BEFORE- add/remove record(s)
+		resourceStore.resumeEvents() ; // HACK: need to resume -BEFORE- add/remove record(s)
+		eventStore.resumeEvents() ; // HACK: need to resume -BEFORE- add/remove record(s)
 		
-		if( gridRecordsToAdd.length > 0 ) {
-			store.add(gridRecordsToAdd) ;
+		if( resourceRecordsToAdd.length > 0 ) {
+			resourceStore.add(resourceRecordsToAdd) ;
 		}
-		var gridRecordsToDelete = [] ;
-		Ext.Object.each( gridRecordIdsToDelete, function(gridDataRowId,tOrF) {
+		var resourceRecordsToDelete = [] ;
+		Ext.Object.each( resourceRecordIdsToDelete, function(resourceDataRowId,tOrF) {
 			if( tOrF ) {
-				var gridRec = store.getById(gridDataRowId) ;
-				if( gridRec != null ) {
-					gridRecordsToDelete.push(gridRec) ;
+				var resourceRecord = resourceStore.getById(resourceDataRowId) ;
+				if( resourceRecord != null ) {
+					resourceRecordsToDelete.push(resourceRecord) ;
 				}
 			}
 		}) ;
-		if( gridRecordsToDelete.length > 0 ) {
-			store.remove(gridRecordsToDelete) ;
+		if( resourceRecordsToDelete.length > 0 ) {
+			resourceStore.remove(resourceRecordsToDelete) ;
 		}
 		
-		if( gridRecordsToAdd.length > 0 ) { // more than 1 => alt warehouses and possible inserts
-			store.filter() ;
+		eventStore.add(eventData) ;
+		
+		if( resourceRecordsToAdd.length > 0 ) { // more than 1 => alt warehouses and possible inserts
+			resourceStore.filter() ;
 		}
 	},
 	gridAdapterGridFilter: function( resourceData ) {
@@ -940,7 +920,19 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 			intMins = Math.floor(decMins * 60) ;
 		intHours = Math.floor(intHours) ;
 		
-		return this.dateDayStr+'T'+(intHours < 10 ? '0':'')+intHours+':'+(intMins < 10 ? '0':'')+intMins+':00' ;
+		var str = this.dateDayStr+' '+(intHours < 10 ? '0':'')+intHours+':'+(intMins < 10 ? '0':'')+intMins+':00',
+			objDate = Ext.Date.parse(str,'Y-m-d H:i:s') ;
+			
+		return objDate ;
+	},
+	gridAdapterDateAdd: function( objDate, intHours ) {
+		var decMins = intHours - Math.floor(intHours),
+			intMins = Math.floor(decMins * 60) ;
+		intHours = Math.floor(intHours) ;
+		
+		objDate = Ext.Date.add( objDate, Ext.Date.HOUR, intHours ) ;
+		objDate = Ext.Date.add( objDate, Ext.Date.MINUTE, intMins ) ;
+		return objDate ;
 	},
 	gridAdapterPopulateForPeopledayRecord: function( resourceData, eventData, peopledayRecord ) {
 		if( peopledayRecord.get('date_sql') != this.dateDayStr ) {
@@ -1064,9 +1056,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 		var notimeStdStartHour = 9 ;
 		var startDate, endDate ;
 		peopledayRecord.works().each( function(workRecord) {
-			startDate = this.gridAdapterISOfactory(notimeStdStartHour) ;
-			endDate = this.gridAdapterISOfactory(notimeStdStartHour+workRecord.data.role_length),
-			notimeStdStartHour += workRecord.data.role_length ;
+			startDate = ( workRecord.data.role_start || this.gridAdapterISOfactory(notimeStdStartHour) ) ;
+			endDate = this.gridAdapterDateAdd(startDate,workRecord.data.role_length) ;
+			notimeStdStartHour = parseInt(Ext.Date.format(endDate,'H')) + (parseInt(Ext.Date.format(endDate,'i'))/60) ;
 			
 			var altWhseCode = workRecord.data.alt_whse_code ;
 			
@@ -1076,7 +1068,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 					ResourceId: gridDataRowId,
 					StartDate: startDate,
 					EndDate: endDate,
-					Draggable: true,
+					Draggable: false,
 					Resizable: true,
 					
 					alt_whse_code: altWhseCode
@@ -1101,8 +1093,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 					ResourceId: altGridDataRowId,
 					StartDate: startDate,
 					EndDate: endDate,
-					Draggable: true,
-					Resizable: true,
+					Draggable: false,
+					Resizable: false,
 					
 					cli_code: workRecord.data.cli_code,
 					role_code: workRecord.data.role_code
@@ -1116,7 +1108,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 				ResourceId: gridDataRowId,
 				StartDate: startDate,
 				EndDate: endDate,
-				Draggable: true,
+				Draggable: false,
 				Resizable: true,
 				
 				cli_code: workRecord.data.cli_code,
@@ -1124,9 +1116,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 			});
 		},this) ;
 		peopledayRecord.abs().each( function(absRecord) {
-			startDate = this.gridAdapterISOfactory(notimeStdStartHour) ;
-			endDate = this.gridAdapterISOfactory(notimeStdStartHour+absRecord.data.abs_length),
-			notimeStdStartHour += absRecord.data.abs_length ;
+			startDate = (absRecord.data.abs_start || this.gridAdapterISOfactory(notimeStdStartHour)) ;
+			endDate = this.gridAdapterDateAdd(startDate,absRecord.data.abs_length) ;
+			notimeStdStartHour = parseInt(Ext.Date.format(endDate,'H')) + (parseInt(Ext.Date.format(endDate,'i'))/60) ;
 			
 			eventData.push({
 				Id: 'abs-'+absRecord.getId(),
@@ -1167,6 +1159,10 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 			return ;
 		}
 		this.openPopup(schedulerView,eventRecord) ;
+	},
+	onEventResize: function(schedulerView, eventRecord) {
+		var peopleCode = eventRecord.getResource().get('people_code') ;
+		this.gridAdapterRebuildPeopledayRecord( peopleCode ) ;
 	},
 	openPopup: function(schedulerView, eventRecord) {
 		var me = this ;
@@ -1228,9 +1224,132 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 	
 	
 	gridAdapterRebuildPeopledayRecord: function( peopleCode ) {
-		console.log('rebuilding for '+peopleCode) ;
+		var grid = this.down('grid'),
+			resourceStore = grid.getResourceStore(),
+			eventStore = grid.getEventStore() ;
+		
+		// **** Existing peopleday record *****
+		var peopledayRecordId = peopleCode + '@' + this.dateDayStr,
+			peopledayRecord = this.peopledayStore.getById(peopledayRecordId) ;
+		if( !peopledayRecord ) {
+			return ;
+		}
+		
+		var stdWhseCode = peopledayRecord.get('std_whse_code'),
+			stdTeamCode = peopledayRecord.get('std_team_code'),
+			gridDataRowId = stdWhseCode+'%'+stdTeamCode+'%'+peopleCode,
+			stdResourceRecord = resourceStore.getById(gridDataRowId) ;
+		if( !stdResourceRecord ) {
+			return ;
+		}
+		
+		var stdEventsData = [] ;
+		Ext.Array.each( stdResourceRecord.getEvents(), function( eventRecord ) {
+			stdEventsData.push( eventRecord.getData() ) ;
+		}) ;
+		Ext.Array.sort( stdEventsData, function(o1,o2) {
+			return o1.StartDate - o2.StartDate ;
+		}) ;
+		
+		
+		var workSlices = [], absSlices = [], eventStartDate, nextStartDate, sliceDuration ;
+		var dontUpdateLoop = true ;
+		Ext.Array.each( stdEventsData, function(eventData) {
+			eventStartDate = Ext.clone(eventData.StartDate) ;
+			if( nextStartDate && nextStartDate > eventStartDate ) {
+				eventStartDate = Ext.clone(nextStartDate) ;
+			}
+			nextStartDate = Ext.clone(eventData.EndDate) ;
+			sliceDuration = ((nextStartDate - eventStartDate) / (1000*3600)) ;
+			
+			if( eventData.is_abs ) {
+				absSlices.push({
+					abs_code: eventData.abs_code,
+					abs_start: Ext.Date.format(eventStartDate,'Y-m-d H:i:s'),
+					abs_length: sliceDuration
+				});
+				return ;
+			}
+			if( !Ext.isEmpty(eventData.alt_whse_code) ) {
+				dontUpdateLoop = false ;
+				
+				var altRoleCode = stdResourceRecord.get('std_role_code'),
+					altCliCode = Optima5.Modules.Spec.DbsPeople.HelperCache.links_cli_getDefaultForWhse( eventData.alt_whse_code ) ;
+				
+				// recherche d'un event parallèle
+				var altGridDataRowId = '@'+eventData.alt_whse_code+'%'+stdTeamCode+'%'+peopleCode,
+					altResourceRecord = resourceStore.getById(altGridDataRowId) ;
+				if( altResourceRecord ) {
+					Ext.Array.each( altResourceRecord.getEvents(), function( altEventRecord ) {
+						if( altEventRecord.get('StartDate') == eventData.StartDate ) {
+							altCliCode = altEventRecord.get('cli_code') ;
+							altRoleCode = altEventRecord.get('role_code') ;
+						}
+					}) ;
+				}
+				
+				workSlices.push({
+					alt_whse_code: eventData.alt_whse_code,
+					cli_code: altCliCode,
+					role_code: altRoleCode,
+					role_start: Ext.Date.format(eventStartDate,'Y-m-d H:i:s'),
+					role_length: sliceDuration
+				});
+				return ;
+			}
+			workSlices.push({
+				cli_code: eventData.cli_code,
+				role_code: eventData.role_code,
+				role_start: Ext.Date.format(eventStartDate,'Y-m-d H:i:s'),
+				role_length: sliceDuration
+			});
+			return ;
+		}) ;
+		
+		
+		// **** Store back into peopledayRecord ******
+		peopledayRecord.works().loadRawData(workSlices) ;
+		peopledayRecord.abs().loadRawData(absSlices) ;
+		
+		// **** Update adapter ********
+		if( dontUpdateLoop ) {
+			// FAST mode : no alt whse, one resource per peopledayRecord, already up-to-date from screen manipulation
+		} else {
+			this.gridAdapterUpdatePeopledayRecord( peopledayRecord ) ;
+		}
+		this.remoteSavePeopledayRecord(peopledayRecord) ;
 	},
 	
+	
+	
+	remoteSavePeopledayRecord: function( peopledayRecord ) {
+		if( peopledayRecord.get('status_isVirtual') ) {
+			this.onAfterSave() ;
+			return ;
+		}
+		
+		var ajaxParams = {
+			_moduleId: 'spec_dbs_people',
+			_action: 'Real_saveRecord',
+			data: Ext.JSON.encode( peopledayRecord.getData(true) )
+		};
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams,
+			success: function(response) {
+				if( Ext.JSON.decode(response.responseText).success != true ) {
+					Ext.MessageBox.alert('Problem','Edit not saved !') ;
+				}
+				this.onAfterSave() ;
+			},
+			scope: this
+		}) ;
+	},
+	onAfterSave: function() {
+		if( this.autoRefreshAfterEdit ) {
+			this.autoRefreshAfterEdit = false ;
+			this.doLoad() ;
+		}
+	},
 	
 	
 	

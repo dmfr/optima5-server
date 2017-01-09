@@ -3,6 +3,7 @@ Ext.define('DbsPeoplePeopledayWorkModel',{
 	fields: [
 		{name: 'cli_code', type:'string'},
 		{name: 'role_code', type:'string'},
+		{name: 'role_start', type:'date', dateFormat: 'Y-m-d H:i:s', allowNull:true},
 		{name: 'role_length', type:'number'},
 		{name: 'alt_whse_code', type:'string'}
 	]
@@ -11,6 +12,7 @@ Ext.define('DbsPeoplePeopledayAbsModel',{
 	extend: 'Ext.data.Model',
 	fields: [
 		{name: 'abs_code', type:'string'},
+		{name: 'abs_start', type:'date', dateFormat: 'Y-m-d H:i:s', allowNull:true},
 		{name: 'abs_length', type:'number'}
 	]
 }) ;

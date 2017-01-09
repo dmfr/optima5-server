@@ -1,4 +1,15 @@
 <?php
+function specDbsPeople_Real_tool_returnDateValid( $date_sql )
+{
+	if( $date_sql == '0000-00-00' )
+		return NULL ;
+	if( $date_sql == '0000-00-00 00:00:00' )
+		return NULL ;
+	if( !$date_sql )
+		return NULL ;
+	return $date_sql ;
+}
+
 
 function specDbsPeople_Real_lib_getActivePeople( $date_start, $date_end ) {
 	global $_opDB ;
@@ -232,6 +243,7 @@ function specDbsPeople_Real_getData( $post_data ) {
 		$work = array(
 			'filerecord_id' => $arr['filerecord_id'],
 			'cli_code' => $arr['field_CLI_CODE'],
+			'role_start' => specDbsPeople_Real_tool_returnDateValid($arr['field_ROLE_START']),
 			'role_code' => $arr['field_ROLE_CODE'],
 			'role_length' => $arr['field_ROLE_LENGTH'],
 			'alt_whse_code' => $arr['field_ALT_WHSE_CODE'],
@@ -254,6 +266,7 @@ function specDbsPeople_Real_getData( $post_data ) {
 	
 		$abs = array(
 			'filerecord_id' => $arr['filerecord_id'],
+			'abs_start' => specDbsPeople_Real_tool_returnDateValid($arr['field_ABS_START']),
 			'abs_code' => $arr['field_ABS_CODE'],
 			'abs_length' => $arr['field_ABS_LENGTH']
 		) ;
@@ -840,6 +853,7 @@ function specDbsPeople_Real_saveRecord( $post_data ) {
 	foreach( $record_data['works'] as $work ) {
 		$arr_ins = array() ;
 		$arr_ins['field_CLI_CODE'] = $work['cli_code'] ;
+		$arr_ins['field_ROLE_START'] = $work['role_start'] ;
 		$arr_ins['field_ROLE_CODE'] = $work['role_code'] ;
 		$arr_ins['field_ROLE_LENGTH'] = $work['role_length'] ;
 		$arr_ins['field_ALT_WHSE_CODE'] = $work['alt_whse_code'] ;
@@ -847,6 +861,7 @@ function specDbsPeople_Real_saveRecord( $post_data ) {
 	}
 	foreach( $record_data['abs'] as $abs ) {
 		$arr_ins = array() ;
+		$arr_ins['field_ABS_START'] = $abs['abs_start'] ;
 		$arr_ins['field_ABS_CODE'] = $abs['abs_code'] ;
 		$arr_ins['field_ABS_LENGTH'] = $abs['abs_length'] ;
 		paracrm_lib_data_insertRecord_file( 'PEOPLEDAY_ABS', $filerecord_id, $arr_ins ) ;
