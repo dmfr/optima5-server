@@ -798,7 +798,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 		this.hideLoadmask();
 		
 		// Setup autoRefresh task
-		this.autoRefreshTask.delay( this.autoRefreshDelay ) ;
+		//this.autoRefreshTask.delay( this.autoRefreshDelay ) ;
 	},
 	
 	gridAdapterInit: function() {
