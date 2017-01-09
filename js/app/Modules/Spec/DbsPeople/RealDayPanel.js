@@ -82,7 +82,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 				scope: this
 			},{
 				icon: 'images/op5img/ico_calendar_16.png',
-				text: 'Choix Semaine',
+				text: '&#160;',
+				itemId: 'day-picker',
 				menu: Ext.create('Ext.menu.DatePicker',{
 					startDay: 1,
 					listeners:{
@@ -93,6 +94,79 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 						scope: this
 					}
 				})
+			},{
+				icon: 'images/op5img/ico_config_small.gif',
+				text: 'Actions Jour',
+				itemId: 'actions-menu',
+				menu: [{
+					icon: 'images/op5img/ico_print_16.png',
+					itemId: 'grid-print',
+					text: 'Print',
+					handler: function(menuitem) {
+						// this.handlePrintPanel( this.dateDayStr ) ;
+					},
+					scope: this
+				},{
+					itemId: 'grid-summary',
+					iconCls: 'op5-spec-dbspeople-icon-actionday-summary',
+					text: 'Compteurs ETP',
+					handler: function(menuitem,e) {
+						this.openSummary( this.dateDayStr ) ;
+					},
+					scope: this
+				},{
+					itemId: 'real-open',
+					iconCls: 'op5-spec-dbspeople-icon-actionday-open',
+					text: 'Ouverture Jour',
+					handler: function(menuitem) {
+						this.handleActionDay( 'open', this.dateDayStr ) ;
+					},
+					scope: this
+				},{
+					itemId: 'real-valid-ceq',
+					iconCls: 'op5-spec-dbspeople-icon-actionday-validceq' ,
+					text: 'Valid Exploitation',
+					handler: function(menuitem) {
+						this.handleActionDay( 'valid_ceq', this.dateDayStr ) ;
+					},
+					scope: this
+				},{
+					itemId: 'real-valid-rh',
+					iconCls: 'op5-spec-dbspeople-icon-actionday-validrh' ,
+					text: 'Valid RH',
+					handler: function(menuitem) {
+						this.handleActionDay( 'valid_rh', this.dateDayStr ) ;
+					},
+					scope: this
+				},{
+					itemId: 'real-reopen',
+					iconCls: 'op5-spec-dbspeople-icon-actionday-reopen' ,
+					text: 'Réouverture',
+					handler: function(menuitem) {
+						this.handleActionDay( 'reopen', this.dateDayStr ) ;
+					},
+					scope: this
+				},{
+					itemId: 'real-delete',
+					iconCls: 'op5-spec-dbspeople-icon-actionday-delete' ,
+					text: 'Supprimer',
+					handler: function(menuitem) {
+						this.handleActionDay( 'delete', this.dateDayStr ) ;
+					},
+					scope: this
+				},{
+					xtype: 'menucheckitem',
+					itemId: 'real-checkbox-exceptionday',
+					checked: false ,
+					text: 'Exception jour',
+					handler: Ext.emptyFn,
+					listeners: {
+						checkchange: function( menuitem, checked ) {
+							this.handleExceptionDay( this.dateDayStr, checked ) ;
+						},
+						scope: this
+					}
+				}]
 			},{
 				icon: 'images/op5img/ico_info_small.gif',
 				text: 'Légende',
@@ -196,6 +270,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 		date = new Date(date.toDateString());
 		me.dateDay = date ;
 		me.dateDayStr = Ext.Date.format(date,'Y-m-d') ;
+		
+		me.down('toolbar').down('#day-picker').setText('<b>'+Ext.Date.format(date,'D d/m/Y')+'</b>') ;
 		
 		me.doGridConfigure() ;
 		me.doLoad(true) ;
@@ -389,7 +465,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 				top: {
 					unit: "DAY",
 					align: "center",
-					dateFormat: "D d/m",
+					dateFormat: "D d/m/Y",
 					renderer: function (startDate, endDate, headerConfig, i) {
 						return '<b>'+Ext.Date.format(startDate, 'D d/m/Y')+'</b>';
 					}
@@ -533,10 +609,13 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 					}
 					
 					var cls = '' ;
+					if( me.colCfg && me.colCfg.status_exceptionDay ) {
+						cls += ' op5-spec-dbspeople-realcolor-exceptionday' ;
+					}
 					switch( record.get('status_str') ) {
 						case 'openrh' :
 						case 'open' :
-							cls = 'op5-spec-dbspeople-realcolor-' + record.get('status_str') ;
+							cls += ' op5-spec-dbspeople-realcolor-' + record.get('status_str') ;
 							break ;
 					}
 					return cls ;
@@ -556,84 +635,6 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 				},
 				scope: this
 			});
-			/*
-			menu.add({
-				icon: 'images/op5img/ico_print_16.png',
-				itemId: 'grid-print',
-				text: 'Print',
-				handler: function(menuitem) {
-					this.handlePrintPanel( menuitem.up('menu').activeHeader.dateSqlHead ) ;
-				},
-				scope: this
-			});
-			menu.add({
-				itemId: 'grid-summary',
-				iconCls: 'op5-spec-dbspeople-icon-actionday-summary',
-				text: 'Compteurs ETP',
-				handler: function(menuitem,e) {
-					this.openSummary( menuitem.up('menu').activeHeader.dateSqlHead ) ;
-				},
-				scope: this
-			});
-			menu.add({
-				itemId: 'real-open',
-				iconCls: 'op5-spec-dbspeople-icon-actionday-open',
-				text: 'Ouverture Jour',
-				handler: function(menuitem) {
-					this.handleActionDay( 'open', menuitem.up('menu').activeHeader.dateSqlHead ) ;
-				},
-				scope: this
-			});
-			menu.add({
-				itemId: 'real-valid-ceq',
-				iconCls: 'op5-spec-dbspeople-icon-actionday-validceq' ,
-				text: 'Valid Exploitation',
-				handler: function(menuitem) {
-					this.handleActionDay( 'valid_ceq', menuitem.up('menu').activeHeader.dateSqlHead ) ;
-				},
-				scope: this
-			});
-			menu.add({
-				itemId: 'real-valid-rh',
-				iconCls: 'op5-spec-dbspeople-icon-actionday-validrh' ,
-				text: 'Valid RH',
-				handler: function(menuitem) {
-					this.handleActionDay( 'valid_rh', menuitem.up('menu').activeHeader.dateSqlHead ) ;
-				},
-				scope: this
-			});
-			menu.add({
-				itemId: 'real-reopen',
-				iconCls: 'op5-spec-dbspeople-icon-actionday-reopen' ,
-				text: 'Réouverture',
-				handler: function(menuitem) {
-					this.handleActionDay( 'reopen', menuitem.up('menu').activeHeader.dateSqlHead ) ;
-				},
-				scope: this
-			});
-			menu.add({
-				itemId: 'real-delete',
-				iconCls: 'op5-spec-dbspeople-icon-actionday-delete' ,
-				text: 'Supprimer',
-				handler: function(menuitem) {
-					this.handleActionDay( 'delete', menuitem.up('menu').activeHeader.dateSqlHead ) ;
-				},
-				scope: this
-			});
-			menu.add({
-				xtype: 'menucheckitem',
-				itemId: 'real-checkbox-exceptionday',
-				checked: false ,
-				text: 'Exception jour',
-				handler: Ext.emptyFn,
-				listeners: {
-					checkchange: function( menuitem, checked ) {
-						this.handleExceptionDay( menuitem.up('menu').activeHeader.dateSqlHead, checked ) ;
-					},
-					scope: this
-				}
-			});
-			*/
 		}
 		menu.on('beforeshow', me.onColumnsMenuBeforeShow, me);
 	},
@@ -768,6 +769,9 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 			}
 		}
 		
+		if( jsonResponse.columns.hasOwnProperty(this.dateDayStr) ) {
+			this.colCfg = jsonResponse.columns[this.dateDayStr] ;
+		}
 		
 		// peopledayStore + adapter (re)init
 		this.peopledayStore = Ext.create('Ext.data.Store',{
@@ -799,6 +803,20 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 		
 		// Setup autoRefresh task
 		//this.autoRefreshTask.delay( this.autoRefreshDelay ) ;
+		
+		// Configure menu
+		var HelperCache = Optima5.Modules.Spec.DbsPeople.HelperCache,
+			colCfg = this.colCfg ;
+		var menu = this.down('toolbar').down('#actions-menu') ;
+		menu.down('#grid-print').setVisible( colCfg ) ;
+		menu.down('#grid-summary').setVisible( colCfg ) ;
+		menu.down('#real-open').setVisible( colCfg && colCfg.enable_open && !colCfg.status_earlyLocked && HelperCache.authHelperQueryPage('CEQ') ) ;
+		menu.down('#real-valid-ceq').setVisible( colCfg && colCfg.enable_valid_ceq && HelperCache.authHelperQueryPage('CEQ') ) ;
+		menu.down('#real-valid-rh').setVisible( colCfg && colCfg.enable_valid_rh && HelperCache.authHelperQueryPage('RH') ) ;
+		menu.down('#real-reopen').setVisible( colCfg && !colCfg.enable_open && !colCfg.enable_valid_ceq && !colCfg.enable_valid_rh && HelperCache.authHelperQueryPage('ADMIN') ) ;
+		menu.down('#real-delete').setVisible( colCfg && HelperCache.authHelperQueryPage('ADMIN') ) ;
+		menu.down('#real-checkbox-exceptionday').setVisible( colCfg && colCfg.status_virtual && HelperCache.authHelperQueryPage('RH') ) ;
+		menu.down('#real-checkbox-exceptionday').setChecked( colCfg && colCfg.status_exceptionDay, true ) ;
 	},
 	
 	gridAdapterInit: function() {
@@ -1351,6 +1369,210 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 		}
 	},
 	
+	openSummary: function( dSql ) {
+		// ***** Clone records ******
+		var peopledayRecordsData = [] ;
+		this.peopledayStore.each( function(peopledayRecord) {
+			peopledayRecordsData.push(peopledayRecord.getData(true)) ;
+		}) ;
+		
+		this.getEl().mask() ;
+		
+		// Filtres en cours
+		var filterBtn_site = this.down('#btnSite'),
+			filterBtn_team = this.down('#btnTeam'),
+			filter_whses = ( filterBtn_site.getNode()==null ? null : filterBtn_site.getLeafNodesKey() ),
+			filter_teams = ( filterBtn_team.getNode()==null ? null : filterBtn_team.getLeafNodesKey() ) ;
+		
+		// Open panel
+		var summaryPanel = Ext.create('Optima5.Modules.Spec.DbsPeople.RealSummaryPanel',{
+			optimaModule: this.optimaModule,
+			width:400, // dummy initial size, for border layout to work
+			height:null, // ...
+			floating: true,
+			draggable: true,
+			resizable: true,
+			renderTo: this.getEl(),
+			tools: [{
+				type: 'close',
+				handler: function(e, t, p) {
+					p.ownerCt.destroy();
+				},
+				scope: this
+			}],
+			cfgData: {
+				date_sql: dSql,
+				filter_site: (filter_whses ? filterBtn_site.getValue() : null),
+				filter_team: (filter_teams ? filterBtn_team.getValue() : null),
+				peopledayRecordsData: peopledayRecordsData
+			}
+		});
+		
+		summaryPanel.on('destroy',function(summaryPanel) {
+			this.getEl().unmask() ;
+			this.floatingPanel = null ;
+		},this,{single:true}) ;
+		
+		summaryPanel.show();
+		summaryPanel.getEl().alignTo(this.getEl(), 'c-c?');
+		
+		this.floatingPanel = summaryPanel ;
+	},
+	
+	
+	handleActionDay: function( actionDay, dSql ) {
+		var txt ;
+		switch( actionDay ) {
+			case 'open' :
+				txt = 'Ouverture' ;
+				break ;
+			case 'valid_ceq':
+			case 'valid_rh' :
+				txt = null ;
+				break ;
+			case 'reopen' :
+				txt = 'Reprendre la saisie pour' ;
+				break ;
+			case 'delete' :
+				txt = 'ATTENTION ! Supprimer toutes données pour' ;
+				break ;
+			default: 
+				break ;
+		}
+		if( txt==null ) {
+			this.doActionDay(actionDay,dSql) ;
+			return ;
+		}
+		Ext.MessageBox.confirm('Day Action', txt + ' jour '+dSql+' ?', function(buttonStr) {
+			if( buttonStr!='yes' ) {
+				return ;
+			}
+			this.doActionDay(actionDay,dSql) ;
+		},this) ;
+	},
+	doActionDay: function( actionDay, dSql ) {
+		this.showLoadmask() ;
+		
+		var filterSiteBtn = this.down('#btnSite'),
+			filterTeamBtn = this.down('#btnTeam') ;
+		
+		var ajaxParams = {
+			_moduleId: 'spec_dbs_people',
+			_action: 'Real_actionDay',
+			_subaction: actionDay,
+			date_sql: dSql
+		};
+		if( filterSiteBtn.getNode() != null ) {
+			ajaxParams['filter_site_entries'] = Ext.JSON.encode( filterSiteBtn.getLeafNodesKey() ) ;
+		}
+		ajaxParams['filter_site_txt'] = filterSiteBtn.getText() ;
+		if( filterTeamBtn.getNode() != null ) {
+			ajaxParams['filter_team_entries'] = Ext.JSON.encode( filterTeamBtn.getLeafNodesKey() ) ;
+		}
+		ajaxParams['filter_team_txt'] = filterTeamBtn.getText() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams,
+			success: function(response) {
+				this.hideLoadmask() ;
+				if( Ext.JSON.decode(response.responseText).success != true ) {
+					Ext.MessageBox.alert('Erreur','Impossible de valider le statut.') ;
+					return ;
+				}
+				switch( actionDay ) {
+					case 'valid_ceq':
+					case 'valid_rh' :
+						this.openValidConfirm(ajaxParams, Ext.JSON.decode(response.responseText)) ;
+						break ;
+					default :
+						this.doLoad() ;
+						break ;
+				}
+			},
+			scope: this
+		}) ;
+	},
+	openValidConfirm: function( postParams, jsonResponse ) {
+		
+		var validConfirmPanel = Ext.create('Optima5.Modules.Spec.DbsPeople.RealConfirmPanel',{
+			parentRealPanel: this,
+			width:600, // dummy initial size, for border layout to work
+			height:null, // ...
+			floating: true,
+			draggable: true,
+			resizable: true,
+			renderTo: this.getEl(),
+			tools: [{
+				type: 'close',
+				handler: function(e, t, p) {
+					p.ownerCt.destroy();
+				},
+				scope: this
+			}],
+			cfgData: {
+				actionDay: postParams._subaction,
+				date_sql: postParams.date_sql,
+				filter_site_txt: postParams.filter_site_txt,
+				filter_team_txt: postParams.filter_team_txt,
+				people_count: jsonResponse.people_count,
+				exception_rows: jsonResponse.exception_rows
+			}
+		});
+		
+		validConfirmPanel.on('destroy',function(validConfirmPanel) {
+			this.getEl().unmask() ;
+			this.floatingPanel = null ;
+		},this,{single:true}) ;
+		
+		validConfirmPanel.on('submit',function(validConfirmPanel) {
+			validConfirmPanel.getEl().mask('Validating...') ;
+			this.optimaModule.getConfiguredAjaxConnection().request({
+				params: Ext.merge(postParams,{
+					_do_valid: 1
+				}),
+				callback: function() {
+					validConfirmPanel.getEl().unmask() ;
+				},
+				success: function(response) {
+					if( Ext.JSON.decode(response.responseText).success != true ) {
+						Ext.MessageBox.alert('Problem','Impossible de valider le statut, veuillez vérifier les anomalies.') ;
+						return ;
+					}
+					validConfirmPanel.destroy() ;
+					this.doLoad() ;
+				},
+				scope: this
+			}) ;
+		},this) ;
+		
+		this.getEl().mask() ;
+		
+		validConfirmPanel.show();
+		validConfirmPanel.getEl().alignTo(this.getEl(), 'c-c?');
+		
+		this.floatingPanel = validConfirmPanel ;
+	},
+	handleExceptionDay: function( dSql, trueOrFalse ) {
+		this.showLoadmask() ;
+		
+		var ajaxParams = {
+			_moduleId: 'spec_dbs_people',
+			_action: 'Real_exceptionDaySet',
+			exception_is_on: ( trueOrFalse ? 1:0 ),
+			date_sql: dSql
+		};
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams,
+			success: function(response) {
+				this.hideLoadmask() ;
+				if( Ext.JSON.decode(response.responseText).success != true ) {
+					Ext.MessageBox.alert('Problem','Impossible de changer le statut.') ;
+					return ;
+				}
+				this.doLoad() ;
+			},
+			scope: this
+		}) ;
+	},
 	
 	
 	handleQuit: function() {
