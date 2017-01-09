@@ -9,7 +9,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 		'Sch.data.EventStore',
 		'Sch.data.ResourceStore',
 		'Sch.plugin.Zones',
-		'Sch.model.Range'
+		'Sch.model.Range',
+		'Optima5.Modules.Spec.DbsPeople.RealDayEditor'
 	],
 	
 	dateDay: null,
@@ -208,42 +209,77 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 		
 		var pushModelfields = [] ;
 		var columns = [{
-			locked: true,
+			//locked: true,
 			text: 'Entrepôt',
 			dataIndex: 'whse_txt',
 			width: 180,
 			_groupBy: 'whse_code'
 		},{
-			locked: true,
+			//locked: true,
 			text: 'Equipe',
 			dataIndex: 'team_txt',
 			width: 100,
 			_groupBy: 'team_code'
 		},{
-			locked: true,
+			//locked: true,
 			text: 'Contrat',
 			dataIndex: 'contract_txt',
 			width: 80,
 			_groupBy: 'contract_code',
 			hideable: true
 		},{
-			locked: true,
+			//locked: true,
 			text: 'RôleStd',
 			dataIndex: 'std_role_code',
 			width: 60,
 			_groupBy: 'std_role_code'
 		},{
-			locked: true,
+			//locked: true,
 			text: '<b>Nom complet</b>',
 			dataIndex: 'people_name',
 			width: 200,
 			renderer: function(v) {
 				return '<b>'+v+'</b>' ;
 			}
+		},{
+			//locked: true,
+			align: 'center',
+			text: '<b>Total<br>Heures</b>',
+			dataIndex: 'total_duration',
+			width: 60,
+			renderer: function(value,metaData,record) {
+				if( record.get('status_str') == 'virtual' ) {
+					metaData.tdCls += ' op5-spec-dbspeople-realcell-virtual' ;
+				}
+				if( value.stdValue==0 || record.get('whse_isAlt') ) {
+					return '' ;
+				}
+				
+				value.totalValue = 0 ;
+				value.workValue = 0 ;
+				
+				Ext.Array.each( record.getEvents(), function(schEvent) {
+					var v = ( (schEvent.getEndDate() - schEvent.getStartDate()) / (1000*3600) ) ;
+					value.totalValue += v ;
+					if( !schEvent.get('is_abs') ) {
+						value.workValue += v ;
+					}
+				}) ;
+				
+				if( value.totalValue < value.minValue ) {
+					metaData.tdCls += ' op5-spec-dbspeople-realcolor-anomalie' ;
+				} else if( value.workValue < value.stdValue ) {
+					metaData.tdCls += ' op5-spec-dbspeople-balance-neg' ;
+				} else if( value.workValue > value.stdValue ) {
+					metaData.tdCls += ' op5-spec-dbspeople-balance-pos' ;
+				}
+				return '<b>'+value.totalValue+'</b>' ;
+			},
+			menuDisabled: true
 		}] ;
 		Ext.Array.each( Optima5.Modules.Spec.DbsPeople.HelperCache.getPeopleFields(), function( peopleField ) {
 			var fieldColumn = {
-				locked: true,
+				//locked: true,
 				text: peopleField.text,
 				dataIndex: peopleField.field,
 				_groupBy: peopleField.field,
@@ -281,15 +317,40 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 		Ext.ux.dams.ModelManager.unregister( this.tmpResourceName ) ;
 		Ext.define(this.tmpResourceName, {
 			extend: 'Sch.model.Resource',
-			fields: [].concat(DbsPeopleRealRowModel.getFields()).concat(pushModelfields)
+			fields: [].concat(DbsPeopleRealRowModel.getFields()).concat(pushModelfields).concat({
+				name: 'status_str',
+				type: 'string'
+			},{
+				name: 'total_duration',
+				type: 'auto'
+			})
 		});
 		
 		Ext.ux.dams.ModelManager.unregister( this.tmpEventName ) ;
 		Ext.define(this.tmpEventName, {
 			extend: 'Sch.model.Event',
-			fields: [
-				
-			]
+			fields: [{
+				name: 'is_new',
+				type: 'boolean'
+			},{
+				name: 'is_delete',
+				type: 'boolean'
+			},{
+				name: 'cli_code',
+				type: 'string'
+			},{
+				name: 'role_code',
+				type: 'string'
+			},{
+				name: 'alt_whse_code',
+				type: 'string'
+			},{
+				name: 'is_abs',
+				type: 'boolean'
+			},{
+				name: 'abs_code',
+				type: 'string'
+			}]
 		});
 		
 		
@@ -310,10 +371,43 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 			}
 		}) ;
 		
+		Sch.preset.Manager.registerPreset('realDayPanelPreset',{
+			timeColumnWidth: 60,
+			rowHeight: 24,
+			resourceColumnWidth: 100,
+			displayDateFormat: "G:i",
+			shiftIncrement: 1,
+			shiftUnit: "DAY",
+			defaultSpan: 24,
+			timeResolution: {
+					unit: "MINUTE",
+					increment: 30
+			},
+			headerConfig: {
+				middle: {
+					unit: "HOUR",
+					align: "center",
+					dateFormat: "G:i",
+					renderer: function (startDate, endDate, headerConfig, i) {
+						var intHours = parseInt(Ext.Date.format(startDate, 'G')) ;
+						return '<b>'+intHours+'</b>&#160;>&#160;<b>'+(intHours+1)+'</b>' ;
+					}
+				},
+				top: {
+					unit: "DAY",
+					align: "center",
+					dateFormat: "D d/m",
+					renderer: function (startDate, endDate, headerConfig, i) {
+						return '<b>'+Ext.Date.format(startDate, 'D d/m/Y')+'</b>';
+					}
+				}
+			}
+		}) ;
+		
 		me.removeAll() ;
 		me.add(Ext.create('Sch.panel.SchedulerGrid',{
 			border: false,
-			viewPreset  : 'hourAndDay',
+			viewPreset  : 'realDayPanelPreset',
 			//zoneStore   : zoneStore,
 			startDate   : dateDayStart,
 			endDate     : dateDayEnd,
@@ -338,21 +432,39 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 			}),
 			eventStore: new Sch.data.EventStore({
 				model   : this.tmpEventName,
-				data    :  [   
-						{
-							ResourceId      : 'a',
-							Name            : 'Some task', 
-							StartDate       : '2010-05-22 10:00',
-							EndDate         : '2010-05-22 12:00'
-						},
-						{
-							ResourceId      : 'b',
-							Name            : 'Some other task', 
-							StartDate       : '2010-05-22 13:00',
-							EndDate         : '2010-05-22 16:00'
-						}
-				]
+				data    :  []
 			}),
+			eventRenderer: function( eventRec, resourceRec, templateData ) {
+				var str ;
+				if( resourceRec.get('status_str') == 'virtual' ) {
+					if( eventRec.get('is_abs') ) {
+						str = eventRec.get('abs_code') ;
+						templateData.cls = 'op5-spec-dbspeople-realsch-virtual-abs' ;
+					} else {
+						str = eventRec.get('role_code') ;
+						templateData.cls = 'op5-spec-dbspeople-realsch-virtual-role' ;
+					}
+					return str ;
+				}
+				if( !Ext.isEmpty(resourceRec.get('alt_whse_code')) ) {
+					str = '@'+'&#160:'+resourceRec.get('alt_whse_code') ;
+					templateData.cls = 'op5-spec-dbspeople-realcolor-whse' ;
+					return str ;
+				}
+				
+				if( eventRec.get('is_abs') ) {
+					str = eventRec.get('abs_code') ;
+					templateData.cls = 'op5-spec-dbspeople-realsch-abs' ;
+				} else {
+					str = eventRec.get('role_code') ;
+					if( eventRec.get('role_code') != resourceRec.get('std_role_code') ) {
+						templateData.cls = 'op5-spec-dbspeople-realsch-rolediff' ;
+					} else {
+						templateData.cls = 'op5-spec-dbspeople-realsch-role' ;
+					}
+				}
+				return str ;
+			},
 			//enableLocking: true,
 			plugins: [],
 			features: [{
@@ -406,16 +518,34 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 					gridpanel.headerCt.on('menucreate',me.onColumnsMenuCreate,me) ;
 					gridpanel.headerCt.on('columnschanged',me.onColumnsChanged,me) ;
 				},
+				afterrender: function( gridpanel ) {
+					Ext.defer( function() {
+						var nowDate = Ext.clone(this.dateDay) ;
+						nowDate.setHours(8) ;
+						gridpanel.scrollToDate( nowDate, false ) ;
+					},200,this) ;
+				},
 				beforeeventadd: this.onBeforeEventAdd,
+				dragcreateend: this.onAfterEventAdd,
+				eventcontextmenu: this.onEventClick,
+				eventdblclick: this.onEventClick,
 				scope: me
 			},
 			viewConfig: {
 				preserveScrollOnRefresh: true,
 				getRowClass: function(record) {
-					return ;
 					if( record.get('whse_isAlt') ) {
 						return 'op5-spec-dbspeople-realcolor-whse' ;
 					}
+					
+					var cls = '' ;
+					switch( record.get('status_str') ) {
+						case 'openrh' :
+						case 'open' :
+							cls = 'op5-spec-dbspeople-realcolor-' + record.get('status_str') ;
+							break ;
+					}
+					return cls ;
 				}
 			}
 		})) ;
@@ -529,8 +659,10 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 	onColumnGroupBy: function( groupField ) {
 		var grid = this.child('grid'),
 			store = grid.getStore() ;
+		/*	
 		grid.normalGrid.getPlugin('bufferedRenderer').scrollTo(0) ;
 		grid.lockedGrid.getPlugin('bufferedRenderer').scrollTo(0) ;
+		*/
 		store.group( groupField, 'ASC' ) ;
 	},
 	onGridGroupChange: function( gridStore, grouper ) {
@@ -680,7 +812,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 	gridAdapterInit: function() {
 		var grid = this.child('grid'),
 			resourceData = {},
-			eventData = {} ;
+			eventData = [] ;
 		
 		this.peopledayStore.each( function(peopledayRecord) {
 			this.gridAdapterPopulateForPeopledayRecord( resourceData, eventData, peopledayRecord ) ;
@@ -803,9 +935,15 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 		}
 		return resourceData ;
 	},
+	gridAdapterISOfactory: function( intHours ) {
+		var decMins = intHours - Math.floor(intHours),
+			intMins = Math.floor(decMins * 60) ;
+		intHours = Math.floor(intHours) ;
+		
+		return this.dateDayStr+'T'+(intHours < 10 ? '0':'')+intHours+':'+(intMins < 10 ? '0':'')+intMins+':00' ;
+	},
 	gridAdapterPopulateForPeopledayRecord: function( resourceData, eventData, peopledayRecord ) {
 		if( peopledayRecord.get('date_sql') != this.dateDayStr ) {
-			console.log('hors champ') ;
 			return ; // hors champ
 		}
 		var dateStr = this.dateDayStr ;
@@ -821,10 +959,14 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 			stdDayLengthMax = peopledayRecord.data.std_daylength_max,
 			peopleCode = peopledayRecord.data.people_code ;
 		
-		var altWhsesSegments = null,
+		var stdEvents = [],
+			altWhsesSegments = null,
 			workDuration = 0,
 			absDuration = 0,
 			statusIsVirtual = false,
+			statusIsOpen = false,
+			statusIsValidCeq = false,
+			statusIsValidRh = false,
 			statusStr = '',
 			segments = {
 				roles:[],
@@ -837,12 +979,18 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 			statusStr = 'virtual' ;
 		}
 		else if( !peopledayRecord.data.status_isValidCeq && !peopledayRecord.data.status_isValidRh ) {
+			statusIsOpen = true ;
 			statusStr = 'open' ;
 		}
 		else if( !peopledayRecord.data.status_isValidRh ) {
+			statusIsOpen = true ;
+			statusIsValidCeq = true ;
 			statusStr = 'openrh' ;
 		}
 		else {
+			statusIsOpen = true ;
+			statusIsValidCeq = true ;
+			statusIsValidRh = true ;
 			statusStr = '' ;
 		}
 		
@@ -855,116 +1003,233 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 			}
 		}
 		
-		peopledayRecord.works().each( function(workRecord) {
-			workDuration += workRecord.data.role_length ;
-			if( !Ext.isEmpty(workRecord.data.alt_whse_code) ) {
-				var altWhseCode = workRecord.data.alt_whse_code ;
-				if( altWhsesSegments == null ) {
-					altWhsesSegments = {} ;
-				}
-				if( !altWhsesSegments.hasOwnProperty(altWhseCode) ) {
-					altWhsesSegments[altWhseCode] = {
-						roles:[],
-						roles_duration:0
-					};
-				}
-				altWhsesSegments[altWhseCode].roles.push(workRecord.data.role_code) ;
-				altWhsesSegments[altWhseCode].roles_duration += workRecord.data.role_length ;
-				return ;
-			}
-			segments.roles.push(workRecord.data.role_code) ;
-			segments.roles_duration += workRecord.data.role_length ;
-		}) ;
-		peopledayRecord.abs().each( function(absRecord) {
-			absDuration += absRecord.data.abs_length ;
-			segments.abs.push(absRecord.data.abs_code) ;
-		}) ;
+		var notimeStdStartHour = 9 ;
 		
-		
-		var roleKey = 'd_'+dateStr+'_role',
-			durationKey = 'd_'+dateStr+'_tmp' ;
-			
+		// ***** Création ligne standard ***********
 		var gridDataRowId = stdWhseCode+'%'+stdTeamCode+'%'+peopleCode ;
 		if( !resourceData.hasOwnProperty(gridDataRowId) ) {
 			resourceData[gridDataRowId] = Ext.apply({
-				id: gridDataRowId,
+				Id: gridDataRowId,
 				whse_code: stdWhseCode,
 				whse_isAlt: false,
 				team_code: stdTeamCode,
 				contract_code: stdContractCode,
 				std_role_code: stdRoleCode,
 				people_code: peopledayRecord.data.people_code,
-				people_name: peopledayRecord.data.people_name
+				people_name: peopledayRecord.data.people_name,
+				status_str: statusStr,
+				total_duration: {
+					stdValue: ( (stdAbsCode == null || stdAbsHalfDay) ? stdDayLength : 0 ),
+					minValue: ( stdAbsCode == null ? stdDayLengthMin : 0 )
+				}
+				
 			},peopledayRecord.data.fields) ;
 		}
-		var gridDataRow = resourceData[gridDataRowId] ;
-		gridDataRow[roleKey] = {
-			statusStr: statusStr,
-			statusIsVirtual: statusIsVirtual,
-			roles: segments.roles,
-			abs: segments.abs,
-			stdRole: stdRoleCode,
-			stdAbs: stdAbsCode,
-			stdEmpty: (stdDayLength == 0),
-			hasAlt: (altWhsesSegments != null)
-		} ;
-		gridDataRow[durationKey] = {
-			statusStr: statusStr,
-			statusIsVirtual: statusIsVirtual,
-			value: segments.roles_duration,
-			workValue: workDuration,
-			totalValue: (workDuration + absDuration),
-			stdValue: ( (stdAbsCode == null || stdAbsHalfDay) ? stdDayLength : 0 ),
-			minValue: ( stdAbsCode == null ? stdDayLengthMin : 0 )
-		} ;
-		if( !statusIsVirtual && segments.roles.length == 1 && segments.abs.length == 0 ) {
-			gridDataRow[roleKey]._editable = true ;
-			gridDataRow[roleKey]._editorValue = 'ROLE:'+segments.roles[0] ;
-			gridDataRow[durationKey]._editable = true ;
-			gridDataRow[durationKey]._editorValue = segments.roles_duration ;
-			gridDataRow[durationKey]._editorMaxValue = stdDayLengthMax ;
-		}
-		if( !statusIsVirtual && segments.roles.length == 0 && segments.abs.length == 1 ) {
-			gridDataRow[roleKey]._editable = true ;
-			gridDataRow[roleKey]._editorValue = 'ABS:'+segments.abs[0] ;
-		}
 		
-		if( altWhsesSegments == null ) {
+		if( statusIsVirtual ) {
+			if( stdDayLength == 0 ) {
+				return ;
+			}
+			if( !stdAbsCode || stdAbsHalfDay ) {
+				eventData.push({
+					Id: 'virtualrole-'+gridDataRowId,
+					ResourceId: gridDataRowId,
+					StartDate: this.gridAdapterISOfactory(notimeStdStartHour),
+					EndDate: this.gridAdapterISOfactory(notimeStdStartHour+stdDayLength),
+					Draggable: false,
+					Resizable: false,
+					
+					role_code: stdRoleCode
+				});
+				notimeStdStartHour += stdDayLength ;
+			}
+			if( stdAbsCode ) {
+				eventData.push({
+					Id: 'virtualabs-'+gridDataRowId,
+					ResourceId: gridDataRowId,
+					StartDate: this.gridAdapterISOfactory(notimeStdStartHour),
+					EndDate: this.gridAdapterISOfactory(notimeStdStartHour+stdDayLength),
+					Draggable: false,
+					Resizable: false,
+					
+					is_abs: true,
+					abs_code: stdAbsCode
+				});
+				notimeStdStartHour += stdDayLength ;
+			}
 			return ;
 		}
-		Ext.Object.each( altWhsesSegments, function( altWhseCode, segments ) {
-			var gridDataRowId = '@'+altWhseCode+'%'+stdTeamCode+'%'+peopleCode ;
-			if( !resourceData.hasOwnProperty(gridDataRowId) ) {
-				resourceData[gridDataRowId] = Ext.apply({
-					id: gridDataRowId,
-					whse_code: altWhseCode,
-					whse_isAlt: true,
-					team_code: stdTeamCode,
-					contract_code: stdContractCode,
-					std_role_code: stdRoleCode,
-					people_code: peopledayRecord.data.people_code,
-					people_name: peopledayRecord.data.people_name
-				},peopledayRecord.data.fields) ;
+		
+		
+		var notimeStdStartHour = 9 ;
+		var startDate, endDate ;
+		peopledayRecord.works().each( function(workRecord) {
+			startDate = this.gridAdapterISOfactory(notimeStdStartHour) ;
+			endDate = this.gridAdapterISOfactory(notimeStdStartHour+workRecord.data.role_length),
+			notimeStdStartHour += workRecord.data.role_length ;
+			
+			var altWhseCode = workRecord.data.alt_whse_code ;
+			
+			if( !Ext.isEmpty(workRecord.data.alt_whse_code) ) {
+				eventData.push({
+					Id: 'altwhse-'+workRecord.getId(),
+					ResourceId: gridDataRowId,
+					StartDate: startDate,
+					EndDate: endDate,
+					Draggable: true,
+					Resizable: true,
+					
+					alt_whse_code: altWhseCode
+				});
+				
+				var altGridDataRowId = '@'+altWhseCode+'%'+stdTeamCode+'%'+peopleCode ;
+				if( !resourceData.hasOwnProperty(altGridDataRowId) ) {
+					resourceData[altGridDataRowId] = Ext.apply({
+						Id: altGridDataRowId,
+						whse_code: altWhseCode,
+						whse_isAlt: true,
+						team_code: stdTeamCode,
+						contract_code: stdContractCode,
+						std_role_code: stdRoleCode,
+						people_code: peopledayRecord.data.people_code,
+						people_name: peopledayRecord.data.people_name,
+						status_str: 'alt_whse'
+					},peopledayRecord.data.fields) ;
+				}
+				eventData.push({
+					Id: 'role-'+workRecord.getId(),
+					ResourceId: altGridDataRowId,
+					StartDate: startDate,
+					EndDate: endDate,
+					Draggable: true,
+					Resizable: true,
+					
+					cli_code: workRecord.data.cli_code,
+					role_code: workRecord.data.role_code
+				});
+				
+				return ;
 			}
-			var gridDataRow = resourceData[gridDataRowId] ;
-			gridDataRow[roleKey] = {
-				roles: segments.roles,
-				stdRole: stdRoleCode,
-				stdEmpty: true
-			} ;
-			gridDataRow[durationKey] = {
-				value: segments.roles_duration
-			} ;
+			
+			eventData.push({
+				Id: 'role-'+workRecord.getId(),
+				ResourceId: gridDataRowId,
+				StartDate: startDate,
+				EndDate: endDate,
+				Draggable: true,
+				Resizable: true,
+				
+				cli_code: workRecord.data.cli_code,
+				role_code: workRecord.data.role_code
+			});
+		},this) ;
+		peopledayRecord.abs().each( function(absRecord) {
+			startDate = this.gridAdapterISOfactory(notimeStdStartHour) ;
+			endDate = this.gridAdapterISOfactory(notimeStdStartHour+absRecord.data.abs_length),
+			notimeStdStartHour += absRecord.data.abs_length ;
+			
+			eventData.push({
+				Id: 'abs-'+absRecord.getId(),
+				ResourceId: gridDataRowId,
+				StartDate: startDate,
+				EndDate: endDate,
+				Draggable: true,
+				Resizable: true,
+				
+				is_abs: true,
+				abs_code: absRecord.data.abs_code
+			});
+		},this) ;
+	},
+	
+	
+	
+	onBeforeEventAdd: function(schedulerView,eventRecord) {
+		var grid = this.down('grid') ;
+			resourceRecord = grid.getResourceStore().getById(eventRecord.get('ResourceId')) ;
+		
+		if( resourceRecord.get('status_str') == 'virtual' ) {
+			return false ;
+		}
+		eventRecord.set('is_new',true) ;
+	},
+	onAfterEventAdd: function(schedulerView,eventRecord) {
+		if( !eventRecord ) {
+			return ;
+		}
+		Ext.defer( function() {
+			this.openPopup(schedulerView,eventRecord) ; //HACK
+		},100,this) ;
+	},
+	onEventClick: function(schedulerView, eventRecord, e, eOpts) {
+		var resourceRecord = eventRecord.getResource() ;
+		if( resourceRecord.get('status_str') == 'virtual' ) {
+			return ;
+		}
+		this.openPopup(schedulerView,eventRecord) ;
+	},
+	openPopup: function(schedulerView, eventRecord) {
+		var me = this ;
+		var htmlNode = schedulerView.getElementsFromEventRecord(eventRecord)[0] ;
+		if( !htmlNode ) {
+			return ;
+		}
+		
+		var realAdvancedPanel = Ext.create('Optima5.Modules.Spec.DbsPeople.RealDayEditor',{
+			eventRecord: eventRecord,
+			//gridRecord: gridRecord,
+			//peopledayRecord: peopledayRecord,
+			width:800, // dummy initial size, for border layout to work
+			height:600, // ...
+			floating: true,
+			draggable: true,
+			renderTo: me.getEl(),
+			tools: [{
+				type: 'close',
+				handler: function(e, t, p) {
+					p.ownerCt.handleDelete();
+				},
+				scope: this
+			},{
+				type: 'save',
+				handler: function(e, t, p) {
+					p.ownerCt.handleSave();
+				},
+				scope: this
+			}]
+		});
+		
+		// Size + position
+		realAdvancedPanel.setSize({
+			width: 300,
+			height: 150
 		}) ;
+		realAdvancedPanel.on('destroy',function(realAdvancedPanel) {
+			var eventRecord = realAdvancedPanel.eventRecord,
+				peopleCode = eventRecord.getResource().get('people_code') ;
+			if( eventRecord.get('is_delete') ) {
+				this.down('grid').getEventStore().remove(eventRecord) ;
+			}
+			this.gridAdapterRebuildPeopledayRecord( peopleCode ) ;
+			
+			me.getEl().unmask() ;
+			this.floatingPanel = null ;
+		},me,{single:true}) ;
+		me.getEl().mask() ;
+		
+		realAdvancedPanel.show();
+		
+		realAdvancedPanel.getEl().alignTo(htmlNode, "bl");
+		//Optima5.Helper.floatInsideParent( realAdvancedPanel ) ;
+		
+		me.floatingPanel = realAdvancedPanel ;
 	},
 	
 	
 	
-	onBeforeEventAdd: function() {
-		return false ;
+	gridAdapterRebuildPeopledayRecord: function( peopleCode ) {
+		console.log('rebuilding for '+peopleCode) ;
 	},
-	
-	
 	
 	
 	

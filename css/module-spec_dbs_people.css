@@ -191,6 +191,39 @@
 
 
 
+.op5-spec-dbspeople-realsch-virtual-role {
+	background-color: #cccccc ;
+	color: #000099;
+	font-weight: bold;
+	text-align: center;
+}
+.op5-spec-dbspeople-realsch-virtual-abs {
+	background-color: #cccccc ;
+	color: #E50000 ;
+	font-weight: bold;
+	text-align: center;
+}
+.op5-spec-dbspeople-realsch-abs {
+	background-color: #FF7BA1 ;
+	color: #000000 ;
+	font-weight: bold;
+	text-align: center;
+}
+.op5-spec-dbspeople-realsch-role {
+	background-color: lightblue ;
+	color: #000000 ;
+	font-weight: bold;
+	text-align: center;
+}
+.op5-spec-dbspeople-realsch-rolediff {
+	background-color: lightblue ;
+	color: #A87D0E ;
+	font-weight: bold;
+	text-align: center;
+}
+
+
+
 .op5-spec-dbspeople-realcolorinfo {
 	background: white
 }
