@@ -66,9 +66,6 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			'date_open' => $arr['field_DATE_OPEN'],
 			'date_last' => $arr['field_DATE_LAST'],
 			
-			'adr_postal' => array(),
-			'adr_tel' => array(),
-			
 			'records' => array(),
 			'actions' => array()
 		);
@@ -79,72 +76,6 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 		}
 		
 		$TAB_files[$arr['filerecord_id']] = $record ;
-	}
-	
-	
-	$query = "SELECT f.filerecord_id as file_filerecord_id, ap.* FROM view_file_FILE f" ;
-	$query.= " JOIN view_file_ADR_POSTAL ap ON ap.field_ACC_ID=f.field_LINK_ACCOUNT" ;
-	$query.= " WHERE 1" ;
-	if( isset($filter_fileFilerecordId_list) ) {
-		$query.= " AND f.filerecord_id IN {$filter_fileFilerecordId_list}" ;
-	} else {
-		if( $filter_atr ) {
-			foreach( $cfg_atr as $atr_record ) {
-				$mkey = $atr_record['bible_code'] ;
-				if( $filter_atr[$mkey] ) {
-					$mvalue = $filter_atr[$mkey] ;
-					$query.= " AND f.field_{$mkey} = '$mvalue'" ;
-				}
-			}
-		}
-		if( !$filter_archiveIsOn ) {
-			$query.= " AND f.field_STATUS <> ''" ;
-		}
-	}
-	$result = $_opDB->query($query) ;
-	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
-		if( !isset($TAB_files[$arr['file_filerecord_id']]) ) {
-			continue ;
-		}
-		$TAB_files[$arr['file_filerecord_id']]['adr_postal'][] = array(
-			'adrpostal_filerecord_id' => $arr['filerecord_id'],
-			'adr_name' => $arr['field_ADR_NAME'],
-			'adr_postal_txt' => $arr['field_ADR_POSTAL'],
-			'status' => ($arr['field_STATUS']==1)
-		);
-	}
-	
-	
-	$query = "SELECT f.filerecord_id as file_filerecord_id, at.* FROM view_file_FILE f" ;
-	$query.= " JOIN view_file_ADR_TEL at ON at.field_ACC_ID=f.field_LINK_ACCOUNT" ;
-	$query.= " WHERE 1" ;
-	if( isset($filter_fileFilerecordId_list) ) {
-		$query.= " AND f.filerecord_id IN {$filter_fileFilerecordId_list}" ;
-	} else {
-		if( $filter_atr ) {
-			foreach( $cfg_atr as $atr_record ) {
-				$mkey = $atr_record['bible_code'] ;
-				if( $filter_atr[$mkey] ) {
-					$mvalue = $filter_atr[$mkey] ;
-					$query.= " AND f.field_{$mkey} = '$mvalue'" ;
-				}
-			}
-		}
-		if( !$filter_archiveIsOn ) {
-			$query.= " AND f.field_STATUS <> ''" ;
-		}
-	}
-	$result = $_opDB->query($query) ;
-	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
-		if( !isset($TAB_files[$arr['file_filerecord_id']]) ) {
-			continue ;
-		}
-		$TAB_files[$arr['file_filerecord_id']]['adr_tel'][] = array(
-			'adrtel_filerecord_id' => $arr['filerecord_id'],
-			'adr_name' => $arr['field_ADR_NAME'],
-			'adr_tel_txt' => $arr['field_ADR_TEL'],
-			'status' => ($arr['field_STATUS']==1)
-		);
 	}
 	
 	
@@ -184,35 +115,30 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 	}
 	
 	
-	// Clé de raccrochage facture <=> dossier
-	$map_racx_fileIds = array() ;
-	foreach( $TAB_files as $file_row ) {
-		$racx = array($file_row['acc_id']) ;
-		foreach( $cfg_atr as $atr_record ) {
-			$mkey = $atr_record['bible_code'] ;
-			$racx[] = $file_row[$mkey] ;
-		}
-		$racx = implode('%%%',$racx) ;
-		
-		if( !$map_racx_fileIds[$racx] ) {
-			$map_racx_fileIds[$racx] = array() ;
-		}
-		$map_racx_fileIds[$racx][] = $file_row['file_filerecord_id'] ;
-	}
-	
-	$query = "SELECT r.* FROM view_file_RECORD r" ;
-	$query.= " WHERE 1" ;
-	if( $filter_atr ) {
-		foreach( $cfg_atr as $atr_record ) {
-			$mkey = $atr_record['bible_code'] ;
-			if( $filter_atr[$mkey] ) {
-				$mvalue = $filter_atr[$mkey] ;
-				$query.= " AND r.field_{$mkey} = '$mvalue'" ;
+	$query = "SELECT f.filerecord_id AS file_filerecord_id, r.*" ;
+	$query.= " FROM view_file_RECORD r, view_file_RECORD_LINK rl, view_file_FILE f" ;
+	$query.= " WHERE r.filerecord_id = rl.filerecord_parent_id " ;
+	$query.= " AND f.filerecord_id = rl.field_LINK_FILE_ID AND rl.field_LINK_IS_ON='1'" ;
+	if( isset($filter_fileFilerecordId_list) ) {
+		$query.= " AND f.filerecord_id IN {$filter_fileFilerecordId_list}" ;
+	} else {
+		if( $filter_atr ) {
+			foreach( $cfg_atr as $atr_record ) {
+				$mkey = $atr_record['bible_code'] ;
+				if( $filter_atr[$mkey] ) {
+					$mvalue = $filter_atr[$mkey] ;
+					$query.= " AND f.field_{$mkey} = '$mvalue'" ;
+				}
 			}
+		}
+		if( !$filter_archiveIsOn ) {
+			$query.= " AND f.field_STATUS <> ''" ;
 		}
 	}
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$file_filerecord_id = $arr['file_filerecord_id'] ;
+	
 		$record_row = array(
 			'record_filerecord_id' => $arr['filerecord_id'],
 			'acc_id' => $arr['field_LINK_ACCOUNT']
@@ -232,18 +158,10 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			'clear_assign' => $arr['field_CLEAR_ASSIGN']
 		);
 		
-		$racx = array($record_row['acc_id']) ;
-		foreach( $cfg_atr as $atr_record ) {
-			$mkey = $atr_record['bible_code'] ;
-			$racx[] = $record_row[$mkey] ;
-		}
-		$racx = implode('%%%',$racx) ;
-		if( !$map_racx_fileIds[$racx] ) {
+		if( !isset($TAB_files[$file_filerecord_id]) ) {
 			continue ;
 		}
-		foreach( $map_racx_fileIds[$racx] as $file_filerecord_id ) {
-			$TAB_files[$file_filerecord_id]['records'][] = $record_row ;
-		}
+		$TAB_files[$file_filerecord_id]['records'][] = $record_row ;
 	}
 	
 	$map_etaRange_maxDays = array() ;

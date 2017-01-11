@@ -41,11 +41,16 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			//console.dir(atrRecord) ;
 			formItems.push(Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
 				cfgParam_id: atrId,
-				cfgParam_emptyDisplayText: 'Select...',
+				cfgParam_emptyDisplayText: 'Toutes valeurs',
 				optimaModule: this.optimaModule,
-				name: atrId,
+				name: 'filter_'+atrId,
 				allowBlank: false,
-				fieldLabel: atrRecord.atr_txt
+				fieldLabel: atrRecord.atr_txt,
+				
+				listeners: {
+					change: this.onFilterChange,
+					scope: this
+				}
 			})) ;
 		},this) ;
 		formItems.push({
@@ -314,115 +319,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				}]
 			},{
 				flex: 1,
-				xtype: 'panel',
-				layout: {
-					type: 'border',
-					align: 'stretch'
-				},
-				border: false,
-				items:[{
-					region: 'center',
-					flex: 3,
-					xtype: 'grid',
-					_statusMap: statusMap,
-					_actionMap: actionMap,
-					itemId: 'pActionsGrid',
-					features: [{
-						ftype: 'rowbody',
-						getAdditionalData: function (data, idx, record, orig) {
-								// Usually you would style the my-body-class in a CSS file
-								return {
-									rowBody: '<div style="">' + Ext.util.Format.nl2br(record.get("txt")) + '</div>',
-									rowBodyCls: "my-body-class"
-								};
-						}
-					}],
-					columns: [{
-						dataIndex: 'link_status',
-						width: 40,
-						renderer: function(v,metaData,r) {
-							var statusMap = this._statusMap ;
-							if( statusMap.hasOwnProperty(v) ) {
-								var statusData = statusMap[v] ;
-								metaData.style += 'color: white ; background: '+statusData.status_color ;
-								return '' ;
-							}
-							return '' ;
-						}
-					},{
-						dataIndex: 'link_action',
-						width: 100,
-						renderer: function(v,metaData,r) {
-							var actionMap = this._actionMap ;
-							if( actionMap.hasOwnProperty(v) ) {
-								var actionData = actionMap[v] ;
-								return '<b>'+actionData.action_txt+'</b>' ;
-							}
-							return '?' ;
-						}
-					},{
-						text: 'Planning',
-						width: 100,
-						dataIndex: 'date_sched',
-						renderer: Ext.util.Format.dateRenderer('d/m/Y')
-					},{
-						text: 'Status',
-						width: 48,
-						dataIndex: 'status_is_ok',
-						renderer: function(v,metaData,r) {
-							if( this._fileRecord.get('next_fileaction_filerecord_id') == r.get('fileaction_filerecord_id') ) {
-								metaData.tdCls += ' op5-spec-rsiveo-doaction' ;
-								return ;
-							}
-							if( !v ) {
-								metaData.tdCls += ' op5-spec-dbstracy-files-nowarning' ;
-							} else {
-								metaData.tdCls += ' op5-spec-dbstracy-kpi-ok' ;
-							}
-							return '' ;
-						},
-						scope: this
-					},{
-						text: 'Réalisé',
-						width: 100,
-						dataIndex: 'date_actual',
-						renderer: function(v,metaData,r) {
-							if( r.get('status_is_ok') ) {
-								return Ext.util.Format.date(v,'d/m/Y') ;
-							}
-							return '' ;
-						}
-					}],
-					store: {
-						model: 'RsiRecouveoFileActionModel',
-						data: [],
-						sorters: [{
-							property: 'calc_date',
-							direction: 'DESC'
-						},{
-							property: 'fileaction_filerecord_id',
-							direction: 'DESC'
-						}],
-						proxy: {
-							type: 'memory',
-							reader: {
-								type: 'json'
-							}
-						}
-					},
-					listeners: {
-						itemclick: function( view, record, itemNode, index, e ) {
-							var cellNode = e.getTarget( view.getCellSelector() ),
-								cellColumn = view.getHeaderByCell( cellNode ) ;
-							if( cellColumn.dataIndex == 'status_is_ok'
-								&& this._fileRecord.get('next_fileaction_filerecord_id') == record.get('fileaction_filerecord_id') ) {
-									
-								this.doNextAction( record.get('fileaction_filerecord_id') ) ;
-							}
-						},
-						scope: this
-					}
-				}]
+				itemId: 'tpFileActions',
+				xtype: 'tabpanel',
+				deferredRender: false,
+				items: []
 			}]
 		}) ;
 		
@@ -433,7 +333,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		}
 		
 		this.on('afterrender', function() {
-			this.loadFile( this._fileFilerecordId ) ;
+			this.loadAccount( this._accId ) ;
 		},this) ;
 		this.on('beforedestroy',this.onBeforeDestroy,this) ;
 		
@@ -441,11 +341,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 	},
 	onCrmeventBroadcast: function(crmEvent, eventParams) {
 		switch( crmEvent ) {
-			case 'attachmentschange' :
-				if( this._orderFilerecordId && this._orderFilerecordId == eventParams.orderFilerecordId ) {
-					this.loadOrder( this._orderFilerecordId ) ;
-				}
-				break ;
 			default: break ;
 		}
 	},
@@ -475,6 +370,36 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 	},
 	
 	
+	
+	loadAccount: function( accId, filterAtr ) {
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_rsi_recouveo',
+				_action: 'account_open',
+				acc_id: accId,
+				filter_atr: Ext.JSON.encode(filterAtr)
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+				this.onLoadAccount(
+					Ext.ux.dams.ModelManager.create( 
+						Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAccountModel(),
+						ajaxResponse.data
+					),
+					filterAtr
+				) ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+	},
 	
 	loadFile: function( filerecordId ) {
 		this.showLoadmask() ;
@@ -548,8 +473,238 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		this.down('#pActionsGrid').getStore().loadRawData(pActionsGridData) ;
 		return ;
 	},
+	onLoadAccount: function( accountRecord, filterAtr ) {
+		this.loading = true ;
+		this._accId = accountRecord.getId() ;
+		this._filterAtr = filterAtr ;
+		
+		this._accountRecord = accountRecord ;
+		console.dir(accountRecord.files().getRange()) ;
+		
+		//fHeader
+		this.down('#pHeaderForm').getForm().reset() ;
+		this.down('#pHeaderForm').getForm().loadRecord(accountRecord) ;
+		if( this._readonlyMode ) {
+			this.down('#pHeaderForm').getForm().getFields().each( function(field) {
+				field.setReadOnly(true) ;
+			});
+		}
+		
+		// filters
+		var headerForm = this.down('#pHeaderForm').getForm(),
+			field, values ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
+			field = headerForm.findField('filter_'+atrId) ;
+			field.suspendEvents(false) ;
+			values = accountRecord.get(atrId) ;
+			if( Ext.isEmpty(values) ) {
+				field.setVisible(false) ;
+				return ;
+			}
+			field.setVisible(true) ;
+			field.doManualCleanup(values) ;
+			
+			// reapply filter ?
+			if( filterAtr && filterAtr.hasOwnProperty(atrId) ) {
+				field.setValue(filterAtr[atrId]) ;
+			}
+			field.resumeEvents() ;
+		}) ;
+		
+		var adrPostalData = [] ;
+		accountRecord.adr_postal().each( function(rec) {
+			adrPostalData.push(rec.getData()) ;
+		}) ;
+		this.down('#gridAdrPostal').setTabData(adrPostalData) ;
+		
+		var adrTelData = [] ;
+		accountRecord.adr_tel().each( function(rec) {
+			adrTelData.push(rec.getData()) ;
+		}) ;
+		this.down('#gridAdrTel').setTabData(adrTelData) ;
+		
+		this.down('#tpFileActions').removeAll() ;
+		accountRecord.files().each( function(fileRecord) {
+			this.onLoadAccountAddFileActions( fileRecord ) ;
+		},this) ;
+		this.loading = false ;
+		return ;
+		
+		this.down('#pRecordsHeader').setData({
+			inv_nb: fileRecord.get('inv_nb'),
+			inv_amount_total: fileRecord.get('inv_amount_total'),
+			inv_amount_due: fileRecord.get('inv_amount_due')
+		});
+		this.down('#pRecordsHeader').setVisible(true) ;
+		
+		var pRecordsGridData = [] ;
+		fileRecord.records().each(function(rec) {
+			pRecordsGridData.push(rec.getData()) ;
+		}) ;
+		this.down('#pRecordsGrid').getStore().loadRawData(pRecordsGridData) ;
+		
+		var pActionsGridData = [] ;
+		fileRecord.actions().each(function(rec) {
+			pActionsGridData.push(rec.getData()) ;
+		}) ;
+		this.down('#pActionsGrid').getStore().loadRawData(pActionsGridData) ;
+		return ;
+	},
+	onLoadAccountAddFileActions: function( fileRecord ) {
+		var statusMap = {} ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getStatusAll(), function(status) {
+			statusMap[status.status_id] = status ;
+		}) ;
+		
+		var actionMap = {} ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionAll(), function(action) {
+			actionMap[action.action_id] = action ;
+		}) ;
+		
+		
+		
+		
+		var pFileTitle = fileRecord.get('id_ref') ;
+		var pActionsGridData = [] ;
+		fileRecord.actions().each(function(rec) {
+			pActionsGridData.push(rec.getData()) ;
+		}) ;
+		var statusCode = fileRecord.get('status'),
+			  statusIconCls = '' ;
+		if( statusMap.hasOwnProperty(statusCode) ) {
+			var statusData = statusMap[statusCode],
+				statusColor = statusData.status_color,
+				statusColorNodash = statusColor.substring(1) ;
+			statusIconCls = 'bgcolor-'+statusColorNodash ;
+		}
+		
+		
+		var tabPanel = this.down('#tpFileActions') ;
+		tabPanel.add({
+			closable: true,
+			title: pFileTitle,
+			iconCls: statusIconCls,
+			xtype: 'grid',
+			_fileRecord: fileRecord,
+			_statusMap: statusMap,
+			_actionMap: actionMap,
+			features: [{
+				ftype: 'rowbody',
+				getAdditionalData: function (data, idx, record, orig) {
+						// Usually you would style the my-body-class in a CSS file
+						return {
+							rowBody: '<div style="">' + Ext.util.Format.nl2br(record.get("txt")) + '</div>',
+							rowBodyCls: "my-body-class"
+						};
+				}
+			}],
+			columns: [{
+				dataIndex: 'link_status',
+				width: 40,
+				renderer: function(v,metaData,r) {
+					var statusMap = this._statusMap ;
+					if( statusMap.hasOwnProperty(v) ) {
+						var statusData = statusMap[v] ;
+						metaData.style += 'color: white ; background: '+statusData.status_color ;
+						return '' ;
+					}
+					return '' ;
+				}
+			},{
+				dataIndex: 'link_action',
+				width: 100,
+				renderer: function(v,metaData,r) {
+					var actionMap = this._actionMap ;
+					if( actionMap.hasOwnProperty(v) ) {
+						var actionData = actionMap[v] ;
+						return '<b>'+actionData.action_txt+'</b>' ;
+					}
+					return '?' ;
+				}
+			},{
+				text: 'Planning',
+				width: 100,
+				dataIndex: 'date_sched',
+				renderer: Ext.util.Format.dateRenderer('d/m/Y')
+			},{
+				text: 'Status',
+				width: 48,
+				dataIndex: 'status_is_ok',
+				renderer: function(v,metaData,r) {
+					if( this._fileRecord.get('next_fileaction_filerecord_id') == r.get('fileaction_filerecord_id') ) {
+						metaData.tdCls += ' op5-spec-rsiveo-doaction' ;
+						return ;
+					}
+					if( !v ) {
+						metaData.tdCls += ' op5-spec-dbstracy-files-nowarning' ;
+					} else {
+						metaData.tdCls += ' op5-spec-dbstracy-kpi-ok' ;
+					}
+					return '' ;
+				}
+			},{
+				text: 'Réalisé',
+				width: 100,
+				dataIndex: 'date_actual',
+				renderer: function(v,metaData,r) {
+					if( r.get('status_is_ok') ) {
+						return Ext.util.Format.date(v,'d/m/Y') ;
+					}
+					return '' ;
+				}
+			}],
+			store: {
+				model: 'RsiRecouveoFileActionModel',
+				data: pActionsGridData,
+				sorters: [{
+					property: 'calc_date',
+					direction: 'DESC'
+				},{
+					property: 'fileaction_filerecord_id',
+					direction: 'DESC'
+				}],
+				proxy: {
+					type: 'memory',
+					reader: {
+						type: 'json'
+					}
+				}
+			},
+			listeners: {
+				itemclick: function( view, record, itemNode, index, e ) {
+					var cellNode = e.getTarget( view.getCellSelector() ),
+						cellColumn = view.getHeaderByCell( cellNode ) ;
+					if( cellColumn.dataIndex == 'status_is_ok'
+						&& this._fileRecord.get('next_fileaction_filerecord_id') == record.get('fileaction_filerecord_id') ) {
+							
+						this.doNextAction( record.get('fileaction_filerecord_id') ) ;
+					}
+				},
+				scope: this
+			}
+		});
+		
+	},
 	doReload: function() {
-		this.loadFile( this._fileFilerecordId ) ;
+		this.loadAccount( this._accId, this._filterAtr ) ;
+	},
+	
+	
+	onFilterChange: function() {
+		if( this.loading ) {
+			return ;
+		}
+		// filters
+		var headerForm = this.down('#pHeaderForm').getForm(),
+			field, filterAtr = {} ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
+			field = headerForm.findField('filter_'+atrId) ;
+			if( !Ext.isEmpty(field.getValue()) ) {
+				filterAtr[atrId] = field.getValue() ;
+			}
+		}) ;
+		
+		this.loadAccount( this._accId, filterAtr ) ;
 	},
 	
 	

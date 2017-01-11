@@ -118,6 +118,18 @@ Ext.define('RsiRecouveoRecordTplModel',{ // TO: RsiRecouveoRecordModel
 		{name: '_checked', type: 'boolean'}
 	]
 }) ;
+Ext.define('RsiRecouveoRecordLinkModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'recordlink_filerecord_id',
+	fields: [
+		{name: 'recordlink_filerecord_id', type:'int'},
+		{name: 'file_filerecord_id', type:'int'},
+		{name: 'file_id_ref', type:'string'},
+		{name: 'link_is_active', type:'boolean'},
+		{name: 'date_link_on', type:'date', dateFormat:'Y-m-d H:i:s'},
+		{name: 'date_link_off', type:'date', dateFormat:'Y-m-d H:i:s'}
+	]
+}) ;
 Ext.define('RsiRecouveoAdrPostalModel',{
 	extend: 'Ext.data.Model',
 	idProperty: 'adrpostal_filerecord_id',
@@ -138,7 +150,15 @@ Ext.define('RsiRecouveoAdrTelModel',{
 		{name: 'status', type:'boolean'}
 	]
 }) ;
-
+Ext.define('RsiRecouveoAccountTplModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'acc_id',
+	fields: [
+		{name: 'acc_id', type:'string'},
+		{name: 'acc_txt', type:'string'},
+		{name: 'acc_siret', type:'string'}
+	]
+}) ;
 
 
 Ext.define('Optima5.Modules.Spec.RsiRecouveo.RsiRecouveoModule', {
@@ -179,6 +199,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RsiRecouveoModule', {
 				Ext.apply( eventParams, {
 					fileNew: postParams.fileNew,
 					fileFilerecordId: postParams.fileFilerecordId
+				}) ;
+				break ;
+			
+			case 'openaccount' :
+				Ext.apply( eventParams, {
+					accId: postParams.accId,
+					filterAtr: postParams.filterAtr
 				}) ;
 				break ;
 			

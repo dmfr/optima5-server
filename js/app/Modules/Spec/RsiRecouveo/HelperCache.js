@@ -159,18 +159,29 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 		
 		var cmpId = this.cmpId ;
 		
-		var pushModelFields = [] ;
+		var pushModelFields = [], pushModelFieldsAccount = [] ;
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
 			pushModelFields.push({
 				name: atrId,
 				type: 'string'
 			}) ;
 		}) ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
+			pushModelFieldsAccount.push({
+				name: atrId,
+				type: 'auto'
+			}) ;
+		}) ;
 		Ext.ux.dams.ModelManager.unregister( 'RsiRecouveoRecordModel'+'-'+cmpId ) ;
 		Ext.define('RsiRecouveoRecordModel'+'-'+cmpId,{
 			extend: 'RsiRecouveoRecordTplModel',
 			idProperty: 'record_filerecord_id',
-			fields: pushModelFields
+			fields: pushModelFields,
+			hasMany: [{
+				model: 'RsiRecouveoRecordLinkModel',
+				name: 'all_links',
+				associationKey: 'all_links'
+			}]
 		}) ;
 		Ext.ux.dams.ModelManager.unregister( 'RsiRecouveoFileModel'+'-'+cmpId ) ;
 		Ext.define('RsiRecouveoFileModel'+'-'+cmpId,{
@@ -185,7 +196,15 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 				model: 'RsiRecouveoRecordModel'+'-'+cmpId,
 				name: 'records',
 				associationKey: 'records'
-			},{
+			}]
+		}) ;
+		
+		Ext.ux.dams.ModelManager.unregister( 'RsiRecouveoAccountModel'+'-'+cmpId ) ;
+		Ext.define('RsiRecouveoAccountModel'+'-'+cmpId,{
+			extend: 'RsiRecouveoAccountTplModel',
+			idProperty: 'acc_id',
+			fields: pushModelFieldsAccount,
+			hasMany: [{
 				model: 'RsiRecouveoAdrPostalModel',
 				name: 'adr_postal',
 				associationKey: 'adr_postal'
@@ -193,10 +212,29 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 				model: 'RsiRecouveoAdrTelModel',
 				name: 'adr_tel',
 				associationKey: 'adr_tel'
+			},{
+				model: 'RsiRecouveoFileModel'+'-'+cmpId,
+				name: 'files',
+				associationKey: 'files'
+			},{
+				model: 'RsiRecouveoRecordModel'+'-'+cmpId,
+				name: 'records',
+				associationKey: 'records'
 			}]
 		}) ;
 		
 		this.onLoad() ;
+		
+		var cssBlob = '' ;
+		Ext.Array.each( this.getStatusAll(), function( statusRow ) {
+			var color = statusRow.status_color,
+				colorNodash = color.substring(1) ;
+			cssBlob += ".bgcolor-"+colorNodash+" { background-color:"+color+" }\r\n" ;
+		}) ;
+		Ext.util.CSS.createStyleSheet(cssBlob, 'op5specrsirecouveo-'+this.cmpId);
+	},
+	getAccountModel: function() {
+		return 'RsiRecouveoAccountModel'+'-'+this.cmpId ;
 	},
 	getFileModel: function() {
 		return 'RsiRecouveoFileModel'+'-'+this.cmpId ;

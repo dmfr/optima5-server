@@ -1,6 +1,7 @@
 <?php
 include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_file.inc.php") ;
 include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_action.inc.php") ;
+include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_account.inc.php") ;
 
 function specRsiRecouveo_cfg_doInit( $post_data ) {
 	global $_opDB ;

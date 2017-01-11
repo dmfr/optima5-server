@@ -27,6 +27,9 @@ switch( $post_data['_action'] )
 	case 'action_doFileAction' :
 	return specRsiRecouveo_action_doFileAction( $post_data ) ;
 	
+	case 'account_open' :
+	return specRsiRecouveo_account_open( $post_data ) ;
+	
 	default :
 	return NULL ;
 }

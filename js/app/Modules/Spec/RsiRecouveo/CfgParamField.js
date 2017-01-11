@@ -78,6 +78,33 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
 		this.fireEvent('ready',this) ;
 	},
 	doAuthCleanup: function() {},
+	doManualCleanup: function( arrIds ) {
+		var cfgParamTree = this.cfgParamTree,
+			treeStore = cfgParamTree.getStore(),
+			treeNode = treeStore.getRootNode() ;
+		
+		var nodesToRemove = [] ;
+		treeNode.cascadeBy( function(node) {
+			if( node.isLeaf() && !Ext.Array.contains(arrIds,node.getId()) ) {
+				nodesToRemove.push(node) ;
+			}
+		}) ;
+		Ext.Array.each( nodesToRemove, function(node) {
+			while(true) {
+				parentNode = node.parentNode ;
+				node.remove() ;
+				node = parentNode ;
+				if( node == null ){
+					break ;
+				}
+				if( node.hasChildNodes() ) {
+					break ;
+				}
+			}
+		}) ;
+		cfgParamTree.forceValue = true ;
+		cfgParamTree.autoAdvance() ;
+	},
 	
 	expand: function() {
 		var me = this ;
