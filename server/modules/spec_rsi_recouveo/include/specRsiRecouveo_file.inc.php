@@ -110,7 +110,9 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			'status_is_ok' => ($arr['field_STATUS_IS_OK']==1),
 			'date_sched' => (specRsiRecouveo_file_tool_isDateValid($arr['field_DATE_SCHED']) ? $arr['field_DATE_SCHED'] : null),
 			'date_actual' => (specRsiRecouveo_file_tool_isDateValid($arr['field_DATE_ACTUAL']) ? $arr['field_DATE_ACTUAL'] : null),
-			'txt' => $arr['field_TXT']
+			'txt' => $arr['field_TXT'],
+			
+			'link_newfile_filerecord_id' => ($arr['field_LINK_NEW_FILE_ID'] > 0 ? $arr['field_LINK_NEW_FILE_ID'] : null)
 		);
 	}
 	
@@ -697,6 +699,7 @@ function specRsiRecouveo_file_createForAction( $post_data ) {
 		$arr_ins['field_STATUS_IS_OK'] = 1 ;
 		$arr_ins['field_DATE_ACTUAL'] = date('Y-m-d H:i:s') ;
 		$arr_ins['field_TXT'] = $txt ;
+		$arr_ins['field_LINK_NEW_FILE_ID'] = $file_filerecord_id ;
 		paracrm_lib_data_insertRecord_file( 'FILE_ACTION', $accFile_record['file_filerecord_id'], $arr_ins );
 	}
 	

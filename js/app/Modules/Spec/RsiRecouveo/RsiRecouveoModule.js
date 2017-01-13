@@ -89,6 +89,8 @@ Ext.define('RsiRecouveoFileActionModel',{
 		{name: 'date_actual', type:'date', dateFormat:'Y-m-d H:i:s', allowNull:true},
 		{name: 'txt', type: 'string'},
 		
+		{name: 'link_newfile_filerecord_id', type: 'int', allowNull:true},
+		
 		{name: 'calc_eta_range', type:'string'},
 		
 		{name: 'calc_date', type:'string', calculate: function (data) {

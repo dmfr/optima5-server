@@ -97,7 +97,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			},'->',{
 				itemId: 'tbNew',
 				icon: 'images/modules/dbspeople-role-16.png',
-				text: '<b>Action de communication</b>',
+				text: '<b>Actions de communication</b>',
 				menu:[{
 					iconCls: 'op5-spec-rsiveo-action-callin',
 					text: 'Appel entrant',
@@ -552,6 +552,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		
 		this.down('#tpFileActions').removeAll() ;
 		accountRecord.files().each( function(fileRecord) {
+			if( fileRecord.get('status_closed') ) {
+				return ;
+			}
 			this.onLoadAccountAddFileActions( fileRecord ) ;
 		},this) ;
 		
@@ -590,6 +593,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		
 		var pRecordsTreeChildren = [] ;
 		accountRecord.files().each( function(fileRecord) {
+			if( fileRecord.get('status_closed') ) {
+				return ;
+			}
+			
 			var pRecordsTreeChildrenRecords = [] ;
 			var totAmountDue = 0 ;
 			fileRecord.records().each( function(fileRecordRecord) {
@@ -653,8 +660,25 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		}
 		var pActionsGridData = [] ;
 		fileRecord.actions().each(function(rec) {
-			pActionsGridData.push(rec.getData()) ;
-		}) ;
+			var recData = rec.getData() ;
+			recData['leaf'] = true ;
+			recData['icon'] = Ext.BLANK_IMAGE_URL ;
+			if( rec.get('link_newfile_filerecord_id') ) {
+				var childFileRecord = this._accountRecord.files().getById(rec.get('link_newfile_filerecord_id')) ;
+					childrenActions = [] ;
+				childFileRecord.actions().each(function(cRec) {
+					var cRecData = cRec.getData() ;
+					cRecData['leaf'] = true ;
+					cRecData['icon'] = Ext.BLANK_IMAGE_URL ;
+					childrenActions.push(cRecData) ;
+				}) ;
+				recData['leaf'] = false ;
+				recData['children'] = childrenActions ;
+				recData['expanded'] = false ;
+				recData['icon'] = Ext.BLANK_IMAGE_URL ;
+			}
+			pActionsGridData.push(recData) ;
+		},this) ;
 		var statusCode = fileRecord.get('status'),
 			  statusIconCls = '' ;
 		if( statusMap.hasOwnProperty(statusCode) ) {
@@ -670,27 +694,30 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			_fileFilerecordId: fileRecord.getId(),
 			title: pFileTitle,
 			iconCls: statusIconCls,
-			xtype: 'grid',
+			xtype: 'treepanel',
+			useArrows: true,
+			rootVisible: false,
 			_fileRecord: fileRecord,
 			_statusMap: statusMap,
 			_actionMap: actionMap,
 			features: [{
 				ftype: 'rowbody',
 				getAdditionalData: function (data, idx, record, orig) {
-						// Usually you would style the my-body-class in a CSS file
-						return {
-							rowBody: '<div style="">' + Ext.util.Format.nl2br(record.get("txt")) + '</div>',
-							rowBodyCls: "my-body-class"
-						};
+					return {
+						rowBody: '<div style="">' + Ext.util.Format.nl2br(record.get("txt")) + '</div>',
+						rowBodyCls: "op5-spec-rsiveo-actionstree-rowbody"
+					};
 				}
 			}],
 			columns: [{
+				xtype: 'treecolumn',
+				tdCls: 'op5-spec-rsiveo-actionstree-firstcol',
 				dataIndex: 'link_status',
 				width: 40,
-				renderer: function(v,metaData,r) {
-					var statusMap = this._statusMap ;
-					if( statusMap.hasOwnProperty(v) ) {
-						var statusData = statusMap[v] ;
+				renderer: function(value,metaData,record,rowIndex,colIndex,store,view) {
+					var statusMap = view.up('panel')._statusMap ;
+					if( statusMap.hasOwnProperty(value) ) {
+						var statusData = statusMap[value] ;
 						metaData.style += 'color: white ; background: '+statusData.status_color ;
 						return '' ;
 					}
@@ -699,10 +726,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			},{
 				dataIndex: 'link_action',
 				width: 100,
-				renderer: function(v,metaData,r) {
-					var actionMap = this._actionMap ;
-					if( actionMap.hasOwnProperty(v) ) {
-						var actionData = actionMap[v] ;
+				renderer: function(value,metaData,record,rowIndex,colIndex,store,view) {
+					var actionMap = view.up('panel')._actionMap ;
+					if( actionMap.hasOwnProperty(value) ) {
+						var actionData = actionMap[value] ;
 						return '<b>'+actionData.action_txt+'</b>' ;
 					}
 					return '?' ;
@@ -716,12 +743,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				text: 'Status',
 				width: 48,
 				dataIndex: 'status_is_ok',
-				renderer: function(v,metaData,r) {
-					if( this._fileRecord.get('next_fileaction_filerecord_id') == r.get('fileaction_filerecord_id') ) {
+				renderer: function(value,metaData,record,rowIndex,colIndex,store,view) {
+					var fileRecord = view.up('panel')._fileRecord ;
+					if( record.getDepth() == 1 
+							&& fileRecord.get('next_fileaction_filerecord_id') == record.get('fileaction_filerecord_id') ) {
 						metaData.tdCls += ' op5-spec-rsiveo-doaction' ;
 						return ;
 					}
-					if( !v ) {
+					if( !value ) {
 						metaData.tdCls += ' op5-spec-dbstracy-files-nowarning' ;
 					} else {
 						metaData.tdCls += ' op5-spec-dbstracy-kpi-ok' ;
@@ -732,22 +761,29 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				text: 'Réalisé',
 				width: 100,
 				dataIndex: 'date_actual',
-				renderer: function(v,metaData,r) {
-					if( r.get('status_is_ok') ) {
-						return Ext.util.Format.date(v,'d/m/Y') ;
+				renderer: function(value,metaData,record,rowIndex,colIndex,store,view) {
+					if( record.get('status_is_ok') ) {
+						return Ext.util.Format.date(value,'d/m/Y') ;
 					}
 					return '' ;
 				}
 			}],
+			viewConfig: {
+				getRowClass: function(record) {
+					if( record.getDepth() == 2 ) {
+						return 'op5-spec-rsiveo-actionstree-depth2' ;
+					}
+				}
+			},
 			store: {
 				model: 'RsiRecouveoFileActionModel',
-				data: pActionsGridData,
+				root: {root: true, fileaction_filerecord_id:0, expanded: true, children:pActionsGridData},
 				sorters: [{
-					property: 'calc_date',
-					direction: 'DESC'
+						property: 'calc_date',
+						direction: 'DESC'
 				},{
-					property: 'fileaction_filerecord_id',
-					direction: 'DESC'
+						property: 'fileaction_filerecord_id',
+						direction: 'DESC'
 				}],
 				proxy: {
 					type: 'memory',
@@ -822,6 +858,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			return ;
 		}
 		
+		var fileRec = this._accountRecord.files().getById(fileFilerecordId) ;
+		if( !fileRec ) {
+			this.setActiveFileId() ;
+		}
+		
 		recordsTree.getRootNode().cascadeBy( function(r) {
 			if( r.get('file_filerecord_id') > 0 ) {
 				r.set('file_focus',r.get('file_filerecord_id')==fileFilerecordId) ;
@@ -836,7 +877,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			}
 		});
 		
-		var fileRec = this._accountRecord.files().getById(fileFilerecordId) ;
 		this.down('toolbar').down('#tbNew').setDisabled( fileRec.statusIsSchedNone() )  ;
 	},
 	

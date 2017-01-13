@@ -160,3 +160,9 @@
 	background-image: url("../images/modules/crmbase-process-16.gif") !important;
 }
 
+.op5-spec-rsiveo-actionstree-depth2 .op5-spec-rsiveo-actionstree-firstcol .x-grid-cell-inner {
+	margin-left: 18px
+}
+.op5-spec-rsiveo-actionstree-rowbody .x-grid-rowbody {
+	padding-left: 42px
+}

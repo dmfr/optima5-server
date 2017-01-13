@@ -75,7 +75,7 @@ function specRsiRecouveo_account_open( $post_data ) {
 	// ************* FILES ****************
 	$filter_fileFilerecordId_arr = array() ;
 	$query = "SELECT f.filerecord_id FROM view_file_FILE f 
-		WHERE field_LINK_ACCOUNT='{$p_accId}' AND field_STATUS_CLOSED='0'" ;
+		WHERE field_LINK_ACCOUNT='{$p_accId}'" ;
 	if( $p_atrFilter ) {
 		foreach( $cfg_atr as $atr_record ) {
 			$mkey = $atr_record['bible_code'] ;

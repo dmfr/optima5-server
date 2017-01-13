@@ -198,7 +198,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateForm',{
 		 *  - source file : no lock status
 		 *  - each Atr : 1 value
 		 */
-		console.dir(this._arr_recordIds) ;
 		var pLeftGridData = [],
 			controlHasLock = false,
 			controlMapAtrValues = {} ;
@@ -273,7 +272,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateForm',{
 						formData['agree_amount'] += recordRecord.get('amount') ;
 					},this);
 				},this);
-				console.dir(formData) ;
 				this.getForm().setValues(formData) ;
 				break ;
 		}
