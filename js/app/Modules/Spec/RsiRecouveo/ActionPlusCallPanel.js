@@ -83,7 +83,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusCallPanel',{
 		this.callParent() ;
 		
 		var adrNames = [] ;
-		this._fileRecord.adr_tel().each( function(rec) {
+		this._accountRecord.adr_tel().each( function(rec) {
 			adrNames.push({adr_name: rec.get('adr_name')}) ;
 		}) ;
 		this.down('#selectAdrTelName').getStore().loadData(adrNames) ;
@@ -93,7 +93,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusCallPanel',{
 		var adrName = cmb.getValue(),
 			adrField = this.getForm().findField('adrtel_txt') ;
 		adrField.reset() ;
-		this._fileRecord.adr_tel().each( function(rec) {
+		this._accountRecord.adr_tel().each( function(rec) {
 			if( rec.get('adr_name') == adrName ) {
 				adrField.setValue( rec.get('adr_tel_txt') ) ;
 			}

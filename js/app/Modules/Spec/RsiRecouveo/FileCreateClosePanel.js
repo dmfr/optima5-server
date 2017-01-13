@@ -1,4 +1,4 @@
-Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextClosePanel',{
+Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateClosePanel',{
 	extend:'Ext.form.Panel',
 	
 	_fileRecord: null,

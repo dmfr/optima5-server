@@ -173,8 +173,8 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 		switch( $post_form['schedlock_next'] ) {
 			case 'end' :
 			case 'close' :
-				$is_sched_lock = FALSE ;
 				$do_clean_next_actions = TRUE ;
+				$is_sched_lock_end = TRUE ;
 				break ;
 		
 			case 'schednew' :
@@ -197,8 +197,8 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 					}
 				}
 				if( $nb_sched==0 ) {
-					$is_sched_lock = FALSE ;
 					$do_clean_next_actions = TRUE ;
+					$is_sched_lock_end = TRUE ;
 				}
 				break ;
 		}
@@ -231,92 +231,6 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 		$status_next = ($status_change ? $status_change : $post_form['link_status']) ;
 		
 		switch( $post_form['next_action'] ) {
-			case 'LITIG_START' :
-				// LITIG_START ok + LITIG_FOLLOW sched
-				$arr_ins = array() ;
-				$arr_ins['field_LINK_STATUS'] = $status_next ;
-				$arr_ins['field_LINK_ACTION'] = 'LITIG_START' ;
-				$arr_ins['field_STATUS_IS_OK'] = 1 ;
-				$arr_ins['field_DATE_ACTUAL'] = date('Y-m-d H:i:s') ;
-				$arr_ins['field_TXT'] = $post_form['litig_txt'] ;
-				paracrm_lib_data_insertRecord_file( $file_code, $file_filerecord_id, $arr_ins );
-				
-				$arr_ins = array() ;
-				$arr_ins['field_LINK_STATUS'] = $status_next ;
-				$arr_ins['field_LINK_ACTION'] = 'LITIG_FOLLOW' ;
-				$arr_ins['field_DATE_SCHED'] = $post_form['litig_nextdate'] ;
-				paracrm_lib_data_insertRecord_file( $file_code, $file_filerecord_id, $arr_ins );
-				
-				break ;
-			
-			case 'CLOSE_ASK' :
-				// CLOSE_ASK ok + CLOSE_ACK sched
-				$arr_ins = array() ;
-				$arr_ins['field_LINK_STATUS'] = $status_next ;
-				$arr_ins['field_LINK_ACTION'] = 'CLOSE_ASK' ;
-				$arr_ins['field_STATUS_IS_OK'] = 1 ;
-				$arr_ins['field_DATE_ACTUAL'] = date('Y-m-d H:i:s') ;
-				$arr_ins['field_TXT'] = $post_form['close_txt'] ;
-				paracrm_lib_data_insertRecord_file( $file_code, $file_filerecord_id, $arr_ins );
-				
-				$arr_ins = array() ;
-				$arr_ins['field_LINK_STATUS'] = $status_next ;
-				$arr_ins['field_LINK_ACTION'] = 'CLOSE_ACK' ;
-				$arr_ins['field_DATE_SCHED'] = date('Y-m-d',strtotime('+1 day')) ;
-				paracrm_lib_data_insertRecord_file( $file_code, $file_filerecord_id, $arr_ins );
-				
-				break ;
-			
-			case 'AGREE_START' :
-				// AGREE_START ok + AGREE_FOLLOW sched
-				$txt = array() ;
-				$txt[]= 'Promesse réglement '.$post_form['agree_period'] ;
-				$txt[]= 'Montant total : '.$post_form['agree_amount'].' €' ;
-				
-				$arr_ins = array() ;
-				$arr_ins['field_LINK_STATUS'] = $status_next ;
-				$arr_ins['field_LINK_ACTION'] = 'AGREE_START' ;
-				$arr_ins['field_STATUS_IS_OK'] = 1 ;
-				$arr_ins['field_DATE_ACTUAL'] = date('Y-m-d H:i:s') ;
-				$arr_ins['field_TXT'] = explode("\r\n",$txt) ;
-				paracrm_lib_data_insertRecord_file( $file_code, $file_filerecord_id, $arr_ins );
-				
-				switch( $post_form['agree_period'] ) {
-					case 'MONTH' :
-					case 'WEEK' :
-						$nb = $post_form['agree_count'] ;
-						$date = $post_form['agree_datefirst'] ;
-						$amount_each = round($post_form['agree_amount'] / $nb,2) ;
-						break ;
-					case 'SINGLE' :
-						$nb = 1 ;
-						$date = $post_form['agree_date'] ;
-						$amount_each = round($post_form['agree_amount'] / $nb,2) ;
-						break ;
-					default :
-						break ;
-				}
-				for( $i=0 ; $i<$nb ; $i++ ) {
-					$arr_ins = array() ;
-					$arr_ins['field_STATUS_IS_OK'] = 0 ;
-					$arr_ins['field_DATE_SCHED'] = $date ;
-					$arr_ins['field_LINK_STATUS'] = $status_next ;
-					$arr_ins['field_LINK_ACTION'] = 'AGREE_FOLLOW' ;
-					$arr_ins['field_TXT'] = 'Attendu : '.$amount_each.' €' ;
-					paracrm_lib_data_insertRecord_file($file_code,$file_filerecord_id,$arr_ins) ;
-					
-					switch( $post_form['agree_period'] ) {
-						case 'MONTH' :
-							$date = date('Y-m-d',strtotime('+1 month',strtotime($date))) ;
-							break ;
-						case 'WEEK' :
-							$date = date('Y-m-d',strtotime('+1 week',strtotime($date))) ;
-							break ;
-					}
-				}
-				
-				break ;
-			
 			default : // BUMP, CALL, MAIL...
 				$arr_ins = array() ;
 				$arr_ins['field_LINK_STATUS'] = $status_next ;
@@ -327,6 +241,7 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 		}
 	}
 	
+	/*
 	if( $status_change ) {
 		$arr_update = array() ;
 		$arr_update['field_STATUS'] = $status_change ;
@@ -337,6 +252,11 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 		$arr_update['field_STATUS'] = 1 ;
 		$arr_update['field_STATUS_CLOSED'] = 1 ;
 		paracrm_lib_data_updateRecord_file( 'FILE', $arr_update, $file_filerecord_id);
+	}
+	*/
+	
+	if( $is_sched_lock_end ) {
+		specRsiRecouveo_file_lib_close($file_filerecord_id) ;
 	}
 	
 	

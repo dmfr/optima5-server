@@ -1,11 +1,7 @@
 Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextPanel',{
 	extend:'Ext.form.Panel',
 	
-	requires: [
-		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextAgreePanel',
-		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextLitigPanel',
-		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextClosePanel'
-	],
+	requires: [],
 	
 	_fileRecord: null,
 	
@@ -86,19 +82,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextPanel',{
 			nextActionCode = null,
 			nextPlusClass = null ;
 		if( field == nextActionField ) {
-			switch( (nextActionCode=field.getValue()) ) {
-				case 'AGREE_START' :
-					nextPlusClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextAgreePanel' ;
-					break ;
-				case 'LITIG_START' :
-					nextPlusClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextLitigPanel' ;
-					break ;
-				case 'CLOSE_ASK' :
-					nextPlusClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextClosePanel' ;
-					break ;
-			}
-			this.setRightPanel(nextPlusClass) ;
-			
+			nextActionCode = field.getValue() ;
 			var action = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionRowId(nextActionCode) ;
 			if( action ) {
 				this.getForm().findField('next_date').setVisible( action.is_sched ) ;

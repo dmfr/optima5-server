@@ -34,11 +34,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 		}) ;
 		this.callParent() ;
 		this.on('afterrender', function() {
-			this.startAction( this._fileFilerecordId, this._fileActionFilerecordId, this._newActionCode ) ;
+			this.startAction( this._accId, this._fileFilerecordId, this._fileActionFilerecordId, this._newActionCode ) ;
 		},this) ;
 	},
 	
-	startAction: function( fileFilerecordId, fileActionFilerecordId, newActionCode ) {
+	startAction: function( accId, fileFilerecordId, fileActionFilerecordId, newActionCode ) {
+		this._accId = accId ;
 		this._fileFilerecordId = fileFilerecordId ;
 		this._fileActionFilerecordId = fileActionFilerecordId ;
 		this._newActionCode = newActionCode ;
@@ -47,19 +48,23 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_rsi_recouveo',
-				_action: 'file_getRecords',
-				filter_fileFilerecordId_arr: Ext.JSON.encode([this._fileFilerecordId])
+				_action: 'account_open',
+				acc_id: accId
 			},
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
-				if( ajaxResponse.success == false || ajaxResponse.data.length != 1 ) {
+				if( ajaxResponse.success == false ) {
 					Ext.MessageBox.alert('Error','Error') ;
 					return ;
 				}
-				this.onStartResponse(Ext.ux.dams.ModelManager.create(
-					Optima5.Modules.Spec.RsiRecouveo.HelperCache.getFileModel()
-					,ajaxResponse.data[0])
-				) ;
+				
+				var accountRecord = Ext.ux.dams.ModelManager.create( 
+						Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAccountModel(),
+						ajaxResponse.data
+					),
+					fileRecord = accountRecord.files().getById(this._fileFilerecordId) ;
+
+				this.onStartResponse(accountRecord, fileRecord) ;
 			},
 			callback: function() {
 				this.hideLoadmask() ;
@@ -67,7 +72,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 			scope: this
 		}) ;
 	},
-	onStartResponse: function( fileRecord ) {
+	onStartResponse: function( accountRecord, fileRecord ) {
+		this._accountRecord = accountRecord ;
 		this._fileRecord = fileRecord ;
 		
 		var currentAction = this.getCurrentAction() ;
@@ -112,6 +118,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 			
 			optimaModule: this.optimaModule,
 			
+			_accountRecord: this._accountRecord,
 			_fileRecord: this._fileRecord,
 			_actionForm: this,
 			
@@ -127,6 +134,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 				
 				optimaModule: this.optimaModule,
 				
+				_accountRecord: this._accountRecord,
 				_fileRecord: this._fileRecord,
 				_actionForm: this,
 				
@@ -407,7 +415,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 		}) ;
 	},
 	onSaveHeader: function() {
-		this.fireEvent('saved') ;
+		this.fireEvent('saved',this._fileRecord.get('file_filerecord_id')) ;
 		this.optimaModule.postCrmEvent('datachange',{}) ;
 		this.destroy() ;
 	}

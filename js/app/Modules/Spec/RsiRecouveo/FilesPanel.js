@@ -324,7 +324,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			},
 			listeners: {
 				itemdblclick: function( view, record, itemNode, index, e ) {
-					this.handleOpenAccount(record.get('acc_id')) ;
+					this.handleOpenAccount(record.get('acc_id'),record.getId()) ;
 					//this.handleOpenFile(record.get('file_filerecord_id')) ;
 				},
 				scope :this
@@ -723,40 +723,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		this.optimaModule.postCrmEvent('openfile',{fileFilerecordId:fileFilerecordId}) ;
 	},
 	
-	handleOpenAccount: function(accId) {
-		this.optimaModule.postCrmEvent('openaccount',{accId:accId}) ;
-	},
-	
-	getSampleData: function() {
-		var data = [{
-			filerecord_id: 1,
-			atr_bu: 'PMI / PME',
-			atr_div: 'Sols',
-			atr_sect: 'Secteur 3',
-			id_ref: '1234567890',
-			id_txt: 'Plastibert',
-			status_txt: 'Prise contact',
-			status_color: '#A61120',
-			next_action: '<font color="black">2ème appel</font>',
-			next_date: '15/11/2016',
-			inv_nb: '<b>1</b>',
-			inv_amount_due: '<b>580.00</b>&nbsp;&euro;',
-			inv_amount_total: '<b>580.00</b>&nbsp;&euro;'
-		},{
-			filerecord_id: 2,
-			atr_bu: 'Large industries',
-			atr_div: 'Peintures',
-			atr_sect: 'Secteur 1',
-			id_ref: '9876543210',
-			id_txt: 'Solvay SA (SOLB.BE)',
-			status_txt: 'Outils juridiques',
-			status_color: '#FFD13E',
-			next_action: '<font color="red">RDV Tel huissier</font>',
-			next_date: '16/11/2016 <font color="red"><b>9h30</b></font>',
-			inv_nb: '<b>3</b>',
-			inv_amount_due: '<b>2890.49</b>&nbsp;&euro;',
-			inv_amount_total: '<b>3600.59</b>&nbsp;&euro;'
-		}] ;
-		return data ;
+	handleOpenAccount: function(accId,fileFilerecordId) {
+		var objAtrFilter = {} ;
+		Ext.Array.each( this.query('toolbar > [cfgParam_id]'), function(cfgParamBtn) {
+			objAtrFilter[cfgParamBtn.cfgParam_id] = cfgParamBtn.getValue()
+		}) ;
+		
+		this.optimaModule.postCrmEvent('openaccount',{accId:accId, filterAtr:objAtrFilter, focusFileFilerecordId:fileFilerecordId}) ;
 	}
 });

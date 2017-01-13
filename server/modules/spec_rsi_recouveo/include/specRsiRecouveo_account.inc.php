@@ -35,7 +35,7 @@ function specRsiRecouveo_account_open( $post_data ) {
 		'acc_txt' => $arr['field_ACC_NAME'],
 		'acc_siret' => $arr['field_ACC_SIRET']
 	);
-	foreach( $cfg_atr as &$atr_record ) {
+	foreach( $cfg_atr as $atr_record ) {
 		$mkey = $atr_record['bible_code'] ;
 		$account_record[$mkey] = array() ;
 		$query = "SELECT distinct field_{$mkey} FROM view_file_RECORD WHERE field_LINK_ACCOUNT='{$p_accId}'" ;
@@ -74,7 +74,8 @@ function specRsiRecouveo_account_open( $post_data ) {
 	
 	// ************* FILES ****************
 	$filter_fileFilerecordId_arr = array() ;
-	$query = "SELECT f.filerecord_id FROM view_file_FILE f WHERE field_LINK_ACCOUNT='{$p_accId}'" ;
+	$query = "SELECT f.filerecord_id FROM view_file_FILE f 
+		WHERE field_LINK_ACCOUNT='{$p_accId}' AND field_STATUS_CLOSED='0'" ;
 	if( $p_atrFilter ) {
 		foreach( $cfg_atr as $atr_record ) {
 			$mkey = $atr_record['bible_code'] ;
@@ -97,7 +98,7 @@ function specRsiRecouveo_account_open( $post_data ) {
 	
 	
 	
-	
+	// ************* RECORDS ****************
 	
 	
 	

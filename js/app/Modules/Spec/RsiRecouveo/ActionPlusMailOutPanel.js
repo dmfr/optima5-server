@@ -170,13 +170,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel',{
 		
 		
 		var adrNames = [] ;
-		this._fileRecord.adr_postal().each( function(rec) {
+		this._accountRecord.adr_postal().each( function(rec) {
 			adrNames.push({adr_name: rec.get('adr_name')}) ;
 		}) ;
 		this.down('#selectAdrName').getStore().loadData(adrNames) ;
 		
 		var adrNames = [] ;
-		this._fileRecord.adr_tel().each( function(rec) {
+		this._accountRecord.adr_tel().each( function(rec) {
 			adrNames.push({adr_name: rec.get('adr_name')}) ;
 		}) ;
 		this.down('#selectAdrTelName').getStore().loadData(adrNames) ;
@@ -186,7 +186,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel',{
 		var adrName = cmb.getValue(),
 			adrField = this.getForm().findField('adrpost_txt') ;
 		adrField.reset() ;
-		this._fileRecord.adr_postal().each( function(rec) {
+		this._accountRecord.adr_postal().each( function(rec) {
 			if( rec.get('adr_name') == adrName ) {
 				adrField.setValue( rec.get('adr_postal_txt') ) ;
 			}
@@ -197,7 +197,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel',{
 		var adrName = cmb.getValue(),
 			adrField = this.getForm().findField('adrtel_txt') ;
 		adrField.reset() ;
-		this._fileRecord.adr_tel().each( function(rec) {
+		this._accountRecord.adr_tel().each( function(rec) {
 			if( rec.get('adr_name') == adrName ) {
 				adrField.setValue( rec.get('adr_tel_txt') ) ;
 			}

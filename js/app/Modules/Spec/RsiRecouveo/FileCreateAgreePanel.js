@@ -1,4 +1,4 @@
-Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextAgreePanel',{
+Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateAgreePanel',{
 	extend:'Ext.form.Panel',
 	
 	_fileRecord: null,
@@ -71,8 +71,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextAgreePanel',{
 		
 		this.callParent() ;
 		this.onSelectPeriod();
-		
-		this.getForm().findField('agree_amount').setValue( this._fileRecord.get('inv_amount_due') ) ;
 	},
 	
 	onSelectPeriod: function(s) {

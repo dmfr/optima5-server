@@ -1,11 +1,19 @@
-Ext.define('RsiRecouveoFileDetailActionsTreeModel', {
+Ext.define('RsiRecouveoFileDetailRecordsTreeModel', {
     extend: 'Ext.data.Model',
     fields: [
-        {name: 'action_txt',  type: 'string'},
-		  {name: 'action_date', type: 'string'},
-		  {name: 'action_result',  type: 'string'},
-		  {name: 'action_result_pending', type:'boolean'},
-		  {name: 'action_result_ok', type:'boolean'}
+        {name: 'new_is_on',  type: 'boolean'},
+		  {name: 'new_action', type: 'string'},
+ 		  {name: 'new_text', type: 'string'},
+		  {name: 'file_filerecord_id', type: 'int'},
+		  {name: 'file_focus', type: 'boolean'},
+        {name: 'file_id_ref',  type: 'string'},
+        {name: 'file_status',  type: 'string'},
+        {name: 'file_status_color',  type: 'string'},
+		  {name: 'record_filerecord_id', type: 'int'},
+		  {name: 'record_id', type: 'string'},
+		  {name: 'record_date', type: 'date'},
+		  {name: 'record_amount', type: 'number'},
+		  {name: 'record_letter',  type: 'string'}
      ]
 });
 
@@ -14,7 +22,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 	
 	requires: [
 		'Optima5.Modules.Spec.RsiRecouveo.CfgParamField',
-		'Optima5.Modules.Spec.RsiRecouveo.ActionForm'
+		'Optima5.Modules.Spec.RsiRecouveo.ActionForm',
+		'Optima5.Modules.Spec.RsiRecouveo.FileCreateForm'
 	],
 	
 	_readonlyMode: false,
@@ -87,34 +96,34 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				scope:this
 			},'->',{
 				itemId: 'tbNew',
-				icon: 'images/op5img/ico_blocs_small.gif',
-				text: '<b>Nouvelle action</b>',
+				icon: 'images/modules/dbspeople-role-16.png',
+				text: '<b>Action de communication</b>',
 				menu:[{
 					iconCls: 'op5-spec-rsiveo-action-callin',
 					text: 'Appel entrant',
 					handler: function() {
-						this.doNewAction('CALL_IN') ;
+						this.handleNewAction('CALL_IN') ;
 					},
 					scope: this
 				},{
 					iconCls: 'op5-spec-rsiveo-action-callout',
-					text: 'Appel entrant',
+					text: 'Appel sortant',
 					handler: function() {
-						this.doNewAction('CALL_OUT') ;
+						this.handleNewAction('CALL_OUT') ;
 					},
 					scope: this
 				},{
 					iconCls: 'op5-spec-rsiveo-action-mailin',
-					text: 'Appel entrant',
+					text: 'Courrier entrant',
 					handler: function() {
-						this.doNewAction('MAIL_IN') ;
+						this.handleNewAction('MAIL_IN') ;
 					},
 					scope: this
 				},{
 					iconCls: 'op5-spec-rsiveo-action-mailout',
-					text: 'Appel entrant',
+					text: 'Courrier sortant',
 					handler: function() {
-						this.doNewAction('MAIL_OUT') ;
+						this.handleNewAction('MAIL_OUT') ;
 					},
 					scope: this
 				}]
@@ -286,43 +295,132 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					]
 				},{
 					flex: 1,
-					itemId: 'pRecordsGrid',
-					xtype: 'grid',
+					itemId: 'pRecordsTree',
+					xtype: 'treepanel',
+					store: {
+						model: 'RsiRecouveoFileDetailRecordsTreeModel',
+						root: {children:[]},
+						proxy: {
+							type: 'memory' ,
+							reader: {
+								type: 'json'
+							}
+						}
+					},
+					displayField: 'nodeText',
+					rootVisible: false,
+					useArrows: true,
 					columns: [{
-						text: 'Libellé',
-						dataIndex: 'record_id',
-						width: 170
+						xtype: 'treecolumn',
+						text: 'Dossier/Fact',
+						dataIndex: 'id',
+						width: 170,
+						renderer: function( v, meta, r ) {
+							if( r.get('new_is_on') ) {
+								return '<b>'+r.get('new_text')+'</b>' ;
+							}
+							if( !Ext.isEmpty(r.get('file_id_ref')) ) {
+								return '<b>'+r.get('file_id_ref')+'</b>' ;
+							}
+							return r.get('record_id') ;
+						}
 					},{
 						text: 'Lettrage',
-						dataIndex: 'clear_assign',
+						dataIndex: 'record_letter',
 						width: 80
 					},{
 						text: 'Date',
-						dataIndex: 'date_value',
+						dataIndex: 'record_date',
 						align: 'center',
 						width: 80,
 						renderer: Ext.util.Format.dateRenderer('d/m/Y')
 					},{
 						text: 'Montant',
-						dataIndex: 'amount',
+						dataIndex: 'record_amount',
 						align: 'right',
-						width: 80
+						width: 80,
+						renderer: function( v, meta, r ) {
+							if( !Ext.isEmpty(r.get('file_id_ref')) ) {
+								return '<b>'+v+'</b>' ;
+							}
+							return v ;
+						}
 					}],
-					store: {
-						model: Optima5.Modules.Spec.RsiRecouveo.HelperCache.getFileModel(),
-						data: [],
-						sorters:[{
-							property: 'date_value',
-							direction: 'DESC'
+					selModel: {
+						mode: 'MULTI'
+					},
+					listeners: {
+						itemclick: this.onRecordsTreeItemClick,
+						itemcontextmenu: this.onRecordsTreeContextMenu,
+						scope: this
+					},
+					viewConfig: {
+						getRowClass: function(r) {
+							if( r.isRoot() ) {
+								return '' ;
+							}
+							if( r.get('new_is_on') || r.parentNode.get('new_is_on') ) {
+								return 'op5-spec-rsiveo-pom' ;
+							}
+							if( r.get('file_focus') || r.parentNode.get('file_focus') ) {
+								return 'op5-spec-rsiveo-pis' ;
+							}
+						},
+						plugins: {
+							ptype: 'treeviewdragdrop',
+							ddGroup: 'RsiRecouveoFileDetailRecordsTreeDD',
+							dragText: 'Glisser factures pour ajouter au dossier'
+						},
+						listeners: {
+							beforedrop: this.onRecordsTreeDrop,
+							scope: this
+						}
+					},
+					tbar:[{
+						itemId: 'tbNew',
+						icon: 'images/modules/crmbase-bookmark-16.png',
+						text: '<b>Nouvelle action</b>',
+						menu:[{
+							iconCls: 'icon-bible-new',
+							text: 'Ouverture dossier',
+							handler: function() {
+								this.doCreateFile('BUMP') ;
+							},
+							scope: this
+						},{
+							iconCls: 'op5-spec-rsiveo-action-agree',
+							text: 'Promesse règlement',
+							handler: function() {
+								this.doCreateFile('AGREE_START') ;
+							},
+							scope: this
+						},{
+							iconCls: 'op5-spec-rsiveo-action-litig',
+							text: 'Demande d\'action externe',
+							handler: function() {
+								this.doCreateFile('LITIG_START') ;
+							},
+							scope: this
+						},{
+							iconCls: 'op5-spec-rsiveo-action-close',
+							text: 'Demande de clôture',
+							handler: function() {
+								this.doCreateFile('CLOSE_ASK') ;
+							},
+							scope: this
 						}]
-					}
+					}]
 				}]
 			},{
 				flex: 1,
 				itemId: 'tpFileActions',
 				xtype: 'tabpanel',
-				deferredRender: false,
-				items: []
+				deferredRender: true,
+				items: [],
+				listeners: {
+					tabchange: this.onTabChange,
+					scope: this
+				}
 			}]
 		}) ;
 		
@@ -333,7 +431,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		}
 		
 		this.on('afterrender', function() {
-			this.loadAccount( this._accId ) ;
+			this.loadAccount( this._accId, this._filterAtr, this._focusFileFilerecordId ) ;
 		},this) ;
 		this.on('beforedestroy',this.onBeforeDestroy,this) ;
 		
@@ -371,7 +469,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 	
 	
 	
-	loadAccount: function( accId, filterAtr ) {
+	loadAccount: function( accId, filterAtr, focusFileFilerecordId ) {
 		this.showLoadmask() ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
@@ -391,7 +489,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 						Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAccountModel(),
 						ajaxResponse.data
 					),
-					filterAtr
+					filterAtr,
+					focusFileFilerecordId
 				) ;
 			},
 			callback: function() {
@@ -400,86 +499,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			scope: this
 		}) ;
 	},
-	
-	loadFile: function( filerecordId ) {
-		this.showLoadmask() ;
-		this.optimaModule.getConfiguredAjaxConnection().request({
-			params: {
-				_moduleId: 'spec_rsi_recouveo',
-				_action: 'file_getRecords',
-				filter_fileFilerecordId_arr: Ext.JSON.encode([filerecordId])
-			},
-			success: function(response) {
-				var ajaxResponse = Ext.decode(response.responseText) ;
-				if( ajaxResponse.success == false || ajaxResponse.data.length != 1 ) {
-					Ext.MessageBox.alert('Error','Error') ;
-					return ;
-				}
-				this.onLoadFile(Ext.ux.dams.ModelManager.create(
-					Optima5.Modules.Spec.RsiRecouveo.HelperCache.getFileModel()
-					,ajaxResponse.data[0])
-				) ;
-			},
-			callback: function() {
-				this.hideLoadmask() ;
-			},
-			scope: this
-		}) ;
-	},
-	onLoadFile: function( fileRecord ) {
-		this._fileNew = false ;
-		this._fileFilerecordId = fileRecord.getId() ;
-		this._fileRecord = fileRecord ;
-		
-		//fHeader
-		this.down('#pHeaderForm').getForm().reset() ;
-		this.down('#pHeaderForm').getForm().loadRecord(fileRecord) ;
-		if( this._readonlyMode ) {
-			this.down('#pHeaderForm').getForm().getFields().each( function(field) {
-				field.setReadOnly(true) ;
-			});
-		}
-		
-		var adrPostalData = [] ;
-		fileRecord.adr_postal().each( function(rec) {
-			adrPostalData.push(rec.getData()) ;
-		}) ;
-		this.down('#gridAdrPostal').setTabData(adrPostalData) ;
-		
-		var adrTelData = [] ;
-		fileRecord.adr_tel().each( function(rec) {
-			adrTelData.push(rec.getData()) ;
-		}) ;
-		this.down('#gridAdrTel').setTabData(adrTelData) ;
-		
-		
-		this.down('#pRecordsHeader').setData({
-			inv_nb: fileRecord.get('inv_nb'),
-			inv_amount_total: fileRecord.get('inv_amount_total'),
-			inv_amount_due: fileRecord.get('inv_amount_due')
-		});
-		this.down('#pRecordsHeader').setVisible(true) ;
-		
-		var pRecordsGridData = [] ;
-		fileRecord.records().each(function(rec) {
-			pRecordsGridData.push(rec.getData()) ;
-		}) ;
-		this.down('#pRecordsGrid').getStore().loadRawData(pRecordsGridData) ;
-		
-		var pActionsGridData = [] ;
-		fileRecord.actions().each(function(rec) {
-			pActionsGridData.push(rec.getData()) ;
-		}) ;
-		this.down('#pActionsGrid').getStore().loadRawData(pActionsGridData) ;
-		return ;
-	},
-	onLoadAccount: function( accountRecord, filterAtr ) {
+	onLoadAccount: function( accountRecord, filterAtr, focusFileFilerecordId ) {
 		this.loading = true ;
 		this._accId = accountRecord.getId() ;
 		this._filterAtr = filterAtr ;
 		
 		this._accountRecord = accountRecord ;
-		console.dir(accountRecord.files().getRange()) ;
 		
 		//fHeader
 		this.down('#pHeaderForm').getForm().reset() ;
@@ -511,6 +536,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			field.resumeEvents() ;
 		}) ;
 		
+		
 		var adrPostalData = [] ;
 		accountRecord.adr_postal().each( function(rec) {
 			adrPostalData.push(rec.getData()) ;
@@ -523,32 +549,88 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		}) ;
 		this.down('#gridAdrTel').setTabData(adrTelData) ;
 		
+		
 		this.down('#tpFileActions').removeAll() ;
 		accountRecord.files().each( function(fileRecord) {
 			this.onLoadAccountAddFileActions( fileRecord ) ;
 		},this) ;
-		this.loading = false ;
-		return ;
 		
+		
+		var inv_nb = 0, inv_amount_total = 0, inv_amount_due = 0 ;
+		accountRecord.files().each( function(fileRecord) {
+			inv_nb += fileRecord.get('inv_nb') ;
+			inv_amount_total += fileRecord.get('inv_amount_total') ;
+			inv_amount_due += fileRecord.get('inv_amount_due') ;
+		},this) ;
 		this.down('#pRecordsHeader').setData({
-			inv_nb: fileRecord.get('inv_nb'),
-			inv_amount_total: fileRecord.get('inv_amount_total'),
-			inv_amount_due: fileRecord.get('inv_amount_due')
+			inv_nb: inv_nb,
+			inv_amount_total: inv_amount_total,
+			inv_amount_due: inv_amount_due
 		});
 		this.down('#pRecordsHeader').setVisible(true) ;
 		
-		var pRecordsGridData = [] ;
-		fileRecord.records().each(function(rec) {
-			pRecordsGridData.push(rec.getData()) ;
-		}) ;
-		this.down('#pRecordsGrid').getStore().loadRawData(pRecordsGridData) ;
+		this.onLoadAccountBuildRecordsTree(accountRecord) ;
 		
-		var pActionsGridData = [] ;
-		fileRecord.actions().each(function(rec) {
-			pActionsGridData.push(rec.getData()) ;
-		}) ;
-		this.down('#pActionsGrid').getStore().loadRawData(pActionsGridData) ;
+		
+		this.loading = false ;
+		
+		if( focusFileFilerecordId ) {
+			this.setActiveFileId(focusFileFilerecordId) ;
+		} else {
+			this.setActiveFileId() ;
+		}
+		
 		return ;
+	},
+	onLoadAccountBuildRecordsTree: function( accountRecord ) {
+		var statusMap = {} ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getStatusAll(), function(status) {
+			statusMap[status.status_id] = status ;
+		}) ;
+		
+		var pRecordsTreeChildren = [] ;
+		accountRecord.files().each( function(fileRecord) {
+			var pRecordsTreeChildrenRecords = [] ;
+			var totAmountDue = 0 ;
+			fileRecord.records().each( function(fileRecordRecord) {
+				pRecordsTreeChildrenRecords.push({
+					leaf: true,
+					record_filerecord_id: fileRecordRecord.getId(),
+					record_id: fileRecordRecord.get('record_id'),
+					record_date: fileRecordRecord.get('date_value'),
+					record_amount: fileRecordRecord.get('amount'),
+					record_letter: (fileRecordRecord.get('letter_is_on') ? fileRecordRecord.get('letter_code') : '')
+				});
+				totAmountDue += fileRecordRecord.get('amount') ;
+			},this) ;
+			
+			var statusCode = fileRecord.get('status'),
+				statusColor, statusColorNodash ;
+			if( statusMap.hasOwnProperty(statusCode) ) {
+				statusColor = statusMap[statusCode]['status_color'] ;
+				statusColorNodash = statusColor.substring(1) ;
+			}
+			pRecordsTreeChildren.push({
+				iconCls: 'bgcolor-'+statusColorNodash,
+				icon: Ext.BLANK_IMAGE_URL,
+				
+				file_filerecord_id: fileRecord.getId(),
+				file_id_ref: fileRecord.get('id_ref'),
+				file_status: statusCode,
+				file_status_color: statusColor,
+				record_amount: totAmountDue,
+				
+				expanded: true,
+				children: pRecordsTreeChildrenRecords,
+				leaf: false
+			}) ;
+		},this) ;
+		this.down('#pRecordsTree').getStore().setRootNode({root:true, expanded:true, children:pRecordsTreeChildren}) ;
+		
+		var activePanel = this.down('#tpFileActions').getActiveTab() ;
+		if( activePanel ) {
+			this.setActiveFileId( activePanel._fileFilerecordId ) ;
+		}
 	},
 	onLoadAccountAddFileActions: function( fileRecord ) {
 		var statusMap = {} ;
@@ -564,7 +646,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		
 		
 		
-		var pFileTitle = fileRecord.get('id_ref') ;
+		var pFileTitle = fileRecord.get('id_ref'),
+			pAccId = fileRecord.get('acc_id') ;
+		if( pFileTitle.indexOf(pAccId+'/') === 0 ) {
+			pFileTitle = pFileTitle.substring(pAccId.length+1) ;
+		}
 		var pActionsGridData = [] ;
 		fileRecord.actions().each(function(rec) {
 			pActionsGridData.push(rec.getData()) ;
@@ -581,7 +667,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		
 		var tabPanel = this.down('#tpFileActions') ;
 		tabPanel.add({
-			closable: true,
+			_fileFilerecordId: fileRecord.getId(),
 			title: pFileTitle,
 			iconCls: statusIconCls,
 			xtype: 'grid',
@@ -673,11 +759,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			listeners: {
 				itemclick: function( view, record, itemNode, index, e ) {
 					var cellNode = e.getTarget( view.getCellSelector() ),
-						cellColumn = view.getHeaderByCell( cellNode ) ;
+						cellColumn = view.getHeaderByCell( cellNode ),
+						fileRecord = view.up('grid')._fileRecord ;
 					if( cellColumn.dataIndex == 'status_is_ok'
-						&& this._fileRecord.get('next_fileaction_filerecord_id') == record.get('fileaction_filerecord_id') ) {
+						&& fileRecord.get('next_fileaction_filerecord_id') == record.get('fileaction_filerecord_id') ) {
 							
-						this.doNextAction( record.get('fileaction_filerecord_id') ) ;
+						this.doNextAction( fileRecord, record.get('fileaction_filerecord_id') ) ;
 					}
 				},
 				scope: this
@@ -685,8 +772,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		});
 		
 	},
-	doReload: function() {
-		this.loadAccount( this._accId, this._filterAtr ) ;
+	doReload: function(focusFileFilerecordId) {
+		this.loadAccount( this._accId, this._filterAtr, focusFileFilerecordId ) ;
 	},
 	
 	
@@ -705,6 +792,52 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		}) ;
 		
 		this.loadAccount( this._accId, filterAtr ) ;
+	},
+	
+	
+	onRecordsTreeItemClick: function(view, record, item, index, event) {
+		if( record.get('file_filerecord_id') > 0 ) {
+			this.setActiveFileId(record.get('file_filerecord_id')) ;
+		}
+	},
+	onTabChange: function(tabPanel , newCard , oldCard) {
+		this.setActiveFileId(newCard._fileFilerecordId) ;
+	},
+	setActiveFileId: function( fileFilerecordId ) {
+		var tabPanel = this.down('#tpFileActions'),
+			recordsTree = this.down('#pRecordsTree') ;
+			  
+		if( !fileFilerecordId ) {
+			// 1er fichier ?
+			var isFirst = true ;
+			recordsTree.getRootNode().cascadeBy( function(r) {
+				if( !Ext.isEmpty(r.get('file_id_ref')) ) {
+					r.set('file_focus',isFirst) ;
+					isFirst = false ;
+					return false ;
+				}
+			}) ;
+			recordsTree.getView().refresh() ;
+			tabPanel.setActiveTab(0) ;
+			return ;
+		}
+		
+		recordsTree.getRootNode().cascadeBy( function(r) {
+			if( r.get('file_filerecord_id') > 0 ) {
+				r.set('file_focus',r.get('file_filerecord_id')==fileFilerecordId) ;
+				isFirst = false ;
+				return false ;
+			}
+		}) ;
+		recordsTree.getView().refresh() ;
+		tabPanel.items.each( function(panel) {
+			if( panel._fileFilerecordId == fileFilerecordId ) {
+				tabPanel.setActiveTab(panel) ;
+			}
+		});
+		
+		var fileRec = this._accountRecord.files().getById(fileFilerecordId) ;
+		this.down('toolbar').down('#tbNew').setDisabled( fileRec.statusIsSchedNone() )  ;
 	},
 	
 	
@@ -750,29 +883,34 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 	},
 	
 	
-	doNewAction: function(actionCode,force) {
+	handleNewAction: function(actionCode) {
+		var activePanel = this.down('#tpFileActions').getActiveTab(),
+			fileRecord = this._accountRecord.files().getById(activePanel._fileFilerecordId) ;
+		this.doNewAction( fileRecord, actionCode, false) ;
+	},
+	doNewAction: function(fileRecord, actionCode,force) {
 		if( !force
-			&& this._fileRecord.get('next_fileaction_filerecord_id') > 0
-			&& this._fileRecord.get('next_action') == actionCode ) {
+			&& fileRecord.get('next_fileaction_filerecord_id') > 0
+			&& fileRecord.get('next_action') == actionCode ) {
 			
 			var msg = 'Prochaine action planifiée du même type.<br>Effectuer quand même une action spontanée ?' ;
 			Ext.MessageBox.confirm('Attention',msg, function(btn) {
 				if( btn =='yes' ) {
-					this.doNewAction(actionCode,true) ;
+					this.doNewAction(fileRecord, actionCode,true) ;
 				}
 			},this) ;
 			return ;
 		}
-		this.openActionPanel(null,actionCode) ;
+		this.openActionPanel(fileRecord, null,actionCode) ;
 	},
-	doNextAction: function(fileActionFilerecordId) {
-		if( fileActionFilerecordId != this._fileRecord.get('next_fileaction_filerecord_id') ) {
+	doNextAction: function(fileRecord, fileActionFilerecordId) {
+		if( fileActionFilerecordId != fileRecord.get('next_fileaction_filerecord_id') ) {
 			Ext.MessageBox.alert('Error','Erreur, action non valide ?') ;
 			return ;
 		}
-		this.openActionPanel(fileActionFilerecordId) ;
+		this.openActionPanel(fileRecord, fileActionFilerecordId) ;
 	},
-	openActionPanel: function( fileActionFilerecordId, newActionCode ) {
+	openActionPanel: function( fileRecord, fileActionFilerecordId, newActionCode ) {
 		if( this._readonlyMode ) {
 			return ;
 		}
@@ -780,7 +918,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		var actionPanel = Ext.create('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 			optimaModule: this.optimaModule,
 			
-			_fileFilerecordId: this._fileFilerecordId,
+			_accId: this._accountRecord.get('acc_id'),
+			_fileFilerecordId: fileRecord.get('file_filerecord_id'),
 			_fileActionFilerecordId: fileActionFilerecordId,
 			_newActionCode: newActionCode,
 			
@@ -801,8 +940,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			title: 'Action sur dossier'
 		});
 		
-		actionPanel.on('saved',function() {
-			this.doReload() ;
+		actionPanel.on('saved',function(fileFilerecordId) {
+			this.doReload(fileFilerecordId) ;
 		},this) ;
 		actionPanel.on('destroy',function(validConfirmPanel) {
 			this.getEl().unmask() ;
@@ -824,8 +963,130 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 	},
 	
 	
-	
-	
+	doCreateFile: function( actionCode ) {
+		var actionRow = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionRowId(actionCode) ;
+		
+		var recordsTree = this.down('#pRecordsTree'),
+			recordsTreeRoot = this.down('#pRecordsTree').getRootNode() ;
+		recordsTreeRoot.insertChild(0,{
+			new_is_on: true,
+			new_text: actionRow.action_txt,
+			new_action: actionCode,
+			expanded: true,
+			children: []
+		});
+		recordsTree.scrollTo(0) ;
+	},
+	onRecordsTreeDrop: function(node, data, overModel, dropPosition, dropHandlers) {
+		if( !(overModel.get('new_is_on') && dropPosition == 'append') ) {
+			return false ;
+		}
+		var valid = true ;
+		Ext.Array.each( data.records, function( dragRecord ) {
+			if( Ext.isEmpty(dragRecord.get('record_id')) ) {
+				valid = false ;
+			}
+		},this) ;
+		return valid ;
+	},
+	onRecordsTreeContextMenu: function(view, record, item, index, event) {
+		var treeContextMenuItems = new Array() ;
+		if( record.get('new_is_on') ) {
+			treeContextMenuItems.push({
+				iconCls: 'icon-bible-delete',
+				text: 'Abandonner nouvelle action',
+				handler : function() {
+					this.onLoadAccountBuildRecordsTree(this._accountRecord) ;
+				},
+				scope : this
+			});
+			treeContextMenuItems.push({
+				iconCls: 'icon-bible-new',
+				text: 'Confimer sélection & Paramétrer',
+				handler : function() {
+					this.doCreateFileSelection(record) ;
+				},
+				scope : this
+			});
+		}
+		
+		if( treeContextMenuItems.length == 0 ) {
+			return ;
+		};
+		
+		var treeContextMenu = Ext.create('Ext.menu.Menu',{
+			items : treeContextMenuItems,
+			listeners: {
+				hide: function(menu) {
+					Ext.defer(function(){menu.destroy();},10) ;
+				}
+			}
+		}) ;
+		
+		treeContextMenu.showAt(event.getXY());
+		
+	},
+	doCreateFileSelection: function(treeRecordNew) {
+		var accId = this._accountRecord.get('acc_id'),
+			arr_recordIds = [],
+			newActionCode = treeRecordNew.get('new_action') ;
+		treeRecordNew.cascadeBy(function(treeRecord) {
+			if( !Ext.isEmpty(treeRecord.get('record_filerecord_id')) ) {
+				arr_recordIds.push(treeRecord.get('record_filerecord_id')) ;
+			}
+		}) ;
+		this.openCreatePanel(accId,arr_recordIds,newActionCode) ;
+	},
+	openCreatePanel: function( accId, arr_recordIds, newActionCode ) {
+		if( this._readonlyMode ) {
+			return ;
+		}
+		var postParams = {} ;
+		var actionPanel = Ext.create('Optima5.Modules.Spec.RsiRecouveo.FileCreateForm',{
+			optimaModule: this.optimaModule,
+			
+			_accId: accId,
+			_arr_recordIds: arr_recordIds,
+			_newActionCode: newActionCode,
+			
+			minWidth:350, 
+			minHeight:350,
+			floating: true,
+			draggable: true,
+			resizable: true,
+			renderTo: this.getEl(),
+			tools: [{
+				type: 'close',
+				handler: function(e, t, p) {
+					p.ownerCt.destroy();
+				},
+				scope: this
+			}],
+			
+			title: 'Nouveau dossier'
+		});
+		
+		actionPanel.on('created',function(newFileFilerecordId) {
+			this.doReload(newFileFilerecordId) ;
+		},this) ;
+		actionPanel.on('destroy',function(validConfirmPanel) {
+			this.getEl().unmask() ;
+			this.floatingPanel = null ;
+		},this,{single:true}) ;
+		
+		this.getEl().mask() ;
+		
+		actionPanel.on('mylayout', function(actionPanel) {
+			actionPanel.updateLayout() ;
+			actionPanel.setSize( actionPanel.getWidth() , actionPanel.getHeight() ) ;
+			actionPanel.getEl().alignTo(this.getEl(), 'c-c?');
+		},this) ;
+		actionPanel.getEl().alignTo(this.getEl(), 'c-c?');
+		actionPanel.show();
+		
+		
+		this.floatingPanel = actionPanel ;
+	},
 	
 	onBeforeDestroy: function() {
 		if( this._isDirty ) {

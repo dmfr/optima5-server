@@ -45,7 +45,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			}
 		}
 		if( !$filter_archiveIsOn ) {
-			$query.= " AND f.field_STATUS <> ''" ;
+			$query.= " AND f.field_STATUS_CLOSED='0'" ;
 		}
 	}
 	$query.= " ORDER BY f.filerecord_id DESC" ;
@@ -95,7 +95,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			}
 		}
 		if( !$filter_archiveIsOn ) {
-			$query.= " AND f.field_STATUS <> ''" ;
+			$query.= " AND f.field_STATUS_CLOSED='0'" ;
 		}
 	}
 	$result = $_opDB->query($query) ;
@@ -132,7 +132,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			}
 		}
 		if( !$filter_archiveIsOn ) {
-			$query.= " AND f.field_STATUS <> ''" ;
+			$query.= " AND f.field_STATUS_CLOSED='0'" ;
 		}
 	}
 	$result = $_opDB->query($query) ;
@@ -154,8 +154,8 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			'date_record' => $arr['field_DATE_RECORD'],
 			'date_value' => $arr['field_DATE_VALUE'],
 			'amount' => $arr['field_AMOUNT'],
-			'clear_is_on' => ($arr['field_CLEAR_IS_ON']==1),
-			'clear_assign' => $arr['field_CLEAR_ASSIGN']
+			'letter_is_on' => ($arr['field_LETTER_IS_ON']==1),
+			'letter_code' => $arr['field_LETTER_CODE']
 		);
 		
 		if( !isset($TAB_files[$file_filerecord_id]) ) {
@@ -500,6 +500,434 @@ function specRsiRecouveo_file_searchSuggest( $post_data ) {
 
 	return array('success'=>true, 'data'=>$tab_result) ;
 }
+
+
+
+
+
+
+
+
+function specRsiRecouveo_file_createForAction( $post_data ) {
+	global $_opDB ;
+	
+	$ttmp = specRsiRecouveo_cfg_getConfig() ;
+	$cfg_atr = $ttmp['data']['cfg_atr'] ;
+	$cfg_status = $ttmp['data']['cfg_status'] ;
+	$map_status = array() ;
+	foreach( $cfg_status as $status ) {
+		$map_status[$status['status_id']] = $status ;
+	}
+	$cfg_action = $ttmp['data']['cfg_action'] ;
+	$map_action = array() ;
+	foreach( $cfg_action as $action ) {
+		$map_action[$action['action_id']] = $action ;
+	}
+	
+	$p_accId = $post_data['acc_id'] ;
+	$p_arr_recordIds = json_decode($post_data['arr_recordIds'],true) ;
+	$p_newActionCode = $post_data['new_action_code'] ;
+	$_formData = json_decode($post_data['form_data'],true) ;
+	
+	$json = specRsiRecouveo_account_open( array('acc_id'=>$p_accId) ) ;
+	if( !$json['success'] ) {
+		return array('success'=>false) ;
+	}
+	$account_record = $json['data'] ;
+	
+	
+	// Statut existant
+	$current_status = array() ;
+	foreach( $account_record['files'] as $accFile_record ) {
+		foreach( $accFile_record['records'] as $accFileRecord_record ) {
+			if( in_array($accFileRecord_record['record_filerecord_id'],$p_arr_recordIds)
+					&& !in_array($accFile_record['status'],$current_status) ) {
+				$current_status[] = $accFile_record['status'] ;
+			}
+		}
+	}
+	if( count($current_status) != 1 ) {
+		return array('success'=>false, 'error'=>'Cannot find current status') ;
+	}
+	$current_status = reset($current_status) ;
+	
+	// Statut cible
+	$ttmp = $map_action[$p_newActionCode]['status_next'] ;
+	$new_status = reset($ttmp) ;
+	
+	if( $current_status == $new_status ) {
+		return array('success'=>false, 'error'=>'Identical status') ;
+	}
+	
+	
+	// File name
+	switch( $p_newActionCode ) {
+		case 'AGREE_START' :
+			$filename_prefix = $p_accId.'/'.'PAY'.'/' ;
+			break ;
+		
+		case 'LITIG_START' :
+			$filename_prefix = $p_accId.'/'.'ACT'.'/' ;
+			break ;
+	
+		case 'CLOSE_ASK' :
+			$filename_prefix = $p_accId.'/'.'CLOSE'.'/' ;
+			break ;
+		
+		default :
+			break ;
+	}
+	if( !$filename_prefix ) {
+		// existing filename
+		$filename = array() ;
+		foreach( $account_record['files'] as $accFile_record ) {
+			foreach( $accFile_record['records'] as $accFileRecord_record ) {
+				if( in_array($accFileRecord_record['record_filerecord_id'],$p_arr_recordIds) ) {
+					$filename[] = $accFile_record['id_ref'] ;
+					break ;
+				}
+			}
+		}
+		if( count($filename) != 1 ) {
+			return array('success'=>false, 'error'=>'Cannot find unique filename') ;
+		}
+		$filename = reset($filename) ;
+	} else {
+		$i = 1 ;
+		while( $i < 100 ) {
+			$filename_test = $filename_prefix.str_pad((int)$i, 2, "0", STR_PAD_LEFT) ;
+			$query = "SELECT count(*) FROM view_file_FILE WHERE field_FILE_ID='{$filename_test}'" ;
+			if( $_opDB->query_uniqueValue($query) == 0 ) {
+				$filename = $filename_test ;
+				break ;
+			}
+			continue ;
+		}
+	}
+	
+	
+	// Si statut cible = schedlock
+	// => recherche fichier existant du meme nom
+	if( !$map_status[$new_status]['sched_lock'] ) {
+		$query = "SELECT filerecord_id FROM view_file_FILE 
+				WHERE field_FILE_ID='{$filename}' AND field_STATUS='{$new_status}'" ;
+		if( !($file_filerecord_id = $_opDB->query_uniqueValue($query)) ) {
+			unset($file_filerecord_id) ;
+		}
+	}
+	
+	
+	// Create new file
+	if( !$file_filerecord_id ) {
+		$arr_ins = array() ;
+		$arr_ins['field_FILE_ID'] = $filename ;
+		$arr_ins['field_LINK_ACCOUNT'] = $account_record['acc_id'] ;
+			// ATRs
+			$map_atr_values = array() ;
+			foreach( $cfg_atr as $atr_record ) {
+				$mkey = $atr_record['bible_code'] ;
+				$map_atr_values[$mkey] = array() ;
+			}
+			foreach( $account_record['files'] as $accFile_record ) {
+				foreach( $accFile_record['records'] as $accFileRecord_record ) {
+					if( !in_array($accFileRecord_record['record_filerecord_id'],$p_arr_recordIds) ) {
+						continue ;
+					}
+					foreach( $cfg_atr as $atr_record ) {
+						$mkey = $atr_record['bible_code'] ;
+						if( !in_array($accFile_record[$mkey], $map_atr_values[$mkey]) ) {
+							$map_atr_values[$mkey][] = $accFileRecord_record[$mkey] ;
+						}
+					}
+				}
+			}
+		foreach( $map_atr_values as $mkey => $values ) {
+			if( count($values) != 1 ) {
+				return array('success'=>false, 'error'=>'Cannot find unique '.$mkey) ;
+			}
+			$arr_ins['field_'.$mkey] = reset($values) ;
+		}
+		$arr_ins['field_STATUS'] = $new_status ;
+		$arr_ins['field_DATE_OPEN'] = date('Y-m-d H:i:s') ;
+		$file_filerecord_id = paracrm_lib_data_insertRecord_file( 'FILE', 0, $arr_ins );
+	}
+	
+	
+	// Action mutation
+	$arr_recordsTxt = array() ;
+	foreach( $account_record['files'] as $accFile_record ) {
+		$arr_recordsTxtFile = array() ;
+		foreach( $accFile_record['records'] as $accFileRecord_record ) {
+			if( !in_array($accFileRecord_record['record_filerecord_id'],$p_arr_recordIds) ) {
+				continue ;
+			}
+			
+			// Ids de facture
+			$arr_recordsTxt[] = $accFileRecord_record['record_id'] ;
+			$arr_recordsTxtFile[] = $accFileRecord_record['record_id'] ;
+			
+			// Terminaison du lien
+			$query = "SELECT filerecord_id FROM view_file_RECORD_LINK 
+				WHERE filerecord_parent_id='{$accFileRecord_record['record_filerecord_id']}' AND field_LINK_IS_ON='1'" ;
+			$recordlink_filerecord_id = $_opDB->query_uniqueValue($query) ;
+			$arr_update = array() ;
+			$arr_update['field_LINK_IS_ON'] = 0 ;
+			$arr_udpate['field_DATE_LINK_OFF'] = date('Y-m-d H:i:s') ;
+			paracrm_lib_data_updateRecord_file( 'RECORD_LINK', $arr_update, $recordlink_filerecord_id);
+			
+			// Nouveau lien
+			$arr_ins = array() ;
+			$arr_ins['field_LINK_FILE_ID'] = $file_filerecord_id ;
+			$arr_ins['field_LINK_IS_ON'] = 1 ;
+			$arr_ins['field_DATE_LINK_ON'] = date('Y-m-d H:i:s') ;
+			paracrm_lib_data_insertRecord_file( 'RECORD_LINK', $accFileRecord_record['record_filerecord_id'], $arr_ins );
+		}
+		
+		if( count($arr_recordsTxtFile) == 0 ) {
+			continue ;
+		}
+		
+		$txt = '' ;
+		$txt.= $map_action[$p_newActionCode]['action_txt']."\r\n" ;
+		$txt.= 'Factures : '.implode(',',$arr_recordsTxtFile)."\r\n" ;
+		
+		$arr_ins = array() ;
+		$arr_ins['field_LINK_STATUS'] = $new_status ;
+		$arr_ins['field_LINK_ACTION'] = $p_newActionCode ;
+		$arr_ins['field_STATUS_IS_OK'] = 1 ;
+		$arr_ins['field_DATE_ACTUAL'] = date('Y-m-d H:i:s') ;
+		$arr_ins['field_TXT'] = $txt ;
+		paracrm_lib_data_insertRecord_file( 'FILE_ACTION', $accFile_record['file_filerecord_id'], $arr_ins );
+	}
+	
+	// New action(s) on new file
+	$file_code = 'FILE_ACTION' ;
+	$status_next = $new_status ;
+	switch( $p_newActionCode ) {
+		case 'LITIG_START' :
+			// LITIG_START ok + LITIG_FOLLOW sched
+			$arr_ins = array() ;
+			$arr_ins['field_LINK_STATUS'] = $status_next ;
+			$arr_ins['field_LINK_ACTION'] = 'LITIG_START' ;
+			$arr_ins['field_STATUS_IS_OK'] = 1 ;
+			$arr_ins['field_DATE_ACTUAL'] = date('Y-m-d H:i:s') ;
+			$arr_ins['field_TXT'] = $_formData['litig_txt'] ;
+			paracrm_lib_data_insertRecord_file( $file_code, $file_filerecord_id, $arr_ins );
+			
+			$arr_ins = array() ;
+			$arr_ins['field_LINK_STATUS'] = $status_next ;
+			$arr_ins['field_LINK_ACTION'] = 'LITIG_FOLLOW' ;
+			$arr_ins['field_DATE_SCHED'] = $_formData['litig_nextdate'] ;
+			paracrm_lib_data_insertRecord_file( $file_code, $file_filerecord_id, $arr_ins );
+			
+			break ;
+		
+		case 'CLOSE_ASK' :
+			// CLOSE_ASK ok + CLOSE_ACK sched
+			$arr_ins = array() ;
+			$arr_ins['field_LINK_STATUS'] = $status_next ;
+			$arr_ins['field_LINK_ACTION'] = 'CLOSE_ASK' ;
+			$arr_ins['field_STATUS_IS_OK'] = 1 ;
+			$arr_ins['field_DATE_ACTUAL'] = date('Y-m-d H:i:s') ;
+			$arr_ins['field_TXT'] = $_formData['close_txt'] ;
+			paracrm_lib_data_insertRecord_file( $file_code, $file_filerecord_id, $arr_ins );
+			
+			$arr_ins = array() ;
+			$arr_ins['field_LINK_STATUS'] = $status_next ;
+			$arr_ins['field_LINK_ACTION'] = 'CLOSE_ACK' ;
+			$arr_ins['field_DATE_SCHED'] = date('Y-m-d',strtotime('+1 day')) ;
+			paracrm_lib_data_insertRecord_file( $file_code, $file_filerecord_id, $arr_ins );
+			
+			break ;
+		
+		case 'AGREE_START' :
+			// AGREE_START ok + AGREE_FOLLOW sched
+			$txt = array() ;
+			$txt[]= 'Promesse réglement '.$_formData['agree_period'] ;
+			$txt[]= 'Montant total : '.$_formData['agree_amount'].' €' ;
+			
+			$arr_ins = array() ;
+			$arr_ins['field_LINK_STATUS'] = $status_next ;
+			$arr_ins['field_LINK_ACTION'] = 'AGREE_START' ;
+			$arr_ins['field_STATUS_IS_OK'] = 1 ;
+			$arr_ins['field_DATE_ACTUAL'] = date('Y-m-d H:i:s') ;
+			$arr_ins['field_TXT'] = implode("\r\n",$txt) ;
+			paracrm_lib_data_insertRecord_file( $file_code, $file_filerecord_id, $arr_ins );
+			
+			switch( $_formData['agree_period'] ) {
+				case 'MONTH' :
+				case 'WEEK' :
+					$nb = $_formData['agree_count'] ;
+					$date = $_formData['agree_datefirst'] ;
+					$amount_each = round($_formData['agree_amount'] / $nb,2) ;
+					break ;
+				case 'SINGLE' :
+					$nb = 1 ;
+					$date = $_formData['agree_date'] ;
+					$amount_each = round($_formData['agree_amount'] / $nb,2) ;
+					break ;
+				default :
+					break ;
+			}
+			for( $i=0 ; $i<$nb ; $i++ ) {
+				$arr_ins = array() ;
+				$arr_ins['field_STATUS_IS_OK'] = 0 ;
+				$arr_ins['field_DATE_SCHED'] = $date ;
+				$arr_ins['field_LINK_STATUS'] = $status_next ;
+				$arr_ins['field_LINK_ACTION'] = 'AGREE_FOLLOW' ;
+				$arr_ins['field_TXT'] = 'Attendu : '.$amount_each.' €' ;
+				paracrm_lib_data_insertRecord_file($file_code,$file_filerecord_id,$arr_ins) ;
+				
+				switch( $_formData['agree_period'] ) {
+					case 'MONTH' :
+						$date = date('Y-m-d',strtotime('+1 month',strtotime($date))) ;
+						break ;
+					case 'WEEK' :
+						$date = date('Y-m-d',strtotime('+1 week',strtotime($date))) ;
+						break ;
+				}
+			}
+			
+			break ;
+		
+		default :
+			// au moins une action en attente => sinon BUMP
+			$query = "SELECT count(*) FROM view_file_FILE_ACTION
+						WHERE filerecord_parent_id='{$file_filerecord_id}' AND field_STATUS_IS_OK='0'" ;
+			if( $_opDB->query_uniqueValue($query) == 0 ) {
+				$arr_ins = array() ;
+				$arr_ins['field_LINK_STATUS'] = $new_status ;
+				$arr_ins['field_LINK_ACTION'] = 'BUMP' ;
+				$arr_ins['field_STATUS_IS_OK'] = 0 ;
+				$arr_ins['field_DATE_SCHED'] = date('Y-m-d') ;
+				paracrm_lib_data_insertRecord_file( $file_code, $file_filerecord_id, $arr_ins );
+			}
+			break ;
+	}
+	
+	specRsiRecouveo_file_lib_updateStatus($account_record['acc_id']) ;
+	return array('success'=>true,'file_filerecord_id'=>$file_filerecord_id) ;
+}
+
+
+
+
+
+
+
+
+function specRsiRecouveo_file_lib_createForAction( $file_row, $action_id ) {
+
+	// fichier(s) origine => close if empty
+}
+function specRsiRecouveo_file_lib_close( $file_filerecord_id ) {
+	global $_opDB ;
+	
+	$ttmp = specRsiRecouveo_cfg_getConfig() ;
+	$cfg_atr = $ttmp['data']['cfg_atr'] ;
+	$cfg_status = $ttmp['data']['cfg_status'] ;
+	$map_status = array() ;
+	foreach( $cfg_status as $status ) {
+		$map_status[$status['status_id']] = $status ;
+	}
+	$cfg_action = $ttmp['data']['cfg_action'] ;
+	$map_action = array() ;
+	foreach( $cfg_action as $action ) {
+		$map_action[$action['action_id']] = $action ;
+	}
+	
+	$ttmp = specRsiRecouveo_file_getRecords( array(
+		'filter_fileFilerecordId_arr' => json_encode(array($file_filerecord_id))
+	)) ;
+	$accFile_record = $ttmp['data'][0] ;
+	if( $accFile_record['file_filerecord_id'] != $file_filerecord_id ) {
+		return array('success'=>false) ;
+	}
+	
+	// schedLock only
+	if( !$map_status[$accFile_record['status']]['sched_lock'] ) {
+		echo "ERRRRRRROR" ;
+		return ;
+	}
+	
+	// reintégration dans ficher origine (+reouverture)
+	$map_fileFilerecordId_arrRecordsTxt = array() ;
+	foreach( $accFile_record['records'] as $accFileRecord_record ) {
+		$query = "SELECT field_LINK_FILE_ID FROM view_file_RECORD_LINK
+				WHERE filerecord_parent_id='{$accFileRecord_record['record_filerecord_id']}' AND field_LINK_IS_ON='0'
+				ORDER BY filerecord_id DESC LIMIT 1" ;
+		$dst_file_filerecord_id = $_opDB->query_uniqueValue($query) ;
+		
+		if( !$map_fileFilerecordId_arrRecordsTxt[$dst_file_filerecord_id] ) {
+			$map_fileFilerecordId_arrRecordsTxt[$dst_file_filerecord_id] = array() ;
+		}
+		$map_fileFilerecordId_arrRecordsTxt[$dst_file_filerecord_id][] = $accFileRecord_record['record_id'] ;
+		
+		// terminaison du lien
+		$query = "SELECT filerecord_id FROM view_file_RECORD_LINK 
+			WHERE filerecord_parent_id='{$accFileRecord_record['record_filerecord_id']}' AND field_LINK_IS_ON='1'" ;
+		$recordlink_filerecord_id = $_opDB->query_uniqueValue($query) ;
+		$arr_update = array() ;
+		$arr_update['field_LINK_IS_ON'] = 0 ;
+		$arr_udpate['field_DATE_LINK_OFF'] = date('Y-m-d H:i:s') ;
+		paracrm_lib_data_updateRecord_file( 'RECORD_LINK', $arr_update, $recordlink_filerecord_id);
+		
+		// Nouveau lien
+		$arr_ins = array() ;
+		$arr_ins['field_LINK_FILE_ID'] = $dst_file_filerecord_id ;
+		$arr_ins['field_LINK_IS_ON'] = 1 ;
+		$arr_ins['field_DATE_LINK_ON'] = date('Y-m-d H:i:s') ;
+		paracrm_lib_data_insertRecord_file( 'RECORD_LINK', $accFileRecord_record['record_filerecord_id'], $arr_ins );
+	}
+	
+	// new action done sur fichiers dest
+	foreach( $map_fileFilerecordId_arrRecordsTxt as $dst_file_filerecord_id => $arr_recordsTxtFile ) {
+		$txt = '' ;
+		$txt.= "Dossier {$accFile_record['id_ref']} fermé/refusé"."\r\n" ;
+		$txt.= 'Factures : '.implode(',',$arr_recordsTxtFile)."\r\n" ;
+		
+		$arr_ins = array() ;
+		$arr_ins['field_LINK_STATUS'] = $accFile_record['status'] ;
+		$arr_ins['field_LINK_ACTION'] = 'BUMP' ;
+		$arr_ins['field_STATUS_IS_OK'] = 1 ;
+		$arr_ins['field_DATE_ACTUAL'] = date('Y-m-d H:i:s') ;
+		$arr_ins['field_TXT'] = $txt ;
+		paracrm_lib_data_insertRecord_file( 'FILE_ACTION', $dst_file_filerecord_id, $arr_ins );
+		
+		$query = "SELECT count(*) FROM view_file_FILE_ACTION
+					WHERE filerecord_parent_id='{$dst_file_filerecord_id}' AND field_STATUS_IS_OK='0'" ;
+		if( $_opDB->query_uniqueValue($query) == 0 ) {
+			$arr_ins = array() ;
+			$arr_ins['field_LINK_STATUS'] = $new_status ;
+			$arr_ins['field_LINK_ACTION'] = 'BUMP' ;
+			$arr_ins['field_STATUS_IS_OK'] = 0 ;
+			$arr_ins['field_DATE_SCHED'] = date('Y-m-d') ;
+			paracrm_lib_data_insertRecord_file( $file_code, $dst_file_filerecord_id, $arr_ins );
+		}
+	}
+	
+	
+	specRsiRecouveo_file_lib_updateStatus( $accFile_record['acc_id'] ) ;
+}
+
+
+
+function specRsiRecouveo_file_lib_updateStatus( $acc_id ) {
+	$json = specRsiRecouveo_account_open( array('acc_id'=>$acc_id) ) ;
+	if( !$json['success'] ) {
+		return array('success'=>false) ;
+	}
+	$account_record = $json['data'] ;
+	
+	foreach( $account_record['files'] as $accFile_record ) {
+		$arr_update = array() ;
+		$arr_update['field_STATUS_CLOSED'] = !(count($accFile_record['records'])>0) ;
+		paracrm_lib_data_updateRecord_file( 'FILE', $arr_update, $accFile_record['file_filerecord_id']);
+	}
+}
+
+
+
 
 
 

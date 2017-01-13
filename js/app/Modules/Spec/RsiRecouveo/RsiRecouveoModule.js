@@ -32,6 +32,12 @@ Ext.define('RsiRecouveoFileTplModel',{ // TO: RsiRecouveoFileModel
 			isSchedLock = !!(statusRow && statusRow.sched_lock) ;
 		return isSchedLock ;
 	},
+	statusIsSchedNone: function() {
+		var fileStatus = this.get('status'),
+			statusRow = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getStatusRowId(fileStatus),
+			isSchedNone = !!(statusRow && statusRow.sched_none) ;
+		return isSchedNone ;
+	},
 	getNextXAction: function(x) {
 		var pendingActions = [] ;
 		this.actions().each( function(fileActionRecord) {
@@ -63,17 +69,8 @@ Ext.define('RsiRecouveoFileTplModel',{ // TO: RsiRecouveoFileModel
 		var statusCode = this.get('status'),
 			isSchedLock = this.statusIsSchedLock() ;
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionAll(), function(action) {
-			if( !Ext.isEmpty(action.status_open) ) {
-				if( Ext.Array.contains(action.status_open,statusCode) ) {
-					availableActions.push(action) ;
-				}
+			if( !action.is_direct ) {
 				return ;
-			}
-			if( isSchedLock && (action.is_sched||action.is_direct) ) {
-				return ;
-			}
-			if( !Ext.isEmpty(action.status_next) && Ext.Array.contains(action.status_next,statusCode) ) {
-				//return ;
 			}
 			availableActions.push(action) ;
 		}) ;
@@ -113,8 +110,8 @@ Ext.define('RsiRecouveoRecordTplModel',{ // TO: RsiRecouveoRecordModel
 		{name: 'date_record', type:'date', dateFormat:'Y-m-d H:i:s'},
 		{name: 'date_value', type:'date', dateFormat:'Y-m-d H:i:s'},
 		{name: 'amount', type:'number'},
-		{name: 'clear_is_on', type:'boolean'},
-		{name: 'clear_assign', type: 'string'},
+		{name: 'letter_is_on', type:'boolean'},
+		{name: 'letter_code', type: 'string'},
 		{name: '_checked', type: 'boolean'}
 	]
 }) ;
@@ -205,7 +202,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RsiRecouveoModule', {
 			case 'openaccount' :
 				Ext.apply( eventParams, {
 					accId: postParams.accId,
-					filterAtr: postParams.filterAtr
+					filterAtr: postParams.filterAtr,
+					focusFileFilerecordId: postParams.focusFileFilerecordId
 				}) ;
 				break ;
 			

@@ -1,4 +1,4 @@
-Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextLitigPanel',{
+Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateLitigPanel',{
 	extend:'Ext.form.Panel',
 	
 	_fileRecord: null,
