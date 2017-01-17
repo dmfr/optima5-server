@@ -135,7 +135,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayEditor', {
 			this.getForm().setValues({
 				event_type: 'ROLE',
 				role_code: resourceRecord.get('std_role_code'),
-				cli_code: Optima5.Modules.Spec.DbsPeople.HelperCache.links_cli_getDefaultForWhse( resourceRecord.get('whse_code') )
+				cli_code: Optima5.Modules.Spec.DbsPeople.HelperCache.links_cli_getPrefForTeam( resourceRecord.get('team_code') )
+					|| Optima5.Modules.Spec.DbsPeople.HelperCache.links_cli_getDefaultForWhse( resourceRecord.get('whse_code') )
 			}) ;
 		} else {
 			this.getForm().findField('event_type').setReadOnly(true) ;

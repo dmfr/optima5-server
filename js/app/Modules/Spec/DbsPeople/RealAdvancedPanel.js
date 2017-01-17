@@ -541,7 +541,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 		// done 14-05-07 : durée restante standard
 		var newRecordData = {
 			classe:tClass,
-			cli_code: Optima5.Modules.Spec.DbsPeople.HelperCache.links_cli_getDefaultForWhse( me.gridRecord.get('whse_code') )
+			cli_code: Optima5.Modules.Spec.DbsPeople.HelperCache.links_cli_getPrefForTeam( me.gridRecord.get('team_code') )
+				|| Optima5.Modules.Spec.DbsPeople.HelperCache.links_cli_getDefaultForWhse( me.gridRecord.get('whse_code') )
 		};
 		var remainLength = grid._totalLength - store.sum('length_hours') ;
 		if( remainLength > 0 ) {
@@ -744,7 +745,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 			if( localStore.getCount() == 0 ) {
 				recordWorksStore.add({
 					alt_whse_code: altWhse,
-					role_code: Optima5.Modules.Spec.DbsPeople.HelperCache.links_cli_getDefaultForWhse( altWhse ),
+					cli_code: Optima5.Modules.Spec.DbsPeople.HelperCache.links_cli_getDefaultForWhse( altWhse ),
 					role_code: me.peopledayRecord.data.std_role_code,
 					role_length: me.peopledayRecord.data.std_daylength
 				}) ;
@@ -796,7 +797,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealAdvancedPanel',{
 					} 
 					if( stdAbsCode.charAt(0) == '_' || stdAbsHalfDay ) {
 						recordWorksStore.add({
-							cli_code: Optima5.Modules.Spec.DbsPeople.HelperCache.links_cli_getDefaultForWhse( me.gridRecord.get('whse_code') ),
+							cli_code: Optima5.Modules.Spec.DbsPeople.HelperCache.links_cli_getPrefForTeam( me.gridRecord.get('team_code') )
+								|| Optima5.Modules.Spec.DbsPeople.HelperCache.links_cli_getDefaultForWhse( me.gridRecord.get('whse_code') ),
 							role_code:me.peopledayRecord.data.std_role_code,
 							role_length:stdDayLength
 						}) ;

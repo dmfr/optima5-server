@@ -570,7 +570,9 @@ function specDbsPeople_Real_actionDay_lib_open( $peopleday_record ) {
 	}
 	
 	$default_cliCode = '' ;
-	if( count($ttmp = $GLOBALS['cache_specDbsPeople_Real_cfgLinks']['obj_whse_arrCliCodes'][$peopleday_record['std_whse_code']]) == 1 ) {
+	if( $mvalue = $GLOBALS['cache_specDbsPeople_Real_cfgLinks']['obj_team_prefCliCode'][$peopleday_record['std_team_code']] ) {
+		$default_cliCode = $mvalue ;
+	} elseif( count($ttmp = $GLOBALS['cache_specDbsPeople_Real_cfgLinks']['obj_whse_arrCliCodes'][$peopleday_record['std_whse_code']]) == 1 ) {
 		$default_cliCode = reset($ttmp) ;
 	} else {
 		$default_cliCode = $GLOBALS['cache_specDbsPeople_Real_cfgLinks']['obj_whse_defaultCliCode'][$peopleday_record['std_whse_code']] ;

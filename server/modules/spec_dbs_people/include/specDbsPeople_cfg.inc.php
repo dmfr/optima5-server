@@ -337,6 +337,9 @@ function specDbsPeople_cfg_getLinks() {
 	
 	$obj_whse_arrRoleCodes = array() ;
 	
+	$obj_team_prefCliCode = array() ;
+
+	
 	$query = "SELECT entry_key, treenode_key FROM view_bible_CFG_WHSE_entry" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
@@ -402,6 +405,30 @@ function specDbsPeople_cfg_getLinks() {
 		}
 		$obj_whseTreenode_arrCliCodes[$whse_treenodeKey] = $whseTreenode_arrCliCodes ;
 	}
+	
+	$query = "SELECT entry_key, treenode_key FROM view_bible_CFG_TEAM_entry" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$team_treenodeKey = $arr[1] ;
+		$team_entryKey = $arr[0] ;
+		
+		$cli_links = paracrm_lib_bible_queryBible(
+			'CFG_CLI',
+			array(
+				'CFG_TEAM' => array(
+					'record_type' => 'entry',
+					'record_key' => $team_entryKey
+				)
+			),
+			$return_treenodes=TRUE
+		) ;
+		if( count($cli_links) != 1 ) {
+			continue ;
+		}
+		$cli_linkRow = reset($cli_links) ;
+		$obj_team_prefCliCode[$team_entryKey] = $cli_linkRow['treenode_key'] ;
+	}
+	
 	
 	$raw_records = array() ;
 	$query = "SELECT treenode_key, treenode_parent_key FROM store_bible_CFG_WHSE_tree ORDER BY treenode_key" ;
@@ -483,7 +510,9 @@ function specDbsPeople_cfg_getLinks() {
 			
 			'obj_whse_arrRoleCodes' => $obj_whse_arrRoleCodes,
 			
-			'obj_whse_arrTransfertWhses' => $obj_whse_arrTransfertWhses
+			'obj_whse_arrTransfertWhses' => $obj_whse_arrTransfertWhses,
+			
+			'obj_team_prefCliCode' => $obj_team_prefCliCode
 		)
 	);
 }

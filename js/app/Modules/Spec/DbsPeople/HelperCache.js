@@ -29,6 +29,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.HelperCache',{
 	cfgObj_whse_defaultCliCode: null,
 	cfgObj_whse_arrRoleCodes: null,
 	cfgObj_whse_arrTransfertWhses: null,
+	cfgObj_team_prefCliCode: null,
 	
 	authPage: null,
 	authWhse: null,
@@ -306,6 +307,8 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.HelperCache',{
 		
 		this.cfgObj_whse_arrTransfertWhses = ajaxData.data.obj_whse_arrTransfertWhses ;
 		
+		this.cfgObj_team_prefCliCode = ajaxData.data.obj_team_prefCliCode ;
+		
 		this.onLibLoad() ;
 	},
 	links_cli_isSilent: function( whseCode ) {
@@ -337,6 +340,12 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.HelperCache',{
 	},
 	links_transfertWhse_getForWhse: function( whseCode ) {
 		return Ext.clone(this.cfgObj_whse_arrTransfertWhses[whseCode]) || [] ;
+	},
+	links_cli_getPrefForTeam: function( teamCode ) {
+		if( !Ext.isEmpty(this.cfgObj_team_prefCliCode[teamCode]) ) {
+			return this.cfgObj_team_prefCliCode[teamCode] ;
+		}
+		return null ;
 	},
 	
 	onLibLoad: function() {
