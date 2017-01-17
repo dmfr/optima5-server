@@ -79,7 +79,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.MainMenu',{
 				action_caption: 'Exploitation Jour',
 				action_sendEvent:'panel_realday',
 				action_iconCls:'op5-spec-dbspeople-icon-realday',
-				item_disabled: !Optima5.Modules.Spec.DbsPeople.HelperCache.authHelperQueryPage('CEQ')
+				item_disabled: !Optima5.Modules.Spec.DbsPeople.HelperCache.authHelperQueryPage('CEQ_DAY')
 			},{
 				type_action:true,
 				action_caption: 'Requêtes',
