@@ -222,6 +222,20 @@ function paracrm_lib_dataImport_commit_processHandle( $data_type,$store_code, $h
 function paracrm_lib_dataImport_commit_processStream( $treefields_root, $map_fieldCode_csvsrcIdx, $handle, $handle_delimiter, $truncate_mode ) {
 	$GLOBALS['cache_fastImport'] = TRUE ;
 	
+	if( $truncate_mode=='truncate' ) {
+		global $_opDB ;
+		foreach( $treefields_root['children'] as $directChild ) {
+			if( isset($directChild['file_code']) ) {
+				$file_code = $directChild['file_code'] ;
+				$query = "SELECT file_type FROM define_file WHERE file_code='$file_code'" ;
+				$file_type = $_opDB->query_uniqueValue($query) ;
+				if( $file_type != 'file_primarykey' ) {
+					paracrm_define_truncate( array('data_type'=>'file','file_code'=>$file_code) ) ;
+				}
+			}
+		}
+	}
+	
 	$arr_insertedFilerecordId = array() ;
 	while( !feof($handle) ){
 		$arr_csv = fgetcsv($handle,0,$handle_delimiter) ;

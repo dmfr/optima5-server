@@ -571,7 +571,7 @@ function paracrm_data_getFileGrid_data( $post_data, $auth_bypass=FALSE )
 	} else {
 		// **** Tweak to speedup count ****
 		$view_name = 'store_file_'.$file_code ;
-		$query = "SELECT count(*) FROM $view_name" ;
+		$query = "SELECT count(*) FROM $view_name WHERE sync_is_deleted<>'O'" ;
 		$nb_rows = $_opDB->query_uniqueValue($query);
 		// *********************************
 	}
