@@ -71,6 +71,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			})) ;
 		},this) ;
 		formItems.push({
+			readOnly: true,
 			xtype: 'textfield',
 			fieldLabel: '<b># Acheteur</b>',
 			name: 'acc_id',
@@ -78,16 +79,19 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			anchor: '',
 			width: 260
 		},{
+			readOnly: true,
 			xtype: 'textfield',
 			fieldLabel: 'Nom / Société',
 			name: 'acc_txt'
 		},{
+			readOnly: true,
 			xtype: 'textfield',
 			fieldLabel: 'SIREN/SIRET',
 			name: 'acc_siret',
 			anchor: '',
 			width: 300
 		},{
+			readOnly: true,
 			xtype: 'textarea',
 			fieldLabel: 'Adresse Contact',
 			name: 'adr_postal'
@@ -577,7 +581,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		//fHeader
 		this.down('#pHeaderForm').getForm().reset() ;
 		this.down('#pHeaderForm').getForm().loadRecord(accountRecord) ;
-		if( true ) {
+		if( false ) {
 			this.down('#pHeaderForm').getForm().getFields().each( function(field) {
 				field.setReadOnly(true) ;
 			});

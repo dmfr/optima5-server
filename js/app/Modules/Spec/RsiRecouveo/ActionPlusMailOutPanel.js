@@ -77,12 +77,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel',{
 							forceSelection: true,
 							editable: false,
 							store: {
-								fields: ['adr_name'],
+								fields: ['adr_entity'],
 								data : []
 							},
 							queryMode: 'local',
-							displayField: 'adr_name',
-							valueField: 'adr_name',
+							displayField: 'adr_entity',
+							valueField: 'adr_entity',
 							listeners: {
 								select: this.onSelectAdrName,
 								scope: this
@@ -110,12 +110,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel',{
 							forceSelection: true,
 							editable: false,
 							store: {
-								fields: ['adr_name'],
+								fields: ['adr_entity'],
 								data : []
 							},
 							queryMode: 'local',
-							displayField: 'adr_name',
-							valueField: 'adr_name',
+							displayField: 'adr_entity',
+							valueField: 'adr_entity',
 							listeners: {
 								select: this.onSelectAdrTelName,
 								scope: this
@@ -170,36 +170,48 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel',{
 		
 		
 		var adrNames = [] ;
-		this._accountRecord.adr_postal().each( function(rec) {
-			adrNames.push({adr_name: rec.get('adr_name')}) ;
+		this._accountRecord.adrbook().each( function(rec) {
+			if( rec.get('adr_type') != 'POSTAL' || rec.get('status_is_invalid') ) {
+				return ;
+			}
+			adrNames.push({adr_entity: rec.get('adr_entity')}) ;
 		}) ;
 		this.down('#selectAdrName').getStore().loadData(adrNames) ;
 		
 		var adrNames = [] ;
-		this._accountRecord.adr_tel().each( function(rec) {
-			adrNames.push({adr_name: rec.get('adr_name')}) ;
+		this._accountRecord.adrbook().each( function(rec) {
+			if( rec.get('adr_type') != 'TEL' || rec.get('status_is_invalid') ) {
+				return ;
+			}
+			adrNames.push({adr_entity: rec.get('adr_entity')}) ;
 		}) ;
 		this.down('#selectAdrTelName').getStore().loadData(adrNames) ;
 	},
 	
 	onSelectAdrName: function(cmb) {
-		var adrName = cmb.getValue(),
+		var adrEntity = cmb.getValue(),
 			adrField = this.getForm().findField('adrpost_txt') ;
 		adrField.reset() ;
-		this._accountRecord.adr_postal().each( function(rec) {
-			if( rec.get('adr_name') == adrName ) {
-				adrField.setValue( rec.get('adr_postal_txt') ) ;
+		this._accountRecord.adrbook().each( function(rec) {
+			if( rec.get('adr_type') != 'POSTAL' || rec.get('status_is_invalid') ) {
+				return ;
+			}
+			if( rec.get('adr_entity') == adrEntity ) {
+				adrField.setValue( rec.get('adr_txt') ) ;
 			}
 		}) ;
 	},
 	
 	onSelectAdrTelName: function(cmb) {
-		var adrName = cmb.getValue(),
+		var adrEntity = cmb.getValue(),
 			adrField = this.getForm().findField('adrtel_txt') ;
 		adrField.reset() ;
-		this._accountRecord.adr_tel().each( function(rec) {
-			if( rec.get('adr_name') == adrName ) {
-				adrField.setValue( rec.get('adr_tel_txt') ) ;
+		this._accountRecord.adrbook().each( function(rec) {
+			if( rec.get('adr_type') != 'TEL' || rec.get('status_is_invalid') ) {
+				return ;
+			}
+			if( rec.get('adr_entity') == adrEntity ) {
+				adrField.setValue( rec.get('adr_txt') ) ;
 			}
 		}) ;
 	}
