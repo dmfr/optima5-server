@@ -33,7 +33,8 @@ function specRsiRecouveo_account_open( $post_data ) {
 	$account_record = array(
 		'acc_id' => $arr['field_ACC_ID'],
 		'acc_txt' => $arr['field_ACC_NAME'],
-		'acc_siret' => $arr['field_ACC_SIRET']
+		'acc_siret' => $arr['field_ACC_SIRET'],
+		'adr_postal' => $arr['field_ADR_POSTAL']
 	);
 	foreach( $cfg_atr as $atr_record ) {
 		$mkey = $atr_record['bible_code'] ;
@@ -46,27 +47,18 @@ function specRsiRecouveo_account_open( $post_data ) {
 	}
 	
 	$account_record += array(
-		'adr_postal' => array(),
-		'adr_tel' => array()
+		'adrbook' => array()
 	) ;
-	$query = "SELECT ap.* FROM view_file_ADR_POSTAL ap WHERE ap.field_ACC_ID='{$p_accId}'" ;
+	$query = "SELECT adr.* FROM view_file_ADRBOOK adr WHERE adr.field_ACC_ID='{$p_accId}'" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
-		$account_record['adr_postal'][] = array(
-			'adrpostal_filerecord_id' => $arr['filerecord_id'],
-			'adr_name' => $arr['field_ADR_NAME'],
-			'adr_postal_txt' => $arr['field_ADR_POSTAL'],
-			'status' => ($arr['field_STATUS']==1)
-		);
-	}
-	$query = "SELECT at.* FROM view_file_ADR_TEL at WHERE at.field_ACC_ID='{$p_accId}'" ;
-	$result = $_opDB->query($query) ;
-	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
-		$account_record['adr_tel'][] = array(
-			'adrtel_filerecord_id' => $arr['filerecord_id'],
-			'adr_name' => $arr['field_ADR_NAME'],
-			'adr_tel_txt' => $arr['field_ADR_TEL'],
-			'status' => ($arr['field_STATUS']==1)
+		$account_record['adrbook'][] = array(
+			'adrbook_filerecord_id' => $arr['filerecord_id'],
+			'adr_entity' => $arr['field_ADR_ENTITY'],
+			'adr_type' => $arr['field_ADR_TYPE'],
+			'adr_txt' => $arr['field_ADR_TXT'],
+			'status_is_confirm' => ($arr['field_STATUS_IS_CONFIRM']==1),
+			'status_is_invalid' => ($arr['field_STATUS_IS_INVALID']==1)
 		);
 	}
 	
@@ -107,6 +99,49 @@ function specRsiRecouveo_account_open( $post_data ) {
 		'success' => true,
 		'data' => $account_record
 	) ;
+}
+
+
+function specRsiRecouveo_account_setAdrbook( $post_data ) {
+	global $_opDB ;
+	
+	$p_accId = $post_data['acc_id'] ;
+	$p_adrbookData = json_decode($post_data['data'],true) ;
+	
+	$json = specRsiRecouveo_account_open( array('acc_id'=>$p_accId) ) ;
+	if( !$json['success'] ) {
+		return array('success'=>false) ;
+	}
+	$account_record = $json['data'] ;
+	
+	
+	$file_code = 'ADRBOOK' ;
+	$existing_ids = array() ;
+	foreach( $account_record['adrbook'] as $adrbook_record ) {
+		$existing_ids[] = $adrbook_record['adrbook_filerecord_id'] ;
+	}
+	$new_ids = array() ;
+	foreach( $p_adrbookData as $adrbook_record ) {
+		$arr_ins = array() ;
+		$arr_ins['field_ACC_ID'] = $p_accId ;
+		$arr_ins['field_ADR_ENTITY'] = $adrbook_record['adr_entity'] ;
+		$arr_ins['field_ADR_TYPE'] = $adrbook_record['adr_type'] ;
+		$arr_ins['field_ADR_TXT'] = $adrbook_record['adr_txt'] ;
+		$arr_ins['field_STATUS_IS_CONFIRM'] = ( $adrbook_record['status_is_confirm'] ? 1 : 0 ) ;
+		$arr_ins['field_STATUS_IS_INVALID'] = ( $adrbook_record['status_is_invalid'] ? 1 : 0 ) ;
+		if( in_array($adrbook_record['adrbook_filerecord_id'], $existing_ids) ) {
+			$new_ids[] = $adrbook_record['adrbook_filerecord_id'] ;
+			paracrm_lib_data_updateRecord_file( $file_code, $arr_ins, $adrbook_record['adrbook_filerecord_id']);
+		} else {
+			$new_ids[] = paracrm_lib_data_insertRecord_file( $file_code, 0, $arr_ins );
+		}
+	}
+	$to_delete = array_diff($existing_ids,$new_ids) ;
+	foreach( $to_delete as $filerecord_id ) {
+		paracrm_lib_data_deleteRecord_file( $file_code, $filerecord_id );
+	}
+
+	return array('success'=>true) ;
 }
 
 ?>

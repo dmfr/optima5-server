@@ -129,24 +129,16 @@ Ext.define('RsiRecouveoRecordLinkModel',{
 		{name: 'date_link_off', type:'date', dateFormat:'Y-m-d H:i:s'}
 	]
 }) ;
-Ext.define('RsiRecouveoAdrPostalModel',{
+Ext.define('RsiRecouveoAdrbookModel',{
 	extend: 'Ext.data.Model',
-	idProperty: 'adrpostal_filerecord_id',
+	idProperty: 'adrbook_filerecord_id',
 	fields: [
-		{name: 'adrpostal_filerecord_id', type:'int'},
-		{name: 'adr_name', type:'string'},
-		{name: 'adr_postal_txt', type:'string'},
-		{name: 'status', type:'boolean'}
-	]
-}) ;
-Ext.define('RsiRecouveoAdrTelModel',{
-	extend: 'Ext.data.Model',
-	idProperty: 'adrtel_filerecord_id',
-	fields: [
-		{name: 'adrtel_filerecord_id', type:'int'},
-		{name: 'adr_name', type:'string'},
-		{name: 'adr_tel_txt', type:'string'},
-		{name: 'status', type:'boolean'}
+		{name: 'adrbook_filerecord_id', type:'int'},
+		{name: 'adr_entity', type:'string'},
+		{name: 'adr_type', type:'string'},
+		{name: 'adr_txt', type:'string'},
+		{name: 'status_is_confirm', type:'boolean'},
+		{name: 'status_is_invalid', type:'boolean'}
 	]
 }) ;
 Ext.define('RsiRecouveoAccountTplModel',{
@@ -155,7 +147,8 @@ Ext.define('RsiRecouveoAccountTplModel',{
 	fields: [
 		{name: 'acc_id', type:'string'},
 		{name: 'acc_txt', type:'string'},
-		{name: 'acc_siret', type:'string'}
+		{name: 'acc_siret', type:'string'},
+		{name: 'adr_postal', type:'string'}
 	]
 }) ;
 

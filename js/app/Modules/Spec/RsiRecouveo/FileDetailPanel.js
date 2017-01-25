@@ -16,6 +16,13 @@ Ext.define('RsiRecouveoFileDetailRecordsTreeModel', {
 		  {name: 'record_letter',  type: 'string'}
      ]
 });
+Ext.define('RsiRecouveoAdrbookTreeModel',{
+	extend: 'RsiRecouveoAdrbookModel',
+	idProperty: 'id',
+	fields:[
+		{name: 'adr_entity_group', type: 'boolean'}
+	]
+}) ;
 
 Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 	extend:'Ext.window.Window',
@@ -23,6 +30,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 	requires: [
 		'Optima5.Modules.Spec.RsiRecouveo.CfgParamField',
 		'Optima5.Modules.Spec.RsiRecouveo.ActionForm',
+		'Optima5.Modules.Spec.RsiRecouveo.AdrbookEntityPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.FileCreateForm'
 	],
 	
@@ -79,6 +87,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			name: 'acc_siret',
 			anchor: '',
 			width: 300
+		},{
+			xtype: 'textarea',
+			fieldLabel: 'Adresse Contact',
+			name: 'adr_postal'
 		}) ;
 		
 		Ext.apply(this,{
@@ -137,7 +149,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				},
 				border: false,
 				items: [{
-					flex:1,
+					flex:2,
 					xtype: 'form',
 					itemId: 'pHeaderForm',
 					bodyCls: 'ux-noframe-bg',
@@ -149,103 +161,159 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					},
 					items: formItems
 				},{
-					flex: 1,
-					title: 'Adresses',
-					itemId: 'gridAdrPostal',
-					xtype: 'damsembeddedgrid',
-					columns: [{
-						hidden: true,
-						text: 'adrpostal_filerecord_id',
-						dataIndex: 'adrpostal_filerecord_id'
-					},{
-						text: 'Description',
-						width: 100,
-						dataIndex: 'adr_name',
-						editor: {xtype:'textfield'}
-					},{
-						text: 'Adresse',
-						width: 200,
-						dataIndex: 'adr_postal_txt',
-						renderer: function(v) {
-							return Ext.util.Format.nl2br( Ext.String.htmlEncode( v ) ) ;
-						},
-						editor: {xtype:'textarea'}
-					},{
-						text: 'Status',
-						width: 60,
-						dataIndex: 'status',
-						renderer: function(v,metaData) {
-							if( v ) {
-								metaData.tdCls += ' op5-spec-dbstracy-kpi-ok' ;
-							} else {
-								metaData.tdCls += ' op5-spec-dbstracy-kpi-nok' ;
+					flex: 3,
+					title: 'Contacts',
+					itemId: 'pAdrbookTree',
+					xtype: 'treepanel',
+					store: {
+						model: 'RsiRecouveoAdrbookTreeModel',
+						root: {children:[]},
+						proxy: {
+							type: 'memory' ,
+							reader: {
+								type: 'json'
 							}
+						}
+					},
+					displayField: 'nodeText',
+					rootVisible: false,
+					useArrows: true,
+					columns: {
+						defaults: {
+							menuDisabled: true,
+							draggable: false,
+							sortable: false,
+							hideable: false,
+							resizable: false,
+							groupable: false,
+							lockable: false /*,
+							renderer: function(value, metaData, record, rowIndex, colIndex, store, view) {
+								var column = view.ownerCt.columns[colIndex] ;
+								if( column instanceof Ext.tree.Column ) {
+									metaData.tdAttr='style="width:300px;"' ;
+								} else {
+									metaData.tdAttr='style="width:0px; display:none ;"' ;
+								}
+								return value ;
+							}*/
 						},
-						editor: {xtype: 'checkboxfield'}
-					},{
-						align: 'center',
-						xtype:'actioncolumn',
-						width:50,
 						items: [{
-							iconCls: 'op5-spec-rsiveo-action-mailout', 
-							tooltip: 'Mail out',
-							handler: function(grid, rowIndex, colIndex) {
-								var rec = grid.getStore().getAt(rowIndex);
-								
+							hidden: true,
+							text: 'adrtel_filerecord_id',
+							dataIndex: 'adrtel_filerecord_id'
+						},{
+							xtype: 'treecolumn',
+							text: 'Description',
+							width: 100,
+							dataIndex: 'adr_type',
+							renderer: function(value, metaData, record, rowIndex, colIndex, store, view) {
+								if( record.get('adr_entity_group') ) {
+									metaData.tdAttr='style="width:340px; font-weight: bold;"' ;
+									value = record.get('adr_entity') ;
+									return value ;
+								}
+								switch( value ) {
+									case 'TEL' :
+										value = 'Téléphone' ;
+										break ;
+									case 'POSTAL' :
+										value = 'Adresse' ;
+										break ;
+									case 'EMAIL' :
+										value = 'Email' ;
+									metaData.tdAttr='style="font-style: italic;"' ;
+								}
+								return value ;
 							}
+						},{
+							text: 'Coordonnées',
+							width: 180,
+							dataIndex: 'adr_txt',
+							renderer: function(value, metaData, record) {
+								if( record.get('adr_entity_group') ) {
+									metaData.tdAttr='style="width:0px; display:none ;"' ;
+									return ;
+								}
+								return Ext.util.Format.nl2br( Ext.String.htmlEncode( value ) ) ;
+							}
+						},{
+							text: 'Status',
+							width: 60,
+							renderer: function(value, metaData, record) {
+								if( record.get('adr_entity_group') ) {
+									metaData.tdAttr='style="width:0px; display:none ;"' ;
+									return ;
+								}
+								if( record.get('status_is_invalid') ) {
+									metaData.tdCls += ' op5-spec-dbstracy-kpi-nok' ;
+								} else if( record.get('status_is_confirm') ) {
+									metaData.tdCls += ' op5-spec-dbstracy-kpi-ok' ;
+								} else {
+									metaData.tdCls += ' op5-spec-dbstracy-kpi-unknown' ;
+								}
+							}
+						},{
+							align: 'center',
+							xtype:'actioncolumn',
+							width:50,
+							disabledCls: 'x-item-invisible',
+							items: [{
+								iconCls: ' op5-spec-rsiveo-action-callout',
+								tooltip: 'Appel',
+								handler: function(grid, rowIndex, colIndex) {
+									var rec = grid.getStore().getAt(rowIndex);
+									
+								},
+								disabledCls: 'x-item-invisible',
+								isDisabled: function(view,rowIndex,colIndex,item,record ) {
+									if( record.get('adr_entity_group') || record.get('adr_type')=='TEL' ) {
+										return false ;
+									}
+									return true ;
+								}
+							},{
+								//icon: Ext.BLANK_IMAGE_URL,
+								iconCls: ' op5-spec-rsiveo-action-spacer',
+								isDisabled: function(view,rowIndex,colIndex,item,record ) {
+									return true ;
+								}
+							},{
+								iconCls: ' op5-spec-rsiveo-action-mailout',
+								tooltip: 'Courrier',
+								handler: function(grid, rowIndex, colIndex) {
+									var rec = grid.getStore().getAt(rowIndex);
+									
+								},
+								disabledCls: 'x-item-invisible',
+								isDisabled: function(view,rowIndex,colIndex,item,record ) {
+									if( record.get('adr_entity_group') || record.get('adr_type')=='POSTAL' ) {
+										return false ;
+									}
+									return true ;
+								}
+							}]
+						},{
+							align: 'center',
+							xtype:'actioncolumn',
+							width:35,
+							disabledCls: 'x-item-invisible',
+							items: [{
+								icon: 'images/op5img/ico_edit_small.gif', 
+								tooltip: 'Modifier',
+								handler: function(grid, rowIndex, colIndex) {
+									var rec = grid.getStore().getAt(rowIndex);
+									this.handleEditAdrbook( rec.get('adr_entity') ) ;
+								},
+								scope: this,
+								isDisabled: function(view,rowIndex,colIndex,item,record ) {
+									if( record.get('adr_entity_group') ) {
+										return false ;
+									}
+									return true ;
+								}
+							}]
 						}]
-					}],
-					listeners: {
-						edited: function() {
-							this.handleSaveHeader();
-						},
-						scope: this
-					}
-				},{
-					flex: 1,
-					title: 'Contacts Téléphone',
-					itemId: 'gridAdrTel',
-					xtype: 'damsembeddedgrid',
-					columns: [{
-						hidden: true,
-						text: 'adrtel_filerecord_id',
-						dataIndex: 'adrtel_filerecord_id'
-					},{
-						text: 'Description',
-						width: 100,
-						dataIndex: 'adr_name',
-						editor: {xtype:'textfield'}
-					},{
-						text: 'Telephone',
-						width: 180,
-						dataIndex: 'adr_tel_txt',
-						editor: {xtype:'textfield'}
-					},{
-						text: 'Status',
-						width: 60,
-						dataIndex: 'status',
-						type: 'boolean',
-						renderer: function(v,metaData) {
-							if( v ) {
-								metaData.tdCls += ' op5-spec-dbstracy-kpi-ok' ;
-							} else {
-								metaData.tdCls += ' op5-spec-dbstracy-kpi-nok' ;
-							}
-						},
-						editor: {xtype: 'checkboxfield'}
-					},{
-						align: 'center',
-						xtype:'actioncolumn',
-						width:50,
-						items: [{
-							iconCls: 'op5-spec-rsiveo-action-callout', 
-							tooltip: 'Call out',
-							handler: function(grid, rowIndex, colIndex) {
-								var rec = grid.getStore().getAt(rowIndex);
-								
-							}
-						}]
-					}],
+					},
 					listeners: {
 						edited: function() {
 							this.handleSaveHeader();
@@ -509,7 +577,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		//fHeader
 		this.down('#pHeaderForm').getForm().reset() ;
 		this.down('#pHeaderForm').getForm().loadRecord(accountRecord) ;
-		if( this._readonlyMode ) {
+		if( true ) {
 			this.down('#pHeaderForm').getForm().getFields().each( function(field) {
 				field.setReadOnly(true) ;
 			});
@@ -537,17 +605,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		}) ;
 		
 		
-		var adrPostalData = [] ;
-		accountRecord.adr_postal().each( function(rec) {
-			adrPostalData.push(rec.getData()) ;
-		}) ;
-		this.down('#gridAdrPostal').setTabData(adrPostalData) ;
-		
-		var adrTelData = [] ;
-		accountRecord.adr_tel().each( function(rec) {
-			adrTelData.push(rec.getData()) ;
-		}) ;
-		this.down('#gridAdrTel').setTabData(adrTelData) ;
+		this.onLoadAccountBuildAdrbookTree(accountRecord) ;
 		
 		
 		this.down('#tpFileActions').removeAll() ;
@@ -584,6 +642,36 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		}
 		
 		return ;
+	},
+	onLoadAccountBuildAdrbookTree: function( accountRecord ) {
+		var adrbookTree = this.down('#pAdrbookTree') ;
+		
+		var adrbookRootMap = {} ;
+		accountRecord.adrbook().each( function(adrBookRec) {
+			if( adrBookRec.get('status_is_invalid') ) {
+				return ;
+			}
+			if( !adrbookRootMap.hasOwnProperty(adrBookRec.get('adr_entity')) ) {
+				adrbookRootMap[adrBookRec.get('adr_entity')] = [] ;
+			}
+			adrbookRootMap[adrBookRec.get('adr_entity')].push( Ext.apply({leaf:true},adrBookRec.getData()) ) ;
+		}) ;
+		var adrbookRootChildren = [] ;
+		Ext.Object.each( adrbookRootMap, function(k,v) {
+			adrbookRootChildren.push({
+				expanded: false,
+				leaf: false,
+				adr_entity: k,
+				adr_entity_group: true,
+				children: v
+			})
+		}) ;
+		
+		adrbookTree.setRootNode({
+			root: true,
+			expanded: true,
+			children: adrbookRootChildren
+		}); 
 	},
 	onLoadAccountBuildRecordsTree: function( accountRecord ) {
 		var statusMap = {} ;
@@ -796,7 +884,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				itemclick: function( view, record, itemNode, index, e ) {
 					var cellNode = e.getTarget( view.getCellSelector() ),
 						cellColumn = view.getHeaderByCell( cellNode ),
-						fileRecord = view.up('grid')._fileRecord ;
+						fileRecord = view.up('panel')._fileRecord ;
 					if( cellColumn.dataIndex == 'status_is_ok'
 						&& fileRecord.get('next_fileaction_filerecord_id') == record.get('fileaction_filerecord_id') ) {
 							
@@ -1108,6 +1196,66 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		
 		actionPanel.on('created',function(newFileFilerecordId) {
 			this.doReload(newFileFilerecordId) ;
+		},this) ;
+		actionPanel.on('destroy',function(validConfirmPanel) {
+			this.getEl().unmask() ;
+			this.floatingPanel = null ;
+		},this,{single:true}) ;
+		
+		this.getEl().mask() ;
+		
+		actionPanel.on('mylayout', function(actionPanel) {
+			actionPanel.updateLayout() ;
+			actionPanel.setSize( actionPanel.getWidth() , actionPanel.getHeight() ) ;
+			actionPanel.getEl().alignTo(this.getEl(), 'c-c?');
+		},this) ;
+		actionPanel.getEl().alignTo(this.getEl(), 'c-c?');
+		actionPanel.show();
+		
+		
+		this.floatingPanel = actionPanel ;
+	},
+	
+	handleEditAdrbook: function( adrbookEntity ) {
+		this.openAdrbookPanel( this._accountRecord.get('acc_id'), adrbookEntity ) ;
+	},
+	openAdrbookPanel: function( accId, adrbookEntity ) {
+		if( this._readonlyMode ) {
+			return ;
+		}
+		var postParams = {} ;
+		var actionPanel = Ext.create('Optima5.Modules.Spec.RsiRecouveo.AdrbookEntityPanel',{
+			optimaModule: this.optimaModule,
+			
+			_accId: accId,
+			_adrbookEntity: adrbookEntity,
+			_adrbookEntityNew: !adrbookEntity,
+			
+			minWidth:350, 
+			minHeight:350,
+			floating: true,
+			draggable: true,
+			resizable: true,
+			renderTo: this.getEl(),
+			tools: [{
+				type: 'save',
+				handler: function(e, t, p) {
+					p.ownerCt.askSave();
+				},
+				scope: this
+			},{
+				type: 'close',
+				handler: function(e, t, p) {
+					p.ownerCt.askDestroy() ;
+				},
+				scope: this
+			}],
+			
+			title: 'Gestion contacts'
+		});
+		
+		actionPanel.on('saved',function() {
+			this.doReload() ;
 		},this) ;
 		actionPanel.on('destroy',function(validConfirmPanel) {
 			this.getEl().unmask() ;

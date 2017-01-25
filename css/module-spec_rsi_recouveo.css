@@ -151,6 +151,9 @@
 	background-repeat: no-repeat ;
 	background-image: url("../images/modules/rsiveo-close-16.png") !important;
 }
+.op5-spec-rsiveo-action-spacer {
+	width: 8px
+}
 
 .op5-spec-rsiveo-doaction {
 	cursor: pointer;

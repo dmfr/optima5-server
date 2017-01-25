@@ -666,6 +666,10 @@ body {    background: none repeat scroll 0 0 #F8F8F8;}
 	background-color:#dfe9f6 ;
 }
 
+.x-item-invisible {
+	opacity: 0;
+}
+
 .x-fieldset-withicon .x-fieldset-header-text {
 	line-height: 24px;
 }

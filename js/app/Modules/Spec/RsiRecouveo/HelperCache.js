@@ -206,14 +206,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 			idProperty: 'acc_id',
 			fields: pushModelFieldsAccount,
 			hasMany: [{
-				model: 'RsiRecouveoAdrPostalModel',
-				name: 'adr_postal',
-				associationKey: 'adr_postal'
-			},{
-				model: 'RsiRecouveoAdrTelModel',
-				name: 'adr_tel',
-				associationKey: 'adr_tel'
-			},{
+				model: 'RsiRecouveoAdrbookModel',
+				name: 'adrbook',
+				associationKey: 'adrbook'
+			},
+			
+			{
 				model: 'RsiRecouveoFileModel'+'-'+cmpId,
 				name: 'files',
 				associationKey: 'files'
