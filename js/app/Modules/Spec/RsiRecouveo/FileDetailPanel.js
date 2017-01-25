@@ -265,9 +265,16 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 								iconCls: ' op5-spec-rsiveo-action-callout',
 								tooltip: 'Appel',
 								handler: function(grid, rowIndex, colIndex) {
-									var rec = grid.getStore().getAt(rowIndex);
-									
+									var record = grid.getStore().getAt(rowIndex);
+									var formParams = {} ;
+									if( record.get('adr_entity_group') ) {
+										formParams['adrtel_entity'] = record.get('adr_entity') ;
+									} else {
+										formParams['adrtel_filerecord_id'] = record.get('adrbook_filerecord_id') ;
+									}
+									this.handleNewAction('CALL_OUT',formParams) ;
 								},
+								scope: this,
 								disabledCls: 'x-item-invisible',
 								isDisabled: function(view,rowIndex,colIndex,item,record ) {
 									if( record.get('adr_entity_group') || record.get('adr_type')=='TEL' ) {
@@ -285,9 +292,16 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 								iconCls: ' op5-spec-rsiveo-action-mailout',
 								tooltip: 'Courrier',
 								handler: function(grid, rowIndex, colIndex) {
-									var rec = grid.getStore().getAt(rowIndex);
-									
+									var record = grid.getStore().getAt(rowIndex);
+									var formParams = {} ;
+									if( record.get('adr_entity_group') ) {
+										formParams['adrpost_entity'] = record.get('adr_entity') ;
+									} else {
+										formParams['adrpost_filerecord_id'] = record.get('adrbook_filerecord_id') ;
+									}
+									this.handleNewAction('MAIL_OUT',formParams) ;
 								},
+								scope: this,
 								disabledCls: 'x-item-invisible',
 								isDisabled: function(view,rowIndex,colIndex,item,record ) {
 									if( record.get('adr_entity_group') || record.get('adr_type')=='POSTAL' ) {
@@ -1015,12 +1029,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 	},
 	
 	
-	handleNewAction: function(actionCode) {
+	handleNewAction: function(actionCode, formValues) {
 		var activePanel = this.down('#tpFileActions').getActiveTab(),
 			fileRecord = this._accountRecord.files().getById(activePanel._fileFilerecordId) ;
-		this.doNewAction( fileRecord, actionCode, false) ;
+		this.doNewAction( fileRecord, actionCode, false, formValues) ;
 	},
-	doNewAction: function(fileRecord, actionCode,force) {
+	doNewAction: function(fileRecord, actionCode,force, formValues) {
 		if( !force
 			&& fileRecord.get('next_fileaction_filerecord_id') > 0
 			&& fileRecord.get('next_action') == actionCode ) {
@@ -1028,12 +1042,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			var msg = 'Prochaine action planifiée du même type.<br>Effectuer quand même une action spontanée ?' ;
 			Ext.MessageBox.confirm('Attention',msg, function(btn) {
 				if( btn =='yes' ) {
-					this.doNewAction(fileRecord, actionCode,true) ;
+					this.doNewAction(fileRecord, actionCode,true, formValues) ;
 				}
 			},this) ;
 			return ;
 		}
-		this.openActionPanel(fileRecord, null,actionCode) ;
+		this.openActionPanel(fileRecord, null,actionCode, formValues) ;
 	},
 	doNextAction: function(fileRecord, fileActionFilerecordId) {
 		if( fileActionFilerecordId != fileRecord.get('next_fileaction_filerecord_id') ) {
@@ -1042,7 +1056,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		}
 		this.openActionPanel(fileRecord, fileActionFilerecordId) ;
 	},
-	openActionPanel: function( fileRecord, fileActionFilerecordId, newActionCode ) {
+	openActionPanel: function( fileRecord, fileActionFilerecordId, newActionCode, formValues ) {
 		if( this._readonlyMode ) {
 			return ;
 		}
@@ -1054,6 +1068,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			_fileFilerecordId: fileRecord.get('file_filerecord_id'),
 			_fileActionFilerecordId: fileActionFilerecordId,
 			_newActionCode: newActionCode,
+			_formValues: formValues,
 			
 			minWidth:350, 
 			minHeight:350,
