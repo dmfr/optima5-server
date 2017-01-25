@@ -48,7 +48,53 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamTree',{
 			return ;
 		}
 		var rootNode, rootChildren = [] ;
-		if( this.cfgParam_id && this.cfgParam_id.indexOf('ATR_')===0 ) {
+		if( this.cfgParam_id && this.cfgParam_id.indexOf('ADR_')===0 && this.accountRecord ) {
+			var adrType = this.cfgParam_id.substring(4) ;
+			
+			var adrbookRootMap = {} ;
+			//adrbookRootMap['Autre'] = [] ;
+			this.accountRecord.adrbook().each( function(adrBookRec) {
+				if( adrBookRec.get('status_is_invalid') ) {
+					return ;
+				}
+				if( adrBookRec.get('adr_type') != adrType ) {
+					return ;
+				}
+				if( !adrbookRootMap.hasOwnProperty(adrBookRec.get('adr_entity')) ) {
+					adrbookRootMap[adrBookRec.get('adr_entity')] = [] ;
+				}
+				adrbookRootMap[adrBookRec.get('adr_entity')].push( {
+					leaf: true,
+					
+					nodeId: adrBookRec.get('adrbook_filerecord_id'),
+					nodeType: 'adr',
+					nodeKey: adrBookRec.get('adrbook_filerecord_id'),
+					nodeText: adrBookRec.get('adr_txt')
+				} ) ;
+			}) ;
+			var adrbookRootChildren = [] ;
+			Ext.Object.each( adrbookRootMap, function(k,v) {
+				adrbookRootChildren.push({
+					expanded: false,
+					leaf: false,
+					
+					nodeId: k,
+					nodeType: 'entity',
+					nodeKey: k,
+					nodeText: k,
+					
+					children: v
+				})
+			}) ;
+			
+			rootNode = {
+				root: true,
+				expanded: true,
+				nodeText: '<b>'+'Saisie autres coordonnées'+'</b>',
+				children: adrbookRootChildren
+			}; 
+			
+		} else if( this.cfgParam_id && this.cfgParam_id.indexOf('ATR_')===0 ) {
 			data = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrData(this.cfgParam_id) ;
 			var map_nodeCode_rows = {} ;
 			Ext.Array.each( data, function(row) {

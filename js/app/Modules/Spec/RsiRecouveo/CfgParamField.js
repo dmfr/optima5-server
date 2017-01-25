@@ -50,6 +50,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
 			pickerField: me,
 			
 			optimaModule: this.optimaModule,
+			accountRecord: this.accountRecord,
 			cfgParam_id: this.cfgParam_id,
 			width:250,
 			height:300,
@@ -169,6 +170,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
 			this.divicon.removeCls('biblepicker-iconimg-nok') ;
 			this.divicon.addCls('biblepicker-iconimg-oktree') ;
 			this.divtext.dom.innerHTML = cfgParamTree.getStore().getNodeById(selectedValue).get('nodeText') ;
+			if( this.cfgParam_id.indexOf('ADR_')===0 && cfgParamTree.getStore().getNodeById(selectedValue).getDepth()==2 ) {
+				this.divtext.dom.innerHTML = cfgParamTree.getStore().getNodeById(selectedValue).parentNode.get('nodeText') ;
+			}
 		}
 	},
 	

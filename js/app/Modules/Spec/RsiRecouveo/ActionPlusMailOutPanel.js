@@ -70,27 +70,27 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel',{
 						checkboxToggle: true,
 						collapsed: false, // fieldset initially collapsed
 						title: 'Envoi postal',
-						items: [{
-							xtype: 'combobox',
-							itemId: 'selectAdrName',
-							fieldLabel: 'Destinataires',
-							forceSelection: true,
-							editable: false,
-							store: {
-								fields: ['adr_entity'],
-								data : []
-							},
-							queryMode: 'local',
-							displayField: 'adr_entity',
-							valueField: 'adr_entity',
+						items: [Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
+							cfgParam_id: 'ADR_POSTAL',
+							cfgParam_emptyDisplayText: 'Select...',
+							optimaModule: this.optimaModule,
+							accountRecord: this._accountRecord,
+							name: 'adrpost_filerecord_id',
+							allowBlank: false,
+							fieldLabel: 'Adresse',
 							listeners: {
-								select: this.onSelectAdrName,
+								change: this.onSelectAdrPostal,
 								scope: this
 							}
-						},{
+						}),{
 							xtype: 'textarea',
 							name: 'adrpost_txt',
-							fieldLabel: 'Adr.Envoi'
+							fieldLabel: '&nbsp;',
+							labelSeparator: '&nbsp;'
+						},{
+							xtype: 'checkboxfield',
+							name: 'adrpost_new',
+							boxLabel: 'Création nouveau contact ?'
 						}]
 					},{
 						xtype: 'fieldset',
@@ -103,24 +103,19 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel',{
 						checkboxToggle: true,
 						collapsed: true, // fieldset initially collapsed
 						title: 'SMS',
-						items: [{
-							xtype: 'combobox',
-							itemId: 'selectAdrTelName',
-							fieldLabel: 'Destinataires',
-							forceSelection: true,
-							editable: false,
-							store: {
-								fields: ['adr_entity'],
-								data : []
-							},
-							queryMode: 'local',
-							displayField: 'adr_entity',
-							valueField: 'adr_entity',
+						items: [Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
+							cfgParam_id: 'ADR_TEL',
+							cfgParam_emptyDisplayText: 'Select...',
+							optimaModule: this.optimaModule,
+							accountRecord: this._accountRecord,
+							name: 'adrtel_filerecord_id',
+							allowBlank: false,
+							fieldLabel: 'No.Mobile',
 							listeners: {
-								select: this.onSelectAdrTelName,
+								change: this.onSelectAdrTel,
 								scope: this
 							}
-						},{
+						}),{
 							xtype: 'textfield',
 							name: 'adrtel_txt',
 							fieldLabel: 'No.Mobile'
@@ -167,52 +162,36 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel',{
 		}) ;
 		
 		this.callParent() ;
-		
-		
-		var adrNames = [] ;
-		this._accountRecord.adrbook().each( function(rec) {
-			if( rec.get('adr_type') != 'POSTAL' || rec.get('status_is_invalid') ) {
-				return ;
-			}
-			adrNames.push({adr_entity: rec.get('adr_entity')}) ;
-		}) ;
-		this.down('#selectAdrName').getStore().loadData(adrNames) ;
-		
-		var adrNames = [] ;
-		this._accountRecord.adrbook().each( function(rec) {
-			if( rec.get('adr_type') != 'TEL' || rec.get('status_is_invalid') ) {
-				return ;
-			}
-			adrNames.push({adr_entity: rec.get('adr_entity')}) ;
-		}) ;
-		this.down('#selectAdrTelName').getStore().loadData(adrNames) ;
+		this.onSelectAdrPostal() ;
+		this.onSelectAdrTel() ;
 	},
 	
-	onSelectAdrName: function(cmb) {
-		var adrEntity = cmb.getValue(),
-			adrField = this.getForm().findField('adrpost_txt') ;
+	onSelectAdrPostal: function() {
+		var cmb = this.getForm().findField('adrpost_filerecord_id'),
+			adrObj = cmb.getNode(),
+			adrField = this.getForm().findField('adrpost_txt'),
+			adrNew = this.getForm().findField('adrpost_new') ;
 		adrField.reset() ;
-		this._accountRecord.adrbook().each( function(rec) {
-			if( rec.get('adr_type') != 'POSTAL' || rec.get('status_is_invalid') ) {
-				return ;
-			}
-			if( rec.get('adr_entity') == adrEntity ) {
-				adrField.setValue( rec.get('adr_txt') ) ;
-			}
-		}) ;
+		adrNew.reset() ;
+		if( adrObj ) {
+			adrField.setValue( adrObj.nodeText ) ;
+			adrField.setReadOnly(true) ;
+			adrNew.setVisible(false);
+		} else {
+			adrField.setReadOnly(false) ;
+			adrNew.setVisible(true) ;
+		}
 	},
-	
-	onSelectAdrTelName: function(cmb) {
-		var adrEntity = cmb.getValue(),
+	onSelectAdrTel: function() {
+		var cmb = this.getForm().findField('adrtel_filerecord_id'),
+			adrObj = cmb.getNode(),
 			adrField = this.getForm().findField('adrtel_txt') ;
 		adrField.reset() ;
-		this._accountRecord.adrbook().each( function(rec) {
-			if( rec.get('adr_type') != 'TEL' || rec.get('status_is_invalid') ) {
-				return ;
-			}
-			if( rec.get('adr_entity') == adrEntity ) {
-				adrField.setValue( rec.get('adr_txt') ) ;
-			}
-		}) ;
+		if( adrObj ) {
+			adrField.setValue( adrObj.nodeText ) ;
+			adrField.setReadOnly(true) ;
+		} else {
+			adrField.setReadOnly(false) ;
+		}
 	}
 }) ;

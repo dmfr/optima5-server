@@ -33,6 +33,67 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 	
 	//print_r($post_form) ;
 	
+	
+	
+	// ******* Gestion des adresses *******
+	$acc_id = $file_record['acc_id'] ;
+	if( $post_form['adrpost_txt'] ) {
+		if( $post_form['adrpost_filerecord_id'] && $post_form['adrpost_status'] ) {
+			$arr_update = array() ;
+			switch( $post_form['adrpost_status'] ) {
+				case 'CONFIRM' :
+					$arr_update['field_STATUS_IS_CONFIRM'] = 1 ;
+					$arr_update['field_STATUS_IS_INVALID'] = 0 ;
+					break ;
+				case 'INVALID' :
+					$arr_update['field_STATUS_IS_CONFIRM'] = 0 ;
+					$arr_update['field_STATUS_IS_INVALID'] = 1 ;
+					break ;
+			}
+			paracrm_lib_data_updateRecord_file( 'ADRBOOK', $arr_update, $post_form['adrpost_filerecord_id']);
+		}
+		if( $post_form['adrpost_new'] ) {
+			$default_adrEntity = $_opDB->query_uniqueValue("SELECT field_ADR_ENTITY FROM view_file_ADRBOOK WHERE field_ACC_ID='{$acc_id}'") ;
+			
+			$arr_ins = array() ;
+			$arr_ins['field_ACC_ID'] = $acc_id ;
+			$arr_ins['field_ADR_ENTITY'] = $default_adrEntity ;
+			$arr_ins['field_ADR_TYPE'] = 'POSTAL' ;
+			$arr_ins['field_ADR_TXT'] = $post_form['adrpost_txt'] ;
+			$arr_ins['field_STATUS_IS_CONFIRM'] = 1 ;
+			paracrm_lib_data_insertRecord_file( 'ADRBOOK', 0, $arr_ins );
+		}
+	}
+	if( $post_form['adrtel_txt'] ) {
+		if( $post_form['adrtel_filerecord_id'] && $post_form['adrtel_status'] ) {
+			$arr_update = array() ;
+			switch( $post_form['adrtel_status'] ) {
+				case 'CONFIRM' :
+					$arr_update['field_STATUS_IS_CONFIRM'] = 1 ;
+					$arr_update['field_STATUS_IS_INVALID'] = 0 ;
+					break ;
+				case 'INVALID' :
+					$arr_update['field_STATUS_IS_CONFIRM'] = 0 ;
+					$arr_update['field_STATUS_IS_INVALID'] = 1 ;
+					break ;
+			}
+			paracrm_lib_data_updateRecord_file( 'ADRBOOK', $arr_update, $post_form['adrtel_filerecord_id']);
+		}
+		if( $post_form['adrtel_new'] ) {
+			$default_adrEntity = $_opDB->query_uniqueValue("SELECT field_ADR_ENTITY FROM view_file_ADRBOOK WHERE field_ACC_ID='{$acc_id}' AND field_ADR_ENTITY<>''") ;
+			
+			$arr_ins = array() ;
+			$arr_ins['field_ACC_ID'] = $acc_id ;
+			$arr_ins['field_ADR_ENTITY'] = $default_adrEntity ;
+			$arr_ins['field_ADR_TYPE'] = 'TEL' ;
+			$arr_ins['field_ADR_TXT'] = $post_form['adrtel_txt'] ;
+			$arr_ins['field_STATUS_IS_CONFIRM'] = 1 ;
+			paracrm_lib_data_insertRecord_file( 'ADRBOOK', 0, $arr_ins );
+		}
+	}
+	
+	
+	
 	// ***** Action en cours *********
 	$arr_ins = array() ;
 	$arr_ins['field_STATUS_IS_OK'] = 1 ;

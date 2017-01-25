@@ -1,4 +1,4 @@
-Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusCallPanel',{
+Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailInPanel',{
 	extend:'Ext.form.Panel',
 	
 	_fileRecord: null,
@@ -36,40 +36,40 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusCallPanel',{
 						}
 					}
 				},Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
-					cfgParam_id: 'ADR_TEL',
-					cfgParam_emptyDisplayText: 'Saisie autre No Appel',
+					cfgParam_id: 'ADR_POSTAL',
+					cfgParam_emptyDisplayText: 'Select...',
 					optimaModule: this.optimaModule,
 					accountRecord: this._accountRecord,
-					name: 'adrtel_filerecord_id',
+					name: 'adrpost_filerecord_id',
 					allowBlank: false,
-					fieldLabel: 'No Appel',
+					fieldLabel: 'Adresse',
 					listeners: {
-						change: this.onSelectAdrTelName,
+						change: this.onSelectAdrPostal,
 						scope: this
 					}
 				}),{
-					xtype: 'textfield',
-					name: 'adrtel_txt',
+					xtype: 'textarea',
+					name: 'adrpost_txt',
 					fieldLabel: '&nbsp;',
 					labelSeparator: '&nbsp;'
 				},{
 					xtype: 'checkboxfield',
-					name: 'adrtel_new',
+					name: 'adrpost_new',
 					boxLabel: 'Création nouveau contact ?'
 				},Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
-					cfgParam_id: 'OPT_CALLOUT',
-					cfgParam_emptyDisplayText: 'Résultat de l\'appel',
+					cfgParam_id: 'OPT_MAILIN',
+					cfgParam_emptyDisplayText: 'Type de courrier',
 					optimaModule: this.optimaModule,
 					accountRecord: this._accountRecord,
-					name: 'adrtel_result',
+					name: 'adrpost_result',
 					allowBlank: false,
-					fieldLabel: 'Résultat appel'
+					fieldLabel: 'Retour courrier'
 				}),Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
 					cfgParam_id: 'OPT_ADRSTATUS',
 					cfgParam_emptyDisplayText: 'Pas de changement',
 					optimaModule: this.optimaModule,
 					accountRecord: this._accountRecord,
-					name: 'adrtel_status',
+					name: 'adrpost_status',
 					allowBlank: false,
 					fieldLabel: 'Qualification'
 				})]
@@ -97,15 +97,15 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusCallPanel',{
 		}) ;
 		
 		this.callParent() ;
-		this.onSelectAdrTelName() ;
+		this.onSelectAdrPostal() ;
 	},
 	
-	onSelectAdrTelName: function() {
-		var cmb = this.getForm().findField('adrtel_filerecord_id'),
+	onSelectAdrPostal: function() {
+		var cmb = this.getForm().findField('adrpost_filerecord_id'),
 			adrObj = cmb.getNode(),
-			adrField = this.getForm().findField('adrtel_txt'),
-			adrNew = this.getForm().findField('adrtel_new'),
-			adrStatus = this.getForm().findField('adrtel_status') ;
+			adrField = this.getForm().findField('adrpost_txt'),
+			adrNew = this.getForm().findField('adrpost_new'),
+			adrStatus = this.getForm().findField('adrpost_status') ;
 		adrField.reset() ;
 		adrStatus.reset() ;
 		adrNew.reset() ;

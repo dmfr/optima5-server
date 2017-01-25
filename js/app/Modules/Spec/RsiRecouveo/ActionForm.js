@@ -3,7 +3,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 	
 	requires: [
 		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusBumpPanel',
-		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusCallPanel',
+		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusCallInPanel',
+		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusCallOutPanel',
+		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailInPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextPanel'
 	],
@@ -88,13 +90,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 				nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusClosePanel' ;
 				break ;
 			case 'CALL_IN' :
-				nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusCallPanel' ;
+				nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusCallInPanel' ;
 				break ;
 			case 'CALL_OUT' :
-				nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusCallPanel' ;
+				nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusCallOutPanel' ;
 				break ;
 			case 'MAIL_IN' :
-				nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusCallPanel' ;
+				nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailInPanel' ;
 				break ;
 			case 'MAIL_OUT' :
 				nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel' ;
@@ -242,7 +244,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 				errors.push(error) ;
 				this.getForm().findField('schedlock_schednew_date').markInvalid(error) ;
 			}
-			if( this.down('#rightRecords') && this.down('#rightRecords').isVisible() ) {
+			if( this.down('#rightRecords') && this.down('#rightRecords').isVisible(true) ) {
 				if( this.down('#rightRecords').down('grid').getSelectionModel().getSelection().length != 1 ) {
 					errors.push('Enregistrement comptable non sélectionné') ;
 				} else {
@@ -258,7 +260,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 				var error = 'Prochaine action non renseignée' ;
 				errors.push(error) ;
 				this.getForm().findField('next_action').markInvalid(error) ;
-			} else if( this.getForm().findField('next_date').isVisible() && Ext.isEmpty( postData['next_date'] ) ) {
+			} else if( this.getForm().findField('next_date').isVisible(true) && Ext.isEmpty( postData['next_date'] ) ) {
 				var error = 'Date prochaine action non renseignée' ;
 				errors.push(error) ;
 				this.getForm().findField('next_date').markInvalid(error) ;
@@ -267,17 +269,44 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 		
 		
 		// ****** Champs statiques ***********
-		var telField = this.getForm().findField('adrtel_txt') ;
-		if( telField && telField.isVisible() ) {
+		var postField = this.getForm().findField('adrtel_txt') ;
+		if( postField && postField.isVisible(true) ) {
 			if( Ext.isEmpty(postData['adrtel_txt']) ) {
 				var error = 'Numéro d\'appel non renseigné' ;
 				
 				errors.push(error) ;
-				telField.markInvalid(error) ;
+				postField.markInvalid(error) ;
+			}
+		}
+		var postField = this.getForm().findField('adrpost_txt') ;
+		if( postField && postField.isVisible(true) ) {
+			if( Ext.isEmpty(postData['adrpost_txt']) ) {
+				var error = 'Adresse non renseignée' ;
+				
+				errors.push(error) ;
+				postField.markInvalid(error) ;
+			}
+		}
+		var postField = this.getForm().findField('adrpost_result') ;
+		if( postField && postField.isVisible(true) ) {
+			if( Ext.isEmpty(postData['adrpost_result']) ) {
+				var error = 'Type courrier non renseigné' ;
+				
+				errors.push(error) ;
+				postField.markInvalid(error) ;
+			}
+		}
+		var postField = this.getForm().findField('adrtel_result') ;
+		if( postField && postField.isVisible(true) ) {
+			if( Ext.isEmpty(postData['adrtel_result']) ) {
+				var error = 'Résultat appel non renseigné' ;
+				
+				errors.push(error) ;
+				postField.markInvalid(error) ;
 			}
 		}
 		var txtField = this.getForm().findField('txt') ;
-		if( txtField && txtField.isVisible() ) {
+		if( txtField && txtField.isVisible(true) ) {
 			if( Ext.isEmpty(postData['txt']) ) {
 				var error = 'Commentaire non renseigné' ;
 				
@@ -294,7 +323,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 				Ext.Array.each( fields, function(fieldName) {
 					var hasErrors = false ;
 					var field = this.getForm().findField(fieldName) ;
-					if( field.isVisible() && Ext.isEmpty( postData[fieldName] ) ) {
+					if( field.isVisible(true) && Ext.isEmpty( postData[fieldName] ) ) {
 						field.markInvalid('Information non renseignée') ;
 						hasErrors = true ;
 					}
