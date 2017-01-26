@@ -437,6 +437,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AdrbookEntityPanel',{
 				return ;
 			}
 			this._accountRecord.adrbook().each( function(accAdrRec) {
+				if( accAdrRec.get('adr_entity') != adrbookEntity ) {
+					return ;
+				}
 				if( accAdrRec.get('adr_type') == filterAdrType ) {
 					gridData.push(accAdrRec.getData()) ;
 				}

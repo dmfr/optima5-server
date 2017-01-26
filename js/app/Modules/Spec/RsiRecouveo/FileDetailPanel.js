@@ -218,15 +218,18 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 								}
 								switch( value ) {
 									case 'TEL' :
-										value = 'Téléphone' ;
+										value = 'Tel/Mob' ;
 										break ;
 									case 'POSTAL' :
 										value = 'Adresse' ;
 										break ;
 									case 'EMAIL' :
 										value = 'Email' ;
-									metaData.tdAttr='style="font-style: italic;"' ;
+										break ;
+									
+									default: break ;
 								}
+								//metaData.tdAttr='style="font-style: italic;"' ;
 								return value ;
 							}
 						},{

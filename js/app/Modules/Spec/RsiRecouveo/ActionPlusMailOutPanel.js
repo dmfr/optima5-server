@@ -70,28 +70,18 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel',{
 						checkboxToggle: true,
 						collapsed: false, // fieldset initially collapsed
 						title: 'Envoi postal',
-						items: [Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
-							cfgParam_id: 'ADR_POSTAL',
-							cfgParam_emptyDisplayText: 'Select...',
+						items: Ext.create('Optima5.Modules.Spec.RsiRecouveo.AdrbookTypeContainer',{
+							//xtype: 'container',
+							itemId: 'cntAdrPost',
+							
 							optimaModule: this.optimaModule,
-							accountRecord: this._accountRecord,
-							name: 'adrpost_filerecord_id',
-							allowBlank: false,
-							fieldLabel: 'Adresse',
-							listeners: {
-								change: this.onSelectAdrPostal,
-								scope: this
-							}
-						}),{
-							xtype: 'textarea',
-							name: 'adrpost_txt',
-							fieldLabel: '&nbsp;',
-							labelSeparator: '&nbsp;'
-						},{
-							xtype: 'checkboxfield',
-							name: 'adrpost_new',
-							boxLabel: 'Création nouveau contact ?'
-						}]
+							_accountRecord : this._accountRecord,
+							
+							_adrType: 'POSTAL',
+							_showNew: true,
+							_showResult: false,
+							_showValidation: false
+						})
 					},{
 						xtype: 'fieldset',
 						layout: {
@@ -103,23 +93,18 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel',{
 						checkboxToggle: true,
 						collapsed: true, // fieldset initially collapsed
 						title: 'SMS',
-						items: [Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
-							cfgParam_id: 'ADR_TEL',
-							cfgParam_emptyDisplayText: 'Select...',
+						items: Ext.create('Optima5.Modules.Spec.RsiRecouveo.AdrbookTypeContainer',{
+							//xtype: 'container',
+							itemId: 'cntAdrTel',
+							
 							optimaModule: this.optimaModule,
-							accountRecord: this._accountRecord,
-							name: 'adrtel_filerecord_id',
-							allowBlank: false,
-							fieldLabel: 'No.Mobile',
-							listeners: {
-								change: this.onSelectAdrTel,
-								scope: this
-							}
-						}),{
-							xtype: 'textfield',
-							name: 'adrtel_txt',
-							fieldLabel: 'No.Mobile'
-						}]
+							_accountRecord : this._accountRecord,
+							
+							_adrType: 'TEL',
+							_showNew: true,
+							_showResult: false,
+							_showValidation: false
+						})
 					},{
 						xtype: 'fieldset',
 						layout: {
@@ -131,11 +116,18 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel',{
 						checkboxToggle: true,
 						collapsed: true, // fieldset initially collapsed
 						title: 'Email',
-						items: [{
-							xtype: 'textfield',
-							name: 'adrmail_email',
-							fieldLabel: 'Email'
-						}]
+						items: Ext.create('Optima5.Modules.Spec.RsiRecouveo.AdrbookTypeContainer',{
+							//xtype: 'container',
+							itemId: 'cntAdrMail',
+							
+							optimaModule: this.optimaModule,
+							_accountRecord : this._accountRecord,
+							
+							_adrType: 'EMAIL',
+							_showNew: true,
+							_showResult: false,
+							_showValidation: false
+						})
 					}]
 				},{
 					xtype: 'box',
@@ -162,36 +154,5 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel',{
 		}) ;
 		
 		this.callParent() ;
-		this.onSelectAdrPostal() ;
-		this.onSelectAdrTel() ;
-	},
-	
-	onSelectAdrPostal: function() {
-		var cmb = this.getForm().findField('adrpost_filerecord_id'),
-			adrObj = cmb.getNode(),
-			adrField = this.getForm().findField('adrpost_txt'),
-			adrNew = this.getForm().findField('adrpost_new') ;
-		adrField.reset() ;
-		adrNew.reset() ;
-		if( adrObj ) {
-			adrField.setValue( adrObj.nodeText ) ;
-			adrField.setReadOnly(true) ;
-			adrNew.setVisible(false);
-		} else {
-			adrField.setReadOnly(false) ;
-			adrNew.setVisible(true) ;
-		}
-	},
-	onSelectAdrTel: function() {
-		var cmb = this.getForm().findField('adrtel_filerecord_id'),
-			adrObj = cmb.getNode(),
-			adrField = this.getForm().findField('adrtel_txt') ;
-		adrField.reset() ;
-		if( adrObj ) {
-			adrField.setValue( adrObj.nodeText ) ;
-			adrField.setReadOnly(true) ;
-		} else {
-			adrField.setReadOnly(false) ;
-		}
 	}
 }) ;

@@ -1,9 +1,13 @@
 Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusCallPanel',{
 	extend:'Ext.form.Panel',
 	
-	_fileRecord: null,
+	_showNew: null,
+	_showResult: null,
+	_showValidation: null,
 	
 	initComponent: function() {
+		
+		
 		Ext.apply(this,{
 			bodyCls: 'ux-noframe-bg',
 			bodyPadding: 0,
@@ -35,43 +39,17 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusCallPanel',{
 							field.setVisible( !Ext.isEmpty(val) ) ;
 						}
 					}
-				},Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
-					cfgParam_id: 'ADR_TEL',
-					cfgParam_emptyDisplayText: 'Saisie autre No Appel',
+				},Ext.create('Optima5.Modules.Spec.RsiRecouveo.AdrbookTypeContainer',{
+					//xtype: 'container',
+					itemId: 'cntAdrTel',
+					
 					optimaModule: this.optimaModule,
-					accountRecord: this._accountRecord,
-					name: 'adrtel_filerecord_id',
-					allowBlank: false,
-					fieldLabel: 'No Appel',
-					listeners: {
-						change: this.onSelectAdrTelName,
-						scope: this
-					}
-				}),{
-					xtype: 'textfield',
-					name: 'adrtel_txt',
-					fieldLabel: '&nbsp;',
-					labelSeparator: '&nbsp;'
-				},{
-					xtype: 'checkboxfield',
-					name: 'adrtel_new',
-					boxLabel: 'Création nouveau contact ?'
-				},Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
-					cfgParam_id: 'OPT_CALLOUT',
-					cfgParam_emptyDisplayText: 'Résultat de l\'appel',
-					optimaModule: this.optimaModule,
-					accountRecord: this._accountRecord,
-					name: 'adrtel_result',
-					allowBlank: false,
-					fieldLabel: 'Résultat appel'
-				}),Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
-					cfgParam_id: 'OPT_ADRSTATUS',
-					cfgParam_emptyDisplayText: 'Pas de changement',
-					optimaModule: this.optimaModule,
-					accountRecord: this._accountRecord,
-					name: 'adrtel_status',
-					allowBlank: false,
-					fieldLabel: 'Qualification'
+					_accountRecord : this._accountRecord,
+					
+					_adrType: 'TEL',
+					_showNew: this._showNew,
+					_showResult: this._showResult,
+					_showValidation: this._showValidation
 				})]
 			},{
 				xtype: 'box',

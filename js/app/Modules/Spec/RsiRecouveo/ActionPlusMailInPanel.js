@@ -1,6 +1,8 @@
 Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailInPanel',{
 	extend:'Ext.form.Panel',
 	
+	requires: ['Optima5.Modules.Spec.RsiRecouveo.AdrbookTypeContainer'],
+	
 	_fileRecord: null,
 	
 	initComponent: function() {
@@ -35,44 +37,36 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailInPanel',{
 							field.setVisible( !Ext.isEmpty(val) ) ;
 						}
 					}
-				},Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
-					cfgParam_id: 'ADR_POSTAL',
-					cfgParam_emptyDisplayText: 'Select...',
-					optimaModule: this.optimaModule,
-					accountRecord: this._accountRecord,
-					name: 'adrpost_filerecord_id',
-					allowBlank: false,
-					fieldLabel: 'Adresse',
-					listeners: {
-						change: this.onSelectAdrPostal,
-						scope: this
-					}
-				}),{
-					xtype: 'textarea',
-					name: 'adrpost_txt',
-					fieldLabel: '&nbsp;',
-					labelSeparator: '&nbsp;'
 				},{
-					xtype: 'checkboxfield',
-					name: 'adrpost_new',
-					boxLabel: 'Création nouveau contact ?'
-				},Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
-					cfgParam_id: 'OPT_MAILIN',
-					cfgParam_emptyDisplayText: 'Type de courrier',
-					optimaModule: this.optimaModule,
-					accountRecord: this._accountRecord,
-					name: 'adrpost_result',
-					allowBlank: false,
-					fieldLabel: 'Retour courrier'
-				}),Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
-					cfgParam_id: 'OPT_ADRSTATUS',
-					cfgParam_emptyDisplayText: 'Pas de changement',
-					optimaModule: this.optimaModule,
-					accountRecord: this._accountRecord,
-					name: 'adrpost_status',
-					allowBlank: false,
-					fieldLabel: 'Qualification'
-				})]
+					xtype      : 'fieldcontainer',
+					defaultType: 'radiofield',
+					defaults: {
+						flex: 1,
+						listeners: {
+							change: function( field, value ) {
+								this.onSelectAdrType() ;
+							},
+							scope: this
+						}
+					},
+					layout: 'hbox',
+					items: [
+						{
+							boxLabel  : 'Courrier postal',
+							name      : 'adr_type',
+							inputValue: 'POSTAL'
+						}, {
+							boxLabel  : 'Email',
+							name      : 'adr_type',
+							inputValue: 'EMAIL'
+						}
+					]
+				},{
+					xtype: 'container',
+					itemId: 'cntAdr',
+					layout: 'fit',
+					border: false
+				}]
 			},{
 				xtype: 'box',
 				width: 16
@@ -97,27 +91,25 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailInPanel',{
 		}) ;
 		
 		this.callParent() ;
-		this.onSelectAdrPostal() ;
+		this.getForm().setValues({
+			adr_type: 'POSTAL'
+		});
 	},
-	
-	onSelectAdrPostal: function() {
-		var cmb = this.getForm().findField('adrpost_filerecord_id'),
-			adrObj = cmb.getNode(),
-			adrField = this.getForm().findField('adrpost_txt'),
-			adrNew = this.getForm().findField('adrpost_new'),
-			adrStatus = this.getForm().findField('adrpost_status') ;
-		adrField.reset() ;
-		adrStatus.reset() ;
-		adrNew.reset() ;
-		if( adrObj ) {
-			adrField.setValue( adrObj.nodeText ) ;
-			adrField.setReadOnly(true) ;
-			adrNew.setVisible(false);
-			adrStatus.setVisible(true);
-		} else {
-			adrField.setReadOnly(false) ;
-			adrNew.setVisible(true) ;
-			adrStatus.setVisible(false);
+	onSelectAdrType: function() {
+		var adrType = this.getForm().getValues()['adr_type'] ;
+		var parentCnt = this.down('#cntAdr') ;
+		parentCnt.removeAll() ;
+		if( !adrType ) {
+			return ;
 		}
+		parentCnt.add(Ext.create('Optima5.Modules.Spec.RsiRecouveo.AdrbookTypeContainer',{
+			//xtype: 'container',
+			itemId: 'cntAdr'+adrType,
+			
+			optimaModule: this.optimaModule,
+			_accountRecord : this._accountRecord,
+			
+			_adrType: adrType
+		})) ;
 	}
 }) ;

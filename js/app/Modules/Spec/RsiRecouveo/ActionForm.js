@@ -171,7 +171,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 					if( adrRec.get('status_is_invalid') ) {
 						return ;
 					}
-					if( adrRec.get('adr_entity')==this._formValues['adrpost_entity'] && adrRec.get('adr_type')=='POST' ) {
+					if( adrRec.get('adr_entity')==this._formValues['adrpost_entity'] && adrRec.get('adr_type')=='POSTAL' ) {
 						this._formValues['adrpost_filerecord_id'] = adrRec.getId() ;
 						return false ;
 					}
@@ -315,6 +315,28 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 				postField.markInvalid(error) ;
 			}
 		}
+		var postField = this.getForm().findField('adrmail_txt') ;
+		if( postField && postField.isVisible(true) ) {
+			if( Ext.isEmpty(postData['adrmail_txt']) ) {
+				var error = 'Email non renseigné' ;
+				
+				errors.push(error) ;
+				postField.markInvalid(error) ;
+			}
+		}
+		
+		Ext.Array.each(['adrpost_new_entity','adrtel_new_entity','adrmail_new_entity'],function(postName) {
+			var postField = this.getForm().findField(postName) ;
+			if( postField && postField.isVisible(true) ) {
+				if( Ext.isEmpty(postData[postName]) ) {
+					var error = 'Non du contact non renseigné' ;
+					
+					errors.push(error) ;
+					postField.markInvalid(error) ;
+				}
+			}
+		},this) ;
+		
 		var postField = this.getForm().findField('adrpost_result') ;
 		if( postField && postField.isVisible(true) ) {
 			if( Ext.isEmpty(postData['adrpost_result']) ) {
