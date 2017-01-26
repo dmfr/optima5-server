@@ -2,6 +2,7 @@
 include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_file.inc.php") ;
 include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_action.inc.php") ;
 include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_account.inc.php") ;
+include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_doc.inc.php") ;
 
 function specRsiRecouveo_cfg_doInit( $post_data ) {
 	global $_opDB ;
@@ -141,5 +142,20 @@ function specRsiRecouveo_cfg_getConfig() {
 
 
 
+function specRsiRecouveo_util_htmlToPdf( $post_data ) {
+	if( $output_pdf = specRsiRecouveo_util_htmlToPdf_buffer(json_decode($post_data['html'],true)) ) {
+		$filename = ($post_data['filename'] ? $post_data['filename'] : 'PRINT'.'_'.time().'.pdf') ;
+		header("Content-Type: application/force-download; name=\"$filename\""); 
+		header("Content-Disposition: attachment; filename=\"$filename\""); 
+		echo $output_pdf ;
+	}
+	die() ;
+}
+function specRsiRecouveo_util_htmlToPdf_buffer( $input_html ) {
+	if( $output_pdf = media_pdf_html2pdf($input_html,'A4') ) {
+		return $output_pdf ;
+	}
+	return NULL ;
+}
 
 ?>

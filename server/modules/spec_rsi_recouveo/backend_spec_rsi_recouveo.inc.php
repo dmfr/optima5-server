@@ -32,6 +32,14 @@ switch( $post_data['_action'] )
 	case 'account_setAdrbook' :
 	return specRsiRecouveo_account_setAdrbook( $post_data ) ;
 	
+	case 'doc_cfg_getTpl' :
+	return specRsiRecouveo_doc_cfg_getTpl($post_data) ;
+	case 'doc_getMailOut' :
+	return specRsiRecouveo_doc_getMailOut($post_data) ;
+	
+	case 'util_htmlToPdf' :
+		return specRsiRecouveo_util_htmlToPdf( $post_data ) ;
+	
 	default :
 	return NULL ;
 }

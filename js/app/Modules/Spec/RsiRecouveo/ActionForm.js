@@ -28,8 +28,19 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 				hidden: true,
 				xtype: 'button',
 				text: 'OK',
+				icon: 'images/op5img/ico_save_16.gif',
 				handler: function( btn ) {
 					this.handleSubmitEvent() ;
+				},
+				scope: this
+			},{
+				itemId: 'btnPreview',
+				hidden: true,
+				xtype: 'button',
+				text: 'Preview',
+				icon: 'images/op5img/ico_print_16.png',
+				handler: function( btn ) {
+					this.handlePreview() ;
 				},
 				scope: this
 			}]
@@ -79,6 +90,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 		this._fileRecord = fileRecord ;
 		
 		var currentAction = this.getCurrentAction() ;
+		var hasPreview = false ;
 		switch( currentAction.action_id ) {
 			case 'AGREE_FOLLOW' :
 				nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusAgreeFollowPanel' ;
@@ -100,6 +112,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 				break ;
 			case 'MAIL_OUT' :
 				nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel' ;
+				hasPreview = true ;
 				break ;
 			case 'BUMP' :
 				nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusBumpPanel' ;
@@ -147,6 +160,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 			})) ;
 		}
 		this.down('#btnOk').setVisible(true) ;
+		this.down('#btnPreview').setVisible(hasPreview) ;
 		this.fireEvent('mylayout',this) ;
 		
 		// Données
@@ -497,5 +511,100 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 		this.fireEvent('saved',this._fileRecord.get('file_filerecord_id')) ;
 		this.optimaModule.postCrmEvent('datachange',{}) ;
 		this.destroy() ;
+	},
+	
+	
+	
+	
+	handlePreview: function() {
+		if( this._readonlyMode ) {
+			return ;
+		}
+		
+		var formPanel = this,
+			form = formPanel.getForm() ;
+			  
+		var errors = [] ;
+		
+		var postDataObj = form.getValues(false,false,false,true) ;
+		var postData = form.getValues() ;
+		var tplId = postData['tpl_id'] ;
+		if( Ext.isEmpty(tplId) ) {
+			return ;
+		}
+		
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_rsi_recouveo',
+				_action: 'doc_getMailOut',
+				tpl_id: tplId
+			},
+			success: function(response) {
+				var jsonResponse = Ext.JSON.decode(response.responseText) ;
+				if( jsonResponse.success == true ) {
+					this.handlePreviewpDo( this.getTitle(), jsonResponse.html, jsonResponse.filename ) ;
+				} else {
+					Ext.MessageBox.alert('Error','Print system disabled') ;
+				}
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+	},
+	handlePreviewpDo: function(pageTitle, pageHtml, pageFilename) {
+		this.optimaModule.createWindow({
+			width:850,
+			height:700,
+			iconCls: 'op5-crmbase-qresultwindow-icon',
+			animCollapse:false,
+			border: false,
+			layout:'fit',
+			title: pageTitle,
+			filename: pageFilename,
+			items:[Ext.create('Ext.ux.dams.IFrameContent',{
+				itemId: 'uxIFrame',
+				content:pageHtml
+			})],
+			tbar:[{
+				hidden: true,
+				icon: 'images/op5img/ico_print_16.png',
+				text: 'Print',
+				handler: function(btn) {
+					var uxIFrame = btn.up('window').down('#uxIFrame'),
+						uxIFrameWindows = uxIFrame.getWin() ;
+					if( uxIFrameWindows == null ) {
+						Ext.MessageBox.alert('Problem','Printing disabled !') ;
+						return ;
+					}
+					uxIFrameWindows.print() ;
+				},
+				scope: this
+			},{
+				icon: 'images/op5img/ico_save_16.gif',
+				text: 'Save as PDF',
+				handler: function(btn) {
+					var win = btn.up('window'),
+						uxIFrame = win.down('#uxIFrame') ;
+					
+					var exportParams = this.optimaModule.getConfiguredAjaxParams() ;
+					Ext.apply(exportParams,{
+						_moduleId: 'spec_rsi_recouveo',
+						_action: 'util_htmlToPdf',
+						filename: win.filename,
+						html: Ext.JSON.encode(uxIFrame.content)
+					}) ;
+					Ext.create('Ext.ux.dams.FileDownloader',{
+						renderTo: Ext.getBody(),
+						requestParams: exportParams,
+						requestAction: Optima5.Helper.getApplication().desktopGetBackendUrl(),
+						requestMethod: 'POST'
+					}) ;
+				},
+				scope: this
+			}]
+		}); 
 	}
 }) ;

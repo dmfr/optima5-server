@@ -30,19 +30,29 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel',{
 				},{
 					flex: 1,
 					xtype: 'combobox',
-					name: 'mail_model',
+					name: 'tpl_id',
 					fieldLabel: 'Modèle lettre',
 					forceSelection: true,
 					editable: false,
 					store: {
-						fields: ['txt'],
-						data : [
-							{id: 'RELANCE_STD', txt:'Relance Standard'}
-						]
+						autoLoad: true,
+						fields: ['tpl_id','tpl_name'],
+						proxy: this.optimaModule.getConfiguredAjaxProxy({
+							extraParams : {
+								_moduleId: 'spec_rsi_recouveo',
+								_action: 'doc_cfg_getTpl',
+								tpl_group: 'MAIL_OUT',
+								load_binary: 0
+							},
+							reader: {
+								type: 'json',
+								rootProperty: 'data'
+							}
+						})
 					},
 					queryMode: 'local',
-					displayField: 'txt',
-					valueField: 'id'
+					displayField: 'tpl_name',
+					valueField: 'tpl_id'
 				}]
 			},{
 				xtype: 'container',
