@@ -330,7 +330,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateForm',{
 		
 		
 		// ****** Champs dynamiques ***********
-		switch( formData['next_action'] ) {
+		switch( formData['new_action_id'] ) {
 			case 'AGREE_START' :
 				var fields = ['agree_amount','agree_period','agree_date','agree_datefirst','agree_count'] ;
 				Ext.Array.each( fields, function(fieldName) {

@@ -1200,7 +1200,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			_newActionCode: newActionCode,
 			
 			minWidth:350, 
-			minHeight:350,
+			minHeight:400,
 			floating: true,
 			draggable: true,
 			resizable: true,

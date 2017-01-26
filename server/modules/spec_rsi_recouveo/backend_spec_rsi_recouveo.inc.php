@@ -18,8 +18,6 @@ switch( $post_data['_action'] )
 	return specRsiRecouveo_file_getRecords( $post_data ) ;
 	case 'file_setHeader' :
 	return specRsiRecouveo_file_setHeader( $post_data ) ;
-	case 'file_setAction' :
-	return specRsiRecouveo_file_setAction( $post_data ) ;
 	case 'file_createForAction' :
 	return specRsiRecouveo_file_createForAction( $post_data ) ;
 	
