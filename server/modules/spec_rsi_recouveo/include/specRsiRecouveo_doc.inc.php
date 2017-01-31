@@ -5,15 +5,62 @@ function specRsiRecouveo_doc_cfg_getTpl( $post_data ) {
 	$p_tplGroup = $post_data['tpl_group'] ;
 	$p_tplBinary = $post_data['load_binary'] ;
 	
+	$app_root = $GLOBALS['app_root'] ;
+	$resources_root=$app_root.'/resources' ;
+	$templates_dir=$resources_root.'/server/templates' ;
+	
 	$data = array() ;
-	$query = "SELECT * from view_bible_TPL_entry WHERE treenode_key='{$p_tplGroup}'" ;
+	$query = "SELECT * from view_bible_TPL_entry WHERE 1" ;
+	if( $post_data['tpl_id'] ) {
+		$query.= " AND entry_key='{$post_data['tpl_id']}'" ;
+	} else {
+		$query.= " AND treenode_key='{$p_tplGroup}'" ;
+	}
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$data[] = array(
 			'tpl_id' => $arr['field_TPL_ID'],
 			'tpl_name' => $arr['field_TPL_NAME'],
-			'binary_html' => ($p_tplBinary ? $arr['field_BINARY_HTML'] : null)
+			'html_src_file' => $arr['field_HTML_SRC_FILE'],
+			'html_body' => $arr['field_HTML_BODY'],
+			'html_title' => $arr['field_HTML_TITLE']
 		);
+	}
+	if( !$p_tplBinary ) {
+		return array('success'=>true, 'data'=>$data) ; 
+	}
+	
+	foreach( $data as &$data_row ) {
+		$inputFileName = $templates_dir.'/'.$data_row['html_src_file'] ;
+		$inputBinary = file_get_contents($inputFileName) ;
+		
+		$doc = new DOMDocument();
+		@$doc->loadHTML($inputBinary);
+		$elements = $doc->getElementsByTagName('qbook-value');
+		$i = $elements->length - 1;
+		while ($i > -1) {
+			$node_qbookValue = $elements->item($i); 
+			$i--; 
+			
+			$val = '' ;
+			$src_value = $node_qbookValue->attributes->getNamedItem('src_value')->value ;
+			switch( $src_value ) {
+				case 'body_content' :
+				$new_node = $doc->createCDATASection($data_row['html_body']) ;
+				$node_qbookValue->parentNode->replaceChild($new_node,$node_qbookValue) ;
+				break ;
+				
+				case 'body_title' :
+				$new_node = $doc->createCDATASection($data_row['html_title']) ;
+				$node_qbookValue->parentNode->replaceChild($new_node,$node_qbookValue) ;
+				break ;
+				
+				default :
+				break ;
+			}
+		}
+		
+		$data_row['tpl_html'] = $doc->saveHTML() ;
 	}
 	return array('success'=>true, 'data'=>$data) ;
 }
@@ -22,9 +69,13 @@ function specRsiRecouveo_doc_getMailOut( $post_data ) {
 	global $_opDB ;
 	$p_tplId = $post_data['tpl_id'] ;
 	
-	$query = "SELECT field_BINARY_HTML from view_bible_TPL_entry WHERE entry_key='{$p_tplId}'" ;
-	$inputBinary = $_opDB->query_uniqueValue($query) ;
-	
+	$ttmp = specRsiRecouveo_doc_cfg_getTpl( array(
+		'tpl_id' => $p_tplId,
+		'load_binary' => true
+	)) ;
+	$data_row = $ttmp['data'][0] ;
+	$inputBinary = $data_row['tpl_html'];
+		
 	//echo $inputFileName ;
 	$doc = new DOMDocument();
 	@$doc->loadHTML($inputBinary);
