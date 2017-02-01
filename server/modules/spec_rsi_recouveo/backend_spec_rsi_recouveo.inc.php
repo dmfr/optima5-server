@@ -39,6 +39,13 @@ switch( $post_data['_action'] )
 	
 	case 'util_htmlToPdf' :
 		return specRsiRecouveo_util_htmlToPdf( $post_data ) ;
+		
+	case 'config_loadMeta' :
+		return specRsiRecouveo_config_loadMeta( $post_data ) ;
+	case 'config_saveMeta' :
+		return specRsiRecouveo_config_saveMeta( $post_data ) ;
+	case 'config_loadUser' :
+		return specRsiRecouveo_config_loadUser( $post_data ) ;
 	
 	default :
 	return NULL ;

@@ -3,6 +3,7 @@ include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_file.inc
 include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_action.inc.php") ;
 include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_account.inc.php") ;
 include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_doc.inc.php") ;
+include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_config.inc.php") ;
 
 function specRsiRecouveo_cfg_doInit( $post_data ) {
 	global $_opDB ;
@@ -124,6 +125,17 @@ function specRsiRecouveo_cfg_getConfig() {
 				$TAB_list_opt[] = $new_rec ;
 			}
 		}
+	}
+	
+	$TAB_balage = array() ;
+	$query = "SELECT * FROM view_bible_CFG_BALAGE_entry WHERE 1 ORDER BY treenode_key" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$TAB_balage[] = array(
+			'segmt_id' => $arr['field_SEGMT_ID'],
+			'segmt_txt' => $arr['field_SEGMT_TXT'],
+			'calc_from_days' => $arr['field_CALC_FROM_DAYS']
+		) ;
 	}
 	
 	$GLOBALS['cache_specRsiRecouveo_cfg']['getConfig'] = array(

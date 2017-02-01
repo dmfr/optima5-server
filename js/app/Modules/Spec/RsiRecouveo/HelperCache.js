@@ -59,6 +59,17 @@ Ext.define('RsiRecouveoCfgActionEtaModel',{
 	]
 });
 
+Ext.define('RsiRecouveoConfigUserTplModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'user_id',
+	fields: [
+		{name: 'user_id', type:'string'},
+		{name: 'user_pw', type:'string'},
+		{name: 'user_fullname', type:'string'},
+		{name: 'user_email', type:'string'}
+	]
+});
+
 
 Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 	mixins: {
@@ -222,6 +233,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 			}]
 		}) ;
 		
+		Ext.ux.dams.ModelManager.unregister( 'RsiRecouveoConfigUserModel'+'-'+cmpId ) ;
+		Ext.define('RsiRecouveoConfigUserModel'+'-'+cmpId,{
+			extend: 'RsiRecouveoConfigUserTplModel',
+			idProperty: 'user_id',
+			fields: pushModelFieldsAccount
+		}) ;
+		
 		this.onLoad() ;
 		
 		var cssBlob = '' ;
@@ -240,6 +258,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 	},
 	getRecordModel: function() {
 		return 'RsiRecouveoRecordModel'+'-'+this.cmpId ;
+	},
+	getConfigUserModel: function() {
+		return 'RsiRecouveoConfigUserModel'+'-'+this.cmpId ;
 	},
 	
 	getAllAtrIds: function() {

@@ -5,7 +5,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 		'Optima5.Modules.Spec.RsiRecouveo.MainMenu',
 		'Optima5.Modules.Spec.RsiRecouveo.FilesPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',
-		'Optima5.Modules.Spec.RsiRecouveo.CfgPanel'
+		'Optima5.Modules.Spec.RsiRecouveo.ConfigPanel'
 	],
 	
 	initComponent: function() {
@@ -72,7 +72,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 			case 'files' :
 				return me.switchToAppPanel('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{}) ;
 			case 'cfg' :
-				return me.switchToAppPanel('Optima5.Modules.Spec.RsiRecouveo.CfgPanel',{}) ;
+				return me.openConfig() ;
 			default :
 				return ;
 		}
@@ -94,6 +94,34 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 		this.removeAll() ;
 		this.add( panel ) ;
 	},
+	
+	openConfig: function() {
+		// recherche d'une fenetre deja ouverte
+		var doOpen = true ;
+		this.optimaModule.eachWindow(function(win){
+			if( !(win instanceof Optima5.Modules.Spec.RsiRecouveo.ConfigPanel) ) {
+				return true ;
+			}
+			win.show() ;
+			win.focus() ;
+			doOpen = false ;
+			return false ;
+		},this) ;
+		if( !doOpen ) {
+			return ;
+		}
+		
+		this.optimaModule.createWindow({
+			title: 'Recouveo : Configuration',
+			width:930,
+			height:520,
+			iconCls: 'op5-crmbase-dataformwindow-icon',
+			animCollapse:false,
+			
+			optimaModule: this.optimaModule
+		},Optima5.Modules.Spec.RsiRecouveo.ConfigPanel) ;
+	},
+	
 	
 	onCrmeventBroadcast: function(crmEvent, eventParams) {
 		switch( crmEvent ) {

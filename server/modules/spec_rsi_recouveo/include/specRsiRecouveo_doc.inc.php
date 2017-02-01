@@ -69,6 +69,39 @@ function specRsiRecouveo_doc_getMailOut( $post_data ) {
 	global $_opDB ;
 	$p_tplId = $post_data['tpl_id'] ;
 	
+	
+	
+	// ************ DONNEES ***********************
+	$map_columns = array(
+		'record_id' => 'Ref Facture',
+		'date_record' => 'Date<br>facture',
+		'date_value' => 'Date<br>échéance',
+		'obs1' => 'Libellé',
+		'obs2' => 'Observations',
+		'amount_tot' => 'Solde TTC',
+		'amount_due' => 'Dont échu'
+	);
+	$table_columns = array() ;
+	foreach( $map_columns as $mkey => $mvalue ) {
+		$table_columns[] = array(
+			'dataIndex' => $mkey,
+			'text' => $mvalue
+		);
+	}
+	
+	$table_data = array() ;
+	foreach( array() as $record_row ) {
+		$table_data[] = $row_table ;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	// ************ TEMPLATE ***********************	
 	$ttmp = specRsiRecouveo_doc_cfg_getTpl( array(
 		'tpl_id' => $p_tplId,
 		'load_binary' => true
@@ -96,6 +129,7 @@ function specRsiRecouveo_doc_getMailOut( $post_data ) {
 		$node_qbookValue->parentNode->replaceChild($new_node,$node_qbookValue) ;
 	}
 	
+	
 	$elements = $doc->getElementsByTagName('qbook-table');
 	$i = $elements->length - 1;
 	while ($i > -1) {
@@ -117,6 +151,7 @@ function specRsiRecouveo_doc_getMailOut( $post_data ) {
 		
 		$node_qbookTable->parentNode->replaceChild($node_table,$node_qbookTable) ;
 	}
+	
 	
 	$filename = preg_replace("/[^a-zA-Z0-9]/", "",'PRINT').'.pdf' ;
 	

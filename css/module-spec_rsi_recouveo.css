@@ -169,3 +169,30 @@
 .op5-spec-rsiveo-actionstree-rowbody .x-grid-rowbody {
 	padding-left: 42px
 }
+
+
+
+.op5-spec-rsiveo-config-meta-big {
+	background-image: url("../images/modules/rsiveo-config-48.png") !important;
+}
+.op5-spec-rsiveo-config-meta-small {
+	background-image: url("../images/modules/rsiveo-config-16.gif") !important;
+}
+.op5-spec-rsiveo-config-scenarios-big {
+	background-image: url("../images/modules/rsiveo-calendar-48.png") !important;
+}
+.op5-spec-rsiveo-config-scenarios-small {
+	background-image: url("../images/modules/rsiveo-calendar-16.png") !important;
+}
+.op5-spec-rsiveo-config-users-big {
+	background-image: url("../images/modules/rsiveo-users-48.png") !important;
+}
+.op5-spec-rsiveo-config-users-small {
+	background-image: url("../images/modules/rsiveo-users-16.png") !important;
+}
+.op5-spec-rsiveo-config-pay-big {
+	background-image: url("../images/modules/rsiveo-pay-48.png") !important;
+}
+.op5-spec-rsiveo-config-pay-small {
+	background-image: url("../images/modules/rsiveo-pay-16.png") !important;
+}

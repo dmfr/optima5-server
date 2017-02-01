@@ -5,14 +5,14 @@
 	<style type="text/css">
 		body {  
 			font-family: Arial, Helvetica, sans-serif;
-			font-size: 13px ;
+			font-size: 16px ;
 			margin: 4px;
 			display:block
 		}
 
 		table {
 			font-family: Arial, Helvetica, sans-serif;
-			font-size: 13px;
+			font-size: 16px;
 			/*color: navy;*/
 			padding-top: 2px;
 			padding-bottom: 2px;
@@ -64,11 +64,13 @@
 
 		table.tabledonnees thead th {
 			font-weight: bold ;
-			border-bottom: 2px solid black ;
+			border-top: 1px solid black ;
+			border-bottom: 1px solid black ;
 		}
 		table.tabledonnees thead td {
 			font-weight: bold ;
-			border-bottom: 2px solid black ;
+			border-top: 1px solid black ;
+			border-bottom: 1px solid black ;
 		}
 
 		.celltitle {
@@ -158,8 +160,35 @@
 		
 		<br><br><br>
 		
-		<div class="letterwidth" style="margin:10px">
+		<div class="letterwidth" style="margin:10px ; height: 700px">
 		<qbook-value src_value="body_content">
+		<br><br>
+		<qbook-value src_value="body_payment">
+		</div>
+		
+		<table class='letterwidth'><tr>
+			<td width="100%" valign="top" align="center" style="font-size:14px; border:1px solid gray ; margin:10px ; padding:4px">
+				Coupon à joindre à votre chèque :<br>
+				Réf. Client : XXXXXXXXX // Réf. dossier : AAAAAAAA // MONTANT :   XXX,XX €
+			</td>
+		</tr></table>
+		
+		
+<p style="page-break-after:always;"></p>
+		
+		
+		<br><br><br>
+		
+		<table class='letterwidth'><tr>
+			<td width="100%" valign="top" align="center" style="font-size:24px; border:1px solid gray ; margin:10px ; padding:4px">
+			Référence client n° <b><qbook-value src_value="table_refcli"></b>&nbsp;-&nbsp;Extrait de compte
+			</td>
+		</tr></table>
+		
+		<br><br><br>
+		
+		<div class="letterwidth" style="margin:10px" align="center">
+				<qbook-table src_qobj="dummy"></qbook-table>
 		</div>
 		
 	</body>
