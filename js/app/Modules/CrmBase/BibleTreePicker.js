@@ -253,7 +253,10 @@ Ext.define('Optima5.Modules.CrmBase.BibleTreePicker',{
 		var myNewValue ;
 		switch( me.selectMode ) {
 			case 'multi' :
-				if( (myNewValue = Ext.JSON.decode(mvalue,true)) == null ) {
+				if( Ext.isArray(mvalue) ) {
+					myNewValue = value ;
+				}
+				else if( (myNewValue = Ext.JSON.decode(mvalue,true)) == null ) {
 					myNewValue = [] ;
 					//return ;
 				}
