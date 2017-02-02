@@ -35,6 +35,7 @@ Ext.define('DbsPeoplePeopledayModel', {
 		{name: 'std_daylength_min',   type: 'number'},
 		{name: 'std_daylength_max',   type: 'number'},
 		{name: 'std_daylength_contract',   type: 'number'},
+		{name: 'std_hour_start',   type: 'number'},
 		{name: 'real_is_abs',   type: 'boolean'}
 	],
 	hasMany: [{

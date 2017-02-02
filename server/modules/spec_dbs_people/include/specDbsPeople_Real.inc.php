@@ -145,6 +145,7 @@ function specDbsPeople_Real_getData( $post_data ) {
 	if( !$filter_peopleCode ) {
 		paracrm_lib_file_joinPrivate_buildCache('PEOPLEDAY') ;
 	}
+	$cfg_teams = specDbsPeople_tool_getTeams() ;
 	$cfg_contracts = specDbsPeople_tool_getContracts() ;
 	$cfg_arrDatesException = specDbsPeople_tool_getExceptionDays($sql_dates) ;
 	
@@ -183,6 +184,14 @@ function specDbsPeople_Real_getData( $post_data ) {
 			
 			// 2015-12 : join cache
 			$row += $cacheMap_peopleCode_dateSql_fieldCode[$people_code][$cur_date] ;
+			
+			unset($cfg_team) ;
+			if( $team_code = $row['std_team_code'] ) {
+				$cfg_team = $cfg_teams[$team_code] ;
+				if( $cfg_team ) {
+					$row['std_hour_start'] = $cfg_team['team_hour_start'] ;
+				}
+			}
 			
 			unset($cfg_contract) ;
 			if( $contract_code = $row['std_contract_code'] ) {
@@ -537,6 +546,22 @@ function specDbsPeople_Real_actionDay_lib_open( $peopleday_record ) {
 		$GLOBALS['cache_specDbsPeople_Real_cfgLinks'] = $ttmp['data'] ;
 	}
 	
+	$sql_date_start = '' ;
+	if( $peopleday_record['std_hour_start'] > 0 ) {
+		$hh = floor($peopleday_record['std_hour_start']) ;
+		if( $hh < 10 ) {
+			$hh = '0'.(string)$hh ;
+		} else {
+			$hh = (string)$hh ;
+		}
+		$mm = round(($peopleday_record['std_hour_start'] - floor($peopleday_record['std_hour_start'])) * 60) ;
+		if( $mm < 10 ) {
+			$mm = '0'.(string)$mm ;
+		} else {
+			$mm = (string)$mm ;
+		}
+		$sql_date_start = $peopleday_record['date_sql'].' '.$hh.':'.$mm.':'.'00' ;
+	}
 	
 	
 	if( !$peopleday_record['status_isVirtual'] ) {
@@ -561,6 +586,7 @@ function specDbsPeople_Real_actionDay_lib_open( $peopleday_record ) {
 		}
 	
 		$arr_ins = array() ;
+		$arr_ins['field_ABS_START'] = $sql_date_start ;
 		$arr_ins['field_ABS_CODE'] = $abs_code ;
 		$arr_ins['field_ABS_LENGTH'] = $peopleday_record['std_daylength'] ;
 		paracrm_lib_data_insertRecord_file( 'PEOPLEDAY_ABS', $filerecord_id , $arr_ins ) ;
@@ -579,6 +605,7 @@ function specDbsPeople_Real_actionDay_lib_open( $peopleday_record ) {
 	}
 	$arr_ins = array() ;
 	$arr_ins['field_CLI_CODE'] = $default_cliCode ;
+	$arr_ins['field_ROLE_START'] = $sql_date_start ;
 	$arr_ins['field_ROLE_CODE'] = $peopleday_record['std_role_code'] ;
 	$arr_ins['field_ROLE_LENGTH'] = $peopleday_record['std_daylength'] ;
 	paracrm_lib_data_insertRecord_file( 'PEOPLEDAY_WORK', $filerecord_id , $arr_ins ) ;

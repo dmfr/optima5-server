@@ -280,7 +280,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 	doGridConfigure: function() {
 		var me = this,
 			dateDayStart = Ext.clone(me.dateDay),
-			dateDayEnd = Sch.util.Date.add(dateDayStart, Sch.util.Date.DAY, 1) ;
+			dateDayEnd = Sch.util.Date.add(dateDayStart, Sch.util.Date.HOUR, 36) ;
 			
 		
 		var pushModelfields = [] ;
@@ -934,14 +934,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 		return resourceData ;
 	},
 	gridAdapterISOfactory: function( intHours ) {
-		var decMins = intHours - Math.floor(intHours),
-			intMins = Math.floor(decMins * 60) ;
-		intHours = Math.floor(intHours) ;
-		
-		var str = this.dateDayStr+' '+(intHours < 10 ? '0':'')+intHours+':'+(intMins < 10 ? '0':'')+intMins+':00',
-			objDate = Ext.Date.parse(str,'Y-m-d H:i:s') ;
-			
-		return objDate ;
+		return this.gridAdapterDateAdd( Ext.Date.parse(this.dateDayStr,'Y-m-d'), intHours ) ;
 	},
 	gridAdapterDateAdd: function( objDate, intHours ) {
 		var decMins = intHours - Math.floor(intHours),
@@ -1039,6 +1032,10 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 		if( statusIsVirtual ) {
 			if( stdDayLength == 0 ) {
 				return ;
+			}
+			if( peopledayRecord.data.std_hour_start > 0 ) {
+				console.dir( peopledayRecord.data.std_hour_start ) ;
+				notimeStdStartHour = peopledayRecord.data.std_hour_start ;
 			}
 			if( !stdAbsCode || stdAbsHalfDay ) {
 				eventData.push({
