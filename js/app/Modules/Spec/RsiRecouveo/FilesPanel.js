@@ -10,6 +10,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 	
 	viewMode: null,
 	autoRefreshDelay: (10*60*1000),
+	defaultViewMode: 'file',
 	
 	initComponent: function() {
 		Ext.apply(this, {
@@ -100,6 +101,28 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			}),{
 				xtype: 'tbseparator'
 			},{
+				//iconCls: 'op5-spec-dbsembramach-report-clock',
+				itemId: 'tbViewmode',
+				viewConfig: {forceFit: true},
+				menu: {
+					defaults: {
+						handler:function(menuitem) {
+							//console.log('ch view '+menuitem.itemId) ;
+							this.onViewSet( menuitem.itemId ) ;
+						},
+						scope:this
+					},
+					items: [{
+						itemId: 'file',
+						text: 'Vue par dossier',
+						iconCls: 'op5-spec-dbstracy-grid-view-order'
+					},{
+						itemId: 'account',
+						text: 'Vue par compte',
+						iconCls: 'op5-spec-dbstracy-grid-view-ordergroup'
+					}]
+				}
+			},{
 				iconCls: 'op5-crmbase-datatoolbar-refresh',
 				text: 'Refresh',
 				handler: function() {
@@ -153,8 +176,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		
 		this.tmpModelCnt = 0 ;
 		
-		//this.onViewSet(this.defaultViewMode) ;
 		this.configureViews() ;
+		this.onViewSet(this.defaultViewMode) ;
 	},
 	onCrmeventBroadcast: function(crmEvent, eventParams) {
 		switch( crmEvent ) {
@@ -168,12 +191,23 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		this.doLoad() ;
 	},
 	
+	onViewSet: function(viewId) {
+		var tbViewmode = this.child('toolbar').getComponent('tbViewmode'),
+			tbViewmodeItem = tbViewmode.menu.getComponent(viewId),
+			iconCls, text ;
+		if( tbViewmodeItem ) {
+			this.viewMode = viewId ;
+		}
+		// View mode
+		var tbViewmodeItem = tbViewmode.menu.getComponent(this.viewMode) ;
+		if( tbViewmodeItem ) {
+			tbViewmode.setText( 'Mode :'+'&#160;'+'<b>' + tbViewmodeItem.text + '</b>' );
+			tbViewmode.setIconCls( tbViewmodeItem.iconCls );
+		}
+		
+		this.doLoad(true) ;
+	},
 	configureViews: function() {
-		
-
-		
-		
-		
 		var statusMap = {} ;
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getStatusAll(), function(status) {
 			statusMap[status.status_id] = status ;
@@ -229,6 +263,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		
 		var pCenter = this.down('#pCenter') ;
 		var columns = [{
+			itemId: 'colAtr',
 			text: 'Attributs',
 			columns: atrColumns
 		},{
@@ -254,6 +289,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				}
 			}]
 		},{
+			itemId: 'colStatus',
 			text: 'Statut',
 			align: 'center',
 			dataIndex: 'status',
@@ -301,7 +337,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 						return '' ;
 					}
 					var etaValue = r.get('next_eta_range') ;
-					console.dir(etaValue) ;
 					if( etaValue ) {
 						var actionEtaMap = this._actionEtaMap ;
 						if( actionEtaMap.hasOwnProperty(etaValue) ) {
@@ -369,8 +404,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			_actionMap: actionMap,
 			_actionEtaMap: actionEtaMap
 		});
-		
-		this.doLoad(true) ;
 	},
 	
 	onAtrSet: function() {
@@ -467,6 +500,73 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				map_actionAgendaClass_etaRange_nbActions[actionAgendaClass][fileActionRow.calc_eta_range]++ ;
 			}) ;
 		}) ;
+		
+		this.down('#pCenter').down('#pGrid').headerCt.down('#colStatus').setVisible( !(this.viewMode=='account') ) ;
+		this.down('#pCenter').down('#pGrid').headerCt.down('#colAtr').setVisible( !(this.viewMode=='account') ) ;
+		
+		if( this.viewMode == 'account' ) {
+			newAjaxData = {} ;
+			var c = 0 ;
+			Ext.Array.each( ajaxData, function(fileRow) {
+				var accId = fileRow['acc_id'] ;
+				if( !newAjaxData.hasOwnProperty(accId) ) {
+					c++ ;
+					newAjaxData[accId] = {
+						file_filerecord_id: fileRow['file_filerecord_id'],
+						acc_id: fileRow['acc_id'],
+						acc_txt: fileRow['acc_txt'],
+						inv_nb: 0,
+						inv_amount_due: 0,
+						inv_amount_total: 0,
+						inv_balage: {},
+						next_actions: []
+					} ;
+				}
+				newAjaxData[accId]['inv_amount_due'] += fileRow['inv_amount_due'] ;
+				newAjaxData[accId]['inv_amount_total'] += fileRow['inv_amount_total'] ;
+				newAjaxData[accId]['inv_nb'] += fileRow['inv_nb'] ;
+				Ext.Object.each( fileRow.inv_balage, function(k,v) {
+					if( !newAjaxData[accId].inv_balage.hasOwnProperty(k) ) {
+						newAjaxData[accId].inv_balage[k] = 0 ;
+					}
+					newAjaxData[accId].inv_balage[k] += v ;
+				}) ;
+				newAjaxData[accId]['next_actions'].push({
+					next_fileaction_filerecord_id: fileRow['next_fileaction_filerecord_id'],
+					next_action: fileRow['next_action'],
+					next_date: fileRow['next_date'],
+					next_eta_range: fileRow['next_eta_range']
+				});
+			}) ;
+			
+			var findNextFn = function(nextActions) {
+				var nextDate = null,
+					nextIdx = -1 ;
+					
+				Ext.Array.each( nextActions, function(nextAction,idx) {
+					if( !nextAction.next_date ) {
+						return ;
+					}
+					if( nextDate == null || nextDate > nextAction.next_date ) {
+						nextDate = nextAction.next_date ;
+						nextIdx = idx ;
+					}
+				}) ;
+				if( nextIdx >= 0 ) {
+					return nextActions[nextIdx] ;
+				}
+			};
+			Ext.Object.each( newAjaxData, function(accId, accountRow) {
+				var nextAction ;
+				if( nextAction = findNextFn(accountRow.next_actions) ) {
+					Ext.apply( accountRow, nextAction ) ;
+				}
+			}) ;
+			
+			ajaxData = Ext.Object.getValues(newAjaxData) ;
+		}
+		
+		
 		
 		
 		// grid 
