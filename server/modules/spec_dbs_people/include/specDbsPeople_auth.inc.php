@@ -53,11 +53,15 @@ function specDbsPeople_auth_getTable( $post_data ) {
 	foreach( json_decode($arr['field_LINK_USERGROUP'],true) as $auth_treenode ) {
 		switch( $auth_treenode ) {
 			case 'ADMIN' :
-				$newPages = array('ADMIN','RH','CEQ','CEQ_DAY') ;
+				$newPages = array('ADMIN','RH','CEQ','CEQ_DAY','CEQ_WEEK') ;
 				break ;
 			
 			case 'RH' :
-				$newPages = array('RH','CEQ','CEQ_DAY') ;
+				$newPages = array('RH','CEQ','CEQ_DAY','CEQ_WEEK') ;
+				break ;
+			
+			case 'CEQ_WEEK' :
+				$newPages = array('CEQ','CEQ_WEEK') ;
 				break ;
 			
 			case 'CEQ_DAY' :
@@ -65,7 +69,7 @@ function specDbsPeople_auth_getTable( $post_data ) {
 				break ;
 			
 			case 'CEQ' :
-				$newPages = array('CEQ') ;
+				$newPages = array('CEQ','CEQ_DAY','CEQ_WEEK') ;
 				break ;
 			
 			default :

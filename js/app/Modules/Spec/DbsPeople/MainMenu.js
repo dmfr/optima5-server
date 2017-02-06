@@ -73,7 +73,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.MainMenu',{
 				action_caption: 'Exploitation Semaine',
 				action_sendEvent:'panel_real',
 				action_iconCls:'op5-spec-dbspeople-icon-real',
-				item_disabled: !Optima5.Modules.Spec.DbsPeople.HelperCache.authHelperQueryPage('CEQ')
+				item_disabled: !Optima5.Modules.Spec.DbsPeople.HelperCache.authHelperQueryPage('CEQ_WEEK')
 			},{
 				type_action:true,
 				action_caption: 'Exploitation Jour',
