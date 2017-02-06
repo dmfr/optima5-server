@@ -5,6 +5,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 	
 	$ttmp = specRsiRecouveo_cfg_getConfig() ;
 	$cfg_action_eta = $ttmp['data']['cfg_action_eta'] ;
+	$cfg_balage = $ttmp['data']['cfg_balage'] ;
 	$cfg_atr = $ttmp['data']['cfg_atr'] ;
 	//print_r($cfg_atr) ;
 	foreach( $cfg_atr as &$atr_record ) {
@@ -171,6 +172,12 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 		$map_etaRange_maxDays[$row['eta_range']] = $row['upto_days'] ;
 	}
 	asort($map_etaRange_maxDays) ;
+	$map_balageSegmt_fromDays = array() ;
+	foreach( $cfg_balage as $row ) {
+		$map_balageSegmt_fromDays[$row['segmt_id']] = (int)$row['calc_from_days'] ;
+	}
+	arsort($map_balageSegmt_fromDays) ;
+	
 	$obj_datetime_now = new DateTime(date('Y-m-d')) ;
 	// Calculs sur dossiers (next_action, inv_total)
 	foreach( $TAB_files as &$file_row ) {
@@ -178,7 +185,8 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 		$inv_header = array(
 			'inv_nb' => 0,
 			'inv_amount_due' => 0,
-			'inv_amount_total' => 0
+			'inv_amount_total' => 0,
+			'inv_balage' => null
 		) ;
 		
 		foreach( $file_row['actions'] as &$action_row ) {
@@ -186,11 +194,6 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 				continue ;
 			}
 			
-			// next action
-			if( !$next_action || $action_row['date_sched'] < $next_action['date_sched'] ) {
-				$next_action = $action_row ;
-			}
-		
 			// calcul du J+x
 			$obj_datetime_sched = new DateTime(substr($action_row['date_sched'],0,10)) ;
 			$obj_date_interval = date_diff($obj_datetime_now,$obj_datetime_sched);
@@ -226,12 +229,34 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			$inv_header['inv_amount_due'] += $record_row['amount'] ;
 		}
 		
+		$inv_balage = array() ;
+		foreach( $map_balageSegmt_fromDays as $segmt_id => $fromDays ) {
+			$inv_balage[$segmt_id] = 0 ;
+		}
+		foreach( $file_row['records'] as $record_row ) {
+			// calcul du J+x
+			$obj_datetime_sched = new DateTime(substr($record_row['date_value'],0,10)) ;
+			$obj_date_interval = date_diff($obj_datetime_sched,$obj_datetime_now);
+			$eta_days = (int)($obj_date_interval->format('%R%a')) ;
+				// range
+				$segmt_target = NULL ;
+				foreach( $map_balageSegmt_fromDays as $segmt_id => $fromDays ) {
+					if( $eta_days >= $fromDays ) {
+						$segmt_target = $segmt_id ;
+						break ;
+					}
+				}
+			$inv_balage[$segmt_target] += $record_row['amount'] ;
+		}
+		$inv_header['inv_balage'] = $inv_balage ;
+		
 		
 		if( $next_action ) {
 			$file_row += array(
 				'next_fileaction_filerecord_id' => $next_action['fileaction_filerecord_id'],
 				'next_action' => $next_action['link_action'],
-				'next_date' => $next_action['date_sched']
+				'next_date' => $next_action['date_sched'],
+				'next_eta_range' => $next_action['calc_eta_range']
 			);
 		}
 		$file_row += $inv_header ;

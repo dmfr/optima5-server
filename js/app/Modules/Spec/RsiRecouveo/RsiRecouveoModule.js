@@ -22,9 +22,11 @@ Ext.define('RsiRecouveoFileTplModel',{ // TO: RsiRecouveoFileModel
 				return v ;
 			}
 		},
+		{name: 'next_eta_range', type: 'string', allowNull:true},
 		{name: 'inv_nb', type: 'number'},
 		{name: 'inv_amount_due', type: 'number'},
-		{name: 'inv_amount_total', type: 'number'}
+		{name: 'inv_amount_total', type: 'number'},
+		{name: 'inv_balage', type: 'auto'}
 	],
 	statusIsSchedLock: function() {
 		var fileStatus = this.get('status'),

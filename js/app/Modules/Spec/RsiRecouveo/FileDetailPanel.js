@@ -759,6 +759,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			actionMap[action.action_id] = action ;
 		}) ;
 		
+		var actionEtaMap = {} ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionEtaAll(), function(actionEta) {
+			actionEtaMap[actionEta.eta_range] = actionEta ;
+		}) ;
+		
 		
 		
 		
@@ -809,6 +814,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			_fileRecord: fileRecord,
 			_statusMap: statusMap,
 			_actionMap: actionMap,
+			_actionEtaMap: actionEtaMap,
 			features: [{
 				ftype: 'rowbody',
 				getAdditionalData: function (data, idx, record, orig) {
@@ -818,65 +824,80 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					};
 				}
 			}],
-			columns: [{
-				xtype: 'treecolumn',
-				tdCls: 'op5-spec-rsiveo-actionstree-firstcol',
-				dataIndex: 'link_status',
-				width: 40,
-				renderer: function(value,metaData,record,rowIndex,colIndex,store,view) {
-					var statusMap = view.up('panel')._statusMap ;
-					if( statusMap.hasOwnProperty(value) ) {
-						var statusData = statusMap[value] ;
-						metaData.style += 'color: white ; background: '+statusData.status_color ;
+			columns: {
+				defaults: {
+					menuDisabled: true,
+					draggable: false,
+					sortable: false,
+					hideable: false,
+					resizable: false,
+					groupable: false,
+					lockable: false
+				},
+				items: [{
+					xtype: 'treecolumn',
+					tdCls: 'op5-spec-rsiveo-actionstree-firstcol',
+					dataIndex: 'link_status',
+					width: 40,
+					renderer: function(value,metaData,record,rowIndex,colIndex,store,view) {
+						var statusMap = view.up('panel')._statusMap ;
+						if( statusMap.hasOwnProperty(value) ) {
+							var statusData = statusMap[value] ;
+							metaData.style += 'color: white ; background: '+statusData.status_color ;
+							return '' ;
+						}
 						return '' ;
 					}
-					return '' ;
-				}
-			},{
-				dataIndex: 'link_action',
-				width: 100,
-				renderer: function(value,metaData,record,rowIndex,colIndex,store,view) {
-					var actionMap = view.up('panel')._actionMap ;
-					if( actionMap.hasOwnProperty(value) ) {
-						var actionData = actionMap[value] ;
-						return '<b>'+actionData.action_txt+'</b>' ;
+				},{
+					dataIndex: 'link_action',
+					width: 180,
+					renderer: function(value,metaData,record,rowIndex,colIndex,store,view) {
+						var actionMap = view.up('panel')._actionMap ;
+						if( actionMap.hasOwnProperty(value) ) {
+							var actionData = actionMap[value] ;
+							return '<b>'+actionData.action_txt+'</b>' ;
+						}
+						return '?' ;
 					}
-					return '?' ;
-				}
-			},{
-				text: 'Planning',
-				width: 100,
-				dataIndex: 'date_sched',
-				renderer: Ext.util.Format.dateRenderer('d/m/Y')
-			},{
-				text: 'Status',
-				width: 48,
-				dataIndex: 'status_is_ok',
-				renderer: function(value,metaData,record,rowIndex,colIndex,store,view) {
-					var fileRecord = view.up('panel')._fileRecord ;
-					if( record.getDepth() == 1 
-							&& fileRecord.get('next_fileaction_filerecord_id') == record.get('fileaction_filerecord_id') ) {
-						metaData.tdCls += ' op5-spec-rsiveo-doaction' ;
-						return ;
-					}
-					if( !value ) {
-						metaData.tdCls += ' op5-spec-dbstracy-files-nowarning' ;
-					} else {
-						metaData.tdCls += ' op5-spec-dbstracy-kpi-ok' ;
-					}
-					return '' ;
-				}
-			},{
-				text: 'Réalisé',
-				width: 100,
-				dataIndex: 'date_actual',
-				renderer: function(value,metaData,record,rowIndex,colIndex,store,view) {
-					if( record.get('status_is_ok') ) {
+				},{
+					text: 'Date',
+					align: 'center',
+					width: 100,
+					dataIndex: 'calc_date',
+					renderer: function(value,metaData,record,rowIndex,colIndex,store,view) {
+						if( !record.get('status_is_ok') ) {
+							var etaValue = record.get('calc_eta_range') ;
+							var actionEtaMap = view.up('panel')._actionEtaMap ;
+							if( actionEtaMap.hasOwnProperty(etaValue) ) {
+								var actionEtaData = actionEtaMap[etaValue] ;
+								metaData.style += 'color: white ; background: '+actionEtaData.eta_color ;
+							}
+						} else if( record.get('date_sched') 
+								&& Ext.util.Format.date(record.get('date_sched'),'Y-m-d') < Ext.util.Format.date(record.get('date_actual'),'Y-m-d') ) {
+							metaData.style += 'font-weight: bold ; color: red' ;
+						}
 						return Ext.util.Format.date(value,'d/m/Y') ;
 					}
-					return '' ;
-				}
-			}],
+				},{
+					text: 'Status',
+					width: 48,
+					dataIndex: 'status_is_ok',
+					renderer: function(value,metaData,record,rowIndex,colIndex,store,view) {
+						var fileRecord = view.up('panel')._fileRecord ;
+						if( record.getDepth() == 1 
+								&& fileRecord.get('next_fileaction_filerecord_id') == record.get('fileaction_filerecord_id') ) {
+							metaData.tdCls += ' op5-spec-rsiveo-doaction' ;
+							return ;
+						}
+						if( !value ) {
+							metaData.tdCls += ' op5-spec-dbstracy-files-nowarning' ;
+						} else {
+							metaData.tdCls += ' op5-spec-dbstracy-kpi-ok' ;
+						}
+						return '' ;
+					}
+				}]
+			},
 			viewConfig: {
 				getRowClass: function(record) {
 					if( record.getDepth() == 2 ) {
@@ -888,7 +909,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				model: 'RsiRecouveoFileActionModel',
 				root: {root: true, fileaction_filerecord_id:0, expanded: true, children:pActionsGridData},
 				sorters: [{
-						property: 'calc_date',
+						property: 'status_is_ok',
+						direction: 'ASC'
+				},{
+						property: 'date_actual',
 						direction: 'DESC'
 				},{
 						property: 'fileaction_filerecord_id',

@@ -184,10 +184,23 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			actionMap[action.action_id] = action ;
 		}) ;
 		
+		var actionEtaMap = {} ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionEtaAll(), function(actionEta) {
+			actionEtaMap[actionEta.eta_range] = actionEta ;
+		}) ;
+		
 		var atrRenderer = function(value, metaData, record, rowIndex, colIndex, store, view) {
 			var column = view.ownerCt.columns[colIndex],
 				value = record.get(column.rendererDataindex) ;
 			return value ;
+		}
+		var balageRenderer = function(value, metaData, record, rowIndex, colIndex, store, view) {
+			var column = view.ownerCt.columns[colIndex],
+				valueFloat = value[column.rendererDataindex] ;
+			if( valueFloat == 0 ) {
+				return '&#160;' ;
+			}
+			return Ext.util.Format.number(valueFloat,'0,000.00') ;
 		}
 		var atrColumns = [] ;
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
@@ -200,6 +213,17 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				width:90,
 				align: 'center',
 				renderer: atrRenderer
+			}) ;
+		}) ;
+		var balageColumns = [] ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getBalageAll(), function(balageSegmt) {
+			balageColumns.push({
+				text: balageSegmt.segmt_txt,
+				dataIndex: 'inv_balage',
+				rendererDataindex: balageSegmt.segmt_id,
+				width:70,
+				align: 'center',
+				renderer: balageRenderer
 			}) ;
 		}) ;
 		
@@ -272,9 +296,18 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				filter: {
 					type: 'date'
 				},
-				renderer: function(v) {
+				renderer: function(v,metaData,r) {
 					if( Ext.isEmpty(v) ) {
 						return '' ;
+					}
+					var etaValue = r.get('next_eta_range') ;
+					console.dir(etaValue) ;
+					if( etaValue ) {
+						var actionEtaMap = this._actionEtaMap ;
+						if( actionEtaMap.hasOwnProperty(etaValue) ) {
+							var actionEtaData = actionEtaMap[etaValue] ;
+							metaData.style += 'color: white ; background: '+actionEtaData.eta_color ;
+						}
 					}
 					var dateSql ;
 					dateSql = Ext.Date.format(v,'d/m/Y') ;
@@ -310,6 +343,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 					type: 'number'
 				}
 			}]
+		},{
+			text: 'Balance âgée',
+			columns: balageColumns
 		}] ;
 		pCenter.add({
 			xtype: 'grid',
@@ -330,7 +366,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				scope :this
 			},
 			_statusMap: statusMap,
-			_actionMap: actionMap
+			_actionMap: actionMap,
+			_actionEtaMap: actionEtaMap
 		});
 		
 		this.doLoad(true) ;

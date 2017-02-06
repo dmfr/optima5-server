@@ -58,6 +58,15 @@ Ext.define('RsiRecouveoCfgActionEtaModel',{
 		{name: 'upto_days', type:'int'}
 	]
 });
+Ext.define('RsiRecouveoCfgBalageModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'segmt_id',
+	fields: [
+		{name: 'segmt_id', type:'string'},
+		{name: 'segmt_txt', type:'string'},
+		{name: 'calc_from_days', type:'int'}
+	]
+});
 
 Ext.define('RsiRecouveoConfigUserTplModel',{
 	extend: 'Ext.data.Model',
@@ -167,6 +176,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 		this.cfgActionEtaStore = Ext.create('Ext.data.Store',{
 			model: 'RsiRecouveoCfgActionEtaModel',
 			data : ajaxData.data.cfg_action_eta
+		}) ;
+		this.cfgBalageStore = Ext.create('Ext.data.Store',{
+			model: 'RsiRecouveoCfgBalageModel',
+			data : ajaxData.data.cfg_balage
 		}) ;
 		
 		var cmpId = this.cmpId ;
@@ -307,6 +320,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 	
 	getActionEtaAll: function() {
 		return Ext.pluck( this.cfgActionEtaStore.getRange(), 'data' ) ;
+	},
+	
+	getBalageAll: function() {
+		return Ext.pluck( this.cfgBalageStore.getRange(), 'data' ) ;
 	},
 	
 	authHelperHasAll: function() {

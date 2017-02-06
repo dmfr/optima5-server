@@ -174,5 +174,5 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigMetaPanel', {
 			},
 			scope: this
 		}) ;
-	},
+	}
 });

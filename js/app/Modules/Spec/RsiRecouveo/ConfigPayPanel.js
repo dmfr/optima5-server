@@ -183,5 +183,5 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigPayPanel', {
 			},
 			scope: this
 		}) ;
-	},
+	}
 });

@@ -128,13 +128,13 @@ function specRsiRecouveo_cfg_getConfig() {
 	}
 	
 	$TAB_balage = array() ;
-	$query = "SELECT * FROM view_bible_CFG_BALAGE_entry WHERE 1 ORDER BY treenode_key" ;
+	$query = "SELECT * FROM view_bible_CFG_BALAGE_tree WHERE 1 ORDER BY treenode_key" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$TAB_balage[] = array(
 			'segmt_id' => $arr['field_SEGMT_ID'],
 			'segmt_txt' => $arr['field_SEGMT_TXT'],
-			'calc_from_days' => $arr['field_CALC_FROM_DAYS']
+			'calc_from_days' => $arr['field_CALC_FROM_J']
 		) ;
 	}
 	
@@ -143,7 +143,8 @@ function specRsiRecouveo_cfg_getConfig() {
 		'cfg_opt' => $TAB_list_opt,
 		'cfg_status' => $TAB_status,
 		'cfg_action' => $TAB_action,
-		'cfg_action_eta' => $TAB_action_eta
+		'cfg_action_eta' => $TAB_action_eta,
+		'cfg_balage' => $TAB_balage
 	);
 	
 	return array('success'=>true, 'data'=>$GLOBALS['cache_specRsiRecouveo_cfg']['getConfig'])  ;
