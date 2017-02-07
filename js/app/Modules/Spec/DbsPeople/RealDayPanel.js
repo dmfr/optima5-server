@@ -450,7 +450,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 			defaultSpan: 24,
 			timeResolution: {
 					unit: "MINUTE",
-					increment: 30
+					increment: 15
 			},
 			headerConfig: {
 				middle: {
@@ -478,6 +478,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 			border: false,
 			viewPreset  : 'realDayPanelPreset',
 			allowOverlap: false,
+			constrainDragToResource: true,
 			//zoneStore   : zoneStore,
 			startDate   : dateDayStart,
 			endDate     : dateDayEnd,
@@ -1083,7 +1084,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 					ResourceId: gridDataRowId,
 					StartDate: startDate,
 					EndDate: endDate,
-					Draggable: false,
+					Draggable: true,
 					Resizable: true,
 					
 					alt_whse_code: altWhseCode
@@ -1123,7 +1124,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RealDayPanel',{
 				ResourceId: gridDataRowId,
 				StartDate: startDate,
 				EndDate: endDate,
-				Draggable: false,
+				Draggable: true,
 				Resizable: true,
 				
 				cli_code: workRecord.data.cli_code,
