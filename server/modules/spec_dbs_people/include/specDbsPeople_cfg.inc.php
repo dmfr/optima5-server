@@ -198,24 +198,6 @@ function specDbsPeople_cfg_getCfgBibles() {
 	return array('success'=>true, 'data'=>$TAB) ;
 }
 
-function specDbsPeople_tool_getTeams() {
-	global $_opDB ;
-	
-	$TAB = array() ;
-	$query = "SELECT * FROM view_bible_CFG_TEAM_entry" ;
-	$result = $_opDB->query($query) ;
-	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
-		$team_code = $arr['field_TEAM_CODE'] ;
-		
-		$TAB[$team_code] = array(
-			'team_code' => $team_code,
-			'team_txt' => $arr['field_TEAM_TXT'],
-			'team_hour_start' => (float)$arr['field_TEAM_HOUR_START']
-		);
-	}
-	return $TAB ;
-}
-
 function specDbsPeople_tool_getContracts() {
 	global $_opDB ;
 	
@@ -241,6 +223,7 @@ function specDbsPeople_tool_getContracts() {
 			'std_daylength' => $arr['field_STD_DAYLENGTH'],
 			'std_daylength_min' => $arr['field_STD_DAYLENGTH_MIN'],
 			'std_daylength_max' => $arr['field_STD_DAYLENGTH_MAX'],
+			'std_hour_start' => $arr['field_STD_HOUR_START'],
 			'mod_week_std' => $arr['field_MOD_WEEK_STD'],
 			'mod_week_max' => $arr['field_MOD_WEEK_MAX'],
 			'rc_month_floor' => $arr['field_RC_MONTH_FLOOR'],

@@ -145,7 +145,6 @@ function specDbsPeople_Real_getData( $post_data ) {
 	if( !$filter_peopleCode ) {
 		paracrm_lib_file_joinPrivate_buildCache('PEOPLEDAY') ;
 	}
-	$cfg_teams = specDbsPeople_tool_getTeams() ;
 	$cfg_contracts = specDbsPeople_tool_getContracts() ;
 	$cfg_arrDatesException = specDbsPeople_tool_getExceptionDays($sql_dates) ;
 	
@@ -185,14 +184,6 @@ function specDbsPeople_Real_getData( $post_data ) {
 			// 2015-12 : join cache
 			$row += $cacheMap_peopleCode_dateSql_fieldCode[$people_code][$cur_date] ;
 			
-			unset($cfg_team) ;
-			if( $team_code = $row['std_team_code'] ) {
-				$cfg_team = $cfg_teams[$team_code] ;
-				if( $cfg_team ) {
-					$row['std_hour_start'] = $cfg_team['team_hour_start'] ;
-				}
-			}
-			
 			unset($cfg_contract) ;
 			if( $contract_code = $row['std_contract_code'] ) {
 				$cfg_contract = $cfg_contracts[$contract_code] ;
@@ -202,6 +193,7 @@ function specDbsPeople_Real_getData( $post_data ) {
 			}
 			
 			$row['std_daylength_contract'] = $cfg_contract['std_daylength'] ;
+			$row['std_hour_start'] = $cfg_contract['std_hour_start'] ;
 			if( !$cfg_contract['std_dayson'][$ISO8601_day] || $cfg_arrDatesException[$cur_date] ) {
 				$row['std_daylength_min'] = 0 ;
 				$row['std_daylength'] = 0 ;
