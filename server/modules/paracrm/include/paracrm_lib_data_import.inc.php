@@ -665,6 +665,27 @@ function paracrm_lib_dataImport_preHandle_SAP( $handle_in, $handle_out, $separat
 	}
 	
 	fseek($handle_priv,0) ;
+	$handle_priv_new = tmpfile() ;
+	while( !feof($handle_priv) ) {
+		$lig = fgets($handle_priv) ;
+		
+		$arr_csv = str_getcsv($lig,$separator) ;
+		if( count($arr_csv) != $max_occurences ) {
+			continue ;
+		}
+		
+		if( !$first_row ) {
+			$first_row = $lig ;
+		} elseif( $first_row == $lig ) {
+			continue ;
+		}
+		
+		fwrite($handle_priv_new,$lig) ;
+	}
+	fclose($handle_priv) ;
+	$handle_priv = $handle_priv_new ;
+	
+	fseek($handle_priv,0) ;
 	$strip_first = TRUE ;
 	$strip_last = TRUE ;
 	while( !feof($handle_priv) ) {
