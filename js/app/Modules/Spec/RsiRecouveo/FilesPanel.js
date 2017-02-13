@@ -902,7 +902,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		gridPanelFilters.each(function(filter) {
 			switch( filter.getProperty() ) {
 				case 'status' :
-					clickStatus = filter.getValue() ;
+					curStatus = filter.getValue() ;
 					break ;
 			}
 		}) ;
