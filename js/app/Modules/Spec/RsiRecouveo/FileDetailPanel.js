@@ -876,7 +876,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 								&& Ext.util.Format.date(record.get('date_sched'),'Y-m-d') < Ext.util.Format.date(record.get('date_actual'),'Y-m-d') ) {
 							metaData.style += 'font-weight: bold ; color: red' ;
 						}
-						return Ext.util.Format.date(value,'d/m/Y') ;
+						return Ext.Date.format(Ext.Date.parse(value,'Y-m-d'),'d/m/Y') ;
 					}
 				},{
 					text: 'Status',
@@ -906,7 +906,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				}
 			},
 			store: {
-				model: 'RsiRecouveoFileActionModel',
+				model: 'RsiRecouveoFileActionCalcModel',
 				root: {root: true, fileaction_filerecord_id:0, expanded: true, children:pActionsGridData},
 				sorters: [{
 						property: 'status_is_ok',

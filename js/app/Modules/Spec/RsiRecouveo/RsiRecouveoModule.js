@@ -94,13 +94,18 @@ Ext.define('RsiRecouveoFileActionModel',{
 		
 		{name: 'link_newfile_filerecord_id', type: 'int', allowNull:true},
 		
-		{name: 'calc_eta_range', type:'string'},
-		
-		{name: 'calc_date', type:'string', calculate: function (data) {
-			if( data.status_is_ok ) {
-				return Ext.Date.format(data.date_actual,'Y-m-d') ;
+		{name: 'calc_eta_range', type:'string'}
+	]
+}) ;
+Ext.define('RsiRecouveoFileActionCalcModel',{
+	extend: 'RsiRecouveoFileActionModel',
+	idProperty: 'fileaction_filerecord_id',
+	fields: [
+		{name: 'calc_date', type:'string', allowNull:true, depends: ['date_sched', 'date_actual'], convert: function(value,record) {
+			if( record.get('status_is_ok') ) {
+				return Ext.Date.format(record.get('date_actual'),'Y-m-d') ;
 			} else {
-				return Ext.Date.format(data.date_sched,'Y-m-d') ;
+				return Ext.Date.format(record.get('date_sched'),'Y-m-d') ;
 			}
 		}}
 	]
