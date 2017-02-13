@@ -587,7 +587,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			statusTitles.push(status.status_txt) ;
 		}) ;
 		
-		var agendaFields = ['agenda_class'],
+		var agendaFields = ['agenda_class','agenda_class_txt'],
 			agendaYFields = [],
 			agendaTitles = [],
 			agendaColors = [] ;
@@ -606,7 +606,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			};
 		Ext.Object.each( agendaSummary, function(agendaClass,agendaClassTxt) {
 			agendaRow = {} ;
-			agendaRow['agenda_class'] = agendaClassTxt ;
+			agendaRow['agenda_class'] = agendaClass ;
+			agendaRow['agenda_class_txt'] = agendaClassTxt ;
 			Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionEtaAll(), function(etaRangeRow) {
 				var etaRange = etaRangeRow.eta_range ;
 				agendaRow[etaRange] = 0 ;
@@ -626,10 +627,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			chartStatusCountData = [] ;
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getStatusAll(), function(status) {
 			chartStatusAmountData.push({
+				'status_id' : status.status_id,
 				'status_txt' : status.status_txt,
 				'amount' : Math.round(map_status_amount[status.status_id])
 			}) ;
 			chartStatusCountData.push({
+				'status_id' : status.status_id,
 				'status_txt' : status.status_txt,
 				'count' : Math.round(map_status_nbFiles[status.status_id])
 			}) ;
@@ -651,7 +654,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				border: false,
 				colors: statusColors,
 				store: { 
-					fields: ['status_txt', 'amount' ],
+					fields: ['status_id','status_txt', 'amount' ],
 					data: chartStatusAmountData
 				},
 				insetPadding: { top: 10, left: 10, right: 10, bottom: 20 },
@@ -689,7 +692,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 							return ''; // Empty label to hide text
 						}
 					},
-					highlight: true,
+					listeners: {
+						itemclick: this.onPolarItemClick,
+						scope: this
+					},
+					//highlight: true,
 					tooltip: {
 						trackMouse: true,
 						style: 'background: #fff',
@@ -711,7 +718,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				border: false,
 				colors: statusColors,
 				store: { 
-					fields: ['status_txt', 'count' ],
+					fields: ['status_id','status_txt', 'count' ],
 					data: chartStatusCountData
 				},
 				insetPadding: { top: 10, left: 10, right: 10, bottom: 20 },
@@ -726,6 +733,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 					x: 55, // the sprite x position
 					y: 205  // the sprite y position
 				}],
+				plugins: {
+					ptype: 'chartitemevents',
+					moveEvents: false
+				},
 				series: [{
 					type: 'pie',
 					angleField: 'count',
@@ -739,7 +750,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 							return ''; // Empty label to hide text
 						}
 					},
-					highlight: true,
+					listeners: {
+						itemclick: this.onPolarItemClick,
+						scope: this
+					},
+					//highlight: true,
 					tooltip: {
 						trackMouse: true,
 						style: 'background: #fff',
@@ -765,11 +780,16 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
             width: '100%',
             height: '100%',
             legend: {
-                docked: 'bottom'
+                docked: 'bottom',
+					toggleable: false
             },
             store: {
 					fields: agendaFields,
 					data: agendaData
+				},
+				plugins: {
+					ptype: 'chartitemevents',
+					moveEvents: false
 				},
             insetPadding: { top: 30, left: 10, right: 30, bottom: 10 },
             flipXY: true,
@@ -793,28 +813,30 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
             }, {
                 type: 'category',
                 position: 'left',
-                fields: 'agenda_class',
+                fields: 'agenda_class_txt',
                 grid: true
             }],
             series: [{
                 type: 'bar',
                 axis: 'bottom',
                 title: agendaTitles,
-                xField: 'agenda_class',
+                xField: 'agenda_class_txt',
                 yField: agendaYFields,
                 stacked: true,
                 style: {
                     opacity: 0.80
                 },
-                highlight: {
-                    fillStyle: 'yellow'
+                //highlight: true,
+                listeners: {
+                    itemclick: this.onBarItemClick,
+                    scope: this
                 },
                 tooltip: {
                     trackMouse: true,
                     style: 'background: #fff',
                     renderer: function(storeItem, item) {
                         var browser = item.series.getTitle()[Ext.Array.indexOf(item.series.getYField(), item.field)];
-                        this.setHtml(browser + ' for ' + storeItem.get('agenda_class') + ': ' + storeItem.get(item.field));
+                        this.setHtml(browser + ' for ' + storeItem.get('agenda_class_txt') + ': ' + storeItem.get(item.field));
                     }
                 }
             }]
@@ -867,5 +889,67 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		}) ;
 		
 		this.optimaModule.postCrmEvent('openaccount',{accId:accId, filterAtr:objAtrFilter, focusFileFilerecordId:fileFilerecordId}) ;
+	},
+	
+	onPolarItemClick: function( series , item ) {
+		var clickStatus = item.record.data.status_id ;
+		
+		var gridPanel = this.down('#pCenter').down('#pGrid'),
+			gridPanelStore = gridPanel.getStore(),
+			gridPanelFilters = gridPanelStore.getFilters() ;
+		
+		var curStatus ;
+		gridPanelFilters.each(function(filter) {
+			switch( filter.getProperty() ) {
+				case 'status' :
+					clickStatus = filter.getValue() ;
+					break ;
+			}
+		}) ;
+		gridPanelStore.clearFilter() ;
+		gridPanel.filters.clearFilters() ;
+		if( curStatus == clickStatus ) {
+			return ;
+		}
+		gridPanelStore.filter([{
+			exactMatch : true,
+			property : 'status',
+			value    : clickStatus
+		}]);
+	},
+	onBarItemClick: function( series, item ) {
+		var clickAgendaClass = item.record.data.agenda_class,
+			clickEtaRange = item.field ;
+		
+		var gridPanel = this.down('#pCenter').down('#pGrid'),
+			gridPanelStore = gridPanel.getStore(),
+			gridPanelFilters = gridPanelStore.getFilters() ;
+		
+		var curAgendaClass, curEtaRange ;
+		gridPanelFilters.each(function(filter) {
+			switch( filter.getProperty() ) {
+				case 'next_eta_range' :
+					curEtaRange = filter.getValue() ;
+					break ;
+				case 'next_agenda_class' :
+					curAgendaClass = filter.getValue() ;
+					break ;
+			}
+		}) ;
+		
+		gridPanelStore.clearFilter() ;
+		gridPanel.filters.clearFilters() ;
+		if( curAgendaClass == clickAgendaClass && curEtaRange == clickEtaRange ) {
+			return ;
+		}
+		gridPanelStore.filter([{
+			exactMatch : true,
+			property : 'next_eta_range',
+			value    : clickEtaRange
+		},{
+			exactMatch : true,
+			property : 'next_agenda_class',
+			value    :  clickAgendaClass
+		}]);
 	}
 });

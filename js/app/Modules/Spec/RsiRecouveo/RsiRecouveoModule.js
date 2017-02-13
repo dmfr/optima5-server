@@ -23,6 +23,7 @@ Ext.define('RsiRecouveoFileTplModel',{ // TO: RsiRecouveoFileModel
 			}
 		},
 		{name: 'next_eta_range', type: 'string', allowNull:true},
+		{name: 'next_agenda_class', type: 'string', allowNull:true},
 		{name: 'inv_nb', type: 'number'},
 		{name: 'inv_amount_due', type: 'number'},
 		{name: 'inv_amount_total', type: 'number'},

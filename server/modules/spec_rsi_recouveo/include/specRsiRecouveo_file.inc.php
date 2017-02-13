@@ -4,6 +4,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 	global $_opDB ;
 	
 	$ttmp = specRsiRecouveo_cfg_getConfig() ;
+	$cfg_action = $ttmp['data']['cfg_action'] ;
 	$cfg_action_eta = $ttmp['data']['cfg_action_eta'] ;
 	$cfg_balage = $ttmp['data']['cfg_balage'] ;
 	$cfg_atr = $ttmp['data']['cfg_atr'] ;
@@ -16,6 +17,11 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 		$atr_record['map_id_text'] = $map_id_text ;
 	}
 	unset($atr_record) ;
+	
+	$map_action = array() ;
+	foreach( $cfg_action as $action ) {
+		$map_action[$action['action_id']] = $action ;
+	}
 	
 	if( $post_data['filter_atr'] ) {
 		$filter_atr = json_decode($post_data['filter_atr'],true) ;
@@ -207,6 +213,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 					}
 				}
 			$action_row['calc_eta_range'] = $eta_range_target ;
+			$action_row['link_action_class'] = $map_action[$action_row['link_action']]['agenda_class'] ;
 		}
 		unset( $action_row ) ;
 		
@@ -256,7 +263,8 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 				'next_fileaction_filerecord_id' => $next_action['fileaction_filerecord_id'],
 				'next_action' => $next_action['link_action'],
 				'next_date' => $next_action['date_sched'],
-				'next_eta_range' => $next_action['calc_eta_range']
+				'next_eta_range' => $next_action['calc_eta_range'],
+				'next_agenda_class' => $next_action['link_action_class']
 			);
 		}
 		$file_row += $inv_header ;
