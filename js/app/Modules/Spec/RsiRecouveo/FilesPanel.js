@@ -228,14 +228,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				value = record.get(column.rendererDataindex) ;
 			return value ;
 		}
-		var balageRenderer = function(value, metaData, record, rowIndex, colIndex, store, view) {
-			var column = view.ownerCt.columns[colIndex],
-				valueFloat = value[column.rendererDataindex] ;
-			if( valueFloat == 0 ) {
-				return '&#160;' ;
-			}
-			return Ext.util.Format.number(valueFloat,'0,000.00') ;
-		}
 		var atrColumns = [] ;
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
 			var atrRecord = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(atrId) ;
@@ -249,16 +241,38 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				renderer: atrRenderer
 			}) ;
 		}) ;
-		var balageColumns = [] ;
+		
+		var balageFields = [], balageColumns = [] ;
+		var balageRenderer = function(value,metaData,record) {
+			if( value == 0 ) {
+				return '&#160;' ;
+			}
+			return Ext.util.Format.number(value,'0,000.00') ;
+		};
+		var balageConvert = function(value,record) {
+			var thisField = this,
+				balageSegmtId = thisField.balageSegmtId ;
+			return record.data.inv_balage[balageSegmtId] ;
+		};
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getBalageAll(), function(balageSegmt) {
+			var balageField = 'inv_balage_'+balageSegmt.segmt_id ;
 			balageColumns.push({
 				text: balageSegmt.segmt_txt,
-				dataIndex: 'inv_balage',
-				rendererDataindex: balageSegmt.segmt_id,
+				dataIndex: balageField,
 				width:70,
 				align: 'center',
-				renderer: balageRenderer
+				renderer: balageRenderer,
+				filter: {
+					type: 'number'
+				}
 			}) ;
+			
+			balageFields.push({
+				name: balageField,
+				balageSegmtId: balageSegmt.segmt_id,
+				type: 'number',
+				convert: balageConvert
+			});
 		}) ;
 		
 		var pCenter = this.down('#pCenter') ;
@@ -277,7 +291,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				filter: {
 					type: 'op5crmbasebible',
 					optimaModule: this.optimaModule,
-					bibleId: 'BASE_CLI'
+					bibleId: 'LIB_ACCOUNT'
 				}
 			},{
 				text: 'Acheteur',
@@ -314,6 +328,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				tdCls: 'op5-spec-dbstracy-boldcolumn',
 				align: 'center',
 				dataIndex: 'next_action',
+				/*filter: {
+					type: 'op5crmbasebible',
+					optimaModule: this.optimaModule,
+					bibleId: 'CFG_ACTION'
+				},*/
 				renderer: function(v,metaData,r) {
 					if( Ext.isEmpty(v) ) {
 						return '' ;
@@ -361,7 +380,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				width:90,
 				align: 'center'
 			},{
-				text: 'Montant<br>débiteur',
+				text: 'Solde',
 				dataIndex: 'inv_amount_due',
 				tdCls: 'op5-spec-dbstracy-boldcolumn',
 				width:90,
@@ -370,7 +389,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 					type: 'number'
 				}
 			},{
-				text: 'Montant<br>total',
+				hidden: true,
+				text: 'Montant<br>factures',
 				dataIndex: 'inv_amount_total',
 				width:90,
 				align: 'center',
@@ -382,6 +402,28 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			text: 'Balance âgée',
 			columns: balageColumns
 		}] ;
+		
+		columns = {
+			defaults: {
+				menuDisabled: false,
+				draggable: false,
+				sortable: true,
+				hideable: false,
+				resizable: true,
+				groupable: false,
+				lockable: false
+			},
+			items: columns
+		}
+		
+		this.tmpModelName = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getFileModel()+'-' + this.getId() + (++this.tmpModelCnt) ;
+		Ext.ux.dams.ModelManager.unregister( this.tmpModelName ) ;
+		Ext.define(this.tmpModelName, {
+			extend: Optima5.Modules.Spec.RsiRecouveo.HelperCache.getFileModel(),
+			idProperty: 'file_filerecord_id',
+			fields: balageFields
+		});
+		
 		pCenter.add({
 			xtype: 'grid',
 			itemId: 'pGrid',
@@ -390,7 +432,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				ptype: 'uxgridfilters'
 			}],
 			store: {
-				model: Optima5.Modules.Spec.RsiRecouveo.HelperCache.getFileModel(),
+				model: this.tmpModelName,
 				data: []
 			},
 			listeners: {
