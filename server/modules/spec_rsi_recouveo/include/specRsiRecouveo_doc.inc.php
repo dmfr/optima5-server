@@ -22,6 +22,7 @@ function specRsiRecouveo_doc_cfg_getTpl( $post_data ) {
 			'tpl_id' => $arr['field_TPL_ID'],
 			'tpl_name' => $arr['field_TPL_NAME'],
 			'html_src_file' => $arr['field_HTML_SRC_FILE'],
+			'html_footer_file' => $arr['field_HTML_FOOTER_FILE'],
 			'html_body' => $arr['field_HTML_BODY'],
 			'html_title' => $arr['field_HTML_TITLE']
 		);
@@ -55,6 +56,14 @@ function specRsiRecouveo_doc_cfg_getTpl( $post_data ) {
 				$node_qbookValue->parentNode->replaceChild($new_node,$node_qbookValue) ;
 				break ;
 				
+				case 'body_footer' :
+				$inputFileName = $templates_dir.'/'.$data_row['html_footer_file'] ;
+				$inputBinary = file_get_contents($inputFileName) ;
+				$new_node = specRsiRecouveo_doc_buildFooter($inputBinary) ;
+				$new_node = $doc->importNode($new_node, true);
+				$node_qbookValue->parentNode->replaceChild($new_node,$node_qbookValue) ;
+				break ;
+				
 				default :
 				break ;
 			}
@@ -62,9 +71,16 @@ function specRsiRecouveo_doc_cfg_getTpl( $post_data ) {
 		
 		$data_row['tpl_html'] = $doc->saveHTML() ;
 	}
+	unset($data_row) ;
 	return array('success'=>true, 'data'=>$data) ;
 }
-
+function specRsiRecouveo_doc_buildFooter( $footerBinary ) {
+	$doc = new DOMDocument();
+	@$doc->loadHTML('<?xml encoding="UTF-8"><html>'."\r\n".'<div>'.$footerBinary.'</div></html>');
+	$node = $doc->getElementsByTagName("div")->item(0) ;
+	//var_dump($node) ;
+	return $node ;
+}
 function specRsiRecouveo_doc_getMailOut( $post_data ) {
 	global $_opDB ;
 	$p_tplId = $post_data['tpl_id'] ;
