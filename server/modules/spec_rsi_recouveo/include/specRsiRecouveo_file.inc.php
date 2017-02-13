@@ -875,6 +875,7 @@ function specRsiRecouveo_file_lib_close( $file_filerecord_id ) {
 	
 	
 	specRsiRecouveo_file_lib_updateStatus( $accFile_record['acc_id'] ) ;
+	return $dst_file_filerecord_id ;
 }
 
 

@@ -499,7 +499,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 					return ;
 				}
 				var doReload = doReload ;
-				this.onSaveHeader() ;
+				this.onSaveHeader(ajaxResponse.file_filerecord_id) ;
 			},
 			callback: function() {
 				this.hideLoadmask() ;
@@ -507,8 +507,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 			scope: this
 		}) ;
 	},
-	onSaveHeader: function() {
-		this.fireEvent('saved',this._fileRecord.get('file_filerecord_id')) ;
+	onSaveHeader: function(fileId) {
+		this.fireEvent('saved',fileId) ;
 		this.optimaModule.postCrmEvent('datachange',{}) ;
 		this.destroy() ;
 	},

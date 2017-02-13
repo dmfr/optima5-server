@@ -458,7 +458,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 						plugins: {
 							ptype: 'treeviewdragdrop',
 							ddGroup: 'RsiRecouveoFileDetailRecordsTreeDD',
-							dragText: 'Glisser factures pour ajouter au dossier'
+							dragText: 'Glisser factures pour ajouter au dossier',
+							appendOnly: true
 						},
 						listeners: {
 							beforedrop: this.onRecordsTreeDrop,

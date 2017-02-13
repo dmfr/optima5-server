@@ -344,10 +344,14 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 	*/
 	
 	if( $is_sched_lock_end ) {
-		specRsiRecouveo_file_lib_close($file_filerecord_id) ;
+		$file_filerecord_id = specRsiRecouveo_file_lib_close($file_filerecord_id) ;
 	}
 	
 	
-	return array('success'=>true, 'id'=>$fileaction_filerecord_id) ;
+	return array(
+		'success'=>true,
+		'file_filerecord_id'=>$file_filerecord_id,
+		'fileaction_filerecord_id'=>$fileaction_filerecord_id
+	) ;
 }
 ?>
