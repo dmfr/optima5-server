@@ -270,6 +270,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AdrbookEntityPanel',{
 					items: [{
 						xtype: 'checkboxfield',
 						name: 'adrbook_entity_new',
+						readOnly: true,
 						boxLabel: 'Nouveau contact ?',
 						listeners: {
 							change: function(field,value) {
@@ -284,6 +285,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AdrbookEntityPanel',{
 					},{
 						xtype: 'combobox',
 						name: 'adrbook_entity_select',
+						readOnly: true,
 						fieldLabel: 'Nom du contact',
 						forceSelection: true,
 						editable: false,

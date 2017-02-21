@@ -171,6 +171,15 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					title: 'Contacts',
 					itemId: 'pAdrbookTree',
 					xtype: 'treepanel',
+					tbar: [{
+						itemId: 'tbNew',
+						icon: 'images/op5img/ico_new_16.gif',
+						text: 'Ajouter contact',
+						handler: function() {
+							this.handleNewAdrbook();
+						},
+						scope: this
+					}],
 					store: {
 						model: 'RsiRecouveoAdrbookTreeModel',
 						root: {children:[]},
@@ -1284,6 +1293,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		this.floatingPanel = actionPanel ;
 	},
 	
+	handleNewAdrbook: function( adrbookEntity ) {
+		this.openAdrbookPanel( this._accountRecord.get('acc_id'), null ) ;
+	},
 	handleEditAdrbook: function( adrbookEntity ) {
 		this.openAdrbookPanel( this._accountRecord.get('acc_id'), adrbookEntity ) ;
 	},
