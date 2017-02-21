@@ -1,5 +1,5 @@
 Ext.define('RsiRecouveoAdrbookTmpModel',{
-	extend: 'RsiRecouveoAdrbookModel',
+	extend: 'RsiRecouveoAdrbookEntryModel',
 	idProperty: 'id',
 	fields: [
 		{name: 'is_new', type:'boolean'},
@@ -39,6 +39,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AdrbookEntityTypePanel',{
 		Ext.apply(this,{
 			layout: 'border',
 			items: [{
+				itemId: 'pNorth',
 				region: 'north',
 				bodyCls: 'ux-noframe-bg',
 				bodyPadding: 8,
@@ -46,24 +47,28 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AdrbookEntityTypePanel',{
 				title: this.newTitle,
 				collapsible: true,
 				collapsed: true,
-				xtype: 'form',
-				layout: 'anchor',
+				xtype: 'panel',
+				layout: 'fit',
 				items: [{
-					anchor: '100%',
-					labelWidth: 80,
-					fieldLabel: this.fieldLabel,
-					xtype: this.fieldXtype,
-					name: 'adr_txt_new'
-				}],
-				tools:[{
-					type:'save',
-					tooltip: 'Enregistrer',
-					handler: function(event, toolEl, panelHeader) {
-						var formPanel = panelHeader.ownerCt ;
-						console.dir(formPanel) ;
-						this.handleSave() ;
-					},
-					scope: this
+					xtype: 'form',
+					border: false,
+					bodyCls: 'ux-noframe-bg',
+					layout: 'anchor',
+					items: [{
+						anchor: '100%',
+						labelWidth: 80,
+						fieldLabel: this.fieldLabel,
+						xtype: this.fieldXtype,
+						name: 'adr_txt_new'
+					}],
+					buttons: [{
+						xtype: 'button',
+						text: 'OK',
+						handler: function( btn ) {
+							this.handleSave() ;
+						},
+						scope: this
+					}]
 				}]
 			},{
 				region: 'center',
@@ -204,14 +209,16 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AdrbookEntityTypePanel',{
 	handleCopy: function(gridrecord) {
 		gridrecord.set('status_is_invalid',true) ;
 		
-		var formPanel = this.down('form'),
+		var formPanelCnt = this.down('#pNorth'),
+			formPanel = formPanelCnt.down('form'),
 			form = formPanel.getForm() ;
 		form.reset() ;
 		form.setValues({adr_txt_new:gridrecord.get('adr_txt')}) ;
-		formPanel.expand() ;
+		formPanelCnt.expand() ;
 	},
 	handleSave: function() {
-		var formPanel = this.down('form'),
+		var formPanelCnt = this.down('#pNorth'),
+			formPanel = formPanelCnt.down('form'),
 			form = formPanel.getForm(),
 			formValues = form.getValues(),
 			adrTxt = formValues.adr_txt_new ;
@@ -226,7 +233,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AdrbookEntityTypePanel',{
 		} ;
 		this.store.add(rec) ;
 		form.reset() ;
-		formPanel.collapse() ;
+		formPanelCnt.collapse() ;
 	}
 }) ;
 Ext.define('Optima5.Modules.Spec.RsiRecouveo.AdrbookEntityPanel',{
@@ -248,47 +255,69 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AdrbookEntityPanel',{
 			bodyCls: 'ux-noframe-bg',
 			bodyPadding: 10,
 			layout: 'anchor',
-			defaults: {
+			fieldDefaults: {
 				labelWidth: 120,
-				anchor: '50%'
+				labelAlign: 'right',
+				anchor: '100%'
 			},
 			items: [{
-				xtype: 'checkboxfield',
-				name: 'adrbook_entity_new',
-				boxLabel: 'Nouveau contact ?',
-				listeners: {
-					change: function(field,value) {
-						this.doChangeNew(value) ;
-					},
-					scope: this
-				}
-			},{
-				xtype: 'textfield',
-				name: 'adrbook_entity_txt',
-				fieldLabel: 'Nom du contact'
-			},{
-				xtype: 'combobox',
-				name: 'adrbook_entity_select',
-				fieldLabel: 'Nom du contact',
-				forceSelection: true,
-				editable: false,
-				store: {
-					fields: ['adr_entity'],
-					data : [],
-					sorters: [{
-						property: 'adr_entity',
-						direction: 'ASC'
+				xtype: 'container',
+				layout: 'hbox',
+				items: [{
+					flex: 1,
+					xtype: 'container',
+					layout: 'anchor',
+					items: [{
+						xtype: 'checkboxfield',
+						name: 'adrbook_entity_new',
+						boxLabel: 'Nouveau contact ?',
+						listeners: {
+							change: function(field,value) {
+								this.doChangeNew(value) ;
+							},
+							scope: this
+						}
+					},{
+						xtype: 'textfield',
+						name: 'adrbook_entity_txt',
+						fieldLabel: 'Nom du contact'
+					},{
+						xtype: 'combobox',
+						name: 'adrbook_entity_select',
+						fieldLabel: 'Nom du contact',
+						forceSelection: true,
+						editable: false,
+						store: {
+							fields: ['adr_entity'],
+							data : [],
+							sorters: [{
+								property: 'adr_entity',
+								direction: 'ASC'
+							}]
+						},
+						queryMode: 'local',
+						displayField: 'adr_entity',
+						valueField: 'adr_entity',
+						listeners: {
+							select: function(cmb,record) {
+								this.doSelectEntity(record.get('adr_entity')) ;
+							},
+							scope: this
+						}
 					}]
-				},
-				queryMode: 'local',
-				displayField: 'adr_entity',
-				valueField: 'adr_entity',
-				listeners: {
-					select: function(cmb,newValue) {
-						this.doSelectEntity(newValue) ;
-					},
-					scope: this
-				}
+				},{
+					xtype: 'box',
+					width: 48
+				},{
+					flex: 1,
+					xtype: 'container',
+					layout: 'anchor',
+					items: [{
+						xtype: 'textarea',
+						name: 'adrbook_entity_obs',
+						fieldLabel: 'Observations'
+					}]
+				}]
 			},{
 				xtype: 'container',
 				anchor: '100%',
@@ -333,6 +362,25 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AdrbookEntityPanel',{
 						fieldXtype: 'textfield'
 					})
 				}]
+			}],
+			buttons: [{
+				itemId: 'btnOk',
+				xtype: 'button',
+				text: 'Sauver',
+				icon: 'images/op5img/ico_save_16.gif',
+				handler: function( btn ) {
+					this.askSave() ;
+				},
+				scope: this
+			},{
+				itemId: 'btnPreview',
+				xtype: 'button',
+				text: 'Annuler',
+				icon: 'images/op5img/ico_cancel_small.gif',
+				handler: function( btn ) {
+					this.askDestroy() ;
+				},
+				scope: this
 			}]
 		}) ;
 		this.callParent() ;
@@ -387,12 +435,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AdrbookEntityPanel',{
 		var arr_accountEntity = [], accountEntity, dataEntity=[] ;
 		accountRecord.adrbook().each( function( accAdrRec ) {
 			accountEntity = accAdrRec.get('adr_entity') ;
-			if( !Ext.Array.contains(arr_accountEntity,accountEntity) ) {
-				arr_accountEntity.push(accountEntity) ;
-				dataEntity.push({
-					adr_entity: accountEntity
-				}) ;
-			}
+			
+			arr_accountEntity.push(accountEntity) ;
+			dataEntity.push({
+				adr_entity: accountEntity
+			}) ;
 		});
 		
 		var form = this.getForm() ;
@@ -424,6 +471,17 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AdrbookEntityPanel',{
 		this.doSelectEntity(null) ;
 	},
 	doSelectEntity: function( adrbookEntity ) {
+		var form = this.getForm() ;
+		this._accountRecord.adrbook().each( function(accAdrRec) {
+			if( accAdrRec.get('adr_entity') != adrbookEntity ) {
+				return ;
+			}
+			form.setValues({
+				adrbook_entity_obs: accAdrRec.get('adr_entity_obs')
+			}) ;
+			return false ;
+		}) ;
+		
 		// lookup + fill grids
 		Ext.Array.each( this.query('fieldset'), function( formFs ) {
 			var childPanel = formFs.down('[filterAdrType]'),
@@ -431,7 +489,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AdrbookEntityPanel',{
 				gridStore = childPanel.store,
 				gridData = [] ;
 			childPanel.down('form').getForm().reset();
-			childPanel.down('form').collapse() ;
+			childPanel.down('#pNorth').collapse() ;
 			if( !adrbookEntity ) {
 				gridStore.removeAll() ;
 				return ;
@@ -440,9 +498,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AdrbookEntityPanel',{
 				if( accAdrRec.get('adr_entity') != adrbookEntity ) {
 					return ;
 				}
-				if( accAdrRec.get('adr_type') == filterAdrType ) {
-					gridData.push(accAdrRec.getData()) ;
-				}
+				accAdrRec.adrbookentries().each( function(accAdrEntRec) {
+					if( accAdrEntRec.get('adr_type') != filterAdrType ) {
+						return ;
+					}
+					gridData.push(accAdrEntRec.getData()) ;
+				}) ;
+				return false ;
 			}) ;
 			gridStore.loadData(gridData) ;
 		},this) ;
@@ -458,32 +520,37 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AdrbookEntityPanel',{
 		}
 		
 		var adrbookStore = this._accountRecord.adrbook() ;
+		
+		var adrbookRecordData = {
+			adrbook_filerecord_id: 0,
+			adr_entity: adrEntity,
+			adr_entity_obs: formValues['adrbook_entity_obs'],
+			adrbookentries: []
+		};
+		if( !formValues['adrbook_entity_new'] ) {
+			adrbookStore.each( function(adrbookRecord) {
+				if( adrbookRecord.get('adr_entity') != adrEntity ) {
+					return ;
+				}
+				adrbookRecordData['adrbook_filerecord_id'] = adrbookRecord.getId() ;
+				return false ;
+			});
+		}
+		
 		Ext.Array.each( this.query('fieldset'), function( formFs ) {
 			var childPanel = formFs.down('[filterAdrType]'),
 				filterAdrType = childPanel.filterAdrType,
 				gridStore = childPanel.store ;
 			gridStore.each( function(gridRecord) {
-				var adrbookRecordData = {} ;
-				Ext.apply(adrbookRecordData,gridRecord.getData()) ;
-				Ext.apply(adrbookRecordData,{adr_entity: adrEntity}) ;
-				
-				if( adrbookRecordData['adrbook_filerecord_id'] > 0 ) {
-					var toupdateRecord = adrbookStore.getById(adrbookRecordData['adrbook_filerecord_id']) ;
-					if( adrbookRecordData['is_deleted'] ) {
-						adrbookStore.remove(toupdateRecord) ;
-					} else {
-						toupdateRecord.set(adrbookRecordData) ;
-					}
-				} else {
-					adrbookStore.add(adrbookRecordData) ;
+				var adrbookEntryRecordData = {} ;
+				Ext.apply(adrbookEntryRecordData,gridRecord.getData()) ;
+				if( adrbookRecordData['is_deleted'] ) {
+					return ;
 				}
+				adrbookRecordData['adrbookentries'].push(adrbookEntryRecordData) ;
 			}) ;
 		},this) ;
 		
-		var adrbookStoreData = [] ;
-		adrbookStore.each( function(adrbookRecord) {
-			adrbookStoreData.push(adrbookRecord.getData()) ;
-		});
 		
 		this.showLoadmask() ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
@@ -491,7 +558,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AdrbookEntityPanel',{
 				_moduleId: 'spec_rsi_recouveo',
 				_action: 'account_setAdrbook',
 				acc_id: this._accId,
-				data: Ext.JSON.encode(adrbookStoreData)
+				data: Ext.JSON.encode(adrbookRecordData)
 			},
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;

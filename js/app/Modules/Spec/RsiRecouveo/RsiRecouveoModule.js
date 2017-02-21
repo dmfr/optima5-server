@@ -80,6 +80,7 @@ Ext.define('RsiRecouveoFileTplModel',{ // TO: RsiRecouveoFileModel
 		return availableActions ;
 	}
 }) ;
+
 Ext.define('RsiRecouveoFileActionModel',{
 	extend: 'Ext.data.Model',
 	idProperty: 'fileaction_filerecord_id',
@@ -110,6 +111,7 @@ Ext.define('RsiRecouveoFileActionCalcModel',{
 		}}
 	]
 }) ;
+
 Ext.define('RsiRecouveoRecordTplModel',{ // TO: RsiRecouveoRecordModel
 	extend: 'Ext.data.Model',
 	idProperty: 'record_filerecord_id',
@@ -137,18 +139,33 @@ Ext.define('RsiRecouveoRecordLinkModel',{
 		{name: 'date_link_off', type:'date', dateFormat:'Y-m-d H:i:s'}
 	]
 }) ;
-Ext.define('RsiRecouveoAdrbookModel',{
+
+Ext.define('RsiRecouveoAdrbookEntryModel',{
 	extend: 'Ext.data.Model',
-	idProperty: 'adrbook_filerecord_id',
+	idProperty: 'adrbookentry_filerecord_id',
 	fields: [
-		{name: 'adrbook_filerecord_id', type:'int'},
-		{name: 'adr_entity', type:'string'},
+		{name: 'adrbookentry_filerecord_id', type:'int'},
 		{name: 'adr_type', type:'string'},
 		{name: 'adr_txt', type:'string'},
 		{name: 'status_is_confirm', type:'boolean'},
 		{name: 'status_is_invalid', type:'boolean'}
 	]
 }) ;
+Ext.define('RsiRecouveoAdrbookModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'adrbook_filerecord_id',
+	fields: [
+		{name: 'adrbook_filerecord_id', type:'int'},
+		{name: 'adr_entity', type:'string'},
+		{name: 'adr_entity_obs', type:'string'}
+	],
+	hasMany: [{
+		model: 'RsiRecouveoAdrbookEntryModel',
+		name: 'adrbookentries',
+		associationKey: 'adrbookentries'
+	}]
+}) ;
+
 Ext.define('RsiRecouveoAccountTplModel',{
 	extend: 'Ext.data.Model',
 	idProperty: 'acc_id',

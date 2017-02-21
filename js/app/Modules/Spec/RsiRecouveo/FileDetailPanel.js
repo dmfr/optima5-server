@@ -20,6 +20,8 @@ Ext.define('RsiRecouveoAdrbookTreeModel',{
 	extend: 'RsiRecouveoAdrbookModel',
 	idProperty: 'id',
 	fields:[
+		{name: 'adr_entity', type: 'string'},
+		{name: 'adr_entity_obs', type: 'string'},
 		{name: 'adr_entity_group', type: 'boolean'}
 	]
 }) ;
@@ -182,6 +184,21 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					displayField: 'nodeText',
 					rootVisible: false,
 					useArrows: true,
+					features: [{
+						ftype: 'rowbody',
+						getAdditionalData: function (data, idx, record, orig) {
+							if( record.get('adr_entity_group') ) {
+								return {
+									rowBody: '<div style="">' + Ext.util.Format.nl2br(record.get("adr_entity_obs")) + '</div>',
+									rowBodyCls: "op5-spec-rsiveo-actionstree-rowbody"
+								};
+							}
+							return {
+								rowBody: '<div style="">' + '' + '</div>',
+								rowBodyCls: ""
+							}
+						}
+					}],
 					columns: {
 						defaults: {
 							menuDisabled: true,
@@ -273,7 +290,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 									if( record.get('adr_entity_group') ) {
 										formParams['adrtel_entity'] = record.get('adr_entity') ;
 									} else {
-										formParams['adrtel_filerecord_id'] = record.get('adrbook_filerecord_id') ;
+										formParams['adrtel_filerecord_id'] = record.get('adrbookentry_filerecord_id') ;
 									}
 									this.handleNewAction('CALL_OUT',formParams) ;
 								},
@@ -300,7 +317,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 									if( record.get('adr_entity_group') ) {
 										formParams['adrpost_entity'] = record.get('adr_entity') ;
 									} else {
-										formParams['adrpost_filerecord_id'] = record.get('adrbook_filerecord_id') ;
+										formParams['adrpost_filerecord_id'] = record.get('adrbookentry_filerecord_id') ;
 									}
 									this.handleNewAction('MAIL_OUT',formParams) ;
 								},
@@ -668,15 +685,18 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 	onLoadAccountBuildAdrbookTree: function( accountRecord ) {
 		var adrbookTree = this.down('#pAdrbookTree') ;
 		
-		var adrbookRootMap = {} ;
+		var adrbookRootMap = {}, adrbookRootMapObs = {} ;
 		accountRecord.adrbook().each( function(adrBookRec) {
-			if( adrBookRec.get('status_is_invalid') ) {
-				return ;
-			}
-			if( !adrbookRootMap.hasOwnProperty(adrBookRec.get('adr_entity')) ) {
-				adrbookRootMap[adrBookRec.get('adr_entity')] = [] ;
-			}
-			adrbookRootMap[adrBookRec.get('adr_entity')].push( Ext.apply({leaf:true},adrBookRec.getData()) ) ;
+			adrBookRec.adrbookentries().each( function(adrBookEntryRec) {
+				if( adrBookEntryRec.get('status_is_invalid') ) {
+					return ;
+				}
+				if( !adrbookRootMap.hasOwnProperty(adrBookRec.get('adr_entity')) ) {
+					adrbookRootMap[adrBookRec.get('adr_entity')] = [] ;
+					adrbookRootMapObs[adrBookRec.get('adr_entity')] = adrBookRec.get('adr_entity_obs') ;
+				}
+				adrbookRootMap[adrBookRec.get('adr_entity')].push( Ext.apply({leaf:true},adrBookEntryRec.getData()) ) ;
+			})
 		}) ;
 		var adrbookRootChildren = [] ;
 		Ext.Object.each( adrbookRootMap, function(k,v) {
@@ -684,6 +704,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				expanded: false,
 				leaf: false,
 				adr_entity: k,
+				adr_entity_obs: adrbookRootMapObs[k],
 				adr_entity_group: true,
 				children: v
 			})
@@ -1285,12 +1306,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			resizable: true,
 			renderTo: this.getEl(),
 			tools: [{
-				type: 'save',
-				handler: function(e, t, p) {
-					p.ownerCt.askSave();
-				},
-				scope: this
-			},{
 				type: 'close',
 				handler: function(e, t, p) {
 					p.ownerCt.askDestroy() ;

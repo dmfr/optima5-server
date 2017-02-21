@@ -46,21 +46,36 @@ function specRsiRecouveo_account_open( $post_data ) {
 		}
 	}
 	
-	$account_record += array(
-		'adrbook' => array()
-	) ;
+	$adrbook = array() ;
 	$query = "SELECT adr.* FROM view_file_ADRBOOK adr WHERE adr.field_ACC_ID='{$p_accId}'" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
-		$account_record['adrbook'][] = array(
+		$adrbook[$arr['filerecord_id']] = array(
 			'adrbook_filerecord_id' => $arr['filerecord_id'],
 			'adr_entity' => $arr['field_ADR_ENTITY'],
+			'adr_entity_obs' => $arr['field_ADR_ENTITY_OBS'],
+			'adrbookentries' => array()
+		);
+	}
+	$query = "SELECT adrent.* FROM view_file_ADRBOOK_ENTRY adrent 
+				INNER JOIN view_file_ADRBOOK adr ON adr.filerecord_id=adrent.filerecord_parent_id
+				WHERE adr.field_ACC_ID='{$p_accId}'" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		if( !$adrbook[$arr['filerecord_parent_id']] ) {
+			continue ;
+		}
+		$adrbook[$arr['filerecord_parent_id']]['adrbookentries'][] = array(
+			'adrbookentry_filerecord_id' => $arr['filerecord_id'],
 			'adr_type' => $arr['field_ADR_TYPE'],
 			'adr_txt' => $arr['field_ADR_TXT'],
 			'status_is_confirm' => ($arr['field_STATUS_IS_CONFIRM']==1),
 			'status_is_invalid' => ($arr['field_STATUS_IS_INVALID']==1)
 		);
 	}
+	$account_record += array(
+		'adrbook' => array_values($adrbook)
+	) ;
 	
 	
 	
@@ -106,7 +121,7 @@ function specRsiRecouveo_account_setAdrbook( $post_data ) {
 	global $_opDB ;
 	
 	$p_accId = $post_data['acc_id'] ;
-	$p_adrbookData = json_decode($post_data['data'],true) ;
+	$p_adrbookRecordData = json_decode($post_data['data'],true) ;
 	
 	$json = specRsiRecouveo_account_open( array('acc_id'=>$p_accId) ) ;
 	if( !$json['success'] ) {
@@ -114,26 +129,47 @@ function specRsiRecouveo_account_setAdrbook( $post_data ) {
 	}
 	$account_record = $json['data'] ;
 	
-	
 	$file_code = 'ADRBOOK' ;
-	$existing_ids = array() ;
-	foreach( $account_record['adrbook'] as $adrbook_record ) {
-		$existing_ids[] = $adrbook_record['adrbook_filerecord_id'] ;
+	$arr_ins = array() ;
+	$arr_ins['field_ACC_ID'] = $p_accId ;
+	$arr_ins['field_ADR_ENTITY'] = $p_adrbookRecordData['adr_entity'] ;
+	$arr_ins['field_ADR_ENTITY_OBS'] = $p_adrbookRecordData['adr_entity_obs'] ;
+	if( $p_adrbookRecordData['adrbook_filerecord_id'] ) {
+		$adrbook_record = NULL ;
+		foreach( $account_record['adrbook'] as $iter_adrbook_record ) {
+			if( $iter_adrbook_record['adrbook_filerecord_id'] == $p_adrbookRecordData['adrbook_filerecord_id'] ) {
+				$adrbook_record = $iter_adrbook_record ;
+				break ;
+			}
+		}
+		if( !$adrbook_record ) {
+			return array('success'=>false) ;
+		}
+		$adrbook_filerecord_id = $adrbook_record['adrbook_filerecord_id'] ;
+		paracrm_lib_data_updateRecord_file( $file_code, $arr_ins, $adrbook_filerecord_id);
+		
+		$existing_ids = array() ;
+		foreach( $adrbook_record['adrbookentries'] as $adrbook_entry_record ) {
+			$existing_ids[] = $adrbook_entry_record['adrbookentry_filerecord_id'] ;
+		}
+	} else {
+		$adrbook_filerecord_id = paracrm_lib_data_insertRecord_file( $file_code, 0, $arr_ins );
+		$existing_ids = array() ;
 	}
+	
+	$file_code = 'ADRBOOK_ENTRY' ;
 	$new_ids = array() ;
-	foreach( $p_adrbookData as $adrbook_record ) {
+	foreach( $p_adrbookRecordData['adrbookentries'] as $adrbook_entry_record ) {
 		$arr_ins = array() ;
-		$arr_ins['field_ACC_ID'] = $p_accId ;
-		$arr_ins['field_ADR_ENTITY'] = $adrbook_record['adr_entity'] ;
-		$arr_ins['field_ADR_TYPE'] = $adrbook_record['adr_type'] ;
-		$arr_ins['field_ADR_TXT'] = $adrbook_record['adr_txt'] ;
-		$arr_ins['field_STATUS_IS_CONFIRM'] = ( $adrbook_record['status_is_confirm'] ? 1 : 0 ) ;
-		$arr_ins['field_STATUS_IS_INVALID'] = ( $adrbook_record['status_is_invalid'] ? 1 : 0 ) ;
-		if( in_array($adrbook_record['adrbook_filerecord_id'], $existing_ids) ) {
-			$new_ids[] = $adrbook_record['adrbook_filerecord_id'] ;
-			paracrm_lib_data_updateRecord_file( $file_code, $arr_ins, $adrbook_record['adrbook_filerecord_id']);
+		$arr_ins['field_ADR_TYPE'] = $adrbook_entry_record['adr_type'] ;
+		$arr_ins['field_ADR_TXT'] = $adrbook_entry_record['adr_txt'] ;
+		$arr_ins['field_STATUS_IS_CONFIRM'] = ( $adrbook_entry_record['status_is_confirm'] ? 1 : 0 ) ;
+		$arr_ins['field_STATUS_IS_INVALID'] = ( $adrbook_entry_record['status_is_invalid'] ? 1 : 0 ) ;
+		if( in_array($adrbook_entry_record['adrbookentry_filerecord_id'], $existing_ids) ) {
+			$new_ids[] = $adrbook_entry_record['adrbookentry_filerecord_id'] ;
+			paracrm_lib_data_updateRecord_file( $file_code, $arr_ins, $adrbook_entry_record['adrbookentry_filerecord_id']);
 		} else {
-			$new_ids[] = paracrm_lib_data_insertRecord_file( $file_code, 0, $arr_ins );
+			$new_ids[] = paracrm_lib_data_insertRecord_file( $file_code, $adrbook_filerecord_id, $arr_ins );
 		}
 	}
 	$to_delete = array_diff($existing_ids,$new_ids) ;

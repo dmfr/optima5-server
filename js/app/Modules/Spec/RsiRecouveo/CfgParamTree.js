@@ -54,23 +54,23 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamTree',{
 			var adrbookRootMap = {} ;
 			//adrbookRootMap['Autre'] = [] ;
 			this.accountRecord.adrbook().each( function(adrBookRec) {
-				if( adrBookRec.get('status_is_invalid') ) {
-					return ;
-				}
-				if( adrBookRec.get('adr_type') != adrType ) {
-					return ;
-				}
-				if( !adrbookRootMap.hasOwnProperty(adrBookRec.get('adr_entity')) ) {
-					adrbookRootMap[adrBookRec.get('adr_entity')] = [] ;
-				}
-				adrbookRootMap[adrBookRec.get('adr_entity')].push( {
-					leaf: true,
-					
-					nodeId: adrBookRec.get('adrbook_filerecord_id'),
-					nodeType: 'adr',
-					nodeKey: adrBookRec.get('adrbook_filerecord_id'),
-					nodeText: adrBookRec.get('adr_txt')
-				} ) ;
+				adrbookRootMap[adrBookRec.get('adr_entity')] = [] ;
+				adrBookRec.adrbookentries().each( function(adrBookEntryRec) {
+					if( adrBookEntryRec.get('status_is_invalid') ) {
+							return ;
+					}
+					if( adrBookEntryRec.get('adr_type') != adrType ) {
+							return ;
+					}
+					adrbookRootMap[adrBookRec.get('adr_entity')].push( {
+						leaf: true,
+						
+						nodeId: adrBookEntryRec.get('adrbookentry_filerecord_id'),
+						nodeType: 'adr',
+						nodeKey: adrBookEntryRec.get('adrbookentry_filerecord_id'),
+						nodeText: adrBookEntryRec.get('adr_txt')
+					} ) ;
+				});
 			}) ;
 			var adrbookRootChildren = [] ;
 			Ext.Object.each( adrbookRootMap, function(k,v) {
