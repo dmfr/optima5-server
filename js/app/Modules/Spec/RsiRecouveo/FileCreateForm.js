@@ -182,6 +182,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateForm',{
 			}) ;
 		}
 		
+		// Titre
+		this.setTitle(newAction.action_txt) ;
 		
 		// Form panel
 		var formData = {

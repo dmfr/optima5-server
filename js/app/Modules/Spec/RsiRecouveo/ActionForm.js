@@ -7,7 +7,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusCallOutPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailInPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel',
-		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextPanel'
+		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextPanel',
+		
+		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusAgreeFollowPanel',
+		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusLitigFollowPanel',
+		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusClosePanel'
 	],
 	
 	_fileRecord: null,
@@ -162,6 +166,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 		this.down('#btnOk').setVisible(true) ;
 		this.down('#btnPreview').setVisible(hasPreview) ;
 		this.fireEvent('mylayout',this) ;
+		
+		// Titre
+		this.setTitle(currentAction.action_txt) ;
 		
 		// Données
 		var formData = {

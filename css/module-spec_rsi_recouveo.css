@@ -196,3 +196,16 @@
 .op5-spec-rsiveo-config-pay-small {
 	background-image: url("../images/modules/rsiveo-pay-16.png") !important;
 }
+
+
+.op5-spec-rsiveo-actionclass-comm {
+	background-image: url("../images/modules/dbspeople-role-16.png") !important;
+}
+.op5-spec-rsiveo-actionclass-file {
+	background-image: url("../images/modules/crmbase-bookmark-16.png") !important;
+}
+
+.op5-spec-rsiveo-action-btn .x-btn-inner {
+	color: red ;
+	font-weight: bold ; 
+}
