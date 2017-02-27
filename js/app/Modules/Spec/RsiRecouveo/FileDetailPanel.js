@@ -133,15 +133,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				type: 'hbox',
 				align: 'stretch'
 			},
-			tbar:[{
-				itemId: 'tbSave',
-				iconCls:'op5-sdomains-menu-submit',
-				text:'Save',
-				handler: function() {
-					this.handleSaveHeader() ;
-				},
-				scope:this
-			},'->',{
+			tbar:['->',{
 				itemId: 'tbNew',
 				icon: 'images/modules/dbspeople-role-16.png',
 				text: '<b>Actions de communication</b>',
@@ -389,12 +381,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 								}
 							}]
 						}]
-					},
-					listeners: {
-						edited: function() {
-							this.handleSaveHeader();
-						},
-						scope: this
 					}
 				}]
 			},{
@@ -1132,48 +1118,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		});
 		
 		this.down('toolbar').down('#tbNew').setDisabled( fileRec.statusIsSchedNone() )  ;
-	},
-	
-	
-	handleSaveHeader: function(doReload) {
-		var formPanel = this.down('#pHeaderForm'),
-			form = formPanel.getForm() ;
-			  
-		var recordData = form.getValues(false,false,false,true) ;
-		recordData['adr_postal'] = this.down('#gridAdrPostal').getTabData() ;
-		recordData['adr_tel'] = this.down('#gridAdrTel').getTabData() ;
-		
-		this.showLoadmask() ;
-		this.optimaModule.getConfiguredAjaxConnection().request({
-			params: {
-				_moduleId: 'spec_rsi_recouveo',
-				_action: 'file_setHeader',
-				_is_new: ( this._fileNew ? 1 : 0 ),
-				file_filerecord_id: ( this._fileNew ? null : this._fileFilerecordId ),
-				data: Ext.JSON.encode(recordData)
-			},
-			success: function(response) {
-				var ajaxResponse = Ext.decode(response.responseText) ;
-				if( ajaxResponse.success == false ) {
-					var error = ajaxResponse.success || 'File not saved !' ;
-					Ext.MessageBox.alert('Error',error) ;
-					return ;
-				}
-				var doReload = doReload ;
-				this.onSaveHeader(ajaxResponse.id, doReload) ;
-			},
-			callback: function() {
-				this.hideLoadmask() ;
-			},
-			scope: this
-		}) ;
-	},
-	onSaveHeader: function(savedId, doReload) {
-		this.optimaModule.postCrmEvent('datachange',{}) ;
-		
-		if( doReload ) {
-			this.loadFile(savedId) ;
-		}
 	},
 	
 	
