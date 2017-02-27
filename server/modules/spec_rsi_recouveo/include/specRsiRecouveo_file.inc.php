@@ -47,7 +47,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 				$mkey = $atr_record['bible_code'] ;
 				if( $filter_atr[$mkey] ) {
 					$mvalue = $filter_atr[$mkey] ;
-					$query.= " AND f.field_{$mkey} = '$mvalue'" ;
+					$query.= " AND f.field_{$mkey} IN ".$_opDB->makeSQLlist($mvalue) ;
 				}
 			}
 		}
@@ -97,7 +97,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 				$mkey = $atr_record['bible_code'] ;
 				if( $filter_atr[$mkey] ) {
 					$mvalue = $filter_atr[$mkey] ;
-					$query.= " AND f.field_{$mkey} = '$mvalue'" ;
+					$query.= " AND f.field_{$mkey} = ".$_opDB->makeSQLlist($mvalue) ;
 				}
 			}
 		}
@@ -136,7 +136,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 				$mkey = $atr_record['bible_code'] ;
 				if( $filter_atr[$mkey] ) {
 					$mvalue = $filter_atr[$mkey] ;
-					$query.= " AND f.field_{$mkey} = '$mvalue'" ;
+					$query.= " AND f.field_{$mkey} = ".$_opDB->makeSQLlist($mvalue) ;
 				}
 			}
 		}

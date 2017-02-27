@@ -33,6 +33,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
 	//resizable: true,
 	myValue : null ,
 	
+	selectMode: 'SINGLE',
+	
 	initComponent: function() {
 		var me = this ;
 		if( (me.optimaModule) instanceof Optima5.Module ) {} else {
@@ -52,6 +54,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
 			optimaModule: this.optimaModule,
 			accountRecord: this.accountRecord,
 			cfgParam_id: this.cfgParam_id,
+			selectMode: this.selectMode, // SINGLE / MULTI
 			width:250,
 			height:300,
 			listeners: {
@@ -123,14 +126,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
 		var me = this ;
 		this.callParent() ;
 	},
-	onItemClick: function( picker, record ) {
-		var me = this ;
-		var oldValue = me.myValue ;
-		me.myValue = record.get('entry_key') ;
-		this.fireEvent('change',me,me.myValue,oldValue) ;
-		me.applyPrettyValue(record) ;
-		me.collapse() ;
-	},
 			  
 	createPicker: function() {
 		//console.log('created!!') ;
@@ -169,14 +164,22 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
 		} else {
 			this.divicon.removeCls('biblepicker-iconimg-nok') ;
 			this.divicon.addCls('biblepicker-iconimg-oktree') ;
-			this.divtext.dom.innerHTML = cfgParamTree.getStore().getNodeById(selectedValue).get('nodeText') ;
-			if( this.cfgParam_id.indexOf('ADR_')===0 && cfgParamTree.getStore().getNodeById(selectedValue).getDepth()==2 ) {
-				this.divtext.dom.innerHTML = cfgParamTree.getStore().getNodeById(selectedValue).parentNode.get('nodeText') ;
+			if( this.selectMode == 'MULTI' ) {
+				var vals = [] ;
+				Ext.Array.each( selectedValue, function(val) {
+					vals.push( val ) ;
+				});
+				this.divtext.dom.innerHTML = vals.join('&#160;'+'/'+'&#160;') ;
+			} else {
+				this.divtext.dom.innerHTML = cfgParamTree.getStore().getNodeById(selectedValue).get('nodeText') ;
+				if( this.cfgParam_id.indexOf('ADR_')===0 && cfgParamTree.getStore().getNodeById(selectedValue).getDepth()==2 ) {
+					this.divtext.dom.innerHTML = cfgParamTree.getStore().getNodeById(selectedValue).parentNode.get('nodeText') ;
+				}
 			}
 		}
 	},
 	
-	setRawValue: function(value) {
+	setValue: function(value) {
 		this.value = value ;
 		
 		if( !this.isReady ) {
@@ -189,18 +192,17 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
 		}
 		var cfgParamTree = this.cfgParamTree ;
 		cfgParamTree.setValue(value,true) ;
+		this.displayValue() ;
 		if( Ext.isEmpty(value) ) {
 			//cfgParamTree.autoAdvance() ;
 		}
 	},
 	
+	getValue: function() {
+		return this.value ;
+	},
 	getRawValue: function() {
 		return this.value || '' ;
-	},
-	getNode: function() {
-		var cfgParamTree = this.cfgParamTree,
-			retValue = cfgParamTree.getNode() ;
-		return retValue ;
 	},
 	getLeafNodesKey: function() {
 		var cfgParamTree = this.cfgParamTree,

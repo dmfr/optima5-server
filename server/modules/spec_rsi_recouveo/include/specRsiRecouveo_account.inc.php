@@ -88,7 +88,7 @@ function specRsiRecouveo_account_open( $post_data ) {
 			$mkey = $atr_record['bible_code'] ;
 			if( $p_atrFilter[$mkey] ) {
 				$mvalue = $p_atrFilter[$mkey] ;
-				$query.= " AND f.field_{$mkey} = '$mvalue'" ;
+				$query.= " AND f.field_{$mkey} IN ".$_opDB->makeSQLlist($mvalue) ;
 			}
 		}
 	}

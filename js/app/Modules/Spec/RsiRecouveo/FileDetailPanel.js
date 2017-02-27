@@ -66,6 +66,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				allowBlank: false,
 				fieldLabel: atrRecord.atr_txt,
 				
+				selectMode: 'MULTI',
+				
 				listeners: {
 					change: this.onFilterChange,
 					scope: this

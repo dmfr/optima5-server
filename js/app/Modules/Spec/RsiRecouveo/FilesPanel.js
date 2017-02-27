@@ -4,7 +4,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 	requires: [
 		'Ext.ux.CheckColumnNull',
 		'Optima5.Modules.Spec.RsiRecouveo.CfgParamButton',
-		'Optima5.Modules.Spec.RsiRecouveo.CfgParamFilter',
 		'Optima5.Modules.Spec.RsiRecouveo.SearchCombo'
 	],
 	
@@ -23,64 +22,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 					this.doQuit() ;
 				},
 				scope: this
-			},'-',Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamButton',{
-				cfgParam_id: 'ATR_BU',
-				icon: 'images/op5img/ico_blocs_small.gif',
-				itemId: 'btnBu',
-				optimaModule: this.optimaModule,
-				listeners: {
-					change: {
-						fn: function() {
-							this.onAtrSet() ;
-						},
-						scope: this
-					},
-					ready: {
-						fn: function() {
-							
-						},
-						scope: this
-					}
-				}
-			}),'-',Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamButton',{
-				cfgParam_id: 'ATR_DIV',
-				icon: 'images/op5img/ico_blocs_small.gif',
-				itemId: 'btnDiv',
-				optimaModule: this.optimaModule,
-				listeners: {
-					change: {
-						fn: function() {
-							this.onAtrSet() ;
-						},
-						scope: this
-					},
-					ready: {
-						fn: function() {
-							
-						},
-						scope: this
-					}
-				}
-			}),'-',Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamButton',{
-				cfgParam_id: 'ATR_SECT',
-				icon: 'images/op5img/ico_blocs_small.gif',
-				itemId: 'btnSect',
-				optimaModule: this.optimaModule,
-				listeners: {
-					change: {
-						fn: function() {
-							this.onAtrSet() ;
-						},
-						scope: this
-					},
-					ready: {
-						fn: function() {
-							
-						},
-						scope: this
-					}
-				}
-			}),'->',{
+			},'-',{
+				itemId: 'tbAtr',
+				border: false,
+				xtype: 'toolbar',
+				items: []
+			},'->',{
 				icon: 'images/op5img/ico_search_16.gif',
 				itemId: 'btnSearchIcon',
 				handler: function(btn) {
@@ -176,6 +123,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		
 		this.tmpModelCnt = 0 ;
 		
+		this.configureToolbar() ;
 		this.configureViews() ;
 		this.onViewSet(this.defaultViewMode) ;
 	},
@@ -206,6 +154,33 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		}
 		
 		this.doLoad(true) ;
+	},
+	configureToolbar: function() {
+		var tbAtr = this.down('#tbAtr') ;
+		tbAtr.removeAll() ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
+			var atrRecord = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(atrId) ;
+			tbAtr.add(Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamButton',{
+				cfgParam_id: atrRecord.bible_code,
+				icon: 'images/op5img/ico_blocs_small.gif',
+				selectMode: 'MULTI',
+				optimaModule: this.optimaModule,
+				listeners: {
+					change: {
+						fn: function() {
+							this.onAtrSet() ;
+						},
+						scope: this
+					},
+					ready: {
+						fn: function() {
+							
+						},
+						scope: this
+					}
+				}
+			}) );
+		},this) ;
 	},
 	configureViews: function() {
 		var statusMap = {} ;
