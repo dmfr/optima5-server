@@ -52,6 +52,33 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		}) ;
 		
 		
+		var balageFields = [], balageColumns = [] ;
+		var balageRenderer = function(value,metaData,record) {
+			if( value == 0 ) {
+				return '&#160;' ;
+			}
+			return '<b>'+Ext.util.Format.number(value,'0,000.00')+'</b>' ;
+		};
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getBalageAll(), function(balageSegmt) {
+			var balageField = 'inv_balage_'+balageSegmt.segmt_id ;
+			balageColumns.push({
+				text: balageSegmt.segmt_txt,
+				dataIndex: balageField,
+				width:70,
+				align: 'center',
+				renderer: balageRenderer,
+				filter: {
+					type: 'number'
+				}
+			}) ;
+			
+			balageFields.push({
+				name: balageField,
+				balageSegmtId: balageSegmt.segmt_id,
+				type: 'number',
+				allowNull: false
+			});
+		}) ;
 		
 		
 		var formItems = []
@@ -419,6 +446,33 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 						}
 					]
 				},{
+					height: 50,
+					itemId: 'pRecordsBalage',
+					hidden: true,
+					xtype:'grid',
+					columns: {
+						defaults: {
+							menuDisabled: true,
+							draggable: false,
+							sortable: false,
+							hideable: false,
+							resizable: false,
+							groupable: false,
+							lockable: false
+						},
+						items: balageColumns
+					},
+					store: {
+						fields: balageFields,
+						data: [],
+						proxy: {
+							type: 'memory',
+							reader: {
+								type: 'json'
+							}
+						}
+					}
+				},{
 					flex: 1,
 					itemId: 'pRecordsTree',
 					xtype: 'treepanel',
@@ -695,6 +749,21 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			inv_amount_due: inv_amount_due
 		});
 		this.down('#pRecordsHeader').setVisible(true) ;
+		
+		
+		var balageRecData = {} ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getBalageAll(), function(balageSegmt) {
+			var balageField = 'inv_balage_'+balageSegmt.segmt_id ;
+			balageRecData[balageField] = 0 ;
+		}) ;
+		accountRecord.files().each( function(fileRecord) {
+			fileRecord.records().each( function(fileRecordRecord) {
+				var balageField = 'inv_balage_'+fileRecordRecord.get('calc_balage_segmt_id') ;
+				balageRecData[balageField] += fileRecord.get('inv_amount_due') ;
+			},this) ;
+		},this) ;
+		this.down('#pRecordsBalage').getStore().loadData([balageRecData]) ;
+		this.down('#pRecordsBalage').setVisible(true) ;
 		
 		this.onLoadAccountBuildRecordsTree(accountRecord) ;
 		

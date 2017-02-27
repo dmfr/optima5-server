@@ -240,7 +240,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 		foreach( $map_balageSegmt_fromDays as $segmt_id => $fromDays ) {
 			$inv_balage[$segmt_id] = 0 ;
 		}
-		foreach( $file_row['records'] as $record_row ) {
+		foreach( $file_row['records'] as &$record_row ) {
 			// calcul du J+x
 			$obj_datetime_sched = new DateTime(substr($record_row['date_value'],0,10)) ;
 			$obj_date_interval = date_diff($obj_datetime_sched,$obj_datetime_now);
@@ -254,7 +254,9 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 					}
 				}
 			$inv_balage[$segmt_target] += $record_row['amount'] ;
+			$record_row['calc_balage_segmt_id'] = $segmt_target ;
 		}
+		unset($record_row) ;
 		$inv_header['inv_balage'] = $inv_balage ;
 		
 		

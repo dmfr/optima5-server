@@ -124,7 +124,9 @@ Ext.define('RsiRecouveoRecordTplModel',{ // TO: RsiRecouveoRecordModel
 		{name: 'amount', type:'number'},
 		{name: 'letter_is_on', type:'boolean'},
 		{name: 'letter_code', type: 'string'},
-		{name: '_checked', type: 'boolean'}
+		{name: '_checked', type: 'boolean'},
+		
+		{name: 'calc_balage_segmt_id', type:'string'}
 	]
 }) ;
 Ext.define('RsiRecouveoRecordLinkModel',{
