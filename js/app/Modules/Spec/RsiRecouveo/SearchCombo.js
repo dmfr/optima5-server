@@ -15,6 +15,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.SearchCombo',{
 			checkValueOnChange: function() {}, //HACK
 			store: {
 				fields: [
+					'acc_id',
 					'file_filerecord_id',
 					'id_ref',
 					'result_property',

@@ -413,7 +413,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			listeners: {
 				itemdblclick: function( view, record, itemNode, index, e ) {
 					this.handleOpenAccount(record.get('acc_id'),record.getId()) ;
-					//this.handleOpenFile(record.get('file_filerecord_id')) ;
 				},
 				scope :this
 			},
@@ -430,6 +429,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 	onBeforeQueryLoad: function(store,options) {
 		var objAtrFilter = {} ;
 		Ext.Array.each( this.query('toolbar > [cfgParam_id]'), function(cfgParamBtn) {
+			if( Ext.isEmpty(cfgParamBtn.getValue()) ) {
+				return ;
+			}
 			objAtrFilter[cfgParamBtn.cfgParam_id] = cfgParamBtn.getValue()
 		}) ;
 		
@@ -439,9 +441,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		}) ;
 		options.setParams(params) ;
 	},
-	onSearchSelect: function(searchcombo) {
-		var fileFilerecordId = searchcombo.getValue() ;
-		this.optimaModule.postCrmEvent('openfile',{fileFilerecordId:fileFilerecordId}) ;
+	onSearchSelect: function(searchcombo,selrec) {
+		this.handleOpenAccount(selrec.get('acc_id'),selrec.get('file_filerecord_id')) ;
 	},
 	
 	doLoad: function(doClearFilters) {
@@ -893,10 +894,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		if( this.autoRefreshTask ) {
 			this.autoRefreshTask.cancel() ;
 		}
-	},
-	
-	handleOpenFile: function(fileFilerecordId) {
-		this.optimaModule.postCrmEvent('openfile',{fileFilerecordId:fileFilerecordId}) ;
 	},
 	
 	handleOpenAccount: function(accId,fileFilerecordId) {

@@ -359,19 +359,48 @@ function specRsiRecouveo_file_searchSuggest( $post_data ) {
 	if( $post_data['filter_atr'] ) {
 		$filter_atr = json_decode($post_data['filter_atr'],true) ;
 	}
-	$sub_query = "SELECT filerecord_id FROM view_file_FILE WHERE 1" ;
+	
+	$sub_query_acc = "SELECT distinct field_LINK_ACCOUNT FROM view_file_FILE WHERE 1" ;
+	$sub_query_acc.= " AND field_STATUS_CLOSED='0'" ;
 	foreach( $filter_atr as $mkey => $mvalue ) {
-		$sub_query.= " AND f.field_{$mkey} = '$mvalue'" ;
+		$sub_query_acc.= " AND field_{$mkey} IN ".$_opDB->makeSQLlist($mvalue) ;
+	}
+	
+	$sub_query_files = "SELECT filerecord_id FROM view_file_FILE WHERE 1" ;
+	$sub_query_files.= " AND field_STATUS_CLOSED='0'" ;
+	foreach( $filter_atr as $mkey => $mvalue ) {
+		$sub_query_files.= " AND field_{$mkey} IN ".$_opDB->makeSQLlist($mvalue) ;
 	}
 	
 	$search_txt = $post_data['search_txt'] ;
 	
 	$tab_result = array() ;
 	
-	$query = "SELECT filerecord_id, f.field_FILE_ID FROM view_file_FILE f
-				INNER JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key=f.field_LINK_ACCOUNT
-				WHERE f.filerecord_id IN ({$sub_query})
-				AND la.entry_key LIKE '%{$search_txt}%'
+	$query = "SELECT acc.entry_key FROM view_bible_LIB_ACCOUNT_entry acc
+				WHERE acc.entry_key IN ({$sub_query_acc})
+				AND acc.entry_key LIKE '%{$search_txt}%'
+				LIMIT 10" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$res_value = $arr[0] ;
+		
+		$idx_start = strpos($res_value,$search_txt) ;
+		$idx_end = $idx_start + strlen($search_txt) ;
+		
+		$res_value = substr($res_value,0,$idx_start).'<b>'.substr($res_value,$idx_start,$idx_end-$idx_start).'</b>'.substr($res_value,$idx_end) ;
+		
+		$tab_result[] = array(
+			'acc_id' => $arr[0],
+			'file_filerecord_id' => null,
+			'id_ref' => $arr[0],
+			'result_property' => 'Acheteur',
+			'result_value' => $res_value
+		);
+	}
+	
+	$query = "SELECT acc.entry_key, acc.field_ACC_NAME FROM view_bible_LIB_ACCOUNT_entry acc
+				WHERE acc.entry_key IN ({$sub_query_acc})
+				AND acc.field_ACC_NAME LIKE '%{$search_txt}%'
 				LIMIT 10" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
@@ -383,21 +412,21 @@ function specRsiRecouveo_file_searchSuggest( $post_data ) {
 		$res_value = substr($res_value,0,$idx_start).'<b>'.substr($res_value,$idx_start,$idx_end-$idx_start).'</b>'.substr($res_value,$idx_end) ;
 		
 		$tab_result[] = array(
-			'file_filerecord_id' => $arr[0],
-			'id_ref' => $arr[1],
+			'acc_id' => $arr[0],
+			'file_filerecord_id' => null,
+			'id_ref' => $arr[0],
 			'result_property' => 'Acheteur',
 			'result_value' => $res_value
 		);
 	}
 	
-	$query = "SELECT filerecord_id, f.field_FILE_ID, la.field_ACC_NAME FROM view_file_FILE f
-				INNER JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key=f.field_LINK_ACCOUNT
-				WHERE f.filerecord_id IN ({$sub_query})
-				AND la.field_ACC_NAME LIKE '%{$search_txt}%'
+	$query = "SELECT acc.entry_key, acc.field_ACC_SIRET FROM view_bible_LIB_ACCOUNT_entry acc
+				WHERE acc.entry_key IN ({$sub_query_acc})
+				AND acc.field_ACC_SIRET LIKE '%{$search_txt}%'
 				LIMIT 10" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
-		$res_value = $arr[2] ;
+		$res_value = $arr[1] ;
 		
 		$idx_start = strpos($res_value,$search_txt) ;
 		$idx_end = $idx_start + strlen($search_txt) ;
@@ -405,40 +434,22 @@ function specRsiRecouveo_file_searchSuggest( $post_data ) {
 		$res_value = substr($res_value,0,$idx_start).'<b>'.substr($res_value,$idx_start,$idx_end-$idx_start).'</b>'.substr($res_value,$idx_end) ;
 		
 		$tab_result[] = array(
-			'file_filerecord_id' => $arr[0],
-			'id_ref' => $arr[1],
-			'result_property' => 'Acheteur',
-			'result_value' => $res_value
-		);
-	}
-	
-	$query = "SELECT filerecord_id, f.field_FILE_ID, la.field_ACC_SIRET FROM view_file_FILE f
-				INNER JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key=f.field_LINK_ACCOUNT
-				WHERE f.filerecord_id IN ({$sub_query})
-				AND la.field_ACC_SIRET LIKE '%{$search_txt}%'
-				LIMIT 10" ;
-	$result = $_opDB->query($query) ;
-	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
-		$res_value = $arr[2] ;
-		
-		$idx_start = strpos($res_value,$search_txt) ;
-		$idx_end = $idx_start + strlen($search_txt) ;
-		
-		$res_value = substr($res_value,0,$idx_start).'<b>'.substr($res_value,$idx_start,$idx_end-$idx_start).'</b>'.substr($res_value,$idx_end) ;
-		
-		$tab_result[] = array(
-			'file_filerecord_id' => $arr[0],
-			'id_ref' => $arr[1],
+			'acc_id' => $arr[0],
+			'file_filerecord_id' => null,
+			'id_ref' => $arr[0],
 			'result_property' => 'Siret',
 			'result_value' => $res_value
 		);
 	}
-
 	
-	$query = "SELECT f.filerecord_id, f.field_FILE_ID, REPLACE(REPLACE(at.field_ADR_TEL,'.',''),' ','') as searchval FROM view_file_FILE f
-				INNER JOIN view_file_ADR_TEL at ON at.field_ACC_ID=f.field_LINK_ACCOUNT
-				WHERE f.filerecord_id IN ({$sub_query})
-				AND REPLACE(REPLACE(at.field_ADR_TEL,'.',''),' ','') LIKE '%{$search_txt}%'
+	$query = "SELECT acc.entry_key, adre.field_ADR_TYPE as adrtype
+					, REPLACE(REPLACE(adre.field_ADR_TXT,'.',''),' ','') as searchval 
+				FROM view_bible_LIB_ACCOUNT_entry acc
+				INNER JOIN view_file_ADRBOOK adr ON adr.field_ACC_ID=acc.entry_key
+				INNER JOIN view_file_ADRBOOK_ENTRY adre 
+					ON adre.filerecord_parent_id=adr.filerecord_id AND adre.field_STATUS_IS_INVALID='0'
+				WHERE acc.entry_key IN ({$sub_query_acc})
+				AND REPLACE(REPLACE(adre.field_ADR_TXT,'.',''),' ','') LIKE '%{$search_txt}%'
 				LIMIT 10" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
@@ -449,14 +460,52 @@ function specRsiRecouveo_file_searchSuggest( $post_data ) {
 		
 		$res_value = substr($res_value,0,$idx_start).'<b>'.substr($res_value,$idx_start,$idx_end-$idx_start).'</b>'.substr($res_value,$idx_end) ;
 		
+		switch( $arr[1] ) {
+			case 'POSTAL' :
+				$adr_type = 'Adresse' ;
+				break ;
+			case 'TEL' :
+				$adr_type = 'Tel' ;
+				break ;
+			case 'EMAIL' :
+				$adr_type = 'Email' ;
+				break ;
+		}
+		
 		$tab_result[] = array(
-			'file_filerecord_id' => $arr[0],
-			'id_ref' => $arr[1],
-			'result_property' => 'No Tel',
+			'acc_id' => $arr[0],
+			'file_filerecord_id' => null,
+			'id_ref' => $arr[0],
+			'result_property' => $adr_type,
 			'result_value' => $res_value
 		);
 	}
-
+	
+	$query = "SELECT f.field_LINK_ACCOUNT, f.filerecord_id, f.field_FILE_ID, r.field_RECORD_ID
+				FROM view_file_RECORD r, view_file_RECORD_LINK rl, view_file_FILE f
+				WHERE r.filerecord_id = rl.filerecord_parent_id
+				AND f.filerecord_id = rl.field_LINK_FILE_ID AND rl.field_LINK_IS_ON='1'
+				AND f.filerecord_id IN ({$sub_query_files})
+				AND r.field_RECORD_ID LIKE '%{$search_txt}%'
+				LIMIT 10" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$res_value = $arr[3] ;
+		
+		$idx_start = strpos($res_value,$search_txt) ;
+		$idx_end = $idx_start + strlen($search_txt) ;
+		
+		$res_value = substr($res_value,0,$idx_start).'<b>'.substr($res_value,$idx_start,$idx_end-$idx_start).'</b>'.substr($res_value,$idx_end) ;
+		
+		$tab_result[] = array(
+			'acc_id' => $arr[0],
+			'file_filerecord_id' => $arr[1],
+			'id_ref' => $arr[2],
+			'result_property' => 'Facture',
+			'result_value' => $res_value
+		);
+	}
+	
 	return array('success'=>true, 'data'=>$tab_result) ;
 }
 
