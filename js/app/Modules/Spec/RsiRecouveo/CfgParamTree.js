@@ -302,7 +302,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamTree',{
 	},
 	
 	onCheckChange: function(rec,checked) {
-		console.dir('onCheckChange') ;
 		if( this.selectMode == 'MULTI' ) {
 			var doFireCheckchange = true ;
 			

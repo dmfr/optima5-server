@@ -204,6 +204,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
 	getRawValue: function() {
 		return this.value || '' ;
 	},
+	getSelectedNode: function() {
+		return this.cfgParamTree.getCheckedNode() ;
+	},
 	getLeafNodesKey: function() {
 		var cfgParamTree = this.cfgParamTree,
 			retValue = cfgParamTree.getLeafNodesKey() ;

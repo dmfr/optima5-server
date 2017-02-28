@@ -75,27 +75,5 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusCallPanel',{
 		}) ;
 		
 		this.callParent() ;
-		this.onSelectAdrTelName() ;
-	},
-	
-	onSelectAdrTelName: function() {
-		var cmb = this.getForm().findField('adrtel_filerecord_id'),
-			adrObj = cmb.getNode(),
-			adrField = this.getForm().findField('adrtel_txt'),
-			adrNew = this.getForm().findField('adrtel_new'),
-			adrStatus = this.getForm().findField('adrtel_status') ;
-		adrField.reset() ;
-		adrStatus.reset() ;
-		adrNew.reset() ;
-		if( adrObj ) {
-			adrField.setValue( adrObj.nodeText ) ;
-			adrField.setReadOnly(true) ;
-			adrNew.setVisible(false);
-			adrStatus.setVisible(true);
-		} else {
-			adrField.setReadOnly(false) ;
-			adrNew.setVisible(true) ;
-			adrStatus.setVisible(false);
-		}
 	}
 }) ;

@@ -138,14 +138,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AdrbookTypeContainer',{
 		var prefix = this._adrPrefix ;
 		
 		var cmb = this.down('[name="'+prefix+'_filerecord_id"]'),
-			adrObj = cmb.getNode(),
+			adrObj = cmb.getSelectedNode(),
 			adrField = this.down('[name="'+prefix+'_txt"]'),
 			adrNew = this.down('[name="'+prefix+'_new"]'),
 			adrNewEntity = this.down('[name="'+prefix+'_new_entity"]'),
 			adrStatus = this.down('[name="'+prefix+'_status"]') ;
 		adrField.reset() ;
 		if( adrObj ) {
-			adrField.setValue( adrObj.nodeText ) ;
+			adrField.setValue( adrObj.get('nodeText') ) ;
 			adrField.setReadOnly(true) ;
 			if( adrNew ) {
 				adrNew.reset() ;
