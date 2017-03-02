@@ -239,7 +239,12 @@ Ext.define('Optima5.Modules.CrmBase.BibleTreePicker',{
 		this.fireEvent('change',me,me.getRawValue(),oldRawValue) ;
 	},
 			  
-			  
+	valueToRaw: function( mvalue ) {
+		if( Ext.isArray(mvalue) ) {
+			return Ext.JSON.encode(mvalue) ;
+		}
+		return mvalue ;
+	},
 	setRawValue: function( mvalue ) {
 		var me = this ;
 		
@@ -253,10 +258,7 @@ Ext.define('Optima5.Modules.CrmBase.BibleTreePicker',{
 		var myNewValue ;
 		switch( me.selectMode ) {
 			case 'multi' :
-				if( Ext.isArray(mvalue) ) {
-					myNewValue = value ;
-				}
-				else if( (myNewValue = Ext.JSON.decode(mvalue,true)) == null ) {
+				if( (myNewValue = Ext.JSON.decode(mvalue,true)) == null ) {
 					myNewValue = [] ;
 					//return ;
 				}
