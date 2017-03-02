@@ -540,6 +540,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 		var postDataObj = form.getValues(false,false,false,true) ;
 		var postData = form.getValues() ;
 		var tplId = postData['tpl_id'] ;
+		var adrPostal = postData['adrpost_txt'] ;
 		if( Ext.isEmpty(tplId) ) {
 			return ;
 		}
@@ -549,7 +550,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 			params: {
 				_moduleId: 'spec_rsi_recouveo',
 				_action: 'doc_getMailOut',
-				tpl_id: tplId
+				tpl_id: tplId,
+				file_filerecord_id: this._fileRecord.get('file_filerecord_id'),
+				adr_postal: adrPostal
 			},
 			success: function(response) {
 				var jsonResponse = Ext.JSON.decode(response.responseText) ;

@@ -75,7 +75,8 @@ Ext.define('RsiRecouveoConfigUserTplModel',{
 		{name: 'user_id', type:'string'},
 		{name: 'user_pw', type:'string'},
 		{name: 'user_fullname', type:'string'},
-		{name: 'user_email', type:'string'}
+		{name: 'user_email', type:'string'},
+		{name: 'user_tel', type:'string'}
 	]
 });
 

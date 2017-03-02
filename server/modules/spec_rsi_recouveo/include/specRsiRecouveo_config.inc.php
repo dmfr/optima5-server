@@ -52,10 +52,12 @@ function specRsiRecouveo_config_loadUser($post_data) {
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$user_rec = array(
+			'_default' => ($arr['treenode_key'] == 'DEFAULT' ? true : false),
 			'user_id' => $arr['field_USER_ID'],
 			'user_pw' => $arr['field_USER_PW'],
 			'user_fullname' => $arr['field_USER_FULLNAME'],
-			'user_email' => $arr['field_USER_EMAIL']
+			'user_email' => $arr['field_USER_EMAIL'],
+			'user_tel' => $arr['field_USER_TEL']
 		);
 		foreach( $cfg_atr as $atr_rec ) {
 			$atr_code = $atr_rec['bible_code'] ;

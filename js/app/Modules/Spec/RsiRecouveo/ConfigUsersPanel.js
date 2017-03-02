@@ -45,6 +45,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigUsersPanel', {
 					dataIndex: 'user_email',
 					text: 'Email'
 				},{
+					width: 90,
+					dataIndex: 'user_tel',
+					text: 'Téléphone'
+				},{
 					text: 'Attributs',
 					columns: atrColumns
 				}],
@@ -110,6 +114,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigUsersPanel', {
 					xtype: 'textfield',
 					name: 'user_email',
 					fieldLabel: 'Email'
+				},{
+					xtype: 'textfield',
+					name: 'user_tel',
+					fieldLabel: 'Téléphone'
 				}],atrFields),
 				buttons: [{
 					itemId: 'btnOk',

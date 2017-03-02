@@ -83,7 +83,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigPayPanel', {
 					items: [{
 						xtype: 'textfield',
 						name: 'pay_cb_website',
-						fieldLabel: 'IBAN'
+						fieldLabel: 'Site Web'
 					}]
 				},{
 					xtype: 'fieldset',

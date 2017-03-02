@@ -95,11 +95,9 @@
 		<table class='letterwidth'><tr>
 			<td width="30%" valign="top">
 				<div style='margin: 6px; padding: 4px; border:1px solid gray' width='100%'>
-				RECOUVEO<br>
-				25 RUE FRANCIS-DAVSO<br>
-				13001 MARSEILLE<br>
-				FRANCE<br>
-				</span>
+					<qbook-value src_value="static_entity_name"></qbook-value><br>
+					<qbook-value src_value="static_entity_adr"></qbook-value><br>
+				</div>
 			</td>
 			
 			<td width="70%" valign="middle" align="center">
@@ -115,38 +113,40 @@
 			
 			<table width="100%" style="border:1px solid gray">
 				<tr>
-				<td class="celltitle">REFERENCE CLIENT</td>
-				<td class="celldata"><qbook-value src_value="header_ref_client"></td>
+				<td class="celltitle">Ref Client</td>
+				<td class="celldata"><qbook-value src_value="header_ref_client"></qbook-value></td>
 				</tr>
 				
 				<tr>
-				<td class="celltitle">REFERENCE DOSSIER</td>
-				<td class="celldata"><qbook-value src_value="header_ref_file"></td>
+				<td class="celltitle">Ref Dossier</td>
+				<td class="celldata"><qbook-value src_value="header_ref_file"></qbook-value></td>
 				</tr>
 				
 				<tr>
-				<td class="celltitle">DOSSIER SUIVI PAR</td>
-				<td class="celldata"><qbook-value src_value="header_cr_fullname"></td>
+				<td class="celltitle">Dossier suivi par</td>
+				<td class="celldata"><qbook-value src_value="header_cr_fullname"></qbook-value></td>
 				</tr>
 				
 				<tr>
-				<td class="celltitle">TELEPHONE</td>
-				<td class="celldata"><qbook-value src_value="header_cr_tel"></td>
+				<td class="celltitle">Telephone</td>
+				<td class="celldata"><qbook-value src_value="header_cr_tel"></qbook-value></td>
 				</tr>
 				
 				<tr>
-				<td class="celltitle">COURRIEL</td>
-				<td class="celldata"><qbook-value src_value="header_cr_email"></td>
+				<td class="celltitle">Email</td>
+				<td class="celldata"><qbook-value src_value="header_cr_email"></qbook-value></td>
 				</tr>
 			</table>
 			
 			</td>
 			<td width="6%">&nbsp;</td>
 			<td width="47%" valign="top">
-				<span style="font-size:14px">Ref.courrier : <qbook-value src_value="header_ref_email"></span><br><br>
+				<span style="font-size:14px">Ref.courrier : <b><qbook-value src_value="header_ref_mail"></qbook-value></b></span><br><br>
 				
-				<qbook-value src_value="header_adrpost">
-				<br>
+				<b>
+				<qbook-value src_value="header_dest_name"></qbook-value><br>
+				<qbook-value src_value="header_dest_adrpost"></qbook-value><br>
+				</b>
 			</td>
 		</tr></table>
 		

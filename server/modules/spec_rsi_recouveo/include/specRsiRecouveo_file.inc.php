@@ -97,7 +97,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 				$mkey = $atr_record['bible_code'] ;
 				if( $filter_atr[$mkey] ) {
 					$mvalue = $filter_atr[$mkey] ;
-					$query.= " AND f.field_{$mkey} = ".$_opDB->makeSQLlist($mvalue) ;
+					$query.= " AND f.field_{$mkey} IN ".$_opDB->makeSQLlist($mvalue) ;
 				}
 			}
 		}
@@ -136,7 +136,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 				$mkey = $atr_record['bible_code'] ;
 				if( $filter_atr[$mkey] ) {
 					$mvalue = $filter_atr[$mkey] ;
-					$query.= " AND f.field_{$mkey} = ".$_opDB->makeSQLlist($mvalue) ;
+					$query.= " AND f.field_{$mkey} IN ".$_opDB->makeSQLlist($mvalue) ;
 				}
 			}
 		}
@@ -877,7 +877,23 @@ function specRsiRecouveo_file_lib_updateStatus( $acc_id ) {
 }
 
 
-
+function specRsiRecouveo_file_lib_getNextMailNum( $file_filerecord_id ) {
+	global $_opDB ;
+	
+	$query = "UPDATE view_file_FILE SET field_NEXT_MAIL_NUM = field_NEXT_MAIL_NUM + '1'
+			WHERE filerecord_id='{$file_filerecord_id}'" ;
+	$_opDB->query($query) ;
+	
+	
+	$query = "SELECT field_FILE_ID, field_NEXT_MAIL_NUM FROM view_file_FILE
+			WHERE filerecord_id='{$file_filerecord_id}'" ;
+	$result = $_opDB->query($query) ;
+	$arr = $_opDB->fetch_row($result) ;
+	if( !$arr ) {
+		return NULL ;
+	}
+	return $arr[0].'/'.str_pad((int)$arr[1], 2, "0", STR_PAD_LEFT) ;
+}
 
 
 

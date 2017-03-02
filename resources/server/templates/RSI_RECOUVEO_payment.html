@@ -11,33 +11,61 @@
 		}
 	</style>
 	
-<div style="font-size:13px;">
-
-Moyens de paiement à votre disposition :<br>
-
-<div style="float: left">
-<ul>
-
-<li>par virement : sur le compte bancaire ci-dessous en précisant la référence n°AAAAAAAA dans le libellé :
-<ul>
-<li>IBAN : FRxx xxxx xxxx xxxx xxxx xxxx</li>
-<li>BIC (Bank Identifier Code) : YYYYYYYYYYY</li>
-<li>Titulaire du compte : SOCIETE</li>
-<li>Domiciliation : YYYYYYYYYYY</li>
-</ul>
-</li>
-</ul>
+<div style="font-size:14px; border:1px solid gray; margin:0px 50px" align='center'>
+<i>Moyens de paiement à votre disposition</i>
 </div>
 
-<div style="float: left">
-<ul>
-<li>par chèque:
-<ul>
-<li>à libeller à l’ordre de SOCIETE</li>
-<li>et à renvoyer accompagné du coupon ci-dessous à l’adresse suivante :</li>
-</ul>
-</li>
-</ul>
+<br>
+
+<div style="font-size:13px;">
+
+<div style="float: left" id='div_pay_virement'>
+	<ul>
+	<li>par virement : sur le compte bancaire ci-dessous en précisant la référence n°AAAAAAAA dans le libellé :
+	<ul>
+	<li>IBAN : <b><qbook-value src_value="pay_virement_iban"></qbook-value></b></li>
+	<li>BIC (Bank Identifier Code) : <b><qbook-value src_value="pay_virement_bic"></qbook-value></b></li>
+	<li>Titulaire du compte : <b><qbook-value src_value="pay_virement_titulaire"></qbook-value></b></li>
+	<li>Domiciliation : <b><qbook-value src_value="pay_virement_domiciliation"></qbook-value></b></li>
+	</ul>
+	</li>
+	</ul>
+</div>
+
+<div style="float: left" id='div_pay_cheque'>
+	<ul>
+	<li>par chèque:
+	<ul>
+	<li>à libeller à l’ordre de <b><qbook-value src_value="pay_cheque_ordre"></qbook-value></b></li>
+	<li>et à renvoyer accompagné à l’adresse :</li>
+	<b>
+		<qbook-value src_value="pay_cheque_adr"></qbook-value>
+	</b>
+	</ul>
+	</li>
+	</ul>
+</div>
+
+<div style="float: left" id='div_pay_cb'>
+	<ul>
+	<li>par carte bancaire:
+	<ul>
+	<li>veuillez vous connecter au site web ci-dessous :</li>
+	<li><b><qbook-value src_value="pay_cb_website"></qbook-value></b></li>
+	</ul>
+	</li>
+	</ul>
+</div>
+
+<div style="float: left" id='div_pay_mandat'>
+	<ul>
+	<li>par mandat cash:
+	<ul>
+	<li>Spécifier le destinataire suivant :</li>
+	<li><b><qbook-value src_value="pay_mandat_destinataire"></qbook-value></b></li>
+	</ul>
+	</li>
+	</ul>
 </div>
 
 
