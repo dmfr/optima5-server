@@ -179,6 +179,25 @@ Ext.define('RsiRecouveoAccountTplModel',{
 	]
 }) ;
 
+Ext.define('RsiRecouveoEnvelopeDocumentModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'envdoc_media_id',
+	fields: [
+		{name: 'envdoc_media_id', type:'string'},
+		{name: 'envdoc_filerecord_id', type:'int'},
+		{name: 'doc_desc', type:'string'},
+		{name: 'doc_pagecount', type:'int'}
+	]
+});
+Ext.define('RsiRecouveoEnvelopeModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'envdoc_media_id',
+	fields: [
+		{name: 'env_filerecord_id', type:'int'}
+	]
+});
+
+
 
 Ext.define('Optima5.Modules.Spec.RsiRecouveo.RsiRecouveoModule', {
 	extend: 'Optima5.Module',

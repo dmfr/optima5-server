@@ -143,21 +143,38 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel',{
 					xtype: 'box',
 					width: 16
 				},{
-					flex:1,
-					xtype: 'fieldset',
-					padding: 10,
-					title: 'Paragraphe additionnel',
+					xtype: 'container',
+					flex: 1,
 					layout: {
 						type: 'anchor'
 					},
 					defaults: {
-						anchor: '100%',
-						labelWidth: 80
+						anchor: '100%'
 					},
 					items: [{
-						xtype: 'textarea',
-						name: 'mail_txt',
-						height: 150
+						xtype: 'fieldset',
+						padding: 10,
+						title: 'Paragraphe additionnel',
+						layout: {
+							type: 'anchor'
+						},
+						defaults: {
+							anchor: '100%',
+							labelWidth: 80
+						},
+						items: [{
+							xtype: 'textarea',
+							name: 'mail_txt',
+							height: 150
+						}]
+					},{
+						xtype: 'fieldset',
+						padding: 10,
+						title: 'Pièces jointes',
+						layout: 'fit',
+						items: [Ext.create('Optima5.Modules.Spec.RsiRecouveo.AttachmentsFieldPanel',{
+							name: 'attachments'
+						})]
 					}]
 				}]
 			}]

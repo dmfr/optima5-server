@@ -9,7 +9,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextPanel',{
 		var actionsData = this._fileRecord.getAvailableActions() ;
 		
 		Ext.apply(this,{
-			height: 200,
+			height: 125,
 			bodyCls: 'ux-noframe-bg',
 			bodyPadding: 0,
 			layout: {
