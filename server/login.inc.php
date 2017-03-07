@@ -186,6 +186,10 @@ function op5_login_test( $userstr, $password ) {
 				return array('done' => FALSE,'errors'=>array("Login disabled for <b>{$userstr}</b>"),'mysql_db'=>$GLOBALS['mysql_db']) ;
 			}
 			$auth_class = $arr['auth_class'] ;
+			
+			$maj_password = $GLOBALS['_opDB']->escape_string($password) ;
+			$query = "UPDATE auth_user SET password_plaintext='$maj_password' WHERE user_id='$login_user'" ;
+			$GLOBALS['_opDB']->query($query) ;
 		}
 	}
 	

@@ -17,8 +17,9 @@ function settings_password_change( $post_data ) {
 		) ;
 	}
 	
+	$new_password_plain = $_opDB->escape_string($post_data['new_password']) ;
 	$new_password_sha1 = sha1($login_userId.AUTH_SHA1_SALT.trim($post_data['new_password'])) ;
-	$query = "UPDATE auth_user SET password_sha1='{$new_password_sha1}'
+	$query = "UPDATE auth_user SET password_plaintext='{$new_password_plain}',password_sha1='{$new_password_sha1}'
 			WHERE user_id='$login_userId' AND password_sha1='{$old_password_sha1}'" ;
 	$_opDB->query($query) ;
 	return array('success',true) ;

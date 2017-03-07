@@ -415,6 +415,7 @@ function admin_auth_setUser( $post_data ) {
 		if( trim($post_data['password_plain']) == '' ) {
 			$errors_form['password_plain'] = "Empty password" ;
 		} else {
+			$arr_update['password_plaintext'] = $post_data['password_plain'] ;
 			$arr_update['password_sha1'] = sha1($user_id.AUTH_SHA1_SALT.trim($post_data['password_plain'])) ;
 		}
 	}

@@ -63,8 +63,9 @@ function openBaseDb( $domain_id, $do_select=TRUE ) {
 function setPasswd( $domain_id, $user_id, $passwd ) {
 	global $_opDB ;
 	openBaseDb( $domain_id ) ;
+	$password_plain = $_opDB->escape_string($passwd) ;
 	$password_sha1 = sha1($user_id.AUTH_SHA1_SALT.trim($passwd)) ;
-	$query = "UPDATE auth_user SET password_sha1='{$password_sha1}' WHERE user_id='{$user_id}'" ;
+	$query = "UPDATE auth_user SET password_plaintext='{$password_plain}',password_sha1='{$password_sha1}' WHERE user_id='{$user_id}'" ;
 	$_opDB->query($query) ;
 }
 
