@@ -1,6 +1,22 @@
 <?php
 
-function op5_login_test( $userstr, $password ) {
+function http_digest_parse($txt) {
+    // protect against missing data
+    $needed_parts = array('nonce'=>1, 'nc'=>1, 'cnonce'=>1, 'qop'=>1, 'username'=>1, 'uri'=>1, 'response'=>1);
+    $data = array();
+    $keys = implode('|', array_keys($needed_parts));
+
+    preg_match_all('@(' . $keys . ')=(?:([\'"])([^\2]+?)\2|([^\s,]+))@', $txt, $matches, PREG_SET_ORDER);
+
+    foreach ($matches as $m) {
+        $data[$m[1]] = $m[3] ? $m[3] : $m[4];
+        unset($needed_parts[$m[1]]);
+    }
+
+    return $needed_parts ? false : $data;
+}
+
+function op5_login_test( $userstr, $password, $http_digest=FALSE, $http_digest_realm=NULL ) {
 	$arr_tmp = explode('@',$userstr) ;
 	if( count($arr_tmp) != 2 )
 	{
@@ -66,6 +82,11 @@ function op5_login_test( $userstr, $password ) {
 		$delegate_pass = $password ;
 		
 		while( TRUE ) {
+			if( $http_digest ) {
+				$FAIL = 'USERPASS' ;
+				break ;
+			}
+			
 			$t = new DatabaseMgr_Base() ;
 			$domain_id = $t->dbCurrent_getDomainId() ;
 			
@@ -170,6 +191,19 @@ function op5_login_test( $userstr, $password ) {
 		} else {
 		
 			return array('done' => FALSE,'errors'=>array("Cannot login as root for <b>$login_domain</b>"),'mysql_db'=>$GLOBALS['mysql_db']) ;
+		}
+	} elseif( $http_digest ) {
+		$digest_data = http_digest_parse($password) ;
+		
+		$query = "SELECT password_plaintext FROM auth_user WHERE user_id='$login_user'" ;
+		$secret_password = $GLOBALS['_opDB']->query_uniqueValue($query) ;
+	
+		$A1 = md5($digest_data['username'] . ':' . $http_digest_realm . ':' . $secret_password);
+		$A2 = md5($_SERVER['REQUEST_METHOD'].':'.$digest_data['uri']);
+		$valid_response = md5($A1.':'.$digest_data['nonce'].':'.$digest_data['nc'].':'.$digest_data['cnonce'].':'.$digest_data['qop'].':'.$A2);
+		
+		if ($digest_data['response'] != $valid_response) {
+			return array('done' => FALSE,'mysql_db'=>$GLOBALS['mysql_db']) ;
 		}
 	} else {
 		$password_sha1 = sha1($login_user.AUTH_SHA1_SALT.trim($password)) ;

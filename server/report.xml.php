@@ -15,10 +15,33 @@ if( $_REQUEST['PHP_AUTH_USER'] && $_REQUEST['PHP_AUTH_PW'] ) {
 	$_SERVER['PHP_AUTH_USER'] = $_REQUEST['PHP_AUTH_USER'] ;
 	$_SERVER['PHP_AUTH_PW'] = $_REQUEST['PHP_AUTH_PW'] ;
 }
-if( !isset($_SERVER['PHP_AUTH_USER']) || !($login_result=op5_login_test( $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'] )) || !$login_result['done'] ) {
-	header('WWW-Authenticate: Basic realm="OP5"');
-	header('HTTP/1.0 401 Unauthorized');
-	exit;
+if( isset($_SERVER['PHP_AUTH_USER']) ) {
+	if( $login_result=op5_login_test( $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'] ) && $login_result['done'] ) {
+		// OK !
+	} else {
+		header('HTTP/1.0 403 Forbidden');
+		exit ;
+	}
+} else {
+	while(TRUE) {
+		$http_digest = TRUE ;
+		$http_digest_realm = 'OP5DIGEST';
+		if (!empty($_SERVER['PHP_AUTH_DIGEST'])) {
+			$digest_data = http_digest_parse($_SERVER['PHP_AUTH_DIGEST']) ;
+			$userstr = $digest_data['username'] ;
+			$login_result=op5_login_test( $userstr, $_SERVER['PHP_AUTH_DIGEST'], $http_digest, $http_digest_realm ) ;
+			if( $login_result && $login_result['done'] ) {
+				break ;
+			}
+		}
+		
+		header('HTTP/1.1 401 Unauthorized');
+		header('WWW-Authenticate: Digest realm="'.$http_digest_realm.
+				'",qop="auth",nonce="'.uniqid().'",opaque="'.md5($http_digest_realm).'"');
+
+		die('HTTP Digest Auth required');
+		break ;
+	}
 }
 
 $_opDB = new mysql_DB( );
