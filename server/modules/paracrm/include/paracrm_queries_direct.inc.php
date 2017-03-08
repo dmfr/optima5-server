@@ -1,5 +1,5 @@
 <?php
-function paracrm_queries_direct($post_data) {
+function paracrm_queries_direct($post_data, $auth_bypass=FALSE) {
 
 	$q_type = $post_data['q_type'] ;
 	$q_id   = $post_data['q_id'] ;
@@ -20,7 +20,7 @@ function paracrm_queries_direct($post_data) {
 	if( $post_data['q_vars'] ) {
 		$arr_qvars = json_decode($post_data['q_vars'],true) ;
 	}
-
+	
 	global $_opDB ;
 
 	switch( $q_type )
@@ -33,6 +33,14 @@ function paracrm_queries_direct($post_data) {
 			return array('success'=>false) ;
 		}
 		$query_id = $q_id ;
+		if( !$auth_bypass && !Auth_Manager::getInstance()->auth_query_sdomain_action(
+			Auth_Manager::sdomain_getCurrent(),
+			'queries',
+			array('query_id'=>$query_id),
+			$write=false
+		)) {
+				return Auth_Manager::auth_getDenialResponse() ;
+		}
 		
 		$arr_saisie = array() ;
 		paracrm_queries_builderTransaction_init( array('query_id'=>$query_id) , $arr_saisie ) ;
@@ -83,6 +91,14 @@ function paracrm_queries_direct($post_data) {
 			return array('success'=>false) ;
 		}
 		$qmerge_id = $q_id ;
+		if( !$auth_bypass && !Auth_Manager::getInstance()->auth_query_sdomain_action(
+			Auth_Manager::sdomain_getCurrent(),
+			'queries',
+			array('qmerge_id'=>$qmerge_id),
+			$write=false
+		)) {
+				return Auth_Manager::auth_getDenialResponse() ;
+		}
 		
 		$arr_saisie = array() ;
 		paracrm_queries_mergerTransaction_init( array('qmerge_id'=>$qmerge_id) , $arr_saisie ) ;
@@ -123,6 +139,14 @@ function paracrm_queries_direct($post_data) {
 			return array('success'=>false) ;
 		}
 		$qsql_id = $q_id ;
+		if( !$auth_bypass && !Auth_Manager::getInstance()->auth_query_sdomain_action(
+			Auth_Manager::sdomain_getCurrent(),
+			'queries',
+			array('qsql_id'=>$qsql_id),
+			$write=false
+		)) {
+				return Auth_Manager::auth_getDenialResponse() ;
+		}
 		
 		$arr_saisie = array() ;
 		paracrm_queries_qsqlTransaction_init( array('qsql_id'=>$qsql_id) , $arr_saisie ) ;
@@ -141,6 +165,14 @@ function paracrm_queries_direct($post_data) {
 			return array('success'=>false) ;
 		}
 		$qweb_id = $q_id ;
+		if( !$auth_bypass && !Auth_Manager::getInstance()->auth_query_sdomain_action(
+			Auth_Manager::sdomain_getCurrent(),
+			'queries',
+			array('qweb_id'=>$qweb_id),
+			$write=false
+		)) {
+				return Auth_Manager::auth_getDenialResponse() ;
+		}
 		
 		$arr_saisie = array() ;
 		paracrm_queries_qwebTransaction_init( array('qweb_id'=>$qweb_id) , $arr_saisie ) ;

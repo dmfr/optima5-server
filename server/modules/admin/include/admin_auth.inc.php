@@ -262,6 +262,19 @@ function admin_auth_getSdomainActionsTree( $post_data ) {
 		$child_queries['children'][] = $entry ;
 	}
 	
+	$query = "SELECT qsql_id , qsql_name FROM {$db_name}.qsql" ;
+	$result = $_opDB->query($query);
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$entry = array() ;
+		$entry['text'] = $arr['qsql_name'] ;
+		$entry['icon'] = 'images/op5img/'.'ico_sql_16.png' ;
+		$entry['action_code'] = 'queries' ;
+		$entry['action_param_is_wildcard'] = false ;
+		$entry['action_param_data'] = 'qsql_id:'.$arr['qsql_id'] ;
+		
+		$child_queries['children'][] = $entry ;
+	}
+	
 	$usort = function($arr1,$arr2)
 	{
 		return strcasecmp($arr1['text'],$arr2['text']) ;

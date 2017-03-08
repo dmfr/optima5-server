@@ -15,8 +15,8 @@ Ext.define('AuthGroupActionsTreeModel', {
 Ext.define('Optima5.Modules.Admin.AuthGroupFormCheckColumn',{
 	extend: 'Ext.grid.column.Check',
 	
-	defaultRenderer: function(value, metaData, record) {
-		if( record.isRoot() ) {
+	defaultRenderer: function(value, cellValues) {
+		if( cellValues.record && cellValues.record.isRoot() ) {
 			return ;
 		}
 		return this.callParent(arguments) ;
