@@ -11,12 +11,9 @@ include("$server_root/modules/media/include/media.inc.php");
 include( "$server_root/include/database/mysql_DB.inc.php" ) ;
 
 include("$server_root/login.inc.php") ;
-if( $_REQUEST['PHP_AUTH_USER'] && $_REQUEST['PHP_AUTH_PW'] ) {
-	$_SERVER['PHP_AUTH_USER'] = $_REQUEST['PHP_AUTH_USER'] ;
-	$_SERVER['PHP_AUTH_PW'] = $_REQUEST['PHP_AUTH_PW'] ;
-}
-if( isset($_SERVER['PHP_AUTH_USER']) ) {
-	if( ($login_result=op5_login_test( $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'] )) && $login_result['done'] ) {
+
+if( isset($_INLINE_PW) ) {
+	if( ($login_result=op5_login_test( $_REQUEST['PHP_AUTH_USER'], $_REQUEST['PHP_AUTH_PW'] )) && $login_result['done'] ) {
 		// OK !
 	} else {
 		header('HTTP/1.0 403 Forbidden');
