@@ -44,6 +44,15 @@ if( isset($_SERVER['PHP_AUTH_USER']) ) {
 	}
 }
 
+function doExit() {
+	session_destroy() ;
+	die() ;
+}
+$session_name = 'OP'.rand(101,999) ;
+session_name($session_name) ;
+session_start() ;
+$_SESSION['login_data'] = $login_result['login_data'] ;
+
 $_opDB = new mysql_DB( );
 $_opDB->connect_mysql( $mysql_host, $login_result['mysql_db'], $mysql_user, $mysql_pass );
 $_opDB->query("SET NAMES UTF8") ;
@@ -54,7 +63,7 @@ if( !$_REQUEST['_moduleId'] ) {
 	$result = $_opDB->query($query) ;
 	if( $_opDB->num_rows($result) != 1 ) {
 		//header("HTTP/1.0 404 Not Found");
-		die() ;
+		doExit() ;
 	}
 	$arr = $_opDB->fetch_row($result) ;
 	$_REQUEST['_moduleId'] = $arr[0] ;
@@ -63,7 +72,7 @@ if( !$_REQUEST['_moduleId'] ) {
 $my_module = $_REQUEST['_moduleId'] ;
 if( !$my_module ) {
 	header("HTTP/1.0 404 Not Found");
-	exit ;
+	doExit() ;
 }
 if( $my_module == 'crmbase' ) {
 	$my_module = 'paracrm' ;
@@ -96,11 +105,11 @@ if( $my_sdomain ) {
 
 if( !$TAB ) {
 	header("HTTP/1.0 404 Not Found");
-	exit ;
+	doExit() ;
 }
 if( !$TAB['success'] ) {
-	header("HTTP/1.0 500 Internal Server Error");
-	exit ;
+	header( (!$TAB['authDenied'] ? "HTTP/1.0 500 Internal Server Error" : "HTTP/1.0 403 Forbidden") );
+	doExit() ;
 }
 
 if( $TAB['tabs'] ) {
@@ -110,7 +119,7 @@ if( $TAB['tabs'] ) {
 	$tabs = array($TAB['result_tab']) ;
 } else {
 	header("HTTP/1.0 202 Accepted");
-	exit ;
+	doExit() ;
 }
 
 switch( strtolower($_SERVER['PATH_INFO']) ) {
@@ -217,11 +226,11 @@ switch( strtolower($_SERVER['PATH_INFO']) ) {
 	
 	default :
 		header("HTTP/1.0 500 Internal Server Error");
-		exit ;
+		doExit() ;
 }
 
 header('Content-Type: application/xml; charset=utf-8');
 print $oXMLWriter->outputMemory();
-exit ;
+doExit() ;
 
 ?>
