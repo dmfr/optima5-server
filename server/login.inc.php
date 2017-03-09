@@ -205,6 +205,11 @@ function op5_login_test( $userstr, $password, $http_digest=FALSE, $http_digest_r
 		if ($digest_data['response'] != $valid_response) {
 			return array('done' => FALSE,'mysql_db'=>$GLOBALS['mysql_db']) ;
 		}
+		
+		$query = "SELECT * FROM auth_user WHERE user_id='$login_user'" ;
+		$result = $GLOBALS['_opDB']->query($query) ;
+		$arr = $GLOBALS['_opDB']->fetch_assoc($result) ;
+		$auth_class = $arr['auth_class'] ;
 	} else {
 		$password_sha1 = sha1($login_user.AUTH_SHA1_SALT.trim($password)) ;
 		$query = "SELECT * FROM auth_user WHERE user_id='$login_user' AND password_sha1='{$password_sha1}'" ;
