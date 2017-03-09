@@ -29,7 +29,8 @@ Ext.define('Optima5.Modules.Admin.SdomainsPanel',{
 			model: 'AdminSdomainModel',
 			proxy: me.optimaModule.getConfiguredAjaxProxy({
 				extraParams : {
-					_action: 'sdomains_getList'
+					_action: 'sdomains_getList',
+					size: 'true'
 				},
 				reader: {
 					type: 'json',

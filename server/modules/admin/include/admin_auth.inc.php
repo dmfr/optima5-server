@@ -127,6 +127,7 @@ function admin_auth_uglinks_set($post_data) {
 function admin_auth_getSdomainActionsTree( $post_data ) {
 	global $_opDB ;
 	
+	/*
 	$tmp_dbengine_sizes = array() ;
 	$query = "SELECT table_schema, sum( data_length + index_length ) / 1024 / 1024
 				FROM information_schema.TABLES GROUP BY table_schema" ;
@@ -134,14 +135,15 @@ function admin_auth_getSdomainActionsTree( $post_data ) {
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 		$tmp_dbengine_sizes[$arr[0]] = $arr[1] ;
 	}
+	*/
 	
 	$sdomain_id = $post_data['sdomain_id'] ;
 	$db_name = $GLOBALS['mysql_db'].'_'.$sdomain_id ;
+	/*
 	if( !isset($tmp_dbengine_sizes[$db_name]) ) {
 		return array('success'=>false) ;
 	}
-	
-	
+	*/
 	
 	$children = array() ;
 	

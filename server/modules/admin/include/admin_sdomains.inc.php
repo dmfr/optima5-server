@@ -3,12 +3,14 @@
 function admin_sdomains_getList($post_data) {
 	global $_opDB ;
 	
-	$tmp_dbengine_sizes = array() ;
-	$query = "SELECT table_schema, sum( data_length + index_length ) / 1024 / 1024
-				FROM information_schema.TABLES GROUP BY table_schema" ;
-	$result = $_opDB->query($query) ;
-	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
-		$tmp_dbengine_sizes[$arr[0]] = $arr[1] ;
+	if( $post_data['size'] ) {
+		$tmp_dbengine_sizes = array() ;
+		$query = "SELECT table_schema, sum( data_length + index_length ) / 1024 / 1024
+					FROM information_schema.TABLES GROUP BY table_schema" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$tmp_dbengine_sizes[$arr[0]] = $arr[1] ;
+		}
 	}
 
 	$arr_sdomains = array() ;
@@ -24,10 +26,10 @@ function admin_sdomains_getList($post_data) {
 		$arr['overwrite_is_locked'] = $arr['overwrite_is_locked'] == 'O' ? true : false ;
 		
 		$db_name = $GLOBALS['mysql_db'].'_'.$arr['sdomain_id'] ;
-		if( isset($tmp_dbengine_sizes[$db_name]) ) {
+		if( true ) {
 			$arr['stat_nbBibles'] = $_opDB->query_uniqueValue("SELECT count(*) FROM {$db_name}.define_bible") ;
 			$arr['stat_nbFiles'] = $_opDB->query_uniqueValue("SELECT count(*) FROM {$db_name}.define_file") ;
-			$arr['stat_dbSize'] = round($tmp_dbengine_sizes[$db_name],1).' '.'MB' ;
+			$arr['stat_dbSize'] = ($tmp_dbengine_sizes[$db_name] ? round($tmp_dbengine_sizes[$db_name],1).' '.'MB' : '') ;
 			
 			if( !$dmgr_sdomain ) {
 				$dmgr_sdomain = new DatabaseMgr_Sdomain( DatabaseMgr_Base::dbCurrent_getDomainId() ) ;
