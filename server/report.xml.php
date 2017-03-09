@@ -12,7 +12,7 @@ include( "$server_root/include/database/mysql_DB.inc.php" ) ;
 
 include("$server_root/login.inc.php") ;
 
-if( isset($_INLINE_PW) ) {
+if( isset($_INLINE_PW) || ($_REQUEST['PHP_AUTH_USER']&&!$_SERVER['PHP_AUTH_DIGEST']) ) {
 	if( ($login_result=op5_login_test( $_REQUEST['PHP_AUTH_USER'], $_REQUEST['PHP_AUTH_PW'] )) && $login_result['done'] ) {
 		// OK !
 	} else {
