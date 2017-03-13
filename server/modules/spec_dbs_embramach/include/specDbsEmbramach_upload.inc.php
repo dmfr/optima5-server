@@ -418,7 +418,11 @@ function specDbsEmbramach_upload_VL06F($handle, $VL06F_forceClosed) {
 			$arr_update = array() ;
 			$arr_update['field_STATUS'] = 'DELETED' ;
 			$arr_update['field_DATE_CLOSED'] = date('Y-m-d H:i:s') ;
-			paracrm_lib_data_updateRecord_file( $file_code, $arr_update, $filerecord_id ) ;
+			//paracrm_lib_data_updateRecord_file( $file_code, $arr_update, $filerecord_id ) ;
+			/*
+			MAJ 2017-03-13
+			- ne plus supprimer en upload
+			*/
 		}
 		
 		$to_reactivateIds = array_intersect($arr_deletedFilerecordIds,$arr_importedFilerecordIds) ;
