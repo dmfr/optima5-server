@@ -582,11 +582,14 @@ function specDbsEmbramach_stats_sub_prepareData() {
 		$map_filerecordId_dateCreate[$arr[0]] = $arr[1] ;
 	}
 	
-	$query = "SELECT * FROM view_file_FLOW_PICKING" ;
+	$date_closed = date('Y-m-d',strtotime('-3 months')) ;
+	$query = "SELECT * FROM view_file_FLOW_PICKING 
+			WHERE field_STATUS='ACTIVE' OR field_DATE_CLOSED>='{$date_closed}'" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$filerecord_id = $arr['filerecord_id'] ;
 		$prio_id = $arr['field_PRIORITY'] ;
+		$tat_locked = ($arr['field_STATS_TAT_LOCK']==1) ;
 		
 		if( $arr['field_STATUS'] == 'DELETED' ) {
 			$arr_ins['field_STATS_TAT'] = '' ;
@@ -626,6 +629,9 @@ function specDbsEmbramach_stats_sub_prepareData() {
 			}
 		}
 		if( $do_update ) {
+			if( $tat_locked ) {
+				unset($arr_ins['field_STATS_TAT']) ;
+			}
 			$_opDB->update('view_file_FLOW_PICKING',$arr_ins, array('filerecord_id'=>$filerecord_id)) ;
 		}
 	}
