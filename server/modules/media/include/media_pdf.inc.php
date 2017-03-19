@@ -1,4 +1,229 @@
 <?php
+
+function media_pdf_processUploaded( $tmpfilepath, $src_filename=NULL, $all_pages=TRUE )
+{
+	if( !$GLOBALS['_media_context'] )
+		return FALSE ;
+	$media_path = media_contextGetDirPath() ;
+	if( !$media_path )
+	{
+		return FALSE ;
+	}
+
+
+	if( function_exists('finfo_open') ) {
+		$finfo = finfo_open(FILEINFO_MIME_TYPE);
+		$mimetype = finfo_file($finfo, $tmpfilepath) ;
+	} elseif( $src_filename ) {
+		$ttmp = explode('.',$src_filename) ;
+		$mimetype = end($ttmp) ;
+	} else {
+		return FALSE ;
+	}
+
+	$pdf_binary = NULL ;
+	switch($mimetype) {
+		case 'application/pdf':
+		case 'pdf':
+			$pdf_binary = file_get_contents($tmpfilepath) ;
+			break ;
+			
+		default :
+			return FALSE ;
+	}
+
+	// tmp ID
+	$path = $media_path.'/tmp' ;
+	do{
+		$tmpid = rand ( 1000000000 , 9999999999 ) ;
+	}
+	while( glob( $path.'/'.$tmpid.'*') ) ;
+	
+	file_put_contents( $path.'/'.$tmpid.'.pdf', $pdf_binary ) ;
+
+	// thumbnails
+	$jpegs = media_pdf_pdf2jpgs( $pdf_binary ) ;
+	$page = 1 ;
+	foreach( $jpegs as $jpeg_binary ) {
+		
+		$jpg_path = tempnam( sys_get_temp_dir(), "FOO");
+		rename($jpg_path,$jpg_path.'.jpg') ;
+		file_put_contents( $jpg_path, $jpeg_binary ) ;
+		$img_src = imagecreatefromjpeg($jpg_path);
+		
+		$orig_w = imagesx($img_src);
+		$orig_h = imagesy($img_src);
+		if( $ttmp = media_img_getResize( $orig_w, $orig_h, $is_thumb=TRUE ) )
+		{
+			$dest_w = $ttmp[0];
+			$dest_h = $ttmp[1] ;
+		
+			$img_new = imagecreatetruecolor($dest_w, $dest_h);
+			imagecopyresampled($img_new, $img_src, 0, 0, 0, 0, $dest_w, $dest_h, $orig_w, $orig_h);
+			imagejpeg($img_new, $path.'/'.$tmpid.'.thumb.'.$page.'.jpg',90);
+		}
+		
+		$page++ ;
+	}
+	//var_dump($jpegs) ;
+
+
+	return 'tmp_'.$tmpid ;
+}
+function media_pdf_delete( $src_id )
+{
+	if( !$GLOBALS['_media_context'] )
+		return FALSE ;
+	$media_path = media_contextGetDirPath() ;
+	if( !$media_path )
+	{
+		return FALSE ;
+	}
+
+	if( strpos($src_id,'tmp_') === 0 )
+	{
+		$ttmp = substr($src_id,4,strlen($src_id)-4) ;
+		$src_path = $media_path.'/tmp/'.$ttmp ;
+	}
+	else
+	{
+		$src_path = $media_path.'/'.$src_id ;
+	}
+	
+	foreach( glob($src_path.'*') as $path ) {
+		unlink($path) ;
+	}
+}
+function media_pdf_getPageCount( $src_id )
+{
+	if( !$GLOBALS['_media_context'] )
+		return FALSE ;
+	$media_path = media_contextGetDirPath() ;
+	if( !$media_path )
+	{
+		return FALSE ;
+	}
+
+	if( strpos($src_id,'tmp_') === 0 )
+	{
+		$ttmp = substr($src_id,4,strlen($src_id)-4) ;
+		$src_path = $media_path.'/tmp/'.$ttmp ;
+	}
+	else
+	{
+		$src_path = $media_path.'/'.$src_id ;
+	}
+	
+	$cnt = 0 ;
+	foreach( glob($src_path.'*') as $path ) {
+		$ttmp = explode('.',basename($path)) ;
+		if( $ttmp[1] == 'thumb' ) {
+			$cnt++ ;
+		}
+	}
+	return $cnt ;
+}
+
+function media_pdf_getBinary( $src_id )
+{
+	if( !$GLOBALS['_media_context'] )
+		return FALSE ;
+	$media_path = media_contextGetDirPath() ;
+	if( !$media_path )
+	{
+		return FALSE ;
+	}
+
+	if( strpos($src_id,'tmp_') === 0 )
+	{
+		$ttmp = substr($src_id,4,strlen($src_id)-4) ;
+		$src_path = $media_path.'/tmp/'.$ttmp ;
+	}
+	else
+	{
+		$src_path = $media_path.'/'.$src_id ;
+	}
+	
+	if( is_file($src_path.'.pdf') )
+		return file_get_contents( $src_path.'.pdf' ) ;
+	return NULL ;
+}
+function media_pdf_getPreviewsBinary( $src_id )
+{
+	if( !$GLOBALS['_media_context'] )
+		return FALSE ;
+	$media_path = media_contextGetDirPath() ;
+	if( !$media_path )
+	{
+		return FALSE ;
+	}
+
+	if( strpos($src_id,'tmp_') === 0 )
+	{
+		$ttmp = substr($src_id,4,strlen($src_id)-4) ;
+		$src_path = $media_path.'/tmp/'.$ttmp ;
+	}
+	else
+	{
+		$src_path = $media_path.'/'.$src_id ;
+	}
+	
+	$arr_previewBinaries = array() ;
+	foreach( glob($src_path.'*') as $path ) {
+		$ttmp = explode('.',basename($path)) ;
+		if( $ttmp[1] == 'thumb' ) {
+			$arr_previewBinaries[] = file_get_contents($path) ;
+		}
+	}
+	return $arr_previewBinaries ;
+}
+function media_pdf_getPageBinary( $src_id , $page_idx )
+{
+	if( !$GLOBALS['_media_context'] )
+		return FALSE ;
+	
+	$pdf_binary = media_pdf_getBinary($src_id) ;
+	if( !$pdf_binary ) {
+		return FALSE ;
+	}
+	
+	// thumbnails
+	$jpegs = media_pdf_pdf2jpgs( $pdf_binary ) ;
+	$page = 0 ;
+	foreach( $jpegs as $jpeg_binary ) {
+		$page++ ;
+		if( $page != $page_idx ) {
+			continue ;
+		}
+		
+		$jpg_path = tempnam( sys_get_temp_dir(), "FOO");
+		rename($jpg_path,$jpg_path.'.jpg') ;
+		file_put_contents( $jpg_path, $jpeg_binary ) ;
+		$img_src = imagecreatefromjpeg($jpg_path);
+		
+		$orig_w = imagesx($img_src);
+		$orig_h = imagesy($img_src);
+		if( $ttmp = media_img_getResize( $orig_w, $orig_h, $is_thumb=FALSE ) )
+		{
+			$dest_w = $ttmp[0];
+			$dest_h = $ttmp[1] ;
+		
+			$img_new = imagecreatetruecolor($dest_w, $dest_h);
+			imagecopyresampled($img_new, $img_src, 0, 0, 0, 0, $dest_w, $dest_h, $orig_w, $orig_h);
+			imagejpeg($img_new, $jpg_path,90);
+		}
+		$jpg_binary = file_get_contents($jpg_path) ;
+		unlink($jpg_path) ;
+		break ;
+	}
+	return $jpg_binary ;
+}
+
+
+
+
+
+
 function media_pdf_makeExecCmd( $executable ) {
 	if( !(strpos($executable,' ')===FALSE) ) {
 		return '"'.str_replace('\\','\\\\',$executable).'"' ;
