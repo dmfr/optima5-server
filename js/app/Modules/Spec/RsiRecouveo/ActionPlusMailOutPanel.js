@@ -169,11 +169,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel',{
 						}]
 					},{
 						xtype: 'fieldset',
-						padding: 10,
+						padding: 6,
 						title: 'Pièces jointes',
 						layout: 'fit',
 						items: [Ext.create('Optima5.Modules.Spec.RsiRecouveo.AttachmentsFieldPanel',{
-							name: 'attachments'
+							name: 'attachments',
+							optimaModule: this.optimaModule
 						})]
 					}]
 				}]

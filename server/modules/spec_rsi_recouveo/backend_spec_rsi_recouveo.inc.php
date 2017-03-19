@@ -34,6 +34,14 @@ switch( $post_data['_action'] )
 	return specRsiRecouveo_doc_cfg_getTpl($post_data) ;
 	case 'doc_getMailOut' :
 	return specRsiRecouveo_doc_getMailOut($post_data) ;
+	case 'doc_uploadFile' :
+	return specRsiRecouveo_doc_uploadFile($post_data) ;
+	case 'doc_delete' :
+	return specRsiRecouveo_doc_delete($post_data) ;
+	case 'doc_getPreview' :
+	return specRsiRecouveo_doc_getPreview($post_data) ;
+	case 'doc_getPage' :
+	return specRsiRecouveo_doc_getPage($post_data) ;
 	
 	case 'util_htmlToPdf' :
 		return specRsiRecouveo_util_htmlToPdf( $post_data ) ;

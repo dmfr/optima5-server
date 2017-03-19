@@ -252,6 +252,7 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE ) {
 		'load_binary' => true
 	)) ;
 	$data_row = $ttmp['data'][0] ;
+	$inputTitle = $data_row['tpl_name'];
 	$inputBinary = $data_row['tpl_html'];
 		
 	//echo $inputFileName ;
@@ -307,7 +308,116 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE ) {
 		
 	}
 	
-	return array('success'=>true, 'html'=>$doc->saveHTML(), 'filename'=>$filename ) ;
+	$binary_html = $doc->saveHTML() ;
+	$binary_pdf = specRsiRecouveo_util_htmlToPdf_buffer($binary_html) ;
+	
+	media_contextOpen( $_POST['_sdomainId'] ) ;
+	
+	$pdf_path = tempnam( sys_get_temp_dir(), "FOO");
+	rename($pdf_path,$pdf_path.'.pdf') ;
+	$pdf_path.= '.pdf' ;
+	file_put_contents($pdf_path,$binary_pdf) ;
+	$media_id = media_pdf_processUploaded( $pdf_path, 'PRINT.PDF' ) ;
+	unlink($pdf_path) ;
+	
+	
+	//media_pdf_delete($media_id) ;
+	$json = array(
+		'success'=>true,
+		'data'=>array(
+			'envdoc_media_id'=>$media_id,
+			'doc_desc'=> $inputTitle,
+			'doc_pagecount'=>media_pdf_getPageCount($media_id)
+		)
+	) ;
+	
+	media_contextClose() ;
+	
+	return $json ;
+}
+
+
+
+
+function specRsiRecouveo_doc_uploadFile($post_data) {
+	media_contextOpen( $_POST['_sdomainId'] ) ;
+	foreach( $_FILES as $mkey => $dummy ) {
+		$src_filename = $_FILES[$mkey]['name'] ;
+		$src_path = $_FILES[$mkey]['tmp_name'] ;
+		
+		if( function_exists('finfo_open') ) {
+			$finfo = finfo_open(FILEINFO_MIME_TYPE);
+			$mimetype = finfo_file($finfo, $src_path) ;
+		} elseif( $src_filename ) {
+			$ttmp = explode('.',$src_filename) ;
+			$mimetype = end($ttmp) ;
+		} else {
+			return array('success'=>false, 'error'=>'Upload vide ?') ;
+		}
+
+		$pdf_binary = NULL ;
+		switch($mimetype) {
+			case 'application/pdf':
+			case 'pdf':
+				break ;
+				
+			default :
+				return array('success'=>false, 'error'=>'Pièces jointes de type PDF uniquement') ;
+		}
+	
+		$media_id = media_pdf_processUploaded( $src_path, $src_filename ) ;
+		break ;
+	}
+	if( !$media_id ) {
+		return array('success'=>false) ;
+	}
+	//media_pdf_delete($media_id) ;
+	$json = array(
+		'success'=>true,
+		'data'=>array(
+			'envdoc_media_id'=>$media_id,
+			'doc_desc'=> $_POST['doc_desc'],
+			'doc_pagecount'=>media_pdf_getPageCount($media_id)
+		)
+	) ;
+	media_contextClose() ;
+	return $json ;
+}
+function specRsiRecouveo_doc_delete($post_data) {
+	$p_arrMediaIds = json_decode($post_data['envdoc_media_id']) ;
+	foreach( $p_arrMediaIds as $media_id ) {
+		media_contextOpen( $_POST['_sdomainId'] ) ;
+		media_pdf_delete($media_id) ;
+		media_contextClose() ;
+	}
+	return array('success'=>true) ;
+}
+function specRsiRecouveo_doc_getPreview($post_data) {
+	$p_mediaId = $post_data['envdoc_media_id'] ;
+	media_contextOpen( $_POST['_sdomainId'] ) ;
+	$arr_binaries = media_pdf_getPreviewsBinary($p_mediaId) ;
+	media_contextClose() ;
+	
+	$TAB = array() ;
+	$page_idx = 0 ;
+	foreach( $arr_binaries as $jpg_binary ) {
+		$page_idx++ ;
+		$TAB[] = array(
+			'page_idx' => $page_idx,
+			'thumb_base64' => base64_encode($jpg_binary)
+		);
+	}
+	return array('success'=>true, 'data'=>$TAB) ;
+}
+function specRsiRecouveo_doc_getPage($post_data) {
+	$p_mediaId = $post_data['envdoc_media_id'] ;
+	$p_pageIdx = $post_data['page_idx'] ;
+	
+	media_contextOpen( $_POST['_sdomainId'] ) ;
+	$jpeg_binary = media_pdf_getPageBinary($p_mediaId,$p_pageIdx) ;
+	media_contextClose() ;
+	
+	return array('success'=>true, 'data'=>base64_encode($jpeg_binary)) ;
 }
 
 ?>

@@ -5,7 +5,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 		'Optima5.Modules.Spec.RsiRecouveo.MainMenu',
 		'Optima5.Modules.Spec.RsiRecouveo.FilesPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',
-		'Optima5.Modules.Spec.RsiRecouveo.ConfigPanel'
+		'Optima5.Modules.Spec.RsiRecouveo.ConfigPanel',
+		
+		'Optima5.Modules.Spec.RsiRecouveo.EnvPreviewPanel',
+		'Optima5.Modules.Spec.RsiRecouveo.EnvDocPreviewPanel'
 	],
 	
 	initComponent: function() {

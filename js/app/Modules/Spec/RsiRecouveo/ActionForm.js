@@ -11,7 +11,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 		
 		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusAgreeFollowPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusLitigFollowPanel',
-		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusClosePanel'
+		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusClosePanel',
+		
+		'Optima5.Modules.Spec.RsiRecouveo.AttachmentsFieldPanel'
 	],
 	
 	_fileRecord: null,
@@ -53,6 +55,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 		this.on('afterrender', function() {
 			this.startAction( this._accId, this._fileFilerecordId, this._fileActionFilerecordId, this._newActionCode ) ;
 		},this) ;
+		
+		this.on('beforedestroy', this.onBeforeDestroy, this) ;
 	},
 	
 	startAction: function( accId, fileFilerecordId, fileActionFilerecordId, newActionCode ) {
@@ -557,7 +561,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 			success: function(response) {
 				var jsonResponse = Ext.JSON.decode(response.responseText) ;
 				if( jsonResponse.success == true ) {
-					this.handlePreviewpDo( this.getTitle(), jsonResponse.html, jsonResponse.filename ) ;
+					this.handlePreviewDo( jsonResponse.data ) ;
 				} else {
 					Ext.MessageBox.alert('Error','Print system disabled') ;
 				}
@@ -567,6 +571,52 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 			},
 			scope: this
 		}) ;
+	},
+	handlePreviewDo: function(recordData) {
+		var attachmentsField = this.getForm().findField('attachments') ;
+		
+		// build virtual envelope
+		var envDataDocs = [] ;
+		envDataDocs.push( recordData ) ;
+		if( attachmentsField ) {
+			Ext.Array.each( attachmentsField.getValue(), function(recordData) {
+				envDataDocs.push(recordData) ;
+			});
+		}
+		var envData = {
+			docs: envDataDocs
+		};
+		
+		this.optimaModule.createWindow({
+			width:1200,
+			height:800,
+			iconCls: 'op5-crmbase-qresultwindow-icon',
+			animCollapse:false,
+			border: false,
+			layout:'fit',
+			title: envDataDocs[0].doc_desc,
+			items:[Ext.create('Optima5.Modules.Spec.RsiRecouveo.EnvPreviewPanel',{
+				optimaModule: this.optimaModule,
+				_envData: envData,
+				_deleteMediaId: envDataDocs[0].envdoc_media_id,
+				listeners: {
+					destroy: this.onPreviewClose,
+					scope: this
+				}
+			})]
+		}) ;
+	},
+	onPreviewClose: function(envPreviewPanel) {
+		if( envPreviewPanel._deleteMediaId ) {
+			this.optimaModule.getConfiguredAjaxConnection().request({
+				params: {
+					_moduleId: 'spec_rsi_recouveo',
+					_action: 'doc_delete',
+					envdoc_media_id: Ext.JSON.encode([envPreviewPanel._deleteMediaId])
+				},
+				scope: this
+			}) ;
+		}
 	},
 	handlePreviewpDo: function(pageTitle, pageHtml, pageFilename) {
 		this.optimaModule.createWindow({
@@ -620,5 +670,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 				scope: this
 			}]
 		}); 
+	},
+	
+	
+	onBeforeDestroy: function() {
+		var attachmentsField = this.getForm().findField('attachments') ;
+		if( attachmentsField ) {
+			attachmentsField.doDeleteAll() ;
+		}
 	}
 }) ;

@@ -43,6 +43,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AttachmentsFieldPanel',{
 				collapsible: true,
 				collapsed: true,
 				xtype: 'panel',
+				floatable: false,
 				layout: 'fit',
 				items: [{
 					xtype: 'form',
@@ -65,6 +66,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AttachmentsFieldPanel',{
 						buttonConfig: {
 							iconCls: 'upload-icon'
 						},
+						allowBlank: false
 					}],
 					buttons: [{
 						xtype: 'button',
@@ -95,9 +97,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AttachmentsFieldPanel',{
 						scope: this,
 						disabledCls: 'x-item-invisible',
 						isDisabled: function(view,rowIndex,colIndex,item,record ) {
-							if( !record.get('is_new') ) {
-								return true ;
-							}
 							return false ;
 						}
 					},{
@@ -110,9 +109,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AttachmentsFieldPanel',{
 						scope: this,
 						disabledCls: 'x-item-invisible',
 						isDisabled: function(view,rowIndex,colIndex,item,record ) {
-							if( record.get('is_new') ) {
-								return true ;
-							}
 							return false ;
 						}
 					}]
@@ -126,7 +122,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AttachmentsFieldPanel',{
 						return Ext.util.Format.nl2br( Ext.String.htmlEncode( value ) ) ;
 					}
 				},{
-					text: 'Nb',
+					text: 'Pages',
 					dataIndex: 'doc_pagecount',
 					width: 48,
 					menuDisabled: true,
@@ -141,19 +137,62 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AttachmentsFieldPanel',{
 	},
 	handleDelete: function(gridrecord) {
 		// remote delete tmp + local store delete
-		
-		gridrecord.set('is_deleted',true) ;
+		var mediaId = gridrecord.getId() ;
+		Ext.Msg.confirm('Suppression','Supprimer pièce jointe '+gridrecord.get('doc_desc')+' ?',function(btn) {
+			if( btn=='yes' ) {
+				this.doDelete(mediaId) ;
+			}
+		},this) ;
+	},
+	doDelete: function(mediaId) {
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_rsi_recouveo',
+				_action: 'doc_delete',
+				envdoc_media_id: Ext.JSON.encode([mediaId])
+			},
+			success: function(response) {
+				if( Ext.JSON.decode(response.responseText).success ) {
+					this.store.remove( this.store.getById(mediaId) ) ;
+				}
+			},
+			scope: this
+		}) ;
+	},
+	doDeleteAll: function() {
+		var arrMediaIds = [] ;
+		this.store.each(function(gridrecord) {
+			if( gridrecord.get('envdoc_filerecord_id') ) {
+				return ;
+			}
+			arrMediaIds.push( gridrecord.getId() ) ;
+		}) ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_rsi_recouveo',
+				_action: 'doc_delete',
+				envdoc_media_id: Ext.JSON.encode(arrMediaIds)
+			},
+			success: function(response) {
+				if( Ext.JSON.decode(response.responseText).success ) {
+					this.store.removeAll() ;
+				}
+			},
+			scope: this
+		}) ;
 	},
 	handleView: function(gridrecord) {
-		// open EnvelopeViewer on gridrecord tmpId
-		gridrecord.set('status_is_invalid',true) ;
-		
-		var formPanelCnt = this.down('#pNorth'),
-			formPanel = formPanelCnt.down('form'),
-			form = formPanel.getForm() ;
-		form.reset() ;
-		form.setValues({adr_txt_new:gridrecord.get('adr_txt')}) ;
-		formPanelCnt.expand() ;
+		this.optimaModule.createWindow({
+			width:1200,
+			height:800,
+			resizable:true,
+			maximizable:false,
+			layout:'fit',
+			items:[Ext.create('Optima5.Modules.Spec.RsiRecouveo.EnvDocPreviewPanel',{
+				optimaModule: this.optimaModule,
+				_mediaId: gridrecord.getId()
+			})]
+		}) ;
 	},
 	
 	handleUpload: function() {
@@ -161,10 +200,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AttachmentsFieldPanel',{
 			formPanel = formPanelCnt.down('form'),
 			form = formPanel.getForm() ;
 		if(form.isValid()){
-			var ajaxParams = me.optimaModule.getConfiguredAjaxParams() ;
+			var ajaxParams = this.optimaModule.getConfiguredAjaxParams() ;
 			Ext.apply( ajaxParams, {
-				_moduleId: 'spec_dbs_tracy',
-				_action: 'attachments_uploadfile'
+				_moduleId: 'spec_rsi_recouveo',
+				_action: 'doc_uploadFile'
 			}) ;
 			
 			var msgbox = Ext.Msg.wait('Uploading document...');
@@ -175,27 +214,37 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AttachmentsFieldPanel',{
 					msgbox.close() ;
 					Ext.menu.Manager.hideAll();
 					var ajaxData = Ext.JSON.decode(action.response.responseText).data ;
-					this.handleNewAttachment( ajaxData.tmp_id ) ;
+					this.onAfterUpload( ajaxData ) ;
 				},
-				failure: function(fp, o) {
+				failure: function(form, action) {
 					msgbox.close() ;
-					msg('Pouet','Error during upload') ;	
+					var msg = 'Erreur' ;
+					if( action.response.responseText ) {
+						msg = Ext.JSON.decode(action.response.responseText).error ;
+					}
+					Ext.Msg.alert('Erreur',msg) ;
 				},
-				scope: me
+				scope: this
 			});
 		}
-		
-		var rec = {
-			is_new: true,
-			adr_type: this.filterAdrType,
-			adr_txt: adrTxt
-		} ;
-		this.store.add(rec) ;
+	},
+	onAfterUpload: function( recordData ) {
+		var formPanelCnt = this.down('#pNorth'),
+			formPanel = formPanelCnt.down('form'),
+			form = formPanel.getForm() ;
 		form.reset() ;
 		formPanelCnt.collapse() ;
+			  
+		this.store.add(recordData) ;
 	},
-	onAfterUpload: function( tmpMediaId, recordData ) {
-		
-	},
+	
+	
+	getValue: function() {
+		var data = [] ;
+		this.store.each(function(gridrecord) {
+			data.push( gridrecord.getData() ) ;
+		}) ;
+		return data ;
+	}
 	
 }) ;
