@@ -70,6 +70,42 @@ function media_pdf_processUploaded( $tmpfilepath, $src_filename=NULL, $all_pages
 
 	return 'tmp_'.$tmpid ;
 }
+function media_pdf_move( $src_id , $dst_id )
+{
+	if( !$GLOBALS['_media_context'] )
+		return FALSE ;
+	$media_path = media_contextGetDirPath() ;
+	if( !$media_path )
+	{
+		return FALSE ;
+	}
+	
+	
+	if( strpos($src_id,'tmp_') === 0 )
+	{
+		$ttmp = substr($src_id,4,strlen($src_id)-4) ;
+		$src_path = $media_path.'/tmp/'.$ttmp ;
+	}
+	else
+	{
+		$src_path = $media_path.'/'.$src_id ;
+	}
+	if( strpos($dst_id,'tmp_') === 0 )
+	{
+		$ttmp = substr($dst_id,4,strlen($dst_id)-4) ;
+		$dst_path = $media_path.'/tmp/'.$ttmp ;
+	}
+	else
+	{
+		$dst_path = $media_path.'/'.$dst_id ;
+	}
+	
+	foreach( glob($src_path.'*') as $path ) {
+		$ttmp = explode('.',basename($path),2) ;
+		$suffix = $ttmp[1] ;
+		rename( $src_path.'.'.$suffix , $dst_path.'.'.$suffix ) ;
+	}
+}
 function media_pdf_delete( $src_id )
 {
 	if( !$GLOBALS['_media_context'] )
@@ -219,6 +255,9 @@ function media_pdf_getPageBinary( $src_id , $page_idx )
 	return $jpg_binary ;
 }
 
+function media_pdf_toolFile_getId( $file_code, $filerecord_id ) {
+	return $file_code.'_'.$filerecord_id ;
+}
 
 
 
