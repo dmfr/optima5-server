@@ -8,7 +8,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 		'Optima5.Modules.Spec.RsiRecouveo.ConfigPanel',
 		
 		'Optima5.Modules.Spec.RsiRecouveo.EnvPreviewPanel',
-		'Optima5.Modules.Spec.RsiRecouveo.EnvDocPreviewPanel'
+		'Optima5.Modules.Spec.RsiRecouveo.EnvDocPreviewPanel',
+		'Optima5.Modules.Spec.RsiRecouveo.EnvBrowserPanel'
 	],
 	
 	initComponent: function() {
@@ -76,6 +77,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 				return me.switchToAppPanel('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{}) ;
 			case 'cfg' :
 				return me.openConfig() ;
+			case 'envbrowser' :
+				return me.openEnvelopeBrowser() ;
 			default :
 				return ;
 		}
@@ -123,6 +126,39 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 			
 			optimaModule: this.optimaModule
 		},Optima5.Modules.Spec.RsiRecouveo.ConfigPanel) ;
+	},
+	
+	openEnvelopeBrowser: function() {
+		// recherche d'une fenetre deja ouverte
+		var doOpen = true ;
+		this.optimaModule.eachWindow(function(win){
+			if( !(win.down('#pEnvelopeBrowser')) ) {
+				return true ;
+			}
+			win.show() ;
+			win.focus() ;
+			doOpen = false ;
+			return false ;
+		},this) ;
+		if( !doOpen ) {
+			return ;
+		}
+		
+		this.optimaModule.createWindow({
+			title: 'Recouveo : Enveloppes',
+			width:930,
+			height:520,
+			iconCls: 'op5-crmbase-dataformwindow-icon',
+			animCollapse:false,
+			
+			optimaModule: this.optimaModule,
+			
+			layout: 'fit',
+			items: [Ext.create('Optima5.Modules.Spec.RsiRecouveo.EnvBrowserPanel',{
+				optimaModule: this.optimaModule,
+				itemId: 'pEnvelopeBrowser'
+			})]
+		}) ;
 	},
 	
 	

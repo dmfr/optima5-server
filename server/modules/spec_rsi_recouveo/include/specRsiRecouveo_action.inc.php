@@ -243,9 +243,10 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 			break ;
 	}
 	if( $post_form['fileaction_filerecord_id'] > 0 ) {
+		$fileaction_filerecord_id = $post_form['fileaction_filerecord_id'] ;
 		paracrm_lib_data_updateRecord_file( $file_code, $arr_ins, $post_form['fileaction_filerecord_id']);
 	} else {
-		paracrm_lib_data_insertRecord_file( $file_code, $file_filerecord_id, $arr_ins );
+		$fileaction_filerecord_id = paracrm_lib_data_insertRecord_file( $file_code, $file_filerecord_id, $arr_ins );
 	}
 	$ttmp = specRsiRecouveo_file_getRecords( array(
 		'filter_fileFilerecordId_arr' => json_encode(array($file_filerecord_id))
@@ -346,6 +347,38 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 	if( $is_sched_lock_end ) {
 		$file_filerecord_id = specRsiRecouveo_file_lib_close($file_filerecord_id) ;
 	}
+	
+	
+	
+	// ******** Création enveloppe ? **********
+	$envDocs = array() ;
+	$peer_data = NULL ;
+	if( $post_form['tpl_id'] ) {
+		$json = specRsiRecouveo_doc_getMailOut( array(
+			'tpl_id' => $post_form['tpl_id'],
+			'file_filerecord_id' => $post_data['file_filerecord_id'],
+			'adr_postal' => $post_form['adrpost_txt']
+		)) ;
+		$envDocs[] = $json['data'] ;
+		
+		$peer_data = array(
+			'peer_code' => 'OUT_MAILEVA',
+			'peer_adr' => $post_form['adrpost_txt']
+		) ;
+	}
+	if( $post_form['attachments'] ) {
+		foreach( json_decode($post_form['attachments'],true) as $doc ) {
+			$envDocs[] = $doc ;
+		}
+	}
+	if( $envDocs ) {
+		$env_filerecord_id = specRsiRecouveo_doc_buildEnvelope( $post_data['file_filerecord_id'], $envDocs, $peer_data ) ;
+		
+		$arr_ins = array() ;
+		$arr_ins['field_LINK_ENV_ID'] = $env_filerecord_id ;
+		paracrm_lib_data_updateRecord_file( 'FILE_ACTION', $arr_ins, $fileaction_filerecord_id);
+	}
+	
 	
 	
 	return array(

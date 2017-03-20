@@ -1003,6 +1003,27 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 						}
 						return '' ;
 					}
+				},{
+					align: 'center',
+					xtype:'actioncolumn',
+					width:60,
+					disabledCls: 'x-item-invisible',
+					items: [{
+						icon: 'images/op5img/ico_pdf_16.png',
+						tooltip: 'Visualiser',
+						handler: function(grid, rowIndex, colIndex, item, e) {
+							var rec = grid.getStore().getAt(rowIndex);
+							this.openEnvelope(rec.get('link_env_filerecord_id')) ;
+						},
+						scope: this,
+						disabledCls: 'x-item-invisible',
+						isDisabled: function(view,rowIndex,colIndex,item,record ) {
+							if( !record.get('link_env_filerecord_id') ) {
+								return true ;
+							}
+							return false ;
+						}
+					}]
 				}]
 			},
 			viewConfig: {
@@ -1509,5 +1530,22 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		btn.win.getEl().alignTo(dockPanel.getEl(), 'br-br?');
 		btn.win.show() ;
 		btn.toggle(true) ;
+	},
+	
+	
+	openEnvelope: function(envFilerecordId) {
+		this.optimaModule.createWindow({
+			width:1200,
+			height:800,
+			iconCls: 'op5-crmbase-qresultwindow-icon',
+			animCollapse:false,
+			border: false,
+			layout:'fit',
+			title: 'Visualisation enveloppe',
+			items:[Ext.create('Optima5.Modules.Spec.RsiRecouveo.EnvPreviewPanel',{
+				optimaModule: this.optimaModule,
+				_envFilerecordId: envFilerecordId
+			})]
+		}) ;
 	}
 }) ; 

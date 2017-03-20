@@ -245,6 +245,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AttachmentsFieldPanel',{
 			data.push( gridrecord.getData() ) ;
 		}) ;
 		return data ;
+	},
+	getSubmitData: function() {
+		var retObj = {} ;
+		retObj[this.getName()] = Ext.JSON.encode(this.getValue()) ;
+		return retObj ;
 	}
-	
 }) ;

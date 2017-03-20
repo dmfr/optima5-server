@@ -94,6 +94,7 @@ Ext.define('RsiRecouveoFileActionModel',{
 		{name: 'txt', type: 'string'},
 		
 		{name: 'link_newfile_filerecord_id', type: 'int', allowNull:true},
+		{name: 'link_env_filerecord_id', type: 'int', allowNull:true},
 		
 		{name: 'calc_eta_range', type:'string'}
 	]
@@ -200,8 +201,21 @@ Ext.define('RsiRecouveoEnvelopeModel',{
 	extend: 'Ext.data.Model',
 	idProperty: 'env_filerecord_id',
 	fields: [
-		{name: 'env_filerecord_id', type:'int'}
-	]
+		{name: 'env_filerecord_id', type:'int'},
+		{name: 'env_title', type:'string'},
+		{name: 'env_date', type:'date', dateFormat:'Y-m-d H:i:s'},
+		{name: 'file_filerecord_id', type: 'int'},
+		{name: 'file_id_ref', type: 'string'},
+		{name: 'peer_code', type: 'string'},
+		{name: 'peer_adr', type: 'string'},
+		{name: 'stat_count_doc', type: 'int'},
+		{name: 'stat_count_page', type: 'int'}
+	],
+	hasMany: [{
+		model: 'RsiRecouveoEnvelopeDocumentModel',
+		name: 'docs',
+		associationKey: 'docs'
+	}]
 });
 
 

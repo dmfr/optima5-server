@@ -420,4 +420,103 @@ function specRsiRecouveo_doc_getPage($post_data) {
 	return array('success'=>true, 'data'=>base64_encode($jpeg_binary)) ;
 }
 
+
+
+
+
+function specRsiRecouveo_doc_buildEnvelope( $file_filerecord_id, $envDocs, $peer_data=NULL ) {
+	$arr_ins = array() ;
+	$arr_ins['field_ENV_DATE'] = date('Y-m-d H:i:s') ;
+	$arr_ins['field_ENV_TITLE'] = $envDocs[0]['doc_desc'] ;
+	$arr_ins['field_LINK_FILE_ID'] = $file_filerecord_id ;
+	if( $peer_data ) {
+		$arr_ins['field_PEER_CODE'] = $peer_data['peer_code'] ;
+		$arr_ins['field_PEER_ADR'] = $peer_data['peer_adr'] ;
+	}
+	$env_filerecord_id = paracrm_lib_data_insertRecord_file( 'ENVELOPE', 0, $arr_ins );
+	
+	media_contextOpen( $_POST['_sdomainId'] ) ;
+	$envdoc_filecode = 'ENVELOPE_DOC' ;
+	foreach( $envDocs as $doc ) {
+		$arr_ins = array() ;
+		$arr_ins['field_DOC_DESC'] = $doc['doc_desc'] ;
+		$arr_ins['field_DOC_PAGECOUNT'] = $doc['doc_pagecount'] ;
+		$envdoc_filerecord_id = paracrm_lib_data_insertRecord_file( $envdoc_filecode, $env_filerecord_id, $arr_ins );
+		
+		media_pdf_move( $doc['envdoc_media_id'],  media_pdf_toolFile_getId($envdoc_filecode,$envdoc_filerecord_id) ) ;
+	}
+	media_contextClose() ;
+	
+	return $env_filerecord_id ;
+}
+
+
+
+function specRsiRecouveo_doc_getEnvGrid( $post_data ) {
+	global $_opDB ;
+	
+	if( $post_data['filter_envFilerecordId_arr'] ) {
+		$_load_details = true ;
+		$filter_envFilerecordId_list = $_opDB->makeSQLlist( json_decode($post_data['filter_envFilerecordId_arr'],true) ) ;
+	}
+	
+	$TAB_env = array() ;
+	
+	$query = "SELECT env.*, f.field_FILE_ID FROM view_file_ENVELOPE env" ;
+	$query.= " LEFT OUTER JOIN view_file_FILE f ON f.filerecord_id = env.field_LINK_FILE_ID" ;
+	$query.= " WHERE 1" ;
+	if( isset($filter_envFilerecordId_list) ) {
+		$query.= " AND env.filerecord_id IN {$filter_envFilerecordId_list}" ;
+	}
+	$query.= " ORDER BY env.filerecord_id DESC" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$record = array(
+			'env_filerecord_id' => $arr['filerecord_id'],
+			
+			'env_title' => $arr['field_ENV_TITLE'],
+			'env_date' => $arr['field_ENV_DATE'],
+			
+			'file_filerecord_id' => $arr['field_LINK_FILE_ID'],
+			'file_id_ref' => $arr['field_FILE_ID'],
+			
+			'peer_code' => $arr['field_PEER_CODE'],
+			'peer_adr' => $arr['field_PEER_ADR'],
+			
+			'stat_count_doc' => 0,
+			'stat_count_page' => 0,
+			
+			'docs' => array()
+		);
+		
+		$TAB_env[$arr['filerecord_id']] = $record ;
+	}
+	
+	$query = "SELECT envdoc.* FROM view_file_ENVELOPE_DOC envdoc" ;
+	$query.= " JOIN view_file_ENVELOPE env ON env.filerecord_id=envdoc.filerecord_parent_id" ;
+	$query.= " WHERE 1" ;
+	if( isset($filter_envFilerecordId_list) ) {
+		$query.= " AND env.filerecord_id IN {$filter_envFilerecordId_list}" ;
+	}
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		if( !isset($TAB_env[$arr['filerecord_parent_id']]) ) {
+			continue ;
+		}
+		$TAB_env[$arr['filerecord_parent_id']]['docs'][] = array(
+			'envdoc_filerecord_id' => $arr['filerecord_id'],
+			'envdoc_media_id' => media_pdf_toolFile_getId('ENVELOPE_DOC',$arr['filerecord_id']),
+			'doc_desc' => $arr['field_DOC_DESC'],
+			'doc_pagecount' => $arr['field_DOC_PAGECOUNT']
+		);
+		$TAB_env[$arr['filerecord_parent_id']]['stat_count_doc']++ ;
+		$TAB_env[$arr['filerecord_parent_id']]['stat_count_page'] += $arr['field_DOC_PAGECOUNT'] ;
+	}
+	
+	return array('success'=>true, 'data'=>array_values($TAB_env)) ;
+
+}
+
+
+
 ?>

@@ -24,13 +24,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EnvPreviewPanel',{
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_rsi_recouveo',
-				_action: 'doc_loadEnvelope',
-				env_filerecord_id: envFilerecordId
+				_action: 'doc_getEnvGrid',
+				filter_envFilerecordId_arr: Ext.JSON.encode([envFilerecordId])
 			},
 			success: function(response) {
 				var ajaxResponse = Ext.JSON.decode(response.responseText) ;
-				if( ajaxResponse.success ) {
-					this.onLoadMedia(mediaId, ajaxResponse.data) ;
+				if( ajaxResponse.success && ajaxResponse.data.length==1 ) {
+					this.onLoadEnvelope(ajaxResponse.data[0]) ;
 				}
 			},
 			scope: this

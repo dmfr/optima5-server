@@ -42,6 +42,8 @@ switch( $post_data['_action'] )
 	return specRsiRecouveo_doc_getPreview($post_data) ;
 	case 'doc_getPage' :
 	return specRsiRecouveo_doc_getPage($post_data) ;
+	case 'doc_getEnvGrid' :
+	return specRsiRecouveo_doc_getEnvGrid($post_data) ;
 	
 	case 'util_htmlToPdf' :
 		return specRsiRecouveo_util_htmlToPdf( $post_data ) ;
