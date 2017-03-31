@@ -434,6 +434,35 @@ Ext.onReady(function () {
 	});
 	
 	
+	/*
+	 * https://www.sencha.com/forum/showthread.php?298885-Ext-dom-Element-setStyle-Cannot-read-property-style-of-null/page2
+	 */
+	Ext.dom.UnderlayPool.override({
+		checkOut: function () {
+			var el = this.cache.shift();
+
+			// If el is destroyed shift again
+			if (el && el.isDestroyed) {
+				el = this.cache.shift();
+			}
+
+			if (!el) {
+				el = Ext.Element.create(this.elementConfig);
+				el.setVisibilityMode(2);
+				el.dom.setAttribute('data-sticky', true);
+			}
+			return el;
+		}
+	});
+	Ext.util.Floating.override({
+		constructor: function(config) {
+			var me = this;
+			me.shadow = false ;
+			me.callParent();
+		}
+	}) ;
+	
+	
 	
 	/*
 	 * Désactiver le drag&drop file=>browser(open)
