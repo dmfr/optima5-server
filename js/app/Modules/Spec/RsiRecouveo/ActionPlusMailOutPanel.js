@@ -35,24 +35,18 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel',{
 					forceSelection: true,
 					editable: false,
 					store: {
-						autoLoad: true,
-						fields: ['tpl_id','tpl_name'],
-						proxy: this.optimaModule.getConfiguredAjaxProxy({
-							extraParams : {
-								_moduleId: 'spec_rsi_recouveo',
-								_action: 'doc_cfg_getTpl',
-								tpl_group: 'MAIL_OUT',
-								load_binary: 0
-							},
-							reader: {
-								type: 'json',
-								rootProperty: 'data'
-							}
-						})
+						model: 'RsiRecouveoCfgTemplateModel',
+						data: Optima5.Modules.Spec.RsiRecouveo.HelperCache.getTemplateAll()
 					},
 					queryMode: 'local',
 					displayField: 'tpl_name',
-					valueField: 'tpl_id'
+					valueField: 'tpl_id',
+					listeners: {
+						select: function(cmb,record) {
+							this.onTplChange(record) ;
+						},
+						scope: this
+					}
 				}]
 			},{
 				xtype: 'container',
@@ -153,8 +147,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel',{
 					},
 					items: [{
 						xtype: 'fieldset',
+						hidden: true,
+						itemId: 'fsMailFieldsCnt',
 						padding: 10,
-						title: 'Paragraphe additionnel',
+						title: 'Paramètres additionnels',
 						layout: {
 							type: 'anchor'
 						},
@@ -162,11 +158,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel',{
 							anchor: '100%',
 							labelWidth: 80
 						},
-						items: [{
-							xtype: 'textarea',
-							name: 'mail_txt',
-							height: 150
-						}]
+						items: []
 					},{
 						xtype: 'fieldset',
 						padding: 6,
@@ -182,5 +174,22 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel',{
 		}) ;
 		
 		this.callParent() ;
+	},
+	
+	onTplChange: function(tplRecord) {
+		var jsonFields = tplRecord.get('input_fields_json'),
+			fields = Ext.JSON.decode(jsonFields,true),
+			fsMailFieldsCnt = this.down('#fsMailFieldsCnt'),
+			fsFields = [] ;
+		fsMailFieldsCnt.removeAll() ;
+		if( !Ext.isArray(fields) || fields.length==0 ) {
+			fsMailFieldsCnt.setVisible(false) ;
+			return ;
+		}
+		fsMailFieldsCnt.setVisible(true) ;
+		Ext.Array.each( fields, function(fieldDefinition) {
+			fsFields.push(fieldDefinition) ;
+		}) ;
+		fsMailFieldsCnt.add(fsFields) ;
 	}
 }) ;

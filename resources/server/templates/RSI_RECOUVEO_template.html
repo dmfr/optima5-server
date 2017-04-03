@@ -160,19 +160,13 @@
 		
 		<br><br><br>
 		
-		<div class="letterwidth" style="margin:10px ; height: 700px">
+		<div class="letterwidth" style="margin:10px ; height: 750px">
 		<qbook-value src_value="body_content"></qbook-value>
-		<br><br>
-		<qbook-value src_value="body_footer"></qbook-value>
 		</div>
 		
-		<table class='letterwidth'><tr>
-			<td width="100%" valign="top" align="center" style="font-size:14px; border:1px solid gray ; margin:10px ; padding:4px">
-				Coupon à joindre à votre chèque :<br>
-				Réf. Client : XXXXXXXXX // Réf. dossier : AAAAAAAA // MONTANT :   XXX,XX €
-			</td>
-		</tr></table>
-		
+		<div class="letterwidth" style="margin:10px">
+		<qbook-value src_value="body_footer"></qbook-value>
+		</div>
 		
 <p style="page-break-after:always;"></p>
 		
@@ -188,7 +182,7 @@
 		<br><br><br>
 		
 		<div class="letterwidth" style="margin:10px" align="center">
-				<qbook-table src_qobj="dummy"></qbook-table>
+				<qbook-table src_value="records"></qbook-table>
 		</div>
 		
 	</body>

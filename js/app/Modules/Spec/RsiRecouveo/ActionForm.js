@@ -549,6 +549,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 			return ;
 		}
 		
+		var inputFields = {} ;
+		Ext.Object.each( postData, function(k,v) {
+			if( k.indexOf('input_') != 0 ) {
+				return ;
+			}
+			inputFields[k] = v ;
+		});
+		
 		this.showLoadmask() ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
@@ -556,7 +564,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 				_action: 'doc_getMailOut',
 				tpl_id: tplId,
 				file_filerecord_id: this._fileRecord.get('file_filerecord_id'),
-				adr_postal: adrPostal
+				adr_postal: adrPostal,
+				input_fields: Ext.JSON.encode(inputFields)
 			},
 			success: function(response) {
 				var jsonResponse = Ext.JSON.decode(response.responseText) ;

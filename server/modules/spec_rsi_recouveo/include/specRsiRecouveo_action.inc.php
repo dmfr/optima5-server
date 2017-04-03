@@ -354,10 +354,19 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 	$envDocs = array() ;
 	$peer_data = NULL ;
 	if( $post_form['tpl_id'] ) {
+		// input fields
+		$input_fields = array() ;
+		foreach( $post_form as $mkey => $mvalue ) {
+			if( strpos($mkey,'input_')===0 ) {
+				$input_fields[$mkey] = $mvalue ;
+			}
+		}
+	
 		$json = specRsiRecouveo_doc_getMailOut( array(
 			'tpl_id' => $post_form['tpl_id'],
 			'file_filerecord_id' => $post_data['file_filerecord_id'],
-			'adr_postal' => $post_form['adrpost_txt']
+			'adr_postal' => $post_form['adrpost_txt'],
+			'input_fields' => json_encode($input_fields)
 		)) ;
 		$envDocs[] = $json['data'] ;
 		
