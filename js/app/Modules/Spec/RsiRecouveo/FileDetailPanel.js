@@ -1356,6 +1356,16 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 	},
 	
 	onBeforeDestroy: function() {
+		this.down('#pRecordsPanel').down('#windowsBar').items.each( function(btn) {
+			if( btn.win && !btn.win.isClosed ) {
+				btn.win.close() ;
+			}
+		}) ;
+		this.down('#tpFileActions').down('#windowsBar').items.each( function(btn) {
+			if( btn.win && !btn.win.isClosed ) {
+				btn.win.close() ;
+			}
+		}) ;
 		if( this._isDirty ) {
 			this.optimaModule.postCrmEvent('datachange',{}) ;
 		}
