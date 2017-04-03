@@ -77,8 +77,11 @@
 .op5-spec-rsiveo-mmenu-agenda {
 	background-image: url("../images/modules/rsiveo-agenda-64.png") !important;
 }
-.op5-spec-rsiveo-mmenu-envelope {
-	background-image: url("../images/modules/rsiveo-envelope-64.png") !important;
+.op5-spec-rsiveo-mmenu-mailout {
+	background-image: url("../images/modules/rsiveo-mail-out-64.png") !important;
+}
+.op5-spec-rsiveo-mmenu-mailin {
+	background-image: url("../images/modules/rsiveo-mail-in-64.png") !important;
 }
 
 
