@@ -92,8 +92,10 @@ Ext.define('RsiRecouveoConfigUserTplModel',{
 
 Ext.define('RsiRecouveoConfigScenarioStepModel',{
 	extend: 'Ext.data.Model',
+	idProperty: 'scenstep_code',
 	fields: [
 		{name: 'scenstep_code', type:'string'},
+		{name: 'scenstep_tag', type:'string'},
 		{name: 'schedule_idx', type:'int'},
 		{name: 'schedule_daystep', type:'int'},
 		{name: 'link_action', type:'string'},
@@ -221,7 +223,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 		
 		var cmpId = this.cmpId ;
 		
-		var pushModelFields = [], pushModelFieldsAccount = [] ;
+		var pushModelFields = [], pushModelFieldsAccount = [], pushModelFieldsCfg = [] ;
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
 			pushModelFields.push({
 				name: atrId,
@@ -231,6 +233,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
 			pushModelFieldsAccount.push({
 				name: atrId,
+				type: 'auto'
+			}) ;
+		}) ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
+			pushModelFieldsCfg.push({
+				name: 'link_'+atrId,
 				type: 'auto'
 			}) ;
 		}) ;
@@ -287,14 +295,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 		Ext.define('RsiRecouveoConfigUserModel'+'-'+cmpId,{
 			extend: 'RsiRecouveoConfigUserTplModel',
 			idProperty: 'user_id',
-			fields: pushModelFieldsAccount
+			fields: pushModelFieldsCfg
 		}) ;
 		
 		Ext.ux.dams.ModelManager.unregister( 'RsiRecouveoConfigScenarioModel'+'-'+cmpId ) ;
 		Ext.define('RsiRecouveoConfigScenarioModel'+'-'+cmpId,{
 			extend: 'RsiRecouveoConfigScenarioTplModel',
-			idProperty: 'user_id',
-			fields: pushModelFieldsAccount,
+			idProperty: 'scen_code',
+			fields: pushModelFieldsCfg,
 			hasMany: [{
 				model: 'RsiRecouveoConfigScenarioStepModel',
 				name: 'steps',

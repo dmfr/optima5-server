@@ -54,6 +54,10 @@ switch( $post_data['_action'] )
 		return specRsiRecouveo_config_saveMeta( $post_data ) ;
 	case 'config_loadUser' :
 		return specRsiRecouveo_config_loadUser( $post_data ) ;
+	case 'config_getScenarios' :
+		return specRsiRecouveo_config_getScenarios( $post_data ) ;
+	case 'config_setScenario' :
+		return specRsiRecouveo_config_setScenario( $post_data ) ;
 	
 	default :
 	return NULL ;

@@ -1,5 +1,5 @@
 Ext.define('RsiRecouveoConfigScenarioStepEditModel',{
-	extend: Optima5.Modules.Spec.RsiRecouveo.HelperCache.getConfigScenarioStepModel(),
+	extend: 'RsiRecouveoConfigScenarioStepModel',
 	fields: [
 		{name:'_phantom', type:'boolean'}
 	]
@@ -50,7 +50,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigScenariosPanel', {
 					icon: 'images/op5img/ico_new_16.gif',
 					text: 'Nouveau...',
 					handler: function() {
-						this.handleNewScenario();
+						this.handleScenNew();
 					},
 					scope: this
 				}],
@@ -60,20 +60,33 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigScenariosPanel', {
 				columns: [{
 					flex: 1,
 					text: 'Scen/Description',
-					dataIndex: 'scen_id',
-					renderer: function(v) {
-						return v ;
+					dataIndex: 'scen_code',
+					renderer: function(v,metaData,r) {
+						var txt = '' ;
+						txt += '<b>' + r.get('scen_code') + '</b><br>' ;
+						txt += '&nbsp;&nbsp;' + r.get('scen_txt') + '<br>' ;
+						return txt ;
 					}
 				}],
 				store: {
+					autoLoad: true,
 					model: Optima5.Modules.Spec.RsiRecouveo.HelperCache.getConfigScenarioModel(),
-					data: [],
-					proxy: {
-						type: 'memory',
+					proxy: this.optimaModule.getConfiguredAjaxProxy({
+						extraParams : {
+							_moduleId: 'spec_rsi_recouveo',
+							_action: 'config_getScenarios'
+						},
 						reader: {
-							type: 'json'
+							type: 'json',
+							rootProperty: 'data'
 						}
-					}
+					})
+				},
+				listeners: {
+					selectionchange: function(grid,record) {
+						this.setupScenario() ;
+					},
+					scope: this
 				}
 			},{
 				itemId: 'pEmpty',
@@ -137,15 +150,18 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigScenariosPanel', {
 					store: {
 						model: 'RsiRecouveoConfigScenarioStepEditModel',
 						data: [],
-						sorters: [{
-							property: 'schedule_idx',
-							direction: 'ASC'
-						}],
 						proxy: {
 							type: 'memory',
 							reader: {
 								type: 'json'
 							}
+						}
+					},
+					viewConfig: {
+						plugins: {
+							ptype: 'gridviewdragdrop',
+							pluginId: 'reorder'
+								//dragText: 'Drag and drop to reorganize'
 						}
 					},
 					tbar: [{
@@ -178,7 +194,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigScenariosPanel', {
 					},{
 						text: 'Code',
 						width: 90,
-						dataIndex: 'scenstep_code',
+						dataIndex: 'scenstep_tag',
 						editor: {
 							xtype: 'textfield',
 							allowBlank: false,
@@ -261,38 +277,202 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigScenariosPanel', {
 						}
 					}]
 				}],
-				buttons: [{
-					itemId: 'btnOk',
-					xtype: 'button',
-					text: 'Enregistrer',
-					icon: 'images/op5img/ico_save_16.gif',
-					handler: function( btn ) {
-						this.scenSave() ;
-					},
-					scope: this
-				},{
-					itemId: 'btnCancel',
-					xtype: 'button',
-					text: 'Annuler',
-					icon: 'images/op5img/ico_cancel_small.gif',
-					handler: function( btn ) {
-						this.scenAbort() ;
-					},
-					scope: this
+				dockedItems: [{
+					xtype: 'toolbar',
+					dock: 'bottom',
+					ui: 'footer',
+					//defaults: {minWidth: minButtonWidth</a>},
+					items: [{
+						itemId: 'btnEdit',
+						xtype: 'button',
+						text: 'Modifier',
+						icon: 'images/op5img/ico_edit_small.gif',
+						handler: function( btn ) {
+							this.handleScenEdit() ;
+						},
+						scope: this
+					},{
+						itemId: 'btnDelete',
+						xtype: 'button',
+						text: 'Supprimer',
+						icon: 'images/op5img/ico_delete_16.gif',
+						handler: function( btn ) {
+							var doDelete = true ;
+							this.handleScenDelete() ;
+						},
+						scope: this
+					},{
+						xtype: 'component',
+						flex: 1
+					},{
+						itemId: 'btnOk',
+						xtype: 'button',
+						text: 'Enregistrer',
+						icon: 'images/op5img/ico_save_16.gif',
+						handler: function( btn ) {
+							this.handleScenSave() ;
+						},
+						scope: this
+					},{
+						itemId: 'btnCancel',
+						xtype: 'button',
+						text: 'Annuler',
+						icon: 'images/op5img/ico_cancel_small.gif',
+						handler: function( btn ) {
+							this.handleScenAbort() ;
+						},
+						scope: this
+					}]
 				}]
 			}]
 		});
 		
 		this.callParent() ;
 		
+		this.down('#pEmpty').setVisible(true) ;
+		this.down('#pEditor').setVisible(false) ;
+		this.setupScenario() ;
+	},
+	doLoad: function(focusId) {
+		this.setEditMode(false) ;
+		
+		var gridScenarios = this.down('#gridScenarios') ;
+		gridScenarios.getStore().load() ;
+		gridScenarios.getStore().on('load',function(store) {
+			if( !focusId ) {
+				gridScenarios.getSelectionModel().deselectAll(true) ;
+			} else {
+				var focusRecord = store.getById(focusId) ;
+				gridScenarios.getSelectionModel().select([focusRecord]) ;
+			}
+			this.setupScenario() ;
+		},this,{single: true}) ;
+	},
+	getSelectedScenario: function() {
+		var gridScenarios = this.down('#gridScenarios') ;
+		return gridScenarios.getSelectionModel().getSelection()[0] ;
+	},
+	setupScenario: function() {
+		var selectedScenario = this.getSelectedScenario() ;
+		if( !selectedScenario ) {
+			this.down('#pEmpty').setVisible(true) ;
+			this.down('#pEditor').setVisible(false) ;
+			this.setEditMode(false) ;
+			return ;
+		}
+		
+		var pEditor = this.down('#pEditor'),
+			editorForm = pEditor.down('form'),
+			editorGrid = pEditor.down('grid') ;
 		this.down('#pEmpty').setVisible(false) ;
-		this.down('#pEditor').setVisible(true) ;
-	},
-	scenSave: function() {
+		pEditor.setVisible(true) ;
+		editorForm.loadRecord(selectedScenario) ;
 		
-	},
-	scenAbort: function() {
+		var gridData = [] ;
+		selectedScenario.steps().each( function(stepRecord) {
+			gridData.push( stepRecord.getData() ) ;
+		}) ;
+		editorGrid.getStore().loadData( gridData ) ;
 		
+		this.setEditMode(false) ;
+	},
+	handleScenNew: function() {
+		var gridScenarios = this.down('#gridScenarios') ;
+		gridScenarios.getSelectionModel().deselectAll(true) ;
+		
+		var pEditor = this.down('#pEditor'),
+			editorForm = pEditor.down('form'),
+			editorGrid = pEditor.down('grid') ;
+		this.down('#pEmpty').setVisible(false) ;
+		pEditor.setVisible(true) ;
+		editorForm.reset() ;
+		editorGrid.getStore().loadData([]) ;
+		
+		this.setEditMode(true) ;
+	},
+	handleScenEdit: function(scenCode) {
+		this.setEditMode(true) ;
+	},
+	handleScenSave: function(doDelete) {
+		var pEditor = this.down('#pEditor'),
+			editorForm = pEditor.down('form'),
+			editorGrid = pEditor.down('grid') ;
+		
+		var data = editorForm.getValues(false,false,false,true) ;
+		data['steps'] = [] ;
+		var cnt = 0 ;
+		editorGrid.getStore().each( function(stepRecord) {
+			cnt++ ;
+			stepRecord.set('schedule_idx',cnt) ;
+			data['steps'].push(stepRecord.getData()) ;
+		}) ;
+		
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_rsi_recouveo',
+				_action: 'config_setScenario',
+				data: Ext.JSON.encode(data),
+				do_delete: (doDelete ? 1 : 0)
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+				this.doLoad(doDelete?null:data['scen_code']) ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+	},
+	handleScenDelete: function() {
+		var pEditor = this.down('#pEditor'),
+			editorForm = pEditor.down('form'),
+			editorGrid = pEditor.down('grid') ;
+		
+		var data = editorForm.getValues(false,false,false,true) ;
+		
+		Ext.MessageBox.confirm('Suppression','Suppression scénario '+data.scen_code, function(btn) {
+			if( btn =='yes' ) {
+				var doDelete = true ;
+				this.handleScenSave(doDelete) ;
+			}
+		},this) ;
+	},
+	handleScenAbort: function() {
+		var gridScenarios = this.down('#gridScenarios') ;
+		this.setupScenario() ;
+	},
+	setEditMode: function(torf) {
+		var gridScenarios = this.down('#gridScenarios') ;
+		gridScenarios.getSelectionModel().setLocked(torf) ;
+		
+		var pEditor = this.down('#pEditor'),
+			editorForm = pEditor.down('form'),
+			editorGrid = pEditor.down('grid') ;
+		editorForm.getForm().getFields().each( function(field) {
+			field.setReadOnly(!torf) ;
+			if( field.getName()=='scen_code' && !Ext.isEmpty(field.getValue()) ) {
+				field.setReadOnly(true) ;
+			}
+		}) ;
+		editorGrid.getPlugin('rowediting')._disabled = !torf ;
+		
+		pEditor.down('#btnEdit').setVisible(!torf) ;
+		pEditor.down('#btnDelete').setVisible(!torf) ;
+		pEditor.down('#btnOk').setVisible(torf) ;
+		pEditor.down('#btnCancel').setVisible(torf) ;
+		editorGrid.down('toolbar').setVisible(torf) ;
+		
+		if( torf ) {
+			editorGrid.getView().getPlugin('reorder').enable();
+		} else {
+			editorGrid.getView().getPlugin('reorder').disable();
+		}
 	},
 	onAfterEditStep: function(editor,context) {
 		context.record.set('_phantom',false) ;
@@ -304,6 +484,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigScenariosPanel', {
 		}
 	},
 	onBeforeEditStep: function(editor,context) {
+		if(editor._disabled){
+			return false ;
+		}
 		var actionColumn = this.down('#gridEditorSteps').headerCt.down('[dataIndex="link_action"]') ;
 		this.onEditorActionChange(context.record.get('link_action')) ;
 	},
@@ -332,10 +515,36 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigScenariosPanel', {
 	},
 	handleNewStep: function() {
 		var stepGrid = this.down('#gridEditorSteps') ;
+		if( stepGrid.getPlugin('rowediting')._disabled ) {
+			return ;
+		}
 		var newRecords = stepGrid.getStore().add( Ext.create('RsiRecouveoConfigScenarioStepEditModel',{
 			_phantom: true
 		}) ) ;
-		console.dir(newRecords) ;
 		stepGrid.getPlugin('rowediting').startEdit(newRecords[0]) ;
+	},
+	
+	showLoadmask: function() {
+		if( this.rendered ) {
+			this.doShowLoadmask() ;
+		} else {
+			this.on('afterrender',this.doShowLoadmask,this,{single:true}) ;
+		}
+	},
+	doShowLoadmask: function() {
+		if( this.loadMask ) {
+			return ;
+		}
+		this.loadMask = Ext.create('Ext.LoadMask',{
+			target: this,
+			msg:"Please wait..."
+		}).show();
+	},
+	hideLoadmask: function() {
+		this.un('afterrender',this.doShowLoadmask,this) ;
+		if( this.loadMask ) {
+			this.loadMask.destroy() ;
+			this.loadMask = null ;
+		}
 	}
 });
