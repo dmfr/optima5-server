@@ -85,7 +85,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextPanel',{
 			nextActionCode = field.getValue() ;
 			var action = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionRowId(nextActionCode) ;
 			if( action ) {
-				this.getForm().findField('next_date').setVisible( action.is_sched ) ;
+				this.getForm().findField('next_date').setVisible( action.is_next_sched ) ;
 			}
 		}
 		

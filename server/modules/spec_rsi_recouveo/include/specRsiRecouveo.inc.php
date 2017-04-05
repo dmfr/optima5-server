@@ -68,8 +68,8 @@ function specRsiRecouveo_cfg_getConfig() {
 			'group_id' => $arr['treenode_key'],
 			'status_open' => json_decode($arr['field_LINK_STATUS_OPEN'],true),
 			'status_next' => json_decode($arr['field_LINK_STATUS_NEXT'],true),
-			'is_sched' => $arr['field_IS_SCHED'],
-			'is_direct' => $arr['field_IS_DIRECT'],
+			'is_next' => $arr['field_IS_NEXT'],
+			'is_next_sched' => $arr['field_IS_NEXT_SCHED'],
 			'agenda_class' => $arr['field_AGENDA_CLASS']
 		) ;
 	}

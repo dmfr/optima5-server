@@ -307,6 +307,9 @@ function specRsiRecouveo_file_searchSuggest( $post_data ) {
 	}
 	
 	$search_txt = $post_data['search_txt'] ;
+	if( !trim($search_txt) ) {
+		return array('success'=>true, 'data'=>array()) ;
+	}
 	
 	$tab_result = array() ;
 	

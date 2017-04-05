@@ -72,7 +72,7 @@ Ext.define('RsiRecouveoFileTplModel',{ // TO: RsiRecouveoFileModel
 		var statusCode = this.get('status'),
 			isSchedLock = this.statusIsSchedLock() ;
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionAll(), function(action) {
-			if( !action.is_direct ) {
+			if( !action.is_next ) {
 				return ;
 			}
 			availableActions.push(action) ;

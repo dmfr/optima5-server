@@ -43,8 +43,9 @@ Ext.define('RsiRecouveoCfgActionModel',{
 		{name: 'group_id', type:'string'},
 		{name: 'status_open', type:'auto'},
 		{name: 'status_next', type:'auto'},
-		{name: 'is_sched', type:'boolean'},
 		{name: 'is_direct', type:'boolean'},
+		{name: 'is_next', type:'boolean'},
+		{name: 'is_next_sched', type:'boolean'},
 		{name: 'agenda_class', type:'string'}
 	]
 });

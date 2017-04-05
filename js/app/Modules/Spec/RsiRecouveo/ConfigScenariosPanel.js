@@ -25,7 +25,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigScenariosPanel', {
 		
 		var directActions = [] ;
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionAll(), function(actionRow) {
-			if( actionRow.is_direct ) {
+			if( actionRow.is_next && actionRow.is_next_sched ) {
 				directActions.push(actionRow) ;
 			}
 		}) ;
