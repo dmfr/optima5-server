@@ -172,6 +172,15 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigScenariosPanel', {
 							this.handleNewStep();
 						},
 						scope: this
+					},'-',{
+						disabled: true,
+						itemId: 'tbDelete',
+						icon: 'images/delete.png',
+						text: 'Supprimer',
+						handler: function() {
+							this.handleDeleteStep();
+						},
+						scope: this
 					}],
 					plugins: [{
 						ptype: 'rowediting',
@@ -275,7 +284,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigScenariosPanel', {
 							}
 							return '&#160;' ;
 						}
-					}]
+					}],
+					listeners: {
+						selectionchange: function(selModel,records) {
+							this.down('#gridEditorSteps').down('toolbar').down('#tbDelete').setDisabled( !(records && records.length > 0) ) ;
+						},
+						scope: this
+					}
 				}],
 				dockedItems: [{
 					xtype: 'toolbar',
@@ -522,6 +537,16 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigScenariosPanel', {
 			_phantom: true
 		}) ) ;
 		stepGrid.getPlugin('rowediting').startEdit(newRecords[0]) ;
+	},
+	handleDeleteStep: function() {
+		var stepGrid = this.down('#gridEditorSteps') ;
+		if( stepGrid.getPlugin('rowediting')._disabled ) {
+			return ;
+		}
+		var toDeleteRecords = stepGrid.getSelectionModel().getSelection() ;
+		if( toDeleteRecords && toDeleteRecords.length>0 ) {
+			stepGrid.getStore().remove(toDeleteRecords) ;
+		}
 	},
 	
 	showLoadmask: function() {

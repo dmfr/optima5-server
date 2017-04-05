@@ -118,7 +118,7 @@ function specRsiRecouveo_config_getScenarios($post_data) {
 		$TAB[$scen_code] = $record ;
 	}
 	
-	$query = "SELECT * FROM view_bible_SCENARIO_entry ORDER BY field_SCENSTEP_CODE" ;
+	$query = "SELECT * FROM view_bible_SCENARIO_entry ORDER BY treenode_key, field_SCHEDULE_IDX" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$scen_code = $arr['treenode_key'] ;
@@ -176,7 +176,7 @@ function specRsiRecouveo_config_setScenario( $post_data ) {
 		$cnt++ ;
 		
 		$arr_ins = array() ;
-		$arr_ins['field_SCENSTEP_CODE'] = $scenstep_record['scen_code'].'_'.str_pad($cnt, 2, "0", STR_PAD_LEFT) ;
+		$arr_ins['field_SCENSTEP_CODE'] = $scenario_record['scen_code'].'_'.$scenstep_record['scenstep_tag'] ;
 		$arr_ins['field_SCENSTEP_TAG'] = $scenstep_record['scenstep_tag'] ;
 		$arr_ins['field_SCHEDULE_IDX'] = $scenstep_record['schedule_idx'] ;
 		$arr_ins['field_SCHEDULE_DAYSTEP'] = $scenstep_record['schedule_daystep'] ;
