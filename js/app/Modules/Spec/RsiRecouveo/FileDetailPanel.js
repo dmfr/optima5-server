@@ -525,6 +525,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 						align: 'right',
 						width: 80,
 						renderer: function( v, meta, r ) {
+							if( Ext.isNumber(v) ) {
+								v = Ext.util.Format.number(v,'0,000.00') ;
+							}
 							if( !Ext.isEmpty(r.get('file_id_ref')) ) {
 								return '<b>'+v+'</b>' ;
 							}
@@ -565,7 +568,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					tbar:[{
 						itemId: 'tbNew',
 						icon: 'images/modules/crmbase-bookmark-16.png',
-						text: '<b>Nouvelle action</b>',
+						text: '<b>Action de traitement</b>',
 						menu:[{
 							iconCls: 'icon-bible-new',
 							text: 'Ouverture dossier',
@@ -765,7 +768,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		accountRecord.files().each( function(fileRecord) {
 			fileRecord.records().each( function(fileRecordRecord) {
 				var balageField = 'inv_balage_'+fileRecordRecord.get('calc_balage_segmt_id') ;
-				balageRecData[balageField] += fileRecord.get('inv_amount_due') ;
+				balageRecData[balageField] += fileRecordRecord.get('amount') ;
 			},this) ;
 		},this) ;
 		this.down('#pRecordsBalage').getStore().loadData([balageRecData]) ;

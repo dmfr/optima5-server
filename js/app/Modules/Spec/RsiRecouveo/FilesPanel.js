@@ -362,6 +362,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				align: 'center',
 				filter: {
 					type: 'number'
+				},
+				renderer: function(value) {
+					return Ext.util.Format.number(value,'0,000.00') ;
 				}
 			},{
 				hidden: true,
@@ -371,6 +374,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				align: 'center',
 				filter: {
 					type: 'number'
+				},
+				renderer: function(value) {
+					return Ext.util.Format.number(value,'0,000.00') ;
 				}
 			}]
 		},{

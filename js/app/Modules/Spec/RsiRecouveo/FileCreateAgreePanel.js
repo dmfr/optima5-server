@@ -171,14 +171,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateAgreePanel',{
 				nbStep-- ;
 			}
 			
-			agree_display_amountnext = Math.round(amount / nbStep) ;
+			agree_display_amountnext = amount / nbStep ;
 			
 			break ;
 		}
 		
 		form.setValues({
-			agree_display_amountfirst: agree_display_amountfirst,
-			agree_display_amountnext: agree_display_amountnext
+			agree_display_amountfirst: (Ext.isNumber(agree_display_amountfirst) ? Ext.util.Format.number(agree_display_amountfirst,'0,000.00') : ''),
+			agree_display_amountnext: (Ext.isNumber(agree_display_amountnext) ? Ext.util.Format.number(agree_display_amountnext,'0,000.00') : '')
 		}) ;
 	}
 }) ;

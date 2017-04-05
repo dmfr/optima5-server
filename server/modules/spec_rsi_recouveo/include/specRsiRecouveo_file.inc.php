@@ -852,7 +852,7 @@ function specRsiRecouveo_file_lib_close( $file_filerecord_id ) {
 			$arr_ins['field_LINK_ACTION'] = 'BUMP' ;
 			$arr_ins['field_STATUS_IS_OK'] = 0 ;
 			$arr_ins['field_DATE_SCHED'] = date('Y-m-d') ;
-			paracrm_lib_data_insertRecord_file( $file_code, $dst_file_filerecord_id, $arr_ins );
+			paracrm_lib_data_insertRecord_file( 'FILE_ACTION', $dst_file_filerecord_id, $arr_ins );
 		}
 	}
 	

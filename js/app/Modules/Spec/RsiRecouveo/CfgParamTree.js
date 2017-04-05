@@ -267,10 +267,16 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamTree',{
 			},this) ;
 		} else if( this.selectMode=='MULTI' ) {
 			this.getRootNode().cascadeBy(function(node) {
+				if( node.get('checked') === null ) {
+					return  ;
+				}
 				node.set('checked', Ext.Array.contains(this.value, node.getId()) );
 			},this);
 		} else {
 			this.getRootNode().cascadeBy(function(node) {
+				if( node.get('checked') === null ) {
+					return  ;
+				}
 				node.set('checked', (node.getId()==this.value) );
 			},this);
 		}

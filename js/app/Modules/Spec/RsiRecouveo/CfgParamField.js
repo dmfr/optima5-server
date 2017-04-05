@@ -193,6 +193,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
 		var cfgParamTree = this.cfgParamTree ;
 		cfgParamTree.setValue(value,true) ;
 		this.displayValue() ;
+		this.onChange() ;
 		if( Ext.isEmpty(value) ) {
 			//cfgParamTree.autoAdvance() ;
 		}
