@@ -29,6 +29,8 @@ switch( $post_data['_action'] )
 	return specRsiRecouveo_account_open( $post_data ) ;
 	case 'account_setAdrbook' :
 	return specRsiRecouveo_account_setAdrbook( $post_data ) ;
+	case 'account_setAdrbookPriority' :
+	return specRsiRecouveo_account_setAdrbookPriority( $post_data ) ;
 	
 	case 'doc_cfg_getTpl' :
 	return specRsiRecouveo_doc_cfg_getTpl($post_data) ;

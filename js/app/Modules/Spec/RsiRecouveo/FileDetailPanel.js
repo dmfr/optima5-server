@@ -148,7 +148,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					iconCls: 'op5-spec-rsiveo-action-callout',
 					text: 'Appel sortant',
 					handler: function() {
-						this.handleNewAction('CALL_OUT') ;
+						this.handleNewAction('CALL_OUT',{adrtel_default: true}) ;
 					},
 					scope: this
 				},{
@@ -162,7 +162,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					iconCls: 'op5-spec-rsiveo-action-mailout',
 					text: 'Courrier sortant',
 					handler: function() {
-						this.handleNewAction('MAIL_OUT') ;
+						this.handleNewAction('MAIL_OUT',{adrpost_default: true}) ;
 					},
 					scope: this
 				}]
@@ -300,6 +300,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 								}
 								if( record.get('status_is_invalid') ) {
 									metaData.tdCls += ' op5-spec-dbstracy-kpi-nok' ;
+								} else if( record.get('status_is_priority') ) {
+									metaData.tdCls += ' op5-spec-rsiveo-icon-priority' ;
 								} else if( record.get('status_is_confirm') ) {
 									metaData.tdCls += ' op5-spec-dbstracy-kpi-ok' ;
 								} else {
@@ -381,6 +383,24 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 								}
 							}]
 						}]
+					},
+					listeners: {
+						itemclick: function( view, record, itemNode, index, e ) {
+							var cellNode = e.getTarget( view.getCellSelector() ),
+								cellColumn = view.getHeaderByCell( cellNode ) ;
+							switch( cellColumn.text ) {
+								case 'Status' :
+									if( !record.get('status_is_invalid')  ) {
+										Ext.MessageBox.confirm('Contact','Définir contact par défaut ?',function(btn){
+											if( btn=='yes' ) {
+												this.handleAdrbookPriority(record.get('adr_type'),record.get('adrbookentry_filerecord_id'));
+											}
+										},this) ;
+									}
+									break ;
+							}
+						},
+						scope: this
 					}
 				}]
 			},{
@@ -783,7 +803,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		var adrbookRootChildren = [] ;
 		Ext.Object.each( adrbookRootMap, function(k,v) {
 			adrbookRootChildren.push({
-				expanded: false,
+				expanded: true,
 				leaf: false,
 				adr_entity: k,
 				adr_entity_obs: adrbookRootMapObs[k],
@@ -1070,6 +1090,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		
 	},
 	doReload: function(focusFileFilerecordId) {
+		if( !focusFileFilerecordId ) {
+			focusFileFilerecordId = this.getActiveFileId() ;
+			console.log(focusFileFilerecordId) ;
+		}
 		this.loadAccount( this._accId, this._filterAtr, focusFileFilerecordId ) ;
 	},
 	
@@ -1139,6 +1163,16 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		});
 		
 		this.down('toolbar').down('#tbNew').setDisabled( fileRec.statusIsSchedNone() )  ;
+	},
+	getActiveFileId: function() {
+		var recordsTree = this.down('#pRecordsTree'),
+			 activeFileId = null ;
+		recordsTree.getRootNode().cascadeBy( function(r) {
+			if( r.get('file_filerecord_id') > 0 && r.get('file_focus') ) {
+				activeFileId = r.get('file_filerecord_id') ;
+			}
+		}) ;
+		return activeFileId ;
 	},
 	
 	
@@ -1307,6 +1341,29 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 	},
 	handleEditAdrbook: function( adrbookEntity ) {
 		this.openAdrbookPanel( this._accountRecord.get('acc_id'), adrbookEntity ) ;
+	},
+	handleAdrbookPriority: function( adrType, adrbookFilerecordId ) {
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_rsi_recouveo',
+				_action: 'account_setAdrbookPriority',
+				acc_id: this._accountRecord.get('acc_id'),
+				adr_type: adrType,
+				adrbook_filerecord_id: adrbookFilerecordId
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','error') ;
+					return ;
+				}
+				this.doReload() ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
 	},
 	openAdrbookPanel: function( accId, adrbookEntity ) {
 		if( this._readonlyMode ) {

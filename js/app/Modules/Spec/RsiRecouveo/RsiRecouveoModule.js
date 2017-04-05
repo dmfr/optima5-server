@@ -150,6 +150,7 @@ Ext.define('RsiRecouveoAdrbookEntryModel',{
 		{name: 'adrbookentry_filerecord_id', type:'int'},
 		{name: 'adr_type', type:'string'},
 		{name: 'adr_txt', type:'string'},
+		{name: 'status_is_priority', type:'boolean'},
 		{name: 'status_is_confirm', type:'boolean'},
 		{name: 'status_is_invalid', type:'boolean'}
 	]

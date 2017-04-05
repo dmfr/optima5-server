@@ -69,6 +69,7 @@ function specRsiRecouveo_account_open( $post_data ) {
 			'adrbookentry_filerecord_id' => $arr['filerecord_id'],
 			'adr_type' => $arr['field_ADR_TYPE'],
 			'adr_txt' => $arr['field_ADR_TXT'],
+			'status_is_priority' => ($arr['field_STATUS_IS_PRIORITY']==1),
 			'status_is_confirm' => ($arr['field_STATUS_IS_CONFIRM']==1),
 			'status_is_invalid' => ($arr['field_STATUS_IS_INVALID']==1)
 		);
@@ -177,6 +178,21 @@ function specRsiRecouveo_account_setAdrbook( $post_data ) {
 		paracrm_lib_data_deleteRecord_file( $file_code, $filerecord_id );
 	}
 
+	return array('success'=>true) ;
+}
+
+function specRsiRecouveo_account_setAdrbookPriority( $post_data ) {
+	global $_opDB ;
+	
+	$p_accId = $post_data['acc_id'] ;
+	$p_adrType = $post_data['adr_type'] ;
+	$p_adrbookFilerecordId = $post_data['adrbook_filerecord_id'] ;
+	
+	$query = "UPDATE view_file_ADRBOOK_ENTRY ae, view_file_ADRBOOK a
+				SET ae.field_STATUS_IS_PRIORITY = IF( ae.filerecord_id='{$p_adrbookFilerecordId}', '1','0')
+				WHERE ae.filerecord_parent_id=a.filerecord_id AND a.field_ACC_ID='{$p_accId}' AND ae.field_ADR_TYPE='{$p_adrType}'";
+	$_opDB->query($query) ;
+	
 	return array('success'=>true) ;
 }
 

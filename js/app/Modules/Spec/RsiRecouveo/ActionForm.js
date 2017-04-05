@@ -180,6 +180,19 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 			action_sched: ( this.getCurrentSched() ? Ext.util.Format.date(this.getCurrentSched(),'d/m/Y') : '' )
 		};
 		if( this._formValues ) {
+			if( this._formValues['adrtel_default'] ) {
+				this._accountRecord.adrbook().each( function( adrRec ) {
+					adrRec.adrbookentries().each( function(adrEntryRec) {
+						if( adrEntryRec.get('status_is_invalid') ) {
+							return ;
+						}
+						if( adrEntryRec.get('adr_type')=='TEL' && adrEntryRec.get('status_is_priority') ) {
+							this._formValues['adrtel_filerecord_id'] = adrEntryRec.getId() ;
+							return false ;
+						}
+					},this) ;
+				},this) ;
+			}
 			if( this._formValues['adrtel_entity'] ) {
 				this._accountRecord.adrbook().each( function( adrRec ) {
 					adrRec.adrbookentries().each( function(adrEntryRec) {
@@ -188,6 +201,19 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 						}
 						if( adrRec.get('adr_entity')==this._formValues['adrtel_entity'] && adrEntryRec.get('adr_type')=='TEL' ) {
 							this._formValues['adrtel_filerecord_id'] = adrEntryRec.getId() ;
+							return false ;
+						}
+					},this) ;
+				},this) ;
+			}
+			if( this._formValues['adrpost_default'] ) {
+				this._accountRecord.adrbook().each( function( adrRec ) {
+					adrRec.adrbookentries().each( function(adrEntryRec) {
+						if( adrEntryRec.get('status_is_invalid') ) {
+							return ;
+						}
+						if( adrEntryRec.get('adr_type')=='POSTAL' && adrEntryRec.get('status_is_priority') ) {
+							this._formValues['adrpost_filerecord_id'] = adrEntryRec.getId() ;
 							return false ;
 						}
 					},this) ;
