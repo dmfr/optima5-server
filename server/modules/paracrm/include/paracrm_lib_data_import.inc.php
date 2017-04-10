@@ -178,7 +178,7 @@ function paracrm_lib_dataImport_getTruncateMode( $importmap_id ) {
 
 
 function paracrm_lib_dataImport_commit_processHandle( $data_type,$store_code, $handle ) {
-	$cfg_delimiters = array('comma'=>',','semicolon'=>';') ;
+	$cfg_delimiters = array('comma'=>',','semicolon'=>';','pipe'=>'|') ;
 	
 	//rewind($handle) ;
 	$first_lig = trim(fgets($handle)) ;
