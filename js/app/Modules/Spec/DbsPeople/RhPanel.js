@@ -609,6 +609,7 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 	fetchCalcAttributes: function() {
 		this.asyncConnectionForCalcAttributes = this.optimaModule.getConfiguredAjaxConnection() ;
 		this.asyncConnectionForCalcAttributes.request({
+			timeout: (300 * 1000),
 			params: {
 				_moduleId: 'spec_dbs_people',
 				_action: 'RH_getGrid',
