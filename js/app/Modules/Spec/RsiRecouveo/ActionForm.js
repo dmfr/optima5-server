@@ -177,7 +177,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 		// Données
 		var formData = {
 			action_txt: currentAction.action_txt,
-			action_sched: ( this.getCurrentSched() ? Ext.util.Format.date(this.getCurrentSched(),'d/m/Y') : '' )
+			action_sched: ( this.getCurrentSched() ? Ext.util.Format.date(this.getCurrentSched(),'d/m/Y') : '' ),
+			  
+			tpl_id: this.getCurrentTpl()
 		};
 		if( this._formValues ) {
 			if( this._formValues['adrtel_default'] ) {
@@ -292,6 +294,15 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 		}
 		return null ;
 	},
+	getCurrentTpl: function() {
+		if( this._fileActionFilerecordId ) {
+			var nowActionRecord = this._fileRecord.actions().getById( this._fileActionFilerecordId ) ;
+			if( nowActionRecord ) {
+				return nowActionRecord.get('link_tpl') ;
+			}
+		}
+		return null ;
+	},
 	
 	
 	handleSubmitEvent: function() {
@@ -342,7 +353,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 			if( Ext.isEmpty( postData['next_action'] ) ) {
 				var error = 'Prochaine action non renseignée' ;
 				errors.push(error) ;
-				this.getForm().findField('next_action').markInvalid(error) ;
+				//this.getForm().findField('next_action').markInvalid(error) ;
 			} else if( this.getForm().findField('next_date').isVisible(true) && Ext.isEmpty( postData['next_date'] ) ) {
 				var error = 'Date prochaine action non renseignée' ;
 				errors.push(error) ;

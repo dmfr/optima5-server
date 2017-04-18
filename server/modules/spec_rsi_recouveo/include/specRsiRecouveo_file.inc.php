@@ -73,6 +73,8 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			'date_open' => $arr['field_DATE_OPEN'],
 			'date_last' => $arr['field_DATE_LAST'],
 			
+			'scen_code' => $arr['field_SCENARIO'],
+			
 			'records' => array(),
 			'actions' => array()
 		);
@@ -119,8 +121,13 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			'date_actual' => (specRsiRecouveo_file_tool_isDateValid($arr['field_DATE_ACTUAL']) ? $arr['field_DATE_ACTUAL'] : null),
 			'txt' => $arr['field_TXT'],
 			
+			'scenstep_code' => $arr['field_LINK_SCENARIO'],
+			'scenstep_tag' => $arr['field_SCENSTEP_TAG'],
+			
 			'link_newfile_filerecord_id' => ($arr['field_LINK_NEW_FILE_ID'] > 0 ? $arr['field_LINK_NEW_FILE_ID'] : null),
-			'link_env_filerecord_id' => ($arr['field_LINK_ENV_ID'] > 0 ? $arr['field_LINK_ENV_ID'] : null)
+			'link_env_filerecord_id' => ($arr['field_LINK_ENV_ID'] > 0 ? $arr['field_LINK_ENV_ID'] : null),
+			
+			'link_tpl' => $arr['field_LINK_TPL']
 		);
 	}
 	
@@ -897,6 +904,153 @@ function specRsiRecouveo_file_lib_getNextMailNum( $file_filerecord_id ) {
 		return NULL ;
 	}
 	return $arr[0].'/'.str_pad((int)$arr[1], 2, "0", STR_PAD_LEFT) ;
+}
+
+
+
+
+
+function specRsiRecouveo_file_getScenarioLine( $post_data ) {
+	global $_opDB ;
+	
+	$p_fileFilerecordId = $post_data['file_filerecord_id'] ;
+	$json = specRsiRecouveo_file_getRecords( array(
+		'filter_fileFilerecordId_arr' => json_encode(array($p_fileFilerecordId))
+	)) ;
+	$accFile_record = $json['data'][0] ;
+	
+	$json = specRsiRecouveo_config_getScenarios(array()) ;
+	$data_scenarios = $json['data'] ;
+	
+	if( !$accFile_record['scen_code'] ) {
+		return array('success'=>false) ;
+	}
+	
+	$row_scenario = NULL ;
+	foreach( $data_scenarios as $t_row_scenario ) {
+		if( $t_row_scenario['scen_code'] == $accFile_record['scen_code'] ) {
+			$row_scenario = $t_row_scenario ;
+			break ;
+		}
+	}
+	if( !$row_scenario ) {
+		return array('success'=>false) ;
+	}
+	
+	$tags = array() ;
+	foreach( $row_scenario['steps'] as $row_scenario_step ) {
+		$tags[] = $row_scenario_step['scenstep_tag'] ;
+	}
+	//print_r($tags) ;
+	
+	
+	$TAB = array() ;
+	foreach( $row_scenario['steps'] as $row_scenario_step ) {
+		//$row_scenario_step['is_before'] = TRUE ;
+		$scenstep_tag = $row_scenario_step['scenstep_tag'] ;
+		
+		$TAB[$scenstep_tag] = $row_scenario_step ;
+	}
+	$TAB['BUMP'] = array(
+		'link_action' => 'BUMP'
+	);
+	
+	/*
+	*************************************
+	 - Tag de la dernière action
+	 - Statut/date des tags inférieurs
+	 - Tag next action ?
+	 - Tag next action auto ?
+	*************************************
+	*/
+	foreach( array_reverse($accFile_record['actions']) as $row_file_action ) {
+		//print_r($row_file_action) ;
+		if( !$row_file_action['scenstep_tag'] ) {
+			continue ;
+		}
+		$this_tag_idx = array_search( $row_file_action['scenstep_tag'], $tags ) ;
+		if( $this_tag_idx === FALSE ) {
+			continue ;
+		}
+		$this_tag = $tags[$this_tag_idx] ;
+		
+		
+		if( !$row_file_action['status_is_ok'] ) {
+			if( $row_file_action['fileaction_filerecord_id'] == $post_data['fileaction_filerecord_id'] ) {
+				$lastdone_tag_idx = $this_tag_idx ;
+				$lastdone_date = date('Y-m-d') ;
+				$TAB[$this_tag]['is_current'] = TRUE ; // is current
+			} else {
+				//$lastdone_tag_idx = $this_tag_idx -1 ; // HACK
+				$TAB[$this_tag]['is_selected'] = TRUE ; // is selected
+				$TAB[$this_tag]['date_sched'] = date('Y-m-d',strtotime($row_file_action['date_sched'])) ;
+			}
+		}
+		
+		if( $row_file_action['status_is_ok'] ) {
+			if( !$lastdone_tag_idx ) {
+				$lastdone_tag_idx = $this_tag_idx ;
+				$lastdone_date = date('Y-m-d',strtotime($row_file_action['date_actual'])) ;
+			} elseif( $this_tag_idx > $lastdone_tag_idx ) {
+				continue ;
+			}
+			$TAB[$this_tag]['is_before_done'] = TRUE ; // is before
+			$TAB[$this_tag]['date_actual'] = date('Y-m-d',strtotime($row_file_action['date_actual'])) ;
+		}
+		
+	}
+	// ** Déterminer les next 
+	if( !$lastdone_tag_idx ) {
+		$lastdone_tag_idx = -1 ;
+	}
+	// ** Déterminer date de référence
+	if( !$lastdone_date ) {
+		//date d echeance
+		$dates = array() ;
+		foreach( $accFile_record['records'] as $accFileRecord_record ) {
+			$dates[] = date('Y-m-d',strtotime($accFileRecord_record['date_value'])) ;
+		}
+		$lastdone_date = max($dates) ;
+	}
+	$tag_idx = -1 ;
+	foreach( $TAB as $tag => &$row_scenario_step ) {
+		$tag_idx++ ;
+		if( ($tag_idx < $lastdone_tag_idx) && !$row_scenario_step['is_before'] ) {
+			$row_scenario_step['is_before_skipped'] = TRUE ;
+		}
+	}
+	unset($row_scenario_step) ;
+
+	$next_tag_idx = $lastdone_tag_idx + 1 ;
+	if( $next_tag_idx >= count($tags) ) {
+		$next_tag = 'BUMP' ;
+	} else {
+		$next_tag = $tags[$next_tag_idx] ;
+	}
+	$TAB[$next_tag]['is_next'] = TRUE ;
+	$to_add_days = (int)$TAB[$next_tag]['schedule_daystep'] ;
+	$to_add_str = ($to_add_days >= 0 ? '+':'-').abs($to_add_days).' days' ;
+	$TAB[$next_tag]['date_sched'] = date('Y-m-d',strtotime($to_add_str,strtotime($lastdone_date))) ;
+	
+	while( $next_tag_idx < count($tags) ) {
+		// is auto ?
+		if( $row_scenario['steps'][$next_tag_idx]['exec_is_auto'] ) {
+			$next_tag = $tags[$next_tag_idx] ;
+			$TAB[$next_tag]['is_next_auto'] = TRUE ;
+			$to_add_days = (int)$TAB[$next_tag]['schedule_daystep'] ;
+			$to_add_str = ($to_add_days >= 0 ? '+':'-').abs($to_add_days).' days' ;
+			$TAB[$next_tag]['date_sched'] = date('Y-m-d',strtotime($to_add_str,strtotime($lastdone_date))) ;
+			break ;
+		}
+		
+		$next_tag_idx++ ;
+	}
+	
+	
+	
+	//print_r($accFile_record) ;
+	
+	return array('success'=>true, 'data'=>array_values($TAB)) ;
 }
 
 

@@ -319,12 +319,30 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 		
 		$status_next = ($status_change ? $status_change : $post_form['link_status']) ;
 		
+		if( $post_form['next_scenstep_code'] ) {
+			// 2017-04 : lookup TPL_ID
+			$link_tpl_id = NULL ;
+			$ttmp = specRsiRecouveo_config_getScenarios(array()) ;
+			foreach( $ttmp['data'] as $t_row_scen ) {
+				foreach( $t_row_scen['steps'] as $t_row_scenstep ) {
+					if( $t_row_scenstep['scenstep_code'] == $post_form['next_scenstep_code'] ) {
+						$link_tpl_id = $t_row_scenstep['link_tpl'] ;
+					}
+				}
+			}
+		}
+		
 		switch( $post_form['next_action'] ) {
 			default : // BUMP, CALL, MAIL...
 				$arr_ins = array() ;
 				$arr_ins['field_LINK_STATUS'] = $status_next ;
 				$arr_ins['field_LINK_ACTION'] = $post_form['next_action'] ;
+				$arr_ins['field_LINK_SCENARIO'] = $post_form['next_scenstep_code'] ;
+				$arr_ins['field_SCENSTEP_TAG'] = $post_form['next_scenstep_tag'] ;
 				$arr_ins['field_DATE_SCHED'] = ($post_form['next_date'] ? $post_form['next_date'] : date('Y-m-d')) ;
+				if( $link_tpl_id ) {
+					$arr_ins['field_LINK_TPL'] = $link_tpl_id ;
+				}
 				paracrm_lib_data_insertRecord_file( $file_code, $file_filerecord_id, $arr_ins );
 				break ;
 		}

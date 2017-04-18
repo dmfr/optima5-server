@@ -984,8 +984,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					renderer: function(value,metaData,record,rowIndex,colIndex,store,view) {
 						var actionMap = view.up('panel')._actionMap ;
 						if( actionMap.hasOwnProperty(value) ) {
+							var txt = '' ;
+							if( !Ext.isEmpty(record.get('scenstep_tag')) ) {
+								txt+= '<b>'+record.get('scenstep_tag')+'</b>'+'&#160;'+':'+'&#160;' ;
+							}
 							var actionData = actionMap[value] ;
-							return '<b>'+actionData.action_txt+'</b>' ;
+							txt+= '<b>'+actionData.action_txt+'</b>' ;
+							return txt ;
 						}
 						return '?' ;
 					}

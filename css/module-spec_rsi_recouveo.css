@@ -217,6 +217,90 @@
 	background-image: url("../images/modules/crmbase-bookmark-16.png") !important;
 }
 
+
+.op5-spec-rsiveo-actionsfield {
+	height:100px ;
+	margin-bottom: 10px ;
+}
+
+.op5-spec-rsiveo-actionthumb {
+	position: relative ;
+    display: inline-block;
+    vertical-align: top;
+    width: 75px;
+    min-height: 75px;
+    padding: 5px;
+    text-align: center;
+    margin: 4px;
+    background-color: #ccd8e7;
+    border: 1px solid #99BBE8;
+    -webkit-border-radius: .5em;
+    -moz-border-radius: .5em;
+    border-radius: .5em;
+
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+.op5-spec-rsiveo-actionthumb-select  {
+    background-color: #6CC7FF !important;
+}
+.op5-spec-rsiveo-actionthumb-red  {
+    background-color: #FF4141 !important;
+}
+.op5-spec-rsiveo-actionthumb:hover {
+    background-color: #999999;
+    border-color: #999999;
+}
+.op5-spec-rsiveo-actionthumb-icon {
+	
+}
+.op5-spec-rsiveo-actionthumb-header {
+	position: absolute ;
+	font-size: 11px ;
+	padding-left: 4px ;
+	padding-top: 4px ;
+	top: 0px ;
+	left: 0px ;
+}
+.op5-spec-rsiveo-actionthumb-footer {
+	position: absolute ;
+	font-size: 11px ;
+	bottom: 0px ;
+	left: 0px ;
+	padding-left: 18px ;
+	padding-bottom: 4px ;
+}
+.op5-spec-rsiveo-actionthumb-footer-done {
+	background-position: 0px 0px ;
+	background-repeat: no-repeat ;
+	background-image: url("../images/op5img/ico_ok_16.gif") !important;
+}
+.op5-spec-rsiveo-actionthumb-footer-wait {
+	background-position: 0px 0px ;
+	background-repeat: no-repeat ;
+	background-image: url("../images/op5img/ico_wait_small.gif") !important;
+}
+.op5-spec-rsiveo-actionthumb-footer-flag {
+	background-position: 0px 0px ;
+	background-repeat: no-repeat ;
+	background-image: url("../images/op5img/ico_redflag_16.gif") !important;
+}
+.op5-spec-rsiveo-actionthumb-footer-skip {
+	background-position: 0px 0px ;
+	background-repeat: no-repeat ;
+	background-image: url("../images/op5img/ico_cancel_small.gif") !important;
+}
+.op5-spec-rsiveo-actionthumb-footer-save {
+	background-position: 0px 0px ;
+	background-repeat: no-repeat ;
+	background-image: url("../images/op5img/ico_save_16.gif") !important;
+}
+
+
 .op5-spec-rsiveo-action-btn .x-btn-inner {
 	color: red ;
 	font-weight: bold ; 

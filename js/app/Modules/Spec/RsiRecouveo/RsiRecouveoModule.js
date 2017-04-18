@@ -40,44 +40,6 @@ Ext.define('RsiRecouveoFileTplModel',{ // TO: RsiRecouveoFileModel
 			statusRow = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getStatusRowId(fileStatus),
 			isSchedNone = !!(statusRow && statusRow.sched_none) ;
 		return isSchedNone ;
-	},
-	getNextXAction: function(x) {
-		var pendingActions = [] ;
-		this.actions().each( function(fileActionRecord) {
-			if( fileActionRecord.get('status_is_ok') ) {
-				return ;
-			}
-			pendingActions.push({
-				fileaction_filerecord_id: fileActionRecord.get('fileaction_filerecord_id'),
-				date_sched: fileActionRecord.get('date_sched')
-			}) ;
-		}) ;
-		Ext.Array.sort(pendingActions, function(o1,o2) {
-			return o1.date_sched > o2.date_sched ;
-		});
-		var fileActionId = ( pendingActions[x-1] ? pendingActions[x-1]['fileaction_filerecord_id'] : null ) ;
-		if( fileActionId ) {
-			return this.actions().getById(fileActionId).getData() ;
-		}
-		return null ;
-	},
-	getNextAction: function() {
-		return this.getNextXAction(1) ;
-	},
-	getAfterNextAction: function() {
-		return this.getNextXAction(2) ;
-	},
-	getAvailableActions: function() {
-		var availableActions = [] ;
-		var statusCode = this.get('status'),
-			isSchedLock = this.statusIsSchedLock() ;
-		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionAll(), function(action) {
-			if( !action.is_next ) {
-				return ;
-			}
-			availableActions.push(action) ;
-		}) ;
-		return availableActions ;
 	}
 }) ;
 
@@ -93,8 +55,13 @@ Ext.define('RsiRecouveoFileActionModel',{
 		{name: 'date_actual', type:'date', dateFormat:'Y-m-d H:i:s', allowNull:true},
 		{name: 'txt', type: 'string'},
 		
+		{name: 'scenstep_code', type: 'string'},
+		{name: 'scenstep_tag', type: 'string'},
+		
 		{name: 'link_newfile_filerecord_id', type: 'int', allowNull:true},
 		{name: 'link_env_filerecord_id', type: 'int', allowNull:true},
+		
+		{name: 'link_tpl', type: 'string'},
 		
 		{name: 'calc_eta_range', type:'string'}
 	]
