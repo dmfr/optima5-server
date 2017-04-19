@@ -113,10 +113,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextScenarioField',{
 		}) ;
 	},
 	onLoadScenarioLine: function( scenarioData ) {
-		this.setStyle({
-			'overflow-x': 'scroll'
-		}) ;
-		
 		this.getStore().loadData(scenarioData) ;
 		this.setFirstSelection() ;
 	},
@@ -138,13 +134,32 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextScenarioField',{
 		if( records.length == 1 ) {
 			var selRecord = records[0],
 				selNode = this.getNode(selRecord) ;
-			if( selRecord.get('is_before_skipped') || selRecord.get('is_before_done') ) {
+			if( selRecord.get('is_before_skipped') || selRecord.get('is_before_done') || selRecord.get('is_current') ) {
 				Ext.fly(selNode).removeCls('op5-spec-rsiveo-actionthumb-select').addCls('op5-spec-rsiveo-actionthumb-red') ;
 			}
 			this.setValue(selRecord) ;
+			this.scrollToRecord(selRecord) ;
 		} else {
 			this.setValue(null) ;
 		}
+	},
+	scrollToRecord: function(selRecord) {
+		var recordIdx = this.getStore().indexOf(selRecord),
+			node = this.getNode(selRecord),
+			thisWidth = this.getWidth(),
+			nodeWidth = Ext.fly(node).getWidth() ;
+		
+		var targetOffset = (thisWidth / 2) - (nodeWidth / 2),
+			curOffset = nodeWidth * recordIdx,
+			scrollTo = curOffset - targetOffset ;
+		this.setScrollable(true) ;
+		if( scrollTo < 0 ) {
+			scrollTo = 0 ;
+		}
+		if( scrollTo > thisWidth ) {
+			scrollTo = thisWidth ;
+		}
+		this.scrollTo(scrollTo) ;
 	},
 	isEqual: function(value1, value2) {
 		return ( value1 === value2 );
