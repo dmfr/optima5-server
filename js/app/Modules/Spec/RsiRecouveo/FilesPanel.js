@@ -971,5 +971,36 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			property : 'next_agenda_class',
 			value    :  clickAgendaClass
 		}]);
-	}
+	},
+	
+	
+	handleDownload: function() {
+		var columns = [] ;
+		Ext.Array.each( this.down('#pCenter').down('#pGrid').headerCt.getGridColumns(), function(column) {
+			columns.push({
+				dataIndex: column.dataIndex,
+				text: column.text
+			});
+		});
+		
+		var data = [] ;
+		this.down('#pCenter').down('#pGrid').getStore().each( function(record) {
+			data.push( record.getData(true) ) ;
+		}) ;
+		
+		var exportParams = this.optimaModule.getConfiguredAjaxParams() ;
+		Ext.apply(exportParams,{
+			_moduleId: 'spec_rsi_recouveo',
+			_action: 'xls_create',
+			columns: Ext.JSON.encode(columns),
+			data: Ext.JSON.encode(data),
+			exportXls: true
+		}) ;
+		Ext.create('Ext.ux.dams.FileDownloader',{
+			renderTo: Ext.getBody(),
+			requestParams: exportParams,
+			requestAction: Optima5.Helper.getApplication().desktopGetBackendUrl(),
+			requestMethod: 'POST'
+		}) ;
+	},
 });
