@@ -124,7 +124,8 @@ function specRsiRecouveo_cfg_getConfig() {
 						$lib[] = $arr[$tree_field['tree_field_code']] ;
 					}
 				}
-				$records[] = array('node'=>'', 'id'=>$id, 'parent'=>$parent, 'text'=>implode(' - ',$lib)) ;
+				$next = $arr['field_LINK_NEXT'] ;
+				$records[] = array('node'=>'', 'id'=>$id, 'parent'=>$parent, 'text'=>implode(' - ',$lib), 'next'=>$next) ;
 			}
 			
 			$new_rec = array(

@@ -4,7 +4,8 @@ Ext.define('RsiRecouveoCfgAtrItemModel',{
 	fields: [
 		{name: 'node', type:'string'},
 		{name: 'id', type:'string'},
-		{name: 'text', type:'string'}
+		{name: 'text', type:'string'},
+		{name: 'next', type:'string'}
 	]
 });
 Ext.define('RsiRecouveoCfgAtrModel',{

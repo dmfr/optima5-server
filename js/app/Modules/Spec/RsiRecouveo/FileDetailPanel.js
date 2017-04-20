@@ -1089,7 +1089,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					if( cellColumn.dataIndex == 'status_is_ok'
 						&& fileRecord.get('next_fileaction_filerecord_id') == record.get('fileaction_filerecord_id') ) {
 							
-						this.doNextAction( fileRecord, record.get('fileaction_filerecord_id') ) ;
+						this.doNextAction( fileRecord, record.get('fileaction_filerecord_id'), record.get('link_action') ) ;
 					}
 				},
 				scope: this
@@ -1204,12 +1204,21 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		}
 		this.openActionPanel(fileRecord, null,actionCode, formValues) ;
 	},
-	doNextAction: function(fileRecord, fileActionFilerecordId) {
+	doNextAction: function(fileRecord, fileActionFilerecordId, actionCode) {
 		if( fileActionFilerecordId != fileRecord.get('next_fileaction_filerecord_id') ) {
 			Ext.MessageBox.alert('Error','Erreur, action non valide ?') ;
 			return ;
 		}
-		this.openActionPanel(fileRecord, fileActionFilerecordId) ;
+		var formValues = null ;
+		switch( actionCode ) {
+			case 'CALL_OUT' :
+				formValues = {adrtel_default: true} ;
+				break ;
+			case 'MAIL_OUT' :
+				formValues = {adrpost_default: true} ;
+				break ;
+		}
+		this.openActionPanel(fileRecord, fileActionFilerecordId, null, formValues) ;
 	},
 	openActionPanel: function( fileRecord, fileActionFilerecordId, newActionCode, formValues ) {
 		if( this._readonlyMode ) {

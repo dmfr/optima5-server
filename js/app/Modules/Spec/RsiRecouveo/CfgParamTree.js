@@ -6,6 +6,7 @@ Ext.define('RsiRecouveoCfgParamTreeModel', {
 		  {name: 'nodeType', type: 'string'},
 		  {name: 'nodeKey',  type: 'string'},
         {name: 'nodeText',   type: 'string'},
+		  {name: 'nodeNext', type: 'string'},
 		  {name: 'leaf_only', type:'boolean'}
      ]
 });
@@ -160,7 +161,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamTree',{
 						nodeId: row.id,
 						nodeType: 'entry',
 						nodeKey: row.id,
-						nodeText: row.text
+						nodeText: row.text,
+						nodeNext: row.next
 					});
 				}) ;
 				if( cnt==0 ) {

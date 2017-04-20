@@ -115,7 +115,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AdrbookTypeContainer',{
 				accountRecord: this._accountRecord,
 				name: prefix+'_result',
 				allowBlank: false,
-				fieldLabel: 'Résultat appel'
+				fieldLabel: 'Résultat appel',
+				listeners: {
+					change: this.onSelectResult,
+					scope: this
+				}
 			})) ;
 		}
 		if( this._showValidation ) {
@@ -125,7 +129,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AdrbookTypeContainer',{
 				optimaModule: this.optimaModule,
 				accountRecord: this._accountRecord,
 				name: prefix+'_status',
-				allowBlank: false,
+				//allowBlank: false,
+				readOnly: true,
 				fieldLabel: 'Qualification'
 			})) ;
 		}
@@ -175,5 +180,18 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AdrbookTypeContainer',{
 		var adrNew = this.down('[name="'+prefix+'_new"]'),
 			adrNewEntity = this.down('[name="'+prefix+'_new_entity"]') ;
 		adrNewEntity.setVisible( adrNew.getValue() ) ;
+	},
+	onSelectResult: function(field,value) {
+		var prefix = this._adrPrefix,
+			adrStatus = this.down('[name="'+prefix+'_status"]') ;
+		
+		if( this._showValidation ) {
+			var storeRecord = field.getSelectedNode() ;
+			if( storeRecord && !Ext.isEmpty(storeRecord.get('nodeNext')) ) {
+				adrStatus.setValue( storeRecord.get('nodeNext') ) ;
+			} else {
+				adrStatus.setValue( null ) ;
+			}
+		}
 	}
 }) ;
