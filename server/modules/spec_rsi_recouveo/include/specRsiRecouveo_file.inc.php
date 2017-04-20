@@ -107,6 +107,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			$query.= " AND f.field_STATUS_CLOSED='0'" ;
 		}
 	}
+	$query. " ORDER BY fa.filerecord_id ASC" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		if( !isset($TAB_files[$arr['filerecord_parent_id']]) ) {
@@ -988,7 +989,7 @@ function specRsiRecouveo_file_getScenarioLine( $post_data ) {
 		}
 		
 		if( $row_file_action['status_is_ok'] ) {
-			if( !$lastdone_tag_idx ) {
+			if( !isset($lastdone_tag_idx) ) {
 				$lastdone_tag_idx = $this_tag_idx ;
 				$lastdone_date = date('Y-m-d',strtotime($row_file_action['date_actual'])) ;
 			} elseif( $this_tag_idx > $lastdone_tag_idx ) {
@@ -1000,7 +1001,7 @@ function specRsiRecouveo_file_getScenarioLine( $post_data ) {
 		
 	}
 	// ** Déterminer les next 
-	if( !$lastdone_tag_idx ) {
+	if( !isset($lastdone_tag_idx) ) {
 		$lastdone_tag_idx = -1 ;
 	}
 	// ** Déterminer date de référence
