@@ -179,6 +179,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 			action_txt: currentAction.action_txt,
 			action_sched: ( this.getCurrentSched() ? Ext.util.Format.date(this.getCurrentSched(),'d/m/Y') : '' ),
 			  
+			scen_code: this.getActiveScenario(),
+			  
 			tpl_id: this.getCurrentTpl()
 		};
 		if( this._formValues ) {
@@ -273,6 +275,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 	},
 	
 	
+	getActiveScenario: function() {
+		return this._fileRecord.get('scen_code') ;
+	},
 	getCurrentAction: function() {
 		if( this._fileActionFilerecordId ) {
 			var nowActionRecord = this._fileRecord.actions().getById( this._fileActionFilerecordId ) ;

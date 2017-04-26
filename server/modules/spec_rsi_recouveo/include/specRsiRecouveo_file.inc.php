@@ -919,6 +919,7 @@ function specRsiRecouveo_file_getScenarioLine( $post_data ) {
 	global $_opDB ;
 	
 	$p_fileFilerecordId = $post_data['file_filerecord_id'] ;
+	$p_forceScenCode = $post_data['force_scenCode'] ;
 	$json = specRsiRecouveo_file_getRecords( array(
 		'filter_fileFilerecordId_arr' => json_encode(array($p_fileFilerecordId))
 	)) ;
@@ -927,13 +928,14 @@ function specRsiRecouveo_file_getScenarioLine( $post_data ) {
 	$json = specRsiRecouveo_config_getScenarios(array()) ;
 	$data_scenarios = $json['data'] ;
 	
-	if( !$accFile_record['scen_code'] ) {
+	$scen_code = ($p_forceScenCode ? $p_forceScenCode : $accFile_record['scen_code']) ;
+	if( !$scen_code ) {
 		return array('success'=>false) ;
 	}
 	
 	$row_scenario = NULL ;
 	foreach( $data_scenarios as $t_row_scenario ) {
-		if( $t_row_scenario['scen_code'] == $accFile_record['scen_code'] ) {
+		if( $t_row_scenario['scen_code'] == $scen_code ) {
 			$row_scenario = $t_row_scenario ;
 			break ;
 		}

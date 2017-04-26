@@ -313,6 +313,13 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 			$post_form['next_action'] = 'BUMP' ;
 		}
 		
+		if( $post_form['scen_code'] && ($post_form['scen_code'] != $file_record['scen_code']) ) {
+			$arr_update = array() ;
+			$arr_update['field_SCENARIO'] = $post_form['scen_code'] ;
+			paracrm_lib_data_updateRecord_file( 'FILE', $arr_update, $file_filerecord_id);
+			$file_record['scen_code'] = $post_form['scen_code'] ;
+		}
+		
 		if( $map_action[$post_form['next_action']]['status_next'] ) {
 			$status_change = reset($map_action[$post_form['next_action']]['status_next']) ;
 		}

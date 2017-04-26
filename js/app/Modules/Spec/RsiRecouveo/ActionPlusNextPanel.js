@@ -96,14 +96,18 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextScenarioField',{
 		
 		me.doLoad() ;
 	},
-	doLoad: function() {
+	doLoad: function(scenCode) {
+		var params = {
+			_moduleId: 'spec_rsi_recouveo',
+			_action: 'file_getScenarioLine',
+			file_filerecord_id: this._fileRecord.get('file_filerecord_id'),
+			fileaction_filerecord_id: this._actionForm._fileActionFilerecordId
+		} ;
+		if( scenCode ) {
+			Ext.apply(params,{force_scenCode: scenCode}) ;
+		}
 		this.optimaModule.getConfiguredAjaxConnection().request({
-			params: {
-				_moduleId: 'spec_rsi_recouveo',
-				_action: 'file_getScenarioLine',
-				file_filerecord_id: this._fileRecord.get('file_filerecord_id'),
-				fileaction_filerecord_id: this._actionForm._fileActionFilerecordId
-			},
+			params: params,
 			success: function(response) {
 				if( Ext.JSON.decode(response.responseText).success ) {
 					this.onLoadScenarioLine( Ext.JSON.decode(response.responseText).data ) ;
@@ -206,6 +210,16 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextScenarioField',{
 		} else {
 			selModel.deselectAll() ;
 		}
+	},
+	setValueEnd: function() {
+		var store = this.getStore(),
+			selModel = this.getSelectionModel(),
+			nextRecord = store.findRecord('link_action','BUMP') ;
+		if( nextRecord ) {
+			selModel.select(nextRecord) ;
+		} else {
+			selModel.deselectAll() ;
+		}
 	}
 });
 Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextPanel',{
@@ -240,7 +254,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextPanel',{
 					anchor: '',
 					xtype: 'button',
 					icon: 'images/op5img/ico_wait_small.gif',
-					text: 'Prochaine action...',
+					text: 'Définir prochaine action...',
 					style: 'margin-bottom: 6px',
 					menu: [{
 						icon: 'images/op5img/ico_arrow_right.gif',
@@ -256,15 +270,41 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextPanel',{
 							this.down('#scenarioField').setValueNextAuto() ;
 						},
 						scope: this
+					},{
+						icon: 'images/op5img/ico_redflag_16.gif',
+						text: 'Action de traitement définie',
+						handler: function() {
+							this.down('#scenarioField').setValueEnd() ;
+						},
+						scope: this
 					}],
-					handler: function() {
-						this.onFormBegin() ;
-					},
 					scope: this
 				},{
-					xtype: 'hiddenfield',
-					name: 'next_fileaction_filerecord_id',
-					value: 0
+					xtype: 'combobox',
+					name: 'scen_code',
+					forceSelection:true,
+					allowBlank:true,
+					editable:true,
+					typeAhead:false,
+					queryMode: 'local',
+					displayField: 'scen_txt',
+					valueField: 'scen_code',
+					minChars: 2,
+					checkValueOnChange: function() {}, //HACK
+					store: {
+						autoLoad: true,
+						model: Optima5.Modules.Spec.RsiRecouveo.HelperCache.getConfigScenarioModel(),
+						proxy: this.optimaModule.getConfiguredAjaxProxy({
+							extraParams : {
+								_moduleId: 'spec_rsi_recouveo',
+								_action: 'config_getScenarios'
+							},
+							reader: {
+								type: 'json',
+								rootProperty: 'data'
+							}
+						})
+					}
 				},Ext.create('Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextScenarioField',{
 					itemId: 'scenarioField',
 					optimaModule: this.optimaModule,
@@ -300,6 +340,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextPanel',{
 	},
 	onFormChange: function(form,field) {
 		this.fireEvent('change',field) ;
+		if( field.getName() == 'scen_code' ) {
+			this.onScenChange(field.getValue()) ;
+		}
+	},
+	onScenChange: function(scenCode) {
+		var fieldNextScen = this.getForm().findField('next') ;
+		fieldNextScen.doLoad(scenCode) ;
 	},
 	onScenStepChange: function(scenStepRecord) {
 		var fieldNextDate = this.getForm().findField('next_date') ;
