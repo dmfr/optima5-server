@@ -50,7 +50,7 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 					$arr_update['field_STATUS_IS_INVALID'] = 1 ;
 					break ;
 			}
-			paracrm_lib_data_updateRecord_file( 'ADRBOOK', $arr_update, $post_form['adrpost_filerecord_id']);
+			paracrm_lib_data_updateRecord_file( 'ADRBOOK_ENTRY', $arr_update, $post_form['adrpost_filerecord_id']);
 		}
 		if( $post_form['adrpost_new'] ) {
 			$default_adrEntity = $post_form['adrpost_new_entity'] ;
@@ -58,10 +58,12 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 			$arr_ins = array() ;
 			$arr_ins['field_ACC_ID'] = $acc_id ;
 			$arr_ins['field_ADR_ENTITY'] = $default_adrEntity ;
+			$adrbook_filerecord_id = paracrm_lib_data_insertRecord_file( 'ADRBOOK', 0, $arr_ins );
+			$arr_ins = array() ;
 			$arr_ins['field_ADR_TYPE'] = 'POSTAL' ;
 			$arr_ins['field_ADR_TXT'] = $post_form['adrpost_txt'] ;
 			$arr_ins['field_STATUS_IS_CONFIRM'] = 1 ;
-			paracrm_lib_data_insertRecord_file( 'ADRBOOK', 0, $arr_ins );
+			paracrm_lib_data_insertRecord_file( 'ADRBOOK_ENTRY', $adrbook_filerecord_id, $arr_ins );
 		}
 	}
 	if( $post_form['adrtel_txt'] ) {
@@ -77,7 +79,7 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 					$arr_update['field_STATUS_IS_INVALID'] = 1 ;
 					break ;
 			}
-			paracrm_lib_data_updateRecord_file( 'ADRBOOK', $arr_update, $post_form['adrtel_filerecord_id']);
+			paracrm_lib_data_updateRecord_file( 'ADRBOOK_ENTRY', $arr_update, $post_form['adrtel_filerecord_id']);
 		}
 		if( $post_form['adrtel_new'] ) {
 			$default_adrEntity = $post_form['adrtel_new_entity'] ;
@@ -85,10 +87,12 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 			$arr_ins = array() ;
 			$arr_ins['field_ACC_ID'] = $acc_id ;
 			$arr_ins['field_ADR_ENTITY'] = $default_adrEntity ;
+			$adrbook_filerecord_id = paracrm_lib_data_insertRecord_file( 'ADRBOOK', 0, $arr_ins );
+			$arr_ins = array() ;
 			$arr_ins['field_ADR_TYPE'] = 'TEL' ;
 			$arr_ins['field_ADR_TXT'] = $post_form['adrtel_txt'] ;
 			$arr_ins['field_STATUS_IS_CONFIRM'] = 1 ;
-			paracrm_lib_data_insertRecord_file( 'ADRBOOK', 0, $arr_ins );
+			paracrm_lib_data_insertRecord_file( 'ADRBOOK_ENTRY', $adrbook_filerecord_id, $arr_ins );
 		}
 	}
 	if( $post_form['adrmail_txt'] ) {
@@ -104,7 +108,7 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 					$arr_update['field_STATUS_IS_INVALID'] = 1 ;
 					break ;
 			}
-			paracrm_lib_data_updateRecord_file( 'ADRBOOK', $arr_update, $post_form['adrmail_filerecord_id']);
+			paracrm_lib_data_updateRecord_file( 'ADRBOOK_ENTRY', $arr_update, $post_form['adrmail_filerecord_id']);
 		}
 		if( $post_form['adrmail_new'] ) {
 			$default_adrEntity = $post_form['adrmail_new_entity'] ;
@@ -112,10 +116,12 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 			$arr_ins = array() ;
 			$arr_ins['field_ACC_ID'] = $acc_id ;
 			$arr_ins['field_ADR_ENTITY'] = $default_adrEntity ;
+			$adrbook_filerecord_id = paracrm_lib_data_insertRecord_file( 'ADRBOOK', 0, $arr_ins );
+			$arr_ins = array() ;
 			$arr_ins['field_ADR_TYPE'] = 'EMAIL' ;
 			$arr_ins['field_ADR_TXT'] = $post_form['adrmail_txt'] ;
 			$arr_ins['field_STATUS_IS_CONFIRM'] = 1 ;
-			paracrm_lib_data_insertRecord_file( 'ADRBOOK', 0, $arr_ins );
+			paracrm_lib_data_insertRecord_file( 'ADRBOOK_ENTRY', $adrbook_filerecord_id, $arr_ins );
 		}
 	}
 	
