@@ -1002,5 +1002,5 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			requestAction: Optima5.Helper.getApplication().desktopGetBackendUrl(),
 			requestMethod: 'POST'
 		}) ;
-	},
+	}
 });
