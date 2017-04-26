@@ -166,7 +166,10 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 			
 		case 'MAIL_OUT' :
 			$txt = '' ;
-			$txt.= "Modèle envoi : ".$post_form['mail_model']."\r\n" ;
+			if( $post_form['tpl_id'] ) {
+				$json = specRsiRecouveo_doc_cfg_getTpl( array('tpl_id'=>$post_form['tpl_id']) ) ;
+				$txt.= "Modèle envoi : ".$json['data'][0]['tpl_name']."\r\n" ;
+			}
 			$arr_ins['field_TXT'] = $txt ;
 			
 		case 'BUMP' :
