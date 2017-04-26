@@ -742,7 +742,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			if( fileRecord.get('status_closed') ) {
 				return ;
 			}
-			this.onLoadAccountAddFileActions( fileRecord ) ;
+			this.onLoadAccountAddFileActions( fileRecord, accountRecord ) ;
 		},this) ;
 		
 		
@@ -878,7 +878,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			this.setActiveFileId( activePanel._fileFilerecordId ) ;
 		}
 	},
-	onLoadAccountAddFileActions: function( fileRecord ) {
+	onLoadAccountAddFileActions: function( fileRecord, accountRecord ) {
 		var statusMap = {} ;
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getStatusAll(), function(status) {
 			statusMap[status.status_id] = status ;
@@ -902,27 +902,39 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		if( pFileTitle.indexOf(pAccId+'/') === 0 ) {
 			pFileTitle = pFileTitle.substring(pAccId.length+1) ;
 		}
-		var pActionsGridData = [] ;
-		fileRecord.actions().each(function(rec) {
-			var recData = rec.getData() ;
-			recData['leaf'] = true ;
-			recData['icon'] = Ext.BLANK_IMAGE_URL ;
-			if( rec.get('link_newfile_filerecord_id') ) {
-				var childFileRecord = this._accountRecord.files().getById(rec.get('link_newfile_filerecord_id')) ;
-					childrenActions = [] ;
-				childFileRecord.actions().each(function(cRec) {
-					var cRecData = cRec.getData() ;
-					cRecData['leaf'] = true ;
-					cRecData['icon'] = Ext.BLANK_IMAGE_URL ;
-					childrenActions.push(cRecData) ;
-				}) ;
-				recData['leaf'] = false ;
-				recData['children'] = childrenActions ;
-				recData['expanded'] = false ;
+		var pActionsGridData = [],
+			iterateChild = true,
+			iterateFileRecord = fileRecord ;
+		while(true) {
+			iterateFileRecord.actions().each(function(rec) {
+				var recData = rec.getData() ;
+				recData['leaf'] = true ;
 				recData['icon'] = Ext.BLANK_IMAGE_URL ;
+				if( iterateChild && rec.get('link_newfile_filerecord_id') ) {
+					var childFileRecord = this._accountRecord.files().getById(rec.get('link_newfile_filerecord_id')) ;
+						childrenActions = [] ;
+					childFileRecord.actions().each(function(cRec) {
+						var cRecData = cRec.getData() ;
+						cRecData['leaf'] = true ;
+						cRecData['icon'] = Ext.BLANK_IMAGE_URL ;
+						childrenActions.push(cRecData) ;
+					}) ;
+					recData['leaf'] = false ;
+					recData['children'] = childrenActions ;
+					recData['expanded'] = false ;
+					recData['icon'] = Ext.BLANK_IMAGE_URL ;
+				}
+				pActionsGridData.push(recData) ;
+			},this) ;
+			if( (iterateFileRecord.get('from_file_filerecord_id') > 0) && accountRecord.files().getById(iterateFileRecord.get('from_file_filerecord_id')) ) {
+				iterateFileRecord = accountRecord.files().getById(iterateFileRecord.get('from_file_filerecord_id')) ;
+				iterateChild = false ;
+				if( iterateFileRecord ) {
+					continue ;
+				}
 			}
-			pActionsGridData.push(recData) ;
-		},this) ;
+			break ;
+		}
 		var statusCode = fileRecord.get('status'),
 			  statusIconCls = '' ;
 		if( statusMap.hasOwnProperty(statusCode) ) {

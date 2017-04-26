@@ -76,7 +76,9 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			'scen_code' => $arr['field_SCENARIO'],
 			
 			'records' => array(),
-			'actions' => array()
+			'actions' => array(),
+			
+			'from_file_filerecord_id' => $arr['field_FROM_FILE_ID']
 		);
 		foreach( $cfg_atr as $atr_record ) {
 			$mkey = $atr_record['bible_code'] ;
@@ -496,6 +498,7 @@ function specRsiRecouveo_file_createForAction( $post_data ) {
 			if( in_array($accFileRecord_record['record_filerecord_id'],$p_arr_recordIds)
 					&& !in_array($accFile_record['status'],$current_status) ) {
 				$current_status[] = $accFile_record['status'] ;
+				$current_fileFilerecordId = $accFile_record['file_filerecord_id'] ;
 			}
 		}
 	}
@@ -603,6 +606,7 @@ function specRsiRecouveo_file_createForAction( $post_data ) {
 		}
 		$arr_ins['field_STATUS'] = $new_status ;
 		$arr_ins['field_DATE_OPEN'] = date('Y-m-d H:i:s') ;
+		$arr_ins['field_FROM_FILE_ID'] = $current_fileFilerecordId ;
 		$file_filerecord_id = paracrm_lib_data_insertRecord_file( 'FILE', 0, $arr_ins );
 	}
 	
