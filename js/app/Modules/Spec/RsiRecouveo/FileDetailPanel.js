@@ -33,7 +33,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		'Optima5.Modules.Spec.RsiRecouveo.CfgParamField',
 		'Optima5.Modules.Spec.RsiRecouveo.ActionForm',
 		'Optima5.Modules.Spec.RsiRecouveo.AdrbookEntityPanel',
-		'Optima5.Modules.Spec.RsiRecouveo.FileCreateForm'
+		'Optima5.Modules.Spec.RsiRecouveo.FileCreateForm',
+		'Optima5.Modules.Spec.RsiRecouveo.RecordTempForm'
 	],
 	
 	_readonlyMode: false,
@@ -598,6 +599,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 							},
 							scope: this
 						}]
+					},'->',{
+						itemId: 'tbRecordTemp',
+						icon: 'images/op5img/ico_quickopen_16.png',
+						text: '<b>Ajustement comptable temporaire</b>',
+						handler: function() {
+							this.handleCreateRecord() ;
+						},
+						scope: this
 					}]
 				}]
 			},{
@@ -872,6 +881,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		
 		var recordsPanel = this.down('#pRecordsPanel') ;
 		recordsPanel.down('toolbar').down('#tbNew').setDisabled(false) ;
+		recordsPanel.down('toolbar').down('#tbRecordTemp').setDisabled(false) ;
 		
 		var activePanel = this.down('#tpFileActions').getActiveTab() ;
 		if( activePanel ) {
@@ -1263,12 +1273,39 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		this.addFloatingPanel(actionPanel) ;
 	},
 	
+	handleCreateRecord: function() {
+		var activePanel = this.down('#tpFileActions').getActiveTab(),
+			fileRecord = this._accountRecord.files().getById(activePanel._fileFilerecordId) ;
+		if( this._readonlyMode ) {
+			return ;
+		}
+		var postParams = {} ;
+		var actionPanel = Ext.create('Optima5.Modules.Spec.RsiRecouveo.RecordTempForm',{
+			optimaModule: this.optimaModule,
+			
+			_accId: this._accountRecord.get('acc_id'),
+			_fileFilerecordId: fileRecord.get('file_filerecord_id'),
+			
+			minWidth:350, 
+			minHeight:350,
+			/*
+			floating: true,
+			draggable: true,
+			resizable: true,
+			*/
+			//renderTo: this.getEl(),
+			title: 'Pièce comptable temporaire'
+		});
+		
+		this.addFloatingPanel(actionPanel) ;
+	},
 	
 	doCreateFile: function( actionCode ) {
 		var actionRow = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionRowId(actionCode) ;
 		
 		var recordsPanel = this.down('#pRecordsPanel') ;
 		recordsPanel.down('toolbar').down('#tbNew').setDisabled(true) ;
+		recordsPanel.down('toolbar').down('#tbRecordTemp').setDisabled(true) ;
 		
 		var recordsTree = this.down('#pRecordsTree'),
 			recordsTreeRoot = this.down('#pRecordsTree').getRootNode() ;
@@ -1487,6 +1524,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		if( p instanceof Optima5.Modules.Spec.RsiRecouveo.FileCreateForm ) {
 			return this.down('#pRecordsPanel') ;
 		}
+		if( p instanceof Optima5.Modules.Spec.RsiRecouveo.RecordTempForm ) {
+			return this.down('#pRecordsPanel') ;
+		}
 		if( p instanceof Optima5.Modules.Spec.RsiRecouveo.ActionForm ) {
 			return this.down('#tpFileActions') ;
 		}
@@ -1495,6 +1535,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 	getFloatingPanelIconCls: function(p) {
 		if( p instanceof Optima5.Modules.Spec.RsiRecouveo.FileCreateForm ) {
 			return 'op5-spec-rsiveo-actionclass-file' ;
+		}
+		if( p instanceof Optima5.Modules.Spec.RsiRecouveo.RecordTempForm ) {
+			return 'op5-spec-rsiveo-actionclass-recordtemp' ;
 		}
 		if( p instanceof Optima5.Modules.Spec.RsiRecouveo.ActionForm ) {
 			return 'op5-spec-rsiveo-actionclass-comm' ;
