@@ -57,7 +57,8 @@ function specRsiRecouveo_cfg_getConfig() {
 			'status_code' => $arr['field_TXT'],
 			'status_color' => $arr['field_COLOR'],
 			'sched_none' => $arr['field_SCHED_NONE'],
-			'sched_lock' => $arr['field_SCHED_LOCK']
+			'sched_lock' => $arr['field_SCHED_LOCK'],
+			'sched_prefix' => $arr['field_SCHED_PREFIX']
 		) ;
 	}
 	

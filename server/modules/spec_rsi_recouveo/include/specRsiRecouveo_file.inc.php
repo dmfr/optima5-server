@@ -506,6 +506,9 @@ function specRsiRecouveo_file_createForAction( $post_data ) {
 		return array('success'=>false, 'error'=>'Cannot find current status') ;
 	}
 	$current_status = reset($current_status) ;
+	if( $map_status[$current_status]['sched_lock'] ) {
+		return array('success'=>false, 'error'=>'Locked file (Current status)') ;
+	}
 	
 	// Statut cible
 	$ttmp = $map_action[$p_newActionCode]['status_next'] ;
@@ -516,49 +519,48 @@ function specRsiRecouveo_file_createForAction( $post_data ) {
 	}
 	
 	
-	// File name
-	switch( $p_newActionCode ) {
-		case 'AGREE_START' :
-			$filename_prefix = $p_accId.'/'.'PAY'.'/' ;
-			break ;
-		
-		case 'LITIG_START' :
-			$filename_prefix = $p_accId.'/'.'ACT'.'/' ;
-			break ;
-	
-		case 'CLOSE_ASK' :
-			$filename_prefix = $p_accId.'/'.'CLOSE'.'/' ;
-			break ;
-		
-		default :
-			break ;
-	}
-	if( !$filename_prefix ) {
-		// existing filename
-		$filename = array() ;
-		foreach( $account_record['files'] as $accFile_record ) {
-			foreach( $accFile_record['records'] as $accFileRecord_record ) {
-				if( in_array($accFileRecord_record['record_filerecord_id'],$p_arr_recordIds) ) {
-					$filename[] = $accFile_record['id_ref'] ;
-					break ;
-				}
+	// Current filename
+	$filename_current = array() ;
+	foreach( $account_record['files'] as $accFile_record ) {
+		foreach( $accFile_record['records'] as $accFileRecord_record ) {
+			if( in_array($accFileRecord_record['record_filerecord_id'],$p_arr_recordIds) ) {
+				$filename_current[] = $accFile_record['id_ref'] ;
+				break ;
 			}
 		}
-		if( count($filename) != 1 ) {
-			return array('success'=>false, 'error'=>'Cannot find unique filename') ;
-		}
-		$filename = reset($filename) ;
+	}
+	if( count($filename_current) != 1 ) {
+		return array('success'=>false, 'error'=>'Cannot find unique filename') ;
+	}
+	$filename_current = reset($filename_current) ;
+	
+	
+	// *********** Generate target file name ************************
+	$filename_words = explode('/',$filename_current) ;
+	$fn_lastIdx = count($filename_words)-1 ;
+	if( $filename_words[$fn_lastIdx] == $map_status[$current_status]['sched_prefix'] ) {
+		unset($filename_words[$fn_lastIdx]) ;
+	}
+	if( $map_status[$new_status]['sched_prefix'] ) {
+		$filename_words[] = $map_status[$new_status]['sched_prefix'] ;
+	}
+	if( !$map_status[$new_status]['sched_lock'] ) {
+		$filename_target = implode('/',$filename_words) ;
 	} else {
 		$i = 1 ;
 		while( $i < 100 ) {
+			$filename_prefix = implode('/',$filename_words).'/' ;
 			$filename_test = $filename_prefix.str_pad((int)$i, 2, "0", STR_PAD_LEFT) ;
 			$query = "SELECT count(*) FROM view_file_FILE WHERE field_FILE_ID='{$filename_test}'" ;
 			if( $_opDB->query_uniqueValue($query) == 0 ) {
-				$filename = $filename_test ;
+				$filename_target = $filename_test ;
 				break ;
 			}
 			$i++ ;
 			continue ;
+		}
+		if( !$filename_target ) {
+			return array('success'=>false, 'error'=>'Cannot create locked(action) filename') ;
 		}
 	}
 	
@@ -567,7 +569,7 @@ function specRsiRecouveo_file_createForAction( $post_data ) {
 	// => recherche fichier existant du meme nom
 	if( !$map_status[$new_status]['sched_lock'] ) {
 		$query = "SELECT filerecord_id FROM view_file_FILE 
-				WHERE field_FILE_ID='{$filename}' AND field_STATUS='{$new_status}'" ;
+				WHERE field_FILE_ID='{$filename_target}' AND field_STATUS='{$new_status}'" ;
 		if( !($file_filerecord_id = $_opDB->query_uniqueValue($query)) ) {
 			unset($file_filerecord_id) ;
 		}
@@ -577,7 +579,7 @@ function specRsiRecouveo_file_createForAction( $post_data ) {
 	// Create new file
 	if( !$file_filerecord_id ) {
 		$arr_ins = array() ;
-		$arr_ins['field_FILE_ID'] = $filename ;
+		$arr_ins['field_FILE_ID'] = $filename_target ;
 		$arr_ins['field_LINK_ACCOUNT'] = $account_record['acc_id'] ;
 			// ATRs
 			$map_atr_values = array() ;
