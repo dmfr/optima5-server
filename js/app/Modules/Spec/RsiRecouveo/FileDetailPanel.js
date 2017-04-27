@@ -847,6 +847,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			fileRecord.records().each( function(fileRecordRecord) {
 				pRecordsTreeChildrenRecords.push({
 					leaf: true,
+					icon: ( fileRecordRecord.get('type')=='TEMPREC' ? 'images/op5img/ico_quickopen_16.png' : undefined ),
 					record_filerecord_id: fileRecordRecord.getId(),
 					record_id: fileRecordRecord.get('record_id'),
 					record_date: fileRecordRecord.get('date_value'),

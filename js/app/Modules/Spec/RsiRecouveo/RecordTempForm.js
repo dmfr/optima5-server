@@ -63,14 +63,16 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordTempForm',{
 				items: [{
 					xtype: 'textfield',
 					name: 'recordTemp_id',
-					fieldLabel: 'Libellé pièce'
+					fieldLabel: 'Libellé pièce',
+					allowBlank: false
 				},{
 					xtype: 'numberfield',
 					hideTrigger: true,
 					name: 'recordTemp_amount',
 					fieldLabel: 'Montant',
 					anchor: '',
-					width: 175
+					width: 175,
+					allowBlank: false
 				}]
 			}],
 			buttons: [{
@@ -177,6 +179,44 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordTempForm',{
 			this.loadMask.destroy() ;
 			this.loadMask = null ;
 		}
+	},
+	
+	doSubmit: function() {
+		var form = this.getForm(),
+			formValues = form.getFieldValues() ;
+		if( !form.isValid() ) {
+			return ;
+		}
+		
+		
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_rsi_recouveo',
+				_action: 'file_createRecordTemp',
+				file_filerecord_id: this._fileRecord.get('file_filerecord_id'),
+				data: Ext.JSON.encode(formValues)
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					var error = ajaxResponse.success || 'File not saved !' ;
+					Ext.MessageBox.alert('Error',error) ;
+					return ;
+				}
+				var doReload = doReload ;
+				this.onSubmitDone(ajaxResponse.file_filerecord_id) ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+	},
+	onSubmitDone: function(fileId) {
+		this.fireEvent('saved',fileId) ;
+		this.optimaModule.postCrmEvent('datachange',{}) ;
+		this.destroy() ;
 	},
 	
 	onBeforeDestroy: function() {

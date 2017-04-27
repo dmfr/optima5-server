@@ -1065,6 +1065,36 @@ function specRsiRecouveo_file_getScenarioLine( $post_data ) {
 
 
 
+function specRsiRecouveo_file_createRecordTemp( $post_data ) {
+	global $_opDB ;
+	
+	$p_fileFilerecordId = $post_data['file_filerecord_id'] ;
+	$p_formData = json_decode($post_data['data'],true) ;
+	$json = specRsiRecouveo_file_getRecords( array(
+		'filter_fileFilerecordId_arr' => json_encode(array($p_fileFilerecordId))
+	)) ;
+	$accFile_record = $json['data'][0] ;
+	
+	$arr_ins = array() ;
+	$arr_ins['field_TYPE'] = 'TEMPREC' ;
+	$arr_ins['field_RECORD_ID'] = trim($p_formData['recordTemp_id']) ;
+	$arr_ins['field_LINK_ACCOUNT'] = $accFile_record['acc_id'] ;
+	$arr_ins['field_DATE_RECORD'] = $arr_ins['field_DATE_VALUE'] = date('Y-m-d') ;
+	$arr_ins['field_AMOUNT'] = $p_formData['recordTemp_amount'] ;
+	$arr_ins['field_LETTER_IS_ON'] = 0 ;
+	$record_filerecord_id = paracrm_lib_data_insertRecord_file( 'RECORD', 0, $arr_ins );
+	$arr_ins = array() ;
+	$arr_ins['field_LINK_FILE_ID'] = $accFile_record['file_filerecord_id'] ;
+	$arr_ins['field_LINK_IS_ON'] = 1 ;
+	$arr_ins['field_DATE_LINK_ON'] = date('Y-m-d H:i:s') ;
+	paracrm_lib_data_insertRecord_file( 'RECORD_LINK', $record_filerecord_id, $arr_ins );
+	
+	return array('success'=>true, 'file_filerecord_id'=>$accFile_record['file_filerecord_id']) ;
+}
+
+
+
+
 function specRsiRecouveo_file_tool_isDateValid( $date_sql )
 {
 	if( $date_sql == '0000-00-00' )

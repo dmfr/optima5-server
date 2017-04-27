@@ -20,6 +20,8 @@ switch( $post_data['_action'] )
 	return specRsiRecouveo_file_createForAction( $post_data ) ;
 	case 'file_getScenarioLine' :
 	return specRsiRecouveo_file_getScenarioLine( $post_data ) ;
+	case 'file_createRecordTemp' :
+	return specRsiRecouveo_file_createRecordTemp( $post_data ) ;
 	
 	case 'file_searchSuggest' :
 	return specRsiRecouveo_file_searchSuggest( $post_data ) ;
