@@ -924,6 +924,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					recData['expanded'] = false ;
 					recData['icon'] = Ext.BLANK_IMAGE_URL ;
 				}
+				if( !iterateChild && !rec.get('status_is_ok') ) {
+					return ;
+				}
 				pActionsGridData.push(recData) ;
 			},this) ;
 			if( (iterateFileRecord.get('from_file_filerecord_id') > 0) && accountRecord.files().getById(iterateFileRecord.get('from_file_filerecord_id')) ) {
