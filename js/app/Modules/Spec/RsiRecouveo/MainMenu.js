@@ -49,7 +49,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainMenu',{
 				{type_action:true, action_caption: 'Configuration', action_sendEvent:'cfg', action_iconCls:'op5-spec-dbslam-menu-cfg'},
 				{type_separator:true, separator_label: 'Gestion documentaire'},
 				{type_action:true, action_caption: 'Enveloppes / Envoi', action_sendEvent:'envbrowser', action_iconCls:'op5-spec-rsiveo-mmenu-mailout'},
-				{type_action:true, action_caption: 'Boîte de réception', action_sendEvent:'inbox', action_iconCls:'op5-spec-rsiveo-mmenu-mailin'}
+				{type_action:true, action_caption: 'Boîte de réception', action_sendEvent:'inbox', action_iconCls:'op5-spec-rsiveo-mmenu-mailin'},
+				{type_action:true, action_caption: 'Saisie encaissements', action_sendEvent:'recordtemp', action_iconCls:'op5-spec-rsiveo-mmenu-recordtemp'}
 			]
 		}) ;
 		 
