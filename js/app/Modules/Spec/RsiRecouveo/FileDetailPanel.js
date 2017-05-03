@@ -763,8 +763,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		},this) ;
 		this.down('#pRecordsHeader').setData({
 			inv_nb: inv_nb,
-			inv_amount_total: inv_amount_total,
-			inv_amount_due: inv_amount_due
+			inv_amount_total: Ext.util.Format.number(inv_amount_total,'0,000.00'),
+			inv_amount_due: Ext.util.Format.number(inv_amount_due,'0,000.00')
 		});
 		this.down('#pRecordsHeader').setVisible(true) ;
 		
