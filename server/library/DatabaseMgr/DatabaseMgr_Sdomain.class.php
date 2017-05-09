@@ -4,7 +4,7 @@ class DatabaseMgr_Sdomain {
 	private $_opDB ;
 	private $domain_id ;
 	
-	private static $dbVersion = 34 ;
+	private static $dbVersion = 35 ;
 	
 	public function __construct( $domain_id ) {
 		$this->_opDB = $GLOBALS['_opDB'] ;
@@ -151,6 +151,25 @@ CREATE TABLE `define_file_entry_join_map` (
   `join_local_alt_file_code` varchar(50) NOT NULL,
   `join_local_file_field_code` varchar(20) NOT NULL,
   PRIMARY KEY (`file_code`,`entry_field_code`,`join_map_ssid`)
+) ;
+
+CREATE TABLE `define_table` (
+  `table_code` varchar(50) NOT NULL,
+  `table_iconfile` varchar(50) NOT NULL,
+  `table_type` varchar(50) NOT NULL,
+  `table_specdata` varchar(10) NOT NULL,
+  `gmap_is_on` varchar(1) NOT NULL,
+  PRIMARY KEY (`table_code`)
+) ;
+
+CREATE TABLE `define_table_field` (
+  `table_code` varchar(50) NOT NULL,
+  `table_field_code` varchar(20) NOT NULL,
+  `table_field_index` int(11) NOT NULL,
+  `table_field_type` varchar(10) NOT NULL,
+  `entry_field_is_primarykey` varchar(1) NOT NULL,
+  `entry_field_is_index` varchar(1) NOT NULL,
+  PRIMARY KEY (`table_code`,`table_field_code`)
 ) ;
 
 CREATE TABLE `define_gmap` (
