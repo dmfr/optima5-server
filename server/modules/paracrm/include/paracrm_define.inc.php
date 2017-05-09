@@ -18,7 +18,7 @@ function paracrm_define_getMainToolbar($post_data, $auth_bypass=FALSE )
 	
 	// Cache des "counts"
 	if( !$_SESSION['cache_counts'] && session_id() ) {
-		$count_bibles = $count_files = array() ;
+		$count_bibles = $count_files = $count_tables = array() ;
 		$query = "SELECT table_name, TABLE_ROWS 
 						FROM INFORMATION_SCHEMA.TABLES 
 						WHERE TABLE_SCHEMA = DATABASE()" ;
@@ -35,12 +35,18 @@ function paracrm_define_getMainToolbar($post_data, $auth_bypass=FALSE )
 				$file_code = substr($db_table, strlen('store_file_'));
 				$count_files[$file_code] = $count ;
 			}
+			if( strpos($db_table,'store_table_') === 0 ) {
+				$table_code = substr($db_table, strlen('store_table_'));
+				$count_tables[$table_code] = $count ;
+			}
 		}
 		$_SESSION['cache_counts']['count_bibles'] = $count_bibles ;
 		$_SESSION['cache_counts']['count_files'] = $count_files ;
+		$_SESSION['cache_counts']['count_tables'] = $count_tables ;
 	}
 	$count_bibles = $_SESSION['cache_counts']['count_bibles'] ;
 	$count_files = $_SESSION['cache_counts']['count_files'] ;
+	$count_tables = $_SESSION['cache_counts']['count_tables'] ;
 	
 	switch( $post_data['data_type'] )
 	{
@@ -54,6 +60,12 @@ function paracrm_define_getMainToolbar($post_data, $auth_bypass=FALSE )
 		$query = "SELECT file_code as fileId , file_lib as text , file_iconfile as icon , file_type as store_type , gmap_is_on , file_code , file_lib , file_parent_code
 						FROM define_file
 						ORDER BY IF(file_parent_code<>'',file_parent_code,file_code),IF(file_parent_code<>'',file_code,'')" ;
+		break ;
+		
+		case 'table' :
+		$query = "SELECT table_code as tableId , table_code as text , table_iconfile as icon , table_type as store_type , gmap_is_on , table_code , table_code
+						FROM define_table
+						ORDER BY table_code" ;
 		break ;
 		
 		default :
@@ -70,6 +82,11 @@ function paracrm_define_getMainToolbar($post_data, $auth_bypass=FALSE )
 		}
 		if( $post_data['data_type'] == 'file' && $post_data['file_code']
 			&& $post_data['file_code'] != $arr['fileId'] ) {
+			
+			continue ;
+		}
+		if( $post_data['data_type'] == 'table' && $post_data['table_code']
+			&& $post_data['table_code'] != $arr['tableId'] ) {
 			
 			continue ;
 		}
@@ -100,11 +117,25 @@ function paracrm_define_getMainToolbar($post_data, $auth_bypass=FALSE )
 						continue 2 ;
 					}
 					break ;
+					
+				case 'table' :
+					if( !Auth_Manager::getInstance()->auth_query_sdomain_action(
+						Auth_Manager::sdomain_getCurrent(),
+						'tables',
+						array('table_code' => $arr['tableId']),
+						$write=false
+					)) {
+						// Permission denied
+						continue 2 ;
+					}
+					break ;
 			}
 		}
 		
 		$arr['viewmode_grid'] = true ;
 		if( $post_data['data_type']=='file' && $arr['file_parent_code']==NULL )
+			$arr['viewmode_editgrid'] = true ;
+		if( $post_data['data_type']=='table' )
 			$arr['viewmode_editgrid'] = true ;
 		if( $arr['gmap_is_on'] == 'O' )
 			$arr['viewmode_gmap'] = true ;
@@ -140,6 +171,10 @@ function paracrm_define_getMainToolbar($post_data, $auth_bypass=FALSE )
 			case 'file' :
 			$arr['count'] = $count_files[$arr['fileId']] ;
 			break ;
+			
+			case 'table' :
+			$arr['count'] = $count_tables[$arr['tableId']] ;
+			break ;
 		}
 		
 		if( $post_data['data_type'] == 'bible' && in_array($arr['bibleId'],$arr_pub_bibles) )
@@ -159,6 +194,8 @@ function paracrm_define_getMainToolbar($post_data, $auth_bypass=FALSE )
 			return array('success'=>true,'auth_status'=>$arr_auth_status,'data_bible'=>$TAB) ;
 		case 'file' :
 			return array('success'=>true,'auth_status'=>$arr_auth_status,'data_files'=>$TAB) ;
+		case 'table' :
+			return array('success'=>true,'auth_status'=>$arr_auth_status,'data_tables'=>$TAB) ;
 		default :
 			return array('success'=>false) ;
 	}
@@ -212,6 +249,7 @@ function paracrm_define_truncate( $post_data ) {
 	$data_type = $post_data['data_type'] ;
 	$bible_code = $post_data['bible_code'] ;
 	$file_code = $post_data['file_code'] ;
+	$table_code = $post_data['table_code'] ;
 	
 	switch( $data_type )
 	{
@@ -231,6 +269,13 @@ function paracrm_define_truncate( $post_data ) {
 			$t->sdomainDefine_truncateFile( DatabaseMgr_Sdomain::dbCurrent_getSdomainId(), $child_fileCode, paracrm_lib_android_authDb_hasDevices() ) ;
 		}
 		$t->sdomainDefine_truncateFile( DatabaseMgr_Sdomain::dbCurrent_getSdomainId(), $file_code, paracrm_lib_android_authDb_hasDevices() ) ;
+		return array('success'=>true) ;
+		break ;
+		
+		
+		case 'table' :
+		$t = new DatabaseMgr_Sdomain( DatabaseMgr_Base::dbCurrent_getDomainId() );
+		$t->sdomainDefine_truncateTable( DatabaseMgr_Sdomain::dbCurrent_getSdomainId(), $bible_code ) ;
 		return array('success'=>true) ;
 		break ;
 	}

@@ -37,17 +37,11 @@ Ext.define('Optima5.Modules.CrmBase.MainDscWindow',{
 					}
 				},
 				items:[{
-					itemId: 'btn-bible',
-					textTitle: 'Bible Library',
+					itemId: 'btn-tables',
+					textTitle: 'SQL Tables',
 					//textCaption: '',
 					iconCls: 'op5-crmbase-waitcircle',
-					hidden: (!moduleRecord.get('auth_has_all') && !Ext.Array.contains(moduleRecord.get('auth_arrOpenActions'),'bible'))
-				},{
-					itemId: 'btn-files',
-					textTitle: 'Data Files',
-					//textCaption: '',
-					iconCls: 'op5-crmbase-waitcircle',
-					hidden: (!moduleRecord.get('auth_has_all') && !Ext.Array.contains(moduleRecord.get('auth_arrOpenActions'),'files'))
+					hidden: (!moduleRecord.get('auth_has_all') && !Ext.Array.contains(moduleRecord.get('auth_arrOpenActions'),'tables'))
 				},{
 					itemId: 'btn-workflow',
 					textTitle: 'Workflow',
@@ -103,96 +97,48 @@ Ext.define('Optima5.Modules.CrmBase.MainDscWindow',{
 		ajaxConnection.request({
 			params: {
 				_action : 'define_getMainToolbar',
-				data_type : 'bible'
+				data_type : 'table'
 			},
-			success: me.onLoadBible,
-			scope: me
-		});
-		ajaxConnection.request({
-			params: {
-				_action : 'define_getMainToolbar',
-				data_type : 'file'
-			},
-			success: me.onLoadFiles,
+			success: me.onLoadTables,
 			scope: me
 		});
 	},
-	onLoadBible: function( response ) {
+	onLoadTables: function( response ) {
 		var me = this,
 			respObj = Ext.decode(response.responseText) ;
 		
-		var btnBible = me.child('toolbar').child('#btn-bible') ;
+		var btnTables = me.child('toolbar').child('#btn-tables') ;
 		
-		var menuCfg = respObj.data_bible ;
+		var menuCfg = respObj.data_tables ;
 		Ext.Array.each( menuCfg, function(o) {
 			Ext.apply(o,{
 				cls: o.isPublished ? me.clsForPublished : '' ,
 				handler: function() {
-					me.openBible( o.bibleId ) ;
+					me.openTable( o.tableId ) ;
 				},
 				scope:me
 			}) ;
 		},me) ;
 		
-		if( btnBible.menu ) {
-			btnBible.menu.removeAll() ;
-			btnBible.menu.add(menuCfg) ;
+		if( btnTables.menu ) {
+			btnTables.menu.removeAll() ;
+			btnTables.menu.add(menuCfg) ;
 			
 			if( respObj.auth_status && !respObj.auth_status.disableAdmin ) {
-				btnBible.menu.add('-') ;
-				btnBible.menu.add({
+				btnTables.menu.add('-') ;
+				btnTables.menu.add({
 					icon: 'images/op5img/ico_new_16.gif' ,
-					text: 'Define new Bible' ,
+					text: 'Define new Table' ,
 					handler : function() {
-						me.openBibleDefineNew() ;
+						me.openTableDefineNew() ;
 					},
 					scope : me
 				}) ;
 			}
 		}
-		btnBible.setIconCls('op5-crmbase-mainwindow-bible') ;
-		btnBible.setObjText({
-			title: btnBible.getObjText().title,
-			redcount: menuCfg.length,
-			caption: me.getHeadlines(menuCfg)
-		});
-	},
-	onLoadFiles: function( response ) {
-		var me = this,
-			respObj = Ext.decode(response.responseText) ;
-		
-		var btnFiles = me.child('toolbar').child('#btn-files') ;
-		
-		var menuCfg = respObj.data_files ;
-		Ext.Array.each( menuCfg, function(o) {
-			Ext.apply(o,{
-				cls: o.isPublished ? me.clsForPublished : '' ,
-				handler: function() {
-					me.openFile( o.fileId ) ;
-				},
-				scope:me
-			}) ;
-		},me) ;
-		
-		if( btnFiles.menu ) {
-			btnFiles.menu.removeAll() ;
-			btnFiles.menu.add(menuCfg) ;
-			
-			if( respObj.auth_status && !respObj.auth_status.disableAdmin ) {
-				btnFiles.menu.add('-') ;
-				btnFiles.menu.add({
-					icon: 'images/op5img/ico_new_16.gif' ,
-					text: 'Define new File' ,
-					handler : function() {
-						me.openFileDefineNew() ;
-					},
-					scope : me
-				}) ;
-			}
-		}
-		btnFiles.setIconCls('op5-crmbase-mainwindow-files') ;
-		btnFiles.setObjText({
-			title: btnFiles.getObjText().title,
+		btnTables.setIconCls('op5-crmbase-mainwindow-tables') ;
+		btnTables.setObjText({
+			title: btnTables.getObjText().title,
 			redcount: menuCfg.length,
 			caption: me.getHeadlines(menuCfg)
 		});
@@ -211,9 +157,6 @@ Ext.define('Optima5.Modules.CrmBase.MainDscWindow',{
 		
 		var resultStr = '' ;
 		Ext.Array.each( sortedCfgArray, function(v) {
-			if( v.file_parent_code && v.file_parent_code != '' ) {
-				return true ;
-			}
 			if( resultStr.length > 0 ) {
 				resultStr += ', ' ;
 			}
@@ -227,7 +170,7 @@ Ext.define('Optima5.Modules.CrmBase.MainDscWindow',{
 	},
 	
 	
-	openBible: function( bibleId ) {
+	openTable: function( tableId ) {
 		var me = this ;
 		
 		// recherche d'une fenetre deja ouverte
@@ -236,7 +179,7 @@ Ext.define('Optima5.Modules.CrmBase.MainDscWindow',{
 			if( !(win instanceof Optima5.Modules.CrmBase.DataWindow) ) {
 				return true ;
 			}
-			if( win.dataType == 'bible' && win.bibleId == bibleId ) {
+			if( win.dataType == 'table' && win.tableId == tableId ) {
 				win.show() ;
 				win.focus() ;
 				doOpen = false ;
@@ -251,44 +194,12 @@ Ext.define('Optima5.Modules.CrmBase.MainDscWindow',{
 		var win = me.optimaModule.createWindow({
 			title: '',
 			
-			dataType:'bible',
-			bibleId:bibleId
+			dataType:'table',
+			tableId:tableId
 		},Optima5.Modules.CrmBase.DataWindow) ;
 	},
-	openBibleDefineNew: function() {
+	openTableDefineNew: function() {
 		var me = this ;
-		Optima5.Modules.CrmBase.DataWindow.sOpenDefineWindow(me.optimaModule,'bible',true) ;
-	},
-	openFile: function( fileId ) {
-		var me = this ;
-		
-		// recherche d'une fenetre deja ouverte
-		var doOpen = true ;
-		me.optimaModule.eachWindow(function(win){
-			if( !(win instanceof Optima5.Modules.CrmBase.DataWindow) ) {
-				return true ;
-			}
-			if( win.dataType == 'file' && win.fileId == fileId ) {
-				win.show() ;
-				win.focus() ;
-				doOpen = false ;
-				return false ;
-			}
-		},me) ;
-		
-		if( !doOpen ) {
-			return ;
-		}
-		
-		var win = me.optimaModule.createWindow({
-			title: '',
-			
-			dataType:'file',
-			fileId:fileId
-		},Optima5.Modules.CrmBase.DataWindow) ;
-	},
-	openFileDefineNew: function() {
-		var me = this ;
-		Optima5.Modules.CrmBase.DataWindow.sOpenDefineWindow(me.optimaModule,'file',true) ;
+		Optima5.Modules.CrmBase.DataWindow.sOpenDefineWindow(me.optimaModule,'table',true) ;
 	}
 }) ;

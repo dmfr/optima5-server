@@ -105,6 +105,9 @@
 .op5-crmbase-mainwindow-files {
 	background-image: url("../images/modules/crmbase-filelist-22.png") !important;
 }
+.op5-crmbase-mainwindow-tables {
+	background-image: url("../images/op5img/ico_sql_22.png") !important;
+}
 .op5-crmbase-mainwindow-query {
 	background-image: url("../images/modules/crmbase-process-22.gif") !important;
 }

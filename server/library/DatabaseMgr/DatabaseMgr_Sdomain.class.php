@@ -810,6 +810,15 @@ EOF;
 			$query = "TRUNCATE TABLE {$sdomain_db}.store_file_{$file_code}" ;
 			$_opDB->query($query) ;
 		}
+		
+		$query = "SELECT table_code FROM {$sdomain_db}.define_table" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$table_code = $arr[0] ;
+			
+			$query = "TRUNCATE TABLE {$sdomain_db}.store_table_{$table_code}" ;
+			$_opDB->query($query) ;
+		}
 	}
 	
 	public function sdomainDb_clone( $src_sdomain_id, $dst_sdomain_id ) {
@@ -860,6 +869,13 @@ EOF;
 			$this->sdomainDefine_buildFilePrivate( $sdomain_id , $file_code ) ;
 		}
 		$this->sdomainDefine_buildFilesVuid( $sdomain_id ) ;
+		
+		$query = "SELECT table_code FROM {$sdomain_db}.define_table" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$file_code = $arr[0] ;
+			$this->sdomainDefine_buildTable( $sdomain_id , $table_code ) ;
+		}
 	}
 	public function sdomainDefine_buildBible( $sdomain_id , $bible_code ) {
 		$_opDB = $this->_opDB ;
@@ -1245,6 +1261,132 @@ EOF;
 		$query = "CREATE ALGORITHM=MERGE VIEW {$sdomain_db}.{$view_name} AS ".implode(' UNION ALL ',$union_queries) ;
 		$_opDB->query($query) ;
 	}
+	private function sdomainDefine_buildTable( $sdomain_id , $table_code ) {
+		$_opDB = $this->_opDB ;
+		$sdomain_db = $this->getSdomainDb( $sdomain_id ) ;
+	
+		//chargement des champs
+		$query = "SELECT table_type FROM {$sdomain_db}.define_table WHERE table_code='$table_code'" ;
+		$file_type = $_opDB->query_uniqueValue($query) ;
+		switch( $file_type )
+		{
+			case 'table_primarykey' :
+			$_mode_primaryKey = TRUE ;
+			$arr_field_isPrimaryKey = array() ;
+			$primaryKey_arrColumns = array() ;
+			default :
+			$arr_field_type = array() ;
+			$arr_field_isIndex = array() ;
+			$arr_media_define = array() ;
+			$query = "SELECT * FROM {$sdomain_db}.define_table_entry WHERE table_code='$table_code' ORDER BY table_field_index" ;
+			$result = $_opDB->query($query) ;
+			while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
+			{
+				$arr_field_type[$arr['table_field_code']] = $arr['table_field_type'] ;
+				$arr_field_isIndex[$arr['table_field_code']] = ($arr['table_field_is_index'] == 'O') ;
+				if( $_mode_primaryKey && ($arr['table_field_is_primarykey'] == 'O') ) {
+					$arr_field_isPrimaryKey[$arr['table_field_code']] = TRUE ;
+				}
+			}
+			break ;
+		}
+		
+		
+		
+		$db_table = 'store_table_'.$file_code ;
+		$arrAssoc_dbField_fieldType = array() ;
+		$arr_model_keys = array(
+			'PRIMARY'=>array('arr_columns'=>array_keys($arr_field_isPrimaryKey))
+		) ;
+		$arrAssoc_crmField_dbField = array() ;
+		foreach( $arr_field_type as $field_code => $field_type )
+		{
+			$field_name = ''.$field_code ;
+			switch( $field_type )
+			{
+				case 'string' :
+				case 'stringplus' :
+				$field_name.= '_str' ;
+				$arrAssoc_dbField_fieldType[$field_name] = 'varchar(500)' ;
+				if( $field_type!='stringplus' && $arr_field_isIndex[$field_code] ) {
+					$arr_model_keys[$field_name] = array('non_unique'=>'1','arr_columns'=>array($field_name)) ;
+				}
+				if( $field_type!='stringplus' && $_mode_primaryKey && $arr_field_isPrimaryKey[$field_code] ) {
+					$arrAssoc_dbField_fieldType[$field_name] = 'varchar(50)' ;
+				}
+				break ;
+				
+				case 'number' :
+				$field_name.= '_dec' ;
+				$arrAssoc_dbField_fieldType[$field_name] = 'decimal(10,3)' ;
+				if( $_mode_primaryKey && $arr_field_isPrimaryKey[$field_code] ) {
+					$arrAssoc_dbField_fieldType[$field_name] = 'int(11)' ;
+				}
+				break ;
+				
+				case 'bool' :
+				$field_name.= '_int' ;
+				$arrAssoc_dbField_fieldType[$field_name] = 'int(11)' ;
+				break ;
+				
+				case 'extid' :
+				$field_name.= '_int' ;
+				$arrAssoc_dbField_fieldType[$field_name] = 'bigint(20)' ;
+				$arr_model_keys[$field_name] = array('non_unique'=>'1','arr_columns'=>array($field_name)) ;
+				break ;
+				
+				case 'date' :
+				$field_name.= '_dtm' ;
+				$arrAssoc_dbField_fieldType[$field_name] = 'datetime' ;
+				if( $arr_field_isIndex[$field_code] ) {
+					$arr_model_keys[$field_name] = array('non_unique'=>'1','arr_columns'=>array($field_name)) ;
+				}
+				break ;
+				
+				case 'link' :
+				$field_name.= '_str' ;
+				$arrAssoc_dbField_fieldType[$field_name] = 'varchar(50)' ;
+				if( TRUE ) {
+					$arr_model_keys[$field_name] = array('non_unique'=>'1','arr_columns'=>array($field_name)) ;
+				}
+				break ;
+				
+				case 'join' :
+				$field_name = NULL ;
+				break ;
+				
+				default :
+				continue 2 ;
+			}
+			$field_crm = ''.$field_code ;
+			$arrAssoc_crmField_dbField[$field_crm] = $field_name ;
+			
+			if( $_mode_primaryKey && $arr_field_isPrimaryKey[$field_code] && is_array($primaryKey_arrColumns) ) {
+				$primaryKey_arrColumns[] = $field_name ;
+			}
+		}
+		/*
+		if( $_mode_primaryKey && is_array($primaryKey_arrColumns) && count($primaryKey_arrColumns) > 0 ) {
+			$arr_model_keys['CRM_PRIMARY'] = array('non_unique'=>'1','arr_columns'=>$primaryKey_arrColumns) ;
+		}
+		*/
+		
+		DatabaseMgr_Util::syncTableStructure( $sdomain_db , $db_table , $arrAssoc_dbField_fieldType , $arr_model_keys ) ;
+		
+		$view_name = 'view_table_'.$file_code ;
+		$query = "DROP VIEW IF EXISTS {$sdomain_db}.{$view_name}" ;
+		$_opDB->query($query) ;
+		
+		$query = "CREATE ALGORITHM=MERGE VIEW {$sdomain_db}.{$view_name} AS SELECT" ;
+		foreach( $arrAssoc_crmField_dbField as $field_crm => $field_name ) {
+			$query.= ",data.{$field_name} AS {$field_crm}" ;
+		}
+		$query.= " FROM {$sdomain_db}.{$db_table} data" ;
+		$query.= " " ;
+		$_opDB->query($query) ;
+		
+		return array($db_table , $arrAssoc_dbField_fieldType , $arr_model_keys, $arrAssoc_crmField_dbField) ;
+	}
 	public function sdomainDefine_truncateBible( $sdomain_id , $bible_code ) {
 		$_opDB = $this->_opDB ;
 		$sdomain_db = $this->getSdomainDb( $sdomain_id ) ;
@@ -1269,6 +1411,14 @@ EOF;
 			$query = "TRUNCATE TABLE {$sdomain_db}.{$table_name}" ;
 			$_opDB->query($query) ;
 		}
+	}
+	public function sdomainDefine_truncateTable( $sdomain_id , $table_code ) {
+		$_opDB = $this->_opDB ;
+		$sdomain_db = $this->getSdomainDb( $sdomain_id ) ;
+		
+		$table_name = 'store_table_'.$table_code ;
+		$query = "TRUNCATE TABLE {$sdomain_db}.{$table_name}" ;
+		$_opDB->query($query) ;
 	}
 	public function sdomainDefine_dropBible( $sdomain_id , $bible_code ) {
 		$_opDB = $this->_opDB ;
@@ -1301,6 +1451,18 @@ EOF;
 		$_opDB->query($query) ;
 		
 		$this->sdomainDefine_buildFilesVuid( $sdomain_id ) ;
+	}
+	public function sdomainDefine_dropTable( $sdomain_id , $table_code ) {
+		$_opDB = $this->_opDB ;
+		$sdomain_db = $this->getSdomainDb( $sdomain_id ) ;
+		
+		$view_name = 'view_table_'.$table_code ;
+		$query = "DROP VIEW IF EXISTS {$sdomain_db}.{$view_name}" ;
+		$_opDB->query($query) ;
+		
+		$table_name = 'store_file_'.$table_code ;
+		$query = "DROP TABLE IF EXISTS {$sdomain_db}.{$table_name}" ;
+		$_opDB->query($query) ;
 	}
 	
 	public function sdomainDump_export( $sdomain_id, $handle_out ) {
