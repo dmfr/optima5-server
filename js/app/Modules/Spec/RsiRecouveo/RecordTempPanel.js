@@ -60,10 +60,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordTempPanel',{
 		var pCenter = this.down('#pCenter') ;
 		var columns = [{
 			text: 'New?',
-			//dataIndex: '_is_new',
+			dataIndex: '_checked',
 			width:48,
 			renderer: function(value,metaData,record) {
-				if( Ext.isEmpty(record.get('_type_allocation')) ) {
+				if( value ) {
 					metaData.tdCls += ' op5-spec-rsiveo-icon-priority' ;
 				}
 				return '' ;
@@ -90,11 +90,49 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordTempPanel',{
 			itemId: 'colAllocation',
 			text: 'Allocation',
 			columns: [{
-				text: 'Type paiement',
+				text: 'Opération/MdP',
+				dataIndex: 'type_temprec',
+				width:150,
+				editor: Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
+					cfgParam_id: 'OPT_RECLOCAL',
+					cfgParam_emptyDisplayText: 'Type paiement',
+					optimaModule: this.optimaModule,
+					accountRecord: this._accountRecord,
+					//allowBlank: false
+					listeners: {
+						change: function(cmb) {
+							var optReclocalValue = cmb.getValue(),
+								nextValue = null ;
+							Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getOptData('OPT_RECLOCAL'), function(row) {
+								if( row.id==optReclocalValue ) {
+									nextValue = row.next ;
+								}
+							}) ;
+							if( !nextValue ) {
+								return ;
+							}
+							
+							var fieldTypeAllocation = this.down('grid').headerCt.down('[dataIndex="_type_allocation"]').getEditor() ;
+							if( fieldTypeAllocation.getValue() != nextValue ) {
+								this.down('grid').headerCt.down('[dataIndex="_type_allocation"]').getEditor().setValue(nextValue) ;
+								this.onEditorTypeAllocationChange(nextValue) ;
+							}
+						},
+						scope: this
+					}
+				}),
+				filter: {
+					type: 'op5crmbasebibletree',
+					optimaModule: this.optimaModule,
+					bibleId: 'OPT_RECLOCAL'
+				}
+			},{
+				text: 'Type allocation',
 				dataIndex: '_type_allocation',
 				width:125,
 				editor: {
 					xtype: 'combobox',
+					readOnly: true,
 					forceSelection: true,
 					editable: false,
 					store: {
@@ -109,7 +147,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordTempPanel',{
 					valueField: 'code',
 					listeners: {
 						select: function(cmb) {
-							this.onEditorAllocationChange(cmb.getValue()) ;
+							this.onEditorTypeAllocationChange(cmb.getValue()) ;
 						},
 						scope: this
 					}
@@ -166,7 +204,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordTempPanel',{
 				menuDisabled: false,
 				draggable: false,
 				sortable: true,
-				hideable: false,
+				hideable: true,
 				resizable: true,
 				groupable: false,
 				lockable: false
@@ -190,17 +228,20 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordTempPanel',{
 			xtype: 'grid',
 			itemId: 'pGrid',
 			columns: columns,
-			plugins: [{
-				ptype: 'uxgridfilters'
-			}],
 			store: {
 				model: this.tmpModelName,
 				data: [],
+				sorters: [{
+					property: '_checked',
+					direction: 'DESC'
+				}],
 				proxy: {
 					type: 'memory'
 				}
 			},
 			plugins: [{
+				ptype: 'uxgridfilters'
+			},{
 				ptype: 'rowediting',
 				pluginId: 'rowediting',
 				listeners: {
@@ -323,6 +364,18 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordTempPanel',{
 		}
 	},
 	onBeforeEditRecord: function(editor,context) {
+		var optReclocalValue = context.record.get('_type_allocation'),
+			nextValue = null ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getOptData('OPT_RECLOCAL'), function(row) {
+			if( row.id==optReclocalValue ) {
+				nextValue = row.next ;
+			}
+		}) ;
+		if( nextValue ) {
+			context.record.set('_type_allocation',nextValue) ;
+		}
+		
+		
 		switch( context.record.get('_type_allocation') ) {
 			case 'account' :
 				context.record.set('_editor_allocation',context.record.get('acc_id')) ;
@@ -331,10 +384,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordTempPanel',{
 				context.record.set('_editor_allocation',context.record.get('recordgroup_id')) ;
 				break ;
 		}
-		this.onEditorAllocationChange(context.record.get('_type_allocation')) ;
+		this.onEditorTypeAllocationChange(context.record.get('_type_allocation')) ;
 		
 	},
-	onEditorAllocationChange: function(selectedAllocation) {
+	onEditorTypeAllocationChange: function(selectedAllocation) {
 		// Load appropriate templates
 		var templatesData = [],
 			allocationColumn = this.down('grid').headerCt.down('[dataIndex="_editor_allocation"]'),

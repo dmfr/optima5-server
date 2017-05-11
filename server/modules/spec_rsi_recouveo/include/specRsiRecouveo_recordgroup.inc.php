@@ -181,7 +181,9 @@ function specRsiRecouveo_recordgroup_loadRootRecords( $post_data ) {
 			$record_row[$mkey] = $arr['field_'.$mkey] ;
 		}
 		$record_row += array(
+			'_checked' => (!$arr['field_LINK_ACCOUNT'] && !$arr['field_LINK_RECORDGROUP']),
 			'type' => $arr['field_TYPE'],
+			'type_temprec' => $arr['field_TYPE_TEMPREC'],
 			'record_id' => $arr['field_RECORD_ID'],
 			'acc_id' => $arr['field_LINK_ACCOUNT'],
 			'acc_txt' => $arr['field_ACC_NAME'],
@@ -204,9 +206,11 @@ function specRsiRecouveo_recordgroup_setRootRecord( $post_data ) {
 	$p_recordData = json_decode($post_data['data'],true) ;
 	
 	$arr_ins = array(
+		'field_TYPE_TEMPREC' => null,
 		'field_LINK_ACCOUNT' => null,
 		'field_RECORDGROUP_ID' => null
 	);
+	$arr_ins['field_TYPE_TEMPREC'] = $p_recordData['type_temprec'] ;
 	switch( $p_recordData['_type_allocation'] ) {
 		case 'account' :
 			$arr_ins['field_LINK_ACCOUNT'] = $p_recordData['acc_id'] ;

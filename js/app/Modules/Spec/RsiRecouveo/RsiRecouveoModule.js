@@ -89,6 +89,7 @@ Ext.define('RsiRecouveoRecordTplModel',{ // TO: RsiRecouveoRecordModel
 		{name: 'record_filerecord_id', type:'int'},
 		{name: 'record_id', type:'string'},
 		{name: 'type', type:'string'},
+		{name: 'type_temprec', type:'string'},
 		{name: 'acc_id', type:'string'},
 		{name: 'acc_txt', type:'string'},
 		{name: 'date_record', type:'date', dateFormat:'Y-m-d H:i:s'},
