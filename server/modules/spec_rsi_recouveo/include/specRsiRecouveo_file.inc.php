@@ -1091,6 +1091,28 @@ function specRsiRecouveo_file_createRecordTemp( $post_data ) {
 	
 	return array('success'=>true, 'file_filerecord_id'=>$accFile_record['file_filerecord_id']) ;
 }
+function specRsiRecouveo_file_allocateRecordTemp( $post_data ) {
+	global $_opDB ;
+	
+	$p_fileFilerecordId = $post_data['file_filerecord_id'] ;
+	$p_arrRecordFilerecordIds = json_decode($post_data['arr_recordFilerecordIds'],true) ;
+
+	foreach( $p_arrRecordFilerecordIds as $record_filerecord_id ) {
+		$query = "UPDATE view_file_RECORD r, view_file_RECORD_LINK rl
+					SET rl.field_LINK_IS_ON='0'
+					WHERE r.filerecord_id = rl.filerecord_parent_id
+					AND r.filerecord_id='{$record_filerecord_id}'" ;
+		$_opDB->query($query) ;
+		
+		$arr_ins = array() ;
+		$arr_ins['field_LINK_FILE_ID'] = $p_fileFilerecordId ;
+		$arr_ins['field_LINK_IS_ON'] = 1 ;
+		$arr_ins['field_DATE_LINK_ON'] = date('Y-m-d H:i:s') ;
+		paracrm_lib_data_insertRecord_file( 'RECORD_LINK', $record_filerecord_id, $arr_ins );
+	}
+	
+	return array('success'=>true, 'file_filerecord_id'=>$p_fileFilerecordId) ;
+}
 
 
 

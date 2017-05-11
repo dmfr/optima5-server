@@ -13,7 +13,8 @@ Ext.define('RsiRecouveoFileDetailRecordsTreeModel', {
 		  {name: 'record_id', type: 'string'},
 		  {name: 'record_date', type: 'date'},
 		  {name: 'record_amount', type: 'number'},
-		  {name: 'record_letter',  type: 'string'}
+		  {name: 'record_letter',  type: 'string'},
+ 		  {name: 'record_type',  type: 'string'}
      ]
 });
 Ext.define('RsiRecouveoAdrbookTreeModel',{
@@ -852,7 +853,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					record_id: fileRecordRecord.get('record_id'),
 					record_date: fileRecordRecord.get('date_value'),
 					record_amount: fileRecordRecord.get('amount'),
-					record_letter: (fileRecordRecord.get('letter_is_on') ? fileRecordRecord.get('letter_code') : '')
+					record_letter: (fileRecordRecord.get('letter_is_on') ? fileRecordRecord.get('letter_code') : ''),
+					record_type: fileRecordRecord.get('type')
 				});
 				totAmountDue += fileRecordRecord.get('amount') ;
 			},this) ;
@@ -1320,6 +1322,21 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		recordsTree.scrollTo(0) ;
 	},
 	onRecordsTreeDrop: function(node, data, overModel, dropPosition, dropHandlers) {
+		// assocation directe TEMPREC
+		var tempRec = true, tempRecIds=[] ;
+		Ext.Array.each( data.records, function( dragRecord ) {
+			if( dragRecord.get('record_type')!='TEMPREC' ) {
+				tempRec = false ;
+			} else {
+				tempRecIds.push(dragRecord.get('record_filerecord_id')) ;
+			}
+		},this) ;
+		if( tempRec && tempRecIds.length>0 && !overModel.get('new_is_on') && dropPosition == 'append' ) {
+			this.associateTempRecords(tempRecIds,overModel.get('file_filerecord_id')) ;
+			return ;
+		}
+		// ***************************
+		
 		if( !(overModel.get('new_is_on') && dropPosition == 'append') ) {
 			return false ;
 		}
@@ -1689,6 +1706,43 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				optimaModule: this.optimaModule,
 				_envFilerecordId: envFilerecordId
 			})]
+		}) ;
+	},
+	
+	associateTempRecords: function( arrRecordFilerecordIds, fileFilerecordId, doAssociate ) {
+		if( !doAssociate ) {
+			var msg = 'Associer paiements au fichier sélectionné ?' ;
+			Ext.MessageBox.confirm('Attention',msg, function(btn) {
+				if( btn =='yes' ) {
+					this.associateTempRecords(arrRecordFilerecordIds, fileFilerecordId, true) ;
+				} else {
+					this.doReload() ;
+				}
+			},this) ;
+			return ;
+		}
+		
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_rsi_recouveo',
+				_action: 'file_allocateRecordTemp',
+				file_filerecord_id: fileFilerecordId,
+				arr_recordFilerecordIds: Ext.JSON.encode(arrRecordFilerecordIds)
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					var error = ajaxResponse.success || 'File not saved !' ;
+					Ext.MessageBox.alert('Error',error) ;
+					return ;
+				}
+				this.doReload(ajaxResponse.file_filerecord_id) ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
 		}) ;
 	}
 }) ; 

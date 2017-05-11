@@ -22,6 +22,8 @@ switch( $post_data['_action'] )
 	return specRsiRecouveo_file_getScenarioLine( $post_data ) ;
 	case 'file_createRecordTemp' :
 	return specRsiRecouveo_file_createRecordTemp( $post_data ) ;
+	case 'file_allocateRecordTemp' :
+	return specRsiRecouveo_file_allocateRecordTemp( $post_data ) ;
 	
 	case 'file_searchSuggest' :
 	return specRsiRecouveo_file_searchSuggest( $post_data ) ;
@@ -67,6 +69,17 @@ switch( $post_data['_action'] )
 	
 	case 'xls_create' :
 		return specRsiRecouveo_xls_create( $post_data ) ;
+		
+	case 'recordgroup_list' :
+		return specRsiRecouveo_recordgroup_list( $post_data ) ;
+	case 'recordgroup_get' :
+		return specRsiRecouveo_recordgroup_get( $post_data ) ;
+	case 'recordgroup_set' :
+		return specRsiRecouveo_recordgroup_set( $post_data ) ;
+	case 'recordgroup_loadRootRecords' :
+		return specRsiRecouveo_recordgroup_loadRootRecords( $post_data ) ;
+	case 'recordgroup_setRootRecord' :
+		return specRsiRecouveo_recordgroup_setRootRecord( $post_data ) ;
 	
 	default :
 	return NULL ;

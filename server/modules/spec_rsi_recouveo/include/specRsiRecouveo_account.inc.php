@@ -106,7 +106,67 @@ function specRsiRecouveo_account_open( $post_data ) {
 	
 	
 	
-	// ************* RECORDS ****************
+	// ************* RECORDS (non affectés) ****************
+	$unalloc_records = array() ;
+	$existing_ids = array() ;
+	foreach( $account_record['files'] as $accFile_record ) {
+		foreach( $accFile_record['records'] as $accFileRecord_record ) {
+			$existing_ids[] = $accFileRecord_record['record_filerecord_id'] ;
+		}
+	}
+	$query = "SELECT * FROM view_file_RECORD r
+		WHERE field_LINK_ACCOUNT='{$p_accId}'" ;
+	if( $p_atrFilter ) {
+		/*
+		foreach( $cfg_atr as $atr_record ) {
+			$mkey = $atr_record['bible_code'] ;
+			if( $p_atrFilter[$mkey] ) {
+				$mvalue = $p_atrFilter[$mkey] ;
+				$query.= " AND f.field_{$mkey} IN ".$_opDB->makeSQLlist($mvalue) ;
+			}
+		}
+		*/
+	}
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		if( in_array($arr['filerecord_id'],$existing_ids) ) {
+			continue ;
+		}
+		
+		
+		$record_row = array(
+			'record_filerecord_id' => $arr['filerecord_id'],
+			'acc_id' => $arr['field_LINK_ACCOUNT']
+		);
+		foreach( $cfg_atr as $atr_record ) {
+			$mkey = $atr_record['bible_code'] ;
+			$record_row[$mkey] = $arr['field_'.$mkey] ;
+		}
+		$record_row += array(
+			'type' => $arr['field_TYPE'],
+			'record_id' => $arr['field_RECORD_ID'],
+			'acc_id' => $arr['field_LINK_ACCOUNT'],
+			'date_record' => $arr['field_DATE_RECORD'],
+			'date_value' => $arr['field_DATE_VALUE'],
+			'amount' => $arr['field_AMOUNT'],
+			'letter_is_on' => ($arr['field_LETTER_IS_ON']==1),
+			'letter_code' => $arr['field_LETTER_CODE']
+		);
+		
+		$unalloc_records[] = $record_row ;
+	}
+	if( $unalloc_records ) {
+		$account_record['files'][] = array(
+			'file_filerecord_id' => 0,
+			
+			'id_ref' => 'Unallocated',
+			
+			'acc_id' => $p_accId,
+			
+			'records' => $unalloc_records,
+			'actions' => array(),
+		);
+	}
 	
 	
 	

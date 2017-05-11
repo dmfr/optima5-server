@@ -90,11 +90,14 @@ Ext.define('RsiRecouveoRecordTplModel',{ // TO: RsiRecouveoRecordModel
 		{name: 'record_id', type:'string'},
 		{name: 'type', type:'string'},
 		{name: 'acc_id', type:'string'},
+		{name: 'acc_txt', type:'string'},
 		{name: 'date_record', type:'date', dateFormat:'Y-m-d H:i:s'},
 		{name: 'date_value', type:'date', dateFormat:'Y-m-d H:i:s'},
 		{name: 'amount', type:'number'},
 		{name: 'letter_is_on', type:'boolean'},
 		{name: 'letter_code', type: 'string'},
+		{name: 'recordgroup_id', type: 'string'},
+		{name: 'txt', type: 'string'},
 		{name: '_checked', type: 'boolean'},
 		
 		{name: 'calc_balage_segmt_id', type:'string'}
