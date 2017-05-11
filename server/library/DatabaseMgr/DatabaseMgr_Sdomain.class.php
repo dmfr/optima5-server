@@ -1122,7 +1122,13 @@ EOF;
 					$arr_model_keys[$field_name] = array('non_unique'=>'1','arr_columns'=>array($field_name)) ;
 				}
 				if( $field_type!='stringplus' && $_mode_primaryKey && $arr_field_isPrimaryKey[$field_code] ) {
-					$arrAssoc_dbField_fieldType[$field_name] = 'varchar(50)' ;
+					$cnt=0 ;
+					foreach( $arr_field_isPrimaryKey as $dummy => $torf ) {
+						if( $torf ) {
+							$cnt++ ;
+						}
+					}
+					$arrAssoc_dbField_fieldType[$field_name] = ($cnt==1?'varchar(150)':'varchar(50)') ;
 				}
 				break ;
 				
