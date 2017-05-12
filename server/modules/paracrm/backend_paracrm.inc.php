@@ -58,6 +58,12 @@ switch( $post_data['_action'] )
 	return paracrm_data_setFileGrid_raw( $post_data );
 	
 	
+	case 'data_getTableGrid_config' :
+	return paracrm_data_getTableGrid_config( $post_data );
+	case 'data_getTableGrid_data' :
+	return paracrm_data_getTableGrid_data( $post_data );
+	
+	
 	case 'data_importTransaction' :
 	return paracrm_data_importTransaction( $post_data ) ;
 	case 'data_importDirect' :

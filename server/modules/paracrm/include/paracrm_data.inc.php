@@ -1042,4 +1042,164 @@ function paracrm_data_getFileGrid_exportGallery( $post_data, $auth_bypass=FALSE 
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+function paracrm_data_getTableGrid_config( $post_data, $auth_bypass=FALSE )
+{
+	global $_opDB ;
+	
+	if( !$auth_bypass && !Auth_Manager::getInstance()->auth_query_sdomain_action(
+		Auth_Manager::sdomain_getCurrent(),
+		'tables',
+		array('table_code'=>$post_data['table_code']),
+		$write=false
+	)) {
+			return Auth_Manager::auth_getDenialResponse() ;
+	}
+	$arr_auth_status = array(
+		'disableAdmin' => !Auth_Manager::getInstance()->auth_query_sdomain_admin( Auth_Manager::sdomain_getCurrent() ),
+		'readOnly' => !Auth_Manager::getInstance()->auth_query_sdomain_action(
+			Auth_Manager::sdomain_getCurrent(),
+			'tables',
+			array('table_code'=>$post_data['table_code']),
+			$write=true
+		)
+	) ;
+	
+	$ttmp = paracrm_define_getMainToolbar(array('data_type'=>'table','table_code'=>$post_data['table_code'])) ;
+	$arr_define_table = current( $ttmp['data_tables'] ) ;
+	$arr_define_table['table_code'] = $arr_define_table['tableId'] ;
+	
+	
+	$tab_fields = array() ;
+	$query = "SELECT * FROM define_table_field WHERE table_code='{$post_data['table_code']}' ORDER BY table_field_index" ;
+	$result = $_opDB->query($query);
+	if( $_opDB->num_rows($result) == 0 )
+		return array('success'=>false) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
+	{
+		$arr['field'] = $arr['table_field_code'] ;
+		$arr['text'] = $arr['table_field_code'] ;
+		$arr['type'] = $arr['table_field_type'] ;
+		$tab_fields[] = $arr ;
+	}
+	
+	
+	$return_data = array(
+		'auth_status'=>$arr_auth_status,
+		'define_table'=>$arr_define_table,
+		'grid_fields'=>$tab_fields
+	) ;
+	return array('success'=>true,'data'=>$return_data) ;
+}
+function paracrm_data_getTableGrid_data( $post_data, $auth_bypass=FALSE )
+{
+	global $_opDB ;
+	
+	if( !$auth_bypass && !Auth_Manager::getInstance()->auth_query_sdomain_action(
+		Auth_Manager::sdomain_getCurrent(),
+		'tables',
+		array('table_code'=>$post_data['table_code']),
+		$write=false
+	)) {
+			return Auth_Manager::auth_getDenialResponse() ;
+	}
+	
+	$view_name = "view_table_".$post_data['table_code'] ;
+	$query = "SELECT * FROM $view_name WHERE 1" ;
+	
+	// filters.....
+	if( $post_data['filter'] )
+	{
+	
+	foreach( json_decode($post_data['filter'],TRUE) as $filter )
+	{
+		$sql_field = $filter['field'] ;
+
+		switch( $filter['type'] )
+		{
+			case 'list' :
+			if( is_array($filter['value']) && $filter['value'] )
+			{
+				$query.= " AND {$sql_field} IN ".$_opDB->makeSQLlist($filter['value']) ;
+			}
+			elseif( is_array($filter['value']) )
+			{
+				$query.= " AND 0" ;
+			}
+			break ;
+			
+			case 'date' :
+			$sign = '' ;
+			switch( $filter['comparison'] )
+			{
+				case 'eq' : $sign = '=' ; break ;
+				case 'lt' : $sign = '<=' ; break ;
+				case 'gt' : $sign = '>=' ; break ;
+			}
+			if( $sign )
+			{
+				$query.= " AND DATE({$sql_field}) {$sign} '{$filter['value']}'" ;
+			}
+			break ;
+			
+			
+			case 'numeric' :
+			$sign = '' ;
+			switch( $filter['comparison'] )
+			{
+				case 'eq' : $sign = '=' ; break ;
+				case 'lt' : $sign = '<' ; break ;
+				case 'gt' : $sign = '>' ; break ;
+			}
+			if( $sign )
+			{
+				$query.= " AND {$sql_field} {$sign} '{$filter['value']}'" ;
+			}
+			break ;
+			
+			
+			case 'string' :
+			$query.= " AND {$sql_field} LIKE '%{$filter['value']}%'" ;
+			break ;
+		}
+	}
+	}
+	
+	if( $post_data['sort'] )
+	{
+		$sorter = current(json_decode($post_data['sort'],TRUE)) ;
+		$query.= " ORDER BY {$sorter['property']} {$sorter['direction']}" ;
+	}
+	
+	
+	if( isset($post_data['start']) && isset($post_data['limit']) )
+		$query.= " LIMIT {$post_data['start']},{$post_data['limit']}" ;
+	$result = $_opDB->query($query);
+	
+	
+	$query = "SELECT FOUND_ROWS()" ;
+	$nb_rows = $_opDB->query_uniqueValue($query);
+	
+	
+	
+	$TAB_json = array() ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
+	{
+		$TAB_json[] = $arr ;
+	}
+	return array('success'=>true,'data'=>$TAB_json,'total'=>$nb_rows) ;
+}
+
+
+
 ?>

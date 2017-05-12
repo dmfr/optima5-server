@@ -46,6 +46,14 @@ Ext.define('Optima5.Modules.CrmBase.DataWindowToolbar' ,{
 						text: 'XLSX export',
 						iconCls: 'op5-crmbase-datatoolbar-file-export-excel'
 					},{
+						itemId: 'export-table-csv',
+						text: 'CSV export',
+						iconCls: 'op5-crmbase-datatoolbar-file-export-excel'
+					},{
+						itemId: 'export-table-xlsx',
+						text: 'XLSX export',
+						iconCls: 'op5-crmbase-datatoolbar-file-export-excel'
+					},{
 						itemId: 'export-gallery',
 						text: 'DL gallery as zip',
 						iconCls: 'op5-crmbase-datatoolbar-file-export-gallery'
@@ -136,12 +144,23 @@ Ext.define('Optima5.Modules.CrmBase.DataWindowToolbar' ,{
 		// menu File
 		var fileMenu = me.child('#file') ;
 		fileMenu.menu.hide() ;
-		if( typeof ajaxData.fileId !== 'undefined' ) {
+		if( typeof ajaxData.tableId !== 'undefined' ) {
+			fileMenu.setVisible(true) ;
+			fileMenu.menu.child('#export-bible-csv').setVisible(false) ;
+			fileMenu.menu.child('#export-bible-xlsx').setVisible(false) ;
+			fileMenu.menu.child('#export-file-csv').setVisible(false) ;
+			fileMenu.menu.child('#export-file-xlsx').setVisible(false) ;
+			fileMenu.menu.child('#export-table-csv').setVisible(true) ;
+			fileMenu.menu.child('#export-table-xlsx').setVisible(true) ;
+			fileMenu.menu.child('#export-gallery').setVisible( false ) ;
+		} else if( typeof ajaxData.fileId !== 'undefined' ) {
 			fileMenu.setVisible(true) ;
 			fileMenu.menu.child('#export-bible-csv').setVisible(false) ;
 			fileMenu.menu.child('#export-bible-xlsx').setVisible(false) ;
 			fileMenu.menu.child('#export-file-csv').setVisible(true) ;
 			fileMenu.menu.child('#export-file-xlsx').setVisible(true) ;
+			fileMenu.menu.child('#export-table-csv').setVisible(false) ;
+			fileMenu.menu.child('#export-table-xlsx').setVisible(false) ;
 			fileMenu.menu.child('#export-gallery').setVisible( ajaxData.viewmode_gallery ) ;
 		} else if( typeof ajaxData.bibleId !== 'undefined' ) {
 			fileMenu.setVisible(true) ;
@@ -150,6 +169,8 @@ Ext.define('Optima5.Modules.CrmBase.DataWindowToolbar' ,{
 			fileMenu.menu.child('#export-bible-xlsx').setVisible(true) ;
 			fileMenu.menu.child('#export-file-csv').setVisible(false) ;
 			fileMenu.menu.child('#export-file-xlsx').setVisible(false) ;
+			fileMenu.menu.child('#export-table-csv').setVisible(false) ;
+			fileMenu.menu.child('#export-table-xlsx').setVisible(false) ;
 			fileMenu.menu.child('#export-gallery').setVisible(false) ;
 		} else {
 			fileMenu.setVisible(false) ;

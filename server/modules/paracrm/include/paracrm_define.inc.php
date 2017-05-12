@@ -63,7 +63,7 @@ function paracrm_define_getMainToolbar($post_data, $auth_bypass=FALSE )
 		break ;
 		
 		case 'table' :
-		$query = "SELECT table_code as tableId , table_code as text , table_iconfile as icon , table_type as store_type , gmap_is_on , table_code , table_code
+		$query = "SELECT table_code as tableId , table_code as text , table_iconfile as icon , table_type as store_type , gmap_is_on , table_code
 						FROM define_table
 						ORDER BY table_code" ;
 		break ;
@@ -290,6 +290,7 @@ function paracrm_define_drop( $post_data ) {
 	$data_type = $post_data['data_type'] ;
 	$bible_code = $post_data['bible_code'] ;
 	$file_code = $post_data['file_code'] ;
+	$table_code = $post_data['table_code'] ;
 	
 	switch( $data_type )
 	{
@@ -339,6 +340,26 @@ function paracrm_define_drop( $post_data ) {
 		
 		return array('success'=>true) ;
 		break ;
+		
+		
+		
+		case 'table' :
+		$query_e = "SELECT count(*) FROM store_table_{$table_code}" ;
+		$num_rows = $_opDB->query_uniqueValue($query_e) ;
+		if( $num_rows > 0 ) {
+			return array('success'=>false) ;
+		}
+		
+		$t = new DatabaseMgr_Sdomain( DatabaseMgr_Base::dbCurrent_getDomainId() );
+		$t->sdomainDefine_dropTable( DatabaseMgr_Sdomain::dbCurrent_getSdomainId(), $table_code ) ;
+		
+		$query = "DELETE FROM define_table WHERE table_code='$table_code'" ;
+		$_opDB->query($query) ;
+		$query = "DELETE FROM define_table_field WHERE table_code='$table_code'" ;
+		$_opDB->query($query) ;
+		
+		return array('success'=>true) ;
+		break ;
 	}
 }
 
@@ -369,6 +390,10 @@ function paracrm_define_manageTransaction( $post_data )
 				case 'file' :
 				$arr_saisie['tab_entryFields'] = array() ;
 				break ;
+			
+				case 'table' :
+				$arr_saisie['tab_fields'] = array() ;
+				break ;
 			}
 		$_SESSION['transactions'][$transaction_id]['arr_saisie'] = $arr_saisie ;
 		
@@ -378,7 +403,8 @@ function paracrm_define_manageTransaction( $post_data )
 	}
 	if( $post_data['_subaction'] == 'init_modify' 
 		&& ( $post_data['data_type']=='bible' && $post_data['bible_code']
-				||$post_data['data_type']=='file' && $post_data['file_code'])
+				||$post_data['data_type']=='file' && $post_data['file_code']
+				||$post_data['data_type']=='table' && $post_data['table_code'])
 	){
 		$transaction_id = $_SESSION['next_transaction_id']++ ;
 		
@@ -398,6 +424,11 @@ function paracrm_define_manageTransaction( $post_data )
 			case 'file' :
 			$arr_saisie['file_code'] = $post_data['file_code'] ;
 			$query = "SELECT file_code as store_code , file_lib as store_lib , file_parent_code as store_parent_code , gmap_is_on , file_type as store_type from define_file WHERE file_code='{$arr_saisie['file_code']}'" ;
+			break ;
+		
+			case 'table' :
+			$arr_saisie['table_code'] = $post_data['table_code'] ;
+			$query = "SELECT table_code as store_code , table_code as store_lib from define_table WHERE table_code='{$arr_saisie['table_code']}'" ;
 			break ;
 		}
 		$result = $_opDB->query($query) ;
@@ -531,6 +562,30 @@ function paracrm_define_manageTransaction( $post_data )
 			}
 			$arr_saisie['tab_entryFields'] = $tab ;
 		}
+		if( $arr_saisie['data_type'] == 'table' )
+		{
+			$tab = array() ;
+			$query = "SELECT * FROM define_table_field WHERE table_code='{$arr_saisie['table_code']}' ORDER BY table_field_index" ;
+			$result = $_opDB->query($query) ;
+			while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
+			{
+				unset( $arr['table_field_index'] ) ;
+				
+				if( $arr['table_field_is_index'] == 'O' )
+					$arr['table_field_is_index'] = true ;
+				else
+					$arr['table_field_is_index'] = false ;
+					
+				if( $arr['table_field_is_primarykey'] == 'O' )
+					$arr['table_field_is_primarykey'] = true ;
+				else
+					$arr['table_field_is_primarykey'] = false ;
+					
+				
+				$tab[] = $arr ;
+			}
+			$arr_saisie['tab_fields'] = $tab ;
+		}
 		
 		$_SESSION['transactions'][$transaction_id]['arr_saisie'] = $arr_saisie ;
 		
@@ -606,7 +661,7 @@ function paracrm_define_manageTransaction( $post_data )
 	
 		// données du formulaire
 		$arr_ent = $arr_saisie['arr_ent'] ;
-		if( !$arr_saisie['bible_code'] && !$arr_saisie['file_code'] )
+		if( !$arr_saisie['bible_code'] && !$arr_saisie['file_code'] && !$arr_saisie['table_code'] )
 			$arr_ent['store_code'] = trim(strtoupper($post_data['store_code'])) ;
 		$arr_ent['store_lib'] = trim($post_data['store_lib']) ;
 		$arr_ent['store_type'] = trim($post_data['store_type']) ;
@@ -758,6 +813,20 @@ function paracrm_define_manageTransaction( $post_data )
 	
 		return array('success'=>true) ;
 	}
+
+	if( $arr_transaction && $post_data['_subaction'] == 'fields_get' )
+	{
+		$data = $arr_transaction['arr_saisie']['tab_fields'] ;
+		return array('success'=>true,'data'=>$data) ;
+	}
+	if( $arr_transaction && $post_data['_subaction'] == 'fields_set' )
+	{
+		$data = json_decode($post_data['data'],TRUE) ;
+		$arr_transaction['arr_saisie']['tab_fields'] = $data ;
+		$_SESSION['transactions'][$transaction_id] = $arr_transaction ;
+	
+		return array('success'=>true) ;
+	}
 	
 	
 	if( $arr_transaction && $post_data['_subaction'] == 'save_and_apply' )
@@ -783,6 +852,9 @@ function paracrm_define_manageTransaction_apply($arr_saisie, $apply=FALSE)
 		
 		case 'file' :
 		return paracrm_define_manageTransaction_applyFile($arr_saisie, $apply) ;
+		
+		case 'table' :
+		return paracrm_define_manageTransaction_applyTable($arr_saisie, $apply) ;
 		
 		
 		default :
@@ -1025,6 +1097,71 @@ function paracrm_define_manageTransaction_applyFile($arr_saisie, $apply)
 	
 	$t = new DatabaseMgr_Sdomain( DatabaseMgr_Base::dbCurrent_getDomainId() );
 	$t->sdomainDefine_buildFile( DatabaseMgr_Sdomain::dbCurrent_getSdomainId(), $file_code ) ;
+	
+	return array('success'=>true) ;
+}
+
+function paracrm_define_manageTransaction_applyTable($arr_saisie, $apply)
+{
+	global $_opDB ;
+	
+	$errors_form = array() ;
+	foreach( array('store_code') as $field )
+	{
+		if( !$arr_saisie['arr_ent'][$field] )
+			$errors_form[$field] = 'Invalid' ;
+	}
+	$table_code = $arr_saisie['arr_ent']['store_code'] ;
+	$table_type = $arr_saisie['arr_ent']['store_type'] ;
+	
+	$empty_definition = FALSE ;
+	if( isset($arr_saisie['tab_fields']) && count($arr_saisie['tab_fields']) == 0 )
+		$empty_definition = TRUE ;
+		
+	$key_conflict = FALSE ;
+		
+	$success = TRUE ;
+	if( $errors_form || $empty_definition || $key_conflict )
+		$success = FALSE ;
+		
+	$response = array() ;
+	$response['success'] = $success ;
+	if( $errors_form )
+		$response['errors'] = $errors_form ;
+	if( $empty_definition )
+		$response['msg'] = 'Cannot define store with empty fieldset(s)' ;
+	elseif( $key_conflict )
+		$response['msg'] = 'Primary keys doesnt match' ;
+	if( !$apply || !$response['success'] )
+		return $response ;
+	
+	
+	$query = "DELETE FROM define_table WHERE table_code='$table_code'" ;
+	$_opDB->query($query) ;
+	$query = "DELETE FROM define_table_field WHERE table_code='$table_code'" ;
+	$_opDB->query($query) ;
+	
+	$arr_ins = array() ;
+	$arr_ins['table_code'] = $arr_saisie['arr_ent']['store_code'] ;
+	$arr_ins['table_type'] = $arr_saisie['arr_ent']['store_type'] ;
+	$arr_ins['table_iconfile'] = 'ico_showref_listall.gif' ;
+	$_opDB->insert('define_table',$arr_ins) ;
+	
+	$idx = 1 ;
+	foreach( $arr_saisie['tab_fields'] as $mfield )
+	{
+		$arr_ins = array() ;
+		$arr_ins['table_code'] = $table_code ;
+		$arr_ins['table_field_code'] = strtoupper(trim($mfield['table_field_code'])) ;
+		$arr_ins['table_field_index'] = $idx++ ;
+		$arr_ins['table_field_type'] = ($mfield['table_field_type'])? $mfield['table_field_type']:'string' ;
+		$arr_ins['table_field_is_index'] = ($mfield['table_field_is_index'])? 'O':'' ;
+		$arr_ins['table_field_is_primarykey'] = ($arr_saisie['arr_ent']['store_type']=='table_primarykey' && $mfield['table_field_is_primarykey'])? 'O':'' ;
+		$_opDB->insert('define_table_field',$arr_ins) ;
+	}
+	
+	$t = new DatabaseMgr_Sdomain( DatabaseMgr_Base::dbCurrent_getDomainId() );
+	$t->sdomainDefine_buildTable( DatabaseMgr_Sdomain::dbCurrent_getSdomainId(), $table_code ) ;
 	
 	return array('success'=>true) ;
 }

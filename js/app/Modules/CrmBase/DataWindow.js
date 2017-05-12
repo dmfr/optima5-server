@@ -4,6 +4,7 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 		'Optima5.Modules.CrmBase.DataWindowToolbar',
 		'Optima5.Modules.CrmBase.BiblePanel',
 		'Optima5.Modules.CrmBase.FilePanel',
+		'Optima5.Modules.CrmBase.TablePanel',
 		'Optima5.Modules.CrmBase.DefineStorePanel',
 		'Optima5.Modules.CrmBase.DataImportPanel'
 	],
@@ -45,6 +46,14 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 							defineIsNew: false,
 							defineDataType: defineDataType ,
 							defineFileId : defineDataId
+						}) ;
+					break ;
+					
+					case 'table' :
+						Ext.apply( params, {
+							defineIsNew: false,
+							defineDataType: defineDataType ,
+							defineTableId : defineDataId
 						}) ;
 					break ;
 					
@@ -127,6 +136,25 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 				}
 				break ;
 				
+			case 'table' :
+				if( me.tableId && me.tableId != '' ) {
+					Ext.apply(me,{
+						items:[Ext.create('Optima5.Modules.CrmBase.TablePanel',{
+							itemId:'tablePanel',
+							border: false,
+							optimaModule: me.optimaModule,
+							listeners: {
+								load: {
+									fn: me.onReload,
+									scope: me
+								}
+							}
+						})]
+					}) ;
+					cfgValid = true ;
+				}
+				break ;
+				
 			default : break ;
 		}
 		if( !cfgValid ) {
@@ -193,6 +221,12 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 							return ;
 						}
 						break ;
+					case 'table' :
+						if( me.dataType=='table' && eventParams.tableId == me.tableId ) {
+						} else {
+							return ;
+						}
+						break ;
 					default :
 						return ;
 				}
@@ -222,6 +256,8 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 				return me.child('#biblePanel') ;
 			case 'file' :
 				return me.child('#filePanel') ;
+			case 'table' :
+				return me.child('#tablePanel') ;
 			default :
 				return null ;
 		}
@@ -243,6 +279,13 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 				params = {
 					_action : 'data_getFileGrid_config',
 					file_code : me.fileId
+				};
+				break ;
+				
+			case 'table' :
+				params = {
+					_action : 'data_getTableGrid_config',
+					table_code : me.tableId
 				};
 				break ;
 		}
@@ -280,6 +323,15 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 				me.child('#tbar').reconfigure( ajaxData.define_file, ajaxData.auth_status ) ;
 				if( !toolbarOnly ) {
 					me.child('#filePanel').reconfigure( me.fileId, ajaxData ) ;
+				}
+				break ;
+			case 'table' :
+				me.tableId = ajaxData.define_table.table_code ;
+				
+				me.setTitle( me.optimaModule.getWindowTitle( ajaxData.define_table.text ) ) ;
+				me.child('#tbar').reconfigure( ajaxData.define_table, ajaxData.auth_status ) ;
+				if( !toolbarOnly ) {
+					me.child('#tablePanel').reconfigure( me.tableId, ajaxData ) ;
 				}
 				break ;
 		}
@@ -359,6 +411,10 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 				Optima5.Modules.CrmBase.DataWindow.sOpenDefineWindow(me.optimaModule,'file',false,me.fileId) ;
 			break ;
 			
+			case 'table' :
+				Optima5.Modules.CrmBase.DataWindow.sOpenDefineWindow(me.optimaModule,'table',false,me.tableId) ;
+			break ;
+			
 			default:
 				Ext.Msg.alert('Status', 'Shouldnt happen !!!');
 				return ;
@@ -376,6 +432,9 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 				break ;
 			case 'file' :
 				msg+= ' file ' + this.fileId ;
+				break ;
+			case 'table' :
+				msg+= ' table ' + this.tableId ;
 				break ;
 			default :
 				return ;
@@ -413,6 +472,9 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 				break ;
 			case 'file' :
 				msg+= ' file ' + this.fileId ;
+				break ;
+			case 'table' :
+				msg+= ' table ' + this.tableId ;
 				break ;
 			default :
 				return ;
@@ -456,6 +518,13 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 				}) ;
 			break ;
 			
+			case 'table' :
+				Ext.apply( ajaxParams, {
+					data_type: 'table',
+					table_code : this.tableId
+				}) ;
+			break ;
+			
 			default:
 				Ext.Msg.alert('Status', 'Shouldnt happen !!!');
 				return ;
@@ -472,7 +541,8 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 					me.optimaModule.postCrmEvent('definechange',{
 						dataType:me.dataType,
 						bibleId:me.bibleId,
-						fileId:me.fileId
+						fileId:me.fileId,
+						tableId:me.tableId
 					}) ;
 				}
 			},
@@ -501,6 +571,13 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 				}) ;
 			break ;
 			
+			case 'table' :
+				Ext.apply( ajaxParams, {
+					data_type: 'table',
+					table_code : this.tableId
+				}) ;
+			break ;
+			
 			default:
 				Ext.Msg.alert('Status', 'Shouldnt happen !!!');
 				return ;
@@ -517,7 +594,8 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 					me.optimaModule.postCrmEvent('definechange',{
 						dataType:me.dataType,
 						bibleId:me.bibleId,
-						fileId:me.fileId
+						fileId:me.fileId,
+						tableId:me.tableId
 					}) ;
 					me.destroy() ;
 				}

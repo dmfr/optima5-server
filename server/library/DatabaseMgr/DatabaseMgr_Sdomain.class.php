@@ -167,8 +167,8 @@ CREATE TABLE `define_table_field` (
   `table_field_code` varchar(20) NOT NULL,
   `table_field_index` int(11) NOT NULL,
   `table_field_type` varchar(10) NOT NULL,
-  `entry_field_is_primarykey` varchar(1) NOT NULL,
-  `entry_field_is_index` varchar(1) NOT NULL,
+  `table_field_is_primarykey` varchar(1) NOT NULL,
+  `table_field_is_index` varchar(1) NOT NULL,
   PRIMARY KEY (`table_code`,`table_field_code`)
 ) ;
 
@@ -1261,7 +1261,7 @@ EOF;
 		$query = "CREATE ALGORITHM=MERGE VIEW {$sdomain_db}.{$view_name} AS ".implode(' UNION ALL ',$union_queries) ;
 		$_opDB->query($query) ;
 	}
-	private function sdomainDefine_buildTable( $sdomain_id , $table_code ) {
+	public function sdomainDefine_buildTable( $sdomain_id , $table_code ) {
 		$_opDB = $this->_opDB ;
 		$sdomain_db = $this->getSdomainDb( $sdomain_id ) ;
 	
@@ -1278,7 +1278,7 @@ EOF;
 			$arr_field_type = array() ;
 			$arr_field_isIndex = array() ;
 			$arr_media_define = array() ;
-			$query = "SELECT * FROM {$sdomain_db}.define_table_entry WHERE table_code='$table_code' ORDER BY table_field_index" ;
+			$query = "SELECT * FROM {$sdomain_db}.define_table_field WHERE table_code='$table_code' ORDER BY table_field_index" ;
 			$result = $_opDB->query($query) ;
 			while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
 			{
@@ -1293,11 +1293,8 @@ EOF;
 		
 		
 		
-		$db_table = 'store_table_'.$file_code ;
+		$db_table = 'store_table_'.$table_code ;
 		$arrAssoc_dbField_fieldType = array() ;
-		$arr_model_keys = array(
-			'PRIMARY'=>array('arr_columns'=>array_keys($arr_field_isPrimaryKey))
-		) ;
 		$arrAssoc_crmField_dbField = array() ;
 		foreach( $arr_field_type as $field_code => $field_type )
 		{
@@ -1365,22 +1362,22 @@ EOF;
 				$primaryKey_arrColumns[] = $field_name ;
 			}
 		}
-		/*
 		if( $_mode_primaryKey && is_array($primaryKey_arrColumns) && count($primaryKey_arrColumns) > 0 ) {
-			$arr_model_keys['CRM_PRIMARY'] = array('non_unique'=>'1','arr_columns'=>$primaryKey_arrColumns) ;
+			$arr_model_keys['PRIMARY'] = array('arr_columns'=>$primaryKey_arrColumns) ;
 		}
-		*/
 		
 		DatabaseMgr_Util::syncTableStructure( $sdomain_db , $db_table , $arrAssoc_dbField_fieldType , $arr_model_keys ) ;
 		
-		$view_name = 'view_table_'.$file_code ;
+		$view_name = 'view_table_'.$table_code ;
 		$query = "DROP VIEW IF EXISTS {$sdomain_db}.{$view_name}" ;
 		$_opDB->query($query) ;
 		
 		$query = "CREATE ALGORITHM=MERGE VIEW {$sdomain_db}.{$view_name} AS SELECT" ;
+		$fields = array() ;
 		foreach( $arrAssoc_crmField_dbField as $field_crm => $field_name ) {
-			$query.= ",data.{$field_name} AS {$field_crm}" ;
+			$fields[]= "data.{$field_name} AS {$field_crm}" ;
 		}
+		$query.= ' '.implode(',',$fields) ;
 		$query.= " FROM {$sdomain_db}.{$db_table} data" ;
 		$query.= " " ;
 		$_opDB->query($query) ;
@@ -1460,7 +1457,7 @@ EOF;
 		$query = "DROP VIEW IF EXISTS {$sdomain_db}.{$view_name}" ;
 		$_opDB->query($query) ;
 		
-		$table_name = 'store_file_'.$table_code ;
+		$table_name = 'store_table_'.$table_code ;
 		$query = "DROP TABLE IF EXISTS {$sdomain_db}.{$table_name}" ;
 		$_opDB->query($query) ;
 	}

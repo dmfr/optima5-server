@@ -43,6 +43,18 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 				{"dataType":"date", "dataTypeLib":"Date"}
 			]
 		});
+		this.tableFieldType = Ext.create('Ext.data.Store', {
+			fields: ['dataType', 'dataTypeLib'],
+			data : [
+				{"dataType":"_label", "dataTypeLib":"None/Label"},
+				{"dataType":"string", "dataTypeLib":"String"},
+				{"dataType":"stringplus", "dataTypeLib":"Text"},
+				{"dataType":"number", "dataTypeLib":"Number"},
+				{"dataType":"bool", "dataTypeLib":"Boolean"},
+				{"dataType":"extid", "dataTypeLib":"Ext.ID"},
+				{"dataType":"date", "dataTypeLib":"Date"}
+			]
+		});
 		
 		this.parentFiles = Ext.create('Ext.data.Store', {
 			fields: ['fileCode', 'fileLib'],
@@ -95,6 +107,10 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 					fieldLinkbibleColumnKey = 'entry_field_linkbible' ;
 					fieldTypesStore = this.entryFieldType ;
 					break ;
+				case 'table' :
+					fieldTypeColumnKey = 'table_field_type' ;
+					fieldTypesStore = this.tableFieldType ;
+					break ;
 				default :
 					return value ;
 					break ;
@@ -140,6 +156,9 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 		}
 		var entryFieldTypeRenderer = function( value, metaData, record, rowIndex, colIndex, store, view ) {
 			return me.fieldTypeRenderer( value, metaData, record, 'entry' ) ;
+		}
+		var tableFieldTypeRenderer = function( value, metaData, record, rowIndex, colIndex, store, view ) {
+			return me.fieldTypeRenderer( value, metaData, record, 'table' ) ;
 		}
 		
 		var tabitems = new Array() ;
@@ -405,6 +424,58 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 				}
 			}]
 		});
+		var fieldstab = new Object() ;
+		Ext.apply( fieldstab, {
+			title:'Fields',
+			itemId:'fieldstab',
+			xtype:'damsembeddedgrid',
+			columns: {
+				defaults: {
+					menuDisabled: true,
+					draggable: false,
+					sortable: false
+				},
+				items: [{
+					text: 'Field Code',
+					// width: 40,
+					width:220,
+					dataIndex: 'table_field_code',
+					editor:{xtype:'textfield',allowBlank:false}
+				},{
+					text: 'Node Type',
+					//width: 40,
+					width:210,
+					dataIndex: 'table_field_type',
+					renderer: tableFieldTypeRenderer,
+					linkbibleTpl:{xtype:'displayfield'},
+					editorTpl:{xtype:'combobox', matchFieldWidth:false,listConfig:{width:200}, forceSelection:true, editable:false, queryMode: 'local',displayField: 'dataTypeLib',valueField: 'dataType',store:this.tableFieldType}
+				},{
+					xtype: 'booleancolumn',
+					itemId: 'primaryKeyColumn',
+					type: 'boolean',
+					defaultValue : false ,
+					text: 'Key?',
+					width: 50,
+					trueText: '<b>X</b>',
+					falseText: '' ,
+					align: 'center',
+					hidden: true,
+					dataIndex: 'table_field_is_primarykey',
+					editor:{xtype:'checkboxfield'}
+				},{
+					xtype: 'booleancolumn',
+					type: 'boolean',
+					defaultValue : true ,
+					text: 'Index?',
+					width: 50,
+					trueText: '<b>X</b>',
+					falseText: '' ,
+					align: 'center',
+					dataIndex: 'table_field_is_index',
+					editor:{xtype:'checkboxfield'}
+				}]
+			}
+		});
 		
 		switch( this.defineDataType ) {
 			case 'bible' :
@@ -415,6 +486,10 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 			case 'file' :
 				tabitems.push( elementtab ) ;
 				tabitems.push( calendartab ) ;
+				break;
+			
+			case 'table' :
+				tabitems.push( fieldstab ) ;
 				break;
 		}
 		
@@ -507,6 +582,47 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 				boxLabel: 'Enable'
 			}] ;
 		}
+		if( this.defineDataType == 'table' ){
+			formitems = [{
+				xtype: 'fieldcontainer',
+				fieldLabel: 'Table Code / Type',
+				layout: 'hbox',
+				height: 22,
+				items : [{
+					xtype: 'textfield',
+					name: 'store_code',
+					maxWidth: 200,
+					readOnly : (this.defineIsNew == false)
+				},{
+					xtype: 'box',
+					html: '&#160;',
+					width: 6
+				},{
+					xtype:'combobox', 
+					name: 'store_type',
+					forceSelection:true,
+					editable:false,
+					queryMode: 'local',
+					displayField: 'storeTypeLib' ,
+					valueField: 'storeType',
+					maxWidth: 300,
+					store:{
+						fields: ['storeType', 'storeTypeLib'],
+						data: [
+							{"storeType":"","storeTypeLib":"Std / Fieldset"},
+							{"storeType":"table_primarykey","storeTypeLib":"Table w/ primarykey"}
+						]
+					},
+					//readOnly : (this.defineIsNew == false),
+					listeners: {
+						select:{
+							fn: this.calcFormLayout,
+							scope : this
+						}
+					}
+				}]
+			}] ;
+		}
 		
 		// console.log('Creation define '+this.defineDataType+' '+this.defineBibleId) ;
 		Ext.apply(this,{
@@ -517,7 +633,7 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 			
 			items : [{
 				xtype:'form',
-				flex: 1,
+				flex: (this.defineDataType != 'table' ? 1 : undefined),
 				frame: true,
 				bodyPadding: 5,
 				fieldDefaults: {
@@ -585,6 +701,12 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 					file_code: this.defineFileId
 				});
 			}
+			if( this.defineDataType == 'table' ) {
+				Ext.apply(ajaxParams,{
+					_subaction: 'init_modify',
+					table_code: this.defineTableId
+				});
+			}
 		}
 		
 		// Envoi AJAX pour ouvrir la session 
@@ -633,6 +755,9 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 				case 'elementtab' :
 					params['_subaction']='entryFields_get' ;
 					break ;
+				case 'fieldstab' :
+					params['_subaction']='fields_get' ;
+					break ;
 				default :
 					console.log('???') ;
 					return ;
@@ -673,7 +798,8 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 	configureEditors: function() {
 		var me = this ,
 			treegrid = me.query('tabpanel')[0].child('#treetab'),
-			elementgrid = me.query('tabpanel')[0].child('#elementtab') ;
+			elementgrid = me.query('tabpanel')[0].child('#elementtab'),
+			fieldsgrid = me.query('tabpanel')[0].child('#fieldstab') ;
 		
 		if( treegrid != null ) {
 			treegrid.getPlugin('rowEditor').on({
@@ -695,6 +821,18 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 				},
 				'edit': {
 					fn: me.onAfterEditElementGrid,
+					scope: me
+				}
+			});
+		}
+		if( fieldsgrid != null ) {
+			fieldsgrid.getPlugin('rowEditor').on({
+				'beforeedit': {
+					fn: me.onBeforeEditFieldsGrid,
+					scope: me
+				},
+				'edit': {
+					fn: me.onAfterEditFieldsGrid,
 					scope: me
 				}
 			});
@@ -778,12 +916,18 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 				}] ;
 			elementgrid.child('toolbar').child('#add').menu.add(addMenu);
 		}
+		if( this.defineDataType == 'table' ) {
+			
+		}
 	},
 	onBeforeEditTreeGrid: function(editor,editEvent) {
 		return this.onBeforeEditGrid( editor,editEvent,'tree' ) ;
 	},
 	onBeforeEditElementGrid: function(editor,editEvent) {
 		return this.onBeforeEditGrid( editor,editEvent,'element' ) ;
+	},
+	onBeforeEditFieldsGrid: function(editor,editEvent) {
+		return this.onBeforeEditGrid( editor,editEvent,'fields' ) ;
 	},
 	onBeforeEditGrid: function(editor,editEvent,gridType) {
 		var me = this ;
@@ -806,6 +950,9 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 				fieldTypeColumnKey = 'entry_field_type' ;
 				fieldLinktypeColumnKey = 'entry_field_linktype' ;
 				fieldLinkbibleColumnKey = 'entry_field_linkbible' ;
+				break ;
+			case 'fields' :
+				fieldTypeColumnKey = 'table_field_type' ;
 				break ;
 		}
 		var fieldType = ( (editEvent.record != null) ? editEvent.record.get(fieldTypeColumnKey) : null ) ;
@@ -858,6 +1005,9 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 	onAfterEditElementGrid: function(editor,editEvent) {
 		return this.onAfterEditGrid( editor,editEvent,'element' ) ;
 	},
+	onAfterEditFieldsGrid: function(editor,editEvent) {
+		return this.onAfterEditGrid( editor,editEvent,'fields' ) ;
+	},
 	onAfterEditGrid: function(editor,editEvent,gridType) {
 		var me = this ;
 		
@@ -877,6 +1027,9 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 				fieldTypeColumnKey = 'entry_field_type' ;
 				fieldLinktypeColumnKey = 'entry_field_linktype' ;
 				fieldLinkbibleColumnKey = 'entry_field_linkbible' ;
+				break ;
+			case 'fields' :
+				fieldTypeColumnKey = 'table_field_type' ;
 				break ;
 		}
 		var fieldType = ( (editEvent.record != null) ? editEvent.record.get(fieldTypeColumnKey) : null ) ;
@@ -987,6 +1140,11 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 						showCalendarTab = false ;
 						break ;
 						
+					case 'table_primarykey' :
+						hideFieldsets = false ;
+						showPrimarykeyCol = true ;
+						break ;
+						
 					case '' :
 					default :
 						hideFieldsets = false ;
@@ -1018,7 +1176,13 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 		}
 		
 		var elementTab = this.query('> tabpanel')[0].child('#elementtab'),
-			primarykeyCol = elementTab.query('#primaryKeyColumn')[0] ;
+			primarykeyCol = ( elementTab ? elementTab.query('#primaryKeyColumn')[0] : null ) ;
+		if( primarykeyCol ){
+			primarykeyCol[showPrimarykeyCol ? 'show' : 'hide']();
+		}
+		
+		var fieldsTab = this.query('> tabpanel')[0].child('#fieldstab'),
+			primarykeyCol = ( fieldsTab ? fieldsTab.query('#primaryKeyColumn')[0] : null ) ;
 		if( primarykeyCol ){
 			primarykeyCol[showPrimarykeyCol ? 'show' : 'hide']();
 		}
@@ -1065,6 +1229,9 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 					break ;
 				case 'elementtab' :
 					params['_subaction']='entryFields_set' ;
+					break ;
+				case 'fieldstab' :
+					params['_subaction']='fields_set' ;
 					break ;
 				default :
 					console.log('???') ;
