@@ -53,6 +53,18 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigMetaPanel', {
 						name: 'gen_ext_avocat',
 						fieldLabel: 'Nom Avocat'
 					}]
+				},{
+					xtype: 'fieldset',
+					title: 'Pied de page courriers',
+					fieldDefaults: {
+						labelWidth: 135,
+						anchor: '100%'
+					},
+					items: [{
+						xtype: 'textarea',
+						name: 'gen_mail_footer',
+						fieldLabel: 'Pied de page'
+					}]
 				}]
 			},{
 				flex: 2,

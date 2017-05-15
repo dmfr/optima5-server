@@ -104,7 +104,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AdrbookTypeContainer',{
 				accountRecord: this._accountRecord,
 				name: prefix+'_result',
 				allowBlank: false,
-				fieldLabel: 'Retour courrier'
+				fieldLabel: 'Retour courrier',
+				listeners: {
+					change: this.onSelectResult,
+					scope: this
+				}
 			})) ;
 		}
 		if( this._showResult && this._adrType=='TEL' ) {

@@ -115,7 +115,9 @@ function specRsiRecouveo_doc_populateStatic( $doc ) {
 		'static_entity_adr' => nl2br($config_map['gen_entity_adr']),
 		
 		'static_ext_recouv' => $config_map['gen_ext_recouv'],
-		'static_ext_avocat' => $config_map['gen_ext_avocat']
+		'static_ext_avocat' => $config_map['gen_ext_avocat'],
+		
+		'static_mail_footer' => $config_map['gen_mail_footer']
 	);
 	
 	// Replace
@@ -257,6 +259,9 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE ) {
 	$map_mkey_value += array(
 		'payment_ref_client' => $accFile_record['acc_id']
 	);
+	$map_mkey_value += array(
+		'table_refcli' => $accFile_record['acc_id']
+	);
 	foreach( $p_inputFields as $k=>$v ) {
 		if( !(strpos($k,'input_')===0) ) {
 			continue ;
@@ -267,13 +272,10 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE ) {
 	
 	// ************ DONNEES Tableau ***********************
 	$map_columns = array(
-		'record_id' => 'Ref Facture',
-		'date_record' => 'Date<br>facture',
-		'date_value' => 'Date<br>échéance',
-		'obs1' => 'Libellé',
-		'obs2' => 'Obs.',
-		'amount_tot' => 'Solde TTC',
-		'amount_due' => 'Dont échu'
+		'record_id' => 'Réf. pièce',
+		'date_value' => 'Date',
+		'type_temprec' => 'Journal',
+		'amount_tot' => 'Montant'
 	);
 	$table_columns = array() ;
 	foreach( $map_columns as $mkey => $mvalue ) {
@@ -287,6 +289,8 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE ) {
 	foreach( $accFile_record['records'] as $record_row ) {
 		$row_table = array(
 			'record_id' => $record_row['record_id'],
+			'type_temprec' => $record_row['type_temprec'],
+			'txt' => $record_row['txt'],
 			'date_record' => date('d/m/Y',strtotime($record_row['date_record'])),
 			'date_value' => date('d/m/Y',strtotime($record_row['date_value'])),
 			'amount_tot' => number_format($record_row['amount'],2),

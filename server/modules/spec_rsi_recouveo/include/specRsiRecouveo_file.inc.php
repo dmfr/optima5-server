@@ -169,6 +169,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 		}
 		$record_row += array(
 			'type' => $arr['field_TYPE'],
+			'type_temprec' => $arr['field_TYPE_TEMPREC'],
 			'record_id' => $arr['field_RECORD_ID'],
 			'acc_id' => $arr['field_LINK_ACCOUNT'],
 			'date_record' => $arr['field_DATE_RECORD'],
