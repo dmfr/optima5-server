@@ -370,7 +370,7 @@ function paracrm_queries_qsql_lib_exec($querystring, $is_rw=FALSE, $auth_bypass=
 		if( $is_superuser ) {
 			$privileges = 'ALL PRIVILEGES' ;
 		} elseif( $is_rw && !$auth_bypass ) {
-			$privileges = 'SELECT,UPDATE,INSERT,DELETE' ;
+			$privileges = 'SELECT,UPDATE,INSERT,DELETE,DROP' ;
 		} else {
 			$privileges = 'SELECT' ;
 		}
