@@ -1,3 +1,8 @@
+2016-10 InnoDB
+
+mysql -e "SELECT concat('ALTER TABLE ',TABLE_NAME,' ENGINE=InnoDB;') FROM Information_schema.TABLES WHERE TABLE_SCHEMA = 'op5_dbs_prod_mach'  AND ENGINE =  'MyISAM'  AND TABLE_TYPE='BASE TABLE'" | tail -n+2 > ~/alter_inno.sql
+
+
 2016-07 Terminal ?
 http://www.masswerk.at/termlib/
 http://dailyjs.com/2015/01/22/terminaljs/
