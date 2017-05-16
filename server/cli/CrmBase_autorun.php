@@ -10,6 +10,7 @@ $app_root='..' ;
 //include("$server_root/backend_checksession.inc.php") ;
 
 include("$server_root/include/config.inc.php");
+include("$server_root/include/toolfunctions.inc.php");
 
 include( "$server_root/include/database/mysql_DB.inc.php" ) ;
 $_opDB = new mysql_DB( );
@@ -67,15 +68,25 @@ function do_autorun( $domain_id ) {
 function do_autorun_sdomain( $sql_database ) {
 	global $_opDB ;
 	
-	$query = "SELECT sql_querystring, sql_is_rw
+	$query = "SELECT sql_querystring, sql_is_rw, qsql_name
 		FROM {$sql_database}.qsql
 		WHERE autorun_is_on='O'" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 		$sql_querystring = $arr[0] ;
 		$sql_is_rw = ($arr[1]=='O') ;
+		
+		$mt_start = microtime(true) ;
 		$ret = paracrm_queries_qsql_lib_exec($sql_querystring,$sql_is_rw) ;
+		$mt_duration = microtime(true) - $mt_start ;
 		//print_r($ret) ;
+		
+		$lig = '' ;
+		$lig = substr_mklig($lig,date('Y-m-d H:i:s'),0,30) ;
+		$lig = substr_mklig($lig,$sql_database,30,30) ;
+		$lig = substr_mklig($lig,$arr[2],60,30) ;
+		$lig = substr_mklig($lig,round($mt_duration,1),90,10) ;
+		echo $lig."\n" ;
 	}
 }
 
