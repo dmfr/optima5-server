@@ -260,20 +260,6 @@ function paracrm_android_query_buildTables_forQsql( $qsql_id , $dest_querysrc_id
 	$arr_ins['querysrc_type'] = 'qsql' ;
 	$arr_ins['querysrc_name'] = $arr['qsql_name'] ;
 	$_opDB->insert('tmp_input_query',$arr_ins) ;
-	
-	if( $arr_ins['querysrc_name'] == 'TEST' || $arr_ins['querysrc_name'] == '161130 : CA + Vol par Client' ) {
-		$arr_ins = array() ;
-		$arr_ins['querysrc_id'] = $dest_querysrc_id ;
-		$arr_ins['querysrc_targetfield_ssid'] = $dest_querysrc_index ;
-		$arr_ins['field_is_optional'] = '' ;
-		$arr_ins['field_type'] = 'link' ;
-		$arr_ins['field_linkbible'] = 'CLI_LOG' ;
-		
-				$query = "SELECT bible_lib FROM define_bible WHERE bible_code='{$arr_ins['field_linkbible']}'" ;
-				$arr_ins['field_lib'] = 'Bible <'.$_opDB->query_uniqueValue($query).'>' ;
-		
-		$_opDB->insert('tmp_input_query_where',$arr_ins) ;
-	}
 }
 function paracrm_android_query_buildTables_toolIsWhereSet( $arrDB_where ) {
 	switch( $arrDB_where['field_type'] ) {
@@ -457,26 +443,13 @@ function paracrm_android_query_fetchResult( $post_data ) {
 		
 		
 		case 'qsql' :
-		if( $arr_where_conditions ) {
-			$vars = array() ;
-			foreach( $arr_where_conditions as $querysrc_targetfield_ssid => $condition ) {
-				$query_fieldwhere_idx = $querysrc_targetfield_ssid - 1 ;
-				foreach( $condition as $mkey => $mvalue ) {
-					if( strpos($mkey,'condition_') === 0 ) {
-						$var_name = 'var_'.$querysrc_targetfield_ssid.'_'.$mkey ;
-						$vars[$var_name] = $mvalue ;
-					}
-				}
-			}
-		}
-		
 		$qsql_id = $_opDB->query_uniqueValue("SELECT target_qsql_id FROM input_query_src WHERE querysrc_id='$querysrc_id'") ;
 		//error_log('Qmerge_id :'.$qmerge_id) ;
 		
 		$arr_saisie = array() ;
 		paracrm_queries_qsqlTransaction_init( array('qsql_id'=>$qsql_id) , $arr_saisie ) ;
 		
-		$RES = paracrm_queries_qsql_lib_exec($arr_saisie['sql_querystring'], $is_rw=FALSE, $auth_bypass=TRUE, $vars) ;
+		$RES = paracrm_queries_qsql_lib_exec($arr_saisie['sql_querystring'], $is_rw=FALSE, $auth_bypass=TRUE) ;
 		error_log(print_r($RES,true)) ;
 		
 		if( $post_data['xls_export'] == 'true' ) {
