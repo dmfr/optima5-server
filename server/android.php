@@ -1,6 +1,19 @@
 <?php
 $app_root='..' ;
 $server_root='.' ;
+if( is_file($app_root.'/DEV') ) {
+	if( $_POST )
+	{
+		$data = print_r($_POST,TRUE) ;
+		$filename = "/var/log/apache2/android_".time().'_'.strlen($data).'.txt' ;
+		@file_put_contents($filename,$data) ;
+	}
+	else
+	{
+		$filename = "/var/log/apache2/android_".time().'_0.txt' ;
+		@file_put_contents($filename,"No data") ;
+	}
+}
 
 if( $_SERVER['PATH_INFO'] && strlen($_SERVER['PATH_INFO']) > 1 ) {
 	$_PATH_INFO = explode('/',$_SERVER['PATH_INFO']) ;
@@ -12,13 +25,7 @@ if( $_SERVER['PATH_INFO'] && strlen($_SERVER['PATH_INFO']) > 1 ) {
 	$_POST['_domainId'] = $_PATH_INFO[1] ;
 	$_POST['_sdomainId'] = $_PATH_INFO[2] ;
 	
-} else {
-	$_POST['_domainId'] = 'wonderful' ;
-	$_POST['_sdomainId'] = 'fdvfr' ;
-	//header("HTTP/1.0 404 Not Found");
-	//die() ;
 }
-
 
 $domain = $_POST['_domainId'].'_prod' ;
 $sdomain_id = $_POST['_sdomainId'] ;
