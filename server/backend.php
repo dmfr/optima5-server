@@ -1,4 +1,5 @@
 <?php
+$mt_start = microtime(true) ;
 //ob_start() ;
 $app_root='..' ;
 $server_root='.' ;
@@ -37,5 +38,9 @@ if( $my_sdomain ) {
 
 //ob_end_clean() ;
 header('Content-type: application/json');
+if( is_array($TAB) && $GLOBALS['__OPTIMA_TEST'] ) {
+	$mt_duration = microtime(true) - $mt_start ;
+	$TAB['debug_mt'] = $mt_duration ;
+}
 die( json_encode($TAB) ) ;
 ?>
