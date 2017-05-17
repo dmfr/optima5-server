@@ -134,6 +134,14 @@ Ext.define('Optima5.Modules.CrmBase.MainDscWindow',{
 					},
 					scope : me
 				}) ;
+				btnTables.menu.add({
+					iconCls: 'op5-crmbase-datatoolbar-file-importdata',
+					text: 'Import into new Table' ,
+					handler : function() {
+						me.openTableImportNew() ;
+					},
+					scope : me
+				}) ;
 			}
 		}
 		btnTables.setIconCls('op5-crmbase-mainwindow-tables') ;
@@ -201,5 +209,37 @@ Ext.define('Optima5.Modules.CrmBase.MainDscWindow',{
 	openTableDefineNew: function() {
 		var me = this ;
 		Optima5.Modules.CrmBase.DataWindow.sOpenDefineWindow(me.optimaModule,'table',true) ;
+	},
+	openTableImportNew: function() {
+		var me = this ;
+		
+		var setSizeFromParent = function( parentPanel, targetPanel ) {
+			targetPanel.setSize({
+				width: parentPanel.getSize().width - 20,
+				height: parentPanel.getSize().height - 60
+			}) ;
+		};
+		
+		var dataImportPanel = Ext.create('Optima5.Modules.CrmBase.DataImportPanel',{
+			parentDataWindow: {
+				optimaModule: this.optimaModule,
+				dataType: 'table'
+			}
+		});
+		
+		win = this.optimaModule.createWindow({
+			title:'Store definition',
+			width:1000,
+			height:600,
+			iconCls: 'op5-crmbase-datatoolbar-file-importdata',
+			animCollapse:false,
+			border: false,
+			layout: 'fit',
+			items: [ dataImportPanel ]
+		}) ;
+		dataImportPanel.win = win ;
+		dataImportPanel.on('destroy',function(p) {
+			p.win.close() ;
+		}) ;
 	}
 }) ;

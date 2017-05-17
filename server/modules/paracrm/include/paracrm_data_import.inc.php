@@ -14,6 +14,10 @@ function paracrm_data_importDirect( $post_data ) {
 			$store_code = $post_data['file_code'] ;
 			break ;
 			
+		case 'table' :
+			$store_code = $post_data['table_code'] ;
+			break ;
+			
 		default :
 			break ;
 	}
@@ -61,6 +65,10 @@ function paracrm_data_importTransaction( $post_data )
 			case 'file' :
 				$arr_saisie['file_code'] = $post_data['file_code'] ;
 				break ;
+			case 'table' :
+				$arr_saisie['table_code'] = $post_data['table_code'] ;
+				$arr_saisie['table_is_new'] = !$post_data['table_code'] ;
+				break ;
 			default :
 				return array('success'=>false) ;
 		}
@@ -91,6 +99,18 @@ function paracrm_data_importTransaction( $post_data )
 						Auth_Manager::sdomain_getCurrent(),
 						'files',
 						array('file_code'=>$post_data['file_code']),
+						$write=true
+					)
+				) {
+					return array('success'=>false, 'denied'=>true) ;
+				}	
+				break ;
+				
+			case 'table' :
+				if( !Auth_Manager::getInstance()->auth_query_sdomain_action(
+						Auth_Manager::sdomain_getCurrent(),
+						'tables',
+						array('table_code'=>$post_data['table_code']),
 						$write=true
 					)
 				) {
@@ -128,6 +148,9 @@ function paracrm_data_importTransaction( $post_data )
 			case 'do_commit' :
 				$json = paracrm_data_importTransaction_doCommit( $post_data , $arr_saisie ) ;
 				break ;
+			case 'do_commit_new' :
+				$json = paracrm_data_importTransaction_doCommitNew( $post_data , $arr_saisie ) ;
+				break ;
 			
 			default :
 				$json = array('success'=>false) ;
@@ -164,10 +187,15 @@ function paracrm_data_importTransaction_init( $post_data, &$arr_saisie ) {
 		case 'file' :
 			$store_code = $arr_saisie['file_code'] ;
 			break ;
+		case 'table' :
+			$store_code = $arr_saisie['table_code'] ;
+			break ;
 		default :
 			return array('success'=>false) ;
 	}
-	if( ($arr_saisie['treefields_root'] = paracrm_lib_dataImport_getTreefieldsRoot( $arr_saisie['data_type'],$store_code )) === FALSE ) {
+	if( $arr_saisie['table_is_new'] ) {
+	
+	} elseif( ($arr_saisie['treefields_root'] = paracrm_lib_dataImport_getTreefieldsRoot( $arr_saisie['data_type'],$store_code )) === FALSE ) {
 		return array('success'=>false) ;
 	}
 	
@@ -175,7 +203,8 @@ function paracrm_data_importTransaction_init( $post_data, &$arr_saisie ) {
 		'success'=>true,
 		'_mirror'=>$post_data,
 		'transaction_id'=>$post_data['_transaction_id'],
-		'treefields_root' => $arr_saisie['treefields_root']
+		'treefields_root' => $arr_saisie['treefields_root'],
+		'is_new' => $arr_saisie['table_is_new']
 	) ;
 }
 function paracrm_data_importTransaction_upload( $post_data, &$arr_saisie ) {
@@ -212,7 +241,7 @@ function paracrm_data_importTransaction_setParams( $post_data, &$arr_saisie ) {
 	$post_params = json_decode($post_data['csvsrc_params'],true) ;
 	
 	$csvsrc_params =& $arr_saisie['csvsrc_params'] ;
-	$csvsrc_params['firstrow_is_header'] = ($post_params['firstrow_is_header']=='true') ;
+	$csvsrc_params['firstrow_is_header'] = ($post_params['firstrow_is_header']=='true' || $arr_saisie['table_is_new']) ;
 	$csvsrc_params['delimiter'] = $post_params['delimiter'] ;
 	
 	//print_r($arr_saisie['csvsrc_params']) ;
@@ -258,6 +287,9 @@ function paracrm_data_importTransaction_getResponse( &$arr_saisie ) {
 			case 'file' :
 				$store_code = $arr_saisie['file_code'] ;
 				break ;
+			case 'table' :
+				$store_code = $arr_saisie['table_code'] ;
+				break ;
 			default :
 				$store_code = NULL ;
 				break ;
@@ -273,6 +305,8 @@ function paracrm_data_importTransaction_getResponse( &$arr_saisie ) {
 			$data['map_fieldCode_csvsrcIdx'] = paracrm_lib_dataImport_getMapping($importmap_id, $arr_saisie['csvsrc_arrHeadertxt']) ;
 			$arr_saisie['csvsrc_params']['firstrow_is_header'] = TRUE ;
 			$arr_saisie['csvsrc_params']['truncate_mode'] = paracrm_lib_dataImport_getTruncateMode($importmap_id) ;
+		} elseif( $arr_saisie['table_is_new'] ) {
+			$arr_saisie['csvsrc_params']['firstrow_is_header'] = TRUE ;
 		}
 	}
 	
@@ -347,6 +381,7 @@ function paracrm_data_importTransaction_doCommit( $post_data, &$arr_saisie ) {
 	$validation_error = NULL ;
 	switch( $arr_saisie['data_type'] ) {
 		case 'bible' :
+		case 'table' :
 			break ;
 			
 		case 'file' :
@@ -429,7 +464,10 @@ function paracrm_data_importTransaction_doCommit( $post_data, &$arr_saisie ) {
 	
 	return array('success'=>true) ;
 }
-
-
+function paracrm_data_importTransaction_doCommitNew( $post_data, &$arr_saisie ) {
+	global $_opDB ;
+	
+	return array('success'=>true) ;
+}
 
 ?>

@@ -275,7 +275,7 @@ function paracrm_define_truncate( $post_data ) {
 		
 		case 'table' :
 		$t = new DatabaseMgr_Sdomain( DatabaseMgr_Base::dbCurrent_getDomainId() );
-		$t->sdomainDefine_truncateTable( DatabaseMgr_Sdomain::dbCurrent_getSdomainId(), $bible_code ) ;
+		$t->sdomainDefine_truncateTable( DatabaseMgr_Sdomain::dbCurrent_getSdomainId(), $table_code ) ;
 		return array('success'=>true) ;
 		break ;
 	}
@@ -324,9 +324,6 @@ function paracrm_define_drop( $post_data ) {
 			return array('success'=>false) ;
 		}
 		
-		$t = new DatabaseMgr_Sdomain( DatabaseMgr_Base::dbCurrent_getDomainId() );
-		$t->sdomainDefine_dropFile( DatabaseMgr_Sdomain::dbCurrent_getSdomainId(), $file_code ) ;
-		
 		$query = "DELETE FROM define_file WHERE file_code='$file_code'" ;
 		$_opDB->query($query) ;
 		$query = "DELETE FROM define_file_cfg_calendar WHERE file_code='$file_code'" ;
@@ -337,6 +334,9 @@ function paracrm_define_drop( $post_data ) {
 		$_opDB->query($query) ;
 		$query = "DELETE FROM define_file_entry_join_map WHERE file_code='$file_code'" ;
 		$_opDB->query($query) ;
+		
+		$t = new DatabaseMgr_Sdomain( DatabaseMgr_Base::dbCurrent_getDomainId() );
+		$t->sdomainDefine_dropFile( DatabaseMgr_Sdomain::dbCurrent_getSdomainId(), $file_code ) ;
 		
 		return array('success'=>true) ;
 		break ;
@@ -428,7 +428,7 @@ function paracrm_define_manageTransaction( $post_data )
 		
 			case 'table' :
 			$arr_saisie['table_code'] = $post_data['table_code'] ;
-			$query = "SELECT table_code as store_code , table_code as store_lib from define_table WHERE table_code='{$arr_saisie['table_code']}'" ;
+			$query = "SELECT table_code as store_code , table_code as store_lib , table_type as store_type from define_table WHERE table_code='{$arr_saisie['table_code']}'" ;
 			break ;
 		}
 		$result = $_opDB->query($query) ;

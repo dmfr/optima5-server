@@ -4,6 +4,46 @@ function paracrm_lib_dataImport_getTreefieldsRoot( $data_type,$store_code ) {
 	global $_opDB ;
 	
 	switch( $data_type ) {
+		case 'table' :
+			$table_code = $store_code ;
+			$query = "SELECT table_code FROM define_table WHERE table_code='$table_code'" ;
+			$table_lib = $_opDB->query_uniqueValue($query) ;
+			
+			$treefields_root = array();
+			$treefields_root['root'] = true ;
+			$treefields_root['text'] = '.' ;
+			$treefields_root['expanded'] = true ;
+			$treefields_root['children'] = array() ;
+			
+			$tab_fields = array() ;
+			$query = "SELECT * FROM define_table_field WHERE table_code='$table_code' ORDER BY table_field_index" ;
+			$result = $_opDB->query($query);
+			while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
+			{
+				$field = array() ;
+				$field['field_code'] = $arr['table_field_code'] ;
+				$field['field_text'] = $arr['table_field_code'] ;
+				$field['field_text_full'] = $arr['table_field_code'] ;
+				$field['field_type'] = $arr['table_field_type'] ;
+				$field['field_type_full'] = $arr['table_field_type'] ;
+				$field['table_code'] = $table_code ;
+				$field['table_field_code'] = $arr['table_field_code'] ;
+				$field['table_field_is_primarykey'] = ($arr['table_field_is_primarykey']=='O')?true:false ;
+				$field['leaf'] = true ;
+				$tab_fields[] = $field ;
+			}
+			$treefields_root['children'][] = array(
+				'field_code'=>$table_code,
+				'field_text'=>'<b>'.$table_lib.'</b>(fields)',
+				'field_text_full'=>'<b>'.$bible_lib.'</b>(fields)',
+				'table_code' => $table_code,
+				'children'=>$tab_fields,
+				'expanded'=>true
+			) ;
+			
+			return $treefields_root ;
+			
+			
 		case 'file' :
 			$file_code = $store_code ;
 			$TAB = paracrm_lib_file_access( $file_code ) ;

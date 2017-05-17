@@ -23,7 +23,8 @@ Ext.define('Optima5.Modules.CrmBase.CrmBaseModule', {
 				Ext.apply( eventParams, {
 					dataType: postParams.dataType,
 					bibleId: postParams.bibleId,
-					fileId: postParams.fileId
+					fileId: postParams.fileId,
+					tableId: postParams.tableId
 				}) ;
 				break ;
 			

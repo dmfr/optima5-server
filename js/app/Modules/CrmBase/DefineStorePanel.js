@@ -1311,7 +1311,8 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 					this.optimaModule.postCrmEvent('definechange',{
 						dataType: this.defineDataType,
 						bibleId: this.defineBibleId,
-						fileId: this.defineFileId
+						fileId: this.defineFileId,
+						tableId: this.defineTableId
 					});
 					this.destroy() ;
 				}

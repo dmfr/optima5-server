@@ -9,6 +9,8 @@ Ext.define('StoreFieldsTreeModel', {
 		{name: 'field_type_text',   type: 'string'},
 		{name: 'field_linktype',   type: 'string'},
 		{name: 'field_linkbible',   type: 'string'},
+		{name: 'table_code',   type: 'string'},
+		{name: 'table_field_code',   type: 'string'},
 		{name: 'file_code',   type: 'string'},
 		{name: 'file_field_code',   type: 'string'},
 		{name: 'bible_code',   type: 'string'},
@@ -16,6 +18,18 @@ Ext.define('StoreFieldsTreeModel', {
 		{name: 'bible_field_code',   type: 'string'},
 		{name: 'csvsrc_idx', type: 'int', defaultValue: -1 },
 		{name: 'csvsrc_text', type: 'string'}
+	]
+});
+Ext.define('StoreFieldsNewModel', {
+	extend: 'Ext.data.Model',
+	idProperty: 'csvsrc_idx',
+	fields: [
+		{name: 'csvsrc_idx',  type: 'int'},
+		{name: 'csvsrc_text',   type: 'string'},
+		{name: 'new_field_code',   type: 'string'},
+		{name: 'new_field_type',   type: 'string'},
+		{name: 'new_field_is_index',   type: 'boolean'},
+		{name: 'new_field_is_primarykey',   type: 'boolean'}
 	]
 });
 
@@ -26,7 +40,7 @@ Ext.define('Optima5.Modules.CrmBase.DataImportPanel' ,{
 	
 	initComponent: function() {
 		var me = this ;
-		if( (me.parentDataWindow) instanceof Optima5.Modules.CrmBase.DataWindow ) {} else {
+		if( me.parentDataWindow && ((me.parentDataWindow.optimaModule) instanceof Optima5.Module) ) {} else {
 			Optima5.Helper.logError('CrmBase:DataImportPanel','No module reference ?') ;
 		}
 		me.optimaModule = me.parentDataWindow.optimaModule ;
@@ -203,6 +217,7 @@ Ext.define('Optima5.Modules.CrmBase.DataImportPanel' ,{
 				}]
 			},{
 				width: 350,
+				hidden: true,
 				title: 'Target: File fields',
 				xtype: 'treepanel',
 				itemId: 'pFieldsTree',
@@ -315,6 +330,113 @@ Ext.define('Optima5.Modules.CrmBase.DataImportPanel' ,{
 						scope: me
 					}
 				}
+			},{
+				border: false,
+				hidden: true,
+				width: 500,
+				xtype: 'form',
+				itemId: 'pFormNew',
+				bodyCls: 'ux-noframe-bg',
+				bodyPadding: 10,
+				layout: {
+					type: 'vbox',
+					align: 'stretch'
+				},
+				fieldDefaults: {
+					labelWidth: 75,
+					anchor: '100%'
+				},
+				items:[{
+					xtype: 'fieldset',
+					title: 'New table definition',
+					layout: 'anchor',
+					padding: 10,
+					items: [{
+						xtype: 'textfield',
+						name: 'store_code',
+						fieldLabel: 'Table code',
+						allowBlank: false
+					},{
+						xtype:'checkboxfield', 
+						name: 'store_type_primarykey',
+						boxLabel: 'Has primary key',
+						//readOnly : (this.defineIsNew == false),
+						listeners: {
+							change:{
+								fn: function(field,value) {
+									var form = field.up('form'),
+										list = form.down('#fieldsList') ;
+									//list.setVisible(value) ;
+								},
+								scope : this
+							}
+						}
+					}]
+				},{
+					xtype: 'grid',
+					title: 'Columns mapping',
+					flex: 1,
+					store: {
+						model: 'StoreFieldsNewModel',
+						data: [],
+						proxy: {
+							type: 'memory',
+							reader: {
+								type: 'json'
+							}
+						}
+					},
+					plugins: [{
+						ptype: 'cellediting',
+						pluginId: 'cellediting',
+						clicksToEdit: 1
+					}],
+					columns: [{
+						dataIndex: 'csvsrc_text',
+						text: 'Source column',
+						width: 120
+					},{
+						dataIndex: 'new_field_code',
+						text: 'Target code',
+						width: 120,
+						editor: {
+							xtype: 'textfield',
+							maskRe: /[A-Za-z0-9]/
+						}
+					},{
+						dataIndex: 'new_field_type',
+						text: 'Type',
+						width: 80,
+						editor: {
+							xtype: 'combobox',
+							forceSelection: true,
+							editable: false,
+							store: {
+								fields: ['type'],
+								data : [
+									{"type":"string"},
+									{"type":"text"},
+									{"type":"number"},
+									{"type":"extid"},
+									{"type":"date"}
+								]
+							},
+							queryMode: 'local',
+							displayField: 'type',
+							valueField: 'type'
+						}
+					},{
+						xtype: 'checkcolumn',
+						dataIndex: 'new_field_is_primarykey',
+						text: 'Key?',
+						width: 60
+					},{
+						xtype: 'checkcolumn',
+						dataIndex: 'new_field_is_index',
+						text: 'Index?',
+						width: 60
+					}]
+				}]
 			}]
 		}) ;
 		
@@ -331,7 +453,8 @@ Ext.define('Optima5.Modules.CrmBase.DataImportPanel' ,{
 			_subaction: 'init',
 			data_type: me.parentDataWindow.dataType,
 			file_code: me.parentDataWindow.fileId,
-			bible_code: me.parentDataWindow.bibleId
+			bible_code: me.parentDataWindow.bibleId,
+			table_code: me.parentDataWindow.tableId
 		});
 		me.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams ,
@@ -348,8 +471,12 @@ Ext.define('Optima5.Modules.CrmBase.DataImportPanel' ,{
 				}
 				else {
 					me.transaction_id = ajaxReponse.transaction_id ;
-					
-					me.getComponent('pFieldsTree').setRootNode( ajaxReponse.treefields_root ) ;
+					if( ajaxReponse.is_new ) {
+						me.getComponent('pFormNew').setVisible(true);
+					} else {
+						me.getComponent('pFieldsTree').setRootNode( ajaxReponse.treefields_root ) ;
+						me.getComponent('pFieldsTree').setVisible(true);
+					}
 				}
 			},
 			scope: this
@@ -422,8 +549,9 @@ Ext.define('Optima5.Modules.CrmBase.DataImportPanel' ,{
 	
 	handleResponse: function(ajaxResponse) {
 		var me = this,
-			csvGridCtn = me.getComponent('pCsv').getComponent('pCsvGridCtn') ;
-			csvForm = me.getComponent('pCsv').getComponent('pCsvForm') ;
+			csvGridCtn = me.getComponent('pCsv').getComponent('pCsvGridCtn'),
+			csvForm = me.getComponent('pCsv').getComponent('pCsvForm'),
+			formNew = me.getComponent('pFormNew') ;
 		
 		if( ajaxResponse == null || typeof ajaxResponse.data == 'undefined' ) {
 			csvGridCtn.setVisible(false) ;
@@ -507,6 +635,21 @@ Ext.define('Optima5.Modules.CrmBase.DataImportPanel' ,{
 			csvGridCtn.add(csvGrid) ;
 			csvGridCtn.setVisible(true) ;
 		}
+		if( formNew.isVisible() ) {
+			var formNewGridData = [] ;
+			if( ajaxData.grid_columns ) {
+				var csvsrcIdx=0 ;
+				Ext.Array.each( ajaxData.grid_columns, function(csvsrcCol) {
+					formNewGridData.push({
+						csvsrc_idx: csvsrcIdx++,
+						csvsrc_text: csvsrcCol.text,
+						new_field_code: csvsrcCol.text.replace(/[^a-z0-9]+/gi, "").toUpperCase(),
+						new_field_type: 'string'
+					});
+				}) ;
+			}
+			formNew.down('grid').getStore().loadData(formNewGridData) ;
+		}
 		
 		// Load form data
 		if( ajaxData.csvsrc_params ) {
@@ -554,16 +697,68 @@ Ext.define('Optima5.Modules.CrmBase.DataImportPanel' ,{
 		var msgTitle = 'Do import',
 			msgText = 'Commit buffer using selected mapping ?' ;
 		var me = this,
-			csvForm = me.getComponent('pCsv').getComponent('pCsvForm').getForm() ;
+			csvForm = me.getComponent('pCsv').getComponent('pCsvForm').getForm(),
+			formNew = me.getComponent('pFormNew') ;
 		if( csvForm.getValues().file_truncate_mode == 'delete' ) {
 			msgTitle = 'Do delete' ;
 			msgText = '<b>Will delete on primary key(s) match</b>' ;
 		}
+		if( formNew.isVisible() && !formNew.getForm().isValid() ) {
+			return ;
+		}
 		Ext.Msg.confirm(msgTitle, msgText, function(btn){
 			if( btn == 'yes' ) {
-				this.handleCommitDo() ;
+				if( this.getComponent('pFormNew').isVisible() ) {
+					this.handleCommitNew() ;
+				} else {
+					this.handleCommitDo() ;
+				}
 			}
 		},this) ;
+	},
+	handleCommitNew: function() {
+		var me = this,
+			formNew = me.getComponent('pFormNew') ;
+		if( !formNew.isVisible() || !formNew.getForm().isValid() ) {
+			return ;
+		}
+		
+		var values = formNew.getForm().getValues() ;
+		var formNewGridData = [] ;
+		formNew.down('grid').getStore().each( function(rec) {
+			formNewGridData.push( rec.getData() ) ;
+		}) ;
+		values['define_fields'] = formNewGridData ;
+		
+		var ajaxParams = new Object() ;
+		Ext.apply( ajaxParams, {
+			_action: 'data_importTransaction',
+			_transaction_id: me.transaction_id,
+			_subaction: 'do_commit_new',
+			define_data: Ext.JSON.encode(values)
+		});
+		
+		var msgbox = Ext.Msg.wait('Import in progress...');
+		me.optimaModule.getConfiguredAjaxConnection().request({
+			timeout: (10 * 60 * 1000),
+			params: ajaxParams ,
+			success: function( response ) {
+				msgbox.close();
+				var ajaxResponse = Ext.JSON.decode(response.responseText) ;
+				if( ajaxResponse.success ) {
+					me.optimaModule.postCrmEvent('definechange',{
+					});
+					me.destroy() ;
+				} else {
+					var msg = 'Import failed' ;
+					if( ajaxResponse.error ) {
+						msg = ajaxResponse.error ;
+					}
+					Ext.Msg.alert('Failed', msg);
+				}
+			},
+			scope: this
+		});
 	},
 	handleCommitDo: function() {
 		var me = this,
@@ -608,7 +803,8 @@ Ext.define('Optima5.Modules.CrmBase.DataImportPanel' ,{
 					me.optimaModule.postCrmEvent('datachange',{
 						dataType: me.parentDataWindow.dataType,
 						bibleId: me.parentDataWindow.bibleId,
-						fileId: me.parentDataWindow.fileId
+						fileId: me.parentDataWindow.fileId,
+						tableId: me.parentDataWindow.tableId
 					});
 					me.destroy() ;
 				} else {

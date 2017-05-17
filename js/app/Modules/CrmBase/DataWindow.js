@@ -204,6 +204,9 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 	
 	onCrmeventBroadcast: function( crmEvent, eventParams ) {
 		var me = this ;
+		if( this._ignoreCrmEvent ) {
+			return ;
+		}
 		switch( crmEvent ) {
 			case 'datachange' :
 			case 'definechange' :
@@ -591,6 +594,7 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 					Ext.Msg.alert('Failed', 'Failed');
 				}
 				else {
+					me._ignoreCrmEvent = true ;
 					me.optimaModule.postCrmEvent('definechange',{
 						dataType:me.dataType,
 						bibleId:me.bibleId,
