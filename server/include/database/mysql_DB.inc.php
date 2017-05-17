@@ -497,6 +497,25 @@ if (!$result) {
 	    		break;
 		}
 	}
+	function replace( $table, $arr) {
+		switch ($this->type_de_base) {
+			case "MySQL" :
+    			$table = trim($table);
+    			$keys = join(',', array_keys($arr));
+    			$values = array();
+    			foreach(array_values($arr) as $value) {
+    			    $values[] = "'".mysql_real_escape_string( $value, $this->connection)."'";
+    			}
+    			$values = join(',',$values);
+    			$sql="REPLACE INTO $table ($keys) VALUES ($values)";
+        		return $this->query_unbuf($sql);
+			break ;
+
+			case "PostgreSQL" :
+    			pg_insert( $table, $arr );
+	    		break;
+		}
+	}
 	function insert_id()
 	{
 		switch ($this->type_de_base) {
