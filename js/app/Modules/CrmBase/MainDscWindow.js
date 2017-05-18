@@ -7,6 +7,7 @@ Ext.define('Optima5.Modules.CrmBase.MainDscWindow',{
 	],
 	
 	clsForPublished: 'op5-crmbase-published',
+	clsForAutorun:   'op5-crmbase-autorun',
 	
 	initComponent: function() {
 		var me = this,
@@ -42,6 +43,12 @@ Ext.define('Optima5.Modules.CrmBase.MainDscWindow',{
 					//textCaption: '',
 					iconCls: 'op5-crmbase-waitcircle',
 					hidden: (!moduleRecord.get('auth_has_all') && !Ext.Array.contains(moduleRecord.get('auth_arrOpenActions'),'tables'))
+				},{
+					itemId: 'btn-query',
+					textTitle: 'SQL Queries',
+					textCaption: '',
+					iconCls: 'op5-crmbase-waitcircle',
+					hidden: (!moduleRecord.get('auth_has_all') && !Ext.Array.contains(moduleRecord.get('auth_arrOpenActions'),'queries'))
 				},{
 					itemId: 'btn-workflow',
 					textTitle: 'Workflow',
@@ -83,6 +90,9 @@ Ext.define('Optima5.Modules.CrmBase.MainDscWindow',{
 		var me = this ;
 		switch( crmEvent ) {
 			case 'definechange' :
+			case 'querychange' :
+			case 'togglepublishquery' :
+			case 'toggleautorunquery' :
 				me.syncData() ;
 				break ;
 		}
@@ -100,6 +110,13 @@ Ext.define('Optima5.Modules.CrmBase.MainDscWindow',{
 				data_type : 'table'
 			},
 			success: me.onLoadTables,
+			scope: me
+		});
+		ajaxConnection.request({
+			params: {
+				_action : 'queries_getToolbarData'
+			},
+			success: me.onLoadQuery,
 			scope: me
 		});
 	},
@@ -150,6 +167,84 @@ Ext.define('Optima5.Modules.CrmBase.MainDscWindow',{
 			redcount: menuCfg.length,
 			caption: me.getHeadlines(menuCfg)
 		});
+	},
+	onLoadQuery: function( response ) {
+		var me = this ;
+		
+		var respObj = Ext.decode(response.responseText) ;
+		
+		var authReadOnly=false,
+				authDisableAdmin=false;
+		if( respObj.auth_status ) {
+			if( respObj.auth_status.disableAdmin ) {
+				authDisableAdmin = true ;
+			}
+			if( respObj.auth_status.readOnly ) {
+				authReadOnly = true ;
+			}
+		}
+		
+		var qMenuItems = [] ;
+		Ext.Array.each( respObj.data_qsqls , function(v) {
+			var qsqlId = parseInt(v.qsqlId) ;
+			
+			qMenuItems.push({
+				qsqlId: qsqlId,
+				isPublished: v.isPublished,
+				text: v.text,
+				icon: 'images/op5img/ico_sql_16.png' ,
+				cls: ((v.isPublished == true)? me.clsForPublished:null) + ' ' + ((v.isAutorun == true)? me.clsForAutorun:null),
+				handler: function(){
+					me.openQsql( qsqlId, v.authReadOnly ) ;
+				},
+				scope: me
+			});
+		},me) ;
+		Ext.Array.sort( qMenuItems, function(o1,o2) {
+			var o1text = o1.text.toLowerCase(),
+				o2text = o2.text.toLowerCase() ;
+			
+			if( o1text < o2text ) {
+				return -1 ;
+			} else if(  o1text > o2text ) {
+				return 1 ;
+			} else {
+				return 0 ;
+			}
+		}) ;
+		
+		
+		
+		var btnQuery = me.child('toolbar').child('#btn-query') ;
+		var menuCfg = Ext.decode(response.responseText) ;
+		btnQuery.setIconCls('op5-crmbase-mainwindow-query') ;
+		btnQuery.setObjText({
+			title: btnQuery.getObjText().title,
+			redcount: menuCfg.length,
+			caption: me.getHeadlines(qMenuItems)
+		});
+		
+		var menuItems = [] ;
+		// ajout du "new" Qsql
+		if( !authReadOnly ) {
+			menuItems.push({
+				icon: 'images/op5img/ico_sql_16.png' ,
+				text: 'Create SQL' ,
+				handler : function() {
+					me.openQsqlNew() ;
+				},
+				scope : me
+			}) ;
+		}
+		if( !authReadOnly && qMenuItems.length > 0 ) {
+			menuItems.push('-') ;
+		}
+		menuItems = Ext.Array.union(menuItems,qMenuItems) ;
+		
+		if( btnQuery.menu ) {
+			btnQuery.menu.removeAll() ;
+			btnQuery.menu.add(menuItems) ;
+		}
 	},
 	getHeadlines: function( menuCfgArray ) {
 		var sortedCfgArray = Ext.Array.sort( Ext.clone(menuCfgArray), function(o1,o2) {
@@ -241,5 +336,42 @@ Ext.define('Optima5.Modules.CrmBase.MainDscWindow',{
 		dataImportPanel.on('destroy',function(p) {
 			p.win.close() ;
 		}) ;
+	},
+	openQsqlNew: function() {
+		var me = this ;
+		return me.openQwindow({
+			qType: 'qsql',
+			qsqlNew: true
+		});
+	},
+	openQsql: function( qsqlId ) {
+		var me = this ;
+		return me.openQwindow({
+			qType: 'qsql',
+			qsqlId: qsqlId
+		});
+	},
+	openQwindow: function( qCfg ) {
+		var me = this ;
+		
+		// recherche d'une fenetre deja ouverte
+		var doOpen = true ;
+		me.optimaModule.eachWindow(function(win){
+			if( !(win instanceof Optima5.Modules.CrmBase.Qwindow) ) {
+				return true ;
+			}
+			if( Ext.encode(qCfg) == Ext.encode( win.getQcfg() ) ) {
+				win.show() ;
+				win.focus() ;
+				doOpen = false ;
+				return false ;
+			}
+		},me) ;
+		
+		if( !doOpen ) {
+			return ;
+		}
+		
+		me.optimaModule.createWindow(qCfg,Optima5.Modules.CrmBase.Qwindow) ;
 	}
 }) ;
