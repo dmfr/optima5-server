@@ -431,6 +431,7 @@ function paracrm_data_importTransaction_doCommit( $post_data, &$arr_saisie ) {
 		$arr_update['csvsrc_length'] = $arr_saisie['csvsrc_length'] ;
 		$arr_update['target_biblecode'] = ($arr_saisie['data_type']=='bible' ? $arr_saisie['bible_code'] : '') ;
 		$arr_update['target_filecode'] = ($arr_saisie['data_type']=='file' ? $arr_saisie['file_code'] : '') ;
+		$arr_update['target_tablecode'] = ($arr_saisie['data_type']=='table' ? $arr_saisie['table_code'] : '') ;
 		$arr_update['truncate_mode'] = $truncate_mode ;
 		$_opDB->update('importmap',$arr_update,$arr_cond) ;
 		
@@ -466,6 +467,92 @@ function paracrm_data_importTransaction_doCommit( $post_data, &$arr_saisie ) {
 }
 function paracrm_data_importTransaction_doCommitNew( $post_data, &$arr_saisie ) {
 	global $_opDB ;
+	
+	$define_data = json_decode($post_data['define_data'],true) ;
+	$table_code = strtoupper(trim($define_data['store_code'])) ;
+	
+	
+	// Define transaction ?
+	$json = paracrm_define_manageTransaction( array(
+		'_subaction' => 'init_new',
+		'data_type' => 'table'
+	)) ;
+	$transaction_id = $json['transaction_id'] ;
+	$json = paracrm_define_manageTransaction( array(
+		'_transaction_id' => $transaction_id,
+		'_subaction' => 'ent_set',
+		'store_code' => $table_code,
+		'store_lib' => $table_code,
+		'store_type' => ($define_data['store_type_primarykey'] ? 'table_primarykey' : '')
+	)) ;
+	$tab_fields = array() ;
+	foreach( $define_data['define_fields'] as &$field ) {
+		$field['new_field_code'] = strtoupper(trim($field['new_field_code'])) ;
+		$tab_fields[] = array(
+			'table_field_code' => strtoupper($field['new_field_code']),
+			'table_field_type' => ($field['new_field_type']?$field['new_field_type']:'string'),
+			'table_field_is_index' => $field['new_field_is_index'],
+			'table_field_is_primarykey' => $field['new_field_is_primarykey']
+		);
+	}
+	unset($field) ;
+	paracrm_define_manageTransaction( array(
+		'_transaction_id' => $transaction_id,
+		'_subaction' => 'fields_set',
+		'data' => json_encode($tab_fields)
+	)) ;
+	$json = paracrm_define_manageTransaction( array('_transaction_id' => $transaction_id, '_subaction' => 'save_and_apply') ) ;
+	if( !$json['success'] ) {
+		return array('success'=>false, 'error'=>'Cannot create new table', 'debug'=>$json) ;
+	}
+	
+	
+	// Recup de l'arbre ?
+	$arr_saisie['treefields_root'] = paracrm_lib_dataImport_getTreefieldsRoot('table',$table_code) ;
+	
+	
+	// Importation données ?
+	$map_fieldCode_csvsrcIdx = array() ;
+	$idx=0 ;
+	foreach( $define_data['define_fields'] as $field ) {
+		$map_fieldCode_csvsrcIdx[$field['new_field_code']] = $idx ;
+		$idx++;
+	}
+	$arr_update = array() ;
+	$arr_update['csvsrc_length'] = $arr_saisie['csvsrc_length'] ;
+	$arr_update['target_tablecode'] = $table_code ;
+	$arr_update['truncate_mode'] = '' ;
+	$_opDB->insert('importmap',$arr_update) ;
+	$arr_saisie['importmap_id'] = $_opDB->insert_id() ;
+	
+	
+	$query = "DELETE FROM importmap_column WHERE importmap_id='{$arr_saisie['importmap_id']}'" ;
+	$_opDB->query($query) ;
+	$ssid = $col_idx = 0 ;
+	foreach( $arr_saisie['csvsrc_arrHeadertxt'] as $col_value ) {
+		$ssid++ ;
+		
+		$arr_ins = array() ;
+		$arr_ins['importmap_id'] = $arr_saisie['importmap_id'] ;
+		$arr_ins['importmap_column_ssid'] = $ssid ;
+		$arr_ins['csvsrc_headertxt'] = $col_value ;
+		$arr_ins['target_fieldmapcode'] = json_encode(array_keys($map_fieldCode_csvsrcIdx,$col_idx)) ;
+		$_opDB->insert('importmap_column',$arr_ins) ;
+		
+		$col_idx++ ;
+	}
+	
+	
+	// Open file pointer
+	$delimiter = $arr_saisie['cfg_delimiters'][$arr_saisie['csvsrc_params']['delimiter']] ;
+	$fp = fopen("php://temp", 'r+');
+	fputs($fp, $arr_saisie['csvsrc_binary']);
+	rewind($fp);
+	if( $arr_saisie['csvsrc_params']['firstrow_is_header'] ) {
+		fgets($fp) ;
+	}
+	
+	paracrm_lib_dataImport_commit_processStream( $arr_saisie['treefields_root'], $map_fieldCode_csvsrcIdx, $fp, $delimiter, $truncate_mode ) ;
 	
 	return array('success'=>true) ;
 }

@@ -326,6 +326,10 @@ function paracrm_lib_dataImport_commit_processNode( $treefields_node, $arr_srcLi
 	$filerecord_id = 0 ;
 	$treenode_key = '' ;
 	foreach( $treefields_node['children'] as $directChild ) {
+		if( isset($directChild['table_code']) ) {
+			paracrm_lib_dataImport_commit_processNode_table( $directChild, $arr_srcLig );
+			continue ;
+		}
 		if( isset($directChild['file_code']) ) {
 			$filerecord_id = paracrm_lib_dataImport_commit_processNode_file( $directChild, $arr_srcLig, $filerecord_id, $truncate_mode );
 			$arr_insertedFilerecordId[] = $filerecord_id ;
@@ -340,6 +344,84 @@ function paracrm_lib_dataImport_commit_processNode( $treefields_node, $arr_srcLi
 		}
 		echo "??pN??" ;
 	}
+}
+function paracrm_lib_dataImport_commit_processNode_table( $treefields_node, $arr_srcLig ) {
+	global $_opDB ;
+	
+	if( $treefields_node['leaf'] ) {
+		return NULL ;
+	}
+	if( !$treefields_node['table_code'] ) {
+		return NULL ;
+	}
+	$table_code = $treefields_node['table_code'] ;
+	
+	foreach( $treefields_node['children'] as $directChild ) {
+		$field = $directChild['field_code'] ;
+		$table_field_code = $directChild['table_field_code'] ;
+		
+		if( !$directChild['leaf'] ) {
+			echo "??pN_f??" ;
+			continue ;
+		}
+		
+		if( !isset($arr_srcLig[$field]) ) {
+			continue ;
+		}
+		
+		switch( $directChild['field_type'] ) {
+			case 'date' :
+				if( !trim($arr_srcLig[$field]) ) {
+					$leaf_value = '' ;
+					break ;
+				}
+				$value = trim($arr_srcLig[$field]) ;
+				$ttmp = explode(' ',$value) ;
+				// Conversion(s) ?
+					// 1 -> Heure numeric => xx:xx:xx
+					if( count($ttmp)==2 && is_numeric($ttmp[1]) ) {
+						if( !$ttmp[0] ) {
+							$leaf_value = '' ;
+							break ;
+						}
+						$strH = (int)$ttmp[1] ;
+						$h = (int)($strH/10000) ;
+						$strH -= ($h*10000) ;
+						$m = (int)($strH/100) ;
+						$strH -= ($m*100) ;
+						$s = (int)($strH) ;
+						
+						$ttmp[1] = $h.':'.$m.':'.$s ;
+						
+						$value = implode(' ',$ttmp) ;
+					}
+				$leaf_value = date('Y-m-d H:i:s',strtotime($value)) ;
+				break ;
+				
+			case 'number' :
+				$leaf_value = $arr_srcLig[$field] ;
+				if( !is_numeric($leaf_value) ) {
+					$leaf_value = str_replace(',','.',$leaf_value) ;
+					if( $leaf_value[0] == '.' ) {
+						$leaf_value = '0'.$leaf_value ;
+					}
+				}
+				break ;
+				
+			default :
+				$leaf_value = $arr_srcLig[$field] ;
+				break ;	
+		}
+		$arr_insert_table[$table_field_code] = $leaf_value ;
+	}
+	
+	$arr_ins = array() ;
+	foreach( $arr_insert_table as $table_field_code => $value ) {
+		$mkey = $table_field_code ;
+		$arr_ins[$mkey] = $value ;
+	}
+	$_opDB->replace('view_table_'.$table_code,$arr_ins) ;
+	return ;
 }
 function paracrm_lib_dataImport_commit_processNode_file( $treefields_node, $arr_srcLig, $filerecord_parent_id, $truncate_mode ) {
 	if( $treefields_node['leaf'] ) {

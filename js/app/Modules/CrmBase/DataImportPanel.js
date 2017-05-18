@@ -365,7 +365,8 @@ Ext.define('Optima5.Modules.CrmBase.DataImportPanel' ,{
 							change:{
 								fn: function(field,value) {
 									var form = field.up('form'),
-										list = form.down('#fieldsList') ;
+										grid = form.down('grid') ;
+									grid.headerCt.down('[dataIndex="new_field_is_primarykey"]').setVisible(value) ;
 									//list.setVisible(value) ;
 								},
 								scope : this
@@ -391,51 +392,63 @@ Ext.define('Optima5.Modules.CrmBase.DataImportPanel' ,{
 						pluginId: 'cellediting',
 						clicksToEdit: 1
 					}],
-					columns: [{
-						dataIndex: 'csvsrc_text',
-						text: 'Source column',
-						width: 120
-					},{
-						dataIndex: 'new_field_code',
-						text: 'Target code',
-						width: 120,
-						editor: {
-							xtype: 'textfield',
-							maskRe: /[A-Za-z0-9]/
-						}
-					},{
-						dataIndex: 'new_field_type',
-						text: 'Type',
-						width: 80,
-						editor: {
-							xtype: 'combobox',
-							forceSelection: true,
-							editable: false,
-							store: {
-								fields: ['type'],
-								data : [
-									{"type":"string"},
-									{"type":"text"},
-									{"type":"number"},
-									{"type":"extid"},
-									{"type":"date"}
-								]
-							},
-							queryMode: 'local',
-							displayField: 'type',
-							valueField: 'type'
-						}
-					},{
-						xtype: 'checkcolumn',
-						dataIndex: 'new_field_is_primarykey',
-						text: 'Key?',
-						width: 60
-					},{
-						xtype: 'checkcolumn',
-						dataIndex: 'new_field_is_index',
-						text: 'Index?',
-						width: 60
-					}]
+					columns: {
+						defaults: {
+							menuDisabled: true,
+							draggable: false,
+							sortable: false,
+							hideable: false,
+							resizable: true,
+							groupable: false,
+							lockable: false
+						},
+						items: [{
+							dataIndex: 'csvsrc_text',
+							text: 'Source column',
+							width: 120
+						},{
+							dataIndex: 'new_field_code',
+							text: 'Target code',
+							width: 120,
+							editor: {
+								xtype: 'textfield',
+								maskRe: /[A-Za-z0-9]/
+							}
+						},{
+							dataIndex: 'new_field_type',
+							text: 'Type',
+							width: 80,
+							editor: {
+								xtype: 'combobox',
+								forceSelection: true,
+								editable: false,
+								store: {
+									fields: ['type'],
+									data : [
+										{"type":"string"},
+										{"type":"text"},
+										{"type":"number"},
+										{"type":"extid"},
+										{"type":"date"}
+									]
+								},
+								queryMode: 'local',
+								displayField: 'type',
+								valueField: 'type'
+							}
+						},{
+							xtype: 'checkcolumn',
+							hidden: true,
+							dataIndex: 'new_field_is_primarykey',
+							text: 'Key?',
+							width: 60
+						},{
+							xtype: 'checkcolumn',
+							dataIndex: 'new_field_is_index',
+							text: 'Index?',
+							width: 60
+						}]
+					}
 				}]
 			}]
 		}) ;
