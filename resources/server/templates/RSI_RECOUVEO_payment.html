@@ -17,19 +17,17 @@
 </div>
 -->
 
-<br>
-
-<div style="font-size:13px;">
-
 <div id='div_pay_virement'>
 	<ul>
 	<li>par virement : sur le compte bancaire ci-dessous en précisant la référence n°<qbook-value src_value="payment_ref_client"></qbook-value> dans le libellé :
+<div style="font-size:13px;">
 	<ul>
 	<li>IBAN : <b><qbook-value src_value="pay_virement_iban"></qbook-value></b></li>
 	<li>BIC (Bank Identifier Code) : <b><qbook-value src_value="pay_virement_bic"></qbook-value></b></li>
 	<li>Titulaire du compte : <b><qbook-value src_value="pay_virement_titulaire"></qbook-value></b></li>
 	<li>Domiciliation : <b><qbook-value src_value="pay_virement_domiciliation"></qbook-value></b></li>
 	</ul>
+</div>
 	</li>
 	</ul>
 </div>
@@ -37,6 +35,7 @@
 <div id='div_pay_cheque'>
 	<ul>
 	<li>par chèque:
+<div style="font-size:13px;">
 	<ul>
 	<li>à libeller à l’ordre de <b><qbook-value src_value="pay_cheque_ordre"></qbook-value></b></li>
 	<li>et à renvoyer accompagné du coupon ci-dessous à l’adresse suivante :</li>
@@ -44,17 +43,19 @@
 		<qbook-value src_value="pay_cheque_adr"></qbook-value>
 	</b>
 	</ul>
+</div>
 	</li>
 	</ul>
 </div>
 
 <div id='div_pay_cb'>
 	<ul>
-	<li>par carte bancaire:
+	<li>par carte bancaire, sur le site internet&nbsp;<b><qbook-value src_value="pay_cb_website"></qbook-value></b>,&nbsp; ou par téléphone&nbsp;<b><qbook-value src_value="pay_cb_tel"></qbook-value></b>
+<div style="font-size:13px;">
 	<ul>
-	<li>veuillez vous connecter au site web ci-dessous :</li>
-	<li><b><qbook-value src_value="pay_cb_website"></qbook-value></b></li>
+	<li>Références à utiliser, voir en-tête de ce courrier</li>
 	</ul>
+</div>
 	</li>
 	</ul>
 </div>
@@ -62,13 +63,13 @@
 <div id='div_pay_mandat'>
 	<ul>
 	<li>par mandat cash:
+<div style="font-size:13px;">
 	<ul>
 	<li>Spécifier le destinataire suivant :</li>
 	<li><b><qbook-value src_value="pay_mandat_destinataire"></qbook-value></b></li>
 	</ul>
+</div>
 	</li>
 	</ul>
 </div>
 
-
-</div>

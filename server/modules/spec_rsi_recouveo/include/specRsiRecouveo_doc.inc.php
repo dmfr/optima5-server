@@ -23,6 +23,7 @@ function specRsiRecouveo_doc_cfg_getTpl( $post_data ) {
 			'tpl_name' => $arr['field_TPL_NAME'],
 			'html_src_file' => $arr['field_HTML_SRC_FILE'],
 			'html_payment_file' => $arr['field_HTML_PAYMENT_FILE'],
+			'html_signature_file' => $arr['field_HTML_SIGNATURE_FILE'],
 			'html_footer_file' => $arr['field_HTML_FOOTER_FILE'],
 			'html_body' => $arr['field_HTML_BODY'],
 			'html_title' => $arr['field_HTML_TITLE']
@@ -54,6 +55,13 @@ function specRsiRecouveo_doc_cfg_getTpl( $post_data ) {
 				
 				case 'body_title' :
 				$new_node = $doc->createCDATASection($data_row['html_title']) ;
+				$node_qbookValue->parentNode->replaceChild($new_node,$node_qbookValue) ;
+				break ;
+				
+				case 'body_signature' :
+				$inputFileName = $templates_dir.'/'.$data_row['html_signature_file'] ;
+				$inputBinary = file_get_contents($inputFileName) ;
+				$new_node = $doc->createCDATASection($inputBinary) ;
 				$node_qbookValue->parentNode->replaceChild($new_node,$node_qbookValue) ;
 				break ;
 				
@@ -236,6 +244,7 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE ) {
 	$map_mkey_value += array(
 		'header_ref_file' => $accFile_record['id_ref'],
 		'header_ref_client' => $accFile_record['acc_id'],
+		'header_ref_forpayment' => $accFile_record['acc_id'].'EC',
 		'header_cr_fullname' => $cfg_user['user_fullname'],
 		'header_cr_email' => $cfg_user['user_email'],
 		'header_cr_tel' => $cfg_user['user_tel'],
@@ -248,6 +257,7 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE ) {
 	$map_mkey_value += array(
 		'footer_ref_file' => $accFile_record['id_ref'],
 		'footer_ref_client' => $accFile_record['acc_id'],
+		'footer_ref_forpayment' => $accFile_record['acc_id'].'EC',
 		'footer_balance' => number_format($accFile_record['inv_amount_due'],2).'&nbsp;'.'€',
 		
 		'footer_barcode_img' => '<img src="data:image/jpeg;base64,'.base64_encode(specRsiRecouveo_lib_getBarcodePng($accFile_record['id_ref'],50)).'" />'
@@ -257,7 +267,8 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE ) {
 		'body_now' => date('d/m/Y').' à '.date('H:i')
 	);
 	$map_mkey_value += array(
-		'payment_ref_client' => $accFile_record['acc_id']
+		'payment_ref_client' => $accFile_record['acc_id'],
+		'payment_ref_forpayment' => $accFile_record['acc_id'].'EC'
 	);
 	$map_mkey_value += array(
 		'table_refcli' => $accFile_record['acc_id']
@@ -285,7 +296,7 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE ) {
 		);
 	}
 	
-	$table_data = array() ;
+	$table_data = $table_datafoot = array() ;
 	foreach( $accFile_record['records'] as $record_row ) {
 		$row_table = array(
 			'record_id' => $record_row['record_id'],
@@ -293,11 +304,17 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE ) {
 			'txt' => $record_row['txt'],
 			'date_record' => date('d/m/Y',strtotime($record_row['date_record'])),
 			'date_value' => date('d/m/Y',strtotime($record_row['date_value'])),
-			'amount_tot' => number_format($record_row['amount'],2),
+			'amount_tot' => '<div width="100%" style="text-align:right;">'.number_format($record_row['amount'],2).'</div>',
 			'amount_due' => '<b>'.number_format($record_row['amount'],2).'</b>'
 		);
+		$amount+= $record_row['amount'] ;
 		$table_data[] = $row_table ;
 	}
+	$table_datafoot[] = array(
+		'record_id' => 'Total',
+		'amount_tot' => '<div width="100%" style="text-align:right;">'.number_format($amount,2).'</div>',
+		'amount_due' => '<b>'.number_format($amount,2).'</b>'
+	);
 	
 	
 	
@@ -371,7 +388,7 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE ) {
 		
 		switch( $node_qbookTable->attributes->getNamedItem('src_value')->value ) {
 			case 'records' :
-			$table_html = paracrm_queries_template_makeTable($table_columns,$table_data) ;
+			$table_html = paracrm_queries_template_makeTable($table_columns,$table_data,$table_datafoot) ;
 			break ;
 			
 			case 'agree' :

@@ -1,6 +1,6 @@
 <?php
 
-function paracrm_queries_template_makeTable($columns,$data) {
+function paracrm_queries_template_makeTable($columns,$data,$data_foot=NULL) {
 	$buffer = '' ;
 	
 	$buffer.= '<table>' ;
@@ -45,6 +45,30 @@ function paracrm_queries_template_makeTable($columns,$data) {
 		$buffer.= '</tr>' ;
 	}
 	$buffer.= '</tbody>' ;
+	
+	if( $data_foot ) {
+		$buffer.= '<tfoot>' ;
+		foreach( $data_foot as $row_id => $row_data ) {
+			$buffer.= '<tr>' ;
+			foreach( $columns as $column ) {
+				if( $column['invisible'] ) {
+					continue ;
+				}
+				
+				$dataIndex = $column['dataIndex'] ;
+				if( $column['is_bold'] ) {
+					$tag='th' ;
+				} else {
+					$tag='td' ;
+				}
+				$buffer.= "<{$tag}>" ;
+				$buffer.= $row_data[$dataIndex] ;
+				$buffer.= "</{$tag}>" ;
+			}
+			$buffer.= '</tr>' ;
+		}
+		$buffer.= '</tfoot>' ;
+	}
 	
 	$buffer.= '</table>' ;
 	
