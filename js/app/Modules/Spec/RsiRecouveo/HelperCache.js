@@ -203,6 +203,16 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 				}
 			}
 		}) ;
+		this.cfgActionnextStore = Ext.create('Ext.data.Store',{
+			model: 'RsiRecouveoCfgAtrModel',
+			data : ajaxData.data.cfg_actionnext,
+			proxy: {
+				type: 'memory',
+				reader: {
+					type: 'json'
+				}
+			}
+		}) ;
 		this.cfgStatusStore = Ext.create('Ext.data.Store',{
 			model: 'RsiRecouveoCfgStatusModel',
 			data : ajaxData.data.cfg_status
@@ -382,6 +392,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 	},
 	getActionRowId: function( actionId ) {
 		return ( this.cfgActionStore.getById(actionId) ? this.cfgActionStore.getById(actionId).getData() : null );
+	},
+	
+	getActionnextData: function() {
+		return Ext.pluck( this.cfgActionnextStore.getRange(), 'data' ) ;
 	},
 	
 	getActionEtaAll: function() {

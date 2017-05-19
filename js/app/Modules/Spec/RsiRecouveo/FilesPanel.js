@@ -4,7 +4,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 	requires: [
 		'Ext.ux.CheckColumnNull',
 		'Optima5.Modules.Spec.RsiRecouveo.CfgParamButton',
-		'Optima5.Modules.Spec.RsiRecouveo.SearchCombo'
+		'Optima5.Modules.Spec.RsiRecouveo.SearchCombo',
+		'Optima5.Modules.Spec.RsiRecouveo.CfgParamFilter'
 	],
 	
 	viewMode: null,
@@ -192,6 +193,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionAll(), function(action) {
 			actionMap[action.action_id] = action ;
 		}) ;
+		var actionnextMap = {} ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionnextData(), function(actionnext) {
+			actionnextMap[actionnext.id] = actionnext ;
+		}) ;
 		
 		var actionEtaMap = {} ;
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionEtaAll(), function(actionEta) {
@@ -302,22 +307,22 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				text: 'RDV/Action',
 				tdCls: 'op5-spec-dbstracy-boldcolumn',
 				align: 'center',
-				dataIndex: 'next_action',
-				/*filter: {
-					type: 'op5crmbasebible',
+				dataIndex: 'next_action_suffix',
+				filter: {
+					type: 'op5specrsiveocfgfilter',
 					optimaModule: this.optimaModule,
-					bibleId: 'CFG_ACTION'
-				},*/
+					cfgParam_id: 'ACTIONNEXT'
+				},
 				renderer: function(v,metaData,r) {
 					if( Ext.isEmpty(v) ) {
 						return '' ;
 					}
-					var actionMap = this._actionMap ;
-					if( actionMap.hasOwnProperty(v) ) {
-						var actionData = actionMap[v] ;
-						return actionData.action_txt ;
+					var actionnextMap = this._actionnextMap ;
+					if( actionnextMap.hasOwnProperty(v) ) {
+						var actionnextData = actionnextMap[v] ;
+						return actionnextData.text ;
 					}
-					return '?' ;
+					return v ;
 				}
 			},{
 				text: 'Date/Echeance',
@@ -424,6 +429,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			},
 			_statusMap: statusMap,
 			_actionMap: actionMap,
+			_actionnextMap: actionnextMap,
 			_actionEtaMap: actionEtaMap
 		});
 	},

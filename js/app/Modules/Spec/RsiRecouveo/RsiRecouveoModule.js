@@ -14,6 +14,7 @@ Ext.define('RsiRecouveoFileTplModel',{ // TO: RsiRecouveoFileModel
 		{name: 'date_last', type:'date', dateFormat:'Y-m-d H:i:s'},
 		{name: 'next_fileaction_filerecord_id', type: 'int'},
 		{name: 'next_action', type: 'string', allowNull:true},
+		{name: 'next_action_suffix', type: 'string', allowNull:true},
 		{name: 'next_date', type:'date', dateFormat:'Y-m-d H:i:s', allowNull:true,
 			sortType: function(v) {
 				if( v==null ) {
@@ -64,6 +65,8 @@ Ext.define('RsiRecouveoFileActionModel',{
 		{name: 'link_env_filerecord_id', type: 'int', allowNull:true},
 		
 		{name: 'link_tpl', type: 'string'},
+		{name: 'link_litig', type: 'string'},
+		{name: 'link_close', type: 'string'},
 		
 		{name: 'calc_eta_range', type:'string'}
 	]

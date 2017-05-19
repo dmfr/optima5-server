@@ -167,6 +167,46 @@ function specRsiRecouveo_cfg_getConfig() {
 		'cfg_template' => $TAB_tpl
 	);
 	
+	
+	$TAB_action_next = array() ;
+	foreach( $TAB_action as $action_record ) {
+		$TAB_action_next[] = array(
+			'id' => $action_record['action_id'],
+			'parent' => '',
+			'text' => $action_record['action_txt']
+		);
+	}
+	foreach( $TAB_list_opt as $opt_record ) {
+		switch( $opt_record['bible_code'] ) {
+			case 'OPT_LITIG' :
+				$action_prefix = 'LITIG_FOLLOW' ;
+				break ;
+			case 'OPT_CLOSEASK' :
+				$action_prefix = 'CLOSE_ACK' ;
+				break ;
+			default :
+				continue 2 ;
+		}
+		foreach( $opt_record['records'] as $rec ) {
+			$TAB_action_next[] = array(
+				'id' => $action_prefix.'_'.$rec['id'],
+				'parent' => $action_prefix,
+				'text' => $rec['text']
+			);
+		}
+	}
+	foreach( $TAB_tpl as $tpl ) {
+		$action_prefix = 'MAIL_OUT' ;
+		$TAB_action_next[] = array(
+			'id' => $action_prefix.'_'.$tpl['tpl_id'],
+			'parent' => $action_prefix,
+			'text' => $tpl['tpl_name']
+		);
+	}
+	$GLOBALS['cache_specRsiRecouveo_cfg']['getConfig']['cfg_actionnext'] = $TAB_action_next ;
+	
+	
+	
 	return array('success'=>true, 'data'=>$GLOBALS['cache_specRsiRecouveo_cfg']['getConfig'])  ;
 }
 

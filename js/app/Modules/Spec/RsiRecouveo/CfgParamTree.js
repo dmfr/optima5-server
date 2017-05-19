@@ -177,6 +177,59 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamTree',{
 				}
 			}) ;
 			rootNode = tmpTreeStore.getRootNode().copy(undefined,true) ;
+		} else if( this.cfgParam_id && this.cfgParam_id=='ACTIONNEXT' ) {
+			data = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionnextData() ;
+			var tmpTreeStore = Ext.create('Ext.data.TreeStore',{
+				model: 'RsiRecouveoCfgParamTreeModel',
+				root: {
+					root: true,
+					children: [],
+					nodeText: '<b>'+'Prochaine action'+'</b>'
+				},
+				proxy: {
+					type: 'memory',
+					reader: {
+						type: 'json'
+					}
+				}
+			}) ;
+			while( true ) {
+				var cnt = 0 ;
+				var parentNode ;
+				Ext.Array.each( data, function(row) {
+					if( tmpTreeStore.getNodeById( row.id ) ) {
+						return ;
+					}
+					if( Ext.isEmpty(row.parent) ) {
+						parentNode = tmpTreeStore.getRootNode() ;
+					} else {
+						parentNode = tmpTreeStore.getNodeById( row.parent ) ;
+					}
+					if( !parentNode ) {
+						return ;
+					}
+					cnt++ ;
+					parentNode.appendChild({
+						nodeId: row.id,
+						nodeType: 'entry',
+						nodeKey: row.id,
+						nodeText: row.text,
+						nodeNext: row.next
+					});
+				}) ;
+				if( cnt==0 ) {
+					break ;
+				}
+			}
+			tmpTreeStore.getRootNode().cascadeBy( function(node) {
+				if( node.childNodes.length == 0 ) {
+					node.set('leaf',true) ;
+				} else {
+					node.expand() ;
+				}
+			}) ;
+			rootNode = tmpTreeStore.getRootNode().copy(undefined,true) ;
+			this.allValues=true ;
 		} else {
 			rootNode = {
 				root: true,
@@ -199,7 +252,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamTree',{
 				node.set('checked',true) ;
 				return ;
 			}
-			if( !node.isLeaf() ) {
+			if( !node.isLeaf() && !this.allValues ) {
 				return ;
 			}
 			node.set('checked', (this.selectMode == 'MULTI' ? (!!this.value && Ext.Array.contains(this.value, node.getId())) : (node.getId()==this.value)) );
@@ -238,7 +291,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamTree',{
 		return storeNodes ;
 	},
 	getLeafNodesKey: function() {
-		var storeNodes = ( this.selectMode=='MULTI' ? this.getCheckedNodes() : [this.getCheckedNode()] ) ;
+		var storeNodes = ( this.selectMode=='MULTI' ? this.getCheckedNodes() : (this.getCheckedNode() ? [this.getCheckedNode()]:[]) ) ;
 		if( storeNodes == null || storeNodes.length==0 ) {
 			return null ;
 		}
@@ -336,13 +389,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamTree',{
 			var doFireCheckchange = false ;
 			if( !checked ) {
 				this.getRootNode().cascadeBy(function(chrec){
-					if( chrec==rec && (chrec.isLeaf()||chrec.isRoot()) ) {
+					if( chrec==rec && (this.allValues||chrec.isLeaf()||chrec.isRoot()) ) {
 						chrec.set('checked',true) ;
 					}
 				},this);
 			} else {
 				this.getRootNode().cascadeBy(function(chrec){
-					if( chrec != rec && (chrec.isLeaf()||chrec.isRoot()) ) {
+					if( chrec != rec && (this.allValues||chrec.isLeaf()||chrec.isRoot()) ) {
 						chrec.set('checked',false) ;
 					}
 				},this);

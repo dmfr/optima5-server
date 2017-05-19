@@ -130,7 +130,9 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			'link_newfile_filerecord_id' => ($arr['field_LINK_NEW_FILE_ID'] > 0 ? $arr['field_LINK_NEW_FILE_ID'] : null),
 			'link_env_filerecord_id' => ($arr['field_LINK_ENV_ID'] > 0 ? $arr['field_LINK_ENV_ID'] : null),
 			
-			'link_tpl' => $arr['field_LINK_TPL']
+			'link_tpl' => $arr['field_LINK_TPL'],
+			'link_litig' => $arr['field_LINK_LITIG'],
+			'link_close' => $arr['field_LINK_CLOSE']
 		);
 	}
 	
@@ -273,9 +275,24 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 		
 		
 		if( $next_action ) {
+			switch( $next_action['link_action'] ) {
+				case 'MAIL_OUT' :
+					$next_action_suffix = $next_action['link_action'].'_'.$next_action['link_tpl'] ;
+					break ;
+				case 'LITIG_FOLLOW' :
+					$next_action_suffix = $next_action['link_action'].'_'.$next_action['link_litig'] ;
+					break ;
+				case 'CLOSE_ACK' :
+					$next_action_suffix = $next_action['link_action'].'_'.$next_action['link_close'] ;
+					break ;
+				default :
+					$next_action_suffix = $next_action['link_action'] ;
+					break ;
+			}
 			$file_row += array(
 				'next_fileaction_filerecord_id' => $next_action['fileaction_filerecord_id'],
 				'next_action' => $next_action['link_action'],
+				'next_action_suffix' => $next_action_suffix,
 				'next_date' => $next_action['date_sched'],
 				'next_eta_range' => $next_action['calc_eta_range'],
 				'next_agenda_class' => $next_action['link_action_class']
@@ -673,12 +690,14 @@ function specRsiRecouveo_file_createForAction( $post_data ) {
 			$arr_ins['field_LINK_ACTION'] = 'LITIG_START' ;
 			$arr_ins['field_STATUS_IS_OK'] = 1 ;
 			$arr_ins['field_DATE_ACTUAL'] = date('Y-m-d H:i:s') ;
+			$arr_ins['field_LINK_LITIG'] = $_formData['litig_code'] ;
 			$arr_ins['field_TXT'] = $_formData['litig_txt'] ;
 			paracrm_lib_data_insertRecord_file( $file_code, $file_filerecord_id, $arr_ins );
 			
 			$arr_ins = array() ;
 			$arr_ins['field_LINK_STATUS'] = $status_next ;
 			$arr_ins['field_LINK_ACTION'] = 'LITIG_FOLLOW' ;
+			$arr_ins['field_LINK_LITIG'] = $_formData['litig_code'] ;
 			$arr_ins['field_DATE_SCHED'] = $_formData['litig_nextdate'] ;
 			paracrm_lib_data_insertRecord_file( $file_code, $file_filerecord_id, $arr_ins );
 			
@@ -691,12 +710,14 @@ function specRsiRecouveo_file_createForAction( $post_data ) {
 			$arr_ins['field_LINK_ACTION'] = 'CLOSE_ASK' ;
 			$arr_ins['field_STATUS_IS_OK'] = 1 ;
 			$arr_ins['field_DATE_ACTUAL'] = date('Y-m-d H:i:s') ;
+			$arr_ins['field_LINK_CLOSE'] = $_formData['close_code'] ;
 			$arr_ins['field_TXT'] = $_formData['close_txt'] ;
 			paracrm_lib_data_insertRecord_file( $file_code, $file_filerecord_id, $arr_ins );
 			
 			$arr_ins = array() ;
 			$arr_ins['field_LINK_STATUS'] = $status_next ;
 			$arr_ins['field_LINK_ACTION'] = 'CLOSE_ACK' ;
+			$arr_ins['field_LINK_CLOSE'] = $_formData['close_code'] ;
 			$arr_ins['field_DATE_SCHED'] = date('Y-m-d',strtotime('+1 day')) ;
 			paracrm_lib_data_insertRecord_file( $file_code, $file_filerecord_id, $arr_ins );
 			

@@ -170,6 +170,7 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 				$json = specRsiRecouveo_doc_cfg_getTpl( array('tpl_id'=>$post_form['tpl_id']) ) ;
 				$txt.= "Modèle envoi : ".$json['data'][0]['tpl_name']."\r\n" ;
 			}
+			$arr_ins['field_LINK_TPL'] = $post_form['tpl_id'] ;
 			$arr_ins['field_TXT'] = $txt ;
 			
 		case 'BUMP' :
@@ -281,6 +282,11 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 				$arr_ins['field_LINK_STATUS'] = $post_form['link_status'] ;
 				$arr_ins['field_LINK_ACTION'] = $post_form['link_action'] ;
 				$arr_ins['field_DATE_SCHED'] = $post_form['schedlock_schednew_date'] ;
+				switch( $post_form['link_action'] ) {
+					case 'LITIG_FOLLOW' :
+						$arr_ins['field_LINK_LITIG'] = $file_action_record['link_litig'] ;
+						break ;
+				}
 				paracrm_lib_data_insertRecord_file( $file_code, $file_filerecord_id, $arr_ins );
 				break ;
 		
