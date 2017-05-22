@@ -138,6 +138,7 @@ Ext.define('RsiRecouveoAdrbookModel',{
 	fields: [
 		{name: 'adrbook_filerecord_id', type:'int'},
 		{name: 'adr_entity', type:'string'},
+		{name: 'adr_entity_name', type:'string'},
 		{name: 'adr_entity_obs', type:'string'}
 	],
 	hasMany: [{

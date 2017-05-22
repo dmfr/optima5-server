@@ -58,6 +58,7 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 			$arr_ins = array() ;
 			$arr_ins['field_ACC_ID'] = $acc_id ;
 			$arr_ins['field_ADR_ENTITY'] = $default_adrEntity ;
+			$arr_ins['field_ADR_ENTITY_NAME'] = $post_form['adrpost_entity_name'] ;
 			$adrbook_filerecord_id = paracrm_lib_data_insertRecord_file( 'ADRBOOK', 0, $arr_ins );
 			$arr_ins = array() ;
 			$arr_ins['field_ADR_TYPE'] = 'POSTAL' ;
@@ -87,6 +88,7 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 			$arr_ins = array() ;
 			$arr_ins['field_ACC_ID'] = $acc_id ;
 			$arr_ins['field_ADR_ENTITY'] = $default_adrEntity ;
+			$arr_ins['field_ADR_ENTITY_NAME'] = $post_form['adrtel_entity_name'] ;
 			$adrbook_filerecord_id = paracrm_lib_data_insertRecord_file( 'ADRBOOK', 0, $arr_ins );
 			$arr_ins = array() ;
 			$arr_ins['field_ADR_TYPE'] = 'TEL' ;
@@ -116,6 +118,7 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 			$arr_ins = array() ;
 			$arr_ins['field_ACC_ID'] = $acc_id ;
 			$arr_ins['field_ADR_ENTITY'] = $default_adrEntity ;
+			$arr_ins['field_ADR_ENTITY_NAME'] = $post_form['adrmail_entity_name'] ;
 			$adrbook_filerecord_id = paracrm_lib_data_insertRecord_file( 'ADRBOOK', 0, $arr_ins );
 			$arr_ins = array() ;
 			$arr_ins['field_ADR_TYPE'] = 'EMAIL' ;
@@ -401,10 +404,16 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 				$input_fields[$mkey] = $mvalue ;
 			}
 		}
+		
+		// Modif 18/05/2017 : Nom du contact (vérif non vide)
+		if( !trim($post_form['adrpost_entity_name']) ) {
+			$post_form['adrpost_entity_name'] = $file_record['acc_txt'] ;
+		}
 	
 		$json = specRsiRecouveo_doc_getMailOut( array(
 			'tpl_id' => $post_form['tpl_id'],
 			'file_filerecord_id' => $post_data['file_filerecord_id'],
+			'adr_name' => $post_form['adrpost_entity_name'],
 			'adr_postal' => $post_form['adrpost_txt'],
 			'input_fields' => json_encode($input_fields)
 		)) ;
@@ -412,7 +421,7 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 		
 		$peer_data = array(
 			'peer_code' => 'OUT_MAILEVA',
-			'peer_adr' => $post_form['adrpost_txt']
+			'peer_adr' => $post_form['adr_entity_name']."\n".$post_form['adrpost_txt']
 		) ;
 	}
 	if( $post_form['attachments'] ) {

@@ -370,6 +370,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 		// ****** Champs statiques ***********
 		var postField = this.getForm().findField('adrtel_txt') ;
 		if( postField && postField.isVisible(true) ) {
+			if( Ext.isEmpty(postData['adrtel_entity_name']) ) {
+				var error = 'Destinataire appel' ;
+				
+				errors.push(error) ;
+				postField.markInvalid(error) ;
+			}
 			if( Ext.isEmpty(postData['adrtel_txt']) ) {
 				var error = 'Numéro d\'appel non renseigné' ;
 				
@@ -379,6 +385,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 		}
 		var postField = this.getForm().findField('adrpost_txt') ;
 		if( postField && postField.isVisible(true) ) {
+			if( Ext.isEmpty(postData['adrpost_entity_name']) ) {
+				var error = 'Destinataire courrier' ;
+				
+				errors.push(error) ;
+				postField.markInvalid(error) ;
+			}
 			if( Ext.isEmpty(postData['adrpost_txt']) ) {
 				var error = 'Adresse non renseignée' ;
 				
@@ -388,6 +400,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 		}
 		var postField = this.getForm().findField('adrmail_txt') ;
 		if( postField && postField.isVisible(true) ) {
+			if( Ext.isEmpty(postData['adrmail_entity_name']) ) {
+				var error = 'Destinataire e-mail' ;
+				
+				errors.push(error) ;
+				postField.markInvalid(error) ;
+			}
 			if( Ext.isEmpty(postData['adrmail_txt']) ) {
 				var error = 'Email non renseigné' ;
 				
@@ -586,6 +604,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 		var postDataObj = form.getValues(false,false,false,true) ;
 		var postData = form.getValues() ;
 		var tplId = postData['tpl_id'] ;
+		var adrName = postData['adrpost_entity_name'] ;
 		var adrPostal = postData['adrpost_txt'] ;
 		if( Ext.isEmpty(tplId) ) {
 			return ;
@@ -606,6 +625,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 				_action: 'doc_getMailOut',
 				tpl_id: tplId,
 				file_filerecord_id: this._fileRecord.get('file_filerecord_id'),
+				adr_name: adrName,
 				adr_postal: adrPostal,
 				input_fields: Ext.JSON.encode(inputFields)
 			},

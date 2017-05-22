@@ -195,6 +195,7 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE ) {
 	global $_opDB ;
 	$p_tplId = $post_data['tpl_id'] ;
 	$p_fileFilerecordId = $post_data['file_filerecord_id'] ;
+	$p_adrName = $post_data['adr_name'] ;
 	$p_adrPostal = $post_data['adr_postal'] ;
 	$p_inputFields = ($post_data['input_fields'] ? json_decode($post_data['input_fields'],true) : array()) ;
 	
@@ -249,7 +250,7 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE ) {
 		'header_cr_email' => $cfg_user['user_email'],
 		'header_cr_tel' => $cfg_user['user_tel'],
 		
-		'header_dest_name' => $accFile_record['acc_txt'],
+		'header_dest_name' => $p_adrName,
 		'header_dest_adrpost' => nl2br($p_adrPostal),
 		
 		'header_ref_mail' => $new_ref_mail

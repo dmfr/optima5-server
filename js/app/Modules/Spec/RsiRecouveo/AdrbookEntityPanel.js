@@ -306,6 +306,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AdrbookEntityPanel',{
 							},
 							scope: this
 						}
+					},{
+						xtype: 'textfield',
+						name: 'adrbook_entity_name',
+						fieldLabel: 'Nom Dest.'
 					}]
 				},{
 					xtype: 'box',
@@ -479,6 +483,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AdrbookEntityPanel',{
 				return ;
 			}
 			form.setValues({
+				adrbook_entity_name: accAdrRec.get('adr_entity_name'),
 				adrbook_entity_obs: accAdrRec.get('adr_entity_obs')
 			}) ;
 			return false ;
@@ -526,6 +531,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AdrbookEntityPanel',{
 		var adrbookRecordData = {
 			adrbook_filerecord_id: 0,
 			adr_entity: adrEntity,
+			adr_entity_name: formValues['adrbook_entity_name'],
 			adr_entity_obs: formValues['adrbook_entity_obs'],
 			adrbookentries: []
 		};

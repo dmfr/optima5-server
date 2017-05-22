@@ -1128,7 +1128,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 	doReload: function(focusFileFilerecordId) {
 		if( !focusFileFilerecordId ) {
 			focusFileFilerecordId = this.getActiveFileId() ;
-			console.log(focusFileFilerecordId) ;
+			//console.log(focusFileFilerecordId) ;
 		}
 		this.loadAccount( this._accId, this._filterAtr, focusFileFilerecordId ) ;
 	},

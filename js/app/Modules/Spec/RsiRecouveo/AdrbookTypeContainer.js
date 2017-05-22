@@ -53,15 +53,20 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AdrbookTypeContainer',{
 				accountRecord: this._accountRecord,
 				name: prefix+'_filerecord_id',
 				allowBlank: false,
-				fieldLabel: lib,
+				fieldLabel: 'Contact',
 				listeners: {
 					change: this.onSelectAdr,
 					scope: this
 				}
 			}),{
+				xtype: 'textfield',
+				name: prefix+'_entity_name',
+				fieldLabel: 'Nom Dest.',
+				labelSeparator: '&nbsp;'
+			},{
 				xtype: fieldXtype,
 				name: prefix+'_txt',
-				fieldLabel: '&nbsp;',
+				fieldLabel: lib,
 				labelSeparator: '&nbsp;'
 			}]
 		}) ;
@@ -148,12 +153,15 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AdrbookTypeContainer',{
 		
 		var cmb = this.down('[name="'+prefix+'_filerecord_id"]'),
 			adrObj = cmb.getSelectedNode(),
+			adrNameField = this.down('[name="'+prefix+'_entity_name"]'),
 			adrField = this.down('[name="'+prefix+'_txt"]'),
 			adrNew = this.down('[name="'+prefix+'_new"]'),
 			adrNewEntity = this.down('[name="'+prefix+'_new_entity"]'),
 			adrStatus = this.down('[name="'+prefix+'_status"]') ;
 		adrField.reset() ;
 		if( adrObj ) {
+			adrNameField.setValue( (adrObj.parentNode&&!Ext.isEmpty(adrObj.parentNode.get('nodeNext'))) ? adrObj.parentNode.get('nodeNext') : this._accountRecord.get('acc_txt') ) ;
+			adrNameField.setReadOnly(true) ;
 			adrField.setValue( adrObj.get('nodeText') ) ;
 			adrField.setReadOnly(true) ;
 			if( adrNew ) {
@@ -166,6 +174,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AdrbookTypeContainer',{
 				adrStatus.setVisible(true);
 			}
 		} else {
+			adrNameField.setReadOnly(false) ;
 			adrField.setReadOnly(false) ;
 			if( adrNew ) {
 				adrNew.reset() ;
