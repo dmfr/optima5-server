@@ -6,6 +6,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 		'Optima5.Modules.Spec.RsiRecouveo.FilesPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.ConfigPanel',
+		'Optima5.Modules.Spec.RsiRecouveo.DevNotepad',
 		
 		'Optima5.Modules.Spec.RsiRecouveo.EnvPreviewPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.EnvDocPreviewPanel',
@@ -83,6 +84,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 				return me.openConfig() ;
 			case 'envbrowser' :
 				return me.openEnvelopeBrowser() ;
+			case 'notepad' :
+				return me.openNotepad() ;
 			default :
 				return ;
 		}
@@ -130,6 +133,32 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 			
 			optimaModule: this.optimaModule
 		},Optima5.Modules.Spec.RsiRecouveo.ConfigPanel) ;
+	},
+	openNotepad: function() {
+		// recherche d'une fenetre deja ouverte
+		var doOpen = true ;
+		this.optimaModule.eachWindow(function(win){
+			if( !(win instanceof Optima5.Modules.Spec.RsiRecouveo.DevNotepad) ) {
+				return true ;
+			}
+			win.show() ;
+			win.focus() ;
+			doOpen = false ;
+			return false ;
+		},this) ;
+		if( !doOpen ) {
+			return ;
+		}
+		
+		this.optimaModule.createWindow({
+			title: 'Recouveo : Configuration',
+			width:930,
+			height:520,
+			iconCls: 'op5-spec-rsiveo-devnotepad',
+			animCollapse:false,
+			
+			optimaModule: this.optimaModule
+		},Optima5.Modules.Spec.RsiRecouveo.DevNotepad) ;
 	},
 	
 	openEnvelopeBrowser: function() {

@@ -80,6 +80,13 @@ switch( $post_data['_action'] )
 		return specRsiRecouveo_recordgroup_loadRootRecords( $post_data ) ;
 	case 'recordgroup_setRootRecord' :
 		return specRsiRecouveo_recordgroup_setRootRecord( $post_data ) ;
+		
+	case 'dev_getNotepad' :
+		return specRsiRecouveo_dev_getNotepad( $post_data ) ;
+	case 'dev_setNotepadNote' :
+		return specRsiRecouveo_dev_setNotepadNote( $post_data ) ;
+	case 'dev_getNotepadClass' :
+		return specRsiRecouveo_dev_getNotepadClass( $post_data ) ;
 	
 	default :
 	return NULL ;

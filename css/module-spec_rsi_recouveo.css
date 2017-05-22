@@ -86,6 +86,9 @@
 .op5-spec-rsiveo-mmenu-recordtemp {
 	background-image: url("../images/modules/rsiveo-recordtemp-64.png") !important;
 }
+.op5-spec-rsiveo-mmenu-notepad {
+	background-image: url("../images/modules/rsiveo-notepad-64.png") !important;
+}
 
 
 .op5-spec-rsiveo-alm .x-grid-cell-inner {
@@ -311,3 +314,12 @@
 	color: red ;
 	font-weight: bold ; 
 }
+
+
+
+
+
+.op5-spec-rsiveo-devnotepad {
+	background-image: url("../images/op5img/ico_quickopen_16.png") !important;
+}
+

@@ -8,6 +8,8 @@ include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_recordgr
 
 include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_xls.inc.php") ;
 
+include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_dev.inc.php") ;
+
 include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_lib_scenario.inc.php") ;
 
 function specRsiRecouveo_cfg_doInit( $post_data ) {
