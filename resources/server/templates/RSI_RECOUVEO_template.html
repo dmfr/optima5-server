@@ -5,14 +5,14 @@
 	<style type="text/css">
 		body {  
 			font-family: Arial, Helvetica, sans-serif;
-			font-size: 14px ;
+			font-size: 16px ;
 			margin: 4px;
 			display:block
 		}
 
 		table {
 			font-family: Arial, Helvetica, sans-serif;
-			font-size: 14px;
+			font-size: 16px;
 			/*color: navy;*/
 			padding-top: 2px;
 			padding-bottom: 2px;
@@ -123,7 +123,7 @@
 
 	</style>
 	<body style='background-color:#FFFFFF'>
-		<table class='letterwidth'><tr>
+		<table class='letterwidth' id='div_header_from' ><tr>
 			<td width="25%" valign="top">
 				<div style='margin: 6px; padding: 4px; padding-bottom: 12px; '>
 					<b><qbook-value src_value="static_entity_name"></qbook-value></b><br>
@@ -140,10 +140,10 @@
 			</td>
 		</tr></table>
 		
-		<table class='letterwidth'><tr>
+		<table class='letterwidth' id='div_header_to' style="margin:10px ; height: 220px"><tr>
 			<td width="47%" valign="top">
 			
-			<br>
+			<br><br><br>
 			<table width="80%" >
 				<tr>
 				<td class="celltitle">Référence client</td>
@@ -158,14 +158,14 @@
 			</table>
 			
 			</td>
-			<td width="6%">&nbsp;</td>
-			<td width="47%" valign="top">
+			<td width="11%">&nbsp;</td>
+			<td width="42%" valign="top">
+				<br><br>
 				<span style="font-size:14px">Réf. courrier : <qbook-value src_value="header_ref_mail"></qbook-value></span><br><br>
 				
 				<b><qbook-value src_value="header_dest_name"></qbook-value></b><br>
 				<qbook-value src_value="header_dest_adrpost"></qbook-value><br>
 				<br>
-				Marseille, le <qbook-value src_value="body_date"></qbook-value>,<br>
 			</td>
 		</tr></table>
 		
@@ -179,16 +179,16 @@
 		
 		<br>
 		
-		<div class="letterwidth" style="margin:10px ; height: 800px">
+		<div class="letterwidth" id='div_body' style="margin:10px ; height: 750px">
 		<qbook-value src_value="body_content"></qbook-value>
 		<qbook-value src_value="body_signature"></qbook-value>
 		</div>
 		
-		<div class="letterwidth" style="margin:10px">
+		<div class="letterwidth" id='div_footer' style="margin:10px">
 		<qbook-value src_value="body_footer"></qbook-value>
 		</div>
 		
-		<div class="letterwidth" style="margin:10px">
+		<div class="letterwidth" id='div_static_footer' style="margin:10px">
 		<qbook-value src_value="static_mail_footer"></qbook-value>
 		</div>
 		
