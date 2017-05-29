@@ -395,7 +395,7 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 	
 	// ******** Création enveloppe ? **********
 	$envDocs = array() ;
-	$peer_data = NULL ;
+	$meta_data = NULL ;
 	if( $post_form['tpl_id'] ) {
 		// input fields
 		$input_fields = array() ;
@@ -419,10 +419,7 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 		)) ;
 		$envDocs[] = $json['data'] ;
 		
-		$peer_data = array(
-			'peer_code' => 'OUT_MAILEVA',
-			'peer_adr' => $post_form['adr_entity_name']."\n".$post_form['adrpost_txt']
-		) ;
+		$meta_data = $json['meta'] ;
 	}
 	if( $post_form['attachments'] ) {
 		foreach( json_decode($post_form['attachments'],true) as $doc ) {
@@ -430,7 +427,7 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 		}
 	}
 	if( $envDocs ) {
-		$env_filerecord_id = specRsiRecouveo_doc_buildEnvelope( $post_data['file_filerecord_id'], $envDocs, $peer_data ) ;
+		$env_filerecord_id = specRsiRecouveo_doc_buildEnvelope( $post_data['file_filerecord_id'], $envDocs, $meta_data ) ;
 		
 		$arr_ins = array() ;
 		$arr_ins['field_LINK_ENV_ID'] = $env_filerecord_id ;

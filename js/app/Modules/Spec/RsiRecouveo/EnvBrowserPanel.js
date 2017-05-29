@@ -25,31 +25,31 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EnvBrowserPanel',{
 			},{
 				text: 'Date',
 				dataIndex: 'env_date',
-				flex: 1,
+				width: 100,
 				menuDisabled: true,
 				sortable: false,
 				renderer: Ext.util.Format.dateRenderer('d/m/Y H:i')
 			},{
 				text: 'Document',
-				dataIndex: 'file_id_ref',
-				flex: 1,
+				dataIndex: 'env_ref',
+				width: 130,
 				menuDisabled: true,
 				sortable: false
 			},{
 				text: 'Titre',
 				dataIndex: 'env_title',
-				flex: 1,
+				width: 50,
 				menuDisabled: true,
 				sortable: false
 			},{
 				text: 'Destinataire',
 				columns: [{
-					text: 'Circuit',
-					dataIndex: 'peer_code',
+					text: 'Ref',
+					dataIndex: 'recep_ref',
 					width: 90
 				},{
 					text: 'Adresse',
-					dataIndex: 'peer_adr',
+					dataIndex: 'recep_adr',
 					width: 190
 				}]
 			},{
@@ -62,6 +62,17 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EnvBrowserPanel',{
 					text: 'Pages',
 					dataIndex: 'stat_count_page',
 					width: 50
+				}]
+			},{
+				text: 'Transport',
+				columns: [{
+					text: 'Code',
+					dataIndex: 'trspt_code',
+					width: 70
+				},{
+					text: 'Tracking',
+					dataIndex: 'trspt_track',
+					width: 80
 				}]
 			},{
 				align: 'center',

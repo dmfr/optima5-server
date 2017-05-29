@@ -435,6 +435,8 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE ) {
 	unlink($pdf_path) ;
 	
 	
+	$json = specRsiRecouveo_config_loadMeta(array()) ;
+	$config_map = $json['data'] ;
 	//media_pdf_delete($media_id) ;
 	$json = array(
 		'success'=>true,
@@ -442,6 +444,14 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE ) {
 			'envdoc_media_id'=>$media_id,
 			'doc_desc'=> $inputTitle,
 			'doc_pagecount'=>media_pdf_getPageCount($media_id)
+		),
+		'meta' => array(
+			'env_ref' => $new_ref_mail,
+			'env_title' => $inputTitle,
+			'sender_ref' => 'ENTITY',
+			'sender_adr' => $config_map['gen_entity_name']."\n".$config_map['gen_entity_adr'],
+			'recep_ref' => $accFile_record['acc_id'],
+			'recep_adr' => $p_adrName."\n".$p_adrPostal
 		)
 	) ;
 	
@@ -538,14 +548,17 @@ function specRsiRecouveo_doc_getPage($post_data) {
 
 
 
-function specRsiRecouveo_doc_buildEnvelope( $file_filerecord_id, $envDocs, $peer_data=NULL ) {
+function specRsiRecouveo_doc_buildEnvelope( $file_filerecord_id, $envDocs, $meta=NULL ) {
 	$arr_ins = array() ;
 	$arr_ins['field_ENV_DATE'] = date('Y-m-d H:i:s') ;
-	$arr_ins['field_ENV_TITLE'] = $envDocs[0]['doc_desc'] ;
 	$arr_ins['field_LINK_FILE_ID'] = $file_filerecord_id ;
-	if( $peer_data ) {
-		$arr_ins['field_PEER_CODE'] = $peer_data['peer_code'] ;
-		$arr_ins['field_PEER_ADR'] = $peer_data['peer_adr'] ;
+	if( $meta ) {
+		$arr_ins['field_ENV_REF'] = $meta['env_ref'] ;
+		$arr_ins['field_ENV_TITLE'] = $meta['env_title'] ;
+		$arr_ins['field_SENDER_REF'] = $meta['sender_ref'] ;
+		$arr_ins['field_SENDER_ADR'] = $meta['sender_adr'] ;
+		$arr_ins['field_RECEP_REF'] = $meta['recep_ref'] ;
+		$arr_ins['field_RECEP_ADR'] = $meta['recep_adr'] ;
 	}
 	$env_filerecord_id = paracrm_lib_data_insertRecord_file( 'ENVELOPE', 0, $arr_ins );
 	
@@ -588,14 +601,22 @@ function specRsiRecouveo_doc_getEnvGrid( $post_data ) {
 		$record = array(
 			'env_filerecord_id' => $arr['filerecord_id'],
 			
+			'env_ref' => $arr['field_ENV_REF'],
 			'env_title' => $arr['field_ENV_TITLE'],
 			'env_date' => $arr['field_ENV_DATE'],
 			
 			'file_filerecord_id' => $arr['field_LINK_FILE_ID'],
 			'file_id_ref' => $arr['field_FILE_ID'],
 			
-			'peer_code' => $arr['field_PEER_CODE'],
-			'peer_adr' => $arr['field_PEER_ADR'],
+			'sender_ref' => $arr['field_SENDER_REF'],
+			'sender_adr' => $arr['field_SENDER_ADR'],
+			
+			'recep_ref' => $arr['field_RECEP_REF'],
+			'recep_adr' => $arr['field_RECEP_ADR'],
+			
+			'trpst_status' => $arr['field_TRSPT_STATUS'],
+			'trspt_code' => $arr['field_TRSPT_CODE'],
+			'trspt_track' => $arr['field_TRSPT_TRACK'],
 			
 			'stat_count_doc' => 0,
 			'stat_count_page' => 0,
