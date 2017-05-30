@@ -344,11 +344,19 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 				this.getForm().findField('schedlock_schednew_date').markInvalid(error) ;
 			}
 			if( this.down('#rightRecords') && this.down('#rightRecords').isVisible(true) ) {
-				if( this.down('#rightRecords').down('grid').getSelectionModel().getSelection().length != 1 ) {
+				if( this.down('#rightRecords').down('grid').getSelectionModel().getSelection().length < 1 ) {
 					errors.push('Enregistrement comptable non sélectionné') ;
 				} else {
-					var rec = this.down('#rightRecords').down('grid').getSelectionModel().getSelection()[0] ;
-					postData['schedlock_confirm_txt'] = rec.get('record_id') ;
+					postData['schedlock_confirm_txt'] = [] ;
+					postData['schedlock_confirm_ids'] = [] ;
+					
+					Ext.Array.each( this.down('#rightRecords').down('grid').getSelectionModel().getSelection(), function(rec) {
+						postData['schedlock_confirm_txt'].push( rec.get('record_id') ) ;
+						postData['schedlock_confirm_ids'].push( rec.getId() ) ;
+					}) ;
+					
+					postData['schedlock_confirm_txt'] = postData['schedlock_confirm_txt'].join(' ') ;
+					postData['schedlock_confirm_ids'] = Ext.JSON.encode(postData['schedlock_confirm_ids']) ;
 				}
 			}
 		}

@@ -633,6 +633,7 @@ function specRsiRecouveo_file_createForAction( $post_data ) {
 	
 	// Action mutation
 	$arr_recordsTxt = array() ;
+	$sum_recordsAmount = 0 ;
 	foreach( $account_record['files'] as $accFile_record ) {
 		$arr_recordsTxtFile = array() ;
 		foreach( $accFile_record['records'] as $accFileRecord_record ) {
@@ -643,6 +644,7 @@ function specRsiRecouveo_file_createForAction( $post_data ) {
 			// Ids de facture
 			$arr_recordsTxt[] = $accFileRecord_record['record_id'] ;
 			$arr_recordsTxtFile[] = $accFileRecord_record['record_id'] ;
+			$sum_recordsAmount += $accFileRecord_record['amount'] ;
 			
 			// Terminaison du lien
 			$query = "SELECT filerecord_id FROM view_file_RECORD_LINK 
@@ -776,6 +778,25 @@ function specRsiRecouveo_file_createForAction( $post_data ) {
 						break ;
 				}
 			}
+			if( $nb==0 && $_formData['agree_period']=='NOW' ) {
+				// DONE 170529 : paiement immédiat
+				// création TEMPREC
+				$forward_post = array(
+					'acc_id' => $p_accId,
+					'data' => json_encode(array(
+						'recordTemp_id' => 'Paiement VPC le '.date('d/m/Y'),
+						'recordTemp_amount' => (-1 * $sum_recordsAmount)
+					))
+				);
+				$json = specRsiRecouveo_file_createRecordTemp( $forward_post ) ;
+				
+				// assoc TEMPRC
+				$forward_post = array(
+					'file_filerecord_id' => $file_filerecord_id,
+					'arr_recordFilerecordIds' => json_encode(array($json['record_filerecord_id']))
+				) ;
+				specRsiRecouveo_file_allocateRecordTemp($forward_post) ;
+			}
 			
 			break ;
 		
@@ -809,7 +830,7 @@ function specRsiRecouveo_file_lib_createForAction( $file_row, $action_id ) {
 
 	// fichier(s) origine => close if empty
 }
-function specRsiRecouveo_file_lib_close( $file_filerecord_id ) {
+function specRsiRecouveo_file_lib_closeBack( $file_filerecord_id ) {
 	global $_opDB ;
 	
 	$ttmp = specRsiRecouveo_cfg_getConfig() ;
@@ -1090,50 +1111,55 @@ function specRsiRecouveo_file_getScenarioLine( $post_data ) {
 function specRsiRecouveo_file_createRecordTemp( $post_data ) {
 	global $_opDB ;
 	
-	$p_fileFilerecordId = $post_data['file_filerecord_id'] ;
+	$p_accId = $post_data['acc_id'] ;
 	$p_formData = json_decode($post_data['data'],true) ;
-	$json = specRsiRecouveo_file_getRecords( array(
-		'filter_fileFilerecordId_arr' => json_encode(array($p_fileFilerecordId))
+	$json = specRsiRecouveo_account_open( array(
+		'acc_id' => $p_accId
 	)) ;
-	$accFile_record = $json['data'][0] ;
+	if( !$json['success'] ) {
+		return array('success'=>false) ;
+	}
 	
 	$arr_ins = array() ;
 	$arr_ins['field_TYPE'] = 'TEMPREC' ;
 	$arr_ins['field_RECORD_ID'] = trim($p_formData['recordTemp_id']) ;
-	$arr_ins['field_LINK_ACCOUNT'] = $accFile_record['acc_id'] ;
+	$arr_ins['field_LINK_ACCOUNT'] = $p_accId ;
 	$arr_ins['field_DATE_RECORD'] = $arr_ins['field_DATE_VALUE'] = date('Y-m-d') ;
 	$arr_ins['field_AMOUNT'] = $p_formData['recordTemp_amount'] ;
 	$arr_ins['field_LETTER_IS_ON'] = 0 ;
 	$record_filerecord_id = paracrm_lib_data_insertRecord_file( 'RECORD', 0, $arr_ins );
-	$arr_ins = array() ;
-	$arr_ins['field_LINK_FILE_ID'] = $accFile_record['file_filerecord_id'] ;
-	$arr_ins['field_LINK_IS_ON'] = 1 ;
-	$arr_ins['field_DATE_LINK_ON'] = date('Y-m-d H:i:s') ;
-	paracrm_lib_data_insertRecord_file( 'RECORD_LINK', $record_filerecord_id, $arr_ins );
 	
-	return array('success'=>true, 'file_filerecord_id'=>$accFile_record['file_filerecord_id']) ;
+	return array('success'=>true, 'record_filerecord_id'=>$record_filerecord_id) ;
 }
 function specRsiRecouveo_file_allocateRecordTemp( $post_data ) {
 	global $_opDB ;
 	
 	$p_fileFilerecordId = $post_data['file_filerecord_id'] ;
 	$p_arrRecordFilerecordIds = json_decode($post_data['arr_recordFilerecordIds'],true) ;
-
+	
 	foreach( $p_arrRecordFilerecordIds as $record_filerecord_id ) {
+		if( $p_fileFilerecordId==='' ) {
+			paracrm_lib_data_deleteRecord_file( 'RECORD', $record_filerecord_id );
+		}
 		$query = "UPDATE view_file_RECORD r, view_file_RECORD_LINK rl
 					SET rl.field_LINK_IS_ON='0'
 					WHERE r.filerecord_id = rl.filerecord_parent_id
 					AND r.filerecord_id='{$record_filerecord_id}'" ;
 		$_opDB->query($query) ;
 		
-		$arr_ins = array() ;
-		$arr_ins['field_LINK_FILE_ID'] = $p_fileFilerecordId ;
-		$arr_ins['field_LINK_IS_ON'] = 1 ;
-		$arr_ins['field_DATE_LINK_ON'] = date('Y-m-d H:i:s') ;
-		paracrm_lib_data_insertRecord_file( 'RECORD_LINK', $record_filerecord_id, $arr_ins );
+		if( $p_fileFilerecordId > 0 ) {
+			$arr_ins = array() ;
+			$arr_ins['field_LINK_FILE_ID'] = $p_fileFilerecordId ;
+			$arr_ins['field_LINK_IS_ON'] = 1 ;
+			$arr_ins['field_DATE_LINK_ON'] = date('Y-m-d H:i:s') ;
+			paracrm_lib_data_insertRecord_file( 'RECORD_LINK', $record_filerecord_id, $arr_ins );
+		}
 	}
 	
-	return array('success'=>true, 'file_filerecord_id'=>$p_fileFilerecordId) ;
+	if( $p_fileFilerecordId > 0 ) {
+		return array('success'=>true, 'file_filerecord_id'=>$p_fileFilerecordId) ;
+	}
+	return array('success'=>true) ;
 }
 
 

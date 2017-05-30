@@ -133,7 +133,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordTempForm',{
 			var row = recordRecord.getData() ;
 			pRecordsGridData.push( row ) ;
 		},this);
-		console.dir(pRecordsGridData) ;
 		this.down('#pRecordsGrid').getStore().loadRawData(pRecordsGridData) ;
 		
 		this.fireEvent('mylayout',this) ;
@@ -194,7 +193,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordTempForm',{
 			params: {
 				_moduleId: 'spec_rsi_recouveo',
 				_action: 'file_createRecordTemp',
-				file_filerecord_id: this._fileRecord.get('file_filerecord_id'),
+				acc_id : this._accountRecord.get('acc_id'),
 				data: Ext.JSON.encode(formValues)
 			},
 			success: function(response) {
@@ -205,7 +204,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordTempForm',{
 					return ;
 				}
 				var doReload = doReload ;
-				this.onSubmitDone(ajaxResponse.file_filerecord_id) ;
+				this.onSubmitDone() ;
 			},
 			callback: function() {
 				this.hideLoadmask() ;
@@ -213,8 +212,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordTempForm',{
 			scope: this
 		}) ;
 	},
-	onSubmitDone: function(fileId) {
-		this.fireEvent('saved',fileId) ;
+	onSubmitDone: function() {
+		this.fireEvent('saved') ;
 		this.optimaModule.postCrmEvent('datachange',{}) ;
 		this.destroy() ;
 	},

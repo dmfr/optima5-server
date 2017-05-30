@@ -188,6 +188,16 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 					break ;
 					
 				case 'confirm' :
+					// DONE 170529
+					// Link selected records
+					if( $post_form['schedlock_confirm_ids'] && is_array(json_decode($post_form['schedlock_confirm_ids'],true)) ) {
+						$forward_post = array(
+							'file_filerecord_id' => $file_filerecord_id,
+							'arr_recordFilerecordIds' => $post_form['schedlock_confirm_ids']
+						) ;
+						specRsiRecouveo_file_allocateRecordTemp($forward_post) ;
+					}
+					
 					$txt = '' ;
 					$txt.= "Promesse validée, paiement : ".$post_form['schedlock_confirm_txt']."\r\n" ;
 					$arr_ins['field_TXT'] = $txt ;
@@ -276,7 +286,7 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 			case 'end' :
 			case 'close' :
 				$do_clean_next_actions = TRUE ;
-				$is_sched_lock_end = TRUE ;
+				$is_sched_lock_endBack = TRUE ;
 				break ;
 		
 			case 'schednew' :
@@ -304,8 +314,17 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 					}
 				}
 				if( $nb_sched==0 ) {
-					$do_clean_next_actions = TRUE ;
-					$is_sched_lock_end = TRUE ;
+					// DOING 170529 : verif amount
+					if( $file_record['inv_amount_due'] <= 0 ) {
+						$is_sched_lock_endClose = TRUE ;
+					} else {
+						// force create new action
+						$arr_ins = array() ;
+						$arr_ins['field_LINK_STATUS'] = $post_form['link_status'] ;
+						$arr_ins['field_LINK_ACTION'] = $post_form['link_action'] ;
+						$arr_ins['field_DATE_SCHED'] = date('Y-m-d') ;
+						paracrm_lib_data_insertRecord_file( $file_code, $file_filerecord_id, $arr_ins );
+					}
 				}
 				break ;
 		}
@@ -387,8 +406,8 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 	}
 	*/
 	
-	if( $is_sched_lock_end ) {
-		$file_filerecord_id = specRsiRecouveo_file_lib_close($file_filerecord_id) ;
+	if( $is_sched_lock_endBack ) {
+		$file_filerecord_id = specRsiRecouveo_file_lib_closeBack($file_filerecord_id) ;
 	}
 	
 	

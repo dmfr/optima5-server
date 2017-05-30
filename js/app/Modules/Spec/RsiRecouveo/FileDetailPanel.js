@@ -1368,6 +1368,27 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				scope : this
 			});
 		}
+		if( record.get('record_type')=='TEMPREC' ) {
+			if( record.parentNode.get('file_filerecord_id')==0 ) {
+				treeContextMenuItems.push({
+					iconCls: 'icon-bible-delete',
+					text: 'Suppr. pièce temporaire',
+					handler : function() {
+						this.associateTempRecords([record.get('record_filerecord_id')],null) ;
+					},
+					scope : this
+				});
+			} else {
+				treeContextMenuItems.push({
+					iconCls: 'icon-bible-delete',
+					text: 'Annuler l\'association dossier',
+					handler : function() {
+						this.associateTempRecords([record.get('record_filerecord_id')],0) ;
+					},
+					scope : this
+				});
+			}
+		}
 		
 		if( treeContextMenuItems.length == 0 ) {
 			return ;
@@ -1711,7 +1732,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 	
 	associateTempRecords: function( arrRecordFilerecordIds, fileFilerecordId, doAssociate ) {
 		if( !doAssociate ) {
-			var msg = 'Associer paiements au fichier sélectionné ?' ;
+			var msg ;
+			if( fileFilerecordId == null ) {
+				msg = 'Supprimer enregistrement ?' ;
+			} else if( fileFilerecordId > 0 ) {
+				msg = 'Associer paiements au fichier sélectionné ?' ;
+			} else {
+				msg = 'Annuler l\'association ?' ;
+			}
 			Ext.MessageBox.confirm('Attention',msg, function(btn) {
 				if( btn =='yes' ) {
 					this.associateTempRecords(arrRecordFilerecordIds, fileFilerecordId, true) ;
@@ -1727,7 +1755,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			params: {
 				_moduleId: 'spec_rsi_recouveo',
 				_action: 'file_allocateRecordTemp',
-				file_filerecord_id: fileFilerecordId,
+				file_filerecord_id: (fileFilerecordId==null ? '' : fileFilerecordId),
 				arr_recordFilerecordIds: Ext.JSON.encode(arrRecordFilerecordIds)
 			},
 			success: function(response) {

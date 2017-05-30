@@ -4,6 +4,20 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusAgreeFollowPanel',{
 	_fileRecord: null,
 	
 	initComponent: function() {
+		// Unallocated records
+		var toAllocatePaymentRecords = [] ;
+		this._accountRecord.files().each( function(accountFileRecord) {
+			if( accountFileRecord.statusIsSchedLock() ) {
+				return ;
+			}
+			accountFileRecord.records().each( function(accountFileRecordRecord) {
+				if( accountFileRecordRecord.get('amount') >= 0 ) {
+					return ;
+				}
+				toAllocatePaymentRecords.push( accountFileRecordRecord.getData() ) ;
+			},this) ;
+		},this) ;
+		
 		Ext.apply(this,{
 			bodyCls: 'ux-noframe-bg',
 			bodyPadding: 0,
@@ -94,7 +108,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusAgreeFollowPanel',{
 					height: 220,
 					selModel: {
 						selType: 'checkboxmodel',
-						mode: 'SINGLE'
+						mode: 'MULTI'
 					},
 					columns: [{
 						text: 'Libellé',
@@ -114,14 +128,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusAgreeFollowPanel',{
 					}],
 					store: {
 						model: Optima5.Modules.Spec.RsiRecouveo.HelperCache.getRecordModel(),
-						data: this._fileRecord.records().getRange(),
+						data: toAllocatePaymentRecords,
 						sorters:[{
 							property: 'date_value',
 							direction: 'DESC'
 						}],
 						filters:[{
 							property: 'amount',
-							operator: 'gt',
+							operator: 'lt',
 							value: 0
 						}]
 					}

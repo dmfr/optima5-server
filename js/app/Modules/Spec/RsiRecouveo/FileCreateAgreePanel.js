@@ -37,6 +37,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateAgreePanel',{
 						fields: ['txt'],
 						data : [
 							{id: '', txt:'-select-'},
+							{id: 'NOW', txt:'Paiement immédiat VPC'},
 							{id: 'SINGLE', txt:'Paiement unique'},
 							{id: 'WEEK', txt:'Hebdomadaire'},
 							{id: 'MONTH', txt:'Mensuelle'}
@@ -114,25 +115,31 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateAgreePanel',{
 		var form = this.getForm() ;
 		
 		switch( form.findField('agree_period').getValue() ) {
+			case 'NOW' :
+				form.findField('agree_date').setVisible(false) ;
+				form.findField('agree_datefirst').setVisible(false) ;
+				form.findField('agree_count').setVisible(false) ;
+				form.findField('agree_amountfirst_do').setVisible(false) ;
+			  break ;
 			case 'SINGLE' :
 				form.findField('agree_date').setVisible(true) ;
-			  form.findField('agree_datefirst').setVisible(false) ;
-			  form.findField('agree_count').setVisible(false) ;
-			  form.findField('agree_amountfirst_do').setVisible(false) ;
-			  break ;
+				form.findField('agree_datefirst').setVisible(false) ;
+				form.findField('agree_count').setVisible(false) ;
+				form.findField('agree_amountfirst_do').setVisible(false) ;
+				break ;
 			case 'WEEK' :
 			case 'MONTH' :
 				form.findField('agree_date').setVisible(false) ;
-			  form.findField('agree_datefirst').setVisible(true) ;
-			  form.findField('agree_count').setVisible(true) ;
-			  form.findField('agree_amountfirst_do').setVisible(true) ;
-			  break ;
+				form.findField('agree_datefirst').setVisible(true) ;
+				form.findField('agree_count').setVisible(true) ;
+				form.findField('agree_amountfirst_do').setVisible(true) ;
+				break ;
 			default :
 				form.findField('agree_date').setVisible(false) ;
-			  form.findField('agree_datefirst').setVisible(false) ;
-			  form.findField('agree_count').setVisible(false) ;
-			  form.findField('agree_amountfirst_do').setVisible(false) ;
-			  break ;
+				form.findField('agree_datefirst').setVisible(false) ;
+				form.findField('agree_count').setVisible(false) ;
+				form.findField('agree_amountfirst_do').setVisible(false) ;
+				break ;
 		}
 		
 		form.findField('agree_amountfirst').setVisible( 
