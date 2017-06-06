@@ -151,7 +151,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordGroupAssocPanel',{
 			}],
 			columns: [{
 				xtype: 'checkcolumn',
-				dataIndex: '_checked'
+				dataIndex: '_checked',
+				listeners: {
+					beforecheckchange: function(col) {
+						if( col._disabled ) {
+							return false ;
+						}
+					}
+				}
 			},{
 				text: 'Compte acheteur',
 				dataIndex: 'acc_id',
@@ -172,6 +179,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordGroupAssocPanel',{
 				renderer: Ext.util.Format.numberRenderer('0,000.00')
 			}]
 		});
+		var editorGrid = pCenter.down('grid') ;
+		editorGrid.headerCt.down('[dataIndex="_checked"]')._disabled = readOnly ;
+		editorGrid.down('toolbar').setVisible(!readOnly) ;
 	},
 	doChangeNew: function(isNew) {
 		var form = this.down('form').getForm() ;

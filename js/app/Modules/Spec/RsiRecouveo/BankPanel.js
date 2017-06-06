@@ -127,7 +127,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.BankPanel',{
 								}
 							}) ;
 							if( !nextValue ) {
-								return ;
+								nextValue = '_reset' ;
 							}
 							
 							var fieldTypeAllocation = this.down('grid').headerCt.down('[dataIndex="_type_allocation"]').getEditor() ;
@@ -156,6 +156,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.BankPanel',{
 					store: {
 						fields: ['code','lib'],
 						data : [
+							{code:'_reset', lib:'Pas de lien'},
 							{code:'account', lib:'Compte acheteur'},
 							{code:'recordgroup_input', lib:'Remise chèque(s)'},
 							{code:'recordgroup_assoc', lib:'Groupage / VPC'}
@@ -196,7 +197,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.BankPanel',{
 					forceSelection: true,
 					editable: false,
 					store: {
-						fields: ['recordgroup_code'],
+						fields: ['recordgroup_code','alloc_free'],
 						data : [],
 						sorters: [{
 							property: 'recordgroup_code',
@@ -212,7 +213,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.BankPanel',{
 					forceSelection: true,
 					editable: false,
 					store: {
-						fields: ['recordgroup_code'],
+						fields: ['recordgroup_code','alloc_free'],
 						data : [],
 						sorters: [{
 							property: 'recordgroup_code',
@@ -305,11 +306,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.BankPanel',{
 				Ext.Array.each( ajaxResponse.data, function(row) {
 					if( !Ext.isEmpty(row.alloc_link_account) ) {
 						row['_type_allocation'] = 'account';
-					} else if( !Ext.isEmpty(row.alloc_link_recordgroup) ) {
-						row['_type_allocation'] = 'recordgroup';
-						if( !Ext.isEmpty(row.alloc_link_recordgroup_type) ) {
-							row['_type_allocation'] = 'recordgroup_'+row.alloc_link_recordgroup_type;
-						}
+					} else if( !Ext.isEmpty(row.alloc_link_recordgroup) && !Ext.isEmpty(row.alloc_link_recordgroup_type) ) {
+						row['_type_allocation'] = 'recordgroup_'+row.alloc_link_recordgroup_type;
 					}
 				},this) ;
 				
@@ -321,7 +319,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.BankPanel',{
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_rsi_recouveo',
-				_action: 'recordgroup_input_list'
+				_action: 'recordgroup_input_list',
+				alloc_ready: 1
 			},
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
@@ -343,7 +342,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.BankPanel',{
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_rsi_recouveo',
-				_action: 'recordgroup_assoc_list'
+				_action: 'recordgroup_assoc_list',
+				alloc_ready: 1
 			},
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
@@ -372,14 +372,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.BankPanel',{
 				context.record.set('alloc_link_account',context.newValues['_editor_allocation']) ;
 				break ;
 			case 'recordgroup_input' :
-				context.record.set('_type_allocation',context.newValues['_type_allocation']) ;
-				context.record.set('alloc_link_recordgroup',context.newValues['_editor_allocation']) ;
-				context.record.set('alloc_link_recordgroup_type','input') ;
-				break ;
 			case 'recordgroup_assoc' :
 				context.record.set('_type_allocation',context.newValues['_type_allocation']) ;
 				context.record.set('alloc_link_recordgroup',context.newValues['_editor_allocation']) ;
-				context.record.set('alloc_link_recordgroup_type','assoc') ;
+				context.record.set('alloc_link_recordgroup_type',context.newValues['_type_allocation'].split('_')[1]) ;
 				break ;
 		}
 		
@@ -430,18 +426,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.BankPanel',{
 		}
 	},
 	onBeforeEditRecord: function(editor,context) {
-		var optReclocalValue = context.record.get('_type_allocation'),
-			nextValue = null ;
-		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getOptData('OPT_RECLOCAL'), function(row) {
-			if( row.id==optReclocalValue ) {
-				nextValue = row.next ;
-			}
-		}) ;
-		if( nextValue ) {
-			context.record.set('_type_allocation',nextValue) ;
-		}
-		
-		
 		switch( context.record.get('_type_allocation') ) {
 			case 'account' :
 				context.record.set('_editor_allocation',context.record.get('alloc_link_account')) ;
@@ -450,6 +434,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.BankPanel',{
 			case 'recordgroup_assoc' :
 			case 'recordgroup_input' :
 				context.record.set('_editor_allocation',context.record.get('alloc_link_recordgroup')) ;
+				break ;
+			default :
+				context.record.set('_editor_allocation',null) ;
 				break ;
 		}
 		this.onEditorTypeAllocationChange(context.record.get('_type_allocation')) ;

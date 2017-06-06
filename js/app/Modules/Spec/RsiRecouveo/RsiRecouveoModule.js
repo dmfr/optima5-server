@@ -102,6 +102,7 @@ Ext.define('RsiRecouveoRecordTplModel',{ // TO: RsiRecouveoRecordModel
 		{name: 'letter_code', type: 'string'},
 		{name: 'recordgroup_id', type: 'string'},
 		{name: 'txt', type: 'string'},
+		{name: 'bank_is_alloc', type: 'string'},
 		{name: '_checked', type: 'boolean'},
 		
 		{name: 'calc_balage_segmt_id', type:'string'}

@@ -44,6 +44,7 @@ function specRsiRecouveo_recordgroup_input_get( $post_data ) {
 	
 	
 	$TAB = array() ;
+	$readonly = FALSE ;
 	$query = "SELECT r.*, acc.field_ACC_NAME 
 				FROM view_file_RECORD r
 				LEFT OUTER JOIN view_bible_LIB_ACCOUNT_entry acc ON acc.entry_key=r.field_LINK_ACCOUNT
@@ -69,10 +70,13 @@ function specRsiRecouveo_recordgroup_input_get( $post_data ) {
 			'letter_is_on' => ($arr['field_LETTER_IS_ON']==1),
 			'letter_code' => $arr['field_LETTER_CODE']
 		);
+		if( $arr['field_BANK_LINK_FILE_ID'] > 0 ) {
+			$readonly = TRUE ;
+		}
 		$TAB[] = $record_row ;
 	}
 	
-	return array('success'=>true,'data'=>$TAB,'readonly'=>false) ;
+	return array('success'=>true,'data'=>$TAB,'readonly'=>$readonly) ;
 }
 
 
@@ -192,15 +196,15 @@ function specRsiRecouveo_recordgroup_assoc_get( $post_data ) {
 	
 	
 	$TAB = array() ;
+	$readonly = FALSE ;
 	$query = "SELECT r.*, acc.field_ACC_NAME 
 				FROM view_file_RECORD r
 				LEFT OUTER JOIN view_bible_LIB_ACCOUNT_entry acc ON acc.entry_key=r.field_LINK_ACCOUNT
 				WHERE field_TYPE='TEMPREC' AND field_TYPE_TEMPREC='FILE'
-				AND field_BANK_LINK_FILE_ID='0'
 				AND (
 					field_RECORDGROUP_ID='{$p_recordgroupCode}' AND field_RECORDGROUP_TYPE='assoc'
 					OR
-					field_RECORDGROUP_ID=''
+					field_RECORDGROUP_ID='' AND field_BANK_LINK_FILE_ID='0'
 				)" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
@@ -224,10 +228,20 @@ function specRsiRecouveo_recordgroup_assoc_get( $post_data ) {
 			'letter_code' => $arr['field_LETTER_CODE'],
 			'_checked' => ($p_recordgroupCode&&($arr['field_RECORDGROUP_ID']==$p_recordgroupCode))
 		);
+		if( $arr['field_BANK_LINK_FILE_ID'] > 0 ) {
+			$readonly = TRUE ;
+		}
 		$TAB[] = $record_row ;
 	}
+	if( $readonly ) {
+		foreach( $TAB as $idx => $record_row ) {
+			if( !$record_row['_checked'] ) {
+				unset($TAB[$idx]) ;
+			}
+		}
+	}
 	
-	return array('success'=>true,'data'=>$TAB,'readonly'=>false) ;
+	return array('success'=>true,'data'=>$TAB,'readonly'=>$readonly) ;
 }
 
 function specRsiRecouveo_recordgroup_assoc_set( $post_data ) {
@@ -244,13 +258,17 @@ function specRsiRecouveo_recordgroup_assoc_set( $post_data ) {
 			$next_txt = $json['next_txt'] ;
 			$query = "UPDATE view_bible_META_entry SET field_META_VALUE=field_META_VALUE+'1' WHERE field_META_KEY='RECORDGROUP_ASSOCNEXT'" ;
 			$_opDB->query($query) ;
+			
+			// test
+			$cnt = 0 ;
+			foreach( $json['data'] as $row ) {
+				if( $row['checked'] ) {
+					continue 2 ;
+				}
+			}
+			
 			$recordgroup_code = $next_txt ;
 			break ;
-			$json = specRsiRecouveo_recordgroup_assoc_get( array('recordgroup_code'=>$next_txt) ) ;
-			if( count($json['data']) == 0 ) {
-				$recordgroup_code = $next_txt ;
-				break ;
-			}
 		}
 	}
 	

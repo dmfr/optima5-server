@@ -14,7 +14,8 @@ Ext.define('RsiRecouveoFileDetailRecordsTreeModel', {
 		  {name: 'record_date', type: 'date'},
 		  {name: 'record_amount', type: 'number'},
 		  {name: 'record_letter',  type: 'string'},
- 		  {name: 'record_type',  type: 'string'}
+ 		  {name: 'record_type',  type: 'string'},
+		  {name: 'record_readonly', type: 'boolean'}
      ]
 });
 Ext.define('RsiRecouveoAdrbookTreeModel',{
@@ -854,7 +855,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					record_date: fileRecordRecord.get('date_value'),
 					record_amount: fileRecordRecord.get('amount'),
 					record_letter: (fileRecordRecord.get('letter_is_on') ? fileRecordRecord.get('letter_code') : ''),
-					record_type: fileRecordRecord.get('type')
+					record_type: fileRecordRecord.get('type'),
+					record_readonly: (!fileRecordRecord.get('type')=='TEMPREC' || fileRecordRecord.get('bank_is_alloc'))
 				});
 				totAmountDue += fileRecordRecord.get('amount') ;
 			},this) ;
@@ -1370,14 +1372,16 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		}
 		if( record.get('record_type')=='TEMPREC' ) {
 			if( record.parentNode.get('file_filerecord_id')==0 ) {
-				treeContextMenuItems.push({
-					iconCls: 'icon-bible-delete',
-					text: 'Suppr. pièce temporaire',
-					handler : function() {
-						this.associateTempRecords([record.get('record_filerecord_id')],null) ;
-					},
-					scope : this
-				});
+				if( !record.get('record_readonly') ) {
+					treeContextMenuItems.push({
+						iconCls: 'icon-bible-delete',
+						text: 'Suppr. pièce temporaire',
+						handler : function() {
+							this.associateTempRecords([record.get('record_filerecord_id')],null) ;
+						},
+						scope : this
+					});
+				}
 			} else {
 				treeContextMenuItems.push({
 					iconCls: 'icon-bible-delete',

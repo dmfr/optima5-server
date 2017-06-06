@@ -178,7 +178,8 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			'date_value' => $arr['field_DATE_VALUE'],
 			'amount' => $arr['field_AMOUNT'],
 			'letter_is_on' => ($arr['field_LETTER_IS_ON']==1),
-			'letter_code' => $arr['field_LETTER_CODE']
+			'letter_code' => $arr['field_LETTER_CODE'],
+			'bank_is_alloc' => ($arr['field_BANK_LINK_FILE_ID']>0)
 		);
 		
 		if( !isset($TAB_files[$file_filerecord_id]) ) {
