@@ -202,6 +202,24 @@ Ext.define('RsiRecouveoEnvelopeModel',{
 		associationKey: 'docs'
 	}]
 });
+Ext.define('RsiRecouveoBankModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'bank_filerecord_id',
+	fields: [
+		{name: 'bank_filerecord_id', type:'int'},
+		{name: 'bank_ref', type:'string'},
+		{name: 'bank_date', type:'date', dateFormat:'Y-m-d'},
+		{name: 'bank_txt', type:'string'},
+		{name: 'bank_amount', type:'number'},
+		{name: 'calc_balance', type:'number'},
+		{name: 'alloc_is_ok', type: 'boolean'},
+		{name: 'alloc_type', type: 'string'},
+		{name: 'alloc_link_is_on', type: 'boolean'},
+		{name: 'alloc_link_recordgroup', type: 'string'},
+		{name: 'alloc_link_account', type: 'string'},
+		{name: 'alloc_link_account_txt', type: 'string'}
+	]
+});
 
 
 

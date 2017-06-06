@@ -1,7 +1,10 @@
-Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordTempPanel',{
+Ext.define('Optima5.Modules.Spec.RsiRecouveo.BankPanel',{
 	extend:'Ext.panel.Panel',
 	
-	requires: ['Optima5.Modules.Spec.RsiRecouveo.RecordTempGroupPanel'],
+	requires: [
+		'Optima5.Modules.Spec.RsiRecouveo.RecordGroupInputPanel',
+		'Optima5.Modules.Spec.RsiRecouveo.RecordGroupAssocPanel'
+	],
 	
 	initComponent: function() {
 		Ext.apply(this,{
@@ -19,7 +22,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordTempPanel',{
 				text: '<b>Remise de chèque</b>',
 				iconCls: 'op5-crmbase-datatoolbar-file-importdata',
 				handler: function() {
-					this.openRecordTempGroupPanel() ;
+					this.openRecordGroupInputPanel() ;
+				},
+				scope: this
+			},{
+				text: '<b>Groupage VPC</b>',
+				iconCls: 'op5-crmbase-datatoolbar-file-importdata',
+				handler: function() {
+					this.openRecordGroupAssocPanel() ;
 				},
 				scope: this
 			}]
@@ -60,38 +70,46 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordTempPanel',{
 		var pCenter = this.down('#pCenter') ;
 		var columns = [{
 			text: 'New?',
-			dataIndex: '_checked',
+			dataIndex: 'alloc_is_ok',
 			width:48,
 			renderer: function(value,metaData,record) {
-				if( value ) {
+				if( !value ) {
 					metaData.tdCls += ' op5-spec-rsiveo-icon-priority' ;
 				}
 				return '' ;
 			}
 		},{
 			text: 'Date valeur',
-			dataIndex: 'date_record',
+			dataIndex: 'bank_date',
 			width:100,
 			renderer: Ext.util.Format.dateRenderer('d/m/Y')
 		},{
 			text: 'Libelle',
-			dataIndex: 'txt',
+			dataIndex: 'bank_ref',
 			width:275
 		},{
 			text: 'Montant',
-			dataIndex: 'amount',
+			dataIndex: 'bank_amount',
 			align: 'right',
 			width: 90,
 			tdCls: 'op5-spec-dbstracy-boldcolumn',
 			renderer: function(v) {
-				return Ext.util.Format.number(v*-1, '0,000.00') ;
+				return Ext.util.Format.number(v, '0,000.00') ;
+			}
+		},{
+			text: 'Solde',
+			dataIndex: 'calc_balance',
+			align: 'right',
+			width: 90,
+			renderer: function(v) {
+				return Ext.util.Format.number(v, '0,000.00') ;
 			}
 		},{
 			itemId: 'colAllocation',
 			text: 'Allocation',
 			columns: [{
 				text: 'Opération/MdP',
-				dataIndex: 'type_temprec',
+				dataIndex: 'alloc_type',
 				width:150,
 				editor: Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
 					cfgParam_id: 'OPT_RECLOCAL',
@@ -139,7 +157,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordTempPanel',{
 						fields: ['code','lib'],
 						data : [
 							{code:'account', lib:'Compte acheteur'},
-							{code:'recordgroup', lib:'Remise'}
+							{code:'recordgroup_input', lib:'Remise chèque(s)'},
+							{code:'recordgroup_assoc', lib:'Groupage / VPC'}
 						]
 					},
 					queryMode: 'local',
@@ -156,8 +175,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordTempPanel',{
 					switch(v) {
 						case 'account' :
 							return 'Compte acheteur' ;
-						case 'recordgroup' :
-							return 'Remise' ;
+						case 'recordgroup_input' :
+							return 'Remise chèque(s)' ;
+						case 'recordgroup_assoc' :
+							return 'Groupage / VPC' ;
 						default : break ;
 					}
 				}
@@ -170,7 +191,23 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordTempPanel',{
 					optimaModule: this.optimaModule,
 					bibleId: 'LIB_ACCOUNT'
 				},
-				editorRecordgroup: {
+				editorRecordgroupInput: {
+					xtype: 'combobox',
+					forceSelection: true,
+					editable: false,
+					store: {
+						fields: ['recordgroup_code'],
+						data : [],
+						sorters: [{
+							property: 'recordgroup_code',
+							direction: 'DESC'
+						}]
+					},
+					queryMode: 'local',
+					displayField: 'recordgroup_code',
+					valueField: 'recordgroup_code'
+				},
+				editorRecordgroupAssoc: {
 					xtype: 'combobox',
 					forceSelection: true,
 					editable: false,
@@ -189,10 +226,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordTempPanel',{
 				renderer: function(v,m,r) {
 					switch( r.get('_type_allocation') ) {
 						case 'account' :
-							return '<b>'+r.get('acc_id')+'</b>'+'&#160;&#160;&#160;&#160;'+r.get('acc_txt') ;
+							return '<b>'+r.get('alloc_link_account')+'</b>'+'&#160;&#160;&#160;&#160;'+r.get('alloc_link_account_txt') ;
 							break ;
 						case 'recordgroup' :
-							return r.get('recordgroup_id') ;
+						case 'recordgroup_input' :
+						case 'recordgroup_assoc' :
+							return r.get('alloc_link_recordgroup') ;
 							break ;
 					}
 				}
@@ -212,11 +251,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordTempPanel',{
 			items: columns
 		}
 		
-		this.tmpModelName = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getRecordModel()+'-' + this.getId() + (++this.tmpModelCnt) ;
+		this.tmpModelName = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getBankModel()+'-' + this.getId() + (++this.tmpModelCnt) ;
 		Ext.ux.dams.ModelManager.unregister( this.tmpModelName ) ;
 		Ext.define(this.tmpModelName, {
-			extend: Optima5.Modules.Spec.RsiRecouveo.HelperCache.getRecordModel(),
-			idProperty: 'record_filerecord_id',
+			extend: Optima5.Modules.Spec.RsiRecouveo.HelperCache.getBankModel(),
+			idProperty: 'bank_filerecord_id',
 			fields: [
 				{name:'_type_allocation', type:'string'},
 				{name:'_phantom', type:'boolean'}
@@ -231,10 +270,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordTempPanel',{
 			store: {
 				model: this.tmpModelName,
 				data: [],
-				sorters: [{
-					property: '_checked',
-					direction: 'DESC'
-				}],
 				proxy: {
 					type: 'memory'
 				}
@@ -259,7 +294,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordTempPanel',{
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_rsi_recouveo',
-				_action: 'recordgroup_loadRootRecords'
+				_action: 'bank_getRecords'
 			},
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
@@ -268,10 +303,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordTempPanel',{
 					return ;
 				}
 				Ext.Array.each( ajaxResponse.data, function(row) {
-					if( !Ext.isEmpty(row.acc_id) ) {
+					if( !Ext.isEmpty(row.alloc_link_account) ) {
 						row['_type_allocation'] = 'account';
-					} else if( !Ext.isEmpty(row.recordgroup_id) ) {
+					} else if( !Ext.isEmpty(row.alloc_link_recordgroup) ) {
 						row['_type_allocation'] = 'recordgroup';
+						if( !Ext.isEmpty(row.alloc_link_recordgroup_type) ) {
+							row['_type_allocation'] = 'recordgroup_'+row.alloc_link_recordgroup_type;
+						}
 					}
 				},this) ;
 				
@@ -283,7 +321,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordTempPanel',{
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_rsi_recouveo',
-				_action: 'recordgroup_list'
+				_action: 'recordgroup_input_list'
 			},
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
@@ -298,7 +336,29 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordTempPanel',{
 				}) ;
 				
 				var allocationColumn = this.down('grid').headerCt.down('[dataIndex="_editor_allocation"]') ;
-				allocationColumn.editorRecordgroup.store.data = records ; //HACK
+				allocationColumn.editorRecordgroupInput.store.data = records ; //HACK
+			},
+			scope: this
+		}) ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_rsi_recouveo',
+				_action: 'recordgroup_assoc_list'
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+				
+				var records = [] ;
+				Ext.Array.each(ajaxResponse.data, function(group) {
+					records.push({recordgroup_code: group}) ;
+				}) ;
+				
+				var allocationColumn = this.down('grid').headerCt.down('[dataIndex="_editor_allocation"]') ;
+				allocationColumn.editorRecordgroupAssoc.store.data = records ; //HACK
 			},
 			scope: this
 		}) ;
@@ -309,11 +369,17 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordTempPanel',{
 		switch( context.newValues['_type_allocation'] ) {
 			case 'account' :
 				context.record.set('_type_allocation',context.newValues['_type_allocation']) ;
-				context.record.set('acc_id',context.newValues['_editor_allocation']) ;
+				context.record.set('alloc_link_account',context.newValues['_editor_allocation']) ;
 				break ;
-			case 'recordgroup' :
+			case 'recordgroup_input' :
 				context.record.set('_type_allocation',context.newValues['_type_allocation']) ;
-				context.record.set('recordgroup_id',context.newValues['_editor_allocation']) ;
+				context.record.set('alloc_link_recordgroup',context.newValues['_editor_allocation']) ;
+				context.record.set('alloc_link_recordgroup_type','input') ;
+				break ;
+			case 'recordgroup_assoc' :
+				context.record.set('_type_allocation',context.newValues['_type_allocation']) ;
+				context.record.set('alloc_link_recordgroup',context.newValues['_editor_allocation']) ;
+				context.record.set('alloc_link_recordgroup_type','assoc') ;
 				break ;
 		}
 		
@@ -321,8 +387,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordTempPanel',{
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_rsi_recouveo',
-				_action: 'recordgroup_setRootRecord',
-				record_filerecord_id: context.record.getId(),
+				_action: 'bank_setAlloc',
+				bank_filerecord_id: context.record.getId(),
 				data: Ext.JSON.encode(context.record.getData())
 			},
 			success: function(response) {
@@ -338,7 +404,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordTempPanel',{
 		}) ;
 		
 		
-		var recAccount = context.record.get('acc_id') ;
+		var recAccount = context.record.get('alloc_link_account') ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_action: 'data_getBibleGrid',
@@ -350,7 +416,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordTempPanel',{
 				if( ajaxResponse.success == false || ajaxResponse.data.length != 1 ) {
 					return ;
 				}
-				context.record.set('acc_txt',ajaxResponse.data[0]['field_ACC_NAME']) ;
+				context.record.set('alloc_link_account_txt',ajaxResponse.data[0]['field_ACC_NAME']) ;
 				context.record.set('_phantom',false) ;
 			},
 			callback: function() {
@@ -378,10 +444,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordTempPanel',{
 		
 		switch( context.record.get('_type_allocation') ) {
 			case 'account' :
-				context.record.set('_editor_allocation',context.record.get('acc_id')) ;
+				context.record.set('_editor_allocation',context.record.get('alloc_link_account')) ;
 				break ;
 			case 'recordgroup' :
-				context.record.set('_editor_allocation',context.record.get('recordgroup_id')) ;
+			case 'recordgroup_assoc' :
+			case 'recordgroup_input' :
+				context.record.set('_editor_allocation',context.record.get('alloc_link_recordgroup')) ;
 				break ;
 		}
 		this.onEditorTypeAllocationChange(context.record.get('_type_allocation')) ;
@@ -398,8 +466,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordTempPanel',{
 				allocationEditor = Ext.clone( allocationColumn.editorAccount ) ;
 				//allocationEditor.value = editingRecord.get('acc_id') ;
 				break ;
-			case 'recordgroup' :
-				allocationEditor = Ext.clone( allocationColumn.editorRecordgroup ) ;
+			case 'recordgroup_input' :
+				allocationEditor = Ext.clone( allocationColumn.editorRecordgroupInput ) ;
+				//allocationEditor.value = editingRecord.get('recordgroup_id') ;
+				break ;
+			case 'recordgroup_assoc' :
+				allocationEditor = Ext.clone( allocationColumn.editorRecordgroupAssoc ) ;
 				//allocationEditor.value = editingRecord.get('recordgroup_id') ;
 				break ;
 		}
@@ -419,17 +491,23 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordTempPanel',{
 		this.destroy() ;
 	},
 	
-	openRecordTempGroupPanel: function() {
+	openRecordGroupInputPanel: function() {
+		this.openRecordGroupPanel('Optima5.Modules.Spec.RsiRecouveo.RecordGroupInputPanel',600) ;
+	},
+	openRecordGroupAssocPanel: function() {
+		this.openRecordGroupPanel('Optima5.Modules.Spec.RsiRecouveo.RecordGroupAssocPanel',800) ;
+	},
+	openRecordGroupPanel: function(className,width) {
 		var me = this ;
 		
 		var setSizeFromParent = function( parentPanel, targetPanel ) {
 			targetPanel.setSize({
-				width: 600,
+				width: width,
 				height: parentPanel.getSize().height - 60
 			}) ;
 		};
 		
-		var dataImportPanel = Ext.create('Optima5.Modules.Spec.RsiRecouveo.RecordTempGroupPanel',{
+		var dataImportPanel = Ext.create(className,{
 			optimaModule: this.optimaModule,
 			width:800, // dummy initial size, for border layout to work
 			height:600, // ...

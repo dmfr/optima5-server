@@ -12,7 +12,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 		'Optima5.Modules.Spec.RsiRecouveo.EnvDocPreviewPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.EnvBrowserPanel',
 		
-		'Optima5.Modules.Spec.RsiRecouveo.RecordTempPanel'
+		'Optima5.Modules.Spec.RsiRecouveo.BankPanel'
 	],
 	
 	initComponent: function() {
@@ -78,8 +78,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 		switch( actionCode ) {
 			case 'files' :
 				return me.switchToAppPanel('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{}) ;
-			case 'recordtemp' :
-				return me.switchToAppPanel('Optima5.Modules.Spec.RsiRecouveo.RecordTempPanel',{}) ;
+			case 'bank' :
+				return me.switchToAppPanel('Optima5.Modules.Spec.RsiRecouveo.BankPanel',{}) ;
 			case 'cfg' :
 				return me.openConfig() ;
 			case 'envbrowser' :

@@ -1,4 +1,4 @@
-Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordTempGroupPanel',{
+Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordGroupInputPanel',{
 	extend:'Ext.panel.Panel',
 	
 	requires: [],
@@ -99,7 +99,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordTempGroupPanel',{
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_rsi_recouveo',
-				_action: 'recordgroup_list'
+				_action: 'recordgroup_input_list'
 			},
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
@@ -277,7 +277,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordTempGroupPanel',{
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_rsi_recouveo',
-				_action: 'recordgroup_get',
+				_action: 'recordgroup_input_get',
 				recordgroup_code: recordgroupCode
 			},
 			success: function(response) {
@@ -317,7 +317,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordTempGroupPanel',{
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_rsi_recouveo',
-				_action: 'recordgroup_set',
+				_action: 'recordgroup_input_set',
 				_is_new: ( data.recordgroup_new ? 1 : 0 ),
 				recordgroup_code: data.recordgroup_code,
 				data: Ext.JSON.encode(data)

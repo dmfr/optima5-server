@@ -5,6 +5,7 @@ include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_account.
 include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_doc.inc.php") ;
 include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_config.inc.php") ;
 include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_recordgroup.inc.php") ;
+include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_bank.inc.php") ;
 
 include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_xls.inc.php") ;
 

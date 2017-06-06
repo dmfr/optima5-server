@@ -342,6 +342,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 	getRecordModel: function() {
 		return 'RsiRecouveoRecordModel'+'-'+this.cmpId ;
 	},
+	getBankModel: function() {
+		return 'RsiRecouveoBankModel' ;
+	},
 	getConfigUserModel: function() {
 		return 'RsiRecouveoConfigUserModel'+'-'+this.cmpId ;
 	},

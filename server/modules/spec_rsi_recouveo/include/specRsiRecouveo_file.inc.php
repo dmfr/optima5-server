@@ -1122,6 +1122,7 @@ function specRsiRecouveo_file_createRecordTemp( $post_data ) {
 	
 	$arr_ins = array() ;
 	$arr_ins['field_TYPE'] = 'TEMPREC' ;
+	$arr_ins['field_TYPE_TEMPREC'] = 'FILE' ;
 	$arr_ins['field_RECORD_ID'] = trim($p_formData['recordTemp_id']) ;
 	$arr_ins['field_LINK_ACCOUNT'] = $p_accId ;
 	$arr_ins['field_DATE_RECORD'] = $arr_ins['field_DATE_VALUE'] = date('Y-m-d') ;
