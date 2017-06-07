@@ -11,6 +11,23 @@ class SqlParser {
 	*/
 
     public static function split_sql($sql_text) {
+		// Extract procedures
+		preg_match_all('/<procedure id=\"(.+?)\">(.+?)<\/procedure>/is', $sql_text, $matches) ;
+		$keys = $matches[1] ;
+		$values = $matches[2] ;
+		$my_procedures = array_combine($keys,$values) ;
+		$sql_text = preg_replace('/<procedure id=\"(.+?)\">(.+?)<\/procedure>/is', "", $sql_text);
+		
+		$sql_text = preg_replace_callback(
+			'/<exec id=\"(.+?)\"\s?\/>/is',
+			function($matches) use ($my_procedures) {
+				$proc_id = $matches[1] ;
+				return $my_procedures[$proc_id] ;
+			},
+			$sql_text
+		);
+		
+		
 		
 		// Extract escaped statements
 		preg_match_all("/<query>(.+?)<\/query>/is", $sql_text, $matches) ;
