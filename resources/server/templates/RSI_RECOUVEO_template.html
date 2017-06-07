@@ -125,26 +125,32 @@
 	<body style='background-color:#FFFFFF'>
 		<table class='letterwidth' id='div_header_from' ><tr>
 			<td width="25%" valign="top">
+				<qbook-value src_value="header_barcode_img"></qbook-value>
 				<div style='margin: 6px; padding: 4px; padding-bottom: 12px; '>
 					<b><qbook-value src_value="static_entity_name"></qbook-value></b><br>
 					<qbook-value src_value="static_entity_adr"></qbook-value><br>
 				</div>
 			</td>
 			
-			<td width="10%" valign="top">&nbsp;</td>
+			<td width="20%" valign="top">&nbsp;</td>
 			
-			<td width="65%" valign="middle" align="left">
+			<td width="55%" valign="middle" align="left">
 				<div class="recouveo-logo">
 				&nbsp;
 				</div>
 			</td>
 		</tr></table>
 		
-		<table class='letterwidth' id='div_header_to' style="margin:10px ; height: 220px"><tr>
+		<table class='letterwidth' id='div_header_to' style="margin:10px ; height: 200px"><tr>
 			<td width="47%" valign="top">
 			
 			<br><br><br>
 			<table width="80%" >
+				<tr>
+				<td class="celltitle">Votre créancier</td>
+				<td class="celldata">Caloon</td>
+				</tr>
+				
 				<tr>
 				<td class="celltitle">Référence client</td>
 				<td class="celldata"><qbook-value src_value="header_ref_client"></qbook-value></td>
@@ -160,12 +166,16 @@
 			</td>
 			<td width="11%">&nbsp;</td>
 			<td width="42%" valign="top">
-				<br><br>
+				<br>
 				<span style="font-size:14px">Réf. courrier : <qbook-value src_value="header_ref_mail"></qbook-value></span><br><br>
 				
 				<b><qbook-value src_value="header_dest_name"></qbook-value></b><br>
 				<qbook-value src_value="header_dest_adrpost"></qbook-value><br>
 				<br>
+			</td>
+		</tr><tr>
+			<td>
+			Marseille, le <qbook-value src_value="body_date"></qbook-value>,
 			</td>
 		</tr></table>
 		

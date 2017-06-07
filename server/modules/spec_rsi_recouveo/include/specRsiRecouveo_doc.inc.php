@@ -243,6 +243,7 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE ) {
 	// *********** DONNEES String *********************
 	$map_mkey_value = array() ;
 	$map_mkey_value += array(
+		'header_barcode_img' => '<img src="data:image/jpeg;base64,'.base64_encode(specRsiRecouveo_lib_getBarcodePng($new_ref_mail,20)).'" />',
 		'header_ref_file' => $accFile_record['id_ref'],
 		'header_ref_client' => $accFile_record['acc_id'],
 		'header_ref_forpayment' => $accFile_record['acc_id'].'EC',

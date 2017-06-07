@@ -111,9 +111,10 @@ function xml_getContents( $env_id, $track_email ) {
 	$xml.= '</spec:PageOption>' ;
 	$xml.= '</spec:DocumentOption>' ;
 	$xml.= '<spec:EnvelopeType>C6</spec:EnvelopeType>' ;
+	$xml.= '<spec:EnvelopeWindowType>DBL</spec:EnvelopeWindowType>' ;
 	$xml.= '<spec:PostageClass>STANDARD</spec:PostageClass>' ;
 	$xml.= '<spec:UseFlyLeaf>0</spec:UseFlyLeaf>' ;
-	$xml.= '<spec:PrintSenderAddress>1</spec:PrintSenderAddress>' ;
+	$xml.= '<spec:PrintSenderAddress>0</spec:PrintSenderAddress>' ;
 	$xml.= '<spec:PrintRecipTrackId>1</spec:PrintRecipTrackId>' ;
 	$xml.= '<spec:DocumentOption>' ;
 	$xml.= '<spec:PrintDuplex>1</spec:PrintDuplex>' ;
