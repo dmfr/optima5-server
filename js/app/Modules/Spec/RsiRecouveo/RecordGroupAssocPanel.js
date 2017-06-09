@@ -81,6 +81,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordGroupAssocPanel',{
 						fieldLabel: 'Date remise',
 						format: 'd/m/Y',
 						anchor: '50%'
+					},{
+						xtype: 'displayfield',
+						name: 'calc_amount_local',
+						allowBlank: false,
+						fieldLabel: 'Total'
 					}]
 				}]
 			},{
@@ -130,6 +135,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordGroupAssocPanel',{
 				xtype: 'box',
 				cls: 'ux-noframe-bg'
 			}) ;
+			this.updateTotal() ;
 			return ;
 		}
 		pCenter.add({
@@ -159,7 +165,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordGroupAssocPanel',{
 						if( col._disabled ) {
 							return false ;
 						}
-					}
+					},
+					checkchange: function() {
+						this.updateTotal() ;
+					},
+					scope: this
 				}
 			},{
 				text: 'Compte acheteur',
@@ -184,6 +194,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordGroupAssocPanel',{
 		var editorGrid = pCenter.down('grid') ;
 		editorGrid.headerCt.down('[dataIndex="_checked"]')._disabled = readOnly ;
 		editorGrid.down('toolbar').setVisible(!readOnly) ;
+		
+		this.updateTotal() ;
 	},
 	doChangeNew: function(isNew) {
 		var form = this.down('form').getForm() ;
@@ -219,7 +231,21 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordGroupAssocPanel',{
 	},
 	
 	
-	
+	updateTotal: function()  {
+		if( !this.down('#pCenter').down('grid') ) {
+			this.down('form').getForm().findField('calc_amount_local').setValue('') ;
+			return ;
+		}
+		var sum = 0 ;
+		this.down('#pCenter').down('grid').getStore().each(function(gridRecord) {
+			if( gridRecord.get('_checked') ) {
+				sum += gridRecord.get('amount') ;
+			}
+		}) ;
+		sum = Ext.util.Format.number(Math.abs(sum),'0,000.00') ;
+		sum = '<b>'+sum+'</b>' ;
+		this.down('form').getForm().findField('calc_amount_local').setValue(sum) ;
+	},
 	handleSaveGroup: function() {
 		var form = this.down('form').getForm(),
 			grid = this.down('#pCenter').down('grid') ;
@@ -229,7 +255,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordGroupAssocPanel',{
 		
 		var gridData = [] ;
 		grid.getStore().each( function(gridRecord) {
-			gridData.push( gridRecord.getData() ) ;
+			if( gridRecord.get('_checked') ) {
+				gridData.push( gridRecord.getData() ) ;
+			}
 		}) ;
 		
 		var data = form.getFieldValues() ;

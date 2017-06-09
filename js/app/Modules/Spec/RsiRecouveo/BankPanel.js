@@ -212,7 +212,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.BankPanel',{
 						}]
 					},
 					queryMode: 'local',
-					displayField: 'recordgroup_id',
+					displayField: '_text',
 					valueField: 'recordgroup_id'
 				},
 				editorRecordgroupAssoc: {
@@ -235,7 +235,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.BankPanel',{
 						}]
 					},
 					queryMode: 'local',
-					displayField: 'recordgroup_id',
+					displayField: '_text',
 					valueField: 'recordgroup_id'
 				},
 				renderer: function(v,m,r) {
@@ -298,6 +298,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.BankPanel',{
 					edit: this.onEditRecord,
 					canceledit: this.onCancelEditRecord,
 					beforeedit: this.onBeforeEditRecord,
+					validateedit: this.onValidateEditRecord,
 					scope: this
 				}
 			}]
@@ -393,6 +394,20 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.BankPanel',{
 		}
 	},
 	onBeforeEditRecord: function(editor,context) {
+		if( Ext.isEmpty(context.record.get('_type_allocation')) ) {
+			var optReclocalValue = context.record.get('alloc_type') ;
+			Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getOptData('OPT_RECLOCAL'), function(row) {
+				if( row.id==optReclocalValue ) {
+					nextValue = row.next ;
+				}
+			}) ;
+			if( !nextValue ) {
+				nextValue = '_reset' ;
+			}
+			
+			context.record.set('_type_allocation',nextValue) ;
+		}
+		
 		switch( context.record.get('_type_allocation') ) {
 			case 'account' :
 				context.record.set('_editor_allocation',context.record.get('alloc_link_account')) ;
@@ -450,6 +465,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.BankPanel',{
 					if( allocationValue && allocationValue==row.recordgroup_id ) {
 						row.bank_is_alloc = false ;
 					}
+					row['_text'] = row.recordgroup_id + ' - ' + Ext.util.Format.date(row.recordgroup_date,'d/m/Y') + ' - ' + Ext.util.Format.number(Math.abs(row.calc_amount_sum), '0,000.00')+'€' ;
 					records.push(row) ;
 				}) ;
 				if( allocationEditor && allocationEditor.store ) {
@@ -469,6 +485,25 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.BankPanel',{
 		if( allocationColumn.getEditor().el ) {
 			this.down('grid').getPlugin('rowediting').getEditor().syncFieldWidth(allocationColumn) ; // HACK
 		}
+	},
+	onValidateEditRecord: function(editor,context) {
+		var bankAmount = context.record.get('bank_amount'),
+			allocationRecordgroup = context.newValues._editor_allocation ;
+		switch( context.newValues._type_allocation ) {
+			case 'recordgroup_input' :
+			case 'recordgroup_assoc' :
+				break ;
+			default :
+				return true ;
+		}
+		var recordgroupStore = context.grid.headerCt.down('[dataIndex="_editor_allocation"]').getEditor().getStore(),
+			recordgroupRecord = recordgroupStore.getById(allocationRecordgroup),
+			recordgroupAmount = recordgroupRecord.get('calc_amount_sum') ;
+		if( Math.abs(recordgroupAmount) != Math.abs(bankAmount) ) {
+			Ext.Msg.alert('Erreur','Montants différents, allocation non possible.<br>Corriger remise / groupage') ;
+			return false ;
+		}
+		return true ;
 	},
 	
 	

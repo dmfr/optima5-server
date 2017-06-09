@@ -229,7 +229,8 @@ Ext.define('RsiRecouveoRecordgroupModel',{
 		{name: 'recordgroup_type', type:'string'},
 		{name: 'recordgroup_date', type:'date', dateFormat:'Y-m-d'},
 		{name: 'calc_amount_sum', type:'number'},
-		{name: 'bank_is_alloc', type:'boolean'}
+		{name: 'bank_is_alloc', type:'boolean'},
+		{name: '_txt', type:'string'}
 	]
 });
 

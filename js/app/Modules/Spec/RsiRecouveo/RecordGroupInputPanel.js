@@ -79,6 +79,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordGroupInputPanel',{
 						fieldLabel: 'Date remise',
 						format: 'd/m/Y',
 						anchor: '75%'
+					},{
+						xtype: 'displayfield',
+						name: 'calc_amount_local',
+						allowBlank: false,
+						fieldLabel: 'Total'
 					}]
 				}]
 			},{
@@ -136,6 +141,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordGroupInputPanel',{
 				context.record.set('acc_txt',ajaxResponse.data[0]['field_ACC_NAME']) ;
 				context.record.set('_phantom',false) ;
 				context.record.commit() ;
+				this.updateTotal() ;
 			},
 			callback: function() {
 			},
@@ -165,6 +171,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordGroupInputPanel',{
 		var toDeleteRecords = stepGrid.getSelectionModel().getSelection() ;
 		if( toDeleteRecords && toDeleteRecords.length>0 ) {
 			stepGrid.getStore().remove(toDeleteRecords) ;
+			this.updateTotal() ;
 		}
 	},
 	
@@ -176,6 +183,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordGroupInputPanel',{
 				xtype: 'box',
 				cls: 'ux-noframe-bg'
 			}) ;
+			this.updateTotal() ;
 			return ;
 		}
 		pCenter.add({
@@ -260,6 +268,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordGroupInputPanel',{
 		var editorGrid = pCenter.down('grid') ;
 		editorGrid.getPlugin('rowediting')._disabled = readOnly ;
 		editorGrid.down('toolbar').setVisible(!readOnly) ;
+		
+		this.updateTotal() ;
 	},
 	doChangeNew: function(isNew) {
 		var form = this.down('form').getForm() ;
@@ -296,6 +306,19 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordGroupInputPanel',{
 	
 	
 	
+	updateTotal: function()  {
+		if( !this.down('#pCenter').down('grid') ) {
+			this.down('form').getForm().findField('calc_amount_local').setValue('') ;
+			return ;
+		}
+		var sum = 0 ;
+		this.down('#pCenter').down('grid').getStore().each(function(gridRecord) {
+			sum += gridRecord.get('amount') ;
+		}) ;
+		sum = Ext.util.Format.number(Math.abs(sum),'0,000.00') ;
+		sum = '<b>'+sum+'</b>' ;
+		this.down('form').getForm().findField('calc_amount_local').setValue(sum) ;
+	},
 	handleSaveGroup: function() {
 		var form = this.down('form').getForm(),
 			grid = this.down('#pCenter').down('grid') ;

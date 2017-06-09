@@ -86,7 +86,6 @@ function int_to_strX ($i, $X) {
 	return $str ;
 }
 
-/*
 function is_date_valid( $date_sql )
 {
 	if( $date_sql == '0000-00-00' )
@@ -95,11 +94,11 @@ function is_date_valid( $date_sql )
 		return FALSE ;
 	if( !$date_sql )
 		return FALSE ;
-	if( process_date_saisie( $date_sql ) )
-		return TRUE ;
-	// echo "NOK" ;
-	return FALSE ;
+	return TRUE ;
 }
+
+
+/*
 function format_date_short( $date_sql )
 {
 	return date( 'd/m/y', strtotime( $date_sql ) ) ;
