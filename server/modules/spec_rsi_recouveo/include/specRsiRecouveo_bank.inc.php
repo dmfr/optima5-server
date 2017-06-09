@@ -60,18 +60,21 @@ function specRsiRecouveo_bank_setAlloc($post_data) {
 					SET field_ALLOC_TYPE='{$p_data['alloc_type']}'
 					WHERE filerecord_id='{$p_bankFilerecordId}'" ;
 	$_opDB->query($query) ;
+	
+	// Reset
+	$query = "DELETE FROM view_file_RECORD WHERE field_BANK_LINK_FILE_ID='{$p_bankFilerecordId}' AND field_BANK_CREATEBYALLOC='1'" ;
+	$_opDB->query($query) ;
+	
+	$query = "UPDATE view_file_RECORD SET field_BANK_LINK_FILE_ID='0'
+			WHERE field_BANK_LINK_FILE_ID='{$p_bankFilerecordId}' AND field_BANK_CREATEBYALLOC='0'" ;
+	$_opDB->query($query) ;
+	
+	$query = "UPDATE view_file_BANK SET field_ALLOC_LINK_AMOUNT='0'
+			WHERE filerecord_id='{$p_bankFilerecordId}'" ;
+	$_opDB->query($query) ;
+	
 	switch( $p_data['_type_allocation'] ) {
 		case '_reset' :
-			$query = "DELETE FROM view_file_RECORD WHERE field_BANK_LINK_FILE_ID='{$p_bankFilerecordId}' AND field_BANK_CREATEBYALLOC='1'" ;
-			$_opDB->query($query) ;
-			
-			$query = "UPDATE view_file_RECORD SET field_BANK_LINK_FILE_ID='0'
-					WHERE field_BANK_LINK_FILE_ID='{$p_bankFilerecordId}' AND field_BANK_CREATEBYALLOC='0'" ;
-			$_opDB->query($query) ;
-			
-			$query = "UPDATE view_file_BANK SET field_ALLOC_LINK_AMOUNT='0'
-					WHERE filerecord_id='{$p_bankFilerecordId}'" ;
-			$_opDB->query($query) ;
 			break ;
 			
 		case 'account' :

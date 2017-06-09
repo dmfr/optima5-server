@@ -197,32 +197,46 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.BankPanel',{
 					forceSelection: true,
 					editable: false,
 					store: {
-						fields: ['recordgroup_code','alloc_free'],
+						model: 'RsiRecouveoRecordgroupModel',
 						data : [],
 						sorters: [{
-							property: 'recordgroup_code',
+							property: 'recordgroup_id',
 							direction: 'DESC'
+						}],
+						filters: [{
+							property: 'recordgroup_type',
+							value: 'input'
+						},{
+							property: 'bank_is_alloc',
+							value: false
 						}]
 					},
 					queryMode: 'local',
-					displayField: 'recordgroup_code',
-					valueField: 'recordgroup_code'
+					displayField: 'recordgroup_id',
+					valueField: 'recordgroup_id'
 				},
 				editorRecordgroupAssoc: {
 					xtype: 'combobox',
 					forceSelection: true,
 					editable: false,
 					store: {
-						fields: ['recordgroup_code','alloc_free'],
+						model: 'RsiRecouveoRecordgroupModel',
 						data : [],
 						sorters: [{
-							property: 'recordgroup_code',
+							property: 'recordgroup_id',
 							direction: 'DESC'
+						}],
+						filters: [{
+							property: 'recordgroup_type',
+							value: 'assoc'
+						},{
+							property: 'bank_is_alloc',
+							value: false
 						}]
 					},
 					queryMode: 'local',
-					displayField: 'recordgroup_code',
-					valueField: 'recordgroup_code'
+					displayField: 'recordgroup_id',
+					valueField: 'recordgroup_id'
 				},
 				renderer: function(v,m,r) {
 					switch( r.get('_type_allocation') ) {
@@ -315,53 +329,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.BankPanel',{
 			},
 			scope: this
 		}) ;
-		
-		this.optimaModule.getConfiguredAjaxConnection().request({
-			params: {
-				_moduleId: 'spec_rsi_recouveo',
-				_action: 'recordgroup_input_list',
-				alloc_ready: 1
-			},
-			success: function(response) {
-				var ajaxResponse = Ext.decode(response.responseText) ;
-				if( ajaxResponse.success == false ) {
-					Ext.MessageBox.alert('Error','Error') ;
-					return ;
-				}
-				
-				var records = [] ;
-				Ext.Array.each(ajaxResponse.data, function(group) {
-					records.push({recordgroup_code: group}) ;
-				}) ;
-				
-				var allocationColumn = this.down('grid').headerCt.down('[dataIndex="_editor_allocation"]') ;
-				allocationColumn.editorRecordgroupInput.store.data = records ; //HACK
-			},
-			scope: this
-		}) ;
-		this.optimaModule.getConfiguredAjaxConnection().request({
-			params: {
-				_moduleId: 'spec_rsi_recouveo',
-				_action: 'recordgroup_assoc_list',
-				alloc_ready: 1
-			},
-			success: function(response) {
-				var ajaxResponse = Ext.decode(response.responseText) ;
-				if( ajaxResponse.success == false ) {
-					Ext.MessageBox.alert('Error','Error') ;
-					return ;
-				}
-				
-				var records = [] ;
-				Ext.Array.each(ajaxResponse.data, function(group) {
-					records.push({recordgroup_code: group}) ;
-				}) ;
-				
-				var allocationColumn = this.down('grid').headerCt.down('[dataIndex="_editor_allocation"]') ;
-				allocationColumn.editorRecordgroupAssoc.store.data = records ; //HACK
-			},
-			scope: this
-		}) ;
 	},
 	
 	
@@ -439,10 +406,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.BankPanel',{
 				context.record.set('_editor_allocation',null) ;
 				break ;
 		}
-		this.onEditorTypeAllocationChange(context.record.get('_type_allocation')) ;
+		this.onEditorTypeAllocationChange(context.record.get('_type_allocation'),context.record.get('_editor_allocation')) ;
 		
 	},
-	onEditorTypeAllocationChange: function(selectedAllocation) {
+	onEditorTypeAllocationChange: function(selectedAllocation, allocationValue) {
 		// Load appropriate templates
 		var templatesData = [],
 			allocationColumn = this.down('grid').headerCt.down('[dataIndex="_editor_allocation"]'),
@@ -462,6 +429,38 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.BankPanel',{
 				//allocationEditor.value = editingRecord.get('recordgroup_id') ;
 				break ;
 		}
+		if( allocationEditor ) {
+			allocationEditor.value = allocationValue ;
+		}
+		
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_rsi_recouveo',
+				_action: 'recordgroup_list',
+				alloc_ready: 1
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+				var records = [] ;
+				Ext.Array.each( ajaxResponse.data, function(row) {
+					if( allocationValue && allocationValue==row.recordgroup_id ) {
+						row.bank_is_alloc = false ;
+					}
+					records.push(row) ;
+				}) ;
+				if( allocationEditor && allocationEditor.store ) {
+					allocationEditor.store.data = records ;
+				}
+				this.onEditorAllocationChangeSetEditor(allocationColumn,allocationEditor) ;
+			},
+			scope: this
+		}) ;
+	},
+	onEditorAllocationChangeSetEditor: function(allocationColumn,allocationEditor) {
 		if( !allocationEditor ) {
 			allocationColumn.setEditor(null);
 		} else {

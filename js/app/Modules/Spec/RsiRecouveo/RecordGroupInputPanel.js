@@ -99,7 +99,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordGroupInputPanel',{
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_rsi_recouveo',
-				_action: 'recordgroup_input_list'
+				_action: 'recordgroup_list'
 			},
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
@@ -109,12 +109,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordGroupInputPanel',{
 				}
 				
 				var records = [] ;
-				Ext.Array.each(ajaxResponse.data, function(group) {
-					records.push({recordgroup_code: group}) ;
+				Ext.Array.each(ajaxResponse.data, function(row) {
+					if( row.recordgroup_type=='input' ) {
+						records.push({recordgroup_code: row.recordgroup_id}) ;
+					}
 				}) ;
 				this.down('form').getForm().findField('recordgroup_code').getStore().loadData(records) ;
-				
-				this.down('form').getForm().findField('recordgroup_text').setValue( ajaxResponse.next_txt ) ;
 			},
 			scope: this
 		}) ;
@@ -267,6 +267,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordGroupInputPanel',{
 		form.findField('recordgroup_code').setVisible(!isNew) ;
 		if( isNew ) {
 			this.doBuildGrid([],false) ;
+			this.doSelectGroup(null) ;
 		} else {
 			this.doBuildGrid(null) ;
 			form.findField('recordgroup_code').reset() ;
@@ -286,12 +287,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordGroupInputPanel',{
 					Ext.MessageBox.alert('Error','Error') ;
 					return ;
 				}
-				Ext.Array.each( ajaxResponse.data, function(row) {
-					this.down('form').getForm().findField('recordgroup_date').setValue( Ext.Date.parse(row['date_record'],'Y-m-d H:i:s') ) ;
-					return false ;
-				},this) ;
-				
-				this.doBuildGrid(ajaxResponse.data,ajaxResponse.readonly) ;
+				this.down('form').getForm().setValues( ajaxResponse.data );
+				this.doBuildGrid(ajaxResponse.data.records,ajaxResponse.readonly) ;
 			},
 			scope: this
 		}) ;

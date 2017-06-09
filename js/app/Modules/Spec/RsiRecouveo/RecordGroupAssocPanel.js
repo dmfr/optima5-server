@@ -65,20 +65,22 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordGroupAssocPanel',{
 								this.doSelectGroup(record.get('recordgroup_code')) ;
 							},
 							scope: this
-						}
+						},
+						anchor: '75%'
 					},{
 						xtype: 'textfield',
 						name: 'recordgroup_text',
 						readOnly: true,
 						fieldLabel: 'Bordereau de remise',
-						value: 'Nouveau bordereau'
+						value: 'Nouveau groupage',
+						anchor: '75%'
 					},{
 						xtype: 'datefield',
 						name: 'recordgroup_date',
 						allowBlank: false,
 						fieldLabel: 'Date remise',
 						format: 'd/m/Y',
-						anchor: '75%'
+						anchor: '50%'
 					}]
 				}]
 			},{
@@ -99,7 +101,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordGroupAssocPanel',{
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_rsi_recouveo',
-				_action: 'recordgroup_assoc_list'
+				_action: 'recordgroup_list'
 			},
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
@@ -109,12 +111,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordGroupAssocPanel',{
 				}
 				
 				var records = [] ;
-				Ext.Array.each(ajaxResponse.data, function(group) {
-					records.push({recordgroup_code: group}) ;
+				Ext.Array.each(ajaxResponse.data, function(row) {
+					if( row.recordgroup_type=='assoc' ) {
+						records.push({recordgroup_code: row.recordgroup_id}) ;
+					}
 				}) ;
 				this.down('form').getForm().findField('recordgroup_code').getStore().loadData(records) ;
-				
-				this.down('form').getForm().findField('recordgroup_text').setValue( ajaxResponse.next_txt ) ;
 			},
 			scope: this
 		}) ;
@@ -209,12 +211,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordGroupAssocPanel',{
 					Ext.MessageBox.alert('Error','Error') ;
 					return ;
 				}
-				Ext.Array.each( ajaxResponse.data, function(row) {
-					this.down('form').getForm().findField('recordgroup_date').setValue( Ext.Date.parse(row['date_record'],'Y-m-d H:i:s') ) ;
-					return false ;
-				},this) ;
-				
-				this.doBuildGrid(ajaxResponse.data,ajaxResponse.readonly) ;
+				this.down('form').getForm().setValues( ajaxResponse.data );
+				this.doBuildGrid(ajaxResponse.data.records,ajaxResponse.readonly) ;
 			},
 			scope: this
 		}) ;
@@ -229,14 +227,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordGroupAssocPanel',{
 			return ;
 		}
 		
-		var ids = [] ;
+		var gridData = [] ;
 		grid.getStore().each( function(gridRecord) {
-			if( gridRecord.get('_checked') ) {
-				ids.push(gridRecord.getId()) ;
-			}
+			gridData.push( gridRecord.getData() ) ;
 		}) ;
 		
 		var data = form.getFieldValues() ;
+		data['records'] = gridData ;
 		
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
@@ -244,7 +241,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordGroupAssocPanel',{
 				_action: 'recordgroup_assoc_set',
 				_is_new: ( data.recordgroup_new ? 1 : 0 ),
 				recordgroup_code: data.recordgroup_code,
-				record_filerecord_ids: Ext.JSON.encode(ids)
+				data: Ext.JSON.encode(data)
 			},
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;

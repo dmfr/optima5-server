@@ -221,6 +221,17 @@ Ext.define('RsiRecouveoBankModel',{
 		{name: 'alloc_link_account_txt', type: 'string'}
 	]
 });
+Ext.define('RsiRecouveoRecordgroupModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'recordgroup_id',
+	fields: [
+		{name: 'recordgroup_id', type:'string'},
+		{name: 'recordgroup_type', type:'string'},
+		{name: 'recordgroup_date', type:'date', dateFormat:'Y-m-d'},
+		{name: 'calc_amount_sum', type:'number'},
+		{name: 'bank_is_alloc', type:'boolean'}
+	]
+});
 
 
 

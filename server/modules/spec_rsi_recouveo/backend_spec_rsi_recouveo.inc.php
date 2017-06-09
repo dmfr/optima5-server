@@ -70,14 +70,12 @@ switch( $post_data['_action'] )
 	case 'xls_create' :
 		return specRsiRecouveo_xls_create( $post_data ) ;
 		
-	case 'recordgroup_input_list' :
-		return specRsiRecouveo_recordgroup_input_list( $post_data ) ;
+	case 'recordgroup_list' :
+		return specRsiRecouveo_recordgroup_list( $post_data ) ;
 	case 'recordgroup_input_get' :
 		return specRsiRecouveo_recordgroup_input_get( $post_data ) ;
 	case 'recordgroup_input_set' :
 		return specRsiRecouveo_recordgroup_input_set( $post_data ) ;
-	case 'recordgroup_assoc_list' :
-		return specRsiRecouveo_recordgroup_assoc_list( $post_data ) ;
 	case 'recordgroup_assoc_get' :
 		return specRsiRecouveo_recordgroup_assoc_get( $post_data ) ;
 	case 'recordgroup_assoc_set' :
