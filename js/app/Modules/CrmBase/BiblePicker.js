@@ -130,6 +130,7 @@ Ext.define('Optima5.Modules.CrmBase.BiblePicker',{
 		},this) ;
 		
 		this.myStore = Ext.create('Ext.data.Store', {
+			_filterTreenodeKey: this._filterTreenodeKey,
 			model: this.myModelname,
 			proxy: me.optimaModule.getConfiguredAjaxProxy({
 				extraParams : {
@@ -141,7 +142,34 @@ Ext.define('Optima5.Modules.CrmBase.BiblePicker',{
 					rootProperty: 'data',
 					totalProperty: 'total'
 				}
-			})
+			}),
+			localLoad: function(strSearch) {
+				var filters = [] ;
+				if( this._filterTreenodeKey != null ) {
+					filters.push( new Ext.util.Filter({
+						property: 'treenode_key',
+						value   : this._filterTreenodeKey
+					}) );
+				}
+				if( !Ext.isEmpty(strSearch) ) {
+					if( Ext.isArray(strSearch) ) {
+						filters.push( new Ext.util.Filter({
+							property: 'entry_key',
+							value   : strSearch
+						}) );
+					} else {
+						filters.push( new Ext.util.Filter({
+							property: 'str_search',
+							value   : strSearch
+						}) );
+					}
+				}
+				if( filters.length>0 ) {
+					this.load({filters:filters}) ;
+				} else {
+					this.load() ;
+				}
+			}
 		});
 		
 		me.fireEvent('iamready') ;
@@ -164,17 +192,10 @@ Ext.define('Optima5.Modules.CrmBase.BiblePicker',{
 		}
 		
 		if( me.selectMode == 'single' && me.myValue.length == 1 ) {
-			var parameters = new Object() ;
-			Ext.apply(parameters,{
-				filters: [ new Ext.util.Filter({
-					property: 'entry_key',
-					value   : me.myValue
-				})]
-			});
-			me.myStore.load(parameters) ;
+			me.myStore.localLoad(me.myValue) ;
 		}
 		else {
-			me.myStore.load() ;
+			me.myStore.localLoad() ;
 		}
 		
 		me.clearInvalid() ;
@@ -268,7 +289,7 @@ Ext.define('Optima5.Modules.CrmBase.BiblePicker',{
 				iconCls : 'icon-cancel' ,
 				handler : function(button,event) {
 					me.setRawValue('') ;
-					me.myStore.load() ;
+					me.myStore.localLoad() ;
 				},
 				scope : me
 			}],
@@ -310,20 +331,14 @@ Ext.define('Optima5.Modules.CrmBase.BiblePicker',{
 		
 		
 		if( mvalue.length == 0 ) {
-			me.myStore.load() ;
+			me.myStore.localLoad() ;
 			return ;
 		}
 		if( mvalue.length < 3 ) {
 			me.myStore.removeAll() ;
 			return ;
 		}
-		
-		me.myStore.load({
-			filters : [new Ext.util.Filter({
-				property: 'str_search',
-				value   : mvalue
-			})]
-		});
+		me.myStore.localLoad(mvalue);
 	},
 			  
 	applyPrettyValue: function(records) {
@@ -487,5 +502,17 @@ Ext.define('Optima5.Modules.CrmBase.BiblePicker',{
 			errors.push(me.blankText);
 		}
 		return errors;
-	}  
+	},
+	
+	setFilterTreenode: function( treenodeKey ) {
+		if( !this.myStore ) {
+			this._filterTreenodeKey = treenodeKey ;
+			return ;
+		}
+		if( treenodeKey ) {
+			this.myStore._filterTreenodeKey = treenodeKey ;
+		} else {
+			this.myStore._filterTreenodeKey = null ;
+		}
+	}
 });

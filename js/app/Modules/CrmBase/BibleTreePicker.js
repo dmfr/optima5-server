@@ -284,8 +284,9 @@ Ext.define('Optima5.Modules.CrmBase.BibleTreePicker',{
 		if( !me.isReady ) {
 			me.on('iamready',me.setRawValueApplyPretty,me) ;
 			return ;
-		}
-		else {
+		} else if( !me.rendered ) {
+			me.on('afterrender',me.setRawValueApplyPretty,me,{single:true}) ;
+		} else {
 			me.setRawValueApplyPretty() ;
 		}
 	},
