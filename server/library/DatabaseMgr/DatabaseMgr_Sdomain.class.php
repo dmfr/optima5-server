@@ -1297,6 +1297,7 @@ EOF;
 		$db_table = 'store_table_'.$table_code ;
 		$arrAssoc_dbField_fieldType = array() ;
 		$arrAssoc_crmField_dbField = array() ;
+		$arr_model_keys = array() ;
 		foreach( $arr_field_type as $field_code => $field_type )
 		{
 			$field_name = ''.$field_code ;

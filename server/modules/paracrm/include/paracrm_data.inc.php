@@ -1115,64 +1115,71 @@ function paracrm_data_getTableGrid_data( $post_data, $auth_bypass=FALSE )
 	}
 	
 	$view_name = "view_table_".$post_data['table_code'] ;
-	$query = "SELECT * FROM $view_name WHERE 1" ;
+	$sql_calc_found_rows = ( isset($post_data['filter']) && count(json_decode($post_data['filter'],TRUE)) > 0 ) ; // **** Tweak to speedup count ****
+	$query = "SELECT ".($sql_calc_found_rows?'SQL_CALC_FOUND_ROWS':'')." * FROM $view_name WHERE 1" ;
 	
 	// filters.....
 	if( $post_data['filter'] )
 	{
-	
-	foreach( json_decode($post_data['filter'],TRUE) as $filter )
-	{
-		$sql_field = $filter['field'] ;
-
-		switch( $filter['type'] )
+		// table de mapping
+		$json_tableCfg = paracrm_data_getTableGrid_config( array('table_code'=>$post_data['table_code']) ) ;
+		$mapping = array() ;
+		$types = array() ;
+		foreach( $json_tableCfg['data']['grid_fields'] as $row )
 		{
-			case 'list' :
-			if( is_array($filter['value']) && $filter['value'] )
-			{
-				$query.= " AND {$sql_field} IN ".$_opDB->makeSQLlist($filter['value']) ;
-			}
-			elseif( is_array($filter['value']) )
-			{
-				$query.= " AND 0" ;
-			}
-			break ;
+			$field = $row['field'] ;
+			$type = $row['type'] ;
 			
-			case 'date' :
-			$sign = '' ;
-			switch( $filter['comparison'] )
-			{
-				case 'eq' : $sign = '=' ; break ;
-				case 'lt' : $sign = '<=' ; break ;
-				case 'gt' : $sign = '>=' ; break ;
-			}
-			if( $sign )
-			{
-				$query.= " AND DATE({$sql_field}) {$sign} '{$filter['value']}'" ;
-			}
-			break ;
-			
-			
-			case 'numeric' :
-			$sign = '' ;
-			switch( $filter['comparison'] )
-			{
-				case 'eq' : $sign = '=' ; break ;
-				case 'lt' : $sign = '<' ; break ;
-				case 'gt' : $sign = '>' ; break ;
-			}
-			if( $sign )
-			{
-				$query.= " AND {$sql_field} {$sign} '{$filter['value']}'" ;
-			}
-			break ;
-			
-			
-			case 'string' :
-			$query.= " AND {$sql_field} LIKE '%{$filter['value']}%'" ;
-			break ;
+			$mapping[$field] = $field ;
+			$types[$field] = $type ;
 		}
-	}
+		
+		foreach( json_decode($post_data['filter'],TRUE) as $filter )
+		{
+			$sql_field = $mapping[$filter['property']] ;
+			if( !$sql_field )
+				continue ;
+			if( ($type = $types[$filter['property']]) == 'date' ){
+				$sql_field = 'DATE('.$sql_field.')';
+			}
+			
+			if( ($type = $types[$filter['property']]) == 'bool' ){
+				$filter['value'] = ($filter['value'] ? 1 : 0) ;
+			}
+			
+			switch( $filter['operator'] ) {
+				case 'in' :
+					if( is_array($filter['value']) && $filter['value'] )
+					{
+						$query.= " AND {$sql_field} IN ".$_opDB->makeSQLlist($filter['value']) ;
+					}
+					elseif( is_array($filter['value']) )
+					{
+						$query.= " AND 0" ;
+					}
+					break ;
+				
+				case '=' :
+				case 'eq' :
+				case 'lt' :
+				case 'gt' :
+					switch( $filter['operator'] ) {
+						case '=' : $sign = '=' ; break ;
+						case 'eq' : $sign = '=' ; break ;
+						case 'lt' : $sign = '<=' ; break ;
+						case 'gt' : $sign = '>=' ; break ;
+					}
+					$query.= " AND {$sql_field} {$sign} '{$filter['value']}'" ;
+					break ;
+				
+				case 'like' :
+					$query.= " AND {$sql_field} LIKE '%{$filter['value']}%'" ;
+					break ;
+					
+				default :
+					break ;
+			}
+		}
 	}
 	
 	if( $post_data['sort'] )
@@ -1181,15 +1188,21 @@ function paracrm_data_getTableGrid_data( $post_data, $auth_bypass=FALSE )
 		$query.= " ORDER BY {$sorter['property']} {$sorter['direction']}" ;
 	}
 	
-	
 	if( isset($post_data['start']) && isset($post_data['limit']) )
 		$query.= " LIMIT {$post_data['start']},{$post_data['limit']}" ;
 	$result = $_opDB->query($query);
 	
 	
-	$query = "SELECT FOUND_ROWS()" ;
-	$nb_rows = $_opDB->query_uniqueValue($query);
-	
+	if( $sql_calc_found_rows ) {
+		$query = "SELECT FOUND_ROWS()" ;
+		$nb_rows = $_opDB->query_uniqueValue($query);
+	} else {
+		// **** Tweak to speedup count ****
+		$view_name = 'store_table_'.$post_data['table_code'] ;
+		$query = "SELECT count(*) FROM $view_name" ;
+		$nb_rows = $_opDB->query_uniqueValue($query);
+		// *********************************
+	}
 	
 	
 	$TAB_json = array() ;
