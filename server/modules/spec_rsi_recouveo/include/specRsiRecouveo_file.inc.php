@@ -26,6 +26,9 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 	if( $post_data['filter_atr'] ) {
 		$filter_atr = json_decode($post_data['filter_atr'],true) ;
 	}
+	if( $post_data['filter_soc'] ) {
+		$filter_soc = json_decode($post_data['filter_soc'],true) ;
+	}
 	if( $post_data['filter_fileFilerecordId_arr'] ) {
 		$_load_details = true ;
 		$filter_fileFilerecordId_list = $_opDB->makeSQLlist( json_decode($post_data['filter_fileFilerecordId_arr'],true) ) ;
@@ -36,8 +39,11 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 	
 	$TAB_files = array() ;
 	
-	$query = "SELECT f.*, la.field_ACC_NAME, la.field_ACC_SIRET FROM view_file_FILE f" ;
+	$query = "SELECT f.*, la.field_ACC_NAME, la.field_ACC_SIRET";
+	$query.= ",lat.field_SOC_ID, lat.field_SOC_NAME";
+	$query.= " FROM view_file_FILE f" ;
 	$query.= " JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key = f.field_LINK_ACCOUNT" ;
+	$query.= " JOIN view_bible_LIB_ACCOUNT_tree lat ON lat.treenode_key = la.treenode_key" ;
 	$query.= " WHERE 1" ;
 	if( isset($filter_fileFilerecordId_list) ) {
 		$query.= " AND f.filerecord_id IN {$filter_fileFilerecordId_list}" ;
@@ -51,6 +57,9 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 				}
 			}
 		}
+		if( $filter_soc ) {
+			$query.= " AND la.treenode_key IN ".$_opDB->makeSQLlist($filter_soc) ;
+		}
 		if( !$filter_archiveIsOn ) {
 			$query.= " AND f.field_STATUS_CLOSED='0'" ;
 		}
@@ -63,7 +72,16 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			
 			'id_ref' => $arr['field_FILE_ID'],
 			
+			'soc_id' => $arr['field_SOC_ID'],
+			'soc_txt' => $arr['field_SOC_NAME'],
 			'acc_id' => $arr['field_LINK_ACCOUNT'],
+			'acc_ref' => (
+				strpos($arr['field_LINK_ACCOUNT'],$arr['field_SOC_ID'].'-')===0 
+				?
+				substr($arr['field_LINK_ACCOUNT'],strlen($arr['field_SOC_ID'].'-'))
+				:
+				$arr['field_LINK_ACCOUNT']
+			),
 			'acc_txt' => $arr['field_ACC_NAME'],
 			'acc_siret' => $arr['field_ACC_SIRET'],
 			
@@ -322,17 +340,27 @@ function specRsiRecouveo_file_searchSuggest( $post_data ) {
 	if( $post_data['filter_atr'] ) {
 		$filter_atr = json_decode($post_data['filter_atr'],true) ;
 	}
+	$filter_soc = NULL ;
+	if( $post_data['filter_soc'] ) {
+		$filter_soc = json_decode($post_data['filter_soc'],true) ;
+	}
 	
 	$sub_query_acc = "SELECT distinct field_LINK_ACCOUNT FROM view_file_FILE WHERE 1" ;
 	$sub_query_acc.= " AND field_STATUS_CLOSED='0'" ;
 	foreach( $filter_atr as $mkey => $mvalue ) {
 		$sub_query_acc.= " AND field_{$mkey} IN ".$_opDB->makeSQLlist($mvalue) ;
 	}
+	if( $filter_soc ) {
+		$sub_query_acc.= " AND field_LINK_ACCOUNT IN (SELECT entry_key FROM view_bible_LIB_ACCOUNT_entry WHERE treenode_key IN ".$_opDB->makeSQLlist($filter_soc).")" ;
+	}
 	
 	$sub_query_files = "SELECT filerecord_id FROM view_file_FILE WHERE 1" ;
 	$sub_query_files.= " AND field_STATUS_CLOSED='0'" ;
 	foreach( $filter_atr as $mkey => $mvalue ) {
 		$sub_query_files.= " AND field_{$mkey} IN ".$_opDB->makeSQLlist($mvalue) ;
+	}
+	if( $filter_soc ) {
+		$sub_query_acc.= " AND field_LINK_ACCOUNT IN (SELECT entry_key FROM view_bible_LIB_ACCOUNT_entry WHERE treenode_key IN ".$_opDB->makeSQLlist($filter_soc).")" ;
 	}
 	
 	$search_txt = $post_data['search_txt'] ;

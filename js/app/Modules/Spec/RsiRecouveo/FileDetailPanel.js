@@ -106,6 +106,17 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		},this) ;
 		formItems.push({
 			readOnly: true,
+			xtype: 'op5crmbasebibletreepicker',
+			fieldLabel: '<b>Entité</b>',
+			name: 'soc_id',
+			allowBlank: false,
+			selectMode: 'single',
+			optimaModule: this.optimaModule,
+			bibleId: 'LIB_ACCOUNT',
+			anchor: '',
+			width: 260
+		},{
+			readOnly: true,
 			xtype: 'textfield',
 			fieldLabel: '<b># Acheteur</b>',
 			name: 'acc_id',

@@ -24,14 +24,26 @@ function specRsiRecouveo_account_open( $post_data ) {
 	$p_accId = $post_data['acc_id'] ;
 	$p_atrFilter = ( $post_data['filter_atr'] ? json_decode($post_data['filter_atr'],true) : null ) ;
 	
-	$query = "SELECT * FROM view_bible_LIB_ACCOUNT_entry WHERE entry_key='{$p_accId}'" ;
+	$query = "SELECT la.*, lat.field_SOC_ID, lat.field_SOC_NAME" ;
+	$query.= " FROM view_bible_LIB_ACCOUNT_entry la" ;
+	$query.= " JOIN view_bible_LIB_ACCOUNT_tree lat ON lat.treenode_key = la.treenode_key" ;
+	$query.= " WHERE la.entry_key='{$p_accId}'" ;
 	$result = $_opDB->query($query) ;
 	if( $_opDB->num_rows($result) != 1 ) {
 		return array('success'=>false) ;
 	}
 	$arr = $_opDB->fetch_assoc($result) ;
 	$account_record = array(
+		'soc_id' => $arr['field_SOC_ID'],
+		'soc_txt' => $arr['field_SOC_NAME'],
 		'acc_id' => $arr['field_ACC_ID'],
+		'acc_ref' => (
+			strpos($arr['field_ACC_ID'],$arr['field_SOC_ID'].'-')===0 
+			?
+			substr($arr['field_ACC_ID'],strlen($arr['field_SOC_ID'].'-'))
+			:
+			$arr['field_ACC_ID']
+		),
 		'acc_txt' => $arr['field_ACC_NAME'],
 		'acc_siret' => $arr['field_ACC_SIRET'],
 		'adr_postal' => $arr['field_ADR_POSTAL']

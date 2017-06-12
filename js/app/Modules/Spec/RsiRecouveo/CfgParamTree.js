@@ -180,6 +180,58 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamTree',{
 				}
 			}) ;
 			rootNode = tmpTreeStore.getRootNode().copy(undefined,true) ;
+		} else if( this.cfgParam_id && this.cfgParam_id=='SOC' ) {
+			data = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getSocAll() ;
+			var tmpTreeStore = Ext.create('Ext.data.TreeStore',{
+				model: 'RsiRecouveoCfgParamTreeModel',
+				root: {
+					root: true,
+					children: [],
+					nodeText: '<b>'+'Liste entités'+'</b>'
+				},
+				proxy: {
+					type: 'memory',
+					reader: {
+						type: 'json'
+					}
+				}
+			}) ;
+			while( true ) {
+				var cnt = 0 ;
+				var parentNode ;
+				Ext.Array.each( data, function(row) {
+					if( tmpTreeStore.getNodeById( row.soc_id ) ) {
+						return ;
+					}
+					if( Ext.isEmpty(row.soc_parent_id) ) {
+						parentNode = tmpTreeStore.getRootNode() ;
+					} else {
+						parentNode = tmpTreeStore.getNodeById( row.soc_parent_id ) ;
+					}
+					if( !parentNode ) {
+						return ;
+					}
+					cnt++ ;
+					parentNode.appendChild({
+						nodeId: row.soc_id,
+						nodeType: 'entry',
+						nodeKey: row.soc_id,
+						nodeText: row.soc_name
+					});
+				}) ;
+				if( cnt==0 ) {
+					break ;
+				}
+			}
+			tmpTreeStore.getRootNode().cascadeBy( function(node) {
+				if( node.childNodes.length == 0 ) {
+					node.set('leaf',true) ;
+				} else {
+					node.expand() ;
+				}
+			}) ;
+			rootNode = tmpTreeStore.getRootNode().copy(undefined,true) ;
+			this.allValues=true ;
 		} else if( this.cfgParam_id && this.cfgParam_id=='ACTIONNEXT' ) {
 			data = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionnextData() ;
 			var tmpTreeStore = Ext.create('Ext.data.TreeStore',{
@@ -289,7 +341,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamTree',{
 		} else {
 			Ext.Array.each( this.value, function(val) {
 				storeNodes.push( this.getStore().getNodeById( val ) ) ;
-			}) ;
+			},this) ;
 		}
 		return storeNodes ;
 	},
@@ -305,15 +357,15 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamTree',{
 			if( storeNode.isLeaf() ) {
 				leafs = [storeNode.data.nodeKey] ;
 			} else {
-				leafs = [] ;
+				leafs = (this.allValues ? [storeNode.data.nodeKey] : []) ;
 				storeNode.cascadeBy(function(node) {
-					if( node.isLeaf() ) {
+					if( node.isLeaf() || this.allValues ) {
 						leafs.push(node.data.nodeKey) ;
 					}
-				});
+				},this);
 			}
 			allLeafs = Ext.Array.merge(allLeafs,leafs) ;
-		}) ;
+		},this) ;
 		return allLeafs ;
 	},
 	

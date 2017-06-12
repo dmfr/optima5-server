@@ -6,33 +6,35 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamButton' ,{
 	selectMode: 'SINGLE',
 	
 	initComponent: function() {
+		var cfgParamTree = Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamTree',{
+			optimaModule: this.optimaModule,
+			cfgParam_id: this.cfgParam_id,
+			selectMode: this.selectMode, // SINGLE / MULTI
+			width:250,
+			height:300,
+			listeners: {
+				change: {
+					fn: function(){
+						this.onChange() ;
+					},
+					scope: this
+				},
+				load: {
+					fn: this.onAfterLoad,
+					scope: this
+				}
+			},
+			value: this.value
+		});
 		Ext.apply(this,{
 			menu: {
 				xtype:'menu',
-				items:[Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamTree',{
-					optimaModule: this.optimaModule,
-					cfgParam_id: this.cfgParam_id,
-					selectMode: this.selectMode, // SINGLE / MULTI
-					width:250,
-					height:300,
-					listeners: {
-						change: {
-							fn: function(){
-								this.onChange() ;
-							},
-							scope: this
-						},
-						load: {
-							fn: this.onAfterLoad,
-							scope: this
-						}
-					},
-					value: this.value
-				})]
+				items:[cfgParamTree]
 			}
 		});
 		
-		this.text = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(this.cfgParam_id).atr_txt ;
+		//this.text = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(this.cfgParam_id).atr_txt ;
+		this.text = cfgParamTree.getRootNode().get('nodeText') ;
 		this.baseText = this.text ;
 		this.setText(this.baseText) ;
 		

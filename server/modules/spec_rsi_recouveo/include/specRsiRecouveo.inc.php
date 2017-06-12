@@ -109,9 +109,10 @@ function specRsiRecouveo_cfg_getConfig() {
 	
 	$TAB_list_atr = array() ;
 	$TAB_list_opt = array() ;
+	$TAB_soc = NULL ;
 	$json_define = paracrm_define_getMainToolbar( array('data_type'=>'bible') , true ) ;
 	foreach( $json_define['data_bible'] as $define_bible ) {
-		if( strpos($define_bible['bibleId'],'ATR_')===0 || strpos($define_bible['bibleId'],'OPT_')===0 ) {
+		if( strpos($define_bible['bibleId'],'ATR_')===0 || strpos($define_bible['bibleId'],'OPT_')===0 || $define_bible['bibleId']=='LIB_ACCOUNT' ) {
 			$json_define_bible = paracrm_data_getBibleCfg(array('bible_code'=>$define_bible['bibleId'])) ;
 			
 			$bible_code = $define_bible['bibleId'] ;
@@ -146,6 +147,16 @@ function specRsiRecouveo_cfg_getConfig() {
 			if( strpos($define_bible['bibleId'],'OPT_')===0 ) {
 				$TAB_list_opt[] = $new_rec ;
 			}
+			if( $define_bible['bibleId']=='LIB_ACCOUNT' ) {
+				$TAB_soc = array() ;
+				foreach( $records as $rec ) {
+					$TAB_soc[] = array(
+						'soc_id' => $rec['id'],
+						'soc_parent_id' => $rec['parent'],
+						'soc_name' => $rec['text']
+					);
+				}
+			}
 		}
 	}
 	
@@ -167,7 +178,8 @@ function specRsiRecouveo_cfg_getConfig() {
 		'cfg_action' => $TAB_action,
 		'cfg_action_eta' => $TAB_action_eta,
 		'cfg_balage' => $TAB_balage,
-		'cfg_template' => $TAB_tpl
+		'cfg_template' => $TAB_tpl,
+		'cfg_soc' => $TAB_soc
 	);
 	
 	

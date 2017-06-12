@@ -131,7 +131,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordGroupInputPanel',{
 			params: {
 				_action: 'data_getBibleGrid',
 				bible_code: 'LIB_ACCOUNT',
-				filter: Ext.JSON.encode([{property: 'str_search',value:recAccount}])
+				filter: Ext.JSON.encode([{property: 'entry_key',value:recAccount}])
 			},
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;

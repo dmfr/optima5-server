@@ -23,7 +23,27 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 					this.doQuit() ;
 				},
 				scope: this
-			},'-',{
+			},'-',Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamButton',{
+				itemId: 'tbSoc',
+				cfgParam_id: 'SOC',
+				icon: 'images/op5img/ico_blocs_small.gif',
+				selectMode: 'SINGLE',
+				optimaModule: this.optimaModule,
+				listeners: {
+					change: {
+						fn: function() {
+							this.onSocSet() ;
+						},
+						scope: this
+					},
+					ready: {
+						fn: function() {
+							
+						},
+						scope: this
+					}
+				}
+			}),'-',{
 				itemId: 'tbAtr',
 				border: false,
 				xtype: 'toolbar',
@@ -263,6 +283,20 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		},{
 			text: 'Acheteurs',
 			columns: [{
+				text: 'Entité',
+				dataIndex: 'soc_id',
+				tdCls: 'op5-spec-dbstracy-boldcolumn',
+				width:100,
+				align: 'center',
+				filter: {
+					type: 'op5crmbasebibletree',
+					optimaModule: this.optimaModule,
+					bibleId: 'LIB_ACCOUNT'
+				},
+				renderer: function(v,m,r) {
+					return r.get('soc_txt') ;
+				}
+			},{
 				text: 'ID',
 				dataIndex: 'acc_id',
 				tdCls: 'op5-spec-dbstracy-boldcolumn',
@@ -434,22 +468,32 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		});
 	},
 	
+	onSocSet: function() {
+		this.doLoad(true) ;
+	},
 	onAtrSet: function() {
 		this.doLoad(true) ;
 	},
 	
 	onBeforeQueryLoad: function(store,options) {
-		var objAtrFilter = {} ;
+		var objAtrFilter = {}, arrSocFilter=[] ;
 		Ext.Array.each( this.query('toolbar > [cfgParam_id]'), function(cfgParamBtn) {
+			var cfgParam_id = cfgParamBtn.cfgParam_id ;
 			if( Ext.isEmpty(cfgParamBtn.getValue()) ) {
 				return ;
 			}
-			objAtrFilter[cfgParamBtn.cfgParam_id] = cfgParamBtn.getValue()
+			if( cfgParam_id.indexOf('ATR_')===0 ) {
+				objAtrFilter[cfgParam_id] = cfgParamBtn.getValue()
+			}
+			if( cfgParam_id=='SOC' ) {
+				arrSocFilter = cfgParamBtn.getLeafNodesKey() ;
+			}
 		}) ;
 		
 		var params = options.getParams() ;
 		Ext.apply(params,{
-			filter_atr: Ext.JSON.encode(objAtrFilter)
+			filter_atr: Ext.JSON.encode(objAtrFilter),
+			filter_soc: (arrSocFilter ? Ext.JSON.encode(arrSocFilter):'')
 		}) ;
 		options.setParams(params) ;
 	},
@@ -458,9 +502,18 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 	},
 	
 	doLoad: function(doClearFilters) {
-		var objAtrFilter = {} ;
+		var objAtrFilter = {}, arrSocFilter=null ;
 		Ext.Array.each( this.query('toolbar > [cfgParam_id]'), function(cfgParamBtn) {
-			objAtrFilter[cfgParamBtn.cfgParam_id] = cfgParamBtn.getValue()
+			var cfgParam_id = cfgParamBtn.cfgParam_id ;
+			if( Ext.isEmpty(cfgParamBtn.getValue()) ) {
+				return ;
+			}
+			if( cfgParam_id.indexOf('ATR_')===0 ) {
+				objAtrFilter[cfgParam_id] = cfgParamBtn.getValue()
+			}
+			if( cfgParam_id=='SOC' ) {
+				arrSocFilter = cfgParamBtn.getLeafNodesKey() ;
+			}
 		}) ;
 		
 		this.showLoadmask() ;
@@ -468,7 +521,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			params: {
 				_moduleId: 'spec_rsi_recouveo',
 				_action: 'file_getRecords',
-				filter_atr: Ext.JSON.encode(objAtrFilter)
+				filter_atr: Ext.JSON.encode(objAtrFilter),
+				filter_soc: (arrSocFilter ? Ext.JSON.encode(arrSocFilter):'')
 			},
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;

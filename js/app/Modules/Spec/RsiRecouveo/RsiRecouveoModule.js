@@ -5,7 +5,10 @@ Ext.define('RsiRecouveoFileTplModel',{ // TO: RsiRecouveoFileModel
 	fields: [
 		{name: 'file_filerecord_id', type:'int'},
 		{name: 'id_ref', type:'string'},
+		{name: 'soc_id', type:'string'},
+		{name: 'soc_txt', type:'string'},
 		{name: 'acc_id', type:'string'},
+		{name: 'acc_ref', type:'string'},
 		{name: 'acc_txt', type:'string'},
 		{name: 'acc_siret', type:'string'},
 		{name: 'status', type:'string'},
@@ -153,7 +156,10 @@ Ext.define('RsiRecouveoAccountTplModel',{
 	extend: 'Ext.data.Model',
 	idProperty: 'acc_id',
 	fields: [
+		{name: 'soc_id', type:'string'},
+		{name: 'soc_txt', type:'string'},
 		{name: 'acc_id', type:'string'},
+		{name: 'acc_ref', type:'string'},
 		{name: 'acc_txt', type:'string'},
 		{name: 'acc_siret', type:'string'},
 		{name: 'adr_postal', type:'string'}

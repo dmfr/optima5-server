@@ -80,6 +80,15 @@ Ext.define('RsiRecouveoCfgTemplateModel',{
 		{name: 'input_fields_json', type:'string'}
 	]
 });
+Ext.define('RsiRecouveoCfgSocModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'soc_id',
+	fields: [
+		{name: 'soc_id', type:'string'},
+		{name: 'soc_parent_id', type:'string'},
+		{name: 'soc_name', type:'string'}
+	]
+});
 
 Ext.define('RsiRecouveoConfigUserTplModel',{
 	extend: 'Ext.data.Model',
@@ -232,6 +241,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 		this.cfgTemplateStore = Ext.create('Ext.data.Store',{
 			model: 'RsiRecouveoCfgTemplateModel',
 			data : ajaxData.data.cfg_template
+		}) ;
+		this.cfgSocStore = Ext.create('Ext.data.Store',{
+			model: 'RsiRecouveoCfgSocModel',
+			data : ajaxData.data.cfg_soc
 		}) ;
 		
 		var cmpId = this.cmpId ;
@@ -411,6 +424,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 	
 	getTemplateAll: function() {
 		return Ext.pluck( this.cfgTemplateStore.getRange(), 'data' ) ;
+	},
+	
+	getSocAll: function() {
+		return Ext.pluck( this.cfgSocStore.getRange(), 'data' ) ;
 	},
 	
 	authHelperHasAll: function() {
