@@ -1,3 +1,144 @@
+Ext.define('Optima5.Modules.Spec.RsiRecouveo.BankAllocAccountField', {
+	extend:'Ext.form.FieldContainer',
+	mixins: {
+		field: 'Ext.form.field.Field'
+	},
+	alias: 'widget.op5specrsiveobankallocaccountfield',
+	layout: 'hbox',
+	combineErrors: true,
+	msgTarget :'side',
+	invalidMsg : 'Lien incomplet/invalide',
+	allowBlank: true,
+
+	linkBiblesStore: null,
+	linkTypesStore: null,
+	
+	isFormField: true,
+	submitValue: true,
+
+	initComponent: function() {
+		var me = this;
+		me.buildField();
+		me.callParent();
+		this.bibleTreePicker = this.query()[0];
+		this.bibleEntryPicker = this.query()[1];
+		
+		me.mon( this.bibleTreePicker, 'change', me.onTreeFieldChange, me ) ;
+		me.mon( this.bibleEntryPicker, 'change', me.onEntryFieldChange, me ) ;
+		
+		me.initField();
+	},
+	
+	//@private
+	buildField: function(){
+		this.items = [{
+			flex: 1,
+			xtype: 'op5crmbasebibletreepicker',
+			selectMode: 'single',
+			optimaModule: this.optimaModule,
+			bibleId: 'LIB_ACCOUNT',
+			matchFieldWidth:false,
+			pickerWidth: 250
+		},{
+			flex: 2,
+			xtype: 'op5crmbasebiblepicker',
+			selectMode: 'single',
+			optimaModule: this.optimaModule,
+			bibleId: 'LIB_ACCOUNT',
+			matchFieldWidth:false,
+			pickerWidth: 300
+		}]
+	},
+	onTreeFieldChange: function() {
+		this.checkChange() ;
+		//this.reset() ;
+		this.bibleEntryPicker.setFilterTreenode( this.bibleTreePicker.getValue() ) ;
+		this.bibleEntryPicker.setValue(null) ;
+	},
+	onEntryFieldChange: function() {
+		this.checkChange() ;
+	},
+	
+	getValue: function() {
+		return this.bibleEntryPicker.getValue() ;
+	},
+	setValue: function(accId) {
+		this.bibleEntryPicker.setValue(accId) ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_action: 'data_getBibleGrid',
+				bible_code: 'LIB_ACCOUNT',
+				filter: Ext.JSON.encode([{property: 'entry_key',value:accId}])
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false || ajaxResponse.data.length != 1 ) {
+					return ;
+				}
+				this.bibleTreePicker.suspendEvents(false) ;
+				this.bibleTreePicker.setValue( ajaxResponse.data[0]['treenode_key'] ) ;
+				this.bibleTreePicker.resumeEvents() ;
+				//this.bibleEntryPicker.setValue(accId) ;
+			},
+			callback: function() {
+			},
+			scope: this
+		}) ;
+	},
+	
+	getErrors: function() {
+		var me = this ,
+		allowBlank = false ;
+		
+		if( !allowBlank ) {
+			if( this.bibleTreePicker.getValue() == null || this.bibleTreePicker.getValue() == '' ) {
+						return [me.invalidMsg] ;
+			}
+			if( this.bibleEntryPicker.getValue() == null || this.bibleEntryPicker.getValue() == '' ) {
+						return [me.invalidMsg] ;
+			}
+		}
+		return [] ;
+	},
+	isValid : function() {
+		var me = this,
+			disabled = me.disabled,
+			validate = me.forceValidation || !disabled;
+			
+		
+		return validate ? me.validateValue() : disabled;
+	},
+	validateValue: function() {
+		var me = this,
+			errors = me.getErrors(),
+			isValid = Ext.isEmpty(errors);
+		if (!me.preventMark) {
+			if (isValid) {
+					me.clearInvalid();
+			} else {
+					me.markInvalid(errors);
+			}
+		}
+
+		return isValid;
+	},
+	markInvalid: function(errors) {
+		if( this.bibleTreePicker ) {
+			this.bibleTreePicker.markInvalid(errors) ;
+		}
+		if( this.bibleEntryPicker ) {
+			this.bibleEntryPicker.markInvalid(errors) ;
+		}
+	},
+	clearInvalid: function() {
+		if( this.bibleTreePicker ) {
+			this.bibleTreePicker.clearInvalid() ;
+		}
+		if( this.bibleEntryPicker ) {
+			this.bibleEntryPicker.clearInvalid() ;
+		}
+	}
+});
 Ext.define('Optima5.Modules.Spec.RsiRecouveo.BankPanel',{
 	extend:'Ext.panel.Panel',
 	
@@ -188,9 +329,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.BankPanel',{
 				dataIndex: '_editor_allocation',
 				width:300,
 				editorAccount: {
-					xtype: 'op5crmbasebiblepicker',
+					xtype: 'op5specrsiveobankallocaccountfield',
 					optimaModule: this.optimaModule,
-					bibleId: 'LIB_ACCOUNT'
+					allowBlank: false
 				},
 				editorRecordgroupInput: {
 					xtype: 'combobox',
@@ -369,24 +510,29 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.BankPanel',{
 		
 		
 		var recAccount = context.record.get('alloc_link_account') ;
-		this.optimaModule.getConfiguredAjaxConnection().request({
-			params: {
-				_action: 'data_getBibleGrid',
-				bible_code: 'LIB_ACCOUNT',
-				filter: Ext.JSON.encode([{property: 'str_search',value:recAccount}])
-			},
-			success: function(response) {
-				var ajaxResponse = Ext.decode(response.responseText) ;
-				if( ajaxResponse.success == false || ajaxResponse.data.length != 1 ) {
-					return ;
-				}
-				context.record.set('alloc_link_account_txt',ajaxResponse.data[0]['field_ACC_NAME']) ;
-				context.record.set('_phantom',false) ;
-			},
-			callback: function() {
-			},
-			scope: this
-		}) ;
+		if( Ext.isEmpty(recAccount) ) {
+			context.record.set('alloc_link_account_txt','') ;
+			context.record.set('_phantom',false) ;
+		} else {
+			this.optimaModule.getConfiguredAjaxConnection().request({
+				params: {
+					_action: 'data_getBibleGrid',
+					bible_code: 'LIB_ACCOUNT',
+					filter: Ext.JSON.encode([{property: 'entry_key',value:recAccount}])
+				},
+				success: function(response) {
+					var ajaxResponse = Ext.decode(response.responseText) ;
+					if( ajaxResponse.success == false || ajaxResponse.data.length != 1 ) {
+						return ;
+					}
+					context.record.set('alloc_link_account_txt',ajaxResponse.data[0]['field_ACC_NAME']) ;
+					context.record.set('_phantom',false) ;
+				},
+				callback: function() {
+				},
+				scope: this
+			}) ;
+		}
 	},
 	onCancelEditRecord: function(editor,context) {
 		if( context.record.get('_phantom') ) {
@@ -395,6 +541,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.BankPanel',{
 	},
 	onBeforeEditRecord: function(editor,context) {
 		if( Ext.isEmpty(context.record.get('_type_allocation')) ) {
+			var nextValue ;
 			var optReclocalValue = context.record.get('alloc_type') ;
 			Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getOptData('OPT_RECLOCAL'), function(row) {
 				if( row.id==optReclocalValue ) {
