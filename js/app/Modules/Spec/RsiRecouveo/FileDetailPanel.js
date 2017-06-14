@@ -419,6 +419,22 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				}]
 			},{
 				itemId: 'pRecordsPanel',
+				tbar:[{
+					xtype: 'checkbox',
+					boxLabel: 'Afficher dossiers clôturés',
+					itemId: 'showActiveOnly',
+					hideLabel: true,
+					margin: '0 10 0 10',
+					inputValue: 'true',
+					value: 'false',
+					listeners: {
+						change: function (cb, newValue, oldValue) {
+							this._showClosed = newValue ;
+							this.doReload();
+						},
+						scope: this
+					}
+				}],
 				flex: 1,
 				bodyCls: 'ux-noframe-bg',
 				title: 'Factures',
@@ -761,7 +777,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		
 		this.down('#tpFileActions').removeAll() ;
 		accountRecord.files().each( function(fileRecord) {
-			if( fileRecord.get('status_closed') ) {
+			if( fileRecord.get('status_closed_void') ) {
+				return ;
+			}
+			if( fileRecord.get('status_closed_end') && !this._showClosed ) {
 				return ;
 			}
 			this.onLoadAccountAddFileActions( fileRecord, accountRecord ) ;
@@ -851,7 +870,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		
 		var pRecordsTreeChildren = [] ;
 		accountRecord.files().each( function(fileRecord) {
-			if( fileRecord.get('status_closed') ) {
+			if( fileRecord.get('status_closed_void') ) {
+				return ;
+			}
+			if( fileRecord.get('status_closed_end') && !this._showClosed ) {
 				return ;
 			}
 			
@@ -895,9 +917,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		},this) ;
 		this.down('#pRecordsTree').getStore().setRootNode({root:true, expanded:true, children:pRecordsTreeChildren}) ;
 		
-		var recordsPanel = this.down('#pRecordsPanel') ;
-		recordsPanel.down('toolbar').down('#tbNew').setDisabled(false) ;
-		recordsPanel.down('toolbar').down('#tbRecordTemp').setDisabled(false) ;
+		var recordsPanel = this.down('#pRecordsPanel'),
+			recordsTree = recordsPanel.down('#pRecordsTree') ;
+		recordsTree.down('toolbar').down('#tbNew').setDisabled(false) ;
+		recordsTree.down('toolbar').down('#tbRecordTemp').setDisabled(false) ;
 		
 		var activePanel = this.down('#tpFileActions').getActiveTab() ;
 		if( activePanel ) {

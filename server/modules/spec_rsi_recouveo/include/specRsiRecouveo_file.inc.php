@@ -61,7 +61,9 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			$query.= " AND la.treenode_key IN ".$_opDB->makeSQLlist($filter_soc) ;
 		}
 		if( !$filter_archiveIsOn ) {
-			$query.= " AND f.field_STATUS_CLOSED='0'" ;
+			$query.= " AND f.field_STATUS_CLOSED_VOID='0' AND f.field_STATUS_CLOSED_END='0'" ;
+		} else {
+			$query.= " AND f.field_STATUS_CLOSED_VOID='0'" ;
 		}
 	}
 	$query.= " ORDER BY f.filerecord_id DESC" ;
@@ -86,7 +88,8 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			'acc_siret' => $arr['field_ACC_SIRET'],
 			
 			'status' => $arr['field_STATUS'],
-			'status_closed' => ($arr['field_STATUS_CLOSED']==1),
+			'status_closed_void' => ($arr['field_STATUS_CLOSED_VOID']==1),
+			'status_closed_end' => ($arr['field_STATUS_CLOSED_END']==1),
 			
 			'date_open' => $arr['field_DATE_OPEN'],
 			'date_last' => $arr['field_DATE_LAST'],
@@ -124,7 +127,9 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			}
 		}
 		if( !$filter_archiveIsOn ) {
-			$query.= " AND f.field_STATUS_CLOSED='0'" ;
+			$query.= " AND f.field_STATUS_CLOSED_VOID='0' AND f.field_STATUS_CLOSED_END='0'" ;
+		} else {
+			$query.= " AND f.field_STATUS_CLOSED_VOID='0'" ;
 		}
 	}
 	$query. " ORDER BY fa.filerecord_id ASC" ;
@@ -172,7 +177,9 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			}
 		}
 		if( !$filter_archiveIsOn ) {
-			$query.= " AND f.field_STATUS_CLOSED='0'" ;
+			$query.= " AND f.field_STATUS_CLOSED_VOID='0' AND f.field_STATUS_CLOSED_END='0'" ;
+		} else {
+			$query.= " AND f.field_STATUS_CLOSED_VOID='0'" ;
 		}
 	}
 	$result = $_opDB->query($query) ;
@@ -346,7 +353,7 @@ function specRsiRecouveo_file_searchSuggest( $post_data ) {
 	}
 	
 	$sub_query_acc = "SELECT distinct field_LINK_ACCOUNT FROM view_file_FILE WHERE 1" ;
-	$sub_query_acc.= " AND field_STATUS_CLOSED='0'" ;
+	$sub_query_acc.= " AND field_STATUS_CLOSED_VOID='0' AND field_STATUS_CLOSED_END='0'" ;
 	foreach( $filter_atr as $mkey => $mvalue ) {
 		$sub_query_acc.= " AND field_{$mkey} IN ".$_opDB->makeSQLlist($mvalue) ;
 	}
@@ -355,7 +362,7 @@ function specRsiRecouveo_file_searchSuggest( $post_data ) {
 	}
 	
 	$sub_query_files = "SELECT filerecord_id FROM view_file_FILE WHERE 1" ;
-	$sub_query_files.= " AND field_STATUS_CLOSED='0'" ;
+	$sub_query_files.= " AND field_STATUS_CLOSED_VOID='0' AND field_STATUS_CLOSED_END='0'" ;
 	foreach( $filter_atr as $mkey => $mvalue ) {
 		$sub_query_files.= " AND field_{$mkey} IN ".$_opDB->makeSQLlist($mvalue) ;
 	}
@@ -961,7 +968,8 @@ function specRsiRecouveo_file_lib_updateStatus( $acc_id ) {
 	
 	foreach( $account_record['files'] as $accFile_record ) {
 		$arr_update = array() ;
-		$arr_update['field_STATUS_CLOSED'] = !(count($accFile_record['records'])>0) ;
+		$arr_update['field_STATUS_CLOSED_VOID'] = !(count($accFile_record['records'])>0) ;
+		$arr_update['field_STATUS_CLOSED_END'] = ($accFile_record['inv_amount_due']==0) ;
 		paracrm_lib_data_updateRecord_file( 'FILE', $arr_update, $accFile_record['file_filerecord_id']);
 	}
 }

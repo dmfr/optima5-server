@@ -88,6 +88,18 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 						itemId: 'account',
 						text: 'Vue par compte',
 						iconCls: 'op5-spec-dbstracy-grid-view-ordergroup'
+					},{
+						xtype: 'menuseparator'
+					},{
+						xtype: 'menucheckitem',
+						text: 'Afficher dossiers fermés ?',
+						handler: null,
+						listeners: {
+							checkchange: function(mi,checked) {
+								this.doShowClosed(checked) ;
+							},
+							scope: this
+						}
 					}]
 				}
 			},{
@@ -174,6 +186,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			tbViewmode.setIconCls( tbViewmodeItem.iconCls );
 		}
 		
+		this.doLoad(true) ;
+	},
+	doShowClosed: function(showClosed) {
+		this.showClosed = showClosed ;
 		this.doLoad(true) ;
 	},
 	configureToolbar: function() {
@@ -522,7 +538,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				_moduleId: 'spec_rsi_recouveo',
 				_action: 'file_getRecords',
 				filter_atr: Ext.JSON.encode(objAtrFilter),
-				filter_soc: (arrSocFilter ? Ext.JSON.encode(arrSocFilter):'')
+				filter_soc: (arrSocFilter ? Ext.JSON.encode(arrSocFilter):''),
+				filter_archiveIsOn: (this.showClosed ? 1 : 0)
 			},
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
