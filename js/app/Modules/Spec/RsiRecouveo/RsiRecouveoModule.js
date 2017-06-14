@@ -254,7 +254,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RsiRecouveoModule', {
 		var me = this ;
 		
 		me.createWindow({
-			width:1100,
+			width:1310,
 			height:700,
 			resizable:true,
 			maximizable:true,
