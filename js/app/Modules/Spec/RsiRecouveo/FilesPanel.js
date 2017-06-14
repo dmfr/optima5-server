@@ -676,33 +676,53 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			agendaTitles = [],
 			agendaColors = [] ;
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionEtaAll(), function(etaRange) {
-			agendaFields.push(etaRange.eta_range) ;
-			agendaYFields.push(etaRange.eta_range) ;
+			agendaFields.push(etaRange.eta_range+'_count', etaRange.eta_range+'_ratio1000') ;
+			agendaYFields.push(etaRange.eta_range+'_ratio1000') ;
 			agendaTitles.push(etaRange.eta_txt) ;
 			agendaColors.push(etaRange.eta_color) ;
 		}) ;
 		
 		var agendaData = [], agendaRow,
 			agendaSummary = {
-				'ACTION' : 'Actions',
-				'RDV' : 'Rendez-vous',
-				'FOLLOW' : 'Promesses'
+				'AGREE' : 'Paiements',
+				'LITIG' : 'Actions / Litige',
+				'ACTION' : 'Appels/Reprise'
 			};
 		Ext.Object.each( agendaSummary, function(agendaClass,agendaClassTxt) {
+			var sum = 0 ;
 			agendaRow = {} ;
 			agendaRow['agenda_class'] = agendaClass ;
 			agendaRow['agenda_class_txt'] = agendaClassTxt ;
 			Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionEtaAll(), function(etaRangeRow) {
-				var etaRange = etaRangeRow.eta_range ;
-				agendaRow[etaRange] = 0 ;
+				var etaRange = etaRangeRow.eta_range,
+					etaRangeCount = etaRangeRow.eta_range+'_count' ;
+				agendaRow[etaRangeCount] = 0 ;
 				
 				if( map_actionAgendaClass_etaRange_nbActions.hasOwnProperty(agendaClass)
 					&& map_actionAgendaClass_etaRange_nbActions[agendaClass].hasOwnProperty(etaRange) ) {
 					
 					
-					agendaRow[etaRange] = map_actionAgendaClass_etaRange_nbActions[agendaClass][etaRange] ;
+					agendaRow[etaRangeCount] = map_actionAgendaClass_etaRange_nbActions[agendaClass][etaRange] ;
 				}
+				sum += agendaRow[etaRangeCount] ;
 			}) ;
+			
+			if( sum > 0 ) {
+				var factor = 1000 / sum ;
+				Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionEtaAll(), function(etaRangeRow) {
+					var etaRange = etaRangeRow.eta_range,
+						etaRangeCount = etaRangeRow.eta_range+'_count',
+						etaRangeRatio = etaRangeRow.eta_range+'_ratio1000' ;
+					agendaRow[etaRangeRatio] = agendaRow[etaRangeCount] * factor ;
+				}) ;
+			} else {
+				Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionEtaAll(), function(etaRangeRow) {
+					var etaRange = etaRangeRow.eta_range,
+						etaRangeCount = etaRangeRow.eta_range+'_count',
+						etaRangeRatio = etaRangeRow.eta_range+'_ratio1000' ;
+					agendaRow[etaRangeRatio] = 0 ;
+				}) ;
+			}
 			
 			agendaData.push(agendaRow) ;
 		}) ;
@@ -763,6 +783,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 					x: 30, // the sprite x position
 					y: 205  // the sprite y position
 				}],
+				plugins: {
+					ptype: 'chartitemevents',
+					moveEvents: false
+				},
 				series: [{
 					type: 'pie',
 					angleField: 'amount',
@@ -886,7 +910,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
                 x: 150, // the sprite x position
                 y: 20  // the sprite y position
             }],
-            axes: [{
+            axes: [/*{
                 type: 'numeric',
                 position: 'bottom',
                 adjustByMajorUnit: true,
@@ -894,7 +918,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
                 grid: true,
                 renderer: function (v) { return v + ''; },
                 minimum: 0
-            }, {
+            }, */{
                 type: 'category',
                 position: 'left',
                 fields: 'agenda_class_txt',
@@ -920,7 +944,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
                     style: 'background: #fff',
                     renderer: function(storeItem, item) {
                         var browser = item.series.getTitle()[Ext.Array.indexOf(item.series.getYField(), item.field)];
-                        this.setHtml(browser + ' for ' + storeItem.get('agenda_class_txt') + ': ' + storeItem.get(item.field));
+								var countField = item.field.replace('_ratio1000','_count') ;
+                        this.setHtml(browser + ' for ' + storeItem.get('agenda_class_txt') + ': ' + storeItem.get(countField));
                     }
                 }
             }]
@@ -999,7 +1024,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 	},
 	onBarItemClick: function( series, item ) {
 		var clickAgendaClass = item.record.data.agenda_class,
-			clickEtaRange = item.field ;
+			clickEtaRange = item.field.replace('_ratio1000','') ;
 		
 		var gridPanel = this.down('#pCenter').down('#pGrid'),
 			gridPanelStore = gridPanel.getStore(),
