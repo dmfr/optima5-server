@@ -29,7 +29,7 @@ Ext.define('RsiRecouveoAdrbookTreeModel',{
 }) ;
 
 Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
-	extend:'Ext.window.Window',
+	extend:'Ext.panel.Panel',
 	
 	requires: [
 		'Optima5.Modules.Spec.RsiRecouveo.CfgParamField',
@@ -466,7 +466,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 						}
 					]
 				},{
-					height: 50,
+					height: 55,
 					itemId: 'pRecordsBalage',
 					hidden: true,
 					xtype:'grid',

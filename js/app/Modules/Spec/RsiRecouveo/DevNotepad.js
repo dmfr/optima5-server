@@ -11,12 +11,13 @@ Ext.define('RsiRecouveoDevNotepalModel', {
 	]
 });
 Ext.define('Optima5.Modules.Spec.RsiRecouveo.DevNotepad', {
-	extend: 'Ext.window.Window',
+	extend: 'Ext.panel.Panel',
 	
 	initComponent: function() {
 		Ext.apply(this,{
 			layout: 'fit',
 			items: [{
+				border: false,
 				itemId: 'gridNotepad',
 				xtype: 'grid',
 				store: {

@@ -257,7 +257,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RsiRecouveoModule', {
 			width:1100,
 			height:700,
 			resizable:true,
-			maximizable:false,
+			maximizable:true,
 			layout:'fit',
 			items:[Ext.create('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 				optimaModule: me,
