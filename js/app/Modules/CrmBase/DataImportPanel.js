@@ -412,7 +412,7 @@ Ext.define('Optima5.Modules.CrmBase.DataImportPanel' ,{
 							width: 120,
 							editor: {
 								xtype: 'textfield',
-								maskRe: /[A-Za-z0-9]/
+								maskRe: /[A-Za-z0-9_]/
 							}
 						},{
 							dataIndex: 'new_field_type',
@@ -656,7 +656,7 @@ Ext.define('Optima5.Modules.CrmBase.DataImportPanel' ,{
 					formNewGridData.push({
 						csvsrc_idx: csvsrcIdx++,
 						csvsrc_text: csvsrcCol.text,
-						new_field_code: csvsrcCol.text.replace(/[^a-z0-9]+/gi, "").toUpperCase(),
+						new_field_code: csvsrcCol.text.split(' ').join('_').replace(/[^a-z0-9_]+/gi, "").toUpperCase(),
 						new_field_type: 'string'
 					});
 				}) ;
