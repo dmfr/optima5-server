@@ -1234,7 +1234,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			}
 		});
 		
-		this.down('toolbar').down('#tbNew').setDisabled( fileRec.statusIsSchedNone() )  ;
+		recordsTree.down('toolbar').down('#tbNew').setDisabled( fileRec.statusIsSchedNone() )  ;
 	},
 	getActiveFileId: function() {
 		var recordsTree = this.down('#pRecordsTree'),
@@ -1342,9 +1342,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 	doCreateFile: function( actionCode ) {
 		var actionRow = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionRowId(actionCode) ;
 		
-		var recordsPanel = this.down('#pRecordsPanel') ;
-		recordsPanel.down('toolbar').down('#tbNew').setDisabled(true) ;
-		recordsPanel.down('toolbar').down('#tbRecordTemp').setDisabled(true) ;
+		var recordsPanel = this.down('#pRecordsPanel'),
+			recordsTree = this.down('#pRecordsTree') ;
+		recordsTree.down('toolbar').down('#tbNew').setDisabled(true) ;
+		recordsTree.down('toolbar').down('#tbRecordTemp').setDisabled(true) ;
 		
 		var recordsTree = this.down('#pRecordsTree'),
 			recordsTreeRoot = this.down('#pRecordsTree').getRootNode() ;
