@@ -130,9 +130,10 @@ function paracrm_lib_dataImport_probeMappingId( $data_type,$store_code, $csvsrc_
 	$csvsrc_length = count($csvsrc_arrHeaderTxt) ;
 	$target_biblecode = ($data_type=='bible' ? $store_code : '') ;
 	$target_filecode = ($data_type=='file' ? $store_code : '') ;
+	$target_tablecode = ($data_type=='table' ? $store_code : '') ;
 	
 	$query = "SELECT importmap_id FROM importmap
-			WHERE csvsrc_length='$csvsrc_length' AND target_biblecode='$target_biblecode' AND target_filecode='$target_filecode'" ;
+			WHERE csvsrc_length='$csvsrc_length' AND target_biblecode='$target_biblecode' AND target_filecode='$target_filecode' AND target_tablecode='$target_tablecode'" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 		$importmap_id = $arr[0] ;
@@ -156,7 +157,7 @@ function paracrm_lib_dataImport_probeMappingId( $data_type,$store_code, $csvsrc_
 	
 	$arrCandidates_importmapId_rank = array() ;
 	$query = "SELECT importmap_id FROM importmap
-			WHERE target_biblecode='$target_biblecode' AND target_filecode='$target_filecode'" ;
+			WHERE target_biblecode='$target_biblecode' AND target_filecode='$target_filecode' AND target_tablecode='$target_tablecode'" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 		$importmap_id = $arr[0] ;
@@ -221,7 +222,13 @@ function paracrm_lib_dataImport_commit_processHandle( $data_type,$store_code, $h
 	$cfg_delimiters = array('comma'=>',','semicolon'=>';','pipe'=>'|') ;
 	
 	//rewind($handle) ;
-	$first_lig = trim(fgets($handle)) ;
+	while(!feof($handle)) {
+		$first_lig = trim(fgets($handle)) ;
+		if( !trim($first_lig) ) {
+			continue ;
+		}
+		break ;
+	}
 	if( !trim($first_lig) ) {
 		return TRUE ;
 	}
