@@ -148,6 +148,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				align: 'stretch'
 			},
 			tbar:['->',{
+				itemId: 'tbBump',
+				icon: 'images/op5img/ico_redflag_16.gif',
+				text: '<b>Reprise dossier</b>',
+				handler: function() {
+					this.handleNewAction('BUMP') ;
+				},
+				scope: this
+			},{
 				itemId: 'tbNew',
 				icon: 'images/modules/dbspeople-role-16.png',
 				text: '<b>Actions de communication</b>',
