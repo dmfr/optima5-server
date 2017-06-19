@@ -11,7 +11,9 @@ function specRsiRecouveo_dev_getNotepad($post_data) {
 			'nt_filerecord_id'=>$arr['filerecord_id'],
 			'nt_class'=>$arr['field_NT_CLASS'],
 			'nt_text'=>$arr['field_NT_TEXT'],
-			'nt_priority'=>$arr['field_NT_PRIORITY']
+			'nt_priority'=>$arr['field_NT_PRIORITY'],
+			'nt_done_ok'=>($arr['field_NT_DONE_OK']==1),
+			'nt_done_text'=>$arr['field_NT_DONE_TEXT']
 		);
 	}
 	
@@ -27,7 +29,9 @@ function specRsiRecouveo_dev_setNotepadNote($post_data) {
 	$arr_ins = array(
 		'field_NT_CLASS' => $p_data['nt_class'],
 		'field_NT_TEXT' => $p_data['nt_text'],
-		'field_NT_PRIORITY' => $p_data['nt_priority']
+		'field_NT_PRIORITY' => $p_data['nt_priority'],
+		'field_NT_DONE_OK' => ($p_data['nt_done_ok'] ? 1 : 0),
+		'field_NT_DONE_TEXT' => $p_data['nt_done_text']
 	);
 	if( $p_ntFilerecordId > 0 ) {
 		if( !$p_data ) {

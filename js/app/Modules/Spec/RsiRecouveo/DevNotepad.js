@@ -7,6 +7,8 @@ Ext.define('RsiRecouveoDevNotepalModel', {
 		{name: 'nt_class', type: 'string'},
 		{name: 'nt_text', type: 'string'},
 		{name: 'nt_priority',  type: 'int'},
+		{name: 'nt_done_ok',  type: 'boolean'},
+		{name: 'nt_done_text',  type: 'string'},
 		{name: '_phantom',  type: 'boolean'}
 	]
 });
@@ -85,6 +87,37 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.DevNotepad', {
 				},{
 					dataIndex: 'nt_text',
 					text: 'Note',
+					width: 400,
+					tdCls: 'multiline-row',
+					editor: {
+						xtype: 'textarea',
+						enableKeyEvents : true,
+						listeners       : {
+								keydown : function(field, e) {
+									if (e.getKey() == e.ENTER) {
+										e.stopPropagation();
+									}
+								}
+						}
+					},
+					renderer: function(v) {
+						return Ext.util.Format.nl2br(v) ;
+					}
+				},{
+					dataIndex: 'nt_done_ok',
+					text: 'OK?',
+					width: 65,
+					editor: {
+						xtype: 'checkboxfield'
+					},
+					renderer: function(v) {
+						if( v ) {
+							return '<b>'+'X'+'</b>' ;
+						}
+					}
+				},{
+					dataIndex: 'nt_done_text',
+					text: 'Commentaire',
 					width: 400,
 					tdCls: 'multiline-row',
 					editor: {
