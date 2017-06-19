@@ -324,6 +324,8 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 				'next_agenda_class' => $next_action['link_action_class']
 			);
 		}
+		$inv_header['inv_amount_total'] = round($inv_header['inv_amount_total'],4) ;
+		$inv_header['inv_amount_due'] = round($inv_header['inv_amount_due'],4) ;
 		$file_row += $inv_header ;
 	}
 	unset($file_row) ;
@@ -969,7 +971,7 @@ function specRsiRecouveo_file_lib_updateStatus( $acc_id ) {
 	foreach( $account_record['files'] as $accFile_record ) {
 		$arr_update = array() ;
 		$arr_update['field_STATUS_CLOSED_VOID'] = !(count($accFile_record['records'])>0) ;
-		$arr_update['field_STATUS_CLOSED_END'] = ($accFile_record['inv_amount_due']==0) ;
+		$arr_update['field_STATUS_CLOSED_END'] = ((count($accFile_record['records'])>0) && ($accFile_record['inv_amount_due']==0)) ;
 		paracrm_lib_data_updateRecord_file( 'FILE', $arr_update, $accFile_record['file_filerecord_id']);
 	}
 }

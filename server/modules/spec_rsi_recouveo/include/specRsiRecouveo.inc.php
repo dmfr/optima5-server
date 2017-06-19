@@ -12,6 +12,7 @@ include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_xls.inc.
 include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_dev.inc.php") ;
 
 include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_lib_scenario.inc.php") ;
+include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_lib_autorun.inc.php") ;
 
 function specRsiRecouveo_cfg_doInit( $post_data ) {
 	global $_opDB ;
