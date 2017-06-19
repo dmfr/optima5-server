@@ -179,9 +179,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 			action_txt: currentAction.action_txt,
 			action_sched: ( this.getCurrentSched() ? Ext.util.Format.date(this.getCurrentSched(),'d/m/Y') : '' ),
 			  
-			scen_code: this.getActiveScenario(),
-			  
-			tpl_id: this.getCurrentTpl()
+			scen_code: this.getActiveScenario()
 		};
 		if( this._formValues ) {
 			if( this._formValues['adrtel_default'] ) {
@@ -242,6 +240,24 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 			this._formValues = null ;
 		}
 		this.getForm().setValues(formData) ;
+		
+		// Gestion du template
+		var tplField = this.getForm().findField('tpl_id') ;
+		if( tplField ) {
+			if( this.getCurrentTpl() ) {
+				tplField.getStore().clearFilter();
+				tplField.setReadOnly(true) ;
+				tplField.setValue( this.getCurrentTpl() ) ;
+			} else {
+				tplField.getStore().clearFilter();
+				tplField.getStore().filter([{
+					property: 'manual_is_on',
+					value: true
+				}]);
+				tplField.setReadOnly(false) ;
+				tplField.reset() ;
+			}
+		}
 	},
 	
 	onFormChange: function(field) {

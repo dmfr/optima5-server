@@ -103,6 +103,7 @@ function specRsiRecouveo_cfg_getConfig() {
 			'tpl_id' => $arr['field_TPL_ID'],
 			'tpl_name' => $arr['field_TPL_NAME'],
 			'tpl_group' => $arr['treenode_key'],
+			'manual_is_on' => $arr['field_MANUAL_IS_ON'],
 			'input_fields_json' => $arr['field_INPUT_FIELDS']
 		) ;
 	}

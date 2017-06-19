@@ -77,6 +77,7 @@ Ext.define('RsiRecouveoCfgTemplateModel',{
 		{name: 'tpl_id', type:'string'},
 		{name: 'tpl_name', type:'string'},
 		{name: 'tpl_group', type:'string'},
+		{name: 'manual_is_on', type:'boolean'},
 		{name: 'input_fields_json', type:'string'}
 	]
 });
