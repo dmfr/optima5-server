@@ -124,6 +124,12 @@ switch( $post_data['_action'] )
 	
 	
 	
+	
+	
+	case 'data_addBibleEntry' :
+	return paracrm_data_addBibleEntry( $post_data ) ;
+	
+	
 	default :
 	return NULL ;
 }

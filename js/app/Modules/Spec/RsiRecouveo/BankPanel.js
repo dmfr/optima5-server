@@ -42,6 +42,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.BankAllocAccountField', {
 		},{
 			flex: 2,
 			xtype: 'op5crmbasebiblepicker',
+			allowInsert: true,
 			selectMode: 'single',
 			optimaModule: this.optimaModule,
 			bibleId: 'LIB_ACCOUNT',

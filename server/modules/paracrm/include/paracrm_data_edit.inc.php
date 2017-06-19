@@ -222,4 +222,21 @@ function paracrm_data_bibleAssignParentTreenode( $post_data )
 }
 
 
+function paracrm_data_addBibleEntry( $post_data ) {
+	global $_opDB ;
+	
+	$bible_code = $post_data['bible_code'] ;
+	$p_entryKey = $post_data['entry_key'] ;
+	$p_treenodeKey = $post_data['treenode_key'] ;
+	
+	$_getDefine = paracrm_lib_data_getDefine_bibleEntry($bible_code) ;
+	$mkey = 'field_'.$_getDefine['key_field'] ;
+	$arr_ins = array() ;
+	$arr_ins[$mkey] = $p_entryKey ;
+	
+	paracrm_lib_data_insertRecord_bibleEntry( $bible_code, $p_entryKey, $p_treenodeKey, $arr_ins ) ;
+	return array('success'=>true) ;
+}
+
+
 ?>

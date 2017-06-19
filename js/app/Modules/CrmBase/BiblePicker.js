@@ -286,6 +286,16 @@ Ext.define('Optima5.Modules.CrmBase.BiblePicker',{
 				}
 			},{
 				xtype:'button',
+				hidden: !me.allowInsert,
+				icon : 'images/add.png' ,
+				handler : function(button,event) {
+					var value = button.up().down('textfield').getValue().trim() ;
+					me.setRawValue(value) ;
+					me.doInsert(value) ;
+				},
+				scope : me
+			},{
+				xtype:'button',
 				iconCls : 'icon-cancel' ,
 				handler : function(button,event) {
 					me.setRawValue('') ;
@@ -514,5 +524,30 @@ Ext.define('Optima5.Modules.CrmBase.BiblePicker',{
 		} else {
 			this.myStore._filterTreenodeKey = null ;
 		}
+	},
+	
+	doInsert: function(value) {
+		var me = this ;
+		if( !this.myStore._filterTreenodeKey || !value || Ext.isEmpty(value.trim()) ) {
+			return ;
+		}
+		me.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_action : 'data_addBibleEntry',
+				bible_code : this.bibleId,
+				treenode_key: this.myStore._filterTreenodeKey,
+				entry_key: value
+			},
+			success: function(response) {
+				if( Ext.decode(response.responseText).success == true ) {
+					// this.bibleId = bibleId ;
+					this.myStore.localLoad(value) ; ;
+				}
+				else {
+					this.bibleId = '' ;
+				}
+			},
+			scope: this
+		});
 	}
 });
