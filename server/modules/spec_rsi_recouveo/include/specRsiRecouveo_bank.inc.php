@@ -15,10 +15,11 @@ function specRsiRecouveo_bank_getRecords($post_data) {
 								LEFT OUTER JOIN view_bible_LIB_ACCOUNT_entry acc ON acc.entry_key=r.field_LINK_ACCOUNT
 								WHERE r.field_BANK_LINK_FILE_ID<>'0' AND field_BANK_CREATEBYALLOC='1'" ;
 	
-	$query = "SELECT b.*, rg.field_RECORDGROUP_ID as alloc_link_recordgroup, rg.field_RECORDGROUP_TYPE as alloc_link_recordgroup_type, a.field_LINK_ACCOUNT as alloc_link_account, a.field_ACC_NAME as alloc_link_account_txt";
+	$query = "SELECT b.*, rg.field_RECORDGROUP_ID as alloc_link_recordgroup, rg.field_RECORDGROUP_TYPE as alloc_link_recordgroup_type, a.field_LINK_ACCOUNT as alloc_link_account, a.field_ACC_NAME as alloc_link_account_txt, type.field_LINK_NEXT as alloc_type_next";
 	$query.= " FROM view_file_BANK b" ;
 	$query.= " LEFT OUTER JOIN ($subtable_recordgroup) rg ON rg.field_BANK_LINK_FILE_ID=b.filerecord_id";
 	$query.= " LEFT OUTER JOIN ($subtable_account) a ON a.field_BANK_LINK_FILE_ID=b.filerecord_id";
+	$query.= " LEFT OUTER JOIN view_bible_OPT_RECLOCAL_tree type ON type.treenode_key=b.field_ALLOC_TYPE";
 	$query.= " WHERE 1" ;
 	$query.= " ORDER BY b.field_BANK_DATE DESC, b.field_BANK_TXT ASC" ;
 	$result = $_opDB->query($query) ;
@@ -31,7 +32,7 @@ function specRsiRecouveo_bank_getRecords($post_data) {
 			'bank_date' => date('Y-m-d',strtotime($arr['field_BANK_DATE'])),
 			'bank_txt' => $arr['field_BANK_TXT'],
 			'bank_amount' => (float)$arr['field_BANK_AMOUNT'],
-			'alloc_is_ok' => !!$arr['field_ALLOC_TYPE'],
+			'alloc_is_ok' => ( ($arr['field_ALLOC_TYPE'] && !$arr['alloc_type_next']) || ($arr['alloc_link_account']||$arr['alloc_link_recordgroup'])),
 			'alloc_type' => $arr['field_ALLOC_TYPE'],
 			'alloc_link_is_on' => ($arr['field_ALLOC_LINK_AMOUNT']>0),
 			'alloc_link_recordgroup' => $arr['alloc_link_recordgroup'],
