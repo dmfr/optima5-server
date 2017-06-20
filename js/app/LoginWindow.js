@@ -195,6 +195,10 @@ Ext.define('Optima5.LoginWindow',{
 				login_password: loginPass
 			},
 			success: function(response) {
+				if( !Ext.isEmpty(Ext.decode(response.responseText).redirect) ) {
+					 window.location.href = Ext.decode(response.responseText).redirect;
+					 return ;
+				}
 				if( Ext.decode(response.responseText).done == false ) {
 					Ext.getBody().unmask() ;
 					
