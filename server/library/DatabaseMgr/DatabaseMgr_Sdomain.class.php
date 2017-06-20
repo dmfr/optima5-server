@@ -874,7 +874,7 @@ EOF;
 		$query = "SELECT table_code FROM {$sdomain_db}.define_table" ;
 		$result = $_opDB->query($query) ;
 		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
-			$file_code = $arr[0] ;
+			$table_code = $arr[0] ;
 			$this->sdomainDefine_buildTable( $sdomain_id , $table_code ) ;
 		}
 	}
@@ -1368,7 +1368,7 @@ EOF;
 			$arr_model_keys['PRIMARY'] = array('arr_columns'=>$primaryKey_arrColumns) ;
 		}
 		
-		DatabaseMgr_Util::syncTableStructure( $sdomain_db , $db_table , $arrAssoc_dbField_fieldType , $arr_model_keys ) ;
+		DatabaseMgr_Util::syncTableStructure( $sdomain_db , $db_table , $arrAssoc_dbField_fieldType , $arr_model_keys, $drop_allowed=TRUE ) ;
 		
 		$view_name = 'view_table_'.$table_code ;
 		$query = "DROP VIEW IF EXISTS {$sdomain_db}.{$view_name}" ;
