@@ -1283,4 +1283,45 @@ function paracrm_data_getTableGrid_data( $post_data, $auth_bypass=FALSE )
 
 
 
+
+
+
+function paracrm_data_editTableGrid_new($post_data) {
+	$arr_ins = json_decode($post_data['values_new'],true) ;
+	if( !$arr_ins ) {
+		return array('success'=>true) ;
+	}
+	
+	global $_opDB ;
+	$_opDB->insert('view_table_'.$post_data['table_code'],$arr_ins) ;
+	
+	return array('success'=>true) ;
+}
+function paracrm_data_editTableGrid_modify($post_data) {
+	$arr_cond = json_decode($post_data['values_original'],true) ;
+	$arr_update = json_decode($post_data['values_new'],true) ;
+	if( !$arr_cond || !$arr_update ) {
+		return array('success'=>true) ;
+	}
+	
+	global $_opDB ;
+	$_opDB->update('view_table_'.$post_data['table_code'],$arr_update,$arr_cond) ;
+	
+	return array('success'=>true) ;
+}
+function paracrm_data_editTableGrid_delete($post_data) {
+	$arr_cond = json_decode($post_data['values_original'],true) ;
+	if( !$arr_cond ) {
+		return array('success'=>true) ;
+	}
+	unset($arr_cond['id']) ;
+	unset($arr_cond['_phantom']) ;
+	
+	global $_opDB ;
+	$_opDB->delete('view_table_'.$post_data['table_code'],$arr_cond) ;
+	
+	return array('success'=>true) ;
+}
+
+
 ?>

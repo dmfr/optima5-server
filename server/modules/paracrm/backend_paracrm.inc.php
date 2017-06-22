@@ -64,6 +64,12 @@ switch( $post_data['_action'] )
 	return paracrm_data_getTableGrid_data( $post_data );
 	case 'data_getTableGrid_export' :
 	return paracrm_data_getTableGrid_export( $post_data );
+	case 'data_editTableGrid_new' :
+	return paracrm_data_editTableGrid_new( $post_data );
+	case 'data_editTableGrid_modify' :
+	return paracrm_data_editTableGrid_modify( $post_data );
+	case 'data_editTableGrid_delete' :
+	return paracrm_data_editTableGrid_delete( $post_data );
 	
 	
 	case 'data_importTransaction' :

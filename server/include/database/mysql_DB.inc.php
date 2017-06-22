@@ -576,12 +576,26 @@ if (!$result) {
 	function delete( $table, $arr_condition ) {
 		switch ($this->type_de_base) {
 			case "MySQL" :
-			if ( count($arr) < 1 || count($arr) < 1 )
+			if ( !$arr_condition || count($arr_condition) < 1 )
 				return -1 ;
 
 			$table = trim( $table );
 			
-			$sql = "DELETE from $table  WHERE $condition" ;
+			if( $arr_condition != NULL && count( $arr_condition ) > 0 )
+			{
+			    $condition = '';
+				foreach ( $arr_condition as $key => $value ) {
+					$condition .= $key.' = "'.mysql_real_escape_string($value, $this->connection).'" AND ' ;
+				}
+				$condition = $this->rm_last($condition) ;
+				$condition = $this->rm_last($condition) ;
+				$condition = $this->rm_last($condition) ;
+				$condition = $this->rm_last($condition) ;
+
+				$where_condition = " WHERE $condition" ;
+			}
+			
+			$sql = "DELETE from $table  $where_condition" ;
 			return $this->query( $sql );
 			break ;
 		}

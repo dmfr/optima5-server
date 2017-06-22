@@ -123,6 +123,7 @@ Ext.define('Optima5.Modules.CrmBase.TablePanel' ,{
 			}
 			modelFields.push( fieldObject ) ;
 		},this) ;
+		modelFields.push( {name: '_phantom', type:'boolean'} ) ;
 		
 		if( this.gridModelName ) {
 			Ext.ux.dams.ModelManager.unregister( this.gridModelName ) ;
@@ -220,9 +221,17 @@ Ext.define('Optima5.Modules.CrmBase.TablePanel' ,{
 					renderer: colorrenderer
 				}) ;
 			}
+			if( v.type == 'number' ) {
+				Ext.apply(columnObject,{
+					editor:{ xtype:'numberfield' }
+				}) ;
+			}
 			if( v.type == 'date' ) {
 				Ext.apply(columnObject,{
 					renderer: daterenderer
+				}) ;
+				Ext.apply(columnObject,{
+					editor:{ xtype:'datetimefield' }
 				}) ;
 			}
 			if( v.type == 'bool' ) {
@@ -256,6 +265,25 @@ Ext.define('Optima5.Modules.CrmBase.TablePanel' ,{
 				}) ;
 			}
 			
+			var editor ;
+			switch( v.type ) {
+				case 'date' :
+					editor = { xtype:'datetimefield' } ;
+					break ;
+				case 'number' :
+					editor = { xtype:'numberfield' } ;
+					break ;
+				case 'bool' :
+					editor = { xtype:'checkboxfield' } ;
+					break ;
+				default :
+					editor = { xtype:'textfield' } ;
+					break ;
+			}
+			Ext.apply(columnObject,{
+				editor: editor
+			}) ;
+			
 			
 			gridColumns.push( columnObject ) ;
 		},this) ;
@@ -266,7 +294,19 @@ Ext.define('Optima5.Modules.CrmBase.TablePanel' ,{
 			columns: gridColumns,
 			plugins: [{
 				ptype: 'uxgridfilters'
+			},{
+				ptype: 'rowediting',
+				pluginId: 'rowEditor',
+				listeners: {
+					edit: me.onAfterEdit,
+					canceledit: me.onCancelEdit,
+					scope: this
+				}
 			}],
+			viewConfig: {
+				preserveScrollOnRefresh: true,
+				preserveScrollOnReload: true
+			},
 			dockedItems: [{
 				xtype: 'pagingtoolbar',
 				store: gridstore,   // same store GridPanel is using
@@ -275,6 +315,89 @@ Ext.define('Optima5.Modules.CrmBase.TablePanel' ,{
 			}]
 		}) ;
 		
+		gridpanel.on('itemcontextmenu', function(view, record, item, index, event) {
+			// var strHeader = record.get('treenode_key')+' - '+record.get('entry_key')
+			if( authReadOnly ){
+				return ;
+			}
+			
+			var gridContextMenuItems = new Array() ;
+			gridContextMenuItems.push({
+				iconCls: 'icon-bible-edit',
+				text: 'Edit',
+				handler : function() {
+					me.editRecordModify( record ) ;
+				},
+				scope : me
+			});
+			gridContextMenuItems.push({
+				iconCls: 'icon-bible-delete',
+				text: 'Delete',
+				handler : function() {
+					Ext.Msg.show({
+						title:'Delete row',
+						msg: 'Delete row ?' ,
+						buttons: Ext.Msg.YESNO,
+						fn:function(buttonId){
+							if( buttonId == 'yes' ) {
+								me.editRecordDelete( record ) ;
+							}
+						},
+						scope:me
+					});
+					
+				},
+				scope : me
+			});
+			gridContextMenuItems.push('-') ;
+			gridContextMenuItems.push({
+				iconCls: 'icon-bible-new',
+				text: 'New record',
+				handler : function() {
+					me.editRecordNew() ;
+				},
+				scope : me
+			});
+			
+			var gridContextMenu = Ext.create('Ext.menu.Menu',{
+				items : gridContextMenuItems,
+				listeners: {
+					hide: function(menu) {
+						Ext.defer(function(){menu.destroy();},10) ;
+					}
+				}
+			}) ;
+			
+			gridContextMenu.showAt(event.getXY());
+		},me) ;
+		
+		gridpanel.on('containercontextmenu',function(view,event) {
+			if( authReadOnly ) {
+				return ;
+			}
+			var gridContextMenuItems = new Array() ;
+			gridContextMenuItems.push({
+				iconCls: 'icon-bible-new',
+				text: 'New record',
+				handler : function() {
+					me.editRecordNew() ;
+				},
+				scope : me
+			});
+			
+			var gridContextMenu = Ext.create('Ext.menu.Menu',{
+				items : gridContextMenuItems,
+				listeners: {
+					hide: function(menu) {
+						Ext.defer(function(){menu.destroy();},10) ;
+					}
+				}
+			}) ;
+			
+			if( gridContextMenuItems.length > 0 ) {
+				gridContextMenu.showAt(event.getXY());
+			}
+		},me) ;
 		return gridpanel ;
 	},
 			  
@@ -305,6 +428,82 @@ Ext.define('Optima5.Modules.CrmBase.TablePanel' ,{
 		return ( this.gridstore.getTotalCount() == 0 ) ;
 	},
 	
+	editRecordNew: function() {
+		var rec = this.down('gridpanel').getStore().insert(0,{_phantom:true}) ;
+		this.down('gridpanel').getPlugin('rowEditor').startEdit(0) ;
+	},
+	editRecordModify: function(record) {
+		this.down('gridpanel').getPlugin('rowEditor').startEdit(record) ;
+	},
+	editRecordDelete: function(record) {
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_action: 'data_editTableGrid_delete',
+				table_code: this.tableId,
+				values_original: Ext.JSON.encode( record.getData() )
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+			},
+			callback: function() {
+				this.reload() ;
+			},
+			scope: this
+		}) ;
+	},
+	
+	onAfterEdit: function(editor,context) {
+		if( context.record.get('_phantom') ) {
+			this.optimaModule.getConfiguredAjaxConnection().request({
+				params: {
+					_action: 'data_editTableGrid_new',
+					table_code: this.tableId,
+					values_new: Ext.JSON.encode( context.newValues )
+				},
+				success: function(response) {
+					var ajaxResponse = Ext.decode(response.responseText) ;
+					if( ajaxResponse.success == false ) {
+						Ext.MessageBox.alert('Error','Error') ;
+						return ;
+					}
+				},
+				callback: function() {
+					this.reload() ;
+				},
+				scope: this
+			}) ;
+		} else {
+			this.optimaModule.getConfiguredAjaxConnection().request({
+				params: {
+					_action: 'data_editTableGrid_modify',
+					table_code: this.tableId,
+					values_original: Ext.JSON.encode( context.originalValues ),
+					values_new: Ext.JSON.encode( context.newValues )
+				},
+				success: function(response) {
+					var ajaxResponse = Ext.decode(response.responseText) ;
+					if( ajaxResponse.success == false ) {
+						Ext.MessageBox.alert('Error','Error') ;
+						return ;
+					}
+				},
+				callback: function() {
+					this.reload() ;
+				},
+				scope: this
+			}) ;
+		}
+	},
+	onCancelEdit: function(editor,context) {
+		var gridpanel = this.down('gridpanel') ;
+		if( context.record.get('_phantom') ) {
+			gridpanel.getStore().remove(context.record) ;
+		}
+	},
 	
 	switchToPanel: Ext.emptyFn,
 	
