@@ -81,6 +81,9 @@ switch( $post_data['_action'] )
 	case 'queries_qbookTransaction' :
 	return paracrm_queries_qbookTransaction( $post_data ) ;
 	case 'queries_qsqlTransaction' :
+	if( $post_data['_subaction']=='metadata' ) {
+		session_write_close() ;
+	}
 	return paracrm_queries_qsqlTransaction( $post_data ) ;
 	case 'queries_gridTemplate' :
 	return paracrm_queries_gridTemplate( $post_data );
