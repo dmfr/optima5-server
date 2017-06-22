@@ -62,6 +62,8 @@ switch( $post_data['_action'] )
 	return paracrm_data_getTableGrid_config( $post_data );
 	case 'data_getTableGrid_data' :
 	return paracrm_data_getTableGrid_data( $post_data );
+	case 'data_getTableGrid_export' :
+	return paracrm_data_getTableGrid_export( $post_data );
 	
 	
 	case 'data_importTransaction' :

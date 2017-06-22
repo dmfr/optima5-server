@@ -316,7 +316,7 @@ Ext.define('Optima5.Modules.CrmBase.TablePanel' ,{
 		
 		var exportParams = me.optimaModule.getConfiguredAjaxParams() ;
 		Ext.apply(exportParams,{
-			_action: 'data_getTableGrid_exportTable' ,
+			_action: 'data_getTableGrid_export' ,
 			output_format: fileFormat,
 			table_code: this.tableId
 		}) ;

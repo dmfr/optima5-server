@@ -359,6 +359,10 @@ Ext.define('Optima5.Modules.CrmBase.DataWindow' ,{
 						return me.getPanel().exportFile('CSV') ;
 					case 'export-file-xlsx' :
 						return me.getPanel().exportFile('XLSX') ;
+					case 'export-table-csv' :
+						return me.getPanel().exportTable('CSV') ;
+					case 'export-table-xlsx' :
+						return me.getPanel().exportTable('XLSX') ;
 					case 'export-gallery' :
 						return me.getPanel().exportGallery() ;
 					default : break ;

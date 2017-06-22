@@ -926,6 +926,74 @@ function paracrm_data_getFileGrid_exportFile( $post_data, $auth_bypass=FALSE )
 	
 	return paracrm_data_lib_downloadGrid( $header, $data, $post_data['output_format'] ) ;
 }
+function paracrm_data_getTableGrid_export( $post_data, $auth_bypass=FALSE )
+{
+	if( !$auth_bypass && !Auth_Manager::getInstance()->auth_query_sdomain_action(
+		Auth_Manager::sdomain_getCurrent(),
+		'tables',
+		array('table_code'=>paracrm_define_tool_fileGetParentCode($post_data['table_code'])),
+		$write=false
+	)) {
+			return Auth_Manager::auth_getDenialResponse() ;
+	}
+	
+	$TAB_cfg = paracrm_data_getTableGrid_config( array('table_code'=>$post_data['table_code']) ) ;
+	$TAB_data = paracrm_data_getTableGrid_data( $post_data ) ;
+	
+	if( !$TAB_cfg['data']['grid_fields'] )
+		return ;
+
+	$arr_keys = array() ;
+	$arr_types = array() ;
+	
+	$header = array() ;
+	foreach( $TAB_cfg['data']['grid_fields'] as $cfg_field ) {
+	
+		$str = $cfg_field['text'] ;
+		if( !$str || $str == '_' ) {
+			$str = $cfg_field['field'] ;
+		}
+	
+		$arr_keys[] = $cfg_field['field'] ;
+		$arr_types[] = $cfg_field['type'] ;
+		
+
+		$type = '' ;
+		switch( $cfg_field['type'] ) {
+			case 'number' :
+				$type = '' ;
+				break ;
+			case 'bool' :
+				$type = 'integer' ;
+				break ;
+			default :
+				$type = 'string' ;
+				break ;
+		}
+		$header[$str] = $type ;
+	}
+	
+	$data = array() ;
+	foreach( $TAB_data['data'] as $record ) {
+		$rowArr = array() ;
+		foreach( $arr_keys as $idx => $field_code ) {
+			$value = $record[$field_code] ;
+		
+			switch( $arr_types[$idx] ) {
+				case 'number' :
+				$rowArr[] = (float)$value ;
+				break ;
+			
+				default :
+				$rowArr[] = $value ;
+				break ;
+			}
+		}
+		$data[] = $rowArr ;
+	}
+	
+	return paracrm_data_lib_downloadGrid( $header, $data, $post_data['output_format'] ) ;
+}
 function paracrm_data_lib_downloadGrid( $header, $data, $output_format ) {
 	$tmpfilename = tempnam( sys_get_temp_dir(), "FOO");
 	switch( $output_format ) {
