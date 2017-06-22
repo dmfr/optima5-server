@@ -97,7 +97,6 @@ Ext.define('Optima5.Modules.CrmBase.QsqlPanel' ,{
 	
 	addComponents: function( transactionId, ajaxData ){
 		var me = this ;
-			me.cfgAjaxData = ajaxData ;
 		
 		me.removeAll();
 		
@@ -107,16 +106,6 @@ Ext.define('Optima5.Modules.CrmBase.QsqlPanel' ,{
 			me.qsql_id = ajaxData.qsql_id ;
 			me.qsql_name =  ajaxData.qsql_name ;
 		}
-		
-		var sdomainsChidren = [] ;
-		Ext.Array.each( ajaxData.db_sdomains, function( sdomainRow ) {
-			sdomainsChidren.push({
-				leaf: true,
-				checked: false,
-				id: sdomainRow.sdomain_id,
-				text: sdomainRow.sdomain_id
-			}) ;
-		}) ;
 		
 		var treeCfg = {} ;
 		Ext.apply( treeCfg, {
@@ -149,7 +138,7 @@ Ext.define('Optima5.Modules.CrmBase.QsqlPanel' ,{
 									id: '',
 									text: '<b>Available Sdomains</b>',
 									expanded: true,
-									children: sdomainsChidren
+									children: []
 								},
 								proxy: {
 									type: 'memory' ,
@@ -293,8 +282,9 @@ Ext.define('Optima5.Modules.CrmBase.QsqlPanel' ,{
 		me.setDirty(false);
 		
 		// current Sdomain
-		me.filterTreeviewDatabase( this.optimaModule.getSdomainRecord().get('sdomain_id') ) ;
 		me.addComponentsEvalForm() ;
+		
+		me.fetchMetaData() ;
 	},
 	addComponentsEvalForm: function() {
 		var me = this ;
@@ -323,6 +313,48 @@ Ext.define('Optima5.Modules.CrmBase.QsqlPanel' ,{
 				}
 				me.jsInsertTextAtCursor( field.bodyEl.down('textarea').dom, toInsert ) ;
 			}
+		});
+	},
+	
+	fetchMetaData: function() {
+		var me = this ;
+		
+		var ajaxParams = new Object() ;
+		Ext.apply( ajaxParams, {
+			_action: 'queries_qsqlTransaction',
+			_subaction: 'metadata',
+			_transaction_id: me.transaction_id,
+			is_new: 'false'
+		});
+		me.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams ,
+			success: function(response) {
+				if( Ext.decode(response.responseText).success == false ) {
+					Ext.Msg.alert('Failed', 'Failed');
+				}
+				var ajaxData = Ext.decode(response.responseText).data ;
+				
+				this.cfgAjaxData = ajaxData ;
+				
+				var sdomainsChidren = [] ;
+				Ext.Array.each( ajaxData.db_sdomains, function( sdomainRow ) {
+					sdomainsChidren.push({
+						leaf: true,
+						checked: false,
+						id: sdomainRow.sdomain_id,
+						text: sdomainRow.sdomain_id
+					}) ;
+				}) ;
+				this.down('#tViews').down('#tDomains').getStore().setRoot({
+					root: true,
+					id: '',
+					text: '<b>Available Sdomains</b>',
+					expanded: true,
+					children: sdomainsChidren
+				});
+				this.filterTreeviewDatabase( this.optimaModule.getSdomainRecord().get('sdomain_id') ) ;
+			},
+			scope: this
 		});
 	},
 	

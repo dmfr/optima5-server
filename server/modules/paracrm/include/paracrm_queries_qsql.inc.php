@@ -33,6 +33,10 @@ function paracrm_queries_qsqlTransaction( $post_data ) {
 		{
 			$json =  paracrm_queries_qsqlTransaction_init( $post_data , $arr_saisie ) ;
 		}
+		if( $post_data['_subaction'] == 'metadata' )
+		{
+			$json =  paracrm_queries_qsqlTransaction_metadata( $post_data , $arr_saisie ) ;
+		}
 		if( $post_data['_subaction'] == 'run' )
 		{
 			$json =  paracrm_queries_qsqlTransaction_runQuery( $post_data , $arr_saisie ) ;
@@ -142,6 +146,16 @@ function paracrm_queries_qsqlTransaction_init( $post_data , &$arr_saisie ) {
 			'data_sqlquerystring' => $arr_saisie['sql_querystring'],
 			'data_sqlwrite' => $arr_saisie['sql_is_rw'],
 			'auth_readonly' => false,
+			'db_schema' => array(),
+			'db_sdomains' => array()
+		)
+	) ;
+}
+function paracrm_queries_qsqlTransaction_metadata( $post_data , &$arr_saisie ) {
+	return array(
+		'success'=>true,
+		'transaction_id' => $post_data['_transaction_id'],
+		'data' => array(
 			'db_schema' => paracrm_queries_qsql_lib_getTables(),
 			'db_sdomains' => paracrm_queries_qsql_lib_getSdomains()
 		)
