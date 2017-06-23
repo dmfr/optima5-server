@@ -1016,41 +1016,41 @@ function specDbsPeople_Real_RhAbsDownload( $post_data ) {
 	
 	switch( $abs_code ) {
 		case 'CP' :
-			$ttmp = specDbsPeople_lib_calc_getCalcAttributeRecords_CP( date('Y-m-d',strtotime('-1 day',strtotime($abs_date_start))) ) ;
+			$ttmp = specDbsPeople_lib_calc_getCalcAttributeRecords_CP( date('Y-m-d',strtotime('-1 day',strtotime($abs_date_start))), $people_code ) ;
 			$calc_quota_start = $ttmp[$people_code]['calc_value'] ;
-			$ttmp = specDbsPeople_lib_calc_getCalcAttributeRecords_CP( date('Y-m-d',strtotime($abs_date_end)) ) ;
+			$ttmp = specDbsPeople_lib_calc_getCalcAttributeRecords_CP( date('Y-m-d',strtotime($abs_date_end)), $people_code ) ;
 			$calc_quota_end = $ttmp[$people_code]['calc_value'] ;
-			$ttmp = specDbsPeople_lib_calc_getCalcAttributeRecords_CP(NULL) ;
+			$ttmp = specDbsPeople_lib_calc_getCalcAttributeRecords_CP(NULL, $people_code) ;
 			$calc_quota_total = $ttmp[$people_code]['calc_value'] ;
 			$calc_quota_duration = $calc_quota_end - $calc_quota_start ;
 			$calc_unit = $ttmp[$people_code]['calc_unit_short'] ;
 			break ;
 		case 'RTT' :
-			$ttmp = specDbsPeople_lib_calc_getCalcAttributeRecords_RTT( date('Y-m-d',strtotime('-1 day',strtotime($abs_date_start))) ) ;
+			$ttmp = specDbsPeople_lib_calc_getCalcAttributeRecords_RTT( date('Y-m-d',strtotime('-1 day',strtotime($abs_date_start))), $people_code ) ;
 			$calc_quota_start = $ttmp[$people_code]['calc_value'] ;
-			$ttmp = specDbsPeople_lib_calc_getCalcAttributeRecords_RTT( date('Y-m-d',strtotime($abs_date_end)) ) ;
+			$ttmp = specDbsPeople_lib_calc_getCalcAttributeRecords_RTT( date('Y-m-d',strtotime($abs_date_end)), $people_code ) ;
 			$calc_quota_end = $ttmp[$people_code]['calc_value'] ;
-			$ttmp = specDbsPeople_lib_calc_getCalcAttributeRecords_RTT(NULL) ;
+			$ttmp = specDbsPeople_lib_calc_getCalcAttributeRecords_RTT(NULL, $people_code) ;
 			$calc_quota_total = $ttmp[$people_code]['calc_value'] ;
 			$calc_quota_duration = $calc_quota_end - $calc_quota_start ;
 			$calc_unit = $ttmp[$people_code]['calc_unit_short'] ;
 			break ;
 		case 'RH' :
-			$ttmp = specDbsPeople_lib_calc_getCalcAttributeRecords_MOD( date('Y-m-d',strtotime('-1 day',strtotime($abs_date_start))) ) ;
+			$ttmp = specDbsPeople_lib_calc_getCalcAttributeRecords_MOD( date('Y-m-d',strtotime('-1 day',strtotime($abs_date_start))), $people_code ) ;
 			$calc_quota_start = $ttmp[$people_code]['calc_value'] ;
-			$ttmp = specDbsPeople_lib_calc_getCalcAttributeRecords_MOD( date('Y-m-d',strtotime($abs_date_end)) ) ;
+			$ttmp = specDbsPeople_lib_calc_getCalcAttributeRecords_MOD( date('Y-m-d',strtotime($abs_date_end)), $people_code ) ;
 			$calc_quota_end = $ttmp[$people_code]['calc_value'] ;
-			$ttmp = specDbsPeople_lib_calc_getCalcAttributeRecords_MOD(NULL) ;
+			$ttmp = specDbsPeople_lib_calc_getCalcAttributeRecords_MOD(NULL, $people_code) ;
 			$calc_quota_total = $ttmp[$people_code]['calc_value'] ;
 			$calc_quota_duration = $calc_quota_end - $calc_quota_start ;
 			$calc_unit = $ttmp[$people_code]['calc_unit_short'] ;
 			break ;
 		case 'RC' :
-			$ttmp = specDbsPeople_lib_calc_getCalcAttributeRecords_RC( date('Y-m-d',strtotime('-1 day',strtotime($abs_date_start))) ) ;
+			$ttmp = specDbsPeople_lib_calc_getCalcAttributeRecords_RC( date('Y-m-d',strtotime('-1 day',strtotime($abs_date_start))), $people_code ) ;
 			$calc_quota_start = $ttmp[$people_code]['calc_value'] ;
-			$ttmp = specDbsPeople_lib_calc_getCalcAttributeRecords_RC( date('Y-m-d',strtotime($abs_date_end)) ) ;
+			$ttmp = specDbsPeople_lib_calc_getCalcAttributeRecords_RC( date('Y-m-d',strtotime($abs_date_end)), $people_code ) ;
 			$calc_quota_end = $ttmp[$people_code]['calc_value'] ;
-			$ttmp = specDbsPeople_lib_calc_getCalcAttributeRecords_RC(NULL) ;
+			$ttmp = specDbsPeople_lib_calc_getCalcAttributeRecords_RC(NULL, $people_code) ;
 			$calc_quota_total = $ttmp[$people_code]['calc_value'] ;
 			$calc_quota_duration = $calc_quota_end - $calc_quota_start ;
 			$calc_unit = $ttmp[$people_code]['calc_unit_short'] ;
