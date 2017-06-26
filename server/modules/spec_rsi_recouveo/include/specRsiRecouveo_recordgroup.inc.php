@@ -141,7 +141,7 @@ function specRsiRecouveo_recordgroup_input_set( $post_data ) {
 	foreach( $p_formData['records'] as $record ) {
 		$c++ ;
 		$arr_ins = array(
-			'field_TYPE' => 'TEMPREC',
+			'field_TYPE' => 'LOCAL',
 			'field_RECORD_ID' => $recordgroup_code.'-'.$c,
 			'field_LINK_ACCOUNT' => $record['acc_id'],
 			'field_DATE_RECORD' => substr($p_formData['recordgroup_date'],0,10),
@@ -198,7 +198,7 @@ function specRsiRecouveo_recordgroup_assoc_get( $post_data ) {
 	$query = "SELECT r.*, acc.field_ACC_NAME 
 				FROM view_file_RECORD r
 				LEFT OUTER JOIN view_bible_LIB_ACCOUNT_entry acc ON acc.entry_key=r.field_LINK_ACCOUNT
-				WHERE field_TYPE='TEMPREC' AND field_TYPE_TEMPREC='FILE'
+				WHERE field_TYPE='LOCAL' AND field_TYPE_TEMPREC='FILE'
 				AND (
 					field_RECORDGROUP_ID='{$p_recordgroupCode}' AND field_RECORDGROUP_TYPE='assoc'
 					OR

@@ -890,14 +890,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			fileRecord.records().each( function(fileRecordRecord) {
 				pRecordsTreeChildrenRecords.push({
 					leaf: true,
-					icon: ( fileRecordRecord.get('type')=='TEMPREC' ? 'images/op5img/ico_quickopen_16.png' : undefined ),
+					icon: ( !Ext.isEmpty(fileRecordRecord.get('type')) ? 'images/op5img/ico_quickopen_16.png' : undefined ),
 					record_filerecord_id: fileRecordRecord.getId(),
 					record_id: fileRecordRecord.get('record_id'),
 					record_date: fileRecordRecord.get('date_value'),
 					record_amount: fileRecordRecord.get('amount'),
 					record_letter: (fileRecordRecord.get('letter_is_on') ? fileRecordRecord.get('letter_code') : ''),
 					record_type: fileRecordRecord.get('type'),
-					record_readonly: (!fileRecordRecord.get('type')=='TEMPREC' || fileRecordRecord.get('bank_is_alloc'))
+					record_readonly: (Ext.isEmpty(fileRecordRecord.get('type')) || fileRecordRecord.get('bank_is_alloc'))
 				});
 				totAmountDue += fileRecordRecord.get('amount') ;
 			},this) ;
@@ -1370,7 +1370,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		// assocation directe TEMPREC
 		var tempRec = true, tempRecIds=[] ;
 		Ext.Array.each( data.records, function( dragRecord ) {
-			if( dragRecord.get('record_type')!='TEMPREC' ) {
+			if( Ext.isEmpty(dragRecord.get('record_type')) ) {
 				tempRec = false ;
 			} else {
 				tempRecIds.push(dragRecord.get('record_filerecord_id')) ;
@@ -1413,7 +1413,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				scope : this
 			});
 		}
-		if( record.get('record_type')=='TEMPREC' ) {
+		if( !Ext.isEmpty(record.get('record_type')) ) {
 			if( record.parentNode.get('file_filerecord_id')==0 ) {
 				if( !record.get('record_readonly') ) {
 					treeContextMenuItems.push({
