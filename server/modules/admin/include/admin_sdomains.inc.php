@@ -289,7 +289,7 @@ function admin_sdomains_importRemote( $post_data ) {
 			$values['fetch_login_user'] = '' ;
 			$values['fetch_login_pass'] = '' ;
 			$url = parse_url($values['fetch_url']) ;
-			if( $url===FALSE || ( $url['scheme'] && $url['scheme'] != 'http' ) ) {
+			if( $url===FALSE || ( $url['scheme'] && !in_array($url['scheme'],array('http','https')) ) ) {
 				return array('success'=>false,'values'=>$values,'errors'=>array('fetch_url'=>TRUE)) ;
 			}
 			if( !$url['scheme'] ) {
