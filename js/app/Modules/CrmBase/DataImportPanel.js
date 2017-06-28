@@ -182,6 +182,16 @@ Ext.define('Optima5.Modules.CrmBase.DataImportPanel' ,{
 									{boxLabel: '<font color="red">Delete on primaryKeys</font>', name: 'file_truncate_mode', inputValue: 'delete'}
 								]
 							},{
+								itemId: 'rgFileOverwriteMode',
+								hidden: !(me.parentDataWindow.dataType=='table'),
+								xtype: 'radiogroup',
+								columns: 1,
+								vertical: true,
+								items:[
+									{boxLabel: 'Append/Replace', name: 'table_truncate_mode', inputValue: 'append', checked: true},
+									{boxLabel: 'Truncate before', name: 'table_truncate_mode', inputValue: 'truncate'}
+								]
+							},{
 								xtype: 'box',
 								flex: 1,
 								html: '&#160;'
@@ -678,6 +688,10 @@ Ext.define('Optima5.Modules.CrmBase.DataImportPanel' ,{
 					case 'file' :
 						formValues['file_truncate_mode'] = formValues.truncate_mode ;
 						break ;
+						
+					case 'table' :
+						formValues['table_truncate_mode'] = formValues.truncate_mode ;
+						break ;
 				}
 			}
 			csvForm.getForm().setValues(formValues) ;
@@ -794,6 +808,10 @@ Ext.define('Optima5.Modules.CrmBase.DataImportPanel' ,{
 				
 			case 'file' :
 				truncateMode = csvForm.getValues().file_truncate_mode ;
+				break ;
+				
+			case 'table' :
+				truncateMode = csvForm.getValues().table_truncate_mode ;
 				break ;
 		}
 		var ajaxParams = new Object() ;

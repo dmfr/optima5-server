@@ -280,6 +280,10 @@ function paracrm_lib_dataImport_commit_processStream( $treefields_root, $map_fie
 					paracrm_define_truncate( array('data_type'=>'file','file_code'=>$file_code) ) ;
 				}
 			}
+			if( isset($directChild['table_code']) ) {
+				$table_code = $directChild['table_code'] ;
+				paracrm_define_truncate( array('data_type'=>'table','table_code'=>$table_code) ) ;
+			}
 		}
 	}
 	
@@ -352,7 +356,7 @@ function paracrm_lib_dataImport_commit_processNode( $treefields_node, $arr_srcLi
 		echo "??pN??" ;
 	}
 }
-function paracrm_lib_dataImport_commit_processNode_table( $treefields_node, $arr_srcLig ) {
+function paracrm_lib_dataImport_commit_processNode_table( $treefields_node, $arr_srcLig, $truncate_mode='' ) {
 	global $_opDB ;
 	
 	if( $treefields_node['leaf'] ) {
