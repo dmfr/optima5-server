@@ -131,10 +131,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 		switch( crmEvent ) {
 			case 'datachange' :
 				break ;
-			case 'openfile' :
-				return this.openFileDetail( eventParams.fileNew ? 0 : eventParams.fileFilerecordId ) ;
 			case 'openaccount' :
-				return this.openFileDetail( eventParams.accId, eventParams.filterAtr, eventParams.focusFileFilerecordId ) ;
+				return this.openFileDetail( eventParams.accId, eventParams.filterAtr, eventParams.focusFileFilerecordId, eventParams.showClosed ) ;
 			default: break ;
 		}
 	},
@@ -164,7 +162,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 		this.addPanel(pnl) ;
 		this.focusPanel(pnl) ;
 	},
-	openFileDetail: function(accId, filterAtr, focusFileFilerecordId) {
+	openFileDetail: function(accId, filterAtr, focusFileFilerecordId, showClosed) {
 		if( accId === null ) {
 			return ;
 		}
@@ -191,6 +189,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 			_accId: accId,
 			_filterAtr: filterAtr,
 			_focusFileFilerecordId: focusFileFilerecordId,
+			_showClosed: showClosed,
 			
 			title: accId,
 			closable: true

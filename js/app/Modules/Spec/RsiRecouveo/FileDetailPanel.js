@@ -430,7 +430,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				tbar:[{
 					xtype: 'checkbox',
 					boxLabel: 'Afficher dossiers clôturés',
-					itemId: 'showActiveOnly',
+					itemId: 'chkShowClosed',
 					hideLabel: true,
 					margin: '0 10 0 10',
 					inputValue: 'true',
@@ -673,7 +673,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		}
 		
 		this.on('afterrender', function() {
-			this.loadAccount( this._accId, this._filterAtr, this._focusFileFilerecordId ) ;
+			this.loadAccount( this._accId, this._filterAtr, this._focusFileFilerecordId, this._showClosed ) ;
 		},this) ;
 		this.on('beforeclose',this.onBeforeClose,this) ;
 		this.on('beforedestroy',this.onBeforeDestroy,this) ;
@@ -712,7 +712,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 	
 	
 	
-	loadAccount: function( accId, filterAtr, focusFileFilerecordId ) {
+	loadAccount: function( accId, filterAtr, focusFileFilerecordId, showClosed ) {
 		this.showLoadmask() ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
@@ -733,7 +733,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 						ajaxResponse.data
 					),
 					filterAtr,
-					focusFileFilerecordId
+					focusFileFilerecordId,
+					showClosed
 				) ;
 			},
 			callback: function() {
@@ -742,10 +743,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			scope: this
 		}) ;
 	},
-	onLoadAccount: function( accountRecord, filterAtr, focusFileFilerecordId ) {
+	onLoadAccount: function( accountRecord, filterAtr, focusFileFilerecordId, showClosed ) {
 		this.loading = true ;
 		this._accId = accountRecord.getId() ;
 		this._filterAtr = filterAtr ;
+		this._showClosed = showClosed ;
 		
 		this._accountRecord = accountRecord ;
 		
@@ -833,6 +835,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		} else {
 			this.setActiveFileId() ;
 		}
+		
+		this.down('#pRecordsPanel').down('#chkShowClosed').setValue( showClosed ) ;
 		
 		return ;
 	},
@@ -1174,7 +1178,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			focusFileFilerecordId = this.getActiveFileId() ;
 			//console.log(focusFileFilerecordId) ;
 		}
-		this.loadAccount( this._accId, this._filterAtr, focusFileFilerecordId ) ;
+		this.loadAccount( this._accId, this._filterAtr, focusFileFilerecordId, this._showClosed ) ;
 	},
 	
 	
@@ -1192,7 +1196,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			}
 		}) ;
 		
-		this.loadAccount( this._accId, filterAtr ) ;
+		this.loadAccount( this._accId, filterAtr, null, this._showClosed ) ;
 	},
 	
 	

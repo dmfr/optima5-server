@@ -277,18 +277,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RsiRecouveoModule', {
 			case 'datachange' :
 				break ;
 				
-			case 'openfile' :
-				Ext.apply( eventParams, {
-					fileNew: postParams.fileNew,
-					fileFilerecordId: postParams.fileFilerecordId
-				}) ;
-				break ;
-			
 			case 'openaccount' :
 				Ext.apply( eventParams, {
 					accId: postParams.accId,
 					filterAtr: postParams.filterAtr,
-					focusFileFilerecordId: postParams.focusFileFilerecordId
+					focusFileFilerecordId: postParams.focusFileFilerecordId,
+					showClosed: postParams.showClosed
 				}) ;
 				break ;
 			

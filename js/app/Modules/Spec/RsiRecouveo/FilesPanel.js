@@ -509,7 +509,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		var params = options.getParams() ;
 		Ext.apply(params,{
 			filter_atr: Ext.JSON.encode(objAtrFilter),
-			filter_soc: (arrSocFilter ? Ext.JSON.encode(arrSocFilter):'')
+			filter_soc: (arrSocFilter ? Ext.JSON.encode(arrSocFilter):''),
+			filter_archiveIsOn: (this.showClosed ? 1 : 0)
 		}) ;
 		options.setParams(params) ;
 	},
@@ -1010,7 +1011,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			objAtrFilter[cfgParamBtn.cfgParam_id] = cfgParamBtn.getValue()
 		}) ;
 		
-		this.optimaModule.postCrmEvent('openaccount',{accId:accId, filterAtr:objAtrFilter, focusFileFilerecordId:fileFilerecordId}) ;
+		this.optimaModule.postCrmEvent('openaccount',{
+			accId:accId,
+			filterAtr:objAtrFilter,
+			focusFileFilerecordId:fileFilerecordId,
+			showClosed: this.showClosed
+		}) ;
 	},
 	
 	onPolarItemClick: function( series , item ) {
