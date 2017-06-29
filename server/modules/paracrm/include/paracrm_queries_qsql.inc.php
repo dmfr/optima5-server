@@ -384,11 +384,11 @@ function paracrm_queries_qsql_lib_exec($querystring, $is_rw=FALSE, $auth_bypass=
 		if( $is_superuser ) {
 			$privileges = 'ALL PRIVILEGES' ;
 		} elseif( $is_rw && !$auth_bypass ) {
-			$privileges = 'SELECT,UPDATE,INSERT,DELETE,DROP' ;
+			$privileges = 'SELECT,UPDATE,INSERT,DELETE,DROP,SHOW VIEW' ;
 		} else {
-			$privileges = 'SELECT' ;
+			$privileges = 'SELECT, SHOW VIEW' ;
 		}
-		$query = "GRANT {$privileges} ON {$current_database}.* To '{$mysql_tmp_user}'@'localhost'" ;
+		$query = "GRANT {$privileges} ON `{$current_database}`.* To '{$mysql_tmp_user}'@'localhost'" ;
 		$_opDB->query($query) ;
 	}
 	
