@@ -182,7 +182,7 @@ Ext.define('Optima5.Modules.CrmBase.DataImportPanel' ,{
 									{boxLabel: '<font color="red">Delete on primaryKeys</font>', name: 'file_truncate_mode', inputValue: 'delete'}
 								]
 							},{
-								itemId: 'rgFileOverwriteMode',
+								itemId: 'rgTableOverwriteMode',
 								hidden: !(me.parentDataWindow.dataType=='table'),
 								xtype: 'radiogroup',
 								columns: 1,
