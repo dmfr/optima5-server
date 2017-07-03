@@ -484,6 +484,19 @@ function paracrm_queries_qsql_lib_exec($querystring, $is_rw=FALSE, $auth_bypass=
 	$query = "drop user '{$mysql_tmp_user}'@'localhost' ;" ;
 	$_opDB->query($query) ;
 	
+	if( $is_superuser ) {
+		$query = "SELECT TABLE_SCHEMA,TABLE_NAME  FROM information_schema.VIEWS 
+				WHERE DEFINER = '{$mysql_tmp_user}@localhost' 
+				AND SECURITY_TYPE = 'DEFINER'" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$db = $arr[0] ;
+			$vw = $arr[1] ;
+			$query = "DROP VIEW {$db}.{$vw}" ;
+			$_opDB->query($query) ;
+		}
+	}
+	
 	return $TAB ;
 }
 
