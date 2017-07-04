@@ -803,7 +803,20 @@ function paracrm_lib_dataImport_preHandle_SAP( $handle_in, $handle_out, $separat
 		$lig = fgets($handle_priv) ;
 		
 		$arr_csv = str_getcsv($lig,$separator) ;
-		if( count($arr_csv) != $max_occurences ) {
+		if( count($arr_csv) != $max_occurences && count($arr_csv)==1 ) {
+			if( $first_row ) { // already got header
+				if( strpos($lig,'----')===0 ) { // header annonce
+					if( $skip_nextdont ) {
+						$skip_nextdont = FALSE ;
+					} else {
+						$skip_next = TRUE ;
+					}
+				}
+			}
+			continue ;
+		} elseif( $skip_next ) {
+			$skip_next = FALSE ;
+			$skip_nextdont = TRUE ;
 			continue ;
 		}
 		
@@ -950,7 +963,8 @@ function paracrm_lib_dataImport_preHandle_SAP( $handle_in, $handle_out, $separat
 					continue ;
 				}
 				if( strlen($value) == 10 ) {
-					$value = substr($value,6,4).'-'.substr($value,3,2).'-'.substr($value,0,2) ;
+					// 01/07/2017 : no  date conversion
+					// $value = substr($value,6,4).'-'.substr($value,3,2).'-'.substr($value,0,2) ;
 				}
 			}
 			unset($value) ;
