@@ -20,13 +20,20 @@ function specRsiRecouveo_upload( $post_data ) {
 function specDbsTracy_upload_CICBANK_tmp( $handle ) {
 	global $_opDB ;
 	
+	$str = stream_get_contents($handle) ;
+	$str = mb_convert_encoding($str, "UTF-8");
+	
+	$handle_utf = tmpfile() ;
+	fwrite($handle_utf,$str) ;
+	fseek($handle_utf,0) ;
+	
 	$my_sdomain = $_POST['_sdomainId'] ;
 	if( $my_sdomain ) {
 		$_opDB->select_db( $GLOBALS['mysql_db'].'_'.'edi') ;
 	}
 	$data_type = 'file' ;
 	$store_code = 'IN_CALOON_CASH' ;
-	$ret = paracrm_lib_dataImport_commit_processHandle( $data_type, $store_code, $handle ) ;
+	$ret = paracrm_lib_dataImport_commit_processHandle( $data_type, $store_code, $handle_utf ) ;
 	if( !$ret ) {
 		return FALSE ;
 	}
@@ -46,7 +53,7 @@ function specDbsTracy_upload_CICBANK_tmp( $handle ) {
 		'q_id' => 'Bank : Classif types'
 	), $is_rw=true ) ;
 	
-	
+	fclose($handle_utf) ;
 	return TRUE ;
 }
 
