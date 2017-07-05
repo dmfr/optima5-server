@@ -92,6 +92,9 @@ switch( $post_data['_action'] )
 		return specRsiRecouveo_bank_getRecords( $post_data ) ;
 	case 'bank_setAlloc' :
 		return specRsiRecouveo_bank_setAlloc( $post_data ) ;
+		
+	case 'upload' :
+		return specRsiRecouveo_upload( $post_data ) ;
 	
 	default :
 	return NULL ;

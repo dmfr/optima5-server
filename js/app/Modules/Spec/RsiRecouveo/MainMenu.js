@@ -52,7 +52,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainMenu',{
 				{type_action:true, action_caption: 'Boîte de réception', action_sendEvent:'inbox', action_iconCls:'op5-spec-rsiveo-mmenu-mailin'},
 				{type_action:true, action_caption: 'Affectation bancaire', action_sendEvent:'bank', action_iconCls:'op5-spec-rsiveo-mmenu-recordtemp'},
 				{type_separator:true, separator_label: 'Développement'},
-				{type_action:true, action_caption: 'Bloc Notes', action_sendEvent:'notepad', action_iconCls:'op5-spec-rsiveo-mmenu-notepad'}
+				{type_action:true, action_caption: 'Bloc Notes', action_sendEvent:'notepad', action_iconCls:'op5-spec-rsiveo-mmenu-notepad'},
+				{type_action:true, action_caption: 'Upload / Sync', action_sendEvent:'form_upload', action_iconCls:'op5-spec-dbstracy-mmenu-upload'}
 			]
 		}) ;
 		 

@@ -1,5 +1,5 @@
 <?php
-function paracrm_queries_direct($post_data) {
+function paracrm_queries_direct($post_data, $is_rw=FALSE) {
 
 	$q_type = $post_data['q_type'] ;
 	$q_id   = $post_data['q_id'] ;
@@ -127,7 +127,7 @@ function paracrm_queries_direct($post_data) {
 		$arr_saisie = array() ;
 		paracrm_queries_qsqlTransaction_init( array('qsql_id'=>$qsql_id) , $arr_saisie ) ;
 		
-		$RES = paracrm_queries_qsql_lib_exec($arr_saisie['sql_querystring'], $is_rw=FALSE, $auth_bypass=TRUE, $arr_qvars) ;
+		$RES = paracrm_queries_qsql_lib_exec($arr_saisie['sql_querystring'], $is_rw, $auth_bypass=(!$is_rw), $arr_qvars) ;
 		
 		return array('success'=>true,'tabs'=>array_values($RES)) ;
 		

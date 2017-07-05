@@ -12,7 +12,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 		'Optima5.Modules.Spec.RsiRecouveo.EnvDocPreviewPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.EnvBrowserPanel',
 		
-		'Optima5.Modules.Spec.RsiRecouveo.BankPanel'
+		'Optima5.Modules.Spec.RsiRecouveo.BankPanel',
+		
+		'Optima5.Modules.Spec.RsiRecouveo.UploadForm'
 	],
 	
 	initComponent: function() {
@@ -93,6 +95,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 				return me.openEnvelopeBrowser() ;
 			case 'notepad' :
 				return me.openNotepad() ;
+			case 'form_upload' :
+				return me.openUploadPopup() ;
 			default :
 				return ;
 		}
@@ -273,6 +277,36 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 		this.focusPanel(pnl) ;
 	},
 	
+	openUploadPopup: function() {
+		this.getEl().mask() ;
+		// Open panel
+		var createPanel = Ext.create('Optima5.Modules.Spec.RsiRecouveo.UploadForm',{
+			optimaModule: this.optimaModule,
+			width:400, // dummy initial size, for border layout to work
+			height:null, // ...
+			floating: true,
+			draggable: true,
+			resizable: true,
+			renderTo: this.getEl(),
+			tools: [{
+				type: 'close',
+				handler: function(e, t, p) {
+					p.ownerCt.destroy();
+				},
+				scope: this
+			}]
+		});
+		createPanel.on('saved', function(p) {
+			this.doTreeLoad() ;
+		},this,{single:true}) ;
+		createPanel.on('destroy',function(p) {
+			this.getEl().unmask() ;
+			this.floatingPanel = null ;
+		},this,{single:true}) ;
+		
+		createPanel.show();
+		createPanel.getEl().alignTo(this.getEl(), 'c-c?');
+	},
 	
 	
 	eachPanel: function(fn,scope) {
