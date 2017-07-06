@@ -1128,7 +1128,8 @@ EOF;
 							$cnt++ ;
 						}
 					}
-					$arrAssoc_dbField_fieldType[$field_name] = ($cnt==1?'varchar(150)':'varchar(50)') ;
+					$key_length = floor( (500/$cnt) ) ;
+					$arrAssoc_dbField_fieldType[$field_name] = "varchar({$key_length})" ;
 				}
 				break ;
 				
