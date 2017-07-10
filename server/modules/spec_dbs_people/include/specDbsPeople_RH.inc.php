@@ -87,6 +87,7 @@ function specDbsPeople_RH_getGrid($post_data) {
 		
 		// calc attributes placeholder
 		$row['calc_attributes'] = array() ;
+		$row['_no_calc_attribute'] = TRUE ;
 		
 		$TAB[$people_code] = $row ;
 	}
@@ -123,6 +124,7 @@ function specDbsPeople_RH_getGrid($post_data) {
 			$peopleCalcAttribute_TAB = specDbsPeople_lib_calc_getCalcAttributeRecords( $peopleCalcAttribute, $at_date_sql ) ;
 			foreach( $peopleCalcAttribute_TAB as $people_code => $peopleCalcAttribute_record ) {
 				if( isset($TAB[$people_code]) ) {
+					$TAB[$people_code]['_no_calc_attribute'] = FALSE ;
 					$TAB[$people_code]['calc_attributes'][] = $peopleCalcAttribute_record ;
 				}
 			}

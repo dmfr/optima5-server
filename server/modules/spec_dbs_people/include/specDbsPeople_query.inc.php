@@ -276,6 +276,9 @@ function specDbsPeople_query_getTableResult_RHCNTSUM($at_date_sql, $filters=NULL
 	
 	$RET_data = array() ;
 	foreach( $data as $data_row ) {
+		if( $data_row['_no_calc_attribute'] ) {
+			continue ;
+		}
 		foreach( $cols_toDecode as $col ) {
 			if( is_array($data_row[$col]) ) {
 				$data_row[$col] = $data_row[$col]['text'] ;
@@ -347,6 +350,9 @@ function specDbsPeople_query_getTableResult_RHCNTDET($at_date_sql, $filters=NULL
 	
 	$RET_data = array() ;
 	foreach( $data as $base_row ) {
+		if( $data_row['_no_calc_attribute'] ) {
+			continue ;
+		}
 		foreach( $cols_toDecode as $col ) {
 			if( is_array($base_row[$col]) ) {
 				$base_row[$col] = $base_row[$col]['text'] ;
@@ -430,6 +436,9 @@ function specDbsPeople_query_getTableResult_RHCNTPROJ($at_date_sql, $filters=NUL
 	
 	$RET_data = array() ;
 	foreach( $data as $base_row ) {
+		if( $data_row['_no_calc_attribute'] ) {
+			continue ;
+		}
 		$people_code = $base_row['people_code'] ;
 		
 		foreach( $cols_toDecode as $col ) {

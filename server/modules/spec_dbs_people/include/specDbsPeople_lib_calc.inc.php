@@ -3,6 +3,16 @@
 function specDbsPeople_lib_calc_tool_runQuery( $q_id, $where_params=NULL, $for_people_code=NULL ) {
 	global $_opDB ;
 	
+	if( $for_people_code && !is_array($for_people_code) ) {
+		$for_people_code = array($for_people_code) ;
+	}
+	if( $for_people_code ) {
+		$for_peopleCode_idx = array() ;
+		foreach( $for_people_code as $people_code ) {
+			$for_peopleCode_idx[$people_code] = TRUE ;
+		}
+	}
+	
 	if( !is_numeric($q_id) ) {
 		$query = "SELECT query_id FROM query WHERE query_name LIKE '{$q_id}'";
 		$q_id = $_opDB->query_uniqueValue($query) ;
@@ -21,7 +31,7 @@ function specDbsPeople_lib_calc_tool_runQuery( $q_id, $where_params=NULL, $for_p
 			}
 		}
 		if( $for_people_code && ($field_where['field_linkbible']=='RH_PEOPLE') ) {
-			$field_where['condition_bible_entries'] = json_encode(array($for_people_code)) ;
+			$field_where['condition_bible_entries'] = json_encode($for_people_code) ;
 		}
 		unset($field_where) ;
 	}
@@ -82,7 +92,7 @@ function specDbsPeople_lib_calc_tool_runQuery( $q_id, $where_params=NULL, $for_p
 	
 	$GRID = array() ;
 	foreach( $people_groupMap as $group_id_key => $people_code ) {
-		if( $for_people_code && ($for_people_code!=$people_code) ) {
+		if( $for_peopleCode_idx && !$for_peopleCode_idx[$people_code] ) {
 			continue ;
 		}
 		$ROW = array() ;
@@ -109,6 +119,34 @@ function specDbsPeople_lib_calc_tool_runQuery( $q_id, $where_params=NULL, $for_p
 	}
 	
 	return $GRID ;
+}
+function specDbsPeople_lib_calc_tool_filterQuota( $people_calc_attribute ) {
+	global $_opDB ;
+	$query_view = NULL ;
+	switch( $people_calc_attribute ) {
+		case 'CP' :
+			$query_view = 'view_file_QUOTA_CP' ;
+			break ;
+		case 'MOD' :
+			$query_view = 'view_file_QUOTA_MOD' ;
+			break ;
+		case 'RTT' :
+			$query_view = 'view_file_QUOTA_RTT' ;
+			break ;
+		case 'RC' :
+			$query_view = 'view_file_QUOTA_RC' ;
+			break ;
+		default :
+			return NULL ;
+	}
+	
+	$for_people_code = array() ;
+	$query = "SELECT distinct field_PPL_CODE from {$query_view}" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$for_people_code[] = $arr[0] ;
+	}
+	return $for_people_code ;
 }
 
 function specDbsPeople_lib_calc_getRealDays() {
@@ -207,6 +245,9 @@ function specDbsPeople_lib_calc_getInterimNC( $date_start, $date_end ) {
 
 
 function specDbsPeople_lib_calc_getCalcAttributeRecords( $people_calc_attribute, $at_date_sql=NULL, $people_code=NULL ) {
+	if( !$people_code ) {
+		$people_code = specDbsPeople_lib_calc_tool_filterQuota($people_calc_attribute) ;
+	}
 	switch( $people_calc_attribute ) {
 		case 'CP' :
 			return specDbsPeople_lib_calc_getCalcAttributeRecords_CP($at_date_sql,$people_code) ;
