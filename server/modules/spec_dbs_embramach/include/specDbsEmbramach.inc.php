@@ -330,17 +330,27 @@ function specDbsEmbramach_mach_getGridData( $post_data ) {
 	}
 	
 	
-	$TAB = array() ;
-	
-	$query = "SELECT * FROM view_file_FLOW_{$flow_code}" ;
+	$where_clause = '' ;
+	$where_clause.= " AND f.field_STATUS<>'DELETED'" ;
 	if( isset($_filter_filerecordIds) ) {
 		if( $_filter_filerecordIds ) {
-			$query.= " WHERE filerecord_id IN ".$_opDB->makeSQLlist($_filter_filerecordIds) ;
+			$where_clause.= " AND f.filerecord_id IN ".$_opDB->makeSQLlist($_filter_filerecordIds) ;
 		} else {
-			$query.= " WHERE 0" ;
+			$where_clause.= " AND 0" ;
 		}
+	} else {
+		$where_clause.= " AND (f.field_STATUS<>'CLOSED' OR f.field_DATE_CLOSED >= DATE_SUB(NOW(),INTERVAL 1 DAY))" ;
 	}
-	$query.= " ORDER BY filerecord_id DESC" ;
+	
+	
+	
+	
+	$TAB = array() ;
+	
+	$query = "SELECT * FROM view_file_FLOW_{$flow_code} f" ;
+	$query.= " WHERE 1" ;
+	$query.= $where_clause ;
+	$query.= " ORDER BY f.filerecord_id DESC" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$filerecord_id = $arr['filerecord_id'] ;
@@ -400,7 +410,10 @@ function specDbsEmbramach_mach_getGridData( $post_data ) {
 		$TAB[$filerecord_id] = $row ;
 	}
 	
-	$query = "SELECT * FROM view_file_FLOW_{$flow_code}_STEP" ;
+	$query = "SELECT fs.* FROM view_file_FLOW_{$flow_code}_STEP fs" ;
+	$query.= " JOIN view_file_FLOW_{$flow_code} f ON f.filerecord_id=fs.filerecord_parent_id" ;
+	$query.= " WHERE 1" ;
+	$query.= $where_clause ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$filerecord_parent_id = $arr['filerecord_parent_id'] ;
@@ -413,7 +426,11 @@ function specDbsEmbramach_mach_getGridData( $post_data ) {
 		$TAB[$filerecord_parent_id]['obj_steps'][$step_code] = $date_sql ;
 	}
 	
-	$query = "SELECT * FROM view_file_FLOW_{$flow_code}_EVENT ORDER BY filerecord_id" ;
+	$query = "SELECT fe.* FROM view_file_FLOW_{$flow_code}_EVENT fe" ;
+	$query.= " JOIN view_file_FLOW_{$flow_code} f ON f.filerecord_id=fe.filerecord_parent_id" ;
+	$query.= " WHERE 1" ;
+	$query.= $where_clause ;
+	$query.= " ORDER BY fe.filerecord_id" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$filerecord_parent_id = $arr['filerecord_parent_id'] ;
