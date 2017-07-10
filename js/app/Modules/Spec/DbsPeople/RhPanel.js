@@ -173,6 +173,13 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 					this.openRhAttributesValuesSetupPopup() ;
 				},
 				scope: this
+			},{
+				icon: 'images/op5img/ico_download_16.png',
+				text: 'Calcul soldes',
+				handler: function() {
+					this.reload(undefined,true) ;
+				},
+				scope: this
 			}],
 			items:[{
 				region:'center',
@@ -529,11 +536,12 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 		menu.down('#grid-groupby').setVisible( !Ext.isEmpty(menu.activeHeader._groupBy) ) ;
 	},
 	
-	reload: function(filterChanged) {
+	reload: function(filterChanged,doFetchCalc) {
 		if( !this.isReady ) {
 			return ;
 		}
 		this.down('grid').getStore()._onLoadFilterChanged = filterChanged ;
+		this.down('grid').getStore()._onLoadDoFetchCalc = doFetchCalc ;
 		this.down('grid').getStore().load() ;
 	},
 	onBeforeLoad: function(store,options) {
@@ -571,10 +579,11 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 				store.clearGrouping() ;
 			}
 		}
+		if( store._onLoadDoFetchCalc ) {
+			this.fetchCalcAttributes() ;
+		}
 		store._onLoadFilterChanged = false ;
-		
-		// Restore calc attributes
-		this.fetchCalcAttributes() ;
+		store._onLoadDoFetchCalc = false ;
 	},
 	onColumnGroupBy: function( groupField ) {
 		var grid = this.down('grid'),
