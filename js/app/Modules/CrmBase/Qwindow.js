@@ -728,6 +728,7 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 			iconCls: 'op5-crmbase-qresultwindow-icon',
 			animCollapse:false,
 			border: false,
+			RES_id: RES_id,
 			items: [ queryResultPanel ]
 		} ;
 		if( me.qType=='qweb' ) {
@@ -738,6 +739,9 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 		}
 		Ext.apply(windowCfg,{
 			listeners: {
+				beforeclose: function(win) {
+					me.doCleanupResult(win.RES_id) ;
+				},
 				destroy: function(win) {
 					me.qresultWindows.remove(win) ;
 				},
@@ -760,6 +764,17 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 				_action: this.getAjaxAction(),
 				_transaction_id: this.transaction_id ,
 				_subaction: 'end'
+			}
+		});
+	},
+	doCleanupResult: function(RES_id) {
+		// destory result
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_action: this.getAjaxAction(),
+				_transaction_id: this.transaction_id ,
+				_subaction: 'res_destroy',
+				RES_id: RES_id
 			}
 		});
 	},

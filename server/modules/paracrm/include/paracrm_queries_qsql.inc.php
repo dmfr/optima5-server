@@ -13,6 +13,7 @@ function paracrm_queries_qsqlTransaction( $post_data ) {
 		$arr_saisie['target_file_code'] = $post_data['target_file_code'] ;
 		$_SESSION['transactions'][$transaction_id]['arr_saisie'] = $arr_saisie ;
 		$_SESSION['transactions'][$transaction_id]['arr_RES'] = array() ;
+		$_SESSION['transactions'][$transaction_id]['arr_RES_idx'] = 0 ;
 		
 		$post_data['_transaction_id'] = $transaction_id ;
 	}
@@ -67,6 +68,10 @@ function paracrm_queries_qsqlTransaction( $post_data ) {
 		if( $post_data['_subaction'] == 'res_get' )
 		{
 			$json =  paracrm_queries_qsqlTransaction_resGet( $post_data ) ;
+		}
+		if( $post_data['_subaction'] == 'res_destroy' )
+		{
+			$json =  paracrm_queries_qsqlTransaction_resDestroy( $post_data ) ;
 		}
 		if( $post_data['_subaction'] == 'exportXLS' )
 		{
@@ -276,8 +281,9 @@ function paracrm_queries_qsqlTransaction_runQuery($post_data, &$arr_saisie ) {
 	if( !is_array($_SESSION['transactions'][$transaction_id]['arr_RES']) )
 		return array('success'=>false,'query_status'=>'NO_RES') ;
 	
-	$new_RES_key = count($_SESSION['transactions'][$transaction_id]['arr_RES']) + 1 ;
-	$_SESSION['transactions'][$transaction_id]['arr_RES'][$new_RES_key] = $RES ;
+	$_SESSION['transactions'][$transaction_id]['arr_RES_idx']++ ;
+	$new_RES_key = $_SESSION['transactions'][$transaction_id]['arr_RES_idx'] ;
+	$_SESSION['transactions'][$transaction_id]['arr_RES'][$new_RES_key] = serialize($RES) ;
 	
 	return array('success'=>true,'query_status'=>'OK','RES_id'=>$new_RES_key) ;
 }
@@ -285,9 +291,18 @@ function paracrm_queries_qsqlTransaction_runQuery($post_data, &$arr_saisie ) {
 function paracrm_queries_qsqlTransaction_resGet( $post_data )
 {
 	$transaction_id = $post_data['_transaction_id'] ;
-	$RES = $_SESSION['transactions'][$transaction_id]['arr_RES'][$post_data['RES_id']] ;
+	$RES = unserialize($_SESSION['transactions'][$transaction_id]['arr_RES'][$post_data['RES_id']]) ;
+	if( !$RES ) {
+		return array('success'=>false) ;
+	}
 	
 	return array('success'=>true,'tabs'=>array_values($RES)) ;
+}
+function paracrm_queries_qsqlTransaction_resDestroy( $post_data )
+{
+	$transaction_id = $post_data['_transaction_id'] ;
+	unset($_SESSION['transactions'][$transaction_id]['arr_RES'][$post_data['RES_id']]) ;
+	return array('success'=>true, 'debug'=>count($_SESSION['transactions'][$transaction_id]['arr_RES'])) ;
 }
 
 
@@ -507,7 +522,7 @@ function paracrm_queries_qsqlTransaction_exportXLS( $post_data, &$arr_saisie )
 		return NULL ;
 	
 	$transaction_id = $post_data['_transaction_id'] ;
-	$RES = $_SESSION['transactions'][$transaction_id]['arr_RES'][$post_data['RES_id']] ;
+	$RES = unserialize($_SESSION['transactions'][$transaction_id]['arr_RES'][$post_data['RES_id']]) ;
 	
 	$workbook_tab_grid = array() ;
 	foreach( $RES as $tab_id => $tab )
