@@ -659,7 +659,7 @@ function specRsiRecouveo_file_createForAction( $post_data ) {
 					}
 					foreach( $cfg_atr as $atr_record ) {
 						$mkey = $atr_record['bible_code'] ;
-						if( !in_array($accFile_record[$mkey], $map_atr_values[$mkey]) ) {
+						if( !in_array($accFileRecord_record[$mkey], $map_atr_values[$mkey]) ) {
 							$map_atr_values[$mkey][] = $accFileRecord_record[$mkey] ;
 						}
 					}
