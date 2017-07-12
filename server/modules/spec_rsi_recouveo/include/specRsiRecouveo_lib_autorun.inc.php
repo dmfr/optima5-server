@@ -54,7 +54,6 @@ function specRsiRecouveo_lib_autorun_open() {
 		$forward_post['new_action_code'] = 'BUMP' ;
 		$forward_post['form_data'] = json_encode(array()) ;
 		$ret = specRsiRecouveo_file_createForAction($forward_post) ;
-		print_r($ret) ;
 	}
 }
 
