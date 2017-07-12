@@ -32,6 +32,7 @@ include("$server_root/modules/spec_rsi_recouveo/backend_spec_rsi_recouveo.inc.ph
 
 specRsiRecouveo_lib_autorun_open() ;
 specRsiRecouveo_lib_autorun_closeEnd() ;
+specRsiRecouveo_lib_scenario_attach() ;
 specRsiRecouveo_lib_autorun_actions() ;
 
 ?>
