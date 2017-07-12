@@ -1,5 +1,64 @@
 <?php
 
+function specRsiRecouveo_lib_autorun_open() {
+	global $_opDB ;
+	
+	$arr_acc = array() ;
+	$query = "SELECT distinct field_LINK_ACCOUNT FROM view_file_RECORD r
+				LEFT OUTER JOIN view_file_RECORD_LINK rl 
+				 ON rl.filerecord_parent_id=r.filerecord_id AND rl.field_LINK_IS_ON='1'
+				WHERE r.field_TYPE='' AND rl.filerecord_id IS NULL" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$arr_acc[] = $arr[0] ;
+	}
+	
+	
+	foreach( $arr_acc as $acc_id ) {
+		$ttmp = specRsiRecouveo_account_open(array('acc_id'=>$acc_id)) ;
+		$account_record = $ttmp['data'] ;
+		$accountFileBlank_record = NULL ;
+		foreach( $account_record['files'] as $accountFile_record ) {
+			if( $accountFile_record['file_filerecord_id'] === 0 ) {
+				$accountFileBlank_record = $accountFile_record ;
+				break ;
+			}
+		}
+		
+		if( !$accountFileBlank_record ) {
+			continue ;
+		}
+		
+		$arr_ins = array() ;
+		$arr_ins['field_FILE_ID'] = $account_record['acc_id'].'/'.date('Ymd') ;
+		$arr_ins['field_LINK_ACCOUNT'] = $account_record['acc_id'] ;
+		$arr_ins['field_STATUS'] = 'S0_PRE' ;
+		$arr_ins['field_DATE_OPEN'] = date('Y-m-d H:i:s') ;
+		$arr_ins['field_FROM_FILE_ID'] = 0 ;
+		$file_filerecord_id = paracrm_lib_data_insertRecord_file( 'FILE', 0, $arr_ins );
+		
+		$ids = array() ;
+		foreach( $accountFileBlank_record['records'] as $accountFileBlankRecord_record ) {
+			$arr_ins = array() ;
+			$arr_ins['field_LINK_FILE_ID'] = $file_filerecord_id ;
+			$arr_ins['field_LINK_IS_ON'] = 1 ;
+			$arr_ins['field_DATE_LINK_ON'] = date('Y-m-d') ;
+			paracrm_lib_data_insertRecord_file( 'RECORD_LINK', $accountFileBlankRecord_record['record_filerecord_id'], $arr_ins );
+			
+			$ids[] = $accountFileBlankRecord_record['record_filerecord_id'] ;
+		}
+		
+		$forward_post = array() ;
+		$forward_post['acc_id'] = $account_record['acc_id'] ;
+		$forward_post['arr_recordIds'] = json_encode($ids) ;
+		$forward_post['new_action_code'] = 'BUMP' ;
+		$forward_post['form_data'] = json_encode(array()) ;
+		$ret = specRsiRecouveo_file_createForAction($forward_post) ;
+		print_r($ret) ;
+	}
+}
+
+
 function specRsiRecouveo_lib_autorun_closeEnd() {
 	global $_opDB ;
 	$query = "SELECT distinct field_LINK_ACCOUNT FROM view_file_FILE WHERE field_STATUS_CLOSED_END<>'1' AND field_STATUS_CLOSED_VOID<>'1'" ;

@@ -30,6 +30,7 @@ $_POST['_sdomainId'] = $_sdomain_id ;
 //include("$server_root/modules/paracrm/backend_paracrm.inc.php");
 include("$server_root/modules/spec_rsi_recouveo/backend_spec_rsi_recouveo.inc.php");
 
+specRsiRecouveo_lib_autorun_open() ;
 specRsiRecouveo_lib_autorun_closeEnd() ;
 specRsiRecouveo_lib_autorun_actions() ;
 
