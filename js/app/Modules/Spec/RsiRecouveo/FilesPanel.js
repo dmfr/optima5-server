@@ -460,6 +460,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			fields: balageFields
 		});
 		
+		pCenter.removeAll() ;
 		pCenter.add({
 			xtype: 'grid',
 			itemId: 'pGrid',
@@ -482,6 +483,245 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			_actionnextMap: actionnextMap,
 			_actionEtaMap: actionEtaMap
 		});
+		
+		
+		
+		// ******** Charts *****************
+		
+		var statusColors = [], statusTitles = [] ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getStatusAll(), function(status) {
+			statusColors.push(status.status_color) ;
+			statusTitles.push(status.status_txt) ;
+		}) ;
+		
+		var agendaFields = ['agenda_class','agenda_class_txt'],
+			agendaYFields = [],
+			agendaTitles = [],
+			agendaColors = [] ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionEtaAll(), function(etaRange) {
+			agendaFields.push(etaRange.eta_range+'_count', etaRange.eta_range+'_ratio1000') ;
+			agendaYFields.push(etaRange.eta_range+'_ratio1000') ;
+			agendaTitles.push(etaRange.eta_txt) ;
+			agendaColors.push(etaRange.eta_color) ;
+		}) ;
+		
+		var chartStatusAmountTotal = 0,
+			chartStatusCountTotal = 0 ;
+		
+		var pNorth = this.down('#pNorth') ;
+		pNorth.removeAll() ;
+		var chrtStatusAmountText = Ext.create('Ext.draw.sprite.Text', {
+			type: 'text',
+			text: '',
+			fontSize: 12,
+			width: 100,
+			height: 30,
+			x: 30, // the sprite x position
+			y: 205  // the sprite y position
+		});
+		pNorth.add({
+			xtype: 'panel',
+			cls: 'chart-no-border',
+			width: 350,
+			layout: 'fit',
+			border: false,
+			items: {
+				xtype: 'polar',
+				 animation: false,
+				itemId: 'chrtStatusAmount',
+				border: false,
+				colors: statusColors,
+				store: { 
+					fields: ['status_id','status_txt', 'amount' ],
+					data: []
+				},
+				insetPadding: { top: 10, left: 10, right: 10, bottom: 20 },
+				//innerPadding: 20,
+				legend: {
+					docked: 'left',
+					border: false,
+					toggleable: false,
+					style: {
+						border: {
+							color: 'white'
+						}
+					}
+				},
+				interactions: ['itemhighlight'],
+				_textSprite: chrtStatusAmountText,
+            sprites: [chrtStatusAmountText],
+				plugins: {
+					ptype: 'chartitemevents',
+					moveEvents: false
+				},
+				series: [{
+					type: 'pie',
+					angleField: 'amount',
+					donut: 50,
+					label: {
+						field: 'status_txt',
+						calloutLine: {
+							color: 'rgba(0,0,0,0)' // Transparent to hide callout line
+						},
+						renderer: function(val) {
+							return ''; // Empty label to hide text
+						}
+					},
+					listeners: {
+						itemclick: this.onPolarItemClick,
+						scope: this
+					},
+					//highlight: true,
+					tooltip: {
+						trackMouse: true,
+						style: 'background: #fff',
+						renderer: function(storeItem, item) {
+							this.setHtml(storeItem.get('status_txt') + ': ' + storeItem.get('amount') + '€');
+						}
+					}
+				}]
+			}
+		}) ;
+		var chrtStatusCountText = Ext.create('Ext.draw.sprite.Text', {
+			type: 'text',
+			text: '',
+			fontSize: 12,
+			width: 100,
+			height: 30,
+			x: 55, // the sprite x position
+			y: 205  // the sprite y position
+		});
+		pNorth.add({
+			xtype: 'panel',
+			width: 215,
+			layout: 'fit',
+			border: false,
+			items: {
+				xtype: 'polar',
+				 animation: false,
+				itemId: 'chrtStatusCount',
+				border: false,
+				colors: statusColors,
+				store: { 
+					fields: ['status_id','status_txt', 'count' ],
+					data: []
+				},
+				insetPadding: { top: 10, left: 10, right: 10, bottom: 20 },
+				//innerPadding: 20,
+				interactions: ['itemhighlight'],
+				_textSprite: chrtStatusCountText,
+            sprites: [chrtStatusCountText],
+				plugins: {
+					ptype: 'chartitemevents',
+					moveEvents: false
+				},
+				series: [{
+					type: 'pie',
+					angleField: 'count',
+					donut: 50,
+					label: {
+						field: 'status_txt',
+						calloutLine: {
+							color: 'rgba(0,0,0,0)' // Transparent to hide callout line
+						},
+						renderer: function(val) {
+							return ''; // Empty label to hide text
+						}
+					},
+					listeners: {
+						itemclick: this.onPolarItemClick,
+						scope: this
+					},
+					//highlight: true,
+					tooltip: {
+						trackMouse: true,
+						style: 'background: #fff',
+						renderer: function(storeItem, item) {
+							this.setHtml(storeItem.get('status_txt') + ': ' + storeItem.get('count') + '');
+						}
+					}
+				}]
+			}
+		}) ;
+		pNorth.add({
+			xtype: 'panel',
+			border: false,
+			cls: 'chart-no-border',
+			flex: 1,
+			layout: 'fit',
+			//border: false,
+			items: {
+            xtype: 'cartesian',
+				 animation: false,
+				 itemId: 'chrtAgenda',
+				 colors: agendaColors,
+				border: false,
+            width: '100%',
+            height: '100%',
+            legend: {
+                docked: 'bottom',
+					toggleable: false
+            },
+            store: {
+					fields: agendaFields,
+					data: []
+				},
+				plugins: {
+					ptype: 'chartitemevents',
+					moveEvents: false
+				},
+            insetPadding: { top: 30, left: 10, right: 30, bottom: 10 },
+            flipXY: true,
+            sprites: [{
+                type: 'text',
+                text: 'Agenda / Actions imminentes',
+                fontSize: 14,
+                width: 100,
+                height: 30,
+                x: 150, // the sprite x position
+                y: 20  // the sprite y position
+            }],
+            axes: [/*{
+                type: 'numeric',
+                position: 'bottom',
+                adjustByMajorUnit: true,
+                fields: agendaYFields,
+                grid: true,
+                renderer: function (v) { return v + ''; },
+                minimum: 0
+            }, */{
+                type: 'category',
+                position: 'left',
+                fields: 'agenda_class_txt',
+                grid: true
+            }],
+            series: [{
+                type: 'bar',
+                axis: 'bottom',
+                title: agendaTitles,
+                xField: 'agenda_class_txt',
+                yField: agendaYFields,
+                stacked: true,
+                style: {
+                    opacity: 0.80
+                },
+                //highlight: true,
+                listeners: {
+                    itemclick: this.onBarItemClick,
+                    scope: this
+                },
+                tooltip: {
+                    trackMouse: true,
+                    style: 'background: #fff',
+                    renderer: function(storeItem, item) {
+                        var browser = item.series.getTitle()[Ext.Array.indexOf(item.series.getYField(), item.field)];
+								var countField = item.field.replace('_ratio1000','_count') ;
+                        this.setHtml(browser + ' for ' + storeItem.get('agenda_class_txt') + ': ' + storeItem.get(countField));
+                    }
+                }
+            }]
+			}
+		}) ;
 	},
 	
 	onSocSet: function() {
@@ -683,23 +923,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		
 		
 		// charts
-		var statusColors = [], statusTitles = [] ;
-		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getStatusAll(), function(status) {
-			statusColors.push(status.status_color) ;
-			statusTitles.push(status.status_txt) ;
-		}) ;
-		
-		var agendaFields = ['agenda_class','agenda_class_txt'],
-			agendaYFields = [],
-			agendaTitles = [],
-			agendaColors = [] ;
-		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionEtaAll(), function(etaRange) {
-			agendaFields.push(etaRange.eta_range+'_count', etaRange.eta_range+'_ratio1000') ;
-			agendaYFields.push(etaRange.eta_range+'_ratio1000') ;
-			agendaTitles.push(etaRange.eta_txt) ;
-			agendaColors.push(etaRange.eta_color) ;
-		}) ;
-		
 		var agendaData = [], agendaRow,
 			agendaSummary = {
 				'AGREE' : 'Paiements',
@@ -762,213 +985,16 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		var chartStatusAmountTotal = Math.round( Ext.Array.sum( Ext.Object.getValues(map_status_amount)) ),
 			chartStatusCountTotal = Ext.Array.sum( Ext.Object.getValues(map_status_nbFiles)) ;
 		
-		var pNorth = this.down('#pNorth') ;
-		pNorth.removeAll() ;
-		pNorth.add({
-			xtype: 'panel',
-			cls: 'chart-no-border',
-			width: 350,
-			layout: 'fit',
-			border: false,
-			items: {
-				xtype: 'polar',
-				itemId: 'chrtStatusAmount',
-				border: false,
-				colors: statusColors,
-				store: { 
-					fields: ['status_id','status_txt', 'amount' ],
-					data: chartStatusAmountData
-				},
-				insetPadding: { top: 10, left: 10, right: 10, bottom: 20 },
-				//innerPadding: 20,
-				legend: {
-					docked: 'left',
-					border: false,
-					toggleable: false,
-					style: {
-						border: {
-							color: 'white'
-						}
-					}
-				},
-				interactions: ['itemhighlight'],
-            sprites: [{
-					type: 'text',
-					text: 'Répartition ('+Ext.util.Format.number(chartStatusAmountTotal,'0,000')+' k€)',
-					fontSize: 12,
-					width: 100,
-					height: 30,
-					x: 30, // the sprite x position
-					y: 205  // the sprite y position
-				}],
-				plugins: {
-					ptype: 'chartitemevents',
-					moveEvents: false
-				},
-				series: [{
-					type: 'pie',
-					angleField: 'amount',
-					donut: 50,
-					label: {
-						field: 'status_txt',
-						calloutLine: {
-							color: 'rgba(0,0,0,0)' // Transparent to hide callout line
-						},
-						renderer: function(val) {
-							return ''; // Empty label to hide text
-						}
-					},
-					listeners: {
-						itemclick: this.onPolarItemClick,
-						scope: this
-					},
-					//highlight: true,
-					tooltip: {
-						trackMouse: true,
-						style: 'background: #fff',
-						renderer: function(storeItem, item) {
-							this.setHtml(storeItem.get('status_txt') + ': ' + storeItem.get('amount') + '€');
-						}
-					}
-				}]
-			}
-		}) ;
-		pNorth.add({
-			xtype: 'panel',
-			width: 215,
-			layout: 'fit',
-			border: false,
-			items: {
-				xtype: 'polar',
-				itemId: 'chrtStatusCount',
-				border: false,
-				colors: statusColors,
-				store: { 
-					fields: ['status_id','status_txt', 'count' ],
-					data: chartStatusCountData
-				},
-				insetPadding: { top: 10, left: 10, right: 10, bottom: 20 },
-				//innerPadding: 20,
-				interactions: ['itemhighlight'],
-            sprites: [{
-					type: 'text',
-					text: 'Nb Dossiers ('+chartStatusCountTotal+')',
-					fontSize: 12,
-					width: 100,
-					height: 30,
-					x: 55, // the sprite x position
-					y: 205  // the sprite y position
-				}],
-				plugins: {
-					ptype: 'chartitemevents',
-					moveEvents: false
-				},
-				series: [{
-					type: 'pie',
-					angleField: 'count',
-					donut: 50,
-					label: {
-						field: 'status_txt',
-						calloutLine: {
-							color: 'rgba(0,0,0,0)' // Transparent to hide callout line
-						},
-						renderer: function(val) {
-							return ''; // Empty label to hide text
-						}
-					},
-					listeners: {
-						itemclick: this.onPolarItemClick,
-						scope: this
-					},
-					//highlight: true,
-					tooltip: {
-						trackMouse: true,
-						style: 'background: #fff',
-						renderer: function(storeItem, item) {
-							this.setHtml(storeItem.get('status_txt') + ': ' + storeItem.get('count') + '');
-						}
-					}
-				}]
-			}
-		}) ;
-		pNorth.add({
-			xtype: 'panel',
-			border: false,
-			cls: 'chart-no-border',
-			flex: 1,
-			layout: 'fit',
-			//border: false,
-			items: {
-            xtype: 'cartesian',
-				 itemId: 'chrtAgenda',
-				 colors: agendaColors,
-				border: false,
-            width: '100%',
-            height: '100%',
-            legend: {
-                docked: 'bottom',
-					toggleable: false
-            },
-            store: {
-					fields: agendaFields,
-					data: agendaData
-				},
-				plugins: {
-					ptype: 'chartitemevents',
-					moveEvents: false
-				},
-            insetPadding: { top: 30, left: 10, right: 30, bottom: 10 },
-            flipXY: true,
-            sprites: [{
-                type: 'text',
-                text: 'Agenda / Actions imminentes',
-                fontSize: 14,
-                width: 100,
-                height: 30,
-                x: 150, // the sprite x position
-                y: 20  // the sprite y position
-            }],
-            axes: [/*{
-                type: 'numeric',
-                position: 'bottom',
-                adjustByMajorUnit: true,
-                fields: agendaYFields,
-                grid: true,
-                renderer: function (v) { return v + ''; },
-                minimum: 0
-            }, */{
-                type: 'category',
-                position: 'left',
-                fields: 'agenda_class_txt',
-                grid: true
-            }],
-            series: [{
-                type: 'bar',
-                axis: 'bottom',
-                title: agendaTitles,
-                xField: 'agenda_class_txt',
-                yField: agendaYFields,
-                stacked: true,
-                style: {
-                    opacity: 0.80
-                },
-                //highlight: true,
-                listeners: {
-                    itemclick: this.onBarItemClick,
-                    scope: this
-                },
-                tooltip: {
-                    trackMouse: true,
-                    style: 'background: #fff',
-                    renderer: function(storeItem, item) {
-                        var browser = item.series.getTitle()[Ext.Array.indexOf(item.series.getYField(), item.field)];
-								var countField = item.field.replace('_ratio1000','_count') ;
-                        this.setHtml(browser + ' for ' + storeItem.get('agenda_class_txt') + ': ' + storeItem.get(countField));
-                    }
-                }
-            }]
-			}
-		}) ;
+		this.down('#pNorth').down('#chrtStatusAmount').getStore().loadRawData(chartStatusAmountData) ;
+		this.down('#pNorth').down('#chrtStatusCount').getStore().loadRawData(chartStatusCountData) ;
+		this.down('#pNorth').down('#chrtAgenda').getStore().loadRawData(agendaData) ;
+		
+		this.down('#pNorth').down('#chrtStatusAmount')._textSprite.setAttributes({
+			text: 'Répartition ( '+Ext.util.Format.number(chartStatusAmountTotal,'0,000')+' € )'
+		},true) ;
+		this.down('#pNorth').down('#chrtStatusCount')._textSprite.setAttributes({
+			text: 'Nb Dossiers ( '+chartStatusCountTotal+' )'
+		},true) ;
 	},
 	
 	
