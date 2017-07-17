@@ -104,6 +104,10 @@ function specRsiRecouveo_lib_autorun_actions() {
 			continue ;
 		}
 		
+		if( $file['inv_amount_due'] < 0 ) {
+			continue ;
+		}
+		
 		$scen_code = $file['scen_code'] ;
 		$scenstep_code = $next_action['scenstep_code'] ;
 		if( !$scen_code || !$scenstep_code ) {
