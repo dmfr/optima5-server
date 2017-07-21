@@ -220,14 +220,37 @@ switch( strtolower($_SERVER['PATH_INFO']) ) {
 		
 		break ;
 	
+	case '/csv' :
+		$handle = tmpfile() ;
+		$result_tab = reset($tabs) ;
+		$arr_csv = array() ;
+		foreach( $result_tab['columns'] as $column ) {
+			$arr_csv[] = $column['text'] ;
+		}
+		fputcsv($handle,$arr_csv) ;
+		foreach( $result_tab['data'] as $data_row ) {
+			$arr_csv = array() ;
+			foreach( $result_tab['columns'] as $column ) {
+				$arr_csv[] = $data_row[$column['dataIndex']];
+			}
+			fputcsv($handle,$arr_csv) ;
+		}
+		fseek($handle,0) ;
+		header('Content-Type: text/csv; charset=utf-8');
+		fpassthru($handle);
+		fclose($handle) ;
+		doExit() ;
+		break ;
 	
 	default :
 		header("HTTP/1.0 500 Internal Server Error");
 		doExit() ;
 }
 
-header('Content-Type: application/xml; charset=utf-8');
-print $oXMLWriter->outputMemory();
-doExit() ;
+if( $oXMLWriter ) {
+	header('Content-Type: application/xml; charset=utf-8');
+	print $oXMLWriter->outputMemory();
+	doExit() ;
+}
 
 ?>
