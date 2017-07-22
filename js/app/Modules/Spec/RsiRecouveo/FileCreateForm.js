@@ -214,7 +214,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateForm',{
 				
 				// Controle
 				Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
-					if( !Ext.Array.contains(controlMapAtrValues[atrId],recordRecord.get(atrId)) ) {
+					if( !Ext.isEmpty(recordRecord.get(atrId)) && !Ext.Array.contains(controlMapAtrValues[atrId],recordRecord.get(atrId)) ) {
 						controlMapAtrValues[atrId].push(recordRecord.get(atrId)) ;
 					}
 				}) ;
@@ -236,7 +236,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateForm',{
 			pLeftGrid.headerCt.down('[dataIndex="status_id"]').tdCls = 'op5-spec-dbspeople-realvalidgrid-tdcolor-durationless' ;
 		}
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
-			if( controlMapAtrValues[atrId].length != 1 ) {
+			if( controlMapAtrValues[atrId].length > 1 ) {
 				pLeftGrid.headerCt.down('[dataIndex="'+atrId+'"]').tdCls = 'op5-spec-dbspeople-realvalidgrid-tdcolor-durationless' ;
 				pLeftGridControlError = true ;
 			}

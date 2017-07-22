@@ -659,14 +659,14 @@ function specRsiRecouveo_file_createForAction( $post_data ) {
 					}
 					foreach( $cfg_atr as $atr_record ) {
 						$mkey = $atr_record['bible_code'] ;
-						if( !in_array($accFileRecord_record[$mkey], $map_atr_values[$mkey]) ) {
+						if( $accFileRecord_record[$mkey] && !in_array($accFileRecord_record[$mkey], $map_atr_values[$mkey]) ) {
 							$map_atr_values[$mkey][] = $accFileRecord_record[$mkey] ;
 						}
 					}
 				}
 			}
 		foreach( $map_atr_values as $mkey => $values ) {
-			if( count($values) != 1 ) {
+			if( count($values) > 1 ) {
 				return array('success'=>false, 'error'=>'Cannot find unique '.$mkey) ;
 			}
 			$arr_ins['field_'.$mkey] = reset($values) ;
