@@ -51,6 +51,7 @@ function specRsiRecouveo_lib_scenario_attachFile( $file_filerecord_id ) {
 			continue ;
 		}
 		$assign_scenario = $arr['treenode_key'] ;
+		break ;
 	}
 	
 	if( $assign_scenario ) {
