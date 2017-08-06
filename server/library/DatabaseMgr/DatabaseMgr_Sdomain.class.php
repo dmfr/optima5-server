@@ -4,7 +4,7 @@ class DatabaseMgr_Sdomain {
 	private $_opDB ;
 	private $domain_id ;
 	
-	private static $dbVersion = 36 ;
+	private static $dbVersion = 38 ;
 	
 	public function __construct( $domain_id ) {
 		$this->_opDB = $GLOBALS['_opDB'] ;
@@ -629,7 +629,17 @@ CREATE TABLE `qsql` (
   `sql_querystring` text NOT NULL,
   `sql_is_rw` varchar(1) NOT NULL,
   `autorun_is_on` varchar(1) NOT NULL,
+  `autorun_cfg_json` varchar(200) NOT NULL,
   PRIMARY KEY (`qsql_id`)
+) ;
+
+CREATE TABLE `qsql_autorun` (
+  `qsql_autorun_id` int(11) NOT NULL AUTO_INCREMENT,
+  `qsql_id` varchar(100) NOT NULL,
+  `exec_ts` int(11) NOT NULL,
+  `exec_duration` float NOT NULL,
+  PRIMARY KEY (`qsql_autorun_id`),
+  INDEX ( `qsql_id` )
 ) ;
 
 CREATE TABLE `q_cfgchart` (
