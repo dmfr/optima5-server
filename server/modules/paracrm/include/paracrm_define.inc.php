@@ -428,7 +428,7 @@ function paracrm_define_manageTransaction( $post_data )
 		
 			case 'table' :
 			$arr_saisie['table_code'] = $post_data['table_code'] ;
-			$query = "SELECT table_code as store_code , table_code as store_lib , table_type as store_type from define_table WHERE table_code='{$arr_saisie['table_code']}'" ;
+			$query = "SELECT table_code as store_code , '[\"TEST\"]' as store_tags , table_type as store_type from define_table WHERE table_code='{$arr_saisie['table_code']}'" ;
 			break ;
 		}
 		$result = $_opDB->query($query) ;

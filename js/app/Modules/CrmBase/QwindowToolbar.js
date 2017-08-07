@@ -88,11 +88,8 @@ Ext.define('Optima5.Modules.CrmBase.QwindowToolbar',{
 						checkHandler : me.onCheckItemChange,
 						scope: me
 					},{
-						itemId: 'toggle-autorun',
-						text: '<font color="red">Autorun</font>',
-						handler: null,
-						checked: false,
-						checkHandler : me.onCheckItemChange,
+						itemId: 'setup-autorun',
+						textTpl: '<font color="red">Autorun</font>',
 						scope: me
 					}]
 				}

@@ -455,9 +455,8 @@ Ext.define('Optima5.Modules.CrmBase.QsqlPanel' ,{
 				var isPublished = actionParam ;
 				me.remoteActionSubmit( me.remoteActionTogglePublish, me, [isPublished]  ) ;
 				break ;
-			case 'toggle_autorun' :
-				var isAutorun = actionParam ;
-				me.remoteActionSubmit( me.remoteActionToggleAutorun, me, [isAutorun]  ) ;
+			case 'setup_autorun' :
+				me.openAutorunSetup() ;
 				break ;
 				
 			case 'run' :
@@ -667,5 +666,47 @@ Ext.define('Optima5.Modules.CrmBase.QsqlPanel' ,{
 	},
 	isDirty: function() {
 		return this.dirtyEdit ;
+	},
+	
+	openAutorunSetup: function() {
+		var me = this ;
+		var ajaxParams = {} ;
+		Ext.apply( ajaxParams, {
+			_action: 'queries_qsqlTransaction',
+			_transaction_id: me.transaction_id ,
+			qsql_id: me.qsql_id
+		});
+		
+		this.getEl().mask() ;
+		// Open panel
+		var createPanel = Ext.create('Optima5.Modules.CrmBase.QwindowAutorunForm',{
+			optimaModule: this.optimaModule,
+				_ajaxParams: ajaxParams,
+				qType:'qsql',
+				queryId: me.qsql_id,
+			width:400, // dummy initial size, for border layout to work
+			height:null, // ...
+			floating: true,
+			draggable: true,
+			resizable: true,
+			renderTo: this.getEl(),
+			tools: [{
+				type: 'close',
+				handler: function(e, t, p) {
+					p.ownerCt.destroy();
+				},
+				scope: this
+			}]
+		});
+		createPanel.on('saved', function(p) {
+			this.doTreeLoad() ;
+		},this,{single:true}) ;
+		createPanel.on('destroy',function(p) {
+			this.getEl().unmask() ;
+			this.floatingPanel = null ;
+		},this,{single:true}) ;
+		
+		createPanel.show();
+		createPanel.getEl().alignTo(this.getEl(), 'c-c?');
 	}
 });

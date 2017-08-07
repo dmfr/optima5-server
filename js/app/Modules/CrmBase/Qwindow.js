@@ -6,7 +6,8 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 		'Optima5.Modules.CrmBase.QmergePanel',
 		'Optima5.Modules.CrmBase.QbookPanel',
 		'Optima5.Modules.CrmBase.QsimplePanel',
-		'Optima5.Modules.CrmBase.QsqlPanel'
+		'Optima5.Modules.CrmBase.QsqlPanel',
+		'Optima5.Modules.CrmBase.QwindowAutorunForm'
 	],
 	
 	optimaModule: null,
@@ -488,6 +489,7 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 									}
 									if( o.isAutorun ) {
 										tbarDisableSave = tbarIsAutorun = true ;
+										tbarCfgAutorun = o.cfgAutorun ;
 									}
 									return false ;
 								}
@@ -594,13 +596,15 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 					tbarOptionsMenu.menu.child('#toggle-android').setChecked(false,true) ;
 					tbarOptionsMenu.menu.child('#toggle-android').removeCls(tbar.clsForPublished) ;
 				}
-				tbarOptionsMenu.menu.child('#toggle-autorun').setVisible(isQsql) ;
+				tbarOptionsMenu.menu.child('#setup-autorun').setVisible(isQsql) ;
 				if( tbarIsAutorun ) {
-					tbarOptionsMenu.menu.child('#toggle-autorun').setChecked(true,true) ;
-					tbarOptionsMenu.menu.child('#toggle-autorun').addCls(tbar.clsForAutorun) ;
+					tbarOptionsMenu.menu.child('#setup-autorun').addCls(tbar.clsForAutorun) ;
+					var text = tbarOptionsMenu.menu.child('#setup-autorun').textTpl ;
+					
+					tbarOptionsMenu.menu.child('#setup-autorun').setText( text ) ;
 				} else {
-					tbarOptionsMenu.menu.child('#toggle-autorun').setChecked(false,true) ;
-					tbarOptionsMenu.menu.child('#toggle-autorun').removeCls(tbar.clsForAutorun) ;
+					tbarOptionsMenu.menu.child('#setup-autorun').removeCls(tbar.clsForAutorun) ;
+					tbarOptionsMenu.menu.child('#setup-autorun').setText( tbarOptionsMenu.menu.child('#setup-autorun').textTpl ) ;
 				}
 			},
 			scope: me
@@ -669,9 +673,8 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 					case 'toggle-android' :
 						var checked = input ;
 						return me.getPanel().remoteAction('toggle_publish',checked) ;
-					case 'toggle-autorun' :
-						var checked = input ;
-						return me.getPanel().remoteAction('toggle_autorun',checked) ;
+					case 'setup-autorun' :
+						return me.getPanel().remoteAction('setup_autorun') ;
 					default : break ;
 				}
 				break ;

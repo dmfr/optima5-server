@@ -57,12 +57,13 @@ function paracrm_queries_qsqlTransaction( $post_data ) {
 				paracrm_queries_organizePublish() ;
 			}
 		}
-		if( $post_data['_subaction'] == 'toggle_autorun' )
+		if( $post_data['_subaction'] == 'autorun_get' )
 		{
-			$json =  paracrm_queries_qsqlTransaction_toggleAutorun( $post_data , $arr_saisie ) ;
-			if( $json['success'] ) {
-				//paracrm_queries_organizePublish() ;
-			}
+			$json =  paracrm_queries_qsqlTransaction_autorunGet( $post_data , $arr_saisie ) ;
+		}
+		if( $post_data['_subaction'] == 'autorun_set' )
+		{
+			$json =  paracrm_queries_qsqlTransaction_autorunSet( $post_data , $arr_saisie ) ;
 		}
 		
 		if( $post_data['_subaction'] == 'res_get' )
@@ -264,6 +265,40 @@ function paracrm_queries_qsqlTransaction_toggleAutorun( $post_data , &$arr_saisi
 	
 	$arr_update = array() ;
 	$arr_update['autorun_is_on'] = ($is_published ? 'O':'N') ;
+	$arr_cond = array() ;
+	$arr_cond['qsql_id'] = $qsql_id ;
+	$_opDB->update('qsql',$arr_update,$arr_cond) ;
+
+	return array('success'=>true) ;
+}
+function paracrm_queries_qsqlTransaction_autorunGet( $post_data , &$arr_saisie ) {
+	global $_opDB ;
+	
+	sleep(1) ;
+	
+	$qsql_id = $arr_saisie['qsql_id'] ;
+	
+	$query = "SELECT autorun_is_on, autorun_cfg_json FROM qsql where qsql_id='{$qsql_id}'" ;
+	$result = $_opDB->query($query) ;
+	$arr = $_opDB->fetch_row($result) ;
+	
+	$data = array() ;
+	$data['autorun_is_on'] = ($arr[0]=='O') ;
+	$data['autorun_cfg_json'] = json_decode($arr[1],true) ;
+	
+	return array('success'=>true, 'data'=>$data['autorun_cfg_json']) ;
+}
+function paracrm_queries_qsqlTransaction_autorunSet( $post_data , &$arr_saisie ) {
+	global $_opDB ;
+	
+	sleep(2) ;
+	
+	$qsql_id = $arr_saisie['qsql_id'] ;
+	$data = json_decode($post_data['data'],true) ;
+	
+	$arr_update = array() ;
+	$arr_update['autorun_is_on'] = ($data['autorun_is_on'] ? 'O':'N') ;
+	$arr_update['autorun_cfg_json'] = json_encode($data) ;
 	$arr_cond = array() ;
 	$arr_cond['qsql_id'] = $qsql_id ;
 	$_opDB->update('qsql',$arr_update,$arr_cond) ;
