@@ -132,6 +132,14 @@ Ext.define('Optima5.Modules.CrmBase.QwindowAutorunForm',{
 		
 		var baseForm = this.getForm(),
 			values = baseForm.getFieldValues() ;
+		if( Ext.isDate(values['autorun_schedule_time']) ) {
+			values['autorun_schedule_time'] = Ext.Date.format(values['autorun_schedule_time'],'H:i') ;
+		}
+		
+		if( !values['autorun_is_on'] ) {
+			baseForm.reset();
+			baseForm.setValues({autorun_is_on:false}) ;
+		}
 		
 		if( values['autorun_is_on'] && Ext.isEmpty(values['autorun_mode']) ) {
 			return ;

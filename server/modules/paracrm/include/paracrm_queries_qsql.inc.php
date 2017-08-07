@@ -298,7 +298,7 @@ function paracrm_queries_qsqlTransaction_autorunSet( $post_data , &$arr_saisie )
 	
 	$arr_update = array() ;
 	$arr_update['autorun_is_on'] = ($data['autorun_is_on'] ? 'O':'N') ;
-	$arr_update['autorun_cfg_json'] = json_encode($data) ;
+	$arr_update['autorun_cfg_json'] = ($data['autorun_is_on'] ? json_encode($data) : '') ;
 	$arr_cond = array() ;
 	$arr_cond['qsql_id'] = $qsql_id ;
 	$_opDB->update('qsql',$arr_update,$arr_cond) ;

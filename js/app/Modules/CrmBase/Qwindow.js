@@ -600,7 +600,16 @@ Ext.define('Optima5.Modules.CrmBase.Qwindow' ,{
 				if( tbarIsAutorun ) {
 					tbarOptionsMenu.menu.child('#setup-autorun').addCls(tbar.clsForAutorun) ;
 					var text = tbarOptionsMenu.menu.child('#setup-autorun').textTpl ;
-					
+					switch(tbarCfgAutorun['autorun_mode']) {
+						case 'schedule' :
+							text += ' : start at '+tbarCfgAutorun['autorun_schedule_time'] ;
+							break ;
+						case 'repeat' :
+							text += ' : repeat '+tbarCfgAutorun['autorun_repeat_mndelay']+' mn' ;
+							break ;
+						default :
+							break ;
+					}
 					tbarOptionsMenu.menu.child('#setup-autorun').setText( text ) ;
 				} else {
 					tbarOptionsMenu.menu.child('#setup-autorun').removeCls(tbar.clsForAutorun) ;
