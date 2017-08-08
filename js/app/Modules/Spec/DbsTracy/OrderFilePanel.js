@@ -4,7 +4,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 	requires: [
 		'Optima5.Modules.Spec.DbsTracy.CfgParamField',
 		'Optima5.Modules.Spec.DbsTracy.CfgParamText',
-		'Optima5.Modules.Spec.DbsTracy.OrderAttachmentsDataview'
+		'Optima5.Modules.Spec.DbsTracy.OrderAttachmentsDataview',
+		'Optima5.Modules.Spec.DbsTracy.OrderFileAdrPanel'
 	],
 	
 	_readonlyMode: false,
@@ -122,6 +123,21 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 					xtype: 'textarea',
 					fieldLabel: '<b>Location</b>',
 					name: 'txt_location_full'
+				},{
+					xtype: 'hiddenfield',
+					name: 'adr_json'
+				},{
+					xtype: 'fieldcontainer',
+					fieldLabel: '<b>Adr.details</b>',
+					items: [{
+						xtype: 'button',
+						text: 'Edit',
+						width: 100,
+						handler: function() {
+							this.openAdrPopup() ;
+						},
+						scope: this
+					}]
 				},{
 					xtype: 'op5specdbstracycfgparamtext',
 					cfgParam_id: 'LIST_SERVICE',
@@ -737,6 +753,40 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 			},
 			scope: this
 		});
+	},
+	
+	openAdrPopup: function() {
+		var idSoc = this.down('#pHeaderForm').getForm().findField('id_soc').getValue(),
+			adrJson = this.down('#pHeaderForm').getForm().findField('adr_json').getValue() ;
+		
+		this.getEl().mask() ;
+		// Open panel
+		var createPanel = Ext.create('Optima5.Modules.Spec.DbsTracy.OrderFileAdrPanel',{
+			_idSoc: idSoc,
+			_adrJson: adrJson,
+			width:400, // dummy initial size, for border layout to work
+			height:400, // ...
+			floating: true,
+			draggable: true,
+			resizable: true,
+			renderTo: this.getEl(),
+			tools: [{
+				type: 'close',
+				handler: function(e, t, p) {
+					p.ownerCt.destroy();
+				},
+				scope: this
+			}]
+		});
+		createPanel.on('saved', function(p,adrJson) {
+			this.down('#pHeaderForm').getForm().findField('adr_json').setValue(adrJson) ;
+		},this,{single:true}) ;
+		createPanel.on('destroy',function(p) {
+			this.getEl().unmask() ;
+		},this,{single:true}) ;
+		
+		createPanel.show();
+		createPanel.getEl().alignTo(this.getEl(), 'c-c?');
 	},
 	
 	onBeforeDestroy: function() {

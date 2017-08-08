@@ -47,6 +47,7 @@ function specDbsTracy_order_getRecords( $post_data ) {
 			'atr_consignee' => $arr['field_ATR_CONSIGNEE'],
 			'txt_location_city' => $arr['field_TXT_LOCATION_CITY'],
 			'txt_location_full' => $arr['field_TXT_LOCATION_FULL'],
+			'adr_json' => json_encode(array()),
 			'vol_kg' => $arr['field_VOL_KG'],
 			'vol_dims' => $arr['field_VOL_DIMS'],
 			'vol_count' => $arr['field_VOL_COUNT'],
@@ -62,6 +63,26 @@ function specDbsTracy_order_getRecords( $post_data ) {
 			'calc_link_is_active' => null,
 			'calc_link_trspt_filerecord_id' => null
 		);
+	}
+	
+	// ************ 2017-08 : Adr JSON *********************
+	$query = "SELECT * FROM view_file_CDE_ADR cadr" ;
+	$query.= " WHERE 1" ;
+	if( isset($filter_orderFilerecordId_list) ) {
+		$query.= " AND cadr.filerecord_parent_id IN {$filter_orderFilerecordId_list}" ;
+	} elseif( !$filter_archiveIsOn ) {
+		$query.= " AND cadr.filerecord_parent_id IN (SELECT filerecord_id FROM view_file_CDE WHERE field_ARCHIVE_IS_ON='0')" ;
+	}
+	$result = $_opDB->query($query) ;
+	$map_order_keyValue = array() ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		if( !isset($TAB_order[$arr['filerecord_parent_id']]) ) {
+			continue ;
+		}
+		$map_order_keyValue[$arr['filerecord_parent_id']][$arr['field_ADR_KEY']] = $arr['field_ADR_VALUE'] ;
+	}
+	foreach( $map_order_keyValue as $filerecord_id => $map ) {
+		$TAB_order[$filerecord_id]['adr_json'] = json_encode($map) ;
 	}
 	
 	$query = "SELECT c.filerecord_id, tc.filerecord_parent_id, t.field_ID_DOC FROM view_file_CDE c" ;
@@ -254,6 +275,17 @@ function specDbsTracy_order_setHeader( $post_data ) {
 		$filerecord_id = paracrm_lib_data_updateRecord_file( $file_code, $arr_ins, $post_data['order_filerecord_id'] );
 	} else {
 		return array('success'=>false) ;
+	}
+	
+	if( $form_data['adr_json'] ) {
+		$file_code = 'CDE_ADR' ;
+	
+		foreach( json_decode($form_data['adr_json'],true) as $adr_key => $adr_value ) {
+			$arr_ins = array() ;
+			$arr_ins['field_ADR_KEY'] = $adr_key ;
+			$arr_ins['field_ADR_VALUE'] = $adr_value ;
+			paracrm_lib_data_insertRecord_file( $file_code, $filerecord_id, $arr_ins );
+		}
 	}
 	
 	if( TRUE ) {

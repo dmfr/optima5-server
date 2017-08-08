@@ -3,7 +3,8 @@ Ext.define('DbsTracyCfgSocModel',{
 	idProperty: 'soc_code',
 	fields: [
 		{name: 'soc_code', type:'string', useNull:true},
-		{name: 'soc_txt', type:'string'}
+		{name: 'soc_txt', type:'string'},
+		{name: 'cfg_adr', type:'auto'}
 	]
 });
 
