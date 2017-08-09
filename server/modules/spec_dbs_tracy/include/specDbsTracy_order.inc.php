@@ -48,6 +48,9 @@ function specDbsTracy_order_getRecords( $post_data ) {
 			'txt_location_city' => $arr['field_TXT_LOCATION_CITY'],
 			'txt_location_full' => $arr['field_TXT_LOCATION_FULL'],
 			'adr_json' => json_encode(array()),
+			'desc_txt' => $arr['field_DESC_TXT'],
+			'desc_value' => $arr['field_DESC_VALUE'],
+			'desc_value_currency' => $arr['field_DESC_VALUE_CURRENCY'],
 			'vol_kg' => $arr['field_VOL_KG'],
 			'vol_dims' => $arr['field_VOL_DIMS'],
 			'vol_count' => $arr['field_VOL_COUNT'],
@@ -265,6 +268,9 @@ function specDbsTracy_order_setHeader( $post_data ) {
 	$arr_ins['field_ATR_CONSIGNEE'] = $form_data['atr_consignee'] ;
 	$arr_ins['field_TXT_LOCATION_CITY'] = $form_data['txt_location_city'] ;
 	$arr_ins['field_TXT_LOCATION_FULL'] = $form_data['txt_location_full'] ;
+	$arr_ins['field_DESC_TXT'] = $form_data['desc_txt'] ;
+	$arr_ins['field_DESC_VALUE'] = $form_data['desc_value'] ;
+	$arr_ins['field_DESC_VALUE_CURRENCY'] = $form_data['desc_value_currency'] ;
 	$arr_ins['field_VOL_KG'] = $form_data['vol_kg'] ;
 	$arr_ins['field_VOL_DIMS'] = $form_data['vol_dims'] ;
 	$arr_ins['field_VOL_COUNT'] = $form_data['vol_count'] ;

@@ -50,6 +50,7 @@ function specDbsTracy_trspt_getRecords( $post_data ) {
 			'atr_incoterm' => $arr['field_ATR_INCOTERM'],
 			'atr_consignee' => $arr['field_ATR_CONSIGNEE'],
 			'mvt_carrier' => $arr['field_MVT_CARRIER'],
+			'mvt_carrier_account' => $arr['field_MVT_CARRIER_ACCOUNT'],
 			'mvt_origin' => $arr['field_MVT_ORIGIN'],
 			'mvt_dest' => $arr['field_MVT_DEST'],
 			'flight_awb' => $arr['field_FLIGHT_AWB'],
@@ -189,6 +190,7 @@ function specDbsTracy_trspt_setHeader( $post_data ) {
 	$arr_ins['field_ATR_INCOTERM'] = $form_data['atr_incoterm'] ;
 	$arr_ins['field_ATR_CONSIGNEE'] = $form_data['atr_consignee'] ;
 	$arr_ins['field_MVT_CARRIER'] = $form_data['mvt_carrier'] ;
+	$arr_ins['field_MVT_CARRIER_ACCOUNT'] = $form_data['mvt_carrier_account'] ;
 	$arr_ins['field_MVT_ORIGIN'] = $form_data['mvt_origin'] ;
 	$arr_ins['field_MVT_DEST'] = $form_data['mvt_dest'] ;
 	$arr_ins['field_FLIGHT_AWB'] = $form_data['flight_awb'] ;

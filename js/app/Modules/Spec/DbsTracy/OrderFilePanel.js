@@ -54,6 +54,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 				itemId: 'pHeaderForm',
 				bodyCls: 'ux-noframe-bg',
 				bodyPadding: 15,
+				scrollable: 'vertical',
 				layout:'anchor',
 				fieldDefaults: {
 					labelWidth: 75,
@@ -152,6 +153,29 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 					anchor: '',
 					width: 200,
 					name: 'atr_incoterm'
+				},{
+					xtype: 'fieldset',
+					title: 'Description',
+					items: [{
+						xtype: 'textarea',
+						fieldLabel: 'Goods desc.',
+						name: 'desc_txt'
+					},{
+						xtype: 'numberfield',
+						hideTrigger: true,
+						fieldLabel: 'Value',
+						//allowBlank: false,
+						name: 'desc_value',
+						anchor: '',
+						width: 150
+					},{
+						xtype: 'textfield',
+						fieldLabel: 'Currency',
+						//allowBlank: false,
+						name: 'desc_value_currency',
+						anchor: '',
+						width: 120
+					}]
 				},{
 					xtype: 'fieldset',
 					title: 'Volume details',

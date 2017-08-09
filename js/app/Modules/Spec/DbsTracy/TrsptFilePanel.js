@@ -64,9 +64,10 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 				itemId: 'pHeaderForm',
 				bodyCls: 'ux-noframe-bg',
 				bodyPadding: 15,
+				scrollable: 'vertical',
 				layout:'anchor',
 				fieldDefaults: {
-					labelWidth: 75,
+					labelWidth: 80,
 					anchor: '100%'
 				},
 				items: [Ext.create('Optima5.Modules.Spec.DbsTracy.CfgParamField',{
@@ -148,6 +149,10 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 						cfgParam_id: 'LIST_CARRIER',
 						fieldLabel: '<b>Carrier</b>',
 						name: 'mvt_carrier'
+					},{
+						xtype: 'textfield',
+						fieldLabel: '<b>Account</b>',
+						name: 'mvt_carrier_account'
 					}]
 				},{
 					xtype: 'fieldset',
