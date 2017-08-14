@@ -494,3 +494,66 @@ tbody.op5-crmbase-define-grid-join-tbody-separator tr {
 	border-radius: 10px !important;
 	z-index: 2;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+.op5-crmbase-definestoretags-btn {
+	background-image: url("../images/add.png") !important;
+}
+.op5-crmbase-definestoretags-field {
+	
+}
+
+.op5-crmbase-definestoretags {
+	position: relative ;
+    display: inline-block;
+    vertical-align: top;
+    padding: 2px;
+    text-align: center;
+    margin: 0px 2px;
+    background-color: #ccd8e7;
+    border: 1px solid #99BBE8;
+    -webkit-border-radius: .5em;
+    -moz-border-radius: .5em;
+    border-radius: .5em;
+
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+.op5-crmbase-definestoretags:hover {
+    background-color: #999999;
+    border-color: #999999;
+}
+.op5-crmbase-definestoretags-icodelete {
+	position: relative ;
+	display: inline-block;
+	vertical-align: middle;
+	height: 16px ;
+	width: 16px;
+	background-position: center center ;
+	background-repeat: no-repeat ;
+	background-image: url("../images/op5img/ico_cancel_small.gif") !important;
+}
+.op5-crmbase-definestoretags-text {
+	position: relative ;
+	display: inline-block;
+	vertical-align: middle;
+	font-size: 11px ;
+	padding: 0px 6px ;
+}
+.op5-crmbase-definestoretags-text-delete {
+}

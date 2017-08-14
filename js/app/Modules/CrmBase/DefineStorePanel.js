@@ -1,3 +1,148 @@
+Ext.define('Optima5.Modules.CrmBase.DefineStoreTagsField',{
+	extend: 'Ext.form.FieldContainer',
+	
+	mixins: [
+		'Ext.form.field.Base'
+	],
+	
+	initComponent: function() {
+		var me = this ;
+		
+		Ext.apply(me,{
+			layout: {
+				type: 'hbox',
+				align: 'center'
+			},
+			items: [{
+				itemId: 'cmbAdd',
+				xtype: 'combobox',
+				width: 100,
+				forceSelection: false,
+				editable: true,
+				queryMode: 'local',
+				displayField: 'tag',
+				valueField: 'tag',
+				store: {
+					data: [],
+					fields: [{name:'tag', type:'string'}],
+					proxy: {
+						type: 'memory',
+						reader: {
+							type: 'json'
+						}
+					}
+				}
+			},{
+				itemId: 'btnAdd',
+				xtype: 'button',
+				iconCls: 'op5-crmbase-definestoretags-btn',
+				margin: {
+					left: 4,
+					right: 8
+				},
+				handler: function() {
+					this.handleAdd() ;
+				},
+				scope: this
+			},{
+				itemId: 'dvTags',
+				xtype: 'dataview',
+				cls: 'op5-crmbase-definestoretags-field',
+				tpl: [
+					'<tpl for=".">',
+						'<div class="op5-crmbase-definestoretags">',
+							'<div class="op5-crmbase-definestoretags-icodelete">',
+							'</div>',
+							'<div class="op5-crmbase-definestoretags-text">',
+							'{tag}',
+							'</div>',
+						'</div>',
+					'</tpl>'
+				],
+				itemSelector: 'div.op5-crmbase-definestoretags',
+				store: {
+					data: [],
+					fields: [{name:'tag', type:'string'}],
+					proxy: {
+						type: 'memory',
+						reader: {
+							type: 'json'
+						}
+					}
+				},
+				prepareData: function(data) {
+					return data;
+				},
+				listeners: {
+					itemclick: function(dv, record, item, index, e, eOpts) {
+						if( e.getTarget('div.op5-crmbase-definestoretags-icodelete') ) {
+							this.deleteTag(record) ;
+						}
+					},
+					scope: this
+					
+				}
+			}]
+		}) ;
+		me.mixins.field.constructor.call(me);
+		
+		me.callParent() ;
+	},
+	getStore: function() {
+		return this.down('#dvTags').getStore() ;
+	},
+	getRawValue: function() {
+		var values = [] ;
+		this.getStore().each( function(rec) {
+			values.push(rec.get('tag')) ;
+		}) ;
+		return Ext.JSON.encode(values) ;
+	},
+	getValue: function() {
+		var values = [] ;
+		this.getStore().each( function(rec) {
+			values.push(rec.get('tag')) ;
+		}) ;
+		return values ;
+	},
+	setRawValue: function(jsonValues) {
+		if( Ext.isEmpty(jsonValues) ) {
+			this.getStore().removeAll() ;
+		}
+		var values = Ext.JSON.decode( jsonValues ),
+			data = [] ;
+		Ext.Array.each( values, function(tag) {
+			data.push({tag:tag}) ;
+		}) ;
+		this.getStore().loadData(data) ;
+	},
+	setValue: function(values) {
+		if( Ext.isEmpty(values) ) {
+			this.getStore().removeAll() ;
+		}
+		var data = [] ;
+		Ext.Array.each( values, function(tag) {
+			data.push({tag:tag}) ;
+		}) ;
+		this.getStore().loadData(data) ;
+	},
+	handleAdd: function() {
+		var cmbAdd = this.down('#cmbAdd'),
+			dvTags = this.down('#dvTags') ; 
+		if( Ext.isEmpty(cmbAdd.getValue()) ) {
+			return ;
+		}
+		dvTags.getStore().insert(0,{
+			tag: cmbAdd.getValue().trim()
+		});
+		cmbAdd.reset() ;
+	},
+	deleteTag: function(tagRecord) {
+		this.down('#dvTags').getStore().remove(tagRecord) ;
+	}
+});
+
+
 Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 	extend: 'Ext.panel.Panel',
 	
@@ -621,7 +766,10 @@ Ext.define('Optima5.Modules.CrmBase.DefineStorePanel' ,{
 						}
 					}
 				}]
-			}] ;
+			},Ext.create('Optima5.Modules.CrmBase.DefineStoreTagsField',{
+				fieldLabel: 'Tags',
+				name: 'store_tags'
+			})] ;
 		}
 		
 		// console.log('Creation define '+this.defineDataType+' '+this.defineBibleId) ;
