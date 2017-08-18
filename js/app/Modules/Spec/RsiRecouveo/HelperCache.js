@@ -345,6 +345,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 				colorNodash = color.substring(1) ;
 			cssBlob += ".bgcolor-"+colorNodash+" { background-color:"+color+" }\r\n" ;
 		}) ;
+		Ext.Array.each( this.getActionEtaAll(), function( actionEtaRow ) {
+			var color = actionEtaRow.eta_color,
+				colorNodash = color.substring(1) ;
+			cssBlob += ".bgcolor-"+colorNodash+" { background-color:"+color+" }\r\n" ;
+		}) ;
 		Ext.util.CSS.createStyleSheet(cssBlob, 'op5specrsirecouveo-'+this.cmpId);
 	},
 	getAccountModel: function() {

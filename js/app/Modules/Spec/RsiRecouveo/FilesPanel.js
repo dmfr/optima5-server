@@ -494,15 +494,38 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			statusTitles.push(status.status_txt) ;
 		}) ;
 		
-		var agendaFields = ['agenda_class','agenda_class_txt'],
-			agendaYFields = [],
-			agendaTitles = [],
-			agendaColors = [] ;
+		var agendaGridFields = ['agenda_class','agenda_class_txt'],
+			agendaGridColumnRenderer = function(v) {
+				if( v == 0 ) {
+					return '' ;
+				}
+				return v ;
+			},
+			agendaGridColumns = [{
+				locked: true,
+				width: 100,
+				text: 'Statut',
+				dataIndex: 'agenda_class_txt'
+			}] ;
+			
+		var agendaChrtFields = ['agenda_class','agenda_class_txt'],
+			agendaChrtYFields = [],
+			agendaChrtTitles = [],
+			agendaChrtColors = [] ;
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionEtaAll(), function(etaRange) {
-			agendaFields.push(etaRange.eta_range+'_count', etaRange.eta_range+'_ratio1000') ;
-			agendaYFields.push(etaRange.eta_range+'_ratio1000') ;
-			agendaTitles.push(etaRange.eta_txt) ;
-			agendaColors.push(etaRange.eta_color) ;
+			agendaGridFields.push(etaRange.eta_range+'_count', etaRange.eta_range+'_ratio1000') ;
+			agendaGridColumns.push({
+				text: etaRange.eta_txt,
+				dataIndex: etaRange.eta_range+'_count',
+				width: 85,
+				tdCls: 'op5-spec-dbstracy-boldcolumn bgcolor-'+etaRange.eta_color.substring(1),
+				renderer: agendaGridColumnRenderer
+			});
+			
+			agendaChrtFields.push(etaRange.eta_range+'_count', etaRange.eta_range+'_ratio1000') ;
+			agendaChrtYFields.push(etaRange.eta_range+'_ratio1000') ;
+			agendaChrtTitles.push(etaRange.eta_txt) ;
+			agendaChrtColors.push(etaRange.eta_color) ;
 		}) ;
 		
 		var chartStatusAmountTotal = 0,
@@ -645,82 +668,128 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		}) ;
 		pNorth.add({
 			xtype: 'panel',
+			itemId: 'pNorthAgenda',
 			border: false,
 			cls: 'chart-no-border',
 			flex: 1,
-			layout: 'fit',
+			layout: {
+				type: 'vbox',
+				align: 'stretch'
+			},
 			//border: false,
-			items: {
-            xtype: 'cartesian',
-				 animation: false,
-				 itemId: 'chrtAgenda',
-				 colors: agendaColors,
+			items: [{
+				flex: 1,
+				margin: '4px 10px',
+				xtype: 'grid',
+				itemId: 'gridAgenda',
+				enableLocking: true,
+				columns: {
+					defaults: {
+						menuDisabled: true,
+						draggable: false,
+						sortable: false,
+						hideable: false,
+						resizable: false,
+						groupable: false,
+						lockable: false,
+						
+						align: 'center'
+					},
+					items: agendaGridColumns
+				},
+				store: {
+					fields: agendaGridFields,
+					data: []
+				},
+				selModel: {
+					mode: 'SINGLE'
+				},
+				listeners: {
+					selectionchange: function(selectionModel, records) {
+						var selRecord = records[0],
+							chrtAgenda = this.down('#pNorth').down('#chrtAgenda') ;
+						if( !selRecord ) {
+							chrtAgenda.setVisible(false) ;
+							chrtAgenda.getStore().loadData([]) ;
+							return ;
+						}
+						chrtAgenda.getStore().loadData([selRecord.getData()]) ;
+						chrtAgenda.setVisible(true) ;
+					},
+					scope: this
+				}
+			},{
+				height: 80,
+				hidden: true,
+				xtype: 'cartesian',
+				animation: false,
+				itemId: 'chrtAgenda',
+				colors: agendaChrtColors,
 				border: false,
-            width: '100%',
-            height: '100%',
-            legend: {
-                docked: 'bottom',
+				width: '100%',
+				/*legend: {
+					docked: 'bottom',
 					toggleable: false
-            },
-            store: {
-					fields: agendaFields,
+				},*/
+				store: {
+					fields: agendaChrtFields,
 					data: []
 				},
 				plugins: {
 					ptype: 'chartitemevents',
 					moveEvents: false
 				},
-            insetPadding: { top: 30, left: 10, right: 30, bottom: 10 },
-            flipXY: true,
-            sprites: [{
-                type: 'text',
-                text: 'Agenda / Actions imminentes',
-                fontSize: 14,
-                width: 100,
-                height: 30,
-                x: 150, // the sprite x position
-                y: 20  // the sprite y position
-            }],
-            axes: [/*{
-                type: 'numeric',
-                position: 'bottom',
-                adjustByMajorUnit: true,
-                fields: agendaYFields,
-                grid: true,
-                renderer: function (v) { return v + ''; },
-                minimum: 0
-            }, */{
-                type: 'category',
-                position: 'left',
-                fields: 'agenda_class_txt',
-                grid: true
-            }],
-            series: [{
-                type: 'bar',
-                axis: 'bottom',
-                title: agendaTitles,
-                xField: 'agenda_class_txt',
-                yField: agendaYFields,
-                stacked: true,
-                style: {
-                    opacity: 0.80
-                },
-                //highlight: true,
-                listeners: {
-                    itemclick: this.onBarItemClick,
-                    scope: this
-                },
-                tooltip: {
-                    trackMouse: true,
-                    style: 'background: #fff',
-                    renderer: function(storeItem, item) {
-                        var browser = item.series.getTitle()[Ext.Array.indexOf(item.series.getYField(), item.field)];
+				insetPadding: { top: 30, left: 10, right: 30, bottom: 10 },
+				flipXY: true,
+				/*sprites: [{
+					type: 'text',
+					text: 'Agenda / Actions imminentes',
+					fontSize: 14,
+					width: 100,
+					height: 30,
+					x: 150, // the sprite x position
+					y: 20  // the sprite y position
+				}],*/
+				axes: [/*{
+					type: 'numeric',
+					position: 'bottom',
+					adjustByMajorUnit: true,
+					fields: agendaChrtYFields,
+					grid: true,
+					renderer: function (v) { return v + ''; },
+					minimum: 0
+				}, */{
+					type: 'category',
+					position: 'left',
+					fields: 'agenda_class_txt',
+					grid: true
+				}],
+				series: [{
+					type: 'bar',
+					axis: 'bottom',
+					title: agendaChrtTitles,
+					xField: 'agenda_class_txt',
+					yField: agendaChrtYFields,
+					stacked: true,
+					style: {
+						opacity: 0.80
+					},
+					//highlight: true,
+					listeners: {
+						itemclick: this.onBarItemClick,
+						scope: this
+					},
+					tooltip: {
+						trackMouse: true,
+						style: 'background: #fff',
+						renderer: function(storeItem, item) {
+								var browser = item.series.getTitle()[Ext.Array.indexOf(item.series.getYField(), item.field)];
 								var countField = item.field.replace('_ratio1000','_count') ;
-                        this.setHtml(browser + ' for ' + storeItem.get('agenda_class_txt') + ': ' + storeItem.get(countField));
-                    }
-                }
-            }]
-			}
+								this.setHtml(browser + ' for ' + storeItem.get('agenda_class_txt') + ': ' + storeItem.get(countField));
+						}
+					}
+				}]
+			}]
 		}) ;
 	},
 	
@@ -924,11 +993,16 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		
 		// charts
 		var agendaData = [], agendaRow,
-			agendaSummary = {
-				'AGREE' : 'Paiements',
-				'LITIG' : 'Actions / Litige',
-				'ACTION' : 'Appels/Reprise'
-			};
+			agendaSummary = {};
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionAll(), function(actionRow) {
+			if( !Ext.isEmpty(actionRow.agenda_class) && !agendaSummary.hasOwnProperty(actionRow.agenda_class) ) {
+				var statusRow = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getStatusRowId(actionRow.agenda_class) ;
+				if( !statusRow ) {
+					return ;
+				}
+				agendaSummary[actionRow.agenda_class] = statusRow.status_txt ;
+			}
+		}) ;
 		Ext.Object.each( agendaSummary, function(agendaClass,agendaClassTxt) {
 			var sum = 0 ;
 			agendaRow = {} ;
@@ -987,7 +1061,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		
 		this.down('#pNorth').down('#chrtStatusAmount').getStore().loadRawData(chartStatusAmountData) ;
 		this.down('#pNorth').down('#chrtStatusCount').getStore().loadRawData(chartStatusCountData) ;
-		this.down('#pNorth').down('#chrtAgenda').getStore().loadRawData(agendaData) ;
+		
+		this.down('#pNorth').down('#gridAgenda').getSelectionModel().deselectAll() ;
+		this.down('#pNorth').down('#gridAgenda').getStore().loadRawData(agendaData) ;
 		
 		this.down('#pNorth').down('#chrtStatusAmount')._textSprite.setAttributes({
 			text: 'Répartition ( '+Ext.util.Format.number(chartStatusAmountTotal,'0,000')+' € )'
