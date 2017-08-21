@@ -433,7 +433,7 @@ function paracrm_queries_qsql_lib_exec($querystring, $is_rw=FALSE, $auth_bypass=
 		$current_database = $row_sdomain['database_name'] ;
 		if( $is_superuser ) {
 			$privileges = 'ALL PRIVILEGES' ;
-		} elseif( $is_rw && !$auth_bypass ) {
+		} elseif( $is_rw ) {
 			$privileges = 'SELECT,UPDATE,INSERT,DELETE,DROP,SHOW VIEW' ;
 		} else {
 			$privileges = 'SELECT, SHOW VIEW' ;
