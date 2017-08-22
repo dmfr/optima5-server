@@ -489,6 +489,38 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		
 		// ******** Charts *****************
 		
+		var balageGridFields = ['status_id','status_txt','status_color'],
+			balageGridColumns = [{
+				locked: true,
+				width: 100,
+				text: 'Statut',
+				dataIndex: 'status_txt',
+				renderer: function(value,metaData,record) {
+					metaData.style += 'color: white ; background: '+record.get('status_color') ;
+					return value ;
+				}
+			}],
+			balageRenderer = function(v) {
+				if( v == 0 ) {
+					return '' ;
+				}
+				return Ext.util.Format.number(v,'0,000')+' €' ;
+			} ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getBalageAll(), function(balageSegmt) {
+			var balageField = 'inv_balage_'+balageSegmt.segmt_id ;
+			
+			balageGridColumns.push({
+				text: balageSegmt.segmt_txt,
+				dataIndex: balageField,
+				width:95,
+				align: 'center',
+				renderer: balageRenderer
+			}) ;
+			
+			balageGridFields.push(balageField);
+		}) ;
+		
+		
 		var statusColors = [], statusTitles = [] ;
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getStatusAll(), function(status) {
 			statusColors.push(status.status_color) ;
@@ -851,6 +883,38 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				}]
 			}]
 		}) ;
+		pNorthTab.add({
+			title: 'Balance âgée par statut',
+			xtype: 'panel',
+			itemId: 'pNorthBalage',
+			border: false,
+			cls: 'chart-no-border',
+			layout: 'fit',
+			items: [{
+				margin: '4px 10px',
+				xtype: 'grid',
+				itemId: 'gridStatusBalage',
+				enableLocking: true,
+				columns: {
+					defaults: {
+						menuDisabled: true,
+						draggable: false,
+						sortable: false,
+						hideable: false,
+						resizable: false,
+						groupable: false,
+						lockable: false,
+						
+						align: 'center'
+					},
+					items: balageGridColumns
+				},
+				store: {
+					fields: balageGridFields,
+					data: []
+				}
+			}]
+		});
 	},
 	applyAgendaMode: function() {
 		var gridAgenda = this.down('#pNorth').down('#gridAgenda'),
@@ -952,6 +1016,18 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			}
 			map_status_nbFiles[status]++ ;
 			map_status_amount[status] += fileRow.inv_amount_due ;
+		}) ;
+		
+		var map_status_arrBalage = {} ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getStatusAll(), function(status) {
+			map_status_arrBalage[status.status_id]=[] ;
+		}) ;
+		Ext.Array.each( ajaxData, function(fileRow) {
+			var status = fileRow.status ;
+			if( !map_status_arrBalage.hasOwnProperty(status) ) {
+				return ;
+			}
+			map_status_arrBalage[status].push(fileRow.inv_balage) ;
 		}) ;
 		
 		var map_actionAgendaClass_etaRange_nbActions = {},
@@ -1130,7 +1206,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		}) ;
 		
 		var chartStatusAmountData = [],
-			chartStatusCountData = [] ;
+			chartStatusCountData = [],
+			gridStatusBalageData = [] ;
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getStatusAll(), function(status) {
 			chartStatusAmountData.push({
 				'status_id' : status.status_id,
@@ -1142,7 +1219,28 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				'status_txt' : status.status_txt,
 				'count' : Math.round(map_status_nbFiles[status.status_id])
 			}) ;
+			
+			var gridStatusBalageRow = {
+				'status_id' : status.status_id,
+				'status_txt' : status.status_txt,
+				'status_color' : status.status_color
+			};
+			Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getBalageAll(), function(balageSegmt) {
+				var balageField = 'inv_balage_'+balageSegmt.segmt_id ;
+				gridStatusBalageRow[balageField] = 0 ;
+			}) ;
+			Ext.Array.each( map_status_arrBalage[status.status_id], function(invBalage) {
+				Ext.Object.each( invBalage, function(balageSegmtId,amount) {
+					var balageField = 'inv_balage_'+balageSegmtId ;
+					if( !gridStatusBalageRow.hasOwnProperty(balageField) ) {
+						return ;
+					}
+					gridStatusBalageRow[balageField] += amount ;
+				});
+			}) ;
+			gridStatusBalageData.push(gridStatusBalageRow) ;
 		}) ;
+		
 		var chartStatusAmountTotal = Math.round( Ext.Array.sum( Ext.Object.getValues(map_status_amount)) ),
 			chartStatusCountTotal = Ext.Array.sum( Ext.Object.getValues(map_status_nbFiles)) ;
 		
@@ -1151,6 +1249,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		
 		this.down('#pNorth').down('#gridAgenda').getSelectionModel().deselectAll() ;
 		this.down('#pNorth').down('#gridAgenda').getStore().loadRawData(agendaData) ;
+		
+		this.down('#pNorth').down('#gridStatusBalage').getStore().loadRawData(gridStatusBalageData) ;
 		
 		this.down('#pNorth').down('#chrtStatusAmount')._textSprite.setAttributes({
 			text: 'Répartition ( '+Ext.util.Format.number(chartStatusAmountTotal,'0,000')+' € )'
