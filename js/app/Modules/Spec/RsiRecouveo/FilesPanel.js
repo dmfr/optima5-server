@@ -158,6 +158,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		
 		this.configureToolbar() ;
 		this.configureViews() ;
+		this.applyAgendaMode() ;
 		this.onViewSet(this.defaultViewMode) ;
 	},
 	onCrmeventBroadcast: function(crmEvent, eventParams) {
@@ -501,6 +502,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				}
 				return v ;
 			},
+			agendaGridColumnAmountRenderer = function(v) {
+				if( v == 0 ) {
+					return '' ;
+				}
+				return Ext.util.Format.number(v,'0,000')+' €' ;
+			},
 			agendaGridColumns = [{
 				locked: true,
 				width: 100,
@@ -515,11 +522,23 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionEtaAll(), function(etaRange) {
 			agendaGridFields.push(etaRange.eta_range+'_count', etaRange.eta_range+'_ratio1000') ;
 			agendaGridColumns.push({
+				hidden: true,
+				_agendaMode: 'count',
 				text: etaRange.eta_txt,
 				dataIndex: etaRange.eta_range+'_count',
 				width: 85,
 				tdCls: 'op5-spec-dbstracy-boldcolumn bgcolor-'+etaRange.eta_color.substring(1),
 				renderer: agendaGridColumnRenderer
+			});
+			agendaGridFields.push(etaRange.eta_range+'_amount') ;
+			agendaGridColumns.push({
+				hidden: true,
+				_agendaMode: 'amount',
+				text: etaRange.eta_txt,
+				dataIndex: etaRange.eta_range+'_amount',
+				width: 85,
+				tdCls: 'op5-spec-dbstracy-boldcolumn bgcolor-'+etaRange.eta_color.substring(1),
+				renderer: agendaGridColumnAmountRenderer
 			});
 			
 			agendaChrtFields.push(etaRange.eta_range+'_count', etaRange.eta_range+'_ratio1000') ;
@@ -666,18 +685,59 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				}]
 			}
 		}) ;
-		pNorth.add({
+		pNorthTab = pNorth.add({
+			flex: 1,
+			xtype: 'tabpanel',
+			items: []
+		});
+		pNorthTab.add({
+			title: 'Agenda',
 			xtype: 'panel',
 			itemId: 'pNorthAgenda',
 			border: false,
 			cls: 'chart-no-border',
-			flex: 1,
 			layout: {
 				type: 'vbox',
 				align: 'stretch'
 			},
 			//border: false,
 			items: [{
+				height: 24,
+				xtype: 'form',
+				itemId: 'formAgenda',
+				anchor: '',
+				items: [{
+					xtype      : 'fieldcontainer',
+					defaultType: 'radiofield',
+					fieldLabel: 'Vue Agenda',
+					labelWidth: 100,
+					labelAlign: 'right',
+					anchor: '',
+					width: 350,
+					defaults: {
+						margin: '0px 16px',
+						listeners: {
+							change: function( field, value ) {
+								this.applyAgendaMode() ;
+							},
+							scope: this
+						}
+					},
+					layout: 'hbox',
+					items: [
+						{
+							boxLabel  : 'Nombre dossiers',
+							name      : 'agenda_mode',
+							inputValue: 'count',
+							checked: true
+						}, {
+							boxLabel  : 'Devise (€)',
+							name      : 'agenda_mode',
+							inputValue: 'amount'
+						}
+					]
+				}]
+			},{
 				flex: 1,
 				margin: '4px 10px',
 				xtype: 'grid',
@@ -719,7 +779,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 					scope: this
 				}
 			},{
-				height: 80,
+				height: 60,
 				hidden: true,
 				xtype: 'cartesian',
 				animation: false,
@@ -739,7 +799,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 					ptype: 'chartitemevents',
 					moveEvents: false
 				},
-				insetPadding: { top: 30, left: 10, right: 30, bottom: 10 },
+				insetPadding: { top: 10, left: 10, right: 30, bottom: 10 },
 				flipXY: true,
 				/*sprites: [{
 					type: 'text',
@@ -791,6 +851,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				}]
 			}]
 		}) ;
+	},
+	applyAgendaMode: function() {
+		var gridAgenda = this.down('#pNorth').down('#gridAgenda'),
+			formAgenda = this.down('#pNorth').down('#formAgenda'),
+			agendaMode = formAgenda.getForm().getValues()['agenda_mode'] ;
+		Ext.Array.each( gridAgenda.headerCt.query('[_agendaMode]'), function(column) {
+			column.setVisible( (column._agendaMode==agendaMode) ) ;
+		} ) ;
 	},
 	
 	onSocSet: function() {
@@ -887,6 +955,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		}) ;
 		
 		var map_actionAgendaClass_etaRange_nbActions = {},
+			map_actionAgendaClass_etaRange_amount = {},
 			map_actionId_action = {},
 			actionRow, actionAgendaClass ;
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionAll(), function(action) {
@@ -902,6 +971,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				if( Ext.isEmpty(actionAgendaClass) ) {
 					return ;
 				}
+				
 				if( !map_actionAgendaClass_etaRange_nbActions.hasOwnProperty(actionAgendaClass) ) {
 					map_actionAgendaClass_etaRange_nbActions[actionAgendaClass] = {} ;
 				}
@@ -909,6 +979,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 					map_actionAgendaClass_etaRange_nbActions[actionAgendaClass][fileActionRow.calc_eta_range] = 0 ;
 				}
 				map_actionAgendaClass_etaRange_nbActions[actionAgendaClass][fileActionRow.calc_eta_range]++ ;
+				
+				if( !map_actionAgendaClass_etaRange_amount.hasOwnProperty(actionAgendaClass) ) {
+					map_actionAgendaClass_etaRange_amount[actionAgendaClass] = {} ;
+				}
+				if( !map_actionAgendaClass_etaRange_amount[actionAgendaClass].hasOwnProperty(fileActionRow.calc_eta_range) ) {
+					map_actionAgendaClass_etaRange_amount[actionAgendaClass][fileActionRow.calc_eta_range] = 0 ;
+				}
+				map_actionAgendaClass_etaRange_amount[actionAgendaClass][fileActionRow.calc_eta_range] += fileRow.inv_amount_due ;
 			}) ;
 		}) ;
 		
@@ -1010,8 +1088,17 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			agendaRow['agenda_class_txt'] = agendaClassTxt ;
 			Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionEtaAll(), function(etaRangeRow) {
 				var etaRange = etaRangeRow.eta_range,
-					etaRangeCount = etaRangeRow.eta_range+'_count' ;
+					etaRangeCount = etaRangeRow.eta_range+'_count',
+					etaRangeAmount = etaRangeRow.eta_range+'_amount' ;
 				agendaRow[etaRangeCount] = 0 ;
+				agendaRow[etaRangeAmount] = 0 ;
+				
+				if( map_actionAgendaClass_etaRange_amount.hasOwnProperty(agendaClass)
+					&& map_actionAgendaClass_etaRange_amount[agendaClass].hasOwnProperty(etaRange) ) {
+					
+					
+					agendaRow[etaRangeAmount] = map_actionAgendaClass_etaRange_amount[agendaClass][etaRange] ;
+				}
 				
 				if( map_actionAgendaClass_etaRange_nbActions.hasOwnProperty(agendaClass)
 					&& map_actionAgendaClass_etaRange_nbActions[agendaClass].hasOwnProperty(etaRange) ) {
