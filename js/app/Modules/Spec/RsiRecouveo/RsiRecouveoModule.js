@@ -12,6 +12,8 @@ Ext.define('RsiRecouveoFileTplModel',{ // TO: RsiRecouveoFileModel
 		{name: 'acc_txt', type:'string'},
 		{name: 'acc_siret', type:'string'},
 		{name: 'status', type:'string'},
+		{name: 'status_txt', type:'string'},
+		{name: 'status_color', type:'string'},
 		{name: 'status_closed_void', type:'boolean'},
 		{name: 'status_closed_end', type:'boolean'},
 		{name: 'date_open', type:'date', dateFormat:'Y-m-d H:i:s'},
@@ -19,6 +21,7 @@ Ext.define('RsiRecouveoFileTplModel',{ // TO: RsiRecouveoFileModel
 		{name: 'next_fileaction_filerecord_id', type: 'int'},
 		{name: 'next_action', type: 'string', allowNull:true},
 		{name: 'next_action_suffix', type: 'string', allowNull:true},
+		{name: 'next_action_suffix_txt', type: 'string', allowNull:true},
 		{name: 'next_date', type:'date', dateFormat:'Y-m-d H:i:s', allowNull:true,
 			sortType: function(v) {
 				if( v==null ) {

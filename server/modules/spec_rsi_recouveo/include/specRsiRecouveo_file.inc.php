@@ -4,8 +4,10 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 	global $_opDB ;
 	
 	$ttmp = specRsiRecouveo_cfg_getConfig() ;
+	$cfg_status = $ttmp['data']['cfg_status'] ;
 	$cfg_action = $ttmp['data']['cfg_action'] ;
 	$cfg_action_eta = $ttmp['data']['cfg_action_eta'] ;
+	$cfg_actionnext = $ttmp['data']['cfg_actionnext'] ;
 	$cfg_balage = $ttmp['data']['cfg_balage'] ;
 	$cfg_atr = $ttmp['data']['cfg_atr'] ;
 	//print_r($cfg_atr) ;
@@ -18,9 +20,17 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 	}
 	unset($atr_record) ;
 	
+	$map_status = array() ;
+	foreach( $cfg_status as $status ) {
+		$map_status[$status['status_id']] = $status ;
+	}
 	$map_action = array() ;
 	foreach( $cfg_action as $action ) {
 		$map_action[$action['action_id']] = $action ;
+	}
+	$map_actionnext = array() ;
+	foreach( $cfg_actionnext as $actionnext ) {
+		$map_actionnext[$actionnext['id']] = $actionnext['text'] ;
 	}
 	
 	if( $post_data['filter_atr'] ) {
@@ -88,6 +98,8 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			'acc_siret' => $arr['field_ACC_SIRET'],
 			
 			'status' => $arr['field_STATUS'],
+			'status_txt' => $map_status[$arr['field_STATUS']]['status_txt'],
+			'status_color' => $map_status[$arr['field_STATUS']]['status_color'],
 			'status_closed_void' => ($arr['field_STATUS_CLOSED_VOID']==1),
 			'status_closed_end' => ($arr['field_STATUS_CLOSED_END']==1),
 			
@@ -319,6 +331,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 				'next_fileaction_filerecord_id' => $next_action['fileaction_filerecord_id'],
 				'next_action' => $next_action['link_action'],
 				'next_action_suffix' => $next_action_suffix,
+				'next_action_suffix_txt' => $map_actionnext[$next_action_suffix],
 				'next_date' => $next_action['date_sched'],
 				'next_eta_range' => $next_action['calc_eta_range'],
 				'next_agenda_class' => $next_action['link_action_class']

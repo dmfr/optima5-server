@@ -3,6 +3,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 	
 	requires: [
 		'Ext.ux.CheckColumnNull',
+		'Ext.ux.grid.filters.filter.StringList',
 		'Optima5.Modules.Spec.RsiRecouveo.CfgParamButton',
 		'Optima5.Modules.Spec.RsiRecouveo.SearchCombo',
 		'Optima5.Modules.Spec.RsiRecouveo.CfgParamFilter'
@@ -306,9 +307,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				width:100,
 				align: 'center',
 				filter: {
-					type: 'op5crmbasebibletree',
-					optimaModule: this.optimaModule,
-					bibleId: 'LIB_ACCOUNT'
+					type: 'stringlist'
 				},
 				renderer: function(v,m,r) {
 					return r.get('soc_txt') ;
@@ -320,9 +319,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				width:100,
 				align: 'center',
 				filter: {
-					type: 'op5crmbasebible',
-					optimaModule: this.optimaModule,
-					bibleId: 'LIB_ACCOUNT'
+					type: 'string'
 				}
 			},{
 				text: 'Acheteur',
@@ -337,20 +334,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			itemId: 'colStatus',
 			text: 'Statut',
 			align: 'center',
-			dataIndex: 'status',
+			dataIndex: 'status_txt',
 			filter: {
-				type: 'op5crmbasebibletree',
-				optimaModule: this.optimaModule,
-				bibleId: 'CFG_STATUS'
+				type: 'stringlist'
 			},
 			renderer: function(v,metaData,r) {
-				var statusMap = this._statusMap ;
-				if( statusMap.hasOwnProperty(v) ) {
-					var statusData = statusMap[v] ;
-					metaData.style += 'color: white ; background: '+statusData.status_color ;
-					return statusData.status_txt ;
-				}
-				return '?' ;
+				metaData.style += 'color: white ; background: '+r.get('status_color') ;
+				return v ;
 			}
 		},{
 			text: 'Next action',
@@ -358,21 +348,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				text: 'RDV/Action',
 				tdCls: 'op5-spec-dbstracy-boldcolumn',
 				align: 'center',
-				dataIndex: 'next_action_suffix',
+				dataIndex: 'next_action_suffix_txt',
 				filter: {
-					type: 'op5specrsiveocfgfilter',
-					optimaModule: this.optimaModule,
-					cfgParam_id: 'ACTIONNEXT'
+					type: 'stringlist'
 				},
 				renderer: function(v,metaData,r) {
-					if( Ext.isEmpty(v) ) {
-						return '' ;
-					}
-					var actionnextMap = this._actionnextMap ;
-					if( actionnextMap.hasOwnProperty(v) ) {
-						var actionnextData = actionnextMap[v] ;
-						return actionnextData.text ;
-					}
 					return v ;
 				}
 			},{
@@ -1141,6 +1121,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			
 			this.down('#pCenter').down('#pGrid').getStore().sort('next_date','ASC') ;
 		}
+		Ext.Array.each( this.down('#pCenter').down('#pGrid').getColumns(), function(column) {
+			if( column.filter && column.filter.type == 'stringlist' && !column.filter.active ) {
+				column.filter.resetList() ; // HACK!
+			}
+		}) ;
 		this.down('#pCenter').down('#pGrid').getStore().loadRawData(ajaxData) ;
 		
 		
