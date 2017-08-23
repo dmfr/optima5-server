@@ -1375,10 +1375,16 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 	
 	
 	handleDownload: function() {
+		var mapFieldString = {} ;
+		Ext.Array.each( this.down('#pCenter').down('#pGrid').getStore().getModel().getFields(), function(field) {
+			mapFieldString[field.getName()] = Ext.Array.contains(['string'],field.getType()) ;
+		}) ;
+		
 		var columns = [] ;
 		Ext.Array.each( this.down('#pCenter').down('#pGrid').headerCt.getGridColumns(), function(column) {
 			columns.push({
 				dataIndex: column.dataIndex,
+				dataIndexString: mapFieldString[column.dataIndex],
 				text: column.text
 			});
 		});
