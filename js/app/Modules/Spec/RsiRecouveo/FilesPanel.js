@@ -282,7 +282,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				renderer: balageRenderer,
 				filter: {
 					type: 'number'
-				}
+				},
+				summaryType: 'sum',
+				summaryRenderer: balageRenderer
 			}) ;
 			
 			balageFields.push({
@@ -389,7 +391,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				dataIndex: 'inv_nb',
 				tdCls: 'op5-spec-dbstracy-boldcolumn',
 				width:90,
-				align: 'center'
+				align: 'center',
+				summaryType: 'sum',
+				summaryRenderer: function(value,summaryData,field,metaData) {
+					return value ;
+				}
 			},{
 				text: 'Solde',
 				dataIndex: 'inv_amount_due',
@@ -400,6 +406,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 					type: 'number'
 				},
 				renderer: function(value) {
+					return Ext.util.Format.number(value,'0,000.00') ;
+				},
+				summaryType: 'sum',
+				summaryRenderer: function(value,summaryData,field,metaData) {
 					return Ext.util.Format.number(value,'0,000.00') ;
 				}
 			},{
@@ -412,6 +422,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 					type: 'number'
 				},
 				renderer: function(value) {
+					return Ext.util.Format.number(value,'0,000.00') ;
+				},
+				summaryType: 'sum',
+				summaryRenderer: function(value,summaryData,field,metaData) {
 					return Ext.util.Format.number(value,'0,000.00') ;
 				}
 			}]
@@ -446,6 +460,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			xtype: 'grid',
 			itemId: 'pGrid',
 			columns: columns,
+			features: [{
+				ftype: 'summary',
+				dock: 'top'
+			}],
 			plugins: [{
 				ptype: 'uxgridfilters'
 			}],
