@@ -49,7 +49,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				border: false,
 				xtype: 'toolbar',
 				items: []
-			},'->',{
+			},'-',{
 				icon: 'images/op5img/ico_search_16.gif',
 				itemId: 'btnSearchIcon',
 				handler: function(btn) {
@@ -67,9 +67,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 					select: this.onSearchSelect,
 					scope: this
 				}
-			}),{
-				xtype: 'tbseparator'
-			},{
+			}),'->',{
 				//iconCls: 'op5-spec-dbsembramach-report-clock',
 				itemId: 'tbViewmode',
 				viewConfig: {forceFit: true},
@@ -108,6 +106,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				text: 'Refresh',
 				handler: function() {
 					this.doLoad(true) ;
+				},
+				scope: this
+			},{
+				hidden: this._readonlyMode,
+				iconCls: 'op5-crmbase-datatoolbar-new',
+				text: 'Select.multiple',
+				handler: function() {
+					this.toggleMultiSelect(true) ;
 				},
 				scope: this
 			},{
@@ -295,8 +301,57 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			});
 		}) ;
 		
+		
 		var pCenter = this.down('#pCenter') ;
+		
+		var validBtn = Ext.create('Ext.button.Button',{
+			cls: 'op5-spec-rsiveo-checkcolumn-btn op5-spec-rsiveo-checkcolumn-submit',
+			iconCls: 'op5-spec-mrfoxy-financebudget-newrevisionmenu-save'
+		});
+		validBtnMarkup = Ext.DomHelper.markup(validBtn.getRenderTree());
+		validBtn.destroy() ;
+		
+		var checkAllBtn = Ext.create('Ext.button.Button',{
+			cls: 'op5-spec-rsiveo-checkcolumn-btn op5-spec-rsiveo-checkcolumn-checkall x-grid-checkcolumn x-grid-checkcolumn-checked'
+			//iconCls: 'op5-spec-mrfoxy-financebudget-newrevisionmenu-save'
+		});
+		var checkAllBtnMarkup = Ext.DomHelper.markup(checkAllBtn.getRenderTree());
+		checkAllBtn.destroy() ;
+		
+		var checkNoneBtn = Ext.create('Ext.button.Button',{
+			cls: 'op5-spec-rsiveo-checkcolumn-btn op5-spec-rsiveo-checkcolumn-checknone x-grid-checkcolumn'
+			//iconCls: 'op5-spec-mrfoxy-financebudget-newrevisionmenu-save'
+		});
+		var checkNoneBtnMarkup = Ext.DomHelper.markup(checkNoneBtn.getRenderTree());
+		checkNoneBtn.destroy() ;
+		
 		var columns = [{
+			width: 60,
+			xtype: 'uxnullcheckcolumn',
+			itemId: 'colMultiSelect',
+			sortable: false,
+			dataIndex: '_is_selection',
+			text: '<b><font color="red">Create</font></b>' + '<div align="center">' + validBtnMarkup + '</div>' + '<div align="center">' + checkAllBtnMarkup + '&#160;' + checkNoneBtnMarkup + '</div>',
+			isColumnCreate: true,
+			listeners: {
+				// attach event listener to buttonMarkup
+				afterrender: function(editingColumn) {
+					editingColumn.getEl().on( 'click', function(e,t) {
+						e.stopEvent() ;
+						console.log('multiselect go') ;
+					},this,{delegate:'.op5-spec-rsiveo-checkcolumn-submit'}) ;
+					editingColumn.getEl().on( 'click', function(e,t) {
+						e.stopEvent() ;
+						this.toggleMultiSelectAll(true);
+					},this,{delegate:'.op5-spec-rsiveo-checkcolumn-checkall'}) ;
+					editingColumn.getEl().on( 'click', function(e,t) {
+						e.stopEvent() ;
+						this.toggleMultiSelectAll(false);
+					},this,{delegate:'.op5-spec-rsiveo-checkcolumn-checknone'}) ;
+				},
+				scope: this
+			}
+		},{
 			itemId: 'colAtr',
 			text: 'Attributs',
 			columns: atrColumns
@@ -452,7 +507,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		Ext.define(this.tmpModelName, {
 			extend: Optima5.Modules.Spec.RsiRecouveo.HelperCache.getFileModel(),
 			idProperty: 'file_filerecord_id',
-			fields: balageFields
+			fields: Ext.Array.merge(balageFields,[
+				{name: '_is_selection', type:'boolean'}
+			])
 		});
 		
 		pCenter.removeAll() ;
@@ -922,6 +979,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			column.setVisible( (column._agendaMode==agendaMode) ) ;
 		} ) ;
 	},
+	toggleMultiSelect: function( torf ) {
+		this.down('#pCenter').down('#pGrid').headerCt.down('#colMultiSelect').setVisible( torf ) ;
+	},
 	
 	onSocSet: function() {
 		this.doLoad(true) ;
@@ -1134,6 +1194,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		
 		// grid 
 		if( doClearFilters ) {
+			this.toggleMultiSelect(false) ;
+			
 			this.down('#pCenter').down('#pGrid').getStore().clearFilter() ;
 			this.down('#pCenter').down('#pGrid').filters.clearFilters() ;
 			
@@ -1261,6 +1323,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		this.down('#pNorth').down('#chrtStatusCount')._textSprite.setAttributes({
 			text: 'Nb Dossiers ( '+chartStatusCountTotal+' )'
 		},true) ;
+	},
+	
+	toggleMultiSelectAll: function(torf) {
+		this.down('#pCenter').down('#pGrid').getStore().each( function(rec) {
+			rec.set('_is_selection',torf) ;
+			//rec.commit() ;
+		}) ;
 	},
 	
 	
