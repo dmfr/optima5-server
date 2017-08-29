@@ -247,6 +247,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 			model: 'RsiRecouveoCfgSocModel',
 			data : ajaxData.data.cfg_soc
 		}) ;
+		this.cfgUserStore = Ext.create('Ext.data.Store',{
+			model: 'RsiRecouveoConfigUserTplModel',
+			data : ajaxData.data.cfg_user
+		}) ;
 		
 		var cmpId = this.cmpId ;
 		
@@ -434,6 +438,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 	
 	getSocAll: function() {
 		return Ext.pluck( this.cfgSocStore.getRange(), 'data' ) ;
+	},
+	
+	getUserAll: function() {
+		return Ext.pluck( this.cfgUserStore.getRange(), 'data' ) ;
 	},
 	
 	authHelperHasAll: function() {

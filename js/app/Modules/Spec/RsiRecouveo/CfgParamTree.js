@@ -232,6 +232,23 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamTree',{
 			}) ;
 			rootNode = tmpTreeStore.getRootNode().copy(undefined,true) ;
 			this.allValues=true ;
+		} else if( this.cfgParam_id && this.cfgParam_id=='USER' ) {
+			Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getUserAll(), function(userRow) {
+				rootChildren.push({
+						nodeId: userRow.user_id,
+						nodeType: 'entry',
+						nodeKey: userRow.user_id,
+						nodeText: userRow.user_txt,
+						leaf: true
+				});
+			}) ;
+			rootNode = {
+				root: true,
+				children: rootChildren,
+				nodeText: '<b>'+'Affectation utilisateur'+'</b>',
+				expanded: true
+			}
+			this.allValues=true ;
 		} else if( this.cfgParam_id && this.cfgParam_id=='ACTIONNEXT' ) {
 			data = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionnextData() ;
 			var tmpTreeStore = Ext.create('Ext.data.TreeStore',{

@@ -174,6 +174,16 @@ function specRsiRecouveo_cfg_getConfig() {
 		) ;
 	}
 	
+	$TAB_user = array() ;
+	$query = "SELECT * FROM view_bible_USER_entry WHERE 1 ORDER BY entry_key" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$TAB_user[] = array(
+			'user_id' => $arr['field_USER_ID'],
+			'user_txt' => $arr['field_USER_FULLNAME']
+		) ;
+	}
+	
 	$GLOBALS['cache_specRsiRecouveo_cfg']['getConfig'] = array(
 		'cfg_atr' => $TAB_list_atr,
 		'cfg_opt' => $TAB_list_opt,
@@ -182,7 +192,8 @@ function specRsiRecouveo_cfg_getConfig() {
 		'cfg_action_eta' => $TAB_action_eta,
 		'cfg_balage' => $TAB_balage,
 		'cfg_template' => $TAB_tpl,
-		'cfg_soc' => $TAB_soc
+		'cfg_soc' => $TAB_soc,
+		'cfg_user' => $TAB_user
 	);
 	
 	

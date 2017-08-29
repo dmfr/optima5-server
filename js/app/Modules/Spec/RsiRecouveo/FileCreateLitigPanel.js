@@ -34,7 +34,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateLitigPanel',{
 					format: 'Y-m-d',
 					name: 'litig_nextdate',
 					fieldLabel: 'Prochain suivi'
-				}]
+				},Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
+					fieldLabel: 'Affectation',
+					cfgParam_id: 'USER',
+					icon: 'images/op5img/ico_users_16.png',
+					selectMode: 'SINGLE',
+					optimaModule: this.optimaModule
+				})]
 			}]
 		}) ;
 		

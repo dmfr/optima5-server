@@ -50,7 +50,27 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				border: false,
 				xtype: 'toolbar',
 				items: []
-			},'-',{
+			},'-',Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamButton',{
+				itemId: 'tbUser',
+				cfgParam_id: 'USER',
+				icon: 'images/op5img/ico_users_16.png',
+				selectMode: 'SINGLE',
+				optimaModule: this.optimaModule,
+				listeners: {
+					change: {
+						fn: function() {
+							this.onSocSet() ;
+						},
+						scope: this
+					},
+					ready: {
+						fn: function() {
+							
+						},
+						scope: this
+					}
+				}
+			}),{
 				icon: 'images/op5img/ico_search_16.gif',
 				itemId: 'btnSearchIcon',
 				handler: function(btn) {
