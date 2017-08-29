@@ -6,7 +6,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		'Ext.ux.grid.filters.filter.StringList',
 		'Optima5.Modules.Spec.RsiRecouveo.CfgParamButton',
 		'Optima5.Modules.Spec.RsiRecouveo.SearchCombo',
-		'Optima5.Modules.Spec.RsiRecouveo.CfgParamFilter'
+		'Optima5.Modules.Spec.RsiRecouveo.CfgParamFilter',
+		'Optima5.Modules.Spec.RsiRecouveo.MultiActionForm'
 	],
 	
 	viewMode: null,
@@ -113,7 +114,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				iconCls: 'op5-crmbase-datatoolbar-new',
 				text: 'Select.multiple',
 				handler: function() {
-					this.toggleMultiSelect(true) ;
+					this.toggleMultiSelect() ;
 				},
 				scope: this
 			},{
@@ -338,7 +339,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				afterrender: function(editingColumn) {
 					editingColumn.getEl().on( 'click', function(e,t) {
 						e.stopEvent() ;
-						console.log('multiselect go') ;
+						this.handleMultiSelect() ;
 					},this,{delegate:'.op5-spec-rsiveo-checkcolumn-submit'}) ;
 					editingColumn.getEl().on( 'click', function(e,t) {
 						e.stopEvent() ;
@@ -980,7 +981,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		} ) ;
 	},
 	toggleMultiSelect: function( torf ) {
-		this.down('#pCenter').down('#pGrid').headerCt.down('#colMultiSelect').setVisible( torf ) ;
+		var column = this.down('#pCenter').down('#pGrid').headerCt.down('#colMultiSelect') ;
+		column.setVisible( !column.isVisible() ) ;
 	},
 	
 	onSocSet: function() {
@@ -1364,6 +1366,37 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		if( this.autoRefreshTask ) {
 			this.autoRefreshTask.cancel() ;
 		}
+	},
+	
+	handleMultiSelect: function() {
+		this.getEl().mask() ;
+		// Open panel
+		var createPanel = Ext.create('Optima5.Modules.Spec.RsiRecouveo.MultiActionForm',{
+			optimaModule: this.optimaModule,
+			width:400, // dummy initial size, for border layout to work
+			height:null, // ...
+			floating: true,
+			draggable: true,
+			resizable: true,
+			renderTo: this.getEl(),
+			tools: [{
+				type: 'close',
+				handler: function(e, t, p) {
+					p.ownerCt.destroy();
+				},
+				scope: this
+			}]
+		});
+		createPanel.on('saved', function(p) {
+			this.doTreeLoad() ;
+		},this,{single:true}) ;
+		createPanel.on('destroy',function(p) {
+			this.getEl().unmask() ;
+			this.floatingPanel = null ;
+		},this,{single:true}) ;
+		
+		createPanel.show();
+		createPanel.getEl().alignTo(this.getEl(), 'c-c?');
 	},
 	
 	handleOpenAccount: function(accId,fileFilerecordId) {

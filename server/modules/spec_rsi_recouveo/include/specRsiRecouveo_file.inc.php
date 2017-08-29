@@ -1026,10 +1026,13 @@ function specRsiRecouveo_file_getScenarioLine( $post_data ) {
 	
 	$p_fileFilerecordId = $post_data['file_filerecord_id'] ;
 	$p_forceScenCode = $post_data['force_scenCode'] ;
-	$json = specRsiRecouveo_file_getRecords( array(
-		'filter_fileFilerecordId_arr' => json_encode(array($p_fileFilerecordId))
-	)) ;
-	$accFile_record = $json['data'][0] ;
+	
+	if( $p_fileFilerecordId ) {
+		$json = specRsiRecouveo_file_getRecords( array(
+			'filter_fileFilerecordId_arr' => json_encode(array($p_fileFilerecordId))
+		)) ;
+		$accFile_record = $json['data'][0] ;
+	}
 	
 	$json = specRsiRecouveo_config_getScenarios(array()) ;
 	$data_scenarios = $json['data'] ;
@@ -1067,6 +1070,14 @@ function specRsiRecouveo_file_getScenarioLine( $post_data ) {
 	$TAB['BUMP'] = array(
 		'link_action' => 'BUMP'
 	);
+	
+	if( !$accFile_record && !$p_fileFilerecordId ) {
+		return array('success'=>true, 'data'=>array_values($TAB)) ;
+	}
+	
+	if( !$accFile_record ) {
+		return array('success'=>false) ;
+	}
 	
 	/*
 	*************************************
