@@ -180,7 +180,11 @@ function specRsiRecouveo_cfg_getConfig() {
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$TAB_user[] = array(
 			'user_id' => $arr['field_USER_ID'],
-			'user_txt' => $arr['field_USER_FULLNAME']
+			'user_pw' => $arr['field_USER_PW'],
+			'user_fullname' => $arr['field_USER_FULLNAME'],
+			'user_email' => $arr['field_USER_EMAIL'],
+			'user_tel' => $arr['field_USER_TEL'],
+			'status_is_ext' => ($arr['field_STATUS_IS_EXT']==1)
 		) ;
 	}
 	

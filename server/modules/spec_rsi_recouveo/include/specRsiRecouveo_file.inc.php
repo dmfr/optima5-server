@@ -39,6 +39,9 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 	if( $post_data['filter_soc'] ) {
 		$filter_soc = json_decode($post_data['filter_soc'],true) ;
 	}
+	if( $post_data['filter_extuser'] ) {
+		$filter_extuser = json_decode($post_data['filter_extuser'],true) ;
+	}
 	if( $post_data['filter_fileFilerecordId_arr'] ) {
 		$_load_details = true ;
 		$filter_fileFilerecordId_list = $_opDB->makeSQLlist( json_decode($post_data['filter_fileFilerecordId_arr'],true) ) ;
@@ -69,6 +72,9 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 		}
 		if( $filter_soc ) {
 			$query.= " AND la.treenode_key IN ".$_opDB->makeSQLlist($filter_soc) ;
+		}
+		if( $filter_extuser ) {
+			$query.= " AND f.field_LINK_USER_EXT IN ".$_opDB->makeSQLlist($filter_extuser) ;
 		}
 		if( !$filter_archiveIsOn ) {
 			$query.= " AND f.field_STATUS_CLOSED_VOID='0' AND f.field_STATUS_CLOSED_END='0'" ;
@@ -110,6 +116,8 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			
 			'records' => array(),
 			'actions' => array(),
+			
+			'ext_user' => ($filter_extuser ? null : ($arr['field_LINK_USER_EXT']?$arr['field_LINK_USER_EXT']:null)),
 			
 			'from_file_filerecord_id' => $arr['field_FROM_FILE_ID']
 		);
@@ -687,6 +695,16 @@ function specRsiRecouveo_file_createForAction( $post_data ) {
 		$arr_ins['field_STATUS'] = $new_status ;
 		$arr_ins['field_DATE_OPEN'] = date('Y-m-d H:i:s') ;
 		$arr_ins['field_FROM_FILE_ID'] = $current_fileFilerecordId ;
+		switch( $p_newActionCode ) {
+			case 'LITIG_START' :
+				if( $_formData['litig_ext_is_on'] ) {
+					$arr_ins['field_LINK_USER_EXT'] = $_formData['litig_ext_user'] ;
+				}
+				break ;
+			
+			default :
+				break ;
+		}
 		$file_filerecord_id = paracrm_lib_data_insertRecord_file( 'FILE', 0, $arr_ins );
 	}
 	
@@ -754,6 +772,9 @@ function specRsiRecouveo_file_createForAction( $post_data ) {
 			$arr_ins['field_DATE_ACTUAL'] = date('Y-m-d H:i:s') ;
 			$arr_ins['field_LINK_LITIG'] = $_formData['litig_code'] ;
 			$arr_ins['field_TXT'] = $_formData['litig_txt'] ;
+			if( $_formData['litig_ext_is_on'] ) {
+				$arr_ins['field_LINK_USER_EXT'] = $_formData['litig_ext_user'] ;
+			}
 			paracrm_lib_data_insertRecord_file( $file_code, $file_filerecord_id, $arr_ins );
 			
 			$arr_ins = array() ;

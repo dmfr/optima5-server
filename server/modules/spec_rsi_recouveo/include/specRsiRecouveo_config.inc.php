@@ -57,7 +57,8 @@ function specRsiRecouveo_config_loadUser($post_data) {
 			'user_pw' => $arr['field_USER_PW'],
 			'user_fullname' => $arr['field_USER_FULLNAME'],
 			'user_email' => $arr['field_USER_EMAIL'],
-			'user_tel' => $arr['field_USER_TEL']
+			'user_tel' => $arr['field_USER_TEL'],
+			'status_is_ext' => ($arr['field_STATUS_IS_EXT']==1)
 		);
 		foreach( $cfg_atr as $atr_rec ) {
 			$atr_code = $atr_rec['bible_code'] ;

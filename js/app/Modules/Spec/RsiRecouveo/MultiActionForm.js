@@ -261,6 +261,20 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MultiActionForm',{
 					format: 'Y-m-d',
 					name: 'litig_nextdate',
 					fieldLabel: 'Prochain suivi'
+				},{
+					xtype: 'fieldset',
+					checkboxToggle: true,
+					checkboxName: 'litig_ext_is_on',
+					title: 'Affectation externe',
+					items: [Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
+						fieldLabel: 'Destinataire',
+						name: 'litig_ext_user',
+						cfgParam_id: 'USER',
+						cfgParam_emptyDisplayText: 'Select...',
+						icon: 'images/op5img/ico_users_16.png',
+						selectMode: 'SINGLE',
+						optimaModule: this.optimaModule
+					})]
 				}]
 			},{
 				xtype: 'fieldset',
@@ -306,6 +320,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MultiActionForm',{
 			}]
 		}) ;
 		this.callParent() ;
+		this.getForm().setValues({litig_ext_is_on:false}) ;
 		this.on('afterrender', function() {
 			//this.startAction( this._arr_fileFilerecordIds ) ;
 		},this) ;

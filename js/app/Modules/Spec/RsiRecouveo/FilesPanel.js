@@ -59,7 +59,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				listeners: {
 					change: {
 						fn: function() {
-							this.onSocSet() ;
+							this.onUserSet() ;
 						},
 						scope: this
 					},
@@ -555,6 +555,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				},
 				scope :this
 			},
+			viewConfig: {
+				getRowClass: function(r) {
+					if( r.get('ext_user') ) {
+						return 'op5-spec-rsiveo-pom' ;
+					}
+				}
+			},
 			_statusMap: statusMap,
 			_actionMap: actionMap,
 			_actionnextMap: actionnextMap,
@@ -1011,6 +1018,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 	onAtrSet: function() {
 		this.doLoad(true) ;
 	},
+	onUserSet: function() {
+		var tbUser = this.down('toolbar').down('#tbUser'),
+			userSet = !Ext.isEmpty( tbUser.getLeafNodesKey() ) ;
+		this.down('toolbar').down('#btnSearchIcon').setVisible( !userSet );
+		this.down('toolbar').down('#btnSearch').setVisible( !userSet );
+		
+		this.doLoad(true) ;
+	},
 	
 	onBeforeQueryLoad: function(store,options) {
 		var objAtrFilter = {}, arrSocFilter=[] ;
@@ -1040,7 +1055,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 	},
 	
 	doLoad: function(doClearFilters) {
-		var objAtrFilter = {}, arrSocFilter=null ;
+		var objAtrFilter = {}, arrSocFilter=null, arrUserFilter=null ;
 		Ext.Array.each( this.query('toolbar > [cfgParam_id]'), function(cfgParamBtn) {
 			var cfgParam_id = cfgParamBtn.cfgParam_id ;
 			if( Ext.isEmpty(cfgParamBtn.getValue()) ) {
@@ -1052,6 +1067,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			if( cfgParam_id=='SOC' ) {
 				arrSocFilter = cfgParamBtn.getLeafNodesKey() ;
 			}
+			if( cfgParam_id=='USER' ) {
+				arrUserFilter = cfgParamBtn.getLeafNodesKey() ;
+			}
 		}) ;
 		
 		this.showLoadmask() ;
@@ -1061,6 +1079,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				_action: 'file_getRecords',
 				filter_atr: Ext.JSON.encode(objAtrFilter),
 				filter_soc: (arrSocFilter ? Ext.JSON.encode(arrSocFilter):''),
+				filter_extuser: (arrUserFilter ? Ext.JSON.encode(arrUserFilter):''),
 				filter_archiveIsOn: (this.showClosed ? 1 : 0)
 			},
 			success: function(response) {

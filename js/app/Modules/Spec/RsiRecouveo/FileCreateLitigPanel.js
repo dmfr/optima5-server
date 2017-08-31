@@ -16,9 +16,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateLitigPanel',{
 				layout: {
 					type: 'anchor'
 				},
-				defaults: {
+				fieldDefaults: {
 					anchor: '100%',
-					labelWidth: 60
+					labelWidth: 90
 				},
 				items: [Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
 					cfgParam_id: 'OPT_LITIG',
@@ -34,16 +34,25 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateLitigPanel',{
 					format: 'Y-m-d',
 					name: 'litig_nextdate',
 					fieldLabel: 'Prochain suivi'
-				},Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
-					fieldLabel: 'Affectation',
-					cfgParam_id: 'USER',
-					icon: 'images/op5img/ico_users_16.png',
-					selectMode: 'SINGLE',
-					optimaModule: this.optimaModule
-				})]
+				},{
+					xtype: 'fieldset',
+					checkboxToggle: true,
+					checkboxName: 'litig_ext_is_on',
+					title: 'Affectation externe',
+					items: [Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
+						fieldLabel: 'Destinataire',
+						name: 'litig_ext_user',
+						cfgParam_id: 'USER',
+						cfgParam_emptyDisplayText: 'Select...',
+						icon: 'images/op5img/ico_users_16.png',
+						selectMode: 'SINGLE',
+						optimaModule: this.optimaModule
+					})]
+				}]
 			}]
 		}) ;
 		
 		this.callParent() ;
+		this.getForm().setValues({litig_ext_is_on:false}) ;
 	}
 }) ;
