@@ -27,6 +27,15 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigUsersPanel', {
 		Ext.apply(this,{
 			layout: 'border',
 			items:[{
+				tbar: [{
+					itemId: 'tbNew',
+					icon: 'images/op5img/ico_new_16.gif',
+					text: 'Nouveau...',
+					handler: function() {
+						this.handleUserNew();
+					},
+					scope: this
+				}],
 				region: 'center',
 				flex: 1,
 				xtype: 'gridpanel',
@@ -118,7 +127,29 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigUsersPanel', {
 					xtype: 'textfield',
 					name: 'user_tel',
 					fieldLabel: 'Téléphone'
-				}],atrFields),
+				}],{
+					xtype: 'fieldset',
+					title: 'Affectation litiges',
+					items: [{
+						xtype: 'checkboxfield',
+						boxLabel: 'Utilisateur externe pour affectation',
+						name: 'status_is_ext'
+					}]
+				},{
+					xtype: 'fieldset',
+					title: 'Entités',
+					items: [{
+						xtype: 'op5crmbasebibletreepicker',
+						optimaModule: this.optimaModule,
+						bibleId: 'LIB_ACCOUNT',
+						name: 'link_SOC',
+						fieldLabel: 'Entités'
+					}]
+				},{
+					xtype: 'fieldset',
+					title: 'Attributs',
+					items: atrFields
+				}),
 				buttons: [{
 					itemId: 'btnOk',
 					xtype: 'button',
@@ -143,6 +174,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigUsersPanel', {
 		this.callParent() ;
 	},
 	
+	handleUserNew: function() {
+		this.setFormRecord( Ext.create(Optima5.Modules.Spec.RsiRecouveo.HelperCache.getConfigUserModel(),{
+			_is_new: true
+		}) );
+	},
+	
 	
 	setFormRecord: function(userRecord) {
 		var me = this,
@@ -154,18 +191,21 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigUsersPanel', {
 			return ;
 		}
 		
-		var title ;
+		var title,values ;
 		if( userRecord.get('_is_new') ) {
 			title = 'Création utilisateur' ;
+			values = {} ;
 		} else {
-			title = 'Modification: '+userRecord.getId ;
+			title = 'Modification: '+userRecord.getId() ;
+			values = userRecord.getData() ;
 		}
 		
 		
 		eastpanel._empty = false ;
 		eastpanel.setTitle(title) ;
 		console.dir(userRecord.getData()) ;
-		eastpanel.getForm().setValues( userRecord.getData() ) ;
+		eastpanel.getForm().reset() ;
+		eastpanel.getForm().setValues( values ) ;
 		eastpanel.expand() ;
 	},
 	closeForm: function() {

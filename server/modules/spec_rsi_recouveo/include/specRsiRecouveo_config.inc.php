@@ -60,6 +60,7 @@ function specRsiRecouveo_config_loadUser($post_data) {
 			'user_tel' => $arr['field_USER_TEL'],
 			'status_is_ext' => ($arr['field_STATUS_IS_EXT']==1)
 		);
+		$user_rec['link_SOC'] = json_decode($arr['field_LINK_SOC'],true) ;
 		foreach( $cfg_atr as $atr_rec ) {
 			$atr_code = $atr_rec['bible_code'] ;
 			$user_rec['link_'.$atr_code] = json_decode($arr['field_LINK_'.$atr_code],true) ;

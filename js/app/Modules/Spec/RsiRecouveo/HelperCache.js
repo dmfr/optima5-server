@@ -99,7 +99,9 @@ Ext.define('RsiRecouveoConfigUserTplModel',{
 		{name: 'user_pw', type:'string'},
 		{name: 'user_fullname', type:'string'},
 		{name: 'user_email', type:'string'},
-		{name: 'user_tel', type:'string'}
+		{name: 'user_tel', type:'string'},
+		{name: 'status_is_ext', type:'boolean'},
+		{name: 'link_SOC', type:'auto'}
 	]
 });
 
@@ -450,5 +452,24 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 			return true ;
 		}
 		return false ;
+	},
+	authHelperListSoc: function() {
+		var me = this ;
+			
+		if( me.optimaModule.getSdomainRecord().get('auth_has_all') ) {
+			return true ;
+		}
+		return me.authSoc ;
+	},
+	authHelperListAtr: function(atrId) {
+		var me = this ;
+			
+		if( me.optimaModule.getSdomainRecord().get('auth_has_all') ) {
+			return null ;
+		}
+		if( me.authMapAtr.hasOwnProperty(atrId) ) {
+			return me.authMapAtr[atrId] ;
+		}
+		return null ;
 	}
 });
