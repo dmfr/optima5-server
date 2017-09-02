@@ -60,8 +60,10 @@ switch( $post_data['_action'] )
 		return specRsiRecouveo_config_loadMeta( $post_data ) ;
 	case 'config_saveMeta' :
 		return specRsiRecouveo_config_saveMeta( $post_data ) ;
-	case 'config_loadUser' :
-		return specRsiRecouveo_config_loadUser( $post_data ) ;
+	case 'config_getUsers' :
+		return specRsiRecouveo_config_getUsers( $post_data ) ;
+	case 'config_setUser' :
+		return specRsiRecouveo_config_setUser( $post_data ) ;
 	case 'config_getScenarios' :
 		return specRsiRecouveo_config_getScenarios( $post_data ) ;
 	case 'config_setScenario' :

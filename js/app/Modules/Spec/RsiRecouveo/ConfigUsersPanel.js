@@ -27,6 +27,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigUsersPanel', {
 		Ext.apply(this,{
 			layout: 'border',
 			items:[{
+				itemId: 'pCenter',
 				tbar: [{
 					itemId: 'tbNew',
 					icon: 'images/op5img/ico_new_16.gif',
@@ -67,7 +68,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigUsersPanel', {
 					proxy: this.optimaModule.getConfiguredAjaxProxy({
 						extraParams : {
 							_moduleId: 'spec_rsi_recouveo',
-							_action: 'config_loadUser'
+							_action: 'config_getUsers'
 						},
 						reader: {
 							type: 'json',
@@ -106,6 +107,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigUsersPanel', {
 					anchor: '100%'
 				},
 				items: Ext.Array.merge([{
+					xtype: 'hiddenfield',
+					name: 'id'
+				},{
 					xtype: 'textfield',
 					name: 'user_id',
 					fieldLabel: 'ID utilisateur',
@@ -165,7 +169,16 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigUsersPanel', {
 					text: 'Abandon',
 					icon: 'images/op5img/ico_cancel_small.gif',
 					handler: function( btn ) {
-						this.destroy() ;
+						this.handleCancel() ;
+					},
+					scope: this
+				},{
+					itemId: 'btnDelete',
+					xtype: 'button',
+					text: 'Supprimer',
+					icon: 'images/op5img/ico_delete_16.gif',
+					handler: function( btn ) {
+						this.handleDelete() ;
 					},
 					scope: this
 				}]
@@ -174,10 +187,57 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigUsersPanel', {
 		this.callParent() ;
 	},
 	
+	doReload: function() {
+		this.down('#pCenter').getStore().load() ;
+	},
+	
 	handleUserNew: function() {
 		this.setFormRecord( Ext.create(Optima5.Modules.Spec.RsiRecouveo.HelperCache.getConfigUserModel(),{
 			_is_new: true
 		}) );
+	},
+	handleCancel: function() {
+		this.setFormRecord(null) ;
+	},
+	handleSave: function(doDelete) {
+		var me = this,
+			eastpanel = me.down('#cntEast') ;
+		if( eastpanel._empty ) {
+			return ;
+		}
+		
+		var values = eastpanel.getForm().getFieldValues() ;
+		
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_rsi_recouveo',
+				_action: 'config_setUser',
+				data: Ext.JSON.encode(values),
+				do_delete: (doDelete ? 1 : 0)
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+				this.setFormRecord(null) ;
+				this.doReload() ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+	},
+	handleDelete: function() {
+		Ext.MessageBox.confirm('Suppression','Suppression utilisateur', function(btn) {
+			if( btn =='yes' ) {
+				var doDelete = true ;
+				this.handleSave(doDelete) ;
+			}
+		},this) ;
 	},
 	
 	
@@ -198,6 +258,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigUsersPanel', {
 		} else {
 			title = 'Modification: '+userRecord.getId() ;
 			values = userRecord.getData() ;
+			values['id'] = userRecord.getId() ;
 		}
 		
 		
@@ -206,6 +267,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigUsersPanel', {
 		console.dir(userRecord.getData()) ;
 		eastpanel.getForm().reset() ;
 		eastpanel.getForm().setValues( values ) ;
+		eastpanel.getForm().findField('user_id').setReadOnly( !userRecord.get('_is_new') ) ;
+		eastpanel.down('#btnDelete').setVisible( !userRecord.get('_is_new') ) ;
 		eastpanel.expand() ;
 	},
 	closeForm: function() {
@@ -214,5 +277,29 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigUsersPanel', {
 		eastpanel._empty = true ;
 		eastpanel.collapse() ;
 		eastpanel.reset() ;
+	},
+	
+	showLoadmask: function() {
+		if( this.rendered ) {
+			this.doShowLoadmask() ;
+		} else {
+			this.on('afterrender',this.doShowLoadmask,this,{single:true}) ;
+		}
+	},
+	doShowLoadmask: function() {
+		if( this.loadMask ) {
+			return ;
+		}
+		this.loadMask = Ext.create('Ext.LoadMask',{
+			target: this,
+			msg:"Please wait..."
+		}).show();
+	},
+	hideLoadmask: function() {
+		this.un('afterrender',this.doShowLoadmask,this) ;
+		if( this.loadMask ) {
+			this.loadMask.destroy() ;
+			this.loadMask = null ;
+		}
 	}
 }); 

@@ -39,7 +39,7 @@ function specRsiRecouveo_config_saveMeta( $post_data ) {
 
 
 
-function specRsiRecouveo_config_loadUser($post_data) {
+function specRsiRecouveo_config_getUsers($post_data) {
 	global $_opDB ;
 	
 	$ttmp = specRsiRecouveo_cfg_getConfig() ;
@@ -69,21 +69,49 @@ function specRsiRecouveo_config_loadUser($post_data) {
 	}
 	return array('success'=>true, 'data'=>$data) ;
 }
-function specRsiRecouveo_config_saveUser( $post_data ) {
-	$bible_code = 'META' ;
+function specRsiRecouveo_config_setUser( $post_data ) {
+	global $_opDB ;
 	
-	$ttmp = specRsiRecouveo_config_loadMeta(array()) ;
-	$old_data = $ttmp['data'] ;
+	$ttmp = specRsiRecouveo_cfg_getConfig() ;
+	$cfg_atr = $ttmp['data']['cfg_atr'] ;
 	
-	foreach( json_decode($post_data['data'],true) as $mkey=>$mvalue ) {
-		$arr_ins = array() ;
-		$arr_ins['field_META_KEY'] = $mkey ;
-		$arr_ins['field_META_VALUE'] = $mvalue ;
-		if( isset($old_data[$mkey]) ) {
-			paracrm_lib_data_deleteRecord_bibleEntry( $bible_code, $mkey ) ;
-		}
-		paracrm_lib_data_insertRecord_bibleEntry( $bible_code, $mkey, 'GLOBAL', $arr_ins ) ;
+	$user_record = json_decode($post_data['data'],true) ;
+	
+	if( $user_record['id'] ) {
+		paracrm_lib_data_deleteRecord_bibleEntry('USER',$user_record['id']) ;
 	}
+	
+	if( $post_data['do_delete']==1 ) {
+		return array('success'=>true) ;
+	}
+	
+	$arr_ins = array() ;
+	$arr_ins['field_USER_ID'] = $user_record['user_id'] ;
+	$arr_ins['field_SCEN_TXT'] = $user_record['user_pw'] ;
+	$arr_ins['field_USER_FULLNAME'] = $user_record['user_fullname'] ;
+	$arr_ins['field_USER_EMAIL'] = $user_record['user_email'] ;
+	$arr_ins['field_USER_TEL'] = $user_record['user_tel'] ;
+	$arr_ins['field_STATUS_IS_EXT'] = ($user_record['status_is_ext'] ? 1 : 0) ;
+	
+	if( $user_record['link_SOC'] && json_decode($user_record['link_SOC'],true) == array('&') ) {
+		$user_record['link_SOC'] = '' ;
+	}
+	$arr_ins['field_LINK_SOC'] = $user_record['link_SOC'] ;
+	
+	foreach( $cfg_atr as $atr_record ) {
+		$mkey = $atr_record['bible_code'] ;
+		if( $user_record['link_'.$mkey] && json_decode($user_record['link_'.$mkey],true) == array('&') ) {
+			$user_record['link_'.$mkey] = '' ;
+		}
+		$arr_ins['field_LINK_'.$mkey] = $user_record['link_'.$mkey] ;
+	}
+	
+	$treenode_key = 'CR' ;
+	if( $user_record['status_is_ext'] ) {
+		$treenode_key = 'EXT' ;
+	}
+	
+	paracrm_lib_data_insertRecord_bibleEntry( 'USER', $user_record['user_id'], $treenode_key, $arr_ins ) ;
 	
 	return array('success'=>true) ;
 }
