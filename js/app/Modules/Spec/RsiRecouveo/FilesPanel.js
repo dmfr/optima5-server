@@ -29,7 +29,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				itemId: 'tbSoc',
 				cfgParam_id: 'SOC',
 				icon: 'images/op5img/ico_blocs_small.gif',
-				selectMode: 'SINGLE',
+				selectMode: 'MULTI',
 				optimaModule: this.optimaModule,
 				listeners: {
 					change: {
@@ -187,6 +187,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		this.configureToolbar() ;
 		this.configureViews() ;
 		this.applyAgendaMode() ;
+		this.applyAuth() ;
 		this.onViewSet(this.defaultViewMode) ;
 	},
 	onCrmeventBroadcast: function(crmEvent, eventParams) {
@@ -1010,6 +1011,37 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 	toggleMultiSelect: function( torf ) {
 		var column = this.down('#pCenter').down('#pGrid').headerCt.down('#colMultiSelect') ;
 		column.setVisible( !column.isVisible() ) ;
+	},
+	
+	applyAuth: function() {
+		var helperCache = Optima5.Modules.Spec.RsiRecouveo.HelperCache,
+			authSoc = [],
+			authMapAtr = {},
+			authIsExt = null ;
+		authSoc = helperCache.authHelperListSoc() ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
+			authMapAtr[atrId] = helperCache.authHelperListAtr(atrId) ;
+		}) ;
+		authIsExt = helperCache.authHelperIsExt() ;
+		
+		Ext.Array.each( this.query('toolbar > [cfgParam_id]'), function(cfgParamBtn) {
+			var cfgParam_id = cfgParamBtn.cfgParam_id ;
+			if( cfgParam_id.indexOf('ATR_')===0 ) {
+				if( authMapAtr.hasOwnProperty(cfgParam_id) ) {
+					cfgParamBtn.setValue(authMapAtr[cfgParam_id]) ;
+				}
+			}
+			if( cfgParam_id=='SOC' ) {
+				if( authSoc ) {
+					cfgParamBtn.setValue(authSoc) ;
+				}
+			}
+			if( cfgParam_id=='USER' ) {
+				if( authIsExt != null ) {
+					cfgParamBtn.setValue(authIsExt) ;
+				}
+			}
+		}) ;
 	},
 	
 	onSocSet: function() {

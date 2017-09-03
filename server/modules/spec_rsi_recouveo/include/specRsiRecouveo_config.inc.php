@@ -87,7 +87,7 @@ function specRsiRecouveo_config_setUser( $post_data ) {
 	
 	$arr_ins = array() ;
 	$arr_ins['field_USER_ID'] = $user_record['user_id'] ;
-	$arr_ins['field_SCEN_TXT'] = $user_record['user_pw'] ;
+	$arr_ins['field_USER_PW'] = $user_record['user_pw'] ;
 	$arr_ins['field_USER_FULLNAME'] = $user_record['user_fullname'] ;
 	$arr_ins['field_USER_EMAIL'] = $user_record['user_email'] ;
 	$arr_ins['field_USER_TEL'] = $user_record['user_tel'] ;

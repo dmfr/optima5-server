@@ -159,8 +159,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 	startLoading: function() {
 		var me = this ;
 		
-		me.nbToLoad = 1 ;
+		me.nbToLoad = 2 ;
 		
+		me.authHelperInit() ;
 		me.fetchConfig() ;
 	},
 	onLoad: function() {
@@ -446,6 +447,42 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 		return Ext.pluck( this.cfgUserStore.getRange(), 'data' ) ;
 	},
 	
+	
+	
+	
+	
+	authHelperInit: function() {
+		var me = this ;
+		
+		me.authSoc = [] ;
+		me.authMapAtr = {} ;
+		me.authIsExt = null ;
+		
+		// Query Bible
+		var ajaxParams = {} ;
+		Ext.apply( ajaxParams, {
+			_moduleId: 'spec_rsi_recouveo',
+			_action: 'cfg_getAuth'
+		});
+		me.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams ,
+			success: function(response) {
+				var ajaxData = Ext.decode(response.responseText) ;
+				if( ajaxData.success == false ) {
+					Ext.Msg.alert('Failed', 'Unknown error');
+				}
+				else {
+					me.authSoc = ajaxData.authSoc ;
+					me.authMapAtr = ajaxData.authMapAtr ;
+					me.authIsExt = ajaxData.authIsExt ;
+				}
+				
+				me.onLoad() ;
+			},
+			scope: me
+		});
+	},
+	
 	authHelperHasAll: function() {
 		var me = this ;
 		if( me.optimaModule.getSdomainRecord().get('auth_has_all') ) {
@@ -457,7 +494,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 		var me = this ;
 			
 		if( me.optimaModule.getSdomainRecord().get('auth_has_all') ) {
-			return true ;
+			return null ;
 		}
 		return me.authSoc ;
 	},
@@ -471,5 +508,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 			return me.authMapAtr[atrId] ;
 		}
 		return null ;
+	},
+	authHelperIsExt: function() {
+		var me = this ;
+			
+		if( me.optimaModule.getSdomainRecord().get('auth_has_all') ) {
+			return null ;
+		}
+		return me.authIsExt ;
 	}
 });

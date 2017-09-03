@@ -56,8 +56,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamButton' ,{
 				});
 				this.setText( vals.join('&#160;'+'/'+'&#160;') ) ;
 			} else {
-				var val = ( this.selectMode == 'MULTI' ? selectedValue[0] : selectedValue ) ;
-				this.setText( cfgParamTree.getStore().getNodeById(val).get('nodeText') ) ;
+				var val = ( this.selectMode == 'MULTI' ? selectedValue[0] : selectedValue ),
+					rec = cfgParamTree.getStore().getNodeById(val) ;
+				if( rec ) {
+					this.setText( rec.get('nodeText') ) ;
+				} else {
+					this.setText( val ) ;
+				}
 			}
 		}
 		
@@ -74,6 +79,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamButton' ,{
 		var cfgParamTree = this.menu.down('treepanel'),
 			retValue = cfgParamTree.getLeafNodesKey() ;
 		return retValue ;
+	},
+	
+	setValue: function(value) {
+		var cfgParamTree = this.menu.down('treepanel') ;
+		cfgParamTree.setValue( value, false ) ;
 	},
 	
 	onAfterLoad: function() {

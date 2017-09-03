@@ -29,13 +29,104 @@ function specRsiRecouveo_cfg_doInit( $post_data ) {
 function specRsiRecouveo_cfg_getAuth( $post_data ) {
 	global $_opDB ;
 	
+	// **** Load data ****
+	$SOC_parentkey_arrKeys = array() ;
+	$query = "SELECT * FROM view_bible_LIB_ACCOUNT_tree" ;
+	$result = $_opDB->query($query);
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE )
+	{
+		$parent_key = $arr['treenode_parent_key'] ;
+		$key = $arr['treenode_key'] ;
+		
+		if( !is_array($SOC_parentkey_arrKeys[$parent_key]) ) {
+			$SOC_parentkey_arrKeys[$parent_key] = array() ;
+		}
+		$SOC_parentkey_arrKeys[$parent_key][] = $key ;
+	}
+	$bibleTree_soc = new GenericObjTree('&',array()) ;
+	while( true ) {
+		$done = array() ;
+		foreach( $SOC_parentkey_arrKeys as $parent_key => $keys ) {
+			$tparent_key = $parent_key ;
+			if( !$tparent_key ) {
+				$tparent_key = '&' ;
+			}
+			$parent_tree = $bibleTree_soc->getTree($tparent_key) ;
+			if( !$parent_tree ) {
+				continue ;
+			}
+			foreach( $keys as $key ) {
+				$parent_tree->addLeaf( $key, $key ) ;
+			}
+			
+			$done[] = $parent_key ;
+		}
+		
+		if( count($done) == 0 ) {
+			break ;
+		}
+		foreach( $done as $parent_key ) {
+			unset($SOC_parentkey_arrKeys[$parent_key]) ;
+		}
+	}
+	// *********
+	
+	// **************
+	$ttmp = specRsiRecouveo_cfg_getConfig() ;
+	$cfg_atr = $ttmp['data']['cfg_atr'] ;
+	// ***************
+	
+	
 	if( !isset($_SESSION['login_data']['delegate_sdomainId']) ) {
 		return array('success'=>true) ;
 	}
 	
+	$t = new DatabaseMgr_Sdomain( DatabaseMgr_Base::dbCurrent_getDomainId() ) ;
+	if( $_SESSION['login_data']['delegate_sdomainId'] != $t->dbCurrent_getSdomainId() ) {
+		return array('success'=>false) ;
+	}
+	
+	
+	
+	
+	
+	$user_id = $_SESSION['login_data']['delegate_userId'] ;
+	$query = "SELECT * FROM view_bible_USER_entry WHERE field_USER_ID='{$user_id}'" ;
+	$result = $_opDB->query($query) ;
+	if( ($arr = $_opDB->fetch_assoc($result)) == FALSE ) {
+		return array('success'=>false) ;
+	}
+	
+	$authSoc = array() ;
+	if( $arr['field_LINK_SOC'] && json_decode($arr['field_LINK_SOC'],true) ) {
+		foreach( json_decode($arr['field_LINK_SOC'],true) as $soc_key ) {
+			if( $soc_tree = $bibleTree_soc->getTree($soc_key) ) {
+				foreach( $soc_tree->getAllMembers() as $soc_key ) {
+					$authSoc[] = $soc_key ;
+				}
+			}
+		}
+	}
+	
+	$authMapAtr = array() ;
+	foreach( $cfg_atr as $atr_record ) {
+		$mkey = $atr_record['bible_code'] ;
+		$authMapAtr[$mkey] = null ;
+		if( $arr['field_LINK_'.$mkey] && json_decode($arr['field_LINK_'.$mkey],true) ) {
+			$authMapAtr[$mkey] = array() ;
+			foreach( json_decode($arr['field_LINK_'.$mkey],true) as $atr_key ) {
+				$authMapAtr[$mkey][] = $atr_key ;
+			}
+		}
+	}
+	
+	$authIsExt = ($arr['field_STATUS_IS_EXT']==1 ? $arr['field_USER_ID'] : null) ;
+	
 	return array(
 		'success' => true,
-		'authPage' => array()
+		'authSoc' => $authSoc,
+		'authMapAtr' => $authMapAtr,
+		'authIsExt' => $authIsExt
 	) ;
 }
 
