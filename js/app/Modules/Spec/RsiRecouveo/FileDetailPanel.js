@@ -1374,6 +1374,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		// assocation directe TEMPREC
 		var tempRec = true, tempRecIds=[] ;
 		Ext.Array.each( data.records, function( dragRecord ) {
+			tempRecIds.push(dragRecord.get('record_filerecord_id')) ;
+			return ;
+			// HACK : drag/drop all records 31/07
+			
 			if( Ext.isEmpty(dragRecord.get('record_type')) ) {
 				tempRec = false ;
 			} else {
