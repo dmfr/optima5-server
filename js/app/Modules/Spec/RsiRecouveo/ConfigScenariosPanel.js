@@ -243,6 +243,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigScenariosPanel', {
 					items: [{
 						xtype: 'textfield',
 						name: 'scen_code',
+						allowBlank: false,
 						fieldLabel: 'Code Scénario',
 						anchor: '50%'
 					},{
@@ -265,199 +266,397 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigScenariosPanel', {
 						}],atrFields)
 					}]
 				},{
-					_actionMap: actionMap,
-					_templateMap: templateMap,
-					xtype: 'grid',
-					itemId: 'gridEditorSteps',
+					xtype: 'tabpanel',
 					flex: 1,
-					store: {
-						model: 'RsiRecouveoConfigScenarioStepEditModel',
-						data: [],
-						proxy: {
-							type: 'memory',
-							reader: {
-								type: 'json'
+					tabPosition: 'left',
+					activeItem: 0,
+					items: [{
+						title: 'En-cours',
+						_actionMap: actionMap,
+						_templateMap: templateMap,
+						xtype: 'grid',
+						itemId: 'gridEditorSteps',
+						flex: 1,
+						store: {
+							model: 'RsiRecouveoConfigScenarioStepEditModel',
+							data: [],
+							proxy: {
+								type: 'memory',
+								reader: {
+									type: 'json'
+								}
 							}
-						}
-					},
-					viewConfig: {
-						plugins: {
-							ptype: 'gridviewdragdrop',
-							pluginId: 'reorder'
-								//dragText: 'Drag and drop to reorganize'
-						}
-					},
-					tbar: [{
-						itemId: 'tbNew',
-						icon: 'images/add.png',
-						text: 'Créer étape...',
-						handler: function() {
-							this.handleNewStep();
 						},
-						scope: this
-					},'-',{
-						disabled: true,
-						itemId: 'tbDelete',
-						icon: 'images/delete.png',
-						text: 'Supprimer',
-						handler: function() {
-							this.handleDeleteStep();
+						viewConfig: {
+							plugins: {
+								ptype: 'gridviewdragdrop',
+								pluginId: 'reorder'
+									//dragText: 'Drag and drop to reorganize'
+							}
 						},
-						scope: this
-					}],
-					plugins: [{
-						ptype: 'rowediting',
-						pluginId: 'rowediting',
+						tbar: [{
+							itemId: 'tbNew',
+							icon: 'images/add.png',
+							text: 'Créer étape...',
+							handler: function() {
+								this.handleNewStep();
+							},
+							scope: this
+						},'-',{
+							disabled: true,
+							itemId: 'tbDelete',
+							icon: 'images/delete.png',
+							text: 'Supprimer',
+							handler: function() {
+								this.handleDeleteStep();
+							},
+							scope: this
+						}],
+						plugins: [{
+							ptype: 'rowediting',
+							pluginId: 'rowediting',
+							listeners: {
+								edit: this.onAfterEditStep,
+								canceledit: this.onCancelEditStep,
+								beforeedit: this.onBeforeEditStep,
+								scope: this
+							}
+						}],
+						columns: [{
+							text: 'J + x',
+							width: 60,
+							dataIndex: 'schedule_daystep',
+							editor: {
+								xtype: 'numberfield',
+								hideTrigger:true
+							}
+						},{
+							text: 'Code',
+							width: 90,
+							dataIndex: 'scenstep_tag',
+							editor: {
+								xtype: 'textfield',
+								allowBlank: false,
+								maxLength: 10,
+								enforceMaxLength: true
+							}
+						},{
+							text: 'Action',
+							width: 150,
+							dataIndex: 'link_action',
+							editor: {
+								xtype: 'combobox',
+								queryMode: 'local',
+								forceSelection: true,
+								allowBlank: false,
+								editable: false,
+								store: {
+									model: 'RsiRecouveoCfgActionModel',
+									data: directActions
+								},
+								valueField: 'action_id',
+								displayField: 'action_txt',
+								listeners: {
+									select: function(cmb) {
+										this.onEditorActionChange(cmb.getValue()) ;
+									},
+									scope: this
+								}
+							},
+							renderer: function(value,metaData,record,rowIndex,colIndex,store,view) {
+								//var columnHeader = this.grid.getColumnManager().getHeaderAtIndex(curColIdx) ;
+								//var header = this.headerCt.getHeaderAtIndex(colIndex) ;
+								var actionMap = view.up('panel')._actionMap ;
+								if( actionMap.hasOwnProperty(value) ) {
+									var actionData = actionMap[value] ;
+									return '<b>'+actionData.action_txt+'</b>' ;
+								}
+								return '?' ;
+							}
+						},{
+							text: 'Template',
+							width: 150,
+							dataIndex: 'link_tpl',
+							editorTpl: {
+								xtype: 'combobox',
+								//hidden: true,
+								queryMode: 'local',
+								forceSelection: true,
+								allowBlank: false,
+								editable: false,
+								store: {
+									model: 'RsiRecouveoCfgTemplateModel',
+									data: []
+								},
+								valueField: 'tpl_id',
+								displayField: 'tpl_name',
+								listeners: {
+									select: function(cmb) {
+										this.onEditorTemplateChange(cmb.getValue()) ;
+									},
+									scope: this
+								}
+							},
+							renderer: function(value,metaData,record,rowIndex,colIndex,store,view) {
+								//var columnHeader = this.grid.getColumnManager().getHeaderAtIndex(curColIdx) ;
+								//var header = this.headerCt.getHeaderAtIndex(colIndex) ;
+								var templateMap = view.up('panel')._templateMap ;
+								if( templateMap.hasOwnProperty(value) ) {
+									var templateData = templateMap[value] ;
+									return '<b>'+templateData.tpl_name+'</b>' ;
+								}
+								return '&#160;' ;
+							}
+						},{
+							text: 'Mode d\'envoi',
+							width: 150,
+							dataIndex: 'mail_modes_json',
+							editorTpl: {
+								xtype: 'op5specrsiveomailfield'
+							},
+							renderer: function(value,metaData,record,rowIndex,colIndex,store,view) {
+								if( !record.get('link_tpl') ) {
+									return ;
+								}
+								
+								var templateMap = view.up('panel')._templateMap ;
+								if( !templateMap.hasOwnProperty(record.get('link_tpl')) ) {
+									return ;
+								}
+								
+								var templateData = templateMap[record.get('link_tpl')] ;
+								if( templateData._empty ) {
+									return ;
+								}
+								
+								value = Ext.JSON.decode(value,true) || [] ;
+								var str = '' ;
+								if( Ext.Array.contains(value,'postal_std') ) {
+									str += '<span class="op5-spec-rsiveo-mailthumb-display op5-spec-rsiveo-mail-postal-std">&#160;</span>' ;
+								}
+								if( Ext.Array.contains(value,'postal_rar') ) {
+									str += '<span class="op5-spec-rsiveo-mailthumb-display op5-spec-rsiveo-mail-postal-rar">&#160;</span>' ;
+								}
+								if( Ext.Array.contains(value,'tel') ) {
+									str += '<span class="op5-spec-rsiveo-mailthumb-display op5-spec-rsiveo-mail-sms">&#160;</span>' ;
+								}
+								if( Ext.Array.contains(value,'email') ) {
+									str += '<span class="op5-spec-rsiveo-mailthumb-display op5-spec-rsiveo-mail-email">&#160;</span>' ;
+								}
+								return str ;
+							}
+						},{
+							text: 'Auto?',
+							width: 48,
+							dataIndex: 'exec_is_auto',
+							editor: {
+								xtype: 'checkboxfield'
+							},
+							renderer: function(v) {
+								if( v ) {
+									return '<b>'+'X'+'</b>' ;
+								}
+								return '&#160;' ;
+							}
+						}],
 						listeners: {
-							edit: this.onAfterEditStep,
-							canceledit: this.onCancelEditStep,
-							beforeedit: this.onBeforeEditStep,
+							selectionchange: function(selModel,records) {
+								this.down('#gridEditorSteps').down('toolbar').down('#tbDelete').setDisabled( !(records && records.length > 0) ) ;
+							},
 							scope: this
 						}
-					}],
-					columns: [{
-						text: 'J + x',
-						width: 60,
-						dataIndex: 'schedule_daystep',
-						editor: {
-							xtype: 'numberfield',
-							hideTrigger:true
-						}
 					},{
-						text: 'Code',
-						width: 90,
-						dataIndex: 'scenstep_tag',
-						editor: {
-							xtype: 'textfield',
-							allowBlank: false,
-							maxLength: 10,
-							enforceMaxLength: true
-						}
-					},{
-						text: 'Action',
-						width: 150,
-						dataIndex: 'link_action',
-						editor: {
-							xtype: 'combobox',
-							queryMode: 'local',
-							forceSelection: true,
-							allowBlank: false,
-							editable: false,
-							store: {
-								model: 'RsiRecouveoCfgActionModel',
-								data: directActions
-							},
-							valueField: 'action_id',
-							displayField: 'action_txt',
-							listeners: {
-								select: function(cmb) {
-									this.onEditorActionChange(cmb.getValue()) ;
+						title: 'Non échu',
+						_actionMap: actionMap,
+						_templateMap: templateMap,
+						flex: 1,
+						xtype: 'form',
+						cls: 'ux-noframe-bg',
+						bodyPadding: 8,
+						bodyCls: 'ux-noframe-bg',
+						layout: 'anchor',
+						fieldDefaults: {
+							labelWidth: 90,
+							anchor: '50%'
+						},
+						items: [{
+							xtype: 'box',
+							html: '<b>Actions automatiques lors de l\'intégration factures sur dossier existant</b>',
+							padding: 16
+						},{
+							xtype: 'fieldset',
+							bodyPadding: 10,
+							collapsed: true,
+							checkboxToggle: true,
+							title: 'Ré-édition courrier sur intégration nouvelles factures',
+							items: [{
+								xtype: 'combobox',
+								fieldLabel: 'Template',
+								//hidden: true,
+								queryMode: 'local',
+								forceSelection: true,
+								allowBlank: false,
+								editable: false,
+								store: {
+									model: 'RsiRecouveoCfgTemplateModel',
+									data: []
 								},
-								scope: this
-							}
-						},
-						renderer: function(value,metaData,record,rowIndex,colIndex,store,view) {
-							//var columnHeader = this.grid.getColumnManager().getHeaderAtIndex(curColIdx) ;
-							//var header = this.headerCt.getHeaderAtIndex(colIndex) ;
-							var actionMap = view.up('panel')._actionMap ;
-							if( actionMap.hasOwnProperty(value) ) {
-								var actionData = actionMap[value] ;
-								return '<b>'+actionData.action_txt+'</b>' ;
-							}
-							return '?' ;
-						}
+								valueField: 'tpl_id',
+								displayField: 'tpl_name',
+								listeners: {
+									select: function(cmb) {
+										this.onEditorTemplateChange(cmb.getValue()) ;
+									},
+									scope: this
+								}
+							}]
+						}]
 					},{
-						text: 'Template',
-						width: 150,
-						dataIndex: 'link_tpl',
-						editorTpl: {
-							xtype: 'combobox',
-							//hidden: true,
-							queryMode: 'local',
-							forceSelection: true,
-							allowBlank: false,
-							editable: false,
-							store: {
-								model: 'RsiRecouveoCfgTemplateModel',
-								data: []
+						title: 'Promesses',
+						_actionMap: actionMap,
+						_templateMap: templateMap,
+						flex: 1,
+						xtype: 'form',
+						cls: 'ux-noframe-bg',
+						bodyPadding: 8,
+						bodyCls: 'ux-noframe-bg',
+						layout: 'anchor',
+						fieldDefaults: {
+							labelWidth: 150,
+							anchor: '75%'
+						},
+						items: [{
+							xtype: 'box',
+							html: '<b>Actions automatiques sur échéances promesses</b>',
+							padding: 16
+						},{
+							xtype: 'fieldset',
+							bodyPadding: 10,
+							collapsed: true,
+							checkboxToggle: true,
+							title: 'Envoi rappel échéance',
+							layout: 'anchor',
+							fieldDefaults: {
+								labelWidth: 150,
+								anchor: '75%'
 							},
-							valueField: 'tpl_id',
-							displayField: 'tpl_name',
-							listeners: {
-								select: function(cmb) {
-									this.onEditorTemplateChange(cmb.getValue()) ;
+							items: [{
+								xtype: 'numberfield',
+								fieldLabel: 'Nb jours avant échéance',
+								hideTrigger: true,
+								anchor: '',
+								width: 200
+							},{
+								xtype: 'fieldcontainer',
+								fieldLabel: 'Template',
+								layout: {
+									type: 'hbox',
+									align: 'middle'
 								},
-								scope: this
-							}
-						},
-						renderer: function(value,metaData,record,rowIndex,colIndex,store,view) {
-							//var columnHeader = this.grid.getColumnManager().getHeaderAtIndex(curColIdx) ;
-							//var header = this.headerCt.getHeaderAtIndex(colIndex) ;
-							var templateMap = view.up('panel')._templateMap ;
-							if( templateMap.hasOwnProperty(value) ) {
-								var templateData = templateMap[value] ;
-								return '<b>'+templateData.tpl_name+'</b>' ;
-							}
-							return '&#160;' ;
-						}
+								items: [{
+									width:175,
+									xtype: 'combobox',
+									//hidden: true,
+									queryMode: 'local',
+									forceSelection: true,
+									allowBlank: false,
+									editable: false,
+									store: {
+										model: 'RsiRecouveoCfgTemplateModel',
+										data: []
+									},
+									valueField: 'tpl_id',
+									displayField: 'tpl_name',
+									listeners: {
+										select: function(cmb) {
+											this.onEditorTemplateChange(cmb.getValue()) ;
+										},
+										scope: this
+									}
+								},{
+									xtype: 'op5specrsiveomailfield'
+								}]
+							}]
+						},{
+							xtype: 'fieldset',
+							bodyPadding: 10,
+							collapsed: true,
+							checkboxToggle: true,
+							title: 'Relance sur retard',
+							layout: 'anchor',
+							fieldDefaults: {
+								labelWidth: 150,
+								anchor: '75%'
+							},
+							items: [{
+								xtype: 'numberfield',
+								fieldLabel: 'Nb jours après échéance',
+								hideTrigger: true,
+								anchor: '',
+								width: 200
+							},{
+								xtype: 'fieldcontainer',
+								fieldLabel: 'Template',
+								layout: {
+									type: 'hbox',
+									align: 'middle'
+								},
+								items: [{
+									width:175,
+									xtype: 'combobox',
+									//hidden: true,
+									queryMode: 'local',
+									forceSelection: true,
+									allowBlank: false,
+									editable: false,
+									store: {
+										model: 'RsiRecouveoCfgTemplateModel',
+										data: []
+									},
+									valueField: 'tpl_id',
+									displayField: 'tpl_name',
+									listeners: {
+										select: function(cmb) {
+											this.onEditorTemplateChange(cmb.getValue()) ;
+										},
+										scope: this
+									}
+								},{
+									xtype: 'op5specrsiveomailfield'
+								}]
+							}]
+						}]
 					},{
-						text: 'Mode d\'envoi',
-						width: 150,
-						dataIndex: 'mail_modes_json',
-						editorTpl: {
-							xtype: 'op5specrsiveomailfield'
+						title: 'Litiges',
+						_actionMap: actionMap,
+						_templateMap: templateMap,
+						flex: 1,
+						xtype: 'form',
+						cls: 'ux-noframe-bg',
+						bodyPadding: 8,
+						bodyCls: 'ux-noframe-bg',
+						layout: 'anchor',
+						fieldDefaults: {
+							labelWidth: 150,
+							anchor: '50%'
 						},
-						renderer: function(value,metaData,record,rowIndex,colIndex,store,view) {
-							if( !record.get('link_tpl') ) {
-								return ;
-							}
-							
-							var templateMap = view.up('panel')._templateMap ;
-							if( !templateMap.hasOwnProperty(record.get('link_tpl')) ) {
-								return ;
-							}
-							
-							var templateData = templateMap[record.get('link_tpl')] ;
-							if( templateData._empty ) {
-								return ;
-							}
-							
-							value = Ext.JSON.decode(value,true) || [] ;
-							var str = '' ;
-							if( Ext.Array.contains(value,'postal_std') ) {
-								str += '<span class="op5-spec-rsiveo-mailthumb-display op5-spec-rsiveo-mail-postal-std">&#160;</span>' ;
-							}
-							if( Ext.Array.contains(value,'postal_rar') ) {
-								str += '<span class="op5-spec-rsiveo-mailthumb-display op5-spec-rsiveo-mail-postal-rar">&#160;</span>' ;
-							}
-							if( Ext.Array.contains(value,'tel') ) {
-								str += '<span class="op5-spec-rsiveo-mailthumb-display op5-spec-rsiveo-mail-sms">&#160;</span>' ;
-							}
-							if( Ext.Array.contains(value,'email') ) {
-								str += '<span class="op5-spec-rsiveo-mailthumb-display op5-spec-rsiveo-mail-email">&#160;</span>' ;
-							}
-							return str ;
-						}
-					},{
-						text: 'Auto?',
-						width: 48,
-						dataIndex: 'exec_is_auto',
-						editor: {
-							xtype: 'checkboxfield'
-						},
-						renderer: function(v) {
-							if( v ) {
-								return '<b>'+'X'+'</b>' ;
-							}
-							return '&#160;' ;
-						}
-					}],
-					listeners: {
-						selectionchange: function(selModel,records) {
-							this.down('#gridEditorSteps').down('toolbar').down('#tbDelete').setDisabled( !(records && records.length > 0) ) ;
-						},
-						scope: this
-					}
+						items: [{
+							xtype: 'box',
+							html: '<b>Actions de suivi litige</b>',
+							padding: 16
+						},{
+							xtype: 'fieldset',
+							bodyPadding: 10,
+							title: 'Prochaine action de suivi',
+							items: [{
+								xtype: 'numberfield',
+								fieldLabel: 'Nb jours par défaut',
+								hideTrigger: true,
+								anchor: '',
+								width: 225
+							}]
+						}]
+					}]
 				}],
 				dockedItems: [{
 					xtype: 'toolbar',
@@ -471,6 +670,16 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigScenariosPanel', {
 						icon: 'images/op5img/ico_edit_small.gif',
 						handler: function( btn ) {
 							this.handleScenEdit() ;
+						},
+						scope: this
+					},{
+						itemId: 'btnCopy',
+						xtype: 'button',
+						text: 'Dupliquer',
+						icon: 'images/op5img/ico_saveas_16.gif',
+						handler: function( btn ) {
+							var doCopy = true ;
+							this.handleScenEdit(doCopy) ;
 						},
 						scope: this
 					},{
@@ -572,13 +781,17 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigScenariosPanel', {
 		
 		this.setEditMode(true) ;
 	},
-	handleScenEdit: function(scenCode) {
-		this.setEditMode(true) ;
+	handleScenEdit: function(doCopy) {
+		var setAsNew = doCopy ;
+		this.setEditMode(true,setAsNew) ;
 	},
 	handleScenSave: function(doDelete) {
 		var pEditor = this.down('#pEditor'),
 			editorForm = pEditor.down('form'),
 			editorGrid = pEditor.down('grid') ;
+		if( !editorForm.isValid() ) {
+			return ;
+		}
 		
 		var data = editorForm.getValues(false,false,false,true) ;
 		data['steps'] = [] ;
@@ -629,7 +842,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigScenariosPanel', {
 		var gridScenarios = this.down('#gridScenarios') ;
 		this.setupScenario() ;
 	},
-	setEditMode: function(torf) {
+	setEditMode: function(torf,setAsNew) {
 		var gridScenarios = this.down('#gridScenarios') ;
 		gridScenarios.getSelectionModel().setLocked(torf) ;
 		
@@ -638,13 +851,21 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigScenariosPanel', {
 			editorGrid = pEditor.down('grid') ;
 		editorForm.getForm().getFields().each( function(field) {
 			field.setReadOnly(!torf) ;
-			if( field.getName()=='scen_code' && !Ext.isEmpty(field.getValue()) ) {
-				field.setReadOnly(true) ;
+			if( setAsNew ) {
+				if( field.getName()=='scen_code' ) {
+					field.reset() ;
+					field.setReadOnly(false) ;
+				}
+			} else {
+				if( field.getName()=='scen_code' && !Ext.isEmpty(field.getValue()) ) {
+					field.setReadOnly(true) ;
+				}
 			}
 		}) ;
 		editorGrid.getPlugin('rowediting')._disabled = !torf ;
 		
 		pEditor.down('#btnEdit').setVisible(!torf) ;
+		pEditor.down('#btnCopy').setVisible(!torf) ;
 		pEditor.down('#btnDelete').setVisible(!torf) ;
 		pEditor.down('#btnOk').setVisible(torf) ;
 		pEditor.down('#btnCancel').setVisible(torf) ;

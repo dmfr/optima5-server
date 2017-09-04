@@ -77,36 +77,32 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigMetaPanel', {
 				},
 				items: [{
 					xtype: 'fieldset',
-					title: 'Valeurs défaut / Scénarios',
+					title: 'Paramètres impression documents',
 					fieldDefaults: {
 						labelWidth: 170,
 						anchor: '100%'
 					},
 					items: [{
-						xtype: 'numberfield',
-						hideTrigger: true,
-						name: 'static_inter_call',
-						fieldLabel: 'Temps après appel'
+						xtype: 'radiogroup',
+						fieldLabel: 'Feuillet pièces comptables',
+						// Arrange radio buttons into two columns, distributed vertically
+						columns: 1,
+						vertical: true,
+						items: [
+								{ boxLabel: 'Ne pas imprimer', name: 'rb', inputValue: '0' },
+								{ boxLabel: 'Dossier en cours', name: 'rb', inputValue: '1' },
+								{ boxLabel: 'Intégralité du compte', name: 'rb', inputValue: '2', checked: true}
+						]
 					},{
-						xtype: 'numberfield',
-						hideTrigger: true,
-						name: 'static_inter_voicemail',
-						fieldLabel: 'Temps après message laissé'
-					},{
-						xtype: 'numberfield',
-						hideTrigger: true,
-						name: 'static_inter_mail',
-						fieldLabel: 'Temps après courrier'
-					},{
-						xtype: 'numberfield',
-						hideTrigger: true,
-						name: 'static_grace_pay',
-						fieldLabel: 'Temps de répit pour paiement'
-					},{
-						xtype: 'numberfield',
-						hideTrigger: true,
-						name: 'static_max_delay',
-						fieldLabel: 'Délai max avant prochaine action'
+						xtype: 'radiogroup',
+						fieldLabel: 'Mode impression',
+						// Arrange radio buttons into two columns, distributed vertically
+						columns: 1,
+						vertical: true,
+						items: [
+								{ boxLabel: 'Noir/blanc', name: 'cl', inputValue: '1', checked: true },
+								{ boxLabel: 'Couleur', name: 'cl', inputValue: '2'}
+						]
 					}]
 				}]
 			}],
