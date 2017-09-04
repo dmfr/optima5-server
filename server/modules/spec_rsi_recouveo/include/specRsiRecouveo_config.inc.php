@@ -163,6 +163,7 @@ function specRsiRecouveo_config_getScenarios($post_data) {
 			'schedule_daystep' => $arr['field_SCHEDULE_DAYSTEP'],
 			'link_action' => $arr['field_LINK_ACTION'],
 			'link_tpl' => $arr['field_LINK_TPL'],
+			'mail_modes_json' => $arr['field_MAIL_MODES_JSON'],
 			'exec_is_auto' => ($arr['field_EXEC_IS_AUTO']==1)
 		) ;
 		$TAB[$scen_code]['steps'][] = $record ;
@@ -212,6 +213,7 @@ function specRsiRecouveo_config_setScenario( $post_data ) {
 		$arr_ins['field_SCHEDULE_DAYSTEP'] = $scenstep_record['schedule_daystep'] ;
 		$arr_ins['field_LINK_ACTION'] = $scenstep_record['link_action'] ;
 		$arr_ins['field_LINK_TPL'] = $scenstep_record['link_tpl'] ;
+		$arr_ins['field_MAIL_MODES_JSON'] = $scenstep_record['mail_modes_json'] ;
 		$arr_ins['field_EXEC_IS_AUTO'] = ($scenstep_record['exec_is_auto'] ? 1 : 0) ;
 		paracrm_lib_data_insertRecord_bibleEntry( 'SCENARIO', $arr_ins['field_SCENSTEP_CODE'], $scen_code, $arr_ins ) ;
 	}

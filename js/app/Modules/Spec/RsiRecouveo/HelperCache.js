@@ -74,6 +74,7 @@ Ext.define('RsiRecouveoCfgTemplateModel',{
 	extend: 'Ext.data.Model',
 	idProperty: 'tpl_id',
 	fields: [
+		{name: '_empty', type:'boolean'},
 		{name: 'tpl_id', type:'string'},
 		{name: 'tpl_name', type:'string'},
 		{name: 'tpl_group', type:'string'},
@@ -115,6 +116,7 @@ Ext.define('RsiRecouveoConfigScenarioStepModel',{
 		{name: 'schedule_daystep', type:'int'},
 		{name: 'link_action', type:'string'},
 		{name: 'link_tpl', type:'string'},
+		{name: 'mail_modes_json', type:'string'},
 		{name: 'exec_is_auto', type:'boolean'}
 	]
 });

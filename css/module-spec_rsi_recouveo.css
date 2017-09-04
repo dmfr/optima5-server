@@ -173,6 +173,28 @@
 }
 
 
+.op5-spec-rsiveo-mail-postal-std {
+	background-position: center ;
+	background-repeat: no-repeat ;
+	background-image: url("../images/modules/rsiveo-mail-postal-std-16.png") !important;
+}
+.op5-spec-rsiveo-mail-postal-rar {
+	background-position: center ;
+	background-repeat: no-repeat ;
+	background-image: url("../images/modules/rsiveo-mail-postal-rar-16.png") !important;
+}
+.op5-spec-rsiveo-mail-sms {
+	background-position: center ;
+	background-repeat: no-repeat ;
+	background-image: url("../images/modules/rsiveo-mail-sms-16.png") !important;
+}
+.op5-spec-rsiveo-mail-email {
+	background-position: center ;
+	background-repeat: no-repeat ;
+	background-image: url("../images/modules/rsiveo-mail-email-16.png") !important;
+}
+
+
 .op5-spec-rsiveo-doaction {
 	cursor: pointer;
 	border: 1px solid red;
@@ -315,6 +337,57 @@
 	font-weight: bold ; 
 }
 
+
+.op5-spec-rsiveo-mailfield {
+	height:30px ;
+	margin-bottom: 5px ;
+}
+.op5-spec-rsiveo-mailthumb {
+	position: relative ;
+    display: inline-block;
+    vertical-align: top;
+    width: 25px;
+    min-height: 25px;
+    padding: 5px;
+    text-align: center;
+    margin: 4px;
+    background-color: #ccd8e7;
+    border: 1px solid #99BBE8;
+    -webkit-border-radius: .5em;
+    -moz-border-radius: .5em;
+    border-radius: .5em;
+
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+.op5-spec-rsiveo-mailthumb-icon {
+}
+.op5-spec-rsiveo-mailthumb-display {
+	position: relative ;
+    display: inline-block;
+    vertical-align: top;
+    width: 18px;
+    min-height: 18px;
+    padding: 2px;
+    text-align: center;
+    margin: 0px 4px;
+    background-color: #ccd8e7;
+    border: 1px solid #99BBE8;
+    -webkit-border-radius: .5em;
+    -moz-border-radius: .5em;
+    border-radius: .5em;
+
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
 
 
 

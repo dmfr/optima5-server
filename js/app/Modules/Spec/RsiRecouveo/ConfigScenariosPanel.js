@@ -5,6 +5,129 @@ Ext.define('RsiRecouveoConfigScenarioStepEditModel',{
 	]
 });
 
+
+Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigScenarioMailField',{
+	extend: 'Ext.view.View',
+	mixins: ['Ext.form.field.Field'],
+	
+	alias: 'widget.op5specrsiveomailfield',
+	
+	initComponent: function() {
+		var me = this ;
+		
+		Ext.apply(me,{
+			cls: 'op5-spec-rsiveo-mailfield',
+			style: {
+				whiteSpace: 'nowrap'
+			},
+			tpl:[
+				'<tpl for=".">',
+					'<div class="op5-spec-rsiveo-mailthumb op5-spec-rsiveo-mailthumb-icon {sel_class} {thumb_class}">',
+					'</div>',
+				'</tpl>'
+			],
+			trackOver: true,
+			overItemCls: 'x-item-over',
+			selectedItemCls: '',
+			itemSelector: 'div.op5-spec-rsiveo-mailthumb',
+			store: {
+				fields: ['mail_mode','mail_cls','is_selected'],
+				data: [
+					{mail_mode:'postal_std',mail_cls:'op5-spec-rsiveo-mail-postal-std'},
+					{mail_mode:'postal_rar',mail_cls:'op5-spec-rsiveo-mail-postal-rar'},
+					{mail_mode:'tel',mail_cls:'op5-spec-rsiveo-mail-sms'},
+					{mail_mode:'email',mail_cls:'op5-spec-rsiveo-mail-email'}
+				],
+				proxy: {
+					type: 'memory',
+					reader: {
+						type: 'json'
+					}
+				}
+			},
+			listeners: {
+			},
+			selModel: {
+				mode: 'MULTI'
+			},
+			prepareData: function(data) {
+				Ext.apply(data, {
+					sel_class: ( data.is_selected ? 'op5-spec-rsiveo-actionthumb-select' : '' ),
+					thumb_class: data.mail_cls
+				});
+				return data;
+			},
+			listeners: {
+				itemclick: this.onMyItemClick,
+				selectionchange: this.onSelectionChange,
+				scope: this
+			}
+		}) ;
+		me.callParent() ;
+		me.mixins.field.constructor.call(me);
+	},
+	doLoad: function(scenCode) {
+	},
+	onLoadScenarioLine: function( scenarioData ) {
+		this.getStore().loadData(scenarioData) ;
+		this.setScrollable('horizontal') ;
+	},
+	setFirstSelection: function() {
+		
+	},
+	onMyItemClick: function(view,record) {
+		record.set('is_selected',!record.get('is_selected')) ;
+		if( record.get('mail_mode')=='postal_std' && record.get('is_selected') ) {
+			view.getStore().findRecord('mail_mode','postal_rar').set('is_selected',false) ;
+		}
+		if( record.get('mail_mode')=='postal_rar' && record.get('is_selected') ) {
+			view.getStore().findRecord('mail_mode','postal_std').set('is_selected',false) ;
+		}
+		this.value = this.getJsonValue() ;
+	},
+	onSelectionChange: function(selModel, records) {
+		
+	},
+	isEqual: function(value1, value2) {
+		return ( value1 === value2 );
+	},
+	setReadOnly: function(readOnly) {
+		this.getSelectionModel().setLocked(readOnly) ;
+	},
+	getJsonValue: function() {
+		var data = [] ;
+		this.getStore().each( function(rec) {
+			if( rec.get('is_selected') ) {
+				data.push(rec.get('mail_mode')) ;
+			}
+		}) ;
+		return Ext.JSON.encode(data) ;
+	},
+	getValue: function() {
+		return this.getJsonValue() ;
+	},
+	getRawValue: function() {
+		return this.getJsonValue() ;
+	},
+	setRawValue: function(val) {
+		this.setJsonValue(val) ;
+	},
+	setValue: function(val) {
+		this.setJsonValue(val) ;
+	},
+	setJsonValue: function(val) {
+		val = Ext.JSON.decode(val,true) || [] ;
+		this.getStore().each( function(rec) {
+			if( Ext.Array.contains(val,rec.get('mail_mode')) ) {
+				rec.set('is_selected',true) ;
+			} else {
+				rec.set('is_selected',false) ;
+			}
+		}) ;
+	}
+});
+
+
 Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigScenariosPanel', {
 	extend: 'Ext.panel.Panel',
 	
@@ -259,7 +382,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigScenariosPanel', {
 								data: []
 							},
 							valueField: 'tpl_id',
-							displayField: 'tpl_name'
+							displayField: 'tpl_name',
+							listeners: {
+								select: function(cmb) {
+									this.onEditorTemplateChange(cmb.getValue()) ;
+								},
+								scope: this
+							}
 						},
 						renderer: function(value,metaData,record,rowIndex,colIndex,store,view) {
 							//var columnHeader = this.grid.getColumnManager().getHeaderAtIndex(curColIdx) ;
@@ -270,6 +399,44 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigScenariosPanel', {
 								return '<b>'+templateData.tpl_name+'</b>' ;
 							}
 							return '&#160;' ;
+						}
+					},{
+						text: 'Mode d\'envoi',
+						width: 150,
+						dataIndex: 'mail_modes_json',
+						editorTpl: {
+							xtype: 'op5specrsiveomailfield'
+						},
+						renderer: function(value,metaData,record,rowIndex,colIndex,store,view) {
+							if( !record.get('link_tpl') ) {
+								return ;
+							}
+							
+							var templateMap = view.up('panel')._templateMap ;
+							if( !templateMap.hasOwnProperty(record.get('link_tpl')) ) {
+								return ;
+							}
+							
+							var templateData = templateMap[record.get('link_tpl')] ;
+							if( templateData._empty ) {
+								return ;
+							}
+							
+							value = Ext.JSON.decode(value,true) || [] ;
+							var str = '' ;
+							if( Ext.Array.contains(value,'postal_std') ) {
+								str += '<span class="op5-spec-rsiveo-mailthumb-display op5-spec-rsiveo-mail-postal-std">&#160;</span>' ;
+							}
+							if( Ext.Array.contains(value,'postal_rar') ) {
+								str += '<span class="op5-spec-rsiveo-mailthumb-display op5-spec-rsiveo-mail-postal-rar">&#160;</span>' ;
+							}
+							if( Ext.Array.contains(value,'tel') ) {
+								str += '<span class="op5-spec-rsiveo-mailthumb-display op5-spec-rsiveo-mail-sms">&#160;</span>' ;
+							}
+							if( Ext.Array.contains(value,'email') ) {
+								str += '<span class="op5-spec-rsiveo-mailthumb-display op5-spec-rsiveo-mail-email">&#160;</span>' ;
+							}
+							return str ;
 						}
 					},{
 						text: 'Auto?',
@@ -504,6 +671,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigScenariosPanel', {
 		}
 		var actionColumn = this.down('#gridEditorSteps').headerCt.down('[dataIndex="link_action"]') ;
 		this.onEditorActionChange(context.record.get('link_action')) ;
+		this.onEditorTemplateChange(context.record.get('link_tpl')) ;
 	},
 	onEditorActionChange: function(selectedAction) {
 		// Load appropriate templates
@@ -512,13 +680,18 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigScenariosPanel', {
 			templateEditor = Ext.clone( templateColumn.editorTpl ) ;
 			
 		//var editorComponent = this.down('#gridEditorSteps').getPlugin('rowediting').getEditor() ;
+		if( selectedAction == 'CALL_OUT' ) {
+			templatesData.push({_empty:true,tpl_id:'_',tpl_name:'- Pas de courrier -'});
+		}
 		
+		var length = 0 ;
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getTemplateAll(), function(templateRow) {
 			if( templateRow.tpl_group == selectedAction ) {
 				templatesData.push(templateRow) ;
+				length++ ;
 			}
 		}) ;
-		if( templatesData.length==0 ) {
+		if( length<1 ) {
 			templateColumn.setEditor(null);
 		} else {
 			templateEditor.store.data = templatesData ;
@@ -526,6 +699,18 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigScenariosPanel', {
 		}
 		if( templateColumn.getEditor().el ) {
 			this.down('#gridEditorSteps').getPlugin('rowediting').getEditor().syncFieldWidth(templateColumn) ; // HACK
+		}
+	},
+	onEditorTemplateChange: function(selectedTemplate) {
+		var mailmodesColumn = this.down('#gridEditorSteps').headerCt.down('[dataIndex="mail_modes_json"]'),
+			mailmodesEditor = Ext.clone( mailmodesColumn.editorTpl ) ;
+		if( Ext.isEmpty(selectedTemplate) || selectedTemplate=='_' ) {
+			mailmodesColumn.setEditor(null);
+		} else {
+			mailmodesColumn.setEditor(mailmodesEditor) ;
+		}
+		if( mailmodesColumn.getEditor().el ) {
+			this.down('#gridEditorSteps').getPlugin('rowediting').getEditor().syncFieldWidth(mailmodesColumn) ; // HACK
 		}
 	},
 	handleNewStep: function() {
