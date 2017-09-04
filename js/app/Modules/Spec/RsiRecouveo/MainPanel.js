@@ -317,5 +317,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 	},
 	addPanel: function(panel) {
 		this.add(panel) ;
+	},
+	closeActive: function() {
+		if( this.getActiveTab().closable ) {
+			this.getActiveTab().close() ;	
+		}
 	}
 }) ;

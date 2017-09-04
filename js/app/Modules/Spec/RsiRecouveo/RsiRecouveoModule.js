@@ -267,7 +267,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RsiRecouveoModule', {
 			items:[Ext.create('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 				optimaModule: me,
 				border: false
-			})]
+			})],
+			onEsc: function(win) {
+				var tabPanel = this.down('tabpanel') ;
+				if( tabPanel ) {
+					tabPanel.closeActive() ;
+				}
+				return false ;
+			}
 		}) ;
 	},
 	postCrmEvent: function( crmEvent, postParams ) {
