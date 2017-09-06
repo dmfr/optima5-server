@@ -4,7 +4,7 @@ class DatabaseMgr_Sdomain {
 	private $_opDB ;
 	private $domain_id ;
 	
-	private static $dbVersion = 38 ;
+	private static $dbVersion = 39 ;
 	
 	public function __construct( $domain_id ) {
 		$this->_opDB = $GLOBALS['_opDB'] ;
@@ -707,6 +707,34 @@ CREATE TABLE `importmap_column` (
   `target_fieldmapcode` varchar(500) NOT NULL,
   PRIMARY KEY (`importmap_id`,`importmap_column_ssid`)
 ) ;
+
+CREATE TABLE `import_log` (
+  `importlog_id` int(11) NOT NULL AUTO_INCREMENT,
+  `request_ts` int(11) NOT NULL,
+  `request_user` varchar(500) NOT NULL,
+  `request_ip` varchar(500) NOT NULL,
+  `request_size` int(11) NOT NULL,
+  `store_type` varchar(500) NOT NULL,
+  `store_code` varchar(500) NOT NULL,
+  `importmap_id` int(11) NOT NULL,
+  `log_success` varchar(1) NOT NULL,
+  `log_duration` float NOT NULL,
+  PRIMARY KEY (`importlog_id`)
+) ;
+
+CREATE TABLE `q_log` (
+  `qlog_id` int(11) NOT NULL AUTO_INCREMENT,
+  `request_ts` int(11) NOT NULL,
+  `request_user` varchar(500) NOT NULL,
+  `request_ip` varchar(500) NOT NULL,
+  `q_type` varchar(500) NOT NULL,
+  `q_id` int(11) NOT NULL,
+  `q_name` varchar(500) NOT NULL,
+  `log_success` varchar(1) NOT NULL,
+  `log_duration` float NOT NULL,
+  PRIMARY KEY (`qlog_id`)
+) ;
+
 
 EOF;
 	}
