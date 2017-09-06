@@ -782,12 +782,14 @@ EOF;
 		}
 		return FALSE ;
 	}
-	public function sdomainDb_updateSchema( $sdomain_id ) {
+	public function sdomainDb_updateSchema( $sdomain_id, $fast=FALSE ) {
 		$_opDB = $this->_opDB ;
 		$sdomain_db = $this->getSdomainDb( $sdomain_id ) ;
 		
 		DatabaseMgr_Util::syncSQLschema( $this->getSdomainDb( $sdomain_id ), self::version_getSchema() ) ;
-		$this->sdomainDefine_buildAll($sdomain_id) ;
+		if( !$fast ) {
+			$this->sdomainDefine_buildAll($sdomain_id) ;
+		}
 		
 		$query = "INSERT IGNORE INTO {$sdomain_db}._DB_INFO (`zero_id`) VALUES ('0')" ;
 		$_opDB->query($query) ;
