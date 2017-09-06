@@ -3,6 +3,7 @@ function paracrm_queries_direct($post_data, $auth_bypass=FALSE, $is_rw=FALSE) {
 
 	$q_type = $post_data['q_type'] ;
 	$q_id   = $post_data['q_id'] ;
+	$q_id_orig = $q_id ;
 	if( $post_data['q_where'] ) {
 		$arr_where_conditions = array() ;
 		foreach( json_decode($post_data['q_where'],true) as $condition ) {
@@ -22,7 +23,7 @@ function paracrm_queries_direct($post_data, $auth_bypass=FALSE, $is_rw=FALSE) {
 	}
 	
 	global $_opDB ;
-
+	$mt_start = microtime(true) ;
 	switch( $q_type )
 	{
 		case 'query' :
@@ -79,7 +80,8 @@ function paracrm_queries_direct($post_data, $auth_bypass=FALSE, $is_rw=FALSE) {
 				unset($tabs[$tab_id]) ;
 			}
 		}
-		return array('success'=>true,'tabs'=>array_values($tabs)) ;
+		$json = array('success'=>true,'tabs'=>array_values($tabs)) ;
+		break ;
 		
 		
 		
@@ -127,7 +129,8 @@ function paracrm_queries_direct($post_data, $auth_bypass=FALSE, $is_rw=FALSE) {
 				unset($tabs[$tab_id]) ;
 			}
 		}
-		return array('success'=>true,'tabs'=>array_values($tabs)) ;
+		$json = array('success'=>true,'tabs'=>array_values($tabs)) ;
+		break ;
 		
 		
 		
@@ -153,7 +156,8 @@ function paracrm_queries_direct($post_data, $auth_bypass=FALSE, $is_rw=FALSE) {
 		
 		$RES = paracrm_queries_qsql_lib_exec($arr_saisie['sql_querystring'], $is_rw, $auth_bypass=TRUE, $arr_qvars) ;
 		
-		return array('success'=>true,'tabs'=>array_values($RES)) ;
+		$json = array('success'=>true,'tabs'=>array_values($RES)) ;
+		break ;
 		
 		
 		
@@ -208,15 +212,26 @@ function paracrm_queries_direct($post_data, $auth_bypass=FALSE, $is_rw=FALSE) {
 			$json = array() ;
 			$json['success'] = true ;
 			$json['tabs'] = array_values($tabs) ;
-			return $json ;
 		} else {
 			$json = array() ;
 			$json['success'] = true ;
 			$json['html'] = $RES['RES_html'] ;
-			return $json ;
 		}
+		break ;
 	}
+	$mt_duration = microtime(true) - $mt_start ;
 
-
+	$arr_log = array() ;
+	$arr_log['request_ts'] = time() ;
+	$arr_log['request_user'] = $_SESSION['login_data']['userstr'] ;
+	$arr_log['request_ip'] = $_SERVER['REMOTE_ADDR'] ;
+	$arr_log['q_type'] = $q_type ;
+	$arr_log['q_id'] = $q_id ;
+	$arr_log['q_name'] = $q_id_orig ;
+	$arr_log['log_success'] = 'O' ;
+	$arr_log['log_duration'] = $mt_duration ;
+	$GLOBALS['_opDB']->insert('q_log',$arr_log) ;
+	
+	return $json ;
 }
 ?>

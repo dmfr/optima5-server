@@ -263,7 +263,7 @@ function paracrm_lib_dataImport_commit_processHandle( $data_type,$store_code, $h
 	
 	paracrm_lib_dataImport_commit_processStream( $treefields_root, $map_fieldCode_csvsrcIdx, $handle, $delimiter, $truncate_mode ) ;
 	
-	return TRUE ;
+	return $importmap_id ;
 }
 
 function paracrm_lib_dataImport_commit_processStream( $treefields_root, $map_fieldCode_csvsrcIdx, $handle, $handle_delimiter, $truncate_mode ) {

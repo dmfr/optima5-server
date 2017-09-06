@@ -38,10 +38,27 @@ function paracrm_data_importDirect( $post_data ) {
 		$handle = paracrm_lib_dataImport_preHandle($handle) ;
 		rewind($handle) ;
 	}
-	paracrm_lib_dataImport_commit_processHandle( $post_data['data_type'],$store_code, $handle ) ;
+	$mt_start = microtime(true) ;
+	$importmap_id = paracrm_lib_dataImport_commit_processHandle( $post_data['data_type'],$store_code, $handle ) ;
+	$mt_duration = microtime(true) - $mt_start ;
+	
 	fclose($handle) ;
 	
-	return array('success'=>true) ;
+	$success = ($importmap_id && ($importmap_id>0)) ;
+	
+	$arr_log = array() ;
+	$arr_log['request_ts'] = time() ;
+	$arr_log['request_user'] = $_SESSION['login_data']['userstr'] ;
+	$arr_log['request_ip'] = $_SERVER['REMOTE_ADDR'] ;
+	$arr_log['request_size'] = strlen( $_POST['csvsrc_binary'] ) ;
+	$arr_log['store_type'] = $post_data['data_type'] ;
+	$arr_log['store_code'] = $store_code ;
+	$arr_log['importmap_id'] = $importmap_id ;
+	$arr_log['log_success'] = ($success ? 'O':'') ;
+	$arr_log['log_duration'] = $mt_duration ;
+	$GLOBALS['_opDB']->insert('import_log',$arr_log) ;
+	
+	return array('success'=>$success) ;
 }
 
 
