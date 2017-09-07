@@ -64,7 +64,11 @@ Ext.define('RsiRecouveoFileActionModel',{
 		{name: 'status_is_ok', type:'boolean'},
 		{name: 'date_sched', type:'date', dateFormat:'Y-m-d H:i:s', allowNull: true},
 		{name: 'date_actual', type:'date', dateFormat:'Y-m-d H:i:s', allowNull:true},
+		
 		{name: 'txt', type: 'string'},
+		{name: 'txt_short', type: 'string'},
+		
+		{name: 'log_user', type: 'string'},
 		
 		{name: 'scenstep_code', type: 'string'},
 		{name: 'scenstep_tag', type: 'string'},

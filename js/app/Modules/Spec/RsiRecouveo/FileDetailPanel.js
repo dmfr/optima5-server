@@ -982,7 +982,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					}) ;
 					recData['leaf'] = false ;
 					recData['children'] = childrenActions ;
-					recData['expanded'] = false ;
+					recData['expanded'] = true ;
+					recData['expandable'] = false ;
 					recData['icon'] = Ext.BLANK_IMAGE_URL ;
 				}
 				if( !iterateChild && !rec.get('status_is_ok') ) {
@@ -1021,19 +1022,16 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			_statusMap: statusMap,
 			_actionMap: actionMap,
 			_actionEtaMap: actionEtaMap,
-			features: [{
-				ftype: 'rowbody',
-				getAdditionalData: function (data, idx, record, orig) {
-					return {
-						rowBody: '<div style="">' + Ext.util.Format.nl2br(record.get("txt")) + '</div>',
-						rowBodyCls: "op5-spec-rsiveo-actionstree-rowbody"
-					};
-				}
-			}],
+			plugins: [Ext.create('Ext.grid.plugin.RowExpander',{
+				rowBodyTpl: [
+					'<div class="op5-spec-rsiveo-actionstree-rowbody">{[Ext.util.Format.nl2br(values.txt)]}</div>'
+				]
+			})],
+			hideHeaders: true,
 			columns: {
 				defaults: {
 					menuDisabled: true,
-					draggable: false,
+					draggable: true,
 					sortable: false,
 					hideable: false,
 					resizable: false,
@@ -1043,37 +1041,54 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				items: [{
 					xtype: 'treecolumn',
 					tdCls: 'op5-spec-rsiveo-actionstree-firstcol',
-					dataIndex: 'link_status',
-					width: 40,
+					width: 32,
 					renderer: function(value,metaData,record,rowIndex,colIndex,store,view) {
+						var outValue ;
+						var vStatus = record.get('link_status'),
+							vAction = record.get('link_action'),
+							vTag = record.get('scenstep_tag') ;
 						var statusMap = view.up('panel')._statusMap ;
-						if( statusMap.hasOwnProperty(value) ) {
-							var statusData = statusMap[value] ;
-							metaData.style += 'color: white ; background: '+statusData.status_color ;
-							return '' ;
+						if( statusMap.hasOwnProperty(vStatus) ) {
+							var statusData = statusMap[vStatus] ;
+							metaData.style += '; color: white ; background: '+statusData.status_color ;
 						}
-						return '' ;
-					}
-				},{
-					dataIndex: 'link_action',
-					width: 180,
-					renderer: function(value,metaData,record,rowIndex,colIndex,store,view) {
-						var actionMap = view.up('panel')._actionMap ;
-						if( actionMap.hasOwnProperty(value) ) {
-							var txt = '' ;
-							if( !Ext.isEmpty(record.get('scenstep_tag')) ) {
-								txt+= '<b>'+record.get('scenstep_tag')+'</b>'+'&#160;'+':'+'&#160;' ;
-							}
-							var actionData = actionMap[value] ;
-							txt+= '<b>'+actionData.action_txt+'</b>' ;
-							return txt ;
+						/*
+						switch( vAction ) {
+							case 'CALL_OUT' :
+								metaData.tdCls += ' op5-spec-rsiveo-actiontree-callout' ;
+								break ;
+							case 'CALL_IN' :
+								metaData.tdCls += ' op5-spec-rsiveo-actiontree-callin' ;
+								break ;
+							case 'MAIL_OUT' :
+								metaData.tdCls += ' op5-spec-rsiveo-actiontree-mailout' ;
+								break ;
+							case 'MAIL_IN' :
+								metaData.tdCls += ' op5-spec-rsiveo-actiontree-mailin' ;
+								break ;
 						}
-						return '?' ;
+						*/
+						outValue = '&#160;' ;
+						if( !Ext.isEmpty(vTag) ) {
+							//outValue = vTag ;
+							metaData.style += '; font-weight: bold' ;
+						}
+						
+						
+						// Invite next action
+						var fileRecord = view.up('panel')._fileRecord ;
+						if( record.getDepth() == 1 
+								&& fileRecord.get('next_fileaction_filerecord_id') == record.get('fileaction_filerecord_id') ) {
+							metaData.tdCls += ' op5-spec-rsiveo-doaction' ;
+						}
+						
+						
+						return outValue ;
 					}
 				},{
 					text: 'Date',
 					align: 'center',
-					width: 100,
+					width: 90,
 					dataIndex: 'calc_date',
 					renderer: function(value,metaData,record,rowIndex,colIndex,store,view) {
 						if( !record.get('status_is_ok') ) {
@@ -1090,27 +1105,91 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 						return Ext.Date.format(Ext.Date.parse(value,'Y-m-d'),'d/m/Y') ;
 					}
 				},{
-					text: 'Status',
-					width: 48,
-					dataIndex: 'status_is_ok',
+					width: 24,
 					renderer: function(value,metaData,record,rowIndex,colIndex,store,view) {
-						var fileRecord = view.up('panel')._fileRecord ;
-						if( record.getDepth() == 1 
-								&& fileRecord.get('next_fileaction_filerecord_id') == record.get('fileaction_filerecord_id') ) {
-							metaData.tdCls += ' op5-spec-rsiveo-doaction' ;
-							return ;
-						}
-						if( !value ) {
-							metaData.tdCls += ' op5-spec-dbstracy-files-nowarning' ;
-						} else {
-							metaData.tdCls += ' op5-spec-dbstracy-kpi-ok' ;
+						var outValue ;
+						var vStatus = record.get('link_status'),
+							vAction = record.get('link_action'),
+							vTag = record.get('scenstep_tag') ;
+						switch( vStatus ) {
+							case 'S2L_LITIG' :
+								metaData.tdCls += ' op5-spec-rsiveo-actiontree-litig' ;
+								break ;
+								
+							case 'S2P_PAY' :
+								metaData.tdCls += ' op5-spec-rsiveo-actiontree-agree' ;
+								break ;
+								
+							case 'SX_CLOSE' :
+								metaData.tdCls += ' op5-spec-rsiveo-actiontree-close' ;
+								break ;
+							
+							default :
+								switch( vAction ) {
+									case 'CALL_OUT' :
+										metaData.tdCls += ' op5-spec-rsiveo-actiontree-callout' ;
+										break ;
+									case 'CALL_IN' :
+										metaData.tdCls += ' op5-spec-rsiveo-actiontree-callin' ;
+										break ;
+									case 'MAIL_OUT' :
+										metaData.tdCls += ' op5-spec-rsiveo-actiontree-mailout' ;
+										break ;
+									case 'MAIL_IN' :
+										metaData.tdCls += ' op5-spec-rsiveo-actiontree-mailin' ;
+										break ;
+								}
+								break ;
 						}
 						return '' ;
 					}
 				},{
+					dataIndex: 'log_user',
+					width: 36,
+					renderer: function(value,metaData) {
+						metaData.style += 'font-weight: bold ; text-align:center ;' ;
+						return value ;
+					}
+				},{
+					dataIndex: 'txt_short',
+					width: 180,
+					renderer: function(value,metaData,record,rowIndex,colIndex,store,view) {
+						if( !Ext.isEmpty(value) ) {
+							return Ext.util.Format.nl2br(value) ;
+						}
+						
+						var vAction = record.get('link_action'),
+							actionMap = view.up('panel')._actionMap ;
+						if( actionMap.hasOwnProperty(vAction) ) {
+							var txt = '' ;
+							if( !Ext.isEmpty(record.get('scenstep_tag')) ) {
+								txt+= '<b>'+record.get('scenstep_tag')+'</b>'+'&#160;'+':'+'&#160;' ;
+							}
+							var actionData = actionMap[vAction] ;
+							txt+= '<b>'+actionData.action_txt+'</b>' ;
+							return txt ;
+						}
+						return '?' ;
+						
+						// Examples
+						if( record.get('scenstep_tag') == 'MED' ) {
+							txt='' ;
+							txt += '<b>LRAR : Mise en demeure</b>' ;
+							txt += '<br>' ;
+							txt += '<i>Mme LEGRAND</i>' ;
+							return txt ;
+						}
+						if( record.get('link_action') == 'CALL_OUT' ) {
+							txt='' ;
+							txt += '<b>Correspondant contacté</b>' ;
+							return txt ;
+						}
+						return 'example ?' ;
+					}
+				},{
 					align: 'center',
 					xtype:'actioncolumn',
-					width:60,
+					width:32,
 					disabledCls: 'x-item-invisible',
 					items: [{
 						icon: 'images/op5img/ico_pdf_16.png',
@@ -1162,7 +1241,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					var cellNode = e.getTarget( view.getCellSelector() ),
 						cellColumn = view.getHeaderByCell( cellNode ),
 						fileRecord = view.up('panel')._fileRecord ;
-					if( cellColumn.dataIndex == 'status_is_ok'
+					if( cellColumn instanceof Ext.tree.Column
 						&& fileRecord.get('next_fileaction_filerecord_id') == record.get('fileaction_filerecord_id') ) {
 							
 						this.doNextAction( fileRecord, record.get('fileaction_filerecord_id'), record.get('link_action') ) ;

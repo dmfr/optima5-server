@@ -165,7 +165,10 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			'status_is_ok' => ($arr['field_STATUS_IS_OK']==1),
 			'date_sched' => (specRsiRecouveo_file_tool_isDateValid($arr['field_DATE_SCHED']) ? $arr['field_DATE_SCHED'] : null),
 			'date_actual' => (specRsiRecouveo_file_tool_isDateValid($arr['field_DATE_ACTUAL']) ? $arr['field_DATE_ACTUAL'] : null),
+			
 			'txt' => $arr['field_TXT'],
+			
+			'log_user' => $arr['field_LOG_USER'],
 			
 			'scenstep_code' => $arr['field_LINK_SCENARIO'],
 			'scenstep_tag' => $arr['field_SCENSTEP_TAG'],
