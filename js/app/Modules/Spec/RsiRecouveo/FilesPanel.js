@@ -349,6 +349,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		
 		var columns = [{
 			width: 60,
+			hidden: true,
 			xtype: 'uxnullcheckcolumn',
 			itemId: 'colMultiSelect',
 			sortable: false,
@@ -1010,7 +1011,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 	},
 	toggleMultiSelect: function( torf ) {
 		var column = this.down('#pCenter').down('#pGrid').headerCt.down('#colMultiSelect') ;
-		column.setVisible( !column.isVisible() ) ;
+		if( torf === undefined ) {
+			var torf = !column.isVisible()
+		}
+		column.setVisible( torf ) ;
 	},
 	
 	applyAuth: function() {
@@ -1024,21 +1028,23 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		}) ;
 		authIsExt = helperCache.authHelperIsExt() ;
 		
+		var silent = true ;
+		
 		Ext.Array.each( this.query('toolbar > [cfgParam_id]'), function(cfgParamBtn) {
 			var cfgParam_id = cfgParamBtn.cfgParam_id ;
 			if( cfgParam_id.indexOf('ATR_')===0 ) {
 				if( authMapAtr.hasOwnProperty(cfgParam_id) ) {
-					cfgParamBtn.setValue(authMapAtr[cfgParam_id]) ;
+					cfgParamBtn.setValue(authMapAtr[cfgParam_id],silent) ;
 				}
 			}
 			if( cfgParam_id=='SOC' ) {
 				if( authSoc ) {
-					cfgParamBtn.setValue(authSoc) ;
+					cfgParamBtn.setValue(authSoc,silent) ;
 				}
 			}
 			if( cfgParam_id=='USER' ) {
 				if( authIsExt != null ) {
-					cfgParamBtn.setValue(authIsExt) ;
+					cfgParamBtn.setValue(authIsExt,silent) ;
 				}
 			}
 		}) ;
