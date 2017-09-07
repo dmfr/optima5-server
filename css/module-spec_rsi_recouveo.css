@@ -195,11 +195,11 @@
 }
 
 
-.op5-spec-rsiveo-doaction {
+.op5-spec-rsiveo-doaction .x-grid-cell-inner {
 	cursor: pointer;
 	border: 1px solid red;
-	background-position: center ;
-	background-repeat: no-repeat ;
+	background-position: center !important;
+	background-repeat: no-repeat !important;
 	background-image: url("../images/modules/crmbase-process-16.gif") !important;
 }
 
@@ -207,6 +207,9 @@
 	margin-left: 18px
 }
 .op5-spec-rsiveo-actionstree-rowbody .x-grid-rowbody {
+	padding-left: 42px
+}
+.op5-spec-rsiveo-actionstree-rowbody {
 	padding-left: 42px
 }
 
@@ -395,4 +398,42 @@
 .op5-spec-rsiveo-devnotepad {
 	background-image: url("../images/op5img/ico_quickopen_16.png") !important;
 }
+
+
+.op5-spec-rsiveo-actiontree-callout .x-grid-cell-inner {
+	background-position:  4px center !important;
+	background-repeat: no-repeat !important;
+	background-image: url("../images/modules/rsiveo-call-out-16.png") !important;
+}
+.op5-spec-rsiveo-actiontree-callin .x-grid-cell-inner {
+	background-position:  4px center !important;
+	background-repeat: no-repeat !important;
+	background-image: url("../images/modules/rsiveo-call-in-16.png") !important;
+}
+.op5-spec-rsiveo-actiontree-mailout .x-grid-cell-inner {
+	background-position:  4px center !important;
+	background-repeat: no-repeat !important;
+	background-image: url("../images/modules/rsiveo-mail-out-16.png") !important;
+}
+.op5-spec-rsiveo-actiontree-mailin .x-grid-cell-inner {
+	background-position:  4px center !important;
+	background-repeat: no-repeat !important;
+	background-image: url("../images/modules/rsiveo-mail-in-16.png") !important;
+}
+.op5-spec-rsiveo-actiontree-litig .x-grid-cell-inner {
+	background-position:  4px center !important;
+	background-repeat: no-repeat !important;
+	background-image: url("../images/modules/rsiveo-litig-16.png") !important;
+}
+.op5-spec-rsiveo-actiontree-close .x-grid-cell-inner {
+	background-position:  4px center !important;
+	background-repeat: no-repeat !important;
+	background-image: url("../images/modules/rsiveo-close-16.png") !important;
+}
+.op5-spec-rsiveo-actiontree-agree .x-grid-cell-inner {
+	background-position:  4px center !important;
+	background-repeat: no-repeat !important;
+	background-image: url("../images/modules/rsiveo-agree-16.png") !important;
+}
+
 
