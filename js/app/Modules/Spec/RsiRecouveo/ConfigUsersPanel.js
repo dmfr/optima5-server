@@ -47,9 +47,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigUsersPanel', {
 						return '<b>'+v+'</b>' ;
 					}
 				},{
+					width: 60,
+					dataIndex: 'user_short',
+					text: 'Initiales'
+				},{
 					width: 160,
 					dataIndex: 'user_fullname',
-					text: 'ID'
+					text: 'Nom'
 				},{
 					width: 160,
 					dataIndex: 'user_email',
@@ -119,6 +123,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigUsersPanel', {
 					name: 'user_pw',
 					fieldLabel: 'Password',
 					anchor: '60%'
+				},{
+					xtype: 'textfield',
+					name: 'user_short',
+					fieldLabel: 'Initiales',
+					anchor: '',
+					width: 150
 				},{
 					xtype: 'textfield',
 					name: 'user_fullname',
