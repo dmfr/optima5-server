@@ -234,4 +234,54 @@ function paracrm_queries_direct($post_data, $auth_bypass=FALSE, $is_rw=FALSE) {
 	
 	return $json ;
 }
+
+function paracrm_queries_direct_getLogs($post_data) {
+	
+	global $_opDB ;
+	
+	$idx = 1 ;
+	
+	$vtable = '' ;
+	$vtable.= '(' ;
+	$t = new DatabaseMgr_Sdomain( DatabaseMgr_Base::dbCurrent_getDomainId() );
+	$sdomain_current = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
+	foreach( $t->sdomains_getAll() as $sdomain_id ) {
+		$sdomain_id ;
+		$sdomain_db = $t->getSdomainDb( $sdomain_id ) ;
+		$table = $sdomain_db.'.'.'q_log' ;
+		$alias = 't'.$idx ;
+		
+		if( $post_data['filter_sdomain'] ) {
+			if( $sdomain_id != $sdomain_current ) {
+				continue ;
+			}
+		}
+		
+		if( $idx>1 ) {
+			$vtable.= ' UNION ALL ' ;
+		}
+		$idx++ ;
+		$vtable.= "(SELECT {$alias}.*, '{$sdomain_id}' as sdomain_id, CONCAT('{$sdomain_id}','-',qlog_id) as id FROM {$table} {$alias})" ;
+	}
+	$vtable.= ')' ;
+	
+	$TAB = array() ;
+	$query = "SELECT qlogs.* FROM {$vtable} qlogs" ;
+	if( $post_data['filter_last'] ) {
+		$query.= " JOIN (SELECT max(qlogs_join.id) as max_id FROM {$vtable} qlogs_join GROUP BY qlogs_join.sdomain_id,qlogs_join.q_type,qlogs_join.q_id) j" ;
+		$query.= " ON j.max_id=qlogs.id" ;
+	}
+	$query.= " ORDER BY request_ts DESC" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$arr = array(
+			'request_date' => date('Y-m-d H:i:s',$arr['request_ts']),
+			'log_success' => ($arr['log_success']=='O')
+		) + $arr ;
+		$TAB[] = $arr ;
+	}
+	
+	return array('success'=>true,'data'=>$TAB ) ;
+}
+
 ?>

@@ -98,6 +98,8 @@ switch( $post_data['_action'] )
 	
 	case 'queries_direct' :
 	return paracrm_queries_direct( $post_data );
+	case 'queries_direct_getLogs' :
+	return paracrm_queries_direct_getLogs( $post_data );
 	
 	
 	case 'auth_android_getDevicesList' :

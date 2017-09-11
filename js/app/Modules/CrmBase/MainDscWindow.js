@@ -3,7 +3,9 @@ Ext.define('Optima5.Modules.CrmBase.MainDscWindow',{
 	requires:[
 		'Optima5.Modules.CrmBase.MainWindowButton',
 		
-		'Optima5.Modules.CrmBase.DataWindow'
+		'Optima5.Modules.CrmBase.DataWindow',
+		
+		'Optima5.Modules.CrmBase.QlogsPanel'
 	],
 	
 	clsForPublished: 'op5-crmbase-published',
@@ -61,7 +63,14 @@ Ext.define('Optima5.Modules.CrmBase.MainDscWindow',{
 					textTitle: 'Logs / Notifications',
 					//textCaption: '',
 					iconCls: 'op5-crmbase-mainwindow-logs',
-					menu: null,
+					menu: [{
+						text: 'Queries (XML)',
+						icon: 'images/op5img/ico_sql_16.png' ,
+						handler: function(){
+							me.openQlogs() ;
+						},
+						scope: me
+					}],
 					hidden: (!moduleRecord.get('auth_has_all'))
 				}]
 			}]
@@ -373,5 +382,43 @@ Ext.define('Optima5.Modules.CrmBase.MainDscWindow',{
 		}
 		
 		me.optimaModule.createWindow(qCfg,Optima5.Modules.CrmBase.Qwindow) ;
+	},
+	openQlogs: function() {
+		var me = this ;
+		
+		// recherche d'une fenetre deja ouverte
+		var doOpen = true ;
+		me.optimaModule.eachWindow(function(win){
+			if( win._winQlog ) {
+				win.show() ;
+				win.focus() ;
+				doOpen = false ;
+				return false ;
+			}
+		},me) ;
+		
+		if( !doOpen ) {
+			return ;
+		}
+		
+		var qlogsPanel = Ext.create('Optima5.Modules.CrmBase.QlogsPanel',{
+			optimaModule: this.optimaModule
+		});
+		
+		win = this.optimaModule.createWindow({
+			_winQlog: true,
+			title:'Q Logs',
+			width:1000,
+			height:600,
+			iconCls: 'op5-crmbase-datatoolbar-file',
+			animCollapse:false,
+			border: false,
+			layout: 'fit',
+			items: [ qlogsPanel ]
+		}) ;
+		qlogsPanel.win = win ;
+		qlogsPanel.on('destroy',function(p) {
+			p.win.close() ;
+		}) ;
 	}
 }) ;
