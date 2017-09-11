@@ -211,7 +211,7 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE ) {
 	
 	
 	// ******** Current user *************
-	$json = specRsiRecouveo_config_loadUser(array()) ;
+	$json = specRsiRecouveo_config_getUsers(array()) ;
 	$data_users = $json['data'] ;
 	if( isset($_SESSION['login_data']['delegate_sdomainId']) ) {
 		$search = array_filter(
