@@ -137,6 +137,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			width: 300
 		},{
 			readOnly: true,
+			hidden: true,
 			xtype: 'textarea',
 			fieldLabel: 'Adresse Contact',
 			name: 'adr_postal'
