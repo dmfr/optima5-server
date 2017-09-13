@@ -1155,7 +1155,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					width: 180,
 					renderer: function(value,metaData,record,rowIndex,colIndex,store,view) {
 						if( !Ext.isEmpty(value) ) {
-							return Ext.util.Format.nl2br(value) ;
+							return '<b>'+Ext.util.Format.nl2br(value)+'</b>' ;
 						}
 						
 						var vAction = record.get('link_action'),
