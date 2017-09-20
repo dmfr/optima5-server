@@ -50,15 +50,61 @@ Ext.define('Optima5.Modules.CrmBase.QlogsPanel',{
 				scope: this
 			}],
 			//xtype: 'grid',
+			plugins: [{
+				ptype: 'uxgridfilters'
+			}],
 			columns: [{
-				text: 'ID',
-				dataIndex: 'id'
+				text: 'Request',
+				columns: [{
+					text: 'Date/time',
+					width: 120,
+					dataIndex: 'request_date',
+					renderer: Ext.util.Format.dateRenderer('d/m/Y H:i')
+				},{
+					text: 'User account',
+					width: 120,
+					dataIndex: 'request_user'
+				},{
+					text: 'Orig. IP',
+					dataIndex: 'request_ip'
+				}]
 			},{
-				text: 'ts',
-				dataIndex: 'request_ts'
+				text: 'Query',
+				columns: [{
+					text: 'Sdomain',
+					dataIndex: 'sdomain_id',
+					filter: {type: 'stringlist'},
+					renderer: function(v) {
+						return '<b>'+v+'</b>' ;
+					}
+				},{
+					text: 'Type',
+					dataIndex: 'q_type',
+					filter: {type: 'stringlist'}
+				},{
+					text: 'Query',
+					width: 200,
+					dataIndex: 'q_name',
+					filter: {type: 'stringlist'}
+				}]
 			},{
-				text: 'name',
-				dataIndex: 'q_name'
+				text: 'Result',
+				columns: [{
+					text: 'Warning ?',
+					dataIndex: 'log_success',
+					renderer: function(value,metadata) {
+						if( value ) {
+							metadata.tdCls = 'op5-device-yes'
+						} else {
+							metadata.tdCls = 'op5-device-no'
+						}
+					}
+				},{
+					text: 'Duration',
+					align: 'center',
+					dataIndex: 'log_duration',
+					renderer: Ext.util.Format.numberRenderer('0.0')
+				}]
 			}],
 			store: {
 				model: 'QlogModel',
@@ -82,7 +128,6 @@ Ext.define('Optima5.Modules.CrmBase.QlogsPanel',{
 		this.doLoad() ;
 	},
 	onStoreBeforeLoad: function(store,options) {
-		console.dir(arguments) ;
 		var filterLast = this.down('toolbar').down('#chkFilterLast').getValue(),
 			filterSdomain = this.down('toolbar').down('#chkFilterSdomain').getValue();
 			

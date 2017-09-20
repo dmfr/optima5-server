@@ -49,6 +49,7 @@ $session_name = 'OP'.rand(101,999) ;
 session_name($session_name) ;
 session_start() ;
 $_SESSION['login_data'] = $login_result['login_data'] ;
+$_SESSION['login_data']['userstr'] = strtolower($login_result['login_data']['login_user'].'@'.$login_result['login_data']['login_domain']) ;
 
 $_opDB = new mysql_DB( );
 $_opDB->connect_mysql( $mysql_host, $login_result['mysql_db'], $mysql_user, $mysql_pass );
