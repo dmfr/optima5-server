@@ -95,6 +95,8 @@ switch( $post_data['_action'] )
 	return paracrm_queries_qsqlTransaction( $post_data ) ;
 	case 'queries_gridTemplate' :
 	return paracrm_queries_gridTemplate( $post_data );
+	case 'queries_qsqlAutorun_getLogs' :
+	return paracrm_queries_qsqlAutorun_getLogs( $post_data );
 	
 	case 'queries_direct' :
 	return paracrm_queries_direct( $post_data );
