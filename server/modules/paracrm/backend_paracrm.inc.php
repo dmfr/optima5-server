@@ -76,6 +76,8 @@ switch( $post_data['_action'] )
 	return paracrm_data_importTransaction( $post_data ) ;
 	case 'data_importDirect' :
 	return paracrm_data_importDirect( $post_data ) ;
+	case 'data_importDirect_getLogs' :
+	return paracrm_data_importDirect_getLogs( $post_data ) ;
 	
 	
 	case 'queries_getToolbarData' :

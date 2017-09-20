@@ -261,7 +261,7 @@ function paracrm_queries_direct_getLogs($post_data) {
 			$vtable.= ' UNION ALL ' ;
 		}
 		$idx++ ;
-		$vtable.= "(SELECT {$alias}.*, '{$sdomain_id}' as sdomain_id, CONCAT('{$sdomain_id}','-',qlog_id) as id FROM {$table} {$alias})" ;
+		$vtable.= "(SELECT {$alias}.*, '{$sdomain_id}' as sdomain_id, CONCAT('{$sdomain_id}','-',LPAD(qlog_id, 20, '0')) as id FROM {$table} {$alias})" ;
 	}
 	$vtable.= ')' ;
 	

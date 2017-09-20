@@ -624,7 +624,7 @@ function paracrm_queries_qsqlAutorun_getLogs( $post_data ) {
 			$vtable.= ' UNION ALL ' ;
 		}
 		$idx++ ;
-		$vtable.= "(SELECT {$alias}.*, '{$sdomain_id}' as sdomain_id, CONCAT('{$sdomain_id}','-',qsql_autorun_id) as id, {$aliasname}.qsql_name FROM {$table} {$alias} LEFT OUTER JOIN {$sdomain_db}.qsql {$aliasname} ON {$aliasname}.qsql_id={$alias}.qsql_id )" ;
+		$vtable.= "(SELECT {$alias}.*, '{$sdomain_id}' as sdomain_id, CONCAT('{$sdomain_id}','-',LPAD(qsql_autorun_id, 20, '0')) as id, {$aliasname}.qsql_name FROM {$table} {$alias} LEFT OUTER JOIN {$sdomain_db}.qsql {$aliasname} ON {$aliasname}.qsql_id={$alias}.qsql_id )" ;
 	}
 	$vtable.= ')' ;
 	

@@ -6,7 +6,8 @@ Ext.define('Optima5.Modules.CrmBase.MainDscWindow',{
 		'Optima5.Modules.CrmBase.DataWindow',
 		
 		'Optima5.Modules.CrmBase.QlogsPanel',
-		'Optima5.Modules.CrmBase.QsqlAutorunPanel'
+		'Optima5.Modules.CrmBase.QsqlAutorunPanel',
+		'Optima5.Modules.CrmBase.DataImportLogsPanel'
 	],
 	
 	clsForPublished: 'op5-crmbase-published',
@@ -76,6 +77,13 @@ Ext.define('Optima5.Modules.CrmBase.MainDscWindow',{
 						icon: 'images/op5img/ico_sql_16.png' ,
 						handler: function(){
 							me.openQsqlAutorun() ;
+						},
+						scope: me
+					},{
+						text: 'Data Imports',
+						icon: 'images/op5img/ico_bookmark_16.png' ,
+						handler: function(){
+							me.openDataImportLogs() ;
 						},
 						scope: me
 					}],
@@ -457,6 +465,43 @@ Ext.define('Optima5.Modules.CrmBase.MainDscWindow',{
 			width:1000,
 			height:600,
 			iconCls: 'op5-crmbase-datatoolbar-file',
+			animCollapse:false,
+			border: false,
+			layout: 'fit',
+			items: [ qlogsPanel ]
+		}) ;
+		qlogsPanel.win = win ;
+		qlogsPanel.on('destroy',function(p) {
+			p.win.close() ;
+		}) ;
+	},
+	openDataImportLogs: function() {
+		var me = this ;
+		
+		// recherche d'une fenetre deja ouverte
+		var doOpen = true ;
+		me.optimaModule.eachWindow(function(win){
+			if( win._winDataImportLogs ) {
+				win.show() ;
+				win.focus() ;
+				doOpen = false ;
+				return false ;
+			}
+		},me) ;
+		
+		if( !doOpen ) {
+			return ;
+		}
+		
+		var qlogsPanel = Ext.create('Optima5.Modules.CrmBase.DataImportLogsPanel',{
+			optimaModule: this.optimaModule
+		});
+		
+		win = this.optimaModule.createWindow({
+			_winDataImportLogs: true,
+			title:'Data Import Logs',
+			width:1150,
+			height:600,
 			animCollapse:false,
 			border: false,
 			layout: 'fit',
