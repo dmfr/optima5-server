@@ -84,11 +84,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AdrbookEntityTypePanel',{
 							return ;
 						}
 						if( record.get('status_is_invalid') ) {
-							metaData.tdCls += ' op5-spec-dbstracy-kpi-nok' ;
+							metaData.tdCls += ' op5-spec-rsiveo-kpi-nok' ;
 						} else if( record.get('status_is_confirm') ) {
-							metaData.tdCls += ' op5-spec-dbstracy-kpi-ok' ;
+							metaData.tdCls += ' op5-spec-rsiveo-kpi-ok' ;
 						} else {
-							metaData.tdCls += ' op5-spec-dbstracy-kpi-unknown' ;
+							metaData.tdCls += ' op5-spec-rsiveo-kpi-unknown' ;
 						}
 					}
 				},{
@@ -121,7 +121,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AdrbookEntityTypePanel',{
 							return false ;
 						}
 					},{
-						icon: 'images/op5img/ico_edit_small.gif',
+						icon: 'images/modules/rsiveo-edit-16.gif',
 						tooltip: 'Dupliquer',
 						handler: function(grid, rowIndex, colIndex, item, e) {
 							var rec = grid.getStore().getAt(rowIndex);
@@ -159,7 +159,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AdrbookEntityTypePanel',{
 	handleStatusMenu: function(gridrecord,clickevent) {
 		var treeContextMenuItems = new Array() ;
 		treeContextMenuItems.push({
-			iconCls: 'op5-spec-dbstracy-kpi-unknown',
+			iconCls: 'op5-spec-rsiveo-kpi-unknown',
 			text: 'Effacer validation',
 			handler : function() {
 				gridrecord.set({
@@ -170,7 +170,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AdrbookEntityTypePanel',{
 			scope : this
 		});
 		treeContextMenuItems.push({
-			iconCls: 'op5-spec-dbstracy-kpi-ok',
+			iconCls: 'op5-spec-rsiveo-kpi-ok',
 			text: 'Valider contact OK',
 			handler : function() {
 				gridrecord.set({
@@ -181,7 +181,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AdrbookEntityTypePanel',{
 			scope : this
 		});
 		treeContextMenuItems.push({
-			iconCls: 'op5-spec-dbstracy-kpi-nok',
+			iconCls: 'op5-spec-rsiveo-kpi-nok',
 			text: 'Valider contact OK',
 			handler : function() {
 				gridrecord.set({
@@ -373,7 +373,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AdrbookEntityPanel',{
 				itemId: 'btnOk',
 				xtype: 'button',
 				text: 'Sauver',
-				icon: 'images/op5img/ico_save_16.gif',
+				icon: 'images/modules/rsiveo-save-16.gif',
 				handler: function( btn ) {
 					this.askSave() ;
 				},
@@ -382,7 +382,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AdrbookEntityPanel',{
 				itemId: 'btnPreview',
 				xtype: 'button',
 				text: 'Annuler',
-				icon: 'images/op5img/ico_cancel_small.gif',
+				icon: 'images/modules/rsiveo-cancel-16.gif',
 				handler: function( btn ) {
 					this.askDestroy() ;
 				},

@@ -110,7 +110,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigMetaPanel', {
 				itemId: 'btnOk',
 				xtype: 'button',
 				text: 'OK',
-				icon: 'images/op5img/ico_save_16.gif',
+				icon: 'images/modules/rsiveo-save-16.gif',
 				handler: function( btn ) {
 					this.handleSave() ;
 				},
@@ -119,7 +119,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigMetaPanel', {
 				itemId: 'btnCancel',
 				xtype: 'button',
 				text: 'Abandon',
-				icon: 'images/op5img/ico_cancel_small.gif',
+				icon: 'images/modules/rsiveo-cancel-16.gif',
 				handler: function( btn ) {
 					this.destroy() ;
 				},

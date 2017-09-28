@@ -44,7 +44,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateLitigPanel',{
 						name: 'litig_ext_user',
 						cfgParam_id: 'USER',
 						cfgParam_emptyDisplayText: 'Select...',
-						icon: 'images/op5img/ico_users_16.png',
+						icon: 'images/modules/rsiveo-users-16.png',
 						selectMode: 'SINGLE',
 						optimaModule: this.optimaModule
 					})]

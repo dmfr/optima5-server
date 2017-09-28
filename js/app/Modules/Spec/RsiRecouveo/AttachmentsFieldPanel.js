@@ -100,7 +100,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AttachmentsFieldPanel',{
 							return false ;
 						}
 					},{
-						icon: 'images/op5img/ico_edit_small.gif',
+						icon: 'images/modules/rsiveo-edit-16.gif',
 						tooltip: 'Visualisation',
 						handler: function(grid, rowIndex, colIndex, item, e) {
 							var rec = grid.getStore().getAt(rowIndex);

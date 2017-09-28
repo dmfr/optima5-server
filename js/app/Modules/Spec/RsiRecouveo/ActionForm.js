@@ -34,7 +34,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 				hidden: true,
 				xtype: 'button',
 				text: 'OK',
-				icon: 'images/op5img/ico_save_16.gif',
+				icon: 'images/modules/rsiveo-save-16.gif',
 				handler: function( btn ) {
 					this.handleSubmitEvent() ;
 				},
@@ -44,7 +44,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 				hidden: true,
 				xtype: 'button',
 				text: 'Preview',
-				icon: 'images/op5img/ico_print_16.png',
+				icon: 'images/modules/rsiveo-print-16.png',
 				handler: function( btn ) {
 					this.handlePreview() ;
 				},
@@ -729,7 +729,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 			})],
 			tbar:[{
 				hidden: true,
-				icon: 'images/op5img/ico_print_16.png',
+				icon: 'images/modules/rsiveo-print-16.png',
 				text: 'Print',
 				handler: function(btn) {
 					var uxIFrame = btn.up('window').down('#uxIFrame'),
@@ -742,7 +742,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 				},
 				scope: this
 			},{
-				icon: 'images/op5img/ico_save_16.gif',
+				icon: 'images/modules/rsiveo-save-16.gif',
 				text: 'Save as PDF',
 				handler: function(btn) {
 					var win = btn.up('window'),

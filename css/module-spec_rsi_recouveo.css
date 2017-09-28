@@ -190,7 +190,7 @@
 .op5-spec-rsiveo-icon-priority {
 	background-position: center ;
 	background-repeat: no-repeat ;
-	background-image: url("../images/op5img/ico_star-on_16.png") !important;
+	background-image: url("../images/modules/rsiveo-staron-16.png") !important;
 }
 
 
@@ -221,7 +221,7 @@
 	border: 1px solid red;
 	background-position: center !important;
 	background-repeat: no-repeat !important;
-	background-image: url("../images/modules/crmbase-process-16.gif") !important;
+	background-image: url("../images/modules/rsiveo-process-16.gif") !important;
 }
 
 .op5-spec-rsiveo-actionstree-depth2 .op5-spec-rsiveo-actionstree-firstcol .x-grid-cell-inner {
@@ -263,13 +263,13 @@
 
 
 .op5-spec-rsiveo-actionclass-comm {
-	background-image: url("../images/modules/dbspeople-role-16.png") !important;
+	background-image: url("../images/modules/rsiveo-role-16.png") !important;
 }
 .op5-spec-rsiveo-actionclass-file {
-	background-image: url("../images/modules/crmbase-bookmark-16.png") !important;
+	background-image: url("../images/modules/rsiveo-bookmark-16.png") !important;
 }
 .op5-spec-rsiveo-actionclass-recordtemp {
-	background-image: url("../images/op5img/ico_quickopen_16.png") !important;
+	background-image: url("../images/modules/rsiveo-quickopen-16.png") !important;
 }
 
 
@@ -332,27 +332,27 @@
 .op5-spec-rsiveo-actionthumb-footer-done {
 	background-position: 0px 0px ;
 	background-repeat: no-repeat ;
-	background-image: url("../images/op5img/ico_ok_16.gif") !important;
+	background-image: url("../images/modules/rsiveo-ok-16.gif") !important;
 }
 .op5-spec-rsiveo-actionthumb-footer-wait {
 	background-position: 0px 0px ;
 	background-repeat: no-repeat ;
-	background-image: url("../images/op5img/ico_wait_small.gif") !important;
+	background-image: url("../images/modules/rsiveo-wait-16.gif") !important;
 }
 .op5-spec-rsiveo-actionthumb-footer-flag {
 	background-position: 0px 0px ;
 	background-repeat: no-repeat ;
-	background-image: url("../images/op5img/ico_redflag_16.gif") !important;
+	background-image: url("../images/modules/rsiveo-redflag-16.gif") !important;
 }
 .op5-spec-rsiveo-actionthumb-footer-skip {
 	background-position: 0px 0px ;
 	background-repeat: no-repeat ;
-	background-image: url("../images/op5img/ico_cancel_small.gif") !important;
+	background-image: url("../images/modules/rsiveo-cancel-16.gif") !important;
 }
 .op5-spec-rsiveo-actionthumb-footer-save {
 	background-position: 0px 0px ;
 	background-repeat: no-repeat ;
-	background-image: url("../images/op5img/ico_save_16.gif") !important;
+	background-image: url("../images/modules/rsiveo-save-16.gif") !important;
 }
 
 
@@ -417,7 +417,7 @@
 
 
 .op5-spec-rsiveo-devnotepad {
-	background-image: url("../images/op5img/ico_quickopen_16.png") !important;
+	background-image: url("../images/modules/rsiveo-quickopen-16.png") !important;
 }
 
 
@@ -458,3 +458,42 @@
 }
 
 
+.op5-spec-rsiveo-datatoolbar-new {
+	background-image: url("../images/modules/rsiveo-new-16.gif") !important;
+}
+.op5-spec-rsiveo-datatoolbar-edit {
+	background-image: url("../images/modules/rsiveo-edit-16.gif") !important;
+}
+.op5-spec-rsiveo-datatoolbar-refresh {
+	background-image: url("../images/modules/rsiveo-viewrefresh-16.png") !important;
+}
+.op5-spec-rsiveo-datatoolbar-file-export-excel {
+	background-image: url("../images/modules/rsiveo-fetch-16.gif") !important;
+}
+.op5-spec-rsiveo-datatoolbar-file-importdata {
+	background-image: url("../images/modules/rsiveo-download-16.png") !important;
+}
+
+.op5-spec-rsiveo-grid-view-order {
+	background-image: url("../images/modules/rsiveo-order-16.gif") !important;
+}
+.op5-spec-rsiveo-grid-view-ordergroup {
+	background-image: url("../images/modules/rsiveo-ordergroup-16.png") !important;
+}
+
+.op5-spec-rsiveo-iconimg-oktree {
+	background-image: url("../images/modules/rsiveo-filechild-16.gif") !important;
+}
+.op5-spec-rsiveo-iconimg-nok {
+	background-image: url("../images/modules/rsiveo-info-16.gif") !important;
+}
+
+.op5-spec-rsiveo-kpi-ok {
+	background: url('../images/modules/rsiveo-ok-16.gif') no-repeat center center ;
+}
+.op5-spec-rsiveo-kpi-nok {
+	background: url('../images/modules/rsiveo-cancel-16.gif') no-repeat center center ;
+}
+.op5-spec-rsiveo-kpi-unknown {
+	background: url('../images/modules/rsiveo-wait-16.gif') no-repeat center center ;
+}

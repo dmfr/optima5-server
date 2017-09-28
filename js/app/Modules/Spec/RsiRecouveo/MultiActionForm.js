@@ -271,7 +271,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MultiActionForm',{
 						name: 'litig_ext_user',
 						cfgParam_id: 'USER',
 						cfgParam_emptyDisplayText: 'Select...',
-						icon: 'images/op5img/ico_users_16.png',
+						icon: 'images/modules/rsiveo-users-16.png',
 						selectMode: 'SINGLE',
 						optimaModule: this.optimaModule
 					})]
@@ -302,7 +302,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MultiActionForm',{
 				hidden: false,
 				xtype: 'button',
 				text: 'OK',
-				icon: 'images/op5img/ico_save_16.gif',
+				icon: 'images/modules/rsiveo-save-16.gif',
 				handler: function( btn ) {
 					this.handleSubmitEvent() ;
 				},
@@ -312,7 +312,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MultiActionForm',{
 				hidden: true,
 				xtype: 'button',
 				text: 'Preview',
-				icon: 'images/op5img/ico_print_16.png',
+				icon: 'images/modules/rsiveo-print-16.png',
 				handler: function( btn ) {
 					this.handlePreview() ;
 				},

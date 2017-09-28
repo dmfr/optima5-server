@@ -150,7 +150,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordGroupAssocPanel',{
 				}
 			},
 			tbar: ['->',{
-				icon: 'images/op5img/ico_save_16.gif',
+				icon: 'images/modules/rsiveo-save-16.gif',
 				text: 'Valider le groupage',
 				handler: function() {
 					this.handleSaveGroup();

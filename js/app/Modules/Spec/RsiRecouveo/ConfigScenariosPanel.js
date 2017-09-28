@@ -170,7 +170,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigScenariosPanel', {
 			items: [{
 				tbar: [{
 					itemId: 'tbNew',
-					icon: 'images/op5img/ico_new_16.gif',
+					icon: 'images/modules/rsiveo-useradd-16.gif',
 					text: 'Nouveau...',
 					handler: function() {
 						this.handleScenNew();
@@ -667,7 +667,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigScenariosPanel', {
 						itemId: 'btnEdit',
 						xtype: 'button',
 						text: 'Modifier',
-						icon: 'images/op5img/ico_edit_small.gif',
+						icon: 'images/modules/rsiveo-edit-16.gif',
 						handler: function( btn ) {
 							this.handleScenEdit() ;
 						},
@@ -699,7 +699,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigScenariosPanel', {
 						itemId: 'btnOk',
 						xtype: 'button',
 						text: 'Enregistrer',
-						icon: 'images/op5img/ico_save_16.gif',
+						icon: 'images/modules/rsiveo-save-16.gif',
 						handler: function( btn ) {
 							this.handleScenSave() ;
 						},
@@ -708,7 +708,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigScenariosPanel', {
 						itemId: 'btnCancel',
 						xtype: 'button',
 						text: 'Annuler',
-						icon: 'images/op5img/ico_cancel_small.gif',
+						icon: 'images/modules/rsiveo-cancel-16.gif',
 						handler: function( btn ) {
 							this.handleScenAbort() ;
 						},

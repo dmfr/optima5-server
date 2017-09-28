@@ -253,7 +253,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextPanel',{
 					itemId: 'btnReset',
 					anchor: '',
 					xtype: 'button',
-					icon: 'images/op5img/ico_wait_small.gif',
+					icon: 'images/modules/rsiveo-wait-16.gif',
 					text: 'Définir prochaine action...',
 					style: 'margin-bottom: 6px',
 					menu: [{
@@ -271,7 +271,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextPanel',{
 						},
 						scope: this
 					},{
-						icon: 'images/op5img/ico_redflag_16.gif',
+						icon: 'images/modules/rsiveo-redflag-16.gif',
 						text: 'Action de traitement définie',
 						handler: function() {
 							this.down('#scenarioField').setValueEnd() ;

@@ -154,7 +154,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.BankPanel',{
 			items: [],
 			tbar:[{
 				hidden: this._readonlyMode,
-				icon: 'images/op5img/ico_back_16.gif',
+				icon: 'images/modules/rsiveo-back-16.gif',
 				text: '<u>Back</u>',
 				handler: function(){
 					this.doQuit() ;
@@ -162,14 +162,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.BankPanel',{
 				scope: this
 			},'-',{
 				text: '<b>Remise de chèque</b>',
-				iconCls: 'op5-crmbase-datatoolbar-file-importdata',
+				iconCls: 'op5-spec-rsiveo-datatoolbar-file-importdata',
 				handler: function() {
 					this.openRecordGroupInputPanel() ;
 				},
 				scope: this
 			},{
 				text: '<b>Groupage VPC</b>',
-				iconCls: 'op5-crmbase-datatoolbar-file-importdata',
+				iconCls: 'op5-spec-rsiveo-datatoolbar-file-importdata',
 				handler: function() {
 					this.openRecordGroupAssocPanel() ;
 				},

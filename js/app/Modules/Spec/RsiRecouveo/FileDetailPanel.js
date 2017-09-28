@@ -150,7 +150,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			},
 			tbar:['->',{
 				itemId: 'tbBump',
-				icon: 'images/op5img/ico_redflag_16.gif',
+				icon: 'images/modules/rsiveo-redflag-16.gif',
 				text: '<b>Reprise dossier</b>',
 				handler: function() {
 					this.handleNewAction('BUMP') ;
@@ -158,7 +158,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				scope: this
 			},{
 				itemId: 'tbNew',
-				icon: 'images/modules/dbspeople-role-16.png',
+				icon: 'images/modules/rsiveo-role-16.png',
 				text: '<b>Actions de communication</b>',
 				menu:[{
 					iconCls: 'op5-spec-rsiveo-action-callin',
@@ -217,7 +217,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					xtype: 'treepanel',
 					tbar: [{
 						itemId: 'tbNew',
-						icon: 'images/op5img/ico_new_16.gif',
+						icon: 'images/modules/rsiveo-useradd-16.gif',
 						text: 'Ajouter contact',
 						handler: function() {
 							this.handleNewAdrbook();
@@ -322,13 +322,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 									return ;
 								}
 								if( record.get('status_is_invalid') ) {
-									metaData.tdCls += ' op5-spec-dbstracy-kpi-nok' ;
+									metaData.tdCls += ' op5-spec-rsiveo-kpi-nok' ;
 								} else if( record.get('status_is_priority') ) {
 									metaData.tdCls += ' op5-spec-rsiveo-icon-priority' ;
 								} else if( record.get('status_is_confirm') ) {
-									metaData.tdCls += ' op5-spec-dbstracy-kpi-ok' ;
+									metaData.tdCls += ' op5-spec-rsiveo-kpi-ok' ;
 								} else {
-									metaData.tdCls += ' op5-spec-dbstracy-kpi-unknown' ;
+									metaData.tdCls += ' op5-spec-rsiveo-kpi-unknown' ;
 								}
 							}
 						},{
@@ -391,7 +391,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 							width:35,
 							disabledCls: 'x-item-invisible',
 							items: [{
-								icon: 'images/op5img/ico_edit_small.gif', 
+								icon: 'images/modules/rsiveo-edit-16.gif', 
 								tooltip: 'Modifier',
 								handler: function(grid, rowIndex, colIndex) {
 									var rec = grid.getStore().getAt(rowIndex);
@@ -606,7 +606,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					},
 					tbar:[{
 						itemId: 'tbNew',
-						icon: 'images/modules/crmbase-bookmark-16.png',
+						icon: 'images/modules/rsiveo-bookmark-16.png',
 						text: '<b>Action de traitement</b>',
 						menu:[{
 							iconCls: 'icon-bible-new',
@@ -639,7 +639,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 						}]
 					},'->',{
 						itemId: 'tbRecordTemp',
-						icon: 'images/op5img/ico_quickopen_16.png',
+						icon: 'images/modules/rsiveo-quickopen-16.png',
 						text: '<b>Ajustement comptable temporaire</b>',
 						handler: function() {
 							this.handleCreateRecord() ;
@@ -895,7 +895,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			fileRecord.records().each( function(fileRecordRecord) {
 				pRecordsTreeChildrenRecords.push({
 					leaf: true,
-					icon: ( !Ext.isEmpty(fileRecordRecord.get('type')) ? 'images/op5img/ico_quickopen_16.png' : undefined ),
+					icon: ( !Ext.isEmpty(fileRecordRecord.get('type')) ? 'images/modules/rsiveo-quickopen-16.png' : undefined ),
 					record_filerecord_id: fileRecordRecord.getId(),
 					record_id: fileRecordRecord.get('record_id'),
 					record_date: fileRecordRecord.get('date_value'),

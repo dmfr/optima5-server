@@ -19,7 +19,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			layout: 'border',
 			tbar:[{
 				hidden: this._readonlyMode,
-				icon: 'images/op5img/ico_back_16.gif',
+				icon: 'images/modules/rsiveo-back-16.gif',
 				text: '<u>Back</u>',
 				handler: function(){
 					this.doQuit() ;
@@ -28,7 +28,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			},'-',Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamButton',{
 				itemId: 'tbSoc',
 				cfgParam_id: 'SOC',
-				icon: 'images/op5img/ico_blocs_small.gif',
+				icon: 'images/modules/rsiveo-blocs-16.gif',
 				selectMode: 'MULTI',
 				optimaModule: this.optimaModule,
 				listeners: {
@@ -53,7 +53,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			},'-',Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamButton',{
 				itemId: 'tbUser',
 				cfgParam_id: 'USER',
-				icon: 'images/op5img/ico_users_16.png',
+				icon: 'images/modules/rsiveo-back-16.png',
 				selectMode: 'SINGLE',
 				optimaModule: this.optimaModule,
 				listeners: {
@@ -71,7 +71,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 					}
 				}
 			}),{
-				icon: 'images/op5img/ico_search_16.gif',
+				icon: 'images/modules/rsiveo-search-16.gif',
 				itemId: 'btnSearchIcon',
 				handler: function(btn) {
 					btn.up().down('#btnSearch').reset() ;
@@ -103,11 +103,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 					items: [{
 						itemId: 'file',
 						text: 'Vue par dossier',
-						iconCls: 'op5-spec-dbstracy-grid-view-order'
+						iconCls: 'op5-spec-rsiveo-grid-view-order'
 					},{
 						itemId: 'account',
 						text: 'Vue par compte',
-						iconCls: 'op5-spec-dbstracy-grid-view-ordergroup'
+						iconCls: 'op5-spec-rsiveo-grid-view-ordergroup'
 					},{
 						xtype: 'menuseparator'
 					},{
@@ -123,7 +123,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 					}]
 				}
 			},{
-				iconCls: 'op5-crmbase-datatoolbar-refresh',
+				iconCls: 'op5-spec-rsiveo-datatoolbar-refresh',
 				text: 'Refresh',
 				handler: function() {
 					this.doLoad(true) ;
@@ -131,7 +131,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				scope: this
 			},{
 				hidden: this._readonlyMode,
-				iconCls: 'op5-crmbase-datatoolbar-new',
+				iconCls: 'op5-spec-rsiveo-datatoolbar-new',
 				text: 'Select.multiple',
 				handler: function() {
 					this.toggleMultiSelect() ;
@@ -139,7 +139,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				scope: this
 			},{
 				hidden: this._readonlyMode,
-				iconCls: 'op5-crmbase-datatoolbar-file-export-excel',
+				iconCls: 'op5-spec-rsiveo-datatoolbar-file-export-excel',
 				text: 'Export',
 				handler: function() {
 					this.handleDownload() ;
@@ -229,7 +229,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			var atrRecord = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(atrId) ;
 			tbAtr.add(Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamButton',{
 				cfgParam_id: atrRecord.bible_code,
-				icon: 'images/op5img/ico_blocs_small.gif',
+				icon: 'images/modules/rsiveo-blocs-16.gif',
 				selectMode: 'MULTI',
 				optimaModule: this.optimaModule,
 				listeners: {

@@ -224,7 +224,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordGroupInputPanel',{
 				},
 				scope: this
 			},'->',{
-				icon: 'images/op5img/ico_save_16.gif',
+				icon: 'images/modules/rsiveo-save-16.gif',
 				text: 'Valider la remise',
 				handler: function() {
 					this.handleSaveGroup();

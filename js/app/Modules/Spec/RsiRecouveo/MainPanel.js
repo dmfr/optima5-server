@@ -122,7 +122,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 			title: 'Recouveo : Configuration',
 			width:1300,
 			height:520,
-			iconCls: 'op5-crmbase-dataformwindow-icon',
+			iconCls: 'op5-spec-rsiveo-datatoolbar-edit',
 			animCollapse:false,
 			
 			optimaModule: this.optimaModule
