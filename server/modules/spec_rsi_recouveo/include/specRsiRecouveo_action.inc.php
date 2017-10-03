@@ -178,24 +178,36 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 				$txt.= $post_form['txt']."\r\n" ;
 			}
 			$arr_ins['field_TXT'] = $txt ;
+			
+			$link_txt = '' ;
+			if( $post_form['adrtel_entity_name'] ) {
+				$link_txt.= $post_form['adrtel_entity_name']."\r\n" ;
+			}
 			if( $post_form['adrtel_result'] ) {
 				$id = $post_form['adrtel_result'] ;
 				$lib = $map_optcallout[$id] ;
 				if( $lib ) {
-					$arr_ins['field_LINK_TXT'] = 'Appel : '.$lib ;
+					$link_txt.= $lib."\r\n" ;
 				}
 			}
+			$arr_ins['field_LINK_TXT'] = $link_txt ;
 			break ;
 			
 		case 'MAIL_IN' :
 			$arr_ins['field_TXT'] = $post_form['txt'] ;
+			
+			$link_txt = '' ;
+			if( $post_form['adrpost_entity_name'] ) {
+				$link_txt.= $post_form['adrpost_entity_name']."\r\n" ;
+			}
 			if( $post_form['adrpost_result'] ) {
 				$id = $post_form['adrpost_result'] ;
 				$lib = $map_optmailin[$id] ;
 				if( $lib ) {
-					$arr_ins['field_LINK_TXT'] = 'Courrier : '.$lib ;
+					$link_txt.= $lib."\r\n" ;
 				}
 			}
+			$arr_ins['field_LINK_TXT'] = $link_txt ;
 			break ;
 			
 		case 'MAIL_OUT' :
@@ -206,6 +218,7 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 			}
 			$arr_ins['field_LINK_TPL'] = $post_form['tpl_id'] ;
 			$arr_ins['field_TXT'] = $txt ;
+			break ;
 			
 		case 'BUMP' :
 			break ;

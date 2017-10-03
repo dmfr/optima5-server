@@ -160,7 +160,15 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AdrbookTypeContainer',{
 			adrStatus = this.down('[name="'+prefix+'_status"]') ;
 		adrField.reset() ;
 		if( adrObj ) {
-			adrNameField.setValue( (adrObj.parentNode&&!Ext.isEmpty(adrObj.parentNode.get('nodeNext'))) ? adrObj.parentNode.get('nodeNext') : this._accountRecord.get('acc_txt') ) ;
+			var adrNameTxt = [] ;
+			if( adrObj.parentNode && !Ext.isEmpty(adrObj.parentNode.get('nodeNext')) ) {
+				adrNameTxt.push( adrObj.parentNode.get('nodeText') ) ;
+				adrNameTxt.push( adrObj.parentNode.get('nodeNext') ) ;
+			} else {
+				adrNameTxt.push( this._accountRecord.get('acc_txt') ) ;
+			}
+			adrNameTxt = adrNameTxt.join(' - ') ;
+			adrNameField.setValue( adrNameTxt ) ;
 			adrNameField.setReadOnly(true) ;
 			adrField.setValue( adrObj.get('nodeText') ) ;
 			adrField.setReadOnly(true) ;

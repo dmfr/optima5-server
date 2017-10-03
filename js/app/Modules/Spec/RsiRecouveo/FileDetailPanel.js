@@ -192,6 +192,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			}],
 			items:[{
 				flex: 1,
+				title: 'Contact',
 				xtype: 'panel',
 				layout: {
 					type: 'vbox',
@@ -200,7 +201,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				border: false,
 				items: [{
 					flex:2,
-					title: 'Contacts',
 					xtype: 'form',
 					itemId: 'pHeaderForm',
 					bodyCls: 'ux-noframe-bg',
@@ -213,7 +213,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					items: formItems
 				},{
 					flex: 3,
-					title: 'Contacts',
 					itemId: 'pAdrbookTree',
 					xtype: 'treepanel',
 					tbar: [{
@@ -497,6 +496,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					itemId: 'pRecordsBalage',
 					hidden: true,
 					xtype:'grid',
+					scrollable: false,
 					columns: {
 						defaults: {
 							menuDisabled: true,
@@ -1115,35 +1115,41 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 						var vStatus = record.get('link_status'),
 							vAction = record.get('link_action'),
 							vTag = record.get('scenstep_tag') ;
-						switch( vStatus ) {
-							case 'S2L_LITIG' :
-								metaData.tdCls += ' op5-spec-rsiveo-actiontree-litig' ;
-								break ;
+						dance:
+						while(true) {
+							switch( vAction ) {
+								case 'CALL_OUT' :
+									metaData.tdCls += ' op5-spec-rsiveo-actiontree-callout' ;
+									break dance ;
+								case 'CALL_IN' :
+									metaData.tdCls += ' op5-spec-rsiveo-actiontree-callin' ;
+									break dance ;
+								case 'MAIL_OUT' :
+									metaData.tdCls += ' op5-spec-rsiveo-actiontree-mailout' ;
+									break dance ;
+								case 'MAIL_IN' :
+									metaData.tdCls += ' op5-spec-rsiveo-actiontree-mailin' ;
+									break dance ;
+								default :
+									break ;
+							}
+							switch( vStatus ) {
+								case 'S2L_LITIG' :
+									metaData.tdCls += ' op5-spec-rsiveo-actiontree-litig' ;
+									break dance ;
+									
+								case 'S2P_PAY' :
+									metaData.tdCls += ' op5-spec-rsiveo-actiontree-agree' ;
+									break dance ;
+									
+								case 'SX_CLOSE' :
+									metaData.tdCls += ' op5-spec-rsiveo-actiontree-close' ;
+									break dance ;
 								
-							case 'S2P_PAY' :
-								metaData.tdCls += ' op5-spec-rsiveo-actiontree-agree' ;
-								break ;
-								
-							case 'SX_CLOSE' :
-								metaData.tdCls += ' op5-spec-rsiveo-actiontree-close' ;
-								break ;
-							
-							default :
-								switch( vAction ) {
-									case 'CALL_OUT' :
-										metaData.tdCls += ' op5-spec-rsiveo-actiontree-callout' ;
-										break ;
-									case 'CALL_IN' :
-										metaData.tdCls += ' op5-spec-rsiveo-actiontree-callin' ;
-										break ;
-									case 'MAIL_OUT' :
-										metaData.tdCls += ' op5-spec-rsiveo-actiontree-mailout' ;
-										break ;
-									case 'MAIL_IN' :
-										metaData.tdCls += ' op5-spec-rsiveo-actiontree-mailin' ;
-										break ;
-								}
-								break ;
+								default :
+									break ;
+							}
+							break ;
 						}
 						return '' ;
 					}
@@ -1161,37 +1167,36 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					dataIndex: 'txt_short',
 					width: 240,
 					renderer: function(value,metaData,record,rowIndex,colIndex,store,view) {
-						if( !Ext.isEmpty(value) ) {
-							return '<b>'+Ext.util.Format.nl2br(value)+'</b>' ;
-						}
-						
-						var vAction = record.get('link_action'),
-							actionMap = view.up('panel')._actionMap ;
-						if( actionMap.hasOwnProperty(vAction) ) {
-							var txt = '' ;
-							if( !Ext.isEmpty(record.get('scenstep_tag')) ) {
-								txt+= '<b>'+record.get('scenstep_tag')+'</b>'+'&#160;'+':'+'&#160;' ;
+						while( true ) {
+							var txt ;
+							
+							if( !Ext.isEmpty(value) ) {
+								var arrV = value.split( Ext.util.Format.nl2brRe ) ;
+								arrV[0] = '<b>'+arrV[0]+'</b>' ;
+								txt = arrV.join('<br/>') ;
+								break ;
 							}
-							var actionData = actionMap[vAction] ;
-							txt+= '<b>'+actionData.action_txt+'</b>' ;
-							return txt ;
-						}
-						return '?' ;
 						
-						// Examples
-						if( record.get('scenstep_tag') == 'MED' ) {
-							txt='' ;
-							txt += '<b>LRAR : Mise en demeure</b>' ;
-							txt += '<br>' ;
-							txt += '<i>Mme LEGRAND</i>' ;
-							return txt ;
+							var vAction = record.get('link_action'),
+								actionMap = view.up('panel')._actionMap ;
+							if( actionMap.hasOwnProperty(vAction) ) {
+								txt = '' ;
+								if( !Ext.isEmpty(record.get('scenstep_tag')) ) {
+									txt+= '<b>'+record.get('scenstep_tag')+'</b>'+'&#160;'+':'+'&#160;' ;
+								}
+								var actionData = actionMap[vAction] ;
+								txt+= '<b>'+actionData.action_txt+'</b>' ;
+								
+								break ;
+							}
+							
+							txt = '?' ;
+							break ;
 						}
-						if( record.get('link_action') == 'CALL_OUT' ) {
-							txt='' ;
-							txt += '<b>Correspondant contacté</b>' ;
-							return txt ;
+						if( !record.get('status_is_ok') ) {
+							return '<i>'+Ext.util.Format.stripTags(txt)+'</i>' ;
 						}
-						return 'example ?' ;
+						return txt ;
 					}
 				},{
 					align: 'center',
