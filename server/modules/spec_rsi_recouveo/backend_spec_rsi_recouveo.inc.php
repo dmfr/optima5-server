@@ -68,6 +68,10 @@ switch( $post_data['_action'] )
 		return specRsiRecouveo_config_getScenarios( $post_data ) ;
 	case 'config_setScenario' :
 		return specRsiRecouveo_config_setScenario( $post_data ) ;
+	case 'config_getSocs' :
+		return specRsiRecouveo_config_getSocs( $post_data ) ;
+	case 'config_setSoc' :
+		return specRsiRecouveo_config_setSoc( $post_data ) ;
 	
 	case 'xls_create' :
 		return specRsiRecouveo_xls_create( $post_data ) ;

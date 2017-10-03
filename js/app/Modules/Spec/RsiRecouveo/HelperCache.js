@@ -132,6 +132,27 @@ Ext.define('RsiRecouveoConfigScenarioTplModel',{
 	]
 });
 
+Ext.define('RsiRecouveoConfigSocMetafieldModel',{
+	extend: 'Ext.data.Model',
+	fields: [
+		{name: 'metafield_code', type:'string'},
+		{name: 'metafield_desc', type:'string'}
+	]
+});
+Ext.define('RsiRecouveoConfigSocModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'scen_code',
+	fields: [
+		{name: 'soc_id', type:'string'},
+		{name: 'soc_name', type:'string'}
+	],
+	hasMany: [{
+		model: 'RsiRecouveoConfigSocMetafieldModel',
+		name: 'metafields',
+		associationKey: 'metafields'
+	}]
+});
+
 
 Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 	mixins: {

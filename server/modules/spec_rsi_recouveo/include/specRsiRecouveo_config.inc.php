@@ -224,4 +224,65 @@ function specRsiRecouveo_config_setScenario( $post_data ) {
 
 
 
+
+
+
+
+function specRsiRecouveo_config_getSocs($post_data) {
+	global $_opDB ;
+	
+	$ttmp = specRsiRecouveo_cfg_getConfig() ;
+	$cfg_atr = $ttmp['data']['cfg_atr'] ;
+	
+	
+	$TAB = array() ;
+	
+	$query = "SELECT * FROM view_bible_LIB_ACCOUNT_tree ORDER BY field_SOC_ID" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$soc_id = $arr['field_SOC_ID'] ;
+		
+		$record = array(
+			'soc_id' => $arr['field_SOC_ID'],
+			'soc_name' => $arr['field_SOC_NAME'],
+			
+			'metafields' => array()
+		) ;
+		$json_metafields = json_decode($arr['field_SOC_METAFIELDS_JSON'],true) ;
+		if( is_array($json_metafields) ) {
+			foreach( $json_metafields as $json_metafield ) {
+				$record['metafields'][] = array(
+					'metafield_code' => $json_metafield['metafield_code'],
+					'metafield_desc' => $json_metafield['metafield_desc']
+				);
+			}
+		}
+		$TAB[$soc_id] = $record ;
+	}
+	
+	return array('success'=>true,'data'=>array_values($TAB)) ;
+}
+function specRsiRecouveo_config_setSoc( $post_data ) {
+	global $_opDB ;
+	
+	$soc_record = json_decode($post_data['data'],true) ;
+	$soc_id = $soc_record['soc_id'] ;
+	
+	$arr_update = array() ;
+	$arr_update['field_SOC_ID'] = $soc_record['soc_id'] ;
+	$arr_update['field_SOC_NAME'] = $soc_record['soc_name'] ;
+	$metafields = array() ;
+	foreach( $soc_record['metafields'] as $metafield ) {
+		$metafields[] = array(
+			'metafield_code' => $metafield['metafield_code'],
+			'metafield_desc' => $metafield['metafield_desc']
+		);
+	}
+	$arr_update['field_SOC_METAFIELDS_JSON'] = json_encode($metafields) ;
+	paracrm_lib_data_updateRecord_bibleTreenode( 'LIB_ACCOUNT', $soc_id, $arr_update ) ;
+	
+	return array('success'=>true) ;
+}
+
+
 ?>

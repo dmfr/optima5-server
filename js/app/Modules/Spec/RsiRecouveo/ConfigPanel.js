@@ -19,7 +19,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigPanel', {
 		'Optima5.Modules.Spec.RsiRecouveo.ConfigMetaPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.ConfigUsersPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.ConfigScenariosPanel',
-		'Optima5.Modules.Spec.RsiRecouveo.ConfigPayPanel'
+		'Optima5.Modules.Spec.RsiRecouveo.ConfigPayPanel',
+		'Optima5.Modules.Spec.RsiRecouveo.ConfigSocsPanel'
 	],
 	
 	menuData: [{
@@ -44,12 +45,19 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigPanel', {
 		iconClsSmall:'op5-spec-rsiveo-config-users-small',
 		jsClass:'Optima5.Modules.Spec.RsiRecouveo.ConfigUsersPanel'
 	},{
-		id:'sdomain-manager',
+		id:'scenarios',
 		title:'Scénarios',
 		caption:'Gestion des scénarios de recouvrement',
 		iconClsBig:'op5-spec-rsiveo-config-scenarios-big',
 		iconClsSmall:'op5-spec-rsiveo-config-scenarios-small',
 		jsClass:'Optima5.Modules.Spec.RsiRecouveo.ConfigScenariosPanel'
+	},{
+		id:'socs',
+		title:'Entités / Sociétés',
+		caption:'Définition des métadonnées liées aux sociétés',
+		iconClsBig:'op5-spec-rsiveo-config-socs-big',
+		iconClsSmall:'op5-spec-rsiveo-config-socs-small',
+		jsClass:'Optima5.Modules.Spec.RsiRecouveo.ConfigSocsPanel'
 	}],
 	
 	initComponent: function() {
