@@ -178,7 +178,8 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			
 			'link_tpl' => $arr['field_LINK_TPL'],
 			'link_litig' => $arr['field_LINK_LITIG'],
-			'link_close' => $arr['field_LINK_CLOSE']
+			'link_close' => $arr['field_LINK_CLOSE'],
+			'link_txt' => $arr['field_LINK_TXT']
 		);
 	}
 	
@@ -355,6 +356,9 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 		
 		foreach( $file_row['actions'] as &$file_action_row ) {
 			$txt_short = '' ;
+			if( $file_action_row['link_txt'] ) {
+				$txt_short.= $file_action_row['link_txt'].'<br>' ;
+			}
 			if( $file_action_row['link_tpl'] ) {
 				$search_id = 'MAIL_OUT'.'_'.$file_action_row['link_tpl'] ;
 				$txt_short.= $map_actionnext[$search_id].'<br>' ;

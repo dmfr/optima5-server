@@ -1159,7 +1159,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					}
 				},{
 					dataIndex: 'txt_short',
-					width: 180,
+					width: 240,
 					renderer: function(value,metaData,record,rowIndex,colIndex,store,view) {
 						if( !Ext.isEmpty(value) ) {
 							return '<b>'+Ext.util.Format.nl2br(value)+'</b>' ;

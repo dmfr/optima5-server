@@ -14,6 +14,22 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 	foreach( $cfg_action as $action ) {
 		$map_action[$action['action_id']] = $action ;
 	}
+	$map_optmailin = array() ;
+	foreach( $ttmp['data']['cfg_opt'] as $cfg_opt ) {
+		if( $cfg_opt['bible_code'] == 'OPT_MAILIN' ) {
+			foreach( $cfg_opt['records'] as $rec ) {
+				$map_optmailin[$rec['id']] = $rec['text'] ;
+			}
+		}
+	}
+	$map_optcallout = array() ;
+	foreach( $ttmp['data']['cfg_opt'] as $cfg_opt ) {
+		if( $cfg_opt['bible_code'] == 'OPT_CALLOUT' ) {
+			foreach( $cfg_opt['records'] as $rec ) {
+				$map_optcallout[$rec['id']] = $rec['text'] ;
+			}
+		}
+	}
 	
 	$file_filerecord_id = $post_data['file_filerecord_id'] ;
 	$ttmp = specRsiRecouveo_file_getRecords( array(
@@ -162,10 +178,24 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 				$txt.= $post_form['txt']."\r\n" ;
 			}
 			$arr_ins['field_TXT'] = $txt ;
+			if( $post_form['adrtel_result'] ) {
+				$id = $post_form['adrtel_result'] ;
+				$lib = $map_optcallout[$id] ;
+				if( $lib ) {
+					$arr_ins['field_LINK_TXT'] = 'Appel : '.$lib ;
+				}
+			}
 			break ;
 			
 		case 'MAIL_IN' :
 			$arr_ins['field_TXT'] = $post_form['txt'] ;
+			if( $post_form['adrpost_result'] ) {
+				$id = $post_form['adrpost_result'] ;
+				$lib = $map_optmailin[$id] ;
+				if( $lib ) {
+					$arr_ins['field_LINK_TXT'] = 'Courrier : '.$lib ;
+				}
+			}
 			break ;
 			
 		case 'MAIL_OUT' :
