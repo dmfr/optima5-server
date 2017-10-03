@@ -227,6 +227,17 @@
 .op5-spec-rsiveo-actionstree-depth2 .op5-spec-rsiveo-actionstree-firstcol .x-grid-cell-inner {
 	margin-left: 18px
 }
+
+.op5-spec-rsiveo-adrbooktree-depth2 .x-tree-elbow-img {
+	display: none ;
+}
+.op5-spec-rsiveo-adrbooktree-depth2 .x-tree-icon {
+	display: none ;
+}
+.op5-spec-rsiveo-adrbooktree-depth2 .op5-spec-rsiveo-adrbooktree-firstcol .x-grid-cell-inner {
+	margin-left: 30px ;
+}
+
 .op5-spec-rsiveo-actionstree-rowbody .x-grid-rowbody {
 	padding-left: 42px
 }

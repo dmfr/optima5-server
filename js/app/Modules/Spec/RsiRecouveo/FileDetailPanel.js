@@ -277,39 +277,15 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 							dataIndex: 'adrtel_filerecord_id'
 						},{
 							xtype: 'treecolumn',
-							text: 'Description',
-							width: 100,
-							dataIndex: 'adr_type',
-							renderer: function(value, metaData, record, rowIndex, colIndex, store, view) {
+							tdCls: 'op5-spec-rsiveo-adrbooktree-firstcol',
+							text: 'Coordonnées',
+							width: 280,
+							dataIndex: 'adr_txt',
+							renderer: function(value, metaData, record) {
 								if( record.get('adr_entity_group') ) {
 									metaData.tdAttr='style="width:340px; font-weight: bold;"' ;
 									value = record.get('adr_entity') ;
 									return value ;
-								}
-								switch( value ) {
-									case 'TEL' :
-										value = 'Tel/Mob' ;
-										break ;
-									case 'POSTAL' :
-										value = 'Adresse' ;
-										break ;
-									case 'EMAIL' :
-										value = 'Email' ;
-										break ;
-									
-									default: break ;
-								}
-								//metaData.tdAttr='style="font-style: italic;"' ;
-								return value ;
-							}
-						},{
-							text: 'Coordonnées',
-							width: 180,
-							dataIndex: 'adr_txt',
-							renderer: function(value, metaData, record) {
-								if( record.get('adr_entity_group') ) {
-									metaData.tdAttr='style="width:0px; display:none ;"' ;
-									return ;
 								}
 								return Ext.util.Format.nl2br( Ext.String.htmlEncode( value ) ) ;
 							}
@@ -352,6 +328,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 								scope: this,
 								disabledCls: 'x-item-invisible',
 								isDisabled: function(view,rowIndex,colIndex,item,record ) {
+									if( record.get('expanded') ) {
+										return true ;
+									}
 									if( record.get('adr_entity_group') || record.get('adr_type')=='TEL' ) {
 										return false ;
 									}
@@ -379,6 +358,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 								scope: this,
 								disabledCls: 'x-item-invisible',
 								isDisabled: function(view,rowIndex,colIndex,item,record ) {
+									if( record.get('expanded') ) {
+										return true ;
+									}
 									if( record.get('adr_entity_group') || record.get('adr_type')=='POSTAL' ) {
 										return false ;
 									}
@@ -408,6 +390,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 						}]
 					},
 					listeners: {
+						afteritemexpand: function( treepanel ) {
+							this.down('#pAdrbookTree').getView().refresh() ;
+						},
 						itemclick: function( view, record, itemNode, index, e ) {
 							var cellNode = e.getTarget( view.getCellSelector() ),
 								cellColumn = view.getHeaderByCell( cellNode ) ;
@@ -424,6 +409,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 							}
 						},
 						scope: this
+					},
+					viewConfig: {
+						getRowClass: function(record) {
+							if( record.getDepth() == 2 ) {
+								return 'op5-spec-rsiveo-adrbooktree-depth2' ;
+							}
+						}
 					}
 				}]
 			},{
