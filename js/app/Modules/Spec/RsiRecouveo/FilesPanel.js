@@ -629,7 +629,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				locked: true,
 				width: 100,
 				text: 'Statut',
-				dataIndex: 'agenda_class_txt'
+				dataIndex: 'agenda_class_txt',
+				summaryType: 'count',
+				summaryRenderer: function(value, summaryData, dataIndex) {
+					return 'Total' ;
+				}
 			}] ;
 			
 		var agendaChrtFields = ['agenda_class','agenda_class_txt'],
@@ -644,8 +648,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				text: etaRange.eta_txt,
 				dataIndex: etaRange.eta_range+'_count',
 				width: 85,
-				tdCls: 'op5-spec-dbstracy-boldcolumn bgcolor-'+etaRange.eta_color.substring(1),
-				renderer: agendaGridColumnRenderer
+				tdCls: 'bgcolor-'+etaRange.eta_color.substring(1),
+				renderer: agendaGridColumnRenderer,
+				summaryType:'sum',
+				summaryRenderer: function(value) {
+					return '<b>'+value+'</b>' ;
+				}
 			});
 			agendaGridFields.push(etaRange.eta_range+'_amount') ;
 			agendaGridColumns.push({
@@ -654,8 +662,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				text: etaRange.eta_txt,
 				dataIndex: etaRange.eta_range+'_amount',
 				width: 85,
-				tdCls: 'op5-spec-dbstracy-boldcolumn bgcolor-'+etaRange.eta_color.substring(1),
-				renderer: agendaGridColumnAmountRenderer
+				tdCls: 'bgcolor-'+etaRange.eta_color.substring(1),
+				renderer: agendaGridColumnAmountRenderer,
+				summaryType:'sum',
+				summaryRenderer: function(value) {
+					return '<b>'+Ext.util.Format.number(value,'0,000')+' €'+'</b>' ;
+				}
 			});
 			
 			agendaChrtFields.push(etaRange.eta_range+'_count', etaRange.eta_range+'_ratio1000') ;
@@ -663,6 +675,34 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			agendaChrtTitles.push(etaRange.eta_txt) ;
 			agendaChrtColors.push(etaRange.eta_color) ;
 		}) ;
+		if( true ) { // footer sum
+			agendaGridFields.push('sum'+'_count', 'sum'+'_ratio1000') ;
+			agendaGridColumns.push({
+				hidden: true,
+				_agendaMode: 'count',
+				text: 'Total',
+				dataIndex: 'sum'+'_count',
+				width: 85,
+				tdCls: 'op5-spec-dbstracy-boldcolumn',
+				renderer: agendaGridColumnRenderer,
+				summaryType:'sum'
+			});
+			agendaGridFields.push('sum'+'_amount') ;
+			agendaGridColumns.push({
+				hidden: true,
+				_agendaMode: 'amount',
+				text: 'Total',
+				dataIndex: 'sum'+'_amount',
+				width: 85,
+				tdCls: 'op5-spec-dbstracy-boldcolumn',
+				renderer: agendaGridColumnAmountRenderer,
+				summaryType:'sum',
+				summaryRenderer: function(value) {
+					return '<b>'+Ext.util.Format.number(value,'0,000')+' €'+'</b>' ;
+				}
+			});
+		}
+		
 		
 		var chartStatusAmountTotal = 0,
 			chartStatusCountTotal = 0 ;
@@ -894,7 +934,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 						chrtAgenda.setVisible(true) ;
 					},
 					scope: this
-				}
+				},
+				features: [{
+					ftype: 'summary',
+					dock: 'bottom'
+				}]
 			},{
 				height: 60,
 				hidden: true,
@@ -997,7 +1041,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				store: {
 					fields: balageGridFields,
 					data: []
-				}
+				},
+				features: [{
+					ftype: 'summary',
+					dock: 'bottom'
+				}]
 			}]
 		});
 	},
@@ -1345,6 +1393,17 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 					agendaRow[etaRangeRatio] = 0 ;
 				}) ;
 			}
+			
+			agendaRow['sum_amount'] = agendaRow['sum_count'] = agendaRow['sum_ratio1000'] = 0 ;
+			Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionEtaAll(), function(etaRangeRow) {
+				var etaRange = etaRangeRow.eta_range,
+					etaRangeAmount = etaRangeRow.eta_range+'_amount',
+					etaRangeCount = etaRangeRow.eta_range+'_count',
+					etaRangeRatio = etaRangeRow.eta_range+'_ratio1000' ;
+				agendaRow['sum_amount'] += agendaRow[etaRangeAmount] ;
+				agendaRow['sum_count'] += agendaRow[etaRangeCount] ;
+				agendaRow['sum_ratio1000'] += agendaRow[etaRangeRatio] ;
+			}) ;
 			
 			agendaData.push(agendaRow) ;
 		}) ;
