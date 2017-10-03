@@ -53,7 +53,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			},'-',Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamButton',{
 				itemId: 'tbUser',
 				cfgParam_id: 'USER',
-				icon: 'images/modules/rsiveo-back-16.png',
+				icon: 'images/modules/rsiveo-users-16.png',
 				selectMode: 'SINGLE',
 				optimaModule: this.optimaModule,
 				listeners: {
