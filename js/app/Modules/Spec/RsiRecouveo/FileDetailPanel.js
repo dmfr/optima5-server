@@ -1149,9 +1149,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					}
 				},{
 					dataIndex: 'log_user',
-					width: 36,
+					width: 50,
 					renderer: function(value,metaData) {
 						metaData.style += 'font-weight: bold ; text-align:center ;' ;
+						if( value.split('@').length == 2 ) {
+							return value.split('@')[1] ;
+						}
 						return value ;
 					}
 				},{

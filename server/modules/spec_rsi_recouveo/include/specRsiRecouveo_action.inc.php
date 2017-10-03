@@ -132,6 +132,7 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 	
 	// ***** Action en cours *********
 	$arr_ins = array() ;
+	$arr_ins['field_LOG_USER'] = specRsiRecouveo_util_getLogUser() ;
 	$arr_ins['field_STATUS_IS_OK'] = 1 ;
 	$arr_ins['field_DATE_ACTUAL'] = date('Y-m-d H:i:s') ;
 	$arr_ins['field_LINK_STATUS'] = $post_form['link_status'] ;

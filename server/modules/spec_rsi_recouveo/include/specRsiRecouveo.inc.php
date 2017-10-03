@@ -272,6 +272,7 @@ function specRsiRecouveo_cfg_getConfig() {
 		$TAB_user[] = array(
 			'user_id' => $arr['field_USER_ID'],
 			'user_pw' => $arr['field_USER_PW'],
+			'user_short' => $arr['field_USER_SHORT'],
 			'user_fullname' => $arr['field_USER_FULLNAME'],
 			'user_email' => $arr['field_USER_EMAIL'],
 			'user_tel' => $arr['field_USER_TEL'],
@@ -332,6 +333,28 @@ function specRsiRecouveo_cfg_getConfig() {
 	
 	
 	return array('success'=>true, 'data'=>$GLOBALS['cache_specRsiRecouveo_cfg']['getConfig'])  ;
+}
+
+
+
+
+function specRsiRecouveo_util_getLogUser() {
+	$user_id = strtoupper($_SESSION['login_data']['delegate_userId']) ;
+	if( !$user_id ) {
+		return NULL ;
+	}
+	
+	$ttmp = specRsiRecouveo_cfg_getConfig() ;
+	$cfg_user = $ttmp['data']['cfg_user'] ;
+	$map_user = array() ;
+	foreach( $cfg_user as $user ) {
+		$map_user[$user['user_id']] = $user ;
+	}
+	
+	if( $map_user[$user_id] && $map_user[$user_id]['user_short'] ) {
+		return $user_id.'@'.$map_user[$user_id]['user_short'] ;
+	}
+	return $user_id ;
 }
 
 

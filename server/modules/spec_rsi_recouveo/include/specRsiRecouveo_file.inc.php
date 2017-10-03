@@ -778,6 +778,7 @@ function specRsiRecouveo_file_createForAction( $post_data ) {
 		$arr_ins['field_DATE_ACTUAL'] = date('Y-m-d H:i:s') ;
 		$arr_ins['field_TXT'] = $txt ;
 		$arr_ins['field_LINK_NEW_FILE_ID'] = $file_filerecord_id ;
+		$arr_ins['field_LOG_USER'] = specRsiRecouveo_util_getLogUser() ;
 		paracrm_lib_data_insertRecord_file( 'FILE_ACTION', $accFile_record['file_filerecord_id'], $arr_ins );
 	}
 	
@@ -797,6 +798,7 @@ function specRsiRecouveo_file_createForAction( $post_data ) {
 			if( $_formData['litig_ext_is_on'] ) {
 				$arr_ins['field_LINK_USER_EXT'] = $_formData['litig_ext_user'] ;
 			}
+			$arr_ins['field_LOG_USER'] = specRsiRecouveo_util_getLogUser() ;
 			paracrm_lib_data_insertRecord_file( $file_code, $file_filerecord_id, $arr_ins );
 			
 			$arr_ins = array() ;
@@ -817,6 +819,7 @@ function specRsiRecouveo_file_createForAction( $post_data ) {
 			$arr_ins['field_DATE_ACTUAL'] = date('Y-m-d H:i:s') ;
 			$arr_ins['field_LINK_CLOSE'] = $_formData['close_code'] ;
 			$arr_ins['field_TXT'] = $_formData['close_txt'] ;
+			$arr_ins['field_LOG_USER'] = specRsiRecouveo_util_getLogUser() ;
 			paracrm_lib_data_insertRecord_file( $file_code, $file_filerecord_id, $arr_ins );
 			
 			$arr_ins = array() ;
@@ -840,6 +843,7 @@ function specRsiRecouveo_file_createForAction( $post_data ) {
 			$arr_ins['field_STATUS_IS_OK'] = 1 ;
 			$arr_ins['field_DATE_ACTUAL'] = date('Y-m-d H:i:s') ;
 			$arr_ins['field_TXT'] = implode("\r\n",$txt) ;
+			$arr_ins['field_LOG_USER'] = specRsiRecouveo_util_getLogUser() ;
 			paracrm_lib_data_insertRecord_file( $file_code, $file_filerecord_id, $arr_ins );
 			
 			switch( $_formData['agree_period'] ) {
