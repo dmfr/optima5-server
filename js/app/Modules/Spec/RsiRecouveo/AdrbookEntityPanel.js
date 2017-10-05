@@ -182,7 +182,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AdrbookEntityTypePanel',{
 		});
 		treeContextMenuItems.push({
 			iconCls: 'op5-spec-rsiveo-kpi-nok',
-			text: 'Valider contact OK',
+			text: 'Invalider contact',
 			handler : function() {
 				gridrecord.set({
 					status_is_confirm:false,

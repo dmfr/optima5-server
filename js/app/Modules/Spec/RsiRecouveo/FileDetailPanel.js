@@ -22,6 +22,7 @@ Ext.define('RsiRecouveoAdrbookTreeModel',{
 	extend: 'RsiRecouveoAdrbookModel',
 	idProperty: 'id',
 	fields:[
+		{name: 'filterHide', type: 'int'},
 		{name: 'adr_entity', type: 'string'},
 		{name: 'adr_entity_obs', type: 'string'},
 		{name: 'adr_entity_group', type: 'boolean'}
@@ -223,10 +224,28 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 							this.handleNewAdrbook();
 						},
 						scope: this
+					},'->',{
+						xtype: 'checkbox',
+						boxLabel: 'Afficher contacts invalides',
+						itemId: 'chkShowInvalid',
+						hideLabel: true,
+						margin: '0 10 0 10',
+						inputValue: 'true',
+						value: 'false',
+						listeners: {
+							change: function (cb, newValue, oldValue) {
+								this.applyAdrbookFilter();
+							},
+							scope: this
+						}
 					}],
 					store: {
 						model: 'RsiRecouveoAdrbookTreeModel',
 						root: {children:[]},
+						filters: [{
+							property: 'filterHide',
+							value: 0
+						}],
 						proxy: {
 							type: 'memory' ,
 							reader: {
@@ -837,12 +856,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		return ;
 	},
 	onLoadAccountBuildAdrbookTree: function( accountRecord ) {
-		var adrbookTree = this.down('#pAdrbookTree') ;
+		var adrbookTree = this.down('#pAdrbookTree'),
+			chkShowInvalid = adrbookTree.down('#chkShowInvalid'),
+			boolShowInvalid = chkShowInvalid.getValue() ;
 		
 		var adrbookRootMap = {}, adrbookRootMapObs = {} ;
 		accountRecord.adrbook().each( function(adrBookRec) {
 			adrBookRec.adrbookentries().each( function(adrBookEntryRec) {
-				if( adrBookEntryRec.get('status_is_invalid') ) {
+				if( adrBookEntryRec.get('status_is_invalid') && !boolShowInvalid ) {
 					return ;
 				}
 				if( !adrbookRootMap.hasOwnProperty(adrBookRec.get('adr_entity')) ) {
@@ -868,7 +889,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			root: true,
 			expanded: true,
 			children: adrbookRootChildren
-		}); 
+		});
+	},
+	applyAdrbookFilter: function() {
+		this.onLoadAccountBuildAdrbookTree( this._accountRecord ) ;
 	},
 	onLoadAccountBuildRecordsTree: function( accountRecord ) {
 		var statusMap = {} ;
