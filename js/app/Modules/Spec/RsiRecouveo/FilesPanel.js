@@ -151,13 +151,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				region: 'north',
 				//hidden: true,
 				collapsible: true,
-				height: 240,
+				height: 290,
 				border: true,
 				xtype: 'panel',
 				itemId: 'pNorth',
 				layout: {
 					type: 'hbox',
-					align: 'stretch'
+					align: 'top'
 				},
 				items: []
 			},{
@@ -599,11 +599,32 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				dataIndex: balageField,
 				width:95,
 				align: 'center',
-				renderer: balageRenderer
+				renderer: balageRenderer,
+				summaryType: 'sum',
+				summaryRenderer: function(value) {
+					return '<b>'+Ext.util.Format.number(value,'0,000')+' €'+'</b>' ;
+				}
 			}) ;
 			
 			balageGridFields.push(balageField);
 		}) ;
+		if( true ) {
+			var balageField = 'inv_balage_sum' ;
+			balageGridFields.push(balageField);
+			balageGridColumns.push({
+				text: 'Total',
+				tdCls: 'op5-spec-dbstracy-boldcolumn',
+				dataIndex: balageField,
+				width:95,
+				align: 'center',
+				renderer: balageRenderer,
+				summaryType: 'sum',
+				summaryRenderer: function(value) {
+					return '<b>'+Ext.util.Format.number(value,'0,000')+' €'+'</b>' ;
+				}
+			}) ;
+		}
+		
 		
 		
 		var statusColors = [], statusTitles = [] ;
@@ -713,15 +734,17 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			type: 'text',
 			text: '',
 			fontSize: 12,
+			fontFamily: 'Play, sans-serif',
 			width: 100,
 			height: 30,
 			x: 30, // the sprite x position
-			y: 205  // the sprite y position
+			y: 235  // the sprite y position
 		});
 		pNorth.add({
 			xtype: 'panel',
 			cls: 'chart-no-border',
-			width: 350,
+			width: 315,
+			height: 240,
 			layout: 'fit',
 			border: false,
 			items: {
@@ -785,13 +808,15 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			type: 'text',
 			text: '',
 			fontSize: 12,
+			fontFamily: 'Play, sans-serif',
 			width: 100,
 			height: 30,
 			x: 55, // the sprite x position
-			y: 205  // the sprite y position
+			y: 235  // the sprite y position
 		});
 		pNorth.add({
 			xtype: 'panel',
+			height: 240,
 			width: 215,
 			layout: 'fit',
 			border: false,
@@ -1432,6 +1457,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				var balageField = 'inv_balage_'+balageSegmt.segmt_id ;
 				gridStatusBalageRow[balageField] = 0 ;
 			}) ;
+			gridStatusBalageRow['inv_balage_sum'] = 0 ;
 			Ext.Array.each( map_status_arrBalage[status.status_id], function(invBalage) {
 				Ext.Object.each( invBalage, function(balageSegmtId,amount) {
 					var balageField = 'inv_balage_'+balageSegmtId ;
@@ -1439,6 +1465,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 						return ;
 					}
 					gridStatusBalageRow[balageField] += amount ;
+					gridStatusBalageRow['inv_balage_sum'] += amount ;
 				});
 			}) ;
 			gridStatusBalageData.push(gridStatusBalageRow) ;
