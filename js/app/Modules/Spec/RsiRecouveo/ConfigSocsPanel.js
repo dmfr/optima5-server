@@ -192,6 +192,39 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigSocsPanel', {
 							xtype: 'textfield',
 							allowBlank: false,
 						}
+					},{
+						text: 'Filtrable<br>par liste ?',
+						width: 80,
+						align: 'center',
+						dataIndex: 'is_filter',
+						editor: {
+							xtype: 'checkboxfield',
+							listeners: {
+								change: function(chk) {
+									var formValues = chk.up('form').getForm().getFieldValues() ;
+									this.onEditorChange(formValues) ;
+								},
+								scope: this
+							}
+						},
+						renderer: function(v) {
+							if(v) {
+								return '<b>'+'X'+'</b>' ;
+							}
+						}
+					},{
+						text: 'Attribut<br>global ?',
+						width: 80,
+						align: 'center',
+						dataIndex: 'is_globalfilter',
+						editorTpl: {
+							xtype: 'checkboxfield'
+						},
+						renderer: function(v) {
+							if(v) {
+								return '<b>'+'X'+'</b>' ;
+							}
+						}
 					}],
 					listeners: {
 						selectionchange: function(selModel,records) {
@@ -406,6 +439,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigSocsPanel', {
 		if(editor._disabled){
 			return false ;
 		}
+		this.onEditorChange(context.record.getData()) ;
 	},
 	onAfterEditMetafield: function(editor,context) {
 		context.record.set('_phantom',false) ;
@@ -414,6 +448,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigSocsPanel', {
 	onCancelEditMetafield: function(editor,context) {
 		if( context.record.get('_phantom') ) {
 			context.grid.getStore().remove(context.record) ;
+		}
+	},
+	onEditorChange: function(formValues) {
+		var isFilterColumn = this.down('#gridEditorMetafields').headerCt.down('[dataIndex="is_filter"]'),
+			isGlobalFilterColumn = this.down('#gridEditorMetafields').headerCt.down('[dataIndex="is_globalfilter"]') ;
+		isGlobalFilterColumn.setEditor( ((formValues['is_filter']==true) ? isGlobalFilterColumn.editorTpl : null) ) ;
+		if( isGlobalFilterColumn.getEditor().el ) {
+			this.down('#gridEditorMetafields').getPlugin('rowediting').getEditor().syncFieldWidth(isGlobalFilterColumn) ; // HACK
 		}
 	},
 	handleNewMetafield: function() {

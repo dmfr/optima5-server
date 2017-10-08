@@ -253,7 +253,9 @@ function specRsiRecouveo_config_getSocs($post_data) {
 			foreach( $json_metafields as $json_metafield ) {
 				$record['metafields'][] = array(
 					'metafield_code' => $json_metafield['metafield_code'],
-					'metafield_desc' => $json_metafield['metafield_desc']
+					'metafield_desc' => $json_metafield['metafield_desc'],
+					'is_filter' => $json_metafield['is_filter'],
+					'is_globalfilter' => $json_metafield['is_globalfilter']
 				);
 			}
 		}
@@ -275,11 +277,15 @@ function specRsiRecouveo_config_setSoc( $post_data ) {
 	foreach( $soc_record['metafields'] as $metafield ) {
 		$metafields[] = array(
 			'metafield_code' => $metafield['metafield_code'],
-			'metafield_desc' => $metafield['metafield_desc']
+			'metafield_desc' => $metafield['metafield_desc'],
+			'is_filter' => $metafield['is_filter'],
+			'is_globalfilter' => $metafield['is_globalfilter']
 		);
 	}
 	$arr_update['field_SOC_METAFIELDS_JSON'] = json_encode($metafields) ;
 	paracrm_lib_data_updateRecord_bibleTreenode( 'LIB_ACCOUNT', $soc_id, $arr_update ) ;
+	
+	specRsiRecouveo_lib_metafields_build() ;
 	
 	return array('success'=>true) ;
 }

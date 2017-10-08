@@ -1,4 +1,15 @@
-Ext.define('RsiRecouveoCfgAtrItemModel',{
+Ext.define('RsiRecouveoCfgNodeModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'id',
+	fields: [
+		{name: 'node', type:'string'},
+		{name: 'id', type:'string'},
+		{name: 'text', type:'string'},
+		{name: 'parent', type:'string'}
+	]
+});
+
+Ext.define('RsiRecouveoCfgOptItemModel',{
 	extend: 'Ext.data.Model',
 	idProperty: 'id',
 	fields: [
@@ -8,7 +19,7 @@ Ext.define('RsiRecouveoCfgAtrItemModel',{
 		{name: 'next', type:'string'}
 	]
 });
-Ext.define('RsiRecouveoCfgAtrModel',{
+Ext.define('RsiRecouveoCfgOptModel',{
 	extend: 'Ext.data.Model',
 	idProperty: 'bible_code',
 	fields: [
@@ -22,6 +33,19 @@ Ext.define('RsiRecouveoCfgAtrModel',{
 		associationKey: 'records'
 	}]
 });
+
+Ext.define('RsiRecouveoCfgAtrModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'atr_id',
+	fields: [
+		{name: 'atr_id', type:'string'},
+		{name: 'atr_desc', type:'string'},
+		{name: 'atr_field', type:'string'},
+		{name: 'is_filter', type:'boolean'},
+		{name: 'is_globalfilter', type:'boolean'}
+	]
+});
+
 Ext.define('RsiRecouveoCfgStatusModel',{
 	extend: 'Ext.data.Model',
 	idProperty: 'status_id',
@@ -87,8 +111,8 @@ Ext.define('RsiRecouveoCfgSocModel',{
 	idProperty: 'soc_id',
 	fields: [
 		{name: 'soc_id', type:'string'},
-		{name: 'soc_parent_id', type:'string'},
-		{name: 'soc_name', type:'string'}
+		{name: 'soc_name', type:'string'},
+		{name: 'atr_ids', type:'auto'}
 	]
 });
 
@@ -136,7 +160,9 @@ Ext.define('RsiRecouveoConfigSocMetafieldModel',{
 	extend: 'Ext.data.Model',
 	fields: [
 		{name: 'metafield_code', type:'string'},
-		{name: 'metafield_desc', type:'string'}
+		{name: 'metafield_desc', type:'string'},
+		{name: 'is_filter', type:'boolean'},
+		{name: 'is_globalfilter', type:'boolean'}
 	]
 });
 Ext.define('RsiRecouveoConfigSocModel',{
@@ -144,7 +170,7 @@ Ext.define('RsiRecouveoConfigSocModel',{
 	idProperty: 'scen_code',
 	fields: [
 		{name: 'soc_id', type:'string'},
-		{name: 'soc_name', type:'string'}
+		{name: 'soc_name', type:'string'},
 	],
 	hasMany: [{
 		model: 'RsiRecouveoConfigSocMetafieldModel',
@@ -231,7 +257,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 			}
 		}) ;
 		this.cfgOptStore = Ext.create('Ext.data.Store',{
-			model: 'RsiRecouveoCfgAtrModel',
+			model: 'RsiRecouveoCfgOptModel',
 			data : ajaxData.data.cfg_opt,
 			proxy: {
 				type: 'memory',
@@ -241,7 +267,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 			}
 		}) ;
 		this.cfgActionnextStore = Ext.create('Ext.data.Store',{
-			model: 'RsiRecouveoCfgAtrModel',
+			model: 'RsiRecouveoCfgNodeModel',
 			data : ajaxData.data.cfg_actionnext,
 			proxy: {
 				type: 'memory',
@@ -270,14 +296,54 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 			model: 'RsiRecouveoCfgTemplateModel',
 			data : ajaxData.data.cfg_template
 		}) ;
-		this.cfgSocStore = Ext.create('Ext.data.Store',{
-			model: 'RsiRecouveoCfgSocModel',
-			data : ajaxData.data.cfg_soc
-		}) ;
 		this.cfgUserStore = Ext.create('Ext.data.Store',{
 			model: 'RsiRecouveoConfigUserTplModel',
 			data : ajaxData.data.cfg_user
 		}) ;
+		
+		var tmpTreeStore = Ext.create('Ext.data.TreeStore',{
+			model: 'RsiRecouveoCfgSocModel',
+			root: {
+				root: true,
+				children: []
+			},
+			proxy: {
+				type: 'memory',
+				reader: {
+					type: 'json'
+				}
+			}
+		}) ;
+		while( true ) {
+			var cnt = 0 ;
+			var parentNode ;
+			Ext.Array.each( ajaxData.data.cfg_soc, function(row) {
+				if( tmpTreeStore.getNodeById( row.soc_id ) ) {
+					return ;
+				}
+				if( Ext.isEmpty(row.soc_parent_id) ) {
+					parentNode = tmpTreeStore.getRootNode() ;
+				} else {
+					parentNode = tmpTreeStore.getNodeById( row.soc_parent_id ) ;
+				}
+				if( !parentNode ) {
+					return ;
+				}
+				cnt++ ;
+				parentNode.appendChild(row);
+			}) ;
+			if( cnt==0 ) {
+				break ;
+			}
+		}
+		tmpTreeStore.getRootNode().cascadeBy( function(node) {
+			if( node.childNodes.length == 0 ) {
+				node.set('leaf',true) ;
+			} else {
+				node.expand() ;
+			}
+		}) ;
+		this.cfgSocTreeStore = tmpTreeStore ;
 		
 		var cmpId = this.cmpId ;
 		
@@ -412,6 +478,35 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 		}) ;
 		return atrIds ;
 	},
+	getAllAtrIds: function(arrSocs) {
+		var atrIds = [] ;
+		if( arrSocs==null ) {
+			this.cfgAtrStore.each( function(atrRecord) {
+				atrIds.push( atrRecord.getId()) ;
+			}) ;
+		}
+		
+		this.cfgAtrStore.each( function(atrRecord) {
+			if( atrRecord.get('is_globalfilter') ) {
+				atrIds.push( atrRecord.getId() ) ;
+			}
+		}) ;
+		Ext.Array.each( arrSocs, function(socId) {
+			var socRec = this.cfgSocTreeNode.getById(socId) ;
+			if( !socRec ) {
+				return 
+			}
+			console.dir(socRec) ;
+			Ext.Array.each( socRec.get('atr_ids'), function(atrId) {
+				var atrRecord = this.cfgAtrStore.getById(atrId) ;
+				if( atrRecord && atrRecord.get('is_filter') && !Ext.Array.contains(atrIds,atrRecord.getId()) ) {
+					atrIds.push( atrRecord.getId() ) ;
+				}
+			},this) ;
+		},this);
+		Ext.Array.sort(atrIds) ;
+		return atrIds ;
+	},
 	getAtrHeader: function(atrId) {
 		return this.cfgAtrStore.getById(atrId).getData() ;
 	},
@@ -463,8 +558,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 		return Ext.pluck( this.cfgTemplateStore.getRange(), 'data' ) ;
 	},
 	
-	getSocAll: function() {
-		return Ext.pluck( this.cfgSocStore.getRange(), 'data' ) ;
+	getSocRootNode: function() {
+		return this.cfgSocTreeStore.getRootNode().copy(undefined,true) ;
+	},
+	getSocRowId: function(socId) {
+		
 	},
 	
 	getUserAll: function() {

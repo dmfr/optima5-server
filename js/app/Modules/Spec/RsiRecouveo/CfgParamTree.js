@@ -6,8 +6,7 @@ Ext.define('RsiRecouveoCfgParamTreeModel', {
 		  {name: 'nodeType', type: 'string'},
 		  {name: 'nodeKey',  type: 'string'},
         {name: 'nodeText',   type: 'string'},
-		  {name: 'nodeNext', type: 'string'},
-		  {name: 'leaf_only', type:'boolean'}
+		  {name: 'nodeNext', type: 'string'}
      ]
 });
 
@@ -27,9 +26,28 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamTree',{
 			Optima5.Helper.logError('RsiRecouveo:CfgParamTree','No module reference ?') ;
 		}
 		
+		var cfgMode = null ;
+		if( this.cfgParam_id && this.cfgParam_id=='SOC' ) {
+			cfgMode = 'SOC' ;
+		}
+		
+		var modelName, displayField ;
+		switch( cfgMode ) {
+			case 'SOC' :
+				modelName = 'RsiRecouveoCfgSocModel' ;
+				displayField = 'soc_name' ;
+				break ;
+				
+			default :
+				modelName = 'RsiRecouveoCfgParamTreeModel' ;
+				displayField = 'nodeText' ;
+				break ;
+		}
+		
+		
 		Ext.apply(me,{
 			store: {
-				model: 'RsiRecouveoCfgParamTreeModel',
+				model: modelName,
 				root: {children:[]},
 				proxy: {
 					type: 'memory' ,
@@ -38,7 +56,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamTree',{
 					}
 				}
 			},
-			displayField: 'nodeText',
+			displayField: displayField,
 			rootVisible: true,
 			useArrows: true
 		});
@@ -101,31 +119,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamTree',{
 				children: adrbookRootChildren
 			}; 
 			
-		} else if( this.cfgParam_id && this.cfgParam_id.indexOf('ATR_')===0 ) {
-			data = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrData(this.cfgParam_id) ;
-			var map_nodeCode_rows = {} ;
-			Ext.Array.each( data, function(row) {
-				if( !map_nodeCode_rows.hasOwnProperty(row.node) ) {
-					map_nodeCode_rows[row.node] = [] ;
-				}
-				map_nodeCode_rows[row.node].push(row) ;
-			}) ;
-			Ext.Object.each( map_nodeCode_rows, function(node,rows) {
-				flowChildren = [] ;
-				Ext.Array.each( rows, function(row) {
-					rootChildren.push({
-						nodeId: row.id,
-						nodeType: 'entry',
-						nodeKey: row.id,
-						nodeText: row.text,
-						leaf: true
-					});
-				}) ;
-			}) ;
+		} else if( this.cfgParam_id && this.cfgParam_id.indexOf('ATR:')===0 ) {
+			var atrId = this.cfgParam_id.substr(4) ;
 			rootNode = {
 				root: true,
 				children: rootChildren,
-				nodeText: '<b>'+Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(this.cfgParam_id).atr_txt+'</b>',
+				nodeText: '<b>'+Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(atrId).atr_desc+'</b>',
 				expanded: true
 			}
 		} else if( this.cfgParam_id && this.cfgParam_id.indexOf('OPT_')===0 ) {
@@ -181,56 +180,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamTree',{
 			}) ;
 			rootNode = tmpTreeStore.getRootNode().copy(undefined,true) ;
 		} else if( this.cfgParam_id && this.cfgParam_id=='SOC' ) {
-			data = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getSocAll() ;
-			var tmpTreeStore = Ext.create('Ext.data.TreeStore',{
-				model: 'RsiRecouveoCfgParamTreeModel',
-				root: {
-					root: true,
-					children: [],
-					nodeText: '<b>'+'Liste entités'+'</b>'
-				},
-				proxy: {
-					type: 'memory',
-					reader: {
-						type: 'json'
-					}
-				}
-			}) ;
-			while( true ) {
-				var cnt = 0 ;
-				var parentNode ;
-				Ext.Array.each( data, function(row) {
-					if( tmpTreeStore.getNodeById( row.soc_id ) ) {
-						return ;
-					}
-					if( Ext.isEmpty(row.soc_parent_id) ) {
-						parentNode = tmpTreeStore.getRootNode() ;
-					} else {
-						parentNode = tmpTreeStore.getNodeById( row.soc_parent_id ) ;
-					}
-					if( !parentNode ) {
-						return ;
-					}
-					cnt++ ;
-					parentNode.appendChild({
-						nodeId: row.soc_id,
-						nodeType: 'entry',
-						nodeKey: row.soc_id,
-						nodeText: row.soc_name
-					});
-				}) ;
-				if( cnt==0 ) {
-					break ;
-				}
-			}
-			tmpTreeStore.getRootNode().cascadeBy( function(node) {
-				if( node.childNodes.length == 0 ) {
-					node.set('leaf',true) ;
-				} else {
-					node.expand() ;
-				}
-			}) ;
-			rootNode = tmpTreeStore.getRootNode().copy(undefined,true) ;
+			rootNode = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getSocRootNode() ;
+			rootNode.set('soc_name','<b>'+'Liste entités'+'</b>') ;
 			this.allValues=true ;
 		} else if( this.cfgParam_id && this.cfgParam_id=='USER' ) {
 			Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getUserAll(), function(userRow) {
@@ -375,12 +326,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamTree',{
 		Ext.Array.each( storeNodes, function(storeNode) {
 			var leafs ;
 			if( storeNode.isLeaf() ) {
-				leafs = [storeNode.data.nodeKey] ;
+				leafs = [storeNode.getId()] ;
 			} else {
-				leafs = (this.allValues ? [storeNode.data.nodeKey] : []) ;
+				leafs = (this.allValues ? [storeNode.getId()] : []) ;
 				storeNode.cascadeBy(function(node) {
 					if( node.isLeaf() || this.allValues ) {
-						leafs.push(node.data.nodeKey) ;
+						leafs.push(node.getId()) ;
 					}
 				},this);
 			}
@@ -443,13 +394,23 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamTree',{
 			
 			if( rec.isRoot() ) {
 				this.getRootNode().cascadeBy(function(chrec){
-					if( (chrec.isLeaf()) ) {
-						chrec.set('checked',false) ;
-					}
 					if( (chrec.isRoot()) ) {
 						chrec.set('checked',true) ;
+					} else if( chrec.isLeaf() || this.allValues ) {
+						chrec.set('checked',false) ;
 					}
 				},this);
+			} else {
+				rec.cascadeBy( function(chrec) {
+					chrec.set('checked',checked) ;
+				}) ;
+				if( !checked ) {
+					var upRecord = rec ;
+					while( upRecord.parentNode ) {
+						upRecord.parentNode.set('checked',checked) ;
+						upRecord = upRecord.parentNode
+					}
+				}
 			}
 			
 			var recs = [] ;

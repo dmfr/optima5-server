@@ -14,6 +14,7 @@ include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_upload.i
 
 include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_lib_scenario.inc.php") ;
 include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_lib_autorun.inc.php") ;
+include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_lib_metafields.inc.php") ;
 
 function specRsiRecouveo_cfg_doInit( $post_data ) {
 	global $_opDB ;
@@ -280,8 +281,45 @@ function specRsiRecouveo_cfg_getConfig() {
 		) ;
 	}
 	
+	$TAB_atr = $TAB_soc = array() ;
+	$query = "SELECT * FROM view_bible_LIB_ACCOUNT_tree ORDER BY treenode_key" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$soc_id = $arr['treenode_key'];
+		$TAB_soc[$soc_id] = array(
+			'soc_id' => $arr['field_SOC_ID'],
+			'soc_parent_id' => $arr['treenode_parent_key'],
+			'soc_name' => $arr['field_SOC_NAME'],
+			'atr_ids' => array()
+		);
+		
+		if( !$arr['field_SOC_METAFIELDS_JSON'] ) {
+			continue ;
+		}
+		foreach( json_decode($arr['field_SOC_METAFIELDS_JSON'], true) as $metafield ) {
+			if( !$metafield['is_filter'] ) {
+				continue ;
+				//TODO: gérer les métadonnées textuelles séparemment
+			}
+			
+			$atr_id = $metafield['metafield_code'] ;
+			if( !$TAB_atr[$atr_id] ) {
+				$TAB_atr[$atr_id] = array(
+					'atr_id' => $metafield['metafield_code'],
+					'atr_desc' => $metafield['metafield_desc'],
+					'atr_field' => 'ATR'.'_'.$metafield['metafield_code'],
+					'is_filter' => $metafield['is_filter'],
+					'is_globalfilter' => $metafield['is_globalfilter']
+				);
+			}
+			$TAB_soc[$soc_id]['atr_ids'][] = $atr_id ;
+		}
+	}
+	$TAB_soc = array_values($TAB_soc) ;
+	$TAB_atr = array_values($TAB_atr) ;
+	
 	$GLOBALS['cache_specRsiRecouveo_cfg']['getConfig'] = array(
-		'cfg_atr' => $TAB_list_atr,
+		'cfg_atr' => $TAB_atr,
 		'cfg_opt' => $TAB_list_opt,
 		'cfg_status' => $TAB_status,
 		'cfg_action' => $TAB_action,

@@ -10,15 +10,6 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 	$cfg_actionnext = $ttmp['data']['cfg_actionnext'] ;
 	$cfg_balage = $ttmp['data']['cfg_balage'] ;
 	$cfg_atr = $ttmp['data']['cfg_atr'] ;
-	//print_r($cfg_atr) ;
-	foreach( $cfg_atr as &$atr_record ) {
-		$map_id_text = array() ;
-		foreach( $atr_record['records'] as $rec ) {
-			$map_id_text[$rec['id']] = substr($rec['text'],strlen($rec['id'])+2) ;
-		}
-		$atr_record['map_id_text'] = $map_id_text ;
-	}
-	unset($atr_record) ;
 	
 	$map_status = array() ;
 	foreach( $cfg_status as $status ) {
@@ -122,9 +113,8 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			'from_file_filerecord_id' => $arr['field_FROM_FILE_ID']
 		);
 		foreach( $cfg_atr as $atr_record ) {
-			$mkey = $atr_record['bible_code'] ;
+			$mkey = $atr_record['atr_field'] ;
 			$record[$mkey] = $arr['field_'.$mkey] ;
-			$record[$mkey.'_text'] = $atr_record['map_id_text'][$arr['field_'.$mkey]] ;
 		}
 		
 		$TAB_files[$arr['filerecord_id']] = $record ;

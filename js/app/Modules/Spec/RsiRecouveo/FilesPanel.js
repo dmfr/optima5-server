@@ -223,12 +223,15 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		this.doLoad(true) ;
 	},
 	configureToolbar: function() {
+		var tbSoc = this.down('#tbSoc'),
+			tbSocsSelected = tbSoc.getLeafNodesKey() ;
+		
 		var tbAtr = this.down('#tbAtr') ;
 		tbAtr.removeAll() ;
-		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(tbSocsSelected), function(atrId) {
 			var atrRecord = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(atrId) ;
 			tbAtr.add(Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamButton',{
-				cfgParam_id: atrRecord.bible_code,
+				cfgParam_id: 'ATR:'+atrRecord.atr_id,
 				icon: 'images/modules/rsiveo-blocs-16.gif',
 				selectMode: 'MULTI',
 				optimaModule: this.optimaModule,
@@ -1124,6 +1127,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 	},
 	
 	onSocSet: function() {
+		this.configureToolbar() ;
 		this.doLoad(true) ;
 	},
 	onAtrSet: function() {

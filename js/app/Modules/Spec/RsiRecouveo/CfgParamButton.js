@@ -34,7 +34,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamButton' ,{
 		});
 		
 		//this.text = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(this.cfgParam_id).atr_txt ;
-		this.text = cfgParamTree.getRootNode().get('nodeText') ;
+		this.text = cfgParamTree.getRootNode().get(cfgParamTree.displayField) ;
 		this.baseText = this.text ;
 		this.setText(this.baseText) ;
 		
@@ -59,7 +59,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamButton' ,{
 				var val = ( this.selectMode == 'MULTI' ? selectedValue[0] : selectedValue ),
 					rec = cfgParamTree.getStore().getNodeById(val) ;
 				if( rec ) {
-					this.setText( rec.get('nodeText') ) ;
+					this.setText( rec.get(cfgParamTree.displayField) ) ;
 				} else {
 					this.setText( val ) ;
 				}
