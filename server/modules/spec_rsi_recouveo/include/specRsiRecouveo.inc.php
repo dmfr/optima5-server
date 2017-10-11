@@ -304,10 +304,21 @@ function specRsiRecouveo_cfg_getConfig() {
 			
 			$atr_id = $metafield['metafield_code'] ;
 			if( !$TAB_atr[$atr_id] ) {
+				switch( $metafield['metafield_assoc'] ) {
+					case 'account' :
+						$mcode = 'A' ;
+						break ;
+					case 'record' :
+						$mcode = 'R' ;
+						break ;
+					default :
+						continue 2 ;
+				}
 				$TAB_atr[$atr_id] = array(
-					'atr_id' => $metafield['metafield_code'],
+					'atr_id' => $metafield['metafield_assoc'].'@'.$metafield['metafield_code'],
 					'atr_desc' => $metafield['metafield_desc'],
-					'atr_field' => 'ATR'.'_'.$metafield['metafield_code'],
+					'atr_field' => 'ATR'.'_'.$mcode.'_'.$metafield['metafield_code'],
+					'atr_type' => $metafield['metafield_assoc'],
 					'is_filter' => $metafield['is_filter'],
 					'is_globalfilter' => $metafield['is_globalfilter']
 				);

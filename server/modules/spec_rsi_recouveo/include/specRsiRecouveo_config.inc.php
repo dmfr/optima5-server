@@ -254,6 +254,7 @@ function specRsiRecouveo_config_getSocs($post_data) {
 				$record['metafields'][] = array(
 					'metafield_code' => $json_metafield['metafield_code'],
 					'metafield_desc' => $json_metafield['metafield_desc'],
+					'metafield_assoc' => $json_metafield['metafield_assoc'],
 					'is_filter' => $json_metafield['is_filter'],
 					'is_globalfilter' => $json_metafield['is_globalfilter']
 				);
@@ -278,6 +279,7 @@ function specRsiRecouveo_config_setSoc( $post_data ) {
 		$metafields[] = array(
 			'metafield_code' => $metafield['metafield_code'],
 			'metafield_desc' => $metafield['metafield_desc'],
+			'metafield_assoc' => $metafield['metafield_assoc'],
 			'is_filter' => $metafield['is_filter'],
 			'is_globalfilter' => $metafield['is_globalfilter']
 		);

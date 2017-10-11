@@ -193,6 +193,36 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigSocsPanel', {
 							allowBlank: false,
 						}
 					},{
+						text: 'Type',
+						width: 125,
+						dataIndex: 'metafield_assoc',
+						renderer: function(v) {
+							switch(v) {
+								case 'account' :
+									return 'Compte' ;
+								case 'record' :
+									return 'Facture' ;
+								default :
+									return v;
+							}
+						},
+						editor: {
+							xtype: 'combobox',
+							allowBlank: false,
+							forceSelection: true,
+							editable: false,
+							store: {
+								fields: ['id','txt'],
+								data : [
+									{id:'account', txt:'Compte'},
+									{id:'record', txt:'Facture'}
+								]
+							},
+							queryMode: 'local',
+							displayField: 'txt',
+							valueField: 'id'
+						}
+					},{
 						text: 'Filtrable<br>par liste ?',
 						width: 80,
 						align: 'center',

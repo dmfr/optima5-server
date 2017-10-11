@@ -367,6 +367,25 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamTree',{
 		}
 	},
 	
+	fillValues: function( values ) {
+		if( this.cfgParam_id && this.cfgParam_id.indexOf('ATR:')===0 ) {} else {
+			return ;
+		}
+		var rootNode = this.getRootNode() ;
+		rootNode.eachChild( function(child) {
+			rootNode.removeChild(child) ;
+		}) ;
+		Ext.Array.sort(values) ;
+		Ext.Array.each(values, function(value) {
+			rootNode.appendChild({
+				leaf: true,
+				nodeId: value,
+				nodeKey: value,
+				nodeText: value
+			}) ;
+		}) ;
+	},
+	
 	autoAdvance: function() {
 		var setValue ;
 		this.getRootNode().cascadeBy( function(node) {

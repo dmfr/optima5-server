@@ -232,6 +232,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			var atrRecord = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(atrId) ;
 			tbAtr.add(Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamButton',{
 				cfgParam_id: 'ATR:'+atrRecord.atr_id,
+				cfgParam_atrType: atrRecord.atr_type,
 				icon: 'images/modules/rsiveo-blocs-16.gif',
 				selectMode: 'MULTI',
 				optimaModule: this.optimaModule,
@@ -282,9 +283,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			var atrRecord = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(atrId) ;
 			//console.dir(atrRecord) ;
 			atrColumns.push({
-				text: atrRecord.atr_txt,
-				dataIndex: atrRecord.bible_code,
-				rendererDataindex: atrRecord.bible_code + '_text',
+				cfgParam_id: 'ATR:'+atrRecord.atr_id,
+				cfgParam_atrType: atrRecord.atr_type,
+				text: atrRecord.atr_desc,
+				dataIndex: atrRecord.atr_field,
+				//rendererDataindex: atrRecord.bible_code + '_text',
 				width:90,
 				align: 'center',
 				renderer: atrRenderer
@@ -1281,7 +1284,16 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		}) ;
 		
 		this.down('#pCenter').down('#pGrid').headerCt.down('#colStatus').setVisible( !(this.viewMode=='account') ) ;
-		this.down('#pCenter').down('#pGrid').headerCt.down('#colAtr').setVisible( !(this.viewMode=='account') ) ;
+		//this.down('#pCenter').down('#pGrid').headerCt.down('#colAtr').setVisible( !(this.viewMode=='account') ) ;
+		this.down('#pCenter').down('#pGrid').headerCt.down('#colAtr').items.each( function(col) {
+			var doShow ;
+			if( col.cfgParam_atrType=='record' ) {
+				doShow = (this.viewMode!='account') ;
+			} else {
+				doShow = true ;
+			}
+			col.setVisible(doShow) ;
+		},this) ;
 		
 		if( this.viewMode == 'account' ) {
 			newAjaxData = {} ;

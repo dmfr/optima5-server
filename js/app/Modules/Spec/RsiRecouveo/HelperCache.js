@@ -41,6 +41,7 @@ Ext.define('RsiRecouveoCfgAtrModel',{
 		{name: 'atr_id', type:'string'},
 		{name: 'atr_desc', type:'string'},
 		{name: 'atr_field', type:'string'},
+		{name: 'atr_type', type:'string'},
 		{name: 'is_filter', type:'boolean'},
 		{name: 'is_globalfilter', type:'boolean'}
 	]
@@ -161,6 +162,7 @@ Ext.define('RsiRecouveoConfigSocMetafieldModel',{
 	fields: [
 		{name: 'metafield_code', type:'string'},
 		{name: 'metafield_desc', type:'string'},
+		{name: 'metafield_assoc', type:'string'},
 		{name: 'is_filter', type:'boolean'},
 		{name: 'is_globalfilter', type:'boolean'}
 	]
@@ -347,7 +349,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 		
 		var cmpId = this.cmpId ;
 		
-		var pushModelFields = [], pushModelFieldsAccount = [], pushModelFieldsCfg = [] ;
+		var pushModelFields = []
+			, pushModelFieldsAccount = []
+			, pushModelFieldsFile = []
+			, pushModelFieldsRecord = []
+			, pushModelFieldsCfg = [] ;
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
 			pushModelFields.push({
 				name: atrId,
@@ -355,11 +361,29 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 			}) ;
 		}) ;
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
-			pushModelFieldsAccount.push({
-				name: atrId,
-				type: 'auto'
-			}) ;
+			var atrRecord = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(atrId) ;
+			if( atrRecord.atr_type == 'account' ) {
+				pushModelFieldsAccount.push({
+					name: atrRecord.atr_field,
+					type: 'auto'
+				}) ;
+				pushModelFieldsFile.push({
+					name: atrRecord.atr_field,
+					type: 'auto'
+				}) ;
+			}
+			if( atrRecord.atr_type == 'record' ) {
+				pushModelFieldsFile.push({
+					name: atrRecord.atr_field,
+					type: 'auto'
+				}) ;
+				pushModelFieldsRecord.push({
+					name: atrRecord.atr_field,
+					type: 'auto'
+				}) ;
+			}
 		}) ;
+		console.dir(pushModelFieldsAccount) ;
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
 			pushModelFieldsCfg.push({
 				name: 'link_'+atrId,
@@ -370,7 +394,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 		Ext.define('RsiRecouveoRecordModel'+'-'+cmpId,{
 			extend: 'RsiRecouveoRecordTplModel',
 			idProperty: 'record_filerecord_id',
-			fields: pushModelFields,
+			fields: pushModelFieldsRecord,
 			hasMany: [{
 				model: 'RsiRecouveoRecordLinkModel',
 				name: 'all_links',
@@ -381,7 +405,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 		Ext.define('RsiRecouveoFileModel'+'-'+cmpId,{
 			extend: 'RsiRecouveoFileTplModel',
 			idProperty: 'file_filerecord_id',
-			fields: pushModelFields,
+			fields: pushModelFieldsFile,
 			hasMany: [{
 				model: 'RsiRecouveoFileActionModel',
 				name: 'actions',
@@ -471,19 +495,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 		return 'RsiRecouveoConfigScenarioStepModel' ;
 	},
 	
-	getAllAtrIds: function() {
-		var atrIds = [] ;
-		this.cfgAtrStore.each( function(atrRecord) {
-			atrIds.push( atrRecord.getId()) ;
-		}) ;
-		return atrIds ;
-	},
 	getAllAtrIds: function(arrSocs) {
 		var atrIds = [] ;
 		if( arrSocs==null ) {
 			this.cfgAtrStore.each( function(atrRecord) {
 				atrIds.push( atrRecord.getId()) ;
 			}) ;
+			Ext.Array.sort(atrIds) ;
+			return atrIds ;
 		}
 		
 		this.cfgAtrStore.each( function(atrRecord) {
@@ -492,14 +511,16 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 			}
 		}) ;
 		Ext.Array.each( arrSocs, function(socId) {
-			var socRec = this.cfgSocTreeNode.getById(socId) ;
+			var socRec = this.cfgSocTreeStore.getById(socId) ;
 			if( !socRec ) {
-				return 
+				return ;
 			}
-			console.dir(socRec) ;
 			Ext.Array.each( socRec.get('atr_ids'), function(atrId) {
 				var atrRecord = this.cfgAtrStore.getById(atrId) ;
-				if( atrRecord && atrRecord.get('is_filter') && !Ext.Array.contains(atrIds,atrRecord.getId()) ) {
+				if( !atrRecord ) {
+					return ;
+				}
+				if( atrRecord.get('is_filter') && !Ext.Array.contains(atrIds,atrRecord.getId()) ) {
 					atrIds.push( atrRecord.getId() ) ;
 				}
 			},this) ;
@@ -509,9 +530,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 	},
 	getAtrHeader: function(atrId) {
 		return this.cfgAtrStore.getById(atrId).getData() ;
-	},
-	getAtrData: function(atrId) {
-		return this.cfgAtrStore.getById(atrId) ? Ext.pluck(this.cfgAtrStore.getById(atrId).records().getRange(), 'data') : null ;
 	},
 	
 	getAllOptIds: function() {
