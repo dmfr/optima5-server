@@ -216,6 +216,22 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 						fieldLabel: 'CLR',
 						name: 'customs_date_cleared'
 					}]
+				},{
+					xtype: 'fieldset',
+					title: 'EDI Status',
+					fieldDefaults: {
+						labelWidth: 100,
+						anchor: '100%'
+					},
+					items: [{
+						xtype: 'checkboxfield',
+						boxLabel: 'EDI Ready ?',
+						name: 'sword_edi_1_ready'
+					},{
+						xtype: 'checkboxfield',
+						boxLabel: 'EDI Sent ?',
+						name: 'sword_edi_1_sent'
+					}]
 				}]
 			},{
 				flex: 3,

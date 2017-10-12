@@ -173,7 +173,10 @@ Ext.define('DbsTracyFileTrsptModel',{
 		{name: 'customs_mode', type:'string'},
 		{name: 'customs_date_request', dateFormat:'Y-m-d H:i:s'},
 		{name: 'customs_date_cleared', dateFormat:'Y-m-d H:i:s'},
-		{name: 'pod_doc', type:'string'}
+		{name: 'pod_doc', type:'string'},
+		
+		{name: 'sword_edi_1_ready', type:'boolean'},
+		{name: 'sword_edi_1_sent', type:'boolean'}
 	],
 	hasMany: [{
 		model: 'DbsTracyFileTrsptOrderModel',

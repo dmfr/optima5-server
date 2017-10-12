@@ -504,6 +504,34 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				})
 				return arr.join('<br>') ;
 			}
+		},{
+			text: 'EDI Sword',
+			align: 'center',
+			hideable: true,
+			hidden: true,
+			columns:[{
+				text: 'EDI Ready',
+				align: 'center',
+				dataIndex: 'sword_edi_1_ready',
+				width: 60,
+				renderer: function(v) {
+					if(v) { return '<b>'+'X'+'</b>' ; }
+				},
+				filter: {
+					type: 'boolean'
+				}
+			},{
+				text: 'EDI Sent',
+				align: 'center',
+				dataIndex: 'sword_edi_1_sent',
+				width: 60,
+				renderer: function(v) {
+					if(v) { return '<b>'+'X'+'</b>' ; }
+				},
+				filter: {
+					type: 'boolean'
+				}
+			}]
 		}] ;
 		
 		
