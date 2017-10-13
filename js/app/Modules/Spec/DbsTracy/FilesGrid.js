@@ -663,10 +663,15 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		}) ;
 		
 		
-		var dateRenderer = function(v) {
+		var dateHrRenderer = function(v) {
 			var dateSql ;
 			dateSql = Ext.Date.format(v,'d/m/Y H:i') ;
 			return dateSql.replace(' ','<br>') ;
+		};
+		var dateRenderer = function(v) {
+			var dateSql ;
+			dateSql = Ext.Date.format(v,'d/m/Y') ;
+			return dateSql ;
 		};
 		var stepRenderer = function(vObj,metaData) {
 			if( !vObj ) {
@@ -894,7 +899,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			hideable: true,
 			text: 'Date Created',
 			dataIndex: 'date_create',
-			renderer: dateRenderer,
+			renderer: dateHrRenderer,
 			width: 90,
 			align: 'center',
 			filter: {
@@ -918,6 +923,18 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			hideable: true,
 			text: 'Date Closed',
 			dataIndex: 'date_closed',
+			renderer: dateHrRenderer,
+			width: 90,
+			align: 'center',
+			filter: {
+				type: 'date',
+				dateFormat: 'Y-m-d'
+			}
+		},{
+			hidden: true,
+			hideable: true,
+			text: 'Date CRD',
+			dataIndex: 'date_crd',
 			renderer: dateRenderer,
 			width: 90,
 			align: 'center',

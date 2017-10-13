@@ -57,6 +57,7 @@ function specDbsTracy_order_getRecords( $post_data ) {
 			'date_create' => $arr['field_DATE_CREATE'],
 			'date_init' => $arr['field_DATE_INIT'],
 			'date_closed' => $arr['field_DATE_CLOSED'],
+			'date_crd' => $arr['field_DATE_CRD'],
 			
 			'steps' => array(),
 			'attachments' => array(),

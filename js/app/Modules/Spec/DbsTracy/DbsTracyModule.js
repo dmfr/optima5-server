@@ -63,6 +63,7 @@ Ext.define('DbsTracyFileOrderModel',{
 		{name: 'date_create', type:'date', dateFormat:'Y-m-d H:i:s'},
 		{name: 'date_init', type:'date', dateFormat:'Y-m-d H:i:s'},
 		{name: 'date_closed', type:'date', dateFormat:'Y-m-d H:i:s'},
+		{name: 'date_crd', type:'date', dateFormat:'Y-m-d H:i:s'},
 		{
 			name: 'vol_dim_l',
 			type: 'int',
