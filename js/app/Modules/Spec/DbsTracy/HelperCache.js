@@ -19,6 +19,15 @@ Ext.define('DbsTracyCfgPriorityModel',{
 	]
 });
 
+Ext.define('DbsTracyCfgKpiCodeModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'calc_code',
+	fields: [
+		{name: 'calc_code', type:'string'},
+		{name: 'calc_txt', type:'string'}
+	]
+});
+
 Ext.define('DbsTracyCfgListItemModel',{
 	extend: 'Ext.data.Model',
 	idProperty: 'id',
@@ -170,6 +179,10 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.HelperCache',{
 			model: 'DbsTracyCfgPriorityModel',
 			data : ajaxData.data.cfg_priority
 		}) ;
+		this.cfgKpiCodeStore = Ext.create('Ext.data.Store',{
+			model: 'DbsTracyCfgKpiCodeModel',
+			data : ajaxData.data.cfg_kpicode
+		}) ;
 		this.cfgListStore = Ext.create('Ext.data.Store',{
 			model: 'DbsTracyCfgListModel',
 			data : ajaxData.data.cfg_list,
@@ -255,6 +268,10 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.HelperCache',{
 	
 	getPriorityAll: function() {
 		return Ext.pluck( this.cfgPriorityStore.getRange(), 'data' ) ;
+	},
+	
+	getKpiCodeAll: function() {
+		return Ext.pluck( this.cfgKpiCodeStore.getRange(), 'data' ) ;
 	},
 	
 	getListData: function(listId) {

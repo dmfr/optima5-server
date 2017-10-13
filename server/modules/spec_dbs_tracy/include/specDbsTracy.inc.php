@@ -100,6 +100,17 @@ function specDbsTracy_cfg_getConfig() {
 	}
 	
 	
+	$TAB_kpicode = array() ;
+	$query = "SELECT * FROM view_bible_KPI_CODE_tree WHERE 1 ORDER BY treenode_key" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$TAB_kpicode[] = array(
+			'calc_code' => $arr['field_CALC_CODE'],
+			'calc_txt' => $arr['field_CALC_TXT']
+		) ;
+	}
+	
+	
 	$TAB_orderflow = array() ;
 	$query = "SELECT * FROM view_bible_CFG_ORDERFLOW_tree WHERE treenode_parent_key IN ('','&') ORDER BY treenode_key" ;
 	$result = $_opDB->query($query) ;
@@ -170,7 +181,8 @@ function specDbsTracy_cfg_getConfig() {
 		'cfg_soc' => $TAB_soc,
 		'cfg_orderflow' => array_values($TAB_orderflow),
 		'cfg_priority' => $TAB_priority,
-		'cfg_list' => $TAB_list
+		'cfg_list' => $TAB_list,
+		'cfg_kpicode' => $TAB_kpicode
 	);
 
 	return array('success'=>true, 'data'=>$GLOBALS['cache_specDbsTracy_cfg']['getConfig'])  ;

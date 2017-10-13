@@ -1113,6 +1113,40 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			name: 'hat_filerecord_id',
 			type: 'int'
 		}) ;
+		
+		var kpiCodeColumns = [] ;
+		Ext.Array.each( Optima5.Modules.Spec.DbsTracy.HelperCache.getKpiCodeAll(), function(kpicode) {
+			kpiCodeColumns.push({
+				text: kpicode.calc_txt,
+				dataIndex: 'kpidata_'+kpicode.calc_code,
+				width: 90,
+				align: 'center',
+				renderer: function( value, metadata, record ) {
+					if( value===true ) {
+						metadata.tdCls = 'op5-spec-dbstracy-kpi-ok' ;
+						return ;
+					}
+					if( value===false ) {
+						metadata.tdCls = 'op5-spec-dbstracy-kpi-nok' ;
+						return ;
+					}
+				},
+				filter: {
+					type: 'boolean'
+				}
+			});
+			pushModelfields.push({
+				name: 'kpidata_'+kpicode.calc_code,
+				type: 'bool',
+				allowNull: true
+			}) ;
+		}) ;
+		columns.push({
+			text: '<b><i>KPI calculations</i></b>',
+			align: 'center',
+			columns: kpiCodeColumns
+		});
+		
 			
 		this.tmpModelName = 'DbsTracyFileRowModel-' + this.getId() + (++this.tmpModelCnt) ;
 		Ext.ux.dams.ModelManager.unregister( this.tmpModelName ) ;
