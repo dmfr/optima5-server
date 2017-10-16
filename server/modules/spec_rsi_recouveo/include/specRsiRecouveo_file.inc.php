@@ -41,9 +41,17 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 		$filter_archiveIsOn = ( $post_data['filter_archiveIsOn'] ? true : false ) ;
 	}
 	
+	// 2017-10 : Evaluation des attributs
+	$map_atrId_values = array() ;
+	foreach( $cfg_atr as $atr_record ) {
+		$atr_id = $atr_record['atr_id'] ;
+		$map_atrId_values[$atr_id] = array() ;
+	}
+	
+	
 	$TAB_files = array() ;
 	
-	$query = "SELECT f.*, la.field_ACC_NAME, la.field_ACC_SIRET";
+	$query = "SELECT f.*, la.*";
 	$query.= ",lat.field_SOC_ID, lat.field_SOC_NAME";
 	$query.= " FROM view_file_FILE f" ;
 	$query.= " JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key = f.field_LINK_ACCOUNT" ;
@@ -113,8 +121,16 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			'from_file_filerecord_id' => $arr['field_FROM_FILE_ID']
 		);
 		foreach( $cfg_atr as $atr_record ) {
+			$atr_id = $atr_record['atr_id'] ;
 			$mkey = $atr_record['atr_field'] ;
-			$record[$mkey] = $arr['field_'.$mkey] ;
+			$value = $arr['field_'.$mkey] ;
+			if( $value && !in_array($value,$map_atrId_values[$atr_id]) ) {
+				$map_atrId_values[$atr_id][] = $value ;
+			}
+			if( $filter_atr && $filter_atr[$atr_id] && !in_array($value,$filter_atr[$atr_id]) ) {
+				continue 2 ;
+			}
+			$record[$mkey] = $value ;
 		}
 		
 		$TAB_files[$arr['filerecord_id']] = $record ;
@@ -368,7 +384,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 	unset($file_row) ;
 	
 	
-	return array('success'=>true, 'data'=>array_values($TAB_files)) ;
+	return array('success'=>true, 'data'=>array_values($TAB_files), 'map_atrId_values'=>$map_atrId_values) ;
 }
 
 

@@ -123,10 +123,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamTree',{
 			var atrId = this.cfgParam_id.substr(4) ;
 			rootNode = {
 				root: true,
-				children: rootChildren,
+				children: [],
 				nodeText: '<b>'+Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(atrId).atr_desc+'</b>',
 				expanded: true
-			}
+			} ;
 		} else if( this.cfgParam_id && this.cfgParam_id.indexOf('OPT_')===0 ) {
 			data = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getOptData(this.cfgParam_id) ;
 			var tmpTreeStore = Ext.create('Ext.data.TreeStore',{
@@ -264,7 +264,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamTree',{
 				expanded: true
 			}
 		}
-		this.getStore().setRootNode(rootNode) ;
+		this.setRootNode(rootNode) ;
 		this.onAfterLoad() ;
 		this.fireEvent('load',this) ;
 	},
@@ -371,18 +371,28 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamTree',{
 		if( this.cfgParam_id && this.cfgParam_id.indexOf('ATR:')===0 ) {} else {
 			return ;
 		}
-		var rootNode = this.getRootNode() ;
-		rootNode.eachChild( function(child) {
-			rootNode.removeChild(child) ;
-		}) ;
+		
 		Ext.Array.sort(values) ;
+		
+		// Reset selection
+		this.value = null ;
+		
+		var rootNode = this.getRootNode(),
+			baseRootText = rootNode.get('nodeText') ;
+		rootChildren = [] ;
 		Ext.Array.each(values, function(value) {
-			rootNode.appendChild({
+			rootChildren.push({
 				leaf: true,
 				nodeId: value,
 				nodeKey: value,
 				nodeText: value
 			}) ;
+		}) ;
+		this.setRootNode({
+			root: true,
+			children: rootChildren,
+			nodeText: baseRootText,
+			expanded: true
 		}) ;
 	},
 	

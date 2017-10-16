@@ -302,7 +302,7 @@ function specRsiRecouveo_cfg_getConfig() {
 				//TODO: gérer les métadonnées textuelles séparemment
 			}
 			
-			$atr_id = $metafield['metafield_code'] ;
+			$atr_id = $metafield['metafield_assoc'].'@'.$metafield['metafield_code'] ;
 			if( !$TAB_atr[$atr_id] ) {
 				switch( $metafield['metafield_assoc'] ) {
 					case 'account' :
@@ -315,7 +315,7 @@ function specRsiRecouveo_cfg_getConfig() {
 						continue 2 ;
 				}
 				$TAB_atr[$atr_id] = array(
-					'atr_id' => $metafield['metafield_assoc'].'@'.$metafield['metafield_code'],
+					'atr_id' => $atr_id,
 					'atr_desc' => $metafield['metafield_desc'],
 					'atr_field' => 'ATR'.'_'.$mcode.'_'.$metafield['metafield_code'],
 					'atr_type' => $metafield['metafield_assoc'],

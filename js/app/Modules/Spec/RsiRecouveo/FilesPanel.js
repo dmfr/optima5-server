@@ -45,7 +45,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 						scope: this
 					}
 				}
-			}),'-',{
+			}),{
 				itemId: 'tbAtr',
 				border: false,
 				xtype: 'toolbar',
@@ -184,8 +184,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		
 		this.tmpModelCnt = 0 ;
 		
-		this.configureToolbar() ;
-		this.configureViews() ;
+		this.buildToolbar() ;
+		this.buildViews() ;
 		this.applyAgendaMode() ;
 		this.applyAuth() ;
 		this.onViewSet(this.defaultViewMode) ;
@@ -216,19 +216,19 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			tbViewmode.setIconCls( tbViewmodeItem.iconCls );
 		}
 		
+		this.configureToolbar() ;
+		this.configureViews() ;
+		
 		this.doLoad(true) ;
 	},
 	doShowClosed: function(showClosed) {
 		this.showClosed = showClosed ;
 		this.doLoad(true) ;
 	},
-	configureToolbar: function() {
-		var tbSoc = this.down('#tbSoc'),
-			tbSocsSelected = tbSoc.getLeafNodesKey() ;
-		
+	buildToolbar: function() {
 		var tbAtr = this.down('#tbAtr') ;
 		tbAtr.removeAll() ;
-		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(tbSocsSelected), function(atrId) {
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
 			var atrRecord = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(atrId) ;
 			tbAtr.add(Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamButton',{
 				cfgParam_id: 'ATR:'+atrRecord.atr_id,
@@ -252,8 +252,34 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				}
 			}) );
 		},this) ;
+		this.configureToolbar() ;
 	},
-	configureViews: function() {
+	configureToolbar: function() {
+		var tbSoc = this.down('#tbSoc'),
+			tbSocsSelected = tbSoc.getLeafNodesKey() ;
+		var cfgParamIds = [] ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(tbSocsSelected), function(atrId) {
+			var atrRecord = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(atrId) ;
+			cfgParamIds.push( 'ATR:'+atrRecord.atr_id ) ;
+		}) ;
+		
+		var tbAtr = this.down('#tbAtr') ;
+		tbAtr.items.each( function(atrBtn) {
+			var doHide = false ;
+			
+			var atrBtnId = atrBtn.cfgParam_id ;
+			if( !Ext.Array.contains(cfgParamIds,atrBtnId) ) {
+				doHide = true ;
+			}
+			
+			if( atrBtn.cfgParam_atrType=='record' && this.viewMode=='account' ) {
+				doHide = true ;
+			}
+			
+			atrBtn.setVisible( !doHide ) ;
+		},this) ;
+	},
+	buildViews: function() {
 		var statusMap = {} ;
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getStatusAll(), function(status) {
 			statusMap[status.status_id] = status ;
@@ -273,11 +299,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			actionEtaMap[actionEta.eta_range] = actionEta ;
 		}) ;
 		
-		var atrRenderer = function(value, metaData, record, rowIndex, colIndex, store, view) {
-			var column = view.ownerCt.columns[colIndex],
-				value = record.get(column.rendererDataindex) ;
-			return value ;
-		}
 		var atrColumns = [] ;
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
 			var atrRecord = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(atrId) ;
@@ -289,8 +310,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				dataIndex: atrRecord.atr_field,
 				//rendererDataindex: atrRecord.bible_code + '_text',
 				width:90,
-				align: 'center',
-				renderer: atrRenderer
+				align: 'center'
 			}) ;
 		}) ;
 		
@@ -1079,6 +1099,33 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				}]
 			}]
 		});
+		this.configureViews() ;
+	},
+	configureViews: function() {
+		var tbSoc = this.down('#tbSoc'),
+			tbSocsSelected = tbSoc.getLeafNodesKey() ;
+		var cfgParamIds = [] ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(tbSocsSelected), function(atrId) {
+			var atrRecord = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(atrId) ;
+			cfgParamIds.push( 'ATR:'+atrRecord.atr_id ) ;
+		}) ;
+		
+		this.down('#pCenter').down('#pGrid').headerCt.down('#colStatus').setVisible( !(this.viewMode=='account') ) ;
+		//this.down('#pCenter').down('#pGrid').headerCt.down('#colAtr').setVisible( !(this.viewMode=='account') ) ;
+		this.down('#pCenter').down('#pGrid').headerCt.down('#colAtr').items.each( function(col) {
+			var doHide = false ;
+			
+			var atrColId = col.cfgParam_id ;
+			if( !Ext.Array.contains(cfgParamIds,atrColId) ) {
+				doHide = true ;
+			}
+			
+			if( col.cfgParam_atrType=='record' && this.viewMode=='account' ) {
+				doHide = true ;
+			}
+			
+			col.setVisible(!doHide) ;
+		},this) ;
 	},
 	applyAgendaMode: function() {
 		var gridAgenda = this.down('#pNorth').down('#gridAgenda'),
@@ -1131,10 +1178,17 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 	
 	onSocSet: function() {
 		this.configureToolbar() ;
+		
+		var tbAtr = this.down('#tbAtr') ;
+		tbAtr.items.each( function(atrBtn) {
+			// Reset atr specific values
+			this.setValue(null,true) ;
+		}) ;
+		this.configureViews() ;
 		this.doLoad(true) ;
 	},
 	onAtrSet: function() {
-		this.doLoad(true) ;
+		this.doLoad() ;
 	},
 	onUserSet: function() {
 		var tbUser = this.down('toolbar').down('#tbUser'),
@@ -1152,8 +1206,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			if( Ext.isEmpty(cfgParamBtn.getValue()) ) {
 				return ;
 			}
-			if( cfgParam_id.indexOf('ATR_')===0 ) {
-				objAtrFilter[cfgParam_id] = cfgParamBtn.getValue()
+			if( cfgParam_id.indexOf('ATR:')===0 ) {
+				var atrId = cfgParam_id.substr(4) ;
+				objAtrFilter[atrId] = cfgParamBtn.getValue()
 			}
 			if( cfgParam_id=='SOC' ) {
 				arrSocFilter = cfgParamBtn.getLeafNodesKey() ;
@@ -1179,8 +1234,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			if( Ext.isEmpty(cfgParamBtn.getValue()) ) {
 				return ;
 			}
-			if( cfgParam_id.indexOf('ATR_')===0 ) {
-				objAtrFilter[cfgParam_id] = cfgParamBtn.getValue()
+			if( cfgParam_id.indexOf('ATR:')===0 ) {
+				var atrId = cfgParam_id.substr(4) ;
+				objAtrFilter[atrId] = cfgParamBtn.getValue()
 			}
 			if( cfgParam_id=='SOC' ) {
 				arrSocFilter = cfgParamBtn.getLeafNodesKey() ;
@@ -1206,6 +1262,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 					Ext.MessageBox.alert('Error','Error') ;
 					return ;
 				}
+				if( doClearFilters ) {
+					this.onLoadAtrValues(ajaxResponse.map_atrId_values) ;
+				}
 				this.onLoad(ajaxResponse.data, doClearFilters) ;
 				// Setup autoRefresh task
 				//this.autoRefreshTask.delay( this.autoRefreshDelay ) ;
@@ -1214,6 +1273,15 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				this.hideLoadmask() ;
 			},
 			scope: this
+		}) ;
+	},
+	onLoadAtrValues: function( map_atrId_values ) {
+		Ext.Array.each( this.query('toolbar > [cfgParam_id]'), function(cfgParamBtn) {
+			var cfgParam_id = cfgParamBtn.cfgParam_id ;
+			if( cfgParam_id.indexOf('ATR:')===0 ) {
+				var atrId = cfgParam_id.substr(4) ;
+				cfgParamBtn.fillValues(map_atrId_values[atrId]) ;
+			}
 		}) ;
 	},
 	onLoad: function(ajaxData, doClearFilters) {
@@ -1282,18 +1350,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				map_actionAgendaClass_etaRange_amount[actionAgendaClass][fileActionRow.calc_eta_range] += fileRow.inv_amount_due ;
 			}) ;
 		}) ;
-		
-		this.down('#pCenter').down('#pGrid').headerCt.down('#colStatus').setVisible( !(this.viewMode=='account') ) ;
-		//this.down('#pCenter').down('#pGrid').headerCt.down('#colAtr').setVisible( !(this.viewMode=='account') ) ;
-		this.down('#pCenter').down('#pGrid').headerCt.down('#colAtr').items.each( function(col) {
-			var doShow ;
-			if( col.cfgParam_atrType=='record' ) {
-				doShow = (this.viewMode!='account') ;
-			} else {
-				doShow = true ;
-			}
-			col.setVisible(doShow) ;
-		},this) ;
 		
 		if( this.viewMode == 'account' ) {
 			newAjaxData = {} ;

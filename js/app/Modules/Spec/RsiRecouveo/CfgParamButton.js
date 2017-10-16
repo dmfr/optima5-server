@@ -84,6 +84,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamButton' ,{
 	setValue: function(value,silent) {
 		var cfgParamTree = this.menu.down('treepanel') ;
 		cfgParamTree.setValue( value, silent ) ;
+		if( silent ) {
+			this.onChange(true) ;
+		}
+	},
+	
+	fillValues: function(values) {
+		var cfgParamTree = this.menu.down('treepanel') ;
+		cfgParamTree.fillValues( values ) ;
 	},
 	
 	onAfterLoad: function() {

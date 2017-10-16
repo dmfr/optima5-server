@@ -383,7 +383,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 				}) ;
 			}
 		}) ;
-		console.dir(pushModelFieldsAccount) ;
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
 			pushModelFieldsCfg.push({
 				name: 'link_'+atrId,
@@ -497,9 +496,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 	
 	getAllAtrIds: function(arrSocs) {
 		var atrIds = [] ;
-		if( arrSocs==null ) {
+		if( typeof arrSocs === 'undefined' ) {
 			this.cfgAtrStore.each( function(atrRecord) {
-				atrIds.push( atrRecord.getId()) ;
+				atrIds.push( atrRecord.getId() ) ;
 			}) ;
 			Ext.Array.sort(atrIds) ;
 			return atrIds ;
