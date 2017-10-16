@@ -86,25 +86,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		
 		
 		var formItems = []
-		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
-			var atrRecord = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(atrId) ;
-			//console.dir(atrRecord) ;
-			formItems.push(Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
-				cfgParam_id: atrId,
-				cfgParam_emptyDisplayText: 'Toutes valeurs',
-				optimaModule: this.optimaModule,
-				name: 'filter_'+atrId,
-				allowBlank: false,
-				fieldLabel: atrRecord.atr_txt,
-				
-				selectMode: 'MULTI',
-				
-				listeners: {
-					change: this.onFilterChange,
-					scope: this
-				}
-			})) ;
-		},this) ;
 		formItems.push({
 			readOnly: true,
 			xtype: 'op5crmbasebibletreepicker',
@@ -143,6 +124,39 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			fieldLabel: 'Adresse Contact',
 			name: 'adr_postal'
 		}) ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
+			var atrRecord = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(atrId) ;
+			if( atrRecord.atr_type == 'account' ) {
+				formItems.push({
+					readOnly: true,
+					xtype: 'textfield',
+					cfgParam_id: 'ATR:'+atrRecord.atr_id,
+					fieldLabel: atrRecord.atr_desc,
+					name: atrRecord.atr_field
+				});
+				
+			}
+		},this) ;
+		
+		
+		
+		
+		
+		var atrRecColumns = [] ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
+			var atrRecord = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(atrId) ;
+			if( atrRecord.atr_type == 'record' ) {
+				atrRecColumns.push({
+					cfgParam_id: 'ATR:'+atrRecord.atr_id,
+					text: atrRecord.atr_desc,
+					dataIndex: atrRecord.atr_field,
+					width: 80
+				}) ;
+			}
+		}) ;
+		
+		
+		
 		
 		Ext.apply(this,{
 			layout: {
@@ -562,9 +576,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 							return r.get('record_id') ;
 						}
 					},{
-						text: 'Lettrage',
-						dataIndex: 'record_letter',
-						width: 80
+						text: 'Attributs',
+						columns: atrRecColumns,
+						hidden: (atrRecColumns.length==0)
 					},{
 						text: 'Date',
 						dataIndex: 'record_date',
@@ -758,7 +772,26 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			scope: this
 		}) ;
 	},
+	onLoadApplySoc: function(socId) {
+		var cfgParamIds = [] ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds([socId]), function(atrId) {
+			var atrRecord = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(atrId) ;
+			cfgParamIds.push( 'ATR:'+atrRecord.atr_id ) ;
+		}) ;
+		
+		this.down('#pHeaderForm').getForm().getFields().each( function(field) {
+			if( field.cfgParam_id ) {
+				field.setVisible( Ext.Array.contains(cfgParamIds,field.cfgParam_id) ) ;
+			}
+		});
+		
+		Ext.Array.each( this.down('#pRecordsPanel').down('#pRecordsTree').headerCt.query('[cfgParam_id]'), function(col) {
+			col.setVisible( Ext.Array.contains(cfgParamIds,col.cfgParam_id) ) ;
+		}) ;
+	},
 	onLoadAccount: function( accountRecord, filterAtr, focusFileFilerecordId, showClosed ) {
+		this.onLoadApplySoc( accountRecord.get('soc_id') ) ;
+		
 		this.loading = true ;
 		this._accId = accountRecord.getId() ;
 		this._filterAtr = filterAtr ;
@@ -774,27 +807,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				field.setReadOnly(true) ;
 			});
 		}
-		
-		// filters
-		var headerForm = this.down('#pHeaderForm').getForm(),
-			field, values ;
-		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
-			field = headerForm.findField('filter_'+atrId) ;
-			field.suspendEvents(false) ;
-			values = accountRecord.get(atrId) ;
-			if( Ext.isEmpty(values) ) {
-				field.setVisible(false) ;
-				return ;
-			}
-			field.setVisible(true) ;
-			field.doManualCleanup(values) ;
-			
-			// reapply filter ?
-			if( filterAtr && filterAtr.hasOwnProperty(atrId) ) {
-				field.setValue(filterAtr[atrId]) ;
-			}
-			field.resumeEvents() ;
-		}) ;
 		
 		
 		this.onLoadAccountBuildAdrbookTree(accountRecord) ;
@@ -1289,7 +1301,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 	},
 	
 	
-	onFilterChange: function() {
+	onFilterChange: function() { // TODO : record-level filters
 		if( this.loading ) {
 			return ;
 		}

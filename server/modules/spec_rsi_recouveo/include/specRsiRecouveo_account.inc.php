@@ -49,12 +49,9 @@ function specRsiRecouveo_account_open( $post_data ) {
 		'adr_postal' => $arr['field_ADR_POSTAL']
 	);
 	foreach( $cfg_atr as $atr_record ) {
-		$mkey = $atr_record['bible_code'] ;
-		$account_record[$mkey] = array() ;
-		$query = "SELECT distinct field_{$mkey} FROM view_file_RECORD WHERE field_LINK_ACCOUNT='{$p_accId}'" ;
-		$result = $_opDB->query($query) ;
-		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
-			$account_record[$mkey][] = $arr[0] ;
+		if( $atr_record['atr_type'] == 'account' ) {
+			$mkey = $atr_record['atr_field'] ;
+			$account_record[$mkey] = $arr['field_'.$mkey] ;
 		}
 	}
 	
@@ -98,6 +95,8 @@ function specRsiRecouveo_account_open( $post_data ) {
 	$query = "SELECT f.filerecord_id FROM view_file_FILE f 
 		WHERE field_LINK_ACCOUNT='{$p_accId}'" ;
 	if( $p_atrFilter ) {
+		// TODO : record-level filters
+		/*
 		foreach( $cfg_atr as $atr_record ) {
 			$mkey = $atr_record['bible_code'] ;
 			if( $p_atrFilter[$mkey] ) {
@@ -105,6 +104,7 @@ function specRsiRecouveo_account_open( $post_data ) {
 				$query.= " AND f.field_{$mkey} IN ".$_opDB->makeSQLlist($mvalue) ;
 			}
 		}
+		*/
 	}
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
@@ -130,6 +130,7 @@ function specRsiRecouveo_account_open( $post_data ) {
 	$query = "SELECT * FROM view_file_RECORD r
 		WHERE field_LINK_ACCOUNT='{$p_accId}'" ;
 	if( $p_atrFilter ) {
+		// TODO : record-level filters
 		/*
 		foreach( $cfg_atr as $atr_record ) {
 			$mkey = $atr_record['bible_code'] ;
