@@ -297,11 +297,6 @@ function specRsiRecouveo_cfg_getConfig() {
 			continue ;
 		}
 		foreach( json_decode($arr['field_SOC_METAFIELDS_JSON'], true) as $metafield ) {
-			if( !$metafield['is_filter'] ) {
-				continue ;
-				//TODO: gérer les métadonnées textuelles séparemment
-			}
-			
 			$atr_id = $metafield['metafield_assoc'].'@'.$metafield['metafield_code'] ;
 			if( !$TAB_atr[$atr_id] ) {
 				switch( $metafield['metafield_assoc'] ) {
@@ -320,7 +315,8 @@ function specRsiRecouveo_cfg_getConfig() {
 					'atr_field' => 'ATR'.'_'.$mcode.'_'.$metafield['metafield_code'],
 					'atr_type' => $metafield['metafield_assoc'],
 					'is_filter' => $metafield['is_filter'],
-					'is_globalfilter' => $metafield['is_globalfilter']
+					'is_globalfilter' => $metafield['is_globalfilter'],
+					'is_editable' => $metafield['is_editable']
 				);
 			}
 			$TAB_soc[$soc_id]['atr_ids'][] = $atr_id ;

@@ -230,6 +230,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		tbAtr.removeAll() ;
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
 			var atrRecord = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(atrId) ;
+			if( !atrRecord.is_filter ) {
+				return ;
+			}
 			tbAtr.add(Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamButton',{
 				cfgParam_id: 'ATR:'+atrRecord.atr_id,
 				cfgParam_atrType: atrRecord.atr_type,
@@ -303,6 +306,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
 			var atrRecord = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(atrId) ;
 			//console.dir(atrRecord) ;
+			if( !atrRecord.is_filter ) {
+				return ;
+			}
 			atrColumns.push({
 				cfgParam_id: 'ATR:'+atrRecord.atr_id,
 				cfgParam_atrType: atrRecord.atr_type,

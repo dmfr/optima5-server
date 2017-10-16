@@ -128,7 +128,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			var atrRecord = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(atrId) ;
 			if( atrRecord.atr_type == 'account' ) {
 				formItems.push({
-					readOnly: true,
+					readOnly: !atrRecord.is_editable,
 					xtype: 'textfield',
 					cfgParam_id: 'ATR:'+atrRecord.atr_id,
 					fieldLabel: atrRecord.atr_desc,

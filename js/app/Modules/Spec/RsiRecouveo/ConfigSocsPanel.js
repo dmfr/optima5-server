@@ -255,6 +255,19 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigSocsPanel', {
 								return '<b>'+'X'+'</b>' ;
 							}
 						}
+					},{
+						text: 'Editable ?',
+						width: 80,
+						align: 'center',
+						dataIndex: 'is_editable',
+						editor: {
+							xtype: 'checkboxfield'
+						},
+						renderer: function(v) {
+							if(v) {
+								return '<b>'+'X'+'</b>' ;
+							}
+						}
 					}],
 					listeners: {
 						selectionchange: function(selModel,records) {

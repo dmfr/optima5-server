@@ -43,7 +43,8 @@ Ext.define('RsiRecouveoCfgAtrModel',{
 		{name: 'atr_field', type:'string'},
 		{name: 'atr_type', type:'string'},
 		{name: 'is_filter', type:'boolean'},
-		{name: 'is_globalfilter', type:'boolean'}
+		{name: 'is_globalfilter', type:'boolean'},
+		{name: 'is_editable', type:'boolean'}
 	]
 });
 
@@ -164,7 +165,8 @@ Ext.define('RsiRecouveoConfigSocMetafieldModel',{
 		{name: 'metafield_desc', type:'string'},
 		{name: 'metafield_assoc', type:'string'},
 		{name: 'is_filter', type:'boolean'},
-		{name: 'is_globalfilter', type:'boolean'}
+		{name: 'is_globalfilter', type:'boolean'},
+		{name: 'is_editable', type:'boolean'}
 	]
 });
 Ext.define('RsiRecouveoConfigSocModel',{
@@ -519,7 +521,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 				if( !atrRecord ) {
 					return ;
 				}
-				if( atrRecord.get('is_filter') && !Ext.Array.contains(atrIds,atrRecord.getId()) ) {
+				if( !Ext.Array.contains(atrIds,atrRecord.getId()) ) {
 					atrIds.push( atrRecord.getId() ) ;
 				}
 			},this) ;
