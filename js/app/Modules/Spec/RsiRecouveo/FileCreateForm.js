@@ -12,17 +12,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateForm',{
 	initComponent: function() {
 		
 		var atrColumns = [] ;
-		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
-			var atrRecord = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(atrId) ;
-			//console.dir(atrRecord) ;
-			atrColumns.push({
-				text: atrRecord.bible_code.substring(4),
-				dataIndex: atrRecord.bible_code,
-				width:85,
-				align: 'center'
-			}) ;
-		}) ;
-		
 		Ext.apply(this,{
 			width: 950,
 			cls: 'ux-noframe-bg',
@@ -204,7 +193,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateForm',{
 			controlHasLock = false,
 			controlMapAtrValues = {} ;
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
-			controlMapAtrValues[atrId] = [] ;
+			//controlMapAtrValues[atrId] = [] ;
 		}) ;
 		accountRecord.files().each( function(fileRecord) {
 			fileRecord.records().each( function(recordRecord) {
@@ -215,7 +204,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateForm',{
 				// Controle
 				Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
 					if( !Ext.isEmpty(recordRecord.get(atrId)) && !Ext.Array.contains(controlMapAtrValues[atrId],recordRecord.get(atrId)) ) {
-						controlMapAtrValues[atrId].push(recordRecord.get(atrId)) ;
+						//"controlMapAtrValues[atrId].push(recordRecord.get(atrId)) ;
 					}
 				}) ;
 				var statusRow = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getStatusRowId(fileRecord.get('status')) ;
@@ -236,10 +225,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateForm',{
 			pLeftGrid.headerCt.down('[dataIndex="status_id"]').tdCls = 'op5-spec-dbspeople-realvalidgrid-tdcolor-durationless' ;
 		}
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
+			/*
 			if( controlMapAtrValues[atrId].length > 1 ) {
 				pLeftGrid.headerCt.down('[dataIndex="'+atrId+'"]').tdCls = 'op5-spec-dbspeople-realvalidgrid-tdcolor-durationless' ;
 				pLeftGridControlError = true ;
 			}
+			*/
 		}) ;
 		pLeftGrid.getStore().loadRawData(pLeftGridData) ;
 		

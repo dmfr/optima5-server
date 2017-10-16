@@ -28,7 +28,7 @@ Ext.define('RsiRecouveoCfgOptModel',{
 		{name: 'atr_txt', type:'string'}
 	],
 	hasMany: [{
-		model: 'RsiRecouveoCfgAtrItemModel',
+		model: 'RsiRecouveoCfgOptItemModel',
 		name: 'records',
 		associationKey: 'records'
 	}]
@@ -542,6 +542,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 		return this.cfgOptStore.getById(optId).getData() ;
 	},
 	getOptData: function(optId) {
+		console.dir(this.cfgOptStore.getById(optId)) ;
 		return this.cfgOptStore.getById(optId) ? Ext.pluck(this.cfgOptStore.getById(optId).records().getRange(), 'data') : null ;
 	},
 	
