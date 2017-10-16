@@ -1368,6 +1368,21 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 						inv_balage: {},
 						next_actions: []
 					} ;
+					
+					
+					var additionalData = {
+						soc_id: fileRow['soc_id'],
+						soc_txt: fileRow['soc_txt']
+					};
+					Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
+						var atrRecord = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(atrId),
+							atrField = atrRecord.atr_field,
+							atrType = atrRecord.atr_type ;
+						if( atrType=='account' ) {
+							additionalData[atrField] = fileRow[atrField] ;
+						}
+					});
+					Ext.apply( newAjaxData[accId], additionalData) ;
 				}
 				newAjaxData[accId]['inv_amount_due'] += fileRow['inv_amount_due'] ;
 				newAjaxData[accId]['inv_amount_total'] += fileRow['inv_amount_total'] ;
@@ -1381,6 +1396,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				newAjaxData[accId]['next_actions'].push({
 					next_fileaction_filerecord_id: fileRow['next_fileaction_filerecord_id'],
 					next_action: fileRow['next_action'],
+					next_action_suffix_txt: fileRow['next_action_suffix_txt'],
 					next_date: fileRow['next_date'],
 					next_eta_range: fileRow['next_eta_range']
 				});
