@@ -262,7 +262,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RsiRecouveoModule', {
 	initModule: function() {
 		var me = this ;
 		
-		me.createWindow({
+		var win = me.createWindow({
 			width:1310,
 			height:700,
 			resizable:true,
@@ -270,15 +270,30 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RsiRecouveoModule', {
 			layout:'fit',
 			items:[Ext.create('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 				optimaModule: me,
-				border: false
+				border: false,
+				listeners: {
+					destroy: function() {
+						me.fireEvent('moduleaskclose',this) ;
+					},
+					scope: this
+				}
 			})],
-			onEsc: function(win) {
+			noPanelHeader: true,
+			onEsc: Ext.emptyFn
+		}) ;
+		
+		
+		var map = new Ext.util.KeyMap({
+			target: win.el,
+			key: Ext.event.Event.ESC, // or Ext.event.Event.ENTER
+			fn: function(win) {
 				var tabPanel = this.down('tabpanel') ;
 				if( tabPanel ) {
 					tabPanel.closeActive() ;
 				}
 				return false ;
-			}
+			},
+			scope: win
 		}) ;
 	},
 	postCrmEvent: function( crmEvent, postParams ) {

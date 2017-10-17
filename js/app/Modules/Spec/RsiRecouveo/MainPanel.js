@@ -73,12 +73,20 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 		
 		this.removeAll() ;
 		this.add( {
+			_mainTab: true,
 			xtype: 'panel',
 			title: 'Menu',
 			layout: 'fit',
 			cls:'op5-spec-rsiveo-mainmenu',
-			items: [mainMenuView]
+			items: [mainMenuView],
+			closable: true,
+			listeners: {
+				beforeclose: this.onBeforeCloseMain,
+				destroy: this.onCloseMain,
+				scope: this
+			}
 		}) ;
+		this.setActiveTab(0) ;
 	},
 	onActionClick: function( actionCode ) {
 		var me = this ;
@@ -322,5 +330,24 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 		if( this.getActiveTab().closable ) {
 			this.getActiveTab().close() ;	
 		}
+	},
+	onBeforeCloseMain: function(tab) {
+		if( this.allowClose ) {
+			return true ;
+		}
+		var nbOpen = this.items.getCount() ;
+		if( nbOpen > 1 ) {
+			return false ;
+		}
+		Ext.Msg.confirm('Fermeture', 'Quitter l\'application ?', function(btn){
+			if( btn == 'yes' ){
+				this.allowClose = true ;
+				tab.close() ;
+			}
+		},this) ;
+		return false ;
+	},
+	onCloseMain: function() {
+		this.destroy() ;
 	}
 }) ;
