@@ -127,13 +127,23 @@ Ext.define('Optima5.Module',{
 						scope: this
 					}]
 				});
+				if( cfg.noPanelHeader ) {
+					Ext.apply(cfg,{
+						header: false
+					});
+				}
+				if( true ) {
+					this.on('moduleaskclose',function() {
+						me.app.doLogout();
+					},this);
+				}
 				cls = cls || Ext.panel.Panel;
 				panel = fullscreenViewport.add(new cls(cfg));
 				
 				me.fireEvent('modulestart',me) ;
 				
 				me.windows.add(panel) ; // HACK
-				return ;
+				return panel ;
 			} else {
 				var win, cfg = Ext.applyIf(config || {}, {
 					stateful: false,
@@ -148,6 +158,11 @@ Ext.define('Optima5.Module',{
 			win.on('boxready',function(twin) {
 				me.app.alignNewWindow(twin) ;
 			},me,{single:true}) ;
+			this.on('moduleaskclose',function() {
+				me.eachWindow(function(mwin) {
+					mwin.close() ;
+				}) ;
+			},this);
 		}
 		
 		var fireStart = false ;
