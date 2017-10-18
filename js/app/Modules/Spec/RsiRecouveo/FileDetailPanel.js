@@ -472,7 +472,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				flex: 1,
 				bodyCls: 'ux-noframe-bg',
 				title: 'Factures',
-				style: 'border-left: 1px solid gray ; border-right: 1px solid gray', //HACK to Neptune / VEO
+				style: 'border-left: 3px solid gray ; border-right: 3px solid gray', //HACK to Neptune / VEO
 				layout: {
 					type: 'vbox',
 					align: 'stretch'
