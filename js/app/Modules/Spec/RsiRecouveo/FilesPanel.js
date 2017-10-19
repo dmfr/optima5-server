@@ -615,6 +615,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				renderer: function(value,metaData,record) {
 					metaData.style += 'color: white ; background: '+record.get('status_color') ;
 					return value ;
+				},
+				summaryType: 'sum',
+				summaryRenderer: function(value) {
+					return '<b>'+'Total'+'</b>' ;
 				}
 			}],
 			balageRenderer = function(v) {
@@ -644,7 +648,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			var balageField = 'inv_balage_sum' ;
 			balageGridFields.push(balageField);
 			balageGridColumns.push({
-				text: 'Total',
+				text: '<b>'+'Total'+'</b>',
 				tdCls: 'op5-spec-dbstracy-boldcolumn',
 				dataIndex: balageField,
 				width:95,
@@ -685,7 +689,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				dataIndex: 'agenda_class_txt',
 				summaryType: 'count',
 				summaryRenderer: function(value, summaryData, dataIndex) {
-					return 'Total' ;
+					return '<b>'+'Total'+'</b>' ;
 				}
 			}] ;
 			
@@ -733,7 +737,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			agendaGridColumns.push({
 				hidden: true,
 				_agendaMode: 'count',
-				text: 'Total',
+				text: '<b>'+'Total'+'</b>',
 				dataIndex: 'sum'+'_count',
 				width: 85,
 				tdCls: 'op5-spec-dbstracy-boldcolumn',
@@ -744,7 +748,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			agendaGridColumns.push({
 				hidden: true,
 				_agendaMode: 'amount',
-				text: 'Total',
+				text: '<b>'+'Total'+'</b>',
 				dataIndex: 'sum'+'_amount',
 				width: 85,
 				tdCls: 'op5-spec-dbstracy-boldcolumn',
@@ -898,6 +902,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 					}
 				}]
 			}
+		}) ;
+		pNorth.add({
+			xtype:'box',
+			width: 2,
+			height: '100%',
+			style: 'background-color: gray'
 		}) ;
 		pNorthTab = pNorth.add({
 			flex: 1,
