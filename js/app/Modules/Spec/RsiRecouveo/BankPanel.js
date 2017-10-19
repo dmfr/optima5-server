@@ -216,7 +216,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.BankPanel',{
 			width:48,
 			renderer: function(value,metaData,record) {
 				if( !value ) {
-					metaData.tdCls += ' op5-spec-rsiveo-icon-priority' ;
+					metaData.tdCls += ' op5-spec-rsiveo-icon-priority-on' ;
 				}
 				return '' ;
 			}

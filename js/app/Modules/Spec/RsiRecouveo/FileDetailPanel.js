@@ -68,7 +68,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			balageColumns.push({
 				text: balageSegmt.segmt_txt,
 				dataIndex: balageField,
-				width:70,
+				minWidth:70,
 				align: 'center',
 				renderer: balageRenderer,
 				filter: {
@@ -215,7 +215,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				},
 				border: false,
 				items: [{
-					flex:2,
 					xtype: 'form',
 					itemId: 'pHeaderForm',
 					bodyCls: 'ux-noframe-bg',
@@ -227,7 +226,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					},
 					items: formItems
 				},{
-					flex: 3,
+					flex: 1,
 					itemId: 'pAdrbookTree',
 					xtype: 'treepanel',
 					tbar: [{
@@ -285,6 +284,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 							}
 						}
 					}],
+					hideHeaders: true,
 					columns: {
 						defaults: {
 							menuDisabled: true,
@@ -312,40 +312,70 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 							xtype: 'treecolumn',
 							tdCls: 'op5-spec-rsiveo-adrbooktree-firstcol',
 							text: 'Coordonnées',
-							width: 280,
+							flex: 1,
 							dataIndex: 'adr_txt',
 							renderer: function(value, metaData, record) {
 								if( record.get('adr_entity_group') ) {
-									metaData.tdAttr='style="width:340px; font-weight: bold;"' ;
+									metaData.tdAttr='style="font-weight: bold;"' ;
 									value = record.get('adr_entity') ;
 									return value ;
+								}
+								if( record.get('status_is_invalid') ) {
+									metaData.tdAttr='style="color: red; font-style: italic"' ;
 								}
 								return Ext.util.Format.nl2br( Ext.String.htmlEncode( value ) ) ;
 							}
 						},{
-							text: 'Status',
-							width: 60,
+							dataIndex: 'status_is_priority',
+							width: 32,
 							renderer: function(value, metaData, record) {
 								if( record.get('adr_entity_group') ) {
-									metaData.tdAttr='style="width:0px; display:none ;"' ;
+									
 									return ;
 								}
-								if( record.get('status_is_invalid') ) {
-									metaData.tdCls += ' op5-spec-rsiveo-kpi-nok' ;
+								if( record.get('status_is_invalid') || !record.get('status_is_confirm') ) {
+									
 								} else if( record.get('status_is_priority') ) {
-									metaData.tdCls += ' op5-spec-rsiveo-icon-priority' ;
-								} else if( record.get('status_is_confirm') ) {
-									metaData.tdCls += ' op5-spec-rsiveo-kpi-ok' ;
+									metaData.tdCls += ' op5-spec-rsiveo-icon-priority-on' ;
 								} else {
-									metaData.tdCls += ' op5-spec-rsiveo-kpi-unknown' ;
+									metaData.tdCls += ' op5-spec-rsiveo-icon-priority-off' ;
 								}
+								return ;
 							}
 						},{
 							align: 'center',
-							xtype:'actioncolumn',
-							width:50,
+							xtype: 'actioncolumn',
+							width: 90,
+							tdCls: 'op5-spec-rsiveo-actioncol-spacer',
 							disabledCls: 'x-item-invisible',
 							items: [{
+								iconCls: ' op5-spec-rsiveo-mail-postal-std',
+								tooltip: 'Courrier',
+								handler: function(grid, rowIndex, colIndex) {
+									var record = grid.getStore().getAt(rowIndex);
+									var formParams = {} ;
+									if( record.get('adr_entity_group') ) {
+										formParams['adrpost_entity'] = record.get('adr_entity') ;
+									} else {
+										formParams['adrpost_filerecord_id'] = record.get('adrbookentry_filerecord_id') ;
+									}
+									this.handleNewAction('MAIL_OUT',formParams) ;
+								},
+								scope: this,
+								disabledCls: 'x-item-invisible',
+								isDisabled: function(view,rowIndex,colIndex,item,record ) {
+									if( record.get('expanded') ) {
+										return true ;
+									}
+									if( record.get('status_is_invalid') ) {
+										return true ;
+									}
+									if( record.get('adr_entity_group') || record.get('adr_type')=='POSTAL' ) {
+										return false ;
+									}
+									return true ;
+								}
+							},{
 								iconCls: ' op5-spec-rsiveo-action-callout',
 								tooltip: 'Appel',
 								handler: function(grid, rowIndex, colIndex) {
@@ -364,27 +394,24 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 									if( record.get('expanded') ) {
 										return true ;
 									}
+									if( record.get('status_is_invalid') ) {
+										return true ;
+									}
 									if( record.get('adr_entity_group') || record.get('adr_type')=='TEL' ) {
 										return false ;
 									}
 									return true ;
 								}
 							},{
-								//icon: Ext.BLANK_IMAGE_URL,
-								iconCls: ' op5-spec-rsiveo-action-spacer',
-								isDisabled: function(view,rowIndex,colIndex,item,record ) {
-									return true ;
-								}
-							},{
-								iconCls: ' op5-spec-rsiveo-action-mailout',
-								tooltip: 'Courrier',
+								iconCls: ' op5-spec-rsiveo-mail-email',
+								tooltip: 'Email',
 								handler: function(grid, rowIndex, colIndex) {
 									var record = grid.getStore().getAt(rowIndex);
 									var formParams = {} ;
 									if( record.get('adr_entity_group') ) {
-										formParams['adrpost_entity'] = record.get('adr_entity') ;
+										formParams['adrmail_entity'] = record.get('adr_entity') ;
 									} else {
-										formParams['adrpost_filerecord_id'] = record.get('adrbookentry_filerecord_id') ;
+										formParams['adrmail_filerecord_id'] = record.get('adrbookentry_filerecord_id') ;
 									}
 									this.handleNewAction('MAIL_OUT',formParams) ;
 								},
@@ -394,7 +421,37 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 									if( record.get('expanded') ) {
 										return true ;
 									}
-									if( record.get('adr_entity_group') || record.get('adr_type')=='POSTAL' ) {
+									if( record.get('status_is_invalid') ) {
+										return true ;
+									}
+									if( record.get('adr_entity_group') || record.get('adr_type')=='EMAIL' ) {
+										return false ;
+									}
+									return true ;
+								}
+							},{
+								iconCls: ' op5-spec-rsiveo-mail-sms',
+								tooltip: 'SMS',
+								handler: function(grid, rowIndex, colIndex) {
+									var record = grid.getStore().getAt(rowIndex);
+									var formParams = {} ;
+									if( record.get('adr_entity_group') ) {
+										formParams['adrtel_entity'] = record.get('adr_entity') ;
+									} else {
+										formParams['adrtel_filerecord_id'] = record.get('adrbookentry_filerecord_id') ;
+									}
+									this.handleNewAction('MAIL_OUT',formParams) ;
+								},
+								scope: this,
+								disabledCls: 'x-item-invisible',
+								isDisabled: function(view,rowIndex,colIndex,item,record ) {
+									if( record.get('expanded') ) {
+										return true ;
+									}
+									if( record.get('status_is_invalid') ) {
+										return true ;
+									}
+									if( record.get('adr_entity_group') || record.get('adr_type')=='TEL' ) {
 										return false ;
 									}
 									return true ;
@@ -429,9 +486,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 						itemclick: function( view, record, itemNode, index, e ) {
 							var cellNode = e.getTarget( view.getCellSelector() ),
 								cellColumn = view.getHeaderByCell( cellNode ) ;
-							switch( cellColumn.text ) {
-								case 'Status' :
-									if( !record.get('status_is_invalid')  ) {
+							switch( cellColumn.dataIndex ) {
+								case 'status_is_priority' :
+									if( !record.get('status_is_invalid') &&  record.get('status_is_confirm') && !record.get('status_is_priority') ) {
 										Ext.MessageBox.confirm('Contact','Définir contact par défaut ?',function(btn){
 											if( btn=='yes' ) {
 												this.handleAdrbookPriority(record.get('adr_type'),record.get('adrbookentry_filerecord_id'));
@@ -530,7 +587,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 							hideable: false,
 							resizable: false,
 							groupable: false,
-							lockable: false
+							lockable: false,
+							flex: 1
 						},
 						items: balageColumns
 					},
@@ -565,7 +623,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 						xtype: 'treecolumn',
 						text: 'Dossier/Fact',
 						dataIndex: 'id',
-						width: 170,
+						flex: 1,
 						renderer: function( v, meta, r ) {
 							if( r.get('new_is_on') ) {
 								return '<b>'+r.get('new_text')+'</b>' ;
@@ -583,13 +641,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 						text: 'Date',
 						dataIndex: 'record_date',
 						align: 'center',
-						width: 80,
+						width: 90,
 						renderer: Ext.util.Format.dateRenderer('d/m/Y')
 					},{
 						text: 'Montant',
 						dataIndex: 'record_amount',
 						align: 'right',
-						width: 80,
+						width: 90,
 						renderer: function( v, meta, r ) {
 							if( Ext.isNumber(v) ) {
 								v = Ext.util.Format.number(v,'0,000.00') ;
@@ -874,16 +932,21 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		
 		var adrbookRootMap = {}, adrbookRootMapObs = {} ;
 		accountRecord.adrbook().each( function(adrBookRec) {
-			adrBookRec.adrbookentries().each( function(adrBookEntryRec) {
-				if( adrBookEntryRec.get('status_is_invalid') && !boolShowInvalid ) {
-					return ;
-				}
-				if( !adrbookRootMap.hasOwnProperty(adrBookRec.get('adr_entity')) ) {
-					adrbookRootMap[adrBookRec.get('adr_entity')] = [] ;
-					adrbookRootMapObs[adrBookRec.get('adr_entity')] = adrBookRec.get('adr_entity_obs') ;
-				}
-				adrbookRootMap[adrBookRec.get('adr_entity')].push( Ext.apply({leaf:true},adrBookEntryRec.getData()) ) ;
-			})
+			Ext.Array.each( ['POSTAL','TEL','EMAIL'], function( adrType ) {
+				adrBookRec.adrbookentries().each( function(adrBookEntryRec) {
+					if( adrBookEntryRec.get('status_is_invalid') && !boolShowInvalid ) {
+						return ;
+					}
+					if( adrBookEntryRec.get('adr_type') != adrType ) {
+						return ;
+					}
+					if( !adrbookRootMap.hasOwnProperty(adrBookRec.get('adr_entity')) ) {
+						adrbookRootMap[adrBookRec.get('adr_entity')] = [] ;
+						adrbookRootMapObs[adrBookRec.get('adr_entity')] = adrBookRec.get('adr_entity_obs') ;
+					}
+					adrbookRootMap[adrBookRec.get('adr_entity')].push( Ext.apply({leaf:true},adrBookEntryRec.getData()) ) ;
+				}) ;
+			}) ;
 		}) ;
 		var adrbookRootChildren = [] ;
 		Ext.Object.each( adrbookRootMap, function(k,v) {
@@ -1120,7 +1183,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				},{
 					text: 'Date',
 					align: 'center',
-					width: 90,
+					width: 80,
 					dataIndex: 'calc_date',
 					renderer: function(value,metaData,record,rowIndex,colIndex,store,view) {
 						if( !record.get('status_is_ok') ) {
@@ -1134,7 +1197,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 								&& Ext.util.Format.date(record.get('date_sched'),'Y-m-d') < Ext.util.Format.date(record.get('date_actual'),'Y-m-d') ) {
 							metaData.style += 'font-weight: bold ; color: red' ;
 						}
-						return Ext.Date.format(Ext.Date.parse(value,'Y-m-d'),'d/m/Y') ;
+						return Ext.Date.format(Ext.Date.parse(value,'Y-m-d'),'d/m/y') ;
 					}
 				},{
 					width: 24,
@@ -1193,7 +1256,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					}
 				},{
 					dataIndex: 'txt_short',
-					width: 240,
+					flex: 1,
+					maxWidth: 250,
 					renderer: function(value,metaData,record,rowIndex,colIndex,store,view) {
 						while( true ) {
 							var txt ;

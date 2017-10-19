@@ -72,7 +72,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel',{
 							anchor: '100%'
 						},
 						checkboxToggle: true,
-						collapsed: false, // fieldset initially collapsed
+						collapsed: true, // fieldset initially collapsed
+						itemId: 'fsAdrPost',
 						title: 'Envoi postal',
 						items: Ext.create('Optima5.Modules.Spec.RsiRecouveo.AdrbookTypeContainer',{
 							//xtype: 'container',
@@ -96,6 +97,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel',{
 						},
 						checkboxToggle: true,
 						collapsed: true, // fieldset initially collapsed
+						itemId: 'fsAdrTel',
 						title: 'SMS',
 						items: Ext.create('Optima5.Modules.Spec.RsiRecouveo.AdrbookTypeContainer',{
 							//xtype: 'container',
@@ -119,6 +121,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel',{
 						},
 						checkboxToggle: true,
 						collapsed: true, // fieldset initially collapsed
+						itemId: 'fsAdrMail',
 						title: 'Email',
 						items: Ext.create('Optima5.Modules.Spec.RsiRecouveo.AdrbookTypeContainer',{
 							//xtype: 'container',

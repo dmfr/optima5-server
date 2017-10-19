@@ -208,6 +208,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 					},this) ;
 				},this) ;
 			}
+			if( this._formValues['adrtel_filerecord_id'] && this.down('#fsAdrTel') ) {
+				this.down('#fsAdrTel').expand() ;
+			}
+			
 			if( this._formValues['adrpost_default'] ) {
 				this._accountRecord.adrbook().each( function( adrRec ) {
 					adrRec.adrbookentries().each( function(adrEntryRec) {
@@ -233,6 +237,39 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 						}
 					},this) ;
 				},this) ;
+			}
+			if( this._formValues['adrpost_filerecord_id'] && this.down('#fsAdrPost') ) {
+				this.down('#fsAdrPost').expand() ;
+			}
+			
+			if( this._formValues['adrmail_default'] ) {
+				this._accountRecord.adrbook().each( function( adrRec ) {
+					adrRec.adrbookentries().each( function(adrEntryRec) {
+						if( adrEntryRec.get('status_is_invalid') ) {
+							return ;
+						}
+						if( adrEntryRec.get('adr_type')=='EMAIL' && adrEntryRec.get('status_is_priority') ) {
+							this._formValues['adrmail_filerecord_id'] = adrEntryRec.getId() ;
+							return false ;
+						}
+					},this) ;
+				},this) ;
+			}
+			if( this._formValues['adrmail_entity'] ) {
+				this._accountRecord.adrbook().each( function( adrRec ) {
+					adrRec.adrbookentries().each( function(adrEntryRec) {
+						if( adrEntryRec.get('status_is_invalid') ) {
+							return ;
+						}
+						if( adrRec.get('adr_entity')==this._formValues['adrmail_entity'] && adrEntryRec.get('adr_type')=='EMAIL' ) {
+							this._formValues['adrmail_filerecord_id'] = adrEntryRec.getId() ;
+							return false ;
+						}
+					},this) ;
+				},this) ;
+			}
+			if( this._formValues['adrmail_filerecord_id'] && this.down('#fsAdrMail') ) {
+				this.down('#fsAdrMail').expand() ;
 			}
 			
 			Ext.apply(formData,this._formValues) ;

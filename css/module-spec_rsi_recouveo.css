@@ -184,10 +184,16 @@
 	background-repeat: no-repeat ;
 	background-image: url("../images/modules/rsiveo-close-16.png") !important;
 }
-.op5-spec-rsiveo-action-spacer {
-	width: 8px
+.op5-spec-rsiveo-actioncol-spacer .x-action-col-icon {
+	margin-left: 3px;
+	margin-right: 3px;
 }
-.op5-spec-rsiveo-icon-priority {
+.op5-spec-rsiveo-icon-priority-off {
+	background-position: center ;
+	background-repeat: no-repeat ;
+	background-image: url("../images/modules/rsiveo-staroff-16.png") !important;
+}
+.op5-spec-rsiveo-icon-priority-on {
 	background-position: center ;
 	background-repeat: no-repeat ;
 	background-image: url("../images/modules/rsiveo-staron-16.png") !important;
