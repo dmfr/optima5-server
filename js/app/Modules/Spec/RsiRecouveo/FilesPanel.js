@@ -147,7 +147,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				scope: this
 			}],
 			items: [{
-				title: 'Statistiques sur sélection',
+				//title: 'Statistiques sur sélection',
 				region: 'north',
 				//hidden: true,
 				collapsible: true,
@@ -315,7 +315,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				text: atrRecord.atr_desc,
 				dataIndex: atrRecord.atr_field,
 				//rendererDataindex: atrRecord.bible_code + '_text',
-				width:90,
+				width:120,
 				align: 'center'
 			}) ;
 		}) ;
@@ -337,7 +337,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			balageColumns.push({
 				text: balageSegmt.segmt_txt,
 				dataIndex: balageField,
-				width:70,
+				width:90,
 				align: 'center',
 				renderer: balageRenderer,
 				filter: {
@@ -380,7 +380,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		checkNoneBtn.destroy() ;
 		
 		var columns = [{
-			width: 60,
+			width: 70,
 			hidden: true,
 			xtype: 'uxnullcheckcolumn',
 			itemId: 'colMultiSelect',
@@ -411,7 +411,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			text: 'Attributs',
 			columns: atrColumns
 		},{
-			text: 'Acheteurs',
+			text: 'Débiteur',
 			columns: [{
 				text: 'Entité',
 				dataIndex: 'soc_id',
@@ -425,7 +425,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 					return r.get('soc_txt') ;
 				}
 			},{
-				text: 'ID',
+				text: 'No Compte',
 				dataIndex: 'acc_id',
 				tdCls: 'op5-spec-dbstracy-boldcolumn',
 				width:100,
@@ -434,7 +434,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 					type: 'string'
 				}
 			},{
-				text: 'Acheteur',
+				text: 'Nom',
 				dataIndex: 'acc_txt',
 				width:150,
 				align: 'center',
@@ -455,9 +455,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				return v ;
 			}
 		},{
-			text: 'Next action',
+			text: 'Prochaine action',
 			columns: [{
-				text: 'RDV/Action',
+				text: 'Action',
+				width: 140,
 				tdCls: 'op5-spec-dbstracy-boldcolumn',
 				align: 'center',
 				dataIndex: 'next_action_suffix_txt',
@@ -468,7 +469,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 					return v ;
 				}
 			},{
-				text: 'Date/Echeance',
+				text: 'Date',
+				width: 100,
 				dataIndex: 'next_date',
 				align: 'center',
 				filter: {
@@ -1115,6 +1117,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				}]
 			}]
 		});
+		pNorthTab.setActiveTab(0);
 		this.configureViews() ;
 	},
 	configureViews: function() {
