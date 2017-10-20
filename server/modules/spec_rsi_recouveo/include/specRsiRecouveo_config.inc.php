@@ -63,8 +63,7 @@ function specRsiRecouveo_config_getUsers($post_data) {
 		);
 		$user_rec['link_SOC'] = json_decode($arr['field_LINK_SOC'],true) ;
 		foreach( $cfg_atr as $atr_rec ) {
-			$atr_code = $atr_rec['bible_code'] ;
-			$user_rec['link_'.$atr_code] = json_decode($arr['field_LINK_'.$atr_code],true) ;
+			// TODO / HACK ! Migrer vers nouveau format scénario
 		}
 		$data[] = $user_rec ;
 	}
@@ -101,11 +100,7 @@ function specRsiRecouveo_config_setUser( $post_data ) {
 	$arr_ins['field_LINK_SOC'] = $user_record['link_SOC'] ;
 	
 	foreach( $cfg_atr as $atr_record ) {
-		$mkey = $atr_record['bible_code'] ;
-		if( $user_record['link_'.$mkey] && json_decode($user_record['link_'.$mkey],true) == array('&') ) {
-			$user_record['link_'.$mkey] = '' ;
-		}
-		$arr_ins['field_LINK_'.$mkey] = $user_record['link_'.$mkey] ;
+		// TODO : HACK ! Migrer vers nouveau format scénario
 	}
 	
 	$treenode_key = 'CR' ;
@@ -144,8 +139,7 @@ function specRsiRecouveo_config_getScenarios($post_data) {
 			'steps' => array()
 		) ;
 		foreach( $cfg_atr as $atr_record ) {
-			$mkey = $atr_record['bible_code'] ;
-			$record['link_'.$mkey] = $arr['field_LINK_'.$mkey] ;
+			// TODO : HACK ! Migrer vers nouveau format scénario
 		}
 		$TAB[$scen_code] = $record ;
 	}
@@ -199,8 +193,7 @@ function specRsiRecouveo_config_setScenario( $post_data ) {
 	$arr_ins['field_BALANCE_MIN'] = $scenario_record['balance_min'] ;
 	$arr_ins['field_BALANCE_MAX'] = $scenario_record['balance_max'] ;
 	foreach( $cfg_atr as $atr_record ) {
-		$mkey = $atr_record['bible_code'] ;
-		$arr_ins['field_LINK_'.$mkey] = $scenario_record['link_'.$mkey] ;
+		// TODO : HACK ! Migrer vers nouveau format scénario
 	}
 	paracrm_lib_data_insertRecord_bibleTreenode( 'SCENARIO', $scen_code, NULL, $arr_ins ) ;
 	

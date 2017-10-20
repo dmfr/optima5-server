@@ -62,10 +62,16 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 	} else {
 		if( $filter_atr ) {
 			foreach( $cfg_atr as $atr_record ) {
-				$mkey = $atr_record['bible_code'] ;
-				if( $filter_atr[$mkey] ) {
-					$mvalue = $filter_atr[$mkey] ;
-					$query.= " AND f.field_{$mkey} IN ".$_opDB->makeSQLlist($mvalue) ;
+				$atr_id = $atr_record['atr_id'] ;
+				$atr_dbfield = 'field_'.$atr_record['atr_field'] ;
+				switch( $atr_record['atr_type'] ) {
+					case 'account' : $atr_dbalias='la' ; break ;
+					case 'record' : $atr_dbalias='f' ; break ;
+					default : continue 2 ;
+				}
+				if( $filter_atr[$atr_id] ) {
+					$mvalue = $filter_atr[$atr_id] ;
+					$query.= " AND {$atr_dbalias}.{$atr_dbfield} IN ".$_opDB->makeSQLlist($mvalue) ;
 				}
 			}
 		}
@@ -127,9 +133,11 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			if( $value && !in_array($value,$map_atrId_values[$atr_id]) ) {
 				$map_atrId_values[$atr_id][] = $value ;
 			}
+			/*
 			if( $filter_atr && $filter_atr[$atr_id] && !in_array($value,$filter_atr[$atr_id]) ) {
 				continue 2 ;
 			}
+			*/
 			$record[$mkey] = $value ;
 		}
 		
@@ -139,16 +147,23 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 	
 	$query = "SELECT fa.* FROM view_file_FILE_ACTION fa" ;
 	$query.= " JOIN view_file_FILE f ON f.filerecord_id=fa.filerecord_parent_id" ;
+	$query.= " JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key = f.field_LINK_ACCOUNT" ;
 	$query.= " WHERE 1" ;
 	if( isset($filter_fileFilerecordId_list) ) {
 		$query.= " AND f.filerecord_id IN {$filter_fileFilerecordId_list}" ;
 	} else {
 		if( $filter_atr ) {
 			foreach( $cfg_atr as $atr_record ) {
-				$mkey = $atr_record['bible_code'] ;
-				if( $filter_atr[$mkey] ) {
-					$mvalue = $filter_atr[$mkey] ;
-					$query.= " AND f.field_{$mkey} IN ".$_opDB->makeSQLlist($mvalue) ;
+				$atr_id = $atr_record['atr_id'] ;
+				$atr_dbfield = 'field_'.$atr_record['atr_field'] ;
+				switch( $atr_record['atr_type'] ) {
+					case 'account' : $atr_dbalias='la' ; break ;
+					case 'record' : $atr_dbalias='f' ; break ;
+					default : continue 2 ;
+				}
+				if( $filter_atr[$atr_id] ) {
+					$mvalue = $filter_atr[$atr_id] ;
+					$query.= " AND {$atr_dbalias}.{$atr_dbfield} IN ".$_opDB->makeSQLlist($mvalue) ;
 				}
 			}
 		}
@@ -194,15 +209,22 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 	$query.= " FROM view_file_FILE f" ;
 	$query.= " JOIN view_file_RECORD_LINK rl ON rl.field_LINK_FILE_ID=f.filerecord_id AND rl.field_LINK_IS_ON='1'" ;
 	$query.= " JOIN view_file_RECORD r ON r.filerecord_id=rl.filerecord_parent_id" ;
+	$query.= " JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key = f.field_LINK_ACCOUNT" ;
 	if( isset($filter_fileFilerecordId_list) ) {
 		$query.= " AND f.filerecord_id IN {$filter_fileFilerecordId_list}" ;
 	} else {
 		if( $filter_atr ) {
 			foreach( $cfg_atr as $atr_record ) {
-				$mkey = $atr_record['bible_code'] ;
-				if( $filter_atr[$mkey] ) {
-					$mvalue = $filter_atr[$mkey] ;
-					$query.= " AND f.field_{$mkey} IN ".$_opDB->makeSQLlist($mvalue) ;
+				$atr_id = $atr_record['atr_id'] ;
+				$atr_dbfield = 'field_'.$atr_record['atr_field'] ;
+				switch( $atr_record['atr_type'] ) {
+					case 'account' : $atr_dbalias='la' ; break ;
+					case 'record' : $atr_dbalias='f' ; break ;
+					default : continue 2 ;
+				}
+				if( $filter_atr[$atr_id] ) {
+					$mvalue = $filter_atr[$atr_id] ;
+					$query.= " AND {$atr_dbalias}.{$atr_dbfield} IN ".$_opDB->makeSQLlist($mvalue) ;
 				}
 			}
 		}
@@ -221,8 +243,15 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			'acc_id' => $arr['field_LINK_ACCOUNT']
 		);
 		foreach( $cfg_atr as $atr_record ) {
-			$mkey = $atr_record['bible_code'] ;
-			$record_row[$mkey] = $arr['field_'.$mkey] ;
+			if( $atr_record['atr_type']=='record' ) {
+				$atr_id = $atr_record['atr_id'] ;
+				$mkey = $atr_record['atr_field'] ;
+				$value = $arr['field_'.$mkey] ;
+				if( $value && !in_array($value,$map_atrId_values[$atr_id]) ) {
+					$map_atrId_values[$atr_id][] = $value ;
+				}
+				$record[$mkey] = $value ;
+			}
 		}
 		$record_row += array(
 			'type' => $arr['field_TYPE'],
@@ -702,16 +731,17 @@ function specRsiRecouveo_file_createForAction( $post_data ) {
 			// ATRs
 			$map_atr_values = array() ;
 			foreach( $cfg_atr as $atr_record ) {
-				$mkey = $atr_record['bible_code'] ;
-				$map_atr_values[$mkey] = array() ;
+				if( $atr_record['atr_type']=='record' ) {
+					$mkey = $atr_record['atr_field'] ;
+					$map_atr_values[$mkey] = array() ;
+				}
 			}
 			foreach( $account_record['files'] as $accFile_record ) {
 				foreach( $accFile_record['records'] as $accFileRecord_record ) {
 					if( !in_array($accFileRecord_record['record_filerecord_id'],$p_arr_recordIds) ) {
 						continue ;
 					}
-					foreach( $cfg_atr as $atr_record ) {
-						$mkey = $atr_record['bible_code'] ;
+					foreach( $map_atr_values as $mkey => $dummy ) {
 						if( $accFileRecord_record[$mkey] && !in_array($accFileRecord_record[$mkey], $map_atr_values[$mkey]) ) {
 							$map_atr_values[$mkey][] = $accFileRecord_record[$mkey] ;
 						}

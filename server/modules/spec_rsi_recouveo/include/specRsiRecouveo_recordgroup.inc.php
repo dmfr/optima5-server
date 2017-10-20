@@ -65,8 +65,10 @@ function specRsiRecouveo_recordgroup_input_get( $post_data ) {
 			'acc_id' => $arr['field_LINK_ACCOUNT']
 		);
 		foreach( $cfg_atr as $atr_record ) {
-			$mkey = $atr_record['bible_code'] ;
-			$record_row[$mkey] = $arr['field_'.$mkey] ;
+			if( $atr_record['atr_type']=='record' ) {
+				$mkey = $atr_record['atr_field'] ;
+				$record_row[$mkey] = $arr['field_'.$mkey] ;
+			}
 		}
 		$record_row += array(
 			'type' => $arr['field_TYPE'],
@@ -211,8 +213,10 @@ function specRsiRecouveo_recordgroup_assoc_get( $post_data ) {
 			'acc_id' => $arr['field_LINK_ACCOUNT']
 		);
 		foreach( $cfg_atr as $atr_record ) {
-			$mkey = $atr_record['bible_code'] ;
-			$record_row[$mkey] = $arr['field_'.$mkey] ;
+			if( $atr_record['atr_type']=='record' ) {
+				$mkey = $atr_record['atr_field'] ;
+				$record_row[$mkey] = $arr['field_'.$mkey] ;
+			}
 		}
 		$record_row += array(
 			'type' => $arr['field_TYPE'],

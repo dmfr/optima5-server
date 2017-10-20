@@ -111,7 +111,9 @@ function specRsiRecouveo_cfg_getAuth( $post_data ) {
 	
 	$authMapAtr = array() ;
 	foreach( $cfg_atr as $atr_record ) {
-		$mkey = $atr_record['bible_code'] ;
+		// TODO / HACK ! Migrer vers nouveau format scénario
+		/*
+		$mkey = $atr_record['atr_field'] ;
 		$authMapAtr[$mkey] = null ;
 		if( $arr['field_LINK_'.$mkey] && json_decode($arr['field_LINK_'.$mkey],true) ) {
 			$authMapAtr[$mkey] = array() ;
@@ -119,6 +121,7 @@ function specRsiRecouveo_cfg_getAuth( $post_data ) {
 				$authMapAtr[$mkey][] = $atr_key ;
 			}
 		}
+		*/
 	}
 	
 	$authIsExt = ($arr['field_STATUS_IS_EXT']==1 ? $arr['field_USER_ID'] : null) ;
@@ -207,7 +210,7 @@ function specRsiRecouveo_cfg_getConfig() {
 	$TAB_soc = NULL ;
 	$json_define = paracrm_define_getMainToolbar( array('data_type'=>'bible') , true ) ;
 	foreach( $json_define['data_bible'] as $define_bible ) {
-		if( strpos($define_bible['bibleId'],'ATR_')===0 || strpos($define_bible['bibleId'],'OPT_')===0 || $define_bible['bibleId']=='LIB_ACCOUNT' ) {
+		if( strpos($define_bible['bibleId'],'OPT_')===0 || $define_bible['bibleId']=='LIB_ACCOUNT' ) {
 			$json_define_bible = paracrm_data_getBibleCfg(array('bible_code'=>$define_bible['bibleId'])) ;
 			
 			$bible_code = $define_bible['bibleId'] ;
@@ -236,9 +239,6 @@ function specRsiRecouveo_cfg_getConfig() {
 				'records' => $records
 			) ;
 			
-			if( strpos($define_bible['bibleId'],'ATR_')===0 ) {
-				$TAB_list_atr[] = $new_rec ;
-			}
 			if( strpos($define_bible['bibleId'],'OPT_')===0 ) {
 				$TAB_list_opt[] = $new_rec ;
 			}

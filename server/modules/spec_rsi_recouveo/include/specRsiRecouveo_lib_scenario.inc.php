@@ -40,9 +40,12 @@ function specRsiRecouveo_lib_scenario_attachFile( $file_filerecord_id ) {
 	
 	$query = "SELECT * FROM view_bible_SCENARIO_tree WHERE 1" ;
 	foreach( $cfg_atr as $atr_record ) {
-		$mkey = $atr_record['bible_code'] ;
+		// TODO / HACK ! Migrer vers nouveau format scénario
+		/*
+		$mkey = $atr_record['atr_field'] ;
 		$mvalue = $file_record[$mkey] ;
 		$query.= " AND ( field_LINK_{$mkey} IN ('','[]') OR field_LINK_{$mkey} LIKE '%\\\"&\\\"%' OR field_LINK_{$mkey} LIKE '%\\\"{$mvalue}\\\"%')" ;
+		*/
 	}
 	$query.= " ORDER BY field_BALANCE_MIN DESC" ;
 	$result = $_opDB->query($query) ;
