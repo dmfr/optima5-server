@@ -1142,6 +1142,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			}) ;
 		}) ;
 		columns.push({
+			hidden: true,
+			hideable: true,
 			text: '<b><i>KPI calculations</i></b>',
 			align: 'center',
 			columns: kpiCodeColumns
