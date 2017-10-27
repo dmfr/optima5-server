@@ -233,6 +233,25 @@ function specDbsTracy_order_getRecords( $post_data ) {
 	}
 	
 	
+	$query = "SELECT ck.* FROM view_file_CDE_KPI ck" ;
+	$query.= " JOIN view_file_CDE c ON c.filerecord_id = ck.filerecord_parent_id" ;
+	$query.= " JOIN view_bible_CFG_SOC_entry soc ON soc.entry_key = c.field_ID_SOC" ;
+	$query.= " WHERE 1 AND ck.field_CALC_CODE=soc.field_KPI_CODE" ;
+	if( isset($filter_orderFilerecordId_list) ) {
+		$query.= " AND ck.filerecord_parent_id IN {$filter_orderFilerecordId_list}" ;
+	} elseif( !$filter_archiveIsOn ) {
+		$query.= " AND ck.filerecord_parent_id IN (SELECT filerecord_id FROM view_file_CDE WHERE field_ARCHIVE_IS_ON='0')" ;
+	}
+	$query.= " ORDER BY filerecord_id";
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		if( !isset($TAB_order[$arr['filerecord_parent_id']]) ) {
+			continue ;
+		}
+		$TAB_order[$arr['filerecord_parent_id']]['kpi_is_ok_raw'] = $arr['field_KPI_IS_OK_RAW'] ;
+	}
+	
+	
 	$query = "SELECT * FROM view_file_CDE_KPI ck" ;
 	$query.= " WHERE 1" ;
 	if( isset($filter_orderFilerecordId_list) ) {
