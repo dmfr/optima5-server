@@ -59,12 +59,14 @@ function specDbsTracy_trspt_getRecords( $post_data ) {
 			'customs_mode' => ($arr['field_CUSTOMS_IS_ON'] ?  'ON' : 'OFF'),
 			'customs_date_request' => $arr['field_CUSTOMS_DATE_REQUEST'],
 			'customs_date_cleared' => $arr['field_CUSTOMS_DATE_CLEARED'],
+			'sword_edi_1_warn' => ($arr['field_SWORD_EDI_1_WARN']?true:false),
 			'sword_edi_1_ready' => ($arr['field_SWORD_EDI_1_READY']?true:false),
 			'sword_edi_1_sent' => ($arr['field_SWORD_EDI_1_SENT']?true:false),
 			'pod_doc' => $arr['field_POD_DOC'],
 			'print_is_ok' => $arr['field_PRINT_IS_OK'],
 			
 			'calc_step' => NULL,
+			'calc_step_warning_edi' => FALSE,
 			'calc_customs_is_wait' => ( $arr['field_CUSTOMS_IS_ON'] && specDbsTracy_trspt_tool_isDateValid($arr['field_CUSTOMS_DATE_REQUEST']) && !specDbsTracy_trspt_tool_isDateValid($arr['field_CUSTOMS_DATE_CLEARED']) ),
 			
 			'events' => array(),
@@ -138,6 +140,10 @@ function specDbsTracy_trspt_getRecords( $post_data ) {
 		unset($row_trsptorder) ;
 		if( $min_stepCode ) {
 			$row_trspt['calc_step'] = min($min_stepCode) ;
+		}
+		
+		if( $row_trspt['sword_edi_1_warn'] ) {
+			$row_trspt['calc_step_warning_edi'] = TRUE ;
 		}
 	}
 	unset($row_trspt) ;
@@ -247,6 +253,18 @@ function specDbsTracy_trspt_setHeader( $post_data ) {
 	
 	
 	return array('success'=>true, 'id'=>$filerecord_id) ;
+}
+
+function specDbsTracy_trspt_doEdiReset( $post_data ) {
+	usleep(50*1000);
+	global $_opDB ;
+	$file_code = 'TRSPT' ;
+	
+	$p_trsptFilerecordId = $post_data['trspt_filerecord_id'] ;
+	$query = "UPDATE view_file_TRSPT SET field_SWORD_EDI_1_SENT='0' WHERE filerecord_id='{$p_trsptFilerecordId}'" ;
+	$_opDB->query($query) ;
+	
+	return array('success'=>true) ;
 }
 
 

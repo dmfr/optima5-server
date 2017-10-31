@@ -224,13 +224,21 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 						anchor: '100%'
 					},
 					items: [{
-						xtype: 'checkboxfield',
-						boxLabel: 'EDI Ready ?',
-						name: 'sword_edi_1_ready'
+						xtype: 'displayfield',
+						fieldLabel: 'EDI Status',
+						name: 'sword_edi_status'
 					},{
-						xtype: 'checkboxfield',
-						boxLabel: 'EDI Sent ?',
-						name: 'sword_edi_1_sent'
+						xtype: 'fieldcontainer',
+						fieldLabel: 'EDI Resend',
+						itemId: 'cntEdiReset',
+						items: [{
+							xtype: 'button',
+							text: 'Do resend',
+							handler: function() {
+								this.handleEdiReset() ;
+							},
+							scope: this
+						}]
 					}]
 				}]
 			},{
@@ -613,6 +621,19 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 				}
 			});
 		}
+		//fHeader compute EDI status
+		var ediStatus = '-',
+			askReset = false ;
+		if( trsptRecord.get('sword_edi_1_sent') ) {
+			ediStatus = '<font color="green"><b>Sent</b></font>' ;
+			askReset = true ;
+		} else if( trsptRecord.get('sword_edi_1_ready') ) {
+			ediStatus = '<font color="#FFCD75"><b>Ready</b></font>' ;
+		} else if( trsptRecord.get('sword_edi_1_warn') ) {
+			ediStatus = '<font color="red"><b>Warning</b></font>' ;
+		}
+		this.down('#pHeaderForm').getForm().findField('sword_edi_status').setValue(ediStatus) ;
+		this.down('#pHeaderForm').down('#cntEdiReset').setVisible(askReset) ;
 		
 		//gSteps
 		this.down('#pOrdersGrid').getEl().unmask() ;
@@ -742,6 +763,37 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		} else {
 			this.fireEvent('candestroy',this) ;
 		}
+	},
+	
+	handleEdiReset: function() {
+		Ext.Msg.confirm('Confirm?','Reset EDI status / resend ?',function(btn){
+			if( btn=='yes' ) {
+				this.doEdiReset() ;
+			}
+		},this);
+	},
+	doEdiReset: function() {
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_tracy',
+				_action: 'trspt_doEdiReset',
+				trspt_filerecord_id: this._trsptFilerecordId
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					var error = ajaxResponse.error || 'File not saved !' ;
+					Ext.MessageBox.alert('Error',error) ;
+					return ;
+				}
+				this.doReload() ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
 	},
 	
 	

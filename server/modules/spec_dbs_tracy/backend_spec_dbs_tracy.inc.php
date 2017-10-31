@@ -51,6 +51,8 @@ switch( $post_data['_action'] )
 	return specDbsTracy_trspt_getRecords( $post_data ) ;
 	case 'trspt_setHeader' :
 	return specDbsTracy_trspt_setHeader( $post_data ) ;
+	case 'trspt_doEdiReset' :
+	return specDbsTracy_trspt_doEdiReset( $post_data ) ;
 	case 'trspt_orderAdd' :
 	return specDbsTracy_trspt_orderAdd( $post_data ) ;
 	case 'trspt_orderRemove' :

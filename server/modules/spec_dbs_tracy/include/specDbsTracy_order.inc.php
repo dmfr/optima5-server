@@ -64,6 +64,7 @@ function specDbsTracy_order_getRecords( $post_data ) {
 			'events' => array(),
 			
 			'calc_step' => '',
+			'calc_step_warning_edi' => null,
 			'calc_link_is_active' => null,
 			'calc_link_trspt_filerecord_id' => null
 		);
@@ -89,7 +90,7 @@ function specDbsTracy_order_getRecords( $post_data ) {
 		$TAB_order[$filerecord_id]['adr_json'] = json_encode($map) ;
 	}
 	
-	$query = "SELECT c.filerecord_id, tc.filerecord_parent_id, t.field_ID_DOC FROM view_file_CDE c" ;
+	$query = "SELECT c.filerecord_id, tc.filerecord_parent_id, t.field_ID_DOC, t.field_SWORD_EDI_1_WARN FROM view_file_CDE c" ;
 	$query.= " LEFT OUTER JOIN view_file_TRSPT_CDE tc ON tc.field_FILE_CDE_ID=c.filerecord_id AND tc.field_LINK_IS_CANCEL='0'" ;
 	$query.= " LEFT OUTER JOIN view_file_TRSPT t ON t.filerecord_id=tc.filerecord_parent_id" ;
 	$query.= " WHERE 1" ;
@@ -110,6 +111,7 @@ function specDbsTracy_order_getRecords( $post_data ) {
 		$TAB_order[$filerecord_id]['calc_link_is_active'] = ($arr[1]!=NULL) ;
 		$TAB_order[$filerecord_id]['calc_link_trspt_filerecord_id'] = $arr[1] ;
 		$TAB_order[$filerecord_id]['calc_link_trspt_txt'] = $arr[2] ;
+		$TAB_order[$filerecord_id]['calc_step_warning_edi'] = $arr[3] ;
 	}
 	
 	

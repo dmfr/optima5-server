@@ -424,6 +424,11 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				var tmpProgress = stepRow['status_percent'] / 100 ;
 				var tmpText = stepRow['desc_txt'] ;
 					var b = new Ext.ProgressBar({height: 15, cls: 'op5-spec-mrfoxy-promolist-progress'});
+					if( record.get('calc_step_warning_edi') ) {
+						b.addCls('op5-spec-mrfoxy-promolist-progresscolor') ;
+						tmpText = 'EDI Warning' ;
+						m.tdCls += ' op5-spec-dbstracy-files-ediwarning' ;
+					}
 					b.updateProgress(tmpProgress,tmpText);
 					v = Ext.DomHelper.markup(b.getRenderTree());
 					b.destroy() ;
@@ -975,6 +980,11 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				var tmpProgress = stepRow['status_percent'] / 100 ;
 				var tmpText = stepRow['desc_txt'] ;
 					var b = new Ext.ProgressBar({height: 15, cls: 'op5-spec-mrfoxy-promolist-progress'});
+					if( record.get('calc_step_warning_edi') ) {
+						b.addCls('op5-spec-mrfoxy-promolist-progresscolor') ;
+						tmpText = 'EDI Warning' ;
+						m.tdCls += ' op5-spec-dbstracy-files-ediwarning' ;
+					}
 					switch( record.get('_color') ) {
 						case 'green' :
 							b.addCls('op5-spec-mrfoxy-promolist-progresscolorgreen') ;
