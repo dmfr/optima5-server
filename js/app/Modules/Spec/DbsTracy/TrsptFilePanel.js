@@ -148,7 +148,30 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 						xtype: 'op5specdbstracycfgparamtext',
 						cfgParam_id: 'LIST_CARRIER',
 						fieldLabel: '<b>Carrier</b>',
-						name: 'mvt_carrier'
+						name: 'mvt_carrier',
+						listeners:{
+							change: function(cmb) {
+								this.onChangeCarrier() ;
+							},
+							scope: this
+						}
+					},{
+						xtype: 'comboboxcached',
+						//cfgParam_id: 'LIST_CARRIERPROD',
+						fieldLabel: '<b>Product</b>',
+						name: 'mvt_carrier_prod',
+						forceSelection: true,
+						editable: false,
+						store: {
+							fields: [
+								{name: 'code', type: 'string'},
+								{name: 'txt', type: 'string'}
+							],
+							data: []
+						},
+						queryMode: 'local',
+						displayField: 'txt',
+						valueField: 'code'
 					},{
 						xtype: 'textfield',
 						fieldLabel: '<b>Account</b>',
@@ -763,6 +786,29 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		} else {
 			this.fireEvent('candestroy',this) ;
 		}
+	},
+	
+	onChangeCarrier: function() {
+		var formPanel = this.down('#pHeaderForm'),
+			form = formPanel.getForm() ;
+		
+		var carrierCode = form.findField('mvt_carrier').getValue() ;
+		console.log(carrierCode) ;
+		
+		var carrierProdField = form.findField('mvt_carrier_prod'),
+			carrierProdFieldStore = carrierProdField.getStore(),
+			carrierProdFieldStoreData = [] ;
+		Ext.Array.each( Optima5.Modules.Spec.DbsTracy.HelperCache.getListData('LIST_CARRIERPROD'), function(prodRow) {
+			if( prodRow.node != carrierCode ) {
+				return ;
+			}
+			carrierProdFieldStoreData.push({
+				code: prodRow.id,
+				txt: prodRow.text
+			});
+		});
+		carrierProdField.setVisible(carrierProdFieldStoreData.length>0) ;
+		carrierProdFieldStore.loadData(carrierProdFieldStoreData) ;
 	},
 	
 	handleEdiReset: function() {

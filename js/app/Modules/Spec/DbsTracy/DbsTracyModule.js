@@ -163,6 +163,7 @@ Ext.define('DbsTracyFileTrsptModel',{
 		{name: 'atr_incoterm', type:'string'},
 		{name: 'atr_consignee', type:'string'},
 		{name: 'mvt_carrier', type:'string'},
+		{name: 'mvt_carrier_prod', type:'string'},
 		{name: 'mvt_carrier_account', type:'string'},
 		{name: 'mvt_origin', type:'string'},
 		{name: 'mvt_dest', type:'string'},
