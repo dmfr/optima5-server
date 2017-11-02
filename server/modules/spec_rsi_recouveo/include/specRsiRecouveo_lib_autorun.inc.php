@@ -193,7 +193,7 @@ function specRsiRecouveo_lib_autorun_adrbook( $acc_id=NULL ) {
 				FROM op5_veo_prod_caloon.view_file_ADRBOOK a
 				, op5_veo_prod_caloon.view_file_ADRBOOK_ENTRY ae
 				WHERE a.filerecord_id = ae.filerecord_parent_id
-				AND ae.field_STATUS_IS_PRIORITY='1'
+				AND ae.field_STATUS_IS_PRIORITY='1' AND ae.field_STATUS_IS_INVALID='0'
 			)" ;
 		$result = $_opDB->query($query) ;
 		while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
@@ -204,6 +204,13 @@ function specRsiRecouveo_lib_autorun_adrbook( $acc_id=NULL ) {
 	}
 	
 	foreach( $arr_accIds as $acc_id ) {
+		$query = "UPDATE op5_veo_prod_caloon.view_file_ADRBOOK_ENTRY ae
+				JOIN op5_veo_prod_caloon.view_file_ADRBOOK a ON a.filerecord_id=ae.filerecord_parent_id
+				SET ae.field_STATUS_IS_PRIORITY='0'
+				WHERE a.field_ACC_ID='{$acc_id}' AND ae.field_STATUS_IS_INVALID='1'" ;
+		$_opDB->query($query) ;
+				
+		
 		$ttmp = specRsiRecouveo_account_open(array('acc_id'=>$acc_id)) ;
 		$account_record = $ttmp['data'] ;
 		
@@ -247,8 +254,77 @@ function specRsiRecouveo_lib_autorun_adrbook( $acc_id=NULL ) {
 		}
 	}
 	
+	
+	
+	
+	
+	
+	// Comptes sans adresse de contact
+	$arr_searchAccIds = array() ;
+	$query = "SELECT distinct field_LINK_ACCOUNT FROM view_file_FILE f
+				WHERE f.field_STATUS_CLOSED_VOID='0' AND f.field_STATUS_CLOSED_END='0'
+				AND f.field_LINK_ACCOUNT NOT IN (
+					SELECT distinct a.field_ACC_ID
+					FROM op5_veo_prod_caloon.view_file_ADRBOOK a
+					, op5_veo_prod_caloon.view_file_ADRBOOK_ENTRY ae
+					WHERE a.filerecord_id = ae.filerecord_parent_id
+					AND ae.field_STATUS_IS_PRIORITY='1' AND ae.field_ADR_TYPE IN ('POSTAL','TEL')
+				)" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$arr_searchAccIds[] = $arr[0] ;
+	}
+	
+	foreach($arr_searchAccIds as $acc_id) {
+		specRsiRecouveo_lib_autorun_checkAdrStatus($acc_id) ;
+	}
+
 }
 
+function specRsiRecouveo_lib_autorun_checkAdrStatus( $acc_id ) {
+	global $_opDB ;
+	
+	$required_statuses = array('S1_OPEN','S1_SEARCH') ;
+	
+	$ttmp = specRsiRecouveo_cfg_getConfig() ;
+	$avail_statuses = array() ;
+	foreach( $ttmp['data']['cfg_status'] as $status ) {
+		$avail_statuses[] = $status['status_id'] ;
+	}
+	if( count(array_intersect($avail_statuses,$required_statuses)) != count($required_statuses) ) {
+		return ;
+	}
+	
+	$has_priority = FALSE ;
+	$ttmp = specRsiRecouveo_account_open(array('acc_id'=>$acc_id)) ;
+	$account_record = $ttmp['data'] ;
+	foreach($account_record['adrbook'] as $accAdrbook_record ) {
+		foreach( $accAdrbook_record['adrbookentries'] as $accAdrbookEntry_record ) {
+			$adr_type = $accAdrbookEntry_record['adr_type'] ;
+			if( !in_array($adr_type,array('POSTAL','TEL')) ) {
+				continue ;
+			}
+			if( $accAdrbookEntry_record['status_is_priority'] ) {
+				$has_priority = TRUE ;
+			}
+		}
+	}
+	
+	if( !$has_priority ) {
+		//mise en recherche
+		$src_status = 'S1_OPEN' ;
+		$dst_status = 'S1_SEARCH' ;
+	}
+	if( $has_priority ) {
+		//sortie recherche
+		$src_status = 'S1_SEARCH' ;
+		$dst_status = 'S1_OPEN' ;
+	}
+	$query = "UPDATE view_file_FILE f SET field_STATUS='{$dst_status}' 
+		WHERE f.field_LINK_ACCOUNT='{$acc_id}' AND f.field_STATUS_CLOSED_VOID='0' AND f.field_STATUS_CLOSED_END='0' AND field_STATUS='{$src_status}'" ;
+	$_opDB->query($query) ;
+
+}
 
 
 ?>

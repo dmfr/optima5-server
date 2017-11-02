@@ -255,6 +255,9 @@ function specRsiRecouveo_account_setAdrbook( $post_data ) {
 	foreach( $to_delete as $filerecord_id ) {
 		paracrm_lib_data_deleteRecord_file( $file_code, $filerecord_id );
 	}
+	
+	specRsiRecouveo_lib_autorun_adrbook($p_accId) ;
+	specRsiRecouveo_lib_autorun_checkAdrStatus($p_accId) ;
 
 	return array('success'=>true) ;
 }
