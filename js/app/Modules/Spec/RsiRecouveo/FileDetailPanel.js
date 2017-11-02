@@ -333,10 +333,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 									
 									return ;
 								}
-								if( record.get('status_is_invalid') || !record.get('status_is_confirm') ) {
-									
-								} else if( record.get('status_is_priority') ) {
+								if( record.get('status_is_priority') ) {
 									metaData.tdCls += ' op5-spec-rsiveo-icon-priority-on' ;
+								} else if( record.get('status_is_invalid') || !record.get('status_is_confirm') ) {
+									// empty
 								} else {
 									metaData.tdCls += ' op5-spec-rsiveo-icon-priority-off' ;
 								}

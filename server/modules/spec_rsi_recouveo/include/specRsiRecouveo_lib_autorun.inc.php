@@ -175,4 +175,80 @@ function specRsiRecouveo_lib_autorun_actions() {
 
 
 
+function specRsiRecouveo_lib_autorun_adrbook( $acc_id=NULL ) {
+	global $_opDB ;
+	
+	// Comptes sans adr prio
+	if( !$acc_id ) {
+		$arr_accIds = array() ;
+		$query = " SELECT distinct field_ACC_ID
+			FROM (
+				SELECT distinct a.field_ACC_ID, ae.field_ADR_TYPE
+				FROM op5_veo_prod_caloon.view_file_ADRBOOK a
+				, op5_veo_prod_caloon.view_file_ADRBOOK_ENTRY ae
+				WHERE a.filerecord_id = ae.filerecord_parent_id
+			) contacts
+			WHERE (field_ACC_ID, field_ADR_TYPE) NOT IN (
+				SELECT distinct a.field_ACC_ID, ae.field_ADR_TYPE
+				FROM op5_veo_prod_caloon.view_file_ADRBOOK a
+				, op5_veo_prod_caloon.view_file_ADRBOOK_ENTRY ae
+				WHERE a.filerecord_id = ae.filerecord_parent_id
+				AND ae.field_STATUS_IS_PRIORITY='1'
+			)" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+			$arr_accIds[] = $arr['field_ACC_ID'] ;
+		}
+	} else {
+		$arr_accIds = array($acc_id) ;
+	}
+	
+	foreach( $arr_accIds as $acc_id ) {
+		$ttmp = specRsiRecouveo_account_open(array('acc_id'=>$acc_id)) ;
+		$account_record = $ttmp['data'] ;
+		
+		$map_adrType_ids = array() ;
+		foreach($account_record['adrbook'] as $accAdrbook_record ) {
+			foreach( $accAdrbook_record['adrbookentries'] as $accAdrbookEntry_record ) {
+				$adr_type = $accAdrbookEntry_record['adr_type'] ;
+				if( $map_adrType_ids[$adr_type]===FALSE ) {
+					continue ;
+				}
+				if( $accAdrbookEntry_record['status_is_priority'] ) {
+					$map_adrType_ids[$adr_type] = FALSE ;
+					continue ;
+				}
+				if( $accAdrbookEntry_record['status_is_invalid'] ) {
+					continue ;
+				}
+				if( !isset($map_adrType_ids[$adr_type]) ) {
+					$map_adrType_ids[$adr_type] = array() ;
+				}
+				$map_adrType_ids[$adr_type][] = $accAdrbookEntry_record['adrbookentry_filerecord_id'] ;
+			}
+		}
+		/*
+		echo $acc_id."\n" ;
+		print_r($map_adrType_ids) ;
+		echo "\n\n\n" ;
+		continue ;
+		*/
+		
+		foreach( $map_adrType_ids as $adr_type => $ids ) {
+			if( !is_array($ids) ) {
+				continue ;
+			}
+			rsort($ids) ;
+			$adrbookentry_filerecord_id = reset($ids) ;
+			
+			$arr_update = array() ;
+			$arr_update['field_STATUS_IS_PRIORITY'] = 1 ;
+			paracrm_lib_data_updateRecord_file( 'ADRBOOK_ENTRY', $arr_update, $adrbookentry_filerecord_id);
+		}
+	}
+	
+}
+
+
+
 ?>

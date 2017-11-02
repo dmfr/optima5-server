@@ -38,6 +38,10 @@ echo "Opening new files..." ;
 specRsiRecouveo_lib_autorun_open() ;
 echo "OK\n" ;
 
+echo "Checking addressbook..." ;
+specRsiRecouveo_lib_autorun_adrbook() ;
+echo "OK\n" ;
+
 /*
 echo "Link to scenarios..." ;
 specRsiRecouveo_lib_scenario_attach() ;
