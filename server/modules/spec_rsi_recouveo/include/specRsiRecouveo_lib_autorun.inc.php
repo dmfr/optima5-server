@@ -184,14 +184,14 @@ function specRsiRecouveo_lib_autorun_adrbook( $acc_id=NULL ) {
 		$query = " SELECT distinct field_ACC_ID
 			FROM (
 				SELECT distinct a.field_ACC_ID, ae.field_ADR_TYPE
-				FROM op5_veo_prod_caloon.view_file_ADRBOOK a
-				, op5_veo_prod_caloon.view_file_ADRBOOK_ENTRY ae
+				FROM view_file_ADRBOOK a
+				, view_file_ADRBOOK_ENTRY ae
 				WHERE a.filerecord_id = ae.filerecord_parent_id
 			) contacts
 			WHERE (field_ACC_ID, field_ADR_TYPE) NOT IN (
 				SELECT distinct a.field_ACC_ID, ae.field_ADR_TYPE
-				FROM op5_veo_prod_caloon.view_file_ADRBOOK a
-				, op5_veo_prod_caloon.view_file_ADRBOOK_ENTRY ae
+				FROM view_file_ADRBOOK a
+				, view_file_ADRBOOK_ENTRY ae
 				WHERE a.filerecord_id = ae.filerecord_parent_id
 				AND ae.field_STATUS_IS_PRIORITY='1' AND ae.field_STATUS_IS_INVALID='0'
 			)" ;
@@ -204,8 +204,8 @@ function specRsiRecouveo_lib_autorun_adrbook( $acc_id=NULL ) {
 	}
 	
 	foreach( $arr_accIds as $acc_id ) {
-		$query = "UPDATE op5_veo_prod_caloon.view_file_ADRBOOK_ENTRY ae
-				JOIN op5_veo_prod_caloon.view_file_ADRBOOK a ON a.filerecord_id=ae.filerecord_parent_id
+		$query = "UPDATE view_file_ADRBOOK_ENTRY ae
+				JOIN view_file_ADRBOOK a ON a.filerecord_id=ae.filerecord_parent_id
 				SET ae.field_STATUS_IS_PRIORITY='0'
 				WHERE a.field_ACC_ID='{$acc_id}' AND ae.field_STATUS_IS_INVALID='1'" ;
 		$_opDB->query($query) ;
@@ -265,8 +265,8 @@ function specRsiRecouveo_lib_autorun_adrbook( $acc_id=NULL ) {
 				WHERE f.field_STATUS_CLOSED_VOID='0' AND f.field_STATUS_CLOSED_END='0'
 				AND f.field_LINK_ACCOUNT NOT IN (
 					SELECT distinct a.field_ACC_ID
-					FROM op5_veo_prod_caloon.view_file_ADRBOOK a
-					, op5_veo_prod_caloon.view_file_ADRBOOK_ENTRY ae
+					FROM view_file_ADRBOOK a
+					, view_file_ADRBOOK_ENTRY ae
 					WHERE a.filerecord_id = ae.filerecord_parent_id
 					AND ae.field_STATUS_IS_PRIORITY='1' AND ae.field_ADR_TYPE IN ('POSTAL','TEL')
 				)" ;
