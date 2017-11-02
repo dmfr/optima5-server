@@ -38,9 +38,11 @@ echo "Opening new files..." ;
 specRsiRecouveo_lib_autorun_open() ;
 echo "OK\n" ;
 
+/*
 echo "Link to scenarios..." ;
 specRsiRecouveo_lib_scenario_attach() ;
 echo "OK\n" ;
+*/
 
 echo "Doing auto/mail actions" ;
 specRsiRecouveo_lib_autorun_actions() ;

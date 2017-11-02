@@ -544,7 +544,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 		return this.cfgOptStore.getById(optId).getData() ;
 	},
 	getOptData: function(optId) {
-		console.dir(this.cfgOptStore.getById(optId)) ;
 		return this.cfgOptStore.getById(optId) ? Ext.pluck(this.cfgOptStore.getById(optId).records().getRange(), 'data') : null ;
 	},
 	
