@@ -7,6 +7,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 		'Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.ConfigPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.DevNotepad',
+		'Optima5.Modules.Spec.RsiRecouveo.ReportsPanel',
 		
 		'Optima5.Modules.Spec.RsiRecouveo.EnvPreviewPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.EnvDocPreviewPanel',
@@ -95,6 +96,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 		switch( actionCode ) {
 			case 'files' :
 				return me.openFiles() ;
+			case 'reports' :
+				return me.openReports() ;
 			case 'bank' :
 				return me.openBank() ;
 			case 'cfg' :
@@ -279,6 +282,31 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 			optimaModule: this.optimaModule,
 			
 			title: 'Bloc-notes',
+			closable: true
+		}) ;
+		this.addPanel(pnl) ;
+		this.focusPanel(pnl) ;
+	},
+	openReports: function() {
+		// recherche d'une fenetre deja ouverte
+		var doOpen = true ;
+		this.eachPanel(function(pnl){
+			if( !(pnl instanceof Optima5.Modules.Spec.RsiRecouveo.ReportsPanel) ) {
+				return true ;
+			}
+			this.focusPanel(pnl) ;
+			doOpen = false ;
+			return false ;
+		},this) ;
+		if( !doOpen ) {
+			return ;
+		}
+		
+		//open
+		var pnl = Ext.create('Optima5.Modules.Spec.RsiRecouveo.ReportsPanel',{
+			optimaModule: this.optimaModule,
+			
+			title: 'Reports',
 			closable: true
 		}) ;
 		this.addPanel(pnl) ;
