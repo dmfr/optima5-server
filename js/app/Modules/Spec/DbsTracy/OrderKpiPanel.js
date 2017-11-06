@@ -29,7 +29,14 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderKpiPanel',{
 					items: [{
 						xtype: 'checkbox',
 						boxLabel: 'KPI success ?',
-						name: 'kpi_is_ok'
+						name: 'kpi_is_ok',
+						listeners: {
+							change: function(chk,val) {
+								if( val==true ) {
+									chk.up('form').getForm().findField('kpi_code').reset() ;
+								}
+							}
+						}
 					},Ext.create('Optima5.Modules.Spec.DbsTracy.CfgParamField',{
 						cfgParam_id: 'KPICODE',
 						cfgParam_emptyDisplayText: 'Select...',

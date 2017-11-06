@@ -1085,7 +1085,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 					}
 				},
 				filter: {
-					type: 'boolean'
+					type: 'boolean',
+					operator: '==='
 				}
 			},{
 				text: '<b>final KPI</b>',
@@ -1142,7 +1143,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 					}
 				},
 				filter: {
-					type: 'boolean'
+					type: 'boolean',
+					operator: '==='
 				}
 			});
 			pushModelfields.push({
@@ -1356,7 +1358,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			return ;
 		}
 		if( cellColumn.dataIndex=='kpi_code' ) {
-			if( record.get('kpi_is_on') && !record.get('kpi_is_ok_raw') ) {
+			if( record.get('kpi_is_on') && (!record.get('kpi_is_ok_raw') || !record.get('kpi_is_ok')) ) {
 				this.openKpiPanel( record ) ;
 				return ;
 			}
