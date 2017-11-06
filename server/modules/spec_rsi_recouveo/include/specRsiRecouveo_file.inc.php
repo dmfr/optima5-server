@@ -258,6 +258,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			'type_temprec' => $arr['field_TYPE_TEMPREC'],
 			'record_id' => $arr['field_RECORD_ID'],
 			'acc_id' => $arr['field_LINK_ACCOUNT'],
+			'date_load' => $arr['field_DATE_LOAD'],
 			'date_record' => $arr['field_DATE_RECORD'],
 			'date_value' => $arr['field_DATE_VALUE'],
 			'amount' => $arr['field_AMOUNT'],
@@ -1284,7 +1285,7 @@ function specRsiRecouveo_file_createRecordTemp( $post_data ) {
 	$arr_ins['field_TYPE_TEMPREC'] = 'FILE' ;
 	$arr_ins['field_RECORD_ID'] = trim($p_formData['recordTemp_id']) ;
 	$arr_ins['field_LINK_ACCOUNT'] = $p_accId ;
-	$arr_ins['field_DATE_RECORD'] = $arr_ins['field_DATE_VALUE'] = date('Y-m-d') ;
+	$arr_ins['field_DATE_LOAD'] = $arr_ins['field_DATE_RECORD'] = $arr_ins['field_DATE_VALUE'] = date('Y-m-d') ;
 	$arr_ins['field_AMOUNT'] = $p_formData['recordTemp_amount'] ;
 	$arr_ins['field_LETTER_IS_ON'] = 0 ;
 	$record_filerecord_id = paracrm_lib_data_insertRecord_file( 'RECORD', 0, $arr_ins );

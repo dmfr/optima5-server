@@ -162,6 +162,7 @@ function specRsiRecouveo_account_open( $post_data ) {
 			'type' => $arr['field_TYPE'],
 			'record_id' => $arr['field_RECORD_ID'],
 			'acc_id' => $arr['field_LINK_ACCOUNT'],
+			'date_load' => $arr['field_DATE_LOAD'],
 			'date_record' => $arr['field_DATE_RECORD'],
 			'date_value' => $arr['field_DATE_VALUE'],
 			'amount' => $arr['field_AMOUNT'],

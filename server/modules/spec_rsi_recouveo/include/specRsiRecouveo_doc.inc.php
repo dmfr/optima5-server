@@ -305,6 +305,7 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE ) {
 			'record_id' => $record_row['record_id'],
 			'type_temprec' => $record_row['type_temprec'],
 			'txt' => $record_row['txt'],
+			'date_load' => date('d/m/Y',strtotime($record_row['date_load'])),
 			'date_record' => date('d/m/Y',strtotime($record_row['date_record'])),
 			'date_value' => date('d/m/Y',strtotime($record_row['date_value'])),
 			'amount_tot' => '<div width="100%" style="text-align:right;">'.number_format($record_row['amount'],2).'</div>',
