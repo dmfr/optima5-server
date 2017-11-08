@@ -12,6 +12,7 @@ Ext.define('RsiRecouveoFileDetailRecordsTreeModel', {
 		  {name: 'record_filerecord_id', type: 'int'},
 		  {name: 'record_id', type: 'string'},
 		  {name: 'record_date', type: 'date'},
+		  {name: 'record_dateload', type: 'date'},
 		  {name: 'record_amount', type: 'number'},
 		  {name: 'record_letter',  type: 'string'},
  		  {name: 'record_type',  type: 'string'},
@@ -142,7 +143,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		
 		
 		
-		var atrRecColumns = [] ;
+		var atrRecColumns = [], atrRecFields=[] ;
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
 			var atrRecord = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(atrId) ;
 			if( atrRecord.atr_type == 'record' ) {
@@ -152,10 +153,68 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					dataIndex: atrRecord.atr_field,
 					width: 80
 				}) ;
+				atrRecFields.push({
+					name: atrRecord.atr_field,
+					type: 'string'
+				});
 			}
 		}) ;
 		
+		this.tmpTreeModelName = 'RsiRecouveoFileDetailRecordsTreeModel'+'-' + this.getId() ;
+		Ext.ux.dams.ModelManager.unregister( this.tmpTreeModelName ) ;
+		Ext.define(this.tmpTreeModelName, {
+			extend: 'RsiRecouveoFileDetailRecordsTreeModel',
+			fields: atrRecFields
+		});
 		
+		var treeColumns = [{
+			xtype: 'treecolumn',
+			text: 'Dossier/Fact',
+			dataIndex: 'id',
+			flex: 1,
+			renderer: function( v, meta, r ) {
+				if( r.get('new_is_on') ) {
+					return '<b>'+r.get('new_text')+'</b>' ;
+				}
+				if( !Ext.isEmpty(r.get('file_id_ref')) ) {
+					return '<b>'+r.get('file_id_ref')+'</b>' ;
+				}
+				return r.get('record_id') ;
+			}
+		},{
+			text: 'Attributs',
+			columns: atrRecColumns
+		},{
+			text: 'Integr.',
+			hidden: true,
+			dataIndex: 'record_dateload',
+			align: 'center',
+			width: 90,
+			renderer: Ext.util.Format.dateRenderer('d/m/Y')
+		},{
+			text: 'Date',
+			dataIndex: 'record_date',
+			align: 'center',
+			width: 90,
+			renderer: Ext.util.Format.dateRenderer('d/m/Y')
+		},{
+			text: 'Montant',
+			dataIndex: 'record_amount',
+			align: 'right',
+			width: 90,
+			renderer: function( v, meta, r ) {
+				if( Ext.isNumber(v) ) {
+					v = Ext.util.Format.number(v,'0,000.00') ;
+				}
+				if( !Ext.isEmpty(r.get('file_id_ref')) ) {
+					return '<b>'+v+'</b>' ;
+				}
+				return v ;
+			}
+		}] ;
+		if( atrRecColumns.length==0 ) {
+			Ext.Array.removeAt(treeColumns,1) ;
+		}
 		
 		
 		Ext.apply(this,{
@@ -607,7 +666,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					itemId: 'pRecordsTree',
 					xtype: 'treepanel',
 					store: {
-						model: 'RsiRecouveoFileDetailRecordsTreeModel',
+						model: this.tmpTreeModelName,
 						root: {children:[]},
 						proxy: {
 							type: 'memory' ,
@@ -619,45 +678,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					displayField: 'nodeText',
 					rootVisible: false,
 					useArrows: true,
-					columns: [{
-						xtype: 'treecolumn',
-						text: 'Dossier/Fact',
-						dataIndex: 'id',
-						flex: 1,
-						renderer: function( v, meta, r ) {
-							if( r.get('new_is_on') ) {
-								return '<b>'+r.get('new_text')+'</b>' ;
-							}
-							if( !Ext.isEmpty(r.get('file_id_ref')) ) {
-								return '<b>'+r.get('file_id_ref')+'</b>' ;
-							}
-							return r.get('record_id') ;
-						}
-					},{
-						text: 'Attributs',
-						columns: atrRecColumns,
-						hidden: (atrRecColumns.length==0)
-					},{
-						text: 'Date',
-						dataIndex: 'record_date',
-						align: 'center',
-						width: 90,
-						renderer: Ext.util.Format.dateRenderer('d/m/Y')
-					},{
-						text: 'Montant',
-						dataIndex: 'record_amount',
-						align: 'right',
-						width: 90,
-						renderer: function( v, meta, r ) {
-							if( Ext.isNumber(v) ) {
-								v = Ext.util.Format.number(v,'0,000.00') ;
-							}
-							if( !Ext.isEmpty(r.get('file_id_ref')) ) {
-								return '<b>'+v+'</b>' ;
-							}
-							return v ;
-						}
-					}],
+					columns: treeColumns,
 					selModel: {
 						mode: 'MULTI'
 					},
@@ -993,6 +1014,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					record_filerecord_id: fileRecordRecord.getId(),
 					record_id: fileRecordRecord.get('record_id'),
 					record_date: fileRecordRecord.get('date_value'),
+					record_dateload: fileRecordRecord.get('date_load'),
 					record_amount: fileRecordRecord.get('amount'),
 					record_letter: (fileRecordRecord.get('letter_is_on') ? fileRecordRecord.get('letter_code') : ''),
 					record_type: fileRecordRecord.get('type'),
