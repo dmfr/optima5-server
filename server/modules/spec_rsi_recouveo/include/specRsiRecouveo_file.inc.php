@@ -1216,13 +1216,16 @@ function specRsiRecouveo_file_getScenarioLine( $post_data ) {
 		$lastdone_tag_idx = -1 ;
 	}
 	// ** Déterminer date de référence
-	if( !$lastdone_date ) {
+	if( !$lastdone_date && count($accFile_record['records'])>0 ) {
 		//date d echeance
 		$dates = array() ;
 		foreach( $accFile_record['records'] as $accFileRecord_record ) {
 			$dates[] = date('Y-m-d',strtotime($accFileRecord_record['date_value'])) ;
 		}
 		$lastdone_date = max($dates) ;
+	}
+	if( !$lastdone_date ) {
+		$lastdone_date = date('Y-m-d') ;
 	}
 	$tag_idx = -1 ;
 	foreach( $TAB as $tag => &$row_scenario_step ) {
