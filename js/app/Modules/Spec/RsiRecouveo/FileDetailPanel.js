@@ -190,7 +190,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			dataIndex: 'record_dateload',
 			align: 'center',
 			width: 90,
-			renderer: Ext.util.Format.dateRenderer('d/m/Y')
+			renderer: function(v,m,r) {
+				var str = Ext.Date.format(v,'d/m/Y') ;
+				if( Ext.isEmpty(str) && !Ext.isEmpty(r.get('record_type')) ) {
+					str = r.get('record_type') ;
+				}
+				return str ;
+			}
 		},{
 			text: 'Date',
 			dataIndex: 'record_date',
