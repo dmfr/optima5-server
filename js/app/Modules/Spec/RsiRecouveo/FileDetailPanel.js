@@ -1002,6 +1002,15 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			statusMap[status.status_id] = status ;
 		}) ;
 		
+		var atrRecFields=[] ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
+			var atrRecord = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(atrId) ;
+			if( atrRecord.atr_type == 'record' ) {
+				atrRecFields.push(atrRecord.atr_field) ;
+			}
+		}) ;
+		console.dir(atrRecFields) ;
+		
 		var pRecordsTreeChildren = [] ;
 		accountRecord.files().each( function(fileRecord) {
 			if( fileRecord.get('status_closed_void') ) {
@@ -1014,7 +1023,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			var pRecordsTreeChildrenRecords = [] ;
 			var totAmountDue = 0 ;
 			fileRecord.records().each( function(fileRecordRecord) {
-				pRecordsTreeChildrenRecords.push({
+				var record={
 					leaf: true,
 					icon: ( !Ext.isEmpty(fileRecordRecord.get('type')) ? 'images/modules/rsiveo-quickopen-16.png' : undefined ),
 					record_filerecord_id: fileRecordRecord.getId(),
@@ -1025,7 +1034,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					record_letter: (fileRecordRecord.get('letter_is_on') ? fileRecordRecord.get('letter_code') : ''),
 					record_type: fileRecordRecord.get('type'),
 					record_readonly: (Ext.isEmpty(fileRecordRecord.get('type')) || fileRecordRecord.get('bank_is_alloc'))
+				};
+				Ext.Array.each(atrRecFields, function(atrRecField) {
+					record[atrRecField] = fileRecordRecord.get(atrRecField) ;
 				});
+				pRecordsTreeChildrenRecords.push(record) ;
 				totAmountDue += fileRecordRecord.get('amount') ;
 			},this) ;
 			

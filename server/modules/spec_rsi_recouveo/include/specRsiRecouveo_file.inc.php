@@ -250,7 +250,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 				if( $value && !in_array($value,$map_atrId_values[$atr_id]) ) {
 					$map_atrId_values[$atr_id][] = $value ;
 				}
-				$record[$mkey] = $value ;
+				$record_row[$mkey] = $value ;
 			}
 		}
 		$record_row += array(
@@ -421,6 +421,10 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 
 function specRsiRecouveo_file_searchSuggest( $post_data ) {
 	global $_opDB ;
+	
+	$ttmp = specRsiRecouveo_cfg_getConfig() ;
+	$cfg_atr = $ttmp['data']['cfg_atr'] ;
+	
 	/*
 	* Recherche
 	*  - no client
@@ -601,6 +605,42 @@ function specRsiRecouveo_file_searchSuggest( $post_data ) {
 		);
 	}
 	
+	foreach( $cfg_atr as $atr_record ) {
+		if( $atr_record['atr_type']=='record' ) {
+			$atr_id = $atr_record['atr_id'] ;
+			$atr_desc = $atr_record['atr_desc'] ;
+			$mkey = $atr_record['atr_field'] ;
+			$db_field = 'field_'.$mkey ;
+			
+			$query = "SELECT f.field_LINK_ACCOUNT, f.filerecord_id, f.field_FILE_ID, r.{$db_field}
+						FROM view_file_RECORD r, view_file_RECORD_LINK rl, view_file_FILE f
+						WHERE r.filerecord_id = rl.filerecord_parent_id
+						AND f.filerecord_id = rl.field_LINK_FILE_ID AND rl.field_LINK_IS_ON='1'
+						AND f.filerecord_id IN ({$sub_query_files})
+						AND r.{$db_field} LIKE '%{$search_txt}%'
+						LIMIT 10" ;
+			$result = $_opDB->query($query) ;
+			while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+				$res_value = $arr[3] ;
+				
+				$idx_start = strpos($res_value,$search_txt) ;
+				$idx_end = $idx_start + strlen($search_txt) ;
+				
+				$res_value = substr($res_value,0,$idx_start).'<b>'.substr($res_value,$idx_start,$idx_end-$idx_start).'</b>'.substr($res_value,$idx_end) ;
+				
+				$tab_result[] = array(
+					'acc_id' => $arr[0],
+					'file_filerecord_id' => $arr[1],
+					'id_ref' => $arr[2],
+					'result_property' => $atr_desc,
+					'result_value' => $res_value
+				);
+			}
+		}
+	}
+	
+	
+	
 	return array('success'=>true, 'data'=>$tab_result) ;
 }
 
@@ -744,16 +784,18 @@ function specRsiRecouveo_file_createForAction( $post_data ) {
 					}
 					foreach( $map_atr_values as $mkey => $dummy ) {
 						if( $accFileRecord_record[$mkey] && !in_array($accFileRecord_record[$mkey], $map_atr_values[$mkey]) ) {
-							$map_atr_values[$mkey][] = $accFileRecord_record[$mkey] ;
+							//$map_atr_values[$mkey][] = $accFileRecord_record[$mkey] ;
 						}
 					}
 				}
 			}
 		foreach( $map_atr_values as $mkey => $values ) {
+			/*
 			if( count($values) > 1 ) {
 				return array('success'=>false, 'error'=>'Cannot find unique '.$mkey) ;
 			}
 			$arr_ins['field_'.$mkey] = reset($values) ;
+			*/
 		}
 		$arr_ins['field_STATUS'] = $new_status ;
 		$arr_ins['field_DATE_OPEN'] = date('Y-m-d H:i:s') ;
