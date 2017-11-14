@@ -169,6 +169,13 @@ Ext.define('RsiRecouveoConfigSocMetafieldModel',{
 		{name: 'is_editable', type:'boolean'}
 	]
 });
+Ext.define('RsiRecouveoConfigSocPrintfieldModel',{
+	extend: 'Ext.data.Model',
+	fields: [
+		{name: 'printfield_code', type:'string'},
+		{name: 'printfield_text', type:'string'}
+	]
+});
 Ext.define('RsiRecouveoConfigSocModel',{
 	extend: 'Ext.data.Model',
 	idProperty: 'scen_code',
@@ -180,6 +187,10 @@ Ext.define('RsiRecouveoConfigSocModel',{
 		model: 'RsiRecouveoConfigSocMetafieldModel',
 		name: 'metafields',
 		associationKey: 'metafields'
+	},{
+		model: 'RsiRecouveoConfigSocPrintfieldModel',
+		name: 'printfields',
+		associationKey: 'printfields'
 	}]
 });
 

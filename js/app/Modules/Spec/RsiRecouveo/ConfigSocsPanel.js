@@ -4,6 +4,12 @@ Ext.define('RsiRecouveoConfigSocMetafieldEditModel',{
 		{name:'_phantom', type:'boolean'}
 	]
 });
+Ext.define('RsiRecouveoConfigSocPrintfieldEditModel',{
+	extend: 'RsiRecouveoConfigSocPrintfieldModel',
+	fields: [
+		{name:'_phantom', type:'boolean'}
+	]
+});
 
 
 
@@ -132,149 +138,221 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigSocsPanel', {
 						fieldLabel: 'Entité / Société'
 					}]
 				},{
-					title: 'Métadonnées',
-					xtype: 'grid',
-					itemId: 'gridEditorMetafields',
+					xtype: 'tabpanel',
 					flex: 1,
-					store: {
-						model: 'RsiRecouveoConfigSocMetafieldEditModel',
-						data: [],
-						proxy: {
-							type: 'memory',
-							reader: {
-								type: 'json'
-							}
-						}
-					},
-					tbar: [{
-						itemId: 'tbNew',
-						icon: 'images/add.png',
-						text: 'Définir métadonnée',
-						handler: function() {
-							this.handleNewMetafield();
-						},
-						scope: this
-					},'-',{
-						disabled: true,
-						itemId: 'tbDelete',
-						icon: 'images/delete.png',
-						text: 'Supprimer',
-						handler: function() {
-							this.handleDeleteMetafield();
-						},
-						scope: this
-					}],
-					plugins: [{
-						ptype: 'rowediting',
-						pluginId: 'rowediting',
-						listeners: {
-							beforeedit: this.onBeforeEditMetafield,
-							edit: this.onAfterEditMetafield,
-							canceledit: this.onCancelEditMetafield,
-							scope: this
-						}
-					}],
-					columns: [{
-						text: 'Code',
-						width: 150,
-						dataIndex: 'metafield_code',
-						editor: {
-							xtype: 'textfield',
-							allowBlank: false,
-							maxLength: 10,
-							enforceMaxLength: true
-						}
-					},{
-						text: 'Description',
-						width: 250,
-						dataIndex: 'metafield_desc',
-						editor: {
-							xtype: 'textfield',
-							allowBlank: false,
-						}
-					},{
-						text: 'Type',
-						width: 125,
-						dataIndex: 'metafield_assoc',
-						renderer: function(v) {
-							switch(v) {
-								case 'account' :
-									return 'Compte' ;
-								case 'record' :
-									return 'Facture' ;
-								default :
-									return v;
+					items: [{
+						title: 'Métadonnées',
+						xtype: 'grid',
+						itemId: 'gridEditorMetafields',
+						store: {
+							model: 'RsiRecouveoConfigSocMetafieldEditModel',
+							data: [],
+							proxy: {
+								type: 'memory',
+								reader: {
+									type: 'json'
+								}
 							}
 						},
-						editor: {
-							xtype: 'combobox',
-							allowBlank: false,
-							forceSelection: true,
-							editable: false,
-							store: {
-								fields: ['id','txt'],
-								data : [
-									{id:'account', txt:'Compte'},
-									{id:'record', txt:'Facture'}
-								]
+						tbar: [{
+							itemId: 'tbNew',
+							icon: 'images/add.png',
+							text: 'Définir métadonnée',
+							handler: function() {
+								this.handleNewMetafield();
 							},
-							queryMode: 'local',
-							displayField: 'txt',
-							valueField: 'id'
-						}
-					},{
-						text: 'Filtrable<br>par liste ?',
-						width: 80,
-						align: 'center',
-						dataIndex: 'is_filter',
-						editor: {
-							xtype: 'checkboxfield',
+							scope: this
+						},'-',{
+							disabled: true,
+							itemId: 'tbDelete',
+							icon: 'images/delete.png',
+							text: 'Supprimer',
+							handler: function() {
+								this.handleDeleteMetafield();
+							},
+							scope: this
+						}],
+						plugins: [{
+							ptype: 'rowediting',
+							pluginId: 'rowediting',
 							listeners: {
-								change: function(chk) {
-									var formValues = chk.up('form').getForm().getFieldValues() ;
-									this.onEditorChange(formValues) ;
-								},
+								beforeedit: this.onBeforeEditMetafield,
+								edit: this.onAfterEditMetafield,
+								canceledit: this.onCancelEditMetafield,
 								scope: this
 							}
-						},
-						renderer: function(v) {
-							if(v) {
-								return '<b>'+'X'+'</b>' ;
+						}],
+						columns: [{
+							text: 'Code',
+							width: 150,
+							dataIndex: 'metafield_code',
+							editor: {
+								xtype: 'textfield',
+								allowBlank: false,
+								maxLength: 10,
+								enforceMaxLength: true
 							}
+						},{
+							text: 'Description',
+							width: 250,
+							dataIndex: 'metafield_desc',
+							editor: {
+								xtype: 'textfield',
+								allowBlank: false,
+							}
+						},{
+							text: 'Type',
+							width: 125,
+							dataIndex: 'metafield_assoc',
+							renderer: function(v) {
+								switch(v) {
+									case 'account' :
+										return 'Compte' ;
+									case 'record' :
+										return 'Facture' ;
+									default :
+										return v;
+								}
+							},
+							editor: {
+								xtype: 'combobox',
+								allowBlank: false,
+								forceSelection: true,
+								editable: false,
+								store: {
+									fields: ['id','txt'],
+									data : [
+										{id:'account', txt:'Compte'},
+										{id:'record', txt:'Facture'}
+									]
+								},
+								queryMode: 'local',
+								displayField: 'txt',
+								valueField: 'id'
+							}
+						},{
+							text: 'Filtrable<br>par liste ?',
+							width: 80,
+							align: 'center',
+							dataIndex: 'is_filter',
+							editor: {
+								xtype: 'checkboxfield',
+								listeners: {
+									change: function(chk) {
+										var formValues = chk.up('form').getForm().getFieldValues() ;
+										this.onEditorChange(formValues) ;
+									},
+									scope: this
+								}
+							},
+							renderer: function(v) {
+								if(v) {
+									return '<b>'+'X'+'</b>' ;
+								}
+							}
+						},{
+							text: 'Attribut<br>global ?',
+							width: 80,
+							align: 'center',
+							dataIndex: 'is_globalfilter',
+							editorTpl: {
+								xtype: 'checkboxfield'
+							},
+							renderer: function(v) {
+								if(v) {
+									return '<b>'+'X'+'</b>' ;
+								}
+							}
+						},{
+							text: 'Editable ?',
+							width: 80,
+							align: 'center',
+							dataIndex: 'is_editable',
+							editor: {
+								xtype: 'checkboxfield'
+							},
+							renderer: function(v) {
+								if(v) {
+									return '<b>'+'X'+'</b>' ;
+								}
+							}
+						}],
+						listeners: {
+							selectionchange: function(selModel,records) {
+								this.down('#gridEditorMetafields').down('toolbar').down('#tbDelete').setDisabled( !(records && records.length > 0) ) ;
+							},
+							scope: this
 						}
 					},{
-						text: 'Attribut<br>global ?',
-						width: 80,
-						align: 'center',
-						dataIndex: 'is_globalfilter',
-						editorTpl: {
-							xtype: 'checkboxfield'
-						},
-						renderer: function(v) {
-							if(v) {
-								return '<b>'+'X'+'</b>' ;
+						title: 'Valeurs imprimables',
+						xtype: 'grid',
+						itemId: 'gridEditorPrintfields',
+						store: {
+							model: 'RsiRecouveoConfigSocPrintfieldEditModel',
+							data: [],
+							proxy: {
+								type: 'memory',
+								reader: {
+									type: 'json'
+								}
 							}
-						}
-					},{
-						text: 'Editable ?',
-						width: 80,
-						align: 'center',
-						dataIndex: 'is_editable',
-						editor: {
-							xtype: 'checkboxfield'
 						},
-						renderer: function(v) {
-							if(v) {
-								return '<b>'+'X'+'</b>' ;
+						tbar: [{
+							itemId: 'tbNew',
+							icon: 'images/add.png',
+							text: 'Définir métadonnée',
+							handler: function() {
+								this.handleNewMetafield();
+							},
+							scope: this
+						},'-',{
+							disabled: true,
+							itemId: 'tbDelete',
+							icon: 'images/delete.png',
+							text: 'Supprimer',
+							handler: function() {
+								this.handleDeleteMetafield();
+							},
+							scope: this
+						}],
+						plugins: [{
+							ptype: 'rowediting',
+							pluginId: 'rowediting',
+							onEnterKey: Ext.emptyFn,
+							listeners: {
+								beforeedit: this.onBeforeEditPrintfield,
+								edit: this.onAfterEditPrintfield,
+								canceledit: this.onCancelEditPrintfield,
+								scope: this
 							}
+						}],
+						columns: [{
+							text: 'Code',
+							dataIndex: 'printfield_code',
+							width: 180,
+							editor: {
+								xtype: 'textfield',
+								allowBlank: false
+							}
+						},{
+							text: 'Print text',
+							dataIndex: 'printfield_text',
+							flex: 1,
+							renderer: function(v) {
+								return Ext.util.Format.nl2br(v) ;
+							},
+							editor: {
+								xtype: 'textareafield',
+								grow: true
+							}
+						}],
+						listeners: {
+							selectionchange: function(selModel,records) {
+								this.down('#gridEditorPrintfields').down('toolbar').down('#tbDelete').setDisabled( !(records && records.length > 0) ) ;
+							},
+							scope: this
 						}
-					}],
-					listeners: {
-						selectionchange: function(selModel,records) {
-							this.down('#gridEditorMetafields').down('toolbar').down('#tbDelete').setDisabled( !(records && records.length > 0) ) ;
-						},
-						scope: this
-					}
+					}]
 				}],
 				dockedItems: [{
 					xtype: 'toolbar',
@@ -363,7 +441,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigSocsPanel', {
 		
 		var pEditor = this.down('#pEditor'),
 			editorForm = pEditor.down('form'),
-			editorGrid = pEditor.down('grid') ;
+			editorGridMeta = pEditor.down('#gridEditorMetafields'),
+			editorGridPrint = pEditor.down('#gridEditorPrintfields');
 		this.down('#pEmpty').setVisible(false) ;
 		pEditor.setVisible(true) ;
 		editorForm.loadRecord(selectedSoc) ;
@@ -372,22 +451,30 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigSocsPanel', {
 		selectedSoc.metafields().each( function(metafieldRecord) {
 			gridData.push( metafieldRecord.getData() ) ;
 		}) ;
-		editorGrid.getStore().loadData( gridData ) ;
+		editorGridMeta.getStore().loadData( gridData ) ;
+		
+		var gridData = [] ;
+		selectedSoc.printfields().each( function(printfieldRecord) {
+			gridData.push( printfieldRecord.getData() ) ;
+		}) ;
+		editorGridPrint.getStore().loadData( gridData ) ;
 		
 		this.setEditMode(false) ;
 	},
-	handleSodNew: function() {
+	handleSocNew: function() {
 		return ;
 		var gridSocs = this.down('#gridSocs') ;
 		gridSocs.getSelectionModel().deselectAll(true) ;
 		
 		var pEditor = this.down('#pEditor'),
 			editorForm = pEditor.down('form'),
-			editorGrid = pEditor.down('grid') ;
+			editorGridMeta = pEditor.down('#gridEditorMetafields'),
+			editorGridPrint = pEditor.down('#gridEditorPrintfields');
 		this.down('#pEmpty').setVisible(false) ;
 		pEditor.setVisible(true) ;
 		editorForm.reset() ;
-		editorGrid.getStore().loadData([]) ;
+		editorGridMeta.getStore().loadData([]) ;
+		editorGridPrint.getStore().loadData([]) ;
 		
 		this.setEditMode(true) ;
 	},
@@ -398,15 +485,20 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigSocsPanel', {
 	handleSocSave: function(doDelete) {
 		var pEditor = this.down('#pEditor'),
 			editorForm = pEditor.down('form'),
-			editorGrid = pEditor.down('grid') ;
+			editorGridMeta = pEditor.down('#gridEditorMetafields'),
+			editorGridPrint = pEditor.down('#gridEditorPrintfields');
 		if( !editorForm.isValid() ) {
 			return ;
 		}
 		
 		var data = editorForm.getValues(false,false,false,true) ;
 		data['metafields'] = [] ;
-		editorGrid.getStore().each( function(metafieldRecord) {
+		editorGridMeta.getStore().each( function(metafieldRecord) {
 			data['metafields'].push(metafieldRecord.getData()) ;
+		}) ;
+		data['printfields'] = [] ;
+		editorGridPrint.getStore().each( function(printfieldRecord) {
+			data['printfields'].push(printfieldRecord.getData()) ;
 		}) ;
 		
 		this.showLoadmask() ;
@@ -434,8 +526,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigSocsPanel', {
 	handleSocDelete: function() {
 		return ;
 		var pEditor = this.down('#pEditor'),
-			editorForm = pEditor.down('form'),
-			editorGrid = pEditor.down('grid') ;
+			editorForm = pEditor.down('form') ;
 		
 		var data = editorForm.getValues(false,false,false,true) ;
 		
@@ -456,7 +547,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigSocsPanel', {
 		
 		var pEditor = this.down('#pEditor'),
 			editorForm = pEditor.down('form'),
-			editorGrid = pEditor.down('grid') ;
+			editorGridMeta = pEditor.down('#gridEditorMetafields'),
+			editorGridPrint = pEditor.down('#gridEditorPrintfields');
 		editorForm.getForm().getFields().each( function(field) {
 			field.setReadOnly(!torf) ;
 			if( setAsNew ) {
@@ -470,14 +562,17 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigSocsPanel', {
 				}
 			}
 		}) ;
-		editorGrid.getPlugin('rowediting')._disabled = !torf ;
+		editorGridMeta.getPlugin('rowediting')._disabled = !torf ;
+		editorGridPrint.getPlugin('rowediting')._disabled = !torf ;
 		
 		pEditor.down('#btnEdit').setVisible(!torf) ;
 		pEditor.down('#btnDelete').setVisible(!torf) ;
 		pEditor.down('#btnOk').setVisible(torf) ;
 		pEditor.down('#btnCancel').setVisible(torf) ;
-		editorGrid.down('toolbar').setVisible(torf) ;
+		editorGridMeta.down('toolbar').setVisible(torf) ;
+		editorGridPrint.down('toolbar').setVisible(torf) ;
 	},
+	
 	onBeforeEditMetafield: function(editor,context) {
 		if(editor._disabled){
 			return false ;
@@ -519,6 +614,41 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigSocsPanel', {
 		var toDeleteRecords = metafieldsGrid.getSelectionModel().getSelection() ;
 		if( toDeleteRecords && toDeleteRecords.length>0 ) {
 			metafieldsGrid.getStore().remove(toDeleteRecords) ;
+		}
+	},
+	
+	onBeforeEditPrintfield: function(editor,context) {
+		if(editor._disabled){
+			return false ;
+		}
+	},
+	onAfterEditPrintfield: function(editor,context) {
+		context.record.set('_phantom',false) ;
+		context.record.commit() ;
+	},
+	onCancelEditPrintfield: function(editor,context) {
+		if( context.record.get('_phantom') ) {
+			context.grid.getStore().remove(context.record) ;
+		}
+	},
+	handleNewMetafield: function() {
+		var printfieldsGrid = this.down('#gridEditorPrintfields') ;
+		if( printfieldsGrid.getPlugin('rowediting')._disabled ) {
+			return ;
+		}
+		var newRecords = printfieldsGrid.getStore().add( Ext.create('RsiRecouveoConfigSocPrintfieldEditModel',{
+			_phantom: true
+		}) ) ;
+		printfieldsGrid.getPlugin('rowediting').startEdit(newRecords[0]) ;
+	},
+	handleDeleteMetafield: function() {
+		var printfieldsGrid = this.down('#gridEditorPrintfields') ;
+		if( printfieldsGrid.getPlugin('rowediting')._disabled ) {
+			return ;
+		}
+		var toDeleteRecords = printfieldsGrid.getSelectionModel().getSelection() ;
+		if( toDeleteRecords && toDeleteRecords.length>0 ) {
+			printfieldsGrid.getStore().remove(toDeleteRecords) ;
 		}
 	},
 	

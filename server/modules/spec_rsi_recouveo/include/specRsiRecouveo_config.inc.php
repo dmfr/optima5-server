@@ -239,7 +239,8 @@ function specRsiRecouveo_config_getSocs($post_data) {
 			'soc_id' => $arr['field_SOC_ID'],
 			'soc_name' => $arr['field_SOC_NAME'],
 			
-			'metafields' => array()
+			'metafields' => array(),
+			'printfields' => array()
 		) ;
 		$json_metafields = json_decode($arr['field_SOC_METAFIELDS_JSON'],true) ;
 		if( is_array($json_metafields) ) {
@@ -251,6 +252,15 @@ function specRsiRecouveo_config_getSocs($post_data) {
 					'is_filter' => $json_metafield['is_filter'],
 					'is_globalfilter' => $json_metafield['is_globalfilter'],
 					'is_editable' => $json_metafield['is_editable']
+				);
+			}
+		}
+		$json_printfields = json_decode($arr['field_SOC_PRINTFIELDS_JSON'],true) ;
+		if( is_array($json_printfields) ) {
+			foreach( $json_printfields as $json_printfield ) {
+				$record['printfields'][] = array(
+					'printfield_code' => $json_printfield['printfield_code'],
+					'printfield_text' => $json_printfield['printfield_text']
 				);
 			}
 		}
@@ -280,6 +290,14 @@ function specRsiRecouveo_config_setSoc( $post_data ) {
 		);
 	}
 	$arr_update['field_SOC_METAFIELDS_JSON'] = json_encode($metafields) ;
+	$printfields = array() ;
+	foreach( $soc_record['printfields'] as $printfield ) {
+		$printfields[] = array(
+			'printfield_code' => $printfield['printfield_code'],
+			'printfield_text' => $printfield['printfield_text']
+		);
+	}
+	$arr_update['field_SOC_PRINTFIELDS_JSON'] = json_encode($printfields) ;
 	paracrm_lib_data_updateRecord_bibleTreenode( 'LIB_ACCOUNT', $soc_id, $arr_update ) ;
 	
 	specRsiRecouveo_lib_metafields_build() ;
