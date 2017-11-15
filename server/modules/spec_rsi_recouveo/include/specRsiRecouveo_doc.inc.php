@@ -231,6 +231,26 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE ) {
 	$cfg_user = reset($search) ;
 	
 	
+	// ******** Current user *************
+	$json = specRsiRecouveo_config_getSocs(array()) ;
+	$data_socs = $json['data'] ;
+	if( $GLOBALS['_tmp_soc_id'] = $accFile_record['soc_id'] ) {
+		$search = array_filter(
+			$data_socs,
+			function ($e) {
+				return $e['soc_id'] == $GLOBALS['_tmp_soc_id'] ;
+			}
+		);
+		$cfg_soc = reset($search) ;
+		if( $cfg_soc ) {
+			$mapSoc_mkey_value = array() ;
+			foreach( $cfg_soc['printfields'] as $printfield ) {
+				$mapSoc_mkey_value[$printfield['printfield_code']] = $printfield['printfield_text'] ;
+			}
+		}
+	}
+	
+	
 	
 	// ********** Reference courrier *****************
 	if( $real_mode ) {
@@ -281,6 +301,9 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE ) {
 			continue ;
 		}
 		$map_mkey_value[$k] = nl2br($v) ;
+	}
+	if( $mapSoc_mkey_value ) {
+		$map_mkey_value += $mapSoc_mkey_value ;
 	}
 	
 	
