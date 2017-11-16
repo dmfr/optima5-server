@@ -1009,7 +1009,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				atrRecFields.push(atrRecord.atr_field) ;
 			}
 		}) ;
-		console.dir(atrRecFields) ;
 		
 		var pRecordsTreeChildren = [] ;
 		accountRecord.files().each( function(fileRecord) {
