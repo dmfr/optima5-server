@@ -66,7 +66,9 @@ function specDbsTracy_order_getRecords( $post_data ) {
 			'calc_step' => '',
 			'calc_step_warning_edi' => null,
 			'calc_link_is_active' => null,
-			'calc_link_trspt_filerecord_id' => null
+			'calc_link_trspt_filerecord_id' => null,
+			'calc_hat_is_active' => null,
+			'calc_hat_filerecord_id' => null
 		);
 	}
 	
@@ -112,6 +114,29 @@ function specDbsTracy_order_getRecords( $post_data ) {
 		$TAB_order[$filerecord_id]['calc_link_trspt_filerecord_id'] = $arr[1] ;
 		$TAB_order[$filerecord_id]['calc_link_trspt_txt'] = $arr[2] ;
 		$TAB_order[$filerecord_id]['calc_step_warning_edi'] = $arr[3] ;
+	}
+	
+	$query = "SELECT c.filerecord_id, hc.filerecord_parent_id, h.field_ID_HAT FROM view_file_CDE c" ;
+	$query.= " LEFT OUTER JOIN view_file_HAT_CDE hc ON hc.field_FILE_CDE_ID=c.filerecord_id AND hc.field_LINK_IS_CANCEL='0'" ;
+	$query.= " LEFT OUTER JOIN view_file_HAT h ON h.filerecord_id=hc.filerecord_parent_id" ;
+	$query.= " WHERE 1" ;
+	if( isset($filter_orderFilerecordId_list) ) {
+		$query.= " AND c.filerecord_id IN {$filter_orderFilerecordId_list}" ;
+	} elseif( !$filter_archiveIsOn ) {
+		$query.= " AND c.field_ARCHIVE_IS_ON='0'" ;
+	}
+	if( isset($filter_socCode) ) {
+		$query.= " AND c.field_ID_SOC='{$filter_socCode}'" ;
+	}
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$filerecord_id = $arr[0] ;
+		if( !isset($TAB_order[$filerecord_id]) ) {
+			continue ;
+		}
+		$TAB_order[$filerecord_id]['calc_hat_is_active'] = ($arr[1]!=NULL) ;
+		$TAB_order[$filerecord_id]['calc_hat_filerecord_id'] = $arr[1] ;
+		$TAB_order[$filerecord_id]['calc_hat_txt'] = $arr[2] ;
 	}
 	
 	

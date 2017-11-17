@@ -337,6 +337,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.HelperCache',{
 			}
 		}) ;
 		
+		/*
 		if( orderData.vol_dim_l > 0 && orderData.vol_dim_w > 0 && orderData.vol_dim_h > 0 ) {} else {
 			var msg = 'Specify dimensions' ;
 			errors.vol_dim_l = msg ;
@@ -351,6 +352,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.HelperCache',{
 			var msg = 'Specify weight' ;
 			errors.vol_kg = msg ;
 		}
+		*/
 		
 		if( Ext.Object.isEmpty(errors) ) {
 			return null ;

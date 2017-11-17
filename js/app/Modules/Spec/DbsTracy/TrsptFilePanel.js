@@ -793,7 +793,6 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 			form = formPanel.getForm() ;
 		
 		var carrierCode = form.findField('mvt_carrier').getValue() ;
-		console.log(carrierCode) ;
 		
 		var carrierProdField = form.findField('mvt_carrier_prod'),
 			carrierProdFieldStore = carrierProdField.getStore(),

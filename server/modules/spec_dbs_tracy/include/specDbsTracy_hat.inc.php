@@ -130,7 +130,8 @@ function specDbsTracy_hat_getRecords( $post_data ) {
 			'id_hat' => $arr['field_ID_HAT'],
 			'date_create' => substr($arr['field_DATE_CREATE'],0,10),
 			
-			'orders' => array()
+			'orders' => array(),
+			'parcels' => array()
 		);
 	}
 	
@@ -154,6 +155,26 @@ function specDbsTracy_hat_getRecords( $post_data ) {
 		);
 		
 		$filter_orderFilerecordId_arr[] = $arr['field_FILE_CDE_ID'] ;
+	}
+	
+	$query = "SELECT * FROM view_file_HAT_PARCEL hp" ;
+	$query.= " WHERE 1" ;
+	if( isset($filter_hatFilerecordId_list) ) {
+		$query.= " AND hp.filerecord_parent_id IN {$filter_hatFilerecordId_list}" ;
+	} elseif( !$filter_archiveIsOn ) {
+		$query.= " AND hp.filerecord_parent_id IN (SELECT filerecord_id FROM view_file_HAT WHERE field_ARCHIVE_IS_ON='0')" ;
+	}
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		if( !isset($TAB_hat[$arr['filerecord_parent_id']]) ) {
+			continue ;
+		}
+		$TAB_hat[$arr['filerecord_parent_id']]['parcels'][] = array(
+			'hatparcel_filerecord_id' => $arr['filerecord_id'],
+			'vol_count' => (int)$arr['field_VOL_COUNT'],
+			'vol_kg' => (float)$arr['field_VOL_KG'],
+			'vol_dims' => explode('x',$arr['field_VOL_DIMS'])
+		);
 	}
 	
 	if( !$post_data['skip_details'] ) { // 15/11 : Don't (double)load on FilesGrid
@@ -213,6 +234,32 @@ function specDbsTracy_hat_setHeader( $post_data ) {
 	}
 	
 	
+	// Parcels
+	$existing_filerecordIds = array() ;
+	$query = "SELECT filerecord_id FROM view_file_HAT_PARCEL WHERE filerecord_parent_id='{$filerecord_id}'" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$existing_filerecordIds[] = $arr[0] ;
+	}
+	$current_filerecordIds = array() ;
+	foreach( $form_data['parcels'] as $hat_parcel_row ) {
+		$arr_ins = array() ;
+		$arr_ins['field_VOL_COUNT'] = $hat_parcel_row['vol_count'] ;
+		$arr_ins['field_VOL_KG'] = $hat_parcel_row['vol_kg'] ;
+		$arr_ins['field_VOL_DIMS'] = implode('x',$hat_parcel_row['vol_dims']) ;
+		if( $hat_parcel_row['hatparcel_filerecord_id'] ) {
+			$current_filerecordIds[] = $hat_parcel_row['hatparcel_filerecord_id'] ;
+			paracrm_lib_data_updateRecord_file( 'HAT_PARCEL', $arr_ins, $hat_parcel_row['hatparcel_filerecord_id'] );
+		} else {
+			$current_filerecordIds[] = paracrm_lib_data_insertRecord_file( 'HAT_PARCEL', $filerecord_id, $arr_ins );
+		}
+	}
+	$todelete_filerecordIds = array_diff($existing_filerecordIds,$current_filerecordIds) ;
+	foreach( $todelete_filerecordIds as $id ) {
+		paracrm_lib_data_deleteRecord_file( 'HAT_PARCEL',$id ) ;
+	}
+	
+	
 	return array('success'=>true, 'id'=>$filerecord_id) ;
 }
 
@@ -227,7 +274,13 @@ function specDbsTracy_hat_orderAdd( $post_data ) {
 	
 	$ttmp = specDbsTracy_order_getRecords(array('filter_orderFilerecordId_arr'=>json_encode(array($p_orderFilerecordId)))) ;
 	if( $ttmp['data'][0]['calc_hat_is_active'] ) {
-		return array('success'=>false,'error'=>"Order {$ttmp['data'][0]['id_dn']} already attached") ;
+		// return array('success'=>false,'error'=>"Order {$ttmp['data'][0]['id_dn']} already attached") ;
+		
+		// *** NicolasBlum 2017-11 : silent remove
+		specDbsTracy_hat_orderRemove(
+			'hat_filerecord_id' => $ttmp['data'][0]['calc_hat_filerecord_id'],
+			'order_filerecord_id' => $p_orderFilerecordId
+		);
 	}
 	
 	$arr_ins = array() ;

@@ -1,3 +1,102 @@
+Ext.define('DbsTracyFileHatParcelEditModel',{
+	extend: 'DbsTracyFileHatParcelModel',
+	fields: [
+		{name:'_phantom', type:'boolean'}
+	]
+});
+
+
+Ext.define('Optima5.Modules.Spec.DbsTracy.HatFileDimensionsField',{
+	extend: 'Ext.form.FieldContainer',
+	mixins: {
+		field: 'Ext.form.field.Base'
+	},
+	alias: 'widget.op5specdbstracydimensionsfield',
+	initComponent: function() {
+		Ext.apply(this,{
+			layout: {
+				type: 'hbox',
+				align: 'center'
+			},
+			isFormField: true,
+			items: [{
+				xtype: 'box',
+				html: '&#160;'+'&#160;'+'&#160;'+'h:'
+			},{
+				xtype: 'numberfield',
+				hideTrigger: true,
+				width: 50,
+				isFormField: false
+			},{
+				xtype: 'box',
+				html: '&#160;'+'&#160;'+'&#160;'+'w:'
+			},{
+				xtype: 'numberfield',
+				hideTrigger: true,
+				width: 50,
+				isFormField: false
+			},{
+				xtype: 'box',
+				html: '&#160;'+'&#160;'+'&#160;'+'d:'
+			},{
+				xtype: 'numberfield',
+				hideTrigger: true,
+				width: 50,
+				isFormField: false
+			}]
+		});
+		this.callParent() ;
+	},
+	getValue: function() {
+		var fields = this.query('numberfield'),
+			value = [] ;
+		Ext.Array.each( fields, function(field) {
+			value.push(field.getValue()||0) ;
+		}) ;
+		return value ;
+	},
+	setValue: function(value) {
+		var fields = this.query('numberfield') ;
+		if( Ext.isArray(value) && value.length==3 ) {
+			Ext.Array.each(fields, function(field,idx) {
+				field.setValue(value[idx]) ;
+			}) ;
+		} else {
+			Ext.Array.each(fields, function(field,idx) {
+				field.reset() ;
+			}) ;
+		}
+	},
+	
+	isValid: function() {
+		var me = this,
+			disabled = me.disabled,
+			validate = me.forceValidation || !disabled;
+
+		return validate ? me.validateValue(me.getValue()) : disabled;
+	},
+	getErrors: function(value) {
+		if( Ext.isArray(value) && value.length==3 && value[0]>0 && value[1]>0 && value[2]>0 ) {
+			return [] ;
+		} else {
+			return ['Incorrect dimensions'] ;
+		}
+	},
+	markInvalid: function(errors) {
+		var fields = this.query('numberfield') ;
+			Ext.Array.each(fields, function(field,idx) {
+				console.log('mark invalid') ;
+				field.markInvalid('Invalid') ;
+			}) ;
+	},
+	clearInvalid: function() {
+		var fields = this.query('numberfield') ;
+			Ext.Array.each(fields, function(field,idx) {
+				field.clearInvalid('') ;
+			}) ;
+	}
+});
+
 Ext.define('Optima5.Modules.Spec.DbsTracy.HatFilePanel',{
 	extend:'Ext.window.Window',
 	
@@ -29,40 +128,147 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.HatFilePanel',{
 				scope:this
 			}],
 			items:[{
-				flex: 2,
-				xtype: 'form',
-				itemId: 'pHeaderForm',
-				bodyCls: 'ux-noframe-bg',
-				bodyPadding: 15,
-				layout:'anchor',
-				fieldDefaults: {
-					labelWidth: 75,
-					anchor: '100%'
+				flex: 1,
+				xtype: 'container',
+				layout: {
+					type: 'vbox',
+					align: 'stretch'
 				},
-				items: [Ext.create('Optima5.Modules.Spec.DbsTracy.CfgParamField',{
-					cfgParam_id: 'SOC',
-					cfgParam_emptyDisplayText: 'Select...',
-					optimaModule: this.optimaModule,
-					fieldLabel: '<b>Company</b>',
-					name: 'id_soc',
-					allowBlank: false
-				}),{
-					xtype: 'textfield',
-					fieldLabel: '<b>HID</b>',
-					value: '',
-					readOnly: true,
-					name: 'id_hat',
-					allowBlank: false
+				items: [{
+					flex: 2,
+					xtype: 'form',
+					itemId: 'pHeaderForm',
+					bodyCls: 'ux-noframe-bg',
+					bodyPadding: 15,
+					layout:'anchor',
+					fieldDefaults: {
+						labelWidth: 75,
+						anchor: '100%'
+					},
+					items: [Ext.create('Optima5.Modules.Spec.DbsTracy.CfgParamField',{
+						cfgParam_id: 'SOC',
+						cfgParam_emptyDisplayText: 'Select...',
+						optimaModule: this.optimaModule,
+						fieldLabel: '<b>Company</b>',
+						name: 'id_soc',
+						allowBlank: false
+					}),{
+						xtype: 'textfield',
+						fieldLabel: '<b>HID</b>',
+						value: '',
+						readOnly: true,
+						name: 'id_hat',
+						allowBlank: false
+					},{
+						xtype: 'datefield',
+						fieldLabel: 'Created',
+						format: 'd/m/Y',
+						submitFormat: 'Y-m-d',
+						name: 'date_create',
+						allowBlank: false
+					}]
 				},{
-					xtype: 'datefield',
-					fieldLabel: 'Created',
-					format: 'd/m/Y',
-					submitFormat: 'Y-m-d',
-					name: 'date_create',
-					allowBlank: false
+					flex: 3,
+					itemId: 'pDimensionsGrid',
+					title: 'Dimensions',
+					xtype: 'grid',
+					tbar: [{
+						itemId: 'tbNew',
+						icon: 'images/add.png',
+						text: 'Add',
+						handler: function() {
+							this.handleParcelNew();
+						},
+						scope: this
+					},'-',{
+						disabled: true,
+						itemId: 'tbDelete',
+						icon: 'images/delete.png',
+						text: 'Delete',
+						handler: function() {
+							this.handleParcelDelete();
+						},
+						scope: this
+					}],
+					plugins: [{
+						ptype: 'rowediting',
+						pluginId: 'rowediting',
+						listeners: {
+							beforeedit: this.onBeforeEditParcel,
+							edit: this.onAfterEditParcel,
+							canceledit: this.onCancelEditParcel,
+							scope: this
+						}
+					}],
+					columns: [{
+						align: 'center',
+						text: 'NbParcels',
+						width: 80,
+						dataIndex: 'vol_count',
+						renderer: function(v) {
+							if( v>0 ) {
+								return '<b>'+v+'</b>' ;
+							}
+						},
+						editor: {
+							xtype: 'numberfield',
+							hideTrigger: true,
+							validator: function(v) {
+								if( v > 0 ) {
+									return true ;
+								} else {
+									return 'Empty count' ;
+								}
+							}
+						}
+					},{
+						align: 'center',
+						text: 'Weigth(kg)',
+						width: 90,
+						dataIndex: 'vol_kg',
+						renderer: function(v) {
+							if( v>0 ) {
+								return '<b>'+v+'</b>'+'&#160;'+'kg' ;
+							}
+						},
+						editor: {
+							xtype: 'numberfield',
+							hideTrigger: true,
+							validator: function(v) {
+								if( v > 0 ) {
+									return true ;
+								} else {
+									return 'Empty weight' ;
+								}
+							}
+						}
+					},{
+						align: 'center',
+						text: 'Dimensions(mm)',
+						width: 250,
+						dataIndex: 'vol_dims',
+						renderer: function(v) {
+							if( Ext.isArray(v) && v.length == 3 ) {
+								return v.join('&#160;'+'x'+'&#160;') ;
+							}
+						},
+						editor: {
+							xtype: 'op5specdbstracydimensionsfield'
+						}
+					}],
+					store: {
+						model: 'DbsTracyFileHatParcelEditModel',
+						data: []
+					},
+					listeners: {
+						selectionchange: function(selModel,records) {
+							this.down('#pDimensionsGrid').down('toolbar').down('#tbDelete').setDisabled( !(records && records.length > 0) ) ;
+						},
+						scope: this
+					}
 				}]
 			},{
-				flex: 3,
+				flex: 1,
 				itemId: 'pOrdersGrid',
 				xtype: 'grid',
 				columns: [{
@@ -229,10 +435,14 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.HatFilePanel',{
 			
 			var passed = true ;
 			Ext.Array.each( hatNew_orderRecords, function(orderRecord) {
+				if( orderRecord.get('calc_hat_is_active') ) {
+					this.onNewHatError('DN already attached to ShipGroup') ;
+					return false ;
+				}
 				if( Optima5.Modules.Spec.DbsTracy.HelperCache.checkOrderData(orderRecord.getData()) != null ) {
 					passed = false ;
 				}
-			}) ;
+			},this) ;
 			if( !passed ) {
 				this.onNewHatError('DN incomplete. Check order details') ;
 				return false ;
@@ -321,6 +531,12 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.HatFilePanel',{
 			});
 		}
 		
+		var parcelsData = [] ;
+		hatRecord.parcels().each(function(parcelRecord) {
+			parcelsData.push(parcelRecord.getData()) ;
+		}) ;
+		this.down('#pDimensionsGrid').getStore().loadData(parcelsData) ;
+		
 		//gSteps
 		this.down('#pOrdersGrid').getEl().unmask() ;
 		this.down('#pOrdersGrid').getStore().loadRawData(hatRecord.orders().getRange()) ;
@@ -356,6 +572,50 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.HatFilePanel',{
 		}
 	},
 	
+	
+	
+	
+	onBeforeEditParcel: function(editor,context) {
+		if(editor._disabled){
+			return false ;
+		}
+	},
+	onAfterEditParcel: function(editor,context) {
+		context.record.set('_phantom',false) ;
+		context.record.commit() ;
+	},
+	onCancelEditParcel: function(editor,context) {
+		if( context.record.get('_phantom') ) {
+			context.grid.getStore().remove(context.record) ;
+		}
+	},
+	handleParcelNew: function() {
+		var dimensionsGrid = this.down('#pDimensionsGrid') ;
+		if( dimensionsGrid.getPlugin('rowediting')._disabled ) {
+			return ;
+		}
+		var newRecords = dimensionsGrid.getStore().add( Ext.create('DbsTracyFileHatParcelEditModel',{
+			_phantom: true
+		}) ) ;
+		dimensionsGrid.getPlugin('rowediting').startEdit(newRecords[0]) ;
+	},
+	handleParcelDelete: function() {
+		var dimensionsGrid = this.down('#pDimensionsGrid') ;
+		if( dimensionsGrid.getPlugin('rowediting')._disabled ) {
+			return ;
+		}
+		var toDeleteRecords = dimensionsGrid.getSelectionModel().getSelection() ;
+		if( toDeleteRecords && toDeleteRecords.length>0 ) {
+			dimensionsGrid.getStore().remove(toDeleteRecords) ;
+		}
+	},
+	
+	
+	
+	
+	
+	
+	
 	handleSaveHeader: function(validateStepCode) {
 		if( this._readonlyMode ) {
 			return ;
@@ -381,6 +641,11 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.HatFilePanel',{
 		}
 		
 		var recordData = form.getValues(false,false,false,true) ;
+		
+		recordData['parcels'] = [] ;
+		this.down('#pDimensionsGrid').getStore().each(function( hatParcelRecord ) {
+			recordData['parcels'].push(hatParcelRecord.getData()) ;
+		});
 		
 		var gridOrders = this.down('#pOrdersGrid'),
 			orderFilerecordIds = [] ;

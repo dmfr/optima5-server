@@ -100,6 +100,9 @@ Ext.define('DbsTracyFileOrderModel',{
 		{name: 'calc_link_is_active', type:'boolean'},
 		{name: 'calc_link_trspt_filerecord_id', type:'int'},
 		{name: 'calc_link_trspt_txt', type:'string'},
+		{name: 'calc_hat_is_active', type:'boolean'},
+		{name: 'calc_hat_filerecord_id', type:'int'},
+		{name: 'calc_hat_txt', type:'string'},
 		
 		{name: 'warning_is_on', type: 'boolean', allowNull: true},
 		{name: 'warning_code', type: 'string'},
@@ -202,7 +205,15 @@ Ext.define('DbsTracyFileHatOrderModel',{
 		{name: 'link_is_cancel', type:'boolean'}
 	]
 });
-
+Ext.define('DbsTracyFileHatParcelModel',{
+	extend: 'Ext.data.Model',
+	fields: [
+		{name: 'hatparcel_filerecord_id', type:'int'},
+		{name: 'vol_count', type:'int'},
+		{name: 'vol_kg', type:'number'},
+		{name: 'vol_dims', type:'auto'}
+	]
+});
 Ext.define('DbsTracyFileHatModel',{
 	extend: 'Ext.data.Model',
 	idProperty: 'hat_filerecord_id',
@@ -216,6 +227,10 @@ Ext.define('DbsTracyFileHatModel',{
 		model: 'DbsTracyFileHatOrderModel',
 		name: 'orders',
 		associationKey: 'orders'
+	},{
+		model: 'DbsTracyFileHatParcelModel',
+		name: 'parcels',
+		associationKey: 'parcels'
 	}]
 });
 
