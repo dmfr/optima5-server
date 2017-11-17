@@ -1924,7 +1924,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		},this) ;
 		*/
 		win.on('boxready', function(w) {
-			w.getEl().alignTo(dockPanel.getEl(), 'br-br?');
+			w.getEl().alignTo(dockPanel.getEl(), 'br-br?', [-6, -6]);
 		},this) ;
 		win.show();
 		
@@ -1986,7 +1986,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		}) ;
 		
 		// maximize 
-		btn.win.getEl().alignTo(dockPanel.getEl(), 'br-br?');
+		btn.win.getEl().alignTo(dockPanel.getEl(), 'br-br?', [-6, -6]);
 		btn.win.show() ;
 		btn.toggle(true) ;
 	},

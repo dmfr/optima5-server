@@ -221,5 +221,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
 	reset: function() {
 		this.callParent() ;
 		this.displayValue() ;
+	},
+	
+	onDestroy: function() {
+		if( this.cfgParamTree ) {
+			this.cfgParamTree.destroy() ;
+		}
 	}
 });
