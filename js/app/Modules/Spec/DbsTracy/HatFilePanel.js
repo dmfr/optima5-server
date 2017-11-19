@@ -85,7 +85,6 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.HatFileDimensionsField',{
 	markInvalid: function(errors) {
 		var fields = this.query('numberfield') ;
 			Ext.Array.each(fields, function(field,idx) {
-				console.log('mark invalid') ;
 				field.markInvalid('Invalid') ;
 			}) ;
 	},
