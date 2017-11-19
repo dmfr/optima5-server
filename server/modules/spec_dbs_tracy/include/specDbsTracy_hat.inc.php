@@ -277,10 +277,10 @@ function specDbsTracy_hat_orderAdd( $post_data ) {
 		// return array('success'=>false,'error'=>"Order {$ttmp['data'][0]['id_dn']} already attached") ;
 		
 		// *** NicolasBlum 2017-11 : silent remove
-		specDbsTracy_hat_orderRemove(
+		specDbsTracy_hat_orderRemove( array(
 			'hat_filerecord_id' => $ttmp['data'][0]['calc_hat_filerecord_id'],
 			'order_filerecord_id' => $p_orderFilerecordId
-		);
+		));
 	}
 	
 	$arr_ins = array() ;

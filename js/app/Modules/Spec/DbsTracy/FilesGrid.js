@@ -1794,7 +1794,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		
 		if( this.down('#pCenter').down('#pGrid').getStore() instanceof Ext.data.TreeStore ) {
 			this.down('#pCenter').down('#pGrid').getRootNode().cascadeBy( function(node) {
-				node.set('_is_selection', ( (torf && node.getDepth()==1) ? false : null ) ) ;
+				node.set('_is_selection', ( (torf && node.get('hat_filerecord_id')) ? false : null ) ) ;
 				node.commit() ;
 			}) ;
 		}

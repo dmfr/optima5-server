@@ -179,6 +179,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderFilePanel',{
 				},{
 					xtype: 'fieldset',
 					title: 'Volume details',
+					hidden: true,
 					items: [{
 						xtype: 'numberfield',
 						hideTrigger:true,
