@@ -1890,7 +1890,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			border: false
 		});
 		var win = Ext.create('Ext.window.Window',{
-			layout: 'fit',
 			title: title,
 			items: p,
 			
@@ -1898,6 +1897,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			
 			renderTo: this.getEl(),
 			constrain: true,
+			
+			//layout: 'fit',
+			overflowY: 'scroll',
+			bodyPadding: '0 16px 0 0',
 			
 			minimizable: true,
 			resizable: false,
@@ -1916,13 +1919,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			w.setTitle(title) ;
 		});
 		
-		/*
-		actionPanel.on('mylayout', function(actionPanel) {
-			actionPanel.updateLayout() ;
-			actionPanel.setSize( actionPanel.getWidth() , actionPanel.getHeight() ) ;
-			actionPanel.getEl().alignTo(this.getEl(), 'c-c?');
+		p.on('resize', function(p) {
+			if( p.win.getHeight() > this.getHeight() ) {
+				p.win.setHeight(this.getHeight()) ;
+			}
 		},this) ;
-		*/
+		
 		win.on('boxready', function(w) {
 			w.getEl().alignTo(dockPanel.getEl(), 'br-br?', [-6, -6]);
 		},this) ;
