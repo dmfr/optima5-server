@@ -1,0 +1,74 @@
+	<style type="text/css">
+		table.payment {
+			font-family: Arial, Helvetica, sans-serif;
+			font-size: 13px;
+			/*color: navy;*/
+			padding-top: 2px;
+			padding-bottom: 2px;
+			
+			border-spacing: 0px;
+			border-collapse: collapse;
+		}
+	</style>
+	
+<!--
+<div style="font-size:14px; border:1px solid gray; margin:0px 50px" align='center'>
+<i>Moyens de paiement à votre disposition</i>
+</div>
+-->
+
+<div id='div_pay_virement'>
+	<ul>
+	<li>by bank transfer on below account, please specify your name and ref. <qbook-value src_value="payment_ref_client"></qbook-value> as comment :
+<div style="font-size:13px;">
+	<ul>
+	<li>IBAN : <b><qbook-value src_value="pay_virement_iban"></qbook-value></b></li>
+	<li>BIC (Bank Identifier Code) : <b><qbook-value src_value="pay_virement_bic"></qbook-value></b></li>
+	<li>Account owner : <b><qbook-value src_value="pay_virement_titulaire"></qbook-value></b></li>
+	<li>Location : <b><qbook-value src_value="pay_virement_domiciliation"></qbook-value></b></li>
+	</ul>
+</div>
+	</li>
+	</ul>
+</div>
+
+<div id='div_pay_cheque'>
+	<ul>
+	<li>by check:
+<div style="font-size:13px;">
+	<ul>
+	<li>entitiled to <b><qbook-value src_value="pay_cheque_ordre"></qbook-value></b></li>
+	<b>
+		<qbook-value src_value="pay_cheque_adr"></qbook-value>
+	</b>
+	</ul>
+</div>
+	</li>
+	</ul>
+</div>
+
+<div id='div_pay_cb'>
+	<ul>
+	<li>by credit card, on our website&nbsp;<b><qbook-value src_value="pay_cb_website"></qbook-value></b>,&nbsp; or by phone&nbsp;<b><qbook-value src_value="pay_cb_tel"></qbook-value></b>
+<div style="font-size:13px;">
+	<ul>
+	<li>Specify references in this correspondence header</li>
+	</ul>
+</div>
+	</li>
+	</ul>
+</div>
+
+<div id='div_pay_mandat'>
+	<ul>
+	<li>by cash transfer:
+<div style="font-size:13px;">
+	<ul>
+	<li>Specify following recipient :</li>
+	<li><b><qbook-value src_value="pay_mandat_destinataire"></qbook-value></b></li>
+	</ul>
+</div>
+	</li>
+	</ul>
+</div>
+
