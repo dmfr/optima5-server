@@ -129,11 +129,37 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			var atrRecord = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(atrId) ;
 			if( atrRecord.atr_type == 'account' ) {
 				formItems.push({
-					readOnly: !atrRecord.is_editable,
-					xtype: 'textfield',
 					cfgParam_id: 'ATR:'+atrRecord.atr_id,
+					readOnly: !atrRecord.is_editable,
+					xtype: 'combobox',
 					fieldLabel: atrRecord.atr_desc,
-					name: atrRecord.atr_field
+					name: atrRecord.atr_field,
+					forceSelection:false,
+					allowBlank:true,
+					editable:true,
+					typeAhead:false,
+					queryMode: 'remote',
+					displayField: 'atr_value',
+					valueField: 'atr_value',
+					queryParam: 'search_txt',
+					minChars: 1,
+					checkValueOnChange: function() {}, //HACK
+					store: {
+						fields: [
+							'atr_value'
+						],
+						proxy: this.optimaModule.getConfiguredAjaxProxy({
+							extraParams : {
+								_moduleId: 'spec_rsi_recouveo',
+								_action: 'account_getAllAtrs',
+								atr_field: atrRecord.atr_field
+							},
+							reader: {
+								type: 'json',
+								rootProperty: 'data'
+							}
+						})
+					}
 				});
 				
 			}
@@ -273,6 +299,16 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			items:[{
 				flex: 1,
 				title: 'Contact',
+				tools: [{
+					type: 'save',
+					handler: function() {
+						this.handleSaveHeader() ;
+					},
+					scope: this
+				}],
+				collapsible: true,
+				titleCollapse: false,
+				collapseDirection: 'left',
 				xtype: 'panel',
 				layout: {
 					type: 'vbox',
@@ -865,7 +901,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		}) ;
 		
 		this.down('#pHeaderForm').getForm().getFields().each( function(field) {
-			if( field.cfgParam_id ) {
+			if( field.cfgParam_id && field.cfgParam_id.indexOf('ATR:')===0 ) {
 				field.setVisible( Ext.Array.contains(cfgParamIds,field.cfgParam_id) ) ;
 			}
 		});
@@ -2007,6 +2043,33 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				optimaModule: this.optimaModule,
 				_envFilerecordId: envFilerecordId
 			})]
+		}) ;
+	},
+	
+	handleSaveHeader: function() {
+		var values = this.down('#pHeaderForm').getForm().getFieldValues() ;
+		console.dir(values) ;
+		
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_rsi_recouveo',
+				_action: 'account_saveHeader',
+				acc_id: this._accountRecord.get('acc_id'),
+				data: Ext.JSON.encode(values)
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					var error = ajaxResponse.success || 'File not saved !' ;
+					Ext.MessageBox.alert('Error',error) ;
+					return ;
+				}
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
 		}) ;
 	},
 	

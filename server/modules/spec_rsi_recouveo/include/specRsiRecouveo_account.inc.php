@@ -278,4 +278,52 @@ function specRsiRecouveo_account_setAdrbookPriority( $post_data ) {
 	return array('success'=>true) ;
 }
 
+
+
+
+
+function specRsiRecouveo_account_getAllAtrs($post_data) {
+	global $_opDB ;
+	
+	$atr_field = $post_data['atr_field'] ;
+	
+	$data = array() ;
+	$query = "SELECT distinct field_{$atr_field} as atr_value FROM view_bible_LIB_ACCOUNT_entry ORDER BY atr_value" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$data[] = array('atr_value'=>$arr[0]) ;
+	}
+
+
+	return array('success'=>true, 'data'=>$data) ;
+}
+
+
+
+
+function specRsiRecouveo_account_saveHeader( $post_data ) {
+	$ttmp = specRsiRecouveo_cfg_getConfig() ;
+	$cfg_atr = $ttmp['data']['cfg_atr'] ;
+	
+	$p_accId = $post_data['acc_id'] ;
+	$p_data = json_decode($post_data['data'],true) ;
+	
+	$entry_key = $p_accId ;
+	$arr_update = array() ;
+	$arr_update['field_ACC_ID'] = $entry_key ;
+	$arr_update['field_LINK_USER_LOCAL'] = $p_data['link_user'] ;
+	foreach( $cfg_atr as $atr_record ) {
+		if( $atr_record['atr_type'] == 'account' ) {
+			$mkey = $atr_record['atr_field'] ;
+			$arr_update['field_'.$mkey] = $p_data[$mkey] ;
+		}
+	}
+	
+	global $_opDB ;
+	
+	paracrm_lib_data_updateRecord_bibleEntry('LIB_ACCOUNT',$entry_key,$arr_update) ;
+	
+	return array('success'=>true) ;
+}
+
 ?>

@@ -33,6 +33,10 @@ switch( $post_data['_action'] )
 	
 	case 'account_open' :
 	return specRsiRecouveo_account_open( $post_data ) ;
+	case 'account_getAllAtrs' :
+	return specRsiRecouveo_account_getAllAtrs( $post_data ) ;
+	case 'account_saveHeader' :
+	return specRsiRecouveo_account_saveHeader( $post_data ) ;
 	case 'account_setAdrbook' :
 	return specRsiRecouveo_account_setAdrbook( $post_data ) ;
 	case 'account_setAdrbookPriority' :
