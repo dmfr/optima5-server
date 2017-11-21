@@ -1211,9 +1211,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 	},
 	onUserSet: function() {
 		var tbUser = this.down('toolbar').down('#tbUser'),
-			userSet = !Ext.isEmpty( tbUser.getLeafNodesKey() ) ;
-		this.down('toolbar').down('#btnSearchIcon').setVisible( !userSet );
-		this.down('toolbar').down('#btnSearch').setVisible( !userSet );
+			userExtSet = ( !Ext.isEmpty( tbUser.getLeafNodesKey() ) && Optima5.Modules.Spec.RsiRecouveo.HelperCache.authHelperIsExt() ) ;
+		this.down('toolbar').down('#btnSearchIcon').setVisible( !userExtSet );
+		this.down('toolbar').down('#btnSearch').setVisible( !userExtSet );
 		
 		this.doLoad(true) ;
 	},
@@ -1272,7 +1272,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				_action: 'file_getRecords',
 				filter_atr: Ext.JSON.encode(objAtrFilter),
 				filter_soc: (arrSocFilter ? Ext.JSON.encode(arrSocFilter):''),
-				filter_extuser: (arrUserFilter ? Ext.JSON.encode(arrUserFilter):''),
+				filter_user: (arrUserFilter ? Ext.JSON.encode(arrUserFilter):''),
 				filter_archiveIsOn: (this.showClosed ? 1 : 0)
 			},
 			success: function(response) {

@@ -46,7 +46,8 @@ function specRsiRecouveo_account_open( $post_data ) {
 		),
 		'acc_txt' => $arr['field_ACC_NAME'],
 		'acc_siret' => $arr['field_ACC_SIRET'],
-		'adr_postal' => $arr['field_ADR_POSTAL']
+		'adr_postal' => $arr['field_ADR_POSTAL'],
+		'link_user' => $arr['field_LINK_USER_LOCAL']
 	);
 	foreach( $cfg_atr as $atr_record ) {
 		if( $atr_record['atr_type'] == 'account' ) {

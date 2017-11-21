@@ -11,6 +11,7 @@ Ext.define('RsiRecouveoFileTplModel',{ // TO: RsiRecouveoFileModel
 		{name: 'acc_ref', type:'string'},
 		{name: 'acc_txt', type:'string'},
 		{name: 'acc_siret', type:'string'},
+		{name: 'link_user', type:'string', allowNull:true},
 		{name: 'ext_user', type:'string', allowNull:true},
 		{name: 'status', type:'string'},
 		{name: 'status_txt', type:'string'},
@@ -172,7 +173,8 @@ Ext.define('RsiRecouveoAccountTplModel',{
 		{name: 'acc_ref', type:'string'},
 		{name: 'acc_txt', type:'string'},
 		{name: 'acc_siret', type:'string'},
-		{name: 'adr_postal', type:'string'}
+		{name: 'adr_postal', type:'string'},
+		{name: 'link_user', type:'string'}
 	]
 }) ;
 

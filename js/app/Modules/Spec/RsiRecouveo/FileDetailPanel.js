@@ -87,7 +87,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		
 		
 		var formItems = []
-		formItems.push({
+		formItems.push(Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
+			fieldLabel: '<b>Affectation</b>',
+			cfgParam_id: 'USER',
+			cfgParam_emptyDisplayText: '-Non affecté-',
+			optimaModule: this.optimaModule,
+			name: 'link_user'
+		}),{
 			readOnly: true,
 			xtype: 'op5crmbasebibletreepicker',
 			fieldLabel: '<b>Entité</b>',

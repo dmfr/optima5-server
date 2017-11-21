@@ -186,7 +186,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamTree',{
 		} else if( this.cfgParam_id && this.cfgParam_id=='USER' ) {
 			Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getUserAll(), function(userRow) {
 				if( !userRow.status_is_ext ) {
-					return ;
+					// return ;
 				}
 				rootChildren.push({
 					nodeId: userRow.user_id,

@@ -30,8 +30,8 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 	if( $post_data['filter_soc'] ) {
 		$filter_soc = json_decode($post_data['filter_soc'],true) ;
 	}
-	if( $post_data['filter_extuser'] ) {
-		$filter_extuser = json_decode($post_data['filter_extuser'],true) ;
+	if( $post_data['filter_user'] ) {
+		$filter_user = json_decode($post_data['filter_user'],true) ;
 	}
 	if( $post_data['filter_fileFilerecordId_arr'] ) {
 		$_load_details = true ;
@@ -78,8 +78,8 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 		if( $filter_soc ) {
 			$query.= " AND la.treenode_key IN ".$_opDB->makeSQLlist($filter_soc) ;
 		}
-		if( $filter_extuser ) {
-			$query.= " AND f.field_LINK_USER_EXT IN ".$_opDB->makeSQLlist($filter_extuser) ;
+		if( $filter_user ) {
+			$query.= " AND la.field_LINK_USER_LOCAL IN ".$_opDB->makeSQLlist($filter_user) ;
 		}
 		if( !$filter_archiveIsOn ) {
 			$query.= " AND f.field_STATUS_CLOSED_VOID='0' AND f.field_STATUS_CLOSED_END='0'" ;
@@ -122,7 +122,8 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			'records' => array(),
 			'actions' => array(),
 			
-			'ext_user' => ($filter_extuser ? null : ($arr['field_LINK_USER_EXT']?$arr['field_LINK_USER_EXT']:null)),
+			'link_user' => $arr['field_LINK_USER_LOCAL'],
+			//'ext_user' => ($filter_extuser ? null : ($arr['field_LINK_USER_EXT']?$arr['field_LINK_USER_EXT']:null)),
 			
 			'from_file_filerecord_id' => $arr['field_FROM_FILE_ID']
 		);
