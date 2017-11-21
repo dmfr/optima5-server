@@ -183,7 +183,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					cfgParam_id: 'ATR:'+atrRecord.atr_id,
 					text: atrRecord.atr_desc,
 					dataIndex: atrRecord.atr_field,
-					width: 80
+					width: 100
 				}) ;
 				atrRecFields.push({
 					name: atrRecord.atr_field,
@@ -203,7 +203,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			xtype: 'treecolumn',
 			text: 'Dossier/Fact',
 			dataIndex: 'id',
-			flex: 1,
+			width: 250,
 			renderer: function( v, meta, r ) {
 				if( r.get('new_is_on') ) {
 					return '<b>'+r.get('new_text')+'</b>' ;
@@ -212,22 +212,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					return '<b>'+r.get('file_id_ref')+'</b>' ;
 				}
 				return r.get('record_id') ;
-			}
-		},{
-			text: 'Attributs',
-			columns: atrRecColumns
-		},{
-			text: 'Integr.',
-			hidden: true,
-			dataIndex: 'record_dateload',
-			align: 'center',
-			width: 90,
-			renderer: function(v,m,r) {
-				var str = Ext.Date.format(v,'d/m/Y') ;
-				if( Ext.isEmpty(str) && !Ext.isEmpty(r.get('record_type')) ) {
-					str = r.get('record_type') ;
-				}
-				return str ;
 			}
 		},{
 			text: 'Date',
@@ -249,10 +233,22 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				}
 				return v ;
 			}
+		},{
+			text: 'Integr.',
+			dataIndex: 'record_dateload',
+			align: 'center',
+			width: 90,
+			renderer: function(v,m,r) {
+				var str = Ext.Date.format(v,'d/m/Y') ;
+				if( Ext.isEmpty(str) && !Ext.isEmpty(r.get('record_type')) ) {
+					str = r.get('record_type') ;
+				}
+				return str ;
+			}
 		}] ;
-		if( atrRecColumns.length==0 ) {
-			Ext.Array.removeAt(treeColumns,1) ;
-		}
+		Ext.Array.each( atrRecColumns, function(atrRecColumn) {
+			treeColumns.push(atrRecColumn) ;
+		}) ;
 		
 		
 		Ext.apply(this,{
