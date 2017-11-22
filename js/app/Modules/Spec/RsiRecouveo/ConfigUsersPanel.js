@@ -7,21 +7,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigUsersPanel', {
 		}
 		var atrColumns = [], atrFields = [] ;
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
-			var atrRecord = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(atrId) ;
-			//console.dir(atrRecord) ;
-			atrColumns.push({
-				text: atrRecord.atr_txt,
-				dataIndex: 'link_'+atrRecord.bible_code,
-				width:90,
-				align: 'center'
-			}) ;
-			atrFields.push({
-				xtype: 'op5crmbasebibletreepicker',
-				optimaModule: this.optimaModule,
-				bibleId: atrRecord.bible_code,
-				name: 'link_'+atrRecord.bible_code,
-				fieldLabel: atrRecord.atr_txt
-			}) ;
 		},this) ;
 		
 		Ext.apply(this,{
@@ -62,9 +47,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigUsersPanel', {
 					width: 90,
 					dataIndex: 'user_tel',
 					text: 'Téléphone'
-				},{
-					text: 'Attributs',
-					columns: atrColumns
 				}],
 				store: {
 					autoLoad: true,
@@ -159,10 +141,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigUsersPanel', {
 						name: 'link_SOC',
 						fieldLabel: 'Entités'
 					}]
-				},{
-					xtype: 'fieldset',
-					title: 'Attributs',
-					items: atrFields
 				}),
 				buttons: [{
 					itemId: 'btnOk',
