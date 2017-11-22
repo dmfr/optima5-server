@@ -210,8 +210,6 @@ function specDbsTracy_trspt_setHeader( $post_data ) {
 	$arr_ins['field_CUSTOMS_DATE_REQUEST'] = ($form_data['customs_date_request'] ? $form_data['customs_date_request'] : '') ;
 	$arr_ins['field_CUSTOMS_DATE_CLEARED'] = ($form_data['customs_date_cleared'] ? $form_data['customs_date_cleared'] : '') ;
 	$arr_ins['field_POD_DOC'] = $form_data['pod_doc'] ;
-	$arr_ins['field_SWORD_EDI_1_READY'] = ($form_data['sword_edi_1_ready'] ? 1 : 0) ;
-	$arr_ins['field_SWORD_EDI_1_SENT'] = ($form_data['sword_edi_1_sent'] ? 1 : 0) ;
 	
 	if( $post_data['_is_new'] ) {
 		$filerecord_id = paracrm_lib_data_insertRecord_file( $file_code, 0, $arr_ins );
