@@ -380,7 +380,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 				'next_fileaction_filerecord_id' => $next_action['fileaction_filerecord_id'],
 				'next_action' => $next_action['link_action'],
 				'next_action_suffix' => $next_action_suffix,
-				'next_action_suffix_txt' => $map_actionnext[$next_action_suffix],
+				'next_action_suffix_txt' => ( ($next_action['link_action']=='BUMP'&&$next_action['link_txt']) ? $next_action['link_txt'] : $map_actionnext[$next_action_suffix]),
 				'next_date' => $next_action['date_sched'],
 				'next_eta_range' => $next_action['calc_eta_range'],
 				'next_agenda_class' => $next_action['link_action_class']
@@ -395,16 +395,13 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			$txt_short = '' ;
 			if( $file_action_row['link_txt'] ) {
 				$txt_short.= $file_action_row['link_txt'] ;
-			}
-			if( $file_action_row['link_tpl'] ) {
+			} elseif( $file_action_row['link_tpl'] ) {
 				$search_id = 'MAIL_OUT'.'_'.$file_action_row['link_tpl'] ;
 				$txt_short.= $map_actionnext[$search_id]."\r\n" ;
-			}
-			if( $file_action_row['link_litig'] ) {
+			} elseif( $file_action_row['link_litig'] ) {
 				$search_id = 'LITIG_FOLLOW'.'_'.$file_action_row['link_litig'] ;
 				$txt_short.= $map_actionnext[$search_id]."\r\n" ;
-			}
-			if( $file_action_row['link_close'] ) {
+			} elseif( $file_action_row['link_close'] ) {
 				$search_id = 'CLOSE_ACK'.'_'.$file_action_row['link_close'] ;
 				$txt_short.= $map_actionnext[$search_id]."\r\n" ;
 			}

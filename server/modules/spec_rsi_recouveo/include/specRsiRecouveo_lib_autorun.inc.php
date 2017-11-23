@@ -323,7 +323,18 @@ function specRsiRecouveo_lib_autorun_checkAdrStatus( $acc_id ) {
 	$query = "UPDATE view_file_FILE f SET field_STATUS='{$dst_status}' 
 		WHERE f.field_LINK_ACCOUNT='{$acc_id}' AND f.field_STATUS_CLOSED_VOID='0' AND f.field_STATUS_CLOSED_END='0' AND field_STATUS='{$src_status}'" ;
 	$_opDB->query($query) ;
-
+	
+	$query = "UPDATE view_file_FILE_ACTION fa
+					JOIN view_file_FILE f ON f.filerecord_id=fa.filerecord_parent_id
+					SET field_LINK_STATUS='S1_SEARCH'
+					, field_LINK_ACTION='BUMP'
+					, field_SCENSTEP_TAG=''
+					, field_DATE_SCHED=IF( field_DATE_SCHED>DATE(NOW()) , DATE(NOW()) , field_DATE_SCHED )
+					, field_LINK_TXT='Recherche coordonnées'
+					, field_LINK_TPL=''
+					WHERE f.field_LINK_ACCOUNT='{$acc_id}' AND f.field_STATUS_CLOSED_VOID='0' AND f.field_STATUS_CLOSED_END='0' AND f.field_STATUS='S1_SEARCH'
+					AND fa.field_STATUS_IS_OK='0'" ;
+	$_opDB->query($query) ;
 }
 
 
