@@ -240,8 +240,6 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			}
 		},this) ;
 		
-		this.tmpModelCnt = 0 ;
-		
 		this.onViewSet(this.defaultViewMode) ;
 	},
 	onCrmeventBroadcast: function(crmEvent, eventParams) {
@@ -711,14 +709,60 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			return dateSql.replace(' ','<br>') ;
 		};
 		
-		var pushModelfields = [{
+		var cmpModelfields = [{
 			name: '_color',
 			type: 'string'
 		},{
 			name: '_is_selection',
 			type: 'boolean',
 			allowNull: true
-		}] ;
+		},
+		{name: 'order_filerecord_id', type:'int'},
+		{name: 'flow_code', type:'string'},
+		{name: 'id_soc', type:'string'},
+		{name: 'id_dn', type:'string'},
+		{name: 'ref_po', type:'string'},
+		{name: 'ref_invoice', type:'string'},
+		{name: 'ref_mag', type:'string'},
+		{name: 'atr_type', type:'string'},
+		{name: 'atr_priority', type:'string'},
+		{name: 'atr_incoterm', type:'string'},
+		{name: 'atr_consignee', type:'string'},
+		{name: 'txt_location_city', type:'string'},
+		{name: 'txt_location_full', type:'string'},
+		{name: 'adr_json', type:'string'},
+		{name: 'desc_txt', type:'string'},
+		{name: 'desc_value', type:'number'},
+		{name: 'desc_value_currency', type:'string'},
+		{name: 'vol_kg', type:'number'},
+		{name: 'vol_dims', type:'string'},
+		{name: 'vol_count', type:'int'},
+		{name: 'date_create', type:'date', dateFormat:'Y-m-d H:i:s'},
+		{name: 'date_init', type:'date', dateFormat:'Y-m-d H:i:s'},
+		{name: 'date_closed', type:'date', dateFormat:'Y-m-d H:i:s'},
+		{name: 'date_crd', type:'date', dateFormat:'Y-m-d H:i:s'},
+		{name: 'calc_step', type:'string'},
+		{name: 'calc_step_warning_edi', type:'boolean'},
+		{name: 'calc_link_is_active', type:'boolean'},
+		{name: 'calc_link_trspt_filerecord_id', type:'int'},
+		{name: 'calc_link_trspt_txt', type:'string'},
+		{name: 'calc_hat_is_active', type:'boolean'},
+		{name: 'calc_hat_filerecord_id', type:'int'},
+		{name: 'calc_hat_txt', type:'string'},
+		
+		{name: 'warning_is_on', type: 'boolean', allowNull: true},
+		{name: 'warning_code', type: 'string'},
+		{name: 'warning_txt', type: 'string'},
+		
+		{name: 'kpi_is_on', type: 'boolean', allowNull: true},
+		{name: 'kpi_is_ok_raw', type: 'boolean', allowNull: true},
+		{name: 'kpi_is_ok', type: 'boolean', allowNull: true},
+		{name: 'kpi_code', type: 'string'},
+		{name: 'kpi_txt', type: 'string'},
+		{name: 'kpi_calc_step', type:'string'},
+		{name: 'kpi_calc_date_target', type:'date', dateFormat:'Y-m-d H:i:s'},
+		{name: 'kpi_calc_date_actual', type:'date', dateFormat:'Y-m-d H:i:s'}
+		] ;
 		var validBtn = Ext.create('Ext.button.Button',{
 			iconCls: 'op5-spec-mrfoxy-financebudget-newrevisionmenu-save'
 		});
@@ -1017,7 +1061,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		};
 		var stepColumns = [] ;
 		Ext.Array.each( Optima5.Modules.Spec.DbsTracy.HelperCache.getOrderflow('AIR').steps, function(step) {
-			pushModelfields.push({
+			cmpModelfields.push({
 				name: 'step_'+step.desc_code,
 				type: 'auto',
 				sortType: sortTypeFn
@@ -1120,7 +1164,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			}]
 		});
 		
-		pushModelfields.push({
+		cmpModelfields.push({
 			name: 'hat_filerecord_id',
 			type: 'int'
 		}) ;
@@ -1147,7 +1191,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 					operator: '==='
 				}
 			});
-			pushModelfields.push({
+			cmpModelfields.push({
 				name: 'kpidata_'+kpicode.calc_code,
 				type: 'bool',
 				allowNull: true
@@ -1162,17 +1206,12 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		});
 		
 			
-		this.tmpModelName = 'DbsTracyFileRowModel-' + this.getId() + (++this.tmpModelCnt) ;
+		this.tmpModelName = ('DbsTracyFileRowModel' + '-' + this.getId()).replace(/[^a-z0-9]/gmi,'') ;
 		Ext.ux.dams.ModelManager.unregister( this.tmpModelName ) ;
 		Ext.define(this.tmpModelName, {
-			extend: 'DbsTracyFileOrderModel',
+			extend: 'Ext.data.Model',
 			idProperty: 'id',
-			fields: pushModelfields,
-			hasMany: [{
-				model: 'DbsTracyFileOrderStepModel',
-				name: 'steps',
-				associationKey: 'steps'
-			}]
+			fields: cmpModelfields
 		});
 		
 		var columnDefaults = {
@@ -1198,13 +1237,13 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			itemId: 'pGrid',
 			bodyCls: 'op5-spec-dbstracy-files-grid',
 			store: {
+				clearOnLoad: true,
 				model: this.tmpModelName,
 				proxy: {
 					type: 'memory',
 					reader: {
 						type: 'json'
-					},
-					data: []
+					}
 				}
 			},
 			columns: columns,
@@ -1616,8 +1655,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				} ;
 			}) ;
 			
-			var recordTest = new DbsTracyFileOrderModel(row) ;
-			if( !recordTest.get('calc_link_is_active') ) {
+			var recordTest ;
+			if( !row.calc_link_is_active ) {
+				recordTest = new DbsTracyFileOrderModel(row) ;
 				if( Optima5.Modules.Spec.DbsTracy.HelperCache.checkOrderData(recordTest.getData()) != null ) {
 					row['_color'] = 'red' ;
 				} else {
@@ -1627,7 +1667,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				row['_color'] = 'blue' ;
 			}
 			
-			var curStepCode = recordTest.get('calc_step'),
+			var curStepCode = row.calc_step,
 				curStepDescCode = map_stepCode_descCode[curStepCode] ;
 			if( map_stepDescCodes_count.hasOwnProperty(curStepDescCode) ) {
 				map_stepDescCodes_count[curStepDescCode]++ ;
@@ -1680,6 +1720,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 					}
 					
 					var hatChild = Ext.clone(orderRow) ;
+					hatChild['id'] = hatData.hat_filerecord_id+'-'+orderRow['order_filerecord_id'];
 					hatChild['leaf'] = true ;
 					hatChildren.push(hatChild) ;
 				}) ;
@@ -1687,6 +1728,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				hatHeader['leaf'] = false ;
 				hatHeader['expanded'] = true ;
 				hatHeader['children'] = hatChildren ;
+				hatHeader['id'] = hatData.hat_filerecord_id ;
 				gridData.push(hatHeader) ;
 				
 				//delete map_hatId_hatRow 
@@ -1705,7 +1747,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			this.down('#pCenter').down('#pGrid').filters.clearFilters() ;
 		}
 		// To refresh root node : https://www.sencha.com/forum/showthread.php?303359
-		this.down('#pCenter').down('#pGrid').getStore().getProxy().setData(gridData) ;
+		this.down('#pCenter').down('#pGrid').getStore().getProxy().setData({root: true, expanded: true, children: gridData}) ;
 		this.down('#pCenter').down('#pGrid').getStore().reload() ;
 		
 		if( !this._readonlyMode ) {
@@ -2046,5 +2088,6 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		if( this.autoRefreshTask ) {
 			this.autoRefreshTask.cancel() ;
 		}
+		Ext.ux.dams.ModelManager.unregister( this.tmpModelName ) ;
 	}
 });
