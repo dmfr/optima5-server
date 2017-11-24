@@ -214,6 +214,10 @@ function specRsiRecouveo_cfg_getConfig() {
 			$json_define_bible = paracrm_data_getBibleCfg(array('bible_code'=>$define_bible['bibleId'])) ;
 			
 			$bible_code = $define_bible['bibleId'] ;
+			$bible_desc = $define_bible['text'] ;
+			if( strpos($bible_code,'OPT_')===0 && strpos($bible_desc,'Option : ')===0 ) {
+				$bible_desc = substr($bible_desc,strlen('Option : ')) ;
+			}
 			
 			$records = array() ;
 			$query = "SELECT * FROM view_bible_{$bible_code}_tree ORDER BY treenode_key" ;
@@ -235,7 +239,7 @@ function specRsiRecouveo_cfg_getConfig() {
 			$new_rec = array(
 				'bible_code' => $bible_code,
 				'atr_code' => substr($bible_code,4),
-				'atr_txt' => $define_bible['text'],
+				'atr_txt' => $bible_desc,
 				'records' => $records
 			) ;
 			

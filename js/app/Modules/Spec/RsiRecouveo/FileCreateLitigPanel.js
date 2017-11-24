@@ -12,7 +12,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateLitigPanel',{
 			items: [{
 				xtype: 'fieldset',
 				padding: 10,
-				title: 'Qualification litige',
+				title: 'Qualification action externe',
 				layout: {
 					type: 'anchor'
 				},
