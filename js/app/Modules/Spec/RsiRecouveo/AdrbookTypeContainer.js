@@ -109,7 +109,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AdrbookTypeContainer',{
 				accountRecord: this._accountRecord,
 				name: prefix+'_result',
 				allowBlank: false,
-				fieldLabel: 'Retour courrier',
+				fieldLabel: 'Type courrier',
 				listeners: {
 					change: this.onSelectResult,
 					scope: this
