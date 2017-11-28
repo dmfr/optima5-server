@@ -520,3 +520,23 @@
 .op5-spec-rsiveo-kpi-unknown {
 	background: url('../images/modules/rsiveo-wait-16.gif') no-repeat center center ;
 }
+
+.op5-spec-rsiveo-boldtext {
+	font-weight: bold ;
+}
+
+.op5-spec-rsiveo-closeheader-wrap {
+	padding-left: 16px ;
+}
+.op5-spec-rsiveo-closeheader-btn {
+	position: absolute ;
+	background-image: url("../images/op5img/ico_cancel_small.gif") !important;
+	top:0px;
+	left:0px ;
+	width:16px ;
+	height:16px ;
+	background-position: center center;
+	background-repeat: no-repeat;
+	cursor: pointer;
+}
+

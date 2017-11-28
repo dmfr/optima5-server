@@ -679,4 +679,61 @@ function specRsiRecouveo_doc_getEnvGrid( $post_data ) {
 
 
 
+function specRsiRecouveo_doc_postInbox( $post_data ) {
+	global $_opDB ;
+	usleep(500000) ;
+	
+	media_contextOpen( $_POST['_sdomainId'] ) ;
+	if( $post_data['_has_upload']==1 ) {
+		foreach( $_FILES as $mkey => $dummy ) {
+			$src_filename = $_FILES[$mkey]['name'] ;
+			$src_path = $_FILES[$mkey]['tmp_name'] ;
+			
+			if( function_exists('finfo_open') ) {
+				$finfo = finfo_open(FILEINFO_MIME_TYPE);
+				$mimetype = finfo_file($finfo, $src_path) ;
+			} elseif( $src_filename ) {
+				$ttmp = explode('.',$src_filename) ;
+				$mimetype = end($ttmp) ;
+			} else {
+				return array('success'=>false, 'error'=>'Upload vide ?') ;
+			}
+
+			$pdf_binary = NULL ;
+			switch($mimetype) {
+				case 'application/pdf':
+				case 'pdf':
+					break ;
+					
+				default :
+					return array('success'=>false, 'error'=>'Document(s) PDF uniquement') ;
+			}
+		
+			$media_id = media_pdf_processUploaded( $src_path, $src_filename ) ;
+			break ;
+		}
+		if( !$media_id ) {
+			return array('success'=>false) ;
+		}
+	}
+	
+	$arr_ins = array() ;
+	$arr_ins['field_OPT_MAILIN'] = $post_data['opt_mailin'] ;
+	$arr_ins['field_REF_ACCOUNT'] = $post_data['ref_account'] ;
+	$arr_ins['field_REF_MAILOUT'] = $post_data['ref_mailout'] ;
+	$arr_ins['field_DATE_RECEP'] = $post_data['date_recep'] ;
+	$inpostal_filerecord_id = paracrm_lib_data_insertRecord_file( 'IN_POSTAL', 0, $arr_ins );
+	
+	if( $media_id ) {
+		$arr_ins = array() ;
+		$arr_ins['field_DOC_PAGECOUNT'] = media_pdf_getPageCount($media_id) ;
+		$inpostaldoc_filerecord_id = paracrm_lib_data_insertRecord_file( 'IN_POSTAL_DOC', $inpostal_filerecord_id, $arr_ins );
+		media_pdf_move( $media_id,  media_pdf_toolFile_getId('IN_POSTAL_DOC',$inpostaldoc_filerecord_id) ) ;
+	}
+	
+	media_contextClose() ;
+	
+	return array('success'=>true) ;
+}
+
 ?>

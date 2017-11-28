@@ -15,7 +15,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 		
 		'Optima5.Modules.Spec.RsiRecouveo.BankPanel',
 		
-		'Optima5.Modules.Spec.RsiRecouveo.UploadForm'
+		'Optima5.Modules.Spec.RsiRecouveo.UploadForm',
+		'Optima5.Modules.Spec.RsiRecouveo.InboxPanel'
 	],
 	
 	initComponent: function() {
@@ -108,6 +109,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 				return me.openNotepad() ;
 			case 'form_upload' :
 				return me.openUploadPopup() ;
+			case 'form_inbox' :
+				return me.openInboxPopup() ;
 			default :
 				return ;
 		}
@@ -342,6 +345,37 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 		
 		createPanel.show();
 		createPanel.getEl().alignTo(this.getEl(), 'c-c?');
+	},
+	openInboxPopup: function() {
+		// recherche d'une fenetre deja ouverte
+		var doOpen = true ;
+		this.optimaModule.eachWindow(function(win){
+			if( win instanceof Optima5.Modules.Spec.RsiRecouveo.InboxPanel ) {
+				win.show() ;
+				win.focus() ;
+				doOpen = false ;
+				return false ;
+			}
+		},this) ;
+		if( !doOpen ) {
+			return ;
+		}
+		
+		// new window
+		this.optimaModule.createWindow({
+			title: 'Boite de réception',
+			width:450,
+			height:500,
+			iconCls: 'op5-crmbase-dataformwindow-icon',
+			animCollapse:false,
+			
+				optimaModule: this.optimaModule,
+				listeners: {
+					candestroy: function(w) {
+						w.close() ;
+					}
+				}
+		},Optima5.Modules.Spec.RsiRecouveo.InboxPanel) ;
 	},
 	
 	

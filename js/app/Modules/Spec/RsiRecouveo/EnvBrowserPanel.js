@@ -93,7 +93,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EnvBrowserPanel',{
 						return false ;
 					}
 				}]
-			}]
+			}],
+			viewConfig: {
+				enableTextSelection: true
+			}
 		}) ;
 		this.callParent() ;
 	},

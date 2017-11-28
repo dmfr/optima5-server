@@ -438,9 +438,7 @@ function specRsiRecouveo_file_searchSuggest( $post_data ) {
 	if( $post_data['filter_soc'] ) {
 		$filter_soc = json_decode($post_data['filter_soc'],true) ;
 	}
-	if( $post_data['filter_archiveIsOn'] ) {
-		$filter_archiveIsOn = ( $post_data['filter_archiveIsOn'] ? true : false ) ;
-	}
+	$filter_archiveIsOn = TRUE ;
 	
 	$sub_query_acc = "SELECT distinct field_LINK_ACCOUNT FROM view_file_FILE WHERE 1" ;
 	$sub_query_acc.= " AND field_STATUS_CLOSED_VOID='0'" ;
