@@ -435,8 +435,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.HatFilePanel',{
 			var passed = true ;
 			Ext.Array.each( hatNew_orderRecords, function(orderRecord) {
 				if( orderRecord.get('calc_hat_is_active') ) {
-					this.onNewHatError('DN already attached to ShipGroup') ;
-					return false ;
+					//this.onNewHatError('DN already attached to ShipGroup') ;
+					//return false ;
 				}
 				if( Optima5.Modules.Spec.DbsTracy.HelperCache.checkOrderData(orderRecord.getData()) != null ) {
 					passed = false ;
@@ -447,7 +447,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.HatFilePanel',{
 				return false ;
 			}
 			
-			var copyFields = ['id_soc','flow_code','atr_type','atr_consignee','atr_incoterm','atr_priority'] ;
+			var copyFields = ['id_soc','flow_code','atr_type','atr_consignee','atr_incoterm','atr_priority','calc_link_trspt_filerecord_id'] ;
 			var map_copyFields_values = {} ;
 			//check ?
 			// if OK => setValues
@@ -711,24 +711,31 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.HatFilePanel',{
 			return ;
 		}
 		
-		var fields = [
-			'id_soc',
-			'flow_code',
-			'atr_type',
-			'atr_priority',
-			'atr_incoterm',
-			'atr_consignee'
-		];
-		var passed = true ;
-		Ext.Array.each( fields, function(field) {
-			if( validationRecord.get(field) != recordData[field] ) {
-				Ext.MessageBox.alert('Error','Incompatible ('+field+')') ;
-				passed = false ;
-				return false ;
+		var gridOrders = this.down('#pOrdersGrid'),
+			storeOrders = gridOrders.getStore(),
+			rowOrderValidation = ( storeOrders.getCount()>0 ? storeOrders.getAt(0).getData() : null );
+		
+		if( rowOrderValidation ) {
+			var fields = [
+				'id_soc',
+				'flow_code',
+				'atr_type',
+				'atr_priority',
+				'atr_incoterm',
+				'atr_consignee',
+				'calc_link_trspt_filerecord_id'
+			];
+			var passed = true ;
+			Ext.Array.each( fields, function(field) {
+				if( validationRecord.get(field) != rowOrderValidation[field] ) {
+					Ext.MessageBox.alert('Error','Incompatible ('+field+')') ;
+					passed = false ;
+					return false ;
+				}
+			}) ;
+			if( !passed ) {
+				return ;
 			}
-		}) ;
-		if( !passed ) {
-			return ;
 		}
 		
 		var selectedOrderRecords = [] ;
