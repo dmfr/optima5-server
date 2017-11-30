@@ -557,22 +557,64 @@ function specDbsTracy_trspt_printDoc( $post_data ) {
 		$buffer.= "<table width='90%' class='tabledonnees' height='600'>" ;
 			$buffer.= '<thead>' ;
 				$buffer.= "<tr>";
-					$buffer.= "<th width='20%'>Delivery ID #</th>";
-					$buffer.= "<th width='10%'>Nb Parcels</th>";
+					$buffer.= "<th width='20%'>Ship Group #</th>";
+					$buffer.= "<th width='20%'>Delivery ID(s) #</th>";
 					$buffer.= "<th width='60%'>Destination</th>";
+					$buffer.= "<th width='10%'>Nb Parcels</th>";
 					$buffer.= "<th width='10%'>Weight (kg)</th>";
+					$buffer.= "<th width='10%'>Dimensions</th>";
 				$buffer.= "</tr>" ;
 			$buffer.= '</thead>' ;
+			$map_orderId_orderRow = array() ;
 			foreach( $trspt_record['orders'] as $row_order ) {
+				$map_orderId_orderRow[$row_order['order_filerecord_id']] = $row_order ;
+			}
+			foreach( $trspt_record['hats'] as $row_hat ) {
 				$buffer.= "<tr>" ;
-					$buffer.= "<td><span class=\"verybig\">{$row_order['id_dn']}</span></td>" ;
+					$buffer.= "<td><span class=\"verybig\">{$row_hat['id_hat']}</span></td>" ;
 					
-					$buffer.= "<td align='center'><span class=\"verybig\">".(int)$row_order['vol_count']."</span></td>" ;
+					$buffer.= "<td align='center'><span class=\"verybig\">" ;
+					foreach( $row_hat['orders'] as $row_hat_order ) {
+						$order_filerecord_id = $row_hat_order['order_filerecord_id'] ;
+						$row_order = $map_orderId_orderRow[$order_filerecord_id] ;
+						$buffer.= $row_order['id_dn'].'<br>' ;
+					}
+					$buffer.= "</span></td>" ;
 					
 					$buffer.= "<td class=\"$class\" align='left'><span>".nl2br(htmlentities($row_order['txt_location_full']))."</span></td>" ;
 					
-					$buffer.= "<td align='center'><span class=\"mybig\"><b>".(float)$row_order['vol_kg']."</b>&#160;kg"."</span></td>" ;
+					$vol_count = 0 ;
+					foreach( $row_hat['parcels'] as $row_hat_parcel ) {
+						$vol_count += $row_hat_parcel['vol_count'] ;
+					}
+					$buffer.= "<td align='center'><span class=\"mybig\"><b>".(float)$vol_count."</b>"."</span></td>" ;
 					
+					$vol_kg = 0 ;
+					foreach( $row_hat['parcels'] as $row_hat_parcel ) {
+						$vol_kg += $row_hat_parcel['vol_kg'] ;
+					}
+					$buffer.= "<td align='center'><span class=\"mybig\"><b>".(float)$vol_kg."</b>&#160;kg"."</span></td>" ;
+					
+					$buffer.= "<td align='center'><span class=\"\">" ;
+					foreach( $row_hat['parcels'] as $row_hat_parcel ) {
+						$buffer.= implode(' x ',$row_hat_parcel['vol_dims']).'<br>' ;
+					}
+					$buffer.= "</span></td>" ;
+					
+				$buffer.= "</tr>" ;
+			}
+			foreach( $trspt_record['orders'] as $row_order ) {
+				if( $row_order['calc_hat_is_active'] ) {
+					continue ;
+				}
+				$buffer.= "<tr>" ;
+					$buffer.= "<td><span class=\"verybig\">&nbsp;</span></td>" ;
+					
+					$buffer.= "<td><span class=\"verybig\">{$row_order['id_dn']}</span></td>" ;
+					
+					$buffer.= "<td class=\"$class\" align='left'><span>".nl2br(htmlentities($row_order['txt_location_full']))."</span></td>" ;
+					
+					$buffer.= "<td colspan='3'>&nbsp;</td>" ;
 				$buffer.= "</tr>" ;
 			}
 		$buffer.= "</table>" ;
