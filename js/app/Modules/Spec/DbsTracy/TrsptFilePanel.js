@@ -1,3 +1,29 @@
+Ext.define('DbsTracyTrsptTreeParcelModel',{
+	extend: 'Ext.data.Model',
+	fields:[
+		{ name: 'vol_count', type: 'int', allowNull:true },
+		{ name: 'vol_kg', type: 'number', allowNull:true },
+		{ name: 'vol_dims', type: 'auto', allowNull:true }
+	]
+});
+Ext.define('DbsTracyTrsptTreeModel',{
+	extend: 'Ext.data.Model',
+	fields:[
+		{ name: 'type', type: 'string' },
+		{ name: 'hat_filerecord_id', type: 'int' },
+		{ name: 'id_soc', type: 'string' },
+		{ name: 'id_hat', type: 'string' },
+		{ name: 'id_dn', type: 'string' },
+		{ name: 'ref_invoice', type: 'string' },
+		{ name: 'calc_step', type: 'string' }
+	],
+	hasMany: [{
+		model: 'DbsTracyTrsptTreeParcelModel',
+		name: 'parcels',
+		associationKey: 'parcels'
+	}]
+});
+
 Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 	extend:'Ext.window.Window',
 	
@@ -267,11 +293,24 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 			},{
 				flex: 3,
 				itemId: 'pOrdersGrid',
-				xtype: 'grid',
+				xtype: 'treepanel',
+				useArrows: true,
+				rootVisible: false,
 				columns: [{
+					xtype: 'treecolumn',
 					text: 'DN #',
-					width: 75,
-					dataIndex: 'id_dn'
+					width: 130,
+					dataIndex: 'id',
+					renderer: function(v,m,r) {
+						switch( r.get('type') ) {
+							case 'hat' :
+								return '<b>'+r.get('id_hat')+'</b>' ;
+							case 'order' :
+								return r.get('id_dn') ;
+							default :
+								return '?' ;
+						}
+					}
 				},{
 					text: 'PO #',
 					width: 75,
@@ -296,26 +335,42 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 				},{
 					text: 'Prcl',
 					width: 50,
-					dataIndex: 'vol_count',
-					align: 'right'
+					//dataIndex: 'vol_count',
+					align: 'right',
+					renderer: function(v,m,r) {
+						var txt = [] ;
+						r.parcels().each( function(dimRecord) {
+							txt.push( dimRecord.get('vol_count') ) ;
+						}) ;
+						return txt.join('<br>') ;
+					}
 				},{
 					text: 'Weight',
 					width: 75,
-					dataIndex: 'vol_kg',
+					//dataIndex: 'vol_kg',
 					align: 'right',
-					renderer: function(v) {
-						if( !Ext.isEmpty(v) ) {
-							return v+'&#160;'+'kg' ;
-						}
+					renderer: function(v,m,r) {
+						var txt = [] ;
+						r.parcels().each( function(dimRecord) {
+							txt.push( dimRecord.get('vol_kg')+'&#160;'+'kg' ) ;
+						}) ;
+						return txt.join('<br>') ;
 					}
 				},{
 					text: 'Dimensions',
 					width: 150,
-					dataIndex: 'vol_dims'
+					//dataIndex: 'vol_dims',
+					renderer: function(v,m,r) {
+						var txt = [] ;
+						r.parcels().each( function(dimRecord) {
+							txt.push( dimRecord.get('vol_dims').join(' x ') ) ;
+						}) ;
+						return txt.join('<br>') ;
+					}
 				}],
 				store: {
-					model: 'DbsTracyFileTrsptOrderModel',
-					data: [],
+					model: 'DbsTracyTrsptTreeModel',
+					root: {root: true, children:[]},
 					proxy: {
 						type: 'memory',
 						reader: {
@@ -366,7 +421,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 				},
 				_stepsMap: stepsMap
 			},{
-				flex: 3,
+				flex: 2,
 				xtype: 'panel',
 				itemId: 'pEvents',
 				layout: 'border',
@@ -527,7 +582,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		
 		//gOrders
 		this.down('#pOrdersGrid').getEl().mask() ;
-		this.down('#pOrdersGrid').getStore().removeAll() ;
+		this.down('#pOrdersGrid').setRootNode({root:true, children:[]}) ;
 		
 		//gEvents
 		this.down('#pEvents').getEl().mask() ;
@@ -625,6 +680,52 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 			scope: this
 		}) ;
 	},
+	doBuildRootNode( trspt_hatRecords, trspt_orderRecords ) {
+		var map_hatId_arrOrderIds = {},
+			map_orderId_orderRecord = {} ;
+		map_hatId_arrOrderIds[0] = [] ;
+		Ext.Array.each( trspt_orderRecords, function( orderRecord ) {
+			var hatId = ( orderRecord.get('calc_hat_is_active') ? orderRecord.get('calc_hat_filerecord_id') : 0 ) ;
+			if( !map_hatId_arrOrderIds.hasOwnProperty(hatId) ) {
+				map_hatId_arrOrderIds[hatId] = [] ;
+			}
+			map_hatId_arrOrderIds[hatId].push( orderRecord.get('order_filerecord_id') ) ;
+			
+			map_orderId_orderRecord[orderRecord.get('order_filerecord_id')] = orderRecord ;
+		}) ;
+		
+		var map_hatId_hatRecord = {} ;
+		Ext.Array.each( trspt_hatRecords, function( hatRecord ) {
+			map_hatId_hatRecord[hatRecord.get('hat_filerecord_id')] = hatRecord ;
+		}) ;
+		
+		var treeMembers = [] ;
+		Ext.Object.each( map_hatId_arrOrderIds, function(hatId, arrOrderIds) {
+			if( hatId == 0 ) {
+				return ;
+			}
+			var leafs = [] ;
+			Ext.Array.each( arrOrderIds, function(orderId) {
+				leafs.push( Ext.apply({leaf:true, type: 'order'},map_orderId_orderRecord[orderId].getData()) ) ;
+			}) ;
+			
+			var treeMember = map_hatId_hatRecord[hatId].getData(true) ;
+			treeMember['children'] = leafs ;
+			treeMember['expanded'] = true ;
+			treeMember['type'] = 'hat' ;
+			treeMembers.push( treeMember ) ;
+		}) ;
+		Ext.Array.each( map_hatId_arrOrderIds[0], function(orderId) {
+			treeMembers.push( Ext.apply({leaf:true, type: 'order'},map_orderId_orderRecord[orderId].getData()) ) ;
+		}) ;
+		
+		
+		return {
+			root: true,
+			expanded: true,
+			children: treeMembers
+		};
+	},
 	onLoadTrspt: function( trsptRecord ) {
 		this._trsptNew = false ;
 		this._trsptFilerecordId = trsptRecord.getId() ;
@@ -660,7 +761,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		
 		//gSteps
 		this.down('#pOrdersGrid').getEl().unmask() ;
-		this.down('#pOrdersGrid').getStore().loadRawData(trsptRecord.orders().getRange()) ;
+		//this.down('#pOrdersGrid').getStore().loadRawData(trsptRecord.orders().getRange()) ;
+		var rootNode = this.doBuildRootNode( trsptRecord.hats().getRange(), trsptRecord.orders().getRange() ) ;
+		this.down('#pOrdersGrid').setRootNode(rootNode) ;
 		
 		//gAttachments
 		this.down('#pEvents').getEl().unmask() ;

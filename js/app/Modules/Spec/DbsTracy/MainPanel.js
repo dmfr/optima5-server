@@ -161,7 +161,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.MainPanel',{
 		// new window
 		this.optimaModule.createWindow({
 			title: '',
-			width:1150,
+			width:1200,
 			height:600,
 			iconCls: 'op5-crmbase-dataformwindow-icon',
 			animCollapse:false,

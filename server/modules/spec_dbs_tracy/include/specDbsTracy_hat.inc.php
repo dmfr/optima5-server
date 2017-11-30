@@ -101,6 +101,8 @@ function specDbsTracy_hat_getRecords( $post_data ) {
 		) ;
 	} elseif( isset($post_data['filter_hatFilerecordId_arr']) ) {
 		$filter_hatFilerecordId_list = $_opDB->makeSQLlist( json_decode($post_data['filter_hatFilerecordId_arr'],true) ) ;
+	} elseif( isset($post_data['filter_orderFilerecordId_arr']) ) {
+		$filter_orderFilerecordId_list = $_opDB->makeSQLlist( json_decode($post_data['filter_orderFilerecordId_arr'],true) ) ;
 	}
 	if( $post_data['filter_socCode'] ) {
 		$filter_socCode = $post_data['filter_socCode'] ;
@@ -113,7 +115,9 @@ function specDbsTracy_hat_getRecords( $post_data ) {
 	
 	$query = "SELECT * FROM view_file_HAT h" ;
 	$query.= " WHERE 1" ;
-	if( isset($filter_hatFilerecordId_list) ) {
+	if( isset($filter_orderFilerecordId_list) ) {
+		$query.= " AND h.filerecord_id IN (select filerecord_parent_id FROM view_file_HAT_CDE WHERE field_FILE_CDE_ID IN {$filter_orderFilerecordId_list})" ;
+	} elseif( isset($filter_hatFilerecordId_list) ) {
 		$query.= " AND h.filerecord_id IN {$filter_hatFilerecordId_list}" ;
 	} elseif( !$filter_archiveIsOn ) {
 		$query.= " AND h.field_ARCHIVE_IS_ON='0'" ;
@@ -137,7 +141,9 @@ function specDbsTracy_hat_getRecords( $post_data ) {
 	
 	$query = "SELECT * FROM view_file_HAT_CDE hc" ;
 	$query.= " WHERE 1" ;
-	if( isset($filter_hatFilerecordId_list) ) {
+	if( isset($filter_orderFilerecordId_list) ) {
+		$query.= " AND hc.filerecord_id IN (select filerecord_id FROM view_file_HAT_CDE WHERE field_FILE_CDE_ID IN {$filter_orderFilerecordId_list})" ;
+	} elseif( isset($filter_hatFilerecordId_list) ) {
 		$query.= " AND hc.filerecord_parent_id IN {$filter_hatFilerecordId_list}" ;
 	} elseif( !$filter_archiveIsOn ) {
 		$query.= " AND hc.filerecord_parent_id IN (SELECT filerecord_id FROM view_file_HAT WHERE field_ARCHIVE_IS_ON='0')" ;
@@ -159,7 +165,9 @@ function specDbsTracy_hat_getRecords( $post_data ) {
 	
 	$query = "SELECT * FROM view_file_HAT_PARCEL hp" ;
 	$query.= " WHERE 1" ;
-	if( isset($filter_hatFilerecordId_list) ) {
+	if( isset($filter_orderFilerecordId_list) ) {
+		$query.= " AND hp.filerecord_parent_id IN (select filerecord_parent_id FROM view_file_HAT_CDE WHERE field_FILE_CDE_ID IN {$filter_orderFilerecordId_list})" ;
+	} elseif( isset($filter_hatFilerecordId_list) ) {
 		$query.= " AND hp.filerecord_parent_id IN {$filter_hatFilerecordId_list}" ;
 	} elseif( !$filter_archiveIsOn ) {
 		$query.= " AND hp.filerecord_parent_id IN (SELECT filerecord_id FROM view_file_HAT WHERE field_ARCHIVE_IS_ON='0')" ;

@@ -272,15 +272,15 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.HatFilePanel',{
 				xtype: 'grid',
 				columns: [{
 					text: 'DN #',
-					width: 75,
+					width: 100,
 					dataIndex: 'id_dn'
 				},{
 					text: 'PO #',
-					width: 75,
+					width: 100,
 					dataIndex: 'ref_invoice'
 				},{
 					text: 'Status',
-					width: 100,
+					width: 130,
 					dataIndex: 'calc_step',
 					renderer: function(v,m,record) {
 						var stepRow = this._stepsMap[v] ;
@@ -295,25 +295,6 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.HatFilePanel',{
 							b.destroy() ;
 						return v;
 					}
-				},{
-					text: 'Prcl',
-					width: 50,
-					dataIndex: 'vol_count',
-					align: 'right'
-				},{
-					text: 'Weight',
-					width: 75,
-					dataIndex: 'vol_kg',
-					align: 'right',
-					renderer: function(v) {
-						if( !Ext.isEmpty(v) ) {
-							return v+'&#160;'+'kg' ;
-						}
-					}
-				},{
-					text: 'Dimensions',
-					width: 150,
-					dataIndex: 'vol_dims'
 				}],
 				store: {
 					model: 'DbsTracyFileHatOrderModel',

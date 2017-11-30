@@ -71,7 +71,8 @@ function specDbsTracy_trspt_getRecords( $post_data ) {
 			'calc_customs_is_wait' => ( $arr['field_CUSTOMS_IS_ON'] && specDbsTracy_trspt_tool_isDateValid($arr['field_CUSTOMS_DATE_REQUEST']) && !specDbsTracy_trspt_tool_isDateValid($arr['field_CUSTOMS_DATE_CLEARED']) ),
 			
 			'events' => array(),
-			'orders' => array()
+			'orders' => array(),
+			'hats' => array()
 		);
 	}
 	
@@ -127,8 +128,20 @@ function specDbsTracy_trspt_getRecords( $post_data ) {
 		$TAB_order[$row_order['order_filerecord_id']] = $row_order ;
 	}
 	
+	$ttmp = specDbsTracy_hat_getRecords( array(
+		'filter_socCode' => $filter_socCode,
+		'filter_orderFilerecordId_arr'=> json_encode($filter_orderFilerecordId_arr),
+		'filter_archiveIsOn' => ( $filter_archiveIsOn ? 1 : 0 ),
+		'skip_details' => 1
+	) ) ;
+	$TAB_hats = array() ;
+	foreach( $ttmp['data'] as $row_hat ) {
+		$TAB_hats[$row_hat['hat_filerecord_id']] = $row_hat ;
+	}
+	
 	foreach( $TAB_trspt as &$row_trspt ) {
 		$min_stepCode = array() ;
+		$arr_hatFilerecordIds = array() ;
 		foreach( $row_trspt['orders'] as &$row_trsptorder ) {
 			if( !($row_order = $TAB_order[$row_trsptorder['order_filerecord_id']]) ) {
 				continue ;
@@ -137,8 +150,17 @@ function specDbsTracy_trspt_getRecords( $post_data ) {
 			if( $row_order['calc_step'] ) {
 				$min_stepCode[] = $row_order['calc_step'] ;
 			}
+			if( $row_order['calc_hat_is_active'] && !in_array($row_order['calc_hat_filerecord_id'],$arr_hatFilerecordIds) ) {
+				$arr_hatFilerecordIds[] = $row_order['calc_hat_filerecord_id'] ;
+			}
 		}
 		unset($row_trsptorder) ;
+		
+		$row_trspt['hats'] = array() ;
+		foreach( $arr_hatFilerecordIds as $hat_filerecord_id ) {
+			$row_trspt['hats'][] = $TAB_hats[$hat_filerecord_id] ;
+		}
+		
 		if( $min_stepCode ) {
 			$row_trspt['calc_step'] = min($min_stepCode) ;
 		}

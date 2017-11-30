@@ -191,6 +191,10 @@ Ext.define('DbsTracyFileTrsptModel',{
 		name: 'orders',
 		associationKey: 'orders'
 	},{
+		model: 'DbsTracyFileHatModel',
+		name: 'hats',
+		associationKey: 'hats'
+	},{
 		model: 'DbsTracyFileTrsptEventModel',
 		name: 'events',
 		associationKey: 'events'

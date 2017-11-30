@@ -67,8 +67,10 @@ function specDbsTracy_order_getRecords( $post_data ) {
 			'calc_step_warning_edi' => null,
 			'calc_link_is_active' => null,
 			'calc_link_trspt_filerecord_id' => null,
+			'calc_link_trspt_txt' => null,
 			'calc_hat_is_active' => null,
-			'calc_hat_filerecord_id' => null
+			'calc_hat_filerecord_id' => null,
+			'calc_hat_txt' => null
 		);
 	}
 	

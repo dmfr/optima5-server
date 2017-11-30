@@ -1704,6 +1704,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				hatHeader['order_filerecord_id'] = null ;
 				hatHeader['hat_filerecord_id'] = hatData.hat_filerecord_id ;
 				hatHeader['calc_step'] = row.calc_step ;
+				hatHeader['calc_link_is_active'] = row.calc_link_is_active ;
+				hatHeader['calc_link_trspt_filerecord_id'] = row.calc_link_trspt_filerecord_id ;
+				hatHeader['calc_link_trspt_txt'] = row.calc_link_trspt_txt ;
 				hatHeader['_color'] = row._color ;
 				Ext.Object.each( row, function(k,v) {
 					if( Ext.Array.contains(['txt','atr','ref'],k.split('_')[0]) ) {
