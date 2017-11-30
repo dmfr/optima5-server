@@ -1168,6 +1168,10 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 			name: 'hat_filerecord_id',
 			type: 'int'
 		}) ;
+		cmpModelfields.push({
+			name: 'id_hat',
+			type: 'string'
+		}) ;
 		
 		var kpiCodeColumns = [] ;
 		Ext.Array.each( Optima5.Modules.Spec.DbsTracy.HelperCache.getKpiCodeAll(), function(kpicode) {
@@ -1700,6 +1704,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				var hatData = map_hatId_hatRow[map_orderId_hatId[orderFilerecordId]],
 					hatHeader = {} ;
 				hatHeader['id_soc'] = hatData.id_soc ;
+				hatHeader['id_hat'] = hatData.id_hat ;
 				hatHeader['id_dn'] = hatData.id_hat ;
 				hatHeader['order_filerecord_id'] = null ;
 				hatHeader['hat_filerecord_id'] = hatData.hat_filerecord_id ;

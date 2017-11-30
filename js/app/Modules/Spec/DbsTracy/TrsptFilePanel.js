@@ -592,15 +592,19 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		this.setTitle('New TrsptFile') ;
 		
 		if( trsptNew_orderRecords != null && trsptNew_orderRecords.length>0 ){
-			var trsptNew_orderLeafRecords = [] ;
+			var trsptNew_orderLeafRecords = [],
+				trsptNew_hatRecords = [] ;
 			Ext.Array.each( trsptNew_orderRecords, function(trsptNew_orderRecord) {
 				trsptNew_orderRecord.cascadeBy( function(trsptNew_orderChildRecord) {
 					if( trsptNew_orderChildRecord.isLeaf() ) {
 						trsptNew_orderLeafRecords.push(trsptNew_orderChildRecord) ;
+					} else {
+						trsptNew_hatRecords.push(trsptNew_orderChildRecord) ;
 					}
 				}) ;
 			}) ;
-			this.down('#pOrdersGrid').getStore().add(trsptNew_orderLeafRecords) ;
+			var rootNode = this.doBuildRootNode( trsptNew_hatRecords, trsptNew_orderLeafRecords ) ;
+			this.down('#pOrdersGrid').setRootNode(rootNode) ;
 			
 			var passed = true ;
 			Ext.Array.each( trsptNew_orderLeafRecords, function(orderRecord) {
@@ -709,16 +713,20 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 				leafs.push( Ext.apply({leaf:true, type: 'order'},map_orderId_orderRecord[orderId].getData()) ) ;
 			}) ;
 			
-			var treeMember = map_hatId_hatRecord[hatId].getData(true) ;
+			var hatRow = map_hatId_hatRecord[hatId].getData(true) ;
+			var treeMember = {} ;
+			treeMember['id_hat'] = hatRow['id_hat'] ;
+			treeMember['calc_step'] = hatRow['calc_step'] ;
+			treeMember['parcels'] = hatRow['parcels'] ;
 			treeMember['children'] = leafs ;
 			treeMember['expanded'] = true ;
 			treeMember['type'] = 'hat' ;
+			treeMember['leaf'] = false ;
 			treeMembers.push( treeMember ) ;
 		}) ;
 		Ext.Array.each( map_hatId_arrOrderIds[0], function(orderId) {
 			treeMembers.push( Ext.apply({leaf:true, type: 'order'},map_orderId_orderRecord[orderId].getData()) ) ;
 		}) ;
-		
 		
 		return {
 			root: true,
@@ -851,8 +859,10 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		
 		var gridOrders = this.down('#pOrdersGrid'),
 			orderFilerecordIds = [] ;
-		gridOrders.getStore().each( function(orderRecord) {
-			orderFilerecordIds.push(orderRecord.get('order_filerecord_id')) ;
+		gridOrders.getRootNode().cascadeBy( function(orderRecord) {
+			if( orderRecord.get('order_filerecord_id') > 0 ) {
+				orderFilerecordIds.push(orderRecord.get('order_filerecord_id')) ;
+			}
 		}) ;
 		
 		this.showLoadmask() ;

@@ -304,7 +304,7 @@ function specDbsTracy_trspt_orderAdd( $post_data ) {
 	}
 	foreach( $ttmp['data'][0]['steps'] as $row_order_step ) {
 		if( $row_order_step['step_code'] == '30_DOCS' && !$row_order_step['status_is_ok'] ) {
-			return array('success'=>false, 'error'=>"Order {$ttmp['data'][0]['id_dn']} not ready") ;
+			//return array('success'=>false, 'error'=>"Order {$ttmp['data'][0]['id_dn']} not ready") ;
 		}
 	}
 	
