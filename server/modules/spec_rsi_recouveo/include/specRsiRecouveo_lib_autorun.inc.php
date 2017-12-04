@@ -203,15 +203,15 @@ function specRsiRecouveo_lib_autorun_adrbook( $acc_id=NULL ) {
 		$arr_accIds = array($acc_id) ;
 	}
 	
-	foreach( $arr_accIds as $acc_id ) {
+	foreach( $arr_accIds as $t_acc_id ) {
 		$query = "UPDATE view_file_ADRBOOK_ENTRY ae
 				JOIN view_file_ADRBOOK a ON a.filerecord_id=ae.filerecord_parent_id
 				SET ae.field_STATUS_IS_PRIORITY='0'
-				WHERE a.field_ACC_ID='{$acc_id}' AND ae.field_STATUS_IS_INVALID='1'" ;
+				WHERE a.field_ACC_ID='{$t_acc_id}' AND ae.field_STATUS_IS_INVALID='1'" ;
 		$_opDB->query($query) ;
 				
 		
-		$ttmp = specRsiRecouveo_account_open(array('acc_id'=>$acc_id)) ;
+		$ttmp = specRsiRecouveo_account_open(array('acc_id'=>$t_acc_id)) ;
 		$account_record = $ttmp['data'] ;
 		
 		$map_adrType_ids = array() ;
@@ -235,7 +235,7 @@ function specRsiRecouveo_lib_autorun_adrbook( $acc_id=NULL ) {
 			}
 		}
 		/*
-		echo $acc_id."\n" ;
+		echo $t_acc_id."\n" ;
 		print_r($map_adrType_ids) ;
 		echo "\n\n\n" ;
 		continue ;
@@ -259,26 +259,29 @@ function specRsiRecouveo_lib_autorun_adrbook( $acc_id=NULL ) {
 	
 	
 	
-	// Comptes sans adresse de contact
-	$arr_searchAccIds = array() ;
-	$query = "SELECT distinct field_LINK_ACCOUNT FROM view_file_FILE f
-				WHERE f.field_STATUS_CLOSED_VOID='0' AND f.field_STATUS_CLOSED_END='0'
-				AND f.field_LINK_ACCOUNT NOT IN (
-					SELECT distinct a.field_ACC_ID
-					FROM view_file_ADRBOOK a
-					, view_file_ADRBOOK_ENTRY ae
-					WHERE a.filerecord_id = ae.filerecord_parent_id
-					AND ae.field_STATUS_IS_PRIORITY='1' AND ae.field_ADR_TYPE IN ('POSTAL','TEL')
-				)" ;
-	$result = $_opDB->query($query) ;
-	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
-		$arr_searchAccIds[] = $arr[0] ;
-	}
-	
-	foreach($arr_searchAccIds as $acc_id) {
+	if( !$acc_id ) {
+		// Comptes sans adresse de contact
+		$arr_searchAccIds = array() ;
+		$query = "SELECT distinct field_LINK_ACCOUNT FROM view_file_FILE f
+					WHERE f.field_STATUS_CLOSED_VOID='0' AND f.field_STATUS_CLOSED_END='0'
+					AND f.field_LINK_ACCOUNT NOT IN (
+						SELECT distinct a.field_ACC_ID
+						FROM view_file_ADRBOOK a
+						, view_file_ADRBOOK_ENTRY ae
+						WHERE a.filerecord_id = ae.filerecord_parent_id
+						AND ae.field_STATUS_IS_PRIORITY='1' AND ae.field_ADR_TYPE IN ('POSTAL','TEL')
+					)" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$arr_searchAccIds[] = $arr[0] ;
+		}
+		
+		foreach($arr_searchAccIds as $t_acc_id) {
+			specRsiRecouveo_lib_autorun_checkAdrStatus($t_acc_id) ;
+		}
+	} else {
 		specRsiRecouveo_lib_autorun_checkAdrStatus($acc_id) ;
 	}
-
 }
 
 function specRsiRecouveo_lib_autorun_checkAdrStatus( $acc_id ) {
@@ -324,17 +327,57 @@ function specRsiRecouveo_lib_autorun_checkAdrStatus( $acc_id ) {
 		WHERE f.field_LINK_ACCOUNT='{$acc_id}' AND f.field_STATUS_CLOSED_VOID='0' AND f.field_STATUS_CLOSED_END='0' AND field_STATUS='{$src_status}'" ;
 	$_opDB->query($query) ;
 	
-	$query = "UPDATE view_file_FILE_ACTION fa
+	if( !$has_priority ) {
+		$query = "UPDATE view_file_FILE_ACTION fa
+						JOIN view_file_FILE f ON f.filerecord_id=fa.filerecord_parent_id
+						SET field_LINK_STATUS='S1_SEARCH'
+						, field_LINK_ACTION='BUMP'
+						, field_SCENSTEP_TAG=''
+						, field_DATE_SCHED=IF( field_DATE_SCHED>DATE(NOW()) , DATE(NOW()) , field_DATE_SCHED )
+						, field_LINK_TXT='Recherche coordonnées'
+						, field_LINK_TPL=''
+						WHERE f.field_LINK_ACCOUNT='{$acc_id}' AND f.field_STATUS_CLOSED_VOID='0' AND f.field_STATUS_CLOSED_END='0' AND f.field_STATUS='S1_SEARCH'
+						AND fa.field_STATUS_IS_OK='0'" ;
+		$_opDB->query($query) ;
+	} 
+	if( $has_priority ) {
+		$query = "SELECT f.filerecord_id AS file_filerecord_id, fa.filerecord_id AS fileaction_filerecord_id
+					FROM view_file_FILE_ACTION fa
 					JOIN view_file_FILE f ON f.filerecord_id=fa.filerecord_parent_id
-					SET field_LINK_STATUS='S1_SEARCH'
-					, field_LINK_ACTION='BUMP'
-					, field_SCENSTEP_TAG=''
-					, field_DATE_SCHED=IF( field_DATE_SCHED>DATE(NOW()) , DATE(NOW()) , field_DATE_SCHED )
-					, field_LINK_TXT='Recherche coordonnées'
-					, field_LINK_TPL=''
-					WHERE f.field_LINK_ACCOUNT='{$acc_id}' AND f.field_STATUS_CLOSED_VOID='0' AND f.field_STATUS_CLOSED_END='0' AND f.field_STATUS='S1_SEARCH'
-					AND fa.field_STATUS_IS_OK='0'" ;
-	$_opDB->query($query) ;
+					WHERE f.field_STATUS='S1_OPEN' AND f.field_LINK_ACCOUNT='{$acc_id}' AND f.field_STATUS_CLOSED_VOID='0' AND f.field_STATUS_CLOSED_END='0'
+					AND fa.field_LINK_STATUS='S1_SEARCH' AND fa.field_LINK_ACTION='BUMP' AND fa.field_STATUS_IS_OK='0'" ;
+		$result = $_opDB->query($query) ;
+		$arr = $_opDB->fetch_assoc($result) ;
+		if( $arr ) {
+			$file_filerecord_id = $arr['file_filerecord_id'] ;
+			$fileaction_filerecord_id = $arr['fileaction_filerecord_id'] ;
+			
+			$forward_post = array() ;
+			$forward_post['fileaction_filerecord_id'] = $fileaction_filerecord_id;
+			$forward_post['link_status'] = 'S1_OPEN' ;
+			$forward_post['link_action'] = 'BUMP' ;
+			
+			// next action ?
+			$json = specRsiRecouveo_file_getScenarioLine( array(
+				'file_filerecord_id' => $file_filerecord_id,
+				'fileaction_filerecord_id' => $fileaction_filerecord_id
+			)) ;
+			foreach( $json['data'] as $scenline_dot ) {
+				if( $scenline_dot['is_next'] ) {
+					$forward_post['next_action'] = $scenline_dot['link_action'] ;
+					$forward_post['next_scenstep_code'] = $scenline_dot['scenstep_code'] ;
+					$forward_post['next_scenstep_tag'] = $scenline_dot['scenstep_tag'] ;
+					$forward_post['next_date'] = $scenline_dot['date_sched'] ;
+				}
+			}
+			
+			$post_data = array(
+				'file_filerecord_id' => $file_filerecord_id,
+				'data' => json_encode($forward_post)
+			);
+			specRsiRecouveo_action_doFileAction($post_data) ;
+		}
+	}
 }
 
 
