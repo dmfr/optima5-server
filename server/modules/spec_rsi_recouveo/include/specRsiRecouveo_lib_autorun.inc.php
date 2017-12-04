@@ -381,4 +381,157 @@ function specRsiRecouveo_lib_autorun_checkAdrStatus( $acc_id ) {
 }
 
 
+
+
+function specRsiRecouveo_lib_autorun_processInbox() {
+	global $_opDB ;
+	
+	$query = "SELECT filerecord_id FROM view_file_IN_POSTAL WHERE field_LINK_IS_ON='0'" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		specRsiRecouveo_lib_autorun_processInboxDoc($arr[0]) ;
+	}
+	
+	
+	
+	
+}
+function specRsiRecouveo_lib_autorun_processInboxDoc($inpostal_filerecord_id) {
+	global $_opDB ;
+	
+	$query = "SELECT * FROM view_file_IN_POSTAL WHERE filerecord_id='{$inpostal_filerecord_id}'" ;
+	$result = $_opDB->query($query) ;
+	$src = $_opDB->fetch_assoc($result) ;
+	if( !$src ) {
+		return ;
+	}
+	
+	// Load MAILIN param
+	$ttmp = specRsiRecouveo_cfg_getConfig() ;
+	$cfg_mailin = NULL ;
+	foreach( $ttmp['data']['cfg_opt'] as $cfg_opt ) {
+		if( $cfg_opt['bible_code'] == 'OPT_MAILIN' ) {
+			foreach( $cfg_opt['records'] as $rec ) {
+				if( $rec['id'] == $src['field_OPT_MAILIN'] ) {
+					$cfg_mailin = $rec ;
+					break ;
+				}
+			}
+		}
+	}
+	if( !$cfg_mailin ) {
+		return ;
+	}
+	
+	
+	if( $cfg_mailin['parent'] == 'NOK' ) {
+			// recherche action originale
+			$query = "SELECT fa.filerecord_id 
+						FROM view_file_ENVELOPE env
+						JOIN view_file_FILE_ACTION fa ON fa.field_LINK_ENV_ID=env.filerecord_id
+						WHERE env.field_ENV_REF='{$src['field_REF_MAILOUT']}'" ;
+			$fileaction_filerecord_id = $_opDB->query_uniqueValue($query) ;
+			
+			// controle anti-doublon
+			$query = "SELECT count(*) FROM view_file_IN_POSTAL WHERE field_LINK_IS_ON='1' AND field_LINK_FILE_ACTION_ID='{$fileaction_filerecord_id}'" ;
+			if( $_opDB->query_uniqueValue($query) > 0 ) {
+				//break ;
+			}
+			
+			$query = "SELECT * FROM view_file_FILE_ACTION WHERE filerecord_id='{$fileaction_filerecord_id}'" ;
+			$result = $_opDB->query($query) ;
+			$fileaction_dbrow = $_opDB->fetch_assoc($result) ;
+			print_r($fileaction_dbrow) ;
+			
+			$arr_ins = array() ;
+			$arr_ins['field_LINK_MAILIN'] = $src['field_OPT_MAILIN'] ;
+			paracrm_lib_data_updateRecord_file( 'FILE_ACTION', $arr_ins, $fileaction_filerecord_id);
+			
+			$arr_ins = array() ;
+			$arr_ins['field_LINK_IS_ON'] = 1 ;
+			$arr_ins['field_LINK_FILE_ACTION_ID'] = $fileaction_filerecord_id ;
+			paracrm_lib_data_updateRecord_file( 'IN_POSTAL', $arr_ins, $inpostal_filerecord_id);
+			
+			//recherche adresse à invalider
+			$query = "SELECT env.field_RECEP_ADR
+						FROM view_file_ENVELOPE env
+						WHERE env.field_ENV_REF='{$src['field_REF_MAILOUT']}'" ;
+			$recep_adr = $_opDB->query_uniqueValue($query) ;
+			$ttmp = explode("\n",$recep_adr,2) ;
+			$adr_txt = $ttmp[1] ;
+			$query = "SELECT ae.filerecord_id FROM view_file_ADRBOOK_ENTRY ae
+					JOIN view_file_ADRBOOK a ON a.filerecord_id=ae.filerecord_parent_id
+					WHERE a.field_ACC_ID='{$src['field_REF_ACCOUNT']}'
+					AND ae.field_ADR_TXT LIKE '%{$adr_txt}%'" ;
+			$adrbookentry_filerecord_id = $_opDB->query_uniqueValue($query) ;
+			
+			if( $adrbookentry_filerecord_id ) {
+				$arr_update = array() ;
+				$arr_update['field_STATUS_IS_INVALID'] = 1 ;
+				$arr_update['field_STATUS_IS_CONFIRM'] = 0 ;
+				$arr_update['field_STATUS_IS_PRIORITY'] = 0 ;
+				paracrm_lib_data_updateRecord_file( 'ADRBOOK_ENTRY', $arr_update, $adrbookentry_filerecord_id);
+				
+				specRsiRecouveo_lib_autorun_checkAdrStatus( $src['field_REF_ACCOUNT'] ) ;
+			}
+			
+	} elseif( $cfg_mailin['id'] == 'MAIL_OK' ) {
+			$ttmp = specRsiRecouveo_cfg_getConfig() ;
+			$cfg_atr = $ttmp['data']['cfg_atr'] ;
+			$cfg_status = $ttmp['data']['cfg_status'] ;
+			$map_status = array() ;
+			foreach( $cfg_status as $status ) {
+				$map_status[$status['status_id']] = $status ;
+			}
+	
+			// Recherche FILE :
+				// ouvert + is_schedlock=FALSE
+				// ouvert
+			$arrFileIds_noSchedlock = array() ;
+			$arrFileIds = array() ;
+			$ttmp = specRsiRecouveo_account_open(array('acc_id'=>$src['field_REF_ACCOUNT'])) ;
+			$account_record = $ttmp['data'] ;
+			foreach( $account_record['files'] as $accountFile_record ) {
+				if( $accountFile_record['status_closed_void'] || $accountFile_record['status_closed_end'] ) {
+					continue ;
+				}
+				$arrFileIds[] = $accountFile_record['file_filerecord_id'] ;
+				if( !$map_status[$accountFile_record['status']]['sched_lock'] ) {
+					$arrFileIds_noSchedlock[] = $accountFile_record['file_filerecord_id'] ;
+				}
+			}
+			$target_file_filerecord_id = NULL ;
+			if( $arrFileIds_noSchedlock ) {
+				$target_file_filerecord_id = reset($arrFileIds_noSchedlock) ;
+			} elseif( $arrFileIds ) {
+				$target_file_filerecord_id = reset($arrFileIds) ;
+			}
+			
+			
+			// Execution d'une action de communication
+			if( $target_file_filerecord_id ) {
+				foreach( $account_record['files'] as $accountFile_record ) {
+					if( $accountFile_record['file_filerecord_id'] == $target_file_filerecord_id ) {
+						$target_file_record = $accountFile_record ;
+					}
+				}
+				
+				$forward_post = array() ;
+				$forward_post['link_status'] = $target_file_record['status'] ;
+				$forward_post['link_action'] = 'MAIL_IN' ;
+				$forward_post['inpostal_filerecord_id'] = $inpostal_filerecord_id ;
+				
+				$post_data = array(
+					'file_filerecord_id' => $target_file_record['file_filerecord_id'],
+					'data' => json_encode($forward_post)
+				);
+				specRsiRecouveo_action_doFileAction($post_data) ;
+			}
+	}
+	
+	
+	
+}
+
+
 ?>

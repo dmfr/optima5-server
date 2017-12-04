@@ -76,6 +76,8 @@ Ext.define('RsiRecouveoFileActionModel',{
 		
 		{name: 'link_newfile_filerecord_id', type: 'int', allowNull:true},
 		{name: 'link_env_filerecord_id', type: 'int', allowNull:true},
+		{name: 'link_media_file_code', type: 'string', allowNull:true},
+		{name: 'link_media_filerecord_id', type: 'int', allowNull:true},
 		
 		{name: 'link_tpl', type: 'string'},
 		{name: 'link_litig', type: 'string'},

@@ -10,6 +10,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 	$cfg_actionnext = $ttmp['data']['cfg_actionnext'] ;
 	$cfg_balage = $ttmp['data']['cfg_balage'] ;
 	$cfg_atr = $ttmp['data']['cfg_atr'] ;
+	$cfg_opts = $ttmp['data']['cfg_opt'] ;
 	
 	$map_status = array() ;
 	foreach( $cfg_status as $status ) {
@@ -23,6 +24,16 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 	foreach( $cfg_actionnext as $actionnext ) {
 		$map_actionnext[$actionnext['id']] = $actionnext['text'] ;
 	}
+	
+	$map_mailin = array() ;
+	foreach( $cfg_opts as $cfg_opt ) {
+		if( $cfg_opt['bible_code'] == 'OPT_MAILIN' ) {
+			foreach( $cfg_opt['records'] as $rec ) {
+				$map_mailin[$rec['id']] = $rec['text'] ;
+			}
+		}
+	}
+	
 	
 	if( $post_data['filter_atr'] ) {
 		$filter_atr = json_decode($post_data['filter_atr'],true) ;
@@ -197,8 +208,11 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			
 			'link_newfile_filerecord_id' => ($arr['field_LINK_NEW_FILE_ID'] > 0 ? $arr['field_LINK_NEW_FILE_ID'] : null),
 			'link_env_filerecord_id' => ($arr['field_LINK_ENV_ID'] > 0 ? $arr['field_LINK_ENV_ID'] : null),
+			'link_media_file_code' => ($arr['field_LINK_MEDIA_FILECODE'] ? $arr['field_LINK_MEDIA_FILECODE'] : null),
+			'link_media_filerecord_id' => ($arr['field_LINK_MEDIA_FILEID'] > 0 ? $arr['field_LINK_MEDIA_FILEID'] : null),
 			
 			'link_tpl' => $arr['field_LINK_TPL'],
+			'link_mailin' => $arr['field_LINK_MAILIN'],
 			'link_litig' => $arr['field_LINK_LITIG'],
 			'link_close' => $arr['field_LINK_CLOSE'],
 			'link_txt' => $arr['field_LINK_TXT']
@@ -397,7 +411,11 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 				$txt_short.= $file_action_row['link_txt'] ;
 			} elseif( $file_action_row['link_tpl'] ) {
 				$search_id = 'MAIL_OUT'.'_'.$file_action_row['link_tpl'] ;
-				$txt_short.= $map_actionnext[$search_id]."\r\n" ;
+				$txt_short.= $map_actionnext[$search_id] ;
+				if( $file_action_row['link_mailin'] ) {
+					$txt_short.= '&nbsp;>>&nbsp;<font color="red">'.$map_mailin[$file_action_row['link_mailin']].'</font>' ;
+				}
+				$txt_short.= "\r\n" ;
 			} elseif( $file_action_row['link_litig'] ) {
 				$search_id = 'LITIG_FOLLOW'.'_'.$file_action_row['link_litig'] ;
 				$txt_short.= $map_actionnext[$search_id]."\r\n" ;

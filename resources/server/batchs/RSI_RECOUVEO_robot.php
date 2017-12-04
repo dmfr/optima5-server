@@ -38,6 +38,10 @@ echo "Opening new files..." ;
 specRsiRecouveo_lib_autorun_open() ;
 echo "OK\n" ;
 
+echo "Processing INBOX..." ;
+specRsiRecouveo_lib_autorun_processInbox() ;
+echo "OK\n" ;
+
 echo "Checking addressbook..." ;
 specRsiRecouveo_lib_autorun_adrbook() ;
 echo "OK\n" ;

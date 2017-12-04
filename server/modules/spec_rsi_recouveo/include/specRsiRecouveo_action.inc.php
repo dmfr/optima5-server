@@ -456,45 +456,62 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 	
 	
 	
-	// ******** Création enveloppe ? **********
-	$envDocs = array() ;
-	$meta_data = NULL ;
-	if( $post_form['tpl_id'] ) {
-		// input fields
-		$input_fields = array() ;
-		foreach( $post_form as $mkey => $mvalue ) {
-			if( strpos($mkey,'input_')===0 ) {
-				$input_fields[$mkey] = $mvalue ;
+	if( $post_form['link_action']=='MAIL_OUT' ) {
+		// ******** Création enveloppe ? **********
+		$envDocs = array() ;
+		$meta_data = NULL ;
+		if( $post_form['tpl_id'] ) {
+			// input fields
+			$input_fields = array() ;
+			foreach( $post_form as $mkey => $mvalue ) {
+				if( strpos($mkey,'input_')===0 ) {
+					$input_fields[$mkey] = $mvalue ;
+				}
+			}
+			
+			// Modif 18/05/2017 : Nom du contact (vérif non vide)
+			if( !trim($post_form['adrpost_entity_name']) ) {
+				$post_form['adrpost_entity_name'] = $file_record['acc_txt'] ;
+			}
+		
+			$json = specRsiRecouveo_doc_getMailOut( array(
+				'tpl_id' => $post_form['tpl_id'],
+				'file_filerecord_id' => $post_data['file_filerecord_id'],
+				'adr_name' => $post_form['adrpost_entity_name'],
+				'adr_postal' => $post_form['adrpost_txt'],
+				'input_fields' => json_encode($input_fields)
+			)) ;
+			$envDocs[] = $json['data'] ;
+			
+			$meta_data = $json['meta'] ;
+		}
+		if( $post_form['attachments'] ) {
+			foreach( json_decode($post_form['attachments'],true) as $doc ) {
+				$envDocs[] = $doc ;
 			}
 		}
-		
-		// Modif 18/05/2017 : Nom du contact (vérif non vide)
-		if( !trim($post_form['adrpost_entity_name']) ) {
-			$post_form['adrpost_entity_name'] = $file_record['acc_txt'] ;
-		}
-	
-		$json = specRsiRecouveo_doc_getMailOut( array(
-			'tpl_id' => $post_form['tpl_id'],
-			'file_filerecord_id' => $post_data['file_filerecord_id'],
-			'adr_name' => $post_form['adrpost_entity_name'],
-			'adr_postal' => $post_form['adrpost_txt'],
-			'input_fields' => json_encode($input_fields)
-		)) ;
-		$envDocs[] = $json['data'] ;
-		
-		$meta_data = $json['meta'] ;
-	}
-	if( $post_form['attachments'] ) {
-		foreach( json_decode($post_form['attachments'],true) as $doc ) {
-			$envDocs[] = $doc ;
+		if( $envDocs ) {
+			$env_filerecord_id = specRsiRecouveo_doc_buildEnvelope( $post_data['file_filerecord_id'], $envDocs, $meta_data ) ;
+			
+			$arr_ins = array() ;
+			$arr_ins['field_LINK_ENV_ID'] = $env_filerecord_id ;
+			paracrm_lib_data_updateRecord_file( 'FILE_ACTION', $arr_ins, $fileaction_filerecord_id);
 		}
 	}
-	if( $envDocs ) {
-		$env_filerecord_id = specRsiRecouveo_doc_buildEnvelope( $post_data['file_filerecord_id'], $envDocs, $meta_data ) ;
-		
-		$arr_ins = array() ;
-		$arr_ins['field_LINK_ENV_ID'] = $env_filerecord_id ;
-		paracrm_lib_data_updateRecord_file( 'FILE_ACTION', $arr_ins, $fileaction_filerecord_id);
+	if( $post_form['link_action']=='MAIL_IN' ) {
+		if( $post_form['attachments'] && !$post_form['inpostal_filerecord_id'] ) {
+			$docs = array() ;
+			foreach( json_decode($post_form['attachments'],true) as $doc ) {
+				$docs[] = $doc ;
+			}
+			$post_form['inpostal_filerecord_id'] = specRsiRecouveo_doc_buildInPostal( $fileaction_filerecord_id, $docs ) ;
+		}
+		if( $post_form['inpostal_filerecord_id'] ) {
+			$arr_ins = array() ;
+			$arr_ins['field_LINK_MEDIA_FILECODE'] = 'IN_POSTAL' ;
+			$arr_ins['field_LINK_MEDIA_FILEID'] = $post_form['inpostal_filerecord_id'] ;
+			paracrm_lib_data_updateRecord_file( 'FILE_ACTION', $arr_ins, $fileaction_filerecord_id);
+		}
 	}
 	
 	

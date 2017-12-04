@@ -1378,15 +1378,24 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 						tooltip: 'Visualiser',
 						handler: function(grid, rowIndex, colIndex, item, e) {
 							var rec = grid.getStore().getAt(rowIndex);
-							this.openEnvelope(rec.get('link_env_filerecord_id')) ;
+							if( rec.get('link_env_filerecord_id') ) {
+								this.openEnvelope(rec.get('link_env_filerecord_id')) ;
+							}
+							if( rec.get('link_media_file_code') && rec.get('link_media_filerecord_id') ) {
+								this.openMedia(rec.get('link_media_file_code'),rec.get('link_media_filerecord_id')) ;
+							}
 						},
 						scope: this,
 						disabledCls: 'x-item-invisible',
 						isDisabled: function(view,rowIndex,colIndex,item,record ) {
-							if( !record.get('link_env_filerecord_id') ) {
-								return true ;
+							var passed = false ;
+							if( record.get('link_env_filerecord_id') ) {
+								passed = true ;
 							}
-							return false ;
+							if( record.get('link_media_file_code') && record.get('link_media_filerecord_id') ) {
+								passed = true ;
+							}
+							return !passed ;
 						}
 					}]
 				}]
@@ -2044,6 +2053,22 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			items:[Ext.create('Optima5.Modules.Spec.RsiRecouveo.EnvPreviewPanel',{
 				optimaModule: this.optimaModule,
 				_envFilerecordId: envFilerecordId
+			})]
+		}) ;
+	},
+	openMedia: function(mediaFileCode, mediaFilerecordId) {
+		this.optimaModule.createWindow({
+			width:1200,
+			height:800,
+			iconCls: 'op5-crmbase-qresultwindow-icon',
+			animCollapse:false,
+			border: false,
+			layout:'fit',
+			title: 'Visualisation',
+			items:[Ext.create('Optima5.Modules.Spec.RsiRecouveo.EnvPreviewPanel',{
+				optimaModule: this.optimaModule,
+				_mediaFileCode: mediaFileCode,
+				_mediaFilerecordId: mediaFilerecordId
 			})]
 		}) ;
 	},

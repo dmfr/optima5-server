@@ -679,6 +679,44 @@ function specRsiRecouveo_doc_getEnvGrid( $post_data ) {
 
 
 
+function specRsiRecouveo_doc_getMedias( $post_data ) {
+	global $_opDB ;
+	
+	$p_mediaFileCode = $post_data['media_file_code'] ;
+	$p_mediaFilerecordId = $post_data['media_filerecord_id'] ;
+	
+	switch( $p_mediaFileCode ) {
+		case 'IN_POSTAL' :
+			$media_file_code = 'IN_POSTAL' ;
+			$mediadoc_file_code = 'IN_POSTAL_DOC' ;
+			break ;
+		default :
+			return array('success'=>false) ;
+	}
+	
+	$query = "SELECT mediadoc.* FROM view_file_{$mediadoc_file_code} mediadoc" ;
+	$query.= " JOIN view_file_{$media_file_code} media ON media.filerecord_id=mediadoc.filerecord_parent_id" ;
+	$query.= " WHERE media.filerecord_id='{$p_mediaFilerecordId}'" ;
+	$result = $_opDB->query($query) ;
+	$TAB = array() ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$TAB[] = array(
+			'mediadoc_file_code' => $mediadoc_file_code,
+			'mediadoc_filerecord_id' => $arr['filerecord_id'],
+			'mediadoc_media_id' => media_pdf_toolFile_getId($mediadoc_file_code,$arr['filerecord_id']),
+			'doc_desc' => $arr['field_DOC_DESC'],
+			'doc_pagecount' => $arr['field_DOC_PAGECOUNT']
+		);
+	}
+	
+	return array('success'=>true, 'data'=>array_values($TAB)) ;
+
+}
+
+
+
+
+
 function specRsiRecouveo_doc_postInbox( $post_data ) {
 	global $_opDB ;
 	usleep(500000) ;
@@ -726,6 +764,7 @@ function specRsiRecouveo_doc_postInbox( $post_data ) {
 	
 	if( $media_id ) {
 		$arr_ins = array() ;
+		$arr_ins['field_DOC_DESC'] = 'Mail Inbox' ;
 		$arr_ins['field_DOC_PAGECOUNT'] = media_pdf_getPageCount($media_id) ;
 		$inpostaldoc_filerecord_id = paracrm_lib_data_insertRecord_file( 'IN_POSTAL_DOC', $inpostal_filerecord_id, $arr_ins );
 		media_pdf_move( $media_id,  media_pdf_toolFile_getId('IN_POSTAL_DOC',$inpostaldoc_filerecord_id) ) ;
@@ -735,5 +774,41 @@ function specRsiRecouveo_doc_postInbox( $post_data ) {
 	
 	return array('success'=>true) ;
 }
+
+
+
+
+
+
+
+function specRsiRecouveo_doc_buildInPostal( $fileaction_filerecord_id, $docs ) {
+	global $_opDB ;
+	$query = "SELECT f.field_LINK_ACCOUNT FROM view_file_FILE_ACTION fa
+			JOIN view_file_FILE f ON f.filerecord_id=fa.filerecord_parent_id
+			WHERE fa.filerecord_id='{$fileaction_filerecord_id}'" ;
+	$link_account = $_opDB->query_uniqueValue($query) ;
+	
+	$arr_ins = array() ;
+	$arr_ins['field_OPT_MAILIN'] = 'MAIL_OK' ;
+	$arr_ins['field_REF_ACCOUNT'] = $link_account ;
+	$arr_ins['field_DATE_RECEP'] = date('Y-m-d') ;
+	$arr_ins['field_LINK_IS_ON'] = 1 ;
+	$arr_ins['field_LINK_FILE_ACTION_ID'] = $fileaction_filerecord_id ;
+	$inpostal_filerecord_id = paracrm_lib_data_insertRecord_file( 'IN_POSTAL', 0, $arr_ins );
+	
+	media_contextOpen( $_POST['_sdomainId'] ) ;
+	foreach( $docs as $doc ) {
+		$arr_ins = array() ;
+		$arr_ins['field_DOC_DESC'] = $doc['doc_desc'] ;
+		$arr_ins['field_DOC_PAGECOUNT'] = $doc['doc_pagecount'] ;
+		$inpostaldoc_filerecord_id = paracrm_lib_data_insertRecord_file( 'IN_POSTAL_DOC', $inpostal_filerecord_id, $arr_ins );
+		
+		media_pdf_move( $doc['envdoc_media_id'],  media_pdf_toolFile_getId('IN_POSTAL_DOC',$inpostaldoc_filerecord_id) ) ;
+	}
+	media_contextClose() ;
+	
+	return $inpostal_filerecord_id ;
+}
+
 
 ?>
