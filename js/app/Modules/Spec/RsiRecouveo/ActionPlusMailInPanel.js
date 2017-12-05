@@ -37,10 +37,36 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailInPanel',{
 							field.setVisible( !Ext.isEmpty(val) ) ;
 						}
 					}
-				},Ext.create('Optima5.Modules.Spec.RsiRecouveo.AttachmentsFieldPanel',{
-					name: 'attachments',
-					optimaModule: this.optimaModule
-				})]
+				},{
+					xtype      : 'fieldcontainer',
+					defaultType: 'radiofield',
+					defaults: {
+						flex: 1,
+						listeners: {
+							change: function( field, value ) {
+								this.onSelectAdrType() ;
+							},
+							scope: this
+						}
+					},
+					layout: 'hbox',
+					items: [
+						{
+							boxLabel  : 'Courrier postal',
+							name      : 'adr_type',
+							inputValue: 'POSTAL'
+						}, {
+							boxLabel  : 'Email',
+							name      : 'adr_type',
+							inputValue: 'EMAIL'
+						}
+					]
+				},{
+					xtype: 'container',
+					itemId: 'cntAdr',
+					layout: 'fit',
+					border: false
+				}]
 			},{
 				xtype: 'box',
 				width: 16
@@ -48,7 +74,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailInPanel',{
 				flex: 1,
 				xtype: 'fieldset',
 				padding: 10,
-				title: 'Compte-rendu',
+				title: 'Pièces courrier',
 				layout: {
 					type: 'anchor'
 				},
@@ -56,10 +82,15 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailInPanel',{
 					anchor: '100%',
 					labelWidth: 80
 				},
-				items: [{
+				items: [Ext.create('Optima5.Modules.Spec.RsiRecouveo.AttachmentsFieldPanel',{
+					name: 'attachments',
+					optimaModule: this.optimaModule
+				}),{
+					style: 'margin-top: 8px;',
+					fieldLabel: 'Commentaire',
 					xtype: 'textarea',
 					name: 'txt',
-					height: 150
+					height: 75
 				}]
 			}]
 		}) ;

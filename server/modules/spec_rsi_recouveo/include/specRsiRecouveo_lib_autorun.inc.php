@@ -392,9 +392,7 @@ function specRsiRecouveo_lib_autorun_processInbox() {
 		specRsiRecouveo_lib_autorun_processInboxDoc($arr[0]) ;
 	}
 	
-	
-	
-	
+	return ;
 }
 function specRsiRecouveo_lib_autorun_processInboxDoc($inpostal_filerecord_id) {
 	global $_opDB ;
@@ -422,8 +420,6 @@ function specRsiRecouveo_lib_autorun_processInboxDoc($inpostal_filerecord_id) {
 	if( !$cfg_mailin ) {
 		return ;
 	}
-	
-	
 	if( $cfg_mailin['parent'] == 'NOK' ) {
 			// recherche action originale
 			$query = "SELECT fa.filerecord_id 
@@ -441,7 +437,6 @@ function specRsiRecouveo_lib_autorun_processInboxDoc($inpostal_filerecord_id) {
 			$query = "SELECT * FROM view_file_FILE_ACTION WHERE filerecord_id='{$fileaction_filerecord_id}'" ;
 			$result = $_opDB->query($query) ;
 			$fileaction_dbrow = $_opDB->fetch_assoc($result) ;
-			print_r($fileaction_dbrow) ;
 			
 			$arr_ins = array() ;
 			$arr_ins['field_LINK_MAILIN'] = $src['field_OPT_MAILIN'] ;
@@ -467,10 +462,22 @@ function specRsiRecouveo_lib_autorun_processInboxDoc($inpostal_filerecord_id) {
 			
 			if( $adrbookentry_filerecord_id ) {
 				$arr_update = array() ;
-				$arr_update['field_STATUS_IS_INVALID'] = 1 ;
-				$arr_update['field_STATUS_IS_CONFIRM'] = 0 ;
-				$arr_update['field_STATUS_IS_PRIORITY'] = 0 ;
-				paracrm_lib_data_updateRecord_file( 'ADRBOOK_ENTRY', $arr_update, $adrbookentry_filerecord_id);
+				switch( $cfg_mailin['next'] ) {
+					case 'INVALID' :
+						$arr_update['field_STATUS_IS_INVALID'] = 1 ;
+						$arr_update['field_STATUS_IS_CONFIRM'] = 0 ;
+						$arr_update['field_STATUS_IS_PRIORITY'] = 0 ;
+						break ;
+					case 'CONFIRM' :
+						$arr_update['field_STATUS_IS_INVALID'] = 0 ;
+						$arr_update['field_STATUS_IS_CONFIRM'] = 1 ;
+						break ;
+					default :
+						break ;
+				}
+				if( $arr_update ) {
+					paracrm_lib_data_updateRecord_file( 'ADRBOOK_ENTRY', $arr_update, $adrbookentry_filerecord_id);
+				}
 				
 				specRsiRecouveo_lib_autorun_checkAdrStatus( $src['field_REF_ACCOUNT'] ) ;
 			}
@@ -525,12 +532,17 @@ function specRsiRecouveo_lib_autorun_processInboxDoc($inpostal_filerecord_id) {
 					'file_filerecord_id' => $target_file_record['file_filerecord_id'],
 					'data' => json_encode($forward_post)
 				);
-				specRsiRecouveo_action_doFileAction($post_data) ;
+				$json = specRsiRecouveo_action_doFileAction($post_data) ;
+				$fileaction_filerecord_id = $json['fileaction_filerecord_id'] ;
+				
+				$arr_ins = array() ;
+				$arr_ins['field_LINK_IS_ON'] = 1 ;
+				$arr_ins['field_LINK_FILE_ACTION_ID'] = $fileaction_filerecord_id ;
+				paracrm_lib_data_updateRecord_file( 'IN_POSTAL', $arr_ins, $inpostal_filerecord_id);
 			}
 	}
 	
-	
-	
+	return ;
 }
 
 

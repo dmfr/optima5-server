@@ -772,6 +772,8 @@ function specRsiRecouveo_doc_postInbox( $post_data ) {
 	
 	media_contextClose() ;
 	
+	specRsiRecouveo_lib_autorun_processInboxDoc( $inpostal_filerecord_id ) ;
+	
 	return array('success'=>true) ;
 }
 
