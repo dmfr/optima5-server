@@ -97,7 +97,10 @@ Ext.define('Optima5.Modules.CrmBase.BibleTreePicker',{
 			return ;
 		}
 		this.callParent() ;
-		me.alignPicker() ;
+		
+		//HACK ?
+		this.picker.setXY([0,0]) ;
+		this.picker.alignTo(me.getEl());
 	},
 	collapse: function() {
 		var me = this ;

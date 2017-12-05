@@ -202,8 +202,11 @@ Ext.define('Optima5.Modules.CrmBase.BiblePicker',{
 		
 		
 		this.callParent() ;
-		me.alignPicker() ;
 		me.getPicker().getDockedItems('toolbar')[0].query('textfield')[0].focus() ;
+		
+		//HACK ?
+		this.picker.setXY([0,0]) ;
+		this.picker.alignTo(me.getEl());
 	},
 	collapse: function() {
 		var me = this ;
