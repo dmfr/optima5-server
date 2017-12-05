@@ -202,6 +202,7 @@ Ext.define('Optima5.Modules.CrmBase.BiblePicker',{
 		
 		
 		this.callParent() ;
+		me.alignPicker() ;
 		me.getPicker().getDockedItems('toolbar')[0].query('textfield')[0].focus() ;
 	},
 	collapse: function() {
@@ -313,20 +314,19 @@ Ext.define('Optima5.Modules.CrmBase.BiblePicker',{
 
 	},
 	alignPicker: function() {
-		var me = this,
-				picker;
-
-		if (me.isExpanded) {
-				picker = me.getPicker();
-				if( me.pickerWidth ) {
-					picker.setSize(me.pickerWidth);
-				} else if (me.matchFieldWidth) {
-					// Auto the height (it will be constrained by min and max width) unless there are no records to display.
-					picker.setSize(me.bodyEl.getWidth());
-				}
-				if (picker.isFloating()) {
-					me.doAlign();
-				}
+		var me = this ;
+		if (!this.isDestroyed) {
+			var picker = this.getPicker();
+			
+			if( me.pickerWidth ) {
+				picker.setSize(me.pickerWidth);
+			} else if (me.matchFieldWidth) {
+				// Auto the height (it will be constrained by min and max width) unless there are no records to display.
+				picker.setSize(me.bodyEl.getWidth());
+			}
+			if (picker.isVisible() && picker.isFloating()) {
+					this.doAlign();
+			}
 		}
 	},
 

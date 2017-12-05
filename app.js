@@ -42,6 +42,28 @@ Ext.onReady(function () {
 	});
 	
 	/*
+	Ext.form.field.Picker
+	*/
+	Ext.form.field.Picker.override( {
+		doAlign: function() {
+			var me = this,
+				picker = me.picker,
+				aboveSfx = '-above',
+				isAbove;
+
+			// Align to the trigger wrap because the border isn't always on the input element, which
+			// can cause the offset to be off
+			//me.picker.alignTo(me.triggerWrap, me.pickerAlign, me.pickerOffset);
+			me.picker.alignTo(me.triggerWrap, me.pickerAlign);
+			// add the {openCls}-above class if the picker was aligned above
+			// the field due to hitting the bottom of the viewport
+			isAbove = picker.el.getY() < me.inputEl.getY();
+			me.bodyEl[isAbove ? 'addCls' : 'removeCls'](me.openCls + aboveSfx);
+			picker[isAbove ? 'addCls' : 'removeCls'](picker.baseCls + aboveSfx);
+		}
+	});
+	
+	/*
 	 * Hide grouping summary if empty
 	 */
 	Ext.grid.feature.GroupingSummary.override({

@@ -92,9 +92,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.BankAllocAccountField', {
 		allowBlank = false ;
 		
 		if( !allowBlank ) {
+			/*
 			if( this.bibleTreePicker.getValue() == null || this.bibleTreePicker.getValue() == '' ) {
 						return [me.invalidMsg] ;
 			}
+			*/
 			if( this.bibleEntryPicker.getValue() == null || this.bibleEntryPicker.getValue() == '' ) {
 						return [me.invalidMsg] ;
 			}
