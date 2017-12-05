@@ -183,6 +183,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordGroupAssocPanel',{
 				dataIndex: 'record_id',
 				width:200
 			},{
+				text: 'Date',
+				dataIndex: 'date_record',
+				renderer: Ext.util.Format.dateRenderer('d/m/Y'),
+				width:100
+			},{
 				text: 'Montant',
 				dataIndex: 'amount',
 				align: 'center',
