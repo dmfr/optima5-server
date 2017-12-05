@@ -238,7 +238,8 @@ Ext.define('RsiRecouveoBankModel',{
 		{name: 'alloc_link_is_on', type: 'boolean'},
 		{name: 'alloc_link_recordgroup', type: 'string'},
 		{name: 'alloc_link_account', type: 'string'},
-		{name: 'alloc_link_account_txt', type: 'string'}
+		{name: 'alloc_link_account_txt', type: 'string'},
+		{name: 'alloc_link_account_locked', type: 'boolean'}
 	]
 });
 Ext.define('RsiRecouveoRecordgroupModel',{

@@ -10,12 +10,13 @@ function specRsiRecouveo_bank_getRecords($post_data) {
 									GROUP BY field_BANK_LINK_FILE_ID
 									HAVING count(distinct field_RECORDGROUP_ID)='1'" ;
 	
-	$subtable_account = "SELECT r.field_BANK_LINK_FILE_ID, r.field_LINK_ACCOUNT, acc.field_ACC_NAME
+	$subtable_account = "SELECT r.field_BANK_LINK_FILE_ID, r.field_LINK_ACCOUNT, acc.field_ACC_NAME, IF(rl.filerecord_id IS NOT NULL,'1','0') as locked
 								FROM view_file_RECORD r
+								LEFT OUTER JOIN view_file_RECORD_LINK rl on rl.filerecord_parent_id=r.filerecord_id AND rl.field_LINK_IS_ON='1'
 								LEFT OUTER JOIN view_bible_LIB_ACCOUNT_entry acc ON acc.entry_key=r.field_LINK_ACCOUNT
 								WHERE r.field_BANK_LINK_FILE_ID<>'0' AND field_BANK_CREATEBYALLOC='1'" ;
 	
-	$query = "SELECT b.*, rg.field_RECORDGROUP_ID as alloc_link_recordgroup, rg.field_RECORDGROUP_TYPE as alloc_link_recordgroup_type, a.field_LINK_ACCOUNT as alloc_link_account, a.field_ACC_NAME as alloc_link_account_txt, type.field_LINK_NEXT as alloc_type_next";
+	$query = "SELECT b.*, rg.field_RECORDGROUP_ID as alloc_link_recordgroup, rg.field_RECORDGROUP_TYPE as alloc_link_recordgroup_type, a.field_LINK_ACCOUNT as alloc_link_account, a.field_ACC_NAME as alloc_link_account_txt, a.locked as alloc_link_account_locked, type.field_LINK_NEXT as alloc_type_next";
 	$query.= " FROM view_file_BANK b" ;
 	$query.= " LEFT OUTER JOIN ($subtable_recordgroup) rg ON rg.field_BANK_LINK_FILE_ID=b.filerecord_id";
 	$query.= " LEFT OUTER JOIN ($subtable_account) a ON a.field_BANK_LINK_FILE_ID=b.filerecord_id";
@@ -38,7 +39,8 @@ function specRsiRecouveo_bank_getRecords($post_data) {
 			'alloc_link_recordgroup' => $arr['alloc_link_recordgroup'],
 			'alloc_link_recordgroup_type' => $arr['alloc_link_recordgroup_type'],
 			'alloc_link_account' => $arr['alloc_link_account'],
-			'alloc_link_account_txt' => $arr['alloc_link_account_txt']
+			'alloc_link_account_txt' => $arr['alloc_link_account_txt'],
+			'alloc_link_account_locked' => ($arr['alloc_link_account_locked'] ? true:false)
 		);
 		$TAB[] = $row ;
 	}

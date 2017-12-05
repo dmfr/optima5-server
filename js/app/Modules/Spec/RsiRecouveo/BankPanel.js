@@ -543,6 +543,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.BankPanel',{
 		}
 	},
 	onBeforeEditRecord: function(editor,context) {
+		if( context.record.get('alloc_link_account_locked') ) {
+			return false ;
+		}
 		if( Ext.isEmpty(context.record.get('_type_allocation')) ) {
 			var nextValue ;
 			var optReclocalValue = context.record.get('alloc_type') ;
