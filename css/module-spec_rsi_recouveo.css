@@ -179,6 +179,11 @@
 	background-repeat: no-repeat ;
 	background-image: url("../images/modules/rsiveo-litig-16.png") !important;
 }
+.op5-spec-rsiveo-action-judic {
+	background-position: center ;
+	background-repeat: no-repeat ;
+	background-image: url("../images/modules/rsiveo-litig-16.png") !important;
+}
 .op5-spec-rsiveo-action-close {
 	background-position: center ;
 	background-repeat: no-repeat ;
@@ -511,6 +516,9 @@
 	background-image: url("../images/modules/rsiveo-info-16.gif") !important;
 }
 
+.op5-spec-rsiveo-kpi-okgreen {
+	background: url('../images/modules/rsiveo-okgreen-16.gif') no-repeat center center ;
+}
 .op5-spec-rsiveo-kpi-ok {
 	background: url('../images/modules/rsiveo-ok-16.gif') no-repeat center center ;
 }

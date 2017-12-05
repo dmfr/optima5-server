@@ -219,6 +219,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.BankPanel',{
 			renderer: function(value,metaData,record) {
 				if( !value ) {
 					metaData.tdCls += ' op5-spec-rsiveo-icon-priority-on' ;
+				} else if( !Ext.isEmpty(record.get('alloc_link_account')) && !record.get('alloc_link_account_locked') ) {
+					
+				} else {
+					metaData.tdCls += ' op5-spec-rsiveo-kpi-okgreen' ;
 				}
 				return '' ;
 			}
@@ -401,7 +405,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.BankPanel',{
 			defaults: {
 				menuDisabled: false,
 				draggable: false,
-				sortable: true,
+				sortable: false,
 				hideable: true,
 				resizable: true,
 				groupable: false,
