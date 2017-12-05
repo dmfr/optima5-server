@@ -186,15 +186,6 @@ function specRsiRecouveo_recordgroup_assoc_get( $post_data ) {
 	$cfg_action_eta = $ttmp['data']['cfg_action_eta'] ;
 	$cfg_balage = $ttmp['data']['cfg_balage'] ;
 	$cfg_atr = $ttmp['data']['cfg_atr'] ;
-	//print_r($cfg_atr) ;
-	foreach( $cfg_atr as &$atr_record ) {
-		$map_id_text = array() ;
-		foreach( $atr_record['records'] as $rec ) {
-			$map_id_text[$rec['id']] = substr($rec['text'],strlen($rec['id'])+2) ;
-		}
-		$atr_record['map_id_text'] = $map_id_text ;
-	}
-	unset($atr_record) ;
 	
 	
 	$TAB = array() ;
