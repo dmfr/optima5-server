@@ -10,6 +10,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextPanel',
 		
 		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusAgreeFollowPanel',
+		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusJudicFollowPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusLitigFollowPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusClosePanel',
 		
@@ -105,6 +106,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 				break ;
 			case 'LITIG_FOLLOW' :
 				nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusLitigFollowPanel' ;
+				break ;
+			case 'JUDIC_FOLLOW' :
+				nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusJudicFollowPanel' ;
 				break ;
 			case 'CLOSE_ACK' :
 				nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusClosePanel' ;

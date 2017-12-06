@@ -884,6 +884,25 @@ function specRsiRecouveo_file_createForAction( $post_data ) {
 	$file_code = 'FILE_ACTION' ;
 	$status_next = $new_status ;
 	switch( $p_newActionCode ) {
+		case 'JUDIC_START' :
+			// LITIG_START ok + LITIG_FOLLOW sched
+			$arr_ins = array() ;
+			$arr_ins['field_LINK_STATUS'] = $status_next ;
+			$arr_ins['field_LINK_ACTION'] = 'JUDIC_START' ;
+			$arr_ins['field_STATUS_IS_OK'] = 1 ;
+			$arr_ins['field_DATE_ACTUAL'] = date('Y-m-d H:i:s') ;
+			$arr_ins['field_TXT'] = $_formData['judic_txt'] ;
+			$arr_ins['field_LOG_USER'] = specRsiRecouveo_util_getLogUser() ;
+			paracrm_lib_data_insertRecord_file( $file_code, $file_filerecord_id, $arr_ins );
+			
+			$arr_ins = array() ;
+			$arr_ins['field_LINK_STATUS'] = $status_next ;
+			$arr_ins['field_LINK_ACTION'] = 'JUDIC_FOLLOW' ;
+			$arr_ins['field_DATE_SCHED'] = $_formData['judic_nextdate'] ;
+			paracrm_lib_data_insertRecord_file( $file_code, $file_filerecord_id, $arr_ins );
+			
+			break ;
+		
 		case 'LITIG_START' :
 			// LITIG_START ok + LITIG_FOLLOW sched
 			$arr_ins = array() ;

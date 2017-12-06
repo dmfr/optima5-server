@@ -780,6 +780,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 							},
 							scope: this
 						},{
+							iconCls: 'op5-spec-rsiveo-action-litig',
+							text: 'Action judiciaire',
+							handler: function() {
+								this.doCreateFile('JUDIC_START') ;
+							},
+							scope: this
+						},{
 							iconCls: 'op5-spec-rsiveo-action-close',
 							text: 'Demande de clôture',
 							handler: function() {
@@ -1303,6 +1310,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 									break ;
 							}
 							switch( vStatus ) {
+								case 'S2L_JUDIC' :
+									metaData.tdCls += ' op5-spec-rsiveo-actiontree-judic' ;
+									break dance ;
+									
 								case 'S2L_LITIG' :
 									metaData.tdCls += ' op5-spec-rsiveo-actiontree-litig' ;
 									break dance ;

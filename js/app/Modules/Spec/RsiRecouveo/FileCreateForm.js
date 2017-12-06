@@ -4,7 +4,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateForm',{
 	requires: [
 		'Optima5.Modules.Spec.RsiRecouveo.FileCreateAgreePanel',
 		'Optima5.Modules.Spec.RsiRecouveo.FileCreateClosePanel',
-		'Optima5.Modules.Spec.RsiRecouveo.FileCreateLitigPanel'
+		'Optima5.Modules.Spec.RsiRecouveo.FileCreateLitigPanel',
+		'Optima5.Modules.Spec.RsiRecouveo.FileCreateJudicPanel'
 	],
 	
 	_fileRecord: null,
@@ -155,6 +156,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateForm',{
 				break ;
 			case 'LITIG_START' :
 				newActionClass = 'Optima5.Modules.Spec.RsiRecouveo.FileCreateLitigPanel' ;
+				break ;
+			case 'JUDIC_START' :
+				newActionClass = 'Optima5.Modules.Spec.RsiRecouveo.FileCreateJudicPanel' ;
 				break ;
 			case 'CLOSE_ASK' :
 				newActionClass = 'Optima5.Modules.Spec.RsiRecouveo.FileCreateClosePanel' ;
@@ -383,6 +387,34 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateForm',{
 					var error = 'Renseigner date de suivi litige' ;
 					errors.push(error) ;
 					this.getForm().findField('litig_nextdate').markInvalid(error) ;
+					break ;
+				}
+				break ;
+			
+			case 'JUDIC_START' :
+				if( Ext.isEmpty( formData['judic_code'] ) ) {
+					var error = 'Renseigner type d\'action' ;
+					errors.push(error) ;
+					this.getForm().findField('judic_code').markInvalid(error) ;
+					break ;
+				}
+				var fieldValue = formData['judic_code'],
+					fieldTree = this.getForm().findField('judic_code').cfgParamTree,
+					fieldNode = fieldTree.getStore().getNodeById(fieldValue),
+					fieldTxt = [] ;
+				while( true ) {
+					if( fieldNode.isRoot() ) {
+						break ;
+					}
+					fieldTxt.push( fieldNode.get('nodeText') ) ;
+					fieldNode = fieldNode.parentNode ;
+				}
+				formData['judic_txt'] = fieldTxt.reverse().join(' - ') ;
+				
+				if( Ext.isEmpty(formData['judic_nextdate']) ) {
+					var error = 'Renseigner date de suivi action' ;
+					errors.push(error) ;
+					this.getForm().findField('judic_nextdate').markInvalid(error) ;
 					break ;
 				}
 				break ;
