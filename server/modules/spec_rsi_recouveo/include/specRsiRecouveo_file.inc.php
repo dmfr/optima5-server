@@ -225,6 +225,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 	$query.= " JOIN view_file_RECORD_LINK rl ON rl.field_LINK_FILE_ID=f.filerecord_id AND rl.field_LINK_IS_ON='1'" ;
 	$query.= " JOIN view_file_RECORD r ON r.filerecord_id=rl.filerecord_parent_id" ;
 	$query.= " JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key = f.field_LINK_ACCOUNT" ;
+	$query.= " WHERE 1" ;
 	if( isset($filter_fileFilerecordId_list) ) {
 		$query.= " AND f.filerecord_id IN {$filter_fileFilerecordId_list}" ;
 	} else {
