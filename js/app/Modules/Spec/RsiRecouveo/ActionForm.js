@@ -400,6 +400,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 				errors.push(error) ;
 				this.getForm().findField('schedlock_schednew_date').markInvalid(error) ;
 			}
+			if( postData['schedlock_next'] == 'schednew' 
+				&& postData.hasOwnProperty('schedlock_schednew_code')
+				&& Ext.isEmpty(postData['schedlock_schednew_code']) ) {
+				var error = 'Code suivi non renseigné' ;
+				
+				errors.push(error) ;
+				this.getForm().findField('schedlock_schednew_code').markInvalid(error) ;
+			}
 			if( this.down('#rightRecords') && this.down('#rightRecords').isVisible(true) ) {
 				if( this.down('#rightRecords').down('grid').getSelectionModel().getSelection().length < 1 ) {
 					errors.push('Enregistrement comptable non sélectionné') ;

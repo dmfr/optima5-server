@@ -214,6 +214,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			'link_tpl' => $arr['field_LINK_TPL'],
 			'link_mailin' => $arr['field_LINK_MAILIN'],
 			'link_litig' => $arr['field_LINK_LITIG'],
+			'link_judic' => $arr['field_LINK_JUDIC'],
 			'link_close' => $arr['field_LINK_CLOSE'],
 			'link_txt' => $arr['field_LINK_TXT']
 		);
@@ -381,6 +382,9 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 				case 'MAIL_OUT' :
 					$next_action_suffix = $next_action['link_action'].'_'.$next_action['link_tpl'] ;
 					break ;
+				case 'JUDIC_FOLLOW' :
+					$next_action_suffix = $next_action['link_action'].'_'.$next_action['link_judic'] ;
+					break ;
 				case 'LITIG_FOLLOW' :
 					$next_action_suffix = $next_action['link_action'].'_'.$next_action['link_litig'] ;
 					break ;
@@ -417,6 +421,9 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 					$txt_short.= '&nbsp;>>&nbsp;<font color="red">'.$map_mailin[$file_action_row['link_mailin']].'</font>' ;
 				}
 				$txt_short.= "\r\n" ;
+			} elseif( $file_action_row['link_judic'] ) {
+				$search_id = 'JUDIC_FOLLOW'.'_'.$file_action_row['link_judic'] ;
+				$txt_short.= $map_actionnext[$search_id]."\r\n" ;
 			} elseif( $file_action_row['link_litig'] ) {
 				$search_id = 'LITIG_FOLLOW'.'_'.$file_action_row['link_litig'] ;
 				$txt_short.= $map_actionnext[$search_id]."\r\n" ;
@@ -891,6 +898,7 @@ function specRsiRecouveo_file_createForAction( $post_data ) {
 			$arr_ins['field_LINK_ACTION'] = 'JUDIC_START' ;
 			$arr_ins['field_STATUS_IS_OK'] = 1 ;
 			$arr_ins['field_DATE_ACTUAL'] = date('Y-m-d H:i:s') ;
+			$arr_ins['field_LINK_JUDIC'] = $_formData['judic_code'] ;
 			$arr_ins['field_TXT'] = $_formData['judic_txt'] ;
 			$arr_ins['field_LOG_USER'] = specRsiRecouveo_util_getLogUser() ;
 			paracrm_lib_data_insertRecord_file( $file_code, $file_filerecord_id, $arr_ins );
@@ -898,6 +906,7 @@ function specRsiRecouveo_file_createForAction( $post_data ) {
 			$arr_ins = array() ;
 			$arr_ins['field_LINK_STATUS'] = $status_next ;
 			$arr_ins['field_LINK_ACTION'] = 'JUDIC_FOLLOW' ;
+			$arr_ins['field_LINK_JUDIC'] = $_formData['judic_code'] ;
 			$arr_ins['field_DATE_SCHED'] = $_formData['judic_nextdate'] ;
 			paracrm_lib_data_insertRecord_file( $file_code, $file_filerecord_id, $arr_ins );
 			

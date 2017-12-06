@@ -55,22 +55,20 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusJudicFollowPanel',{
 						}
 					]
 				},{
-					hidden: true,
-					anchor: '',
-					width: 200,
-					xtype: 'datefield',
-					format: 'Y-m-d',
-					name: 'schedlock_schednew_date',
-					fieldLabel: 'Date prévue'
-				}]
+			}]
 			},{
 				xtype: 'box',
 				width: 16
 			},{
 				flex: 1,
+				xtype: 'component',
+				itemId: 'fsNone',
+			},{
+				flex: 1,
+				hidden: true,
 				xtype: 'fieldset',
+				itemId: 'fsNext',
 				padding: 10,
-				title: 'Observations',
 				layout: {
 					type: 'anchor'
 				},
@@ -79,9 +77,27 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusJudicFollowPanel',{
 					labelWidth: 80
 				},
 				items: [{
+					hidden: true,
+					anchor: '',
+					width: 200,
+					xtype: 'datefield',
+					format: 'Y-m-d',
+					name: 'schedlock_schednew_date',
+					fieldLabel: 'Date prévue'
+				},Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
+					hidden: true,
+					cfgParam_id: 'OPT_JUDIC',
+					cfgParam_emptyDisplayText: 'Select...',
+					optimaModule: this.optimaModule,
+					name: 'schedlock_schednew_code',
+					allowBlank: false,
+					fieldLabel: 'Motif'
+				}),{
+					labelAlign: 'top',
+					fieldLabel: 'Commentaire',
 					xtype: 'textarea',
 					name: 'txt',
-					height: 150
+					height: 100
 				}]
 			}]
 		}) ;
@@ -97,6 +113,24 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusJudicFollowPanel',{
 	onFormChange: function(form,field) {
 		if( field.getName() == 'schedlock_next' ) {
 			var fieldValue = form.getValues()['schedlock_next'] ;
+			switch( fieldValue ) {
+				case 'schednew' :
+					this.down('#fsNone').setVisible(false) ;
+					this.down('#fsNext').setVisible(true) ;
+					this.down('#fsNext').setTitle('Suite action') ;
+					break ;
+				case 'end' :
+					this.down('#fsNone').setVisible(false) ;
+					this.down('#fsNext').setVisible(true) ;
+					this.down('#fsNext').setTitle('Fin action') ;
+					break ;
+				default :
+					this.down('#fsNone').setVisible(true) ;
+					this.down('#fsNext').setVisible(false) ;
+					break ;
+					
+			}
+			this.getForm().findField('schedlock_schednew_code').setVisible( fieldValue=='schednew' ) ;
 			this.getForm().findField('schedlock_schednew_date').setVisible( fieldValue=='schednew' ) ;
 		}
 		this.fireEvent('change',field) ;

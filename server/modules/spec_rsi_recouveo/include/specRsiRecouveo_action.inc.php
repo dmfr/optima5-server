@@ -258,6 +258,31 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 			}
 			break ;
 		
+		case 'JUDIC_FOLLOW' :
+			switch( $post_form['schedlock_next'] ) {
+				case 'schednew' :
+					$txt = '' ;
+					$txt.= "Suite action judiciaire"."\r\n" ;
+					if( $post_form['txt'] ) {
+						$txt.= $post_form['txt']."\r\n" ;
+					}
+					$arr_ins['field_TXT'] = $txt ;
+					break ;
+				
+				case 'end' :
+					$txt = '' ;
+					$txt.= "Action terminée"."\r\n" ;
+					if( $post_form['txt'] ) {
+						$txt.= $post_form['txt']."\r\n" ;
+					}
+					$arr_ins['field_TXT'] = $txt ;
+					break ;
+			
+				default :
+					return array('success'=>false) ;
+			}
+			break ;
+		
 		case 'LITIG_FOLLOW' :
 			switch( $post_form['schedlock_next'] ) {
 				case 'schednew' :
@@ -342,6 +367,9 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 				switch( $post_form['link_action'] ) {
 					case 'LITIG_FOLLOW' :
 						$arr_ins['field_LINK_LITIG'] = $file_action_record['link_litig'] ;
+						break ;
+					case 'JUDIC_FOLLOW' :
+						$arr_ins['field_LINK_JUDIC'] = $post_form['schedlock_schednew_code'] ;
 						break ;
 				}
 				paracrm_lib_data_insertRecord_file( $file_code, $file_filerecord_id, $arr_ins );

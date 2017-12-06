@@ -352,6 +352,9 @@ function specRsiRecouveo_cfg_getConfig() {
 	}
 	foreach( $TAB_list_opt as $opt_record ) {
 		switch( $opt_record['bible_code'] ) {
+			case 'OPT_JUDIC' :
+				$action_prefix = 'JUDIC_FOLLOW' ;
+				break ;
 			case 'OPT_LITIG' :
 				$action_prefix = 'LITIG_FOLLOW' ;
 				break ;
