@@ -133,6 +133,8 @@ function specRsiRecouveo_config_getScenarios($post_data) {
 		$record = array(
 			'scen_code' => $arr['field_SCEN_CODE'],
 			'scen_txt' => $arr['field_SCEN_TXT'],
+			'assoc_is_auto' => $arr['field_ASSOC_IS_AUTO'],
+			'link_soc' => $arr['field_LINK_SOC'],
 			'balance_min' => $arr['field_BALANCE_MIN'],
 			'balance_max' => $arr['field_BALANCE_MAX'],
 			
@@ -187,9 +189,15 @@ function specRsiRecouveo_config_setScenario( $post_data ) {
 		return array('success'=>true) ;
 	}
 	
+	$arr_linkSoc = json_decode($scenario_record['link_soc'],true) ;
+	if( !$arr_linkSoc || reset($arr_linkSoc)=='&' ) {
+		$scenario_record['link_soc'] = NULL ;
+	}
 	$arr_ins = array() ;
 	$arr_ins['field_SCEN_CODE'] = $scenario_record['scen_code'] ;
 	$arr_ins['field_SCEN_TXT'] = $scenario_record['scen_txt'] ;
+	$arr_ins['field_ASSOC_IS_AUTO'] = $scenario_record['assoc_is_auto'] ;
+	$arr_ins['field_LINK_SOC'] = $scenario_record['link_soc'] ;
 	$arr_ins['field_BALANCE_MIN'] = $scenario_record['balance_min'] ;
 	$arr_ins['field_BALANCE_MAX'] = $scenario_record['balance_max'] ;
 	foreach( $cfg_atr as $atr_record ) {

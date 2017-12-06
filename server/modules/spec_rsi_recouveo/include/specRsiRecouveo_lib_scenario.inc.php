@@ -6,7 +6,8 @@ function specRsiRecouveo_lib_scenario_attach( $reassign=FALSE ) {
 	$query = "SELECT filerecord_id 
 			FROM view_file_FILE f
 			JOIN view_bible_CFG_STATUS_tree cs ON cs.treenode_key=f.field_STATUS
-			WHERE cs.field_SCHED_LOCK='0' AND cs.field_SCHED_NONE='0' AND f.field_STATUS_CLOSED_VOID<>'1' AND f.field_STATUS_CLOSED_END<>'1'" ;
+			WHERE cs.field_SCHED_LOCK='0' AND cs.field_SCHED_NONE='0' AND f.field_STATUS_CLOSED_VOID<>'1' AND f.field_STATUS_CLOSED_END<>'1'
+			AND f.field_SCENARIO_IS_AUTO='1'" ;
 	if( !$reassign ) {
 		$query.= " AND f.field_SCENARIO=''" ;
 	}
@@ -38,7 +39,12 @@ function specRsiRecouveo_lib_scenario_attachFile( $file_filerecord_id ) {
 	$file_record = $json['data'][0] ;
 	$assign_scenario = NULL ;
 	
-	$query = "SELECT * FROM view_bible_SCENARIO_tree WHERE 1" ;
+	$query = "SELECT * FROM view_bible_SCENARIO_tree WHERE field_ASSOC_IS_AUTO='1'" ;
+	if( $file_record['soc_id'] ) {
+		$mkey = 'LINK_SOC' ;
+		$mvalue = $file_record['soc_id'] ;
+		$query.= " AND ( field_{$mkey} IN ('','[]') OR field_{$mkey} LIKE '%\\\"&\\\"%' OR field_{$mkey} LIKE '%\\\"{$mvalue}\\\"%')" ;
+	}
 	foreach( $cfg_atr as $atr_record ) {
 		// TODO / HACK ! Migrer vers nouveau format scénario
 		/*

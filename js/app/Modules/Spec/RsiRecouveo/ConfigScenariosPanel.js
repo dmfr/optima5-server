@@ -246,6 +246,19 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigScenariosPanel', {
 						xtype: 'fieldset',
 						title: 'Critères',
 						items: Ext.Array.merge([{
+							xtype: 'checkbox',
+							boxLabel: 'Association automatique ?',
+							name: 'assoc_is_auto'
+						},{
+							name: 'link_soc',
+							labelAlign: 'top',
+							fieldLabel: 'Entité',
+							
+							xtype: 'op5crmbasebibletreepicker',
+							selectMode: 'multi',
+							optimaModule: this.optimaModule,
+							bibleId: 'LIB_ACCOUNT',
+						},{
 							labelAlign: 'left',
 							name: 'balance_min',
 							xtype: 'numberfield',
@@ -749,6 +762,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigScenariosPanel', {
 			editorGrid = pEditor.down('grid') ;
 		this.down('#pEmpty').setVisible(false) ;
 		pEditor.setVisible(true) ;
+		editorForm.reset() ;
 		editorForm.loadRecord(selectedScenario) ;
 		
 		var gridData = [] ;
