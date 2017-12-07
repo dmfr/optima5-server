@@ -234,11 +234,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordGroupInputPanel',{
 			columns: [{
 				text: 'Compte acheteur',
 				dataIndex: 'acc_id',
-				width:300,
+				width:400,
 				editor: {
-					xtype: 'op5crmbasebiblepicker',
+					xtype: 'op5specrsiveobankallocaccountfield',
 					optimaModule: this.optimaModule,
-					bibleId: 'LIB_ACCOUNT'
+					allowBlank: false
 				},
 				renderer: function(v,m,r) {
 					if( Ext.isEmpty(v) ) {
