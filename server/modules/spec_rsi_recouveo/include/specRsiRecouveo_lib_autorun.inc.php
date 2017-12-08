@@ -362,20 +362,22 @@ function specRsiRecouveo_lib_autorun_checkAdrStatus( $acc_id ) {
 				'file_filerecord_id' => $file_filerecord_id,
 				'fileaction_filerecord_id' => $fileaction_filerecord_id
 			)) ;
-			foreach( $json['data'] as $scenline_dot ) {
-				if( $scenline_dot['is_next'] ) {
-					$forward_post['next_action'] = $scenline_dot['link_action'] ;
-					$forward_post['next_scenstep_code'] = $scenline_dot['scenstep_code'] ;
-					$forward_post['next_scenstep_tag'] = $scenline_dot['scenstep_tag'] ;
-					$forward_post['next_date'] = $scenline_dot['date_sched'] ;
+			if( $json['success'] ) {
+				foreach( $json['data'] as $scenline_dot ) {
+					if( $scenline_dot['is_next'] ) {
+						$forward_post['next_action'] = $scenline_dot['link_action'] ;
+						$forward_post['next_scenstep_code'] = $scenline_dot['scenstep_code'] ;
+						$forward_post['next_scenstep_tag'] = $scenline_dot['scenstep_tag'] ;
+						$forward_post['next_date'] = $scenline_dot['date_sched'] ;
+					}
 				}
+				
+				$post_data = array(
+					'file_filerecord_id' => $file_filerecord_id,
+					'data' => json_encode($forward_post)
+				);
+				specRsiRecouveo_action_doFileAction($post_data) ;
 			}
-			
-			$post_data = array(
-				'file_filerecord_id' => $file_filerecord_id,
-				'data' => json_encode($forward_post)
-			);
-			specRsiRecouveo_action_doFileAction($post_data) ;
 		}
 	}
 }
