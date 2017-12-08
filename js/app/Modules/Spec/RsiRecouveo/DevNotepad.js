@@ -5,6 +5,7 @@ Ext.define('RsiRecouveoDevNotepalModel', {
 		{name: 'id',  type: 'int'},
 		{name: 'nt_filerecord_id',  type: 'int', allowNull:true},
 		{name: 'nt_class', type: 'string'},
+		{name: 'nt_date', type: 'date',  dateFormat:'Y-m-d H:i:s'},
 		{name: 'nt_text', type: 'string'},
 		{name: 'nt_priority',  type: 'int'},
 		{name: 'nt_done_ok',  type: 'boolean'},
@@ -68,21 +69,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.DevNotepad', {
 						valueField: 'nt_class'
 					}
 				},{
-					dataIndex: 'nt_priority',
-					text: 'Priorité',
-					width: 80,
+					dataIndex: 'nt_date',
+					text: 'Date demande',
+					width: 120,
+					renderer: Ext.util.Format.dateRenderer('d/m/Y'),
 					editor: {
-						xtype: 'combobox',
-						allowBlank: false,
-						forceSelection: true,
-						editable: false,
-						store: {
-							fields: ['nt_priority'],
-							data : [{nt_priority:1},{nt_priority:2},{nt_priority:3},{nt_priority:4},{nt_priority:5}]
-						},
-						queryMode: 'local',
-						displayField: 'nt_priority',
-						valueField: 'nt_priority'
+						xtype: 'datefield',
+						format: 'Y-m-d'
 					}
 				},{
 					dataIndex: 'nt_text',
