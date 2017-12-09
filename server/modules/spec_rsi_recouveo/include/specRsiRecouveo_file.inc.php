@@ -963,12 +963,31 @@ function specRsiRecouveo_file_createForAction( $post_data ) {
 			$txt[]= 'Promesse réglement '.$_formData['agree_period'] ;
 			$txt[]= 'Montant total : '.$_formData['agree_amount'].' €' ;
 			
+			$short_txt = 'Paim. '.$_formData['agree_amount'].' €' ;
+			switch( $_formData['agree_period'] ) {
+				case 'MONTH' :
+					$short_txt.= ", par mois ({$_formData['agree_count']} ech.)" ;
+					break ;
+				case 'WEEK' :
+					$short_txt.= ", par semaine ({$_formData['agree_count']} ech.)" ;
+					break ;
+				case 'SINGLE' :
+					$short_txt.= ", échéance unique" ;
+					break ;
+				default :
+					break ;
+			}
+			if( $_formData['agree_period']=='NOW' ) {
+				$short_txt.= "Paiment: ".$_formData['agree_amount'].' €' ;
+			}
+			
 			$arr_ins = array() ;
 			$arr_ins['field_LINK_STATUS'] = $status_next ;
 			$arr_ins['field_LINK_ACTION'] = 'AGREE_START' ;
 			$arr_ins['field_STATUS_IS_OK'] = 1 ;
 			$arr_ins['field_DATE_ACTUAL'] = date('Y-m-d H:i:s') ;
 			$arr_ins['field_TXT'] = implode("\r\n",$txt) ;
+			$arr_ins['field_LINK_TXT'] = $short_txt ;
 			$arr_ins['field_LOG_USER'] = specRsiRecouveo_util_getLogUser() ;
 			paracrm_lib_data_insertRecord_file( $file_code, $file_filerecord_id, $arr_ins );
 			
@@ -999,6 +1018,7 @@ function specRsiRecouveo_file_createForAction( $post_data ) {
 				$arr_ins['field_DATE_SCHED'] = $date ;
 				$arr_ins['field_LINK_STATUS'] = $status_next ;
 				$arr_ins['field_LINK_ACTION'] = 'AGREE_FOLLOW' ;
+				$arr_ins['field_LINK_TXT'] = "Echéance ".($i+1)." / ".$nb ;
 				$arr_ins['field_TXT'] = 'Attendu : '.(($i==0&&$amount_first) ? $amount_first : $amount_each).' €' ;
 				paracrm_lib_data_insertRecord_file($file_code,$file_filerecord_id,$arr_ins) ;
 				
@@ -1100,11 +1120,9 @@ function specRsiRecouveo_file_lib_closeBack( $file_filerecord_id ) {
 				WHERE filerecord_parent_id='{$accFileRecord_record['record_filerecord_id']}' AND field_LINK_IS_ON='0'
 				ORDER BY filerecord_id DESC LIMIT 1" ;
 		$dst_file_filerecord_id = $_opDB->query_uniqueValue($query) ;
-		
-		if( !$map_fileFilerecordId_arrRecordsTxt[$dst_file_filerecord_id] ) {
-			$map_fileFilerecordId_arrRecordsTxt[$dst_file_filerecord_id] = array() ;
+		if( !$dst_file_filerecord_id ) {
+			$dst_file_filerecord_id = $accFile_record['from_file_filerecord_id'] ;
 		}
-		$map_fileFilerecordId_arrRecordsTxt[$dst_file_filerecord_id][] = $accFileRecord_record['record_id'] ;
 		
 		// terminaison du lien
 		$query = "SELECT filerecord_id FROM view_file_RECORD_LINK 
@@ -1115,12 +1133,19 @@ function specRsiRecouveo_file_lib_closeBack( $file_filerecord_id ) {
 		$arr_udpate['field_DATE_LINK_OFF'] = date('Y-m-d H:i:s') ;
 		paracrm_lib_data_updateRecord_file( 'RECORD_LINK', $arr_update, $recordlink_filerecord_id);
 		
-		// Nouveau lien
-		$arr_ins = array() ;
-		$arr_ins['field_LINK_FILE_ID'] = $dst_file_filerecord_id ;
-		$arr_ins['field_LINK_IS_ON'] = 1 ;
-		$arr_ins['field_DATE_LINK_ON'] = date('Y-m-d H:i:s') ;
-		paracrm_lib_data_insertRecord_file( 'RECORD_LINK', $accFileRecord_record['record_filerecord_id'], $arr_ins );
+		if( $dst_file_filerecord_id ) {
+			if( !$map_fileFilerecordId_arrRecordsTxt[$dst_file_filerecord_id] ) {
+				$map_fileFilerecordId_arrRecordsTxt[$dst_file_filerecord_id] = array() ;
+			}
+			$map_fileFilerecordId_arrRecordsTxt[$dst_file_filerecord_id][] = $accFileRecord_record['record_id'] ;
+			
+			// Nouveau lien
+			$arr_ins = array() ;
+			$arr_ins['field_LINK_FILE_ID'] = $dst_file_filerecord_id ;
+			$arr_ins['field_LINK_IS_ON'] = 1 ;
+			$arr_ins['field_DATE_LINK_ON'] = date('Y-m-d H:i:s') ;
+			paracrm_lib_data_insertRecord_file( 'RECORD_LINK', $accFileRecord_record['record_filerecord_id'], $arr_ins );
+		}
 	}
 	
 	// new action done sur fichiers dest

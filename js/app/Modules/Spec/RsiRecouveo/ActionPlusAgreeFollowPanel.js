@@ -10,6 +10,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusAgreeFollowPanel',{
 			if( accountFileRecord.statusIsSchedLock() ) {
 				return ;
 			}
+			if( accountFileRecord.get('status_closed_end') ) {
+				return ;
+			}
 			accountFileRecord.records().each( function(accountFileRecordRecord) {
 				if( accountFileRecordRecord.get('amount') >= 0 ) {
 					return ;

@@ -244,12 +244,14 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 					
 					$txt = '' ;
 					$txt.= "Promesse validée, paiement : ".$post_form['schedlock_confirm_txt']."\r\n" ;
+					$arr_ins['field_LINK_TXT'] = 'Encaissé : '.$post_form['schedlock_confirm_amount'].' €' ;
 					$arr_ins['field_TXT'] = $txt ;
 					break ;
 				
 				case 'end' :
 					$txt = '' ;
-					$txt.= "Annulation Promesse"."\r\n" ;
+					$txt.= "Fermeture promesse"."\r\n" ;
+					$arr_ins['field_LINK_TXT'] = trim($txt) ;
 					$arr_ins['field_TXT'] = $txt ;
 					break ;
 			
@@ -395,6 +397,7 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 						$arr_ins['field_LINK_STATUS'] = $post_form['link_status'] ;
 						$arr_ins['field_LINK_ACTION'] = $post_form['link_action'] ;
 						$arr_ins['field_DATE_SCHED'] = date('Y-m-d') ;
+						$arr_ins['field_LINK_TXT'] = 'Promesse terminée, reliquat ?' ;
 						paracrm_lib_data_insertRecord_file( $file_code, $file_filerecord_id, $arr_ins );
 					}
 				}
