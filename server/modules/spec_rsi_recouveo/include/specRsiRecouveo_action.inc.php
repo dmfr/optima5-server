@@ -221,7 +221,11 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 			break ;
 			
 		case 'BUMP' :
-			$_do_delete_currentAction = TRUE ;
+			if( trim($txt=$post_form['txt']) ) {
+				$arr_ins['field_TXT'] = $txt ;
+			} else {
+				$_do_delete_currentAction = TRUE ;
+			}
 			break ;
 			
 		case 'AGREE_FOLLOW' :

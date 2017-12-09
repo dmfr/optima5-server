@@ -41,7 +41,18 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusBumpPanel',{
 				width: 16
 			},{
 				flex: 1,
-				xtype: 'box'
+				xtype: 'fieldset',
+				title: 'Commentaire',
+				defaults: {
+					anchor: '100%',
+					labelWidth: 80
+				},
+				items: [{
+					style: 'margin-top: 4px;',
+					xtype: 'textarea',
+					name: 'txt',
+					height: 84
+				}]
 			}]
 		}) ;
 		
