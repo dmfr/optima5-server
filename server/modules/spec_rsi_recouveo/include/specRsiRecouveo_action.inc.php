@@ -221,6 +221,7 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 			break ;
 			
 		case 'BUMP' :
+			$_do_delete_currentAction = TRUE ;
 			break ;
 			
 		case 'AGREE_FOLLOW' :
@@ -338,9 +339,15 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 	}
 	if( $post_form['fileaction_filerecord_id'] > 0 ) {
 		$fileaction_filerecord_id = $post_form['fileaction_filerecord_id'] ;
-		paracrm_lib_data_updateRecord_file( $file_code, $arr_ins, $post_form['fileaction_filerecord_id']);
+		if( $_do_delete_currentAction ) {
+			paracrm_lib_data_deleteRecord_file( $file_code, $post_form['fileaction_filerecord_id']);
+		} else {
+			paracrm_lib_data_updateRecord_file( $file_code, $arr_ins, $post_form['fileaction_filerecord_id']);
+		}
 	} else {
-		$fileaction_filerecord_id = paracrm_lib_data_insertRecord_file( $file_code, $file_filerecord_id, $arr_ins );
+		if( !$_do_delete_currentAction ) {
+			$fileaction_filerecord_id = paracrm_lib_data_insertRecord_file( $file_code, $file_filerecord_id, $arr_ins );
+		}
 	}
 	$ttmp = specRsiRecouveo_file_getRecords( array(
 		'filter_fileFilerecordId_arr' => json_encode(array($file_filerecord_id))

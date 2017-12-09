@@ -1153,8 +1153,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				recData['icon'] = Ext.BLANK_IMAGE_URL ;
 				if( iterateChild && rec.get('link_newfile_filerecord_id') ) {
 					var childFileRecord = this._accountRecord.files().getById(rec.get('link_newfile_filerecord_id')) ;
-						childrenActions = [] ;
+						childrenActions = [],
+						childrenFirst = true ;
 					childFileRecord.actions().each(function(cRec) {
+						if( childrenFirst ) {
+							Ext.apply( recData, cRec.getData() ) ;
+							childrenFirst = false ;
+							return ;
+						}
 						var cRecData = cRec.getData() ;
 						cRecData['leaf'] = true ;
 						cRecData['icon'] = Ext.BLANK_IMAGE_URL ;
@@ -1166,7 +1172,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					recData['expandable'] = false ;
 					recData['icon'] = Ext.BLANK_IMAGE_URL ;
 				}
+				if( !iterateChild && rec.get('link_newfile_filerecord_id') ) {
+					return ;
+				}
 				if( !iterateChild && !rec.get('status_is_ok') ) {
+					return ;
+				}
+				if( iterateChild && !rec.get('status_is_ok') 
+				&& rec.get('fileaction_filerecord_id') != iterateFileRecord.get('next_fileaction_filerecord_id') ) {
 					return ;
 				}
 				pActionsGridData.push(recData) ;

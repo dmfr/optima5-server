@@ -1150,6 +1150,7 @@ function specRsiRecouveo_file_lib_closeBack( $file_filerecord_id ) {
 	
 	// new action done sur fichiers dest
 	foreach( $map_fileFilerecordId_arrRecordsTxt as $dst_file_filerecord_id => $arr_recordsTxtFile ) {
+		/*
 		$txt = '' ;
 		$txt.= "Dossier {$accFile_record['id_ref']} fermé/refusé"."\r\n" ;
 		$txt.= 'Factures : '.implode(',',$arr_recordsTxtFile)."\r\n" ;
@@ -1161,6 +1162,7 @@ function specRsiRecouveo_file_lib_closeBack( $file_filerecord_id ) {
 		$arr_ins['field_DATE_ACTUAL'] = date('Y-m-d H:i:s') ;
 		$arr_ins['field_TXT'] = $txt ;
 		paracrm_lib_data_insertRecord_file( 'FILE_ACTION', $dst_file_filerecord_id, $arr_ins );
+		*/
 		
 		$query = "SELECT count(*) FROM view_file_FILE_ACTION
 					WHERE filerecord_parent_id='{$dst_file_filerecord_id}' AND field_STATUS_IS_OK='0'" ;
