@@ -419,7 +419,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				width:100,
 				align: 'center',
 				filter: {
-					type: 'stringlist'
+					type: 'stringlist',
+					useFilters: true
 				},
 				renderer: function(v,m,r) {
 					return r.get('soc_txt') ;
@@ -448,7 +449,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			align: 'center',
 			dataIndex: 'status_txt',
 			filter: {
-				type: 'stringlist'
+				type: 'stringlist',
+				useFilters: true
 			},
 			renderer: function(v,metaData,r) {
 				metaData.style += 'color: white ; background: '+r.get('status_color') ;
@@ -463,7 +465,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				align: 'center',
 				dataIndex: 'next_action_suffix_txt',
 				filter: {
-					type: 'stringlist'
+					type: 'stringlist',
+					useFilters: true
 				},
 				renderer: function(v,metaData,r) {
 					return v ;
@@ -1701,6 +1704,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		gridPanelStore.clearFilter() ;
 		gridPanel.filters.clearFilters() ;
 		if( curStatus == clickStatus ) {
+			Ext.Array.each( this.down('#pCenter').down('#pGrid').getColumns(), function(column) {
+				if( column.filter && column.filter.type == 'stringlist' && !column.filter.active ) {
+					column.filter.rebuildList() ; // HACK!
+				}
+			}) ;
 			return ;
 		}
 		gridPanelStore.filter([{
@@ -1708,6 +1716,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			property : 'status',
 			value    : clickStatus
 		}]);
+		Ext.Array.each( this.down('#pCenter').down('#pGrid').getColumns(), function(column) {
+			if( column.filter && column.filter.type == 'stringlist' && !column.filter.active ) {
+				column.filter.rebuildList() ; // HACK!
+			}
+		}) ;
 	},
 	onBarItemClick: function( series, item ) {
 		var clickAgendaClass = item.record.data.agenda_class,
@@ -1732,6 +1745,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		gridPanelStore.clearFilter() ;
 		gridPanel.filters.clearFilters() ;
 		if( curAgendaClass == clickAgendaClass && curEtaRange == clickEtaRange ) {
+			Ext.Array.each( this.down('#pCenter').down('#pGrid').getColumns(), function(column) {
+				if( column.filter && column.filter.type == 'stringlist' && !column.filter.active ) {
+					column.filter.rebuildList() ; // HACK!
+				}
+			}) ;
 			return ;
 		}
 		gridPanelStore.filter([{
@@ -1743,6 +1761,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			property : 'next_agenda_class',
 			value    :  clickAgendaClass
 		}]);
+		Ext.Array.each( this.down('#pCenter').down('#pGrid').getColumns(), function(column) {
+			if( column.filter && column.filter.type == 'stringlist' && !column.filter.active ) {
+				column.filter.rebuildList() ; // HACK!
+			}
+		}) ;
 	},
 	
 	

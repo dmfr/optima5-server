@@ -15,6 +15,7 @@ Ext.define('Ext.ux.grid.filters.filter.StringList', {
 	selectOnFocus: true,
 	
 	operator: 'in',
+	useFilters: false,
 	
 	inputValue: [],
 
@@ -71,15 +72,27 @@ Ext.define('Ext.ux.grid.filters.filter.StringList', {
 		var gridStore = this.getGridStore() ;
 		gridStore.on('datachanged', this.onStoreDataChanged, this, {single:true}) ;
 	},
+	rebuildList: function() {
+		var gridStore = this.getGridStore() ;
+		this.onStoreDataChanged(gridStore) ;
+	},
 	onStoreDataChanged: function(gridStore) {
 		var listStr = [],
 			storeData = gridStore.getData().getSource() || gridStore.getData(),
 			dataIndex = this.column.dataIndex ;
-		storeData.each( function(rec) {
-			if( !Ext.Array.contains( listStr, rec.data[dataIndex] ) ) {
-				listStr.push(rec.data[dataIndex]) ;
-			}
-		}) ;
+		if( !this.useFilters ) {
+			storeData.each( function(rec) {
+				if( !Ext.Array.contains( listStr, rec.data[dataIndex] ) ) {
+					listStr.push(rec.data[dataIndex]) ;
+				}
+			}) ;
+		} else {
+			gridStore.each( function(rec) {
+				if( !Ext.Array.contains( listStr, rec.data[dataIndex] ) ) {
+					listStr.push(rec.data[dataIndex]) ;
+				}
+			}) ;
+		}
 		
 		var records = [] ;
 		Ext.Array.each( listStr, function(str) {
