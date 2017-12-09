@@ -473,7 +473,7 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 				if( $link_tpl_id ) {
 					$arr_ins['field_LINK_TPL'] = $link_tpl_id ;
 				}
-				paracrm_lib_data_insertRecord_file( $file_code, $file_filerecord_id, $arr_ins );
+				$next_fileaction_filerecord_id = paracrm_lib_data_insertRecord_file( $file_code, $file_filerecord_id, $arr_ins );
 				break ;
 		}
 	}
@@ -561,7 +561,8 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 	return array(
 		'success'=>true,
 		'file_filerecord_id'=>$file_filerecord_id,
-		'fileaction_filerecord_id'=>$fileaction_filerecord_id
+		'fileaction_filerecord_id'=>$fileaction_filerecord_id,
+		'next_fileaction_filerecord_id'=>$next_fileaction_filerecord_id
 	) ;
 }
 ?>
