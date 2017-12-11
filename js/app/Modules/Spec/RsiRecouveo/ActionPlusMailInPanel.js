@@ -86,6 +86,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailInPanel',{
 					name: 'attachments',
 					optimaModule: this.optimaModule
 				}),{
+					itemId: 'txtMailIn',
 					style: 'margin-top: 8px;',
 					fieldLabel: 'Commentaire',
 					xtype: 'textarea',
@@ -114,7 +115,25 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailInPanel',{
 			optimaModule: this.optimaModule,
 			_accountRecord : this._accountRecord,
 			
-			_adrType: adrType
+			_adrType: adrType,
+			
+			listeners: {
+				selectadrbookresult: function( field, value ) {
+					this.onSelectAdrbookResult(value) ;
+				},
+				scope: this
+			}
 		})) ;
+	},
+	onSelectAdrbookResult: function(adrbookResult) {
+		var optMailinData = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getOptData('OPT_MAILIN'),
+			optMailinRow = null ;
+		Ext.Array.each( optMailinData, function(row) {
+			if( row.id == adrbookResult ) {
+				optMailinRow = row ;
+				return false ;
+			}
+		}) ;
+		this.down('#txtMailIn').setVisible( optMailinRow && optMailinRow.id=='MAIL_OK' ) ;
 	}
 }) ;

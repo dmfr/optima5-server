@@ -49,13 +49,26 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusCallPanel',{
 					_adrType: 'TEL',
 					_showNew: this._showNew,
 					_showResult: this._showResult,
-					_showValidation: this._showValidation
+					_showValidation: this._showValidation,
+					
+					listeners: {
+						selectadrbookresult: function( field, value ) {
+							this.onSelectAdrbookResult(value) ;
+						},
+						scope: this
+					}
 				})]
 			},{
 				xtype: 'box',
 				width: 16
 			},{
 				flex: 1,
+				hidden: true,
+				itemId: 'notxtCallOut',
+				xtype: 'component'
+			},{
+				flex: 1,
+				itemId: 'txtCallOut',
 				xtype: 'fieldset',
 				padding: 10,
 				title: 'Compte-rendu',
@@ -75,5 +88,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusCallPanel',{
 		}) ;
 		
 		this.callParent() ;
+	},
+	onSelectAdrbookResult: function(adrbookResult) {
+		
 	}
 }) ;

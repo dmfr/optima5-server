@@ -214,5 +214,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AdrbookTypeContainer',{
 				adrStatus.setValue( null ) ;
 			}
 		}
+		
+		this.fireEvent('selectadrbookresult',this, field.getValue()) ;
 	}
 }) ;
