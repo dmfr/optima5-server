@@ -974,6 +974,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			balageRecData[balageField] = 0 ;
 		}) ;
 		accountRecord.files().each( function(fileRecord) {
+			if( fileRecord.get('status_closed_void') ) {
+				return ;
+			}
+			if( fileRecord.get('status_closed_end') && !this._showClosed ) {
+				return ;
+			}
 			fileRecord.records().each( function(fileRecordRecord) {
 				var balageField = 'inv_balage_'+fileRecordRecord.get('calc_balage_segmt_id') ;
 				balageRecData[balageField] += fileRecordRecord.get('amount') ;
