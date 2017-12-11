@@ -407,6 +407,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				scope: this
 			}
 		},{
+			text: 'Affectation',
+			width:100,
+			dataIndex: 'link_user_txt'
+		},{
 			itemId: 'colAtr',
 			text: 'Attributs',
 			columns: atrColumns
