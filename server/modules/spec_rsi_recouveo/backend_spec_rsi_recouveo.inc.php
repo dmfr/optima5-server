@@ -110,6 +110,9 @@ switch( $post_data['_action'] )
 	case 'upload' :
 		return specRsiRecouveo_upload( $post_data ) ;
 	
+	case 'report_getFileTopRecords' :
+		return specRsiRecouveo_report_getFileTopRecords( $post_data ) ;
+	
 	default :
 	return NULL ;
 }

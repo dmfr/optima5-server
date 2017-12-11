@@ -239,10 +239,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportCanvasPanel',{
 Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportsPanel',{
 	extend: 'Ext.panel.Panel',
 	
+	requires: ['Optima5.Modules.Spec.RsiRecouveo.ReportFilesPanel'],
+	
 	initComponent: function() {
 		Ext.apply(this,{
 			layout: 'border',
 			items: [{
+				collapsible: true,
+				collapsed: true,
 				region: 'west',
 				width: 300,
 				xtype: 'treepanel',
@@ -298,6 +302,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportsPanel',{
 		
 		this.callParent() ;
 		
+		/*
 		var exemples = ['Directeur général','Directeur finance','Credit manager','Chargé recouvrement'] ;
 		Ext.Array.each( exemples, function(titre) {
 			var cntPanels = this.down('#cntPanels') ;
@@ -307,6 +312,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportsPanel',{
 				closable: false
 			});
 		},this);
+		*/
+		var cntPanels = this.down('#cntPanels') ;
+		cntPanels.add(Ext.create('Optima5.Modules.Spec.RsiRecouveo.ReportFilesPanel',{
+			optimaModule: this.optimaModule,
+			title: 'Top Encours'
+		}));
 		this.down('#cntPanels').setActiveTab(0) ;
 	}
 	
