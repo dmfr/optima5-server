@@ -34,6 +34,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateJudicPanel',{
 					format: 'Y-m-d',
 					name: 'judic_nextdate',
 					fieldLabel: 'Prochain suivi'
+				},{
+					xtype: 'textarea',
+					height: 75,
+					name: 'judic_txt',
+					fieldLabel: 'Observation'
 				}]
 			}]
 		}) ;

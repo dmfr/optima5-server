@@ -35,6 +35,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateLitigPanel',{
 					name: 'litig_nextdate',
 					fieldLabel: 'Prochain suivi'
 				},{
+					xtype: 'textarea',
+					height: 75,
+					name: 'litig_txt',
+					fieldLabel: 'Observation'
+				},{
 					xtype: 'fieldset',
 					checkboxToggle: true,
 					checkboxName: 'litig_ext_is_on',

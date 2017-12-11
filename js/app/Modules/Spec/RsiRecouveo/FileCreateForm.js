@@ -370,6 +370,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateForm',{
 					this.getForm().findField('litig_code').markInvalid(error) ;
 					break ;
 				}
+				/*
 				var fieldValue = formData['litig_code'],
 					fieldTree = this.getForm().findField('litig_code').cfgParamTree,
 					fieldNode = fieldTree.getStore().getNodeById(fieldValue),
@@ -382,6 +383,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateForm',{
 					fieldNode = fieldNode.parentNode ;
 				}
 				formData['litig_txt'] = fieldTxt.reverse().join(' - ') ;
+				*/
 				
 				if( Ext.isEmpty(formData['litig_nextdate']) ) {
 					var error = 'Renseigner date de suivi litige' ;
@@ -398,6 +400,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateForm',{
 					this.getForm().findField('judic_code').markInvalid(error) ;
 					break ;
 				}
+				/*
 				var fieldValue = formData['judic_code'],
 					fieldTree = this.getForm().findField('judic_code').cfgParamTree,
 					fieldNode = fieldTree.getStore().getNodeById(fieldValue),
@@ -410,6 +413,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateForm',{
 					fieldNode = fieldNode.parentNode ;
 				}
 				formData['judic_txt'] = fieldTxt.reverse().join(' - ') ;
+				*/
 				
 				if( Ext.isEmpty(formData['judic_nextdate']) ) {
 					var error = 'Renseigner date de suivi action' ;
