@@ -239,7 +239,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportCanvasPanel',{
 Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportsPanel',{
 	extend: 'Ext.panel.Panel',
 	
-	requires: ['Optima5.Modules.Spec.RsiRecouveo.ReportFilesPanel'],
+	requires: [
+		'Optima5.Modules.Spec.RsiRecouveo.ReportFilesPanel',
+		'Optima5.Modules.Spec.RsiRecouveo.ReportUsersPanel'
+	],
 	
 	initComponent: function() {
 		Ext.apply(this,{
@@ -317,6 +320,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportsPanel',{
 		cntPanels.add(Ext.create('Optima5.Modules.Spec.RsiRecouveo.ReportFilesPanel',{
 			optimaModule: this.optimaModule,
 			title: 'Top Encours'
+		}));
+		cntPanels.add(Ext.create('Optima5.Modules.Spec.RsiRecouveo.ReportUsersPanel',{
+			optimaModule: this.optimaModule,
+			title: 'Collaborateurs'
 		}));
 		this.down('#cntPanels').setActiveTab(0) ;
 	}
