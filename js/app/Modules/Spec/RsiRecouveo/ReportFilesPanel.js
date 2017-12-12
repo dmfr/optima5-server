@@ -183,7 +183,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportFilesPanel',{
 		var balageConvert = function(value,record) {
 			var thisField = this,
 				balageSegmtId = thisField.balageSegmtId ;
-			return record.data.inv_balage[balageSegmtId] ;
+			return record.data.inv_balage[balageSegmtId] ; // BUG
 		};
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getBalageAll(), function(balageSegmt) {
 			var balageField = 'inv_balage_'+balageSegmt.segmt_id ;
@@ -349,7 +349,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportFilesPanel',{
 				remoteFilter: true,
 				groupField: 'acc_id',
 				model: this.tmpModelName,
-				data: []
+				data: [],
+				proxy: {
+					type: 'memory',
+					reader: {
+						type: 'json'
+					}
+				}
 			},
 			listeners: {
 				itemdblclick: function( view, record, itemNode, index, e ) {
