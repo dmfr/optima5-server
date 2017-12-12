@@ -35,7 +35,6 @@ function specRsiRecouveo_dev_setNotepadNote($post_data) {
 		'field_NT_DONE_OK' => ($p_data['nt_done_ok'] ? 1 : 0),
 		'field_NT_DONE_TEXT' => $p_data['nt_done_text']
 	);
-	print_r($arr_ins) ;
 	if( $p_ntFilerecordId > 0 ) {
 		if( !$p_data ) {
 			paracrm_lib_data_deleteRecord_file( 'Z_NOTEPAD', $p_ntFilerecordId);
