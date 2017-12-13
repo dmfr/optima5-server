@@ -119,6 +119,22 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamTree',{
 				children: adrbookRootChildren
 			}; 
 			
+		} else if( this.cfgParam_id && this.cfgParam_id.indexOf('STATUS')===0 ) {
+			var childs = [] ;
+			Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getStatusAll(), function(s) {
+				childs.push({
+					leaf: true,
+					nodeId: s.status_id,
+					nodeText: s.status_txt,
+					nodeKey: s.status_id
+				}) ;
+			}) ;
+			rootNode = {
+				root: true,
+				children: childs,
+				nodeText: '<b>'+'Statuts'+'</b>',
+				expanded: true
+			} ;
 		} else if( this.cfgParam_id && this.cfgParam_id.indexOf('ATR:')===0 ) {
 			var atrId = this.cfgParam_id.substr(4) ;
 			rootNode = {

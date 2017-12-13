@@ -7,7 +7,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		'Optima5.Modules.Spec.RsiRecouveo.CfgParamButton',
 		'Optima5.Modules.Spec.RsiRecouveo.SearchCombo',
 		'Optima5.Modules.Spec.RsiRecouveo.CfgParamFilter',
-		'Optima5.Modules.Spec.RsiRecouveo.MultiActionForm'
+		'Optima5.Modules.Spec.RsiRecouveo.MultiActionForm',
+		'Optima5.Modules.Spec.RsiRecouveo.FilesTopPanel'
 	],
 	
 	viewMode: null,
@@ -108,6 +109,15 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 						itemId: 'account',
 						text: 'Vue par compte',
 						iconCls: 'op5-spec-rsiveo-grid-view-ordergroup'
+					},{
+						xtype: 'menuseparator'
+					},{
+						text: 'Top X / par encours',
+						iconCls: 'op5-spec-rsiveo-grid-view-ordergroup',
+						handler: function() {
+							this.openFilesTopPanel() ;
+						},
+						scope: this
 					},{
 						xtype: 'menuseparator'
 					},{
@@ -1125,6 +1135,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			}]
 		});
 		pNorthTab.setActiveTab(0);
+		
 		this.configureViews() ;
 	},
 	configureViews: function() {
@@ -1254,6 +1265,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 	},
 	
 	doLoad: function(doClearFilters) {
+		if( this.filesTopPanel ) {
+			this.filesTopPanel.destroy() ;
+		}
+			
+			
 		var objAtrFilter = {}, arrSocFilter=null, arrUserFilter=null ;
 		Ext.Array.each( this.query('toolbar > [cfgParam_id]'), function(cfgParamBtn) {
 			var cfgParam_id = cfgParamBtn.cfgParam_id ;
@@ -1291,7 +1307,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				if( doClearFilters ) {
 					this.onLoadAtrValues(ajaxResponse.map_atrId_values) ;
 				}
-				this.onLoad(ajaxResponse.data, doClearFilters) ;
+				this.ajaxLoadData = ajaxResponse.data ;
+				this.onLoad(null, doClearFilters) ;
 				// Setup autoRefresh task
 				//this.autoRefreshTask.delay( this.autoRefreshDelay ) ;
 			},
@@ -1310,7 +1327,17 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			}
 		}) ;
 	},
+	getLoadData: function() {
+		return this.ajaxLoadData ;
+	},
 	onLoad: function(ajaxData, doClearFilters) {
+		if( !ajaxData ) {
+			ajaxData = this.getLoadData() ;
+		}
+		if( !ajaxData ) {
+			return ;
+		}
+		
 		// Calcul des stats
 		// - chaque statut => nb de dossiers / montant
 		// - chaque action non réalisée
@@ -1643,6 +1670,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		if( this.autoRefreshTask ) {
 			this.autoRefreshTask.cancel() ;
 		}
+		if( this.filesTopPanel ) {
+			this.filesTopPanel.destroy() ;
+		}
 	},
 	
 	handleMultiSelect: function() {
@@ -1807,5 +1837,48 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			requestAction: Optima5.Helper.getApplication().desktopGetBackendUrl(),
 			requestMethod: 'POST'
 		}) ;
+	},
+	
+	
+	openFilesTopPanel: function() {
+		var filesTopPanel = Ext.create('Optima5.Modules.Spec.RsiRecouveo.FilesTopPanel',{
+			optimaModule: this.optimaModule,
+			loadData: this.getLoadData(),
+			
+			title: 'Top X / par encours',
+			
+			width:400, // dummy initial size, for border layout to work
+			height:320, // ...
+			floating: true,
+			draggable: true,
+			resizable: false,
+			constrain: true,
+			renderTo: this.getEl(),
+			tools: [{
+				type: 'close',
+				handler: function(e, t, p) {
+					p.ownerCt.close();
+				},
+				scope: this
+			}]
+		});
+		filesTopPanel.on('saved', function(p,data) {
+			this.down('#pCenter').down('#pGrid').getStore().clearFilter() ;
+			this.down('#pCenter').down('#pGrid').filters.clearFilters() ;
+			
+			this.down('#pCenter').down('#pGrid').getStore().sort('inv_amount_due','DESC') ;
+
+			this.onLoad(data) ;
+		},this) ;
+		filesTopPanel.on('close',function(p) {
+			this.filesTopPanel = null ;
+			this.doLoad(true) ;
+		},this,{single:true}) ;
+		
+		filesTopPanel.doApplyParams() ;
+		filesTopPanel.show();
+		filesTopPanel.getEl().alignTo(this.getEl(), 'tr-tr?');
+		
+		this.filesTopPanel = filesTopPanel ;
 	}
 });
