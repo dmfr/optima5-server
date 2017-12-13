@@ -173,10 +173,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportUsersPanel',{
 	buildViews: function() {
 		var balageFields = [], balageColumns = [] ;
 		var balageRenderer = function(value,metaData,record) {
-			if( value == 0 ) {
+			if( !value || Math.round(value) == 0 ) {
 				return '&#160;' ;
 			}
-			return Ext.util.Format.number(value,'0,000.00') ;
+			return Ext.util.Format.number(value,'0,000')+''+'&#160;'+'€' ;
 		};
 		var balageConvert = function(value,record) {
 			var thisField = this,
@@ -188,8 +188,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportUsersPanel',{
 			balageColumns.push({
 				text: balageSegmt.segmt_txt,
 				dataIndex: balageField,
-				width:90,
-				align: 'center',
+				width:100,
+				align: 'right',
 				renderer: balageRenderer
 			}) ;
 			
@@ -203,12 +203,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportUsersPanel',{
 		
 		var amountRenderer = function(v) {
 			if( v != 0 ) {
-				return '<b>'+Ext.util.Format.number(v,'0,000.00')+'</b>'+'&#160;'+'€' ;
+				return ''+Ext.util.Format.number(v,'0,000')+''+'&#160;'+'€' ;
 			}
 		}
 		var countRenderer = function(v) {
 			if( v != 0 ) {
-				return '<b>'+v+'</b>' ;
+				return ''+v+'' ;
 			}
 		}
 		
@@ -216,74 +216,70 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportUsersPanel',{
 		
 		var columns = [{
 			text: 'Collaborateur',
-			width:100,
+			width:110,
 			dataIndex: 'user_fullname'
 		},{
-			tdCls: 'op5-spec-rsiveo-alm',
+			tdCls: 'op5-spec-rsiveo-taupe',
 			text: 'Actions réalisées',
 			columns: [{
-				tdCls: 'op5-spec-rsiveo-alm',
+				tdCls: 'op5-spec-rsiveo-taupe',
 				text: 'Appels',
 				dataIndex: 'com_callout',
 				width:100,
-				align: 'center',
+				align: 'right',
 				renderer: countRenderer
 			},{
-				tdCls: 'op5-spec-rsiveo-alm',
+				tdCls: 'op5-spec-rsiveo-taupe',
 				text: 'Courriers man.',
 				dataIndex: 'com_mailout',
 				width:100,
-				align: 'center',
+				align: 'right',
 				renderer: countRenderer
 			}]
 		},{
-			tdCls: 'op5-spec-rsiveo-pis',
 			text: 'Résolution',
 			columns: [{
-				tdCls: 'op5-spec-rsiveo-pis',
 				text: 'Paiements',
 				dataIndex: 'res_PAY',
 				width:120,
-				align: 'center',
+				align: 'right',
 				renderer: amountRenderer
 			},{
-				tdCls: 'op5-spec-rsiveo-pis',
 				text: 'Avoirs',
 				dataIndex: 'res_AVR',
 				width:120,
-				align: 'center',
+				align: 'right',
 				renderer: amountRenderer
 			},{
-				tdCls: 'op5-spec-rsiveo-pis',
 				text: 'Autres',
 				dataIndex: 'res_misc',
 				width:120,
-				align: 'center',
+				align: 'right',
 				renderer: amountRenderer
 			}]
 		},{
-			tdCls: 'op5-spec-rsiveo-pom',
+			tdCls: 'op5-spec-rsiveo-taupe',
 			text: 'Actions en retard au ' + Ext.Date.format(new Date(),'d/m/Y'),
 			columns: [{
-				tdCls: 'op5-spec-rsiveo-pom',
+				tdCls: 'op5-spec-rsiveo-taupe',
 				text: 'Paiements',
 				dataIndex: 'delay_pay',
 				width:100,
-				align: 'center',
+				align: 'right',
 				renderer: countRenderer
 			},{
-				tdCls: 'op5-spec-rsiveo-pom',
+				tdCls: 'op5-spec-rsiveo-taupe',
 				text: 'En-cours',
 				dataIndex: 'delay_open',
 				width:100,
-				align: 'center',
+				align: 'right',
 				renderer: countRenderer
 			},{
-				tdCls: 'op5-spec-rsiveo-pom',
+				tdCls: 'op5-spec-rsiveo-taupe',
 				text: 'Actions<br>externes',
 				dataIndex: 'delay_litig',
 				width:100,
-				align: 'center',
+				align: 'right',
 				renderer: countRenderer
 			}]
 		},{

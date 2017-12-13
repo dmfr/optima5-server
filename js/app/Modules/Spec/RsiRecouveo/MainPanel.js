@@ -309,7 +309,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 		var pnl = Ext.create('Optima5.Modules.Spec.RsiRecouveo.ReportsPanel',{
 			optimaModule: this.optimaModule,
 			
-			title: 'Reports',
+			title: 'Reporting',
 			closable: true
 		}) ;
 		this.addPanel(pnl) ;
