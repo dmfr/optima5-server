@@ -502,7 +502,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 						var actionEtaMap = this._actionEtaMap ;
 						if( actionEtaMap.hasOwnProperty(etaValue) ) {
 							var actionEtaData = actionEtaMap[etaValue] ;
-							metaData.style += 'color: white ; background: '+actionEtaData.eta_color ;
+							metaData.style += 'background: '+actionEtaData.eta_color ;
 						}
 					}
 					var dateSql ;
