@@ -600,7 +600,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			}],
 			store: {
 				model: this.tmpModelName,
-				data: []
+				data: [],
+				proxy: {
+					type: 'memory',
+					reader: {
+						type: 'json'
+					}
+				}
 			},
 			listeners: {
 				itemdblclick: function( view, record, itemNode, index, e ) {
@@ -1499,8 +1505,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				column.filter.resetList() ; // HACK!
 			}
 		}) ;
+		this.down('#pCenter').down('#pGrid').getStore().loadRawData([]) ;
 		this.down('#pCenter').down('#pGrid').getStore().loadRawData(ajaxData) ;
-		
 		
 		
 		// charts

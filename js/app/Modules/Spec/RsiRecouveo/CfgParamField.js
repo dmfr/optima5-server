@@ -121,6 +121,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
 			return ;
 		}
 		this.callParent() ;
+		
+		//HACK ?
+		this.picker.setXY([0,0]) ;
+		this.alignPicker();
 	},
 	collapse: function() {
 		var me = this ;
