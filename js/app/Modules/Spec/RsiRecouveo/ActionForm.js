@@ -693,6 +693,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 			}
 			inputFields[k] = v ;
 		});
+		inputFields['input_attachments'] = '' ;
+		var attachmentsField = this.getForm().findField('attachments') ;
+		if( attachmentsField ) {
+			Ext.Array.each( attachmentsField.getValue(), function(recordData) {
+				inputFields['input_attachments'] += '- '+recordData.get('doc_desc')+'\r\n' ;
+			});
+		}
 		
 		this.showLoadmask() ;
 		this.optimaModule.getConfiguredAjaxConnection().request({

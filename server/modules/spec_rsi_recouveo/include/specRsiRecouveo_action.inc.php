@@ -527,6 +527,12 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 					$input_fields[$mkey] = $mvalue ;
 				}
 			}
+			$input_fields['input_attachments'] = '' ;
+			if( $post_form['attachments'] ) {
+				foreach( json_decode($post_form['attachments'],true) as $doc ) {
+					$input_fields['input_attachments'].= '- '.$doc['doc_desc']."\r\n" ;
+				}
+			}
 			
 			// Modif 18/05/2017 : Nom du contact (vérif non vide)
 			if( !trim($post_form['adrpost_entity_name']) ) {
