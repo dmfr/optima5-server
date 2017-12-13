@@ -18,7 +18,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateClosePanel',{
 				},
 				defaults: {
 					anchor: '100%',
-					labelWidth: 60
+					labelWidth: 80
 				},
 				items: [Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
 					cfgParam_id: 'OPT_CLOSEASK',
@@ -27,7 +27,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateClosePanel',{
 					name: 'close_code',
 					allowBlank: false,
 					fieldLabel: 'Motif'
-				})]
+				}),{
+					xtype: 'textarea',
+					height: 75,
+					name: 'close_txt',
+					fieldLabel: 'Observation'
+				}]
 			}]
 		}) ;
 		

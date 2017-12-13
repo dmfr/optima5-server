@@ -989,7 +989,7 @@ function specRsiRecouveo_file_createForAction( $post_data ) {
 			$arr_ins['field_LINK_ACTION'] = 'AGREE_START' ;
 			$arr_ins['field_STATUS_IS_OK'] = 1 ;
 			$arr_ins['field_DATE_ACTUAL'] = date('Y-m-d H:i:s') ;
-			$arr_ins['field_TXT'] = implode("\r\n",$txt) ;
+			$arr_ins['field_TXT'] = $_formData['agree_txt'] ; ;
 			$arr_ins['field_LINK_TXT'] = $short_txt ;
 			$arr_ins['field_LOG_USER'] = specRsiRecouveo_util_getLogUser() ;
 			paracrm_lib_data_insertRecord_file( $file_code, $file_filerecord_id, $arr_ins );

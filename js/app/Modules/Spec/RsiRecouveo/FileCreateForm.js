@@ -349,6 +349,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateForm',{
 					this.getForm().findField('close_code').markInvalid(error) ;
 					break ;
 				}
+				/*
 				var fieldValue = formData['close_code'],
 					fieldTree = this.getForm().findField('close_code').cfgParamTree,
 					fieldNode = fieldTree.getStore().getNodeById(fieldValue),
@@ -361,6 +362,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateForm',{
 					fieldNode = fieldNode.parentNode ;
 				}
 				formData['close_txt'] = fieldTxt.reverse().join(' - ') ;
+				*/
 				break ;
 			
 			case 'LITIG_START' :

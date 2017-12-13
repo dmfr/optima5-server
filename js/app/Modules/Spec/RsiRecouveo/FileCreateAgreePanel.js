@@ -99,6 +99,19 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateAgreePanel',{
 					hideTrigger:true,
 					fieldLabel: 'Mnt autres échéance'
 				}]
+			},{
+				xtype: 'fieldset',
+				padding: 8,
+				title: 'Commentaire',
+				defaults: {
+					anchor: '100%',
+					labelWidth: 80
+				},
+				items: [{
+					xtype: 'textarea',
+					name: 'agree_txt',
+					height: 75
+				}]
 			}]
 		}) ;
 		
