@@ -522,7 +522,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 		}
 		var txtField = this.getForm().findField('txt') ;
 		if( txtField && txtField.isVisible(true) ) {
-			if( Ext.isEmpty(postData['txt']) ) {
+			if( Ext.isEmpty(postData['txt']) && (this.getCurrentAction()['action_id']!='BUMP') ) {
 				var error = 'Commentaire non renseigné' ;
 				
 				errors.push(error) ;

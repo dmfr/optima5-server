@@ -413,6 +413,23 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 					}
 				}
 				break ;
+			
+			case '' :
+				if( $post_form['link_action'] == 'BUMP' ) {
+					$nexts = array() ;
+					foreach( $file_record['actions'] as $file_action_record_test ) {
+						if( !$file_action_record_test['status_is_ok'] ) {
+							$nexts[] = $file_action_record_test['fileaction_filerecord_id'] ;
+						}
+					}
+					if( count($nexts) == 0 ) {
+						$is_sched_lock_endBack = TRUE ;
+					}
+				}
+				break ;
+			
+			default :
+				break ;
 		}
 	}
 	
