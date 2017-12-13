@@ -38,7 +38,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AttachmentsFieldPanel',{
 				region: 'north',
 				bodyCls: 'ux-noframe-bg',
 				bodyPadding: 8,
-				height: 125,
+				height: 140,
 				title: this.newTitle,
 				collapsible: true,
 				collapsed: true,

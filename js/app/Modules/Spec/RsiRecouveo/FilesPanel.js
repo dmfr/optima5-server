@@ -161,7 +161,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				region: 'north',
 				//hidden: true,
 				collapsible: true,
-				height: 290,
+				height: 320,
 				border: true,
 				xtype: 'panel',
 				itemId: 'pNorth',
