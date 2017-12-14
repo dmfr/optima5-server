@@ -4,6 +4,16 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesTopPanel',{
 	requires: [],
 	
 	initComponent: function() {
+		var chrtLeftText = Ext.create('Ext.draw.sprite.Text', {
+			type: 'text',
+			text: '',
+			fontSize: 12,
+			fontFamily: 'Play, sans-serif',
+			width: 100,
+			height: 30,
+			x: 30, // the sprite x position
+			y: 34  // the sprite y position
+		});
 		Ext.apply(this,{
 			bodyPadding: 10,
 			bodyCls: 'ux-noframe-bg',
@@ -94,15 +104,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesTopPanel',{
 					},
 					insetPadding: { top: 10, left: 10, right: 30, bottom: 10 },
 					flipXY: true,
-					/*sprites: [{
-						type: 'text',
-						text: 'Agenda / Actions imminentes',
-						fontSize: 14,
-						width: 100,
-						height: 30,
-						x: 150, // the sprite x position
-						y: 20  // the sprite y position
-					}],*/
+					_textSprites: [chrtLeftText],
+					sprites: [chrtLeftText],
 					axes: [/*{
 						type: 'numeric',
 						position: 'bottom',
@@ -196,7 +199,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesTopPanel',{
 				amount_in: amountEc,
 				amount_out: amountTot-amountEc
 			}]);
-			
+			this.down('#chrt')._textSprites[0].setAttributes({
+				text: ''+Math.round(amountEc*100/amountTot)+' %'
+			},true) ;
 			
 			this.fireEvent('saved',this,tmpArr) ;
 		} else {
