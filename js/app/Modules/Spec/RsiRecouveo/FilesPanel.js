@@ -19,7 +19,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		Ext.apply(this, {
 			layout: 'border',
 			tbar:[{
-				hidden: this._readonlyMode,
+				hidden: this._reportMode,
 				icon: 'images/modules/rsiveo-back-16.gif',
 				text: '<u>Back</u>',
 				handler: function(){
@@ -73,6 +73,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				}
 			}),{
 				icon: 'images/modules/rsiveo-search-16.gif',
+				hidden: this._reportMode,
 				itemId: 'btnSearchIcon',
 				handler: function(btn) {
 					btn.up().down('#btnSearch').reset() ;
@@ -82,6 +83,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			},Ext.create('Optima5.Modules.Spec.RsiRecouveo.SearchCombo',{
 				optimaModule: this.optimaModule,
 				
+				hidden: this._reportMode,
 				itemId: 'btnSearch',
 				width: 150,
 				listeners: {
@@ -90,6 +92,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 					scope: this
 				}
 			}),'->',{
+				hidden: this._reportMode,
 				//iconCls: 'op5-spec-dbsembramach-report-clock',
 				itemId: 'tbViewmode',
 				viewConfig: {forceFit: true},
@@ -140,7 +143,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				},
 				scope: this
 			},{
-				hidden: this._readonlyMode,
+				hidden: this._reportMode,
 				iconCls: 'op5-spec-rsiveo-datatoolbar-new',
 				text: 'Select.multiple',
 				handler: function() {
@@ -148,7 +151,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				},
 				scope: this
 			},{
-				hidden: this._readonlyMode,
+				hidden: this._reportMode,
 				iconCls: 'op5-spec-rsiveo-datatoolbar-file-export-excel',
 				text: 'Export',
 				handler: function() {
@@ -1314,6 +1317,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 					this.onLoadAtrValues(ajaxResponse.map_atrId_values) ;
 				}
 				this.ajaxLoadData = ajaxResponse.data ;
+				if( this._reportMode ) {
+					this.openFilesTopPanel() ;
+				}
 				this.onLoad(null, doClearFilters) ;
 				// Setup autoRefresh task
 				//this.autoRefreshTask.delay( this.autoRefreshDelay ) ;
@@ -1847,6 +1853,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 	
 	
 	openFilesTopPanel: function() {
+		if( this.filesTopPanel ) {
+			this.filesTopPanel.destroy() ;
+		}
 		var filesTopPanel = Ext.create('Optima5.Modules.Spec.RsiRecouveo.FilesTopPanel',{
 			optimaModule: this.optimaModule,
 			loadData: this.getLoadData(),
@@ -1861,6 +1870,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			constrain: true,
 			renderTo: this.getEl(),
 			tools: [{
+				hidden: this._reportMode,
 				type: 'close',
 				handler: function(e, t, p) {
 					p.ownerCt.close();
