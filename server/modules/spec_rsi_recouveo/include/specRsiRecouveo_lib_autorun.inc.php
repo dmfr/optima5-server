@@ -455,7 +455,7 @@ function specRsiRecouveo_lib_autorun_processInboxDoc($inpostal_filerecord_id) {
 						WHERE env.field_ENV_REF='{$src['field_REF_MAILOUT']}'" ;
 			$recep_adr = $_opDB->query_uniqueValue($query) ;
 			$ttmp = explode("\n",$recep_adr,2) ;
-			$adr_txt = $ttmp[1] ;
+			$adr_txt = mysql_real_escape_string($ttmp[1]) ;
 			$query = "SELECT ae.filerecord_id FROM view_file_ADRBOOK_ENTRY ae
 					JOIN view_file_ADRBOOK a ON a.filerecord_id=ae.filerecord_parent_id
 					WHERE a.field_ACC_ID='{$src['field_REF_ACCOUNT']}'

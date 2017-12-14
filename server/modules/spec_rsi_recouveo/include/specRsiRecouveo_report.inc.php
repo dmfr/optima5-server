@@ -158,6 +158,9 @@ function specRsiRecouveo_report_getUsers( $post_data ) {
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 		$user_arr = explode('@',$arr[0]) ;
 		$user_id = $user_arr[0] ;
+		if( !$TAB_userId_row[$user_id] ) {
+			continue ;
+		}
 		
 		$count = $arr[1] ;
 		
@@ -177,6 +180,9 @@ function specRsiRecouveo_report_getUsers( $post_data ) {
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 		$user_arr = explode('@',$arr[0]) ;
 		$user_id = $user_arr[0] ;
+		if( !$TAB_userId_row[$user_id] ) {
+			continue ;
+		}
 		
 		$count = $arr[1] ;
 		
@@ -203,6 +209,9 @@ function specRsiRecouveo_report_getUsers( $post_data ) {
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 		$user_arr = explode('@',$arr[0]) ;
 		$user_id = $user_arr[0] ;
+		if( !$TAB_userId_row[$user_id] ) {
+			continue ;
+		}
 		
 		$amount = $arr[1] ;
 		$amount = (-1 * $amount) ;
@@ -222,6 +231,9 @@ function specRsiRecouveo_report_getUsers( $post_data ) {
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 		$user_arr = explode('@',$arr[0]) ;
 		$user_id = $user_arr[0] ;
+		if( !$TAB_userId_row[$user_id] ) {
+			continue ;
+		}
 		
 		$amount = $arr[1] ;
 		$amount = (-1 * $amount) ;
@@ -241,6 +253,9 @@ function specRsiRecouveo_report_getUsers( $post_data ) {
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 		$user_arr = explode('@',$arr[0]) ;
 		$user_id = $user_arr[0] ;
+		if( !$TAB_userId_row[$user_id] ) {
+			continue ;
+		}
 		
 		$amount = $arr[1] ;
 		$amount = (-1 * $amount) ;
@@ -309,6 +324,21 @@ function specRsiRecouveo_report_getUsers( $post_data ) {
 	/*
 	* Balance agée
 	*/
+	$ttmp = specRsiRecouveo_cfg_getConfig() ;
+	$cfg_balage = $ttmp['data']['cfg_balage'] ;
+	
+	$map_balageSegmt_fromDays = array() ;
+	foreach( $cfg_balage as $row ) {
+		$map_balageSegmt_fromDays[$row['segmt_id']] = (int)$row['calc_from_days'] ;
+	}
+	arsort($map_balageSegmt_fromDays) ;
+	
+	foreach( $TAB_userId_row as $user_id => $dummy ) {
+		foreach( $map_balageSegmt_fromDays as $segmt_id => $fromDays ) {
+			$TAB_userId_row[$user_id]['inv_balage'][$segmt_id] = 0 ;
+		}
+	}
+	
 	$json = specRsiRecouveo_file_getRecords(array()) ;
 	foreach( $json['data'] as $accountFile_row ) {
 		if( $accountFile_row['status_closed_void'] || $accountFile_row['status_closed_end'] ) {

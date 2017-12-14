@@ -126,7 +126,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportUsersPanel',{
 	applyFilterDate: function(silent) {
 		var filterDateForm = this.down('#btnFilterDate').menu.down('form'),
 			filterDateValues = filterDateForm.getForm().getFieldValues() ;
-		console.dir(filterDateValues) ;
 		var filterDateBtn = this.down('#btnFilterDate') ;
 		var txt ;
 		if( !filterDateValues.date_start && !filterDateValues.date_end ) {
@@ -172,7 +171,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportUsersPanel',{
 
 	buildViews: function() {
 		var balageFields = [], balageColumns = [] ;
-		var balageRenderer = function(value,metaData,record) {
+		var balageRenderer = function(value) {
 			if( !value || Math.round(value) == 0 ) {
 				return '&#160;' ;
 			}
@@ -190,7 +189,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportUsersPanel',{
 				dataIndex: balageField,
 				width:100,
 				align: 'right',
-				renderer: balageRenderer
+				renderer: balageRenderer,
+				summaryType: 'sum',
+				summaryRenderer: balageRenderer
 			}) ;
 			
 			balageFields.push({
@@ -227,14 +228,16 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportUsersPanel',{
 				dataIndex: 'com_callout',
 				width:100,
 				align: 'right',
-				renderer: countRenderer
+				renderer: countRenderer,
+				summaryType: 'sum'
 			},{
 				tdCls: 'op5-spec-rsiveo-taupe',
 				text: 'Courriers man.',
 				dataIndex: 'com_mailout',
 				width:100,
 				align: 'right',
-				renderer: countRenderer
+				renderer: countRenderer,
+				summaryType: 'sum'
 			}]
 		},{
 			text: 'Résolution',
@@ -243,19 +246,25 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportUsersPanel',{
 				dataIndex: 'res_PAY',
 				width:120,
 				align: 'right',
-				renderer: amountRenderer
+				renderer: amountRenderer,
+				summaryType: 'sum',
+				summaryRenderer: amountRenderer
 			},{
 				text: 'Avoirs',
 				dataIndex: 'res_AVR',
 				width:120,
 				align: 'right',
-				renderer: amountRenderer
+				renderer: amountRenderer,
+				summaryType: 'sum',
+				summaryRenderer: amountRenderer
 			},{
 				text: 'Autres',
 				dataIndex: 'res_misc',
 				width:120,
 				align: 'right',
-				renderer: amountRenderer
+				renderer: amountRenderer,
+				summaryType: 'sum',
+				summaryRenderer: amountRenderer
 			}]
 		},{
 			tdCls: 'op5-spec-rsiveo-taupe',
@@ -266,21 +275,24 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportUsersPanel',{
 				dataIndex: 'delay_pay',
 				width:100,
 				align: 'right',
-				renderer: countRenderer
+				renderer: countRenderer,
+				summaryType: 'sum'
 			},{
 				tdCls: 'op5-spec-rsiveo-taupe',
 				text: 'En-cours',
 				dataIndex: 'delay_open',
 				width:100,
 				align: 'right',
-				renderer: countRenderer
+				renderer: countRenderer,
+				summaryType: 'sum'
 			},{
 				tdCls: 'op5-spec-rsiveo-taupe',
 				text: 'Actions<br>externes',
 				dataIndex: 'delay_litig',
 				width:100,
 				align: 'right',
-				renderer: countRenderer
+				renderer: countRenderer,
+				summaryType: 'sum'
 			}]
 		},{
 			text: 'Balance âgée',
@@ -313,6 +325,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportUsersPanel',{
 			xtype: 'grid',
 			itemId: 'pGrid',
 			columns: columns,
+			features: [{
+				ftype: 'summary',
+				dock: 'top'
+			}],
 			store: {
 				model: this.tmpModelName,
 				data: [],
