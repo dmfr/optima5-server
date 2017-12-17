@@ -21,6 +21,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesTopPanel',{
 				type: 'vbox',
 				align: 'stretch'
 			},
+			fieldDefaults: {
+				labelWidth: 100,
+				anchor: '100%'
+			},
 			items: [{
 				xtype: 'fieldset',
 				layout: 'anchor',
@@ -50,13 +54,24 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesTopPanel',{
 						}
 					}
 				}),{
-					xtype: 'displayfield',
+					xtype: 'numberfield',
+					anchor: '',
+					width: 200,
+					name: 'count_value',
 					itemId: 'displayNb',
-					fieldLabel: 'Nb dossiers'
+					fieldLabel: 'Nb dossiers',
+					listeners: {
+						change: function( field, value ) {
+							this.onChangeValue(value) ;
+							this.doApplyParams() ;
+						},
+						scope: this
+					}
 				},{
 					anchor: '100%',
 					xtype: 'slider',
-					name: 'count',
+					itemId: 'sliderNb',
+					name: 'count_slider',
 					increment: 1,
 					value: 0,
 					minValue: 0,
@@ -157,14 +172,17 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesTopPanel',{
 		if( cnt>0 ) {
 			this.down('#displayNb').setValue(cnt) ;
 		} else {
-			this.down('#displayNb').setValue('Inactif') ;
+			this.down('#displayNb').setValue(0) ;
 		}
+	},
+	onChangeValue: function(cnt) {
+		this.down('#sliderNb').setValue(cnt) ;
 	},
 	doApplyParams: function() {
 		var values = this.getForm().getFieldValues() ;
 		
 		var status = values.status,
-			cnt = values.count ;
+			cnt = values.count_value ;
 			
 		var tmpArr ;
 		if( status==null || status.length==0 ) {
