@@ -380,28 +380,46 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		var factureColumns = [] ;
 		factureColumns.push({
 			dataIndex: 'record_id',
+			align: 'center',
 			text: 'Facture',
-			tdCls: 'op5-spec-dbstracy-boldcolumn'
+			tdCls: 'op5-spec-dbstracy-boldcolumn',
+			filter: {
+				type: 'string'
+			}
 		},{
 			dataIndex: 'record_date',
 			text: 'Date',
 			align: 'center',
 			width: 90,
-			renderer: Ext.util.Format.dateRenderer('d/m/Y')
+			renderer: Ext.util.Format.dateRenderer('d/m/Y'),
+			filter: {
+				type: 'date'
+			}
 		},{
 			dataIndex: 'record_dateload',
 			text: 'Intégration',
 			align: 'center',
 			width: 90,
-			renderer: Ext.util.Format.dateRenderer('d/m/Y')
+			renderer: Ext.util.Format.dateRenderer('d/m/Y'),
+			filter: {
+				type: 'date'
+			}
 		},{
 			dataIndex: 'record_amount_raw',
 			text: 'Montant',
-			renderer: Ext.util.Format.numberRenderer('0,000.00')
+			align: 'center',
+			renderer: Ext.util.Format.numberRenderer('0,000.00'),
+			filter: {
+				type: 'number'
+			}
 		},{
 			dataIndex: 'record_amount_calcpaid',
 			text: 'Payé',
-			renderer: Ext.util.Format.numberRenderer('0,000.00')
+			align: 'center',
+			renderer: Ext.util.Format.numberRenderer('0,000.00'),
+			filter: {
+				type: 'number'
+			}
 		}) ;
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
 			var atrRecord = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(atrId) ;
@@ -415,7 +433,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				dataIndex: atrRecord.atr_field,
 				//rendererDataindex: atrRecord.bible_code + '_text',
 				width:120,
-				align: 'center'
+				align: 'center',
+				filter: {
+					type: 'string'
+				}
 			}) ;
 		}) ;
 		var factureFields = [
