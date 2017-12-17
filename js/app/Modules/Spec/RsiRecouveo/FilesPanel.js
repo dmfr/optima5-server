@@ -113,6 +113,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 						text: 'Vue par compte',
 						iconCls: 'op5-spec-rsiveo-grid-view-ordergroup'
 					},{
+						itemId: 'record',
+						text: 'Vue par facture',
+						iconCls: 'op5-spec-rsiveo-grid-view-facture'
+					},{
 						xtype: 'menuseparator'
 					},{
 						text: 'Top X / par encours',
@@ -318,10 +322,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		var atrColumns = [] ;
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
 			var atrRecord = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(atrId) ;
-			//console.dir(atrRecord) ;
 			if( !atrRecord.is_filter ) {
 				return ;
 			}
+			if( atrRecord.atr_type != 'account' ) {
+				return ;
+			}
+			//console.dir(atrRecord) ;
 			atrColumns.push({
 				cfgParam_id: 'ATR:'+atrRecord.atr_id,
 				cfgParam_atrType: atrRecord.atr_type,
@@ -367,6 +374,71 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				convert: balageConvert
 			});
 		}) ;
+		
+		
+		
+		var factureColumns = [] ;
+		factureColumns.push({
+			dataIndex: 'record_id',
+			text: 'Facture',
+			tdCls: 'op5-spec-dbstracy-boldcolumn'
+		},{
+			dataIndex: 'record_date',
+			text: 'Date',
+			align: 'center',
+			width: 90,
+			renderer: Ext.util.Format.dateRenderer('d/m/Y')
+		},{
+			dataIndex: 'record_dateload',
+			text: 'Intégration',
+			align: 'center',
+			width: 90,
+			renderer: Ext.util.Format.dateRenderer('d/m/Y')
+		},{
+			dataIndex: 'record_amount_raw',
+			text: 'Montant',
+			renderer: Ext.util.Format.numberRenderer('0,000.00')
+		},{
+			dataIndex: 'record_amount_calcpaid',
+			text: 'Payé',
+			renderer: Ext.util.Format.numberRenderer('0,000.00')
+		}) ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
+			var atrRecord = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(atrId) ;
+			if( atrRecord.atr_type != 'record' ) {
+				return ;
+			}
+			factureColumns.push({
+				cfgParam_id: 'ATR:'+atrRecord.atr_id,
+				cfgParam_atrType: atrRecord.atr_type,
+				text: atrRecord.atr_desc,
+				dataIndex: atrRecord.atr_field,
+				//rendererDataindex: atrRecord.bible_code + '_text',
+				width:120,
+				align: 'center'
+			}) ;
+		}) ;
+		var factureFields = [
+			{name: 'record_filerecord_id', type: 'string'},
+			{name: 'record_id', type: 'string'},
+			{name: 'record_date', type: 'date', dateFormat:'Y-m-d H:i:s'},
+			{name: 'record_dateload', type: 'date', dateFormat:'Y-m-d H:i:s'},
+			{name: 'record_amount_raw', type: 'number'},
+			{name: 'record_amount_calcpaid', type: 'number'}
+		] ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
+			var atrRecord = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(atrId) ;
+			if( atrRecord.atr_type != 'record' ) {
+				return ;
+			}
+			factureFields.push({
+				name: atrRecord.atr_field,
+				type: 'string'
+			}) ;
+		}) ;
+		
+		
+		
 		
 		
 		var pCenter = this.down('#pCenter') ;
@@ -517,6 +589,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				}
 			}]
 		},{
+			itemId: 'colFinance',
 			text: 'Finance',
 			columns: [{
 				text: 'Nb Fact',
@@ -562,6 +635,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				}
 			}]
 		},{
+			itemId: 'colFact',
+			text: 'Factures',
+			columns: factureColumns
+		},{
+			itemId: 'colBalage',
 			text: 'Balance âgée',
 			columns: balageColumns
 		}] ;
@@ -583,8 +661,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		Ext.ux.dams.ModelManager.unregister( this.tmpModelName ) ;
 		Ext.define(this.tmpModelName, {
 			extend: Optima5.Modules.Spec.RsiRecouveo.HelperCache.getFileModel(),
-			idProperty: 'file_filerecord_id',
-			fields: Ext.Array.merge(balageFields,[
+			idProperty: 'id',
+			fields: Ext.Array.merge(factureFields,balageFields,[
 				{name: '_is_selection', type:'boolean'}
 			])
 		});
@@ -613,7 +691,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			},
 			listeners: {
 				itemdblclick: function( view, record, itemNode, index, e ) {
-					this.handleOpenAccount(record.get('acc_id'),record.getId()) ;
+					this.handleOpenAccount(record.get('acc_id'),record.get('file_filerecord_id')) ;
 				},
 				scope :this
 			},
@@ -1172,6 +1250,25 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			
 			col.setVisible(!doHide) ;
 		},this) ;
+		this.down('#pCenter').down('#pGrid').headerCt.down('#colFact').items.each( function(col) {
+			var doHide = false ;
+			
+			var atrColId = col.cfgParam_id ;
+			if( Ext.isEmpty(atrColId) ) {
+				return ;
+			}
+			if( !Ext.Array.contains(cfgParamIds,atrColId) ) {
+				doHide = true ;
+			}
+			
+			col.setVisible(!doHide) ;
+		},this) ;
+		
+		
+		var isFactView = (this.viewMode=='record') ;
+		this.down('#pCenter').down('#pGrid').headerCt.down('#colFinance').setVisible(!isFactView) ;
+		this.down('#pCenter').down('#pGrid').headerCt.down('#colFact').setVisible(isFactView) ;
+		this.down('#pCenter').down('#pGrid').headerCt.down('#colBalage').setVisible(!isFactView) ;
 	},
 	applyAgendaMode: function() {
 		var gridAgenda = this.down('#pNorth').down('#gridAgenda'),
@@ -1416,8 +1513,33 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			}) ;
 		}) ;
 		
+		if( this.viewMode == 'record' ) {
+			//var indexedFiles = [] ;
+			var newAjaxData = [] ;
+			Ext.Array.each( ajaxData, function(fileRow) {
+				var coef = 1-(fileRow['inv_amount_due']/fileRow['inv_amount_total']) ;
+				if( coef > 1 ) {
+					coef = 1 ;
+				}
+				Ext.Array.each(fileRow.records, function(fileRecordRow) {
+					if( !Ext.isEmpty(fileRecordRow['type']) ) {
+						return ;
+					}
+					var newRow = {} ;
+					Ext.apply(newRow,fileRow) ;
+					Ext.apply(newRow,fileRecordRow) ;
+					newRow['record_amount_raw'] =  fileRecordRow['amount'] ;
+					newRow['record_amount_calcpaid'] = fileRecordRow['amount'] * coef ;
+					newRow['record_dateload'] = fileRecordRow['date_load'] ;
+					newRow['record_date'] = fileRecordRow['date_record'] ;
+					newAjaxData.push(newRow) ;
+				});
+			});
+			ajaxData = newAjaxData ;
+		}
+		
 		if( this.viewMode == 'account' ) {
-			newAjaxData = {} ;
+			var newAjaxData = {} ;
 			var c = 0 ;
 			Ext.Array.each( ajaxData, function(fileRow) {
 				var accId = fileRow['acc_id'] ;
@@ -1823,6 +1945,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		
 		var columns = [] ;
 		Ext.Array.each( this.down('#pCenter').down('#pGrid').headerCt.getGridColumns(), function(column) {
+			if( !column.isVisible(true) ) {
+				return ;
+			}
 			columns.push({
 				dataIndex: column.dataIndex,
 				dataIndexString: mapFieldString[column.dataIndex],

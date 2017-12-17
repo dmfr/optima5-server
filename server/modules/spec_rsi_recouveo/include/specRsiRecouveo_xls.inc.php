@@ -96,9 +96,12 @@ function specRsiRecouveo_xls_create($post_data) {
 		foreach( $columns as $col ) {
 			$value = $record[$col['dataIndex']] ;
 			if( $col['dataIndexString'] ) {
-					$obj_sheet->setCellValueExplicit("{$cell}{$row}", $value,PHPExcel_Cell_DataType::TYPE_STRING);
+				$obj_sheet->setCellValueExplicit("{$cell}{$row}", $value,PHPExcel_Cell_DataType::TYPE_STRING);
 			} else {
-					$obj_sheet->SetCellValue("{$cell}{$row}", $value );
+				if( is_numeric($value) && $value != ceil($value) ) {
+					$value = round($value,2) ;
+				}
+				$obj_sheet->SetCellValue("{$cell}{$row}", $value );
 			}
 			$cell++ ;
 		}

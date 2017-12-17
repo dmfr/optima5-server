@@ -511,6 +511,9 @@
 .op5-spec-rsiveo-grid-view-ordergroup {
 	background-image: url("../images/modules/rsiveo-ordergroup-16.png") !important;
 }
+.op5-spec-rsiveo-grid-view-facture {
+	background-image: url("../images/modules/rsiveo-quickopen-16.png") !important;
+}
 
 .op5-spec-rsiveo-iconimg-oktree {
 	background-image: url("../images/modules/rsiveo-filechild-16.gif") !important;
