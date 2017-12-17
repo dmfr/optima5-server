@@ -177,7 +177,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MultiActionForm',{
 					{ boxLabel: 'Reprise dossier', name: 'multi_action', inputValue: 'bump' },
 					{ boxLabel: 'Alignement scénario', name: 'multi_action', inputValue: 'scenstep'},
 					{ boxLabel: 'Action externe / Litige', name: 'multi_action', inputValue: 'lock_litig' },
-					{ boxLabel: 'Demande clôture', name: 'multi_action', inputValue: 'lock_close' }
+					{ boxLabel: 'Demande clôture', name: 'multi_action', inputValue: 'lock_close' },
+					{ boxLabel: 'Assigner collaborateur', name: 'multi_action', inputValue: 'user' }
 				],
 				listeners: {
 					change: function(rg,newValue,oldValue) {
@@ -296,6 +297,26 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MultiActionForm',{
 					allowBlank: false,
 					fieldLabel: 'Motif'
 				})]
+			},{
+				xtype: 'fieldset',
+				itemId: 'fsUser',
+				padding: 10,
+				title: 'Assignation collaborateur',
+				layout: {
+					type: 'anchor'
+				},
+				defaults: {
+					anchor: '100%',
+					labelWidth: 95
+				},
+				items: [Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
+					cfgParam_id: 'USER',
+					cfgParam_emptyDisplayText: 'Select...',
+					optimaModule: this.optimaModule,
+					name: 'link_user',
+					allowBlank: false,
+					fieldLabel: 'Collaborateur'
+				})]
 			}],
 			buttons: [{
 				itemId: 'btnOk',
@@ -339,6 +360,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MultiActionForm',{
 		this.down('#fsScenstep').setVisible( multiMode=='scenstep' ) ;
 		this.down('#fsClose').setVisible( multiMode=='lock_close' ) ;
 		this.down('#fsLitig').setVisible( multiMode=='lock_litig' ) ;
+		this.down('#fsUser').setVisible( multiMode=='user' ) ;
 	},
 	onFormChange: function(formP, field) {
 		var form = formP.getForm() ;
