@@ -105,13 +105,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 						scope:this
 					},
 					items: [{
-						itemId: 'file',
-						text: 'Vue par dossier',
-						iconCls: 'op5-spec-rsiveo-grid-view-order'
-					},{
 						itemId: 'account',
 						text: 'Vue par compte',
 						iconCls: 'op5-spec-rsiveo-grid-view-ordergroup'
+					},{
+						itemId: 'file',
+						text: 'Vue par dossier',
+						iconCls: 'op5-spec-rsiveo-grid-view-order'
 					},{
 						itemId: 'record',
 						text: 'Vue par facture',
@@ -411,6 +411,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			renderer: Ext.util.Format.numberRenderer('0,000.00'),
 			filter: {
 				type: 'number'
+			},
+			summaryType: 'sum',
+			summaryRenderer: function(value,summaryData,field,metaData) {
+				return Ext.util.Format.number(value,'0,000.00') ;
 			}
 		},{
 			dataIndex: 'record_amount_calcpaid',
@@ -419,6 +423,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			renderer: Ext.util.Format.numberRenderer('0,000.00'),
 			filter: {
 				type: 'number'
+			},
+			summaryType: 'sum',
+			summaryRenderer: function(value,summaryData,field,metaData) {
+				return Ext.util.Format.number(value,'0,000.00') ;
 			}
 		}) ;
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
