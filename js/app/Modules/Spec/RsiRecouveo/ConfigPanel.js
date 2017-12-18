@@ -142,7 +142,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigPanel', {
 			return null ;
 		}
 		if( !Ext.ClassManager.isCreated( record.get('jsClass') ) ) {
-			console.log( record.get('jsClass') + ' not defined!' ) ;
+			//console.log( record.get('jsClass') + ' not defined!' ) ;
 			return null ;
 		}
 		tab = Ext.create(record.get('jsClass'),{

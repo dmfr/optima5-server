@@ -369,7 +369,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MultiActionForm',{
 				form.findField('scenstep').doLoad(field.getValue()) ;
 				break ;
 			case 'scenstep' :
-				console.dir(field.getValue()) ;
+				//console.dir(field.getValue()) ;
 				break ;
 		}
 		this.updateLayout();

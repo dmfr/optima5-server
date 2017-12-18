@@ -252,7 +252,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigUsersPanel', {
 		
 		eastpanel._empty = false ;
 		eastpanel.setTitle(title) ;
-		console.dir(userRecord.getData()) ;
 		eastpanel.getForm().reset() ;
 		eastpanel.getForm().setValues( values ) ;
 		eastpanel.getForm().findField('user_id').setReadOnly( !userRecord.get('_is_new') ) ;

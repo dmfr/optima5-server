@@ -2105,7 +2105,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 	
 	handleSaveHeader: function() {
 		var values = this.down('#pHeaderForm').getForm().getFieldValues() ;
-		console.dir(values) ;
 		
 		this.showLoadmask() ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
