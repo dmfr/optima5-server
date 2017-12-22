@@ -11,6 +11,7 @@ Ext.define('DbsTracyTrsptTreeModel',{
 	fields:[
 		{ name: 'type', type: 'string' },
 		{ name: 'hat_filerecord_id', type: 'int' },
+		{ name: 'order_filerecord_id', type: 'int' },
 		{ name: 'id_soc', type: 'string' },
 		{ name: 'id_hat', type: 'string' },
 		{ name: 'id_dn', type: 'string' },
@@ -383,23 +384,38 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 						var gridContextMenuItems = new Array() ;
 						
 						var selRecord = record ;
-						gridContextMenuItems.push({
-							disabled: true,
-							text: '<b>'+selRecord.get('id_soc')+'/'+selRecord.get('id_dn')+'</b>'
-						},'-',{
-							iconCls: 'icon-bible-edit',
-							text: 'Modify',
-							handler : function() {
-								this.optimaModule.postCrmEvent('openorder',{orderFilerecordId:record.get('order_filerecord_id')}) ;
-							},
-							scope : this
-						});
-						if( Optima5.Modules.Spec.DbsTracy.HelperCache.authHelperQueryPage('ADMIN') ) {
+						if( record.get('order_filerecord_id') > 0 ) {
 							gridContextMenuItems.push({
-								iconCls: 'icon-bible-delete',
-								text: 'Unassign',
+								disabled: true,
+								text: '<b>'+selRecord.get('id_soc')+'/'+selRecord.get('id_dn')+'</b>'
+							},'-',{
+								iconCls: 'icon-bible-edit',
+								text: 'Modify',
 								handler : function() {
-									this.doOrdersRemove( [selRecord] ) ;
+									this.optimaModule.postCrmEvent('openorder',{orderFilerecordId:record.get('order_filerecord_id')}) ;
+								},
+								scope : this
+							});
+							if( Optima5.Modules.Spec.DbsTracy.HelperCache.authHelperQueryPage('ADMIN') ) {
+								gridContextMenuItems.push({
+									iconCls: 'icon-bible-delete',
+									text: 'Unassign',
+									handler : function() {
+										this.doOrdersRemove( [selRecord] ) ;
+									},
+									scope : this
+								});
+							}
+						}
+						if( record.get('hat_filerecord_id') > 0 ) {
+							gridContextMenuItems.push({
+								disabled: true,
+								text: '<b>'+selRecord.get('id_soc')+'/'+selRecord.get('id_hat')+'</b>'
+							},'-',{
+								iconCls: 'icon-bible-edit',
+								text: 'Modify',
+								handler : function() {
+									this.optimaModule.postCrmEvent('openhat',{hatFilerecordId:record.get('hat_filerecord_id')}) ;
 								},
 								scope : this
 							});
@@ -715,6 +731,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 			
 			var hatRow = map_hatId_hatRecord[hatId].getData(true) ;
 			var treeMember = {} ;
+			treeMember['hat_filerecord_id'] = hatRow['hat_filerecord_id'] ;
+			treeMember['id_soc'] = hatRow['id_soc'] ;
 			treeMember['id_hat'] = hatRow['id_hat'] ;
 			treeMember['calc_step'] = hatRow['calc_step'] ;
 			treeMember['parcels'] = hatRow['parcels'] ;
