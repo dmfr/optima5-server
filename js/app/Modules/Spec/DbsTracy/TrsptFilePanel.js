@@ -163,13 +163,13 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 						xtype: 'op5specdbstracycfgparamtext',
 						cfgParam_id: 'LIST_AIRPORT',
 						fieldLabel: 'Origin',
-						allowBlank: false,
+						//allowBlank: false,
 						name: 'mvt_origin'
 					},{
 						xtype: 'op5specdbstracycfgparamtext',
 						cfgParam_id: 'LIST_AIRPORT',
 						fieldLabel: 'Destination',
-						allowBlank: false,
+						//allowBlank: false,
 						name: 'mvt_dest'
 					},{
 						xtype: 'op5specdbstracycfgparamtext',
