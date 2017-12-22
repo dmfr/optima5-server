@@ -413,18 +413,19 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.HatFilePanel',{
 		if( hatNew_orderRecords != null && hatNew_orderRecords.length>0 ){
 			this.down('#pOrdersGrid').getStore().add(hatNew_orderRecords) ;
 			
+			var errors ;
 			var passed = true ;
 			Ext.Array.each( hatNew_orderRecords, function(orderRecord) {
 				if( orderRecord.get('calc_hat_is_active') ) {
 					//this.onNewHatError('DN already attached to ShipGroup') ;
 					//return false ;
 				}
-				if( Optima5.Modules.Spec.DbsTracy.HelperCache.checkOrderData(orderRecord.getData()) != null ) {
+				if( (errors=Optima5.Modules.Spec.DbsTracy.HelperCache.checkOrderData(orderRecord.getData())) != null ) {
 					passed = false ;
 				}
 			},this) ;
 			if( !passed ) {
-				this.onNewHatError('DN incomplete. Check order details') ;
+				this.onNewHatError('DN incomplete. Check order details<br>'+Ext.Object.getValues(errors).join('<br>')) ;
 				return false ;
 			}
 			
@@ -687,8 +688,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.HatFilePanel',{
 			return ;
 		}
 		
-		if( Optima5.Modules.Spec.DbsTracy.HelperCache.checkOrderData(validationRecord.getData()) != null ) {
-			Ext.MessageBox.alert('Incomplete','DN incomplete. Check order details') ;
+		var errors ;
+		if( (errors=Optima5.Modules.Spec.DbsTracy.HelperCache.checkOrderData(validationRecord.getData())) != null ) {
+			Ext.MessageBox.alert('Incomplete','DN incomplete. Check order details<br>'+Ext.Object.getValues(errors).join('<br>')) ;
 			return ;
 		}
 		

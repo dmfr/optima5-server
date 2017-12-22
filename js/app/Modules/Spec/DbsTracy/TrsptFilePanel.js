@@ -622,14 +622,15 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 			var rootNode = this.doBuildRootNode( trsptNew_hatRecords, trsptNew_orderLeafRecords ) ;
 			this.down('#pOrdersGrid').setRootNode(rootNode) ;
 			
+			var errors ;
 			var passed = true ;
 			Ext.Array.each( trsptNew_orderLeafRecords, function(orderRecord) {
-				if( Optima5.Modules.Spec.DbsTracy.HelperCache.checkOrderData(orderRecord.getData()) != null ) {
+				if( (errors=Optima5.Modules.Spec.DbsTracy.HelperCache.checkOrderData(orderRecord.getData())) != null ) {
 					passed = false ;
 				}
 			}) ;
 			if( !passed ) {
-				this.onNewTrsptError('DN incomplete. Check order details') ;
+				this.onNewTrsptError('DN incomplete. Check order details<br>'+Ext.Object.getValues(errors).join('<br>')) ;
 				return false ;
 			}
 			
@@ -1010,8 +1011,9 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 			return ;
 		}
 		
-		if( Optima5.Modules.Spec.DbsTracy.HelperCache.checkOrderData(validationRecord.getData()) != null ) {
-			Ext.MessageBox.alert('Incomplete','DN incomplete. Check order details') ;
+		var errors ;
+		if( (errors=Optima5.Modules.Spec.DbsTracy.HelperCache.checkOrderData(validationRecord.getData())) != null ) {
+			Ext.MessageBox.alert('Incomplete','DN incomplete. Check order details<br>'+Ext.Object.getValues(errors).join('<br>')) ;
 			return ;
 		}
 		
