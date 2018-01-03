@@ -192,19 +192,12 @@ function specBpSales_inv_createFromOrder( $post_data ) {
 		return array('success'=>false, 'error'=>'Invalid status') ;
 	}
 	
-	$_opDB->query("LOCK TABLES view_file_Z_ATTRIB WRITE") ;
-	$query = "UPDATE view_file_Z_ATTRIB set field_ID=field_ID+'1' WHERE field_FILE_CODE='INV'" ;
-	$_opDB->query($query) ;
-	$query = "SELECT field_ID FROM view_file_Z_ATTRIB WHERE field_FILE_CODE='INV'" ;
-	$id = $_opDB->query_uniqueValue($query) ;
-	$_opDB->query("UNLOCK TABLES") ;
-	
 	//Query customer
 	$customer_entry = paracrm_lib_data_getRecord_bibleEntry('CUSTOMER',$row_cde['cli_link']) ;
 	$customer_treenode = paracrm_lib_data_getRecord_bibleTreenode('CUSTOMER',$customer_entry['treenode_key'],$ascend_on_empty=TRUE) ;
 	
 	$arr_ins = array() ;
-	$arr_ins['field_ID_INV'] = 'INV/'.str_pad((float)$id, 6, "0", STR_PAD_LEFT) ;
+	$arr_ins['field_ID_INV'] = 'draft' ;
 	$arr_ins['field_ID_CDE_REF'] = $row_cde['cde_ref'] ;
 	$arr_ins['field_ID_COEF'] = 1 ;
 	$arr_ins['field_CLI_LINK'] = $row_cde['cli_link'] ;
@@ -213,7 +206,7 @@ function specBpSales_inv_createFromOrder( $post_data ) {
 	$arr_ins['field_ADR_SHIP'] = $customer_entry['field_ADR_SHIP'] ;
 	$arr_ins['field_PAY_BANK'] = $customer_treenode['field_ATR_PAYBANK'] ;
 	$arr_ins['field_DATE_CREATE'] = date('Y-m-d H:i:s') ;
-	$arr_ins['field_DATE_INVOICE'] = $row_cde['date_order'] ;
+	$arr_ins['field_DATE_INVOICE'] = $row_cde['date_ship'] ;
 	$arr_ins['field_STATUS'] = '70_INVCREATE' ;
 	$inv_filerecord_id = paracrm_lib_data_insertRecord_file( 'INV', 0, $arr_ins );
 	
@@ -418,6 +411,14 @@ function specBpSales_inv_setRecord( $post_data ) {
 	specBpSales_inv_lib_calc($record_data['inv_filerecord_id']) ;
 	
 	if( $post_data['validate'] == 1 ) {
+		$_opDB->query("LOCK TABLES view_file_Z_ATTRIB WRITE") ;
+		$query = "UPDATE view_file_Z_ATTRIB set field_ID=field_ID+'1' WHERE field_FILE_CODE='INV'" ;
+		$_opDB->query($query) ;
+		$query = "SELECT field_ID FROM view_file_Z_ATTRIB WHERE field_FILE_CODE='INV'" ;
+		$id = $_opDB->query_uniqueValue($query) ;
+		$_opDB->query("UNLOCK TABLES") ;
+		
+		
 		$arr_cdeFilerecordIds = array() ;
 		$query = "SELECT filerecord_id FROM view_file_CDE WHERE field_LINK_INV_FILE_ID='{$record_data['inv_filerecord_id']}'" ;
 		$result = $_opDB->query($query) ;
@@ -439,6 +440,7 @@ function specBpSales_inv_setRecord( $post_data ) {
 			}
 		}
 		$arr_update = array() ;
+		$arr_update['field_ID_INV'] = 'INV/'.str_pad((float)$id, 6, "0", STR_PAD_LEFT) ;
 		$arr_update['field_STATUS_IS_FINAL'] = 1 ;
 		$arr_update['field_STATUS'] = '85_INVOK' ;
 		paracrm_lib_data_updateRecord_file( 'INV' , $arr_update, $record_data['inv_filerecord_id'] ) ;
@@ -491,6 +493,7 @@ function specBpSales_inv_reopenRecord( $post_data ) {
 		paracrm_lib_data_updateRecord_file( 'CDE' , $arr_update, $row_cde['cde_filerecord_id'] ) ;
 	}
 	$arr_update = array() ;
+	$arr_update['field_ID_INV'] = 'draft' ;
 	$arr_update['field_STATUS_IS_FINAL'] = 0 ;
 	$arr_update['field_STATUS'] = '70_INVCREATE' ;
 	paracrm_lib_data_updateRecord_file( 'INV' , $arr_update, $inv_record['inv_filerecord_id'] ) ;
@@ -665,9 +668,9 @@ function specBpSales_inv_printDoc( $post_data ) {
 			
 			'pay_bank' => nl2br($inv_record['pay_bank']),
 			
-			'calc_amount_novat' => number_format($inv_record['calc_amount_novat'],3),
-			'calc_amount_final' => number_format($inv_record['calc_amount_final'],3),
-			'calc_vat' => number_format($inv_record['calc_amount_final']-$inv_record['calc_amount_novat'],3),
+			'calc_amount_novat' => number_format($inv_record['calc_amount_novat'],2),
+			'calc_amount_final' => number_format($inv_record['calc_amount_final'],2),
+			'calc_vat' => number_format($inv_record['calc_amount_final']-$inv_record['calc_amount_novat'],2),
 			
 			'date_invoice' => date('d/m/Y',strtotime($inv_record['date_invoice'])),
 			'date_due' => date('d/m/Y',strtotime('+30 days',strtotime($inv_record['date_invoice'])))
@@ -687,9 +690,9 @@ function specBpSales_inv_printDoc( $post_data ) {
 			
 			'pay_bank' => nl2br($inv_record['pay_bank']),
 			
-			'calc_amount_novat' => number_format($inv_record['calc_amount_novat'],3),
-			'calc_amount_final' => number_format($inv_record['calc_amount_final'],3),
-			'calc_vat' => number_format($inv_record['calc_amount_final']-$inv_record['calc_amount_novat'],3),
+			'calc_amount_novat' => number_format($inv_record['calc_amount_novat'],2),
+			'calc_amount_final' => number_format($inv_record['calc_amount_final'],2),
+			'calc_vat' => number_format($inv_record['calc_amount_final']-$inv_record['calc_amount_novat'],2),
 			
 			'date_invoice' => date('d/m/Y',strtotime($inv_record['date_invoice'])),
 			'date_due' => date('d/m/Y',strtotime('+30 days',strtotime($inv_record['date_invoice'])))
@@ -736,7 +739,7 @@ function specBpSales_inv_printDoc( $post_data ) {
 		
 		$row_table = array(
 			'join_vat' => (($invlig_record['join_vat'] * 100) - 100).' %',
-			'calc_amount_novat' => number_format($invlig_record['calc_amount_novat'],3)
+			'calc_amount_novat' => number_format($invlig_record['calc_amount_novat'],2)
 		);
 		if( $invlig_record['base_prod'] ) {
 			$row_table+= array(
@@ -750,8 +753,8 @@ function specBpSales_inv_printDoc( $post_data ) {
 				'join_coef1' => (100 - ($invlig_record['join_coef1'] * 100)).' %',
 				'join_coef2' => (100 - ($invlig_record['join_coef2'] * 100)).' %',
 				'join_coef3' => (100 - ($invlig_record['join_coef3'] * 100)).' %',
-				'calc_price_unit' => number_format($invlig_record['join_price']*$invlig_record['join_coef1']*$invlig_record['join_coef2']*$invlig_record['join_coef3'],3),
-				'calc_price_novat' => number_format($invlig_record['calc_amount_novat'],3)
+				'calc_price_unit' => number_format($invlig_record['join_price']*$invlig_record['join_coef1']*$invlig_record['join_coef2']*$invlig_record['join_coef3'],2),
+				'calc_price_novat' => number_format($invlig_record['calc_amount_novat'],2)
 			);
 		}
 		if( $invlig_record['static_txt'] ) {
@@ -768,7 +771,17 @@ function specBpSales_inv_printDoc( $post_data ) {
 	$app_root = $GLOBALS['app_root'] ;
 	$resources_root=$app_root.'/resources' ;
 	$templates_dir=$resources_root.'/server/templates' ;
-	$inputFileName = $templates_dir.'/'.'BP_SALES_invoice.html' ;
+	switch( strtolower(DatabaseMgr_Base::dbCurrent_getDomainId()) ) {
+		case 'bluephoenix' :
+			$inputFileName = $templates_dir.'/'.'BP_SALES_invoice.html' ;
+			break ;
+		case 'jp' :
+			$inputFileName = $templates_dir.'/'.'JP_SALES_invoice.html' ;
+			break ;
+		default :
+			return array('success'=>false) ;
+			break ;
+	}	
 	$inputBinary = file_get_contents($inputFileName) ;
 		
 	//echo $inputFileName ;
