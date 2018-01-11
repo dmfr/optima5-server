@@ -274,6 +274,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			}
 		}
 		$record_row += array(
+			'is_disabled' => $arr['field_IS_DISABLED'],
 			'type' => $arr['field_TYPE'],
 			'type_temprec' => $arr['field_TYPE_TEMPREC'],
 			'record_id' => $arr['field_RECORD_ID'],
@@ -347,6 +348,9 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 		}
 		foreach( $file_row['records'] as $record_row ) {
 			if( $record_row['clear_is_on'] ) {
+				continue ;
+			}
+			if( $record_row['is_disabled'] ) {
 				continue ;
 			}
 			if( $record_row['amount'] > 0 ) {

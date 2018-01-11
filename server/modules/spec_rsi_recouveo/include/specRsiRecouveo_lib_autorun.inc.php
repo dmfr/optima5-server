@@ -45,15 +45,19 @@ function specRsiRecouveo_lib_autorun_open() {
 			$arr_ins['field_DATE_LINK_ON'] = date('Y-m-d') ;
 			paracrm_lib_data_insertRecord_file( 'RECORD_LINK', $accountFileBlankRecord_record['record_filerecord_id'], $arr_ins );
 			
-			$ids[] = $accountFileBlankRecord_record['record_filerecord_id'] ;
+			if( !$accountFileBlankRecord_record['is_disabled'] ) {
+				$ids[] = $accountFileBlankRecord_record['record_filerecord_id'] ;
+			}
 		}
 		
-		$forward_post = array() ;
-		$forward_post['acc_id'] = $account_record['acc_id'] ;
-		$forward_post['arr_recordIds'] = json_encode($ids) ;
-		$forward_post['new_action_code'] = 'BUMP' ;
-		$forward_post['form_data'] = json_encode(array()) ;
-		$ret = specRsiRecouveo_file_createForAction($forward_post) ;
+		if( count($ids) > 0 ) {
+			$forward_post = array() ;
+			$forward_post['acc_id'] = $account_record['acc_id'] ;
+			$forward_post['arr_recordIds'] = json_encode($ids) ;
+			$forward_post['new_action_code'] = 'BUMP' ;
+			$forward_post['form_data'] = json_encode(array()) ;
+			$ret = specRsiRecouveo_file_createForAction($forward_post) ;
+		}
 	}
 }
 
