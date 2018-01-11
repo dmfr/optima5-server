@@ -302,7 +302,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigSocsPanel', {
 							icon: 'images/add.png',
 							text: 'Définir métadonnée',
 							handler: function() {
-								this.handleNewMetafield();
+								this.handleNewPrintfield();
 							},
 							scope: this
 						},'-',{
@@ -311,7 +311,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigSocsPanel', {
 							icon: 'images/delete.png',
 							text: 'Supprimer',
 							handler: function() {
-								this.handleDeleteMetafield();
+								this.handleDeletePrintfield();
 							},
 							scope: this
 						}],
@@ -631,7 +631,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigSocsPanel', {
 			context.grid.getStore().remove(context.record) ;
 		}
 	},
-	handleNewMetafield: function() {
+	handleNewPrintfield: function() {
 		var printfieldsGrid = this.down('#gridEditorPrintfields') ;
 		if( printfieldsGrid.getPlugin('rowediting')._disabled ) {
 			return ;
@@ -641,7 +641,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigSocsPanel', {
 		}) ) ;
 		printfieldsGrid.getPlugin('rowediting').startEdit(newRecords[0]) ;
 	},
-	handleDeleteMetafield: function() {
+	handleDeletePrintfield: function() {
 		var printfieldsGrid = this.down('#gridEditorPrintfields') ;
 		if( printfieldsGrid.getPlugin('rowediting')._disabled ) {
 			return ;
