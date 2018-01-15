@@ -60,6 +60,82 @@ function specRsiRecouveo_lib_autorun_open() {
 		}
 	}
 }
+function specRsiRecouveo_lib_autorun_manageDisabled() {
+	global $_opDB ;
+	
+	$arr_acc = array() ;
+	$query = "SELECT distinct f.field_LINK_ACCOUNT FROM view_file_RECORD r
+				JOIN view_file_RECORD_LINK rl 
+				 ON rl.filerecord_parent_id=r.filerecord_id AND rl.field_LINK_IS_ON='1'
+				JOIN view_file_FILE f
+				 ON f.filerecord_id = rl.field_LINK_FILE_ID
+				WHERE ( f.field_STATUS IN ('S1_OPEN','S1_SEARCH') AND r.field_IS_DISABLED='1' )
+				OR ( f.field_STATUS IN('S0_PRE') AND r.field_IS_DISABLED='0' )" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$arr_acc[] = $arr[0] ;
+	}
+	
+	foreach( $arr_acc as $acc_id ) {
+		$toEnable_recordFilerecordIds = array() ;
+		$toDisable_recordFilerecordIds = array() ;
+		$targetFile_preFilerecordId = $targetFile_openFilerecordId = NULL ;
+		
+		$ttmp = specRsiRecouveo_account_open(array('acc_id'=>$acc_id, 'filter_archiveIsOn'=>1)) ;
+		$account_record = $ttmp['data'] ;
+		foreach( $account_record['files'] as $accountFile_record ) {
+			switch( $accountFile_record['status'] ) {
+				case 'S0_PRE' :
+					$cur_status = 'PRE' ;
+					$targetFile_preFilerecordId = $accountFile_record['file_filerecord_id'] ;
+					break ;
+				case 'S1_OPEN' :
+				case 'S1_SEARCH' :
+					$cur_status = 'OPEN' ;
+					$targetFile_openFilerecordId = $accountFile_record['file_filerecord_id'] ;
+					break ;
+				default :
+					continue 2 ;
+			}
+			foreach( $accountFile_record['records'] as $accountFileRecord_record ) {
+				if( $cur_status=='PRE' && !$accountFileRecord_record['is_disabled'] ) {
+					$toEnable_recordFilerecordIds[] = $accountFileRecord_record['record_filerecord_id'] ;
+				}
+				if( $cur_status=='OPEN' && $accountFileRecord_record['is_disabled'] ) {
+					$toDisable_recordFilerecordIds[] = $accountFileRecord_record['record_filerecord_id'] ;
+				}
+			}
+		}
+		
+		if( count($toEnable_recordFilerecordIds)>0 ) {
+			if( $targetFile_openFilerecordId ) {
+				specRsiRecouveo_file_allocateRecordTemp( array(
+					'file_filerecord_id' => $targetFile_openFilerecordId,
+					'arr_recordFilerecordIds' => json_encode($toEnable_recordFilerecordIds)
+				)) ;
+			} else {
+				$forward_post = array() ;
+				$forward_post['acc_id'] = $account_record['acc_id'] ;
+				$forward_post['arr_recordIds'] = json_encode($toEnable_recordFilerecordIds) ;
+				$forward_post['new_action_code'] = 'BUMP' ;
+				$forward_post['form_data'] = json_encode(array()) ;
+				$ret = specRsiRecouveo_file_createForAction($forward_post) ;
+			}
+			specRsiRecouveo_file_lib_updateStatus($account_record['acc_id']) ;
+		}
+		if( count($toDisable_recordFilerecordIds)>0 ) {
+			if( $targetFile_preFilerecordId ) {
+				specRsiRecouveo_file_allocateRecordTemp( array(
+					'file_filerecord_id' => $targetFile_preFilerecordId,
+					'arr_recordFilerecordIds' => json_encode($toDisable_recordFilerecordIds)
+				)) ;
+			} else {
+				// TODO
+			}
+			specRsiRecouveo_file_lib_updateStatus($account_record['acc_id']) ;
+		}
+	}
+}
 
 
 function specRsiRecouveo_lib_autorun_closeEnd() {
