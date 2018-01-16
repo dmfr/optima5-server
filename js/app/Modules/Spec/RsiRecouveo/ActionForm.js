@@ -417,7 +417,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 					postData['schedlock_confirm_amount'] = [] ;
 					
 					Ext.Array.each( this.down('#rightRecords').down('grid').getSelectionModel().getSelection(), function(rec) {
-						postData['schedlock_confirm_txt'].push( rec.get('record_id') ) ;
+						postData['schedlock_confirm_txt'].push( rec.get('record_ref') ) ;
 						postData['schedlock_confirm_ids'].push( rec.getId() ) ;
 						postData['schedlock_confirm_amount'] += rec.get('amount') ;
 					}) ;

@@ -309,7 +309,7 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE ) {
 	
 	// ************ DONNEES Tableau ***********************
 	$map_columns = array(
-		'record_id' => 'Réf. pièce',
+		'record_ref' => 'Réf. pièce',
 		'date_value' => 'Date',
 		'type_temprec' => 'Journal',
 		'amount_tot' => 'Montant'
@@ -325,7 +325,7 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE ) {
 	$table_data = $table_datafoot = array() ;
 	foreach( $accFile_record['records'] as $record_row ) {
 		$row_table = array(
-			'record_id' => $record_row['record_id'],
+			'record_ref' => $record_row['record_ref'],
 			'type_temprec' => $record_row['type_temprec'],
 			'txt' => $record_row['txt'],
 			'date_load' => date('d/m/Y',strtotime($record_row['date_load'])),
@@ -338,7 +338,7 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE ) {
 		$table_data[] = $row_table ;
 	}
 	$table_datafoot[] = array(
-		'record_id' => 'Total',
+		'record_ref' => 'Total',
 		'amount_tot' => '<div width="100%" style="text-align:right;">'.number_format($amount,2).'</div>',
 		'amount_due' => '<b>'.number_format($amount,2).'</b>'
 	);

@@ -77,7 +77,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateForm',{
 						}
 					},
 					columns: Ext.Array.merge([{
-						dataIndex: 'record_id',
+						dataIndex: 'record_ref',
 						text: 'Fact/Paiment',
 						width: 150
 					},{

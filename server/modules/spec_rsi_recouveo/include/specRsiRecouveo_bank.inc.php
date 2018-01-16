@@ -86,7 +86,7 @@ function specRsiRecouveo_bank_setAlloc($post_data) {
 			}
 			$arr_ins = array(
 				'field_RECORD_ID' => $p_data['bank_ref'],
-				'field_TXT' => $p_data['bank_ref'],
+				'field_RECORD_REF' => $p_data['bank_ref'],
 				'field_LINK_ACCOUNT' => $p_data['alloc_link_account'],
 				'field_TYPE' => 'LOCAL',
 				'field_TYPE_TEMPREC' => 'ALLOC',

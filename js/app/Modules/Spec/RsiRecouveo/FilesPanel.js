@@ -379,7 +379,16 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		
 		var factureColumns = [] ;
 		factureColumns.push({
+			hidden: true,
 			dataIndex: 'record_id',
+			align: 'center',
+			text: 'ID',
+			tdCls: 'op5-spec-dbstracy-boldcolumn',
+			filter: {
+				type: 'string'
+			}
+		},{
+			dataIndex: 'record_ref',
 			align: 'center',
 			text: 'Facture',
 			tdCls: 'op5-spec-dbstracy-boldcolumn',
@@ -450,6 +459,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		var factureFields = [
 			{name: 'record_filerecord_id', type: 'string'},
 			{name: 'record_id', type: 'string'},
+			{name: 'record_ref', type: 'string'},
 			{name: 'record_date', type: 'date', dateFormat:'Y-m-d H:i:s'},
 			{name: 'record_dateload', type: 'date', dateFormat:'Y-m-d H:i:s'},
 			{name: 'record_amount_raw', type: 'number'},

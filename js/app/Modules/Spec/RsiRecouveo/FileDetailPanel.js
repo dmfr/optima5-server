@@ -11,6 +11,7 @@ Ext.define('RsiRecouveoFileDetailRecordsTreeModel', {
         {name: 'file_status_color',  type: 'string'},
 		  {name: 'record_filerecord_id', type: 'int'},
 		  {name: 'record_id', type: 'string'},
+		  {name: 'record_ref', type: 'string'},
 		  {name: 'record_date', type: 'date'},
 		  {name: 'record_dateload', type: 'date'},
 		  {name: 'record_amount', type: 'number'},
@@ -211,8 +212,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				if( !Ext.isEmpty(r.get('file_id_ref')) ) {
 					return '<b>'+r.get('file_id_ref')+'</b>' ;
 				}
-				return r.get('record_id') ;
+				return r.get('record_ref') ;
 			}
+		},{
+			hidden: true,
+			text: 'ID',
+			dataIndex: 'record_id',
+			width: 120
 		},{
 			text: 'Date',
 			dataIndex: 'record_date',
@@ -1078,6 +1084,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					icon: ( !Ext.isEmpty(fileRecordRecord.get('type')) ? 'images/modules/rsiveo-quickopen-16.png' : undefined ),
 					record_filerecord_id: fileRecordRecord.getId(),
 					record_id: fileRecordRecord.get('record_id'),
+					record_ref: fileRecordRecord.get('record_ref'),
 					record_date: fileRecordRecord.get('date_value'),
 					record_dateload: fileRecordRecord.get('date_load'),
 					record_amount: fileRecordRecord.get('amount'),

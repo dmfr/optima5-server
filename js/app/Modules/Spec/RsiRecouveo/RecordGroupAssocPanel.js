@@ -180,7 +180,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.RecordGroupAssocPanel',{
 				}
 			},{
 				text: 'Libellé',
-				dataIndex: 'record_id',
+				dataIndex: 'record_ref',
 				width:200
 			},{
 				text: 'Date',

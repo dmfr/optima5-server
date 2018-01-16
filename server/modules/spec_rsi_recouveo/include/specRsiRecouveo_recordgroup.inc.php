@@ -64,6 +64,7 @@ function specRsiRecouveo_recordgroup_input_get( $post_data ) {
 		$record_row += array(
 			'type' => $arr['field_TYPE'],
 			'record_id' => $arr['field_RECORD_ID'],
+			'record_ref' => $arr['field_RECORD_REF'],
 			'acc_id' => $arr['field_LINK_ACCOUNT'],
 			'acc_txt' => $arr['field_ACC_NAME'],
 			'date_load' => $arr['field_DATE_LOAD'],
@@ -137,6 +138,7 @@ function specRsiRecouveo_recordgroup_input_set( $post_data ) {
 		$arr_ins = array(
 			'field_TYPE' => 'LOCAL',
 			'field_RECORD_ID' => $recordgroup_code.'-'.$c,
+			'field_RECORD_REF' => $recordgroup_code.'-'.$c,
 			'field_LINK_ACCOUNT' => $record['acc_id'],
 			'field_DATE_LOAD' => date('Y-m-d'),
 			'field_DATE_RECORD' => substr($p_formData['recordgroup_date'],0,10),
@@ -205,6 +207,7 @@ function specRsiRecouveo_recordgroup_assoc_get( $post_data ) {
 		$record_row += array(
 			'type' => $arr['field_TYPE'],
 			'record_id' => $arr['field_RECORD_ID'],
+			'record_ref' => $arr['field_RECORD_REF'],
 			'acc_id' => $arr['field_LINK_ACCOUNT'],
 			'acc_txt' => $arr['field_ACC_NAME'],
 			'date_load' => $arr['field_DATE_LOAD'],

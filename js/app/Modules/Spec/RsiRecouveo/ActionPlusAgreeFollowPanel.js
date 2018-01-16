@@ -115,7 +115,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusAgreeFollowPanel',{
 					},
 					columns: [{
 						text: 'Libellé',
-						dataIndex: 'record_id',
+						dataIndex: 'record_ref',
 						width: 130
 					},{
 						text: 'Date',

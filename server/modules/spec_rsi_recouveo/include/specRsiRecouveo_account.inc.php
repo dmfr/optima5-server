@@ -163,6 +163,7 @@ function specRsiRecouveo_account_open( $post_data ) {
 			'is_disabled' => $arr['field_IS_DISABLED'],
 			'type' => $arr['field_TYPE'],
 			'record_id' => $arr['field_RECORD_ID'],
+			'record_ref' => $arr['field_RECORD_REF'],
 			'acc_id' => $arr['field_LINK_ACCOUNT'],
 			'date_load' => $arr['field_DATE_LOAD'],
 			'date_record' => $arr['field_DATE_RECORD'],

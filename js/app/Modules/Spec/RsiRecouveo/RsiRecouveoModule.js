@@ -107,6 +107,8 @@ Ext.define('RsiRecouveoRecordTplModel',{ // TO: RsiRecouveoRecordModel
 	fields: [
 		{name: 'record_filerecord_id', type:'int'},
 		{name: 'record_id', type:'string'},
+		{name: 'record_ref', type:'string'},
+		{name: 'record_txt', type:'string'},
 		{name: 'type', type:'string'},
 		{name: 'type_temprec', type:'string'},
 		{name: 'acc_id', type:'string'},
@@ -118,7 +120,6 @@ Ext.define('RsiRecouveoRecordTplModel',{ // TO: RsiRecouveoRecordModel
 		{name: 'letter_is_on', type:'boolean'},
 		{name: 'letter_code', type: 'string'},
 		{name: 'recordgroup_id', type: 'string'},
-		{name: 'txt', type: 'string'},
 		{name: 'bank_is_alloc', type: 'string'},
 		{name: '_checked', type: 'boolean'},
 		

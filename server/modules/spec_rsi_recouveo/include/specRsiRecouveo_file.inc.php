@@ -278,6 +278,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			'type' => $arr['field_TYPE'],
 			'type_temprec' => $arr['field_TYPE_TEMPREC'],
 			'record_id' => $arr['field_RECORD_ID'],
+			'record_ref' => $arr['field_RECORD_REF'],
 			'acc_id' => $arr['field_LINK_ACCOUNT'],
 			'date_load' => $arr['field_DATE_LOAD'],
 			'date_record' => $arr['field_DATE_RECORD'],
@@ -609,12 +610,12 @@ function specRsiRecouveo_file_searchSuggest( $post_data ) {
 		);
 	}
 	
-	$query = "SELECT f.field_LINK_ACCOUNT, f.filerecord_id, f.field_FILE_ID, r.field_RECORD_ID
+	$query = "SELECT f.field_LINK_ACCOUNT, f.filerecord_id, f.field_FILE_ID, r.field_RECORD_REF
 				FROM view_file_RECORD r, view_file_RECORD_LINK rl, view_file_FILE f
 				WHERE r.filerecord_id = rl.filerecord_parent_id
 				AND f.filerecord_id = rl.field_LINK_FILE_ID AND rl.field_LINK_IS_ON='1'
 				AND f.filerecord_id IN ({$sub_query_files})
-				AND r.field_RECORD_ID LIKE '%{$search_txt}%'
+				AND r.field_RECORD_REF LIKE '%{$search_txt}%'
 				LIMIT 10" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
@@ -854,8 +855,8 @@ function specRsiRecouveo_file_createForAction( $post_data ) {
 			}
 			
 			// Ids de facture
-			$arr_recordsTxt[] = $accFileRecord_record['record_id'] ;
-			$arr_recordsTxtFile[] = $accFileRecord_record['record_id'] ;
+			$arr_recordsTxt[] = $accFileRecord_record['record_ref'] ;
+			$arr_recordsTxtFile[] = $accFileRecord_record['record_ref'] ;
 			$sum_recordsAmount += $accFileRecord_record['amount'] ;
 			
 			// Terminaison du lien
@@ -1144,7 +1145,7 @@ function specRsiRecouveo_file_lib_closeBack( $file_filerecord_id ) {
 			if( !$map_fileFilerecordId_arrRecordsTxt[$dst_file_filerecord_id] ) {
 				$map_fileFilerecordId_arrRecordsTxt[$dst_file_filerecord_id] = array() ;
 			}
-			$map_fileFilerecordId_arrRecordsTxt[$dst_file_filerecord_id][] = $accFileRecord_record['record_id'] ;
+			$map_fileFilerecordId_arrRecordsTxt[$dst_file_filerecord_id][] = $accFileRecord_record['record_ref'] ;
 			
 			// Nouveau lien
 			$arr_ins = array() ;
@@ -1406,6 +1407,7 @@ function specRsiRecouveo_file_createRecordTemp( $post_data ) {
 	$arr_ins['field_TYPE'] = 'LOCAL' ;
 	$arr_ins['field_TYPE_TEMPREC'] = 'FILE' ;
 	$arr_ins['field_RECORD_ID'] = trim($p_formData['recordTemp_id']) ;
+	$arr_ins['field_RECORD_REF'] = trim($p_formData['recordTemp_id']) ;
 	$arr_ins['field_LINK_ACCOUNT'] = $p_accId ;
 	$arr_ins['field_DATE_RECORD'] = $arr_ins['field_DATE_VALUE'] = date('Y-m-d') ;
 	$arr_ins['field_AMOUNT'] = $p_formData['recordTemp_amount'] ;
