@@ -542,16 +542,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			text: 'Débiteur',
 			columns: [{
 				text: 'Entité',
-				dataIndex: 'soc_id',
+				dataIndex: 'soc_txt',
 				tdCls: 'op5-spec-dbstracy-boldcolumn',
 				width:100,
 				align: 'center',
 				filter: {
 					type: 'stringlist',
 					useFilters: true
-				},
-				renderer: function(v,m,r) {
-					return r.get('soc_txt') ;
 				}
 			},{
 				text: 'No Compte',
@@ -1667,12 +1664,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			
 			this.down('#pCenter').down('#pGrid').getStore().sort('next_date','ASC') ;
 		}
+		this.down('#pCenter').down('#pGrid').getStore().loadRawData([]) ;
 		Ext.Array.each( this.down('#pCenter').down('#pGrid').getColumns(), function(column) {
 			if( column.filter && column.filter.type == 'stringlist' && !column.filter.active ) {
 				column.filter.resetList() ; // HACK!
 			}
 		}) ;
-		this.down('#pCenter').down('#pGrid').getStore().loadRawData([]) ;
 		this.down('#pCenter').down('#pGrid').getStore().loadRawData(ajaxData) ;
 		
 		
