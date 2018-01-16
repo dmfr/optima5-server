@@ -1339,6 +1339,7 @@ function specRsiRecouveo_file_getScenarioLine( $post_data ) {
 	if( !$lastdone_date && count($accFile_record['records'])>0 ) {
 		//date d echeance
 		$dates = array() ;
+		$dates[] = date('Y-m-d') ;
 		foreach( $accFile_record['records'] as $accFileRecord_record ) {
 			$dates[] = date('Y-m-d',strtotime($accFileRecord_record['date_value'])) ;
 		}
