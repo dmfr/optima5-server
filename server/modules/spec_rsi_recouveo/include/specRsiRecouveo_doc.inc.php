@@ -310,22 +310,16 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE ) {
 	// ************ DONNEES Tableau ***********************
 	$map_columns = array(
 		'record_ref' => 'Réf. pièce',
+		'record_txt' => 'Libellé',
 		'date_value' => 'Date',
 		'type_temprec' => 'Journal',
 		'amount_tot' => 'Montant'
 	);
-	$table_columns = array() ;
-	foreach( $map_columns as $mkey => $mvalue ) {
-		$table_columns[] = array(
-			'dataIndex' => $mkey,
-			'text' => $mvalue
-		);
-	}
-	
 	$table_data = $table_datafoot = array() ;
 	foreach( $accFile_record['records'] as $record_row ) {
 		$row_table = array(
 			'record_ref' => $record_row['record_ref'],
+			'record_txt' => $record_row['record_txt'],
 			'type_temprec' => $record_row['type_temprec'],
 			'txt' => $record_row['txt'],
 			'date_load' => date('d/m/Y',strtotime($record_row['date_load'])),
@@ -342,7 +336,22 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE ) {
 		'amount_tot' => '<div width="100%" style="text-align:right;">'.number_format($amount,2).'</div>',
 		'amount_due' => '<b>'.number_format($amount,2).'</b>'
 	);
-	
+	$has_recordTxt = FALSE ;
+	foreach( $table_data as $row_table ) {
+		if( trim($row_table['record_txt']) && $row_table['record_txt']!=$row_table['record_ref'] ) {
+			$has_recordTxt = TRUE ;
+		}
+	}
+	if( !$has_recordTxt ) {
+		unset($map_columns['record_txt']) ;
+	}
+	$table_columns = array() ;
+	foreach( $map_columns as $mkey => $mvalue ) {
+		$table_columns[] = array(
+			'dataIndex' => $mkey,
+			'text' => $mvalue
+		);
+	}
 	
 	
 	
