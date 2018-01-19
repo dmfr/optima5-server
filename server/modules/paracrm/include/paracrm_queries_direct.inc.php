@@ -3,6 +3,7 @@ function paracrm_queries_direct($post_data, $auth_bypass=FALSE, $is_rw=FALSE) {
 
 	$q_type = $post_data['q_type'] ;
 	$q_id   = $post_data['q_id'] ;
+	$q_rw   = ((strtolower($post_data['q_rw'])=='true') || $is_rw) ;
 	$q_id_orig = $q_id ;
 	if( $post_data['q_where'] ) {
 		$arr_where_conditions = array() ;
@@ -154,7 +155,7 @@ function paracrm_queries_direct($post_data, $auth_bypass=FALSE, $is_rw=FALSE) {
 		$arr_saisie = array() ;
 		paracrm_queries_qsqlTransaction_init( array('qsql_id'=>$qsql_id) , $arr_saisie ) ;
 		
-		$RES = paracrm_queries_qsql_lib_exec($arr_saisie['sql_querystring'], $is_rw, $auth_bypass=TRUE, $arr_qvars) ;
+		$RES = paracrm_queries_qsql_lib_exec($arr_saisie['sql_querystring'], $q_rw, $auth_bypass=TRUE, $arr_qvars) ;
 		
 		$json = array('success'=>true,'tabs'=>array_values($RES)) ;
 		break ;
