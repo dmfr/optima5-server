@@ -306,6 +306,19 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE ) {
 		$map_mkey_value += $mapSoc_mkey_value ;
 	}
 	
+	// 2018-01-21 : Account ATRs
+	$ttmp = specRsiRecouveo_cfg_getConfig() ;
+	$cfg_atr = $ttmp['data']['cfg_atr'] ;
+	foreach( $cfg_atr as $atr_record ) {
+		$atr_id = $atr_record['atr_id'] ;
+		$mkey = $atr_record['atr_field'] ;
+		$map_mkey_value[$mkey] = $accFile_record[$mkey] ;
+	}
+	foreach( $map_mkey_value as $mkey => $mvalue ) {
+		if( isset($map_mkey_value[$mvalue]) ) {
+			$map_mkey_value[$mkey] = nl2br($map_mkey_value[$mvalue]) ;
+		}
+	}
 	
 	// ************ DONNEES Tableau ***********************
 	$map_columns = array(
