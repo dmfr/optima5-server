@@ -12,6 +12,7 @@ Ext.define('RsiRecouveoFileDetailRecordsTreeModel', {
 		  {name: 'record_filerecord_id', type: 'int'},
 		  {name: 'record_id', type: 'string'},
 		  {name: 'record_ref', type: 'string'},
+		  {name: 'record_txt', type: 'string'},
 		  {name: 'record_date', type: 'date'},
 		  {name: 'record_dateload', type: 'date'},
 		  {name: 'record_amount', type: 'number'},
@@ -218,6 +219,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			hidden: true,
 			text: 'ID',
 			dataIndex: 'record_id',
+			width: 120
+		},{
+			hidden: true,
+			text: 'Libellé',
+			dataIndex: 'record_txt',
 			width: 120
 		},{
 			text: 'Date',
@@ -1085,6 +1091,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					record_filerecord_id: fileRecordRecord.getId(),
 					record_id: fileRecordRecord.get('record_id'),
 					record_ref: fileRecordRecord.get('record_ref'),
+					record_txt: fileRecordRecord.get('record_txt'),
 					record_date: fileRecordRecord.get('date_value'),
 					record_dateload: fileRecordRecord.get('date_load'),
 					record_amount: fileRecordRecord.get('amount'),
