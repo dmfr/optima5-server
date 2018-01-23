@@ -23,7 +23,7 @@ function specRsiRecouveo_lib_metafields_build() {
 				$arr_ins = array() ;
 				$arr_ins['bible_code'] = 'LIB_ACCOUNT' ;
 				$arr_ins['entry_field_code'] = $atr_field ;
-				$arr_ins['entry_field_is_key'] = 'O' ;
+				$arr_ins['entry_field_is_key'] = '' ;
 				$arr_ins['entry_field_index'] = $max_index ;
 				$arr_ins['entry_field_lib'] = 'Atr: '.$atr_definition['atr_desc'] ;
 				$arr_ins['entry_field_type'] = 'string' ;
