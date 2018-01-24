@@ -34,8 +34,8 @@ $_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
 // *******************************************
 if( TRUE ) {
 	$GLOBALS['maileva_URL'] = 'https://webservices.maileva.com/java/public/connector/ConnectorWebService?wsdl' ;
-	$GLOBALS['maileva_USER'] = 'bluephoenix.partouche' ;
-	$GLOBALS['maileva_PASS'] = 'ss5PjLp' ;
+	$GLOBALS['maileva_USER'] = 'recouveo.rabayrol' ;
+	$GLOBALS['maileva_PASS'] = 'bLLYHnS' ;
 }
 if( $dev=TRUE ) {
 	$GLOBALS['maileva_URL'] = 'https://webservices.recette.maileva.com/java/public/connector/ConnectorWebService?wsdl' ;
@@ -94,7 +94,7 @@ foreach( $arr_envs as $env_filerecord_id ) {
 			$arr_ins = array() ;
 			$arr_ins['field_TRSPT_STATUS'] = 1 ;
 			$arr_ins['field_TRSPT_CODE'] = 'MAILEVA' ;
-			$arr_ins['field_TRSPT_TRACK'] = $track_id ;
+			$arr_ins['field_TRSPT_TRACK'] = date('YmdHis').'_'.$track_id ;
 			paracrm_lib_data_updateRecord_file( 'ENVELOPE' , $arr_ins, $env_filerecord_id ) ;
 		}
 }
