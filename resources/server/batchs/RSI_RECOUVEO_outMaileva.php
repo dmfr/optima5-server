@@ -37,7 +37,7 @@ if( TRUE ) {
 	$GLOBALS['maileva_USER'] = 'recouveo.rabayrol' ;
 	$GLOBALS['maileva_PASS'] = 'bLLYHnS' ;
 }
-if( $dev=TRUE ) {
+if( $GLOBALS['__OPTIMA_TEST'] ) {
 	$GLOBALS['maileva_URL'] = 'https://webservices.recette.maileva.com/java/public/connector/ConnectorWebService?wsdl' ;
 	$GLOBALS['maileva_USER'] = 'testclient' ;
 	$GLOBALS['maileva_PASS'] = 'testclient' ;
