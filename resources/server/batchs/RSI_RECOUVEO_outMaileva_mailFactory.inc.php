@@ -2,26 +2,80 @@
 
 function xmlUtil_parseAdr( $adr_string ) {
 	$adr_string = trim($adr_string) ;
-	$pxml = '' ;
 	
 	$adr_array = array() ;
 	foreach( explode("\n",$adr_string) as $adr_line ) {
 		$adr_line = trim($adr_line) ;
 		$adr_line = str_replace('&','et',$adr_line) ;
-		if( !$adr_line ) {
+		if( !trim($adr_line) ) {
 			continue ;
 		}
 		$adr_array[] = $adr_line ;
 	}
 	
-	$pxml.= '<com:AddressLines>' ;
-	for( $i=0 ; $i<count($adr_array)-1 ; $i++ ) {
-		$adr_line = $adr_array[$i] ;
-		$cnt = $i+1 ;
-		$pxml.= "<com:AddressLine{$cnt}>{$adr_line}</com:AddressLine{$cnt}>" ;
+	$isCpVilleLine = function( $str ) {
+		// multiword ? + hasDigits ?
+		$words = explode(' ',$str) ;
+		if( count($words) <= 1 ) {
+			return FALSE ;
+		}
+		foreach( $words as $word ) {
+			if( preg_match('~[0-9]~', $word) ) {
+				return TRUE ;
+			}
+		}
+	};
+	$isFr = function( &$adr_array ) use($isCpVilleLine)  {
+		$cnt = count($adr_array) ;
+		$last_idx = $cnt - 1 ;
+		$beforelast_idx = $cnt - 2 ;
+		$last_line = $adr_array[$last_idx] ;
+		$beforelast_line = $adr_array[$beforelast_idx] ;
+		if( in_array(strtolower($last_line),array('france','fr')) ) {
+			unset($adr_array[$last_idx]) ;
+			return TRUE ;
+		}
+		if( $isCpVilleLine($last_line) ) {
+			return TRUE ;
+		}
+		return FALSE ;
+	};
+	$sanitizeFrCpVilleLine = function( $line ) {
+		$words = explode(' ',$line) ;
+		$cp_word = $words[0] ;
+		$cp_word = str_pad($cp_word, 5, "0", STR_PAD_LEFT) ;
+		$words[0] = $cp_word ;
+		return implode(' ',$words) ;
+	};
+	
+	if( $isFr($adr_array) ) {
+		$pxml = '' ;
+		$pxml.= '<com:AddressLines>' ;
+		for( $i=0 ; $i<count($adr_array)-1 ; $i++ ) {
+			$adr_line = $adr_array[$i] ;
+			$cnt = $i+1 ;
+			$pxml.= "<com:AddressLine{$cnt}>{$adr_line}</com:AddressLine{$cnt}>" ;
+		}
+		$pxml.= "<com:AddressLine6>".$sanitizeFrCpVilleLine(end($adr_array))."</com:AddressLine6>" ;
+		$pxml.= '</com:AddressLines>' ;
+	} else {
+		$country = array_pop($adr_array) ;
+		
+		$pxml = '' ;
+		$pxml.= '<com:AddressLines>' ;
+		for( $i=0 ; $i<count($adr_array)-1 ; $i++ ) {
+			$adr_line = $adr_array[$i] ;
+			$cnt = $i+1 ;
+			$pxml.= "<com:AddressLine{$cnt}>{$adr_line}</com:AddressLine{$cnt}>" ;
+		}
+		$pxml.= "<com:AddressLine6>".end($adr_array)."</com:AddressLine6>" ;
+		$pxml.= '</com:AddressLines>' ;
+		if( strlen($country) > 2 ) {
+			$pxml.= "<com:Country>{$country}</com:Country>" ;
+		} else {
+			$pxml.= "<com:CountryCode>{$country}</com:CountryCode>" ;
+		}
 	}
-	$pxml.= "<com:AddressLine6>".end($adr_array)."</com:AddressLine6>" ;
-	$pxml.= '</com:AddressLines>' ;
 	return $pxml ;
 }
 
