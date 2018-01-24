@@ -87,9 +87,8 @@ function xml_getContents( $env_id, $track_email ) {
 
 	$randomId = rand( pow(10,5) , pow(10,6)-1 ) ;
 	
-	$query = "SELECT e.*, ed.filerecord_id as doc_filerecord_id
+	$query = "SELECT e.*
 		FROM view_file_ENVELOPE e
-		INNER JOIN view_file_ENVELOPE_DOC ed ON ed.filerecord_parent_id = e.filerecord_id
 		WHERE e.filerecord_id='{$env_id}'" ;
 	$result = $_opDB->query($query) ;
 	$db = $_opDB->fetch_assoc($result) ;
@@ -100,14 +99,32 @@ function xml_getContents( $env_id, $track_email ) {
 	$adr_string = $db['field_PEER_ADR'] ;
 	
 	
-	media_contextOpen($GLOBALS['_sdomain_id']) ;
-	$inv_pdf = media_pdf_getBinary(media_pdf_toolFile_getId('ENVELOPE_DOC',$db['doc_filerecord_id'])) ;
-	media_contextClose() ;
-	
-	$pdf_pageCount = preg_match_all("/\/Page\W/", $inv_pdf, $dummy);
-	$pdf_pageCount = ( $pdf_pageCount >= 1 ? $pdf_pageCount : 1 ) ;
-	$pdf_size = strlen($inv_pdf) ;
-	$pdf_base64 = base64_encode($inv_pdf) ;
+	$map_docIdx_pdfData = array() ;
+	$query = "SELECT ed.filerecord_id AS doc_filerecord_id FROM view_file_ENVELOPE_DOC ed
+				WHERE filerecord_parent_id='{$env_id}' ORDER BY filerecord_id" ;
+	$result = $_opDB->query($query) ;
+	$idx = 0 ;
+	while( ($arr=$_opDB->fetch_row($result)) != FALSE ) {
+		$doc_filerecord_id = $arr[0] ;
+		
+		$idx++ ;
+		$doc_idx = str_pad((string)$idx, 3, "0", STR_PAD_LEFT) ;
+		
+		media_contextOpen($GLOBALS['_sdomain_id']) ;
+		$inv_pdf = media_pdf_getBinary(media_pdf_toolFile_getId('ENVELOPE_DOC',$doc_filerecord_id)) ;
+		media_contextClose() ;
+		
+		$pdf_pageCount = preg_match_all("/\/Page\W/", $inv_pdf, $dummy);
+		$pdf_pageCount = ( $pdf_pageCount >= 1 ? $pdf_pageCount : 1 ) ;
+		$pdf_size = strlen($inv_pdf) ;
+		$pdf_base64 = base64_encode($inv_pdf) ;
+		
+		$map_docIdx_pdfData[$doc_idx] = array(
+			'pdf_pageCount' => $pdf_pageCount,
+			'pdf_size' => $pdf_size,
+			'pdf_base64' => $pdf_base64
+		) ;
+	}
 	//$pdf_base64 = NULL ;
 	
 	$xml = '' ;
@@ -124,7 +141,7 @@ function xml_getContents( $env_id, $track_email ) {
 	*/
 	
 	$xml.= '<pjs:Requests>' ;
-	$xml.= '<pjs:Request MediaType="PAPER">' ;
+	$xml.= "<pjs:Request MediaType=\"PAPER\" TrackId=\"{$env_id}\">" ;
 	
 	$xml.= '<pjs:Recipients>' ;
 	$xml.= '<pjs:Internal>' ;
@@ -146,12 +163,14 @@ function xml_getContents( $env_id, $track_email ) {
 	
 	$xml.= '<pjs:DocumentData>' ;
 	$xml.= '<pjs:Documents>' ;
-	$xml.= "<pjs:Document Name=\"flux.pdf\" Id=\"001\">" ;
-	$xml.= "<com:Size>{$pdf_size}</com:Size>" ;
-	$xml.= "<com:Content>" ;
-	$xml.= "<com:Value>{$pdf_base64}</com:Value>" ;
-	$xml.= "</com:Content>" ;
-	$xml.= "</pjs:Document>" ;
+	foreach( $map_docIdx_pdfData as $doc_idx => $pdf_data ) {
+		$xml.= "<pjs:Document Name=\"doc{$doc_idx}.pdf\" Id=\"{$doc_idx}\">" ;
+		$xml.= "<com:Size>{$pdf_data['pdf_size']}</com:Size>" ;
+		$xml.= "<com:Content>" ;
+		$xml.= "<com:Value>{$pdf_data['pdf_base64']}</com:Value>" ;
+		$xml.= "</com:Content>" ;
+		$xml.= "</pjs:Document>" ;
+	}
 	$xml.= "</pjs:Documents>" ;
 	$xml.= "</pjs:DocumentData>" ;
 	
@@ -184,8 +203,10 @@ function xml_getContents( $env_id, $track_email ) {
 	$xml.= "<pjs:RecipientId>{$randomId}</pjs:RecipientId>" ;
 	$xml.= "<pjs:SenderId>01</pjs:SenderId>" ;
 	$xml.= '<pjs:Documents>' ;
-	$xml.= "<pjs:Document DocumentId=\"001\" FirstPage=\"1\" LastPage=\"{$pdf_pageCount}\">" ;
-	$xml.= '</pjs:Document>' ;
+	foreach( $map_docIdx_pdfData as $doc_idx => $pdf_data ) {
+		$xml.= "<pjs:Document DocumentId=\"001\" FirstPage=\"1\" LastPage=\"{$pdf_data['pdf_pageCount']}\">" ;
+		$xml.= '</pjs:Document>' ;
+	}
 	$xml.= '</pjs:Documents>' ;
 	$xml.= '</pjs:Fold>' ;
 	$xml.= '</pjs:Folds>' ;
@@ -193,11 +214,14 @@ function xml_getContents( $env_id, $track_email ) {
 	
 	$xml.= '<pjs:Notifications>' ;
 	$xml.= '<pjs:Notification Type="GENERAL">' ;
-	$xml.= '<spec:Format>TXT</spec:Format>' ;
+	$xml.= '<spec:Format>XML</spec:Format>' ;
 	$xml.= '<spec:Protocols>' ;
-	$xml.= '<spec:Protocol>' ;
-	$xml.= "<spec:Email>{$track_email}</spec:Email>" ;
-	$xml.= '</spec:Protocol>' ;
+		$xml.= '<spec:Protocol>' ;
+			$xml.= "<spec:Ws />" ;
+		$xml.= '</spec:Protocol>' ;
+		$xml.= '<spec:Protocol>' ;
+			$xml.= "<spec:Email>{$track_email}</spec:Email>" ;
+		$xml.= '</spec:Protocol>' ;
 	$xml.= '</spec:Protocols>' ;
 	$xml.= '</pjs:Notification>' ;
 	$xml.= '</pjs:Notifications>' ;
