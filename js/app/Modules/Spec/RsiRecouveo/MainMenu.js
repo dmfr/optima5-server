@@ -19,6 +19,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainMenu',{
 	],
 	
 	initComponent: function() {
+		var helperCache = Optima5.Modules.Spec.RsiRecouveo.HelperCache,
+			authIsExt = helperCache.authHelperIsExt() ;
+		
 		 var viewItemTpl = new Ext.XTemplate(
 			'<tpl for=".">',
 			'<div class="op5-spec-rsiveo-mainmenu-item">',
@@ -47,9 +50,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainMenu',{
 			'</tpl>'
 		);
 		 
-		var itemsStore = Ext.create('Ext.data.Store',{
-			model:'RsiRecouveoMenuItemModel',
-			data:[
+		var menuData = [
 				{type_header:true},
 				{type_separator:true, separator_label: 'Opérations'},
 				{type_action:true, action_caption: 'Gestion Dossiers', action_sendEvent:'files', action_iconCls:'op5-spec-rsiveo-mmenu-agenda'},
@@ -62,7 +63,20 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainMenu',{
 				{type_action:true, action_caption: 'Configuration', action_sendEvent:'cfg', action_iconCls:'op5-spec-rsiveo-mmenu-cfg'},
 				{type_action:true, action_caption: 'Bloc Notes', action_sendEvent:'notepad', action_iconCls:'op5-spec-rsiveo-mmenu-notepad'},
 				{type_action:true, action_caption: 'Upload / Sync', action_sendEvent:'form_upload', action_iconCls:'op5-spec-rsiveo-mmenu-upload'}
-			]
+		];
+		if( authIsExt ) {
+			menuData = [
+				{type_header:true},
+				{type_separator:true, separator_label: 'Opérations'},
+				{type_action:true, action_caption: 'Gestion Dossiers', action_sendEvent:'files', action_iconCls:'op5-spec-rsiveo-mmenu-agenda'},
+				{type_action:true, type_action_blank:true},
+				{type_action:true, action_caption: 'Boîte de réception', action_sendEvent:'form_inbox', action_iconCls:'op5-spec-rsiveo-mmenu-mailin'}
+			];
+		}
+		 
+		var itemsStore = Ext.create('Ext.data.Store',{
+			model:'RsiRecouveoMenuItemModel',
+			data:menuData
 		}) ;
 		 
 		Ext.apply(this,{

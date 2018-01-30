@@ -5,8 +5,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamButton' ,{
 	
 	selectMode: 'SINGLE',
 	
+	_readonlyMode: false,
+	
 	initComponent: function() {
-		var cfgParamTree = Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamTree',{
+		this.treepanel = Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamTree',{
 			optimaModule: this.optimaModule,
 			cfgParam_id: this.cfgParam_id,
 			selectMode: this.selectMode, // SINGLE / MULTI
@@ -29,20 +31,34 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamButton' ,{
 		Ext.apply(this,{
 			menu: {
 				xtype:'menu',
-				items:[cfgParamTree]
+				items:[this.treepanel]
 			}
 		});
 		
 		//this.text = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(this.cfgParam_id).atr_txt ;
-		this.text = cfgParamTree.getRootNode().get(cfgParamTree.displayField) ;
+		this.text = this.treepanel.getRootNode().get(this.treepanel.displayField) ;
 		this.baseText = this.text ;
 		this.setText(this.baseText) ;
 		
 		this.callParent() ;
 		this.onChange(true) ;
+		
+		this.on('destroy', function() {
+			console.log('destroyed') ;
+			this.treepanel.destroy() ;
+		},this) ;
+		if( this._readonlyMode ) {
+			this.setReadOnly(true) ;
+		}
+	},
+	setReadOnly: function( torf ) {
+		this.menu.removeAll(false) ;
+		if( !torf ) {
+			this.menu.add( this.treepanel )
+		}
 	},
 	onChange: function(silent) {
-		var cfgParamTree = this.menu.down('treepanel'),
+		var cfgParamTree = this.treepanel,
 			selectedValue = cfgParamTree.getValue() ;
 		if( Ext.isEmpty(selectedValue) ) {
 			this.removeCls( 'op5-spec-dbspeople-cfgparambtn-bold' ) ;
@@ -71,18 +87,18 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamButton' ,{
 		}
 	},
 	getValue: function() {
-		var cfgParamTree = this.menu.down('treepanel'),
+		var cfgParamTree = this.treepanel,
 			selectedValue = cfgParamTree.getValue() ;
 		return selectedValue ;
 	},
 	getLeafNodesKey: function() {
-		var cfgParamTree = this.menu.down('treepanel'),
+		var cfgParamTree = this.treepanel,
 			retValue = cfgParamTree.getLeafNodesKey() ;
 		return retValue ;
 	},
 	
 	setValue: function(value,silent) {
-		var cfgParamTree = this.menu.down('treepanel') ;
+		var cfgParamTree = this.treepanel ;
 		cfgParamTree.setValue( value, silent ) ;
 		if( silent ) {
 			this.onChange(true) ;
@@ -90,7 +106,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamButton' ,{
 	},
 	
 	fillValues: function(values) {
-		var cfgParamTree = this.menu.down('treepanel') ;
+		var cfgParamTree = this.treepanel ;
 		cfgParamTree.fillValues( values ) ;
 	},
 	

@@ -1352,6 +1352,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			if( cfgParam_id=='SOC' ) {
 				if( authSoc ) {
 					cfgParamBtn.setValue(authSoc,silent) ;
+					if( authIsExt ) {
+						cfgParamBtn.setReadOnly(true) ;
+					}
 				}
 			}
 			if( cfgParam_id=='USER' ) {
