@@ -64,11 +64,13 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 	
 	$query = "SELECT f.*, la.*";
 	$query.= ",lat.field_SOC_ID, lat.field_SOC_NAME";
-	$query.= ",user.field_USER_FULLNAME";
+	$query.= ",user.field_USER_FULLNAME as user_fullname";
+	$query.= ",userext.field_USER_FULLNAME as userext_fullname";
 	$query.= " FROM view_file_FILE f" ;
 	$query.= " JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key = f.field_LINK_ACCOUNT" ;
 	$query.= " JOIN view_bible_LIB_ACCOUNT_tree lat ON lat.treenode_key = la.treenode_key" ;
 	$query.= " LEFT OUTER JOIN view_bible_USER_entry user ON user.entry_key = la.field_LINK_USER_LOCAL" ;
+	$query.= " LEFT OUTER JOIN view_bible_USER_entry userext ON userext.entry_key = f.field_LINK_USER_EXT" ;
 	$query.= " WHERE 1" ;
 	if( isset($filter_fileFilerecordId_list) ) {
 		$query.= " AND f.filerecord_id IN {$filter_fileFilerecordId_list}" ;
@@ -92,7 +94,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			$query.= " AND la.treenode_key IN ".$_opDB->makeSQLlist($filter_soc) ;
 		}
 		if( $filter_user ) {
-			$query.= " AND la.field_LINK_USER_LOCAL IN ".$_opDB->makeSQLlist($filter_user) ;
+			$query.= " AND (la.field_LINK_USER_LOCAL IN ".$_opDB->makeSQLlist($filter_user)." OR f.field_LINK_USER_EXT IN ".$_opDB->makeSQLlist($filter_user).")" ;
 		}
 		if( !$filter_archiveIsOn ) {
 			$query.= " AND f.field_STATUS_CLOSED_VOID='0' AND f.field_STATUS_CLOSED_END='0'" ;
@@ -136,8 +138,9 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			'actions' => array(),
 			
 			'link_user' => $arr['field_LINK_USER_LOCAL'],
-			'link_user_txt' => $arr['field_USER_FULLNAME'],
-			//'ext_user' => ($filter_extuser ? null : ($arr['field_LINK_USER_EXT']?$arr['field_LINK_USER_EXT']:null)),
+			'link_user_txt' => $arr['user_fullname'],
+			'ext_user' => ($arr['field_LINK_USER_EXT']?$arr['field_LINK_USER_EXT']:null),
+			'ext_user_txt' => ($arr['field_LINK_USER_EXT']?$arr['userext_fullname']:null),
 			
 			'from_file_filerecord_id' => $arr['field_FROM_FILE_ID']
 		);

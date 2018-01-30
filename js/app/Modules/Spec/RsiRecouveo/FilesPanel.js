@@ -533,7 +533,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		},{
 			text: 'Affectation',
 			width:100,
-			dataIndex: 'link_user_txt'
+			dataIndex: 'link_user_txt',
+			renderer: function(v,m,r) {
+				if( valt = r.get('ext_user_txt') ) {
+					return valt ;
+				}
+				return v ;
+			}
 		},{
 			itemId: 'colAtr',
 			text: 'Attributs',
