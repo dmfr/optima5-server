@@ -677,6 +677,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				}
 			}]
 		},{
+			hideable: true,
 			itemId: 'colFact',
 			text: 'Factures',
 			columns: factureColumns
