@@ -15,6 +15,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 		
 		'Optima5.Modules.Spec.RsiRecouveo.BankPanel',
 		
+		'Optima5.Modules.Spec.RsiRecouveo.EmailInboxPanel',
+		
 		'Optima5.Modules.Spec.RsiRecouveo.UploadForm',
 		'Optima5.Modules.Spec.RsiRecouveo.InboxPanel'
 	],
@@ -111,6 +113,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 				return me.openUploadPopup() ;
 			case 'form_inbox' :
 				return me.openInboxPopup() ;
+			case 'form_email' :
+				return me.openEmailInbox() ;
 			default :
 				return ;
 		}
@@ -235,6 +239,31 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainPanel',{
 			optimaModule: this.optimaModule,
 			
 			title: 'Banque',
+			closable: true
+		}) ;
+		this.addPanel(pnl) ;
+		this.focusPanel(pnl) ;
+	},
+	openEmailInbox: function() {
+		// recherche d'une fenetre deja ouverte
+		var doOpen = true ;
+		this.eachPanel(function(pnl){
+			if( !(pnl instanceof Optima5.Modules.Spec.RsiRecouveo.EmailInboxPanel) ) {
+				return true ;
+			}
+			this.focusPanel(pnl) ;
+			doOpen = false ;
+			return false ;
+		},this) ;
+		if( !doOpen ) {
+			return ;
+		}
+		
+		//open
+		var pnl = Ext.create('Optima5.Modules.Spec.RsiRecouveo.EmailInboxPanel',{
+			optimaModule: this.optimaModule,
+			
+			title: 'Email reçus',
 			closable: true
 		}) ;
 		this.addPanel(pnl) ;

@@ -118,6 +118,20 @@ Ext.define('RsiRecouveoCfgSocModel',{
 	]
 });
 
+Ext.define('RsiRecouveoConfigEmailTplModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'email_adr',
+	fields: [
+		{name: 'email_adr', type:'string'},
+		{name: 'email_name', type:'string'},
+		{name: 'server_url', type:'string'},
+		{name: 'server_username', type:'string'},
+		{name: 'server_passwd', type:'string'},
+		{name: 'link_is_default', type:'boolean'},
+		{name: 'link_SOC', type:'auto'}
+	]
+});
+
 Ext.define('RsiRecouveoConfigUserTplModel',{
 	extend: 'Ext.data.Model',
 	idProperty: 'user_id',
@@ -315,6 +329,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 			model: 'RsiRecouveoConfigUserTplModel',
 			data : ajaxData.data.cfg_user
 		}) ;
+		this.cfgEmailStore = Ext.create('Ext.data.Store',{
+			model: 'RsiRecouveoConfigEmailTplModel',
+			data : ajaxData.data.cfg_email
+		}) ;
 		
 		var tmpTreeStore = Ext.create('Ext.data.TreeStore',{
 			model: 'RsiRecouveoCfgSocModel',
@@ -451,6 +469,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 			}]
 		}) ;
 		
+		Ext.ux.dams.ModelManager.unregister( 'RsiRecouveoConfigEmailModel'+'-'+cmpId ) ;
+		Ext.define('RsiRecouveoConfigEmailModel'+'-'+cmpId,{
+			extend: 'RsiRecouveoConfigEmailTplModel',
+			idProperty: 'email_adr',
+			fields: []
+		}) ;
+		
 		Ext.ux.dams.ModelManager.unregister( 'RsiRecouveoConfigUserModel'+'-'+cmpId ) ;
 		Ext.define('RsiRecouveoConfigUserModel'+'-'+cmpId,{
 			extend: 'RsiRecouveoConfigUserTplModel',
@@ -496,6 +521,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 	},
 	getBankModel: function() {
 		return 'RsiRecouveoBankModel' ;
+	},
+	getConfigEmailModel: function() {
+		return 'RsiRecouveoConfigEmailModel'+'-'+this.cmpId ;
 	},
 	getConfigUserModel: function() {
 		return 'RsiRecouveoConfigUserModel'+'-'+this.cmpId ;
@@ -597,6 +625,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 	
 	getUserAll: function() {
 		return Ext.pluck( this.cfgUserStore.getRange(), 'data' ) ;
+	},
+	
+	getEmailAll: function() {
+		return Ext.pluck( this.cfgEmailStore.getRange(), 'data' ) ;
 	},
 	
 	

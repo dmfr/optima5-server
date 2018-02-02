@@ -72,6 +72,10 @@ switch( $post_data['_action'] )
 		return specRsiRecouveo_config_getUsers( $post_data ) ;
 	case 'config_setUser' :
 		return specRsiRecouveo_config_setUser( $post_data ) ;
+	case 'config_getEmails' :
+		return specRsiRecouveo_config_getEmails( $post_data ) ;
+	case 'config_setEmail' :
+		return specRsiRecouveo_config_setEmail( $post_data ) ;
 	case 'config_getScenarios' :
 		return specRsiRecouveo_config_getScenarios( $post_data ) ;
 	case 'config_setScenario' :
@@ -106,6 +110,13 @@ switch( $post_data['_action'] )
 		return specRsiRecouveo_bank_getRecords( $post_data ) ;
 	case 'bank_setAlloc' :
 		return specRsiRecouveo_bank_setAlloc( $post_data ) ;
+		
+	case 'mail_getMboxGrid' :
+		return specRsiRecouveo_mail_getMboxGrid( $post_data ) ;
+	case 'mail_getEmailRecord' :
+		return specRsiRecouveo_mail_getEmailRecord( $post_data ) ;
+	case 'mail_doFetch' :
+		return specRsiRecouveo_mail_doFetch( $post_data ) ;
 		
 	case 'upload' :
 		return specRsiRecouveo_upload( $post_data ) ;

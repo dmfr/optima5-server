@@ -285,6 +285,12 @@
 .op5-spec-rsiveo-config-users-small {
 	background-image: url("../images/modules/rsiveo-users-16.png") !important;
 }
+.op5-spec-rsiveo-config-emails-big {
+	background-image: url("../images/modules/rsiveo-emails-48.png") !important;
+}
+.op5-spec-rsiveo-config-emails-small {
+	background-image: url("../images/modules/rsiveo-emails-16.png") !important;
+}
 .op5-spec-rsiveo-config-pay-big {
 	background-image: url("../images/modules/rsiveo-pay-48.png") !important;
 }
@@ -553,4 +559,13 @@
 	background-repeat: no-repeat;
 	cursor: pointer;
 }
+
+
+
+.op5-spec-rsiveo-email-attachment .x-grid-cell-inner {
+	background-position:  4px center !important;
+	background-repeat: no-repeat !important;
+	background-image: url("../images/modules/rsiveo-attachment-16.png") !important;
+}
+
 

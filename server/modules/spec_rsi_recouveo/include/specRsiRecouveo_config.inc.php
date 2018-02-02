@@ -116,6 +116,57 @@ function specRsiRecouveo_config_setUser( $post_data ) {
 
 
 
+function specRsiRecouveo_config_getEmails($post_data) {
+	global $_opDB ;
+	
+	$bible_code = 'EMAIL' ;
+	
+	$ttmp = specRsiRecouveo_cfg_getConfig() ;
+	$cfg_email = $ttmp['data']['cfg_email'] ;
+	
+	return array('success'=>true, 'data'=>$cfg_email) ;
+}
+function specRsiRecouveo_config_setEmail( $post_data ) {
+	global $_opDB ;
+	
+	$email_record = json_decode($post_data['data'],true) ;
+	
+	if( $email_record['id'] ) {
+		paracrm_lib_data_deleteRecord_bibleEntry('EMAIL',$email_record['id']) ;
+	}
+	
+	if( $post_data['do_delete']==1 ) {
+		return array('success'=>true) ;
+	}
+	
+	$arr_ins = array() ;
+	$arr_ins['field_EMAIL_ADR'] = $email_record['email_adr'] ;
+	$arr_ins['field_EMAIL_NAME'] = $email_record['email_name'] ;
+	$arr_ins['field_SERVER_URL'] = $email_record['server_url'] ;
+	$arr_ins['field_SERVER_USERNAME'] = $email_record['server_username'] ;
+	$arr_ins['field_SERVER_PASSWD'] = $email_record['server_passwd'] ;
+	$arr_ins['field_LINK_IS_DEFAULT'] = ($email_record['link_is_default'] ? 1 : 0) ;
+	
+	if( $email_record['link_SOC'] && json_decode($email_record['link_SOC'],true) == array('&') ) {
+		$email_record['link_SOC'] = '' ;
+	}
+	$arr_ins['field_LINK_SOC'] = $email_record['link_SOC'] ;
+	
+	$treenode_key = 'EMAIL' ;
+	
+	paracrm_lib_data_insertRecord_bibleEntry( 'EMAIL', $email_record['email_adr'], $treenode_key, $arr_ins ) ;
+	
+	return array('success'=>true) ;
+}
+
+
+
+
+
+
+
+
+
 function specRsiRecouveo_config_getScenarios($post_data) {
 	global $_opDB ;
 	

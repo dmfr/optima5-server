@@ -7,6 +7,7 @@ include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_config.i
 include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_recordgroup.inc.php") ;
 include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_bank.inc.php") ;
 include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_report.inc.php") ;
+include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_mail.inc.php") ;
 
 include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_xls.inc.php") ;
 
@@ -16,6 +17,7 @@ include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_upload.i
 include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_lib_scenario.inc.php") ;
 include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_lib_autorun.inc.php") ;
 include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_lib_metafields.inc.php") ;
+include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_lib_mail.inc.php") ;
 
 function specRsiRecouveo_cfg_doInit( $post_data ) {
 	global $_opDB ;
@@ -286,6 +288,21 @@ function specRsiRecouveo_cfg_getConfig() {
 		) ;
 	}
 	
+	$TAB_email = array() ;
+	$query = "SELECT * FROM view_bible_EMAIL_entry WHERE 1 ORDER BY entry_key" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$TAB_email[] = array(
+			'email_adr' => strtolower($arr['field_EMAIL_ADR']),
+			'email_name' => $arr['field_EMAIL_NAME'],
+			'server_url' => $arr['field_SERVER_URL'],
+			'server_username' => $arr['field_SERVER_USERNAME'],
+			'server_passwd' => $arr['field_SERVER_PASSWD'],
+			'link_is_default' => ($arr['field_LINK_IS_DEFAULT']==1),
+			'link_SOC' => json_decode($arr['field_LINK_SOC'],true)
+		) ;
+	}
+	
 	$TAB_atr = $TAB_soc = array() ;
 	$query = "SELECT * FROM view_bible_LIB_ACCOUNT_tree ORDER BY treenode_key" ;
 	$result = $_opDB->query($query) ;
@@ -339,7 +356,8 @@ function specRsiRecouveo_cfg_getConfig() {
 		'cfg_balage' => $TAB_balage,
 		'cfg_template' => $TAB_tpl,
 		'cfg_soc' => $TAB_soc,
-		'cfg_user' => $TAB_user
+		'cfg_user' => $TAB_user,
+		'cfg_email' => $TAB_email
 	);
 	
 	

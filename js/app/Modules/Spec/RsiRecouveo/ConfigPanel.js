@@ -45,6 +45,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigPanel', {
 		iconClsSmall:'op5-spec-rsiveo-config-users-small',
 		jsClass:'Optima5.Modules.Spec.RsiRecouveo.ConfigUsersPanel'
 	},{
+		id:'emails',
+		title:'Comptes Email',
+		caption:'Gestion des boîtes Email automatisées',
+		iconClsBig:'op5-spec-rsiveo-config-emails-big',
+		iconClsSmall:'op5-spec-rsiveo-config-emails-small',
+		jsClass:'Optima5.Modules.Spec.RsiRecouveo.ConfigEmailsPanel'
+	},{
 		id:'scenarios',
 		title:'Scénarios',
 		caption:'Gestion des scénarios de recouvrement',

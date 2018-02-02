@@ -14,6 +14,7 @@ Ext.define('RsiRecouveoFileTplModel',{ // TO: RsiRecouveoFileModel
 		{name: 'link_user', type:'string', allowNull:true},
 		{name: 'link_user_txt', type:'string', allowNull:true},
 		{name: 'ext_user', type:'string', allowNull:true},
+		{name: 'ext_user_txt', type:'string', allowNull:true},
 		{name: 'status', type:'string'},
 		{name: 'status_txt', type:'string'},
 		{name: 'status_color', type:'string'},
@@ -256,7 +257,26 @@ Ext.define('RsiRecouveoRecordgroupModel',{
 		{name: '_txt', type:'string'}
 	]
 });
-
+Ext.define('RsiRecouveoEmailListModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'email_filerecord_id',
+	fields: [
+		{name: 'email_filerecord_id', type:'int'},
+		{name: 'email_local', type:'string'},
+		{name: 'email_peer', type:'string'},
+		{name: 'email_peer_name', type:'string'},
+		{name: 'subject', type: 'string'},
+		{name: 'date', type: 'date', dateFormat:'Y-m-d H:i:s'},
+		{name: 'has_attachments', type:'boolean'}
+	]
+}); 
+Ext.define('RsiRecouveoEmailModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'email_filerecord_id',
+	fields: [
+		{name: 'email_filerecord_id', type:'int'}
+	]
+});
 
 
 Ext.define('Optima5.Modules.Spec.RsiRecouveo.RsiRecouveoModule', {
