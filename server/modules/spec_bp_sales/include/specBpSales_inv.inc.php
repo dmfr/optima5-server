@@ -151,15 +151,8 @@ function specBpSales_inv_createFromBlank( $post_data ) {
 			return array('success'=>false) ;
 	}
 	
-	$_opDB->query("LOCK TABLES view_file_Z_ATTRIB WRITE") ;
-	$query = "UPDATE view_file_Z_ATTRIB set field_ID=field_ID+'1' WHERE field_FILE_CODE='INV'" ;
-	$_opDB->query($query) ;
-	$query = "SELECT field_ID FROM view_file_Z_ATTRIB WHERE field_FILE_CODE='INV'" ;
-	$id = $_opDB->query_uniqueValue($query) ;
-	$_opDB->query("UNLOCK TABLES") ;
-	
 	$arr_ins = array() ;
-	$arr_ins['field_ID_INV'] = $prefix.'/'.str_pad((float)$id, 6, "0", STR_PAD_LEFT) ;
+	$arr_ins['field_ID_INV'] = 'draft' ;
 	$arr_ins['field_ID_COEF'] = $coef ;
 	$arr_ins['field_DATE_CREATE'] = date('Y-m-d H:i:s') ;
 	$arr_ins['field_DATE_INVOICE'] = date('Y-m-d') ;
@@ -247,34 +240,8 @@ function specBpSales_inv_createFromInvoiceRefund( $post_data ) {
 		return array('success'=>false, 'error'=>'Not found') ;
 	}
 	
-	$_opDB->query("LOCK TABLES view_file_Z_ATTRIB WRITE") ;
-	$query = "UPDATE view_file_Z_ATTRIB set field_ID=field_ID+'1' WHERE field_FILE_CODE='INV'" ;
-	$_opDB->query($query) ;
-	$query = "SELECT field_ID FROM view_file_Z_ATTRIB WHERE field_FILE_CODE='INV'" ;
-	$id = $_opDB->query_uniqueValue($query) ;
-	$_opDB->query("UNLOCK TABLES") ;
-	
-	$ttmp = explode('/',$row_inv['id_inv']);
-	$id_refund_base = 'REF/'.$ttmp[1] ;
-	$try = 0 ;
-	while( TRUE ) {
-		if( $try > 10 ) {
-			return array('success'=>false, 'error'=>'Duplicate') ;
-		}
-		$id_refund = $id_refund_base ;
-		if( $try > 0 ) {
-			$id_refund.= chr(ord('A')+$try-1) ;
-		}
-		
-		$query_test = "SELECT count(*) FROM view_file_INV WHERE field_ID_INV='{$id_refund}'" ;
-		if( $_opDB->query_uniqueValue($query_test) == 0 ) {
-			break ;
-		}
-		$try++ ;
-	}
-	
 	$arr_ins = array() ;
-	$arr_ins['field_ID_INV'] = $id_refund ;
+	$arr_ins['field_ID_INV'] = 'draft' ;
 	$arr_ins['field_ID_CDE_REF'] = $row_inv['id_cde_ref'] ;
 	$arr_ins['field_ID_COEF'] = -1 ; 
 	$arr_ins['field_CLI_LINK'] = $row_inv['cli_link'] ;
@@ -411,20 +378,35 @@ function specBpSales_inv_setRecord( $post_data ) {
 	specBpSales_inv_lib_calc($record_data['inv_filerecord_id']) ;
 	
 	if( $post_data['validate'] == 1 ) {
-		$_opDB->query("LOCK TABLES view_file_Z_ATTRIB WRITE") ;
-		$query = "UPDATE view_file_Z_ATTRIB set field_ID=field_ID+'1' WHERE field_FILE_CODE='INV'" ;
-		$_opDB->query($query) ;
-		$query = "SELECT field_ID FROM view_file_Z_ATTRIB WHERE field_FILE_CODE='INV'" ;
-		$id = $_opDB->query_uniqueValue($query) ;
-		$_opDB->query("UNLOCK TABLES") ;
-		
-		
 		$arr_cdeFilerecordIds = array() ;
 		$query = "SELECT filerecord_id FROM view_file_CDE WHERE field_LINK_INV_FILE_ID='{$record_data['inv_filerecord_id']}'" ;
 		$result = $_opDB->query($query) ;
 		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 			$arr_cdeFilerecordIds[] = $arr[0] ;
 		}
+		
+		$ttmp = specBpSales_inv_getRecords(
+			array(
+				'filter_invFilerecordId_arr'=> json_encode(array($record_data['inv_filerecord_id']))
+			)
+		) ;
+		$inv_record = $ttmp['data'][0] ;
+		$coef = $inv_record['id_coef'] ;
+		$prefix = 'BLK' ;
+		if( $coef > 0 ) {
+			$prefix = 'INV' ;
+		}
+		if( $coef < 0 ) {
+			$prefix = 'AVR' ;
+		}
+		
+		$_opDB->query("LOCK TABLES view_file_Z_ATTRIB WRITE") ;
+		$query = "UPDATE view_file_Z_ATTRIB set field_ID=field_ID+'1' WHERE field_FILE_CODE='{$prefix}'" ;
+		$_opDB->query($query) ;
+		$query = "SELECT field_ID FROM view_file_Z_ATTRIB WHERE field_FILE_CODE='{$prefix}'" ;
+		$id = $_opDB->query_uniqueValue($query) ;
+		$_opDB->query("UNLOCK TABLES") ;
+		
 		
 		$ttmp = specBpSales_cde_getRecords(
 			array(
@@ -440,7 +422,7 @@ function specBpSales_inv_setRecord( $post_data ) {
 			}
 		}
 		$arr_update = array() ;
-		$arr_update['field_ID_INV'] = 'INV/'.str_pad((float)$id, 6, "0", STR_PAD_LEFT) ;
+		$arr_update['field_ID_INV'] = $prefix.'/'.str_pad((float)$id, 6, "0", STR_PAD_LEFT) ;
 		$arr_update['field_STATUS_IS_FINAL'] = 1 ;
 		$arr_update['field_STATUS'] = '85_INVOK' ;
 		paracrm_lib_data_updateRecord_file( 'INV' , $arr_update, $record_data['inv_filerecord_id'] ) ;
