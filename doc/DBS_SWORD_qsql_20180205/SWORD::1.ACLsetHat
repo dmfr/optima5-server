@@ -1,0 +1,49 @@
+SET @societe = 'ACL' ;
+
+
+# *********** Table TODO **********
+create table todo (
+ cde_filerecord_id INT PRIMARY KEY
+ ,cde_no VARCHAR(50)
+ ,target_hat_filerecord_id INT NOT NULL
+);
+ALTER TABLE todo ADD INDEX(cde_no) ;
+ALTER TABLE todo ADD INDEX(target_hat_filerecord_id) ;
+
+
+INSERT INTO todo(cde_filerecord_id,cde_no)
+SELECT c.filerecord_id, c.field_ID_DN
+FROM  `op5_dbs_prod_tracy`.`view_file_CDE` c
+WHERE c.field_ID_SOC=@societe AND c.field_ARCHIVE_IS_ON='0'
+AND filerecord_id NOT IN (
+ SELECT hc.field_FILE_CDE_ID FROM op5_dbs_prod_tracy.view_file_HAT_CDE hc
+ JOIN op5_dbs_prod_tracy.view_file_HAT h ON h.filerecord_id=hc.filerecord_parent_id
+ WHERE h.field_ID_SOC=@societe AND hc.field_LINK_IS_CANCEL='0'
+) ;
+
+UPDATE todo 
+JOIN op5_dbs_prod_tracy.view_file_HAT h
+ ON h.field_ID_SOC=@societe AND h.field_ID_HAT=cde_no
+SET todo.target_hat_filerecord_id=h.filerecord_id ;
+
+
+INSERT INTO `op5_dbs_prod_tracy`.`view_file_HAT` (field_ID_SOC, field_ID_HAT, field_DATE_CREATE)
+SELECT @societe, cde_no, NOW()
+FROM(
+SELECT distinct cde_no FROM todo WHERE cde_no<>''
+) all_hats
+WHERE cde_no NOT IN (select field_ID_HAT FROM  `op5_dbs_prod_tracy`.`view_file_HAT` WHERE field_ID_SOC=@societe) ;
+
+UPDATE todo 
+JOIN op5_dbs_prod_tracy.view_file_HAT h
+ ON h.field_ID_SOC=@societe AND h.field_ID_HAT=cde_no
+SET todo.target_hat_filerecord_id=h.filerecord_id ;
+
+INSERT INTO `op5_dbs_prod_tracy`.`view_file_HAT_CDE` (filerecord_parent_id, field_FILE_CDE_ID)
+SELECT target_hat_filerecord_id, cde_filerecord_id
+FROM todo
+WHERE target_hat_filerecord_id>'0' ;
+
+
+SELECT * FROM todo ;
+

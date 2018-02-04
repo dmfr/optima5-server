@@ -1,0 +1,65 @@
+<query>
+CREATE FUNCTION SPLIT_STRING(str VARCHAR(255), delim VARCHAR(12), pos INT)
+RETURNS VARCHAR(255)
+
+BEGIN
+RETURN REPLACE(SUBSTRING(SUBSTRING_INDEX(str, delim, pos),
+       LENGTH(SUBSTRING_INDEX(str, delim, pos-1)) + 1),
+       delim, '');
+END
+</query>
+
+
+CREATE table work_awb(
+src_filerecord_id INT,
+str_DN VARCHAR(100),
+str_DN_unique VARCHAR(100),
+str_AWB VARCHAR(100),
+target_cde_filerecord_id INT NOT NULL,
+target_hat_filerecord_id INT NOT NULL,
+target_trspt_filerecord_id INT NOT NULL
+) ;
+
+INSERT INTO work_awb(src_filerecord_id,str_DN,str_AWB)
+SELECT filerecord_id, field_STR_DN, field_STR_AWB
+FROM  `op5_dbs_prod_tracy`.`view_file_SWORD_2_AWB` ;
+
+UPDATE work_awb SET str_DN_unique=SPLIT_STRING(str_DN, '/', 1) ;
+
+SELECT * FROM work_awb ;
+
+UPDATE work_awb w
+JOIN  `op5_dbs_prod_tracy`.`view_file_CDE` c
+ ON c.field_ID_DN=w.str_DN_unique 
+SET w.target_cde_filerecord_id=c.filerecord_id ;
+
+UPDATE work_awb w
+JOIN  `op5_dbs_prod_tracy`.`view_file_HAT` h
+ ON h.field_ID_HAT=w.str_DN_unique 
+SET w.target_hat_filerecord_id=h.filerecord_id 
+WHERE w.target_cde_filerecord_id='0';
+
+UPDATE work_awb w
+JOIN `op5_dbs_prod_tracy`.`view_file_HAT_CDE` hc
+ ON hc.filerecord_parent_id = w.target_hat_filerecord_id
+SET  w.target_cde_filerecord_id=hc.field_FILE_CDE_ID
+WHERE w.target_hat_filerecord_id>'0' ;
+
+UPDATE work_awb w
+JOIN `op5_dbs_prod_tracy`.`view_file_TRSPT_CDE` tc
+ ON tc.field_FILE_CDE_ID=w.target_cde_filerecord_id
+SET w.target_trspt_filerecord_id=tc.filerecord_parent_id
+WHERE w.target_cde_filerecord_id>'0' ;
+
+UPDATE `op5_dbs_prod_tracy`.`view_file_TRSPT` t
+JOIN work_awb w
+ ON w.target_trspt_filerecord_id=t.filerecord_id
+SET t.field_FLIGHT_AWB=w.str_AWB
+WHERE w.target_trspt_filerecord_id>'0' ;
+
+SELECT * FROM work_awb ;
+
+DELETE FROM `op5_dbs_prod_tracy`.`view_file_SWORD_2_AWB`
+WHERE filerecord_id IN (
+ SELECT src_filerecord_id FROM work_awb
+);

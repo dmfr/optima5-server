@@ -1,0 +1,726 @@
+<query>
+CREATE FUNCTION SPLIT_STRING(str VARCHAR(255), delim VARCHAR(12), pos INT)
+RETURNS VARCHAR(255)
+
+BEGIN
+RETURN REPLACE(SUBSTRING(SUBSTRING_INDEX(str, delim, pos),
+       LENGTH(SUBSTRING_INDEX(str, delim, pos-1)) + 1),
+       delim, '');
+END
+</query>
+
+
+
+CREATE TABLE sword_1 (
+trspt_filerecord_id INT PRIMARY KEY
+) ;
+
+CREATE TABLE sword_1_hatparcels (
+trspt_filerecord_id INT,
+hatparcel_filerecord_id INT
+) ;
+ALTER TABLE sword_1_hatparcels ADD PRIMARY KEY(trspt_filerecord_id,hatparcel_filerecord_id) ;
+
+
+
+INSERT INTO sword_1
+SELECT filerecord_id FROM `op5_dbs_prod_tracy`.`view_file_TRSPT`
+WHERE field_SWORD_EDI_1_READY='1' AND field_SWORD_EDI_1_SENT='0' ;
+
+
+
+INSERT INTO sword_1_hatparcels
+SELECT t.filerecord_id, hp.filerecord_id
+
+FROM `op5_dbs_prod_tracy`.`view_file_TRSPT` t
+
+JOIN sword_1 ON sword_1.trspt_filerecord_id=t.filerecord_id
+
+JOIN `op5_dbs_prod_tracy`.`view_file_TRSPT_CDE` tc
+ ON tc.filerecord_parent_id=t.filerecord_id
+ AND tc.field_LINK_IS_CANCEL='0'
+
+JOIN `op5_dbs_prod_tracy`.`view_file_CDE` c
+ ON c.filerecord_id=tc.`field_FILE_CDE_ID`
+
+JOIN `op5_dbs_prod_tracy`.`view_file_HAT_CDE` hc
+ ON hc.field_FILE_CDE_ID = c.filerecord_id
+
+JOIN `op5_dbs_prod_tracy`.`view_file_HAT` h
+ ON h.filerecord_id = hc.filerecord_parent_id
+
+JOIN `op5_dbs_prod_tracy`.`view_file_HAT_PARCEL` hp
+ ON hp.filerecord_parent_id = h.filerecord_id
+
+GROUP BY t.filerecord_id, hp.filerecord_id ;
+
+
+
+
+
+
+
+
+
+
+CREATE TABLE sword_1_dims AS
+SELECT t.filerecord_id
+, (
+     SELECT hp.field_VOL_KG
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 0,1
+) as VOL_KG_1
+, (
+     SELECT SPLIT_STRING(hp.`field_VOL_DIMS`,'x',1)
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 0,1
+) as VOL_LENGTH_1
+, (
+     SELECT  SPLIT_STRING(hp.`field_VOL_DIMS`,'x',2)
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 0,1
+) as VOL_WIDTH_1
+, (
+     SELECT  SPLIT_STRING(hp.`field_VOL_DIMS`,'x',3)
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 0,1
+) as VOL_HEIGHT_1
+
+
+
+, (
+     SELECT hp.field_VOL_KG
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 1,1
+) as VOL_KG_2
+, (
+     SELECT SPLIT_STRING(hp.`field_VOL_DIMS`,'x',1)
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 1,1
+) as VOL_LENGTH_2
+, (
+     SELECT  SPLIT_STRING(hp.`field_VOL_DIMS`,'x',2)
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 1,1
+) as VOL_WIDTH_2
+, (
+     SELECT  SPLIT_STRING(hp.`field_VOL_DIMS`,'x',3)
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 1,1
+) as VOL_HEIGHT_2
+
+
+, (
+     SELECT hp.field_VOL_KG
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 2,1
+) as VOL_KG_3
+, (
+     SELECT SPLIT_STRING(hp.`field_VOL_DIMS`,'x',1)
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 2,1
+) as VOL_LENGTH_3
+, (
+     SELECT  SPLIT_STRING(hp.`field_VOL_DIMS`,'x',2)
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 2,1
+) as VOL_WIDTH_3
+, (
+     SELECT  SPLIT_STRING(hp.`field_VOL_DIMS`,'x',3)
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 2,1
+) as VOL_HEIGHT_3
+
+
+, (
+     SELECT hp.field_VOL_KG
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 3,1
+) as VOL_KG_4
+, (
+     SELECT SPLIT_STRING(hp.`field_VOL_DIMS`,'x',1)
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 3,1
+) as VOL_LENGTH_4
+, (
+     SELECT  SPLIT_STRING(hp.`field_VOL_DIMS`,'x',2)
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 3,1
+) as VOL_WIDTH_4
+, (
+     SELECT  SPLIT_STRING(hp.`field_VOL_DIMS`,'x',3)
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 3,1
+) as VOL_HEIGHT_4
+
+
+, (
+     SELECT hp.field_VOL_KG
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 4,1
+) as VOL_KG_5
+, (
+     SELECT SPLIT_STRING(hp.`field_VOL_DIMS`,'x',1)
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 4,1
+) as VOL_LENGTH_5
+, (
+     SELECT  SPLIT_STRING(hp.`field_VOL_DIMS`,'x',2)
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 4,1
+) as VOL_WIDTH_5
+, (
+     SELECT  SPLIT_STRING(hp.`field_VOL_DIMS`,'x',3)
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 4,1
+) as VOL_HEIGHT_5
+
+
+, (
+     SELECT hp.field_VOL_KG
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 5,1
+) as VOL_KG_6
+, (
+     SELECT SPLIT_STRING(hp.`field_VOL_DIMS`,'x',1)
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 5,1
+) as VOL_LENGTH_6
+, (
+     SELECT  SPLIT_STRING(hp.`field_VOL_DIMS`,'x',2)
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 5,1
+) as VOL_WIDTH_6
+, (
+     SELECT  SPLIT_STRING(hp.`field_VOL_DIMS`,'x',3)
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 5,1
+) as VOL_HEIGHT_6
+
+
+, (
+     SELECT hp.field_VOL_KG
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 6,1
+) as VOL_KG_7
+, (
+     SELECT SPLIT_STRING(hp.`field_VOL_DIMS`,'x',1)
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 6,1
+) as VOL_LENGTH_7
+, (
+     SELECT  SPLIT_STRING(hp.`field_VOL_DIMS`,'x',2)
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 6,1
+) as VOL_WIDTH_7
+, (
+     SELECT  SPLIT_STRING(hp.`field_VOL_DIMS`,'x',3)
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 6,1
+) as VOL_HEIGHT_7
+
+
+, (
+     SELECT hp.field_VOL_KG
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 7,1
+) as VOL_KG_8
+, (
+     SELECT SPLIT_STRING(hp.`field_VOL_DIMS`,'x',1)
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 7,1
+) as VOL_LENGTH_8
+, (
+     SELECT  SPLIT_STRING(hp.`field_VOL_DIMS`,'x',2)
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 7,1
+) as VOL_WIDTH_8
+, (
+     SELECT  SPLIT_STRING(hp.`field_VOL_DIMS`,'x',3)
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 7,1
+) as VOL_HEIGHT_8
+
+
+, (
+     SELECT hp.field_VOL_KG
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 8,1
+) as VOL_KG_9
+, (
+     SELECT SPLIT_STRING(hp.`field_VOL_DIMS`,'x',1)
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 8,1
+) as VOL_LENGTH_9
+, (
+     SELECT  SPLIT_STRING(hp.`field_VOL_DIMS`,'x',2)
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 8,1
+) as VOL_WIDTH_9
+, (
+     SELECT  SPLIT_STRING(hp.`field_VOL_DIMS`,'x',3)
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 8,1
+) as VOL_HEIGHT_9
+
+
+, (
+     SELECT hp.field_VOL_KG
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 9,1
+) as VOL_KG_10
+, (
+     SELECT SPLIT_STRING(hp.`field_VOL_DIMS`,'x',1)
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 9,1
+) as VOL_LENGTH_10
+, (
+     SELECT  SPLIT_STRING(hp.`field_VOL_DIMS`,'x',2)
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 9,1
+) as VOL_WIDTH_10
+, (
+     SELECT  SPLIT_STRING(hp.`field_VOL_DIMS`,'x',3)
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 9,1
+) as VOL_HEIGHT_10
+
+
+, (
+     SELECT hp.field_VOL_KG
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 10,1
+) as VOL_KG_11
+, (
+     SELECT SPLIT_STRING(hp.`field_VOL_DIMS`,'x',1)
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 10,1
+) as VOL_LENGTH_11
+, (
+     SELECT  SPLIT_STRING(hp.`field_VOL_DIMS`,'x',2)
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 10,1
+) as VOL_WIDTH_11
+, (
+     SELECT  SPLIT_STRING(hp.`field_VOL_DIMS`,'x',3)
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 10,1
+) as VOL_HEIGHT_11
+
+
+, (
+     SELECT hp.field_VOL_KG
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 11,1
+) as VOL_KG_12
+, (
+     SELECT SPLIT_STRING(hp.`field_VOL_DIMS`,'x',1)
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 11,1
+) as VOL_LENGTH_12
+, (
+     SELECT  SPLIT_STRING(hp.`field_VOL_DIMS`,'x',2)
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 11,1
+) as VOL_WIDTH_12
+, (
+     SELECT  SPLIT_STRING(hp.`field_VOL_DIMS`,'x',3)
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+     ORDER BY hp.filerecord_id
+     LIMIT 11,1
+) as VOL_HEIGHT_12
+
+FROM `op5_dbs_prod_tracy`.`view_file_TRSPT` t
+
+JOIN sword_1 ON sword_1.trspt_filerecord_id=t.filerecord_id ;
+
+ALTER TABLE sword_1_dims ADD PRIMARY KEY(filerecord_id) ;
+
+
+
+
+
+
+
+
+
+SELECT c.`filerecord_id` as ID
+
+, c.`field_ID_SOC` as SOC
+
+, t.`field_ID_DOC` as TRSPT
+
+, (select field_ID_DN FROM `op5_dbs_prod_tracy`.`view_file_CDE` WHERE filerecord_id IN (select field_FILE_CDE_ID FROM `op5_dbs_prod_tracy`.`view_file_TRSPT_CDE` WHERE filerecord_parent_id = t.filerecord_id) ORDER BY filerecord_id LIMIT 0,1 ) as DN
+
+, c.`field_FLOW_CODE`  as FLOW_CODE
+
+, c.`field_REF_PO` as REF_PO
+
+, (select field_REF_INVOICE FROM `op5_dbs_prod_tracy`.`view_file_CDE` WHERE filerecord_id IN (select field_FILE_CDE_ID FROM `op5_dbs_prod_tracy`.`view_file_TRSPT_CDE` WHERE filerecord_parent_id = t.filerecord_id) ORDER BY filerecord_id LIMIT 0,1 ) as REF_INVOICE
+
+, c.`field_REF_MAG` as REF_MAG
+, c.`field_ATR_TYPE` as ATR_TYPE
+, c.`field_ATR_PRIORITY` as ATR_PRIORITY
+, c.`field_ATR_INCOTERM` as ATR_INCOTERM
+, bcon.field_NAME as ATR_CONSIGNEE
+, cadr_cp.field_ADR_VALUE as TXT_LOCATION_POSTALCODE
+, cadr_city.field_ADR_VALUE as TXT_LOCATION_CITY
+, cadr_state.field_ADR_VALUE as TXT_LOCATION_STATECODE
+, cadr_country.field_ADR_VALUE as TXT_LOCATION_COUNTRYCODE
+, cadr_contact.field_ADR_VALUE as TXT_LOCATION_CONTACT
+, cadr_phone.field_ADR_VALUE as TXT_LOCATION_PHONE
+, cadr_adr1.field_ADR_VALUE as TXT_LOCATION_ADR1
+, sum(c.field_DESC_VALUE) as DESC_VALUE
+, c.field_DESC_VALUE_CURRENCY as VALUE_CURRENCY
+, c.field_DESC_TXT as DESC_TXT
+, (
+     SELECT sum(hp.field_VOL_KG) as VOL_KG
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+) as VOL_KG
+, SPLIT_STRING(c.`field_VOL_DIMS`,' x ',1) as VOL_LENGTH
+, SPLIT_STRING(c.`field_VOL_DIMS`,' x ',2) as VOL_WIDTH
+, SPLIT_STRING(c.`field_VOL_DIMS`,' x ',3) as VOL_HEIGHT
+, (
+     SELECT sum(hp.field_VOL_COUNT) as VOL_COUNT
+     FROM op5_dbs_prod_tracy.view_file_HAT_PARCEL hp, sword_1_hatparcels s1hp
+     WHERE s1hp.hatparcel_filerecord_id=hp.filerecord_id
+     AND s1hp.trspt_filerecord_id = t.filerecord_id
+) as VOL_COUNT
+, c.`field_DATE_CREATE` as DATE_CREATE
+, c.`field_DATE_INIT` as DATE_INIT
+, c.`field_DATE_CLOSED` as DATE_CLOSED
+, IF(bcarprod.entry_key IS NOT NULL,bcarprod.field_CPROD,IF(bcar.entry_key IS NOT NULL, bcar.field_NAME,t.`field_MVT_CARRIER`)) as MVT_CARRIER
+, t.`field_MVT_ORIGIN` as MVT_ORIGIN
+, t.`field_MVT_DEST` as MVT_DEST
+, t.`field_FLIGHT_AWB` as FLIGHT_AWB
+, t.`field_FLIGHT_DATE` as FLIGHT_DATE
+, t.`field_FLIGHT_CODE` as FLIGHT_CODE
+, t.`field_CUSTOMS_IS_ON` as CUSTOMS_IS_ON
+, t.`field_CUSTOMS_DATE_REQUEST` as CUSTOMS_DATE_REQUEST
+, t.`field_CUSTOMS_DATE_CLEARED` as CUSTOMS_DATE_CLEARED
+, t.`field_POD_DOC` as POD_DOC
+, t.`field_MVT_CARRIER_ACCOUNT` as CARRIER_ACCOUNT
+, cadr_adr2.field_ADR_VALUE as TXT_LOCATION_ADR2
+
+, (select field_ID_DN FROM `op5_dbs_prod_tracy`.`view_file_CDE` WHERE filerecord_id IN (select field_FILE_CDE_ID FROM `op5_dbs_prod_tracy`.`view_file_TRSPT_CDE` WHERE filerecord_parent_id = t.filerecord_id) ORDER BY filerecord_id LIMIT 1,1 ) as DN_2
+
+, (select field_ID_DN FROM `op5_dbs_prod_tracy`.`view_file_CDE` WHERE filerecord_id IN (select field_FILE_CDE_ID FROM `op5_dbs_prod_tracy`.`view_file_TRSPT_CDE` WHERE filerecord_parent_id = t.filerecord_id) ORDER BY filerecord_id LIMIT 2,1 ) as DN_3
+
+, (select field_ID_DN FROM `op5_dbs_prod_tracy`.`view_file_CDE` WHERE filerecord_id IN (select field_FILE_CDE_ID FROM `op5_dbs_prod_tracy`.`view_file_TRSPT_CDE` WHERE filerecord_parent_id = t.filerecord_id) ORDER BY filerecord_id LIMIT 3,1 ) as DN_4
+
+, (select field_ID_DN FROM `op5_dbs_prod_tracy`.`view_file_CDE` WHERE filerecord_id IN (select field_FILE_CDE_ID FROM `op5_dbs_prod_tracy`.`view_file_TRSPT_CDE` WHERE filerecord_parent_id = t.filerecord_id) ORDER BY filerecord_id LIMIT 4,1 ) as DN_5
+
+, (select field_ID_DN FROM `op5_dbs_prod_tracy`.`view_file_CDE` WHERE filerecord_id IN (select field_FILE_CDE_ID FROM `op5_dbs_prod_tracy`.`view_file_TRSPT_CDE` WHERE filerecord_parent_id = t.filerecord_id) ORDER BY filerecord_id LIMIT 5,1 ) as DN_6
+
+, (select field_ID_DN FROM `op5_dbs_prod_tracy`.`view_file_CDE` WHERE filerecord_id IN (select field_FILE_CDE_ID FROM `op5_dbs_prod_tracy`.`view_file_TRSPT_CDE` WHERE filerecord_parent_id = t.filerecord_id) ORDER BY filerecord_id LIMIT 6,1 ) as DN_7
+
+, (select field_ID_DN FROM `op5_dbs_prod_tracy`.`view_file_CDE` WHERE filerecord_id IN (select field_FILE_CDE_ID FROM `op5_dbs_prod_tracy`.`view_file_TRSPT_CDE` WHERE filerecord_parent_id = t.filerecord_id) ORDER BY filerecord_id LIMIT 7,1 ) as DN_8
+
+, (select field_ID_DN FROM `op5_dbs_prod_tracy`.`view_file_CDE` WHERE filerecord_id IN (select field_FILE_CDE_ID FROM `op5_dbs_prod_tracy`.`view_file_TRSPT_CDE` WHERE filerecord_parent_id = t.filerecord_id) ORDER BY filerecord_id LIMIT 8,1 ) as DN_9
+
+, (select field_ID_DN FROM `op5_dbs_prod_tracy`.`view_file_CDE` WHERE filerecord_id IN (select field_FILE_CDE_ID FROM `op5_dbs_prod_tracy`.`view_file_TRSPT_CDE` WHERE filerecord_parent_id = t.filerecord_id) ORDER BY filerecord_id LIMIT 9,1 ) as DN_10
+
+, (select field_ID_DN FROM `op5_dbs_prod_tracy`.`view_file_CDE` WHERE filerecord_id IN (select field_FILE_CDE_ID FROM `op5_dbs_prod_tracy`.`view_file_TRSPT_CDE` WHERE filerecord_parent_id = t.filerecord_id) ORDER BY filerecord_id LIMIT 10,1 ) as DN_11
+
+, (select field_ID_DN FROM `op5_dbs_prod_tracy`.`view_file_CDE` WHERE filerecord_id IN (select field_FILE_CDE_ID FROM `op5_dbs_prod_tracy`.`view_file_TRSPT_CDE` WHERE filerecord_parent_id = t.filerecord_id) ORDER BY filerecord_id LIMIT 11,1 ) as DN_12
+
+, (select field_REF_INVOICE FROM `op5_dbs_prod_tracy`.`view_file_CDE` WHERE filerecord_id IN (select field_FILE_CDE_ID FROM `op5_dbs_prod_tracy`.`view_file_TRSPT_CDE` WHERE filerecord_parent_id = t.filerecord_id) ORDER BY filerecord_id LIMIT 1,1 ) as REF_INVOICE_2
+
+, (select field_REF_INVOICE FROM `op5_dbs_prod_tracy`.`view_file_CDE` WHERE filerecord_id IN (select field_FILE_CDE_ID FROM `op5_dbs_prod_tracy`.`view_file_TRSPT_CDE` WHERE filerecord_parent_id = t.filerecord_id) ORDER BY filerecord_id LIMIT 2,1 ) as REF_INVOICE_3
+
+, (select field_REF_INVOICE FROM `op5_dbs_prod_tracy`.`view_file_CDE` WHERE filerecord_id IN (select field_FILE_CDE_ID FROM `op5_dbs_prod_tracy`.`view_file_TRSPT_CDE` WHERE filerecord_parent_id = t.filerecord_id) ORDER BY filerecord_id LIMIT 3,1 ) as REF_INVOICE_4
+
+, (select field_REF_INVOICE FROM `op5_dbs_prod_tracy`.`view_file_CDE` WHERE filerecord_id IN (select field_FILE_CDE_ID FROM `op5_dbs_prod_tracy`.`view_file_TRSPT_CDE` WHERE filerecord_parent_id = t.filerecord_id) ORDER BY filerecord_id LIMIT 4,1 ) as REF_INVOICE_5
+
+, (select field_REF_INVOICE FROM `op5_dbs_prod_tracy`.`view_file_CDE` WHERE filerecord_id IN (select field_FILE_CDE_ID FROM `op5_dbs_prod_tracy`.`view_file_TRSPT_CDE` WHERE filerecord_parent_id = t.filerecord_id) ORDER BY filerecord_id LIMIT 5,1 ) as REF_INVOICE_6
+
+, (select field_REF_INVOICE FROM `op5_dbs_prod_tracy`.`view_file_CDE` WHERE filerecord_id IN (select field_FILE_CDE_ID FROM `op5_dbs_prod_tracy`.`view_file_TRSPT_CDE` WHERE filerecord_parent_id = t.filerecord_id) ORDER BY filerecord_id LIMIT 6,1 ) as REF_INVOICE_7
+
+, (select field_REF_INVOICE FROM `op5_dbs_prod_tracy`.`view_file_CDE` WHERE filerecord_id IN (select field_FILE_CDE_ID FROM `op5_dbs_prod_tracy`.`view_file_TRSPT_CDE` WHERE filerecord_parent_id = t.filerecord_id) ORDER BY filerecord_id LIMIT 7,1 ) as REF_INVOICE_8
+
+, (select field_REF_INVOICE FROM `op5_dbs_prod_tracy`.`view_file_CDE` WHERE filerecord_id IN (select field_FILE_CDE_ID FROM `op5_dbs_prod_tracy`.`view_file_TRSPT_CDE` WHERE filerecord_parent_id = t.filerecord_id) ORDER BY filerecord_id LIMIT 8,1 ) as REF_INVOICE_9
+
+, (select field_REF_INVOICE FROM `op5_dbs_prod_tracy`.`view_file_CDE` WHERE filerecord_id IN (select field_FILE_CDE_ID FROM `op5_dbs_prod_tracy`.`view_file_TRSPT_CDE` WHERE filerecord_parent_id = t.filerecord_id) ORDER BY filerecord_id LIMIT 9,1 ) as REF_INVOICE_10
+
+, (select field_REF_INVOICE FROM `op5_dbs_prod_tracy`.`view_file_CDE` WHERE filerecord_id IN (select field_FILE_CDE_ID FROM `op5_dbs_prod_tracy`.`view_file_TRSPT_CDE` WHERE filerecord_parent_id = t.filerecord_id) ORDER BY filerecord_id LIMIT 10,1 ) as REF_INVOICE_11
+
+, (select field_REF_INVOICE FROM `op5_dbs_prod_tracy`.`view_file_CDE` WHERE filerecord_id IN (select field_FILE_CDE_ID FROM `op5_dbs_prod_tracy`.`view_file_TRSPT_CDE` WHERE filerecord_parent_id = t.filerecord_id) ORDER BY filerecord_id LIMIT 11,1 ) as REF_INVOICE_12
+
+, dims.VOL_KG_1
+, dims.VOL_LENGTH_1
+, dims.VOL_WIDTH_1
+, dims.VOL_HEIGHT_1
+
+, dims.VOL_KG_2
+, dims.VOL_LENGTH_2
+, dims.VOL_WIDTH_2
+, dims.VOL_HEIGHT_2
+
+, dims.VOL_KG_3
+, dims.VOL_LENGTH_3
+, dims.VOL_WIDTH_3
+, dims.VOL_HEIGHT_3
+
+, dims.VOL_KG_4
+, dims.VOL_LENGTH_4
+, dims.VOL_WIDTH_4
+, dims.VOL_HEIGHT_4
+
+, dims.VOL_KG_5
+, dims.VOL_LENGTH_5
+, dims.VOL_WIDTH_5
+, dims.VOL_HEIGHT_5
+
+, dims.VOL_KG_6
+, dims.VOL_LENGTH_6
+, dims.VOL_WIDTH_6
+, dims.VOL_HEIGHT_6
+
+, dims.VOL_KG_7
+, dims.VOL_LENGTH_7
+, dims.VOL_WIDTH_7
+, dims.VOL_HEIGHT_7
+
+
+, dims.VOL_KG_8
+, dims.VOL_LENGTH_8
+, dims.VOL_WIDTH_8
+, dims.VOL_HEIGHT_8
+
+
+, dims.VOL_KG_9
+, dims.VOL_LENGTH_9
+, dims.VOL_WIDTH_9
+, dims.VOL_HEIGHT_9
+
+
+, dims.VOL_KG_10
+, dims.VOL_LENGTH_10
+, dims.VOL_WIDTH_10
+, dims.VOL_HEIGHT_10
+
+
+, dims.VOL_KG_11
+, dims.VOL_LENGTH_11
+, dims.VOL_WIDTH_11
+, dims.VOL_HEIGHT_11
+
+
+, dims.VOL_KG_12
+, dims.VOL_LENGTH_12
+, dims.VOL_WIDTH_12
+, dims.VOL_HEIGHT_12
+
+
+
+FROM `op5_dbs_prod_tracy`.`view_file_TRSPT` t
+
+JOIN sword_1 ON sword_1.trspt_filerecord_id=t.filerecord_id
+
+JOIN sword_1_dims dims ON dims.filerecord_id=t.filerecord_id
+
+JOIN `op5_dbs_prod_tracy`.`view_file_TRSPT_CDE` tc
+ ON tc.filerecord_parent_id=t.filerecord_id
+ AND tc.field_LINK_IS_CANCEL='0'
+
+JOIN `op5_dbs_prod_tracy`.`view_file_CDE` c
+ ON c.filerecord_id=tc.`field_FILE_CDE_ID`
+
+LEFT OUTER JOIN  `op5_dbs_prod_tracy`.`view_bible_LIST_CONSIGNEE_entry` bcon
+ ON bcon.entry_key=c.`field_ATR_CONSIGNEE`
+
+LEFT OUTER JOIN  `op5_dbs_prod_tracy`.`view_bible_LIST_CARRIER_entry` bcar
+ ON bcar.entry_key=t.`field_MVT_CARRIER`
+LEFT OUTER JOIN  `op5_dbs_prod_tracy`.`view_bible_LIST_CARRIERPROD_entry` bcarprod
+ ON bcarprod.entry_key=t.`field_MVT_CARRIER_PROD`
+
+LEFT OUTER JOIN `op5_dbs_prod_tracy`.`view_file_CDE_ADR` cadr_adr1
+ ON cadr_adr1.filerecord_parent_id=c.filerecord_id AND cadr_adr1.field_ADR_KEY='ADR1'
+LEFT OUTER JOIN `op5_dbs_prod_tracy`.`view_file_CDE_ADR` cadr_adr2
+ ON cadr_adr2.filerecord_parent_id=c.filerecord_id AND cadr_adr2.field_ADR_KEY='ADR2'
+LEFT OUTER JOIN `op5_dbs_prod_tracy`.`view_file_CDE_ADR` cadr_cp
+ ON cadr_cp.filerecord_parent_id=c.filerecord_id AND cadr_cp.field_ADR_KEY='PCODE'
+LEFT OUTER JOIN `op5_dbs_prod_tracy`.`view_file_CDE_ADR` cadr_city
+ ON cadr_city.filerecord_parent_id=c.filerecord_id AND cadr_city.field_ADR_KEY='TOWN'
+LEFT OUTER JOIN `op5_dbs_prod_tracy`.`view_file_CDE_ADR` cadr_state
+ ON cadr_state.filerecord_parent_id=c.filerecord_id AND cadr_state.field_ADR_KEY='STATE'
+LEFT OUTER JOIN `op5_dbs_prod_tracy`.`view_file_CDE_ADR` cadr_country
+ ON cadr_country.filerecord_parent_id=c.filerecord_id AND cadr_country.field_ADR_KEY='COUNTRY'
+LEFT OUTER JOIN `op5_dbs_prod_tracy`.`view_file_CDE_ADR` cadr_contact
+ ON cadr_contact.filerecord_parent_id=c.filerecord_id AND cadr_contact.field_ADR_KEY='CONTACT'
+LEFT OUTER JOIN `op5_dbs_prod_tracy`.`view_file_CDE_ADR` cadr_phone
+ ON cadr_phone.filerecord_parent_id=c.filerecord_id AND cadr_phone.field_ADR_KEY='PHONE'
+
+GROUP BY t.filerecord_id
+
+ORDER BY t.filerecord_id DESC, c.filerecord_id DESC ;
+
+
+
+
+
+
+
+
+
+UPDATE `op5_dbs_prod_tracy`.`view_file_TRSPT` t
+JOIN sword_1 ON sword_1.trspt_filerecord_id=t.filerecord_id
+SET t.field_SWORD_EDI_1_SENT='1'
+WHERE t.field_SWORD_EDI_1_READY='1' ;
+
+
+
+
+
+
+
+
+
+
+
+
