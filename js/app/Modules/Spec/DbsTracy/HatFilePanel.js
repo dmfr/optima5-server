@@ -1,11 +1,3 @@
-Ext.define('DbsTracyFileHatParcelEditModel',{
-	extend: 'DbsTracyFileHatParcelModel',
-	fields: [
-		{name:'_phantom', type:'boolean'}
-	]
-});
-
-
 Ext.define('Optima5.Modules.Spec.DbsTracy.HatFileDimensionsField',{
 	extend: 'Ext.form.FieldContainer',
 	mixins: {

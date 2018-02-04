@@ -10,6 +10,7 @@ Ext.define('Optima5.Modules.Spec.All',{
     'Optima5.Modules.Spec.DbsLam.DbsLamModule',
     'Optima5.Modules.Spec.BpSales.BpSalesModule',
     'Optima5.Modules.Spec.DbsTracy.DbsTracyModule',
+    'Optima5.Modules.Spec.DbsInconso.DbsInconsoModule',
     'Optima5.Modules.Spec.RsiRecouveo.RsiRecouveoModule'
   ]
 });

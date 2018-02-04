@@ -218,6 +218,12 @@ Ext.define('DbsTracyFileHatParcelModel',{
 		{name: 'vol_dims', type:'auto'}
 	]
 });
+Ext.define('DbsTracyFileHatParcelEditModel',{
+	extend: 'DbsTracyFileHatParcelModel',
+	fields: [
+		{name:'_phantom', type:'boolean'}
+	]
+});
 Ext.define('DbsTracyFileHatModel',{
 	extend: 'Ext.data.Model',
 	idProperty: 'hat_filerecord_id',
