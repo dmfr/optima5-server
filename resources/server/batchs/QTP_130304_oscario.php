@@ -21,8 +21,8 @@ function do_post_request($url, $data, $optional_headers = null)
   return $response;
 }
 function oscario_http_post( $post_data ) {
-	$_URL = 'http://10.39.118.2/oscario/edi.php' ;
-	$_domain = 'bluephoenix' ;
+	$_URL = 'http://127.0.0.1:8080/oscario/edi.php' ;
+	$_domain = 'jp' ;
 	$_auth_username = 'ediJaneiro' ;
 	$_auth_password = 'paracrm' ;
 	if( $GLOBALS['__OPTIMA_TEST'] ) {
@@ -76,8 +76,8 @@ if( $json['success'] == true ) {
 }
 
 if( $db_sales = getenv('OPTIMA_DB_SALES') ) {
-	update_CLILOG_from_salesDb( $db_sales ) ;
-	update_CDELIG_from_salesDb( $db_sales ) ;
+	//update_CLILOG_from_salesDb( $db_sales ) ;
+	//update_CDELIG_from_salesDb( $db_sales ) ;
 }
 
 
@@ -235,9 +235,9 @@ foreach( $arr_filerecord_id as $filerecord_id ) {
 	foreach( $to as $to_email ) {
 		$email->add_Recipient( $to_email ) ;
 	}
-	$email->set_Subject( '[BluePhoenix] '.$file_CDE_SAISIE['field_CDE_REFOSCAR'].' '.$bible_STORE_entry['field_STORENAME'] ) ;
+	$email->set_Subject( '[JustePresse] '.$file_CDE_SAISIE['field_CDE_REFOSCAR'].' '.$bible_STORE_entry['field_STORENAME'] ) ;
 	if( $_errors ) {
-		$email->set_Subject( '[BluePhoenix] '.'!!! CDE REJETEE !!!'.' '.$bible_STORE_entry['field_STORENAME'] ) ;
+		$email->set_Subject( '[JustePresse] '.'!!! CDE REJETEE !!!'.' '.$bible_STORE_entry['field_STORENAME'] ) ;
 	}
 	$email->set_text_body( $email_text ) ;
 	$email->attach_file( 'NouveauClient'.'_'.$bible_STORE_entry['entry_key'].'.xlsx', $binarybuffer_xlsx, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ) ;

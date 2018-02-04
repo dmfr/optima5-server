@@ -37,7 +37,7 @@ function do_post_request($url, $data, $optional_headers = null)
   return $response;
 }
 function oscario_http_post( $post_data, $fp=FALSE ) {
-	$_URL = 'http://10.39.118.2/oscario/edi.php' ;
+	$_URL = 'http://127.0.0.1:8080/oscario/edi.php' ;
 	$_domain = 'bluephoenix' ;
 	$_auth_username = 'ediJaneiro' ;
 	$_auth_password = 'paracrm' ;
@@ -478,6 +478,10 @@ while( !feof($handle) ) {
 		
 		// 14/09/16 : pas d'écrasement ADR facturation
 		unset($arr_ins['field_ADR_INVOICE_str']) ;
+		// 25/12/17 : pas d'ecrasement ADR ship ?
+		if( $arrDB['field_ADR_IS_LOCKED_int'] ) {
+			unset($arr_ins['field_ADR_SHIP_str']) ;
+		}
 		
 		$arr_cond = array();
 		$arr_cond['entry_key'] = $entry_key ;
