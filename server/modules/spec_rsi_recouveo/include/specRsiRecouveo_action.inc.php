@@ -563,7 +563,7 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 			paracrm_lib_data_updateRecord_file( 'FILE_ACTION', $arr_ins, $fileaction_filerecord_id);
 		}
 	}
-	if( $post_form['link_action']=='MAIL_IN' ) {
+	if( in_array($post_form['link_action'], array('MAIL_IN','LITIG_FOLLOW')) ) {
 		if( $post_form['attachments'] && !$post_form['inpostal_filerecord_id'] ) {
 			$docs = array() ;
 			foreach( json_decode($post_form['attachments'],true) as $doc ) {

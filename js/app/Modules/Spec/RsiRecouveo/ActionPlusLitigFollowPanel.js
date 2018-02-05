@@ -68,20 +68,42 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusLitigFollowPanel',{
 				width: 16
 			},{
 				flex: 1,
-				xtype: 'fieldset',
-				padding: 10,
-				title: 'Observations',
+				xtype: 'container',
 				layout: {
-					type: 'anchor'
-				},
-				defaults: {
-					anchor: '100%',
-					labelWidth: 80
+					type: 'vbox',
+					align: 'stretch'
 				},
 				items: [{
-					xtype: 'textarea',
-					name: 'txt',
-					height: 150
+					xtype: 'fieldset',
+					padding: 10,
+					title: 'Pièces courrier',
+					layout: {
+						type: 'anchor'
+					},
+					defaults: {
+						anchor: '100%',
+						labelWidth: 80
+					},
+					items: [Ext.create('Optima5.Modules.Spec.RsiRecouveo.AttachmentsFieldPanel',{
+						name: 'attachments',
+						optimaModule: this.optimaModule
+					})]
+				},{
+					xtype: 'fieldset',
+					padding: 10,
+					title: 'Observations',
+					layout: {
+						type: 'anchor'
+					},
+					defaults: {
+						anchor: '100%',
+						labelWidth: 80
+					},
+					items: [{
+						xtype: 'textarea',
+						name: 'txt',
+						height: 150
+					}]
 				}]
 			}]
 		}) ;
