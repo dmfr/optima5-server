@@ -1397,12 +1397,12 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		var cellNode = e.getTarget( view.getCellSelector() ),
 			cellColumn = view.getHeaderByCell( cellNode ) ;
 		if( cellColumn.dataIndex=='warning_code' ) {
-			this.openWarningPanel( record ) ;
+			this.openWarningPanel( record.get('order_filerecord_id') ) ;
 			return ;
 		}
 		if( cellColumn.dataIndex=='kpi_code' ) {
 			if( record.get('kpi_is_on') && (!record.get('kpi_is_ok_raw') || !record.get('kpi_is_ok')) ) {
-				this.openKpiPanel( record ) ;
+				this.openKpiPanel( record.get('order_filerecord_id') ) ;
 				return ;
 			}
 		}
@@ -1947,14 +1947,14 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		}) ;
 	},
 	
-	openWarningPanel: function( orderRecord ) {
+	openWarningPanel: function( orderFilerecordId ) {
 		if( this._readonlyMode ) {
 			return ;
 		}
 		var postParams = {} ;
 		var orderWarningPanel = Ext.create('Optima5.Modules.Spec.DbsTracy.OrderWarningPanel',{
 			optimaModule: this.optimaModule,
-			orderRecord: orderRecord,
+			_orderFilerecordId: orderFilerecordId,
 			width:500, // dummy initial size, for border layout to work
 			height:null, // ...
 			floating: true,
@@ -1984,14 +1984,14 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		
 		this.floatingPanel = orderWarningPanel ;
 	},
-	openKpiPanel: function( orderRecord ) {
+	openKpiPanel: function( orderFilerecordId ) {
 		if( this._readonlyMode ) {
 			return ;
 		}
 		var postParams = {} ;
 		var orderWarningPanel = Ext.create('Optima5.Modules.Spec.DbsTracy.OrderKpiPanel',{
 			optimaModule: this.optimaModule,
-			orderRecord: orderRecord,
+			_orderFilerecordId: orderFilerecordId,
 			width:800, // dummy initial size, for border layout to work
 			height:null, // ...
 			floating: true,

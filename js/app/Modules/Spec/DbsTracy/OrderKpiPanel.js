@@ -63,7 +63,34 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderKpiPanel',{
 		
 		this.callParent() ;
 		
-		if( this.orderRecord ) {
+		if( this._orderFilerecordId ) {
+			this.loadOrder(this._orderFilerecordId) ;
+		}
+	},
+	loadOrder: function( orderFilerecordId ) {
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_tracy',
+				_action: 'order_getRecords',
+				filter_orderFilerecordId_arr: Ext.JSON.encode([orderFilerecordId])
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false || ajaxResponse.data.length != 1 ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+				this.onLoadOrder(Ext.ux.dams.ModelManager.create('DbsTracyFileOrderModel',ajaxResponse.data[0])) ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+	},
+	onLoadOrder: function(orderRecord) {
+		this.orderRecord = orderRecord ;
 			var headerData = {
 				id_dn: this.orderRecord.get('id_dn'),
 				atr_consignee: this.orderRecord.get('atr_consignee'),
@@ -75,7 +102,6 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderKpiPanel',{
 			this.down('#pHeader').update(headerData) ;
 			
 			this.down('#pForm').getForm().loadRecord(this.orderRecord) ;
-		}
 	},
 	initHeaderCfg: function() {
 		var headerCfg = {
@@ -161,5 +187,29 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.OrderKpiPanel',{
 			},
 			scope: this
 		}) ;
+	},
+	
+	showLoadmask: function() {
+		if( this.rendered ) {
+			this.doShowLoadmask() ;
+		} else {
+			this.on('afterrender',this.doShowLoadmask,this,{single:true}) ;
+		}
+	},
+	doShowLoadmask: function() {
+		if( this.loadMask ) {
+			return ;
+		}
+		this.loadMask = Ext.create('Ext.LoadMask',{
+			target: this,
+			msg:"Please wait..."
+		}).show();
+	},
+	hideLoadmask: function() {
+		this.un('afterrender',this.doShowLoadmask,this) ;
+		if( this.loadMask ) {
+			this.loadMask.destroy() ;
+			this.loadMask = null ;
+		}
 	}
 }) ;
