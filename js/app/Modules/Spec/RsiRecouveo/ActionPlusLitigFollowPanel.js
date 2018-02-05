@@ -76,7 +76,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusLitigFollowPanel',{
 				items: [{
 					xtype: 'fieldset',
 					padding: 10,
-					title: 'Pièces courrier',
+					title: 'Pièces jointes',
 					layout: {
 						type: 'anchor'
 					},
