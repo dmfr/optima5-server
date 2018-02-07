@@ -569,7 +569,9 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 			foreach( json_decode($post_form['attachments'],true) as $doc ) {
 				$docs[] = $doc ;
 			}
-			$post_form['inpostal_filerecord_id'] = specRsiRecouveo_doc_buildInPostal( $fileaction_filerecord_id, $docs ) ;
+			if( count($docs)>0 ) {
+				$post_form['inpostal_filerecord_id'] = specRsiRecouveo_doc_buildInPostal( $fileaction_filerecord_id, $docs ) ;
+			}
 		}
 		if( $post_form['inpostal_filerecord_id'] ) {
 			$arr_ins = array() ;
