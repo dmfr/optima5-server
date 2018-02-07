@@ -1360,6 +1360,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			if( cfgParam_id=='USER' ) {
 				if( authIsExt != null ) {
 					cfgParamBtn.setValue(authIsExt,silent) ;
+					//HACK ?
+					var newValues = [cfgParamBtn.treepanel.getCheckedNode().getData()] ;
+					cfgParamBtn.fillValues(newValues) ;
+					cfgParamBtn.setValue(authIsExt,silent) ;
 				}
 			}
 		}) ;

@@ -404,8 +404,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamTree',{
 	},
 	
 	fillValues: function( values ) {
-		if( this.cfgParam_id && this.cfgParam_id.indexOf('ATR:')===0 ) {} else {
-			return ;
+		var allowed = false ;
+		if( this.cfgParam_id && this.cfgParam_id.indexOf('ATR:')===0 ) {
+			allowed = true ;
+		}
+		if( this.cfgParam_id && this.cfgParam_id=='USER' ) {
+			allowed = true ;
 		}
 		
 		Ext.Array.sort(values) ;
@@ -417,6 +421,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamTree',{
 			baseRootText = rootNode.get('nodeText') ;
 		rootChildren = [] ;
 		Ext.Array.each(values, function(value) {
+			if( Ext.isObject(value) ) {
+				rootChildren.push(value) ;
+				return ;
+			}
 			rootChildren.push({
 				leaf: true,
 				nodeId: value,
