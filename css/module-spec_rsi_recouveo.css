@@ -569,3 +569,175 @@
 }
 
 
+
+.op5-spec-rsiveo-emailheader {
+	background-color: rgb(37, 68, 93);
+	border: 1px solid rgb(221, 221, 221);
+	-moz-border-radius: 10px;
+	border-radius: 10px !important;
+	z-index: 2;
+	
+	text-align: left;
+	padding: 16px 24px ;
+}
+.op5-spec-rsiveo-emailheader-wrap {
+	position: relative ;
+}
+.op5-spec-rsiveo-emailheader-icon {
+	position: absolute ;
+	background-color: transparent !important;
+	top:0px;
+	left:0px ;
+	width:0px ;
+	height:100% ;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+.op5-spec-rsiveo-emailheader-close {
+	position: absolute ;
+	background-image: url("../images/op5img/ico_cancel_small.gif") !important;
+	top:16px;
+	right:16px ;
+	width:16px ;
+	height:16px ;
+	background-position: center center;
+	background-repeat: no-repeat;
+	cursor: pointer;
+}
+.op5-spec-rsiveo-emailheader-title {
+	position: relative ;
+	padding-left: 0px ;
+	margin-bottom: 8px ;
+	font-size: 18px;
+	font-weight: bold;
+	color: #eeeeee ;
+}
+.op5-spec-rsiveo-emailheader-caption {
+	position: relative ;
+	padding-left: 0px ;
+	margin-bottom: 4px ;
+	font-size: 14px;
+	color: #ffffff ;
+}
+.op5-spec-rsiveo-emailheader-captiontitle {
+	position: absolute ;
+	top:0px ;
+	bottom:0px ;
+	width: 100% ;
+	line-height: 24px;
+}
+.op5-spec-rsiveo-emailheader-captionbody {
+	position: relative ;
+	padding-left: 100px ;
+	font-weight: bold ;
+}
+.op5-spec-rsiveo-emailheader-captionbodytext {
+	line-height: 24px;
+}
+.op5-spec-rsiveo-emailheader-captionicon {
+	position: absolute ;
+	left: 64px ;
+	top: 0px ;
+	width: 16px ;
+	height: 16px ;
+	background-repeat: no-repeat ;
+}
+.op5-spec-rsiveo-emailheader-captionicontext {
+	position: relative ;
+	padding-left: 20px ;
+}
+.op5-spec-rsiveo-emailheader-actions-top {
+	float: right ;
+	position: absolute ;
+	top: 0px ;
+	right: 0px ;
+}
+.op5-spec-rsiveo-emailheader-actions-bottom {
+	float: right ;
+	position: absolute ;
+	bottom: 0px ;
+	right: 0px ;
+}
+.op5-spec-rsiveo-emailheader-action-btn {
+	display: inline-block ;
+	
+	width: 30px ;
+	height: 30px ;
+	
+	background-repeat: no-repeat;
+	background-position: center center ;
+	 
+	border: 2px solid rgb(180, 180, 180);
+	padding: 4px ;
+	margin: 0px 6px ;
+	-moz-border-radius: 10px;
+	border-radius: 10px !important;
+	z-index: 2;
+}
+.op5-spec-rsiveo-emailheader-action-btn:hover {
+	background-color: rgb(200, 200, 200);
+}
+.op5-spec-rsiveo-emailheader-action-btn-attachments {
+	background-image: url("../images/modules/rsiveo-attachment-22.png") !important;
+}
+.op5-spec-rsiveo-emailheader-action-btn-link {
+	background-image: url("../images/modules/rsiveo-link-22.png") !important;
+}
+
+
+
+
+
+
+
+.op5-spec-rsiveo-emailheadertags-btn {
+	background-image: url("../images/add.png") !important;
+}
+.op5-spec-rsiveo-emailheadertags-field {
+	
+}
+
+.op5-spec-rsiveo-emailheadertags {
+	position: relative ;
+    display: inline-block;
+    vertical-align: top;
+    padding: 2px;
+    text-align: center;
+    margin: 0px 2px;
+    background-color: #ccd8e7;
+    border: 1px solid #99BBE8;
+    -webkit-border-radius: .5em;
+    -moz-border-radius: .5em;
+    border-radius: .5em;
+
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+.op5-spec-rsiveo-emailheadertags:hover {
+    background-color: #999999;
+    border-color: #999999;
+}
+.op5-spec-rsiveo-emailheadertags-icodelete {
+	position: relative ;
+	display: inline-block;
+	vertical-align: middle;
+	height: 16px ;
+	width: 16px;
+	background-position: center center ;
+	background-repeat: no-repeat ;
+	background-image: url("../images/op5img/ico_cancel_small.gif") !important;
+}
+.op5-spec-rsiveo-emailheadertags-text {
+	position: relative ;
+	display: inline-block;
+	vertical-align: middle;
+	font-size: 11px ;
+	padding: 0px 6px ;
+	color: black ;
+}
+.op5-spec-rsiveo-emailheadertags-text-delete {
+}

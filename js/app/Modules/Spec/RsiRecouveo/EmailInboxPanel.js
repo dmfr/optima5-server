@@ -2,7 +2,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailInboxPanel',{
 	extend:'Ext.panel.Panel',
 	
 	requires: [
-		
+		'Optima5.Modules.Spec.RsiRecouveo.EmailMessagePanel'
 	],
 	
 	initComponent: function() {
@@ -45,19 +45,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailInboxPanel',{
 				scope: this
 			}],
 			items: [{
-				//title: 'Statistiques sur sélection',
-				region: 'east',
-				//hidden: true,
-				collapsible: true,
-				collapsed: true,
-				split: true,
-				flex:1,
-				border: true,
-				xtype: 'panel',
-				itemId: 'pEast',
-				layout: 'fit',
-				items: []
-			},{
 				region: 'center',
 				flex:1,
 				border: false,
@@ -209,27 +196,27 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailInboxPanel',{
 	
 	
 	installPreview: function(emailId) {
-		this.optimaModule.getConfiguredAjaxConnection().request({
-			params: {
-				_moduleId: 'spec_rsi_recouveo',
-				_action: 'mail_getEmailRecord',
-				email_filerecord_id: emailId
-			},
-			success: function(response) {
-				var ajaxResponse = Ext.decode(response.responseText) ;
-				if( ajaxResponse.success == false ) {
-					Ext.MessageBox.alert('Error','Error') ;
-					return ;
-				}
-				this.down('#pEast').removeAll();
-				this.down('#pEast').setTitle( ajaxResponse.subject ) ;
-				this.down('#pEast').add(Ext.create('Ext.ux.dams.IFrameContent',{
-					itemId: 'uxIFrame',
-					content:ajaxResponse.html
-				})) ;
-				this.down('#pEast').expand() ;
-			},
-			scope: this
-		}); 
+		if( this.down('#pEast') ) {
+			this.remove( this.down('#pEast') ) ;
+		}
+		
+		var emailMessagePanel = Ext.create('Optima5.Modules.Spec.RsiRecouveo.EmailMessagePanel',{
+			_emailFilerecordId: emailId,
+			optimaModule: this.optimaModule
+		}) ;
+		Ext.apply(emailMessagePanel,{
+			itemId: 'pEast',
+				region: 'east',
+				split: true,
+				flex:1,
+				border: true,
+				tools: [{
+					type: 'close',
+					callback: function(owner,tool,event) {
+						owner.destroy() ;
+					}
+				}]
+		}) ;
+		this.add(emailMessagePanel) ;
 	}
 });

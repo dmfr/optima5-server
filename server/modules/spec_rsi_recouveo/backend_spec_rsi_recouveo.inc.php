@@ -115,6 +115,8 @@ switch( $post_data['_action'] )
 		return specRsiRecouveo_mail_getMboxGrid( $post_data ) ;
 	case 'mail_getEmailRecord' :
 		return specRsiRecouveo_mail_getEmailRecord( $post_data ) ;
+	case 'mail_downloadEmailAttachment' :
+		return specRsiRecouveo_mail_downloadEmailAttachment( $post_data ) ;
 	case 'mail_doFetch' :
 		return specRsiRecouveo_mail_doFetch( $post_data ) ;
 		

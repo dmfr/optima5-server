@@ -57,7 +57,7 @@ function specRsiRecouveo_lib_mail_sync() {
 			$addressFrom = $addressesFrom[0] ;
 			$addressTo = $cfg_email_entry['email_adr'] ;
 			$subject = $obj_mimeParser->getHeader('subject') ;
-			if( $date_obj = DateTime::createFromFormat( 'D, d M Y H:i:s O', $obj_mimeParser->getHeader('date')) ) {
+			if( $date_obj = DateTime::createFromFormat( 'D, d M Y H:i:s O', trim(preg_replace("/\([^)]+\)/","",$obj_mimeParser->getHeader('date'))) ) ) {
 				$date_ts = $date_obj->getTimestamp() ;
 				$date = date('Y-m-d H:i:s',$date_ts) ;
 			}

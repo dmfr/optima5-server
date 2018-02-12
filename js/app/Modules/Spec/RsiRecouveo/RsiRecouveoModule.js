@@ -270,12 +270,41 @@ Ext.define('RsiRecouveoEmailListModel',{
 		{name: 'has_attachments', type:'boolean'}
 	]
 }); 
+Ext.define('RsiRecouveoEmailHeaderAdrModel',{
+	extend: 'Ext.data.Model',
+	fields: [
+		{name: 'header', type:'string'},
+		{name: 'adr_address', type: 'string'},
+		{name: 'adr_display', type: 'string'}
+	]
+}) ;
+Ext.define('RsiRecouveoEmailAttachmentDescModel',{
+	extend: 'Ext.data.Model',
+	fields: [
+		{name: 'attachment_idx', type:'int'},
+		{name: 'filename', type: 'string'},
+		{name: 'filetype', type: 'string'}
+	]
+}) ;
 Ext.define('RsiRecouveoEmailModel',{
 	extend: 'Ext.data.Model',
 	idProperty: 'email_filerecord_id',
 	fields: [
-		{name: 'email_filerecord_id', type:'int'}
-	]
+		{name: 'email_filerecord_id', type:'int'},
+		{name: 'subject', type: 'string'},
+		{name: 'date', type: 'date', dateFormat:'Y-m-d H:i:s'},
+		{name: 'body_html', type: 'string'},
+		{name: 'body_text', type: 'string'}
+	],
+	hasMany: [{
+		model: 'RsiRecouveoEmailHeaderAdrModel',
+		name: 'header_adrs',
+		associationKey: 'header_adrs'
+	},{
+		model: 'RsiRecouveoEmailAttachmentDescModel',
+		name: 'attachments',
+		associationKey: 'attachments'
+	}]
 });
 
 
