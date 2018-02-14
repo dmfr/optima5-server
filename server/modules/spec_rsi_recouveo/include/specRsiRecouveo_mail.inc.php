@@ -20,7 +20,15 @@ function specRsiRecouveo_mail_getMboxGrid($post_data) {
 	
 	$TAB_emaillist = array() ;
 	
-	$query = "SELECT e.* FROM view_file_EMAIL e" ;
+	$query = "SELECT e.*
+				, la.field_ACC_ID as link_account, la.field_ACC_NAME as link_account_txt, lat.field_SOC_ID as link_soc, lat.field_SOC_NAME as link_soc_txt
+				, f.filerecord_id as link_file_filerecord_id, f.field_FILE_ID as link_file_ref
+				, fa.filerecord_id as link_fileaction_filerecord_id
+				FROM view_file_EMAIL e" ;
+	$query.= " LEFT OUTER JOIN view_file_FILE_ACTION fa ON fa.filerecord_id=e.field_LINK_FILE_ACTION_ID" ;
+	$query.= " LEFT OUTER JOIN view_file_FILE f ON f.filerecord_id=fa.filerecord_parent_id" ;
+	$query.= " LEFT OUTER JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key=f.field_LINK_ACCOUNT" ;
+	$query.= " LEFT OUTER JOIN view_bible_LIB_ACCOUNT_tree lat ON lat.treenode_key=la.treenode_key" ;
 	$query.= " WHERE 1" ;
 	if( isset($filter_mbox) ) {
 		$query.= " AND e.field_MBOX='{$filter_mbox}'" ;
@@ -39,8 +47,22 @@ function specRsiRecouveo_mail_getMboxGrid($post_data) {
 			'email_peer_name' => $arr['field_EMAIL_PEER_NAME'],
 			'date' => $arr['field_DATE'],
 			'subject' => $arr['field_SUBJECT'],
-			'has_attachments' => $arr['field_HAS_ATTACHMENTS']
+			'has_attachments' => $arr['field_HAS_ATTACHMENTS'],
+			
+			'link_is_on' => false
 		);
+		if( $arr['field_LINK_IS_ON'] ) {
+			$record['link_is_on'] = true ;
+			$record += array(
+				'link_soc' => $arr['link_soc'],
+				'link_soc_txt' => $arr['link_soc_txt'],
+				'link_account' => $arr['link_account'],
+				'link_account_txt' => $arr['link_account_txt'],
+				'link_file_filerecord_id' => $arr['link_file_filerecord_id'],
+				'link_file_ref' => $arr['link_file_ref'],
+				'link_fileaction_filerecord_id' => $arr['link_fileaction_filerecord_id']
+			);
+		}
 		
 		$TAB_emaillist[$arr['filerecord_id']] = $record ;
 	}
@@ -84,7 +106,9 @@ function specRsiRecouveo_mail_getEmailRecord($post_data) {
 		'body_html' => $obj_mimeParser->getMessageBody('htmlEmbedded'),
 		
 		'header_adrs' => array(),
-		'attachments' => array()
+		'attachments' => array(),
+		
+		'link_is_on' => false
 	);
 	foreach( array('from','to','cc') as $mkey ) {
 		foreach( $obj_mimeParser->getAddresses($mkey) as $adr ) {
@@ -101,6 +125,24 @@ function specRsiRecouveo_mail_getEmailRecord($post_data) {
 			'filename' => $objAttach->getFilename(),
 			'filetype' => $objAttach->getContentType()
 		);
+	}
+	
+	// Link ?
+	$query = "SELECT field_LINK_IS_ON, field_LINK_FILE_ACTION_ID FROM view_file_EMAIL WHERE filerecord_id='{$email_filerecord_id}'" ;
+	$result = $_opDB->query($query) ;
+	$arr = $_opDB->fetch_row($result) ;
+	if( $arr[0] ) {
+		$fileaction_filerecord_id = $arr[1] ;
+		$query = "SELECT la.field_ACC_ID as link_account, la.field_ACC_NAME as link_account_txt, lat.field_SOC_ID as link_soc, lat.field_SOC_NAME as link_soc_txt
+							, f.filerecord_id as link_file_filerecord_id, f.field_FILE_ID as link_file_ref
+							, fa.filerecord_id as link_fileaction_filerecord_id
+					FROM view_file_FILE_ACTION fa
+					JOIN view_file_FILE f ON f.filerecord_id=fa.filerecord_parent_id
+					JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key=f.field_LINK_ACCOUNT
+					JOIN view_bible_LIB_ACCOUNT_tree lat ON lat.treenode_key=la.treenode_key" ;
+		$result = $_opDB->query($query) ;
+		$model['link_is_on'] = true ;
+		$model += $_opDB->fetch_assoc($result) ;
 	}
 	
 	return array('success'=>true, 'data'=>$model, 'subject'=> $obj_mimeParser->getHeader('subject'), 'html'=>$html_content, 'debug'=>$obj_mimeParser->getHeaders() ) ;
@@ -159,6 +201,15 @@ function specRsiRecouveo_mail_downloadEmailAttachment($post_data) {
 	fpassthru($stream) ;
 	//unlink($tmpfilename) ;
 	die() ;
+}
+
+
+function specRsiRecouveo_mail_associateFile($post_data) {
+	sleep(1) ;
+	$data = json_decode($post_data['data'],true) ;
+	specRsiRecouveo_lib_mail_associateFile( $post_data['email_filerecord_id'], $data['ref_account'], $data['adrbook_entity_select'], $data['file_select'] ) ;
+	
+	return array('success'=>true, 'error'=>'Test') ;
 }
 
 

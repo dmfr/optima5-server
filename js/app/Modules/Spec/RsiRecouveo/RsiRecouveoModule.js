@@ -267,7 +267,12 @@ Ext.define('RsiRecouveoEmailListModel',{
 		{name: 'email_peer_name', type:'string'},
 		{name: 'subject', type: 'string'},
 		{name: 'date', type: 'date', dateFormat:'Y-m-d H:i:s'},
-		{name: 'has_attachments', type:'boolean'}
+		{name: 'has_attachments', type:'boolean'},
+		
+		{name: 'link_is_on', type: 'boolean'},
+		{name: 'link_account', type: 'string'},
+		{name: 'link_file_filerecord_id', type: 'int'},
+		{name: 'link_fileaction_filerecord_id', type: 'int'}
 	]
 }); 
 Ext.define('RsiRecouveoEmailHeaderAdrModel',{
@@ -294,7 +299,12 @@ Ext.define('RsiRecouveoEmailModel',{
 		{name: 'subject', type: 'string'},
 		{name: 'date', type: 'date', dateFormat:'Y-m-d H:i:s'},
 		{name: 'body_html', type: 'string'},
-		{name: 'body_text', type: 'string'}
+		{name: 'body_text', type: 'string'},
+		
+		{name: 'link_is_on', type: 'boolean'},
+		{name: 'link_account', type: 'string'},
+		{name: 'link_file_filerecord_id', type: 'int'},
+		{name: 'link_fileaction_filerecord_id', type: 'int'}
 	],
 	hasMany: [{
 		model: 'RsiRecouveoEmailHeaderAdrModel',
@@ -304,7 +314,17 @@ Ext.define('RsiRecouveoEmailModel',{
 		model: 'RsiRecouveoEmailAttachmentDescModel',
 		name: 'attachments',
 		associationKey: 'attachments'
-	}]
+	}],
+	getFromAddress: function() {
+		var ret = null ;
+		this.header_adrs().each( function(rec) {
+			if( rec.get('header')=='from' && Ext.form.field.VTypes.email( rec.get('adr_address') ) ) {
+				ret = rec.get('adr_address') ;
+				return false ;
+			}
+		}) ;
+		return ret ;
+	}
 });
 
 

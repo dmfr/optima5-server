@@ -137,6 +137,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailMessageHeaderComponent',{
 Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailMessagePanel',{
 	extend:'Ext.panel.Panel',
 	
+	requires: ['Optima5.Modules.Spec.RsiRecouveo.EmailMessageLinkPanel'],
+	
 	initComponent: function() {
 		Ext.apply(this,{
 			layout: {
@@ -318,7 +320,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailMessagePanel',{
 	openLinkActionPopup: function() {
 		this.getEl().mask() ;
 		// Open panel
-		var createPanel = Ext.create('Optima5.Modules.Spec.RsiRecouveo.UploadForm',{
+		var createPanel = Ext.create('Optima5.Modules.Spec.RsiRecouveo.EmailMessageLinkPanel',{
+			_emailFilerecordId: this._emailRecord.getId(),
+			
 			optimaModule: this.optimaModule,
 			width:400, // dummy initial size, for border layout to work
 			height:null, // ...
@@ -335,7 +339,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailMessagePanel',{
 			}]
 		});
 		createPanel.on('saved', function(p) {
-			this.doTreeLoad() ;
+			//this.doTreeLoad() ;
 		},this,{single:true}) ;
 		createPanel.on('destroy',function(p) {
 			this.getEl().unmask() ;

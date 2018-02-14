@@ -1419,14 +1419,18 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					disabledCls: 'x-item-invisible',
 					items: [{
 						icon: 'images/op5img/ico_pdf_16.png',
-						tooltip: 'Visualiser',
+						tooltip: 'Vue PDF',
 						handler: function(grid, rowIndex, colIndex, item, e) {
 							var rec = grid.getStore().getAt(rowIndex);
 							if( rec.get('link_env_filerecord_id') ) {
 								this.openEnvelope(rec.get('link_env_filerecord_id')) ;
 							}
-							if( rec.get('link_media_file_code') && rec.get('link_media_filerecord_id') ) {
-								this.openMedia(rec.get('link_media_file_code'),rec.get('link_media_filerecord_id')) ;
+							switch( rec.get('link_media_file_code') ) {
+								case 'IN_POSTAL' :
+									this.openMedia(rec.get('link_media_file_code'),rec.get('link_media_filerecord_id')) ;
+									break ;
+								default :
+									break ;
 							}
 						},
 						scope: this,
@@ -1436,8 +1440,35 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 							if( record.get('link_env_filerecord_id') ) {
 								passed = true ;
 							}
-							if( record.get('link_media_file_code') && record.get('link_media_filerecord_id') ) {
-								passed = true ;
+							switch( record.get('link_media_file_code') ) {
+								case 'IN_POSTAL' :
+									passed = true ;
+									break ;
+								default :
+									break ;
+							}
+							return !passed ;
+						}
+					},{
+						icon: 'images/modules/rsiveo-mail-email-16.png',
+						tooltip: 'Email',
+						handler: function(grid, rowIndex, colIndex, item, e) {
+							var rec = grid.getStore().getAt(rowIndex);
+							if( rec.get('link_media_file_code') == 'EMAIL' ) {
+								var emailFilerecordId = rec.get('link_media_filerecord_id') ;
+								this.openEmail(emailFilerecordId) ;
+							}
+						},
+						scope: this,
+						disabledCls: 'x-item-invisible',
+						isDisabled: function(view,rowIndex,colIndex,item,record ) {
+							var passed = false ;
+							switch( record.get('link_media_file_code') ) {
+								case 'EMAIL' :
+									passed = true ;
+									break ;
+								default :
+									break ;
 							}
 							return !passed ;
 						}
@@ -2113,6 +2144,21 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				optimaModule: this.optimaModule,
 				_mediaFileCode: mediaFileCode,
 				_mediaFilerecordId: mediaFilerecordId
+			})]
+		}) ;
+	},
+	openEmail: function(emailFilerecordId) {
+		this.optimaModule.createWindow({
+			width:600,
+			height:800,
+			iconCls: 'op5-crmbase-qresultwindow-icon',
+			animCollapse:false,
+			border: false,
+			layout:'fit',
+			title: 'Email',
+			items:[Ext.create('Optima5.Modules.Spec.RsiRecouveo.EmailMessagePanel',{
+				optimaModule: this.optimaModule,
+				_emailFilerecordId: emailFilerecordId
 			})]
 		}) ;
 	},

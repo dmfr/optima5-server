@@ -92,18 +92,43 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailInboxPanel',{
 					dataIndex: 'email_peer_name',
 					width: 250
 				},{
-					text: 'Sujet',
-					dataIndex: 'subject',
-					width: 400
-				},{
+					align: 'center',
 					text: '',
 					dataIndex: 'has_attachments',
-					width: 75,
+					width: 48,
 					renderer: function(v,m,r) {
 						if( v ) {
 							m.tdCls += ' op5-spec-rsiveo-email-attachment' ;
 						}
 					}
+				},{
+					text: 'Sujet',
+					dataIndex: 'subject',
+					width: 400
+				},{
+					text: 'Association',
+					columns: [{
+						width: 48,
+						align: 'center',
+						dataIndex: 'link_is_on',
+						renderer: function(value, metaData, record) {
+							if( value ) {
+								metaData.tdCls += ' op5-spec-rsiveo-kpi-ok' ;
+							}
+						}
+					},{
+						width: 100,
+						dataIndex: 'link_soc_txt',
+						text: 'Entité'
+					},{
+						width: 100,
+						dataIndex: 'link_account_txt',
+						text: 'Compte'
+					},{
+						width: 150,
+						dataIndex: 'link_file_ref',
+						text: 'Dossier'
+					}]
 				}],
 				listeners: {
 					selectionchange: function(gridpanel, selectedRecords) {
