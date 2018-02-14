@@ -303,9 +303,23 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					scope: this
 				},{
 					iconCls: 'op5-spec-rsiveo-action-mailout',
-					text: 'Courrier sortant',
+					text: 'Courrier postal',
 					handler: function() {
 						this.handleNewAction('MAIL_OUT',{adrpost_default: true}) ;
+					},
+					scope: this
+				},{
+					iconCls: 'op5-spec-rsiveo-action-mailout',
+					text: 'SMS',
+					handler: function() {
+						this.handleNewAction('SMS_OUT',{adrpost_default: true}) ;
+					},
+					scope: this
+				},{
+					iconCls: 'op5-spec-rsiveo-action-mailout',
+					text: 'E-mail',
+					handler: function() {
+						this.handleNewAction('EMAIL_OUT',{adrpost_default: true}) ;
 					},
 					scope: this
 				}]
@@ -1339,6 +1353,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 								case 'MAIL_IN' :
 									metaData.tdCls += ' op5-spec-rsiveo-actiontree-mailin' ;
 									break dance ;
+								case 'EMAIL_OUT' :
+									metaData.tdCls += ' op5-spec-rsiveo-actiontree-mailout' ;
+									break dance ;
 								default :
 									break ;
 							}
@@ -1636,6 +1653,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				formValues = {adrtel_default: true} ;
 				break ;
 			case 'MAIL_OUT' :
+				formValues = {adrpost_default: true} ;
+				break ;
+			case 'EMAIL_OUT' :
 				formValues = {adrpost_default: true} ;
 				break ;
 		}

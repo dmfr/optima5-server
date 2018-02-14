@@ -226,4 +226,48 @@ function specRsiRecouveo_mail_associateCancel($post_data) {
 }
 
 
+
+
+function specRsiRecouveo_mail_uploadEmailAttachment($post_data){
+
+	media_contextOpen( $_POST['_sdomainId'] ) ;
+	
+	foreach( $_FILES as $mkey => $dummy ) {
+		$src_filename = $_FILES[$mkey]['name'] ;
+		$src_path = $_FILES[$mkey]['tmp_name'] ;
+		
+		if( function_exists('finfo_open') ) {
+			$finfo = finfo_open(FILEINFO_MIME_TYPE);
+			$mimetype = finfo_file($finfo, $src_path) ;
+		} elseif( $src_filename ) {
+			$ttmp = explode('.',$src_filename) ;
+			$mimetype = end($ttmp) ;
+		} else {
+			return array('success'=>false, 'error'=>'Upload vide ?') ;
+		}
+
+		$media_id = media_bin_processUploaded( $src_path ) ;
+		break;
+	}
+	if( !$media_id ) {
+		return array('success'=>false, 'error'=>'Pas de media id') ;
+	}
+
+	$media_size = /*round(((filesize($src_path)*9.77)/10000),1)*/ filesize($src_path);
+	$json = array(
+		'success'=>true,
+		'data'=>array(
+			'media_id'=>$media_id,
+			'filename'=>$src_filename,
+			'size'=>$media_size,
+			'path'=>$src_path
+		)
+	) ;
+
+	media_contextClose() ;
+	return $json ;	
+
+}
+
+
 ?>

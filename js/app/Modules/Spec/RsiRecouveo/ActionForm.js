@@ -7,6 +7,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusCallOutPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailInPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel',
+		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextPanel',
 		
 		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusAgreeFollowPanel',
@@ -129,6 +130,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 			case 'BUMP' :
 				nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusBumpPanel' ;
 				break ;
+			case 'EMAIL_OUT' :
+				nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel' ;
+				hasPreview = true ;
+				break;
 			default :
 				break ;
 		}
