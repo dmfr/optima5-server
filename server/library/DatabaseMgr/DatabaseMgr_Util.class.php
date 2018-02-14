@@ -634,6 +634,7 @@ class DatabaseMgr_Util {
 			{
 				if( $tmpfname ) {
 					fclose($handle_infile) ;
+					$tmpfname = str_replace('\\','/',$tmpfname) ;
 					$query = "LOAD DATA LOCAL INFILE '{$tmpfname}' INTO TABLE {$dst_db}.{$current_table} 
 						FIELDS TERMINATED BY ','
 						OPTIONALLY ENCLOSED BY '\"'
@@ -705,6 +706,7 @@ class DatabaseMgr_Util {
 
 		if( $tmpfname ) {
 			fclose($handle_infile) ;
+			$tmpfname = str_replace('\\','/',$tmpfname) ;
 			$query = "LOAD DATA LOCAL INFILE '{$tmpfname}' INTO TABLE {$dst_db}.{$current_table} 
 				FIELDS TERMINATED BY ','
 				OPTIONALLY ENCLOSED BY '\"'
