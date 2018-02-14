@@ -54,7 +54,7 @@ Ext.define('Ext.ux.grid.filters.filter.StringList', {
 		gridStore.on('datachanged', this.onStoreDataChanged, this, {single:true}) ;
 		
 		this.myStore = Ext.create('Ext.data.Store', {
-			fields: [{name:'string', type:'string'}],
+			fields: [{name:'string', type:'auto'}],
 			data: [],
 			sorters: [{
 				property: 'string',
