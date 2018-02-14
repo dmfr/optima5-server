@@ -438,7 +438,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.BankPanel',{
 				}
 			},
 			plugins: [{
-				ptype: 'uxgridfilters'
+				ptype: 'rsiveouxgridfilters'
 			},{
 				ptype: 'rowediting',
 				pluginId: 'rowediting',

@@ -11,7 +11,7 @@ Ext.define('Ext.ux.grid.filters.filter.StringList', {
 	*/
 	iconCls : 'ux-gridfilter-text-icon',
 
-	emptyText: 'Enter Filter Text...',
+	emptyText: 'Entrez le texte...',
 	selectOnFocus: true,
 	
 	operator: 'in',

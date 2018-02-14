@@ -8,7 +8,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		'Optima5.Modules.Spec.RsiRecouveo.SearchCombo',
 		'Optima5.Modules.Spec.RsiRecouveo.CfgParamFilter',
 		'Optima5.Modules.Spec.RsiRecouveo.MultiActionForm',
-		'Optima5.Modules.Spec.RsiRecouveo.FilesTopPanel'
+		'Optima5.Modules.Spec.RsiRecouveo.FilesTopPanel',
+		'Optima5.Modules.Spec.RsiRecouveo.UxGridFilters'
 	],
 	
 	viewMode: null,
@@ -21,7 +22,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			tbar:[{
 				hidden: this._reportMode,
 				icon: 'images/modules/rsiveo-back-16.gif',
-				text: '<u>Back</u>',
+				text: '<u>Menu</u>',
 				handler: function(){
 					this.doQuit() ;
 				},
@@ -141,7 +142,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				}
 			},{
 				iconCls: 'op5-spec-rsiveo-datatoolbar-refresh',
-				text: 'Refresh',
+				text: 'Rafraichir',
 				handler: function() {
 					this.doLoad(true) ;
 				},
@@ -720,7 +721,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				dock: 'top'
 			}],
 			plugins: [{
-				ptype: 'uxgridfilters'
+				ptype: 'rsiveouxgridfilters'
 			}],
 			store: {
 				model: this.tmpModelName,
@@ -829,7 +830,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				if( v == 0 ) {
 					return '' ;
 				}
-				return Ext.util.Format.number(v,'0,000')+' €' ;
+				return Ext.util.Format.number(v,'0,000');
 			},
 			agendaGridColumns = [{
 				locked: true,
@@ -1126,7 +1127,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 						groupable: false,
 						lockable: false,
 						
-						align: 'center'
+						align: 'right'
 					},
 					items: agendaGridColumns
 				},
@@ -1836,7 +1837,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		}
 		this.loadMask = Ext.create('Ext.LoadMask',{
 			target: this,
-			msg:"Please wait..."
+			msg: RsiRecouveoLoadMsg.loadMsg
 		}).show();
 	},
 	hideLoadmask: function() {

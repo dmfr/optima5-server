@@ -14,7 +14,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamFilter', {
 	*/
 	iconCls : 'ux-gridfilter-text-icon',
 
-	emptyText: 'Enter Filter Text...',
+	emptyText: 'Entrez le filtre',
 	selectOnFocus: true,
 	
 	operator: 'in',

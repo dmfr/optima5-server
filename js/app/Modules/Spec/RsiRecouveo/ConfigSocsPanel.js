@@ -665,7 +665,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigSocsPanel', {
 		}
 		this.loadMask = Ext.create('Ext.LoadMask',{
 			target: this,
-			msg:"Please wait..."
+			msg:RsiRecouveoLoadMsg.loadMsg
 		}).show();
 	},
 	hideLoadmask: function() {

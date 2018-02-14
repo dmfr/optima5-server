@@ -9,6 +9,11 @@ Ext.define('RsiRecouveoCfgNodeModel',{
 	]
 });
 
+Ext.define('RsiRecouveoLoadMsg', {
+    singleton: true,
+    loadMsg: 'Chargement en cours...'
+
+});
 Ext.define('RsiRecouveoCfgOptItemModel',{
 	extend: 'Ext.data.Model',
 	idProperty: 'id',
