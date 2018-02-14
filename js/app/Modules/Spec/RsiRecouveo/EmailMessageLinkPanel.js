@@ -76,7 +76,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailMessageLinkPanel',{
 		if( !emailRecord.get('link_is_on') ) {
 			this.buildInputForm(emailRecord) ;
 		} else {
-			this.buildCancelForm(emailRecord) ;
+			this.buildUnlinkForm(emailRecord) ;
+			this.displayLink(emailRecord) ;
 		}
 	},
 	
@@ -331,7 +332,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailMessageLinkPanel',{
 		formPanel.down('#cntSubmit').setVisible(true);
 		this.focus() ;
 	},
-	
 	handleSubmit: function() {
 		var formPanel = this.down('form'),
 			 form = this.down('form').getForm() ;
@@ -358,6 +358,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailMessageLinkPanel',{
 						return ;
 					}
 					this.fireEvent('saved',this) ;
+					this.destroy() ;
 				},
 				callback: function() {
 					this.hideLoadmask() ;
@@ -366,6 +367,179 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailMessageLinkPanel',{
 			});
 		}
 	},
+	
+	
+	
+	
+	
+	
+	
+	buildUnlinkForm: function() {
+		this.removeAll() ;
+		this.add([{
+			border: false,
+			flex:1,
+			xtype: 'form',
+			bodyCls: 'ux-noframe-bg',
+			bodyPadding: 15,
+			layout:'anchor',
+			fieldDefaults: {
+				labelWidth: 120,
+				anchor: '100%'
+			},
+			items:[{
+				height: 24,
+				xtype: 'component',
+				tpl: [
+					/*
+					'<div class="op5-spec-dbslam-livelogo">',
+						'<span>{title}</span>',
+						'<div class="op5-spec-dbslam-livelogo-left"></div>',
+						'<div class="op5-spec-dbslam-livelogo-right"></div>',
+					'</div>'
+					*/
+				],
+				data: {title: '&#160;'}
+			},{
+				xtype:'fieldset',
+				itemId: 'cntDisplay',
+				title: 'Données associées',
+				items:[{
+					xtype: 'displayfield',
+					name: 'display_acc_soc',
+					fieldLabel: 'Entité',
+					fieldCls:'op5-spec-rsiveo-boldtext'
+				},{
+					xtype: 'displayfield',
+					name: 'display_acc_id',
+					fieldLabel: 'Compte',
+					fieldCls:'op5-spec-rsiveo-boldtext'
+				},{
+					xtype: 'displayfield',
+					name: 'display_acc_name',
+					fieldLabel: 'Débiteur',
+					fieldCls:'op5-spec-rsiveo-boldtext'
+				},{
+					xtype: 'displayfield',
+					name: 'display_file_ref',
+					fieldLabel: 'Dossier',
+					fieldCls:'op5-spec-rsiveo-boldtext'
+				}]
+			},{
+				xtype: 'fieldcontainer',
+				padding: '24px 24px',
+				itemId: 'cntSubmit',
+				layout: {
+					type: 'hbox',
+					pack: 'center'
+				},
+				items: [{
+					xtype:'button',
+					text: 'Annuler<br>Association',
+					icon: 'images/op5img/ico_delete_16.gif',
+					listeners: {
+						click: function() {
+							this.handleUnlink() ;
+						},
+						scope: this
+					},
+					iconAlign: 'top',
+					width: 115,
+					padding: 10
+				}]
+			}]
+		}]) ;
+		
+		var formPanel = this.down('form'),
+			form = formPanel.getForm() ;
+		var cntDisplay = formPanel.down('#cntDisplay') ;
+		cntDisplay.setVisible(false) ;
+		Ext.Array.each( cntDisplay.query('field'), function(field) {
+			field.reset() ;
+			field.setVisible(false) ;
+		});
+		cntDisplay.setVisible(true) ;
+		
+		formPanel.down('#cntSubmit').setVisible(false);
+	},
+	displayLink: function(emailRecord) {
+		var formPanel = this.down('form'),
+			 form = this.down('form').getForm() ;
+			  
+		// *** cntDisplay *** 
+		var cntDisplay = formPanel.down('#cntDisplay') ;
+		cntDisplay.setVisible(true) ;
+		Ext.Array.each( cntDisplay.query('field'), function(field) {
+			field.reset() ;
+			field.setVisible(false) ;
+		});
+		
+		var setValues = {
+			display_acc_soc: emailRecord.get('link_soc_txt'),
+			display_acc_id: emailRecord.get('link_account'),
+			display_acc_name: emailRecord.get('link_account_txt'),
+			display_file_ref: emailRecord.get('link_file_ref')
+		};
+		Ext.Object.each(setValues, function(k,v) {
+			var field = form.findField(k) ;
+			if( !field ) {
+				return ;
+			}
+			field.setValue(v) ;
+			if( field.getName().indexOf('display_')===0 ) {
+				field.setVisible(true) ;
+			}
+		}) ;
+		// ************************
+		
+		formPanel.down('#cntSubmit').setVisible(true);
+		this.focus() ;
+	},
+	handleUnlink: function(confirmed) {
+		if( !confirmed ) {
+			Ext.MessageBox.confirm('Confirmation','Annuler l\'association ?', function(btn) {
+				if( btn =='yes' ) {
+					this.handleUnlink(true) ;
+				}
+			},this) ;
+			return ;
+		}
+		if(confirmed){
+			this.showLoadmask() ;
+			this.optimaModule.getConfiguredAjaxConnection().request({
+				params: {
+					_moduleId: 'spec_rsi_recouveo',
+					_action: 'mail_associateCancel',
+					email_filerecord_id: this._emailRecord.getId()
+				},
+				success: function(response) {
+					var ajaxResponse = Ext.decode(response.responseText) ;
+					if( ajaxResponse.success == false ) {
+						var msg = 'Erreur' ;
+						if( ajaxResponse.error ) {
+							msg = ajaxResponse.error ;
+						}
+						Ext.MessageBox.alert('Error',msg) ;
+						return ;
+					}
+					this.fireEvent('saved',this) ;
+					this.destroy() ;
+				},
+				callback: function() {
+					this.hideLoadmask() ;
+				},
+				scope: this
+			});
+		}
+	},
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	showLoadmask: function() {
 		if( this.rendered ) {

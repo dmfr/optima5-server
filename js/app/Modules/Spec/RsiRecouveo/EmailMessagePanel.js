@@ -339,19 +339,25 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailMessagePanel',{
 			}]
 		});
 		createPanel.on('saved', function(p) {
-			//this.doTreeLoad() ;
+			this.fireEvent('saved',this) ;
+			this.destroy() ;
 		},this,{single:true}) ;
 		createPanel.on('destroy',function(p) {
 			this.getEl().unmask() ;
-			this.floatingPanel = null ;
+			this.createPanel = null ;
 		},this,{single:true}) ;
 		
 		createPanel.show();
 		createPanel.getEl().alignTo(this.getEl(), 'c-c?');
+		
+		this.createPanel = createPanel ;
 	},
 	onDestroy: function() {
 		if( this.attachmentsPanel ) {
 			this.attachmentsPanel.destroy() ;
+		}
+		if( this.createPanel ) {
+			this.createPanel.destroy() ;
 		}
 	}
 }) ;

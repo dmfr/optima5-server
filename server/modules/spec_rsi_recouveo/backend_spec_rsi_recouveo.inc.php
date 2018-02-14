@@ -121,6 +121,8 @@ switch( $post_data['_action'] )
 		return specRsiRecouveo_mail_doFetch( $post_data ) ;
 	case 'mail_associateFile' :
 		return specRsiRecouveo_mail_associateFile( $post_data ) ;
+	case 'mail_associateCancel' :
+		return specRsiRecouveo_mail_associateCancel( $post_data ) ;
 		
 	case 'upload' :
 		return specRsiRecouveo_upload( $post_data ) ;

@@ -220,4 +220,57 @@ function specRsiRecouveo_lib_mail_associateFile( $src_emailFilerecordId, $target
 	return TRUE ;
 }
 
+function specRsiRecouveo_lib_mail_associateCancel( $src_emailFilerecordId ) {
+	global $_opDB ;
+	
+	$json = specRsiRecouveo_mail_getEmailRecord( array('email_filerecord_id'=>$src_emailFilerecordId) ) ;
+	$email_record = $json['data'] ;
+	if( !$email_record['link_is_on'] ) {
+		return FALSE ;
+	}
+	
+	$peer_from_address = NULL ;
+	foreach( $email_record['header_adrs'] as $emailadr_record ) {
+		if( $emailadr_record['header'] == 'from' && !(strpos($emailadr_record['adr_address'],'@')===0) ) {
+			$peer_from_address = $emailadr_record['adr_address'] ;
+		}
+	}
+	
+	$target_accId = $email_record['link_account'] ;
+	$ttmp = specRsiRecouveo_account_open(array('acc_id'=>$target_accId)) ;
+	$account_record = $ttmp['data'] ;
+	
+	
+	$toDelete_adrbookFilerecordId ;
+	$toDelete_adrbookEntryFilerecordId ;
+	foreach( $account_record['adrbook'] as $adrbook_record ) {
+		foreach( $adrbook_record['adrbookentries'] as $adrbookentry_record ) {
+			if( ($adrbookentry_record['adr_type'] == 'EMAIL') && ($adrbookentry_record['adr_txt'] == $peer_from_address) ) {
+				$toDelete_adrbookEntryFilerecordId = $adrbookentry_record['adrbookentry_filerecord_id'] ;
+				if( count($adrbook_record['adrbookentries']) == 1 ) {
+					$toDelete_adrbookFilerecordId = $adrbook_record['adrbook_filerecord_id'] ;
+				}
+			}
+		}
+	}
+	if( $toDelete_adrbookEntryFilerecordId ) {
+		paracrm_lib_data_deleteRecord_file( 'ADRBOOK_ENTRY', $toDelete_adrbookEntryFilerecordId);
+	}
+	if( $toDelete_adrbookFilerecordId ) {
+		paracrm_lib_data_deleteRecord_file( 'ADRBOOK', $toDelete_adrbookFilerecordId);
+	}
+	
+	
+	if( $email_record['link_fileaction_filerecord_id'] ) {
+		paracrm_lib_data_deleteRecord_file( 'FILE_ACTION', $email_record['link_fileaction_filerecord_id']);
+		
+		$arr_ins = array() ;
+		$arr_ins['field_LINK_IS_ON'] = 0 ;
+		$arr_ins['field_LINK_FILE_ACTION_ID'] = 0 ;
+		paracrm_lib_data_updateRecord_file( 'EMAIL', $arr_ins, $src_emailFilerecordId);
+	}
+	
+	return TRUE ;
+}
+
 ?>

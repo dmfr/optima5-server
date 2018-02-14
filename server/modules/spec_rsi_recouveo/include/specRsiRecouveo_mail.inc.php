@@ -145,7 +145,8 @@ function specRsiRecouveo_mail_getEmailRecord($post_data) {
 					FROM view_file_FILE_ACTION fa
 					JOIN view_file_FILE f ON f.filerecord_id=fa.filerecord_parent_id
 					JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key=f.field_LINK_ACCOUNT
-					JOIN view_bible_LIB_ACCOUNT_tree lat ON lat.treenode_key=la.treenode_key" ;
+					JOIN view_bible_LIB_ACCOUNT_tree lat ON lat.treenode_key=la.treenode_key
+					WHERE fa.filerecord_id='{$fileaction_filerecord_id}'" ;
 		$result = $_opDB->query($query) ;
 		$model['link_is_on'] = true ;
 		$model += $_opDB->fetch_assoc($result) ;
@@ -214,6 +215,12 @@ function specRsiRecouveo_mail_associateFile($post_data) {
 	sleep(1) ;
 	$data = json_decode($post_data['data'],true) ;
 	specRsiRecouveo_lib_mail_associateFile( $post_data['email_filerecord_id'], $data['ref_account'], $data['adrbook_entity_select'], $data['file_select'] ) ;
+	
+	return array('success'=>true, 'error'=>'Test') ;
+}
+function specRsiRecouveo_mail_associateCancel($post_data) {
+	sleep(1) ;
+	specRsiRecouveo_lib_mail_associateCancel( $post_data['email_filerecord_id'] ) ;
 	
 	return array('success'=>true, 'error'=>'Test') ;
 }

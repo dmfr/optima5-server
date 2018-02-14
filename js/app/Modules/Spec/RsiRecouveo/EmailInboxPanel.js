@@ -251,7 +251,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailInboxPanel',{
 		
 		var emailMessagePanel = Ext.create('Optima5.Modules.Spec.RsiRecouveo.EmailMessagePanel',{
 			_emailFilerecordId: emailId,
-			optimaModule: this.optimaModule
+			optimaModule: this.optimaModule,
+			listeners: {
+				saved: function() {
+					this.doLoad() ;
+				},
+				scope: this
+			}
 		}) ;
 		Ext.apply(emailMessagePanel,{
 			itemId: 'pEast',
