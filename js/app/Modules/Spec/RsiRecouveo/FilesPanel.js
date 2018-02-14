@@ -852,6 +852,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			agendaGridColumns.push({
 				hidden: true,
 				_agendaMode: 'count',
+				_etaRange: etaRange.eta_range,
 				text: etaRange.eta_txt,
 				dataIndex: etaRange.eta_range+'_count',
 				width: 85,
@@ -866,6 +867,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			agendaGridColumns.push({
 				hidden: true,
 				_agendaMode: 'amount',
+				_etaRange: etaRange.eta_range,
 				text: etaRange.eta_txt,
 				dataIndex: etaRange.eta_range+'_amount',
 				width: 85,
@@ -1994,7 +1996,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		var cellNode = e.getTarget( view.getCellSelector() ),
 			cellColumn = view.getHeaderByCell( cellNode ) ;
 		var clickAgendaClass = record.get('agenda_class') ;
-		var clickEtaRange = cellColumn.dataIndex.replace('_count','') ;
+		var clickEtaRange = cellColumn._etaRange ;
 
 		var txt = record.get('agenda_class_txt');
 
@@ -2003,21 +2005,27 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			gridPanelFilters = gridPanelStore.getFilters() ;
 
 
+		this.down('#pCenter').down('#pGrid').getStore().clearFilter() ;
+		this.down('#pCenter').down('#pGrid').filters.clearFilters() ;
 		
-		if (clickEtaRange == 'agenda_class_txt'){
-			return ;
+		var filters = [] ;
+		if( !Ext.isEmpty(clickAgendaClass) ) {
+			filters.push({
+				exactMatch : true,
+				property : 'next_agenda_class',
+				value    :  clickAgendaClass
+			}) ;
 		}
-
-		gridPanelStore.filter([{
-			exactMatch : true,
-			property : 'next_eta_range',
-			value    : clickEtaRange
-		},{
-			exactMatch : true,
-			property : 'next_agenda_class',
-			value    :  clickAgendaClass
-		}]);
-	
+		if( !Ext.isEmpty(clickEtaRange) ) {
+			filters.push({
+				exactMatch : true,
+				property : 'next_eta_range',
+				value    : clickEtaRange
+			}) ;
+		}
+		if( filters.length>0 ) {
+			gridPanelStore.filter(filters) ;
+		}
 	},
 	
 	
