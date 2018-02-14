@@ -17,6 +17,9 @@ function specRsiRecouveo_mail_getMboxGrid($post_data) {
 	if( $post_data['filter_emailAdr_arr'] ) {
 		$filter_emailAdr_arr = $_opDB->makeSQLlist( json_decode($post_data['filter_emailAdr_arr'],true) ) ;
 	}
+	if( $post_data['filter_includeLink']=='true' ) {
+		$filter_includeLink = TRUE ;
+	}
 	
 	$TAB_emaillist = array() ;
 	
@@ -35,6 +38,9 @@ function specRsiRecouveo_mail_getMboxGrid($post_data) {
 	}
 	if( isset($filter_emailAdr_arr) ) {
 		$query.= " AND e.field_EMAIL_LOCAL IN {$filter_emailAdr_arr}" ;
+	}
+	if( !$filter_includeLink ) {
+		$query.= " AND e.field_LINK_IS_ON='0'" ;
 	}
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {

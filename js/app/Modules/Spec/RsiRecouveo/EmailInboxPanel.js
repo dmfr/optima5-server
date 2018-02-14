@@ -36,7 +36,25 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailInboxPanel',{
 						scope: this
 					}
 				}
-			}),'->',{
+			}),{
+				xtype: 'checkboxfield',
+				boxLabel: 'Inclure messages associés',
+				itemId: 'chkIncludeLink',
+				listeners: {
+					change: {
+						fn: function() {
+							this.doLoad() ;
+						},
+						scope: this
+					},
+					ready: {
+						fn: function() {
+							
+						},
+						scope: this
+					}
+				}
+			},'->',{
 				iconCls: 'op5-spec-rsiveo-datatoolbar-refresh',
 				text: 'Refresh',
 				handler: function() {
@@ -180,9 +198,15 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailInboxPanel',{
 			}
 		}) ;
 		
-		var params = options.getParams() ;
+		var filter_includeLink = false ;
+		if( this.down('toolbar').down('#chkIncludeLink').getValue() ) {
+			filter_includeLink = true ;
+		}
+		
+		var params = options.getParams() || {} ;
 		Ext.apply(params,{
 			filter_emailAdr_arr: (arrEmailFilter ? Ext.JSON.encode(arrEmailFilter):''),
+			filter_includeLink: (filter_includeLink ? 'true':'')
 		}) ;
 		options.setParams(params) ;
 	},
