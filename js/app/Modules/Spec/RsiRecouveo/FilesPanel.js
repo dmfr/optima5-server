@@ -1150,6 +1150,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 						chrtAgenda.getStore().loadData([selRecord.getData()]) ;
 						chrtAgenda.setVisible(true) ;
 					},
+					itemclick: this.onGridItemClick,
 					scope: this
 				},
 				features: [{
@@ -1985,6 +1986,38 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				column.filter.rebuildList() ; // HACK!
 			}
 		}) ;
+	},
+	onGridItemClick: function ( view, record, item, index, e ) {
+
+		//console.dir(arguments);
+		//console.dir(record.getData()) ;
+		var cellNode = e.getTarget( view.getCellSelector() ),
+			cellColumn = view.getHeaderByCell( cellNode ) ;
+		var clickAgendaClass = record.get('agenda_class') ;
+		var clickEtaRange = cellColumn.dataIndex.replace('_count','') ;
+
+		var txt = record.get('agenda_class_txt');
+
+		var gridPanel = this.down('#pCenter').down('#pGrid'),
+			gridPanelStore = gridPanel.getStore(),
+			gridPanelFilters = gridPanelStore.getFilters() ;
+
+
+		
+		if (clickEtaRange == 'agenda_class_txt'){
+			return ;
+		}
+
+		gridPanelStore.filter([{
+			exactMatch : true,
+			property : 'next_eta_range',
+			value    : clickEtaRange
+		},{
+			exactMatch : true,
+			property : 'next_agenda_class',
+			value    :  clickAgendaClass
+		}]);
+	
 	},
 	
 	
