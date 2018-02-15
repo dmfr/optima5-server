@@ -138,6 +138,18 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 							},
 							scope: this
 						}
+						},{
+						xtype: 'menuseparator'
+					},{
+						xtype: 'menucheckitem',
+						text: 'Afficher addresses ?',
+						handler: null,
+						listeners: {
+							checkchange: function(mi,checked) {
+								this.doShowAddress(checked) ;
+							},
+							scope: this
+						}
 					}]
 				}
 			},{
@@ -241,6 +253,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 	},
 	doShowClosed: function(showClosed) {
 		this.showClosed = showClosed ;
+		this.doLoad(true) ;
+	},
+	doShowAddress: function(showAddress) {
+		this.showAddress = showAddress ;
+		this.configureViews() ;
 		this.doLoad(true) ;
 	},
 	buildToolbar: function() {
@@ -573,6 +590,16 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				align: 'center',
 				filter: {
 					type: 'string'
+				}
+			},{
+				hidden: true,
+				hideable: false,
+				text: 'Nom',
+				dataIndex: 'adr_postal',
+				width:150,
+				align: 'left',
+				renderer: function(v) {
+					return Ext.util.Format.nl2br(v) ;
 				}
 			}]
 		},{
@@ -1316,6 +1343,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		this.down('#pCenter').down('#pGrid').headerCt.down('#colFinance').setVisible(!isFactView) ;
 		this.down('#pCenter').down('#pGrid').headerCt.down('#colFact').setVisible(isFactView) ;
 		this.down('#pCenter').down('#pGrid').headerCt.down('#colBalage').setVisible(!isFactView) ;
+		
+		var showAddress = (this.showAddress) ;
+		this.down('#pCenter').down('#pGrid').headerCt.down('[dataIndex="adr_postal"]').setVisible(showAddress) ;
 	},
 	applyAgendaMode: function() {
 		var gridAgenda = this.down('#pNorth').down('#gridAgenda'),
@@ -1456,7 +1486,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				filter_atr: Ext.JSON.encode(objAtrFilter),
 				filter_soc: (arrSocFilter ? Ext.JSON.encode(arrSocFilter):''),
 				filter_user: (arrUserFilter ? Ext.JSON.encode(arrUserFilter):''),
-				filter_archiveIsOn: (this.showClosed ? 1 : 0)
+				filter_archiveIsOn: (this.showClosed ? 1 : 0),
+				load_address: (this.showAddress ? 1 : 0)
 			},
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;

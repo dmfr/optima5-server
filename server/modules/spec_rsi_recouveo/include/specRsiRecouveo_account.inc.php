@@ -90,6 +90,15 @@ function specRsiRecouveo_account_open( $post_data ) {
 	) ;
 	
 	
+	// ************* Extract default adr ***********
+	foreach( $adrbook as $adrbook_row ) {
+		foreach( $adrbook_row['adrbookentries'] as $adrbookentry_row ) {
+			if( ($adrbookentry_row['adr_type']=='POSTAL') && $adrbookentry_row['status_is_priority'] ) {
+				$account_record['adr_postal'] = $adrbookentry_row['adr_txt'] ;
+			}
+		}
+	}
+	
 	
 	// ************* FILES ****************
 	$filter_fileFilerecordId_arr = array() ;

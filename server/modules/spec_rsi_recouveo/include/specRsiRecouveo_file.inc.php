@@ -159,6 +159,12 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			$record[$mkey] = $value ;
 		}
 		
+		if( $post_data['load_address'] ) {
+			$ttmp = specRsiRecouveo_account_open(array('acc_id'=>$record['acc_id'])) ;
+			$account_record = $ttmp['data'] ;
+			$record['adr_postal'] = $account_record['adr_postal'] ;
+		}
+		
 		$TAB_files[$arr['filerecord_id']] = $record ;
 	}
 	
