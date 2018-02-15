@@ -539,7 +539,7 @@ function specRsiRecouveo_lib_autorun_processInboxDoc($inpostal_filerecord_id) {
 			$query = "SELECT ae.filerecord_id FROM view_file_ADRBOOK_ENTRY ae
 					JOIN view_file_ADRBOOK a ON a.filerecord_id=ae.filerecord_parent_id
 					WHERE a.field_ACC_ID='{$src['field_REF_ACCOUNT']}'
-					AND ae.field_ADR_TXT LIKE '%{$adr_txt}%'" ;
+					AND REGEXP_REPLACE(ae.field_ADR_TXT,'[^A-Za-z0-9 ]','') = REGEXP_REPLACE('{$adr_txt}','[^A-Za-z0-9 ]','')" ;
 			$adrbookentry_filerecord_id = $_opDB->query_uniqueValue($query) ;
 			
 			if( $adrbookentry_filerecord_id ) {
