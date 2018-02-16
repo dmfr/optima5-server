@@ -540,6 +540,9 @@
 .op5-spec-rsiveo-kpi-unknown {
 	background: url('../images/modules/rsiveo-wait-16.gif') no-repeat center center ;
 }
+.op5-spec-rsiveo-kpi-uploading {
+	background: url('../images/op5img/ico_loading_16.gif') no-repeat center center ;
+}
 
 .op5-spec-rsiveo-boldtext {
 	font-weight: bold ;

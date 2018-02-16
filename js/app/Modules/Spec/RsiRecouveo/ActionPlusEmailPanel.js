@@ -155,9 +155,10 @@ Ext.define('Optima5.Modules.RsiRecouveo.EmailOutDestField',{
 
 Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel',{
 	extend:'Ext.form.Panel',
-	requires: ['Optima5.Modules.Spec.RsiRecouveo.EmailAttachmentsFieldPanel'],
+	
+	requires: ['Optima5.Modules.Spec.RsiRecouveo.EmailAttachmentsFieldButton'],
+	
 	_fileRecord: null,
-
 	
 	initComponent: function() {
 /*
@@ -208,100 +209,58 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel',{
 					value: '<b>Email sortant</b>'
 				}]
 			},{
-
-				xtype: 'container',
+				xtype: 'fieldset',
+				itemId: 'fsAdrMail',
+				title: 'Email',
+				flex: 1,
 				layout: {
-					type: 'vbox',
+					type: 'hbox',
 					align: 'stretch'
 				},
 				items: [{
-					xtype: 'fieldset',
-					itemId: 'fsAdrMail',
-					title: 'Email',
+					xtype: 'container',
 					flex: 1,
-					layout: {
-						type: 'vbox',
-						align: 'stretch'
-					},
+					layout: 'anchor',
 					items: [
-
-					Ext.create('Optima5.Modules.RsiRecouveo.EmailOutDestField', {
-						_comboboxData: tableau
-					
+						Ext.create('Optima5.Modules.RsiRecouveo.EmailOutDestField', {
+							_comboboxData: tableau
 					}),
-
-					Ext.create('Optima5.Modules.RsiRecouveo.EmailOutDestField', {
-						_comboboxData: tableau
-					
+						Ext.create('Optima5.Modules.RsiRecouveo.EmailOutDestField', {
+							_comboboxData: tableau
 					}),{
 						xtype: 'textfield',
 						fieldLabel: 'Objet'
 					}]
-				
 				},{
 					xtype: 'box',
 					width: 16
 				},	{
 					xtype: 'container',
-					flex: 1,
+					width: 72,
 					layout: {
-						type: 'anchor'
+						type: 'hbox',
+						align: 'center'
 					},
-					defaults: {
-						anchor: '100%'
-					},
-					items: [
-					{
-						xtype: 'fieldset',
-						hidden: true,
-						itemId: 'fsMailFieldsCnt',
-						padding: 10,
-						title: 'Paramètres additionnels',
-						layout: {
-							type: 'anchor'
-						},
-						defaults: {
-							anchor: '100%',
-							labelWidth: 80
-						},
-						items: []
-					}]
+					items: [Ext.create('Optima5.Modules.Spec.RsiRecouveo.EmailAttachmentsFieldButton',{
+					name: 'email_attachments',
+					optimaModule: this.optimaModule,
+					renderTarget: this._actionForm.getEl()
+				})]
 				}]
 			},{
 				xtype: 'htmleditor',
 				enableColors: true,
 				enableAlignements: true
-				
-			},{
-				xtype: 'fieldset',
-				padding: 6,
-				title: 'Pièces jointes',
-				layout: 'fit',
-				items: [Ext.create('Optima5.Modules.Spec.RsiRecouveo.EmailAttachmentsFieldPanel',{
-					name: 'attachments',
-					optimaModule: this.optimaModule
-				})]
-			}
-			]
+			}]
 		}) ;
 		
 		this.callParent() ;
 	},
 	
-	onTplChange: function(tplRecord) {
-		var jsonFields = tplRecord.get('input_fields_json'),
-			fields = Ext.JSON.decode(jsonFields,true),
-			fsMailFieldsCnt = this.down('#fsMailFieldsCnt'),
-			fsFields = [] ;
-		fsMailFieldsCnt.removeAll() ;
-		if( !Ext.isArray(fields) || fields.length==0 ) {
-			fsMailFieldsCnt.setVisible(false) ;
-			return ;
+	statics: {
+		createEmailRecord: function(formValues) {
+			
 		}
-		fsMailFieldsCnt.setVisible(true) ;
-		Ext.Array.each( fields, function(fieldDefinition) {
-			fsFields.push(fieldDefinition) ;
-		}) ;
-		fsMailFieldsCnt.add(fsFields) ;
 	}
+
 }) ;

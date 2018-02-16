@@ -127,7 +127,7 @@ function specRsiRecouveo_mail_getEmailRecord($post_data) {
 	}
 	foreach( $obj_mimeParser->getAttachments($include_inline=false) as $attach_idx => $objAttach ) {
 		$model['attachments'][] = array(
-			'attachment_idx' => $attach_idx,
+			'multipart_attachment_idx' => $attach_idx,
 			'filename' => $objAttach->getFilename(),
 			'filetype' => $objAttach->getContentType()
 		);
@@ -166,7 +166,7 @@ function specRsiRecouveo_mail_downloadEmailAttachment($post_data) {
 	global $_opDB ;
 	
 	$email_filerecord_id = $post_data['email_filerecord_id'] ;
-	$email_attachment_idx = $post_data['email_attachment_idx'] ;
+	$multipart_attachment_idx = $post_data['multipart_attachment_idx'] ;
 	
 	$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
 	$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
@@ -187,7 +187,7 @@ function specRsiRecouveo_mail_downloadEmailAttachment($post_data) {
 	}
 
 	foreach( $obj_mimeParser->getAttachments($include_inline=false) as $attach_idx => $objAttach ) {
-		if( $attach_idx != $email_attachment_idx ) {
+		if( $attach_idx != $multipart_attachment_idx ) {
 			continue ;
 		}
 		$desc = array(
@@ -267,6 +267,15 @@ function specRsiRecouveo_mail_uploadEmailAttachment($post_data){
 	media_contextClose() ;
 	return $json ;	
 
+}
+function specRsiRecouveo_mail_deleteTmpMedias( $post_data ) {
+	$p_arrMediaIds = json_decode($post_data['arr_media_id']) ;
+	foreach( $p_arrMediaIds as $media_id ) {
+		media_contextOpen( $_POST['_sdomainId'] ) ;
+		media_pdf_delete($media_id) ;
+		media_contextClose() ;
+	}
+	return array('success'=>true) ;
 }
 
 
