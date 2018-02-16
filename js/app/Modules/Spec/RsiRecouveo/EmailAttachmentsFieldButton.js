@@ -16,7 +16,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailAttachmentsFieldButton',{
 		Ext.apply(this,{
 			scale: 'medium',
 			icon: 'images/modules/rsiveo-attachment-22.png',
-			text: '<font color="white"><b>(0)</b></font>',
+			text: '&#160;',
 			listeners: {
 				click: function() {
 					this.toggleWindow() ;
@@ -34,9 +34,21 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailAttachmentsFieldButton',{
 				}
 			}
 		});
+		this.attachmentsStore.on('datachanged', function(store) {
+			var storeCount = store.getCount() ;
+			this.updateBtnText(storeCount) ;
+		},this) ;
 		
 		this.callParent() ;
+		this.updateBtnText(0) ;
 		this.on('destroy',this.onDestroyMyself,this) ;
+	},
+	updateBtnText: function(storeCount) {
+		if( storeCount > 0 ) {
+			this.setText('<font color="white"><b>('+storeCount+')</b></font>') ;
+		} else {
+			this.setText('<font color="#C2C2C2"><b>(0)</b></font>') ;
+		}
 	},
 	toggleWindow: function() {
 		if( !this.floatingWindow ) {
@@ -359,5 +371,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailAttachmentsFieldButton',{
 			},
 			scope: this
 		});
+		
+		if( this.floatingWindow ) {
+			this.floatingWindow.destroy() ;
+		}
 	}
 }) ;
