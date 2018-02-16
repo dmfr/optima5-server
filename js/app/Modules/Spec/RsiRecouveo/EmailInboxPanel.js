@@ -152,7 +152,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailInboxPanel',{
 					selectionchange: function(gridpanel, selectedRecords) {
 						var selRecord = selectedRecords[0] ;
 						if( selRecord ) {
-							this.installPreview(selRecord.getId()) ;
+							this.installPreview(selRecord.get('email_filerecord_id')) ;
 						}
 					},
 					scope: this

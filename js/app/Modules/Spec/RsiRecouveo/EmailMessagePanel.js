@@ -277,7 +277,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailMessagePanel',{
 					tooltip: 'Télécharger',
 					handler: function(grid, rowIndex, colIndex, item, e) {
 						var rec = grid.getStore().getAt(rowIndex),
-							attachmentIdx = rec.get('attachment_idx') ;
+							attachmentIdx = rec.get('multipart_attachment_idx') ;
 						this.handleDownloadAttachment(attachmentIdx) ;
 					},
 					scope: this
@@ -307,8 +307,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailMessagePanel',{
 		Ext.apply(exportParams,{
 			_moduleId: 'spec_rsi_recouveo',
 			_action: 'mail_downloadEmailAttachment',
-			email_filerecord_id: this._emailRecord.getId(),
-			email_attachment_idx: attachmentIdx
+			email_filerecord_id: this._emailRecord.get('email_filerecord_id'),
+			tmp_media_id: this._emailRecord.get('tmp_media_id'),
+			multipart_attachment_idx: attachmentIdx
 		}) ;
 		Ext.create('Ext.ux.dams.FileDownloader',{
 			renderTo: Ext.getBody(),
@@ -321,7 +322,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailMessagePanel',{
 		this.getEl().mask() ;
 		// Open panel
 		var createPanel = Ext.create('Optima5.Modules.Spec.RsiRecouveo.EmailMessageLinkPanel',{
-			_emailFilerecordId: this._emailRecord.getId(),
+			_emailFilerecordId: this._emailRecord.get('email_filerecord_id'),
 			
 			optimaModule: this.optimaModule,
 			width:400, // dummy initial size, for border layout to work

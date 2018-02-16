@@ -258,6 +258,14 @@ Ext.define('RsiRecouveoRecordgroupModel',{
 		{name: '_txt', type:'string'}
 	]
 });
+
+
+
+
+
+
+
+
 Ext.define('RsiRecouveoEmailListModel',{
 	extend: 'Ext.data.Model',
 	idProperty: 'email_filerecord_id',
@@ -276,6 +284,16 @@ Ext.define('RsiRecouveoEmailListModel',{
 		{name: 'link_fileaction_filerecord_id', type: 'int'}
 	]
 }); 
+
+
+
+
+
+
+
+
+
+
 Ext.define('RsiRecouveoEmailHeaderAdrModel',{
 	extend: 'Ext.data.Model',
 	fields: [
@@ -287,20 +305,27 @@ Ext.define('RsiRecouveoEmailHeaderAdrModel',{
 Ext.define('RsiRecouveoEmailAttachmentDescModel',{
 	extend: 'Ext.data.Model',
 	fields: [
-		{name: 'attachment_idx', type:'int'},
+		{name: 'multipart_attachment_idx', type:'int'},
+		{name: 'outmodel_tmp_media_id', type:'string'},
+		
 		{name: 'filename', type: 'string'},
 		{name: 'filetype', type: 'string'}
 	]
 }) ;
 Ext.define('RsiRecouveoEmailModel',{
 	extend: 'Ext.data.Model',
-	idProperty: 'email_filerecord_id',
 	fields: [
 		{name: 'email_filerecord_id', type:'int'},
+		{name: 'tmp_media_id', type:'string'},
+		
 		{name: 'subject', type: 'string'},
 		{name: 'date', type: 'date', dateFormat:'Y-m-d H:i:s'},
 		{name: 'body_html', type: 'string'},
 		{name: 'body_text', type: 'string'},
+		
+		{name: 'outmodel_file_filerecord_id', type:'int'},
+		{name: 'outmodel_preprocess_subject', type:'boolean'},
+		{name: 'outmodel_preprocess_banner', type:'boolean'},
 		
 		{name: 'link_is_on', type: 'boolean'},
 		{name: 'link_account', type: 'string'},
