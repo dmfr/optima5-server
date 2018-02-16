@@ -2,7 +2,7 @@ Ext.define('Optima5.Modules.RsiRecouveo.EmailOutDestField',{
 	extend: 'Ext.form.FieldContainer',
 	
 	mixins: [
-		'Ext.form.field.Base'
+		'Ext.form.field.Field'
 	],
 
 	_comboboxData: null,
@@ -13,13 +13,12 @@ Ext.define('Optima5.Modules.RsiRecouveo.EmailOutDestField',{
 		Ext.apply(me,{
 			layout: {
 				type: 'hbox',
-				align: 'center'
+				align: 'stretch'
 			},
 			items: [{
 				itemId: 'cmbAdd',
 				xtype: 'combobox',
-				fieldLabel: 'Destinataire',
-				width: 300,
+				width: 175,
 				forceSelection: false,
 				editable: true,
 				queryMode: 'local',
@@ -141,10 +140,10 @@ Ext.define('Optima5.Modules.RsiRecouveo.EmailOutDestField',{
 			});
 			cmbAdd.reset() ;			
 		}
-
-
-
-
+		if( dvTags.getHeight() > this.getHeight() ) {
+			this.setHeight(dvTags.getHeight()) ;
+		}
+		this.updateLayout() ;
 	},
 	deleteTag: function(tagRecord) {
 		this.down('#dvTags').getStore().remove(tagRecord) ;
@@ -200,7 +199,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel',{
 				},
 				defaults: {
 					anchor: '100%',
-					labelWidth: 80
+					labelWidth: 100
 				},
 				items: [{
 					flex: 1,
@@ -212,7 +211,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel',{
 				xtype: 'fieldset',
 				itemId: 'fsAdrMail',
 				title: 'Email',
-				flex: 1,
 				layout: {
 					type: 'hbox',
 					align: 'stretch'
@@ -221,15 +219,45 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel',{
 					xtype: 'container',
 					flex: 1,
 					layout: 'anchor',
-					items: [
-						Ext.create('Optima5.Modules.RsiRecouveo.EmailOutDestField', {
-							_comboboxData: tableau
+					defaults: {
+						anchor: '100%',
+						labelWidth: 100
+					},
+					items: [Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
+						cfgParam_id: 'EMAIL',
+						cfgParam_emptyDisplayText: 'Select...',
+						optimaModule: this.optimaModule,
+						name: 'email_from',
+						allowBlank: false,
+						fieldLabel: 'Expéditeur',
+						anchor: '75%'
 					}),
 						Ext.create('Optima5.Modules.RsiRecouveo.EmailOutDestField', {
-							_comboboxData: tableau
+							_comboboxData: tableau,
+							fieldLabel: 'Destinataire',
+							name: 'email_to'
+					}),
+						Ext.create('Optima5.Modules.RsiRecouveo.EmailOutDestField', {
+							_comboboxData: tableau,
+							fieldLabel: 'Copie à',
+							name: 'email_cc'
 					}),{
-						xtype: 'textfield',
-						fieldLabel: 'Objet'
+						xtype: 'fieldcontainer',
+						layout: 'hbox',
+						fieldLabel: 'Objet',
+						items: [{
+							flex: 1, 
+							xtype: 'textfield',
+							name: 'email_subject'
+						},{
+							xtype: 'box',
+							width: 16
+						},{
+							xtype: 'checkboxfield',
+							boxLabel: 'Ajouter entête',
+							value: true,
+							name: 'email_outmodel_preprocess_banner'
+						}]
 					}]
 				},{
 					xtype: 'box',
@@ -242,15 +270,17 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel',{
 						align: 'center'
 					},
 					items: [Ext.create('Optima5.Modules.Spec.RsiRecouveo.EmailAttachmentsFieldButton',{
-					name: 'email_attachments',
-					optimaModule: this.optimaModule,
-					renderTarget: this._actionForm.getEl()
-				})]
+						name: 'email_attachments',
+						optimaModule: this.optimaModule,
+						renderTarget: this._actionForm.getEl()
+					})]
 				}]
 			},{
 				xtype: 'htmleditor',
 				enableColors: true,
-				enableAlignements: true
+				enableAlignements: true,
+				name: 'email_body',
+				height: 250
 			}]
 		}) ;
 		
