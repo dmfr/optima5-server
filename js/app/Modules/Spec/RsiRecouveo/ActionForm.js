@@ -671,8 +671,42 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 	
 	
 	
-	
 	handlePreview: function() {
+		if( !this.getCurrentAction() ) {
+			return ;
+		}
+		switch( this.getCurrentAction().action_id ) {
+			case 'MAIL_OUT' :
+				return this.handlePreviewEnvelope() ;
+				break ;
+			case 'EMAIL_OUT' :
+				return this.handlePreviewEmail() ;
+				break ;
+			default :
+				return ;
+		}
+	},
+	handlePreviewEmail: function() {
+		if( this._readonlyMode ) {
+			return ;
+		}
+		
+		var formPanel = this,
+			form = formPanel.getForm() ;
+			  
+		var postDataObj = form.getValues(false,false,false,true) ;
+		Ext.apply(postDataObj,{
+			file_filerecord_id: this._fileRecord.get('file_filerecord_id')
+		}) ;
+
+		console.dir(postDataObj) ;
+		//console.dir(test);
+		console.dir(postDataObj.email_to[1]);
+		var emailRecord = Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel.createEmailRecord(postDataObj) ;
+		
+		
+	},
+	handlePreviewEnvelope: function() {
 		if( this._readonlyMode ) {
 			return ;
 		}

@@ -4,11 +4,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailAttachmentsFieldButton',{
 	
 	mixins: ['Ext.form.field.Field'],
 	
-	newTitle: 'Saisie nouveau',
-	fieldLabel: 'textfield',
-	fieldXtype: 'textfield',
-	filterAdrType: '',
-	
 	panelWidth: 300,
 	panelHeight: 300,
 	
@@ -375,5 +370,19 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailAttachmentsFieldButton',{
 		if( this.floatingWindow ) {
 			this.floatingWindow.destroy() ;
 		}
+	},
+	getValue: function() {
+		var store = this.attachmentsStore;
+		console.log
+		var mediaLst = [] ;
+		store.each(function(storeRecord) {
+			mediaLst.push( storeRecord.getData() ) ;
+		}) ;
+		return mediaLst ;
+	},
+	getSubmitData: function() {
+		var retObj = {} ;
+		retObj[this.getName()] = Ext.JSON.encode(this.getValue()) ;
+		return retObj ;
 	}
 }) ;

@@ -289,7 +289,57 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel',{
 	
 	statics: {
 		createEmailRecord: function(formValues) {
+			var emailRecordData = {} ;
 			
+			emailRecordData['header_adrs'] = [] ;
+			// FROM
+			Ext.Array.each(formValues['email_from'], function(emailAdr) {
+				var adrDisplay = emailAdr ;
+				Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getEmailAll(), function(emailAccountRow) {
+					if( emailAccountRow.email_adr==emailAdr ) {
+						adrDisplay = emailAccountRow.email_name ;
+					}
+				}) ;
+				emailRecordData['header_adrs'].push({
+					header: 'from',
+					adr_display: adrDisplay,
+					adr_address: emailAdr
+				}) ;
+			}) ;
+			// TO + CC
+			Ext.Array.each(['to','cc'], function(headerType) {
+				var formKey = 'email_'+headerType ;
+				if( !formValues[formKey] ) {
+					return ;
+				}
+				Ext.Array.each(formValues[formKey], function(emailAdr) {
+					emailRecordData['header_adrs'].push({
+						header: headerType,
+						adr_display: emailAdr,
+						adr_address: emailAdr
+					}) ;
+				}) ;
+			});
+			// Data
+			emailRecordData['body_html'] = formValues.email_body ;
+			emailRecordData['subject'] = formValues.email_subject;
+			emailRecordData['outmodel_preprocess_banner'] = formValues.email_outmodel_preprocess_banner ;
+			emailRecordData['outmodel_preprocess_subject'] = true ;
+			emailRecordData['outmodel_file_filerecord_id'] = formValues.file_filerecord_id ;
+			
+			// Attachments
+			emailRecordData['attachments'] = [] ;
+			if( Ext.isArray(formValues['email_attachments']) ) {
+				Ext.Array.each(formValues['email_attachments'], function(media) {
+					emailRecordData['attachments'].push({
+						filename: media.name,
+						outmodel_tmp_media_id: media.tmpMediaId
+					}) ;
+				}) ;
+			}
+			
+			var emailRecord = Ext.ux.dams.ModelManager.create('RsiRecouveoEmailModel',Ext.clone(emailRecordData)) ;
+			return emailRecord ;
 		}
 	}
 
