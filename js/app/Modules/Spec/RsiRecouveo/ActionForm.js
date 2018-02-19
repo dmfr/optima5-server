@@ -743,13 +743,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 			title: 'Preview Email',
 			items:[Ext.create('Optima5.Modules.Spec.RsiRecouveo.EmailMessagePanel',{
 				_tmpMediaId: tmpMediaId,
-				optimaModule: this.optimaModule,
-				listeners: {
-					saved: function() {
-						this.doLoad() ;
-					},
-					scope: this
-				}
+				optimaModule: this.optimaModule
 			})]
 		}) ;
 	},

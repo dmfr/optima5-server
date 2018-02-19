@@ -288,6 +288,7 @@ function specRsiRecouveo_lib_mail_buildEmail( $email_record, $test_mode=FALSE ) 
 	
 	
 	$mail = new PHPMailer;
+	$mail->CharSet = "utf-8";
 	foreach( $email_record['header_adrs'] as $row ) {
 		switch( $row['header'] ) {
 			case 'from' :

@@ -127,10 +127,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailMessageHeaderComponent',{
 		if( el && el.hasCls('op5-spec-rsiveo-emailheader-action-btn-attachments') ) {
 			this.fireEvent('emailaction',this,'attachments') ;
 		}
-	},
-	
-	onDestroy: function() {
-		
 	}
 }) ;
 
@@ -149,6 +145,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailMessagePanel',{
 		});
 		
 		this.callParent() ;
+		this.on('destroy',this.onDestroyMyself,this) ;
 		if( this._emailFilerecordId ) {
 			this.loadEmailRecord(this._emailFilerecordId,null) ;
 		}
@@ -360,10 +357,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailMessagePanel',{
 		
 		this.createPanel = createPanel ;
 	},
-	onDestroy: function() {
-		if( this.attachmentsPanel ) {
-			this.attachmentsPanel.destroy() ;
-		}
+	onDestroyMyself: function() {
 		if( this.createPanel ) {
 			this.createPanel.destroy() ;
 		}

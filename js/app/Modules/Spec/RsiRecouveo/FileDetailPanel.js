@@ -2178,17 +2178,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			title: 'Email',
 			items:[Ext.create('Optima5.Modules.Spec.RsiRecouveo.EmailMessagePanel',{
 				optimaModule: this.optimaModule,
-				_emailFilerecordId: emailFilerecordId,
-				
-				listeners: {
-					beforedestroy: function(p) {
-						p.ownerCt.close() ;
-					},
-					saved: function() {
-						this.doReload() ;
-					},
-					scope: this
-				}
+				_emailFilerecordId: emailFilerecordId
 			})]
 		}) ;
 	},
