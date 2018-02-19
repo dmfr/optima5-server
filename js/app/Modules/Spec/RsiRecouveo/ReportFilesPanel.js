@@ -508,6 +508,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportFilesPanel',{
 		if( this.autoRefreshTask ) {
 			this.autoRefreshTask.cancel() ;
 		}
+		this.callParent() ;
 	},
 	
 	handleOpenAccount: function(accId,fileFilerecordId) {

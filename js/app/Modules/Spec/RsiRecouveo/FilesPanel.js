@@ -1892,6 +1892,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		if( this.filesTopPanel ) {
 			this.filesTopPanel.destroy() ;
 		}
+		this.callParent();
 	},
 	
 	handleMultiSelect: function() {
