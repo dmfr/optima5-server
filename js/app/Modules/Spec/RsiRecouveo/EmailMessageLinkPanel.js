@@ -344,7 +344,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailMessageLinkPanel',{
 				params: {
 					_moduleId: 'spec_rsi_recouveo',
 					_action: 'mail_associateFile',
-					email_filerecord_id: this._emailRecord.getId(),
+					email_filerecord_id: this._emailRecord.get('email_filerecord_id'),
 					data: Ext.JSON.encode( form.getFieldValues() )
 				},
 				success: function(response) {
@@ -510,7 +510,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailMessageLinkPanel',{
 				params: {
 					_moduleId: 'spec_rsi_recouveo',
 					_action: 'mail_associateCancel',
-					email_filerecord_id: this._emailRecord.getId()
+					email_filerecord_id: this._emailRecord.get('email_filerecord_id')
 				},
 				success: function(response) {
 					var ajaxResponse = Ext.decode(response.responseText) ;

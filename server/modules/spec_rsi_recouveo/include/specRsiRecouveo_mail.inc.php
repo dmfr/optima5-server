@@ -78,18 +78,31 @@ function specRsiRecouveo_mail_getMboxGrid($post_data) {
 function specRsiRecouveo_mail_getEmailRecord($post_data) {
 	global $_opDB ;
 	
-	$email_filerecord_id = $post_data['email_filerecord_id'] ;
-	
-	$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
-	$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
-	
-	$query = "SELECT filerecord_id FROM view_file_EMAIL_SOURCE WHERE filerecord_parent_id='{$email_filerecord_id}'" ;
-	$emailsrc_filerecord_id = $_opDB->query_uniqueValue($query) ;
-	
-	media_contextOpen( $_sdomain_id ) ;
-	$media_id = media_bin_toolFile_getId('EMAIL_SOURCE',$emailsrc_filerecord_id) ;
-	$bin = media_bin_getBinary($media_id) ;
-	media_contextClose() ;
+	if( $post_data['email_filerecord_id'] ) {
+		$email_filerecord_id = $post_data['email_filerecord_id'] ;
+		
+		$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
+		$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
+		
+		$query = "SELECT filerecord_id FROM view_file_EMAIL_SOURCE WHERE filerecord_parent_id='{$email_filerecord_id}'" ;
+		$emailsrc_filerecord_id = $_opDB->query_uniqueValue($query) ;
+		
+		media_contextOpen( $_sdomain_id ) ;
+		$media_id = media_bin_toolFile_getId('EMAIL_SOURCE',$emailsrc_filerecord_id) ;
+		$bin = media_bin_getBinary($media_id) ;
+		media_contextClose() ;
+	} elseif( $post_data['tmp_media_id'] ) {
+		$tmp_media_id = $post_data['tmp_media_id'] ;
+		
+		$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
+		$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
+		media_contextOpen( $_sdomain_id ) ;
+		$bin = media_bin_getBinary($tmp_media_id) ;
+		media_contextClose() ;
+		
+	} else {
+		return array('success'=>false) ;
+	}
 	
 	try {
 		$obj_mimeParser = PhpMimeMailParser::getInstance() ;
@@ -105,6 +118,7 @@ function specRsiRecouveo_mail_getEmailRecord($post_data) {
 	}
 	$model = array(
 		'email_filerecord_id' => $email_filerecord_id,
+		'tmp_media_id' => $tmp_media_id,
 		'subject' => $obj_mimeParser->getHeader('subject'),
 		'date_raw' => $obj_mimeParser->getHeader('date'),
 		'date' => $date,
@@ -276,6 +290,14 @@ function specRsiRecouveo_mail_deleteTmpMedias( $post_data ) {
 		media_contextClose() ;
 	}
 	return array('success'=>true) ;
+}
+function specRsiRecouveo_mail_buildEmail( $post_data ) {
+	$email_record = json_decode($post_data['data'],true) ;
+	$tmp_media_id = specRsiRecouveo_lib_mail_buildEmail($email_record) ;
+	if( !$tmp_media_id ) {
+		return array('success'=>false) ;
+	}
+	return array('success'=>true, 'debug'=>$email_record, 'tmp_media_id'=>$tmp_media_id) ;
 }
 
 

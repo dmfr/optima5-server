@@ -220,6 +220,17 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 			$arr_ins['field_TXT'] = $txt ;
 			break ;
 			
+		case 'EMAIL_OUT' :
+			if( !specRsiRecouveo_lib_mail_buildEmail($post_form['email_record'], $test_mode=true) ) {
+				return array('success'=>false) ;
+			}
+			$txt = '' ;
+			if( $post_form['email_subject'] ) {
+				$txt.= "Sujet : ".$post_form['email_subject']."\r\n" ;
+			}
+			$arr_ins['field_TXT'] = $txt ;
+			break ;
+			
 		case 'BUMP' :
 			if( trim($txt=$post_form['txt']) ) {
 				$arr_ins['field_TXT'] = $txt ;
@@ -515,6 +526,20 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 	
 	
 	
+	if( $post_form['link_action']=='EMAIL_OUT') {
+		// ****** Création email ************
+		$post_form['email_record'] ;
+		
+		$email_record = $post_form['email_record'] ;
+		$fileaction_filerecord_id ;
+		$email_filerecord_id = specRsiRecouveo_lib_mail_createEmailForAction($email_record,$fileaction_filerecord_id) ;
+		if( $email_filerecord_id ) {
+			$arr_ins = array() ;
+			$arr_ins['field_LINK_MEDIA_FILECODE'] = 'EMAIL' ;
+			$arr_ins['field_LINK_MEDIA_FILEID'] = $email_filerecord_id ;
+			paracrm_lib_data_updateRecord_file( 'FILE_ACTION', $arr_ins, $fileaction_filerecord_id);
+		}
+	}
 	if( $post_form['link_action']=='MAIL_OUT' ) {
 		// ******** Création enveloppe ? **********
 		$envDocs = array() ;

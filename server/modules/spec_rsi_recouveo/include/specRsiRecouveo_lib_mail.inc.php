@@ -1,5 +1,7 @@
 <?php
 
+@include_once 'PHPMailer/PHPMailerAutoload.php';
+
 $GLOBALS['specRsiRecouveo_lib_mail_sync_boundDays'] = 30 ;
 
 function specRsiRecouveo_lib_mail_sync() {
@@ -273,4 +275,132 @@ function specRsiRecouveo_lib_mail_associateCancel( $src_emailFilerecordId ) {
 	return TRUE ;
 }
 
+
+function specRsiRecouveo_lib_mail_buildEmail( $email_record, $test_mode=FALSE ) {
+	if( !class_exists('PHPMailer') ) {
+		return NULL ;
+	}
+	
+	$subject = trim($email_record['subject']) ;
+	if( $email_record['outmodel_preprocess_subject'] ) {
+		$subject = specRsiRecouveo_lib_mail_processSubject( $subject, $email_record['outmodel_file_filerecord_id'] ) ;
+	}
+	
+	
+	$mail = new PHPMailer;
+	foreach( $email_record['header_adrs'] as $row ) {
+		switch( $row['header'] ) {
+			case 'from' :
+			$mail->setFrom($row['adr_address'], $row['adr_display']);
+			break ;
+			
+			case 'to' :
+			$mail->addAddress($row['adr_address']) ;
+			break ;
+			
+			case 'cc' :
+			$mail->addCC($row['adr_address']) ;
+			break ;
+		}
+	}
+	$mail->Subject  = $subject ;
+	if( $email_record['body_html'] ) {
+		$mail->isHTML(true);
+		$mail->Body = $email_record['body_html'];
+		$mail->AltBody = strip_tags($email_record['body_html']) ;
+	} elseif( $email_record['body_text'] ) {
+		$mail->Body = $email_record['body_text'];
+	} else {
+		return NULL ;
+	}
+	
+	$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
+	$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
+	foreach( $email_record['attachments'] as $row ) {
+		$filename = $row['filename'] ;
+		$filetmpmediaid = $row['outmodel_tmp_media_id'] ;
+		
+		media_contextOpen( $_sdomain_id ) ;
+		$bin = media_bin_getBinary($filetmpmediaid) ;
+		media_contextClose() ;
+		
+		$mail->addStringAttachment($bin, $filename) ;
+	}
+	
+	if (!$mail->preSend()) {
+		// Return the error in the Browser's console
+		//echo $mail->ErrorInfo;
+		return NULL ;
+	}
+	
+	$buffer = $mail->getSentMIMEMessage();
+	
+	if( $test_mode ) {
+		return TRUE ;
+	}
+	media_contextOpen( $_sdomain_id ) ;
+	$tmp_media_id = media_bin_processBuffer( $buffer ) ;
+	media_contextClose() ;
+	
+	return $tmp_media_id ;
+}
+
+
+function specRsiRecouveo_lib_mail_processSubject( $subject, $file_filerecord_id ) {
+	$subject = preg_replace("/\[[^)]+\]/","",$subject) ;
+	
+	$ctrlchar = md5((string)$file_filerecord_id)[0] ;
+	$tag = "[#{$file_filerecord_id}{$ctrlchar}]" ;
+	
+	return $tag.' '.trim($subject) ;
+}
+
+
+
+
+
+function specRsiRecouveo_lib_mail_createEmailForAction( $email_record, $fileaction_filerecord_id ) {
+	global $_opDB ;
+	$mbox = 'OUTBOX' ;
+	
+	$tmp_media_id = specRsiRecouveo_lib_mail_buildEmail($email_record) ;
+	
+	foreach( $email_record['header_adrs'] as $row ) {
+		if( $row['header']=='from' && !$addressFrom ) {
+			$addressFrom = $row['adr_address'] ;
+		}
+		if( $row['header']=='to' && !$addressTo ) {
+			$addressTo = array() ;
+			$addressTo['address'] = $row['adr_address'] ;
+			$addressTo['display'] = $row['adr_display'] ;
+		}
+	}
+	
+	$arr_ins = array() ;
+	$arr_ins['field_MBOX'] = $mbox ;
+	$arr_ins['field_EMAIL_LOCAL'] = $addressFrom ;
+	$arr_ins['field_EMAIL_PEER'] = $addressTo['address'] ;
+	$arr_ins['field_EMAIL_PEER_NAME'] = $addressTo['display'] ;
+	$arr_ins['field_DATE'] = date('Y-m-d H:i:s') ;
+	$arr_ins['field_SUBJECT'] = $email_record['subject'] ;
+	$arr_ins['field_SRV_IS_SENT'] = false ;
+	$arr_ins['field_SRV_UID'] = NULL ;
+	$arr_ins['field_HAS_ATTACHMENTS'] = (count($email_record['attachments'])>0) ;
+	$arr_ins['field_LINK_IS_ON'] = 1 ;
+	$arr_ins['field_LINK_FILE_ACTION_ID'] = $fileaction_filerecord_id ;
+	$email_filerecord_id = paracrm_lib_data_insertRecord_file( 'EMAIL', 0, $arr_ins ) ;
+	
+	$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
+	$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
+	
+	$arr_ins = array() ;
+	$arr_ins['field_SRC_SIZE'] = strlen($msg_src) ;
+	$arr_ins['field_SRC_MIME'] = true ;
+	$emailsrc_filerecord_id = paracrm_lib_data_insertRecord_file( 'EMAIL_SOURCE', $email_filerecord_id, $arr_ins ) ;
+	media_contextOpen( $_sdomain_id ) ;
+	media_bin_move( $tmp_media_id , media_bin_toolFile_getId('EMAIL_SOURCE',$emailsrc_filerecord_id) ) ;
+	media_contextClose() ;
+	
+	return $email_filerecord_id ;
+}
 ?>

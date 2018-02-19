@@ -127,6 +127,8 @@ switch( $post_data['_action'] )
 		return specRsiRecouveo_mail_uploadEmailAttachment( $post_data ) ;
 	case 'mail_deleteTmpMedia' :
 		return specRsiRecouveo_mail_deleteTmpMedias( $post_data ) ;
+	case 'mail_buildEmail' :
+		return specRsiRecouveo_mail_buildEmail( $post_data ) ;
 		
 	case 'upload' :
 		return specRsiRecouveo_upload( $post_data ) ;

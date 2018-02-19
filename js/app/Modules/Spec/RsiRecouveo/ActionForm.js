@@ -630,6 +630,16 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 			}
 		}
 		
+		if( this.getCurrentAction()['action_id'] == 'EMAIL_OUT' ) {
+			var postDataObj = form.getValues(false,false,false,true) ;
+			Ext.apply(postDataObj,{
+				file_filerecord_id: this._fileRecord.get('file_filerecord_id')
+			}) ;
+			var emailRecord = Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel.createEmailRecord(postDataObj),
+				emailRecordData = emailRecord.getData(true) ;
+			postData['email_record'] = emailRecordData ;
+		}
+		
 		if( errors.length > 0 ) {
 			Ext.MessageBox.alert('Erreur',errors.join('<br>')) ;
 			return ;
@@ -698,13 +708,50 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 		Ext.apply(postDataObj,{
 			file_filerecord_id: this._fileRecord.get('file_filerecord_id')
 		}) ;
-
-		console.dir(postDataObj) ;
-		//console.dir(test);
-		console.dir(postDataObj.email_to[1]);
-		var emailRecord = Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel.createEmailRecord(postDataObj) ;
+		var emailRecord = Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel.createEmailRecord(postDataObj),
+			emailRecordData = emailRecord.getData(true) ;
 		
-		
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_rsi_recouveo',
+				_action: 'mail_buildEmail',
+				data: Ext.JSON.encode(emailRecordData)
+			},
+			success: function(response) {
+				var jsonResponse = Ext.JSON.decode(response.responseText) ;
+				if( jsonResponse.success == true ) {
+					this.handlePreviewEmailDo( jsonResponse.tmp_media_id ) ;
+				} else {
+					Ext.MessageBox.alert('Error','Print system disabled') ;
+				}
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+	},
+	handlePreviewEmailDo: function( tmpMediaId ) {
+		this.optimaModule.createWindow({
+			width:750,
+			height:800,
+			iconCls: 'op5-crmbase-qresultwindow-icon',
+			animCollapse:false,
+			border: false,
+			layout:'fit',
+			title: 'Preview Email',
+			items:[Ext.create('Optima5.Modules.Spec.RsiRecouveo.EmailMessagePanel',{
+				_tmpMediaId: tmpMediaId,
+				optimaModule: this.optimaModule,
+				listeners: {
+					saved: function() {
+						this.doLoad() ;
+					},
+					scope: this
+				}
+			})]
+		}) ;
 	},
 	handlePreviewEnvelope: function() {
 		if( this._readonlyMode ) {
@@ -754,7 +801,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 			success: function(response) {
 				var jsonResponse = Ext.JSON.decode(response.responseText) ;
 				if( jsonResponse.success == true ) {
-					this.handlePreviewDo( jsonResponse.data ) ;
+					this.handlePreviewEnvelopeDo( jsonResponse.data ) ;
 				} else {
 					Ext.MessageBox.alert('Error','Print system disabled') ;
 				}
@@ -765,7 +812,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 			scope: this
 		}) ;
 	},
-	handlePreviewDo: function(recordData) {
+	handlePreviewEnvelopeDo: function(recordData) {
 		var attachmentsField = this.getForm().findField('attachments') ;
 		
 		// build virtual envelope

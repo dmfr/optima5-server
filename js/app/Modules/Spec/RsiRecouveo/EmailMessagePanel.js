@@ -150,10 +150,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailMessagePanel',{
 		
 		this.callParent() ;
 		if( this._emailFilerecordId ) {
-			this.loadEmailRecord(this._emailFilerecordId) ;
+			this.loadEmailRecord(this._emailFilerecordId,null) ;
+		}
+		if( this._tmpMediaId ) {
+			this.loadEmailRecord(null, this._tmpMediaId) ;
 		}
 	},
-	loadEmailRecord: function( emailFilerecordId ) {
+	loadEmailRecord: function( emailFilerecordId, tmpMediaId ) {
 		this.removeAll() ;
 		this.add({
 			xtype:'box',
@@ -165,7 +168,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailMessagePanel',{
 			params: {
 				_moduleId: 'spec_rsi_recouveo',
 				_action: 'mail_getEmailRecord',
-				email_filerecord_id: emailFilerecordId
+				email_filerecord_id: emailFilerecordId,
+				tmp_media_id: tmpMediaId
 			},
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
@@ -319,6 +323,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailMessagePanel',{
 		}) ;
 	},
 	openLinkActionPopup: function() {
+		if( this._emailRecord.get('email_filerecord_id') > 0 ) {} else {
+			return ;
+		}
 		this.getEl().mask() ;
 		// Open panel
 		var createPanel = Ext.create('Optima5.Modules.Spec.RsiRecouveo.EmailMessageLinkPanel',{
