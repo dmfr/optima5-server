@@ -1180,17 +1180,27 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			pFileTitle = pFileTitle.substring(pAccId.length+1) ;
 		}
 		var pActionsGridData = [],
-			iterateChild = true,
+			iteratedFilerecordIds = [],
 			iterateFileRecord = fileRecord ;
 		while(true) {
+			var isMainFile = (fileRecord.getId() == iterateFileRecord.getId()) ;
+			iteratedFilerecordIds.push( iterateFileRecord.getId() ) ;
 			iterateFileRecord.actions().each(function(rec) {
 				var recData = rec.getData() ;
 				recData['leaf'] = true ;
 				recData['icon'] = Ext.BLANK_IMAGE_URL ;
-				if( iterateChild && rec.get('link_newfile_filerecord_id') ) {
-					var childFileRecord = this._accountRecord.files().getById(rec.get('link_newfile_filerecord_id')) ;
+				if( rec.get('link_newfile_filerecord_id') ) {
+					if( Ext.Array.contains(iteratedFilerecordIds,rec.get('link_newfile_filerecord_id')) ) {
+						// Fichier déjà examiné en itération chaine => pas de parcours parent<>child, éviter "loop"
+						return ;
+					}
+					var childFileRecord = this._accountRecord.files().getById(rec.get('link_newfile_filerecord_id')),
 						childrenActions = [],
 						childrenFirst = true ;
+					if( !childFileRecord.get('status_closed_void') && !childFileRecord.get('status_closed_end') ) {
+						// on ne parcourt en parent<>child que les fichiers fermés
+						return ;
+					}
 					childFileRecord.actions().each(function(cRec) {
 						if( childrenFirst ) {
 							Ext.apply( recData, cRec.getData() ) ;
@@ -1208,21 +1218,17 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					recData['expandable'] = false ;
 					recData['icon'] = Ext.BLANK_IMAGE_URL ;
 				}
-				if( !iterateChild && rec.get('link_newfile_filerecord_id') ) {
+				if( !isMainFile && !rec.get('status_is_ok') ) {
 					return ;
 				}
-				if( !iterateChild && !rec.get('status_is_ok') ) {
-					return ;
-				}
-				if( iterateChild && !rec.get('status_is_ok') 
-				&& rec.get('fileaction_filerecord_id') != iterateFileRecord.get('next_fileaction_filerecord_id') ) {
+				if( isMainFile && !rec.get('status_is_ok')
+						&& rec.get('fileaction_filerecord_id') != iterateFileRecord.get('next_fileaction_filerecord_id') ) {
 					return ;
 				}
 				pActionsGridData.push(recData) ;
 			},this) ;
 			if( (iterateFileRecord.get('from_file_filerecord_id') > 0) && accountRecord.files().getById(iterateFileRecord.get('from_file_filerecord_id')) ) {
 				iterateFileRecord = accountRecord.files().getById(iterateFileRecord.get('from_file_filerecord_id')) ;
-				iterateChild = false ;
 				if( iterateFileRecord ) {
 					continue ;
 				}
