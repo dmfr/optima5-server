@@ -364,7 +364,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			if( $record_row['is_disabled'] ) {
 				continue ;
 			}
-			if( $record_row['amount'] > 0 ) {
+			if( $record_row['type']==NULL ) {
 				$inv_header['inv_nb']++ ;
 				$inv_header['inv_amount_total'] += $record_row['amount'] ;
 			}

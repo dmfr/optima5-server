@@ -665,17 +665,17 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				text: 'Nb Fact',
 				dataIndex: 'inv_nb',
 				tdCls: 'op5-spec-dbstracy-boldcolumn',
-				width:90,
+				width:80,
 				align: 'center',
 				summaryType: 'sum',
 				summaryRenderer: function(value,summaryData,field,metaData) {
 					return value ;
 				}
 			},{
-				text: 'Solde',
-				dataIndex: 'inv_amount_due',
+				text: 'Montant',
+				dataIndex: 'inv_amount_total',
 				tdCls: 'op5-spec-dbstracy-boldcolumn',
-				width:90,
+				width:100,
 				align: 'center',
 				filter: {
 					type: 'number'
@@ -688,10 +688,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 					return Ext.util.Format.number(value,'0,000.00') ;
 				}
 			},{
-				hidden: true,
-				text: 'Montant<br>factures',
-				dataIndex: 'inv_amount_total',
-				width:90,
+				text: 'Solde',
+				dataIndex: 'inv_amount_due',
+				tdCls: 'op5-spec-dbstracy-boldcolumn',
+				width:100,
 				align: 'center',
 				filter: {
 					type: 'number'
@@ -1602,9 +1602,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			//var indexedFiles = [] ;
 			var newAjaxData = [] ;
 			Ext.Array.each( ajaxData, function(fileRow) {
-				var coef = 1-(fileRow['inv_amount_due']/fileRow['inv_amount_total']) ;
+				var coef = ( (fileRow['inv_amount_total']!=0) ? (1-(fileRow['inv_amount_due']/fileRow['inv_amount_total'])) : 0 ) ;
 				if( coef > 1 ) {
-					coef = 1 ;
+					//coef = 1 ;
 				}
 				Ext.Array.each(fileRow.records, function(fileRecordRow) {
 					if( !Ext.isEmpty(fileRecordRow['type']) ) {
