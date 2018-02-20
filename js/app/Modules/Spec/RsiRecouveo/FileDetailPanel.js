@@ -344,6 +344,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				},
 				border: false,
 				items: [{
+					flex: 1,
+					scrollable: 'vertical',
 					xtype: 'form',
 					itemId: 'pHeaderForm',
 					bodyCls: 'ux-noframe-bg',
@@ -1277,7 +1279,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 						var statusMap = view.up('panel')._statusMap ;
 						if( statusMap.hasOwnProperty(vStatus) ) {
 							var statusData = statusMap[vStatus] ;
-							metaData.style += '; color: white ; background: '+statusData.status_color ;
+							metaData.style += '; background: '+statusData.status_color ;
 						}
 						/*
 						switch( vAction ) {
@@ -1323,7 +1325,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 							var actionEtaMap = view.up('panel')._actionEtaMap ;
 							if( actionEtaMap.hasOwnProperty(etaValue) ) {
 								var actionEtaData = actionEtaMap[etaValue] ;
-								metaData.style += 'color: white ; background: '+actionEtaData.eta_color ;
+								metaData.style += '; background: '+actionEtaData.eta_color ;
 							}
 						} else if( record.get('date_sched') 
 								&& Ext.util.Format.date(record.get('date_sched'),'Y-m-d') < Ext.util.Format.date(record.get('date_actual'),'Y-m-d') ) {

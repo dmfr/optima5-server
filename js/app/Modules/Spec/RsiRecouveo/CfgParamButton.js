@@ -44,7 +44,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamButton' ,{
 		this.onChange(true) ;
 		
 		this.on('destroy', function() {
-			console.log('destroyed') ;
 			this.treepanel.destroy() ;
 		},this) ;
 		if( this._readonlyMode ) {
