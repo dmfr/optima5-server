@@ -283,7 +283,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportsPanel',{
 	extend: 'Ext.tab.Panel',
 	
 	requires: [
-		'Optima5.Modules.Spec.RsiRecouveo.ReportFilesPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.ReportUsersPanel'
 	],
 	
