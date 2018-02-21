@@ -51,9 +51,12 @@ echo "Link to scenarios..." ;
 specRsiRecouveo_lib_scenario_attach() ;
 echo "OK\n" ;
 
-echo "Doing auto/mail actions" ;
+echo "Doing auto/mail actions..." ;
 specRsiRecouveo_lib_autorun_actions() ;
 echo "OK\n" ;
 
+echo "Build cache for stats..." ;
+specRsiRecouveo_lib_stat_build_record_scope() ;
+echo "OK\n" ;
 
 ?>
