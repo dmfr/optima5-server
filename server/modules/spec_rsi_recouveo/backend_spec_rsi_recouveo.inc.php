@@ -137,6 +137,8 @@ switch( $post_data['_action'] )
 		return specRsiRecouveo_report_getFileTopRecords( $post_data ) ;
 	case 'report_getUsers' :
 		return specRsiRecouveo_report_getUsers( $post_data ) ;
+	case 'report_getCash' :
+		return specRsiRecouveo_report_getCash( $post_data ) ;
 	
 	default :
 	return NULL ;

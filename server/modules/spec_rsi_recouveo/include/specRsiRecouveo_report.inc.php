@@ -365,4 +365,113 @@ function specRsiRecouveo_report_getUsers( $post_data ) {
 	return array('success'=>true, 'debug'=>$TAB_userId_row, 'data'=>array_values($TAB_userId_row)) ;
 }
 
+function specRsiRecouveo_report_getCash( $post_data ) {
+	global $_opDB ;
+	
+	$p_filters = json_decode($post_data['filters'],true) ;
+	$p_dateStart = $p_filters['date_start'] ;
+	$p_dateEnd = $p_filters['date_end'] ;
+	
+	if( !$p_dateStart || !$p_dateEnd ) {
+		return array('success'=>true, 'data'=>array()) ;
+	}
+	if( $p_dateStart>$p_dateEnd ) {
+		return array('success'=>true, 'data'=>array()) ;
+	}
+	
+	$view = "SELECT la.treenode_key AS field_SOC_ID, r.*
+			FROM view_file_RECORD r
+			JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key=r.field_LINK_ACCOUNT
+			WHERE field_STAT_SCOPE_IS_ON='1' OR (DATE(r.field_STAT_SCOPE_START)<='$p_dateEnd' AND DATE(r.field_STAT_SCOPE_END)>='$p_dateStart')" ;
+			
+	$map_soc_mapDateEc = array() ;
+	$date_cur = $p_dateStart ;
+	while(true) {
+		// calcul encours à date
+		$query = "SELECT field_SOC_ID, sum(field_AMOUNT)
+					FROM ($view) v
+					WHERE DATE(field_STAT_SCOPE_START)>'0' AND field_STAT_SCOPE_START<='$date_cur' 
+					AND (field_STAT_SCOPE_END>='$date_cur' OR field_STAT_SCOPE_IS_ON='1')
+					GROUP BY field_SOC_ID" ;
+		$result = $_opDB->query($query) ;
+		while(($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$soc_id = $arr[0] ;
+			$amount = $arr[1] ;
+			$map_soc_mapDateEc[$soc_id][$date_cur] = $amount ;
+		}
+		
+		$date_cur = date('Y-m-d',strtotime('+1 day',strtotime($date_cur))) ;
+		if( $date_cur > $p_dateEnd ) {
+			break ;
+		}
+	}
+	
+	
+	
+	$TAB = array() ;
+	foreach( $map_soc_mapDateEc as $soc_id => $mapDateEc ) {
+		$TAB[$soc_id] = array(
+			'group_id' => $soc_id,
+			'ec_start' => $mapDateEc[$p_dateStart],
+			'ec_end' => $mapDateEc[$p_dateEnd],
+			'ec_max' => max($mapDateEc)
+		);
+	}
+	
+		$query = "SELECT field_SOC_ID, sum(field_AMOUNT)
+					FROM ($view) v
+					WHERE field_TYPE='' AND DATE(field_STAT_SCOPE_START)>'0' AND field_STAT_SCOPE_START<='$p_dateEnd' 
+					AND (field_STAT_SCOPE_END>='$p_dateStart' OR field_STAT_SCOPE_IS_ON='1')
+					GROUP BY field_SOC_ID" ;
+		$result = $_opDB->query($query) ;
+		while(($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$soc_id = $arr[0] ;
+			$amount = $arr[1] ;
+			$TAB[$soc_id]['scope'] = $amount ;
+		}
+		
+		
+		$query = "SELECT field_SOC_ID, field_TYPE, sum(field_AMOUNT)
+					FROM ($view) v
+					WHERE field_TYPE<>'' AND DATE(field_STAT_SCOPE_START)>'0' AND field_STAT_SCOPE_START<='$p_dateEnd' 
+					AND (field_STAT_SCOPE_END>='$p_dateStart' OR field_STAT_SCOPE_IS_ON='1')
+					GROUP BY field_SOC_ID, field_TYPE" ;
+		$result = $_opDB->query($query) ;
+		while(($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$soc_id = $arr[0] ;
+			$amount = $arr[2] ;
+			switch( $arr[1] ) {
+				case 'LOCAL' :
+					$mkey='paid_LOCAL' ;
+					break ;
+				case 'REMOTE' :
+					$mkey='paid_REMOTE' ;
+					break ;
+				case 'CI' :
+				case 'DR' :
+				case 'STOP' :
+					$mkey='paid_AVR' ;
+					break ;
+				default :
+					$mkey='paid_misc' ;
+					break ;
+			}
+			$TAB[$soc_id][$mkey] = (-1*$amount) ;
+		}
+		
+	$ttmp = specRsiRecouveo_cfg_getConfig() ;
+	$cfg_soc = $ttmp['data']['cfg_soc'] ;
+	$map_socId_socTxt = array() ;
+	foreach( $cfg_soc as $row ) {
+		$map_socId_socTxt[$row['soc_id']] = $row['soc_name'] ;
+	}
+	foreach( $TAB as $soc_id => $dummy ) {
+		$TAB[$soc_id]['group_txt'] = $map_socId_socTxt[$soc_id] ;
+	}
+	
+	//print_r($map_soc_mapDateEc) ;
+	
+	return array('success'=>true, 'data'=>array_values($TAB) ) ;
+}
+
 ?>

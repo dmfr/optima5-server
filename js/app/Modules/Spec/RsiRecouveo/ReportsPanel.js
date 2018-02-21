@@ -283,7 +283,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportsPanel',{
 	extend: 'Ext.tab.Panel',
 	
 	requires: [
-		'Optima5.Modules.Spec.RsiRecouveo.ReportUsersPanel'
+		'Optima5.Modules.Spec.RsiRecouveo.ReportUsersPanel',
+		'Optima5.Modules.Spec.RsiRecouveo.ReportCashPanel'
 	],
 	
 	initComponent: function() {
@@ -325,6 +326,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportsPanel',{
 		this.add(Ext.create('Optima5.Modules.Spec.RsiRecouveo.ReportUsersPanel',{
 			optimaModule: this.optimaModule,
 			title: 'Collaborateurs'
+		}));
+		this.add(Ext.create('Optima5.Modules.Spec.RsiRecouveo.ReportCashPanel',{
+			optimaModule: this.optimaModule,
+			title: 'Encaissements'
 		}));
 		this.setActiveTab(0) ;
 	}
