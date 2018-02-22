@@ -1892,6 +1892,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		if( this.filesTopPanel ) {
 			this.filesTopPanel.destroy() ;
 		}
+		if( this.multiActionForm ) {
+			this.multiActionForm.destroy() ;
+		}
 		this.callParent();
 	},
 	
@@ -1919,11 +1922,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		},this,{single:true}) ;
 		createPanel.on('destroy',function(p) {
 			this.getEl().unmask() ;
-			this.floatingPanel = null ;
+			this.multiActionForm = null ;
 		},this,{single:true}) ;
 		
 		createPanel.show();
 		createPanel.getEl().alignTo(this.getEl(), 'c-c?');
+		
+		this.multiActionForm = createPanel ;
 	},
 	
 	handleOpenAccount: function(accId,fileFilerecordId) {

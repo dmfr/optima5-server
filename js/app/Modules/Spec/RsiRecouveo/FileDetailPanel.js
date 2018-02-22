@@ -1906,7 +1906,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			return ;
 		}
 		var postParams = {} ;
-		var actionPanel = Ext.create('Optima5.Modules.Spec.RsiRecouveo.AdrbookEntityPanel',{
+		var adrbookPanel = Ext.create('Optima5.Modules.Spec.RsiRecouveo.AdrbookEntityPanel',{
 			optimaModule: this.optimaModule,
 			
 			_accId: accId,
@@ -1930,25 +1930,30 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			title: 'Gestion contacts'
 		});
 		
-		actionPanel.on('saved',function() {
+		adrbookPanel.on('saved',function() {
 			this.doReload() ;
 		},this) ;
-		actionPanel.on('destroy',function(validConfirmPanel) {
+		adrbookPanel.on('destroy',function(p) {
 			this.getEl().unmask() ;
+			this.adrbookPanel = null ;
 		},this,{single:true}) ;
 		
 		this.getEl().mask() ;
 		
-		actionPanel.on('mylayout', function(actionPanel) {
-			actionPanel.updateLayout() ;
-			actionPanel.setSize( actionPanel.getWidth() , actionPanel.getHeight() ) ;
-			actionPanel.getEl().alignTo(this.getEl(), 'c-c?');
+		adrbookPanel.on('mylayout', function(adrbookPanel) {
+			adrbookPanel.updateLayout() ;
+			adrbookPanel.setSize( adrbookPanel.getWidth() , adrbookPanel.getHeight() ) ;
+			adrbookPanel.getEl().alignTo(this.getEl(), 'c-c?');
 		},this) ;
-		actionPanel.getEl().alignTo(this.getEl(), 'c-c?');
-		actionPanel.show();
+		adrbookPanel.getEl().alignTo(this.getEl(), 'c-c?');
+		adrbookPanel.show();
+		this.adrbookPanel = adrbookPanel ;
 	},
 	
 	onBeforeDestroy: function() {
+		if( this.adrbookPanel ) {
+			this.adrbookPanel.destroy() ;
+		}
 		this.down('#pRecordsPanel').down('#windowsBar').items.each( function(btn) {
 			if( btn.win && !btn.win.isClosed ) {
 				btn.win.close() ;
