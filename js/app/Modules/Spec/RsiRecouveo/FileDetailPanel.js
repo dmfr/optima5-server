@@ -2180,6 +2180,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			})]
 		}) ;
 	},
+	
 	openEmail: function(emailFilerecordId) {
 		this.optimaModule.createWindow({
 			width:600,
@@ -2191,9 +2192,16 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			title: 'Email',
 			items:[Ext.create('Optima5.Modules.Spec.RsiRecouveo.EmailMessagePanel',{
 				optimaModule: this.optimaModule,
-				_emailFilerecordId: emailFilerecordId
+				_emailFilerecordId: emailFilerecordId,
+				_modeReply: true,
+				listeners: {
+					emailaction: this.onEmailAction
+				}
 			})]
 		}) ;
+	},
+	onEmailAction: function(emailMessagePanel,emailRecord,emailAction) {
+		
 	},
 	
 	handleSaveHeader: function() {

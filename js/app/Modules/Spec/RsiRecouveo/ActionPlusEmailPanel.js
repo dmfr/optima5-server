@@ -287,6 +287,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel',{
 		this.callParent() ;
 	},
 	
+	loadEmailForReply: function( origEmailFilerecordId, actionTodo='reply' ) {
+		
+	},
+	onLoadEmailForReply: function( origEmailRecord, actionTodo ) {
+		
+	},
+	
 	statics: {
 		createEmailRecord: function(formValues) {
 			var emailRecordData = {} ;

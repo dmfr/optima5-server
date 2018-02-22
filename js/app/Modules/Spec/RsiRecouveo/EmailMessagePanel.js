@@ -48,7 +48,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailMessageHeaderComponent',{
 			'</tpl>',
 			'<tpl if="subject">', 
 			'<div class="op5-spec-rsiveo-emailheader-caption">',
-				'<span class="op5-spec-rsiveo-emailheader-captiontitle">Titre :</span>',
+				'<span class="op5-spec-rsiveo-emailheader-captiontitle">Sujet :</span>',
 				'<span class="op5-spec-rsiveo-emailheader-captionbody op5-spec-rsiveo-emailheader-captionbodytext">' ,
 				'{subject}',
 				'</span>',
@@ -70,6 +70,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailMessageHeaderComponent',{
 				'</tpl>',
 			'</div>',
 			'<div class="op5-spec-rsiveo-emailheader-actions-bottom">',
+				'<tpl if="action_reply">',
+				'<div class="op5-spec-rsiveo-emailheader-action-btn op5-spec-rsiveo-emailheader-action-btn-reply">',
+				'</div>',
+				'</tpl>',
 				'<tpl if="action_attachments">',
 				'<div class="op5-spec-rsiveo-emailheader-action-btn op5-spec-rsiveo-emailheader-action-btn-attachments">',
 				'</div>',
@@ -108,7 +112,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailMessageHeaderComponent',{
 		var me=this,
 			el = this.getEl(),
 			btnLinkEl = el.down('.op5-spec-rsiveo-emailheader-action-btn-link'),
-			btnAttachmentsEl = el.down('.op5-spec-rsiveo-emailheader-action-btn-attachments') ;
+			btnAttachmentsEl = el.down('.op5-spec-rsiveo-emailheader-action-btn-attachments'),
+			btnReplyEl = el.down('.op5-spec-rsiveo-emailheader-action-btn-reply') ;
 		
 		if( btnLinkEl ) {
 			btnLinkEl.un('click',me.onClickBtn,me) ;
@@ -118,6 +123,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailMessageHeaderComponent',{
 			btnAttachmentsEl.un('click',me.onClickBtn,me) ;
 			btnAttachmentsEl.on('click',me.onClickBtn,me) ;
 		}
+		if( btnReplyEl ) {
+			btnReplyEl.un('click',me.onClickBtn,me) ;
+			btnReplyEl.on('click',me.onClickBtn,me) ;
+		}
 	},
 	onClickBtn: function(event,htmlElement) {
 		var el = Ext.get(htmlElement) ;
@@ -126,6 +135,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailMessageHeaderComponent',{
 		}
 		if( el && el.hasCls('op5-spec-rsiveo-emailheader-action-btn-attachments') ) {
 			this.fireEvent('emailaction',this,'attachments') ;
+		}
+		if( el && el.hasCls('op5-spec-rsiveo-emailheader-action-btn-reply') ) {
+			this.fireEvent('emailaction',this,'reply') ;
 		}
 	}
 }) ;
@@ -197,10 +209,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailMessagePanel',{
 			adr_from: [],
 			adr_to: [],
 			adr_cc: [],
-			//subject: emailRecord.get('subject'),
+			subject: emailRecord.get('subject'),
 			date_str: Ext.Date.format( emailRecord.get('date'),'d/m/Y H:i'),
-			action_link: true,
-			action_attachments: (emailRecord.attachments().getCount()>0)
+			action_link: !this._modePreview,
+			action_attachments: (emailRecord.attachments().getCount()>0),
+			action_reply: this._modeReply
 		} ;
 		emailRecord.header_adrs().each( function(adr) {
 			switch( adr.get('header') ) {
@@ -247,6 +260,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailMessagePanel',{
 				break ;
 			case 'attachments' :
 				this.openAttachmentsPanel() ;
+				break ;
+			case 'reply' :
+				this.fireEvent('emailaction',this,this._emailRecord,'reply') ;
 				break ;
 		}
 	},
@@ -363,14 +379,3 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailMessagePanel',{
 		}
 	}
 }) ;
-
-
-
-
-
-
-
-
-
-
-

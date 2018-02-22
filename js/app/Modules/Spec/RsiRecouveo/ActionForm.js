@@ -101,6 +101,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 		
 		var currentAction = this.getCurrentAction() ;
 		var hasPreview = false ;
+		var afterValues = {} ;
 		switch( currentAction.action_id ) {
 			case 'AGREE_FOLLOW' :
 				nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusAgreeFollowPanel' ;
@@ -283,9 +284,18 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 			
 			Ext.apply(formData,this._formValues) ;
 			
+			if( (currentAction.action_id=='EMAIL_OUT') && this._formValues.hasOwnProperty('reply_emailFilerecordId') ) {
+				afterValues['reply_emailFilerecordId'] = this._formValues['reply_emailFilerecordId'] ;
+			}
+			
 			this._formValues = null ;
 		}
 		this.getForm().setValues(formData) ;
+		
+		if( afterValues['reply_emailFilerecordId'] && (this.down('#formNow') instanceof Optima5.Modules.RsiRecouveo.EmailOutDestField)  ) {
+			var actionPlusEmailPanel = this.down('#formNow') ;
+			actionPlusEmailPanel.loadEmailForReply( afterValues['reply_emailFilerecordId'] , 'reply' ) ;
+		}
 		
 		// Gestion du template
 		var tplField = this.getForm().findField('tpl_id') ;
@@ -743,7 +753,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 			title: 'Preview Email',
 			items:[Ext.create('Optima5.Modules.Spec.RsiRecouveo.EmailMessagePanel',{
 				_tmpMediaId: tmpMediaId,
-				optimaModule: this.optimaModule
+				optimaModule: this.optimaModule,
+				_modePreview: true
 			})]
 		}) ;
 	},
