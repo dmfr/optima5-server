@@ -292,7 +292,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 		}
 		this.getForm().setValues(formData) ;
 		
-		if( afterValues['reply_emailFilerecordId'] && (this.down('#formNow') instanceof Optima5.Modules.RsiRecouveo.EmailOutDestField)  ) {
+		if( afterValues['reply_emailFilerecordId'] && (this.down('#formNow') instanceof Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel)  ) {
 			var actionPlusEmailPanel = this.down('#formNow') ;
 			actionPlusEmailPanel.loadEmailForReply( afterValues['reply_emailFilerecordId'] , 'reply' ) ;
 		}

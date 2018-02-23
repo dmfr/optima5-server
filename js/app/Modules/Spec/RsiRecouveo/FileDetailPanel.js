@@ -1954,6 +1954,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		if( this.adrbookPanel ) {
 			this.adrbookPanel.destroy() ;
 		}
+		if( this.emailWindow ) {
+			this.emailWindow.destroy() ;
+		}
 		this.down('#pRecordsPanel').down('#windowsBar').items.each( function(btn) {
 			if( btn.win && !btn.win.isClosed ) {
 				btn.win.close() ;
@@ -2182,7 +2185,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 	},
 	
 	openEmail: function(emailFilerecordId) {
-		this.optimaModule.createWindow({
+		this.emailWindow = this.optimaModule.createWindow({
 			width:600,
 			height:800,
 			iconCls: 'op5-crmbase-qresultwindow-icon',
@@ -2195,13 +2198,25 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				_emailFilerecordId: emailFilerecordId,
 				_modeReply: true,
 				listeners: {
-					emailaction: this.onEmailAction
+					emailaction: this.onEmailAction,
+					destroy: function() {
+						this.emailWindow = null ;
+					},
+					scope: this
 				}
 			})]
 		}) ;
 	},
 	onEmailAction: function(emailMessagePanel,emailRecord,emailAction) {
-		
+		if( !emailRecord ) {
+			return ;
+		}
+		var activePanel = this.down('#tpFileActions').getActiveTab(),
+			fileRecord = this._accountRecord.files().getById(activePanel._fileFilerecordId) ;
+		if( this.emailWindow ) {
+			this.emailWindow.destroy() ;
+		}
+		this.doNewAction(fileRecord, 'EMAIL_OUT', true, {reply_emailFilerecordId:emailRecord.get('email_filerecord_id')}) ;
 	},
 	
 	handleSaveHeader: function() {

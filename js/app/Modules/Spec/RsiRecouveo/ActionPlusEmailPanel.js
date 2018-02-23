@@ -288,10 +288,77 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel',{
 	},
 	
 	loadEmailForReply: function( origEmailFilerecordId, actionTodo='reply' ) {
-		
+		if( !this.rendered ) {
+			this.on('afterrender',function() {
+				this.loadEmailForReply(origEmailFilerecordId,actionTodo) ;
+			},this,{single:true}) ;
+		}
+		this.getEl().mask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_rsi_recouveo',
+				_action: 'mail_getEmailRecord',
+				email_filerecord_id: origEmailFilerecordId
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+				/*
+				this.down('#pEast').removeAll();
+				this.down('#pEast').setTitle( ajaxResponse.subject ) ;
+				this.down('#pEast').add(Ext.create('Ext.ux.dams.IFrameContent',{
+					itemId: 'uxIFrame',
+					content:ajaxResponse.html
+				})) ;
+				this.down('#pEast').expand() ;
+				*/
+				
+				var emailRecord = Ext.ux.dams.ModelManager.create('RsiRecouveoEmailModel',ajaxResponse.data) ;
+				this.onLoadEmailForReply(emailRecord,actionTodo) ;
+			},
+			callback: function() {
+				this.getEl().unmask() ;
+			},
+			scope: this
+		});
 	},
 	onLoadEmailForReply: function( origEmailRecord, actionTodo ) {
+		var cfgEmailAdrs = [] ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getEmailAll(), function(emailAccountRow) {
+			cfgEmailAdrs.push(emailAccountRow.email_adr) ;
+		}) ;
+		var setEmailFrom,setEmailTo ;
+		origEmailRecord.header_adrs().each( function(rec) {
+			if( !setEmailFrom && Ext.Array.contains(['to','cc'],rec.get('header')) && Ext.Array.contains(cfgEmailAdrs,rec.get('adr_address')) ) {
+				setEmailFrom = rec.get('adr_address') ;
+				return ;
+			}
+			if( !setEmailTo && Ext.Array.contains(['from'],rec.get('header')) ) {
+				setEmailTo = rec.get('adr_address') ;
+			}
+		}) ;
 		
+		
+		var bodyHtml = origEmailRecord.get('body_html') ;
+		if( Ext.isEmpty(bodyHtml) ) {
+			bodyHtml = origEmailRecord.get('body_text') ;
+			bodyHtml = Ext.String.htmlEncode(bodyHtml) ;
+			bodyHtml = Ext.util.Format.nl2br(bodyHtml) ;
+			bodyHtml = '<font face="Monospace">'+bodyHtml+'</font>' ;
+		}
+		bodyHtml = '<blockquote style="margin-left: 8px; border-left: 4px solid #00C; padding-left: 4px">' + bodyHtml + '</blockquote>' ;
+		bodyHtml = '<br><br>' + bodyHtml ;
+		
+		// Fill form fields 
+		var formData = {} ;
+		formData['email_from'] = setEmailFrom ;
+		formData['email_to'] = [setEmailTo] ;
+		formData['email_subject'] = 'Re: ' + origEmailRecord.get('subject') ;
+		formData['email_body'] = bodyHtml ;
+		this._actionForm.getForm().setValues(formData) ;
 	},
 	
 	statics: {
