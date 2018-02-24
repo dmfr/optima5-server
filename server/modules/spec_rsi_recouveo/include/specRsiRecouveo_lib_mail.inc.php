@@ -277,13 +277,101 @@ function specRsiRecouveo_lib_mail_associateCancel( $src_emailFilerecordId ) {
 
 
 function specRsiRecouveo_lib_mail_buildEmail( $email_record, $test_mode=FALSE ) {
+	$ttmp = specRsiRecouveo_cfg_getConfig() ;
+	$cfg_email = $ttmp['data']['cfg_email'] ;
 	if( !class_exists('PHPMailer') ) {
 		return NULL ;
 	}
 	
 	$subject = trim($email_record['subject']) ;
-	if( $email_record['outmodel_preprocess_subject'] ) {
+	if( $email_record['outmodel_preprocess_subject'] && $email_record['outmodel_file_filerecord_id'] ) {
 		$subject = specRsiRecouveo_lib_mail_processSubject( $subject, $email_record['outmodel_file_filerecord_id'] ) ;
+	}
+	
+	if( true ) {
+		// reassemble
+		// = [banner] + blockwrite + [signature] + blockquote
+		$doc = new DOMDocument();
+		@$doc->loadHTML('<?xml encoding="UTF-8"><html>'.$email_record['body_html'].'</html>');
+		
+		$getDepth = function($node) {
+			$depth = -1;
+			// Increase depth until we reach the root (root has depth 0)
+			while ($node != null)
+			{
+				$depth++;
+				// Move to parent node
+				$node = $node->parentNode;
+			}
+			return $depth;
+		};
+		$extractOuterBlockquote = function($domnode) use ( &$extractOuterBlockquote ) {
+			if( !$domnode->childNodes ) {
+				return NULL ;
+			}
+			foreach( $domnode->childNodes as $childNode ) {
+				if( $childNode->nodeName == 'blockquote' ) {
+					//$childNode->parentNoded = $domnode ;
+					return $childNode ;
+				}
+				if( $ret = $extractOuterBlockquote($childNode) ) {
+					return $ret ;
+				}
+			}
+		};
+		
+		if( ($outerBlockQuote = $extractOuterBlockquote($doc)) && $getDepth($outerBlockQuote)==3 ) {
+			// blockquote / body / html = 3
+		} else {
+			unset( $outerBlockQuote ) ;
+		}
+		
+		$elements = $doc->getElementsByTagName('body');
+		$i = $elements->length - 1;
+		while ($i > -1) {
+			$node = $elements->item($i); 
+			if( $getDepth($node) == 2 ) {
+				// body / html = 2
+				$bodyNode = $node ;
+				break ;
+			}
+		}
+		
+		if( $email_record['outmodel_preprocess_signature'] ) {
+			while(TRUE) {
+				$fromAddress = NULL ;
+				foreach( $email_record['header_adrs'] as $row ) {
+					if( $row['header'] == 'from' ) {
+						$fromAddress = $row['adr_address'] ;
+						break ;
+					}
+				}
+				if( !$fromAddress ) {
+					break ;
+				}
+				
+				foreach( $cfg_email as $row ) {
+					if( $row['email_adr']==$fromAddress ) {
+						$html_signature = trim($row['email_signature']) ;
+						break ;
+					}
+				}
+				if( !$html_signature ) {
+					break ;
+				}
+				
+				$html_signature = '<br>'.$html_signature.'<br>' ;
+				$new_node = $doc->createCDATASection($html_signature) ;
+				if( $outerBlockQuote ) {
+					$bodyNode->insertBefore($new_node,$outerBlockQuote) ;
+				} else {
+					$bodyNode->appendChild($new_node) ;
+				}
+				break ;
+			}
+		}
+		
+		$email_record['body_html'] =  $doc->saveHTML() ;
 	}
 	
 	

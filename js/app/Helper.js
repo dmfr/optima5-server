@@ -148,5 +148,23 @@ Ext.define('Optima5.Helper',{
 		}
 		floatingEl.setXY( [floatingXY[0]+offset[0],floatingXY[1]+offset[1]] ) ;
 		return true ;
+	},
+	
+	
+	
+	inspectCmps: function() {
+		Ext.Array.each( Ext.ComponentManager.getAll(), function(cmp) {
+			if( cmp.getEl==null ) {
+				console.log('no getEl '+cmp.id) ;
+				console.dir(cmp) ;
+				return ;
+			}
+			if( cmp.hasOwnProperty('el') && !cmp.getEl() ) {
+				console.log('missing El '+cmp.id) ;
+				console.dir( cmp ) ;
+				return ;
+			}
+		}) ;
+		
 	}
 });

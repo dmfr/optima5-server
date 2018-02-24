@@ -296,6 +296,7 @@ function specRsiRecouveo_cfg_getConfig() {
 		$TAB_email[] = array(
 			'email_adr' => strtolower($arr['field_EMAIL_ADR']),
 			'email_name' => $arr['field_EMAIL_NAME'],
+			'email_signature' => $arr['field_EMAIL_SIGNATURE'],
 			'server_url' => $arr['field_SERVER_URL'],
 			'server_username' => $arr['field_SERVER_USERNAME'],
 			'server_passwd' => $arr['field_SERVER_PASSWD'],

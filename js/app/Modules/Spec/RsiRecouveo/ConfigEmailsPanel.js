@@ -105,6 +105,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigEmailsPanel', {
 					name: 'email_name',
 					fieldLabel: 'Nom associé'
 				},{
+					xtype: 'textarea',
+					name: 'email_signature',
+					fieldLabel: 'Signature'
+				},{
 					xtype: 'fieldset',
 					title: 'Serveur IMAP / Exchange',
 					items: [{

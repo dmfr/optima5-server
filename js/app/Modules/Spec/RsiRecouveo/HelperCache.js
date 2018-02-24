@@ -129,6 +129,7 @@ Ext.define('RsiRecouveoConfigEmailTplModel',{
 	fields: [
 		{name: 'email_adr', type:'string'},
 		{name: 'email_name', type:'string'},
+		{name: 'email_signature', type:'string'},
 		{name: 'server_url', type:'string'},
 		{name: 'server_username', type:'string'},
 		{name: 'server_passwd', type:'string'},

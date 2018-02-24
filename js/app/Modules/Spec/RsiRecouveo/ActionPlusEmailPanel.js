@@ -398,6 +398,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel',{
 			emailRecordData['body_html'] = formValues.email_body ;
 			emailRecordData['subject'] = formValues.email_subject;
 			emailRecordData['outmodel_preprocess_banner'] = formValues.email_outmodel_preprocess_banner ;
+			emailRecordData['outmodel_preprocess_signature'] = true ;
 			emailRecordData['outmodel_preprocess_subject'] = true ;
 			emailRecordData['outmodel_file_filerecord_id'] = formValues.file_filerecord_id ;
 			

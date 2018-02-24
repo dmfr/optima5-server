@@ -142,6 +142,7 @@ function specRsiRecouveo_config_setEmail( $post_data ) {
 	$arr_ins = array() ;
 	$arr_ins['field_EMAIL_ADR'] = $email_record['email_adr'] ;
 	$arr_ins['field_EMAIL_NAME'] = $email_record['email_name'] ;
+	$arr_ins['field_EMAIL_SIGNATURE'] = $email_record['email_signature'] ;
 	$arr_ins['field_SERVER_URL'] = $email_record['server_url'] ;
 	$arr_ins['field_SERVER_USERNAME'] = $email_record['server_username'] ;
 	$arr_ins['field_SERVER_PASSWD'] = $email_record['server_passwd'] ;
