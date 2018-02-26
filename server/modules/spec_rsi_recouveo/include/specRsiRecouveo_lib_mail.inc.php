@@ -370,6 +370,15 @@ function specRsiRecouveo_lib_mail_buildEmail( $email_record, $test_mode=FALSE ) 
 				break ;
 			}
 		}
+		if( $email_record['outmodel_preprocess_banner'] && ($html_banner=specRsiRecouveo_lib_mail_getBanner($email_record['outmodel_file_filerecord_id'])) ) {
+			$new_node = $doc->createCDATASection($html_banner) ;
+			
+			if( $firstChild = $bodyNode->firstChild ) {
+				$bodyNode->insertBefore($new_node,$firstChild) ;
+			} else {
+				$bodyNode->appendChild($new_node) ;
+			}
+		}
 		
 		$email_record['body_html'] =  $doc->saveHTML() ;
 	}
@@ -444,7 +453,56 @@ function specRsiRecouveo_lib_mail_processSubject( $subject, $file_filerecord_id 
 	return $tag.' '.trim($subject) ;
 }
 
+function specRsiRecouveo_lib_mail_getBanner( $file_filerecord_id ) {
+	$templates_dir = $GLOBALS['templates_dir'] ;
+	
+	$file_filerecord_id ;
+	$ttmp = specRsiRecouveo_file_getRecords( array(
+		'filter_fileFilerecordId_arr' => json_encode(array($file_filerecord_id))
+	)) ;
+	$file_record = $ttmp['data'][0] ;
+	
+	$acc_id = $file_record['acc_id'] ;
+	$ttmp = specRsiRecouveo_account_open(array('acc_id'=>$acc_id)) ;
+	$account_record = $ttmp['data'] ;
+	
+	$txt_account = $account_record['soc_txt'] ;
+	$txt_ref = $account_record['acc_id'] ;
+	$tencours = 0 ;
+	foreach( $account_record['files'] as $file_record ) {
+		$tencours+= $file_record['inv_amount_due'] ;
+	}
+	$txt_encours = number_format($tencours,0,',','.').' €' ;
+	
+	$header_src = "\r\n" ;
+	$header_src.= "<table><tr>" ;
+		$logo_base64 = base64_encode( file_get_contents($templates_dir.'/'.'RSI_RECOUVEO_email_logo.png') ) ;
+		$header_src.= "<td width='128' align='center'>" ;
+		$header_src.= "<img src=\"data:image/png;base64,$logo_base64\"/>" ;
+		$header_src.= "</td>" ;
+		
+		$header_src.= "<td>" ;
+			$table_style = 'color:#000000;font-family:Arial; font-size:12px; padding-left:6px; padding-right:6px' ;
+			$header_src.= "<table style='margin-left:16px'>" ;
+				$header_src.= "<tr>" ;
+				$header_src.= "<td align='right' style='$table_style'><b>Votre créancier</b></td>" ;
+				$header_src.= "<td style='$table_style'>{$txt_account}</td>" ;
+				$header_src.= "</tr>" ;
+				$header_src.= "<tr>" ;
+				$header_src.= "<td align='right' style='$table_style'><b>Référence client</b></td>" ;
+				$header_src.= "<td style='$table_style'>{$txt_ref}</td>" ;
+				$header_src.= "</tr>" ;
+				$header_src.= "<tr>" ;
+				$header_src.= "<td align='right' style='$table_style'><b>Encours</b></td>" ;
+				$header_src.= "<td style='$table_style'>{$txt_encours}</td>" ;
+				$header_src.= "</tr>" ;
+			$header_src.= "</table>" ;
+		$header_src.= "</td>" ;
+	$header_src.= "</tr></table>" ;
+	$header_src.= "<hr>" ;
 
+	return $header_src ;
+}
 
 
 
