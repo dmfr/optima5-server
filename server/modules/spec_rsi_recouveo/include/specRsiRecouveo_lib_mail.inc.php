@@ -25,7 +25,7 @@ function specRsiRecouveo_lib_mail_sync() {
 		/* try to connect */
 		$imap = imap_open($hostname,$username,$password) ;
 		if( !$imap ) {
-			echo "failed to connect/login {{$hostname}}\n" ;
+			//echo "failed to connect/login {{$hostname}}\n" ;
 			continue ;
 		}
 		$inbox_uids = imap_search($imap, 'ALL', SE_UID);
@@ -136,18 +136,38 @@ function specRsiRecouveo_lib_mail_doSend($email_filerecord_id) {
 		$email_bin = media_bin_getBinary($media_id) ;
 		
 		$success = Email::sendMail($email_bin) ;
-		if( !$success ) {
-			echo $emailsrc_filerecord_id ;
-		}
-		
 		break ;
 	}
 	
 	if( $success ) {
-		// TODO : IMAP append
+		$msg_uid = -1 ;
 		$ttmp = specRsiRecouveo_cfg_getConfig() ;
 		$cfg_email = $ttmp['data']['cfg_email'] ;
-		
+		foreach( $cfg_email as $cfg_email_entry ) {
+			if( $email_row['field_EMAIL_LOCAL']==$cfg_email_entry['email_adr'] ) {
+				$hostname = '{'.$cfg_email_entry['server_url'].'}'.'INBOX' ;
+				$username = $cfg_email_entry['server_username'];
+				$password = $cfg_email_entry['server_passwd'];
+				if( $imap = imap_open($hostname,$username,$password) ) {
+					$mboxes = imap_list($imap,'{'.$cfg_email_entry['server_url'].'}','*') ;
+					$target_mbox = NULL ;
+					foreach( $mboxes as $mbox_test ) {
+						if( substr($mbox_test,-4) == 'Sent' ) {
+							$target_mbox = $mbox_test ;
+						}
+					}
+					imap_reopen( $imap , $target_mbox ) ;
+					$target_uids_before = imap_search($imap, 'ALL', SE_UID);
+					imap_append($imap, $target_mbox,$email_bin, "\\Seen");
+					$target_uids_after = imap_search($imap, 'ALL', SE_UID);
+					imap_close($imap) ;
+					$new_uids = array_diff($target_uids_after,$target_uids_before) ;
+					if( count($new_uids)==1 ) {
+						$msg_uid = reset($new_uids) ;
+					}
+				}
+			}
+		}
 		
 		$msg_uid ;
 		$query = "UPDATE view_file_EMAIL SET field_SRV_IS_SENT='1', field_SRV_UID='{$msg_uid}' WHERE filerecord_id='$email_filerecord_id'" ;
