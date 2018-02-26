@@ -320,8 +320,11 @@ function specRsiRecouveo_lib_mail_buildEmail( $email_record, $test_mode=FALSE ) 
 			}
 		};
 		
-		if( ($outerBlockQuote = $extractOuterBlockquote($doc)) && $getDepth($outerBlockQuote)==3 ) {
+		if( ($outerBlockQuote = $extractOuterBlockquote($doc)) ) {
 			// blockquote / body / html = 3
+			while( $getDepth($outerBlockQuote)>3 ) {
+				$outerBlockQuote = $outerBlockQuote->parentNode ;
+			}
 		} else {
 			unset( $outerBlockQuote ) ;
 		}
@@ -476,9 +479,9 @@ function specRsiRecouveo_lib_mail_getBanner( $file_filerecord_id ) {
 	
 	$header_src = "\r\n" ;
 	$header_src.= "<table><tr>" ;
-		$logo_base64 = base64_encode( file_get_contents($templates_dir.'/'.'RSI_RECOUVEO_email_logo.png') ) ;
-		$header_src.= "<td width='128' align='center'>" ;
-		$header_src.= "<img src=\"data:image/png;base64,$logo_base64\"/>" ;
+		$logo_base64 = base64_encode( file_get_contents($templates_dir.'/'.'RSI_RECOUVEO_email_logo.jpg') ) ;
+		$header_src.= "<td align='center'>" ;
+		$header_src.= "<img src=\"data:image/jpeg;base64,$logo_base64\"/>" ;
 		$header_src.= "</td>" ;
 		
 		$header_src.= "<td>" ;
