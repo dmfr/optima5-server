@@ -85,10 +85,79 @@ function specRsiRecouveo_lib_mail_sync() {
 			media_bin_move( $tmp_id , media_bin_toolFile_getId('EMAIL_SOURCE',$emailsrc_filerecord_id) ) ;
 		}
 	}
+	media_contextClose() ;
+	
+	
+	$mbox = 'OUTBOX' ;
+	$arr_emailFilerecordIds = array() ;
+	$query = "LOCK TABLES view_file_EMAIL WRITE" ;
+	$_opDB->query($query) ;
+	$query = "SELECT filerecord_id FROM view_file_EMAIL WHERE field_MBOX='{$mbox}' AND field_SRV_IS_SENT<>'1'" ;
+	$result = $_opDB->query( $query ) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$arr_emailFilerecordIds[] = $arr[0] ;
+		$query = "UPDATE view_file_EMAIL SET field_SRV_IS_SENT='1' WHERE filerecord_id='{$arr[0]}'" ;
+		$_opDB->query( $query ) ;
+	}
+	$query = "UNLOCK TABLES" ;
+	$_opDB->query($query) ;
+	
+	foreach( $arr_emailFilerecordIds as $email_filerecord_id ) {
+		specRsiRecouveo_lib_mail_doSend($email_filerecord_id) ;
+	}
+	
+	
 	
 	media_contextClose() ;
 	
 	return ;
+}
+function specRsiRecouveo_lib_mail_doSend($email_filerecord_id) {
+	global $_opDB ;
+	
+	$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
+	$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
+	
+	media_contextOpen( $_sdomain_id ) ;
+	
+	while( TRUE ) {
+		$query = "SELECT * FROM view_file_EMAIL WHERE filerecord_id='{$email_filerecord_id}'" ;
+		$result = $_opDB->query($query) ;
+		$email_row = $_opDB->fetch_assoc($result) ;
+		
+		$query = "SELECT filerecord_id FROM view_file_EMAIL_SOURCE WHERE filerecord_parent_id='{$email_filerecord_id}'" ;
+		$emailsrc_filerecord_id = $_opDB->query_uniqueValue($query) ;
+		
+		if( $email_row && $emailsrc_filerecord_id ) {} else {
+			break ;
+		}
+		
+		$media_id = media_bin_toolFile_getId('EMAIL_SOURCE',$emailsrc_filerecord_id) ;
+		$email_bin = media_bin_getBinary($media_id) ;
+		
+		$success = Email::sendMail($email_bin) ;
+		if( !$success ) {
+			echo $emailsrc_filerecord_id ;
+		}
+		
+		break ;
+	}
+	
+	if( $success ) {
+		// TODO : IMAP append
+		$ttmp = specRsiRecouveo_cfg_getConfig() ;
+		$cfg_email = $ttmp['data']['cfg_email'] ;
+		
+		
+		$msg_uid ;
+		$query = "UPDATE view_file_EMAIL SET field_SRV_IS_SENT='1', field_SRV_UID='{$msg_uid}' WHERE filerecord_id='$email_filerecord_id'" ;
+		$_opDB->query( $query ) ;
+	} else {
+		$query = "UPDATE view_file_EMAIL SET field_SRV_IS_SENT='0' WHERE filerecord_id='$email_filerecord_id'" ;
+		$_opDB->query( $query ) ;
+	}
+	
+	media_contextClose() ;
 }
 
 
@@ -550,6 +619,8 @@ function specRsiRecouveo_lib_mail_createEmailForAction( $email_record, $fileacti
 	media_contextOpen( $_sdomain_id ) ;
 	media_bin_move( $tmp_media_id , media_bin_toolFile_getId('EMAIL_SOURCE',$emailsrc_filerecord_id) ) ;
 	media_contextClose() ;
+	
+	specRsiRecouveo_lib_mail_doSend($email_filerecord_id) ;
 	
 	return $email_filerecord_id ;
 }
