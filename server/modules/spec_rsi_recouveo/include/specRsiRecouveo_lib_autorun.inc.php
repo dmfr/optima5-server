@@ -522,6 +522,7 @@ function specRsiRecouveo_lib_autorun_processInboxDoc($inpostal_filerecord_id) {
 			
 			$arr_ins = array() ;
 			$arr_ins['field_LINK_MAILIN'] = $src['field_OPT_MAILIN'] ;
+			$arr_ins['field_TXT'] = trim($fileaction_dbrow['field_TXT'])."\n".$cfg_mailin['text'].' reçu le '.date('d/m/Y',strtotime($src['field_DATE_RECEP'])) ;
 			paracrm_lib_data_updateRecord_file( 'FILE_ACTION', $arr_ins, $fileaction_filerecord_id);
 			
 			$arr_ins = array() ;
@@ -536,6 +537,9 @@ function specRsiRecouveo_lib_autorun_processInboxDoc($inpostal_filerecord_id) {
 			$recep_adr = $_opDB->query_uniqueValue($query) ;
 			$ttmp = explode("\n",$recep_adr,2) ;
 			$adr_txt = mysql_real_escape_string($ttmp[1]) ;
+			// strip first line (=name)
+			$adr_txt = preg_replace('/^.+\n/', '', $adr_txt);
+			// query select
 			$query = "SELECT ae.filerecord_id FROM view_file_ADRBOOK_ENTRY ae
 					JOIN view_file_ADRBOOK a ON a.filerecord_id=ae.filerecord_parent_id
 					WHERE a.field_ACC_ID='{$src['field_REF_ACCOUNT']}'
