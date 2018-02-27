@@ -66,6 +66,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextScenarioField',{
 					case 'EMAIL' :
 						iconCls = 'op5-spec-rsiveo-action-mailout' ;
 						break ;
+					case 'SMS_OUT' :
+						iconCls = 'op5-spec-rsiveo-mail-sms' ;
+						break ;
 				}
 				var footerClass ,
 					footerText = '&#160;' ;

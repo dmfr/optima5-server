@@ -110,7 +110,12 @@ switch( $post_data['_action'] )
 		return specRsiRecouveo_bank_getRecords( $post_data ) ;
 	case 'bank_setAlloc' :
 		return specRsiRecouveo_bank_setAlloc( $post_data ) ;
-		
+
+	case 'sms_doAddStore':
+		return specRsiRecouveo_sms_doAddStore( $post_data ) ;
+	case 'sms_doSendAll' :
+		return specRsiRecouveo_sms_doSendAll($_URL, $_email, $_smsapiKey, $_label, $_subType) ;
+
 	case 'mail_getMboxGrid' :
 		return specRsiRecouveo_mail_getMboxGrid( $post_data ) ;
 	case 'mail_getEmailRecord' :

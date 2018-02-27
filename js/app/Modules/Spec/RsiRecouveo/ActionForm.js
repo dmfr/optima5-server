@@ -8,6 +8,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailInPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel',
+		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusSmsOutPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextPanel',
 		
 		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusAgreeFollowPanel',
@@ -127,6 +128,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 			case 'MAIL_OUT' :
 				nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel' ;
 				hasPreview = true ;
+				break ;
+			case 'SMS_OUT' :
+				nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusSmsOutPanel'
 				break ;
 			case 'BUMP' :
 				nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusBumpPanel' ;
@@ -649,7 +653,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 				emailRecordData = emailRecord.getData(true) ;
 			postData['email_record'] = emailRecordData ;
 		}
-		
+
+		if( this.getCurrentAction()['action_id'] == 'SMS_OUT' ) {
+			var postDataObj = form.getValues(false,false,false,true) ;
+			Ext.apply(postDataObj,{
+				file_filerecord_id: this._fileRecord.get('file_filerecord_id')
+			}) ;
+		}
+
 		if( errors.length > 0 ) {
 			Ext.MessageBox.alert('Erreur',errors.join('<br>')) ;
 			return ;

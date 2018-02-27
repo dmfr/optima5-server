@@ -571,7 +571,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 									} else {
 										formParams['adrtel_filerecord_id'] = record.get('adrbookentry_filerecord_id') ;
 									}
-									this.handleNewAction('MAIL_OUT',formParams) ;
+									this.handleNewAction('SMS_OUT',formParams) ;
 								},
 								scope: this,
 								disabledCls: 'x-item-invisible',
@@ -1363,6 +1363,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 									break dance ;
 								case 'EMAIL_OUT' :
 									metaData.tdCls += ' op5-spec-rsiveo-actiontree-mailout' ;
+									break dance ;
+								case 'SMS_OUT' :
+									metaData.tdCls += 'op5-spec-rsiveo-mail-sms' ;
 									break dance ;
 								default :
 									break ;

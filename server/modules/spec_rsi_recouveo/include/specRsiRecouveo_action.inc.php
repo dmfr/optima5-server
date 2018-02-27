@@ -219,7 +219,30 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 			$arr_ins['field_LINK_TPL'] = $post_form['tpl_id'] ;
 			$arr_ins['field_TXT'] = $txt ;
 			break ;
-			
+
+
+
+		case 'SMS_OUT' :
+			if( !specRsiRecouveo_sms_doAddStore($post_tel, $post_content) ) {
+				return array('success'=>false) ;
+			}
+
+			$txt = '' ;
+			if( $post_form['adrtel_entity_name'] ) {
+				$txt.= "Nom : ".$post_form['adrtel_entity_name']."\r\n" ;
+			}
+
+			if ( $post_form['adrtel_txt'] ) {
+				$txt.="Numéro: ".$post_form['adrtel_txt']."\r\n" ;
+			}
+
+			if ( $post_form['sms_content'] ) {
+				$txt.="Contenu: ".$post_form['sms_content']."\r\n" ;
+			}
+
+			$arr_ins['field_TXT'] = $txt ;
+			break ;
+
 		case 'EMAIL_OUT' :
 			if( !specRsiRecouveo_lib_mail_buildEmail($post_form['email_record'], $test_mode=true) ) {
 				return array('success'=>false) ;
@@ -540,6 +563,14 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 			paracrm_lib_data_updateRecord_file( 'FILE_ACTION', $arr_ins, $fileaction_filerecord_id);
 		}
 	}
+
+	if( $post_form['link_action']=='SMS_OUT') {
+		// ****** Création sms ************
+		$_tel = $post_form['adrtel_txt'] ;
+		$_smsContent = $post_form['sms_content'] ;
+		specRsiRecouveo_sms_doAddStore($_tel, $_smsContent) ;
+	}
+
 	if( $post_form['link_action']=='MAIL_OUT' ) {
 		// ******** Création enveloppe ? **********
 		$envDocs = array() ;

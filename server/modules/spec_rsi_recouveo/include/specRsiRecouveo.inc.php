@@ -8,7 +8,7 @@ include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_recordgr
 include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_bank.inc.php") ;
 include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_report.inc.php") ;
 include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_mail.inc.php") ;
-
+include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_lib_sms.inc.php") ;
 include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_xls.inc.php") ;
 
 include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_dev.inc.php") ;
