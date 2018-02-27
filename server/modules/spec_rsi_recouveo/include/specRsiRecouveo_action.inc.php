@@ -223,7 +223,7 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 
 
 		case 'SMS_OUT' :
-			if( !specRsiRecouveo_sms_doAddStore($post_tel, $post_content) ) {
+			if( !specRsiRecouveo_lib_sms_createSmsForAction($post_tel, $post_content, $sms_filerecord_id, $test_mode=true) ) {
 				return array('success'=>false) ;
 			}
 
@@ -568,7 +568,15 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 		// ****** Création sms ************
 		$_tel = $post_form['adrtel_txt'] ;
 		$_smsContent = $post_form['sms_content'] ;
-		specRsiRecouveo_sms_doAddStore($_tel, $_smsContent) ;
+		$fileaction_filerecord_id ;
+		$sms_filerecord_id = specRsiRecouveo_lib_sms_createSmsForAction($_tel, $_smsContent, $fileaction_filerecord_id) ;
+		if ($sms_filerecord_id) {
+			$arr_ins = array() ;
+			$arr_ins['field_LINK_MEDIA_FILECODE'] = 'SMS_OUT' ;
+			$arr_ins['field_LINK_MEDIA_FILEID'] = $sms_filerecord_id ;
+
+			paracrm_lib_data_updateRecord_file( 'FILE_ACTION', $arr_ins, $fileaction_filerecord_id);
+		}
 	}
 
 	if( $post_form['link_action']=='MAIL_OUT' ) {

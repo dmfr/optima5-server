@@ -1,12 +1,12 @@
 <?php
 
-function specRsiRecouveo_sms_doSendAll($_URL, $_email, $_smsapiKey, $_label, $_subType){
+function specRsiRecouveo_lib_sms_sendSmsEnvoi($_URL, $_email, $_smsapiKey, $_label, $_subType){
 
 	global $_opDB ;
 
 	$arr_sms = array() ;
 
-	$query = "SELECT filerecord_id FROM view_file_sms WHERE field_SENT ='0' ORDER BY filerecord_id" ;
+	$query = "SELECT filerecord_id FROM view_file_SMS WHERE field_TRSPT_STATUS ='0' ORDER BY filerecord_id" ;
 	$result = $_opDB->query($query) ;
 
 	while( (($arr = $_opDB->fetch_row($result)) != FALSE ) ) {
@@ -20,16 +20,12 @@ function specRsiRecouveo_sms_doSendAll($_URL, $_email, $_smsapiKey, $_label, $_s
 
 	foreach( $arr_sms as $sms_filerecord_id ) {
 
-			$queryTel = "SELECT field_SMS_RECEP_NUM FROM view_file_SMS WHERE filerecord_id = '{$sms_filerecord_id}' ";
-			$resultTel = $_opDB->query($queryTel) ;
-			$_telTab = $_opDB->fetch_assoc($resultTel) ;
+			$query = "SELECT * FROM view_file_SMS WHERE filerecord_id = '{$sms_filerecord_id}' ";
+			$result = $_opDB->query($query) ;
+			$arr = $_opDB->fetch_assoc($result) ;
 
-			$queryMsg = "SELECT field_SMS_CONTENT FROM view_file_SMS WHERE filerecord_id = '{$sms_filerecord_id}' " ;
-			$resultMsg = $_opDB->query($queryMsg) ;
-			$_msgTab = $_opDB->fetch_assoc($resultMsg) ;
-
-			$_tel = $_telTab[field_SMS_RECEP_NUM];
-			$_msg = $_msgTab[field_SMS_CONTENT];
+			$_tel = $arr['field_SMS_RECEP_NUM'];
+			$_msg = $arr['field_SMS_TEXT'];
 
 			$_recipient = $_tel ;
 			$_msgContent = $_msg ;
@@ -43,15 +39,15 @@ function specRsiRecouveo_sms_doSendAll($_URL, $_email, $_smsapiKey, $_label, $_s
 			$fields['message']['senderlabel']= $_label ;
 
 
-			$reponse = specRsiRecouveo_sms_doPostSmsRequest($_URL,http_build_query($fields)) ;
+			$reponse = specRsiRecouveo_lib_sms_postSmsRequest($_URL,http_build_query($fields)) ;
 
 			$reponseDecode = json_decode($reponse,true) ;
 
-
-
-			if( $reponseDecode[success] == 1 ) {
+			if( $reponseDecode['success'] == 1 ) {
 				$arr_ins = array() ;
-				$arr_ins['field_SENT'] = 1 ;
+				$arr_ins['field_TRSPT_STATUS'] = 1 ;
+				$arr_ins['field_TRSPT_CODE'] = 'SMS ENVOI' ;
+				$arr_ins['field_TRSPT_TRACK'] = $reponseDecode['message_id'] ;
 				paracrm_lib_data_updateRecord_file( 'SMS' , $arr_ins, $sms_filerecord_id ) ;
 			}
 
@@ -60,27 +56,30 @@ function specRsiRecouveo_sms_doSendAll($_URL, $_email, $_smsapiKey, $_label, $_s
 
 }
 
-function specRsiRecouveo_sms_doAddStore($post_tel, $post_content) {
+function specRsiRecouveo_lib_sms_createSmsForAction($post_tel, $post_content, $fileaction_filerecord_id, $test_mode=FALSE) {
 	global $_opDB;
 
   $_numTel = $post_tel;
   $_smsContent = $post_content;
 
-  $rInsert = "INSERT INTO view_file_sms (field_SMS_CONTENT, field_SMS_RECEP_NUM, field_SENT) VALUES ('$_smsContent', '$_numTel', 0)";
-  $message = $_opDB->query($rInsert) ;
+	$arr_ins = array() ;
+	$arr_ins['field_SMS_DATE'] = date('Y-m-d H:i:s') ;
+	$arr_ins['field_SMS_RECEP_NUM'] = $_numTel ;
+	$arr_ins['field_SMS_TEXT'] = $_smsContent ;
+	$arr_ins['field_TRSPT_STATUS'] = 0 ;
+	$arr_ins['field_TRSPT_CODE'] = 'SMS ENVOI' ;
+	$arr_ins['field_LINK_IS_ON'] = 1 ;
+	$arr_ins['field_LINK_FILE_ACTION_ID'] = $fileaction_filerecord_id ;
 
-  $json = array(
-    'success'=>true,
-    'data'=>array(
-      'numTel'=>$_numTel,
-      'smsContent'=>$_smsContent,
-    )
-  ) ;
+	if ( $test_mode ){
+		return TRUE ;
+	}
+	$sms_filerecord_id = paracrm_lib_data_insertRecord_file( 'SMS', 0, $arr_ins ) ;
+	return $sms_filerecord_id;
 
-  return $json;
 }
 
-function specRsiRecouveo_sms_doPostSmsRequest($url, $data, $optional_headers = null){
+function specRsiRecouveo_lib_sms_postSmsRequest($url, $data, $optional_headers = null){
   $params = array('http' => array(
               'method' => 'POST',
               'content' => $data
@@ -100,3 +99,4 @@ function specRsiRecouveo_sms_doPostSmsRequest($url, $data, $optional_headers = n
   }
   return $response;
 }
+?>
