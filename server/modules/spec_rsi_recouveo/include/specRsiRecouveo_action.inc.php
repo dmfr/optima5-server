@@ -643,8 +643,8 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 			$arr_ins['field_LINK_MEDIA_FILEID'] = $post_form['inpostal_filerecord_id'] ;
 			paracrm_lib_data_updateRecord_file( 'FILE_ACTION', $arr_ins, $fileaction_filerecord_id);
 		}
-		
-		
+	}
+	if( in_array($post_form['link_action'], array('EMAIL_IN','LITIG_FOLLOW')) ) {
 		if( $post_form['email_filerecord_id'] ) {
 			$arr_ins = array() ;
 			$arr_ins['field_LINK_MEDIA_FILECODE'] = 'EMAIL' ;

@@ -63,7 +63,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextScenarioField',{
 					case 'BUMP' :
 						iconCls = 'op5-spec-rsiveo-action-bump' ;
 						break ;
-					case 'EMAIL' :
+					case 'EMAIL_OUT' :
 						iconCls = 'op5-spec-rsiveo-action-mailout' ;
 						break ;
 					case 'SMS_OUT' :

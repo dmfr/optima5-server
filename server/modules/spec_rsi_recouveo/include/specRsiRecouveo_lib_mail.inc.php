@@ -87,6 +87,8 @@ function specRsiRecouveo_lib_mail_sync() {
 	}
 	media_contextClose() ;
 	
+	specRsiRecouveo_lib_mail_probeInboxEmail() ;
+	
 	
 	$mbox = 'OUTBOX' ;
 	$arr_emailFilerecordIds = array() ;
@@ -107,10 +109,70 @@ function specRsiRecouveo_lib_mail_sync() {
 	}
 	
 	
-	
-	media_contextClose() ;
-	
 	return ;
+}
+function specRsiRecouveo_lib_mail_probeInboxEmail( $email_filerecord_id=NULL ) {
+	global $_opDB ;
+	$mbox = 'INBOX' ;
+	
+	if( !$email_filerecord_id ) {
+		$arr_emailFilerecordIds = array() ;
+		$query = "SELECT filerecord_id FROM view_file_EMAIL WHERE field_MBOX='{$mbox}' AND field_LINK_IS_ON<>'1'" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$arr_emailFilerecordIds[] = $arr[0] ;
+		}
+		foreach( $arr_emailFilerecordIds as $email_filerecord_id ) {
+			specRsiRecouveo_lib_mail_probeInboxEmail($email_filerecord_id) ;
+		}
+	}
+	
+	/*
+	Règles d'analyse
+	- sujet du mail : match 1-1
+	- expéditeur: en contact privilégié
+	- unique dans un seul contact
+	*/
+	$query = "SELECT * FROM view_file_EMAIL WHERE filerecord_id='{$email_filerecord_id}'" ;
+	$result = $_opDB->query($query) ;
+	$email_db = $_opDB->fetch_assoc($result) ;
+	if( !$email_db || ($email_db['field_MBOX']!=$mbox) || ($email_db['field_LINK_IS_ON']) ) {
+		return FALSE ;
+	}
+	$fromSubject = $email_db['field_SUBJECT'] ;
+	$fromAdr = strtolower($email_db['field_EMAIL_PEER']) ;
+	
+	if( $file_filerecord_id = specRsiRecouveo_lib_mail_decodeSubject($fromSubject) ) {
+		$ttmp = specRsiRecouveo_file_getRecords( array(
+			'filter_fileFilerecordId_arr' => json_encode(array($file_filerecord_id))
+		)) ;
+		if( count($ttmp['data'])==1 ) {
+			$file_record = $ttmp['data'][0] ;
+			$acc_id = $file_record['acc_id'] ;
+			specRsiRecouveo_lib_mail_associateFile( $email_filerecord_id, $acc_id, NULL, $file_filerecord_id ) ;
+			return TRUE ;
+		}
+	}
+	
+	foreach( array(1,0) as $check_priority ) {
+		$query = "SELECT distinct a.field_ACC_ID
+					FROM view_file_ADRBOOK a
+					JOIN view_file_ADRBOOK_ENTRY ae ON ae.filerecord_parent_id=a.filerecord_id
+					WHERE field_ADR_TYPE='EMAIL' AND LOWER(field_ADR_TXT)='$fromAdr'
+					AND field_STATUS_IS_INVALID<>'1'";
+		if( $check_priority ) {
+			$query.= " AND field_STATUS_IS_PRIORITY='1'" ;
+		}
+		$result = $_opDB->query($query) ;
+		if( $_opDB->num_rows($result)==1 ) {
+			$arr = $_opDB->fetch_row($result) ;
+			$acc_id = $arr[0] ;
+			specRsiRecouveo_lib_mail_associateFile( $email_filerecord_id, $acc_id, NULL, NULL ) ;
+			return TRUE ;
+		}
+	}
+	
+	return FALSE ;
 }
 function specRsiRecouveo_lib_mail_doSend($email_filerecord_id) {
 	global $_opDB ;
@@ -208,6 +270,9 @@ function specRsiRecouveo_lib_mail_associateFile( $src_emailFilerecordId, $target
 	$account_record = $ttmp['data'] ;
 	
 	while( TRUE ) {
+		if( !$target_adrbookEntity ) {
+			break ;
+		}
 		$target_adrbookFilerecordId = NULL ;
 		foreach( $account_record['adrbook'] as $adrbook_record ) {
 			if( $adrbook_record['adr_entity'] != $target_adrbookEntity ) {
@@ -241,6 +306,16 @@ function specRsiRecouveo_lib_mail_associateFile( $src_emailFilerecordId, $target
 		break ;
 	}
 	
+	if( $target_fileFilerecordId ) {
+		foreach( $account_record['files'] as $accountFile_record ) {
+			if( $accountFile_record['file_filerecord_id'] == $target_fileFilerecordId ) {
+				$target_file_record = $accountFile_record ;
+				if( $accountFile_record['status_closed_void'] || $accountFile_record['status_closed_end'] ) {
+					unset($target_fileFilerecordId) ;
+				}
+			}
+		}
+	}
 	if( !$target_fileFilerecordId ) {
 			foreach( $account_record['files'] as $accountFile_record ) {
 				if( $accountFile_record['status_closed_void'] || $accountFile_record['status_closed_end'] ) {
@@ -269,7 +344,7 @@ function specRsiRecouveo_lib_mail_associateFile( $src_emailFilerecordId, $target
 		
 		$forward_post = array() ;
 		$forward_post['link_status'] = $target_file_record['status'] ;
-		$forward_post['link_action'] = 'MAIL_IN' ;
+		$forward_post['link_action'] = 'EMAIL_IN' ;
 		$forward_post['email_filerecord_id'] = $src_emailFilerecordId ;
 		
 		$post_data = array(
@@ -543,6 +618,19 @@ function specRsiRecouveo_lib_mail_processSubject( $subject, $file_filerecord_id 
 	$tag = "[#{$file_filerecord_id}{$ctrlchar}]" ;
 	
 	return $tag.' '.trim($subject) ;
+}
+function specRsiRecouveo_lib_mail_decodeSubject( $subject ) {
+//preg_match('@^(?:http://)?([^/]+)@i',"http://www.php.net/index.html", $matches);
+	preg_match("/\[\#(.+?)\]/",$subject,$match) ;
+	if( !$match ) {
+		return NULL ;
+	}
+	$ttmp = $match[1] ;
+	$file_filerecord_id = substr($ttmp,0,strlen($ttmp)-1) ;
+	if( md5((string)$file_filerecord_id)[0] == substr($ttmp,-1) ) {
+		return $file_filerecord_id ;
+	}
+	return NULL ;
 }
 
 function specRsiRecouveo_lib_mail_getBanner( $file_filerecord_id ) {
