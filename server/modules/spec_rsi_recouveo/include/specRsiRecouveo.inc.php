@@ -205,10 +205,12 @@ function specRsiRecouveo_cfg_getConfig() {
 			'tpl_name' => $arr['field_TPL_NAME'],
 			'tpl_group' => $arr['treenode_key'],
 			'manual_is_on' => $arr['field_MANUAL_IS_ON'],
-			'input_fields_json' => $arr['field_INPUT_FIELDS']
+			'input_fields_json' => $arr['field_INPUT_FIELDS'],
+			'html_body' => $arr['field_HTML_BODY'],
+			'html_title' => $arr['field_HTML_TITLE']
 		) ;
 	}
-	
+
 	$TAB_list_atr = array() ;
 	$TAB_list_opt = array() ;
 	$TAB_soc = NULL ;

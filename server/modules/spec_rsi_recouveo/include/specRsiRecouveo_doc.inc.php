@@ -21,6 +21,7 @@ function specRsiRecouveo_doc_cfg_getTpl( $post_data ) {
 		$data[] = array(
 			'tpl_id' => $arr['field_TPL_ID'],
 			'tpl_name' => $arr['field_TPL_NAME'],
+			'manual_is_on' => $arr['field_MANUAL_IS_ON'],
 			'html_src_file' => $arr['field_HTML_SRC_FILE'],
 			'html_payment_file' => $arr['field_HTML_PAYMENT_FILE'],
 			'html_signature_file' => $arr['field_HTML_SIGNATURE_FILE'],
@@ -30,111 +31,119 @@ function specRsiRecouveo_doc_cfg_getTpl( $post_data ) {
 		);
 	}
 	if( !$p_tplBinary ) {
-		return array('success'=>true, 'data'=>$data) ; 
+		return array('success'=>true, 'data'=>$data) ;
 	}
-	
-	foreach( $data as &$data_row ) {
-		$inputFileName = $templates_dir.'/'.$data_row['html_src_file'] ;
-		$inputBinary = file_get_contents($inputFileName) ;
-		
-		$doc = new DOMDocument();
-		@$doc->loadHTML($inputBinary);
-		$elements = $doc->getElementsByTagName('qbook-value');
-		$i = $elements->length - 1;
-		while ($i > -1) {
-			$node_qbookValue = $elements->item($i); 
-			$i--; 
-			
-			$val = '' ;
-			$src_value = $node_qbookValue->attributes->getNamedItem('src_value')->value ;
-			switch( $src_value ) {
-				case 'body_content' :
-				$new_node = $doc->createCDATASection($data_row['html_body']) ;
-				$node_qbookValue->parentNode->replaceChild($new_node,$node_qbookValue) ;
-				break ;
-				
-				case 'body_title' :
-				$new_node = $doc->createCDATASection($data_row['html_title']) ;
-				$node_qbookValue->parentNode->replaceChild($new_node,$node_qbookValue) ;
-				break ;
-				
-				case 'body_signature' :
-				$inputFileName = $templates_dir.'/'.$data_row['html_signature_file'] ;
-				$inputBinary = file_get_contents($inputFileName) ;
-				$new_node = $doc->createCDATASection($inputBinary) ;
-				$node_qbookValue->parentNode->replaceChild($new_node,$node_qbookValue) ;
-				break ;
-				
-				case 'body_footer' :
-				$inputFileName = $templates_dir.'/'.$data_row['html_footer_file'] ;
-				$inputBinary = file_get_contents($inputFileName) ;
-				$new_node = $doc->createCDATASection($inputBinary) ;
-				$node_qbookValue->parentNode->replaceChild($new_node,$node_qbookValue) ;
-				break ;
-				
-				default :
-				break ;
-			}
-		}
-		
-		$html = $doc->saveHTML() ;
-		
-		// Parse new nested nodes
-		$doc = new DOMDocument();
-		@$doc->loadHTML($html);
-		
-		specRsiRecouveo_doc_populateStatic($doc) ;
-		
-		$elements = $doc->getElementsByTagName('qbook-value');
-		$i = $elements->length - 1;
-		while ($i > -1) {
-			$node_qbookValue = $elements->item($i); 
-			$i--; 
-			
-			$val = '' ;
-			$src_value = $node_qbookValue->attributes->getNamedItem('src_value')->value ;
-			switch( $src_value ) {
-				case 'payment_div' :
-				$paymentFileName = $templates_dir.'/'.$data_row['html_payment_file'] ;
-				$paymentBinary = file_get_contents($paymentFileName) ;
-				$html_payment = specRsiRecouveo_doc_getHtmlPayment($paymentBinary) ;
-				$new_node = $doc->createCDATASection($html_payment) ;
-				$node_qbookValue->parentNode->replaceChild($new_node,$node_qbookValue) ;
-				break ;
-				
-				default :
-				break ;
-			}
-		}
-		
-		$data_row['tpl_html'] = $doc->saveHTML() ;
-	}
-	unset($data_row) ;
+
 	return array('success'=>true, 'data'=>$data) ;
 }
-function specRsiRecouveo_doc_populateStatic( $doc ) {
-	// Load config
-	$json = specRsiRecouveo_config_loadMeta(array()) ;
-	$config_map = $json['data'] ;
+function specRsiRecouveo_doc_buildTemplate(&$tplData){
+
+	$app_root = $GLOBALS['app_root'] ;
+	$resources_root=$app_root.'/resources' ;
+	$templates_dir=$resources_root.'/server/templates' ;
 	
-	// Apply static parameters
-	$map_mkey_value = array(
-		'static_entity_name' => nl2br($config_map['gen_entity_name']),
-		'static_entity_adr' => nl2br($config_map['gen_entity_adr']),
-		
-		'static_ext_recouv' => $config_map['gen_ext_recouv'],
-		'static_ext_avocat' => $config_map['gen_ext_avocat'],
-		
-		'static_mail_footer' => $config_map['gen_mail_footer']
-	);
+	$inputFileName = $templates_dir.'/'.$tplData['html_src_file'] ;
+	$inputBinary = file_get_contents($inputFileName) ;
+
+	$doc = new DOMDocument();
+	@$doc->loadHTML($inputBinary);
+	$elements = $doc->getElementsByTagName('qbook-value');
+	$i = $elements->length - 1;
+	while ($i > -1) {
+		$node_qbookValue = $elements->item($i);
+		$i--;
+
+		$val = '' ;
+		$src_value = $node_qbookValue->attributes->getNamedItem('src_value')->value ;
+		switch( $src_value ) {
+			case 'body_content' :
+			$new_node = $doc->createCDATASection($tplData['html_body']) ;
+			$node_qbookValue->parentNode->replaceChild($new_node,$node_qbookValue) ;
+			break ;
+			
+			case 'body_title' :
+			$new_node = $doc->createCDATASection($tplData['html_title']) ;
+			$node_qbookValue->parentNode->replaceChild($new_node,$node_qbookValue) ;
+			break ;
+			
+			case 'body_signature' :
+			$inputFileName = $templates_dir.'/'.$tplData['html_signature_file'] ;
+			$inputBinary = file_get_contents($inputFileName) ;
+			$new_node = $doc->createCDATASection($inputBinary) ;
+			$node_qbookValue->parentNode->replaceChild($new_node,$node_qbookValue) ;
+			break ;
+			
+			case 'body_footer' :
+			$inputFileName = $templates_dir.'/'.$tplData['html_footer_file'] ;
+			$inputBinary = file_get_contents($inputFileName) ;
+			$new_node = $doc->createCDATASection($inputBinary) ;
+			$node_qbookValue->parentNode->replaceChild($new_node,$node_qbookValue) ;
+			break ;
+			
+			default :
+			break ;
+		}
+	}
 	
-	// Replace
+	$html = $doc->saveHTML() ;
+	
+	// Parse new nested nodes
+	$doc = new DOMDocument();
+	@$doc->loadHTML($html);
+	
+	specRsiRecouveo_doc_populateStatic($doc) ;
+	
 	$elements = $doc->getElementsByTagName('qbook-value');
 	$i = $elements->length - 1;
 	while ($i > -1) {
 		$node_qbookValue = $elements->item($i); 
 		$i--; 
 		
+		$val = '' ;
+		$src_value = $node_qbookValue->attributes->getNamedItem('src_value')->value ;
+		switch( $src_value ) {
+			case 'payment_div' :
+			$paymentFileName = $templates_dir.'/'.$tplData['html_payment_file'] ;
+			$paymentBinary = file_get_contents($paymentFileName) ;
+			$html_payment = specRsiRecouveo_doc_getHtmlPayment($paymentBinary) ;
+			$new_node = $doc->createCDATASection($html_payment) ;
+			$node_qbookValue->parentNode->replaceChild($new_node,$node_qbookValue) ;
+			break ;
+
+			default :
+			break ;
+		}
+	}
+
+	$tplData['tpl_html'] = $doc->saveHTML() ;
+
+	return $tplData['tpl_html'] ;
+}
+
+
+function specRsiRecouveo_doc_populateStatic( $doc ) {
+	// Load config
+	$json = specRsiRecouveo_config_loadMeta(array()) ;
+	$config_map = $json['data'] ;
+
+	// Apply static parameters
+	$map_mkey_value = array(
+		'static_entity_name' => nl2br($config_map['gen_entity_name']),
+		'static_entity_adr' => nl2br($config_map['gen_entity_adr']),
+
+		'static_ext_recouv' => $config_map['gen_ext_recouv'],
+		'static_ext_avocat' => $config_map['gen_ext_avocat'],
+
+		'static_mail_footer' => $config_map['gen_mail_footer']
+	);
+
+	// Replace
+	$elements = $doc->getElementsByTagName('qbook-value');
+	$i = $elements->length - 1;
+	while ($i > -1) {
+		$node_qbookValue = $elements->item($i);
+		$i--;
+
 		$val = '' ;
 		$src_value = $node_qbookValue->attributes->getNamedItem('src_value')->value ;
 		//echo $src_value."\n" ;
@@ -392,96 +401,105 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE ) {
 			$agree_data[] = $row_table ;
 		}
 	}
-	
-	
-	
-	
-	
-	
-	
-	
-	// ************ TEMPLATE ***********************	
+
+
+
+
+
+
+
+
+	// ************ TEMPLATE ***********************
+
 	$ttmp = specRsiRecouveo_doc_cfg_getTpl( array(
 		'tpl_id' => $p_tplId,
 		'load_binary' => true
 	)) ;
-	$data_row = $ttmp['data'][0] ;
-	$inputTitle = $data_row['tpl_name'];
-	$inputBinary = $data_row['tpl_html'];
+	$tplData = $ttmp['data'][0] ;
+	if( $tplData['manual_is_on'] ) {
+		$tplData['html_body'] = $p_inputFields['input_html'] ;
+		$tplData['html_title'] = $p_inputFields['input_title'] ;
+	}
 	
+	$tplHtml = specRsiRecouveo_doc_buildTemplate($tplData) ;
+
+	$inputTitle = $tplData['tpl_name'];
+	$inputBinary = $tplHtml;
+
 	$doc = new DOMDocument();
 	@$doc->loadHTML($inputBinary);
-	
+
 	$elements = $doc->getElementsByTagName('qbook-value');
 	$i = $elements->length - 1;
 	while ($i > -1) {
-		$node_qbookValue = $elements->item($i); 
-		$i--; 
-		
+		$node_qbookValue = $elements->item($i);
+		$i--;
+
 		$val = '' ;
 		$src_value = $node_qbookValue->attributes->getNamedItem('src_value')->value ;
 		if( $map_mkey_value[$src_value] ) {
 			$val = $map_mkey_value[$src_value] ;
 		}
-		
+
 		$new_node = $doc->createCDATASection($val) ;
 		$node_qbookValue->parentNode->replaceChild($new_node,$node_qbookValue) ;
 	}
-	
-	
+
+
 	$elements = $doc->getElementsByTagName('qbook-table');
 	$i = $elements->length - 1;
 	while ($i > -1) {
-		$node_qbookTable = $elements->item($i); 
-		$i--; 
-		
+		$node_qbookTable = $elements->item($i);
+		$i--;
+
 		switch( $node_qbookTable->attributes->getNamedItem('src_value')->value ) {
 			case 'records' :
 			$table_html = paracrm_queries_template_makeTable($table_columns,$table_data,$table_datafoot) ;
 			break ;
-			
+
 			case 'agree' :
 			$table_html = paracrm_queries_template_makeTable($agree_columns,$agree_data) ;
 			break ;
 		}
-		
+
 		//echo $table_html ;
 		$dom_table = new DOMDocument();
 		$dom_table->loadHTML( '<?xml encoding="UTF-8"><html>'.$table_html.'</html>' ) ;
 		$node_table = $dom_table->getElementsByTagName("table")->item(0);
-		
+
 		$table_attr = $dom_table->createAttribute("class") ;
 		$table_attr->value = 'invoicewidth tabledonnees' ;
 		$node_table->appendChild($table_attr) ;
-		
+
 		$node_table = $doc->importNode($node_table,true) ;
-		
+
 		$node_qbookTable->parentNode->replaceChild($node_table,$node_qbookTable) ;
 	}
-	
-	
+
+
 	$filename = preg_replace("/[^a-zA-Z0-9]/", "",'PRINT').'.pdf' ;
-	
-	
+
+
 	if( $real_mode ) {
 		//store doc
-		
-		
+
+
 	}
-	
+
+
 	$binary_html = $doc->saveHTML() ;
 	$binary_pdf = specRsiRecouveo_util_htmlToPdf_buffer($binary_html) ;
-	
+
 	media_contextOpen( $_POST['_sdomainId'] ) ;
-	
+
 	$pdf_path = tempnam( sys_get_temp_dir(), "FOO");
 	rename($pdf_path,$pdf_path.'.pdf') ;
 	$pdf_path.= '.pdf' ;
 	file_put_contents($pdf_path,$binary_pdf) ;
 	$media_id = media_pdf_processUploaded( $pdf_path, 'PRINT.PDF' ) ;
 	unlink($pdf_path) ;
-	
-	
+
+
 	$json = specRsiRecouveo_config_loadMeta(array()) ;
 	$config_map = $json['data'] ;
 	//media_pdf_delete($media_id) ;

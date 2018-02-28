@@ -38,11 +38,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel',{
 						model: 'RsiRecouveoCfgTemplateModel',
 						data: Optima5.Modules.Spec.RsiRecouveo.HelperCache.getTemplateAll()
 					},
+
 					queryMode: 'local',
 					displayField: 'tpl_name',
 					valueField: 'tpl_id',
 					listeners: {
-						select: function(cmb,record) {
+						change: function(cmb,value) {
+							var record = cmb.getStore().getById(value) ;
 							this.onTplChange(record) ;
 						},
 						scope: this
@@ -52,90 +54,29 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel',{
 				xtype: 'container',
 				layout: {
 					type: 'hbox',
-					align: 'begin'
+					align: 'stretch'
 				},
 				items: [{
-					xtype: 'container',
-					flex: 1,
-					layout: {
-						type: 'anchor'
-					},
-					defaults: {
-						anchor: '100%'
-					},
-					items: [{
 						xtype: 'fieldset',
-						layout: {
-							type: 'anchor'
-						},
+						flex: 1,
 						defaults: {
 							anchor: '100%'
 						},
-						checkboxToggle: true,
-						collapsed: true, // fieldset initially collapsed
 						itemId: 'fsAdrPost',
 						title: 'Envoi postal',
 						items: Ext.create('Optima5.Modules.Spec.RsiRecouveo.AdrbookTypeContainer',{
 							//xtype: 'container',
 							itemId: 'cntAdrPost',
-							
+
 							optimaModule: this.optimaModule,
 							_accountRecord : this._accountRecord,
-							
+
 							_adrType: 'POSTAL',
 							_showNew: true,
 							_showResult: false,
 							_showValidation: false
 						})
-					},{
-						xtype: 'fieldset',
-						layout: {
-							type: 'anchor'
-						},
-						defaults: {
-							anchor: '100%'
-						},
-						checkboxToggle: true,
-						collapsed: true, // fieldset initially collapsed
-						itemId: 'fsAdrTel',
-						title: 'SMS',
-						items: Ext.create('Optima5.Modules.Spec.RsiRecouveo.AdrbookTypeContainer',{
-							//xtype: 'container',
-							itemId: 'cntAdrTel',
-							
-							optimaModule: this.optimaModule,
-							_accountRecord : this._accountRecord,
-							
-							_adrType: 'TEL',
-							_showNew: true,
-							_showResult: false,
-							_showValidation: false
-						})
-					},{
-						xtype: 'fieldset',
-						layout: {
-							type: 'anchor'
-						},
-						defaults: {
-							anchor: '100%'
-						},
-						checkboxToggle: true,
-						collapsed: true, // fieldset initially collapsed
-						itemId: 'fsAdrMail',
-						title: 'Email',
-						items: Ext.create('Optima5.Modules.Spec.RsiRecouveo.AdrbookTypeContainer',{
-							//xtype: 'container',
-							itemId: 'cntAdrMail',
-							
-							optimaModule: this.optimaModule,
-							_accountRecord : this._accountRecord,
-							
-							_adrType: 'EMAIL',
-							_showNew: true,
-							_showResult: false,
-							_showValidation: false
-						})
-					}]
+
 				},{
 					xtype: 'box',
 					width: 16
@@ -173,26 +114,48 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel',{
 						})]
 					}]
 				}]
+			},{
+				xtype: 'textfield',
+				fieldLabel: 'Titre',
+				itemId: 'input_title',
+				name: 'input_title'
+			},{
+				xtype: 'htmleditor',
+				enableColors: true,
+				enableAlignements: true,
+				itemId: 'input_html',
+				name: 'input_html'
 			}]
 		}) ;
-		
+
 		this.callParent() ;
 	},
-	
-	onTplChange: function(tplRecord) {
+	onTplChange: function(tplRecord){
 		var jsonFields = tplRecord.get('input_fields_json'),
 			fields = Ext.JSON.decode(jsonFields,true),
 			fsMailFieldsCnt = this.down('#fsMailFieldsCnt'),
 			fsFields = [] ;
+			
 		fsMailFieldsCnt.removeAll() ;
-		if( !Ext.isArray(fields) || fields.length==0 ) {
-			fsMailFieldsCnt.setVisible(false) ;
-			return ;
+		if( Ext.isArray(fields) ) {
+			Ext.Array.each( fields, function(fieldDefinition) {
+				fsFields.push(fieldDefinition) ;
+			}) ;
 		}
-		fsMailFieldsCnt.setVisible(true) ;
-		Ext.Array.each( fields, function(fieldDefinition) {
-			fsFields.push(fieldDefinition) ;
-		}) ;
+		fsMailFieldsCnt.setVisible( Ext.isArray(fields) && (fields.length>0) && false ) ; //Damien 28/02 , disable fsMailFieldsCnt
 		fsMailFieldsCnt.add(fsFields) ;
+		
+		 
+		var inputTitle = tplRecord.get('html_title') ;
+		var inputHtml = tplRecord.get('html_body') ;
+		var showFields = (!tplRecord || tplRecord.get('manual_is_on')) ;
+		
+		var titleField = this.down('#input_title') ;
+		titleField.setVisible(showFields) ;
+		titleField.setValue(inputTitle) ;
+		
+		var bodyField = this.down('#input_html') ;
+		bodyField.setVisible(showFields) ;
+		bodyField.setValue(inputHtml) ;
 	}
 }) ;

@@ -1365,7 +1365,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 									metaData.tdCls += ' op5-spec-rsiveo-actiontree-mailout' ;
 									break dance ;
 								case 'SMS_OUT' :
-									metaData.tdCls += 'op5-spec-rsiveo-mail-sms' ;
+									metaData.tdCls += ' op5-spec-rsiveo-mail-sms' ;
 									break dance ;
 								default :
 									break ;
