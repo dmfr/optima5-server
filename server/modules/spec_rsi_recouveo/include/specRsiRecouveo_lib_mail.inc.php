@@ -220,8 +220,14 @@ function specRsiRecouveo_lib_mail_doSend($email_filerecord_id) {
 					}
 					imap_reopen( $imap , $target_mbox ) ;
 					$target_uids_before = imap_search($imap, 'ALL', SE_UID);
+					if( !is_array($target_uids_before) ) {
+						$target_uids_before = array() ;
+					}
 					imap_append($imap, $target_mbox,$email_bin, "\\Seen");
 					$target_uids_after = imap_search($imap, 'ALL', SE_UID);
+					if( !is_array($target_uids_after) ) {
+						$target_uids_after = array() ;
+					}
 					imap_close($imap) ;
 					$new_uids = array_diff($target_uids_after,$target_uids_before) ;
 					if( count($new_uids)==1 ) {
