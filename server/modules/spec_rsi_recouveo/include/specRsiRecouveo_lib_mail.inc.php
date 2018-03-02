@@ -23,7 +23,7 @@ function specRsiRecouveo_lib_mail_sync() {
 		$password = $cfg_email_entry['server_passwd'];
 
 		/* try to connect */
-		$imap = imap_open($hostname,$username,$password) ;
+		$imap = @imap_open($hostname,$username,$password) ;
 		if( !$imap ) {
 			//echo "failed to connect/login {{$hostname}}\n" ;
 			continue ;
@@ -210,7 +210,7 @@ function specRsiRecouveo_lib_mail_doSend($email_filerecord_id) {
 				$hostname = '{'.$cfg_email_entry['server_url'].'}'.'INBOX' ;
 				$username = $cfg_email_entry['server_username'];
 				$password = $cfg_email_entry['server_passwd'];
-				if( $imap = imap_open($hostname,$username,$password) ) {
+				if( $imap = @imap_open($hostname,$username,$password) ) {
 					$mboxes = imap_list($imap,'{'.$cfg_email_entry['server_url'].'}','*') ;
 					$target_mbox = NULL ;
 					foreach( $mboxes as $mbox_test ) {
