@@ -459,6 +459,9 @@ function specRsiRecouveo_lib_mail_buildEmail( $email_record, $test_mode=FALSE ) 
 	}
 	
 	if( true ) {
+		if( !trim($email_record['body_html']) ) {
+			$email_record['body_html'] = '&#160;' ;
+		}
 		// reassemble
 		// = [banner] + blockwrite + [signature] + blockquote
 		$doc = new DOMDocument();

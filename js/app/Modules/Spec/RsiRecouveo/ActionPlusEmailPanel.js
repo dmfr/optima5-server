@@ -131,6 +131,11 @@ Ext.define('Optima5.Modules.RsiRecouveo.EmailOutDestField',{
 		if( Ext.isEmpty(cmbAdd.getValue()) ) {
 			return ;
 		}
+		var ereg = /^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/;
+		if( !ereg.test(cmbAdd.getValue()) ) {
+			cmbAdd.markInvalid('Email invalide') ;
+			return ;
+		}
 
 		var test = dvTags.getStore().findExact('tag',cmbAdd.getValue(),0);
 
@@ -287,6 +292,19 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel',{
 		this.callParent() ;
 	},
 	
+	setFromSoc: function(socId) {
+		var emailFrom = null ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getEmailAll(), function(emailAccountRow) {
+			if( emailAccountRow.link_is_default && Ext.isArray(emailAccountRow.link_SOC) && Ext.Array.contains(emailAccountRow.link_SOC,socId) ) {
+				emailFrom = emailAccountRow.email_adr ;
+				return false ;
+			}
+		}) ;
+		if( emailFrom != null ) {
+			this.getForm().findField('email_from').setValue(emailFrom) ;
+		}
+	},
+	
 	loadEmailForReply: function( origEmailFilerecordId, actionTodo='reply' ) {
 		if( !this.rendered ) {
 			this.on('afterrender',function() {
@@ -359,6 +377,33 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel',{
 		formData['email_subject'] = 'Re: ' + origEmailRecord.get('subject') ;
 		formData['email_body'] = bodyHtml ;
 		this._actionForm.getForm().setValues(formData) ;
+	},
+	
+	checkEmailSendable: function() {
+		// Ajout To / CC 
+		this.getForm().findField('email_to').handleAdd();
+		this.getForm().findField('email_cc').handleAdd();
+		
+		var formValues = this.getForm().getValues(false,false,false,true) ;
+		var errors = [] ;
+		if( Ext.isEmpty(formValues['email_from']) ) {
+			var error = 'Email : adr. source non spécifiée' ;
+			errors.push(error) ;
+			this.getForm().findField('email_from').markInvalid(error) ;
+		}
+		if( Ext.isEmpty(formValues['email_to']) ) {
+			var error = 'Email : aucun destinataire valide' ;
+			errors.push(error) ;
+		}
+		if( Ext.isEmpty(formValues['email_subject']) ) {
+			var error = 'Email : sujet non saisi' ;
+			errors.push(error) ;
+			this.getForm().findField('email_subject').markInvalid(error) ;
+		}
+		if( errors.length==0 ) {
+			return true ;
+		}
+		return errors ;
 	},
 	
 	statics: {

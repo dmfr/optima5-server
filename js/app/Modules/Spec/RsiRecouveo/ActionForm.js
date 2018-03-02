@@ -300,6 +300,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 			var actionPlusEmailPanel = this.down('#formNow') ;
 			actionPlusEmailPanel.loadEmailForReply( afterValues['reply_emailFilerecordId'] , 'reply' ) ;
 		}
+		if( Ext.isEmpty(afterValues['reply_emailFilerecordId']) 
+				&& (this.down('#formNow') instanceof Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel)  ) {
+			
+			var actionPlusEmailPanel = this.down('#formNow') ;
+			var socId = this._accountRecord.get('soc_id') ;
+			actionPlusEmailPanel.setFromSoc( socId ) ;
+		}
 		
 		// Gestion du template
 		var tplField = this.getForm().findField('tpl_id') ;
@@ -549,6 +556,15 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 			}
 		}
 		
+		// ****** Validation Email **********
+		if( this.down('#formNow') instanceof Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel ) {
+			var actionPlusEmailPanel = this.down('#formNow') ;
+			if( actionPlusEmailPanel.checkEmailSendable() === true ) {} else {
+				var errorsEmail = actionPlusEmailPanel.checkEmailSendable() ;
+				errors = Ext.Array.merge(errors,errorsEmail) ;
+			}
+		}
+		
 		
 		// ****** Champs dynamiques ***********
 		switch( postData['next_action'] ) {
@@ -719,6 +735,16 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 	},
 	handlePreviewEmail: function() {
 		if( this._readonlyMode ) {
+			return ;
+		}
+		
+		if( !(this.down('#formNow') instanceof Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel) ) {
+			return ;
+		}
+		var actionPlusEmailPanel = this.down('#formNow') ;
+		if( actionPlusEmailPanel.checkEmailSendable() === true ) {} else {
+			var errors = actionPlusEmailPanel.checkEmailSendable() ;
+			Ext.MessageBox.alert('Erreur',errors.join('<br>')) ;
 			return ;
 		}
 		
