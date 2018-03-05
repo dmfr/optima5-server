@@ -35,7 +35,7 @@ function specRsiRecouveo_lib_mail_sync() {
 		
 		// query exiting uids in database
 		$existing_uids = array() ;
-		$query = "SELECT field_SRV_UID FROM view_file_EMAIL WHERE field_MBOX='{$mbox}'" ;
+		$query = "SELECT field_SRV_UID FROM view_file_EMAIL WHERE field_MBOX='{$mbox}' AND field_EMAIL_LOCAL='{$cfg_email_entry['email_adr']}'" ;
 		$result = $_opDB->query($query) ;
 		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 			$existing_uids[] = $arr[0] ;
