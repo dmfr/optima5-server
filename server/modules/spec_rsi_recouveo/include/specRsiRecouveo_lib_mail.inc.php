@@ -4,6 +4,134 @@
 
 $GLOBALS['specRsiRecouveo_lib_mail_sync_boundDays'] = 30 ;
 
+function specRsiRecouveo_lib_mail_sync_exchange( $email_adr, $exchange_server, $username, $password ) {
+	global $_opDB ;
+	
+	$resources_root = $GLOBALS['resources_root'] ;
+	if( !@include_once("{$resources_root}/php-ntlm/src/Autoloader/autoload.php") ) {
+		//echo "?" ;
+		return ;
+	}
+	if( !@include_once("{$resources_root}/php-ews/src/Autoloader/autoload.php") ) {
+		//echo "?" ;
+		return ;
+	}
+	
+	
+	// query exiting uids in database
+	$mbox = 'INBOX' ;
+	$existing_uids = array() ;
+	$query = "SELECT field_SRV_UID FROM view_file_EMAIL WHERE field_MBOX='{$mbox}' AND field_EMAIL_LOCAL='{$email_adr}'" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$existing_uids[] = $arr[0] ;
+	}
+	
+	
+	
+	
+	
+	try {
+		$ews = new \jamesiarmes\PhpEws\Client($exchange_server, $username, $password, 'Exchange2013');
+	} catch( Exception $e ) {
+		return FALSE ;
+	}
+
+
+	$request = new \jamesiarmes\PhpEws\Request\FindItemType();
+	$itemProperties = new \jamesiarmes\PhpEws\Type\ItemResponseShapeType();
+	$itemProperties->BaseShape = \jamesiarmes\PhpEws\Enumeration\DefaultShapeNamesType::ID_ONLY;
+	$itemProperties->BodyType = \jamesiarmes\PhpEws\Enumeration\BodyTypeResponseType::TEXT;
+	$request->ItemShape = $itemProperties;
+
+	$request->ParentFolderIds = new \jamesiarmes\PhpEws\ArrayType\NonEmptyArrayOfBaseFolderIdsType();
+	$request->ParentFolderIds->DistinguishedFolderId = new \jamesiarmes\PhpEws\Type\DistinguishedFolderIdType();
+	$request->ParentFolderIds->DistinguishedFolderId->Id = \jamesiarmes\PhpEws\Enumeration\DistinguishedFolderIdNameType::INBOX;
+
+	$request->Traversal = \jamesiarmes\PhpEws\Enumeration\ItemQueryTraversalType::SHALLOW;
+
+	$result = new \jamesiarmes\PhpEws\Response\FindItemResponseMessageType();
+	try {
+		$result = $ews->FindItem($request);
+	} catch( Exception $e ) {
+		return FALSE ;
+	}
+	
+	if ($result->ResponseMessages->FindItemResponseMessage[0]->ResponseCode == 'NoError' && $result->ResponseMessages->FindItemResponseMessage[0]->ResponseClass == 'Success') {
+    $count = $result->ResponseMessages->FindItemResponseMessage[0]->RootFolder->TotalItemsInView;
+
+    for ($i = 0; $i < $count; $i++){
+        $message_id = $result->ResponseMessages->FindItemResponseMessage[0]->RootFolder->Items->Message[$i]->ItemId->Id;
+        if( in_array($message_id,$existing_uids) ) {
+			continue ;
+        }
+			$request = new \jamesiarmes\PhpEws\Request\GetItemType();
+			$request->ItemShape = new \jamesiarmes\PhpEws\Type\ItemResponseShapeType();
+			$request->ItemShape->BaseShape = \jamesiarmes\PhpEws\Enumeration\DefaultShapeNamesType::ALL_PROPERTIES;
+			$request->ItemShape->IncludeMimeContent = true ;
+        $messageItem = new \jamesiarmes\PhpEws\Type\ItemIdType();
+        $messageItem->Id = $message_id;
+        $request->ItemIds->ItemId[] = $messageItem;
+
+    
+	    $responses = $ews->GetItem($request);
+			$response_messages = $responses->ResponseMessages->GetItemResponseMessage ;
+			foreach ($response_messages as $response_message) {
+				foreach( $response_message->Items->Message as $message ) {
+						$b64mime = $message->MimeContent->_  ;
+						$msg_src = base64_decode($b64mime) ;
+						
+						
+						
+						$tmp_id = media_bin_processBuffer( $msg_src ) ;
+						
+						//echo $msg_src ;
+						
+						$obj_mimeParser = PhpMimeMailParser::getInstance() ;
+						$obj_mimeParser->setText($msg_src) ;
+						
+						$from = $obj_mimeParser->getHeader('from');             // "test" <test@example.com>
+						$addressesFrom = $obj_mimeParser->getAddresses('from');
+						$addressFrom = $addressesFrom[0] ;
+						$addressTo = $email_adr ;
+						$subject = $obj_mimeParser->getHeader('subject') ;
+						if( $date_obj = DateTime::createFromFormat( 'D, d M Y H:i:s O', trim(preg_replace("/\([^)]+\)/","",$obj_mimeParser->getHeader('date'))) ) ) {
+							$date_ts = $date_obj->getTimestamp() ;
+							$date = date('Y-m-d H:i:s',$date_ts) ;
+						}
+						$has_attachments = (count($obj_mimeParser->getAttachments($include_inline=false))>0) ;
+						
+						
+						$arr_ins = array() ;
+						$arr_ins['field_MBOX'] = $mbox ;
+						$arr_ins['field_EMAIL_LOCAL'] = $addressTo ;
+						$arr_ins['field_EMAIL_PEER'] = $addressFrom['address'] ;
+						$arr_ins['field_EMAIL_PEER_NAME'] = $addressFrom['display'] ;
+						$arr_ins['field_DATE'] = $date ;
+						$arr_ins['field_SUBJECT'] = $subject ;
+						$arr_ins['field_SRV_IS_SENT'] = true ;
+						$arr_ins['field_SRV_UID'] = $message_id ;
+						$arr_ins['field_HAS_ATTACHMENTS'] = $has_attachments ;
+						$email_filerecord_id = paracrm_lib_data_insertRecord_file( 'EMAIL', 0, $arr_ins ) ;
+						
+						$arr_ins = array() ;
+						$arr_ins['field_SRC_SIZE'] = strlen($msg_src) ;
+						$arr_ins['field_SRC_MIME'] = true ;
+						$emailsrc_filerecord_id = paracrm_lib_data_insertRecord_file( 'EMAIL_SOURCE', $email_filerecord_id, $arr_ins ) ;
+						media_bin_move( $tmp_id , media_bin_toolFile_getId('EMAIL_SOURCE',$emailsrc_filerecord_id) ) ;
+				}
+			}
+		}
+	}
+	return TRUE ;
+}
+function specRsiRecouveo_lib_mail_tool_getExchangeServer( $cfg_email_server_url ) {
+	$prefix = "exchange://" ;
+	if( strpos($cfg_email_server_url,$prefix)===0 ) {
+		return substr($cfg_email_server_url,strlen($prefix)) ;
+	}
+	return NULL ;
+}
 function specRsiRecouveo_lib_mail_sync() {
 	global $_opDB ;
 	
@@ -17,7 +145,15 @@ function specRsiRecouveo_lib_mail_sync() {
 	
 	$mbox = 'INBOX' ;
 	foreach( $cfg_email as $cfg_email_entry ) {
-		/* connect to gmail */
+		/* DM / Rayane 07/03/18 : if exchange => fonction spéciale */
+		$exchange_server = specRsiRecouveo_lib_mail_tool_getExchangeServer( $cfg_email_entry['server_url'] ) ;
+		if( $exchange_server ) {
+			specRsiRecouveo_lib_mail_sync_exchange( $cfg_email_entry['email_adr'], $exchange_server, $cfg_email_entry['server_username'], $cfg_email_entry['server_passwd'] ) ;
+			continue ;
+		}
+		
+		
+		/* connect to IMAP */
 		$hostname = '{'.$cfg_email_entry['server_url'].'}'.$mbox ;
 		$username = $cfg_email_entry['server_username'];
 		$password = $cfg_email_entry['server_passwd'];
@@ -207,6 +343,10 @@ function specRsiRecouveo_lib_mail_doSend($email_filerecord_id) {
 		$cfg_email = $ttmp['data']['cfg_email'] ;
 		foreach( $cfg_email as $cfg_email_entry ) {
 			if( $email_row['field_EMAIL_LOCAL']==$cfg_email_entry['email_adr'] ) {
+				if( specRsiRecouveo_lib_mail_tool_getExchangeServer($cfg_email_entry['server_url']) ) {
+					// si mode EXCHANGE => on ignore ce compte (on ne placera pas le mail dans Elements Envoyés
+					continue ;
+				}
 				$hostname = '{'.$cfg_email_entry['server_url'].'}'.'INBOX' ;
 				$username = $cfg_email_entry['server_username'];
 				$password = $cfg_email_entry['server_passwd'];
