@@ -32,6 +32,11 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 				$map_mailin[$rec['id']] = $rec['text'] ;
 			}
 		}
+		if( $cfg_opt['bible_code'] == 'OPT_CLOSEASK' ) {
+			foreach( $cfg_opt['records'] as $rec ) {
+				$map_closeask[$rec['id']] = $rec['next'] ;
+			}
+		}
 	}
 	
 	
@@ -408,6 +413,11 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 					break ;
 				case 'CLOSE_ACK' :
 					$next_action_suffix = $next_action['link_action'].'_'.$next_action['link_close'] ;
+					switch( $map_closeask[$next_action['link_close']] ) {
+						case 'ZERO' :
+							$inv_header['inv_amount_zero'] = true ;
+							break ;
+					}
 					break ;
 				default :
 					$next_action_suffix = $next_action['link_action'] ;
@@ -425,6 +435,9 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 		}
 		$inv_header['inv_amount_total'] = round($inv_header['inv_amount_total'],4) ;
 		$inv_header['inv_amount_due'] = round($inv_header['inv_amount_due'],4) ;
+		if( $inv_header['inv_amount_zero'] ) {
+			$inv_header['inv_amount_due'] = 0 ;
+		}
 		$file_row += $inv_header ;
 		
 		
