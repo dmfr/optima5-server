@@ -324,23 +324,57 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateForm',{
 			formData = form.getValues() ;
 			  
 		var errors = [] ;
-		
+		var noSubmit = false ;
 		
 		// ****** Champs dynamiques ***********
 		switch( formData['new_action_id'] ) {
 			case 'AGREE_START' :
-				var fields = ['agree_amount','agree_period','agree_date','agree_datefirst','agree_count'] ;
-				Ext.Array.each( fields, function(fieldName) {
-					var hasErrors = false ;
-					var field = this.getForm().findField(fieldName) ;
-					if( field.isVisible() && Ext.isEmpty( formData[fieldName] ) ) {
-						field.markInvalid('Information non renseignée') ;
-						hasErrors = true ;
-					}
-					if( hasErrors ) {
-						errors.push('Echéancier non rempli') ;
-					}
-				},this) ;
+				var cntRightInner = this.down('#cntRight').down('panel') ;
+				switch( cntRightInner.getActiveTab().itemId ) {
+					case 'formWizard' :
+						var fields = ['agree_amount','agree_period','agree_date','agree_datefirst','agree_count','agree_amountfirst'] ;
+						var wizardValues = {} ;
+						Ext.Array.each( fields, function(fieldName) {
+							var hasErrors = false ;
+							var field = this.getForm().findField(fieldName) ;
+							if( field.isVisible() ) {
+								wizardValues[fieldName] = formData[fieldName] ;
+							}
+							if( field.isVisible() && Ext.isEmpty( formData[fieldName] ) ) {
+								field.markInvalid('Information non renseignée') ;
+								hasErrors = true ;
+							}
+							if( hasErrors ) {
+								errors.push('Echéancier non rempli') ;
+							}
+						},this) ;
+						if( !Ext.isEmpty(errors) ) {
+							Ext.MessageBox.alert('Erreur',errors.join('<br>')) ;
+							return ;
+						}
+						if( formData['agree_period'] == 'NOW' ) {
+							// mode paiement immediat 
+							noSubmit = false ;
+							break ;
+						}
+						var formSummary = cntRightInner.down('#formSummary') ;
+						formSummary.setupFromNew( wizardValues ) ;
+						cntRightInner.setActiveTab( formSummary ) ;
+						noSubmit = true ;
+						break ;
+						
+					case 'formSummary' :
+						console.log('TODO: Extract values') ;
+						var formSummary = cntRightInner.down('#formSummary'),
+							formSummaryMilestones = formSummary.getValue() ;
+						if( !formSummaryMilestones ) {
+							noSubmit = true ;
+							Ext.MessageBox.alert('Erreur','Echeancier non rempli') ;
+							return ;
+						}
+						formData['agree_milestones'] = formSummaryMilestones ;
+						break ;
+				}
 				break ;
 			case 'CLOSE_ASK' :
 				if( Ext.isEmpty( formData['close_code'] ) ) {
@@ -433,7 +467,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateForm',{
 			Ext.MessageBox.alert('Erreur',errors.join('<br>')) ;
 			return ;
 		}
-		
+		if( noSubmit ) {
+			return ;
+		}
 		
 		
 		

@@ -1,127 +1,151 @@
 Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateAgreePanel',{
-	extend:'Ext.form.Panel',
+	extend:'Ext.tab.Panel',
+	
+	requires: [
+		'Optima5.Modules.Spec.RsiRecouveo.AgreeSummaryPanel'
+	],
 	
 	_fileRecord: null,
 	
 	initComponent: function() {
 		Ext.apply(this,{
-			cls: 'ux-noframe-bg',
-			bodyCls: 'ux-noframe-bg',
-			bodyPadding: 0,
-			layout: 'anchor',
 			items: [{
-				xtype: 'fieldset',
-				padding: 10,
-				title: 'Echéancier',
-				layout: {
-					type: 'anchor'
-				},
-				defaults: {
-					anchor: '50%',
-					labelWidth: 120
-				},
+				itemId: 'formWizard',
+				title: 'Assistant',
+				xtype: 'form',
+				cls: 'ux-noframe-bg',
+				bodyCls: 'ux-noframe-bg',
+				bodyPadding: 0,
+				layout: 'anchor',
 				items: [{
-					xtype:'numberfield',
-					width: 220,
-					anchor: '',
-					name: 'agree_amount',
-					hideTrigger:true,
-					fieldLabel: 'Montant'
-				},{
-					xtype: 'combobox',
-					name: 'agree_period',
-					fieldLabel: 'Périodicité',
-					forceSelection: true,
-					editable: false,
-					store: {
-						fields: ['txt'],
-						data : [
-							{id: '', txt:'-select-'},
-							{id: 'NOW', txt:'Paiement immédiat VPC'},
-							{id: 'SINGLE', txt:'Paiement unique'},
-							{id: 'WEEK', txt:'Hebdomadaire'},
-							{id: 'MONTH', txt:'Mensuelle'}
-						]
+					xtype: 'fieldset',
+					padding: 10,
+					title: 'Echéancier',
+					layout: {
+						type: 'anchor'
 					},
-					anchor: '100%',
-					queryMode: 'local',
-					displayField: 'txt',
-					valueField: 'id'
+					defaults: {
+						anchor: '60%',
+						labelWidth: 120
+					},
+					items: [{
+						xtype:'numberfield',
+						width: 220,
+						anchor: '',
+						name: 'agree_amount',
+						hideTrigger:true,
+						fieldLabel: 'Montant'
+					},{
+						xtype: 'combobox',
+						name: 'agree_period',
+						fieldLabel: 'Périodicité',
+						forceSelection: true,
+						editable: false,
+						store: {
+							fields: ['txt'],
+							data : [
+								{id: '', txt:'-select-'},
+								{id: 'NOW', txt:'Paiement immédiat VPC'},
+								{id: 'SINGLE', txt:'Paiement unique'},
+								{id: 'WEEK', txt:'Hebdomadaire'},
+								{id: 'MONTH', txt:'Mensuelle'}
+							]
+						},
+						anchor: '100%',
+						queryMode: 'local',
+						displayField: 'txt',
+						valueField: 'id'
+					},{
+						xtype:'datefield',
+						format: 'Y-m-d',
+						name: 'agree_date',
+						fieldLabel: 'Echéance',
+						minValue: new Date()
+					},{
+						xtype:'datefield',
+						format: 'Y-m-d',
+						name: 'agree_datefirst',
+						fieldLabel: 'Première échéance',
+						minValue: new Date()
+					},{
+						xtype:'numberfield',
+						width: 180,
+						anchor: '',
+						name: 'agree_count',
+						fieldLabel: 'Nb échéances'
+					},{
+						xtype: 'checkboxfield',
+						name: 'agree_amountfirst_do',
+						boxLabel: 'Spécifier 1ere échéance ?'
+					},{
+						xtype:'numberfield',
+						width: 220,
+						anchor: '',
+						name: 'agree_amountfirst',
+						hideTrigger:true,
+						fieldLabel: 'Mnt 1ère échéance'
+					}]
 				},{
-					xtype:'datefield',
-					format: 'Y-m-d',
-					name: 'agree_date',
-					fieldLabel: 'Echéance'
+					xtype: 'fieldset',
+					padding: 10,
+					title: 'Calcul échéances',
+					layout: {
+						type: 'anchor'
+					},
+					defaults: {
+						anchor: '50%',
+						labelWidth: 120
+					},
+					items: [{
+						xtype:'textfield',
+						readOnly: true,
+						name: 'agree_display_amountfirst',
+						hideTrigger:true,
+						fieldLabel: 'Mnt 1ere échéance'
+					},{
+						xtype:'textfield',
+						readOnly: true,
+						name: 'agree_display_amountnext',
+						hideTrigger:true,
+						fieldLabel: 'Mnt autres échéance'
+					}]
 				},{
-					xtype:'datefield',
-					format: 'Y-m-d',
-					name: 'agree_datefirst',
-					fieldLabel: 'Première échéance'
-				},{
-					xtype:'numberfield',
-					width: 180,
-					anchor: '',
-					name: 'agree_count',
-					fieldLabel: 'Nb échéances'
-				},{
-					xtype: 'checkboxfield',
-					name: 'agree_amountfirst_do',
-					boxLabel: 'Spécifier 1ere échéance ?'
-				},{
-					xtype:'numberfield',
-					width: 220,
-					anchor: '',
-					name: 'agree_amountfirst',
-					hideTrigger:true,
-					fieldLabel: 'Mnt 1ère échéance'
+					xtype: 'fieldset',
+					padding: 8,
+					title: 'Commentaire',
+					defaults: {
+						anchor: '100%',
+						labelWidth: 80
+					},
+					items: [{
+						xtype: 'textarea',
+						name: 'agree_txt',
+						height: 75
+					}]
 				}]
-			},{
-				xtype: 'fieldset',
-				padding: 10,
-				title: 'Calcul échéances',
-				layout: {
-					type: 'anchor'
-				},
-				defaults: {
-					anchor: '50%',
-					labelWidth: 120
-				},
-				items: [{
-					xtype:'textfield',
-					readOnly: true,
-					name: 'agree_display_amountfirst',
-					hideTrigger:true,
-					fieldLabel: 'Mnt 1ere échéance'
-				},{
-					xtype:'textfield',
-					readOnly: true,
-					name: 'agree_display_amountnext',
-					hideTrigger:true,
-					fieldLabel: 'Mnt autres échéance'
-				}]
-			},{
-				xtype: 'fieldset',
-				padding: 8,
-				title: 'Commentaire',
-				defaults: {
-					anchor: '100%',
-					labelWidth: 80
-				},
-				items: [{
-					xtype: 'textarea',
-					name: 'agree_txt',
-					height: 75
-				}]
-			}]
+			},Ext.create('Optima5.Modules.Spec.RsiRecouveo.AgreeSummaryPanel',{
+				itemId: 'formSummary',
+				title: 'Echeancier',
+				cls: 'ux-noframe-bg',
+				bodyCls: 'ux-noframe-bg',
+				bodyPadding: 0,
+				
+				optimaModule: this.optimaModule
+			})]
 		}) ;
 		
 		this.callParent() ;
+		this.setActiveTab(0) ;
 		this.getForm().getFields().each( function(field) {
 			field.on('change',function(field) {
 				this.onFormChange() ;
 			},this) ;
 		},this) ;
 		this.onFormChange();
+	},
+
+	getForm: function() {
+		return this.down('#formWizard').getForm() ;
 	},
 	
 	onFormChange: function() {

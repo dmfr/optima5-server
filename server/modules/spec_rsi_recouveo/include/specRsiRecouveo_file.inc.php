@@ -1009,7 +1009,7 @@ function specRsiRecouveo_file_createForAction( $post_data ) {
 					break ;
 			}
 			if( $_formData['agree_period']=='NOW' ) {
-				$short_txt.= "Paiment: ".$_formData['agree_amount'].' €' ;
+				$short_txt = "Paiment: ".$_formData['agree_amount'].' €' ;
 			}
 			
 			$arr_ins = array() ;
@@ -1022,47 +1022,7 @@ function specRsiRecouveo_file_createForAction( $post_data ) {
 			$arr_ins['field_LOG_USER'] = specRsiRecouveo_util_getLogUser() ;
 			paracrm_lib_data_insertRecord_file( $file_code, $file_filerecord_id, $arr_ins );
 			
-			switch( $_formData['agree_period'] ) {
-				case 'MONTH' :
-				case 'WEEK' :
-					$nb = $_formData['agree_count'] ;
-					$nbcalc = $nb ;
-					$date = $_formData['agree_datefirst'] ;
-					if( $_formData['agree_amountfirst_do'] ) {
-						$_formData['agree_amount'] -= $_formData['agree_amountfirst'] ;
-						$nbcalc-- ;
-						$amount_first = $_formData['agree_amountfirst'] ;
-					}
-					$amount_each = round($_formData['agree_amount'] / $nbcalc,2) ;
-					break ;
-				case 'SINGLE' :
-					$nb = 1 ;
-					$date = $_formData['agree_date'] ;
-					$amount_each = round($_formData['agree_amount'] / $nb,2) ;
-					break ;
-				default :
-					break ;
-			}
-			for( $i=0 ; $i<$nb ; $i++ ) {
-				$arr_ins = array() ;
-				$arr_ins['field_STATUS_IS_OK'] = 0 ;
-				$arr_ins['field_DATE_SCHED'] = $date ;
-				$arr_ins['field_LINK_STATUS'] = $status_next ;
-				$arr_ins['field_LINK_ACTION'] = 'AGREE_FOLLOW' ;
-				$arr_ins['field_LINK_TXT'] = "Echéance ".($i+1)." / ".$nb ;
-				$arr_ins['field_TXT'] = 'Attendu : '.(($i==0&&$amount_first) ? $amount_first : $amount_each).' €' ;
-				paracrm_lib_data_insertRecord_file($file_code,$file_filerecord_id,$arr_ins) ;
-				
-				switch( $_formData['agree_period'] ) {
-					case 'MONTH' :
-						$date = date('Y-m-d',strtotime('+1 month',strtotime($date))) ;
-						break ;
-					case 'WEEK' :
-						$date = date('Y-m-d',strtotime('+1 week',strtotime($date))) ;
-						break ;
-				}
-			}
-			if( $nb==0 && $_formData['agree_period']=='NOW' ) {
+			if( $_formData['agree_period']=='NOW' ) {
 				// DONE 170529 : paiement immédiat
 				// création TEMPREC
 				$forward_post = array(
@@ -1080,6 +1040,63 @@ function specRsiRecouveo_file_createForAction( $post_data ) {
 					'arr_recordFilerecordIds' => json_encode(array($json['record_filerecord_id']))
 				) ;
 				specRsiRecouveo_file_allocateRecordTemp($forward_post) ;
+			} elseif( is_array($_formData['agree_milestones']) ) {
+				// DONE 180326 : mode échéancier détaillé
+				$nb = count($_formData['agree_milestones']) ;
+				foreach( $_formData['agree_milestones'] as $i=>$agree_milestone ) {
+					$arr_ins = array() ;
+					$arr_ins['field_STATUS_IS_OK'] = 0 ;
+					$arr_ins['field_DATE_SCHED'] = $agree_milestone['milestone_date_sched'] ;
+					$arr_ins['field_LINK_STATUS'] = $status_next ;
+					$arr_ins['field_LINK_ACTION'] = 'AGREE_FOLLOW' ;
+					$arr_ins['field_LINK_TXT'] = "Echéance ".($i+1)." / ".$nb ;
+					$arr_ins['field_TXT'] = 'Attendu : '.$agree_milestone['milestone_amount'] ;
+					$arr_ins['field_LINK_AGREE_JSON'] = json_encode($agree_milestone) ;
+					paracrm_lib_data_insertRecord_file($file_code,$file_filerecord_id,$arr_ins) ;
+					
+					$i++ ;
+				}
+			} else {
+				switch( $_formData['agree_period'] ) {
+					case 'MONTH' :
+					case 'WEEK' :
+						$nb = $_formData['agree_count'] ;
+						$nbcalc = $nb ;
+						$date = $_formData['agree_datefirst'] ;
+						if( $_formData['agree_amountfirst_do'] ) {
+							$_formData['agree_amount'] -= $_formData['agree_amountfirst'] ;
+							$nbcalc-- ;
+							$amount_first = $_formData['agree_amountfirst'] ;
+						}
+						$amount_each = round($_formData['agree_amount'] / $nbcalc,2) ;
+						break ;
+					case 'SINGLE' :
+						$nb = 1 ;
+						$date = $_formData['agree_date'] ;
+						$amount_each = round($_formData['agree_amount'] / $nb,2) ;
+						break ;
+					default :
+						break ;
+				}
+				for( $i=0 ; $i<$nb ; $i++ ) {
+					$arr_ins = array() ;
+					$arr_ins['field_STATUS_IS_OK'] = 0 ;
+					$arr_ins['field_DATE_SCHED'] = $date ;
+					$arr_ins['field_LINK_STATUS'] = $status_next ;
+					$arr_ins['field_LINK_ACTION'] = 'AGREE_FOLLOW' ;
+					$arr_ins['field_LINK_TXT'] = "Echéance ".($i+1)." / ".$nb ;
+					$arr_ins['field_TXT'] = 'Attendu : '.(($i==0&&$amount_first) ? $amount_first : $amount_each).' €' ;
+					paracrm_lib_data_insertRecord_file($file_code,$file_filerecord_id,$arr_ins) ;
+					
+					switch( $_formData['agree_period'] ) {
+						case 'MONTH' :
+							$date = date('Y-m-d',strtotime('+1 month',strtotime($date))) ;
+							break ;
+						case 'WEEK' :
+							$date = date('Y-m-d',strtotime('+1 week',strtotime($date))) ;
+							break ;
+					}
+				}
 			}
 			
 			break ;
