@@ -374,7 +374,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.InboxPanel',{
 						xtype: 'button',
 						itemId: 'validateBtn',
 						text: 'Validé',
-						icon: 'images/modules/rsiveo-greenTick-16.png'
+						icon: 'images/modules/rsiveo-greenTick-16.gif'
 					})
 					Ext.Function.defer(function(){
 						this.onSessionParams() ;
