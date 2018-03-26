@@ -1,4 +1,4 @@
-Ext.define('Optima5.Modules.RsiRecouveo.EmailOutDestField',{
+Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailOutDestField',{
 	extend: 'Ext.form.FieldContainer',
 	
 	mixins: [
@@ -26,8 +26,7 @@ Ext.define('Optima5.Modules.RsiRecouveo.EmailOutDestField',{
 				valueField: 'mail',
 				store: {
 					data: this._comboboxData,
-					fields: [{name:'nom', type:'string'}, {name: 'mail', type: 'string'}],
-
+					fields: [{name:'nom', type:'string'}, {name: 'mail', type: 'string'}]
 				},
 				matchFieldWidth: false,
 				listConfig: {
@@ -237,12 +236,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel',{
 						fieldLabel: 'Expéditeur',
 						anchor: '75%'
 					}),
-						Ext.create('Optima5.Modules.RsiRecouveo.EmailOutDestField', {
+						Ext.create('Optima5.Modules.Spec.RsiRecouveo.EmailOutDestField', {
 							_comboboxData: tableau,
 							fieldLabel: 'Destinataire',
 							name: 'email_to'
 					}),
-						Ext.create('Optima5.Modules.RsiRecouveo.EmailOutDestField', {
+						Ext.create('Optima5.Modules.Spec.RsiRecouveo.EmailOutDestField', {
 							_comboboxData: tableau,
 							fieldLabel: 'Copie à',
 							name: 'email_cc'
