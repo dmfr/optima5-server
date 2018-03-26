@@ -168,7 +168,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.InboxPanel',{
 						},
 						items: [{
 							xtype: 'button',
-							text: 'Enregistrer',
+							text: 'Valider ?',
+							itemId: 'submitBtn',
 							handler: function() {
 								this.handleSubmit() ;
 							},
@@ -364,14 +365,22 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.InboxPanel',{
 				_moduleId: 'spec_rsi_recouveo',
 				_action: 'doc_postInbox'
 			}) ;
-			
-			this.showLoadmask() ;
 			form.submit({
 				url: Optima5.Helper.getApplication().desktopGetBackendUrl(),
 				params: ajaxParams,
 				success : function(form,action){
-					this.hideLoadmask() ;
-					this.onSessionParams() ;
+					this.down('#submitBtn').setVisible(false) ;
+					this.down('#cntSubmit').add({
+						xtype: 'button',
+						itemId: 'validateBtn',
+						text: 'Validé',
+						icon: 'images/modules/rsiveo-greenTick-16.png'
+					})
+					Ext.Function.defer(function(){
+						this.onSessionParams() ;
+						this.down('#validateBtn').setVisible(false) ;
+						this.down('#submitBtn').setVisible(true) ;
+					}, 2010, this) ;
 				},
 				failure: function(form, action) {
 					this.hideLoadmask() ;

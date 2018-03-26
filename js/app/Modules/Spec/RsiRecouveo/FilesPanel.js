@@ -557,7 +557,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 					return valt ;
 				}
 				return v ;
-			}
+			},
+			filter: {
+				type: 'stringlist',
+				useFilters: true
+			},
 		},{
 			itemId: 'colAtr',
 			text: 'Attributs',
@@ -670,6 +674,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				summaryType: 'sum',
 				summaryRenderer: function(value,summaryData,field,metaData) {
 					return value ;
+				},
+				filter: {
+					type: 'number'
 				}
 			},{
 				text: 'Montant',
@@ -712,9 +719,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		},{
 			itemId: 'colBalage',
 			text: 'Balance âgée',
-			columns: balageColumns
+			columns: balageColumns,
+			align: 'right'
 		}] ;
-		
+
 		columns = {
 			defaults: {
 				menuDisabled: false,
@@ -902,10 +910,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				renderer: agendaGridColumnAmountRenderer,
 				summaryType:'sum',
 				summaryRenderer: function(value) {
-					return '<b>'+Ext.util.Format.number(value,'0,000')+' €'+'</b>' ;
+					return '<b>'+Ext.util.Format.number(value,'0,000')+'</b>' ;
 				}
 			});
-			
+
 			agendaChrtFields.push(etaRange.eta_range+'_count', etaRange.eta_range+'_ratio1000') ;
 			agendaChrtYFields.push(etaRange.eta_range+'_ratio1000') ;
 			agendaChrtTitles.push(etaRange.eta_txt) ;
@@ -1280,8 +1288,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 						resizable: false,
 						groupable: false,
 						lockable: false,
-						
-						align: 'center'
+						align: 'right'
 					},
 					items: balageGridColumns
 				},
