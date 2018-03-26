@@ -261,14 +261,22 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		Ext.Array.each( atrRecColumns, function(atrRecColumn) {
 			treeColumns.push(atrRecColumn) ;
 		}) ;
-		
-		
+
+
 		Ext.apply(this,{
 			layout: {
 				type: 'hbox',
 				align: 'stretch'
 			},
 			tbar:['->',{
+        itemId: 'detailExport',
+        icon: 'images/modules/rsiveo-fetch-16.gif',
+        text: 'Exporter',
+        handler: function(){
+          this.handleDownload() ;
+        },
+        scope: this
+      },{
 				itemId: 'tbBump',
 				icon: 'images/modules/rsiveo-redflag-16.gif',
 				text: '<b>Reprise dossier</b>',
@@ -1537,15 +1545,34 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 						fileRecord = view.up('panel')._fileRecord ;
 					if( cellColumn instanceof Ext.tree.Column
 						&& fileRecord.get('next_fileaction_filerecord_id') == record.get('fileaction_filerecord_id') ) {
-							
+
 						this.doNextAction( fileRecord, record.get('fileaction_filerecord_id'), record.get('link_action') ) ;
 					}
 				},
 				scope: this
 			}
 		});
-		
+
 	},
+  handleDownload: function() {
+    var fileID = this._accountRecord.get('acc_id');
+
+    var exportParams = this.optimaModule.getConfiguredAjaxParams() ;
+		Ext.apply(exportParams,{
+			_moduleId: 'spec_rsi_recouveo',
+			_action: 'xls_createDetailPanel',
+      _fileID: Ext.JSON.encode(fileID),
+			exportXls: true
+		}) ;
+    Ext.create('Ext.ux.dams.FileDownloader',{
+			renderTo: Ext.getBody(),
+			requestParams: exportParams,
+			requestAction: Optima5.Helper.getApplication().desktopGetBackendUrl(),
+			requestMethod: 'POST'
+		}) ;
+
+
+  },
 	doReload: function(focusFileFilerecordId) {
 		if( !focusFileFilerecordId ) {
 			focusFileFilerecordId = this.getActiveFileId() ;

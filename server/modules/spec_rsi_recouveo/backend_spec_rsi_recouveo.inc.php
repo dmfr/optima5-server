@@ -84,10 +84,12 @@ switch( $post_data['_action'] )
 		return specRsiRecouveo_config_getSocs( $post_data ) ;
 	case 'config_setSoc' :
 		return specRsiRecouveo_config_setSoc( $post_data ) ;
-	
+
 	case 'xls_create' :
 		return specRsiRecouveo_xls_create( $post_data ) ;
-		
+
+	case 'xls_createDetailPanel':
+		return specRsiRecouveo_xls_createDetailPanel($post_data) ;
 	case 'recordgroup_list' :
 		return specRsiRecouveo_recordgroup_list( $post_data ) ;
 	case 'recordgroup_input_get' :
