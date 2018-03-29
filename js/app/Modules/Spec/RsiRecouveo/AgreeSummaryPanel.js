@@ -2,13 +2,13 @@ Ext.define('RsiRecouveoAgreeTreeModel',{
 	extend: 'Ext.data.Model',
 	fields: [
 		{name: '_phantom',  type: 'boolean'},
-		{name: 'agree_file_filerecord_id',  type: 'int'},
+		{name: 'agree_file_filerecord_id',  type: 'int', allowNull: true},
 		{name: 'agree_file_ref',  type: 'string'},
 		{name: 'agree_amount',  type: 'number'},
 		{name: 'milestone_fileaction_filerecord_id', type: 'int'},
-		{name: 'milestone_status', type: 'string'}, //enum
-		{name: 'milestone_date_sched', type: 'date'},
-		{name: 'milestone_date_actual', type: 'date'},
+		{name: 'milestone_status', type: 'string'}, //enum OK, CUR, null
+		{name: 'milestone_date_sched', type: 'date', dateFormat: 'Y-m-d'},
+		{name: 'milestone_date_actual', type: 'date', dateFormat: 'Y-m-d'},
 		{name: 'milestone_amount', type: 'number'},
 		{name: 'linkrecord_filerecord_id', type: 'number'},
 		{name: 'linkrecord_id', type: 'string'},
@@ -34,14 +34,16 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AgreeSummaryPanel',{
 				align: 'stretch'
 			},
 			items: [{
+				flex: 1,
 				xtype: 'fieldset',
+				layout: 'fit',
 				title: 'Détail de l\'écheancier',
 				defaults: {
 					anchor: '100%',
 					labelWidth: 80
 				},
 				items: [{
-					height: 270,
+					minHeight: 270,
 					xtype: 'treepanel',
 					tbar: [{
 						itemId: 'tbNew',
@@ -82,8 +84,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AgreeSummaryPanel',{
 								m.tdAttr='style="width:275px;"' ;
 								if( Ext.isEmpty(r.childNodes) ) {
 									return '<i>'+'Echéancier non paramétré'+'</i>' ;
-								} else {
+								} else if( !r.get('agree_file_filerecord_id') ) {
 									return '<i>'+'Nouvel échéancier'+'</i>' ;
+								} else {
+									return '<b>'+r.get('agree_file_ref')+'</b>' ;
 								}
 							}
 						}
@@ -141,6 +145,26 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AgreeSummaryPanel',{
 							this.down('treepanel').down('toolbar').down('#tbDelete').setDisabled( !(records && records.length > 0 && (records[0].getDepth()==1)) ) ;
 						},
 						scope: this
+					},
+					viewConfig: {
+						getRowClass: function(r) {
+							if( (r.getDepth()==1) && (r.get('milestone_status')=='CUR') ) {
+								return 'op5-spec-rsiveo-pis' ;
+							}
+							return '' ;
+						},
+						plugins: {
+							ptype: 'treeviewdragdrop',
+							ddGroup: 'RsiRecouveoAgreeRecordsTreeDD',
+							dragText: 'Glisser paiements pour associer',
+							appendOnly: true,
+							enableDrop: true,
+							enableDrag: false
+						},
+						listeners: {
+							beforedrop: this.onRecordsTreeDrop,
+							scope: this
+						}
 					}
 				}]
 			},{
@@ -217,6 +241,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AgreeSummaryPanel',{
 			_phantom: true,
 			leaf: true
 		}) ;
+		rootNode.expand() ;
+		this.down('treepanel').getView().refresh() ;
 		this.down('treepanel').getPlugin('rowediting').startEdit(newNode) ;
 	},
 	handleDeleteMilestone: function() {
@@ -228,6 +254,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AgreeSummaryPanel',{
 			return ;
 		}
 		this.down('treepanel').getStore().remove(selNode) ;
+		this.down('treepanel').getView().refresh() ;
 	},
 	onBeforeEditMilestone: function(editor,context) {
 		if(editor._disabled){
@@ -282,7 +309,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AgreeSummaryPanel',{
 				break ;
 			default :
 				// reset treenode
-				this.down('treepanel').setRootNode( {root:true,children:[],expandable:false} ) ;
+				this.down('treepanel').setRootNode( {root:true,children:[],expandable:false, expanded:true} ) ;
 				return ;
 		}
 		var dateObj = Ext.Date.parse( dateStr, 'Y-m-d' ) ;
@@ -307,11 +334,60 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AgreeSummaryPanel',{
 		this.down('treepanel').setRootNode( {root:true,children:rootChildren,expandable:false, expanded:true} ) ;
 	},
 	setupFromFile: function( fileFilerecordId, fileactionFilerecordId ) {
-		
+		console.dir(arguments) ;
+		if( fileFilerecordId instanceof RsiRecouveoFileTplModel ) {
+			console.log('obj') ;
+			this.onLoadFile( fileFilerecordId, fileactionFilerecordId ) ;
+		}
 	},
 	onLoadFile: function( fileRecord, fileactionFilerecordId ) {
-		
-		
+		var rootChildren = [] ;
+		fileRecord.actions().each( function(fileactionRecord) {
+			if( fileactionRecord.get('link_action') != 'AGREE_FOLLOW' ) {
+				return ;
+			}
+			if( Ext.isEmpty(fileactionRecord.get('link_agree')) ) {
+				return ;
+			}
+			var agreeData = fileactionRecord.get('link_agree') ;
+			var milestoneStatus = '' ;
+			if( fileactionRecord.get('status_is_ok') ) {
+				milestoneStatus = 'OK' ;
+			}
+			if( fileactionRecord.getId()==fileactionFilerecordId ) {
+				milestoneStatus = 'CUR' ;
+			}
+			rootChildren.push({
+				leaf: Ext.isEmpty(milestoneStatus),
+				expandable: false,
+				expanded: !Ext.isEmpty(milestoneStatus),
+				
+				milestone_fileaction_filerecord_id: fileactionRecord.getId(),
+				milestone_date_sched: Ext.Date.format(fileactionRecord.get('date_sched'),'Y-m-d'),
+				milestone_amount: agreeData.milestone_amount,
+				milestone_status: milestoneStatus
+			}) ;
+		}) ;
+		var rootData = {
+			agree_file_filerecord_id: fileRecord.getId(),
+			agree_file_ref: fileRecord.get('id_ref'),
+			agree_amount: null // auto calc
+		} ;
+		this.down('treepanel').setRootNode( Ext.apply({root:true,children:rootChildren,expandable:false, expanded:true},rootData) ) ;
+	},
+	
+	
+	onRecordsTreeDrop: function(node, data, overModel, dropPosition, dropHandlers) {
+		console.log('onRecordsTreeDrop') ;
+		console.dir(arguments) ;
+		if( overModel.getDepth() != 1 ) {
+			return false ;
+		}
+		if( overModel.get('milestone_status') != 'CUR' ) {
+			return false ;
+		}
+		dropHandlers.wait = true ;
+		return true ;
 	},
 	
 	

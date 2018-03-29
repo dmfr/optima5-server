@@ -85,6 +85,7 @@ Ext.define('RsiRecouveoFileActionModel',{
 		{name: 'link_tpl', type: 'string'},
 		{name: 'link_litig', type: 'string'},
 		{name: 'link_close', type: 'string'},
+		{name: 'link_agree', type: 'auto'},
 		
 		{name: 'calc_eta_range', type:'string'}
 	]

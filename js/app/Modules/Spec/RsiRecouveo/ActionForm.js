@@ -23,7 +23,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 	
 	initComponent: function() {
 		Ext.apply(this,{
-			width: 800,
+			width: 850,
 			cls: 'ux-noframe-bg',
 			bodyCls: 'ux-noframe-bg',
 			bodyPadding: 10,

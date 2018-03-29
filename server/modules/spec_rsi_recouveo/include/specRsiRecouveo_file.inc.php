@@ -233,6 +233,7 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			'link_litig' => $arr['field_LINK_LITIG'],
 			'link_judic' => $arr['field_LINK_JUDIC'],
 			'link_close' => $arr['field_LINK_CLOSE'],
+			'link_agree' => ($arr['field_LINK_AGREE_JSON'] ? json_decode($arr['field_LINK_AGREE_JSON'],true) : null),
 			'link_txt' => $arr['field_LINK_TXT']
 		);
 	}
