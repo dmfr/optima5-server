@@ -292,19 +292,24 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AgreeSummaryPanel',{
 		switch( wizardValues.agree_period ) {
 			case 'MONTH' :
 			case 'WEEK' :
+				var amount = wizardValues['agree_amount'] ;
 				var nb = wizardValues['agree_count'] ;
 				var nbcalc = nb ;
-				var dateStr = wizardValues['agree_datefirst'] ;
-				if( Ext.isNumeric(wizardValues['agree_amountfirst']) && (Number(wizardValues['agree_amountfirst']) > 0) ) {
-					wizardValues['agree_amount'] -= wizardValues['agree_amountfirst'] ;
+				var dateObj = wizardValues['agree_datefirst'] ;
+				if( Ext.isNumeric(wizardValues['agree_set_amountfirst']) && (Number(wizardValues['agree_set_amountfirst']) > 0) ) {
+					amount -= wizardValues['agree_set_amountfirst'] ;
 					nbcalc-- ;
-					var amount_first = wizardValues['agree_amountfirst'] ;
+					var amount_first = wizardValues['agree_set_amountfirst'] ;
 				}
-				var amount_each = Math.round(wizardValues['agree_amount'] * 100 / nbcalc) / 100 ;
+				if( Ext.isNumeric(wizardValues['agree_set_amountlast']) && (Number(wizardValues['agree_set_amountlast']) > 0) ) {
+					amount -= wizardValues['agree_set_amountlast'] ;
+					nbcalc-- ;
+				}
+				var amount_each = Math.round(amount * 100 / nbcalc) / 100 ;
 				break ;
 			case 'SINGLE' :
 				var nb = 1 ;
-				var dateStr = wizardValues['agree_date'] ;
+				var dateObj = wizardValues['agree_date'] ;
 				var amount_each = Math.round(wizardValues['agree_amount'] * 100 / nbcalc) / 100 ;
 				break ;
 			default :
@@ -312,14 +317,23 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AgreeSummaryPanel',{
 				this.down('treepanel').setRootNode( {root:true,children:[],expandable:false, expanded:true} ) ;
 				return ;
 		}
-		var dateObj = Ext.Date.parse( dateStr, 'Y-m-d' ) ;
 		
+		var sumMilestones = 0 ;
 		var rootChildren = [] ;
 		for( var i=0 ; i<nb ; i++ ) {
+			var milestone_amount ;
+			if( ((amount_first!=null) && (i==0)) ) {
+				milestone_amount = Number(amount_first) ;
+			} else if( i+1 == nb ) {
+				milestone_amount = wizardValues['agree_amount'] - sumMilestones ;
+			} else {
+				milestone_amount = Number(amount_each) ;
+			}
+			sumMilestones += milestone_amount ;
 			rootChildren.push({
 				leaf: true,
 				milestone_date_sched: dateObj,
-				milestone_amount: ( ((amount_first!=null) && (i==0)) ? Number(amount_first) : Number(amount_each) )
+				milestone_amount: milestone_amount
 			});
 			switch( wizardValues.agree_period ) {
 				case 'MONTH' :

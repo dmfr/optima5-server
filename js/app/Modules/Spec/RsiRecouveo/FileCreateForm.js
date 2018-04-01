@@ -269,7 +269,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateForm',{
 						formData['agree_amount'] += recordRecord.get('amount') ;
 					},this);
 				},this);
+				formData['records_amount'] = Ext.util.Format.number(formData['agree_amount'],'0,000.00')
 				this.getForm().setValues(formData) ;
+				this.getForm().findField('agree_amount').setMaxValue( formData['agree_amount'] ) ;
+				this.getForm().findField('agree_amount').setMinValue( 0 ) ;
 				break ;
 		}
 		
@@ -321,7 +324,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateForm',{
 	handleSubmitNew: function() {
 		var formPanel = this,
 			form = formPanel.getForm(),
-			formData = form.getValues() ;
+			formData = form.getFieldValues() ;
 			  
 		var errors = [] ;
 		var noSubmit = false ;
@@ -332,7 +335,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateForm',{
 				var cntRightInner = this.down('#cntRight').down('panel') ;
 				switch( cntRightInner.getActiveTab().itemId ) {
 					case 'formWizard' :
-						var fields = ['agree_amount','agree_period','agree_date','agree_datefirst','agree_count','agree_amountfirst'] ;
+						var fields = ['agree_amount','agree_period','agree_date','agree_datefirst','agree_count','agree_set_amountfirst','agree_set_amountlast'] ;
 						var wizardValues = {} ;
 						Ext.Array.each( fields, function(fieldName) {
 							var hasErrors = false ;
@@ -340,12 +343,16 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateForm',{
 							if( field.isVisible() ) {
 								wizardValues[fieldName] = formData[fieldName] ;
 							}
-							if( field.isVisible() && Ext.isEmpty( formData[fieldName] ) ) {
+							if( field.isVisible() && !field.allowBlank && Ext.isEmpty( formData[fieldName] ) ) {
+								field.markInvalid('Information non renseignée') ;
+								hasErrors = true ;
+							}
+							if( field.isVisible() && !field.isValid() ) {
 								field.markInvalid('Information non renseignée') ;
 								hasErrors = true ;
 							}
 							if( hasErrors ) {
-								errors.push('Echéancier non rempli') ;
+								errors.push('Echéancier non valide') ;
 							}
 						},this) ;
 						if( !Ext.isEmpty(errors) ) {

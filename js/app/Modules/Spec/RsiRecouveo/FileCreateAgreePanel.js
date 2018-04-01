@@ -29,16 +29,25 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateAgreePanel',{
 						labelWidth: 120
 					},
 					items: [{
+						xtype:'displayfield',
+						width: 220,
+						anchor: '',
+						name: 'records_amount',
+						hideTrigger:true,
+						fieldLabel: 'Montant sélect.'
+					},{
 						xtype:'numberfield',
 						width: 220,
 						anchor: '',
 						name: 'agree_amount',
 						hideTrigger:true,
-						fieldLabel: 'Montant'
+						fieldLabel: 'Montant échéancier',
+						allowBlank: false
 					},{
 						xtype: 'combobox',
 						name: 'agree_period',
 						fieldLabel: 'Périodicité',
+						allowBlank: false,
 						forceSelection: true,
 						editable: false,
 						store: {
@@ -60,33 +69,26 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateAgreePanel',{
 						format: 'Y-m-d',
 						name: 'agree_date',
 						fieldLabel: 'Echéance',
+						allowBlank: false,
 						minValue: new Date()
 					},{
 						xtype:'datefield',
 						format: 'Y-m-d',
 						name: 'agree_datefirst',
 						fieldLabel: 'Première échéance',
+						allowBlank: false,
 						minValue: new Date()
 					},{
 						xtype:'numberfield',
 						width: 180,
 						anchor: '',
 						name: 'agree_count',
+						allowBlank: false,
 						fieldLabel: 'Nb échéances'
-					},{
-						xtype: 'checkboxfield',
-						name: 'agree_amountfirst_do',
-						boxLabel: 'Spécifier 1ere échéance ?'
-					},{
-						xtype:'numberfield',
-						width: 220,
-						anchor: '',
-						name: 'agree_amountfirst',
-						hideTrigger:true,
-						fieldLabel: 'Mnt 1ère échéance'
 					}]
 				},{
 					xtype: 'fieldset',
+					itemId: 'fsCalc',
 					padding: 10,
 					title: 'Calcul échéances',
 					layout: {
@@ -97,17 +99,21 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateAgreePanel',{
 						labelWidth: 120
 					},
 					items: [{
-						xtype:'textfield',
-						readOnly: true,
-						name: 'agree_display_amountfirst',
+						xtype:'numberfield',
+						name: 'agree_set_amountfirst',
 						hideTrigger:true,
 						fieldLabel: 'Mnt 1ere échéance'
 					},{
-						xtype:'textfield',
+						xtype:'displayfield',
 						readOnly: true,
 						name: 'agree_display_amountnext',
 						hideTrigger:true,
 						fieldLabel: 'Mnt autres échéance'
+					},{
+						xtype:'numberfield',
+						name: 'agree_set_amountlast',
+						hideTrigger:true,
+						fieldLabel: 'Mnt dernière éch.'
 					}]
 				},{
 					xtype: 'fieldset',
@@ -138,7 +144,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateAgreePanel',{
 		this.setActiveTab(0) ;
 		this.getForm().getFields().each( function(field) {
 			field.on('change',function(field) {
-				this.onFormChange() ;
+				this.onFormChange(field) ;
 			},this) ;
 		},this) ;
 		this.onFormChange();
@@ -148,43 +154,66 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateAgreePanel',{
 		return this.down('#formWizard').getForm() ;
 	},
 	
-	onFormChange: function() {
+	onFormChange: function(field) {
 		var form = this.getForm() ;
+		
+		switch( field && field.getName() ) {
+			case 'agree_count' :
+			case 'agree_amount' :
+			case 'agree_period' :
+				form.findField('agree_set_amountfirst').reset() ;
+				form.findField('agree_set_amountlast').reset() ;
+				break ;
+		}
 		
 		switch( form.findField('agree_period').getValue() ) {
 			case 'NOW' :
 				form.findField('agree_date').setVisible(false) ;
 				form.findField('agree_datefirst').setVisible(false) ;
 				form.findField('agree_count').setVisible(false) ;
-				form.findField('agree_amountfirst_do').setVisible(false) ;
 			  break ;
 			case 'SINGLE' :
 				form.findField('agree_date').setVisible(true) ;
 				form.findField('agree_datefirst').setVisible(false) ;
 				form.findField('agree_count').setVisible(false) ;
-				form.findField('agree_amountfirst_do').setVisible(false) ;
 				break ;
 			case 'WEEK' :
 			case 'MONTH' :
 				form.findField('agree_date').setVisible(false) ;
 				form.findField('agree_datefirst').setVisible(true) ;
 				form.findField('agree_count').setVisible(true) ;
-				form.findField('agree_amountfirst_do').setVisible(true) ;
 				break ;
 			default :
 				form.findField('agree_date').setVisible(false) ;
 				form.findField('agree_datefirst').setVisible(false) ;
 				form.findField('agree_count').setVisible(false) ;
-				form.findField('agree_amountfirst_do').setVisible(false) ;
 				break ;
 		}
 		
-		form.findField('agree_amountfirst').setVisible( 
-			form.findField('agree_amountfirst_do').isVisible() && form.findField('agree_amountfirst_do').getValue() ) ;
+		var nbStep ;
+		switch( form.findField('agree_period').getValue() ) {
+			case 'NOW' :
+				nbStep = 0 ;
+			  break ;
+			case 'SINGLE' :
+				nbStep = 1 ;
+				break ;
+			case 'WEEK' :
+			case 'MONTH' :
+				nbStep = form.findField('agree_count').getValue() ;
+				break ;
+			default :
+				nbStep = -1 ;
+				break ;
+		}
+		
+		this.down('#fsCalc').setVisible( nbStep!=0 ) ;
+		form.findField('agree_set_amountfirst').setVisible( nbStep>1 ) ;
+		form.findField('agree_set_amountlast').setVisible( nbStep>2 ) ;
+		
 			  
 		// Calcul
-		var agree_display_amountfirst = '' ,
-			agree_display_amountnext = '' ;
+		var agree_display_amountnext = '' ;
 			  
 		outer_loop:
 		while(true) {
@@ -196,7 +225,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateAgreePanel',{
 			}
 			switch( formValues.agree_period ) {
 				case 'SINGLE' :
-					agree_display_amountfirst = amount ;
+					agree_display_amountnext = amount ;
 					break outer_loop;
 				case 'WEEK' :
 				case 'MONTH' :
@@ -209,9 +238,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateAgreePanel',{
 				break ;
 			}
 			
-			if( formValues.agree_amountfirst_do ) {
-				agree_display_amountfirst = formValues.agree_amountfirst ;
-				amount -= parseFloat(formValues.agree_amountfirst) ;
+			if( !Ext.isEmpty(formValues.agree_set_amountfirst) && formValues.agree_set_amountfirst>0 ) {
+				amount -= parseFloat(formValues.agree_set_amountfirst) ;
+				nbStep-- ;
+			}
+			if( !Ext.isEmpty(formValues.agree_set_amountlast) && formValues.agree_set_amountlast>0 ) {
+				amount -= parseFloat(formValues.agree_set_amountlast) ;
 				nbStep-- ;
 			}
 			
@@ -221,7 +253,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateAgreePanel',{
 		}
 		
 		form.setValues({
-			agree_display_amountfirst: (Ext.isNumber(agree_display_amountfirst) ? Ext.util.Format.number(agree_display_amountfirst,'0,000.00') : ''),
 			agree_display_amountnext: (Ext.isNumber(agree_display_amountnext) ? Ext.util.Format.number(agree_display_amountnext,'0,000.00') : '')
 		}) ;
 	}
