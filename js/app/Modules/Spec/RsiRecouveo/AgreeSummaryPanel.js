@@ -8,13 +8,15 @@ Ext.define('RsiRecouveoAgreeTreeModel',{
 		{name: 'milestone_fileaction_filerecord_id', type: 'int'},
 		{name: 'milestone_status', type: 'string'}, //enum OK, CUR, null
 		{name: 'milestone_date_sched', type: 'date', dateFormat: 'Y-m-d'},
+		{name: 'milestone_date_sched_previous', type: 'date', dateFormat: 'Y-m-d', allowNull:true},
 		{name: 'milestone_date_actual', type: 'date', dateFormat: 'Y-m-d'},
 		{name: 'milestone_amount', type: 'number'},
 		{name: 'linkrecord_filerecord_id', type: 'number'},
 		{name: 'linkrecord_id', type: 'string'},
 		{name: 'linkrecord_ref', type: 'string'},
-		{name: 'linkrecord_amount', type: 'string'},
-		{name: 'dummy', type: 'auto'},
+		{name: 'linkrecord_amount', type: 'number'},
+		{name: 'linkrecord_pending', type: 'boolean'},
+		{name: 'dummy', type: 'auto'}
 	]
 }) ;
 
@@ -100,10 +102,21 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AgreeSummaryPanel',{
 								m.tdAttr='style="display:none"' ;
 							}
 							if( depth==1 ) {
+								if( r.get('milestone_date_sched_previous') 
+									&& !Ext.Date.isEqual(r.get('milestone_date_sched_previous') , r.get('milestone_date_sched')) ) {
+									
+									m.tdStyle+=';color:#0000ff' ;
+								}
 								return Ext.util.Format.date(r.get('milestone_date_sched'),'d/m/Y')
 							}
 							if( depth==2 ) {
-								
+								if( r.get('linkrecord_pending') ) {
+									m.tdStyle+=';color:#ff0000' ;
+								}
+								if( r.get('linkrecord_ref') ) {
+									return r.get('linkrecord_ref') ;
+								}
+								return r.get('linkrecord_id') ;
 							}
 						},
 						dataIndex: 'milestone_date_sched',
@@ -121,10 +134,22 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AgreeSummaryPanel',{
 								return '<b><i>'+Ext.util.Format.number(sum,'0,000.00')+'</i></b>';
 							}
 							if( depth==1 ) {
-								return Ext.util.Format.number(r.get('milestone_amount'),'0,000.00')
+								v = r.get('milestone_amount') ;
+								if( r.get('milestone_status')=='CUR' ) {
+									Ext.Array.each( r.childNodes, function(chNode) {
+										v += chNode.get('linkrecord_amount') ;
+									}) ;
+								}
+								if( r.get('milestone_status')=='OK' && v==0 ) {
+									return 'report.' ;
+								}
+								return Ext.util.Format.number(v,'0,000.00')
 							}
 							if( depth==2 ) {
-								
+								if( r.parentNode.get('milestone_status')=='OK' ) {
+									m.tdStyle+=';font-style: italic' ;
+								}
+								return Ext.util.Format.number(r.get('linkrecord_amount')*(-1),'0,000.00')
 							}
 						},
 						dataIndex: 'milestone_amount',
@@ -142,7 +167,24 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AgreeSummaryPanel',{
 					}],
 					listeners: {
 						selectionchange: function(selModel,records) {
-							this.down('treepanel').down('toolbar').down('#tbDelete').setDisabled( !(records && records.length > 0 && (records[0].getDepth()==1)) ) ;
+							while(true) {
+								var delEnabled = false ;
+								var record ;
+								if( records && records.length == 1 ) {
+									record = records[0] ;
+								} else {
+									break ;
+								}
+								if( record.getDepth() != 1 ) {
+									break ;
+								}
+								if( !Ext.isEmpty(record.get('milestone_status')) ) {
+									break ;
+								}
+								delEnabled = true ;
+								break ;
+							}
+							this.down('treepanel').down('toolbar').down('#tbDelete').setDisabled( !delEnabled ) ;
 						},
 						scope: this
 					},
@@ -175,54 +217,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AgreeSummaryPanel',{
 					anchor: '100%',
 					labelWidth: 80
 				},
-				items: [{
-					xtype: 'displayfield',
-					fieldLabel: 'Action',
-					name: 'action_txt',
-					value: ''
-				},{
-					hidden: true,
-					xtype: 'displayfield',
-					fieldLabel: 'Prévue le',
-					name: 'action_sched',
-					value: '',
-					listeners: {
-						change: function(field,val) {
-							field.setVisible( !Ext.isEmpty(val) ) ;
-						}
-					}
-				},{
-					xtype      : 'fieldcontainer',
-					fieldLabel : 'Echéance',
-					defaultType: 'radiofield',
-					defaults: {
-						flex: 1
-					},
-					layout: 'vbox',
-					items: [
-						{
-							boxLabel  : 'Valider cette échéance<br><i>Identifier le paiement ci-contre</i>',
-							name      : 'schedlock_next',
-							inputValue: 'confirm'
-						}, {
-							boxLabel  : 'Reporter l\'échéance',
-							name      : 'schedlock_next',
-							inputValue: 'resched'
-						}, {
-							boxLabel  : '<font color="red">Annuler la promesse</font><br><i>Retour dossier "en cours"</i>',
-							name      : 'schedlock_next',
-							inputValue: 'end'
-						}
-					]
-				},{
-					hidden: true,
-					anchor: '',
-					width: 200,
-					xtype: 'datefield',
-					format: 'Y-m-d',
-					name: 'schedlock_resched_date',
-					fieldLabel: 'Date prévue'
-				}]
+				items: []
 			}]
 		}) ;
 		me.mixins.field.constructor.call(me);
@@ -264,11 +259,15 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AgreeSummaryPanel',{
 			//console.dir('not milestone') ;
 			return false ;
 		}
+		if( context.record.get('milestone_status') == 'OK' ) {
+			return false ;
+		}
 		this.onEditorChange(context.record.getData()) ;
 	},
 	onAfterEditMilestone: function(editor,context) {
 		context.record.set('_phantom',false) ;
 		context.record.commit() ;
+		this.down('treepanel').getStore().sort('milestone_date_sched','ASC') ;
 		this.down('treepanel').getView().refresh() ;
 	},
 	onCancelEditMilestone: function(editor,context) {
@@ -348,9 +347,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AgreeSummaryPanel',{
 		this.down('treepanel').setRootNode( {root:true,children:rootChildren,expandable:false, expanded:true} ) ;
 	},
 	setupFromFile: function( fileFilerecordId, fileactionFilerecordId ) {
-		console.dir(arguments) ;
 		if( fileFilerecordId instanceof RsiRecouveoFileTplModel ) {
-			console.log('obj') ;
 			this.onLoadFile( fileFilerecordId, fileactionFilerecordId ) ;
 		}
 	},
@@ -371,16 +368,52 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AgreeSummaryPanel',{
 			if( fileactionRecord.getId()==fileactionFilerecordId ) {
 				milestoneStatus = 'CUR' ;
 			}
-			rootChildren.push({
+			var chNode = {
 				leaf: Ext.isEmpty(milestoneStatus),
 				expandable: false,
 				expanded: !Ext.isEmpty(milestoneStatus),
+				children: [],
 				
 				milestone_fileaction_filerecord_id: fileactionRecord.getId(),
 				milestone_date_sched: Ext.Date.format(fileactionRecord.get('date_sched'),'Y-m-d'),
+				milestone_date_sched_previous: Ext.Date.format(fileactionRecord.get('date_sched'),'Y-m-d'),
+				milestone_date_actual: Ext.Date.format(fileactionRecord.get('date_actual'),'Y-m-d'),
 				milestone_amount: agreeData.milestone_amount,
 				milestone_status: milestoneStatus
-			}) ;
+			} ;
+			
+			if( fileactionRecord.get('status_is_ok') ) {
+				Ext.apply(chNode,{
+					icon: 'images/modules/rsiveo-ok-16.gif'
+				}) ;
+			}
+			
+			if( fileactionRecord.get('status_is_ok') && Ext.isArray(agreeData.linkrecord_arr_recordFilerecordIds) ) {
+				var subchNodes = [] ;
+				Ext.Array.each( agreeData.linkrecord_arr_recordFilerecordIds, function(recordFilerecordId) {
+					fileRecord.records().each( function(iterRecordRecord) {
+						if( iterRecordRecord.getId() == recordFilerecordId ) {
+							subchNodes.push({
+								leaf: true,
+								
+								linkrecord_filerecord_id: iterRecordRecord.getId(),
+								linkrecord_id: iterRecordRecord.get('record_id'),
+								linkrecord_ref: iterRecordRecord.get('record_ref'),
+								linkrecord_amount: iterRecordRecord.get('amount')
+							}) ;
+						}
+					}) ;
+				}) ;
+				if( subchNodes.length > 0 ) {
+					Ext.apply(chNode, {
+						expandable: true,
+						expanded: false,
+						children: subchNodes
+					}) ;
+				}
+			}
+			
+			rootChildren.push(chNode) ;
 		}) ;
 		var rootData = {
 			agree_file_filerecord_id: fileRecord.getId(),
@@ -388,12 +421,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AgreeSummaryPanel',{
 			agree_amount: null // auto calc
 		} ;
 		this.down('treepanel').setRootNode( Ext.apply({root:true,children:rootChildren,expandable:false, expanded:true},rootData) ) ;
+		this.down('treepanel').getStore().sort('milestone_date_sched','ASC') ;
 	},
 	
 	
 	onRecordsTreeDrop: function(node, data, overModel, dropPosition, dropHandlers) {
-		console.log('onRecordsTreeDrop') ;
-		console.dir(arguments) ;
+		//console.log('onRecordsTreeDrop') ;
+		//console.dir(arguments) ;
 		if( overModel.getDepth() != 1 ) {
 			return false ;
 		}
@@ -401,6 +435,22 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AgreeSummaryPanel',{
 			return false ;
 		}
 		dropHandlers.wait = true ;
+		Ext.Array.each( data.records, function(recordRec) {
+			if( !(recordRec instanceof RsiRecouveoRecordTplModel) ) {
+				return ;
+			}
+			overModel.insertChild(0,{
+				leaf: true,
+				
+				linkrecord_filerecord_id: recordRec.getId(),
+				linkrecord_id: recordRec.get('record_id'),
+				linkrecord_ref: recordRec.get('record_ref'),
+				linkrecord_amount: recordRec.get('amount'),
+				linkrecord_pending: true
+			}) ;
+			recordRec.set('amount',0) ;
+		}) ;
+		this.down('treepanel').getView().refresh() ;
 		return true ;
 	},
 	
@@ -414,9 +464,21 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AgreeSummaryPanel',{
 		var fields = ['milestone_fileaction_filerecord_id','milestone_status','milestone_date_sched','milestone_date_actual','milestone_amount'] ;
 		Ext.Array.each( rootNode.childNodes, function(chNod) {
 			var tobj = {
+				milestone_fileaction_filerecord_id: chNod.get('milestone_fileaction_filerecord_id'),
+				milestone_status: chNod.get('milestone_status'),
 				milestone_date_sched: Ext.Date.format(chNod.get('milestone_date_sched'),'Y-m-d'),
+				milestone_date_sched_previous: (chNod.get('milestone_date_sched_previous') ? Ext.Date.format(chNod.get('milestone_date_sched_previous'),'Y-m-d'):''),
 				milestone_amount: chNod.get('milestone_amount')
 			} ;
+			if( chNod.get('milestone_status')=='CUR' && Ext.isArray(chNod.childNodes) ) {
+				var childRecordIds = [] ;
+				Ext.Array.each( chNod.childNodes, function(chRecord) {
+					childRecordIds.push( chRecord.get('linkrecord_filerecord_id') ) ;
+				}) ;
+				Ext.apply(tobj,{
+					milestone_commit_record_ids: childRecordIds
+				}) ;
+			}
 			recs.push(tobj) ;
 		}) ;
 		return recs ;

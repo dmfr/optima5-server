@@ -412,6 +412,31 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 			if( Ext.isEmpty( postData['schedlock_next'] ) ) {
 				errors.push('Suivi de l\'action non renseigné') ;
 			}
+			if( postData['schedlock_next'] == 'agree_summary' ) {
+				//console.dir(postDataObj['agree_summary']) ;
+				var curMilestoneValid = false ;
+				Ext.Array.each( postDataObj['agree_summary'], function(milestone) {
+					if( milestone.milestone_status != 'CUR' ) {
+						return ;
+					}
+					if( !Ext.isEmpty(milestone.milestone_date_sched_previous) 
+						&& milestone.milestone_date_sched_previous != milestone.milestone_date_sched ) {
+						
+						// changement de date
+						curMilestoneValid = true ;
+					}
+					if( !Ext.isEmpty(milestone.milestone_commit_record_ids) ) {
+						// imputation
+						curMilestoneValid = true ;
+					}
+				}) ;
+				if( !curMilestoneValid ) {
+					var error = 'Pas d\'action sur l\'échéancier' ;
+					errors.push(error) ;
+				} else {
+					postData['agree_summary'] = postDataObj['agree_summary'] ;
+				}
+			}
 			if( postData['schedlock_next'] == 'resched' 
 				&& Ext.isEmpty(postData['schedlock_resched_date']) ) {
 				var error = 'Date de report non renseignée' ;
@@ -433,25 +458,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 				
 				errors.push(error) ;
 				this.getForm().findField('schedlock_schednew_code').markInvalid(error) ;
-			}
-			if( this.down('#rightRecords') && this.down('#rightRecords').isVisible(true) ) {
-				if( this.down('#rightRecords').down('grid').getSelectionModel().getSelection().length < 1 ) {
-					errors.push('Enregistrement comptable non sélectionné') ;
-				} else {
-					postData['schedlock_confirm_txt'] = [] ;
-					postData['schedlock_confirm_ids'] = [] ;
-					postData['schedlock_confirm_amount'] = [] ;
-					
-					Ext.Array.each( this.down('#rightRecords').down('grid').getSelectionModel().getSelection(), function(rec) {
-						postData['schedlock_confirm_txt'].push( rec.get('record_ref') ) ;
-						postData['schedlock_confirm_ids'].push( rec.getId() ) ;
-						postData['schedlock_confirm_amount'] += rec.get('amount') ;
-					}) ;
-					
-					postData['schedlock_confirm_txt'] = postData['schedlock_confirm_txt'].join(' ') ;
-					postData['schedlock_confirm_ids'] = Ext.JSON.encode(postData['schedlock_confirm_ids']) ;
-					postData['schedlock_confirm_amount'] = (-1 * postData['schedlock_confirm_amount']) ;
-				}
 			}
 		}
 		

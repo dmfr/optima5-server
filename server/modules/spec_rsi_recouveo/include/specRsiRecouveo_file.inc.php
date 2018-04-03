@@ -1052,11 +1052,18 @@ function specRsiRecouveo_file_createForAction( $post_data ) {
 					$arr_ins['field_LINK_ACTION'] = 'AGREE_FOLLOW' ;
 					$arr_ins['field_LINK_TXT'] = "Echéance ".($i+1)." / ".$nb ;
 					$arr_ins['field_TXT'] = 'Attendu : '.$agree_milestone['milestone_amount'] ;
-					$arr_ins['field_LINK_AGREE_JSON'] = json_encode($agree_milestone) ;
+					$arr_ins['field_LINK_AGREE_JSON'] = json_encode(array(
+						'milestone_amount' => $agree_milestone['milestone_amount']
+					)) ;
 					paracrm_lib_data_insertRecord_file($file_code,$file_filerecord_id,$arr_ins) ;
 					
 					$i++ ;
 				}
+				
+				// DONE 180331 : store milestones
+				$arr_ins = array() ;
+				$arr_ins['field_FROM_PARAMS_JSON'] = json_encode($_formData['agree_milestones']) ;
+				paracrm_lib_data_updateRecord_file( 'FILE', $arr_update, $file_filerecord_id);
 			} else {
 				switch( $_formData['agree_period'] ) {
 					case 'MONTH' :

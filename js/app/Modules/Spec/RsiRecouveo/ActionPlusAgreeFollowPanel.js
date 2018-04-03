@@ -44,6 +44,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusAgreeFollowPanel',{
 						labelWidth: 80
 					},
 					items: [{
+						xtype: 'hiddenfield',
+						name: 'schedlock_next',
+						valueOrig: 'agree_summary',
+						value: 'agree_summary'
+					},{
 						xtype: 'displayfield',
 						fieldLabel: 'Action',
 						name: 'action_txt',
@@ -56,8 +61,18 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusAgreeFollowPanel',{
 						value: '',
 						listeners: {
 							change: function(field,val) {
-								field.setVisible( !Ext.isEmpty(val) ) ;
+								//field.setVisible( !Ext.isEmpty(val) ) ;
 							}
+						}
+					},{
+						xtype: 'checkboxfield',
+						boxLabel: '<font color="red">Annuler échéancier</font>',
+						listeners: {
+							change: function(field,val) {
+								this.down('#formSummary').down('treepanel').setVisible(!val) ;
+								this.getForm().findField('schedlock_next').setValue( val ? 'end' : this.getForm().findField('schedlock_next').valueOrig ) ;
+							},
+							scope: this
 						}
 					}]
 				},{
@@ -131,6 +146,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusAgreeFollowPanel',{
 				cls: 'ux-noframe-bg',
 				bodyCls: 'ux-noframe-bg',
 				bodyPadding: 0,
+				
+				name: 'agree_summary',
 				
 				optimaModule: this.optimaModule
 			})]

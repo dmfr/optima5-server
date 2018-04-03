@@ -39,6 +39,12 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 	if( $file_record['file_filerecord_id'] != $file_filerecord_id ) {
 		return array('success'=>false) ;
 	}
+	$acc_id = $file_record['acc_id'] ;
+	$json = specRsiRecouveo_account_open( array('acc_id'=>$acc_id) ) ;
+	if( !$json['success'] ) {
+		return array('success'=>false) ;
+	}
+	$account_record = $json['data'] ;
 	
 	
 	$is_sched_lock = $map_status[$file_record['status']]['sched_lock'] ;
@@ -293,6 +299,69 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 					$arr_ins['field_LINK_TXT'] = trim($txt) ;
 					$arr_ins['field_TXT'] = $txt ;
 					break ;
+					
+				case 'agree_summary' :
+					// DONE 180329 : agreesummary detail
+					$agree_milestone_cur = NULL ;
+					foreach( $post_form['agree_summary'] as $row ) {
+						if( $row['milestone_status'] == 'CUR' ) {
+							$agree_milestone_cur = $row ;
+						}
+					}
+					if( !$agree_milestone_cur || $agree_milestone_cur['milestone_fileaction_filerecord_id']!=$post_form['fileaction_filerecord_id'] ) {
+						return array('success'=>false) ;
+					}
+					
+					$map_recordId_amount = array() ;
+					foreach( $agree_milestone_cur['milestone_commit_record_ids'] as $record_filerecord_id ) {
+						foreach( $account_record['files'] as $iter_file_row ) {
+							if( $iter_file_row['file_filerecord_id']==0 ) {
+								foreach( $iter_file_row['records'] as $iter_record_row ) {
+									if( $iter_record_row['record_filerecord_id'] == $record_filerecord_id ) {
+										$map_recordId_amount[$record_filerecord_id] = ((-1) * $iter_record_row['amount']) ;
+										$txt_records[] = $iter_record_row['record_ref'] ;
+									}
+								}
+							}
+						}
+					}
+					
+					if( $agree_milestone_cur['milestone_date_sched_previous'] != $agree_milestone_cur['milestone_date_sched'] ) {
+						$milestone_date_resched = $agree_milestone_cur['milestone_date_sched'] ;
+					}
+					
+					if( array_sum($map_recordId_amount) == 0 ) {
+						// aucun paiement
+						if( !$milestone_date_resched ) {
+							return array('success'=>false) ;
+						}
+						// resched
+						$txt = '' ;
+						$txt.= "Echéance reportée"."\r\n" ;
+						$arr_ins['field_LINK_TXT'] = "Echéance reportée" ;
+						$arr_ins['field_TXT'] = $txt ;
+						$arr_ins['field_LINK_AGREE_JSON'] = json_encode(array(
+							'milestone_amount' => 0,
+							'linkrecord_arr_recordFilerecordIds' => array()
+						)) ;
+					} else {
+						$txt = '' ;
+						$txt.= "Echéance validée, attendu : {$agree_milestone_cur['milestone_amount']} , perçu : ".array_sum($map_recordId_amount)."\r\n" ;
+						$txt.= "Paiements : ".implode(', ',$txt_records)."\r\n" ;
+						$arr_ins['field_LINK_TXT'] = 'Encaissé : '.array_sum($map_recordId_amount).'' ;
+						$arr_ins['field_TXT'] = $txt ;
+						$arr_ins['field_LINK_AGREE_JSON'] = json_encode(array(
+							'milestone_amount' => array_sum($map_recordId_amount),
+							'linkrecord_arr_recordFilerecordIds' => array_keys($map_recordId_amount)
+						)) ;
+						
+						$forward_post = array(
+							'file_filerecord_id' => $file_filerecord_id,
+							'arr_recordFilerecordIds' => json_encode(array_keys($map_recordId_amount))
+						) ;
+						specRsiRecouveo_file_allocateRecordTemp($forward_post) ;
+					}
+					break ;
 			
 				default :
 					return array('success'=>false) ;
@@ -403,6 +472,138 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 			case 'close' :
 				$do_clean_next_actions = TRUE ;
 				$is_sched_lock_endBack = TRUE ;
+				break ;
+				
+			case 'agree_summary' :
+				// si reliquat action en cours
+				// reliquat + date_sched != date_sched previous
+				// OU
+				// pas d'action en attente
+				//   => creation nvlle action
+					// DONE 180329 : agreesummary detail
+				$agree_milestone_cur = NULL ;
+				foreach( $post_form['agree_summary'] as $row ) {
+					if( $row['milestone_status'] == 'CUR' ) {
+						$agree_milestone_cur = $row ;
+					}
+				}
+				$map_recordId_amount = array() ;
+				foreach( $agree_milestone_cur['milestone_commit_record_ids'] as $record_filerecord_id ) {
+					foreach( $account_record['files'] as $iter_file_row ) {
+						if( $iter_file_row['file_filerecord_id']==0 ) {
+							foreach( $iter_file_row['records'] as $iter_record_row ) {
+								if( $iter_record_row['record_filerecord_id'] == $record_filerecord_id ) {
+									$map_recordId_amount[$record_filerecord_id] = ((-1) * $iter_record_row['amount']) ;
+								}
+							}
+						}
+					}
+				}
+				if( $agree_milestone_cur['milestone_date_sched_previous'] != $agree_milestone_cur['milestone_date_sched'] ) {
+					$milestone_date_resched = $agree_milestone_cur['milestone_date_sched'] ;
+				}
+				
+				// Tableau des échéances à venir
+				$reste_amount = $agree_milestone_cur['milestone_amount'] - array_sum($map_recordId_amount) ;
+				$tab_pendingMilestones = array() ;
+				$toReuseIds = array() ;
+				if( $milestone_date_resched && $reste_amount > 0 ) {
+					$tab_pendingMilestones[] = array(
+						'milestone_date_sched' => $milestone_date_resched,
+						'milestone_amount' => $reste_amount
+					);
+					$reste_amount = 0 ;
+				}
+				foreach( $post_form['agree_summary'] as $row ) {
+					if( $row['milestone_status'] ) {
+						continue ;
+					}
+					$tab_pendingMilestones[] = array(
+						'milestone_date_sched' => $row['milestone_date_sched'],
+						'milestone_amount' => $row['milestone_amount']
+					);
+				}
+				$usort = function($arr1,$arr2)
+				{
+					return ($arr1['milestone_date_sched'] > $arr2['milestone_date_sched']) ;
+				};
+				usort($tab_pendingMilestones,$usort) ;
+				
+				if( $reste_amount != 0 ) {
+					foreach( $tab_pendingMilestones as &$tmp_milestone ) {
+						if( $reste_amount == 0 ) {
+							break ;
+						}
+						if( $reste_amount < ($tmp_milestone['milestone_amount'] * -1) ) {
+							$reste_amount += $tmp_milestone['milestone_amount'] ;
+							$tmp_milestone['milestone_amount'] = 0 ;
+							continue ;
+						}
+						$tmp_milestone['milestone_amount'] += $reste_amount ;
+						$reste_amount = 0 ;
+					}
+					unset($tmp_milestone) ;
+				}
+				if( $reste_amount > 0 ) {
+					$tab_pendingMilestones[] = array(
+						'milestone_date_sched' => date('Y-m-d',strtotime('+1 day')),
+						'milestone_amount' => $reste_amount
+					);
+				}
+				
+				$toReuseIds = array() ;
+				$idx = 0 ;
+				foreach( $file_record['actions'] as $fileaction_row ) {
+					if( $fileaction_row['link_action']!='AGREE_FOLLOW' ) {
+						continue ;
+					}
+					if( $fileaction_row['status_is_ok'] ) {
+						if( $fileaction_row['link_agree']['milestone_amount'] > 0 ) {
+							$idx++ ;
+						}
+						continue ;
+					}
+					$toReuseIds[] = $fileaction_row['fileaction_filerecord_id'] ;
+				}
+				
+				$total = $idx ;
+				foreach( $tab_pendingMilestones as $milestone ) {
+					if( $milestone['milestone_amount'] == 0 ) {
+						continue ;
+					}
+					$total++ ;
+				}
+				foreach( $tab_pendingMilestones as $milestone ) {
+					if( $milestone['milestone_amount'] == 0 ) {
+						continue ;
+					}
+					
+					$idx++ ;
+					
+					$arr_ins = array() ;
+					$arr_ins['field_STATUS_IS_OK'] = 0 ;
+					$arr_ins['field_DATE_SCHED'] = $milestone['milestone_date_sched'] ;
+					$arr_ins['field_LINK_STATUS'] = $post_form['link_status'] ;
+					$arr_ins['field_LINK_ACTION'] = 'AGREE_FOLLOW' ;
+					$arr_ins['field_LINK_TXT'] = "Echéance ".($idx)." / ".$total ;
+					$arr_ins['field_TXT'] = 'Attendu : '.$milestone['milestone_amount'] ;
+					$arr_ins['field_LINK_AGREE_JSON'] = json_encode(array(
+						'milestone_amount' => $milestone['milestone_amount']
+					)) ;
+					
+					
+					if( $toReuseIds ) {
+						$toReuseId = array_shift($toReuseIds) ;
+						paracrm_lib_data_updateRecord_file( $file_code, $arr_ins, $toReuseId);
+					} else {
+						paracrm_lib_data_insertRecord_file($file_code,$file_filerecord_id,$arr_ins) ;
+					}
+				}
+				
+				foreach( $toReuseIds as $toDelete_fileactionFilerecordId ) {
+					paracrm_lib_data_deleteRecord_file($file_code,$toDelete_fileactionFilerecordId) ;
+				}
+				
 				break ;
 		
 			case 'schednew' :
