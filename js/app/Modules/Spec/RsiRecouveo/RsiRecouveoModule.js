@@ -42,7 +42,8 @@ Ext.define('RsiRecouveoFileTplModel',{ // TO: RsiRecouveoFileModel
 		{name: 'inv_amount_total', type: 'number'},
 		{name: 'inv_balage', type: 'auto'},
 		
-		{name: 'from_file_filerecord_id', type:'int'}
+		{name: 'from_file_filerecord_id', type:'int'},
+		{name: 'from_params_json', type:'string'}
 	],
 	statusIsSchedLock: function() {
 		var fileStatus = this.get('status'),

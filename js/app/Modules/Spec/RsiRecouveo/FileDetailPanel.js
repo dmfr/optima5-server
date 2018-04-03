@@ -40,7 +40,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		'Optima5.Modules.Spec.RsiRecouveo.ActionForm',
 		'Optima5.Modules.Spec.RsiRecouveo.AdrbookEntityPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.FileCreateForm',
-		'Optima5.Modules.Spec.RsiRecouveo.RecordTempForm'
+		'Optima5.Modules.Spec.RsiRecouveo.RecordTempForm',
+		'Optima5.Modules.Spec.RsiRecouveo.AgreeComparePanel'
 	],
 	
 	_readonlyMode: false,
@@ -1195,6 +1196,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			iteratedFilerecordIds.push( iterateFileRecord.getId() ) ;
 			iterateFileRecord.actions().each(function(rec) {
 				var recData = rec.getData() ;
+				recData['file_filerecord_id'] = iterateFileRecord.getId() ;
+				recData['file_id_ref'] = iterateFileRecord.get('id_ref') ;
+				
 				recData['leaf'] = true ;
 				recData['icon'] = Ext.BLANK_IMAGE_URL ;
 				if( rec.get('link_newfile_filerecord_id') ) {
@@ -1216,11 +1220,16 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 							return ;
 						}
 						var cRecData = cRec.getData() ;
+						if( cRecData.link_agree && cRecData.link_agree.milestone_cancel ) {
+							return ;
+						}
 						cRecData['leaf'] = true ;
 						cRecData['icon'] = Ext.BLANK_IMAGE_URL ;
 						childrenActions.push(cRecData) ;
 					}) ;
 					recData['leaf'] = false ;
+						recData['file_filerecord_id'] = childFileRecord.getId() ;
+						recData['file_id_ref'] = childFileRecord.get('id_ref') ;
 					recData['children'] = childrenActions ;
 					recData['expanded'] = true ;
 					recData['expandable'] = false ;
@@ -1501,6 +1510,28 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 							var passed = false ;
 							switch( record.get('link_media_file_code') ) {
 								case 'EMAIL' :
+									passed = true ;
+									break ;
+								default :
+									break ;
+							}
+							return !passed ;
+						}
+					},{
+						icon: 'images/modules/rsiveo-bookmark-16.png',
+						tooltip: 'Echéancier',
+						handler: function(grid, rowIndex, colIndex, item, e) {
+							var rec = grid.getStore().getAt(rowIndex);
+							if( rec.get('link_action') == 'AGREE_START' ) {
+								this.openAgreeCompare(rec.get('file_filerecord_id'),rec.get('file_id_ref')) ;
+							}
+						},
+						scope: this,
+						disabledCls: 'x-item-invisible',
+						isDisabled: function(view,rowIndex,colIndex,item,record ) {
+							var passed = false ;
+							switch( record.get('link_action') ) {
+								case 'AGREE_START' :
 									passed = true ;
 									break ;
 								default :
@@ -2035,6 +2066,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		if( p instanceof Optima5.Modules.Spec.RsiRecouveo.ActionForm ) {
 			return this.down('#tpFileActions') ;
 		}
+		if( p instanceof Optima5.Modules.Spec.RsiRecouveo.AgreeComparePanel ) {
+			return this.down('#tpFileActions') ;
+		}
 		return null ;
 	},
 	getFloatingPanelIconCls: function(p) {
@@ -2046,6 +2080,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		}
 		if( p instanceof Optima5.Modules.Spec.RsiRecouveo.ActionForm ) {
 			return 'op5-spec-rsiveo-actionclass-comm' ;
+		}
+		if( p instanceof Optima5.Modules.Spec.RsiRecouveo.AgreeComparePanel ) {
+			return 'op5-spec-rsiveo-actionclass-file' ;
 		}
 		return '' ;
 	},
@@ -2247,6 +2284,31 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			this.emailWindow.destroy() ;
 		}
 		this.doNewAction(fileRecord, 'EMAIL_OUT', true, {reply_emailFilerecordId:emailRecord.get('email_filerecord_id')}) ;
+	},
+	
+	openAgreeCompare: function(fileFilerecordId,fileRef) {
+		if( this._readonlyMode ) {
+			return ;
+		}
+		var postParams = {} ;
+		var actionPanel = Ext.create('Optima5.Modules.Spec.RsiRecouveo.AgreeComparePanel',{
+			optimaModule: this.optimaModule,
+			
+			_accId: this._accountRecord.get('acc_id'),
+			_fileFilerecordId: fileFilerecordId,
+			
+			width:900, 
+			height:400,
+			/*
+			floating: true,
+			draggable: true,
+			resizable: true,
+			*/
+			//renderTo: this.getEl(),
+			title: 'Echéancier '+fileRef
+		});
+		
+		this.addFloatingPanel(actionPanel) ;
 	},
 	
 	handleSaveHeader: function() {

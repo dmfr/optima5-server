@@ -4,6 +4,7 @@ Ext.define('RsiRecouveoAgreeTreeModel',{
 		{name: '_phantom',  type: 'boolean'},
 		{name: 'agree_file_filerecord_id',  type: 'int', allowNull: true},
 		{name: 'agree_file_ref',  type: 'string'},
+		{name: 'agree_file_is_closed', type: 'boolean'},
 		{name: 'agree_amount',  type: 'number'},
 		{name: 'milestone_fileaction_filerecord_id', type: 'int'},
 		{name: 'milestone_status', type: 'string'}, //enum OK, CUR, null
@@ -39,7 +40,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AgreeSummaryPanel',{
 				flex: 1,
 				xtype: 'fieldset',
 				layout: 'fit',
-				title: 'Détail de l\'écheancier',
+				title: (this.altTitle || 'Détail de l\'écheancier'),
 				defaults: {
 					anchor: '100%',
 					labelWidth: 80
@@ -47,23 +48,28 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AgreeSummaryPanel',{
 				items: [{
 					minHeight: 270,
 					xtype: 'treepanel',
-					tbar: [{
-						itemId: 'tbNew',
-						icon: 'images/add.png',
-						text: 'Ajout échéance',
-						handler: function() {
-							this.handleNewMilestone();
-						},
-						scope: this
-					},'-',{
-						disabled: true,
-						itemId: 'tbDelete',
-						icon: 'images/delete.png',
-						text: 'Suppr. échéance',
-						handler: function() {
-							this.handleDeleteMilestone();
-						},
-						scope: this
+					dockedItems: [{
+						xtype: 'toolbar',
+						hidden: this.readOnly,
+						dock: 'top',
+						items: [{
+							itemId: 'tbNew',
+							icon: 'images/add.png',
+							text: 'Ajout échéance',
+							handler: function() {
+								this.handleNewMilestone();
+							},
+							scope: this
+						},'-',{
+							disabled: true,
+							itemId: 'tbDelete',
+							icon: 'images/delete.png',
+							text: 'Suppr. échéance',
+							handler: function() {
+								this.handleDeleteMilestone();
+							},
+							scope: this
+						}]
 					}],
 					rootVisible: true,
 					store: {
@@ -143,6 +149,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AgreeSummaryPanel',{
 								if( r.get('milestone_status')=='OK' && v==0 ) {
 									return 'report.' ;
 								}
+								if( r.get('milestone_status')=='CANCEL' ) {
+									return '&#160;' ;
+								}
 								return Ext.util.Format.number(v,'0,000.00')
 							}
 							if( depth==2 ) {
@@ -158,6 +167,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AgreeSummaryPanel',{
 					plugins: [{
 						ptype: 'rowediting',
 						pluginId: 'rowediting',
+						_disabled: this.readOnly,
 						listeners: {
 							beforeedit: this.onBeforeEditMilestone,
 							edit: this.onAfterEditMilestone,
@@ -346,6 +356,23 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AgreeSummaryPanel',{
 		}
 		this.down('treepanel').setRootNode( {root:true,children:rootChildren,expandable:false, expanded:true} ) ;
 	},
+	setupFromParams: function( fileData, fromParams ) {
+		if( !Ext.isArray(fromParams) ) {
+			this.down('treepanel').setRootNode( {root:true,children:[],expandable:false, expanded:true} ) ;
+			return ;
+		}
+		var rootChildren = [] ;
+		Ext.Array.each( fromParams, function(row) {
+			Ext.apply(row,{leaf:true}) ;
+			rootChildren.push(row) ;
+		}) ;
+		var rootObj = {root:true,children:rootChildren,expandable:false, expanded:true} ;
+		Ext.apply(rootObj,{
+			agree_file_filerecord_id: fileData.file_filerecord_id,
+			agree_file_ref: fileData.id_ref
+		}) ;
+		this.down('treepanel').setRootNode( rootObj ) ;
+	},
 	setupFromFile: function( fileFilerecordId, fileactionFilerecordId ) {
 		if( fileFilerecordId instanceof RsiRecouveoFileTplModel ) {
 			this.onLoadFile( fileFilerecordId, fileactionFilerecordId ) ;
@@ -363,7 +390,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AgreeSummaryPanel',{
 			var agreeData = fileactionRecord.get('link_agree') ;
 			var milestoneStatus = '' ;
 			if( fileactionRecord.get('status_is_ok') ) {
-				milestoneStatus = 'OK' ;
+				if( agreeData.milestone_cancel ) {
+					milestoneStatus = 'CANCEL' ;
+				} else {
+					milestoneStatus = 'OK' ;
+				}
 			}
 			if( fileactionRecord.getId()==fileactionFilerecordId ) {
 				milestoneStatus = 'CUR' ;
@@ -384,7 +415,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AgreeSummaryPanel',{
 			
 			if( fileactionRecord.get('status_is_ok') ) {
 				Ext.apply(chNode,{
-					icon: 'images/modules/rsiveo-ok-16.gif'
+					icon: (milestoneStatus=='CANCEL' ? 'images/op5img/ico_cancel_small.gif' : 'images/modules/rsiveo-ok-16.gif')
 				}) ;
 			}
 			
@@ -418,7 +449,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AgreeSummaryPanel',{
 		var rootData = {
 			agree_file_filerecord_id: fileRecord.getId(),
 			agree_file_ref: fileRecord.get('id_ref'),
-			agree_amount: null // auto calc
+			agree_amount: null, // auto calc
+			agree_file_is_closed: (fileRecord.get('status_closed_void')||fileRecord.get('status_closed_end'))
 		} ;
 		this.down('treepanel').setRootNode( Ext.apply({root:true,children:rootChildren,expandable:false, expanded:true},rootData) ) ;
 		this.down('treepanel').getStore().sort('milestone_date_sched','ASC') ;

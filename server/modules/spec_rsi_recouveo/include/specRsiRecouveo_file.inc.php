@@ -147,7 +147,8 @@ function specRsiRecouveo_file_getRecords( $post_data ) {
 			'ext_user' => ($arr['field_LINK_USER_EXT']?$arr['field_LINK_USER_EXT']:null),
 			'ext_user_txt' => ($arr['field_LINK_USER_EXT']?$arr['userext_fullname']:null),
 			
-			'from_file_filerecord_id' => $arr['field_FROM_FILE_ID']
+			'from_file_filerecord_id' => $arr['field_FROM_FILE_ID'],
+			'from_params_json' => $arr['field_FROM_PARAMS_JSON']
 		);
 		foreach( $cfg_atr as $atr_record ) {
 			$atr_id = $atr_record['atr_id'] ;
@@ -1063,7 +1064,7 @@ function specRsiRecouveo_file_createForAction( $post_data ) {
 				// DONE 180331 : store milestones
 				$arr_ins = array() ;
 				$arr_ins['field_FROM_PARAMS_JSON'] = json_encode($_formData['agree_milestones']) ;
-				paracrm_lib_data_updateRecord_file( 'FILE', $arr_update, $file_filerecord_id);
+				paracrm_lib_data_updateRecord_file( 'FILE', $arr_ins, $file_filerecord_id);
 			} else {
 				switch( $_formData['agree_period'] ) {
 					case 'MONTH' :

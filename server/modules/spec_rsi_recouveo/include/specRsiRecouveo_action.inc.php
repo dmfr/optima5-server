@@ -295,9 +295,13 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 				
 				case 'end' :
 					$txt = '' ;
-					$txt.= "Fermeture promesse"."\r\n" ;
+					$txt.= "Echéance annulée"."\r\n" ;
 					$arr_ins['field_LINK_TXT'] = trim($txt) ;
 					$arr_ins['field_TXT'] = $txt ;
+					$arr_ins['field_LINK_AGREE_JSON'] = json_encode(array(
+						'milestone_amount' => 0,
+						'milestone_cancel' => true
+					)) ;
 					break ;
 					
 				case 'agree_summary' :
@@ -673,7 +677,23 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 		$to_delete = array() ;
 		foreach( $file_record['actions'] as $file_action_record_test ) {
 			if( !$file_action_record_test['status_is_ok'] ) {
-				$to_delete[] = $file_action_record_test['fileaction_filerecord_id'] ;
+				switch( $post_form['link_action'] ) {
+					case 'AGREE_FOLLOW' :
+						$txt = '' ;
+						$txt.= "Echéance annulée"."\r\n" ;
+						$arr_ins['field_LINK_TXT'] = "Echéance annulée" ;
+						$arr_ins['field_TXT'] = $txt ;
+						$arr_ins['field_LINK_AGREE_JSON'] = json_encode(array(
+							'milestone_amount' => 0,
+							'milestone_cancel' => true
+						)) ;
+						paracrm_lib_data_updateRecord_file( $file_code, $arr_ins, $file_action_record_test['fileaction_filerecord_id']);
+						break ;
+				
+					default :
+						$to_delete[] = $file_action_record_test['fileaction_filerecord_id'] ;
+						break ;
+				}
 			}
 		}
 		foreach( $to_delete as $id ) {
