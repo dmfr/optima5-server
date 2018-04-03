@@ -279,6 +279,20 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AgreeSummaryPanel',{
 		context.record.commit() ;
 		this.down('treepanel').getStore().sort('milestone_date_sched','ASC') ;
 		this.down('treepanel').getView().refresh() ;
+		
+		if( context.record.get('milestone_date_sched_previous') && context.record.get('milestone_status')=='CUR' ) {
+			var delta = Ext.Date.diff( context.record.get('milestone_date_sched_previous'), context.record.get('milestone_date_sched'), Ext.Date.DAY ) ;
+			
+			var msg = '' ;
+			msg+= 'Date initiale de l\'échéance : '+Ext.Date.format(context.record.get('milestone_date_sched_previous'),'d/m/Y')+'<br>' ;
+			msg+= 'Nouvelle date sélectionnée : '+Ext.Date.format(context.record.get('milestone_date_sched'),'d/m/Y')+'<br>' ;
+			msg+= 'Réaligner les dates suivantes ?' ;
+			Ext.Msg.confirm('Réaligner écheances ?',msg,function(btn){
+				if( btn=='yes') {
+					this.applyMilestonesDeltaDays( delta ) ;
+				}
+			},this) ;
+		}
 	},
 	onCancelEditMilestone: function(editor,context) {
 		if( context.record.get('_phantom') ) {
@@ -294,6 +308,17 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AgreeSummaryPanel',{
 			this.down('#gridEditorMetafields').getPlugin('rowediting').getEditor().syncFieldWidth(isGlobalFilterColumn) ; // HACK
 		}
 		*/
+	},
+	applyMilestonesDeltaDays: function(deltaDays) {
+		var rootNode = this.down('treepanel').getRootNode() ;
+		Ext.Array.each( rootNode.childNodes, function(chNod) {
+			if( chNod.get('milestone_date_sched_previous') && Ext.isEmpty(chNod.get('milestone_status')) ) {
+				chNod.set('milestone_date_sched',Ext.Date.add(chNod.get('milestone_date_sched_previous'), Ext.Date.DAY, deltaDays));
+				chNod.commit() ;
+			}
+		}) ;
+		this.down('treepanel').getStore().sort('milestone_date_sched','ASC') ;
+		this.down('treepanel').getView().refresh() ;
 	},
 	
 	setupFromNew: function( wizardValues ) {
