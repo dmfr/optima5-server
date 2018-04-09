@@ -389,8 +389,7 @@ function specDbsLam_transfer_printDoc( $post_data ) {
 		$adr = $ttmp['adr'] ;
 		$rows_transferLig = $ttmp['arr'] ;
 	
-		$ttmp = explode('_',$adr,2) ;
-		$adr_str = $ttmp[1] ;
+		$adr_str = $adr ;
 		
 		if( $is_first ) {
 			$is_first = FALSE ;

@@ -55,12 +55,7 @@ function specDbsLam_stock_getGrid($post_data) {
 		
 		$row['ADR_entry_key'] = $arr['ADR_entry_key'] ;
 		
-		$ttmp = explode('_',$arr['ADR_entry_key'],2) ;
-		if( $ttmp[1] ) {
-			$row['adr_id'] = $ttmp[1] ;
-		} else {
-			$row['adr_id'] = '-' ;
-		}
+		$row['adr_id'] = $arr['ADR_entry_key'] ;
 		
 		$row['pos_zone'] = substr($arr['ADR_treenode_key'],0,1) ;
 		$row['pos_row'] = $arr['ADR_treenode_key'] ;
@@ -81,6 +76,9 @@ function specDbsLam_stock_getGrid($post_data) {
 			if( !$row[$mkey] ) {
 				$status = FALSE ;
 			}
+		}
+		if( !$arr['ADR_field_STATUS_IS_ACTIVE'] ) {
+			$status = FALSE ;
 		}
 		foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
 			if( !$stockAttribute_obj['STOCK_fieldcode'] ) {
@@ -196,9 +194,7 @@ function specDbsLam_stock_printEtiq($post_data) {
 			continue ;
 		}
 		
-		$adr = $arr_stk['field_ADR_ID'] ;
-		$ttmp = explode('_',$adr,2) ;
-		$adr_txt = $ttmp[1] ;
+		$adr_txt = $adr ;
 		if( $arr_stk['field_CONTAINER_REF'] ) {
 			$adr_txt = $arr_stk['field_CONTAINER_REF'] ;
 		}

@@ -102,7 +102,7 @@ function specDbsLam_lib_proc_findAdr( $mvt_obj, $stockAttributes_obj, $whse_dest
 			
 			$query = "SELECT adr.field_ADR_ID as adr_id, adr.field_POS_ID as pos_id FROM view_file_STOCK stk
 				INNER JOIN view_bible_ADR_entry adr ON adr.field_ADR_ID = stk.field_ADR_ID
-				WHERE 1" ;
+				WHERE 1 AND adr.field_STATUS_IS_ACTIVE='1'" ;
 			switch( $socCfg_obj['location_policy_ifexists'] ) {
 				case 'PN' :
 					$query.= " AND field_PROD_ID='{$mvt_obj['prod_id']}'" ;
@@ -148,7 +148,7 @@ function specDbsLam_lib_proc_findAdr( $mvt_obj, $stockAttributes_obj, $whse_dest
 			
 			$query = "SELECT adr.* FROM view_bible_ADR_entry adr
 						LEFT OUTER JOIN view_file_STOCK inv ON inv.field_ADR_ID = adr.entry_key
-						WHERE inv.filerecord_id IS NULL AND adr.field_STATUS_IS_PREALLOC='0'
+						WHERE inv.filerecord_id IS NULL AND adr.field_STATUS_IS_ACTIVE='1' AND adr.field_STATUS_IS_PREALLOC='0'
 						AND adr.treenode_key IN ".$_opDB->makeSQLlist($adr_treenodes) ;
 			foreach( $attributesToCheck as $STOCK_fieldcode => $neededValue ) {
 				$query.= " AND adr.{$STOCK_fieldcode}='".mysql_real_escape_string(json_encode(array($neededValue)))."'" ;
