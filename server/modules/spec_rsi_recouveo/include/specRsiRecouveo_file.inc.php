@@ -1031,7 +1031,7 @@ function specRsiRecouveo_file_createForAction( $post_data ) {
 					'acc_id' => $p_accId,
 					'data' => json_encode(array(
 						'recordTemp_id' => 'Paiement VPC le '.date('d/m/Y'),
-						'recordTemp_amount' => (-1 * $sum_recordsAmount)
+						'recordTemp_amount' => (-1 * $_formData['agree_amount'])
 					))
 				);
 				$json = specRsiRecouveo_file_createRecordTemp( $forward_post ) ;
