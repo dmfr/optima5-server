@@ -374,7 +374,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 						return 'op5-spec-dbslam-stock-out' ;
 					}
 					if( !record.get('status') ) {
-						//return 'op5-spec-dbslam-stock-disabled' ;
+						return 'op5-spec-dbslam-stock-disabled' ;
 					}
 				},
 				listeners: {
