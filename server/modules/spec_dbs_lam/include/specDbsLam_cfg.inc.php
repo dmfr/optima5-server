@@ -56,6 +56,9 @@ function specDbsLam_cfg_getConfig() {
 	$ttmp = specDbsLam_cfg_getWhse() ;
 	$cfg_whse = $ttmp['data'] ;
 	
+	$ttmp = specDbsLam_cfg_getContainer() ;
+	$cfg_container = $ttmp['data'] ;
+	
 	$ttmp = specDbsLam_cfg_getMvtflow() ;
 	$cfg_mvtflow = $ttmp['data'] ;
 	
@@ -145,6 +148,7 @@ function specDbsLam_cfg_getConfig() {
 	$return_data = array(
 		'cfg_whse' => $cfg_whse,
 		'cfg_soc' => $cfg_soc,
+		'cfg_container' => $cfg_container,
 		'cfg_attribute' => array_values($cfg_attribute),
 		'cfg_mvtflow' => $cfg_mvtflow
 	) ;
@@ -214,6 +218,27 @@ function specDbsLam_cfg_getMvtflow() {
 		) ;
 		
 		$TAB[$flow_code]['checks'][] = $record ;
+	}
+	
+	return array('success'=>true, 'data'=>array_values($TAB)) ;
+}
+
+
+function specDbsLam_cfg_getContainer() {
+	global $_opDB ;
+	
+	$TAB = array() ;
+	
+	$query = "SELECT * FROM view_bible_CFG_CONT_tree ORDER BY field_CONT_TYPE" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$container_type = $arr['field_CONT_TYPE'] ;
+		$record = array(
+			'container_type' => $arr['field_CONT_TYPE'],
+			'container_type_txt' => $arr['field_CONT_TYPE_TXT']
+		) ;
+		
+		$TAB[$container_type] = $record ;
 	}
 	
 	return array('success'=>true, 'data'=>array_values($TAB)) ;

@@ -26,7 +26,9 @@ Ext.define('DbsLamStockGridModel',{
 		{name: 'inv_batch', type:'string'},
 		{name: 'inv_qty', type:'number', useNull:true},
 		{name: 'inv_qty_out', type:'number', useNull:true},
-		{name: 'inv_sn', type:'string'}
+		{name: 'inv_sn', type:'string'},
+		{name: 'inv_container', type:'string'},
+		{name: 'prealloc', type:'boolean'}
 	]
 });
 
@@ -199,7 +201,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 					iconCls:'task-folder',
 					expanded:true,
 					treenode_key:'&',
-					field_ROW_ID: 'EmbraLAM'
+					field_ROW_ID: 'Warehouse zones'
 				},
 				proxy: this.optimaModule.getConfiguredAjaxProxy({
 					extraParams : {
@@ -295,10 +297,15 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 					text: '',
 					width: 24,
 					renderer: function(v,metadata,record) {
-						if( Ext.isEmpty(record.get('inv_prod')) ) {
+						if( Ext.isEmpty(record.get('inv_prod')) && !record.get('prealloc') ) {
 							metadata.tdCls = 'op5-spec-dbslam-stock-avail'
 						} else {
-							metadata.tdCls = 'op5-spec-dbslam-stock-notavail'
+							if( !Ext.isEmpty(record.get('inv_prod')) ) {
+								metadata.tdCls = 'op5-spec-dbslam-stock-notavail'
+							}
+							if( record.get('prealloc') ) {
+								metadata.tdCls = 'op5-spec-dbslam-stock-prealloc'
+							}
 						}
 					}
 				},{
@@ -332,8 +339,12 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 				},{
 					text: 'Attributs',
 					columns: [{
+						dataIndex: 'inv_container',
+						text: 'Container',
+						width: 100
+					},{
 						dataIndex: 'inv_prod',
-						text: 'Article',
+						text: 'P/N',
 						width: 100
 					},{
 						dataIndex: 'inv_batch',

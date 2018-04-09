@@ -97,8 +97,10 @@ function specDbsLam_stock_getGrid($post_data) {
 		$row['inv_qty'] = ( $arr['STOCK_field_PROD_ID'] ? $arr['STOCK_field_QTY_AVAIL'] : null ) ;
 		$row['inv_qty_out'] = ( $arr['STOCK_field_PROD_ID'] ? $arr['STOCK_field_QTY_OUT'] : null ) ;
 		$row['inv_sn'] = $arr['STOCK_field_SPEC_SN'] ;
+		$row['inv_container'] = $arr['STOCK_field_CONTAINER_REF'] ;
 		
 		$row['status'] = $status ;
+		$row['prealloc'] = $arr['ADR_field_STATUS_IS_PREALLOC'] ;
 		
 		$tab_DATA[] = $row ;
 	}
@@ -185,6 +187,7 @@ function specDbsLam_stock_printEtiq($post_data) {
 	
 	$p_stock_filerecordIds = json_decode($post_data['stock_filerecordIds'],true) ;
 	
+	$is_first = TRUE ;
 	foreach( $p_stock_filerecordIds as $stk_filerecord_id ) {
 		$query = "SELECT * FROM view_file_STOCK WHERE filerecord_id='{$stk_filerecord_id}'" ;
 		$result = $_opDB->query($query) ;
@@ -196,6 +199,9 @@ function specDbsLam_stock_printEtiq($post_data) {
 		$adr = $arr_stk['field_ADR_ID'] ;
 		$ttmp = explode('_',$adr,2) ;
 		$adr_txt = $ttmp[1] ;
+		if( $arr_stk['field_CONTAINER_REF'] ) {
+			$adr_txt = $arr_stk['field_CONTAINER_REF'] ;
+		}
 		
 		if( $is_first ) {
 			$is_first = FALSE ;
@@ -212,10 +218,10 @@ function specDbsLam_stock_printEtiq($post_data) {
 			$buffer.= "<table cellspacing='0' cellpadding='1'>";
 			$buffer.= "<tr><td><span class=\"mybig\">STOCK LABEL</span></td></tr>" ;
 			//{$data_commande['date_exp']}
-			$buffer.= "<tr><td><span class=\"verybig\">BIN</span>&nbsp;:&nbsp;<span class=\"huge\"><b>{$adr_txt}</b></span></td></tr>" ;
+			$buffer.= "<tr><td><span class=\"verybig\"></span>&nbsp;&nbsp;<span class=\"huge\"><b>{$adr_txt}</b></span></td></tr>" ;
 			$buffer.= "</table>";
 		$buffer.= "</td><td valign='middle' align='center' width='120'>" ;
-			$buffer.= "<img src=\"data:image/jpeg;base64,".base64_encode($_IMG['DBS_logo_bw'])."\" />" ;
+			//$buffer.= "<img src=\"data:image/jpeg;base64,".base64_encode($_IMG['DBS_logo_bw'])."\" />" ;
 		$buffer.= "</td></tr><tr><td height='25'/></tr></table>" ;
 		
 		
@@ -254,7 +260,7 @@ function specDbsLam_stock_printEtiq($post_data) {
 				$buffer.= "<tr>" ;
 					$buffer.= "<td width='30%'><span class=\"mybig\">Quantity</span></td>" ;
 					$buffer.= '<td align="center" class="mybig">' ;
-						$buffer.= '<b>'.(float)$arr_stk['field_QTY_AVAIL'].'</b><br>';
+						$buffer.= '<b>'.(float)($arr_stk['field_QTY_AVAIL']+$arr_stk['field_QTY_OUT']).'</b><br>';
 					$buffer.= '</td>' ;
 				$buffer.= "</tr>" ;
 			

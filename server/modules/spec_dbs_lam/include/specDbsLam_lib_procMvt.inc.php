@@ -32,6 +32,9 @@ function specDbsLam_lib_procMvt_addStock($stock_filerecordId, $qte_mvt=0, $step_
 	}
 	
 	$row_mvt = array(
+		'field_SOC_CODE' => $row_stock['field_SOC_CODE'],
+		'field_CONTAINER_TYPE' => $row_stock['field_CONTAINER_TYPE'],
+		'field_CONTAINER_REF' => $row_stock['field_CONTAINER_REF'],
 		'field_PROD_ID' => $row_stock['field_PROD_ID'],
 		'field_QTY_MVT' => $qte_mvt,
 		'field_SPEC_BATCH' => $row_stock['field_SPEC_BATCH'],
@@ -83,6 +86,7 @@ function specDbsLam_lib_procMvt_delMvt($mvt_filerecordId) {
 		filerecord_parent_id='{$mvt_filerecordId}'" ;
 	$result = $_opDB->query($query) ;
 	if( $_opDB->num_rows($result) != 1 ) {
+		specDbsLam_lib_procMvt_delMvtUnalloc($mvt_filerecordId) ;
 		return FALSE ;
 	}
 	$row_mvt_step = $_opDB->fetch_assoc($result) ;
@@ -105,8 +109,117 @@ function specDbsLam_lib_procMvt_delMvt($mvt_filerecordId) {
 	
 	return TRUE ;
 }
+function specDbsLam_lib_procMvt_delMvtUnalloc($mvt_filerecordId) {
+	global $_opDB ;
+	
+	$query = "SELECT * FROM view_file_MVT WHERE
+		filerecord_id='{$mvt_filerecordId}'" ;
+	$result = $_opDB->query($query) ;
+	if( $_opDB->num_rows($result) != 1 ) {
+		return FALSE ;
+	}
+	$row_mvt = $_opDB->fetch_assoc($result) ;
+	$qte_mvt = (float)$row_mvt['field_QTY_MVT'] ;
+	
+	$query = "SELECT * FROM view_file_MVT_STEP WHERE
+		filerecord_parent_id='{$mvt_filerecordId}' ORDER BY filerecord_id DESC LIMIT 1" ;
+	$result = $_opDB->query($query) ;
+	if( $_opDB->num_rows($result) != 1 ) {
+		return FALSE ;
+	}
+	$row_mvt_step = $_opDB->fetch_assoc($result) ;
+	
+	if( $row_mvt_step['field_DEST_ADR_ID'] && !$row_mvt_step['field_STATUS_IS_OK'] ) {
+		// reserv ADR
+		$arr_update = array() ;
+		$arr_update['field_DEST_ADR_ID'] = '' ;
+		$arr_update['field_DEST_ADR_DISPLAY'] = '' ;
+		$arr_cond = array() ;
+		$arr_cond['filerecord_id'] = $row_mvt_step['filerecord_id'] ;
+		$_opDB->update('view_file_MVT_STEP',$arr_update, $arr_cond) ;
+		
+		$query = "UPDATE view_bible_ADR_entry SET field_STATUS_IS_PREALLOC='0' WHERE entry_key='{$row_mvt_step['field_DEST_ADR_ID']}'
+			AND entry_key NOT IN (select field_DEST_ADR_ID FROM view_file_MVT_STEP WHERE field_STATUS_IS_OK='0' AND field_DEST_ADR_ID<>'')" ;
+		$_opDB->query($query) ;
+		
+		return TRUE ;
+	}
+	
+	return FALSE ;
+}
 
 
+function specDbsLam_lib_procMvt_alloc($mvt_filerecordId, $adr_dest, $adr_dest_display) {
+	global $_opDB ;
+	
+	// Load cfg attributes
+	$ttmp = specDbsLam_cfg_getConfig() ;
+	$json_cfg = $ttmp['data'] ;
+	
+	// update 2016-02: add stock fields
+	$stockAttributes = array() ;
+	if( $stockAttributes_obj ) {
+	foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
+		if( !$stockAttribute_obj['STOCK_fieldcode'] ) {
+			continue ;
+		}
+		$mkey = $stockAttribute_obj['mkey'] ;
+		if( $value = $stockAttributes_obj[$mkey] ) {
+			$stockAttributes[] = array(
+				'mkey' => $mkey,
+				'STOCK_fieldcode' => $stockAttribute_obj['STOCK_fieldcode'],
+				'value' => $value
+			) ;
+		}
+	}
+	}
+
+	$query = "SELECT * FROM view_file_MVT WHERE
+		filerecord_id='{$mvt_filerecordId}'" ;
+	$result = $_opDB->query($query) ;
+	if( $_opDB->num_rows($result) != 1 ) {
+		return FALSE ;
+	}
+	$row_mvt = $_opDB->fetch_assoc($result) ;
+	$qte_mvt = (float)$row_mvt['field_QTY_MVT'] ;
+	
+	$query = "SELECT * FROM view_file_MVT_STEP WHERE
+		filerecord_parent_id='{$mvt_filerecordId}' AND field_STATUS_IS_OK='0'" ;
+	$result = $_opDB->query($query) ;
+	if( $_opDB->num_rows($result) != 1 ) {
+		return FALSE ;
+	}
+	$row_mvt_step = $_opDB->fetch_assoc($result) ;
+	
+	$stock_filerecordId = $row_mvt_step['field_FILE_STOCK_ID'] ;
+	
+	$query = "SELECT * FROM view_file_STOCK WHERE filerecord_id='{$stock_filerecordId}'" ;
+	$result = $_opDB->query($query) ;
+	if( $_opDB->num_rows($result) != 1 ) {
+		return FALSE ;
+	}
+	
+	// flag MVT
+	$arr_update = array() ;
+	$arr_update['field_DEST_ADR_ID'] =  $adr_dest ;
+	$arr_update['field_DEST_ADR_DISPLAY'] = $adr_dest_display ;
+	$arr_cond = array() ;
+	$arr_cond['filerecord_id'] = $row_mvt_step['filerecord_id'] ;
+	$_opDB->update('view_file_MVT_STEP',$arr_update, $arr_cond) ;
+	
+	
+	// reserv ADR
+	$arr_update = array() ;
+	$arr_update['field_STATUS_IS_PREALLOC'] = 1 ;
+	$arr_cond = array() ;
+	$arr_cond['entry_key'] = $adr_dest ;
+	$_opDB->update('view_bible_ADR_entry',$arr_update, $arr_cond) ;
+	
+	
+	
+	
+	return TRUE ;
+}
 function specDbsLam_lib_procMvt_commit($mvt_filerecordId, $adr_dest, $adr_dest_display, $next_step_code, $stockAttributes_obj=NULL) {
 	global $_opDB ;
 	
@@ -209,6 +322,12 @@ function specDbsLam_lib_procMvt_commit($mvt_filerecordId, $adr_dest, $adr_dest_d
 	$arr_cond['filerecord_id'] = $row_mvt_step['filerecord_id'] ;
 	$_opDB->update('view_file_MVT_STEP',$arr_update, $arr_cond) ;
 	
+	// reserv ADR
+	$arr_update = array() ;
+	$arr_update['field_STATUS_IS_PREALLOC'] = 0 ;
+	$arr_cond = array() ;
+	$arr_cond['entry_key'] = $adr_dest ;
+	$_opDB->update('view_bible_ADR_entry',$arr_update, $arr_cond) ;
 	
 	// if step=not_final => specDbsLam_lib_procMvt_addStock (chain reaction...)
 	if( $next_step_code ) {

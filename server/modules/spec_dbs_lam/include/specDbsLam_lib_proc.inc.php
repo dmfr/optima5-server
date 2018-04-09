@@ -148,10 +148,15 @@ function specDbsLam_lib_proc_findAdr( $mvt_obj, $stockAttributes_obj, $whse_dest
 			
 			$query = "SELECT adr.* FROM view_bible_ADR_entry adr
 						LEFT OUTER JOIN view_file_STOCK inv ON inv.field_ADR_ID = adr.entry_key
-						WHERE inv.filerecord_id IS NULL
+						WHERE inv.filerecord_id IS NULL AND adr.field_STATUS_IS_PREALLOC='0'
 						AND adr.treenode_key IN ".$_opDB->makeSQLlist($adr_treenodes) ;
 			foreach( $attributesToCheck as $STOCK_fieldcode => $neededValue ) {
 				$query.= " AND adr.{$STOCK_fieldcode}='".mysql_real_escape_string(json_encode(array($neededValue)))."'" ;
+			}
+			if( $mvt_obj['container_type'] ) {
+				$query.= " AND adr.field_CONT_IS_ON='1' AND adr.field_CONT_TYPES LIKE '%\"{$mvt_obj['container_type']}\"%'" ;
+			} else {
+				$query.= " AND adr.field_CONT_IS_ON='0'" ;
 			}
 			$query.= " ORDER BY adr.field_PRIO_IDX, adr.entry_key LIMIT 1" ;
 			$result = $_opDB->query($query) ;

@@ -135,13 +135,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 					scope: this
 				}],
 				items:[{
-					height: 72,
+					height: 24,
 					xtype: 'component',
 					tpl: [
 						'<div class="op5-spec-dbslam-livelogo">',
-							'<span>{title}</span>',
-							'<div class="op5-spec-dbslam-livelogo-left"></div>',
-							'<div class="op5-spec-dbslam-livelogo-right"></div>',
 						'</div>'
 					],
 					data: {title: '&#160;'}
@@ -240,156 +237,209 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 					},
 					items: [{
 						flex: 1,
-						xtype:'fieldcontainer',
-						itemId: 'fsLeftBlank',
-						title: '',
-						fieldDefaults: {
-							labelWidth: 40,
-							anchor: '100%'
-						}
-					},{
-						flex: 1,
-						xtype:'fieldset',
-						itemId: 'fsLeftSku',
-						title: 'SKU Data',
-						fieldDefaults: {
-							labelWidth: 40,
-							anchor: '100%'
-						},
+						xtype: 'container',
+						itemId: 'cntLeft',
 						layout: 'anchor',
-						items:Ext.Array.merge([Ext.create('Optima5.Modules.Spec.DbsLam.CfgParamField',{
-							optimaModule: this.optimaModule,
-							name : 'soc_code',
-							fieldLabel: 'BU',
-							cfgParam_id: 'SOC',
-							allowBlank: false,
-							cfgParam_emptyDisplayText: 'Company',
-							anchor: '100%',
-							listeners: {
-								change: function(field) {
-									this.onSetSoc(field.getValue()) ;
-								},
-								scope: this
-							}
-						})],atrStkFields,[{
-							xtype: 'combobox',
-							anchor: '100%',
-							fieldLabel: '<b>P/N</b>',
-							name: 'stk_prod',
-							forceSelection:false,
-							allowBlank:true,
-							editable:true,
-							typeAhead:false,
-							selectOnFocus: true,
-							selectOnTab: false,
-							queryMode: 'remote',
-							displayField: 'prod_id',
-							valueField: 'id',
-							queryParam: 'filter',
-							minChars: 2,
-							fieldStyle: 'text-transform:uppercase',
-							store: {
-								model: 'DbsLamProdComboboxModel',
-								proxy: this.optimaModule.getConfiguredAjaxProxy({
-									extraParams : {
-										_moduleId: 'spec_dbs_lam',
-										_action: 'prods_getGrid',
-										limit: 20
-									},
-									reader: {
-										type: 'json',
-										rootProperty: 'data'
-									}
-								}),
+						items: [{
+							xtype:'fieldset',
+							fieldDefaults: {
+								labelWidth: 40,
+								anchor: '100%'
+							},
+							itemId: 'fsLeftContpal',
+							title: 'Container (Pallet)',
+							items: [{
+								xtype: 'checkboxfield',
+								boxLabel: 'Not in container',
+								name: 'container_is_off',
 								listeners: {
-									beforeload: this.onComboProdBeforeLoad,
+									change: function(field) {
+										this.calcFormLayout() ;
+									},
 									scope: this
 								}
+							},Ext.create('Optima5.Modules.Spec.DbsLam.CfgParamField',{
+								optimaModule: this.optimaModule,
+								name : 'container_type',
+								fieldLabel: 'Type',
+								cfgParam_id: 'CONTAINER',
+								allowBlank: false,
+								cfgParam_emptyDisplayText: 'Container type',
+								anchor: '100%'
+							}),{
+								xtype: 'textfield',
+								name: 'container_ref',
+								testBlank: false,
+								fieldLabel: 'Label'
+							}]
+						},{
+							xtype:'fieldset',
+							fieldDefaults: {
+								labelWidth: 40,
+								anchor: '100%'
 							},
-							listeners: {
-								select: this.onComboProdSelect,
-								scope: this
-							}
-						},{
-							xtype: 'textfield',
-							anchor: '100%',
-							allowBlank:true,
-							fieldLabel: '<i>Batch</i>',
-							name: 'stk_batch'
-						},{
-							xtype: 'datefield',
-							format: 'd/m/Y',
-							submitFormat: 'Y-m-d',
-							anchor: '100%',
-							allowBlank:true,
-							fieldLabel: '<i>DLC</i>',
-							name: 'stk_datelc'
-						},{
-							xtype: 'numberfield',
-							allowBlank:true,
-							fieldLabel: '<b>QTE</b>',
-							name: 'mvt_qty',
-							anchor: '',
-							width: 120
-						},{
-							xtype: 'textfield',
-							anchor: '100%',
-							allowBlank:true,
-							fieldLabel: '<b>S/N</b>',
-							name: 'stk_sn'
-						}])
+							itemId: 'fsLeftSku',
+							title: 'SKU Data',
+							items:Ext.Array.merge([Ext.create('Optima5.Modules.Spec.DbsLam.CfgParamField',{
+								optimaModule: this.optimaModule,
+								name : 'soc_code',
+								fieldLabel: 'BU',
+								cfgParam_id: 'SOC',
+								allowBlank: false,
+								cfgParam_emptyDisplayText: 'Company',
+								anchor: '100%',
+								listeners: {
+									change: function(field) {
+										this.onSetSoc(field.getValue()) ;
+									},
+									scope: this
+								}
+							})],atrStkFields,[{
+								xtype: 'combobox',
+								anchor: '100%',
+								fieldLabel: '<b>P/N</b>',
+								name: 'stk_prod',
+								forceSelection:false,
+								allowBlank:true,
+								editable:true,
+								typeAhead:false,
+								selectOnFocus: true,
+								selectOnTab: false,
+								queryMode: 'remote',
+								displayField: 'prod_id',
+								valueField: 'id',
+								queryParam: 'filter',
+								minChars: 2,
+								fieldStyle: 'text-transform:uppercase',
+								store: {
+									model: 'DbsLamProdComboboxModel',
+									proxy: this.optimaModule.getConfiguredAjaxProxy({
+										extraParams : {
+											_moduleId: 'spec_dbs_lam',
+											_action: 'prods_getGrid',
+											limit: 20
+										},
+										reader: {
+											type: 'json',
+											rootProperty: 'data'
+										}
+									}),
+									listeners: {
+										beforeload: this.onComboProdBeforeLoad,
+										scope: this
+									}
+								},
+								listeners: {
+									select: this.onComboProdSelect,
+									scope: this
+								}
+							},{
+								xtype: 'textfield',
+								anchor: '100%',
+								allowBlank:true,
+								fieldLabel: '<i>Batch</i>',
+								name: 'stk_batch'
+							},{
+								xtype: 'datefield',
+								format: 'd/m/Y',
+								submitFormat: 'Y-m-d',
+								anchor: '100%',
+								allowBlank:true,
+								fieldLabel: '<i>DLC</i>',
+								name: 'stk_datelc'
+							},{
+								xtype: 'numberfield',
+								allowBlank:true,
+								fieldLabel: '<b>QTE</b>',
+								name: 'mvt_qty',
+								anchor: '',
+								width: 120
+							},{
+								xtype: 'textfield',
+								anchor: '100%',
+								allowBlank:true,
+								fieldLabel: '<b>S/N</b>',
+								name: 'stk_sn'
+							}])
+						}]
 					},{
 						width: 24,
 						xtype: 'box'
 					},{
 						flex: 1,
-						xtype:'fieldset',
-						itemId: 'fsRightBlank',
-						title: '',
-						fieldDefaults: {
-							labelWidth: 40,
-							anchor: '100%'
-						}
-					},{
-						flex: 1,
-						xtype:'fieldset',
-						itemId: 'fsRightLocation',
-						hidden: false,
-						title: 'Dest location',
-						fieldDefaults: {
-							labelWidth: 50,
-							anchor: '100%'
-						},
+						xtype: 'container',
+						itemId: 'cntRight',
+						layout: 'anchor',
 						items: [{
-							labelWidth: 60,
-							xtype: 'textfield',
-							allowBlank:false,
-							fieldLabel: 'Location',
-							name: 'dest_adr',
-							fieldStyle: 'text-transform:uppercase'
+							flex: 1,
+							xtype:'fieldset',
+							itemId: 'fsRightLocation',
+							hidden: false,
+							title: 'Dest location',
+							fieldDefaults: {
+								labelWidth: 50,
+								anchor: '100%'
+							},
+							items: [{
+								labelWidth: 60,
+								xtype: 'combobox',
+								allowBlank:false,
+								fieldLabel: 'Location',
+								name: 'dest_adr',
+								fieldStyle: 'text-transform:uppercase',
+								forceSelection:false,
+								editable:true,
+								typeAhead:false,
+								selectOnFocus: true,
+								selectOnTab: false,
+								queryMode: 'remote',
+								displayField: 'entry_key',
+								valueField: 'entry_key',
+								queryParam: 'filter',
+								minChars: 2,
+								fieldStyle: 'text-transform:uppercase',
+								store: {
+									fields: ['entry_key'],
+									proxy: this.optimaModule.getConfiguredAjaxProxy({
+										extraParams : {
+											_action: 'data_getBibleGrid',
+											bible_code: 'ADR',
+											limit: 20
+										},
+										reader: {
+											type: 'json',
+											rootProperty: 'data'
+										}
+									}),
+									listeners: {
+										beforeload: this.onComboAdrBeforeLoad,
+										scope: this
+									}
+								}
+							}]
+						},{
+							flex: 1,
+							xtype:'fieldset',
+							itemId: 'fsRightChecklist',
+							hidden: false,
+							title: 'Checklist',
+							fieldDefaults: {
+								labelWidth: 50,
+								anchor: '100%'
+							},
+							items: []
+						},{
+							flex: 1,
+							xtype:'fieldset',
+							itemId: 'fsRightAttributes',
+							hidden: false,
+							title: 'Attributes',
+							fieldDefaults: {
+								labelWidth: 50,
+								anchor: '100%'
+							},
+							items: atrProdFields
 						}]
-					},{
-						flex: 1,
-						xtype:'fieldset',
-						itemId: 'fsRightChecklist',
-						hidden: false,
-						title: 'Checklist',
-						fieldDefaults: {
-							labelWidth: 50,
-							anchor: '100%'
-						},
-						items: []
-					},{
-						flex: 1,
-						xtype:'fieldset',
-						itemId: 'fsRightAttributes',
-						hidden: false,
-						title: 'Attributes',
-						fieldDefaults: {
-							labelWidth: 50,
-							anchor: '100%'
-						},
-						items: atrProdFields
 					}]
 				},{
 					anchor: '100%',
@@ -729,7 +779,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 			  
 		var docFlow = this.transferRecord.get('flow_code'),
 			flowRecord = Optima5.Modules.Spec.DbsLam.HelperCache.getMvtflow(docFlow) ;
-		if( flowRecord.is_foreign ) {
+		if( flowRecord.steps[0].step_code == this.transferStepCode && flowRecord.is_foreign ) {
 			this.doOpenForeign() ;
 		}
 	},
@@ -773,7 +823,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 					leaf: true,
 					isSku: true,
 					nodeKey: transferLigRecord.get('transferlig_filerecord_id'),
-					nodeText: '(<i>'+transferLigRecord.get('transferlig_filerecord_id')+'</i>) '+'<b>'+transferLigRecord.get('stk_prod')+'</b>'+' / Qty:'+transferLigRecord.get('mvt_qty')
+					nodeText: '(<i>'+transferLigRecord.get('transferlig_filerecord_id')+'</i>) '+'<b>'+transferLigRecord.get('container_ref')+'</b>'+' / '+'<b>'+transferLigRecord.get('stk_prod')+'</b>'+' / Qty:'+transferLigRecord.get('mvt_qty')
 				};
 				
 				if( transferLigRecord.get('status_is_reject') ) {
@@ -889,25 +939,57 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 		form.findField('input_transferLigFilerecordId').setVisible(false) ;
 		
 		formPanel.down('#cntSkuInput').setVisible(true) ;
+		formPanel.down('#fsLeftContpal').setVisible(true) ;
 		formPanel.down('#fsLeftSku').setVisible(true) ;
-		formPanel.down('#fsLeftBlank').setVisible(false) ;
 			  
 		formPanel.down('#fsRightChecklist').setVisible(false) ;
 		formPanel.down('#fsRightAttributes').setVisible(false) ;
 		formPanel.down('#fsRightLocation').setVisible(false) ;
-		formPanel.down('#fsRightBlank').setVisible(true) ;
 		
 		formPanel.down('#cntOpen').setVisible(false) ;
 		formPanel.down('#cntBefore').setVisible(true) ;
 		formPanel.down('#bntBeforeSplit').setVisible(false) ;
 		formPanel.down('#fsResult').setVisible(false) ;
 			  
+		Ext.Array.each( formPanel.down('#fsLeftContpal').query('field'), function(field) {
+			field.setReadOnly(false) ;
+			field.reset() ;
+		}) ;
 		Ext.Array.each( formPanel.down('#fsLeftSku').query('field'), function(field) {
 			field.setReadOnly(false) ;
 			field.reset() ;
 		}) ;
 		this.onSetSoc(null) ;
 		this.onLoadProd(null) ;
+		this.calcFormLayout() ;
+		
+		// Checklist
+		var fsRightChecklist = formPanel.down('#fsRightChecklist'),
+			doChecks = false, isFinal = false,
+			docFlow = this.transferRecord.get('flow_code'),
+			flowRecord = Optima5.Modules.Spec.DbsLam.HelperCache.getMvtflow(docFlow) ;
+		Ext.Array.each( flowRecord.steps, function(step) {
+			if( step.step_code == this.transferStepCode && step.is_checklist == 1 ) {
+				doChecks = true ;
+			}
+			if( step.step_code == this.transferStepCode && step.is_final == 1 ) {
+				isFinal = true ;
+			}
+		},this) ;
+		fsRightChecklist.removeAll() ;
+		if( doChecks ) {
+			Ext.Array.each( flowRecord.checks, function(check) {
+				fsRightChecklist.add({
+					xtype: 'checkboxfield',
+					name: 'CHECK_'+check.check_code,
+					boxLabel: check.check_txt,
+					checked: true
+				});
+			});
+			fsRightChecklist.setVisible(true) ;
+		} else {
+			this.onAfterChecks() ;
+		}
 	},
 	
 	doOpenTransferLig: function() {
@@ -972,12 +1054,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 		formPanel.down('#fsRightChecklist').setVisible(false) ;
 		formPanel.down('#fsRightAttributes').setVisible(false) ;
 		formPanel.down('#fsRightLocation').setVisible(false) ;
-		formPanel.down('#fsRightBlank').setVisible(false) ;
 			  
 		if( this.transferLigRecord_arr.length == 1 ) {
 			var transferLigRecord = this.transferLigRecord_arr[0] ;
 			formPanel.down('#fsLeftSku').setVisible(true) ;
-			  formPanel.down('#fsLeftBlank').setVisible(false) ;
 			Ext.Array.each( formPanel.down('#fsLeftSku').query('field'), function(field) {
 				field.setReadOnly(true) ;
 			}) ;
@@ -1017,7 +1097,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 			});
 		} else {
 			formPanel.down('#fsLeftSku').setVisible(false) ;
-			formPanel.down('#fsLeftBlank').setVisible(true) ;
 		}
 		
 		// Checklist
@@ -1070,6 +1149,21 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 		var askSplit = ( isFinal && form.findField('stk_prod').getValue() && form.findField('stk_prod').getValue().substr(0,3) == 'MBD' ) ;
 		formPanel.down('#bntBeforeSplit').setVisible(askSplit) ;
 	},
+	onComboAdrBeforeLoad: function(store,options) {
+		var formPanel = this.down('form'),
+			form = this.down('form').getForm() ;
+			  
+		if( !this.transferRecord ) {
+			return false ;
+		}
+		var whseCode = this.transferRecord.get('whse_src') ;
+		
+		var params = options.getParams() ;
+		Ext.apply(params,{
+			filter: Ext.JSON.encode([{property:'treenode_key',value:whseCode}])
+		}) ;
+		options.setParams(params) ;
+	},
 	onComboProdBeforeLoad: function(store,options) {
 		var formPanel = this.down('form'),
 			form = this.down('form').getForm() ;
@@ -1097,7 +1191,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 				if( jsonResponse.success ) {
 					this.onLoadProd(jsonResponse.data) ;
 					
-					this.down('form').down('#fsRightBlank').setVisible(false) ;
 					this.down('form').down('#fsRightAttributes').setVisible(true) ;
 				}
 			},
@@ -1160,6 +1253,15 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 		form.findField('stk_batch').setVisible( (prodData.spec_is_batch == 1) ) ;
 		form.findField('stk_datelc').setVisible( (prodData.spec_is_dlc == 1) ) ;
 		form.findField('stk_sn').setVisible( (prodData.spec_is_sn == 1) ) ;
+	},
+	
+	calcFormLayout: function() {
+		var formPanel = this.down('form'),
+			form = this.down('form').getForm() ;
+		
+		var isContainerOn = !(form.findField('container_is_off').getValue()) ;
+		form.findField('container_type').setVisible( isContainerOn ) ;
+		form.findField('container_ref').setVisible( isContainerOn ) ;
 	},
 	
 	handleSubmit: function() {
@@ -1267,8 +1369,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 			formPanel.down('#fsRightLocation').setVisible(true) ;
 		} else if( stepRecord.is_final == 1 ) {
 			formPanel.down('#fsRightAttributes').setVisible(true) ;
-		} else {
-			formPanel.down('#fsRightBlank').setVisible(true) ;
+		} else if( flowRecord.steps[0].step_code == this.transferStepCode && flowRecord.is_foreign ) {
+			formPanel.down('#fsRightLocation').setVisible(true) ;
 		}
 	},
 	
@@ -1280,6 +1382,16 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 		var hasInvalid=false, skuData_obj = {} ;
 		Ext.Array.each( formPanel.down('#fsLeftSku').query('field'), function(field) {
 			if( field.isVisible() && !field.readOnly && Ext.isEmpty(field.getValue()) ) {
+				hasInvalid=true ;
+				field.markInvalid("Empty "+field.fieldLabel) ;
+			} else {
+				field.clearInvalid() ;
+			}
+			
+			Ext.apply( skuData_obj, field.getModelData() ) ;
+		}) ;
+		Ext.Array.each( formPanel.down('#fsLeftContpal').query('field'), function(field) {
+			if( field.isVisible() && !field.readOnly && !(field.testBlank===false) && Ext.isEmpty(field.getValue()) ) {
 				hasInvalid=true ;
 				field.markInvalid("Empty "+field.fieldLabel) ;
 			} else {
@@ -1316,6 +1428,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 				return false ;
 			}
 		},this) ;
+		var isForeign = false ;
+		if( flowRecord.steps[0].step_code == this.transferStepCode && flowRecord.is_foreign ) {
+			isForeign = true ;
+		}
 		var doPrint = (stepRecord.is_print==1);
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
@@ -1324,7 +1440,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 				transferFilerecordId: this.transferRecord.get('transfer_filerecord_id'),
 				transferLigFilerecordId_arr: Ext.JSON.encode(transferLigFilerecordId_arr),
 				transferStepCode: this.transferStepCode,
-				transferTargetNode: this.transferTargetNode.get('nodeKey'),
+				transferTargetNode: (isForeign ? '' : this.transferTargetNode.get('nodeKey')),
 				socCode: this.getSocCode(),
 				skuData_obj: Ext.JSON.encode(this.getSkuData()),
 				location: (formPanel.down('#fsRightLocation').isVisible() ? formValues.dest_adr.toUpperCase() : null)
@@ -1333,6 +1449,12 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 				var jsonResponse = Ext.JSON.decode(response.responseText) ;
 				if( jsonResponse.success ) {
 					if( doPrint ) {
+						if( jsonResponse['skuData_obj'] ) {
+							this.down('form').getForm().setValues({container_ref:jsonResponse['skuData_obj']['container_ref']});
+						}
+						if( jsonResponse['ids'] ) {
+							this.transferLig_ids = jsonResponse['ids'] ;
+						}
 						this.down('#cntBefore').setVisible(false) ;
 						this.down('#cntAfter').setVisible(true) ;
 					} else {
@@ -1439,7 +1561,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 				_action: 'transfer_printDoc',
 				transferFilerecordId: this.transferRecord.get('transfer_filerecord_id'),
 				transferLigFilerecordId_arr: Ext.JSON.encode(transferLigFilerecordId_arr),
-				transferStepCode: this.transferStepCode
+				transferStepCode: this.transferStepCode,
+				printEtiq: 1
 			},
 			success: function(response) {
 				var jsonResponse = Ext.JSON.decode(response.responseText) ;

@@ -129,6 +129,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.HelperCache',{
 			model: 'DbsLamCfgWhseModel',
 			data : ajaxData.data.cfg_whse
 		}) ;
+		this.cfgContainerTypeStore = Ext.create('Ext.data.Store',{
+			model: 'DbsLamCfgContainerTypeModel',
+			data : ajaxData.data.cfg_container
+		}) ;
 		this.cfgMvtflowStore = Ext.create('Ext.data.Store',{
 			model: 'DbsLamCfgMvtFlowModel',
 			data : ajaxData.data.cfg_mvtflow
@@ -141,6 +145,12 @@ Ext.define('Optima5.Modules.Spec.DbsLam.HelperCache',{
 	},
 	getAttribute: function(atrCode) {
 		return this.cfgAttributeStore.getById(atrCode) ? this.cfgAttributeStore.getById(atrCode).getData(true) : null ;
+	},
+	getContainerTypeAll: function() {
+		return Ext.pluck( this.cfgContainerTypeStore.getRange(), 'data' ) ;
+	},
+	getContainerType: function(containerType) {
+		return this.cfgContainerTypeStore.getById(containerType) ? this.cfgSocStore.getById(containerType).getData(true) : null ;
 	},
 	getSocAll: function() {
 		return Ext.pluck( this.cfgSocStore.getRange(), 'data' ) ;

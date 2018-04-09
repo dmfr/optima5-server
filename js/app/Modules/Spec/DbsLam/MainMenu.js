@@ -25,7 +25,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.MainMenu',{
 			'<tpl if="!item_disabled">',
 			'<div class="op5-spec-dbslam-mainmenu-item">',
 				'<tpl if="type_header">',
-					'<div class="op5-spec-dbslam-mainmenu-header"></div>',
+					'<div class="">&#160;</div>',
 				'</tpl>',
 				
 				'<tpl if="type_separator">',
@@ -61,7 +61,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.MainMenu',{
 				type_header:true
 			},{
 				type_separator:true,
-				separator_label: 'LAM S : WMS operations'
+				separator_label: 'LAM S : Monitoring'
 			},{
 				type_action:true,
 				action_caption: 'Stock',
@@ -77,27 +77,22 @@ Ext.define('Optima5.Modules.Spec.DbsLam.MainMenu',{
 				type_action_blank:true
 			},{
 				type_action:true,
-				action_caption: 'Inbound / Location',
-				action_sendEvent:'panel_live',
-				action_iconCls:'op5-spec-dbslam-menu-live'
-			},{
-				type_action:true,
 				action_caption: 'Transfers',
 				action_sendEvent:'panel_transfer',
 				action_iconCls:'op5-spec-dbslam-menu-transfer'
 			},{
 				type_separator:true,
-				separator_label: 'LAM S : Reporting / Queries'
+				separator_label: 'LAM S : Operations'
 			},{
 				type_action:true,
-				action_caption: 'Queries',
-				action_sendEvent:'panel_queryspec',
-				action_iconCls:'op5-spec-dbslam-menu-query'
+				action_caption: 'Gun scanner',
+				action_sendEvent:'window_gun',
+				action_iconCls:'op5-spec-dbslam-menu-pda'
 			},{
 				type_action:true,
-				action_caption: 'Upload / Sync',
-				action_sendEvent:'form_upload',
-				action_iconCls:'op5-spec-dbslam-menu-query'
+				action_caption: 'Inbound / Location',
+				action_sendEvent:'panel_live',
+				action_iconCls:'op5-spec-dbslam-menu-live'
 			},{
 				type_separator:true,
 				separator_label: 'LAM S : Administration'

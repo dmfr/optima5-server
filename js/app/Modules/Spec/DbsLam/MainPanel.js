@@ -10,7 +10,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.MainPanel',{
 		'Optima5.Modules.Spec.DbsLam.QueryspecPanel',
 		'Optima5.Modules.Spec.DbsLam.CfgPanel',
 		'Optima5.Modules.Spec.DbsLam.TransferPanel',
-		'Optima5.Modules.Spec.DbsLam.UploadForm'
+		'Optima5.Modules.Spec.DbsLam.UploadForm',
+		
+		'Optima5.Modules.Spec.DbsLam.GunPanel'
 	],
 	
 	initComponent: function() {
@@ -68,6 +70,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.MainPanel',{
 				return me.switchToAppPanel('Optima5.Modules.Spec.DbsLam.TransferPanel',{}) ;
 			case 'form_upload' :
 				return me.openUploadPopup() ;
+			case 'window_gun' :
+				return me.openGunWindow() ;
 			default :
 				return ;
 		}
@@ -121,5 +125,40 @@ Ext.define('Optima5.Modules.Spec.DbsLam.MainPanel',{
 		
 		createPanel.show();
 		createPanel.getEl().alignTo(this.getEl(), 'c-c?');
+	},
+	openGunWindow: function() {
+		// recherche d'une fenetre deja ouverte
+		var doOpen = true ;
+		this.optimaModule.eachWindow(function(win){
+			if( win.itemId == 'windowGun' ) {
+				win.show() ;
+				win.focus() ;
+				doOpen = false ;
+				return false ;
+			}
+		},this) ;
+		if( !doOpen ) {
+			return ;
+		}
+		
+		// new window
+		this.optimaModule.createWindow({
+			title: 'Live Trspt Validation',
+			itemId: 'windowGun',
+			width:375,
+			height:440,
+			iconCls: 'op5-crmbase-dataformwindow-icon',
+			animCollapse:false,
+			layout: 'fit',
+			items:[Ext.create('Optima5.Modules.Spec.DbsLam.GunPanel',{
+				border: false,
+				optimaModule: this.optimaModule,
+				listeners: {
+					candestroy: function(w) {
+						w.close() ;
+					}
+				}
+			})]
+		}) ;
 	}
 }) ;

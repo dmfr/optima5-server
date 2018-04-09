@@ -1,20 +1,4 @@
-Ext.define('DbsInconsoMenuItemModel',{
-	extend: 'Ext.data.Model',
-	fields: [
-		{name: 'item_disabled',  type: 'boolean'},
-		{name: 'type_header',  type: 'boolean'},
-		{name: 'type_separator',   type: 'boolean'},
-		{name: 'type_action',   type: 'boolean'},
-		{name: 'type_action_blank',   type: 'boolean'},
-		{name: 'separator_label',   type: 'string'},
-		{name: 'action_iconCls',   type: 'string'},
-		{name: 'action_qtip',   type: 'string'},
-		{name: 'action_caption',   type: 'string'},
-		{name: 'action_sendEvent', type:'string'}
-	]
-});
-
-Ext.define('Optima5.Modules.Spec.DbsInconso.MainMenu',{
+Ext.define('Optima5.Modules.Spec.DbsLam.GunMenu',{
 	extend:'Ext.view.View',
 	requires:[
 	],
@@ -23,32 +7,32 @@ Ext.define('Optima5.Modules.Spec.DbsInconso.MainMenu',{
 		 var viewItemTpl = new Ext.XTemplate(
 			'<tpl for=".">',
 			'<tpl if="!item_disabled">',
-			'<div class="op5-spec-dbsinconso-mainmenu-item">',
+			'<div class="op5-spec-dbslam-mainmenu-item">',
 				'<tpl if="type_header">',
-					'<div class="">&#160;</div>',
+					'<div class="" height="36">&#160;</div>',
 				'</tpl>',
 				
 				'<tpl if="type_separator">',
 					'<div class="x-clear"></div>',
-					'<div class="op5-spec-dbsinconso-mainmenu-separator">{separator_label}</div>',
+					'<div class="op5-spec-dbslam-mainmenu-separator">{separator_label}</div>',
 				"</tpl>",
 			
 				'<tpl if="type_action">',
 					'<tpl if="!type_action_blank">',
-						'<div class="op5-spec-dbsinconso-mainmenu-action op5-spec-dbsinconso-mainmenu-action-active">',
-							'<div class="op5-spec-dbsinconso-mainmenu-action-icon {action_iconCls}" data-qtip="{action_qtip:htmlEncode}"></div>',
+						'<div class="op5-spec-dbslam-mainmenu-action op5-spec-dbslam-mainmenu-action-active">',
+							'<div class="op5-spec-dbslam-mainmenu-action-icon {action_iconCls}" data-qtip="{action_qtip:htmlEncode}"></div>',
 							'<span>{action_caption:htmlEncode}</span>',
 						'</div>',
 					'</tpl>',
 					'<tpl if="type_action_blank">',
-						'<div class="op5-spec-dbsinconso-mainmenu-action">',
+						'<div class="op5-spec-dbslam-mainmenu-action">',
 						'</div>',
 					'</tpl>',
 				'</tpl>',
 			'</div>',
 			'</tpl>',
 			'<tpl if="item_disabled">',
-				'<div class="op5-spec-dbsinconso-mainmenu-item" style="display:none">',
+				'<div class="op5-spec-dbslam-mainmenu-item" style="display:none">',
 				'&#160;',
 				'</div>',
 			'</tpl>',
@@ -56,25 +40,31 @@ Ext.define('Optima5.Modules.Spec.DbsInconso.MainMenu',{
 		);
 		 
 		var itemsStore = Ext.create('Ext.data.Store',{
-			model:'DbsInconsoMenuItemModel',
+			model:'DbsLamMenuItemModel',
 			data:[{
 				type_header:true
 			},{
 				type_separator:true,
-				separator_label: 'Inconso : Ordonnancement'
+				separator_label: 'WMS operations'
 			},{
 				type_action:true,
-				action_caption: 'Orders / Commandes',
-				action_sendEvent:'panel_sdg',
-				action_iconCls:'op5-spec-dbsinconso-icon-sdg'
+				action_caption: 'Pallets',
+				action_sendEvent:'gun_containers',
+				action_iconCls:'op5-spec-dbslam-menu-stock'
+			},{
+				type_action:true,
+				action_caption: 'Orders',
+				action_sendEvent:'panel_products',
+				action_iconCls:'op5-spec-dbslam-menu-orders'
 			}]
 		}) ;
+		
 		 
 		Ext.apply(this,{
-			cls: 'op5-spec-dbsinconso-mainmenu',
+			cls: 'op5-spec-dbslam-mainmenu',
 			tpl: viewItemTpl,
-			itemSelector: 'div.op5-spec-dbsinconso-mainmenu-item',
-			overItemCls: 'op5-spec-dbsinconso-mainmenu-item-over',
+			itemSelector: 'div.op5-spec-dbslam-mainmenu-item',
+			overItemCls: 'op5-spec-dbslam-mainmenu-item-over',
 			store: itemsStore,
 			stateId: "mainmenu",
 			stateful: true

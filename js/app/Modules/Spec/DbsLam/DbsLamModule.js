@@ -80,6 +80,15 @@ Ext.define('DbsLamCfgWhseModel',{
 	]
 });
 
+Ext.define('DbsLamCfgContainerTypeModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'container_type',
+	fields: [
+		{name: 'container_type', type:'string', useNull:true},
+		{name: 'container_type_txt', type:'string'}
+	]
+});
+
 Ext.define('Optima5.Modules.Spec.DbsLam.DbsLamModule', {
 	extend: 'Optima5.Module',
 	requires: [

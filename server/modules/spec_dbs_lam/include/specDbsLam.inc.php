@@ -179,5 +179,33 @@ function specDbsLam_spec_get_MBDSU() {
 
 	return  '4'.str_pad((float)$value, 11, "0", STR_PAD_LEFT) ;
 }
+function specDbsLam_spec_get_CONTAINER_REF($soc_code) {
+	global $_opDB ;
+
+	$arr_ins = array() ;
+	$arr_ins['field_NAME'] = 'CONTAINER_REF' ;
+	paracrm_lib_data_insertRecord_file('Z_ATTRIB',0,$arr_ins) ;
+	
+	$query = "LOCK TABLES view_file_Z_ATTRIB WRITE" ;
+	$_opDB->query($query) ;
+	
+	$query = "UPDATE view_file_Z_ATTRIB SET field_VALUE=field_VALUE+1 WHERE field_NAME='CONTAINER_REF'" ;
+	$_opDB->query($query) ;
+	
+	$query = "SELECT field_VALUE FROM view_file_Z_ATTRIB WHERE field_NAME='CONTAINER_REF'" ;
+	$value = $_opDB->query_uniqueValue($query) ;
+	
+	$query = "UNLOCK TABLES" ;
+	$_opDB->query($query) ;
+	
+	
+	$query = "SELECT field_CONTAINER_PREFIX FROM view_bible_CFG_SOC_entry WHERE entry_key='{$soc_code}'" ;
+	$prefix = $_opDB->query_uniqueValue($query) ;
+	if( !$prefix ) {
+		$prefix = 'PAL' ;
+	}
+
+	return  $prefix.str_pad((float)$value, 6, "0", STR_PAD_LEFT) ;
+}
 
 ?>

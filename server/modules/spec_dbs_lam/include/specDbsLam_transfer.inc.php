@@ -68,10 +68,12 @@ function specDbsLam_transfer_getTransferLig($post_data) {
 		, a.field_DEST_ADR_ID as dest_adr_entry, dadr.treenode_key as dest_adr_treenode
 		FROM (
 		SELECT tl.filerecord_id as transferlig_filerecord_id, tl.filerecord_parent_id as transfer_filerecord_id
+		, t.field_FLOW_CODE as transfer_flow_code
 		, mvt.filerecord_id as mvt_filerecord_id
 		, mvtstep.filerecord_id as mvtstep_filerecord_id
 		, {$selects}
 		FROM view_file_TRANSFER_LIG tl
+		INNER JOIN view_file_TRANSFER t ON t.filerecord_id = tl.filerecord_parent_id
 		INNER JOIN view_file_MVT mvt ON mvt.filerecord_id = tl.field_FILE_MVT_ID
 		INNER JOIN view_file_MVT_STEP mvtstep ON mvtstep.filerecord_parent_id = mvt.filerecord_id
 		) a
@@ -96,8 +98,12 @@ function specDbsLam_transfer_getTransferLig($post_data) {
 		if( !isset($TAB[$filerecord_id]) ) {
 			$row = array(
 				'transfer_filerecord_id' => $arr['transfer_filerecord_id'],
+				'transfer_flow_code' => $arr['transfer_flow_code'],
 				'transferlig_filerecord_id' => $arr['transferlig_filerecord_id'],
 				'mvt_filerecord_id' => $arr['mvt_filerecord_id'],
+				'soc_code' => $arr['field_SOC_CODE'],
+				'container_type' => $arr['field_CONTAINER_TYPE'],
+				'container_ref' => $arr['field_CONTAINER_REF'],
 				'stk_prod' => $arr['field_PROD_ID'],
 				'stk_batch' => $arr['field_SPEC_BATCH'],
 				'stk_datelc' => $arr['field_SPEC_DATELC'],
@@ -159,13 +165,18 @@ function specDbsLam_transfer_getTransferLig($post_data) {
 				$row_transferlig['current_adr_entryKey'] = $row_transferlig_step['src_adr_entry'] ;
 				$row_transferlig['current_adr_treenodeKey'] = $row_transferlig_step['src_adr_treenode'] ;
 				$row_transferlig['current_adr_tmp'] = ($row_transferlig_step['src_adr_display']!=$row_transferlig_step['src_adr_entry']) ; ;
+				if( $row_transferlig_step['dest_adr_display'] ) {
+					$row_transferlig['next_adr'] = $row_transferlig_step['dest_adr_display'] ;
+				}
 				break ;
 			}
 			if( $row_transferlig_step['status_is_ok'] && ($idx==count($row_transferlig['steps'])-1) ) {
-				$row_transferlig['current_adr'] = $row_transferlig_step['dest_adr_display'] ;
-				$row_transferlig['current_adr_entryKey'] = $row_transferlig_step['dest_adr_entry'] ;
-				$row_transferlig['current_adr_treenodeKey'] = $row_transferlig_step['dest_adr_treenode'] ;
+				$row_transferlig['next_adr'] = $row_transferlig_step['dest_adr_display'] ;
+				//$row_transferlig['current_adr'] = $row_transferlig_step['dest_adr_display'] ;
+				//$row_transferlig['current_adr_entryKey'] = $row_transferlig_step['dest_adr_entry'] ;
+				//$row_transferlig['current_adr_treenodeKey'] = $row_transferlig_step['dest_adr_treenode'] ;
 				$row_transferlig['status_is_ok'] = TRUE ;
+				$row_transferlig['src_adr'] = NULL ;
 			}
 		}
 	}
@@ -355,7 +366,7 @@ function specDbsLam_transfer_printDoc( $post_data ) {
 		
 	$buffer = '' ;
 	$is_first = TRUE ;
-	if( !$step_isFinal ) {
+	if( !$step_isFinal && !$post_data['printEtiq'] ) {
 		ksort($tab_rowsTransferLig) ;
 		$tab_rowsTransferLig = array_values($tab_rowsTransferLig) ;
 	} else {
@@ -363,11 +374,14 @@ function specDbsLam_transfer_printDoc( $post_data ) {
 		foreach( $tab_rowsTransferLig as $ttmp ) {
 			$rows_transferLig = $ttmp['arr'] ;
 			foreach( $rows_transferLig as $row_transferLig ) {
-				$row_transferLigStepFinal = end($row_transferLig['steps']) ;
-				$arr_stkFilerecordId[] = $row_transferLigStepFinal['commit_file_stock_id'] ;
+				foreach( array_reverse($row_transferLig['steps']) as $row_transferLigStepFinal ) {
+					if( $row_transferLigStepFinal['commit_file_stock_id'] ) {
+						$arr_stkFilerecordId[] = $row_transferLigStepFinal['commit_file_stock_id'] ;
+						continue 2 ;
+					}
+				}
 			}
 		}
-		
 		return specDbsLam_stock_printEtiq( array('stock_filerecordIds'=>json_encode($arr_stkFilerecordId)) ) ;
 	}
 	
@@ -398,28 +412,26 @@ function specDbsLam_transfer_printDoc( $post_data ) {
 			$buffer.= "<tr><td><span class=\"verybig\">BIN / CONTAINER : <b>{$adr_str}</b></td></tr>" ;
 			$buffer.= "</table>";
 		$buffer.= "</td><td valign='middle' align='center' width='120'>" ;
-			$buffer.= "<img src=\"data:image/jpeg;base64,".base64_encode($_IMG['DBS_logo_bw'])."\" />" ;
+			//$buffer.= "<img src=\"data:image/jpeg;base64,".base64_encode($_IMG['DBS_logo_bw'])."\" />" ;
 		$buffer.= "</td></tr><tr><td height='25'/></tr></table>" ;
 				
 		$buffer.= "<table class='tabledonnees'>" ;
 			$buffer.= '<thead>' ;
 				$buffer.= "<tr>";
 					$buffer.= "<th>Barcode</th>";
-					$buffer.= "<th>Source</th>";
+					$buffer.= "<th>Position</th>";
+					$buffer.= "<th>Container</th>";
 					$buffer.= "<th>PartNumber</th>";
 					$buffer.= "<th>Batch</th>";
 					$buffer.= "<th>DLC</th>";
 					$buffer.= "<th>Qty</th>";
 					$buffer.= "<th>SN</th>";
-					$buffer.= "<th>Std ?</th>";
-					$buffer.= "<th>SPQ</th>";
-					$buffer.= "<th>StkType</th>";
+					$buffer.= "<th>Dest.Pos</th>";
 				$buffer.= "</tr>" ;
 			$buffer.= '</thead>' ;
 			foreach( $rows_transferLig as $row_transferLig ) {
-				$src_adr = $row_transferLig['src_adr'] ;
-				$ttmp = explode('_',$src_adr,2) ;
-				$src_adr_str = $ttmp[1] ;
+				$current_adr = $row_transferLig['current_adr'] ;
+				$next_adr = $row_transferLig['next_adr'] ;
 				
 				$stk_prod = $row_transferLig['stk_prod'] ;
 				$ttmp = explode('_',$stk_prod,2) ;
@@ -436,7 +448,8 @@ function specDbsLam_transfer_printDoc( $post_data ) {
 						$buffer.= '<img src="data:image/jpeg;base64,'.base64_encode(specDbsLam_lib_getBarcodePng($row_transferLig['transferlig_filerecord_id'],30)).'" /><br>';
 						$buffer.= $row_transferLig['transferlig_filerecord_id'].'<br>';
 					$buffer.= '</td>' ;
-					$buffer.= "<td><span class=\"\">{$src_adr_str}</span></td>" ;
+					$buffer.= "<td><span class=\"\">{$current_adr}</span></td>" ;
+					$buffer.= "<td><span class=\"mybig\">{$row_transferLig['container_ref']}</span></td>" ;
 					$buffer.= "<td><span class=\"mybig\">{$stk_prod_str}</span></td>" ;
 					
 					$class = ($arr_prod['field_SPEC_IS_BATCH'] ? '' : 'croix') ;
@@ -451,11 +464,7 @@ function specDbsLam_transfer_printDoc( $post_data ) {
 					$class = ($arr_prod['field_SPEC_IS_SN'] ? '' : 'croix') ;
 					$buffer.= "<td class=\"$class\"><span class=\"\">{$row_transferLig['stk_sn']}</span></td>" ;
 					
-					$buffer.= "<td><span class=\"\"><b>".(json_decode($arr_prod['field_ATR_STD'],true)==array('STD')?'Y':'N')."</b></span></td>" ;
-					
-					$buffer.= "<td><span class=\"\"><i>".($arr_prod['field_UC_QTY']>0 ? (float)$arr_prod['field_UC_QTY']:'')."</i></span></td>" ;
-					
-					$buffer.= "<td><span class=\"\"><span class=\"mybig\">{$row_transferLig['ATR_STKTYPE']}</span></td>" ;
+					$buffer.= "<td><span class=\"\"><span class=\"mybig\"><b>{$next_adr}</b></span></td>" ;
 				$buffer.= "</tr>" ;
 			}
 		$buffer.= "</table>" ;
@@ -711,6 +720,14 @@ function specDbsLam_transfer_lib_processForeign( &$post_data ) {
 	}
 	$arr_ins = array() ;
 	$arr_ins['field_ADR_ID'] = 'TMP_RECEP' ;
+	$arr_ins['field_SOC_CODE'] = $skuData['soc_code'] ;
+	if( !$skuData['container_is_off'] ) {
+		$arr_ins['field_CONTAINER_TYPE'] = $skuData['container_type'] ;
+		if( !$skuData['container_ref'] ) {
+			$skuData['container_ref'] = specDbsLam_spec_get_CONTAINER_REF($skuData['soc_code']) ;
+		}
+		$arr_ins['field_CONTAINER_REF'] = $skuData['container_ref'] ;
+	}
 	$arr_ins['field_PROD_ID'] = $skuData['stk_prod'] ;
 	$arr_ins['field_SPEC_BATCH'] = $skuData['stk_batch'] ;
 	$arr_ins['field_SPEC_DATELC'] = $skuData['stk_datelc'] ;
@@ -734,6 +751,7 @@ function specDbsLam_transfer_lib_processForeign( &$post_data ) {
 	}
 	$transferLigFilerecordId = reset($ttmp['ids']) ;
 	$post_data['transferLigFilerecordId_arr'] = json_encode(array($transferLigFilerecordId)) ;
+	$post_data['skuData_obj'] = json_encode($skuData) ;
 	return TRUE ;
 }
 function specDbsLam_transfer_lib_cleanForeign($post_data) {
@@ -771,6 +789,97 @@ function specDbsLam_transfer_lib_cleanForeign($post_data) {
 	return ;
 }
 function specDbsLam_transfer_commitAdrTmp($post_data,$inner=FALSE) {
+	global $_opDB ;
+	$prefix_TMP = 'TMP_' ;
+	
+	if( !$inner ) {
+		if( !specDbsLam_transfer_lib_processForeign($post_data) ) {
+			return array('success'=>false) ;
+		}
+		$ret = specDbsLam_transfer_commitAdrTmp($post_data,$inner=TRUE) ;
+		specDbsLam_transfer_lib_cleanForeign($post_data) ;
+		return $ret ;
+	}
+	
+	$p_transferFilerecordId = $post_data['transferFilerecordId'] ;
+	$p_transferLigFilerecordId_arr = json_decode($post_data['transferLigFilerecordId_arr'],true) ;
+	$p_transferStepCode = $post_data['transferStepCode'] ;
+	$p_transferTargetNode = $post_data['transferTargetNode'] ;
+	$p_location = trim(strtoupper($post_data['location'])) ;
+	
+	// **** Vérifs STEP *****
+	//  - step <> is_final
+	//  - 
+	$step_isFinal = $_opDB->query_uniqueValue("SELECT field_IS_ADR FROM view_bible_CFG_MVTFLOW_entry WHERE entry_key='{$p_transferStepCode}'") ;
+	if( $step_isFinal ) {
+		return array('success'=>false) ;
+	}
+	
+	
+	// **** Recherche next Step ********
+	$current_step_code = $post_data['transferStepCode'] ;
+	$current_flow_code = $_opDB->query_uniqueValue("SELECT treenode_key FROM view_bible_CFG_MVTFLOW_entry WHERE entry_key='{$current_step_code}'");
+	
+	$steps = array() ;
+	$query = "SELECT entry_key FROM view_bible_CFG_MVTFLOW_entry WHERE treenode_key='{$current_flow_code}' ORDER BY entry_key" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$steps[] = $arr[0] ;
+	}
+	sort($steps) ;
+	$currentStep_key = array_search($current_step_code,$steps) ;
+	$nextStep_key = $currentStep_key + 1 ;
+	if( !($next_step_code = $steps[$nextStep_key]) ) {
+		return array('success'=>false) ;
+	}
+	
+	
+	// Load current ligs
+	$ttmp = specDbsLam_transfer_getTransferLig( array(
+		'filter_transferFilerecordId'=>$p_transferFilerecordId,
+		'filter_transferLigFilerecordId_arr'=>json_encode($p_transferLigFilerecordId_arr)
+	) ) ;
+	$rows_transferLig = $ttmp['data'] ;
+	foreach( $rows_transferLig as $idx => $row_transferLig ) {
+		if( $row_transferLig['step_code'] != $p_transferStepCode ) {
+			return array('success'=>false, 'reload'=>true, 'error'=>'Invalid status for item(s) != '.$p_transferStepCode) ;
+		}
+	}
+	if( count($rows_transferLig) != count($p_transferLigFilerecordId_arr) ) {
+		// count ?
+		return array('success'=>false) ;
+	}
+	
+	
+	// Dest location
+	$query = "SELECT count(*) from view_bible_ADR_entry WHERE entry_key='{$p_location}'" ;
+	if( $_opDB->query_uniqueValue($query) != 1 ) {
+		return array('success'=>false, 'error'=>"Destination {$p_location} non existant") ;
+	}
+	
+	foreach( $p_transferLigFilerecordId_arr as $transferLig_filerecordId ) {
+		$location_entryKey = $p_location ;
+		
+		// mvt ID ?
+		$query = "SELECT field_FILE_MVT_ID FROM view_file_TRANSFER_LIG WHERE filerecord_id='{$transferLig_filerecordId}'" ;
+		$mvt_filerecordId = $_opDB->query_uniqueValue($query) ;
+		if( !$mvt_filerecordId ) {
+			continue ;
+		}
+		if( specDbsLam_lib_procMvt_commit($mvt_filerecordId, $location_entryKey, $location_display=$location_entryKey, $next_step_code ) ) {
+			$arr_update = array();
+			$arr_update['field_STATUS_IS_REJECT'] = FALSE ;
+			$arr_update['field_STEP_CODE'] = $next_step_code ;
+			paracrm_lib_data_updateRecord_file('TRANSFER_LIG',$arr_update,$transferLig_filerecordId) ;
+		}
+	}
+	
+	
+	specDbsLam_transfer_lib_advanceDoc($post_data['transferFilerecordId']) ;
+	
+	return array('success'=>true, 'debug'=>$post_data, 'ids'=>$p_transferLigFilerecordId_arr, 'skuData_obj'=>json_decode($post_data['skuData_obj'],true)) ;
+}
+function specDbsLam_transfer_commitAdrTmp_LAM1602($post_data,$inner=FALSE) {
 	global $_opDB ;
 	$prefix_TMP = 'TMP_' ;
 	
@@ -1084,6 +1193,150 @@ function specDbsLam_transfer_commitAdrTmp($post_data,$inner=FALSE) {
 	
 	return array('success'=>true, 'debug'=>$post_data, 'ids'=>$p_transferLigFilerecordId_arr) ;
 }
+function specDbsLam_transfer_allocAdrFinal($post_data,$fast=FALSE,$inner=FALSE) {
+	global $_opDB ;
+	
+	if( $post_data['forwardSplit_isOn'] ) {
+		return array('success'=>false) ;
+	}
+	
+	if( !$inner ) {
+		if( !specDbsLam_transfer_lib_processForeign($post_data) ) {
+			return array('success'=>false) ;
+		}
+		$ret = specDbsLam_transfer_allocAdrFinal($post_data,$fast,$inner=TRUE) ;
+		specDbsLam_transfer_lib_cleanForeign($post_data) ;
+		return $ret ;
+	}
+	
+	
+	$p_transferFilerecordId = $post_data['transferFilerecordId'] ;
+	$p_transferLigFilerecordId_arr = json_decode($post_data['transferLigFilerecordId_arr'],true) ;
+	$p_transferStepCode = $post_data['transferStepCode'] ;
+	
+	$p_socCode = $post_data['socCode'] ;
+	
+	// Load cfg attributes
+	$ttmp = specDbsLam_cfg_getConfig() ;
+	$json_cfg = $ttmp['data'] ;
+	
+	
+	// **** Vérifs STEP *****
+	//  - step = is_final
+	//  - 
+	$step_isFinal = $_opDB->query_uniqueValue("SELECT field_IS_ADR FROM view_bible_CFG_MVTFLOW_entry WHERE entry_key='{$p_transferStepCode}'") ;
+	if( !$step_isFinal ) {
+		return array('success'=>false) ;
+	}
+
+	$form_data = array() ;
+	if( !$fast ) {
+		$soc_code = $post_data['socCode'] ;
+		
+		$form_data['stockAttributes_obj'] = array() ;
+		$stockAttributes_obj = json_decode($post_data['stockAttributes_obj'],true) ;
+		foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
+			if( $stockAttribute_obj['STOCK_fieldcode']
+				|| $stockAttribute_obj['PROD_fieldcode'] && $stockAttribute_obj['ADR_fieldcode'] ) {} else {
+				
+				continue ;
+			}
+			if( !in_array($p_socCode, $stockAttribute_obj['socs']) ) {
+				continue ;
+			}
+			$mkey = $stockAttribute_obj['mkey'] ;
+			$STOCK_fieldcode = $stockAttribute_obj['STOCK_fieldcode'] ;
+			$form_data['stockAttributes_obj'][$mkey] = $stockAttributes_obj[$mkey] ;
+		}
+		foreach( $form_data['stockAttributes_obj'] as $mkey => $mvalue ) {
+			if( !$mvalue ) {
+				return array('success'=>false, 'error'=>'Stock attributes error !') ;
+			}
+		}
+	}
+	
+	// Load current doc
+	$ttmp = specDbsLam_transfer_getTransfer( array('filter_transferFilerecordId'=>$p_transferFilerecordId) ) ;
+	$row_transfer = $ttmp['data'][0] ;
+	$whse_dest = $row_transfer['whse_dest'] ;
+	if( !$whse_dest ) {
+		return array('success'=>false, 'error'=>'Warehouse destination ?') ;
+	}
+	
+	// Load current ligs
+	$ttmp = specDbsLam_transfer_getTransferLig( array(
+		'filter_transferFilerecordId'=>$p_transferFilerecordId,
+		'filter_transferLigFilerecordId_arr'=>json_encode($p_transferLigFilerecordId_arr)
+	) ) ;
+	$rows_transferLig = $ttmp['data'] ;
+	if( !$fast && count($rows_transferLig) != 1 ) {
+		foreach( $rows_transferLig as $row_transferLig ) {
+			$ttmp = specDbsLam_transfer_allocAdrFinal( array(
+				'transferFilerecordId' =>  $p_transferFilerecordId,
+				'transferLigFilerecordId_arr' => json_encode(array($row_transferLig['transferlig_filerecord_id'])),
+				'transferStepCode' => $p_transferStepCode
+			), $fast=TRUE) ;
+		}
+		return array('success'=>true, 'data'=> $adr_obj, 'ids'=>$p_transferLigFilerecordId_arr, 'stockAttributes_obj'=>NULL) ;
+	}
+	
+	
+	$rows_transferLig = array_values($rows_transferLig) ;
+	$row_transferLig = $rows_transferLig[0] ;
+	if( $row_transferLig['next_adr'] ) {
+		return array('success'=>true) ;
+	}
+	
+	
+	$form_data['mvt_obj'] = array() ;
+	$form_data['mvt_obj']['prod_id'] = $row_transferLig['stk_prod'] ;
+	$form_data['mvt_obj']['batch'] = $row_transferLig['stk_batch'] ;
+	$form_data['mvt_obj']['sn'] = $row_transferLig['stk_sn'] ;
+	$form_data['mvt_obj']['container_type'] = $row_transferLig['container_type'] ;
+	
+	// Save PROD fields ?
+	if( !$fast ) {
+		$prod_stockAttributes = array() ;
+		foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
+			if( $stockAttribute_obj['PROD_fieldcode'] && $stockAttribute_obj['cfg_is_editable'] ) {
+				$mvalue = $form_data['stockAttributes_obj'][$stockAttribute_obj['mkey']] ;
+				$prod_stockAttributes[$stockAttribute_obj['PROD_fieldcode']] = $mvalue ;
+			}
+		}
+		if( $prod_stockAttributes ) {
+			$arr_update = array() ;
+			foreach( $prod_stockAttributes as $field_code => $value ) {
+				$arr_update[$field_code] = json_encode(array($value)) ;
+			}
+			$arr_cond = array() ;
+			$arr_cond['entry_key'] = $form_data['mvt_obj']['prod_id'] ;
+			$_opDB->update('view_bible_PROD_entry',$arr_update,$arr_cond) ;
+		}
+	}
+	
+	specDbsLam_lib_proc_lock_on() ;
+	
+	$adr_obj = specDbsLam_lib_proc_findAdr( $form_data['mvt_obj'], $form_data['stockAttributes_obj'], $whse_dest ) ;
+	
+	if( !$adr_obj['adr_id'] ) {
+		specDbsLam_lib_proc_lock_off() ;
+		return array('success'=>false, 'error'=>'Pas d\'emplacement disponible.', 'error_available'=>true) ;
+	}
+	
+	foreach( $p_transferLigFilerecordId_arr as $transferLig_filerecordId ) {
+		// mvt ID ?
+		$query = "SELECT field_FILE_MVT_ID FROM view_file_TRANSFER_LIG WHERE filerecord_id='{$transferLig_filerecordId}'" ;
+		$mvt_filerecordId = $_opDB->query_uniqueValue($query) ;
+		if( !$mvt_filerecordId ) {
+			continue ;
+		}
+		specDbsLam_lib_procMvt_alloc($mvt_filerecordId, $adr_obj['adr_id'], $adr_obj['adr_id']) ;
+	}
+	
+	specDbsLam_lib_proc_lock_off() ;
+	
+	return array('success'=>true) ;
+}
 function specDbsLam_transfer_commitAdrFinal($post_data,$fast=FALSE,$inner=FALSE) {
 	global $_opDB ;
 	
@@ -1164,21 +1417,10 @@ function specDbsLam_transfer_commitAdrFinal($post_data,$fast=FALSE,$inner=FALSE)
 	$rows_transferLig = $ttmp['data'] ;
 	if( !$fast && count($rows_transferLig) != 1 ) {
 		foreach( $rows_transferLig as $row_transferLig ) {
-			if( !$row_transferLig['flag_allowgroup'] ) {
-				return array('success'=>false, 'error'=>'Group locations not accepted') ;
-			}
-		}
-		// count ?
-		if( !$post_data['manAdr_isOn'] ) {
-			return array('success'=>false, 'error'=>'Manual location needed for group', 'error_available'=>true) ;
-		}
-		foreach( $rows_transferLig as $row_transferLig ) {
 			$ttmp = specDbsLam_transfer_commitAdrFinal( array(
 				'transferFilerecordId' =>  $p_transferFilerecordId,
 				'transferLigFilerecordId_arr' => json_encode(array($row_transferLig['transferlig_filerecord_id'])),
 				'transferStepCode' => $p_transferStepCode,
-				'manAdr_isOn' => 1,
-				'manAdr_adrId' => $post_data['manAdr_adrId']
 			), $fast=TRUE) ;
 		}
 		$adr_obj = array('status'=>'OK_MAN','adr_id'=>strtoupper(trim($post_data['manAdr_adrId']))) ;
@@ -1215,6 +1457,7 @@ function specDbsLam_transfer_commitAdrFinal($post_data,$fast=FALSE,$inner=FALSE)
 	$form_data['mvt_obj']['prod_id'] = $row_transferLig['stk_prod'] ;
 	$form_data['mvt_obj']['batch'] = $row_transferLig['stk_batch'] ;
 	$form_data['mvt_obj']['sn'] = $row_transferLig['stk_sn'] ;
+	$form_data['mvt_obj']['container_type'] = $row_transferLig['container_type'] ;
 	
 	
 	// Save PROD fields ?
@@ -1239,20 +1482,28 @@ function specDbsLam_transfer_commitAdrFinal($post_data,$fast=FALSE,$inner=FALSE)
 	
 	specDbsLam_lib_proc_lock_on() ;
 	
-	if( !$post_data['manAdr_isOn'] ) {
-		$adr_obj = specDbsLam_lib_proc_findAdr( $form_data['mvt_obj'], $form_data['stockAttributes_obj'], $whse_dest ) ;
-		if( !$adr_obj['adr_id'] ) {
-			specDbsLam_lib_proc_lock_off() ;
-			return array('success'=>false, 'error'=>'Pas d\'emplacement disponible.', 'error_available'=>true) ;
+	if( $row_transferLig['next_adr'] ) {
+		if( $post_data['manAdr_isOn'] ) {
+			// TODO
+			return array('success'=>false) ;
 		}
+		$adr_obj = array('status'=>'OK','adr_id'=>strtoupper(trim($row_transferLig['next_adr']))) ;
 	} else {
-		$adr_treenodes = paracrm_data_getBibleTreeBranch( 'ADR', $whse_dest ) ;
-		$query = "SELECT count(*) FROM view_bible_ADR_entry WHERE entry_key='{$post_data['manAdr_adrId']}'
-					AND treenode_key IN ".$_opDB->makeSQLlist($adr_treenodes) ;
-		if( $_opDB->query_uniqueValue($query) == 1 ) {
-			$adr_obj = array('status'=>'OK_MAN','adr_id'=>strtoupper(trim($post_data['manAdr_adrId']))) ;
+		if( !$post_data['manAdr_isOn'] ) {
+			$adr_obj = specDbsLam_lib_proc_findAdr( $form_data['mvt_obj'], $form_data['stockAttributes_obj'], $whse_dest ) ;
+			if( !$adr_obj['adr_id'] ) {
+				specDbsLam_lib_proc_lock_off() ;
+				return array('success'=>false, 'error'=>'Pas d\'emplacement disponible.', 'error_available'=>true) ;
+			}
 		} else {
-			return array('success'=>false, 'error'=>'Invalid location') ;
+			$adr_treenodes = paracrm_data_getBibleTreeBranch( 'ADR', $whse_dest ) ;
+			$query = "SELECT count(*) FROM view_bible_ADR_entry WHERE entry_key='{$post_data['manAdr_adrId']}'
+						AND treenode_key IN ".$_opDB->makeSQLlist($adr_treenodes) ;
+			if( $_opDB->query_uniqueValue($query) == 1 ) {
+				$adr_obj = array('status'=>'OK_MAN','adr_id'=>strtoupper(trim($post_data['manAdr_adrId']))) ;
+			} else {
+				return array('success'=>false, 'error'=>'Invalid location') ;
+			}
 		}
 	}
 	

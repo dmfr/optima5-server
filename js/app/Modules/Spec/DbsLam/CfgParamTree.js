@@ -87,6 +87,25 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CfgParamTree',{
 				}
 				break ;
 				
+			case 'CONTAINER' :
+				data = Optima5.Modules.Spec.DbsLam.HelperCache.getContainerTypeAll() ;
+				Ext.Array.each( data, function(row) {
+					rootChildren.push({
+						nodeId: row.container_type,
+						nodeType: 'entry',
+						nodeKey: row.container_type,
+						nodeText: row.container_type_txt,
+						leaf: true
+					}) ;
+				}) ;
+				rootNode = {
+					root: true,
+					children: rootChildren,
+					nodeText: '<b>Container Types</b>',
+					expanded: true
+				}
+				break ;
+				
 			case 'MVTFLOW' :
 			case 'MVTFLOWSTEP' :
 				data = Optima5.Modules.Spec.DbsLam.HelperCache.getMvtflowAll() ;

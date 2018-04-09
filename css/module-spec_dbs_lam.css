@@ -79,6 +79,12 @@
 }
 
 
+.op5-spec-dbslam-menu-orders {
+	background-image: url("../images/modules/dbsinconso-sdg-64.png") !important;
+}
+.op5-spec-dbslam-menu-pda {
+	background-image: url("../images/modules/dbslam-menu-pda-64.png") !important;
+}
 .op5-spec-dbslam-menu-live {
 	background-image: url("../images/modules/dbslam-menu-live-64.png") !important;
 }
@@ -101,6 +107,9 @@
 
 
 
+.op5-spec-dbslam-stock-prealloc .x-grid-cell-inner {
+	background: url('../images/op5img/ico_wait_small.gif') no-repeat center center ;
+}
 .op5-spec-dbslam-stock-avail .x-grid-cell-inner {
 	background: url('../images/op5img/ico_greendot.gif') no-repeat center center ;
 }

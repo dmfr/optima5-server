@@ -34,6 +34,7 @@ Ext.define('DbsLamTransferGridModel',{
 	idProperty: 'transferlig_filerecord_id',
 	fields: [
 		{name: 'transfer_filerecord_id', type:'int'},
+		{name: 'transfer_flow_code', type:'string'},
 		{name: 'transfer_txt', type:'string'},
 		{name: 'transferlig_filerecord_id', type:'int'},
 		{name: 'status', type:'boolean'},
@@ -44,10 +45,12 @@ Ext.define('DbsLamTransferGridModel',{
 		{name: 'tree_id', type:'string'},
 		{name: 'tree_adr', type:'string'},
 		{name: 'src_adr', type:'string'},
+		{name: 'next_adr', type:'string'},
 		{name: 'current_adr', type: 'string'},
 		{name: 'current_adr_tmp', type:'boolean'},
 		{name: 'current_adr_entryKey', type:'string'},
 		{name: 'current_adr_treenodeKey', type:'string'},
+		{name: 'container_ref', type:'string'},
 		{name: 'stk_prod', type:'string'},
 		{name: 'stk_batch', type:'string'},
 		{name: 'stk_datelc', type:'string'},
@@ -151,13 +154,31 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					scope: this
 				},{
 					hidden:true,
-					itemId: 'tbPrint',
-					icon: 'images/op5img/ico_print_16.png',
-					text: '<b>Print</b>',
-					handler: function() {
-						this.openPrintPopup() ;
-					},
-					scope: this
+					itemId: 'tbActions',
+					icon: 'images/op5img/ico_arrow-down_16.png',
+					text: 'Actions',
+					menu: [{
+						icon: 'images/op5img/ico_print_16.png',
+						text: '<b>Print</b>',
+						handler: function() {
+							this.openPrintPopup() ;
+						},
+						scope: this
+					},'-',{
+						icon: 'images/op5img/ico_process_16.gif',
+						text: '<b>Pre-Allocate</b>',
+						handler: function() {
+							this.handleActionPrealloc() ;
+						},
+						scope: this
+					},{
+						icon: 'images/op5img/ico_ok_16.gif',
+						text: '<b>Acknowledge alloc.</b>',
+						handler: function() {
+							this.handleActionAckalloc() ;
+						},
+						scope: this
+					}]
 				},'->',{
 					hidden: true,
 					itemId: 'tbSearchLogo',
@@ -222,7 +243,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				selectedNodes = treepanel.getView().getSelectionModel().getSelection(),
 				isDocSelected = (selectedNodes.length==1 && selectedNodes[0].get('type')=='transfer') ;
 			this.down('toolbar').down('#tbAdd').setVisible(isDocSelected) ;
-			this.down('toolbar').down('#tbPrint').setVisible(isDocSelected) ;
+			this.down('toolbar').down('#tbActions').setVisible(isDocSelected) ;
 			
 			var searchOn = isDocSelected && this.down('#pCenter').down('#pGridTree') && this.down('#pCenter').down('#pGridTree').isVisible()
 			this.down('toolbar').down('#tbSearchLogo').setVisible(searchOn) ;
@@ -303,7 +324,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				}
 			},{
 				text: '<b>Source Location</b>',
-				dataIndex: 'src_adr',
+				dataIndex: 'current_adr',
 				renderer: function(v) {
 					return '<b>'+v+'</b>' ;
 				}
@@ -314,7 +335,11 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				text: '<b>SKU details</b>',
 				columns: [{
 					dataIndex: 'stk_prod',
-					text: 'Article',
+					text: 'Container',
+					width: 100
+				},{
+					dataIndex: 'stk_prod',
+					text: 'P/N',
 					width: 100
 				},{
 					dataIndex: 'stk_batch',
@@ -332,7 +357,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				}]
 			},{
 				text: '<b>Dest Location</b>',
-				dataIndex: 'current_adr',
+				dataIndex: 'next_adr',
 				renderer: function(v,metaData,record) {
 					if( record.get('status_is_ok') ) {
 						return '<b>'+v+'</b>' ;
@@ -1148,6 +1173,104 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				scope: this
 			}]
 		}); 
+	},
+	
+	
+	
+	handleActionPrealloc: function() {
+		var pTreeSelection = this.down('#pCenter').down('#pTree').getSelectionModel().getSelection() ;
+		if( pTreeSelection.length != 1 || pTreeSelection[0].get('type') != 'transfer' ) {
+			Ext.MessageBox.alert('Error','No suitable doc selected.') ;
+			return ;
+		}
+		
+		var docFlow = pTreeSelection[0].get('flow_code'),
+			flowRecord = Optima5.Modules.Spec.DbsLam.HelperCache.getMvtflow(docFlow),
+			flowSteps = flowRecord.steps,
+			lastStepIdx = (flowSteps.length - 1),
+			lastStepCode = flowSteps[lastStepIdx].step_code ;
+		
+		var transferFilerecordId = pTreeSelection[0].get('transfer_filerecord_id'),
+			  transferligFilerecordIds = [] ;
+		var pGrid = this.down('#pCenter').down('#pGrid') ;
+		pGrid.getStore().each( function(gridRec) {
+			if( gridRec.get('transfer_filerecord_id') != transferFilerecordId ) {
+				return ;
+			}
+			if( gridRec.get('step_code') != lastStepCode ) {
+				return ;
+			}
+			transferligFilerecordIds.push( gridRec.get('transferlig_filerecord_id') ) ;
+		}) ;
+		
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_lam',
+				_action: 'transfer_allocAdrFinal',
+				transfer_filerecordId: transferFilerecordId,
+				transferLigFilerecordId_arr: Ext.JSON.encode(transferligFilerecordIds),
+				transferStepCode: lastStepCode
+			},
+			success: function(response) {
+				var jsonResponse = Ext.JSON.decode(response.responseText) ;
+				this.doGridReload();
+				
+				//this.doTreeLoad() ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+	},
+	handleActionAckalloc: function() {
+		var pTreeSelection = this.down('#pCenter').down('#pTree').getSelectionModel().getSelection() ;
+		if( pTreeSelection.length != 1 || pTreeSelection[0].get('type') != 'transfer' ) {
+			Ext.MessageBox.alert('Error','No suitable doc selected.') ;
+			return ;
+		}
+		
+		var docFlow = pTreeSelection[0].get('flow_code'),
+			flowRecord = Optima5.Modules.Spec.DbsLam.HelperCache.getMvtflow(docFlow),
+			flowSteps = flowRecord.steps,
+			lastStepIdx = (flowSteps.length - 1),
+			lastStepCode = flowSteps[lastStepIdx].step_code ;
+		
+		var transferFilerecordId = pTreeSelection[0].get('transfer_filerecord_id'),
+			  transferligFilerecordIds = [] ;
+		var pGrid = this.down('#pCenter').down('#pGrid') ;
+		pGrid.getStore().each( function(gridRec) {
+			if( gridRec.get('transfer_filerecord_id') != transferFilerecordId ) {
+				return ;
+			}
+			if( gridRec.get('step_code') != lastStepCode ) {
+				return ;
+			}
+			if( gridRec.get('status_is_ok') ) {
+				return ;
+			}
+			transferligFilerecordIds.push( gridRec.get('transferlig_filerecord_id') ) ;
+		}) ;
+		
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_lam',
+				_action: 'transfer_commitAdrFinal',
+				transfer_filerecordId: transferFilerecordId,
+				transferLigFilerecordId_arr: Ext.JSON.encode(transferligFilerecordIds),
+				transferStepCode: lastStepCode
+			},
+			success: function(response) {
+				var jsonResponse = Ext.JSON.decode(response.responseText) ;
+				this.doGridReload();
+				
+				//this.doTreeLoad() ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
 	},
 	
 	handleDropStock: function(srcStockFilerecordIds) {
