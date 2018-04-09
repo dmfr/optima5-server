@@ -269,6 +269,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateForm',{
 						formData['agree_amount'] += recordRecord.get('amount') ;
 					},this);
 				},this);
+				formData['agree_amount'] = (Math.round(formData['agree_amount']*100) / 100) ;
 				formData['records_amount'] = Ext.util.Format.number(formData['agree_amount'],'0,000.00')
 				this.getForm().setValues(formData) ;
 				this.getForm().findField('agree_amount').setMaxValue( formData['agree_amount'] ) ;
