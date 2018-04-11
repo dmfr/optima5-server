@@ -164,6 +164,13 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 							this.openPrintPopup() ;
 						},
 						scope: this
+					},{
+						icon: 'images/op5img/ico_print_16.png',
+						text: '<b>Print labels</b>',
+						handler: function() {
+							this.openPrintPopup(true) ;
+						},
+						scope: this
 					},'-',{
 						icon: 'images/op5img/ico_process_16.gif',
 						text: '<b>Pre-Allocate</b>',
@@ -334,7 +341,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			},{
 				text: '<b>SKU details</b>',
 				columns: [{
-					dataIndex: 'stk_prod',
+					dataIndex: 'container_ref',
 					text: 'Container',
 					width: 100
 				},{
@@ -401,6 +408,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			},{
 				text: '<b>SKU details</b>',
 				columns: [{
+					dataIndex: 'container_ref',
+					text: 'Container',
+					width: 100
+				},{
 					dataIndex: 'stk_prod',
 					text: 'Article',
 					width: 100
@@ -1095,7 +1106,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		}) ;
 	},
 	
-	openPrintPopup: function() {
+	openPrintPopup: function(printLabels) {
 		var pTreeSelection = this.down('#pCenter').down('#pTree').getSelectionModel().getSelection() ;
 		if( pTreeSelection.length != 1 || pTreeSelection[0].get('type') != 'transfer' ) {
 			Ext.MessageBox.alert('Error','No suitable doc selected.') ;
@@ -1108,7 +1119,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			params: {
 				_moduleId: 'spec_dbs_lam',
 				_action: 'transfer_printDoc',
-				transfer_filerecordId: pTreeSelection[0].get('transfer_filerecord_id') 
+				transfer_filerecordId: pTreeSelection[0].get('transfer_filerecord_id'),
+				printEtiq: (printLabels ? 1 : 0)
 			},
 			success: function(response) {
 				var jsonResponse = Ext.JSON.decode(response.responseText) ;
@@ -1525,7 +1537,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				_action: 'transfer_printDoc',
 				transferFilerecordId: transferFilerecordId,
 				transferLigFilerecordId_arr: Ext.JSON.encode(transferLigFilerecordId_arr),
-				transferStepCode: transferStepCode
+				transferStepCode: transferStepCode,
+				printEtiq: 1
 			},
 			success: function(response) {
 				var jsonResponse = Ext.JSON.decode(response.responseText) ;
