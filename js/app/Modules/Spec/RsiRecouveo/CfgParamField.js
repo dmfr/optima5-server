@@ -35,6 +35,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
 	
 	selectMode: 'SINGLE',
 	
+	fieldWidth: null,
+	
 	initComponent: function() {
 		var me = this ;
 		if( (me.optimaModule) instanceof Optima5.Module ) {} else {
@@ -55,7 +57,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
 			accountRecord: this.accountRecord,
 			cfgParam_id: this.cfgParam_id,
 			selectMode: this.selectMode, // SINGLE / MULTI
-			width:250,
+			width: this.fieldWidth || 250,
 			height:300,
 			listeners: {
 				change: {
@@ -70,6 +72,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
 				}
 			}
 		});
+		
+		Ext.apply(this,{
+			matchFieldWidth: ( Ext.isEmpty(this.fieldWidth) ? true : false )
+		}) ;
 		
 		this.callParent() ;
 	},
@@ -168,13 +174,16 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
 		} else {
 			this.divicon.removeCls('biblepicker-iconimg-nok') ;
 			this.divicon.addCls('biblepicker-iconimg-oktree') ;
-			if( this.selectMode == 'MULTI' ) {
+			if( this.selectMode == 'MULTI' && selectedValue.length>1 ) {
 				var vals = [] ;
 				Ext.Array.each( selectedValue, function(val) {
 					vals.push( val ) ;
 				});
 				this.divtext.dom.innerHTML = vals.join('&#160;'+'/'+'&#160;') ;
 			} else {
+				if( Ext.isArray(selectedValue) ) {
+					selectedValue = selectedValue[0] ;
+				}
 				this.divtext.dom.innerHTML = cfgParamTree.getStore().getNodeById(selectedValue).get('nodeText') ;
 				if( this.cfgParam_id.indexOf('ADR_')===0 && cfgParamTree.getStore().getNodeById(selectedValue).getDepth()==2 ) {
 					this.divtext.dom.innerHTML = cfgParamTree.getStore().getNodeById(selectedValue).parentNode.get('nodeText') ;

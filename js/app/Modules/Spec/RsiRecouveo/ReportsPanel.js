@@ -1,5 +1,8 @@
 Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportCanvasPanel',{
 	extend: 'Ext.panel.Panel',
+	
+	requires: ['Optima5.Modules.Spec.RsiRecouveo.ReportCfgAxesPanel'],
+	
 	alias: 'widget.op5specrsiveoreportcanvas',
 	
 	initComponent: function() {
@@ -43,7 +46,16 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportCanvasPanel',{
 					]
 				}
 				}
-			},{
+			},Ext.create('Optima5.Modules.Spec.RsiRecouveo.ReportCfgAxesPanel',{
+				region: 'east',
+				title: 'Paramétrage',
+				collapsible: true,
+				collapsed: false,
+				animCollapse: false,
+				width: 300,
+				
+				optimaModule: this.optimaModule
+			}),{
 				style: 'border-left: 3px solid gray',
 				region: 'center',
 				xtype: 'panel',
@@ -284,7 +296,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportsPanel',{
 	
 	requires: [
 		'Optima5.Modules.Spec.RsiRecouveo.ReportUsersPanel',
-		'Optima5.Modules.Spec.RsiRecouveo.ReportCashPanel'
+		'Optima5.Modules.Spec.RsiRecouveo.ReportCashPanel',
+		'Optima5.Modules.Spec.RsiRecouveo.ReportTilesPanel'
 	],
 	
 	initComponent: function() {
@@ -297,7 +310,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportsPanel',{
 				panelConfig: {
 					xtype: 'op5specrsiveoreportcanvas',
 					title: 'Nouveau rapport',
-					closable: true
+					closable: true,
+					optimaModule: this.optimaModule
 				}
 			}],
 			items: []
@@ -330,6 +344,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportsPanel',{
 		this.add(Ext.create('Optima5.Modules.Spec.RsiRecouveo.ReportCashPanel',{
 			optimaModule: this.optimaModule,
 			title: 'Encaissements'
+		}));
+		this.add(Ext.create('Optima5.Modules.Spec.RsiRecouveo.ReportTilesPanel',{
+			optimaModule: this.optimaModule,
+			title: 'Tuiles'
 		}));
 		this.setActiveTab(0) ;
 	}
