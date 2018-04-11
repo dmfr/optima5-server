@@ -294,6 +294,20 @@ function specDbsLam_stock_printEtiq($post_data) {
 						$buffer.= '<td class="croix">&nbsp;</td>' ;
 					}
 				$buffer.= "</tr>" ;
+				
+				if( $arr_stk['field_ADR_ID'] && $arr_stk['field_CONTAINER_REF'] ) {
+					$buffer.= "<tr>" ;
+						$buffer.= "<td width='30%'><span class=\"mybig\">Position</span></td>" ;
+						if( $arr_stk['field_ADR_ID'] ) {
+							$buffer.= '<td align="center">' ;
+							$buffer.= '<img src="data:image/jpeg;base64,'.base64_encode(specDbsLam_lib_getBarcodePng($arr_stk['field_ADR_ID'],50)).'" /><br>';
+							$buffer.= "<span class=\"mybig\"><b>".$arr_stk['field_ADR_ID'].'</b><br>';
+							$buffer.= '</td>' ;
+						} else {
+							$buffer.= '<td class="croix">&nbsp;</td>' ;
+						}
+					$buffer.= "</tr>" ;
+				}
 			
 			
 			$buffer.= "</table>" ;

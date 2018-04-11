@@ -1048,6 +1048,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 			field.setReadOnly(false) ;
 			field.reset() ;
 		}) ;
+		Ext.Array.each( formPanel.down('#fsLeftContpal').query('field'), function(field) {
+			field.setReadOnly(false) ;
+			field.reset() ;
+		}) ;
 		this.onSetSoc(null) ;
 		this.onLoadProd(null) ;
 		
@@ -1061,6 +1065,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 			Ext.Array.each( formPanel.down('#fsLeftSku').query('field'), function(field) {
 				field.setReadOnly(true) ;
 			}) ;
+			formPanel.down('#fsLeftContpal').setVisible(true) ;
+			Ext.Array.each( formPanel.down('#fsLeftContpal').query('field'), function(field) {
+				field.setReadOnly(true) ;
+			}) ;
 			
 			// *** Set form fields ****
 			this.onSetSoc(null) ;
@@ -1070,7 +1078,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.LivePanel',{
 				stk_batch: transferLigRecord.get('stk_batch'),
 				stk_datelc: (transferLigRecord.get('stk_datelc') ? transferLigRecord.get('stk_datelc').substr(0,10) : ''),
 				mvt_qty: transferLigRecord.get('mvt_qty'),
-				stk_sn: transferLigRecord.get('stk_sn')
+				stk_sn: transferLigRecord.get('stk_sn'),
+				container_is_off: !( transferLigRecord.get('container_type') ) ,
+				container_ref: transferLigRecord.get('container_ref'),
+				container_type: transferLigRecord.get('container_type')
 			};
 			Ext.Array.each( Optima5.Modules.Spec.DbsLam.HelperCache.getAttributeAll(), function( attribute ) {
 				if( !attribute.STOCK_fieldcode ) {
