@@ -44,11 +44,25 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunContainersTake',{
 				xtype: 'fieldset',
 				title: 'Action',
 				items: [{
+					hidden: true,
+					xtype: 'displayfield',
+					name: 'display_switch',
+					fieldLabel: '<b>Notice</b>',
+					fieldStyle: 'font-size:16px ; color:blue',
+					value: '<b>Switch Location</b>'
+				},{
 					xtype: 'displayfield',
 					name: 'display_next_adr',
 					fieldLabel: '<b>Move To</b>',
 					fieldStyle: 'font-size:24px',
-					value: 'POUET'
+					value: ''
+				},{
+					hidden: true,
+					xtype: 'displayfield',
+					name: 'display_error',
+					//fieldLabel: '<b>Move To</b>',
+					fieldStyle: 'font-size:16px ; color:red',
+					value: ''
 				}]
 			},{
 				xtype: 'fieldset',
@@ -166,7 +180,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunContainersTake',{
 		var transferligRecord = this._transferligRecord ;
 		var testAdr = transferligRecord.get('next_adr') ;
 		if( testAdr != destAdr ) {
-			this.onFailure() ;
+			this.handleAlternate( destAdr ) ;
 			return ;
 		}
 		
@@ -193,9 +207,60 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunContainersTake',{
 			scope: this
 		}) ;
 	},
-	onFailure: function() {
-		this.down('#txtScan').reset() ;
-		this.down('#txtScan').focus() ;
+	
+	handleAlternate: function( adrId, doSwitch=false ) {
+		var transferligRecord = this._transferligRecord ;
+		var docFlow = transferligRecord.get('transfer_flow_code'),
+			flowRecord = Optima5.Modules.Spec.DbsLam.HelperCache.getMvtflow(docFlow),
+			flowSteps = flowRecord.steps,
+			lastStepIdx = (flowSteps.length - 1),
+			lastStepCode = flowSteps[lastStepIdx].step_code ;
+			
+		var transferFilerecordId = transferligRecord.get('transfer_filerecord_id'),
+			  transferligFilerecordIds = [transferligRecord.get('transferlig_filerecord_id')] ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_lam',
+				_action: 'transfer_allocAdrFinal',
+				transfer_filerecordId: transferFilerecordId,
+				transferLigFilerecordId_arr: Ext.JSON.encode(transferligFilerecordIds),
+				transferStepCode: lastStepCode,
+				manAdr_isOn: 1,
+				manAdr_test: (!doSwitch ? 1:0),
+				manAdr_adrId: adrId
+			},
+			success: function(response) {
+				var jsonResponse = Ext.JSON.decode(response.responseText) ;
+				if( !jsonResponse.success ) {
+					this.onFailure("Location not accepted") ;
+					return ;
+				}
+				if( !doSwitch ) {
+					this.handleAlternate(adrId,true) ;
+					return ;
+				}
+				this.getForm().findField('display_switch').setVisible(true);
+				this.getForm().findField('display_next_adr').setValue(adrId) ;
+				this._transferligRecord.set('next_adr',adrId) ;
+				
+				this.down('#txtScan').reset() ;
+				this.down('#txtScan').focus() ;
+			},
+			scope: this
+		}) ;
+	},
+	
+	
+	onFailure: function( txtError ) {
+		this.down('#fsScanner').setVisible(false);
+		this.getForm().findField('display_error').setValue(txtError);
+		this.getForm().findField('display_error').setVisible(true);
+		Ext.defer( function() {
+			this.getForm().findField('display_error').setVisible(false);
+			this.down('#txtScan').reset() ;
+			this.down('#fsScanner').setVisible(true);
+			this.down('#txtScan').focus() ;
+		},3000,this) ;
 	},
 	onSuccess: function() {
 		this.down('#fsScanner').setVisible(false);

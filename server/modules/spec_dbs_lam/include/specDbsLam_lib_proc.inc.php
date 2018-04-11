@@ -47,7 +47,7 @@ function specDbsLam_lib_proc_lock_off() {
 	$_opDB->query($query) ;
 }
 
-function specDbsLam_lib_proc_findAdr( $mvt_obj, $stockAttributes_obj, $whse_dest, $excludeAdr_arr=array() ) {
+function specDbsLam_lib_proc_findAdr( $mvt_obj, $stockAttributes_obj, $whse_dest, $suggest_adrId=NULL ) {
 	global $_opDB ;
 	
 	// Load cfg attributes
@@ -79,6 +79,9 @@ function specDbsLam_lib_proc_findAdr( $mvt_obj, $stockAttributes_obj, $whse_dest
 					break ;
 					
 				default : break 2 ;
+			}
+			if( $suggest_adrId ) {
+				break ;
 			}
 			
 			// 1er cas : emplacement existant POS_ID
@@ -188,10 +191,16 @@ function specDbsLam_lib_proc_findAdr( $mvt_obj, $stockAttributes_obj, $whse_dest
 			} else {
 				$query.= " AND adr.field_CONT_IS_ON='0'" ;
 			}
+			if( $suggest_adrId ) {
+				$query.= " AND adr.field_ADR_ID='{$suggest_adrId}'" ;
+			}
 			$query.= " ORDER BY adr.field_PRIO_IDX, adr.entry_key LIMIT 1" ;
 			$result = $_opDB->query($query) ;
 			while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 				$status = 'OK_NEW' ;
+				if( $suggest_adrId ) {
+					$status = 'OK_MAN' ;
+				}
 				$adr_id = $arr['entry_key'] ;
 				
 				break 3 ;

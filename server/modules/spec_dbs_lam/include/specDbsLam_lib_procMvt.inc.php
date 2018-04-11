@@ -190,6 +190,9 @@ function specDbsLam_lib_procMvt_alloc($mvt_filerecordId, $adr_dest, $adr_dest_di
 		return FALSE ;
 	}
 	$row_mvt_step = $_opDB->fetch_assoc($result) ;
+	if( $row_mvt_step['field_DEST_ADR_ID'] != NULL ) {
+		return FALSE ;
+	}
 	
 	$stock_filerecordId = $row_mvt_step['field_FILE_STOCK_ID'] ;
 	

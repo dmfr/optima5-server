@@ -1282,7 +1282,7 @@ function specDbsLam_transfer_allocAdrFinal($post_data,$fast=FALSE,$inner=FALSE) 
 	
 	$rows_transferLig = array_values($rows_transferLig) ;
 	$row_transferLig = $rows_transferLig[0] ;
-	if( $row_transferLig['next_adr'] ) {
+	if( $row_transferLig['next_adr'] && !$post_data['manAdr_isOn'] ) {
 		return array('success'=>true) ;
 	}
 	
@@ -1335,11 +1335,15 @@ function specDbsLam_transfer_allocAdrFinal($post_data,$fast=FALSE,$inner=FALSE) 
 	
 	specDbsLam_lib_proc_lock_on() ;
 	
-	$adr_obj = specDbsLam_lib_proc_findAdr( $form_data['mvt_obj'], $form_data['stockAttributes_obj'], $whse_dest ) ;
+	$adr_obj = specDbsLam_lib_proc_findAdr( $form_data['mvt_obj'], $form_data['stockAttributes_obj'], $whse_dest, $suggest_adr=($post_data['manAdr_isOn']?$post_data['manAdr_adrId']:null) ) ;
 	
 	if( !$adr_obj['adr_id'] ) {
 		specDbsLam_lib_proc_lock_off() ;
-		return array('success'=>false, 'error'=>'Pas d\'emplacement disponible.', 'error_available'=>true) ;
+		return array('success'=>false, 'error'=>'Location not available', 'error_available'=>true) ;
+	}
+	if( $post_data['manAdr_isOn'] && $post_data['manAdr_test'] ) {
+		specDbsLam_lib_proc_lock_off() ;
+		return array('success'=>true) ;
 	}
 	
 	foreach( $p_transferLigFilerecordId_arr as $transferLig_filerecordId ) {
@@ -1348,6 +1352,9 @@ function specDbsLam_transfer_allocAdrFinal($post_data,$fast=FALSE,$inner=FALSE) 
 		$mvt_filerecordId = $_opDB->query_uniqueValue($query) ;
 		if( !$mvt_filerecordId ) {
 			continue ;
+		}
+		if( $row_transferLig['next_adr'] || TRUE ) {
+			specDbsLam_lib_procMvt_delMvtUnalloc($mvt_filerecordId) ;
 		}
 		specDbsLam_lib_procMvt_alloc($mvt_filerecordId, $adr_obj['adr_id'], $adr_obj['adr_id']) ;
 	}
