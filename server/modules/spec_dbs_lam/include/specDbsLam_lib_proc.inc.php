@@ -132,6 +132,32 @@ function specDbsLam_lib_proc_findAdr( $mvt_obj, $stockAttributes_obj, $whse_dest
 		
 		// 2ème cas : position libre correspondant aux critères
 		// 3ème cas : position libre sans les critères facultatifs
+		
+		// pre : has picking ?
+		if( $mvt_obj['container_type'] ) {
+			$has_picking = FALSE ;
+			
+			$query = "SELECT count(*)
+						FROM view_file_STOCK inv 
+						JOIN view_bible_ADR_entry adr ON inv.field_ADR_ID = adr.entry_key
+						WHERE inv.field_PROD_ID='{$mvt_obj['prod_id']}'
+						AND adr.field_CONT_IS_ON='1' AND adr.field_CONT_IS_PICKING='1'" ;
+			if( $_opDB->query_uniqueValue($query) > 0 ) {
+				$has_picking = TRUE ;
+			}
+			
+			$query = "SELECT count(*)
+						FROM view_file_MVT mvt
+						JOIN view_file_MVT_STEP mvtstep ON mvtstep.filerecord_parent_id = mvt.filerecord_id
+						JOIN view_bible_ADR_entry adr ON mvtstep.field_DEST_ADR_ID = adr.entry_key
+						WHERE mvtstep.field_STATUS_IS_OK='0' AND mvt.field_PROD_ID='{$mvt_obj['prod_id']}'
+						AND adr.field_STATUS_IS_PREALLOC='1' AND adr.field_CONT_IS_ON='1' AND adr.field_CONT_IS_PICKING='1'" ;
+			if( $_opDB->query_uniqueValue($query) > 0 ) {
+				$has_picking = TRUE ;
+			}
+		}
+		
+		
 		for( $i=1 ; $i>=0 ; $i-- ) {
 			$doCheckAttributes = ($i==1) ;
 			
@@ -155,6 +181,10 @@ function specDbsLam_lib_proc_findAdr( $mvt_obj, $stockAttributes_obj, $whse_dest
 			}
 			if( $mvt_obj['container_type'] ) {
 				$query.= " AND adr.field_CONT_IS_ON='1' AND adr.field_CONT_TYPES LIKE '%\"{$mvt_obj['container_type']}\"%'" ;
+				if( $doCheckAttributes ) {
+					$check_val = ($has_picking ? '0' : '1') ;
+					$query.= " AND adr.field_CONT_IS_PICKING='{$check_val}'" ;
+				}
 			} else {
 				$query.= " AND adr.field_CONT_IS_ON='0'" ;
 			}

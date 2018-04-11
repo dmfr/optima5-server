@@ -1292,6 +1292,26 @@ function specDbsLam_transfer_allocAdrFinal($post_data,$fast=FALSE,$inner=FALSE) 
 	$form_data['mvt_obj']['batch'] = $row_transferLig['stk_batch'] ;
 	$form_data['mvt_obj']['sn'] = $row_transferLig['stk_sn'] ;
 	$form_data['mvt_obj']['container_type'] = $row_transferLig['container_type'] ;
+	if( TRUE ) {
+		if( !is_array($form_data['stockAttributes_obj']) ) {
+			$form_data['stockAttributes_obj'] = array() ;
+		}
+		foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
+			if( $stockAttribute_obj['PROD_fieldcode'] && $stockAttribute_obj['ADR_fieldcode'] ) {
+				if( isset($form_data['stockAttributes_obj'][$mkey]) ) {
+					continue ;
+				}
+				$mkey = $stockAttribute_obj['mkey'] ;
+				$query = "SELECT {$stockAttribute_obj['PROD_fieldcode']} FROM view_bible_PROD_entry
+					WHERE entry_key='{$form_data['mvt_obj']['prod_id']}'" ;
+				$json = $_opDB->query_uniqueValue($query) ;
+				if( $json && ($arr=json_decode($json,true)) ) {
+					$form_data['stockAttributes_obj'][$mkey] = reset($arr) ;
+				}
+			}
+		}
+	
+	}
 	
 	// Save PROD fields ?
 	if( !$fast ) {
