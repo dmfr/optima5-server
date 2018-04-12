@@ -33,7 +33,7 @@ class MySQL_DB {
 		// echo "CONNECT !!!" ;
 		//mysql_query( "SET storage_engine=MYISAM", $this->connection ) ;
 		
-		if( $db ) {
+		if( false ) {
 			foreach( $this->db_tables(NULL) as $dbtab )
 			{
 				$query = "SELECT count(*) FROM $dbtab" ;
