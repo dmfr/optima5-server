@@ -268,24 +268,56 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 					}]
 				},{
 					xtype: 'fieldset',
-					title: 'EDI Status',
+					itemId: 'fsSword1',
+					collapsible: true,
+					collapsed: true,
+					title: 'EDI Sword 1 : File > Carrier',
 					fieldDefaults: {
 						labelWidth: 100,
 						anchor: '100%'
 					},
 					items: [{
+						itemId: 'txtDisplay',
 						xtype: 'displayfield',
 						fieldLabel: 'EDI Status',
 						name: 'sword_edi_status'
 					},{
 						xtype: 'fieldcontainer',
 						fieldLabel: 'EDI Resend',
-						itemId: 'cntEdiReset',
+						itemId: 'cntReset',
 						items: [{
 							xtype: 'button',
 							text: 'Do resend',
 							handler: function() {
-								this.handleEdiReset() ;
+								this.handleEdiReset(1) ;
+							},
+							scope: this
+						}]
+					}]
+				},{
+					xtype: 'fieldset',
+					itemId: 'fsSword3',
+					collapsible: true,
+					collapsed: true,
+					title: 'EDI Sword 3 : AWB > SAP',
+					fieldDefaults: {
+						labelWidth: 100,
+						anchor: '100%'
+					},
+					items: [{
+						itemId: 'txtDisplay',
+						xtype: 'displayfield',
+						fieldLabel: 'EDI Status',
+						name: 'sword_edi_status'
+					},{
+						xtype: 'fieldcontainer',
+						fieldLabel: 'EDI Resend',
+						itemId: 'cntReset',
+						items: [{
+							xtype: 'button',
+							text: 'Do resend',
+							handler: function() {
+								this.handleEdiReset(3) ;
 							},
 							scope: this
 						}]
@@ -772,7 +804,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 				}
 			});
 		}
-		//fHeader compute EDI status
+		
+		//fHeader compute EDI status Sword 1
 		var ediStatus = '-',
 			askReset = false ;
 		if( trsptRecord.get('sword_edi_1_sent') ) {
@@ -783,8 +816,20 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		} else if( trsptRecord.get('sword_edi_1_warn') ) {
 			ediStatus = '<font color="red"><b>Warning</b></font>' ;
 		}
-		this.down('#pHeaderForm').getForm().findField('sword_edi_status').setValue(ediStatus) ;
-		this.down('#pHeaderForm').down('#cntEdiReset').setVisible(askReset) ;
+		this.down('#pHeaderForm').down('#fsSword1').down('#txtDisplay').setValue(ediStatus) ;
+		this.down('#pHeaderForm').down('#fsSword1').down('#cntReset').setVisible(askReset) ;
+		
+		//fHeader compute EDI status Sword 3
+		var ediStatus = '-',
+			askReset = false ;
+		if( trsptRecord.get('sword_edi_3_sent') ) {
+			ediStatus = '<font color="green"><b>Sent</b></font>' ;
+			askReset = true ;
+		} else if( trsptRecord.get('sword_edi_3_ready') ) {
+			ediStatus = '<font color="#FFCD75"><b>Ready</b></font>' ;
+		}
+		this.down('#pHeaderForm').down('#fsSword3').down('#txtDisplay').setValue(ediStatus) ;
+		this.down('#pHeaderForm').down('#fsSword3').down('#cntReset').setVisible(askReset) ;
 		
 		//gSteps
 		this.down('#pOrdersGrid').getEl().unmask() ;
@@ -942,7 +987,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 		carrierProdFieldStore.loadData(carrierProdFieldStoreData) ;
 	},
 	
-	handleEdiReset: function() {
+	handleEdiReset: function(swordEdiId) {
 		Ext.Msg.confirm('Confirm?','Reset EDI status / resend ?',function(btn){
 			if( btn=='yes' ) {
 				this.doEdiReset() ;
@@ -955,7 +1000,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.TrsptFilePanel',{
 			params: {
 				_moduleId: 'spec_dbs_tracy',
 				_action: 'trspt_doEdiReset',
-				trspt_filerecord_id: this._trsptFilerecordId
+				trspt_filerecord_id: this._trsptFilerecordId,
+				sword_edi_id: swordEdiId
 			},
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;

@@ -282,8 +282,21 @@ function specDbsTracy_trspt_doEdiReset( $post_data ) {
 	global $_opDB ;
 	$file_code = 'TRSPT' ;
 	
+	switch( $post_data['sword_edi_id'] ) {
+		case 1 :
+			$field_code = 'field_SWORD_EDI_1_SENT' ;
+			break ;
+		case 3 :
+			$field_code = 'field_SWORD_EDI_3_SENT' ;
+			break ;
+		
+		default :
+			return array('success'=>false) ;
+			break ;
+	}
+	
 	$p_trsptFilerecordId = $post_data['trspt_filerecord_id'] ;
-	$query = "UPDATE view_file_TRSPT SET field_SWORD_EDI_1_SENT='0' WHERE filerecord_id='{$p_trsptFilerecordId}'" ;
+	$query = "UPDATE view_file_TRSPT SET {$field_code}='0' WHERE filerecord_id='{$p_trsptFilerecordId}'" ;
 	$_opDB->query($query) ;
 	
 	return array('success'=>true) ;

@@ -183,8 +183,12 @@ Ext.define('DbsTracyFileTrsptModel',{
 		{name: 'pod_doc', type:'string'},
 		
 		{name: 'sword_edi_1_warn', type:'boolean'},
+		{name: 'sword_edi_1_warn_txt', type:'string'},
 		{name: 'sword_edi_1_ready', type:'boolean'},
-		{name: 'sword_edi_1_sent', type:'boolean'}
+		{name: 'sword_edi_1_sent', type:'boolean'},
+		{name: 'sword_edi_2_awb', type:'boolean'},
+		{name: 'sword_edi_3_ready', type:'boolean'},
+		{name: 'sword_edi_3_sent', type:'boolean'}
 	],
 	hasMany: [{
 		model: 'DbsTracyFileTrsptOrderModel',
