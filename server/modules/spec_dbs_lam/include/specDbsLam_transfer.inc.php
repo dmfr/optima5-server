@@ -1844,6 +1844,7 @@ function specDbsLam_transfer_rollbackStep($post_data) {
 		$cfg_mvtflow = $ttmp['data'] ;
 		foreach( $cfg_mvtflow as $row_mvtflow ) {
 			if( $row_mvtflow['flow_code'] == $flow_code ) {
+				$flow_isForeign = $row_mvtflow['is_foreign'] ;
 				$steps = array() ;
 				foreach( $row_mvtflow['steps'] as $step ) {
 					$steps[] = $step['step_code'] ;
@@ -1856,6 +1857,7 @@ function specDbsLam_transfer_rollbackStep($post_data) {
 		}
 		$stepCode_idx = array_search($p_transferStepCode,$steps) ;
 		$nextStepCode = $steps[$stepCode_idx+1] ;
+		$firstStepCode = $steps[0] ;
 		
 		
 		
@@ -2040,6 +2042,11 @@ function specDbsLam_transfer_rollbackStep($post_data) {
 			$prevStep_log = prev($row_transferLig['steps']) ;
 		}
 		
+		if( !$lastStep_log['status_is_ok'] && $lastStep_log['dest_adr_entry']!=NULL ) {
+			// undo pre-allocate
+			specDbsLam_lib_procMvt_delMvtUnalloc($row_transferLig['mvt_filerecord_id']) ;
+		}
+		
 		
 		if( $lastStep_log ) {
 			$mvt_qty = $row_transferLig['mvt_qty'] ;
@@ -2118,6 +2125,15 @@ function specDbsLam_transfer_rollbackStep($post_data) {
 		$arr_update['field_COMMIT_ATRSAVE'] = '' ;
 		$arr_update['field_STATUS_IS_OK'] = 0 ;
 		paracrm_lib_data_updateRecord_file('MVT_STEP',$arr_update,$prevStep_log['mvtstep_filerecord_id']) ;
+		
+		
+		if( $prevStep_log['step_code']==$firstStepCode && $flow_isForeign ) {
+			// Delete mvt
+			specDbsLam_transfer_removeStock( array('transferLig_filerecordIds'=>json_encode(array($row_transferLig['transferlig_filerecord_id'])))) ;
+			
+			// Foreign => delete stock row
+			paracrm_lib_data_deleteRecord_file( 'STOCK' , $prevStep_log['file_stock_id'] ) ;
+		}
 	}
 	
 	return array('success'=>true, 'debug'=>$post_data) ;
