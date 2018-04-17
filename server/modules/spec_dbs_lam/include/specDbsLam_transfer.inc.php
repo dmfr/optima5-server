@@ -1192,6 +1192,50 @@ function specDbsLam_transfer_commitAdrTmp_LAM1602($post_data,$inner=FALSE) {
 	
 	return array('success'=>true, 'debug'=>$post_data, 'ids'=>$p_transferLigFilerecordId_arr) ;
 }
+function specDbsLam_transfer_unallocAdrFinal($post_data) {
+	global $_opDB ;
+	
+	$p_transferFilerecordId = $post_data['transferFilerecordId'] ;
+	$p_transferLigFilerecordId_arr = json_decode($post_data['transferLigFilerecordId_arr'],true) ;
+	$p_transferStepCode = $post_data['transferStepCode'] ;
+
+	// Load cfg attributes
+	$ttmp = specDbsLam_cfg_getConfig() ;
+	$json_cfg = $ttmp['data'] ;
+	
+	
+	// **** Vérifs STEP *****
+	//  - step = is_final
+	//  - 
+	$step_isFinal = $_opDB->query_uniqueValue("SELECT field_IS_ADR FROM view_bible_CFG_MVTFLOW_entry WHERE entry_key='{$p_transferStepCode}'") ;
+	if( !$step_isFinal ) {
+		return array('success'=>false) ;
+	}
+	
+	
+	// Load current doc
+	$ttmp = specDbsLam_transfer_getTransfer( array('filter_transferFilerecordId'=>$p_transferFilerecordId) ) ;
+	$row_transfer = $ttmp['data'][0] ;
+	
+	// Load current ligs
+	$ttmp = specDbsLam_transfer_getTransferLig( array(
+		'filter_transferFilerecordId'=>$p_transferFilerecordId,
+		'filter_transferLigFilerecordId_arr'=>json_encode($p_transferLigFilerecordId_arr)
+	) ) ;
+	$rows_transferLig = $ttmp['data'] ;
+	foreach( $rows_transferLig as $row_transferLig ) {
+		// mvt ID ?
+		$mvt_filerecordId = $row_transferLig['mvt_filerecord_id'] ;
+		if( !$mvt_filerecordId ) {
+			continue ;
+		}
+		if( $row_transferLig['next_adr'] || TRUE ) {
+			specDbsLam_lib_procMvt_delMvtUnalloc($mvt_filerecordId) ;
+		}
+	}
+
+	return array('success'=>true) ;
+}
 function specDbsLam_transfer_allocAdrFinal($post_data,$fast=FALSE,$inner=FALSE) {
 	global $_opDB ;
 	
@@ -1361,7 +1405,7 @@ function specDbsLam_transfer_allocAdrFinal($post_data,$fast=FALSE,$inner=FALSE) 
 	
 	specDbsLam_lib_proc_lock_off() ;
 	
-	return array('success'=>true) ;
+	return array('success'=>true, 'data'=>$adr_obj) ;
 }
 function specDbsLam_transfer_commitAdrFinal($post_data,$fast=FALSE,$inner=FALSE) {
 	global $_opDB ;

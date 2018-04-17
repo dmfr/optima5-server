@@ -9,7 +9,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunContainersTake',{
 				icon: 'images/op5img/ico_back_16.gif',
 				text: '<u>Back</u>',
 				handler: function(){
-					this.fireEvent('quit') ;
+					this.handleQuit() ;
 				},
 				scope: this
 			}],
@@ -150,7 +150,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunContainersTake',{
 			success: function(response) {
 				var jsonResponse = Ext.JSON.decode(response.responseText) ;
 				this.doLoadTransferLig(transferligRecord.get('transferlig_filerecord_id'));
-				
+				if( !Ext.isEmpty(jsonResponse.data) ) {
+					this._allocDone = true ;
+				}
 				//this.doTreeLoad() ;
 			},
 			callback: function() {
@@ -248,6 +250,37 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunContainersTake',{
 			},
 			scope: this
 		}) ;
+	},
+	
+	handleQuit: function() {
+		if( this._allocDone ) {
+			this.showLoadmask() ;
+			var transferligRecord = this._transferligRecord ;
+			var docFlow = transferligRecord.get('transfer_flow_code'),
+				flowRecord = Optima5.Modules.Spec.DbsLam.HelperCache.getMvtflow(docFlow),
+				flowSteps = flowRecord.steps,
+				lastStepIdx = (flowSteps.length - 1),
+				lastStepCode = flowSteps[lastStepIdx].step_code ;
+			var transferFilerecordId = transferligRecord.get('transfer_filerecord_id'),
+				transferligFilerecordIds = [transferligRecord.get('transferlig_filerecord_id')] ;
+			this.optimaModule.getConfiguredAjaxConnection().request({
+				params: {
+					_moduleId: 'spec_dbs_lam',
+					_action: 'transfer_unallocAdrFinal',
+					transfer_filerecordId: transferFilerecordId,
+					transferLigFilerecordId_arr: Ext.JSON.encode(transferligFilerecordIds),
+					transferStepCode: lastStepCode,
+				},
+				success: function(response) {
+					var jsonResponse = Ext.JSON.decode(response.responseText) ;
+					this.fireEvent('quit') ;
+				},
+				scope: this
+			}) ;
+			
+			return ;
+		}
+		this.fireEvent('quit') ;
 	},
 	
 	
