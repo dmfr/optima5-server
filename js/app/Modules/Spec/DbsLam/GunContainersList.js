@@ -68,7 +68,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunContainersList',{
 			},
 			columns: [{
 				xtype: 'actioncolumn',
-				width: 48,
+				align: 'center',
+				width: 36,
 				items: [{
 					icon: 'images/modules/crmbase-plugin-22.png',  // Use a URL in the icon config
 					tooltip: 'Take',
@@ -81,6 +82,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunContainersList',{
 			},{
 				dataIndex: 'container_ref',
 				text: 'Container',
+			},{
+				dataIndex: 'stk_prod',
+				width: 150,
+				text: 'P/N'
 			},{
 				dataIndex: 'current_adr',
 				text: 'Pos.From'
