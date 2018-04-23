@@ -474,4 +474,607 @@ function specRsiRecouveo_report_getCash( $post_data ) {
 	return array('success'=>true, 'data'=>array_values($TAB) ) ;
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function specRsiRecouveo_report_getValuesDesc() {
+	return array(
+		array(
+			'reportval_id' => 'calls',
+			'reportval_txt' => 'Appels',
+			'reportgroup_id' => 'counters',
+			'timescale' => 'interval',
+			'subvalues' => array(
+				array(
+					'reportval_id' => 'calls_out',
+					'reportval_txt' => 'Appels sortants',
+					'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-test',
+					'eval_direction' => 1
+				),
+				array(
+					'reportval_id' => 'calls_in',
+					'reportval_txt' => 'Appels entrants',
+					'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-test',
+					'eval_direction' => 1
+				)
+			),
+			'zoom_type' => NULL 
+		),
+		array(
+			'reportval_id' => 'emails',
+			'reportval_txt' => 'Emails',
+			'reportgroup_id' => 'counters',
+			'timescale' => 'interval',
+			'subvalues' => array(
+				array(
+					'reportval_id' => 'emails_out',
+					'reportval_txt' => 'Emails envoyés',
+					'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-test',
+					'eval_direction' => 1
+				),
+				array(
+					'reportval_id' => 'emails_in',
+					'reportval_txt' => 'Emails reçus',
+					'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-test',
+					'eval_direction' => 1
+				)
+			),
+			'zoom_type' => NULL 
+		),
+		array(
+			'reportval_id' => 'mails',
+			'reportval_txt' => 'Courriers',
+			'reportgroup_id' => 'counters',
+			'timescale' => 'interval',
+			'subvalues' => array(
+				array(
+					'reportval_id' => 'mails_out',
+					'reportval_txt' => 'Courriers envoyés',
+					'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-test',
+					'eval_direction' => 1
+				),
+				array(
+					'reportval_id' => 'mails_in',
+					'reportval_txt' => 'Courriers reçus',
+					'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-test',
+					'eval_direction' => 1
+				)
+			),
+			'zoom_type' => NULL 
+		),
+		array(
+			'reportval_id' => 'wallet',
+			'reportval_txt' => 'Encours',
+			'reportgroup_id' => 'finance',
+			'timescale' => 'milestone',
+			'subvalues' => array(
+				array(
+					'reportval_id' => 'wallet_count',
+					'reportval_txt' => 'Comptes actifs',
+					'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-test',
+					'eval_direction' => 1
+				),
+				array(
+					'reportval_id' => 'wallet_amount',
+					'reportval_txt' => 'Montant en-cours',
+					'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-test',
+					'value_suffix' => '€',
+					'eval_direction' => 1
+				)
+			),
+		),
+		array(
+			'reportval_id' => 'agree',
+			'reportval_txt' => 'En promesse',
+			'reportgroup_id' => 'finance',
+			'timescale' => 'milestone',
+			'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-test',
+			'value_suffix' => '€',
+			'eval_direction' => 1
+		),
+		array(
+			'reportval_id' => 'cash',
+			'reportval_txt' => 'Encaissements',
+			'reportgroup_id' => 'finance',
+			'timescale' => 'interval',
+			'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-test',
+			'value_suffix' => '€',
+			'eval_direction' => 1
+		),
+		array(
+			'reportval_id' => 'late',
+			'reportval_txt' => 'Retards',
+			'reportgroup_id' => 'finance',
+			'timescale' => 'milestone',
+			'subvalues' => array(
+				array(
+					'reportval_id' => 'late_count',
+					'reportval_txt' => 'Actions en retard',
+					'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-test',
+					'eval_direction' => -1
+				),
+				array(
+					'reportval_id' => 'late_amount',
+					'reportval_txt' => 'Encours en retard',
+					'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-test',
+					'value_suffix' => '€',
+					'eval_direction' => -1
+				)
+			),
+		),
+		
+	
+	);
+}
+function specRsiRecouveo_report_getTiles($post_data) {
+	sleep(1) ;
+	$p_filters = json_decode($post_data['filters'],true) ;
+	
+	$dates_main = array(
+		'date_start' => $p_filters['filter_date']['date_start'],
+		'date_end' => $p_filters['filter_date']['date_end']
+	) ;
+	$delta = round( (strtotime($dates_main['date_end'])-strtotime($dates_main['date_start'])) / (3600*24) ) ;
+	$eval_date_end = date('Y-m-d',strtotime('-1 day',strtotime($dates_main['date_start']))) ;
+	$eval_date_start = date('Y-m-d',strtotime("-{$delta} day",strtotime($eval_date_end))) ;
+	$dates_eval = array(
+		'date_start' => $eval_date_start,
+		'date_end' => $eval_date_end
+	) ;
+	
+	foreach( specRsiRecouveo_report_getValuesDesc() as $value_desc ) {
+		$row = array(
+			'timescale' => $value_desc['timescale'],
+			'reportval_id' => $value_desc['reportval_id'],
+			'reportval_txt' => $value_desc['reportval_txt'],
+			
+		
+			'components' => array()
+		) ;
+		if( $value_desc['subvalues'] ) {
+			foreach( $value_desc['subvalues'] as $subvalue_desc ) {
+				$ttmp = specRsiRecouveo_report_run_getValues( $subvalue_desc['reportval_id'], $dates_main, $p_filters, NULL ) ;
+				$value_main = reset($ttmp) ;
+				$ttmp = specRsiRecouveo_report_run_getValues( $subvalue_desc['reportval_id'], $dates_eval, $p_filters, NULL ) ;
+				$value_eval = reset($ttmp) ;
+				
+				$row['components'][] = array(
+					'caption_txt' => $subvalue_desc['reportval_txt'],
+					'reportval_id' => $subvalue_desc['reportval_id'],
+					'reportval_txt' => $subvalue_desc['reportval_txt'],
+					'main_iconCls' => $subvalue_desc['reportval_iconCls'],
+					'main_value' => round($value_main),
+					'main_suffix' => $subvalue_desc['value_suffix'],
+					'eval_value' => round($value_eval),
+					'eval_suffix' => $subvalue_desc['value_suffix'],
+					'eval_direction' => specRsiRecouveo_report_toolGetEvalDirection($value_main,$value_eval,$subvalue_desc['eval_direction'])
+				);
+			}
+		} else {
+				$ttmp = specRsiRecouveo_report_run_getValues( $value_desc['reportval_id'], $dates_main, $p_filters, NULL ) ;
+				$value_main = reset($ttmp) ;
+				$ttmp = specRsiRecouveo_report_run_getValues( $value_desc['reportval_id'], $dates_eval, $p_filters, NULL ) ;
+				$value_eval = reset($ttmp) ;
+			$row['components'][] = array(
+				'reportval_id' => $value_desc['reportval_id'],
+				'reportval_txt' => $value_desc['reportval_txt'],
+				'main_iconCls' => $value_desc['reportval_iconCls'],
+				'main_value' => round($value_main),
+				'main_suffix' => $value_desc['value_suffix'],
+				'eval_value' => round($value_eval),
+				'eval_suffix' => $value_desc['value_suffix'],
+				'eval_direction' => specRsiRecouveo_report_toolGetEvalDirection($value_main,$value_eval,$value_desc['eval_direction'])
+			) ;
+		}
+		$TAB[] = $row ;
+	}
+	
+	return array('success'=>true, 'data'=>$TAB, 'filters'=>$p_filters) ;
+}
+function specRsiRecouveo_report_toolGetEvalDirection($cur_value, $eval_value, $eval_direction) {
+	if( $cur_value > $eval_value ) {
+		if( $eval_direction > 0 ) {
+			return 'more-good' ;
+		}
+		if( $eval_direction < 0 ) {
+			return 'more-bad' ;
+		}
+	}
+	if( $cur_value < $eval_value ) {
+		if( $eval_direction > 0 ) {
+			return 'less-bad' ;
+		}
+		if( $eval_direction < 0 ) {
+			return 'less-good' ;
+		}
+	}
+}
+
+function specRsiRecouveo_report_getGrid($post_data) {
+	$p_filters = json_decode($post_data['filters'],true) ;
+	$p_axes = json_decode($post_data['axes'],true) ;
+	$p_vals = json_decode($post_data['reportval_ids'],true) ;
+	
+	$ttmp = specRsiRecouveo_cfg_getConfig() ;
+	$cfg_soc = $ttmp['data']['cfg_soc'] ;
+	$cfg_user = $ttmp['data']['cfg_user'] ;
+	$cfg_atr = $ttmp['data']['cfg_atr'] ;
+	
+	$map_user = array() ;
+	foreach( $cfg_user as $user ) {
+		$map_user[$user['user_id']] = $user['user_fullname'] ;
+	}
+	$map_soc = array() ;
+	foreach( $cfg_soc as $soc ) {
+		$map_soc[$soc['soc_id']] = $soc['soc_name'] ;
+	}
+	
+	
+	$map_reportval_text = array() ;
+	foreach( specRsiRecouveo_report_getValuesDesc() as $row ) {
+		$map_reportval_text[$row['reportval_id']] = $row['reportval_txt'] ;
+		if( !$row['subvalues'] ) {
+			continue ;
+		}
+		foreach( $row['subvalues'] as $srow ) {
+			$map_reportval_text[$srow['reportval_id']] = $srow['reportval_txt'] ;
+		}
+	}
+	
+	// constitution des colonnes
+	$cols = array() ;
+	if( $p_axes['groupby_is_on'] ) {
+		$cols[] = array(
+			'hidden' => true,
+			'dataIndex' => 'group_id',
+			'text' => '' 
+		);
+		switch( $p_axes['groupby_key'] ) {
+			case 'user' :
+				$text = 'Affectation' ;
+				break ;
+			case 'soc' :
+				$text = 'Entité' ;
+				break ;
+			case 'atr' :
+				foreach( $cfg_atr as $atr_record ) {
+					if( $p_axes['groupby_atr'] == $atr_record['atr_id'] ) {
+						$text = $atr_record['atr_desc'] ;
+					}
+				}
+				break ;
+		}
+		$cols[] = array(
+			'dataIndex' => 'group_txt',
+			'text' => $text 
+		);
+	}
+	if( count($p_vals) > 1 ) {
+		foreach( $p_vals as $reportval_id ) {
+			$cols[] = array(
+				'width' => 150,
+				'dataIndex' => 'v_'.$reportval_id,
+				'reportval_id' => $reportval_id,
+				'text' => $map_reportval_text[$reportval_id],
+				'date_start' => $p_filters['filter_date']['date_start'],
+				'date_end' => $p_filters['filter_date']['date_end']
+			);
+		}
+	} elseif( $p_axes['timebreak_is_on'] ) {
+		$timetag = NULL ;
+		switch( $p_axes['timebreak_group'] ) {
+			case 'WEEK' :
+				$timetag = 'o-W' ;
+				break ;
+			case 'DAY' :
+				$timetag = 'Y-m-d' ;
+				break ;
+			case 'MONTH' :
+				$timetag = 'Y-m' ;
+				break ;
+			case 'YEAR' :
+				$timetag = 'Y' ;
+				break ;
+		}
+		$map_idx_dates = array() ;
+		$date_cur = $p_filters['filter_date']['date_start'] ;
+		$date_end = $p_filters['filter_date']['date_end'] ;
+		while( $date_cur <= $date_end ) {
+			$timeidx = date($timetag,strtotime($date_cur)) ;
+			if( !$map_idx_dates[$timeidx] ) {
+				$map_idx_dates[$timeidx] = array() ;
+			}
+			$map_idx_dates[$timeidx][] = $date_cur ;
+		
+			$date_cur = date('Y-m-d',strtotime('+1 day', strtotime($date_cur))) ;
+		}
+		
+		$reportval_id = reset($p_vals) ;
+		foreach( $map_idx_dates as $timeidx => $dates ) {
+			$cols[] = array(
+				'dataIndex' => 'v_'.$timeidx,
+				'date_start' => min($dates),
+				'date_end' => max($dates),
+				'reportval_id' => $reportval_id,
+				'text' => $timeidx 
+			);
+		}
+	} else {
+		$reportval_id = reset($p_vals) ;
+		$cols[] = array(
+			'width' => 150,
+			'dataIndex' => 'v_'.$reportval_id,
+			'reportval_id' => $reportval_id,
+			'text' => $map_reportval_text[$reportval_id], 
+			'date_start' => $p_filters['filter_date']['date_start'],
+			'date_end' => $p_filters['filter_date']['date_end']
+		);
+	}
+	
+	$grouper = NULL ;
+	if( $p_axes['groupby_is_on'] ) {
+		switch( $p_axes['groupby_key'] ) {
+			case 'user' :
+				$grouper = 'USER' ;
+				break ;
+			case 'soc' :
+				$grouper = 'SOC' ;
+				break ;
+			case 'atr' :
+				$ttmp = explode('@',$p_axes['groupby_atr']) ;
+				if( $ttmp[0]=='account' ) {
+					$grouper = 'ATR:'.$ttmp[1] ;
+				}
+				break ;
+		}
+	}
+	
+	$TAB = array() ;
+	foreach( $cols as $col ) {
+		if( !$col['reportval_id'] ) {
+			continue ;
+		}
+		$dates = array(
+			'date_start' => $col['date_start'],
+			'date_end' => $col['date_end']
+		);
+		$map_grouper_val = specRsiRecouveo_report_run_getValues($col['reportval_id'],$dates,$p_filters,$grouper) ;
+		//print_r($map_grouper_val) ;
+		
+		foreach($map_grouper_val as $group => $val ){
+			$TAB[$group][$col['dataIndex']] = $val ;
+		}
+	}
+
+	$rows = array() ;
+	foreach( $TAB as $group=>$row ) {
+		$row['group_id'] = $group ;
+		$row['group_txt'] = $group ;
+		switch( $p_axes['groupby_key'] ) {
+			case 'user' :
+				$row['group_txt'] = $map_user[$row['group_id']] ;
+				break ;
+			case 'soc' :
+				$row['group_txt'] = $map_soc[$row['group_id']] ;
+				break ;
+		}
+		$rows[] = $row ;
+	}
+	
+	return array('success'=>true, 'columns'=>$cols, 'data'=>$rows) ;
+}
+
+function specRsiRecouveo_report_run_getValues( $reportval_id, $dates, $filters, $grouper ) {
+	global $_opDB ;
+	
+	$filter_atr = $filters['filter_atr'] ;
+	$filter_soc = $filters['filter_soc'] ;
+	$filter_user = $filters['filter_user'] ;
+	
+	$ttmp = specRsiRecouveo_cfg_getConfig() ;
+	$cfg_atr = $ttmp['data']['cfg_atr'] ;
+	
+	// build filter on account
+	$where_account = '' ;
+	if( $filter_atr ) {
+		foreach( $cfg_atr as $atr_record ) {
+			$atr_id = $atr_record['atr_id'] ;
+			$atr_dbfield = 'field_'.$atr_record['atr_field'] ;
+			switch( $atr_record['atr_type'] ) {
+				case 'account' : $atr_dbalias='la' ; break ;
+				default : continue 2 ;
+			}
+			if( $filter_atr[$atr_id] ) {
+				$mvalue = $filter_atr[$atr_id] ;
+				$where_account.= " AND {$atr_dbalias}.{$atr_dbfield} IN ".$_opDB->makeSQLlist($mvalue) ;
+			}
+		}
+	}
+	if( $filter_soc ) {
+		$where_account.= " AND la.treenode_key IN ".$_opDB->makeSQLlist($filter_soc) ;
+	}
+	if( $filter_user ) {
+		$where_account.= " AND (la.field_LINK_USER_LOCAL IN ".$_opDB->makeSQLlist($filter_user)." OR f.field_LINK_USER_EXT IN ".$_opDB->makeSQLlist($filter_user).")" ;
+	}
+	
+	
+	if( $grouper ) {
+		$ttmp = explode(':',$grouper) ;
+		$key = $ttmp[0] ;
+		switch( $key ) {
+			case 'USER' :
+				$group_field = 'la.field_LINK_USER_LOCAL' ;
+				break ;
+			case 'SOC' :
+				$group_field = 'la.treenode_key' ;
+				break ;
+			case 'ATR' :
+				$group_field = 'la.field_ATR_A_'.$ttmp[1] ;
+				break ;
+		}
+	}
+	
+		
+	switch( $reportval_id ) {
+		case 'calls_out' :
+		case 'calls_in' :
+		case 'emails_out' :
+		case 'emails_in' :
+		case 'mails_out' :
+		case 'mails_in' :
+			switch( $reportval_id ) {
+				case 'calls_out' : $action_code='CALL_OUT' ; break ;
+				case 'calls_in' : $action_code='CALL_IN' ; break ;
+				case 'emails_out' : $action_code='EMAIL_OUT' ; break ;
+				case 'emails_in' : $action_code='EMAIL_IN' ; break ;
+				case 'mails_out' : $action_code='MAIL_OUT' ; break ;
+				case 'mails_in' : $action_code='MAIL_IN' ; break ;
+			}
+			$select_clause = "'',count(*)" ;
+			if( $group_field ) {
+				$select_clause = $group_field.',count(*)' ;
+			}
+			$query = "SELECT {$select_clause} 
+						FROM view_file_FILE_ACTION fa
+						JOIN view_file_FILE f ON f.filerecord_id=fa.filerecord_parent_id
+						JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key=f.field_LINK_ACCOUNT
+						WHERE fa.field_STATUS_IS_OK='1' AND field_LINK_ACTION='{$action_code}'
+						AND (DATE(fa.field_DATE_ACTUAL) BETWEEN '{$dates['date_start']}' AND '{$dates['date_end']}')" ;
+			$query.= $where_account ;
+			if( $group_field ) {
+				$query.= " GROUP BY {$group_field}" ;
+			}
+			break ;
+			
+		case 'wallet_count' :
+			$select_clause = "'',count( distinct field_LINK_ACCOUNT )" ;
+			if( $group_field ) {
+				$select_clause = $group_field.',count( distinct field_LINK_ACCOUNT )' ;
+			}
+			$query = "SELECT {$select_clause} 
+						FROM view_file_FILE f
+						JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key=f.field_LINK_ACCOUNT
+						WHERE f.field_STATUS_CLOSED_VOID<>'1' AND f.field_STATUS_CLOSED_END<>'1'" ;
+			$query.= $where_account ;
+			if( $group_field ) {
+				$query.= " GROUP BY {$group_field}" ;
+			}
+			break ;
+		case 'wallet_amount' :
+			$select_clause = "'',sum( r.field_AMOUNT )" ;
+			if( $group_field ) {
+				$select_clause = $group_field.',sum( r.field_AMOUNT )' ;
+			}
+			$query = "SELECT {$select_clause} 
+						FROM view_file_FILE f
+						JOIN view_file_RECORD_LINK rl ON rl.field_LINK_FILE_ID=f.filerecord_id AND rl.field_LINK_IS_ON='1'
+						JOIN view_file_RECORD r ON r.filerecord_id = rl.filerecord_parent_id
+						JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key=f.field_LINK_ACCOUNT
+						WHERE f.field_STATUS_CLOSED_VOID<>'1' AND f.field_STATUS_CLOSED_END<>'1'" ;
+			$query.= $where_account ;
+			if( $group_field ) {
+				$query.= " GROUP BY {$group_field}" ;
+			}
+			break ;
+		case 'agree' :
+			$select_clause = "'',sum( r.field_AMOUNT )" ;
+			if( $group_field ) {
+				$select_clause = $group_field.',sum( r.field_AMOUNT )' ;
+			}
+			$query = "SELECT {$select_clause} 
+						FROM view_file_FILE f
+						JOIN view_file_RECORD_LINK rl ON rl.field_LINK_FILE_ID=f.filerecord_id AND rl.field_LINK_IS_ON='1'
+						JOIN view_file_RECORD r ON r.filerecord_id = rl.filerecord_parent_id
+						JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key=f.field_LINK_ACCOUNT
+						WHERE f.field_STATUS_CLOSED_VOID<>'1' AND f.field_STATUS_CLOSED_END<>'1' AND f.field_STATUS='S2P_PAY'" ;
+			$query.= $where_account ;
+			if( $group_field ) {
+				$query.= " GROUP BY {$group_field}" ;
+			}
+			break ;
+		case 'cash' :
+			$select_clause = "'',sum( -1 * r.field_AMOUNT )" ;
+			if( $group_field ) {
+				$select_clause = $group_field.',sum( -1 * r.field_AMOUNT )' ;
+			}
+			$query = "SELECT {$select_clause} 
+						FROM view_file_RECORD r
+						JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key=r.field_LINK_ACCOUNT
+						WHERE r.field_TYPE<>''
+						AND (DATE(r.field_DATE_RECORD) BETWEEN '{$dates['date_start']}' AND '{$dates['date_end']}')" ;
+			$query.= $where_account ;
+			if( $group_field ) {
+				$query.= " GROUP BY {$group_field}" ;
+			}
+			break ;
+		case 'late_count' :
+			$select_clause = "'',count( distinct field_LINK_ACCOUNT )" ;
+			if( $group_field ) {
+				$select_clause = $group_field.',count( distinct field_LINK_ACCOUNT )' ;
+			}
+			$query = "SELECT {$select_clause} 
+						FROM view_file_FILE_ACTION fa
+						JOIN view_file_FILE f ON f.filerecord_id=fa.filerecord_parent_id
+						JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key=f.field_LINK_ACCOUNT
+						WHERE f.field_STATUS_CLOSED_VOID<>'1' AND f.field_STATUS_CLOSED_END<>'1'
+						AND fa.field_STATUS_IS_OK<>'1' AND DATE(field_DATE_SCHED)<DATE(NOW()) AND field_STATUS NOT IN ('SX_CLOSE')" ;
+			$query.= $where_account ;
+			if( $group_field ) {
+				$query.= " GROUP BY {$group_field}" ;
+			}
+			break ;
+		case 'late_amount' :
+			$select_clause = "'',sum( r.field_AMOUNT )" ;
+			if( $group_field ) {
+				$select_clause = $group_field.',sum( r.field_AMOUNT )' ;
+			}
+			$query = "SELECT {$select_clause} 
+						FROM view_file_FILE_ACTION fa
+						JOIN view_file_FILE f ON f.filerecord_id=fa.filerecord_parent_id
+						JOIN view_file_RECORD_LINK rl ON rl.field_LINK_FILE_ID=f.filerecord_id AND rl.field_LINK_IS_ON='1'
+						JOIN view_file_RECORD r ON r.filerecord_id = rl.filerecord_parent_id
+						JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key=f.field_LINK_ACCOUNT
+						WHERE f.field_STATUS_CLOSED_VOID<>'1' AND f.field_STATUS_CLOSED_END<>'1'
+						AND fa.field_STATUS_IS_OK<>'1' AND DATE(field_DATE_SCHED)<DATE(NOW()) AND field_STATUS NOT IN ('SX_CLOSE')" ;
+			$query.= $where_account ;
+			if( $group_field ) {
+				$query.= " GROUP BY {$group_field}" ;
+			}
+			break ;
+		
+		default :
+			break ;
+	}
+	$result = $_opDB->query($query) ;
+	
+	$map = array() ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		if( $grouper && !$arr[0] ) {
+			continue ;
+		}
+		$map[$arr[0]] = $arr[1] ;
+	}
+	
+	return $map ;
+}
+
 ?>

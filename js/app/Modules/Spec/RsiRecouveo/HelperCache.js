@@ -49,7 +49,8 @@ Ext.define('RsiRecouveoCfgAtrModel',{
 		{name: 'atr_type', type:'string'},
 		{name: 'is_filter', type:'boolean'},
 		{name: 'is_globalfilter', type:'boolean'},
-		{name: 'is_editable', type:'boolean'}
+		{name: 'is_editable', type:'boolean'},
+		{name: 'filter_values', type:'auto'}
 	]
 });
 
@@ -216,6 +217,22 @@ Ext.define('RsiRecouveoConfigSocModel',{
 	}]
 });
 
+Ext.define('RsiRecouveoCfgReportValueModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'reportval_id',
+	fields: [
+		{name: 'reportval_id', type:'string'},
+		{name: 'reportval_txt', type:'string'},
+		{name: 'reportval_iconCls', type:'string'},
+		{name: 'reportgroup_id', type:'string'},
+		{name: 'timescale', type:'string'},
+		{name: 'value_type', type: 'string'},
+		{name: 'value_suffix', type: 'string'},
+		{name: 'subvalues', type:'auto'}
+	]
+});
+
+
 
 Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 	mixins: {
@@ -340,6 +357,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 		this.cfgEmailStore = Ext.create('Ext.data.Store',{
 			model: 'RsiRecouveoConfigEmailTplModel',
 			data : ajaxData.data.cfg_email
+		}) ;
+		this.cfgReportValueStore = Ext.create('Ext.data.Store',{
+			model: 'RsiRecouveoCfgReportValueModel',
+			data : ajaxData.data.cfg_reportval
 		}) ;
 		
 		var tmpTreeStore = Ext.create('Ext.data.TreeStore',{
@@ -637,6 +658,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 	
 	getEmailAll: function() {
 		return Ext.pluck( this.cfgEmailStore.getRange(), 'data' ) ;
+	},
+	
+	getReportValueAll: function() {
+		return Ext.pluck( this.cfgReportValueStore.getRange(), 'data' ) ;
 	},
 	
 	

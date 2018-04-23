@@ -146,6 +146,11 @@ switch( $post_data['_action'] )
 		return specRsiRecouveo_report_getUsers( $post_data ) ;
 	case 'report_getCash' :
 		return specRsiRecouveo_report_getCash( $post_data ) ;
+		
+	case 'report_getTiles' :
+		return specRsiRecouveo_report_getTiles( $post_data ) ;
+	case 'report_getGrid' :
+		return specRsiRecouveo_report_getGrid( $post_data ) ;
 	
 	default :
 	return NULL ;

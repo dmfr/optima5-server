@@ -55,6 +55,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MainMenu',{
 				{type_separator:true, separator_label: 'Opérations'},
 				{type_action:true, action_caption: 'Gestion Dossiers', action_sendEvent:'files', action_iconCls:'op5-spec-rsiveo-mmenu-agenda'},
 				{type_action:true, action_caption: 'Reporting', action_sendEvent:'reports', action_iconCls:'op5-spec-rsiveo-mmenu-agenda'},
+				{type_action:true, action_caption: 'Dashboard', action_sendEvent:'dashboard', action_iconCls:'op5-spec-rsiveo-mmenu-agenda'},
 				{type_action:true, type_action_blank:true},
 				{type_action:true, action_caption: 'Enveloppes / Envoi', action_sendEvent:'envbrowser', action_iconCls:'op5-spec-rsiveo-mmenu-mailout'},
 				{type_action:true, action_caption: 'Courrier entrant', action_sendEvent:'form_inbox', action_iconCls:'op5-spec-rsiveo-mmenu-mailin'},

@@ -747,3 +747,96 @@
 }
 .op5-spec-rsiveo-emailheadertags-text-delete {
 }
+
+
+
+
+.op5-spec-rsiveo-reporttile:hover {
+	cursor: pointer;
+	background-color: #999999;
+	border-color: #999999;
+}
+.op5-spec-rsiveo-reporttile-caption {
+	padding: 4px
+}
+.op5-spec-rsiveo-reporttile-main {
+	margin: 4px ;
+	position: relative ;
+	display: table;
+	height: 48px;
+}
+.op5-spec-rsiveo-reporttile-main-text {
+	padding-left: 56px ;
+	position: relative ;
+	
+	display: table-cell;
+	vertical-align: middle;
+	
+	font-size: 32px;
+}
+.op5-spec-rsiveo-reporttile-main-icon {
+	position: absolute ;
+	top: 0px ;
+	bottom: 0px ;
+	left: 0px ;
+	width: 48px ;
+	height: 48px ;
+	background-position: center center ;
+	background-repeat: no-repeat ;
+}
+.op5-spec-rsiveo-reporttile-eval-caption {
+	padding: 4px
+}
+.op5-spec-rsiveo-reporttile-eval {
+	margin: 4px ;
+	position: relative ;
+	display: table;
+	height: 32px;
+}
+.op5-spec-rsiveo-reporttile-eval-text {
+	padding-left: 40px ;
+	position: relative ;
+	
+	display: table-cell;
+	vertical-align: middle;
+	
+	font-size: 18px;
+}
+.op5-spec-rsiveo-reporttile-eval-icon {
+	position: absolute ;
+	top: 0px ;
+	bottom: 0px ;
+	left: 0px ;
+	width: 32px ;
+	height: 32px ;
+	background-position: center center ;
+	background-repeat: no-repeat ;
+}
+.op5-spec-rsiveo-reporttile-main-icon-more-good {
+	background-position: center center ;
+	background-repeat: no-repeat ;
+	background-image: url("../images/op5img/ico_arrow-green-up_32.png") !important;
+}
+.op5-spec-rsiveo-reporttile-main-icon-more-bad {
+	background-position: center center ;
+	background-repeat: no-repeat ;
+	background-image: url("../images/op5img/ico_arrow-red-up_32.png") !important;
+}
+.op5-spec-rsiveo-reporttile-main-icon-less-good {
+	background-position: center center ;
+	background-repeat: no-repeat ;
+	background-image: url("../images/op5img/ico_arrow-green-down_32.png") !important;
+}
+.op5-spec-rsiveo-reporttile-main-icon-less-bad {
+	background-position: center center ;
+	background-repeat: no-repeat ;
+	background-image: url("../images/op5img/ico_arrow-red-down_32.png") !important;
+}
+.op5-spec-rsiveo-reporttile-main-icon-value-test {
+	background-position: center center ;
+	background-repeat: no-repeat ;
+	background-image: url("../images/modules/crmbase-run-48.png") !important;
+}
+
+
+

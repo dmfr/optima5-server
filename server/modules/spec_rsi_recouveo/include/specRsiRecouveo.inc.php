@@ -350,6 +350,20 @@ function specRsiRecouveo_cfg_getConfig() {
 	}
 	$TAB_soc = array_values($TAB_soc) ;
 	$TAB_atr = array_values($TAB_atr) ;
+	foreach( $TAB_atr as &$atr ) {
+		if( $atr['is_filter'] && $atr['atr_type']=='account' ) {
+			$atr['filter_values'] = array() ;
+			$query = "SELECT distinct field_{$atr['atr_field']} FROM view_bible_LIB_ACCOUNT_entry" ;
+			$result = $_opDB->query($query) ;
+			while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+				if( !$arr[0] ) {
+					continue ;
+				}
+				$atr['filter_values'][] = $arr[0] ;
+			}
+		}
+	}
+	unset($atr) ;
 	
 	$GLOBALS['cache_specRsiRecouveo_cfg']['getConfig'] = array(
 		'cfg_atr' => $TAB_atr,
@@ -361,7 +375,8 @@ function specRsiRecouveo_cfg_getConfig() {
 		'cfg_template' => $TAB_tpl,
 		'cfg_soc' => $TAB_soc,
 		'cfg_user' => $TAB_user,
-		'cfg_email' => $TAB_email
+		'cfg_email' => $TAB_email,
+		'cfg_reportval' => specRsiRecouveo_report_getValuesDesc()
 	);
 	
 	
