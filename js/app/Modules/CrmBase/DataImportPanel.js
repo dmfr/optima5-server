@@ -148,7 +148,8 @@ Ext.define('Optima5.Modules.CrmBase.DataImportPanel' ,{
 										data : [
 											{delimiter_code:'comma', delimiter_symbol:','},
 											{delimiter_code:'semicolon', delimiter_symbol:';'},
-											{delimiter_code:'pipe', delimiter_symbol:'|'}
+											{delimiter_code:'pipe', delimiter_symbol:'|'},
+											{delimiter_code:'tab', delimiter_symbol:'\\t'}
 										]
 									},
 									queryMode: 'local',

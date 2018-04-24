@@ -91,7 +91,7 @@ function paracrm_data_importTransaction( $post_data )
 		}
 		$arr_saisie['csvsrc_binary'] = NULL ;
 		$arr_saisie['csvsrc_params'] = array() ;
-		$arr_saisie['cfg_delimiters'] = array('comma'=>',','semicolon'=>';','pipe'=>'|') ;
+		$arr_saisie['cfg_delimiters'] = array('comma'=>',','semicolon'=>';','pipe'=>'|','tab'=>"\t") ;
 		$_SESSION['transactions'][$transaction_id]['arr_saisie'] = $arr_saisie ;
 		
 		$post_data['_transaction_id'] = $transaction_id ;
