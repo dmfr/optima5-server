@@ -837,6 +837,36 @@
 	background-repeat: no-repeat ;
 	background-image: url("../images/modules/crmbase-run-48.png") !important;
 }
+.op5-spec-rsiveo-reporttile-main-icon-value-callin {
+	background-position: center ;
+	background-repeat: no-repeat ;
+	background-image: url("../images/modules/rsiveo-call-in-48.png") !important;
+}
+.op5-spec-rsiveo-reporttile-main-icon-value-callout {
+	background-position: center ;
+	background-repeat: no-repeat ;
+	background-image: url("../images/modules/rsiveo-call-out-48.png") !important;
+}
+.op5-spec-rsiveo-reporttile-main-icon-value-mailin {
+	background-position: center ;
+	background-repeat: no-repeat ;
+	background-image: url("../images/modules/rsiveo-mail-in-48.png") !important;
+}
+.op5-spec-rsiveo-reporttile-main-icon-value-mailout {
+	background-position: center ;
+	background-repeat: no-repeat ;
+	background-image: url("../images/modules/rsiveo-mail-out-48.png") !important;
+}
+.op5-spec-rsiveo-reporttile-main-icon-value-count {
+	background-position: center ;
+	background-repeat: no-repeat ;
+	background-image: url("../images/modules/rsiveo-facture-48.png") !important;
+}
+.op5-spec-rsiveo-reporttile-main-icon-value-amount {
+	background-position: center ;
+	background-repeat: no-repeat ;
+	background-image: url("../images/modules/rsiveo-recordtemp-48.png") !important;
+}
 
 
 

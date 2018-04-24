@@ -296,7 +296,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportFilterablePanel',{
 	},
 	
 	setFilterValues: function(filterValues) {
-		console.dir(filterValues) ;
 		Ext.Array.each( this.query('toolbar > [cfgParam_id]'), function(cfgParamBtn) {
 			var cfgParam_id = cfgParamBtn.cfgParam_id ;
 			cfgParamBtn.setValue(null) ;

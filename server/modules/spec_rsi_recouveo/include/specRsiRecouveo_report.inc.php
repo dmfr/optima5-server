@@ -507,13 +507,13 @@ function specRsiRecouveo_report_getValuesDesc() {
 				array(
 					'reportval_id' => 'calls_out',
 					'reportval_txt' => 'Appels sortants',
-					'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-test',
+					'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-callout',
 					'eval_direction' => 1
 				),
 				array(
 					'reportval_id' => 'calls_in',
 					'reportval_txt' => 'Appels entrants',
-					'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-test',
+					'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-callin',
 					'eval_direction' => 1
 				)
 			),
@@ -528,13 +528,13 @@ function specRsiRecouveo_report_getValuesDesc() {
 				array(
 					'reportval_id' => 'emails_out',
 					'reportval_txt' => 'Emails envoyés',
-					'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-test',
+					'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-mailout',
 					'eval_direction' => 1
 				),
 				array(
 					'reportval_id' => 'emails_in',
 					'reportval_txt' => 'Emails reçus',
-					'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-test',
+					'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-mailin',
 					'eval_direction' => 1
 				)
 			),
@@ -549,13 +549,13 @@ function specRsiRecouveo_report_getValuesDesc() {
 				array(
 					'reportval_id' => 'mails_out',
 					'reportval_txt' => 'Courriers envoyés',
-					'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-test',
+					'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-mailout',
 					'eval_direction' => 1
 				),
 				array(
 					'reportval_id' => 'mails_in',
 					'reportval_txt' => 'Courriers reçus',
-					'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-test',
+					'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-mailin',
 					'eval_direction' => 1
 				)
 			),
@@ -570,13 +570,13 @@ function specRsiRecouveo_report_getValuesDesc() {
 				array(
 					'reportval_id' => 'wallet_count',
 					'reportval_txt' => 'Comptes actifs',
-					'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-test',
+					'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-count',
 					'eval_direction' => 1
 				),
 				array(
 					'reportval_id' => 'wallet_amount',
 					'reportval_txt' => 'Montant en-cours',
-					'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-test',
+					'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-amount',
 					'value_suffix' => '€',
 					'eval_direction' => 1
 				)
@@ -587,7 +587,7 @@ function specRsiRecouveo_report_getValuesDesc() {
 			'reportval_txt' => 'En promesse',
 			'reportgroup_id' => 'finance',
 			'timescale' => 'milestone',
-			'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-test',
+			'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-amount',
 			'value_suffix' => '€',
 			'eval_direction' => 1
 		),
@@ -596,7 +596,7 @@ function specRsiRecouveo_report_getValuesDesc() {
 			'reportval_txt' => 'Encaissements',
 			'reportgroup_id' => 'finance',
 			'timescale' => 'interval',
-			'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-test',
+			'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-amount',
 			'value_suffix' => '€',
 			'eval_direction' => 1
 		),
@@ -609,13 +609,13 @@ function specRsiRecouveo_report_getValuesDesc() {
 				array(
 					'reportval_id' => 'late_count',
 					'reportval_txt' => 'Actions en retard',
-					'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-test',
+					'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-count',
 					'eval_direction' => -1
 				),
 				array(
 					'reportval_id' => 'late_amount',
 					'reportval_txt' => 'Encours en retard',
-					'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-test',
+					'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-amount',
 					'value_suffix' => '€',
 					'eval_direction' => -1
 				)
@@ -913,7 +913,7 @@ function specRsiRecouveo_report_run_getValues( $reportval_id, $dates, $filters, 
 		$where_account.= " AND la.treenode_key IN ".$_opDB->makeSQLlist($filter_soc) ;
 	}
 	if( $filter_user ) {
-		$where_account.= " AND (la.field_LINK_USER_LOCAL IN ".$_opDB->makeSQLlist($filter_user)." OR f.field_LINK_USER_EXT IN ".$_opDB->makeSQLlist($filter_user).")" ;
+		$where_account.= " AND la.field_LINK_USER_LOCAL IN ".$_opDB->makeSQLlist($filter_user) ;
 	}
 	
 	

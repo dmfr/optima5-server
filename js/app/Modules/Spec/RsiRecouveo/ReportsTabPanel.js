@@ -57,6 +57,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportsTabPanel',{
 		});
 		newPanel.initFromTile( tilesPanel.getFilterValues(), reportvalId ) ;
 		this.add(newPanel) ;
+		this.setActiveTab(newPanel) ;
 	}
 	
 });

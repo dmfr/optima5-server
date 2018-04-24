@@ -193,6 +193,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportGridPanel',{
 		}) ;
 		this.resetGroupby() ;
 		this.down('#cfgGroupby').getForm().findField('groupby_atr').getStore().loadData(atrData) ;
+		this.doLoad() ;
 	},
 	onValuesCheckChange: function() {
 		var cnt=0 ;
@@ -204,6 +205,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportGridPanel',{
 		if( cnt>1 ) {
 			this.down('#cfgGroupby').getForm().setValues({timebreak_is_on:false}) ;
 		}
+		this.doLoad() ;
 	},
 	resetGroupby: function() {
 		var groupbyForm = this.down('#cfgGroupby').getForm() ;
@@ -217,7 +219,16 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportGridPanel',{
 	
 	initFromTile: function(filterData, reportvalId) {
 		this.ready = false ;
+		
 		this.setFilterValues(filterData) ;
+		
+		this.down('#cfgValues').getRootNode().cascadeBy(function(node) {
+			if( node.get('checked')=== undefined ) {
+				return ;
+			}
+			node.set('checked',(node.get('id')==reportvalId)) ;
+		}) ;
+		
 		this.ready = true ;
 		this.doLoad() ;
 	},
