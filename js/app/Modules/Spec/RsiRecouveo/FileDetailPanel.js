@@ -137,40 +137,49 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
 			var atrRecord = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(atrId) ;
 			if( atrRecord.atr_type == 'account' ) {
-				formItems.push({
-					cfgParam_id: 'ATR:'+atrRecord.atr_id,
-					readOnly: !atrRecord.is_editable,
-					xtype: 'combobox',
-					fieldLabel: atrRecord.atr_desc,
-					name: atrRecord.atr_field,
-					forceSelection:false,
-					allowBlank:true,
-					editable:true,
-					typeAhead:false,
-					queryMode: 'remote',
-					displayField: 'atr_value',
-					valueField: 'atr_value',
-					queryParam: 'search_txt',
-					minChars: 1,
-					checkValueOnChange: function() {}, //HACK
-					store: {
-						fields: [
-							'atr_value'
-						],
-						proxy: this.optimaModule.getConfiguredAjaxProxy({
-							extraParams : {
-								_moduleId: 'spec_rsi_recouveo',
-								_action: 'account_getAllAtrs',
-								atr_field: atrRecord.atr_field
-							},
-							reader: {
-								type: 'json',
-								rootProperty: 'data'
-							}
-						})
-					}
-				});
-				
+				if( atrRecord.is_filter ) {
+					formItems.push({
+						cfgParam_id: 'ATR:'+atrRecord.atr_id,
+						readOnly: !atrRecord.is_editable,
+						xtype: 'combobox',
+						fieldLabel: atrRecord.atr_desc,
+						name: atrRecord.atr_field,
+						forceSelection:false,
+						allowBlank:true,
+						editable:true,
+						typeAhead:false,
+						queryMode: 'remote',
+						displayField: 'atr_value',
+						valueField: 'atr_value',
+						queryParam: 'search_txt',
+						minChars: 1,
+						checkValueOnChange: function() {}, //HACK
+						store: {
+							fields: [
+								{name: 'atr_value', type:'string'}
+							],
+							proxy: this.optimaModule.getConfiguredAjaxProxy({
+								extraParams : {
+									_moduleId: 'spec_rsi_recouveo',
+									_action: 'account_getAllAtrs',
+									atr_field: atrRecord.atr_field
+								},
+								reader: {
+									type: 'json',
+									rootProperty: 'data'
+								}
+							})
+						}
+					});
+				} else {
+					formItems.push({
+						cfgParam_id: 'ATR:'+atrRecord.atr_id,
+						readOnly: !atrRecord.is_editable,
+						xtype: 'textfield',
+						fieldLabel: atrRecord.atr_desc,
+						name: atrRecord.atr_field,
+					})
+				}
 			}
 		},this) ;
 		
