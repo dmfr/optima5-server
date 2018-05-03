@@ -151,6 +151,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CfgPanel',{
 					desc += 'Products' ;
 				} else if( atrRecord.get('use_stock') ) {
 					desc += 'Stock' ;
+				} else if( atrRecord.get('use_cde') ) {
+					desc += 'Orders' ;
 				}
 				if( atrRecord.get('use_adr') ) {
 					desc += '&#160;' + '>> Locations' ;

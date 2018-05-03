@@ -72,6 +72,8 @@ function specDbsLam_cfg_getConfig() {
 	$defineBible_PROD = $ttmp['data'] ;
 	$ttmp = paracrm_data_getFileGrid_config(array('file_code'=>'STOCK'),$auth_bypass=TRUE) ;
 	$defineFile_STOCK = $ttmp['data'] ;
+	$ttmp = paracrm_data_getFileGrid_config(array('file_code'=>'CDE'),$auth_bypass=TRUE) ;
+	$defineFile_CDE = $ttmp['data'] ;
 	
 	// Model
 	$attributes = array(
@@ -81,6 +83,7 @@ function specDbsLam_cfg_getConfig() {
 		'STOCK_fieldcode' => '',
 		'PROD_fieldcode' => '',
 		'ADR_fieldcode' => '',
+		'CDE_fieldcode' => '',
 		'cfg_is_optional' => NULL,
 		'cfg_is_hidden' => NULL,
 		'cfg_is_editable' => NULL,
@@ -125,6 +128,19 @@ function specDbsLam_cfg_getConfig() {
 				}
 				if( $STOCK_fieldcode ) {
 					$cfg_attribute[$atr_code]['STOCK_fieldcode'] = $STOCK_fieldcode ;
+				}
+			}
+			
+			if( $atr_record['use_cde'] ) {
+				$CDE_fieldcode = NULL ;
+				foreach( $defineFile_CDE['grid_fields'] as $entryField_obj ) {
+					if( $entryField_obj['file_field'] == $cfg_attribute[$atr_code]['mkey'] ) {
+						$CDE_fieldcode = 'field_'.$entryField_obj['file_field'] ;
+						break ;
+					}
+				}
+				if( $CDE_fieldcode ) {
+					$cfg_attribute[$atr_code]['CDE_fieldcode'] = $CDE_fieldcode ;
 				}
 			}
 			
@@ -297,6 +313,7 @@ function specDbsLam_cfg_getSoc() {
 			'use_prod' => $arr['field_USE_PROD'],
 			'use_prod_multi' => $arr['field_USE_PROD_MULTI'],
 			'use_stock' => $arr['field_USE_STOCK'],
+			'use_cde' => $arr['field_USE_CDE'],
 			'cfg_is_hidden' => $arr['field_CFG_IS_HIDDEN'],
 			'cfg_is_editable' => $arr['field_CFG_IS_EDITABLE'],
 			'use_adr' => $arr['field_USE_ADR'],
@@ -359,6 +376,7 @@ function specDbsLam_cfg_applySoc($post_data) {
 				'field_USE_PROD' => $atr_record['use_prod'],
 				'field_USE_PROD_MULTI' => $atr_record['use_prod_multi'],
 				'field_USE_STOCK' => $atr_record['use_stock'],
+				'field_USE_CDE' => $atr_record['use_cde'],
 				'field_CFG_IS_HIDDEN' => $atr_record['cfg_is_hidden'],
 				'field_CFG_IS_EDITABLE' => $atr_record['cfg_is_editable'],
 				'field_USE_ADR' => $atr_record['use_adr'],
@@ -412,6 +430,9 @@ function specDbsLam_cfg_lib_build() {
 			}
 			if( $atr_record['use_adr'] ) {
 				$attributes[$atr_code]['use_adr'] = TRUE ;
+			}
+			if( $atr_record['use_cde'] ) {
+				$attributes[$atr_code]['use_cde'] = TRUE ;
 			}
 		}	
 	}
@@ -519,6 +540,30 @@ function specDbsLam_cfg_lib_build() {
 		}
 		
 		
+		if( $attribute['use_cde'] ) {
+			$query = "SELECT count(*) FROM define_file_entry WHERE file_code='CDE' AND entry_field_code='{$field_code}'" ;
+			if( $_opDB->query_uniqueValue($query) != 1 ) {
+				$query = "SELECT max(entry_field_index) FROM define_file_entry WHERE file_code='CDE'" ;
+				$max_index = $_opDB->query_uniqueValue($query) ;
+				$max_index++ ;
+				
+				$arr_ins = array() ;
+				$arr_ins['file_code'] = 'CDE' ;
+				$arr_ins['entry_field_code'] = $field_code ;
+				$arr_ins['entry_field_index'] = $max_index ;
+				$arr_ins['entry_field_lib'] = 'Atr: '.$attribute['atr_txt'] ;
+				$arr_ins['entry_field_type'] = 'string' ;
+				$arr_ins['entry_field_is_header'] = '' ;
+				$arr_ins['entry_field_is_highlight'] = 'O' ;
+				$_opDB->insert('define_file_entry',$arr_ins) ;
+			}
+		}
+		if( !$attribute['use_cde'] ) {
+			$query = "DELETE FROM define_file_entry WHERE file_code='CDE' AND entry_field_code='{$field_code}'" ;
+			$_opDB->query($query) ;
+		}
+		
+		
 		if( $attribute['use_stock'] ) {
 			$arr_ins_base = array() ;
 			$arr_ins_base['entry_field_code'] = $field_code ;
@@ -577,6 +622,7 @@ function specDbsLam_cfg_lib_build() {
 	$t->sdomainDefine_buildBible( DatabaseMgr_Sdomain::dbCurrent_getSdomainId(), 'ADR' ) ;
 	$t->sdomainDefine_buildFile( DatabaseMgr_Sdomain::dbCurrent_getSdomainId(), 'STOCK' ) ;
 	$t->sdomainDefine_buildFile( DatabaseMgr_Sdomain::dbCurrent_getSdomainId(), 'MVT' ) ;
+	$t->sdomainDefine_buildFile( DatabaseMgr_Sdomain::dbCurrent_getSdomainId(), 'CDE' ) ;
 	
 }
 

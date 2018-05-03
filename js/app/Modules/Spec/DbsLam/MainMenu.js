@@ -77,6 +77,11 @@ Ext.define('Optima5.Modules.Spec.DbsLam.MainMenu',{
 				type_action_blank:true
 			},{
 				type_action:true,
+				action_caption: 'Orders',
+				action_sendEvent:'panel_cde',
+				action_iconCls:'op5-spec-dbsinconso-icon-sdg'
+			},{
+				type_action:true,
 				action_caption: 'Transfers',
 				action_sendEvent:'panel_transfer',
 				action_iconCls:'op5-spec-dbslam-menu-transfer'

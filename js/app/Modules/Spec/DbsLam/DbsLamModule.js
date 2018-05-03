@@ -48,6 +48,7 @@ Ext.define('DbsLamCfgSocAttributeModel',{
 		{name: 'use_prod', type:'boolean'},
 		{name: 'use_prod_multi', type:'boolean'},
 		{name: 'use_stock', type:'boolean'},
+		{name: 'use_cde', type:'boolean'},
 		{name: 'cfg_is_hidden', type:'boolean'},
 		{name: 'cfg_is_editable', type:'boolean'},
 		{name: 'use_adr', type:'boolean'},
