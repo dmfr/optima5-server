@@ -1,3 +1,62 @@
+2018-04-26 - Evols DBS PEOPLE
+
+Panel RH :
+- masquer les fins de contrat
+- recherche directe
+- affichage par entrepot de défaut
+- rendre l'entrepot obligatoire
+- suggestion en cas de création d'un existant
+
+Contrats :
+- heure de début
+- heure de pause
+- 36h, affectation à un jour de la semaine / fractionnée
+
+Productivités :
+1-Config
+- configuration, par entrepot / client, des CATEGORIES >> Unités d'oeuvre  <=> Roles
+- configuration des indirects de prod : affectation statique en ratio sur CATEGORIES (par client ?)
+
+2-Fonctions de calculs
+Params :
+- entrepot
+- société / client
+- période dates
+
+Ruptures :
+- par role
+- Par catégories ou développer à l'UO
+
+Calculs :
+- prod réelle
+- prod théorique
+- prod vendue
+
+
+
+
+Evols TRAMOS
+- brancher UI existante sur données DWR (SNA/SLS)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <start>
 # Optional variables for a backup script
 MYSQL_USER="root"
