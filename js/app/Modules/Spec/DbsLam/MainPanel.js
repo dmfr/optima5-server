@@ -192,6 +192,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.MainPanel',{
 			items:[Ext.create('Optima5.Modules.Spec.DbsLam.CdePanel',{
 				border: false,
 				optimaModule: this.optimaModule,
+				noDestroy: true,
 				listeners: {
 					candestroy: function(w) {
 						w.close() ;

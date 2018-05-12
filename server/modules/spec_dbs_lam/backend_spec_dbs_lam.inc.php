@@ -66,6 +66,9 @@ switch( $post_data['_action'] )
 	case 'transfer_unallocAdrFinal' :
 	return specDbsLam_transfer_unallocAdrFinal( $post_data ) ;
 	
+	case 'cde_getGrid' :
+	return specDbsLam_cde_getGrid( $post_data ) ;
+	
 	case 'util_htmlToPdf' :
 	return specDbsLam_util_htmlToPdf($post_data) ;
 	

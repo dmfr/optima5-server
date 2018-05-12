@@ -1,3 +1,39 @@
+Ext.define('DbsInconsoCdeLigGridModel',{
+	extend: 'Ext.data.Model',
+	idParam: 'cdelig_filerecord_id',
+	fields: [
+		{name: 'cdelig_filerecord_id', type:'int'},
+		{name: 'lig_id', type:'string'},
+		{name: 'stk_prod', type:'string'},
+		{name: 'stk_prod_txt', type:'string'},
+		{name: 'qty_comm', type:'number'},
+		{name: 'qty_cde', type:'number'}
+	]
+}) ;
+Ext.define('DbsLamCdeGridModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'cde_filerecord_id',
+	fields: [
+		{name: 'cde_filerecord_id', type:'int'},
+		{name: 'cde_nr', type:'string'},
+		{name: 'cde_bl', type:'string'},
+		{name: 'cde_ref', type:'string'},
+		{name: 'status', type:'string'},
+		{name: 'status_txt', type:'string'},
+		{name: 'date_cde', type:'date', dateFormat:'Y-m-d'},
+		{name: 'date_due', type:'date', dateFormat:'Y-m-d'},
+		{name: 'date_closed', type:'date', dateFormat:'Y-m-d'},
+		{name: 'vl_nbum', type:'int'},
+		{name: 'vl_kg', type:'number'},
+		{name: 'vl_m3', type:'number'},
+		{name: 'adr_name', type:'string'},
+		{name: 'adr_cp', type:'string'},
+		{name: 'adr_country', type:'string'}
+	]
+});
+
+
+
 Ext.define('Optima5.Modules.Spec.DbsLam.CdePanel',{
 	extend:'Ext.panel.Panel',
 	
@@ -5,6 +41,11 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CdePanel',{
 	maxPerPage: 10000,
 	
 	initComponent: function() {
+		this.tmpGridModelName = 'DbsLamCdeGridModel-' + this.getId() ;
+		this.on('destroy',function(p) {
+			Ext.ux.dams.ModelManager.unregister( p.tmpGridModelName ) ;
+		}) ;
+		
 		Ext.apply(this,{
 			layout: 'border',
 			tbar:[{
@@ -62,33 +103,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CdePanel',{
 	},
 	
 	doConfigure: function() {
-		this.autoRefreshTask = new Ext.util.DelayedTask( function(){
-			if( this.isDestroyed ) { // private check
-				return ;
-			}
-			this.doLoad(false) ;
-		},this);
-		
-		this.showLoadmask() ;
-		this.optimaModule.getConfiguredAjaxConnection().request({
-			params: {
-				_action: 'data_getFileGrid_config',
-				file_code: this.fileId
-			},
-			success: function(response) {
-				var jsonResponse = Ext.JSON.decode(response.responseText) ;
-				if( jsonResponse.success != true ) {
-					return ;
-				}
-				this.onConfigure( jsonResponse ) ;
-			},
-			callback: function() {
-				//this.hideLoadmask() ;
-			},
-			scope: this
-		}) ;
-	},
-	onConfigure: function( jsonResponse ) {
 		var pCenter = this.down('#pCenter') ;
 		
 		var pushModelfields = [], atrCdeColumns = [] ;
@@ -98,7 +112,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CdePanel',{
 					locked: true,
 					text: attribute.atr_txt,
 					dataIndex: 'CDE_'+attribute.mkey,
-					width: 75
+					width: 75,
+					filter: {
+						type: 'stringlist'
+					}
 				} ;
 				atrCdeColumns.push(fieldColumn) ;
 			}
@@ -109,12 +126,40 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CdePanel',{
 			});
 		}) ;
 		
+		Ext.ux.dams.ModelManager.unregister( this.tmpGridModelName ) ;
+		Ext.define(this.tmpGridModelName, {
+			extend: 'DbsLamCdeGridModel',
+			fields: pushModelfields,
+			hasMany: [{
+				model: 'DbsLamCdeLigGridModel',
+				name: 'ligs',
+				associationKey: 'ligs'
+			}]
+		});
 		
 		
 		var gridCfg = {
 			xtype:'gridpanel',
 			border: false,
-			store: this.onConfigureBuildStore(jsonResponse.data) ,
+			store: {
+				model: this.tmpGridModelName,
+				autoLoad: true,
+				proxy: this.optimaModule.getConfiguredAjaxProxy({
+					extraParams : {
+						_moduleId: 'spec_dbs_lam',
+						_action: 'cde_getGrid'
+					},
+					reader: {
+						type: 'json',
+						rootProperty: 'data'
+					}
+				}),
+				listeners: {
+					beforeload: Ext.emptyFn,
+					load: Ext.emptyFn,
+					scope: this
+				}
+			},
 			bufferedRenderer: true,
 			progressRenderer: (function () {
 				return function(progress,text) {
@@ -141,7 +186,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CdePanel',{
 					hideable: false,
 					menuDisabled: true,
 					renderer: function(v,metaData,record) {
-						if( record.get('SDG_field_CDE_NR') ) {
+						if( record.get('cde_nr') ) {
 							metaData.tdCls += ' op5-group-expand' ;
 						}
 					}
@@ -149,8 +194,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CdePanel',{
 					text: 'Identification',
 					columns: [{
 						text: '<b>ID #</b>',
-						dataIndex: 'SDG_field_CDE_NR',
-						width: 80,
+						dataIndex: 'cde_nr',
+						width: 110,
 						tdCls: 'op5-spec-dbsinconso-boldcolumn',
 						filter: {
 							type: 'string'
@@ -158,14 +203,14 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CdePanel',{
 						summaryType: 'count'
 					},{
 						text: 'BL #',
-						dataIndex: 'SDG_field_CDE_BL',
+						dataIndex: 'cde_bl',
 						width: 80,
 						filter: {
 							type: 'string'
 						}
 					},{
 						text: 'Ref Cli',
-						dataIndex: 'SDG_field_CDE_REF',
+						dataIndex: 'cde_ref',
 						width: 100,
 						filter: {
 							type: 'string'
@@ -179,8 +224,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CdePanel',{
 					isColumnStatus: true,
 					width: 100,
 					renderer: function(v,m,record) {
-						var tmpProgress = record.get('SDG_field_STATUS_entry_STATUS') / 100 ;
-						var tmpText = record.get('SDG_field_STATUS_entry_STATUS')+' : '+record.get('SDG_field_STATUS_entry_STATUS_TXT') ;
+						var tmpProgress = record.get('status') / 100 ;
+						var tmpText = record.get('status')+' : '+record.get('status_txt') ;
 							var b = new Ext.ProgressBar({height: 15, cls: 'op5-spec-mrfoxy-promolist-progress'});
 							if( record.get('status_color') ) {
 								//b.setStyle(
@@ -191,33 +236,33 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CdePanel',{
 						return v;
 					},
 					menuDisabled:false,
-					dataIndex: 'SDG_field_STATUS',
+					dataIndex: 'status',
 					filter: {
 						type: 'op5crmbasebible',
 						optimaModule: this.optimaModule,
 						bibleId: 'STATUS_CDE'
 					},
 					groupable: true,
-					_groupBy: 'SDG_field_STATUS'
+					_groupBy: 'status'
 				},{
 					text: 'Dates / Time',
 					columns: [{
 						xtype: 'datecolumn',
 						format: 'd/m/Y',
 						text: 'Cde reçue',
-						dataIndex: 'SDG_field_DATE_CDE',
+						dataIndex: 'date_cde',
 						width: 80,
 						filter: {
 							type: 'date',
 							dateFormat: 'Y-m-d'
 						},
 						groupable: true,
-						_groupBy: 'SDG_field_DATE_CDE'
+						_groupBy: 'date_cde'
 					},{
 						xtype: 'datecolumn',
 						format: 'd/m/Y',
 						text: '<b>Attendu</b>',
-						dataIndex: 'SDG_field_DATE_DUE',
+						dataIndex: 'date_due',
 						width: 80,
 						filter: {
 							type: 'date',
@@ -225,19 +270,19 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CdePanel',{
 						},
 						tdCls: 'op5-spec-dbsinconso-boldcolumn',
 						groupable: true,
-						_groupBy: 'SDG_field_DATE_DUE'
+						_groupBy: 'date_due'
 					},{
 						xtype: 'datecolumn',
 						format: 'd/m/Y',
 						text: 'Fin/Closed',
-						dataIndex: 'SDG_field_DATE_CLOSED',
+						dataIndex: 'date_closed',
 						width: 80,
 						filter: {
 							type: 'date',
 							dateFormat: 'Y-m-d'
 						},
 						groupable: true,
-						_groupBy: 'SDG_field_DATE_CLOSED'
+						_groupBy: 'date_closed'
 					}]
 				},{
 					text: 'Variantes logistiques',
@@ -246,7 +291,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CdePanel',{
 						align: 'right',
 						format: '0',
 						text: 'Nb UM',
-						dataIndex: 'SDG_field_VL_NBUM',
+						dataIndex: 'vl_nbum',
 						width: 60,
 						filter: {
 							type: 'number'
@@ -258,7 +303,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CdePanel',{
 						align: 'right',
 						format: '0,000',
 						text: 'Pds (kg)',
-						dataIndex: 'SDG_field_VL_KG',
+						dataIndex: 'vl_kg',
 						width: 70,
 						filter: {
 							type: 'number'
@@ -270,7 +315,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CdePanel',{
 						align: 'right',
 						format: '0,000.00',
 						text: 'Vol (m3)',
-						dataIndex: 'SDG_field_VL_M3',
+						dataIndex: 'vl_m3',
 						width: 70,
 						filter: {
 							type: 'number'
@@ -282,34 +327,25 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CdePanel',{
 					text: 'Livraison',
 					columns: [{
 						text: 'Pays',
-						dataIndex: 'SDG_field_ADR_COUNTRY',
+						dataIndex: 'adr_country',
 						width: 50,
 						filter: {
 							type: 'stringlist'
 						}
 					},{
 						text: 'CP',
-						dataIndex: 'SDG_field_ADR_CP',
+						dataIndex: 'adr_cp',
 						width: 65,
 						filter: {
 							type: 'string'
 						}
 					},{
 						text: 'Dest',
-						dataIndex: 'SDG_field_ADR_NAME',
+						dataIndex: 'adr_name',
 						width: 100,
 						filter: {
 							type: 'stringlist'
 						}
-					},{
-						text: 'Trspt',
-						dataIndex: 'SDG_field_TRSPT_NAME',
-						width: 75,
-						filter: {
-							type: 'stringlist'
-						},
-						groupable: true,
-						_groupBy: 'SDG_field_TRSPT_NAME'
 					}]
 				}]
 			},
@@ -333,93 +369,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CdePanel',{
 		pCenter.add( gridCfg ) ;
 		
 		this.hideLoadmask() ;
-	},
-	onConfigureBuildStore: function( ajaxData ) {
-		var gridModelName = 'FileGrid'+'-'+this.getId() ;
-		
-		// Création du modèle GRID
-		var modelFields = new Array() ;
-		var keyfield = '' ;
-		var noNew = false ;
-		if( ajaxData.define_file.file_parent_code != '' ) {
-			noNew = true ;
-		}
-		Ext.Object.each( ajaxData.grid_fields , function(k,v) {
-			// console.dir(v) ;
-			/*
-			if( !(v.entry_field_is_highlight) && false )
-				return ;
-			*/
-			if( v.is_key == true )
-				keyfield = v.field ;
-			
-			switch( v.type )
-			{
-				case 'number' :
-				case 'date' :
-					var fieldType = v.type ;
-					break ;
-					
-				default :
-					var fieldType = 'string' ;
-					break ;
-			}
-			
-			var fieldObject = new Object();
-			Ext.apply(fieldObject,{
-				name: v.field,
-				type: fieldType
-			}) ;
-			if( v.type == 'date' ) {
-				Ext.apply(fieldObject,{
-					dateFormat: 'Y-m-d H:i:s'
-				}) ;
-			}
-			modelFields.push( fieldObject ) ;
-		},this) ;
-		
-		if( this.gridModelName ) {
-			Ext.ux.dams.ModelManager.unregister( this.gridModelName ) ;
-		}
-		Ext.define(gridModelName, {
-			extend: 'Ext.data.Model',
-			fields: modelFields
-		});
-		this.gridModelName = gridModelName ;
-		
-		var gridstore = Ext.create('Ext.data.Store', {
-			model: gridModelName,
-			remoteSort: false,
-			remoteFilter: true,
-			autoLoad: true,
-			proxy: this.optimaModule.getConfiguredAjaxProxy({
-				extraParams : {
-					_action: 'data_getFileGrid_data' ,
-					file_code: this.fileId
-				},
-				reader: {
-					type: 'json',
-					rootProperty: 'data',
-					totalProperty: 'total'
-				}
-			}),
-			sorters: [{
-				property: 'SDG_field_CDE_NR',
-				direction: 'DESC'
-			}],
-			listeners: {
-				beforeload: {
-					fn: this.onBeforeLoad,
-					scope: this
-				},
-				load: {
-					fn: Ext.emptyFn,
-					scope: this
-				}
-			}
-		});
-		
-		return gridstore ;
 	},
 	
 	onColumnsMenuCreate: function( headerCt, menu ) {
@@ -547,7 +496,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CdePanel',{
 			return ;
 		}
 		
-		var title = cdeRecord.get('SDG_field_CDE_NR') ;
+		var title = cdeRecord.get('cde_nr') ;
 		
 		var eastPanelCfg = {
 			xtype: 'panel',
@@ -581,15 +530,15 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CdePanel',{
 					items:[{
 						xtype: 'displayfield',
 						fieldLabel: 'ID #',
-						name: 'SDG_field_CDE_NR'
+						name: 'cde_nr'
 					},{
 						xtype: 'displayfield',
 						fieldLabel: 'BL #',
-						name: 'SDG_field_CDE_BL'
+						name: 'cde_bl'
 					},{
 						xtype: 'displayfield',
 						fieldLabel: 'Ref Cli',
-						name: 'SDG_field_CDE_REF'
+						name: 'cde_ref'
 					}]
 				}]
 			},{
@@ -597,40 +546,42 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CdePanel',{
 				region: 'south',
 				xtype: 'grid',
 				store: {
-					fields: [{name:'cdelig_id',type:'string'}],
-					autoLoad: false,
-					proxy: this.optimaModule.getConfiguredAjaxProxy({
-						extraParams : {
-							_action: 'data_getFileGrid_data' ,
-							file_code: this.fileId+'_POS'
-						},
+					model: 'DbsInconsoCdeLigGridModel',
+					data: [],
+					proxy: {
+						type: 'memory',
 						reader: {
-							type: 'json',
-							rootProperty: 'data'
+							type: 'json'
 						}
-					}),
+					},
 					sorters:[{
 						property : 'cdelig_id',
 						direction: 'ASC'
 					}]
 				},
 				columns: [{
-					dataIndex: 'SDG_POS_field_LIG_ID',
+					dataIndex: 'lig_id',
 					text: 'Lig.ID',
-					width: 80
+					width: 40
 				},{
-					dataIndex: 'SDG_POS_field_PROD',
+					dataIndex: 'stk_prod',
 					text: 'Article',
-					width: 90
+					width: 120
 				},{
-					dataIndex: 'SDG_POS_field_PROD_entry_PROD_TXT',
+					dataIndex: 'stk_prod_txt',
 					text: 'Desc',
 					width: 150
 				},{
-					dataIndex: 'SDG_POS_field_QTY',
-					text: 'Qty',
+					hidden: true,
+					dataIndex: 'qty_comm',
+					text: 'Qty.Orig',
 					align: 'right',
-					width: 60
+					width: 75
+				},{
+					dataIndex: 'qty_cde',
+					text: 'Qty.Order',
+					align: 'right',
+					width: 75
 				}]
 			}]
 		};
@@ -642,16 +593,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CdePanel',{
 		eastpanel.expand() ;
 		
 		var eastInnerPanel = eastpanel.child('panel'),
-			prodForm = eastInnerPanel.child('form') ;
-		
-		prodForm.loadRecord(cdeRecord) ;
-		Ext.Array.each( eastInnerPanel.query('grid'), function(gridPanel) {
-			gridPanel.getStore().load({
-				params: {
-					filter: Ext.JSON.encode([{property:'cde_id',operator:'eq',value: sdgRecord.get('cde_id')}])
-				}
-			}) ;
-		});
+			cdeForm = eastInnerPanel.child('form'),
+			cdeLigs = eastInnerPanel.child('grid') ;
+		cdeForm.loadRecord(cdeRecord) ;
+		cdeLigs.getStore().loadData( cdeRecord.getData(true)['ligs'] ) ;
 	},
 	
 	
@@ -659,6 +604,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CdePanel',{
 	doQuit: function() {
 		if( !this.noDestroy ) {
 			this.destroy() ;
+		} else {
+			this.fireEvent('candestroy',this) ;
 		}
 	},
 	doRefresh: function() {
