@@ -24,7 +24,9 @@ Ext.define('DbsLamCfgMvtFlowModel',{
 	fields: [
 		{name: 'flow_code', type:'string'},
 		{name: 'flow_txt', type:'string'},
-		{name: 'is_foreign', type:'boolean'}
+		{name: 'is_foreign', type:'boolean'},
+		{name: 'is_cde', type:'boolean'},
+		{name: 'cde_process', type:'string'}
 	],
 	hasMany: [{
 		model: 'DbsLamCfgMvtStepModel',

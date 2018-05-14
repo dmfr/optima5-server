@@ -65,6 +65,12 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CfgParamButton' ,{
 		return retValue ;
 	},
 	
+	setValue: function(val) {
+		var cfgParamTree = this.menu.down('treepanel') ;
+		cfgParamTree.setValue(val) ;
+		cfgParamTree.setVisible((val==null)) ;
+	},
+	
 	onAfterLoad: function() {
 		if( !Optima5.Modules.Spec.DbsLam.HelperCache.authHelperHasAll() && !this.noAuthCheck ) {
 			this.doAuthCleanup() ;

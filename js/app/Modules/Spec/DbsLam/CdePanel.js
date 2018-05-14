@@ -361,8 +361,23 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CdePanel',{
 				hideGroupedHeader: false,
 				enableGroupingMenu: false,
 				enableNoGroups: false
-			}]
+			}],
+			viewConfig: {
+			}
 		} ;
+		if( this._enableDD ) {
+			Ext.apply(gridCfg,{
+				selModel: {
+					mode: 'MULTI'
+				}
+			});
+			Ext.apply(gridCfg.viewConfig,{
+				plugins: {
+					ddGroup : 'DbsLamStockDD',
+					ptype: 'gridviewdragdrop'
+				}
+			});
+		}
 		
 		
 		pCenter.removeAll() ;

@@ -184,7 +184,12 @@ function specDbsLam_transfer_getTransferLig($post_data) {
 	
 	return array('success'=>true, 'data'=>array_values($TAB)) ;
 }
-
+function specDbsLam_transfer_getTransferCdeLink( $post_data ) {
+	return array('success'=>true, 'data'=>array()) ;
+}
+function specDbsLam_transfer_getTransferCdeNeed( $post_data ) {
+	return array('success'=>true, 'data'=>array()) ;
+}
 
 
 

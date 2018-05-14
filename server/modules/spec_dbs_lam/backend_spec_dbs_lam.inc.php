@@ -38,6 +38,10 @@ switch( $post_data['_action'] )
 	return specDbsLam_transfer_getTransfer( $post_data ) ;
 	case 'transfer_getTransferLig' :
 	return specDbsLam_transfer_getTransferLig( $post_data ) ;
+	case 'transfer_getTransferCdeLink' :
+	return specDbsLam_transfer_getTransferCdeLink( $post_data ) ;
+	case 'transfer_getTransferCdeNeed' :
+	return specDbsLam_transfer_getTransferCdeNeed( $post_data ) ;
 	case 'transfer_addStock' :
 	return specDbsLam_transfer_addStock( $post_data ) ;
 	case 'transfer_removeStock' :

@@ -193,6 +193,8 @@ function specDbsLam_cfg_getMvtflow() {
 			'flow_code' => $arr['field_FLOW_CODE'],
 			'flow_txt' => $arr['field_FLOW_TXT'],
 			'is_foreign' => $arr['field_IS_FOREIGN'],
+			'is_cde' => $arr['field_IS_CDE'],
+			'cde_process' => $arr['field_CDE_PROCESS'],
 			'steps' => array(),
 			'checks' => array()
 		) ;
