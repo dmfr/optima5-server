@@ -98,8 +98,25 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CdePanel',{
 			}]
 		}) ;
 		this.callParent() ;
+		this.mon(this.optimaModule,'op5broadcast',this.onCrmeventBroadcast,this) ;
 		
 		this.doConfigure() ;
+	},
+	
+	onCrmeventBroadcast: function(crmEvent, eventParams) {
+		switch( crmEvent ) {
+			case 'datachange' :
+				this.onDataChange() ;
+				break ;
+			default: break ;
+		}
+	},
+	onDataChange: function() {
+		if( this.isVisible() ) {
+			this.doRefresh() ;
+		} else {
+			this.on('activate',function(){this.onDataChange();}, this, {single:true}) ;
+		}
 	},
 	
 	doConfigure: function() {
@@ -373,8 +390,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CdePanel',{
 			});
 			Ext.apply(gridCfg.viewConfig,{
 				plugins: {
-					ddGroup : 'DbsLamStockDD',
-					ptype: 'gridviewdragdrop'
+					ddGroup : 'DbsLamCdesDD',
+					ptype: 'gridviewdragdrop',
+					enableDrag: true,
+					enableDrop: false
 				}
 			});
 		}

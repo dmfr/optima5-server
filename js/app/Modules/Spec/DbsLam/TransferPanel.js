@@ -29,7 +29,7 @@ Ext.define('DbsLamTransferStepModel',{
 		{name: 'commit_date', type: 'string'}
 	]
 });
-Ext.define('DbsLamTransferGridModel',{
+Ext.define('DbsLamTransferLigsModel',{
 	extend: 'Ext.data.Model',
 	idProperty: 'transferlig_filerecord_id',
 	fields: [
@@ -78,7 +78,7 @@ Ext.define('DbsLamTransferOneModel',{
 		{name: 'whse_dest', type:'string'}
 	],
 	hasMany: [{
-		model: 'DbsLamTransferGridModel',
+		model: 'DbsLamTransferLigsModel',
 		name: 'ligs',
 		associationKey: 'ligs'
 	}]
@@ -91,7 +91,9 @@ Ext.define('DbsLamTransferCdeLinkModel',{
 		{name: 'cdelig_filerecord_id', type:'int'},
 		{name: 'cde_filerecord_id', type:'int'},
 		{name: 'cde_nr', type: 'string'},
+		{name: 'lig_id', type: 'int'},
 		{name: 'stk_prod', type: 'string'},
+		{name: 'qty_comm', type: 'number'},
 		{name: 'qty_cde', type: 'number'}
 	]
 }) ;
@@ -103,11 +105,11 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 	requires: ['Optima5.Modules.Spec.DbsLam.TransferCreateForm'],
 	
 	initComponent: function() {
-		this.tmpLigsModelName = 'DbsLamTransferGridModel-' + this.getId() ;
+		this.tmpLigsModelName = 'DbsLamTransferLigsModel-' + this.getId() ;
 		this.on('destroy',function(p) {
 			Ext.ux.dams.ModelManager.unregister( p.tmpLigsModelName ) ;
 		}) ;
-		this.tmpAdrTreeModelName = 'DbsLamTransferGridTreeModel-' + this.getId() ;
+		this.tmpAdrTreeModelName = 'DbsLamTransferAdrTreeModel-' + this.getId() ;
 		this.on('destroy',function(p) {
 			Ext.ux.dams.ModelManager.unregister( p.tmpAdrTreeModelName ) ;
 		}) ;
@@ -345,7 +347,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		
 		Ext.ux.dams.ModelManager.unregister( this.tmpLigsModelName ) ;
 		Ext.define(this.tmpLigsModelName, {
-			extend: 'DbsLamTransferGridModel',
+			extend: 'DbsLamTransferLigsModel',
 			fields: pushModelfields,
 			hasMany: [{
 				model: 'DbsLamTransferStepModel',
@@ -356,7 +358,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		
 		Ext.ux.dams.ModelManager.unregister( this.tmpAdrTreeModelName ) ;
 		Ext.define(this.tmpAdrTreeModelName, {
-			extend: 'DbsLamTransferGridModel',
+			extend: 'DbsLamTransferLigsModel',
 			fields: pushModelfields,
 			idProperty: 'id'
 		});
@@ -372,26 +374,38 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				lockable: false
 			},
 			items: [{
-				dataIndex: 'container_ref',
-				text: 'Container',
-				width: 100
+				text: '',
+				width: 24,
+				renderer: function(v,metadata,record) {
+					if( record.get('status_is_reject') ) {
+						metadata.tdCls = 'op5-spec-dbslam-stock-notavail'
+					} else if( !record.get('status_is_ok') ) {
+						metadata.tdCls = 'op5-spec-dbslam-stock-wait'
+					} else {
+						metadata.tdCls = 'op5-spec-dbslam-stock-avail'
+					}
+				}
+			},{
+				dataIndex: 'cde_nr',
+				text: 'Order #',
+				width: 150
+			},{
+				dataIndex: 'lig_id',
+				text: 'Lig #',
+				width: 60
 			},{
 				dataIndex: 'stk_prod',
 				text: 'P/N',
-				width: 100
+				width: 200
 			},{
 				dataIndex: 'stk_batch',
 				text: 'BatchCode',
 				width: 100
 			},{
-				dataIndex: 'mvt_qty',
-				text: 'Qty disp',
+				dataIndex: 'qty_cde',
+				text: 'Qty order',
 				align: 'right',
-				width: 75
-			},{
-				dataIndex: 'stk_sn',
-				text: 'Serial',
-				width: 100
+				width: 90
 			}]
 		};
 		var gridColumns = {
@@ -619,9 +633,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					synchronousRender: true
 				}],
 				listeners: {
-					render: this.doConfigureOnGridRender,
-					itemclick: this.onGridItemClick,
-					itemcontextmenu: this.onGridContextMenu,
+					render: this.doConfigureOnCdesRender,
+					//itemclick: this.onGridItemClick,
+					itemcontextmenu: this.onCdesContextMenu,
 					scope: this
 				},
 				viewConfig: {
@@ -665,9 +679,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					synchronousRender: true
 				}],
 				listeners: {
-					render: this.doConfigureOnGridRender,
-					itemclick: this.onGridItemClick,
-					itemcontextmenu: this.onGridContextMenu,
+					render: this.doConfigureOnListRender,
+					itemclick: this.onListItemClick,
+					itemcontextmenu: this.onListContextMenu,
 					scope: this
 				},
 				viewConfig: {
@@ -704,8 +718,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				singleExpand: false,
 				columns: gridTreeColumns,
 				listeners: {
-					itemclick: this.onGridTreeItemClick,
-					itemcontextmenu: this.onGridTreeContextMenu,
+					itemclick: this.onAdrTreeItemClick,
+					itemcontextmenu: this.onAdrTreeContextMenu,
 					scope: this
 				}
 			}],
@@ -720,7 +734,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		// Build tree
 		this.doTreeLoad() ;
 	},
-	doConfigureOnGridRender: function(grid) {
+	doConfigureOnListRender: function(grid) {
 		var me = this ;
 		
 		var gridPanelDropTargetEl =  grid.body.dom;
@@ -741,6 +755,31 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					});
 					if( srcStockFilerecordIds.length > 0 ) {
 						me.handleDropStock(srcStockFilerecordIds) ;
+					}
+			}
+		});
+	},
+	doConfigureOnCdesRender: function(grid) {
+		var me = this ;
+		
+		var gridPanelDropTargetEl =  grid.body.dom;
+
+		var gridPanelDropTarget = Ext.create('Ext.dd.DropTarget', gridPanelDropTargetEl, {
+			ddGroup: 'DbsLamCdesDD',
+			notifyEnter: function(ddSource, e, data) {
+					//Add some flare to invite drop.
+					grid.body.stopAnimation();
+					grid.body.highlight();
+			},
+			notifyDrop: function(ddSource, e, data){
+					var cdesFilerecordIds = [] ;
+					Ext.Array.each( ddSource.dragData.records, function(selectedRecord) {
+						if( selectedRecord.get('cde_filerecord_id') ) {
+							cdesFilerecordIds.push( selectedRecord.get('cde_filerecord_id') ) ; 
+						}
+					});
+					if( cdesFilerecordIds.length > 0 ) {
+						me.handleDropCdes(cdesFilerecordIds) ;
 					}
 			}
 		});
@@ -790,7 +829,38 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		
 		gridContextMenu.showAt(event.getXY());
 	},
-	onGridContextMenu: function(view, record, item, index, event) {
+	onCdesContextMenu: function(view, record, item, index, event) {
+		var gridContextMenuItems = new Array() ;
+		
+		var selRecords = view.getSelectionModel().getSelection() ;
+		
+		var cdesFilerecordIds = [] ;
+		for( var recIdx=0 ; recIdx<selRecords.length ; recIdx++ ) {
+			if( !Ext.Array.contains(cdesFilerecordIds,selRecords[recIdx].get('cde_filerecord_id')) ) {
+				cdesFilerecordIds.push( selRecords[recIdx].get('cde_filerecord_id') ) ;
+			}
+		}
+		gridContextMenuItems.push({
+			iconCls: 'icon-bible-delete',
+			text: 'Remove <b>'+cdesFilerecordIds.length+'</b> orders',
+			handler : function() {
+				this.handleRemoveCdes( cdesFilerecordIds ) ;
+			},
+			scope : this
+		});
+		
+		var gridContextMenu = Ext.create('Ext.menu.Menu',{
+			items : gridContextMenuItems,
+			listeners: {
+				hide: function(menu) {
+					Ext.defer(function(){menu.destroy();},10) ;
+				}
+			}
+		}) ;
+		
+		gridContextMenu.showAt(event.getXY());
+	},
+	onListContextMenu: function(view, record, item, index, event) {
 		var gridContextMenuItems = new Array() ;
 		
 		var selRecords = view.getSelectionModel().getSelection() ;
@@ -819,10 +889,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		
 		gridContextMenu.showAt(event.getXY());
 	},
-	onGridItemClick: function(view,record) {
+	onListItemClick: function(view,record) {
 		this.setFormRecord(record) ;
 	},
-	onGridTreeItemClick: function(view, record, item, index, event) {
+	onAdrTreeItemClick: function(view, record, item, index, event) {
 		var gridpanel = this.down('#pCenter').down('#pLigs'),
 			gridStore = gridpanel.getStore() ;
 		if( record.get('transferlig_filerecord_id') ) {
@@ -832,7 +902,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			this.setFormRecord(null) ;
 		}
 	},
-	onGridTreeContextMenu: function(view, record, item, index, event) {
+	onAdrTreeContextMenu: function(view, record, item, index, event) {
 		var gridContextMenuItems = new Array() ;
 		
 		var selRecord = record;
@@ -1069,6 +1139,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 	onLigsLoad: function(ajaxData) {
 		this.down('#pCenter').down('#pLigs').getStore().loadData( ajaxData ) ;
 		this.onLigsAfterLoad( this.down('#pCenter').down('#pLigs').getStore() ) ;
+	},
+	onCdesLoad: function(ajaxData) {
+		this.down('#pCenter').down('#pCdes').getStore().loadData( ajaxData ) ;
 	},
 	onLigsAfterLoad: function(store) {
 		// load for pAdrTree
@@ -1605,6 +1678,52 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			scope: this
 		}) ;
 	},
+	
+	handleDropCdes: function(cdesFilerecordIds) {
+		var activeTransferFilerecordId = this.getActiveTransferFilerecordId() ;
+		
+		var ajaxParams = {
+			_moduleId: 'spec_dbs_lam',
+			_action: 'transfer_addCdeLink',
+			cde_filerecordIds: Ext.JSON.encode(cdesFilerecordIds),
+			transfer_filerecordId: activeTransferFilerecordId 
+		} ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams,
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+				this.optimaModule.postCrmEvent('datachange') ;
+			},
+			scope: this
+		}) ;
+	},
+	handleRemoveCdes: function(cdesFilerecordIds) {
+		var activeTransferFilerecordId = this.getActiveTransferFilerecordId() ;
+		
+		var ajaxParams = {
+			_moduleId: 'spec_dbs_lam',
+			_action: 'transfer_removeCdeLink',
+			cde_filerecordIds: Ext.JSON.encode(cdesFilerecordIds),
+			transfer_filerecordId: activeTransferFilerecordId
+		} ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams,
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+				this.optimaModule.postCrmEvent('datachange') ;
+			},
+			scope: this
+		}) ;
+	},
+	
 	
 	setFormRecord: function( transferLigRecord ) {
 		var southP = this.down('#pSouth') ;

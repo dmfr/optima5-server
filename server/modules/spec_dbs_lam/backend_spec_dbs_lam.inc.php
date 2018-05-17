@@ -57,6 +57,11 @@ switch( $post_data['_action'] )
 	case 'transfer_rollbackStep' :
 	return specDbsLam_transfer_rollbackStep( $post_data ) ;
 	
+	case 'transfer_addCdeLink' :
+	return specDbsLam_transfer_addCdeLink( $post_data ) ;
+	case 'transfer_removeCdeLink' :
+	return specDbsLam_transfer_removeCdeLink( $post_data ) ;
+	
 	case 'transfer_saveReject' :
 	return specDbsLam_transfer_saveReject( $post_data ) ;
 	case 'transfer_commitAdrTmp' :
