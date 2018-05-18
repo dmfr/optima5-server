@@ -686,3 +686,13 @@ body {    background: none repeat scroll 0 0 #F8F8F8;}
 .x-progress .x-progress-text {
 	padding: 0px 5px;
 }
+
+.x-grid-cell-overflowvisible {
+	overflow: visible ;
+}
+.x-grid-cell-overflowvisible .x-grid-cell-inner {
+	overflow: visible ;
+	text-overflow: visible ;
+	
+}
+

@@ -345,7 +345,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 					},{
 						dataIndex: 'inv_prod',
 						text: 'P/N',
-						width: 100
+						width: 100,
+						filter: {
+							type: 'string'
+						}
 					},{
 						dataIndex: 'inv_batch',
 						text: 'BatchCode',
@@ -366,6 +369,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 				ptype: 'bufferedrenderer',
 				pluginId: 'bufferedRenderer',
 				synchronousRender: true
+			},{
+				ptype: 'uxgridfilters'
 			}],
 			viewConfig: {
 				preserveScrollOnRefresh: true,
