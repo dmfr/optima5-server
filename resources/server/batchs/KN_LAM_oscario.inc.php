@@ -599,7 +599,7 @@ function oscario_interface_do( $_OSCARIO_DOMAIN, $_OSCARIO_MAG, $_OPTIMA_SOC ) {
 			$arr_lgcde['field_LIG_ID'] = $c ;
 			$arr_lgcde['noscde_lig_n2'] = $noscde.'@'.int_to_strX($c,4) ;
 			$arr_lgcde['noscde_lig_n3'] = $noscde.'@'.int_to_strX($c,4) ;
-			$arr_lgcde['field_PROD_ID'] = $_PREFIX_REF.'_'.trim(substr($lig,22,18)) ;
+			$arr_lgcde['field_PROD_ID'] = strtoupper($_PREFIX_REF.'_'.trim(substr($lig,22,18))) ;
 			$arr_lgcde['field_QTY_COMM'] = (float)(substr($lig,40,10)) / 100 ;
 			$arr_lgcde['field_QTY_CDE']  = ($kit_link_noscde ? 0 : $arr_lgcde['field_QTY_COMM']) ;
 			paracrm_lib_data_insertRecord_file( 'CDE_LIG', $arr_ecde['filerecord_id'], $arr_lgcde ) ;
