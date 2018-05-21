@@ -294,7 +294,12 @@ function specDbsLam_lib_procMvt_commit($mvt_filerecordId, $adr_dest, $adr_dest_d
 		paracrm_lib_data_deleteRecord_file( 'STOCK' , $stock_filerecordId ) ;
 	}
 	$row_stock['field_LAM_DATEUPDATE'] = date('Y-m-d') ;
-	$stock_filerecordId = paracrm_lib_data_insertRecord_file('STOCK',0,$row_stock) ;
+	if( $adr_dest!='@OUT' ) {
+		$stock_filerecordId = paracrm_lib_data_insertRecord_file('STOCK',0,$row_stock) ;
+	}
+	if( $adr_dest=='@OUT' ) {
+		$stock_filerecordId = 0 ;
+	}
 	
 	
 	// creation lig STOCK
@@ -334,7 +339,7 @@ function specDbsLam_lib_procMvt_commit($mvt_filerecordId, $adr_dest, $adr_dest_d
 	$_opDB->update('view_bible_ADR_entry',$arr_update, $arr_cond) ;
 	
 	// if step=not_final => specDbsLam_lib_procMvt_addStock (chain reaction...)
-	if( $next_step_code ) {
+	if( $stock_filerecordId && $next_step_code ) {
 		$row_mvt_step = array(
 			'field_STEP_CODE' => $next_step_code,
 			'field_FILE_STOCK_ID' => $stock_filerecordId,

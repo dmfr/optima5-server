@@ -927,7 +927,8 @@ function specDbsLam_transfer_commitAdrTmp($post_data,$inner=FALSE) {
 	//  - step <> is_final
 	//  - 
 	$step_isFinal = $_opDB->query_uniqueValue("SELECT field_IS_ADR FROM view_bible_CFG_MVTFLOW_entry WHERE entry_key='{$p_transferStepCode}'") ;
-	if( $step_isFinal ) {
+	$step_isExit = $_opDB->query_uniqueValue("SELECT field_IS_EXIT FROM view_bible_CFG_MVTFLOW_entry WHERE entry_key='{$p_transferStepCode}'") ;
+	if( !$step_isExit && $step_isFinal ) {
 		return array('success'=>false) ;
 	}
 	
@@ -945,7 +946,7 @@ function specDbsLam_transfer_commitAdrTmp($post_data,$inner=FALSE) {
 	sort($steps) ;
 	$currentStep_key = array_search($current_step_code,$steps) ;
 	$nextStep_key = $currentStep_key + 1 ;
-	if( !($next_step_code = $steps[$nextStep_key]) ) {
+	if( !$step_isExit && !($next_step_code = $steps[$nextStep_key]) ) {
 		return array('success'=>false) ;
 	}
 	
@@ -968,13 +969,66 @@ function specDbsLam_transfer_commitAdrTmp($post_data,$inner=FALSE) {
 	
 	
 	// Dest location
-	$query = "SELECT count(*) from view_bible_ADR_entry WHERE entry_key='{$p_location}'" ;
-	if( $_opDB->query_uniqueValue($query) != 1 ) {
-		return array('success'=>false, 'error'=>"Destination {$p_location} non existant") ;
+	if( $step_isExit ) {
+		$p_location = '@OUT' ;
+	} elseif( $p_location ) {
+		$query = "SELECT count(*) from view_bible_ADR_entry WHERE entry_key='{$p_location}'" ;
+		if( $_opDB->query_uniqueValue($query) != 1 ) {
+			return array('success'=>false, 'error'=>"Destination {$p_location} non existant") ;
+		}
+	} else {
+		while(TRUE) {
+			$query = "SELECT field_WHSE_DEST, field_IS_WORK
+						FROM view_file_TRANSFER t
+						JOIN view_bible_CFG_WHSE_entry whse ON whse.entry_key=t.field_WHSE_DEST
+						WHERE t.filerecord_id='{$p_transferFilerecordId}'" ;
+			$result = $_opDB->query($query) ;
+			$arr = $_opDB->fetch_row($result) ;
+			
+			$whse_dest = $arr[0] ;
+			$is_work = $arr[1] ;
+			if( !$is_work ) {
+				return array('success'=>false, 'error'=>"Cannot use virtual locations") ;
+			}
+			
+			$arr_ins = array() ;
+			$arr_ins['field_ROW_ID'] = $whse_dest ;
+			paracrm_lib_data_insertRecord_bibleTreenode( 'ADR', $whse_dest, '&', $arr_ins ) ; 
+			
+			$arr_adrs = array() ;
+			$map_transferligFilerecordId_adr = array() ;
+			foreach( $rows_transferLig as $idx => $row_transferLig ) {
+				if( !$row_transferLig['next_adr'] ) {
+					return array('success'=>false, 'error'=>"Virtual location not specified") ;
+				}
+				if( !in_array($row_transferLig['next_adr'],$arr_adrs) ) {
+					$arr_adrs[] = $row_transferLig['next_adr'] ;
+				}
+				$map_transferligFilerecordId_adr[$row_transferLig['transferlig_filerecord_id']] = $row_transferLig['next_adr'] ;
+			}
+			
+			foreach( $arr_adrs as $adr ) {
+				$query = "SELECT count(*) from view_bible_ADR_entry WHERE entry_key='{$adr}' AND treenode_key='$whse_dest'" ;
+				if( $_opDB->query_uniqueValue($query) == 1 ) {
+					contine ;
+				}
+				paracrm_lib_data_deleteRecord_bibleEntry( 'ADR' , $adr ) ;
+				$arr_ins = array() ;
+				$arr_ins['field_ADR_ID'] = $adr ;
+				paracrm_lib_data_insertRecord_bibleEntry( 'ADR' , $adr, $whse_dest, $arr_ins ) ;
+			}
+			
+			break ;
+		}
 	}
 	
+	
 	foreach( $p_transferLigFilerecordId_arr as $transferLig_filerecordId ) {
-		$location_entryKey = $p_location ;
+		if( $p_location ) {
+			$location_entryKey = $p_location ;
+		} else {
+			$location_entryKey = $map_transferligFilerecordId_adr[$transferLig_filerecordId] ;
+		}
 		
 		// mvt ID ?
 		$query = "SELECT field_FILE_MVT_ID FROM view_file_TRANSFER_LIG WHERE filerecord_id='{$transferLig_filerecordId}'" ;
@@ -2456,6 +2510,9 @@ function specDbsLam_transfer_removeCdeLink($post_data) {
 function specDbsLam_transfer_addCdeStock($post_data, $fast=FALSE) {
 	global $_opDB ;
 	
+	$ttmp = specDbsLam_cfg_getConfig() ;
+	$json_cfg = $ttmp['data'] ;
+	
 	$p_transferFilerecordId = $post_data['transfer_filerecordId'] ;
 	$p_transfercdeneedFilerecordId = $post_data['transfercdeneed_filerecordId'] ;
 	$p_stockFilerecordIds = json_decode($post_data['stock_filerecordIds'],true) ;
@@ -2475,9 +2532,16 @@ function specDbsLam_transfer_addCdeStock($post_data, $fast=FALSE) {
 			}
 		}
 	}
+	$whseDest = $row_transfer['field_WHSE_DEST'] ;
+	$whseDestIsWork = FALSE ;
+	foreach($json_cfg['cfg_whse'] as $whse) {
+		if( ($whse['whse_code']==$whseDest) && $whse['is_work'] ) {
+			$whseDestIsWork = TRUE ;
+		}
+	}
 	
 	// qte initiale à allouer
-	$query = "SELECT tcn.field_QTY_NEED, sum(m.field_QTY_MVT) FROM view_file_TRANSFER_CDE_NEED tcn
+	$query = "SELECT tcn.field_QTY_NEED, sum(m.field_QTY_MVT), tcn.field_NEED_TXT FROM view_file_TRANSFER_CDE_NEED tcn
 			JOIN view_file_TRANSFER_LIG tl ON tl.field_FILE_TRSFRCDENEED_ID = tcn.filerecord_id
 			JOIN view_file_MVT m ON m.filerecord_id = tl.field_FILE_MVT_ID
 			WHERE tcn.filerecord_id='{$p_transfercdeneedFilerecordId}'" ;
@@ -2485,6 +2549,7 @@ function specDbsLam_transfer_addCdeStock($post_data, $fast=FALSE) {
 	$arr = $_opDB->fetch_row($result) ;
 	$qty_need = (float)$arr[0] ;
 	$qty_curAlloc = (float)$arr[1] ;
+	$needTxt = preg_replace("/[^A-Z0-9]/", "", strtoupper($arr[2])) ;
 	
 	$qty_toAlloc = ($qty_need - $qty_curAlloc) ;
 	if( $qty_toAlloc<=0 ) {
@@ -2518,6 +2583,10 @@ function specDbsLam_transfer_addCdeStock($post_data, $fast=FALSE) {
 			'field_FILE_TRSFRCDENEED_ID' => $p_transfercdeneedFilerecordId
 		);
 		$ids[] = paracrm_lib_data_insertRecord_file('TRANSFER_LIG',$p_transferFilerecordId,$transfer_row) ;
+	}
+	if( $whseDestIsWork ) {
+		$tmp_adr = $whseDest.'_'.$needTxt ;
+		specDbsLam_lib_procMvt_alloc($mvt_filerecordId,$tmp_adr,$tmp_adr) ;
 	}
 	
 	if( !$fast ) {
@@ -2579,6 +2648,31 @@ function specDbsLam_transfer_cdeStockUnalloc( $post_data ) {
 		) ;
 		specDbsLam_transfer_removeCdeStock($forward_post,$fast=true) ;
 	}
+	
+	specDbsLam_lib_procCde_syncLinks($p_transferFilerecordId) ;
+	return array('success'=>true) ;
+}
+function specDbsLam_transfer_cdeAckStep( $post_data ) {
+	$p_transferFilerecordId = $post_data['transfer_filerecordId'] ;
+	$p_transferStepCode = $post_data['transferStepCode'] ;
+	specDbsLam_lib_procCde_syncLinks($p_transferFilerecordId) ;
+	
+	$arr_transferligFilerecordIds = array() ;
+	$ttmp = specDbsLam_transfer_getTransferLig( array('filter_transferFilerecordId'=>$p_transferFilerecordId) ) ;
+	$rows_transferLig = $ttmp['data'] ;
+	foreach( $rows_transferLig as $row_transferLig ) {
+		if( $row_transferLig['step_code'] != $p_transferStepCode ) {
+			continue ;
+		}
+		$arr_transferligFilerecordIds[] = $row_transferLig['transferlig_filerecord_id'] ;
+	}
+	
+	$forward_post = array(
+		'transferFilerecordId' => $p_transferFilerecordId,
+		'transferLigFilerecordId_arr' => json_encode($arr_transferligFilerecordIds),
+		'transferStepCode' => $p_transferStepCode 
+	);
+	$json = specDbsLam_transfer_commitAdrTmp($forward_post) ;
 	
 	specDbsLam_lib_procCde_syncLinks($p_transferFilerecordId) ;
 	return array('success'=>true) ;

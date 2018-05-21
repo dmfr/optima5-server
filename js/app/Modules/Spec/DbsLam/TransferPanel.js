@@ -259,6 +259,23 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 						},
 						scope: this,
 						itemIdCde: true
+					},{
+						xtype: 'menuseparator',
+						itemIdCde: true
+					},{
+						icon: 'images/op5img/ico_process_16.gif',
+						text: '<b>Acknowlegde steps</b>',
+						itemIdCde: true,
+						itemId: 'tbActionsCdeAck',
+						menu: {
+							defaults: {
+								handler: function(btn) {
+									this.handleActionCdeAck(btn._cdeAckStepCode) ;
+								},
+								scope: this
+							},
+							items: []
+						}
 					}]
 				},'->',{
 					hidden: true,
@@ -373,6 +390,18 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				Ext.Array.each( this.down('toolbar').down('#tbActions').menu.query('[itemIdCde]'), function(menuitem) {
 					menuitem.setVisible( docAllowCde ) ;
 				}) ;
+				
+				var docFlow = doc.get('flow_code'),
+					flowRecord = Optima5.Modules.Spec.DbsLam.HelperCache.getMvtflow(docFlow) ;
+				var cdeAckButtons = [] ;
+				Ext.Array.each( flowRecord.steps, function(step) {
+					cdeAckButtons.push({
+						_cdeAckStepCode: step.step_code,
+						text: step.step_code + ' : ' + step.step_txt
+					}) ;
+				}) ;
+				this.down('toolbar').down('#tbActions').menu.down('#tbActionsCdeAck').menu.removeAll() ;
+				this.down('toolbar').down('#tbActions').menu.down('#tbActionsCdeAck').menu.add(cdeAckButtons) ;
 			}
 		}
 	},
@@ -612,6 +641,14 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 						renderer: function(v,metaData,record) {
 							if( record.getDepth()==1 ) {
 								return '' ;
+							}
+							//return v ;
+							if( record.get('status_is_reject') ) {
+								metaData.tdCls = 'op5-spec-dbslam-stock-notavail'
+							} else if( !record.get('status_is_ok') ) {
+								metaData.tdCls = 'op5-spec-dbslam-stock-wait'
+							} else {
+								metaData.tdCls = 'op5-spec-dbslam-stock-avail'
 							}
 						}
 					});
@@ -879,6 +916,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				}],
 				listeners: {
 					beforedrop: this.doConfigureOnListNeedRender,
+					itemclick: this.onListNeedItemClick,
 					itemcontextmenu: this.onListNeedContextMenu,
 					scope: this
 				},
@@ -1164,6 +1202,12 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		gridContextMenu.showAt(event.getXY());
 	},
 	onListItemClick: function(view,record) {
+		this.setFormRecord(record) ;
+	},
+	onListNeedItemClick: function(view,record) {
+		if( record.getDepth() != 2 ) {
+			return ;
+		}
 		this.setFormRecord(record) ;
 	},
 	onAdrTreeItemClick: function(view, record, item, index, event) {
@@ -2097,6 +2141,34 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			_moduleId: 'spec_dbs_lam',
 			_action: 'transfer_cdeStockAlloc',
 			transfer_filerecordId: this.getActiveTransferFilerecordId()
+		} ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams,
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+				this.optimaModule.postCrmEvent('datachange') ;
+			},
+			scope: this
+		}) ;
+	},
+	handleActionCdeAck: function( ackStepCode, confirm=false ) {
+		if( !confirm ) {
+			Ext.Msg.confirm('Acknowledge','Confirm commit for step '+ackStepCode, function(btn){
+				if( btn=='yes' ) {
+					this.handleActionCdeAck(ackStepCode,true) ;
+				}
+			},this) ;
+			return ;
+		}
+		var ajaxParams = {
+			_moduleId: 'spec_dbs_lam',
+			_action: 'transfer_cdeAckStep',
+			transfer_filerecordId: this.getActiveTransferFilerecordId(),
+			transferStepCode: ackStepCode
 		} ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams,

@@ -69,6 +69,8 @@ switch( $post_data['_action'] )
 	return specDbsLam_transfer_cdeStockAlloc( $post_data ) ;
 	case 'transfer_cdeStockUnalloc' :
 	return specDbsLam_transfer_cdeStockUnalloc( $post_data ) ;
+	case 'transfer_cdeAckStep' :
+	return specDbsLam_transfer_cdeAckStep( $post_data ) ;
 	
 	case 'transfer_saveReject' :
 	return specDbsLam_transfer_saveReject( $post_data ) ;
