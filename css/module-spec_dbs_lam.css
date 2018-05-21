@@ -237,3 +237,13 @@
 	background-repeat: no-repeat;
 	cursor: pointer;
 }
+
+
+
+.op5-spec-dbslam-transferaction-stkallocon {
+	background-image: url("../images/modules/dbslam-stkallocon-16.png") !important;
+}
+.op5-spec-dbslam-transferaction-stkallocoff {
+	background-image: url("../images/modules/dbslam-stkallocoff-16.png") !important;
+}
+

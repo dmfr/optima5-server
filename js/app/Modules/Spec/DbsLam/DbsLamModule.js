@@ -7,7 +7,8 @@ Ext.define('DbsLamCfgMvtStepModel',{
 		{name: 'is_checklist', type: 'boolean'},
 		{name: 'is_attach_parent', type:'boolean'},
 		{name: 'is_final', type:'boolean'},
-		{name: 'is_print', type:'boolean'}
+		{name: 'is_print', type:'boolean'},
+		{name: 'is_exit', type:'boolean'}
 	]
 });
 Ext.define('DbsLamCfgChecklistModel',{
@@ -79,7 +80,9 @@ Ext.define('DbsLamCfgWhseModel',{
 	idProperty: 'whse_code',
 	fields: [
 		{name: 'whse_code', type:'string', useNull:true},
-		{name: 'whse_code', type:'string'}
+		{name: 'whse_txt', type:'string'},
+		{name: 'is_stock', type:'boolean'},
+		{name: 'is_work', type:'boolean'}
 	]
 });
 

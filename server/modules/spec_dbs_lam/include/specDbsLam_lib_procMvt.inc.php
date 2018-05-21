@@ -293,6 +293,7 @@ function specDbsLam_lib_procMvt_commit($mvt_filerecordId, $adr_dest, $adr_dest_d
 	if( $doDelete ) {
 		paracrm_lib_data_deleteRecord_file( 'STOCK' , $stock_filerecordId ) ;
 	}
+	$row_stock['field_LAM_DATEUPDATE'] = date('Y-m-d') ;
 	$stock_filerecordId = paracrm_lib_data_insertRecord_file('STOCK',0,$row_stock) ;
 	
 	

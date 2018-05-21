@@ -216,7 +216,8 @@ function specDbsLam_cfg_getMvtflow() {
 			'is_checklist' => $arr['field_IS_CHECKLIST'],
 			'is_attach_parent' => $arr['field_IS_ATTACH_PARENT'],
 			'is_final' => $arr['field_IS_ADR'],
-			'is_print' => $arr['field_IS_PRINT']
+			'is_print' => $arr['field_IS_PRINT'],
+			'is_exit' => $arr['field_IS_EXIT']
 		) ;
 		
 		$TAB[$flow_code]['steps'][] = $record ;
@@ -274,7 +275,9 @@ function specDbsLam_cfg_getWhse() {
 		$whse_code = $arr['field_WHSE_CODE'] ;
 		$record = array(
 			'whse_code' => $arr['field_WHSE_CODE'],
-			'whse_txt' => $arr['field_WHSE_TXT']
+			'whse_txt' => $arr['field_WHSE_TXT'],
+			'is_stock' => $arr['field_IS_STOCK'],
+			'is_work' => $arr['field_IS_WORK']
 		) ;
 		
 		$TAB[$whse_code] = $record ;

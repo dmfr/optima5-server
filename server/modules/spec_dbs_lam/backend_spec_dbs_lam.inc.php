@@ -61,6 +61,14 @@ switch( $post_data['_action'] )
 	return specDbsLam_transfer_addCdeLink( $post_data ) ;
 	case 'transfer_removeCdeLink' :
 	return specDbsLam_transfer_removeCdeLink( $post_data ) ;
+	case 'transfer_addCdeStock' :
+	return specDbsLam_transfer_addCdeStock( $post_data ) ;
+	case 'transfer_removeCdeStock' :
+	return specDbsLam_transfer_removeCdeStock( $post_data ) ;
+	case 'transfer_cdeStockAlloc' :
+	return specDbsLam_transfer_cdeStockAlloc( $post_data ) ;
+	case 'transfer_cdeStockUnalloc' :
+	return specDbsLam_transfer_cdeStockUnalloc( $post_data ) ;
 	
 	case 'transfer_saveReject' :
 	return specDbsLam_transfer_saveReject( $post_data ) ;

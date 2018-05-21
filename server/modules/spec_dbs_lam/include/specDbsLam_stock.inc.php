@@ -184,6 +184,9 @@ function specDbsLam_stock_printEtiq($post_data) {
 	$json_cfg = $ttmp['data'] ;
 	
 	$p_stock_filerecordIds = json_decode($post_data['stock_filerecordIds'],true) ;
+	if( !$p_stock_filerecordIds ) {
+		return array('success'=>false) ;
+	}
 	
 	$is_first = TRUE ;
 	foreach( $p_stock_filerecordIds as $stk_filerecord_id ) {
