@@ -244,6 +244,107 @@ function specDbsLam_lib_procCde_syncLinks($transfer_filerecord_id) {
 	
 	
 	
+	$map_transfercdeneedFilerecordId_arrStatuses = array() ;
+	$ttmp = specDbsLam_transfer_getTransferLig( array('filter_transferFilerecordId'=>$transfer_filerecord_id) ) ;
+	$rows_transferLig = $ttmp['data'] ;
+	foreach( $rows_transferLig as $row_transferLig ) {
+		$status = 'INIT' ;
+		if( $row_transferLig['status_is_ok'] ) {
+			$status = 'OK' ;
+		}
+		if( $row_transferLig['current_adr'] && $row_transferLig['src_adr']!=$row_transferLig['current_adr'] ) {
+			$status = 'PICK' ;
+		}
+		
+		$transfercdeneed_filerecord_id = $row_transferLig['transfercdeneed_filerecord_id'] ;
+		if( !isset($map_transfercdeneedFilerecordId_arrStatuses[$transfercdeneed_filerecord_id]) ) {
+			$map_transfercdeneedFilerecordId_arrStatuses[$transfercdeneed_filerecord_id] = array(); 
+		}
+		if( !in_array($status,$map_transfercdeneedFilerecordId_arrStatuses[$transfercdeneed_filerecord_id]) ) {
+			$map_transfercdeneedFilerecordId_arrStatuses[$transfercdeneed_filerecord_id][] = $status ;
+		}
+	}
+	
+	$map_transfercdeneedFilerecordId_status = array() ;
+	foreach( $map_transfercdeneedFilerecordId_arrStatuses as $transfercdeneed_filerecord_id => $arrStatuses ) {
+		if( count($arrStatuses) > 1 ) {
+			$status = 'PICK' ;
+		} else {
+			$status = reset($arrStatuses) ;
+		}
+		$map_transfercdeneedFilerecordId_status[$transfercdeneed_filerecord_id] = $status ;
+	}
+	
+	$map_cdeligFilerecordId_status = array() ;
+	$query = "SELECT tcl.field_FILE_TRSFRCDENEED_ID, tcl.field_FILE_CDELIG_ID
+				FROM view_file_TRANSFER_CDE_LINK tcl
+				WHERE filerecord_parent_id='{$transfer_filerecord_id}'" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$cdeligFilerecordId = $arr[1] ;
+		$transfercdeneedFilerecordId = $arr[0] ;
+		
+		$map_cdeligFilerecordId_status[$cdeligFilerecordId] = $map_transfercdeneedFilerecordId_status[$transfercdeneedFilerecordId] ;
+	}
+	
+	$map_cdeFilerecordId_arrStatuses = array() ;
+	$query = "SELECT cl.filerecord_parent_id, cl.filerecord_id
+				FROM view_file_CDE_LIG cl
+				INNER JOIN view_file_TRANSFER_CDE_LINK tcl ON tcl.filerecord_id=cl.field_FILE_TRSFRCDELINK_ID
+				WHERE tcl.filerecord_parent_id='{$transfer_filerecord_id}'" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$cdeligFilerecordId = $arr[1] ;
+		$cdeFilerecordId = $arr[0] ;
+		
+		if( !is_array($map_cdeFilerecordId_arrStatuses[$cdeFilerecordId]) ) {
+			$map_cdeFilerecordId_arrStatuses[$cdeFilerecordId] = array() ;
+		}
+		$status_lig = $map_cdeligFilerecordId_status[$cdeligFilerecordId] ;
+		if( !$status_lig ) {
+			continue ;
+		}
+		if( !in_array($status_lig,$map_cdeFilerecordId_arrStatuses[$cdeFilerecordId]) ) {
+			$map_cdeFilerecordId_arrStatuses[$cdeFilerecordId][] = $status_lig ;
+		}
+	}
+	
+	$map_cdeFilerecordId_status = array() ;
+	foreach( $map_cdeFilerecordId_arrStatuses as $cdeFilerecordId => $arrStatuses ) {
+		while(TRUE) {
+			if( !$arrStatuses ) {
+				$status = '' ;
+				break ;
+			}
+			if( count($arrStatuses)>1 ) {
+				$status = 'PICK' ;
+				break ;
+			}
+			$status = reset($arrStatuses) ;
+			break ;
+		}
+		$map_cdeFilerecordId_status[$cdeFilerecordId] = $status ;
+	}
+	
+	foreach( $map_cdeFilerecordId_status as $cdeFilerecordId => $status ) {
+		switch($status) {
+			case 'OK' :
+				$statuscode = '100' ;
+				break ;
+			case 'PICK' :
+				$statuscode = '80' ;
+				break ;
+			case 'INIT' :
+				$statuscode = '40' ;
+				break ;
+			default :
+				continue 2 ;
+		}
+		
+		$query = "UPDATE view_file_CDE SET field_STATUS = '{$statuscode}' 
+				WHERE filerecord_id='{$cdeFilerecordId}' AND field_STATUS>='40'"  ;
+		$_opDB->query($query) ;
+	}
 	
 	
 	

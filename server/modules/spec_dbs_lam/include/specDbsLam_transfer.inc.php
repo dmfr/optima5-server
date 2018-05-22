@@ -2435,6 +2435,7 @@ function specDbsLam_transfer_addCdeLink($post_data) {
 		}
 		$arr_update = array() ;
 		$arr_update['field_STATUS'] = '20' ;
+		$arr_update['field_FILE_TRANSFER_ID'] = $p_transferFilerecordId ;
 		paracrm_lib_data_updateRecord_file('CDE',$arr_update,$cde_filerecord_id) ;
 	}
 
@@ -2498,6 +2499,7 @@ function specDbsLam_transfer_removeCdeLink($post_data) {
 		
 		$arr_update = array() ;
 		$arr_update['field_STATUS'] = '10' ;
+		$arr_update['field_FILE_TRANSFER_ID'] = 0 ;
 		paracrm_lib_data_updateRecord_file('CDE',$arr_update,$cde_filerecord_id) ;
 	}
 	

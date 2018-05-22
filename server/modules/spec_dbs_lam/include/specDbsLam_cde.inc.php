@@ -16,7 +16,9 @@ function specDbsLam_cde_getGrid($post_data) {
 	
 	$TAB = array() ;
 	
-	$query = "SELECT c.* FROM view_file_CDE c WHERE 1" ;
+	$query = "SELECT c.*, t.filerecord_id as link_transfer_filerecord_id, t.field_TRANSFER_TXT as link_transfer_txt FROM view_file_CDE c" ;
+	$query.= " LEFT OUTER JOIN view_file_TRANSFER t on t.filerecord_id=c.field_FILE_TRANSFER_ID" ;
+	$query.= " WHERE 1" ;
 	$query.= " ORDER BY c.filerecord_id DESC" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
@@ -36,7 +38,9 @@ function specDbsLam_cde_getGrid($post_data) {
 			'vl_m3' => (int)$arr['field_VL_M3'],
 			'adr_name' => $arr['field_ADR_NAME'],
 			'adr_cp' => $arr['field_ADR_CP'],
-			'adr_country' => $arr['field_ADR_COUNTRY']
+			'adr_country' => $arr['field_ADR_COUNTRY'],
+			'link_transfer_filerecord_id' => $arr['link_transfer_filerecord_id'],
+			'link_transfer_txt' => $arr['link_transfer_txt']
 		);
 		foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
 			if( !$stockAttribute_obj['CDE_fieldcode'] ) {

@@ -28,7 +28,10 @@ Ext.define('DbsLamCdeGridModel',{
 		{name: 'vl_m3', type:'number'},
 		{name: 'adr_name', type:'string'},
 		{name: 'adr_cp', type:'string'},
-		{name: 'adr_country', type:'string'}
+		{name: 'adr_country', type:'string'},
+		
+		{name: 'link_transfer_filerecord_id', type:'int'},
+		{name: 'link_transfer_txt', type:'string'}
 	]
 });
 
@@ -238,29 +241,38 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CdePanel',{
 					columns: atrCdeColumns
 				},{
 					text: 'Status',
-					isColumnStatus: true,
-					width: 100,
-					renderer: function(v,m,record) {
-						var tmpProgress = record.get('status') / 100 ;
-						var tmpText = record.get('status')+' : '+record.get('status_txt') ;
-							var b = new Ext.ProgressBar({height: 15, cls: 'op5-spec-mrfoxy-promolist-progress'});
-							if( record.get('status_color') ) {
-								//b.setStyle(
-							}
-							b.updateProgress(tmpProgress,tmpText);
-							v = Ext.DomHelper.markup(b.getRenderTree());
-							b.destroy() ;
-						return v;
-					},
-					menuDisabled:false,
-					dataIndex: 'status',
-					filter: {
-						type: 'op5crmbasebible',
-						optimaModule: this.optimaModule,
-						bibleId: 'STATUS_CDE'
-					},
-					groupable: true,
-					_groupBy: 'status'
+					columns: [{
+						text: 'Current',
+						isColumnStatus: true,
+						width: 100,
+						renderer: function(v,m,record) {
+							var tmpProgress = record.get('status') / 100 ;
+							var tmpText = record.get('status')+' : '+record.get('status_txt') ;
+								var b = new Ext.ProgressBar({height: 15, cls: 'op5-spec-mrfoxy-promolist-progress'});
+								if( record.get('status_color') ) {
+									//b.setStyle(
+								}
+								b.updateProgress(tmpProgress,tmpText);
+								v = Ext.DomHelper.markup(b.getRenderTree());
+								b.destroy() ;
+							return v;
+						},
+						menuDisabled:false,
+						dataIndex: 'status',
+						filter: {
+							type: 'op5crmbasebible',
+							optimaModule: this.optimaModule,
+							bibleId: 'STATUS_CDE'
+						},
+						groupable: true,
+						_groupBy: 'status'
+					},{
+						text: 'Transfer',
+						dataIndex: 'link_transfer_txt',
+						filter: {
+							type: 'stringlist'
+						}
+					}]
 				},{
 					text: 'Dates / Time',
 					columns: [{
