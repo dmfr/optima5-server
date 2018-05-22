@@ -430,7 +430,7 @@ function specDbsLam_transfer_printDoc( $post_data ) {
 			
 			$adr_rowsTransferLig = array() ;
 			foreach( $rows_transferLig as $row_transferLig ) {
-				$adr = $row_transferLig['src_adr'] ;
+				$adr = ($step_isFinal ? $row_transferLig['src_adr'] : $row_transferLig['next_adr'] ) ;
 				if( !$tab_rowsTransferLig[$adr] ) {
 					$tab_rowsTransferLig[$adr] = array(
 						'adr' => $adr,
@@ -460,7 +460,7 @@ function specDbsLam_transfer_printDoc( $post_data ) {
 			
 			$tab_rowsTransferLig = array() ;
 			foreach( $rows_transferLig as $row_transferLig ) {
-				$adr = ( $step_isFinal ? $row_transferLig['current_adr_entryKey'] : $row_transferLig['current_adr_treenodeKey'] ) ; ;
+				$adr = ( $step_isFinal ? $row_transferLig['current_adr_entryKey'] : $row_transferLig['next_adr'] ) ; ;
 				if( $step_isFinal ) {
 					$tab_rowsTransferLig[] = array(
 						'adr' => $adr,
@@ -544,6 +544,7 @@ function specDbsLam_transfer_printDoc( $post_data ) {
 					$buffer.= "<th>Dest.Pos</th>";
 				$buffer.= "</tr>" ;
 			$buffer.= '</thead>' ;
+			usort($rows_transferLig, create_function('$a,$b','return strcmp($a[\'current_adr\'],$b[\'current_adr\']) ;'));
 			foreach( $rows_transferLig as $row_transferLig ) {
 				$current_adr = $row_transferLig['current_adr'] ;
 				$next_adr = $row_transferLig['next_adr'] ;
