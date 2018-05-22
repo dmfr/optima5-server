@@ -512,6 +512,7 @@ function oscario_interface_do( $_OSCARIO_DOMAIN, $_OSCARIO_MAG, $_OPTIMA_SOC ) {
 	$tab_ent = array() ;
 	$tab_ligs = array() ;
 	$tab_idata = array() ;
+	$kitCopy = array() ;
 	$post_params = array() ;
 	$post_params['action'] = 'get_cdes_upload' ;
 	$post_params['oscario_mag'] = $_OSCARIO_MAG ;
@@ -593,7 +594,14 @@ function oscario_interface_do( $_OSCARIO_DOMAIN, $_OSCARIO_MAG, $_OPTIMA_SOC ) {
 		foreach( $tab_ligs[$noscde] as $lig )
 		{
 			$kit_link_noscde = trim(substr($lig,60,20)) ;
-		
+			if( $kit_link_noscde ) {
+				$kitCopy[] = array(
+					'src' => $kit_link_noscde,
+					'dst' => $noscde
+				) ;
+				continue ;
+			}
+			
 			$c++ ;
 			$arr_lgcde = array() ;
 			$arr_lgcde['field_LIG_ID'] = $c ;
@@ -610,6 +618,27 @@ function oscario_interface_do( $_OSCARIO_DOMAIN, $_OSCARIO_MAG, $_OPTIMA_SOC ) {
 		$arr_update = array() ;
 		$arr_update['field_VL_NBUM'] = $nb_um ;
 		paracrm_lib_data_updateRecord_file( 'CDE', $arr_update, $arr_ecde['filerecord_id'] ) ;
+	}
+	
+	
+	
+	foreach( $kitCopy as $copy ) {
+		$src_cdenr = $copy['src'] ;
+		$dst_cdenr = $copy['dst'] ;
+		
+		$query = "SELECT filerecord_id FROM view_file_CDE WHERE field_CDE_NR='$src_cdenr'" ;
+		$src_filerecordId = $_opDB->query_uniqueValue($query) ;
+		$query = "SELECT filerecord_id FROM view_file_CDE WHERE field_CDE_NR='$dst_cdenr'" ;
+		$dst_filerecordId = $_opDB->query_uniqueValue($query) ;
+		
+		$query = "UPDATE view_file_CDE_LIG SET filerecord_parent_id='{$dst_filerecordId}' WHERE filerecord_parent_id='{$src_filerecordId}'" ;
+		$_opDB->query($query) ;
+		$query = "DELETE FROM view_file_CDE WHERE filerecord_id='{$src_filerecordId}'" ;
+		$_opDB->query($query) ;
+		
+		$nb_um = $_opDB->query_uniqueValue("SELECT sum(field_QTY_CDE) FROM view_file_CDE_LIG WHERE filerecord_parent_id='{$dst_filerecordId}'") ;
+		$query = "UPDATE view_file_CDE SET field_VL_NBUM='{$nb_um}' WHERE filerecord_id='{$dst_filerecordId}'" ;
+		$_opDB->query($query) ;
 	}
 }
 ?>
