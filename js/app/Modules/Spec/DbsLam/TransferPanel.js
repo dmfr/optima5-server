@@ -598,6 +598,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					} else {
 						return '<i>'+v+'</i>' ;
 					}
+				},
+				editor: {
+					xtype: 'textfield'
 				}
 			}]
 		};
@@ -850,8 +853,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					proxy: {
 						type: 'memory',
 						reader: {
-							type: 'json',
-							rootProperty: 'data'
+							type: 'json'
 						}
 					},
 					listeners: {
@@ -866,6 +868,14 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					ptype: 'bufferedrenderer',
 					pluginId: 'bufferedRenderer',
 					synchronousRender: true
+				},{
+					ptype: 'cellediting',
+					clicksToEdit: 2,
+					listeners: {
+						beforeedit: this.onListBeforeEdit,
+						validateedit: this.onListEdit,
+						scope: this
+					}
 				}],
 				listeners: {
 					render: this.doConfigureOnListRender,
@@ -1153,6 +1163,13 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		}
 
 		gridContextMenuItems.push({
+			iconCls: 'icon-bible-newfile',
+			text: 'Show log',
+			handler : function() {
+				this.setFormRecord(selRecord) ;
+			},
+			scope : this
+		},'-',{
 			iconCls: 'icon-bible-delete',
 			text: 'Remove stock allocation',
 			handler : function() {
@@ -1181,6 +1198,16 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		for( var recIdx=0 ; recIdx<selRecords.length ; recIdx++ ) {
 			entryKeys.push( selRecords[recIdx].get('transferlig_filerecord_id') ) ;
 		}
+		if( entryKeys.length==1 ) {
+			gridContextMenuItems.push({
+				iconCls: 'icon-bible-newfile',
+				text: 'Show log',
+				handler : function() {
+					this.setFormRecord(selRecords[0]) ;
+				},
+				scope : this
+			},'-') ;
+		}
 		gridContextMenuItems.push({
 			iconCls: 'icon-bible-delete',
 			text: 'Remove <b>'+selRecords.length+'</b> rows',
@@ -1202,13 +1229,17 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		gridContextMenu.showAt(event.getXY());
 	},
 	onListItemClick: function(view,record) {
+		/*
 		this.setFormRecord(record) ;
+		*/
 	},
 	onListNeedItemClick: function(view,record) {
+		/*
 		if( record.getDepth() != 2 ) {
 			return ;
 		}
 		this.setFormRecord(record) ;
+		*/
 	},
 	onAdrTreeItemClick: function(view, record, item, index, event) {
 		var gridpanel = this.down('#pCenter').down('#pLigs'),
@@ -1455,7 +1486,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		}) ;
 	},
 	onLigsLoad: function(ajaxData) {
-		this.down('#pCenter').down('#pLigs').getStore().loadData( ajaxData ) ;
+		this.down('#pCenter').down('#pLigs').getStore().loadRawData( ajaxData ) ;
 		this.onLigsAfterLoad( this.down('#pCenter').down('#pLigs').getStore() ) ;
 	},
 	onCdesLoad: function(ajaxData) {
@@ -2182,6 +2213,61 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			},
 			scope: this
 		}) ;
+	},
+	
+	onListBeforeEdit: function( editor, context ) {
+		if( context.record.get('status_is_ok') ) {
+			return false ;
+		}
+	},
+	onListEdit: function( editor, context ) {
+		switch( context.field ) {
+			case 'next_adr' :
+				if( !this.onListEditAdr(context.record,context.originalValue,context.value) ) {
+					context.cancel = true ;
+					return false ;
+				}
+				return true ;
+			default :
+				context.cancel = true ;
+				return false ;
+		}
+	},
+	onListEditAdr: function( gridRecord, oldValue, newValue ) {
+		if( newValue.trim().toUpperCase() == oldValue.trim().toUpperCase() ) {
+			return false ;
+		}
+		var curStepCode = gridRecord.get('step_code'),
+			transferLig_filerecordId = gridRecord.get('transferlig_filerecord_id'),
+			empty = Ext.isEmpty(newValue.trim().toUpperCase()) ;
+		
+		this.showLoadmask() ;
+		var ajaxParams = {
+			_moduleId: 'spec_dbs_lam',
+			_action: (empty ? 'transfer_unallocAdrFinal':'transfer_allocAdrFinal'),
+			transfer_filerecordId: this.getActiveTransferFilerecordId(),
+			transferLigFilerecordId_arr: Ext.JSON.encode([transferLig_filerecordId]),
+			transferStepCode: curStepCode,
+			manAdr_isOn: true,
+			manAdr_adrId: newValue.trim().toUpperCase()
+		} ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams,
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','Location not accepted') ;
+					gridRecord.set('next_adr',oldValue) ;
+					return ;
+				}
+				this.optimaModule.postCrmEvent('datachange') ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+		return true ;
 	},
 	
 	
