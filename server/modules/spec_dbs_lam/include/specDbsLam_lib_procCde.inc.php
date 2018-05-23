@@ -357,11 +357,27 @@ function specDbsLam_lib_procCde_syncLinks($transfer_filerecord_id) {
 
 
 
-function specDbsLam_lib_procCde_searchStock( $stk_prod, $qty ) {
+function specDbsLam_lib_procCde_searchStock( $stk_prod, $qty, $from_picking=false) {
 	global $_opDB ;
 	
+	if( $from_picking===false ) {
+		for( $i=1 ; $i>=0 ; $i-- ) {
+			$r = specDbsLam_lib_procCde_searchStock($stk_prod, $qty, $i) ;
+			if( $r ) {
+				return $r ;
+			}
+		}
+		return array() ;
+	}
+	
 	$arr_results = array() ;
-	$query = "SELECT * FROM view_file_STOCK WHERE field_PROD_ID='{$stk_prod}' ORDER BY field_LAM_DATEUPDATE ASC" ;
+	$query = "SELECT stk.* FROM view_file_STOCK stk";
+	$query.= " JOIN view_bible_ADR_entry adr ON adr.entry_key=stk.field_ADR_ID" ;
+	$query.= " WHERE 1 AND stk.field_PROD_ID='{$stk_prod}'" ;
+	if( $from_picking ) {
+		$query.= " AND (adr.field_CONT_IS_ON='0' OR (adr.field_CONT_IS_ON='1' AND adr.field_CONT_IS_PICKING='1'))" ;
+	}
+	$query.= " ORDER BY field_LAM_DATEUPDATE ASC" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 		if( $qty <= 0 ) {
