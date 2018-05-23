@@ -116,7 +116,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunContainersTake',{
 				var ajaxResponse = Ext.decode(response.responseText),
 					transferligRecord = null ;
 				if( ajaxResponse.data && ajaxResponse.data.length == 1 ) {
-					transferligRecord = Ext.ux.dams.ModelManager.create('DbsLamTransferGridModel',ajaxResponse.data[0]) ;
+					transferligRecord = Ext.ux.dams.ModelManager.create('DbsLamTransferLigsModel',ajaxResponse.data[0]) ;
 				}
 				if( !transferligRecord ) {
 					return ;

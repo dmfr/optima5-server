@@ -388,7 +388,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.ProductsPanel',{
 		
 		Ext.ux.dams.ModelManager.unregister( this.tmpGridTreeModelName ) ;
 		Ext.define(this.tmpGridTreeModelName, {
-			extend: 'DbsLamTransferGridModel',
+			extend: 'DbsLamTransferLigsModel',
 			fields: pushModelfields,
 			idProperty: 'id'
 		});

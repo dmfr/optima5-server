@@ -39,7 +39,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunContainersList',{
 				scope : this
 			}],
 			store: {
-				model: 'DbsLamTransferGridModel',
+				model: 'DbsLamTransferLigsModel',
 				autoLoad: true,
 				proxy: this.optimaModule.getConfiguredAjaxProxy({
 					extraParams : {
