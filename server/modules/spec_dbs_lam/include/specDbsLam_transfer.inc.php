@@ -422,6 +422,9 @@ function specDbsLam_transfer_printDoc( $post_data ) {
 			$result = $_opDB->query($query) ;
 			$row_transfer = $_opDB->fetch_assoc($result) ;
 			
+			$whseDest_isWork = $_opDB->query_uniqueValue("SELECT field_IS_WORK FROM view_bible_CFG_WHSE_entry WHERE entry_key='{$row_transfer['whse_dest']}'") ;
+			$whseSrc_isWork = $_opDB->query_uniqueValue("SELECT field_IS_WORK FROM view_bible_CFG_WHSE_entry WHERE entry_key='{$row_transfer['whse_src']}'") ;
+		
 			$query = "UPDATE view_file_TRANSFER set field_STATUS_IS_ON='1' WHERE filerecord_id='{$transfer_filerecordId}'" ;
 			$_opDB->query($query) ;
 		
@@ -430,7 +433,13 @@ function specDbsLam_transfer_printDoc( $post_data ) {
 			
 			$adr_rowsTransferLig = array() ;
 			foreach( $rows_transferLig as $row_transferLig ) {
-				$adr = ($step_isFinal ? $row_transferLig['src_adr'] : $row_transferLig['next_adr'] ) ;
+				$adr = preg_replace("/[^A-Z0-9]/", "", strtoupper($row_transfer['field_TRANSFER_TXT'])) ;
+				if( $whseSrc_isWork ) {
+					$adr = $row_transferLig['src_adr'] ;
+				}
+				if( $whseDest_isWork ) {
+					$adr = $row_transferLig['next_adr'] ;
+				}
 				if( !$tab_rowsTransferLig[$adr] ) {
 					$tab_rowsTransferLig[$adr] = array(
 						'adr' => $adr,
@@ -451,7 +460,7 @@ function specDbsLam_transfer_printDoc( $post_data ) {
 			$query = "SELECT * FROM view_file_TRANSFER WHERE filerecord_id='{$transfer_filerecordId}'" ;
 			$result = $_opDB->query($query) ;
 			$row_transfer = $_opDB->fetch_assoc($result) ;
-		
+			
 			$ttmp = specDbsLam_transfer_getTransferLig( array(
 				'filter_transferFilerecordId'=>$transfer_filerecordId,
 				'filter_transferLigFilerecordId_arr'=>json_encode($transferLig_filerecordIds)
@@ -476,6 +485,30 @@ function specDbsLam_transfer_printDoc( $post_data ) {
 				}
 				$tab_rowsTransferLig[$adr]['arr'][] = $row_transferLig ;
 			}
+		}
+		$transfer_isCde = $_opDB->query_uniqueValue("SELECT field_IS_CDE FROM view_bible_CFG_MVTFLOW_tree WHERE treenode_key='{$row_transfer['field_FLOW_CODE']}'") ;
+		if( $transfer_isCde ) {
+			$tab_prod_cde_qty = array() ;
+			// query TRANSFER NEEDS
+			$query = "SELECT cl.field_PROD_ID as stk_prod, c.field_CDE_NR as cde_nr, sum(field_QTY_CDE) as qty_cde
+						FROM view_file_TRANSFER_CDE_NEED tcn
+						JOIN view_file_TRANSFER_CDE_LINK tcl ON tcl.field_FILE_TRSFRCDENEED_ID=tcn.filerecord_id
+						JOIN view_file_CDE_LIG cl ON cl.filerecord_id = tcl.field_FILE_CDELIG_ID
+						JOIN view_file_CDE c ON c.filerecord_id = cl.filerecord_parent_id
+						WHERE tcn.filerecord_parent_id='{$transfer_filerecordId}' AND (tcn.field_QTY_NEED=tcn.field_QTY_ALLOC)
+						GROUP BY cl.field_PROD_ID, c.field_CDE_NR" ;
+			$result = $_opDB->query($query) ;
+			while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+				if( !isset($tab_prod_cde_qty[$arr['stk_prod']]) ) {
+					$tab_prod_cde_qty[$arr['stk_prod']] = array() ;
+				}
+				if( !isset($tab_prod_cde_qty[$arr['stk_prod']][$arr['cde_nr']]) ) {
+					$tab_prod_cde_qty[$arr['stk_prod']][$arr['cde_nr']] = 0 ;
+				}
+				$tab_prod_cde_qty[$arr['stk_prod']][$arr['cde_nr']]+= $arr['qty_cde'] ;
+			}
+			
+			//print_r($tab_prod_cde_qty) ;
 		}
 	
 	$title = ( $step_isFinal ? 'MISE EN STOCK' : 'BORDEREAU DE TRANSFERT' );
@@ -537,11 +570,14 @@ function specDbsLam_transfer_printDoc( $post_data ) {
 					$buffer.= "<th>Position</th>";
 					$buffer.= "<th>Container</th>";
 					$buffer.= "<th>PartNumber</th>";
-					$buffer.= "<th>Batch</th>";
-					$buffer.= "<th>DLC</th>";
+					//$buffer.= "<th>Batch</th>";
+					//$buffer.= "<th>DLC</th>";
 					$buffer.= "<th>Qty</th>";
-					$buffer.= "<th>SN</th>";
+					//$buffer.= "<th>SN</th>";
 					$buffer.= "<th>Dest.Pos</th>";
+					if( $transfer_isCde ) {
+						$buffer.= "<th>OrderNeed</th>";
+					}
 				$buffer.= "</tr>" ;
 			$buffer.= '</thead>' ;
 			usort($rows_transferLig, create_function('$a,$b','return strcmp($a[\'current_adr\'],$b[\'current_adr\']) ;'));
@@ -568,19 +604,43 @@ function specDbsLam_transfer_printDoc( $post_data ) {
 					$buffer.= "<td><span class=\"mybig\">{$row_transferLig['container_ref']}</span></td>" ;
 					$buffer.= "<td><span class=\"mybig\">{$stk_prod_str}</span></td>" ;
 					
+					/*
 					$class = ($arr_prod['field_SPEC_IS_BATCH'] ? '' : 'croix') ;
 					$buffer.= "<td class=\"$class\"><span>{$row_transferLig['stk_batch']}</span></td>" ;
 					
 					$datelc = ($row_transferLig['stk_datelc'] != '0000-00-00 00:00:00' ? substr($row_transferLig['stk_datelc'],0,10) : '') ;
 					$class = ($arr_prod['field_SPEC_IS_DLC'] ? '' : 'croix') ;
 					$buffer.= "<td class=\"$class\"><span>{$datelc}</span></td>" ;
+					*/
 					
 					$buffer.= "<td align='right'><span class=\"mybig\"><b>".(float)$row_transferLig['mvt_qty']."</b></span></td>" ;
 					
+					/*
 					$class = ($arr_prod['field_SPEC_IS_SN'] ? '' : 'croix') ;
 					$buffer.= "<td class=\"$class\"><span class=\"\">{$row_transferLig['stk_sn']}</span></td>" ;
+					*/
 					
 					$buffer.= "<td><span class=\"\"><span class=\"mybig\"><b>{$next_adr}</b></span></td>" ;
+					
+					if( $transfer_isCde ) {
+						$map_cde_qty = array() ;
+						$stk_qty = (float)$row_transferLig['mvt_qty'] ;
+						if( $tab_prod_cde_qty[$row_transferLig['stk_prod']] ) {
+							foreach( $tab_prod_cde_qty[$row_transferLig['stk_prod']] as $cde_nr => $qty ) {
+								$qty_transfer = min($qty,$stk_qty) ;
+								$tab_prod_cde_qty[$row_transferLig['stk_prod']][$cde_nr] -= $qty_transfer ;
+								$stk_qty -= $qty_transfer ;
+								$map_cde_qty[$cde_nr] = $qty_transfer ;
+							}
+						}
+						$buffer.= "<td>" ;
+							$buffer.= "<table class='tablesilent'>" ;
+							foreach( $map_cde_qty as $cde => $qty ) {
+								$buffer.= "<tr><td>$cde</td><td>&nbsp;&nbsp;</td><td><b>$qty</b></td></tr>" ;
+							}
+							$buffer.= "</table>" ;
+						$buffer.= "</td>" ;
+					}
 				$buffer.= "</tr>" ;
 			}
 		$buffer.= "</table>" ;
