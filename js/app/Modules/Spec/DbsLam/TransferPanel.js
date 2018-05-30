@@ -276,6 +276,16 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 							},
 							items: []
 						}
+					},{
+						xtype: 'menuseparator',
+						itemIdCde: true
+					},{
+						icon: 'images/op5img/ico_print_16.png',
+						text: '<b>Print summary</b>',
+						handler: function() {
+							this.openPrintDoc('transfer_cdebrt') ;
+						},
+						scope: this
 					}]
 				},'->',{
 					hidden: true,
@@ -1849,6 +1859,89 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		}) ;
 	},
 	openPrintPopupDo: function(pageTitle, pageHtml) {
+		this.optimaModule.createWindow({
+			width:850,
+			height:700,
+			iconCls: 'op5-crmbase-qresultwindow-icon',
+			animCollapse:false,
+			border: false,
+			layout:'fit',
+			title: pageTitle,
+			items:[Ext.create('Ext.ux.dams.IFrameContent',{
+				itemId: 'uxIFrame',
+				content:pageHtml
+			})],
+			tbar:[{
+				icon: 'images/op5img/ico_print_16.png',
+				text: 'Print',
+				handler: function(btn) {
+					var uxIFrame = btn.up('window').down('#uxIFrame'),
+						uxIFrameWindows = uxIFrame.getWin() ;
+					if( uxIFrameWindows == null ) {
+						Ext.MessageBox.alert('Problem','Printing disabled !') ;
+						return ;
+					}
+					uxIFrameWindows.print() ;
+				},
+				scope: this
+			},{
+				icon: 'images/op5img/ico_save_16.gif',
+				text: 'Save as PDF',
+				handler: function(btn) {
+					var uxIFrame = btn.up('window').down('#uxIFrame') ;
+					
+					var exportParams = this.optimaModule.getConfiguredAjaxParams() ;
+					Ext.apply(exportParams,{
+						_moduleId: 'spec_dbs_lam',
+						_action: 'util_htmlToPdf',
+						html: Ext.JSON.encode(uxIFrame.content)
+					}) ;
+					Ext.create('Ext.ux.dams.FileDownloader',{
+						renderTo: Ext.getBody(),
+						requestParams: exportParams,
+						requestAction: Optima5.Helper.getApplication().desktopGetBackendUrl(),
+						requestMethod: 'POST'
+					}) ;
+				},
+				scope: this
+			}]
+		}); 
+	},
+	
+	
+	
+	openPrintDoc: function(docCode) {
+		if( !this.getActiveTransferFilerecordId() ) {
+			Ext.MessageBox.alert('Error','No suitable doc selected.') ;
+			return ;
+		}
+		var pTreeSelection = this.down('#pCenter').down('#pTree').getSelectionModel().getSelection() ;
+		
+		this.showLoadmask() ;
+		
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_lam',
+				_action: 'print_getDoc',
+				transfer_filerecordId: this.getActiveTransferFilerecordId(),
+				print_doc: docCode
+			},
+			success: function(response) {
+				var jsonResponse = Ext.JSON.decode(response.responseText) ;
+				if( jsonResponse.success == true ) {
+					this.openPrintDocDo( 'Transfer doc : '+pTreeSelection[0].get('display_txt'), jsonResponse.html ) ;
+				} else {
+					Ext.MessageBox.alert('Error','Print system disabled') ;
+				}
+				this.doTransferLoad() ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+	},
+	openPrintDocDo: function(pageTitle, pageHtml) {
 		this.optimaModule.createWindow({
 			width:850,
 			height:700,

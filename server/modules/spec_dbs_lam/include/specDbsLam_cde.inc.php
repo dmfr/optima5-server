@@ -19,6 +19,9 @@ function specDbsLam_cde_getGrid($post_data) {
 	$query = "SELECT c.*, t.filerecord_id as link_transfer_filerecord_id, t.field_TRANSFER_TXT as link_transfer_txt FROM view_file_CDE c" ;
 	$query.= " LEFT OUTER JOIN view_file_TRANSFER t on t.filerecord_id=c.field_FILE_TRANSFER_ID" ;
 	$query.= " WHERE 1" ;
+	if( $post_data['filter_cdeFilerecordId_arr'] ) {
+		$query.= " AND c.filerecord_id IN ".$_opDB->makeSQLlist(json_decode($post_data['filter_cdeFilerecordId_arr'],true)) ;
+	}
 	$query.= " ORDER BY c.filerecord_id DESC" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
@@ -58,6 +61,9 @@ function specDbsLam_cde_getGrid($post_data) {
 	$query = "SELECT cl.*, p.field_PROD_TXT FROM view_file_CDE_LIG cl" ;
 	$query.= " LEFT OUTER JOIN view_bible_PROD_entry p ON p.entry_key=cl.field_PROD_ID" ;
 	$query.= " WHERE 1" ;
+	if( $post_data['filter_cdeFilerecordId_arr'] ) {
+		$query.= " AND cl.filerecord_parent_id IN ".$_opDB->makeSQLlist(json_decode($post_data['filter_cdeFilerecordId_arr'],true)) ;
+	}
 	$query.= " ORDER BY cl.filerecord_id DESC" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
