@@ -392,6 +392,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CdePanel',{
 				enableNoGroups: false
 			}],
 			viewConfig: {
+				enableTextSelection: true
 			}
 		} ;
 		if( this._enableDD ) {
