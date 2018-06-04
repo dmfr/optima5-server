@@ -516,7 +516,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			},{
 				dataIndex: 'cde_nr',
 				text: 'Order #',
-				width: 150
+				width: 150,
+				filter: {
+					type: 'string'
+				}
 			},{
 				dataIndex: 'lig_id',
 				text: 'Lig #',
