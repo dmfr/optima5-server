@@ -14,7 +14,7 @@ function specDbsLam_prods_getGrid($post_data) {
 	if( isset($post_data['entry_key']) ) {
 		$query.= " WHERE entry_key = '{$post_data['entry_key']}'" ;
 	} elseif ( isset($post_data['filter']) ) {
-		$query.= " WHERE entry_key LIKE '{$post_data['soc_code']}_{$post_data['filter']}%'" ;
+		$query.= " WHERE ( entry_key LIKE '{$post_data['soc_code']}_{$post_data['filter']}%' OR entry_key LIKE '%{$post_data['filter']}%' )" ;
 	} else {
 		$query.= " WHERE 1" ;
 	}

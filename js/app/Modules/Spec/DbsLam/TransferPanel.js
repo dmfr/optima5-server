@@ -10,6 +10,16 @@ Ext.define('DbsLamTransferTreeModel',{
 		{name: 'whse_dest', type:'string'},
 		{name: 'flow_code', type:'string'}
 	],
+	hasAllowForeign: function() {
+		// iscde
+		var docFlow = this.get('flow_code'),
+			flowRecord = Optima5.Modules.Spec.DbsLam.HelperCache.getMvtflow(docFlow),
+			flowIsForeign = flowRecord.is_foreign ;
+		if( flowIsForeign ) {
+			return true ;
+		}
+		return false ;
+	},
 	hasAllowCde: function() {
 		// iscde
 		var docFlow = this.get('flow_code'),
@@ -89,7 +99,9 @@ Ext.define('DbsLamTransferLigsModel',{
 		{name: 'need_txt', type: 'string'},
 		{name: 'need_prod', type: 'string'},
 		{name: 'need_qty_remain', type: 'number'},
-		{name: 'transfercdeneed_filerecord_id', type:'int'}
+		{name: 'transfercdeneed_filerecord_id', type:'int'},
+		
+		{name: '_input_is_on', type:'boolean'}
 	],
 	hasMany: [{
 		model: 'DbsLamTransferStepModel',
@@ -208,6 +220,17 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					icon: 'images/op5img/ico_arrow-down_16.png',
 					text: 'Actions',
 					menu: [{
+						icon: 'images/op5img/ico_new_16.gif',
+						text: '<b>Input new</b>',
+						handler: function() {
+							this.handleNewForeign() ;
+						},
+						scope: this,
+						itemIdForeign: true
+					},{
+						xtype: 'menuseparator',
+						itemIdForeign: true
+					},{
 						icon: 'images/op5img/ico_print_16.png',
 						text: '<b>Print</b>',
 						handler: function() {
@@ -393,12 +416,16 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			if( isDocSelected ) {
 				var doc = selectedNodes[0],
 					docAllowFinalStock = doc.hasAllowFinalStock(),
-					docAllowCde = doc.hasAllowCde() ;
+					docAllowCde = doc.hasAllowCde(),
+					docAllowForeign = doc.hasAllowForeign() ;
 				Ext.Array.each( this.down('toolbar').down('#tbActions').menu.query('[itemIdFinalStock]'), function(menuitem) {
 					menuitem.setVisible( docAllowFinalStock ) ;
 				}) ;
 				Ext.Array.each( this.down('toolbar').down('#tbActions').menu.query('[itemIdCde]'), function(menuitem) {
 					menuitem.setVisible( docAllowCde ) ;
+				}) ;
+				Ext.Array.each( this.down('toolbar').down('#tbActions').menu.query('[itemIdForeign]'), function(menuitem) {
+					menuitem.setVisible( docAllowForeign ) ;
 				}) ;
 				
 				var docFlow = doc.get('flow_code'),
@@ -439,7 +466,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 	},
 	doConfigure: function() {
 		var pCenter = this.down('#pCenter') ;
-		
 		
 		var pushModelfields = [], atrAdrColumns = [], atrStockColumns = [] ;
 		Ext.Array.each( Optima5.Modules.Spec.DbsLam.HelperCache.getAttributeAll(), function( attribute ) {
@@ -586,11 +612,70 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				columns: [{
 					dataIndex: 'container_ref',
 					text: 'Container',
-					width: 100
+					width: 100,
+					editorTplNew: {
+								xtype: 'combobox',
+								anchor: '100%',
+								forceSelection:true,
+								allowBlank:true,
+								editable:false,
+								queryMode: 'local',
+								displayField: 'container_type_txt',
+								valueField: 'container_type',
+								fieldStyle: 'text-transform:uppercase',
+								store: {
+									model: 'DbsLamCfgContainerTypeModel',
+									data: Ext.Array.merge([{container_type:''}],Optima5.Modules.Spec.DbsLam.HelperCache.getContainerTypeAll()),
+									proxy: {
+										type: 'memory'
+									},
+									listeners: {
+										scope: this
+									}
+								},
+								listeners: {
+									scope: this
+								}
+					}
 				},{
 					dataIndex: 'stk_prod',
 					text: 'P/N',
-					width: 100
+					width: 100,
+					editorTplNew: {
+								xtype: 'combobox',
+								forceSelection:true,
+								allowBlank:true,
+								editable:true,
+								typeAhead:false,
+								selectOnFocus: true,
+								selectOnTab: false,
+								queryMode: 'remote',
+								displayField: 'prod_id',
+								valueField: 'id',
+								queryParam: 'filter',
+								minChars: 2,
+								fieldStyle: 'text-transform:uppercase',
+								store: {
+									model: 'DbsLamProdComboboxModel',
+									proxy: this.optimaModule.getConfiguredAjaxProxy({
+										extraParams : {
+											_moduleId: 'spec_dbs_lam',
+											_action: 'prods_getGrid',
+											limit: 20
+										},
+										reader: {
+											type: 'json',
+											rootProperty: 'data'
+										}
+									}),
+									listeners: {
+										scope: this
+									}
+								},
+								listeners: {
+									scope: this
+								}
+					}
 				},{
 					dataIndex: 'stk_batch',
 					text: 'BatchCode',
@@ -599,7 +684,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					dataIndex: 'mvt_qty',
 					text: 'Qty disp',
 					align: 'right',
-					width: 75
+					width: 75,
+					editorTplNew: {
+								xtype: 'numberfield'
+					}
 				},{
 					dataIndex: 'stk_sn',
 					text: 'Serial',
@@ -615,7 +703,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 						return '<i>'+v+'</i>' ;
 					}
 				},
-				editor: {
+				editorTplAdr: {
 					xtype: 'textfield'
 				}
 			}]
@@ -887,11 +975,13 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					pluginId: 'bufferedRenderer',
 					synchronousRender: true
 				},{
-					ptype: 'cellediting',
-					clicksToEdit: 2,
+					ptype: 'rowediting',
+					pluginId: 'pEditor',
+					clicksToEdit: 1,
 					listeners: {
 						beforeedit: this.onListBeforeEdit,
 						validateedit: this.onListEdit,
+						canceledit: this.onListCancelEdit,
 						scope: this
 					}
 				}],
@@ -2316,22 +2406,59 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		}) ;
 	},
 	
-	onListBeforeEdit: function( editor, context ) {
+	onListBeforeEdit: function(editor, context) {
+		if( context.record.get('_input_is_on') ) {
+			return this.onListBeforeNewEdit(editor,context) ;
+		}
+		return this.onListBeforeAdrEdit(editor,context) ;
+	},
+	onListBeforeNewEdit: function( editor, context ) {
+		var pLigs = context.grid ;
+		Ext.Array.each( pLigs.getColumns(), function(col) {
+			if( col.editorTplNew ) {
+				col.setEditor(col.editorTplNew) ;
+			} else {
+				col.setEditor(null) ;
+			}
+		}) ;
+		
+		if( !context.record.get('_input_is_on') ) {
+			return false ;
+		}
+		
+	},
+	onListBeforeAdrEdit: function( editor, context ) {
+		var pLigs = context.grid ;
+		Ext.Array.each( pLigs.getColumns(), function(col) {
+			if( col.editorTplAdr ) {
+				col.setEditor(col.editorTplAdr) ;
+			} else {
+				col.setEditor(null) ;
+			}
+		}) ;
 		if( context.record.get('status_is_ok') ) {
 			return false ;
 		}
 	},
 	onListEdit: function( editor, context ) {
-		switch( context.field ) {
-			case 'next_adr' :
-				if( !this.onListEditAdr(context.record,context.originalValue,context.value) ) {
-					context.cancel = true ;
-					return false ;
-				}
-				return true ;
-			default :
-				context.cancel = true ;
-				return false ;
+		if( context.record.get('_input_is_on') ) {
+			return this.onListNewEdit(editor,context) ;
+		}
+		return this.onListAdrEdit(editor,context) ;
+	},
+	onListAdrEdit: function( editor, context ) {
+		if( !this.onListEditAdr(context.record,context.originalValues['next_adr'],context.newValues['next_adr']) ) {
+			context.cancel = true ;
+			return false ;
+		}
+		return true ;
+	},
+	onListNewEdit: function( editor, context ) {
+		
+	},
+	onListCancelEdit: function(editor,context) {
+		if( context.record.get('_input_is_on') ) {
+			console.log('cancel') ;
 		}
 	},
 	onListEditAdr: function( gridRecord, oldValue, newValue ) {
@@ -2371,6 +2498,18 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		return true ;
 	},
 	
+	
+	handleNewForeign: function() {
+		var pLigs = this.down('#pCenter').down('#pLigs') ;
+		var news = pLigs.getStore().insert(0,{
+			_input_is_on: true
+		}) ;
+		var newRecord = news[0] ;
+		this.down('#pCenter').down('#pLigs').getPlugin('pEditor').startEdit(newRecord) ;
+	},
+	onListNewEdit: function( editor, context ) {
+		
+	},
 	
 	setFormRecord: function( transferLigRecord ) {
 		var southP = this.down('#pSouth') ;
