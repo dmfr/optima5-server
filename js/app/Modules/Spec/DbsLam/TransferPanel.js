@@ -493,9 +493,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		
 		var cdesColumns = {
 			defaults: {
-				menuDisabled: true,
+				menuDisabled: false,
 				draggable: false,
-				sortable: false,
+				sortable: true,
 				hideable: false,
 				resizable: true,
 				groupable: false,
@@ -524,7 +524,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			},{
 				dataIndex: 'stk_prod',
 				text: 'P/N',
-				width: 200
+				width: 200,
+				filter: {
+					type: 'string'
+				}
 			},{
 				dataIndex: 'stk_batch',
 				text: 'BatchCode',
@@ -832,6 +835,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					ptype: 'bufferedrenderer',
 					pluginId: 'bufferedRenderer',
 					synchronousRender: true
+				},{
+					ptype: 'uxgridfilters'
 				}],
 				listeners: {
 					render: this.doConfigureOnCdesRender,
