@@ -43,11 +43,23 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.UploadForm',{
 					allowBlank: false,
 					editable: false,
 					store: {
-						fields: ['id'],
-						data: [{id:'CIC_BANK'}]
+						fields: ['id','txt'],
+						data: [{
+							id:'CIC_BANK',
+							txt: 'CIC_BANK'
+						},{
+							id:'IMPORT_ACC',
+							txt: 'Fiche navette : Comptes'
+						},{
+							id:'IMPORT_REC',
+							txt: 'Fiche navette : Factures'
+						},{
+							id:'SET_ALLOC',
+							txt: 'Fiche navette : Affectation/Scénarios'
+						}]
 					},
 					valueField: 'id',
-					displayField: 'id'
+					displayField: 'txt'
 				}]
 			}],
 			buttons: [{

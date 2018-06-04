@@ -83,6 +83,17 @@ function specRsiRecouveo_lib_scenario_attachFile( $file_filerecord_id ) {
 	}
 	
 	if( $assign_scenario ) {
+			// HACK !
+			if( in_array(strtolower(trim($file_record['ATR_A_LANG'])),array('anglais','english','allemand')) ) {
+				$assign_scenerio_ENG = $assign_scenario.'_ENG' ;
+				$query_test = "SELECT count(*) FROM view_bible_SCENARIO_tree WHERE treenode_key='{$assign_scenerio_ENG}'" ;
+				if( $_opDB->query_uniqueValue($query_test) == 1 ) {
+					$assign_scenario = $assign_scenerio_ENG ;
+				}
+			}
+	
+	
+	
 		$arr_update = array('field_SCENARIO'=>$assign_scenario) ;
 		paracrm_lib_data_updateRecord_file( 'FILE', $arr_update, $file_record['file_filerecord_id']);
 		

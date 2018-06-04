@@ -10,6 +10,13 @@ function specRsiRecouveo_upload( $post_data ) {
 		case 'CIC_BANK' :
 			$ret = specDbsTracy_upload_CICBANK_tmp($handle) ;
 			break ;
+			
+		case 'IMPORT_ACC' :
+		case 'IMPORT_REC' :
+		case 'SET_ALLOC' :
+			$ret = specRsiRecouveo_upload_EDI_IMPORT($handle,$file_model) ;
+			break ;
+		
 		default :
 			return array('success'=>false);
 	}
@@ -56,5 +63,67 @@ function specDbsTracy_upload_CICBANK_tmp( $handle ) {
 	fclose($handle_utf) ;
 	return TRUE ;
 }
+
+
+
+
+
+function specRsiRecouveo_upload_EDI_IMPORT( $handle, $file_model ) {
+	global $_opDB ;
+	
+	$handle = paracrm_lib_dataImport_preHandle($handle) ;
+	
+	$my_sdomain = $_POST['_sdomainId'] ;
+	if( $my_sdomain ) {
+		$_opDB->select_db( $GLOBALS['mysql_db'].'_'.'edi') ;
+	}
+	$data_type = 'file' ;
+	$store_code = $file_model ;
+	$ret = paracrm_lib_dataImport_commit_processHandle( $data_type, $store_code, $handle ) ;
+	if( !$ret ) {
+		return FALSE ;
+	}
+	
+	
+	switch( $file_model ) {
+		case 'IMPORT_ACC' :
+			$q_id = 'IMPORT Comptes' ;
+			break ;
+		case 'IMPORT_REC' :
+			$q_id = 'IMPORT Factures' ;
+			break ;
+		case 'SET_ALLOC' :
+			$q_id = 'IMPORT Set alloc' ;
+			break ;
+		default :
+			$q_id = NULL ;
+			break ;
+	}
+	if( $q_id ) {
+		$ret = paracrm_queries_direct( array(
+			'q_type' => 'qsql',
+			'q_id' => $q_id
+		), $is_rw=TRUE ) ;
+	}
+	
+	
+	$my_sdomain = $_POST['_sdomainId'] ;
+	if( $my_sdomain ) {
+		$_opDB->select_db( $GLOBALS['mysql_db'].'_'.$my_sdomain) ;
+	}
+	// specRsiRecouveo_lib_autorun_closeEnd() ;
+	specRsiRecouveo_lib_autorun_open() ;
+	specRsiRecouveo_lib_autorun_manageDisabled() ;
+	specRsiRecouveo_lib_autorun_adrbook() ;
+	if( $file_model=='SET_ALLOC' ) {
+		specRsiRecouveo_lib_scenario_attach() ;
+	}
+	
+	
+	return TRUE ;
+}
+
+
+
 
 ?>
