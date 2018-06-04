@@ -514,13 +514,13 @@ function specRsiRecouveo_file_searchSuggest( $post_data ) {
 	$sub_query_files = "SELECT filerecord_id FROM view_file_FILE WHERE 1" ;
 	$sub_query_files.= " AND field_STATUS_CLOSED_VOID='0'" ;
 	if( !$filter_archiveIsOn ) {
-		$sub_query_acc.= " AND field_STATUS_CLOSED_END='0'" ;
+		$sub_query_files.= " AND field_STATUS_CLOSED_END='0'" ;
 	}
 	foreach( $filter_atr as $mkey => $mvalue ) {
 		$sub_query_files.= " AND field_{$mkey} IN ".$_opDB->makeSQLlist($mvalue) ;
 	}
 	if( $filter_soc ) {
-		$sub_query_acc.= " AND field_LINK_ACCOUNT IN (SELECT entry_key FROM view_bible_LIB_ACCOUNT_entry WHERE treenode_key IN ".$_opDB->makeSQLlist($filter_soc).")" ;
+		$sub_query_files.= " AND field_LINK_ACCOUNT IN (SELECT entry_key FROM view_bible_LIB_ACCOUNT_entry WHERE treenode_key IN ".$_opDB->makeSQLlist($filter_soc).")" ;
 	}
 	
 	$search_txt = $post_data['search_txt'] ;
