@@ -11,6 +11,7 @@ Ext.define('DbsLamProdComboboxModel',{
 	idProperty: 'id',
 	fields: [
 		{name: 'id', type:'string'},
+		{name: 'prod_soc', type:'string'},
 		{name: 'prod_id', type:'string'},
 		{name: 'prod_txt', type:'string'},
 		{

@@ -603,6 +603,52 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				dataIndex: 'current_adr',
 				renderer: function(v) {
 					return '<b>'+v+'</b>' ;
+				},
+				editorTplNew: {
+					xtype: 'combobox',
+					allowBlank:false,
+					name: 'dest_adr',
+					fieldStyle: 'text-transform:uppercase',
+					forceSelection:false,
+					editable:true,
+					typeAhead:false,
+					selectOnFocus: true,
+					selectOnTab: false,
+					queryMode: 'remote',
+					displayField: 'entry_key',
+					valueField: 'entry_key',
+					queryParam: 'filter',
+					minChars: 2,
+					fieldStyle: 'text-transform:uppercase',
+					store: {
+						fields: ['entry_key'],
+						proxy: this.optimaModule.getConfiguredAjaxProxy({
+							extraParams : {
+								_action: 'data_getBibleGrid',
+								bible_code: 'ADR',
+								limit: 20
+							},
+							reader: {
+								type: 'json',
+								rootProperty: 'data'
+							}
+						}),
+						listeners: {
+							beforeload: function(store,options) {
+								var treepanel = this.down('#pCenter').down('#pTree'),
+									selectedNodes = treepanel.getView().getSelectionModel().getSelection(),
+									isDocSelected = (selectedNodes.length==1 && selectedNodes[0].get('type')=='transfer'),
+									whseSrc = selectedNodes[0].get('whse_src') ;
+								
+								var params = options.getParams() ;
+								Ext.apply(params,{
+									filter: Ext.JSON.encode([{property:'treenode_key',value:whseSrc}])
+								}) ;
+								options.setParams(params) ;
+							},
+							scope: this
+						}
+					}
 				}
 			},{
 				text: 'Stock Attributes',
@@ -617,7 +663,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 								xtype: 'combobox',
 								anchor: '100%',
 								forceSelection:true,
-								allowBlank:true,
+								allowBlank:false,
 								editable:false,
 								queryMode: 'local',
 								displayField: 'container_type_txt',
@@ -625,7 +671,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 								fieldStyle: 'text-transform:uppercase',
 								store: {
 									model: 'DbsLamCfgContainerTypeModel',
-									data: Ext.Array.merge([{container_type:''}],Optima5.Modules.Spec.DbsLam.HelperCache.getContainerTypeAll()),
+									data: Ext.Array.merge([{
+										container_type:'',
+										container_type_txt: '- Aucun -'
+									}],Optima5.Modules.Spec.DbsLam.HelperCache.getContainerTypeAll()),
 									proxy: {
 										type: 'memory'
 									},
@@ -644,7 +693,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					editorTplNew: {
 								xtype: 'combobox',
 								forceSelection:true,
-								allowBlank:true,
+								allowBlank:false,
 								editable:true,
 								typeAhead:false,
 								selectOnFocus: true,
@@ -686,7 +735,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					align: 'right',
 					width: 75,
 					editorTplNew: {
-								xtype: 'numberfield'
+								xtype: 'numberfield',
+								allowBlank: false,
+								minValue: 1
 					}
 				},{
 					dataIndex: 'stk_sn',
@@ -2441,6 +2492,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		}
 	},
 	onListEdit: function( editor, context ) {
+		console.dir(arguments) ;
 		if( context.record.get('_input_is_on') ) {
 			return this.onListNewEdit(editor,context) ;
 		}
@@ -2454,11 +2506,28 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		return true ;
 	},
 	onListNewEdit: function( editor, context ) {
+		var editorForm = editor.editor,
+			prodCombo = editorForm.getForm().findField('stk_prod'),
+			prodRecord = prodCombo.getSelection(),
+			values = context.newValues ;
 		
+		var skuData_obj = {
+			"soc_code":prodRecord.get('prod_soc'),
+			"stk_prod":prodRecord.get('id'),
+			"stk_batch":'',
+			"stk_sn":'',
+			"mvt_qty":values.mvt_qty,
+			"container_is_off":Ext.isEmpty(values.container_ref),
+			"container_type":values.container_ref,
+			"container_ref":""
+		} ;
+		this.onListEditNew(context.record,skuData_obj,values.current_adr) ;
 	},
 	onListCancelEdit: function(editor,context) {
-		if( context.record.get('_input_is_on') ) {
-			console.log('cancel') ;
+		var store = context.store,
+			record = context.record ;
+		if( record.get('_input_is_on') ) {
+			store.remove(record) ;
 		}
 	},
 	onListEditAdr: function( gridRecord, oldValue, newValue ) {
@@ -2497,6 +2566,55 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		}) ;
 		return true ;
 	},
+	onListEditNew: function( gridRecordTmp, skuData_obj, location ) {
+		var treepanel = this.down('#pCenter').down('#pTree'),
+			selectedNodes = treepanel.getView().getSelectionModel().getSelection(),
+			isDocSelected = (selectedNodes.length==1 && selectedNodes[0].get('type')=='transfer') ;
+		if( !isDocSelected ) {
+			return ;
+		}
+		var docFlow = selectedNodes[0].get('flow_code'),
+			flowRecord = Optima5.Modules.Spec.DbsLam.HelperCache.getMvtflow(docFlow),
+			steps = [] ;
+		Ext.Array.each( flowRecord.steps, function(step) {
+			steps.push(step.step_code) ;
+		}) ;
+		var firstStep = steps[0] ;
+		
+		
+		var pLigs = this.down('#pCenter').down('#pLigs'),
+			pLigsStore = pLigs.getStore() ;
+		
+		this.showLoadmask() ;
+		var ajaxParams = {
+			_moduleId: 'spec_dbs_lam',
+			_action: 'transfer_commitAdrTmp',
+			transferFilerecordId: this.getActiveTransferFilerecordId(),
+			transferLigFilerecordId_arr: Ext.JSON.encode([]),
+			transferStepCode: firstStep,
+			transferTargetNode: '',
+			location: location,
+			socCode: skuData_obj['soc_code'],
+			skuData_obj: Ext.JSON.encode(skuData_obj)
+		} ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams,
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','Item not accepted') ;
+					pLigsStore.remove(gridRecordTmp) ;
+					return ;
+				}
+				this.optimaModule.postCrmEvent('datachange') ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+		return true ;
+	},
 	
 	
 	handleNewForeign: function() {
@@ -2506,9 +2624,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		}) ;
 		var newRecord = news[0] ;
 		this.down('#pCenter').down('#pLigs').getPlugin('pEditor').startEdit(newRecord) ;
-	},
-	onListNewEdit: function( editor, context ) {
-		
 	},
 	
 	setFormRecord: function( transferLigRecord ) {
