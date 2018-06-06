@@ -14,6 +14,7 @@ Ext.define('DbsLamStockGridModel',{
 	idProperty: 'id',
 	fields: [
 		{name: 'id', type:'string'},
+		{name: 'stk_filerecord_id', type:'int'},
 		{name: 'status', type:'boolean'},
 		{name: 'adr_id', type:'string', useNull:true},
 		{name: 'pos_zone', type:'string'},
@@ -359,6 +360,41 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 						align: 'right',
 						width: 75
 					},{
+						hidden: !this._enableDD,
+						itemId: 'takecolumn',
+						xtype: 'actioncolumn',
+						align: 'center',
+						width: 36,
+						items: [{
+							icon: 'images/op5img/ico_dataadd_16.gif',  // Use a URL in the icon config
+							tooltip: 'Take',
+							isDisabled: function(view,rowIndex,colIndex,item,record ) {
+								if( Ext.isEmpty(record.get('inv_qty')) || record.get('inv_qty') <= 0 ) {
+									return true ;
+								}
+								return false
+							},
+							handler: function(grid, rowIndex, colIndex) {
+								var record = grid.getStore().getAt(rowIndex);
+								if( Ext.isEmpty(record.get('inv_qty')) || record.get('inv_qty') <= 0 ) {
+									return ;
+								}
+								this.handlePartialTake( record ) ;
+							},
+							scope: this
+						}]
+					},{
+						dataIndex: 'inv_qty_out',
+						text: 'Qty out',
+						align: 'right',
+						width: 75,
+						renderer: function(v) {
+							if( v<=0 ) {
+								return '&#160;' ;
+							}
+							return v ;
+						}
+					},{
 						dataIndex: 'inv_sn',
 						text: 'Serial',
 						width: 100
@@ -473,6 +509,99 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 			return ;
 		}
 	},
+	
+	
+	handlePartialTake: function( gridRecord ) {
+		
+		var me = this ;
+		var popupPanel = Ext.create('Ext.form.Panel',{
+			optimaModule: this.optimaModule,
+			
+			width:400,
+			height:300,
+			
+			cls: 'ux-noframe-bg',
+			
+			stockFilerecordId: gridRecord.get('stk_filerecord_id'),
+			
+			floating: true,
+			renderTo: me.getEl(),
+			tools: [{
+				type: 'close',
+				handler: function(e, t, p) {
+					p.ownerCt.destroy();
+				}
+			}],
+			
+			xtype: 'form',
+			border: false,
+			bodyCls: 'ux-noframe-bg',
+			bodyPadding: 8,
+			layout:'anchor',
+			fieldDefaults: {
+				labelWidth: 125,
+				anchor: '100%'
+			},
+			items:[{
+				height: 72,
+				xtype: 'component',
+				tpl: [
+					'<div class="op5-spec-embralam-liveadr-relocatebanner">',
+						'<span>{text}</span>',
+					'</div>'
+				],
+				data: {text: '<b>Partial allocation</b><br><br>'}
+			},{
+				xtype: 'displayfield',
+				fieldLabel: 'Address',
+				value: gridRecord.get('adr_id')
+			},{
+				xtype: 'displayfield',
+				fieldLabel: 'P/N',
+				value: gridRecord.get('inv_prod')
+			},{
+				xtype: 'displayfield',
+				fieldLabel: 'Qty avail',
+				value: gridRecord.get('inv_qty')
+			},{
+				xtype: 'numberfield',
+				name: 'mvt_qty',
+				fieldLabel: '<b>'+'Alloc. qty'+'</b>',
+				maxValue: gridRecord.get('inv_qty'),
+				minValue: 1,
+				allowBlank: false,
+				anchor: '',
+				width: 200
+			}],
+			buttons: [{
+				xtype: 'button',
+				text: 'Submit',
+				handler:function(btn){ 
+					var formPanel = btn.up('form') ;
+					formPanel.doSubmitTake() ;
+				},
+				scope: this
+			}],
+			doSubmitTake: function() {
+				this.fireEvent('stkalloc',this,{stk_filerecord_id:this.stockFilerecordId, mvt_qty: this.getForm().findField('mvt_qty').getValue()})
+				this.destroy();
+			}
+		});
+		
+		popupPanel.on('destroy',function() {
+			me.getEl().unmask() ;
+		},me,{single:true}) ;
+		me.getEl().mask() ;
+		
+		popupPanel.on('stkalloc',function(form,obj) {
+			console.dir(obj) ;
+			this.fireEvent('stkalloc',this,obj) ;
+		},me) ;
+		
+		popupPanel.show();
+		popupPanel.getEl().alignTo(me.getEl(), 'c-c?');
+	},
+	
 	
 	doQuit: function() {
 		this.destroy() ;

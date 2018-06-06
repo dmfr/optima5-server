@@ -1952,7 +1952,31 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				optimaModule: this.optimaModule,
 				_popupMode: true,
 				_enableDD: true,
-				whseCode: whseSrc
+				whseCode: whseSrc,
+				listeners: {
+					stkalloc: function(p, allocObj) {
+						var ajaxParams = {
+							_moduleId: 'spec_dbs_lam',
+							_action: 'transfer_addStock',
+							stock_filerecordIds: Ext.JSON.encode([allocObj['stk_filerecord_id']]),
+							mvt_qty: allocObj['mvt_qty'],
+							transfer_filerecordId: this.getActiveTransferFilerecordId()
+						} ;
+						this.optimaModule.getConfiguredAjaxConnection().request({
+							params: ajaxParams,
+							success: function(response) {
+								var ajaxResponse = Ext.decode(response.responseText) ;
+								if( ajaxResponse.success == false ) {
+									Ext.MessageBox.alert('Error','Error') ;
+									return ;
+								}
+								this.optimaModule.postCrmEvent('datachange') ;
+							},
+							scope: this
+						}) ;
+					},
+					scope: this
+				}
 			})]
 		}) ;
 	},
