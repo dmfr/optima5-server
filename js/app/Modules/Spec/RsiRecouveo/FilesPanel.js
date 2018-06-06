@@ -2093,7 +2093,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		
 		var data = [] ;
 		this.down('#pCenter').down('#pGrid').getStore().each( function(record) {
-			data.push( record.getData(true) ) ;
+			var recData = record.getData(true) ;
+			delete recData['actions'] ;
+			delete recData['inv_balage'] ;
+			delete recData['records'] ;
+			data.push( recData ) ;
 		}) ;
 		
 		var exportParams = this.optimaModule.getConfiguredAjaxParams() ;
