@@ -195,6 +195,7 @@ function specDbsLam_cfg_getMvtflow() {
 			'is_foreign' => $arr['field_IS_FOREIGN'],
 			'is_cde' => $arr['field_IS_CDE'],
 			'cde_process' => $arr['field_CDE_PROCESS'],
+			'ack_fastforward' => $arr['field_ACK_FASTFORWARD'],
 			'steps' => array(),
 			'checks' => array()
 		) ;

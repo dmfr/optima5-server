@@ -1039,7 +1039,7 @@ function specDbsLam_transfer_commitAdrTmp($post_data,$inner=FALSE) {
 		}
 	} else {
 		while(TRUE) {
-			$query = "SELECT field_WHSE_DEST, field_IS_WORK
+			$query = "SELECT field_WHSE_DEST, field_IS_WORK, field_TRANSFER_TXT
 						FROM view_file_TRANSFER t
 						JOIN view_bible_CFG_WHSE_entry whse ON whse.entry_key=t.field_WHSE_DEST
 						WHERE t.filerecord_id='{$p_transferFilerecordId}'" ;
@@ -1048,6 +1048,7 @@ function specDbsLam_transfer_commitAdrTmp($post_data,$inner=FALSE) {
 			
 			$whse_dest = $arr[0] ;
 			$is_work = $arr[1] ;
+			$transfer_txt = $arr[2] ;
 			if( !$is_work ) {
 				return array('success'=>false, 'error'=>"Cannot use virtual locations") ;
 			}
@@ -1060,7 +1061,12 @@ function specDbsLam_transfer_commitAdrTmp($post_data,$inner=FALSE) {
 			$map_transferligFilerecordId_adr = array() ;
 			foreach( $rows_transferLig as $idx => $row_transferLig ) {
 				if( !$row_transferLig['next_adr'] ) {
-					return array('success'=>false, 'error'=>"Virtual location not specified") ;
+					//return array('success'=>false, 'error'=>"Virtual location not specified") ;
+					
+					// Maj 08/06/2018 : Auto virtual locations , commandes sans commande
+					$tmpadr = $whse_dest.'_'.preg_replace("/[^A-Z0-9]/", "", strtoupper($transfer_txt)) ;
+					specDbsLam_lib_procMvt_alloc($row_transferLig['mvt_filerecord_id'],$tmpadr,$tmpadr) ;
+					$row_transferLig['next_adr'] = $tmpadr ;
 				}
 				if( !in_array($row_transferLig['next_adr'],$arr_adrs) ) {
 					$arr_adrs[] = $row_transferLig['next_adr'] ;

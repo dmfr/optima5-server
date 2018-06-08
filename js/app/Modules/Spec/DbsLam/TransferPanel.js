@@ -30,6 +30,16 @@ Ext.define('DbsLamTransferTreeModel',{
 		}
 		return false ;
 	},
+	hasAllowFastforward: function() {
+		// iscde
+		var docFlow = this.get('flow_code'),
+			flowRecord = Optima5.Modules.Spec.DbsLam.HelperCache.getMvtflow(docFlow),
+			flowIsFastforward = flowRecord.ack_fastforward ;
+		if( flowIsFastforward ) {
+			return true ;
+		}
+		return false ;
+	},
 	hasAllowFinalStock: function() {
 		// last step = final + whse_dest = stock
 		var docFlow = this.get('flow_code'),
@@ -284,11 +294,11 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 						itemIdCde: true
 					},{
 						xtype: 'menuseparator',
-						itemIdCde: true
+						itemIdFastforward: true
 					},{
 						icon: 'images/op5img/ico_process_16.gif',
 						text: '<b>Acknowlegde steps</b>',
-						itemIdCde: true,
+						itemIdFastforward: true,
 						itemId: 'tbActionsCdeAck',
 						menu: {
 							defaults: {
@@ -305,6 +315,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					},{
 						icon: 'images/op5img/ico_print_16.png',
 						text: '<b>Print summary</b>',
+						itemIdCde: true,
 						handler: function() {
 							this.openPrintDoc('transfer_cdebrt') ;
 						},
@@ -417,7 +428,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				var doc = selectedNodes[0],
 					docAllowFinalStock = doc.hasAllowFinalStock(),
 					docAllowCde = doc.hasAllowCde(),
-					docAllowForeign = doc.hasAllowForeign() ;
+					docAllowForeign = doc.hasAllowForeign(),
+					docAllowFastforward = doc.hasAllowFastforward() ;
 				Ext.Array.each( this.down('toolbar').down('#tbActions').menu.query('[itemIdFinalStock]'), function(menuitem) {
 					menuitem.setVisible( docAllowFinalStock ) ;
 				}) ;
@@ -426,6 +438,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				}) ;
 				Ext.Array.each( this.down('toolbar').down('#tbActions').menu.query('[itemIdForeign]'), function(menuitem) {
 					menuitem.setVisible( docAllowForeign ) ;
+				}) ;
+				Ext.Array.each( this.down('toolbar').down('#tbActions').menu.query('[itemIdFastforward]'), function(menuitem) {
+					menuitem.setVisible( docAllowFastforward ) ;
 				}) ;
 				
 				var docFlow = doc.get('flow_code'),
