@@ -357,15 +357,16 @@ function specDbsLam_lib_procCde_syncLinks($transfer_filerecord_id) {
 
 
 
-function specDbsLam_lib_procCde_searchStock( $stk_prod, $qty, $from_picking=false) {
+function specDbsLam_lib_procCde_searchStock( $stk_prod, &$qty, $from_picking=false) {
 	global $_opDB ;
 	
 	if( $from_picking===false ) {
+		$mstr = array() ;
 		for( $i=1 ; $i>=0 ; $i-- ) {
-			$r = specDbsLam_lib_procCde_searchStock($stk_prod, $qty, $i) ;
-			if( $r ) {
-				return $r ;
-			}
+			$mstr = array_merge($mstr,specDbsLam_lib_procCde_searchStock($stk_prod, $qty, $i)) ;
+		}
+		if( $qty<=0 ) {
+			return $mstr ;
 		}
 		return array() ;
 	}
