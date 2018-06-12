@@ -1,7 +1,5 @@
 <?php
 
-@include_once 'PHPMailer/PHPMailerAutoload.php';
-
 $GLOBALS['specRsiRecouveo_lib_mail_sync_boundDays'] = 30 ;
 
 function specRsiRecouveo_lib_mail_sync_exchange( $email_adr, $exchange_server, $username, $password ) {
@@ -333,7 +331,7 @@ function specRsiRecouveo_lib_mail_doSend($email_filerecord_id) {
 		$media_id = media_bin_toolFile_getId('EMAIL_SOURCE',$emailsrc_filerecord_id) ;
 		$email_bin = media_bin_getBinary($media_id) ;
 		
-		$success = Email::sendMail($email_bin) ;
+		$success = specRsiRecouveo_lib_mail_doSendRaw($email_bin) ;
 		break ;
 	}
 	
@@ -386,6 +384,62 @@ function specRsiRecouveo_lib_mail_doSend($email_filerecord_id) {
 	}
 	
 	media_contextClose() ;
+}
+function specRsiRecouveo_lib_mail_doSendRaw($email_bin) {
+		$obj_mimeParser = PhpMimeMailParser::getInstance() ;
+		if( !$obj_mimeParser ) {
+			return FALSE ;
+		}
+		
+		$smtp = PhpMailer::getSMTP() ;
+		if( !$smtp ) {
+			return FALSE ;
+		}
+		$LE = $smtp::LE  ;
+		
+		// normalize
+		$email_bin = str_replace("\r\n", "\n", $email_bin);
+		$email_bin = str_replace("\r", "\n", $email_bin);
+		$email_bin = str_replace("\n", "\r\n", $email_bin);
+		// separate header -- body
+		$ttmp = explode($LE.$LE,$email_bin,2) ;
+		if( count($ttmp) != 2 ) {
+			return FALSE ;
+		}
+		$header = $ttmp[0] ;
+		$body = $ttmp[1] ;
+		
+		
+		
+		// extract to_list 
+		// extract subject
+		$obj_mimeParser->setText($email_bin) ;
+		$to_list = array() ;
+		foreach( array('from') as $mkey ) {
+			foreach( $obj_mimeParser->getAddresses($mkey) as $adr ) {
+				$from = $adr['address'] ;
+				break ;
+			}
+		}
+		foreach( array('to','cc') as $mkey ) {
+			foreach( $obj_mimeParser->getAddresses($mkey) as $adr ) {
+				$to_list[] = $adr['address'] ;
+			}
+		}
+		
+		if( $GLOBALS['__OPTIMA_TEST'] ) {
+			return TRUE ;
+		}
+		$smtp->connect('127.0.0.1') ;
+		$smtp->hello('optima5');
+		$smtp->mail($from) ;
+		foreach( $to_list as $to ) {
+			$smtp->recipient($to) ;
+		}
+		$success = $smtp->data($email_bin) ;
+		$smtp->quit() ;
+		$smtp->close() ;
+		return $success ;
 }
 
 
@@ -589,7 +643,7 @@ function specRsiRecouveo_lib_mail_associateCancel( $src_emailFilerecordId ) {
 function specRsiRecouveo_lib_mail_buildEmail( $email_record, $test_mode=FALSE ) {
 	$ttmp = specRsiRecouveo_cfg_getConfig() ;
 	$cfg_email = $ttmp['data']['cfg_email'] ;
-	if( !class_exists('PHPMailer') ) {
+	if( !PhpMailer::getInstance() ) {
 		return NULL ;
 	}
 	
@@ -700,7 +754,7 @@ function specRsiRecouveo_lib_mail_buildEmail( $email_record, $test_mode=FALSE ) 
 	}
 	
 	
-	$mail = new PHPMailer;
+	$mail = PhpMailer::getInstance() ;
 	$mail->CharSet = "utf-8";
 	foreach( $email_record['header_adrs'] as $row ) {
 		switch( $row['header'] ) {
