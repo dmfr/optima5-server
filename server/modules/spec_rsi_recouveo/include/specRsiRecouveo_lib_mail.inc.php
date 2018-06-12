@@ -795,6 +795,37 @@ function specRsiRecouveo_lib_mail_buildEmail( $email_record, $test_mode=FALSE ) 
 		$mail->addStringAttachment($bin, $filename) ;
 	}
 	
+	while(TRUE) {
+		$fromAddress = NULL ;
+		foreach( $email_record['header_adrs'] as $row ) {
+			if( $row['header'] == 'from' ) {
+				$fromAddress = $row['adr_address'] ;
+				break ;
+			}
+		}
+		if( !$fromAddress ) {
+			break ;
+		}
+		
+		foreach( $cfg_email as $row ) {
+			if( $row['email_adr']==$fromAddress ) {
+				$dkim_json = trim($row['dkim_json']) ;
+				break ;
+			}
+		}
+		if( !$dkim_json ) {
+			break ;
+		}
+		
+		$dkim_obj = json_decode($dkim_json,true) ;
+		
+		$mail->DKIM_domain = $dkim_obj['DKIM_domain'] ; 
+		$mail->DKIM_selector = $dkim_obj['DKIM_selector'] ;
+		$mail->DKIM_private_string = $dkim_obj['DKIM_private_string'] ;
+		
+		break ;
+	}
+	
 	if (!$mail->preSend()) {
 		// Return the error in the Browser's console
 		//echo $mail->ErrorInfo;

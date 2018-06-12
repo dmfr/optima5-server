@@ -302,6 +302,7 @@ function specRsiRecouveo_cfg_getConfig() {
 			'server_url' => $arr['field_SERVER_URL'],
 			'server_username' => $arr['field_SERVER_USERNAME'],
 			'server_passwd' => $arr['field_SERVER_PASSWD'],
+			'dkim_json' => $arr['field_DKIM_JSON'],
 			'link_is_default' => ($arr['field_LINK_IS_DEFAULT']==1),
 			'link_SOC' => json_decode($arr['field_LINK_SOC'],true)
 		) ;

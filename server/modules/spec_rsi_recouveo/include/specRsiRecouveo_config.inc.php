@@ -146,6 +146,7 @@ function specRsiRecouveo_config_setEmail( $post_data ) {
 	$arr_ins['field_SERVER_URL'] = $email_record['server_url'] ;
 	$arr_ins['field_SERVER_USERNAME'] = $email_record['server_username'] ;
 	$arr_ins['field_SERVER_PASSWD'] = $email_record['server_passwd'] ;
+	$arr_ins['field_DKIM_JSON'] = $email_record['dkim_json'] ;
 	$arr_ins['field_LINK_IS_DEFAULT'] = ($email_record['link_is_default'] ? 1 : 0) ;
 	
 	if( $email_record['link_SOC'] && json_decode($email_record['link_SOC'],true) == array('&') ) {

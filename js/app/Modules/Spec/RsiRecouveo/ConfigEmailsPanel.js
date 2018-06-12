@@ -128,6 +128,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigEmailsPanel', {
 					}]
 				},{
 					xtype: 'fieldset',
+					title: 'Authentification DKIM',
+					items: [{
+						xtype: 'textfield',
+						name: 'dkim_json',
+						fieldLabel: 'Config JSON'
+					}]
+				},{
+					xtype: 'fieldset',
 					title: 'Utilisation par défaut',
 					items: [{
 						xtype: 'checkboxfield',
