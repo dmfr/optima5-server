@@ -170,6 +170,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MultiActionForm',{
 			},
 			items: [{
 				xtype: 'radiogroup',
+				allowBlank: false,
 				fieldLabel: 'Action groupée',
 				columns: 1,
 				vertical: true,
@@ -196,7 +197,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MultiActionForm',{
 					xtype: 'combobox',
 					name: 'scen_code',
 					forceSelection:true,
-					allowBlank:true,
+					preventBlankIfVisible:true,
 					editable:true,
 					typeAhead:false,
 					queryMode: 'local',
@@ -222,7 +223,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MultiActionForm',{
 					optimaModule: this.optimaModule,
 					_fileRecord: this._fileRecord,
 					_actionForm: this._actionForm,
-					name: 'scenstep',
+					name: 'next',
+					preventBlankIfVisible:true,
 					listeners: {
 						change: function(field,value) {
 							//this.onScenStepChange(value);
@@ -230,7 +232,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MultiActionForm',{
 						scope: this
 					}
 				}),{
-					hidden: true,
+					preventBlankIfVisible:true,
 					xtype: 'datefield',
 					format: 'Y-m-d',
 					name: 'next_date',
@@ -253,7 +255,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MultiActionForm',{
 					cfgParam_emptyDisplayText: 'Select...',
 					optimaModule: this.optimaModule,
 					name: 'litig_code',
-					allowBlank: false,
+					preventBlankIfVisible:true,
 					fieldLabel: 'Motif'
 				}),{
 					anchor: '',
@@ -261,6 +263,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MultiActionForm',{
 					xtype: 'datefield',
 					format: 'Y-m-d',
 					name: 'litig_nextdate',
+					preventBlankIfVisible:true,
 					fieldLabel: 'Prochain suivi'
 				},{
 					xtype: 'fieldset',
@@ -270,6 +273,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MultiActionForm',{
 					items: [Ext.create('Optima5.Modules.Spec.RsiRecouveo.CfgParamField',{
 						fieldLabel: 'Destinataire',
 						name: 'litig_ext_user',
+						preventBlankIfVisible:true,
 						cfgParam_id: 'USER',
 						cfgParam_emptyDisplayText: 'Select...',
 						icon: 'images/modules/rsiveo-users-16.png',
@@ -294,7 +298,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MultiActionForm',{
 					cfgParam_emptyDisplayText: 'Select...',
 					optimaModule: this.optimaModule,
 					name: 'close_code',
-					allowBlank: false,
+					preventBlankIfVisible:true,
 					fieldLabel: 'Motif'
 				})]
 			},{
@@ -314,7 +318,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MultiActionForm',{
 					cfgParam_emptyDisplayText: 'Select...',
 					optimaModule: this.optimaModule,
 					name: 'link_user',
-					allowBlank: false,
+					preventBlankIfVisible:true,
 					fieldLabel: 'Collaborateur'
 				})]
 			}],
@@ -326,16 +330,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MultiActionForm',{
 				icon: 'images/modules/rsiveo-save-16.gif',
 				handler: function( btn ) {
 					this.handleSubmitEvent() ;
-				},
-				scope: this
-			},{
-				itemId: 'btnPreview',
-				hidden: true,
-				xtype: 'button',
-				text: 'Preview',
-				icon: 'images/modules/rsiveo-print-16.png',
-				handler: function( btn ) {
-					this.handlePreview() ;
 				},
 				scope: this
 			}]
@@ -366,9 +360,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MultiActionForm',{
 		var form = formP.getForm() ;
 		switch( field.getName() ) {
 			case 'scen_code' :
-				form.findField('scenstep').doLoad(field.getValue()) ;
+				form.findField('next').doLoad(field.getValue()) ;
 				break ;
-			case 'scenstep' :
+			case 'next' :
 				//console.dir(field.getValue()) ;
 				break ;
 		}
@@ -408,5 +402,18 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.MultiActionForm',{
 		if( attachmentsField ) {
 			attachmentsField.doDeleteAll() ;
 		}
+	},
+	
+	handleSubmitEvent: function() {
+		var form = this.getForm(),
+			formValues = form.getValues() ;
+		Ext.Array.each(this.query('[preventBlankIfVisible]'),function(f) {
+			f.allowBlank = !f.isVisible(true) ;
+		});
+		if( !form.isValid() ) {
+			return ;
+		}
+			  
+		this.fireEvent('btnsubmit',this,formValues) ;
 	}
 }) ;

@@ -31,6 +31,9 @@ switch( $post_data['_action'] )
 	case 'action_doFileAction' :
 	return specRsiRecouveo_action_doFileAction( $post_data ) ;
 	
+	case 'file_multiAction' :
+	return specRsiRecouveo_file_multiAction( $post_data ) ;
+	
 	case 'account_open' :
 	return specRsiRecouveo_account_open( $post_data ) ;
 	case 'account_getAllAtrs' :

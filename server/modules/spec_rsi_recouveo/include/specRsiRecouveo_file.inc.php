@@ -1500,6 +1500,98 @@ function specRsiRecouveo_file_allocateRecordTemp( $post_data ) {
 
 
 
+
+
+
+function specRsiRecouveo_file_multiAction($post_data) {
+	global $_opDB ;
+	sleep(2) ;
+	
+	$ttmp = specRsiRecouveo_cfg_getConfig() ;
+	$cfg_status = $ttmp['data']['cfg_status'] ;
+	$map_status = array() ;
+	foreach( $cfg_status as $status ) {
+		$map_status[$status['status_id']] = $status ;
+	}
+	$cfg_action = $ttmp['data']['cfg_action'] ;
+	$map_action = array() ;
+	foreach( $cfg_action as $action ) {
+		$map_action[$action['action_id']] = $action ;
+	}
+	
+	$p_fileFilerecordIds = json_decode($post_data['select_fileFilerecordIds'],true) ;
+	$p_targetForm = json_decode($post_data['target_form'],true) ;
+	
+	$json = specRsiRecouveo_file_getRecords( array(
+		'filter_fileFilerecordId_arr' => json_encode($p_fileFilerecordIds)
+	)) ;
+	$arr_fileRecords = $json['data'] ;
+	
+	foreach( $arr_fileRecords as $file_record ) {
+		$is_sched_lock = $map_status[$file_record['status']]['sched_lock'] ;
+		$file_filerecord_id = $file_record['file_filerecord_id'] ;
+	
+		switch( $p_targetForm['multi_action'] ) {
+			case 'bump' :
+				// (sortie du schedlock) + mise en reprise
+				if( $is_sched_lock ) {
+					$forward_post = array(
+						'file_filerecord_id' => $file_filerecord_id,
+						'data' => json_encode(array(
+							'schedlock_next' => 'end',
+							'link_action' => 'BUMP'
+						))
+					) ;
+					$json = specRsiRecouveo_action_doFileAction($forward_post) ;
+					$file_filerecord_id = $json['file_filerecord_id'] ;
+				}
+				
+				$forward_post = array(
+					'file_filerecord_id' => $file_filerecord_id,
+					'data' => json_encode(array(
+						'link_action' => 'BUMP',
+						'next_action' => 'BUMP'
+					))
+				) ;
+				$json = specRsiRecouveo_action_doFileAction($forward_post) ;
+				
+				break ;
+				
+			case 'scenstep' :
+				if( !$is_sched_lock ) {
+					$forward_post = array(
+						'file_filerecord_id' => $file_filerecord_id,
+						'data' => json_encode(array(
+							'link_action' => 'BUMP',
+							'scen_code' => $p_targetForm['scen_code'],
+							'next_action' => $p_targetForm['next_action'],
+							'next_scenstep_code' => $p_targetForm['next_scenstep_code'],
+							'next_scenstep_tag' => $p_targetForm['next_scenstep_tag'],
+							'next_date' => $p_targetForm['next_date']
+						))
+					) ;
+					$json = specRsiRecouveo_action_doFileAction($forward_post) ;
+				}
+				break ;
+		
+			case 'user' :
+				$acc_id = $file_record['acc_id'] ;	
+				$arr_update = array('field_ACC_ID'=>$acc_id,'field_LINK_USER_LOCAL'=>$p_targetForm['link_user']) ;
+				paracrm_lib_data_updateRecord_bibleEntry('LIB_ACCOUNT',$acc_id,$arr_update) ;
+				break ;
+		}
+	}
+
+	return array('success'=>true, 'debug'=>$post_data, 'debug2'=>$arr_fileRecords) ;
+}
+
+
+
+
+
+
+
+
 function specRsiRecouveo_file_tool_isDateValid( $date_sql )
 {
 	if( $date_sql == '0000-00-00' )

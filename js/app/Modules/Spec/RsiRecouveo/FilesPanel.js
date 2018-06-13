@@ -1367,6 +1367,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		if( torf === undefined ) {
 			var torf = !column.isVisible()
 		}
+		if( this.viewMode != 'file' ) {
+			torf = false ;
+		}
 		column.setVisible( torf ) ;
 	},
 	
@@ -1922,7 +1925,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 					p.ownerCt.destroy();
 				},
 				scope: this
-			}]
+			}],
+			
+			listeners: {
+				btnsubmit: this.onMultiSelectSubmit,
+				scope: this
+			}
 		});
 		createPanel.on('saved', function(p) {
 			this.doTreeLoad() ;
@@ -1936,6 +1944,45 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		createPanel.getEl().alignTo(this.getEl(), 'c-c?');
 		
 		this.multiActionForm = createPanel ;
+	},
+	onMultiSelectSubmit: function(p,formValues) {
+		var ids = [] ;
+		
+		var gridPanel = this.down('#pCenter').down('#pGrid'),
+			gridPanelStore = gridPanel.getStore() ;
+		gridPanelStore.each( function(r) {
+			if( r.get('_is_selection') && !Ext.Array.contains(ids,r.get('file_filerecord_id')) ) {
+				ids.push( r.get('file_filerecord_id') ) ;
+			}
+		}) ;
+		
+		
+		if( this.multiActionForm ) {
+			this.multiActionForm.mask('Modifications en cours...') ;
+		}
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_rsi_recouveo',
+				_action: 'file_multiAction',
+				
+				select_fileFilerecordIds: Ext.JSON.encode(ids),
+				target_form: Ext.JSON.encode(formValues)
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+				this.doLoad(false) ;
+			},
+			callback: function() {
+				if( this.multiActionForm ) {
+					this.multiActionForm.destroy() ;
+				}
+			},
+			scope: this
+		}) ;
 	},
 	
 	handleOpenAccount: function(accId,fileFilerecordId) {
