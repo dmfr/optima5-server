@@ -153,7 +153,7 @@ function specRsiRecouveo_lib_autorun_actions() {
 	$map_scenCode_scenstepCode_step = array() ;
 	foreach( $json['data'] as $scenario ) {
 		foreach( $scenario['steps'] as $scenstep ) {
-			$map_scenCode_scenstepCode_step[$scenario['scen_code']][$scenstep['scenstep_code']] = $scenstep ;
+			$map_scenCode_scenstepTag_step[$scenario['scen_code']][$scenstep['scenstep_tag']] = $scenstep ;
 		}
 	}
 
@@ -189,11 +189,11 @@ function specRsiRecouveo_lib_autorun_actions() {
 		}
 		
 		$scen_code = $file['scen_code'] ;
-		$scenstep_code = $next_action['scenstep_code'] ;
-		if( !$scen_code || !$scenstep_code ) {
+		$scenstep_tag = $next_action['scenstep_tag'] ;
+		if( !$scen_code || !$scenstep_tag ) {
 			continue ;
 		}
-		$scenstep = $map_scenCode_scenstepCode_step[$scen_code][$scenstep_code] ;
+		$scenstep = $map_scenCode_scenstepTag_step[$scen_code][$scenstep_tag] ;
 		if( !$scenstep ) {
 			continue ;
 		}
