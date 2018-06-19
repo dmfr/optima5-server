@@ -105,16 +105,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			selectMode: 'single',
 			optimaModule: this.optimaModule,
 			bibleId: 'LIB_ACCOUNT',
-			anchor: '',
-			width: 260
+			anchor: '75%'
 		},{
 			readOnly: true,
 			xtype: 'textfield',
 			fieldLabel: '<b># Acheteur</b>',
 			name: 'acc_id',
-			allowBlank: false,
-			anchor: '',
-			width: 260
+			allowBlank: false
 		},{
 			readOnly: true,
 			xtype: 'textfield',
