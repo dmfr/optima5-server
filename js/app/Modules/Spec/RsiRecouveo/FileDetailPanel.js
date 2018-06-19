@@ -1549,6 +1549,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				}]
 			},
 			viewConfig: {
+				enableTextSelection: true,
 				getRowClass: function(record) {
 					if( record.getDepth() == 2 ) {
 						return 'op5-spec-rsiveo-actionstree-depth2' ;
