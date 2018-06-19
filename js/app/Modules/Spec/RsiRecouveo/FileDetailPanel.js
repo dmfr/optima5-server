@@ -1348,6 +1348,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					width: 80,
 					dataIndex: 'calc_date',
 					renderer: function(value,metaData,record,rowIndex,colIndex,store,view) {
+						var lateStr = null ;
 						if( !record.get('status_is_ok') ) {
 							var etaValue = record.get('calc_eta_range') ;
 							var actionEtaMap = view.up('panel')._actionEtaMap ;
@@ -1357,9 +1358,15 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 							}
 						} else if( record.get('date_sched') 
 								&& Ext.util.Format.date(record.get('date_sched'),'Y-m-d') < Ext.util.Format.date(record.get('date_actual'),'Y-m-d') ) {
-							metaData.style += 'font-weight: bold ; color: red' ;
+							//metaData.style += 'font-weight: bold ; color: red' ;
+							lateStr = Math.abs( Ext.Date.diff( record.get('date_sched'), record.get('date_actual'), Ext.Date.DAY ) );
 						}
-						return Ext.Date.format(Ext.Date.parse(value,'Y-m-d'),'d/m/y') ;
+						var str = Ext.Date.format(Ext.Date.parse(value,'Y-m-d'),'d/m/y') ;
+						if( lateStr > 1 ) {
+							metaData.style += 'font-weight: bold ; color: red' ;
+							str += '<br>'+'J+'+lateStr
+						}
+						return str ;
 					}
 				},{
 					width: 24,
