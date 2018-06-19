@@ -632,6 +632,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 					useFilters: true
 				},
 				renderer: function(v,metaData,r) {
+					if( r.get('status_closed_end') ) {
+						return '' ;
+					}
 					return v ;
 				}
 			},{
@@ -643,6 +646,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 					type: 'date'
 				},
 				renderer: function(v,metaData,r) {
+					if( r.get('status_closed_end') ) {
+						return 'Fermé' ;
+					}
 					if( Ext.isEmpty(v) ) {
 						return '' ;
 					}
