@@ -654,7 +654,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 						}
 					}
 				}]
-			},{
+			},{xtype: 'splitter', cls: 'op5-spec-rsiveo-splitter'},{
 				itemId: 'pRecordsPanel',
 				tbar:[{
 					xtype: 'checkbox',
@@ -675,7 +675,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 				flex: 1,
 				bodyCls: 'ux-noframe-bg',
 				title: 'Factures',
-				style: 'border-left: 3px solid gray ; border-right: 3px solid gray', //HACK to Neptune / VEO
 				layout: {
 					type: 'vbox',
 					align: 'stretch'
@@ -847,7 +846,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 						scope: this
 					}]
 				}]
-			},{
+			},{xtype: 'splitter', cls: 'op5-spec-rsiveo-splitter'},{
 				flex: 1,
 				title: 'Actions',
 				itemId: 'tpFileActions',
