@@ -816,7 +816,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				if( v == 0 ) {
 					return '' ;
 				}
-				return Ext.util.Format.number(v,'0,000')+' €' ;
+				return Ext.util.Format.number(v,'0,000') ;
 			} ;
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getBalageAll(), function(balageSegmt) {
 			var balageField = 'inv_balage_'+balageSegmt.segmt_id ;
@@ -825,11 +825,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				text: balageSegmt.segmt_txt,
 				dataIndex: balageField,
 				width:95,
-				align: 'center',
+				align: 'right',
 				renderer: balageRenderer,
 				summaryType: 'sum',
 				summaryRenderer: function(value) {
-					return '<b>'+Ext.util.Format.number(value,'0,000')+' €'+'</b>' ;
+					return '<b>'+Ext.util.Format.number(value,'0,000')+'</b>' ;
 				}
 			}) ;
 			
@@ -843,11 +843,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				tdCls: 'op5-spec-dbstracy-boldcolumn',
 				dataIndex: balageField,
 				width:95,
-				align: 'center',
+				align: 'right',
 				renderer: balageRenderer,
 				summaryType: 'sum',
 				summaryRenderer: function(value) {
-					return '<b>'+Ext.util.Format.number(value,'0,000')+' €'+'</b>' ;
+					return '<b>'+Ext.util.Format.number(value,'0,000')+'</b>' ;
 				}
 			}) ;
 		}
@@ -948,7 +948,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 				renderer: agendaGridColumnAmountRenderer,
 				summaryType:'sum',
 				summaryRenderer: function(value) {
-					return '<b>'+Ext.util.Format.number(value,'0,000')+' €'+'</b>' ;
+					return '<b>'+Ext.util.Format.number(value,'0,000')+'</b>' ;
 				}
 			});
 		}
