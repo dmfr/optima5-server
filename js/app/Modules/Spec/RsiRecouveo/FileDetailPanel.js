@@ -32,6 +32,49 @@ Ext.define('RsiRecouveoAdrbookTreeModel',{
 	]
 }) ;
 
+
+Ext.define("Optima5.Modules.Spec.RsiRecouveo.FileDetailRowExpander", {
+	extend: "Ext.grid.plugin.RowExpander",
+	alias: "plugin.op5specrsiveofiledetailrowexpander",
+
+	isCollapsed: function (rowIdx) {
+		var me = this,
+				rowNode = me.view.getNode(rowIdx),
+				row = Ext.fly(rowNode, '_rowExpander');
+
+		return row.hasCls(me.rowCollapsedCls)
+	},
+
+
+	collapse: function (rowIdx) {
+		if (this.isCollapsed(rowIdx) == false) {
+				this.toggleRow(rowIdx, this.grid.getStore().getAt(rowIdx));
+		}
+	},
+
+
+	collapseAll: function () {
+		for (i = 0; i < this.grid.getStore().getTotalCount(); i++) {
+				this.collapse(i);
+		}
+	},
+
+
+	expand: function (rowIdx) {
+		if (this.isCollapsed(rowIdx) == true) {
+				this.toggleRow(rowIdx, this.grid.getStore().getAt(rowIdx));
+		}
+	},
+
+
+	expandAll: function () {
+		for (i = 0; i < this.grid.getStore().getTotalCount(); i++) {
+				this.expand(i);
+		}
+	}
+});
+
+
 Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 	extend:'Ext.panel.Panel',
 	
@@ -859,6 +902,25 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					dock: 'bottom',
 					items: []
 				}],
+				tools: [{
+					type: 'plus',
+					handler: function() {
+						var activePanel = this.down('#tpFileActions').getActiveTab() ;
+						if( activePanel ) {
+							activePanel.getPlugin('rowexpander').expandAll() ;
+						}
+					},
+					scope: this
+				},{
+					type: 'minus',
+					handler: function() {
+						var activePanel = this.down('#tpFileActions').getActiveTab() ;
+						if( activePanel ) {
+							activePanel.getPlugin('rowexpander').collapseAll() ;
+						}
+					},
+					scope: this
+				}],
 				items: [],
 				listeners: {
 					tabchange: this.onTabChange,
@@ -1279,7 +1341,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			_statusMap: statusMap,
 			_actionMap: actionMap,
 			_actionEtaMap: actionEtaMap,
-			plugins: [Ext.create('Ext.grid.plugin.RowExpander',{
+			plugins: [Ext.create('Optima5.Modules.Spec.RsiRecouveo.FileDetailRowExpander',{
+				pluginId: 'rowexpander',
 				rowBodyTpl: [
 					'<div class="op5-spec-rsiveo-actionstree-rowbody">{[Ext.util.Format.nl2br(values.txt)]}</div>'
 				]
