@@ -1060,6 +1060,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		
 		var inv_nb = 0, inv_amount_total = 0, inv_amount_due = 0 ;
 		accountRecord.files().each( function(fileRecord) {
+			if( fileRecord.get('status_closed_end') && !this._showClosed ) {
+				return ;
+			}
 			inv_nb += fileRecord.get('inv_nb') ;
 			inv_amount_total += fileRecord.get('inv_amount_total') ;
 			inv_amount_due += fileRecord.get('inv_amount_due') ;
