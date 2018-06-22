@@ -40,7 +40,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportsTabPanel',{
 			title: 'Analyse dossiers',
 			optimaModule: this.optimaModule,
 		}) ;
-		this.add(fileReport) ;
+		this.add(filesPanel) ;
 		
 		/*
 		var chartReport = Ext.create('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
