@@ -1,5 +1,7 @@
 Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetAgenda',{
 	extend: 'Ext.panel.Panel',
+	_defaultMode: 'count',
+	_hideForm: false,
 	initComponent: function() {
 		var agendaGridFields = ['agenda_class','agenda_class_txt'],
 			agendaGridColumnRenderer = function(v) {
@@ -107,6 +109,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetAgenda',{
 				height: 24,
 				xtype: 'form',
 				itemId: 'formAgenda',
+				hidden: this._hideForm,
 				anchor: '',
 				items: [{
 					xtype      : 'fieldcontainer',
@@ -131,11 +134,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetAgenda',{
 							boxLabel  : 'Nombre dossiers',
 							name      : 'agenda_mode',
 							inputValue: 'count',
-							checked: true
+							checked: (this._defaultMode=='count')
 						}, {
 							boxLabel  : 'Devise (€)',
 							name      : 'agenda_mode',
-							inputValue: 'amount'
+							inputValue: 'amount',
+							checked: (this._defaultMode=='amount')
 						}
 					]
 				}]
