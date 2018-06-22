@@ -9,7 +9,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		'Optima5.Modules.Spec.RsiRecouveo.CfgParamFilter',
 		'Optima5.Modules.Spec.RsiRecouveo.MultiActionForm',
 		'Optima5.Modules.Spec.RsiRecouveo.FilesTopPanel',
-		'Optima5.Modules.Spec.RsiRecouveo.UxGridFilters'
+		'Optima5.Modules.Spec.RsiRecouveo.UxGridFilters',
+		'Optima5.Modules.Spec.RsiRecouveo.FilesWidgetCharts',
+		'Optima5.Modules.Spec.RsiRecouveo.FilesWidgetAgenda',
+		'Optima5.Modules.Spec.RsiRecouveo.FilesWidgetBalage'
 	],
 	
 	viewMode: null,
@@ -216,7 +219,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		
 		this.buildToolbar() ;
 		this.buildViews() ;
-		this.applyAgendaMode() ;
 		this.applyAuth() ;
 		this.onViewSet(this.defaultViewMode) ;
 	},
@@ -792,310 +794,21 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			_actionnextMap: actionnextMap,
 			_actionEtaMap: actionEtaMap
 		});
-		
-		
-		
-		// ******** Charts *****************
-		
-		var balageGridFields = ['status_id','status_txt','status_color'],
-			balageGridColumns = [{
-				locked: true,
-				width: 100,
-				text: 'Statut',
-				dataIndex: 'status_txt',
-				renderer: function(value,metaData,record) {
-					metaData.style += 'color: white ; background: '+record.get('status_color') ;
-					return value ;
-				},
-				summaryType: 'sum',
-				summaryRenderer: function(value) {
-					return '<b>'+'Total'+'</b>' ;
-				}
-			}],
-			balageRenderer = function(v) {
-				if( v == 0 ) {
-					return '' ;
-				}
-				return Ext.util.Format.number(v,'0,000') ;
-			} ;
-		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getBalageAll(), function(balageSegmt) {
-			var balageField = 'inv_balage_'+balageSegmt.segmt_id ;
-			
-			balageGridColumns.push({
-				text: balageSegmt.segmt_txt,
-				dataIndex: balageField,
-				width:95,
-				align: 'right',
-				renderer: balageRenderer,
-				summaryType: 'sum',
-				summaryRenderer: function(value) {
-					return '<b>'+Ext.util.Format.number(value,'0,000')+'</b>' ;
-				}
-			}) ;
-			
-			balageGridFields.push(balageField);
-		}) ;
-		if( true ) {
-			var balageField = 'inv_balage_sum' ;
-			balageGridFields.push(balageField);
-			balageGridColumns.push({
-				text: '<b>'+'Total'+'</b>',
-				tdCls: 'op5-spec-dbstracy-boldcolumn',
-				dataIndex: balageField,
-				width:95,
-				align: 'right',
-				renderer: balageRenderer,
-				summaryType: 'sum',
-				summaryRenderer: function(value) {
-					return '<b>'+Ext.util.Format.number(value,'0,000')+'</b>' ;
-				}
-			}) ;
-		}
-		
-		
-		
-		var statusColors = [], statusTitles = [] ;
-		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getStatusAll(), function(status) {
-			statusColors.push(status.status_color) ;
-			statusTitles.push(status.status_txt) ;
-		}) ;
-		
-		var agendaGridFields = ['agenda_class','agenda_class_txt'],
-			agendaGridColumnRenderer = function(v) {
-				if( v == 0 ) {
-					return '' ;
-				}
-				return v ;
-			},
-			agendaGridColumnAmountRenderer = function(v) {
-				if( v == 0 ) {
-					return '' ;
-				}
-				return Ext.util.Format.number(v,'0,000');
-			},
-			agendaGridColumns = [{
-				locked: true,
-				width: 100,
-				text: 'Statut',
-				dataIndex: 'agenda_class_txt',
-				summaryType: 'count',
-				summaryRenderer: function(value, summaryData, dataIndex) {
-					return '<b>'+'Total'+'</b>' ;
-				}
-			}] ;
-			
-		var agendaChrtFields = ['agenda_class','agenda_class_txt'],
-			agendaChrtYFields = [],
-			agendaChrtTitles = [],
-			agendaChrtColors = [] ;
-		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionEtaAll(), function(etaRange) {
-			agendaGridFields.push(etaRange.eta_range+'_count', etaRange.eta_range+'_ratio1000') ;
-			agendaGridColumns.push({
-				hidden: true,
-				_agendaMode: 'count',
-				_etaRange: etaRange.eta_range,
-				text: etaRange.eta_txt,
-				dataIndex: etaRange.eta_range+'_count',
-				width: 85,
-				tdCls: 'bgcolor-'+etaRange.eta_color.substring(1),
-				renderer: agendaGridColumnRenderer,
-				summaryType:'sum',
-				summaryRenderer: function(value) {
-					return '<b>'+value+'</b>' ;
-				}
-			});
-			agendaGridFields.push(etaRange.eta_range+'_amount') ;
-			agendaGridColumns.push({
-				hidden: true,
-				_agendaMode: 'amount',
-				_etaRange: etaRange.eta_range,
-				text: etaRange.eta_txt,
-				dataIndex: etaRange.eta_range+'_amount',
-				width: 85,
-				tdCls: 'bgcolor-'+etaRange.eta_color.substring(1),
-				renderer: agendaGridColumnAmountRenderer,
-				summaryType:'sum',
-				summaryRenderer: function(value) {
-					return '<b>'+Ext.util.Format.number(value,'0,000')+'</b>' ;
-				}
-			});
 
-			agendaChrtFields.push(etaRange.eta_range+'_count', etaRange.eta_range+'_ratio1000') ;
-			agendaChrtYFields.push(etaRange.eta_range+'_ratio1000') ;
-			agendaChrtTitles.push(etaRange.eta_txt) ;
-			agendaChrtColors.push(etaRange.eta_color) ;
-		}) ;
-		if( true ) { // footer sum
-			agendaGridFields.push('sum'+'_count', 'sum'+'_ratio1000') ;
-			agendaGridColumns.push({
-				hidden: true,
-				_agendaMode: 'count',
-				text: '<b>'+'Total'+'</b>',
-				dataIndex: 'sum'+'_count',
-				width: 85,
-				tdCls: 'op5-spec-dbstracy-boldcolumn',
-				renderer: agendaGridColumnRenderer,
-				summaryType:'sum'
-			});
-			agendaGridFields.push('sum'+'_amount') ;
-			agendaGridColumns.push({
-				hidden: true,
-				_agendaMode: 'amount',
-				text: '<b>'+'Total'+'</b>',
-				dataIndex: 'sum'+'_amount',
-				width: 85,
-				tdCls: 'op5-spec-dbstracy-boldcolumn',
-				renderer: agendaGridColumnAmountRenderer,
-				summaryType:'sum',
-				summaryRenderer: function(value) {
-					return '<b>'+Ext.util.Format.number(value,'0,000')+'</b>' ;
-				}
-			});
-		}
-		
-		
-		var chartStatusAmountTotal = 0,
-			chartStatusCountTotal = 0 ;
-		
+
+
+
+		// ******** Charts *****************
 		var pNorth = this.down('#pNorth') ;
 		pNorth.removeAll() ;
-		var chrtStatusAmountText = Ext.create('Ext.draw.sprite.Text', {
-			type: 'text',
-			text: '',
-			fontSize: 12,
-			fontFamily: 'Play, sans-serif',
-			width: 100,
-			height: 30,
-			x: 30, // the sprite x position
-			y: 235  // the sprite y position
-		});
-		pNorth.add({
-			xtype: 'panel',
-			cls: 'chart-no-border',
-			width: 315,
-			height: 240,
-			layout: 'fit',
-			border: false,
-			items: {
-				xtype: 'polar',
-				 animation: false,
-				itemId: 'chrtStatusAmount',
-				border: false,
-				colors: statusColors,
-				store: { 
-					fields: ['status_id','status_txt', 'amount' ],
-					data: []
-				},
-				insetPadding: { top: 10, left: 10, right: 10, bottom: 20 },
-				//innerPadding: 20,
-				legend: {
-					docked: 'left',
-					border: false,
-					toggleable: false,
-					style: {
-						border: {
-							color: 'white'
-						}
-					}
-				},
-				interactions: ['itemhighlight'],
-				_textSprite: chrtStatusAmountText,
-            sprites: [chrtStatusAmountText],
-				plugins: {
-					ptype: 'chartitemevents',
-					moveEvents: false
-				},
-				series: [{
-					type: 'pie',
-					angleField: 'amount',
-					donut: 50,
-					label: {
-						field: 'status_txt',
-						calloutLine: {
-							color: 'rgba(0,0,0,0)' // Transparent to hide callout line
-						},
-						renderer: function(val) {
-							return ''; // Empty label to hide text
-						}
-					},
-					listeners: {
-						itemclick: this.onPolarItemClick,
-						scope: this
-					},
-					//highlight: true,
-					tooltip: {
-						trackMouse: true,
-						style: 'background: #fff',
-						renderer: function(storeItem, item) {
-							this.setHtml(storeItem.get('status_txt') + ': ' + storeItem.get('amount') + '€');
-						}
-					}
-				}]
+		pNorth.add(Ext.create('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetCharts',{
+			itemId: 'northWidgetCharts',
+			width: 550,
+			listeners: {
+				polaritemclick: this.onPolarItemClick,
+				scope: this
 			}
-		}) ;
-		var chrtStatusCountText = Ext.create('Ext.draw.sprite.Text', {
-			type: 'text',
-			text: '',
-			fontSize: 12,
-			fontFamily: 'Play, sans-serif',
-			width: 100,
-			height: 30,
-			x: 55, // the sprite x position
-			y: 235  // the sprite y position
-		});
-		pNorth.add({
-			xtype: 'panel',
-			height: 240,
-			width: 215,
-			layout: 'fit',
-			border: false,
-			items: {
-				xtype: 'polar',
-				 animation: false,
-				itemId: 'chrtStatusCount',
-				border: false,
-				colors: statusColors,
-				store: { 
-					fields: ['status_id','status_txt', 'count' ],
-					data: []
-				},
-				insetPadding: { top: 10, left: 10, right: 10, bottom: 20 },
-				//innerPadding: 20,
-				interactions: ['itemhighlight'],
-				_textSprite: chrtStatusCountText,
-            sprites: [chrtStatusCountText],
-				plugins: {
-					ptype: 'chartitemevents',
-					moveEvents: false
-				},
-				series: [{
-					type: 'pie',
-					angleField: 'count',
-					donut: 50,
-					label: {
-						field: 'status_txt',
-						calloutLine: {
-							color: 'rgba(0,0,0,0)' // Transparent to hide callout line
-						},
-						renderer: function(val) {
-							return ''; // Empty label to hide text
-						}
-					},
-					listeners: {
-						itemclick: this.onPolarItemClick,
-						scope: this
-					},
-					//highlight: true,
-					tooltip: {
-						trackMouse: true,
-						style: 'background: #fff',
-						renderer: function(storeItem, item) {
-							this.setHtml(storeItem.get('status_txt') + ': ' + storeItem.get('count') + '');
-						}
-					}
-				}]
-			}
-		}) ;
+		})) ;
 		pNorth.add({
 			xtype:'box',
 			width: 2,
@@ -1107,209 +820,20 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			xtype: 'tabpanel',
 			items: []
 		});
-		pNorthTab.add({
+		pNorthTab.add(Ext.create('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetAgenda', {
 			title: 'Agenda',
-			xtype: 'panel',
-			itemId: 'pNorthAgenda',
-			border: false,
-			cls: 'chart-no-border',
-			layout: {
-				type: 'vbox',
-				align: 'stretch'
-			},
-			//border: false,
-			items: [{
-				height: 24,
-				xtype: 'form',
-				itemId: 'formAgenda',
-				anchor: '',
-				items: [{
-					xtype      : 'fieldcontainer',
-					defaultType: 'radiofield',
-					fieldLabel: 'Vue Agenda',
-					labelWidth: 100,
-					labelAlign: 'right',
-					anchor: '',
-					width: 350,
-					defaults: {
-						margin: '0px 16px',
-						listeners: {
-							change: function( field, value ) {
-								this.applyAgendaMode() ;
-							},
-							scope: this
-						}
-					},
-					layout: 'hbox',
-					items: [
-						{
-							boxLabel  : 'Nombre dossiers',
-							name      : 'agenda_mode',
-							inputValue: 'count',
-							checked: true
-						}, {
-							boxLabel  : 'Devise (€)',
-							name      : 'agenda_mode',
-							inputValue: 'amount'
-						}
-					]
-				}]
-			},{
-				flex: 1,
-				margin: '4px 10px',
-				xtype: 'grid',
-				itemId: 'gridAgenda',
-				enableLocking: true,
-				columns: {
-					defaults: {
-						menuDisabled: true,
-						draggable: false,
-						sortable: false,
-						hideable: false,
-						resizable: false,
-						groupable: false,
-						lockable: false,
-						
-						align: 'right'
-					},
-					items: agendaGridColumns
-				},
-				store: {
-					fields: agendaGridFields,
-					data: []
-				},
-				selModel: {
-					mode: 'SINGLE'
-				},
-				listeners: {
-					selectionchange: function(selectionModel, records) {
-						var selRecord = records[0],
-							chrtAgenda = this.down('#pNorth').down('#chrtAgenda') ;
-						if( !selRecord ) {
-							chrtAgenda.setVisible(false) ;
-							chrtAgenda.getStore().loadData([]) ;
-							return ;
-						}
-						chrtAgenda.getStore().loadData([selRecord.getData()]) ;
-						chrtAgenda.setVisible(true) ;
-					},
-					itemclick: this.onGridItemClick,
-					scope: this
-				},
-				features: [{
-					ftype: 'summary',
-					dock: 'bottom'
-				}]
-			},{
-				height: 60,
-				hidden: true,
-				xtype: 'cartesian',
-				animation: false,
-				itemId: 'chrtAgenda',
-				colors: agendaChrtColors,
-				border: false,
-				width: '100%',
-				/*legend: {
-					docked: 'bottom',
-					toggleable: false
-				},*/
-				store: {
-					fields: agendaChrtFields,
-					data: []
-				},
-				plugins: {
-					ptype: 'chartitemevents',
-					moveEvents: false
-				},
-				insetPadding: { top: 10, left: 10, right: 30, bottom: 10 },
-				flipXY: true,
-				/*sprites: [{
-					type: 'text',
-					text: 'Agenda / Actions imminentes',
-					fontSize: 14,
-					width: 100,
-					height: 30,
-					x: 150, // the sprite x position
-					y: 20  // the sprite y position
-				}],*/
-				axes: [/*{
-					type: 'numeric',
-					position: 'bottom',
-					adjustByMajorUnit: true,
-					fields: agendaChrtYFields,
-					grid: true,
-					renderer: function (v) { return v + ''; },
-					minimum: 0
-				}, */{
-					type: 'category',
-					position: 'left',
-					fields: 'agenda_class_txt',
-					grid: true
-				}],
-				series: [{
-					type: 'bar',
-					axis: 'bottom',
-					title: agendaChrtTitles,
-					xField: 'agenda_class_txt',
-					yField: agendaChrtYFields,
-					stacked: true,
-					style: {
-						opacity: 0.80
-					},
-					//highlight: true,
-					listeners: {
-						itemclick: this.onBarItemClick,
-						scope: this
-					},
-					tooltip: {
-						trackMouse: true,
-						style: 'background: #fff',
-						renderer: function(storeItem, item) {
-								var browser = item.series.getTitle()[Ext.Array.indexOf(item.series.getYField(), item.field)];
-								var countField = item.field.replace('_ratio1000','_count') ;
-								this.setHtml(browser + ' for ' + storeItem.get('agenda_class_txt') + ': ' + storeItem.get(countField));
-						}
-					}
-				}]
-			}]
-		}) ;
-		pNorthTab.add({
-			title: 'Balance âgée par statut',
-			xtype: 'panel',
-			itemId: 'pNorthBalage',
-			border: false,
-			cls: 'chart-no-border',
-			layout: 'fit',
-			items: [{
-				margin: '4px 10px',
-				xtype: 'grid',
-				itemId: 'gridStatusBalage',
-				enableLocking: true,
-				columns: {
-					defaults: {
-						menuDisabled: true,
-						draggable: false,
-						sortable: false,
-						hideable: false,
-						resizable: false,
-						groupable: false,
-						lockable: false,
-						align: 'right'
-					},
-					items: balageGridColumns
-				},
-				store: {
-					fields: balageGridFields,
-					data: []
-				},
-				features: [{
-					ftype: 'summary',
-					dock: 'bottom'
-				}]
-			}]
-		});
+			itemId: 'northWidgetAgenda',
+			listeners: {
+				agendaitemclick: this.onAgendaItemClick,
+				scope: this
+			}
+		})) ;
+		pNorthTab.add(Ext.create('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetBalage', {
+			title: 'Balance agée par statut',
+            itemId: 'northWidgetBalage'
+		}));
 		pNorthTab.setActiveTab(0);
-		
+
 		this.configureViews() ;
 	},
 	configureViews: function() {
@@ -1360,14 +884,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		var showAddress = (this.showAddress) ;
 		this.down('#pCenter').down('#pGrid').headerCt.down('[dataIndex="adr_postal"]').setVisible(showAddress) ;
 	},
-	applyAgendaMode: function() {
-		var gridAgenda = this.down('#pNorth').down('#gridAgenda'),
-			formAgenda = this.down('#pNorth').down('#formAgenda'),
-			agendaMode = formAgenda.getForm().getValues()['agenda_mode'] ;
-		Ext.Array.each( gridAgenda.headerCt.query('[_agendaMode]'), function(column) {
-			column.setVisible( (column._agendaMode==agendaMode) ) ;
-		} ) ;
-	},
+
 	toggleMultiSelect: function( torf ) {
 		var column = this.down('#pCenter').down('#pGrid').headerCt.down('#colMultiSelect') ;
 		if( torf === undefined ) {
@@ -1547,73 +1064,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 		if( !ajaxData ) {
 			return ;
 		}
-		
+
 		// Calcul des stats
 		// - chaque statut => nb de dossiers / montant
 		// - chaque action non réalisée
-		var map_status_nbFiles = {},
-			map_status_amount = {} ;
-		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getStatusAll(), function(status) {
-			map_status_nbFiles[status.status_id]=0 ;
-			map_status_amount[status.status_id]=0 ;
-		}) ;
-		Ext.Array.each( ajaxData, function(fileRow) {
-			var status = fileRow.status ;
-			if( !map_status_nbFiles.hasOwnProperty(status) ) {
-				return ;
-			}
-			map_status_nbFiles[status]++ ;
-			map_status_amount[status] += fileRow.inv_amount_due ;
-		}) ;
-		
-		var map_status_arrBalage = {} ;
-		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getStatusAll(), function(status) {
-			map_status_arrBalage[status.status_id]=[] ;
-		}) ;
-		Ext.Array.each( ajaxData, function(fileRow) {
-			var status = fileRow.status ;
-			if( !map_status_arrBalage.hasOwnProperty(status) ) {
-				return ;
-			}
-			map_status_arrBalage[status].push(fileRow.inv_balage) ;
-		}) ;
-		
-		var map_actionAgendaClass_etaRange_nbActions = {},
-			map_actionAgendaClass_etaRange_amount = {},
-			map_actionId_action = {},
-			actionRow, actionAgendaClass ;
-		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionAll(), function(action) {
-			map_actionId_action[action.action_id] = action ;
-		}) ;
-		Ext.Array.each( ajaxData, function(fileRow) {
-			Ext.Array.each( fileRow.actions, function(fileActionRow) {
-				actionRow = map_actionId_action[fileActionRow.link_action] ;
-				if( !actionRow || fileActionRow.status_is_ok ) {
-					return ;
-				}
-				actionAgendaClass = actionRow.agenda_class ;
-				if( Ext.isEmpty(actionAgendaClass) ) {
-					return ;
-				}
-				
-				if( !map_actionAgendaClass_etaRange_nbActions.hasOwnProperty(actionAgendaClass) ) {
-					map_actionAgendaClass_etaRange_nbActions[actionAgendaClass] = {} ;
-				}
-				if( !map_actionAgendaClass_etaRange_nbActions[actionAgendaClass].hasOwnProperty(fileActionRow.calc_eta_range) ) {
-					map_actionAgendaClass_etaRange_nbActions[actionAgendaClass][fileActionRow.calc_eta_range] = 0 ;
-				}
-				map_actionAgendaClass_etaRange_nbActions[actionAgendaClass][fileActionRow.calc_eta_range]++ ;
-				
-				if( !map_actionAgendaClass_etaRange_amount.hasOwnProperty(actionAgendaClass) ) {
-					map_actionAgendaClass_etaRange_amount[actionAgendaClass] = {} ;
-				}
-				if( !map_actionAgendaClass_etaRange_amount[actionAgendaClass].hasOwnProperty(fileActionRow.calc_eta_range) ) {
-					map_actionAgendaClass_etaRange_amount[actionAgendaClass][fileActionRow.calc_eta_range] = 0 ;
-				}
-				map_actionAgendaClass_etaRange_amount[actionAgendaClass][fileActionRow.calc_eta_range] += fileRow.inv_amount_due ;
-			}) ;
-		}) ;
-		
+
+
 		if( this.viewMode == 'record' ) {
 			//var indexedFiles = [] ;
 			var newAjaxData = [] ;
@@ -1736,144 +1192,25 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			}
 		}) ;
 		this.down('#pCenter').down('#pGrid').getStore().loadRawData(ajaxData) ;
-		
-		
+
+
+
+
 		// charts
-		var agendaData = [], agendaRow,
-			agendaSummary = {};
-		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionAll(), function(actionRow) {
-			if( !Ext.isEmpty(actionRow.agenda_class) && !agendaSummary.hasOwnProperty(actionRow.agenda_class) ) {
-				var statusRow = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getStatusRowId(actionRow.agenda_class) ;
-				if( !statusRow ) {
-					return ;
-				}
-				agendaSummary[actionRow.agenda_class] = statusRow.status_txt ;
-			}
-		}) ;
-		Ext.Object.each( agendaSummary, function(agendaClass,agendaClassTxt) {
-			var sum = 0 ;
-			agendaRow = {} ;
-			agendaRow['agenda_class'] = agendaClass ;
-			agendaRow['agenda_class_txt'] = agendaClassTxt ;
-			Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionEtaAll(), function(etaRangeRow) {
-				var etaRange = etaRangeRow.eta_range,
-					etaRangeCount = etaRangeRow.eta_range+'_count',
-					etaRangeAmount = etaRangeRow.eta_range+'_amount' ;
-				agendaRow[etaRangeCount] = 0 ;
-				agendaRow[etaRangeAmount] = 0 ;
-				
-				if( map_actionAgendaClass_etaRange_amount.hasOwnProperty(agendaClass)
-					&& map_actionAgendaClass_etaRange_amount[agendaClass].hasOwnProperty(etaRange) ) {
-					
-					
-					agendaRow[etaRangeAmount] = map_actionAgendaClass_etaRange_amount[agendaClass][etaRange] ;
-				}
-				
-				if( map_actionAgendaClass_etaRange_nbActions.hasOwnProperty(agendaClass)
-					&& map_actionAgendaClass_etaRange_nbActions[agendaClass].hasOwnProperty(etaRange) ) {
-					
-					
-					agendaRow[etaRangeCount] = map_actionAgendaClass_etaRange_nbActions[agendaClass][etaRange] ;
-				}
-				sum += agendaRow[etaRangeCount] ;
-			}) ;
-			
-			if( sum > 0 ) {
-				var factor = 1000 / sum ;
-				Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionEtaAll(), function(etaRangeRow) {
-					var etaRange = etaRangeRow.eta_range,
-						etaRangeCount = etaRangeRow.eta_range+'_count',
-						etaRangeRatio = etaRangeRow.eta_range+'_ratio1000' ;
-					agendaRow[etaRangeRatio] = agendaRow[etaRangeCount] * factor ;
-				}) ;
-			} else {
-				Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionEtaAll(), function(etaRangeRow) {
-					var etaRange = etaRangeRow.eta_range,
-						etaRangeCount = etaRangeRow.eta_range+'_count',
-						etaRangeRatio = etaRangeRow.eta_range+'_ratio1000' ;
-					agendaRow[etaRangeRatio] = 0 ;
-				}) ;
-			}
-			
-			agendaRow['sum_amount'] = agendaRow['sum_count'] = agendaRow['sum_ratio1000'] = 0 ;
-			Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionEtaAll(), function(etaRangeRow) {
-				var etaRange = etaRangeRow.eta_range,
-					etaRangeAmount = etaRangeRow.eta_range+'_amount',
-					etaRangeCount = etaRangeRow.eta_range+'_count',
-					etaRangeRatio = etaRangeRow.eta_range+'_ratio1000' ;
-				agendaRow['sum_amount'] += agendaRow[etaRangeAmount] ;
-				agendaRow['sum_count'] += agendaRow[etaRangeCount] ;
-				agendaRow['sum_ratio1000'] += agendaRow[etaRangeRatio] ;
-			}) ;
-			
-			agendaData.push(agendaRow) ;
-		}) ;
-		
-		var chartStatusAmountData = [],
-			chartStatusCountData = [],
-			gridStatusBalageData = [] ;
-		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getStatusAll(), function(status) {
-			chartStatusAmountData.push({
-				'status_id' : status.status_id,
-				'status_txt' : status.status_txt,
-				'amount' : Math.round(map_status_amount[status.status_id])
-			}) ;
-			chartStatusCountData.push({
-				'status_id' : status.status_id,
-				'status_txt' : status.status_txt,
-				'count' : Math.round(map_status_nbFiles[status.status_id])
-			}) ;
-			
-			var gridStatusBalageRow = {
-				'status_id' : status.status_id,
-				'status_txt' : status.status_txt,
-				'status_color' : status.status_color
-			};
-			Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getBalageAll(), function(balageSegmt) {
-				var balageField = 'inv_balage_'+balageSegmt.segmt_id ;
-				gridStatusBalageRow[balageField] = 0 ;
-			}) ;
-			gridStatusBalageRow['inv_balage_sum'] = 0 ;
-			Ext.Array.each( map_status_arrBalage[status.status_id], function(invBalage) {
-				Ext.Object.each( invBalage, function(balageSegmtId,amount) {
-					var balageField = 'inv_balage_'+balageSegmtId ;
-					if( !gridStatusBalageRow.hasOwnProperty(balageField) ) {
-						return ;
-					}
-					gridStatusBalageRow[balageField] += amount ;
-					gridStatusBalageRow['inv_balage_sum'] += amount ;
-				});
-			}) ;
-			gridStatusBalageData.push(gridStatusBalageRow) ;
-		}) ;
-		
-		var chartStatusAmountTotal = Math.round( Ext.Array.sum( Ext.Object.getValues(map_status_amount)) ),
-			chartStatusCountTotal = Ext.Array.sum( Ext.Object.getValues(map_status_nbFiles)) ;
-		
-		this.down('#pNorth').down('#chrtStatusAmount').getStore().loadRawData(chartStatusAmountData) ;
-		this.down('#pNorth').down('#chrtStatusCount').getStore().loadRawData(chartStatusCountData) ;
-		
-		this.down('#pNorth').down('#gridAgenda').getSelectionModel().deselectAll() ;
-		this.down('#pNorth').down('#gridAgenda').getStore().loadRawData(agendaData) ;
-		
-		this.down('#pNorth').down('#gridStatusBalage').getStore().loadRawData(gridStatusBalageData) ;
-		
-		this.down('#pNorth').down('#chrtStatusAmount')._textSprite.setAttributes({
-			text: 'Répartition ( '+Ext.util.Format.number(chartStatusAmountTotal,'0,000')+' € )'
-		},true) ;
-		this.down('#pNorth').down('#chrtStatusCount')._textSprite.setAttributes({
-			text: 'Nb Dossiers ( '+chartStatusCountTotal+' )'
-		},true) ;
+		var pNorth = this.down('#pNorth');
+		pNorth.down('#northWidgetCharts').loadFilesData(ajaxData) ;
+		pNorth.down('#northWidgetAgenda').loadFilesData(ajaxData) ;
+		pNorth.down('#northWidgetBalage').loadFilesData(ajaxData) ;
 	},
-	
+
 	toggleMultiSelectAll: function(torf) {
 		this.down('#pCenter').down('#pGrid').getStore().each( function(rec) {
 			rec.set('_is_selection',torf) ;
 			//rec.commit() ;
 		}) ;
 	},
-	
-	
+
+
 	showLoadmask: function() {
 		if( this.rendered ) {
 			this.doShowLoadmask() ;
@@ -2041,14 +1378,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			}
 		}) ;
 	},
-	onBarItemClick: function( series, item ) {
-		var clickAgendaClass = item.record.data.agenda_class,
-			clickEtaRange = item.field.replace('_ratio1000','') ;
-		
+	onAgendaItemClick: function( clickAgendaClass, clickEtaRange ) {
 		var gridPanel = this.down('#pCenter').down('#pGrid'),
 			gridPanelStore = gridPanel.getStore(),
 			gridPanelFilters = gridPanelStore.getFilters() ;
-		
+
 		var curAgendaClass, curEtaRange ;
 		gridPanelFilters.each(function(filter) {
 			switch( filter.getProperty() ) {
@@ -2071,40 +1405,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			}) ;
 			return ;
 		}
-		gridPanelStore.filter([{
-			exactMatch : true,
-			property : 'next_eta_range',
-			value    : clickEtaRange
-		},{
-			exactMatch : true,
-			property : 'next_agenda_class',
-			value    :  clickAgendaClass
-		}]);
-		Ext.Array.each( this.down('#pCenter').down('#pGrid').getColumns(), function(column) {
-			if( column.filter && column.filter.type == 'stringlist' && !column.filter.active ) {
-				column.filter.rebuildList() ; // HACK!
-			}
-		}) ;
-	},
-	onGridItemClick: function ( view, record, item, index, e ) {
 
-		//console.dir(arguments);
-		//console.dir(record.getData()) ;
-		var cellNode = e.getTarget( view.getCellSelector() ),
-			cellColumn = view.getHeaderByCell( cellNode ) ;
-		var clickAgendaClass = record.get('agenda_class') ;
-		var clickEtaRange = cellColumn._etaRange ;
-
-		var txt = record.get('agenda_class_txt');
-
-		var gridPanel = this.down('#pCenter').down('#pGrid'),
-			gridPanelStore = gridPanel.getStore(),
-			gridPanelFilters = gridPanelStore.getFilters() ;
-
-
-		this.down('#pCenter').down('#pGrid').getStore().clearFilter() ;
-		this.down('#pCenter').down('#pGrid').filters.clearFilters() ;
-		
 		var filters = [] ;
 		if( !Ext.isEmpty(clickAgendaClass) ) {
 			filters.push({
