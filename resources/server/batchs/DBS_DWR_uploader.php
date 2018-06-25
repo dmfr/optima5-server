@@ -1,6 +1,6 @@
 <?php
 
-$URL = "http://10.206.180.82/paracrm/server/report.xml.php" ;
+$URL = "http://127.0.0.1/paracrm/server/report.xml.php" ;
 
 $PARAMS_BASE = array(
 'PHP_AUTH_USER' => 'uploader@dbs',
