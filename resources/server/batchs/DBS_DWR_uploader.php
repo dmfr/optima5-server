@@ -56,7 +56,7 @@ foreach( scandir($in_dir) as $filename ) {
 	}
 	$target_table_code = NULL ;
 	foreach( $MAP_PREFIX_TO_TABLECODE as $prefix => $table_code ) {
-		if( strpos($filename,$prefix)===0 ) {
+		if( !(strpos($filename,$prefix)===FALSE) ) {
 			$target_table_code = $table_code ;
 			break ;
 		}
