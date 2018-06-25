@@ -4,7 +4,7 @@ class DatabaseMgr_Sdomain {
 	private $_opDB ;
 	private $domain_id ;
 	
-	private static $dbVersion = 39 ;
+	private static $dbVersion = 40 ;
 	
 	public function __construct( $domain_id ) {
 		$this->_opDB = $GLOBALS['_opDB'] ;
@@ -97,6 +97,7 @@ CREATE TABLE `define_file` (
   `file_parent_code` varchar(50) NOT NULL,
   `file_iconfile` varchar(50) NOT NULL,
   `file_lib` varchar(100) NOT NULL,
+  `file_tags` varchar(500) NOT NULL,
   `file_type` varchar(50) NOT NULL,
   `file_specdata` varchar(10) NOT NULL,
   `gmap_is_on` varchar(1) NOT NULL,
@@ -626,6 +627,7 @@ CREATE TABLE `qweb_field_qwhere` (
 CREATE TABLE `qsql` (
   `qsql_id` int(11) NOT NULL AUTO_INCREMENT,
   `qsql_name` varchar(100) NOT NULL,
+  `qsql_tags` varchar(500) NOT NULL,
   `sql_querystring` text NOT NULL,
   `sql_is_rw` varchar(1) NOT NULL,
   `autorun_is_on` varchar(1) NOT NULL,
