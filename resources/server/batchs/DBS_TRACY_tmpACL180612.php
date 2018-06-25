@@ -47,17 +47,17 @@ if( !$out_dir || !is_dir($out_dir) ) {
 
 // *********************************
 $form_data = array(
-	'date_start' => date('Y-m-d','-6 months'),
+	'date_start' => date('Y-m-d',strtotime('-30 days')),
 	'date_end' => date('Y-m-d')
 );
 
 if( $buffer=specDbsTracy_report_RCL_VL02NPOD_tmp($form_data) ) {
-	$filename = 'RCLVL02NPOD_'.time().'.csv' ;
+	$filename = 'OP5report_TRACY_.RCL_VL02NPOD_'.time().'.csv' ;
 	$filepath = $out_dir.'/'.$filename ;
 	file_put_contents($filepath,$buffer) ;
 }
 if( $buffer=specDbsTracy_report_RCL_VL02NAWB_tmp($form_data) ) {
-	$filename = 'RCLVL02NAWB_'.time().'.csv' ;
+	$filename = 'OP5report_TRACY_.RCL_VL02NAWB_'.time().'.csv' ;
 	$filepath = $out_dir.'/'.$filename ;
 	file_put_contents($filepath,$buffer) ;
 }
