@@ -712,7 +712,7 @@ function paracrm_lib_data_insertRecord_file( $file_code , $filerecord_parent_id 
 			$val = $_opDB->escape_string($data[$datafield]) ;
 			$query.= " AND `{$dbfield}` = '{$val}'" ;
 		}
-		if( $_opDB->num_rows($restmp = $_opDB->query($query)) == 1 ) {
+		if( $_opDB->num_rows($restmp = $_opDB->query($query)) >= 1 ) {
 			$ttmp = $_opDB->fetch_row($restmp) ;
 			$primaryKey_filerecordId = $ttmp[0] ;
 			if( $ignore_ifLocked && $ttmp[1] == 'O' ) {
