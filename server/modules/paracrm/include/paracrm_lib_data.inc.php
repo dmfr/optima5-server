@@ -709,7 +709,8 @@ function paracrm_lib_data_insertRecord_file( $file_code , $filerecord_parent_id 
 				continue ;
 			$dbfield = $datafield ;
 			
-			$query.= " AND `{$dbfield}` = '{$data[$datafield]}'" ;
+			$val = $_opDB->escape_string($data[$datafield]) ;
+			$query.= " AND `{$dbfield}` = '{$val}'" ;
 		}
 		if( $_opDB->num_rows($restmp = $_opDB->query($query)) == 1 ) {
 			$ttmp = $_opDB->fetch_row($restmp) ;
