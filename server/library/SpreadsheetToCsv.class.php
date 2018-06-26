@@ -11,7 +11,7 @@ class SpreadsheetToCsv {
 				$app_root = $GLOBALS['app_root'] ;
 				$resources_root=$app_root.'/resources' ;
 				if( !@include_once("{$resources_root}/spout/src/Spout/Autoloader/autoload.php") ) {
-					echo "?" ;
+					//echo "?" ;
 					break ;
 				}
 				
