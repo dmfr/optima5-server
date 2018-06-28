@@ -768,7 +768,105 @@ function specRsiRecouveo_report_getGrid($post_data) {
 			'text' => $text 
 		);
 	}
-	if( count($p_vals) > 1 ) {
+
+
+	// TODO :
+	// - nouveau cas de config : timebreak_is_on==TRUE && count($p_vals) > 1 && groupby_is_on==FALSE
+	//  ---> config columsn en mode TIMEBREAK (voir plus bas)
+	// -----> créer une "row" par $reportval_id , voir plus bas TODO : si mode TIMEBREAK + MUKTIVALUES
+
+	$new_config = false;
+	if ($p_axes['timebreak_is_on'] && count($p_vals) > 1 && !$p_axes['groupby_is_on']){
+		$new_config = true;
+		$timetag = NULL ;
+		switch( $p_axes['timebreak_group'] ) {
+			case 'WEEK' :
+				$timetag = 'o-W' ;
+				break ;
+			case 'DAY' :
+				$timetag = 'Y-m-d' ;
+				break ;
+			case 'MONTH' :
+				$timetag = 'Y-m' ;
+				break ;
+			case 'YEAR' :
+				$timetag = 'Y' ;
+				break ;
+		}
+		$map_idx_dates = array() ;
+		$date_cur = $p_filters['filter_date']['date_start'] ;
+		$date_end = $p_filters['filter_date']['date_end'] ;
+		while( $date_cur <= $date_end ) {
+			$timeidx = date($timetag,strtotime($date_cur)) ;
+			if( !$map_idx_dates[$timeidx] ) {
+				$map_idx_dates[$timeidx] = array() ;
+			}
+			$map_idx_dates[$timeidx][] = $date_cur ;
+
+			$date_cur = date('Y-m-d',strtotime('+1 day', strtotime($date_cur))) ;
+		}
+
+		$reportval_id = reset($p_vals) ;
+		$cols = array() ;
+		$cols[0] = array(
+			'text' => 'Valeurs',
+			'dataIndex' => 'reportval_txt',
+		);
+		$i = 1;
+		foreach( $map_idx_dates as $timeidx => $dates ) {
+			$cols[$i] = array(
+				'dataIndex' => 'v_'.$timeidx,
+				'date_start' => min($dates),
+				'date_end' => max($dates),
+				//'reportval_id' => $val,
+				'text' => $timeidx
+			);
+			$i++;
+
+
+		}
+		$temp = array() ;
+
+		foreach ($p_vals as $reportval_id){
+			$temp[] = array(
+				'dataIndex' => 'v_'.$reportval_id,
+				'reportval_id' => $reportval_id,
+				'reportval_txt' => $map_reportval_text[$reportval_id],
+				/*
+				'date_start' => $p_filters['filter_date']['date_start'],
+				'date_end' => $p_filters['filter_date']['date_end']
+				*/
+			);
+		}
+
+		$TAB = array() ;
+		$grouper = null;
+		foreach( $cols as $col ) {
+			foreach ($temp as $key=>$tmp){
+				if ($col['dataIndex'] == 'reportval_txt'){
+					$TAB[$key][$col['dataIndex']] = $tmp['reportval_txt'] ;
+					continue ;
+				}
+				if( !$tmp['reportval_id'] ) {
+					continue ;
+				}
+				$dates = array(
+					'date_start' => $col['date_start'],
+					'date_end' => $col['date_end']
+				);
+				$map_grouper_val = specRsiRecouveo_report_run_getValues($tmp['reportval_id'],$dates,$p_filters,$grouper) ;
+				//print_r($map_grouper_val) ;
+				foreach($map_grouper_val as $val ){
+					$TAB[$key][$col['dataIndex']] = $val ;
+				}
+			}
+		}
+		
+		return array('success'=>true, 'columns'=>$cols, 'data'=>$TAB, 'label'=>$labels) ;
+	}
+
+
+	elseif( count($p_vals) > 1 ) {
 		foreach( $p_vals as $reportval_id ) {
 			$cols[] = array(
 				'width' => 150,
