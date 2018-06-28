@@ -9,7 +9,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportFilesPanel', {
 	_filesWidgetList : null,
 	initComponent: function () {
 		Ext.apply(this,{
-			_enableDates: false,
+			_hideDates: true,
 			//xtype: 'panel',
 			layout: {
 				type: 'vbox',

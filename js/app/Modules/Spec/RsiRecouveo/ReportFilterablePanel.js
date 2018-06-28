@@ -60,6 +60,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportFilterablePanel',{
 				itemId: 'btnFilterDate',
 				xtype: 'button',
 				textBase: 'Dates période',
+				hidden: this._hideDates,
 				menu: [{
 					xtype: 'form',
 					bodyPadding: 6,
@@ -104,6 +105,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportFilterablePanel',{
 				}]
 			},{
 				xtype: 'button',
+				hidden: this._hideDates,
 				text: 'Périodes',
 				menu: {
 					defaults: {
