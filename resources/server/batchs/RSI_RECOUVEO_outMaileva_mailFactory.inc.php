@@ -31,9 +31,11 @@ function xmlUtil_parseAdr( $adr_string ) {
 		$beforelast_idx = $cnt - 2 ;
 		$last_line = $adr_array[$last_idx] ;
 		$beforelast_line = $adr_array[$beforelast_idx] ;
-		if( in_array(strtolower($last_line),array('france','fr')) ) {
-			unset($adr_array[$last_idx]) ;
-			return TRUE ;
+		foreach( explode(' ',$last_line) as $lastline_word ) {
+			if( in_array(strtolower($lastline_word),array('france','fr')) ) {
+				unset($adr_array[$last_idx]) ;
+				return TRUE ;
+			}
 		}
 		if( $isCpVilleLine($last_line) ) {
 			return TRUE ;
@@ -60,6 +62,11 @@ function xmlUtil_parseAdr( $adr_string ) {
 		$pxml.= '</com:AddressLines>' ;
 	} else {
 		$country = array_pop($adr_array) ;
+		$country_words = explode(' ',$country) ;
+		$country_lastword = end($country_words) ;
+		if( strlen($country_lastword)==2 && $country_lastword==strtoupper($country_lastword) ) {
+			$country = $country_lastword ;
+		}
 		
 		$pxml = '' ;
 		$pxml.= '<com:AddressLines>' ;
