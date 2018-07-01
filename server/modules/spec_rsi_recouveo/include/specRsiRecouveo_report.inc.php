@@ -811,6 +811,7 @@ function specRsiRecouveo_report_getGrid($post_data) {
 		$cols[0] = array(
 			'text' => 'Valeurs',
 			'dataIndex' => 'reportval_txt',
+
 		);
 		$i = 1;
 		foreach( $map_idx_dates as $timeidx => $dates ) {
@@ -845,6 +846,7 @@ function specRsiRecouveo_report_getGrid($post_data) {
 			foreach ($temp as $key=>$tmp){
 				if ($col['dataIndex'] == 'reportval_txt'){
 					$TAB[$key][$col['dataIndex']] = $tmp['reportval_txt'] ;
+					$TAB[$key]['reportval_id'] = $tmp['reportval_id'] ;
 					continue ;
 				}
 				if( !$tmp['reportval_id'] ) {
@@ -862,7 +864,7 @@ function specRsiRecouveo_report_getGrid($post_data) {
 			}
 		}
 		
-		return array('success'=>true, 'columns'=>$cols, 'data'=>$TAB, 'label'=>$labels) ;
+		return array('success'=>true, 'columns'=>$cols, 'data'=>$TAB) ;
 	}
 
 
