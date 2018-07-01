@@ -105,6 +105,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportTileComponent',{
 
 Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportTilesPanel',{
 	extend: 'Optima5.Modules.Spec.RsiRecouveo.ReportFilterablePanel',
+	alias: 'widget.op5specrsiveoreporttilespanel',
 	
 	initComponent: function() {
 		Ext.apply(this,{

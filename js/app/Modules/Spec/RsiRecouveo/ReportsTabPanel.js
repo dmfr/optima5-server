@@ -22,35 +22,42 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportsTabPanel',{
 					optimaModule: this.optimaModule
 				}
 			}],
-			items: []
+			defaults: {
+				xtype: 'panel',
+				layout: 'fit',
+				listeners: {
+					activate: {
+						fn: function(p) {
+							Ext.apply(p.op5itemConfig,{
+								frame: false
+							}) ;
+							p.add(p.op5itemConfig) ;
+						},
+						scope: this,
+						single: true
+					}
+				}
+			},
+			items: [{
+				title: 'Dashboard',
+				op5itemConfig: {
+					xtype: 'op5specrsiveoreporttilespanel',
+					optimaModule: this.optimaModule,
+					listeners: {
+						opengrid: this.onOpenGrid,
+						scope: this
+					}
+				}
+			},{
+				title: 'Analyse dossiers',
+				op5itemConfig: {
+					xtype: 'op5specrsiveoreportfilespanel',
+					optimaModule: this.optimaModule
+				}
+			}],
+			activeTab: 0
 		});
 		this.callParent() ;
-		
-		var tilesPanel = Ext.create('Optima5.Modules.Spec.RsiRecouveo.ReportTilesPanel',{
-			optimaModule: this.optimaModule,
-			title: 'Dashboard',
-			listeners: {
-				opengrid: this.onOpenGrid,
-				scope: this
-			}
-		});
-		this.add(tilesPanel) ;
-		
-		var filesPanel = Ext.create('Optima5.Modules.Spec.RsiRecouveo.ReportFilesPanel',{
-			title: 'Analyse dossiers',
-			optimaModule: this.optimaModule,
-		}) ;
-		this.add(filesPanel) ;
-		
-		/*
-		var chartReport = Ext.create('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
-			title: 'Detail 2',
-			optimaModule: this.optimaModule,
-		});
-		this.add(chartReport) ;
-		*/
-		
-		this.setActiveTab(0) ;
 	},
 	onOpenGrid: function( tilesPanel, reportvalId ) {
 		console.dir(arguments) ;

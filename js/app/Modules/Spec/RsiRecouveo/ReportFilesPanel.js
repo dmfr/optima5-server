@@ -1,5 +1,6 @@
 Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportFilesPanel', {
-    extend: 'Optima5.Modules.Spec.RsiRecouveo.ReportFilterablePanel',
+	extend: 'Optima5.Modules.Spec.RsiRecouveo.ReportFilterablePanel',
+	alias: 'widget.op5specrsiveoreportfilespanel',
 	requires: [
 		'Optima5.Modules.Spec.RsiRecouveo.FilesWidgetCharts',
 		'Optima5.Modules.Spec.RsiRecouveo.FilesWidgetAgenda',
