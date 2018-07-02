@@ -369,8 +369,8 @@ function specRsiRecouveo_report_getCash( $post_data ) {
 	global $_opDB ;
 	
 	$p_filters = json_decode($post_data['filters'],true) ;
-	$p_dateStart = $p_filters['date_start'] ;
-	$p_dateEnd = $p_filters['date_end'] ;
+	$p_dateStart = $p_filters['filter_date']['date_start'] ;
+	$p_dateEnd = $p_filters['filter_date']['date_end'] ;
 	
 	if( !$p_dateStart || !$p_dateEnd ) {
 		return array('success'=>true, 'data'=>array()) ;
@@ -379,17 +379,21 @@ function specRsiRecouveo_report_getCash( $post_data ) {
 		return array('success'=>true, 'data'=>array()) ;
 	}
 	
-	$view = "SELECT la.treenode_key AS field_SOC_ID, r.*
+	$view_scope = "SELECT la.treenode_key AS field_SOC_ID, r.*
 			FROM view_file_RECORD r
 			JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key=r.field_LINK_ACCOUNT
 			WHERE field_STAT_SCOPE_IS_ON='1' OR (DATE(r.field_STAT_SCOPE_START)<='$p_dateEnd' AND DATE(r.field_STAT_SCOPE_END)>='$p_dateStart')" ;
+	$view_instant = "SELECT la.treenode_key AS field_SOC_ID, r.*
+			FROM view_file_RECORD r
+			JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key=r.field_LINK_ACCOUNT
+			WHERE field_DATE_RECORD BETWEEN '$p_dateStart' AND '$p_dateEnd'" ;
 			
 	$map_soc_mapDateEc = array() ;
 	$date_cur = $p_dateStart ;
-	while(true) {
+	foreach( array($p_dateStart,$p_dateEnd) as $date_cur ) {
 		// calcul encours à date
 		$query = "SELECT field_SOC_ID, sum(field_AMOUNT)
-					FROM ($view) v
+					FROM ($view_scope) v
 					WHERE DATE(field_STAT_SCOPE_START)>'0' AND field_STAT_SCOPE_START<='$date_cur' 
 					AND (field_STAT_SCOPE_END>='$date_cur' OR field_STAT_SCOPE_IS_ON='1')
 					GROUP BY field_SOC_ID" ;
@@ -398,11 +402,6 @@ function specRsiRecouveo_report_getCash( $post_data ) {
 			$soc_id = $arr[0] ;
 			$amount = $arr[1] ;
 			$map_soc_mapDateEc[$soc_id][$date_cur] = $amount ;
-		}
-		
-		$date_cur = date('Y-m-d',strtotime('+1 day',strtotime($date_cur))) ;
-		if( $date_cur > $p_dateEnd ) {
-			break ;
 		}
 	}
 	
@@ -413,13 +412,13 @@ function specRsiRecouveo_report_getCash( $post_data ) {
 		$TAB[$soc_id] = array(
 			'group_id' => $soc_id,
 			'ec_start' => $mapDateEc[$p_dateStart],
-			'ec_end' => $mapDateEc[$p_dateEnd],
-			'ec_max' => max($mapDateEc)
+			'ec_end' => $mapDateEc[$p_dateEnd]
+			//'ec_max' => max($mapDateEc)
 		);
 	}
 	
 		$query = "SELECT field_SOC_ID, sum(field_AMOUNT)
-					FROM ($view) v
+					FROM ($view_scope) v
 					WHERE field_TYPE='' AND DATE(field_STAT_SCOPE_START)>'0' AND field_STAT_SCOPE_START<='$p_dateEnd' 
 					AND (field_STAT_SCOPE_END>='$p_dateStart' OR field_STAT_SCOPE_IS_ON='1')
 					GROUP BY field_SOC_ID" ;
@@ -432,9 +431,8 @@ function specRsiRecouveo_report_getCash( $post_data ) {
 		
 		
 		$query = "SELECT field_SOC_ID, field_TYPE, sum(field_AMOUNT)
-					FROM ($view) v
-					WHERE field_TYPE<>'' AND DATE(field_STAT_SCOPE_START)>'0' AND field_STAT_SCOPE_START<='$p_dateEnd' 
-					AND (field_STAT_SCOPE_END>='$p_dateStart' OR field_STAT_SCOPE_IS_ON='1')
+					FROM ($view_instant) v
+					WHERE field_TYPE<>''
 					GROUP BY field_SOC_ID, field_TYPE" ;
 		$result = $_opDB->query($query) ;
 		while(($arr = $_opDB->fetch_row($result)) != FALSE ) {
@@ -455,6 +453,9 @@ function specRsiRecouveo_report_getCash( $post_data ) {
 				default :
 					$mkey='paid_misc' ;
 					break ;
+			}
+			if( !$TAB[$soc_id] ) {
+				continue ;
 			}
 			$TAB[$soc_id][$mkey] = (-1*$amount) ;
 		}

@@ -6,7 +6,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportsTabPanel',{
 		'Optima5.Modules.Spec.RsiRecouveo.ReportGridPanel',
 		
 		'Optima5.Modules.Spec.RsiRecouveo.ReportFilesPanel',
-		'Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel'
+		'Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',
+		'Optima5.Modules.Spec.RsiRecouveo.ReportCashPanel'
 	],
 
 	initComponent: function() {
@@ -59,6 +60,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportsTabPanel',{
 				title: 'Actions / Encaissement',
 				op5itemConfig: {
 					xtype: 'op5specrsiveoreportchartspanel',
+					optimaModule: this.optimaModule
+				}
+			},{
+				title: 'Résolution',
+				op5itemConfig: {
+					xtype: 'op5specrsiveoreportcashpanel',
 					optimaModule: this.optimaModule
 				}
 			}],
