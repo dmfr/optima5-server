@@ -50,7 +50,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 			}]
 		});
 		this.callParent() ;
-		
+		this.onDateSet('month') ;
+		this.ready=true ;
 		this.loadGridData() ;
 		this.loadChartsData() ;
 		
@@ -58,6 +59,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 	},
 
 	onTbarChanged: function( filterValues ) {
+		if( !this.ready ) {
+			return ;
+		}
 		this.loadGridData() ;
 		this.loadChartsData() ;
 	},
@@ -80,6 +84,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 			this.buildViewsFirstAddChart(itemId) ;
 		},this) ;
 	},
+
 	buildViewsFirstAddChart( itemId ) {
 		var fieldsChartIn = [
 			{name: 'date_group', type: 'string', axis: 'bottom'},
@@ -183,10 +188,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 							yField: fields[1].name,
 							title: fields[1].srcReportvalTxt,
 							style: {
-								lineWidth: 4
+								lineWidth: 4,
 							},
 							marker: {
-								radius: 4
+								type: 'cross'
 							},
 							tooltip: {
 								trackMouse: true,
@@ -201,9 +206,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 							xField: 'date_group',
 							yField: fields[2].name,
 							title: fields[2].srcReportvalTxt,
+							colors: ['#FF8432'],
 							style: {
-								lineWidth: 4
-							},
+								lineWidth: 4,
+								stroke: '#FF8432',
+								//fill: '#FF8432'
+								},
 							marker: {
 								radius: 4
 							},
@@ -220,8 +228,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 							xField: 'date_group',
 							yField: fields[3].name,
 							title: fields[3].srcReportvalTxt,
+							colors: ['#EDBD39'],
 							style: {
-								lineWidth: 4
+								lineWidth: 4,
+								//stroke: '#EDBD39',
+								//fill: '#EDBD39'
 							},
 							marker: {
 								radius: 4
@@ -239,8 +250,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 							xField: 'date_group',
 							yField: fields[4].name,
 							title: fields[4].srcReportvalTxt,
+							colors: ['#FFA500'],
 							style: {
-								lineWidth: 4
+								lineWidth: 4,
+								//stroke: '#FFA500',
+								//fill: '#FFA500'
 							},
 							marker: {
 								radius: 4
@@ -259,36 +273,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 				scope: this
 			}
 		}) ;
-		
 	},
 
 
 	loadGridData: function() {
-		var objAtrFilter = {}, arrSocFilter=null, arrUserFilter=null ;
-		Ext.Array.each( this.query('toolbar > [cfgParam_id]'), function(cfgParamBtn) {
-			var cfgParam_id = cfgParamBtn.cfgParam_id ;
-			if( Ext.isEmpty(cfgParamBtn.getValue()) ) {
-				return ;
-			}
-			if( cfgParam_id.indexOf('ATR:')===0 ) {
-				var atrId = cfgParam_id.substr(4) ;
-				objAtrFilter[atrId] = cfgParamBtn.getValue()
-			}
-			if( cfgParam_id=='SOC' ) {
-				arrSocFilter = cfgParamBtn.getLeafNodesKey() ;
-			}
-			if( cfgParam_id=='USER' ) {
-				arrUserFilter = cfgParamBtn.getLeafNodesKey() ;
-			}
-		}) ;
-
-		var filtersValue = new Ext.util.HashMap();
-		filtersValue.add('filter_atr', objAtrFilter) ;
-		var start = Ext.Date.subtract(new Date(), Ext.Date.MONTH, 1);
-			filtersValue.add('filter_date', {'date_start': start, 'date_end': new Date()}) ;
-		filtersValue.add('filter_soc', arrSocFilter) ;
-		filtersValue.add('filter_user', arrUserFilter) ;
-
 		var group = new Ext.util.HashMap();
 		group.add('groupby_atr', '') ;
 		group.add('groupby_is_on', 'on') ;
@@ -308,7 +296,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 			params: {
 				_moduleId: 'spec_rsi_recouveo',
 				_action: 'report_getGrid',
-				filters: Ext.JSON.encode(filtersValue.map),
+				filters: Ext.JSON.encode(this.getFilterValues()),
 				axes: Ext.JSON.encode(group.map),
 				reportval_ids: Ext.JSON.encode(fields)
 			},
@@ -362,44 +350,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 		this.down('#cntGrid').add(gridPanel) ;
 		//this.down('#p1').setVisible(true) ;
 	},
-	
-	
-	
-	
-	
-	
 
 	loadChartsData: function () {
-		var objAtrFilter = {}, arrSocFilter=null, arrUserFilter=null ;
-		Ext.Array.each( this.query('toolbar > [cfgParam_id]'), function(cfgParamBtn) {
-			var cfgParam_id = cfgParamBtn.cfgParam_id ;
-			if( Ext.isEmpty(cfgParamBtn.getValue()) ) {
-				return ;
-			}
-			if( cfgParam_id.indexOf('ATR:')===0 ) {
-				var atrId = cfgParam_id.substr(4) ;
-				objAtrFilter[atrId] = cfgParamBtn.getValue()
-			}
-			if( cfgParam_id=='SOC' ) {
-				arrSocFilter = cfgParamBtn.getLeafNodesKey() ;
-			}
-			if( cfgParam_id=='USER' ) {
-				arrUserFilter = cfgParamBtn.getLeafNodesKey() ;
-			}
-		}) ;
-
-		var filtersValue = new Ext.util.HashMap();
-		filtersValue.add('filter_atr', objAtrFilter) ;
-		var start = Ext.Date.subtract(new Date(), Ext.Date.MONTH, 1);
-		filtersValue.add('filter_date', {'date_start': start, 'date_end': new Date()}) ;
-		filtersValue.add('filter_soc', arrSocFilter) ;
-		filtersValue.add('filter_user', arrUserFilter) ;
-
 
 		var group = new Ext.util.HashMap();
 		group.add('groupby_atr', '') ;
 		group.add('timebreak_is_on', 'on') ;
-		group.add('timebreak_group', 'WEEK') ;
+		group.add('timebreak_group', 'MONTH') ;
 
 		var fields = [] ;
 		fields[0] = 'calls_out';
@@ -410,11 +367,24 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 		fields[5] = 'mails_in' ;
 		fields[6] = 'cash' ;
 		this.showLoadmask() ;
+
+		
+		// TODO : variables d'examen par mois
+		var d = new Date();
+		m = d.getMonth(); //current month
+		y = d.getFullYear(); //current year
+		var chartsDateStart = new Date(y,m-6,1), //this is first day of current month - 6
+			chartsDateEnd = new Date(y,m,0) ; //this is last day of last month   
+		
+		var filtersValue = this.getFilterValues() ;
+		filtersValue.filter_date.date_start = Ext.Date.format( chartsDateStart, 'Y-m-d' ) ;
+		filtersValue.filter_date.date_end = Ext.Date.format( chartsDateEnd, 'Y-m-d' ) ;
+
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_rsi_recouveo',
 				_action: 'report_getGrid',
-				filters: Ext.JSON.encode(filtersValue.map),
+				filters: Ext.JSON.encode(filtersValue),
 				axes: Ext.JSON.encode(group.map),
 				reportval_ids: Ext.JSON.encode(fields)
 			},
