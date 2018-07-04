@@ -51,12 +51,12 @@ $form_data = array(
 	'date_end' => date('Y-m-d')
 );
 
-if( $buffer=specDbsTracy_report_RCL_VL02NPOD_tmp($form_data) ) {
+if( $buffer=specDbsTracy_report_RCL_VL02NPOD_tmp($form_data, TRUE) ) {
 	$filename = 'OP5report_TRACY_.RCL_VL02NPOD_'.time().'.csv' ;
 	$filepath = $out_dir.'/'.$filename ;
 	file_put_contents($filepath,$buffer) ;
 }
-if( $buffer=specDbsTracy_report_RCL_VL02NAWB_tmp($form_data) ) {
+if( $buffer=specDbsTracy_report_RCL_VL02NAWB_tmp($form_data, TRUE) ) {
 	$filename = 'OP5report_TRACY_.RCL_VL02NAWB_'.time().'.csv' ;
 	$filepath = $out_dir.'/'.$filename ;
 	file_put_contents($filepath,$buffer) ;

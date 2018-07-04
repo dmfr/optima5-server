@@ -80,7 +80,10 @@ function specDbsTracy_report_qsql( $qsql_id, $form_data ) {
 }
 
 
-function specDbsTracy_report_RCL_VL02NPOD_tmp( $form_data ) {
+function specDbsTracy_report_RCL_VL02NPOD_tmp( $form_data, $use_log=FALSE ) {
+	global $_opDB ;
+	$date_now = date('Y-m-d H:i:s') ;
+
 	$json = specDbsTracy_order_getRecords(array('filter_archiveIsOn'=>1,'filter_socCode'=>'ACL')) ;
 	$csv_buffer = '' ;
 	foreach( $json['data'] as $rowOrder ) {
@@ -91,6 +94,17 @@ function specDbsTracy_report_RCL_VL02NPOD_tmp( $form_data ) {
 			if( $rowOrderStep['date_actual'] >= $form_data['date_start'] 
 				&& $rowOrderStep['date_actual'] <= $form_data['date_end'] ) {
 				
+				if( $use_log ) {
+					$query = "SELECT count(*) FROM view_file_Z_ACL180612_LOG WHERE field_QUERY_CODE='POD' AND field_LINK_FILERECORD_ID='{$rowOrder['order_filerecord_id']}'" ;
+					if( $_opDB->query_uniqueValue($query) > 0 ) {
+						continue ;
+					}
+					$arr_ins = array() ;
+					$arr_ins['field_QUERY_CODE'] = 'POD' ;
+					$arr_ins['field_LINK_FILERECORD_ID'] = $rowOrder['order_filerecord_id'] ;
+					$arr_ins['field_EXPORT_DATE'] = $date_now ;
+					paracrm_lib_data_insertRecord_file( 'Z_ACL180612_LOG' , 0 , $arr_ins ) ;
+				}
 				
 				$csv_buffer.= $rowOrder['id_dn'].';'.date('d.m.Y',strtotime($rowOrderStep['date_actual'])).';'.date('H:i',strtotime($rowOrderStep['date_actual']))."\r\n" ;
 			}
@@ -99,17 +113,32 @@ function specDbsTracy_report_RCL_VL02NPOD_tmp( $form_data ) {
 	}
 	return $csv_buffer ;
 }
-function specDbsTracy_report_RCL_VL02NAWB_tmp( $form_data ) {
+function specDbsTracy_report_RCL_VL02NAWB_tmp( $form_data, $use_log=FALSE ) {
 	global $_opDB ;
+	$date_now = date('Y-m-d H:i:s') ;
 
 	$csv_buffer = '' ;
-	$query = "SELECT c.field_ID_DN, t.field_FLIGHT_AWB
+	$query = "SELECT c.field_ID_DN, t.field_FLIGHT_AWB, c.filerecord_id
 				FROM view_file_CDE c, view_file_TRSPT_CDE tc, view_file_TRSPT t
 				WHERE c.filerecord_id = tc.field_FILE_CDE_ID AND tc.field_LINK_IS_CANCEL='0'
 				AND tc.filerecord_parent_id = t.filerecord_id
 				AND c.field_ID_SOC='ACL' AND t.field_FLIGHT_AWB<>'' AND DATE(t.field_DATE_CREATE) BETWEEN '{$form_data['date_start']}' AND '{$form_data['date_end']}'" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_row($result)) !=  FALSE ) {
+		$order_filerecord_id = $arr[2] ;
+		
+		if( $use_log ) {
+			$query = "SELECT count(*) FROM view_file_Z_ACL180612_LOG WHERE field_QUERY_CODE='AWB' AND field_LINK_FILERECORD_ID='{$order_filerecord_id}'" ;
+			if( $_opDB->query_uniqueValue($query) > 0 ) {
+				continue ;
+			}
+			$arr_ins = array() ;
+			$arr_ins['field_QUERY_CODE'] = 'AWB' ;
+			$arr_ins['field_LINK_FILERECORD_ID'] = $order_filerecord_id ;
+			$arr_ins['field_EXPORT_DATE'] = $date_now ;
+			paracrm_lib_data_insertRecord_file( 'Z_ACL180612_LOG' , 0 , $arr_ins ) ;
+		}
+		
 		$csv_buffer.= $arr[0].';'.$arr[1]."\r\n" ;
 	}
 	
