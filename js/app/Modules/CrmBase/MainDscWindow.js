@@ -151,16 +151,41 @@ Ext.define('Optima5.Modules.CrmBase.MainDscWindow',{
 		
 		var btnTables = me.child('toolbar').child('#btn-tables') ;
 		
-		var menuCfg = respObj.data_tables ;
-		Ext.Array.each( menuCfg, function(o) {
-			Ext.apply(o,{
-				cls: o.isPublished ? me.clsForPublished : '' ,
-				handler: function() {
-					me.openTable( o.tableId ) ;
-				},
-				scope:me
+		var iterateFn = function( arr, level=1 ) {
+			var map_prefix_arrObjs = {} ;
+			Ext.Array.each( arr, function(o) {
+				var words = o.tableId.split('_'),
+					prefix = words.slice(0,level).join('_') ;
+				if( !map_prefix_arrObjs.hasOwnProperty(prefix) ) {
+					map_prefix_arrObjs[prefix] = [] ;
+				}
+				map_prefix_arrObjs[prefix].push(o) ;
 			}) ;
-		},me) ;
+			
+			var arr = [] ;
+			Ext.Object.each( map_prefix_arrObjs, function(k,v) {
+				if( v.length > 1 ) {
+					v = iterateFn( v, level+1 ) ;
+					arr.push({
+						icon: 'images/op5img/ico_foldergreen_16.png',
+						text: k,
+						menu: v
+					}) ;
+				} else {
+					var o = v[0] ;
+					Ext.apply(o,{
+						cls: o.isPublished ? me.clsForPublished : '' ,
+						handler: function() {
+							me.openTable( o.tableId ) ;
+						},
+						scope:me
+					}) ;
+					arr.push(o) ;
+				}
+			});
+			return arr ;
+		} ;
+		var menuCfg = iterateFn( respObj.data_tables ) ;
 		
 		if( btnTables.menu ) {
 			btnTables.menu.removeAll() ;
@@ -209,23 +234,7 @@ Ext.define('Optima5.Modules.CrmBase.MainDscWindow',{
 			}
 		}
 		
-		var qMenuItems = [] ;
-		Ext.Array.each( respObj.data_qsqls , function(v) {
-			var qsqlId = parseInt(v.qsqlId) ;
-			
-			qMenuItems.push({
-				qsqlId: qsqlId,
-				isPublished: v.isPublished,
-				text: v.text,
-				icon: 'images/op5img/ico_sql_16.png' ,
-				cls: ((v.isPublished == true)? me.clsForPublished:null) + ' ' + ((v.isAutorun == true)? me.clsForAutorun:null),
-				handler: function(){
-					me.openQsql( qsqlId, v.authReadOnly ) ;
-				},
-				scope: me
-			});
-		},me) ;
-		Ext.Array.sort( qMenuItems, function(o1,o2) {
+		Ext.Array.sort( respObj.data_qsqls, function(o1,o2) {
 			var o1text = o1.text.toLowerCase(),
 				o2text = o2.text.toLowerCase() ;
 			
@@ -238,7 +247,46 @@ Ext.define('Optima5.Modules.CrmBase.MainDscWindow',{
 			}
 		}) ;
 		
-		
+		var iterateFn = function( arr, level=1 ) {
+			var map_prefix_arrObjs = {} ;
+			Ext.Array.each( arr, function(o) {
+				var words = o.text.split('_'),
+					prefix = words.slice(0,level).join('_') ;
+				if( !map_prefix_arrObjs.hasOwnProperty(prefix) ) {
+					map_prefix_arrObjs[prefix] = [] ;
+				}
+				map_prefix_arrObjs[prefix].push(o) ;
+			}) ;
+			
+			var arr = [] ;
+			Ext.Object.each( map_prefix_arrObjs, function(k,v) {
+				if( v.length > 1 ) {
+					v = iterateFn( v, level+1 ) ;
+					arr.push({
+						icon: 'images/op5img/ico_foldergreen_16.png',
+						text: k,
+						menu: v
+					}) ;
+				} else {
+					var o = v[0] ;
+					
+					var qsqlId = parseInt(o.qsqlId) ;
+					arr.push({
+						qsqlId: qsqlId,
+						isPublished: o.isPublished,
+						text: o.text,
+						icon: 'images/op5img/ico_sql_16.png' ,
+						cls: ((o.isPublished == true)? me.clsForPublished:null) + ' ' + ((o.isAutorun == true)? me.clsForAutorun:null),
+						handler: function(){
+							me.openQsql( qsqlId, o.authReadOnly ) ;
+						},
+						scope: me
+					});
+				}
+			});
+			return arr ;
+		} ;
+		var qMenuItems = iterateFn( respObj.data_qsqls ) ;
 		
 		var btnQuery = me.child('toolbar').child('#btn-query') ;
 		var menuCfg = Ext.decode(response.responseText) ;
