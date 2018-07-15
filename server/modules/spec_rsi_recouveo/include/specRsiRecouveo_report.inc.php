@@ -798,12 +798,26 @@ function specRsiRecouveo_report_getGrid($post_data) {
 		$date_cur = $p_filters['filter_date']['date_start'] ;
 		$date_end = $p_filters['filter_date']['date_end'] ;
 		while( $date_cur <= $date_end ) {
-			$timeidx = date($timetag,strtotime($date_cur)) ;
+			switch($p_axes['timebreak_group']){
+				case 'SEM':
+					$year = date('Y', strtotime($date_cur)) ;
+					$month = date('m', strtotime($date_cur)) ;
+					$timeidx = $year.'-S'.(floor($month/6)) ;
+					break;
+				case 'TRIM' :
+					$year = date('Y', strtotime($date_cur)) ;
+					$month = date('m', strtotime($date_cur)) ;
+					$timeidx = $year.'-T'.ceil($month/3) ;
+					break;
+				default:
+					$timeidx = date($timetag,strtotime($date_cur)) ;
+					break ;
+
+			}
 			if( !$map_idx_dates[$timeidx] ) {
 				$map_idx_dates[$timeidx] = array() ;
 			}
 			$map_idx_dates[$timeidx][] = $date_cur ;
-
 			$date_cur = date('Y-m-d',strtotime('+1 day', strtotime($date_cur))) ;
 		}
 
