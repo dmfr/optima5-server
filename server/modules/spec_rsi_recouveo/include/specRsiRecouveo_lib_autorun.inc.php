@@ -641,6 +641,14 @@ function specRsiRecouveo_lib_autorun_processInboxDoc($inpostal_filerecord_id) {
 						$arr_update['field_LINK_TXT'] = 'Nouveau courrier entrant' ;
 						paracrm_lib_data_updateRecord_file( 'FILE_ACTION', $arr_update, $next_fileaction_filerecord_id);
 					}
+				} else {
+					// insertion manuelle
+					$arr_update = array() ;
+					$arr_update['field_LINK_STATUS'] = $target_file_record['status'] ;
+					$arr_update['field_LINK_ACTION'] = 'BUMP' ;
+					$arr_update['field_DATE_SCHED'] = date('Y-m-d') ;
+					$arr_update['field_LINK_TXT'] = 'Nouveau courrier' ;
+					paracrm_lib_data_insertRecord_file( 'FILE_ACTION', $target_file_record['file_filerecord_id'], $arr_update );
 				}
 				
 				
