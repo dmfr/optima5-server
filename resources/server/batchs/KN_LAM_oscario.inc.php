@@ -556,6 +556,29 @@ function oscario_interface_do( $_OSCARIO_DOMAIN, $_OSCARIO_MAG, $_OPTIMA_SOC ) {
 		$query = "SELECT count(*) FROM view_file_CDE WHERE field_CDE_NR='$noscde'" ;
 		if( $_opDB->query_uniqueValue($query) > 0 )
 			continue ;
+			
+		$adrliv_nom = trim(substr($lig,60,50)) ;
+		$adrliv_rue = trim(substr($lig,110,50)) ;
+		$adrliv_localite = trim(substr($lig,160,50)) ;
+		$adrliv_ville = trim(substr($lig,210,50)) ;
+		$adrliv_countrycode = trim(substr($lig,370,10)) ;
+		$adr_txt = '' ;
+		if( $adrliv_nom ) {
+			$adr_txt.= $adrliv_nom."\n" ;
+		}
+		if( $adrliv_rue ) {
+			$adr_txt.= $adrliv_rue."\n" ;
+		}
+		if( $adrliv_localite ) {
+			$adr_txt.= $adrliv_localite."\n" ;
+		}
+		if( $adrliv_ville ) {
+			$adr_txt.= $adrliv_ville."\n" ;
+		}
+		if( $adrliv_countrycode ) {
+			$adr_txt.= $adrliv_countrycode."\n" ;
+		}
+		
 		
 		$arr_ecde = array() ;
 		$arr_ecde['field_SOC_CODE'] = $_OPTIMA_SOC ;
@@ -572,6 +595,7 @@ function oscario_interface_do( $_OSCARIO_DOMAIN, $_OSCARIO_MAG, $_OPTIMA_SOC ) {
 		$arr_ecde['field_CLI_REF'] = trim(substr($lig,42,18)) ;
 		$arr_ecde['field_ADR_NAME'] = trim(substr($lig,60,50)) ;
 		$arr_ecde['field_ADR_COUNTRY'] = trim(substr($lig,370,10)) ;
+		$arr_ecde['field_ADR_FULL'] = $adr_txt ;
 		if( !$arr_ecde['field_ADR_COUNTRY'] ) {
 			$arr_ecde['field_ADR_COUNTRY'] = 'FR' ;
 		}
