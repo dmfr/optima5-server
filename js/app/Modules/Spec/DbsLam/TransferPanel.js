@@ -314,6 +314,14 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 						itemIdCde: true
 					},{
 						icon: 'images/op5img/ico_print_16.png',
+						text: '<b>Print deliv.notes</b>',
+						itemIdCde: true,
+						handler: function() {
+							this.openPrintDoc('transfer_cdebl') ;
+						},
+						scope: this
+					},{
+						icon: 'images/op5img/ico_print_16.png',
 						text: '<b>Print summary</b>',
 						itemIdCde: true,
 						handler: function() {

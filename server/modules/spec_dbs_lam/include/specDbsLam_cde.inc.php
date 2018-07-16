@@ -42,6 +42,7 @@ function specDbsLam_cde_getGrid($post_data) {
 			'adr_name' => $arr['field_ADR_NAME'],
 			'adr_cp' => $arr['field_ADR_CP'],
 			'adr_country' => $arr['field_ADR_COUNTRY'],
+			'adr_full' => $arr['field_ADR_FULL'],
 			'link_transfer_filerecord_id' => $arr['link_transfer_filerecord_id'],
 			'link_transfer_txt' => $arr['link_transfer_txt']
 		);
