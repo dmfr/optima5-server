@@ -164,7 +164,13 @@ Ext.define('Optima5.Modules.CrmBase.MainDscWindow',{
 			
 			var arr = [] ;
 			Ext.Object.each( map_prefix_arrObjs, function(k,v) {
-				if( v.length > 1 ) {
+				var txts = [] ;
+				Ext.Array.each( v, function(o) {
+					if( !Ext.Array.contains(txts,o.tableId) ) {
+						txts.push( o.tableId ) ;
+					}
+				}) ;
+				if( txts.length > 1 ) {
 					v = iterateFn( v, level+1 ) ;
 					arr.push({
 						icon: 'images/op5img/ico_foldergreen_16.png',
@@ -172,15 +178,16 @@ Ext.define('Optima5.Modules.CrmBase.MainDscWindow',{
 						menu: v
 					}) ;
 				} else {
-					var o = v[0] ;
-					Ext.apply(o,{
-						cls: o.isPublished ? me.clsForPublished : '' ,
-						handler: function() {
-							me.openTable( o.tableId ) ;
-						},
-						scope:me
+					Ext.Array.each( v, function(o) {
+						Ext.apply(o,{
+							cls: o.isPublished ? me.clsForPublished : '' ,
+							handler: function() {
+								me.openTable( o.tableId ) ;
+							},
+							scope:me
+						}) ;
+						arr.push(o) ;
 					}) ;
-					arr.push(o) ;
 				}
 			});
 			return arr ;
@@ -260,7 +267,13 @@ Ext.define('Optima5.Modules.CrmBase.MainDscWindow',{
 			
 			var arr = [] ;
 			Ext.Object.each( map_prefix_arrObjs, function(k,v) {
-				if( v.length > 1 ) {
+				var txts = [] ;
+				Ext.Array.each( v, function(o) {
+					if( !Ext.Array.contains(txts,o.text) ) {
+						txts.push( o.text ) ;
+					}
+				}) ;
+				if( txts.length > 1 ) {
 					v = iterateFn( v, level+1 ) ;
 					arr.push({
 						icon: 'images/op5img/ico_foldergreen_16.png',
@@ -268,20 +281,20 @@ Ext.define('Optima5.Modules.CrmBase.MainDscWindow',{
 						menu: v
 					}) ;
 				} else {
-					var o = v[0] ;
-					
-					var qsqlId = parseInt(o.qsqlId) ;
-					arr.push({
-						qsqlId: qsqlId,
-						isPublished: o.isPublished,
-						text: o.text,
-						icon: 'images/op5img/ico_sql_16.png' ,
-						cls: ((o.isPublished == true)? me.clsForPublished:null) + ' ' + ((o.isAutorun == true)? me.clsForAutorun:null),
-						handler: function(){
-							me.openQsql( qsqlId, o.authReadOnly ) ;
-						},
-						scope: me
-					});
+					Ext.Array.each( v, function(o) {
+						var qsqlId = parseInt(o.qsqlId) ;
+						arr.push({
+							qsqlId: qsqlId,
+							isPublished: o.isPublished,
+							text: o.text,
+							icon: 'images/op5img/ico_sql_16.png' ,
+							cls: ((o.isPublished == true)? me.clsForPublished:null) + ' ' + ((o.isAutorun == true)? me.clsForAutorun:null),
+							handler: function(){
+								me.openQsql( qsqlId, o.authReadOnly ) ;
+							},
+							scope: me
+						});
+					}) ;
 				}
 			});
 			return arr ;
