@@ -288,25 +288,26 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 			
 			Ext.apply(formData,this._formValues) ;
 			
-			if( (currentAction.action_id=='EMAIL_OUT') && this._formValues.hasOwnProperty('reply_emailFilerecordId') ) {
-				afterValues['reply_emailFilerecordId'] = this._formValues['reply_emailFilerecordId'] ;
+			if( (currentAction.action_id=='EMAIL_OUT') && this._formValues.hasOwnProperty('reuse_emailFilerecordId') ) {
+				afterValues['reuse_emailFilerecordId'] = this._formValues['reuse_emailFilerecordId'] ;
+				afterValues['reuse_action'] = this._formValues['reuse_action'] ;
 			}
 			
 			this._formValues = null ;
 		}
-		this.getForm().setValues(formData) ;
 		
-		if( afterValues['reply_emailFilerecordId'] && (this.down('#formNow') instanceof Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel)  ) {
-			var actionPlusEmailPanel = this.down('#formNow') ;
-			actionPlusEmailPanel.loadEmailForReply( afterValues['reply_emailFilerecordId'] , 'reply' ) ;
-		}
-		if( Ext.isEmpty(afterValues['reply_emailFilerecordId']) 
-				&& (this.down('#formNow') instanceof Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel)  ) {
-			
+		this.getForm().setValues(formData) ;
+
+		if( this.down('#formNow') instanceof Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel ) {
 			var actionPlusEmailPanel = this.down('#formNow') ;
 			var socId = this._accountRecord.get('soc_id') ;
 			actionPlusEmailPanel.setFromSoc( socId ) ;
 		}
+		if( afterValues['reuse_emailFilerecordId'] && (this.down('#formNow') instanceof Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel)  ) {
+			var actionPlusEmailPanel = this.down('#formNow') ;
+			actionPlusEmailPanel.loadEmailForReuse( afterValues['reuse_emailFilerecordId'] , afterValues['reuse_action'] ) ;
+		}
+		
 		
 		// Gestion du template
 		var tplField = this.getForm().findField('tpl_id') ;

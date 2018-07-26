@@ -2342,7 +2342,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			items:[Ext.create('Optima5.Modules.Spec.RsiRecouveo.EmailMessagePanel',{
 				optimaModule: this.optimaModule,
 				_emailFilerecordId: emailFilerecordId,
-				_modeReply: true,
+				_modeReuse: true,
 				listeners: {
 					emailaction: this.onEmailAction,
 					destroy: function() {
@@ -2362,7 +2362,17 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		if( this.emailWindow ) {
 			this.emailWindow.destroy() ;
 		}
-		this.doNewAction(fileRecord, 'EMAIL_OUT', true, {reply_emailFilerecordId:emailRecord.get('email_filerecord_id')}) ;
+		
+		switch( emailAction ) {
+			case 'reply' :
+			case 'reply_all' :
+			case 'transfer' :
+				this.doNewAction(fileRecord, 'EMAIL_OUT', true, {
+					reuse_emailFilerecordId: emailRecord.get('email_filerecord_id'),
+					reuse_action: emailAction
+				}) ;
+				break ;
+		}
 	},
 	
 	openAgreeCompare: function(fileFilerecordId,fileRef) {
