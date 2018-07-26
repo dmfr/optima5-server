@@ -416,11 +416,11 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE ) {
 		'load_binary' => true
 	)) ;
 	$tplData = $ttmp['data'][0] ;
-	if( $tplData['manual_is_on'] ) {
+	if( $tplData['manual_is_on'] && $p_inputFields ) {
 		$tplData['html_body'] = $p_inputFields['input_html'] ;
 		$tplData['html_title'] = $p_inputFields['input_title'] ;
 	}
-	
+
 	$tplHtml = specRsiRecouveo_doc_buildTemplate($tplData) ;
 
 	$inputTitle = $tplData['tpl_name'];
