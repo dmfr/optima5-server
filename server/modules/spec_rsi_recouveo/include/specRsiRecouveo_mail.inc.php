@@ -301,4 +301,65 @@ function specRsiRecouveo_mail_buildEmail( $post_data ) {
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+function specRsiRecouveo_mail_uploadReuseAttachments( $post_data ) {
+	global $_opDB ;
+	
+	$email_filerecord_id = $post_data['email_filerecord_id'] ;
+	
+	$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
+	$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
+	
+	$query = "SELECT filerecord_id FROM view_file_EMAIL_SOURCE WHERE filerecord_parent_id='{$email_filerecord_id}'" ;
+	$emailsrc_filerecord_id = $_opDB->query_uniqueValue($query) ;
+	
+	media_contextOpen( $_sdomain_id ) ;
+	$media_id = media_bin_toolFile_getId('EMAIL_SOURCE',$emailsrc_filerecord_id) ;
+	$bin = media_bin_getBinary($media_id) ;
+	media_contextClose() ;
+	
+	if( !$bin ) {
+		return array('success'=>false) ;
+	}
+	
+	try {
+		$obj_mimeParser = PhpMimeMailParser::getInstance() ;
+		$obj_mimeParser->setText($bin) ;
+	} catch( Exception $e ) {
+		return die() ;
+	}
+	
+	media_contextOpen( $_sdomain_id ) ;
+	$ret = array() ;
+	foreach( $obj_mimeParser->getAttachments($include_inline=false) as $attach_idx => $objAttach ) {
+		$desc = array(
+			'attachment_idx' => $attach_idx,
+			'filename' => $objAttach->getFilename(),
+			'filetype' => $objAttach->getContentType()
+		);
+		$stream = $objAttach->getStream() ;
+		$bin = stream_get_contents($stream) ;
+		
+		$media_id = media_bin_processBuffer( $bin ) ;
+		$ret[] = array(
+			'media_id'=>$media_id,
+			'filename'=>$desc['filename'],
+			'size'=>strlen($bin),
+			'path'=>NULL
+		);
+	}
+	media_contextClose() ;
+	return array('success'=>true, 'data'=>$ret) ;
+}
+
 ?>

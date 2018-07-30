@@ -409,6 +409,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel',{
 		formData['email_subject'] = subjectPrefix + ': ' + origEmailRecord.get('subject') ;
 		formData['email_body'] = bodyHtml ;
 		this._actionForm.getForm().setValues(formData) ;
+		
+		if( reuseAction=='transfer' ) {
+			var emailAttachmentsField = this._actionForm.getForm().findField('email_attachments') ;
+			emailAttachmentsField.doImportFromReuse( origEmailRecord.get('email_filerecord_id') ) ;
+		}
+		
 	},
 	
 	checkEmailSendable: function() {

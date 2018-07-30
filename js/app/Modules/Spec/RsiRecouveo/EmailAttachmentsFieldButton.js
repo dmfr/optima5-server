@@ -373,7 +373,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailAttachmentsFieldButton',{
 	},
 	getValue: function() {
 		var store = this.attachmentsStore;
-		console.log
 		var mediaLst = [] ;
 		store.each(function(storeRecord) {
 			mediaLst.push( storeRecord.getData() ) ;
@@ -384,5 +383,33 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EmailAttachmentsFieldButton',{
 		var retObj = {} ;
 		retObj[this.getName()] = Ext.JSON.encode(this.getValue()) ;
 		return retObj ;
+	},
+	
+	
+	doImportFromReuse: function( emailFilerecordId ) {
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_rsi_recouveo',
+				_action: 'mail_uploadReuseAttachments',
+				email_filerecord_id: emailFilerecordId
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false || !ajaxResponse.data ) {
+					return ;
+				}
+				var store = this.attachmentsStore ;
+				Ext.Array.each( ajaxResponse.data, function(attachRow) {
+					store.add({
+						file: attachRow.path,
+						name: attachRow.filename,
+						size: attachRow.size,
+						status: 'Uploaded',
+						tmpMediaId: attachRow.media_id
+					});
+				}) ;
+			},
+			scope: this
+		});
 	}
 }) ;
