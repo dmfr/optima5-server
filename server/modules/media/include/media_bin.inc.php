@@ -57,7 +57,9 @@ function media_bin_move( $src_id , $dst_id )
 		return FALSE ;
 	}
 	
-	
+	if( !trim($src_id) ) {
+		return ;
+	}
 	if( strpos($src_id,'tmp_') === 0 )
 	{
 		$ttmp = substr($src_id,4,strlen($src_id)-4) ;
@@ -93,6 +95,9 @@ function media_bin_delete( $src_id )
 		return FALSE ;
 	}
 
+	if( !trim($src_id) ) {
+		return ;
+	}
 	if( strpos($src_id,'tmp_') === 0 )
 	{
 		$ttmp = substr($src_id,4,strlen($src_id)-4) ;
