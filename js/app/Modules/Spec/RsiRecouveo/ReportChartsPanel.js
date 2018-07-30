@@ -6,10 +6,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 		'Ext.ux.grid.filters.filter.StringList',
 		'Optima5.Modules.Spec.RsiRecouveo.UxGridFilters'
 	],
-	_socFilter: null,
-	_userFilter: null ,
+	_filterDate: null,
 	_chartItemId: null,
+	_compteurMask: 0,
 	showLoadmask: function() {
+		this._compteurMask ++;
 		if( this.rendered ) {
 			this.doShowLoadmask() ;
 		} else {
@@ -26,10 +27,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 		}).show();
 	},
 	hideLoadmask: function() {
-		this.un('afterrender',this.doShowLoadmask,this) ;
-		if( this.loadMask ) {
-			this.loadMask.destroy() ;
-			this.loadMask = null ;
+		this._compteurMask --;
+		if (this._compteurMask == 0){
+			this.un('afterrender',this.doShowLoadmask,this) ;
+			if( this.loadMask ) {
+				this.loadMask.destroy() ;
+				this.loadMask = null ;
+			}
 		}
 	},
 	
@@ -58,8 +62,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 		this.loadChartsData(null, null, null) ;
 		
 		this.setScrollable('vertical') ;
-		this._socFilter = this.getFilterValues().filter_soc ;
-		this._userFilter = this.getFilterValues().filter_user ;
+		this._filterDate = this.getFilterValues().filter_date ;
+
 	},
 
 	onPeriodChange: function(combo, record, eOpts){
@@ -67,30 +71,30 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 		date_end = new Date() ;
 		switch(record.data.timeId){
 			case 'ann':
-				date_start = Ext.Date.subtract(date_end, Ext.Date.YEAR, 5) ;
+				date_start = Ext.Date.subtract(date_end, Ext.Date.YEAR, 8) ;
 				timebreak_group = 'YEAR' ;
 				break ;
 			case 'mois':
-				date_start = Ext.Date.subtract(date_end, Ext.Date.MONTH, 18);
+				date_start = Ext.Date.subtract(date_end, Ext.Date.MONTH, 26);
 				timebreak_group = 'MONTH' ;
 				break ;
 			case 'hebdo':
-				date_start = Ext.Date.subtract(date_end, Ext.Date.DAY, 140) ;
+				date_start = Ext.Date.subtract(date_end, Ext.Date.DAY, 200) ;
 				timebreak_group = 'WEEK' ;
 				break ;
 			case 'quot':
-				date_start = Ext.Date.subtract(date_end, Ext.Date.DAY, 45) ;
+				date_start = Ext.Date.subtract(date_end, Ext.Date.DAY, 90) ;
 				timebreak_group = 'DAY' ;
 				break ;
 			case 'sem':
-				temp = Ext.Date.subtract(date_end, Ext.Date.YEAR, 5) ;
+				temp = Ext.Date.subtract(date_end, Ext.Date.YEAR, 8) ;
 				temp = Ext.Date.format(temp, Ext.Date.YEAR) ;
 				date_start = new Date('1/01/'+temp) ;
 				//date_end = temp;
 				timebreak_group = 'SEM' ;
 				break ;
 			case 'trim' :
-				temp = Ext.Date.subtract(date_end, Ext.Date.YEAR, 5) ;
+				temp = Ext.Date.subtract(date_end, Ext.Date.YEAR, 8) ;
 				temp = Ext.Date.format(temp, Ext.Date.YEAR) ;
 				date_start = new Date('1/01/'+temp) ;
 				//dat	e_end = temp;
@@ -107,20 +111,71 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 			return ;
 		}
 		this.loadGridData() ;
-		if (this._socFilter != this.getFilterValues().filter_soc || this._userFilter != this.getFilterValues().filter_user){
-			this.loadChartsData(null, null, null) ;
-		}
-
-	},
-
-	buildViewsFirst: function() {
-		if( this._viewsCreated ) {
+		if (this._filterDate.date_end != this.getFilterValues().filter_date.date_end || this._filterDate.date_start != this.getFilterValues().filter_date.date_start ){
+			this._filterDate = this.getFilterValues().filter_date ;
 			return ;
 		}
-		this._viewsCreated = true;
-		// Appel au démarrage : création GRID + CHARTS
-		this.removeAll() ;
-		var legendFields = ['id', 'name', 'mark', 'disabled', 'series', 'index'] ;
+		this.loadChartsData(null, null, null) ;
+
+	},
+	disableSerie: function(record, cnt){
+		var containers;
+		switch (cnt){
+			case 'first' :
+				containers = ['chartIn', 'chartOut'] ;
+				break ;
+			case 'second' :
+				containers = ['chartBoth'] ;
+				break ;
+		}
+		Ext.Array.each(containers, function (cnt_id) {
+			var text;
+			switch(cnt_id){
+				case 'chartIn':
+					text = ' entrants' ;
+					break ;
+				case 'chartOut':
+					text = ' sortants' ;
+					break ;
+				case 'chartBoth':
+					text = '' ;
+					break ;
+			}
+			var chart = this.down('#'+cnt_id).series ;
+			Ext.Array.each(chart, function (rec) {
+				if (record.legendTxt == 'Appels' || record.legendTxt == 'Emails' || record.legendTxt == 'Courriers'){
+					var tmp = record.legendTxt + text ;
+				}
+				else{
+					tmp = record.legendTxt
+				}
+				if (tmp == rec.getTitle() && rec.getHidden() != record.is_disabled){
+					if (rec.getHidden() == true){
+						rec.setHidden(false) ;
+					}
+					else{
+						rec.setHidden(true) ;
+					}
+				}
+			}) ;
+			this.down('#'+cnt_id).redraw() ;
+		}, this) ;
+	},
+	buildLegend: function(location){
+		var cnt, tmp;
+		switch (location){
+			case 'first' :
+				this._tmp_id = 1;
+				this._cnt = 'hCntChart' ;
+				tmp = 'first';
+				break ;
+			case 'second' :
+				this._tmp_id = 2;
+				this._cnt = 'vCntChart' ;
+				tmp = 'second' ;
+				var _doHide = true;
+				break ;
+		}
 		var comboStore = Ext.create('Ext.data.Store', {
 			fields: [{name: 'timeTxt', type: 'string'}, {name: 'timeId', type: 'string'}],
 			data: [
@@ -132,6 +187,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 				{timeId: 'quot', timeTxt: 'Quotidien'}
 			]
 		}) ;
+		var ViewLegendStore = Ext.create('Ext.data.Store', {
+			fields: [{name: 'iconCls', type: 'string'}, {name: 'legendTxt', type: 'string'}, {name: 'is_disabled', type:'boolean'}],
+			data: []
+		})
 		var legend = {
 			xtype: 'panel',
 			title: '&#160;',
@@ -141,37 +200,105 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 			},
 			width: 150,
 			items: [{
-				xtype: 'legend',
-				width: '100%',
-				itemId: 'myLegend',
-				docked: 'left',
+				xtype: 'dataview',
+				store: ViewLegendStore,
 				padding: '100 0 0 0',
-				store: {
-					fields: legendFields,
-					data: []
-				},
+				tpl: [
+					'<tpl for=".">',
+						'<div class="op5-spec-rsiveo-circle-item">',
+							'<tpl if="is_disabled">',
+							'<div class="op5-spec-rsiveo-circle-item-icon"></div>',
+							'</tpl>',
+							'<tpl if="!is_disabled">',
+							'<div class="op5-spec-rsiveo-circle-item-icon {iconCls}"></div>',
+							'</tpl>',
+							'<div class="op5-spec-rsiveo-legend-view-text">',
+								'{legendTxt}',
+							'</div>',
+						'</div>',
+					'</tpl>'
+				],
+				itemId: 'myViewLegend'+this._tmp_id,
+				itemSelector: 'div.op5-spec-rsiveo-circle-item',
+				width: '20%',
 				listeners: {
-					onclick: function () {
-						console.log('aled') ;
-					}
+					itemclick: function( dataview, record, item, index) {
+						record.set('is_disabled',!record.get('is_disabled')) ;
+						this.syncChartsWithLegendStatus(dataview, tmp) ;
+						//console.log(this._cnt) ;
+						//this.onViewClick(record, this._tmp_id, cnt) ;
+						//this.disableSerie(record, tmp) ;
+					},
+					scope: this
 				}
 			},{
 				xtype: 'combobox',
 				displayField: 'timeTxt',
-				//fieldLabel: 'Période',
+				fieldLabel: 'Périodicité',
+				labelAlign: 'top',
 				store: comboStore,
+				hidden: _doHide,
 				width: '20%',
+				padding: '40 0 0 0',
 				minChars: 0,
 				queryMode: 'local',
 				typeAhead: true,
-				itemId: 'periodCombo',
+				itemId: 'periodCombo'+this._tmp_id,
 				listeners: {
 					select: this.onPeriodChange,
 					scope: this,
 				},
 			}]
 		}
+		this.down('#'+this._cnt).add(legend) ;
+		//this.down('#periodCombo').setValue('Hebdomadaire') ;
+		var legendData = new Array();
+		for (i = 0, ln = this.down('#chartIn').series.length; i < ln; i++) {
+			seriesItem = this.down('#chartIn').series[i];
+			if (seriesItem.getShowInLegend()) {
+				seriesItem.provideLegendInfo(legendData);
+			}
+		}
+		//console.log(legendData) ;
+		viewLegendData = [];
+		var i = 0;
+		var iconCl, color, txt;
+		Ext.Array.each(legendData, function (index) {
+			if (index.disabled == true){
+				return true;
+			}
 
+			switch(index.mark){
+				case '#D20606':
+					iconCl = 'op5-spec-rsiveo-circle-red' ;
+					txt = 'Encaissements' ;
+					break;
+				case '#26E118':
+					iconCl = 'op5-spec-rsiveo-circle-green' ;
+					txt = 'Courriers' ;
+					break ;
+				case '#FFFF00':
+					iconCl = 'op5-spec-rsiveo-circle-yellow' ;
+					txt = 'Appels' ;
+					break ;
+				case '#1890E1':
+					iconCl = 'op5-spec-rsiveo-circle-blue' ;
+					txt = 'Emails' ;
+					break ;
+			}
+			viewLegendData.push({iconCls: iconCl, legendTxt: txt}) ;
+		})
+		//this.down('#myLegend').getStore().loadData(legendData) ;
+		this.down('#myViewLegend'+this._tmp_id).getStore().loadData(viewLegendData) ;
+		this.down('#periodCombo'+this._tmp_id).setValue('Quotidien') ;
+	},
+	buildViewsFirst: function() {
+		if( this._viewsCreated ) {
+			return ;
+		}
+		this._viewsCreated = true;
+		// Appel au démarrage : création GRID + CHARTS
+		this.removeAll() ;
 		this.add({
 			xtype: 'container',
 			itemId: 'cntGrid',
@@ -189,37 +316,21 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 			xtype: 'container',
 			itemId: 'vCntChart',
 			layout: {
-				type: 'vbox',
+				type: 'hbox',
 				align: 'stretch'
 			}
 		}) ;
 		this.buildViewsFirstAddChart('chartIn') ;
-		this.down('#hCntChart').add(legend) ;
-		//this.down('#periodCombo').setValue('Hebdomadaire') ;
-		var legendData = new Array();
-		for (i = 0, ln = this.down('#chartIn').series.length; i < ln; i++) {
-			seriesItem = this.down('#chartIn').series[i];
-			if (seriesItem.getShowInLegend()) {
-				seriesItem.provideLegendInfo(legendData);
-			}
-		}
-		this.down('#myLegend').getStore().loadData(legendData) ;
-
+		this.buildLegend('first') ;
 		this.buildViewsFirstAddChart('chartOut') ;
 		this.buildViewsFirstAddChart('chartBoth') ;
-		this.down('#periodCombo').setValue('Quotidien') ;
-		/*
-		Ext.Array.each(['chartIn','chartOut','chartBoth'],function(itemId) {
-			this.buildViewsFirstAddChart(itemId) ;
-		},this) ;
-		*/
+		this.buildLegend('second') ;
 	},
 
 	buildViewsFirstAddChart: function( itemId ) {
 		this._chartItemId = itemId;
 		var fieldsChartIn = [
 			{name: 'date_group', type: 'string', axis: 'bottom'},
-
 			{name: 'v_cash', type: 'number', srcReportvalIds:['cash'], axis: 'right', srcReportvalTxt: 'Encaissements'},
 			{name: 'v_mails_in', type: 'number', srcReportvalIds:['mails_in'], axis: 'left', srcReportvalTxt: 'Courriers entrants'},
 			{name: 'v_emails_in', type: 'number', srcReportvalIds:['emails_in'], axis: 'left', srcReportvalTxt: 'Emails entrants'},
@@ -236,7 +347,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 
 		var fieldsChartBoth = [
 			{name: 'date_group', type: 'string', axis: 'bottom'},
-
 			{name: 'v_cash', type: 'number', srcReportvalIds:['cash'], axis: 'right', srcReportvalTxt: 'Encaissements'},
 			{name: 'v_mails', type: 'number', srcReportvalIds:['mails_out','mails_in'], axis: 'left', srcReportvalTxt: 'Courriers'},
 			{name: 'v_emails', type: 'number', srcReportvalIds:['emails_out','emails_in'], axis: 'left', srcReportvalTxt: 'Emails'},
@@ -290,32 +400,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 			height: 400,
 			title: title,
 			tbar: [{
-				xtype: 'segmentedbutton',
-					width: 200,
-					items: [{
-					text: 'Défiler',
-					pressed: true
-					},{
-					text: 'Zoomer'
-					}],
-					listeners: {
-						toggle: function (segmentedButton, button, pressed) {
-							var chart = this.up('panel').down('cartesian') ;
-							if (button.text == 'Défiler'){
-								chart.getInteractions()[0].setZoomOnPanGesture(false) ;
-							}
-							if (button.text == 'Zoomer'){
-								chart.getInteractions()[0].setZoomOnPanGesture(true);
-							}
-						}
-					}
-				},{
-					text: 'Reset Graphique',
+					text: 'Échelle par défaut',
 					handler: function () {
 						var chart = this.up('panel').down('cartesian'),
 							axes = chart.getAxes();
-						axes[0].setVisibleRange([0, 1]);
-						axes[1].setVisibleRange([0, 0.3]);
+						axes[0].setVisibleRange([0.5, 1]);
+						axes[1].setVisibleRange([0.5, 1]);
 						chart.redraw();
 					}
 				}
@@ -350,23 +440,29 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 									allowZoom: false,
 									}
 								}
-							}],
+							}, 'itemhighlight'],
 						axes: [{
 							type: 'numeric',
 							fields: fieldAxisLeft,
 							position: 'left',
 							grid: true,
+							minimum: 0,
+							renderer: function (v) {
+								return Ext.util.Format.number(v, '0,000') ;
+							}
 						},{
 							type: 'category',
 							fields: fieldAxisBottom,
 							position: 'bottom',
 							grid: true,
+							visibleRange: [0.5, 1]
 						},{
 							type: 'numeric',
 							fields: fieldAxisRight,
 							position: 'right',
 							renderer: function (v) {
-								return v.toFixed(v < 10 ? 1: 0) + '€';
+								var newValue = Ext.util.Format.number(v, '0,000') ;
+								return newValue + '€';
 							},
 							minimum: 0
 						}],
@@ -421,7 +517,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 								style: 'background: #fff',
 								renderer: function(storeItem, item) {
 									var title = item.series.getTitle();
-									this.setHtml(title + ' ' + storeItem.get('date_group') + ': ' + storeItem.get(item.series.getYField()));
+									this.setHtml(title + ' ' + storeItem.get('date_group') + ': ' + Ext.util.Format.number(storeItem.get(item.series.getYField()), '0,000'));
 								}
 							}
 						},{
@@ -446,7 +542,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 								style: 'background: #fff',
 								renderer: function(storeItem, item) {
 									var title = item.series.getTitle();
-									this.setHtml(title + ' ' + storeItem.get('date_group') + ': ' + storeItem.get(item.series.getYField()));
+									this.setHtml(title + ' ' + storeItem.get('date_group') + ': ' + Ext.util.Format.number(storeItem.get(item.series.getYField()), '0,000'));
 								}
 							}
 						},{
@@ -471,11 +567,23 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 								style: 'background: #fff',
 								renderer: function(storeItem, item) {
 									var title = item.series.getTitle();
-									this.setHtml(title + ' ' + storeItem.get('date_group') + ': ' + storeItem.get(item.series.getYField()));
+									this.setHtml(title + ' ' + storeItem.get('date_group') + ': ' + Ext.util.Format.number(storeItem.get(item.series.getYField()), '0,000'));
 								}
 							}
 						}]
-					})
+					}) ;
+ 
+					var chart = this.down('#'+itemId),
+						panzoom = chart.getInteractions()[0];
+					this.down('#cnt'+itemId).down('toolbar').add(panzoom.getModeToggleButton());
+					var segmentedButton = this.down('#cnt'+itemId).down('toolbar').items.items[1].items ;
+					segmentedButton.items[0].setText('Défiler') ;
+					segmentedButton.items[1].setText('Zoom') ;
+					segmentedButton.items[0].setTooltip('Pour faire défiler le graphique, ' +
+						'cliquer sur le graphique et glisser la souris dans la direction que vous voulez atteindre. Attention, cela ne marchez qu\'avec un graphique zoomer.') ;
+					segmentedButton.items[1].setTooltip('Pour zoomer, cliquez sur le graphique et glisser la souris:' +
+						'De gauche à droite pour dézoomer/zoomer sur l\'abscisse & de haut en bas pour l\'axe des actions');
+
 				},
 				scope: this
 			}
@@ -541,23 +649,30 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 				Ext.apply(col,{
 					align: 'right'
 				}) ;
-				fields.push({name: col.dataIndex, type:'number', allowNull:true}) ;
+				fields.push({name: col.dataIndex, type:'number', allowNull:false}) ;
 			}
 			columns.push(col) ;
 
 		});
 		columns.push({width: 150, dataIndex: "v_total", reportval_id: "total", text: "Total actions", date_start: columns[2].date_start, date_end: columns[2].date_end, align: 'right'}) ;
-		fields.push({name: 'v_total', type: 'number', allowNull: true }) ;
+
+		fields.push({name: 'v_total', type: 'number', allowNull: false }) ;
 		var col = [] ;
 		Ext.Array.each(columns, function (col) {
 			if (col.dataIndex == 'v_cash'){
 				col['renderer'] = function (value) {
 					if (!Ext.isEmpty(value)) {
+						if (value < 0){
+							return Ext.util.Format.number(0, '0,000') + ' €';
+						}
 						return Ext.util.Format.number(value, '0,000') + ' €';
 					}
 				}
 				col['summaryType'] = 'sum';
 				col['summaryRenderer'] = function(value) {
+					if (value < 0){
+						return '<b>'+ Ext.util.Format.number(0,'0,000') +' €</b>' ;
+					}
 					return '<b>'+ Ext.util.Format.number(value,'0,000') +' €</b>' ;
 				}
 			}
@@ -571,7 +686,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 			else{
 				col['summaryType'] = 'sum';
 				col['summaryRenderer'] = function(value) {
-					return '<b>'+value+'</b>' ;
+					newValue = Ext.util.Format.number(value, '0,000') ;
+					return '<b>'+newValue+'</b>' ;
+				}
+				col['renderer'] = function (value) {
+					return Ext.util.Format.number(value, '0,000') ;
 				}
 			}
 
@@ -672,7 +791,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 				//this.autoRefreshTask.delay( this.autoRefreshDelay ) ;
 			},
 			callback: function() {
-				//this.hideLoadmask() ;
+				this.hideLoadmask() ;
 			},
 			scope: this
 		}) ;
@@ -720,6 +839,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 
 		},this) ;
 
+	},
+	
+	
+	syncChartsWithLegendStatus: function(legendDataview, cnt) {
+		var legendDataviewStore = legendDataview.getStore() ;
+		legendDataviewStore.each(function(storeRecord) {
+			this.disableSerie(storeRecord.getData(), cnt) ;
+		}, this);
 	}
 
 });
