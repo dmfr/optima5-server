@@ -143,6 +143,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 			}
 			var chart = this.down('#'+cnt_id).series ;
 			Ext.Array.each(chart, function (rec) {
+				//console.dir(rec) ;
+				//console.dir(record.arr_targets) ;
+				
+				if( Ext.Array.contains(record.arr_targets,rec.getYField()) ) {
+					rec.setHidden(record.is_disabled) ;
+				}
+				return ;
 				if (record.legendTxt == 'Appels' || record.legendTxt == 'Emails' || record.legendTxt == 'Courriers'){
 					var tmp = record.legendTxt + text ;
 				}
@@ -188,7 +195,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 			]
 		}) ;
 		var ViewLegendStore = Ext.create('Ext.data.Store', {
-			fields: [{name: 'iconCls', type: 'string'}, {name: 'legendTxt', type: 'string'}, {name: 'is_disabled', type:'boolean'}],
+			fields: [{name: 'iconCls', type: 'string'}, {name: 'legendTxt', type: 'string'}, {name: 'is_disabled', type:'boolean'},{name:'arr_targets', type:'auto'}],
 			data: []
 		})
 		var legend = {
@@ -251,44 +258,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 			}]
 		}
 		this.down('#'+this._cnt).add(legend) ;
-		//this.down('#periodCombo').setValue('Hebdomadaire') ;
-		var legendData = new Array();
-		for (i = 0, ln = this.down('#chartIn').series.length; i < ln; i++) {
-			seriesItem = this.down('#chartIn').series[i];
-			if (seriesItem.getShowInLegend()) {
-				seriesItem.provideLegendInfo(legendData);
-			}
-		}
-		//console.log(legendData) ;
-		viewLegendData = [];
-		var i = 0;
-		var iconCl, color, txt;
-		Ext.Array.each(legendData, function (index) {
-			if (index.disabled == true){
-				return true;
-			}
-
-			switch(index.mark){
-				case '#D20606':
-					iconCl = 'op5-spec-rsiveo-circle-red' ;
-					txt = 'Encaissements' ;
-					break;
-				case '#26E118':
-					iconCl = 'op5-spec-rsiveo-circle-green' ;
-					txt = 'Courriers' ;
-					break ;
-				case '#FFFF00':
-					iconCl = 'op5-spec-rsiveo-circle-yellow' ;
-					txt = 'Appels' ;
-					break ;
-				case '#1890E1':
-					iconCl = 'op5-spec-rsiveo-circle-blue' ;
-					txt = 'Emails' ;
-					break ;
-			}
-			viewLegendData.push({iconCls: iconCl, legendTxt: txt}) ;
-		})
-		//this.down('#myLegend').getStore().loadData(legendData) ;
+		
+		var viewLegendData = [
+			{iconCls: 'op5-spec-rsiveo-circle-red', legendTxt: 'Encaissements', arr_targets:['cash']},
+			{iconCls: 'op5-spec-rsiveo-circle-green', legendTxt: 'Courriers', arr_targets:['v_mails_out','v_mails_in','v_mails','v_autosent']},
+			{iconCls: 'op5-spec-rsiveo-circle-yellow', legendTxt: 'Appels', arr_targets:['v_calls_out','v_calls_in','v_calls']},
+			{iconCls: 'op5-spec-rsiveo-circle-blue', legendTxt: 'Emails', arr_targets:['v_emails_out','v_emails_in','v_emails']}
+		];
 		this.down('#myViewLegend'+this._tmp_id).getStore().loadData(viewLegendData) ;
 		this.down('#periodCombo'+this._tmp_id).setValue('Quotidien') ;
 	},
@@ -332,9 +308,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 		var fieldsChartIn = [
 			{name: 'date_group', type: 'string', axis: 'bottom'},
 			{name: 'v_cash', type: 'number', srcReportvalIds:['cash'], axis: 'right', srcReportvalTxt: 'Encaissements'},
-			{name: 'v_mails_in', type: 'number', srcReportvalIds:['mails_in'], axis: 'left', srcReportvalTxt: 'Courriers entrants'},
-			{name: 'v_emails_in', type: 'number', srcReportvalIds:['emails_in'], axis: 'left', srcReportvalTxt: 'Emails entrants'},
-			{name: 'v_calls_in', type: 'number', srcReportvalIds:['calls_in'], axis: 'left', srcReportvalTxt: 'Appels entrants'}
+			{name: 'v_autosent', type: 'number', srcReportvalIds:['autosent'], axis: 'left', srcReportvalTxt: 'Actions auto.'}
 		] ;
 
 		var fieldsChartOut = [
@@ -348,7 +322,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 		var fieldsChartBoth = [
 			{name: 'date_group', type: 'string', axis: 'bottom'},
 			{name: 'v_cash', type: 'number', srcReportvalIds:['cash'], axis: 'right', srcReportvalTxt: 'Encaissements'},
-			{name: 'v_mails', type: 'number', srcReportvalIds:['mails_out','mails_in'], axis: 'left', srcReportvalTxt: 'Courriers'},
+			{name: 'v_mails', type: 'number', srcReportvalIds:['mails_out','mails_in','autosent'], axis: 'left', srcReportvalTxt: 'Courriers'},
 			{name: 'v_emails', type: 'number', srcReportvalIds:['emails_out','emails_in'], axis: 'left', srcReportvalTxt: 'Emails'},
 			{name: 'v_calls', type: 'number', srcReportvalIds:['calls_out','calls_in'], axis: 'left', srcReportvalTxt: 'Appels'}
 		] ;
@@ -357,12 +331,12 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 		switch( itemId ) {
 			case 'chartIn' :
 				fields = fieldsChartIn ;
-				title = 'Actions entrantes' ;
+				title = 'Actions automatiques' ;
 				cntChart = this.down('#hCntChart') ;
 				break ;
 			case 'chartOut' :
 				fields = fieldsChartOut ;
-				title = 'Actions sortantes' ;
+				title = 'Actions sortantes manuelles' ;
 				cntChart = this.down('#hCntChart') ;
 				break ;
 			case 'chartBoth' :
@@ -391,6 +365,52 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 			duration: 200,
 			easing: 'backOut'
 		};
+		
+		var seriesColors = ['#000000','#D20606','#26E118','#1890E1','#FFFF00'] ;
+		var series = [] ;
+		Ext.Array.each( fields, function(field,idx) {
+			if( idx==0 ) {
+				return ;
+			}
+			var suffix = '' ;
+			var highlight = false ;
+			if( idx==1 ) { // v_cash
+				suffix = '€' ;
+				highlight = true ;
+			}
+			series.push({
+				type: 'line',
+				xField: 'date_group',
+				yField: field.name,
+				title: field.srcReportvalTxt,
+				colors: [seriesColors[idx]],
+				highlight: highlight,
+				style: {
+					linewidth: 3,
+					/*
+					stroke: '#D20606',
+					'stroke-width': 1,
+					lineDash: [10,10]  // Draws dashed lines
+					*/
+				},
+				marker: {
+					radius: 3,
+					fn: markerFx
+				},
+				highlightCfg: {
+					scaling: 2
+				},
+				tooltip: {
+					trackMouse: true,
+					style: 'background: #fff',
+					renderer: function(storeItem, item) {
+						var title = item.series.getTitle();
+						this.setHtml(title + ' ' + storeItem.get('date_group') + ': ' + Ext.util.Format.number(storeItem.get(item.series.getYField()), '0,000') + suffix);
+					}
+				}
+			}) ;
+		}) ;
+		
 		cntChart.add({
 			xtype: 'panel',
 			itemId: 'cnt'+itemId,
@@ -466,111 +486,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 							},
 							minimum: 0
 						}],
-						series: [{
-							type: 'line',
-							xField: 'date_group',
-							yField: fields[1].name,
-							title: fields[1].srcReportvalTxt,
-							colors: ['#D20606'],
-							highlight: true,
-							style: {
-								linewidth: 3,
-								/*
-								stroke: '#D20606',
-								'stroke-width': 1,
-								lineDash: [10,10]  // Draws dashed lines
-								*/
-							},
-							marker: {
-								radius: 3,
-								fn: markerFx
-							},
-							highlightCfg: {
-								scaling: 2
-							},
-							tooltip: {
-								trackMouse: true,
-								style: 'background: #fff',
-								renderer: function(storeItem, item) {
-									var title = item.series.getTitle();
-									this.setHtml(title + ' ' + storeItem.get('date_group') + ': ' + Ext.util.Format.number(storeItem.get(item.series.getYField()), '0,000') + '€');
-								}
-							}
-						},{
-							type: 'line',
-							xField: 'date_group',
-							yField: fields[2].name,
-							title: fields[2].srcReportvalTxt,
-							colors: ['#26E118'],
-							style: {
-								linewidth: 2,
-								//fill: '#FF8432'
-								},
-							marker: {
-								radius: 2
-							},
-							highlightCfg: {
-								scaling: 2
-							},
-							tooltip: {
-								trackMouse: true,
-								style: 'background: #fff',
-								renderer: function(storeItem, item) {
-									var title = item.series.getTitle();
-									this.setHtml(title + ' ' + storeItem.get('date_group') + ': ' + Ext.util.Format.number(storeItem.get(item.series.getYField()), '0,000'));
-								}
-							}
-						},{
-							type: 'line',
-							xField: 'date_group',
-							yField: fields[3].name,
-							title: fields[3].srcReportvalTxt,
-							colors: ['#1890E1'],
-							style: {
-								linewidth: 2,
-								//stroke: '#EDBD39',
-								//fill: '#EDBD39'
-							},
-							highlightCfg: {
-								scaling: 2
-							},
-							marker: {
-								radius: 2
-							},
-							tooltip: {
-								trackMouse: true,
-								style: 'background: #fff',
-								renderer: function(storeItem, item) {
-									var title = item.series.getTitle();
-									this.setHtml(title + ' ' + storeItem.get('date_group') + ': ' + Ext.util.Format.number(storeItem.get(item.series.getYField()), '0,000'));
-								}
-							}
-						},{
-							type: 'line',
-							xField: 'date_group',
-							yField: fields[4].name,
-							title: fields[4].srcReportvalTxt,
-							colors: ['#FFFF00'],
-							style: {
-								linewidth: 2,
-								//stroke: '#FFA500',
-								//fill: '#FFA500'
-							},
-							marker: {
-								radius: 2
-							},
-							highlightCfg: {
-								scaling: 2
-							},
-							tooltip: {
-								trackMouse: true,
-								style: 'background: #fff',
-								renderer: function(storeItem, item) {
-									var title = item.series.getTitle();
-									this.setHtml(title + ' ' + storeItem.get('date_group') + ': ' + Ext.util.Format.number(storeItem.get(item.series.getYField()), '0,000'));
-								}
-							}
-						}]
+						series: series
 					}) ;
  
 					var chart = this.down('#'+itemId),
@@ -600,12 +516,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 
 		var fields = [] ;
 		fields[0] = 'cash' ;
-		fields[1] = 'calls_in' ;
-		fields[2] = 'emails_out';
-		fields[3] = 'emails_in' ;
-		fields[4] = 'mails_out' ;
-		fields[5] = 'mails_in' ;
-		fields[6] = 'calls_out';
+		fields[1] = 'autosent' ;
+		fields[2] = 'mails_out' ;
+		fields[3] = 'mails_in' ;
+		fields[4] = 'calls_out';
+		fields[5] = 'calls_in' ;
+		fields[6] = 'emails_out';
+		fields[7] = 'emails_in' ;
 		this.showLoadmask() ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
@@ -715,14 +632,18 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 			if (val.v_calls_out == null){
 				val.v_calls_out = 0;
 			}
+			if (val.v_autosent == null){
+				val.v_autosent = 0;
+			}
 			var mails_in = parseInt(val.v_mails_in, 10) ;
 			var mails_out = parseInt(val.v_mails_out, 10) ;
 			var emails_out = parseInt(val.v_emails_out, 10) ;
 			var emails_in = parseInt(val.v_emails_in, 10) ;
 			var calls_out = parseInt(val.v_calls_out, 10) ;
 			var calls_in = parseInt(val.v_calls_in, 10) ;
+			var autosent = parseInt(val.v_autosent, 10) ;
 
-			val.v_total = mails_in + mails_out + emails_in + emails_out + calls_in + calls_out;
+			val.v_total = autosent + mails_in + mails_out + emails_in + emails_out + calls_in + calls_out;
 
 
 		});
@@ -768,7 +689,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 		fields[3] = 'emails_in' ;
 		fields[4] = 'mails_out' ;
 		fields[5] = 'mails_in' ;
-		fields[6] = 'cash' ;
+		fields[6] = 'autosent' ;
+		fields[7] = 'cash' ;
 		this.showLoadmask() ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {

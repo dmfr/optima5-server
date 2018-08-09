@@ -500,6 +500,14 @@ function specRsiRecouveo_report_getCash( $post_data ) {
 function specRsiRecouveo_report_getValuesDesc() {
 	return array(
 		array(
+			'reportval_id' => 'autosent',
+			'reportval_txt' => 'Envois auto.',
+			'reportgroup_id' => 'counters',
+			'timescale' => 'interval',
+			'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-mailout',
+			'eval_direction' => 1
+		),
+		array(
 			'reportval_id' => 'calls',
 			'reportval_txt' => 'Appels',
 			'reportgroup_id' => 'counters',
@@ -1050,6 +1058,28 @@ function specRsiRecouveo_report_run_getValues( $reportval_id, $dates, $filters, 
 	
 		
 	switch( $reportval_id ) {
+		case 'autosent' :
+			switch( $reportval_id ) {
+				case 'autosent' : $action_code='MAIL_OUT' ; break ;
+			}
+			$select_clause = "'',count(*)" ;
+			if( $group_field ) {
+				$select_clause = $group_field.',count(*)' ;
+			}
+			$query = "SELECT {$select_clause} 
+						FROM view_file_FILE_ACTION fa
+						JOIN view_file_FILE f ON f.filerecord_id=fa.filerecord_parent_id
+						JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key=f.field_LINK_ACCOUNT
+						LEFT OUTER JOIN view_bible_TPL_entry te ON te.entry_key=fa.field_LINK_TPL
+						WHERE fa.field_STATUS_IS_OK='1' AND field_LINK_ACTION='{$action_code}'
+						AND (DATE(fa.field_DATE_ACTUAL) BETWEEN '{$dates['date_start']}' AND '{$dates['date_end']}')
+						AND (te.field_MANUAL_IS_ON IS NOT NULL AND te.field_MANUAL_IS_ON='0')" ;
+			$query.= $where_account ;
+			if( $group_field ) {
+				$query.= " GROUP BY {$group_field}" ;
+			}
+			break ;
+			
 		case 'calls_out' :
 		case 'calls_in' :
 		case 'emails_out' :
@@ -1072,8 +1102,10 @@ function specRsiRecouveo_report_run_getValues( $reportval_id, $dates, $filters, 
 						FROM view_file_FILE_ACTION fa
 						JOIN view_file_FILE f ON f.filerecord_id=fa.filerecord_parent_id
 						JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key=f.field_LINK_ACCOUNT
+						LEFT OUTER JOIN view_bible_TPL_entry te ON te.entry_key=fa.field_LINK_TPL
 						WHERE fa.field_STATUS_IS_OK='1' AND field_LINK_ACTION='{$action_code}'
-						AND (DATE(fa.field_DATE_ACTUAL) BETWEEN '{$dates['date_start']}' AND '{$dates['date_end']}')" ;
+						AND (DATE(fa.field_DATE_ACTUAL) BETWEEN '{$dates['date_start']}' AND '{$dates['date_end']}')
+						AND (te.field_MANUAL_IS_ON IS NULL OR te.field_MANUAL_IS_ON='1')" ;
 			$query.= $where_account ;
 			if( $group_field ) {
 				$query.= " GROUP BY {$group_field}" ;
