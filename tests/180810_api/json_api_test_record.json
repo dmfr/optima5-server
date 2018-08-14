@@ -1,0 +1,129 @@
+[
+  {
+    "Société": "Havas Media France",
+    "Numéro client": "1",
+    "Date facture": "2/24/2015",
+    "Id facture": "24022015_178434_2015/01 INTERNET_NETHERLANDS",
+    "Montant TTC": "34,06",
+    "Numéro facture": 178434,
+    "Date transmission": "2/21/2018",
+    "Date échéance": "3/24/2015",
+    "Libellé": "2015/01 INTERNET",
+    "Montant HT": "",
+    "Montant TVA": "",
+    "Journal": 710,
+    "Lettrage": "",
+    "Inactif": 0,
+    "Meta": {
+      "HV_Produit": "Honoraires",
+      "HV_Contrat": "NETHERLANDS",
+      "HV_Foreign": "",
+      "HV_META4": ""
+    }
+  },
+  {
+    "Société": "Havas Media France",
+    "Numéro client": "2",
+    "Date facture": "2/24/2015",
+    "Id facture": "24022015_178434_2015/02 INTERNET_NETHERLANDS",
+    "Montant TTC": "34,06",
+    "Numéro facture": 178435,
+    "Date transmission": "2/21/2018",
+    "Date échéance": "3/24/2015",
+    "Libellé": "2015/02 INTERNET",
+    "Montant HT": "",
+    "Montant TVA": "",
+    "Journal": 710,
+    "Lettrage": "",
+    "Meta": {
+      "HV_Produit": "Honoraires",
+      "HV_Contrat": "NETHERLANDS",
+      "HV_Foreign": "",
+      "HV_META4": ""
+    }
+
+  },  {
+  "Société": "Havas Media France",
+  "Numéro client": "HMF-1",
+  "Date facture": "2/24/2015",
+  "Id facture": "24022015_178434_2015/03 INTERNET_NETHERLANDS",
+  "Montant TTC": "34,06",
+  "Numéro facture": 178436,
+  "Date transmission": "2/21/2018",
+  "Date échéance": "3/24/2015",
+  "Libellé": "2015/03 INTERNET",
+  "Montant HT": "",
+  "Montant TVA": "",
+  "Journal": 710,
+  "Lettrage": "",
+  "Meta": {
+    "HV_Produit": "Honoraires",
+    "HV_Contrat": "NETHERLANDS",
+    "HV_Foreign": "",
+    "HV_META4": ""
+  }
+
+},  {
+  "Société": "Havas Media France",
+  "Numéro client": "2",
+  "Date facture": "2/24/2015",
+  "Id facture": "24022015_178434_2015/04 INTERNET_NETHERLANDS",
+  "Montant TTC": "34,06",
+  "Numéro facture": 178437,
+  "Date transmission": "2/21/2018",
+  "Date échéance": "3/24/2015",
+  "Libellé": "2015/03 INTERNET",
+  "Montant HT": "",
+  "Montant TVA": "",
+  "Journal": 710,
+  "Lettrage": "",
+  "Meta": {
+    "HV_Produit": "Honoraires",
+    "HV_Contrat": "FRANCE",
+    "HV_Foreign": "",
+    "HV_META4": ""
+  }
+
+},  {
+  "Société": "Havas Media France",
+  "Numéro client": "1",
+  "Date facture": "2/24/2015",
+  "Id facture": "24022015_178434_2015/05 INTERNET_NETHERLANDS",
+  "Montant TTC": "34,06",
+  "Numéro facture": 178439,
+  "Date transmission": "2/21/2018",
+  "Date échéance": "3/24/2015",
+  "Libellé": "2015/04 INTERNET",
+  "Montant HT": "",
+  "Montant TVA": "",
+  "Journal": 710,
+  "Lettrage": "",
+  "Meta": {
+    "HV_Produit": "Multiplication",
+    "HV_Contrat": "NETHERLANDS",
+    "HV_Foreign": "",
+    "HV_META4": ""
+  }
+
+},  {
+  "Société": "Havas Media France",
+  "Numéro client": "2",
+  "Date facture": "2/24/2015",
+  "Id facture": "24022015_178434_2015/06 INTERNET_NETHERLANDS",
+  "Montant TTC": "34,06",
+  "Numéro facture": 178438,
+  "Date transmission": "2/21/2018",
+  "Date échéance": "3/24/2015",
+  "Libellé": "2015/06 INTERNET",
+  "Montant HT": "",
+  "Montant TVA": "",
+  "Journal": 710,
+  "Lettrage": "",
+  "Meta": {
+    "HV_Produit": "Honoraires",
+    "HV_Contrat": "MAROC",
+    "HV_Foreign": "JSP",
+    "HV_META4": ""
+  }
+
+}]

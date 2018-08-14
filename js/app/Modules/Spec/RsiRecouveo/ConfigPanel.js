@@ -20,7 +20,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigPanel', {
 		'Optima5.Modules.Spec.RsiRecouveo.ConfigUsersPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.ConfigScenariosPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.ConfigPayPanel',
-		'Optima5.Modules.Spec.RsiRecouveo.ConfigSocsPanel'
+		'Optima5.Modules.Spec.RsiRecouveo.ConfigSocsPanel',
+		'Optima5.Modules.Spec.RsiRecouveo.ConfigApiPanel'
 	],
 	
 	menuData: [{
@@ -65,6 +66,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigPanel', {
 		iconClsBig:'op5-spec-rsiveo-config-socs-big',
 		iconClsSmall:'op5-spec-rsiveo-config-socs-small',
 		jsClass:'Optima5.Modules.Spec.RsiRecouveo.ConfigSocsPanel'
+	},{
+		id:'api_gestion',
+		title:'Gestion de l\'API',
+		caption:'Définition des paramètres de l\'API',
+		iconClsBig:'op5-spec-rsiveo-config-socs-big',
+		iconClsSmall:'op5-spec-rsiveo-config-socs-small',
+		jsClass:'Optima5.Modules.Spec.RsiRecouveo.ConfigApiPanel'
 	}],
 	
 	initComponent: function() {
