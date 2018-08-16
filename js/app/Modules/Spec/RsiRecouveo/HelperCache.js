@@ -122,6 +122,7 @@ Ext.define('RsiRecouveoCfgSocModel',{
 	fields: [
 		{name: 'soc_id', type:'string'},
 		{name: 'soc_name', type:'string'},
+		{name: 'soc_xe_currency', type:'boolean'},
 		{name: 'atr_ids', type:'auto'}
 	]
 });
@@ -205,6 +206,7 @@ Ext.define('RsiRecouveoConfigSocModel',{
 	fields: [
 		{name: 'soc_id', type:'string'},
 		{name: 'soc_name', type:'string'},
+		{name: 'soc_xe_currency', type:'boolean'}
 	],
 	hasMany: [{
 		model: 'RsiRecouveoConfigSocMetafieldModel',
@@ -649,7 +651,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 		return this.cfgSocTreeStore.getRootNode().copy(undefined,true) ;
 	},
 	getSocRowId: function(socId) {
-		
+		var socNode = this.cfgSocTreeStore.getRootNode().findChild('soc_id',socId) ;
+		if( socNode ) {
+			return socNode.getData() ;
+		}
+		return null ;
 	},
 	
 	getUserAll: function() {

@@ -144,6 +144,28 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetList', {
 		    summaryRenderer: function(value,summaryData,field,metaData) {
 			    return Ext.util.Format.number(value,'0,000.00') ;
 		    }
+	    },{
+		    dataIndex: 'record_xe_currency_amount',
+		    text: 'MntDevise',
+		    align: 'center',
+		    renderer: function(v, meta, r) {
+				if( Ext.isNumber(v) && !Ext.isEmpty(r.get('record_xe_currency_sign')) ) {
+					v = Ext.util.Format.number(v,'0,000.00') ;
+					v += '&#160;' ;
+					v += r.get('record_xe_currency_sign') ;
+					return v ;
+				}
+			 },
+		    filter: {
+			    type: 'number'
+		    }
+	    },{
+		    dataIndex: 'record_xe_currency_code',
+		    text: 'CodDevise',
+		    align: 'center',
+		    filter: {
+			    type: 'stringlist'
+		    }
 	    }) ;
 	    Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
 		    var atrRecord = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(atrId) ;
@@ -170,7 +192,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetList', {
 		    {name: 'record_date', type: 'date', dateFormat:'Y-m-d H:i:s'},
 		    {name: 'record_dateload', type: 'date', dateFormat:'Y-m-d H:i:s'},
 		    {name: 'record_amount_raw', type: 'number'},
-		    {name: 'record_amount_calcpaid', type: 'number'}
+		    {name: 'record_amount_calcpaid', type: 'number'},
+		    {name: 'record_xe_currency_amount', type: 'number'},
+		    {name: 'record_xe_currency_sign', type: 'string'}
 	    ] ;
 	    Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds(), function(atrId) {
 		    var atrRecord = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(atrId) ;
@@ -538,6 +562,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetList', {
 				    newRow['record_amount_calcpaid'] = fileRecordRow['amount'] * coef ;
 				    newRow['record_dateload'] = fileRecordRow['date_load'] ;
 				    newRow['record_date'] = fileRecordRow['date_record'] ;
+				    newRow['record_xe_currency_amount'] = fileRecordRow['xe_currency_amount'] ;
+				    newRow['record_xe_currency_sign'] = fileRecordRow['xe_currency_sign'] ;
+				    newRow['record_xe_currency_code'] = fileRecordRow['xe_currency_code'] ;
 				    newAjaxData.push(newRow) ;
 			    });
 		    });

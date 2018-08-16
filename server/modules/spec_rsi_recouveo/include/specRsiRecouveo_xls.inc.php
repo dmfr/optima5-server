@@ -219,6 +219,7 @@ function specRsiRecouveo_xls_createDetailPanel($post_data){
 	$metaIds = [] ;
 	foreach ($cfg_soc as $atrIds) {
 		if ($atrIds['soc_id'] == $entity){
+			$metaXeCurrency = $atrIds['soc_xe_currency'] ;
 			$metaIds = $atrIds['atr_ids'] ;
 		}
 
@@ -258,6 +259,8 @@ function specRsiRecouveo_xls_createDetailPanel($post_data){
 			$factures[$i]['Date Facture'] = $record['date_record'] ;
 			$factures[$i]['Montant'] = $record['amount'] ;
 			$factures[$i]['Integr'] = $record['date_load'] ;
+			$factures[$i]['MntDevise'] = ($record['xe_currency_code'] ? $record['xe_currency_amount'] : '') ;
+			$factures[$i]['CodDevise'] = $record['xe_currency_code'] ;
 			foreach ($metaDesc as $value) {
 				$factures[$i][$value['Desc']] = $record[$value['Field']] ;
 			}
@@ -401,6 +404,10 @@ function specRsiRecouveo_xls_createDetailPanel($post_data){
 	$sheet3->setCellValue('G1','Date: ');
 	$sheet3->setCellValue('H1','Montant: ');
 	$sheet3->setCellValue('I1','Integr: ');
+	if( $metaXeCurrency ) {
+		$sheet3->setCellValue('J1','MntDevise: ');
+		$sheet3->setCellValue('K1','CodDevise: ');
+	}
 
 	foreach($factures as $key => $facture){
 	  $newKey = $key+2;
@@ -412,9 +419,13 @@ function specRsiRecouveo_xls_createDetailPanel($post_data){
 		  $sheet3->setCellValue('F'.$newKey, $facture['Libelle Facture']) ;
 		  $sheet3->setCellValue('G'.$newKey, $facture['Date Facture']) ;
 		  $sheet3->setCellValue('H'.$newKey, $facture['Montant']) ;
-			$sheet3->setCellValue('I'.$newKey, $facture['Integr']) ;
+		  $sheet3->setCellValue('I'.$newKey, $facture['Integr']) ;
+		  if( $metaXeCurrency ) {
+			$sheet3->setCellValue('J'.$newKey, $facture['MntDevise']) ;
+			$sheet3->setCellValue('K'.$newKey, $facture['CodDevise']) ;
+		  }
 		}
-		$columnValue = 'J' ;
+		$columnValue = ( $metaXeCurrency ? 'L' : 'J' ) ;
 		foreach($metaDesc as $meta){
 		  $col = $columnValue.'1' ;
 		  $sheet3->setCellValue($col, $meta['Desc']) ;

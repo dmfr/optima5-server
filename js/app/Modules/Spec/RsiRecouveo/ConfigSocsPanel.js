@@ -136,6 +136,15 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigSocsPanel', {
 						xtype: 'textfield',
 						name: 'soc_name',
 						fieldLabel: 'Entité / Société'
+					},{
+						xtype: 'fieldset',
+						title: 'Paramètres additionnels',
+						margin: '20px 0px',
+						items: [{
+							xtype: 'checkboxfield',
+							name: 'soc_xe_currency',
+							boxLabel: 'Gestion devises étrangères ?'
+						}]
 					}]
 				},{
 					xtype: 'tabpanel',

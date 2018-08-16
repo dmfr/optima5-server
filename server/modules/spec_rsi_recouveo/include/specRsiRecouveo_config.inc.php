@@ -299,6 +299,7 @@ function specRsiRecouveo_config_getSocs($post_data) {
 		$record = array(
 			'soc_id' => $arr['field_SOC_ID'],
 			'soc_name' => $arr['field_SOC_NAME'],
+			'soc_xe_currency' => $arr['field_SOC_XE_CURRENCY'],
 			
 			'metafields' => array(),
 			'printfields' => array()
@@ -339,6 +340,7 @@ function specRsiRecouveo_config_setSoc( $post_data ) {
 	$arr_update = array() ;
 	$arr_update['field_SOC_ID'] = $soc_record['soc_id'] ;
 	$arr_update['field_SOC_NAME'] = $soc_record['soc_name'] ;
+	$arr_update['field_SOC_XE_CURRENCY'] = ( $soc_record['soc_xe_currency'] ? 1 : 0 ) ;
 	$metafields = array() ;
 	foreach( $soc_record['metafields'] as $metafield ) {
 		$metafields[] = array(

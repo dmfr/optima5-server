@@ -317,6 +317,7 @@ function specRsiRecouveo_cfg_getConfig() {
 			'soc_id' => $arr['field_SOC_ID'],
 			'soc_parent_id' => $arr['treenode_parent_key'],
 			'soc_name' => $arr['field_SOC_NAME'],
+			'soc_xe_currency' => $arr['field_SOC_XE_CURRENCY'],
 			'atr_ids' => array()
 		);
 		

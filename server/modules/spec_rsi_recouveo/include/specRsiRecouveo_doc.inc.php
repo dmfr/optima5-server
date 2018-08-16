@@ -337,6 +337,9 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE ) {
 		'type_temprec' => 'Journal',
 		'amount_tot' => 'Montant'
 	);
+	if( $cfg_soc && $cfg_soc['soc_xe_currency'] ) {
+		$map_columns['xe_currency_amount'] = 'MntDevise' ;
+	}
 	$table_data = $table_datafoot = array() ;
 	foreach( $accFile_record['records'] as $record_row ) {
 		$row_table = array(
@@ -348,7 +351,8 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE ) {
 			'date_record' => date('d/m/Y',strtotime($record_row['date_record'])),
 			'date_value' => date('d/m/Y',strtotime($record_row['date_value'])),
 			'amount_tot' => '<div width="100%" style="text-align:right;">'.number_format($record_row['amount'],2).'</div>',
-			'amount_due' => '<b>'.number_format($record_row['amount'],2).'</b>'
+			'amount_due' => '<b>'.number_format($record_row['amount'],2).'</b>',
+			'xe_currency_amount' => '<div width="100%" style="text-align:right;">'.number_format($record_row['xe_currency_amount'],2).'&nbsp;'.$record_row['xe_currency_sign'].'</div>'
 		);
 		$amount+= $record_row['amount'] ;
 		$table_data[] = $row_table ;

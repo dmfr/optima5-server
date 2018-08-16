@@ -178,6 +178,9 @@ function specRsiRecouveo_account_open( $post_data ) {
 			'date_record' => $arr['field_DATE_RECORD'],
 			'date_value' => $arr['field_DATE_VALUE'],
 			'amount' => $arr['field_AMOUNT'],
+			'xe_currency_amount' => $arr['field_XE_CURRENCY_AMOUNT'],
+			'xe_currency_sign' => $arr['field_XE_CURRENCY_SIGN'],
+			'xe_currency_code' => $arr['field_XE_CURRENCY_CODE'],
 			'letter_is_on' => ($arr['field_LETTER_IS_ON']==1),
 			'letter_code' => $arr['field_LETTER_CODE'],
 			'bank_is_alloc' => ($arr['field_BANK_LINK_FILE_ID']>0)

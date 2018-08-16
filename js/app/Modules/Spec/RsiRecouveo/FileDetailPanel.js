@@ -16,6 +16,9 @@ Ext.define('RsiRecouveoFileDetailRecordsTreeModel', {
 		  {name: 'record_date', type: 'date'},
 		  {name: 'record_dateload', type: 'date'},
 		  {name: 'record_amount', type: 'number'},
+		  {name: 'record_xe_currency_amount', type: 'number'},
+		  {name: 'record_xe_currency_sign', type: 'string'},
+		  {name: 'record_xe_currency_code', type: 'string'},
 		  {name: 'record_letter',  type: 'string'},
  		  {name: 'record_type',  type: 'string'},
 		  {name: 'record_readonly', type: 'boolean'}
@@ -294,6 +297,23 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					return '<b>'+v+'</b>' ;
 				}
 				return v ;
+			}
+		},{
+			text: 'EnDevise',
+			dataIndex: 'record_xe_currency_amount',
+			align: 'right',
+			width: 90,
+			renderer: function( v, meta, r ) {
+				if( !Ext.isEmpty(r.get('file_id_ref')) ) {
+					return '' ;
+				}
+				if( Ext.isNumber(v) && !Ext.isEmpty(r.get('record_xe_currency_sign')) ) {
+					v = Ext.util.Format.number(v,'0,000.00') ;
+					v += '&#160;' ;
+					v += r.get('record_xe_currency_sign') ;
+					return v ;
+				}
+				return '' ;
 			}
 		},{
 			text: 'Integr.',
@@ -1007,18 +1027,21 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 		}) ;
 	},
 	onLoadApplySoc: function(socId) {
+		var socRow = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getSocRowId(socId),
+			xeCurrencyCol = this.down('#pRecordsPanel').down('#pRecordsTree').headerCt.down('[dataIndex="record_xe_currency_amount"]') ;
+		xeCurrencyCol.setVisible( socRow.soc_xe_currency ) ;
+		
+		
 		var cfgParamIds = [] ;
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAllAtrIds([socId]), function(atrId) {
 			var atrRecord = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(atrId) ;
 			cfgParamIds.push( 'ATR:'+atrRecord.atr_id ) ;
 		}) ;
-		
 		this.down('#pHeaderForm').getForm().getFields().each( function(field) {
 			if( field.cfgParam_id && field.cfgParam_id.indexOf('ATR:')===0 ) {
 				field.setVisible( Ext.Array.contains(cfgParamIds,field.cfgParam_id) ) ;
 			}
 		});
-		
 		Ext.Array.each( this.down('#pRecordsPanel').down('#pRecordsTree').headerCt.query('[cfgParam_id]'), function(col) {
 			col.setVisible( Ext.Array.contains(cfgParamIds,col.cfgParam_id) ) ;
 		}) ;
@@ -1190,6 +1213,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					record_date: fileRecordRecord.get('date_value'),
 					record_dateload: fileRecordRecord.get('date_load'),
 					record_amount: fileRecordRecord.get('amount'),
+					record_xe_currency_amount: fileRecordRecord.get('xe_currency_amount'),
+					record_xe_currency_sign: fileRecordRecord.get('xe_currency_sign'),
 					record_letter: (fileRecordRecord.get('letter_is_on') ? fileRecordRecord.get('letter_code') : ''),
 					record_type: fileRecordRecord.get('type'),
 					record_readonly: (Ext.isEmpty(fileRecordRecord.get('type')) || fileRecordRecord.get('bank_is_alloc'))
