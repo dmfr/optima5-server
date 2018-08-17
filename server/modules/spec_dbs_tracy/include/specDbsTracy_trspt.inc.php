@@ -745,7 +745,7 @@ function specDbsTracy_trspt_download( $post_data ) {
 		$server_root = $GLOBALS['server_root'] ;
 		include("$server_root/include/xlsxwriter.class.php");
 		
-	$json = specDbsTracy_trspt_getRecords(array('filter_archiveIsOn'=>1)) ;
+	$json = specDbsTracy_trspt_getRecords(array('filter_archiveIsOn'=>0)) ;
 	$map_id_rowTrspt = array() ;
 	foreach( $json['data'] as $rowTrspt ) {
 		$id = $rowTrspt['trspt_filerecord_id'] ;

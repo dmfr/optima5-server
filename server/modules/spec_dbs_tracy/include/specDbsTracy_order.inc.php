@@ -559,7 +559,7 @@ function specDbsTracy_order_download( $post_data ) {
 		$server_root = $GLOBALS['server_root'] ;
 		include("$server_root/include/xlsxwriter.class.php");
 		
-	$json = specDbsTracy_order_getRecords(array('filter_archiveIsOn'=>1)) ;
+	$json = specDbsTracy_order_getRecords(array('filter_archiveIsOn'=>0)) ;
 	$map_id_rowOrder = array() ;
 	foreach( $json['data'] as $rowOrder ) {
 		$id = $rowOrder['order_filerecord_id'] ;
