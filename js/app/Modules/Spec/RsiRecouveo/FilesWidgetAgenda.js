@@ -298,7 +298,23 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetAgenda',{
 				if( !map_actionAgendaClass_etaRange_amount[actionAgendaClass].hasOwnProperty(fileActionRow.calc_eta_range) ) {
 					map_actionAgendaClass_etaRange_amount[actionAgendaClass][fileActionRow.calc_eta_range] = 0 ;
 				}
-				map_actionAgendaClass_etaRange_amount[actionAgendaClass][fileActionRow.calc_eta_range] += fileRow.inv_amount_due ;
+				
+				var actionAmount = fileRow.inv_amount_due / nbActionsTodo ;
+				if( !Ext.isEmpty(fileActionRow.link_agree) ) {
+					var nbActionsTodo = 0 ;
+					Ext.Array.each( fileRow.actions, function(fileActionRow) {
+						actionRow = map_actionId_action[fileActionRow.link_action] ;
+						if( fileActionRow.status_is_ok ) {
+							return ;
+						}
+						nbActionsTodo++ ;
+					}) ;
+					actionAmount = fileRow.inv_amount_due / nbActionsTodo ;
+					if( !Ext.isEmpty(fileActionRow.link_agree.milestone_amount) ) {
+						actionAmount = fileActionRow.link_agree.milestone_amount ;
+					}
+				}
+				map_actionAgendaClass_etaRange_amount[actionAgendaClass][fileActionRow.calc_eta_range] += actionAmount ;
 			}) ;
 		}) ;
 		
