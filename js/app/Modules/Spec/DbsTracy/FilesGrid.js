@@ -1581,7 +1581,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				this.onResponse(doClearFilters) ;
 			},
 			callback: function() {
-				this.hideLoadmask() ;
+				
 			},
 			scope: this
 		}) ;
@@ -1614,6 +1614,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 	},
 	onResponse: function(doClearFilters) {
 		if( !(this.ajaxDataOrder && this.ajaxDataHat) ) {
+			this.hideLoadmask() ;
 			return ;
 		}
 		var ajaxDataOrder = this.ajaxDataOrder ;
@@ -1625,6 +1626,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		this.autoRefreshTask.delay( this.autoRefreshDelay ) ;
 		
 		this.onLoadOrder(ajaxDataOrder, ajaxDataHat, doClearFilters) ;
+		
+		this.hideLoadmask() ;
 	},
 	onLoadOrder: function(ajaxDataOrder, ajaxDataHat, doClearFilters) {
 		//delete this.ajaxDataOrder ;
