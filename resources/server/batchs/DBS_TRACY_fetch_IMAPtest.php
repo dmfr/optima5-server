@@ -200,17 +200,27 @@ if( TRUE ) {
 	while( ($arr_media = $_opDB->fetch_assoc($result)) != FALSE ) {
 		$attach_filerecordId = $arr_media['filerecord_id'] ;
 		
-		while( TRUE ) {
-			$email_subject = $arr_media['field_ATTACHMENT_TXT'] ;
-			$arr_emailSubject = explode(':',$email_subject) ;
-			if( count($arr_emailSubject) != 2 ) {
-				continue 2 ;
+		$email_DAU = FALSE ;
+		$email_subject = $arr_media['field_ATTACHMENT_TXT'] ;
+		if( strpos($email_subject,"DOCUMENT : ")===0 ) {
+			$email_DAU = TRUE ;
+			$mkey = preg_replace("/[^0-9]/", "", $email_subject) ;
+			if( !trim($mkey) ) {
+				continue ;
 			}
-			break ;
+		} else {
+			while( TRUE ) {
+				
+				$arr_emailSubject = explode(':',$email_subject) ;
+				if( count($arr_emailSubject) != 2 ) {
+					continue 2 ;
+				}
+				break ;
+			}
+			$mkey = strtoupper(trim($arr_emailSubject[1])) ;
 		}
 		
 		
-		$mkey = strtoupper(trim($arr_emailSubject[1])) ;
 		if( $map_idHat_ordersRow[$mkey] ) {
 			foreach( $map_idHat_ordersRow[$mkey] as $order_row ) {
 				$CDE_parent_filerecordId = $order_row['order_filerecord_id'] ;
@@ -220,19 +230,28 @@ if( TRUE ) {
 				$img_filerecordId = paracrm_lib_data_insertRecord_file( 'CDE_ATTACH', $CDE_parent_filerecordId, $arr_media ) ;
 				media_img_copy( media_img_toolFile_getId('ATTACH_INBOX',$attach_filerecordId) , media_img_toolFile_getId('CDE_ATTACH',$img_filerecordId) ) ;
 				
-				// Update field
-				$arr_update = array() ;
-				$arr_update['field_REF_INVOICE'] = trim($arr_emailSubject[1]) ;
-				paracrm_lib_data_updateRecord_file( 'CDE', $arr_update, $CDE_parent_filerecordId );
-				
-				// Adv status
-				$arr_cond = array() ;
-				$arr_cond['filerecord_parent_id'] = $CDE_parent_filerecordId ;
-				$arr_cond['field_STEP_CODE'] = '30_DOCS' ;
-				$arr_update = array() ;
-				$arr_update['field_DATE_ACTUAL'] = date('Y-m-d H:i:s') ;
-				$arr_update['field_STATUS_IS_OK'] = 1 ;
-				$_opDB->update('view_file_CDE_STEP',$arr_update,$arr_cond) ;
+				if( !$email_DAU ) {
+					// Update field
+					$arr_update = array() ;
+					$arr_update['field_REF_INVOICE'] = trim($arr_emailSubject[1]) ;
+					paracrm_lib_data_updateRecord_file( 'CDE', $arr_update, $CDE_parent_filerecordId );
+					
+					// Adv status
+					$arr_cond = array() ;
+					$arr_cond['filerecord_parent_id'] = $CDE_parent_filerecordId ;
+					$arr_cond['field_STEP_CODE'] = '30_DOCS' ;
+					$arr_update = array() ;
+					$arr_update['field_DATE_ACTUAL'] = date('Y-m-d H:i:s') ;
+					$arr_update['field_STATUS_IS_OK'] = 1 ;
+					$_opDB->update('view_file_CDE_STEP',$arr_update,$arr_cond) ;
+				}
+				if( $email_DAU ) {
+					$trspt_filerecord_id = $order_row['calc_link_trspt_filerecord_id'] ;
+					
+					$arr_update = array() ;
+					$arr_update['field_CUSTOMS_DATE_CLEARED'] = date('Y-m-d H:i:s') ;
+					paracrm_lib_data_updateRecord_file( 'TRSPT', $arr_update, $trspt_filerecord_id );
+				}
 			}
 			
 			// Delete media
