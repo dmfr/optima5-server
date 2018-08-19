@@ -491,7 +491,7 @@ function specRsiRecouveo_lib_mail_associateFile( $src_emailFilerecordId, $target
 			$arr_ins = array() ;
 			$arr_ins['field_ACC_ID'] = $account_record['acc_id'] ;
 			$arr_ins['field_ADR_ENTITY'] = $target_adrbookEntity ;
-			$arr_ins['field_ADR_ENTITY_NAME'] = $target_adrbookEntity ;
+			//$arr_ins['field_ADR_ENTITY_NAME'] = $target_adrbookEntity ;
 			$target_adrbookFilerecordId = paracrm_lib_data_insertRecord_file( 'ADRBOOK', 0, $arr_ins );
 		}
 		if( !$target_adrbookEntryFilerecordId ) {

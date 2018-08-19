@@ -215,8 +215,8 @@ function specRsiRecouveo_lib_autorun_actions() {
 			$account = $json['data'] ;
 			foreach( $account['adrbook'] as $adrbook ) {
 				foreach( $adrbook['adrbookentries'] as $adrbookentry ) {
-					if( $adrbookentry['adr_type']=='POSTAL' && $adrbookentry['status_is_priority'] ) {
-						$t_adrPost_name = ($adrbook['adr_entity_name'] ? $adrbook['adr_entity_name'] : $account['acc_name']) ;
+					if( $adrbookentry['adr_type']=='POSTAL' && $adrbookentry['status_is_priority'] && !$adrbookentry['status_is_invalid'] ) {
+						$t_adrPost_name = $adrbook['adr_entity'] ;
 						$t_adrPost_txt = $adrbookentry['adr_txt'] ;
 					}
 				}

@@ -63,7 +63,7 @@ function specRsiRecouveo_account_open( $post_data ) {
 		$adrbook[$arr['filerecord_id']] = array(
 			'adrbook_filerecord_id' => $arr['filerecord_id'],
 			'adr_entity' => $arr['field_ADR_ENTITY'],
-			'adr_entity_name' => $arr['field_ADR_ENTITY_NAME'],
+			//'adr_entity_name' => $arr['field_ADR_ENTITY_NAME'],
 			'adr_entity_obs' => $arr['field_ADR_ENTITY_OBS'],
 			'adrbookentries' => array()
 		);
@@ -227,7 +227,7 @@ function specRsiRecouveo_account_setAdrbook( $post_data ) {
 	$arr_ins = array() ;
 	$arr_ins['field_ACC_ID'] = $p_accId ;
 	$arr_ins['field_ADR_ENTITY'] = $p_adrbookRecordData['adr_entity'] ;
-	$arr_ins['field_ADR_ENTITY_NAME'] = $p_adrbookRecordData['adr_entity_name'] ;
+	//$arr_ins['field_ADR_ENTITY_NAME'] = $p_adrbookRecordData['adr_entity_name'] ;
 	$arr_ins['field_ADR_ENTITY_OBS'] = $p_adrbookRecordData['adr_entity_obs'] ;
 	if( $p_adrbookRecordData['adrbook_filerecord_id'] ) {
 		$adrbook_record = NULL ;

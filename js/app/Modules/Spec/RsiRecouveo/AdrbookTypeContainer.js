@@ -161,9 +161,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AdrbookTypeContainer',{
 		adrField.reset() ;
 		if( adrObj ) {
 			var adrNameTxt = [] ;
-			if( adrObj.parentNode && !Ext.isEmpty(adrObj.parentNode.get('nodeNext')) ) {
+			if( adrObj.parentNode && !Ext.isEmpty(adrObj.parentNode.get('nodeText')) ) {
 				adrNameTxt.push( adrObj.parentNode.get('nodeText') ) ;
-				adrNameTxt.push( adrObj.parentNode.get('nodeNext') ) ;
 			} else {
 				adrNameTxt.push( this._accountRecord.get('acc_txt') ) ;
 			}
@@ -200,7 +199,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.AdrbookTypeContainer',{
 		
 		var adrNew = this.down('[name="'+prefix+'_new"]'),
 			adrNewEntity = this.down('[name="'+prefix+'_new_entity"]') ;
-		adrNewEntity.setVisible( adrNew.getValue() ) ;
+		//adrNewEntity.setVisible( adrNew.getValue() ) ;
+		adrNewEntity.setVisible( false ) ;
 	},
 	onSelectResult: function(field,value) {
 		var prefix = this._adrPrefix,

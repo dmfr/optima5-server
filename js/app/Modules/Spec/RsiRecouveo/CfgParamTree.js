@@ -74,11 +74,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamTree',{
 			var adrType = this.cfgParam_id.substring(4) ;
 			
 			var adrbookRootMap = {} ;
-			var adrbookEntityNameMap = {} ;
 			//adrbookRootMap['Autre'] = [] ;
 			this.accountRecord.adrbook().each( function(adrBookRec) {
 				adrbookRootMap[adrBookRec.get('adr_entity')] = [] ;
-				adrbookEntityNameMap[adrBookRec.get('adr_entity')] = adrBookRec.get('adr_entity_name') ;
 				adrBookRec.adrbookentries().each( function(adrBookEntryRec) {
 					if( adrBookEntryRec.get('status_is_invalid') ) {
 							return ;
@@ -106,7 +104,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.CfgParamTree',{
 					nodeType: 'entity',
 					nodeKey: k,
 					nodeText: k,
-					nodeNext: adrbookEntityNameMap[k],
 					
 					children: v
 				})

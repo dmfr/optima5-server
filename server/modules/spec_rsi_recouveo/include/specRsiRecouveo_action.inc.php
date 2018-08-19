@@ -75,13 +75,18 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 			paracrm_lib_data_updateRecord_file( 'ADRBOOK_ENTRY', $arr_update, $post_form['adrpost_filerecord_id']);
 		}
 		if( $post_form['adrpost_new'] ) {
-			$default_adrEntity = $post_form['adrpost_new_entity'] ;
+			$default_adrEntity = $post_form['adrpost_entity_name'] ;
 			
-			$arr_ins = array() ;
-			$arr_ins['field_ACC_ID'] = $acc_id ;
-			$arr_ins['field_ADR_ENTITY'] = $default_adrEntity ;
-			$arr_ins['field_ADR_ENTITY_NAME'] = $post_form['adrpost_entity_name'] ;
-			$adrbook_filerecord_id = paracrm_lib_data_insertRecord_file( 'ADRBOOK', 0, $arr_ins );
+			$query = "SELECT filerecord_id FROM view_file_ADRBOOK
+						WHERE field_ACC_ID='{$acc_id}' AND field_ADR_ENTITY='{$default_adrEntity}'" ;
+			$adrbook_filerecord_id = $_opDB->query_uniqueValue($query) ;
+			if( !$adrbook_filerecord_id ) {
+				$arr_ins = array() ;
+				$arr_ins['field_ACC_ID'] = $acc_id ;
+				$arr_ins['field_ADR_ENTITY'] = $default_adrEntity ;
+				//$arr_ins['field_ADR_ENTITY_NAME'] = $post_form['adrpost_entity_name'] ;
+				$adrbook_filerecord_id = paracrm_lib_data_insertRecord_file( 'ADRBOOK', 0, $arr_ins );
+			}
 			$arr_ins = array() ;
 			$arr_ins['field_ADR_TYPE'] = 'POSTAL' ;
 			$arr_ins['field_ADR_TXT'] = $post_form['adrpost_txt'] ;
@@ -105,13 +110,18 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 			paracrm_lib_data_updateRecord_file( 'ADRBOOK_ENTRY', $arr_update, $post_form['adrtel_filerecord_id']);
 		}
 		if( $post_form['adrtel_new'] ) {
-			$default_adrEntity = $post_form['adrtel_new_entity'] ;
+			$default_adrEntity = $post_form['adrtel_entity_name'] ;
 			
-			$arr_ins = array() ;
-			$arr_ins['field_ACC_ID'] = $acc_id ;
-			$arr_ins['field_ADR_ENTITY'] = $default_adrEntity ;
-			$arr_ins['field_ADR_ENTITY_NAME'] = $post_form['adrtel_entity_name'] ;
-			$adrbook_filerecord_id = paracrm_lib_data_insertRecord_file( 'ADRBOOK', 0, $arr_ins );
+			$query = "SELECT filerecord_id FROM view_file_ADRBOOK
+						WHERE field_ACC_ID='{$acc_id}' AND field_ADR_ENTITY='{$default_adrEntity}'" ;
+			$adrbook_filerecord_id = $_opDB->query_uniqueValue($query) ;
+			if( !$adrbook_filerecord_id ) {
+				$arr_ins = array() ;
+				$arr_ins['field_ACC_ID'] = $acc_id ;
+				$arr_ins['field_ADR_ENTITY'] = $default_adrEntity ;
+				//$arr_ins['field_ADR_ENTITY_NAME'] = $post_form['adrtel_entity_name'] ;
+				$adrbook_filerecord_id = paracrm_lib_data_insertRecord_file( 'ADRBOOK', 0, $arr_ins );
+			}
 			$arr_ins = array() ;
 			$arr_ins['field_ADR_TYPE'] = 'TEL' ;
 			$arr_ins['field_ADR_TXT'] = $post_form['adrtel_txt'] ;
@@ -135,13 +145,18 @@ function specRsiRecouveo_action_doFileAction( $post_data ) {
 			paracrm_lib_data_updateRecord_file( 'ADRBOOK_ENTRY', $arr_update, $post_form['adrmail_filerecord_id']);
 		}
 		if( $post_form['adrmail_new'] ) {
-			$default_adrEntity = $post_form['adrmail_new_entity'] ;
+			$default_adrEntity = $post_form['adrmail_entity_name'] ;
 			
-			$arr_ins = array() ;
-			$arr_ins['field_ACC_ID'] = $acc_id ;
-			$arr_ins['field_ADR_ENTITY'] = $default_adrEntity ;
-			$arr_ins['field_ADR_ENTITY_NAME'] = $post_form['adrmail_entity_name'] ;
-			$adrbook_filerecord_id = paracrm_lib_data_insertRecord_file( 'ADRBOOK', 0, $arr_ins );
+			$query = "SELECT filerecord_id FROM view_file_ADRBOOK
+						WHERE field_ACC_ID='{$acc_id}' AND field_ADR_ENTITY='{$default_adrEntity}'" ;
+			$adrbook_filerecord_id = $_opDB->query_uniqueValue($query) ;
+			if( !$adrbook_filerecord_id ) {
+				$arr_ins = array() ;
+				$arr_ins['field_ACC_ID'] = $acc_id ;
+				$arr_ins['field_ADR_ENTITY'] = $default_adrEntity ;
+				//$arr_ins['field_ADR_ENTITY_NAME'] = $post_form['adrmail_entity_name'] ;
+				$adrbook_filerecord_id = paracrm_lib_data_insertRecord_file( 'ADRBOOK', 0, $arr_ins );
+			}
 			$arr_ins = array() ;
 			$arr_ins['field_ADR_TYPE'] = 'EMAIL' ;
 			$arr_ins['field_ADR_TXT'] = $post_form['adrmail_txt'] ;
