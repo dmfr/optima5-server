@@ -95,6 +95,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetBalage',{
 	loadFilesData: function( ajaxData ){
 		var map_status_arrBalage = {} ;
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getStatusAll(), function(status) {
+			if( status.is_disabled ) {
+				return ;
+			}
 			map_status_arrBalage[status.status_id]=[] ;
 		}) ;
 		Ext.Array.each( ajaxData, function(fileRow) {
@@ -106,6 +109,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetBalage',{
 		}) ;
 		var gridStatusBalageData = [] ;
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getStatusAll(), function(status) {
+			if( status.is_disabled ) {
+				return ;
+			}
 			var gridStatusBalageRow = {
 					'status_id' : status.status_id,
 					'status_txt' : status.status_txt,

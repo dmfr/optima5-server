@@ -3,6 +3,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetCharts',{
 	initComponent: function() {
 		var statusColors = [], statusTitles = [] ;
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getStatusAll(), function(status) {
+			if( status.is_disabled ) {
+				return ;
+			}
 			statusColors.push(status.status_color) ;
 			statusTitles.push(status.status_txt) ;
 		}) ;
@@ -159,6 +162,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetCharts',{
 		var map_status_nbFiles = {},
 			map_status_amount = {} ;
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getStatusAll(), function(status) {
+			if( status.is_disabled ) {
+				return ;
+			}
 			map_status_nbFiles[status.status_id]=0 ;
 			map_status_amount[status.status_id]=0 ;
 		}) ;
@@ -175,6 +181,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetCharts',{
 		var chartStatusAmountData = [],
 			chartStatusCountData = [];
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getStatusAll(), function(status) {
+			if( status.is_disabled ) {
+				return ;
+			}
 			chartStatusAmountData.push({
 				'status_id' : status.status_id,
 				'status_txt' : status.status_txt,

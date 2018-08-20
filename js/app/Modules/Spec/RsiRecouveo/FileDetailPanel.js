@@ -105,6 +105,19 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 			actionMap[action.action_id] = action ;
 		}) ;
 		
+		var disabledActions = [] ;
+		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionAll(), function(action) {
+			var nextStatusId = action.status_next ;
+			if( Ext.isEmpty(nextStatusId) ) {
+				return ;
+			}
+			var nextStatus = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getStatusRowId(nextStatusId) ;
+			if( nextStatus && nextStatus.is_disabled ) {
+				disabledActions.push( action.action_id ) ;
+			}
+		}) ;
+		
+		
 		
 		var balageFields = [], balageColumns = [] ;
 		var balageRenderer = function(value,metaData,record) {
@@ -871,6 +884,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 							},
 							scope: this
 						},{
+							hidden: Ext.Array.contains(disabledActions,'AGREE_START'),
 							iconCls: 'op5-spec-rsiveo-action-agree',
 							text: 'Promesse règlement',
 							handler: function() {
@@ -878,6 +892,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 							},
 							scope: this
 						},{
+							hidden: Ext.Array.contains(disabledActions,'LITIG_START'),
 							iconCls: 'op5-spec-rsiveo-action-litig',
 							text: 'Demande d\'action externe',
 							handler: function() {
@@ -885,6 +900,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 							},
 							scope: this
 						},{
+							hidden: Ext.Array.contains(disabledActions,'JUDIC_START'),
 							iconCls: 'op5-spec-rsiveo-action-litig',
 							text: 'Action judiciaire',
 							handler: function() {
@@ -892,6 +908,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 							},
 							scope: this
 						},{
+							hidden: Ext.Array.contains(disabledActions,'CLOSE_ASK'),
 							iconCls: 'op5-spec-rsiveo-action-close',
 							text: 'Demande de clôture',
 							handler: function() {
