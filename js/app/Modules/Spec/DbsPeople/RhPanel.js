@@ -159,7 +159,23 @@ Ext.define('Optima5.Modules.Spec.DbsPeople.RhPanel',{
 						scope: this
 					}
 				}
-			}),'->',{
+			}),{
+				icon: 'images/op5img/ico_zoom_16.png',
+				text: 'Filtres',
+				menu: {
+					layout: 'anchor',
+					bodyPadding: 10,
+					bodyCls: 'ux-noframe-bg',
+					items: [{
+						xtype: 'textfield',
+						fieldLabel: 'Recherche',
+						labelWidth: 80
+					},{
+						xtype: 'checkbox',
+						boxLabel: 'Afficher inactifs'
+					}]
+				}
+			},'->',{
 				icon: 'images/modules/admin-user-16.png',
 				text: 'New People',
 				handler: function() {
