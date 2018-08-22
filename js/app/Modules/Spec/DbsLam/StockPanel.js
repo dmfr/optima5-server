@@ -107,11 +107,14 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 				collapsed: true,
 				_empty:true,
 				listeners:{
+					/*
 					beforeexpand:function(eastpanel) {
 						if( eastpanel._empty ) {
 							return false;
 						}
 					},
+					*/
+					beforeexpand: this.onBeforeExpandEast,
 					scope:this
 				}
 			}]
@@ -445,6 +448,13 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 				}
 			});
 		}
+		if( true ) {
+			Ext.apply(gridpanelCfg,{
+				selModel: {
+					mode: 'MULTI'
+				}
+			});
+		}
 		
 		pCenter.removeAll() ;
 		pCenter.add(treepanelCfg,gridpanelCfg) ;
@@ -600,6 +610,33 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 		
 		popupPanel.show();
 		popupPanel.getEl().alignTo(me.getEl(), 'c-c?');
+	},
+	
+	
+	onBeforeExpandEast: function( eastpanel ) {
+		eastpanel.removeAll() ;
+		eastpanel.add({
+			xtype: 'form',
+			cls: 'ux-noframe-bg',
+			bodyPadding: 10,
+			bodyCls: 'ux-noframe-bg',
+			items: [{
+				xtype: 'fieldset',
+				title: 'Document selection',
+				items: [{
+					xtype: 'textfield',
+					fieldLabel: 'Adjust qty.'
+				}]
+			},{
+				xtype: 'fieldset',
+				title: 'Document selection',
+				items: [{
+					xtype: 'textfield',
+					fieldLabel: 'Adjust qty.'
+				}]
+			}]
+
+		}) ;
 	},
 	
 	
