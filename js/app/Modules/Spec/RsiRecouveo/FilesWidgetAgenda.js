@@ -299,7 +299,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetAgenda',{
 					map_actionAgendaClass_etaRange_amount[actionAgendaClass][fileActionRow.calc_eta_range] = 0 ;
 				}
 				
-				var actionAmount = fileRow.inv_amount_due / nbActionsTodo ;
+				var actionAmount = fileRow.inv_amount_due ;
 				if( !Ext.isEmpty(fileActionRow.link_agree) ) {
 					var nbActionsTodo = 0 ;
 					Ext.Array.each( fileRow.actions, function(fileActionRow) {
