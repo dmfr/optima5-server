@@ -324,7 +324,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetAgenda',{
 		Ext.Array.each( Optima5.Modules.Spec.RsiRecouveo.HelperCache.getActionAll(), function(actionRow) {
 			if( !Ext.isEmpty(actionRow.agenda_class) && !agendaSummary.hasOwnProperty(actionRow.agenda_class) ) {
 				var statusRow = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getStatusRowId(actionRow.agenda_class) ;
-				if( !statusRow ) {
+				if( !statusRow || statusRow.is_disabled ) {
 					return ;
 				}
 				agendaSummary[actionRow.agenda_class] = statusRow.status_txt ;
