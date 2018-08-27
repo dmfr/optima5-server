@@ -5,6 +5,7 @@ include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo.inc.php"
 
 function backend_specific( $post_data )
 {
+session_write_close() ;
 switch( $post_data['_action'] )
 {
 	case 'cfg_getAuth' :
@@ -156,6 +157,14 @@ switch( $post_data['_action'] )
 		return specRsiRecouveo_report_getTiles( $post_data ) ;
 	case 'report_getGrid' :
 		return specRsiRecouveo_report_getGrid( $post_data ) ;
+	
+	case 'edi_getApiKeys' :
+		return specRsiRecouveo_edi_getApiKeys( $post_data ) ;
+	case 'edi_getApiLogResult':
+        return  specRsiRecouveo_edi_getApiLogResult( $post_data ) ;
+    case 'edi_createApiKey':
+        return   specRsiRecouveo_edi_createApiKey( $post_data ) ;
+
 	
 	default :
 	return NULL ;

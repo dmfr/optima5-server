@@ -279,6 +279,12 @@
 .op5-spec-rsiveo-config-socs-small {
 	background-image: url("../images/op5img/ico_blocs_small.gif") !important;
 }
+.op5-spec-rsiveo-config-keys-big {
+	background-image: url("../images/modules/rsiveo-keys-48.png") !important;
+}
+.op5-spec-rsiveo-config-keys-small {
+	background-image: url("../images/modules/rsiveo-keys-16.png") !important;
+}
 .op5-spec-rsiveo-config-users-big {
 	background-image: url("../images/modules/rsiveo-users-48.png") !important;
 }

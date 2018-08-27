@@ -70,8 +70,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigPanel', {
 		id:'api_gestion',
 		title:'Gestion de l\'API',
 		caption:'Définition des paramètres de l\'API',
-		iconClsBig:'op5-spec-rsiveo-config-socs-big',
-		iconClsSmall:'op5-spec-rsiveo-config-socs-small',
+		iconClsBig:'op5-spec-rsiveo-config-keys-big',
+		iconClsSmall:'op5-spec-rsiveo-config-keys-small',
 		jsClass:'Optima5.Modules.Spec.RsiRecouveo.ConfigApiPanel'
 	}],
 	

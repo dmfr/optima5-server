@@ -10,6 +10,7 @@ include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_report.i
 include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_mail.inc.php") ;
 include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_lib_sms.inc.php") ;
 include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_xls.inc.php") ;
+include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_edi.inc.php") ;
 
 include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_dev.inc.php") ;
 include("$server_root/modules/spec_rsi_recouveo/include/specRsiRecouveo_upload.inc.php") ;
