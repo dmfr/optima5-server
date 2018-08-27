@@ -5,7 +5,8 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateForm',{
 		'Optima5.Modules.Spec.RsiRecouveo.FileCreateAgreePanel',
 		'Optima5.Modules.Spec.RsiRecouveo.FileCreateClosePanel',
 		'Optima5.Modules.Spec.RsiRecouveo.FileCreateLitigPanel',
-		'Optima5.Modules.Spec.RsiRecouveo.FileCreateJudicPanel'
+		'Optima5.Modules.Spec.RsiRecouveo.FileCreateJudicPanel',
+		'Optima5.Modules.Spec.RsiRecouveo.FileCreateTransferPanel'
 	],
 	
 	_fileRecord: null,
@@ -162,6 +163,9 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateForm',{
 				break ;
 			case 'CLOSE_ASK' :
 				newActionClass = 'Optima5.Modules.Spec.RsiRecouveo.FileCreateClosePanel' ;
+				break ;
+			case 'TRSFR_START' :
+				newActionClass = 'Optima5.Modules.Spec.RsiRecouveo.FileCreateTransferPanel' ;
 				break ;
 			case 'BUMP' :
 				newActionClass = 'Ext.panel.Panel' ;
@@ -463,6 +467,15 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileCreateForm',{
 					var error = 'Renseigner date de suivi action' ;
 					errors.push(error) ;
 					this.getForm().findField('judic_nextdate').markInvalid(error) ;
+					break ;
+				}
+				break ;
+
+			case 'TRSFR_START' :
+				if( Ext.isEmpty(formData['trsfr_nextdate']) ) {
+					var error = 'Renseigner date de suivi action' ;
+					errors.push(error) ;
+					this.getForm().findField('trsfr_nextdate').markInvalid(error) ;
 					break ;
 				}
 				break ;

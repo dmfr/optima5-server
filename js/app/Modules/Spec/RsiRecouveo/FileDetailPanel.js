@@ -908,6 +908,14 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 							},
 							scope: this
 						},{
+							hidden: Ext.Array.contains(disabledActions,'TRSFR_START'),
+							iconCls: 'op5-spec-rsiveo-action-litig',
+							text: 'Transmission Recouveo',
+							handler: function() {
+								this.doCreateFile('TRSFR_START') ;
+							},
+							scope: this
+						},{
 							hidden: Ext.Array.contains(disabledActions,'CLOSE_ASK'),
 							iconCls: 'op5-spec-rsiveo-action-close',
 							text: 'Demande de clôture',
