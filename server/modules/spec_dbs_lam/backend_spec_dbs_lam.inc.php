@@ -72,14 +72,10 @@ switch( $post_data['_action'] )
 	case 'transfer_cdeAckStep' :
 	return specDbsLam_transfer_cdeAckStep( $post_data ) ;
 	
-	case 'transfer_saveReject' :
-	return specDbsLam_transfer_saveReject( $post_data ) ;
 	case 'transfer_commitAdrTmp' :
 	return specDbsLam_transfer_commitAdrTmp( $post_data ) ;
 	case 'transfer_commitAdrFinal' :
 	return specDbsLam_transfer_commitAdrFinal( $post_data ) ;
-	case 'transfer_commitAdrFinalForwardSplit' :
-	return specDbsLam_transfer_commitAdrFinalForwardSplit( $post_data ) ;
 	case 'transfer_allocAdrFinal' :
 	return specDbsLam_transfer_allocAdrFinal( $post_data ) ;
 	case 'transfer_unallocAdrFinal' :
