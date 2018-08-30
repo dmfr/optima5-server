@@ -1293,7 +1293,7 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				renderColor = header._renderColor;
 			metaData.style += 'background:'+renderColor+'; ' ;
 			metaData.tdCls += ' ' + 'op5-spec-dbstracy-bigcolumn';
-			return '<b>'+value+'</b' ;
+			return '<b>'+value+'</b>' ;
 		};
 
 		var pushModelfields=[], stepColumns = [], colorSet = [] ;
@@ -1541,7 +1541,8 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 		switch( this.viewMode ) {
 			case 'order' :
 			case 'order-group-trspt' :
-				return this.doLoadOrder(doClearFilters) ;
+				//return this.doLoadOrder(doClearFilters) ;
+				return this.doLoadOrderTree(doClearFilters) ;
 				
 			case 'trspt' :
 				return this.doLoadTrspt(doClearFilters) ;
@@ -1550,6 +1551,70 @@ Ext.define('Optima5.Modules.Spec.DbsTracy.FilesGrid',{
 				return ;
 		}
 	},
+	
+	
+	doLoadOrderTree: function(doClearFilters) {
+		delete this.ajaxDataOrder ;
+		delete this.ajaxDataHat ;
+	
+	
+		var filterParams = {
+			filter_socCode: this.down('#btnSoc').getValue(),
+			filter_archiveIsOn: (this.down('#tbArchiveIsOn').checked ? 1 : 0 )
+		};
+		if( !Ext.isEmpty(this.down('#btnSearch').getValue()) ) {
+			Ext.apply(filterParams,{
+				filter_searchTxt: this.down('#btnSearch').getValue()
+			});
+		}
+		
+		this.toggleNewTrspt(false) ;
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: Ext.apply({
+				_moduleId: 'spec_dbs_tracy',
+				_action: 'orderTree_getData'
+			},filterParams),
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+				this.onResponseOrderTree(ajaxResponse.dataTree, ajaxResponse.dataCount, doClearFilters) ;
+			},
+			callback: function() {
+				
+			},
+			scope: this
+		}) ;
+	},
+	onResponseOrderTree: function( ajaxDataTree, ajaxDataCount, doClearFilters ) {
+		// Setup autoRefresh task
+		this.autoRefreshTask.delay( this.autoRefreshDelay ) ;
+		
+		if( doClearFilters ) {
+			this.down('#pCenter').down('#pGrid').getStore().clearFilter() ;
+			this.down('#pCenter').down('#pGrid').filters.clearFilters() ;
+		}
+		// To refresh root node : https://www.sencha.com/forum/showthread.php?303359
+		this.down('#pCenter').down('#pGrid').getStore().getProxy().setData(ajaxDataTree) ;
+		this.down('#pCenter').down('#pGrid').getStore().reload() ;
+		
+		if( !this._readonlyMode ) {
+			this.down('#pNorth').down('grid').getStore().loadRawData([ajaxDataCount]) ;
+			//console.dir( this.down('#pNorth').down('grid').getStore() ) ;
+			this.down('#pNorth').down('chart').getStore().loadRawData([ajaxDataCount]) ;
+		}
+		
+		this.hideLoadmask() ;
+	},
+	
+	
+	
+	
+	
+	
 	doLoadOrder: function(doClearFilters) {
 		delete this.ajaxDataOrder ;
 		delete this.ajaxDataHat ;

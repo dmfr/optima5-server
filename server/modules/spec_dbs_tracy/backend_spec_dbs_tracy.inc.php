@@ -97,6 +97,9 @@ switch( $post_data['_action'] )
 	case 'report' :
 	return specDbsTracy_report($post_data) ;
 	
+	case 'orderTree_getData' :
+	return specDbsTracy_orderTree_getData($post_data) ;
+	
 	default :
 	return NULL ;
 }
