@@ -23,7 +23,7 @@ function specDbsTracy_orderTree_getData( $post_data ) {
 	//print_r($map_stepDescCodes_count) ;
 	
 	$map_orderId_orderRow = array() ;
-	foreach( $json_order['data'] as $order_row ) {
+	foreach( $json_order['data'] as &$order_row ) {
 		foreach( $order_row['steps'] as $orderstep_row ) {
 			$step_code = $orderstep_row['step_code'] ;
 			$row_key = 'step_'.$map_stepCode_descCode[$step_code] ;
@@ -60,6 +60,7 @@ function specDbsTracy_orderTree_getData( $post_data ) {
 		
 		$map_orderId_orderRow[$order_row['order_filerecord_id']] = $order_row ;
 	}
+	unset($order_row) ;
 	
 	$map_hatId_hatRow = array() ;
 	$map_orderId_hatId = array() ;
