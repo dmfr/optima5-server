@@ -500,7 +500,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 		group.add('groupby_key', 'user') ;
 		group.add('timebreak_group', '') ;
 
-		var fields = [ ;
+		var fields = [
 			'cash',
 			'mails_out',
 			'mails_in',
@@ -677,7 +677,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 			'emails_in',
 			'mails_out%auto',
 			'mails_out%manual',
-			'mails_in'
+			'mails_in',
 			'cash'
 		];
 		this.showLoadmask() ;
