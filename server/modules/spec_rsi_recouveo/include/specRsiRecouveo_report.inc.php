@@ -534,6 +534,7 @@ function specRsiRecouveo_report_getCash( $post_data ) {
 
 function specRsiRecouveo_report_getValuesDesc() {
 	return array(
+		/*
 		array(
 			'reportval_id' => 'autosent',
 			'reportval_txt' => 'Envois auto.',
@@ -542,6 +543,7 @@ function specRsiRecouveo_report_getValuesDesc() {
 			'reportval_iconCls' => 'op5-spec-rsiveo-reporttile-main-icon-value-mailout',
 			'eval_direction' => 1
 		),
+		*/
 		array(
 			'reportval_id' => 'calls',
 			'reportval_txt' => 'Appels',
@@ -1091,10 +1093,13 @@ function specRsiRecouveo_report_run_getValues( $reportval_id, $dates, $filters, 
 		}
 	}
 	
-		
-	switch( $reportval_id ) {
+	$ttmp = explode('%',$reportval_id) ;
+	$reportvalId_base = $ttmp[0] ;
+	$reportvalId_suffix = $ttmp[1] ;
+	switch( $reportvalId_base ) {
+		/*
 		case 'autosent' :
-			switch( $reportval_id ) {
+			switch( $reportvalId_base ) {
 				case 'autosent' : $action_code='MAIL_OUT' ; break ;
 			}
 			$select_clause = "'',count(*)" ;
@@ -1114,6 +1119,7 @@ function specRsiRecouveo_report_run_getValues( $reportval_id, $dates, $filters, 
 				$query.= " GROUP BY {$group_field}" ;
 			}
 			break ;
+			*/
 			
 		case 'calls_out' :
 		case 'calls_in' :
@@ -1121,7 +1127,7 @@ function specRsiRecouveo_report_run_getValues( $reportval_id, $dates, $filters, 
 		case 'emails_in' :
 		case 'mails_out' :
 		case 'mails_in' :
-			switch( $reportval_id ) {
+			switch( $reportvalId_base ) {
 				case 'calls_out' : $action_code='CALL_OUT' ; break ;
 				case 'calls_in' : $action_code='CALL_IN' ; break ;
 				case 'emails_out' : $action_code='EMAIL_OUT' ; break ;
@@ -1133,15 +1139,26 @@ function specRsiRecouveo_report_run_getValues( $reportval_id, $dates, $filters, 
 			if( $group_field ) {
 				$select_clause = $group_field.',count(*)' ;
 			}
+			
+			$where_action = '' ;
+			switch( $reportvalId_suffix ) {
+				case 'manual' :
+					$where_action.= " AND (te.field_MANUAL_IS_ON IS NULL OR te.field_MANUAL_IS_ON='1')" ;
+					break ;
+				case 'auto' :
+					$where_action.= " AND (te.field_MANUAL_IS_ON IS NOT NULL AND te.field_MANUAL_IS_ON='0')" ;
+					break ;
+			}
+			
 			$query = "SELECT {$select_clause} 
 						FROM view_file_FILE_ACTION fa
 						JOIN view_file_FILE f ON f.filerecord_id=fa.filerecord_parent_id
 						JOIN view_bible_LIB_ACCOUNT_entry la ON la.entry_key=f.field_LINK_ACCOUNT
 						LEFT OUTER JOIN view_bible_TPL_entry te ON te.entry_key=fa.field_LINK_TPL
 						WHERE fa.field_STATUS_IS_OK='1' AND field_LINK_ACTION='{$action_code}'
-						AND (DATE(fa.field_DATE_ACTUAL) BETWEEN '{$dates['date_start']}' AND '{$dates['date_end']}')
-						AND (te.field_MANUAL_IS_ON IS NULL OR te.field_MANUAL_IS_ON='1')" ;
+						AND (DATE(fa.field_DATE_ACTUAL) BETWEEN '{$dates['date_start']}' AND '{$dates['date_end']}')" ;
 			$query.= $where_account ;
+			$query.= $where_action ;
 			if( $group_field ) {
 				$query.= " GROUP BY {$group_field}" ;
 			}

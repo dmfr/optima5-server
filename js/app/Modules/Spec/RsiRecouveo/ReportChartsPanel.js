@@ -122,7 +122,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 		var containers;
 		switch (cnt){
 			case 'first' :
-				containers = ['chartIn', 'chartOut'] ;
+				containers = ['chartAuto', 'chartMan'] ;
 				break ;
 			case 'second' :
 				containers = ['chartBoth'] ;
@@ -131,11 +131,11 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 		Ext.Array.each(containers, function (cnt_id) {
 			var text;
 			switch(cnt_id){
-				case 'chartIn':
-					text = ' entrants' ;
+				case 'chartAuto':
+					text = ' auto' ;
 					break ;
-				case 'chartOut':
-					text = ' sortants' ;
+				case 'chartMan':
+					text = ' man' ;
 					break ;
 				case 'chartBoth':
 					text = '' ;
@@ -148,21 +148,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 				
 				if( Ext.Array.contains(record.arr_targets,rec.getYField()) ) {
 					rec.setHidden(record.is_disabled) ;
-				}
-				return ;
-				if (record.legendTxt == 'Appels' || record.legendTxt == 'Emails' || record.legendTxt == 'Courriers'){
-					var tmp = record.legendTxt + text ;
-				}
-				else{
-					tmp = record.legendTxt
-				}
-				if (tmp == rec.getTitle() && rec.getHidden() != record.is_disabled){
-					if (rec.getHidden() == true){
-						rec.setHidden(false) ;
-					}
-					else{
-						rec.setHidden(true) ;
-					}
 				}
 			}) ;
 			this.down('#'+cnt_id).redraw() ;
@@ -260,10 +245,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 		this.down('#'+this._cnt).add(legend) ;
 		
 		var viewLegendData = [
-			{iconCls: 'op5-spec-rsiveo-circle-red', legendTxt: 'Encaissements', arr_targets:['cash']},
-			{iconCls: 'op5-spec-rsiveo-circle-green', legendTxt: 'Courriers', arr_targets:['v_mails_out','v_mails_in','v_mails','v_autosent']},
-			{iconCls: 'op5-spec-rsiveo-circle-yellow', legendTxt: 'Appels', arr_targets:['v_calls_out','v_calls_in','v_calls']},
-			{iconCls: 'op5-spec-rsiveo-circle-blue', legendTxt: 'Emails', arr_targets:['v_emails_out','v_emails_in','v_emails']}
+			{iconCls: 'op5-spec-rsiveo-circle-red', legendTxt: 'Encaissements', arr_targets:['v_cash']},
+			{iconCls: 'op5-spec-rsiveo-circle-green', legendTxt: 'Courriers', arr_targets:['v_mails_auto','v_mails_man','v_mails']},
+			{iconCls: 'op5-spec-rsiveo-circle-yellow', legendTxt: 'Appels', arr_targets:['v_calls_auto','v_calls_man','v_calls']},
+			{iconCls: 'op5-spec-rsiveo-circle-blue', legendTxt: 'Emails', arr_targets:['v_emails_auto','v_emails_man','v_emails']}
 		];
 		this.down('#myViewLegend'+this._tmp_id).getStore().loadData(viewLegendData) ;
 		this.down('#periodCombo'+this._tmp_id).setValue('Quotidien') ;
@@ -296,47 +281,49 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 				align: 'stretch'
 			}
 		}) ;
-		this.buildViewsFirstAddChart('chartIn') ;
+		this.buildViewsFirstAddChart('chartAuto') ;
 		this.buildLegend('first') ;
-		this.buildViewsFirstAddChart('chartOut') ;
+		this.buildViewsFirstAddChart('chartMan') ;
 		this.buildViewsFirstAddChart('chartBoth') ;
 		this.buildLegend('second') ;
 	},
 
 	buildViewsFirstAddChart: function( itemId ) {
 		this._chartItemId = itemId;
-		var fieldsChartIn = [
+		var fieldsChartAuto = [
 			{name: 'date_group', type: 'string', axis: 'bottom'},
 			{name: 'v_cash', type: 'number', srcReportvalIds:['cash'], axis: 'right', srcReportvalTxt: 'Encaissements'},
-			{name: 'v_autosent', type: 'number', srcReportvalIds:['autosent'], axis: 'left', srcReportvalTxt: 'Actions auto.'}
+			{name: 'v_mails_auto', type: 'number', srcReportvalIds:['mails_out%auto'], axis: 'left', srcReportvalTxt: 'Courriers sortants'},
+			{name: 'v_emails_auto', type: 'number', srcReportvalIds:['emails_out%auto'], axis: 'left', srcReportvalTxt: 'Emails sortants'},
+			{name: 'v_calls_auto', type: 'number', srcReportvalIds:['calls_out%auto'], axis: 'left', srcReportvalTxt: 'Appels sortants'}
 		] ;
 
-		var fieldsChartOut = [
+		var fieldsChartMan = [
 			{name: 'date_group', type: 'string', axis: 'bottom'},
 			{name: 'v_cash', type: 'number', srcReportvalIds:['cash'], axis: 'right', srcReportvalTxt: 'Encaissements'},
-			{name: 'v_mails_out', type: 'number', srcReportvalIds:['mails_out'], axis: 'left', srcReportvalTxt: 'Courriers sortants'},
-			{name: 'v_emails_out', type: 'number', srcReportvalIds:['emails_out'], axis: 'left', srcReportvalTxt: 'Emails sortants'},
-			{name: 'v_calls_out', type: 'number', srcReportvalIds:['calls_out'], axis: 'left', srcReportvalTxt: 'Appels sortants'}
+			{name: 'v_mails_man', type: 'number', srcReportvalIds:['mails_in','mails_out%manual'], axis: 'left', srcReportvalTxt: 'Courriers sortants'},
+			{name: 'v_emails_man', type: 'number', srcReportvalIds:['emails_in','emails_out%manual'], axis: 'left', srcReportvalTxt: 'Emails sortants'},
+			{name: 'v_calls_man', type: 'number', srcReportvalIds:['calls_in','calls_out%manual'], axis: 'left', srcReportvalTxt: 'Appels sortants'}
 		] ;
 
 		var fieldsChartBoth = [
 			{name: 'date_group', type: 'string', axis: 'bottom'},
 			{name: 'v_cash', type: 'number', srcReportvalIds:['cash'], axis: 'right', srcReportvalTxt: 'Encaissements'},
-			{name: 'v_mails', type: 'number', srcReportvalIds:['mails_out','mails_in','autosent'], axis: 'left', srcReportvalTxt: 'Courriers'},
+			{name: 'v_mails', type: 'number', srcReportvalIds:['mails_out','mails_in'], axis: 'left', srcReportvalTxt: 'Courriers'},
 			{name: 'v_emails', type: 'number', srcReportvalIds:['emails_out','emails_in'], axis: 'left', srcReportvalTxt: 'Emails'},
 			{name: 'v_calls', type: 'number', srcReportvalIds:['calls_out','calls_in'], axis: 'left', srcReportvalTxt: 'Appels'}
 		] ;
 
 		var fields, title, cntChart ;
 		switch( itemId ) {
-			case 'chartIn' :
-				fields = fieldsChartIn ;
+			case 'chartAuto' :
+				fields = fieldsChartAuto ;
 				title = 'Actions automatiques' ;
 				cntChart = this.down('#hCntChart') ;
 				break ;
-			case 'chartOut' :
-				fields = fieldsChartOut ;
-				title = 'Actions sortantes manuelles' ;
+			case 'chartMan' :
+				fields = fieldsChartMan ;
+				title = 'Actions manuelles' ;
 				cntChart = this.down('#hCntChart') ;
 				break ;
 			case 'chartBoth' :
@@ -424,7 +411,6 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 					handler: function () {
 						var chart = this.up('panel').down('cartesian'),
 							axes = chart.getAxes();
-						axes[0].setVisibleRange([0.5, 1]);
 						axes[1].setVisibleRange([0.5, 1]);
 						chart.redraw();
 					}
@@ -514,15 +500,15 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 		group.add('groupby_key', 'user') ;
 		group.add('timebreak_group', '') ;
 
-		var fields = [] ;
-		fields[0] = 'cash' ;
-		fields[1] = 'autosent' ;
-		fields[2] = 'mails_out' ;
-		fields[3] = 'mails_in' ;
-		fields[4] = 'calls_out';
-		fields[5] = 'calls_in' ;
-		fields[6] = 'emails_out';
-		fields[7] = 'emails_in' ;
+		var fields = [ ;
+			'cash',
+			'mails_out',
+			'mails_in',
+			'calls_out',
+			'calls_in',
+			'emails_out',
+			'emails_in'
+		];
 		this.showLoadmask() ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
@@ -682,15 +668,18 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 		group.add('timebreak_is_on', 'on') ;
 		group.add('timebreak_group', timebreak_group) ;
 
-		var fields = [] ;
-		fields[0] = 'calls_out';
-		fields[1] = 'calls_in' ;
-		fields[2] = 'emails_out';
-		fields[3] = 'emails_in' ;
-		fields[4] = 'mails_out' ;
-		fields[5] = 'mails_in' ;
-		fields[6] = 'autosent' ;
-		fields[7] = 'cash' ;
+		var fields = [
+			'calls_out%auto',
+			'calls_out%manual',
+			'calls_in',
+			'emails_out%auto',
+			'emails_out%manual',
+			'emails_in',
+			'mails_out%auto',
+			'mails_out%manual',
+			'mails_in'
+			'cash'
+		];
 		this.showLoadmask() ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
@@ -720,7 +709,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportChartsPanel',{
 	},
 	buildCharts: function (ajaxResponse) {
 		this.showLoadmask();
-		Ext.Array.each(['chartIn','chartOut','chartBoth'],function(itemId) {
+		Ext.Array.each(['chartAuto','chartMan','chartBoth'],function(itemId) {
 			var chart = this.down('#'+itemId),
 				chartStore = chart.getStore(),
 				chartStoreFields = chartStore.getModel().getFields() ;
