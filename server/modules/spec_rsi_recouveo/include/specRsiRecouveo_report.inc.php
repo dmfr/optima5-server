@@ -472,6 +472,41 @@ function specRsiRecouveo_report_getCash( $post_data ) {
 	
 	//print_r($map_soc_mapDateEc) ;
 	
+	
+	
+	
+		$query = "SELECT field_SOC_ID, f.field_STATUS, sum(field_AMOUNT)
+					FROM ($view_scope) v
+					JOIN view_file_RECORD_LINK rl ON rl.filerecord_parent_id = v.filerecord_id
+					JOIN view_file_FILE f ON f.filerecord_id = rl.field_LINK_FILE_ID
+					WHERE field_TYPE='' AND DATE(field_STAT_SCOPE_START)>'0' AND field_STAT_SCOPE_START<='$p_dateEnd' 
+					AND (field_STAT_SCOPE_END>='$p_dateStart' OR field_STAT_SCOPE_IS_ON='1')
+					GROUP BY field_SOC_ID, field_STATUS" ;
+		$result = $_opDB->query($query) ;
+		while(($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$soc_id = $arr[0] ;
+			$amount = $arr[2] ;
+			
+			$ttmp = explode('_',$arr[1]) ;
+			
+			switch( $ttmp[0] ) {
+				case 'S2P' :
+				case 'S2L' :
+				case 'SX' :
+				case 'S2T' :
+					$status = 'status_'.$ttmp[0] ;
+					break ;
+					
+				default : continue 2 ;
+			}
+			
+			$TAB[$soc_id][$status] = $amount ;
+		}
+	
+	
+	
+	
+	
 	return array('success'=>true, 'data'=>array_values($TAB) ) ;
 }
 

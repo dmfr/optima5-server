@@ -11,7 +11,11 @@ Ext.define('RsiRecouveoReportCashModel',{
 		{ name: 'paid_LOCAL', type: 'number' },
 		{ name: 'paid_REMOTE', type: 'number' },
 		{ name: 'paid_AVR', type: 'number' },
-		{ name: 'paid_misc', type: 'number' }
+		{ name: 'paid_misc', type: 'number' },
+		{ name: 'status_S2P', type: 'number' },
+		{ name: 'status_S2L', type: 'number' },
+		{ name: 'status_S2T', type: 'number' },
+		{ name: 'status_SX', type: 'number' }
 	]
 });
 
@@ -174,6 +178,46 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ReportCashPanel',{
 			renderer: amountRenderer,
 			summaryType: 'sum',
 			summaryRenderer: amountRenderer
+		},{
+			text: 'Sur status particuliers',
+			tdCls: 'op5-spec-rsiveo-taupe',
+			columns: [{
+				tdCls: 'op5-spec-rsiveo-taupe',
+				text: 'En promesse',
+				dataIndex: 'status_S2P',
+				width:120,
+				align: 'right',
+				renderer: amountRendererIf,
+				summaryType: 'sum',
+				summaryRenderer: amountRenderer
+			},{
+				tdCls: 'op5-spec-rsiveo-taupe',
+				text: 'Action externe',
+				dataIndex: 'status_S2L',
+				width:120,
+				align: 'right',
+				renderer: amountRendererIf,
+				summaryType: 'sum',
+				summaryRenderer: amountRenderer
+			},{
+				tdCls: 'op5-spec-rsiveo-taupe',
+				text: 'En transfert<br>Recouveo',
+				dataIndex: 'status_S2T',
+				width:120,
+				align: 'right',
+				renderer: amountRendererIf,
+				summaryType: 'sum',
+				summaryRenderer: amountRenderer
+			},{
+				tdCls: 'op5-spec-rsiveo-taupe',
+				text: 'Demande<br>cloture',
+				dataIndex: 'status_SX',
+				width:120,
+				align: 'right',
+				renderer: amountRendererIf,
+				summaryType: 'sum',
+				summaryRenderer: amountRenderer
+			}]
 		}] ;
 		
 		columns = {
