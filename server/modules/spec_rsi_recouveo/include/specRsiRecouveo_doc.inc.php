@@ -457,13 +457,18 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE ) {
 		$i--;
 
 		switch( $node_qbookTable->attributes->getNamedItem('src_value')->value ) {
+			/*
 			case 'records' :
 			$table_html = paracrm_queries_template_makeTable($table_columns,$table_data,$table_datafoot) ;
 			break ;
+			*/
 
 			case 'agree' :
 			$table_html = paracrm_queries_template_makeTable($agree_columns,$agree_data) ;
 			break ;
+			
+			default :
+			continue 2 ;
 		}
 
 		//echo $table_html ;
@@ -479,6 +484,66 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE ) {
 
 		$node_qbookTable->parentNode->replaceChild($node_table,$node_qbookTable) ;
 	}
+	
+	$elements = $doc->getElementsByTagName('qbook-tablerecords');
+	if( $elements->length > 0 && $table_data ) {
+		//echo "A" ;
+		$records_div = $elements->item(0);
+		$records_pagetemplate_binary = '';
+		foreach($records_div->childNodes as $node) {
+			$records_pagetemplate_binary .= $doc->saveHTML($node);
+		}
+		
+		/*
+		$new_node = $doc->createCDATASection('<div></div>') ;
+		$records_div->parentNode->replaceChild($new_node,$records_div) ;
+		$records_div = $new_node ;
+		*/
+		$records_divnew = $doc->createElement("div");
+		$records_div->parentNode->replaceChild($records_divnew,$records_div) ;
+		
+		//echo $records_pagetemplate_binary ;
+		$arr_tablesData = array_chunk($table_data , 40) ;
+		$arr_tablesData_cnt = count($arr_tablesData) ;
+		
+		foreach( $arr_tablesData as $idx=>$table_data ) {
+			$lastPage = ( $idx+1 == $arr_tablesData_cnt ) ;
+			
+			// build table tag inside document
+			$table_html = paracrm_queries_template_makeTable($table_columns,$table_data,($lastPage?$table_datafoot:null)) ;
+			$dom_table = new DOMDocument();
+			$dom_table->loadHTML( '<?xml encoding="UTF-8"><html>'.$table_html.'</html>' ) ;
+			$node_table = $dom_table->getElementsByTagName("table")->item(0);
+			$table_attr = $dom_table->createAttribute("class") ;
+			$table_attr->value = 'invoicewidth tabledonnees' ;
+			$node_table->appendChild($table_attr) ;
+
+			// build page
+			$dom_page = new DOMDocument();
+			@$dom_page->loadHTML('<?xml encoding="UTF-8"><html>'.$records_pagetemplate_binary.'</html>');
+			$node_qbookTable = $dom_page->getElementsByTagName('qbook-table')->item(0);
+			$node_table = $dom_page->importNode($node_table,true) ;
+			$node_qbookTable->parentNode->replaceChild($node_table,$node_qbookTable) ;
+			//paging
+			if( $dom_page->getElementsByTagName('qbook-tablerecords-paging') ) {
+				$paging_node = $dom_page->getElementsByTagName('qbook-tablerecords-paging')->item(0) ;
+				//var_dump(
+				
+				$currentPage = $idx+1 ;
+				$totalPage = $arr_tablesData_cnt ;
+				$text = '('.$currentPage.'/'.$totalPage.')' ;
+				
+				$new_node = $dom_page->createCDATASection($text) ;
+				$paging_node->parentNode->replaceChild($new_node,$paging_node) ;
+			}
+			
+			// insert page into main doc
+			$new_node = $doc->createCDATASection($dom_page->saveHTML()) ;
+			$records_divnew->appendChild($new_node) ;
+		}
+	}
+	
+	
 
 
 	$filename = preg_replace("/[^a-zA-Z0-9]/", "",'PRINT').'.pdf' ;
