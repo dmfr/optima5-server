@@ -1,7 +1,7 @@
 Ext.define('Optima5.Ajax.Connection',{
 	extend: 'Ext.data.Connection',
 	autoAbort : false,
-	timeout: 60000,
+	timeout: 120000,
 	
 	optUrl: '',
 	optParams: {},

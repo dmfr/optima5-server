@@ -2,6 +2,8 @@ Ext.define('Optima5.Ajax.Proxy',{
 	extend: 'Ext.data.proxy.Ajax',
 	requires: ['Optima5.Ajax.Connection'],
 	
+	timeout: 120000,
+	
 	optUrl: '',
 	optParams: {},
 	optConnection: null,
