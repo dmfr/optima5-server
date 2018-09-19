@@ -280,7 +280,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetAgenda',{
 					return ;
 				}
 				actionAgendaClass = actionRow.agenda_class ;
-				if( Ext.isEmpty(actionAgendaClass) ) {
+				if( Ext.isEmpty(actionAgendaClass) || actionAgendaClass!=fileRow.next_agenda_class ) {
 					return ;
 				}
 				
