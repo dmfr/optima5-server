@@ -128,6 +128,15 @@ Ext.define('RsiRecouveoCfgSocModel',{
 	]
 });
 
+Ext.define('RsiRecouveoConfigMetagenModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'meta_key',
+	fields: [
+		{name: 'meta_key', type:'string'},
+		{name: 'meta_value', type:'string'}
+	]
+});
+
 Ext.define('RsiRecouveoConfigEmailTplModel',{
 	extend: 'Ext.data.Model',
 	idProperty: 'email_adr',
@@ -360,6 +369,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 		this.cfgEmailStore = Ext.create('Ext.data.Store',{
 			model: 'RsiRecouveoConfigEmailTplModel',
 			data : ajaxData.data.cfg_email
+		}) ;
+		this.cfgMetagenStore = Ext.create('Ext.data.Store',{
+			model: 'RsiRecouveoConfigMetagenModel',
+			data : ajaxData.data.cfg_metagen
 		}) ;
 		this.cfgReportValueStore = Ext.create('Ext.data.Store',{
 			model: 'RsiRecouveoCfgReportValueModel',
@@ -669,6 +682,13 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 	
 	getReportValueAll: function() {
 		return Ext.pluck( this.cfgReportValueStore.getRange(), 'data' ) ;
+	},
+	
+	getMetagenValue: function(metagenKey) {
+		if( !this.cfgMetagenStore.getById(metagenKey) ) {
+			return ;
+		}
+		return this.cfgMetagenStore.getById(metagenKey).get('meta_value') ;
 	},
 	
 	

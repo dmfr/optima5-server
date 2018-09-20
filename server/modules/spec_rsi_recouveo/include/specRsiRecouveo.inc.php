@@ -310,6 +310,16 @@ function specRsiRecouveo_cfg_getConfig() {
 		) ;
 	}
 	
+	$TAB_metagen = array() ;
+	$query = "SELECT * FROM view_bible_META_entry WHERE 1 ORDER BY entry_key" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$TAB_metagen[] = array(
+			'meta_key' => $arr['field_META_KEY'],
+			'meta_value' => $arr['field_META_VALUE']
+		) ;
+	}
+	
 	$TAB_atr = $TAB_soc = array() ;
 	$query = "SELECT * FROM view_bible_LIB_ACCOUNT_tree ORDER BY treenode_key" ;
 	$result = $_opDB->query($query) ;
@@ -380,7 +390,8 @@ function specRsiRecouveo_cfg_getConfig() {
 		'cfg_soc' => $TAB_soc,
 		'cfg_user' => $TAB_user,
 		'cfg_email' => $TAB_email,
-		'cfg_reportval' => specRsiRecouveo_report_getValuesDesc()
+		'cfg_reportval' => specRsiRecouveo_report_getValuesDesc(),
+		'cfg_metagen' => $TAB_metagen
 	);
 	
 	

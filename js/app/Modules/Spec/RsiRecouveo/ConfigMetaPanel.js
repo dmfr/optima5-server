@@ -104,6 +104,18 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ConfigMetaPanel', {
 								{ boxLabel: 'Couleur', name: 'cl', inputValue: '2'}
 						]
 					}]
+				},{
+					xtype: 'fieldset',
+					title: 'Mode applicatif',
+					fieldDefaults: {
+						labelWidth: 135,
+						anchor: '100%'
+					},
+					items: [{
+						xtype: 'checkboxfield',
+						name: 'gen_uimode_saas',
+						boxLabel: 'Mode SaaS'
+					}]
 				}]
 			}],
 			buttons: [{
