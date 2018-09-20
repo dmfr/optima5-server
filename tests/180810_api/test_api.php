@@ -1,7 +1,7 @@
 <?php
-$_recouveo_baseurl = "http://rayane_test:tst@localhost/paracrm/server/API.php/record" ;
+$_recouveo_baseurl = "http://ttv%40veo:94B3A2C8C0A15ACD8063075B93C92B27@localhost/paracrm/server/API.php/////////record/pouet/" ;
 $url = $_recouveo_baseurl;
-$data = file_get_contents("./json_api_test_record.json") ;
+$data = '' ;
 // "Montant TTC": "34,06",
 $params = array('http' => array(
 	'method' => 'POST',
@@ -17,5 +17,5 @@ if ($response === false) {
 	echo 'pas ok response' ;
 }
 echo $response ;
-
+echo "\n\n\n" ;
 ?>

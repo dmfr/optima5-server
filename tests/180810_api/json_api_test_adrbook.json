@@ -1,59 +1,59 @@
 [
   {
-    "Numéro client":"1",
-    "Société": "Havas Media France",
-    "Code société": "HMF",
-    "Libellé": "Dipankar",
-    "Type d'adresse": "EMAIL",
-    "Adresse": "dipankar7@recouveo-si.com"
+    "NumCli":"1",
+    "Soc": "Havas Media France",
+    "CodeSoc": "HMF",
+    "Lib": "Dipankar",
+    "AdrType": "EMAIL",
+    "Adr": "dipankar7@recouveo-si.com"
   },
   {
-    "Numéro client":"2",
-    "Société": "Havas Media France",
-    "Code société": "HMF",
-    "Libellé": "Rayane",
+    "NumCli":"2",
+    "Soc": "Havas Media France",
+    "CodeSoc": "HMF",
+    "Lib": "Rayane",
     "Nom destinataire": "",
-    "Type d'adresse": "EMAIL",
-    "Adresse": "rayane12@recouveo-si.com"
+    "AdrType": "EMAIL",
+    "Adr": "rayane12@recouveo-si.com"
   },
   {
-    "Numéro client":"3",
-    "Société": "Havas Media France",
-    "Code société": "HMF",
-    "Libellé": "Damien",
-    "Type d'adresse": "EMAIL",
-    "Adresse": "damien@recouveo-si.com"
+    "NumCli":"3",
+    "Soc": "Havas Media France",
+    "CodeSoc": "HMF",
+    "Lib": "Damien",
+    "AdrType": "EMAIL",
+    "Adr": "damien@recouveo-si.com"
   },
   {
-    "Numéro client":"4",
-    "Société": "Havas Media France",
-    "Code société": "HMF",
-    "Libellé": "Dipankar",
-    "Type d'adresse": "POSTAL",
-    "Adresse": "6 rue de la maison rougeee, 72000111 Lognes"
+    "NumCli":"4",
+    "Soc": "Havas Media France",
+    "CodeSoc": "HMF",
+    "Lib": "Dipankar",
+    "AdrType": "POSTAL",
+    "Adr": "6 rue de la maison rougeee, 72000111 Lognes"
   },
   {
-    "Numéro client":"5",
-    "Société": "Havas Media France",
-    "Code société": "HMF",
-    "Libellé": "Rayane",
-    "Type d'adresse": "POSTAL",
-    "Adresse": "6 rue de la maison rouge, 77185 Lognes"
+    "NumCli":"5",
+    "Soc": "Havas Media France",
+    "CodeSoc": "HMF",
+    "Lib": "Rayane",
+    "AdrType": "POSTAL",
+    "Adr": "6 rue de la maison rouge, 77185 Lognes"
   },
   {
-    "Numéro client":"6",
-    "Société": "Havas Media France",
-    "Code société": "HMF",
-    "Libellé": "Damien",
-    "Type d'adresse": "POSTAL",
-    "Adresse": "6 rue de la maison rouge, 77185 Lognes"
+    "NumCli":"6",
+    "Soc": "Havas Media France",
+    "CodeSoc": "HMF",
+    "Lib": "Damien",
+    "AdrType": "POSTAL",
+    "Adr": "6 rue de la maison rouge, 77185 Lognes"
   },
   {
-    "Numéro client":"HMF-C41007693",
-    "Société": "Havas Media France",
-    "Code société": "HMF",
-    "Libellé": "William Favier",
-    "Type d'adresse": "EMAIL",
-    "Adresse": "william.favier3@accor.com"
+    "NumCli":"HMF-C41007693",
+    "Soc": "Havas Media France",
+    "CodeSoc": "HMF",
+    "Lib": "William Favier",
+    "AdrType": "EMAIL",
+    "Adr": "william.favier3@accor.com"
   }
 ]
