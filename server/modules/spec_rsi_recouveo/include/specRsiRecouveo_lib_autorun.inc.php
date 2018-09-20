@@ -16,6 +16,9 @@ function specRsiRecouveo_lib_autorun_open() {
 	
 	foreach( $arr_acc as $acc_id ) {
 		$ttmp = specRsiRecouveo_account_open(array('acc_id'=>$acc_id)) ;
+		if( !$ttmp['success'] ) {
+			continue ;
+		}
 		$account_record = $ttmp['data'] ;
 		$accountFileBlank_record = NULL ;
 		foreach( $account_record['files'] as $accountFile_record ) {
