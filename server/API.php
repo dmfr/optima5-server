@@ -8,78 +8,78 @@ include("$server_root/include/toolfunctions.inc.php");
 
 include("$server_root/modules/media/include/media.inc.php");
 
-include("$server_root/modules/spec_rsi_recouveo/backend_spec_rsi_recouveo.inc.php");
-
-//include("$server_root/login.inc.php") ;
-
 if( !isset($_SERVER['PHP_AUTH_USER']) ) {
 	header('WWW-Authenticate: Basic realm="Recouveo API"');
 	header('HTTP/1.0 401 Unauthorized');
 	exit;
 }
 
+include("$server_root/modules/spec_rsi_recouveo/backend_spec_rsi_recouveo.inc.php");
+
+// connexion anonyme à la base de données
 include( "$server_root/include/database/mysql_DB.inc.php" ) ;
 $_opDB = new mysql_DB( );
-$_opDB->connect_mysql( $mysql_host, 'op5_veo_prod', $mysql_user, $mysql_pass );
+$_opDB->connect_mysql( $mysql_host, '', $mysql_user, $mysql_pass );
 $_opDB->query("SET NAMES UTF8") ;
 
-$my_sdomain = 'caloon' ;
-$_opDB->select_db( 'op5_veo_prod'.'_'.$my_sdomain) ;
+// parse S%SD
+$ids = explode("@", $_SERVER['PHP_AUTH_USER']) ;
+$my_domainId = $ids[1] ;
+$my_sdomainId = $ids[0] ;
 
-$query = "SELECT COUNT(*) FROM view_file_Z_APIKEYS WHERE field_APIKEY_CODE = '{$_SERVER['PHP_AUTH_USER']}' AND field_APIKEY_HEX = '{$_SERVER['PHP_AUTH_PW']}'" ;
+// *** Check DATABASES to issue 404 if not found ***
+$obj_dmgr_base = new DatabaseMgr_Base() ;
+$obj_dmgr_sdomain = new DatabaseMgr_Sdomain( $my_domainId ) ;
+if( !$obj_dmgr_base->baseDb_exists($my_domainId) || !$obj_dmgr_sdomain->sdomainDb_exists($my_sdomainId) ) {
+	header("HTTP/1.0 404 Not Found");
+	die() ;
+}
+
+// Select DB
+$_opDB->select_db( $obj_dmgr_base->getBaseDb($my_domainId) ) ;
+$_opDB->select_db( $obj_dmgr_sdomain->getSdomainDb($my_sdomainId) ) ;
+
+// Check API Key
+$query = "SELECT field_APIKEY_CODE FROM view_file_Z_APIKEYS WHERE field_APIKEY_HEX = '{$_SERVER['PHP_AUTH_PW']}'" ;
 $result = $_opDB->query($query) ;
-$row = $_opDB->fetch_row($result) ;
-
-if ($row[0] == 0){
-
+if( $_opDB->num_rows($result) < 1 ) {
 	header('WWW-Authenticate: Basic realm="Recouveo API"');
 	header('HTTP/1.0 403 Forbidden');
-
 	exit;
 }
+$arr = $_opDB->fetch_row($result) ;
+$apikey_code = $arr[0] ;
 
-//$TAB = backend_specific( $_POST ) ;
-switch ($_SERVER['PATH_INFO']){
-	case '/account':
-		$validation_response = specRsiRecouveo_lib_edi_validate_json('account', file_get_contents("php://input")) ;
-		$array_response = json_decode($validation_response, true) ;
-		if($array_response["success"]){
-			$json_response = pecRsiRecouveo_lib_edi_post_account($array_response["data"]) ;
-		}
+$path_info = parse_url($_SERVER['PATH_INFO']) ;
+$ttmp = explode('/',$path_info['path']) ;
+if( count($ttmp) > 2 ) {
+	header("HTTP/1.0 404 Not Found");
+	die() ;
+}
+$api_method = $ttmp[1] ;
+switch( $api_method ) {
+	case 'test' :
+		die( json_encode( array('success'=>true) ) );
+	case 'account' :
+	case 'account_adrbookentry' :
+	case 'record' :
 		break ;
-	case '/account_adrbookentry':
-		$validation_response = specRsiRecouveo_lib_edi_validate_json('adrbook', file_get_contents("php://input")) ;
-		$array_response = json_decode($validation_response, true) ;
-		if($array_response["success"]){
-			$json_response = specRsiRecouveo_lib_edi_post_adrbook($array_response["data"]) ;
-			//echo "done" ;
-		}
-		break ;
-	case '/record':
-		$validation_response = specRsiRecouveo_lib_edi_validate_json('record', file_get_contents("php://input")) ;
-		$array_response = json_decode($validation_response, true) ;
-		if ($array_response["success"]){
-			$json_response = specRsiRecouveo_lib_edi_post_record($array_response["data"]) ;
-		}
-		break ;
-	default:
-		echo file_get_contents("php://input");
-		$json_response = json_encode(array("success" => false, "logs" => "Mauvais url")) ;
- 		break ;
+	default :
+		header("HTTP/1.0 404 Not Found");
+		die() ;
 }
 
-$response = json_decode($json_response, true) ;
+$raw_post = file_get_contents("php://input") ;
 
-if ($response["success"]){
-	// Execution du robot
-	//echo "ok" ;
-	specRsiRecouveo_lib_edi_insertLogs(json_encode(array("keyName" => $_SERVER['PHP_AUTH_USER'], "method" => "POST", "data" => $response))) ;
-	specRsiRecouveo_lib_autorun_open() ;
-	specRsiRecouveo_lib_autorun_manageDisabled() ;
-	specRsiRecouveo_lib_autorun_adrbook() ;
-	return json_encode(array("success" => true, "logs" => $response["logs"])) ;
-}
-else{
-	echo "pas ok" ;
-	return json_encode(array("success" => false, "logs" => $response["logs"])) ;
-}
+$json_return = specRsiRecouveo_lib_edi_post( $apikey_code, $api_method, $raw_post ) ;
+
+
+// Logging TODO: clean
+$file_path = '/var/lib/optima5.API/' ;
+$file_name = time().'_'.$my_domainId.'%'.$my_sdomainId.'_'.$api_method.'.json' ;
+@file_put_contents( $file_path.'/'.$file_name, $raw_post ) ;
+
+header('Content-type: application/json');
+die( json_encode($json_return) ) ;
+
+?>
