@@ -8,6 +8,26 @@ function specRsiRecouveo_lib_edi_post($apikey_code, $transaction, $data){ // PUB
 	// normaliser le data => json_array[json_rows]
 	$json_rows = json_decode($data,true) ;
 	
+	// HACK: meta
+	foreach( $json_rows as &$json_row ) {
+		$todel_tags = array() ;
+		foreach( $json_row as $mkey=>$mvalue ) {
+			$tag='Meta:' ;
+			if( strpos($mkey,$tag)===0 ) {
+				if( !isset($json_row['Meta']) ) {
+					$json_row['Meta'] = array() ;
+				}
+				$mkey_meta = substr($mkey,strlen($tag)) ;
+				$json_row['Meta'][$mkey_meta] = $mvalue ;
+				$todel_tags[] = $mkey ;
+			}
+		}
+		foreach( $todel_tags as $mkey ) {
+			unset($json_row[$mkey]) ;
+		}
+	}
+	unset($json_row) ;
+	
 	switch( $transaction ) {
 		case 'account' :
 			$ret = specRsiRecouveo_lib_edi_post_account( $json_rows ) ;
