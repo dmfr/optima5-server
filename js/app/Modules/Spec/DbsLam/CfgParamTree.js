@@ -139,6 +139,40 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CfgParamTree',{
 				}
 				break ;
 				
+				
+			case 'TPLTRANSFER' :
+			case 'TPLTRANSFERSTEP' :
+				data = Optima5.Modules.Spec.DbsLam.HelperCache.getTplTransferAll() ;
+				var doSteps = (this.cfgParam_id=='TPLTRANSFERSTEP') ;
+				Ext.Array.each( data, function(row) {
+					flowChildren = [] ;
+					Ext.Array.each( row.steps, function(rowstep) {
+						flowChildren.push({
+							nodeId: rowstep.transferstep_tpl,
+							nodeType: 'entry',
+							nodeKey: rowstep.transferstep_tpl,
+							nodeText: rowstep.transferstep_idx + ' : ' + rowstep.transferstep_txt,
+							leaf: true
+						});
+					}) ;
+					rootChildren.push({
+						nodeId: row.transfer_tpl,
+						nodeType: 'treenode',
+						nodeKey: row.transfer_tpl,
+						nodeText: row.transfer_tpl + ' : ' + row.transfer_tpltxt,
+						expanded: (doSteps ? true : false),
+						leaf: (doSteps ? false : true),
+						children: (doSteps ? flowChildren : null)
+					}) ;
+				}) ;
+				rootNode = {
+					root: true,
+					children: rootChildren,
+					nodeText: '<b>Transfer templates</b>',
+					expanded: true
+				}
+				break ;
+				
 			default :
 				rootNode = {
 					root: true,

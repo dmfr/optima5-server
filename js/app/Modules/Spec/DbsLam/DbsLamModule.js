@@ -1,3 +1,36 @@
+Ext.define('DbsLamCfgTplTransferStepModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'transferstep_tpl',
+	fields: [
+		{name: 'transferstep_tpl', type:'string'},
+		{name: 'transferstep_idx', type:'int'},
+		{name: 'transferstep_code', type: 'string'},
+		{name: 'transferstep_txt', type:'string'},
+		{name: 'spec_input', type:'boolean'},
+		{name: 'spec_cde_picking', type:'boolean'},
+		{name: 'spec_cde_packing', type:'boolean'},
+		{name: 'whse_src', type:'string'},
+		{name: 'whse_dst', type:'string'},
+		{name: 'forward_is_on', type:'boolean'},
+		{name: 'forward_to_idx', type:'int'}
+	]
+});
+Ext.define('DbsLamCfgTplTransferModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'transfer_tpl',
+	fields: [
+		{name: 'transfer_tpl', type:'string'},
+		{name: 'transfer_tpltxt', type:'string'},
+		{name: 'spec_cde', type:'boolean'}
+	],
+	hasMany: [{
+		model: 'DbsLamCfgTplTransferStepModel',
+		name: 'steps',
+		associationKey: 'steps'
+	}]
+});
+
+
 Ext.define('DbsLamCfgMvtStepModel',{
 	extend: 'Ext.data.Model',
 	idProperty: 'step_code',

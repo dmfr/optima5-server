@@ -59,7 +59,7 @@ Ext.define('DbsLamTransferTreeModel',{
 	}
 });
 
-Ext.define('OldDbsLamTransferStepModel',{
+Ext.define('DbsLamTransferStepModel',{
 	extend: 'Ext.data.Model',
 	idProperty: 'step_code',
 	fields: [
@@ -76,7 +76,7 @@ Ext.define('OldDbsLamTransferStepModel',{
 		{name: 'commit_date', type: 'string'}
 	]
 });
-Ext.define('OldDbsLamTransferLigModel',{
+Ext.define('DbsLamTransferLigsModel',{
 	extend: 'Ext.data.Model',
 	idProperty: 'transferlig_filerecord_id',
 	fields: [
@@ -119,81 +119,28 @@ Ext.define('OldDbsLamTransferLigModel',{
 		associationKey: 'steps'
 	}]
 });
-
-
-
-
-Ext.define('DbsLamTransferLigModel',{
+Ext.define('DbsLamTransferOneModel',{
 	extend: 'Ext.data.Model',
-	idProperty: 'transferlig_filerecord_id',
+	idProperty: 'transfer_filerecord_id',
 	fields: [
 		{name: 'transfer_filerecord_id', type:'int'},
-		{name: 'transferstep_filerecord_id', type:'int'},
-		{name: 'transferstep_idx', type:'int'},
-		
-		{name: 'transferlig_filerecord_id', type:'int'},
-		{name: 'status', type:'boolean'},
+		{name: 'transfer_txt', type:'string'},
+		{name: 'flow_code', type:'string'},
+		{name: 'status_is_on', type:'boolean'},
 		{name: 'status_is_ok', type:'boolean'},
-		{name: 'status_is_reject', type:'boolean'},
-		{name: 'step_code', type:'string'},
-		{name: 'hidden', type:'boolean'},
-		{name: 'tree_id', type:'string'},
-		{name: 'tree_adr', type:'string'},
-		{name: 'src_adr', type:'string'},
-		{name: 'next_adr', type:'string'},
-		{name: 'current_adr', type: 'string'},
-		{name: 'current_adr_tmp', type:'boolean'},
-		{name: 'current_adr_entryKey', type:'string'},
-		{name: 'current_adr_treenodeKey', type:'string'},
-		{name: 'container_ref', type:'string'},
-		{name: 'stk_prod', type:'string'},
-		{name: 'stk_batch', type:'string'},
-		{name: 'stk_datelc', type:'string'},
-		{name: 'stk_sn', type:'string'},
-		{name: 'mvt_qty', type:'number', allowNull:true},
-		{name: 'reject_arr', type:'auto'},
-		{name: 'flag_allowgroup', type:'boolean'},
-		
-		{name: 'need_txt', type: 'string'},
-		{name: 'need_prod', type: 'string'},
-		{name: 'need_qty_remain', type: 'number'},
-		{name: 'transfercdeneed_filerecord_id', type:'int'},
-		
-		{name: '_input_is_on', type:'boolean'}
-	]
-});
-
-Ext.define('DbsLamTransferStepModel',{
-	extend: 'Ext.data.Model',
-	idProperty: 'transferstep_filerecord_id',
-	fields: [
-		{name: 'transfer_filerecord_id', type:'int'},
-		
-		{name: 'transferstep_filerecord_id', type:'int'},
-		{name: 'transferstep_idx', type:'int'},
-		{name: 'transferstep_txt', type:'string'},
-		{name: 'transferstep_code', type:'string'},
-		{name: 'spec_input', type:'boolean'},
-		{name: 'spec_cde_picking', type:'boolean'},
-		{name: 'spec_cde_packing', type:'boolean'},
 		{name: 'whse_src', type:'string'},
-		{name: 'whse_dst', type:'string'},
-		{name: 'forward_is_on', type:'boolean'},
-		{name: 'forward_to_idx', type:'int'}
+		{name: 'whse_dest', type:'string'}
 	],
 	hasMany: [{
-		model: 'DbsLamTransferLigModel',
+		model: 'DbsLamTransferLigsModel',
 		name: 'ligs',
 		associationKey: 'ligs'
 	}]
-});
-
+}) ;
 Ext.define('DbsLamTransferCdeLinkModel',{
 	extend: 'Ext.data.Model',
 	idProperty: 'transfercdelink_filerecord_id',
 	fields: [
-		{name: 'transfer_filerecord_id', type:'int'},
-		
 		{name: 'transfercdelink_filerecord_id', type:'int'},
 		{name: 'cdelig_filerecord_id', type:'int'},
 		{name: 'cde_filerecord_id', type:'int'},
@@ -203,30 +150,7 @@ Ext.define('DbsLamTransferCdeLinkModel',{
 		{name: 'qty_comm', type: 'number'},
 		{name: 'qty_cde', type: 'number'}
 	]
-});
-
-Ext.define('DbsLamTransferOneModel',{
-	extend: 'Ext.data.Model',
-	idProperty: 'transfer_filerecord_id',
-	fields: [
-		{name: 'transfer_filerecord_id', type:'int'},
-		{name: 'transfer_txt', type:'string'},
-		{name: 'transfer_tpl', type:'string'},
-		{name: 'transfer_tpltxt', type:'string'},
-		{name: 'spec_cde', type:'boolean'},
-		{name: 'status_is_on', type:'boolean'},
-		{name: 'status_is_ok', type:'boolean'}
-	],
-	hasMany: [{
-		model: 'DbsLamTransferStepModel',
-		name: 'steps',
-		associationKey: 'steps'
-	},{
-		model: 'DbsLamTransferCdeLinkModel',
-		name: 'cde_links',
-		associationKey: 'cde_links'
-	}]
-});
+}) ;
 
 
 Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
@@ -249,21 +173,17 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		}) ;
 		
 		Ext.apply(this, {
-			layout: {
-				type: 'border',
-				regionWeights: {
-					west: 20,
-					north: 10,
-					center: 0,
-					south: -10,
-					east: -20
-				}
-			},
+			layout: 'border',
 			items: [{
-				region: 'west',
-				border: 1,
-				width: 240,
-				
+				flex: 2,
+				region: 'center',
+				itemId: 'pCenter',
+				border: false,
+				xtype: 'panel',
+				layout: {
+					type: 'hbox',
+					align: 'stretch'
+				},
 				tbar:[{
 					icon: 'images/op5img/ico_back_16.gif',
 					text: '<u>Back</u>',
@@ -271,78 +191,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 						this.doQuit() ;
 					},
 					scope: this
-				},'-',{
-					itemId: 'tbCreate',
-					icon: 'images/op5img/ico_new_16.gif',
-					text: '<b>New doc.</b>',
-					handler: function() {
-						this.openCreatePopup() ;
-					},
-					scope: this
-				}],
-				
-				xtype: 'treepanel',
-				itemId: 'pTransfers',
-				store: {
-					model: 'DbsLamTransferTreeModel',
-					root:{},
-					proxy: {
-						type: 'memory',
-						reader: {
-							type: 'json'
-						}
-					}
-				},
-				collapsible: false,
-				useArrows: false,
-				rootVisible: false,
-				multiSelect: false,
-				singleExpand: false,
-				columns: {
-					defaults: {
-						menuDisabled: false,
-						draggable: false,
-						sortable: false,
-						hideable: false,
-						resizable: true,
-						groupable: false,
-						lockable: false
-					},
-					items: [{
-						xtype:'treecolumn',
-						dataIndex: 'display_txt',
-						text: 'Document ID',
-						width: 180
-					},{
-						dataIndex: 'status_is_ok',
-						text: '<b>Status</b>',
-						width: 70,
-						renderer: function(v,metaData,record) {
-							if( record.get('status_is_ok') ) {
-								metadata.tdCls = 'op5-spec-dbslam-stock-ok'
-							} else if( record.get('status_is_on') ) {
-								return 'ACTIVE' ;
-							} else if( record.get('type') == 'transfer' ) {
-								return '-' ;
-							}
-						}
-					}]
-				},
-				listeners: {
-					itemcontextmenu: this.onTransfersContextMenu,
-					selectionchange: this.onTransfersSelection,
-					scope: this
-				}
-			},{
-				flex: 2,
-				region: 'center',
-				itemId: 'pCenter',
-				border: 1,
-				xtype: 'panel',
-				layout: {
-					type: 'fit'
-				},
-				tbar:[Ext.create('Optima5.Modules.Spec.DbsLam.CfgParamButton',{
+				},'-',Ext.create('Optima5.Modules.Spec.DbsLam.CfgParamButton',{
 					cfgParam_id: 'WHSE',
 					icon: 'images/op5img/ico_blocs_small.gif',
 					text: '<i>Origin</i>',
@@ -359,6 +208,14 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					itemId: 'btnWhseDest',
 					optimaModule: this.optimaModule
 				}),'-',{
+					itemId: 'tbCreate',
+					icon: 'images/op5img/ico_new_16.gif',
+					text: '<b>New doc.</b>',
+					handler: function() {
+						this.openCreatePopup() ;
+					},
+					scope: this
+				},'-',{
 					hidden:true,
 					itemId: 'tbAdd',
 					iconCls: 'op5-spec-dbslam-transfer-add',
@@ -498,12 +355,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 						}
 					}
 				}],
-				items: [{
-					xtype: 'component',
-					itemId: 'tpEmpty',
-					cls: 'ux-noframe-bg',
-					hidden: false,
-				}]
+				items: [{xtype:'component',cls: 'ux-noframe-bg', flex:1}]
 			},{
 				region: 'south',
 				flex: 1,
@@ -532,12 +384,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		this.callParent() ;
 		this.mon(this.optimaModule,'op5broadcast',this.onCrmeventBroadcast,this) ;
 		
-		// post Setups
-		this.onTransfersSelection() ;
-		this.setActiveTransfer(null) ;
-		
-		// Load Tree
-		this.doLoadTransfers() ;
+		this.doConfigure() ;
+		this.onTransferSelection() ;
 	},
 	updateToolbar: function() {
 		if( this.down('#pCenter').down('#pTree') ) {
@@ -617,13 +465,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			}
 		}
 	},
-	updateWestToolbar: function() {
-		console.log('updateWestToolbar') ;
-		var treepanel = this.down('#pTransfers'),
-			selectedNodes = treepanel.getView().getSelectionModel().getSelection(),
-			isDocSelected = (selectedNodes.length==1 && selectedNodes[0].get('type')=='transfer') ;
-		treepanel.down('toolbar').down('#tbCreate').setVisible( selectedNodes[0] && selectedNodes[0].get('type')=='_new' ) ;
-	},
 	updateTabs: function() {
 		var treepanel = this.down('#pCenter').down('#pTree'),
 			selectedNodes = treepanel.getView().getSelectionModel().getSelection(),
@@ -645,6 +486,693 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		if( tabActiveCmp && !tabActiveCmp.tab.isVisible() ) {
 			tabPanel.setActiveTab( flowRecord.is_cde ? this.down('#pCenter').down('#pNeedLigs') : this.down('#pCenter').down('#pLigs') ) ;
 		}
+	},
+	doConfigure: function() {
+		var pCenter = this.down('#pCenter') ;
+		
+		var pushModelfields = [], atrAdrColumns = [], atrStockColumns = [] ;
+		Ext.Array.each( Optima5.Modules.Spec.DbsLam.HelperCache.getAttributeAll(), function( attribute ) {
+			var fieldColumn = {
+				locked: true,
+				text: attribute.atr_txt,
+				dataIndex: attribute.mkey,
+				width: 75
+			} ;
+			if( attribute.ADR_fieldcode ) {
+				atrAdrColumns.push(fieldColumn) ;
+			}
+			if( attribute.STOCK_fieldcode ) {
+				atrStockColumns.push(fieldColumn) ;
+			}
+			
+			pushModelfields.push({
+				name: attribute.mkey,
+				type: 'string'
+			});
+		}) ;
+		console.dir(pushModelfields) ;
+		
+		Ext.ux.dams.ModelManager.unregister( this.tmpLigsModelName ) ;
+		Ext.define(this.tmpLigsModelName, {
+			extend: 'DbsLamTransferLigsModel',
+			fields: pushModelfields,
+			hasMany: [{
+				model: 'DbsLamTransferStepModel',
+				name: 'steps',
+				associationKey: 'steps'
+			}]
+		});
+		Ext.ux.dams.ModelManager.unregister( this.tmpNeedLigsModelName ) ;
+		Ext.define(this.tmpNeedLigsModelName, {
+			idProperty: 'id',
+			extend: 'DbsLamTransferLigsModel',
+			fields: pushModelfields,
+			hasMany: [{
+				model: 'DbsLamTransferStepModel',
+				name: 'steps',
+				associationKey: 'steps'
+			}]
+		});
+		
+		Ext.ux.dams.ModelManager.unregister( this.tmpAdrTreeModelName ) ;
+		Ext.define(this.tmpAdrTreeModelName, {
+			extend: 'DbsLamTransferLigsModel',
+			fields: pushModelfields,
+			idProperty: 'id'
+		});
+		
+		var cdesColumns = {
+			defaults: {
+				menuDisabled: false,
+				draggable: false,
+				sortable: true,
+				hideable: false,
+				resizable: true,
+				groupable: false,
+				lockable: false
+			},
+			items: [{
+				text: '',
+				width: 24,
+				renderer: function(v,metadata,record) {
+					if( record.get('status_is_reject') ) {
+						metadata.tdCls = 'op5-spec-dbslam-stock-notavail'
+					} else if( !record.get('status_is_ok') ) {
+						metadata.tdCls = 'op5-spec-dbslam-stock-wait'
+					} else {
+						metadata.tdCls = 'op5-spec-dbslam-stock-avail'
+					}
+				}
+			},{
+				dataIndex: 'cde_nr',
+				text: 'Order #',
+				width: 150,
+				filter: {
+					type: 'string'
+				}
+			},{
+				dataIndex: 'lig_id',
+				text: 'Lig #',
+				width: 60
+			},{
+				dataIndex: 'stk_prod',
+				text: 'P/N',
+				width: 200,
+				filter: {
+					type: 'string'
+				}
+			},{
+				dataIndex: 'stk_batch',
+				text: 'BatchCode',
+				width: 100
+			},{
+				dataIndex: 'qty_cde',
+				text: 'Qty order',
+				align: 'right',
+				width: 90
+			}]
+		};
+		var listColumns = {
+			defaults: {
+				menuDisabled: true,
+				draggable: false,
+				sortable: false,
+				hideable: false,
+				resizable: true,
+				groupable: false,
+				lockable: false
+			},
+			items: [{
+				dataIndex: 'status',
+				text: '',
+				width: 24,
+				renderer: function(v,metadata,record) {
+					if( record.get('status_is_reject') ) {
+						metadata.tdCls = 'op5-spec-dbslam-stock-notavail'
+					} else if( !record.get('status_is_ok') ) {
+						metadata.tdCls = 'op5-spec-dbslam-stock-wait'
+					} else {
+						metadata.tdCls = 'op5-spec-dbslam-stock-avail'
+					}
+				}
+			},{
+				text: '<b>Status</b>',
+				dataIndex: 'step_code',
+				width: 65,
+				renderer: function(v) {
+					return '<b>'+v+'</b>' ;
+				}
+			},{
+				text: '<b>Source Location</b>',
+				dataIndex: 'current_adr',
+				renderer: function(v) {
+					return '<b>'+v+'</b>' ;
+				},
+				editorTplNew: {
+					xtype: 'combobox',
+					allowBlank:false,
+					name: 'dest_adr',
+					fieldStyle: 'text-transform:uppercase',
+					forceSelection:false,
+					editable:true,
+					typeAhead:false,
+					selectOnFocus: true,
+					selectOnTab: false,
+					queryMode: 'remote',
+					displayField: 'entry_key',
+					valueField: 'entry_key',
+					queryParam: 'filter',
+					minChars: 2,
+					fieldStyle: 'text-transform:uppercase',
+					store: {
+						fields: ['entry_key'],
+						proxy: this.optimaModule.getConfiguredAjaxProxy({
+							extraParams : {
+								_action: 'data_getBibleGrid',
+								bible_code: 'ADR',
+								limit: 20
+							},
+							reader: {
+								type: 'json',
+								rootProperty: 'data'
+							}
+						}),
+						listeners: {
+							beforeload: function(store,options) {
+								var treepanel = this.down('#pCenter').down('#pTree'),
+									selectedNodes = treepanel.getView().getSelectionModel().getSelection(),
+									isDocSelected = (selectedNodes.length==1 && selectedNodes[0].get('type')=='transfer'),
+									whseSrc = selectedNodes[0].get('whse_src') ;
+								
+								var params = options.getParams() ;
+								Ext.apply(params,{
+									filter: Ext.JSON.encode([{property:'treenode_key',value:whseSrc}])
+								}) ;
+								options.setParams(params) ;
+							},
+							scope: this
+						}
+					}
+				}
+			},{
+				text: 'Stock Attributes',
+				columns: atrStockColumns
+			},{
+				text: '<b>SKU details</b>',
+				columns: [{
+					dataIndex: 'container_ref',
+					text: 'Container',
+					width: 100,
+					editorTplNew: {
+								xtype: 'combobox',
+								anchor: '100%',
+								forceSelection:true,
+								allowBlank:false,
+								editable:false,
+								queryMode: 'local',
+								displayField: 'container_type_txt',
+								valueField: 'container_type',
+								fieldStyle: 'text-transform:uppercase',
+								store: {
+									model: 'DbsLamCfgContainerTypeModel',
+									data: Ext.Array.merge([{
+										container_type:'',
+										container_type_txt: '- Aucun -'
+									}],Optima5.Modules.Spec.DbsLam.HelperCache.getContainerTypeAll()),
+									proxy: {
+										type: 'memory'
+									},
+									listeners: {
+										scope: this
+									}
+								},
+								listeners: {
+									scope: this
+								}
+					}
+				},{
+					dataIndex: 'stk_prod',
+					text: 'P/N',
+					width: 100,
+					editorTplNew: {
+								xtype: 'combobox',
+								forceSelection:true,
+								allowBlank:false,
+								editable:true,
+								typeAhead:false,
+								selectOnFocus: true,
+								selectOnTab: false,
+								queryMode: 'remote',
+								displayField: 'prod_id',
+								valueField: 'id',
+								queryParam: 'filter',
+								minChars: 2,
+								fieldStyle: 'text-transform:uppercase',
+								store: {
+									model: 'DbsLamProdComboboxModel',
+									proxy: this.optimaModule.getConfiguredAjaxProxy({
+										extraParams : {
+											_moduleId: 'spec_dbs_lam',
+											_action: 'prods_getGrid',
+											limit: 20
+										},
+										reader: {
+											type: 'json',
+											rootProperty: 'data'
+										}
+									}),
+									listeners: {
+										scope: this
+									}
+								},
+								listeners: {
+									scope: this
+								}
+					}
+				},{
+					dataIndex: 'stk_batch',
+					text: 'BatchCode',
+					width: 100
+				},{
+					dataIndex: 'mvt_qty',
+					text: 'Qty disp',
+					align: 'right',
+					width: 75,
+					editorTplNew: {
+								xtype: 'numberfield',
+								allowBlank: false,
+								minValue: 1
+					}
+				},{
+					dataIndex: 'stk_sn',
+					text: 'Serial',
+					width: 100
+				}]
+			},{
+				text: '<b>Dest Location</b>',
+				dataIndex: 'next_adr',
+				renderer: function(v,metaData,record) {
+					if( record.get('status_is_ok') ) {
+						return '<b>'+v+'</b>' ;
+					} else {
+						return '<i>'+v+'</i>' ;
+					}
+				},
+				editorTplAdr: {
+					xtype: 'textfield'
+				}
+			}]
+		};
+		var listNeedColumns = Ext.clone(listColumns) ;
+		Ext.Array.each(listNeedColumns.items, function(col) {
+			if( col.columns ) {
+				Ext.Array.each(col.columns, function(scol) {
+					switch(scol.dataIndex) {
+						case 'stk_prod' :
+							Ext.apply(scol,{
+								renderer: function(v,metaData,record) {
+									if( record.getDepth()==1 ) {
+										return ''+record.get('need_prod')+'' ;
+									}
+									return v ;
+								}
+							});
+							break ;
+						
+						case 'mvt_qty' :
+							Ext.apply(scol,{
+								renderer: function(v,metaData,record) {
+									if( record.getDepth()==1 ) {
+										if( record.get('need_qty_remain') == 0 ) {
+											metaData.tdCls = 'op5-spec-dbslam-stock-ok' ;
+											return '&#160;' ;
+										}
+										return '<b><font color="red">'+record.get('need_qty_remain')+'</font></b>' ;
+									}
+									return v ;
+								}
+							});
+							break ;
+					}
+				}) ;
+				return ;
+			}
+			switch( col.dataIndex ) {
+				case 'status' :
+					Ext.apply(col,{
+						renderer: function(v,metaData,record) {
+							if( record.getDepth()==1 ) {
+								return '' ;
+							}
+							//return v ;
+							if( record.get('status_is_reject') ) {
+								metaData.tdCls = 'op5-spec-dbslam-stock-notavail'
+							} else if( !record.get('status_is_ok') ) {
+								metaData.tdCls = 'op5-spec-dbslam-stock-wait'
+							} else {
+								metaData.tdCls = 'op5-spec-dbslam-stock-avail'
+							}
+						}
+					});
+					break ;
+					
+				case 'step_code' :
+					Ext.apply(col,{
+						width: 100,
+						xtype: 'treecolumn',
+						iconCls: 'no-icon',
+						renderer: function(v,metaData,record) {
+							if( record.getDepth()==1 ) {
+								metaData.tdCls+= ' '+'x-grid-cell-overflowvisible' ; // colspan=2
+								return '<b>'+record.get('need_txt')+'</b>' ;
+							}
+							return v ;
+						}
+					});
+					break ;
+			}
+		}) ;
+		var adrTreeColumns = {
+			defaults: {
+				menuDisabled: true,
+				draggable: false,
+				sortable: false,
+				hideable: false,
+				resizable: true,
+				groupable: false,
+				lockable: false
+			},
+			items: [{
+				xtype: 'treecolumn',
+				text: '<b>Location</b>',
+				dataIndex: 'tree_adr',
+				width: 200,
+				renderer: function(v,metaData,record) {
+					if( record.get('transferlig_filerecord_id') ) {
+						return ''+record.get('transferlig_filerecord_id')+'' ;
+					}
+					return '<b>'+v+'</b>' ;
+				}
+			},{
+				text: '<b>Status</b>',
+				dataIndex: 'step_code',
+				width: 65,
+				renderer: function(v) {
+					return '<b>'+v+'</b>' ;
+				}
+			},{
+				text: 'Stock Attributes',
+				columns: atrStockColumns
+			},{
+				text: '<b>SKU details</b>',
+				columns: [{
+					dataIndex: 'container_ref',
+					text: 'Container',
+					width: 100
+				},{
+					dataIndex: 'stk_prod',
+					text: 'Article',
+					width: 100
+				},{
+					dataIndex: 'stk_batch',
+					text: 'BatchCode',
+					width: 100
+				},{
+					dataIndex: 'mvt_qty',
+					text: 'Qty disp',
+					align: 'right',
+					width: 75
+				},{
+					dataIndex: 'stk_sn',
+					text: 'Serial',
+					width: 100
+				}]
+			}]
+		};
+		
+		pCenter.removeAll() ;
+		pCenter.add({
+			border: 1,
+			width: 240,
+			xtype: 'treepanel',
+			itemId: 'pTree',
+			store: {
+				model: 'DbsLamTransferTreeModel',
+				root:{},
+				proxy: {
+					type: 'memory',
+					reader: {
+						type: 'json'
+					}
+				}
+			},
+			collapsible: false,
+			useArrows: false,
+			rootVisible: false,
+			multiSelect: false,
+			singleExpand: false,
+			columns: {
+				defaults: {
+					menuDisabled: false,
+					draggable: false,
+					sortable: false,
+					hideable: false,
+					resizable: true,
+					groupable: false,
+					lockable: false
+				},
+				items: [{
+					xtype:'treecolumn',
+					dataIndex: 'display_txt',
+					text: 'Document ID',
+					width: 180
+				},{
+					dataIndex: 'status_is_ok',
+					text: '<b>Status</b>',
+					width: 70,
+					renderer: function(v,metaData,record) {
+						if( record.get('status_is_ok') ) {
+							metadata.tdCls = 'op5-spec-dbslam-stock-ok'
+						} else if( record.get('status_is_on') ) {
+							return 'ACTIVE' ;
+						} else if( record.get('type') == 'transfer' ) {
+							return '-' ;
+						}
+					}
+				}]
+			},
+			listeners: {
+				itemcontextmenu: this.onTreeContextMenu,
+				selectionchange: this.onTransferSelection,
+				scope: this
+			}
+		},{
+			xtype: 'component',
+			itemId: 'tpEmpty',
+			cls: 'ux-noframe-bg',
+			flex: 1,
+			hidden: false,
+		},{
+			xtype: 'tabpanel',
+			itemId: 'tpTabs',
+			flex:1,
+			hidden: true,
+			border: false,
+			activeTab: 1,
+			items: [{
+				title: 'Orders',
+				xtype:'grid',
+				itemId: 'pCdes',
+				store: {
+					model: 'DbsLamTransferCdeLinkModel',
+					data: [],
+					proxy: {
+						type: 'memory',
+						reader: {
+							type: 'json'
+						}
+					}
+				},
+				selModel: {
+					mode: 'MULTI'
+				},
+				columns: cdesColumns,
+				plugins: [{
+					ptype: 'bufferedrenderer',
+					pluginId: 'bufferedRenderer',
+					synchronousRender: true
+				},{
+					ptype: 'uxgridfilters'
+				}],
+				listeners: {
+					render: this.doConfigureOnCdesRender,
+					//itemclick: this.onGridItemClick,
+					itemcontextmenu: this.onCdesContextMenu,
+					scope: this
+				},
+				viewConfig: {
+					enableTextSelection: true,
+					preserveScrollOnRefresh: true,
+					getRowClass: function(record) {
+					},
+					listeners: {
+						beforerefresh: function(view) {
+							view.isRefreshing = true ;
+						},
+						refresh: function(view) {
+							view.isRefreshing = false ;
+						}
+					}
+				}
+			},{
+				title: 'List',
+				xtype:'gridpanel',
+				itemId: 'pLigs',
+				store: {
+					model: this.tmpLigsModelName,
+					data: [],
+					proxy: {
+						type: 'memory',
+						reader: {
+							type: 'json'
+						}
+					},
+					listeners: {
+						scope: this
+					}
+				},
+				selModel: {
+					mode: 'MULTI'
+				},
+				columns: listColumns,
+				plugins: [{
+					ptype: 'bufferedrenderer',
+					pluginId: 'bufferedRenderer',
+					synchronousRender: true
+				},{
+					ptype: 'rowediting',
+					pluginId: 'pEditor',
+					clicksToEdit: 1,
+					listeners: {
+						beforeedit: this.onListBeforeEdit,
+						validateedit: this.onListEdit,
+						canceledit: this.onListCancelEdit,
+						scope: this
+					}
+				}],
+				listeners: {
+					render: this.doConfigureOnListRender,
+					itemclick: this.onListItemClick,
+					itemcontextmenu: this.onListContextMenu,
+					scope: this
+				},
+				viewConfig: {
+					enableTextSelection: true,
+					preserveScrollOnRefresh: true,
+					getRowClass: function(record) {
+					},
+					listeners: {
+						beforerefresh: function(view) {
+							view.isRefreshing = true ;
+						},
+						refresh: function(view) {
+							view.isRefreshing = false ;
+						}
+					}
+				}
+			},{
+				title: 'Needs/Picking',
+				xtype:'treepanel',
+				itemId: 'pNeedLigs',
+				store: {
+					model: this.tmpNeedLigsModelName,
+					root: {root: true, expanded: true, children:[]},
+					proxy: {
+						type: 'memory',
+						reader: {
+							type: 'json'
+						}
+					},
+					listeners: {
+						scope: this
+					}
+				},
+				useArrows: true,
+				rootVisible: false,
+				multiSelect: false,
+				singleExpand: false,
+				columns: listNeedColumns,
+				plugins: [{
+					ptype: 'bufferedrenderer',
+					pluginId: 'bufferedRenderer',
+					synchronousRender: true
+				}],
+				listeners: {
+					beforedrop: this.doConfigureOnListNeedRender,
+					itemclick: this.onListNeedItemClick,
+					itemcontextmenu: this.onListNeedContextMenu,
+					scope: this
+				},
+				viewConfig: {
+					plugins: [{
+						ptype: 'treeviewdragdrop',
+						ddGroup: 'DbsLamStockDD',
+						dragText: 'Affectation stock',
+						appendOnly: true,
+						enableDrag: false,
+						enableDrop: true
+					}],
+					enableTextSelection: true,
+					preserveScrollOnRefresh: true,
+					getRowClass: function(record) {
+					},
+					listeners: {
+						beforedrop: this.doConfigureOnListNeedDrop,
+						scope: this,
+						beforerefresh: function(view) {
+							view.isRefreshing = true ;
+						},
+						refresh: function(view) {
+							view.isRefreshing = false ;
+						}
+					}
+				}
+			},{
+				title: 'Tree/Location',
+				xtype: 'treepanel',
+				itemId: 'pAdrTree',
+				store: {
+					model: this.tmpAdrTreeModelName,
+					root:{},
+					proxy: {
+						type: 'memory',
+						reader: {
+							type: 'json'
+						}
+					}
+				},
+				collapsible: false,
+				useArrows: false,
+				rootVisible: false,
+				multiSelect: false,
+				singleExpand: false,
+				columns: adrTreeColumns,
+				listeners: {
+					itemclick: this.onAdrTreeItemClick,
+					itemcontextmenu: this.onAdrTreeContextMenu,
+					scope: this
+				}
+			}],
+			listeners: {
+				tabchange: function() {
+					this.updateToolbar() ;
+				},
+				scope: this
+			}
+		}) ;
+		
+		// Build tree
+		this.doTreeLoad() ;
 	},
 	doConfigureOnListRender: function(grid) {
 		var me = this ;
@@ -745,7 +1273,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			this.on('activate',function(){this.onDataChange();}, this, {single:true}) ;
 		}
 	},
-	onTransfersContextMenu: function(view, record, item, index, event) {
+	onTreeContextMenu: function(view, record, item, index, event) {
 		var gridContextMenuItems = new Array() ;
 		
 		var selRecords = view.getSelectionModel().getSelection() ;
@@ -1016,26 +1544,19 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 	
 	
 	
-	onTransfersSelection: function(selModel, records) {
-		this.updateWestToolbar() ;
-		if( !records || records.length!=1 ) {
-			return ;
-		}
-		var record = records[0] ;
-		if( !(record.get('transfer_filerecord_id')>0) ) {
-			return ;
-		}
-		
-		this.setActiveTransfer( record.get('transfer_filerecord_id') ) ;
+	onTransferSelection: function() {
+		this.updateToolbar() ;
+		this.updateTabs() ;
+		this.doTransferLoad() ;
 	},
 	onTabChange: function() {
-		//this.updateToolbar() ;
+		this.updateToolbar() ;
 	},
 	
 	
 	
 	
-	doLoadTransfers: function() {
+	doTreeLoad: function() {
 		var ajaxParams = {
 			_moduleId: 'spec_dbs_lam',
 			_action: 'transfer_getTransfer'
@@ -1049,8 +1570,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					return ;
 				}
 				
-				var map_flowCode_rows = {} ;
-				var map_flowCode_txt = {} ;
+				var map_flowCode_rows = [] ;
 				Ext.Array.each( ajaxResponse.data, function(transferDoc) {
 					var row = {
 						leaf: true,
@@ -1061,11 +1581,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 						display_txt: transferDoc.transfer_txt
 					}) ;
 					
-					if( !map_flowCode_rows.hasOwnProperty(transferDoc.transfer_tpl) ) {
-						map_flowCode_rows[transferDoc.transfer_tpl] = [] ;
-						map_flowCode_txt[transferDoc.transfer_tpl] = transferDoc.transfer_tpltxt ;
+					if( !map_flowCode_rows.hasOwnProperty(transferDoc.flow_code) ) {
+						map_flowCode_rows[transferDoc.flow_code] = [] ;
 					}
-					map_flowCode_rows[transferDoc.transfer_tpl].push(row) ;
+					map_flowCode_rows[transferDoc.flow_code].push(row) ;
 				}) ;
 				
 				var rootChildren = [{
@@ -1075,17 +1594,17 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					display_txt: '<i>'+'Create new'+'</i>'
 				}] ;
 				Ext.Object.each( map_flowCode_rows, function(flowCode,rows) {
-					var transferTplTxt = map_flowCode_txt[flowCode] ;
+					var flowRecord = Optima5.Modules.Spec.DbsLam.HelperCache.getMvtflow(flowCode) ;
 					rootChildren.push({
 						iconCls:'task-folder',
 						expanded:true,
-						display_txt: '<b>'+transferTplTxt+'</b>',
+						display_txt: '<b>'+flowRecord.flow_txt+'</b>',
 						children: rows
 					}); 
 				}) ;
 				
 				
-				var treepanel = this.down('#pTransfers') ;
+				var treepanel = this.down('#pCenter').down('#pTree') ;
 				treepanel.getStore().setRootNode({
 					root: true,
 					expanded:true,
@@ -1096,88 +1615,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		}) ;
 	},
 	
-	setActiveTransfer: function(transferFilerecordId) {
-		var pTransfers = this.down('#pTransfers'),
-			pCenter = this.down('#pCenter') ;
-		if( !transferFilerecordId ) {
-			this._activeTransferRecord = null ;
-			
-			pTransfers.getSelectionModel().setLocked(false) ;
-			pTransfers.getSelectionModel().deselectAll() ;
-			
-			pCenter.removeAll() ;
-			pCenter.add({
-				xtype: 'component',
-				itemId: 'tpEmpty',
-				cls: 'ux-noframe-bg'
-			})
-			pCenter.down('toolbar').setVisible(false) ;
-			return ;
-		}
-		pTransfers.getSelectionModel().setLocked(true) ;
-		this.doTransferLoad( transferFilerecordId, true ) ;
-	},
-	
-	doTransferLoad: function( transferFilerecordId, doBuildTabs=false ) {
-		this.showLoadmask() ;
-		this.optimaModule.getConfiguredAjaxConnection().request({
-			params: {
-				_moduleId: 'spec_dbs_lam',
-				_action: 'transfer_getTransfer',
-				filter_transferFilerecordId: transferFilerecordId
-			},
-			success: function(response) {
-				var ajaxResponse = Ext.decode(response.responseText) ;
-				if( ajaxResponse.success == false ) {
-					return this.onTransferLoad(null);
-				}
-				if( ajaxResponse.data.length != 1 ) {
-					return this.onTransferLoad(null);
-				}
-				this.onTransferLoad(ajaxResponse.data[0]) ;
-			},
-			callback: function() {
-				this.hideLoadmask() ;
-			},
-			scope: this
-		}) ;
-		
-	},
-	onTransferLoad: function( transferRow, doBuildTabs=false ) {
-		if( !transferRow ) {
-			return this.setActiveTransfer(null);
-		}
-		
-		//build record
-		var transferRecord = Ext.ux.dams.ModelManager.create('DbsLamTransferOneModel',transferRow) ;
-		console.log('ok') ;
-		this._activeTransferRecord = transferRecord ;
-		
-		if( doBuildTabs ) {
-			this.buildTabs() ;
-		} else {
-			this.refreshTabs() ;
-		}
-	},
-	buildTabs: function() {
-		if( !this._activeTransferRecord ) {
-			return this.setActiveTransfer(null);
-		}
-		
-		var pCenter = this.down('#pCenter') ;
-		console.dir( this._activeTransferRecord ) ;
-	},
-	refreshTabs: function() {
-		if( !this._activeTransferRecord ) {
-			return this.setActiveTransfer(null);
-		}
-		
-		var pCenter = this.down('#pCenter') ;
-		
-	},
-	
-	
-	
 	getActiveTransferFilerecordId: function() {
 		var treepanel = this.down('#pCenter').down('#pTree'),
 			selectedNodes = treepanel.getView().getSelectionModel().getSelection(),
@@ -1187,7 +1624,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		}
 		return transferFilerecordId ;
 	},
-	OLDdoTransferLoad: function() {
+	doTransferLoad: function() {
 		// Cde load
 		// TransferLig load
 		
@@ -1462,6 +1899,13 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 	},
 	
 	openCreatePopup: function() {
+		var whseSrc = this.down('#btnWhseSrc').getValue(),
+			whseDest = this.down('#btnWhseDest').getValue() ;
+		if( Ext.isEmpty(whseSrc) || Ext.isEmpty(whseSrc) ) {
+			Ext.Msg.alert('Notice','Select source/destination warehouse') ;
+			return ;
+		}
+		
 		this.getEl().mask() ;
 		// Open panel
 		var createPanel = Ext.create('Optima5.Modules.Spec.DbsLam.TransferCreateForm',{
@@ -1478,10 +1922,14 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					p.ownerCt.destroy();
 				},
 				scope: this
-			}]
+			}],
+			values: {
+				whse_src: whseSrc,
+				whse_dest: whseDest
+			}
 		});
 		createPanel.on('saved', function(p) {
-			this.doLoadTransfers() ;
+			this.doTreeLoad() ;
 		},this,{single:true}) ;
 		createPanel.on('destroy',function(p) {
 			this.getEl().unmask() ;
@@ -1780,7 +2228,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				var jsonResponse = Ext.JSON.decode(response.responseText) ;
 				this.doTransferLoad();
 				
-				//this.doLoadTransfers() ;
+				//this.doTreeLoad() ;
 			},
 			callback: function() {
 				this.hideLoadmask() ;
@@ -1829,7 +2277,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				var jsonResponse = Ext.JSON.decode(response.responseText) ;
 				this.doTransferLoad();
 				
-				//this.doLoadTransfers() ;
+				//this.doTreeLoad() ;
 			},
 			callback: function() {
 				this.hideLoadmask() ;
@@ -1897,7 +2345,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					Ext.MessageBox.alert('Error','Document not empty !') ;
 					return ;
 				}
-				this.doLoadTransfers() ;
+				this.doTreeLoad() ;
 			},
 			scope: this
 		}) ;

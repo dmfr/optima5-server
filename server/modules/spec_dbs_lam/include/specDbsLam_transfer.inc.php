@@ -17,19 +17,66 @@ function specDbsLam_transfer_getTransfer($post_data) {
 		$TAB[$filerecord_id] = array(
 			'transfer_filerecord_id' => $arr['filerecord_id'],
 			'transfer_txt' => $arr['field_TRANSFER_TXT'],
-			'flow_code' => $arr['field_FLOW_CODE'],
-			'whse_src' => $arr['field_WHSE_SRC'],
-			'whse_dest' => $arr['field_WHSE_DEST'],
+			'transfer_tpl' => $arr['field_TRANSFER_TPL'],
+			'transfer_tpltxt' => $arr['field_TRANSFER_TPLTXT'],
 			'status_is_on' => $arr['field_STATUS_IS_ON'],
 			'status_is_ok' => $arr['field_STATUS_IS_OK'],
-			'ligs' => array()
+			'steps' => array(),
+			'cde_links' => array()
 		);
 		if( $post_data['filter_transferFilerecordId'] ) {
 			$ttmp = specDbsLam_transfer_getTransferLig($post_data) ;
 			$TAB[$filerecord_id]['ligs'] = $ttmp['data'] ;
+			
+			$ttmp = specDbsLam_transfer_getTransferCdeLink($post_data) ;
+			$TAB[$filerecord_id]['cde_links'] = $ttmp['data'] ;
 		}
 	}
+	if( !$post_data['filter_transferFilerecordId'] || (count($TAB)!=1) ) {
+		return array('success'=>true, 'data'=>array_values($TAB)) ;
+	}
 	
+	$TAB_steps = array() ;
+	$filerecord_parent_id = $post_data['filter_transferFilerecordId'] ;
+	$query = "SELECT * FROM view_file_TRANSFER_STEP
+			WHERE filerecord_parent_id='{$filerecord_parent_id}' ORDER BY field_TRANSFERSTEP_IDX" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$filerecord_id = $arr['filerecord_id'] ;
+		$TAB_steps[$filerecord_id] = array(
+			'transferstep_filerecord_id' => $arr['filerecord_id'],
+			'transferstep_idx' => $arr['field_TRANSFERSTEP_IDX'],
+			'transferstep_txt' => $arr['field_TRANSFERSTEP_TXT'],
+			'transferstep_code' => $arr['field_TRANSFERSTEP_CODE'],
+			'spec_input' => $arr['field_SPEC_INPUT'],
+			'spec_cde_picking' => $arr['field_SPEC_CDE_PICKING'],
+			'spec_cde_packing' => $arr['field_SPEC_CDE_PACKING'],
+			'whse_src' => $arr['field_WHSE_SRC'],
+			'whse_dst' => $arr['field_WHSE_DST'],
+			'forward_is_on' => $arr['field_FORWARD_IS_ON'],
+			'forward_to_idx' => $arr['field_FORWARD_TO_IDX'],
+			'ligs' => array()
+		);
+	}
+	$map_idx_ligs = array() ;
+	foreach( $TAB[$filerecord_parent_id]['ligs'] as $lig ) {
+		$idx = $lig['transferstep_idx'] ;
+		if( !isset($map_idx_ligs[$idx]) ) {
+			$map_idx_ligs[$idx] = array() ;
+		}
+		$map_idx_ligs[$idx][] = $lig ;
+	}
+	foreach( $TAB_steps as &$row_step ) {
+		$idx = $row_step['transferstep_idx'] ;
+		if( isset($map_idx_ligs[$idx]) ) {
+			$row_step['ligs'] = $map_idx_ligs[$idx] ;
+		}
+	}
+	unset($row_step) ;
+	
+	
+	$TAB[$filerecord_parent_id]['steps'] = array_values($TAB_steps) ;
+	unset($TAB[$filerecord_parent_id]['ligs']) ;
 	return array('success'=>true, 'data'=>array_values($TAB)) ;
 }
 function specDbsLam_transfer_getTransferLig($post_data) {
@@ -45,7 +92,7 @@ function specDbsLam_transfer_getTransferLig($post_data) {
 	// **************** SQL selection *****************
 	$ignores = array('tl.field_STEP_CODE') ;
 	$selects = array() ;
-	foreach( array('tl'=>'view_file_TRANSFER_LIG','mvt'=>'view_file_MVT','mvtstep'=>'view_file_MVT_STEP') as $prefix=>$table ) {
+	foreach( array('tl'=>'view_file_TRANSFER_LIG','mvt'=>'view_file_MVT') as $prefix=>$table ) {
 		$query = "SHOW COLUMNS FROM {$table}" ;
 		$result = $_opDB->query($query) ;
 		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
@@ -63,30 +110,19 @@ function specDbsLam_transfer_getTransferLig($post_data) {
 	}
 	$selects = implode(',',$selects) ;
 	
-	$query = "select a.*
-		, a.field_SRC_ADR_ID as src_adr_entry, sadr.treenode_key as src_adr_treenode
-		, a.field_DEST_ADR_ID as dest_adr_entry, dadr.treenode_key as dest_adr_treenode
-		FROM (
-		SELECT tl.filerecord_id as transferlig_filerecord_id, tl.filerecord_parent_id as transfer_filerecord_id
-		, t.field_FLOW_CODE as transfer_flow_code
+	$query = "SELECT tl.filerecord_id as transferlig_filerecord_id, tl.filerecord_parent_id as transfer_filerecord_id
 		, mvt.filerecord_id as mvt_filerecord_id
-		, mvtstep.filerecord_id as mvtstep_filerecord_id
 		, {$selects}
 		FROM view_file_TRANSFER_LIG tl
-		INNER JOIN view_file_TRANSFER t ON t.filerecord_id = tl.filerecord_parent_id
-		INNER JOIN view_file_MVT mvt ON mvt.filerecord_id = tl.field_FILE_MVT_ID
-		INNER JOIN view_file_MVT_STEP mvtstep ON mvtstep.filerecord_parent_id = mvt.filerecord_id
-		) a
-		LEFT OUTER JOIN view_bible_ADR_entry sadr ON sadr.entry_key = a.field_SRC_ADR_ID
-		LEFT OUTER JOIN view_bible_ADR_entry dadr ON dadr.entry_key = a.field_DEST_ADR_ID" ;
+		INNER JOIN view_file_MVT mvt ON mvt.filerecord_id = tl.field_FILE_MVT_ID" ;
 	$query.= " WHERE 1" ;
 	if( $post_data['filter_transferFilerecordId'] ) {
-		$query.= " AND transfer_filerecord_id='{$post_data['filter_transferFilerecordId']}'" ;
+		$query.= " AND tl.filerecord_parent_id='{$post_data['filter_transferFilerecordId']}'" ;
 	}
 	if( $post_data['filter_transferLigFilerecordId_arr'] ) {
-		$query.= " AND transferlig_filerecord_id IN ".$_opDB->makeSQLlist(json_decode($post_data['filter_transferLigFilerecordId_arr'],true)) ;
+		$query.= " AND tl.filerecord_id IN ".$_opDB->makeSQLlist(json_decode($post_data['filter_transferLigFilerecordId_arr'],true)) ;
 	}
-	$query.= " ORDER BY a.mvt_filerecord_id DESC, a.field_STEP_CODE ASC" ;
+	$query.= " ORDER BY mvt.filerecord_id DESC" ;
 	$result = $_opDB->query($query) ;
 	// *********************************************
 	
@@ -115,7 +151,6 @@ function specDbsLam_transfer_getTransferLig($post_data) {
 				'current_adr_entryKey' => NULL,
 				'current_adr_treenodeKey' => NULL,
 				'current_adr_tmp' => NULL,
-				'steps' => array(),
 				'status_is_reject' => $arr['field_STATUS_IS_REJECT'],
 				'reject_arr' => explode(',',$arr['field_REJECT_ARR']),
 				'reject_txt' => $arr['field_REJECT_TXT'],
@@ -131,57 +166,7 @@ function specDbsLam_transfer_getTransferLig($post_data) {
 			}
 			$TAB[$filerecord_id] = $row ;
 		}
-		
-		// inscription steps
-		$row_step = array(
-			'mvtstep_filerecord_id' => $arr['mvtstep_filerecord_id'],
-			'step_code' => $arr['field_STEP_CODE'],
-			'file_stock_id' => $arr['field_FILE_STOCK_ID'],
-			'src_adr_entry' =>  $arr['src_adr_entry'],
-			'src_adr_treenode' => $arr['src_adr_treenode'],
-			'src_adr_display' =>  $arr['field_SRC_ADR_DISPLAY'],
-			'dest_adr_entry' =>  $arr['dest_adr_entry'],
-			'dest_adr_treenode' => $arr['dest_adr_treenode'],
-			'dest_adr_display' =>  $arr['field_DEST_ADR_DISPLAY'],
-			'status_is_ok' =>  $arr['field_STATUS_IS_OK'],
-			'commit_date' => $arr['field_COMMIT_DATE'],
-			'commit_user' => $arr['field_COMMIT_USER'],
-			'commit_file_stock_id' => $arr['field_COMMIT_FILE_STOCK_ID'],
-			'commit_atrsave' => $arr['field_COMMIT_ATRSAVE']
-		);
-		$TAB[$filerecord_id]['steps'][] = $row_step ;
 	}
-	// post-process
-	foreach( $TAB as $transferlig_filerecord_id => &$row_transferlig ) {
-		$step_code = NULL ;
-		$is_first = TRUE ;
-		foreach( $row_transferlig['steps'] as $idx => $row_transferlig_step ) {
-			if( $is_first ) {
-				$row_transferlig['src_adr'] = $row_transferlig_step['src_adr_display'] ;
-				$is_first = FALSE ;
-			}
-			if( !$row_transferlig_step['status_is_ok'] ) {
-				$row_transferlig['step_code'] = $row_transferlig_step['step_code'] ;
-				$row_transferlig['current_adr'] = $row_transferlig_step['src_adr_display'] ;
-				$row_transferlig['current_adr_entryKey'] = $row_transferlig_step['src_adr_entry'] ;
-				$row_transferlig['current_adr_treenodeKey'] = $row_transferlig_step['src_adr_treenode'] ;
-				$row_transferlig['current_adr_tmp'] = ($row_transferlig_step['src_adr_display']!=$row_transferlig_step['src_adr_entry']) ; ;
-				if( $row_transferlig_step['dest_adr_display'] ) {
-					$row_transferlig['next_adr'] = $row_transferlig_step['dest_adr_display'] ;
-				}
-				break ;
-			}
-			if( $row_transferlig_step['status_is_ok'] && ($idx==count($row_transferlig['steps'])-1) ) {
-				$row_transferlig['next_adr'] = $row_transferlig_step['dest_adr_display'] ;
-				//$row_transferlig['current_adr'] = $row_transferlig_step['dest_adr_display'] ;
-				//$row_transferlig['current_adr_entryKey'] = $row_transferlig_step['dest_adr_entry'] ;
-				//$row_transferlig['current_adr_treenodeKey'] = $row_transferlig_step['dest_adr_treenode'] ;
-				$row_transferlig['status_is_ok'] = TRUE ;
-				$row_transferlig['src_adr'] = NULL ;
-			}
-		}
-	}
-	unset($row_transferlig) ;
 	
 	return array('success'=>true, 'data'=>array_values($TAB)) ;
 }
@@ -762,24 +747,37 @@ function specDbsLam_transfer_createDoc($post_data) {
 	global $_opDB ;
 	$form_data = json_decode($post_data['data'],true) ;
 	
-	if( $form_data['flow_code'] ) {
-		$ttmp = specDbsLam_cfg_getMvtflow() ;
-		$cfg_mvtflow = $ttmp['data'] ;
-		foreach( $cfg_mvtflow as $row_mvtflow ) {
-			if( $row_mvtflow['flow_code'] == $form_data['flow_code'] ) {
-				$row_mvtflowstep = reset($row_mvtflow['steps']) ;
-				$init_mvtflowstep = $row_mvtflowstep['step_code'] ;
+	$tpltransfer_row = NULL ;
+	if( $form_data['transfer_tpl'] ) {
+		$ttmp = specDbsLam_cfg_getTplTransfer() ;
+		$cfg_tpltransfer = $ttmp['data'] ;
+		
+		foreach( $cfg_tpltransfer as $row_tpltransfer ) {
+			if( $row_tpltransfer['transfer_tpl'] == $form_data['transfer_tpl'] ) {
+				$tpltransfer_row = $row_tpltransfer ;
 			}
 		}
 	}
+	if( !$tpltransfer_row ) {
+		return array('success'=>false) ;
+	}
 	
 	$arr_ins = array(
-		'field_WHSE_SRC' => $form_data['whse_src'],
-		'field_WHSE_DEST' => $form_data['whse_dest'],
-		'field_FLOW_CODE' => $form_data['flow_code'],
-		'field_TRANSFER_TXT' => $form_data['transfer_txt'] 
+		'field_TRANSFER_TXT' => $form_data['transfer_txt'] ,
 	);
-	paracrm_lib_data_insertRecord_file('TRANSFER',0,$arr_ins) ;
+	foreach( $tpltransfer_row as $mkey=>$mvalue ) {
+		$dbkey = 'field_'.strtoupper($mkey) ;
+		$arr_ins[$dbkey] = $mvalue ;
+	}
+	$transfer_filerecordId = paracrm_lib_data_insertRecord_file('TRANSFER',0,$arr_ins) ;
+	foreach( $tpltransfer_row['steps'] as $tpltransferstep_row ) {
+		$arr_ins = array() ;
+		foreach( $tpltransferstep_row as $mkey=>$mvalue ) {
+			$dbkey = 'field_'.strtoupper($mkey) ;
+			$arr_ins[$dbkey] = $mvalue ;
+		}
+		paracrm_lib_data_insertRecord_file('TRANSFER_STEP',$transfer_filerecordId,$arr_ins) ;
+	}
 	
 	return array('success'=>true, 'debug'=>$form_data) ;
 }
@@ -796,6 +794,11 @@ function specDbsLam_transfer_deleteDoc($post_data) {
 		$ttmp = specDbsLam_transfer_getTransferLig( array('filter_transferFilerecordId'=>$transfer_filerecordId) ) ;
 		$rows_transferLig = $ttmp['data'] ;
 		if( $rows_transferLig ) {
+			return array('success'=>false) ;
+		}
+		$ttmp = specDbsLam_transfer_getTransferCdeLink( array('filter_transferFilerecordId'=>$transfer_filerecordId) ) ;
+		$rows_transferCdeLink = $ttmp['data'] ;
+		if( $rows_transferCdeLink ) {
 			return array('success'=>false) ;
 		}
 		

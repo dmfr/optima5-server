@@ -31,24 +31,17 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferCreateForm',{
 					anchor: '100%'
 				},
 				items:[{
-					xtype:'hiddenfield',
-					name: 'whse_src'
-				},{
-					xtype:'hiddenfield',
-					name: 'whse_dest'
-				},{
 					xtype:'textfield',
-					format: 'Y-m-d',
 					name : 'transfer_txt',
 					fieldLabel: 'Doc. Title',
 					allowBlank: false
 				},Ext.create('Optima5.Modules.Spec.DbsLam.CfgParamField',{
 					optimaModule: this.optimaModule,
-					name : 'flow_code',
-					fieldLabel: 'Flow class',
-					cfgParam_id: 'MVTFLOW',
+					name : 'transfer_tpl',
+					fieldLabel: 'Transfer Template',
+					cfgParam_id: 'TPLTRANSFER',
 					allowBlank: false,
-					cfgParam_emptyDisplayText: 'Flow / Step'
+					cfgParam_emptyDisplayText: 'Transfer Template'
 				})]
 			}],
 			buttons: [{

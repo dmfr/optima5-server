@@ -62,6 +62,9 @@ function specDbsLam_cfg_getConfig() {
 	$ttmp = specDbsLam_cfg_getMvtflow() ;
 	$cfg_mvtflow = $ttmp['data'] ;
 	
+	$ttmp = specDbsLam_cfg_getTplTransfer() ;
+	$tpl_transfer = $ttmp['data'] ;
+	
 	
 	$cfg_attribute = array() ;
 	
@@ -166,7 +169,8 @@ function specDbsLam_cfg_getConfig() {
 		'cfg_soc' => $cfg_soc,
 		'cfg_container' => $cfg_container,
 		'cfg_attribute' => array_values($cfg_attribute),
-		'cfg_mvtflow' => $cfg_mvtflow
+		'cfg_mvtflow' => $cfg_mvtflow,
+		'tpl_transfer' => $tpl_transfer
 	) ;
 	$GLOBALS['cache_specDbsLam_cfg']['getConfig'] = $return_data ;
 	
@@ -238,6 +242,54 @@ function specDbsLam_cfg_getMvtflow() {
 		) ;
 		
 		$TAB[$flow_code]['checks'][] = $record ;
+	}
+	
+	return array('success'=>true, 'data'=>array_values($TAB)) ;
+}
+
+
+function specDbsLam_cfg_getTplTransfer() {
+	global $_opDB ;
+	
+	$TAB = array() ;
+	
+	$query = "SELECT * FROM view_bible_TPL_TRANSFER_tree WHERE treenode_parent_key IN ('','&') ORDER BY treenode_key" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$transfer_tpl = $arr['field_TRANSFER_TPL'] ;
+		$record = array(
+			'transfer_tpl' => $arr['field_TRANSFER_TPL'],
+			'transfer_tpltxt' => $arr['field_TRANSFER_TPLTXT'],
+			'spec_cde' => !!$arr['field_SPEC_CDE'],
+			'steps' => array()
+		) ;
+		
+		$TAB[$transfer_tpl] = $record ;
+	}
+	
+	$query = "SELECT * FROM view_bible_TPL_TRANSFER_entry ORDER BY treenode_key, entry_key" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$transfer_tpl = $arr['treenode_key'] ;
+		if( !$TAB[$transfer_tpl] ) {
+			continue ;
+		}
+		$transferstep_tpl = $arr['field_TRANSFERSTEP_TPL'] ;
+		$record = array(
+			'transferstep_tpl' => $arr['field_TRANSFERSTEP_TPL'],
+			'transferstep_idx' => $arr['field_TRANSFERSTEP_IDX'],
+			'transferstep_code' => $arr['field_TRANSFERSTEP_CODE'],
+			'transferstep_txt' => $arr['field_TRANSFERSTEP_TXT'],
+			'spec_input' => !!$arr['field_SPEC_INPUT'],
+			'spec_cde_picking' => !!$arr['field_SPEC_CDE_PICKING'],
+			'spec_cde_packing' => !!$arr['field_SPEC_CDE_PACKING'],
+			'whse_src' => $arr['field_WHSE_SRC'],
+			'whse_dst' => $arr['field_WHSE_DST'],
+			'forward_is_on' => $arr['field_FORWARD_IS_ON'],
+			'forward_to_idx' => $arr['field_FORWARD_TO_IDX']
+		) ;
+		
+		$TAB[$transfer_tpl]['steps'][] = $record ;
 	}
 	
 	return array('success'=>true, 'data'=>array_values($TAB)) ;
