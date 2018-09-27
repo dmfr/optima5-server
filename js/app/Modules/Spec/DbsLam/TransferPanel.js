@@ -232,7 +232,10 @@ Ext.define('DbsLamTransferOneModel',{
 Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 	extend:'Ext.panel.Panel',
 	
-	requires: ['Optima5.Modules.Spec.DbsLam.TransferCreateForm'],
+	requires: [
+		'Optima5.Modules.Spec.DbsLam.TransferCreateForm',
+		'Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel'
+	],
 	
 	initComponent: function() {
 		this.tmpLigsModelName = 'DbsLamTransferLigsModel-' + this.getId() ;
@@ -1134,7 +1137,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				if( ajaxResponse.data.length != 1 ) {
 					return this.onTransferLoad(null);
 				}
-				this.onTransferLoad(ajaxResponse.data[0]) ;
+				this.onTransferLoad(ajaxResponse.data[0],doBuildTabs) ;
 			},
 			callback: function() {
 				this.hideLoadmask() ;
@@ -1166,6 +1169,30 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		
 		var pCenter = this.down('#pCenter') ;
 		console.dir( this._activeTransferRecord ) ;
+		
+		var tabItems = [] ;
+		this._activeTransferRecord.steps().each( function(transferStepRecord) {
+			var className = 'Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel' ;
+			
+			var cmp = Ext.create(className,{
+				optimaModule: this.optimaModule,
+				
+				_activeTransferRecord: this._activeTransferRecord,
+				_actionTransferStepIdx: transferStepRecord.get('transferstep_idx')
+			});
+			tabItems.push(cmp) ;
+		},this) ;
+		
+		
+		pCenter.removeAll() ;
+		pCenter.add({
+			xtype: 'tabpanel',
+			items: tabItems
+		})
+		pCenter.down('toolbar').setVisible(true) ;
+		// select first tab ?
+		pCenter.down('tabpanel').setActiveTab(0) ;
+		
 	},
 	refreshTabs: function() {
 		if( !this._activeTransferRecord ) {
