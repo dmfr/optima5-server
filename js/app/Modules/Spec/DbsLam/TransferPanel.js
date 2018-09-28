@@ -656,31 +656,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			tabPanel.setActiveTab( flowRecord.is_cde ? this.down('#pCenter').down('#pNeedLigs') : this.down('#pCenter').down('#pLigs') ) ;
 		}
 	},
-	doConfigureOnListRender: function(grid) {
-		var me = this ;
-		
-		var gridPanelDropTargetEl =  grid.body.dom;
-
-		var gridPanelDropTarget = Ext.create('Ext.dd.DropTarget', gridPanelDropTargetEl, {
-			ddGroup: 'DbsLamStockDD',
-			notifyEnter: function(ddSource, e, data) {
-					//Add some flare to invite drop.
-					grid.body.stopAnimation();
-					grid.body.highlight();
-			},
-			notifyDrop: function(ddSource, e, data){
-					var srcStockFilerecordIds = [] ;
-					Ext.Array.each( ddSource.dragData.records, function(selectedRecord) {
-						if( selectedRecord.get('inv_id') ) {
-							srcStockFilerecordIds.push( selectedRecord.get('inv_id') ) ; 
-						}
-					});
-					if( srcStockFilerecordIds.length > 0 ) {
-						me.handleDropStock(srcStockFilerecordIds) ;
-					}
-			}
-		});
-	},
 	doConfigureOnCdesRender: function(grid) {
 		var me = this ;
 		
@@ -756,14 +731,18 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		}
 	},
 	onTransfersContextMenu: function(view, record, item, index, event) {
-		var gridContextMenuItems = new Array() ;
-		
-		var selRecords = view.getSelectionModel().getSelection() ;
-		if( selRecords.length != 1 || selRecords[0].get('type') != 'transfer' ) {
+		var selRecord = record;
+		if( !selRecord ) {
 			return ;
 		}
-		var selRecord = selRecords[0];
+		if( selRecord.get('type') != 'transfer' ) {
+			return ;
+		}
+		if( !this._activeTransferRecord || (selRecord.get('transfer_filerecord_id')!=this._activeTransferRecord.getId()) ) {
+			return ;
+		}
 		
+		var gridContextMenuItems = new Array() ;
 		gridContextMenuItems.push({
 			iconCls: 'icon-bible-delete',
 			text: 'Delete <b>'+selRecord.get('display_txt')+'</b> doc',
@@ -853,50 +832,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		}) ;
 		
 		gridContextMenu.showAt(event.getXY());
-	},
-	onListContextMenu: function(view, record, item, index, event) {
-		var gridContextMenuItems = new Array() ;
-		
-		var selRecords = view.getSelectionModel().getSelection() ;
-		
-		var entryKeys = [] ;
-		for( var recIdx=0 ; recIdx<selRecords.length ; recIdx++ ) {
-			entryKeys.push( selRecords[recIdx].get('transferlig_filerecord_id') ) ;
-		}
-		if( entryKeys.length==1 ) {
-			gridContextMenuItems.push({
-				iconCls: 'icon-bible-newfile',
-				text: 'Show log',
-				handler : function() {
-					this.setFormRecord(selRecords[0]) ;
-				},
-				scope : this
-			},'-') ;
-		}
-		gridContextMenuItems.push({
-			iconCls: 'icon-bible-delete',
-			text: 'Remove <b>'+selRecords.length+'</b> rows',
-			handler : function() {
-				this.handleRemoveLigs( entryKeys ) ;
-			},
-			scope : this
-		});
-		
-		var gridContextMenu = Ext.create('Ext.menu.Menu',{
-			items : gridContextMenuItems,
-			listeners: {
-				hide: function(menu) {
-					Ext.defer(function(){menu.destroy();},10) ;
-				}
-			}
-		}) ;
-		
-		gridContextMenu.showAt(event.getXY());
-	},
-	onListItemClick: function(view,record) {
-		/*
-		this.setFormRecord(record) ;
-		*/
 	},
 	onListNeedItemClick: function(view,record) {
 		/*
@@ -1128,7 +1063,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		this.doTransferLoad( transferFilerecordId, true ) ;
 	},
 	
-	doTransferLoad: function( transferFilerecordId, doBuildTabs=false ) {
+	doTransferLoad: function( transferFilerecordId=null, doBuildTabs=false ) {
+		if( !transferFilerecordId && this._activeTransferRecord ) {
+			return this.doTransferLoad(transferFilerecordId,false);
+		}
 		this.showLoadmask() ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
@@ -1216,63 +1154,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 	
 	
 	
-	getActiveTransferFilerecordId: function() {
-		var treepanel = this.down('#pCenter').down('#pTree'),
-			selectedNodes = treepanel.getView().getSelectionModel().getSelection(),
-			transferFilerecordId = null ;
-		if( selectedNodes.length == 1 && selectedNodes[0].get('type')=='transfer' ) {
-			transferFilerecordId = selectedNodes[0].get('transfer_filerecord_id') ;
-		}
-		return transferFilerecordId ;
-	},
-	OLDdoTransferLoad: function() {
-		// Cde load
-		// TransferLig load
-		
-		if( !this.getActiveTransferFilerecordId() ) {
-			this.down('#pCenter').down('#pCdes').getStore().removeAll() ;
-			this.down('#pCenter').down('#pLigs').getStore().removeAll() ;
-			this.down('#pCenter').down('#pAdrTree').setRootNode({root:true}) ;
-			return ;
-		}
-		
-		this.optimaModule.getConfiguredAjaxConnection().request({
-			params: {
-				_moduleId: 'spec_dbs_lam',
-				_action: 'transfer_getTransferLig',
-				filter_transferFilerecordId: this.getActiveTransferFilerecordId()
-			},
-			success: function(response) {
-				var ajaxResponse = Ext.decode(response.responseText) ;
-				if( ajaxResponse.success == false ) {
-					return ;
-				}
-				this.onLigsLoad(ajaxResponse.data) ;
-			},
-			scope: this
-		}) ;
-		
-		// load for pCdes
-		this.optimaModule.getConfiguredAjaxConnection().request({
-			params: {
-				_moduleId: 'spec_dbs_lam',
-				_action: 'transfer_getTransferCdeLink',
-				filter_transferFilerecordId: this.getActiveTransferFilerecordId()
-			},
-			success: function(response) {
-				var ajaxResponse = Ext.decode(response.responseText) ;
-				if( ajaxResponse.success == false ) {
-					return ;
-				}
-				this.onCdesLoad(ajaxResponse.data) ;
-			},
-			scope: this
-		}) ;
-	},
-	onLigsLoad: function(ajaxData) {
-		this.down('#pCenter').down('#pLigs').getStore().loadRawData( ajaxData ) ;
-		this.onLigsAfterLoad( this.down('#pCenter').down('#pLigs').getStore() ) ;
-	},
 	onCdesLoad: function(ajaxData) {
 		this.down('#pCenter').down('#pCdes').getStore().loadData( ajaxData ) ;
 	},
@@ -1935,6 +1816,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					Ext.MessageBox.alert('Error','Document not empty !') ;
 					return ;
 				}
+				this.setActiveTransfer(null) ;
 				this.doLoadTransfers() ;
 			},
 			scope: this
@@ -2095,164 +1977,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		}) ;
 	},
 	
-	onListBeforeEdit: function(editor, context) {
-		if( context.record.get('_input_is_on') ) {
-			return this.onListBeforeNewEdit(editor,context) ;
-		}
-		return this.onListBeforeAdrEdit(editor,context) ;
-	},
-	onListBeforeNewEdit: function( editor, context ) {
-		var pLigs = context.grid ;
-		Ext.Array.each( pLigs.getColumns(), function(col) {
-			if( col.editorTplNew ) {
-				col.setEditor(col.editorTplNew) ;
-			} else {
-				col.setEditor(null) ;
-			}
-		}) ;
-		
-		if( !context.record.get('_input_is_on') ) {
-			return false ;
-		}
-		
-	},
-	onListBeforeAdrEdit: function( editor, context ) {
-		var pLigs = context.grid ;
-		Ext.Array.each( pLigs.getColumns(), function(col) {
-			if( col.editorTplAdr ) {
-				col.setEditor(col.editorTplAdr) ;
-			} else {
-				col.setEditor(null) ;
-			}
-		}) ;
-		if( context.record.get('status_is_ok') ) {
-			return false ;
-		}
-	},
-	onListEdit: function( editor, context ) {
-		console.dir(arguments) ;
-		if( context.record.get('_input_is_on') ) {
-			return this.onListNewEdit(editor,context) ;
-		}
-		return this.onListAdrEdit(editor,context) ;
-	},
-	onListAdrEdit: function( editor, context ) {
-		if( !this.onListEditAdr(context.record,context.originalValues['next_adr'],context.newValues['next_adr']) ) {
-			context.cancel = true ;
-			return false ;
-		}
-		return true ;
-	},
-	onListNewEdit: function( editor, context ) {
-		var editorForm = editor.editor,
-			prodCombo = editorForm.getForm().findField('stk_prod'),
-			prodRecord = prodCombo.getSelection(),
-			values = context.newValues ;
-		
-		var skuData_obj = {
-			"soc_code":prodRecord.get('prod_soc'),
-			"stk_prod":prodRecord.get('id'),
-			"stk_batch":'',
-			"stk_sn":'',
-			"mvt_qty":values.mvt_qty,
-			"container_is_off":Ext.isEmpty(values.container_ref),
-			"container_type":values.container_ref,
-			"container_ref":""
-		} ;
-		this.onListEditNew(context.record,skuData_obj,values.current_adr) ;
-	},
-	onListCancelEdit: function(editor,context) {
-		var store = context.store,
-			record = context.record ;
-		if( record.get('_input_is_on') ) {
-			store.remove(record) ;
-		}
-	},
-	onListEditAdr: function( gridRecord, oldValue, newValue ) {
-		if( newValue.trim().toUpperCase() == oldValue.trim().toUpperCase() ) {
-			return false ;
-		}
-		var curStepCode = gridRecord.get('step_code'),
-			transferLig_filerecordId = gridRecord.get('transferlig_filerecord_id'),
-			empty = Ext.isEmpty(newValue.trim().toUpperCase()) ;
-		
-		this.showLoadmask() ;
-		var ajaxParams = {
-			_moduleId: 'spec_dbs_lam',
-			_action: (empty ? 'transfer_unallocAdrFinal':'transfer_allocAdrFinal'),
-			transfer_filerecordId: this.getActiveTransferFilerecordId(),
-			transferLigFilerecordId_arr: Ext.JSON.encode([transferLig_filerecordId]),
-			transferStepCode: curStepCode,
-			manAdr_isOn: true,
-			manAdr_adrId: newValue.trim().toUpperCase()
-		} ;
-		this.optimaModule.getConfiguredAjaxConnection().request({
-			params: ajaxParams,
-			success: function(response) {
-				var ajaxResponse = Ext.decode(response.responseText) ;
-				if( ajaxResponse.success == false ) {
-					Ext.MessageBox.alert('Error','Location not accepted') ;
-					gridRecord.set('next_adr',oldValue) ;
-					return ;
-				}
-				this.optimaModule.postCrmEvent('datachange') ;
-			},
-			callback: function() {
-				this.hideLoadmask() ;
-			},
-			scope: this
-		}) ;
-		return true ;
-	},
-	onListEditNew: function( gridRecordTmp, skuData_obj, location ) {
-		var treepanel = this.down('#pCenter').down('#pTree'),
-			selectedNodes = treepanel.getView().getSelectionModel().getSelection(),
-			isDocSelected = (selectedNodes.length==1 && selectedNodes[0].get('type')=='transfer') ;
-		if( !isDocSelected ) {
-			return ;
-		}
-		var docFlow = selectedNodes[0].get('flow_code'),
-			flowRecord = Optima5.Modules.Spec.DbsLam.HelperCache.getMvtflow(docFlow),
-			steps = [] ;
-		Ext.Array.each( flowRecord.steps, function(step) {
-			steps.push(step.step_code) ;
-		}) ;
-		var firstStep = steps[0] ;
-		
-		
-		var pLigs = this.down('#pCenter').down('#pLigs'),
-			pLigsStore = pLigs.getStore() ;
-		
-		this.showLoadmask() ;
-		var ajaxParams = {
-			_moduleId: 'spec_dbs_lam',
-			_action: 'transfer_commitAdrTmp',
-			transferFilerecordId: this.getActiveTransferFilerecordId(),
-			transferLigFilerecordId_arr: Ext.JSON.encode([]),
-			transferStepCode: firstStep,
-			transferTargetNode: '',
-			location: location,
-			socCode: skuData_obj['soc_code'],
-			skuData_obj: Ext.JSON.encode(skuData_obj)
-		} ;
-		this.optimaModule.getConfiguredAjaxConnection().request({
-			params: ajaxParams,
-			success: function(response) {
-				var ajaxResponse = Ext.decode(response.responseText) ;
-				if( ajaxResponse.success == false ) {
-					Ext.MessageBox.alert('Error','Item not accepted') ;
-					pLigsStore.remove(gridRecordTmp) ;
-					return ;
-				}
-				this.optimaModule.postCrmEvent('datachange') ;
-			},
-			callback: function() {
-				this.hideLoadmask() ;
-			},
-			scope: this
-		}) ;
-		return true ;
-	},
 	
 	
 	handleNewForeign: function() {
