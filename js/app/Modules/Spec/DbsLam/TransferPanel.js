@@ -350,6 +350,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					icon: 'images/op5img/ico_blocs_small.gif',
 					text: '<i>Origin</i>',
 					itemId: 'btnWhseSrc',
+					btnReadOnly: true,
 					optimaModule: this.optimaModule
 				}),{
 					icon: 'images/op5img/ico_arrow-double_16.png',
@@ -360,6 +361,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					icon: 'images/op5img/ico_blocs_small.gif',
 					text: '<i>Destination</i>',
 					itemId: 'btnWhseDest',
+					btnReadOnly: true,
 					optimaModule: this.optimaModule
 				}),'-',{
 					hidden:true,
@@ -476,30 +478,13 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 						scope: this
 					}]
 				},'->',{
-					hidden: true,
-					itemId: 'tbSearchLogo',
-					icon: 'images/op5img/ico_search_16.gif'
-				},{
-					hidden: true,
-					itemId: 'tbSearchText',
-					xtype: 'textfield',
-					triggers: {
-						clear: {
-							cls: Ext.baseCSSPrefix + 'form-clear-trigger',
-							handler: function(field) {
-								field.reset() ;
-							}
-						}
+					//itemId: 'tbClose',
+					icon: 'images/op5img/ico_cancel_small.gif',
+					text: 'Close',
+					handler: function() {
+						this.setActiveTransfer(null) ;
 					},
-					listeners: {
-						change: {
-							fn: function(field) {
-								this.filterGridTree(field.getValue()) ;
-							},
-							scope: this,
-							buffer: 500
-						}
-					}
+					scope: this
 				}],
 				items: [{
 					xtype: 'component',
@@ -621,11 +606,33 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		}
 	},
 	updateWestToolbar: function() {
-		console.log('updateWestToolbar') ;
+		//console.log('updateWestToolbar') ;
 		var treepanel = this.down('#pTransfers'),
 			selectedNodes = treepanel.getView().getSelectionModel().getSelection(),
 			isDocSelected = (selectedNodes.length==1 && selectedNodes[0].get('type')=='transfer') ;
 		treepanel.down('toolbar').down('#tbCreate').setVisible( selectedNodes[0] && selectedNodes[0].get('type')=='_new' ) ;
+	},
+	updateCenterToolbar: function() {
+		//console.log('updateCenterToolbar') ;
+		var pCenter = this.down('#pCenter'),
+			pCenterTb = pCenter.down('toolbar'),
+			tabPanel = pCenter.down('tabpanel') ;
+		if(!tabPanel) {
+			pCenterTb.setVisible(false) ;
+			return ;
+		}
+		var activeTab = tabPanel.getActiveTab();
+		if( !activeTab ) {
+			pCenterTb.setVisible(false) ;
+			return ;
+		}
+		var activeTransferStepRecord = activeTab.getActiveTransferStepRecord() ;
+		pCenterTb.down('#btnWhseSrc').setValue( activeTransferStepRecord.get('whse_src') ) ;
+		pCenterTb.down('#btnWhseDest').setValue( activeTransferStepRecord.get('whse_dst') ) ;
+		
+		
+		
+		//getActiveTransferStepRecord
 	},
 	updateTabs: function() {
 		var treepanel = this.down('#pCenter').down('#pTree'),
@@ -1032,7 +1039,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		this.setActiveTransfer( record.get('transfer_filerecord_id') ) ;
 	},
 	onTabChange: function() {
-		//this.updateToolbar() ;
+		this.updateCenterToolbar() ;
 	},
 	
 	
@@ -1153,7 +1160,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		
 		//build record
 		var transferRecord = Ext.ux.dams.ModelManager.create('DbsLamTransferOneModel',transferRow) ;
-		console.log('ok') ;
 		this._activeTransferRecord = transferRecord ;
 		
 		if( doBuildTabs ) {
@@ -1168,7 +1174,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		}
 		
 		var pCenter = this.down('#pCenter') ;
-		console.dir( this._activeTransferRecord ) ;
 		
 		var tabItems = [] ;
 		this._activeTransferRecord.steps().each( function(transferStepRecord) {
@@ -1180,6 +1185,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				_activeTransferRecord: this._activeTransferRecord,
 				_actionTransferStepIdx: transferStepRecord.get('transferstep_idx')
 			});
+			cmp.refreshData() ;
 			tabItems.push(cmp) ;
 		},this) ;
 		
@@ -1187,11 +1193,16 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		pCenter.removeAll() ;
 		pCenter.add({
 			xtype: 'tabpanel',
-			items: tabItems
+			items: tabItems,
+			listeners: {
+				tabchange: this.onTabChange,
+				scope: this
+			}
 		})
 		pCenter.down('toolbar').setVisible(true) ;
 		// select first tab ?
 		pCenter.down('tabpanel').setActiveTab(0) ;
+		this.updateCenterToolbar() ;
 		
 	},
 	refreshTabs: function() {

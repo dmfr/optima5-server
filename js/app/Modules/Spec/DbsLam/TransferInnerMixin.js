@@ -3,7 +3,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerMixin',{
 	_actionTransferStepIdx: null,
 	
 	initInner: function() {
-		console.log('coucou') ;
+		
 	},
 	getActiveTransferStepRecord: function() {
 		var ret = null ;
@@ -19,5 +19,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerMixin',{
 		if( transferStepRecord ) {
 			return transferStepRecord.get('transferstep_txt') ;
 		}
+	},
+	refreshData: function() {
+		console.log('default refresh') ;
 	}
 }) ;

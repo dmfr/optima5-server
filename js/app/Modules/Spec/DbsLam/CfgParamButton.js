@@ -33,6 +33,12 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CfgParamButton' ,{
 		
 		this.callParent() ;
 		this.onChange(true) ;
+		this.menu.on('beforeshow',this.onMenuBeforeShow,this) ;
+	},
+	onMenuBeforeShow: function() {
+		if( this.btnReadOnly ) {
+			return false ;
+		}
 	},
 	onChange: function(silent) {
 		var cfgParamTree = this.menu.down('treepanel'),

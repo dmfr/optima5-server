@@ -30,7 +30,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 				type: 'string'
 			});
 		}) ;
-		console.dir(pushModelfields) ;
 		
 		Ext.ux.dams.ModelManager.unregister( this.tmpLigsModelName ) ;
 		Ext.define(this.tmpLigsModelName, {
@@ -291,6 +290,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 		this.initInner() ;
 		this.setTitle( this.getInnerTitle() ) ;
 	},
-	
+	refreshData: function() {
+		var activeTransferStepRecord = this.getActiveTransferStepRecord() ;
+	},
 
 }) ;
