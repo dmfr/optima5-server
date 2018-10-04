@@ -443,7 +443,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 			});
 			Ext.apply(gridpanelCfg.viewConfig,{
 				plugins: {
-					ddGroup : 'DbsLamStockDD',
+					ddGroup : (Ext.isString(this._enableDD) ? this._enableDD : 'DbsLamStockDD'),
 					ptype: 'gridviewdragdrop'
 				}
 			});

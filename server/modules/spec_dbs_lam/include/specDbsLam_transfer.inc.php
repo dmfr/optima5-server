@@ -22,9 +22,10 @@ function specDbsLam_transfer_getTransfer($post_data) {
 			'status_is_on' => $arr['field_STATUS_IS_ON'],
 			'status_is_ok' => $arr['field_STATUS_IS_OK'],
 			'steps' => array(),
-			'cde_links' => array()
+			'cde_links' => array(),
+			'ligs' => array()
 		);
-		if( $post_data['filter_transferFilerecordId'] ) {
+		if( $post_data['filter_transferFilerecordId'] && !$post_data['filter_fast'] ) {
 			$ttmp = specDbsLam_transfer_getTransferLig($post_data) ;
 			$TAB[$filerecord_id]['ligs'] = $ttmp['data'] ;
 			
@@ -136,6 +137,7 @@ function specDbsLam_transfer_getTransferLig($post_data) {
 				'transfer_filerecord_id' => $arr['transfer_filerecord_id'],
 				'transfer_flow_code' => $arr['transfer_flow_code'],
 				'transferlig_filerecord_id' => $arr['transferlig_filerecord_id'],
+				'transferstep_idx' => $arr['field_TRANSFERSTEP_IDX'],
 				'transfercdeneed_filerecord_id' => $arr['field_FILE_TRSFRCDENEED_ID'],
 				'mvt_filerecord_id' => $arr['mvt_filerecord_id'],
 				'soc_code' => $arr['field_SOC_CODE'],
@@ -296,47 +298,42 @@ function specDbsLam_transfer_addStock( $post_data ) {
 	global $_opDB ;
 	
 	$transfer_filerecordId = $post_data['transfer_filerecordId'] ;
-	$stock_filerecordIds = json_decode($post_data['stock_filerecordIds'],true) ;
-	if( count($stock_filerecordIds)==1 && $post_data['mvt_qty'] ) {
-		$mvt_qty = (float)$post_data['mvt_qty'] ;
-	} else {
-		$mvt_qty = 0 ;
-	}
+	$transferStep_filerecordId = $post_data['transferStep_filerecordId'] ;
+	$stock_objs = json_decode($post_data['stock_objs'],true) ;
 	
-	//controle $transfer_filerecordId ?
-	$query = "SELECT * FROM view_file_TRANSFER WHERE filerecord_id='{$transfer_filerecordId}'" ;
-	$result = $_opDB->query($query) ;
-	$row_transfer = $_opDB->fetch_assoc($result) ;
-	if( $row_transfer['field_FLOW_CODE'] ) {
-		$ttmp = specDbsLam_cfg_getMvtflow() ;
-		$cfg_mvtflow = $ttmp['data'] ;
-		foreach( $cfg_mvtflow as $row_mvtflow ) {
-			if( $row_mvtflow['flow_code'] == $row_transfer['field_FLOW_CODE'] ) {
-				$row_mvtflowstep = reset($row_mvtflow['steps']) ;
-				$init_mvtflowstep = $row_mvtflowstep['step_code'] ;
-			}
+	$formard_post = array(
+		'filter_transferFilerecordId' => $transfer_filerecordId,
+		'filter_fast' => true
+	) ;
+	$json = specDbsLam_transfer_getTransfer($formard_post) ;
+	$transfer_row = reset($json['data']) ;
+	$transferstep_row = NULL ;
+	if( !$transfer_row ) {
+		return array('success'=>false) ;
+	}
+	foreach( $transfer_row['steps'] as $transferstep_iter ) {
+		if( $transferstep_iter['transferstep_filerecord_id'] == $transferStep_filerecordId ) {
+			$transferstep_row = $transferstep_iter ;
 		}
 	}
+	if( !$transferstep_row ) {
+		return array('success'=>false) ;
+	}
 	
-	$ids = array() ;
-	foreach( $stock_filerecordIds as $stock_filerecordId ) {
-		$mvt_filerecordId = specDbsLam_lib_procMvt_addStock( $stock_filerecordId, $mvt_qty, $init_mvtflowstep ) ;
-		if( !$mvt_filerecordId ){
-			continue ;
-		}
+	foreach( $stock_objs as $stock_obj ) {
+		$mvt_filerecordId = specDbsLam_lib_procMvt_addStock( $transferstep_row['whse_src'], $transferstep_row['whse_dst'], $stock_obj['stk_filerecord_id'], $stock_obj['mvt_qty'] ) ;
 		$query = "SELECT * FROM view_file_MVT WHERE filerecord_id='{$mvt_filerecordId}'" ;
 		$result = $_opDB->query($query) ;
 		$row_mvt = $_opDB->fetch_assoc($result) ;
 		
 		$transfer_row = array(
-			'field_STEP_CODE' => $init_mvtflowstep,
+			'field_TRANSFERSTEP_IDX' => $transferstep_row['transferstep_idx'],
 			'field_FILE_MVT_ID' => $mvt_filerecordId
 		);
 		$ids[] = paracrm_lib_data_insertRecord_file('TRANSFER_LIG',$transfer_filerecordId,$transfer_row) ;
 	}
 	
-	
-	return array('success'=>true, 'ids'=>$ids) ;
+	return array('success'=>true, 'ids'=>$ids, 'debug'=>$stock_objs) ;
 }
 function specDbsLam_transfer_removeStock( $post_data ) {
 	global $_opDB ;

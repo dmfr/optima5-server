@@ -1,6 +1,6 @@
 <?php
 
-function specDbsLam_lib_procMvt_addStock($stock_filerecordId, $qte_mvt=0, $step_code=NULL) {
+function specDbsLam_lib_procMvt_addStock($src_whse, $dst_whse, $stock_filerecordId, $qte_mvt=NULL) {
 	global $_opDB ;
 	
 	// Load cfg attributes
@@ -28,18 +28,21 @@ function specDbsLam_lib_procMvt_addStock($stock_filerecordId, $qte_mvt=0, $step_
 		if( $qte_stock <= 0 ) {
 			return 0 ;
 		}
-		$qte_mvt = $qte_stock ;
+		$qte_mvt_actual = $qte_stock ;
 	}
 	
 	$row_mvt = array(
 		'field_SOC_CODE' => $row_stock['field_SOC_CODE'],
-		'field_CONTAINER_TYPE' => $row_stock['field_CONTAINER_TYPE'],
-		'field_CONTAINER_REF' => $row_stock['field_CONTAINER_REF'],
+		'field_CONTAINER_TYPE' => ($qte_mvt ? NULL : $row_stock['field_CONTAINER_TYPE']),
+		'field_CONTAINER_REF' => ($qte_mvt ? NULL : $row_stock['field_CONTAINER_REF']),
 		'field_PROD_ID' => $row_stock['field_PROD_ID'],
-		'field_QTY_MVT' => $qte_mvt,
+		'field_QTY_MVT' => $qte_mvt_actual,
 		'field_SPEC_BATCH' => $row_stock['field_SPEC_BATCH'],
 		'field_SPEC_DATELC' => $row_stock['field_SPEC_DATELC'],
-		'field_SPEC_SN' => $row_stock['field_SPEC_SN']
+		'field_SPEC_SN' => $row_stock['field_SPEC_SN'],
+		'field_SRC_FILE_STOCK_ID' => $stock_filerecordId,
+		'field_SRC_WHSE' => $src_whse,
+		'field_SRC_ADR_ID' => $row_stock['field_ADR_ID']
 	);
 	foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
 		if( !$stockAttribute_obj['STOCK_fieldcode'] ) {
@@ -52,6 +55,7 @@ function specDbsLam_lib_procMvt_addStock($stock_filerecordId, $qte_mvt=0, $step_
 	}
 	$mvt_filerecordId = paracrm_lib_data_insertRecord_file('MVT',0,$row_mvt) ;
 	
+	/*
 	$row_mvt_step = array(
 		'field_STEP_CODE' => $step_code,
 		'field_FILE_STOCK_ID' => $stock_filerecordId,
@@ -60,13 +64,43 @@ function specDbsLam_lib_procMvt_addStock($stock_filerecordId, $qte_mvt=0, $step_
 		'field_DATE_START' => date('Y-m-d H:i:s')
 	) ;
 	paracrm_lib_data_insertRecord_file('MVT_STEP',$mvt_filerecordId,$row_mvt_step) ;
-	
+	*/
 	
 	$query = "UPDATE view_file_STOCK 
-			SET field_QTY_AVAIL = field_QTY_AVAIL - '{$qte_mvt}', field_QTY_OUT = field_QTY_OUT + '{$qte_mvt}'
+			SET field_QTY_AVAIL = field_QTY_AVAIL - '{$qte_mvt_actual}', field_QTY_OUT = field_QTY_OUT + '{$qte_mvt_actual}'
 			WHERE filerecord_id='{$stock_filerecordId}'" ;
 	$_opDB->query($query) ;
 	
+	$row_stockDst = array(
+		'field_WHSE' => $dst_whse,
+		'field_ADR_ID' => '',
+		'field_SOC_CODE' => $row_stock['field_SOC_CODE'],
+		'field_CONTAINER_TYPE' => ($qte_mvt ? NULL : $row_stock['field_CONTAINER_TYPE']),
+		'field_CONTAINER_REF' => ($qte_mvt ? NULL : $row_stock['field_CONTAINER_REF']),
+		'field_PROD_ID' => $row_stock['field_PROD_ID'],
+		'field_QTY_PREIN' => $qte_mvt_actual,
+		'field_SPEC_BATCH' => $row_stock['field_SPEC_BATCH'],
+		'field_SPEC_DATELC' => $row_stock['field_SPEC_DATELC'],
+		'field_SPEC_SN' => $row_stock['field_SPEC_SN'],
+	) ;
+	foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
+		if( !$stockAttribute_obj['STOCK_fieldcode'] ) {
+			continue ;
+		}
+		$mkey = $stockAttribute_obj['mkey'] ;
+		$STOCK_fieldcode = $stockAttribute_obj['STOCK_fieldcode'] ;
+		
+		$row_stockDst[$STOCK_fieldcode] = $row_stock[$STOCK_fieldcode] ;
+	}
+	$dstStock_filerecordId = paracrm_lib_data_insertRecord_file('STOCK',0,$row_stockDst) ;
+	
+	
+	$row_mvt = array(
+		'field_DST_FILE_STOCK_ID' => $dstStock_filerecordId,
+		'field_DST_WHSE' => $dst_whse,
+		'field_DST_ADR_ID' => ''
+	);
+	paracrm_lib_data_updateRecord_file('MVT',$row_mvt,$mvt_filerecordId) ;
 	
 	return $mvt_filerecordId ;
 }
@@ -74,35 +108,39 @@ function specDbsLam_lib_procMvt_delMvt($mvt_filerecordId) {
 	global $_opDB ;
 	
 	$query = "SELECT * FROM view_file_MVT WHERE
-		filerecord_id='{$mvt_filerecordId}'" ;
+		filerecord_id='{$mvt_filerecordId}' AND field_COMMIT_IS_OK='0'" ;
 	$result = $_opDB->query($query) ;
 	if( $_opDB->num_rows($result) != 1 ) {
 		return FALSE ;
 	}
 	$row_mvt = $_opDB->fetch_assoc($result) ;
 	$qte_mvt = (float)$row_mvt['field_QTY_MVT'] ;
-	
-	$query = "SELECT * FROM view_file_MVT_STEP WHERE
-		filerecord_parent_id='{$mvt_filerecordId}'" ;
-	$result = $_opDB->query($query) ;
-	if( $_opDB->num_rows($result) != 1 ) {
-		specDbsLam_lib_procMvt_delMvtUnalloc($mvt_filerecordId) ;
-		return FALSE ;
-	}
-	$row_mvt_step = $_opDB->fetch_assoc($result) ;
-	
-	$stock_filerecordId = $row_mvt_step['field_FILE_STOCK_ID'] ;
+	$stockSrc_filerecordId = $row_mvt['field_SRC_FILE_STOCK_ID'] ;
+	$stockDst_filerecordId = $row_mvt['field_DST_FILE_STOCK_ID'] ;
 
-	$query = "SELECT * FROM view_file_STOCK WHERE filerecord_id='{$stock_filerecordId}'" ;
+	$query = "SELECT * FROM view_file_STOCK WHERE filerecord_id='{$stockSrc_filerecordId}'" ;
 	$result = $_opDB->query($query) ;
 	if( $_opDB->num_rows($result) != 1 ) {
 		return FALSE ;
 	}
-	$row_stock = $_opDB->fetch_assoc($result) ;
+	$query = "SELECT * FROM view_file_STOCK WHERE filerecord_id='{$stockDst_filerecordId}'" ;
+	$result = $_opDB->query($query) ;
+	if( $_opDB->num_rows($result) != 1 ) {
+		return FALSE ;
+	}
 	
 	$query = "UPDATE view_file_STOCK 
 			SET field_QTY_AVAIL = field_QTY_AVAIL + '{$qte_mvt}', field_QTY_OUT = field_QTY_OUT - '{$qte_mvt}'
-			WHERE filerecord_id='{$stock_filerecordId}'" ;
+			WHERE filerecord_id='{$stockSrc_filerecordId}'" ;
+	$_opDB->query($query) ;
+	
+	$query = "UPDATE view_file_STOCK 
+			SET field_QTY_PREIN = field_QTY_PREIN - '{$qte_mvt}'
+			WHERE filerecord_id='{$stockDst_filerecordId}'" ;
+	$_opDB->query($query) ;
+	$query = "DELETE FROM view_file_STOCK
+			WHERE filerecord_id='{$stockDst_filerecordId}'
+			AND field_QTY_PREIN='0' AND field_QTY_OUT='0' AND field_QTY_AVAIL='0'" ;
 	$_opDB->query($query) ;
 	
 	paracrm_lib_data_deleteRecord_file( 'MVT' , $mvt_filerecordId ) ;

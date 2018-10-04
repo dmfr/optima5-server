@@ -630,7 +630,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		pCenterTb.down('#btnWhseSrc').setValue( activeTransferStepRecord.get('whse_src') ) ;
 		pCenterTb.down('#btnWhseDest').setValue( activeTransferStepRecord.get('whse_dst') ) ;
 		
-		
+		pCenterTb.down('#tbAdd').setVisible( true ) ;
 		
 		//getActiveTransferStepRecord
 	},
@@ -1065,6 +1065,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 	
 	doTransferLoad: function( transferFilerecordId=null, doBuildTabs=false ) {
 		if( !transferFilerecordId && this._activeTransferRecord ) {
+			transferFilerecordId = this._activeTransferRecord.get('transfer_filerecord_id') ;
 			return this.doTransferLoad(transferFilerecordId,false);
 		}
 		this.showLoadmask() ;
@@ -1121,7 +1122,13 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				optimaModule: this.optimaModule,
 				
 				_activeTransferRecord: this._activeTransferRecord,
-				_actionTransferStepIdx: transferStepRecord.get('transferstep_idx')
+				_actionTransferStepIdx: transferStepRecord.get('transferstep_idx'),
+										
+				listeners: {
+					op5lamstockadd: this.onLamStockAdd,
+					op5lamstockremove: this.onLamStockRemove,
+					scope: this
+				}
 			});
 			cmp.refreshData() ;
 			tabItems.push(cmp) ;
@@ -1148,8 +1155,61 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			return this.setActiveTransfer(null);
 		}
 		
-		var pCenter = this.down('#pCenter') ;
-		
+		var pCenter = this.down('#pCenter'),
+			pCenterTabs = pCenter.down('tabpanel') ;
+		if( !pCenterTabs ) {
+			return ;
+		}
+		pCenterTabs.items.each( function(p) {
+			console.dir(p) ;
+			p._activeTransferRecord = this._activeTransferRecord ;
+			p.refreshData() ;
+		},this) ;
+	},
+	
+	
+	onLamStockAdd: function( transferInnerPanel, stockAddObjs ) {
+		if( !this._activeTransferRecord || !transferInnerPanel || !transferInnerPanel.getActiveTransferStepRecord() ) {
+			return ;
+		}
+		var ajaxParams = {
+			_moduleId: 'spec_dbs_lam',
+			_action: 'transfer_addStock',
+			stock_objs: Ext.JSON.encode(stockAddObjs),
+			transfer_filerecordId: this._activeTransferRecord.get('transfer_filerecord_id'),
+			transferStep_filerecordId: transferInnerPanel.getActiveTransferStepRecord().get('transferstep_filerecord_id')
+		} ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams,
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+				this.optimaModule.postCrmEvent('datachange') ;
+			},
+			scope: this
+		}) ;
+	},
+	onLamStockRemove: function(transferInnerPanel, transferLigIds) {
+		var ajaxParams = {
+			_moduleId: 'spec_dbs_lam',
+			_action: 'transfer_removeStock',
+			transferLig_filerecordIds: Ext.JSON.encode(transferLigIds) 
+		} ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams,
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+				this.optimaModule.postCrmEvent('datachange') ;
+			},
+			scope: this
+		}) ;
 	},
 	
 	
@@ -1412,15 +1472,21 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 	},
 	
 	handleBuildPick: function() {
+		/*
 		var treepanel = this.down('#pCenter').down('#pTree'),
 			selectedNodes = treepanel.getView().getSelectionModel().getSelection(),
 			isDocSelected = (selectedNodes.length==1 && selectedNodes[0].get('type')=='transfer') ;
+		*/
+		
 		
 		var activeTabId = null,
-			activeTab = this.down('#pCenter').down('#tpTabs').getActiveTab() ;
-		if( isDocSelected && activeTab ) {
+			activeTab = this.down('#pCenter').down('tabpanel').getActiveTab() ;
+		if( this._activeTransferRecord && activeTab ) {
 			activeTabId = activeTab.itemId ;
 		}
+		console.dir(activeTab) ;
+		console.log(Ext.getClass(activeTab)) ;
+		return this.openStockPopup() ;
 		switch( activeTabId ) {
 			case 'pCdes' :
 				return this.openCdesPopup() ;
@@ -1432,48 +1498,14 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		}
 	},
 	openStockPopup: function() {
-		var treepanel = this.down('#pCenter').down('#pTree'),
-			selectedNodes = treepanel.getView().getSelectionModel().getSelection(),
-			isDocSelected = (selectedNodes.length==1 && selectedNodes[0].get('type')=='transfer'),
-			whseSrc = selectedNodes[0].get('whse_src') ;
-		
-		this.optimaModule.createWindow({
-			width:1100,
-			height:600,
-			resizable:true,
-			layout:'fit',
-			border: false,
-			items:[Ext.create('Optima5.Modules.Spec.DbsLam.StockPanel',{
-				optimaModule: this.optimaModule,
-				_popupMode: true,
-				_enableDD: true,
-				whseCode: whseSrc,
-				listeners: {
-					stkalloc: function(p, allocObj) {
-						var ajaxParams = {
-							_moduleId: 'spec_dbs_lam',
-							_action: 'transfer_addStock',
-							stock_filerecordIds: Ext.JSON.encode([allocObj['stk_filerecord_id']]),
-							mvt_qty: allocObj['mvt_qty'],
-							transfer_filerecordId: this.getActiveTransferFilerecordId()
-						} ;
-						this.optimaModule.getConfiguredAjaxConnection().request({
-							params: ajaxParams,
-							success: function(response) {
-								var ajaxResponse = Ext.decode(response.responseText) ;
-								if( ajaxResponse.success == false ) {
-									Ext.MessageBox.alert('Error','Error') ;
-									return ;
-								}
-								this.optimaModule.postCrmEvent('datachange') ;
-							},
-							scope: this
-						}) ;
-					},
-					scope: this
-				}
-			})]
-		}) ;
+		if( !this._activeTransferRecord ) {
+			return ;
+		}
+		var activePanel = this.down('#pCenter').down('tabpanel').getActiveTab() ;
+		if( !activePanel || !activePanel.getActiveTransferStepRecord() ) {
+			return ;
+		}
+		return activePanel.handleBuildPick() ;
 	},
 	openCdesPopup: function() {
 		var treepanel = this.down('#pCenter').down('#pTree'),
@@ -1757,51 +1789,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		}) ;
 	},
 	
-	handleDropStock: function(srcStockFilerecordIds) {
-		var pTreeSelection = this.down('#pCenter').down('#pTree').getSelectionModel().getSelection() ;
-		if( pTreeSelection.length != 1 || pTreeSelection[0].get('type') != 'transfer' ) {
-			Ext.MessageBox.alert('Error','No suitable doc selected.') ;
-			return ;
-		}
-		
-		var ajaxParams = {
-			_moduleId: 'spec_dbs_lam',
-			_action: 'transfer_addStock',
-			stock_filerecordIds: Ext.JSON.encode(srcStockFilerecordIds),
-			transfer_filerecordId: pTreeSelection[0].get('transfer_filerecord_id') 
-		} ;
-		this.optimaModule.getConfiguredAjaxConnection().request({
-			params: ajaxParams,
-			success: function(response) {
-				var ajaxResponse = Ext.decode(response.responseText) ;
-				if( ajaxResponse.success == false ) {
-					Ext.MessageBox.alert('Error','Error') ;
-					return ;
-				}
-				this.optimaModule.postCrmEvent('datachange') ;
-			},
-			scope: this
-		}) ;
-	},
-	handleRemoveLigs: function(transferLigIds) {
-		var ajaxParams = {
-			_moduleId: 'spec_dbs_lam',
-			_action: 'transfer_removeStock',
-			transferLig_filerecordIds: Ext.JSON.encode(transferLigIds) 
-		} ;
-		this.optimaModule.getConfiguredAjaxConnection().request({
-			params: ajaxParams,
-			success: function(response) {
-				var ajaxResponse = Ext.decode(response.responseText) ;
-				if( ajaxResponse.success == false ) {
-					Ext.MessageBox.alert('Error','Error') ;
-					return ;
-				}
-				this.optimaModule.postCrmEvent('datachange') ;
-			},
-			scope: this
-		}) ;
-	},
 	handleDeleteDoc: function(transferFilerecordId) {
 		var ajaxParams = {
 			_moduleId: 'spec_dbs_lam',

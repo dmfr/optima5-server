@@ -344,7 +344,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 				iconCls: 'icon-bible-newfile',
 				text: 'Show log',
 				handler : function() {
-					this.setFormRecord(selRecords[0]) ;
+					//this.setFormRecord(selRecords[0]) ;
 				},
 				scope : this
 			},'-') ;
@@ -353,7 +353,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 			iconCls: 'icon-bible-delete',
 			text: 'Remove <b>'+selRecords.length+'</b> rows',
 			handler : function() {
-				this.handleRemoveLigs( entryKeys ) ;
+				this.fireEvent('op5lamstockremove',this,entryKeys) ;
 			},
 			scope : this
 		});
@@ -531,6 +531,92 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 		}) ;
 		return true ;
 	},
+	
+	
+	// **** Actions ******
+	handleBuildPick: function() {
+		if( !this._activeTransferRecord ) {
+			return ;
+		}
+		if( !this.getActiveTransferStepRecord() ) {
+			return ;
+		}
+		var whseSrc = this.getActiveTransferStepRecord().get('whse_src') ;
+		console.log(whseSrc) ;
+		
+		var ddGroup = 'DbsLamStockDD-'+this.getId() ;
+		
+		this.createDD(ddGroup) ;
+		this.optimaModule.createWindow({
+			width:1100,
+			height:600,
+			resizable:true,
+			layout:'fit',
+			border: false,
+			items:[Ext.create('Optima5.Modules.Spec.DbsLam.StockPanel',{
+				optimaModule: this.optimaModule,
+				_popupMode: true,
+				_enableDD: ddGroup,
+				whseCode: whseSrc,
+				listeners: {
+					stkalloc: function(p, allocObj) {
+						var stockaddObj = {
+							stk_filerecord_id: allocObj['stk_filerecord_id'],
+							mvt_qty: allocObj['mvt_qty']
+						};
+						this.fireEvent('op5lamstockadd',this,[stockaddObj]) ;
+					},
+					destroy: function() {
+						this.destroyDD() ;
+					},
+					scope: this
+				}
+			})]
+		}) ;
+	},
+	createDD: function(ddGroup) {
+		var me = this,
+			grid = this ;
+		
+		var gridPanelDropTargetEl =  grid.body.dom;
+
+		this.gridPanelDropTarget = Ext.create('Ext.dd.DropTarget', gridPanelDropTargetEl, {
+			ddGroup: ddGroup,
+			notifyEnter: function(ddSource, e, data) {
+					//Add some flare to invite drop.
+					grid.body.stopAnimation();
+					grid.body.highlight();
+			},
+			notifyDrop: function(ddSource, e, data){
+					var srcStockFilerecordIds = [] ;
+					Ext.Array.each( ddSource.dragData.records, function(selectedRecord) {
+						if( selectedRecord.get('inv_id') ) {
+							srcStockFilerecordIds.push( selectedRecord.get('inv_id') ) ; 
+						}
+					});
+					if( srcStockFilerecordIds.length > 0 ) {
+						me.handleDropStock(srcStockFilerecordIds) ;
+					}
+			}
+		});
+	},
+	destroyDD: function() {
+		if( this.gridPanelDropTarget ) {
+			this.gridPanelDropTarget.destroy() ;
+			this.gridPanelDropTarget = null ;
+		}
+	},
+	handleDropStock: function(srcStockFilerecordIds) {
+		var stockaddObjs = [] ;
+		Ext.Array.each(srcStockFilerecordIds, function(srcStockFilerecordId) {
+			stockaddObjs.push({
+				stk_filerecord_id: srcStockFilerecordId,
+				mvt_qty: null
+			});
+		}) ;
+		this.fireEvent('op5lamstockadd',this,stockaddObjs) ;
+	}
+	
 	
 
 }) ;
