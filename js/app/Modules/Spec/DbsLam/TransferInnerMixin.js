@@ -5,6 +5,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerMixin',{
 	initInner: function() {
 		
 	},
+	getActiveTransferRecord: function() {
+		return this._activeTransferRecord ;
+	},
 	getActiveTransferStepRecord: function() {
 		var ret = null ;
 		this._activeTransferRecord.steps().each( function(transferStepRecord) {

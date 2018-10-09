@@ -265,7 +265,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 					}
 				}],
 				listeners: {
-					render: this.initOnRender,
 					itemclick: this.onListItemClick,
 					itemcontextmenu: this.onListContextMenu,
 					scope: this
@@ -290,36 +289,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 		this.initInner() ;
 		this.setTitle( this.getInnerTitle() ) ;
 	},
-	initOnRender: function(grid) {
-		var me = this ;
-		
-		var gridPanelDropTargetEl =  grid.body.dom;
-
-		var gridPanelDropTarget = Ext.create('Ext.dd.DropTarget', gridPanelDropTargetEl, {
-			ddGroup: 'DbsLamStockDD',
-			notifyEnter: function(ddSource, e, data) {
-					//Add some flare to invite drop.
-					grid.body.stopAnimation();
-					grid.body.highlight();
-			},
-			notifyDrop: function(ddSource, e, data){
-					var srcStockFilerecordIds = [] ;
-					Ext.Array.each( ddSource.dragData.records, function(selectedRecord) {
-						if( selectedRecord.get('inv_id') ) {
-							srcStockFilerecordIds.push( selectedRecord.get('inv_id') ) ; 
-						}
-					});
-					if( srcStockFilerecordIds.length > 0 ) {
-						me.handleDropStock(srcStockFilerecordIds) ;
-					}
-			}
-		});
-	},
 	
 	refreshData: function() {
 		var activeTransferStepRecord = this.getActiveTransferStepRecord() ;
 		var ligsData = Ext.clone(activeTransferStepRecord.getData(true)['ligs']) ;
-		console.dir(ligsData) ;
 		this.getStore().loadRawData( ligsData ) ;
 	},
 	
@@ -340,6 +313,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 			entryKeys.push( selRecords[recIdx].get('transferlig_filerecord_id') ) ;
 		}
 		if( entryKeys.length==1 ) {
+			/*
 			gridContextMenuItems.push({
 				iconCls: 'icon-bible-newfile',
 				text: 'Show log',
@@ -348,6 +322,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 				},
 				scope : this
 			},'-') ;
+			*/
 		}
 		gridContextMenuItems.push({
 			iconCls: 'icon-bible-delete',
@@ -408,7 +383,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 		}
 	},
 	onEditorEdit: function( editor, context ) {
-		console.dir(arguments) ;
 		if( context.record.get('_input_is_on') ) {
 			return this.onEditorNewEdit(editor,context) ;
 		}
@@ -542,7 +516,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 			return ;
 		}
 		var whseSrc = this.getActiveTransferStepRecord().get('whse_src') ;
-		console.log(whseSrc) ;
 		
 		var ddGroup = 'DbsLamStockDD-'+this.getId() ;
 		

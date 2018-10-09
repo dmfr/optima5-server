@@ -403,7 +403,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CdePanel',{
 			});
 			Ext.apply(gridCfg.viewConfig,{
 				plugins: {
-					ddGroup : 'DbsLamCdesDD',
+					ddGroup : (Ext.isString(this._enableDD) ? this._enableDD : 'DbsLamCdesDD'),
 					ptype: 'gridviewdragdrop',
 					enableDrag: true,
 					enableDrop: false

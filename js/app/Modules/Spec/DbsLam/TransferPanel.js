@@ -59,67 +59,6 @@ Ext.define('DbsLamTransferTreeModel',{
 	}
 });
 
-Ext.define('OldDbsLamTransferStepModel',{
-	extend: 'Ext.data.Model',
-	idProperty: 'step_code',
-	fields: [
-		{name: 'step_code', type:'string'},
-		{name: 'status_is_ok', type: 'boolean'},
-		{name: 'status_is_previous', type: 'boolean'},
-		{name: 'src_adr_entry', type:'string', useNull:true},
-		{name: 'src_adr_treenode', type:'string', useNull:true},
-		{name: 'src_adr_display', type:'string'},
-		{name: 'dest_adr_entry', type:'string', useNull:true},
-		{name: 'dest_adr_treenode', type:'string', useNull:true},
-		{name: 'dest_adr_display', type:'string'},
-		{name: 'commit_user', type: 'string'},
-		{name: 'commit_date', type: 'string'}
-	]
-});
-Ext.define('OldDbsLamTransferLigModel',{
-	extend: 'Ext.data.Model',
-	idProperty: 'transferlig_filerecord_id',
-	fields: [
-		{name: 'transfer_filerecord_id', type:'int'},
-		{name: 'transfer_flow_code', type:'string'},
-		{name: 'transfer_txt', type:'string'},
-		{name: 'transferlig_filerecord_id', type:'int'},
-		{name: 'status', type:'boolean'},
-		{name: 'status_is_ok', type:'boolean'},
-		{name: 'status_is_reject', type:'boolean'},
-		{name: 'step_code', type:'string'},
-		{name: 'hidden', type:'boolean'},
-		{name: 'tree_id', type:'string'},
-		{name: 'tree_adr', type:'string'},
-		{name: 'src_adr', type:'string'},
-		{name: 'next_adr', type:'string'},
-		{name: 'current_adr', type: 'string'},
-		{name: 'current_adr_tmp', type:'boolean'},
-		{name: 'current_adr_entryKey', type:'string'},
-		{name: 'current_adr_treenodeKey', type:'string'},
-		{name: 'container_ref', type:'string'},
-		{name: 'stk_prod', type:'string'},
-		{name: 'stk_batch', type:'string'},
-		{name: 'stk_datelc', type:'string'},
-		{name: 'stk_sn', type:'string'},
-		{name: 'mvt_qty', type:'number', allowNull:true},
-		{name: 'reject_arr', type:'auto'},
-		{name: 'flag_allowgroup', type:'boolean'},
-		
-		{name: 'need_txt', type: 'string'},
-		{name: 'need_prod', type: 'string'},
-		{name: 'need_qty_remain', type: 'number'},
-		{name: 'transfercdeneed_filerecord_id', type:'int'},
-		
-		{name: '_input_is_on', type:'boolean'}
-	],
-	hasMany: [{
-		model: 'DbsLamTransferStepModel',
-		name: 'steps',
-		associationKey: 'steps'
-	}]
-});
-
 
 
 
@@ -353,6 +292,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					btnReadOnly: true,
 					optimaModule: this.optimaModule
 				}),{
+					itemId: 'btnWhseSeparator',
 					icon: 'images/op5img/ico_arrow-double_16.png',
 					disabled: true,
 					style: {opacity: 1}
@@ -627,8 +567,13 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			return ;
 		}
 		var activeTransferStepRecord = activeTab.getActiveTransferStepRecord() ;
-		pCenterTb.down('#btnWhseSrc').setValue( activeTransferStepRecord.get('whse_src') ) ;
-		pCenterTb.down('#btnWhseDest').setValue( activeTransferStepRecord.get('whse_dst') ) ;
+		pCenterTb.down('#btnWhseSrc').setVisible(activeTransferStepRecord);
+		pCenterTb.down('#btnWhseSeparator').setVisible(activeTransferStepRecord);
+		pCenterTb.down('#btnWhseDest').setVisible(activeTransferStepRecord);
+		if( activeTransferStepRecord ){
+			pCenterTb.down('#btnWhseSrc').setValue( activeTransferStepRecord.get('whse_src') ) ;
+			pCenterTb.down('#btnWhseDest').setValue( activeTransferStepRecord.get('whse_dst') ) ;
+		}
 		
 		pCenterTb.down('#tbAdd').setVisible( true ) ;
 		
@@ -841,122 +786,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		this.setFormRecord(record) ;
 		*/
 	},
-	onAdrTreeItemClick: function(view, record, item, index, event) {
-		var gridpanel = this.down('#pCenter').down('#pLigs'),
-			gridStore = gridpanel.getStore() ;
-		if( record.get('transferlig_filerecord_id') ) {
-			var gridRecord = gridStore.getById(record.get('transferlig_filerecord_id')) ;
-			this.setFormRecord(gridRecord) ;
-		} else {
-			this.setFormRecord(null) ;
-		}
-	},
-	onAdrTreeContextMenu: function(view, record, item, index, event) {
-		var gridContextMenuItems = new Array() ;
-		
-		var selRecord = record;
-		// eval flags
-		var transferLig_records = [],
-			mapFlagValue = {
-			'flag_allowgroup': []
-		};
-		record.cascadeBy( function(node) {
-			if( !node.isLeaf() ) {
-				return ;
-			}
-			transferLig_records.push(node) ;
-			Ext.Object.each( mapFlagValue, function(flag,values) {
-				var tvalue = node.get(flag) ;
-				if( !Ext.Array.contains(values,tvalue) ) {
-					values.push(tvalue) ;
-				}
-			});
-		}) ;
-		Ext.Object.each( mapFlagValue, function(flag,values) {
-			if( values.length = 1 ) {
-				mapFlagValue[flag] = values[0];
-			} else {
-				mapFlagValue[flag] = null ;
-			}
-		});
-		
-		if( !Ext.isEmpty(record.get('tree_adr')) ) {
-			gridContextMenuItems.push({
-				checked: mapFlagValue.flag_allowgroup,
-				text: 'Allow group acknowledgment',
-				checkHandler : function(menuitem,checked) {
-					this.onGridTreeContextMenuHandleFlag( menuitem.up('menu').transferLig_records, 'flag_allowgroup', checked ) ;
-				},
-				scope : this
-			});
-			gridContextMenuItems.push('-') ;
-		}
-		
-		gridContextMenuItems.push({
-			iconCls: 'icon-bible-new',
-			text: 'Rollback',
-			handler : function() {
-				this.handleRollback(record) ;
-			},
-			scope : this
-		});
-		gridContextMenuItems.push({
-			icon: 'images/op5img/ico_print_16.png',
-			text: 'Print',
-			handler : function() {
-				this.handlePrint(record) ;
-			},
-			scope : this
-		});
-		
-		var gridContextMenu = Ext.create('Ext.menu.Menu',{
-			items : gridContextMenuItems,
-			transferLig_records: transferLig_records,
-			listeners: {
-				hide: function(menu) {
-					Ext.defer(function(){menu.destroy();},10) ;
-				}
-			}
-		}) ;
-		
-		gridContextMenu.showAt(event.getXY());
-	},
-	onGridTreeContextMenuHandleFlag: function( transferLig_records, flag, value ) {
-		var transferLig_filerecordIds = [] ;
-		// local
-		Ext.Array.each( transferLig_records, function(node) {
-			node.set(flag,value) ;
-			transferLig_filerecordIds.push(node.get('transferlig_filerecord_id')) ;
-		}) ;
-		// remote
-		var remoteFlag ;
-		switch( flag ) {
-			case 'flag_allowgroup' :
-				remoteFlag = 'ALLOWGROUP' ;
-				break ;
-			default :
-				return ;
-		}
-		this.optimaModule.getConfiguredAjaxConnection().request({
-			params: {
-				_moduleId: 'spec_dbs_lam',
-				_action: 'transfer_setFlag',
-				transferLig_filerecordIds: Ext.JSON.encode(transferLig_filerecordIds),
-				flag_code: remoteFlag,
-				flag_value: ( value ? 1 : 0 )
-			},
-			success: function(response) {
-				var ajaxResponse = Ext.decode(response.responseText) ;
-				if( ajaxResponse.success == false ) {
-					Ext.MessageBox.alert('Error','Error') ;
-					return ;
-				}
-			},
-			callback: function() {
-			},
-			scope: this
-		}) ;
-	},
 	
 	
 	
@@ -1115,6 +944,23 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		var pCenter = this.down('#pCenter') ;
 		
 		var tabItems = [] ;
+		if( this._activeTransferRecord.get('spec_cde') ) {
+			var className = 'Optima5.Modules.Spec.DbsLam.TransferInnerCdeLinkPanel' ;
+			
+			var cmp = Ext.create(className,{
+				optimaModule: this.optimaModule,
+				
+				_activeTransferRecord: this._activeTransferRecord,
+				
+				listeners: {
+					op5lamcdeadd: this.onLamCdeAdd,
+					op5lamcderemove: this.onLamCdeRemove,
+					scope: this
+				}
+			});
+			cmp.refreshData() ;
+			tabItems.push(cmp) ;
+		}
 		this._activeTransferRecord.steps().each( function(transferStepRecord) {
 			var className = 'Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel' ;
 			
@@ -1123,7 +969,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				
 				_activeTransferRecord: this._activeTransferRecord,
 				_actionTransferStepIdx: transferStepRecord.get('transferstep_idx'),
-										
+				
 				listeners: {
 					op5lamstockadd: this.onLamStockAdd,
 					op5lamstockremove: this.onLamStockRemove,
@@ -1161,7 +1007,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			return ;
 		}
 		pCenterTabs.items.each( function(p) {
-			console.dir(p) ;
 			p._activeTransferRecord = this._activeTransferRecord ;
 			p.refreshData() ;
 		},this) ;
@@ -1211,234 +1056,55 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			scope: this
 		}) ;
 	},
-	
-	
-	
-	onCdesLoad: function(ajaxData) {
-		this.down('#pCenter').down('#pCdes').getStore().loadData( ajaxData ) ;
-	},
-	onLigsAfterLoad: function(store) {
-		// load for pAdrTree
-		this.optimaModule.getConfiguredAjaxConnection().request({
-			params: {
-				_action: 'data_getBibleTreeOne',
-				bible_code: 'ADR'
-			},
-			success: function(response) {
-				var ajaxResponse = Ext.decode(response.responseText) ;
-				if( ajaxResponse.success == false ) {
-					return ;
-				}
-				var dataRoot = ajaxResponse.dataRoot ;
-				this.onLigsAfterLoadBuildAdrTree(dataRoot,store) ;
-			},
-			scope: this
-		}) ;
-		
-		// load for pLigsReqTree
-		this.optimaModule.getConfiguredAjaxConnection().request({
-			params: {
-				_moduleId: 'spec_dbs_lam',
-				_action: 'transfer_getTransferCdeNeed',
-				filter_transferFilerecordId: this.getActiveTransferFilerecordId()
-			},
-			success: function(response) {
-				var ajaxResponse = Ext.decode(response.responseText) ;
-				if( ajaxResponse.success == false ) {
-					return ;
-				}
-				this.onLigsAfterLoadBuildNeedTree(ajaxResponse.data, store) ;
-			},
-			scope: this
-		}) ;
-	},
-	onLigsAfterLoadBuildNeedTree: function( cdeNeedData, ligsStore ) {
-		var map_transfercdeneedFilerecordId_arrLigs = {} ;
-		ligsStore.each( function(rec) {
-			var transfercdeneedFilerecordId = rec.get('transfercdeneed_filerecord_id') ;
-			if( transfercdeneedFilerecordId==0 ) {
-				return ;
-			}
-			if( !map_transfercdeneedFilerecordId_arrLigs.hasOwnProperty(transfercdeneedFilerecordId) ) {
-				map_transfercdeneedFilerecordId_arrLigs[transfercdeneedFilerecordId] = [] ;
-			}
-			map_transfercdeneedFilerecordId_arrLigs[transfercdeneedFilerecordId].push( Ext.apply({
-				leaf: true
-			}, rec.getData() ) ) ;
-		},this) ;
-		
-		
-		
-		var rootChildren = [] ;
-		Ext.Array.each( cdeNeedData, function(needRow) {
-			var transfercdeneedFilerecordId = needRow.transfercdeneed_filerecord_id ;
-			rootChildren.push({
-				transfercdeneed_filerecord_id: transfercdeneedFilerecordId,
-				need_txt:  needRow.need_txt,
-				need_prod: needRow.stk_prod,
-				need_qty_remain:  (needRow.qty_need - needRow.qty_alloc),
-				children: ( map_transfercdeneedFilerecordId_arrLigs.hasOwnProperty(transfercdeneedFilerecordId) ? map_transfercdeneedFilerecordId_arrLigs[transfercdeneedFilerecordId] : [] ),
-				expanded: true
-			}) ;
-		}) ;
-		this.down('#pCenter').down('#pNeedLigs').setRootNode({
-			root: true,
-			expanded: true,
-			children: rootChildren
-		});
-	},
-	onLigsAfterLoadBuildAdrTree: function(dataRoot,gridStore) {
-		var treeStore = Ext.create('Ext.data.TreeStore',{
-			model: 'DbsLamLiveTreeModel',
-			data: dataRoot,
-			proxy: {
-				type: 'memory',
-				reader: {
-					type: 'json'
-				}
-			}
-		}) ;
-		
-		//qualify records
-		var map_treeAdr_childrenAdr = {} ;
-		var map_treeAdr_gridRows = {} ;
-		gridStore.each( function(gridRecord) {
-			var gridRow = Ext.clone(gridRecord.getData()),
-				treeAdr ;
-			
-			if( !gridRecord.get('current_adr_tmp') ) {
-				if( !map_treeAdr_childrenAdr.hasOwnProperty(gridRecord.get('current_adr_treenodeKey')) ) {
-					map_treeAdr_childrenAdr[gridRecord.get('current_adr_treenodeKey')] = [] ;
-				}
-				if( !Ext.Array.contains(map_treeAdr_childrenAdr[gridRecord.get('current_adr_treenodeKey')], gridRecord.get('current_adr_entryKey')) ) {
-					map_treeAdr_childrenAdr[gridRecord.get('current_adr_treenodeKey')].push(gridRecord.get('current_adr_entryKey')) ;
-				}
-				treeAdr = gridRecord.get('current_adr_entryKey') ;
-			} else {
-				treeAdr = gridRecord.get('current_adr_treenodeKey') ;
-			}
-			
-			if( !map_treeAdr_gridRows.hasOwnProperty(treeAdr) ) {
-				map_treeAdr_gridRows[treeAdr] = [] ;
-			}
-			
-			gridRow.leaf = true ;
-			if( gridRecord.get('status_is_reject') ) {
-				gridRow.icon = 'images/op5img/ico_cancel_small.gif' ;
-			} else if( gridRecord.get('status_is_ok') ) {
-				gridRow.icon = 'images/op5img/ico_ok_16.gif' ;
-			} else {
-				gridRow.icon = 'images/op5img/ico_wait_small.gif' ;
-			}
-			
-			map_treeAdr_gridRows[treeAdr].push(gridRow) ;
-		}) ;
-		
-		var cascadeRoot = function(node) {
-			node['tree_id'] = node.nodeKey ;
-			node['tree_adr'] = node.nodeKey ;
-			delete node.checked ;
-			node['icon'] = '' ;
-			if( Ext.isEmpty(node.children) ) {
-				node['leaf'] = false ;
-				node['expanded'] = true ;
-				node.children = [] ;
-			}
-			if( map_treeAdr_childrenAdr[node.tree_adr] ) {
-				Ext.Array.each(map_treeAdr_childrenAdr[node.tree_adr], function(newAdr) {
-					node.children.push({
-						expanded: true,
-						leaf: false,
-						tree_id: newAdr,
-						tree_adr: newAdr,
-						nodeKey: newAdr,
-						children: []
-					});
-				}) ;
-			}
-			if( map_treeAdr_gridRows[node.tree_adr] ) {
-				Ext.Array.each(map_treeAdr_gridRows[node.tree_adr], function(gridRow) {
-					gridRow.tree_id = gridRow.transferlig_filerecord_id ;
-					node.children.push(gridRow);
-				}) ;
-				return ;
-			}
-			Ext.Array.each( node.children, function(childNode) {
-				cascadeRoot(childNode) ;
-			});
-		} ;
-		cascadeRoot(dataRoot) ;
-		
-		var cascadeRoot = function(node) {
-			if( node.children ) {
-				var toRemoveIdx = [] ;
-				Ext.Array.each( node.children, function(childNode,idx) {
-					if( cascadeRoot(childNode)===false ) {
-						toRemoveIdx.push(idx) ;
-					}
-				});
-				toRemoveIdx.reverse() ;
-				Ext.Array.each( toRemoveIdx, function(idx) {
-					node.children.splice(idx,1) ;
-				}) ;
-			}
-			if( !node.root && !node.leaf && node.children.length==0 ) {
-				return false ;
-			}
-			return true ;
-		} ;
-		cascadeRoot(dataRoot) ;
-		
-		this.down('#pCenter').down('#pAdrTree').setRootNode(dataRoot) ;
-	},
-	
-	filterGridTree: function( value ) {
-		// inspired by Tree Filter
-		
-		var gridTree = this.down('#pCenter').down('#pAdrTree'),
-			gridTreeStore = gridTree.getStore() ;
-
-		if( !value || Ext.isEmpty(value) ) {
-			gridTreeStore.clearFilter() ;
-			gridTree.scrollTo(0,0) ;
+	onLamCdeAdd: function(transferInnerPanel, cdesFilerecordIds) {
+		if( !this._activeTransferRecord || !transferInnerPanel ) {
 			return ;
 		}
-		
-		var re = new RegExp(value, "ig"),
-			  root = gridTree.getRootNode(),
-			  visibleNodes = [],
-			  matches = [] ;
-
-		// iterate over all nodes in the tree in order to evalute them against the search criteria
-		root.cascadeBy(function (node) {
-				if (node.get('tree_id').match(re)) {                         // if the node matches the search criteria and is a leaf (could be  modified to searh non-leaf nodes)
-					matches.push(node)                                  // add the node to the matches array
+		var ajaxParams = {
+			_moduleId: 'spec_dbs_lam',
+			_action: 'transfer_addCdeLink',
+			cde_filerecordIds: Ext.JSON.encode(cdesFilerecordIds),
+			transfer_filerecordId: this._activeTransferRecord.get('transfer_filerecord_id')
+		} ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams,
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
 				}
-		});
-
-		Ext.each(matches, function (item, i, arr) {                 // loop through all matching leaf nodes
-			root.cascadeBy(function (node) {                         // find each parent node containing the node from the matches array
-				if (node.contains(item) == true) {
-					visibleNodes.push(node)                          // if it's an ancestor of the evaluated node add it to the visibleNodes  array
-				}
-			});
-			if( !item.isLeaf()) {    // if me.allowParentFolders is true and the item is  a non-leaf item
-				item.cascadeBy(function (node) {                    // iterate over its children and set them as visible
-					visibleNodes.push(node)
-				});
-			}
-			visibleNodes.push(item)                                  // also add the evaluated node itself to the visibleNodes array
-		});
-
-		root.cascadeBy(function (node) {                            // finally loop to hide/show each node
-			node.set('hidden',!Ext.Array.contains(visibleNodes, node)) ;
-		});
-		
-		gridTreeStore.filterBy( function(node) {
-			return !node.get('hidden') ;
+				this.optimaModule.postCrmEvent('datachange') ;
+			},
+			scope: this
 		}) ;
-		gridTree.scrollTo(0,0) ;
 	},
+	onLamCdeRemove: function(transferInnerPanel, cdesFilerecordIds) {
+		if( !this._activeTransferRecord ) {
+			return ;
+		}
+		var ajaxParams = {
+			_moduleId: 'spec_dbs_lam',
+			_action: 'transfer_removeCdeLink',
+			cde_filerecordIds: Ext.JSON.encode(cdesFilerecordIds),
+			transfer_filerecordId: this._activeTransferRecord.get('transfer_filerecord_id')
+		} ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams,
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+				this.optimaModule.postCrmEvent('datachange') ;
+			},
+			scope: this
+		}) ;
+	},
+	
+	
+	
 	
 	openCreatePopup: function() {
 		this.getEl().mask() ;
@@ -1472,59 +1138,14 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 	},
 	
 	handleBuildPick: function() {
-		/*
-		var treepanel = this.down('#pCenter').down('#pTree'),
-			selectedNodes = treepanel.getView().getSelectionModel().getSelection(),
-			isDocSelected = (selectedNodes.length==1 && selectedNodes[0].get('type')=='transfer') ;
-		*/
-		
-		
-		var activeTabId = null,
-			activeTab = this.down('#pCenter').down('tabpanel').getActiveTab() ;
-		if( this._activeTransferRecord && activeTab ) {
-			activeTabId = activeTab.itemId ;
-		}
-		console.dir(activeTab) ;
-		console.log(Ext.getClass(activeTab)) ;
-		return this.openStockPopup() ;
-		switch( activeTabId ) {
-			case 'pCdes' :
-				return this.openCdesPopup() ;
-			case 'pLigs' :
-			case 'pNeedLigs' :
-				return this.openStockPopup() ;
-			default :
-				return ;
-		}
-	},
-	openStockPopup: function() {
 		if( !this._activeTransferRecord ) {
 			return ;
 		}
 		var activePanel = this.down('#pCenter').down('tabpanel').getActiveTab() ;
-		if( !activePanel || !activePanel.getActiveTransferStepRecord() ) {
+		if( !activePanel ) {
 			return ;
 		}
 		return activePanel.handleBuildPick() ;
-	},
-	openCdesPopup: function() {
-		var treepanel = this.down('#pCenter').down('#pTree'),
-			selectedNodes = treepanel.getView().getSelectionModel().getSelection(),
-			isDocSelected = (selectedNodes.length==1 && selectedNodes[0].get('type')=='transfer'),
-			whseSrc = selectedNodes[0].get('whse_src') ;
-		
-		this.optimaModule.createWindow({
-			width:1100,
-			height:600,
-			resizable:true,
-			layout:'fit',
-			border: false,
-			items:[Ext.create('Optima5.Modules.Spec.DbsLam.CdePanel',{
-				optimaModule: this.optimaModule,
-				_popupMode: true,
-				_enableDD: true
-			})]
-		}) ;
 	},
 	
 	openPrintPopup: function(printLabels) {
