@@ -3,6 +3,7 @@
 function specDbsLam_lib_procCde_calcNeeds($transfer_filerecord_id) {
 	global $_opDB ;
 	
+	/*
 	$query = "SELECT mvtflow.field_IS_CDE, mvtflow.field_CDE_PROCESS FROM view_file_TRANSFER t
 				JOIN view_bible_CFG_MVTFLOW_tree mvtflow ON mvtflow.treenode_key=t.field_FLOW_CODE
 				WHERE t.filerecord_id='{$transfer_filerecord_id}'" ;
@@ -10,19 +11,48 @@ function specDbsLam_lib_procCde_calcNeeds($transfer_filerecord_id) {
 	$arr = $_opDB->fetch_row($result) ;
 	$cfg_isCde = !(!$arr[0]) ;
 	$cfg_cdeProcess = $arr[1] ;
+	*/
+	$formard_post = array(
+		'filter_transferFilerecordId' => $transfer_filerecord_id,
+		'filter_fast' => true
+	) ;
+	$json = specDbsLam_transfer_getTransfer($formard_post) ;
+	$transfer_row = reset($json['data']) ;
+	if( !$transfer_row || !$transfer_row['spec_cde'] ) {
+		return ;
+	}
+	$stepIdxPicking = $stepIdxPacking = NULL ;
+	foreach( $transfer_row['steps'] as $transferstep_row ) {
+		if( $transferstep_row['spec_cde_picking'] ) {
+			$stepIdxPicking = $transferstep_row['transferstep_idx'] ;
+		}
+		if( $transferstep_row['spec_cde_packing'] ) {
+			$stepIdxPacking = $transferstep_row['transferstep_idx'] ;
+		}
+	}
+	if( !$stepIdxPicking || !$stepIdxPacking ) {
+		return ;
+	}
+	if( $stepIdxPicking<$stepIdxPacking ) {
+		$cfg_cdeProcess = 'GROUP_ALL' ;
+	}
+	if( $stepIdxPicking==$stepIdxPacking ) {
+		$cfg_cdeProcess = 'SINGLE' ;
+	}
 	
-	if( !$cfg_isCde ) {
+	if( !$cfg_cdeProcess ) {
 		return ;
 	}
 	
 	$arrGroupBys = NULL ;
 	switch( $cfg_cdeProcess ) {
 		case 'SINGLE' :
-			$arrGroupBys = array('cde_filerecord_id','cde_prod') ;
+			//$arrGroupBys = array('cde_filerecord_id','cdelig_prod') ;
+			$arrGroupBys = array('cdelig_filerecord_id') ;
 			break ;
 		
 		case 'GROUP_ALL' :
-			$arrGroupBys = array('cde_prod') ;
+			$arrGroupBys = array('cdelig_prod') ;
 			break ;
 		
 		default :
@@ -35,10 +65,10 @@ function specDbsLam_lib_procCde_calcNeeds($transfer_filerecord_id) {
 	$map_groupBy_arrTransfercdelinkFilerecordIds = array() ;
 	$query = "SELECT cl.filerecord_parent_id as cde_filerecord_id, cl.filerecord_id as cdelig_filerecord_id
 					, tcl.filerecord_id as transfercdelink_filerecord_id
-					, cl.field_PROD_ID as cde_prod
+					, cl.field_PROD_ID as cdelig_prod
 					, cl.field_QTY_CDE as qty_cde
-				FROM view_file_CDE_LIG cl
-				INNER JOIN view_file_TRANSFER_CDE_LINK tcl ON tcl.filerecord_id=cl.field_FILE_TRSFRCDELINK_ID
+				FROM view_file_TRANSFER_CDE_LINK tcl
+				INNER JOIN view_file_CDE_LIG cl ON cl.filerecord_id=tcl.field_FILE_CDELIG_ID
 				WHERE tcl.filerecord_parent_id='{$transfer_filerecord_id}'" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
@@ -84,7 +114,10 @@ function specDbsLam_lib_procCde_calcNeeds($transfer_filerecord_id) {
 				case 'cde_filerecord_id' :
 					$sql_field = "field_FILE_CDE_ID" ;
 					break ;
-				case 'cde_prod' :
+				case 'cdelig_filerecord_id' :
+					$sql_field = "field_FILE_CDE_ID" ;
+					break ;
+				case 'cdelig_prod' :
 					$sql_field = "field_PROD_ID" ;
 					break ;
 			}
@@ -173,7 +206,7 @@ function specDbsLam_lib_procCde_syncLinks($transfer_filerecord_id) {
 	$map_cdeligFilerecordId_status = array() ;
 	$query = "SELECT tcl.field_FILE_TRSFRCDENEED_ID, tcl.field_FILE_CDELIG_ID
 				FROM view_file_TRANSFER_CDE_LINK tcl
-				WHERE filerecord_parent_id='{$transfer_filerecord_id}'" ;
+				WHERE tcl.filerecord_parent_id='{$transfer_filerecord_id}'" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 		$cdeligFilerecordId = $arr[1] ;
@@ -184,8 +217,8 @@ function specDbsLam_lib_procCde_syncLinks($transfer_filerecord_id) {
 	
 	$map_cdeFilerecordId_arrStatuses = array() ;
 	$query = "SELECT cl.filerecord_parent_id, cl.filerecord_id
-				FROM view_file_CDE_LIG cl
-				INNER JOIN view_file_TRANSFER_CDE_LINK tcl ON tcl.filerecord_id=cl.field_FILE_TRSFRCDELINK_ID
+				FROM view_file_TRANSFER_CDE_LINK tcl
+				INNER JOIN view_file_CDE_LIG cl ON cl.filerecord_id=tcl.field_FILE_CDELIG_ID
 				WHERE tcl.filerecord_parent_id='{$transfer_filerecord_id}'" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
@@ -289,8 +322,8 @@ function specDbsLam_lib_procCde_syncLinks($transfer_filerecord_id) {
 	
 	$map_cdeFilerecordId_arrStatuses = array() ;
 	$query = "SELECT cl.filerecord_parent_id, cl.filerecord_id
-				FROM view_file_CDE_LIG cl
-				INNER JOIN view_file_TRANSFER_CDE_LINK tcl ON tcl.filerecord_id=cl.field_FILE_TRSFRCDELINK_ID
+				FROM view_file_TRANSFER_CDE_LINK tcl
+				INNER JOIN view_file_CDE_LIG cl ON cl.filerecord_id=tcl.field_FILE_CDELIG_ID
 				WHERE tcl.filerecord_parent_id='{$transfer_filerecord_id}'" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
