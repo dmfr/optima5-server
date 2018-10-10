@@ -71,6 +71,8 @@ Ext.define('DbsLamTransferLigModel',{
 		{name: 'transferstep_idx', type:'int'},
 		
 		{name: 'transferlig_filerecord_id', type:'int'},
+		{name: 'cdepick_transfercdeneed_filerecord_id', type:'int'},
+		{name: 'cdepack_transfercdelink_filerecord_id', type:'int'},
 		{name: 'status', type:'boolean'},
 		{name: 'status_is_ok', type:'boolean'},
 		{name: 'status_is_reject', type:'boolean'},
@@ -96,7 +98,7 @@ Ext.define('DbsLamTransferLigModel',{
 		{name: 'need_txt', type: 'string'},
 		{name: 'need_prod', type: 'string'},
 		{name: 'need_qty_remain', type: 'number'},
-		{name: 'cdepick_transfercdeneed_filerecord_id', type:'int'},
+		{name: 'transfercdeneed_filerecord_id', type:'int'},
 		
 		{name: '_input_is_on', type:'boolean'}
 	]
@@ -906,6 +908,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		}) ;
 	},
 	onLamStockRemove: function(transferInnerPanel, transferLigIds) {
+		if( !this._activeTransferRecord || !transferInnerPanel || !transferInnerPanel.getActiveTransferStepRecord() ) {
+			return ;
+		}
 		var ajaxParams = {
 			_moduleId: 'spec_dbs_lam',
 			_action: 'transfer_removeStock',
@@ -976,8 +981,30 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		if( !this._activeTransferRecord || !transferInnerPanel || !transferInnerPanel.getActiveTransferStepRecord() ) {
 			return ;
 		}
+		var ajaxParams = {
+			_moduleId: 'spec_dbs_lam',
+			_action: 'transfer_addCdePickingStock',
+			stock_objs: Ext.JSON.encode(stockAddObjs),
+			transfer_filerecordId: this._activeTransferRecord.get('transfer_filerecord_id'),
+			transferStep_filerecordId: transferInnerPanel.getActiveTransferStepRecord().get('transferstep_filerecord_id')
+		} ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams,
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+				this.optimaModule.postCrmEvent('datachange') ;
+			},
+			scope: this
+		}) ;
 	},
 	onLamStockPickingRemove: function(transferInnerPanel, transferLigIds) {
+		if( !this._activeTransferRecord || !transferInnerPanel || !transferInnerPanel.getActiveTransferStepRecord() ) {
+			return ;
+		}
 		var ajaxParams = {
 			_moduleId: 'spec_dbs_lam',
 			_action: 'transfer_removeCdePickingStock',

@@ -604,7 +604,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 		me.getEl().mask() ;
 		
 		popupPanel.on('stkalloc',function(form,obj) {
-			console.dir(obj) ;
 			this.fireEvent('stkalloc',this,obj) ;
 		},me) ;
 		

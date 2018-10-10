@@ -366,7 +366,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerCdePickingPanel',{
 		
 		dropHandlers.wait = true ;
 		if( srcStockFilerecordIds.length>0 ) {
-			this.handleDropCdeStock(srcStockFilerecordIds,overModel.get('cdepick_transfercdeneed_filerecord_id')) ;
+			this.handleDropCdeStock(srcStockFilerecordIds,overModel.get('transfercdeneed_filerecord_id')) ;
 		}
 		return ;
 	},
@@ -405,7 +405,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerCdePickingPanel',{
 		var stockaddObjs = [] ;
 		Ext.Array.each(srcStockFilerecordIds, function(srcStockFilerecordId) {
 			stockaddObjs.push({
-				cdepick_transfercdeneed_filerecord_id: transfercdeneedFilerecordId,
+				target_transfercdeneed_filerecord_id: transfercdeneedFilerecordId,
 				stk_filerecord_id: srcStockFilerecordId,
 				mvt_qty: null
 			});
