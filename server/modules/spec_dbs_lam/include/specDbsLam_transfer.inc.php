@@ -24,6 +24,7 @@ function specDbsLam_transfer_getTransfer($post_data) {
 			'spec_cde' => !!$arr['field_SPEC_CDE'],
 			'steps' => array(),
 			'cde_links' => array(),
+			'cde_needs' => array(),
 			'ligs' => array()
 		);
 		if( $post_data['filter_transferFilerecordId'] && !$post_data['filter_fast'] ) {
@@ -32,6 +33,9 @@ function specDbsLam_transfer_getTransfer($post_data) {
 			
 			$ttmp = specDbsLam_transfer_getTransferCdeLink($post_data) ;
 			$TAB[$filerecord_id]['cde_links'] = $ttmp['data'] ;
+			
+			$ttmp = specDbsLam_transfer_getTransferCdeNeed($post_data) ;
+			$TAB[$filerecord_id]['cde_needs'] = $ttmp['data'] ;
 		}
 	}
 	if( !$post_data['filter_transferFilerecordId'] || (count($TAB)!=1) ) {
@@ -139,7 +143,7 @@ function specDbsLam_transfer_getTransferLig($post_data) {
 				'transfer_flow_code' => $arr['transfer_flow_code'],
 				'transferlig_filerecord_id' => $arr['transferlig_filerecord_id'],
 				'transferstep_idx' => $arr['field_TRANSFERSTEP_IDX'],
-				'transfercdeneed_filerecord_id' => $arr['field_FILE_TRSFRCDENEED_ID'],
+				'cdepick_transfercdeneed_filerecord_id' => $arr['field_PICK_TRSFRCDENEED_ID'],
 				'mvt_filerecord_id' => $arr['mvt_filerecord_id'],
 				'soc_code' => $arr['field_SOC_CODE'],
 				'container_type' => $arr['field_CONTAINER_TYPE'],
@@ -2363,7 +2367,7 @@ function specDbsLam_transfer_addCdeStock($post_data, $fast=FALSE) {
 	
 	// qte initiale à allouer
 	$query = "SELECT tcn.field_QTY_NEED, sum(m.field_QTY_MVT), tcn.field_NEED_TXT FROM view_file_TRANSFER_CDE_NEED tcn
-			JOIN view_file_TRANSFER_LIG tl ON tl.field_FILE_TRSFRCDENEED_ID = tcn.filerecord_id
+			JOIN view_file_TRANSFER_LIG tl ON tl.field_PICK_TRSFRCDENEED_ID = tcn.filerecord_id
 			JOIN view_file_MVT m ON m.filerecord_id = tl.field_FILE_MVT_ID
 			WHERE tcn.filerecord_id='{$p_transfercdeneedFilerecordId}'" ;
 	$result = $_opDB->query($query) ;
@@ -2401,7 +2405,7 @@ function specDbsLam_transfer_addCdeStock($post_data, $fast=FALSE) {
 		$transfer_row = array(
 			'field_STEP_CODE' => $init_mvtflowstep,
 			'field_FILE_MVT_ID' => $mvt_filerecordId,
-			'field_FILE_TRSFRCDENEED_ID' => $p_transfercdeneedFilerecordId
+			'field_PICK_TRSFRCDENEED_ID' => $p_transfercdeneedFilerecordId
 		);
 		$ids[] = paracrm_lib_data_insertRecord_file('TRANSFER_LIG',$p_transferFilerecordId,$transfer_row) ;
 	}

@@ -24,6 +24,7 @@ function specDbsLam_lib_procMvt_addStock($src_whse, $dst_whse, $stock_filerecord
 		if( $qte_mvt > $qte_stock ) {
 			return 0 ;
 		}
+		$qte_mvt_actual = $qte_mvt ;
 	} else {
 		if( $qte_stock <= 0 ) {
 			return 0 ;

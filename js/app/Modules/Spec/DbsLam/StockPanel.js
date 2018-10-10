@@ -363,7 +363,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 						align: 'right',
 						width: 75
 					},{
-						hidden: !this._enableDD,
+						hidden: !(this._enableDD && this._enablePartialTake),
 						itemId: 'takecolumn',
 						xtype: 'actioncolumn',
 						align: 'center',

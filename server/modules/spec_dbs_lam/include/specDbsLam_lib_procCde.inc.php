@@ -166,6 +166,19 @@ function specDbsLam_lib_procCde_calcNeeds($transfer_filerecord_id) {
 	return ;
 }
 
+
+function specDbsLam_lib_procCde_forwardPacking( $transfer_filerecord_id, $transfercdeneed_filerecord_id=NULL ) {
+
+}
+function specDbsLam_lib_procCde_releasePacking( $transfer_filerecord_id, $transfercdeneed_filerecord_id ) {
+
+}
+
+
+
+
+
+
 function specDbsLam_lib_procCde_syncLinks($transfer_filerecord_id) {
 	global $_opDB ;
 	
@@ -176,7 +189,7 @@ function specDbsLam_lib_procCde_syncLinks($transfer_filerecord_id) {
 	$map_transfercdeneedFilerecordId_status = array() ;
 	$query = "SELECT tcn.filerecord_id, tcn.field_QTY_NEED, sum(m.field_QTY_MVT) FROM view_file_TRANSFER_CDE_NEED tcn
 			JOIN view_file_TRANSFER t ON t.filerecord_id = tcn.filerecord_parent_id
-			LEFT OUTER JOIN view_file_TRANSFER_LIG tl ON tl.field_FILE_TRSFRCDENEED_ID = tcn.filerecord_id
+			LEFT OUTER JOIN view_file_TRANSFER_LIG tl ON tl.field_PICK_TRSFRCDENEED_ID = tcn.filerecord_id
 			LEFT OUTER JOIN view_file_MVT m ON m.filerecord_id = tl.field_FILE_MVT_ID
 			WHERE t.filerecord_id='{$transfer_filerecord_id}'
 			GROUP BY tcn.filerecord_id" ;

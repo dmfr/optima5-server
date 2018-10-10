@@ -530,6 +530,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 				optimaModule: this.optimaModule,
 				_popupMode: true,
 				_enableDD: ddGroup,
+				_enablePartialTake: true,
 				whseCode: whseSrc,
 				listeners: {
 					stkalloc: function(p, allocObj) {
