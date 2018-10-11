@@ -29,5 +29,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerMixin',{
 	
 	handleBuildPick: function() {
 		console.log('default buildpick') ;
+	},
+	handleInputNew: function() {
+		console.log('default inputnew') ;
 	}
 }) ;

@@ -325,7 +325,9 @@ function specDbsLam_transfer_addStock( $post_data ) {
 		return array('success'=>false) ;
 	}
 	
-	$blacklist_specs = array('spec_input','spec_cde_picking','spec_cde_packing') ;
+	
+	
+	$blacklist_specs = array('spec_cde_picking','spec_cde_packing') ;
 	foreach( $blacklist_specs as $blacklist_spec ) {
 		if( $transferstep_row[$blacklist_spec] ) {
 			return array('success'=>false) ;
@@ -333,6 +335,10 @@ function specDbsLam_transfer_addStock( $post_data ) {
 	}
 	
 	foreach( $stock_objs as $stock_obj ) {
+		if( $stock_obj['stkData_obj'] ) {
+			$stock_obj['stk_filerecord_id'] = specDbsLam_lib_procMvt_createNewStk($stock_obj['stkData_obj']) ;
+		}
+		
 		$mvt_filerecordId = specDbsLam_lib_procMvt_addStock( $transferstep_row['whse_src'], $transferstep_row['whse_dst'], $stock_obj['stk_filerecord_id'], $stock_obj['mvt_qty'] ) ;
 		$query = "SELECT * FROM view_file_MVT WHERE filerecord_id='{$mvt_filerecordId}'" ;
 		$result = $_opDB->query($query) ;
@@ -343,6 +349,12 @@ function specDbsLam_transfer_addStock( $post_data ) {
 			'field_FILE_MVT_ID' => $mvt_filerecordId
 		);
 		$ids[] = paracrm_lib_data_insertRecord_file('TRANSFER_LIG',$transfer_filerecordId,$transfer_row) ;
+		
+		if( !($stock_obj['dst_whse'] && $stock_obj['dst_adr']) ) {
+			continue ;
+		}
+		
+		
 	}
 	
 	return array('success'=>true, 'ids'=>$ids, 'debug'=>$stock_objs) ;
@@ -2450,6 +2462,7 @@ function specDbsLam_transfer_addCdePickingStock( $post_data, $fast=FALSE ) {
 		$qty_need = (float)$arr[0] ;
 		$qty_curAlloc = (float)$arr[1] ;
 		$needTxt = preg_replace("/[^A-Z0-9]/", "", strtoupper($arr[2])) ;
+		$whseDest = $transferstep_row['whse_dst'] ;
 		
 		$qty_toAlloc = ($qty_need - $qty_curAlloc) ;
 		if( $qty_toAlloc<=0 ) {
@@ -2481,8 +2494,12 @@ function specDbsLam_transfer_addCdePickingStock( $post_data, $fast=FALSE ) {
 			'field_PICK_TRSFRCDENEED_ID' => $stock_obj['target_transfercdeneed_filerecord_id']
 		);
 		$ids[] = paracrm_lib_data_insertRecord_file('TRANSFER_LIG',$transfer_filerecordId,$transfer_row) ;
+		
+		if( $whseDestIsWork=TRUE ) {
+			$tmp_adr = $whseDest.'_'.$needTxt ;
+			//specDbsLam_lib_procMvt_alloc($mvt_filerecordId,$tmp_adr,$tmp_adr) ;
+		}
 	}
-	
 	
 	if( !$fast ) {
 		specDbsLam_lib_procCde_forwardPacking($transfer_filerecordId) ;

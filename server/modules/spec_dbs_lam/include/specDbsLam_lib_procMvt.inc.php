@@ -1,5 +1,46 @@
 <?php
 
+function specDbsLam_lib_procMvt_createNewStk($stkData_obj) {
+	global $_opDB ;
+	
+	// Load cfg attributes
+	$ttmp = specDbsLam_cfg_getConfig() ;
+	$json_cfg = $ttmp['data'] ;
+	
+	
+	if( !paracrm_lib_data_getRecord_bibleEntry( 'PROD', $stkData_obj['stk_prod'] ) ) {
+		return FALSE ;
+	}
+	
+	if( !paracrm_lib_data_getRecord_bibleEntry( 'ADR', 'TMP_RECEP' ) ) {
+		paracrm_lib_data_insertRecord_bibleEntry('ADR','TMP_RECEP','TMP',array('field_ADR_ID'=>'TMP_RECEP')) ;
+	}
+	$arr_ins = array() ;
+	$arr_ins['field_ADR_ID'] = 'TMP_RECEP' ;
+	$arr_ins['field_SOC_CODE'] = $stkData_obj['soc_code'] ;
+	if( !$stkData_obj['container_is_off'] ) {
+		$arr_ins['field_CONTAINER_TYPE'] = $stkData_obj['container_type'] ;
+		if( !$stkData_obj['container_ref'] ) {
+			$stkData_obj['container_ref'] = specDbsLam_spec_get_CONTAINER_REF($stkData_obj['soc_code']) ;
+		}
+		$arr_ins['field_CONTAINER_REF'] = $stkData_obj['container_ref'] ;
+	}
+	$arr_ins['field_PROD_ID'] = $stkData_obj['stk_prod'] ;
+	$arr_ins['field_SPEC_BATCH'] = $stkData_obj['stk_batch'] ;
+	$arr_ins['field_SPEC_DATELC'] = $stkData_obj['stk_datelc'] ;
+	$arr_ins['field_SPEC_SN'] = $stkData_obj['stk_sn'] ;
+	$arr_ins['field_QTY_AVAIL'] = $stkData_obj['mvt_qty'] ;
+	foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
+		if( !$stockAttribute_obj['STOCK_fieldcode'] ) {
+			continue ;
+		}
+		$arr_ins[$stockAttribute_obj['STOCK_fieldcode']] = $stkData_obj[$stockAttribute_obj['mkey']] ;
+	}
+	$arr_ins['field_LAM_DATEUPDATE'] = date('Y-m-d') ;
+	$stk_filerecord_id = paracrm_lib_data_insertRecord_file('STOCK',0,$arr_ins) ;
+	return $stk_filerecord_id ;
+}
+
 function specDbsLam_lib_procMvt_addStock($src_whse, $dst_whse, $stock_filerecordId, $qte_mvt=NULL) {
 	global $_opDB ;
 	

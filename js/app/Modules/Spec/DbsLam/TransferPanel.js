@@ -318,21 +318,19 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					scope: this
 				},{
 					hidden:true,
+					itemId: 'tbInput',
+					iconCls: 'op5-spec-dbslam-transfer-add',
+					text: '<b>Input new</b>',
+					handler: function() {
+						this.handleInputNew() ;
+					},
+					scope: this
+				},{
+					hidden:true,
 					itemId: 'tbActions',
 					icon: 'images/op5img/ico_arrow-down_16.png',
 					text: 'Actions',
 					menu: [{
-						icon: 'images/op5img/ico_new_16.gif',
-						text: '<b>Input new</b>',
-						handler: function() {
-							this.handleNewForeign() ;
-						},
-						scope: this,
-						itemIdForeign: true
-					},{
-						xtype: 'menuseparator',
-						itemIdForeign: true
-					},{
 						icon: 'images/op5img/ico_print_16.png',
 						text: '<b>Print</b>',
 						handler: function() {
@@ -557,11 +555,13 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		treepanel.down('toolbar').down('#tbCreate').setVisible( selectedNodes[0] && selectedNodes[0].get('type')=='_new' ) ;
 	},
 	updateCenterToolbar: function() {
+		
+		
 		//console.log('updateCenterToolbar') ;
 		var pCenter = this.down('#pCenter'),
 			pCenterTb = pCenter.down('toolbar'),
 			tabPanel = pCenter.down('tabpanel') ;
-		if(!tabPanel) {
+		if(!this._activeTransferRecord || !tabPanel) {
 			pCenterTb.setVisible(false) ;
 			return ;
 		}
@@ -579,9 +579,36 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			pCenterTb.down('#btnWhseDest').setValue( activeTransferStepRecord.get('whse_dst') ) ;
 		}
 		
-		pCenterTb.down('#tbAdd').setVisible( true ) ;
+		if( !activeTransferStepRecord ) {
+			pCenterTb.down('#tbAdd').setVisible( this._activeTransferRecord.get('spec_cde') ) ;
+			pCenterTb.down('#tbInput').setVisible( false ) ;
+			return ;
+		}
+		/*
+		 * func: getActiveTransferStepRecord
+		 * pour le tab actif :
+		 * - possibilité de build/pick = no spec + no target forward
+		 * - possibilité d input = spec_input
+		 */ 
+		var hasBuildPick = true,
+			hasInput = false ;
+		this._activeTransferRecord.steps().each( function( transferStepRecord ) {
+			if( transferStepRecord.get('forward_is_on')
+				&& (transferStepRecord.get('forward_to_idx')==activeTransferStepRecord.get('transferstep_idx')) ) {
+				hasBuildPick = false ;
+			}
+		}) ;
+		Ext.Array.each(['spec_input','spec_cde_packing'],function(spec) {
+			if( activeTransferStepRecord.get(spec) ) {
+				hasBuildPick = false ;
+			}
+		});
+		if( activeTransferStepRecord.get('spec_input') ) {
+			hasInput = true ;
+		}
+		pCenterTb.down('#tbAdd').setVisible( hasBuildPick ) ;
+		pCenterTb.down('#tbInput').setVisible( hasInput ) ;
 		
-		//getActiveTransferStepRecord
 	},
 	
 	
@@ -899,7 +926,13 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
 				if( ajaxResponse.success == false ) {
-					Ext.MessageBox.alert('Error','Error') ;
+					var transferInnerPanel = this.down('#pCenter').down('tabpanel').getActiveTab() ;
+					if( transferInnerPanel && transferInnerPanel.getActiveTransferStepRecord().get('spec_input') ) {
+						var doClose ;
+						transferInnerPanel.handleInputNew(doClose=true) ;
+					} else {
+						Ext.MessageBox.alert('Error','Error') ;
+					}
 					return ;
 				}
 				this.optimaModule.postCrmEvent('datachange') ;
@@ -1069,6 +1102,16 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			return ;
 		}
 		return activePanel.handleBuildPick() ;
+	},
+	handleInputNew: function() {
+		if( !this._activeTransferRecord ) {
+			return ;
+		}
+		var activePanel = this.down('#pCenter').down('tabpanel').getActiveTab() ;
+		if( !activePanel ) {
+			return ;
+		}
+		return activePanel.handleInputNew() ;
 	},
 	
 	openPrintPopup: function(printLabels) {
@@ -1509,15 +1552,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 	},
 	
 	
-	
-	handleNewForeign: function() {
-		var pLigs = this.down('#pCenter').down('#pLigs') ;
-		var news = pLigs.getStore().insert(0,{
-			_input_is_on: true
-		}) ;
-		var newRecord = news[0] ;
-		this.down('#pCenter').down('#pLigs').getPlugin('pEditor').startEdit(newRecord) ;
-	},
 	
 	setFormRecord: function( transferLigRecord ) {
 		var southP = this.down('#pSouth') ;

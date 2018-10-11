@@ -73,52 +73,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 				renderer: function(v) {
 					return '<b>'+v+'</b>' ;
 				},
-				editorTplNew: {
-					xtype: 'combobox',
-					allowBlank:false,
-					name: 'dest_adr',
-					fieldStyle: 'text-transform:uppercase',
-					forceSelection:false,
-					editable:true,
-					typeAhead:false,
-					selectOnFocus: true,
-					selectOnTab: false,
-					queryMode: 'remote',
-					displayField: 'entry_key',
-					valueField: 'entry_key',
-					queryParam: 'filter',
-					minChars: 2,
-					fieldStyle: 'text-transform:uppercase',
-					store: {
-						fields: ['entry_key'],
-						proxy: this.optimaModule.getConfiguredAjaxProxy({
-							extraParams : {
-								_action: 'data_getBibleGrid',
-								bible_code: 'ADR',
-								limit: 20
-							},
-							reader: {
-								type: 'json',
-								rootProperty: 'data'
-							}
-						}),
-						listeners: {
-							beforeload: function(store,options) {
-								var treepanel = this.down('#pCenter').down('#pTree'),
-									selectedNodes = treepanel.getView().getSelectionModel().getSelection(),
-									isDocSelected = (selectedNodes.length==1 && selectedNodes[0].get('type')=='transfer'),
-									whseSrc = selectedNodes[0].get('whse_src') ;
-								
-								var params = options.getParams() ;
-								Ext.apply(params,{
-									filter: Ext.JSON.encode([{property:'treenode_key',value:whseSrc}])
-								}) ;
-								options.setParams(params) ;
-							},
-							scope: this
-						}
-					}
-				}
 			},{
 				text: 'Stock Attributes',
 				columns: atrStockColumns
@@ -215,7 +169,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 				}]
 			},{
 				text: '<b>Dest Location</b>',
-				dataIndex: 'next_adr',
+				dataIndex: 'dst_adr',
 				renderer: function(v,metaData,record) {
 					if( record.get('status_is_ok') ) {
 						return '<b>'+v+'</b>' ;
@@ -225,6 +179,49 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 				},
 				editorTplAdr: {
 					xtype: 'textfield'
+				},
+				editorTplNew: {
+					xtype: 'combobox',
+					allowBlank:false,
+					fieldStyle: 'text-transform:uppercase',
+					forceSelection:false,
+					editable:true,
+					typeAhead:false,
+					selectOnFocus: true,
+					selectOnTab: false,
+					queryMode: 'remote',
+					displayField: 'entry_key',
+					valueField: 'entry_key',
+					queryParam: 'filter',
+					minChars: 2,
+					fieldStyle: 'text-transform:uppercase',
+					store: {
+						fields: ['entry_key'],
+						proxy: this.optimaModule.getConfiguredAjaxProxy({
+							extraParams : {
+								_action: 'data_getBibleGrid',
+								bible_code: 'ADR',
+								limit: 20
+							},
+							reader: {
+								type: 'json',
+								rootProperty: 'data'
+							}
+						}),
+						listeners: {
+							beforeload: function(store,options) {
+								var activeTransferStepRecord = this.getActiveTransferStepRecord(),
+									whseDst = activeTransferStepRecord.get('whse_dst') ;
+								
+								var params = options.getParams() ;
+								Ext.apply(params,{
+									filter: Ext.JSON.encode([{property:'treenode_key',value:whseDst}])
+								}) ;
+								options.setParams(params) ;
+							},
+							scope: this
+						}
+					}
 				}
 			}]
 		};
@@ -411,7 +408,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 			"container_type":values.container_ref,
 			"container_ref":""
 		} ;
-		this.onEditorEditNew(context.record,skuData_obj,values.current_adr) ;
+		this.submitEditorNew(context.record,skuData_obj,values.dst_adr) ;
 	},
 	onEditorCancelEdit: function(editor,context) {
 		var store = context.store,
@@ -506,6 +503,17 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 		return true ;
 	},
 	
+	submitEditorNew: function( gridRecordTmp, stkData_obj, location ) {
+		var stockaddObj = {
+			stkData_obj: stkData_obj,
+			mvt_qty: null,
+			commit: true,
+			dst_whse: this.getActiveTransferStepRecord().get('whse_dst'),
+			dst_adr: location
+		};
+		this.fireEvent('op5lamstockadd',this,[stockaddObj]) ;
+	},
+	
 	
 	// **** Actions ******
 	handleBuildPick: function() {
@@ -589,6 +597,29 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 			});
 		}) ;
 		this.fireEvent('op5lamstockadd',this,stockaddObjs) ;
+	},
+	
+	
+	handleInputNew: function(doClose) {
+		if( doClose ) {
+			Ext.MessageBox.alert('Error','Item not accepted', function() {
+				var toDel = [] ;
+				this.getStore().each( function(rec) {
+					if( rec.get('_input_is_on') ) {
+						toDel.push(rec) ;
+					}
+				}) ;
+				this.getStore().remove(toDel) ;
+			}, this) ;
+			return ;
+		}
+		
+		
+		var news = this.getStore().insert(0,{
+			_input_is_on: true
+		}) ;
+		var newRecord = news[0] ;
+		this.getPlugin('pEditor').startEdit(newRecord) ;
 	}
 	
 	

@@ -48,7 +48,11 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CfgParamButton' ,{
 			this.setText( this.baseText ) ;
 		} else {
 			this.addCls( 'op5-spec-dbspeople-cfgparambtn-bold' ) ;
-			this.setText( cfgParamTree.getStore().getNodeById(selectedValue).get('nodeText') ) ;
+			if( cfgParamTree.getStore().getNodeById(selectedValue) == null ) {
+				this.setText( '' ) ;
+			} else {
+				this.setText( cfgParamTree.getStore().getNodeById(selectedValue).get('nodeText') ) ;
+			}
 		}
 		
 		if( !silent ) {
