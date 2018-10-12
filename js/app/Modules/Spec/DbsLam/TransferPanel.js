@@ -590,8 +590,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		 * - possibilité de build/pick = no spec + no target forward
 		 * - possibilité d input = spec_input
 		 */ 
-		var hasBuildPick = true,
-			hasInput = false ;
+		var hasBuildPick = activeTab.hasBuildPick(),
+			hasInput = activeTab.hasInputNew() ;
 		this._activeTransferRecord.steps().each( function( transferStepRecord ) {
 			if( transferStepRecord.get('forward_is_on')
 				&& (transferStepRecord.get('forward_to_idx')==activeTransferStepRecord.get('transferstep_idx')) ) {

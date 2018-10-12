@@ -307,8 +307,15 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 		var selRecords = view.getSelectionModel().getSelection() ;
 		
 		var entryKeys = [] ;
+		var areNotCommitted = true ;
+		var areCommitted = true ;
 		for( var recIdx=0 ; recIdx<selRecords.length ; recIdx++ ) {
 			entryKeys.push( selRecords[recIdx].get('transferlig_filerecord_id') ) ;
+			if( selRecords[recIdx].get('status_is_ok') ) {
+				areNotCommitted = false ;
+			} else {
+				areCommitted = false ;
+			}
 		}
 		if( entryKeys.length==1 ) {
 			/*
@@ -322,14 +329,30 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 			},'-') ;
 			*/
 		}
-		gridContextMenuItems.push({
-			iconCls: 'icon-bible-delete',
-			text: 'Remove <b>'+selRecords.length+'</b> rows',
-			handler : function() {
-				this.fireEvent('op5lamstockremove',this,entryKeys) ;
-			},
-			scope : this
-		});
+		if( areCommitted ) {
+			gridContextMenuItems.push({
+				iconCls: 'icon-bible-delete',
+				text: 'Rollback <b>'+selRecords.length+'</b> rows',
+				handler : function() {
+					this.fireEvent('op5lamstockrollback',this,entryKeys) ;
+				},
+				scope : this
+			});
+		}
+		if( this.hasBuildPick() && areNotCommitted ) {
+			gridContextMenuItems.push({
+				iconCls: 'icon-bible-delete',
+				text: 'Remove <b>'+selRecords.length+'</b> rows',
+				handler : function() {
+					this.fireEvent('op5lamstockremove',this,entryKeys) ;
+				},
+				scope : this
+			});
+		}
+		
+		if( Ext.isEmpty(gridContextMenuItems) ) {
+			return ;
+		}
 		
 		var gridContextMenu = Ext.create('Ext.menu.Menu',{
 			items : gridContextMenuItems,

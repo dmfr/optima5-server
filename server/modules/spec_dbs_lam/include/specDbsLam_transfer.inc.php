@@ -370,7 +370,7 @@ function specDbsLam_transfer_addStock( $post_data ) {
 	}
 	
 	if( $has_commit ) {
-		//specDbsLam_transfer_lib_advanceDoc( $transfer_filerecordId ) ;
+		specDbsLam_transfer_lib_advanceDoc( $transfer_filerecordId ) ;
 	}
 	
 	return array('success'=>true, 'ids'=>$ids, 'debug'=>$stock_objs) ;
@@ -997,9 +997,48 @@ function specDbsLam_transfer_lib_advanceDoc($transfer_filerecordId) {
 	global $_opDB ;
 	
 	$ttmp = specDbsLam_transfer_getTransfer(array('filter_transferFilerecordId'=>$transfer_filerecordId)) ;
-	$data = $ttmp['data'] ;
+	$row_transfer = $ttmp['data'][0] ;
 	
 	// Gestion des forwards ?
+	$map_stepIdx_forwardToIdx = array() ;
+	$map_stepIdx_rowTransferStep = array() ;
+	$map_stepIdx_arrSrcStockFilerecordIds = array() ;
+	$map_stepIdx_arrDstStockFilerecordIds = array() ;
+	foreach( $row_transfer['steps'] as $row_transferstep ) {
+		$transferStepIdx = $row_transferstep['transferstep_idx'] ;
+		if( $row_transferstep['forward_is_on'] ) {
+			$map_stepIdx_forwardToIdx[$transferStepIdx] = $row_transferstep['forward_to_idx'] ;
+		}
+		$map_stepIdx_rowTransferStep[$transferStepIdx] = $row_transferstep ;
+		$map_stepIdx_arrSrcStockFilerecordIds[$transferStepIdx] = array() ;
+		$map_stepIdx_arrDstStockFilerecordIds[$transferStepIdx] = array() ;
+		foreach( $row_transferstep['ligs'] as $row_transferlig ) {
+			if( TRUE ) {
+				$map_stepIdx_arrSrcStockFilerecordIds[$transferStepIdx][] = $row_transferlig['src_stk_filerecord_id'] ;
+			}
+			if( $row_transferlig['status_is_ok'] ) {
+				$map_stepIdx_arrDstStockFilerecordIds[$transferStepIdx][] = $row_transferlig['dst_stk_filerecord_id'] ;
+			}
+		}
+	}
+	
+	foreach( $map_stepIdx_forwardToIdx as $transferStepIdx => $forwardStepIdx ) {
+		if( !$map_stepIdx_rowTransferStep[$forwardStepIdx] ) {
+			continue ;
+		}
+		$row_transferstep = $map_stepIdx_rowTransferStep[$forwardStepIdx] ;
+		$mapToDo_stkFilerecordIds = array_diff($map_stepIdx_arrDstStockFilerecordIds[$transferStepIdx],$map_stepIdx_arrSrcStockFilerecordIds[$forwardStepIdx]) ;
+		foreach( $mapToDo_stkFilerecordIds as $stk_filerecord_id ) {
+			$mvt_filerecordId = specDbsLam_lib_procMvt_addStock( $row_transferstep['whse_src'], $row_transferstep['whse_dst'], $stk_filerecord_id, null ) ;
+			
+			$transfer_row_next = array(
+				'field_TRANSFERSTEP_IDX' => $row_transferstep['transferstep_idx'],
+				'field_FILE_MVT_ID' => $mvt_filerecordId
+			);
+			paracrm_lib_data_insertRecord_file('TRANSFER_LIG',$transfer_filerecordId,$transfer_row_next) ;
+		}
+	}
+	
 	
 	// Statut du document closed/...
 	
