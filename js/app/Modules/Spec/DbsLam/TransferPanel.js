@@ -848,6 +848,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					listeners: {
 						op5lamstockadd: this.onLamStockAdd,
 						op5lamstockremove: this.onLamStockRemove,
+						op5lamstockrollback: this.onLamStockRollback,
 						scope: this
 					}
 				});
@@ -947,6 +948,30 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		var ajaxParams = {
 			_moduleId: 'spec_dbs_lam',
 			_action: 'transfer_removeStock',
+			transfer_filerecordId: this._activeTransferRecord.get('transfer_filerecord_id'),
+			transferStep_filerecordId: transferInnerPanel.getActiveTransferStepRecord().get('transferstep_filerecord_id'),
+			transferLig_filerecordIds: Ext.JSON.encode(transferLigIds) 
+		} ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams,
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+				this.optimaModule.postCrmEvent('datachange') ;
+			},
+			scope: this
+		}) ;
+	},
+	onLamStockRollback: function(transferInnerPanel, transferLigIds) {
+		if( !this._activeTransferRecord || !transferInnerPanel || !transferInnerPanel.getActiveTransferStepRecord() ) {
+			return ;
+		}
+		var ajaxParams = {
+			_moduleId: 'spec_dbs_lam',
+			_action: 'transfer_rollback',
 			transfer_filerecordId: this._activeTransferRecord.get('transfer_filerecord_id'),
 			transferStep_filerecordId: transferInnerPanel.getActiveTransferStepRecord().get('transferstep_filerecord_id'),
 			transferLig_filerecordIds: Ext.JSON.encode(transferLigIds) 
@@ -1756,155 +1781,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			},
 			scope: this
 		}) ;
-	},
-	handleRollback: function( gridTreeNode ) {
-		var treepanel = this.down('#pCenter').down('#pTree'),
-			selectedNodes = treepanel.getView().getSelectionModel().getSelection(),
-			isDocSelected = (selectedNodes.length==1 && selectedNodes[0].get('type')=='transfer') ;
-		if( !isDocSelected ) {
-			return ;
-		}
-		var docFlow = selectedNodes[0].get('flow_code'),
-			flowRecord = Optima5.Modules.Spec.DbsLam.HelperCache.getMvtflow(docFlow),
-			steps = [] ;
-		Ext.Array.each( flowRecord.steps, function(step) {
-			steps.push(step.step_code) ;
-		}) ;
-		steps.push('OK') ;
-		
-		var lib ;
-		var transferFilerecordId = selectedNodes[0].get('transfer_filerecord_id') ;
-		var transferLigFilerecordId_arr = [] ;
-		var currentStepCode, transferStepCode ;
-		if( !Ext.isEmpty(gridTreeNode.get('tree_adr')) ) {
-			currentStepCode = [] ;
-			
-			lib = '<b>'+gridTreeNode.get('tree_adr')+'</b>' ;
-			gridTreeNode.cascadeBy(function(s) {
-				if( s.isLeaf() && s.get('transferlig_filerecord_id') ) {
-					transferLigFilerecordId_arr.push(s.get('transferlig_filerecord_id'));
-					
-					var stepCode = (s.get('status_is_ok') ? 'OK' : s.get('step_code')) ;
-					if( !Ext.Array.contains(currentStepCode,stepCode) ) {
-						currentStepCode.push(stepCode) ;
-					}
-				}
-			}) ;
-			if( currentStepCode.length != 1 ) {
-				return ;
-			}
-			currentStepCode = currentStepCode[0] ;
-		} else {
-			lib = '<b>id:</b>'+gridTreeNode.get('transferlig_filerecord_id') ;
-			transferLigFilerecordId_arr.push(gridTreeNode.get('transferlig_filerecord_id')) ;
-			
-			var stepCode = (gridTreeNode.get('status_is_ok') ? 'OK' : gridTreeNode.get('step_code')) ;
-			currentStepCode = stepCode ;
-		}
-		transferStepCode = steps[Ext.Array.indexOf(steps,currentStepCode)-1] ;
-		
-		var me = this ;
-		var popupPanel = Ext.create('Ext.form.Panel',{
-			optimaModule: this.optimaModule,
-			
-			width:400,
-			height:250,
-			
-			cls: 'ux-noframe-bg',
-			
-			transferFilerecordId: transferFilerecordId,
-			transferLigFilerecordId_arr: transferLigFilerecordId_arr,
-			transferStepCode: transferStepCode,
-			
-			floating: true,
-			renderTo: me.getEl(),
-			tools: [{
-				type: 'close',
-				handler: function(e, t, p) {
-					p.ownerCt.destroy();
-				}
-			}],
-			
-			xtype: 'form',
-			border: false,
-			bodyCls: 'ux-noframe-bg',
-			bodyPadding: 8,
-			layout:'anchor',
-			fieldDefaults: {
-				labelWidth: 125,
-				anchor: '100%'
-			},
-			items:[{
-				height: 72,
-				xtype: 'component',
-				tpl: [
-					'<div class="op5-spec-embralam-liveadr-relocatebanner">',
-						'<span>{text}</span>',
-					'</div>'
-				],
-				data: {text: '<b>Rollback procedure</b><br><br>'}
-			},{
-				xtype: 'displayfield',
-				fieldLabel: 'Item(s)',
-				value: lib
-			},{
-				xtype: 'displayfield',
-				fieldLabel: 'Transfer lines count',
-				value: '<b>'+transferLigFilerecordId_arr.length+'</b>'
-			},{
-				xtype: 'displayfield',
-				fieldLabel: 'Step code',
-				value: currentStepCode+'&#160;>>&#160;'+'<b>'+transferStepCode+'</b>'
-			}],
-			buttons: [{
-				xtype: 'button',
-				text: 'Submit',
-				handler:function(btn){ 
-					var formPanel = btn.up('form') ;
-					formPanel.doSubmitRelocate() ;
-				},
-				scope: this
-			}],
-			doSubmitRelocate: function() {
-				this.optimaModule.getConfiguredAjaxConnection().request({
-					params: {
-						_moduleId: 'spec_dbs_lam',
-						_action: 'transfer_rollbackStep',
-						transferFilerecordId: this.transferFilerecordId,
-						transferLigFilerecordId_arr: Ext.JSON.encode(this.transferLigFilerecordId_arr),
-						transferStepCode: this.transferStepCode
-					},
-					success: function(response) {
-						var jsonResponse = Ext.JSON.decode(response.responseText) ;
-						if( jsonResponse.success ) {
-							this.optimaModule.postCrmEvent('datachange') ;
-							this.destroy() ;
-						} else {
-							Ext.MessageBox.alert('Error',jsonResponse.error) ;
-							return ;
-						}
-					},
-					callback: function() {
-						//this.hideLoadmask() ;
-					},
-					scope: this
-				}) ;
-			},
-			onSubmitRelocate: function(ajaxResponse) {
-				if( ajaxResponse.success ) {
-					this.optimaModule.postCrmEvent('datachange') ;
-					this.destroy() ;
-				}
-			}
-		});
-		
-		popupPanel.on('destroy',function() {
-			me.getEl().unmask() ;
-		},me,{single:true}) ;
-		me.getEl().mask() ;
-		
-		popupPanel.show();
-		popupPanel.getEl().alignTo(me.getEl(), 'c-c?');
 	},
 	
 	openPrintPopupDo: function(pageTitle, pageHtml) {

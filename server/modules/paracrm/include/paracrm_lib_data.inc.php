@@ -895,6 +895,25 @@ function paracrm_lib_data_deleteRecord_file( $file_code, $filerecord_id, $ignore
 	
 	return 0 ;
 }
+function paracrm_lib_data_recoverRecord_file( $file_code, $filerecord_id, $ignore_ifLocked=FALSE )
+{
+	global $_opDB ;
+	
+	if( $ignore_ifLocked ) {
+		return 0 ;
+	}
+	
+	$db_table = 'store_file_'.$file_code ;
+	
+	$query = "UPDATE {$db_table} SET sync_is_deleted='' , sync_timestamp='0' WHERE filerecord_id='$filerecord_id'" ;
+	$_opDB->query($query) ;
+	
+	if( !($arrDB = paracrm_lib_data_getRecord_file( $file_code, $filerecord_id )) ) {
+		return -1 ;
+	}
+	
+	return 0 ;
+}
 
 
 

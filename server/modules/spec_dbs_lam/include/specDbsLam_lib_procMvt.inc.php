@@ -314,6 +314,84 @@ function specDbsLam_lib_procMvt_commit($mvt_filerecordId) {
 	
 	return TRUE ;
 }
+function specDbsLam_lib_procMvt_commitUndo($mvt_filerecordId) {
+	global $_opDB ;
+	
+	// verifs mvt non commit
+	$query = "SELECT * FROM view_file_MVT
+		WHERE filerecord_id='{$mvt_filerecordId}' AND field_COMMIT_IS_OK='1'" ;
+	$result = $_opDB->query($query) ;
+	if( $_opDB->num_rows($result) != 1 ) {
+		return FALSE ;
+	}
+	$row_mvt = $_opDB->fetch_assoc($result) ;
+	$qte_mvt = (float)$row_mvt['field_QTY_MVT'] ;
+	$stockSrc_filerecordId = $row_mvt['field_SRC_FILE_STOCK_ID'] ;
+	$stockDst_filerecordId = $row_mvt['field_DST_FILE_STOCK_ID'] ;
+	
+	
+	// mvt container ou qté ?
+	// if qté => check dest has QTY_AVAIL >= QTY_MVT
+	// if container => check dest has QTY_AVAIL = QTY_MVT && QTY_PREIN=QTY_OUT=0
+	// 
+	$query = "SELECT * FROM view_file_STOCK WHERE filerecord_id='{$stockDst_filerecordId}'" ;
+	$result = $_opDB->query($query) ;
+	if( $_opDB->num_rows($result) != 1 ) {
+		continue ;
+	}
+	$row_stkDst = $_opDB->fetch_assoc($result) ;
+	
+	$mvt_isContainer = ($row_mvt['field_CONTAINER_TYPE']&&$row_mvt['field_CONTAINER_REF']) ;
+	$test_stkAvailableRollback = FALSE ;
+	if( $mvt_isContainer ) {
+		$pass = TRUE ;
+		if( $row_mvt['field_QTY_MVT'] != $row_stkDst['field_QTY_AVAIL'] ) {
+			$pass = FALSE ;
+		}
+		if( !(($row_stkDst['field_QTY_PREIN']+$row_stkDst['field_QTY_OUT'])==0) ) {
+			$pass = FALSE ;
+		}
+		$test_stkAvailableRollback = $pass ;
+	}
+	if( !$mvt_isContainer ) {
+		$test_stkAvailableRollback = ( $row_stkDst['field_QTY_AVAIL'] >= $row_mvt['field_QTY_MVT'] ) ; 
+	}
+	
+	if( !$test_stkAvailableRollback ) {
+		return FALSE ;
+	}
+	
+	
+	// restauration du stock orig ?
+	if( paracrm_lib_data_recoverRecord_file('STOCK',$stockSrc_filerecordId) != 0 ) {
+		return FALSE ;
+	}
+	
+	
+	$query = "SELECT filerecord_id FROM view_file_STOCK
+		WHERE filerecord_id IN ('{$stockSrc_filerecordId}','{$stockDst_filerecordId}')" ;
+	$result = $_opDB->query($query) ;
+	if( $_opDB->num_rows($result) != 2 ) {
+		return FALSE ;
+	}
+	
+	$query = "UPDATE view_file_MVT mvt
+					JOIN view_file_STOCK src ON src.filerecord_id=mvt.field_SRC_FILE_STOCK_ID
+					JOIN view_file_STOCK dst ON dst.filerecord_id=mvt.field_DST_FILE_STOCK_ID
+				SET src.field_QTY_OUT=src.field_QTY_OUT+mvt.field_QTY_MVT
+				, dst.field_QTY_AVAIL=dst.field_QTY_AVAIL-mvt.field_QTY_MVT
+				, dst.field_QTY_PREIN=dst.field_QTY_PREIN+mvt.field_QTY_MVT
+				WHERE mvt.filerecord_id='{$mvt_filerecordId}'" ;
+	$_opDB->query($query) ;
+	
+	$arr_update = array() ;
+	$arr_update['field_COMMIT_IS_OK'] = 0 ;
+	$arr_update['field_COMMIT_DATE'] = date('Y-m-d H:i:s') ;
+	paracrm_lib_data_updateRecord_file('MVT',$arr_update,$mvt_filerecordId) ;
+	
+	
+	return TRUE ;
+}
 
 
 ?>
