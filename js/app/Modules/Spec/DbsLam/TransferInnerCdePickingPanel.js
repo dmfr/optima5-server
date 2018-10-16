@@ -66,15 +66,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerCdePickingPanel',{
 					}
 				}
 			},{
-				text: '<b>Status</b>',
-				dataIndex: 'step_code',
-				width: 65,
-				renderer: function(v) {
-					return '<b>'+v+'</b>' ;
-				}
-			},{
 				text: '<b>Source Location</b>',
-				dataIndex: 'current_adr',
+				dataIndex: 'src_adr',
 				renderer: function(v) {
 					return '<b>'+v+'</b>' ;
 				}
@@ -107,7 +100,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerCdePickingPanel',{
 				}]
 			},{
 				text: '<b>Dest Location</b>',
-				dataIndex: 'next_adr',
+				dataIndex: 'dst_adr',
 				renderer: function(v,metaData,record) {
 					if( record.get('status_is_ok') ) {
 						return '<b>'+v+'</b>' ;

@@ -326,13 +326,13 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					},
 					scope: this
 				},{
-					hidden:true,
 					itemId: 'tbActions',
 					icon: 'images/op5img/ico_arrow-down_16.png',
 					text: 'Actions',
 					menu: [{
 						icon: 'images/op5img/ico_print_16.png',
 						text: '<b>Print</b>',
+						itemIdPrintList: true,
 						handler: function() {
 							this.openPrintPopup() ;
 						},
@@ -340,13 +340,14 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					},{
 						icon: 'images/op5img/ico_print_16.png',
 						text: '<b>Print labels</b>',
+						itemIdPrintLabels: true,
 						handler: function() {
 							this.openPrintPopup(true) ;
 						},
 						scope: this
 					},{
 						xtype: 'menuseparator',
-						itemIdFinalStock: true
+						itemIdAdrAlloc: true
 					},{
 						icon: 'images/op5img/ico_process_16.gif',
 						text: '<b>Pre-Allocate</b>',
@@ -354,58 +355,44 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 							this.handleActionPrealloc() ;
 						},
 						scope: this,
-						itemIdFinalStock: true
-					},{
-						icon: 'images/op5img/ico_ok_16.gif',
-						text: '<b>Acknowledge alloc.</b>',
-						handler: function() {
-							this.handleActionAckalloc() ;
-						},
-						scope: this,
-						itemIdFinalStock: true
+						itemIdAdrAlloc: true
 					},{
 						xtype: 'menuseparator',
-						itemIdCde: true
+						itemIdCdeAlloc: true
 					},{
 						iconCls: 'op5-spec-dbslam-transferaction-stkallocon',
 						text: '<b>Stock allocation</b>',
+						itemIdCdeAlloc: true,
 						handler: function() {
 							this.handleActionStkAlloc() ;
 						},
-						scope: this,
-						itemIdCde: true
+						scope: this
 					},{
 						iconCls: 'op5-spec-dbslam-transferaction-stkallocoff',
 						text: '<b>Un-allocate stock</b>',
+						itemIdCdeAlloc: true,
 						handler: function() {
 							this.handleActionStkUnalloc() ;
 						},
-						scope: this,
-						itemIdCde: true
+						scope: this
 					},{
 						xtype: 'menuseparator',
 						itemIdFastforward: true
 					},{
 						icon: 'images/op5img/ico_process_16.gif',
-						text: '<b>Acknowlegde steps</b>',
+						text: '<b>Commit all</b>',
 						itemIdFastforward: true,
-						itemId: 'tbActionsCdeAck',
-						menu: {
-							defaults: {
-								handler: function(btn) {
-									this.handleActionCdeAck(btn._cdeAckStepCode) ;
-								},
-								scope: this
-							},
-							items: []
-						}
+						handler: function() {
+							this.handleActionFastCommit() ;
+						},
+						scope: this
 					},{
 						xtype: 'menuseparator',
-						itemIdCde: true
+						itemIdCdeDocs: true
 					},{
 						icon: 'images/op5img/ico_print_16.png',
 						text: '<b>Print deliv.notes</b>',
-						itemIdCde: true,
+						itemIdCdeDocs: true,
 						handler: function() {
 							this.openPrintDoc('transfer_cdebl') ;
 						},
@@ -413,7 +400,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					},{
 						icon: 'images/op5img/ico_print_16.png',
 						text: '<b>Print summary</b>',
-						itemIdCde: true,
+						itemIdCdeDocs: true,
 						handler: function() {
 							this.openPrintDoc('transfer_cdebrt') ;
 						},
@@ -469,84 +456,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		// Load Tree
 		this.doLoadTransfers() ;
 	},
-	updateToolbar: function() {
-		if( this.down('#pCenter').down('#pTree') ) {
-			var treepanel = this.down('#pCenter').down('#pTree'),
-				selectedNodes = treepanel.getView().getSelectionModel().getSelection(),
-				isDocSelected = (selectedNodes.length==1 && selectedNodes[0].get('type')=='transfer') ;
-			this.down('toolbar').down('#tbActions').setVisible(isDocSelected) ;
-			
-			var searchOn = ( isDocSelected && this.down('#pCenter').down('#pAdrTree') && this.down('#pCenter').down('#pAdrTree').isVisible() ) ;
-			this.down('toolbar').down('#tbSearchLogo').setVisible(searchOn) ;
-			this.down('toolbar').down('#tbSearchText').setVisible(searchOn) ;
-			
-			var activeTabId = null,
-				activeTab = this.down('#pCenter').down('#tpTabs').getActiveTab() ;
-			if( isDocSelected && activeTab ) {
-				activeTabId = activeTab.itemId ;
-			}
-			
-			var buildpickOn = false ;
-			if( isDocSelected ) {
-				var docFlow = selectedNodes[0].get('flow_code'),
-					flowRecord = Optima5.Modules.Spec.DbsLam.HelperCache.getMvtflow(docFlow) ;
-				
-				if( activeTabId=='pLigs' && !flowRecord.is_foreign && !flowRecord.is_cde ) {
-					buildpickOn = true ;
-				}
-				if( activeTabId=='pCdes' && flowRecord.is_cde ) {
-					buildpickOn = true ;
-				}
-				if( activeTabId=='pNeedLigs' && flowRecord.is_cde ) {
-					buildpickOn = true ;
-				}
-			}
-			this.down('toolbar').down('#tbAdd').setVisible(buildpickOn) ;
-			
-			
-			if( isDocSelected ) {
-				this.down('toolbar').down('#btnWhseSrc').setValue(selectedNodes[0].get('whse_src')) ;
-				this.down('toolbar').down('#btnWhseDest').setValue(selectedNodes[0].get('whse_dest')) ;
-			} else {
-				this.down('toolbar').down('#btnWhseSrc').setValue(null) ;
-				this.down('toolbar').down('#btnWhseDest').setValue(null) ;
-				this.down('toolbar').down('#tbCreate').setVisible( selectedNodes[0] && selectedNodes[0].get('type')=='_new' ) ;
-			}
-			
-			
-			if( isDocSelected ) {
-				var doc = selectedNodes[0],
-					docAllowFinalStock = doc.hasAllowFinalStock(),
-					docAllowCde = doc.hasAllowCde(),
-					docAllowForeign = doc.hasAllowForeign(),
-					docAllowFastforward = doc.hasAllowFastforward() ;
-				Ext.Array.each( this.down('toolbar').down('#tbActions').menu.query('[itemIdFinalStock]'), function(menuitem) {
-					menuitem.setVisible( docAllowFinalStock ) ;
-				}) ;
-				Ext.Array.each( this.down('toolbar').down('#tbActions').menu.query('[itemIdCde]'), function(menuitem) {
-					menuitem.setVisible( docAllowCde ) ;
-				}) ;
-				Ext.Array.each( this.down('toolbar').down('#tbActions').menu.query('[itemIdForeign]'), function(menuitem) {
-					menuitem.setVisible( docAllowForeign ) ;
-				}) ;
-				Ext.Array.each( this.down('toolbar').down('#tbActions').menu.query('[itemIdFastforward]'), function(menuitem) {
-					menuitem.setVisible( docAllowFastforward ) ;
-				}) ;
-				
-				var docFlow = doc.get('flow_code'),
-					flowRecord = Optima5.Modules.Spec.DbsLam.HelperCache.getMvtflow(docFlow) ;
-				var cdeAckButtons = [] ;
-				Ext.Array.each( flowRecord.steps, function(step) {
-					cdeAckButtons.push({
-						_cdeAckStepCode: step.step_code,
-						text: step.step_code + ' : ' + step.step_txt
-					}) ;
-				}) ;
-				this.down('toolbar').down('#tbActions').menu.down('#tbActionsCdeAck').menu.removeAll() ;
-				this.down('toolbar').down('#tbActions').menu.down('#tbActionsCdeAck').menu.add(cdeAckButtons) ;
-			}
-		}
-	},
 	updateWestToolbar: function() {
 		//console.log('updateWestToolbar') ;
 		var treepanel = this.down('#pTransfers'),
@@ -579,36 +488,41 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			pCenterTb.down('#btnWhseDest').setValue( activeTransferStepRecord.get('whse_dst') ) ;
 		}
 		
-		if( !activeTransferStepRecord ) {
-			pCenterTb.down('#tbAdd').setVisible( this._activeTransferRecord.get('spec_cde') ) ;
-			pCenterTb.down('#tbInput').setVisible( false ) ;
-			return ;
-		}
-		/*
-		 * func: getActiveTransferStepRecord
-		 * pour le tab actif :
-		 * - possibilité de build/pick = no spec + no target forward
-		 * - possibilité d input = spec_input
-		 */ 
 		var hasBuildPick = activeTab.hasBuildPick(),
 			hasInput = activeTab.hasInputNew() ;
-		this._activeTransferRecord.steps().each( function( transferStepRecord ) {
-			if( transferStepRecord.get('forward_is_on')
-				&& (transferStepRecord.get('forward_to_idx')==activeTransferStepRecord.get('transferstep_idx')) ) {
-				hasBuildPick = false ;
-			}
-		}) ;
-		Ext.Array.each(['spec_input','spec_cde_packing'],function(spec) {
-			if( activeTransferStepRecord.get(spec) ) {
-				hasBuildPick = false ;
-			}
-		});
-		if( activeTransferStepRecord.get('spec_input') ) {
-			hasInput = true ;
-		}
 		pCenterTb.down('#tbAdd').setVisible( hasBuildPick ) ;
 		pCenterTb.down('#tbInput').setVisible( hasInput ) ;
 		
+			if( true ) { // options
+				var optionsHasFastCommit = activeTab.optionsHasFastCommit(),
+					optionsCdeDocs = activeTab.optionsHasCdeDocs(),
+					optionsCdeAlloc = activeTab.optionsHasCdeAlloc(),
+					optionsAdrAlloc = activeTab.optionsHasAdrAlloc(),
+					optionsPrintLabels = activeTab.optionsHasPrintLabels(),
+					optionsPrintList = activeTab.optionsHasPrintList() ;
+				Ext.Array.each( pCenterTb.down('#tbActions').menu.query('[itemIdFinalStock]'), function(menuitem) {
+					menuitem.setVisible( docAllowFinalStock ) ;
+				}) ;
+				Ext.Array.each( pCenterTb.down('#tbActions').menu.query('[itemIdCdeDocs]'), function(menuitem) {
+					menuitem.setVisible( optionsCdeDocs ) ;
+				}) ;
+				Ext.Array.each( pCenterTb.down('#tbActions').menu.query('[itemIdAdrAlloc]'), function(menuitem) {
+					menuitem.setVisible( optionsAdrAlloc ) ;
+				}) ;
+				Ext.Array.each( pCenterTb.down('#tbActions').menu.query('[itemIdCdeAlloc]'), function(menuitem) {
+					menuitem.setVisible( optionsCdeAlloc ) ;
+				}) ;
+				Ext.Array.each( pCenterTb.down('#tbActions').menu.query('[itemIdFastforward]'), function(menuitem) {
+					menuitem.setVisible( optionsHasFastCommit ) ;
+				}) ;
+				Ext.Array.each( pCenterTb.down('#tbActions').menu.query('[itemIdPrintList]'), function(menuitem) {
+					menuitem.setVisible( optionsPrintList ) ;
+				}) ;
+				Ext.Array.each( pCenterTb.down('#tbActions').menu.query('[itemIdPrintLabels]'), function(menuitem) {
+					menuitem.setVisible( optionsPrintLabels ) ;
+				}) ;
+				
+			}
 	},
 	
 	

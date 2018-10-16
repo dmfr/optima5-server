@@ -71,5 +71,72 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerMixin',{
 			hasInput = true ;
 		}
 		return hasInput ;
+	},
+	
+	optionsHasPrintLabels: function() {
+		var activeTransferRecord = this.getActiveTransferRecord(),
+			activeTransferStepRecord = this.getActiveTransferStepRecord() ;
+		if( !activeTransferStepRecord ) {
+			return false ;
+		}
+		if( activeTransferStepRecord.get('spec_input') ) {
+			return true ;
+		}
+		return false ;
+	},
+	optionsHasPrintList: function() {
+		var activeTransferRecord = this.getActiveTransferRecord(),
+			activeTransferStepRecord = this.getActiveTransferStepRecord() ;
+		if( !activeTransferStepRecord ) {
+			return false ;
+		}
+		if( activeTransferStepRecord.get('spec_input') ) {
+			return false ;
+		}
+		return true ;
+	},
+	optionsHasAdrAlloc: function() {
+		var activeTransferRecord = this.getActiveTransferRecord(),
+			activeTransferStepRecord = this.getActiveTransferStepRecord() ;
+		if( !activeTransferStepRecord ) {
+			return false ;
+		}
+		if( activeTransferRecord.get('spec_cde') ) {
+			return false ;
+		}
+		if( activeTransferStepRecord.get('spec_input') ) {
+			return false ;
+		}
+		return true ;
+	},
+	optionsHasCdeAlloc: function() {
+		var activeTransferRecord = this.getActiveTransferRecord(),
+			activeTransferStepRecord = this.getActiveTransferStepRecord() ;
+		if( !activeTransferStepRecord ) {
+			return false ;
+		}
+		if( activeTransferRecord.get('spec_cde') && activeTransferStepRecord.get('spec_cde_picking') ) {
+			return true ;
+		}
+		return false ;
+	},
+	optionsHasFastCommit: function() {
+		var activeTransferRecord = this.getActiveTransferRecord(),
+			activeTransferStepRecord = this.getActiveTransferStepRecord() ;
+		if( !activeTransferStepRecord || activeTransferStepRecord.get('spec_input') ) {
+			return false ;
+		}
+		return true ;
+	},
+	optionsHasCdeDocs: function() {
+		var activeTransferRecord = this.getActiveTransferRecord() ;
+		if( activeTransferRecord.get('spec_cde') ) {
+			return true ;
+		}
+		return false ;
+	},
+	
+	dummyFn: function() {
+		
 	}
 }) ;
