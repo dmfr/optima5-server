@@ -1340,7 +1340,6 @@ function specDbsLam_transfer_removeCdePickingStock( $post_data, $fast=FALSE ) {
 
 
 
-
 function specDbsLam_transfer_setAdr( $post_data ) {
 	global $_opDB ;
 	
@@ -1381,6 +1380,7 @@ function specDbsLam_transfer_setAdr( $post_data ) {
 	}
 	
 	$ids = array() ;
+	specDbsLam_lib_proc_lock_on() ;
 	foreach( $adr_objs as $adr_obj ) {
 		$transferlig_filerecord_id = $adr_obj['transferlig_filerecord_id'] ;
 		$transferlig_row = NULL ;
@@ -1394,20 +1394,32 @@ function specDbsLam_transfer_setAdr( $post_data ) {
 		}
 		
 		$mvt_filerecordId = $transferlig_row['mvt_filerecord_id'] ;
+		/*
 		$query = "SELECT * FROM view_file_MVT WHERE filerecord_id='{$mvt_filerecordId}'" ;
 		$result = $_opDB->query($query) ;
 		$row_mvt = $_opDB->fetch_assoc($result) ;
-
+		*/
 		
 		if( isset($adr_obj['adr_id']) && !$adr_obj['adr_id'] ) {
 			// unalloc
 			specDbsLam_lib_procMvt_setDstAdr($mvt_filerecordId,null) ;
 			$ids[] = $transferlig_filerecord_id ;
+		} elseif( $adr_obj['adr_id'] ) {
+			if( $adr_id = specDbsLam_lib_proc_validateAdr( $mvt_obj, $transferstep_row['whse_dst'], $adr_obj['adr_id'] ) ) {
+				specDbsLam_lib_procMvt_setDstAdr($mvt_filerecordId, $adr_id) ;
+				$ids[] = $transferlig_filerecord_id ;
+			}
+		} elseif( $adr_obj['adr_auto'] ) {
+			$adr_id = specDbsLam_lib_proc_findAdr( $transferlig_row, $transferstep_row['whse_dst'], $adr_obj['adr_auto_picking'] ) ;
+			if( $adr_id ) {
+				specDbsLam_lib_procMvt_setDstAdr($mvt_filerecordId, $adr_id) ;
+				$ids[] = $transferlig_filerecord_id ;
+			}
 		}
 		
 		//$ids[] = $transferlig_filerecord_id ;
 	}
-
+	specDbsLam_lib_proc_lock_off() ;
 	
 	return array('success'=>(count($ids)>0), 'ids'=>$ids) ;
 }

@@ -55,8 +55,29 @@ function specDbsLam_lib_proc_findAdr( $mvt_obj, $whse_dest, $to_picking ) {
 	* 
 	*/
 	
+	if( $mvt_obj['stk_prod'] ) {
+		// paramétrage picking ?
+		// picking existant ? si oui adresse ?
+		$pickingIsStatic = false ;
+		$pickingAdrCurrent = false ;
+		$pickingAdrStatic = false ;
+		
+		if( ($mvt_obj['container_type'] && $to_picking) && $pickingIsStatic && (($pickingAdrCurrent==$pickingAdrStatic)||!$pickingAdrCurrent) ) {
+			return $pickingAdrStatic ;
+		}
+	}
+	
+	
+	
 }
-function specDbsLam_lib_proc_validateAdr( $mvt_obj, $adr_id ) {
+function specDbsLam_lib_proc_validateAdr( $mvt_obj, $whse_dest, $adr_id ) {
+	//
+	$adr_treenodes = paracrm_data_getBibleTreeBranch( 'ADR', $whse_dest ) ;
+	$adr_row = paracrm_lib_data_getRecord_bibleEntry( 'ADR', $adr_id ) ;
+	if( !$adr_row || !in_array($adr_row['treenode_key'],$adr_treenodes) ) {
+		// echo "NON-EXIST" ;
+		return FALSE ;
+	}
 	/*
 	--- Checks ----
 	 container type

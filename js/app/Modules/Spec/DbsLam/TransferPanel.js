@@ -339,7 +339,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 						icon: 'images/op5img/ico_process_16.gif',
 						text: '<b>Pre-Allocate</b>',
 						handler: function() {
-							this.handleActionPrealloc() ;
+							this.handleActionAdrAlloc() ;
 						},
 						scope: this,
 						itemIdAdrAlloc: true
@@ -1230,101 +1230,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 	
 	
 	
-	handleActionPrealloc: function() {
-		var pTreeSelection = this.down('#pCenter').down('#pTree').getSelectionModel().getSelection() ;
-		if( pTreeSelection.length != 1 || pTreeSelection[0].get('type') != 'transfer' ) {
-			Ext.MessageBox.alert('Error','No suitable doc selected.') ;
-			return ;
-		}
-		
-		var docFlow = pTreeSelection[0].get('flow_code'),
-			flowRecord = Optima5.Modules.Spec.DbsLam.HelperCache.getMvtflow(docFlow),
-			flowSteps = flowRecord.steps,
-			lastStepIdx = (flowSteps.length - 1),
-			lastStepCode = flowSteps[lastStepIdx].step_code ;
-		
-		var transferFilerecordId = pTreeSelection[0].get('transfer_filerecord_id'),
-			  transferligFilerecordIds = [] ;
-		var pLigs = this.down('#pCenter').down('#pLigs') ;
-		pLigs.getStore().each( function(gridRec) {
-			if( gridRec.get('transfer_filerecord_id') != transferFilerecordId ) {
-				return ;
-			}
-			if( gridRec.get('step_code') != lastStepCode ) {
-				return ;
-			}
-			transferligFilerecordIds.push( gridRec.get('transferlig_filerecord_id') ) ;
-		}) ;
-		
-		this.optimaModule.getConfiguredAjaxConnection().request({
-			params: {
-				_moduleId: 'spec_dbs_lam',
-				_action: 'transfer_allocAdrFinal',
-				transfer_filerecordId: transferFilerecordId,
-				transferLigFilerecordId_arr: Ext.JSON.encode(transferligFilerecordIds),
-				transferStepCode: lastStepCode
-			},
-			success: function(response) {
-				var jsonResponse = Ext.JSON.decode(response.responseText) ;
-				this.doTransferLoad();
-				
-				//this.doLoadTransfers() ;
-			},
-			callback: function() {
-				this.hideLoadmask() ;
-			},
-			scope: this
-		}) ;
-	},
-	handleActionAckalloc: function() {
-		var pTreeSelection = this.down('#pCenter').down('#pTree').getSelectionModel().getSelection() ;
-		if( pTreeSelection.length != 1 || pTreeSelection[0].get('type') != 'transfer' ) {
-			Ext.MessageBox.alert('Error','No suitable doc selected.') ;
-			return ;
-		}
-		
-		var docFlow = pTreeSelection[0].get('flow_code'),
-			flowRecord = Optima5.Modules.Spec.DbsLam.HelperCache.getMvtflow(docFlow),
-			flowSteps = flowRecord.steps,
-			lastStepIdx = (flowSteps.length - 1),
-			lastStepCode = flowSteps[lastStepIdx].step_code ;
-		
-		var transferFilerecordId = pTreeSelection[0].get('transfer_filerecord_id'),
-			  transferligFilerecordIds = [] ;
-		var pLigs = this.down('#pCenter').down('#pLigs') ;
-		pLigs.getStore().each( function(gridRec) {
-			if( gridRec.get('transfer_filerecord_id') != transferFilerecordId ) {
-				return ;
-			}
-			if( gridRec.get('step_code') != lastStepCode ) {
-				return ;
-			}
-			if( gridRec.get('status_is_ok') ) {
-				return ;
-			}
-			transferligFilerecordIds.push( gridRec.get('transferlig_filerecord_id') ) ;
-		}) ;
-		
-		this.optimaModule.getConfiguredAjaxConnection().request({
-			params: {
-				_moduleId: 'spec_dbs_lam',
-				_action: 'transfer_commitAdrFinal',
-				transfer_filerecordId: transferFilerecordId,
-				transferLigFilerecordId_arr: Ext.JSON.encode(transferligFilerecordIds),
-				transferStepCode: lastStepCode
-			},
-			success: function(response) {
-				var jsonResponse = Ext.JSON.decode(response.responseText) ;
-				this.doTransferLoad();
-				
-				//this.doLoadTransfers() ;
-			},
-			callback: function() {
-				this.hideLoadmask() ;
-			},
-			scope: this
-		}) ;
-	},
 	
 	handleDeleteDoc: function(transferFilerecordId) {
 		var ajaxParams = {
@@ -1347,93 +1252,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		}) ;
 	},
 	
-	handleDropCdes: function(cdesFilerecordIds) {
-		var activeTransferFilerecordId = this.getActiveTransferFilerecordId() ;
-		
-		var ajaxParams = {
-			_moduleId: 'spec_dbs_lam',
-			_action: 'transfer_addCdeLink',
-			cde_filerecordIds: Ext.JSON.encode(cdesFilerecordIds),
-			transfer_filerecordId: activeTransferFilerecordId 
-		} ;
-		this.optimaModule.getConfiguredAjaxConnection().request({
-			params: ajaxParams,
-			success: function(response) {
-				var ajaxResponse = Ext.decode(response.responseText) ;
-				if( ajaxResponse.success == false ) {
-					Ext.MessageBox.alert('Error','Error') ;
-					return ;
-				}
-				this.optimaModule.postCrmEvent('datachange') ;
-			},
-			scope: this
-		}) ;
-	},
-	handleRemoveCdes: function(cdesFilerecordIds) {
-		var activeTransferFilerecordId = this.getActiveTransferFilerecordId() ;
-		
-		var ajaxParams = {
-			_moduleId: 'spec_dbs_lam',
-			_action: 'transfer_removeCdeLink',
-			cde_filerecordIds: Ext.JSON.encode(cdesFilerecordIds),
-			transfer_filerecordId: activeTransferFilerecordId
-		} ;
-		this.optimaModule.getConfiguredAjaxConnection().request({
-			params: ajaxParams,
-			success: function(response) {
-				var ajaxResponse = Ext.decode(response.responseText) ;
-				if( ajaxResponse.success == false ) {
-					Ext.MessageBox.alert('Error','Error') ;
-					return ;
-				}
-				this.optimaModule.postCrmEvent('datachange') ;
-			},
-			scope: this
-		}) ;
-	},
-	handleDropCdeStock: function(srcStockFilerecordIds,transfercdeneedFilerecordId) {
-		var activeTransferFilerecordId = this.getActiveTransferFilerecordId() ;
-		
-		var ajaxParams = {
-			_moduleId: 'spec_dbs_lam',
-			_action: 'transfer_addCdeStock',
-			stock_filerecordIds: Ext.JSON.encode(srcStockFilerecordIds),
-			transfer_filerecordId: activeTransferFilerecordId,
-			transfercdeneed_filerecordId: transfercdeneedFilerecordId
-		} ;
-		this.optimaModule.getConfiguredAjaxConnection().request({
-			params: ajaxParams,
-			success: function(response) {
-				var ajaxResponse = Ext.decode(response.responseText) ;
-				if( ajaxResponse.success == false ) {
-					Ext.MessageBox.alert('Error','Error') ;
-					return ;
-				}
-				this.optimaModule.postCrmEvent('datachange') ;
-			},
-			scope: this
-		}) ;
-	},
-	handleRemoveCdeStock: function(transferLigIds) {
-		var ajaxParams = {
-			_moduleId: 'spec_dbs_lam',
-			_action: 'transfer_removeCdeStock',
-			transfer_filerecordId: this.getActiveTransferFilerecordId(),
-			transferLig_filerecordIds: Ext.JSON.encode(transferLigIds) 
-		} ;
-		this.optimaModule.getConfiguredAjaxConnection().request({
-			params: ajaxParams,
-			success: function(response) {
-				var ajaxResponse = Ext.decode(response.responseText) ;
-				if( ajaxResponse.success == false ) {
-					Ext.MessageBox.alert('Error','Error') ;
-					return ;
-				}
-				this.optimaModule.postCrmEvent('datachange') ;
-			},
-			scope: this
-		}) ;
-	},
 	handleActionStkUnalloc: function() {
 		var ajaxParams = {
 			_moduleId: 'spec_dbs_lam',
@@ -1496,6 +1314,60 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					return ;
 				}
 				this.optimaModule.postCrmEvent('datachange') ;
+			},
+			scope: this
+		}) ;
+	},
+	
+	
+	handleActionAdrAlloc: function() {
+		var pCenter = this.down('#pCenter'),
+			pCenterTb = pCenter.down('toolbar'),
+			tabPanel = pCenter.down('tabpanel') ;
+		if( !tabPanel ) {
+			return ;
+		}
+		var activeTab = tabPanel.getActiveTab();
+		if( !activeTab ) {
+			return ;
+		}
+		if( !activeTab.optionsHasAdrAlloc() ) {
+			return ;
+		}
+		
+		var activeTransferStepRecord = activeTab.getActiveTransferStepRecord() ;
+		// toutes lignes non commit
+		var adrObjs = [] ;
+		activeTransferStepRecord.ligs().each( function(transferLigRecord) {
+			if( transferLigRecord.get('status_is_ok') ) {
+				return ;
+			}
+			adrObjs.push({
+				transferlig_filerecord_id: transferLigRecord.get('transferlig_filerecord_id'),
+				adr_auto: true
+			}) ;
+		}) ;
+		
+		var ajaxParams = {
+			_moduleId: 'spec_dbs_lam',
+			_action: 'transfer_setAdr',
+			transfer_filerecordId: this._activeTransferRecord.get('transfer_filerecord_id'),
+			transferStep_filerecordId: activeTransferStepRecord.get('transferstep_filerecord_id'),
+			adr_objs: Ext.JSON.encode(adrObjs) 
+		} ;
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams,
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+				this.optimaModule.postCrmEvent('datachange') ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
 			},
 			scope: this
 		}) ;
