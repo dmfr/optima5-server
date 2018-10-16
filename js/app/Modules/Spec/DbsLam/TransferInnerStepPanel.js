@@ -5,6 +5,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 	},
 	
 	initComponent: function() {
+		var optimaModule = this.optimaModule ;
+		
 		this.tmpLigsModelName = 'DbsLamTransferLigModel-' + this.getId() ;
 		this.on('destroy',function(p) {
 			Ext.ux.dams.ModelManager.unregister( p.tmpLigsModelName ) ;
@@ -12,11 +14,27 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 		
 		var pushModelfields = [], atrAdrColumns = [], atrStockColumns = [] ;
 		Ext.Array.each( Optima5.Modules.Spec.DbsLam.HelperCache.getAttributeAll(), function( attribute ) {
+			
+			var fieldEditor ;
+			if( attribute.bible_code ) {
+				fieldEditor = {
+					xtype:'op5crmbasebibletreepicker',
+					selectMode: 'single',
+					optimaModule: optimaModule,
+					bibleId: attribute.bible_code
+				} ;
+			} else  {
+				fieldEditor = {
+					xtype:'textfield'
+				} ;
+			}
+
 			var fieldColumn = {
 				locked: true,
 				text: attribute.atr_txt,
 				dataIndex: attribute.mkey,
-				width: 75
+				width: 75,
+				editorTplNew: fieldEditor
 			} ;
 			if( attribute.ADR_fieldcode ) {
 				atrAdrColumns.push(fieldColumn) ;
@@ -78,8 +96,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 			},{
 				text: '<b>SKU details</b>',
 				columns: [{
-					dataIndex: 'container_ref',
-					text: 'Container',
+					dataIndex: 'container_type',
+					text: 'Cont/Ref',
 					width: 100,
 					editorTplNew: {
 								xtype: 'combobox',
@@ -108,6 +126,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 									scope: this
 								}
 					}
+				},{
+					dataIndex: 'container_ref',
+					text: 'Cont/Ref',
+					width: 100
 				},{
 					dataIndex: 'stk_prod',
 					text: 'P/N',
@@ -373,6 +395,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 		if( context.record.get('_input_is_on') ) {
 			return this.onEditorBeforeNewEdit(editor,context) ;
 		}
+		this.rollbackEditorAdr(false) ;
 		return this.onEditorBeforeAdrEdit(editor,context) ;
 	},
 	onEditorBeforeNewEdit: function( editor, context ) {
@@ -399,6 +422,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 				col.setEditor(null) ;
 			}
 		}) ;
+		if( !this.optionsHasAdrAlloc() ) {
+			return false ;
+		}
 		if( context.record.get('status_is_ok') ) {
 			return false ;
 		}
@@ -410,7 +436,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 		return this.onEditorAdrEdit(editor,context) ;
 	},
 	onEditorAdrEdit: function( editor, context ) {
-		if( !this.onEditorEditAdr(context.record,context.originalValues['next_adr'],context.newValues['next_adr']) ) {
+		if( !this.submitEditorAdr(context.record,context.originalValues['dst_adr'],context.newValues['dst_adr']) ) {
 			context.cancel = true ;
 			return false ;
 		}
@@ -428,10 +454,16 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 			"stk_batch":'',
 			"stk_sn":'',
 			"mvt_qty":values.mvt_qty,
-			"container_is_off":Ext.isEmpty(values.container_ref),
-			"container_type":values.container_ref,
+			"container_is_off":Ext.isEmpty(values.container_type),
+			"container_type":values.container_type,
 			"container_ref":""
 		} ;
+		Ext.Array.each( Optima5.Modules.Spec.DbsLam.HelperCache.getAttributeAll(), function( attribute ) {
+			if( attribute.STOCK_fieldcode ) {
+				skuData_obj[attribute.mkey] = values[attribute.mkey] ;
+			}
+		}) ;
+		
 		this.submitEditorNew(context.record,skuData_obj,values.dst_adr) ;
 	},
 	onEditorCancelEdit: function(editor,context) {
@@ -441,42 +473,29 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 			store.remove(record) ;
 		}
 	},
-	onEditorEditAdr: function( gridRecord, oldValue, newValue ) {
+	submitEditorAdr: function( gridRecord, oldValue, newValue ) {
 		if( newValue.trim().toUpperCase() == oldValue.trim().toUpperCase() ) {
 			return false ;
 		}
-		var curStepCode = gridRecord.get('step_code'),
-			transferLig_filerecordId = gridRecord.get('transferlig_filerecord_id'),
-			empty = Ext.isEmpty(newValue.trim().toUpperCase()) ;
+		this._rollbackEditAdr_gridRecord = gridRecord ;
+		this._rollbackEditAdr_oldValue = oldValue ;
 		
-		this.showLoadmask() ;
-		var ajaxParams = {
-			_moduleId: 'spec_dbs_lam',
-			_action: (empty ? 'transfer_unallocAdrFinal':'transfer_allocAdrFinal'),
-			transfer_filerecordId: this.getActiveTransferFilerecordId(),
-			transferLigFilerecordId_arr: Ext.JSON.encode([transferLig_filerecordId]),
-			transferStepCode: curStepCode,
-			manAdr_isOn: true,
-			manAdr_adrId: newValue.trim().toUpperCase()
+		var adrObj = {
+			transferlig_filerecord_id: gridRecord.get('transferlig_filerecord_id'),
+			adr_id: newValue.trim().toUpperCase()
 		} ;
-		this.optimaModule.getConfiguredAjaxConnection().request({
-			params: ajaxParams,
-			success: function(response) {
-				var ajaxResponse = Ext.decode(response.responseText) ;
-				if( ajaxResponse.success == false ) {
-					Ext.MessageBox.alert('Error','Location not accepted') ;
-					gridRecord.set('next_adr',oldValue) ;
-					return ;
-				}
-				this.optimaModule.postCrmEvent('datachange') ;
-			},
-			callback: function() {
-				this.hideLoadmask() ;
-			},
-			scope: this
-		}) ;
+		this.fireEvent('op5lamstocksetadr',this,adrObj) ;
 		return true ;
 	},
+	rollbackEditorAdr: function(torf) {
+		if( torf && this._rollbackEditAdr_gridRecord ) {
+			this._rollbackEditAdr_gridRecord.set('dst_adr',this._rollbackEditAdr_oldValue) ;
+			Ext.MessageBox.alert('Error','Location not accepted') ;
+		}
+		delete this._rollbackEditAdr_gridRecord ;
+		delete this._rollbackEditAdr_oldValue ;
+	},
+	
 	
 	submitEditorNew: function( gridRecordTmp, stkData_obj, location ) {
 		var stockaddObj = {

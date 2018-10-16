@@ -54,8 +54,6 @@ switch( $post_data['_action'] )
 	return specDbsLam_transfer_createDoc( $post_data ) ;
 	case 'transfer_deleteDoc' :
 	return specDbsLam_transfer_deleteDoc( $post_data ) ;
-	case 'transfer_rollbackStep' :
-	return specDbsLam_transfer_rollbackStep( $post_data ) ;
 	
 	case 'transfer_addCdeLink' :
 	return specDbsLam_transfer_addCdeLink( $post_data ) ;
@@ -72,15 +70,8 @@ switch( $post_data['_action'] )
 	case 'transfer_removeCdePickingStock' :
 	return specDbsLam_transfer_removeCdePickingStock( $post_data ) ;
 	
-	case 'transfer_commitAdrTmp' :
-	return specDbsLam_transfer_commitAdrTmp( $post_data ) ;
-	case 'transfer_commitAdrFinal' :
-	return specDbsLam_transfer_commitAdrFinal( $post_data ) ;
-	case 'transfer_allocAdrFinal' :
-	return specDbsLam_transfer_allocAdrFinal( $post_data ) ;
-	case 'transfer_unallocAdrFinal' :
-	return specDbsLam_transfer_unallocAdrFinal( $post_data ) ;
-	
+	case 'transfer_setAdr' :
+	return specDbsLam_transfer_setAdr( $post_data ) ;
 	case 'transfer_rollback' :
 	return specDbsLam_transfer_rollback( $post_data ) ;
 	

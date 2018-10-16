@@ -47,7 +47,31 @@ function specDbsLam_lib_proc_lock_off() {
 	$_opDB->query($query) ;
 }
 
-function specDbsLam_lib_proc_findAdr( $mvt_obj, $stockAttributes_obj, $whse_dest, $suggest_adrId=NULL ) {
+function specDbsLam_lib_proc_findAdr( $mvt_obj, $whse_dest, $to_picking ) {
+	/*
+	* --- mvt_obj -----
+	*  soc_code
+	*  prod_id
+	* 
+	*/
+	
+}
+function specDbsLam_lib_proc_validateAdr( $mvt_obj, $adr_id ) {
+	/*
+	--- Checks ----
+	 container type
+	 attributes
+	----
+	*/
+	
+}
+
+
+
+
+
+
+function specDbsLam_lib_proc_findAdrOld( $mvt_obj, $stockAttributes_obj, $whse_dest, $suggest_adrId=NULL ) {
 	global $_opDB ;
 	
 	// Load cfg attributes

@@ -1338,4 +1338,80 @@ function specDbsLam_transfer_removeCdePickingStock( $post_data, $fast=FALSE ) {
 	return array('success'=>true) ;
 }
 
+
+
+
+function specDbsLam_transfer_setAdr( $post_data ) {
+	global $_opDB ;
+	
+	$ttmp = specDbsLam_cfg_getConfig() ;
+	$json_cfg = $ttmp['data'] ;
+	
+	
+	$transfer_filerecordId = $post_data['transfer_filerecordId'] ;
+	$transferStep_filerecordId = $post_data['transferStep_filerecordId'] ;
+	$adr_objs = json_decode($post_data['adr_objs'],true) ;
+	
+	$formard_post = array(
+		'filter_transferFilerecordId' => $transfer_filerecordId
+	) ;
+	$json = specDbsLam_transfer_getTransfer($formard_post) ;
+	$transfer_row = reset($json['data']) ;
+	$transferstep_row = NULL ;
+	if( !$transfer_row ) {
+		return array('success'=>false) ;
+	}
+	foreach( $transfer_row['steps'] as $transferstep_iter ) {
+		if( $transferstep_iter['transferstep_filerecord_id'] == $transferStep_filerecordId ) {
+			$transferstep_row = $transferstep_iter ;
+		}
+	}
+	if( !$transferstep_row ) {
+		return array('success'=>false) ;
+	}
+	
+	$whseDestIsWork = FALSE ;
+	foreach($json_cfg['cfg_whse'] as $whse) {
+		if( ($whse['whse_code']==$transferstep_row['whse_dst']) && $whse['is_work'] ) {
+			$whseDestIsWork = TRUE ;
+		}
+	}
+	if( $whseDestIsWork ) {
+		return ;
+	}
+	
+	$ids = array() ;
+	foreach( $adr_objs as $adr_obj ) {
+		$transferlig_filerecord_id = $adr_obj['transferlig_filerecord_id'] ;
+		$transferlig_row = NULL ;
+		foreach( $transferstep_row['ligs'] as $transferlig_iter ) {
+			if( $transferlig_iter['transferlig_filerecord_id'] == $transferlig_filerecord_id ) {
+				$transferlig_row = $transferlig_iter ;
+			}
+		}
+		if( !$transferlig_row || $transferlig_row['status_is_ok'] ) {
+			continue ;
+		}
+		
+		$mvt_filerecordId = $transferlig_row['mvt_filerecord_id'] ;
+		$query = "SELECT * FROM view_file_MVT WHERE filerecord_id='{$mvt_filerecordId}'" ;
+		$result = $_opDB->query($query) ;
+		$row_mvt = $_opDB->fetch_assoc($result) ;
+
+		
+		if( isset($adr_obj['adr_id']) && !$adr_obj['adr_id'] ) {
+			// unalloc
+			specDbsLam_lib_procMvt_setDstAdr($mvt_filerecordId,null) ;
+			$ids[] = $transferlig_filerecord_id ;
+		}
+		
+		//$ids[] = $transferlig_filerecord_id ;
+	}
+
+	
+	return array('success'=>(count($ids)>0), 'ids'=>$ids) ;
+}
+
+
+
 ?>
