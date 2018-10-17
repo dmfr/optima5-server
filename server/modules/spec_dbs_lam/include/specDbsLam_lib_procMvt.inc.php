@@ -190,44 +190,6 @@ function specDbsLam_lib_procMvt_delMvt($mvt_filerecordId) {
 	
 	return TRUE ;
 }
-function specDbsLam_lib_procMvt_delMvtUnalloc($mvt_filerecordId) {
-	global $_opDB ;
-	
-	$query = "SELECT * FROM view_file_MVT WHERE
-		filerecord_id='{$mvt_filerecordId}'" ;
-	$result = $_opDB->query($query) ;
-	if( $_opDB->num_rows($result) != 1 ) {
-		return FALSE ;
-	}
-	$row_mvt = $_opDB->fetch_assoc($result) ;
-	$qte_mvt = (float)$row_mvt['field_QTY_MVT'] ;
-	
-	$query = "SELECT * FROM view_file_MVT_STEP WHERE
-		filerecord_parent_id='{$mvt_filerecordId}' ORDER BY filerecord_id DESC LIMIT 1" ;
-	$result = $_opDB->query($query) ;
-	if( $_opDB->num_rows($result) != 1 ) {
-		return FALSE ;
-	}
-	$row_mvt_step = $_opDB->fetch_assoc($result) ;
-	
-	if( $row_mvt_step['field_DEST_ADR_ID'] && !$row_mvt_step['field_STATUS_IS_OK'] ) {
-		// reserv ADR
-		$arr_update = array() ;
-		$arr_update['field_DEST_ADR_ID'] = '' ;
-		$arr_update['field_DEST_ADR_DISPLAY'] = '' ;
-		$arr_cond = array() ;
-		$arr_cond['filerecord_id'] = $row_mvt_step['filerecord_id'] ;
-		$_opDB->update('view_file_MVT_STEP',$arr_update, $arr_cond) ;
-		
-		$query = "UPDATE view_bible_ADR_entry SET field_STATUS_IS_PREALLOC='0' WHERE entry_key='{$row_mvt_step['field_DEST_ADR_ID']}'
-			AND entry_key NOT IN (select field_DEST_ADR_ID FROM view_file_MVT_STEP WHERE field_STATUS_IS_OK='0' AND field_DEST_ADR_ID<>'')" ;
-		$_opDB->query($query) ;
-		
-		return TRUE ;
-	}
-	
-	return FALSE ;
-}
 
 
 function specDbsLam_lib_procMvt_setDstAdr($mvt_filerecordId, $adr_dest) {

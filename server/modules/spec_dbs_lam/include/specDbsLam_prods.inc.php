@@ -135,51 +135,5 @@ function specDbsLam_prods_getStockGrid($post_data) {
 }
 
 
-function specDbsLam_prods_doRelocate($post_data) {
-	global $_opDB ;
-	
-	$form_data = json_decode($post_data['data'],true) ;
-	
-	$pDestAdr = trim(strtoupper($form_data['dest_adr_id'])) ;
-	$pFilerecordsIds = $form_data['arrFilerecordIds'] ;
-	
-	$query = "SELECT count(*) FROM view_bible_ADR_entry WHERE entry_key='{$pDestAdr}'" ;
-	if( $_opDB->query_uniqueValue($query) != 1 ) {
-		return array('success'=>false) ;
-	}
-	foreach( $pFilerecordsIds as $stk_filerecord_id ) {
-		$query = "SELECT * FROM view_file_STOCK WHERE filerecord_id='{$stk_filerecord_id}'" ;
-		$result = $_opDB->query($query) ;
-		$arr = $_opDB->fetch_assoc($result) ;
-		if( !$arr || $arr['field_QTY_AVAIL'] <= 0 || $arr['field_QTY_OUT'] > 0 ) {
-			return array('success'=>false) ;
-		}
-	}
-	
-	$query = "SELECT filerecord_id FROM view_file_TRANSFER WHERE field_TRANSFER_TXT='RELOCATE'" ;
-	$transfer_filerecord_id = $_opDB->query_uniqueValue($query) ;
-	if( !$transfer_filerecord_id ) {
-		return array('success'=>false) ;
-	}
-	
-	$ttmp = specDbsLam_transfer_addStock( array(
-		'transfer_filerecordId' => $transfer_filerecord_id,
-		'stock_filerecordIds' => json_encode($pFilerecordsIds)
-	)) ;
-	$arr_transferLigIds = array() ;
-	foreach( $ttmp['ids'] as $id ) {
-		$arr_transferLigIds[] = $id ;
-	}
-	$ttmp = specDbsLam_transfer_commitAdrFinal( array(
-		'transferFilerecordId' =>  $transfer_filerecord_id,
-		'transferLigFilerecordId_arr' => json_encode($arr_transferLigIds),
-		'transferStepCode' => 'R00_RELOCATE',
-		'manAdr_isOn' => 1,
-		'manAdr_adrId' => $pDestAdr
-	), $fast=TRUE) ;
-
-	return array('success'=>true, 'debug'=>$post_data) ;
-}
-
 
 ?>

@@ -94,6 +94,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.MainMenu',{
 				action_sendEvent:'window_gun',
 				action_iconCls:'op5-spec-dbslam-menu-pda'
 			},{
+				item_disabled: true,
 				type_action:true,
 				action_caption: 'Inbound / Location',
 				action_sendEvent:'panel_live',

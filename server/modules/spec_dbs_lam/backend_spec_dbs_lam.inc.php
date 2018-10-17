@@ -26,7 +26,7 @@ switch( $post_data['_action'] )
 	case 'prods_getStockGrid' :
 	return specDbsLam_prods_getStockGrid( $post_data ) ;
 	case 'prods_doRelocate' :
-	return specDbsLam_prods_doRelocate( $post_data ) ;
+	return array('success'=>false) ;
 	
 	case 'queryspec' :
 	session_write_close() ;

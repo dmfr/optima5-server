@@ -116,10 +116,11 @@ function specDbsLam_transfer_getTransferLig($post_data) {
 	}
 	$selects = implode(',',$selects) ;
 	
-	$query = "SELECT tl.filerecord_id as transferlig_filerecord_id, tl.filerecord_parent_id as transfer_filerecord_id
+	$query = "SELECT tl.filerecord_id as transferlig_filerecord_id, ts.filerecord_id as transferstep_filerecord_id, tl.filerecord_parent_id as transfer_filerecord_id
 		, mvt.filerecord_id as mvt_filerecord_id
 		, {$selects}
 		FROM view_file_TRANSFER_LIG tl
+		INNER JOIN view_file_TRANSFER_STEP ts ON ts.filerecord_parent_id = tl.filerecord_parent_id AND ts.field_TRANSFERSTEP_IDX = tl.field_TRANSFERSTEP_IDX
 		INNER JOIN view_file_MVT mvt ON mvt.filerecord_id = tl.field_FILE_MVT_ID" ;
 	$query.= " WHERE 1" ;
 	if( $post_data['filter_transferFilerecordId'] ) {
@@ -143,6 +144,7 @@ function specDbsLam_transfer_getTransferLig($post_data) {
 				'transfer_flow_code' => $arr['transfer_flow_code'],
 				'transferlig_filerecord_id' => $arr['transferlig_filerecord_id'],
 				'transferstep_idx' => $arr['field_TRANSFERSTEP_IDX'],
+				'transferstep_filerecord_id' => $arr['transferstep_filerecord_id'],
 				'cdepick_transfercdeneed_filerecord_id' => $arr['field_PICK_TRSFRCDENEED_ID'],
 				'mvt_filerecord_id' => $arr['mvt_filerecord_id'],
 				'soc_code' => $arr['field_SOC_CODE'],
@@ -1165,73 +1167,6 @@ function specDbsLam_transfer_removeCdeLink($post_data) {
 	specDbsLam_lib_procCde_calcNeeds($p_transferFilerecordId) ;
 	return array('success'=>true) ;
 }
-
-function specDbsLam_transfer_cdeStockAlloc( $post_data ) {
-	$p_transferFilerecordId = $post_data['transfer_filerecordId'] ;
-	specDbsLam_lib_procCde_syncLinks($p_transferFilerecordId) ;
-	
-	$ttmp = specDbsLam_transfer_getTransferCdeNeed( array('filter_transferFilerecordId'=>$p_transferFilerecordId) ) ;
-	$rows_transferNeed = $ttmp['data'] ;
-	foreach( $rows_transferNeed as $row_transferNeed ) {
-		$need_prod = $row_transferNeed['stk_prod'] ;
-		$need_qty = $row_transferNeed['qty_need'] - $row_transferNeed['qty_alloc'] ;
-		
-		$arr_searchResult = specDbsLam_lib_procCde_searchStock($need_prod,$need_qty) ;
-		foreach( $arr_searchResult as $result_row ) {
-			$forward_post = array(
-				'transfer_filerecordId' => $p_transferFilerecordId,
-				'transfercdeneed_filerecordId' => $row_transferNeed['transfercdeneed_filerecord_id'],
-				'stock_filerecordIds' => json_encode(array($result_row['stock_filerecord_id']))
-			) ;
-			specDbsLam_transfer_addCdeStock($forward_post,$fast=true) ;
-		}
-	}
-	specDbsLam_lib_procCde_syncLinks($p_transferFilerecordId) ;
-	return array('success'=>true) ;
-}
-function specDbsLam_transfer_cdeStockUnalloc( $post_data ) {
-	$p_transferFilerecordId = $post_data['transfer_filerecordId'] ;
-	specDbsLam_lib_procCde_syncLinks($p_transferFilerecordId) ;
-	
-	$ttmp = specDbsLam_transfer_getTransferLig( array('filter_transferFilerecordId'=>$p_transferFilerecordId) ) ;
-	$rows_transferLig = $ttmp['data'] ;
-	foreach( $rows_transferLig as $row_transferLig ) {
-		$forward_post = array(
-			'transfer_filerecordId' => $p_transferFilerecordId,
-			'transferLig_filerecordIds' => json_encode(array($row_transferLig['transferlig_filerecord_id'])),
-		) ;
-		specDbsLam_transfer_removeCdeStock($forward_post,$fast=true) ;
-	}
-	
-	specDbsLam_lib_procCde_syncLinks($p_transferFilerecordId) ;
-	return array('success'=>true) ;
-}
-function specDbsLam_transfer_cdeAckStep( $post_data ) {
-	$p_transferFilerecordId = $post_data['transfer_filerecordId'] ;
-	$p_transferStepCode = $post_data['transferStepCode'] ;
-	specDbsLam_lib_procCde_syncLinks($p_transferFilerecordId) ;
-	
-	$arr_transferligFilerecordIds = array() ;
-	$ttmp = specDbsLam_transfer_getTransferLig( array('filter_transferFilerecordId'=>$p_transferFilerecordId) ) ;
-	$rows_transferLig = $ttmp['data'] ;
-	foreach( $rows_transferLig as $row_transferLig ) {
-		if( $row_transferLig['step_code'] != $p_transferStepCode ) {
-			continue ;
-		}
-		$arr_transferligFilerecordIds[] = $row_transferLig['transferlig_filerecord_id'] ;
-	}
-	
-	$forward_post = array(
-		'transferFilerecordId' => $p_transferFilerecordId,
-		'transferLigFilerecordId_arr' => json_encode($arr_transferligFilerecordIds),
-		'transferStepCode' => $p_transferStepCode 
-	);
-	$json = specDbsLam_transfer_commitAdrTmp($forward_post) ;
-	
-	specDbsLam_lib_procCde_syncLinks($p_transferFilerecordId) ;
-	return array('success'=>true) ;
-}
-
 function specDbsLam_transfer_addCdePickingStock( $post_data, $fast=FALSE ) {
 	global $_opDB ;
 	
@@ -1409,7 +1344,7 @@ function specDbsLam_transfer_setAdr( $post_data ) {
 				specDbsLam_lib_procMvt_setDstAdr($mvt_filerecordId, $adr_id) ;
 				$ids[] = $transferlig_filerecord_id ;
 			}
-		} elseif( $adr_obj['adr_auto'] ) {
+		} elseif( $adr_obj['adr_auto'] && !$transferlig_row['dst_adr'] ) {
 			$adr_id = specDbsLam_lib_proc_findAdr( $transferlig_row, $transferstep_row['whse_dst'], $adr_obj['adr_auto_picking'] ) ;
 			if( $adr_id ) {
 				specDbsLam_lib_procMvt_setDstAdr($mvt_filerecordId, $adr_id) ;

@@ -116,7 +116,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunContainersTake',{
 				var ajaxResponse = Ext.decode(response.responseText),
 					transferligRecord = null ;
 				if( ajaxResponse.data && ajaxResponse.data.length == 1 ) {
-					transferligRecord = Ext.ux.dams.ModelManager.create('DbsLamTransferLigsModel',ajaxResponse.data[0]) ;
+					transferligRecord = Ext.ux.dams.ModelManager.create('DbsLamTransferLigModel',ajaxResponse.data[0]) ;
 				}
 				if( !transferligRecord ) {
 					return ;
@@ -131,26 +131,21 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunContainersTake',{
 		}) ;
 	},
 	doAllocTransferLig: function(transferligRecord) {
-		var docFlow = transferligRecord.get('transfer_flow_code'),
-			flowRecord = Optima5.Modules.Spec.DbsLam.HelperCache.getMvtflow(docFlow),
-			flowSteps = flowRecord.steps,
-			lastStepIdx = (flowSteps.length - 1),
-			lastStepCode = flowSteps[lastStepIdx].step_code ;
-		
-		var transferFilerecordId = transferligRecord.get('transfer_filerecord_id'),
-			  transferligFilerecordIds = [transferligRecord.get('transferlig_filerecord_id')] ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_dbs_lam',
-				_action: 'transfer_allocAdrFinal',
-				transfer_filerecordId: transferFilerecordId,
-				transferLigFilerecordId_arr: Ext.JSON.encode(transferligFilerecordIds),
-				transferStepCode: lastStepCode
+				_action: 'transfer_setAdr',
+				transfer_filerecordId: transferligRecord.get('transfer_filerecord_id'),
+				transferStep_filerecordId: transferligRecord.get('transferstep_filerecord_id'),
+				adr_objs: Ext.JSON.encode([{
+					transferlig_filerecord_id: transferligRecord.get('transferlig_filerecord_id'),
+					adr_auto: true
+				}]) 
 			},
 			success: function(response) {
 				var jsonResponse = Ext.JSON.decode(response.responseText) ;
 				this.doLoadTransferLig(transferligRecord.get('transferlig_filerecord_id'));
-				if( !Ext.isEmpty(jsonResponse.data) ) {
+				if( !Ext.isEmpty(jsonResponse.ids) ) {
 					this._allocDone = true ;
 				}
 				//this.doTreeLoad() ;
@@ -165,10 +160,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunContainersTake',{
 		this._transferligRecord = transferligRecord ;
 		var formValues = {
 			display_container_ref: transferligRecord.get('container_ref'),
-			display_current_adr: transferligRecord.get('current_adr'),
+			display_current_adr: transferligRecord.get('src_adr'),
 			display_stk_prod: transferligRecord.get('stk_prod'),
 			display_qty: transferligRecord.get('mvt_qty'),
-			display_next_adr: transferligRecord.get('next_adr')
+			display_next_adr: transferligRecord.get('dst_adr')
 		};
 		this.getForm().setValues(formValues)
 		this.hideLoadmask() ;
@@ -180,27 +175,19 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunContainersTake',{
 		destAdr = destAdr.trim().toUpperCase() ;
 		
 		var transferligRecord = this._transferligRecord ;
-		var testAdr = transferligRecord.get('next_adr') ;
+		var testAdr = transferligRecord.get('dst_adr') ;
 		if( testAdr != destAdr ) {
 			this.handleAlternate( destAdr ) ;
 			return ;
 		}
 		
-		var docFlow = transferligRecord.get('transfer_flow_code'),
-			flowRecord = Optima5.Modules.Spec.DbsLam.HelperCache.getMvtflow(docFlow),
-			flowSteps = flowRecord.steps,
-			lastStepIdx = (flowSteps.length - 1),
-			lastStepCode = flowSteps[lastStepIdx].step_code ;
-			
-		var transferFilerecordId = transferligRecord.get('transfer_filerecord_id'),
-			  transferligFilerecordIds = [transferligRecord.get('transferlig_filerecord_id')] ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_dbs_lam',
-				_action: 'transfer_commitAdrFinal',
-				transfer_filerecordId: transferFilerecordId,
-				transferLigFilerecordId_arr: Ext.JSON.encode(transferligFilerecordIds),
-				transferStepCode: lastStepCode
+				_action: 'transfer_setCommit',
+				transfer_filerecordId: transferligRecord.get('transfer_filerecord_id'),
+				transferStep_filerecordId: transferligRecord.get('transferstep_filerecord_id'),
+				transferLig_filerecordIds: Ext.JSON.encode([transferligRecord.get('transferlig_filerecord_id')]),
 			},
 			success: function(response) {
 				var jsonResponse = Ext.JSON.decode(response.responseText) ;
@@ -210,26 +197,21 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunContainersTake',{
 		}) ;
 	},
 	
-	handleAlternate: function( adrId, doSwitch=false ) {
+	handleAlternate: function( adrId ) {
 		var transferligRecord = this._transferligRecord ;
-		var docFlow = transferligRecord.get('transfer_flow_code'),
-			flowRecord = Optima5.Modules.Spec.DbsLam.HelperCache.getMvtflow(docFlow),
-			flowSteps = flowRecord.steps,
-			lastStepIdx = (flowSteps.length - 1),
-			lastStepCode = flowSteps[lastStepIdx].step_code ;
-			
+		
 		var transferFilerecordId = transferligRecord.get('transfer_filerecord_id'),
 			  transferligFilerecordIds = [transferligRecord.get('transferlig_filerecord_id')] ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_dbs_lam',
-				_action: 'transfer_allocAdrFinal',
-				transfer_filerecordId: transferFilerecordId,
-				transferLigFilerecordId_arr: Ext.JSON.encode(transferligFilerecordIds),
-				transferStepCode: lastStepCode,
-				manAdr_isOn: 1,
-				manAdr_test: (!doSwitch ? 1:0),
-				manAdr_adrId: adrId
+				_action: 'transfer_setAdr',
+				transfer_filerecordId: transferligRecord.get('transfer_filerecord_id'),
+				transferStep_filerecordId: transferligRecord.get('transferstep_filerecord_id'),
+				adr_objs: Ext.JSON.encode([{
+					transferlig_filerecord_id: transferligRecord.get('transferlig_filerecord_id'),
+					adr_id: adrId
+				}]) 
 			},
 			success: function(response) {
 				var jsonResponse = Ext.JSON.decode(response.responseText) ;
@@ -237,13 +219,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunContainersTake',{
 					this.onFailure("Location not accepted") ;
 					return ;
 				}
-				if( !doSwitch ) {
-					this.handleAlternate(adrId,true) ;
-					return ;
-				}
 				this.getForm().findField('display_switch').setVisible(true);
 				this.getForm().findField('display_next_adr').setValue(adrId) ;
-				this._transferligRecord.set('next_adr',adrId) ;
+				this._transferligRecord.set('dst_adr',adrId) ;
 				
 				this.down('#txtScan').reset() ;
 				this.down('#txtScan').focus() ;
@@ -256,20 +234,16 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunContainersTake',{
 		if( this._allocDone ) {
 			this.showLoadmask() ;
 			var transferligRecord = this._transferligRecord ;
-			var docFlow = transferligRecord.get('transfer_flow_code'),
-				flowRecord = Optima5.Modules.Spec.DbsLam.HelperCache.getMvtflow(docFlow),
-				flowSteps = flowRecord.steps,
-				lastStepIdx = (flowSteps.length - 1),
-				lastStepCode = flowSteps[lastStepIdx].step_code ;
-			var transferFilerecordId = transferligRecord.get('transfer_filerecord_id'),
-				transferligFilerecordIds = [transferligRecord.get('transferlig_filerecord_id')] ;
 			this.optimaModule.getConfiguredAjaxConnection().request({
 				params: {
 					_moduleId: 'spec_dbs_lam',
-					_action: 'transfer_unallocAdrFinal',
-					transfer_filerecordId: transferFilerecordId,
-					transferLigFilerecordId_arr: Ext.JSON.encode(transferligFilerecordIds),
-					transferStepCode: lastStepCode,
+					_action: 'transfer_setAdr',
+					transfer_filerecordId: transferligRecord.get('transfer_filerecord_id'),
+					transferStep_filerecordId: transferligRecord.get('transferstep_filerecord_id'),
+					adr_objs: Ext.JSON.encode([{
+						transferlig_filerecord_id: transferligRecord.get('transferlig_filerecord_id'),
+						adr_id: ''
+					}]) 
 				},
 				success: function(response) {
 					var jsonResponse = Ext.JSON.decode(response.responseText) ;

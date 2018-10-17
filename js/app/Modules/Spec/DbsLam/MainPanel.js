@@ -4,7 +4,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.MainPanel',{
 		'Optima5.Modules.Spec.DbsLam.HelperCache',
 		
 		'Optima5.Modules.Spec.DbsLam.MainMenu',
-		'Optima5.Modules.Spec.DbsLam.LivePanel',
 		'Optima5.Modules.Spec.DbsLam.StockPanel',
 		'Optima5.Modules.Spec.DbsLam.ProductsPanel',
 		'Optima5.Modules.Spec.DbsLam.QueryspecPanel',
@@ -62,8 +61,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.MainPanel',{
 				return me.switchToAppPanel('Optima5.Modules.Spec.DbsLam.StockPanel',{}) ;
 			case 'panel_products' :
 				return me.switchToAppPanel('Optima5.Modules.Spec.DbsLam.ProductsPanel',{}) ;
-			case 'panel_live' :
-				return me.switchToAppPanel('Optima5.Modules.Spec.DbsLam.LivePanel',{}) ;
 			case 'panel_queryspec' :
 				return me.switchToAppPanel('Optima5.Modules.Spec.DbsLam.QueryspecPanel',{}) ;
 			case 'panel_cfg' :
