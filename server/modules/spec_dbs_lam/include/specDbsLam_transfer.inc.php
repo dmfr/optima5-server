@@ -514,7 +514,7 @@ function specDbsLam_transfer_rollback( $post_data ) {
 	}
 	
 	
-	return array('success'=>true) ;
+	return array('success'=>$success) ;
 }
 
 
@@ -1405,7 +1405,7 @@ function specDbsLam_transfer_setAdr( $post_data ) {
 			specDbsLam_lib_procMvt_setDstAdr($mvt_filerecordId,null) ;
 			$ids[] = $transferlig_filerecord_id ;
 		} elseif( $adr_obj['adr_id'] ) {
-			if( $adr_id = specDbsLam_lib_proc_validateAdr( $mvt_obj, $transferstep_row['whse_dst'], $adr_obj['adr_id'] ) ) {
+			if( $adr_id = specDbsLam_lib_proc_validateAdr( $transferlig_row, $transferstep_row['whse_dst'], $adr_obj['adr_id'] ) ) {
 				specDbsLam_lib_procMvt_setDstAdr($mvt_filerecordId, $adr_id) ;
 				$ids[] = $transferlig_filerecord_id ;
 			}
@@ -1417,13 +1417,69 @@ function specDbsLam_transfer_setAdr( $post_data ) {
 			}
 		}
 		
-		//$ids[] = $transferlig_filerecord_id ;
+		if( $adr_id && $adr_obj['commit'] ) {
+			specDbsLam_lib_procMvt_commit($mvt_filerecordId) ;
+		}
 	}
 	specDbsLam_lib_proc_lock_off() ;
 	
 	return array('success'=>(count($ids)>0), 'ids'=>$ids) ;
 }
-
+function specDbsLam_transfer_setCommit( $post_data ) {
+	global $_opDB ;
+	
+	$ttmp = specDbsLam_cfg_getConfig() ;
+	$json_cfg = $ttmp['data'] ;
+	
+	
+	$transfer_filerecordId = $post_data['transfer_filerecordId'] ;
+	$transferStep_filerecordId = $post_data['transferStep_filerecordId'] ;
+	$transferLig_filerecordIds = json_decode($post_data['transferLig_filerecordIds'],true) ;
+	
+	$formard_post = array(
+		'filter_transferFilerecordId' => $transfer_filerecordId
+	) ;
+	$json = specDbsLam_transfer_getTransfer($formard_post) ;
+	$transfer_row = reset($json['data']) ;
+	$transferstep_row = NULL ;
+	if( !$transfer_row ) {
+		return array('success'=>false) ;
+	}
+	foreach( $transfer_row['steps'] as $transferstep_iter ) {
+		if( $transferstep_iter['transferstep_filerecord_id'] == $transferStep_filerecordId ) {
+			$transferstep_row = $transferstep_iter ;
+		}
+	}
+	if( !$transferstep_row ) {
+		return array('success'=>false) ;
+	}
+	
+	
+	$ids = array() ;
+	foreach( $transferLig_filerecordIds as $transferlig_filerecord_id ) {
+		$transferlig_row = NULL ;
+		foreach( $transferstep_row['ligs'] as $transferlig_iter ) {
+			if( $transferlig_iter['transferlig_filerecord_id'] == $transferlig_filerecord_id ) {
+				$transferlig_row = $transferlig_iter ;
+			}
+		}
+		if( !$transferlig_row || $transferlig_row['status_is_ok'] || !$transferlig_row['dst_adr'] ) {
+			continue ;
+		}
+		
+		$mvt_filerecordId = $transferlig_row['mvt_filerecord_id'] ;
+		/*
+		$query = "SELECT * FROM view_file_MVT WHERE filerecord_id='{$mvt_filerecordId}'" ;
+		$result = $_opDB->query($query) ;
+		$row_mvt = $_opDB->fetch_assoc($result) ;
+		*/
+		
+		if( specDbsLam_lib_procMvt_commit($mvt_filerecordId) ) {
+			$ids[] = $transferlig_filerecord_id ;
+		}
+	}
+	return array('success'=>(count($ids)>0), 'ids'=>$ids) ;
+}
 
 
 ?>

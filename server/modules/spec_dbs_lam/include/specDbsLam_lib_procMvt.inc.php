@@ -36,7 +36,7 @@ function specDbsLam_lib_procMvt_createNewStk($stkData_obj) {
 		}
 		$arr_ins[$stockAttribute_obj['STOCK_fieldcode']] = $stkData_obj[$stockAttribute_obj['mkey']] ;
 	}
-	$arr_ins['field_LAM_DATEUPDATE'] = date('Y-m-d') ;
+	$arr_ins['field_LAM_DATEUPDATE'] = date('Y-m-d H:i:s') ;
 	$stk_filerecord_id = paracrm_lib_data_insertRecord_file('STOCK',0,$arr_ins) ;
 	return $stk_filerecord_id ;
 }
@@ -124,6 +124,7 @@ function specDbsLam_lib_procMvt_addStock($src_whse, $dst_whse, $stock_filerecord
 		'field_SPEC_BATCH' => $row_stock['field_SPEC_BATCH'],
 		'field_SPEC_DATELC' => $row_stock['field_SPEC_DATELC'],
 		'field_SPEC_SN' => $row_stock['field_SPEC_SN'],
+		'field_LAM_DATEUPDATE' => $row_stock['field_LAM_DATEUPDATE']
 	) ;
 	foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
 		if( !$stockAttribute_obj['STOCK_fieldcode'] ) {
@@ -337,7 +338,7 @@ function specDbsLam_lib_procMvt_commitUndo($mvt_filerecordId) {
 	$query = "SELECT * FROM view_file_STOCK WHERE filerecord_id='{$stockDst_filerecordId}'" ;
 	$result = $_opDB->query($query) ;
 	if( $_opDB->num_rows($result) != 1 ) {
-		continue ;
+		return FALSE ;
 	}
 	$row_stkDst = $_opDB->fetch_assoc($result) ;
 	

@@ -47,36 +47,141 @@ function specDbsLam_lib_proc_lock_off() {
 	$_opDB->query($query) ;
 }
 
-function specDbsLam_lib_proc_findAdr( $mvt_obj, $whse_dest, $to_picking ) {
+function specDbsLam_lib_proc_findAdr( $mvt_obj, $whse_dest, $to_picking=NULL ) {
+	global $_opDB ;
+	
+	// Load cfg attributes
+	$ttmp = specDbsLam_cfg_getConfig() ;
+	$json_cfg = $ttmp['data'] ;
+	
 	/*
 	* --- mvt_obj -----
-	*  soc_code
-	*  prod_id
-	* 
 	*/
+	$adr_treenodes = paracrm_data_getBibleTreeBranch( 'ADR', $whse_dest ) ;
+	$subQuery_stkWhse = "SELECT s.* FROM view_file_STOCK s
+						INNER JOIN view_bible_ADR_entry adr ON adr.entry_key=s.field_ADR_ID
+						WHERE adr.treenode_key IN ".$_opDB->makeSQLlist($adr_treenodes) ;
+						
 	
 	if( $mvt_obj['stk_prod'] ) {
+		$hasPicking = FALSE ;
+		$query = "SELECT count(*)
+					FROM ($subQuery_stkWhse) inv 
+					JOIN view_bible_ADR_entry adr ON inv.field_ADR_ID = adr.entry_key
+					WHERE inv.field_PROD_ID='{$mvt_obj['stk_prod']}'
+					AND adr.field_CONT_IS_ON='1' AND adr.field_CONT_IS_PICKING='1'" ;
+		if( $_opDB->query_uniqueValue($query) > 0 ) {
+			$hasPicking = TRUE ;
+		}
+		
+		if( $to_picking===NULL ) { // != FALSE/TRUE
+			$to_picking = !$hasPicking ;
+		}
+		
+		// interro prod
+		$json = specDbsLam_prods_getGrid( array('entry_key'=>$mvt_obj['stk_prod']) ) ;
+		$row_prod = $json['data'][0] ;
+		
 		// paramétrage picking ?
 		// picking existant ? si oui adresse ?
-		$pickingIsStatic = false ;
-		$pickingAdrCurrent = false ;
-		$pickingAdrStatic = false ;
+		$pickingIsStatic = $row_prod['picking_is_static'] ;
+		$pickingAdrStatic = ($row_prod['picking_is_static'] ? $row_prod['picking_adr'] : null) ;
 		
-		if( ($mvt_obj['container_type'] && $to_picking) && $pickingIsStatic && (($pickingAdrCurrent==$pickingAdrStatic)||!$pickingAdrCurrent) ) {
-			return $pickingAdrStatic ;
+		// append des attributs
+		foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
+			if( !$stockAttribute_obj['ADR_fieldcode'] || !$stockAttribute_obj['PROD_fieldcode'] ) {
+				continue ;
+			}
+			$mkey = $stockAttribute_obj['mkey'] ;
+			if( $row_prod[$mkey] ) {
+				$mvt_obj[$mkey] = $row_prod[$mkey] ;
+			}
 		}
+		
+		
+		
+		// picking statique
+		if( $mvt_obj['container_type'] && $to_picking && $pickingIsStatic ) {
+			if( $pickingAdrStatic ) {
+				// valid adr libre ?
+				$query = "SELECT count(*) FROM ($subQuery_stkWhse) s WHERE s.field_ADR_ID='{$pickingAdrStatic}' AND s.field_PROD_ID<>'{$mvt_obj['stk_prod']}'" ;
+				if( $_opDB->query_uniqueValue($query) > 0 ) {
+					return NULL ;
+				} else {
+					return $pickingAdrStatic ;
+				}
+			}
+		}
+		
 	}
 	
-	
-	
+	// Mode aléatoire ensuite
+	for( $i=1 ; $i>=0 ; $i-- ) {
+		$doCheckAttributes = ($i==1) ;
+		
+		$attributesToCheck = array() ;
+		foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
+			if( !$stockAttribute_obj['ADR_fieldcode'] ) {
+				continue ;
+			}
+			$mkey = $stockAttribute_obj['mkey'] ;
+			if( ($doCheckAttributes || !$stockAttribute_obj['cfg_is_optional']) && $mvt_obj[$mkey] ) {
+				$attributesToCheck[$stockAttribute_obj['ADR_fieldcode']] = $mvt_obj[$mkey] ;
+			}
+		}
+		
+		$query = "SELECT adr.* FROM view_bible_ADR_entry adr
+					LEFT OUTER JOIN view_file_STOCK inv ON inv.field_ADR_ID = adr.entry_key
+					WHERE inv.filerecord_id IS NULL AND adr.field_STATUS_IS_ACTIVE='1'
+					AND adr.treenode_key IN ".$_opDB->makeSQLlist($adr_treenodes) ;
+		foreach( $attributesToCheck as $STOCK_fieldcode => $neededValue ) {
+			$query.= " AND adr.{$STOCK_fieldcode}='".mysql_real_escape_string(json_encode(array($neededValue)))."'" ;
+		}
+		if( $mvt_obj['container_type'] ) {
+			$query.= " AND adr.field_CONT_IS_ON='1' AND adr.field_CONT_TYPES LIKE '%\"{$mvt_obj['container_type']}\"%'" ;
+			if( $doCheckAttributes ) {
+				$check_val = ($to_picking ? '1' : '0') ;
+				$query.= " AND adr.field_CONT_IS_PICKING='{$check_val}'" ;
+			}
+		} else {
+			$query.= " AND adr.field_CONT_IS_ON='0'" ;
+		}
+		$query.= " ORDER BY adr.field_PRIO_IDX, adr.entry_key LIMIT 1" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+			return $adr_id = $arr['entry_key'] ;
+		}
+	}
 }
 function specDbsLam_lib_proc_validateAdr( $mvt_obj, $whse_dest, $adr_id ) {
-	//
+	global $_opDB ;
+	
+	// Load cfg attributes
+	$ttmp = specDbsLam_cfg_getConfig() ;
+	$json_cfg = $ttmp['data'] ;
+	
+	
 	$adr_treenodes = paracrm_data_getBibleTreeBranch( 'ADR', $whse_dest ) ;
 	$adr_row = paracrm_lib_data_getRecord_bibleEntry( 'ADR', $adr_id ) ;
 	if( !$adr_row || !in_array($adr_row['treenode_key'],$adr_treenodes) ) {
 		// echo "NON-EXIST" ;
-		return FALSE ;
+		return NULL ;
+	}
+	
+	if( $mvt_obj['stk_prod'] ) {
+		// interro prod
+		$json = specDbsLam_prods_getGrid( array('entry_key'=>$mvt_obj['stk_prod']) ) ;
+		$row_prod = $json['data'][0] ;
+		// append des attributs
+		foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
+			if( !$stockAttribute_obj['ADR_fieldcode'] || !$stockAttribute_obj['PROD_fieldcode'] ) {
+				continue ;
+			}
+			$mkey = $stockAttribute_obj['mkey'] ;
+			if( $row_prod[$mkey] ) {
+				$mvt_obj[$mkey] = $row_prod[$mkey] ;
+			}
+		}
 	}
 	/*
 	--- Checks ----
@@ -84,7 +189,37 @@ function specDbsLam_lib_proc_validateAdr( $mvt_obj, $whse_dest, $adr_id ) {
 	 attributes
 	----
 	*/
+	$attributesToCheck = array() ;
+	foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
+		if( !$stockAttribute_obj['ADR_fieldcode'] ) {
+			continue ;
+		}
+		$mkey = $stockAttribute_obj['mkey'] ;
+		if( !$stockAttribute_obj['cfg_is_optional'] && $mvt_obj[$mkey] ) {
+			$attributesToCheck[$stockAttribute_obj['ADR_fieldcode']] = $mvt_obj[$mkey] ;
+		}
+	}
 	
+	$query = "SELECT adr.entry_key FROM view_bible_ADR_entry adr
+				LEFT OUTER JOIN view_file_STOCK inv ON inv.field_ADR_ID = adr.entry_key
+				WHERE inv.filerecord_id IS NULL AND adr.field_STATUS_IS_ACTIVE='1'
+				AND adr.treenode_key IN ".$_opDB->makeSQLlist($adr_treenodes) ;
+	foreach( $attributesToCheck as $STOCK_fieldcode => $neededValue ) {
+		$query.= " AND adr.{$STOCK_fieldcode}='".mysql_real_escape_string(json_encode(array($neededValue)))."'" ;
+	}
+	if( $mvt_obj['container_type'] ) {
+		$query.= " AND adr.field_CONT_IS_ON='1' AND adr.field_CONT_TYPES LIKE '%\"{$mvt_obj['container_type']}\"%'" ;
+	} else {
+		$query.= " AND adr.field_CONT_IS_ON='0'" ;
+	}
+	$query.= " AND adr.entry_key='{$adr_id}'" ;
+	//echo $query ;
+	$result = $_opDB->query($query) ;
+	if( $_opDB->num_rows($result) == 0 ) {
+		return NULL ;
+	}
+	$arr = $_opDB->fetch_row($result) ;
+	return $arr[0] ;
 }
 
 

@@ -880,7 +880,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
 				if( ajaxResponse.success == false ) {
-					Ext.MessageBox.alert('Error','Error') ;
+					Ext.MessageBox.alert('Error','Rollback failed / not allowed') ;
 					return ;
 				}
 				this.optimaModule.postCrmEvent('datachange') ;
@@ -1339,7 +1339,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		// toutes lignes non commit
 		var adrObjs = [] ;
 		activeTransferStepRecord.ligs().each( function(transferLigRecord) {
-			if( transferLigRecord.get('status_is_ok') ) {
+			if( transferLigRecord.get('status_is_ok') || !Ext.isEmpty(transferLigRecord.get('dst_adr')) ) {
 				return ;
 			}
 			adrObjs.push({
@@ -1347,6 +1347,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				adr_auto: true
 			}) ;
 		}) ;
+		if( Ext.isEmpty(adrObjs) ) {
+			Ext.MessageBox.alert('Empty','All items already allocated') ;
+			return ;
+		}
 		
 		var ajaxParams = {
 			_moduleId: 'spec_dbs_lam',
@@ -1372,7 +1376,59 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			scope: this
 		}) ;
 	},
-	
+	handleActionFastCommit: function() {
+		var pCenter = this.down('#pCenter'),
+			pCenterTb = pCenter.down('toolbar'),
+			tabPanel = pCenter.down('tabpanel') ;
+		if( !tabPanel ) {
+			return ;
+		}
+		var activeTab = tabPanel.getActiveTab();
+		if( !activeTab ) {
+			return ;
+		}
+		if( !activeTab.optionsHasAdrAlloc() ) {
+			return ;
+		}
+		
+		var activeTransferStepRecord = activeTab.getActiveTransferStepRecord() ;
+		// toutes lignes non commit
+		var transferLig_filerecordIds = [] ;
+		activeTransferStepRecord.ligs().each( function(transferLigRecord) {
+			if( transferLigRecord.get('status_is_ok') || Ext.isEmpty(transferLigRecord.get('dst_adr')) ) {
+				return ;
+			}
+			transferLig_filerecordIds.push( transferLigRecord.get('transferlig_filerecord_id') ) ;
+		}) ;
+		if( Ext.isEmpty(transferLig_filerecordIds) ) {
+			Ext.MessageBox.alert('Empty','All items already commited') ;
+			return ;
+		}
+		
+		var ajaxParams = {
+			_moduleId: 'spec_dbs_lam',
+			_action: 'transfer_setCommit',
+			transfer_filerecordId: this._activeTransferRecord.get('transfer_filerecord_id'),
+			transferStep_filerecordId: activeTransferStepRecord.get('transferstep_filerecord_id'),
+			transferLig_filerecordIds: Ext.JSON.encode(transferLig_filerecordIds) 
+		} ;
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams,
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+				this.optimaModule.postCrmEvent('datachange') ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+	},
 	
 	
 	setFormRecord: function( transferLigRecord ) {

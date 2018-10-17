@@ -196,7 +196,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 						return '<b>'+v+'</b>' ;
 					}
 					if( Ext.isEmpty(v) ) {
-						v = '('+record.get('dst_whse')+')' ;
+						return '' ;
 					}
 					return '<i>'+v+'</i>' ;
 				},

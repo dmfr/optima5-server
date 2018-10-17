@@ -72,6 +72,8 @@ switch( $post_data['_action'] )
 	
 	case 'transfer_setAdr' :
 	return specDbsLam_transfer_setAdr( $post_data ) ;
+	case 'transfer_setCommit' :
+	return specDbsLam_transfer_setCommit( $post_data ) ;
 	case 'transfer_rollback' :
 	return specDbsLam_transfer_rollback( $post_data ) ;
 	
