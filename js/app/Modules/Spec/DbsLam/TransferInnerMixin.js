@@ -35,12 +35,14 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerMixin',{
 	},
 	
 	hasBuildPick: function() {
-		var hasBuildPick = true,
-			hasInput = false ;
+		var hasBuildPick = true ;
 		
 		var activeTransferRecord = this.getActiveTransferRecord(),
 			activeTransferStepRecord = this.getActiveTransferStepRecord() ;
 		if( !activeTransferStepRecord ) {
+			if( activeTransferRecord.get('spec_cde') ) {
+				return true ;
+			}
 			return false ;
 		}
 		
@@ -58,8 +60,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerMixin',{
 		return hasBuildPick ;
 	},
 	hasInputNew: function() {
-		var hasBuildPick = true,
-			hasInput = false ;
+		var hasInput = false ;
 		
 		var activeTransferRecord = this.getActiveTransferRecord(),
 			activeTransferStepRecord = this.getActiveTransferStepRecord() ;

@@ -81,6 +81,28 @@ function specDbsLam_transfer_getTransfer($post_data) {
 	unset($row_step) ;
 	
 	
+	$map_cdeNeedFilerecordId_arrCdeLinkFilerecordIds = array() ;
+	foreach( $TAB[$filerecord_parent_id]['cde_links'] as $row_cdelink ) {
+		$cdeNeedFilerecordId = $row_cdelink['link_transfercdeneed_filerecord_id'] ;
+		if( !$cdeNeedFilerecordId ) {
+			continue ;
+		}
+		if( !isset($map_cdeNeedFilerecordId_arrCdeLinkFilerecordIds[$cdeNeedFilerecordId]) ) {
+			$map_cdeNeedFilerecordId_arrCdeLinkFilerecordIds[$cdeNeedFilerecordId] = array() ;
+		}
+		$map_cdeNeedFilerecordId_arrCdeLinkFilerecordIds[$cdeNeedFilerecordId][] = $row_cdelink ;
+	}
+	foreach( $TAB[$filerecord_parent_id]['cde_needs'] as &$row_cdeneed ) {
+		$cdeNeedFilerecordId = $row_cdeneed['transfercdeneed_filerecord_id'] ;
+		if( isset($map_cdeNeedFilerecordId_arrCdeLinkFilerecordIds[$cdeNeedFilerecordId]) ) {
+			$row_cdeneed['cde_links'] = $map_cdeNeedFilerecordId_arrCdeLinkFilerecordIds[$cdeNeedFilerecordId] ;
+		} else {
+			$row_cdeneed['cde_links'] = array() ;
+		}
+	}
+	unset($row_cdeneed) ;
+	
+	
 	$TAB[$filerecord_parent_id]['steps'] = array_values($TAB_steps) ;
 	unset($TAB[$filerecord_parent_id]['ligs']) ;
 	return array('success'=>true, 'data'=>array_values($TAB)) ;
@@ -211,6 +233,7 @@ function specDbsLam_transfer_getTransferCdeLink( $post_data ) {
 	
 	
 	$query = "SELECT tcl.filerecord_id AS transfercdelink_filerecord_id
+		, tcl.field_FILE_TRSFRCDENEED_ID as link_transfercdeneed_filerecord_id
 		, t.filerecord_id AS transfer_filerecord_id
 		, c.filerecord_id AS cde_filerecord_id
 		, cl.filerecord_id AS cdelig_filerecord_id
@@ -239,7 +262,8 @@ function specDbsLam_transfer_getTransferCdeLink( $post_data ) {
 			'cde_nr' => $arr['field_CDE_NR'],
 			'stk_prod' => $arr['field_PROD_ID'],
 			'qty_comm' => $arr['field_QTY_COMM'],
-			'qty_cde' => $arr['field_QTY_CDE']
+			'qty_cde' => $arr['field_QTY_CDE'],
+			'link_transfercdeneed_filerecord_id' => $arr['link_transfercdeneed_filerecord_id']
 		);
 		$TAB[] = $row ;
 	}
@@ -1170,6 +1194,9 @@ function specDbsLam_transfer_removeCdeLink($post_data) {
 function specDbsLam_transfer_addCdePickingStock( $post_data, $fast=FALSE ) {
 	global $_opDB ;
 	
+	$ttmp = specDbsLam_cfg_getConfig() ;
+	$json_cfg = $ttmp['data'] ;
+	
 	$transfer_filerecordId = $post_data['transfer_filerecordId'] ;
 	$transferStep_filerecordId = $post_data['transferStep_filerecordId'] ;
 	$stock_objs = json_decode($post_data['stock_objs'],true) ;
@@ -1191,6 +1218,16 @@ function specDbsLam_transfer_addCdePickingStock( $post_data, $fast=FALSE ) {
 	}
 	if( !$transferstep_row ) {
 		return array('success'=>false) ;
+	}
+	
+	$whseDestIsWork = FALSE ;
+	foreach($json_cfg['cfg_whse'] as $whse) {
+		if( ($whse['whse_code']==$transferstep_row['whse_dst']) && $whse['is_work'] ) {
+			$whseDestIsWork = TRUE ;
+		}
+	}
+	if( !$whseDestIsWork ) {
+		return ;
 	}
 	
 	if( !$transferstep_row['spec_cde_picking'] ) {
@@ -1216,6 +1253,21 @@ function specDbsLam_transfer_addCdePickingStock( $post_data, $fast=FALSE ) {
 		$needTxt = preg_replace("/[^A-Z0-9]/", "", strtoupper($arr[2])) ;
 		$whseDest = $transferstep_row['whse_dst'] ;
 		
+		// HACK : mode append 18/10/2018
+		// TODO : vérif propre de similitude des dst_stk_filerecords (spec batch/DLC , ATRs, ...)
+		$query = "SELECT distinct stkdst.filerecord_id
+				FROM view_file_TRANSFER_CDE_NEED tcn
+				JOIN view_file_TRANSFER_LIG tl ON tl.field_PICK_TRSFRCDENEED_ID = tcn.filerecord_id
+				JOIN view_file_MVT m ON m.filerecord_id = tl.field_FILE_MVT_ID
+				JOIN view_file_STOCK stkdst ON stkdst.filerecord_id = m.field_DST_FILE_STOCK_ID
+				WHERE tcn.filerecord_id='{$stock_obj['target_transfercdeneed_filerecord_id']}'
+				AND tcn.filerecord_parent_id='{$transfer_filerecordId}'" ;
+		$result = $_opDB->query($query) ;
+		if( $_opDB->num_rows($result) > 0 ) {
+			$arr = $_opDB->fetch_row($result) ;
+			$dst_stk_filerecord_id = $arr[0] ;
+		}
+		
 		$qty_toAlloc = ($qty_need - $qty_curAlloc) ;
 		if( $qty_toAlloc<=0 ) {
 			return array('success'=>false) ;
@@ -1230,7 +1282,7 @@ function specDbsLam_transfer_addCdePickingStock( $post_data, $fast=FALSE ) {
 			continue ;
 		}
 		
-		$mvt_filerecordId = specDbsLam_lib_procMvt_addStock( $transferstep_row['whse_src'], $transferstep_row['whse_dst'], $stock_obj['stk_filerecord_id'], $qty_mvt ) ;
+		$mvt_filerecordId = specDbsLam_lib_procMvt_addStock( $transferstep_row['whse_src'], $transferstep_row['whse_dst'], $stock_obj['stk_filerecord_id'], $qty_mvt, $dst_stk_filerecord_id ) ;
 		if( !$mvt_filerecordId ){
 			continue ;
 		}
@@ -1249,7 +1301,7 @@ function specDbsLam_transfer_addCdePickingStock( $post_data, $fast=FALSE ) {
 		
 		if( $whseDestIsWork=TRUE ) {
 			$tmp_adr = $whseDest.'_'.$needTxt ;
-			//specDbsLam_lib_procMvt_alloc($mvt_filerecordId,$tmp_adr,$tmp_adr) ;
+			specDbsLam_lib_procMvt_setDstAdr($mvt_filerecordId,$tmp_adr) ;
 		}
 	}
 	

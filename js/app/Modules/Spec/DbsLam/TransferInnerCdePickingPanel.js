@@ -163,7 +163,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerCdePickingPanel',{
 					});
 					break ;
 					
-				case 'step_code' :
+				case 'src_adr' :
 					Ext.apply(col,{
 						width: 100,
 						xtype: 'treecolumn',

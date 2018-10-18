@@ -41,7 +41,7 @@ function specDbsLam_lib_procMvt_createNewStk($stkData_obj) {
 	return $stk_filerecord_id ;
 }
 
-function specDbsLam_lib_procMvt_addStock($src_whse, $dst_whse, $stock_filerecordId, $qte_mvt=NULL) {
+function specDbsLam_lib_procMvt_addStock($src_whse, $dst_whse, $stock_filerecordId, $qte_mvt=NULL, $append_dstStkFilerecordId=NULL) {
 	global $_opDB ;
 	
 	// Load cfg attributes
@@ -113,35 +113,50 @@ function specDbsLam_lib_procMvt_addStock($src_whse, $dst_whse, $stock_filerecord
 			WHERE filerecord_id='{$stock_filerecordId}'" ;
 	$_opDB->query($query) ;
 	
-	$row_stockDst = array(
-		'field_WHSE' => $dst_whse,
-		'field_ADR_ID' => '',
-		'field_SOC_CODE' => $row_stock['field_SOC_CODE'],
-		'field_CONTAINER_TYPE' => ($qte_mvt ? NULL : $row_stock['field_CONTAINER_TYPE']),
-		'field_CONTAINER_REF' => ($qte_mvt ? NULL : $row_stock['field_CONTAINER_REF']),
-		'field_PROD_ID' => $row_stock['field_PROD_ID'],
-		'field_QTY_PREIN' => $qte_mvt_actual,
-		'field_SPEC_BATCH' => $row_stock['field_SPEC_BATCH'],
-		'field_SPEC_DATELC' => $row_stock['field_SPEC_DATELC'],
-		'field_SPEC_SN' => $row_stock['field_SPEC_SN'],
-		'field_LAM_DATEUPDATE' => $row_stock['field_LAM_DATEUPDATE']
-	) ;
-	foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
-		if( !$stockAttribute_obj['STOCK_fieldcode'] ) {
-			continue ;
+	if( !$append_dstStkFilerecordId ) {
+		$row_stockDst = array(
+			'field_WHSE' => $dst_whse,
+			'field_ADR_ID' => '',
+			'field_SOC_CODE' => $row_stock['field_SOC_CODE'],
+			'field_CONTAINER_TYPE' => ($qte_mvt ? NULL : $row_stock['field_CONTAINER_TYPE']),
+			'field_CONTAINER_REF' => ($qte_mvt ? NULL : $row_stock['field_CONTAINER_REF']),
+			'field_PROD_ID' => $row_stock['field_PROD_ID'],
+			'field_QTY_PREIN' => $qte_mvt_actual,
+			'field_SPEC_BATCH' => $row_stock['field_SPEC_BATCH'],
+			'field_SPEC_DATELC' => $row_stock['field_SPEC_DATELC'],
+			'field_SPEC_SN' => $row_stock['field_SPEC_SN'],
+			'field_LAM_DATEUPDATE' => $row_stock['field_LAM_DATEUPDATE']
+		) ;
+		foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
+			if( !$stockAttribute_obj['STOCK_fieldcode'] ) {
+				continue ;
+			}
+			$mkey = $stockAttribute_obj['mkey'] ;
+			$STOCK_fieldcode = $stockAttribute_obj['STOCK_fieldcode'] ;
+			
+			$row_stockDst[$STOCK_fieldcode] = $row_stock[$STOCK_fieldcode] ;
 		}
-		$mkey = $stockAttribute_obj['mkey'] ;
-		$STOCK_fieldcode = $stockAttribute_obj['STOCK_fieldcode'] ;
+		$dstStock_filerecordId = paracrm_lib_data_insertRecord_file('STOCK',0,$row_stockDst) ;
+	} else {
+		$query = "SELECT * FROM view_file_STOCK WHERE filerecord_id='{$append_dstStkFilerecordId}'" ;
+		$result = $_opDB->query($query) ;
+		$row_stockDst = $_opDB->fetch_assoc($result) ;
 		
-		$row_stockDst[$STOCK_fieldcode] = $row_stock[$STOCK_fieldcode] ;
+		//TODO : controles ??
+		if( !$row_stockDst ) {
+			return NULL ;
+		}
+		
+		$dstStock_filerecordId = $row_stockDst['filerecord_id'] ;
+		$append_dstAdrId = $row_stockDst['field_ADR_ID'] ;
+		$query = "UPDATE view_file_STOCK SET field_QTY_PREIN = field_QTY_PREIN + '{$qte_mvt_actual}' WHERE filerecord_id='{$dstStock_filerecordId}'" ;
+		$_opDB->query($query) ;
 	}
-	$dstStock_filerecordId = paracrm_lib_data_insertRecord_file('STOCK',0,$row_stockDst) ;
-	
 	
 	$row_mvt = array(
 		'field_DST_FILE_STOCK_ID' => $dstStock_filerecordId,
 		'field_DST_WHSE' => $dst_whse,
-		'field_DST_ADR_ID' => ''
+		'field_DST_ADR_ID' => ($append_dstStkFilerecordId ? $append_dstAdrId : '')
 	);
 	paracrm_lib_data_updateRecord_file('MVT',$row_mvt,$mvt_filerecordId) ;
 	

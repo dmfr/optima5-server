@@ -48,7 +48,7 @@ function specDbsLam_lib_procCde_calcNeeds($transfer_filerecord_id) {
 	switch( $cfg_cdeProcess ) {
 		case 'SINGLE' :
 			//$arrGroupBys = array('cde_filerecord_id','cdelig_prod') ;
-			$arrGroupBys = array('cdelig_filerecord_id') ;
+			$arrGroupBys = array('cde_filerecord_id','cdelig_filerecord_id','cdelig_prod') ;
 			break ;
 		
 		case 'GROUP_ALL' :
@@ -167,7 +167,7 @@ function specDbsLam_lib_procCde_calcNeeds($transfer_filerecord_id) {
 }
 
 
-function specDbsLam_lib_procCde_forwardPacking( $transfer_filerecord_id, $transfercdeneed_filerecord_id=NULL ) {
+function specDbsLam_lib_procCde_forwardPacking( $transfer_filerecord_id, $transfercdeneed_filerecord_id=NULL, $row_transfer=NULL ) {
 
 }
 function specDbsLam_lib_procCde_releasePacking( $transfer_filerecord_id, $transfercdeneed_filerecord_id ) {
