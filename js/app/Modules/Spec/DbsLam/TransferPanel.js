@@ -771,8 +771,28 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				});
 				cmp.refreshData() ;
 				tabItems.push(cmp) ;
+				return ; //TODO : fiche packing dédiée
 			}
 			if( transferStepRecord.get('spec_cde_packing') ) {
+				//TODO fiche packing dédiée
+				var className = 'Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel' ;
+				
+				var cmp = Ext.create(className,{
+					optimaModule: this.optimaModule,
+					
+					_activeTransferRecord: this._activeTransferRecord,
+					_actionTransferStepIdx: transferStepRecord.get('transferstep_idx'),
+					
+					listeners: {
+						//op5lamstockadd: this.onLamStockAdd,
+						//op5lamstockremove: this.onLamStockRemove,
+						op5lamstockrollback: this.onLamStockRollback,
+						//op5lamstocksetadr: this.onLamStockSetAdr,
+						scope: this
+					}
+				});
+				cmp.refreshData() ;
+				tabItems.push(cmp) ;
 				
 			}
 		},this) ;

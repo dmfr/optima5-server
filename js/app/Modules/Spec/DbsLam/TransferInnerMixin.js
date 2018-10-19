@@ -57,6 +57,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerMixin',{
 				hasBuildPick = false ;
 			}
 		});
+		if( activeTransferStepRecord.get('spec_cde_picking') ) {
+			hasBuildPick = true ;
+		}
 		return hasBuildPick ;
 	},
 	hasInputNew: function() {

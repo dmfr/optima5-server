@@ -60,7 +60,7 @@ function specDbsLam_lib_procMvt_addStock($src_whse, $dst_whse, $stock_filerecord
 		return 0 ;
 	}
 	$row_stock = $_opDB->fetch_assoc($result) ;
-	$qte_stock = (float)$row_stock['field_QTY_AVAIL'] ;
+	$qte_stock = ( (float)$row_stock['field_QTY_AVAIL'] + (float)$row_stock['field_QTY_PREIN'] ) ;
 	if( $qte_mvt > 0 ) {
 		if( $qte_mvt > $qte_stock ) {
 			return 0 ;
@@ -186,6 +186,11 @@ function specDbsLam_lib_procMvt_delMvt($mvt_filerecordId) {
 	if( $_opDB->num_rows($result) != 1 ) {
 		return FALSE ;
 	}
+	
+	// CHECK qte suffisante ?
+	// - cas container
+	// - cas qte libre
+	
 	
 	$query = "UPDATE view_file_STOCK 
 			SET field_QTY_AVAIL = field_QTY_AVAIL + '{$qte_mvt}', field_QTY_OUT = field_QTY_OUT - '{$qte_mvt}'
