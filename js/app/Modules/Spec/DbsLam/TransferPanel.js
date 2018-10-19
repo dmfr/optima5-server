@@ -1276,7 +1276,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		var ajaxParams = {
 			_moduleId: 'spec_dbs_lam',
 			_action: 'transfer_cdeStockUnalloc',
-			transfer_filerecordId: this.getActiveTransferFilerecordId()
+			transfer_filerecordId: this._activeTransferRecord.get('transfer_filerecord_id')
 		} ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams,
@@ -1295,7 +1295,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		var ajaxParams = {
 			_moduleId: 'spec_dbs_lam',
 			_action: 'transfer_cdeStockAlloc',
-			transfer_filerecordId: this.getActiveTransferFilerecordId()
+			transfer_filerecordId: this._activeTransferRecord.get('transfer_filerecord_id')
 		} ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: ajaxParams,

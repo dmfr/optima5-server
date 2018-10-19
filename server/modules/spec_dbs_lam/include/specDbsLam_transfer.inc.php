@@ -1274,7 +1274,7 @@ function specDbsLam_transfer_addCdePickingStock( $post_data, $fast=FALSE ) {
 			return array('success'=>false) ;
 		}
 	
-		$query = "SELECT field_QTY_AVAIL FROM view_file_STOCK
+		$query = "SELECT field_QTY_AVAIL+field_QTY_PREIN FROM view_file_STOCK
 				WHERE filerecord_id='{$stock_obj['stk_filerecord_id']}'" ;
 		$qty_stock = $_opDB->query_uniqueValue($query) ;
 		
@@ -1373,6 +1373,135 @@ function specDbsLam_transfer_removeCdePickingStock( $post_data, $fast=FALSE ) {
 	}
 	return array('success'=>true) ;
 }
+function specDbsLam_transfer_cdeStockAlloc( $post_data ) {
+	$p_transferFilerecordId = $post_data['transfer_filerecordId'] ;
+	specDbsLam_lib_procCde_syncLinks($p_transferFilerecordId) ;
+	
+	
+	// restore doc & steps
+	$formard_post = array(
+		'filter_transferFilerecordId' => $p_transferFilerecordId,
+		'filter_fast' => true
+	) ;
+	$json = specDbsLam_transfer_getTransfer($formard_post) ;
+	$transfer_row = reset($json['data']) ;
+	$transferstep_row = NULL ;
+	if( !$transfer_row ) {
+		return array('success'=>false) ;
+	}
+	$transferstepPicking_row = $transferstepResupply_row = NULL ;
+	foreach( $transfer_row['steps'] as $transferstep_iter ) {
+		if( $transferstep_iter['transferstep_code'] == 'RESPL_PICK' ) {
+			$transferstepResupply_row = $transferstep_iter ;
+		}
+		if( $transferstep_iter['spec_cde_picking'] ) {
+			$transferstepPicking_row = $transferstep_iter ;
+		}
+	}
+	if( !$transferstepPicking_row ) {
+		return array('success'=>false) ;
+	}
+	
+	
+	$ttmp = specDbsLam_transfer_getTransferCdeNeed( array('filter_transferFilerecordId'=>$p_transferFilerecordId) ) ;
+	$rows_transferNeed = $ttmp['data'] ;
+	foreach( $rows_transferNeed as $row_transferNeed ) {
+		$need_prod = $row_transferNeed['stk_prod'] ;
+		$need_qty = $row_transferNeed['qty_need'] - $row_transferNeed['qty_alloc'] ;
+		
+		$arr_searchResult = specDbsLam_lib_procCde_searchStock(
+			$transferstepPicking_row['whse_src'],
+			$need_prod,
+			$need_qty,
+			$transferstepResupply_row['transferstep_filerecord_id']
+		) ;
+		if( !$arr_searchResult ) {
+			continue ;
+		}
+		$stock_objs = array() ;
+		foreach( $arr_searchResult as $result_row ) {
+			$stock_objs[] = array(
+				'target_transfercdeneed_filerecord_id' => $row_transferNeed['transfercdeneed_filerecord_id'],
+				'stk_filerecord_id' => $result_row['stock_filerecord_id']
+			) ;
+		}
+		$forward_post = array(
+			'transfer_filerecordId' => $p_transferFilerecordId,
+			'transferStep_filerecordId' => $transferstepPicking_row['transferstep_filerecord_id'],
+			'stock_objs' => json_encode($stock_objs)
+		) ;
+		specDbsLam_transfer_addCdePickingStock($forward_post,$fast=true) ;
+	}
+	specDbsLam_lib_procCde_syncLinks($p_transferFilerecordId) ;
+	specDbsLam_lib_procCde_forwardPacking($p_transferFilerecordId) ;
+	return array('success'=>true) ;
+}
+function specDbsLam_transfer_cdeStockUnalloc( $post_data ) {
+	global $_opDB ;
+	
+	$p_transferFilerecordId = $post_data['transfer_filerecordId'] ;
+	specDbsLam_lib_procCde_syncLinks($p_transferFilerecordId) ;
+	
+	// restore doc & steps
+	$formard_post = array(
+		'filter_transferFilerecordId' => $p_transferFilerecordId
+	) ;
+	$json = specDbsLam_transfer_getTransfer($formard_post) ;
+	$transfer_row = reset($json['data']) ;
+	$transferstep_row = NULL ;
+	if( !$transfer_row ) {
+		return array('success'=>false) ;
+	}
+	$transferstepPicking_row = $transferstepResupply_row = NULL ;
+	foreach( $transfer_row['steps'] as $transferstep_iter ) {
+		if( $transferstep_iter['transferstep_code'] == 'RESPL_PICK' ) {
+			$transferstepResupply_row = $transferstep_iter ;
+		}
+		if( $transferstep_iter['spec_cde_picking'] ) {
+			$transferstepPicking_row = $transferstep_iter ;
+		}
+	}
+	if( !$transferstepPicking_row ) {
+		return array('success'=>false) ;
+	}
+	
+	$ttmp = specDbsLam_transfer_getTransferLig( array('filter_transferFilerecordId'=>$p_transferFilerecordId) ) ;
+	$rows_transferLig = $ttmp['data'] ;
+	foreach( $rows_transferLig as $row_transferLig ) {
+		$forward_post = array(
+			'transfer_filerecordId' => $p_transferFilerecordId,
+			'transferStep_filerecordId' => $transferstepPicking_row['transferstep_filerecord_id'],
+			'transferLig_filerecordIds' => json_encode(array($row_transferLig['transferlig_filerecord_id'])),
+		) ;
+		specDbsLam_transfer_removeCdePickingStock($forward_post,$fast=true) ;
+	}
+	
+	// Clean resupplys ?
+	if( $transferstepResupply_row ) {
+		$todelete_transferLigFilerecordIds = array() ;
+		foreach( $transferstepResupply_row['ligs'] as $transferligResupply_row ) {
+			$dst_stk_filerecord_id = $transferligResupply_row['dst_stk_filerecord_id'] ;
+			$query = "SELECT filerecord_id FROM view_file_STOCK
+						WHERE filerecord_id='{$dst_stk_filerecord_id}' AND field_QTY_OUT='0'" ;
+			if( $_opDB->query_uniqueValue($query) ) {
+				$todelete_transferLigFilerecordIds[] = $transferligResupply_row['transferlig_filerecord_id'] ;
+			}
+		}
+		if( $todelete_transferLigFilerecordIds ) {
+			$sub_post = array(
+				'transfer_filerecordId' => $p_transferFilerecordId,
+				'transferStep_filerecordId' => $transferstepResupply_row['transferstep_filerecord_id'],
+				'transferLig_filerecordIds' => json_encode($todelete_transferLigFilerecordIds)
+			) ;
+			specDbsLam_transfer_removeStock($sub_post) ;
+		}
+	}
+	
+	
+	specDbsLam_lib_procCde_syncLinks($p_transferFilerecordId) ;
+	return array('success'=>true) ;
+}
+
 
 
 

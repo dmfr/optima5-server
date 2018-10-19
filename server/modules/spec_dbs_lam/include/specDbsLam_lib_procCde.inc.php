@@ -637,20 +637,33 @@ function specDbsLam_lib_procCde_syncLinks($transfer_filerecord_id) {
 
 
 
-function specDbsLam_lib_procCde_searchStock( $whse_src, $stk_prod, &$qty, $resupply_transferStep_filerecordId=0 ) {
+function specDbsLam_lib_procCde_searchStock( $whse_src, $stk_prod, $qty_search, $resupply_transferStep_filerecordId=0 ) {
 	global $_opDB ;
 	
 	if( !$resupply_transferStep_filerecordId ) {
-		return specDbsLam_lib_procCde_searchStock_doSearch( $whse_src, $stk_prod, $qty ) ;
+		return specDbsLam_lib_procCde_searchStock_doSearch( $whse_src, $stk_prod, $qty_search ) ;
 	}
 	
 	// document pour descente picking ?
-	
-	$resupply_stkIds = array() ;
 	$resupply_transferLigFilerecordIds = array() ;
 	while( TRUE ) {
-		$arr_results = specDbsLam_lib_procCde_searchStock_doSearch( $whse_src, $stk_prod, $qty, TRUE, $resupply_stkIds ) ;
-		if( $arr_results ) {
+		$resupply_stkIds = array() ;
+		$query = "SELECT stkdst.filerecord_id
+					FROM view_file_TRANSFER_STEP ts
+					JOIN view_file_TRANSFER_LIG tl 
+						ON tl.filerecord_parent_id=ts.filerecord_parent_id 
+						AND tl.field_TRANSFERSTEP_IDX=ts.field_TRANSFERSTEP_IDX
+					JOIN view_file_MVT mvt ON mvt.filerecord_id=tl.field_FILE_MVT_ID
+					JOIN view_file_STOCK stkdst ON stkdst.filerecord_id=mvt.field_DST_FILE_STOCK_ID
+					WHERE ts.filerecord_id='$resupply_transferStep_filerecordId'" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$resupply_stkIds[] = $arr[0] ;
+		}
+	
+		$qty = $qty_search ;
+		$arr_results = specDbsLam_lib_procCde_searchStock_doSearch( $whse_src, $stk_prod, $qty, $from_picking=TRUE, $resupply_stkIds ) ;
+		if( $qty<=0 ) {
 			return $arr_results ;
 		}
 		
@@ -659,9 +672,7 @@ function specDbsLam_lib_procCde_searchStock( $whse_src, $stk_prod, &$qty, $resup
 		if( !$tranferligFilerecordId ) {
 			break ;
 		}
-		
-		// query reappro lig/mvt/stock
-		
+		$resupply_transferLigFilerecordIds[] = $tranferligFilerecordId ;
 		continue ;
 	}
 	
@@ -673,7 +684,58 @@ function specDbsLam_lib_procCde_searchStock( $whse_src, $stk_prod, &$qty, $resup
 	return $arr_results ;
 }
 function specDbsLam_lib_procCde_searchStock_doResupply( $whse_src, $stk_prod, $resupply_transferStep_filerecordId ) {
-
+	global $_opDB ;
+	
+	// selection du stock
+	$adr_treenodes = paracrm_data_getBibleTreeBranch( 'ADR', $whse_src ) ;
+	$query = "SELECT stk.* FROM view_file_STOCK stk";
+	$query.= " JOIN view_bible_ADR_entry adr ON adr.entry_key=stk.field_ADR_ID" ;
+	$query.= " WHERE 1 AND stk.field_PROD_ID='{$stk_prod}'" ;
+	$query.= " AND field_QTY_AVAIL>'0' AND field_QTY_PREIN='0' AND field_QTY_OUT='0'" ;
+	$query.= " AND adr.treenode_key IN ".$_opDB->makeSQLlist($adr_treenodes) ;
+	$query.= " AND (adr.field_CONT_IS_ON='1' AND adr.field_CONT_IS_PICKING='0')" ;
+	$query.= " ORDER BY field_LAM_DATEUPDATE ASC" ;
+	$query.= " LIMIT 1" ;
+	$result = $_opDB->query($query) ;
+	if( $_opDB->num_rows($result) != 1 ) {
+		return NULL ;
+	}
+	$arr = $_opDB->fetch_row($result) ;
+	$stk_filerecordId = $arr[0] ;
+	
+	// DB row 
+	$query = "SELECT * FROM view_file_TRANSFER_STEP WHERE filerecord_id='{$resupply_transferStep_filerecordId}'" ;
+	$result = $_opDB->query($query) ;
+	$transferStep_DB = $_opDB->fetch_assoc($result) ;
+	if( !$transferStep_DB ) {
+		echo NULL ;
+	}
+	$transfer_filerecordId = $transferStep_DB['filerecord_parent_id'] ;
+	
+	// inscription du mvt
+	$mvt_filerecordId = specDbsLam_lib_procMvt_addStock( $whse_src, $whse_src, $stk_filerecordId ) ;
+	$transfer_row = array(
+		'field_TRANSFERSTEP_IDX' => $transferStep_DB['field_TRANSFERSTEP_IDX'],
+		'field_FILE_MVT_ID' => $mvt_filerecordId
+	);
+	$transferLig_filerecordId = paracrm_lib_data_insertRecord_file('TRANSFER_LIG',$transfer_filerecordId,$transfer_row) ;
+	
+	// fetch transferlig row
+	$ttmp = specDbsLam_transfer_getTransferLig( array(
+		'filter_transferLigFilerecordId_arr'=>json_encode(array($transferLig_filerecordId))
+	) ) ;
+	$row_transferLig = reset($ttmp['data']) ;
+	
+	// search Adr PICKING ?
+	$resupply_adrId = specDbsLam_lib_proc_findAdr($row_transferLig,$whse_src,$topicking=TRUE) ;
+	if( !$resupply_adrId ) {
+		paracrm_lib_data_deleteRecord_file('TRANSFER_LIG',$transferLig_filerecordId) ;
+		specDbsLam_lib_procMvt_delMvt($mvt_filerecordId) ;
+		return NULL ;
+	}
+	specDbsLam_lib_procMvt_setDstAdr( $mvt_filerecordId, $resupply_adrId ) ;
+	
+	return $transferLig_filerecordId ;
 }
 function specDbsLam_lib_procCde_searchStock_doSearch( $whse_src, $stk_prod, &$qty, $from_picking=false, $resupply_stkIds=array() ) {
 	global $_opDB ;
@@ -695,7 +757,7 @@ function specDbsLam_lib_procCde_searchStock_doSearch( $whse_src, $stk_prod, &$qt
 	$query = "SELECT stk.* FROM view_file_STOCK stk";
 	$query.= " JOIN view_bible_ADR_entry adr ON adr.entry_key=stk.field_ADR_ID" ;
 	$query.= " WHERE 1 AND stk.field_PROD_ID='{$stk_prod}'" ;
-	$query = " AND adr.treenode_key IN ".$_opDB->makeSQLlist($adr_treenodes) ;
+	$query.= " AND adr.treenode_key IN ".$_opDB->makeSQLlist($adr_treenodes) ;
 	if( $from_picking ) {
 		$query.= " AND (adr.field_CONT_IS_ON='0' OR (adr.field_CONT_IS_ON='1' AND adr.field_CONT_IS_PICKING='1'))" ;
 	}
@@ -710,6 +772,9 @@ function specDbsLam_lib_procCde_searchStock_doSearch( $whse_src, $stk_prod, &$qt
 			$qty_stock = $arr['field_QTY_AVAIL']+$arr['field_QTY_PREIN'] ;
 		}
 		$qty_mvt = min($qty,$qty_stock) ;
+		if( $qty_mvt <= 0 ) {
+			continue ;
+		}
 		
 		$arr_results[] = array(
 			'stock_filerecord_id' => $arr['filerecord_id'],
