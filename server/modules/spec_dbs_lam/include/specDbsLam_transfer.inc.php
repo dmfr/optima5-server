@@ -1302,7 +1302,7 @@ function specDbsLam_transfer_addCdePickingStock( $post_data, $fast=FALSE ) {
 		
 		if( $whseDestIsWork=TRUE ) {
 			$tmp_adr = $whseDest.'_'.$needTxt ;
-			specDbsLam_lib_procMvt_setDstAdr($mvt_filerecordId,$tmp_adr) ;
+			specDbsLam_lib_procMvt_setDstAdr($mvt_filerecordId,$tmp_adr,$whseDest) ;
 		}
 	}
 	

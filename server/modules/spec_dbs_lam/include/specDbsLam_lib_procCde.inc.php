@@ -315,7 +315,7 @@ function specDbsLam_lib_procCde_forwardPacking( $transfer_filerecord_id, $transf
 						$needTxt = preg_replace("/[^A-Z0-9]/", "", strtoupper($transferCdeLink_row['cde_nr'] )) ;
 						if( $whseDestIsWork=TRUE ) {
 							$tmp_adr = $whseDest.'_'.$needTxt ;
-							specDbsLam_lib_procMvt_setDstAdr($mvt_filerecordId,$tmp_adr) ;
+							specDbsLam_lib_procMvt_setDstAdr($mvt_filerecordId,$tmp_adr,$whseDest) ;
 						}
 					}
 				}
@@ -637,15 +637,51 @@ function specDbsLam_lib_procCde_syncLinks($transfer_filerecord_id) {
 
 
 
+function specDbsLam_lib_procCde_searchStock( $whse_src, $stk_prod, &$qty, $resupply_transferStep_filerecordId=0 ) {
+	global $_opDB ;
+	
+	if( !$resupply_transferStep_filerecordId ) {
+		return specDbsLam_lib_procCde_searchStock_doSearch( $whse_src, $stk_prod, $qty ) ;
+	}
+	
+	// document pour descente picking ?
+	
+	$resupply_stkIds = array() ;
+	$resupply_transferLigFilerecordIds = array() ;
+	while( TRUE ) {
+		$arr_results = specDbsLam_lib_procCde_searchStock_doSearch( $whse_src, $stk_prod, $qty, TRUE, $resupply_stkIds ) ;
+		if( $arr_results ) {
+			return $arr_results ;
+		}
+		
+		// tentative reappro ?
+		$tranferligFilerecordId = specDbsLam_lib_procCde_searchStock_doResupply( $whse_src, $stk_prod, $resupply_transferStep_filerecordId ) ;
+		if( !$tranferligFilerecordId ) {
+			break ;
+		}
+		
+		// query reappro lig/mvt/stock
+		
+		continue ;
+	}
+	
+	if( $echec=TRUE ) {
+		// clean reappros
+		
+	}
+	
+	return $arr_results ;
+}
+function specDbsLam_lib_procCde_searchStock_doResupply( $whse_src, $stk_prod, $resupply_transferStep_filerecordId ) {
 
-
-function specDbsLam_lib_procCde_searchStock( $stk_prod, &$qty, $from_picking=false) {
+}
+function specDbsLam_lib_procCde_searchStock_doSearch( $whse_src, $stk_prod, &$qty, $from_picking=false, $resupply_stkIds=array() ) {
 	global $_opDB ;
 	
 	if( $from_picking===false ) {
 		$mstr = array() ;
 		for( $i=1 ; $i>=0 ; $i-- ) {
-			$mstr = array_merge($mstr,specDbsLam_lib_procCde_searchStock($stk_prod, $qty, $i)) ;
+			$mstr = array_merge($mstr,specDbsLam_lib_procCde_searchStock_doSearch($whse_src, $stk_prod, $qty, $i)) ;
 		}
 		if( $qty<=0 ) {
 			return $mstr ;
@@ -653,10 +689,13 @@ function specDbsLam_lib_procCde_searchStock( $stk_prod, &$qty, $from_picking=fal
 		return array() ;
 	}
 	
+	$adr_treenodes = paracrm_data_getBibleTreeBranch( 'ADR', $whse_src ) ;
+	
 	$arr_results = array() ;
 	$query = "SELECT stk.* FROM view_file_STOCK stk";
 	$query.= " JOIN view_bible_ADR_entry adr ON adr.entry_key=stk.field_ADR_ID" ;
 	$query.= " WHERE 1 AND stk.field_PROD_ID='{$stk_prod}'" ;
+	$query = " AND adr.treenode_key IN ".$_opDB->makeSQLlist($adr_treenodes) ;
 	if( $from_picking ) {
 		$query.= " AND (adr.field_CONT_IS_ON='0' OR (adr.field_CONT_IS_ON='1' AND adr.field_CONT_IS_PICKING='1'))" ;
 	}
@@ -666,7 +705,11 @@ function specDbsLam_lib_procCde_searchStock( $stk_prod, &$qty, $from_picking=fal
 		if( $qty <= 0 ) {
 			break ;
 		}
-		$qty_mvt = min($qty,$arr['field_QTY_AVAIL']) ;
+		$qty_stock = $arr['field_QTY_AVAIL'] ;
+		if( in_array($arr['filerecord_id'],$resupply_stkIds) ) {
+			$qty_stock = $arr['field_QTY_AVAIL']+$arr['field_QTY_PREIN'] ;
+		}
+		$qty_mvt = min($qty,$qty_stock) ;
 		
 		$arr_results[] = array(
 			'stock_filerecord_id' => $arr['filerecord_id'],

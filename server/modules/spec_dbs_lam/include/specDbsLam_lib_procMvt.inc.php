@@ -219,7 +219,7 @@ function specDbsLam_lib_procMvt_delMvt($mvt_filerecordId) {
 }
 
 
-function specDbsLam_lib_procMvt_setDstAdr($mvt_filerecordId, $adr_dest) {
+function specDbsLam_lib_procMvt_setDstAdr($mvt_filerecordId, $adr_dest, $whse_work=NULL) {
 	global $_opDB ;
 	
 	// verifs mvt non commit
@@ -237,6 +237,12 @@ function specDbsLam_lib_procMvt_setDstAdr($mvt_filerecordId, $adr_dest) {
 	$result = $_opDB->query($query) ;
 	if( $_opDB->num_rows($result) != 1 ) {
 		return FALSE ;
+	}
+	
+	if( $whse_work ) {
+		$arr_ins = array() ;
+		$arr_ins['field_ADR_ID'] = $adr_dest ;
+		paracrm_lib_data_insertRecord_bibleEntry( 'ADR' , $adr_dest, $whse_work, $arr_ins ) ;
 	}
 	
 	// Go ?
@@ -299,7 +305,23 @@ function specDbsLam_lib_procMvt_commit($mvt_filerecordId) {
 			WHERE filerecord_id='{$stockSrc_filerecordId}'
 			AND field_QTY_PREIN='0' AND field_QTY_OUT='0' AND field_QTY_AVAIL='0'" ;
 	if( $_opDB->query_uniqueValue($query)==$stockSrc_filerecordId ) {
-		paracrm_lib_data_deleteRecord_file( 'STOCK' , $stockSrc_filerecordId ) ;
+		$do_delete = TRUE ;
+	
+		// verif picking statique ?
+		$query = "SELECT filerecord_id FROM view_file_STOCK stk
+					INNER JOIN view_bible_ADR_entry adr ON adr.entry_key=stk.field_ADR_ID
+					INNER JOIN view_bible_PROD_entry prod ON prod.entry_key=stk.field_PROD_ID
+					WHERE stk.filerecord_id='{$stockSrc_filerecordId}' 
+						AND prod.field_PICK_IS_STATIC='1' 
+						AND adr.field_CONT_IS_PICKING='1' AND adr.field_CONT_IS_ON='1'" ;
+		$result = $_opDB->query($query) ;
+		if( $_opDB->num_rows($result) > 0 ) {
+			$do_delete = FALSE ;
+		}
+	
+		if( $do_delete ) {
+			paracrm_lib_data_deleteRecord_file( 'STOCK' , $stockSrc_filerecordId ) ;
+		}
 	}
 	
 	return TRUE ;

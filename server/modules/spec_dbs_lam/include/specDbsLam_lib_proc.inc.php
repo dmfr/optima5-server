@@ -65,16 +65,16 @@ function specDbsLam_lib_proc_findAdr( $mvt_obj, $whse_dest, $to_picking=NULL ) {
 	
 	if( $mvt_obj['stk_prod'] ) {
 		$hasPicking = FALSE ;
-		$query = "SELECT count(*)
+		$query = "SELECT inv.field_ADR_ID
 					FROM ($subQuery_stkWhse) inv 
 					JOIN view_bible_ADR_entry adr ON inv.field_ADR_ID = adr.entry_key
 					WHERE inv.field_PROD_ID='{$mvt_obj['stk_prod']}'
 					AND adr.field_CONT_IS_ON='1' AND adr.field_CONT_IS_PICKING='1'" ;
-		if( $_opDB->query_uniqueValue($query) > 0 ) {
+		if( $hasPickingAdr = $_opDB->query_uniqueValue($query) ) {
 			$hasPicking = TRUE ;
 		}
 		
-		if( $to_picking===NULL ) { // != FALSE/TRUE
+		if( $to_picking===NULL && !!$mvt_obj['container_type'] ) { // != FALSE/TRUE
 			$to_picking = !$hasPicking ;
 		}
 		
@@ -85,7 +85,7 @@ function specDbsLam_lib_proc_findAdr( $mvt_obj, $whse_dest, $to_picking=NULL ) {
 		// paramétrage picking ?
 		// picking existant ? si oui adresse ?
 		$pickingIsStatic = $row_prod['picking_is_static'] ;
-		$pickingAdrStatic = ($row_prod['picking_is_static'] ? $row_prod['picking_adr'] : null) ;
+		$pickingAdrStatic = ($row_prod['picking_is_static'] ? $hasPickingAdr : null) ;
 		
 		// append des attributs
 		foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
@@ -149,9 +149,17 @@ function specDbsLam_lib_proc_findAdr( $mvt_obj, $whse_dest, $to_picking=NULL ) {
 		$query.= " ORDER BY adr.field_PRIO_IDX, adr.entry_key LIMIT 1" ;
 		$result = $_opDB->query($query) ;
 		while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
-			return $adr_id = $arr['entry_key'] ;
+			$adr_id = $arr['entry_key'] ;
+			break 2 ;
 		}
 	}
+	
+	if( $pickingIsStatic && $doCheckAttributes && $to_picking ) {
+		// restockage
+		specDbsLam_prods_setPickStaticAdr($mvt_obj['stk_prod'],$adr_id) ;
+	}
+	
+	return $adr_id ;
 }
 function specDbsLam_lib_proc_validateAdr( $mvt_obj, $whse_dest, $adr_id ) {
 	global $_opDB ;
@@ -172,6 +180,8 @@ function specDbsLam_lib_proc_validateAdr( $mvt_obj, $whse_dest, $adr_id ) {
 		// interro prod
 		$json = specDbsLam_prods_getGrid( array('entry_key'=>$mvt_obj['stk_prod']) ) ;
 		$row_prod = $json['data'][0] ;
+		$pickingIsStatic = $row_prod['picking_is_static'] ;
+		
 		// append des attributs
 		foreach( $json_cfg['cfg_attribute'] as $stockAttribute_obj ) {
 			if( !$stockAttribute_obj['ADR_fieldcode'] || !$stockAttribute_obj['PROD_fieldcode'] ) {
@@ -219,7 +229,19 @@ function specDbsLam_lib_proc_validateAdr( $mvt_obj, $whse_dest, $adr_id ) {
 		return NULL ;
 	}
 	$arr = $_opDB->fetch_row($result) ;
-	return $arr[0] ;
+	$adr_id = $arr[0] ;
+	
+	if( $pickingIsStatic && $mvt_obj['container_type'] ) {
+		// restockage si picking
+		$query = "SELECT entry_key FROM view_bible_ADR_entry WHERE field_CONT_IS_ON='1' AND field_CONT_IS_PICKING='1' AND entry_key='{$adr_id}'" ;
+		$result = $_opDB->query($query) ;
+		if( $_opDB->num_rows($result) > 0 ) {
+			// restockage
+			specDbsLam_prods_setPickStaticAdr($mvt_obj['stk_prod'],$adr_id) ;
+		}
+	}
+	
+	return $adr_id ;
 }
 
 

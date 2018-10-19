@@ -136,4 +136,17 @@ function specDbsLam_prods_getStockGrid($post_data) {
 
 
 
+
+
+function specDbsLam_prods_setPickStaticAdr( $prod_id, $adr_id ) {
+	global $_opDB ;
+	
+	$query = "UPDATE view_bible_PROD_entry SET field_PICK_ADR_ID='{$adr_id}' WHERE entry_key='{$prod_id}' AND field_PICK_IS_STATIC='1'" ;
+	$_opDB->query($query) ;
+}
+
+
+
+
+
 ?>
