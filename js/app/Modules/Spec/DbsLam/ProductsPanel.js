@@ -21,6 +21,25 @@ Ext.define('DbsLamMvtlogModel',{
 	]
 });
 
+Ext.define('DbsLamProdComboboxModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'id',
+	fields: [
+		{name: 'id', type:'string'},
+		{name: 'prod_soc', type:'string'},
+		{name: 'prod_id', type:'string'},
+		{name: 'prod_txt', type:'string'},
+		{
+			name: 'txt',
+			type: 'string',
+			convert: function(v, record) {
+				return record.data.prod_id + ' / ' + record.data.prod_txt ;
+			}
+		}
+	]
+});
+
+
 
 Ext.define('Optima5.Modules.Spec.DbsLam.ProductsPanel',{
 	extend:'Ext.panel.Panel',

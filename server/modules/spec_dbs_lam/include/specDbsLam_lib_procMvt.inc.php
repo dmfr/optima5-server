@@ -173,6 +173,7 @@ function specDbsLam_lib_procMvt_delMvt($mvt_filerecordId) {
 	}
 	$row_mvt = $_opDB->fetch_assoc($result) ;
 	$qte_mvt = (float)$row_mvt['field_QTY_MVT'] ;
+	$mvt_isContainer = ($row_mvt['field_CONTAINER_TYPE']&&$row_mvt['field_CONTAINER_REF']) ;
 	$stockSrc_filerecordId = $row_mvt['field_SRC_FILE_STOCK_ID'] ;
 	$stockDst_filerecordId = $row_mvt['field_DST_FILE_STOCK_ID'] ;
 
@@ -186,10 +187,16 @@ function specDbsLam_lib_procMvt_delMvt($mvt_filerecordId) {
 	if( $_opDB->num_rows($result) != 1 ) {
 		return FALSE ;
 	}
+	$row_stkDst = $_opDB->fetch_assoc($result) ;
 	
 	// CHECK qte suffisante ?
 	// - cas container
 	// - cas qte libre
+	$qtePreinStk = ( $row_stkDst['field_QTY_AVAIL'] + $row_stkDst['field_QTY_PREIN'] ) ;
+	$validForDelete = ( $mvt_isContainer ? $qtePreinStk==$qte_mvt : $qtePreinStk >= $qte_mvt ) ;
+	if( !$validForDelete ) {
+		return FALSE ;
+	}
 	
 	
 	$query = "UPDATE view_file_STOCK 
