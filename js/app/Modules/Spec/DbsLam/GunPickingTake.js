@@ -1,7 +1,11 @@
 Ext.define('Optima5.Modules.Spec.DbsLam.GunPickingTake',{
 	extend: 'Ext.form.Panel',
 	
-	requires: ['Ext.form.FieldSet'],
+	requires: [
+		'Ext.form.FieldSet',
+		'Ext.form.field.Hidden',
+		'Ext.form.field.Number'
+	],
 	
 	initComponent: function() {
 		Ext.apply(this,{
@@ -25,21 +29,23 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunPickingTake',{
 				title: 'Container details',
 				items: [{
 					xtype: 'displayfield',
-					name: 'display_container_ref',
-					fieldStyle: 'font-weight:bold',
-					fieldLabel: 'Container Ref'
-				},{
-					xtype: 'displayfield',
 					name: 'display_current_adr',
 					fieldStyle: 'font-weight:bold',
 					fieldLabel: 'Position'
 				},{
 					xtype: 'displayfield',
+					name: 'display_container_ref',
+					fieldStyle: 'font-weight:bold',
+					fieldLabel: 'Container Ref'
+				},{
+					xtype: 'displayfield',
 					name: 'display_stk_prod',
+					fieldStyle: 'font-weight:bold',
 					fieldLabel: 'P/N'
 				},{
 					xtype: 'displayfield',
 					name: 'display_qty',
+					fieldStyle: 'font-weight:bold',
 					fieldLabel: 'Quantity'
 				}]
 			},{
@@ -47,17 +53,22 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunPickingTake',{
 				title: 'Action',
 				items: [{
 					hidden: true,
-					xtype: 'displayfield',
-					name: 'display_switch',
-					fieldLabel: '<b>Notice</b>',
-					fieldStyle: 'font-size:16px ; color:blue',
-					value: '<b>Switch Location</b>'
+					xtype: 'hiddenfield',
+					name: 'ask_currentStep'
 				},{
+					hidden: true,
 					xtype: 'displayfield',
-					name: 'display_next_adr',
-					fieldLabel: '<b>Move To</b>',
-					fieldStyle: 'font-size:24px',
-					value: ''
+					name: 'ask_prod',
+					fieldLabel: '<b>Notice</b>',
+					fieldStyle: 'font-size:16px',
+					value: '<b>Confirm P/N</b>'
+				},{
+					hidden: true,
+					xtype: 'displayfield',
+					name: 'ask_qty',
+					fieldLabel: '<b>Notice</b>',
+					fieldStyle: 'font-size:16px',
+					value: '<b>Confirm Qty</b>'
 				},{
 					hidden: true,
 					xtype: 'displayfield',
@@ -77,7 +88,26 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunPickingTake',{
 					listeners : {
 						specialkey: function(field, e){
 							if (e.getKey() == e.ENTER) {
-								this.handleScan() ;
+								this.handleSubmit() ;
+							}
+						},
+						scope: this
+					}
+				}]
+			},{
+				xtype: 'fieldset',
+				itemId: 'fsQty',
+				title: 'Scanner',
+				items: [{
+					xtype:'numberfield',
+					hideTrigger: true,
+					fieldLabel: 'Qty',
+					itemId: 'txtQty',
+					flex:1,
+					listeners : {
+						specialkey: function(field, e){
+							if (e.getKey() == e.ENTER) {
+								this.handleSubmit() ;
 							}
 						},
 						scope: this
@@ -131,29 +161,132 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunPickingTake',{
 	onLoadTransferLig: function(transferligRecord) {
 		this._transferligRecord = transferligRecord ;
 		var formValues = {
-			display_container_ref: transferligRecord.get('container_ref'),
+			display_container_ref: transferligRecord.get('container_ref_display'),
 			display_current_adr: transferligRecord.get('src_adr'),
 			display_stk_prod: transferligRecord.get('stk_prod'),
-			display_qty: transferligRecord.get('mvt_qty'),
-			display_next_adr: transferligRecord.get('dst_adr')
+			display_qty: transferligRecord.get('mvt_qty')
 		};
 		this.getForm().setValues(formValues)
 		this.hideLoadmask() ;
-		this.down('#txtScan').focus() ;
+		
+		this.startValidation() ;
 	},
 	
-
 	
-	onFailure: function( txtError ) {
-		this.down('#fsScanner').setVisible(false);
+	getCurValidationStep: function() {
+		var val = this.getForm().findField('ask_currentStep').getValue() ;
+		if( Ext.isEmpty(val) ) {
+			return null ;
+		}
+		return val ;
+	},
+	getNextValidationStep: function( validStep ) {
+		var steps = ['prod','qty'],
+			stepIdx = Ext.Array.indexOf(steps,validStep) ;
+		if( !validStep || stepIdx<0 ) {
+			return steps[0] ;
+		}
+		if( stepIdx + 1 >= steps.length ) {
+			return null ;
+		}
+		return steps[stepIdx+1] ;
+	},
+	startValidation: function() {
+		this.setValidationStep(this.getNextValidationStep(null)) ;
+	},
+	setValidationStep: function( validStep ) {
+		// hide All
+		this.getForm().findField('ask_prod').setVisible(false) ;
+		this.getForm().findField('ask_qty').setVisible(false) ;
+		this.getForm().findField('display_error').setVisible(false) ;
+		this.down('#fsScanner').setVisible(false) ;
+		this.down('#fsQty').setVisible(false) ;
+		
+		switch( validStep ) {
+			case 'prod' :
+				this.getForm().findField('ask_prod').setVisible(true) ;
+				this.down('#txtScan').reset(true) ;
+				this.down('#fsScanner').setVisible(true) ;
+				this.down('#txtScan').focus() ;
+				break ;
+			case 'qty' :
+				this.getForm().findField('ask_qty').setVisible(true) ;
+				this.down('#txtQty').reset(true) ;
+				this.down('#fsQty').setVisible(true) ;
+				this.down('#txtQty').focus() ;
+				break ;
+			default :
+				return ;
+		}
+		this.getForm().findField('ask_currentStep').setValue(validStep) ;
+	},
+	handleSubmit: function() {
+		var transferligRecord = this._transferligRecord ;
+		var txtError = null ;
+		switch( this.getCurValidationStep() ) {
+			case 'prod' :
+				var value = this.down('#txtScan').getValue() ;
+				value = value.trim().toUpperCase() ;
+				if( transferligRecord.get('stk_prod')==value ) {
+					break ;
+				}
+				txtError = 'Invalid P/N' ;
+				break ;
+			case 'qty' :
+				var value = this.down('#txtQty').getValue() ;
+				value = parseFloat(value) ;
+				if( transferligRecord.get('mvt_qty')==value ) {
+					break ;
+				}
+				txtError = 'Invalid quantity' ;
+				break ;
+			default :
+				txtError = 'Error ?' ;
+				break ;
+		}
+		if( !txtError ) {
+			// next
+			// - if null => on Success
+			// - else => setNext
+			var nextValidationStep = this.getNextValidationStep( this.getCurValidationStep() ) ;
+			if( !nextValidationStep ) {
+				this.setValidationStep( null ) ;
+				this.handleEnd() ;
+			} else {
+				this.setValidationStep(nextValidationStep) ;
+			}
+			return ;
+		}
+		
+		// showError + delay setStep(same)
+		this.setValidationStep(null) ;
 		this.getForm().findField('display_error').setValue(txtError);
 		this.getForm().findField('display_error').setVisible(true);
 		Ext.defer( function() {
-			this.getForm().findField('display_error').setVisible(false);
-			this.down('#txtScan').reset() ;
-			this.down('#fsScanner').setVisible(true);
-			this.down('#txtScan').focus() ;
+			this.setValidationStep(this.getCurValidationStep()) ;
 		},3000,this) ;
+	},
+	
+	
+	
+	handleEnd: function() {
+		var transferligRecord = this._transferligRecord ;
+		
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_lam',
+				_action: 'transfer_setCommit',
+				transfer_filerecordId: transferligRecord.get('transfer_filerecord_id'),
+				transferStep_filerecordId: transferligRecord.get('transferstep_filerecord_id'),
+				transferLig_filerecordIds: Ext.JSON.encode([transferligRecord.get('transferlig_filerecord_id')]),
+			},
+			success: function(response) {
+				var jsonResponse = Ext.JSON.decode(response.responseText) ;
+				this.onSuccess() ;
+			},
+			scope: this
+		}) ;
 	},
 	onSuccess: function() {
 		this.down('#fsScanner').setVisible(false);

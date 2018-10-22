@@ -12,14 +12,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunPickingRun',{
 					this.doQuit() ;
 				},
 				scope: this
-			},'->',{
-				itemId: 'tbAdd',
-				iconCls: 'op5-spec-dbslam-transfer-add',
-				text: '<b>Filters</b>',
-				handler: function() {
-					this.openFilters() ;
-				},
-				scope: this
 			}],
 			bbar : [{
 				xtype:'textfield',
@@ -155,6 +147,12 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunPickingRun',{
 				};
 			}
 		}) ;
+		
+		if( storeData.length==0 ) {
+			this.fireEvent('quit') ;
+			return ;
+		}
+		
 		this.down('grid').getStore().loadData(storeData) ;
 		this.down('form').getForm().setValues(formData) ;
 		
@@ -165,7 +163,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunPickingRun',{
 		srcAdr = srcAdr.trim().toUpperCase() ;
 		
 		var transferligFilerecordId = null ;
-		this.getStore().each( function(rec) {
+		this.down('grid').getStore().each( function(rec) {
 			if( rec.get('src_adr') == srcAdr ) {
 				transferligFilerecordId = rec.get('transferlig_filerecord_id') ;
 			}
@@ -175,10 +173,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunPickingRun',{
 			return ;
 		}
 		this.doLoadPickingDst( this._transferligDstAdr ) ;
-	},
-	
-	openFilters: function() {
-		this.fireEvent('openfilters',this) ;
 	},
 	
 	doQuit: function() {
