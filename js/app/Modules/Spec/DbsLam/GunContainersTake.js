@@ -1,6 +1,8 @@
 Ext.define('Optima5.Modules.Spec.DbsLam.GunContainersTake',{
 	extend: 'Ext.form.Panel',
 	
+	requires: ['Ext.form.FieldSet'],
+	
 	initComponent: function() {
 		Ext.apply(this,{
 			bodyCls: 'ux-noframe-bg',
@@ -116,7 +118,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunContainersTake',{
 				var ajaxResponse = Ext.decode(response.responseText),
 					transferligRecord = null ;
 				if( ajaxResponse.data && ajaxResponse.data.length == 1 ) {
-					transferligRecord = Ext.ux.dams.ModelManager.create('DbsLamTransferLigModel',ajaxResponse.data[0]) ;
+					transferligRecord = Ext.create('DbsLamTransferLigModel',ajaxResponse.data[0]) ;
 				}
 				if( !transferligRecord ) {
 					return ;

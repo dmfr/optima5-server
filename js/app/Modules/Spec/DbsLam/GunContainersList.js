@@ -1,5 +1,8 @@
 Ext.define('Optima5.Modules.Spec.DbsLam.GunContainersList',{
 	extend:'Ext.grid.Panel',
+	requires: [
+		'Ext.grid.column.Action'
+	],
 	initComponent: function(){
 		Ext.apply(this,{
 			tbar: [{

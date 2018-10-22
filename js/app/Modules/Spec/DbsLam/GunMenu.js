@@ -54,7 +54,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunMenu',{
 			},{
 				type_action:true,
 				action_caption: 'Orders',
-				action_sendEvent:'panel_products',
+				action_sendEvent:'gun_picking',
 				action_iconCls:'op5-spec-dbslam-menu-orders'
 			}]
 		}) ;

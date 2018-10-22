@@ -86,6 +86,11 @@ switch( $post_data['_action'] )
 	case 'util_htmlToPdf' :
 	return specDbsLam_util_htmlToPdf($post_data) ;
 	
+	case 'transferMission_getTransferLig' :
+	return specDbsLam_transferMission_getTransferLig( $post_data ) ;
+	case 'transferMission_getTransferSummary' :
+	return specDbsLam_transferMission_getTransferSummary( $post_data ) ;
+	
 	default :
 	return NULL ;
 }

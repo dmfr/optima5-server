@@ -1,10 +1,11 @@
 Ext.define('Optima5.Modules.Spec.DbsLam.GunPanel',{
 	extend:'Ext.panel.Panel',
 	requires:[
-		'Optima5.Modules.Spec.DbsLam.HelperCache',
+		//'Optima5.Modules.Spec.DbsLam.HelperCache',
 		
 		'Optima5.Modules.Spec.DbsLam.GunMenu',
-		'Optima5.Modules.Spec.DbsLam.GunContainers'
+		'Optima5.Modules.Spec.DbsLam.GunContainers',
+		'Optima5.Modules.Spec.DbsLam.GunPicking'
 	],
 	
 	initComponent: function() {
@@ -44,6 +45,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunPanel',{
 		switch( actionCode ) {
 			case 'gun_containers' :
 				return me.switchToAppPanel('Optima5.Modules.Spec.DbsLam.GunContainers',{}) ;
+			case 'gun_picking' :
+				return me.switchToAppPanel('Optima5.Modules.Spec.DbsLam.GunPicking',{}) ;
 			default :
 				return ;
 		}
