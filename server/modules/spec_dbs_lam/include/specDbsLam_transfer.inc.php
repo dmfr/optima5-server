@@ -173,6 +173,7 @@ function specDbsLam_transfer_getTransferLig($post_data) {
 				'soc_code' => $arr['field_SOC_CODE'],
 				'container_type' => $arr['field_CONTAINER_TYPE'],
 				'container_ref' => $arr['field_CONTAINER_REF'],
+				'container_ref_display' => $arr['field_CONTAINER_DISPLAY'],
 				'stk_prod' => $arr['field_PROD_ID'],
 				'stk_batch' => $arr['field_SPEC_BATCH'],
 				'stk_datelc' => $arr['field_SPEC_DATELC'],

@@ -87,6 +87,7 @@ Ext.define('DbsLamTransferLigModel',{
 		{name: 'dst_whse', type:'string'},
 		{name: 'dst_adr', type:'string'},
 		{name: 'container_ref', type:'string'},
+		{name: 'container_ref_display', type:'string'},
 		{name: 'stk_prod', type:'string'},
 		{name: 'stk_batch', type:'string'},
 		{name: 'stk_datelc', type:'string'},

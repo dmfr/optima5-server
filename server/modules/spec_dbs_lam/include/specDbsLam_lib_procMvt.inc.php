@@ -77,6 +77,7 @@ function specDbsLam_lib_procMvt_addStock($src_whse, $dst_whse, $stock_filerecord
 		'field_SOC_CODE' => $row_stock['field_SOC_CODE'],
 		'field_CONTAINER_TYPE' => ($qte_mvt ? NULL : $row_stock['field_CONTAINER_TYPE']),
 		'field_CONTAINER_REF' => ($qte_mvt ? NULL : $row_stock['field_CONTAINER_REF']),
+		'field_CONTAINER_DISPLAY' => $row_stock['field_CONTAINER_REF'],
 		'field_PROD_ID' => $row_stock['field_PROD_ID'],
 		'field_QTY_MVT' => $qte_mvt_actual,
 		'field_SPEC_BATCH' => $row_stock['field_SPEC_BATCH'],

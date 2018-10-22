@@ -77,7 +77,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerCdePickingPanel',{
 			},{
 				text: '<b>SKU details</b>',
 				columns: [{
-					dataIndex: 'container_ref',
+					dataIndex: 'container_ref_display',
 					text: 'Container',
 					width: 100
 				},{
