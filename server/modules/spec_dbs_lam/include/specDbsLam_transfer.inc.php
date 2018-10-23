@@ -118,7 +118,7 @@ function specDbsLam_transfer_getTransferLig($post_data) {
 	
 	
 	// **************** SQL selection *****************
-	$ignores = array('tl.field_STEP_CODE') ;
+	$ignores = array() ;
 	$selects = array() ;
 	foreach( array('tl'=>'view_file_TRANSFER_LIG','mvt'=>'view_file_MVT') as $prefix=>$table ) {
 		$query = "SHOW COLUMNS FROM {$table}" ;
@@ -169,6 +169,7 @@ function specDbsLam_transfer_getTransferLig($post_data) {
 				'transferstep_filerecord_id' => $arr['transferstep_filerecord_id'],
 				'cdepick_transfercdeneed_filerecord_id' => $arr['field_PICK_TRSFRCDENEED_ID'],
 				'cdepack_transfercdelink_filerecord_id' => $arr['field_PACK_TRSFRCDELINK_ID'],
+				'cdepack_transfercdepack_filerecord_id' => $arr['field_PACK_TRSFRCDEPACK_ID'],
 				'mvt_filerecord_id' => $arr['mvt_filerecord_id'],
 				'soc_code' => $arr['field_SOC_CODE'],
 				'container_type' => $arr['field_CONTAINER_TYPE'],
@@ -213,7 +214,7 @@ function specDbsLam_transfer_getTransferCdeLink( $post_data ) {
 	global $_opDB ;
 	
 	// **************** SQL selection *****************
-	$ignores = array('tl.field_STEP_CODE') ;
+	$ignores = array() ;
 	$selects = array() ;
 	foreach( array('tcl'=>'view_file_TRANSFER_CDE_LINK','cl'=>'view_file_CDE_LIG','c'=>'view_file_CDE') as $prefix=>$table ) {
 		$query = "SHOW COLUMNS FROM {$table}" ;
@@ -276,7 +277,7 @@ function specDbsLam_transfer_getTransferCdeNeed( $post_data ) {
 	global $_opDB ;
 	
 	// **************** SQL selection *****************
-	$ignores = array('tl.field_STEP_CODE') ;
+	$ignores = array() ;
 	$selects = array() ;
 	foreach( array('tcn'=>'view_file_TRANSFER_CDE_NEED') as $prefix=>$table ) {
 		$query = "SHOW COLUMNS FROM {$table}" ;
@@ -327,8 +328,62 @@ function specDbsLam_transfer_getTransferCdeNeed( $post_data ) {
 	
 	return array('success'=>true, 'data'=>$TAB) ;
 }
-
-
+function specDbsLam_transfer_getTransferCdePack( $post_data ) {
+	global $_opDB ;
+	
+	// **************** SQL selection *****************
+	$ignores = array() ;
+	$selects = array() ;
+	foreach( array('tcp'=>'view_file_TRANSFER_CDE_PACK') as $prefix=>$table ) {
+		$query = "SHOW COLUMNS FROM {$table}" ;
+		$result = $_opDB->query($query) ;
+		while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+			$field = $arr[0] ;
+			if( !(strpos($field,'field_')===0) ) {
+				continue ;
+			}
+			$mkey = $prefix.'.'.$field ;
+			if( in_array($mkey,$ignores) ) {
+				continue ;
+			}
+			
+			$selects[] = $prefix.'.'.$field ;
+		}
+	}
+	$selects = implode(',',$selects) ;
+	
+	
+	$query = "SELECT tcp.filerecord_id AS transfercdepack_filerecord_id
+		, t.filerecord_id AS transfer_filerecord_id
+		, {$selects}
+		FROM view_file_TRANSFER_CDE_PACK tcp
+		INNER JOIN view_file_TRANSFER t ON t.filerecord_id = tcp.filerecord_parent_id" ;
+	$query.= " WHERE 1" ;
+	if( $post_data['filter_transferFilerecordId'] ) {
+		$query.= " AND t.filerecord_id='{$post_data['filter_transferFilerecordId']}'" ;
+	}
+	if( $post_data['filter_transferCdePackFilerecordId_arr'] ) {
+		$query.= " AND tcp.filerecord_id IN ".$_opDB->makeSQLlist(json_decode($post_data['filter_transferCdePackFilerecordId_arr'],true)) ;
+	}
+	$query.= " ORDER BY transfercdepack_filerecord_id DESC" ;
+	$result = $_opDB->query($query) ;
+	$TAB = array() ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$row = array(
+			'transfercdepack_filerecord_id' => $arr['transfercdepack_filerecord_id'],
+			'transfer_filerecord_id' => $arr['transfer_filerecord_id'],
+			'cde_filerecord_id' => $arr['field_FILE_CDE_ID'],
+			'id_sscc' => $arr['field_ID_SSCC'],
+			'id_trspt_code' => $arr['field_ID_TRSPT_CODE'],
+			'id_trspt_id' => $arr['field_ID_TRSPT_ID'],
+			'calc_kg' => (float)$arr['field_CALC_KG'],
+			'calc_m3' => (float)$arr['field_CALC_M3'],
+		);
+		$TAB[] = $row ;
+	}
+	
+	return array('success'=>true, 'data'=>$TAB) ;
+}
 
 
 

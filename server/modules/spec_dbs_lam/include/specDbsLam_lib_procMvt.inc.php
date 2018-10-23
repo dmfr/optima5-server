@@ -322,6 +322,9 @@ function specDbsLam_lib_procMvt_commit($mvt_filerecordId) {
 	
 		if( $do_delete ) {
 			paracrm_lib_data_deleteRecord_file( 'STOCK' , $stockSrc_filerecordId ) ;
+		} else {
+			// HACK TODO ! Delete des pickings plus anciens : meme adr / meme ref / qtes = 0 
+			
 		}
 	}
 	

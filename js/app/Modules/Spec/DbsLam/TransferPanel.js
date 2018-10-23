@@ -1408,7 +1408,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		if( !activeTab ) {
 			return ;
 		}
-		if( !activeTab.optionsHasAdrAlloc() ) {
+		if( !activeTab.optionsHasFastCommit() ) {
 			return ;
 		}
 		
