@@ -36,6 +36,9 @@ function specDbsLam_transfer_getTransfer($post_data) {
 			
 			$ttmp = specDbsLam_transfer_getTransferCdeNeed($post_data) ;
 			$TAB[$filerecord_id]['cde_needs'] = $ttmp['data'] ;
+			
+			$ttmp = specDbsLam_transfer_getTransferCdePack($post_data) ;
+			$TAB[$filerecord_id]['cde_packs'] = $ttmp['data'] ;
 		}
 	}
 	if( !$post_data['filter_transferFilerecordId'] || (count($TAB)!=1) ) {
@@ -373,9 +376,13 @@ function specDbsLam_transfer_getTransferCdePack( $post_data ) {
 			'transfercdepack_filerecord_id' => $arr['transfercdepack_filerecord_id'],
 			'transfer_filerecord_id' => $arr['transfer_filerecord_id'],
 			'cde_filerecord_id' => $arr['field_FILE_CDE_ID'],
+			'id_nocolis' => $arr['field_ID_NOCOLIS'],
 			'id_sscc' => $arr['field_ID_SSCC'],
 			'id_trspt_code' => $arr['field_ID_TRSPT_CODE'],
 			'id_trspt_id' => $arr['field_ID_TRSPT_ID'],
+			'calc_folio_group' => (float)$arr['field_CALC_FOLIO_GROUP'],
+			'calc_folio_idx' => (float)$arr['field_CALC_FOLIO_IDX'],
+			'calc_folio_sum' => (float)$arr['field_CALC_FOLIO_SUM'],
 			'calc_kg' => (float)$arr['field_CALC_KG'],
 			'calc_m3' => (float)$arr['field_CALC_M3'],
 		);
@@ -533,7 +540,7 @@ function specDbsLam_transfer_rollback( $post_data ) {
 		$forwardToIdx = $transferstep_row['forward_to_idx'] ;
 	}
 	
-	
+	$ids = array() ;
 	foreach( $transferLig_filerecordIds as $transferLig_filerecordId ) {
 		// mvt ID ?
 		$query = "SELECT field_FILE_MVT_ID FROM view_file_TRANSFER_LIG WHERE filerecord_id='{$transferLig_filerecordId}'" ;
@@ -592,7 +599,35 @@ function specDbsLam_transfer_rollback( $post_data ) {
 				}
 			}
 			
+			if( $success ) {
+				$ids[] = $transferLig_filerecordId ;
+			}
+			
 			break ;
+		}
+	}
+	
+	if( $transferstep_row['spec_cde_packing'] ) {
+		// HACK 22/10/2018 build byCde packing
+		if( TRUE ) {
+			$json = specDbsLam_transfer_getTransfer($formard_post) ;
+			$transfer_row = reset($json['data']) ;
+			foreach( $transfer_row['cde_links'] as $transfercdelink_row ) {
+				$transferCdeLink_filerecordId = $transfercdelink_row['transfercdelink_filerecord_id'] ;
+				$cde_filerecordId = $transfercdelink_row['cde_filerecord_id'] ;
+				$map_transferCdeLinkFilerecordId_cdeFilerecordId[$transferCdeLink_filerecordId] = $cde_filerecordId ;
+			}
+			foreach( $transfer_row['steps'] as $transferstep_iter ) {
+				if( $transferstep_iter['transferstep_filerecord_id'] == $transferStep_filerecordId ) {
+					$transferstep_row = $transferstep_iter ;
+				}
+			}
+			foreach( $transferstep_row['ligs'] as $transferlig_row ) {
+				if( in_array($transferlig_row['transferlig_filerecord_id'],$ids) && $transferlig_row['cdepack_transfercdepack_filerecord_id'] ) {
+					specDbsLam_lib_procCde_shipPackRemove($transferlig_row['cdepack_transfercdepack_filerecord_id'],$transferlig_row['transferlig_filerecord_id']) ;
+				}
+			}
+			specDbsLam_lib_procCde_shipPackSync($transfer_filerecordId) ;
 		}
 	}
 	
@@ -1703,16 +1738,41 @@ function specDbsLam_transfer_setCommit( $post_data ) {
 		}
 	}
 	
+	$success = (count($ids)>0) ;
+	
 	if( $transferstep_row['spec_cde_packing'] ) {
+		$success = true ;
 		// HACK 22/10/2018 build byCde packing
 		if( TRUE ) {
+			$map_transferCdeLinkFilerecordId_cdeFilerecordId = array() ;
 			$map_cdeFilerecordId_arrTransferLigFilerecordIds = array() ;
 			
 			$json = specDbsLam_transfer_getTransfer($formard_post) ;
 			$transfer_row = reset($json['data']) ;
+			foreach( $transfer_row['cde_links'] as $transfercdelink_row ) {
+				$transferCdeLink_filerecordId = $transfercdelink_row['transfercdelink_filerecord_id'] ;
+				$cde_filerecordId = $transfercdelink_row['cde_filerecord_id'] ;
+				$map_transferCdeLinkFilerecordId_cdeFilerecordId[$transferCdeLink_filerecordId] = $cde_filerecordId ;
+			}
 			foreach( $transfer_row['steps'] as $transferstep_iter ) {
 				if( $transferstep_iter['transferstep_filerecord_id'] == $transferStep_filerecordId ) {
 					$transferstep_row = $transferstep_iter ;
+				}
+			}
+			foreach( $transferstep_row['ligs'] as $transferlig_row ) {
+				if( $transferlig_row['cdepack_transfercdelink_filerecord_id']
+					&& !$transferlig_row['cdepack_transfercdepack_filerecord_id']
+					&& $transferlig_row['status_is_ok'] ) {
+					
+					$transferCdeLink_filerecordId = $transferlig_row['cdepack_transfercdelink_filerecord_id'] ;
+					$cde_filerecordId = $map_transferCdeLinkFilerecordId_cdeFilerecordId[$transferCdeLink_filerecordId] ;
+					
+					$transferLig_filerecordId = $transferlig_row['transferlig_filerecord_id'] ;
+					
+					if( !isset($map_cdeFilerecordId_arrTransferLigFilerecordIds[$cde_filerecordId]) ) {
+						$map_cdeFilerecordId_arrTransferLigFilerecordIds[$cde_filerecordId] = array() ;
+					}
+					$map_cdeFilerecordId_arrTransferLigFilerecordIds[$cde_filerecordId][] = $transferLig_filerecordId ;
 				}
 			}
 			
@@ -1723,13 +1783,14 @@ function specDbsLam_transfer_setCommit( $post_data ) {
 					specDbsLam_lib_procCde_shipPackAssociate($transferCdePack_filerecordId,$transferLig_filerecordId) ;
 				}
 			}
+			specDbsLam_lib_procCde_shipPackSync($transfer_filerecordId) ;
 		}
 	}
 	if( $transfer_row['spec_cde'] ) {
 		specDbsLam_lib_procCde_syncLinks($transfer_filerecordId) ;
 	}
 	
-	return array('success'=>(count($ids)>0), 'ids'=>$ids) ;
+	return array('success'=>$success, 'ids'=>$ids) ;
 }
 
 

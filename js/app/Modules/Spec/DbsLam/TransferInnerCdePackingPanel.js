@@ -274,7 +274,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerCdePackingPanel',{
 				pack_id_trspt_id:  packRow.id_trspt_id,
 				pack_status_is_ready: packRow.status_is_ready,
 				pack_status_is_shipped: packRow.status_is_shipped,
-				children: ( map_transfercdepackFilerecordId_arrLigs.hasOwnProperty(transfercdeneedFilerecordId) ? map_transfercdepackFilerecordId_arrLigs[transfercdeneedFilerecordId] : [] ),
+				children: ( map_transfercdepackFilerecordId_arrLigs.hasOwnProperty(transfercdepackFilerecordId) ? map_transfercdepackFilerecordId_arrLigs[transfercdepackFilerecordId] : [] ),
 				expanded: true
 			}) ;
 		}) ;

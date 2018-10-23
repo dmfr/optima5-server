@@ -894,12 +894,43 @@ function specDbsLam_lib_procCde_searchStock_doSearch( $whse_src, $stk_prod, &$qt
 
 
 function specDbsLam_lib_procCde_shipPackCreate( $transfer_filerecord_id, $cde_filerecord_id=NULL, $reuse=FALSE ) {
-	$sscc = NULL ; // proc TMS
+	global $_opDB ;
+	if( $cde_filerecord_id && $reuse ) {
+		$query = "SELECT filerecord_id FROM view_file_TRANSFER_CDE_PACK
+					WHERE field_FILE_CDE_ID='{$cde_filerecord_id}'" ;
+		if( $filerecord_id = $_opDB->query_uniqueValue($query) ) {
+			return $filerecord_id ;
+		}
+	}
+	
+	$arr_ins = array() ;
+	$arr_ins['field_FILE_CDE_ID'] = $cde_filerecord_id ;
+	$arr_ins['field_ID_NOCOLIS'] = specDbsLam_lib_TMS_getNOCOLIS() ;
+	$arr_ins['field_ID_SSCC'] = specDbsLam_lib_TMS_getSSCC() ;
+	$filerecord_id = paracrm_lib_data_insertRecord_file('TRANSFER_CDE_PACK',$transfer_filerecord_id,$arr_ins) ;
+	
+	return $filerecord_id ;
 }
 function specDbsLam_lib_procCde_shipPackAssociate( $transferpack_filerecord_id, $transferlig_filerecord_id ) {
+	global $_opDB ;
+	$query = "UPDATE view_file_TRANSFER_LIG tl
+				INNER JOIN view_file_TRANSFER_CDE_PACK tcp ON tcp.filerecord_parent_id=tl.filerecord_parent_id AND tcp.filerecord_id='{$transferpack_filerecord_id}'
+				SET tl.field_PACK_TRSFRCDEPACK_ID=tcp.filerecord_id
+				WHERE tl.filerecord_id='{$transferlig_filerecord_id}'" ;
+	$_opDB->query($query) ;
+}
+function specDbsLam_lib_procCde_shipPackRemove( $transferpack_filerecord_id, $transferlig_filerecord_id ) {
 
 }
-function specDbsLam_lib_procCde_generate( $transferpack_filerecord_id ) {
+function specDbsLam_lib_procCde_shipPackSync( $transfer_filerecord_id ) {
+	// Clean empty
+	
+	// Calc folio IDX
+	
+	// Post-process
+	
+}
+function specDbsLam_lib_procCde_shipPackgenerate( $transferpack_filerecord_id ) { // by SQL
 	// appel TMS si transporteur CDE
 	
 	// etat status_is_ready => lock
