@@ -122,6 +122,18 @@
 .op5-spec-dbslam-stock-ok .x-grid-cell-inner {
 	background: url('../images/op5img/ico_ok_16.gif') no-repeat center center ;
 }
+.op5-spec-dbslam-pack-none    .x-grid-cell-inner {
+	background: url('../images/op5img/ico_wait_small.gif') no-repeat center center ;
+}
+.op5-spec-dbslam-pack-init    .x-grid-cell-inner {
+	background: url('../images/op5img/ico_reddot.gif') no-repeat center center ;
+}
+.op5-spec-dbslam-pack-ready   .x-grid-cell-inner {
+	background: url('../images/op5img/ico_orangedot.gif') no-repeat center center ;
+}
+.op5-spec-dbslam-pack-shipped .x-grid-cell-inner {
+	background: url('../images/op5img/ico_greendot.gif') no-repeat center center ;
+}
 
 .op5-spec-dbslam-stock-disabled .x-grid-cell-inner {
 	background-color: #cccccc ;

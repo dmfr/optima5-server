@@ -287,6 +287,14 @@ function specDbsLam_lib_procMvt_commit($mvt_filerecordId) {
 		return FALSE ;
 	}
 	
+	$query = "SELECT field_QTY_AVAIL+field_QTY_OUT
+					FROM view_file_STOCK
+					WHERE filerecord_id='{$stockSrc_filerecordId}'" ;
+	$qty_phys = (float)$_opDB->query_uniqueValue($query) ;
+	if( $qty_phys<$qte_mvt ) {
+		return FALSE ;
+	}
+	
 	$query = "UPDATE view_file_MVT mvt
 					JOIN view_file_STOCK src ON src.filerecord_id=mvt.field_SRC_FILE_STOCK_ID
 					JOIN view_file_STOCK dst ON dst.filerecord_id=mvt.field_DST_FILE_STOCK_ID

@@ -101,6 +101,13 @@ Ext.define('DbsLamTransferLigModel',{
 		{name: 'need_qty_remain', type: 'number'},
 		{name: 'transfercdeneed_filerecord_id', type:'int'},
 		
+		{name: 'pack_id_sscc', type: 'string'},
+		{name: 'pack_id_trspt_code', type: 'string'},
+		{name: 'pack_id_trspt_id', type: 'string'},
+		{name: 'pack_status_is_ready', type:'boolean'},
+		{name: 'pack_status_is_shipped', type:'boolean'},
+		{name: 'transfercdepack_filerecord_id', type:'int'},
+		
 		{name: '_input_is_on', type:'boolean'}
 	]
 });
@@ -178,7 +185,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		'Optima5.Modules.Spec.DbsLam.TransferCreateForm',
 		'Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',
 		'Optima5.Modules.Spec.DbsLam.TransferInnerCdeLinkPanel',
-		'Optima5.Modules.Spec.DbsLam.TransferInnerCdePickingPanel'
+		'Optima5.Modules.Spec.DbsLam.TransferInnerCdePickingPanel',
+		'Optima5.Modules.Spec.DbsLam.TransferInnerCdePackingPanel'
 	],
 	
 	initComponent: function() {
@@ -773,11 +781,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				});
 				cmp.refreshData() ;
 				tabItems.push(cmp) ;
-				return ; //TODO : fiche packing dédiée
 			}
 			if( transferStepRecord.get('spec_cde_packing') ) {
-				//TODO fiche packing dédiée
-				var className = 'Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel' ;
+				var className = 'Optima5.Modules.Spec.DbsLam.TransferInnerCdePackingPanel' ;
 				
 				var cmp = Ext.create(className,{
 					optimaModule: this.optimaModule,
@@ -788,14 +794,13 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					listeners: {
 						//op5lamstockadd: this.onLamStockAdd,
 						//op5lamstockremove: this.onLamStockRemove,
-						op5lamstockrollback: this.onLamStockRollback,
+						op5lamstockpackingrollback: this.onLamStockRollback,
 						//op5lamstocksetadr: this.onLamStockSetAdr,
 						scope: this
 					}
 				});
 				cmp.refreshData() ;
 				tabItems.push(cmp) ;
-				
 			}
 		},this) ;
 		

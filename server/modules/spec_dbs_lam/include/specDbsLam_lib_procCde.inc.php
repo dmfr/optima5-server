@@ -893,11 +893,16 @@ function specDbsLam_lib_procCde_searchStock_doSearch( $whse_src, $stk_prod, &$qt
 
 
 
-function specDbsLam_lib_procCde_shipPackCreate( $transfer_filerecord_id, $cde_filerecord_id=NULL ) {
+function specDbsLam_lib_procCde_shipPackCreate( $transfer_filerecord_id, $cde_filerecord_id=NULL, $reuse=FALSE ) {
 	$sscc = NULL ; // proc TMS
 }
 function specDbsLam_lib_procCde_shipPackAssociate( $transferpack_filerecord_id, $transferlig_filerecord_id ) {
 
+}
+function specDbsLam_lib_procCde_generate( $transferpack_filerecord_id ) {
+	// appel TMS si transporteur CDE
+	
+	// etat status_is_ready => lock
 }
 
 

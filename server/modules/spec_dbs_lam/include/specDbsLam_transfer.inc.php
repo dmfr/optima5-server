@@ -1703,6 +1703,28 @@ function specDbsLam_transfer_setCommit( $post_data ) {
 		}
 	}
 	
+	if( $transferstep_row['spec_cde_packing'] ) {
+		// HACK 22/10/2018 build byCde packing
+		if( TRUE ) {
+			$map_cdeFilerecordId_arrTransferLigFilerecordIds = array() ;
+			
+			$json = specDbsLam_transfer_getTransfer($formard_post) ;
+			$transfer_row = reset($json['data']) ;
+			foreach( $transfer_row['steps'] as $transferstep_iter ) {
+				if( $transferstep_iter['transferstep_filerecord_id'] == $transferStep_filerecordId ) {
+					$transferstep_row = $transferstep_iter ;
+				}
+			}
+			
+			
+			foreach( $map_cdeFilerecordId_arrTransferLigFilerecordIds as $cde_filerecordId => $arr ) {
+				$transferCdePack_filerecordId = specDbsLam_lib_procCde_shipPackCreate($transfer_filerecordId,$cde_filerecordId,$reuse=TRUE) ;
+				foreach( $arr as $transferLig_filerecordId ) {
+					specDbsLam_lib_procCde_shipPackAssociate($transferCdePack_filerecordId,$transferLig_filerecordId) ;
+				}
+			}
+		}
+	}
 	if( $transfer_row['spec_cde'] ) {
 		specDbsLam_lib_procCde_syncLinks($transfer_filerecordId) ;
 	}
