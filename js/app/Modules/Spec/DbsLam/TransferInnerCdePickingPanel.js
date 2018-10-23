@@ -307,21 +307,53 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerCdePickingPanel',{
 			return ;
 		}
 
-		gridContextMenuItems.push({
-			iconCls: 'icon-bible-newfile',
-			text: 'Show log',
-			handler : function() {
-				this.setFormRecord(selRecord) ;
-			},
-			scope : this
-		},'-',{
-			iconCls: 'icon-bible-delete',
-			text: 'Remove stock allocation',
-			handler : function() {
-				this.handleRemoveCdeStock( [selRecord.get('transferlig_filerecord_id')] ) ;
-			},
-			scope : this
-		});
+		var transferligFilerecordIds = [] ;
+		var areNotCommitted = true ;
+		var areCommitted = true ;
+		for( var recIdx=0 ; recIdx<selRecords.length ; recIdx++ ) {
+			transferligFilerecordIds.push( selRecords[recIdx].get('transferlig_filerecord_id') ) ;
+			if( selRecords[recIdx].get('status_is_ok') ) {
+				areNotCommitted = false ;
+			} else {
+				areCommitted = false ;
+			}
+		}
+		if( transferligFilerecordIds.length==1 ) {
+			/*
+			gridContextMenuItems.push({
+				iconCls: 'icon-bible-newfile',
+				text: 'Show log',
+				handler : function() {
+					//this.setFormRecord(selRecords[0]) ;
+				},
+				scope : this
+			},'-') ;
+			*/
+		}
+		if( areCommitted ) {
+			gridContextMenuItems.push({
+				iconCls: 'icon-bible-delete',
+				text: 'Rollback picking',
+				handler : function() {
+					this.fireEvent('op5lamstockpickingrollback',this,transferligFilerecordIds) ;
+				},
+				scope : this
+			});
+		}
+		if( this.hasBuildPick() && areNotCommitted ) {
+			gridContextMenuItems.push({
+				iconCls: 'icon-bible-delete',
+				text: 'Remove allocation',
+				handler : function() {
+					this.fireEvent('op5lamstockpickingremove',this,transferligFilerecordIds) ;
+				},
+				scope : this
+			});
+		}
+		
+		if( Ext.isEmpty(gridContextMenuItems) ) {
+			return ;
+		}
 		
 		var gridContextMenu = Ext.create('Ext.menu.Menu',{
 			items : gridContextMenuItems,
@@ -404,8 +436,5 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerCdePickingPanel',{
 			});
 		}) ;
 		this.fireEvent('op5lamstockpickingadd',this,stockaddObjs) ;
-	},
-	handleRemoveCdeStock: function(transferLigIds) {
-		this.fireEvent('op5lamstockpickingremove',this,transferLigIds) ;
-	},
+	}
 }) ;

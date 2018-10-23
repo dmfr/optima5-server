@@ -596,6 +596,9 @@ function specDbsLam_transfer_rollback( $post_data ) {
 		}
 	}
 	
+	if( $transfer_row['spec_cde'] ) {
+		specDbsLam_lib_procCde_syncLinks($transfer_filerecordId) ;
+	}
 	
 	return array('success'=>$success) ;
 }
@@ -1699,6 +1702,11 @@ function specDbsLam_transfer_setCommit( $post_data ) {
 			$ids[] = $transferlig_filerecord_id ;
 		}
 	}
+	
+	if( $transfer_row['spec_cde'] ) {
+		specDbsLam_lib_procCde_syncLinks($transfer_filerecordId) ;
+	}
+	
 	return array('success'=>(count($ids)>0), 'ids'=>$ids) ;
 }
 

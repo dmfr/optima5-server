@@ -767,6 +767,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					listeners: {
 						op5lamstockpickingadd: this.onLamStockPickingAdd,
 						op5lamstockpickingremove: this.onLamStockPickingRemove,
+						op5lamstockpickingrollback: this.onLamStockRollback,
 						scope: this
 					}
 				});

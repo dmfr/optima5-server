@@ -328,18 +328,18 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 		
 		var selRecords = view.getSelectionModel().getSelection() ;
 		
-		var entryKeys = [] ;
+		var transferligFilerecordIds = [] ;
 		var areNotCommitted = true ;
 		var areCommitted = true ;
 		for( var recIdx=0 ; recIdx<selRecords.length ; recIdx++ ) {
-			entryKeys.push( selRecords[recIdx].get('transferlig_filerecord_id') ) ;
+			transferligFilerecordIds.push( selRecords[recIdx].get('transferlig_filerecord_id') ) ;
 			if( selRecords[recIdx].get('status_is_ok') ) {
 				areNotCommitted = false ;
 			} else {
 				areCommitted = false ;
 			}
 		}
-		if( entryKeys.length==1 ) {
+		if( transferligFilerecordIds.length==1 ) {
 			/*
 			gridContextMenuItems.push({
 				iconCls: 'icon-bible-newfile',
@@ -356,7 +356,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 				iconCls: 'icon-bible-delete',
 				text: 'Rollback <b>'+selRecords.length+'</b> rows',
 				handler : function() {
-					this.fireEvent('op5lamstockrollback',this,entryKeys) ;
+					this.fireEvent('op5lamstockrollback',this,transferligFilerecordIds) ;
 				},
 				scope : this
 			});
@@ -366,7 +366,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 				iconCls: 'icon-bible-delete',
 				text: 'Remove <b>'+selRecords.length+'</b> rows',
 				handler : function() {
-					this.fireEvent('op5lamstockremove',this,entryKeys) ;
+					this.fireEvent('op5lamstockremove',this,transferligFilerecordIds) ;
 				},
 				scope : this
 			});

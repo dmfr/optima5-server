@@ -636,16 +636,20 @@ function specDbsLam_lib_procCde_syncLinks($transfer_filerecord_id) {
 		$transfercdeneedFilerecordId = $arr[0] ;
 		$transfercdelinkFilerecordId = $arr[2] ;
 		
+		$map_cdeligFilerecordId_arrStatuses[$cdeligFilerecordId] = array() ;
+		
 		if( isset($map_transfercdeneedFilerecordId_status[$transfercdeneedFilerecordId]) ) {
-			$map_cdeligFilerecordId_arrStatuses[] = $map_transfercdeneedFilerecordId_status[$transfercdeneedFilerecordId] ;
+			$map_cdeligFilerecordId_arrStatuses[$cdeligFilerecordId][] = $map_transfercdeneedFilerecordId_status[$transfercdeneedFilerecordId] ;
 		}
 		if( isset($map_transfercdelinkFilerecordId_status[$transfercdelinkFilerecordId]) ) {
-			$map_cdeligFilerecordId_arrStatuses[] = $map_transfercdelinkFilerecordId_status[$transfercdelinkFilerecordId] ;
+			$map_cdeligFilerecordId_arrStatuses[$cdeligFilerecordId][] = $map_transfercdelinkFilerecordId_status[$transfercdelinkFilerecordId] ;
 		}
 		if( isset($map_transfercdelinkFilerecordId_arrTransfercdepackFilerecordIds[$transfercdelinkFilerecordId]) ) {
 			foreach( $map_transfercdelinkFilerecordId_arrTransfercdepackFilerecordIds[$transfercdelinkFilerecordId] as $transfercdepack_filerecord_id ) {
-				$map_cdeligFilerecordId_arrStatuses[] = $map_transfercdepackFilerecordId_status[$transfercdepack_filerecord_id]
+				$map_cdeligFilerecordId_arrStatuses[$cdeligFilerecordId][] = $map_transfercdepackFilerecordId_status[$transfercdepack_filerecord_id] ;
 			}
+		} else {
+			$map_cdeligFilerecordId_arrStatuses[$cdeligFilerecordId][] = 'SHIP_NONE' ;
 		}
 	}
 	
@@ -684,19 +688,19 @@ function specDbsLam_lib_procCde_syncLinks($transfer_filerecord_id) {
 	}
 	
 	$statusesChain = array('PICK_NONE','PICK_CUR','PACK_NONE','PACK_CUR','SHIP_NONE','SHIP_OK') ;
-	$map_cdeFilerecordId_status = array() ;
+	$map_cdeFilerecordId_statusMin = array() ;
 	foreach( $map_cdeFilerecordId_arrStatuses as $cdeFilerecordId => $arrStatuses ) {
-		$map_cdeFilerecordId_status[$cdeFilerecordId] = '' ;
+		$map_cdeFilerecordId_statusMin[$cdeFilerecordId] = '' ;
 		foreach( $statusesChain as $statusTest ) {
 			if( in_array($statusTest,$arrStatuses) ) {
-				$map_cdeFilerecordId_status[$cdeFilerecordId] = $statusTest ;
+				$map_cdeFilerecordId_statusMin[$cdeFilerecordId] = $statusTest ;
 				continue 2 ;
 			}
 		}
 	}
 	
-	foreach( $map_cdeFilerecordId_status as $cdeFilerecordId => $status ) {
-		switch($status) {
+	foreach( $map_cdeFilerecordId_statusMin as $cdeFilerecordId => $statusMin ) {
+		switch($statusMin) {
 			case 'SHIP_OK' :
 				$statuscode = '100' ;
 				break ;
@@ -708,14 +712,20 @@ function specDbsLam_lib_procCde_syncLinks($transfer_filerecord_id) {
 				break ;
 			case 'PACK_NONE' :
 				$statuscode = '60' ;
+				if( array_intersect(array('PACK_CUR','SHIP_NONE','SHIP_OK'),$map_cdeFilerecordId_arrStatuses[$cdeFilerecordId]) ) {
+					$statuscode = '70' ;
+				}
 				break ;
 			case 'PICK_CUR' :
 				$statuscode = '50' ;
 				break ;
 			case 'PICK_NONE' :
 			default :
-				//$statuscode = '40' ;
-				continue 2 ;
+				$statuscode = '40' ;
+				if( array_intersect(array('PICK_CUR','PACK_NONE','PACK_CUR','SHIP_NONE','SHIP_OK'),$map_cdeFilerecordId_arrStatuses[$cdeFilerecordId]) ) {
+					$statuscode = '50' ;
+				}
+				break ;
 		}
 		
 		$query = "UPDATE view_file_CDE SET field_STATUS = '{$statuscode}' 
@@ -884,10 +894,20 @@ function specDbsLam_lib_procCde_searchStock_doSearch( $whse_src, $stk_prod, &$qt
 
 
 function specDbsLam_lib_procCde_shipPackCreate( $transfer_filerecord_id, $cde_filerecord_id=NULL ) {
-	$sscc = NULL // proc TMS
+	$sscc = NULL ; // proc TMS
 }
 function specDbsLam_lib_procCde_shipPackAssociate( $transferpack_filerecord_id, $transferlig_filerecord_id ) {
 
+}
+
+
+function specDbsLam_lib_procCde_checkFinalExpe(  $transfer_filerecord_id ) {
+	// affectation complete
+	
+	// RUN : forward packing
+	
+	// toutes lignes packing OK + cdepack affecté
+	
 }
 
 
