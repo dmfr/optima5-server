@@ -380,11 +380,12 @@ function specDbsLam_transfer_getTransferCdePack( $post_data ) {
 			'id_sscc' => $arr['field_ID_SSCC'],
 			'id_trspt_code' => $arr['field_ID_TRSPT_CODE'],
 			'id_trspt_id' => $arr['field_ID_TRSPT_ID'],
-			'calc_folio_group' => (float)$arr['field_CALC_FOLIO_GROUP'],
-			'calc_folio_idx' => (float)$arr['field_CALC_FOLIO_IDX'],
-			'calc_folio_sum' => (float)$arr['field_CALC_FOLIO_SUM'],
-			'calc_kg' => (float)$arr['field_CALC_KG'],
-			'calc_m3' => (float)$arr['field_CALC_M3'],
+			'calc_folio_group' => $arr['field_CALC_FOLIO_GROUP'],
+			'calc_folio_idx' => (int)$arr['field_CALC_FOLIO_IDX'],
+			'calc_folio_sum' => (int)$arr['field_CALC_FOLIO_SUM'],
+			'calc_vl_count' => (float)$arr['field_CALC_VL_COUNT'],
+			'calc_vl_kg' => (float)$arr['field_CALC_VL_KG'],
+			'calc_vl_m3' => (float)$arr['field_CALC_VL_M3']
 		);
 		$TAB[] = $row ;
 	}
@@ -519,8 +520,7 @@ function specDbsLam_transfer_rollback( $post_data ) {
 	
 	//controle $transfer_filerecordId ?
 	$formard_post = array(
-		'filter_transferFilerecordId' => $transfer_filerecordId,
-		'filter_fast' => true
+		'filter_transferFilerecordId' => $transfer_filerecordId
 	) ;
 	$json = specDbsLam_transfer_getTransfer($formard_post) ;
 	$transfer_row = reset($json['data']) ;

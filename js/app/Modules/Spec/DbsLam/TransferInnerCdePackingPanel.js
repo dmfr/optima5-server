@@ -117,11 +117,23 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerCdePackingPanel',{
 			if( col.columns ) {
 				Ext.Array.each(col.columns, function(scol) {
 					switch(scol.dataIndex) {
-						case 'stk_prod' :
+						case 'container_ref_display' :
 							Ext.apply(scol,{
 								renderer: function(v,metaData,record) {
 									if( record.getDepth()==1 ) {
-										return ''+record.get('need_prod')+'' ;
+										metaData.tdCls+= ' '+'x-grid-cell-overflowvisible' ; // colspan=2
+										return ''+record.get('pack_folio_group')+'&nbsp;&nbsp;&nbsp;&nbsp;<b>('+record.get('pack_folio_idx')+'/'+record.get('pack_folio_sum')+')</b>' ;
+									}
+									return v ;
+								}
+							});
+							break ;
+						
+						case 'mvt_qty' :
+							Ext.apply(scol,{
+								renderer: function(v,metaData,record) {
+									if( record.getDepth()==1 ) {
+										return '<b>'+record.get('pack_vl_kg')+'</b>&nbsp;kg' ;
 									}
 									return v ;
 								}
@@ -172,6 +184,23 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerCdePackingPanel',{
 								} else {
 									return '<b>'+record.get('pack_id_sscc')+'</b>' ;
 								}
+							}
+							return v ;
+						}
+					});
+					break ;
+					
+				case 'dst_adr' :
+					Ext.apply(col,{
+						renderer: function(v,metaData,record) {
+							if( record.getDepth()==1 ) {
+								if( !Ext.isEmpty(record.get('pack_id_trspt_code')) ) {
+									var str = '' ;
+									str+= 'Trspt: <b>'+record.get('pack_id_trspt_code')+'</b><br>' ;
+									str+= 'ID : <b>'+record.get('pack_id_trspt_id')+'</b><br>' ;
+									return str ;
+								}
+								return v ; // ??
 							}
 							return v ;
 						}
@@ -272,6 +301,12 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerCdePackingPanel',{
 				pack_id_sscc:  packRow.id_sscc,
 				pack_id_trspt_code:  packRow.id_trspt_code,
 				pack_id_trspt_id:  packRow.id_trspt_id,
+				pack_folio_group:  packRow.calc_folio_group,
+				pack_folio_idx:  packRow.calc_folio_idx,
+				pack_folio_sum:  packRow.calc_folio_sum,
+				pack_vl_count:  packRow.calc_vl_count,
+				pack_vl_kg:  packRow.calc_vl_kg,
+				pack_vl_m3:  packRow.calc_vl_m3,
 				pack_status_is_ready: packRow.status_is_ready,
 				pack_status_is_shipped: packRow.status_is_shipped,
 				children: ( map_transfercdepackFilerecordId_arrLigs.hasOwnProperty(transfercdepackFilerecordId) ? map_transfercdepackFilerecordId_arrLigs[transfercdepackFilerecordId] : [] ),

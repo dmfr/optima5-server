@@ -920,17 +920,67 @@ function specDbsLam_lib_procCde_shipPackAssociate( $transferpack_filerecord_id, 
 	$_opDB->query($query) ;
 }
 function specDbsLam_lib_procCde_shipPackRemove( $transferpack_filerecord_id, $transferlig_filerecord_id ) {
-
+	global $_opDB ;
+	$query = "UPDATE view_file_TRANSFER_LIG tl
+				INNER JOIN view_file_TRANSFER_CDE_PACK tcp ON tcp.filerecord_id=tl.field_PACK_TRSFRCDEPACK_ID AND tcp.filerecord_id='{$transferpack_filerecord_id}'
+				SET tl.field_PACK_TRSFRCDEPACK_ID='0'
+				WHERE tl.filerecord_id='{$transferlig_filerecord_id}'" ;
+	$_opDB->query($query) ;
 }
 function specDbsLam_lib_procCde_shipPackSync( $transfer_filerecord_id ) {
+	global $_opDB ;
+	
 	// Clean empty
+	$query = "DELETE FROM view_file_TRANSFER_CDE_PACK
+				WHERE filerecord_parent_id='{$transfer_filerecord_id}' AND filerecord_id NOT IN (
+					SELECT field_PACK_TRSFRCDEPACK_ID FROM view_file_TRANSFER_LIG WHERE filerecord_parent_id='{$transfer_filerecord_id}'
+				)" ;
+	$_opDB->query($query) ;
 	
 	// Calc folio IDX
+	$query = "UPDATE view_file_TRANSFER_CDE_PACK tcp
+			INNER JOIN (
+					SELECT field_FILE_CDE_ID as cde_filerecord_id
+					, count(*) as folio_sum
+					FROM view_file_TRANSFER_CDE_PACK
+					WHERE filerecord_parent_id='{$transfer_filerecord_id}'
+					GROUP BY field_FILE_CDE_ID
+			) sums ON sums.cde_filerecord_id = tcp.field_FILE_CDE_ID
+			INNER JOIN view_file_CDE cde ON cde.filerecord_id=tcp.field_FILE_CDE_ID
+			SET tcp.field_CALC_FOLIO_SUM=sums.folio_sum
+				, tcp.field_CALC_FOLIO_GROUP=cde.field_CDE_NR
+			WHERE tcp.filerecord_parent_id='{$transfer_filerecord_id}'" ;
+	$_opDB->query($query) ;
+	
+	$query = "UPDATE view_file_TRANSFER_CDE_PACK tcp
+			INNER JOIN (
+					select a.field_FILE_CDE_ID , a.filerecord_id , count(*) as folio_idx from view_file_TRANSFER_CDE_PACK a JOIN view_file_TRANSFER_CDE_PACK b ON a.field_FILE_CDE_ID=b.field_FILE_CDE_ID AND a.filerecord_id>=b.filerecord_id GROUP BY a.field_FILE_CDE_ID, a.filerecord_id
+			) numbering ON numbering.filerecord_id=tcp.filerecord_id
+			SET tcp.field_CALC_FOLIO_IDX=numbering.folio_idx
+			WHERE tcp.filerecord_parent_id='{$transfer_filerecord_id}'" ;
+	$_opDB->query($query) ;
+	
+	// Calc nbUM + poids(kg)
+	$query = "UPDATE view_file_TRANSFER_CDE_PACK tcp
+			INNER JOIN (
+					SELECT field_PACK_TRSFRCDEPACK_ID as transfercdepack_filerecord_id
+					, sum(m.field_QTY_MVT) as vl_count
+					, sum(m.field_QTY_MVT * p.field_VL_KG ) as vl_kg
+					FROM view_file_TRANSFER_LIG tl
+					JOIN view_file_MVT m ON m.filerecord_id=tl.field_FILE_MVT_ID
+					LEFT OUTER JOIN view_bible_PROD_entry p ON p.entry_key=m.field_PROD_ID
+					WHERE tl.filerecord_parent_id='{$transfer_filerecord_id}' AND tl.field_PACK_TRSFRCDEPACK_ID>'0'
+					GROUP BY field_PACK_TRSFRCDEPACK_ID
+			) vls ON vls.transfercdepack_filerecord_id = tcp.filerecord_id
+			SET tcp.field_CALC_VL_KG=vls.vl_kg
+				, tcp.field_CALC_VL_COUNT=vls.vl_count
+			WHERE tcp.filerecord_parent_id='{$transfer_filerecord_id}'" ;
+	$_opDB->query($query) ;
 	
 	// Post-process
 	
 }
-function specDbsLam_lib_procCde_shipPackgenerate( $transferpack_filerecord_id ) { // by SQL
+function specDbsLam_lib_procCde_shipPackGenerate( $transferpack_filerecord_id ) { // by SQL
 	// appel TMS si transporteur CDE
 	
 	// etat status_is_ready => lock

@@ -410,6 +410,25 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 						},
 						scope: this
 					}]
+				},{
+					itemId: 'tbShipping',
+					icon: 'images/op5img/ico_arrow-down_16.png',
+					text: 'Shipping',
+					menu: [{
+						icon: 'images/op5img/ico_print_16.png',
+						text: '<b>Print supports</b>',
+						handler: function() {
+							
+						},
+						scope: this
+					},{
+						icon: 'images/op5img/ico_arrow-double_16.png',
+						text: '<b>Validate shipping</b>',
+						handler: function() {
+							
+						},
+						scope: this
+					}]
 				},'->',{
 					//itemId: 'tbClose',
 					icon: 'images/op5img/ico_cancel_small.gif',
@@ -503,7 +522,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					optionsCdeAlloc = activeTab.optionsHasCdeAlloc(),
 					optionsAdrAlloc = activeTab.optionsHasAdrAlloc(),
 					optionsPrintLabels = activeTab.optionsHasPrintLabels(),
-					optionsPrintList = activeTab.optionsHasPrintList() ;
+					optionsPrintList = activeTab.optionsHasPrintList(),
+					optionsShipping = activeTab.optionsHasShipping() ;
+				pCenterTb.down('#tbShipping').setVisible(optionsShipping) ;
 				Ext.Array.each( pCenterTb.down('#tbActions').menu.query('[itemIdCdeDocs]'), function(menuitem) {
 					menuitem.setVisible( optionsCdeDocs ) ;
 				}) ;

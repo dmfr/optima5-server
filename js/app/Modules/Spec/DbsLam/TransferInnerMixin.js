@@ -139,6 +139,17 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerMixin',{
 		}
 		return false ;
 	},
+	optionsHasShipping: function() {
+		var activeTransferRecord = this.getActiveTransferRecord(),
+			activeTransferStepRecord = this.getActiveTransferStepRecord() ;
+		if( !activeTransferStepRecord ) {
+			return false ;
+		}
+		if( activeTransferStepRecord.get('spec_cde_packing') ) {
+			return true ;
+		}
+		return false ;
+	},
 	
 	dummyFn: function() {
 		
