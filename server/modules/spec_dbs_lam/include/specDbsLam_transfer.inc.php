@@ -355,6 +355,9 @@ function specDbsLam_transfer_getTransferCdePack( $post_data ) {
 	}
 	$selects = implode(',',$selects) ;
 	
+	if( $post_data['do_generate'] ) {
+		sleep(3) ;
+	}
 	
 	$query = "SELECT tcp.filerecord_id AS transfercdepack_filerecord_id
 		, t.filerecord_id AS transfer_filerecord_id
@@ -385,8 +388,13 @@ function specDbsLam_transfer_getTransferCdePack( $post_data ) {
 			'calc_folio_sum' => (int)$arr['field_CALC_FOLIO_SUM'],
 			'calc_vl_count' => (float)$arr['field_CALC_VL_COUNT'],
 			'calc_vl_kg' => (float)$arr['field_CALC_VL_KG'],
-			'calc_vl_m3' => (float)$arr['field_CALC_VL_M3']
+			'calc_vl_m3' => (float)$arr['field_CALC_VL_M3'],
+			'zpl_is_on' => !!$arr['field_ZPL_IS_ON']
 		);
+		if( $post_data['download_zpl'] && $row['zpl_is_on'] ) {
+			// $zpl_binary = ...
+			$row['zpl_binary'] = $zpl_binary ;
+		}
 		$TAB[] = $row ;
 	}
 	

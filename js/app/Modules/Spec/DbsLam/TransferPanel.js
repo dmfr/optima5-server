@@ -418,7 +418,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 						icon: 'images/op5img/ico_print_16.png',
 						text: '<b>Print supports</b>',
 						handler: function() {
-							
+							this.handlePrintSupports() ;
 						},
 						scope: this
 					},{
@@ -1748,9 +1748,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		this.destroy() ;
 	},
 	
-	testDownload: function() {
-		this.libDownload( 'pouetPOUETpouet', 'mydownload.zpl', 'text/plain' ) ;
-	},
 	libDownload: function(data, strFileName, strMimeType) {
 		
 		var self = window, // this script is only for browsers anyway...
@@ -1871,5 +1868,157 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			fr.readAsDataURL(blob);
 		}	
 		return true;
-	}
+	},
+	
+	handlePrintSupports: function() {
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_lam',
+				_action: 'transfer_getTransferCdePack',
+				filter_transferFilerecordId: this._activeTransferRecord.get('transfer_filerecord_id'),
+				do_generate: 1,
+				download_zpl: true
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error',jsonResponse.error) ;
+					return ;
+				}
+				this.optimaModule.postCrmEvent('datachange') ;
+				this.openTransferCdePackPopup( ajaxResponse.data ) ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+	},
+	openTransferCdePackPopup: function( ajaxData ) {
+		console.dir( ajaxData ) ;
+		
+		var cnt_total = cnt_printable = 0 ;
+		Ext.Array.each( ajaxData, function(row) {
+			cnt_total++ ;
+			if( row.zpl_is_on ) {
+				cnt_printable++ ;
+			}
+		}) ;
+		
+		var me = this ;
+		var popupPanel = Ext.create('Ext.form.Panel',{
+			optimaModule: this.optimaModule,
+			
+			rows_arrTransferCdePack: ajaxData,
+			
+			width:400,
+			height:250,
+			
+			cls: 'ux-noframe-bg',
+			
+			transferFilerecordId: null,
+			transferLigFilerecordId_arr: null,
+			transferStepCode: null,
+			
+			floating: true,
+			renderTo: me.getEl(),
+			tools: [{
+				type: 'close',
+				handler: function(e, t, p) {
+					p.ownerCt.destroy();
+				}
+			}],
+			
+			xtype: 'form',
+			border: false,
+			bodyCls: 'ux-noframe-bg',
+			bodyPadding: 8,
+			layout:'anchor',
+			fieldDefaults: {
+				labelWidth: 125,
+				anchor: '100%'
+			},
+			listeners: {
+				printzpl: function( zplTitle, zplBinary ) {
+					this.libDownload( zplBinary, zplTitle, 'text/plain' ) ;
+				},
+				scope: this,
+			},
+			items:[{
+				height: 72,
+				xtype: 'component',
+				tpl: [
+					'<div class="op5-spec-embralam-liveadr-relocatebanner">',
+						'<span>{text}</span>',
+					'</div>'
+				],
+				data: {text: '<b>Print supports</b><br><br>'}
+			},{
+				xtype: 'displayfield',
+				fieldLabel: 'Total supports',
+				fieldStyle: 'font-weight:bold',
+				value: cnt_total
+			},{
+				xtype: 'displayfield',
+				fieldLabel: 'Printable supports',
+				fieldStyle: 'font-weight:bold',
+				value: cnt_printable
+			}],
+			buttons: [{
+				xtype: 'button',
+				text: 'Download ZPL',
+				handler:function(btn){ 
+					var formPanel = btn.up('form') ;
+					formPanel.doSubmitDownload() ;
+				},
+				scope: this
+			},{
+				xtype: 'button',
+				text: 'Print to Java',
+				handler:function(btn){ 
+					var formPanel = btn.up('form') ;
+					formPanel.doSubmitPrint() ;
+				},
+				scope: this
+			}],
+			getZplTitle: function() {
+				return 'ZPL_'+new Date().getTime()+'.zpl' ;
+			},
+			getZplBinary: function() {
+				var binary = '' ;
+				Ext.Array.each( this.rows_arrTransferCdePack, function(row) {
+					if( row.zpl_is_on ) {
+						binary += row.zpl_binary ;
+					}
+				},this) ;
+				return binary ;
+			},
+			doSubmitDownload: function() {
+				var binary = this.getZplBinary() ;
+				if( Ext.isEmpty(binary) ) {
+					return ;
+				}
+				this.fireEvent('printzpl',this.getZplTitle(),binary) ;
+			},
+			doSubmitPrint: function() {
+				
+			},
+			onSubmitRelocate: function(ajaxResponse) {
+				if( ajaxResponse.success ) {
+					this.optimaModule.postCrmEvent('datachange') ;
+					this.destroy() ;
+				}
+			}
+		});
+		
+		popupPanel.on('destroy',function() {
+			me.getEl().unmask() ;
+		},me,{single:true}) ;
+		me.getEl().mask() ;
+		
+		popupPanel.show();
+		popupPanel.getEl().alignTo(me.getEl(), 'c-c?');
+	},
+	
 }) ;

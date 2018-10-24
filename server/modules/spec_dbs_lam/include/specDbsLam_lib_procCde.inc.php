@@ -987,7 +987,7 @@ function specDbsLam_lib_procCde_shipPackGenerate( $transferpack_filerecord_id ) 
 }
 
 
-function specDbsLam_lib_procCde_checkFinalExpe(  $transfer_filerecord_id ) {
+function specDbsLam_lib_procCde_checkFinalExpe( $transfer_filerecord_id ) {
 	// affectation complete
 	
 	// RUN : forward packing
