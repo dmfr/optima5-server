@@ -980,8 +980,79 @@ function specDbsLam_lib_procCde_shipPackSync( $transfer_filerecord_id ) {
 	// Post-process
 	
 }
-function specDbsLam_lib_procCde_shipPackGenerate( $transferpack_filerecord_id ) { // by SQL
+function specDbsLam_lib_procCde_shipPackGenerate( $transferpack_filerecord_id, $do_force=FALSE ) { // by SQL
+	global $_opDB ;
+	
+	$arr_update['field_STATUS_IS_READY'] = 1 ;
+	paracrm_lib_data_updateRecord_file('TRANSFER_CDE_PACK',$arr_update,$transferpack_filerecord_id) ;
+	
 	// appel TMS si transporteur CDE
+	$query = "SELECT tcp.field_ID_TRSPT_CODE as pack_id_trspt_code
+				, tcp.field_ID_TRSPT_ID as pack_id_trspt_id
+				, cde.filerecord_id as cde_filerecord_id
+				, cde.field_TRSPT_CODE as cde_trspt_code
+			FROM view_file_TRANSFER_CDE_PACK tcp
+			INNER JOIN view_file_CDE cde ON cde.filerecord_id=tcp.field_FILE_CDE_ID
+			WHERE tcp.filerecord_id='{$transferpack_filerecord_id}'" ;
+	$result = $_opDB->query($query) ;
+	if( $_opDB->num_rows($result) == 0 ) {
+		return ;
+	}
+	$arr = $_opDB->fetch_assoc($result) ;
+	if( !$arr['cde_trspt_code'] ) {
+		return ;
+	}
+	
+	
+	
+	$rowExtended_transferCdePack = NULL ;
+	
+	$json = specDbsLam_transfer_getTransferCdePack( array('filter_transferCdePackFilerecordId_arr'=>json_encode(array($transferpack_filerecord_id))) ) ;
+	$rowExtended_transferCdePack = $json['data'][0] ;
+	
+	if( $rowExtended_transferCdePack['cde_filerecord_id'] ) {
+		$json = specDbsLam_cde_getGrid( array('filter_cdeFilerecordId_arr'=>json_encode(array($rowExtended_transferCdePack['cde_filerecord_id']))) ) ;
+		$rowExtended_transferCdePack['cde'] = $json['data'][0] ;
+	}
+	
+	if( $rowExtended_transferCdePack['transfer_filerecord_id'] ) {
+		$json = specDbsLam_transfer_getTransferLig( array('filter_transferFilerecordId'=>$rowExtended_transferCdePack['transfer_filerecord_id']) ) ;
+		$rowExtended_transferCdePack['ligs'] = array() ;
+		foreach( $json['data'] as $row ) {
+			if( $row['cdepack_transfercdepack_filerecord_id'] == $transferpack_filerecord_id ) {
+				$rowExtended_transferCdePack['ligs'][] = $row ;
+			}
+		}
+	}
+	
+	
+	
+	if( $do_force || !($arr['pack_id_trspt_code']&&$arr['pack_id_trspt_id']) ) {
+		// appel TMS génération du no de colis transporteur 
+		$id_trspt_code = $arr['cde_trspt_code'] ;
+		$id_trspt_id = specDbsLam_lib_TMS_getTrsptId( $rowExtended_transferCdePack, $id_trspt_code ) ;
+		$arr_update = array() ;
+		$arr_update['field_ID_TRSPT_CODE'] = $id_trspt_code ;
+		$arr_update['field_ID_TRSPT_ID'] = $id_trspt_id ;
+		paracrm_lib_data_updateRecord_file('TRANSFER_CDE_PACK',$arr_update,$transferpack_filerecord_id) ;
+	} else {
+		$id_trspt_code = $arr['pack_id_trspt_code'] ;
+		$id_trspt_id = $arr['pack_id_trspt_id'] ;
+	}
+	
+	
+	$zpl_buffer = specDbsLam_lib_TMS_getTrsptZplBuffer($rowExtended_transferCdePack, $id_trspt_code, $id_trspt_id) ;
+	
+	$arr_update['field_ZPL_IS_ON'] = 1 ;
+	paracrm_lib_data_updateRecord_file('TRANSFER_CDE_PACK',$arr_update,$transferpack_filerecord_id) ;
+	
+	$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
+	$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
+	media_contextOpen( $_sdomain_id ) ;
+	$tmp_media_id = media_bin_processBuffer( $zpl_buffer ) ;
+	media_bin_move( $tmp_media_id , media_bin_toolFile_getId('TRANSFER_CDE_PACK',$transferpack_filerecord_id) ) ;
+	media_contextClose() ;
+	
 	
 	// etat status_is_ready => lock
 }

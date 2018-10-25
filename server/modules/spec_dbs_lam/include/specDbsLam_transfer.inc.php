@@ -182,7 +182,7 @@ function specDbsLam_transfer_getTransferLig($post_data) {
 				'stk_batch' => $arr['field_SPEC_BATCH'],
 				'stk_datelc' => $arr['field_SPEC_DATELC'],
 				'stk_sn' => $arr['field_SPEC_SN'],
-				'mvt_qty' => $arr['field_QTY_MVT'],
+				'mvt_qty' => (float)$arr['field_QTY_MVT'],
 				
 				'src_stk_filerecord_id' => $arr['field_SRC_FILE_STOCK_ID'],
 				'src_whse' => $arr['field_SRC_WHSE'],
@@ -356,6 +356,24 @@ function specDbsLam_transfer_getTransferCdePack( $post_data ) {
 	$selects = implode(',',$selects) ;
 	
 	if( $post_data['do_generate'] ) {
+		$forward_post = $post_data ;
+		unset($forward_post['do_generate']) ;
+		$json = specDbsLam_transfer_getTransferCdePack($forward_post) ;
+		
+		$arr_transferFilerecordIds = array() ;
+		$arr_transferCdePackFilerecordIds = array() ;
+		foreach( $json['data'] as $row ) {
+			if( !in_array($row['transfer_filerecord_id'],$arr_transferFilerecordIds) ) {
+				$arr_transferFilerecordIds[] = $row['transfer_filerecord_id'] ;
+			}
+			$arr_transferCdePackFilerecordIds[] = $row['transfercdepack_filerecord_id'] ;
+		}
+		foreach( $arr_transferFilerecordIds as $transfer_filerecord_id ) {
+			specDbsLam_lib_procCde_shipPackSync($transfer_filerecord_id) ;
+		}
+		foreach( $arr_transferCdePackFilerecordIds as $transfercdepack_filerecord_id ) {
+			specDbsLam_lib_procCde_shipPackGenerate($transfercdepack_filerecord_id, $post_data['do_generate_force']) ;
+		}
 		sleep(3) ;
 	}
 	
@@ -389,11 +407,16 @@ function specDbsLam_transfer_getTransferCdePack( $post_data ) {
 			'calc_vl_count' => (float)$arr['field_CALC_VL_COUNT'],
 			'calc_vl_kg' => (float)$arr['field_CALC_VL_KG'],
 			'calc_vl_m3' => (float)$arr['field_CALC_VL_M3'],
+			'status_is_ready' => !!$arr['field_STATUS_IS_READY'],
+			'status_is_shipped' => !!$arr['field_STATUS_IS_SHIPPED'],
 			'zpl_is_on' => !!$arr['field_ZPL_IS_ON']
 		);
 		if( $post_data['download_zpl'] && $row['zpl_is_on'] ) {
-			// $zpl_binary = ...
-			$row['zpl_binary'] = $zpl_binary ;
+			$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
+			$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
+			media_contextOpen( $_sdomain_id ) ;
+			$row['zpl_binary'] = media_bin_getBinary(media_bin_toolFile_getId('TRANSFER_CDE_PACK',$arr['transfercdepack_filerecord_id'])) ;
+			media_contextClose() ;
 		}
 		$TAB[] = $row ;
 	}

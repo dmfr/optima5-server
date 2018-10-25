@@ -28,6 +28,7 @@ function specDbsLam_cde_getGrid($post_data) {
 		$cde_filerecord_id = $arr['filerecord_id'] ;
 		$row = array(
 			'cde_filerecord_id' => $cde_filerecord_id,
+			'soc_code' => $arr['field_SOC_CODE'],
 			'cde_nr' => $arr['field_CDE_NR'],
 			'cde_bl' => $arr['field_CDE_BL'],
 			'cde_ref' => $arr['field_CDE_REF'],

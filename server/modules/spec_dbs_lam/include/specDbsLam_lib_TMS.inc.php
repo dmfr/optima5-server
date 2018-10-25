@@ -56,4 +56,904 @@ function specDbsLam_lib_TMS_getSSCC() {
 
 
 
+
+
+
+
+
+
+
+function specDbsLam_lib_TMS_OPTIMA_getZplBuffer( $rowExtended_transferCdePack, $h_offset=1270 ){
+		$buffer = '' ;
+		$buffer.= "^FO30,{$h_offset}^GB785,300,5^FS";
+		
+		$row_transferLig = $rowExtended_transferCdePack['ligs'][0] ;
+		
+		$zone_regroup = $row_transferLig['dst_adr'] ;
+		if( !$zone_regroup ) {
+			$zone_regroup = 'XXXXXX' ;
+		}
+		
+		/*
+		if ($obj_lig->IsBainImperatif())
+			$bain_imp = 'bain imp' ;
+		else 
+			$bain_imp = " " ;
+		*/
+		$h_zone = $h_offset + 15 ;
+		$buffer.= "^FO360,{$h_zone}^ASN^FD".$zone_regroup."^FS";
+		
+		$no_colis = $rowExtended_transferCdePack['id_nocolis'] ;
+		$barcode_piste = $no_colis ;		
+		$h_barcode = $h_offset + 260 ;
+		$buffer.= "^FT60,{$h_barcode}^B2N,200^FD{$barcode_piste}^FS";
+		
+		$w_infos = 410 ;
+		$h = $h_offset + 20 ;
+		
+		$h+= 50 ;
+		$h+= 40 ;
+		$buffer.= "^FO{$w_infos},{$h}^ATN^FD"."Bal: {$rowExtended_transferCdePack['transfer_filerecord_id']}"."^FS";
+		$h+= 50 ;
+		$buffer.= "^FO{$w_infos},{$h}^ASN^FD"."Ref : {$row_transferLig['stk_prod']}"."^FS";
+		// $h+= 40 ;
+		//$buffer.= "^FO{$w_infos},{$h}^ARN^FD"."Lot : {$data_lgcde['bain']} $bain_imp "."^FS";
+		$h+= 40 ;
+		$buffer.= "^FO{$w_infos},{$h}^ASN^FD"."Qte : {$row_transferLig['mvt_qty']}"."^FS";
+		$h+= 50 ;
+		$buffer.= "^FO{$w_infos},{$h}^ARN^FD"."Cde : {$rowExtended_transferCdePack['cde']['cde_nr']}"."^FS";
+		
+		return $buffer ;
+}
+
+
+
+
+function specDbsLam_lib_TMS_getTrsptId($rowExtended_transferCdePack, $pack_id_trspt_code) {
+	switch( $pack_id_trspt_code ) {
+		case 'DPDG' :
+			return specDbsLam_lib_TMS_DPDG_getId($rowExtended_transferCdePack['cde']['soc_code']) ;
+			
+		default :
+			return null ;
+	}
+}
+function specDbsLam_lib_TMS_getTrsptZplBuffer($rowExtended_transferCdePack, $pack_id_trspt_code, $pack_id_trspt_id) {
+	$zebra_buffer = '' ;
+	$zebra_buffer.= '^XA^POI' ;
+	$zebra_buffer.= "^BY3,3.0,10^FS" ;
+	switch( $pack_id_trspt_code ) {
+		case 'DPDG' :
+			$zebra_buffer.= specDbsLam_lib_TMS_DPDG_getZplBuffer($rowExtended_transferCdePack,$pack_id_trspt_id) ;
+			break ;
+			
+		default :
+			return null ;
+	}
+	$zebra_buffer.= specDbsLam_lib_TMS_OPTIMA_getZplBuffer($rowExtended_transferCdePack) ;
+	$zebra_buffer.= '^XZ' ;
+	return $zebra_buffer ;
+}
+
+
+
+
+
+
+
+
+
+
+function specDbsLam_lib_TMS_DPDG_getId( $soc_code ) {
+	/* Retour du barcode de base sans les clés */
+	$key_chargeur = 'DPDG_'.$soc_code.'_CHARGEUR' ;
+	$key_plageIdx = 'DPDG_'.$soc_code.'_PLAGE_IDX' ;
+	$key_plageMax = 'DPDG_'.$soc_code.'_PLAGE_MAX' ;
+	
+	
+	$id_chargeur = specDbsLam_lib_TMS_getValueStatic( $key_chargeur ) ;
+	$id_plage = specDbsLam_lib_TMS_getValueIncrement( $key_plageIdx, specDbsLam_lib_TMS_getValueStatic($key_plageMax) ) ;
+	
+	$barcode_base = $id_chargeur.$id_plage ;
+	
+	/* Retour du barcode printable */
+	$barcode = $barcode_base ;
+	
+	$cle_tmp = (98-((($barcode % 97)*3) % 97 )) % 97  ;
+	$cle1 = str_pad( $cle_tmp, 2, '0', STR_PAD_LEFT ) ;
+
+	
+	$barcode.= $cle1 ;
+
+
+	$eansum = 0 ;
+	$eansump = 0 ;
+	$eansumi= 0 ;
+	for( $i=0 ; $i<strlen($barcode) ; $i++ )
+	{
+		$mchar = $barcode[$i] ;
+		if( $i % 2 == 0 )
+			$eansumi += $mchar * 3 ;
+		else 
+			$eansump += $mchar * 1;
+	}
+	$eansum = $eansump + $eansumi ;
+	$dizsup = ceil($eansum/10) * 10 ;
+	$cle2 = (($dizsup - $eansum) + 1) % 10 ;
+
+
+	$barcode.= $cle2 ;
+	
+	return $barcode ;
+}
+
+
+
+
+
+	function specDbsLam_lib_TMS_DPDG_getZplBuffer( $rowExtended_transferCdePack,$pack_id_trspt_id ) {
+		$buffer = '' ;
+		
+		$buffer.= "~DGPREDIC.GRF,1435,7, 00000000000000
+00000000000000
+00000000000000
+00000000000000
+007FFFFFFFFE00
+007FFFFFFFFE00
+00000000000600
+00000000000600
+00000000000600
+00000000000600
+00000000000600
+00000000000600
+00000600000600
+00000600000600
+00000600000600
+00000600000600
+00000600000600
+00000600000600
+00000600000600
+00000600000600
+00000600000600
+00000600000600
+00000600000600
+00000600000600
+00000300000600
+00000300000C00
+00000380000C00
+000001C0001C00
+000000C0003800
+000000F0007000
+0000007C01E000
+0000001FFFC000
+0000000FFF0000
+00000000000000
+00000000000000
+00000000000000
+00000000000000
+00000000000000
+00000000000000
+00000000000000
+00000000000000
+007FFFFFFC0000
+003FFFFFFC0000
+00000003800000
+00000000C00000
+00000000300000
+00000000180000
+00000000080000
+000000000C0000
+000000000C0000
+00000000060000
+00000000060000
+00000000060000
+00000000060000
+00000000060000
+000000000C0000
+000000000C0000
+00000000180000
+00000000000000
+00000000000000
+00000000000000
+00003FF0000000
+0000FFFE000000
+0003E18F000000
+00070101C00000
+000E0100E00000
+001C0100700000
+00380100380000
+00300100180000
+006001000C0000
+006001000C0000
+00400100040000
+00C00100060000
+00C00100060000
+00C00100060000
+00C00100060000
+00C00100060000
+00C00100060000
+00C00100060000
+00C00100060000
+00C00100060000
+00C001000C0000
+006001000C0000
+006001001C0000
+00600100180000
+00300100300000
+00300180E00000
+001801FFC00000
+000801FF000000
+00000030000000
+00000000000000
+00000000000000
+00000000000000
+00000000000000
+00000000000000
+00000000000000
+00007FFC000000
+0001FFFF000000
+0003C007800000
+00070001E00000
+000E0000F00000
+001C0000300000
+00380000180000
+003000001C0000
+006000000C0000
+006000000C0000
+006000000C0000
+00C00000060000
+00C00000060000
+00C00000060000
+00C00000060000
+00C00000060000
+00C00000060000
+00400000040000
+004000000C0000
+006000000C0000
+00200000080000
+00300000180000
+00100000100000
+00080000200000
+000C0000600000
+007FFFFFFFFF80
+007FFFFFFFFF80
+00000000000000
+00000000000000
+00000000000000
+00000000000000
+00000000000000
+00000000000000
+00000000000000
+00000000000000
+00000000000000
+00000000000100
+007FFFFFFC0380
+007FFFFFFC0380
+00000000000300
+00000000000000
+00000000000000
+00000000000000
+00000000000000
+00000000000000
+00000000000000
+00000000000000
+00001FF0000000
+0000FFFE000000
+0001F01F000000
+00038003C00000
+000F0000E00000
+000C0000700000
+00180000300000
+00380000180000
+003000001C0000
+006000000C0000
+006000000C0000
+00C00000060000
+00C00000060000
+00C00000060000
+00C00000060000
+00C00000060000
+00C00000060000
+00C00000060000
+00C00000060000
+00C00000060000
+00400000060000
+006000000C0000
+006000000C0000
+00300000180000
+00300000180000
+00180000300000
+00000000000000
+00000000000000
+00000000000000
+00000000000000
+00000000000000
+00000000040000
+00000000040000
+00000000040000
+00000000040000
+00000000040000
+000000000C0000
+0003FFFFFFF800
+001FFFFFFFF800
+003E00000E0000
+00700000040000
+00600000040000
+00E00000040000
+00C00000040000
+00C00000040000
+00C00000040000
+00C00000040000
+00C00000040000
+00400000040000
+00600000040000
+00600000040000
+00200000040000
+00300000000000
+00100000000000
+00000000000000
+00000000000000
+00000000000000
+00000000000000
+00000000000000
+00000000000000
+00000000000000
+00000000000000" ;
+		
+		
+		
+		$buffer.= "~DGLOGO.GRF,1890,10, 00000000000000000000
+00000000000000000000
+00000000000000000000
+00000000000000000000
+00000000000000000000
+00000000000000000000
+00000000000000000000
+00000000000000000000
+00000000000000000000
+00000000000000000000
+00000000000000000000
+00000000000000000000
+000003FFFFFFF0000000
+000007FFFFFFF0000000
+00000FFFFFFFF0000000
+00000FFFFFFFF0200000
+00001FFFFFFFE0300000
+00003FFFFFFFE0780000
+00003FFFFFFFC0780000
+00003FFFFFFFC0FC0000
+00007FFFFFFF81FC0000
+00007FFFFFFF01FC0000
+0000FFFFFFFF03FE0000
+0001FFFFFFFE03FE0000
+0001FFFFFFFE07FF0000
+0003FFFFFFFC0FFF0000
+0003FFFFFFF81FFF8000
+0007FFFFFFF81FFF8000
+000FFFFFFFF03FFFC000
+000FFFFFFFF03FFFE000
+001FFFFFFFE03FFFF000
+001FFFFFFFE07FFFF000
+003FFFFFFFC07FFFF800
+007FFFFFFF80FFFFF800
+007FFFFFFF81FFFFFC00
+00FFFFFFFF01FFFFFC00
+01FFFFFFFF03FFFFFE00
+01FFFFFFFE03FFFFFE00
+03FFFFFFFC07FFFFFF00
+03FFFFFFF80FFFFFFF00
+07FC0000000FFFFFFF80
+0FF80000001FFFFFFFC0
+0FF00000001FFFFFFFE0
+0FF00000003FFFFFFFC0
+07F80000003FFFFFFF80
+07FFFFFFFFFFFFFFFF80
+03FFFFFFFFFFFFFFFF00
+03FFFFFFFFFFFFFFFF00
+01FFFFFFFFFFFFFFFF00
+00FFFFFFFFFFFFFFFE00
+00FFFFFFFFFFFFFFFE00
+00FFFFFFFFFFFFFFFC00
+007FFFFFFFF0FFFFFC00
+007FFFFFFFE0FFFFF800
+003FFFFFFFE07FFFF000
+000FFFFFFFE07FFFF000
+000FFFFFFFF03FFFE000
+000FFFFFFFF81FFFC000
+0007FFFFFFF81FFFC000
+0007FFFFFFFC0FFF8000
+0003FFFFFFFC0FFF8000
+0001FFFFFFFC07FF0000
+0001FFFFFFFE03FF0000
+0000FFFFFFFE03FE0000
+0000FFFFFFFF01FC0000
+00007FFFFFFF80FC0000
+00007FFFFFFF80F80000
+00003FFFFFFFC0780000
+00001FFFFFFFC0700000
+00001FFFFFFFE0300000
+00000FFFFFFFF0000000
+00000FFFFFFFF0000000
+000003FFFFFFF0000000
+000001FFFFFFF0000000
+00000000000000000000
+00000000000000000000
+00000000000000000000
+00000000000000000000
+00000000000000000000
+00000000000000000000
+00000000000000000000
+00000000000000000000
+00000000000000000000
+00000000000000000000
+00000000000000000000
+00000000000000000000
+00000000000000000000
+00000000000000000000
+00000000000000000000
+00000000000000000000
+00000000000000000000
+00000000000000000000
+00000001FE0000000000
+0000000FFF8000000000
+0000001FFFE000000000
+0000007FFFF000000000
+0000007FFFF800000000
+000000FFFFFC00000000
+000001FF8FFC00000000
+000003FC01FE00000000
+000003F800FE00000000
+000003F0007E00000000
+000007F0007E00000000
+000007F0003E00000000
+000007F0003F00000000
+000007E0003F00000000
+000007E0003F00000000
+000007E0003E00000000
+000007E0003E00000000
+000007F0007E00000000
+000007FFFFFFFFE00000
+000007FFFFFFFFE00000
+000007FFFFFFFFE00000
+000003FFFFFFFFE00000
+000003FFFFFFFFE00000
+000003FFFFFFFFE00000
+000001FFFFFFFFE00000
+00000000000000000000
+00000000000000000000
+00000000000000000000
+00000000000000000000
+000FFFFFFFFC00000000
+000FFFFFFFFC00000000
+000FFFFFFFFE00000000
+000FFFFFFFFE00000000
+000FFFFFFFFE00000000
+000FFFFFFFFE00000000
+000FFFFFFFFE00000000
+00000000003E00000000
+00000000003E00000000
+00000000003F00000000
+00000000003F00000000
+000007F0003F00000000
+000007F0003F00000000
+000007F0003E00000000
+000007F0007E00000000
+000003F8007E00000000
+000003FC01FE00000000
+000003FF87FC00000000
+000001FFFFFC00000000
+000000FFFFF800000000
+0000007FFFF800000000
+0000007FFFF000000000
+0000001FFFE000000000
+0000000FFFC000000000
+00000001FC0000000000
+00000000000000000000
+00000000000000000000
+00000001FC0000000000
+0000000FFFC000000000
+0000001FFFE000000000
+0000007FFFF000000000
+0000007FFFF800000000
+000000FFFFFC00000000
+000001FFFFFC00000000
+000003FF87FC00000000
+000003FC00FE00000000
+000003F8007E00000000
+000007F0007E00000000
+000007F0003F00000000
+000007F0003F00000000
+000007E0003F00000000
+000007E0003F00000000
+000007E0003E00000000
+000007E0003E00000000
+000007E0007E00000000
+000007FFFFFFFFE00000
+000007FFFFFFFFE00000
+000007FFFFFFFFE00000
+000003FFFFFFFFE00000
+000003FFFFFFFFE00000
+000003FFFFFFFFE00000
+000003FFFFFFFFE00000
+00000000000000000000
+00000000000000000000
+00000000000000000000
+00000000000000000000
+00000000000000000000
+00000000000000000000
+00000000000000000000
+00000000000000000000
+00000000000000000000
+00000000000000000000
+00000000000000000000
+00000000000000000000
+00000000000000000000
+00000000000000000000
+00000000000000000000
+00000000000000000000" ;
+
+		
+/*		$buffer.= "^FO20,10^GB805,0,10^FS";
+			$buffer.= "^FO360,10^GB0,140,80^FS";
+			$buffer.= "^FO600,10^GB215,0,140^FS";*/
+			$buffer.= "^CI28" ;
+		
+
+			
+			/*
+			$obj_lig = $obj_Colis->get_objLigneCommande() ;
+			$obj_cde = $obj_lig->get_objCommande() ;
+			$date = $obj_cde->getDateDpe() ;
+			$db_arr_climag = $obj_cde->getDBarr_climag() ;
+			$db_arr_societe = $obj_cde->getDBarr_societe() ;
+			$db_arr_trspt = $obj_cde->getDBarr_transporteur() ;
+			$data_colis = $obj_Colis->getDBarr() ;
+			$data_lgcde = $obj_lig->getDBarr() ;
+			$data_ecde = $obj_cde->getDBarr() ;
+			$arr_ecde_idata = $obj_cde->idata_getTab() ;
+			$no_colis = $obj_Colis->getNoColis() ;
+			*/
+			
+			$no_carton_exp = $rowExtended_transferCdePack['calc_folio_idx'] ;
+			$tot_carton = $rowExtended_transferCdePack['calc_folio_sum'] ;
+			
+			$code_pays = $data_ecde['pays'] ;
+		
+			// TODO $db_arr_entrepot = $obj_trsptman->static_getSelfAdresse() ;
+			
+			$soc_code = $rowExtended_transferCdePack['cde']['soc_code'] ;
+			$key_chargeur = 'DPDG_'.$soc_code.'_CHARGEUR' ;
+			$id_trspt = specDbsLam_lib_TMS_getValueStatic( $key_chargeur ) ;
+			$id_trspt_constante = substr($id_trspt,0,3) ;
+			$id_trspt_agence = substr($id_trspt,3,3) ;
+			
+			
+			$adr_full = trim($rowExtended_transferCdePack['cde']['adr_full']) ;
+			$arr_adr = explode("\n",$adr_full) ;
+			array_pop($arr_adr) ;
+			$last_lig = array_pop($arr_adr) ;
+			$ttmp = explode(' ',$last_lig,2) ;
+			$destination['nom'] = trim($arr_adr[0]);
+			$destination['adr1'] = substr(trim($arr_adr[1]), 0,35 );
+			$destination['adr2'] = substr(trim($arr_adr[2]), 0,35 );
+			$destination['cp'] = $rowExtended_transferCdePack['cde']['adr_cp'] ;
+			$destination['ville'] = substr($ttmp[1], 0,35 );
+
+
+			
+			$height_exp = 120 ;
+			$width_exp = 770 ;	
+			$h = $height_exp ;
+			$w = $width_exp  ;			
+			$buffer.= "^FT{$w},{$h},0^A0R,20,20^FD"."DPD SAS Etablissement 080"."^FS";
+			$w = $width_exp - 20 ;
+			$buffer.= "^FT{$w},{$h},0^A0R,20,20^FD"."ZAC La Couture"."^FS";
+			$w = $width_exp - 40 ;
+			$buffer.= "^FT{$w},{$h},0^A0R,20,20^FD"."Rue Marius Morel"."^FS";
+			$w = $width_exp - 60 ;
+			$buffer.= "^FT{$w},{$h},0^A0R,20,20^FD"."F - 80230 POULAINVILLE"."^FS";
+			$w = $width_exp - 80 ;
+			$buffer.= "^FT{$w},{$h},0^A0R,20,20^FD"."03 22 69 28 30"."^FS";
+				
+			
+			
+			
+			
+			
+			
+			// ********** ZONE DE ROUTAGE EXAPAQ ***************
+			
+			$row_plan2 = specDbsLam_lib_TMS_DPDG_getRowPlan2( $id_trspt_agence, $rowExtended_transferCdePack['cde']['adr_country'], $rowExtended_transferCdePack['cde']['adr_cp'] ) ;
+			
+			$poids_kg = $rowExtended_transferCdePack['calc_vl_kg'] ;
+			$_ROUTAGE_ZONES = array() ;
+			$_ROUTAGE_ZONES['1'] = ( $poids_kg < 1 ) ;
+			$_ROUTAGE_ZONES['2'] = $row_plan2['TRI1'] ;
+			$_ROUTAGE_ZONES['3'] = $row_plan2['LIGNE1'] ;
+			$_ROUTAGE_ZONES['2a'] = $row_plan2['TRI2'] ;
+			$_ROUTAGE_ZONES['3a'] = $row_plan2['LIGNE2'] ;
+			$_ROUTAGE_ZONES['4'] = ($row_plan2['PRETRI'] == 'BOX') ;
+			$_ROUTAGE_ZONES['6'] = $row_plan2['TOUR'] ;
+			$_ROUTAGE_ZONES['10'] = $row_plan2['TOURPRINT'] ;
+			$_ROUTAGE_ZONES['7'] = $row_plan2['ACPRINT'] ;
+			$_ROUTAGE_ZONES['8'] = $row_plan2['CBTRI'] ;
+			$_ROUTAGE_ZONES['11'] = str_pad( number_format($poids_kg, 2, '.', ''), 5, '0', STR_PAD_LEFT ).' kg' ;
+			$_ROUTAGE_ZONES['9'] = date('d/m/Y') ;
+			
+			//print_r($_ROUTAGE_ZONES) ;
+			
+			$width_exp = 100 ;
+			$height_exp = 320 ;
+			$h = $height_exp ;
+			$w = $width_exp  ;
+			$buffer.= "^FO{$w},{$h}^GB475,380,2,B^FS";
+			$width_exp = 575 ;
+			$w = $width_exp  ;
+			$buffer.= "^FO{$w},{$h}^GB75,380,2,B^FS";
+			
+			
+			$w_init = 100 + 475 ;
+			$h_init = 320 ;
+			
+			if( $_ROUTAGE_ZONES['1'] == TRUE ) {
+				$w = $w_init + 10 ;
+				$h = $h_init + 330 ;
+				$buffer.= "^FT{$w},{$h},0^AVR,25,25^FD".'P'."^FS";
+			}
+			
+			if( $_ROUTAGE_ZONES['6'] ) {
+				$w = $w_init + 10 ;
+				$h = $h_init + 140 ;
+				$buffer.= "^FT{$w},{$h},0^AVR,25,25^FD".$_ROUTAGE_ZONES['6']."^FS";
+			}
+			if( $_ROUTAGE_ZONES['10'] ) {
+				$w = $w_init + 10 ;
+				$h = $h_init + 5 ;
+				$buffer.= "^FT{$w},{$h},0^AVR,25,25^FD".$_ROUTAGE_ZONES['10']."^FS";
+			}
+			
+			if( TRUE ) {
+				$w = $w_init - 60 ;
+				$h = $h_init + 80 ;
+				$buffer.= "^FT{$w},{$h},0^AVR,25,25^FD".$_ROUTAGE_ZONES['2']."^FS";
+				$w = $w_init - 110 ;
+				$h = $h_init + 80 ;
+				$buffer.= "^FT{$w},{$h},0^AUR,25,25^FD".$_ROUTAGE_ZONES['3']."^FS";
+				$w = $w_init - 60 ;
+				$h = $h_init + 270 ;
+				$buffer.= "^FT{$w},{$h},0^AVR,25,25^FD^FD".$_ROUTAGE_ZONES['2a']."^FS";
+				$w = $w_init - 110 ;
+				$h = $h_init + 280 ;
+				$buffer.= "^FT{$w},{$h},0^AUR,25,25^FD^FD".$_ROUTAGE_ZONES['3a']."^FS";
+			}
+			
+			$w = $w_init - 190 ;
+			$h = $h_init + 140 ;
+			$buffer.= "^FT{$w},{$h},0^AVR,25,25^FD".$_ROUTAGE_ZONES['7']."^FS";
+			
+			if( $_ROUTAGE_ZONES['4'] ) {
+				$w = $w_init - 180 ;
+				$h = $h_init + 10 ;
+				$buffer.= "^FO{$w},{$h}^GB40,0,40^FS";
+				
+				$w = $w_init - 180 ;
+				$h = $h_init + 380 - 10 - 40 ;
+				$buffer.= "^FO{$w},{$h}^GB40,0,40^FS";
+			}
+			
+			
+			$w_init = 100 ;
+			$h_init = 320 ;
+			
+			$w = $w_init + 50 ;
+			$h = $h_init + 100 ;
+			$barcode_print = '>;'.$_ROUTAGE_ZONES['8'] ;
+			$buffer.= "^FO{$w},{$h}^BCR,215,N,N^FD{$barcode_print}^FS";
+			
+			$line_str = '      ' .$_ROUTAGE_ZONES['11'].'  '.$_ROUTAGE_ZONES['9'] ;
+			$w = $w_init + 10 ;
+			$h = $h_init + 25 ;
+			$buffer.= "^FT{$w},{$h},0^ADR^FD".$line_str."^FS";
+			
+			
+			// ********* FIN ZONE DE ROUTAGE ********
+			
+			//Mentions légales
+			$buffer.= "^FO80,30^A0N,20,20^FD"."Soumis aux conditions generales de ventes DPD consultables sur www.dpd.fr."."^FS";
+			$buffer.= "^FO80,45^A0N,20,20^FD"."DPD France SAS 18 500 000 euros de capital social Siege social : 9 rue Maurice Mallet "."^FS";
+			$buffer.= "^FO80,60^A0N,20,20^FD"."92130 Issy-les-Moulineaux 444 420 830 RCS NANTERRE No TVA : FR 24 444 420 830"."^FS";
+			
+			//**************************
+			
+			
+			// Logo DPD
+			$buffer.= "^FO25,105^XGLOGO.GRF,1,1^FS" ;
+			//*********
+			
+			// Logo PREDIC
+			$buffer.= "^FO720,395^XGPREDIC.GRF,1,1^FS" ;
+			//*********
+			
+			
+			
+			$height_exp = 720 ;
+			$width_exp = 500 ;
+			$h = $height_exp ;
+			$w = $width_exp  ;
+			$buffer.= "^FO{$w},{$h}^GB280,480,2,B^FS";
+			
+			$width_exp = 760 ;			
+			$h = $height_exp + 15 ;
+			$w = $width_exp - 15 ;
+			$buffer.= "^FT{$w},{$h},0^A0R,25,25^FD{$destination['nom']}^FS";
+			$w = $width_exp - 40 ;
+			$buffer.= "^FT{$w},{$h},0^A0R,25,25^FD{$destination['adr1']}^FS";
+			$w = $width_exp - 80 ;
+			$buffer.= "^FT{$w},{$h},0^A0R,25,25^FD{$destination['adr2']}^FS";
+			$w = $width_exp - 120 ;
+			$buffer.= "^FT{$w},{$h},0^A0R,25,25^FD{$destination['adr3']}^FS";
+			$w = $width_exp - 160 ;
+			$buffer.= "^FT{$w},{$h},0^AUR,25,25^FDF - {$destination['cp']}^FS";
+			$w = $width_exp - 200 ;
+			if( strlen($destination['ville']) > 17 ) {
+				$buffer.= "^FT{$w},{$h},0^ATR,25,25^FD{$destination['ville']}^FS";
+			} else {
+				$buffer.= "^FT{$w},{$h},0^ATR,25,25^FD{$destination['ville']}^FS";
+			}  
+			$w = $width_exp - 240 ;
+			$buffer.= "^FT{$w},{$h},0^A0R,30,30^FD".'Tel : '.$rowExtended_transferCdePack['cde']['CDE_ATR_CDE_D_TEL'] ."^FS";
+			
+			$height_exp = 720 ;
+			$width_exp = 335 ;
+			$h = $height_exp ;
+			$w = $width_exp  ;
+			$buffer.= "^FO{$w},{$h}^GB160,480,2,B^FS";
+			
+			
+			$width_exp = 475 ;			
+			$h = $height_exp + 15 ;
+			$w = $width_exp - 15 ;
+			
+			$soc_code = $rowExtended_transferCdePack['cde']['soc_code'] ;
+			$buffer.= "^FT{$w},{$h},0^A0R,25,25^FD".specDbsLam_lib_TMS_getValueStatic( 'SOC_'.$soc_code.'_NOM' )."^FS";
+			$w = $width_exp - 40 ;
+			$buffer.= "^FT{$w},{$h},0^A0R,25,25^FD".specDbsLam_lib_TMS_getValueStatic( 'WHSE_NOM' )."^FS";
+			$w = $width_exp - 65 ;
+			$buffer.= "^FT{$w},{$h},0^A0R,25,25^FD".specDbsLam_lib_TMS_getValueStatic( 'WHSE_RUE' )."^FS";
+			$w = $width_exp - 90 ;
+			$buffer.= "^FT{$w},{$h},0^A0R,25,25^FD".specDbsLam_lib_TMS_getValueStatic( 'WHSE_LOCALITE' )."^FS";
+			$w = $width_exp - 115 ;
+			$buffer.= "^FT{$w},{$h},0^A0R,25,25^FD".specDbsLam_lib_TMS_getValueStatic( 'WHSE_VILLE' )."^FS";
+			
+			$width_exp = 220 ;
+			$height_exp = 720 ;
+			$h = $height_exp ;
+			$w = $width_exp  ;
+			$buffer.= "^FO{$w},{$h}^GB120,480,2,B^FS";
+			
+			
+			$ref_cde_cli = $rowExtended_transferCdePack['cde']['cde_ref'] ;
+			if( !$ref_cde_cli ) {
+				$ref_cde_cli = $rowExtended_transferCdePack['cde']['cde_nr'] ;
+			}
+			$width_exp = 300 ;
+			$h = $height_exp + 15 ;
+			$w = $width_exp  ;
+			$buffer.= "^FT{$w},{$h},0^ADR^FD"."Nb Colis : {$no_carton_exp} / {$tot_carton}"."^FS";
+			$w = $width_exp -30 ;
+			$buffer.= "^FT{$w},{$h},0^ADR^FD"."Ref : {$ref_cde_cli}"."^FS";
+			
+			
+			$width_exp = 100 ;
+			$height_exp = 720 ;
+			$h = $height_exp ;
+			$w = $width_exp  ;
+			$buffer.= "^FO{$w},{$h}^GB120,480,2,B^FS";
+			
+			$width_exp = 200 ;
+			$h = $height_exp + 15 ;
+			$w = $width_exp  ;
+			$buffer.= "^FT{$w},{$h},0^A0R,25,25^FDNo Cde  : ".$rowExtended_transferCdePack['cde']['cde_nr']."^FS";
+			$w = $width_exp - 20 ;
+			$buffer.= "^FT{$w},{$h},0^A0R,25,25^FDRef Cli : ".$rowExtended_transferCdePack['cde']['cde_ref']."^FS";
+			$w = $width_exp - 40 ;
+			$buffer.= "^FT{$w},{$h},0^A0R,25,25^FDCtr Mq  : ".''."^FS";
+			$w = $width_exp - 60 ;
+			$buffer.= "^FT{$w},{$h},0^A0R,25,25^FDInstruc Liv : ".''."^FS";
+			$w = $width_exp - 80 ;
+			$buffer.= "^FT{$w},{$h},0^A0R,25,25^FD".''."^FS" ;
+		
+			
+			$barcode_legend = specDbsLam_lib_TMS_DPDG_getBarcodeLegend($pack_id_trspt_id) ;
+			$barcode_print = specDbsLam_lib_TMS_DPDG_getBarcodePrint($pack_id_trspt_id) ;
+			
+			
+			$barcode_w = 125 ;
+			$barcode_h = 100 ;
+			$buffer.= "^BY3,2.5,10^FS" ;
+			$buffer.= "^FO{$barcode_w},{$barcode_h}^B2N,170,N,N^FD".$barcode_print."^FS";
+			$line_h = $barcode_h ;
+			$buffer.= "^FO{$barcode_w},{$line_h}^GB450,0,5^FS";
+			$line_h+= 170 ;
+			$buffer.= "^FO{$barcode_w},{$line_h}^GB450,0,5^FS";
+			
+			
+			
+			$width_exp = 230 ;
+			$height_exp = 720 ;
+			$h = $height_exp +15;
+			$w = $width_exp  ;
+			//$buffer.= "^FT{$w},{$h},0^ASR^FDEXA PASS : ".$barcode_print."^FS";
+			$w = 120 ;
+			$h = 350 ;
+			$buffer.= "^FT{$w},{$h},0^ASN^FD".$barcode_legend."^FS";
+			
+			// Barcode de mise en livraison
+			$str = substr($destination['nom'],0,12) ;
+			$barcode_w = 150 ;
+			$barcode_h = 1200 ;
+			$buffer.= "^BY3,2.5,10^FS" ;
+			$buffer.= "^FO{$barcode_w},{$barcode_h}^BCN,30,N,N^FD".$str."^FS";
+			
+			
+		return $buffer ;
+	}
+	
+	function specDbsLam_lib_TMS_DPDG_getBarcodeLegend( $pack_id_trspt_id ) {
+		$barcode_base = substr($pack_id_trspt_id,0,15) ;
+	
+		$eansum = 0 ;
+		for( $i=0 ; $i<strlen($barcode_base) ; $i++ )
+		{
+			$mchar = $barcode_base[$i] ;
+			if( $i % 2 == 0 )
+				$eansum += $mchar * 3;
+			else
+				$eansum += $mchar * 1 ;
+		}
+		$dizsup = ceil($eansum/10) * 10 ;
+		$cle = $dizsup - $eansum ;
+		
+		$barcode_legend= substr($barcode_base,3).$cle ;
+		
+		return $barcode_legend ;
+	}
+	function specDbsLam_lib_TMS_DPDG_getBarcodePrint( $pack_id_trspt_id ) {
+		return $pack_id_trspt_id ;
+	}
+	function specDbsLam_lib_TMS_DPDG_getRowPlan2( $id_agence, $code_pays, $code_postal ) {
+		global $_opDB ;
+		
+		$query = "SELECT * FROM op5tms_lib_trspt.trspt_exap_plan2 WHERE ISO='$code_pays' 
+					AND ( ('$code_postal' BETWEEN CPDEB AND CPFIN) OR CPDEB='' )" ;
+		$result = $_opDB->query($query) ;
+		$plan2_row = NULL ;
+		while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+			$identifiants = explode(',',$arr['IDENTIFIANT']) ;
+			if( in_array($id_agence,$identifiants) ) {
+				$plan2_row = $arr ;
+				break ;
+			}
+			if( in_array('',$identifiants) ) {
+				$plan2_default = $arr ;
+			}
+		}
+		if( !$plan2_row ) {
+			$plan2_row = $plan2_default ;
+		}
+		if( !$plan2_row ) {
+			return array() ;
+		}
+		
+		return $plan2_row ;
+	}
+
+
+
+
+
+
+
+
+
 ?>
