@@ -259,7 +259,7 @@ function specDbsLam_stock_printEtiq($post_data) {
 				$buffer.= "<tr>" ;
 					$buffer.= "<td width='30%'><span class=\"mybig\">Quantity</span></td>" ;
 					$buffer.= '<td align="center" class="mybig">' ;
-						$buffer.= '<b>'.(float)($arr_stk['field_QTY_AVAIL']+$arr_stk['field_QTY_OUT']).'</b><br>';
+						$buffer.= '<b>'.(float)($arr_stk['field_QTY_IN']+$arr_stk['field_QTY_AVAIL']+$arr_stk['field_QTY_OUT']).'</b><br>';
 					$buffer.= '</td>' ;
 				$buffer.= "</tr>" ;
 			

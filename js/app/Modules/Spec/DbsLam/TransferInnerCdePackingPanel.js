@@ -122,7 +122,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerCdePackingPanel',{
 								renderer: function(v,metaData,record) {
 									if( record.getDepth()==1 ) {
 										metaData.tdCls+= ' '+'x-grid-cell-overflowvisible' ; // colspan=2
-										return ''+record.get('pack_folio_group')+'&nbsp;&nbsp;&nbsp;&nbsp;<b>('+record.get('pack_folio_idx')+'/'+record.get('pack_folio_sum')+')</b>' ;
+										if( record.get('transfercdepack_filerecord_id')>0 ) {
+											return ''+record.get('pack_folio_group')+'&nbsp;&nbsp;&nbsp;&nbsp;<b>('+record.get('pack_folio_idx')+'/'+record.get('pack_folio_sum')+')</b>' ;
+										}
 									}
 									return v ;
 								}
@@ -133,13 +135,14 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerCdePackingPanel',{
 							Ext.apply(scol,{
 								renderer: function(v,metaData,record) {
 									if( record.getDepth()==1 ) {
-										return '<b>'+record.get('pack_vl_kg')+'</b>&nbsp;kg' ;
+										if( record.get('transfercdepack_filerecord_id')>0 ) {
+											return '<b>'+record.get('pack_vl_kg')+'</b>&nbsp;kg' ;
+										}
 									}
 									return v ;
 								}
 							});
 							break ;
-						
 					}
 				}) ;
 				return ;

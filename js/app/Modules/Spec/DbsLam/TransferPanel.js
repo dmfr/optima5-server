@@ -1121,25 +1121,30 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 	},
 	
 	openPrintPopup: function(printLabels) {
-		var pTreeSelection = this.down('#pCenter').down('#pTree').getSelectionModel().getSelection() ;
-		if( pTreeSelection.length != 1 || pTreeSelection[0].get('type') != 'transfer' ) {
-			Ext.MessageBox.alert('Error','No suitable doc selected.') ;
+		var pCenter = this.down('#pCenter'),
+			pCenterTb = pCenter.down('toolbar'),
+			tabPanel = pCenter.down('tabpanel') ;
+		var activeTab = tabPanel.getActiveTab();
+		if( !activeTab ) {
 			return ;
 		}
-		
+		var activeTransferStepRecord = activeTab.getActiveTransferStepRecord() ;
+		if( !activeTransferStepRecord ) {
+			return ;
+		}
 		this.showLoadmask() ;
-		
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_dbs_lam',
 				_action: 'transfer_printDoc',
-				transfer_filerecordId: pTreeSelection[0].get('transfer_filerecord_id'),
+				transfer_filerecordId: this._activeTransferRecord.get('transfer_filerecord_id'),
+				transferStep_filerecordId: activeTransferStepRecord.get('transferstep_filerecord_id'),
 				printEtiq: (printLabels ? 1 : 0)
 			},
 			success: function(response) {
 				var jsonResponse = Ext.JSON.decode(response.responseText) ;
 				if( jsonResponse.success == true ) {
-					this.openPrintPopupDo( 'Transfer doc : '+pTreeSelection[0].get('display_txt'), jsonResponse.html ) ;
+					this.openPrintPopupDo( 'Transfer doc', jsonResponse.html ) ;
 				} else {
 					Ext.MessageBox.alert('Error','Print system disabled') ;
 				}
@@ -1622,77 +1627,6 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		}
 	},
 	
-	handlePrint: function( gridTreeNode ) {
-		var treepanel = this.down('#pCenter').down('#pTree'),
-			selectedNodes = treepanel.getView().getSelectionModel().getSelection(),
-			isDocSelected = (selectedNodes.length==1 && selectedNodes[0].get('type')=='transfer') ;
-		if( !isDocSelected ) {
-			return ;
-		}
-		var docFlow = selectedNodes[0].get('flow_code'),
-			flowRecord = Optima5.Modules.Spec.DbsLam.HelperCache.getMvtflow(docFlow) ;
-		//console.dir(flowRecord) ;
-		
-		var lib ;
-		var transferFilerecordId = selectedNodes[0].get('transfer_filerecord_id') ;
-		var transferLigFilerecordId_arr = [] ;
-		var transferStepCode ;
-		if( !Ext.isEmpty(gridTreeNode.get('tree_adr')) ) {
-			transferStepCode = [] ;
-			gridTreeNode.cascadeBy(function(s) {
-				if( s.isLeaf() && s.get('transferlig_filerecord_id') ) {
-					transferLigFilerecordId_arr.push(s.get('transferlig_filerecord_id'));
-					if( !Ext.Array.contains(transferStepCode,s.get('step_code')) ) {
-						transferStepCode.push(s.get('step_code')) ;
-					}
-				}
-			}) ;
-			if( transferStepCode.length != 1 ) {
-				return ;
-			}
-			transferStepCode = transferStepCode[0] ;
-		} else {
-			transferLigFilerecordId_arr.push(gridTreeNode.get('transferlig_filerecord_id')) ;
-			transferStepCode = gridTreeNode.get('step_code')
-		}
-		
-		var steps = [], idx ;
-		Ext.Array.each( flowRecord.steps, function(step) {
-			steps.push(step.step_code) ;
-		});
-		if( transferStepCode == '' ) {
-			idx = steps.length ;
-		} else {
-			idx = steps.indexOf(transferStepCode) ;
-		}
-		if( idx > 0 ) {
-			idx-- ;
-		}
-		transferStepCode = steps[idx] ;
-		
-		this.optimaModule.getConfiguredAjaxConnection().request({
-			params: {
-				_moduleId: 'spec_dbs_lam',
-				_action: 'transfer_printDoc',
-				transferFilerecordId: transferFilerecordId,
-				transferLigFilerecordId_arr: Ext.JSON.encode(transferLigFilerecordId_arr),
-				transferStepCode: transferStepCode,
-				printEtiq: 1
-			},
-			success: function(response) {
-				var jsonResponse = Ext.JSON.decode(response.responseText) ;
-				if( jsonResponse.success == true ) {
-					this.openPrintPopupDo( 'Container doc', jsonResponse.html ) ;
-				} else {
-					Ext.MessageBox.alert('Error','Print system disabled') ;
-				}
-			},
-			callback: function() {
-				this.hideLoadmask() ;
-			},
-			scope: this
-		}) ;
-	},
 	
 	openPrintPopupDo: function(pageTitle, pageHtml) {
 		this.optimaModule.createWindow({
