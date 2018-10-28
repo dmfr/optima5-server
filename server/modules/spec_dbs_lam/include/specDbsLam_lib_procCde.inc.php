@@ -262,8 +262,20 @@ function specDbsLam_lib_procCde_forwardPacking( $transfer_filerecord_id, $transf
 				//echo $qtyNeedAvailable ;
 				//print_r($map_stkFilerecordId_qtyNeedAvailable) ;
 				
+				// HACK 28/10/2018 : one pack per item
+				$map_cdeFilerecordId_doForceUniquePack = array() ;
+				foreach( $transferCdeNeed_row['cde_links'] as $transferCdeLink_row ) {
+					$cde_filerecordId = $transferCdeLink_row['cde_filerecord_id'] ;
+					if( !isset($map_cdeFilerecordId_doForceUniquePack[$cde_filerecordId]) ) {
+						$json = specDbsLam_cde_getGrid( array('filter_cdeFilerecordId_arr'=>json_encode(array($cde_filerecordId))) ) ;
+						$cde_row = $json['data'][0] ;
+						$map_cdeFilerecordId_doForceUniquePack[$cde_filerecordId] = !!$cde_row['trspt_code'] ;
+					}
+				}
+				
 				foreach( $transferCdeNeed_row['cde_links'] as $transferCdeLink_row ) {
 					//print_r($transferCdeLink_row) ;
+					$cde_filerecordId = $transferCdeLink_row['cde_filerecord_id'] ;
 					$transferCdeLink_filerecordId = $transferCdeLink_row['transfercdelink_filerecord_id'] ;
 					$qtyLig = $transferCdeLink_row['qty_cde'] ;
 					$qtyLig_toAlloc = $qtyLig ;
@@ -290,7 +302,10 @@ function specDbsLam_lib_procCde_forwardPacking( $transfer_filerecord_id, $transf
 						}
 						
 						$qty_transaction = min($qtyLig_toAlloc,$qty_stk) ;
-						
+						// HACK
+						if( $map_cdeFilerecordId_doForceUniquePack[$cde_filerecordId] ) {
+							$qty_transaction = 1 ;
+						}
 						
 						$mvt_filerecordId = specDbsLam_lib_procMvt_addStock( 
 							$transferstepPacking_row['whse_src']

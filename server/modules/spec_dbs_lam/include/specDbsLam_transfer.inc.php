@@ -1683,9 +1683,20 @@ function specDbsLam_transfer_setCommit( $post_data ) {
 			
 			
 			foreach( $map_cdeFilerecordId_arrTransferLigFilerecordIds as $cde_filerecordId => $arr ) {
-				$transferCdePack_filerecordId = specDbsLam_lib_procCde_shipPackCreate($transfer_filerecordId,$cde_filerecordId,$reuse=TRUE) ;
-				foreach( $arr as $transferLig_filerecordId ) {
-					specDbsLam_lib_procCde_shipPackAssociate($transferCdePack_filerecordId,$transferLig_filerecordId) ;
+				$json = specDbsLam_cde_getGrid( array('filter_cdeFilerecordId_arr'=>json_encode(array($cde_filerecordId))) ) ;
+				$cde_row = $json['data'][0] ;
+				
+				if( $cde_row['trspt_code'] ) {
+					// HACK 28/10/2018 : one pack per item
+					foreach( $arr as $transferLig_filerecordId ) {
+						$transferCdePack_filerecordId = specDbsLam_lib_procCde_shipPackCreate($transfer_filerecordId,$cde_filerecordId,$reuse=FALSE) ;
+						specDbsLam_lib_procCde_shipPackAssociate($transferCdePack_filerecordId,$transferLig_filerecordId) ;
+					}
+				} else {
+					$transferCdePack_filerecordId = specDbsLam_lib_procCde_shipPackCreate($transfer_filerecordId,$cde_filerecordId,$reuse=TRUE) ;
+					foreach( $arr as $transferLig_filerecordId ) {
+						specDbsLam_lib_procCde_shipPackAssociate($transferCdePack_filerecordId,$transferLig_filerecordId) ;
+					}
 				}
 			}
 			specDbsLam_lib_procCde_shipPackSync($transfer_filerecordId) ;
