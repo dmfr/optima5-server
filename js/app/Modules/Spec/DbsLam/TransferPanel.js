@@ -75,6 +75,7 @@ Ext.define('DbsLamTransferLigModel',{
 		{name: 'cdepack_transfercdelink_filerecord_id', type:'int'},
 		{name: 'status', type:'boolean'},
 		{name: 'status_is_ok', type:'boolean'},
+		{name: 'status_is_out', type:'boolean'},
 		{name: 'status_is_reject', type:'boolean'},
 		{name: 'step_code', type:'string'},
 		{name: 'hidden', type:'boolean'},
@@ -125,6 +126,7 @@ Ext.define('DbsLamTransferStepModel',{
 		{name: 'spec_input', type:'boolean'},
 		{name: 'spec_cde_picking', type:'boolean'},
 		{name: 'spec_cde_packing', type:'boolean'},
+		{name: 'spec_nocde_out', type:'boolean'},
 		{name: 'whse_src', type:'string'},
 		{name: 'whse_dst', type:'string'},
 		{name: 'forward_is_on', type:'boolean'},
@@ -383,30 +385,11 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 						},
 						scope: this
 					},{
-						xtype: 'menuseparator',
-						itemIdCdeDocs: true
-					},{
-						icon: 'images/op5img/ico_print_16.png',
-						text: '<b>Print deliv.notes</b>',
-						itemIdCdeDocs: true,
+						icon: 'images/op5img/ico_arrow-double_16.png',
+						text: '<b>Validate Out</b>',
+						itemIdFastforwardOut: true,
 						handler: function() {
-							this.openPrintDoc('transfer_cdebl') ;
-						},
-						scope: this
-					},{
-						icon: 'images/op5img/ico_print_16.png',
-						text: '<b>Print summary</b>',
-						itemIdCdeDocs: true,
-						handler: function() {
-							this.openPrintDoc('transfer_cdebrt') ;
-						},
-						scope: this
-					},{
-						icon: 'images/op5img/ico_print_16.png',
-						text: '<b>Test download</b>',
-						itemIdCdeDocs: true,
-						handler: function() {
-							this.testDownload() ;
+							this.handleActionFastOut() ;
 						},
 						scope: this
 					}]
@@ -425,12 +408,35 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 						icon: 'images/op5img/ico_arrow-double_16.png',
 						text: '<b>Validate shipping</b>',
 						handler: function() {
-							
+							this.handleCdeShipping() ;
+						},
+						scope: this
+					},{
+						xtype: 'menuseparator'
+					},{
+						icon: 'images/op5img/ico_print_16.png',
+						text: '<b>Print deliv.notes</b>',
+						handler: function() {
+							this.openPrintDoc('transfer_cdebl') ;
+						},
+						scope: this
+					},{
+						icon: 'images/op5img/ico_print_16.png',
+						text: '<b>Print summary</b>',
+						handler: function() {
+							this.openPrintDoc('transfer_cdebrt') ;
 						},
 						scope: this
 					}]
 				},'->',{
 					//itemId: 'tbClose',
+					icon: 'images/op5img/ico_reload_small.gif',
+					text: 'Reload',
+					handler: function() {
+						this.doTransferLoad() ;
+					},
+					scope: this
+				},{
 					icon: 'images/op5img/ico_cancel_small.gif',
 					text: 'Close',
 					handler: function() {
@@ -518,6 +524,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		
 			if( true ) { // options
 				var optionsHasFastCommit = activeTab.optionsHasFastCommit(),
+					optionsHasFastOut = activeTab.optionsHasFastOut(),
 					optionsCdeDocs = activeTab.optionsHasCdeDocs(),
 					optionsCdeAlloc = activeTab.optionsHasCdeAlloc(),
 					optionsAdrAlloc = activeTab.optionsHasAdrAlloc(),
@@ -536,6 +543,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				}) ;
 				Ext.Array.each( pCenterTb.down('#tbActions').menu.query('[itemIdFastforward]'), function(menuitem) {
 					menuitem.setVisible( optionsHasFastCommit ) ;
+				}) ;
+				Ext.Array.each( pCenterTb.down('#tbActions').menu.query('[itemIdFastforwardOut]'), function(menuitem) {
+					menuitem.setVisible( optionsHasFastOut ) ;
 				}) ;
 				Ext.Array.each( pCenterTb.down('#tbActions').menu.query('[itemIdPrintList]'), function(menuitem) {
 					menuitem.setVisible( optionsPrintList ) ;
@@ -1492,6 +1502,64 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			scope: this
 		}) ;
 	},
+	handleActionFastOut: function() {
+		var pCenter = this.down('#pCenter'),
+			pCenterTb = pCenter.down('toolbar'),
+			tabPanel = pCenter.down('tabpanel') ;
+		if( !tabPanel ) {
+			return ;
+		}
+		var activeTab = tabPanel.getActiveTab();
+		if( !activeTab ) {
+			return ;
+		}
+		if( !activeTab.optionsHasFastCommit() ) {
+			return ;
+		}
+		
+		var activeTransferStepRecord = activeTab.getActiveTransferStepRecord() ;
+		// toutes lignes non commit
+		var transferLig_filerecordIds = [] ;
+		activeTransferStepRecord.ligs().each( function(transferLigRecord) {
+			if( !transferLigRecord.get('status_is_ok') || transferLigRecord.get('status_is_out') ) {
+				return ;
+			}
+			transferLig_filerecordIds.push( transferLigRecord.get('transferlig_filerecord_id') ) ;
+		}) ;
+		if( this._activeTransferRecord.get('spec_cde') || !activeTransferStepRecord.get('spec_nocde_out') ) {
+			Ext.MessageBox.alert('Error','Incompatible document') ;
+			return ;
+		}
+		if( Ext.isEmpty(transferLig_filerecordIds) ) {
+			Ext.MessageBox.alert('Empty','All items already commited') ;
+			return ;
+		}
+		
+		
+		var ajaxParams = {
+			_moduleId: 'spec_dbs_lam',
+			_action: 'transfer_setOut',
+			transfer_filerecordId: this._activeTransferRecord.get('transfer_filerecord_id'),
+			transferStep_filerecordId: activeTransferStepRecord.get('transferstep_filerecord_id'),
+			transferLig_filerecordIds: Ext.JSON.encode(transferLig_filerecordIds) 
+		} ;
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams,
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+				this.optimaModule.postCrmEvent('datachange') ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+	},
 	
 	
 	setFormRecord: function( transferLigRecord ) {
@@ -1840,7 +1908,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			
 			queryPrinters: function() {
 				if( typeof qz == 'undefined' ) {
-					Ext.MessageBox.alert('Error','Print system disabled') ;
+					//Ext.MessageBox.alert('Error','Print system disabled') ;
 					return ;
 				}
 				var me = this ;
@@ -2014,7 +2082,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 	libZplPrint: function(dataArr, printerName) {
 		//console.log(printerName) ;
 		if( typeof qz == 'undefined' ) {
-			Ext.MessageBox.alert('Error','Print system disabled') ;
+			//Ext.MessageBox.alert('Error','Print system disabled') ;
 			return ;
 		}
 		qz.websocket.connect().then(function() {

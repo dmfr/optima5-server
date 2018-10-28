@@ -113,6 +113,9 @@
 .op5-spec-dbslam-stock-avail .x-grid-cell-inner {
 	background: url('../images/op5img/ico_greendot.gif') no-repeat center center ;
 }
+.op5-spec-dbslam-stock-statusout .x-grid-cell-inner {
+	background: url('../images/op5img/ico_arrow-double_16.png') no-repeat center center ;
+}
 .op5-spec-dbslam-stock-notavail .x-grid-cell-inner {
 	background: url('../images/op5img/ico_reddot.gif') no-repeat center center ;
 }

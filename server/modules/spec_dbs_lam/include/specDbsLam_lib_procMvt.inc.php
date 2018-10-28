@@ -416,6 +416,38 @@ function specDbsLam_lib_procMvt_commitUndo($mvt_filerecordId) {
 	
 	return TRUE ;
 }
+function specDbsLam_lib_procMvt_out($stockDst_filerecordId,$stockOut_qty) {
+	global $_opDB ;
+	
+	$query = "SELECT filerecord_id FROM view_file_STOCK
+		WHERE filerecord_id IN ('{$stockDst_filerecordId}')" ;
+	$result = $_opDB->query($query) ;
+	if( $_opDB->num_rows($result) != 1 ) {
+		return FALSE ;
+	}
+	
+	$query = "SELECT field_QTY_AVAIL
+					FROM view_file_STOCK
+					WHERE filerecord_id='{$stockDst_filerecordId}'" ;
+	$qty_phys = (float)$_opDB->query_uniqueValue($query) ;
+	if( $qty_phys<$qte_mvt ) {
+		return FALSE ;
+	}
+	
+	$query = "UPDATE view_file_STOCK dst
+				SET dst.field_QTY_AVAIL=dst.field_QTY_AVAIL-'{$stockOut_qty}'
+				WHERE dst.filerecord_id='{$stockDst_filerecordId}'" ;
+	$_opDB->query($query) ;
+	
+	$query = "SELECT filerecord_id FROM view_file_STOCK
+			WHERE filerecord_id='{$stockDst_filerecordId}'
+			AND field_QTY_PREIN='0' AND field_QTY_OUT='0' AND field_QTY_AVAIL='0'" ;
+	if( $_opDB->query_uniqueValue($query)==$stockDst_filerecordId ) {
+		paracrm_lib_data_deleteRecord_file( 'STOCK' , $stockDst_filerecordId ) ;
+	}
+	
+	return TRUE ;
+}
 
 
 ?>

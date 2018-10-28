@@ -283,6 +283,7 @@ function specDbsLam_cfg_getTplTransfer() {
 			'spec_input' => !!$arr['field_SPEC_INPUT'],
 			'spec_cde_picking' => !!$arr['field_SPEC_CDE_PICKING'],
 			'spec_cde_packing' => !!$arr['field_SPEC_CDE_PACKING'],
+			'spec_nocde_out' => !!$arr['field_SPEC_NOCDE_OUT'],
 			'whse_src' => $arr['field_WHSE_SRC'],
 			'whse_dst' => $arr['field_WHSE_DST'],
 			'forward_is_on' => $arr['field_FORWARD_IS_ON'],
@@ -554,7 +555,7 @@ function specDbsLam_cfg_lib_build() {
 				$arr_ins = array() ;
 				$arr_ins['bible_code'] = 'PROD' ;
 				$arr_ins['entry_field_code'] = $field_code ;
-				$arr_ins['entry_field_is_key'] = 'O' ;
+				//$arr_ins['entry_field_is_key'] = 'O' ;
 				$arr_ins['entry_field_index'] = $max_index ;
 				$arr_ins['entry_field_lib'] = 'Atr: '.$attribute['atr_txt'] ;
 				$arr_ins['entry_field_type'] = 'link' ;
@@ -581,7 +582,7 @@ function specDbsLam_cfg_lib_build() {
 				$arr_ins = array() ;
 				$arr_ins['bible_code'] = 'ADR' ;
 				$arr_ins['entry_field_code'] = $field_code ;
-				$arr_ins['entry_field_is_key'] = 'O' ;
+				//$arr_ins['entry_field_is_key'] = 'O' ;
 				$arr_ins['entry_field_index'] = $max_index ;
 				$arr_ins['entry_field_lib'] = 'Atr: '.$attribute['atr_txt'] ;
 				$arr_ins['entry_field_type'] = 'link' ;

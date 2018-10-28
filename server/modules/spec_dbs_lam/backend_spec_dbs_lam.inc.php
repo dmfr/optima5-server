@@ -78,6 +78,8 @@ switch( $post_data['_action'] )
 	return specDbsLam_transfer_setCommit( $post_data ) ;
 	case 'transfer_rollback' :
 	return specDbsLam_transfer_rollback( $post_data ) ;
+	case 'transfer_setOut' :
+	return specDbsLam_transfer_setOut( $post_data ) ;
 	
 	case 'print_getDoc' :
 	return specDbsLam_print_getDoc( $post_data ) ;

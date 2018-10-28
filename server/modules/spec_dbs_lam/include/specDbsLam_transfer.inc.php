@@ -60,6 +60,7 @@ function specDbsLam_transfer_getTransfer($post_data) {
 			'spec_input' => !!$arr['field_SPEC_INPUT'],
 			'spec_cde_picking' => !!$arr['field_SPEC_CDE_PICKING'],
 			'spec_cde_packing' => !!$arr['field_SPEC_CDE_PACKING'],
+			'spec_nocde_out' => !!$arr['field_SPEC_NOCDE_OUT'],
 			'whse_src' => $arr['field_WHSE_SRC'],
 			'whse_dst' => $arr['field_WHSE_DST'],
 			'forward_is_on' => $arr['field_FORWARD_IS_ON'],
@@ -193,6 +194,7 @@ function specDbsLam_transfer_getTransferLig($post_data) {
 				
 				'status' => null,
 				'status_is_ok' => !!$arr['field_COMMIT_IS_OK'],
+				'status_is_out' => !!$arr['field_STATUS_IS_OUT'],
 				
 				'status_is_reject' => $arr['field_STATUS_IS_REJECT'],
 				'reject_arr' => explode(',',$arr['field_REJECT_ARR']),
@@ -1527,11 +1529,15 @@ function specDbsLam_transfer_setAdr( $post_data ) {
 	$whseDestIsWork = FALSE ;
 	foreach($json_cfg['cfg_whse'] as $whse) {
 		if( ($whse['whse_code']==$transferstep_row['whse_dst']) && $whse['is_work'] ) {
+			$whseDestWork = $whse['whse_code'] ;
 			$whseDestIsWork = TRUE ;
 		}
 	}
-	if( $whseDestIsWork ) {
-		return ;
+	if( $whseDestIsWork && !$transferstep_row['spec_nocde_out'] ) {
+		return array('success'=>true) ;
+	}
+	if( $whseDestIsWork && $transferstep_row['spec_nocde_out'] ) {
+		$whseDestOutAdr = $whseDestWork.'_'.'OUT' ;
 	}
 	
 	$ids = array() ;
@@ -1566,8 +1572,11 @@ function specDbsLam_transfer_setAdr( $post_data ) {
 			}
 		} elseif( $adr_obj['adr_auto'] && !$transferlig_row['dst_adr'] ) {
 			$adr_id = specDbsLam_lib_proc_findAdr( $transferlig_row, $transferstep_row['whse_dst'], $adr_obj['adr_auto_picking'] ) ;
+			if( $whseDestIsWork && $whseDestOutAdr ) {
+				$adr_id = $whseDestOutAdr ;
+			}
 			if( $adr_id ) {
-				specDbsLam_lib_procMvt_setDstAdr($mvt_filerecordId, $adr_id) ;
+				specDbsLam_lib_procMvt_setDstAdr($mvt_filerecordId, $adr_id, $whseDestWork) ;
 				$ids[] = $transferlig_filerecord_id ;
 			}
 		}
@@ -1687,6 +1696,79 @@ function specDbsLam_transfer_setCommit( $post_data ) {
 	}
 	
 	return array('success'=>$success, 'ids'=>$ids) ;
+}
+
+
+
+
+
+function specDbsLam_transfer_setOut( $post_data, $cde_mode=FALSE ) {
+	global $_opDB ;
+	
+	$ttmp = specDbsLam_cfg_getConfig() ;
+	$json_cfg = $ttmp['data'] ;
+	
+	
+	$transfer_filerecordId = $post_data['transfer_filerecordId'] ;
+	$transferStep_filerecordId = $post_data['transferStep_filerecordId'] ;
+	$transferLig_filerecordIds = json_decode($post_data['transferLig_filerecordIds'],true) ;
+	
+	$formard_post = array(
+		'filter_transferFilerecordId' => $transfer_filerecordId
+	) ;
+	$json = specDbsLam_transfer_getTransfer($formard_post) ;
+	$transfer_row = reset($json['data']) ;
+	$transferstep_row = NULL ;
+	if( !$transfer_row ) {
+		return array('success'=>false) ;
+	}
+	foreach( $transfer_row['steps'] as $transferstep_iter ) {
+		if( $transferstep_iter['transferstep_filerecord_id'] == $transferStep_filerecordId ) {
+			$transferstep_row = $transferstep_iter ;
+		}
+	}
+	if( !$transferstep_row ) {
+		return array('success'=>false) ;
+	}
+	if( !$cde_mode && !$transferstep_row['spec_nocde_out'] ) {
+		return array('success'=>false) ;
+	}
+	
+	
+	$ids = array() ;
+	foreach( $transferLig_filerecordIds as $transferlig_filerecord_id ) {
+		$transferlig_row = NULL ;
+		foreach( $transferstep_row['ligs'] as $transferlig_iter ) {
+			if( $transferlig_iter['transferlig_filerecord_id'] == $transferlig_filerecord_id ) {
+				$transferlig_row = $transferlig_iter ;
+			}
+		}
+		if( !$transferlig_row || !$transferlig_row['status_is_ok'] || $transferlig_row['status_is_out'] ) {
+			continue ;
+		}
+		
+		
+		$stockDst_filerecordId = $transferlig_row['dst_stk_filerecord_id'] ;
+		$stockOut_qty = $transferlig_row['mvt_qty'] ;
+		if( !$stockDst_filerecordId && $stockOut_qty <= 0 ) {
+			continue ;
+		}
+		/*
+		$query = "SELECT * FROM view_file_STOCK WHERE filerecord_id='{$stockDst_filerecordId}'" ;
+		$result = $_opDB->query($query) ;
+		$row_mvt = $_opDB->fetch_assoc($result) ;
+		*/
+		
+		if( specDbsLam_lib_procMvt_out($stockDst_filerecordId,$stockOut_qty) ) {
+			$ids[] = $transferlig_filerecord_id ;
+		}
+	}
+	foreach( $ids as $transferlig_filerecord_id ) {
+		$arr_update = array() ;
+		$arr_update['field_STATUS_IS_OUT'] = 1 ;
+		paracrm_lib_data_updateRecord_file('TRANSFER_LIG',$arr_update,$transferlig_filerecord_id) ;
+	}
+	return array('success'=>true, 'ids'=>$ids) ;
 }
 
 

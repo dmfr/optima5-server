@@ -74,8 +74,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 						metadata.tdCls = 'op5-spec-dbslam-stock-notavail'
 					} else if( !record.get('status_is_ok') ) {
 						metadata.tdCls = 'op5-spec-dbslam-stock-wait'
-					} else {
+					} else if( !record.get('status_is_out') ) {
 						metadata.tdCls = 'op5-spec-dbslam-stock-avail'
+					} else {
+						metadata.tdCls = 'op5-spec-dbslam-stock-statusout'
 					}
 				}
 			},{
@@ -333,7 +335,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerStepPanel',{
 		var areCommitted = true ;
 		for( var recIdx=0 ; recIdx<selRecords.length ; recIdx++ ) {
 			transferligFilerecordIds.push( selRecords[recIdx].get('transferlig_filerecord_id') ) ;
-			if( selRecords[recIdx].get('status_is_ok') ) {
+			if( selRecords[recIdx].get('status_is_out') ) {
+				areCommitted = false ;
+			} else if( selRecords[recIdx].get('status_is_ok') ) {
 				areNotCommitted = false ;
 			} else {
 				areCommitted = false ;
