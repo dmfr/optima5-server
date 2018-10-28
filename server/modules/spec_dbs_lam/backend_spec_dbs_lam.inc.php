@@ -71,6 +71,8 @@ switch( $post_data['_action'] )
 	return specDbsLam_transfer_addCdePickingStock( $post_data ) ;
 	case 'transfer_removeCdePickingStock' :
 	return specDbsLam_transfer_removeCdePickingStock( $post_data ) ;
+	case 'transfer_cdeShippingOut' :
+	return specDbsLam_transfer_cdeShippingOut( $post_data ) ;
 	
 	case 'transfer_setAdr' :
 	return specDbsLam_transfer_setAdr( $post_data ) ;

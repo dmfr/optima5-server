@@ -1219,11 +1219,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 	
 	
 	openPrintDoc: function(docCode) {
-		if( !this.getActiveTransferFilerecordId() ) {
+		if( !this._activeTransferRecord ) {
 			Ext.MessageBox.alert('Error','No suitable doc selected.') ;
 			return ;
 		}
-		var pTreeSelection = this.down('#pCenter').down('#pTree').getSelectionModel().getSelection() ;
 		
 		this.showLoadmask() ;
 		
@@ -1231,13 +1230,13 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			params: {
 				_moduleId: 'spec_dbs_lam',
 				_action: 'print_getDoc',
-				transfer_filerecordId: this.getActiveTransferFilerecordId(),
+				transfer_filerecordId: this._activeTransferRecord.get('transfer_filerecord_id'),
 				print_doc: docCode
 			},
 			success: function(response) {
 				var jsonResponse = Ext.JSON.decode(response.responseText) ;
 				if( jsonResponse.success == true ) {
-					this.openPrintDocDo( 'Transfer doc : '+pTreeSelection[0].get('display_txt'), jsonResponse.html ) ;
+					this.openPrintDocDo( 'Transfer doc : '+this._activeTransferRecord.get('transfer_txt'), jsonResponse.html ) ;
 				} else {
 					Ext.MessageBox.alert('Error','Print system disabled') ;
 				}
@@ -1560,6 +1559,36 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			scope: this
 		}) ;
 	},
+	handleCdeShipping: function(confirmed) {
+		if( !confirmed ) {
+			Ext.Msg.confirm('Confirm','Validate shipping ?', function(btn){
+				if( btn=='yes' ) {
+					this.handleCdeShipping(true) ;
+				}
+			},this) ;
+			return ;
+		}
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_dbs_lam',
+				_action: 'transfer_cdeShippingOut',
+				transfer_filerecordId: this._activeTransferRecord.get('transfer_filerecord_id')
+			},
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error',ajaxResponse.error) ;
+					return ;
+				}
+				this.optimaModule.postCrmEvent('datachange') ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+	},
 	
 	
 	setFormRecord: function( transferLigRecord ) {
@@ -1764,7 +1793,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			success: function(response) {
 				var ajaxResponse = Ext.decode(response.responseText) ;
 				if( ajaxResponse.success == false ) {
-					Ext.MessageBox.alert('Error',jsonResponse.error) ;
+					Ext.MessageBox.alert('Error',ajaxResponse.error) ;
 					return ;
 				}
 				this.optimaModule.postCrmEvent('datachange') ;

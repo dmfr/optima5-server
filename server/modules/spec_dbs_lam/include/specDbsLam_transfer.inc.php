@@ -1493,6 +1493,27 @@ function specDbsLam_transfer_cdeStockUnalloc( $post_data ) {
 	specDbsLam_lib_procCde_syncLinks($p_transferFilerecordId) ;
 	return array('success'=>true) ;
 }
+function specDbsLam_transfer_cdeShippingOut( $post_data ) {
+	$p_transferFilerecordId = $post_data['transfer_filerecordId'] ;
+	
+	if( !specDbsLam_lib_procCde_checkFinalExpe($p_transferFilerecordId) ) {
+		return array('success'=>false) ;
+	}
+	
+	$formard_post = array(
+		'filter_transferFilerecordId' => $p_transferFilerecordId
+	) ;
+	$json = specDbsLam_transfer_getTransfer($formard_post) ;
+	$transfer_row = reset($json['data']) ;
+	foreach( $transfer_row['cde_packs'] as $transferCdePack_row ) {
+		if( !$transferCdePack_row['status_is_shipped'] ) {
+			specDbsLam_lib_procCde_shipPackExpe($transferCdePack_row['transfercdepack_filerecord_id']) ;
+		}
+	}
+	
+	
+	return array('success'=>true) ;
+}
 
 
 

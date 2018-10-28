@@ -168,8 +168,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerCdePackingPanel',{
 								metaData.tdCls = 'op5-spec-dbslam-stock-notavail'
 							} else if( !record.get('status_is_ok') ) {
 								metaData.tdCls = 'op5-spec-dbslam-stock-wait'
-							} else {
+							} else if( !record.get('status_is_out') ) {
 								metaData.tdCls = 'op5-spec-dbslam-stock-avail'
+							} else {
+								metaData.tdCls = ''
 							}
 						}
 					});

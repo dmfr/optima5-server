@@ -129,13 +129,13 @@
 	background: url('../images/op5img/ico_wait_small.gif') no-repeat center center ;
 }
 .op5-spec-dbslam-pack-init    .x-grid-cell-inner {
-	background: url('../images/op5img/ico_reddot.gif') no-repeat center center ;
-}
-.op5-spec-dbslam-pack-ready   .x-grid-cell-inner {
 	background: url('../images/op5img/ico_orangedot.gif') no-repeat center center ;
 }
-.op5-spec-dbslam-pack-shipped .x-grid-cell-inner {
+.op5-spec-dbslam-pack-ready   .x-grid-cell-inner {
 	background: url('../images/op5img/ico_greendot.gif') no-repeat center center ;
+}
+.op5-spec-dbslam-pack-shipped .x-grid-cell-inner {
+	background: url('../images/op5img/ico_arrow-double_16.png') no-repeat center center ;
 }
 
 .op5-spec-dbslam-stock-disabled .x-grid-cell-inner {

@@ -1071,15 +1071,131 @@ function specDbsLam_lib_procCde_shipPackGenerate( $transferpack_filerecord_id, $
 	
 	// etat status_is_ready => lock
 }
-
-
-function specDbsLam_lib_procCde_checkFinalExpe( $transfer_filerecord_id ) {
-	// affectation complete
+function specDbsLam_lib_procCde_shipPackExpe( $transferpack_filerecord_id ) {
+	global $_opDB ;
 	
-	// RUN : forward packing
+	$arr_update['field_STATUS_IS_READY'] = 1 ;
+	paracrm_lib_data_updateRecord_file('TRANSFER_CDE_PACK',$arr_update,$transferpack_filerecord_id) ;
+	
+	// appel TMS si transporteur CDE
+	$query = "SELECT tcp.field_ID_TRSPT_CODE as pack_id_trspt_code
+				, tcp.field_ID_TRSPT_ID as pack_id_trspt_id
+				, cde.filerecord_id as cde_filerecord_id
+				, cde.field_TRSPT_CODE as cde_trspt_code
+			FROM view_file_TRANSFER_CDE_PACK tcp
+			INNER JOIN view_file_CDE cde ON cde.filerecord_id=tcp.field_FILE_CDE_ID
+			WHERE tcp.filerecord_id='{$transferpack_filerecord_id}'" ;
+	$result = $_opDB->query($query) ;
+	if( $_opDB->num_rows($result) == 0 ) {
+		return ;
+	}
+	$arr = $_opDB->fetch_assoc($result) ;
+	$need_print = !!$arr['cde_trspt_code'] ;
+	
+	
+	
+	$rowExtended_transferCdePack = NULL ;
+	
+	$json = specDbsLam_transfer_getTransferCdePack( array('filter_transferCdePackFilerecordId_arr'=>json_encode(array($transferpack_filerecord_id))) ) ;
+	$rowExtended_transferCdePack = $json['data'][0] ;
+	
+	if( $rowExtended_transferCdePack['cde_filerecord_id'] ) {
+		$json = specDbsLam_cde_getGrid( array('filter_cdeFilerecordId_arr'=>json_encode(array($rowExtended_transferCdePack['cde_filerecord_id']))) ) ;
+		$rowExtended_transferCdePack['cde'] = $json['data'][0] ;
+	}
+	
+	if( $rowExtended_transferCdePack['transfer_filerecord_id'] ) {
+		$json = specDbsLam_transfer_getTransferLig( array('filter_transferFilerecordId'=>$rowExtended_transferCdePack['transfer_filerecord_id']) ) ;
+		$rowExtended_transferCdePack['ligs'] = array() ;
+		foreach( $json['data'] as $row ) {
+			if( $row['cdepack_transfercdepack_filerecord_id'] == $transferpack_filerecord_id ) {
+				$rowExtended_transferCdePack['ligs'][] = $row ;
+			}
+		}
+	}
+	
+	if( !$rowExtended_transferCdePack['status_is_ready'] && $need_print ) {
+		return ;
+	}
+	
+	
+	$ids = array() ;
+	foreach( $rowExtended_transferCdePack['ligs'] as $transferLig_row ) {
+		if( !$transferLig_row || !$transferLig_row['status_is_ok'] || $transferLig_row['status_is_out'] ) {
+			continue ;
+		}
+		$stockDst_filerecordId = $transferLig_row['dst_stk_filerecord_id'] ;
+		$stockOut_qty = $transferLig_row['mvt_qty'] ;
+		if( !$stockDst_filerecordId && $stockOut_qty <= 0 ) {
+			continue ;
+		}
+		/*
+		$query = "SELECT * FROM view_file_STOCK WHERE filerecord_id='{$stockDst_filerecordId}'" ;
+		$result = $_opDB->query($query) ;
+		$row_mvt = $_opDB->fetch_assoc($result) ;
+		*/
+		
+		if( specDbsLam_lib_procMvt_out($stockDst_filerecordId,$stockOut_qty) ) {
+			$arr_update = array() ;
+			$arr_update['field_STATUS_IS_OUT'] = 1 ;
+			paracrm_lib_data_updateRecord_file('TRANSFER_LIG',$arr_update,$transferLig_row['transferlig_filerecord_id']) ;
+			
+			$ids[] = $transferlig_filerecord_id ;
+		}
+	}
+	if( count($ids) == count($rowExtended_transferCdePack['ligs']) ) {
+		$arr_update = array() ;
+		$arr_update['field_STATUS_IS_SHIPPED'] = 1 ;
+		paracrm_lib_data_updateRecord_file('TRANSFER_CDE_PACK',$arr_update,$transferpack_filerecord_id) ;
+	}
+	
+	
+	// etat status_is_ready => lock
+}
+
+// TODO: move to specDbsLam_lib_procCde_shipPackExpe as test
+function specDbsLam_lib_procCde_checkFinalExpe( $transfer_filerecord_id ) {
+	specDbsLam_lib_procCde_syncLinks($transfer_filerecord_id) ;
+	specDbsLam_lib_procCde_forwardPacking($transfer_filerecord_id) ;
+	
+	
+	
+	$formard_post = array(
+		'filter_transferFilerecordId' => $transfer_filerecord_id
+	) ;
+	$json = specDbsLam_transfer_getTransfer($formard_post) ;
+	$transfer_row = reset($json['data']) ;
+	if( !$transfer_row || !$transfer_row['spec_cde'] ) {
+		return ;
+	}
+	$transferstepPicking_row = $transferstepPacking_row = NULL ;
+	foreach( $transfer_row['steps'] as $transferstep_row ) {
+		if( $transferstep_row['spec_cde_picking'] ) {
+			$stepIdxPicking = $transferstep_row['transferstep_idx'] ;
+			$transferstepPicking_row = $transferstep_row ;
+		}
+		if( $transferstep_row['spec_cde_packing'] ) {
+			$stepIdxPacking = $transferstep_row['transferstep_idx'] ;
+			$transferstepPacking_row = $transferstep_row ;
+		}
+	}
+	
+	// affectation complete ?
+	foreach( $transfer_row['cde_needs'] as $transferCdeNeed_row ) {
+		if( $transferCdeNeed_row['qty_need'] > $transferCdeNeed_row['qty_alloc'] ) {
+			return false ;
+		}
+	}
 	
 	// toutes lignes packing OK + cdepack affecté
+	foreach( $transferstepPacking_row['ligs'] as $transferLig_row ) {
+		if( $transferLig_row['status_is_ok'] && $transferLig_row['cdepack_transfercdepack_filerecord_id'] ) {} else {
+			return false ;
+		}
+	}
 	
+	
+	return TRUE ;
 }
 
 
