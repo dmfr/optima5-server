@@ -1751,10 +1751,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				anchor: '100%'
 			},
 			listeners: {
-				printzpl: function( zplTitle, zplArr ) {
-					this.libZplPrint( zplArr ) ;
+				zplprint: function( zplArr, printerName ) {
+					this.libZplPrint( zplArr, printerName ) ;
 				},
-				printzpldl: function( zplTitle, zplArr ) {
+				zpldownload: function( zplArr, zplTitle ) {
 					var zplBinary = zplArr.join('') ;
 					this.libZplDownload( zplBinary, zplTitle, 'text/plain' ) ;
 				},
@@ -1789,13 +1789,21 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				},
 				scope: this
 			},{
+				hidden: true,
+				itemId: 'btnPrint',
 				xtype: 'button',
-				text: 'Print to Java',
-				handler:function(btn){ 
-					var formPanel = btn.up('form') ;
-					formPanel.doSubmitPrint() ;
-				},
-				scope: this
+				text: '<b>Print to QZ</b>',
+				menu: {
+					defaults: {
+						handler:function(btn){ 
+							var printerName = btn._printerName ;
+							var formPanel = btn.up('form') ;
+							formPanel.doSubmitPrint(printerName) ;
+						},
+						scope: this
+					},
+					items: []
+				}
 			}],
 			getZplTitle: function() {
 				return 'ZPL_'+new Date().getTime()+'.zpl' ;
@@ -1814,20 +1822,57 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				if( Ext.isEmpty(binaryArr) ) {
 					return ;
 				}
-				this.fireEvent('printzpldl',this.getZplTitle(),binaryArr) ;
+				this.fireEvent('zpldownload',binaryArr,this.getZplTitle()) ;
 			},
-			doSubmitPrint: function() {
+			doSubmitPrint: function(printerName) {
 				var binaryArr = this.getZplBinaryArr() ;
 				if( Ext.isEmpty(binaryArr) ) {
 					return ;
 				}
-				this.fireEvent('printzpl',this.getZplTitle(),binaryArr) ;
+				this.fireEvent('zplprint',binaryArr, printerName) ;
 			},
 			onSubmitRelocate: function(ajaxResponse) {
 				if( ajaxResponse.success ) {
 					this.optimaModule.postCrmEvent('datachange') ;
 					this.destroy() ;
 				}
+			},
+			
+			queryPrinters: function() {
+				if( typeof qz == 'undefined' ) {
+					Ext.MessageBox.alert('Error','Print system disabled') ;
+					return ;
+				}
+				var me = this ;
+				qz.websocket.connect().then(function() {
+					// Pass the printer name into the next Promise
+					qz.printers.find().then(function(data) {
+						
+						me.populatePrinters(data) ;
+						qz.websocket.disconnect() ;
+					}).catch(function(e) { 
+						me.populatePrinters(null) ;
+						qz.websocket.disconnect() ;
+					})
+				}).catch(function(e) { me.populatePrinters(null) });
+			},
+			populatePrinters: function(arrPrinters) {
+				var btnPrint = this.down('#btnPrint') ;
+				if( !arrPrinters ) {
+					btnPrint.setVisible(false) ;
+					btnPrint.menu.removeAll() ;
+				}
+				var menuItems = [] ;
+				Ext.Array.each(arrPrinters, function(printerName) {
+					menuItems.push({
+						icon: 'images/op5img/ico_print_16.png',
+						text: printerName,
+						_printerName: printerName,
+					}) ;
+				}) ;
+				btnPrint.menu.removeAll() ;
+				btnPrint.menu.add(menuItems) ;
+				btnPrint.setVisible(true) ;
 			}
 		});
 		
@@ -1837,6 +1882,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		me.getEl().mask() ;
 		
 		popupPanel.show();
+		popupPanel.queryPrinters() ;
 		popupPanel.getEl().alignTo(me.getEl(), 'c-c?');
 	},
 	
@@ -1965,14 +2011,16 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		}	
 		return true;
 	},
-	libZplPrint: function(dataArr) {
+	libZplPrint: function(dataArr, printerName) {
+		//console.log(printerName) ;
 		if( typeof qz == 'undefined' ) {
 			Ext.MessageBox.alert('Error','Print system disabled') ;
 			return ;
 		}
 		qz.websocket.connect().then(function() {
 			// Pass the printer name into the next Promise
-			return qz.printers.find("zebra");
+			//console.log(printerName) ;
+			return qz.printers.find(printerName);
 		}).then(function(printer) {
 			// Create a default config for the found printer
 			var config = qz.configs.create(printer);
@@ -1980,8 +2028,11 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			// Raw ZPL
 			//var data = ['^XA^FO50,50^ADN,36,20^FDRAW ZPL EXAMPLE^FS^XZ'];
 
-			return qz.print(config, dataArr);
+			qz.print(config, dataArr).then( function() {
+				qz.websocket.disconnect() ;
+			}) ;
 		}).catch(function(e) { 
+			qz.websocket.disconnect() ;
 			console.error(e); 
 			Ext.MessageBox.alert('Error',e) ;
 		});
