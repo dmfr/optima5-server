@@ -45,16 +45,24 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunMenu',{
 				type_header:true
 			},{
 				type_separator:true,
-				separator_label: 'WMS operations'
+				separator_label: 'pallets'
 			},{
 				type_action:true,
 				action_caption: 'Pallets',
 				action_sendEvent:'gun_containers',
 				action_iconCls:'op5-spec-dbslam-menu-stock'
 			},{
+				type_separator:true,
+				separator_label: 'Orders'
+			},{
 				type_action:true,
-				action_caption: 'Orders',
+				action_caption: 'Picking',
 				action_sendEvent:'gun_picking',
+				action_iconCls:'op5-spec-dbslam-menu-orders'
+			},{
+				type_action:true,
+				action_caption: 'Packing',
+				action_sendEvent:'gun_packing',
 				action_iconCls:'op5-spec-dbslam-menu-orders'
 			}]
 		}) ;

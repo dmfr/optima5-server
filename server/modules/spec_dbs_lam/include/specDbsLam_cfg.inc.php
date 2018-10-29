@@ -56,6 +56,9 @@ function specDbsLam_cfg_getConfig() {
 	$ttmp = specDbsLam_cfg_getWhse() ;
 	$cfg_whse = $ttmp['data'] ;
 	
+	$ttmp = specDbsLam_cfg_getPrinter() ;
+	$cfg_printer = $ttmp['data'] ;
+	
 	$ttmp = specDbsLam_cfg_getContainer() ;
 	$cfg_container = $ttmp['data'] ;
 	
@@ -170,6 +173,7 @@ function specDbsLam_cfg_getConfig() {
 		'cfg_container' => $cfg_container,
 		'cfg_attribute' => array_values($cfg_attribute),
 		'cfg_mvtflow' => $cfg_mvtflow,
+		'cfg_printer' => $cfg_printer,
 		'tpl_transfer' => $tpl_transfer
 	) ;
 	$GLOBALS['cache_specDbsLam_cfg']['getConfig'] = $return_data ;
@@ -335,6 +339,28 @@ function specDbsLam_cfg_getWhse() {
 		) ;
 		
 		$TAB[$whse_code] = $record ;
+	}
+	
+	return array('success'=>true, 'data'=>array_values($TAB)) ;
+}
+
+
+function specDbsLam_cfg_getPrinter() {
+	global $_opDB ;
+	
+	$TAB = array() ;
+	
+	$query = "SELECT * FROM view_bible_CFG_PRINTER_entry ORDER BY field_PRINTER_IP" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+		$printer = $arr['field_PRINTER_IP'] ;
+		$record = array(
+			'printer_ip' => $arr['field_PRINTER_IP'],
+			'printer_type' => $arr['treenode_key'],
+			'printer_desc' => $arr['field_PRINTER_DESC']
+		) ;
+		
+		$TAB[$printer] = $record ;
 	}
 	
 	return array('success'=>true, 'data'=>array_values($TAB)) ;

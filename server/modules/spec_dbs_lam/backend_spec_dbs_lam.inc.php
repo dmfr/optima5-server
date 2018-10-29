@@ -97,6 +97,17 @@ switch( $post_data['_action'] )
 	case 'transferMission_getTransferSummary' :
 	return specDbsLam_transferMission_getTransferSummary( $post_data ) ;
 	
+	case 'transferPacking_getPrinters' :
+	return specDbsLam_transferPacking_getPrinters( $post_data ) ;
+	case 'transferPacking_getSummary' :
+	return specDbsLam_transferPacking_getSummary( $post_data ) ;
+	case 'transferPacking_getSrcPending' :
+	return specDbsLam_transferPacking_getSrcPending( $post_data ) ;
+	case 'transferPacking_directCommit' :
+	return specDbsLam_transferPacking_directCommit( $post_data ) ;
+	case 'transferPacking_getPackingRecord' :
+	return specDbsLam_transferPacking_getPackingRecord( $post_data ) ;
+	
 	default :
 	return NULL ;
 }

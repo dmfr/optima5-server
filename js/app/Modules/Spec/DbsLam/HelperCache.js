@@ -141,6 +141,10 @@ Ext.define('Optima5.Modules.Spec.DbsLam.HelperCache',{
 			model: 'DbsLamCfgTplTransferModel',
 			data : ajaxData.data.tpl_transfer
 		}) ;
+		this.cfgPrinterStore = Ext.create('Ext.data.Store',{
+			model: 'DbsLamCfgPrinterModel',
+			data : ajaxData.data.cfg_printer
+		}) ;
 		
 		this.onLibLoad() ;
 	},
@@ -170,6 +174,12 @@ Ext.define('Optima5.Modules.Spec.DbsLam.HelperCache',{
 	},
 	getWhseAll: function() {
 		return Ext.pluck( this.cfgWhseStore.getRange(), 'data' ) ;
+	},
+	getPrinter: function( printerIp ) {
+		return this.cfgPrinterStore.getById(printerIp) ? this.cfgPrinterStore.getById(printerIp).getData(true) : null ;
+	},
+	getPrinterAll: function() {
+		return Ext.pluck( this.cfgPrinterStore.getRange(), 'data' ) ;
 	},
 	getMvtflow: function( flowCode ) {
 		return this.cfgMvtflowStore.getById(flowCode) ? this.cfgMvtflowStore.getById(flowCode).getData(true) : null ;

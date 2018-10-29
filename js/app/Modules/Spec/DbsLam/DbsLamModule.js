@@ -129,6 +129,16 @@ Ext.define('DbsLamCfgContainerTypeModel',{
 	]
 });
 
+Ext.define('DbsLamCfgPrinterModel',{
+	extend: 'Ext.data.Model',
+	idProperty: 'printer_ip',
+	fields: [
+		{name: 'printer_ip', type:'string'},
+		{name: 'printer_type', type:'string'},
+		{name: 'printer_desc', type:'string'}
+	]
+});
+
 Ext.define('Optima5.Modules.Spec.DbsLam.DbsLamModule', {
 	extend: 'Optima5.Module',
 	requires: [
