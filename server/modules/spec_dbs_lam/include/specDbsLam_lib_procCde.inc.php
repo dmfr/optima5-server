@@ -789,6 +789,7 @@ function specDbsLam_lib_procCde_searchStock( $whse_src, $stk_prod, $qty_search, 
 		// tentative reappro ?
 		$tranferligFilerecordId = specDbsLam_lib_procCde_searchStock_doResupply( $whse_src, $stk_prod, $resupply_transferStep_filerecordId ) ;
 		if( !$tranferligFilerecordId ) {
+			return specDbsLam_lib_procCde_searchStock_doSearch( $whse_src, $stk_prod, $qty_search ) ;
 			break ;
 		}
 		$resupply_transferLigFilerecordIds[] = $tranferligFilerecordId ;

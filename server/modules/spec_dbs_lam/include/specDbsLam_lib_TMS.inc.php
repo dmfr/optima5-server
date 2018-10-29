@@ -645,15 +645,15 @@ function specDbsLam_lib_TMS_DPDG_getId( $soc_code ) {
 			$width_exp = 770 ;	
 			$h = $height_exp ;
 			$w = $width_exp  ;			
-			$buffer.= "^FT{$w},{$h},0^A0R,20,20^FD"."DPD SAS Etablissement 080"."^FS";
+			$buffer.= "^FT{$w},{$h},0^A0R,20,20^FD"."DPD SAS Etablissement 095"."^FS";
 			$w = $width_exp - 20 ;
-			$buffer.= "^FT{$w},{$h},0^A0R,20,20^FD"."ZAC La Couture"."^FS";
+			$buffer.= "^FT{$w},{$h},0^A0R,20,20^FD"."ZA Les Portes de Vemars"."^FS";
 			$w = $width_exp - 40 ;
-			$buffer.= "^FT{$w},{$h},0^A0R,20,20^FD"."Rue Marius Morel"."^FS";
+			$buffer.= "^FT{$w},{$h},0^A0R,20,20^FD"."7 rue de la Tour"."^FS";
 			$w = $width_exp - 60 ;
-			$buffer.= "^FT{$w},{$h},0^A0R,20,20^FD"."F - 80230 POULAINVILLE"."^FS";
+			$buffer.= "^FT{$w},{$h},0^A0R,20,20^FD"."F - 95470 VEMARS"."^FS";
 			$w = $width_exp - 80 ;
-			$buffer.= "^FT{$w},{$h},0^A0R,20,20^FD"."03 22 69 28 30"."^FS";
+			$buffer.= "^FT{$w},{$h},0^A0R,20,20^FD"."09 70 80 85 66"."^FS";
 				
 			
 			
