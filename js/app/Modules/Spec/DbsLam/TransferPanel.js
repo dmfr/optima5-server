@@ -834,6 +834,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 						//op5lamstockadd: this.onLamStockAdd,
 						//op5lamstockremove: this.onLamStockRemove,
 						op5lamstockpackingrollback: this.onLamStockRollback,
+						op5lamstockpackingprint: this.onLamPackingPrint,
 						//op5lamstocksetadr: this.onLamStockSetAdr,
 						scope: this
 					}
@@ -1073,6 +1074,11 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			},
 			scope: this
 		}) ;
+	},
+	
+	onLamPackingPrint: function(transferInnerPanel, transferCdePack_filerecordIds) {
+		console.dir(transferCdePack_filerecordIds) ;
+		this.handlePrintSupports(transferCdePack_filerecordIds) ;
 	},
 	
 	
@@ -1780,13 +1786,14 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 	},
 	
 	
-	handlePrintSupports: function() {
+	handlePrintSupports: function(transferCdePack_filerecordIds=null) {
 		this.showLoadmask() ;
 		this.optimaModule.getConfiguredAjaxConnection().request({
 			params: {
 				_moduleId: 'spec_dbs_lam',
 				_action: 'transfer_getTransferCdePack',
 				filter_transferFilerecordId: this._activeTransferRecord.get('transfer_filerecord_id'),
+				filter_transferCdePackFilerecordId_arr: (transferCdePack_filerecordIds ? Ext.JSON.encode(transferCdePack_filerecordIds) : null),
 				do_generate: 1,
 				download_zpl: true
 			},
@@ -1798,6 +1805,32 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				}
 				this.optimaModule.postCrmEvent('datachange') ;
 				this.openTransferCdePackPopup( ajaxResponse.data ) ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+	},
+	handlePrintSupportsDo: function(transferCdePack_filerecordIds,printerIp) {
+		this.showLoadmask() ;
+		var ajaxParams = {
+			_moduleId: 'spec_dbs_lam',
+			_action: 'transfer_spool_transferCdePack',
+			transfer_filerecordId: this._activeTransferRecord.get('transfer_filerecord_id'),
+			transferCdePack_filerecordIds: Ext.JSON.encode(transferCdePack_filerecordIds),
+			printer_printerIp: printerIp
+		} ;
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams,
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+				//this.optimaModule.postCrmEvent('datachange') ;
 			},
 			callback: function() {
 				this.hideLoadmask() ;
@@ -1848,8 +1881,11 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				anchor: '100%'
 			},
 			listeners: {
-				zplprint: function( zplArr, printerName ) {
+				zplprintqz: function( zplArr, printerName ) {
 					this.libZplPrint( zplArr, printerName ) ;
+				},
+				zplprintsys: function( transferCdePack_filerecordIds, printerIp ) {
+					this.handlePrintSupportsDo(transferCdePack_filerecordIds,printerIp) ;
 				},
 				zpldownload: function( zplArr, zplTitle ) {
 					var zplBinary = zplArr.join('') ;
@@ -1887,7 +1923,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				scope: this
 			},{
 				hidden: true,
-				itemId: 'btnPrint',
+				itemId: 'btnPrintQz',
 				xtype: 'button',
 				text: '<b>Print to QZ</b>',
 				menu: {
@@ -1895,7 +1931,23 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 						handler:function(btn){ 
 							var printerName = btn._printerName ;
 							var formPanel = btn.up('form') ;
-							formPanel.doSubmitPrint(printerName) ;
+							formPanel.doSubmitPrintQz(printerName) ;
+						},
+						scope: this
+					},
+					items: []
+				}
+			},{
+				hidden: true,
+				itemId: 'btnPrintSys',
+				xtype: 'button',
+				text: '<b>Print</b>',
+				menu: {
+					defaults: {
+						handler:function(btn){ 
+							var printerIp = btn._printerIp ;
+							var formPanel = btn.up('form') ;
+							formPanel.doSubmitPrintSystem(printerIp) ;
 						},
 						scope: this
 					},
@@ -1904,6 +1956,13 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 			}],
 			getZplTitle: function() {
 				return 'ZPL_'+new Date().getTime()+'.zpl' ;
+			},
+			getTransferCdePackFilerecordIds: function() {
+				var ids = [] ;
+				Ext.Array.each( this.rows_arrTransferCdePack, function(row) {
+					ids.push( row.transfercdepack_filerecord_id ) ;
+				},this) ;
+				return ids ;
 			},
 			getZplBinaryArr: function() {
 				var binaryArr = [] ;
@@ -1921,12 +1980,16 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				}
 				this.fireEvent('zpldownload',binaryArr,this.getZplTitle()) ;
 			},
-			doSubmitPrint: function(printerName) {
+			doSubmitPrintQz: function(printerName) {
 				var binaryArr = this.getZplBinaryArr() ;
 				if( Ext.isEmpty(binaryArr) ) {
 					return ;
 				}
-				this.fireEvent('zplprint',binaryArr, printerName) ;
+				this.fireEvent('zplprintqz',binaryArr, printerName) ;
+			},
+			doSubmitPrintSystem: function(printerIp) {
+				var ids = this.getTransferCdePackFilerecordIds() ;
+				this.fireEvent('zplprintsys',ids, printerIp) ;
 			},
 			onSubmitRelocate: function(ajaxResponse) {
 				if( ajaxResponse.success ) {
@@ -1935,7 +1998,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				}
 			},
 			
-			queryPrinters: function() {
+			queryPrintersQz: function() {
 				if( typeof qz == 'undefined' ) {
 					//Ext.MessageBox.alert('Error','Print system disabled') ;
 					return ;
@@ -1945,17 +2008,17 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 					// Pass the printer name into the next Promise
 					qz.printers.find().then(function(data) {
 						
-						me.populatePrinters(data) ;
+						me.populatePrintersQz(data) ;
 						qz.websocket.disconnect() ;
 					}).catch(function(e) { 
-						me.populatePrinters(null) ;
+						me.populatePrintersQz(null) ;
 						qz.websocket.disconnect() ;
 					})
-				}).catch(function(e) { me.populatePrinters(null) });
+				}).catch(function(e) { me.populatePrintersQz(null) });
 			},
-			populatePrinters: function(arrPrinters) {
-				var btnPrint = this.down('#btnPrint') ;
-				if( !arrPrinters ) {
+			populatePrintersQz: function(arrPrinters) {
+				var btnPrint = this.down('#btnPrintQz') ;
+				if( !arrPrinters || arrPrinters.length==0 ) {
 					btnPrint.setVisible(false) ;
 					btnPrint.menu.removeAll() ;
 				}
@@ -1970,6 +2033,28 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 				btnPrint.menu.removeAll() ;
 				btnPrint.menu.add(menuItems) ;
 				btnPrint.setVisible(true) ;
+			},
+			
+			queryPrintersSystem: function() {
+				this.populatePrintersSystem()
+			},
+			populatePrintersSystem: function() {
+				var btnPrint = this.down('#btnPrintSys') ;
+				var menuItems = [] ;
+				Ext.Array.each(Optima5.Modules.Spec.DbsLam.HelperCache.getPrinterAll(), function(printerRow) {
+					var text = printerRow.printer_ip ;
+					if( printerRow.printer_desc ) {
+						text+= ' - ' + printerRow.printer_desc ;
+					}
+					menuItems.push({
+						icon: 'images/op5img/ico_print_16.png',
+						text: text,
+						_printerIp: printerRow.printer_ip,
+					}) ;
+				}) ;
+				btnPrint.menu.removeAll() ;
+				btnPrint.menu.add(menuItems) ;
+				btnPrint.setVisible(true) ;
 			}
 		});
 		
@@ -1979,7 +2064,8 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferPanel',{
 		me.getEl().mask() ;
 		
 		popupPanel.show();
-		popupPanel.queryPrinters() ;
+		popupPanel.queryPrintersQz() ;
+		popupPanel.queryPrintersSystem() ;
 		popupPanel.getEl().alignTo(me.getEl(), 'c-c?');
 	},
 	

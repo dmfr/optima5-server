@@ -343,43 +343,53 @@ Ext.define('Optima5.Modules.Spec.DbsLam.TransferInnerCdePackingPanel',{
 			return ;
 		}
 		var selRecord = selRecords[0] ;
-		if( selRecord.getDepth() != 2 ) {
-			return ;
-		}
-
-		var transferligFilerecordIds = [] ;
-		var areNotCommitted = true ;
-		var areCommitted = true ;
-		for( var recIdx=0 ; recIdx<selRecords.length ; recIdx++ ) {
-			transferligFilerecordIds.push( selRecords[recIdx].get('transferlig_filerecord_id') ) ;
-			if( selRecords[recIdx].get('status_is_ok') ) {
-				areNotCommitted = false ;
-			} else {
-				areCommitted = false ;
-			}
-		}
-		if( transferligFilerecordIds.length==1 ) {
-			/*
+		if( selRecord.getDepth() == 1 && selRecord.get('transfercdepack_filerecord_id')>0 ) {
 			gridContextMenuItems.push({
-				iconCls: 'icon-bible-newfile',
-				text: 'Show log',
+				icon: 'images/op5img/ico_print_16.png',
+				text: 'Print support',
 				handler : function() {
-					//this.setFormRecord(selRecords[0]) ;
-				},
-				scope : this
-			},'-') ;
-			*/
-		}
-		if( areCommitted ) {
-			gridContextMenuItems.push({
-				iconCls: 'icon-bible-delete',
-				text: 'Rollback',
-				handler : function() {
-					this.fireEvent('op5lamstockpackingrollback',this,transferligFilerecordIds) ;
+					this.fireEvent('op5lamstockpackingprint',this,[selRecord.get('transfercdepack_filerecord_id')]) ;
 				},
 				scope : this
 			});
 		}
+		
+		if( selRecord.getDepth() == 2 ) {
+			var transferligFilerecordIds = [] ;
+			var areNotCommitted = true ;
+			var areCommitted = true ;
+			for( var recIdx=0 ; recIdx<selRecords.length ; recIdx++ ) {
+				transferligFilerecordIds.push( selRecords[recIdx].get('transferlig_filerecord_id') ) ;
+				if( selRecords[recIdx].get('status_is_ok') ) {
+					areNotCommitted = false ;
+				} else {
+					areCommitted = false ;
+				}
+			}
+			if( transferligFilerecordIds.length==1 ) {
+				/*
+				gridContextMenuItems.push({
+					iconCls: 'icon-bible-newfile',
+					text: 'Show log',
+					handler : function() {
+						//this.setFormRecord(selRecords[0]) ;
+					},
+					scope : this
+				},'-') ;
+				*/
+			}
+			if( areCommitted ) {
+				gridContextMenuItems.push({
+					iconCls: 'icon-bible-delete',
+					text: 'Rollback',
+					handler : function() {
+						this.fireEvent('op5lamstockpackingrollback',this,transferligFilerecordIds) ;
+					},
+					scope : this
+				});
+			}
+		}
+
 		
 		if( Ext.isEmpty(gridContextMenuItems) ) {
 			return ;

@@ -18,6 +18,13 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunPackingResult',{
 					this.handleQuit() ;
 				},
 				scope: this
+			},{
+				icon: 'images/op5img/ico_print_16.png',
+				text: '<b>'+this._printerIp+'</b>',
+				handler: function() {
+					
+				},
+				scope: this
 			}],
 			layout: 'anchor',
 			fieldDefaults: {
@@ -73,6 +80,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunPackingResult',{
 					},
 					scope: this
 				},{
+					xtype: 'box',
+					width: 32
+				},{
 					xtype: 'button',
 					scale: 'large',
 					icon: 'images/op5img/ico_ok_16.gif',
@@ -122,6 +132,9 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunPackingResult',{
 	
 	onSuccess: function() {
 		this.down('#fsSuccess').setVisible(true);
+		Ext.defer( function() {
+			this.handlePrint() ;
+		},200,this) ;
 	},
 	
 	
@@ -150,7 +163,34 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunPackingResult',{
 	},
 	
 	handlePrint: function() {
+		if( !this._transferCdePackRecord ) {
+			Ext.MessageBox.alert('Error','Error') ;
+			return ;
+		}
 		
+		this.showLoadmask() ;
+		var ajaxParams = {
+			_moduleId: 'spec_dbs_lam',
+			_action: 'transfer_spool_transferCdePack',
+			transferCdePack_filerecordIds: Ext.JSON.encode([this._transferCdePackRecord['transfercdepack_filerecord_id']]),
+			printer_printerIp: this._printerIp
+		} ;
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: ajaxParams,
+			success: function(response) {
+				var ajaxResponse = Ext.decode(response.responseText) ;
+				if( ajaxResponse.success == false ) {
+					Ext.MessageBox.alert('Error','Error') ;
+					return ;
+				}
+				//this.optimaModule.postCrmEvent('datachange') ;
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
 	},
 	handleQuit: function() {
 		this.fireEvent('quit') ;

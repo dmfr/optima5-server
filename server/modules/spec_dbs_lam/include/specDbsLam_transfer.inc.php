@@ -1804,4 +1804,76 @@ function specDbsLam_transfer_setOut( $post_data, $cde_mode=FALSE ) {
 }
 
 
+
+
+
+function specDbsLam_transfer_spool_transferCdePack( $post_data ) {
+	sleep(2) ;
+	
+	$transferCdePack_filerecordIds = json_decode($post_data['transferCdePack_filerecordIds'],true) ;
+	$printerIp = $post_data['printer_printerIp'] ;
+	
+	$formard_post = array(
+		'filter_transferCdePackFilerecordId_arr' => json_encode($transferCdePack_filerecordIds),
+		'download_zpl' => 1
+	) ;
+	$json = specDbsLam_transfer_getTransferCdePack($formard_post) ;
+	if( count($json['data'])!=count($transferCdePack_filerecordIds) ) {
+		return array('success'=>false) ;
+	}
+	
+	$zpl_buffer = '' ;
+	foreach( $json['data'] as $transferCdePack_row ) {
+		$zpl_buffer.= $transferCdePack_row['zpl_binary'] ;
+	}
+	
+	$printer_name = 'raw'.preg_replace("/[^a-zA-Z0-9]/", "", $printerIp) ;
+	
+	exec("lpadmin -p {$printer_name} -v socket://{$printerIp}:9100 -m raw -E") ;
+	exec("cupsenable {$printer_name}") ;
+	exec("cupsaccept {$printer_name}") ;
+	
+	// HACK HACK
+		// commande de spool vers CUPS
+		// décharger le buffer sur l'imprimante
+		$descriptorspec = array(
+		0 => array("pipe", "r"),  // stdin is a pipe that the child will read from
+		1 => array("pipe", "w"),  // stdout is a pipe that the child will write to
+		// 2 => array("file", "/tmp/error-output.txt", "a") // stderr is a file to write to
+		2 => array("pipe", "w"),
+		);
+
+		$process = proc_open("lp -d ".$printer_name." -", $descriptorspec, $pipes);
+		if (is_resource($process))
+		{
+			// $pipes now looks like this:
+			// 0 => writeable handle connected to child stdin
+			// 1 => readable handle connected to child stdout
+			// Any error output will be appended to /tmp/error-output.txt
+
+			fwrite($pipes[0], $zpl_buffer );
+			fclose($pipes[0]);
+
+			while(!feof($pipes[1])) {
+				fgets($pipes[1], 1024);
+			}
+			fclose($pipes[1]);
+
+			while(!feof($pipes[2])) {
+				fgets($pipes[2], 1024);
+			}
+			fclose($pipes[2]);
+			// It is important that you close any pipes before calling
+			// proc_close in order to avoid a deadlock
+			$return_value = proc_close($process);
+		}
+	
+	
+	
+	
+	return array('success'=>true) ;
+	
+}
+
+
 ?>
