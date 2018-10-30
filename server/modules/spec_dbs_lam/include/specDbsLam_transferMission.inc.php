@@ -236,28 +236,12 @@ function specDbsLam_transferPacking_directCommit($post_data) {
 function specDbsLam_transferPacking_getPackingRecord($post_data) {
 	$p_transferCdePackFilerecordId = $post_data['filter_transferCdePackFilerecordId'] ;
 	
-	
-	
-	
 	$rowExtended_transferCdePack = NULL ;
-	
-	$json = specDbsLam_transfer_getTransferCdePack( array('filter_transferCdePackFilerecordId_arr'=>json_encode(array($p_transferCdePackFilerecordId))) ) ;
+	$json = specDbsLam_transfer_getTransferCdePack( array(
+		'filter_transferCdePackFilerecordId_arr'=>json_encode(array($p_transferCdePackFilerecordId)),
+		'load_extended' => 1
+	) ) ;
 	$rowExtended_transferCdePack = $json['data'][0] ;
-	
-	if( $rowExtended_transferCdePack['cde_filerecord_id'] ) {
-		$json = specDbsLam_cde_getGrid( array('filter_cdeFilerecordId_arr'=>json_encode(array($rowExtended_transferCdePack['cde_filerecord_id']))) ) ;
-		$rowExtended_transferCdePack['cde'] = $json['data'][0] ;
-	}
-	
-	if( $rowExtended_transferCdePack['transfer_filerecord_id'] ) {
-		$json = specDbsLam_transfer_getTransferLig( array('filter_transferFilerecordId'=>$rowExtended_transferCdePack['transfer_filerecord_id']) ) ;
-		$rowExtended_transferCdePack['ligs'] = array() ;
-		foreach( $json['data'] as $row ) {
-			if( $row['cdepack_transfercdepack_filerecord_id'] == $p_transferCdePackFilerecordId ) {
-				$rowExtended_transferCdePack['ligs'][] = $row ;
-			}
-		}
-	}
 	
 	return array('success'=>true, 'record'=>$rowExtended_transferCdePack) ;
 }

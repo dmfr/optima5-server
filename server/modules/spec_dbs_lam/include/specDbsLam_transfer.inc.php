@@ -420,6 +420,23 @@ function specDbsLam_transfer_getTransferCdePack( $post_data ) {
 			$row['zpl_binary'] = media_bin_getBinary(media_bin_toolFile_getId('TRANSFER_CDE_PACK',$arr['transfercdepack_filerecord_id'])) ;
 			media_contextClose() ;
 		}
+		
+		if( $post_data['load_extended'] ) {
+			if( $row['cde_filerecord_id'] ) {
+				$json = specDbsLam_cde_getGrid( array('filter_cdeFilerecordId_arr'=>json_encode(array($row['cde_filerecord_id']))) ) ;
+				$row['cde'] = $json['data'][0] ;
+			}
+			if( $row['transfer_filerecord_id'] ) {
+				$json = specDbsLam_transfer_getTransferLig( array('filter_transferFilerecordId'=>$row['transfer_filerecord_id']) ) ;
+				$row['ligs'] = array() ;
+				foreach( $json['data'] as $srow ) {
+					if( $row['cdepack_transfercdepack_filerecord_id'] == $transferpack_filerecord_id ) {
+						$row['ligs'][] = $srow ;
+					}
+				}
+			}
+		}
+		
 		$TAB[] = $row ;
 	}
 	
