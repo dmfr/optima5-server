@@ -47,7 +47,7 @@ function specDbsLam_lib_proc_lock_off() {
 	$_opDB->query($query) ;
 }
 
-function specDbsLam_lib_proc_findAdr( $mvt_obj, $whse_dest, $to_picking=NULL ) {
+function specDbsLam_lib_proc_findAdr( $mvt_obj, $whse_dest, $to_picking=NULL, $to_picking_imp=NULL ) {
 	global $_opDB ;
 	
 	// Load cfg attributes
@@ -151,6 +151,9 @@ function specDbsLam_lib_proc_findAdr( $mvt_obj, $whse_dest, $to_picking=NULL ) {
 		while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
 			$adr_id = $arr['entry_key'] ;
 			break 2 ;
+		}
+		if( $to_picking_imp ) {
+			break ;
 		}
 	}
 	

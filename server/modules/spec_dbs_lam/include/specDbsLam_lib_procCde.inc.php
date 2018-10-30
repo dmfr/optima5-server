@@ -847,7 +847,7 @@ function specDbsLam_lib_procCde_searchStock_doResupply( $whse_src, $stk_prod, $r
 	$row_transferLig = reset($ttmp['data']) ;
 	
 	// search Adr PICKING ?
-	$resupply_adrId = specDbsLam_lib_proc_findAdr($row_transferLig,$whse_src,$topicking=TRUE) ;
+	$resupply_adrId = specDbsLam_lib_proc_findAdr($row_transferLig,$whse_src,$topicking=TRUE,$topickingimp=TRUE) ;
 	if( !$resupply_adrId ) {
 		paracrm_lib_data_deleteRecord_file('TRANSFER_LIG',$transferLig_filerecordId) ;
 		specDbsLam_lib_procMvt_delMvt($mvt_filerecordId) ;
