@@ -947,13 +947,152 @@ function specDbsLam_lib_TMS_DPDG_getId( $soc_code ) {
 		
 		return $plan2_row ;
 	}
-
-
-
-
-
-
-
-
-
+	
+	
+	
+	
+	function specDbsLam_lib_TMS_DPDG_getEdiPosition( $rowExtended_transferCdePack,$pack_id_trspt_id ) {
+		global $_opDB ;
+		
+		$timestamp = time() ;
+		
+		$arr_zone_length = array();
+		
+		$arr_zone_length['H_1'] = 18 ;
+		$arr_zone_length['H_2'] = 9 ;
+		$arr_zone_length['H_3'] = 35 ;
+		$arr_zone_length['H_4'] = 35 ;
+		$arr_zone_length['H_5'] = 35 ;
+		$arr_zone_length['H_6'] = 15 ;
+		$arr_zone_length['H_7'] = 12 ;
+		$arr_zone_length['H_8'] = 10 ;
+		$arr_zone_length['H_9'] = 8 ;
+		$arr_zone_length['H_10'] = 6 ;
+		$arr_zone_length['H_11'] = 3 ;
+		$arr_zone_length['H_12'] = 3 ;
+		$arr_zone_length['H_13'] = 9 ;
+		
+		$arr_zone_length['D_14'] = 35 ;
+		$arr_zone_length['D_15'] = 35 ;
+		$arr_zone_length['D_16'] = 35 ;
+		$arr_zone_length['D_17'] = 35 ;
+		$arr_zone_length['D_18'] = 35 ;
+		$arr_zone_length['D_19'] = 35 ;
+		$arr_zone_length['D_20'] = 35 ;
+		$arr_zone_length['D_21'] = 10 ;
+		$arr_zone_length['D_22'] = 35 ;
+		$arr_zone_length['D_23'] = 3 ;
+		$arr_zone_length['D_24'] = 30 ;
+		
+		$arr_zone_length['E_25'] = 35 ;
+		$arr_zone_length['E_26'] = 35 ;
+		$arr_zone_length['E_27'] = 35 ;
+		$arr_zone_length['E_28'] = 35 ;
+		$arr_zone_length['E_29'] = 35 ;
+		$arr_zone_length['E_30'] = 10 ;
+		$arr_zone_length['E_31'] = 35 ;
+		$arr_zone_length['E_32'] = 2 ;
+		$arr_zone_length['E_33'] = 30 ;
+		
+		$arr_zone_length['S_34'] = 80 ;
+		$arr_zone_length['S_35'] = 35 ;
+		$arr_zone_length['S_36'] = 80 ;
+		$arr_zone_length['S_37'] = 35 ;
+		$arr_zone_length['S_38'] = 3 ;
+		$arr_zone_length['S_39'] = 6 ;
+		$arr_zone_length['S_40'] = 3 ;
+		$arr_zone_length['S_41'] = 3 ;
+		$arr_zone_length['S_42'] = 3 ;
+		$arr_zone_length['S_43'] = 6 ;
+		$arr_zone_length['S_44'] = 30 ;
+		$arr_zone_length['S_45'] = 20 ;
+		$arr_zone_length['S_46'] = 20 ;
+		$arr_zone_length['S_47'] = 50 ;
+		$arr_zone_length['S_48'] = 40 ;
+		$arr_zone_length['S_49'] = 40 ;
+		$arr_zone_length['S_50'] = 40 ;
+		$arr_zone_length['S_51'] = 5 ;
+		$arr_zone_length['S_52'] = 30 ;
+		$arr_zone_length['S_53'] = 2 ;
+		$arr_zone_length['S_54'] = 20 ;
+		$arr_zone_length['S_55'] = 3 ;
+		$arr_zone_length['S_56'] = 35 ;
+		$arr_zone_length['S_57'] = 10 ;
+		$arr_zone_length['S_58'] = 10 ;
+		$arr_zone_length['S_59'] = 10 ;
+		$arr_zone_length['S_60'] = 35 ;
+		$arr_zone_length['S_61'] = 35 ;
+		$arr_zone_length['S_62'] = 35 ;
+		$arr_zone_length['S_63'] = 35 ;
+		$arr_zone_length['S_64'] = 3 ;
+		
+		
+		$soc_code = $rowExtended_transferCdePack['cde']['soc_code'] ;
+		$key_chargeur = 'DPDG_'.$soc_code.'_CHARGEUR' ;
+		$id_trspt = specDbsLam_lib_TMS_getValueStatic( $key_chargeur ) ;
+		$id_trspt_constante = substr($id_trspt,0,3) ;
+		$id_trspt_agence = substr($id_trspt,3,3) ;
+				
+		$row_plan2 = specDbsLam_lib_TMS_DPDG_getRowPlan2( $id_trspt_agence, $rowExtended_transferCdePack['cde']['adr_country'], $rowExtended_transferCdePack['cde']['adr_cp'] ) ;
+		
+		$poids_kg = $rowExtended_transferCdePack['calc_vl_kg'] ;
+		
+		$barcode_print = specDbsLam_lib_TMS_DPDG_getBarcodePrint($pack_id_trspt_id) ;
+							
+			$adr_full = trim($rowExtended_transferCdePack['cde']['adr_full']) ;
+			$arr_adr = explode("\n",$adr_full) ;
+			array_pop($arr_adr) ;
+			$last_lig = array_pop($arr_adr) ;
+			$ttmp = explode(' ',$last_lig,2) ;
+			$destination['nom'] = trim($arr_adr[0]);
+			$destination['adr1'] = substr(trim($arr_adr[1]), 0,35 );
+			$destination['adr2'] = substr(trim($arr_adr[2]), 0,35 );
+			$destination['cp'] = $rowExtended_transferCdePack['cde']['adr_cp'] ;
+			$destination['ville'] = substr($ttmp[1], 0,35 );
+			
+						
+						// *****************************
+						$arr_data = array() ;
+						$arr_data['H_1'] = $barcode_print ;
+						$arr_data['H_2'] = str_pad( number_format($poids_kg, 2, '.', ''), 9, '0', STR_PAD_LEFT );
+						$arr_data['H_3'] = $rowExtended_transferCdePack['cde']['cde_nr'] ;
+						$arr_data['H_5'] = $rowExtended_transferCdePack['cde']['cde_ref'] ;
+						$arr_data['H_7'] = specDbsLam_lib_TMS_getValueStatic( 'SOC_'.$soc_code.'_NOM' ) ;
+						$arr_data['H_8'] = date('d.m.Y',$timestamp) ;
+						$arr_data['H_9'] = date('H:i:s',$timestamp) ;
+						$arr_data['H_10'] = $id_trspt ;
+						$arr_data['H_11'] = $row_plan2['AC'] ;
+						$arr_data['H_12'] = $row_plan2['TOUR'] ;
+						$arr_data['D_14'] = $destination['nom'] ;
+						$arr_data['D_15'] = $destination['adr1'] ;
+						$arr_data['D_16'] = $destination['adr2'] ;
+						$arr_data['D_21'] = $destination['cp'] ;
+						$arr_data['D_22'] = $destination['ville'] ;
+						$arr_data['D_23'] = $row_plan2['LPFX'] ;
+						$arr_data['E_25'] = specDbsLam_lib_TMS_getValueStatic( 'SOC_'.$soc_code.'_NOM' ) ;
+						$arr_data['E_26'] = specDbsLam_lib_TMS_getValueStatic( 'WHSE_RUE' ) ;
+						$arr_data['E_27'] = specDbsLam_lib_TMS_getValueStatic( 'WHSE_LOCALITE' ) ;
+						$arr_data['E_30'] = substr(specDbsLam_lib_TMS_getValueStatic( 'WHSE_VILLE' ),0,5) ;
+						$arr_data['E_31'] = substr(specDbsLam_lib_TMS_getValueStatic( 'WHSE_VILLE' ),6) ;
+						$arr_data['E_32'] = 'FR' ;
+						$arr_data['S_37'] = $rowExtended_transferCdePack['cde']['CDE_ATR_CDE_D_TEL'] ;
+						$arr_data['S_42'] = '003' ;
+						$arr_data['S_43'] = $id_trspt ;
+						$arr_data['S_54'] = specDbsLam_lib_TMS_getValueStatic( 'SOC_'.$soc_code.'_NOM' ) ;
+		
+						$arr_str = array() ;
+						foreach( $arr_zone_length as $code_zone => $length ) {
+							$val = '' ;
+							if( isset($arr_data[$code_zone]) ) {
+								$val = $arr_data[$code_zone] ;
+							}
+							if( strlen($val) > $length ) {
+								$val = substr($val,0,$length) ;
+							}
+							$arr_str[] = str_replace('|','',$val) ;
+						}
+						$lig = implode('|',$arr_str) ;
+						
+		return $lig."\r\n" ;
+	}
 ?>
