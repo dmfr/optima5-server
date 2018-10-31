@@ -1528,7 +1528,7 @@ function specDbsLam_transfer_cdeShippingOut( $post_data ) {
 		}
 	}
 	
-	
+	specDbsLam_lib_procCde_syncLinks($p_transferFilerecordId) ;
 	return array('success'=>true) ;
 }
 

@@ -632,7 +632,7 @@ function specDbsLam_lib_procCde_syncLinks($transfer_filerecord_id) {
 		$transfercdepack_filerecord_id = $rows_transferPack['transfercdepack_filerecord_id'] ;
 		
 		$status = 'SHIP_NONE' ;
-		if( $rows_transferPack['status_is_out'] ) {
+		if( $rows_transferPack['status_is_shipped'] ) {
 			$status = 'SHIP_OK' ;
 		}
 		$map_transfercdepackFilerecordId_status[$transfercdepack_filerecord_id] = $status ;
@@ -717,7 +717,7 @@ function specDbsLam_lib_procCde_syncLinks($transfer_filerecord_id) {
 	foreach( $map_cdeFilerecordId_statusMin as $cdeFilerecordId => $statusMin ) {
 		switch($statusMin) {
 			case 'SHIP_OK' :
-				$statuscode = '100' ;
+				$statuscode = '90' ;
 				break ;
 			case 'SHIP_NONE' :
 				$statuscode = '80' ;
