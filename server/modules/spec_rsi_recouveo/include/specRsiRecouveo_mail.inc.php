@@ -180,18 +180,27 @@ function specRsiRecouveo_mail_downloadEmailAttachment($post_data) {
 	global $_opDB ;
 	
 	$email_filerecord_id = $post_data['email_filerecord_id'] ;
+	$tmp_media_id = $post_data['tmp_media_id'] ;
 	$multipart_attachment_idx = $post_data['multipart_attachment_idx'] ;
 	
 	$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
 	$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
 	
-	$query = "SELECT filerecord_id FROM view_file_EMAIL_SOURCE WHERE filerecord_parent_id='{$email_filerecord_id}'" ;
-	$emailsrc_filerecord_id = $_opDB->query_uniqueValue($query) ;
-	
-	media_contextOpen( $_sdomain_id ) ;
-	$media_id = media_bin_toolFile_getId('EMAIL_SOURCE',$emailsrc_filerecord_id) ;
-	$bin = media_bin_getBinary($media_id) ;
-	media_contextClose() ;
+	if( $email_filerecord_id ) {
+		$query = "SELECT filerecord_id FROM view_file_EMAIL_SOURCE WHERE filerecord_parent_id='{$email_filerecord_id}'" ;
+		$emailsrc_filerecord_id = $_opDB->query_uniqueValue($query) ;
+		
+		media_contextOpen( $_sdomain_id ) ;
+		$media_id = media_bin_toolFile_getId('EMAIL_SOURCE',$emailsrc_filerecord_id) ;
+		$bin = media_bin_getBinary($media_id) ;
+		media_contextClose() ;
+	} elseif( $tmp_media_id ) {
+		media_contextOpen( $_sdomain_id ) ;
+		$bin = media_bin_getBinary($tmp_media_id) ;
+		media_contextClose() ;
+	} else {
+		die() ;
+	}
 	
 	try {
 		$obj_mimeParser = PhpMimeMailParser::getInstance() ;
@@ -297,7 +306,7 @@ function specRsiRecouveo_mail_buildEmail( $post_data ) {
 	if( !$tmp_media_id ) {
 		return array('success'=>false) ;
 	}
-	return array('success'=>true, 'debug'=>$email_record, 'tmp_media_id'=>$tmp_media_id) ;
+	return array('success'=>true, 'tmp_media_id'=>$tmp_media_id) ;
 }
 
 

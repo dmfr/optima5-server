@@ -31,6 +31,10 @@ switch( $post_data['_action'] )
 	
 	case 'action_doFileAction' :
 	return specRsiRecouveo_action_doFileAction( $post_data ) ;
+	case 'action_execMailAutoAction' :
+	return specRsiRecouveo_action_execMailAutoAction( $post_data ) ;
+	case 'action_execMailAutoPreview' :
+	return specRsiRecouveo_action_execMailAutoPreview( $post_data ) ;
 	
 	case 'file_multiAction' :
 	return specRsiRecouveo_file_multiAction( $post_data ) ;

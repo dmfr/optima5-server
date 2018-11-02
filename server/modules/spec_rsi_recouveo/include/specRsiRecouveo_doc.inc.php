@@ -36,7 +36,7 @@ function specRsiRecouveo_doc_cfg_getTpl( $post_data ) {
 
 	return array('success'=>true, 'data'=>$data) ;
 }
-function specRsiRecouveo_doc_buildTemplate(&$tplData){
+function specRsiRecouveo_doc_buildTemplate(&$tplData, $media_type){
 
 	$app_root = $GLOBALS['app_root'] ;
 	$resources_root=$app_root.'/resources' ;
@@ -91,6 +91,7 @@ function specRsiRecouveo_doc_buildTemplate(&$tplData){
 	$doc = new DOMDocument();
 	@$doc->loadHTML($html);
 	
+	specRsiRecouveo_doc_replaceStyle($doc,$media_type) ;
 	specRsiRecouveo_doc_populateStatic($doc) ;
 	
 	$elements = $doc->getElementsByTagName('qbook-value');
@@ -120,6 +121,35 @@ function specRsiRecouveo_doc_buildTemplate(&$tplData){
 	return $tplData['tpl_html'] ;
 }
 
+function specRsiRecouveo_doc_replaceStyle( $doc, $style_media ) {
+	if( !$style_media ) {
+		$style_media = 'POSTAL' ;
+	}
+	
+	$elements = $doc->getElementsByTagName('qbook-condition');
+	foreach( $elements as $domelem ) {
+		if( !$domelem->attributes->getNamedItem('media') ) {
+			continue ;
+		}
+		
+		$prent = $domelem->parentNode;
+		if( $domelem->attributes->getNamedItem('media')->value == $style_media ) {
+			$innerHTML= '';
+			foreach ($domelem->childNodes as $child) {
+				$innerHTML .= $child->ownerDocument->saveXML( $child );
+			}
+			$frag = $doc->createDocumentFragment() ;
+			$frag->appendXML($innerHTML) ;
+			//var_dump($frag) ;
+			$prent->replaceChild($frag, $domelem);
+		
+		//var_dump( $doc->saveXML($prent) ) ;
+		//var_dump( $prent->textContent ) ;
+		} else {
+			$prent->removeChild($domelem);
+		}
+	}
+}
 
 function specRsiRecouveo_doc_populateStatic( $doc ) {
 	// Load config
@@ -200,10 +230,11 @@ function specRsiRecouveo_doc_getHtmlPayment( $paymentBinary ) {
 	//var_dump($node) ;
 	return $doc->saveHTML() ; ;
 }
-function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE ) {
+function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE, $stopAsHtml=FALSE ) {
 	global $_opDB ;
 	$p_tplId = $post_data['tpl_id'] ;
 	$p_fileFilerecordId = $post_data['file_filerecord_id'] ;
+	$p_adrType = $post_data['adr_type'] ;
 	$p_adrName = $post_data['adr_name'] ;
 	$p_adrPostal = $post_data['adr_postal'] ;
 	$p_inputFields = ($post_data['input_fields'] ? json_decode($post_data['input_fields'],true) : array()) ;
@@ -425,7 +456,7 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE ) {
 		$tplData['html_title'] = $p_inputFields['input_title'] ;
 	}
 
-	$tplHtml = specRsiRecouveo_doc_buildTemplate($tplData) ;
+	$tplHtml = specRsiRecouveo_doc_buildTemplate($tplData,$p_adrType) ;
 
 	$inputTitle = $tplData['tpl_name'];
 	$inputBinary = $tplHtml;
@@ -494,13 +525,7 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE ) {
 			$records_pagetemplate_binary .= $doc->saveHTML($node);
 		}
 		
-		/*
-		$new_node = $doc->createCDATASection('<div></div>') ;
-		$records_div->parentNode->replaceChild($new_node,$records_div) ;
-		$records_div = $new_node ;
-		*/
-		$records_divnew = $doc->createElement("div");
-		$records_div->parentNode->replaceChild($records_divnew,$records_div) ;
+		$dom_pages = array() ;
 		
 		//echo $records_pagetemplate_binary ;
 		$arr_tablesData = array_chunk($table_data , 40) ;
@@ -537,10 +562,46 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE ) {
 				$paging_node->parentNode->replaceChild($new_node,$paging_node) ;
 			}
 			
+			$dom_pages[] = $dom_page ;
+		}
+	}
+	
+	
+	if( $records_div && $_appendToMainDoc=($p_adrType=='POSTAL') ) {
+		$records_divnew = $doc->createElement("div");
+		$records_div->parentNode->replaceChild($records_divnew,$records_div) ;
+		
+		foreach( $dom_pages as $dom_page ) {
 			// insert page into main doc
 			$new_node = $doc->createCDATASection($dom_page->saveHTML()) ;
 			$records_divnew->appendChild($new_node) ;
 		}
+	}
+	if( $records_div && $_createSeparateDoc=($p_adrType=='EMAIL') ) {
+		$records_div->parentNode->removeChild($records_div) ;
+		
+		$new_doc = new DOMDocument();
+		@$new_doc->loadHTML('<?xml encoding="UTF-8"><html></html>');
+		// keep style only
+		$styleHTML = '' ;
+		foreach( $doc->getElementsByTagName('style') as $node_style ) {
+			$styleHTML.= $node_style->ownerDocument->saveXML( $node_style );
+		}
+		$new_doc_html = $new_doc->getElementsByTagName('html')->item(0) ;
+		
+		$new_doc_head = $new_doc->createElement('head') ;
+		$new_doc_styleFrag = $new_doc->createDocumentFragment() ;
+		$new_doc_styleFrag->appendXML($styleHTML) ;
+		$new_doc_head->appendChild($new_doc_styleFrag) ;
+		$new_doc_html->appendChild($new_doc_head) ;
+		
+		$new_doc_body = $new_doc->createElement('body') ;
+		foreach( $dom_pages as $dom_page ) {
+			// insert page into main doc
+			$new_node = $new_doc->createCDATASection($dom_page->saveHTML()) ;
+			$new_doc_body->appendChild($new_node) ;
+		}
+		$new_doc_html->appendChild($new_doc_body) ;
 	}
 	
 	
@@ -557,6 +618,16 @@ function specRsiRecouveo_doc_getMailOut( $post_data, $real_mode=TRUE ) {
 
 
 	$binary_html = $doc->saveHTML() ;
+	if( $stopAsHtml ) {
+		$htmls = array() ;
+		if( $binary_html ) {
+			$htmls[] = $binary_html ;
+		}
+		if( $new_doc ) {
+			$htmls[] = $new_doc->saveHTML() ;
+		}
+		return $htmls ;
+	}
 	$binary_pdf = specRsiRecouveo_util_htmlToPdf_buffer($binary_html) ;
 
 	media_contextOpen( $_POST['_sdomainId'] ) ;

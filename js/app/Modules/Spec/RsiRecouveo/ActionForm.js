@@ -7,6 +7,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusCallOutPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailInPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel',
+		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailAutoPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusSmsOutPanel',
 		'Optima5.Modules.Spec.RsiRecouveo.ActionPlusNextPanel',
@@ -53,6 +54,27 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 					this.handlePreview() ;
 				},
 				scope: this
+			},{
+				itemId: 'btnPreviewMulti',
+				hidden: true,
+				xtype: 'button',
+				text: 'Preview',
+				icon: 'images/modules/rsiveo-print-16.png',
+				menu: [{
+					icon: 'images/modules/rsiveo-mail-out-16.png',
+					text: 'Courrier postal',
+					handler: function( btn ) {
+						this.handlePreviewMulti('POSTAL') ;
+					},
+					scope: this
+				},{
+					icon: 'images/modules/rsiveo-mail-email-16.png',
+					text: 'Email',
+					handler: function( btn ) {
+						this.handlePreviewMulti('EMAIL') ;
+					},
+					scope: this
+				}],
 			}]
 		}) ;
 		this.callParent() ;
@@ -101,50 +123,56 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 		this._accountRecord = accountRecord ;
 		this._fileRecord = fileRecord ;
 		
+		
 		var currentAction = this.getCurrentAction() ;
-		var hasPreview = false ;
+		var hasPreview = hasPreviewMulti = false ;
 		var afterValues = {} ;
-		switch( currentAction.action_id ) {
-			case 'AGREE_FOLLOW' :
-				nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusAgreeFollowPanel' ;
-				break ;
-			case 'LITIG_FOLLOW' :
-				nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusLitigFollowPanel' ;
-				break ;
-			case 'JUDIC_FOLLOW' :
-				nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusJudicFollowPanel' ;
-				break ;
-			case 'TRSFR_FOLLOW' :
-				nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusTrsfrFollowPanel' ;
-				break ;
-			case 'CLOSE_ACK' :
-				nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusClosePanel' ;
-				break ;
-			case 'CALL_IN' :
-				nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusCallInPanel' ;
-				break ;
-			case 'CALL_OUT' :
-				nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusCallOutPanel' ;
-				break ;
-			case 'MAIL_IN' :
-				nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailInPanel' ;
-				break ;
-			case 'MAIL_OUT' :
-				nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel' ;
-				hasPreview = true ;
-				break ;
-			case 'SMS_OUT' :
-				nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusSmsOutPanel'
-				break ;
-			case 'BUMP' :
-				nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusBumpPanel' ;
-				break ;
-			case 'EMAIL_OUT' :
-				nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel' ;
-				hasPreview = true ;
-				break;
-			default :
-				break ;
+		if( this.isCurrentActionAuto() ) {
+			hasPreviewMulti = true ;
+			nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailAutoPanel' ;
+		} else {
+			switch( currentAction.action_id ) {
+				case 'AGREE_FOLLOW' :
+					nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusAgreeFollowPanel' ;
+					break ;
+				case 'LITIG_FOLLOW' :
+					nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusLitigFollowPanel' ;
+					break ;
+				case 'JUDIC_FOLLOW' :
+					nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusJudicFollowPanel' ;
+					break ;
+				case 'TRSFR_FOLLOW' :
+					nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusTrsfrFollowPanel' ;
+					break ;
+				case 'CLOSE_ACK' :
+					nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusClosePanel' ;
+					break ;
+				case 'CALL_IN' :
+					nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusCallInPanel' ;
+					break ;
+				case 'CALL_OUT' :
+					nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusCallOutPanel' ;
+					break ;
+				case 'MAIL_IN' :
+					nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailInPanel' ;
+					break ;
+				case 'MAIL_OUT' :
+					nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusMailOutPanel' ;
+					hasPreview = true ;
+					break ;
+				case 'SMS_OUT' :
+					nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusSmsOutPanel'
+					break ;
+				case 'BUMP' :
+					nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusBumpPanel' ;
+					break ;
+				case 'EMAIL_OUT' :
+					nowActionClass = 'Optima5.Modules.Spec.RsiRecouveo.ActionPlusEmailPanel' ;
+					hasPreview = true ;
+					break;
+				default :
+					break ;
+			}
 		}
 		if( !nowActionClass ) {
 			Ext.MessageBox.alert('Error','Error', function() {
@@ -187,6 +215,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 		}
 		this.down('#btnOk').setVisible(true) ;
 		this.down('#btnPreview').setVisible(hasPreview) ;
+		this.down('#btnPreviewMulti').setVisible(hasPreviewMulti) ;
 		this.fireEvent('mylayout',this) ;
 		
 		// Titre
@@ -396,9 +425,47 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 		}
 		return null ;
 	},
+	isCurrentActionAuto: function() {
+		var torf = false ;
+		
+		// ToDo: scenario line
+		if( !this._fileActionFilerecordId ) {
+			return false ;
+		}
+		if( this.getCurrentAction().action_id=='MAIL_OUT' && this.getCurrentTpl() ) {
+			return true ;
+		}
+		return false ;
+	},
 	
 	
 	handleSubmitEvent: function() {
+		if( this.isCurrentActionAuto() ) {
+			this.showLoadmask() ;
+			this.optimaModule.getConfiguredAjaxConnection().request({
+				params: {
+					_moduleId: 'spec_rsi_recouveo',
+					_action: 'action_execMailAutoAction',
+					file_filerecord_id: this._fileRecord.get('file_filerecord_id'),
+					fileaction_filerecord_id: this._fileActionFilerecordId
+				},
+				success: function(response) {
+					var ajaxResponse = Ext.decode(response.responseText) ;
+					if( ajaxResponse.success == false ) {
+						var error = ajaxResponse.success || 'File not saved !' ;
+						Ext.MessageBox.alert('Error',error) ;
+						return ;
+					}
+					var doReload = doReload ;
+					this.onSaveHeader(ajaxResponse.file_filerecord_id) ;
+				},
+				callback: function() {
+					this.hideLoadmask() ;
+				},
+				scope: this
+			}) ;
+			return ;
+		}
 		var formPanel = this,
 			form = formPanel.getForm() ;
 			  
@@ -726,6 +793,44 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 		this.optimaModule.postCrmEvent('datachange',{}) ;
 		this.destroy() ;
 	},
+	
+	
+	
+	
+	handlePreviewMulti: function(adrType) {
+		this.showLoadmask() ;
+		this.optimaModule.getConfiguredAjaxConnection().request({
+			params: {
+				_moduleId: 'spec_rsi_recouveo',
+				_action: 'action_execMailAutoPreview',
+				file_filerecord_id: this._fileRecord.get('file_filerecord_id'),
+				fileaction_filerecord_id: this._fileActionFilerecordId,
+				adr_type: adrType
+			},
+			success: function(response) {
+				var jsonResponse = Ext.JSON.decode(response.responseText) ;
+				if( jsonResponse.success == true ) {
+					switch( adrType ) {
+						case 'POSTAL' :
+							this.handlePreviewEnvelopeDo( jsonResponse.data ) ;
+							break ;
+						
+						case 'EMAIL' :
+							this.handlePreviewEmailDo( jsonResponse.tmp_media_id ) ;
+							break ;
+					}
+				} else {
+					Ext.MessageBox.alert('Error','Print system disabled') ;
+				}
+			},
+			callback: function() {
+				this.hideLoadmask() ;
+			},
+			scope: this
+		}) ;
+	},
+	
+	
 	
 	
 	

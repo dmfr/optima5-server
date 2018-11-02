@@ -348,7 +348,7 @@ function specRsiRecouveo_lib_mail_doSend($email_filerecord_id) {
 				$hostname = '{'.$cfg_email_entry['server_url'].'}'.'INBOX' ;
 				$username = $cfg_email_entry['server_username'];
 				$password = $cfg_email_entry['server_passwd'];
-				if( $imap = @imap_open($hostname,$username,$password) ) {
+				if( $cfg_email_entry['server_url'] && ($imap = @imap_open($hostname,$username,$password)) ) {
 					$mboxes = imap_list($imap,'{'.$cfg_email_entry['server_url'].'}','*') ;
 					$target_mbox = NULL ;
 					foreach( $mboxes as $mbox_test ) {
@@ -932,7 +932,14 @@ function specRsiRecouveo_lib_mail_createEmailForAction( $email_record, $fileacti
 	global $_opDB ;
 	$mbox = 'OUTBOX' ;
 	
-	$tmp_media_id = specRsiRecouveo_lib_mail_buildEmail($email_record) ;
+	if( is_string($email_record) && strpos($email_record,'tmp')===0 ) {
+		$tmp_media_id = $email_record ;
+		$email_record = NULL ;
+		$json = specRsiRecouveo_mail_getEmailRecord( array('tmp_media_id'=>$tmp_media_id) ) ;
+		$email_record = $json['data'] ;
+	} else {
+		$tmp_media_id = specRsiRecouveo_lib_mail_buildEmail($email_record) ;
+	}
 	
 	foreach( $email_record['header_adrs'] as $row ) {
 		if( $row['header']=='from' && !$addressFrom ) {
