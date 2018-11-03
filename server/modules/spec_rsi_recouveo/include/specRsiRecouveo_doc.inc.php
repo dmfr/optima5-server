@@ -127,7 +127,10 @@ function specRsiRecouveo_doc_replaceStyle( $doc, $style_media ) {
 	}
 	
 	$elements = $doc->getElementsByTagName('qbook-condition');
-	foreach( $elements as $domelem ) {
+	$i = $elements->length - 1;
+	while ($i > -1) {
+		$domelem = $elements->item($i);
+		$i-- ;
 		if( !$domelem->attributes->getNamedItem('media') ) {
 			continue ;
 		}
