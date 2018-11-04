@@ -584,6 +584,7 @@ function oscario_interface_do( $_OSCARIO_DOMAIN, $_OSCARIO_MAG, $_OPTIMA_SOC ) {
 		$arr_ecde['field_SOC_CODE'] = $_OPTIMA_SOC ;
 		$arr_ecde['field_CDE_NR'] = $noscde ;
 		$arr_ecde['field_STATUS'] = '10' ;
+		$arr_ecde['field_ATR_CDECLASS'] = $map_idata_ivalue['SERVICE_CODE'] ;
 		$arr_ecde['field_ATR_CDE_D_EMAIL'] = $map_idata_ivalue['CONTACT_EMAIL'] ;
 		$arr_ecde['field_ATR_CDE_D_TEL'] = $map_idata_ivalue['CONTACT_GSM'] ;
 		$arr_ecde['field_CDE_REF'] = trim(substr($lig,22,20)) ;
