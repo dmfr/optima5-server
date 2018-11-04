@@ -628,11 +628,11 @@ function specDbsLam_lib_procCde_syncLinks($transfer_filerecord_id) {
 	$rows_transferPack = $ttmp['data'] ;
 	
 	$map_transfercdepackFilerecordId_status = array() ;
-	foreach( $rows_transferPack as $rows_transferPack ) {
-		$transfercdepack_filerecord_id = $rows_transferPack['transfercdepack_filerecord_id'] ;
+	foreach( $rows_transferPack as $row_transferPack ) {
+		$transfercdepack_filerecord_id = $row_transferPack['transfercdepack_filerecord_id'] ;
 		
 		$status = 'SHIP_NONE' ;
-		if( $rows_transferPack['status_is_shipped'] ) {
+		if( $row_transferPack['status_is_shipped'] ) {
 			$status = 'SHIP_OK' ;
 		}
 		$map_transfercdepackFilerecordId_status[$transfercdepack_filerecord_id] = $status ;

@@ -430,7 +430,7 @@ function specDbsLam_transfer_getTransferCdePack( $post_data ) {
 				$json = specDbsLam_transfer_getTransferLig( array('filter_transferFilerecordId'=>$row['transfer_filerecord_id']) ) ;
 				$row['ligs'] = array() ;
 				foreach( $json['data'] as $srow ) {
-					if( $row['cdepack_transfercdepack_filerecord_id'] == $transferpack_filerecord_id ) {
+					if( $srow['cdepack_transfercdepack_filerecord_id'] == $row['transfercdepack_filerecord_id'] ) {
 						$row['ligs'][] = $srow ;
 					}
 				}
