@@ -52,7 +52,7 @@ function specRsiRecouveo_action_execMailAutoPreview( $post_data ) {
 				}
 			}
 			if( !$t_adrPost_txt ) {
-				return array('success'=>false) ;
+				return array('success'=>false, 'error'=>'Adresse manquante') ;
 			}
 			$forward_post['tpl_id'] = $action['link_tpl'] ;
 			$forward_post['adrpost_entity_name'] = $t_adrPost_name ;
@@ -95,7 +95,7 @@ function specRsiRecouveo_action_execMailAutoPreview( $post_data ) {
 			
 			// no adrs ?
 			if( !$t_adrEmail_src || !$t_adrEmail_dest ) {
-				return array('success'=>false) ;
+				return array('success'=>false, 'error'=>'Expéditeur/destinataire manquant(s)') ;
 			}
 			
 			$htmls = specRsiRecouveo_doc_getMailOut(array(

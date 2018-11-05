@@ -135,7 +135,7 @@ function specRsiRecouveo_xls_createDetailPanel($post_data){
 		return FALSE ;
 
 	$accId = json_decode($post_data['_fileID']) ;
-	$request = "SELECT field_ACC_ID, field_ACC_NAME, field_LINK_USER_LOCAL, field_ATR_A_PROPART, field_ATR_A_LANG, treenode_key FROM view_bible_LIB_ACCOUNT_entry WHERE field_ACC_ID ='{$accId}'" ;
+	$request = "SELECT field_ACC_ID, field_ACC_NAME, field_LINK_USER_LOCAL, treenode_key FROM view_bible_LIB_ACCOUNT_entry WHERE field_ACC_ID ='{$accId}'" ;
 	$result = $_opDB->query($request) ;
 	$contact = $_opDB->fetch_assoc($result) ;
 

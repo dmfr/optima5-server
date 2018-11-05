@@ -820,7 +820,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.ActionForm',{
 							break ;
 					}
 				} else {
-					Ext.MessageBox.alert('Error','Print system disabled') ;
+					Ext.MessageBox.alert('Error',jsonResponse.error||'Print system disabled') ;
 				}
 			},
 			callback: function() {
