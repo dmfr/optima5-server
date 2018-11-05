@@ -751,6 +751,20 @@ function specRsiRecouveo_doc_getPage($post_data) {
 	
 	return array('success'=>true, 'data'=>base64_encode($jpeg_binary)) ;
 }
+function specRsiRecouveo_doc_downloadPdf( $post_data ) {
+	$p_mediaId = $post_data['envdoc_media_id'] ;
+	
+	media_contextOpen( $_POST['_sdomainId'] ) ;
+	$pdf = media_pdf_getBinary($p_mediaId) ;
+	echo strlen($pdf) ;
+	media_contextClose() ;
+	
+	$filename_pdf = $p_mediaId.'.pdf' ;
+	header("Content-Type: application/force-download; name=\"$filename_pdf\""); 
+	header("Content-Disposition: attachment; filename=\"$filename_pdf\""); 
+	echo $pdf ;
+	die() ;
+}
 
 
 

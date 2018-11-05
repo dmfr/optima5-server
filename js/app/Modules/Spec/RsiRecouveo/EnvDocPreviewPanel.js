@@ -186,6 +186,20 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.EnvDocPreviewPanel',{
 		});
 		this.hideLoadmask() ;
 	},
+	handleDownload: function() {
+		var exportParams = this.optimaModule.getConfiguredAjaxParams() ;
+		Ext.apply(exportParams,{
+			_moduleId: 'spec_rsi_recouveo',
+			_action: 'doc_downloadPdf',
+			envdoc_media_id: this._mediaId
+		}) ;
+		Ext.create('Ext.ux.dams.FileDownloader',{
+			renderTo: Ext.getBody(),
+			requestParams: exportParams,
+			requestAction: Optima5.Helper.getApplication().desktopGetBackendUrl(),
+			requestMethod: 'POST'
+		}) ;
+	},
 	
 	
 	showLoadmask: function() {
