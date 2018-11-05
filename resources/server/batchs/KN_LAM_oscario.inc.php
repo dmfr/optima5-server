@@ -377,129 +377,79 @@ function oscario_interface_do( $_OSCARIO_DOMAIN, $_OSCARIO_MAG, $_OPTIMA_SOC ) {
 	}
 	
 	
-	/*
-	$obj_cdeman = new CommandeManager ;
-	$arr_select['cmad'] = 'REMONTEE_READY' ;
-	$arr_select['code_soc'] = $_OPTIMA_SOC ;
-	$obj_cdeman->interroCriteres( $arr_select, -1 ) ;
-	while( ($obj_cde = $obj_cdeman->getNextCommande()) != FALSE )
-	{
-		$noscde = $obj_cde->getNoscde() ;
-		$date_expe = $obj_cde->getDateExp() ;
-		$db_arr = $obj_cde->getDBarr() ;
-		
-		$obj_cde->loadLignes() ;
-		$obj_cde->createGroupes() ;
-		while (($my_groupe = $obj_cde->getNextGroupe()) != FALSE )
-		{
-			$artrefdist = $my_groupe->getArtrefdist() ;
+	
+	//echo "pouet\n" ;
+	$arr_cdeFilerecordIds = array() ;
+	$query = "SELECT filerecord_id FROM view_file_CDE WHERE field_STATUS='90' AND field_ATR_CDECLASS='HY'" ;
+	$result = $_opDB->query($query) ;
+	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+		$arr_cdeFilerecordIds[] = $arr[0] ;
+	}
+	//print_r($arr_cdeFilerecordIds) ;
+	
+	$json = specDbsLam_cde_getGrid( array(
+		'filter_cdeFilerecordId_arr' => json_encode($arr_cdeFilerecordIds),
+		'load_extended' => true
+	)) ;
+	foreach( $json['data'] as $cde_row ) {
+		//print_r($cde_row) ;
+		foreach( $cde_row['ligs'] as $cdelig_row ) {
+			$ref = $cdelig_row['stk_prod'] ;
+			if( strpos($ref,$_PREFIX_REF.'_') === 0 )
+				$ref = substr($ref,strlen($_PREFIX_REF)+1) ;
 			
-			$spec_lot = $my_groupe->getBainUnique() ;
 			
-			$qte_cde = $my_groupe->getQteCdeTotale() ;
-			$qte_prep = $my_groupe->getQteRemonteeTotale() ;
-
-			$ref = $artrefdist ;
-			if( strpos($ref,$_PREFIX.'_') === 0 )
-				$ref = substr($ref,3,strlen($ref)-3) ;
-
 			$lig = '' ;
-			$lig = substr_mklig( $lig, $noscde, 0, 20 ) ;
-			$lig = substr_mklig( $lig, $date_expe, 20, 10 ) ;
+			$lig = substr_mklig( $lig, $cde_row['cde_nr'], 0, 20 ) ;
+			$lig = substr_mklig( $lig, date('Y-m-d'), 20, 10 ) ;
 			$lig = substr_mklig( $lig, $ref, 30, 20 ) ;
-			$lig = substr_mklig( $lig, int_to_strX($qte_cde*100,10), 50, 10 ) ;
-			$lig = substr_mklig( $lig, $spec_lot, 60, 20 ) ;
-			$lig = substr_mklig( $lig, int_to_strX($qte_prep*100,10), 80, 10 ) ;
+			$lig = substr_mklig( $lig, int_to_strX($cdelig_row['qty_cde']*100,10), 50, 10 ) ;
+			$lig = substr_mklig( $lig, '', 60, 20 ) ;
+			$lig = substr_mklig( $lig, int_to_strX($cdelig_row['qty_ship']*100,10), 80, 10 ) ;
 			$lig.= "\r\n" ;
 			
 			$buffer.= $lig ;
-			
-			
-			$my_groupe->debutLignes() ;
-			while( ($obj_lig = $my_groupe->getNextLigne()) != FALSE )
-			{
-				$artrefdist = $obj_lig->getArtrefdist() ;
-				$ref = $artrefdist ;
-				if( strpos($ref,$_PREFIX.'_') === 0 )
-					$ref = substr($ref,3,strlen($ref)-3) ;
-				$spec_lot = $obj_lig->getBain() ;
-				$datelc = $obj_lig->getDateLC() ;
-				$qte_prep = $obj_lig->getQtePreparee() ;
+		
+			foreach( $cdelig_row['cdepack_ligs'] as $cdeligpack_row ) {
+				$ref = $cdeligpack_row['stk_prod'] ;
+				if( strpos($ref,$_PREFIX_REF.'_') === 0 )
+					$ref = substr($ref,strlen($_PREFIX_REF)+1) ;
 				
 				$lig = '' ;
 				$lig = substr_mklig( $lig, '++L', 0, 20 ) ;
 				$lig = substr_mklig( $lig, '', 20, 10 ) ;
 				$lig = substr_mklig( $lig, $ref, 30, 20 ) ;
 				$lig = substr_mklig( $lig, '', 50, 10 ) ;
-				$lig = substr_mklig( $lig, $spec_lot, 60, 20 ) ;
-				$lig = substr_mklig( $lig, int_to_strX($qte_prep*100,10), 80, 10 ) ;
-				$lig = substr_mklig( $lig, $datelc, 90, 10 ) ;
+				$lig = substr_mklig( $lig, '', 60, 20 ) ;
+				$lig = substr_mklig( $lig, int_to_strX($cdeligpack_row['mvt_qty']*100,10), 80, 10 ) ;
+				$lig = substr_mklig( $lig, '', 90, 10 ) ;
 				$lig.= "\r\n" ;
 				$buffer.= $lig ;
 				
 				
-				if( $obj_cde->getClasseCde() == 'L' ) {
-					$arr_ref_pal_qte = array() ;
-					$obj_lig->loadColis() ;
-					$obj_lig->debutColis() ;
-					while( ($obj_colis = $obj_lig->getNextColis()) != FALSE )
-					{
-						$qte_colis = $obj_colis->getQteColis() ;
-						$sscc_colis = $obj_trsptman->get_SSCC_colis( $obj_colis ) ;
-						$no_pal = $obj_colis->getNoContainerExp() ;
-					
-						$arr_ref_pal_qte[$no_pal][$sscc_colis] = $qte_colis ;
-					}
-					// print_r($arr_ref_pal_qte) ;
-					foreach( $arr_ref_pal_qte as $no_pal => $arr1 )
-					{
-						$obj_contpal = new ContainerPalette ;
-						$obj_contpal->load( $no_pal ) ;
-						$sscc_pal = $obj_trsptman->get_SSCC_container( $obj_contpal ) ;
-						foreach( $arr1 as $sscc_colis => $qte )
-						{
-							$lig = '' ;
-							$lig = substr_mklig( $lig, '++C', 0, 20 ) ;
-							$lig = substr_mklig( $lig, $sscc_pal, 20, 30 ) ;
-							$lig = substr_mklig( $lig, $sscc_colis, 50, 30 ) ;
-							$lig = substr_mklig( $lig, int_to_strX($qte*100,10), 80, 10 ) ;
-							$lig.= "\r\n" ;
-							$buffer.= $lig ;
-						}
-					}
-				}
-				if( $obj_cde->getClasseCde() == 'DT' ) {
-					
-					$obj_lig->loadColis() ;
-					$obj_lig->debutColis() ;
-					while( ($obj_colis = $obj_lig->getNextColis()) != FALSE )
-					{
-						$qte = $obj_colis->getQteColis() ;
-						$id_colis_transporteur = $obj_colis->fetch_id_colis_transporteur() ;
-						
-							$lig = '' ;
-							$lig = substr_mklig( $lig, '++C', 0, 20 ) ;
-							$lig = substr_mklig( $lig, $id_colis_transporteur, 20, 30 ) ;
-							$lig = substr_mklig( $lig, $id_colis_transporteur, 50, 30 ) ;
-							$lig = substr_mklig( $lig, int_to_strX($qte*100,10), 80, 10 ) ;
-							$lig.= "\r\n" ;
-							$buffer.= $lig ;
-					}
-				}
+				
+				$lig = '' ;
+				$lig = substr_mklig( $lig, '++C', 0, 20 ) ;
+				$lig = substr_mklig( $lig, $cdeligpack_row['pack_id_trspt_id'], 20, 30 ) ;
+				$lig = substr_mklig( $lig, $cdeligpack_row['pack_id_trspt_id'], 50, 30 ) ;
+				$lig = substr_mklig( $lig, int_to_strX($cdeligpack_row['mvt_qty']*100,10), 80, 10 ) ;
+				$lig.= "\r\n" ;
+				$buffer.= $lig ;
 			}
 		}
-		$obj_cde->majCMAD_30() ;
 	}
-	*/
-	
+	foreach( $arr_cdeFilerecordIds as $cde_filerecord_id ) {
+		$arr_update = array() ;
+		$arr_update['field_STATUS'] = '100' ;
+		paracrm_lib_data_updateRecord_file( 'CDE', $arr_update, $cde_filerecord_id ) ;
+	}
 	
 	$post_params = array() ;
 	$post_params['oscario_domain'] = $_OSCARIO_DOMAIN ;
 	$post_params['oscario_mag'] = $_OSCARIO_MAG ;
 	$post_params['action'] = 'put_cdes_remontee' ;
 	$post_params['data'] = $buffer ;
-	//oscario_http_post($post_params) ;
-
+	oscario_http_post($post_params) ;
 
 
 
@@ -584,6 +534,7 @@ function oscario_interface_do( $_OSCARIO_DOMAIN, $_OSCARIO_MAG, $_OPTIMA_SOC ) {
 		$arr_ecde['field_SOC_CODE'] = $_OPTIMA_SOC ;
 		$arr_ecde['field_CDE_NR'] = $noscde ;
 		$arr_ecde['field_STATUS'] = '10' ;
+		$arr_ecde['field_TRSPT_CODE'] = $map_idata_ivalue['TRSPT_CODE'] ;
 		$arr_ecde['field_ATR_CDECLASS'] = $map_idata_ivalue['SERVICE_CODE'] ;
 		$arr_ecde['field_ATR_CDE_D_EMAIL'] = $map_idata_ivalue['CONTACT_EMAIL'] ;
 		$arr_ecde['field_ATR_CDE_D_TEL'] = $map_idata_ivalue['CONTACT_GSM'] ;
