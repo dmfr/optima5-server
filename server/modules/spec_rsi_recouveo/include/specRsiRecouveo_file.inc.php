@@ -1601,6 +1601,51 @@ function specRsiRecouveo_file_multiAction($post_data) {
 				$arr_update = array('field_ACC_ID'=>$acc_id,'field_LINK_USER_LOCAL'=>$p_targetForm['link_user']) ;
 				paracrm_lib_data_updateRecord_bibleEntry('LIB_ACCOUNT',$acc_id,$arr_update) ;
 				break ;
+				
+			case 'lock_close' :
+				if( $is_sched_lock ) {
+					break ;
+				}
+				$arr_recordIds = array() ;
+				foreach( $file_record['records'] as $filerecord_row ) {
+					$arr_recordIds[] = $filerecord_row['record_filerecord_id'] ;
+				}
+				$forward_post = array(
+					'acc_id' => $file_record['acc_id'],
+					'arr_recordIds' => json_encode($arr_recordIds),
+					'new_action_code' => 'CLOSE_ASK',
+					'form_data' => json_encode(array(
+						'new_action_id' => 'CLOSE_ASK',
+						'close_code' => $p_targetForm['close_code'],
+						'close_txt' => 'Action automatique'
+					))
+				);
+				$json = specRsiRecouveo_file_createForAction($forward_post) ;
+				break ;
+				
+			case 'lock_litig' :
+				if( $is_sched_lock ) {
+					break ;
+				}
+				$arr_recordIds = array() ;
+				foreach( $file_record['records'] as $filerecord_row ) {
+					$arr_recordIds[] = $filerecord_row['record_filerecord_id'] ;
+				}
+				$forward_post = array(
+					'acc_id' => $file_record['acc_id'],
+					'arr_recordIds' => json_encode($arr_recordIds),
+					'new_action_code' => 'LITIG_START',
+					'form_data' => json_encode(array(
+						'new_action_id' => 'LITIG_START',
+						'litig_code' => $p_targetForm['litig_code'],
+						'litig_nextdate' => $p_targetForm['litig_nextdate'],
+						'litig_txt' => 'Action automatique',
+						'litig_ext_is_on' => $p_targetForm['litig_ext_is_on'],
+						'litig_ext_user' => $p_targetForm['litig_ext_user']
+					))
+				);
+				$json = specRsiRecouveo_file_createForAction($forward_post) ;
+				break ;
 		}
 	}
 
