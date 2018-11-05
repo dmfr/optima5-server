@@ -84,6 +84,44 @@ function specDbsLam_cde_getGrid($post_data) {
 		$TAB[$cde_filerecord_id]['ligs'][] = $row ;
 	}
 	
+	if( !$post_data['load_extended'] ) {
+		return array('success'=>true, 'data'=>array_values($TAB)) ;
+	}
+	
+	foreach( $TAB as $cde_filerecord_id => &$row_cde ) {
+		foreach( $row_cde['ligs'] as &$row_cdelig ) {
+			$row_cdelig['qty_ship'] = 0 ;
+			$row_cdelig['cdepack_ligs'] = array() ;
+			// tr_cde_need => packing ? packing ?
+			
+			$query = "SELECT tl.filerecord_id as transferlig_filerecord_id
+								, m.filerecord_id as mvt_filerecord_id
+								, m.field_PROD_ID as stk_prod
+								, m.field_QTY_MVT as mvt_qty
+								, tcp.filerecord_id as transfercdepack_filerecord_id
+								, tcp.field_ID_SSCC as pack_id_sscc
+								, tcp.field_ID_TRSPT_CODE as pack_id_trspt_code
+								, tcp.field_ID_TRSPT_ID as pack_id_trspt_id
+					FROM view_file_CDE_LIG cl
+					INNER JOIN view_file_TRANSFER_CDE_LINK tcl ON tcl.field_FILE_CDELIG_ID=cl.filerecord_id
+					INNER JOIN view_file_TRANSFER_LIG tl ON tl.field_PACK_TRSFRCDELINK_ID=tcl.filerecord_id AND tl.field_STATUS_IS_OUT='1'
+						INNER JOIN view_file_MVT m ON m.filerecord_id=tl.field_FILE_MVT_ID
+					INNER JOIN view_file_TRANSFER_CDE_PACK tcp ON tcp.filerecord_id=tl.field_PACK_TRSFRCDEPACK_ID
+					WHERE cl.filerecord_id='{$row_cdelig['cdelig_filerecord_id']}'" ;
+			//echo $query ;
+			$result = $_opDB->query($query) ;
+			while( ($arr = $_opDB->fetch_assoc($result)) != FALSE ) {
+				$row_cdelig['qty_ship'] += $arr['mvt_qty'] ;
+				
+				// cast
+				$arr['mvt_qty'] = (float)$arr['mvt_qty'] ;
+				$row_cdelig['cdepack_ligs'][] = $arr ;
+			}
+		}
+		unset($row_cdelig) ;
+	}
+	unset($row_cde) ;
+	
 	return array('success'=>true, 'data'=>array_values($TAB)) ;
 }
 
