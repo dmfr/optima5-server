@@ -885,7 +885,7 @@ EOF;
 				
 				case 'number' :
 				$field_name.= '_dec' ;
-				$arrAssoc_dbField_fieldType[$field_name] = 'decimal(10,3)' ;
+				$arrAssoc_dbField_fieldType[$field_name] = 'decimal(12,3)' ;
 				break ;
 				
 				case 'bool' :
@@ -986,7 +986,7 @@ EOF;
 				
 				case 'number' :
 				$field_name.= '_dec' ;
-				$arrAssoc_dbField_fieldType[$field_name] = 'decimal(10,3)' ;
+				$arrAssoc_dbField_fieldType[$field_name] = 'decimal(12,3)' ;
 				break ;
 				
 				case 'bool' :
@@ -1140,7 +1140,7 @@ EOF;
 				
 				case 'number' :
 				$field_name.= '_dec' ;
-				$arrAssoc_dbField_fieldType[$field_name] = 'decimal(10,3)' ;
+				$arrAssoc_dbField_fieldType[$field_name] = 'decimal(12,3)' ;
 				if( $_mode_primaryKey && $arr_field_isPrimaryKey[$field_code] ) {
 					$arrAssoc_dbField_fieldType[$field_name] = 'int(11)' ;
 				}
