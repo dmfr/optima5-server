@@ -715,9 +715,12 @@ function specDbsLam_lib_procCde_syncLinks($transfer_filerecord_id) {
 	}
 	
 	foreach( $map_cdeFilerecordId_statusMin as $cdeFilerecordId => $statusMin ) {
+		$statuscode = '' ;
+		$date_closed = '' ;
 		switch($statusMin) {
 			case 'SHIP_OK' :
 				$statuscode = '90' ;
+				$date_closed = date('Y-m-d H:i:s') ;
 				break ;
 			case 'SHIP_NONE' :
 				$statuscode = '80' ;
@@ -746,6 +749,12 @@ function specDbsLam_lib_procCde_syncLinks($transfer_filerecord_id) {
 		$query = "UPDATE view_file_CDE SET field_STATUS = '{$statuscode}' 
 				WHERE filerecord_id='{$cdeFilerecordId}' AND field_STATUS>='40'"  ;
 		$_opDB->query($query) ;
+		
+		if( $date_closed ) {
+			$query = "UPDATE view_file_CDE SET field_DATE_CLOSED = '{$date_closed}' 
+					WHERE filerecord_id='{$cdeFilerecordId}' AND field_STATUS>='40'"  ;
+			$_opDB->query($query) ;
+		}
 	}
 	
 	
@@ -1122,6 +1131,7 @@ function specDbsLam_lib_procCde_shipPackExpe( $transferpack_filerecord_id ) {
 	if( count($ids) == count($rowExtended_transferCdePack['ligs']) ) {
 		$arr_update = array() ;
 		$arr_update['field_STATUS_IS_SHIPPED'] = 1 ;
+		$arr_update['field_DATE_SHIPPED'] = date('Y-m-d H:i:s') ;
 		paracrm_lib_data_updateRecord_file('TRANSFER_CDE_PACK',$arr_update,$transferpack_filerecord_id) ;
 	}
 	
