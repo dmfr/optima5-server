@@ -170,7 +170,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.GunPackingRun',{
 				var ajaxResponse = Ext.decode(response.responseText),
 					transferligRecord = null ;
 				if( !ajaxResponse.success ) {
-					Ext.MessageBox.alert('Error','Invalid item', function() {
+					Ext.MessageBox.alert('Error',(ajaxResponse.error||'Invalid item'), function() {
 						this.doLoadPackingSrc( this._transferligSrcAdr ) ;
 					},this) ;
 					return ;

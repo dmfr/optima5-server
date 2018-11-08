@@ -222,7 +222,11 @@ function specDbsLam_transferPacking_directCommit($post_data) {
 		$transfer_filerecordId = $transferlig_row['transfer_filerecord_id'] ;
 		$transferLig_filerecordId = $transferlig_row['transferlig_filerecord_id'] ;
 		
-		specDbsLam_lib_procMvt_commit($transferlig_row['mvt_filerecord_id']) ;
+		$success_commit = specDbsLam_lib_procMvt_commit($transferlig_row['mvt_filerecord_id']) ;
+		if( !$success_commit ) {
+			// TODO : from JS ? select only available pending packing lines with enough stk avail
+			return array('success'=>false, 'error'=>'Cannot commit. Picking not complete ?') ;
+		}
 		$transferCdePack_filerecordId = specDbsLam_lib_procCde_shipPackCreate($transfer_filerecordId,$cde_filerecordId,$reuse=FALSE) ;
 		specDbsLam_lib_procCde_shipPackAssociate($transferCdePack_filerecordId,$transferLig_filerecordId) ;
 		specDbsLam_lib_procCde_shipPackSync($transfer_filerecordId) ;
