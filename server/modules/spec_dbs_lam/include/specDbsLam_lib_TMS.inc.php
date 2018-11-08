@@ -146,15 +146,15 @@ function specDbsLam_lib_TMS_getTrsptZplBuffer($rowExtended_transferCdePack, $pac
 
 function specDbsLam_lib_TMS_DPDG_getId( $soc_code ) {
 	/* Retour du barcode de base sans les clés */
-	$key_chargeur = 'DPDG_'.$soc_code.'_CHARGEUR' ;
+	$key_trspt = 'DPDG_'.$soc_code.'_TRSPT' ;
 	$key_plageIdx = 'DPDG_'.$soc_code.'_PLAGE_IDX' ;
 	$key_plageMax = 'DPDG_'.$soc_code.'_PLAGE_MAX' ;
 	
 	
-	$id_chargeur = specDbsLam_lib_TMS_getValueStatic( $key_chargeur ) ;
+	$id_trspt = specDbsLam_lib_TMS_getValueStatic( $key_trspt ) ;
 	$id_plage = specDbsLam_lib_TMS_getValueIncrement( $key_plageIdx, specDbsLam_lib_TMS_getValueStatic($key_plageMax) ) ;
 	
-	$barcode_base = $id_chargeur.$id_plage ;
+	$barcode_base = $id_trspt.$id_plage ;
 	
 	/* Retour du barcode printable */
 	$barcode = $barcode_base ;
@@ -622,8 +622,8 @@ function specDbsLam_lib_TMS_DPDG_getId( $soc_code ) {
 			// TODO $db_arr_entrepot = $obj_trsptman->static_getSelfAdresse() ;
 			
 			$soc_code = $rowExtended_transferCdePack['cde']['soc_code'] ;
-			$key_chargeur = 'DPDG_'.$soc_code.'_CHARGEUR' ;
-			$id_trspt = specDbsLam_lib_TMS_getValueStatic( $key_chargeur ) ;
+			$key_trspt = 'DPDG_'.$soc_code.'_TRSPT' ;
+			$id_trspt = specDbsLam_lib_TMS_getValueStatic( $key_trspt ) ;
 			$id_trspt_constante = substr($id_trspt,0,3) ;
 			$id_trspt_agence = substr($id_trspt,3,3) ;
 			
@@ -1028,10 +1028,14 @@ function specDbsLam_lib_TMS_DPDG_getId( $soc_code ) {
 		
 		
 		$soc_code = $rowExtended_transferCdePack['cde']['soc_code'] ;
-		$key_chargeur = 'DPDG_'.$soc_code.'_CHARGEUR' ;
-		$id_trspt = specDbsLam_lib_TMS_getValueStatic( $key_chargeur ) ;
+		$key_trspt = 'DPDG_'.$soc_code.'_TRSPT' ;
+		$id_trspt = specDbsLam_lib_TMS_getValueStatic( $key_trspt ) ;
 		$id_trspt_constante = substr($id_trspt,0,3) ;
 		$id_trspt_agence = substr($id_trspt,3,3) ;
+				
+		$soc_code = $rowExtended_transferCdePack['cde']['soc_code'] ;
+		$key_chargeur = 'DPDG_'.$soc_code.'_CHARGEUR' ;
+		$id_chargeur = specDbsLam_lib_TMS_getValueStatic( $key_chargeur ) ;
 				
 		$row_plan2 = specDbsLam_lib_TMS_DPDG_getRowPlan2( $id_trspt_agence, $rowExtended_transferCdePack['cde']['adr_country'], $rowExtended_transferCdePack['cde']['adr_cp'] ) ;
 		
@@ -1077,7 +1081,7 @@ function specDbsLam_lib_TMS_DPDG_getId( $soc_code ) {
 						$arr_data['E_32'] = 'FR' ;
 						$arr_data['S_37'] = $rowExtended_transferCdePack['cde']['CDE_ATR_CDE_D_TEL'] ;
 						$arr_data['S_42'] = '003' ;
-						$arr_data['S_43'] = $id_trspt ;
+						$arr_data['S_43'] = str_pad($id_chargeur, 6, '0', STR_PAD_LEFT) ;
 						$arr_data['S_54'] = specDbsLam_lib_TMS_getValueStatic( 'SOC_'.$soc_code.'_NOM' ) ;
 		
 						$arr_str = array() ;
