@@ -276,6 +276,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.HelperCache',{
 		var me = this ;
 		
 		me.nbToLoad = 2 ;
+		me.nbLoaded = 0 ;
 		
 		me.authHelperInit() ;
 		me.fetchConfig() ;

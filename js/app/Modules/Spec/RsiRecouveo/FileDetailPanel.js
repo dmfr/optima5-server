@@ -1242,7 +1242,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FileDetailPanel',{
 					record_xe_currency_sign: fileRecordRecord.get('xe_currency_sign'),
 					record_letter: (fileRecordRecord.get('letter_is_on') ? fileRecordRecord.get('letter_code') : ''),
 					record_type: fileRecordRecord.get('type'),
-					record_readonly: (Ext.isEmpty(fileRecordRecord.get('type')) || fileRecordRecord.get('bank_is_alloc'))
+					record_readonly: (Ext.isEmpty(fileRecordRecord.get('type_temprec')) || fileRecordRecord.get('bank_is_alloc'))
 				};
 				Ext.Array.each(atrRecFields, function(atrRecField) {
 					record[atrRecField] = fileRecordRecord.get(atrRecField) ;

@@ -499,7 +499,7 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetList', {
 	    //console.log(this.down('#pGrid')) ;
         this.callParent() ;
     },
-	configureGrid: function (cfgParamIds, showAddress, viewMode) {
+	configureGrid: function (cfgParamIds, showAddress, viewMode, disableXe=false) {
 		this.headerCt.down('#colStatus').setVisible( !(viewMode=='account') ) ;
 		//this.down('#pCenter').down('#pGrid').headerCt.down('#colAtr').setVisible( !(this.viewMode=='account') ) ;
 		this.headerCt.down('#colAtr').items.each( function(col) {
@@ -538,6 +538,10 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesWidgetList', {
 
 		var showAddress = (showAddress) ;
 		this.headerCt.down('[dataIndex="adr_postal"]').setVisible(showAddress) ;
+		
+		var hasXe = !(disableXe) ;
+		this.headerCt.down('[dataIndex="record_xe_currency_amount"]').setVisible(hasXe) ;
+		this.headerCt.down('[dataIndex="record_xe_currency_code"]').setVisible(hasXe) ;
 		
 		this._viewMode = viewMode ;
 	},

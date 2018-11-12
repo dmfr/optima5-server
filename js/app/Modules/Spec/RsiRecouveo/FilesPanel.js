@@ -388,8 +388,19 @@ Ext.define('Optima5.Modules.Spec.RsiRecouveo.FilesPanel',{
 			var atrRecord = Optima5.Modules.Spec.RsiRecouveo.HelperCache.getAtrHeader(atrId) ;
 			cfgParamIds.push( 'ATR:'+atrRecord.atr_id ) ;
 		}) ;
-		this.down('#pCenter').down('#pGrid').configureGrid(cfgParamIds, this.showAddress, this.viewMode) ;
-
+		
+		// Disable XE ?
+		var hasXe = false ;
+		Optima5.Modules.Spec.RsiRecouveo.HelperCache.getSocRootNode().cascadeBy( function(socNode) {
+			var socRow = socNode.getData() ;
+			if( !Ext.isEmpty(tbSocsSelected) && Ext.Array.contains(tbSocsSelected,socRow['soc_id']) ) {
+				return ;
+			}
+			if( socRow['soc_xe_currency'] ) {
+				hasXe = true ;
+			}
+		}) ;
+		this.down('#pCenter').down('#pGrid').configureGrid(cfgParamIds, this.showAddress, this.viewMode, !hasXe) ;
 	},
 
 

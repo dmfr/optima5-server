@@ -191,7 +191,7 @@ function specRsiRecouveo_lib_edi_post_record( $json_rows) {
 		'DateTrans' => 'field_DATE_LOAD',
 		'DateLimite' => 'field_DATE_VALUE',
 		'Letter' => 'field_LETTER_CODE',
-		'Journal' => 'field_TYPE_TEMPREC',
+		'NonFactType' => 'field_TYPE',
 	);
 	$count_success = 0;
 	$ret_errors = array() ;
