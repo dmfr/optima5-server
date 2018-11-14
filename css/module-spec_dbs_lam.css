@@ -141,6 +141,9 @@
 .op5-spec-dbslam-stock-disabled .x-grid-cell-inner {
 	background-color: #cccccc ;
 }
+.op5-spec-dbslam-stock-blue .x-grid-cell-inner {
+	background-color: #75BDFF ;
+}
 .op5-spec-dbslam-stock-out .x-grid-cell-inner {
 	background-color: #5AB5FF !important;
 }

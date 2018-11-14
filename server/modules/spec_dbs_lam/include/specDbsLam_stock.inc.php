@@ -57,6 +57,10 @@ function specDbsLam_stock_getGrid($post_data) {
 		
 		$row['adr_id'] = $arr['ADR_entry_key'] ;
 		
+		$row['container_is_on'] = $arr['ADR_field_CONT_IS_ON'] ;
+		$row['container_types'] = json_decode($arr['ADR_field_CONT_TYPES'],true) ;
+		$row['container_is_picking'] = $arr['ADR_field_CONT_IS_PICKING'] ;
+		
 		$row['pos_zone'] = substr($arr['ADR_treenode_key'],0,1) ;
 		$row['pos_row'] = $arr['ADR_treenode_key'] ;
 		$row['pos_bay'] = $arr['ADR_field_POS_BAY'] ;
@@ -92,6 +96,7 @@ function specDbsLam_stock_getGrid($post_data) {
 		$row['inv_id'] = $arr['STOCK_filerecord_id'] ;
 		$row['inv_prod'] = $arr['STOCK_field_PROD_ID'] ;
 		$row['inv_batch'] = $arr['STOCK_field_SPEC_BATCH'] ;
+		$row['inv_qty_prein'] = ( $arr['STOCK_field_PROD_ID'] ? $arr['STOCK_field_QTY_PREIN'] : null ) ;
 		$row['inv_qty'] = ( $arr['STOCK_field_PROD_ID'] ? $arr['STOCK_field_QTY_AVAIL'] : null ) ;
 		$row['inv_qty_out'] = ( $arr['STOCK_field_PROD_ID'] ? $arr['STOCK_field_QTY_OUT'] : null ) ;
 		$row['inv_sn'] = $arr['STOCK_field_SPEC_SN'] ;

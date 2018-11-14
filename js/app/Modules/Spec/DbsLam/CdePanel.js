@@ -30,6 +30,8 @@ Ext.define('DbsLamCdeGridModel',{
 		{name: 'adr_cp', type:'string'},
 		{name: 'adr_country', type:'string'},
 		
+		{name: 'trspt_code', type:'string'},
+		
 		{name: 'link_transfer_filerecord_id', type:'int'},
 		{name: 'link_transfer_txt', type:'string'}
 	]
@@ -351,6 +353,16 @@ Ext.define('Optima5.Modules.Spec.DbsLam.CdePanel',{
 						},
 						summaryType: 'sum',
 						summaryRenderer: Ext.util.Format.numberRenderer( '0,000.00' )
+					}]
+				},{
+					text: 'Transport',
+					columns: [{
+						text: 'Carrier',
+						dataIndex: 'trspt_code',
+						width: 50,
+						filter: {
+							type: 'stringlist'
+						}
 					}]
 				},{
 					text: 'Livraison',

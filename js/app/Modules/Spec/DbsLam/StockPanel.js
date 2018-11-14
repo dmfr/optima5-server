@@ -26,9 +26,13 @@ Ext.define('DbsLamStockGridModel',{
 		{name: 'inv_prod', type:'string'},
 		{name: 'inv_batch', type:'string'},
 		{name: 'inv_qty', type:'number', useNull:true},
+		{name: 'inv_qty_prein', type:'number', useNull:true},
 		{name: 'inv_qty_out', type:'number', useNull:true},
 		{name: 'inv_sn', type:'string'},
 		{name: 'inv_container', type:'string'},
+		{name: 'container_is_on', type:'boolean'},
+		{name: 'container_types', type:'auto'},
+		{name: 'container_is_picking', type:'boolean'},
 		{name: 'prealloc', type:'boolean'}
 	]
 });
@@ -293,7 +297,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 					draggable: false,
 					sortable: false,
 					hideable: false,
-					resizable: false,
+					//resizable: false,
 					groupable: false,
 					lockable: false
 				},
@@ -313,12 +317,31 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 						}
 					}
 				},{
-					dataIndex: 'adr_id',
-					text: 'ID',
-					width: 90,
-					renderer: function(v) {
-						return '<b>'+v+'</b>';
-					}
+					text: 'Location',
+					columns: [{
+						dataIndex: 'adr_id',
+						text: 'ID',
+						width: 90,
+						renderer: function(v) {
+							return '<b>'+v+'</b>';
+						}
+					},{
+						dataIndex: 'container_types',
+						text: 'Type(Pickng)',
+						width: 90,
+						renderer: function(value,metadata,record) {
+							if( !record.get('container_is_on') ) {
+								value = '-' ;
+							}
+							if( record.get('status') && record.get('container_is_on') && record.get('container_is_picking') ) {
+								metadata.tdCls = 'op5-spec-dbslam-stock-blue'
+							}
+							if( Ext.isArray(value) ) {
+								value = value.join('/') ;
+							}
+							return value ;
+						}
+					}]
 				},{
 					text: 'Position',
 					columns: [{
@@ -354,9 +377,21 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 							type: 'string'
 						}
 					},{
+						hidden: true,
 						dataIndex: 'inv_batch',
 						text: 'BatchCode',
 						width: 100
+					},{
+						dataIndex: 'inv_qty_prein',
+						text: 'Qty PreIn',
+						align: 'right',
+						width: 75,
+						renderer: function(v) {
+							if( v<=0 ) {
+								return '&#160;' ;
+							}
+							return v ;
+						}
 					},{
 						dataIndex: 'inv_qty',
 						text: 'Qty disp',
@@ -398,6 +433,7 @@ Ext.define('Optima5.Modules.Spec.DbsLam.StockPanel',{
 							return v ;
 						}
 					},{
+						hidden: true,
 						dataIndex: 'inv_sn',
 						text: 'Serial',
 						width: 100
