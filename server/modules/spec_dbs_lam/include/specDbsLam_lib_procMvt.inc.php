@@ -317,7 +317,7 @@ function specDbsLam_lib_procMvt_commit($mvt_filerecordId) {
 		$do_delete = TRUE ;
 	
 		// verif picking statique ?
-		$query = "SELECT filerecord_id FROM view_file_STOCK stk
+		$query = "SELECT filerecord_id, prod.entry_key, adr.entry_key FROM view_file_STOCK stk
 					INNER JOIN view_bible_ADR_entry adr ON adr.entry_key=stk.field_ADR_ID
 					INNER JOIN view_bible_PROD_entry prod ON prod.entry_key=stk.field_PROD_ID
 					WHERE stk.filerecord_id='{$stockSrc_filerecordId}' 
@@ -326,13 +326,27 @@ function specDbsLam_lib_procMvt_commit($mvt_filerecordId) {
 		$result = $_opDB->query($query) ;
 		if( $_opDB->num_rows($result) > 0 ) {
 			$do_delete = FALSE ;
+			$arr = $_opDB->fetch_row($result) ;
+			$prodIdStatic = $arr[1] ;
+			$adrIdStatic = $arr[2] ;
 		}
 	
 		if( $do_delete ) {
 			paracrm_lib_data_deleteRecord_file( 'STOCK' , $stockSrc_filerecordId ) ;
 		} else {
-			// HACK TODO ! Delete des pickings plus anciens : meme adr / meme ref / qtes = 0 
-			
+			// HACK ! Delete des pickings plus anciens : meme adr / meme ref / qtes = 0 
+			$query = "SELECT filerecord_id FROM view_file_STOCK stk
+						INNER JOIN view_bible_ADR_entry adr ON adr.entry_key=stk.field_ADR_ID
+						INNER JOIN view_bible_PROD_entry prod ON prod.entry_key=stk.field_PROD_ID
+						WHERE stk.filerecord_id<>'{$stockSrc_filerecordId}'
+							AND prod.entry_key='{$prodIdStatic}'
+							AND adr.entry_key='{$adrIdStatic}'
+							AND field_QTY_PREIN='0' AND field_QTY_OUT='0' AND field_QTY_AVAIL='0'" ;
+			$result = $_opDB->query($query) ;
+			while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
+				$stockOtherPicking_filerecordId = $arr[0] ;
+				//paracrm_lib_data_deleteRecord_file( 'STOCK' , $stockOtherPicking_filerecordId ) ;
+			}
 		}
 	}
 	
