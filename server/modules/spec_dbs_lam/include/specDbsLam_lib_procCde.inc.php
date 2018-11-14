@@ -1054,7 +1054,9 @@ function specDbsLam_lib_procCde_shipPackGenerate( $transferpack_filerecord_id, $
 	
 	
 	$zpl_buffer = specDbsLam_lib_TMS_getTrsptZplBuffer($rowExtended_transferCdePack, $id_trspt_code, $id_trspt_id) ;
-	
+	if( !$zpl_buffer ) {
+		return ;
+	}
 	$arr_update['field_ZPL_IS_ON'] = 1 ;
 	paracrm_lib_data_updateRecord_file('TRANSFER_CDE_PACK',$arr_update,$transferpack_filerecord_id) ;
 	
