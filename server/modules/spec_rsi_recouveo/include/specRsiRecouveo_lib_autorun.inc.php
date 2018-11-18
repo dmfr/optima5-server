@@ -7,7 +7,7 @@ function specRsiRecouveo_lib_autorun_open() {
 	$query = "SELECT distinct field_LINK_ACCOUNT FROM view_file_RECORD r
 				LEFT OUTER JOIN view_file_RECORD_LINK rl 
 				 ON rl.filerecord_parent_id=r.filerecord_id AND rl.field_LINK_IS_ON='1'
-				WHERE r.field_TYPE='' AND rl.filerecord_id IS NULL" ;
+				WHERE rl.filerecord_id IS NULL" ;
 	$result = $_opDB->query($query) ;
 	while( ($arr = $_opDB->fetch_row($result)) != FALSE ) {
 		$arr_acc[] = $arr[0] ;
