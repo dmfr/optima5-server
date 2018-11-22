@@ -113,7 +113,13 @@ function specDbsLam_lib_TMS_getTrsptId($rowExtended_transferCdePack, $pack_id_tr
 	switch( $pack_id_trspt_code ) {
 		case 'DPDG' :
 			return specDbsLam_lib_TMS_DPDG_getId($rowExtended_transferCdePack['cde']['soc_code']) ;
-			
+		
+		case 'UPS' :
+			if( $arr_elements=specDbsLam_lib_TMS_UPS_getElements($rowExtended_transferCdePack,$do_force=TRUE) ) {
+				return $arr_elements['tracking_id'] ;
+			}
+			return null ;
+		
 		default :
 			return null ;
 	}
@@ -126,6 +132,13 @@ function specDbsLam_lib_TMS_getTrsptZplBuffer($rowExtended_transferCdePack, $pac
 		case 'DPDG' :
 			$zebra_buffer.= specDbsLam_lib_TMS_DPDG_getZplBuffer($rowExtended_transferCdePack,$pack_id_trspt_id) ;
 			break ;
+			
+		case 'UPS' :
+			if( $arr_elements=specDbsLam_lib_TMS_UPS_getElements($rowExtended_transferCdePack) ) {
+				$zebra_buffer.= $arr_elements['label_zpl_part'] ;
+				break ;
+			}
+			return null ;
 			
 		default :
 			return null ;
@@ -1103,4 +1116,251 @@ function specDbsLam_lib_TMS_DPDG_getId( $soc_code ) {
 						
 		return $lig."\r\n" ;
 	}
+
+
+
+function specDbsLam_lib_TMS_UPS_getElements( $rowExtended_transferCdePack, $do_force=FALSE ) {
+	if( $do_force ) {
+		specDbsLam_lib_TMS_UPS_doRequest($rowExtended_transferCdePack) ;
+	}
+	
+	global $_opDB ;
+	
+	$transfercdepack_filerecordId = $rowExtended_transferCdePack['transfercdepack_filerecord_id'] ;
+	$query = "SELECT filerecord_id FROM view_file_TMS_STORE
+				WHERE field_FILE_TRSFRCDEPACK_ID='{$transfercdepack_filerecordId}' AND field_STORE_PEER='UPS_API' AND field_STORE_TAG='response'
+				ORDER BY filerecord_id DESC LIMIT 1" ;
+	$response_filerecordId = $_opDB->query_uniqueValue( $query ) ;
+	if( !$response_filerecordId && !$do_force ) {
+		return specDbsLam_lib_TMS_UPS_getElements($rowExtended_transferCdePack,TRUE) ;
+	}
+	
+	$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
+	$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
+	media_contextOpen( $_sdomain_id ) ;
+	$json = media_bin_getBinary(media_bin_toolFile_getId('TMS_STORE',$response_filerecordId)) ;
+	media_contextClose() ;
+	if( !$json || !($json_obj=json_decode($json,true)) ) {
+		return NULL ;
+	}
+	
+	$elements = array();
+	$elements['tracking_id'] = $json_obj['ShipmentResponse']['ShipmentResults']['PackageResults']['TrackingNumber'] ;
+	$elements['label_zpl'] = base64_decode($json_obj['ShipmentResponse']['ShipmentResults']['PackageResults']['ShippingLabel']['GraphicImage']) ;
+	
+	$label_zpl_part = $elements['label_zpl'] ;
+	$label_zpl_part = str_replace('^XA','',$label_zpl_part) ;
+	$label_zpl_part = str_replace('^XZ','',$label_zpl_part) ;
+	$elements['label_zpl_part'] = $label_zpl_part ;
+	
+	return $elements ;
+}
+
+function specDbsLam_lib_TMS_UPS_doRequest( $rowExtended_transferCdePack ) {
+	// Pack variables
+	$soc_code = $rowExtended_transferCdePack['cde']['soc_code'] ;
+	
+	// UPS constantes
+	$key_upsUrlProd = 'UPS_URL_PROD' ;
+	$key_upsUrlDev = 'UPS_URL_DEV' ;
+	
+	// UPS variables
+	$key_upsAccId = 'UPS_'.$soc_code.'_ACC_ID' ;
+	$key_upsAccPw = 'UPS_'.$soc_code.'_ACC_PW' ;
+	$key_upsKey = 'UPS_'.$soc_code.'_KEY' ;
+	$key_upsAccount = 'UPS_'.$soc_code.'_ACCOUNT' ;
+
+	// shipper
+	$shipper['nom'] = specDbsLam_lib_TMS_getValueStatic( 'SOC_'.$soc_code.'_NOM' );
+	$shipper['adr1'] = specDbsLam_lib_TMS_getValueStatic( 'WHSE_RUE' );
+	$shipper['adr2'] = specDbsLam_lib_TMS_getValueStatic( 'WHSE_NOM' );
+	$shipper['cp'] = substr(specDbsLam_lib_TMS_getValueStatic( 'WHSE_VILLE' ),0,5) ;
+	$shipper['ville'] = substr(specDbsLam_lib_TMS_getValueStatic( 'WHSE_VILLE' ),6);
+	foreach( $shipper as &$str ) {
+		$str=iconv('UTF-8','ASCII//TRANSLIT',$str);
+	}
+	unset($str) ;
+
+	// deliv adr
+	$adr_full = trim($rowExtended_transferCdePack['cde']['adr_full']) ;
+	$arr_adr = explode("\n",$adr_full) ;
+	array_pop($arr_adr) ;
+	$last_lig = array_pop($arr_adr) ;
+	$ttmp = explode(' ',$last_lig,2) ;
+	$destination['nom'] = trim($arr_adr[0]);
+	$destination['adr1'] = substr(trim($arr_adr[1]), 0,35 );
+	$destination['adr2'] = substr(trim($arr_adr[2]), 0,35 );
+	$destination['cp'] = $rowExtended_transferCdePack['cde']['adr_cp'] ;
+	$destination['ville'] = substr($ttmp[1], 0,35 );
+	foreach( $destination as &$str ) {
+		$str=iconv('UTF-8','ASCII//TRANSLIT',$str);
+	}
+	unset($str) ;
+	
+	
+	$json_request = array(
+		'UPSSecurity' => array(
+			'UsernameToken' => array(
+				'Username' => specDbsLam_lib_TMS_getValueStatic($key_upsAccId),
+				'Password' => specDbsLam_lib_TMS_getValueStatic($key_upsAccPw)
+			),
+			'ServiceAccessToken' => array(
+				'AccessLicenseNumber' => specDbsLam_lib_TMS_getValueStatic($key_upsKey)
+			)
+		),
+		
+		'ShipmentRequest' => array(
+			'Request' => array(
+				"RequestOption" => 'validate',
+				"TransactionReference" => array(
+					"CustomerContext" => $rowExtended_transferCdePack['id_nocolis']
+				)
+			),
+			
+			"Shipment" => array(
+				"Shipper" => array(
+					"Name" => $shipper['nom'],
+					"ShipperNumber" => specDbsLam_lib_TMS_getValueStatic($key_upsAccount),
+					"Address" => array(
+						"AddressLine" => array($shipper['adr1'],$shipper['adr2']),
+						"City" => $shipper['ville'],
+						//"StateProvinceCode" => "StateProvinceCode",
+						"PostalCode" => $shipper['cp'],
+						"CountryCode" => 'FR'
+					)
+				),
+				"ShipTo" => array(
+					"Name" => $destination['nom'],
+					//"AttentionName" => "Ship To Attn Name",
+					"EMailAddress" => $rowExtended_transferCdePack['cde']['CDE_ATR_CDE_D_EMAIL'],
+					"Phone" => array(
+						"Number" => $rowExtended_transferCdePack['cde']['CDE_ATR_CDE_D_TEL']
+					),
+					"Address" => array(
+						"AddressLine" => array($destination['adr1'],$destination['adr2']),
+						"City" => $destination['ville'],
+						//"StateProvinceCode" => "StateProvinceCode",
+						"PostalCode" => $rowExtended_transferCdePack['cde']['adr_cp'],
+						"CountryCode" => $rowExtended_transferCdePack['cde']['adr_country']
+					)
+				),
+				/*
+				"ShipFrom" => array(
+				
+				),
+				*/
+				"PaymentInformation" => array(
+					"ShipmentCharge" => array(
+						"Type" => "01",
+						"BillShipper" => array(
+							"AccountNumber" => specDbsLam_lib_TMS_getValueStatic($key_upsAccount)
+						)
+					)
+				),
+				"Service" => array(
+					"Code" => "11",
+					"Description" => "UPS Standard"
+				),
+				"ShipmentRatingOptions" => array(
+					"NegotiatedRatesIndicator" => "0"
+				),
+				
+				"Package" => array(
+					"Packaging" => array(
+						"Code" => "02",
+						"Description" => "Customer Supplied Package"
+					),
+					/*"Dimensions" => array(
+						"UnitOfMeasurement" => array(
+							"Code" => "IN",
+							"Description" => "Inches"
+						),
+						"Length" => "7",
+						"Width" => "5",
+						"Height" => "2"
+					),*/
+					"PackageWeight" => array(
+						"UnitOfMeasurement" => array(
+							"Code" => "KGS"
+						),
+						"Weight" => (string)$rowExtended_transferCdePack['calc_vl_kg']
+					)
+				)
+			),
+			"LabelSpecification" => array(
+				"LabelImageFormat" => array(
+					"Code" => "ZPL"
+				),
+				"LabelStockSize" => array(
+					"Height" => "6",
+					"Width" => "4"
+				)
+				//"HTTPUserAgent" => "Mozilla/4.5"
+			)
+		)
+	);
+	
+	
+	
+	$json_txt = json_encode($json_request,JSON_PRETTY_PRINT) ;
+	
+	$arr_ins = array() ;
+	$arr_ins['field_FILE_TRSFRCDEPACK_ID'] = $rowExtended_transferCdePack['transfercdepack_filerecord_id'] ;
+	$arr_ins['field_STORE_PEER'] = 'UPS_API' ;
+	$arr_ins['field_STORE_DATE'] = date('Y-m-d H:i:s') ;
+	$arr_ins['field_STORE_TAG'] = 'request' ;
+	$request_filerecordId = paracrm_lib_data_insertRecord_file('TMS_STORE',0,$arr_ins) ;
+	
+	$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
+	$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
+	media_contextOpen( $_sdomain_id ) ;
+	$tmp_media_id = media_bin_processBuffer( $json_txt ) ;
+	media_bin_move( $tmp_media_id , media_bin_toolFile_getId('TMS_STORE',$request_filerecordId) ) ;
+	media_contextClose() ;
+	
+	
+	
+	// Construction de l'URL
+	$post_url = specDbsLam_lib_TMS_getValueStatic($key_upsUrlProd) ;
+	if( $GLOBALS['__OPTIMA_TEST'] ) {
+		$post_url = specDbsLam_lib_TMS_getValueStatic($key_upsUrlDev) ;
+	}
+	
+	$params = array('http' => array(
+	'method' => 'POST',
+	'content' => json_encode($json_request),
+	'timeout' => 600
+	));
+	$ctx = stream_context_create($params);
+	$fp = @fopen($post_url, 'rb', false, $ctx);
+	if( !$fp ) {
+		return FALSE ;
+	}
+	
+	$response = stream_get_contents($fp) ;
+	$json_txt = json_encode(json_decode($response,true),JSON_PRETTY_PRINT) ;
+	
+	$json_obj = json_decode($response,true) ;
+	$tag = 'response_NOK' ;
+	if( $json_obj['ShipmentResponse']['ShipmentResults']['PackageResults']['TrackingNumber'] ) {
+		$tag = 'response' ;
+	}
+	
+	$arr_ins = array() ;
+	$arr_ins['field_FILE_TRSFRCDEPACK_ID'] = $rowExtended_transferCdePack['transfercdepack_filerecord_id'] ;
+	$arr_ins['field_STORE_PEER'] = 'UPS_API' ;
+	$arr_ins['field_STORE_DATE'] = date('Y-m-d H:i:s') ;
+	$arr_ins['field_STORE_TAG'] = $tag ;
+	$response_filerecordId = paracrm_lib_data_insertRecord_file('TMS_STORE',0,$arr_ins) ;
+	
+	$_domain_id = DatabaseMgr_Base::dbCurrent_getDomainId() ;
+	$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
+	media_contextOpen( $_sdomain_id ) ;
+	$tmp_media_id = media_bin_processBuffer( $json_txt ) ;
+	media_bin_move( $tmp_media_id , media_bin_toolFile_getId('TMS_STORE',$response_filerecordId) ) ;
+	media_contextClose() ;
+	
+	return TRUE ;
+}
+
 ?>
