@@ -360,6 +360,7 @@ function specDbsLam_transfer_getTransferCdePack( $post_data ) {
 	if( $post_data['do_generate'] ) {
 		$forward_post = $post_data ;
 		unset($forward_post['do_generate']) ;
+		unset($forward_post['download_zpl']) ;
 		$json = specDbsLam_transfer_getTransferCdePack($forward_post) ;
 		
 		$arr_transferFilerecordIds = array() ;
@@ -418,6 +419,7 @@ function specDbsLam_transfer_getTransferCdePack( $post_data ) {
 			$_sdomain_id = DatabaseMgr_Sdomain::dbCurrent_getSdomainId() ;
 			media_contextOpen( $_sdomain_id ) ;
 			$row['zpl_binary'] = media_bin_getBinary(media_bin_toolFile_getId('TRANSFER_CDE_PACK',$arr['transfercdepack_filerecord_id'])) ;
+			$row['zpl_binary'] = preg_replace('/[[:^print:]]/', '', $row['zpl_binary']);
 			media_contextClose() ;
 		}
 		

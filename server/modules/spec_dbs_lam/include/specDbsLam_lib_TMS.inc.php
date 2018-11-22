@@ -638,6 +638,10 @@ function specDbsLam_lib_TMS_DPDG_getId( $soc_code ) {
 			$destination['adr2'] = substr(trim($arr_adr[2]), 0,35 );
 			$destination['cp'] = $rowExtended_transferCdePack['cde']['adr_cp'] ;
 			$destination['ville'] = substr($ttmp[1], 0,35 );
+			foreach( $destination as &$str ) {
+				$str=iconv('UTF-8','ASCII//TRANSLIT',$str);
+			}
+			unset($str) ;
 
 
 			
